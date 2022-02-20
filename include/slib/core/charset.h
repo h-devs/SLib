@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_CHARSET
 #define CHECKHEADER_SLIB_CORE_CHARSET
 
-#include "definition.h"
+#include "endian.h"
 
 namespace slib
 {
@@ -225,47 +225,57 @@ namespace slib
 	class Memory;
 	class String;
 	class String16;
+	class String32;
 	
 	class Charsets
 	{
 	public:
 		static sl_size utf8ToUtf16(const sl_char8* utf8, sl_reg lenUtf8, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
 
-		static sl_size encode8_UTF16BE(const sl_char8* utf8, sl_reg lenUtf8, void* utf16, sl_reg sizeUtf16Buffer) noexcept;
-		
-		static sl_size encode8_UTF16LE(const sl_char8* utf8, sl_reg lenUtf8, void* utf16, sl_reg sizeUtf16Buffer) noexcept;
+		static sl_size utf8ToUtf16(const sl_char8* utf8, sl_reg lenUtf8, EndianType endianUtf16, void* utf16, sl_reg sizeUtf16Buffer) noexcept;
 		
 		static sl_size utf8ToUtf32(const sl_char8* utf8, sl_reg lenUtf8, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept;
 
-		static sl_size encode8_UTF32BE(const sl_char8* utf8, sl_reg lenUtf8, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
-
-		static sl_size encode8_UTF32LE(const sl_char8* utf8, sl_reg lenUtf8, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
+		static sl_size utf8ToUtf32(const sl_char8* utf8, sl_reg lenUtf8, EndianType endianUtf32, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
 
 		static sl_size utf16ToUtf8(const sl_char16* utf16, sl_reg lenUtf16, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
 
-		static sl_size decode8_UTF16BE(const void* utf16, sl_size sizeUtf16, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
+		static sl_size utf16ToUtf8(EndianType endianUtf16, const void* utf16, sl_size sizeUtf16, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
 
-		static sl_size decode8_UTF16LE(const void* utf16, sl_size sizeUtf16, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
+		static sl_size utf16ToUtf32(const sl_char16* utf16, sl_reg lenUtf16, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept;
+
+		static sl_size utf16ToUtf32(const sl_char16* utf16, sl_reg lenUtf16, EndianType endianUtf32, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
+
+		static sl_size utf16ToUtf32(EndianType endianUtf16, const void* utf16, sl_size sizeUtf16, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept;
+
+		static sl_size utf16ToUtf32(EndianType endianUtf16, const void* utf16, sl_size sizeUtf16, EndianType endianUtf32, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
 
 		static sl_size utf32ToUtf8(const sl_char32* utf32, sl_reg lenUtf32, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
 	
-		static sl_size decode8_UTF32BE(const void* utf32, sl_size sizeUtf32, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
+		static sl_size utf32ToUtf8(EndianType endianUtf32, const void* utf32, sl_size sizeUtf32, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
 		
-		static sl_size decode8_UTF32LE(const void* utf32, sl_size sizeUtf32, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
-		
-		static sl_size utf16ToUtf32(const sl_char16* utf16, sl_reg lenUtf16, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept;
-
-		static sl_size encode16_UTF32BE(const sl_char16* utf16, sl_reg lenUtf16, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
-
-		static sl_size encode16_UTF32LE(const sl_char16* utf16, sl_reg lenUtf16, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
-
 		static sl_size utf32ToUtf16(const sl_char32* utf32, sl_reg lenUtf32, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
 
-		static sl_size decode16_UTF32BE(const void* utf32, sl_size sizeUtf32, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
+		static sl_size utf32ToUtf16(EndianType endianUtf32, const void* utf32, sl_size sizeUtf32, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
 
-		static sl_size decode16_UTF32LE(const void* utf32, sl_size sizeUtf32, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
-		
-		
+		static sl_size utf32ToUtf16(const sl_char32* utf32, sl_reg lenUtf32, EndianType endianUtf16, void* utf16, sl_reg sizeUtf16Buffer) noexcept;
+
+		static sl_size utf32ToUtf16(EndianType endianUtf32, const void* utf32, sl_size sizeUtf32, EndianType endianUtf16, void* utf16, sl_reg sizeUtf16Buffer) noexcept;
+
+
+		static void utf16ToUtf16(const sl_char16* src, EndianType endianDst, void* dst, sl_size len);
+
+		static void utf16ToUtf16(EndianType endianSrc, const void* src, sl_char16* dst, sl_size len);
+
+		static void utf16ToUtf16(EndianType endianSrc, const void* src, EndianType endianDst, void* dst, sl_size len);
+
+		static void utf32ToUtf32(const sl_char32* src, EndianType endianDst, void* dst, sl_size len);
+
+		static void utf32ToUtf32(EndianType endianSrc, const void* src, sl_char32* dst, sl_size len);
+
+		static void utf32ToUtf32(EndianType endianSrc, const void* src, EndianType endianDst, void* dst, sl_size len);
+
+
 		static sl_size encode8(const sl_char8* utf8, sl_size lenUtf8, Charset charset, void* output, sl_reg sizeOutputBuffer);
 		
 		static sl_size decode8(Charset charset, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer);
@@ -273,7 +283,11 @@ namespace slib
 		static sl_size encode16(const sl_char16* utf16, sl_size lenUtf16, Charset charset, void* output, sl_reg sizeOutputBuffer);
 		
 		static sl_size decode16(Charset charset, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer);
-		
+
+		static sl_size encode32(const sl_char32* utf32, sl_size lenUtf32, Charset charset, void* output, sl_reg sizeOutputBuffer);
+
+		static sl_size decode32(Charset charset, const void* input, sl_size sizeInput, sl_char32* utf32, sl_reg lenUtf32Buffer);
+
 		static Memory encode8(const sl_char8* utf8, sl_size lenUtf8, Charset outputCharset);
 
 		static String decode8(Charset charset, const void* input, sl_size sizeInput);
@@ -281,6 +295,10 @@ namespace slib
 		static Memory encode16(const sl_char16* utf16, sl_size lenUtf16, Charset outputCharset);
 
 		static String16 decode16(Charset charset, const void* input, sl_size sizeInput);
+
+		static Memory encode32(const sl_char32* utf16, sl_size lenUtf32, Charset outputCharset);
+
+		static String32 decode32(Charset charset, const void* input, sl_size sizeInput);
 
 		
 		static sl_bool checkUtf8(const void* utf8, sl_size size);

@@ -47,9 +47,8 @@ namespace slib
 				return CVLI::serialize(_out, (parentId << 1) | (flagDictionary ? 1 : 0));
 			}
 
-			static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 parentId, sl_bool flagDictionary, const StringParam& _key)
+			static sl_uint32 PrepareKey(sl_uint8* _out, sl_uint64 parentId, sl_bool flagDictionary, const StringView& key)
 			{
-				StringData key(_key);
 				sl_size len = key.getLength();
 				if (!len) {
 					return 0;
@@ -109,11 +108,11 @@ namespace slib
 				Ref<ObjectStoreDictionary> getRootDictionary() override;
 				
 			public:
-				Ref<ObjectStoreDictionary> createDictionary(sl_uint64 parentId, const StringParam& key);
+				Ref<ObjectStoreDictionary> createDictionary(sl_uint64 parentId, const StringView& key);
 
-				Ref<ObjectStoreDictionary> getDictionary(sl_uint64 parentId, const StringParam& key);
+				Ref<ObjectStoreDictionary> getDictionary(sl_uint64 parentId, const StringView& key);
 
-				sl_bool removeDictionary(sl_uint64 parentId, const StringParam& _key)
+				sl_bool removeDictionary(sl_uint64 parentId, const StringView& _key)
 				{
 					sl_uint8 key[KEY_BUFFER_SIZE];
 					sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
@@ -135,7 +134,7 @@ namespace slib
 
 				Iterator<String, ObjectStore> getDictionaryIterator(sl_uint64 parentId);
 
-				Variant getItem(sl_uint64 parentId, const StringParam& _key)
+				Variant getItem(sl_uint64 parentId, const StringView& _key)
 				{
 					sl_uint8 key[KEY_BUFFER_SIZE];
 					sl_uint32 nKey = PrepareKey(key, parentId, sl_false, _key);
@@ -146,7 +145,7 @@ namespace slib
 					}
 				}
 
-				sl_bool putItem(sl_uint64 parentId, const StringParam& _key, const Variant& value)
+				sl_bool putItem(sl_uint64 parentId, const StringView& _key, const Variant& value)
 				{
 					sl_uint8 key[KEY_BUFFER_SIZE];
 					sl_uint32 nKey = PrepareKey(key, parentId, sl_false, _key);
@@ -157,7 +156,7 @@ namespace slib
 					}
 				}
 
-				sl_bool removeItem(sl_uint64 parentId, const StringParam& _key)
+				sl_bool removeItem(sl_uint64 parentId, const StringView& _key)
 				{
 					sl_uint8 key[KEY_BUFFER_SIZE];
 					sl_uint32 nKey = PrepareKey(key, parentId, sl_false, _key);
@@ -333,17 +332,17 @@ namespace slib
 					return m_manager;
 				}
 
-				Ref<ObjectStoreDictionary> createDictionary(const StringParam& key) override
+				Ref<ObjectStoreDictionary> createDictionary(const StringView& key) override
 				{
 					return m_manager->createDictionary(m_id, key);
 				}
 
-				Ref<ObjectStoreDictionary> getDictionary(const StringParam& key) override
+				Ref<ObjectStoreDictionary> getDictionary(const StringView& key) override
 				{
 					return m_manager->getDictionary(m_id, key);
 				}
 
-				sl_bool removeDictionary(const StringParam& key) override
+				sl_bool removeDictionary(const StringView& key) override
 				{
 					return m_manager->removeDictionary(m_id, key);
 				}
@@ -353,17 +352,17 @@ namespace slib
 					return m_manager->getDictionaryIterator(m_id);
 				}
 
-				Variant getItem(const StringParam& key) override
+				Variant getItem(const StringView& key) override
 				{
 					return m_manager->getItem(m_id, key);
 				}
 
-				sl_bool putItem(const StringParam& key, const Variant& value) override
+				sl_bool putItem(const StringView& key, const Variant& value) override
 				{
 					return m_manager->putItem(m_id, key, value);
 				}
 
-				sl_bool removeItem(const StringParam& key) override
+				sl_bool removeItem(const StringView& key) override
 				{
 					return m_manager->removeItem(m_id, key);
 				}
@@ -380,7 +379,7 @@ namespace slib
 				return new DictionaryImpl(this, 0);
 			}
 
-			Ref<ObjectStoreDictionary> ObjectStoreManagerImpl::createDictionary(sl_uint64 parentId, const StringParam& _key)
+			Ref<ObjectStoreDictionary> ObjectStoreManagerImpl::createDictionary(sl_uint64 parentId, const StringView& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
 				sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
@@ -408,7 +407,7 @@ namespace slib
 				return sl_null;
 			}
 
-			Ref<ObjectStoreDictionary> ObjectStoreManagerImpl::getDictionary(sl_uint64 parentId, const StringParam& _key)
+			Ref<ObjectStoreDictionary> ObjectStoreManagerImpl::getDictionary(sl_uint64 parentId, const StringView& _key)
 			{
 				sl_uint8 key[KEY_BUFFER_SIZE];
 				sl_uint32 nKey = PrepareKey(key, parentId, sl_true, _key);
@@ -651,7 +650,7 @@ namespace slib
 		return CastRef<ObjectStoreDictionary>(value.getRef());
 	}
 
-	ObjectStore ObjectStore::createDictionary(const StringParam& key) const
+	ObjectStore ObjectStore::createDictionary(const StringView& key) const
 	{
 		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
@@ -661,7 +660,7 @@ namespace slib
 		}
 	}
 
-	ObjectStore ObjectStore::getDictionary(const StringParam& key) const
+	ObjectStore ObjectStore::getDictionary(const StringView& key) const
 	{
 		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
@@ -671,7 +670,7 @@ namespace slib
 		}
 	}
 
-	sl_bool ObjectStore::removeDictionary(const StringParam& key) const
+	sl_bool ObjectStore::removeDictionary(const StringView& key) const
 	{
 		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
@@ -689,7 +688,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Variant ObjectStore::getItem(const StringParam& key) const
+	Variant ObjectStore::getItem(const StringView& key) const
 	{
 		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
@@ -699,7 +698,7 @@ namespace slib
 		}
 	}
 
-	sl_bool ObjectStore::putItem(const StringParam& key, const Variant& value) const
+	sl_bool ObjectStore::putItem(const StringView& key, const Variant& value) const
 	{
 		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
@@ -708,7 +707,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool ObjectStore::removeItem(const StringParam& key) const
+	sl_bool ObjectStore::removeItem(const StringView& key) const
 	{
 		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {
@@ -876,9 +875,9 @@ namespace slib
 		return value.getBoolean(def);
 	}
 
-	sl_bool ObjectStore::isString() const noexcept
+	sl_bool ObjectStore::isStringType() const noexcept
 	{
-		return value.isString();
+		return value.isStringType();
 	}
 
 	String ObjectStore::getString(const String& def) const noexcept
@@ -986,7 +985,7 @@ namespace slib
 		return value.getMemory();
 	}
 
-	ObjectStore ObjectStore::operator[](const StringParam& name) noexcept
+	ObjectStore ObjectStore::operator[](const String& name) noexcept
 	{
 		Ref<ObjectStoreDictionary> dictionary = getDictionary();
 		if (dictionary.isNotNull()) {

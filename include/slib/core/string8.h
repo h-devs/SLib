@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,9 @@ namespace slib
 	class SLIB_EXPORT StringContainer
 	{
 	public:
+		typedef String StringType;
+
+	public:
 		sl_char8* sz;
 		sl_size len;
 		sl_size hash;
@@ -53,19 +56,25 @@ namespace slib
 	 */
 	class SLIB_EXPORT String
 	{
+	public:
+		typedef StringContainer Container;
+		typedef sl_char8 Char;
+		typedef StringView StringViewType;
+#ifdef SLIB_SUPPORT_STD_TYPES
+		typedef std::string StdString;
+#endif
+
 	private:
-		StringContainer* m_container;
-		
-	private:
-		SLIB_CONSTEXPR String(StringContainer* container): m_container(container) {}
-		
+		Container * m_container;
+
 	public:
 		/**
 		 * Initializes as a null string.
 		 */
-		SLIB_CONSTEXPR String(): m_container(sl_null) {}
-		SLIB_CONSTEXPR String(sl_null_t): m_container(sl_null) {}
-		
+		SLIB_CONSTEXPR String() : m_container(sl_null) {}
+		SLIB_CONSTEXPR String(sl_null_t) : m_container(sl_null) {}
+		SLIB_CONSTEXPR String(Container* container) : m_container(container) {}
+
 		/**
 		 * Contructors
 		 */
@@ -83,7 +92,7 @@ namespace slib
 		 * Destructor
 		 */
 		~String();
-		
+
 	public:
 		/**
 		 * Fill the string with `nRepeatCount` consecutive copies of charactor `ch`
@@ -108,7 +117,7 @@ namespace slib
 		String(const std::string& str) noexcept;
 		String(std::string&& str) noexcept;
 #endif
-		
+
 	public:
 		/**
 		 * Creates a string of `len` characters
@@ -120,8 +129,10 @@ namespace slib
 		 */
 		static String create(const String& str) noexcept;
 		static String create(const String16& str) noexcept;
+		static String create(const String32& str) noexcept;
 		static String create(const StringView& str) noexcept;
 		static String create(const StringView16& str) noexcept;
+		static String create(const StringView32& str) noexcept;
 
 		/**
 		 * Creates a string from the array of characters pointed by `str`
@@ -140,24 +151,24 @@ namespace slib
 		static String create(const std::u16string& str) noexcept;
 		static String create(const std::u32string& str) noexcept;
 #endif
-		
+
 		/**
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `str` should not be freed while the returned string is being used.
 		 */
-		template <sl_size N> static String fromStatic(const sl_char8 (&str)[N]) noexcept
+		template <sl_size N> static String fromStatic(const sl_char8(&str)[N]) noexcept
 		{
 			return fromStatic(str, N - 1);
 		}
 
 		static String fromStatic(const sl_char8* str, sl_reg len) noexcept;
-		
+
 		/**
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `ref` should be used to keep the alive of the string content.
 		 */
 		static String fromRef(Referable* ref, const sl_char8* str, sl_size len) noexcept;
-		
+
 		/**
 		 * Creates a string pointing the `mem` as the UTF-8 content, without copying the data.
 		 */
@@ -170,12 +181,12 @@ namespace slib
 		 * @param[in] len length of the `text`. negative value means that `text` is null terminated.
 		 */
 		static String fromUtf8(const void* text, sl_reg len = -1) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-8 text in `mem`.
 		 */
 		static String fromUtf8(const Memory& mem) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 text.
 		 *
@@ -183,15 +194,7 @@ namespace slib
 		 * @param[in] len length of the `text`. negative value means that `text` is null terminated.
 		 */
 		static String fromUtf16(const sl_char16* text, sl_reg len = -1) noexcept;
-		
-		/**
-		 * Creates a string copying the characters from the UTF-32 text.
-		 *
-		 * @param[in] text string buffer containing the UTF-32 text
-		 * @param[in] len length of the `text`. negative value means that `text` is null terminated.
-		 */
-		static String fromUtf32(const sl_char32* text, sl_reg len = -1) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Big Endian text.
 		 *
@@ -199,12 +202,12 @@ namespace slib
 		 * @param[in] size size (in bytes) of the `text`
 		 */
 		static String fromUtf16BE(const void* text, sl_size size) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Big Endian text in `mem`.
 		 */
 		static String fromUtf16BE(const Memory& mem) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Little Endian text.
 		 *
@@ -212,12 +215,20 @@ namespace slib
 		 * @param[in] size size (in bytes) of the `text`
 		 */
 		static String fromUtf16LE(const void* text, sl_size size) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Little Endian text in `mem`.
 		 */
 		static String fromUtf16LE(const Memory& mem) noexcept;
-		
+
+		/**
+		 * Creates a string copying the characters from the UTF-32 text.
+		 *
+		 * @param[in] text string buffer containing the UTF-32 text
+		 * @param[in] len length of the `text`. negative value means that `text` is null terminated.
+		 */
+		static String fromUtf32(const sl_char32* text, sl_reg len = -1) noexcept;
+
 		/**
 		 * Creates a string copying the characters from the UTF-8, UTF-16BE, or UTF-16LE text.
 		 * This function detects the encoding type from the first 3 bytes of `text`.
@@ -226,29 +237,41 @@ namespace slib
 		 * @param[in] size size (in bytes) of the `text`
 		 */
 		static String fromUtf(const void* text, sl_size size) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-8, UTF-16BE, or UTF-16LE text in `mem`.
 		 * This function detects the encoding type from the first 3 bytes of the text.
 		 */
 		static String fromUtf(const Memory& mem) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from `text` encoded by `charset`.
 		 */
 		static String decode(Charset charset, const void* text, sl_size size);
-		
+
 		/**
 		 * Creates a string copying the characters from text in `mem`, encoded by `charset`.
 		 */
 		static String decode(Charset charset, const Memory& mem);
-		
-		static const String& from(const String& str) noexcept;
+
+		static const String& from(const String& str) noexcept
+		{
+			return str;
+		}
+
+		static String&& from(String&& str) noexcept
+		{
+			return Move(str);
+		}
+
 		static String from(const Atomic<String>& str) noexcept;
 		static String from(const String16& str) noexcept;
 		static String from(const Atomic<String16>& str) noexcept;
+		static String from(const String32& str) noexcept;
+		static String from(const Atomic<String32>& str) noexcept;
 		static String from(const StringView& str) noexcept;
 		static String from(const StringView16& str) noexcept;
+		static String from(const StringView32& str) noexcept;
 		static String from(const StringParam& str) noexcept;
 		static String from(const char* str, sl_reg length = -1) noexcept;
 		static String from(const wchar_t* str, sl_reg length = -1) noexcept;
@@ -326,7 +349,7 @@ namespace slib
 		 */
 		SLIB_CONSTEXPR sl_bool isEmpty() const
 		{
-			return m_container ? !(m_container->len) : sl_true;
+			return !(m_container && m_container->len);
 		}
 		
 		/**
@@ -334,7 +357,7 @@ namespace slib
 		 */
 		SLIB_CONSTEXPR sl_bool isNotEmpty() const
 		{
-			return m_container ? (m_container->len != 0) : sl_false;
+			return m_container && m_container->len;
 		}
 		
 		/**
@@ -391,13 +414,13 @@ namespace slib
 		 * @return the hash code.
 		 */
 		sl_size getHashCode() const noexcept;
-		static sl_size getHashCode(sl_char8* str, sl_reg len = -1) noexcept;
+		static sl_size getHashCode(const sl_char8* str, sl_reg len = -1) noexcept;
 
 		/**
 		 * @return the hash code ignoring the case.
 		 */
 		sl_size getHashCodeIgnoreCase() const noexcept;
-		static sl_size getHashCodeIgnoreCase(sl_char8* str, sl_reg len = -1) noexcept;
+		static sl_size getHashCodeIgnoreCase(const sl_char8* str, sl_reg len = -1) noexcept;
 
 		/**
 		 * Sets the string length.
@@ -427,6 +450,11 @@ namespace slib
 		sl_char8 operator[](sl_size index) const noexcept;
 		
 		sl_char8& operator[](sl_size index) noexcept;
+
+		SLIB_CONSTEXPR explicit operator sl_bool() const
+		{
+			return m_container != sl_null;
+		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
 		/**
@@ -436,15 +464,12 @@ namespace slib
 #endif
 		
 	public:
-		/**
-		 * String assignment
-		 */
 		String& operator=(String&& other) noexcept;
 		String& operator=(const String& other) noexcept;
 		String& operator=(const AtomicString& other) noexcept;
 		String& operator=(const StringView& other) noexcept;
 		String& operator=(sl_null_t) noexcept;
-		String& operator=(const char* sz) noexcept;
+		String& operator=(const sl_char8* sz) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
 		String& operator=(const std::string& other) noexcept;
 		String& operator=(std::string&& other) noexcept;
@@ -452,65 +477,50 @@ namespace slib
 
 		String& operator+=(String&& other) noexcept;
 		String& operator+=(const String& other) noexcept;
-		String& operator+=(const AtomicString& other) noexcept;
-		String& operator+=(sl_null_t) noexcept;
 
 		template <class T>
-		String& operator+=(T&& other) noexcept
+		String& operator+=(const T& other) noexcept
 		{
-			return *this = *this + Forward<T>(other);
+			return *this = *this + other;
 		}
 
 	public:
-		static String merge(const sl_char8* a1, sl_reg len1, const sl_char8* a2, sl_reg len2) noexcept;
-		static String merge(const sl_char8* a1, sl_reg len1, const wchar_t* a2, sl_reg len2) noexcept;
-		static String merge(const sl_char8* a1, sl_reg len1, const char16_t* a2, sl_reg len2) noexcept;
-		static String merge(const sl_char8* a1, sl_reg len1, const char32_t* a2, sl_reg len2) noexcept;
-		static String merge(const wchar_t* a1, sl_reg len1, const sl_char8* a2, sl_reg len2) noexcept;
-		static String merge(const char16_t* a1, sl_reg len1, const sl_char8* a2, sl_reg len2) noexcept;
-		static String merge(const char32_t* a1, sl_reg len1, const sl_char8* a2, sl_reg len2) noexcept;
-
-		static sl_bool equals(const sl_char8* a1, sl_reg len1, const sl_char8* a2, sl_reg len2) noexcept;
-		static sl_bool equals(const sl_char8* a1, sl_reg len1, const wchar_t* a2, sl_reg len2) noexcept;
-		static sl_bool equals(const sl_char8* a1, sl_reg len1, const char16_t* a2, sl_reg len2) noexcept;
-		static sl_bool equals(const sl_char8* a1, sl_reg len1, const char32_t* a2, sl_reg len2) noexcept;
-		
-		static sl_compare_result compare(const sl_char8* a1, sl_reg len1, const sl_char8* a2, sl_reg len2) noexcept;
-		static sl_compare_result compare(const sl_char8* a1, sl_reg len1, const wchar_t* a2, sl_reg len2) noexcept;
-		static sl_compare_result compare(const sl_char8* a1, sl_reg len1, const char16_t* a2, sl_reg len2) noexcept;
-		static sl_compare_result compare(const sl_char8* a1, sl_reg len1, const char32_t* a2, sl_reg len2) noexcept;
-		
-	public:
-		PRIV_SLIB_DECLARE_STRING_CLASS_OP(String, sl_bool, equals)
-
-		PRIV_SLIB_DECLARE_STRING_CLASS_OP(String, sl_compare_result, compare)
+		PRIV_SLIB_DECLARE_STRING_OPS(String)
 
 	public:
 		/**
-		 * Compares this string to the specified string.
-		 * This functions stops searching on the index of `len-1` and returns 0.
-		 *
-		 * @return signed integral indicating the relation between the strings:
-		 * @return 0: They compare equal.
-		 * @return <0: Either the value of the first character that does not match is lower in the compared string, or all compared characters match but the compared string is shorter.
-		 * @return >0: Either the value of the first character that does not match is greater in the compared string, or all compared characters match but the compared string is longer.
+		 * @return true if this string is equal to the specified string.
 		 */
-		sl_compare_result compare(const StringParam& other, sl_size len) const noexcept;
-		
+		sl_bool equals(const String& other) const noexcept;
+		sl_bool equals(const StringView& other) const noexcept;
+		sl_bool equals(const sl_char8* sz) const noexcept;
+#ifdef SLIB_SUPPORT_STD_TYPES
+		sl_bool equals(const std::string& other) const noexcept;
+#endif
+
+		/**
+		 * Compares this string to the specified string.
+		 * @return signed integral indicating the relation between the strings.
+		 */
+		sl_compare_result compare(const StringView& other) const noexcept;
+
+		/**
+		* Compares this string to the specified string.
+		* This functions stops searching on the index of `len-1` and returns 0.
+		* @return signed integral indicating the relation between the strings.
+		*/
+		sl_compare_result compare(const StringView& other, sl_size len) const noexcept;
+
 		/**
 		 * @return true if this string is equal to the specified string ignoring the case.
 		 */
-		sl_bool equalsIgnoreCase(const StringParam& other) const noexcept;
-		
+		sl_bool equalsIgnoreCase(const StringView& other) const noexcept;
+
 		/**
 		 * Compares this string to the specified string ignoring the case.
-		 *
-		 * @return signed integral indicating the relation between the strings:
-		 * @return 0: They compare equal.
-		 * @return <0: Either the value of the first character that does not match is lower in the compared string, or all compared characters match but the compared string is shorter.
-		 * @return >0: Either the value of the first character that does not match is greater in the compared string, or all compared characters match but the compared string is longer.
+		 * @return signed integral indicating the relation between the strings.
 		 */
-		sl_compare_result compareIgnoreCase(const StringParam& other) const noexcept;
+		sl_compare_result compareIgnoreCase(const StringView& other) const noexcept;
 		
 	public:
 		/**
@@ -519,8 +529,8 @@ namespace slib
 		String duplicate() const noexcept;
 
 		/**
-		* @return null terminated string.
-		*/
+		 * @return null terminated string.
+		 */
 		String toNullTerminated() const noexcept;
 
 		/**
@@ -542,7 +552,7 @@ namespace slib
 		 * Converts to Utf16 and Returns a Memory containing the Utf16 characters and null at last
 		 */
 		Memory toUtf16() const noexcept;
-		
+
 		/**
 		 * Fills Utf32 characters to the provided buffer
 		 */
@@ -593,7 +603,7 @@ namespace slib
 		 * @return the index within this string of the first occurrence of the specified string, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg indexOf(const StringParam& str, sl_reg start = 0) const noexcept;
+		sl_reg indexOf(const StringView& str, sl_reg start = 0) const noexcept;
 		
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
@@ -605,7 +615,7 @@ namespace slib
 		 * @return the index within this string of the last occurrence of the specified string, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg lastIndexOf(const StringParam& str, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf(const StringView& str, sl_reg start = -1) const noexcept;
 		
 		/**
 		 * @return `true` if this string starts with the specified character.
@@ -615,7 +625,7 @@ namespace slib
 		/**
 		 * @return `true` if this string starts with the specified string.
 		 */
-		sl_bool startsWith(const StringParam& str) const noexcept;
+		sl_bool startsWith(const StringView& str) const noexcept;
 		
 		/**
 		 * @return `true` if this string ends with the specified character.
@@ -625,7 +635,7 @@ namespace slib
 		/**
 		 * @return `true` if this string ends with the specified string.
 		 */
-		sl_bool endsWith(const StringParam& str) const noexcept;
+		sl_bool endsWith(const StringView& str) const noexcept;
 		
 		/**
 		 * @return `true` if the specified character occurs within this string.
@@ -635,7 +645,7 @@ namespace slib
 		/**
 		 * @return `true` if the specified substring occurs within this string.
 		 */
-		sl_bool contains(const StringParam& str) const noexcept;
+		sl_bool contains(const StringView& str) const noexcept;
 		
 		/**
 		 * Converts the characters of this string to uppercase.
@@ -668,24 +678,24 @@ namespace slib
 		String toLower() const noexcept;
 
 		/**
-		* Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
-		*/
+		 * Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
+		 */
 		String replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept;
 
 		/**
 		 * Replaces each substring of this string that matches the given `pattern` with the given `replacement`.
 		 */
-		String replaceAll(const StringParam& pattern, const StringParam& replacement) const noexcept;
+		String replaceAll(const StringView& pattern, const StringView& replacement) const noexcept;
 
 		/**
-		* Removes all characters that matches the given `pattern`
-		*/
+		 * Removes all characters that matches the given `pattern`
+		 */
 		String removeAll(sl_char8 pattern) const noexcept;
 
 		/**
-		* Removes all characters that matches the given `pattern`
-		*/
-		String removeAll(const StringParam& pattern) const noexcept;
+		 * Removes all characters that matches the given `pattern`
+		 */
+		String removeAll(const StringView& pattern) const noexcept;
 
 		/**
 		 * Copy this string and then removes whitespaces from both ends of the new string.
@@ -710,27 +720,34 @@ namespace slib
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
-		List<String> split(const StringParam& pattern) const noexcept;
+		List<String> split(const StringView& pattern) const noexcept;
 		
 		/**
 		 * Join all strings in the list
 		 */
-		static String join(const String* strings, sl_size count, const StringParam& delimiter) noexcept;
+		static String join(const String* strings, sl_size count, const StringView& delimiter) noexcept;
 		static String join(const String* strings, sl_size count) noexcept;
-		static String join(const StringParam* strings, sl_size count, const StringParam& delimiter) noexcept;
+		static String join(const StringView* strings, sl_size count, const StringView& delimiter) noexcept;
+		static String join(const StringView* strings, sl_size count) noexcept;
+		static String join(const StringParam* strings, sl_size count, const StringView& delimiter) noexcept;
 		static String join(const StringParam* strings, sl_size count) noexcept;
-		static String join(const ListParam<String>& list, sl_size startIndex, sl_size count, const StringParam& delimiter) noexcept;
-		static String join(const ListParam<String>& list, sl_size startIndex, sl_size count) noexcept;
-		static String join(const ListParam<String>& list, sl_size startIndex, const StringParam& delimiter) noexcept;
-		static String join(const ListParam<String>& list, sl_size startIndex) noexcept;
-		static String join(const ListParam<String>& list, const StringParam& delimiter) noexcept;
+		static String join(const ListParam<String>& list, const StringView& delimiter) noexcept;
 		static String join(const ListParam<String>& list) noexcept;
+		static String join(const ListParam<StringView>& list, const StringView& delimiter) noexcept;
+		static String join(const ListParam<StringView>& list) noexcept;
+		static String join(const ListParam<StringParam>& list, const StringView& delimiter) noexcept;
+		static String join(const ListParam<StringParam>& list) noexcept;
+
+		/**
+		 * Concatenates strings
+		 */
 		template <class... ARGS>
-		static String join(const StringParam& s, ARGS&&... args) noexcept;
-		
+		static String concat(const StringParam& s1, const StringParam& s2, ARGS&&... args) noexcept;
+		static String concat(const StringParam& s1, const StringParam& s2) noexcept;
+
 	public:
 		/**
-		 * Convert the string (`str`) to a 32 bit integer of the specified radix.
+		 * Convert the string to integer of the specified radix.
 		 *
 		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
 		 * @param[out] value Pointer to the result output
@@ -741,9 +758,12 @@ namespace slib
 		 * @return the position after the integer if a valid integer is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
 		 */
 		static sl_reg parseInt32(sl_int32 radix, sl_int32* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+		static sl_reg parseInt64(sl_int32 radix, sl_int64* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg parseUint32(sl_int32 radix, sl_uint32* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg parseUint64(sl_int32 radix, sl_uint64* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+
 		/**
-		 * Convert this string to a 32 bit integer of the specified radix.
+		 * Convert this string to integer of the specified radix.
 		 *
 		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
 		 * @param[out] value Pointer to the result output
@@ -752,9 +772,19 @@ namespace slib
 		 */
 		sl_bool parseInt32(sl_int32 radix, sl_int32* value) const noexcept;
 		sl_bool parseInt32(sl_int32* value) const noexcept;
+		sl_bool parseInt64(sl_int32 radix, sl_int64* value) const noexcept;
+		sl_bool parseInt64(sl_int64* value) const noexcept;
+		sl_bool parseUint32(sl_int32 radix, sl_uint32* value) const noexcept;
+		sl_bool parseUint32(sl_uint32* value) const noexcept;
+		sl_bool parseUint64(sl_int32 radix, sl_uint64* value) const noexcept;
+		sl_bool parseUint64(sl_uint64* value) const noexcept;
+		sl_bool parseInt(sl_int32 radix, sl_reg* value) const noexcept;
+		sl_bool parseInt(sl_reg* value) const noexcept;
+		sl_bool parseSize(sl_int32 radix, sl_size* value) const noexcept;
+		sl_bool parseSize(sl_size* value) const noexcept;
 
 		/**
-		 * Convert this string to a 32 bit integer of the specified radix.
+		 * Convert this string to integer of the specified radix.
 		 *
 		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
 		 * @param[in] def Default return value for the non-integer string
@@ -762,153 +792,14 @@ namespace slib
 		 * @return Result integer if the conversion is successful, otherwise returns `def`
 		 */
 		sl_int32 parseInt32(sl_int32 radix = 10, sl_int32 def = 0) const noexcept;
-		
-		/**
-		 * Convert the string (`str`) to a 32 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 * @param[in] str String containing the integer
-		 * @param[in] posBegin Zero-based position of the integer
-		 * @param[in] posEnd Maximum length of the input string. Parser will stop at this position or at null found before this position.
-		 *
-		 * @return the position after the integer if a valid integer is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
-		 */
-		static sl_reg parseUint32(sl_int32 radix, sl_uint32* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
-		/**
-		 * Convert this string to a 32 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseUint32(sl_int32 radix, sl_uint32* value) const noexcept;
-		sl_bool parseUint32(sl_uint32* value) const noexcept;
-
-		/**
-		 * Convert this string to a 32 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_uint32 parseUint32(sl_int32 radix = 10, sl_uint32 def = 0) const noexcept;
-		
-		/**
-		 * Convert the string (`str`) to a 64 bit integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 * @param[in] str String containing the integer
-		 * @param[in] posBegin Zero-based position of the integer
-		 * @param[in] posEnd Maximum length of the input string. Parser will stop at this position or at null found before this position.
-		 *
-		 * @return the position after the integer if a valid integer is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
-		 */
-		static sl_reg parseInt64(sl_int32 radix, sl_int64* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
-		/**
-		 * Convert this string to a 64 bit integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseInt64(sl_int32 radix, sl_int64* value) const noexcept;
-		sl_bool parseInt64(sl_int64* value) const noexcept;
-
-		/**
-		 * Convert this string to a 64 bit integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
 		sl_int64 parseInt64(sl_int32 radix = 10, sl_int64 def = 0) const noexcept;
-		
-		/**
-		 * Convert the string (`str`) to a 64 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 * @param[in] str String containing the integer
-		 * @param[in] posBegin Zero-based position of the integer
-		 * @param[in] posEnd Maximum length of the input string. Parser will stop at this position or at null found before this position.
-		 *
-		 * @return the position after the integer if a valid integer is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
-		 */
-		static sl_reg parseUint64(sl_int32 radix, sl_uint64* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
-		/**
-		 * Convert this string to a 64 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseUint64(sl_int32 radix, sl_uint64* value) const noexcept;
-		sl_bool parseUint64(sl_uint64* value) const noexcept;
-
-		/**
-		 * Convert this string to a 64 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_uint64 parseUint64(sl_int32 radix = 10, sl_uint64 def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to an integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseInt(sl_int32 radix, sl_reg* value) const noexcept;
-		sl_bool parseInt(sl_reg* value) const noexcept;
-
-		/**
-		 * Convert this string to an unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
 		sl_reg parseInt(sl_int32 radix = 10, sl_reg def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to an unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseSize(sl_int32 radix, sl_size* value) const noexcept;
-		sl_bool parseSize(sl_size* value) const noexcept;
+		sl_uint32 parseUint32(sl_int32 radix = 10, sl_uint32 def = 0) const noexcept;
+		sl_uint64 parseUint64(sl_int32 radix = 10, sl_uint64 def = 0) const noexcept;
+		sl_size parseSize(sl_int32 radix = 10, sl_size def = 0) const noexcept;
 
 		/**
-		 * Convert this string to an unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_size parseSize(sl_int32 radix = 10, sl_size def = 0) const noexcept;
-		
-		/**
-		 * Convert the string (`str`) to a float number value
+		 * Convert the string to a float number value
 		 *
 		 * @param[out] value Pointer to the result output
 		 * @param[in] str String to convert
@@ -918,7 +809,8 @@ namespace slib
 		 * @return the position after the number if a valid number is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
 		 */
 		static sl_reg parseFloat(float* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+		static sl_reg parseDouble(double* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+
 		/**
 		 * Convert this string to a float number value.
 		 *
@@ -927,7 +819,8 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseFloat(float* value) const noexcept;
-		
+		sl_bool parseDouble(double* value) const noexcept;
+
 		/**
 		 * Convert this string to a float number value.
 		 *
@@ -936,37 +829,8 @@ namespace slib
 		 * @return Result value if the conversion is successful, otherwise returns `def`
 		 */
 		float parseFloat(float def = 0) const noexcept;
-		
-		/**
-		 * Convert the string (`str`) to a double number value
-		 *
-		 * @param[out] value Pointer to the result output
-		 * @param[in] str String to convert
-		 * @param[in] posBegin Zero-based position of the number
-		 * @param[in] posEnd Maximum length of the input string. Parser will stop at this position or at null found before this position.
-		 *
-		 * @return the position after the number if a valid number is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
-		 */
-		static sl_reg parseDouble(double* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
-		/**
-		 * Convert this string to a double number value.
-		 *
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if the conversion is success
-		 */
-		sl_bool parseDouble(double* value) const noexcept;
-		
-		/**
-		 * Convert this string to a double number value.
-		 *
-		 * @param[in] def Default return value on failure
-		 *
-		 * @return Result value if the conversion is successful, otherwise returns `def`
-		 */
 		double parseDouble(double def = 0) const noexcept;
-		
+
 		/**
 		 * Convert the string (`str`) to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -1032,7 +896,7 @@ namespace slib
 		Memory parseHexString() const noexcept;
 		
 		/**
-		 * @return the string representation of 32 bit integer argument.
+		 * @return the string representation of integer argument.
 		 *
 		 * @param value The integer to be parsed.
 		 * @param radix This would be used to convert integer into String. radix:2 ~ 64.
@@ -1040,55 +904,10 @@ namespace slib
 		 * @param flagUpperCase if flagUpperCase is true, converts string to an uppercase string. flagUpperCase only works if radix <=36 (0~9, a~z)
 		 */
 		static String fromInt32(sl_int32 value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
-		
-		/**
-		 * @return the string representation of the unsigned 32bit integer argument.
-		 *
-		 * @param value The integer to be parsed.
-		 * @param radix This would be used to convert integer into String. radix:2 ~ 64.
-		 * @param minWidth Minimum width of the result.
-		 * @param flagUpperCase if flagUpperCase is true, converts string to an uppercase string. flagUpperCase only works if radix <=36 (0~9, a~z)
-		 */
 		static String fromUint32(sl_uint32 value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
-		
-		/**
-		 * @return the string representation of the 64bit integer argument.
-		 *
-		 * @param value The integer to be parsed.
-		 * @param radix This would be used to convert integer into String. radix:2 ~ 64.
-		 * @param minWidth Minimum width of the result.
-		 * @param flagUpperCase if flagUpperCase is true, converts string to an uppercase string. flagUpperCase only works if radix <=36 (0~9, a~z)
-		 */
 		static String fromInt64(sl_int64 value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
-		
-		/**
-		 * @return the string representation of the unsigned 64bit integer argument.
-		 *
-		 * @param value The integer to be parsed.
-		 * @param radix This would be used to convert integer into String. radix:2 ~ 64.
-		 * @param minWidth Minimum width of the result.
-		 * @param flagUpperCase if flagUpperCase is true, converts string to an uppercase string. flagUpperCase only works if radix <=36 (0~9, a~z)
-		 */
 		static String fromUint64(sl_uint64 value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
-		
-		/**
-		 * @return the string representation of the integer argument.
-		 *
-		 * @param value The integer to be parsed.
-		 * @param radix This would be used to convert integer into String. radix:2 ~ 64.
-		 * @param minWidth Minimum width of the result.
-		 * @param flagUpperCase if flagUpperCase is true, converts string to an uppercase string. flagUpperCase only works if radix <=36 (0~9, a~z)
-		 */
 		static String fromInt(sl_reg value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
-		
-		/**
-		 * @return the string representation of the unsigned integer argument.
-		 *
-		 * @param value The integer to be parsed.
-		 * @param radix This would be used to convert integer into String. radix:2 ~ 64.
-		 * @param minWidth Minimum width of the result.
-		 * @param flagUpperCase if flagUpperCase is true, converts string to an uppercase string. flagUpperCase only works if radix <=36 (0~9, a~z)
-		 */
 		static String fromSize(sl_size value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
 		
 		/**
@@ -1100,15 +919,6 @@ namespace slib
 		 * @param minWidthIntegral The minimum number of characters in integral field.
 		 */
 		static String fromFloat(float value, sl_int32 precision = -1, sl_bool flagZeroPadding = sl_false, sl_uint32 minWidthIntegral = 1) noexcept;
-		
-		/**
-		 * @return the string representation of the double argument.
-		 *
-		 * @param value The double value to be parsed.
-		 * @param precision The number of characters in decimal. Negative values is ignored and this parameter has not effect.
-		 * @param flagZeroPadding If flagZeroPadding is true, zeros are used to pad the field instead of space characters.
-		 * @param minWidthIntegral The minimum number of characters in integral field.
-		 */
 		static String fromDouble(double value, sl_int32 precision = -1, sl_bool flagZeroPadding = sl_false, sl_uint32 minWidthIntegral = 1) noexcept;
 		
 		/**
@@ -1154,27 +964,18 @@ namespace slib
 		 * @param strFormat The buffer containing the format string, this supports the conversion specifiers, length modifiers, and flags.
 		 *
 		 */
-		static String format(const StringParam& strFormat) noexcept;
+		static String format(const StringView& strFormat) noexcept;
 		template <class... ARGS>
-		static String format(const StringParam& strFormat, ARGS&&... args) noexcept;
-		static String formatBy(const StringParam& strFormat, const Variant* params, sl_size nParams) noexcept;
-		static String formatBy(const StringParam& strFormat, const ListParam<Variant>& params) noexcept;
+		static String format(const StringView& strFormat, ARGS&&... args) noexcept;
+		static String formatBy(const StringView& strFormat, const Variant* params, sl_size nParams) noexcept;
+		static String formatBy(const StringView& strFormat, const ListParam<Variant>& params) noexcept;
 		template <class... ARGS>
-		static String format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept;
-		static String formatBy(const Locale& locale, const StringParam& strFormat, const Variant* params, sl_size nParams) noexcept;
-		static String formatBy(const Locale& locale, const StringParam& strFormat, const ListParam<Variant>& params) noexcept;
+		static String format(const Locale& locale, const StringView& strFormat, ARGS&&... args) noexcept;
+		static String formatBy(const Locale& locale, const StringView& strFormat, const Variant* params, sl_size nParams) noexcept;
+		static String formatBy(const Locale& locale, const StringView& strFormat, const ListParam<Variant>& params) noexcept;
 
-		/**
-		 * Formats the current string which contains conversion specifications with arbitrary list of arguments.
-		 * It is same as `String::format(*this, ...)`.
-		 */
-		template <class... ARGS>
-		String arg(ARGS&&... args) const noexcept;
-		String argBy(const Variant* params, sl_size nParams) const noexcept;
-		String argBy(const ListParam<Variant>& params) const noexcept;
-		
 	private:
-		void _replaceContainer(StringContainer* container) noexcept;
+		void _replaceContainer(Container* container) noexcept;
 
 	public:
 		friend class Atomic<String>;
@@ -1185,8 +986,16 @@ namespace slib
 	template <>
 	class SLIB_EXPORT Atomic<String>
 	{
+	public:
+		typedef StringContainer Container;
+		typedef sl_char8 Char;
+		typedef StringView StringViewType;
+#ifdef SLIB_SUPPORT_STD_TYPES
+		typedef std::string StdString;
+#endif
+
 	private:
-		StringContainer* m_container;
+		Container* m_container;
 		SpinLock m_lock;
 		
 	public:
@@ -1223,12 +1032,12 @@ namespace slib
 		/**
 		 * Copies the null-terminated character sequence pointed by `str`.
 		 */
-		Atomic(const char* str) noexcept;
+		Atomic(const sl_char8* str) noexcept;
 
 		/**
 		 * Copies the first `length` characters from the array of characters pointed by `str`
 		 */
-		Atomic(const char* str, sl_reg length) noexcept;
+		Atomic(const sl_char8* str, sl_reg length) noexcept;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		/**
@@ -1257,16 +1066,6 @@ namespace slib
 		}
 		
 		/**
-		 * @return `true` if this string is empty.
-		 */
-		sl_bool isEmpty() const noexcept;
-		
-		/**
-		 * @return `true` if this string is not empty.
-		 */
-		sl_bool isNotEmpty() const noexcept;
-		
-		/**
 		 * Sets this string as a null.
 		 */
 		void setNull() noexcept;
@@ -1276,28 +1075,6 @@ namespace slib
 		 */
 		void setEmpty() noexcept;
 		
-		/**
-		 * @return string length.
-		 */
-		sl_size getLength() const noexcept;
-		
-		/**
-		 * @return the hash code.
-		 */
-		sl_size getHashCode() const noexcept;
-		
-		/**
-		 * @return the hash code ignoring the case.
-		 */
-		sl_size getHashCodeIgnoreCase() const noexcept;
-		
-#ifdef SLIB_SUPPORT_STD_TYPES
-		/**
-		 * Convert this string to std::string.
-		 */
-		std::string toStd() const noexcept;
-#endif
-
 	public:
 		/**
 		 * String assignment
@@ -1307,453 +1084,15 @@ namespace slib
 		AtomicString& operator=(const AtomicString& other) noexcept;
 		AtomicString& operator=(const StringView& other) noexcept;
 		AtomicString& operator=(sl_null_t) noexcept;
-		AtomicString& operator=(const char* sz) noexcept;
+		AtomicString& operator=(const sl_char8* sz) noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
 		AtomicString& operator=(const std::string& other) noexcept;
 		AtomicString& operator=(std::string&& other) noexcept;
 #endif
 
-		AtomicString& operator+=(String&& other) noexcept;
-		AtomicString& operator+=(const String& other) noexcept;
-		AtomicString& operator+=(const AtomicString& other) noexcept;
-		AtomicString& operator+=(sl_null_t) noexcept;
-
-		template <class T>
-		AtomicString& operator+=(T&& other) noexcept
-		{
-			return *this = String(*this) + Forward<T>(other);
-		}
-
-	public:
-		PRIV_SLIB_DECLARE_STRING_CLASS_OP(String, sl_bool, equals)
-		
-		PRIV_SLIB_DECLARE_STRING_CLASS_OP(String, sl_compare_result, compare)
-
-	public:
-		/**
-		 * Compares this string to the specified string.
-		 * This functions stops searching on the index of `len-1` and returns 0.
-		 *
-		 * @return signed integral indicating the relation between the strings:
-		 * @return 0: They compare equal.
-		 * @return <0: Either the value of the first character that does not match is lower in the compared string, or all compared characters match but the compared string is shorter.
-		 * @return >0: Either the value of the first character that does not match is greater in the compared string, or all compared characters match but the compared string is longer.
-		 */
-		sl_compare_result compare(const StringParam& other, sl_size len) const noexcept;
-		
-		/**
-		 * @return true if this string is equal to the specified string ignoring the case.
-		 */
-		sl_bool equalsIgnoreCase(const StringParam& other) const noexcept;
-		
-		/**
-		 * Compares this string to the specified string ignoring the case.
-		 *
-		 * @return signed integral indicating the relation between the strings:
-		 * @return 0: They compare equal.
-		 * @return <0: Either the value of the first character that does not match is lower in the compared string, or all compared characters match but the compared string is shorter.
-		 * @return >0: Either the value of the first character that does not match is greater in the compared string, or all compared characters match but the compared string is longer.
-		 */
-		sl_compare_result compareIgnoreCase(const StringParam& other) const noexcept;
-		
-	public:
-		/**
-		 * @return duplicated string.
-		 */
-		String duplicate() const noexcept;
-		
-		/**
-		 * @return memory containing string content.
-		 */
-		Memory toMemory() const noexcept;
-		
-		/**
-		 * Fills Utf16 characters to the provided buffer
-		 */
-		sl_size getUtf16(sl_char16* utf16, sl_size len) const noexcept;
-		
-		/**
-		 * Fills Utf16 characters to the provided buffer
-		 */
-		sl_bool getUtf16(StringStorage& output) const noexcept;
-		
-		/**
-		 * Converts to Utf16 and Returns a Memory containing the Utf16 characters and null at last
-		 */
-		Memory toUtf16() const noexcept;
-		
-		/**
-		 * Fills Utf32 characters to the provided buffer
-		 */
-		sl_size getUtf32(sl_char32* utf32, sl_size len) const noexcept;
-		
-		/**
-		 * Fills Utf32 characters to the provided buffer
-		 */
-		sl_bool getUtf32(StringStorage& output) const noexcept;
-		
-		/**
-		 * Converts to Utf32 and Returns Memory containing the Utf32 characters and null at last
-		 */
-		Memory toUtf32() const noexcept;
-		
-		/**
-		 * Encodes using `charset` and Returns Memory containing the encoded bytes
-		 */
-		Memory encode(Charset charset) const;
-		
-		/**
-		 * @return a substring of this string.
-		 */
-		String substring(sl_reg start, sl_reg end = -1) const noexcept;
-		
-		/**
-		 * @return a string containing a specified number of characters from the left side of this string.
-		 */
-		String left(sl_reg len) const noexcept;
-		
-		/**
-		 * @return a string containing a specified number of characters from the right side of this string.
-		 */
-		String right(sl_reg len) const noexcept;
-		
-		/**
-		 * @return a string that contains a specified number of characters starting from a specified position in a string.
-		 */
-		String mid(sl_reg start, sl_reg len) const noexcept;
-		
-		/**
-		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
-		 * @return -1 if no occurrence is found.
-		 */
-		sl_reg indexOf(sl_char8 ch, sl_reg start = 0) const noexcept;
-		
-		/**
-		 * @return the index within this string of the first occurrence of the specified string, starting the search at `start` index.
-		 * @return -1 if no occurrence is found.
-		 */
-		sl_reg indexOf(const StringParam& str, sl_reg start = 0) const noexcept;
-		
-		/**
-		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
-		 * @return -1 if no occurrence is found.
-		 */
-		sl_reg lastIndexOf(sl_char8 ch, sl_reg start = -1) const noexcept;
-		
-		/**
-		 * @return the index within this string of the last occurrence of the specified string, searching backwards from `start` index.
-		 * @return -1 if no occurrence is found.
-		 */
-		sl_reg lastIndexOf(const StringParam& str, sl_reg start = -1) const noexcept;
-		
-		/**
-		 * @return `true` if this string starts with the specified character.
-		 */
-		sl_bool startsWith(sl_char8 ch) const noexcept;
-		
-		/**
-		 * @return `true` if this string starts with the specified string.
-		 */
-		sl_bool startsWith(const StringParam& str) const noexcept;
-		
-		/**
-		 * @return `true` if this string ends with the specified character.
-		 */
-		sl_bool endsWith(sl_char8 ch) const noexcept;
-		
-		/**
-		 * @return `true` if this string ends with the specified string.
-		 */
-		sl_bool endsWith(const StringParam& str) const noexcept;
-		
-		/**
-		 * @return `true` if the specified character occurs within this string.
-		 */
-		sl_bool constains(sl_char8 ch) const noexcept;
-		
-		/**
-		 * @return `true` if the specified substring occurs within this string.
-		 */
-		sl_bool contains(const StringParam& str) const noexcept;
-		
-		/**
-		 * Converts the characters of this string to uppercase.
-		 */
-		void makeUpper() noexcept;
-		
-		/**
-		 * Converts the characters of this string to lowercase.
-		 */
-		void makeLower() noexcept;
-		
-		/**
-		 * @return a copy of this string converted to uppercase.
-		 */
-		String toUpper() const noexcept;
-		
-		/**
-		 * @return a copy of this string converted to lowercase.
-		 */
-		String toLower() const noexcept;
-		
-		/**
-		* Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
-		*/
-		String replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept;
-
-		/**
-		 * Replaces each substring of this string that matches the given `pattern` with the given `replacement`.
-		 */
-		String replaceAll(const StringParam& pattern, const StringParam& replacement) const noexcept;
-
-		/**
-		* Removes all characters that matches the given `pattern`
-		*/
-		String removeAll(sl_char8 pattern) const noexcept;
-
-		/**
-		* Removes all characters that matches the given `pattern`
-		*/
-		String removeAll(const StringParam& pattern) const noexcept;
-
-		/**
-		 * Copy this string and then removes whitespaces from both ends of the new string.
-		 */
-		String trim() const noexcept;
-		
-		/**
-		 * Copy this string and then removes whitespaces from the left of the new string.
-		 */
-		String trimLeft() const noexcept;
-		
-		/**
-		 * Copy this string and then removes whitespaces from the right of the new string.
-		 */
-		String trimRight() const noexcept;
-
-		/**
-		* Copy this string and then removes CR/LF from both ends of the new string.
-		*/
-		String trimLine() const noexcept;
-
-		/**
-		 * Splits this string into the list of strings by the `pattern` separator.
-		 */
-		List<String> split(const StringParam& pattern) const noexcept;
-		
-	public:
-		/**
-		 * Convert this string to a 32 bit integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseInt32(sl_int32 radix, sl_int32* value) const noexcept;
-		sl_bool parseInt32(sl_int32* value) const noexcept;
-
-		/**
-		 * Convert this string to a 32 bit integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_int32 parseInt32(sl_int32 radix = 10, sl_int32 def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to a 32 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseUint32(sl_int32 radix, sl_uint32* value) const noexcept;
-		sl_bool parseUint32(sl_uint32* value) const noexcept;
-
-		/**
-		 * Convert this string to a 32 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_uint32 parseUint32(sl_int32 radix = 10, sl_uint32 def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to a 64 bit integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseInt64(sl_int32 radix, sl_int64* value) const noexcept;
-		sl_bool parseInt64(sl_int64* value) const noexcept;
-
-		/**
-		 * Convert this string to a 64 bit integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_int64 parseInt64(sl_int32 radix = 10, sl_int64 def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to a 64 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseUint64(sl_int32 radix, sl_uint64* value) const noexcept;
-		sl_bool parseUint64(sl_uint64* value) const noexcept;
-
-		/**
-		 * Convert this string to a 64 bit unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_uint64 parseUint64(sl_int32 radix = 10, sl_uint64 def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to an integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseInt(sl_int32 radix, sl_reg* value) const noexcept;
-		sl_bool parseInt(sl_reg* value) const noexcept;
-
-		/**
-		 * Convert this string to an unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_reg parseInt(sl_int32 radix = 10, sl_reg def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to an unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if this string is valid integer
-		 */
-		sl_bool parseSize(sl_int32 radix, sl_size* value) const noexcept;
-		sl_bool parseSize(sl_size* value) const noexcept;
-
-		/**
-		 * Convert this string to an unsigned integer of the specified radix.
-		 *
-		 * @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
-		 * @param[in] def Default return value for the non-integer string
-		 *
-		 * @return Result integer if the conversion is successful, otherwise returns `def`
-		 */
-		sl_size parseSize(sl_int32 radix = 10, sl_size def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to a float number value.
-		 *
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if the conversion is success
-		 */
-		sl_bool parseFloat(float* value) const noexcept;
-		
-		/**
-		 * Convert this string to a float number value.
-		 *
-		 * @param[in] def Default return value on failure
-		 *
-		 * @return Result value if the conversion is successful, otherwise returns `def`
-		 */
-		float parseFloat(float def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to a double number value.
-		 *
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if the conversion is success
-		 */
-		sl_bool parseDouble(double* value) const noexcept;
-		
-		/**
-		 * Convert this string to a double number value.
-		 *
-		 * @param[in] def Default return value on failure
-		 *
-		 * @return Result value if the conversion is successful, otherwise returns `def`
-		 */
-		double parseDouble(double def = 0) const noexcept;
-		
-		/**
-		 * Convert this string to a boolean value.
-		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
-		 * "no", "NO", "No", "false", "FALSE" and "False" are converted to `false`.
-		 *
-		 * @param[out] value Pointer to the result output
-		 *
-		 * @return `true` if the conversion is success
-		 */
-		sl_bool parseBoolean(sl_bool* value) const noexcept;
-		
-		/**
-		 * Convert this string to a boolean value.
-		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
-		 * "no", "NO", "No", "false", "FALSE" and "False" are converted to `false`.
-		 *
-		 * @param[in] def Default return value on failure
-		 *
-		 * @return Result value if the conversion is successful, otherwise returns `def`
-		 */
-		sl_bool parseBoolean(sl_bool def = sl_false) const noexcept;
-		
-		/**
-		 * Parses this hex string and writes the bytes to `output`. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
-		 *
-		 * @param[out] output Pointer to the output buffer.
-		 *
-		 * @return `true` if the conversion is success
-		 */
-		sl_bool parseHexString(void* output) const noexcept;
-				
-		/**
-		 * Parses this hex string and returns hex data. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
-		 *
-		 * @return parsed hex data
-		 */
-		Memory parseHexString() const noexcept;
-		
-		/**
-		 * Formats the current string which contains conversion specifications with arbitrary list of arguments.
-		 * It is same as `String::format(*this, ...)`.
-		 */
-		template <class... ARGS>
-		String arg(ARGS&&... args) const noexcept;
-		String argBy(const Variant* params, sl_size nParams) const noexcept;
-		String argBy(const ListParam<Variant>& params) const noexcept;
-		
 	private:
-		StringContainer* _retainContainer() const noexcept;
-		void _replaceContainer(StringContainer* other) noexcept;
+		Container* _retainContainer() const noexcept;
+		void _replaceContainer(Container* other) noexcept;
 
 		friend class String;
 	};

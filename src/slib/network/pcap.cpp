@@ -454,17 +454,20 @@ namespace slib
 				}
 
 			protected:
-				Ref<NetCapture> findDevice(const StringParam& name)
+				Ref<NetCapture> findDevice(const StringParam& _name)
 				{
 					ListLocker< Ref<PcapImpl> > devices(m_devices);
-					for (sl_size i = 0; i < devices.count; i++) {
-						Ref<PcapImpl>& capture = devices[i];
-						if (capture->getDeviceName() == name) {
-							if (capture->isRunning()) {
-								return capture;
-							} else {
-								m_devices.remove_NoLock(capture);
-								return sl_null;
+					if (devices.count) {
+						StringData name(_name);
+						for (sl_size i = 0; i < devices.count; i++) {
+							Ref<PcapImpl>& capture = devices[i];
+							if (capture->getDeviceName() == name) {
+								if (capture->isRunning()) {
+									return capture;
+								} else {
+									m_devices.remove_NoLock(capture);
+									return sl_null;
+								}
 							}
 						}
 					}

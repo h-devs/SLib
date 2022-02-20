@@ -471,7 +471,7 @@ namespace slib
 				
 				sl_bool isDatabaseExisting(const StringParam& name) override
 				{
-					return getDatabases().contains(name);
+					return getDatabases().contains(StringData(name));
 				}
 				
 				List<String> getDatabases() override
@@ -493,7 +493,7 @@ namespace slib
 
 				sl_bool isTableExisting(const StringParam& name) override
 				{
-					return getTables().contains(name);
+					return getTables().contains(StringData(name));
 				}
 				
 				List<String> getTables() override

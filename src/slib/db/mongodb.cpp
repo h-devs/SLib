@@ -170,7 +170,7 @@ namespace slib
 						return;
 				}
 
-				if (json.isString()) {
+				if (json.isStringType()) {
 					String str = json.getString();
 					bson_append_utf8(bson, key.getData(), (int)(key.getLength()), str.getData(), (int)(str.getLength()));
 					return;
@@ -220,7 +220,7 @@ namespace slib
 
 			static bson_t* GetBsonFromJson(const Json& json)
 			{
-				if (json.isString()) {
+				if (json.isStringType()) {
 					StringParam param = json.getStringParam();
 					StringCstr str(param);
 					sl_size len = str.getLength();

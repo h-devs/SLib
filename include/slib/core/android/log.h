@@ -39,19 +39,19 @@ namespace slib
 		void LogDebug(const StringParam& tag, const StringParam& content) noexcept;
 
 		template <class... ARGS>
-		SLIB_INLINE static void Log(const StringParam& tag, const StringParam& format, ARGS&&... args) noexcept
+		SLIB_INLINE static void Log(const StringParam& tag, const StringView& format, ARGS&&... args) noexcept
 		{
 			Log(tag, String::format(format, Forward<ARGS>(args)...));
 		}
 		
 		template <class... ARGS>
-		SLIB_INLINE static void LogError(const StringParam& tag, const StringParam& format, ARGS&&... args) noexcept
+		SLIB_INLINE static void LogError(const StringParam& tag, const StringView& format, ARGS&&... args) noexcept
 		{
 			LogError(tag, String::format(format, Forward<ARGS>(args)...));
 		}
 
 		template <class... ARGS>
-		SLIB_INLINE static void LogDebug(const StringParam& tag, const StringParam& format, ARGS&&... args) noexcept
+		SLIB_INLINE static void LogDebug(const StringParam& tag, const StringView& format, ARGS&&... args) noexcept
 		{
 			LogDebug(tag, String::format(format, Forward<ARGS>(args)...));
 		}

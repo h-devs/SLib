@@ -52,7 +52,7 @@ namespace slib
 			appId = appName;
 		}
 		String pathAutoStart = System::getHomeDirectory() + "/.config/autostart/";
-		String pathDesktopFile = String::join(pathAutoStart, appId, ".desktop");
+		String pathDesktopFile = String::concat(pathAutoStart, appId, ".desktop");
 		StringBuffer sb;
 		sb.addStatic("[Desktop Entry]\nName=");
 		sb.add(appName);
@@ -96,7 +96,7 @@ namespace slib
 			}
 		}
 		String pathApps = System::getHomeDirectory() + "/.local/share/applications/";
-		String pathDesktopFile = String::join(pathApps, appId, ".desktop");
+		String pathDesktopFile = String::concat(pathApps, appId, ".desktop");
 		StringBuffer sb;
 		sb.addStatic("[Desktop Entry]\nName=");
 		sb.add(param.appName.toString());

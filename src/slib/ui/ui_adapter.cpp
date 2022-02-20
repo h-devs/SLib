@@ -111,12 +111,12 @@ namespace slib
 	
 	sl_uint64 ViewListAdapter::getItemsCount()
 	{
-		return m_list.getCount();
+		return List< Ref<View> >(m_list).getCount();
 	}
 	
 	Ref<View> ViewListAdapter::getView(sl_uint64 index, View* original, View* parent)
 	{
-		return m_list.getValueAt((sl_size)index);
+		return List< Ref<View> >(m_list).getValueAt((sl_size)index);
 	}
 	
 	

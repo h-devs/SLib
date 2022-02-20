@@ -25,6 +25,11 @@
 
 #include "definition.h"
 
+/*
+* 0: They compare equal.
+* <0: Either the value of the first character that does not match is lower in the compared string, or all compared characters match but the compared string is shorter.
+* >0: Either the value of the first character that does not match is greater in the compared string, or all compared characters match but the compared string is longer.
+*/
 typedef sl_int32 sl_compare_result;
 
 namespace slib
@@ -123,21 +128,5 @@ namespace slib
 
 #define SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS PRIV_SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS(,noexcept)
 #define SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR PRIV_SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS(SLIB_CONSTEXPR,)
-
-#define SLIB_DECLARE_DEFAULT_COMPARE_OPERATORS(CLASS) \
-	sl_bool operator==(const CLASS& a, const CLASS& b) noexcept; \
-	sl_bool operator!=(const CLASS& a, const CLASS& b) noexcept; \
-	sl_bool operator>(const CLASS& a, const CLASS& b) noexcept; \
-	sl_bool operator>=(const CLASS& a, const CLASS& b) noexcept; \
-	sl_bool operator<(const CLASS& a, const CLASS& b) noexcept; \
-	sl_bool operator<=(const CLASS& a, const CLASS& b) noexcept;
-
-#define SLIB_DEFINE_DEFAULT_COMPARE_OPERATORS(CLASS) \
-	sl_bool operator==(const CLASS& a, const CLASS& b) noexcept { return a.equals(b); } \
-	sl_bool operator!=(const CLASS& a, const CLASS& b) noexcept { return !(a.equals(b)); } \
-	sl_bool operator>(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) > 0; } \
-	sl_bool operator>=(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) >= 0; } \
-	sl_bool operator<(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) < 0; } \
-	sl_bool operator<=(const CLASS& a, const CLASS& b) noexcept { return a.compare(b) <= 0; }
 
 #endif

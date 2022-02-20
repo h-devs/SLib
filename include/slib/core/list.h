@@ -1962,12 +1962,6 @@ namespace slib
 		}
 		
 		template <class VALUE>
-		sl_bool insertAll_NoLock(sl_size index, const AtomicList<VALUE>& other) noexcept
-		{
-			return insertAll_NoLock(index, List<VALUE>(other));
-		}
-
-		template <class VALUE>
 		sl_bool insertAll(sl_size index, const List<VALUE>& _other) noexcept
 		{
 			CList<VALUE>* other = _other.ref.ptr;
@@ -1992,12 +1986,6 @@ namespace slib
 				}
 			}
 			return sl_false;
-		}
-
-		template <class VALUE>
-		sl_bool insertAll(sl_size index, const AtomicList<VALUE>& other) noexcept
-		{
-			return insertAll(index, List<VALUE>(other));
 		}
 
 		template <class... ARGS>
@@ -2160,12 +2148,6 @@ namespace slib
 		}
 
 		template <class VALUE>
-		sl_bool addAll_NoLock(const AtomicList<VALUE>& _other) noexcept
-		{
-			return addAll_NoLock(List<VALUE>(_other));
-		}
-
-		template <class VALUE>
 		sl_bool addAll(const List<VALUE>& _other) noexcept
 		{
 			CList<VALUE>* other = _other.ref.ptr;
@@ -2190,12 +2172,6 @@ namespace slib
 				}
 			}
 			return sl_false;
-		}
-
-		template <class VALUE>
-		sl_bool addAll(const AtomicList<VALUE>& _other) noexcept
-		{
-			return addAll(List<VALUE>(_other));
 		}
 
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
@@ -2720,138 +2696,7 @@ namespace slib
 			return *(const_cast<Atomic< List<T> >*>(reinterpret_cast<Atomic< List<T> > const*>(&other)));
 		}
 
-		sl_size getCount() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getCount();
-			}
-			return 0;
-		}
-
-		sl_bool isEmpty() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return !(obj->getCount());
-			}
-			return sl_true;
-		}
-
-		sl_bool isNotEmpty() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getCount() != 0;
-			}
-			return sl_false;
-		}
-
 	public:
-		sl_bool getAt(sl_size index, T* _out = sl_null) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getAt(index, _out);
-			}
-			return sl_false;
-		}
-
-		T getValueAt(sl_size index) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getValueAt(index);
-			} else {
-				return T();
-			}
-		}
-
-		T getValueAt(sl_size index, const T& def) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getValueAt(index, def);
-			}
-			return def;
-		}
-
-		sl_bool getFirst(T* _out = sl_null) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getFirst(_out);
-			}
-			return sl_false;
-		}
-		
-		T getFirstValue() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getFirstValue();
-			} else {
-				return T();
-			}
-		}
-		
-		T getFirstValue(const T& def) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getFirstValue(def);
-			}
-			return def;
-		}
-		
-		sl_bool getLast(T* _out = sl_null) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getLast(_out);
-			}
-			return sl_false;
-		}
-		
-		T getLastValue() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getLastValue();
-			} else {
-				return T();
-			}
-		}
-		
-		T getLastValue(const T& def) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getLastValue(def);
-			}
-			return def;
-		}
-
-		template <class VALUE>
-		sl_bool setAt(sl_size index, VALUE&& value) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->setAt(index, Forward<VALUE>(value));
-			}
-			return sl_false;
-		}
-
-		T operator[](sl_size_t index) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getValueAt(index);
-			} else {
-				return T();
-			}
-		}
-		
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic& operator=(const std::initializer_list<T>& l) noexcept
 		{
@@ -2905,15 +2750,6 @@ namespace slib
 			return sl_false;
 		}
 		
-		sl_bool shrinkToFit() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->shrinkToFit();
-			}
-			return sl_true;
-		}
-
 		template <class... ARGS>
 		sl_bool insert(sl_size index, ARGS&&... args) noexcept
 		{
@@ -3014,12 +2850,6 @@ namespace slib
 				}
 			}
 			return sl_false;
-		}
-
-		template <class VALUE>
-		sl_bool insertAll(sl_size index, const AtomicList<VALUE>& other) noexcept
-		{
-			return insertAll(index, List<VALUE>(other));
 		}
 
 		template <class... ARGS>
@@ -3130,12 +2960,6 @@ namespace slib
 			return sl_false;
 		}
 
-		template <class VALUE>
-		sl_bool addAll(const AtomicList<VALUE>& _other) noexcept
-		{
-			return addAll(List<VALUE>(_other));
-		}
-
 		template < class VALUE, class EQUALS = Equals<T, typename RemoveConstReference<VALUE>::Type> >
 		sl_bool addIfNotExist(VALUE&& value, const EQUALS& equals = EQUALS()) noexcept
 		{
@@ -3158,238 +2982,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-
-		sl_bool removeAt(sl_size index, T* outValue = sl_null) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeAt(index, outValue);
-			}
-			return sl_false;
-		}
-
-		sl_size removeRange(sl_size index, sl_size count) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeRange(index, count);
-			}
-			return 0;
-		}
-
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->remove(value, equals);
-			}
-			return sl_false;
-		}
-
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeValues(value, equals);
-			}
-			return 0;
-		}
-
-		template <class PREDICATE>
-		sl_bool removeIf(const PREDICATE& p) noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeIf(p);
-			}
-			return sl_false;
-		}
 		
-		template <class PREDICATE>
-		sl_size removeElementsIf(const PREDICATE& p) noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeElementsIf(p);
-			}
-			return sl_false;
-		}
-		
-		sl_size removeAll() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeAll();
-			}
-			return 0;
-		}
-
-		sl_bool popFront(T* _out = sl_null) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->popFront(_out);
-			}
-			return sl_false;
-		}
-
-		sl_size popFrontElements(sl_size count) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->popFrontElements(count);
-			}
-			return 0;
-		}
-
-		sl_bool popBack(T* _out = sl_null) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->popBack(_out);
-			}
-			return sl_false;
-		}
-
-		sl_size popBackElements(sl_size count) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->popBackElements(count);
-			}
-			return 0;
-		}
-		
-		
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->indexOf(value, arg);
-			}
-			return -1;
-		}
-		
-		template <class VALUE, class EQUALS>
-		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->indexOf(value, equals, startIndex);
-			}
-			return -1;
-		}
-		
-		template < class VALUE, class ARG = Equals<T, VALUE> >
-		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->lastIndexOf(value, arg);
-			}
-			return -1;
-		}
-		
-		template <class VALUE, class EQUALS>
-		sl_reg lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->lastIndexOf(value, equals, startIndex);
-			}
-			return -1;
-		}
-
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool contains(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->contains(value);
-			}
-			return sl_false;
-		}
-
-		List<T> duplicate() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->duplicate();
-			}
-			return sl_null;
-		}
-
-		Array<T> toArray() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->toArray();
-			}
-			return sl_null;
-		}
-		
-		template < class COMPARE = Compare<T> >
-		void sort(const COMPARE& compare = COMPARE()) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				obj->sort(compare);
-			}
-		}
-		
-		template < class COMPARE = Compare<T> >
-		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				obj->sortDesc(compare);
-			}
-		}
-		
-		void reverse() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				obj->reverse();
-			}
-		}
-		
-		List<T> slice(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->slice(index, count);
-			}
-			return sl_null;
-		}
-
-		Ref<Collection> toCollection() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->toCollection();
-			}
-			return sl_null;
-		}
-
-		// range-based for loop
-		ArrayPosition<T> begin() const noexcept
-		{
-			Ref< CList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return ArrayPosition<T>(obj->getData(), obj->getCount(), obj.get());
-			}
-			return ArrayPosition<T>();
-		}
-
-		ArrayPosition<T> end() const noexcept
-		{
-			return ArrayPosition<T>();
-		}
-
 	};
 	
 
@@ -3417,9 +3010,7 @@ namespace slib
 			count = list.getCount();
 		}
 
-		ListLocker(const AtomicList<T>& _list) noexcept: ListLocker(List<T>(_list))
-		{
-		}
+		ListLocker(const AtomicList<T>& _list) noexcept: ListLocker(List<T>(_list)) {}
 
 		ListLocker(const CList<T>& _list) noexcept: ObjectLocker(&_list)
 		{
@@ -3431,6 +3022,35 @@ namespace slib
 		{
 			data = _list.getData();
 			count = _list.getCount();
+		}
+
+		template <class LIST>
+		ListLocker(LIST&& list, sl_size startIndex) noexcept: ListLocker(Forward<LIST>(list))
+		{
+			if (startIndex >= count) {
+				data = sl_null;
+				count = 0;
+			} else {
+				data += startIndex;
+				count -= startIndex;
+			}
+		}
+
+		template <class LIST>
+		ListLocker(LIST&& list, sl_size startIndex, sl_size _count) noexcept: ListLocker(Forward<LIST>(list))
+		{
+			if (!_count || startIndex >= count) {
+				data = sl_null;
+				count = 0;
+			} else {
+				data += startIndex;
+				sl_size limit = count - startIndex;
+				if (_count <= limit) {
+					count = _count;
+				} else {
+					count = limit;
+				}
+			}
 		}
 
 		~ListLocker() noexcept
@@ -3497,6 +3117,35 @@ namespace slib
 			count = _list.getCount();
 		}
 
+		template <class LIST>
+		ListElements(LIST&& list, sl_size startIndex) noexcept: ListElements(Forward<LIST>(list))
+		{
+			if (startIndex >= count) {
+				data = sl_null;
+				count = 0;
+			} else {
+				data += startIndex;
+				count -= startIndex;
+			}
+		}
+
+		template <class LIST>
+		ListElements(LIST&& list, sl_size startIndex, sl_size _count) noexcept: ListElements(Forward<LIST>(list))
+		{
+			if (!_count || startIndex >= count) {
+				data = sl_null;
+				count = 0;
+			} else {
+				data += startIndex;
+				sl_size limit = count - startIndex;
+				if (_count <= limit) {
+					count = _count;
+				} else {
+					count = limit;
+				}
+			}
+		}
+
 	public:
 		T& operator[](sl_reg index) const noexcept
 		{
@@ -3539,13 +3188,9 @@ namespace slib
 		};
 
 	public:
-		ListParam() noexcept: _value(sl_null), _count(0)
-		{
-		}
+		ListParam() noexcept: _value(sl_null), _count(0) {}
 
-		ListParam(sl_null_t) noexcept: _value(sl_null), _count(0)
-		{
-		}
+		ListParam(sl_null_t) noexcept: _value(sl_null), _count(0) {}
 
 		ListParam(ListParam&& other) noexcept
 		{
@@ -3585,13 +3230,7 @@ namespace slib
 			}
 		}
 		
-		ListParam(AtomicList<T>&& list) noexcept: ListParam(List<T>(Move(list)))
-		{
-		}
-
-		ListParam(const AtomicList<T>& list) noexcept: ListParam(List<T>(list))
-		{
-		}
+		ListParam(const AtomicList<T>& list) noexcept: ListParam(List<T>(list)) {}
 
 		ListParam(const CList<T>& list) noexcept
 		{

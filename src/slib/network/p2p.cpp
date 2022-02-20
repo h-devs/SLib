@@ -1107,7 +1107,7 @@ namespace slib
 			public:
 				sl_bool _isLocalAddress(const IPv4Address& ip)
 				{
-					return m_listLocalIPAddresses.contains(ip);
+					return List<IPv4Address>(m_listLocalIPAddresses).contains(ip);
 				}
 
 				sl_bool _isValidSenderAddress(const SocketAddress& address)

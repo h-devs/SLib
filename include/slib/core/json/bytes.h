@@ -37,7 +37,7 @@ namespace slib
 	template <sl_size N>
 	sl_bool Bytes<N>::setJson(const Json& json) noexcept
 	{
-		if (json.isString()) {
+		if (json.isStringType()) {
 			return parse(json.getStringParam());
 		} else if (json.isMemory()) {
 			Memory mem = json.getMemory();

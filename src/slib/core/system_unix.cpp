@@ -99,7 +99,7 @@ namespace slib
 						sl_reg lastName = strRelease.indexOf('"', indexName);
 						if (lastVersion >= 0 && lastName >= 0) {
 							g_strSystemVersion = strRelease.substring(indexVersion, lastVersion);
-							g_strSystemName = String::join(strRelease.substring(indexName, lastName), " ", g_strSystemVersion);
+							g_strSystemName = String::concat(strRelease.substring(indexName, lastName), " ", g_strSystemVersion);
 							return;
 						}
 					}
@@ -107,7 +107,7 @@ namespace slib
 #endif
 				utsname systemInfo;
 				uname(&systemInfo);
-				g_strSystemName = String::join(systemInfo.sysname, " ", systemInfo.release);
+				g_strSystemName = String::concat(systemInfo.sysname, " ", systemInfo.release);
 				g_strSystemVersion = systemInfo.release;
 			}
 #endif
@@ -364,7 +364,7 @@ namespace slib
 	{
 		String ret = strerror(errorCode);
 		if (ret.isEmpty()) {
-			return String::join("Unknown error: ", String::fromUint32(errorCode));
+			return String::concat("Unknown error: ", String::fromUint32(errorCode));
 		}
 		return ret;
 	}

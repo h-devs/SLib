@@ -40,6 +40,8 @@ namespace slib
 	class Locale;
 	class Time;
 	class TimeZone;
+	class StringView;
+	class StringParam;
 
 	template <class T> class Atomic;
 	
@@ -592,9 +594,9 @@ namespace slib
 
 		String format(TimeFormat fmt) const noexcept;
 
-		String format(const StringParam& fmt, const Locale& locale) const noexcept;
+		String format(const StringView& fmt, const Locale& locale) const noexcept;
 
-		String format(const StringParam& fmt) const noexcept;
+		String format(const StringView& fmt) const noexcept;
 
 		
 		static Time fromString(const StringParam& str, const TimeZone& zone = Time::LocalZone) noexcept;

@@ -883,7 +883,7 @@ namespace slib
 #ifdef SLIB_UI_IS_MACOS
 				{
 					String exe = File::getFileNameOnly(Apple::getStringFromNSString([[NSBundle mainBundle] executablePath]));
-					String path = String::join(System::getMainBundlePath(), "/Contents/Frameworks/", exe);
+					String path = String::concat(System::getMainBundlePath(), "/Contents/Frameworks/", exe);
 					if (File::exists(path + " Helper.app")) {
 						path += " Helper.app";
 						exe += " Helper";

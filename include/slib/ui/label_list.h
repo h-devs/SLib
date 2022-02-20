@@ -64,11 +64,11 @@ namespace slib
 
 		void setItemTitle(INDEX_TYPE _index, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		typename SignedType<INDEX_TYPE>::Type findItemByValue(const StringParam& value);
+		typename SignedType<INDEX_TYPE>::Type findItemByValue(const StringView& value);
 
-		typename SignedType<INDEX_TYPE>::Type findItemByTitle(const StringParam& title);
+		typename SignedType<INDEX_TYPE>::Type findItemByTitle(const StringView& title);
 
-		void selectValue(const String& value, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void selectValue(const StringView& value, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		String getSelectedValue();
 

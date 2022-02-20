@@ -280,7 +280,7 @@ namespace slib
 		Ref<RadioButton> selected;
 		for (sl_size i = 0; i < buttons.count; i++) {
 			Ref<RadioButton>& button = buttons[i];
-			if (button->m_value == value) {
+			if (String(button->m_value) == value) {
 				selected = button;
 				break;
 			}

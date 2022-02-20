@@ -69,21 +69,14 @@ namespace slib
 	template <>
 	class SLIB_EXPORT Atomic<TimeZone>
 	{
+	public:
+		AtomicRef<CTimeZone> ref;
 		SLIB_ATOMIC_REF_WRAPPER(CTimeZone)
 		
 	public:
 		sl_bool isLocal() const noexcept;
 		
 		sl_bool isUTC() const noexcept;
-		
-		// In seconds
-		sl_int64 getOffset() const;
-		
-		// In seconds
-		sl_int64 getOffset(const Time& time) const;
-		
-	public:
-		AtomicRef<CTimeZone> ref;
 		
 	};
 	

@@ -93,7 +93,7 @@ namespace slib
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
 		SLIB_STATIC_STRING16(pathTemplate, "\\\\.\\PhysicalDrive")
-		String16 path = pathTemplate + diskNo;
+		String16 path = pathTemplate + String16::fromUint32(diskNo);
 
 		HANDLE hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
 		if (hDevice == INVALID_HANDLE_VALUE) {

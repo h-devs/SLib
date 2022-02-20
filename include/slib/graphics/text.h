@@ -109,8 +109,8 @@ namespace slib
 	class SLIB_EXPORT TextItemDrawParam
 	{
 	public:
-		Color color;
-		const ColorMatrix* colorMatrix;
+		Color textColor;
+		Color backgroundColor;
 		
 		sl_real shadowOpacity;
 		sl_real shadowRadius;
@@ -118,12 +118,21 @@ namespace slib
 		Point shadowOffset;
 		
 		sl_real lineThickness;
+
+		sl_bool flagDrawSelection;
+		sl_reg selectionStart;
+		sl_reg selectionEnd;
+		Color selectedTextColor;
+		Color selectedBackgroundColor;
 		
 	public:
 		TextItemDrawParam() noexcept;
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextItemDrawParam)
 		
+	public:
+		void fixSelectionRange() noexcept;
+
 	};
 	
 	
@@ -189,7 +198,7 @@ namespace slib
 		void draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param);
 		
 	private:
-		AtomicString16 m_text;
+		String16 m_text;
 
 		Ref<Font> m_fontCached;
 		String16 m_textCached;
@@ -424,11 +433,11 @@ namespace slib
 		void draw(Canvas* canvas, const SimpleTextBoxDrawParam& param) const noexcept;
 
 		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, const Rectangle& frame) const noexcept;
-		
+
 		sl_real getContentWidth() const noexcept;
 
 		sl_real getContentHeight() const noexcept;
-		
+
 	public:
 		Ref<Font> getFont() const noexcept;
 		

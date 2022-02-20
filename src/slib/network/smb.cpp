@@ -573,9 +573,9 @@ namespace slib
 	String SmbServerFileShare::getAbsolutePath(const StringView16& path) noexcept
 	{
 #ifdef SLIB_PLATFORM_IS_WINDOWS
-		return String::join(m_rootPath, "\\", path);
+		return String::concat(m_rootPath, "\\", path);
 #else
-		String ret = String::join(m_rootPath, "/", path);
+		String ret = String::concat(m_rootPath, "/", path);
 		sl_char8* data = ret.getData();
 		sl_size len = ret.getLength();
 		for (sl_size i = 0; i < len; i++) {
@@ -1526,25 +1526,25 @@ namespace slib
 							bufTotal.add(GenerateFileIdBothDirectoryInfo(s2, 0, share->getFileUniqueId(GetParentDirectoryPath(path)), info));
 							sl_uint32 index = 1;
 							for (auto& item : share->getFiles(file.get())) {
-								bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, index, share->getFileUniqueId(String16::join(path, g_strPathDelimiter, item.key)), item.value));
+								bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, index, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								index++;
 							}
 						} else if (pattern.startsWith('*')) {
 							for (auto& item : share->getFiles(file.get())) {
 								if (item.key.endsWith(pattern.substring(1))) {
-									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::join(path, g_strPathDelimiter, item.key)), item.value));
+									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								}
 							}
 						} else if (pattern.endsWith('*')) {
 							for (auto& item : share->getFiles(file.get())) {
 								if (item.key.startsWith(pattern.substring(0, pattern.getLength() - 1))) {
-									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::join(path, g_strPathDelimiter, item.key)), item.value));
+									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								}
 							}
 						} else {
 							for (auto& item : share->getFiles(file.get())) {
 								if (item.key == pattern) {
-									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::join(path, g_strPathDelimiter, item.key)), item.value));
+									bufTotal.add(GenerateFileIdBothDirectoryInfo(item.key, 0, share->getFileUniqueId(String16::concat(path, g_strPathDelimiter, item.key)), item.value));
 								}
 							}
 						}

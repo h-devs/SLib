@@ -162,7 +162,7 @@ namespace slib
 	
 	Ref<TreeViewItem> TreeViewItem::getItemById(const String& _id)
 	{
-		if (m_id == _id) {
+		if (String(m_id) == _id) {
 			return this;
 		}
 		ListLocker< Ref<TreeViewItem> > children(m_children);

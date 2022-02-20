@@ -789,7 +789,7 @@ namespace slib
 					Time time = Time::now();
 					time = Time(time.getYear(), time.getMonth(), 1);
 					if (m_writer.isNull() || time != m_timeCreationWriter) {
-						String path = File::joinPath(m_pathPackage, String::join(String::fromInt32(time.getYear()), String::fromInt32(time.getMonth(), 10, 2), ".pkg"));
+						String path = File::joinPath(m_pathPackage, String::concat(String::fromInt32(time.getYear()), String::fromInt32(time.getMonth(), 10, 2), ".pkg"));
 						DataPackageWriterParam param;
 						param.path = path;
 						param.flagLockFile = sl_true;

@@ -791,7 +791,7 @@ namespace slib
 		if (isSupportedGtk(3)) {
 			GtkStyleContext* context = gtk::getApi_gtk_widget_get_style_context()(handle);
 			if (context) {
-				String strCss = String::join("* { background-color: rgb(", String::fromUint32(color.r), ",", String::fromUint32(color.g), ",", String::fromUint32(color.b), "); }");
+				String strCss = String::concat("* { background-color: rgb(", String::fromUint32(color.r), ",", String::fromUint32(color.g), ",", String::fromUint32(color.b), "); }");
 				GtkCssProvider* css = (GtkCssProvider*)(g_object_get_data((GObject*)handle, "bgcolor-provider"));
 				if (css) {
 					if (color.a) {

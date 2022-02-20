@@ -127,6 +127,7 @@ typedef char16_t			sl_char16;
 typedef char32_t			sl_char32;
 
 #define SLIB_UNICODE(quote)	u##quote
+#define SLIB_UNICODE32(quote)	U##quote
 
 #if defined(SLIB_COMPILER_IS_VC)
 #	define SLIB_WCHAR_SIZE				2

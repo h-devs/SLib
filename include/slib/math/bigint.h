@@ -395,55 +395,6 @@ namespace slib
 		~Atomic() noexcept;
 
 	public:
-		BigInt duplicate() const noexcept;
-
-		BigInt compact() const noexcept;
-
-		sl_bool isZero() const noexcept;
-
-		sl_bool isNotZero() const noexcept;
-
-		// fill zeros in remaining spaces
-		void getBytesLE(void* buf, sl_size n) const noexcept;
-
-		Memory getBytesLE() const noexcept;
-
-		// fill zeros in remaining spaces
-		void getBytesBE(void* buf, sl_size n) const noexcept;
-
-		Memory getBytesBE() const noexcept;
-
-		String toString(sl_uint32 radix = 10) const noexcept;
-
-		String toHexString() const noexcept;
-
-		sl_bool equals(const BigInt& other) const noexcept;
-		
-		sl_bool equals(sl_int32 v) const noexcept;
-		
-		sl_bool equals(sl_uint32 v) const noexcept;
-		
-		sl_bool equals(sl_int64 v) const noexcept;
-		
-		sl_bool equals(sl_uint64 v) const noexcept;
-		
-		// compare returns
-		//  0: equal,  negative: less than, positive: greater than
-		sl_compare_result compare(const BigInt& other) const noexcept;
-
-		sl_compare_result compare(sl_int32 v) const noexcept;
-
-		sl_compare_result compare(sl_uint32 v) const noexcept;
-
-		sl_compare_result compare(sl_int64 v) const noexcept;
-
-		sl_compare_result compare(sl_uint64 v) const noexcept;
-
-		BigInt negative() const noexcept;
-
-		sl_size getHashCode() const noexcept;
-
-	public:
 		Atomic& operator=(sl_int32 n) noexcept;
 
 		Atomic& operator=(sl_uint32 n) noexcept;

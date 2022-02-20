@@ -29,7 +29,7 @@
 namespace slib
 {
 
-	class StringParam;
+	class String;
 
 	template <class T>
 	class Function;
@@ -54,11 +54,11 @@ namespace slib
 		~Object() noexcept;
 
 	public:
-		virtual Variant getProperty(const StringParam& name);
+		virtual Variant getProperty(const String& name);
 
-		virtual sl_bool setProperty(const StringParam& name, const Variant& value);
+		virtual sl_bool setProperty(const String& name, const Variant& value);
 
-		virtual sl_bool clearProperty(const StringParam& name);
+		virtual sl_bool clearProperty(const String& name);
 
 		virtual PropertyIterator getPropertyIterator();
 

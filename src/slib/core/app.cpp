@@ -554,7 +554,7 @@ Microsoft Specific
 		StringData s(_s);
 		if (s.contains(" ") || s.contains("\t") || s.contains("\r") || s.contains("\n") || s.contains("\"") || s.contains("\\")) {
 			String t = s.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"");
-			return String::join("\"", Move(t), "\"");
+			return String::concat("\"", Move(t), "\"");
 		} else {
 			if (s.isNotEmpty()) {
 				return s.toString(_s);

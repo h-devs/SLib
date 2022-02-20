@@ -32,6 +32,7 @@ namespace slib
 	class Memory;
 	class String;
 	class String16;
+	class String32;
 	class MemoryBuffer;
 	class DeserializeBuffer;
 
@@ -108,6 +109,8 @@ namespace slib
 
 		virtual String16 getString16() noexcept;
 
+		virtual String32 getString32() noexcept;
+
 	public:
 		String toString() override;
 
@@ -136,26 +139,6 @@ namespace slib
 	public:
 		AtomicRef<CMemory> ref;
 		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CMemory)
-
-	public:
-		sl_size getSize() const noexcept;
-
-		Memory sub(sl_size offset, sl_size size = SLIB_SIZE_MAX) const noexcept;
-
-		sl_size read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept;
-
-		sl_size write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept;
-
-		sl_size copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
-
-		sl_size copy(const Memory& source, sl_size offsetSource = 0, sl_size size = SLIB_SIZE_MAX) const noexcept;
-
-		Memory duplicate() const noexcept;
-
-		sl_bool getData(MemoryData& data) const noexcept;
-		
-	public:
-		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS_NO_OP(Memory)
 
 	};
 	
@@ -204,9 +187,10 @@ namespace slib
 
 		static Memory createFromString(const String& str) noexcept;
 		static Memory createFromString(String&& str) noexcept;
-
-		static Memory createFromString16(const String16& str) noexcept;
-		static Memory createFromString16(String16&& str) noexcept;
+		static Memory createFromString(const String16& str) noexcept;
+		static Memory createFromString(String16&& str) noexcept;
+		static Memory createFromString(const String32& str) noexcept;
+		static Memory createFromString(String32&& str) noexcept;
 
 		static Memory createFromExtendedJson(const Json& json, sl_uint32* pOutSubType = sl_null);
 
@@ -237,7 +221,9 @@ namespace slib
 		sl_bool getData(MemoryData& data) const noexcept;
 		
 	public:
-		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS_NO_OP(Memory)
+		Memory operator+(const Memory& other) const noexcept;
+	
+		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(Memory)
 		SLIB_DECLARE_CLASS_SERIALIZE_MEMBERS
 
 		sl_bool serialize(MemoryBuffer* output) const;
@@ -250,9 +236,6 @@ namespace slib
 	};
 	
 	typedef Atomic<Memory> AtomicMemory;
-	
-	SLIB_DECLARE_DEFAULT_COMPARE_OPERATORS(Memory)
-	Memory operator+(const Memory& a, const Memory& b) noexcept;
 	
 }
 

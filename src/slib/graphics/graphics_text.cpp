@@ -52,13 +52,30 @@ namespace slib
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextItemDrawParam)
 	
 	TextItemDrawParam::TextItemDrawParam() noexcept:
-		color(Color::Black), colorMatrix(sl_null),
+		textColor(Color::Black),
 		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0),
-		lineThickness(1)
+		lineThickness(1),
+		flagDrawSelection(sl_false), selectionStart(-1), selectionEnd(-1)
 	{
 	}
-	
-	
+
+	void TextItemDrawParam::fixSelectionRange() noexcept
+	{
+		if (selectionStart >= 0) {
+			if (selectionEnd < 0) {
+				selectionEnd = SLIB_REG_MAX;
+			} else {
+				if (selectionStart > selectionEnd) {
+					Swap(selectionStart, selectionEnd);
+				}
+			}
+		} else {
+			selectionStart = 0;
+			selectionEnd = 0;
+		}
+	}
+
+
 	SLIB_DEFINE_OBJECT(TextItem, Object)
 
 	TextItem::TextItem(TextItemType type) noexcept: m_type(type), m_layoutPosition(0, 0), m_layoutSize(0, 0)
@@ -159,8 +176,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(TextWordItem, TextItem)
 
-	TextWordItem::TextWordItem() noexcept
-	 : TextItem(TextItemType::Word)
+	TextWordItem::TextWordItem() noexcept: TextItem(TextItemType::Word)
 	{
 		m_widthCached = 0;
 		m_heightCached = 0;
@@ -192,7 +208,7 @@ namespace slib
 					if (len < 0) {
 						len = text.getLength();
 					}
-					sl_reg indexDotDot = text.indexOf("..");
+					sl_reg indexDotDot = text.indexOf(SLIB_UNICODE(".."));
 					if (indexDotDot >= 0 && indexDotDot < len) {
 						return sl_false;
 					}
@@ -220,9 +236,6 @@ namespace slib
 				ret->m_style = style;
 				if (flagEnabledHyperlinksInPlainText) {
 					String16 url;
-					if (text.indexOf("https://") >= 0) {
-						url.setNull();
-					}
 					if (priv::text_word::checkURL(text, url)) {
 						Ref<TextStyle> styleNew = style->duplicate();
 						if (styleNew.isNotNull()) {
@@ -282,17 +295,13 @@ namespace slib
 		
 		DrawTextParam dp;
 		dp.font = font;
-		dp.color = param.color;
-		if (param.colorMatrix) {
-			dp.color = param.colorMatrix->transformColor(dp.color);
-		}
+		dp.color = param.textColor;
 		if (param.shadowOpacity > 0) {
 			dp.shadowOpacity = param.shadowOpacity;
 			dp.shadowRadius = param.shadowRadius;
 			dp.shadowColor = param.shadowColor;
 			dp.shadowOffset = param.shadowOffset;
 		}
-
 		dp.y = y;
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
@@ -398,7 +407,7 @@ namespace slib
 		if (font.isNotNull()) {
 			DrawTextParam dp;
 			dp.font = font;
-			dp.color = param.color;
+			dp.color = param.textColor;
 			if (param.shadowOpacity > 0) {
 				dp.shadowOpacity = param.shadowOpacity;
 				dp.shadowRadius = param.shadowRadius;
@@ -1028,8 +1037,8 @@ namespace slib
 								break;
 							}
 						}
-						SLIB_STATIC_STRING16(strSpace, " ")
-						String face = String::join(elements.list, indexSize + 1, strSpace);
+						SLIB_STATIC_STRING(strSpace, " ")
+						String face = String::join(ListLocker<String>(elements.list, indexSize + 1), strSpace);
 						if (face.isNotEmpty()) {
 							flagDefineFamilyName = sl_true;
 							attrFamilyName = face;
@@ -1813,15 +1822,15 @@ namespace slib
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
 				if (style->textColor.isNotZero()) {
-					param.color = style->textColor;
+					param.textColor = style->textColor;
 				} else {
 					if (style->flagLink) {
-						param.color = _param.linkColor;
-						if (param.color.isZero()) {
-							param.color = getDefaultLinkColor();
+						param.textColor = _param.linkColor;
+						if (param.textColor.isZero()) {
+							param.textColor = getDefaultLinkColor();
 						}
 					} else {
-						param.color = _param.color;
+						param.textColor = _param.textColor;
 					}
 				}
 				if (type == TextItemType::Word) {
@@ -1867,7 +1876,7 @@ namespace slib
 						if (rc.intersectRectangle(frame)) {
 							Ref<Font> font = style->font;
 							if (font.isNotNull()) {
-								Ref<Pen> pen = Pen::createSolidPen(param.lineThickness, param.color);
+								Ref<Pen> pen = Pen::createSolidPen(param.lineThickness, param.textColor);
 								if (pen.isNotNull()) {
 									FontMetrics fm;
 									if (font->getFontMetrics(fm)) {
@@ -2105,7 +2114,7 @@ namespace slib
 
 	void SimpleTextBox::draw(Canvas* canvas, const SimpleTextBoxDrawParam& param) const noexcept
 	{
-		if (param.color.a == 0) {
+		if (param.textColor.a == 0) {
 			return;
 		}
 		sl_real widthDraw = param.frame.getWidth();

@@ -109,10 +109,30 @@ namespace slib
 		sl_bool _openUiResource(const String& path);
 
 		// Log
-		void _log(const String& text);
-		void _logError(const String& text);
-		void _logError(const String& filePath, sl_size line, sl_size col, const String& text);
-		void _logError(const Ref<XmlElement>& element, const String& text);
+		void _log(const StringView& text);
+
+		template <class... ARGS>
+		void _log(const StringView& fmt, ARGS&&... args)
+		{
+			_log(String::format(fmt, Forward<ARGS>(args)...));
+		}
+		void _logError(const StringView& text);
+
+		template <class... ARGS>
+		void _logError(const StringView& fmt, ARGS&&... args)
+		{
+			_logError(String::format(fmt, Forward<ARGS>(args)...));
+		}
+
+		void _logErrorSource(const StringView& filePath, sl_size line, sl_size col, const StringView& text);
+
+		void _logError(const Ref<XmlElement>& element, const StringView& text);
+
+		template <class... ARGS>
+		void _logError(const Ref<XmlElement>& element, const StringView& fmt, ARGS&&... args)
+		{
+			_logError(element, String::format(fmt, Forward<ARGS>(args)...));
+		}
 
 		// Resources Entry
 		sl_bool _parseConfiguration(const String& filePath, SAppConfiguration& conf);

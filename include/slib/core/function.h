@@ -1146,43 +1146,7 @@ namespace slib
 			}
 		}
 		
-		Atomic& operator+=(const Function<RET_TYPE(ARGS...)>& function) noexcept
-		{
-			add(function);
-			return *this;
-		}
-		
-		Function<RET_TYPE(ARGS...)> operator+(const Function<RET_TYPE(ARGS...)>& function) noexcept
-		{
-			Function<RET_TYPE(ARGS...)> _this(*this);
-			return _this + function;
-		}
-		
-		Atomic& operator-=(const Function<RET_TYPE(ARGS...)>& function) noexcept
-		{
-			remove(function);
-			return *this;
-		}
-		
-		Function<RET_TYPE(ARGS...)> operator-(const Function<RET_TYPE(ARGS...)>& function) noexcept
-		{
-			Function<RET_TYPE(ARGS...)> _this(*this);
-			return _this - function;
-		}
-		
 	public:
-		sl_bool isList() const noexcept
-		{
-			Function<RET_TYPE(ARGS...)> func(*this);
-			return func.isList();
-		}
-		
-		const List< Function<RET_TYPE(ARGS...)> >& getList() const noexcept
-		{
-			Function<RET_TYPE(ARGS...)> func(*this);
-			return func.getList();
-		}
-		
 		// return `function`
 		Function<RET_TYPE(ARGS...)> add(const Function<RET_TYPE(ARGS...)>& function) noexcept
 		{
@@ -1215,12 +1179,6 @@ namespace slib
 			} else {
 				*this = _this - function;
 			}
-		}
-		
-		sl_bool contains(const Function<RET_TYPE(ARGS...)>& function) const noexcept
-		{
-			Function<RET_TYPE(ARGS...)> func(*this);
-			return func.contains(function);
 		}
 		
 	};

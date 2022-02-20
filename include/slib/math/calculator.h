@@ -33,30 +33,38 @@ namespace slib
 	class SLIB_EXPORT Calculator
 	{
 	public:
-		static sl_reg calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
-		static sl_reg calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char16* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+
+		static sl_reg calculate(sl_int32* result, sl_bool* isDivisionByZero, const sl_char32* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
 		static sl_bool calculate(const StringParam& str, sl_int32* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 
 
-		static sl_reg calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
-		static sl_reg calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char16* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+
+		static sl_reg calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char32* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
 		static sl_bool calculate(const StringParam& str, sl_int64* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 
 
-		static sl_reg calculate(float* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(float* result, sl_bool* isDivisionByZero, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
-		static sl_reg calculate(float* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(float* result, sl_bool* isDivisionByZero, const sl_char16* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+
+		static sl_reg calculate(float* result, sl_bool* isDivisionByZero, const sl_char32* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
 		static sl_bool calculate(const StringParam& str, float* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 
 
-		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char8* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
-		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char16* sz, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char16* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
+
+		static sl_reg calculate(double* result, sl_bool* isDivisionByZero, const sl_char32* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
 
 		static sl_bool calculate(const StringParam& str, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 

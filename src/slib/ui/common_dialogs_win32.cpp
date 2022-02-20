@@ -360,14 +360,14 @@ namespace slib
 							if (len > 0) {
 								List<String> files;
 								sz[len] = '/';
-								String dir = String::create((sl_char16*)sz, len + 1);
+								StringView16 dir((sl_char16*)sz, len + 1);
 								sz += (len + 1);
 								while (1) {
 									len = Base::getStringLength2((sl_char16*)sz);
 									if (len == 0) {
 										break;
 									}
-									files.add_NoLock(dir + StringView16((sl_char16*)sz, len));
+									files.add_NoLock(String::concat(dir, StringView16((sl_char16*)sz, len)));
 									sz += (len + 1);
 								}
 								if (files.isNotEmpty()) {

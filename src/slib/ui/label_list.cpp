@@ -200,13 +200,13 @@ namespace slib
 		drawParam.frame.top += getPaddingTop();
 		drawParam.frame.bottom -= getPaddingBottom();
 		if (m_textColorSelected.isNotZero() && isSelectedIndex(itemIndex)) {
-			drawParam.color = m_textColorSelected;
+			drawParam.textColor = m_textColorSelected;
 		} else if (m_textColorHover.isNotZero() && itemIndex == getHoverIndex()) {
-			drawParam.color = m_textColorHover;
+			drawParam.textColor = m_textColorHover;
 		} else if (m_textColorFocused.isNotZero() && isFocused() && itemIndex == m_indexFocused) {
-			drawParam.color = m_textColorFocused;
+			drawParam.textColor = m_textColorFocused;
 		} else {
-			drawParam.color = m_textColor;
+			drawParam.textColor = m_textColor;
 		}
 		SimpleTextBox box;
 		param.font = getFont();

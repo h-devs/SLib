@@ -59,57 +59,48 @@ namespace slib
 
 	class String;
 	class String16;
+	class String32;
 	class StringContainer;
 	class StringContainer16;
+	class StringContainer32;
 	class StringView;
 	class StringView16;
+	class StringView32;
 	class StringParam;
 	class StringStorage;
 	
 	typedef Atomic<String> AtomicString;
 	typedef Atomic<String16> AtomicString16;
+	typedef Atomic<String32> AtomicString32;
 
 
 	template <class CharType>
 	struct StringTypeFromCharType;
-	
 	template <>
 	struct StringTypeFromCharType<sl_char8> { typedef String Type; };
-	
 	template <>
 	struct StringTypeFromCharType<sl_char16> { typedef String16 Type; };
-	
-	
+	template <>
+	struct StringTypeFromCharType<sl_char32> { typedef String32 Type; };
+
 	template <class CharType>
 	struct StringViewTypeFromCharType;
-	
 	template <>
 	struct StringViewTypeFromCharType<sl_char8> { typedef StringView Type; };
-	
 	template <>
 	struct StringViewTypeFromCharType<sl_char16> { typedef StringView16 Type; };
+	template <>
+	struct StringViewTypeFromCharType<sl_char32> { typedef StringView32 Type; };
 	
-	
-	template <class StringType>
-	struct CharTypeFromStringType;
 
+	template <class CharType>
+	struct OtherCharType;
 	template <>
-	struct CharTypeFromStringType<String> { typedef sl_char8 Type; };
-
+	struct OtherCharType<sl_char8> { typedef sl_char16 Type1; typedef sl_char32 Type2; };
 	template <>
-	struct CharTypeFromStringType< Atomic<String> > { typedef sl_char8 Type; };
-
+	struct OtherCharType<sl_char16> { typedef sl_char8 Type1; typedef sl_char32 Type2; };
 	template <>
-	struct CharTypeFromStringType<String16> { typedef sl_char16 Type; };
-	
-	template <>
-	struct CharTypeFromStringType< Atomic<String16> > { typedef sl_char16 Type; };
-	
-	template <>
-	struct CharTypeFromStringType<StringView> { typedef sl_char8 Type; };
-
-	template <>
-	struct CharTypeFromStringType<StringView16> { typedef sl_char16 Type; };
+	struct OtherCharType<sl_char32> { typedef sl_char8 Type1; typedef sl_char16 Type2; };
 
 
 	namespace priv
@@ -123,6 +114,9 @@ namespace slib
 			extern StringContainer16* const g_null16;
 			extern StringContainer16* const g_empty16;
 
+			extern StringContainer32* const g_null32;
+			extern StringContainer32* const g_empty32;
+
 			extern const char* g_conv_radixPatternUpper;
 			extern const char* g_conv_radixPatternLower;
 			extern const sl_uint8* g_conv_radixInversePatternBig;
@@ -133,39 +127,95 @@ namespace slib
 
 }
 
-#define PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(RET, FUNC) \
-	template <class CHAR, sl_size N> RET FUNC(CHAR (&other)[N]) const noexcept; \
-	template <class ARG> RET FUNC(const ARG& other) const noexcept;
+#if defined(SLIB_SUPPORT_STD_TYPES)
+#define PRIV_SLIB_DECLARE_STD_STRING_OPS_SUB(CLASS, STRING) \
+	STRING operator+(const StdString& other) const noexcept; \
+	friend STRING operator+(const StdString& s1, const CLASS& s2) noexcept; \
+	friend sl_bool operator==(const StdString& s1, const CLASS& s2) noexcept; \
+	friend sl_bool operator!=(const StdString& s1, const CLASS& s2) noexcept; \
+	friend sl_compare_result operator>=(const StdString& s1, const CLASS& s2); \
+	friend sl_compare_result operator<=(const StdString& s1, const CLASS& s2); \
+	friend sl_compare_result operator>(const StdString& s1, const CLASS& s2); \
+	friend sl_compare_result operator<(const StdString& s1, const CLASS& s2);
+#else
+#define PRIV_SLIB_DECLARE_STD_STRING_OPS_SUB(CLASS, STRING)
+#endif
 
-#define PRIV_SLIB_DECLARE_STRING_CLASS_OP(STRING, RET, FUNC) \
-	RET FUNC(const STRING& other) const noexcept; \
-	RET FUNC(const Atomic<STRING>& other) const noexcept; \
-	PRIV_SLIB_DECLARE_STRING_CLASS_OP_TEMPLATE(RET, FUNC)
+#define PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, STRING, VIEW) \
+	STRING operator+(const STRING& other) const noexcept; \
+	STRING operator+(const VIEW& other) const noexcept; \
+	STRING operator+(const Char* sz) const noexcept; \
+	template <class T> sl_bool operator==(const T& other) const noexcept { return equals(other); } \
+	template <class T> sl_bool operator!=(const T& other) const noexcept { return !(equals(other)); } \
+	template <class T> sl_compare_result operator>=(const T& other) const noexcept { return compare(other) >= 0; } \
+	template <class T> sl_compare_result operator<=(const T& other) const noexcept { return compare(other) <= 0; } \
+	template <class T> sl_compare_result operator>(const T& other) const noexcept { return compare(other) > 0; } \
+	template <class T> sl_compare_result operator<(const T& other) const noexcept { return compare(other) < 0; } \
+	friend STRING operator+(const Char* s1, const CLASS& s2) noexcept; \
+	friend sl_bool operator==(const Char* sz, const CLASS& str) noexcept; \
+	friend sl_bool operator!=(const Char* sz, const CLASS& str) noexcept; \
+	friend sl_compare_result operator>=(const Char* sz, const CLASS& str); \
+	friend sl_compare_result operator<=(const Char* sz, const CLASS& str); \
+	friend sl_compare_result operator>(const Char* sz, const CLASS& str); \
+	friend sl_compare_result operator<(const Char* sz, const CLASS& str); \
+	PRIV_SLIB_DECLARE_STD_STRING_OPS_SUB(CLASS, STRING)
+
+#define PRIV_SLIB_DECLARE_STRING_OPS(CLASS) \
+	PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, CLASS, StringViewType)
+
+#define PRIV_SLIB_DECLARE_STRING_VIEW_OPS(CLASS) \
+	PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, StringType, CLASS)
 
 #include "string8.h"
 #include "string16.h"
+#include "string32.h"
 #include "string_view.h"
 #include "string_param.h"
-#include "string_op.h"
 
 namespace slib
 {
+
+	class SLIB_EXPORT StringRawData
+	{
+	public:
+		union {
+			void* data;
+			sl_char8* data8;
+			sl_char16* data16;
+			sl_char32* data32;
+		};
+		sl_reg length;
+		sl_uint8 charSize; // In Bytes (1/2/4)
+
+	};
 
 	class SLIB_EXPORT StringStorage
 	{
 	public:
 		union {
-			const sl_char8* data8;
-			const sl_char16* data16;
-			const sl_char32* data32;
+			void* data;
+			sl_char8* data8;
+			sl_char16* data16;
+			sl_char32* data32;
 		};
 		sl_size length;
+		sl_uint8 charSize; // In Bytes (1/2/4)
 		Ref<Referable> ref;
 		String string8;
 		String16 string16;
+		String32 string32;
 
 	public:
 		StringStorage() noexcept;
+
+		StringStorage(const String& str) noexcept;
+		StringStorage(String&& str) noexcept;
+
+		StringStorage(const String16& str) noexcept;
+		StringStorage(String16&& str) noexcept;
+
+		StringStorage(const String32& str) noexcept;
+		StringStorage(String32&& str) noexcept;
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StringStorage)
 

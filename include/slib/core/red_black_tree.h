@@ -105,7 +105,7 @@ namespace slib
 			sl_compare_result comp;
 			for (;;) {
 				comp = key_compare(look->key, key);
-				if (comp == 0) {
+				if (!comp) {
 					break;
 				} else if (comp > 0) {
 					NODE* left = look->left;
@@ -144,7 +144,7 @@ namespace slib
 				if (left) {
 					NODE* node = left;
 					for (;;) {
-						if (key_compare(node->key, key) == 0) {
+						if (!(key_compare(node->key, key))) {
 							last_equal = node;
 							left = node->left;
 							if (left) {
@@ -207,7 +207,7 @@ namespace slib
 			}
 			sl_compare_result compare_result;
 			NODE* node = tryFind(look, key, key_compare, compare_result);
-			if (compare_result == 0) {
+			if (!compare_result) {
 				if (pLessEqual) {
 					*pLessEqual = node;
 				}
@@ -295,7 +295,7 @@ namespace slib
 			}
 			sl_compare_result compare_result;
 			NODE* node = tryFind(look, key, key_compare, compare_result);
-			if (compare_result == 0) {
+			if (!compare_result) {
 				return node;
 			}
 			return sl_null;
@@ -402,7 +402,7 @@ namespace slib
 			if (root) {
 				sl_compare_result compare_result;
 				NODE* where = tryFind(root, key, key_compare, compare_result);
-				if (compare_result == 0) {
+				if (!compare_result) {
 					where->value = Forward<VALUE>(value);
 					if (isInsertion) {
 						*isInsertion = sl_false;
@@ -443,7 +443,7 @@ namespace slib
 			}
 			sl_compare_result compare_result;
 			NODE* node = tryFind(root, key, key_compare, compare_result);
-			if (compare_result == 0) {
+			if (!compare_result) {
 				node->value = Forward<VALUE>(value);
 				return node;
 			} else {
@@ -470,7 +470,7 @@ namespace slib
 			if (root) {
 				sl_compare_result compare_result;
 				NODE* where = tryFind(root, key, key_compare, compare_result);
-				if (compare_result == 0) {
+				if (!compare_result) {
 					return MapEmplaceReturn<NODE>(sl_false, where);
 				}
 				NODE* node = new NODE(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
@@ -554,7 +554,7 @@ namespace slib
 			if (root) {
 				sl_compare_result compare_result;
 				NODE* node = tryFind(root, key, key_compare, compare_result);
-				if (compare_result == 0) {
+				if (!compare_result) {
 					if (outValue) {
 						*outValue = Move(node->value);
 					}

@@ -1,5 +1,5 @@
 /*
- *	Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *	Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
  *	of this software and associated documentation files (the "Software"), to deal
@@ -35,11 +35,9 @@ namespace slib
 		namespace parse
 		{
 
-			template <class ST, class CT>
-			static sl_size ApplyBackslashEscapes(const ST& s, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii, CT* buf) noexcept
+			template <class CHAR>
+			static sl_size ApplyBackslashEscapes(const CHAR* str, sl_size len, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii, CHAR* buf) noexcept
 			{
-				const CT* ch = s.getData();
-				sl_size len = s.getUnsafeLength();
 				sl_size d;
 				if (flagAddQuote) {
 					d = 1;
@@ -51,46 +49,46 @@ namespace slib
 				}
 				sl_bool flagPrevEscaped = sl_false;
 				for (sl_size i = 0; i < len; i++) {
-					CT c = ch[i];
-					CT r = 0;
+					typename UnsignedType<CHAR>::Type c = str[i];
+					typename UnsignedType<CHAR>::Type r = 0;
 					switch (c) {
-					case '\\':
-						r = c;
-						break;
-					case '"':
-						if (flagDoubleQuote) {
+						case '\\':
 							r = c;
-						}
-						break;
-					case '\'':
-						if (!flagDoubleQuote) {
-							r = c;
-						}
-						break;
-					case 0:
-						if (len & SLIB_SIZE_TEST_SIGN_BIT) {
 							break;
-						}
-						r = '0';
-						break;
-					case '\n':
-						r = 'n';
-						break;
-					case '\r':
-						r = 'r';
-						break;
-					case '\b':
-						r = 'b';
-						break;
-					case '\f':
-						r = 'f';
-						break;
-					case '\a':
-						r = 'a';
-						break;
-					case '\v':
-						r = 'v';
-						break;
+						case '"':
+							if (flagDoubleQuote) {
+								r = c;
+							}
+							break;
+						case '\'':
+							if (!flagDoubleQuote) {
+								r = c;
+							}
+							break;
+						case 0:
+							if (len & SLIB_SIZE_TEST_SIGN_BIT) {
+								break;
+							}
+							r = '0';
+							break;
+						case '\n':
+							r = 'n';
+							break;
+						case '\r':
+							r = 'r';
+							break;
+						case '\b':
+							r = 'b';
+							break;
+						case '\f':
+							r = 'f';
+							break;
+						case '\a':
+							r = 'a';
+							break;
+						case '\v':
+							r = 'v';
+							break;
 					}
 					if (r) {
 						if (buf) {
@@ -99,21 +97,27 @@ namespace slib
 						} else {
 							d += 2;
 						}
+						flagPrevEscaped = sl_false;
 					} else {
-						if (flagEscapeNonAscii && ((sl_uint8)c < 32 || (sl_uint8)c > 126)) {
-							if (sizeof(CT) == 1) {
+						sl_uint32 t = (sl_uint32)c;
+						if (flagEscapeNonAscii && (t < 32 || t > 126)) {
+							if (sizeof(CHAR) >= 4 && (t >> 16)) {
 								if (buf) {
-									sl_uint8 t = (sl_uint8)c;
 									buf[d++] = '\\';
 									buf[d++] = 'x';
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 28) & 15];
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 24) & 15];
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 20) & 15];
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 16) & 15];
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 12) & 15];
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 8) & 15];
 									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 4) & 15];
 									buf[d++] = priv::string::g_conv_radixPatternLower[t & 15];
 								} else {
-									d += 4;
+									d += 10;
 								}
-							} else {
+							} else if (sizeof(CHAR) >= 2 && (t >> 8)) {
 								if (buf) {
-									sl_uint16 t = (sl_uint16)c;
 									buf[d++] = '\\';
 									buf[d++] = 'x';
 									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 12) & 15];
@@ -123,26 +127,35 @@ namespace slib
 								} else {
 									d += 6;
 								}
+							} else {
+								if (buf) {
+									buf[d++] = '\\';
+									buf[d++] = 'x';
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 4) & 15];
+									buf[d++] = priv::string::g_conv_radixPatternLower[t & 15];
+								} else {
+									d += 4;
+								}
 							}
 							flagPrevEscaped = sl_true;
 						} else {
-							if (flagPrevEscaped) {
-								if (SLIB_CHAR_IS_HEX(c)) {
-									if (buf) {
-										CT t = flagDoubleQuote ? '"' : '\'';
-										buf[d++] = t;
-										buf[d++] = t;
-									} else {
-										d += 2;
-									}
+							if (flagPrevEscaped && SLIB_CHAR_IS_HEX(c)) {
+								if (buf) {
+									buf[d++] = '\\';
+									buf[d++] = 'x';
+									buf[d++] = priv::string::g_conv_radixPatternLower[(t >> 4) & 15];
+									buf[d++] = priv::string::g_conv_radixPatternLower[t & 15];
+								} else {
+									d += 4;
 								}
-							}
-							if (buf) {
-								buf[d++] = c;
 							} else {
-								d++;
+								if (buf) {
+									buf[d++] = c;
+								} else {
+									d++;
+								}
+								flagPrevEscaped = sl_false;
 							}
-							flagPrevEscaped = sl_false;
 						}
 					}
 				}
@@ -156,43 +169,28 @@ namespace slib
 				return d;
 			}
 
-		}
-	}
+			template <class VIEW>
+			static typename VIEW::StringType ApplyBackslashEscapes(const VIEW& str, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii)
+			{
+				if (str.isNull()) {
+					return sl_null;
+				}
+				typename VIEW::Char* data = str.getUnsafeData();
+				sl_size len = str.getUnsafeLength();
+				sl_size n = ApplyBackslashEscapes(data, len, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, (typename VIEW::Char*)sl_null);
+				if (!n) {
+					return VIEW::StringType::getEmpty();
+				}
+				typename VIEW::StringType ret = VIEW::StringType::allocate(n);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				ApplyBackslashEscapes(data, len, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, ret.getData());
+				return ret;
+			}
 
-	String ParseUtil::applyBackslashEscapes(const StringParam& _str, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii) noexcept
-	{
-		StringData str(_str);
-		sl_size n = priv::parse::ApplyBackslashEscapes<StringData, sl_char8>(str, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, sl_null);
-		if (n == 0) {
-			return String::getEmpty();
-		}
-		String ret = String::allocate(n);
-		if (ret.isEmpty()) {
-			return sl_null;
-		}
-		priv::parse::ApplyBackslashEscapes<StringData, sl_char8>(str, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, ret.getData());
-		return ret;
-	}
-
-	String16 ParseUtil::applyBackslashEscapes16(const StringParam& _str, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii) noexcept
-	{
-		StringData16 str(_str);
-		sl_size n = priv::parse::ApplyBackslashEscapes<StringData16, sl_char16>(str, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, sl_null);
-		String16 ret = String16::allocate(n);
-		if (ret.isEmpty()) {
-			return sl_null;
-		}
-		priv::parse::ApplyBackslashEscapes<StringData16, sl_char16>(str, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii, ret.getData());
-		return ret;
-	}
-
-	namespace priv
-	{
-		namespace parse
-		{
-
-			template <class ST, class CT>
-			static ST ParseBackslashEscapes(const CT* sz, sl_size n, sl_size* lengthParsed, sl_bool* outFlagError) noexcept
+			template <class CHAR>
+			static sl_size ParseBackslashEscapes(const CHAR* src, sl_size lengthSrc, sl_size* lengthParsed, sl_bool* outFlagError, CHAR* buf) noexcept
 			{
 				if (lengthParsed) {
 					*lengthParsed = 0;
@@ -200,239 +198,249 @@ namespace slib
 				if (outFlagError) {
 					*outFlagError = sl_true;
 				}
-				if (n <= 0) {
-					return sl_null;
-				}
-				CT chEnd = 0;
-				if (sz[0] == '"') {
+				CHAR ch = *src;
+				CHAR chEnd = 0;
+				if (ch == '"') {
 					chEnd = '"';
-				} else if (sz[0] == '\'') {
+				} else if (ch == '\'') {
 					chEnd = '\'';
 				} else {
-					return sl_null;
+					return 0;
 				}
-				SLIB_SCOPED_BUFFER(CT, 2048, buf, n);
-				if (buf == sl_null) {
-					return sl_null;
-				}
-				sl_size len = 0;
+				sl_size lengthOutput = 0;
 				sl_bool flagSuccess = sl_false;
 				sl_size i = 1;
-				for (; i < n; i++) {
-					CT ch = sz[i];
+				for (; i < lengthSrc; i++) {
+					ch = src[i];
 					sl_bool flagError = sl_false;
 					sl_bool flagBackslash = sl_false;
 					switch (ch) {
-					case 0:
-						break;
-					case '\\':
-						flagBackslash = sl_true;
-						i++;
-						if (i < n) {
-							ch = sz[i];
-							switch (ch) {
-							case '\\':
-							case '"':
-							case '\'':
-							case '/':
-								break;
-							case 'n':
-								ch = '\n';
-								break;
-							case 'r':
-								ch = '\r';
-								break;
-							case 't':
-								ch = '\t';
-								break;
-							case 'b':
-								ch = '\b';
-								break;
-							case 'f':
-								ch = '\f';
-								break;
-							case 'a':
-								ch = '\a';
-								break;
-							case '0': case '1': case '2': case '3':
-							case '4': case '5': case '6': case '7':
-							{
-								i++;
-								sl_size nh = 2;
-								sl_uint32 t = ch - '0';
-								while (i < n && nh > 0) {
-									ch = sz[i];
-									if (ch >= '0' && ch < '8') {
-										t = (t << 3) | (ch - '0');
-										i++;
-									} else {
+						case 0:
+							break;
+						case '\\':
+							flagBackslash = sl_true;
+							i++;
+							if (i < lengthSrc) {
+								ch = src[i];
+								switch (ch) {
+									case '\\':
+									case '"':
+									case '\'':
+									case '/':
 										break;
-									}
-								}
-								i--;
-								ch = (CT)t;
-								break;
-							}
-							case 'x':
-							{
-								i++;
-								sl_uint32 h = SLIB_CHAR_HEX_TO_INT(sz[i]);
-								if (h < 16) {
-									i++;
-									sl_uint32 t = h;
-									sl_size nh;
-									if (sizeof(CT) == 1) {
-										nh = 1;
-									} else {
-										nh = 3;
-									}
-									while (i < n && nh > 0) {
-										ch = sz[i];
-										h = SLIB_CHAR_HEX_TO_INT(ch);
-										if (h < 16) {
-											t = (t << 4) | h;
+									case 'n':
+										ch = '\n';
+										break;
+									case 'r':
+										ch = '\r';
+										break;
+									case 't':
+										ch = '\t';
+										break;
+									case 'b':
+										ch = '\b';
+										break;
+									case 'f':
+										ch = '\f';
+										break;
+									case 'a':
+										ch = '\a';
+										break;
+									case '0': case '1': case '2': case '3':
+									case '4': case '5': case '6': case '7':
+										{
 											i++;
-										} else {
+											sl_uint32 t = ch - '0';
+											while (i < lengthSrc) {
+												ch = src[i];
+												if (ch >= '0' && ch < '8') {
+													t = (t << 3) | (ch - '0');
+													i++;
+												} else {
+													break;
+												}
+											}
+											i--;
+											ch = (CHAR)t;
 											break;
 										}
-									}
-								} else {
-									flagError = sl_true;
-								}
-								i--;
-								break;
-							}
-							case 'u':
-							{
-								if (i + 4 < n) {
-									i++;
-									sl_uint16 t = 0;
-									{
-										for (int k = 0; k < 4; k++) {
-											ch = sz[i];
-											sl_uint16 h = SLIB_CHAR_HEX_TO_INT(ch);
-											if (h < 16) {
-												t = (t << 4) | h;
+									case 'x':
+										{
+											if (i + 1 < lengthSrc) {
 												i++;
+												sl_uint32 h = SLIB_CHAR_HEX_TO_INT(src[i]);
+												if (h < 16) {
+													sl_uint32 t = h;
+													i++;
+													while (i < lengthSrc) {
+														ch = src[i];
+														h = SLIB_CHAR_HEX_TO_INT(ch);
+														if (h < 16) {
+															t = (t << 4) | h;
+															i++;
+														} else {
+															break;
+														}
+													}
+													ch = (CHAR)t;
+												} else {
+													flagError = sl_true;
+												}
+												i--;
 											} else {
 												flagError = sl_true;
-												break;
 											}
+											break;
 										}
-									}
-									if (!flagError) {
-										if (sizeof(CT) == 1) {
-											if (t >= 0xD800 && t < 0xDC00) {
-												if (i + 5 < n) {
-													if (sz[i] == '\\' && sz[i + 1] == 'u') {
-														i += 2;
-														sl_uint16 t2 = 0;
-														for (int k = 0; k < 4; k++) {
-															ch = sz[i];
-															sl_uint16 h = SLIB_CHAR_HEX_TO_INT(ch);
-															if (h < 16) {
-																t2 = (t2 << 4) | h;
-																i++;
-															} else {
-																flagError = sl_true;
-																break;
-															}
+									case 'u':
+										{
+											if (i + 4 < lengthSrc) {
+												i++;
+												sl_uint16 t = 0;
+												{
+													for (int k = 0; k < 4; k++) {
+														ch = src[i];
+														sl_uint16 h = (sl_uint16)(SLIB_CHAR_HEX_TO_INT(ch));
+														if (h < 16) {
+															t = (t << 4) | h;
+															i++;
+														} else {
+															flagError = sl_true;
+															break;
 														}
-														if (!flagError) {
-															sl_char8 u[6];
-															sl_char16 a[] = { t, t2 };
-															sl_size nu = Charsets::utf16ToUtf8(a, 2, u, 6);
+													}
+												}
+												if (!flagError) {
+													if (sizeof(CHAR) == 1) {
+														if (t >= 0xD800 && t < 0xDC00) {
+															if (i + 5 < lengthSrc) {
+																if (src[i] == '\\' && src[i + 1] == 'u') {
+																	i += 2;
+																	sl_uint16 t2 = 0;
+																	for (int k = 0; k < 4; k++) {
+																		ch = src[i];
+																		sl_uint16 h = (sl_uint16)(SLIB_CHAR_HEX_TO_INT(ch));
+																		if (h < 16) {
+																			t2 = (t2 << 4) | h;
+																			i++;
+																		} else {
+																			flagError = sl_true;
+																			break;
+																		}
+																	}
+																	if (!flagError) {
+																		sl_char8 u[6];
+																		sl_char16 a[] = { t, t2 };
+																		sl_size nu = Charsets::utf16ToUtf8(a, 2, u, 6);
+																		if (nu > 0) {
+																			for (sl_size iu = 0; iu < nu - 1; iu++) {
+																				if (buf) {
+																					buf[lengthOutput++] = (CHAR)(u[iu]);
+																				} else {
+																					lengthOutput++;
+																				}
+																			}
+																			ch = (CHAR)(u[nu - 1]);
+																		}
+																	}
+																}
+															}
+														} else {
+															sl_char8 u[3];
+															sl_size nu = Charsets::utf16ToUtf8((sl_char16*)&t, 1, u, 3);
 															if (nu > 0) {
 																for (sl_size iu = 0; iu < nu - 1; iu++) {
-																	buf[len++] = (CT)(u[iu]);
+																	if (buf) {
+																		buf[lengthOutput++] = (CHAR)(u[iu]);
+																	} else {
+																		lengthOutput++;
+																	}
 																}
-																ch = (CT)(u[nu - 1]);
+																ch = (CHAR)(u[nu - 1]);
 															}
 														}
+													} else {
+														ch = (CHAR)t;
 													}
 												}
+												i--;
 											} else {
-												sl_char8 u[3];
-												sl_size nu = Charsets::utf16ToUtf8((sl_char16*)&t, 1, u, 3);
-												if (nu > 0) {
-													for (sl_size iu = 0; iu < nu - 1; iu++) {
-														buf[len++] = (CT)(u[iu]);
-													}
-													ch = (CT)(u[nu - 1]);
-												}
+												flagError = sl_true;
 											}
-										} else {
-											ch = (CT)t;
-										}
-									}
-									i--;
-								} else {
-									flagError = sl_true;
-								}
-								break;
-							}
-							case 'U':
-							{
-								if (i + 8 < n) {
-									i++;
-									sl_uint32 t = 0;
-									for (int k = 0; k < 4; k++) {
-										ch = sz[i];
-										sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
-										if (h < 16) {
-											t = (t << 4) | h;
-											i++;
-										} else {
-											flagError = sl_true;
 											break;
 										}
-									}
-									if (!flagError) {
-										if (sizeof(CT) == 1) {
-											sl_char8 u[6];
-											sl_char32 _t = t;
-											sl_size nu = Charsets::utf32ToUtf8(&_t, 1, u, 6);
-											if (nu > 0) {
-												for (sl_size iu = 0; iu < nu - 1; iu++) {
-													buf[len++] = (CT)(u[iu]);
+									case 'U':
+										{
+											if (i + 8 < lengthSrc) {
+												i++;
+												sl_uint32 t = 0;
+												for (int k = 0; k < 8; k++) {
+													ch = src[i];
+													sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
+													if (h < 16) {
+														t = (t << 4) | h;
+														i++;
+													} else {
+														flagError = sl_true;
+														break;
+													}
 												}
-												ch = (CT)(u[nu - 1]);
+												if (!flagError) {
+													if (sizeof(CHAR) == 1) {
+														sl_char8 u[6];
+														sl_char32 _t = t;
+														sl_size nu = Charsets::utf32ToUtf8(&_t, 1, u, 6);
+														if (nu > 0) {
+															for (sl_size iu = 0; iu < nu - 1; iu++) {
+																if (buf) {
+																	buf[lengthOutput++] = (CHAR)(u[iu]);
+																} else {
+																	lengthOutput++;
+																}
+															}
+															ch = (CHAR)(u[nu - 1]);
+														} else {
+															flagError = sl_true;
+														}
+													} else if (sizeof(CHAR) == 2) {
+														sl_char16 u[2];
+														sl_char32 _t = t;
+														sl_size nu = Charsets::utf32ToUtf16(&_t, 1, u, 2);
+														if (nu > 0) {
+															for (sl_size iu = 0; iu < nu - 1; iu++) {
+																if (buf) {
+																	buf[lengthOutput++] = (CHAR)(u[iu]);
+																} else {
+																	lengthOutput++;
+																}
+															}
+															ch = (CHAR)(u[nu - 1]);
+														} else {
+															flagError = sl_true;
+														}
+													} else {
+														ch = (CHAR)t;
+													}
+												}
+												i--;
 											} else {
 												flagError = sl_true;
 											}
-										} else {
-											sl_char16 u[2];
-											sl_char32 _t = t;
-											sl_size nu = Charsets::utf32ToUtf16(&_t, 1, u, 2);
-											if (nu > 0) {
-												for (sl_size iu = 0; iu < nu - 1; iu++) {
-													buf[len++] = (CT)(u[iu]);
-												}
-												ch = (CT)(u[nu - 1]);
-											} else {
-												flagError = sl_true;
-											}
+											break;
 										}
-									}
-									i--;
-								} else {
-									flagError = sl_true;
+									default:
+										flagError = sl_true;
+										break;
 								}
-								break;
-							}
-							default:
+							} else {
 								flagError = sl_true;
-								break;
 							}
-						} else {
+							break;
+						case '\r':
+						case '\n':
+						case '\v':
 							flagError = sl_true;
-						}
-						break;
-					case '\r':
-					case '\n':
-					case '\v':
-						flagError = sl_true;
-						break;
+							break;
 					}
 					if (flagError) {
 						break;
@@ -442,51 +450,52 @@ namespace slib
 							i++;
 							break;
 						} else {
-							buf[len++] = ch;
+							if (buf) {
+								buf[lengthOutput++] = ch;
+							} else {
+								lengthOutput++;
+							}
 						}
 					}
 				}
 				if (lengthParsed) {
 					*lengthParsed = i;
 				}
-				ST ret;
 				if (flagSuccess) {
-					ret = ST(buf, len);
 					if (outFlagError) {
 						*outFlagError = sl_false;
 					}
 				}
+				return lengthOutput;
+			}
+
+			template <class VIEW>
+			static typename VIEW::StringType ParseBackslashEscapes(const VIEW& str, sl_size* lengthParsed, sl_bool* outFlagError) noexcept
+			{
+				if (str.isNull()) {
+					return sl_null;
+				}
+				typename VIEW::Char* data = str.getUnsafeData();
+				sl_size len = str.getUnsafeLength();
+				sl_size n = ParseBackslashEscapes(data, len, lengthParsed, outFlagError, (typename VIEW::Char*)sl_null);
+				if (!n) {
+					return VIEW::StringType::getEmpty();
+				}
+				typename VIEW::StringType ret = VIEW::StringType::allocate(n);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				ParseBackslashEscapes(data, len, lengthParsed, outFlagError, ret.getData());
 				return ret;
 			}
 
-		}
-	}
-
-	String ParseUtil::parseBackslashEscapes(const StringParam& _str, sl_size* lengthParsed, sl_bool* outFlagError) noexcept
-	{
-		StringData str(_str);
-		return priv::parse::ParseBackslashEscapes<String, sl_char8>(str.getData(), str.getUnsafeLength(), lengthParsed, outFlagError);
-	}
-
-	String16 ParseUtil::parseBackslashEscapes16(const StringParam& _str, sl_size* lengthParsed, sl_bool* outFlagError) noexcept
-	{
-		StringData16 str(_str);
-		return priv::parse::ParseBackslashEscapes<String16, sl_char16>(str.getData(), str.getUnsafeLength(), lengthParsed, outFlagError);
-	}
-
-
-	namespace priv
-	{
-		namespace parse
-		{
-
-			template <class CT>
-			static sl_size CountLineNumber(const CT* input, sl_size len, sl_size* columnLast) noexcept
+			template <class CHAR>
+			static sl_size CountLineNumber(const CHAR* input, sl_size len, sl_size* columnLast) noexcept
 			{
 				sl_size line = 1;
 				sl_size col = 1;
 				for (sl_size i = 0; i < len; i++) {
-					CT ch = input[i];
+					CHAR ch = input[i];
 					if (!ch) {
 						break;
 					}
@@ -507,89 +516,67 @@ namespace slib
 				}
 				return line;
 			}
-		
-			template <class ST, class CT>
-			static List<ST> SplitLines(const CT* input, sl_size len)
+
+			template <class VIEW>
+			SLIB_INLINE static sl_size CountLineNumber(const VIEW& str, sl_size* columnLast) noexcept
 			{
-				List<ST> ret;
+				if (str.isNull()) {
+					return 0;
+				}
+				return CountLineNumber(str.getUnsafeData(), str.getUnsafeLength(), columnLast);
+			}
+
+			template <class STRING>
+			static List<STRING> SplitLinesSub(const STRING& str, typename STRING::Char const* data, sl_size len) noexcept
+			{
+				List<STRING> ret;
 				sl_size start = 0;
 				for (sl_size i = 0; i < len; i++) {
-					CT ch = input[i];
+					typename STRING::Char ch = data[i];
 					if (!ch) {
 						break;
 					}
 					if (ch == '\r') {
-						ret.add_NoLock(input + start, i - start);
-						if (i + 1 < len && input[i + 1] == '\n') {
+						ret.add_NoLock(str.substring(start, i));
+						if (i + 1 < len && str[i + 1] == '\n') {
 							i++;
 						}
 						start = i + 1;
 					} else if (ch == '\n') {
-						ret.add_NoLock(input + start, i - start);
+						ret.add_NoLock(str.substring(start, i));
 						start = i + 1;
 					}
 				}
-				ret.add_NoLock(input + start, len - start);
+				ret.add_NoLock(str.substring(start));
 				return ret;
 			}
-			
-		}
-	}
 
-	sl_size ParseUtil::countLineNumber(const StringParam& _str, sl_size* columnLast) noexcept
-	{
-		if (_str.isNotEmpty()) {
-			if (_str.is8()) {
-				StringData str(_str);
-				sl_size n = str.getUnsafeLength();
-				return priv::parse::CountLineNumber(str.getData(), n, columnLast);
-			} else {
-				StringData16 str(_str);
-				sl_size n = str.getUnsafeLength();
-				return priv::parse::CountLineNumber(str.getData(), n, columnLast);
-			}
-		}
-		return 0;
-	}
-
-	List<String> ParseUtil::splitLines(const String& input) noexcept
-	{
-		return priv::parse::SplitLines<String>(input.getData(), input.getLength());
-	}
-
-	List<String> ParseUtil::splitLines(const AtomicString& input) noexcept
-	{
-		return splitLines(String(input));
-	}
-
-	List<String16> ParseUtil::splitLines(const String16& input) noexcept
-	{
-		return priv::parse::SplitLines<String16>(input.getData(), input.getLength());
-	}
-
-	List<String16> ParseUtil::splitLines(const AtomicString16& input) noexcept
-	{
-		return splitLines(String16(input));
-	}
-
-	List<StringView> ParseUtil::splitLines(const StringView& input) noexcept
-	{
-		return priv::parse::SplitLines<StringView>(input.getData(), input.getLength());
-	}
-
-	List<StringView16> ParseUtil::splitLines(const StringView16& input) noexcept
-	{
-		return priv::parse::SplitLines<StringView16>(input.getData(), input.getLength());
-	}
-
-	namespace priv
-	{
-		namespace parse
-		{
-
-			template <class CT, class ST, class CHECKER>
-			static sl_reg IndexOf2(const ST& str, sl_reg _start, const CHECKER& checker) noexcept
+			template <class STRING>
+			SLIB_INLINE static List<STRING> SplitLines(const STRING& str) noexcept
 			{
+				if (str.isNull()) {
+					return sl_null;
+				}
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return SplitLinesSub(str, data, len);
+			}
+
+			template <class VIEW>
+			SLIB_INLINE static List<VIEW> SplitLinesView(const VIEW& str) noexcept
+			{
+				if (str.isNull()) {
+					return sl_null;
+				}
+				return SplitLinesSub(str, str.getUnsafeData(), str.getUnsafeLength());
+			}
+
+			template <class VIEW, class CHECKER>
+			static sl_reg IndexOf(const VIEW& str, sl_reg _start, const CHECKER& checker) noexcept
+			{
+				if (str.isNull()) {
+					return -1;
+				}
 				sl_size count = str.getUnsafeLength();
 				sl_size start;
 				if (_start < 0) {
@@ -600,29 +587,14 @@ namespace slib
 						return -1;
 					}
 				}
-				CT* sz = str.getData();
+				typename VIEW::Char* data = str.getUnsafeData();
 				for (sl_size i = start; i < count; i++) {
-					CT ch = sz[i];
+					typename VIEW::Char ch = data[i];
 					if (!ch) {
 						break;
 					}
 					if (checker(ch)) {
 						return i;
-					}
-				}
-				return -1;
-			}
-
-			template <class CHECKER>
-			static sl_reg IndexOf(const StringParam& _str, sl_reg start, const CHECKER& checker) noexcept
-			{
-				if (_str.isNotNull()) {
-					if (_str.is8()) {
-						StringData str(_str);
-						return IndexOf2<sl_char8, StringData, CHECKER>(str, start, checker);
-					} else {
-						StringData16 str(_str);
-						return IndexOf2<sl_char16, StringData16, CHECKER>(str, start, checker);
 					}
 				}
 				return -1;
@@ -708,76 +680,12 @@ namespace slib
 				}
 			};
 
-		}
-	}
-
-	sl_reg ParseUtil::indexOfLine(const StringParam& input, sl_reg start) noexcept
-	{
-		return priv::parse::IndexOf(input, start, priv::parse::LineChecker());
-	}
-
-	sl_reg ParseUtil::indexOfNotLine(const StringParam& input, sl_reg start) noexcept
-	{
-		return priv::parse::IndexOf(input, start, priv::parse::NotLineChecker());
-	}
-
-	sl_reg ParseUtil::indexOfWhitespace(const StringParam& input, sl_reg start) noexcept
-	{
-		return priv::parse::IndexOf(input, start, priv::parse::WhitespaceChecker());
-	}
-
-	sl_reg ParseUtil::indexOfNotWhitespace(const StringParam& input, sl_reg start) noexcept
-	{
-		return priv::parse::IndexOf(input, start, priv::parse::NotWhitespaceChecker());
-	}
-
-	sl_reg ParseUtil::indexOfChar(const StringParam& input, const ListParam<sl_char8>& _list, sl_reg start) noexcept
-	{
-		ListLocker<sl_char8> list(_list);
-		priv::parse::CharListChecker<sl_char8> checker;
-		checker.list = list.data;
-		checker.count = list.count;
-		return priv::parse::IndexOf(input, start, checker);
-	}
-
-	sl_reg ParseUtil::indexOfNotChar(const StringParam& input, const ListParam<sl_char8>& _list, sl_reg start) noexcept
-	{
-		ListLocker<sl_char8> list(_list);
-		priv::parse::NotCharListChecker<sl_char8> checker;
-		checker.list = list.data;
-		checker.count = list.count;
-		return priv::parse::IndexOf(input, start, checker);
-	}
-
-	sl_reg ParseUtil::indexOfChar16(const StringParam& input, const ListParam<sl_char16>& _list, sl_reg start) noexcept
-	{
-		ListLocker<sl_char16> list(_list);
-		priv::parse::CharListChecker<sl_char16> checker;
-		checker.list = list.data;
-		checker.count = list.count;
-		return priv::parse::IndexOf(input, start, checker);
-	}
-
-	sl_reg ParseUtil::indexOfNotChar16(const StringParam& input, const ListParam<sl_char16>& _list, sl_reg start) noexcept
-	{
-		ListLocker<sl_char16> list(_list);
-		priv::parse::NotCharListChecker<sl_char16> checker;
-		checker.list = list.data;
-		checker.count = list.count;
-		return priv::parse::IndexOf(input, start, checker);
-	}
-
-	namespace priv
-	{
-		namespace parse
-		{
-
-			template <class CT, class ST, class SO>
-			static sl_reg GetWord(SO& _out, const ST& str, sl_reg start)
+			template <class VIEW>
+			static sl_reg GetWord(typename VIEW::StringType& _out, const VIEW& str, sl_reg start) noexcept
 			{
-				sl_reg index = IndexOf2<CT, ST, NotWhitespaceChecker>(str, start, NotWhitespaceChecker());
+				sl_reg index = IndexOf(str, start, NotWhitespaceChecker());
 				if (index >= 0) {
-					sl_reg index2 = IndexOf2<CT, ST, WhitespaceChecker>(str, index, WhitespaceChecker());
+					sl_reg index2 = IndexOf(str, index, WhitespaceChecker());
 					if (index2 >= 0) {
 						_out = str.substring(index, index2);
 						return index2;
@@ -789,14 +697,14 @@ namespace slib
 				return -1;
 			}
 
-			template <class CT, class ST, class SO>
-			static List<SO> GetWords(const ST& str, sl_reg start)
+			template <class VIEW>
+			static List<typename VIEW::StringType> GetWords(const VIEW& str, sl_reg start)
 			{
-				List<SO> ret;
+				List<typename VIEW::StringType> ret;
 				sl_reg index = start;
-				SO s;
+				typename VIEW::StringType s;
 				for (;;) {
-					index = GetWord<CT, ST, SO>(s, str, index);
+					index = GetWord(s, str, index);
 					if (index < 0) {
 						break;
 					}
@@ -808,28 +716,84 @@ namespace slib
 		}
 	}
 
-	sl_reg ParseUtil::getWord(String& _out, const StringParam& _input, sl_reg start) noexcept
-	{
-		StringData input(_input);
-		return priv::parse::GetWord<sl_char8, StringData, String>(_out, input, start);
+	using namespace priv::parse;
+
+#define PRIV_PARSE_UTIL_MEMBERS(VIEW) \
+	typename VIEW::StringType ParseUtil::applyBackslashEscapes(const VIEW& str, sl_bool flagDoubleQuote, sl_bool flagAddQuote, sl_bool flagEscapeNonAscii) noexcept \
+	{ \
+		return ApplyBackslashEscapes(str, flagDoubleQuote, flagAddQuote, flagEscapeNonAscii); \
+	} \
+	\
+	typename VIEW::StringType ParseUtil::parseBackslashEscapes(const VIEW& str, sl_size* lengthParsed, sl_bool* outFlagError) noexcept \
+	{ \
+		return ParseBackslashEscapes(str, lengthParsed, outFlagError); \
+	} \
+	\
+	sl_size ParseUtil::countLineNumber(const VIEW& str, sl_size* columnLast) noexcept \
+	{ \
+		return CountLineNumber(str, columnLast); \
+	} \
+	\
+	List<VIEW> ParseUtil::splitLines(const VIEW& str) noexcept \
+	{ \
+		return SplitLinesView(str); \
+	} \
+	\
+	List<typename VIEW::StringType> ParseUtil::splitLines(typename VIEW::StringType const& str) noexcept \
+	{ \
+		return SplitLines(str); \
+	} \
+	\
+	sl_reg ParseUtil::indexOfLine(const VIEW& str, sl_reg start) noexcept \
+	{ \
+		return IndexOf(str, start, LineChecker()); \
+	} \
+	\
+	sl_reg ParseUtil::indexOfNotLine(const VIEW& str, sl_reg start) noexcept \
+	{ \
+		return IndexOf(str, start, NotLineChecker()); \
+	} \
+	\
+	sl_reg ParseUtil::indexOfWhitespace(const VIEW& str, sl_reg start) noexcept \
+	{ \
+		return IndexOf(str, start, WhitespaceChecker()); \
+	} \
+	\
+	sl_reg ParseUtil::indexOfNotWhitespace(const VIEW& str, sl_reg start) noexcept \
+	{ \
+		return IndexOf(str, start, NotWhitespaceChecker()); \
+	} \
+	\
+	sl_reg ParseUtil::indexOfChar(const VIEW& str, const ListParam<typename VIEW::Char>& _list, sl_reg start) noexcept \
+	{ \
+		ListLocker<typename VIEW::Char> list(_list); \
+		CharListChecker<typename VIEW::Char> checker; \
+		checker.list = list.data; \
+		checker.count = list.count; \
+		return IndexOf(str, start, checker); \
+	} \
+	\
+	sl_reg ParseUtil::indexOfNotChar(const VIEW& str, const ListParam<typename VIEW::Char>& _list, sl_reg start) noexcept \
+	{ \
+		ListLocker<typename VIEW::Char> list(_list); \
+		NotCharListChecker<typename VIEW::Char> checker; \
+		checker.list = list.data; \
+		checker.count = list.count; \
+		return IndexOf(str, start, checker); \
+	} \
+	\
+	sl_reg ParseUtil::getWord(typename VIEW::StringType& _out, const VIEW& str, sl_reg start) noexcept \
+	{ \
+		return GetWord(_out, str, start); \
+	} \
+	\
+	List<typename VIEW::StringType> ParseUtil::getWords(const VIEW& str, sl_reg start) noexcept \
+	{ \
+		return GetWords(str, start); \
 	}
 
-	sl_reg ParseUtil::getWord16(String16& _out, const StringParam& _input, sl_reg start) noexcept
-	{
-		StringData16 input(_input);
-		return priv::parse::GetWord<sl_char16, StringData16, String16>(_out, input, start);
-	}
-
-	List<String> ParseUtil::getWords(const StringParam& _input, sl_reg start) noexcept
-	{
-		StringData input(_input);
-		return priv::parse::GetWords<sl_char8, StringData, String>(input, start);
-	}
-
-	List<String16> ParseUtil::getWords16(const StringParam& _input, sl_reg start) noexcept
-	{
-		StringData16 input(_input);
-		return priv::parse::GetWords<sl_char16, StringData16, String16>(input, start);
-	}
+	PRIV_PARSE_UTIL_MEMBERS(StringView)
+	PRIV_PARSE_UTIL_MEMBERS(StringView16)
+	PRIV_PARSE_UTIL_MEMBERS(StringView32)
 
 }

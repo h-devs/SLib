@@ -355,7 +355,7 @@ namespace slib
 				if (ERROR_SUCCESS == RegSetValueExW(hKey, (LPCWSTR)(name.getData()), NULL, REG_MULTI_SZ, reinterpret_cast<BYTE*>(str.getData()), (DWORD)(str.getLength()) * 2)) {
 					flagSuccess = sl_true;
 				}
-			} else if (value.isString()) {
+			} else if (value.isStringType()) {
 				String16 str = value.getString16().toNullTerminated();
 				if (ERROR_SUCCESS == RegSetValueExW(hKey, (LPCWSTR)(name.getData()), NULL, REG_SZ, reinterpret_cast<BYTE*>(str.getData()), (DWORD)(str.getLength() + 1) * 2)) {
 					flagSuccess = sl_true;

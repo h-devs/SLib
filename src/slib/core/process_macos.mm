@@ -46,7 +46,7 @@ namespace slib
 				s = s.removeAll('"');
 				s = s.removeAll('\'');
 				if (s.contains(' ') || s.contains('\t') || s.contains('\r') || s.contains('\n')) {
-					s = String::join("'", s, "'");
+					s = String::concat("'", s, "'");
 				}
 				if (s.isEmpty()) {
 					return "''";
@@ -142,7 +142,7 @@ namespace slib
 	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		String command = BuildCommand(pathExecutable, arguments, nArguments);
-		String source = String::join("do shell script \"", command, "\" with administrator privileges");
+		String source = String::concat("do shell script \"", command, "\" with administrator privileges");
 		NSAppleScript* script = [[NSAppleScript alloc] initWithSource:(Apple::getNSStringFromString(source))];
 		[script executeAndReturnError:nil];
 	}

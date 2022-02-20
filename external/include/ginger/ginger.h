@@ -772,8 +772,8 @@ namespace ginger {
 		for (auto& item : json.getJsonList()) {
 			if (item.isNull()) {
 				render_list.push_back("null");
-			} else if (item.isString()) {
-				render_list.push_back(item.getString().toStd());
+			} else if (item.isStringType()) {
+				render_list.push_back(item.getStdString());
 			} else if (item.isInteger()) {
 				render_list.push_back(item.getInt64());
 			} else if (item.isNumber()) {
@@ -799,8 +799,8 @@ namespace ginger {
 			auto& value = item.value;
 			if (value.isNull()) {
 				render_map[key] = "null";
-			} else if (value.isString()) {
-				render_map[key] = value.getString().toStd();
+			} else if (value.isStringType()) {
+				render_map[key] = value.getStdString();
 			} else if (value.isInteger()) {
 				render_map[key] = value.getInt64();
 			} else if (value.isNumber()) {

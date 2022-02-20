@@ -59,6 +59,7 @@
 #include "core/string.h"
 #include "core/string_cast.h"
 #include "core/string_buffer.h"
+#include "core/string_traits.h"
 #include "core/memory.h"
 #include "core/memory_buffer.h"
 #include "core/memory_queue.h"

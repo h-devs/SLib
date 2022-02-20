@@ -1342,7 +1342,7 @@ namespace slib
 		sl_uint32 nCategories = (sl_uint32)(categories.getCount());
 		ButtonCategory* categories = this->categories.getData();
 
-		sl_bool flagUseText = text.isNotEmpty();
+		sl_bool flagUseText = String(text).isNotEmpty();
 
 		sl_ui_pos widthIcon = iconSize.x;
 		sl_ui_pos heightIcon = iconSize.y;
@@ -1585,7 +1585,7 @@ namespace slib
 		ButtonCategoryProperties& params = categories[category].properties[(int)state];
 		ButtonCategoryProperties& paramsDefault = categories[category].properties[(int)(ButtonState::Default)];
 
-		sl_bool flagText = text.isNotEmpty();
+		sl_bool flagText = String(text).isNotEmpty();
 
 		Color textColor = params.textColor;
 		const ColorMatrix* cm = sl_null;
@@ -1596,6 +1596,9 @@ namespace slib
 				if (textColor.isZero()) {
 					textColor = this->textColor;
 				}
+			}
+			if (cm) {
+				textColor = cm->transformColor(textColor);
 			}
 		}
 		Ref<Drawable> icon = params.icon;
@@ -1641,13 +1644,15 @@ namespace slib
 		}
 
 		if (flagText && rcText.getWidth() > 0 && rcText.getHeight() > 0) {
+
 			rcText.left += pt.x;
 			rcText.top += pt.y;
 			rcText.right += pt.x;
 			rcText.bottom += pt.y;
+
 			SimpleTextBoxDrawParam param;
 			param.frame = rcText;
-			param.color = textColor;
+			param.textColor = textColor;
 			if (shadowOpacity > 0) {
 				param.shadowOpacity = shadowOpacity;
 				param.shadowRadius = (sl_real)shadowRadius;
@@ -1662,7 +1667,6 @@ namespace slib
 			if (param.linkColor.isZero()) {
 				param.linkColor = TextParagraph::getDefaultLinkColor();
 			}
-			param.colorMatrix = cm;
 			m_textBox.draw(canvas, param);
 		}
 	}

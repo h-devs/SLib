@@ -31,50 +31,94 @@ namespace slib
 	class ParseUtil
 	{
 	public:
-		static String applyBackslashEscapes(const StringParam& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
+		static String applyBackslashEscapes(const StringView& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
 
-		static String16 applyBackslashEscapes16(const StringParam& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
+		static String16 applyBackslashEscapes(const StringView16& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
 
-		
-		static String parseBackslashEscapes(const StringParam& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
-
-		static String16 parseBackslashEscapes16(const StringParam& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
+		static String32 applyBackslashEscapes(const StringView32& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
 
 		
-		static sl_size countLineNumber(const StringParam& input, sl_size* column = sl_null) noexcept;
+		static String parseBackslashEscapes(const StringView& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
+
+		static String16 parseBackslashEscapes(const StringView16& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
+
+		static String32 parseBackslashEscapes(const StringView32& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
+
+		
+		static sl_size countLineNumber(const StringView& input, sl_size* column = sl_null) noexcept;
+
+		static sl_size countLineNumber(const StringView16& input, sl_size* column = sl_null) noexcept;
+
+		static sl_size countLineNumber(const StringView32& input, sl_size* column = sl_null) noexcept;
+
 
 		static List<String> splitLines(const String& input) noexcept;
-		static List<String> splitLines(const AtomicString& input) noexcept;
+
 		static List<String16> splitLines(const String16& input) noexcept;
-		static List<String16> splitLines(const AtomicString16& input) noexcept;
+
+		static List<String32> splitLines(const String32& input) noexcept;
+
 		static List<StringView> splitLines(const StringView& input) noexcept;
+
 		static List<StringView16> splitLines(const StringView16& input) noexcept;
 
+		static List<StringView32> splitLines(const StringView32& input) noexcept;
+
 		
-		static sl_reg indexOfLine(const StringParam& input, sl_reg start = 0) noexcept;
+		static sl_reg indexOfLine(const StringView& input, sl_reg start = 0) noexcept;
 
-		static sl_reg indexOfNotLine(const StringParam& input, sl_reg start = 0) noexcept;
+		static sl_reg indexOfLine(const StringView16& input, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfLine(const StringView32& input, sl_reg start = 0) noexcept;
+
+
+		static sl_reg indexOfNotLine(const StringView& input, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfNotLine(const StringView16& input, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfNotLine(const StringView32& input, sl_reg start = 0) noexcept;
+
 		
-		static sl_reg indexOfWhitespace(const StringParam& input, sl_reg start = 0) noexcept;
+		static sl_reg indexOfWhitespace(const StringView& input, sl_reg start = 0) noexcept;
 
-		static sl_reg indexOfNotWhitespace(const StringParam& input, sl_reg start = 0) noexcept;
+		static sl_reg indexOfWhitespace(const StringView16& input, sl_reg start = 0) noexcept;
 
-		static sl_reg indexOfChar(const StringParam& input, const ListParam<sl_char8>& list, sl_reg start = 0) noexcept;
-
-		static sl_reg indexOfNotChar(const StringParam& input, const ListParam<sl_char8>& list, sl_reg start = 0) noexcept;
-
-		static sl_reg indexOfChar16(const StringParam& input, const ListParam<sl_char16>& list, sl_reg start = 0) noexcept;
-
-		static sl_reg indexOfNotChar16(const StringParam& input, const ListParam<sl_char16>& list, sl_reg start = 0) noexcept;
+		static sl_reg indexOfWhitespace(const StringView32& input, sl_reg start = 0) noexcept;
 
 
-		static sl_reg getWord(String& _out, const StringParam& input, sl_reg start = 0) noexcept;
-		
-		static sl_reg getWord16(String16& _out, const StringParam& input, sl_reg start = 0) noexcept;
-		
-		static List<String> getWords(const StringParam& input, sl_reg start = 0) noexcept;
+		static sl_reg indexOfNotWhitespace(const StringView& input, sl_reg start = 0) noexcept;
 
-		static List<String16> getWords16(const StringParam& input, sl_reg start = 0) noexcept;
+		static sl_reg indexOfNotWhitespace(const StringView16& input, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfNotWhitespace(const StringView32& input, sl_reg start = 0) noexcept;
+
+
+		static sl_reg indexOfChar(const StringView& input, const ListParam<sl_char8>& list, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfChar(const StringView16& input, const ListParam<sl_char16>& list, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfChar(const StringView32& input, const ListParam<sl_char32>& list, sl_reg start = 0) noexcept;
+
+
+		static sl_reg indexOfNotChar(const StringView& input, const ListParam<sl_char8>& list, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfNotChar(const StringView16& input, const ListParam<sl_char16>& list, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfNotChar(const StringView32& input, const ListParam<sl_char32>& list, sl_reg start = 0) noexcept;
+
+
+		static sl_reg getWord(String& _out, const StringView& input, sl_reg start = 0) noexcept;
+
+		static sl_reg getWord(String16& _out, const StringView16& input, sl_reg start = 0) noexcept;
+
+		static sl_reg getWord(String32& _out, const StringView32& input, sl_reg start = 0) noexcept;
+
+
+		static List<String> getWords(const StringView& input, sl_reg start = 0) noexcept;
+
+		static List<String16> getWords(const StringView16& input, sl_reg start = 0) noexcept;
+
+		static List<String32> getWords(const StringView32& input, sl_reg start = 0) noexcept;
 
 	};
 

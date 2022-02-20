@@ -148,26 +148,6 @@ namespace slib
 		return (sl_compare_result)(std::char_traits<sl_uint64>::compare((sl_uint64*)m1, (sl_uint64*)m2, count));
 	}
 
-	sl_compare_result Base::compareMemorySigned(const void* m1, const void* m2, sl_size count) noexcept
-	{
-		return (sl_compare_result)(std::char_traits<sl_int8>::compare((sl_int8*)m1, (sl_int8*)m2, count));
-	}
-
-	sl_compare_result Base::compareMemorySigned2(const void* m1, const void* m2, sl_size count) noexcept
-	{
-		return (sl_compare_result)(std::char_traits<sl_int16>::compare((sl_int16*)m1, (sl_int16*)m2, count));
-	}
-
-	sl_compare_result Base::compareMemorySigned4(const void* m1, const void* m2, sl_size count) noexcept
-	{
-		return (sl_compare_result)(std::char_traits<sl_int32>::compare((sl_int32*)m1, (sl_int32*)m2, count));
-	}
-
-	sl_compare_result Base::compareMemorySigned8(const void* m1, const void* m2, sl_size count) noexcept
-	{
-		return (sl_compare_result)(std::char_traits<sl_int64>::compare((sl_int64*)m1, (sl_int64*)m2, count));
-	}
-
 	sl_bool Base::equalsMemoryZero(const void* m, sl_size size) noexcept
 	{
 		sl_size t = (sl_size)m;
@@ -221,74 +201,6 @@ namespace slib
 	sl_compare_result Base::compareMemoryZero(const void* m, sl_size count) noexcept
 	{
 		return equalsMemoryZero(m, count) ? 0 : 1;
-	}
-
-	sl_compare_result Base::compareMemoryZeroSigned(const void* _m, sl_size count) noexcept
-	{
-		sl_int8* m = (sl_int8*)_m;
-		sl_int8* end = m + count;
-		for (; m < end; m++) {
-			sl_int8 v = *m;
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZeroSigned2(const void* _m, sl_size count) noexcept
-	{
-		sl_int32* m = (sl_int32*)_m;
-		sl_int32* end = m + count;
-		for (; m < end; m++) {
-			sl_int16 v = *m;
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZeroSigned4(const void* _m, sl_size count) noexcept
-	{
-		sl_int32* m = (sl_int32*)_m;
-		sl_int32* end = m + count;
-		for (; m < end; m++) {
-			sl_int32 v = *m;
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
-	}
-
-	sl_compare_result Base::compareMemoryZeroSigned8(const void* _m, sl_size count) noexcept
-	{
-		sl_int64* m = (sl_int64*)_m;
-		sl_int64* end = m + count;
-		for (; m < end; m++) {
-			sl_int64 v = *m;
-			if (v) {
-				if (v < 0) {
-					return -1;
-				} else {
-					return 1;
-				}
-			}
-		}
-		return 0;
 	}
 
 	sl_uint8* Base::findMemory(const void* m, sl_size size, sl_uint8 pattern) noexcept

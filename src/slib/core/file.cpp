@@ -809,7 +809,7 @@ namespace slib
 		}
 		for (sl_uint32 i = 0; i <= nDeep; i++) {
 			String path = segments.buildPath();
-			if (File::exists(String::join(path, "/", filePath))) {
+			if (File::exists(String::concat(path, "/", filePath))) {
 				return path;
 			}
 			segments.segments.popBack();

@@ -51,7 +51,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 			static String16 MakeInstanceName(const StringParam& _name)
 			{
-				return String16::join("Global\\", _name);
+				return String16::concat("Global\\", _name);
 			}
 #else
 			struct Container
@@ -66,11 +66,11 @@ namespace slib
 
 			static String MakeInstancePath(const StringParam& name)
 			{
-				String pathRoot = String::join(System::getHomeDirectory(), "/.local/.named_inst");
+				String pathRoot = String::concat(System::getHomeDirectory(), "/.local/.named_inst");
 				if (!(File::exists(pathRoot))) {
 					File::createDirectories(pathRoot);
 				}
-				return String::join(pathRoot, "/", name);
+				return String::concat(pathRoot, "/", name);
 			}
 #endif
 

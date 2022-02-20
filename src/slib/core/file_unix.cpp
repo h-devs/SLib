@@ -911,7 +911,7 @@ namespace slib
 			dirent* ent;
 			while ((ent = readdir(dir))) {
 				FileInfo info;
-				filePath = String::join(dirPath, "/", String::fromUtf8(ent->d_name));
+				filePath = String::concat(dirPath, "/", String::fromUtf8(ent->d_name));
 				info.attributes = File::getAttributes(filePath);
 				info.size = info.allocSize = File::getSize(filePath);
 				info.createdAt = File::getCreatedTime(filePath);

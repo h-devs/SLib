@@ -252,7 +252,7 @@ namespace slib
 			return;
 		}
 
-		if (def->fontFamily == fontFamily) {
+		if (String(def->fontFamily) == fontFamily) {
 			return;
 		}
 		def->fontFamily = fontFamily;

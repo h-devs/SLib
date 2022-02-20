@@ -113,7 +113,7 @@ namespace slib
 		
 		sl_uint64 getItemsCount() override
 		{
-			return m_list.getCount();
+			return List<DataType>(m_list).getCount();
 		}
 		
 	public:

@@ -40,6 +40,10 @@ namespace slib
 	class SLIB_EXPORT StringBuffer
 	{
 	public:
+		typedef String StringType;
+		typedef sl_char8 Char;
+
+	public:
 		StringBuffer() noexcept;
 		
 		~StringBuffer() noexcept;
@@ -97,22 +101,16 @@ namespace slib
 		
 	};
 
-}
-/// @}
-
-
-/**
- * @addtogroup core
- *  @{
- */
-namespace slib
-{
 
 	/** @class StringBuffer16
 	 * @brief Queue containing String16 items. StringBuffer16 is not thread-safe.
 	 */
 	class SLIB_EXPORT StringBuffer16
 	{
+	public:
+		typedef String16 StringType;
+		typedef sl_char16 Char;
+
 	public:
 		StringBuffer16() noexcept;
 		
@@ -172,6 +170,73 @@ namespace slib
 	};
 
 
+	/** @class StringBuffer32
+	* @brief Queue containing String32 items. StringBuffer32 is not thread-safe.
+	*/
+	class SLIB_EXPORT StringBuffer32
+	{
+	public:
+		typedef String32 StringType;
+		typedef sl_char32 Char;
+
+	public:
+		StringBuffer32() noexcept;
+
+		~StringBuffer32() noexcept;
+
+	public:
+		/**
+		* Returns total length of all string items.
+		*/
+		sl_size getLength() const noexcept;
+
+		/**
+		* Add string object to the queue.
+		*/
+		sl_bool add(const String32& str) noexcept;
+
+		/**
+		* Add string represented by StringStorage struct to the queue.
+		*/
+		sl_bool add(const StringStorage& str) noexcept;
+
+		/**
+		* Add string pointed by buf to the queue.
+		*/
+		sl_bool addStatic(const sl_char32* buf, sl_size length) noexcept;
+
+		template <sl_size N>
+		sl_bool addStatic(const sl_char32(&s)[N]) noexcept
+		{
+			return addStatic(s, N - 1);
+		}
+
+		/**
+		* Add all string items in buf to the current object and then clear buf.
+		*/
+		void link(StringBuffer32& buf) noexcept;
+
+		/**
+		* Clears all items.
+		*/
+		void clear() noexcept;
+
+		/**
+		* Merge all items and returns the merged string.
+		*/
+		String32 merge() const noexcept;
+
+		/**
+		* Merge all items and returns it as memory.
+		*/
+		Memory mergeToMemory() const noexcept;
+
+	private:
+		LinkedQueue<StringStorage> m_queue;
+		sl_size m_len;
+
+	};
+
 	template <class CharType>
 	struct StringBufferTypeFromCharType;
 	
@@ -180,7 +245,10 @@ namespace slib
 	
 	template <>
 	struct StringBufferTypeFromCharType<sl_char16> { typedef StringBuffer16 Type; };
-	
+
+	template <>
+	struct StringBufferTypeFromCharType<sl_char32> { typedef StringBuffer32 Type; };
+
 }
 
 /// @}

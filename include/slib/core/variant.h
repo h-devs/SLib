@@ -106,6 +106,7 @@ namespace slib
 	public:
 		union {
 			sl_uint64 _value;
+			sl_uint8 _m1[8];
 
 			sl_int32 _m_int32;
 			sl_uint32 _m_uint32;
@@ -124,7 +125,11 @@ namespace slib
 			CPromise<Variant>* _m_promise;
 			CMemory* _m_mem;
 		};
-		sl_uint8 _value2[7];
+		union {
+			sl_uint32 _value2;
+			sl_uint8 _m2[4];
+		};
+		sl_uint8 _m3[3];
 		sl_uint8 _type;
 
 	public:
@@ -179,14 +184,22 @@ namespace slib
 
 		Variant(String16&& value) noexcept;
 
+		Variant(const String32& value) noexcept;
+
+		Variant(String32&& value) noexcept;
+
 		Variant(const StringView& value) noexcept;
 
 		Variant(const StringView16& value) noexcept;
+
+		Variant(const StringView32& value) noexcept;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Variant(const std::string& value) noexcept;
 
 		Variant(const std::u16string& value) noexcept;
+
+		Variant(const std::u32string& value) noexcept;
 #endif
 
 		Variant(const sl_char8* sz8) noexcept;
@@ -194,6 +207,9 @@ namespace slib
 
 		Variant(const sl_char16* sz16) noexcept;
 		Variant(sl_char16* sz16) noexcept;
+
+		Variant(const sl_char32* sz32) noexcept;
+		Variant(sl_char32* sz32) noexcept;
 
 		Variant(const StringParam& str) noexcept;
 
@@ -315,8 +331,10 @@ namespace slib
 
 		Variant operator[](sl_uint64 index) const noexcept;
 
-		Variant operator[](const StringParam& key) const noexcept;
+		Variant operator[](const String& key) const noexcept;
 
+		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
+		
 	public:
 		static const Variant& undefined() noexcept
 		{
@@ -434,15 +452,31 @@ namespace slib
 		void setBoolean(sl_bool value) noexcept;
 
 
-		sl_bool isString() const noexcept;
+		sl_bool isStringType() const noexcept;
 
-		sl_bool isString8() const noexcept;
+		sl_bool is8BitsStringType() const noexcept;
 
-		sl_bool isString16() const noexcept;
+		sl_bool is16BitsStringType() const noexcept;
+
+		sl_bool is32BitsStringType() const noexcept;
+
+		sl_bool isStringObject8() const noexcept;
+
+		sl_bool isStringObject16() const noexcept;
+
+		sl_bool isStringObject32() const noexcept;
+
+		sl_bool isStringView8() const noexcept;
+
+		sl_bool isStringView16() const noexcept;
+
+		sl_bool isStringView32() const noexcept;
 
 		sl_bool isSz8() const noexcept;
 
 		sl_bool isSz16() const noexcept;
+
+		sl_bool isSz32() const noexcept;
 
 		String getString(const String& def) const noexcept;
 
@@ -452,13 +486,33 @@ namespace slib
 
 		String16 getString16() const noexcept;
 
-		const sl_char8* getSz8(const sl_char8* def = sl_null) const noexcept;
+		String32 getString32(const String32& def) const noexcept;
 
-		const sl_char16* getSz16(const sl_char16* def = sl_null) const noexcept;
+		String32 getString32() const noexcept;
+
+		StringView getStringView(const StringView& def) const noexcept;
+
+		StringView getStringView() const noexcept;
+
+		StringView16 getStringView16(const StringView16& def) const noexcept;
+
+		StringView16 getStringView16() const noexcept;
+
+		StringView32 getStringView32(const StringView32& def) const noexcept;
+
+		StringView32 getStringView32() const noexcept;
+
+		sl_char8* getSz8(const sl_char8* def = sl_null) const noexcept;
+
+		sl_char16* getSz16(const sl_char16* def = sl_null) const noexcept;
+
+		sl_char32* getSz32(const sl_char32* def = sl_null) const noexcept;
 
 		StringParam getStringParam(const StringParam& def) const noexcept;
 
 		StringParam getStringParam() const noexcept;
+
+		sl_bool getStringData(StringRawData& data) const noexcept;
 
 		void setString(const String& value) noexcept;
 
@@ -468,26 +522,40 @@ namespace slib
 
 		void setString(String16&& value) noexcept;
 
+		void setString(const String32& value) noexcept;
+
+		void setString(String32&& value) noexcept;
+
 		void setString(const AtomicString& value) noexcept;
 
 		void setString(const AtomicString16& value) noexcept;
+
+		void setString(const AtomicString32& value) noexcept;
 
 		void setString(const StringView& value) noexcept;
 
 		void setString(const StringView16& value) noexcept;
 
+		void setString(const StringView32& value) noexcept;
+
 		void setString(const sl_char8* sz8) noexcept;
 
 		void setString(const sl_char16* sz16) noexcept;
+
+		void setString(const sl_char32* sz32) noexcept;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		std::string getStdString() const noexcept;
 
 		std::u16string getStdString16() const noexcept;
 
+		std::u32string getStdString32() const noexcept;
+
 		void setString(const std::string& value) noexcept;
 
 		void setString(const std::u16string& value) noexcept;
+
+		void setString(const std::u32string& value) noexcept;
 #endif
 
 		void setString(const StringParam& value) noexcept;
@@ -663,19 +731,19 @@ namespace slib
 
 		void setJsonMap(JsonMap&& map) noexcept;
 
-		Variant getItem_NoLock(const StringParam& key) const;
+		Variant getItem_NoLock(const String& key) const;
 
-		Variant getItem(const StringParam& key) const;
+		Variant getItem(const String& key) const;
 
-		sl_bool putItem_NoLock(const StringParam& key, const Variant& value) const;
-		sl_bool putItem_NoLock(const StringParam& key, const Variant& value);
+		sl_bool putItem_NoLock(const String& key, const Variant& value) const;
+		sl_bool putItem_NoLock(const String& key, const Variant& value);
 
-		sl_bool putItem(const StringParam& key, const Variant& value) const;
-		sl_bool putItem(const StringParam& key, const Variant& value);
+		sl_bool putItem(const String& key, const Variant& value) const;
+		sl_bool putItem(const String& key, const Variant& value);
 
-		sl_bool removeItem_NoLock(const StringParam& key) const;
+		sl_bool removeItem_NoLock(const String& key) const;
 
-		sl_bool removeItem(const StringParam& key) const;
+		sl_bool removeItem(const String& key) const;
 
 		PropertyIterator getItemIterator() const;
 
@@ -787,9 +855,14 @@ namespace slib
 		void get(String16& _out, const String16& def) const noexcept;
 		void get(AtomicString16& _out) const noexcept;
 		void get(AtomicString16& _out, const String16& def) const noexcept;
+		void get(String32& _out) const noexcept;
+		void get(String32& _out, const String32& def) const noexcept;
+		void get(AtomicString32& _out) const noexcept;
+		void get(AtomicString32& _out, const String32& def) const noexcept;
 #ifdef SLIB_SUPPORT_STD_TYPES
 		void get(std::string& _out) const noexcept;
 		void get(std::u16string& _out) const noexcept;
+		void get(std::u32string& _out) const noexcept;
 #endif
 
 		void get(Time& _out) const noexcept;
@@ -950,8 +1023,6 @@ namespace slib
 
 	};
 
-	SLIB_DECLARE_DEFAULT_COMPARE_OPERATORS(Variant)
-	
 	class VariantEx : public Variant
 	{
 	public:
@@ -965,61 +1036,46 @@ namespace slib
 	};
 
 	template <class... ARGS>
-	SLIB_INLINE String String::format(const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String String::format(const StringView& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	SLIB_INLINE String16 String16::format(const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String16 String16::format(const StringView16& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	SLIB_INLINE String String::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String32 String32::format(const StringView32& strFormat, ARGS&&... args) noexcept
+	{
+		VariantEx params[] = { Forward<ARGS>(args)... };
+		return formatBy(strFormat, params, sizeof...(args));
+	}
+
+	template <class... ARGS>
+	SLIB_INLINE String String::format(const Locale& locale, const StringView& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	SLIB_INLINE String16 String16::format(const Locale& locale, const StringParam& strFormat, ARGS&&... args) noexcept
+	SLIB_INLINE String16 String16::format(const Locale& locale, const StringView16& strFormat, ARGS&&... args) noexcept
 	{
 		VariantEx params[] = {Forward<ARGS>(args)...};
 		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
 
 	template <class... ARGS>
-	SLIB_INLINE String String::arg(ARGS&&... args) const noexcept
+	SLIB_INLINE String32 String32::format(const Locale& locale, const StringView32& strFormat, ARGS&&... args) noexcept
 	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
-		return argBy(params, sizeof...(args));
+		VariantEx params[] = { Forward<ARGS>(args)... };
+		return formatBy(locale, strFormat, params, sizeof...(args));
 	}
-	
-	template <class... ARGS>
-	SLIB_INLINE String16 String16::arg(ARGS&&... args) const noexcept
-	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
-		return argBy(params, sizeof...(args));
-	}
-	
-	template <class... ARGS>
-	SLIB_INLINE String Atomic<String>::arg(ARGS&&... args) const noexcept
-	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
-		return argBy(params, sizeof...(args));
-	}
-	
-	template <class... ARGS>
-	SLIB_INLINE String16 Atomic<String16>::arg(ARGS&&... args) const noexcept
-	{
-		VariantEx params[] = {Forward<ARGS>(args)...};
-		return argBy(params, sizeof...(args));
-	}
-
 
 	template <class T>
 	class Cast<T, Variant>
@@ -1050,6 +1106,13 @@ namespace slib
 	{
 	public:
 		String16 operator()(const Variant& var) const noexcept;
+	};
+
+	template <>
+	class Cast<Variant, String32>
+	{
+	public:
+		String32 operator()(const Variant& var) const noexcept;
 	};
 
 	namespace priv

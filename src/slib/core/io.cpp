@@ -43,33 +43,26 @@ namespace slib
 		namespace endian
 		{
 			
-			static sl_bool checkLittleEndianRuntime()
+			SLIB_INLINE static sl_bool checkLittleEndianRuntime() noexcept
 			{
 				sl_uint32 n = 0x12345678;
 				return *(sl_uint8*)(&n) == 0x78;
 			}
 			
-			static sl_bool checkBigEndianRuntime()
-			{
-				sl_uint32 n = 0x12345678;
-				return *(sl_uint8*)(&n) != 0x78;
-			}
-
 		}
 	}
 	
-	sl_bool Endian::checkLittleEndianRuntime()
+	sl_bool Endian::checkLittleEndianRuntime() noexcept
 	{
-		static sl_bool f = priv::endian::checkLittleEndianRuntime();
-		return f;
+		static volatile sl_bool flagInit = sl_true;
+		static volatile sl_bool value = sl_true;
+		if (flagInit) {
+			value = priv::endian::checkLittleEndianRuntime();;
+			flagInit = sl_false;
+		}
+		return value;
 	}
 	
-	sl_bool Endian::checkBigEndianRuntime()
-	{
-		static sl_bool f = priv::endian::checkBigEndianRuntime();
-		return f;
-	}
-
 
 	SLIB_DEFINE_IREADER_MEMBERS(IReader,)
 	

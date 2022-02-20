@@ -161,7 +161,7 @@ namespace slib
 		} else if (value.isNull()) {
 			StringData key(_key);
 			return put(key.getUnsafeData(), key.getLength(), sl_null, 0);
-		} else if (value.isString()) {
+		} else if (value.isStringType()) {
 			StringData key(_key);
 			String str = value.getString();
 			if (str.isNotEmpty()) {

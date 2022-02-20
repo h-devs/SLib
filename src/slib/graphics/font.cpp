@@ -225,7 +225,7 @@ namespace slib
 				return;
 			}
 		}
-		if (g_defaultFamily == fontFamily) {
+		if (String(g_defaultFamily) == fontFamily) {
 			return;
 		}
 		g_defaultFamily = fontFamily;

@@ -178,12 +178,12 @@ namespace slib
 	
 	sl_uint32 CollectionView::getColumnsCount()
 	{
-		return (sl_uint32)(m_columns.getCount());
+		return (sl_uint32)(List<Column>(m_columns).getCount());
 	}
 	
 	Ref<ViewAdapter> CollectionView::getAdapter()
 	{
-		List<Column> columns = m_columns;
+		List<Column> columns(m_columns);
 		if (columns.isNotEmpty()) {
 			return columns.getPointerAt(0)->adapter;
 		}
@@ -192,7 +192,7 @@ namespace slib
 	
 	Ref<ViewAdapter> CollectionView::getAdapter(sl_uint32 index)
 	{
-		List<Column> columns = m_columns;
+		List<Column> columns(m_columns);
 		if (columns.isNotEmpty()) {
 			Column* column = columns.getPointerAt(index);
 			if (column) {

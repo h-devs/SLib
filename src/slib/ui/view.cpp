@@ -814,7 +814,7 @@ namespace slib
 				if (children.isNotNull()) {
 					return children;
 				}
-				children = attrs->children.duplicate();
+				children = List< Ref<View> >(attrs->children).duplicate();
 				attrs->childrenCache = children;
 				return children;
 			}
@@ -826,7 +826,7 @@ namespace slib
 	{
 		Ref<ViewChildAttributes>& attrs = m_childAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->children.getCount();
+			return List< Ref<View> >(attrs->children).getCount();
 		}
 		return 0;
 	}
@@ -835,7 +835,7 @@ namespace slib
 	{
 		Ref<ViewChildAttributes>& attrs = m_childAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->children.getValueAt(index);
+			return List< Ref<View> >(attrs->children).getValueAt(index);
 		}
 		return sl_null;
 	}
@@ -886,12 +886,13 @@ namespace slib
 		if (attrs.isNull()) {
 			return;
 		}
-		Ref<View> view = attrs->children.getValueAt(index);
+		List< Ref<View> > children(attrs->children);
+		Ref<View> view = children.getValueAt(index);
 		if (view.isNull()) {
 			return;
 		}
 		_removeChild(view.get());
-		attrs->children.removeAt(index);
+		children.removeAt(index);
 		attrs->childrenCache.setNull();
 		
 		if (view == attrs->childMouseDown) {
@@ -923,7 +924,7 @@ namespace slib
 			return;
 		}
 		_removeChild(view.get());
-		attrs->children.remove(view);
+		List< Ref<View> >(attrs->children).remove(view);
 		attrs->childrenCache.setNull();
 		
 		if (view == attrs->childMouseDown) {
@@ -970,7 +971,7 @@ namespace slib
 				children[i]->_removeParent(this);
 			}
 		}
-		attrs->children.removeAll();
+		attrs->children.setNull();
 		attrs->childrenCache.setNull();
 		
 		attrs->childMouseDown.setNull();

@@ -343,8 +343,8 @@ namespace slib
 				sl_bool bFoundNonZero = sl_false;
 				sl_uint32 posFirstNonZero = 0;
 
-				sl_uint16 digits[MAX_DIGITS] = { 0 };
-				sl_uint16* digitsInsert = digits; // Insertion pointer for digits
+				sl_uint32 digits[MAX_DIGITS] = { 0 };
+				sl_uint32* digitsInsert = digits; // Insertion pointer for digits
 				sl_uint16 nDigitsStored = 0;
 				sl_uint32 nDigitsRead = 0;
 				sl_uint32 nDigits = 0; // Total number of digits (no leading zeros)
@@ -494,7 +494,7 @@ namespace slib
 				// We've normalized the exponent, but might still need to round
 				if (posLastDigit - posFirstDigit + 1 < nSignificantDigits) {
 					// There are non-zero digits after posLastDigit that need rounding. We round to nearest, ties to even
-					sl_uint8 digitRound = input[posFirstNonZero + posLastDigit + bIncludeNegative + bSawDecimal + 1] - '0';
+					CHAR digitRound = input[posFirstNonZero + posLastDigit + bIncludeNegative + bSawDecimal + 1] - '0';
 					if (digitRound) {
 						// Inexact (non-zero) rounding is not allowed
 						return sl_false;

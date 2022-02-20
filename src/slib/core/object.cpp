@@ -75,17 +75,17 @@ namespace slib
 		}
 	}
 
-	Variant Object::getProperty(const StringParam& name)
+	Variant Object::getProperty(const String& name)
 	{
 		ObjectLocker lock(this);
 		if (m_properties) {
 			CHashMap<String, Variant>* map = static_cast<CHashMap<String, Variant>*>(m_properties);
-			return map->getValue_NoLock(name.toString());
+			return map->getValue_NoLock(name);
 		}
 		return Variant();
 	}
 	
-	sl_bool Object::setProperty(const StringParam& name, const Variant& value)
+	sl_bool Object::setProperty(const String& name, const Variant& value)
 	{
 		ObjectLocker lock(this);
 		CHashMap<String, Variant>* map;
@@ -99,15 +99,15 @@ namespace slib
 				return sl_false;
 			}
 		}
-		return map->put_NoLock(name.toString(), value) != sl_null;
+		return map->put_NoLock(name, value) != sl_null;
 	}
 	
-	sl_bool Object::clearProperty(const StringParam& name)
+	sl_bool Object::clearProperty(const String& name)
 	{
 		ObjectLocker lock(this);
 		if (m_properties) {
 			CHashMap<String, Variant>* map = static_cast<CHashMap<String, Variant>*>(m_properties);
-			return map->remove_NoLock(name.toString());
+			return map->remove_NoLock(name);
 		}
 		return sl_false;
 	}

@@ -41,21 +41,21 @@ namespace slib
 		MapObject(CMAP* map) : m_map(map) {}
 
 	public:
-		Variant getProperty(const StringParam& name) override
+		Variant getProperty(const String& name) override
 		{
-			return m_map->getValue(Cast<StringParam, typename CMAP::KEY_TYPE>()(name));
+			return m_map->getValue(Cast<String, typename CMAP::KEY_TYPE>()(name));
 		}
 
-		sl_bool setProperty(const StringParam& name, const Variant& value) override
+		sl_bool setProperty(const String& name, const Variant& value) override
 		{
 			typename CMAP::VALUE_TYPE v;
 			value.get(v);
-			return m_map->put(Cast<StringParam, typename CMAP::KEY_TYPE>()(name), Move(v));
+			return m_map->put(Cast<String, typename CMAP::KEY_TYPE>()(name), Move(v));
 		}
 
-		sl_bool clearProperty(const StringParam& name) override
+		sl_bool clearProperty(const String& name) override
 		{
-			return m_map->remove(Cast<StringParam, typename CMAP::KEY_TYPE>()(name));
+			return m_map->remove(Cast<String, typename CMAP::KEY_TYPE>()(name));
 		}
 
 		PropertyIterator getPropertyIterator() override

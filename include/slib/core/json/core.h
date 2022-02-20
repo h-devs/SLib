@@ -123,16 +123,30 @@ namespace slib
 
 		Json(String16&& value);
 
+		Json(const String32& value);
+
+		Json(String32&& value);
+
+		Json(const StringView& value);
+
+		Json(const StringView16& value);
+
+		Json(const StringView32& value);
+
 		Json(const sl_char8* sz8);
 		
 		Json(const sl_char16* sz16);
-		
+
+		Json(const sl_char32* sz32);
+
 		Json(const StringParam& param);
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Json(const std::string& value);
 
 		Json(const std::u16string& value);
+
+		Json(const std::u32string& value);
 #endif
 		
 		Json(const Time& value);
@@ -222,7 +236,7 @@ namespace slib
 
 		Json operator[](sl_size index) const;
 
-		Json operator[](const StringParam& key) const;
+		Json operator[](const String& key) const;
 
 	public:
 		template <class T>
@@ -268,25 +282,25 @@ namespace slib
 
 		sl_bool addElement(const Json& value);
 
-		Json getItem_NoLock(const StringParam& key) const;
+		Json getItem_NoLock(const String& key) const;
 
 		template <class T>
-		void getItem_NoLock(const StringParam& key, T& _out) const
+		void getItem_NoLock(const String& key, T& _out) const
 		{
 			FromJson(getItem_NoLock(key), _out);
 		}
 
-		Json getItem(const StringParam& key) const;
+		Json getItem(const String& key) const;
 		
 		template <class T>
-		void getItem(const StringParam& key, T& _out) const
+		void getItem(const String& key, T& _out) const
 		{
 			FromJson(getItem(key), _out);
 		}
 
-		sl_bool putItem_NoLock(const StringParam& key, const Json& value);
+		sl_bool putItem_NoLock(const String& key, const Json& value);
 
-		sl_bool putItem(const StringParam& key, const Json& value);
+		sl_bool putItem(const String& key, const Json& value);
 
 	public:
 		static Json parseJson(const sl_char8* sz, sl_size len, JsonParseParam& param);
@@ -296,6 +310,10 @@ namespace slib
 		static Json parseJson(const sl_char16* sz, sl_size len, JsonParseParam& param);
 
 		static Json parseJson(const sl_char16* sz, sl_size len);
+
+		static Json parseJson(const sl_char32* sz, sl_size len, JsonParseParam& param);
+
+		static Json parseJson(const sl_char32* sz, sl_size len);
 
 		static Json parseJson(const StringParam& str, JsonParseParam& param);
 

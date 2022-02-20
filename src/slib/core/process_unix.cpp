@@ -342,8 +342,8 @@ namespace slib
 		}
 		List<StringParam> list;
 		list.add_NoLock("env");
-		list.add_NoLock(String::join("DISPLAY=", System::getEnvironmentVariable("DISPLAY")));
-		list.add_NoLock(String::join("XAUTHORITY=", System::getEnvironmentVariable("XAUTHORITY")));
+		list.add_NoLock(String::concat("DISPLAY=", System::getEnvironmentVariable("DISPLAY")));
+		list.add_NoLock(String::concat("XAUTHORITY=", System::getEnvironmentVariable("XAUTHORITY")));
 		list.add_NoLock(pathExecutable.toString());
 		list.addElements_NoLock(arguments, nArguments);
 		Ref<Process> process = open(command, list.getData(), list.getCount());

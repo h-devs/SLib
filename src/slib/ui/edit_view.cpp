@@ -336,7 +336,7 @@ namespace slib
 				return;
 			}
 		}
-		setText(getText() + text, mode);
+		setText(String::concat(getText(), text), mode);
 	}
 
 	sl_bool EditView::isChangeEventEnabled()
@@ -676,11 +676,11 @@ namespace slib
 	
 	void EditView::onDraw(Canvas* canvas)
 	{
-		String text;
 		Ref<Font> font;
 		Color color;
 		Alignment gravity;
-		if (m_text.isEmpty()) {
+		String text(m_text);
+		if (text.isEmpty()) {
 			text = m_hintText;
 			font = getHintFont();
 			color = m_hintTextColor;
@@ -690,9 +690,9 @@ namespace slib
 			color = m_textColor;
 			gravity = m_gravity;
 			if (m_flagPassword) {
-				text = String('*', m_text.getLength());
+				text = String('*', text.getLength());
 			} else {
-				text = m_text;
+				text = text;
 			}
 		}
 		if (font.isNull()) {
@@ -853,7 +853,7 @@ namespace slib
 				}
 				sl_char8 ch = UIEvent::getCharFromKeycode(key, flagUpper);
 				if (ch) {
-					m_text += StringView(&ch, 1);
+					m_text = String(m_text) + StringView(&ch, 1);
 					invalidate();
 				}
 			}

@@ -40,8 +40,8 @@ namespace slib
 	{
 		namespace thread
 		{
-			typedef AtomicHashMap< Thread*, WeakRef<Thread> > ThreadMap;
-			SLIB_GLOBAL_ZERO_INITIALIZED(ThreadMap, g_mapThreads)
+			typedef HashMap< Thread*, WeakRef<Thread> > ThreadMap;
+			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<ThreadMap>, g_mapThreads)
 		}
 	}
 
@@ -59,7 +59,7 @@ namespace slib
 	Thread::~Thread()
 	{
 		if (!SLIB_SAFE_STATIC_CHECK_FREED(g_mapThreads)) {
-			g_mapThreads.remove(this);
+			ThreadMap(g_mapThreads).remove(this);
 		}
 	}
 

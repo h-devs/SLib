@@ -42,7 +42,7 @@ namespace slib
 				if (name.contains('/')) {
 					return name.toString(_name);
 				} else {
-					return String::join("system/", name);
+					return String::concat("system/", name);
 				}
 			}
 	

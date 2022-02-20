@@ -231,8 +231,8 @@ namespace slib
 				JContact::familyName.set(jcontact.get(), contact.familyName);
 				JContact::nameSuffix.set(jcontact.get(), contact.nameSuffix);
 				JContact::nickname.set(jcontact.get(), contact.nickname);
-				JContact::phoneNumbers.set(jcontact.get(), String::join(contact.phoneNumbers, ","));
-				JContact::emails.set(jcontact.get(), String::join(contact.emails, ","));
+				JContact::phoneNumbers.set(jcontact.get(), String::concat(contact.phoneNumbers, ","));
+				JContact::emails.set(jcontact.get(), String::concat(contact.emails, ","));
 				return JContact::addContact.callBoolean(sl_null, context, jcontact.get());
 			}
 		}

@@ -113,7 +113,7 @@ namespace slib
 			if (model.startsWith(manufacturer)) {
 				return model;
 			} else {
-				return String::join(manufacturer, " ", model);
+				return String::concat(manufacturer, " ", model);
 			}
 		}
 		return sl_null;

@@ -119,7 +119,7 @@ namespace slib
 		if (executablePath.isNull()) {
 			executablePath = Application::getApplicationPath();
 		}
-		File::createLink(executablePath, String::join(System::getProgramsDirectory(), "/", param.appName, ".lnk"));
+		File::createLink(executablePath, String::concat(System::getProgramsDirectory(), "/", param.appName, ".lnk"));
 	}
 
 }

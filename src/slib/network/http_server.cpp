@@ -391,7 +391,7 @@ namespace slib
 				context->m_requestHeaderReader.clear();
 				Memory header = context->getRawRequestHeader();
 				sl_reg iRet = context->parseRequestPacket(header.getData(), header.getSize());
-				if (iRet != (sl_reg)(context->m_requestHeader.getSize())) {
+				if (iRet != (sl_reg)(Memory(context->m_requestHeader).getSize())) {
 					sendResponseAndClose_BadRequest();
 					return;
 				}
@@ -470,7 +470,7 @@ namespace slib
 					context->m_flagBeganProcessing = sl_true;
 
 					if (sizeBody) {
-						if (context->m_requestBody.getSize() < sizeBody) {
+						if (Memory(context->m_requestBody).getSize() < sizeBody) {
 							context->m_requestBody = context->m_requestBodyBuffer.merge();
 							if (context->m_requestBody.isNull()) {
 								sendResponseAndClose_ServerError();
@@ -1480,7 +1480,7 @@ namespace slib
 			}
 		} else {
 			do {
-				if (response.isString()) {
+				if (response.isStringType()) {
 					context->setResponseContentTypeIfEmpty(ContentType::TextHtml_Utf8);
 					context->write(response.getString());
 					break;

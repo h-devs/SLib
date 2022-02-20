@@ -484,6 +484,14 @@ namespace slib
 		return Language::Unknown;
 	}
 
+	Language Locale::getLanguageFromCode(const sl_char32* code)
+	{
+		if (code && code[0] && code[1]) {
+			return (Language)(SLIB_MAKE_WORD(code[1], code[0]));
+		}
+		return Language::Unknown;
+	}
+
 	Language Locale::getLanguageFromCode(const String& code)
 	{
 		if (code.getLength() == 2) {
@@ -527,7 +535,15 @@ namespace slib
 		}
 		return LanguageScript::Unknown;
 	}
-	
+
+	LanguageScript Locale::getScriptFromCode(const sl_char32* code)
+	{
+		if (code && code[0] && code[1] && code[2] && code[3]) {
+			return (LanguageScript)(SLIB_MAKE_DWORD(code[3], code[2], code[1], code[0]));
+		}
+		return LanguageScript::Unknown;
+	}
+
 	LanguageScript Locale::getScriptFromCode(const String& code)
 	{
 		if (code.getLength() == 2) {
@@ -861,6 +877,14 @@ namespace slib
 		return Country::Unknown;
 	}
 
+	Country Locale::getCountryFromCode(const sl_char32* code)
+	{
+		if (code && code[0] && code[1]) {
+			return (Country)(SLIB_MAKE_WORD(code[1], code[0]));
+		}
+		return Country::Unknown;
+	}
+
 	Country Locale::getCountryFromCode(const String& code)
 	{
 		if (code.getLength() == 2) {
@@ -991,10 +1015,10 @@ namespace slib
 			if (Android::getSdkVersion() >= AndroidSdkVersion::LOLLIPOP) {
 				String script = java::Locale::getScript(locale);
 				if (script.isNotEmpty()) {
-					return String::join(lang, "_", script, "_", country);
+					return String::concat(lang, "_", script, "_", country);
 				}
 			}
-			return String::join(lang, "_", country);
+			return String::concat(lang, "_", country);
 		}
 		return Locale::Unknown;
 	}

@@ -233,7 +233,7 @@ public: \
 		} \
 		return *this; \
 	} \
-	explicit SLIB_CONSTEXPR operator sl_bool() const \
+	SLIB_CONSTEXPR explicit operator sl_bool() const \
 	{ \
 		return _container != sl_null; \
 	} \

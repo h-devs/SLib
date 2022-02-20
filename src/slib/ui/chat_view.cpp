@@ -678,7 +678,8 @@ namespace slib
 		}
 		
 		sl_bool flagInit = getAdapter().isNull();
-		if (m_items.isEmpty()) {
+		List<ChatViewItem> items(m_items);
+		if (items.isEmpty()) {
 			if (!flagInit) {
 				setAdapter(sl_null);
 			}
@@ -696,7 +697,7 @@ namespace slib
 		adapter->params.backColorSent = m_backColorSent;
 		adapter->params.textColorSent = m_textColorSent;
 		adapter->params.textColorDate = m_textColorDate;
-		adapter->setList(m_items);
+		adapter->setList(items);
 		ListViewSetAdapterParam param;
 		param.adapter = adapter;
 		param.flagScrollToLastItem = flagInit;
@@ -712,7 +713,7 @@ namespace slib
 			return;
 		}
 		
-		if (m_items.isEmpty()) {
+		if (List<ChatViewItem>(m_items).isEmpty()) {
 			return;
 		}
 		Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
@@ -739,7 +740,7 @@ namespace slib
 			}
 		}
 		if (flagFound) {
-			m_items.removeAt(index);
+			items.list.removeAt(index);
 			dispatchDeleteItem(itemId);
 			refreshItems();
 		}

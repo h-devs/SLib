@@ -317,7 +317,7 @@ namespace slib
 		_updateTextBox(bounds.getWidth());
 		SimpleTextBoxDrawParam param;
 		param.frame = bounds;
-		param.color = textColor;
+		param.textColor = textColor;
 		if (shadowOpacity > 0) {
 			param.shadowOpacity = shadowOpacity;
 			param.shadowRadius = shadowRadius;

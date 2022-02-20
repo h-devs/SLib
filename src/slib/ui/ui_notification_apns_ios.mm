@@ -92,7 +92,7 @@ namespace slib
 		if (userInfo.isNotNull()) {
 			Json aps = userInfo["aps"];
 			Json alert = aps["alert"];
-			if (alert.isString()) {
+			if (alert.isStringType()) {
 				message.title.setNull();
 				message.content = alert.getString();
 			} else {

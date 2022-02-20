@@ -34,19 +34,17 @@ namespace slib
 		static void print(const StringParam& s);
 
 		template <class... ARGS>
-		static void print(const StringParam& format, ARGS&&... args)
+		static void print(const StringView& fmt, ARGS&&... args)
 		{
-			String content = String::format(format, Forward<ARGS>(args)...);
-			print(content);
+			print(String::format(fmt, Forward<ARGS>(args)...));
 		}
 	
 		static void println(const StringParam& s);
 
 		template <class... ARGS>
-		static void println(const StringParam& format, ARGS&&... args)
+		static void println(const StringView& fmt, ARGS&&... args)
 		{
-			String content = String::format(format, Forward<ARGS>(args)...);
-			println(content);
+			println(String::format(fmt, Forward<ARGS>(args)...));
 		}
 	
 		static String readLine();
@@ -95,16 +93,16 @@ namespace slib
 	};
 	
 	template <class... ARGS>
-	void Printf(const StringParam& format, ARGS&&... args)
+	void Printf(const StringView& fmt, ARGS&&... args)
 	{
-		String content = String::format(format, Forward<ARGS>(args)...);
+		String content = String::format(fmt, Forward<ARGS>(args)...);
 		Console::print(content);
 	}
 	
 	template <class... ARGS>
-	void Println(const StringParam& format, ARGS&&... args)
+	void Println(const StringView& fmt, ARGS&&... args)
 	{
-		String content = String::format(format, Forward<ARGS>(args)...);
+		String content = String::format(fmt, Forward<ARGS>(args)...);
 		Console::println(content);
 	}
 	

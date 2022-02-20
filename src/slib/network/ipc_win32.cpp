@@ -78,7 +78,7 @@ namespace slib
 				{
 					if (data.isNotNull()) {
 						if (_targetName.isNotEmpty()) {
-							String16 targetName = String16::join(L"\\\\.\\pipe\\", _targetName);
+							String16 targetName = String16::concat(L"\\\\.\\pipe\\", _targetName);
 							if (m_threads.getCount() < m_maxThreadsCount) {
 								HANDLE hPipe = CreateFileW(
 									(LPCWSTR)(targetName.getData()),
@@ -254,7 +254,7 @@ namespace slib
 						ret->_init(param);
 						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(NamedPipeServer, runListen, ret.get()));
 						if (thread.isNotNull()) {
-							ret->m_name = String16::join(L"\\\\.\\pipe\\", param.name);
+							ret->m_name = String16::concat(L"\\\\.\\pipe\\", param.name);
 							ret->m_threadListen = Move(thread);
 							return ret;
 						}

@@ -1307,62 +1307,6 @@ namespace slib
 		SLIB_ATOMIC_REF_WRAPPER(CLinkedList<T>)
 
 	public:
-		sl_size getCount() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getCount();
-			}
-			return 0;
-		}
-
-		sl_bool isEmpty() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->isEmpty();
-			}
-			return sl_true;
-		}
-
-		sl_bool isNotEmpty() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->isNotEmpty();
-			}
-			return sl_false;
-		}
-
-	public:
-		sl_bool getFrontValue(T* _out) const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getFrontValue(_out);
-			}
-			return sl_false;
-		}
-
-		sl_bool getBackValue(T* _out) const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->getBackValue(_out);
-			}
-			return sl_false;
-		}
-
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool find(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->find(value, equals);
-			}
-			return sl_false;
-		}
-
 		template <class... ARGS>
 		sl_bool pushBack(ARGS&&... args) noexcept
 		{
@@ -1409,15 +1353,6 @@ namespace slib
 					lock.unlock();
 					return obj->pushBackAll(other);
 				}
-			}
-			return sl_false;
-		}
-
-		sl_bool popBack(T* _out = sl_null) const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->popBack(_out);
 			}
 			return sl_false;
 		}
@@ -1472,44 +1407,6 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_bool popFront(T* _out = sl_null) const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->popFront(_out);
-			}
-			return sl_false;
-		}
-
-		sl_size removeAll() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeAll();
-			}
-			return 0;
-		}
-
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeValue(value, equals);
-			}
-			return sl_false;
-		}
-
-		template < class VALUE, class EQUALS = Equals<T, VALUE> >
-		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->removeValues(value, equals);
-			}
-			return 0;
-		}
-
 		void merge(LinkedList<T>& _other) noexcept
 		{
 			CLinkedList<T>* other = _other.ref.ptr;
@@ -1535,47 +1432,6 @@ namespace slib
 					return;
 				}
 			}
-		}
-
-		Array<T> toArray() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->toArray();
-			}
-			return sl_null;
-		}
-
-		List<T> toList() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->toList();
-			}
-			return sl_null;
-		}
-
-		LinkedList<T> duplicate() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return obj->duplicate();
-			}
-			return sl_null;
-		}
-
-		LinkPosition<T> begin() const noexcept
-		{
-			Ref< CLinkedList<T> > obj(ref);
-			if (obj.isNotNull()) {
-				return LinkPosition<T>(obj->getFront(), obj.get());
-			}
-			return sl_null;
-		}
-
-		LinkPosition<T> end() const noexcept
-		{
-			return LinkPosition<T>();
 		}
 
 	};

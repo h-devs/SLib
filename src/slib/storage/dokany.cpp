@@ -65,7 +65,7 @@ namespace slib
 			static sl_bool CheckDokanyOptions(const DOKAN_OPTIONS& options)
 			{
 				if (!Base::getStringLength2((sl_char16*)(options.MountPoint))) {
-					LOG_ERROR(L"Mount Point required.");
+					LOG_ERROR("Mount Point required.");
 					return sl_false;
 				}
 				if (Base::getStringLength2((sl_char16*)(options.UNCName)) && !(options.Options & DOKAN_OPTION_NETWORK)) {

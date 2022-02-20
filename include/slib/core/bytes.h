@@ -94,13 +94,18 @@ namespace slib
 
 		sl_bool parse(const StringParam& _str) noexcept
 		{
-			if (_str.is16()) {
+			if (_str.is8BitsStringType()) {
+				StringData str(_str);
+				if (str.getLength() == (N << 1)) {
+					return str.parseHexString(data);
+				}
+			} else if (_str.is16BitsStringType()) {
 				StringData16 str(_str);
 				if (str.getLength() == (N << 1)) {
 					return str.parseHexString(data);
 				}
 			} else {
-				StringData str(_str);
+				StringData32 str(_str);
 				if (str.getLength() == (N << 1)) {
 					return str.parseHexString(data);
 				}

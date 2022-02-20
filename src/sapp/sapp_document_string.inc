@@ -34,7 +34,7 @@ namespace slib
 		if (strLocale.isNotEmpty()) {
 			locale = Locale(strLocale);
 			if (locale.isInvalid()) {
-				_logError(element, g_str_error_resource_string_locale_invalid.arg(strLocale));
+				_logError(element, g_str_error_resource_string_locale_invalid, strLocale);
 				return sl_false;
 			}
 		}
@@ -51,7 +51,7 @@ namespace slib
 						return sl_false;
 					}
 				} else {
-					_logError(child, g_str_error_invalid_tag.arg(child->getName()));
+					_logError(child, g_str_error_invalid_tag, child->getName());
 					return sl_false;
 				}
 			}
@@ -70,7 +70,7 @@ namespace slib
 		if (strLocale.isNotEmpty()) {
 			locale = Locale(strLocale);
 			if (locale.isInvalid()) {
-				_logError(element, g_str_error_resource_string_locale_invalid.arg(strLocale));
+				_logError(element, g_str_error_resource_string_locale_invalid, strLocale);
 				return sl_false;
 			}
 		}
@@ -84,7 +84,7 @@ namespace slib
 			return sl_false;
 		}
 		if (!(SAppUtil::checkName(name.getData(), name.getLength()))) {
-			_logError(element, g_str_error_resource_string_name_invalid.arg(name));
+			_logError(element, g_str_error_resource_string_name_invalid, name);
 			return sl_false;
 		}
 		
@@ -118,7 +118,7 @@ namespace slib
 			res->defaultValue = value;
 		} else {
 			if (res->values.find(locale)) {
-				_logError(element, g_str_error_resource_string_redefine_locale.arg(locale.toString()));
+				_logError(element, g_str_error_resource_string_redefine_locale, locale.toString());
 				return sl_false;
 			}
 			if (!(res->values.put(locale, value))) {
@@ -213,7 +213,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed.arg(pathHeader));
+				_logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -222,7 +222,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed.arg(pathCpp));
+				_logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}
@@ -324,7 +324,7 @@ namespace slib
 		if (getItemFromMap(m_strings, localNamespace, name, outName, outResource)) {
 			return sl_true;
 		} else {
-			_logError(element, g_str_error_string_not_found.arg(name));
+			_logError(element, g_str_error_string_not_found, name);
 			return sl_false;
 		}
 	}

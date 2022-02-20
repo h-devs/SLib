@@ -504,10 +504,12 @@ namespace slib
 				heightSwitch = 0;
 			}
 			sl_ui_len widthText = 0;
-			if (m_textOn.isNotEmpty() || m_textOff.isNotEmpty()) {
+			String textOn(m_textOn);
+			String textOff(m_textOff);
+			if (textOn.isNotEmpty() || textOff.isNotEmpty()) {
 				Ref<Font> font = getFont();
 				if (font.isNotNull()) {
-					widthText = (sl_ui_len)(Math::max(font->measureText(m_textOn).x, font->measureText(m_textOff).x));
+					widthText = (sl_ui_len)(Math::max(font->measureText(m_textOn).x, font->measureText(textOff).x));
 				}
 			}
 			if (m_flagTextInButton) {

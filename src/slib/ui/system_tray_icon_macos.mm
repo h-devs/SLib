@@ -224,7 +224,7 @@ namespace slib
 				void notify_NI(const SystemTrayIconNotifyParam& param) override
 				{
 					UserNotificationMessage msg;
-					msg.identifier = String::join(NOTIFICATION_ID_PREFIX, m_iconName);
+					msg.identifier = String::concat(NOTIFICATION_ID_PREFIX, m_iconName);
 					msg.title = param.title;
 					msg.content = param.message;
 					msg.flagSound = param.flagSound;

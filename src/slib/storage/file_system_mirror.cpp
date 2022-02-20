@@ -33,9 +33,9 @@
 
 #define FILE_FROM_CONTEXT(context) (context ? ((MirrorFileContext*)(context))->file : sl_null)
 
-#define CONCAT_PATH_SHORT(path) (m_root.isNotEmpty() && path.isNotEmpty() ? m_root + path : sl_null)
+#define CONCAT_PATH_SHORT(path) (m_root.isNotEmpty() && path.isNotEmpty() ? String::concat(m_root, path) : sl_null)
 #ifdef SLIB_PLATFORM_IS_WIN32
-#define CONCAT_PATH(path) (m_root.isNotEmpty() && path.isNotEmpty() ? "\\\\?\\" + (m_root + path).replaceAll('/', '\\') : sl_null)
+#define CONCAT_PATH(path) (m_root.isNotEmpty() && path.isNotEmpty() ? "\\\\?\\" + String::concat(m_root, path).replaceAll('/', '\\') : sl_null)
 #else
 #define CONCAT_PATH(path) CONCAT_PATH_SHORT(path)
 #endif

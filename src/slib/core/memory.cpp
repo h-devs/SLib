@@ -238,6 +238,23 @@ namespace slib
 
 			};
 
+			class MemoryWithString32 : public CMemory
+			{
+			public:
+				String32 str;
+
+			public:
+				template <class STRING>
+				MemoryWithString32(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
+
+			public:
+				String32 getString32() noexcept override
+				{
+					return str;
+				}
+
+			};
+
 		}
 	}
 
@@ -411,6 +428,24 @@ namespace slib
 				return String16::fromRef(ref, str, len);
 			} else {
 				return String16::fromStatic(str, len);
+			}
+		}
+		return sl_null;
+	}
+
+	String32 CMemory::getString32() noexcept
+	{
+		sl_size len = size >> 2;
+		if (len) {
+			sl_char32* str = (sl_char32*)data;
+			if (!(str[len - 1])) {
+				len--;
+			}
+			Referable* ref = getRef();
+			if (ref) {
+				return String32::fromRef(ref, str, len);
+			} else {
+				return String32::fromStatic(str, len);
 			}
 		}
 		return sl_null;
@@ -603,7 +638,7 @@ namespace slib
 		}
 	}
 
-	Memory Memory::createFromString16(const String16& str) noexcept
+	Memory Memory::createFromString(const String16& str) noexcept
 	{
 		sl_char16* data = str.getData();
 		sl_size size = str.getLength() << 1;
@@ -614,12 +649,34 @@ namespace slib
 		}
 	}
 
-	Memory Memory::createFromString16(String16&& str) noexcept
+	Memory Memory::createFromString(String16&& str) noexcept
 	{
 		sl_char16* data = str.getData();
 		sl_size size = str.getLength() << 1;
 		if (data && size) {
 			return new MemoryWithString16(data, size, Move(str));
+		} else {
+			return sl_null;
+		}
+	}
+
+	Memory Memory::createFromString(const String32& str) noexcept
+	{
+		sl_char32* data = str.getData();
+		sl_size size = str.getLength() << 2;
+		if (data && size) {
+			return new MemoryWithString32(data, size, str);
+		} else {
+			return sl_null;
+		}
+	}
+
+	Memory Memory::createFromString(String32&& str) noexcept
+	{
+		sl_char32* data = str.getData();
+		sl_size size = str.getLength() << 2;
+		if (data && size) {
+			return new MemoryWithString32(data, size, Move(str));
 		} else {
 			return sl_null;
 		}
@@ -821,6 +878,26 @@ namespace slib
 		return 0;
 	}
 
+	Memory Memory::operator+(const Memory& other) const noexcept
+	{
+		if (isNull()) {
+			return other;
+		}
+		if (other.isNull()) {
+			return *this;
+		}
+		sl_size n1 = getSize();
+		sl_size n2 = other.getSize();
+		Memory ret = Memory::create(n1 + n2);
+		if (ret.isNotNull()) {
+			sl_uint8* data = (sl_uint8*)(ret.getData());
+			Base::copyMemory(data, getData(), n1);
+			Base::copyMemory(data + n1, other.getData(), n2);
+			return ret;
+		}
+		return sl_null;
+	}
+
 	sl_bool Memory::serialize(MemoryBuffer* output) const
 	{
 		CMemory* mem = ref.get();
@@ -856,94 +933,6 @@ namespace slib
 		}
 	}
 
-
-	sl_size Atomic<Memory>::getSize() const noexcept
-	{
-		Ref<CMemory> obj(ref);
-		if (obj.isNotNull()) {
-			return obj->size;
-		}
-		return 0;
-	}
-
-	Memory Atomic<Memory>::sub(sl_size offset, sl_size size) const noexcept
-	{
-		Ref<CMemory> obj(ref);
-		if (obj.isNotNull()) {
-			return obj->sub(offset, size);
-		}
-		return sl_null;
-	}
-
-	sl_size Atomic<Memory>::read(sl_size offsetSource, sl_size size, void* bufDst) const noexcept
-	{
-		Ref<CMemory> obj(ref);
-		if (obj.isNotNull()) {
-			return obj->read(offsetSource, size, (sl_uint8*)bufDst);
-		}
-		return 0;
-	}
-
-	sl_size Atomic<Memory>::write(sl_size offsetTarget, sl_size size, const void* bufSrc) const noexcept
-	{
-		Ref<CMemory> obj(ref);
-		if (obj.isNotNull()) {
-			return obj->write(offsetTarget, size, (const sl_uint8*)bufSrc);
-		}
-		return 0;
-	}
-
-	sl_size Atomic<Memory>::copy(sl_size offsetTarget, const Memory& source, sl_size offsetSource, sl_size size) const noexcept
-	{
-		Ref<CMemory> obj(ref);
-		if (obj.isNotNull()) {
-			return obj->copy(offsetTarget, source.ref.ptr, offsetSource, size);
-		}
-		return 0;
-	}
-
-	sl_size Atomic<Memory>::copy(const Memory& source, sl_size offsetSource, sl_size size) const noexcept
-	{
-		Ref<CMemory> obj(ref);
-		if (obj.isNotNull()) {
-			return obj->copy(0, source.ref.ptr, offsetSource, size);
-		}
-		return 0;
-	}
-
-	Memory Atomic<Memory>::duplicate() const noexcept
-	{
-		Ref<CMemory> obj(ref);
-		if (obj.isNotNull()) {
-			return obj->duplicate();
-		}
-		return sl_null;
-	}
-
-	sl_bool Atomic<Memory>::getData(MemoryData& data) const noexcept
-	{
-		Memory mem(*this);
-		return mem.getData(data);
-	}
-
-	sl_compare_result Atomic<Memory>::compare(const Memory& other) const noexcept
-	{
-		Memory mem(*this);
-		return mem.compare(other);
-	}
-
-	sl_bool Atomic<Memory>::equals(const Memory& other) const noexcept
-	{
-		Memory mem(*this);
-		return mem.equals(other);
-	}
-
-	sl_size Atomic<Memory>::getHashCode() const noexcept
-	{
-		Memory mem(*this);
-		return mem.getHashCode();
-	}
-	
 	
 	sl_bool Serialize(MemoryBuffer* output, const String& _in)
 	{
@@ -973,29 +962,6 @@ namespace slib
 			_out.setNull();
 			return sl_true;
 		}
-	}
-
-
-	SLIB_DEFINE_DEFAULT_COMPARE_OPERATORS(Memory)
-
-	Memory operator+(const Memory& a, const Memory& b) noexcept
-	{
-		if (a.isNull()) {
-			return b;
-		}
-		if (b.isNull()) {
-			return a;
-		}
-		sl_size n1 = a.getSize();
-		sl_size n2 = b.getSize();
-		Memory ret = Memory::create(n1 + n2);
-		if (ret.isNotNull()) {
-			sl_uint8* data = (sl_uint8*)(ret.getData());
-			Base::copyMemory(data, a.getData(), n1);
-			Base::copyMemory(data + n1, b.getData(), n2);
-			return ret;
-		}
-		return sl_null;
 	}
 
 

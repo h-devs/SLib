@@ -172,7 +172,7 @@ namespace slib
 
 	void WebView::queryUserAgent(const Function<void(WebView*, String)>& callbackQueryCompletion)
 	{
-		if (!m_flagOfflineContent && m_urlOrigin.isEmpty()) {
+		if (!m_flagOfflineContent && String(m_urlOrigin).isEmpty()) {
 			loadHTML("", "http://localhost");
 		}
 		m_callbackQueryUserAgentCompletion = callbackQueryCompletion;

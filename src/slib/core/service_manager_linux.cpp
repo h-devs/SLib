@@ -64,7 +64,7 @@ namespace slib
 
 			static String GetUnitFilePath(const StringParam& serviceName)
 			{
-				return String::join("/etc/systemd/system/", serviceName, ".service");
+				return String::concat("/etc/systemd/system/", serviceName, ".service");
 			}
 
 		}
@@ -98,7 +98,7 @@ namespace slib
 		File::writeAllTextUTF8(GetUnitFilePath(param.name), sb.merge());
 		System::execute("systemctl daemon-reload");
 		if (param.startType == ServiceStartType::Auto) {
-			System::execute(String::join("systemctl enable ", param.name));
+			System::execute(String::concat("systemctl enable ", param.name));
 		}
 		return isExisting(param.name);
 	}
@@ -111,7 +111,7 @@ namespace slib
 		if (getState(name) == ServiceState::Running) {
 			stop(name);
 		}
-		String path = String::join("/etc/systemd/system/", name, ".service");
+		String path = String::concat("/etc/systemd/system/", name, ".service");
 		File::deleteFile(path);
 		System::execute("systemctl daemon-reload");
 		return WaitState(name, ServiceState::None, 1000);
@@ -139,7 +139,7 @@ namespace slib
 		if (!(Process::isCurrentProcessAdmin())) {
 			return sl_false;
 		}
-		System::execute(String::join("systemctl start ", name));
+		System::execute(String::concat("systemctl start ", name));
 		return WaitState(name, ServiceState::Running, timeoutMilliseconds);
 	}
 
@@ -148,7 +148,7 @@ namespace slib
 		if (!(Process::isCurrentProcessAdmin())) {
 			return sl_false;
 		}
-		System::execute(String::join("systemctl stop ", name));
+		System::execute(String::concat("systemctl stop ", name));
 		return WaitState(name, ServiceState::Stopped, timeoutMilliseconds);
 	}
 

@@ -162,10 +162,16 @@ namespace slib
 	
 	
 	template <class T>
-	struct RemoveAtomic;
-	
+	struct RemoveAtomic { typedef T Type; };
+
 	template <class T>
 	struct RemoveAtomic< Atomic<T> > { typedef T Type; };
+
+	template <class T>
+	struct AddAtomic { typedef Atomic<T> Type; };
+	
+	template <class T>
+	struct AddAtomic< Atomic<T> > { typedef Atomic<T> Type; };
 	
 	
 	template <class T>
@@ -199,5 +205,8 @@ namespace slib
 	};
 	
 }
+
+#define SLIB_GET_ATOMIC(ATOMIC_VAR) (typename slib::RemoveAtomic<decltype(ATOMIC_VAR)>::Type(ATOMIC_VAR))
+#define SLIB_USE_ATOMIC(LOCAL_VAR, ATOMIC_VAR) typename slib::RemoveAtomic<decltype(ATOMIC_VAR)>::Type LOCAL_VAR(ATOMIC_VAR);
 
 #endif

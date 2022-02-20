@@ -184,7 +184,7 @@ namespace slib
 					if(m_requestHeaders.isNotEmpty())
 					{
 						for (auto& pair : m_requestHeaders) {
-							String s = String::join(pair.key, ": ", pair.value);
+							String s = String::concat(pair.key, ": ", pair.value);
 							headerChunk = curl_slist_append(headerChunk, s.getData());
 						}
 					}
@@ -252,7 +252,7 @@ namespace slib
 					curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &response_code);
 					m_responseStatus = (HttpStatus)((int)response_code);
 					
-					String strLength = m_responseHeaders.getValue("Content-Length", String::null());
+					String strLength = HttpHeaderMap(m_responseHeaders).getValue("Content-Length", String::null());
 					if (strLength.isNotEmpty()) {
 						m_sizeContentTotal = strLength.parseUint64();
 					}

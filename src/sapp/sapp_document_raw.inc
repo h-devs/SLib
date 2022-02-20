@@ -25,7 +25,7 @@ namespace slib
 
 	sl_bool SAppDocument::_registerRawResources(const String& fileDirPath)
 	{
-		_log(g_str_log_open_raws_begin.arg(fileDirPath));
+		_log(g_str_log_open_raws_begin, fileDirPath);
 		List<String> _list = File::getFiles(fileDirPath);
 		_list.sort();
 		ListElements<String> list(_list);
@@ -45,7 +45,7 @@ namespace slib
 	{
 		String resourceName = Resources::makeResourceName(_resourceName);
 		if (m_raws.find(resourceName)) {
-			_logError(g_str_error_resource_raw_name_duplicated.arg(resourceName, filePath));
+			_logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
 			return sl_false;
 		}
 		Ref<SAppRawResource> res = new SAppRawResource;
@@ -70,7 +70,7 @@ namespace slib
 		if (!(File::isDirectory(targetPath + "/raw"))) {
 			File::createDirectory(targetPath + "/raw");
 			if (!(File::isDirectory(targetPath + "/raw"))) {
-				_log(g_str_error_directory_create_failed.arg(targetPath + "/raw"));
+				_log(g_str_error_directory_create_failed, targetPath + "/raw");
 				return sl_false;
 			}
 		}
@@ -103,7 +103,7 @@ namespace slib
 				
 				sl_size size = (sl_size)(File::getSize(res->filePath));
 				if (size > RAW_MAX_SIZE) {
-					_logError(g_str_error_resource_raw_size_big.arg(res->filePath));
+					_logError(g_str_error_resource_raw_size_big, res->filePath);
 					return sl_false;
 				}
 				
@@ -134,7 +134,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed.arg(pathHeader));
+				_logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -143,7 +143,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed.arg(pathCpp));
+				_logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}

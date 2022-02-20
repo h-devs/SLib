@@ -44,7 +44,7 @@ namespace slib
 	{
 		String name = File::makeSafeFilePath(path);
 		if (name.isNotEmpty()) {
-			return String::join(Application::getApplicationDirectory(), "/", name);
+			return String::concat(Application::getApplicationDirectory(), "/", name);
 		}
 		return sl_null;
 	}

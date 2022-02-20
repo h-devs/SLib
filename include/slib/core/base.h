@@ -59,19 +59,9 @@ namespace slib
 		static sl_compare_result compareMemory4(const void* m1, const void* m2, sl_size count) noexcept;
 		static sl_compare_result compareMemory8(const void* m1, const void* m2, sl_size count) noexcept;
 
-		static sl_compare_result compareMemorySigned(const void* m1, const void* m2, sl_size size) noexcept;
-		static sl_compare_result compareMemorySigned2(const void* m1, const void* m2, sl_size count) noexcept;
-		static sl_compare_result compareMemorySigned4(const void* m1, const void* m2, sl_size count) noexcept;
-		static sl_compare_result compareMemorySigned8(const void* m1, const void* m2, sl_size count) noexcept;
-
 		static sl_bool equalsMemoryZero(const void* m, sl_size size) noexcept;
 
 		static sl_compare_result compareMemoryZero(const void* m, sl_size count) noexcept;
-
-		static sl_compare_result compareMemoryZeroSigned(const void* m, sl_size count) noexcept;
-		static sl_compare_result compareMemoryZeroSigned2(const void* m, sl_size count) noexcept;
-		static sl_compare_result compareMemoryZeroSigned4(const void* m, sl_size count) noexcept;
-		static sl_compare_result compareMemoryZeroSigned8(const void* m, sl_size count) noexcept;
 
 		static sl_uint8* findMemory(const void* m, sl_size size, sl_uint8 pattern) noexcept;
 		static sl_uint16* findMemory2(const void* m, sl_size count, sl_uint16 pattern) noexcept;

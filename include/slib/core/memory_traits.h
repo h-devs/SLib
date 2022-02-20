@@ -148,7 +148,7 @@ namespace slib
 			return Base::equalsMemory(m1, m2, count * ElementSize);
 		}
 
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
+		static sl_compare_result compare(const T* m1, const T* m2, sl_size count) noexcept
 		{
 			return Base::compareMemory(m1, m2, count * ElementSize);
 		}
@@ -158,7 +158,7 @@ namespace slib
 			return Base::equalsMemoryZero(m, count * ElementSize);
 		}
 
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
+		static sl_compare_result compareZero(const T* m, sl_size count) noexcept
 		{
 			return Base::compareMemoryZero(m, count * ElementSize);
 		}
@@ -220,7 +220,7 @@ namespace slib
 
 		static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory(dst, count, *(reinterpret_cast<sl_uint8*>(&value)));
+			Base::resetMemory(dst, count, *((sl_uint8*)((void*)&value)));
 		}
 
 		static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
@@ -228,7 +228,7 @@ namespace slib
 			return Base::equalsMemory(m1, m2, count);
 		}
 
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
+		static sl_compare_result compare(const T* m1, const T* m2, sl_size count) noexcept
 		{
 			return Base::compareMemory(m1, m2, count);
 		}
@@ -238,7 +238,7 @@ namespace slib
 			return Base::equalsMemoryZero(m, count);
 		}
 
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
+		static sl_compare_result compareZero(const T* m, sl_size count) noexcept
 		{
 			return Base::compareMemoryZero(m, count);
 		}
@@ -286,7 +286,7 @@ namespace slib
 
 		static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory2(dst, count, *(reinterpret_cast<sl_uint16*>(&value)));
+			Base::resetMemory2(dst, count, *((sl_uint16*)((void*)&value)));
 		}
 
 		static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
@@ -294,7 +294,7 @@ namespace slib
 			return Base::equalsMemory(m1, m2, count << 1);
 		}
 
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
+		static sl_compare_result compare(const T* m1, const T* m2, sl_size count) noexcept
 		{
 			return Base::compareMemory2(m1, m2, count);
 		}
@@ -304,7 +304,7 @@ namespace slib
 			return Base::equalsMemoryZero(m, count << 1);
 		}
 
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
+		static sl_compare_result compareZero(const T* m, sl_size count) noexcept
 		{
 			return Base::compareMemoryZero(m, count << 1);
 		}
@@ -352,7 +352,7 @@ namespace slib
 
 		static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory4(dst, count, *(reinterpret_cast<sl_uint32*>(&value)));
+			Base::resetMemory4(dst, count, *((sl_uint32*)((void*)&value)));
 		}
 
 		static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
@@ -360,7 +360,7 @@ namespace slib
 			return Base::equalsMemory(m1, m2, count << 2);
 		}
 
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
+		static sl_compare_result compare(const T* m1, const T* m2, sl_size count) noexcept
 		{
 			return Base::compareMemory4(m1, m2, count);
 		}
@@ -370,7 +370,7 @@ namespace slib
 			return Base::equalsMemoryZero(m, count << 2);
 		}
 
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
+		static sl_compare_result compareZero(const T* m, sl_size count) noexcept
 		{
 			return Base::compareMemoryZero(m, count << 2);
 		}
@@ -418,7 +418,7 @@ namespace slib
 
 		static void reset(T* dst, sl_size count, const T& value) noexcept
 		{
-			Base::resetMemory8(dst, count, *(reinterpret_cast<sl_uint64*>(&value)));
+			Base::resetMemory4(dst, count, *((sl_uint64*)((void*)&value)));
 		}
 
 		static sl_bool equals(const T* m1, const T* m2, sl_size count) noexcept
@@ -426,7 +426,7 @@ namespace slib
 			return Base::equalsMemory(m1, m2, count << 3);
 		}
 
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
+		static sl_compare_result compare(const T* m1, const T* m2, sl_size count) noexcept
 		{
 			return Base::compareMemory8(m1, m2, count);
 		}
@@ -436,7 +436,7 @@ namespace slib
 			return Base::equalsMemoryZero(m, count << 3);
 		}
 
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
+		static sl_compare_result compareZero(const T* m, sl_size count) noexcept
 		{
 			return Base::compareMemoryZero(m, count << 3);
 		}
@@ -463,86 +463,8 @@ namespace slib
 
 	};
 
-	template <typename T, unsigned int ElementSize>
-	class MemoryTraitsSigned;
-
-	template <typename T>
-	class MemoryTraitsSigned<T, 1> : public MemoryTraitsBase<T, 1>
-	{
-	public:
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
-		{
-			return Base::compareMemorySigned(m1, m2, count);
-		}
-
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
-		{
-			return Base::compareMemoryZeroSigned(m, count);
-		}
-
-	};
-
-	template <typename T>
-	class MemoryTraitsSigned<T, 2> : public MemoryTraitsBase<T, 2>
-	{
-	public:
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
-		{
-			return Base::compareMemorySigned2(m1, m2, count);
-		}
-
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
-		{
-			return Base::compareMemoryZeroSigned2(m, count);
-		}
-
-	};
-
-	template <typename T>
-	class MemoryTraitsSigned<T, 4> : public MemoryTraitsBase<T, 4>
-	{
-	public:
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
-		{
-			return Base::compareMemorySigned4(m1, m2, count);
-		}
-
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
-		{
-			return Base::compareMemoryZeroSigned4(m, count);
-		}
-
-	};
-
-	template <typename T>
-	class MemoryTraitsSigned<T, 8> : public MemoryTraitsBase<T, 8>
-	{
-	public:
-		static sl_bool compare(const T* m1, const T* m2, sl_size count) noexcept
-		{
-			return Base::compareMemorySigned8(m1, m2, count);
-		}
-
-		static sl_bool compareZero(const T* m, sl_size count) noexcept
-		{
-			return Base::compareMemoryZeroSigned8(m, count);
-		}
-
-	};
-
 	template <typename T>
 	class MemoryTraits : public MemoryTraitsBase<T, sizeof(T)> {};
-
-	template <>
-	class MemoryTraits<signed char> : public MemoryTraitsSigned<signed char, 1> {};
-	template <>
-	class MemoryTraits<short> : public MemoryTraitsSigned<short, 2> {};
-	template <>
-	class MemoryTraits<long> : public MemoryTraitsSigned<long, sizeof(long)> {};
-	template <>
-	class MemoryTraits<int> : public MemoryTraitsSigned<int, sizeof(int)> {};
-	template <>
-	class MemoryTraits<sl_int64> : public MemoryTraitsSigned<sl_int64, 8> {};
 
 }
 

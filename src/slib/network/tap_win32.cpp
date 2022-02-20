@@ -100,7 +100,7 @@ namespace slib
 							}
 							// Get Adapter Name
 							{
-								String16 strSubkey = String16::join(NETWORK_CONNECTIONS_KEY, SLIB_UNICODE("\\"), adapterId, SLIB_UNICODE("\\Connection"));
+								String16 strSubkey = String16::concat(NETWORK_CONNECTIONS_KEY, SLIB_UNICODE("\\"), adapterId, SLIB_UNICODE("\\Connection"));
 								HKEY subkey;
 								if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, (LPCWSTR)(strSubkey.getData()), 0, KEY_READ, &subkey)) {
 									continue;
@@ -124,7 +124,7 @@ namespace slib
 									continue;
 								}
 							}
-							String16 path = String16::join(USERMODEDEVICEDIR, adapterId, TAP_WIN_SUFFIX);
+							String16 path = String16::concat(USERMODEDEVICEDIR, adapterId, TAP_WIN_SUFFIX);
 							handle = CreateFileW((LPCWSTR)(path.getData()), GENERIC_WRITE | GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, NULL);
 							if (handle != INVALID_HANDLE_VALUE) {
 								break;
@@ -229,7 +229,7 @@ namespace slib
 
 				sl_bool setIpAddress(const StringParam& ip, const StringParam& mask) override
 				{
-					sl_int32 iRet = System::execute(String::join("netsh interface ip set address \"", m_interfaceName, "\" static ", ip, " ", mask));
+					sl_int32 iRet = System::execute(String::concat("netsh interface ip set address \"", m_interfaceName, "\" static ", ip, " ", mask));
 					if (!iRet) {
 						return sl_true;
 					}

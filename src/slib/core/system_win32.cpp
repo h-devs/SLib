@@ -167,7 +167,7 @@ namespace slib
 					if (GetFileVersionInfoW((LPCWSTR)(filePath.getData()), verHandle, verSize, verData)) {
 						if (VerQueryValueW(verData, L"\\VarFileInfo\\Translation", (LPVOID*)&lpTranslate, &size)) {
 							if (size) {
-								StringCstr16 subBlock = String16::join(
+								StringCstr16 subBlock = String16::concat(
 									L"\\StringFileInfo\\",
 									String16::fromUint32((*lpTranslate).wLanguage, 16, 4),
 									String16::fromUint32((*lpTranslate).wCodePage, 16, 4),
@@ -386,7 +386,7 @@ namespace slib
 				return kernelVersion;
 			}
 		}
-		return String::join(String::fromUint32(SLIB_WINDOWS_MAJOR_VERSION(version)), ".", String::fromUint32(SLIB_WINDOWS_MINOR_VERSION(version)));
+		return String::concat(String::fromUint32(SLIB_WINDOWS_MAJOR_VERSION(version)), ".", String::fromUint32(SLIB_WINDOWS_MINOR_VERSION(version)));
 #else
 		return "UWP";
 #endif
@@ -504,7 +504,7 @@ namespace slib
 		if (version.isEmpty()) {
 			sl_uint64 fileVersion = 0;
 			if (GetVersionInfo(filePath, &fileVersion, sl_null)) {
-				version = String::join(
+				version = String::concat(
 					String::fromUint32(SLIB_GET_WORD3(fileVersion)), ".",
 					String::fromUint32(SLIB_GET_WORD2(fileVersion)), ".",
 					String::fromUint32(SLIB_GET_WORD1(fileVersion)), ".",
@@ -520,7 +520,7 @@ namespace slib
 		if (version.isEmpty()) {
 			sl_uint64 productVersion = 0;
 			if (GetVersionInfo(filePath, sl_null, &productVersion)) {
-				version = String::join(
+				version = String::concat(
 					String::fromUint32(SLIB_GET_WORD3(productVersion)), ".",
 					String::fromUint32(SLIB_GET_WORD2(productVersion)), ".",
 					String::fromUint32(SLIB_GET_WORD1(productVersion)), ".",
@@ -724,7 +724,7 @@ namespace slib
 			}
 		}
 		if (ret.isEmpty()) {
-			return String::join("Unknown error: ", String::fromUint32(errorCode));
+			return String::concat("Unknown error: ", String::fromUint32(errorCode));
 		}
 		return ret;
 	}

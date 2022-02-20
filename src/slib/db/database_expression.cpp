@@ -106,10 +106,16 @@ namespace slib
 						case VariantType::Time:
 						case VariantType::String8:
 						case VariantType::Sz8:
-							builder.append(ParseUtil::applyBackslashEscapes(value.getString(), sl_false));
+						case VariantType::StringData8:
+							builder.append(ParseUtil::applyBackslashEscapes(value.getStringView(), sl_false));
 						case VariantType::String16:
 						case VariantType::Sz16:
-							builder.append(String::create(ParseUtil::applyBackslashEscapes16(value.getString16(), sl_false)));
+						case VariantType::StringData16:
+							builder.append(String::create(ParseUtil::applyBackslashEscapes(value.getStringView16(), sl_false)));
+						case VariantType::String32:
+						case VariantType::Sz32:
+						case VariantType::StringData32:
+							builder.append(String::create(ParseUtil::applyBackslashEscapes(value.getStringView32(), sl_false)));
 						default:
 							builder.appendStatic("null");
 							break;

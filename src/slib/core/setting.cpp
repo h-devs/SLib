@@ -27,6 +27,51 @@
 namespace slib
 {
 
+	namespace priv
+	{
+		namespace setting
+		{
+
+			template <class VIEW>
+			sl_bool ParseUint32Range(const VIEW& str, sl_uint32* _from, sl_uint32* _to)
+			{
+				sl_uint32 from;
+				sl_uint32 to;
+
+				sl_reg index = str.indexOf('-');
+				if (index > 0) {
+					if (str.substring(0, index).parseUint32(10, &from)) {
+						if (str.substring(index + 1).parseUint32(10, &to)) {
+							if (to >= from) {
+								if (_from) {
+									*_from = from;
+								}
+								if (_to) {
+									*_to = to;
+								}
+								return sl_true;
+							}
+						}
+					}
+				} else {
+					if (str.substring(0, index).parseUint32(10, &from)) {
+						if (_from) {
+							*_from = from;
+						}
+						if (_to) {
+							*_to = from;
+						}
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+
+		}
+	}
+
+	using namespace priv::setting;
+
 	IniSetting::IniSetting()
 	{
 	}
@@ -99,36 +144,17 @@ namespace slib
 	}
 
 
-	sl_bool SettingUtil::parseUint32Range(const StringView& str, sl_uint32* _from, sl_uint32* _to)
+	sl_bool SettingUtil::parseUint32Range(const StringParam& str, sl_uint32* from, sl_uint32* to)
 	{
-		sl_uint32 from;
-		sl_uint32 to;
-
-		sl_reg index = str.indexOf('-');
-		if (index > 0) {
-			if (str.substring(0, index).parseUint32(10, &from)) {
-				if (str.substring(index + 1).parseUint32(10, &to)) {
-					if (to >= from) {
-						if (_from) {
-							*_from = from;
-						}
-						if (_to) {
-							*_to = to;
-						}
-						return sl_true;
-					}
-				}
-			}
+		if (str.isEmpty()) {
+			return sl_false;
+		}
+		if (str.is8BitsStringType()) {
+			return ParseUint32Range(StringData(str), from, to);
+		} else if (str.is16BitsStringType()) {
+			return ParseUint32Range(StringData16(str), from, to);
 		} else {
-			if (str.substring(0, index).parseUint32(10, &from)) {
-				if (_from) {
-					*_from = from;
-				}
-				if (_to) {
-					*_to = from;
-				}
-				return sl_true;
-			}
+			return ParseUint32Range(StringData32(str), from, to);
 		}
 		return sl_false;
 	}

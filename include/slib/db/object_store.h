@@ -72,19 +72,19 @@ namespace slib
 
 		Ref<ObjectStoreDictionary> getDictionary() const noexcept;
 
-		ObjectStore createDictionary(const StringParam& key) const;
+		ObjectStore createDictionary(const StringView& key) const;
 
-		ObjectStore getDictionary(const StringParam& key) const;
+		ObjectStore getDictionary(const StringView& key) const;
 
-		sl_bool removeDictionary(const StringParam& key) const;
+		sl_bool removeDictionary(const StringView& key) const;
 
 		Iterator<String, ObjectStore> getDictionaryIterator() const;
 
-		Variant getItem(const StringParam& key) const;
+		Variant getItem(const StringView& key) const;
 
-		sl_bool putItem(const StringParam& key, const Variant& value) const;
+		sl_bool putItem(const StringView& key, const Variant& value) const;
 
-		sl_bool removeItem(const StringParam& key) const;
+		sl_bool removeItem(const StringView& key) const;
 
 		PropertyIterator getItemIterator() const;
 
@@ -162,7 +162,7 @@ namespace slib
 		sl_bool getBoolean(sl_bool def = sl_false) const noexcept;
 
 
-		sl_bool isString() const noexcept;
+		sl_bool isStringType() const noexcept;
 
 		String getString(const String& def) const noexcept;
 
@@ -219,7 +219,7 @@ namespace slib
 			return *this;
 		}
 
-		ObjectStore operator[](const StringParam& name) noexcept;
+		ObjectStore operator[](const String& name) noexcept;
 		Variant operator[](sl_size index) noexcept;
 
 	public:
@@ -244,19 +244,19 @@ namespace slib
 	public:
 		virtual Ref<ObjectStoreManager> getManager() = 0;
 
-		virtual Ref<ObjectStoreDictionary> createDictionary(const StringParam& key) = 0;
+		virtual Ref<ObjectStoreDictionary> createDictionary(const StringView& key) = 0;
 
-		virtual Ref<ObjectStoreDictionary> getDictionary(const StringParam& key) = 0;
+		virtual Ref<ObjectStoreDictionary> getDictionary(const StringView& key) = 0;
 
-		virtual sl_bool removeDictionary(const StringParam& key) = 0;
+		virtual sl_bool removeDictionary(const StringView& key) = 0;
 
 		virtual Iterator<String, ObjectStore> getDictionaryIterator() = 0;
 
-		virtual Variant getItem(const StringParam& key) = 0;
+		virtual Variant getItem(const StringView& key) = 0;
 
-		virtual sl_bool putItem(const StringParam& key, const Variant& value) = 0;
+		virtual sl_bool putItem(const StringView& key, const Variant& value) = 0;
 
-		virtual sl_bool removeItem(const StringParam& key) = 0;
+		virtual sl_bool removeItem(const StringView& key) = 0;
 
 		virtual PropertyIterator getItemIterator() = 0;
 

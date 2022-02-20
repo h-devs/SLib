@@ -75,14 +75,14 @@ namespace slib
 		 */
 		SLIB_DECLARE_CLASS_COMMON_MEMBERS(SocketAddress)
 
-		static sl_bool parseIPv4Range(const String& str, IPv4Address* from = sl_null, IPv4Address* to = sl_null) noexcept;
+		static sl_bool parseIPv4Range(const StringParam& str, IPv4Address* from = sl_null, IPv4Address* to = sl_null) noexcept;
 		
-		static sl_bool parsePortRange(const String& str, sl_uint16* from = sl_null, sl_uint16* to = sl_null) noexcept;
+		static sl_bool parsePortRange(const StringParam& str, sl_uint16* from = sl_null, sl_uint16* to = sl_null) noexcept;
 		
 	public:
 		SocketAddress& operator=(const SocketAddress& other) = default;
 		
-		SocketAddress& operator=(const String& str) noexcept;
+		SocketAddress& operator=(const StringParam& str) noexcept;
 		
 	private:
 		struct _socket_address

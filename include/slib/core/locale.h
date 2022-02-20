@@ -865,11 +865,8 @@ namespace slib
 
 		// ISO 639-1
 		static Language getLanguageFromCode(const sl_char8* code);
-	
-		// ISO 639-1
 		static Language getLanguageFromCode(const sl_char16* code);
-
-		// ISO 639-1
+		static Language getLanguageFromCode(const sl_char32* code);
 		static Language getLanguageFromCode(const String& code);
 
 		// ISO 639-1
@@ -883,11 +880,8 @@ namespace slib
 
 		// ISO 15924
 		static LanguageScript getScriptFromCode(const sl_char8* code);
-		
-		// ISO 15924
 		static LanguageScript getScriptFromCode(const sl_char16* code);
-		
-		// ISO 15924
+		static LanguageScript getScriptFromCode(const sl_char32* code);
 		static LanguageScript getScriptFromCode(const String& code);
 		
 		// ISO 15924
@@ -903,11 +897,8 @@ namespace slib
 
 		// ISO 3166-1 alpha-2
 		static Country getCountryFromCode(const sl_char8* code);
-
-		// ISO 3166-1 alpha-2
 		static Country getCountryFromCode(const sl_char16* code);
-
-		// ISO 3166-1 alpha-2
+		static Country getCountryFromCode(const sl_char32* code);
 		static Country getCountryFromCode(const String& code);
 
 		// ISO 3166-1 alpha-2

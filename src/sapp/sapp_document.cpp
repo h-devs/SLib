@@ -279,7 +279,7 @@ namespace slib
 						locale = Locale(strLocale);
 					}
 					if (locale == Locale::Unknown || locale.isInvalid()) {
-						_logError(g_str_error_resource_drawable_locale_invalid.arg(fileName));
+						_logError(g_str_error_resource_drawable_locale_invalid, fileName);
 						return sl_false;
 					}
 					if (!(_registerImageResources(fileName, m_pathApp + "/" + fileName, locale))) {
@@ -369,7 +369,7 @@ namespace slib
 		if (!(File::isDirectory(path))) {
 			File::createDirectories(path);
 			if (!(File::isDirectory(path))) {
-				_logError(g_str_error_generate_cpp_target_path_invalid.arg(path));
+				_logError(g_str_error_generate_cpp_target_path_invalid, path);
 				return sl_false;
 			}
 		}
@@ -379,11 +379,11 @@ namespace slib
 			return sl_false;
 		}
 		if (!(SAppUtil::checkName(m_conf.generate_cpp_namespace.getData(), m_conf.generate_cpp_namespace.getLength()))) {
-			_logError(g_str_error_generate_cpp_namespace_invalid.arg(m_conf.generate_cpp_namespace));
+			_logError(g_str_error_generate_cpp_namespace_invalid, m_conf.generate_cpp_namespace);
 			return sl_false;
 		}
 		
-		_log(g_str_log_generate_cpp_begin.arg(path));
+		_log(g_str_log_generate_cpp_begin, path);
 		
 		if (!_generateResourcesH(path)) {
 			return sl_false;
@@ -519,22 +519,22 @@ namespace slib
 						Log
 	***************************************************/
 
-	void SAppDocument::_log(const String& text)
+	void SAppDocument::_log(const StringView& text)
 	{
 		Log(TAG, text);
 	}
 
-	void SAppDocument::_logError(const String& text)
+	void SAppDocument::_logError(const StringView& text)
 	{
 		LogError(TAG, text);
 	}
 
-	void SAppDocument::_logError(const String& filePath, sl_size line, sl_size col, const String& text)
+	void SAppDocument::_logErrorSource(const StringView& filePath, sl_size line, sl_size col, const StringView& text)
 	{
 		LogError(TAG, "%s(%d:%d)%n%s", filePath, line, col, text);
 	}
 
-	void SAppDocument::_logError(const Ref<XmlElement>& element, const String& text)
+	void SAppDocument::_logError(const Ref<XmlElement>& element, const StringView& text)
 	{
 		if (element.isNotNull()) {
 			LogError(TAG, "%s(%d:%d)%n%s", element->getSourceFilePath(), element->getLineNumberInSource(), element->getColumnNumberInSource(), text);
@@ -550,10 +550,10 @@ namespace slib
 
 	sl_bool SAppDocument::_parseConfiguration(const String& filePath, SAppConfiguration& conf)
 	{
-		_log(g_str_log_appconf_begin.arg(filePath));
+		_log(g_str_log_appconf_begin, filePath);
 		
 		if (!(File::exists(filePath))) {
-			_logError(g_str_error_file_not_found.arg(filePath));
+			_logError(g_str_error_file_not_found, filePath);
 			return sl_false;
 		}
 		
@@ -595,7 +595,7 @@ namespace slib
 				if (File::isDirectory(strPath)) {
 					conf.app_path = strPath;
 				} else {
-					_logError(el_app_path, g_str_error_directory_not_found.arg(strPath));
+					_logError(el_app_path, String::format(g_str_error_directory_not_found, strPath));
 					return sl_false;
 				}
 			} else {
@@ -610,7 +610,7 @@ namespace slib
 			if (el_target_path.isNotNull()) {
 				String strPath = el_target_path->getText();
 				if (strPath.isEmpty()) {
-					_logError(el_target_path, g_str_error_configuration_value_empty.arg("target-path"));
+					_logError(el_target_path, String::format(g_str_error_configuration_value_empty, "target-path"));
 					return sl_false;
 				}
 				if (strPath.startsWith('.')) {
@@ -622,7 +622,7 @@ namespace slib
 			if (el_namespace.isNotNull()) {
 				conf.generate_cpp_namespace = el_namespace->getText();
 				if (!(SAppUtil::checkName(conf.generate_cpp_namespace.getData(), conf.generate_cpp_namespace.getLength()))) {
-					_logError(el_namespace, g_str_error_configuration_value_invalid.arg("namespace", conf.generate_cpp_namespace));
+					_logError(el_namespace, String::format(g_str_error_configuration_value_invalid, "namespace", conf.generate_cpp_namespace));
 					return sl_false;
 				}
 			}
@@ -659,7 +659,7 @@ namespace slib
 					if (locale.parse(strLocale)) {
 						conf.simulator_locale = locale;
 					} else {
-						_logError(el_locale, g_str_error_configuration_value_invalid.arg("locale", strLocale));
+						_logError(el_locale, String::format(g_str_error_configuration_value_invalid, "locale", strLocale));
 						return sl_false;
 					}
 				}
@@ -689,7 +689,7 @@ namespace slib
 
 	sl_bool SAppDocument::_parseResourcesXml(const String& localNamespace, const String& filePath)
 	{
-		_log(g_str_log_open_resource_begin.arg(filePath));
+		_log(g_str_log_open_resource_begin, filePath);
 		
 		XmlParseParam param;
 		param.flagLogError = sl_false;
@@ -699,7 +699,7 @@ namespace slib
 		param.sourceFilePath = filePath;
 		Ref<XmlDocument> xml = Xml::parseXml(textXML, param);
 		if (param.flagError) {
-			_logError(filePath, param.errorLine, param.errorColumn, param.errorMessage);
+			_logErrorSource(filePath, param.errorLine, param.errorColumn, param.errorMessage);
 			return sl_false;
 		}
 		if (xml.isNull()) {
@@ -769,7 +769,7 @@ namespace slib
 					}
 				} else if (type == "layout") {
 				} else {
-					_logError(child, g_str_error_invalid_tag.arg(child->getName()));
+					_logError(child, String::format(g_str_error_invalid_tag, child->getName()));
 					return sl_false;
 				}
 			}
@@ -803,7 +803,7 @@ namespace slib
 		String pathHeader = targetPath + "/resources.h";
 		if (File::readAllTextUTF8(pathHeader) != content) {
 			if (!(File::writeAllTextUTF8(pathHeader, content))) {
-				_logError(g_str_error_file_write_failed.arg(pathHeader));
+				_logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}

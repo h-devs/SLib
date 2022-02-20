@@ -23,268 +23,181 @@
 #include "slib/core/string_buffer.h"
 
 #include "slib/core/memory.h"
+#include "slib/core/memory_traits.h"
 
 namespace slib
 {
-	
-	StringBuffer::StringBuffer() noexcept
-	{
-		m_len = 0;
-	}
-	
-	StringBuffer::~StringBuffer() noexcept
-	{
-	}
 
-	StringBuffer16::StringBuffer16() noexcept
+	namespace priv
 	{
-		m_len = 0;
-	}
-	
-	StringBuffer16::~StringBuffer16() noexcept
-	{
-	}
+		namespace string_buffer
+		{
 
-	sl_size StringBuffer::getLength() const noexcept
-	{
-		return m_len;
-	}
+			template <class STRING>
+			class StringGetter;
 
-	sl_size StringBuffer16::getLength() const noexcept
-	{
-		return m_len;
-	}
-	
-	sl_bool StringBuffer::add(const String& str) noexcept
-	{
-		sl_size len = str.getLength();
-		if (len == 0) {
-			return sl_true;
-		}
-		StringStorage data;
-		data.data8 = str.getData();
-		data.length = len;
-		data.string8 = str;
-		if (m_queue.push_NoLock(data)) {
-			m_len += len;
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool StringBuffer16::add(const String16& str) noexcept
-	{
-		sl_size len = str.getLength();
-		if (len == 0) {
-			return sl_true;
-		}
-		StringStorage data;
-		data.data16 = str.getData();
-		data.length = len;
-		data.string16 = str;
-		if (m_queue.push_NoLock(data)) {
-			m_len += len;
-			return sl_true;
-		}
-		return sl_false;
-	}
-	
-	sl_bool StringBuffer::add(const StringStorage& data) noexcept
-	{
-		sl_size len = data.length;
-		if (len == 0) {
-			return sl_true;
-		}
-		if (data.data8) {
-			if (m_queue.push_NoLock(data)) {
-				m_len += len;
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-	
-	sl_bool StringBuffer16::add(const StringStorage& data) noexcept
-	{
-		sl_size len = data.length;
-		if (len == 0) {
-			return sl_true;
-		}
-		if (data.data16) {
-			if (m_queue.push_NoLock(data)) {
-				m_len += len;
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-	
-	sl_bool StringBuffer::addStatic(const sl_char8* buf, sl_size length) noexcept
-	{
-		if (!length) {
-			return sl_true;
-		}
-		StringStorage data;
-		data.data8 = buf;
-		data.length = length;
-		return add(data);
-	}
-
-	sl_bool StringBuffer16::addStatic(const sl_char16* buf, sl_size length) noexcept
-	{
-		if (!length) {
-			return sl_true;
-		}
-		StringStorage data;
-		data.data16 = buf;
-		data.length = length;
-		return add(data);
-	}
-
-	void StringBuffer::link(StringBuffer& buf) noexcept
-	{
-		m_len += buf.m_len;
-		buf.m_len = 0;
-		m_queue.merge_NoLock(&(buf.m_queue));
-	}
-	
-	void StringBuffer16::link(StringBuffer16& buf) noexcept
-	{
-		m_len += buf.m_len;
-		buf.m_len = 0;
-		m_queue.merge_NoLock(&(buf.m_queue));
-	}
-	
-	void StringBuffer::clear() noexcept
-	{
-		m_queue.removeAll_NoLock();
-		m_len = 0;
-	}
-
-	void StringBuffer16::clear() noexcept
-	{
-		m_queue.removeAll_NoLock();
-		m_len = 0;
-	}
-
-	String StringBuffer::merge() const noexcept
-	{
-		sl_size total = m_len;
-		if (!total) {
-			return String::getEmpty();
-		}
-		Link<StringStorage>* front = m_queue.getFront();
-		sl_size nQueueCount = m_queue.getCount();
-		if (!nQueueCount) {
-			return String::getEmpty();
-		}
-		if (nQueueCount == 1) {
-			String& s = front->value.string8;
-			if (s.isNotNull()) {
-				return s;
-			}
-		}
-		String ret = String::allocate(total);
-		if (ret.isNotEmpty()) {
-			sl_char8* buf = (sl_char8*)(ret.getData());
-			sl_size offset = 0;
-			Link<StringStorage>* item = front;
-			while (item) {
-				StringStorage& s = item->value;
-				sl_size t = s.length;
-				if (offset + t > total) {
-					Base::copyMemory(buf + offset, s.data8, total - offset);
-					return ret;
+			template <>
+			class StringGetter<String>
+			{
+			public:
+				static String& get(StringStorage& storage)
+				{
+					return storage.string8;
 				}
-				Base::copyMemory(buf + offset, s.data8, t);
-				offset += t;
-				item = item->next;
-			}
-		}
-		return ret;
-	}
-	
-	String16 StringBuffer16::merge() const noexcept
-	{
-		sl_size total = m_len;
-		if (!total) {
-			return String16::getEmpty();
-		}
-		Link<StringStorage>* front = m_queue.getFront();
-		sl_size nQueueCount = m_queue.getCount();
-		if (!nQueueCount) {
-			return String16::getEmpty();
-		}
-		if (nQueueCount == 1) {
-			String16& s = front->value.string16;
-			if (s.isNotNull()) {
-				return s;
-			}
-		}
-		String16 ret = String16::allocate(total);
-		if (ret.isNotEmpty()) {
-			sl_char16* buf = (sl_char16*)(ret.getData());
-			sl_size offset = 0;
-			Link<StringStorage>* item = front;
-			while (item) {
-				StringStorage& s = item->value;
-				sl_size t = s.length;
-				if (offset + t > total) {
-					Base::copyMemory(buf + offset, s.data16, (total - offset) << 1);
-					return ret;
+			};
+
+			template <>
+			class StringGetter<String16>
+			{
+			public:
+				static String16& get(StringStorage& storage)
+				{
+					return storage.string16;
 				}
-				Base::copyMemory(buf + offset, s.data16, t << 1);
-				offset += t;
-				item = item->next;
-			}
+			};
+
+			template <>
+			class StringGetter<String32>
+			{
+			public:
+				static String32& get(StringStorage& storage)
+				{
+					return storage.string32;
+				}
+			};
+
 		}
-		return ret;
 	}
-	
-	Memory StringBuffer::mergeToMemory() const noexcept
-	{
-		if (m_queue.getCount() == 0) {
-			return sl_null;
-		}
-		Link<StringStorage>* front = m_queue.getFront();
-		sl_size total = m_len;
-		Memory ret = Memory::create(total);
-		if (ret.isNotNull()) {
-			sl_char8* buf = (sl_char8*)(ret.getData());
-			sl_size offset = 0;
-			Link<StringStorage>* item = front;
-			while (item) {
-				StringStorage& s = item->value;
-				sl_size t = s.length;
-				Base::copyMemory(buf + offset, s.data8, t);
-				offset += t;
-				item = item->next;
-			}
-		}
-		return ret;
-	}
-	
-	Memory StringBuffer16::mergeToMemory() const noexcept
-	{
-		if (m_queue.getCount() == 0) {
-			return sl_null;
-		}
-		Link<StringStorage>* front = m_queue.getFront();
-		sl_size total = m_len;
-		Memory ret = Memory::create(total * 2);
-		if (ret.isNotNull()) {
-			sl_char16* buf = (sl_char16*)(ret.getData());
-			sl_size offset = 0;
-			Link<StringStorage>* item = front;
-			while (item) {
-				StringStorage& s = item->value;
-				sl_size t = s.length;
-				Base::copyMemory(buf + offset, s.data16, t * 2);
-				offset += t;
-				item = item->next;
-			}
-		}
-		return ret;
-	}
-	
+
+	using namespace priv::string_buffer;
+
+#define DEFINE_STRING_BUFFER_MEMBERS(BUFFER) \
+	BUFFER::BUFFER() noexcept: m_len(0) {} \
+	\
+	BUFFER::~BUFFER() noexcept \
+	{ \
+	} \
+	\
+	sl_size BUFFER::getLength() const noexcept \
+	{ \
+		return m_len; \
+	} \
+	\
+	sl_bool BUFFER::add(typename BUFFER::StringType const& str) noexcept \
+	{ \
+		sl_size len = str.getLength(); \
+		if (!len) { \
+			return sl_true; \
+		} \
+		if (m_queue.push_NoLock(str)) { \
+			m_len += len; \
+			return sl_true; \
+		} \
+		return sl_false; \
+	} \
+	\
+	sl_bool BUFFER::add(const StringStorage& data) noexcept \
+	{ \
+		sl_size len = data.length; \
+		if (!len) { \
+			return sl_true; \
+		} \
+		if (data.data) { \
+			if (m_queue.push_NoLock(data)) { \
+				m_len += len; \
+				return sl_true; \
+			} \
+		} \
+		return sl_false; \
+	} \
+	\
+	sl_bool BUFFER::addStatic(typename BUFFER::Char const* buf, sl_size length) noexcept \
+	{ \
+		if (!length) { \
+			return sl_true; \
+		} \
+		StringStorage data; \
+		data.data = (typename BUFFER::Char*)buf; \
+		data.length = length; \
+		data.charSize = sizeof(typename BUFFER::Char); \
+		return add(data); \
+	} \
+	\
+	void BUFFER::link(BUFFER& buf) noexcept \
+	{ \
+		m_len += buf.m_len; \
+		buf.m_len = 0; \
+		m_queue.merge_NoLock(&(buf.m_queue)); \
+	} \
+	\
+	void BUFFER::clear() noexcept \
+	{ \
+		m_queue.removeAll_NoLock(); \
+		m_len = 0; \
+	} \
+	\
+	typename BUFFER::StringType BUFFER::merge() const noexcept \
+	{ \
+		sl_size total = m_len; \
+		if (!total) { \
+			return StringType::getEmpty(); \
+		} \
+		Link<StringStorage>* front = m_queue.getFront(); \
+		sl_size nQueueCount = m_queue.getCount(); \
+		if (!nQueueCount) { \
+			return StringType::getEmpty(); \
+		} \
+		if (nQueueCount == 1) { \
+			StringType& s = StringGetter<StringType>::get(front->value); \
+			if (s.isNotNull()) { \
+				return s; \
+			} \
+		} \
+		StringType ret = StringType::allocate(total); \
+		if (ret.isNotEmpty()) { \
+			Char* buf = (Char*)(ret.getData()); \
+			sl_size offset = 0; \
+			Link<StringStorage>* item = front; \
+			while (item) { \
+				StringStorage& s = item->value; \
+				sl_size t = s.length; \
+				if (offset + t > total) { \
+					MemoryTraits<Char>::copy(buf + offset, (Char*)(s.data), total - offset); \
+					return ret; \
+				} \
+				MemoryTraits<Char>::copy(buf + offset, (Char*)(s.data), t); \
+				offset += t; \
+				item = item->next; \
+			} \
+		} \
+		return ret; \
+	} \
+	\
+	Memory BUFFER::mergeToMemory() const noexcept \
+	{ \
+		if (!(m_queue.getCount())) { \
+			return sl_null; \
+		} \
+		Link<StringStorage>* front = m_queue.getFront(); \
+		sl_size total = m_len; \
+		Memory ret = Memory::create(total); \
+		if (ret.isNotNull()) { \
+			Char* buf = (Char*)(ret.getData()); \
+			sl_size offset = 0; \
+			Link<StringStorage>* item = front; \
+			while (item) { \
+				StringStorage& s = item->value; \
+				sl_size t = s.length; \
+				MemoryTraits<Char>::copy(buf + offset, (Char*)(s.data), t); \
+				offset += t; \
+				item = item->next; \
+			} \
+		} \
+		return ret; \
+	} \
+
+	DEFINE_STRING_BUFFER_MEMBERS(StringBuffer)
+	DEFINE_STRING_BUFFER_MEMBERS(StringBuffer16)
+	DEFINE_STRING_BUFFER_MEMBERS(StringBuffer32)
+
 }

@@ -114,7 +114,7 @@ namespace slib
 
 	String Referable::toString()
 	{
-		return String::join("<ref:0x", String::fromPointerValue(this), ">");
+		return String::concat("<ref:0x", String::fromPointerValue(this), ">");
 	}
 
 	sl_bool Referable::toJsonString(StringBuffer& buf)

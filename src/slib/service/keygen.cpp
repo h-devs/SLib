@@ -230,7 +230,7 @@ namespace slib
 		{
 			Base::zeroMemory(buf, 32);
 			sl_uint8 hash[32];
-			SHA256::hash(String::join(extraInfo, publicKey, machineCode), hash);
+			SHA256::hash(String::concat(extraInfo, publicKey, machineCode), hash);
 			for (sl_uint32 i = 0; i < 32; i++) {
 				buf[i % 10] ^= hash[i];
 			}
@@ -279,7 +279,7 @@ namespace slib
 		if (!(DecodePrivateKey(strPrivateKey, key))) {
 			return sl_null;
 		}
-		String s = String::join(extraInfo, requestCode);
+		String s = String::concat(extraInfo, requestCode);
 #ifdef KEYGEN_USE_OPENSSL
 		ECDSA_Signature sig = OpenSSL::sign_ECDSA_SHA256_secp256k1(key, s.getData(), s.getLength());
 #else
@@ -333,7 +333,7 @@ namespace slib
 		ECDSA_Signature sig;
 		sig.r = BigInt::fromBytesBE(buf, 32);
 		sig.s = BigInt::fromBytesBE(buf + 32, 32);
-		String s = String::join(extraInfo, requestCode);
+		String s = String::concat(extraInfo, requestCode);
 #ifdef KEYGEN_USE_OPENSSL
 		return OpenSSL::verify_ECDSA_SHA256_secp256k1(key, s.getData(), s.getLength(), sig);
 #else

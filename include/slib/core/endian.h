@@ -41,11 +41,25 @@ namespace slib
 		constexpr static EndianType Big = EndianType::Big;
 		
 	public:
-		sl_bool checkLittleEndianRuntime();
+		sl_bool checkLittleEndianRuntime() noexcept;
 		
-		sl_bool checkBigEndianRuntime();
+		sl_bool checkBigEndianRuntime() noexcept
+		{
+			return !(checkLittleEndianRuntime());
+		}
 		
-		static sl_bool isLE()
+		static EndianType get() noexcept
+		{
+#if defined(SLIB_ARCH_IS_LITTLE_ENDIAN)
+			return EndianType::Little;
+#elif defined(SLIB_ARCH_IS_BIG_ENDIAN)
+			return EndianType::Big;
+#else
+			return Endian::checkLittleEndianRuntime() ? EndianType::Little : EndianType::Big;
+#endif
+		}
+
+		static sl_bool isLE() noexcept
 		{
 #if defined(SLIB_ARCH_IS_LITTLE_ENDIAN)
 			return sl_true;
@@ -56,7 +70,7 @@ namespace slib
 #endif
 		}
 
-		static sl_bool isBE()
+		static sl_bool isBE() noexcept
 		{
 #if defined(SLIB_ARCH_IS_LITTLE_ENDIAN)
 			return sl_false;
@@ -67,7 +81,7 @@ namespace slib
 #endif
 		}
 
-		static sl_uint16 swap16(sl_uint16 v)
+		static sl_uint16 swap16(sl_uint16 v) noexcept
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			sl_uint8 t = b[0];
@@ -76,7 +90,7 @@ namespace slib
 			return v;
 		}
 
-		static sl_uint32 swap32(sl_uint32 v)
+		static sl_uint32 swap32(sl_uint32 v) noexcept
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 2; i++) {
@@ -87,7 +101,7 @@ namespace slib
 			return v;
 		}
 
-		static sl_uint64 swap64(sl_uint64 v)
+		static sl_uint64 swap64(sl_uint64 v) noexcept
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 4; i++) {
@@ -99,7 +113,7 @@ namespace slib
 		}
 
 
-		static float swapFloat(float v)
+		static float swapFloat(float v) noexcept
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 2; i++) {
@@ -110,7 +124,7 @@ namespace slib
 			return v;
 		}
 
-		static double swapDouble(double v)
+		static double swapDouble(double v) noexcept
 		{
 			sl_uint8* b = (sl_uint8*)(&v);
 			for (int i = 0; i < 4; i++) {
@@ -123,7 +137,7 @@ namespace slib
 
 
 		// swap only if the system is little endian
-		static sl_uint16 swap16LE(sl_uint16 v)
+		static sl_uint16 swap16LE(sl_uint16 v) noexcept
 		{
 			if (isLE()) {
 				return swap16(v);
@@ -132,7 +146,7 @@ namespace slib
 			}
 		}
 
-		static sl_uint32 swap32LE(sl_uint32 v)
+		static sl_uint32 swap32LE(sl_uint32 v) noexcept
 		{
 			if (isLE()) {
 				return swap32(v);
@@ -141,7 +155,7 @@ namespace slib
 			}
 		}
 
-		static sl_uint64 swap64LE(sl_uint64 v)
+		static sl_uint64 swap64LE(sl_uint64 v) noexcept
 		{
 			if (isLE()) {
 				return swap64(v);
@@ -150,7 +164,7 @@ namespace slib
 			}
 		}
 
-		static float swapFloatLE(float v)
+		static float swapFloatLE(float v) noexcept
 		{
 			if (isLE()) {
 				return swapFloat(v);
@@ -159,7 +173,7 @@ namespace slib
 			}
 		}
 
-		static double swapDoubleLE(double v)
+		static double swapDoubleLE(double v) noexcept
 		{
 			if (isLE()) {
 				return swapDouble(v);
@@ -169,7 +183,7 @@ namespace slib
 		}
 
 		// swap only if the system is big endian
-		static sl_uint16 swap16BE(sl_uint16 v)
+		static sl_uint16 swap16BE(sl_uint16 v) noexcept
 		{
 			if (isLE()) {
 				return v;
@@ -178,7 +192,7 @@ namespace slib
 			}
 		}
 
-		static sl_uint32 swap32BE(sl_uint32 v)
+		static sl_uint32 swap32BE(sl_uint32 v) noexcept
 		{
 			if (isLE()) {
 				return v;
@@ -187,7 +201,7 @@ namespace slib
 			}
 		}
 
-		static sl_uint64 swap64BE(sl_uint64 v)
+		static sl_uint64 swap64BE(sl_uint64 v) noexcept
 		{
 			if (isLE()) {
 				return v;
@@ -196,7 +210,7 @@ namespace slib
 			}
 		}
 
-		static float swapFloatBE(float v)
+		static float swapFloatBE(float v) noexcept
 		{
 			if (isLE()) {
 				return v;
@@ -205,7 +219,7 @@ namespace slib
 			}
 		}
 
-		static double swapDoubleBE(double v)
+		static double swapDoubleBE(double v) noexcept
 		{
 			if (isLE()) {
 				return v;
@@ -213,6 +227,7 @@ namespace slib
 				return swapDouble(v);
 			}
 		}
+
 	};
 
 }

@@ -292,7 +292,7 @@ namespace slib
 					}
 					{
 						for (auto& pair : m_requestHeaders) {
-							String16 line = String16::format("%s: %s\r\n", pair.key, pair.value);
+							String16 line = String16::format(SLIB_UNICODE("%s: %s\r\n"), pair.key, pair.value);
 							WinHttpAddRequestHeaders(m_hRequest, (LPCWSTR)(line.getData()), (DWORD)(line.getLength()), WINHTTP_ADDREQ_FLAG_ADD);
 						}
 					}
@@ -545,7 +545,7 @@ namespace slib
 					m_step = STEP_COMPLETE;
 					onComplete();
 
-					if (m_sizeContentTotal == m_sizeContentReceived || m_responseHeaders.getValue("Transfer-Encoding").compareIgnoreCase("chunked") == 0) {
+					if (m_sizeContentTotal == m_sizeContentReceived || HttpHeaderMap(m_responseHeaders).getValue("Transfer-Encoding").compareIgnoreCase("chunked") == 0) {
 						Ref<Session> session = getSession();
 						if (session.isNotNull()) {
 							if (session->connectionPool.getCount() > MAX_CONNECTION_POOL_SIZE) {

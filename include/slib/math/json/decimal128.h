@@ -42,7 +42,7 @@ namespace slib
 
 	SLIB_INLINE sl_bool Decimal128::setJson(const Json& json) noexcept
 	{
-		if (json.isString()) {
+		if (json.isStringType()) {
 			return parse(json.getStringParam());
 		} else {
 			SLIB_STATIC_STRING(numberDecimal, "$numberDecimal");

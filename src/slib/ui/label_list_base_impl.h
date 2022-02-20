@@ -88,15 +88,19 @@ namespace slib
 			}
 		}
 		ObjectLocker lock(((VIEW_CLASS*)this));
+		List<String> titles(m_titles);
+		List<String> values(m_values);
 		sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
-		if (m_titles.getCount() != nCount) {
-			m_titles.setCount(nCount);
+		if (titles.getCount() != nCount) {
+			titles.setCount(nCount);
 		}
-		if (m_values.getCount() != nCount) {
-			m_values.setCount(nCount);
+		if (values.getCount() != nCount) {
+			values.setCount(nCount);
 		}
-		m_titles.add(title);
-		m_values.add(value);
+		titles.add(title);
+		values.add(value);
+		m_titles = Move(titles);
+		m_values = Move(values);
 		((VIEW_CLASS*)this)->notifyInsertItem((INDEX_TYPE)nCount, title, mode);
 	}
 
@@ -122,14 +126,18 @@ namespace slib
 			if (index > nCount) {
 				return;
 			}
-			if (m_titles.getCount() != nCount) {
-				m_titles.setCount(nCount);
+			List<String> titles(m_titles);
+			List<String> values(m_values);
+			if (titles.getCount() != nCount) {
+				titles.setCount(nCount);
 			}
-			if (m_values.getCount() != nCount) {
-				m_values.setCount(nCount);
+			if (values.getCount() != nCount) {
+				values.setCount(nCount);
 			}
-			m_titles.insert(index, title);
-			m_values.insert(index, value);
+			titles.insert(index, title);
+			values.insert(index, value);
+			m_titles = Move(titles);
+			m_values = Move(values);
 			((VIEW_CLASS*)this)->notifyInsertItem((INDEX_TYPE)index, title, mode);
 		}
 	}
@@ -156,8 +164,8 @@ namespace slib
 			if (index >= nCount) {
 				return;
 			}
-			m_titles.removeAt(index);
-			m_values.removeAt(index);
+			List<String>(m_titles).removeAt(index);
+			List<String>(m_values).removeAt(index);
 			((VIEW_CLASS*)this)->notifyRemoveItem((INDEX_TYPE)index, mode);
 		}
 	}
@@ -180,7 +188,7 @@ namespace slib
 	String LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::getItemValue(INDEX_TYPE index)
 	{
 		if (index >= 0) {
-			return m_values.getValueAt((sl_size)index);
+			return List<String>(m_values).getValueAt((sl_size)index);
 		}
 		return sl_null;
 	}
@@ -195,10 +203,12 @@ namespace slib
 			if (index >= nCount) {
 				return;
 			}
-			if (index >= m_values.getCount()) {
-				m_values.setCount(index + 1);
+			List<String> values(m_values);
+			if (index >= values.getCount()) {
+				values.setCount(index + 1);
 			}
-			m_values.setAt(index, value);
+			values.setAt(index, value);
+			m_values = Move(values);
 		}
 	}
 
@@ -210,7 +220,7 @@ namespace slib
 				return m_functionTitle(index);
 			}
 			if (m_titles.isNotNull()) {
-				return m_titles.getValueAt((sl_size)index);
+				return List<String>(m_titles).getValueAt((sl_size)index);
 			}
 		}
 		return sl_null;
@@ -232,30 +242,32 @@ namespace slib
 			if (index >= nCount) {
 				return;
 			}
-			if (index >= m_titles.getCount()) {
-				m_titles.setCount(index + 1);
+			List<String> titles(m_titles);
+			if (index >= titles.getCount()) {
+				titles.setCount(index + 1);
 			}
-			m_titles.setAt(index, title);
+			titles.setAt(index, title);
+			m_titles = Move(titles);
 			((VIEW_CLASS*)this)->notifySetItemTitle((INDEX_TYPE)index, title, mode);
 		}
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
-	typename SignedType<INDEX_TYPE>::Type LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::findItemByValue(const StringParam& value)
+	typename SignedType<INDEX_TYPE>::Type LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::findItemByValue(const StringView& value)
 	{
-		return (typename SignedType<INDEX_TYPE>::Type)(m_values.indexOf(value));
+		return (typename SignedType<INDEX_TYPE>::Type)(List<String>(m_values).indexOf(value));
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
-	typename SignedType<INDEX_TYPE>::Type LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::findItemByTitle(const StringParam& title)
+	typename SignedType<INDEX_TYPE>::Type LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::findItemByTitle(const StringView& title)
 	{
-		return (typename SignedType<INDEX_TYPE>::Type)(m_titles.indexOf(title));
+		return (typename SignedType<INDEX_TYPE>::Type)(List<String>(m_titles).indexOf(title));
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
-	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::selectValue(const String& value, UIUpdateMode mode)
+	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::selectValue(const StringView& value, UIUpdateMode mode)
 	{
-		sl_reg index = m_values.indexOf(value);
+		sl_reg index = List<String>(m_values).indexOf(value);
 		if (index >= 0) {
 			((VIEW_CLASS*)this)->selectItem((INDEX_TYPE)index, mode);
 		}
@@ -266,7 +278,7 @@ namespace slib
 	{
 		INDEX_TYPE index = ((VIEW_CLASS*)this)->getSelectedIndex();
 		if (index >= 0) {
-			return m_values.getValueAt((sl_size)index);
+			return List<String>(m_values).getValueAt((sl_size)index);
 		}
 		return sl_null;
 	}
@@ -276,7 +288,7 @@ namespace slib
 	{
 		INDEX_TYPE index = ((VIEW_CLASS*)this)->getSelectedIndex();
 		if (index >= 0) {
-			return m_titles.getValueAt((sl_size)index);
+			return List<String>(m_titles).getValueAt((sl_size)index);
 		}
 		return sl_null;
 	}

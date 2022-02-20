@@ -189,16 +189,16 @@ namespace slib
 			param.attributes & FileAttributes::Directory ? "DIR" : "FILE",
 
 			(param.mode & FileMode::Write 
-				? String::join(
+				? String::concat(
 					(param.mode & FileMode::NotCreate ? "OPEN" : (param.mode & FileMode::NotTruncate ? "OPEN_OR_CREATE" : "CREATE")),
 					(param.mode & FileMode::NotTruncate ? "" : "|TRUNCATE"))
 				: "OPEN"),
 
-			String::join((param.mode & FileMode::Read ? "READ" : ""), 
+			String::concat((param.mode & FileMode::Read ? "READ" : ""), 
 				(param.mode & FileMode::ReadData ? "_DATA" : ""), 
 				(param.mode & FileMode::ReadAttrs ? "_ATTR" : "")),
 
-			String::join((param.mode & FileMode::Write ? "WRITE" : ""),
+			String::concat((param.mode & FileMode::Write ? "WRITE" : ""),
 				(param.mode & FileMode::WriteData ? "_DATA" : ""),
 				(param.mode & FileMode::WriteAttrs ? "_ATTR" : "")),
 

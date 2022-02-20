@@ -46,7 +46,7 @@ namespace slib
 		if (str.isNull()) {
 			return def;
 		}
-		if (str.is8()) {
+		if (str.is8BitsStringType()) {
 			StringData s(str);
 			NSString* ret = [[NSString alloc] initWithBytes:s.getData() length:s.getLength() encoding:NSUTF8StringEncoding];
 			if (ret != nil) {

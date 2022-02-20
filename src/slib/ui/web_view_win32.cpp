@@ -342,8 +342,9 @@ namespace slib
 								VariantInit(&varURL);
 								varURL.vt = VT_BSTR;
 								varURL.bstrVal = (BSTR)(url.getData());
-								if (helper->m_customUserAgent.isNotEmpty()) {
-									StringCstr16 headers = "User-Agent: " + helper->m_customUserAgent;
+								String customUserAgent(helper->m_customUserAgent);
+								if (customUserAgent.isNotEmpty()) {
+									StringCstr16 headers = "User-Agent: " + customUserAgent;
 									VARIANT varHeaders;
 									varHeaders.vt = VT_BSTR;
 									varHeaders.bstrVal = (BSTR)(headers.getData());

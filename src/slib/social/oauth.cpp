@@ -347,7 +347,7 @@ namespace slib
 			String requestTokenSecret = params["oauth_token_secret"];
 			String loginUrl = params["login_url"];
 			if (loginUrl.isEmpty()) {
-				loginUrl = thiz->m_authenticateUrl.arg(Url::encodePercent(requestToken));
+				loginUrl = String::format(thiz->m_authenticateUrl, Url::encodePercent(requestToken));
 			}
 			onComplete(loginUrl, requestToken, requestTokenSecret);
 		};

@@ -2011,12 +2011,12 @@ namespace slib
 		return format(fmt, TimeZone::Local);
 	}
 
-	String Time::format(const StringParam& fmt, const Locale& locale) const noexcept
+	String Time::format(const StringView& fmt, const Locale& locale) const noexcept
 	{
 		return String::format(locale, fmt, *this);
 	}
 
-	String Time::format(const StringParam& fmt) const noexcept
+	String Time::format(const StringView& fmt) const noexcept
 	{
 		return String::format(fmt, *this);
 	}
@@ -2514,16 +2514,6 @@ namespace slib
 	sl_bool Atomic<TimeZone>::isUTC() const noexcept
 	{
 		return ref._ptr == TimeZone::UTC().ref.ptr;
-	}
-
-	sl_int64 Atomic<TimeZone>::getOffset() const
-	{
-		return getOffset(Time::now());
-	}
-
-	sl_int64 Atomic<TimeZone>::getOffset(const Time &time) const
-	{
-		return TimeZone(*this).getOffset(time);
 	}
 
 }

@@ -52,7 +52,7 @@ namespace slib
 
 			static String GetOpenIpcName(const StringParam& appId)
 			{
-				return String::join(appId, ".ipc.ui.open");
+				return String::concat(appId, ".ipc.ui.open");
 			}
 
 			class StaticContext
@@ -445,7 +445,7 @@ namespace slib
 				}
 				if (gtk::getApi_gtk_get_minor_version()() < 6) {
 					if (id.isEmpty()) {
-						id = String::join("app.id", String::fromUint64(Time::now().toInt()));
+						id = String::concat("app.id", String::fromUint64(Time::now().toInt()));
 					}
 				}
 				if (id.isEmpty()) {

@@ -43,7 +43,7 @@ namespace slib
 				if (!(File::exists(path))) {
 					File::createDirectories(path);
 				}
-				return String::join(path, "/", appName, ".json");
+				return String::concat(path, "/", appName, ".json");
 			}
 		}
 	}

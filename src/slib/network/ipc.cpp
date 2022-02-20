@@ -44,9 +44,9 @@ namespace slib
 			static String GetDomainName(const StringParam& name)
 			{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-				return String::join(System::getWindowsDirectory(), "/Temp/IPC__", name);
+				return String::concat(System::getWindowsDirectory(), "/Temp/IPC__", name);
 #else
-				return String::join("/var/tmp/IPC__", name);
+				return String::concat("/var/tmp/IPC__", name);
 #endif
 			}
 #endif

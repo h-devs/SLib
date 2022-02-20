@@ -109,6 +109,8 @@ namespace slib
 	template <>
 	struct UnsignedType<unsigned short> { typedef unsigned short Type; };
 	template <>
+	struct UnsignedType<char> { typedef unsigned char Type; };
+	template <>
 	struct UnsignedType<signed char> { typedef unsigned char Type; };
 	template <>
 	struct UnsignedType<unsigned char> { typedef unsigned char Type; };
@@ -120,6 +122,10 @@ namespace slib
 	struct UnsignedType<sl_int64> { typedef sl_uint64 Type; };
 	template <>
 	struct UnsignedType<sl_uint64> { typedef sl_uint64 Type; };
+	template <>
+	struct UnsignedType<char16_t> { typedef char16_t Type; };
+	template <>
+	struct UnsignedType<char32_t> { typedef char32_t Type; };
 
 	template <class UT>
 	struct SignedType;
@@ -131,6 +137,8 @@ namespace slib
 	struct SignedType<short> { typedef short Type; };
 	template <>
 	struct SignedType<unsigned short> { typedef short Type; };
+	template <>
+	struct SignedType<char> { typedef signed char Type; };
 	template <>
 	struct SignedType<signed char> { typedef signed char Type; };
 	template <>
