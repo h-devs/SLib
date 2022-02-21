@@ -109,7 +109,8 @@ namespace slib
 			
 			static BOOL UIPlatform_onOpenUrl(NSURL* url, NSDictionary* options)
 			{
-				for (auto& callback : g_callbackOpenURL) {
+                List< Function<BOOL(NSURL*, NSDictionary*)> > callbacks(g_callbackOpenURL);
+				for (auto& callback : callbacks) {
 					if (callback(url, options)) {
 						return YES;
 					}

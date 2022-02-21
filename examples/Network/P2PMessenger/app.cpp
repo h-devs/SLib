@@ -62,6 +62,7 @@ void P2PMsgApp::onStart()
 	m_txtInput = New<EditView>();
 	m_txtInput->setWidthFilling(1, UIUpdateMode::Init);
 	m_txtInput->setHeightWrapping(UIUpdateMode::Init);
+    m_txtInput->setCenterVertical(UIUpdateMode::Init);
 
 	m_txtBoard = New<EditView>();
 	m_txtBoard->setMultiLine(MultiLineMode::Multiple, UIUpdateMode::Init);
