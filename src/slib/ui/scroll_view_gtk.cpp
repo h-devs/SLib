@@ -86,16 +86,14 @@ namespace slib
 					}
 				}
 				
-				sl_bool getBounds(View* view, UIRect& _out) override
+				sl_bool getClientSize(View* view, UISize& _out) override
 				{
 					GtkWidget* handle = m_handle;
 					if (handle) {
 						int width, height;
 						gtk_widget_get_size_request(handle, &width, &height);
-						_out.left = 0;
-						_out.top = 0;
-						_out.right = (sl_ui_len)(width);
-						_out.bottom = (sl_ui_len)(height);
+						_out.x = (sl_ui_len)(width);
+						_out.y = (sl_ui_len)(height);
 						return sl_true;
 					}
 					return sl_false;
