@@ -101,8 +101,8 @@ namespace slib
 		sl_bool m_flagRefreshItems;
 		
 		Mutex m_lockLayout;
-		sl_int32 m_idLayoutRequest;
-		sl_int32 m_idLayoutComplete;
+		volatile sl_int32 m_idLayoutRequest;
+		volatile sl_int32 m_idLayoutComplete;
 		
 		sl_ui_pos m_lastScrollY;
 

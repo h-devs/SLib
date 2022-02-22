@@ -100,7 +100,7 @@ namespace slib
 						return sl_null;
 					}
 
-					static sl_int32 uId = 0x1000;
+					static volatile sl_int32 uId = 0x1000;
 					nid.uID = (UINT)((sl_uint16)(Base::interlockedIncrement32(&uId)));
 					sl_bool flagLoadedIcon = sl_false;
 					nid.hIcon = createIcon(param.iconName, param.icon, flagLoadedIcon);

@@ -77,9 +77,9 @@ namespace slib
 			public:
 				HINTERNET hInternet;
 				LinkedQueue< Ref<Connection> > connectionPool;
-				sl_int32 lastConnectionId;
+				volatile sl_int32 lastConnectionId;
 				HashMap< sl_int32, WeakRef<Connection> > connections;
-				sl_int32 lastTaskId;
+				volatile sl_int32 lastTaskId;
 				HashMap< sl_int32, WeakRef<UrlRequestImpl> > requests;
 
 			public:
@@ -178,7 +178,7 @@ namespace slib
 
 				AtomicRef<AsyncStream> m_fileDownload;
 				sl_bool m_flagDownloadReading;
-				sl_reg m_sizeDownloadWriting;
+				volatile sl_reg m_sizeDownloadWriting;
 
 				enum {
 					STEP_INIT, STEP_SENDING_REQUEST, STEP_RECEIVING_RESPONSE, STEP_RECEIVING_DATA, STEP_FINISHED_RECEIVING, STEP_COMPLETE, STEP_ERROR

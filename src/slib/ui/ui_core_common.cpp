@@ -38,7 +38,7 @@ namespace slib
 			
 			typedef CHashMap< sl_reg, Function<void()> > DelayedDispatchMap;
 			SLIB_SAFE_STATIC_GETTER(DelayedDispatchMap, GetDelayedDispatchMap)
-			sl_reg g_idLastDelayedDispatch = 0;
+			volatile sl_reg g_idLastDelayedDispatch = 0;
 			
 
 			sl_bool UIDispatcher::addCallback(const Function<void()>& callback)

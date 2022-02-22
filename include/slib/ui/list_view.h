@@ -137,7 +137,7 @@ namespace slib
 		sl_ui_len m_heightTotalItems;
 		sl_ui_pos m_lastScrollY;
 		
-		sl_int32 m_lockCountLayouting;
+		volatile sl_int32 m_lockCountLayouting;
 		
 		friend class priv::list_view::ContentView;
 		

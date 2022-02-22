@@ -140,7 +140,7 @@ namespace slib
 		
 		Color m_popupBackgroundColor;
 
-		sl_reg m_countActiveTransitionAnimations;
+		volatile sl_reg m_countActiveTransitionAnimations;
 
 		AtomicRef<View> m_viewInitialFocus;
 		

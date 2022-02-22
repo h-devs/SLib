@@ -44,7 +44,7 @@ namespace slib
 		namespace window
 		{
 
-			static sl_int32 g_nCountActiveWindows = 0;
+			static volatile sl_int32 g_nCountActiveWindows = 0;
 
 			class EFL_WindowInstance;
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<EFL_WindowInstance>, g_windowMain)

@@ -104,7 +104,7 @@ namespace slib
 	protected:
 		sl_uint32 m_timeout;
 
-		sl_uint32 m_conversationNoLastSent;
+		volatile sl_uint32 m_conversationNoLastSent;
 		HashMap< sl_uint32, Ref<Connection> > m_mapSend;
 		HashMap< Address, Ref<Connection> > m_mapListen;
 		LinkedList<sl_uint32> m_queueEndSend;

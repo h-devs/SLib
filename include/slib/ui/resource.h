@@ -219,7 +219,7 @@ namespace slib
 		
 		sl_real m_sp;
 		
-		sl_int32 m_countRecursiveLayout;
+		volatile sl_int32 m_countRecursiveLayout;
 		sl_bool m_flagInitialized;
 		
 	};

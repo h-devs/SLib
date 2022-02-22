@@ -34,7 +34,7 @@ namespace slib
 
 	Animation::Animation()
 	{
-		static sl_reg _uniqueId = 0;
+		static volatile sl_reg _uniqueId = 0;
 		m_id = Base::interlockedIncrement(&_uniqueId);
 		m_flagSelfAlive = sl_true;
 		m_flagNativeEnabled = sl_true;

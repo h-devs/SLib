@@ -108,7 +108,7 @@ namespace slib
 	
 	RenderEngine::RenderEngine()
 	{
-		static sl_int64 _id = 0;
+		static volatile sl_int64 _id = 0;
 		m_uniqueId = Base::interlockedIncrement64(&_id);
 		
 		m_viewportWidth = 0;

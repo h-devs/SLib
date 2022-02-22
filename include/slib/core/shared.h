@@ -311,7 +311,7 @@ namespace slib
 			{
 			public:
 				T value;
-				sl_reg refCount;
+				volatile sl_reg refCount;
 
 			public:
 				template <class... ARGS>
@@ -366,7 +366,7 @@ namespace slib
 			class PtrContainer
 			{
 			public:
-				sl_reg refCount;
+				volatile sl_reg refCount;
 				void* ptr;
 
 			public:

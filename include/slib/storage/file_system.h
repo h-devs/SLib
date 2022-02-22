@@ -238,7 +238,7 @@ namespace slib
 		FileSystemHostParam m_param;
 
 		sl_bool m_flagRunning;
-		sl_reg m_nOpenedHandles;
+		volatile sl_reg m_nOpenedHandles;
 
 	};
 

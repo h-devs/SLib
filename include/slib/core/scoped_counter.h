@@ -31,7 +31,7 @@ namespace slib
 	class SLIB_EXPORT ScopedCounter
 	{
 	public:
-		ScopedCounter(sl_reg* p) noexcept
+		ScopedCounter(volatile sl_reg* p) noexcept
 		{
 			count = p;
 			Base::interlockedIncrement(p);
@@ -43,7 +43,7 @@ namespace slib
 		}
 
 	public:
-		sl_reg* count;
+		volatile sl_reg* count;
 
 	};
 

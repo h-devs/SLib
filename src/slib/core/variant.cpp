@@ -3307,7 +3307,7 @@ namespace slib
 		if (!random) {
 			Math::randomMemory(&random, sizeof(random));
 		}
-		static sl_reg counter = 0;
+		static volatile sl_reg counter = 0;
 		sl_reg n = Base::interlockedIncrement((sl_reg*)&counter);
 		ObjectId ret;
 		MIO::writeUint32BE(ret.data, (sl_uint32)(Time::now().toUnixTime()));

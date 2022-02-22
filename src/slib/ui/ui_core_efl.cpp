@@ -55,7 +55,7 @@ namespace slib
 		{
 
 			pthread_t g_threadMain = 0;
-			sl_int32 g_nLevelMainLoop = 0;
+			volatile sl_int32 g_nLevelMainLoop = 0;
 
 			class ScreenImpl : public Screen
 			{

@@ -41,7 +41,7 @@ namespace slib
 		sl_size len;
 		sl_size hash;
 		sl_uint32 type;
-		sl_reg ref;
+		volatile sl_reg ref;
 		
 	public:
 		sl_reg increaseReference() noexcept;

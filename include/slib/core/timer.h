@@ -88,7 +88,7 @@ namespace slib
 		sl_bool m_flagStarted;
 		Function<void(Timer*)> m_task;
 		sl_uint64 m_interval;
-		sl_int32 m_nCountRun;
+		volatile sl_int32 m_nCountRun;
 
 		sl_uint64 m_lastRunTime;
 		sl_uint32 m_maxConcurrentThread;

@@ -60,7 +60,7 @@ namespace slib
 				IStream* m_stream;
 				String16 m_displayName;
 
-				sl_int32 m_nRef;
+				volatile sl_int32 m_nRef;
 
 			public:
 				DocumentMoniker()

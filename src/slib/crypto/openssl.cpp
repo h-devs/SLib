@@ -352,7 +352,7 @@ namespace slib
 				sl_bool m_flagWritingError;
 				Memory m_bufReadingBase;
 				Memory m_bufWritingBase;
-				sl_reg m_sizeWritingBase;
+				volatile sl_reg m_sizeWritingBase;
 				Function<void(AsyncStreamResult&)> m_callbackRead;
 				Function<void(AsyncStreamResult&)> m_callbackWrite;
 				Function<void()> m_doStartWritingBase;

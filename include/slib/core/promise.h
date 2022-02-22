@@ -57,7 +57,7 @@ namespace slib
 			{
 				SpinLock lock;
 				List<T> results;
-				sl_reg nCompleted;
+				volatile sl_reg nCompleted;
 			};
 		}
 	}

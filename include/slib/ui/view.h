@@ -1588,7 +1588,7 @@ namespace slib
 
 		UIRect m_frame;
 		UIRect m_boundsInParent;
-		sl_int32 m_idUpdateInvalidateLayout;
+		volatile sl_int32 m_idUpdateInvalidateLayout;
 		
 		UIAction m_actionMouseDown;
 		AtomicRef<UIEvent> m_currentEvent;

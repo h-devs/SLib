@@ -308,10 +308,10 @@ namespace slib
 		sl_uint8 m_serverGuid[16];
 		sl_uint8 m_serverChallenge[8];
 		sl_uint8 m_hashSalt[32];
-		sl_int64 m_lastSessionId;
+		volatile sl_int64 m_lastSessionId;
 
-		sl_int32 m_lastTreeId;
-		sl_int64 m_lastFileId;
+		volatile sl_int32 m_lastTreeId;
+		volatile sl_int64 m_lastFileId;
 		Time m_timeStarted;
 
 		friend class SmbServerSession;

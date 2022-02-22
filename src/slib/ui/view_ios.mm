@@ -690,7 +690,7 @@ IOS_VIEW_EVENTS
 
 @interface SLIBViewLargeContentLayer : CATiledLayer
 {
-	@public sl_int32 m_updateId;
+	@public volatile sl_int32 m_updateId;
 }
 @end
 

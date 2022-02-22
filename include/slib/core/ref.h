@@ -249,7 +249,7 @@ namespace slib
 		Referable& operator=(Referable&& other) noexcept;
 
 	private:
-		sl_reg m_nRefCount;
+		volatile sl_reg m_nRefCount;
 		CWeakRef* m_weak;
 
 		friend class CWeakRef;

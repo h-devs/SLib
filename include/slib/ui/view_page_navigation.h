@@ -105,7 +105,7 @@ namespace slib
 		Transition m_pushTransition;
 		Transition m_popTransition;
 
-		sl_reg m_countActiveTransitionAnimations;
+		volatile sl_reg m_countActiveTransitionAnimations;
 		
 		friend class ViewPage;
 		
