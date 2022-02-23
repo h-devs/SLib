@@ -34,25 +34,34 @@ namespace slib
 	namespace android
 	{
 
-		void Log(const StringParam& _tag, const StringParam& _content) noexcept
+		void Log(LogPriority _priority, const StringParam& _tag, const StringParam& _content)
 		{
 			StringCstr tag(_tag);
 			StringCstr content(_content);
-			__android_log_print(ANDROID_LOG_INFO, tag.getData(), "%s", content.getData());
-		}
-
-		void LogError(const StringParam& _tag, const StringParam& _content) noexcept
-		{
-			StringCstr tag(_tag);
-			StringCstr content(_content);
-			__android_log_print(ANDROID_LOG_ERROR, tag.getData(), "%s", content.getData());
-		}
-
-		void LogDebug(const StringParam& _tag, const StringParam& _content) noexcept
-		{
-			StringCstr tag(_tag);
-			StringCstr content(_content);
-			__android_log_print(ANDROID_LOG_DEBUG, tag.getData(), "%s", content.getData());
+			int priority;
+			switch (_priority) {
+				case LogPriority::Verbose:
+					priority = ANDROID_LOG_VERBOSE;
+					break;
+				case LogPriority::Debug:
+					priority = ANDROID_LOG_DEBUG;
+					break;
+				case LogPriority::Info:
+					priority = ANDROID_LOG_INFO;
+					break;
+				case LogPriority::Warning:
+					priority = ANDROID_LOG_WARN;
+					break;
+				case LogPriority::Error:
+					priority = ANDROID_LOG_ERROR;
+					break;
+				case LogPriority::Fatal:
+					priority = ANDROID_LOG_FATAL;
+					break;
+				default:
+					return;
+			}
+			__android_log_print(priority, tag.getData(), "%s", content.getData());
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,19 @@
 namespace slib
 {
 
-	class LoggerSet;
-	
+	enum class LogPriority
+	{
+		Unknown = 0,
+		Default = 1,
+		Verbose = 2,
+		Debug = 3,
+		Info = 4,
+		Warning = 5,
+		Error = 6,
+		Fatal = 7,
+		Silent = 8
+	};
+
 	class SLIB_EXPORT Logger : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -40,25 +51,31 @@ namespace slib
 		~Logger();
 
 	public:
-		virtual void log(const StringParam& tag, const StringParam& content) = 0;
+		virtual void log(LogPriority priority, const StringParam& tag, const StringParam& content) = 0;
 
-		virtual void logError(const StringParam& tag, const StringParam& content);
-	
-		virtual void logDebug(const StringParam& tag, const StringParam& content);
-	
+		void log(const StringParam& tag, const StringParam& content);
+
+		void logError(const StringParam& tag, const StringParam& content);
+
+		void logDebug(const StringParam& tag, const StringParam& content);
+
 	public:
-		static Ref<LoggerSet> global();
+		LogPriority getMinimumPriority();
+
+		void setMinimumPriority(LogPriority priority);
+
+	public:
+		static Ref<Logger> global();
+
+		static void setGlobal(const Ref<Logger>& logger);
 
 		static Ref<Logger> getConsoleLogger();
 
 		static Ref<Logger> createFileLogger(const String& fileNameFormat);
 
-		static void logGlobal(const StringParam& tag, const StringParam& content);
+	protected:
+		LogPriority m_priorityMinimum;
 
-		static void logGlobalError(const StringParam& tag, const StringParam& content);
-	
-		static void logGlobalDebug(const StringParam& tag, const StringParam& content);
-	
 	};
 	
 	class SLIB_EXPORT FileLogger : public Logger
@@ -69,84 +86,62 @@ namespace slib
 		FileLogger(const String& fileNameFormat);
 
 		~FileLogger();
-	
+
 	public:
-		void log(const StringParam& tag, const StringParam& content) override;
-	
-		virtual String getFileName();
-		
+		void log(LogPriority priority, const StringParam& tag, const StringParam& content) override;
+
+		String getFileNameFormat();
+
 	protected:
 		String m_fileNameFormat;
-		
+
 	};
-	
-	class SLIB_EXPORT LoggerSet : public Logger
+
+	class ConsoleLogger : public Logger
 	{
 	public:
-		LoggerSet();
+		ConsoleLogger();
 
-		LoggerSet(const Ref<Logger>& logger, const Ref<Logger>& errorLogger);
-
-		~LoggerSet();
+		~ConsoleLogger();
 
 	public:
-		void clearDefaultLogger();
+		void log(LogPriority priority, const StringParam& tag, const StringParam& content) override;
 
-		void addDefaultLogger(const Ref<Logger>& logger);
-
-		void removeDefaultLogger(const Ref<Logger>& logger);
-
-		void setDefaultLogger(const Ref<Logger>& logger);
-		
-
-		void clearErrorLogger();
-
-		void addErrorLogger(const Ref<Logger>& logger);
-
-		void removeErrorLogger(const Ref<Logger>& logger);
-
-		void setErrorLogger(const Ref<Logger>& logger);
-		
-	public:
-		void log(const StringParam& tag, const StringParam& content) override;
-
-		void logError(const StringParam& tag, const StringParam& content) override;
-
-	protected:
-		CList< Ref<Logger> > m_listLoggers;
-		CList< Ref<Logger> > m_listErrorLoggers;
-	
 	};
+
+	template <class... ARGS>
+	SLIB_INLINE static void Log(LogPriority priority, const StringParam& tag, const StringView& fmt, ARGS&&... args)
+	{
+		Ref<Logger> logger = Logger::global();
+		if (logger.isNotNull()) {
+			if (logger->getMinimumPriority() <= priority) {
+				logger->log(priority, tag, String::format(fmt, Forward<ARGS>(args)...));
+			}
+		}
+	}
 
 	template <class... ARGS>
 	SLIB_INLINE static void Log(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 	{
-		Logger::logGlobal(tag, String::format(fmt, Forward<ARGS>(args)...));
+		Log(LogPriority::Info, tag, fmt, Forward<ARGS>(args)...);
 	}
 	
 	template <class... ARGS>
 	SLIB_INLINE static void LogError(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 	{
-		Logger::logGlobalError(tag, String::format(fmt, Forward<ARGS>(args)...));
+		Log(LogPriority::Error, tag, fmt, Forward<ARGS>(args)...);
 	}
 	
-#ifdef SLIB_DEBUG
 	template <class... ARGS>
 	SLIB_INLINE static void LogDebug(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 	{
-		Logger::logGlobalDebug(tag, String::format(fmt, Forward<ARGS>(args)...));
+		Log(LogPriority::Debug, tag, fmt, Forward<ARGS>(args)...);
 	}
-#else
-	template <class... ARGS>
-	SLIB_INLINE static void LogDebug(const ARGS&... args)
-	{
-	}
-#endif
 
 #define SLIB_LOG(TAG, FORMAT, ...) slib::Log(TAG, FORMAT, ##__VA_ARGS__)
-#define SLIB_LOG_ERROR(TAG, FORMAT, ...) slib::LogError(TAG, FORMAT, ##__VA_ARGS__)
+#define SLIB_LOG_ERROR(TAG, FORMAT, ...) slib::Log(LogPriority::Error, TAG, FORMAT, ##__VA_ARGS__)
 #ifdef SLIB_DEBUG
-#define SLIB_LOG_DEBUG(TAG, FORMAT, ...) slib::LogDebug(TAG, FORMAT, ##__VA_ARGS__)
+#define SLIB_LOG_DEBUG(TAG, FORMAT, ...) slib::Log(LogPriority::Debug, TAG, FORMAT, ##__VA_ARGS__)
 #else
 #define SLIB_LOG_DEBUG(TAG, FORMAT, ...)
 #endif

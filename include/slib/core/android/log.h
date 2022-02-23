@@ -27,33 +27,37 @@
 
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
-#include "../variant.h"
+#include "../log.h"
 
 namespace slib
 {
 	namespace android
 	{
 
-		void Log(const StringParam& tag, const StringParam& content) noexcept;
-		void LogError(const StringParam& tag, const StringParam& content) noexcept;
-		void LogDebug(const StringParam& tag, const StringParam& content) noexcept;
+		void Log(LogPriority priority, const StringParam& tag, const StringParam& content);
+
+		template <class ARG, class... ARGS>
+		SLIB_INLINE static void Log(LogPriority priority, const StringParam& tag, const StringView& fmt, ARG&& arg, ARGS&&... args)
+		{
+			Log(priority, tag, String::format(fmt, Forward<ARG>(arg), Forward<ARGS>(args)...));
+		}
 
 		template <class... ARGS>
-		SLIB_INLINE static void Log(const StringParam& tag, const StringView& format, ARGS&&... args) noexcept
+		SLIB_INLINE static void Log(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 		{
-			Log(tag, String::format(format, Forward<ARGS>(args)...));
+			Log(LogPriority::Info, tag, fmt, Forward<ARGS>(args)...);
 		}
 		
 		template <class... ARGS>
-		SLIB_INLINE static void LogError(const StringParam& tag, const StringView& format, ARGS&&... args) noexcept
+		SLIB_INLINE static void LogError(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 		{
-			LogError(tag, String::format(format, Forward<ARGS>(args)...));
+			Log(LogPriority::Error, tag, fmt, Forward<ARGS>(args)...);
 		}
-
+		
 		template <class... ARGS>
-		SLIB_INLINE static void LogDebug(const StringParam& tag, const StringView& format, ARGS&&... args) noexcept
+		SLIB_INLINE static void LogDebug(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 		{
-			LogDebug(tag, String::format(format, Forward<ARGS>(args)...));
+			Log(LogPriority::Debug, tag, fmt, Forward<ARGS>(args)...);
 		}
 
 	}

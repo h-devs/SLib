@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 #include "slib/core/file.h"
 #include "slib/core/console.h"
-#include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -45,6 +44,8 @@ namespace slib
 	{
 		namespace log
 		{
+
+			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Logger>, g_globalLogger)
 			
 			static String GetLineString(const StringParam& tag, const StringParam& content)
 			{
@@ -73,195 +74,57 @@ namespace slib
 
 	Logger::Logger()
 	{
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+		m_priorityMinimum = LogPriority::Unknown;
+#elif defined(SLIB_DEBUG)
+		m_priorityMinimum = LogPriority::Debug;
+#else
+		m_priorityMinimum = LogPriority::Info;
+#endif
 	}
 
 	Logger::~Logger()
 	{
 	}
 
+	void Logger::log(const StringParam& tag, const StringParam& content)
+	{
+		log(LogPriority::Info, tag, content);
+	}
+
 	void Logger::logError(const StringParam& tag, const StringParam& content)
 	{
-		log(tag, content);
+		log(LogPriority::Error, tag, content);
 	}
 
 	void Logger::logDebug(const StringParam& tag, const StringParam& content)
 	{
-#ifdef SLIB_DEBUG
-		log(tag, content);
-#endif
+		log(LogPriority::Debug, tag, content);
 	}
 
-	FileLogger::FileLogger()
+	LogPriority Logger::getMinimumPriority()
 	{
+		return m_priorityMinimum;
 	}
 
-	FileLogger::FileLogger(const String& fileNameFormat)
+	void Logger::setMinimumPriority(LogPriority priority)
 	{
-		m_fileNameFormat = fileNameFormat;
+		m_priorityMinimum = priority;
 	}
 
-	FileLogger::~FileLogger()
+	Ref<Logger> Logger::global()
 	{
-	}
-
-	void FileLogger::log(const StringParam& tag, const StringParam& content)
-	{
-		String fileName = getFileName();
-		if (fileName.isEmpty()) {
-			return;
+		if (g_globalLogger.isNotNull()) {
+			return g_globalLogger;
 		}
-		ObjectLocker lock(this);
-		File::appendAllTextUTF8(fileName, GetLineStringCRLF(tag, content));
-	}
-	
-	String FileLogger::getFileName()
-	{
-		return String::format(m_fileNameFormat, Time::now());
-	}
-	
-	class ConsoleLogger : public Logger
-	{
-	public:
-		ConsoleLogger() {}
-
-	public:
-		void log(const StringParam& _tag, const StringParam& _content) override
-		{
-#if defined(SLIB_PLATFORM_IS_ANDROID)
-			ObjectLocker lock(this);
-			android::Log(_tag, _content);
-#elif defined(SLIB_PLATFORM_IS_TIZEN)
-			StringCstr tag(_tag);
-			StringCstr content(_content);
-			ObjectLocker lock(this);
-			if (content.isNotEmpty()) {
-				dlog_print(DLOG_INFO, tag.getData(), "%s", content.getData());
-			} else {
-				dlog_print(DLOG_INFO, tag.getData(), " ");
-			}
-#elif defined(SLIB_PLATFORM_IS_WIN32)
-			StringCstr16 s(GetLineString16(_tag, _content));
-			OutputDebugStringW((LPCWSTR)(s.getData()));
-			Console::print(s);
-#else
-			StringCstr s(GetLineString(_tag, _content));
-			printf("%s", s.getData());
-#endif
-		}
-
-		void logError(const StringParam& _tag, const StringParam& _content) override
-		{
-#if defined(SLIB_PLATFORM_IS_ANDROID)
-			ObjectLocker lock(this);
-			android::LogError(_tag, _content);
-#elif defined(SLIB_PLATFORM_IS_TIZEN)
-			StringCstr tag(_tag);
-			StringCstr content(_content);
-			ObjectLocker lock(this);
-			if (content.isNotEmpty()) {
-				dlog_print(DLOG_ERROR, tag.getData(), "%s", content.getData());
-			} else {
-				dlog_print(DLOG_ERROR, tag.getData(), " ");
-			}
-#elif defined(SLIB_PLATFORM_IS_WIN32)
-			StringCstr16 s(GetLineString16(_tag, _content));
-			OutputDebugStringW((LPCWSTR)(s.getData()));
-			HWND hWnd = GetConsoleWindow();
-			if (hWnd) {
-				Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
-				fprintf(stderr, "%s", (char*)(mem.getData()));
-			}
-#else
-			StringCstr s(GetLineString(_tag, _content));
-			fprintf(stderr, "%s", s.getData());
-#endif
-		}
-
-	};
-
-
-	LoggerSet::LoggerSet()
-	{
+		Ref<Logger> logger = getConsoleLogger();
+		g_globalLogger = logger;
+		return logger;
 	}
 
-	LoggerSet::LoggerSet(const Ref<Logger>& logger, const Ref<Logger>& errorLogger)
+	void Logger::setGlobal(const Ref<Logger>& logger)
 	{
-		addDefaultLogger(logger);
-		addErrorLogger(errorLogger);
-	}
-
-	LoggerSet::~LoggerSet()
-	{
-	}
-
-	void LoggerSet::clearDefaultLogger()
-	{
-		m_listLoggers.removeAll();
-	}
-
-	void LoggerSet::addDefaultLogger(const Ref<Logger>& logger)
-	{
-		m_listLoggers.add(logger);
-	}
-
-	void LoggerSet::removeDefaultLogger(const Ref<Logger>& logger)
-	{
-		m_listLoggers.remove(logger);
-	}
-
-	void LoggerSet::setDefaultLogger(const Ref<Logger>& logger)
-	{
-		m_listLoggers.removeAll();
-		m_listLoggers.add(logger);
-	}
-
-
-	void LoggerSet::clearErrorLogger()
-	{
-		m_listErrorLoggers.removeAll();
-	}
-
-	void LoggerSet::addErrorLogger(const Ref<Logger>& logger)
-	{
-		m_listErrorLoggers.add(logger);
-	}
-
-	void LoggerSet::removeErrorLogger(const Ref<Logger>& logger)
-	{
-		m_listErrorLoggers.remove(logger);
-	}
-
-	void LoggerSet::setErrorLogger(const Ref<Logger>& logger)
-	{
-		m_listErrorLoggers.removeAll();
-		m_listErrorLoggers.add(logger);
-	}
-
-
-	void LoggerSet::log(const StringParam& tag, const StringParam& content)
-	{
-		ListLocker< Ref<Logger> > list(m_listLoggers);
-		for (sl_size i = 0; i < list.count; i++) {
-			list[i]->log(tag, content);
-		}
-	}
-
-	void LoggerSet::logError(const StringParam& tag, const StringParam& content)
-	{
-		ListLocker< Ref<Logger> > list(m_listErrorLoggers);
-		for (sl_size i = 0; i < list.count; i++) {
-			list[i]->logError(tag, content);
-		}
-	}
-
-	Ref<LoggerSet> Logger::global()
-	{
-		Ref<Logger> console(getConsoleLogger());
-		SLIB_SAFE_LOCAL_STATIC(Ref<LoggerSet>, log, new LoggerSet(console, console))
-		if (SLIB_SAFE_STATIC_CHECK_FREED(log)) {
-			return sl_null;
-		}
-		return log;
+		g_globalLogger = logger;
 	}
 
 	Ref<Logger> Logger::getConsoleLogger()
@@ -278,29 +141,84 @@ namespace slib
 		return new FileLogger(fileNameFormat);
 	}
 
-	void Logger::logGlobal(const StringParam& tag, const StringParam& content)
+
+	FileLogger::FileLogger()
 	{
-		Ref<LoggerSet> log = global();
-		if (log.isNotNull()) {
-			log->log(tag, content);
-		}
 	}
 
-	void Logger::logGlobalError(const StringParam& tag, const StringParam& content)
+	FileLogger::FileLogger(const String& fileNameFormat)
 	{
-		Ref<LoggerSet> log = global();
-		if (log.isNotNull()) {
-			log->logError(tag, content);
-		}
+		m_fileNameFormat = fileNameFormat;
 	}
 
-	void Logger::logGlobalDebug(const StringParam& tag, const StringParam& content)
+	FileLogger::~FileLogger()
 	{
-		Ref<LoggerSet> log = global();
-		if (log.isNotNull()) {
-			log->logDebug(tag, content);
+	}
+
+	void FileLogger::log(LogPriority priority, const StringParam& tag, const StringParam& content)
+	{
+		String fmt = getFileNameFormat();
+		if (fmt.isEmpty()) {
+			return;
 		}
+		ObjectLocker lock(this);
+		File::appendAllTextUTF8(String::format(fmt, Time::now()), GetLineStringCRLF(tag, content));
+	}
+	
+	String FileLogger::getFileNameFormat()
+	{
+		return String::format(m_fileNameFormat, Time::now());
+	}
+
+
+	ConsoleLogger::ConsoleLogger()
+	{
+	}
+
+	ConsoleLogger::~ConsoleLogger()
+	{
+	}
+
+	void ConsoleLogger::log(LogPriority priority, const StringParam& _tag, const StringParam& _content)
+	{
+#if defined(SLIB_PLATFORM_IS_ANDROID)
+		ObjectLocker lock(this);
+		android::Log(priority, _tag, _content);
+#elif defined(SLIB_PLATFORM_IS_TIZEN)
+		StringCstr tag(_tag);
+		StringCstr content(_content);
+		ObjectLocker lock(this);
+		int _priority;
+		if (priority >= LogPriority::Error) {
+			_priority = DLOG_ERROR;
+		} else {
+			_priority = DLOG_INFO;
+		}
+		if (content.isNotEmpty()) {
+			dlog_print(_priority, tag.getData(), "%s", content.getData());
+		} else {
+			dlog_print(_priority, tag.getData(), " ");
+		}
+#elif defined(SLIB_PLATFORM_IS_WIN32)
+		StringCstr16 s(GetLineString16(_tag, _content));
+		OutputDebugStringW((LPCWSTR)(s.getData()));
+		if (priority >= LogPriority::Error) {
+			HWND hWnd = GetConsoleWindow();
+			if (hWnd) {
+				Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
+				fprintf(stderr, "%s", (char*)(mem.getData()));
+			}
+		} else {
+			Console::print(s);
+		}
+#else
+		StringCstr s(GetLineString(_tag, _content));
+		if (priority >= LogPriority::Error) {
+			fprintf(stderr, "%s", s.getData());
+		} else {
+			printf("%s", s.getData());
+		}
+#endif
 	}
 
 }
-
