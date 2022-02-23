@@ -1389,7 +1389,7 @@ namespace slib
 			}
 
 			template <class CHAR>
-			SLIB_INLINE static sl_bool StartsWithChar(const CHAR* str, sl_reg len, CHAR ch) noexcept
+			SLIB_INLINE static sl_bool StartsWithCharSz(const CHAR* str, sl_reg len, CHAR ch) noexcept
 			{
 				if (str && len) {
 					return *str == ch;
@@ -1485,7 +1485,7 @@ namespace slib
 			}
 
 			template <class CHAR>
-			static sl_bool EndsWithChar(const CHAR* str, sl_reg len, CHAR chWhat) noexcept
+			static sl_bool EndsWithCharSz(const CHAR* str, sl_reg len, CHAR chWhat) noexcept
 			{
 				if (str && len) {
 					if (len > 0) {
@@ -1525,6 +1525,77 @@ namespace slib
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
 				return EndsWith(data, len, pattern, countPat);
+			}
+
+			template <class CHAR>
+			static sl_size CountOfChar(const CHAR* str, sl_size len, CHAR ch) noexcept
+			{
+				sl_size count = 0;
+				for (sl_size i = 0; i < len; i++) {
+					if (str[i] == ch) {
+						count++;
+					}
+				}
+				return count;
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_size CountOfChar(const STRING& str, typename STRING::Char ch) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return CountOfChar(data, len, ch);
+			}
+
+			template <class CHAR>
+			static sl_size CountOfCharSz(const CHAR* str, sl_reg len, CHAR chWhat) noexcept
+			{
+				if (str && len) {
+					if (len > 0) {
+						return CountOfChar(str, len, chWhat);
+					} else {
+						sl_size count = 0;
+						for (;;) {
+							CHAR ch = *(str++);
+							if (ch == chWhat) {
+								count++;
+							}
+							if (!ch) {
+								break;
+							}
+						}
+						return count;
+					}
+				}
+				return 0;
+			}
+
+			template <class CHAR>
+			static sl_size CountOf(const CHAR* str, sl_size len, const CHAR* pattern, sl_size lenPattern) noexcept
+			{
+				if (!lenPattern) {
+					return 0;
+				}
+				sl_size count = 0;
+				sl_reg start = 0;
+				for (;;) {
+					start = IndexOf(str, len, pattern, lenPattern, start);
+					if (start >= 0) {
+						count++;
+						start += lenPattern;
+					} else {
+						break;
+					}
+				}
+				return count;
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_size CountOf(const STRING& str, typename STRING::Char const* pattern, sl_size lenPattern) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return CountOf(data, len, pattern, lenPattern);
 			}
 
 			template <class CHAR>
@@ -4236,6 +4307,16 @@ namespace slib
 		return indexOf(pattern) >= 0; \
 	} \
 	\
+	sl_size STRING::countOf(typename STRING::Char ch) const noexcept \
+	{ \
+		return CountOfChar(*this, ch); \
+	} \
+	\
+	sl_size STRING::countOf(typename STRING::StringViewType const& pattern) const noexcept \
+	{ \
+		return CountOf(*this, pattern.getData(), pattern.getLength()); \
+	} \
+	\
 	void STRING::makeUpper() noexcept \
 	{ \
 		MakeUpperString(*this); \
@@ -5196,7 +5277,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	sl_bool VIEW::startsWith(typename VIEW::Char ch) const noexcept \
 	{ \
-		return StartsWithChar(getUnsafeData(), getUnsafeLength(), ch); \
+		return StartsWithCharSz(getUnsafeData(), getUnsafeLength(), ch); \
 	} \
 	\
 	sl_bool VIEW::startsWith(const VIEW& pattern) const noexcept \
@@ -5206,7 +5287,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	sl_bool VIEW::endsWith(typename VIEW::Char ch) const noexcept \
 	{ \
-		return EndsWithChar(getUnsafeData(), getUnsafeLength(), ch); \
+		return EndsWithCharSz(getUnsafeData(), getUnsafeLength(), ch); \
 	} \
 	\
 	sl_bool VIEW::endsWith(const VIEW& pattern) const noexcept \
@@ -5222,6 +5303,16 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	sl_bool VIEW::contains(const VIEW& pattern) const noexcept \
 	{ \
 		return indexOf(pattern) >= 0; \
+	} \
+	\
+	sl_size VIEW::countOf(typename VIEW::Char ch) const noexcept \
+	{ \
+		return CountOfCharSz(getUnsafeData(), getUnsafeLength(), ch); \
+	} \
+	\
+	sl_size VIEW::countOf(const VIEW& pattern) const noexcept \
+	{ \
+		return CountOf(getData(), getLength(), pattern.getData(), pattern.getLength()); \
 	} \
 	\
 	void VIEW::makeUpper() noexcept \

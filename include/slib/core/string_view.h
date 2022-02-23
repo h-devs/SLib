@@ -253,7 +253,17 @@ namespace slib
 		 * @return `true` if the specified substring occurs within this string.
 		 */
 		sl_bool contains(const StringView& str) const noexcept;
-		
+
+		/**
+		* @return the total count of the specified character occurs within this string.
+		*/
+		sl_size countOf(sl_char8 ch) const noexcept;
+
+		/**
+		* @return the total count of the specified substring occurs within this string.
+		*/
+		sl_size countOf(const StringView& str) const noexcept;
+
 		/**
 		 * Converts the characters of this string to uppercase.
 		 */
@@ -647,7 +657,17 @@ namespace slib
 		 * @return `true` if the specified substring occurs within this string.
 		 */
 		sl_bool contains(const StringView16& str) const noexcept;
-		
+
+		/**
+		* @return the total count of the specified character occurs within this string.
+		*/
+		sl_size countOf(sl_char16 ch) const noexcept;
+
+		/**
+		* @return the total count of the specified substring occurs within this string.
+		*/
+		sl_size countOf(const StringView16& str) const noexcept;
+
 		/**
 		 * Converts the characters of this string to uppercase.
 		 */
@@ -1042,7 +1062,17 @@ namespace slib
 		 * @return `true` if the specified substring occurs within this string.
 		 */
 		sl_bool contains(const StringView32& str) const noexcept;
-		
+
+		/**
+		* @return the total count of the specified character occurs within this string.
+		*/
+		sl_size countOf(sl_char32 ch) const noexcept;
+
+		/**
+		* @return the total count of the specified substring occurs within this string.
+		*/
+		sl_size countOf(const StringView32& str) const noexcept;
+
 		/**
 		 * Converts the characters of this string to uppercase.
 		 */
