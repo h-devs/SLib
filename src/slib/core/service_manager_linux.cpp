@@ -172,6 +172,11 @@ namespace slib
 		return output.contains("Synchronizing state");
 	}
 
+	ServiceStartType ServiceManager::getStartType(const StringParam& serviceName)
+	{
+		return ServiceStartType::Unknown;
+	}
+	
 }
 
 #endif

@@ -92,6 +92,8 @@ namespace slib
 
 		static sl_bool enableUsbMassStorage();
 
+		static sl_bool isEnabledUsbMassStorage();
+
 
 		static void addOnVolumeArrival(const VolumeArrivalCallback& callback);
 

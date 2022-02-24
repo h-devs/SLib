@@ -146,6 +146,11 @@ namespace slib
 	{
 		return sl_false;
 	}
+
+	ServiceStartType ServiceManager::getStartType(const StringParam& serviceName)
+	{
+		return ServiceStartType::Unknown;
+	}
 #endif
 
 }

@@ -73,6 +73,25 @@ namespace slib
 				return SERVICE_DEMAND_START;
 			}
 
+			static ServiceStartType ToServiceStartType(DWORD type)
+			{
+				switch (type) {
+				case SERVICE_DEMAND_START:
+					return ServiceStartType::Manual;
+				case SERVICE_AUTO_START:
+					return ServiceStartType::Auto;
+				case SERVICE_BOOT_START:
+					return ServiceStartType::Boot;
+				case SERVICE_DISABLED:
+					return ServiceStartType::Disabled;
+				case SERVICE_SYSTEM_START:
+					return ServiceStartType::System;
+				default:
+					break;
+				}
+				return ServiceStartType::Unknown;
+			}
+
 			static DWORD FromServiceErrorControl(ServiceErrorControl control)
 			{
 				switch (control) {
@@ -385,8 +404,7 @@ namespace slib
 	{
 		WSManager manager(GENERIC_READ | GENERIC_WRITE | SC_MANAGER_CONNECT);
 		if (manager) {
-			StringCstr16 name = serviceName;
-			WSService service(manager, name, SERVICE_CHANGE_CONFIG);
+			WSService service(manager, serviceName, SERVICE_CHANGE_CONFIG);
 			if (service) {
 				if (ChangeServiceConfigW(service, SERVICE_NO_CHANGE, FromServiceStartType(type), SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, NULL)) {
 					return sl_true;
@@ -396,6 +414,29 @@ namespace slib
 		return sl_false;
 	}
 
+	ServiceStartType ServiceManager::getStartType(const StringParam& serviceName)
+	{
+		WSManager manager(GENERIC_READ);
+		if (manager) {
+			StringCstr16 name = serviceName;
+			WSService service(manager, name, GENERIC_READ);
+			if (service) {
+				DWORD dwBytes = 0;
+				QueryServiceConfigW(service, NULL, 0, &dwBytes);
+				if (dwBytes) {
+					Memory mem = Memory::create(dwBytes);
+					if (mem.isNotNull()) {
+						QUERY_SERVICE_CONFIGW& config = *((QUERY_SERVICE_CONFIGW*)(mem.getData()));
+						if (QueryServiceConfigW(service, &config, dwBytes, &dwBytes)) {
+							return ToServiceStartType(config.dwStartType);
+						}
+					}
+				}
+			}
+		}
+		return ServiceStartType::Unknown;
+	}
+	
 }
 
 #endif

@@ -135,6 +135,12 @@ namespace slib
 			{
 				return ServiceManager::setStartType(L"usbstor", flag ? ServiceStartType::Manual : ServiceStartType::Disabled);
 			}
+
+			static sl_bool IsUsbMassStorageEnabled()
+			{
+				ServiceStartType type = ServiceManager::getStartType(L"usbstor");
+				return type != ServiceStartType::Disabled && type != ServiceStartType::Unknown;
+			}
 			
 		}
 	}
@@ -321,6 +327,11 @@ namespace slib
 	sl_bool Storage::enableUsbMassStorage()
 	{
 		return SetUsbMassStorageEnabled(sl_true);
+	}
+
+	sl_bool Storage::isEnabledUsbMassStorage()
+	{
+		return IsUsbMassStorageEnabled();
 	}
 
 	void Storage::addOnVolumeArrival(const VolumeArrivalCallback& callback)

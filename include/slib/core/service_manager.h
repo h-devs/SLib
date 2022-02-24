@@ -53,11 +53,12 @@ namespace slib
 
 	enum class ServiceStartType
 	{
-		Manual = 0,
-		Auto = 1,
-		Boot = 2, // [Win32] started by the system loader, valid only for driver services
-		System = 3, // [Win32] started by the `IoInitSystem` function, valid only for driver services
-		Disabled = 4
+		Unknown = 0,
+		Manual = 1,
+		Auto = 2,
+		Boot = 3, // [Win32] started by the system loader, valid only for driver services
+		System = 4, // [Win32] started by the `IoInitSystem` function, valid only for driver services
+		Disabled = 5
 	};
 
 	enum class ServiceErrorControl
@@ -135,6 +136,8 @@ namespace slib
 		static sl_bool pause(const StringParam& serviceName, sl_int32 timeout = -1);
 
 		static sl_bool setStartType(const StringParam& serviceName, ServiceStartType type);
+
+		static ServiceStartType getStartType(const StringParam& serviceName);
 
 	};
 	
