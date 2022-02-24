@@ -1282,20 +1282,22 @@ namespace slib
 		return GetString<String32>(*this, sl_null);
 	}
 
-#define PRIV_VARIANT_GET_STRING_VIEW_IMPL(CHAR, SZ_TYPE, DATA_TYPE, DEF) \
+#define PRIV_VARIANT_GET_STRING_VIEW_IMPL(BITS, DEF) \
 	switch (_type) { \
 		case VariantType::Boolean: \
 			if (REF_VAR(sl_bool const, _value)) { \
-				static const CHAR _s[] = {'t', 'r', 'u', 'e', 0}; \
+				static const sl_char##BITS _s[] = {'t', 'r', 'u', 'e', 0}; \
 				return _s; \
 			} else { \
-				static const CHAR _s[] = {'f', 'a', 'l', 's', 'e', 0}; \
+				static const sl_char##BITS _s[] = {'f', 'a', 'l', 's', 'e', 0}; \
 				return _s; \
 			} \
-		case VariantType::SZ_TYPE: \
-			return REF_VAR(CHAR const* const, _value); \
-		case VariantType::DATA_TYPE: \
-			return typename StringViewTypeFromCharType<CHAR>::Type(REF_VAR(CHAR const* const, _value), _value2); \
+		case VariantType::Sz##BITS: \
+			return REF_VAR(sl_char##BITS const* const, _value); \
+		case VariantType::String##BITS: \
+			return REF_VAR(typename StringTypeFromCharType<sl_char##BITS>::Type, _value); \
+		case VariantType::StringData##BITS: \
+			return typename StringViewTypeFromCharType<sl_char##BITS>::Type(REF_VAR(sl_char##BITS const* const, _value), _value2); \
 		default: \
 			break; \
 	} \
@@ -1303,32 +1305,32 @@ namespace slib
 
 	StringView Variant::getStringView(const StringView& def) const noexcept
 	{
-		PRIV_VARIANT_GET_STRING_VIEW_IMPL(sl_char8, Sz8, StringData8, def)
+		PRIV_VARIANT_GET_STRING_VIEW_IMPL(8, def)
 	}
 
 	StringView Variant::getStringView() const noexcept
 	{
-		PRIV_VARIANT_GET_STRING_VIEW_IMPL(sl_char8, Sz8, StringData8, sl_null)
+		PRIV_VARIANT_GET_STRING_VIEW_IMPL(8, sl_null)
 	}
 
 	StringView16 Variant::getStringView16(const StringView16& def) const noexcept
 	{
-		PRIV_VARIANT_GET_STRING_VIEW_IMPL(sl_char16, Sz16, StringData16, def)
+		PRIV_VARIANT_GET_STRING_VIEW_IMPL(16, def)
 	}
 
 	StringView16 Variant::getStringView16() const noexcept
 	{
-		PRIV_VARIANT_GET_STRING_VIEW_IMPL(sl_char16, Sz16, StringData16, sl_null)
+		PRIV_VARIANT_GET_STRING_VIEW_IMPL(16, sl_null)
 	}
 
 	StringView32 Variant::getStringView32(const StringView32& def) const noexcept
 	{
-		PRIV_VARIANT_GET_STRING_VIEW_IMPL(sl_char32, Sz32, StringData32, def)
+		PRIV_VARIANT_GET_STRING_VIEW_IMPL(32, def)
 	}
 
 	StringView32 Variant::getStringView32() const noexcept
 	{
-		PRIV_VARIANT_GET_STRING_VIEW_IMPL(sl_char32, Sz32, StringData32, sl_null)
+		PRIV_VARIANT_GET_STRING_VIEW_IMPL(32, sl_null)
 	}
 
 	sl_char8* Variant::getSz8(const sl_char8* def) const noexcept
@@ -2956,6 +2958,51 @@ namespace slib
 					} else {
 						return v1._value == v2._value;
 					}
+			}
+		} else {
+			switch (type) {
+				case VariantType::Null:
+					return sl_true;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (v2.isInteger()) {
+						return getInt64() == v2.getInt64();
+					}
+					if (v2._type == VariantType::Float || v2._type == VariantType::Double) {
+						return getDouble() == v2.getDouble();
+					}
+					break;
+				case VariantType::Float:
+				case VariantType::Double:
+					if (v2.isNumber()) {
+						return getDouble() == v2.getDouble();
+					}
+					break;
+				case VariantType::String8:
+				case VariantType::Sz8:
+				case VariantType::StringData8:
+					if (v2.is8BitsStringType()) {
+						return getStringView() == v2.getStringView();
+					}
+					break;
+				case VariantType::String16:
+				case VariantType::Sz16:
+				case VariantType::StringData16:
+					if (v2.is16BitsStringType()) {
+						return getStringView16() == v2.getStringView16();
+					}
+					break;
+				case VariantType::String32:
+				case VariantType::Sz32:
+				case VariantType::StringData32:
+					if (v2.is8BitsStringType()) {
+						return getStringView32() == v2.getStringView32();
+					}
+					break;
+				default:
+					break;
 			}
 		}
 		return sl_false;
