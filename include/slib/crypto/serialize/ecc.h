@@ -27,6 +27,7 @@
 
 #include "../../core/serialize/primitive.h"
 #include "../../core/serialize/generic.h"
+#include "../../math/serialize/bigint.h"
 
 namespace slib
 {
