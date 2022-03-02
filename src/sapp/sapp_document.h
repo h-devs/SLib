@@ -94,7 +94,12 @@ namespace slib
 		sl_bool simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param);
 		
 		Locale getCurrentSimulatorLocale();
-		
+
+		// Raw Resource
+		sl_bool openRawResources(const String& pathResources);
+
+		sl_bool generateCppForRawResources(const String& _namespace, const String& pathOutput);
+
 		
 		// Utilities
 		static String getShortcutKeyDefinitionString(const KeycodeAndModifiers& km, sl_bool flagMac);
@@ -142,8 +147,10 @@ namespace slib
 		
 		// Raw Resources
 		sl_bool _registerRawResources(const String& fileDirPath);
-		sl_bool _registerRawResource(const String& resourceName, const String& filePath, String& outName);
-		sl_bool _generateRawCpp(const String& targetPath);
+		sl_bool _registerRawResources(SAppRawResource* parent, const String& resourcePath, const String& fileDirPath);
+		sl_bool _registerRawResource(const String& resourceName, const String& resourcePath, const String& filePath, String& outName, SAppRawResource* parent = sl_null);
+		sl_bool _generateRawCpp(const String& targetPath, const String& namespace1, const String& namespace2);
+		sl_bool _generateRawCppItem(SAppRawResource* item, const String& targetPath, const String& relativePath, const String& namespacePath, StringBuffer& header, StringBuffer& cpp, StringBuffer& map, StringBuffer& data, sl_uint32 tabCountStart, sl_uint32 tabCountRelative);
 		sl_bool _generateRawDataFile(const String& targetPath, const String& sourcePath, const String& resourceName);
 		
 		// String Resources

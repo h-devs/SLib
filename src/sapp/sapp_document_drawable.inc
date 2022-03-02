@@ -407,7 +407,7 @@ namespace slib
 					}
 					item->fileName = fileName;
 					item->filePath = fileDirPath + "/" + fileName;
-					if (!(_registerRawResource(resourcePath + "/" + fileName, item->filePath, item->rawName))) {
+					if (!(_registerRawResource(resourcePath + "/" + fileName, sl_null, item->filePath, item->rawName))) {
 						return sl_false;
 					}
 					if (flagMain) {

@@ -198,6 +198,13 @@ if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource
 #define SLIB_DECLARE_RAW_RESOURCE_MAP SLIB_DECLARE_RESOURCE_MAP(slib::Memory)
 #define SLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN SLIB_DEFINE_RESOURCE_MAP_BEGIN(slib::Memory)
 #define SLIB_DEFINE_RAW_RESOURCE_MAP_ITEM(NAME) SLIB_DEFINE_RESOURCE_MAP_ITEM(NAME)
+#define SLIB_DEFINE_RAW_RESOURCE_MAP_PATH(PATH, NAMESPACE_AND_NAME) \
+		{ \
+			SLIB_STATIC_STRING(_key, PATH); \
+			GETTER_TYPE f = &(NAMESPACE_AND_NAME::get); \
+			map.put_NoLock(_key, f); \
+		}
+
 #define SLIB_DEFINE_RAW_RESOURCE_MAP_END SLIB_DEFINE_RESOURCE_MAP_END(slib::Memory, sl_null)
 
 #endif

@@ -261,7 +261,17 @@ namespace slib
 		
 		return sl_true;
 	}
-	
+
+	sl_bool SAppDocument::openRawResources(const String& path)
+	{
+		if (File::exists(path)) {
+			if (_registerRawResources(path)) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
 	sl_bool SAppDocument::_openImageResources()
 	{
 		List<String> fileList = File::getFiles(m_pathApp);
@@ -302,7 +312,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool SAppDocument::_openGlobalResources()
 	{
 		String pathDir = m_pathApp + "/global";
@@ -391,7 +401,7 @@ namespace slib
 		if (!_generateStringsCpp(path)) {
 			return sl_false;
 		}
-		if (!_generateRawCpp(path)) {
+		if (!_generateRawCpp(path, m_conf.generate_cpp_namespace, "raw")) {
 			return sl_false;
 		}
 		if (!_generateDrawablesCpp(path)) {
@@ -408,6 +418,17 @@ namespace slib
 		}
 
 		return sl_true;
+	}
+
+	sl_bool SAppDocument::generateCppForRawResources(const String& _namespace, const String& pathOut)
+	{
+		ObjectLocker lock(this);
+		sl_reg index = _namespace.indexOf("::");
+		if (index >= 0) {
+			return _generateRawCpp(pathOut, _namespace.substring(0, index), _namespace.substring(index + 2));
+		} else {
+			return _generateRawCpp(pathOut, _namespace, sl_null);
+		}
 	}
 
 	List< Ref<SAppLayoutResource> > SAppDocument::getLayouts()

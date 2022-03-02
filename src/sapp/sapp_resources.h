@@ -53,7 +53,10 @@ namespace slib
 	{
 	public:
 		String name;
+		String resourcePath;
 		String filePath;
+
+		Map< String, Ref<SAppRawResource> > sub;
 	};
 
 	class SAppDrawableResourceImageItem : public Object

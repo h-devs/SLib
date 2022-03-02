@@ -26,6 +26,11 @@ namespace slib
 	sl_bool SAppDocument::_registerRawResources(const String& fileDirPath)
 	{
 		_log(g_str_log_open_raws_begin, fileDirPath);
+		return _registerRawResources(sl_null, sl_null, fileDirPath);
+	}
+
+	sl_bool SAppDocument::_registerRawResources(SAppRawResource* parent, const String& resourcePath, const String& fileDirPath)
+	{
 		List<String> _list = File::getFiles(fileDirPath);
 		_list.sort();
 		ListElements<String> list(_list);
@@ -33,7 +38,13 @@ namespace slib
 			const String& fileName = list[i];
 			if (fileName.isNotEmpty() && !(fileName.startsWith('.'))) {
 				String name;
-				if (!(_registerRawResource(fileName, fileDirPath + "/" + fileName, name))) {
+				String resourcePathChild;
+				if (resourcePath.isNotEmpty()) {
+					resourcePathChild = String::concat(resourcePath, "/", fileName);
+				} else {
+					resourcePathChild = fileName;
+				}
+				if (!(_registerRawResource(fileName, resourcePathChild, String::concat(fileDirPath, "/", fileName), name, parent))) {
 					return sl_false;
 				}
 			}
@@ -41,12 +52,19 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_registerRawResource(const String& _resourceName, const String& filePath, String& outName)
+	sl_bool SAppDocument::_registerRawResource(const String& _resourceName, const String& resourcePath, const String& filePath, String& outName, SAppRawResource* parent)
 	{
 		String resourceName = Resources::makeResourceName(_resourceName);
-		if (m_raws.find(resourceName)) {
-			_logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
-			return sl_false;
+		if (parent) {
+			if (parent->sub.find(resourceName)) {
+				_logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
+				return sl_false;
+			}
+		} else {
+			if (m_raws.find(resourceName)) {
+				_logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
+				return sl_false;
+			}
 		}
 		Ref<SAppRawResource> res = new SAppRawResource;
 		if (res.isNull()) {
@@ -54,16 +72,30 @@ namespace slib
 			return sl_false;
 		}
 		res->name = resourceName;
-		res->filePath = filePath;
-		if (!(m_raws.put(resourceName, res))) {
-			_logError(g_str_error_out_of_memory);
-			return sl_false;
+		res->resourcePath = resourcePath;
+		if (File::isDirectory(filePath)) {
+			if (!(_registerRawResources(res.get(), resourcePath, filePath))) {
+				return sl_false;
+			}
+		} else {
+			res->filePath = filePath;
+		}
+		if (parent) {
+			if (!(parent->sub.put(resourceName, res))) {
+				_logError(g_str_error_out_of_memory);
+				return sl_false;
+			}
+		} else {
+			if (!(m_raws.put(resourceName, res))) {
+				_logError(g_str_error_out_of_memory);
+				return sl_false;
+			}
 		}
 		outName = resourceName;
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_generateRawCpp(const String& targetPath)
+	sl_bool SAppDocument::_generateRawCpp(const String& targetPath, const String& namespace1, const String& namespace2)
 	{
 		_log(g_str_log_generate_cpp_raws_begin);
 		
@@ -74,61 +106,72 @@ namespace slib
 				return sl_false;
 			}
 		}
-
+		
 		StringBuffer sbHeader, sbCpp, sbMap;
 		
-		sbHeader.add(String::format(
-									"#pragma once%n%n"
-									"#include <slib/core/resource.h>%n%n"
-									"namespace %s%n"
-									"{%n\tnamespace raw%n\t{%n%n"
-									, m_conf.generate_cpp_namespace));
-		sbCpp.add(String::format(
-								 "#include \"raws.h\"%n%n"
-								 "namespace %s%n"
-								 "{%n\tnamespace raw%n\t{%n%n"
-								 , m_conf.generate_cpp_namespace));
-		
-		sbMap.add("\t\tSLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN\r\n");
+		sl_uint32 tabCountStart = 0;
+		if (namespace2.isNotEmpty()) {
+			tabCountStart = 2;
+			sbHeader.add(String::format(
+										"#pragma once%n%n"
+										"#include <slib/core/resource.h>%n%n"
+										"namespace %s%n"
+										"{%n\tnamespace %s%n\t{%n%n"
+										, namespace1, namespace2));
+			sbCpp.add(String::format(
+									 "#include \"raws.h\"%n%n"
+									 "namespace %s%n"
+									 "{%n\tnamespace %s%n\t{%n%n"
+									 , namespace1, namespace2));
+		} else {
+			tabCountStart = 1;
+			sbHeader.add(String::format(
+										"#pragma once%n%n"
+										"#include <slib/core/resource.h>%n%n"
+										"namespace %s%n"
+										"{%n%n"
+										, namespace1));
+			sbCpp.add(String::format(
+									 "#include \"raws.h\"%n%n"
+									 "namespace %s%n"
+									 "{%n%n"
+									 , namespace1));
+		}
+
+		String tabs('\t', tabCountStart);
+		sbMap.add(tabs);
+		sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN\r\n");
 		
 		StringBuffer sbData;
 		
 		for (auto& pair : m_raws) {
-			
 			if (pair.value.isNotNull()) {
-				
 				Ref<SAppRawResource> res = pair.value;
-				
-				sbHeader.add(String::format("\t\tSLIB_DECLARE_RAW_RESOURCE(%s)%n", res->name));
-				
-				sl_size size = (sl_size)(File::getSize(res->filePath));
-				if (size > RAW_MAX_SIZE) {
-					_logError(g_str_error_resource_raw_size_big, res->filePath);
+				if (!(_generateRawCppItem(res.get(), targetPath, sl_null, sl_null, sbHeader, sbCpp, sbMap, sbData, tabCountStart, 0))) {
 					return sl_false;
 				}
-				
-				sbCpp.add(String::format("\t\tSLIB_DEFINE_RAW_RESOURCE(%s, %d)%n", res->name, size));
-				
-				sbMap.add(String::format("\t\t\tSLIB_DEFINE_RAW_RESOURCE_MAP_ITEM(%s)%n", res->name));
-				
-				sbData.add(String::format("\t\t#include \"raw/%s.inc\"%n", res->name));
-				
-				_generateRawDataFile(targetPath + "/raw/" + res->name + ".inc", res->filePath, res->name);
-				
 			}
 		}
 		
-		sbMap.add("\t\tSLIB_DEFINE_RAW_RESOURCE_MAP_END\r\n");
+		sbMap.add(tabs);
+		sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_END\r\n");
 		
-		sbHeader.add("\r\n\t\tSLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
-		
+		sbHeader.add("\r\n");
+		sbHeader.add(tabs);
+
 		sbCpp.add("\r\n");
 		sbCpp.link(sbMap);
 		
 		sbCpp.add("\r\n");
 		sbCpp.link(sbData);
 		
-		sbCpp.add("\r\n\t}\r\n}\r\n");
+		if (namespace2.isNotEmpty()) {
+			sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
+			sbCpp.add("\r\n\t}\r\n}\r\n");
+		} else {
+			sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n}\r\n");
+			sbCpp.add("\r\n}\r\n");
+		}
 		
 		String pathHeader = targetPath + "/raws.h";
 		String contentHeader = sbHeader.merge();
@@ -148,6 +191,57 @@ namespace slib
 			}
 		}
 		return sl_true;
+	}
+
+	sl_bool SAppDocument::_generateRawCppItem(SAppRawResource* res,
+		const String& targetPath, const String& _relativePath, const String& _namespacePath,
+		StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap, StringBuffer& sbData,
+		sl_uint32 tabCountStart, sl_uint32 tabCountRelative)
+	{
+		String relativePath;
+		String namespacePath;
+		if (_relativePath.isNotEmpty()) {
+			relativePath = String::concat(_relativePath, "/", res->name);
+			namespacePath = String::concat(_namespacePath, "::", res->name);
+		} else {
+			relativePath = res->name;
+			namespacePath = res->name;
+		}
+		String tab('\t', tabCountStart + tabCountRelative);
+		if (res->filePath.isNotNull()) {
+			sbHeader.add(String::format("%sSLIB_DECLARE_RAW_RESOURCE(%s)%n", tab, res->name));
+			sl_size size = (sl_size)(File::getSize(res->filePath));
+			if (size > RAW_MAX_SIZE) {
+				_logError(g_str_error_resource_raw_size_big, res->filePath);
+				return sl_false;
+			}
+			sbCpp.add(String::format("%sSLIB_DEFINE_RAW_RESOURCE(%s, %d)%n", tab, res->name, size));
+			if (res->resourcePath.isNotEmpty()) {
+				sbMap.add(String('\t', tabCountStart));
+				sbMap.add(String::format("\tSLIB_DEFINE_RAW_RESOURCE_MAP_PATH(\"%s\", %s)%n", res->resourcePath, namespacePath));
+			}
+			sbData.add(String::format("%s#include \"raw/%s.inc\"%n", tab, relativePath));
+			return _generateRawDataFile(String::format("%s/raw/%s.inc", targetPath, relativePath), res->filePath, res->name);
+		} else {
+			File::createDirectory(String::format("%s/raw/%s", targetPath, relativePath));
+			String strNamespace = String::format("%snamespace %s {%n", tab, res->name);
+			sbHeader.add(strNamespace);
+			sbCpp.add(strNamespace);
+			sbData.add(strNamespace);
+			for (auto& pair : res->sub) {
+				if (pair.value.isNotNull()) {
+					Ref<SAppRawResource> res = pair.value;
+					if (!(_generateRawCppItem(res.get(), targetPath, relativePath, namespacePath, sbHeader, sbCpp, sbMap, sbData, tabCountStart, tabCountRelative + 1))) {
+						return sl_false;
+					}
+				}
+			}
+			strNamespace = String::format("%s}%n", tab);
+			sbHeader.add(strNamespace);
+			sbCpp.add(strNamespace);
+			sbData.add(strNamespace);
+			return sl_true;
+		}
 	}
 	
 	sl_bool SAppDocument::_generateRawDataFile(const String& targetPath, const String& sourcePath, const String& resourceName)
@@ -182,6 +276,7 @@ namespace slib
 			fileDst.write(strDataEnd, sizeof(strDataEnd) - 1);
 			return sl_true;
 		}
+		_logError(g_str_error_file_write_failed, targetPath);
 		return sl_false;
 	}
 
