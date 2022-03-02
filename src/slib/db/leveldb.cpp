@@ -419,7 +419,7 @@ namespace slib
 						do {
 							StringCstr encryptionKey(param.encryptionKey);
 							SLIB_STATIC_STRING(filenameENC, "ENC")
-							String pathENC = File::joinPath(path, filenameENC);
+							String pathENC = File::concatPath(path, filenameENC);
 							File file = File::openForRead(pathENC);
 							if (file.isOpened()) {
 								char header[ChaCha20_FileEncryptor::HeaderSize];
@@ -438,7 +438,7 @@ namespace slib
 							}
 							do {
 								SLIB_STATIC_STRING(filenameCURRENT, "CURRENT")
-								if (!(File::isFile(File::joinPath(path, filenameCURRENT)))) {
+								if (!(File::isFile(File::concatPath(path, filenameCURRENT)))) {
 									if (param.flagCreateIfMissing) {
 										if (!(File::isDirectory(path))) {
 											File::createDirectories(path);

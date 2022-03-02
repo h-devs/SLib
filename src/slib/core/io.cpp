@@ -2307,6 +2307,22 @@ namespace slib
 		end = begin ? begin + size : sl_null;
 	}
 
+	SerializeBuffer::SerializeBuffer(const MemoryData& data) noexcept: SerializeBuffer(data.data, data.size, data.ref)
+	{
+	}
+
+	SerializeBuffer::SerializeBuffer(MemoryData&& data) noexcept: SerializeBuffer(data.data, data.size, Move(data.ref))
+	{
+	}
+
+	SerializeBuffer::SerializeBuffer(const Memory& mem) noexcept: SerializeBuffer(mem.getData(), mem.getSize(), Move(mem.getRef()))
+	{
+	}
+
+	SerializeBuffer::SerializeBuffer(Memory&& mem) noexcept: SerializeBuffer(MemoryData(Move(mem)))
+	{
+	}
+
 	sl_bool SerializeBuffer::read(sl_uint8& _out) noexcept
 	{
 		if (current < end) {
@@ -2353,207 +2369,63 @@ namespace slib
 		return 0;
 	}
 
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DeserializeBuffer)
-
-	DeserializeBuffer::DeserializeBuffer(const void* buf, sl_size size) noexcept
-	{
-		current = begin = (sl_uint8*)buf;
-		end = begin ? begin + size : sl_null;
+#define DEFINE_SERIALIZE_BUFFER_READWRITE_INT8(TYPE, SUFFIX) \
+	sl_bool SerializeBuffer::read##SUFFIX(TYPE& _out) noexcept \
+	{ \
+		if (current < end) { \
+			_out = *(current++); \
+			return sl_true; \
+		} \
+		return sl_false; \
+	} \
+	\
+	sl_bool SerializeBuffer::write##SUFFIX(TYPE value) noexcept \
+	{ \
+		if (current < end) { \
+			*(current++) = value; \
+			return sl_true; \
+		} \
+		return sl_false; \
 	}
 
-	DeserializeBuffer::DeserializeBuffer(const MemoryData& data) noexcept: DeserializeBuffer(data.data, data.size, data.ref)
-	{
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT8(sl_uint8, Uint8)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT8(sl_int8, Int8)
+
+#define DEFINE_SERIALIZE_BUFFER_READWRITE_INT(TYPE, SUFFIX) \
+	sl_bool SerializeBuffer::read##SUFFIX(TYPE& _out) noexcept \
+	{ \
+		if (current + sizeof(TYPE) <= end) { \
+			_out = MIO::read##SUFFIX(current); \
+			current += sizeof(TYPE); \
+			return sl_true; \
+		} \
+		return sl_false; \
+	} \
+	\
+	sl_bool SerializeBuffer::write##SUFFIX(TYPE value) noexcept \
+	{ \
+		if (current + sizeof(TYPE) <= end) { \
+			MIO::write##SUFFIX(current, value); \
+			current += sizeof(TYPE); \
+			return sl_true; \
+		} \
+		return sl_false; \
 	}
 
-	DeserializeBuffer::DeserializeBuffer(MemoryData&& data) noexcept: DeserializeBuffer(data.data, data.size, Move(data.ref))
-	{
-	}
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_uint16, Uint16BE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_uint16, Uint16LE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_int16, Int16BE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_int16, Int16LE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_uint32, Uint32BE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_uint32, Uint32LE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_int32, Int32BE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_int32, Int32LE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_uint64, Uint64BE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_uint64, Uint64LE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_int64, Int64BE)
+	DEFINE_SERIALIZE_BUFFER_READWRITE_INT(sl_int64, Int64LE)
 
-	DeserializeBuffer::DeserializeBuffer(const Memory& mem) noexcept: DeserializeBuffer(mem.getData(), mem.getSize(), Move(mem.getRef()))
-	{
-	}
-
-	DeserializeBuffer::DeserializeBuffer(Memory&& mem) noexcept : DeserializeBuffer(MemoryData(Move(mem)))
-	{
-	}
-
-	sl_bool DeserializeBuffer::read(sl_uint8& _out) noexcept
-	{
-		if (current < end) {
-			_out = *(current++);
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_size DeserializeBuffer::read(void* buf, sl_size size) noexcept
-	{
-		if (size && current < end) {
-			if (current + size > end) {
-				size = end - current;
-			}
-			Base::copyMemory(buf, current, size);
-			current += size;
-			return size;
-		}
-		return 0;
-	}
-
-	sl_bool DeserializeBuffer::readUint8(sl_uint8& _out) noexcept
-	{
-		if (current < end) {
-			_out = *(current++);
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readInt8(sl_int8& _out) noexcept
-	{
-		if (current < end) {
-			_out = *(current++);
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readUint16BE(sl_uint16& _out) noexcept
-	{
-		if (current + 2 <= end) {
-			_out = MIO::readUint16BE(current);
-			current += 2;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readUint16LE(sl_uint16& _out) noexcept
-	{
-		if (current + 2 <= end) {
-			_out = MIO::readUint16LE(current);
-			current += 2;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readInt16BE(sl_int16& _out) noexcept
-	{
-		if (current + 2 <= end) {
-			_out = MIO::readInt16BE(current);
-			current += 2;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readInt16LE(sl_int16& _out) noexcept
-	{
-		if (current + 2 <= end) {
-			_out = MIO::readInt16LE(current);
-			current += 2;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readUint32BE(sl_uint32& _out) noexcept
-	{
-		if (current + 4 <= end) {
-			_out = MIO::readUint32BE(current);
-			current += 4;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readUint32LE(sl_uint32& _out) noexcept
-	{
-		if (current + 4 <= end) {
-			_out = MIO::readUint32LE(current);
-			current += 4;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readInt32BE(sl_int32& _out) noexcept
-	{
-		if (current + 4 <= end) {
-			_out = MIO::readInt32BE(current);
-			current += 4;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readInt32LE(sl_int32& _out) noexcept
-	{
-		if (current + 4 <= end) {
-			_out = MIO::readInt32LE(current);
-			current += 4;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readUint64BE(sl_uint64& _out) noexcept
-	{
-		if (current + 8 <= end) {
-			_out = MIO::readUint64BE(current);
-			current += 8;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readUint64LE(sl_uint64& _out) noexcept
-	{
-		if (current + 8 <= end) {
-			_out = MIO::readUint64LE(current);
-			current += 8;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readInt64BE(sl_int64& _out) noexcept
-	{
-		if (current + 8 <= end) {
-			_out = MIO::readInt64BE(current);
-			current += 8;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readInt64LE(sl_int64& _out) noexcept
-	{
-		if (current + 8 <= end) {
-			_out = MIO::readInt64LE(current);
-			current += 8;
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool DeserializeBuffer::readSection(void* buf, sl_size size) noexcept
+	sl_bool SerializeBuffer::readSection(void* buf, sl_size size) noexcept
 	{
 		if (!size) {
 			return sl_true;
@@ -2566,7 +2438,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool DeserializeBuffer::skip(sl_size size) noexcept
+	sl_bool SerializeBuffer::skip(sl_size size) noexcept
 	{
 		if (!size) {
 			return sl_true;
@@ -2699,22 +2571,12 @@ namespace slib
 		return buf->read(_out);
 	}
 
-	sl_bool DeserializeByte(DeserializeBuffer* buf, sl_uint8& _out) noexcept
-	{
-		return buf->read(_out);
-	}
-
 	sl_bool DeserializeRaw(IReader* reader, void* data, sl_size size) noexcept
 	{
 		return reader->readFully(data, size) == size;
 	}
 
 	sl_bool DeserializeRaw(SerializeBuffer* buf, void* data, sl_size size) noexcept
-	{
-		return buf->read(data, size) == size;
-	}
-
-	sl_bool DeserializeRaw(DeserializeBuffer* buf, void* data, sl_size size) noexcept
 	{
 		return buf->read(data, size) == size;
 	}

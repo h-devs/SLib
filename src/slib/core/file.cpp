@@ -643,7 +643,7 @@ namespace slib
 				sl_bool ret = sl_true;
 				ListElements<String> list(File::getFiles(path));
 				for (sl_size i = 0; i < list.count; i++) {
-					ret = ret && File::remove(File::joinPath(path, list[i]), flags);
+					ret = ret && File::remove(File::concatPath(path, list[i]), flags);
 					if (!ret) {
 						if (flags & FileOperationFlags::AbortOnError) {
 							return sl_false;
@@ -692,9 +692,9 @@ namespace slib
 			ListElements<String> list(File::getFiles(pathSource));
 			for (sl_size i = 0; i < list.count; i++) {
 				if (flags & FileOperationFlags::Recursive) {
-					ret = ret && File::copy(joinPath(pathSource, list[i]), joinPath(pathTarget, list[i]), flags);
+					ret = ret && File::copy(concatPath(pathSource, list[i]), concatPath(pathTarget, list[i]), flags);
 				} else {
-					ret = ret && File::copyFile(joinPath(pathSource, list[i]), joinPath(pathTarget, list[i]), flags);
+					ret = ret && File::copyFile(concatPath(pathSource, list[i]), concatPath(pathTarget, list[i]), flags);
 				}
 				if (!ret) {
 					if (flags & FileOperationFlags::AbortOnError) {
@@ -705,7 +705,7 @@ namespace slib
 			return ret;
 		} else {
 			if (File::isDirectory(pathTarget)) {
-				return File::copyFile(pathSource, joinPath(pathTarget, getFileName(pathSource)), flags);
+				return File::copyFile(pathSource, concatPath(pathTarget, getFileName(pathSource)), flags);
 			} else {
 				return File::copyFile(pathSource, pathTarget, flags);
 			}

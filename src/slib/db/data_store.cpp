@@ -629,13 +629,13 @@ namespace slib
 			public:
 				static Ref<DataStoreImpl> open(const DataStoreParam& param)
 				{
-					String pathHash = File::joinPath(param.path, "hash");
+					String pathHash = File::concatPath(param.path, "hash");
 					if (!(File::isDirectory(pathHash))) {
 						if (!(File::createDirectory(pathHash))) {
 							return sl_null;
 						}
 					}
-					String pathPackage = File::joinPath(param.path, "package");
+					String pathPackage = File::concatPath(param.path, "package");
 					if (!(File::isDirectory(pathPackage))) {
 						if (!(File::createDirectory(pathPackage))) {
 							return sl_null;
@@ -663,7 +663,7 @@ namespace slib
 					// Check encryption
 					{
 						ChaCha20_FileEncryptor enc;
-						String pathEnc = File::joinPath(param.path, "ENC");
+						String pathEnc = File::concatPath(param.path, "ENC");
 						Memory mem = File::readAllBytes(pathEnc);
 						sl_size size = mem.getSize();
 						if (size) {
@@ -716,7 +716,7 @@ namespace slib
 					for (sl_size i = 0; i < files.count; i++) {
 						String& fileName = files[i];
 						if (fileName.endsWith(".pkg")) {
-							String path = File::joinPath(m_pathPackage, fileName);
+							String path = File::concatPath(m_pathPackage, fileName);
 							File file = File::open(path, FileMode::Read | FileMode::ShareReadWrite);
 							if (file.isOpened()) {
 								DataPackageFileHeader header;
@@ -789,7 +789,7 @@ namespace slib
 					Time time = Time::now();
 					time = Time(time.getYear(), time.getMonth(), 1);
 					if (m_writer.isNull() || time != m_timeCreationWriter) {
-						String path = File::joinPath(m_pathPackage, String::concat(String::fromInt32(time.getYear()), String::fromInt32(time.getMonth(), 10, 2), ".pkg"));
+						String path = File::concatPath(m_pathPackage, String::concat(String::fromInt32(time.getYear()), String::fromInt32(time.getMonth(), 10, 2), ".pkg"));
 						DataPackageWriterParam param;
 						param.path = path;
 						param.flagLockFile = sl_true;

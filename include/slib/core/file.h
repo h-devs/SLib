@@ -395,7 +395,7 @@ namespace slib
 		static String joinPath(const StringParam* strings, sl_size count) noexcept;
 
 		template <class... ARGS>
-		static String joinPath(const StringParam& s, ARGS&&... args) noexcept
+		static String concatPath(const StringParam& s, ARGS&&... args) noexcept
 		{
 			StringParam params[] = { s, Forward<ARGS>(args)... };
 			return joinPath(params, 1 + sizeof...(args));

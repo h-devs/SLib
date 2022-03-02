@@ -1541,7 +1541,7 @@ namespace slib
 			if (webRootPath.isEmpty()) {
 				webRootPath = Application::getApplicationDirectory();
 			}
-			String pathFile = File::joinPath(webRootPath, path);
+			String pathFile = File::concatPath(webRootPath, path);
 			if (processFile(context, pathFile)) {
 				return sl_true;
 			}
@@ -1555,7 +1555,7 @@ namespace slib
 			}
 		}
 		if (m_param.flagUseAsset) {
-			String pathAsset = File::joinPath(m_param.prefixAsset, path);
+			String pathAsset = File::concatPath(m_param.prefixAsset, path);
 			if (processAsset(context, pathAsset)) {
 				return sl_true;
 			}
@@ -1798,7 +1798,7 @@ namespace slib
 			if (segments.parentLevel) {
 				return sl_false;
 			}
-			return prop.setFromFile(File::joinPath(m_param.webRootPath, path));
+			return prop.setFromFile(File::concatPath(m_param.webRootPath, path));
 		}
 		return sl_false;
 	}
@@ -1809,7 +1809,7 @@ namespace slib
 			return m_param.onGetWebDavItems(context, path);
 		}
 		if (m_param.flagUseWebRoot) {
-			return WebDavItemProperty::getFiles(File::joinPath(m_param.webRootPath, path));
+			return WebDavItemProperty::getFiles(File::concatPath(m_param.webRootPath, path));
 		}
 		return sl_null;
 	}

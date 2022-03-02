@@ -54,9 +54,9 @@ int main(int argc, const char * argv[])
 	while (!(fileList.isEnd())) {
 		String item = fileList.readLine().trim();
 		if (item.isNotEmpty()) {
-			String pathSrcFile = File::joinPath(pathSrc, item);
+			String pathSrcFile = File::concatPath(pathSrc, item);
 			if (File::exists(pathSrcFile)) {
-				String pathDstFile = File::joinPath(pathDst, item);
+				String pathDstFile = File::concatPath(pathDst, item);
 				File::createDirectories(File::getParentDirectoryPath(pathDstFile));
 				if (flagMove) {
 					if (File::move(pathSrcFile, pathDstFile)) {
