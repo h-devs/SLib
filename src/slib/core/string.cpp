@@ -2039,7 +2039,7 @@ namespace slib
 						buf.addStatic(strDelimiter, lenDelimiter);
 					}
 					sl_size len;
-					typename STRING::Char* data = delimiter.getData(len);
+					typename STRING::Char* data = strings[i].getData(len);
 					buf.addStatic(data, len);
 				}
 				return buf.merge();
@@ -2077,7 +2077,7 @@ namespace slib
 					if (s.isNotNull()) {
 						flagNotNull = sl_true;
 						s.getData(data);
-						if (!(data.length)) {
+						if (data.length) {
 							if (data.charSize == 1) {
 								sl_size n = ConvertCharset(data.data8, data.length, (typename STRING::Char*)sl_null);
 								if (n) {
@@ -2149,7 +2149,7 @@ namespace slib
 					const StringParam& s = strings[i];
 					if (s.isNotNull()) {
 						s.getData(data);
-						if (!(data.length)) {
+						if (data.length) {
 							if (data.charSize == 1) {
 								sl_size n = ConvertCharset(data.data8, data.length, (typename STRING::Char*)sl_null);
 								if (n) {
