@@ -137,7 +137,7 @@ namespace slib
 			if (isDrawingThread()) {
 				_closePopup(transition);
 			} else {
-				dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ViewPage, _closePopup, this, transition));
+				dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _closePopup, transition));
 			}
 		} else {
 			Ref<ViewPageNavigationController> controller = getNavigationController();
@@ -212,7 +212,7 @@ namespace slib
 		ObjectLocker lock(this);
 		
 		if (m_countActiveTransitionAnimations) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ViewPage, _openPopup, this, parent, transition, flagFillParentBackground), 100);
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _openPopup, parent, transition, flagFillParentBackground), 100);
 			return;
 		}
 		
@@ -256,7 +256,7 @@ namespace slib
 		
 		setEnabled(sl_false, UIUpdateMode::None);
 		
-		Ref<Animation> animation = Transition::createPopupAnimation(this, transition, UIPageAction::Push, SLIB_BIND_WEAKREF(void(), ViewPage, _finishPopupAnimation, this, UIPageAction::Push));
+		Ref<Animation> animation = Transition::createPopupAnimation(this, transition, UIPageAction::Push, SLIB_BIND_WEAKREF(void(), this, _finishPopupAnimation, UIPageAction::Push));
 		
 		parent->addChild(viewAdd);
 		
@@ -287,7 +287,7 @@ namespace slib
 		ObjectLocker lock(this);
 		
 		if (m_countActiveTransitionAnimations) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ViewPage, _closePopup, this, transition), 100);
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _closePopup, transition), 100);
 			return;
 		}
 
@@ -306,7 +306,7 @@ namespace slib
 			}
 		}
 		
-		Ref<Animation> animation = Transition::createPopupAnimation(this, transition, UIPageAction::Pop, SLIB_BIND_WEAKREF(void(), ViewPage, _finishPopupAnimation, this, UIPageAction::Pop));
+		Ref<Animation> animation = Transition::createPopupAnimation(this, transition, UIPageAction::Pop, SLIB_BIND_WEAKREF(void(), this, _finishPopupAnimation, UIPageAction::Pop));
 		
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 		
@@ -371,7 +371,7 @@ namespace slib
 		if (isDrawingThread()) {
 			_openPopup(parent, transition, flagFillParentBackground);
 		} else {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ViewPage, _openPopup, this, parent, transition, flagFillParentBackground));
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _openPopup, parent, transition, flagFillParentBackground));
 		}
 		m_popupState = PopupState::Popup;
 	}
@@ -430,7 +430,7 @@ namespace slib
 				window->setTop(getTop());
 			}
 			window->setModal(sl_true);
-			window->setOnClose(SLIB_FUNCTION_WEAKREF(ViewPage, _onClosePopupWindow, this));
+			window->setOnClose(SLIB_FUNCTION_WEAKREF(this, _onClosePopupWindow));
 			
 			window->create();
 			

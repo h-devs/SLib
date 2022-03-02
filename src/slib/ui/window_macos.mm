@@ -798,7 +798,7 @@ using namespace slib::priv::window;
 {
 	Ref<macOS_WindowInstance> window = m_window;
 	if (window.isNotNull()) {
-		UI::dispatchToUiThread(SLIB_FUNCTION_REF(macOS_WindowInstance, release, window));
+		UI::dispatchToUiThread(SLIB_FUNCTION_REF(Move(window), release));
 	}
 }
 

@@ -85,7 +85,7 @@ namespace slib
 	{
 		RenderView::init();
 
-		m_renderVideoParam.onUpdateFrame = SLIB_FUNCTION_WEAKREF(VideoView, updateCurrentFrame, this);
+		m_renderVideoParam.onUpdateFrame = SLIB_FUNCTION_WEAKREF(this, updateCurrentFrame);
 	}
 
 	Ref<MediaPlayer> VideoView::getMediaPlayer()
@@ -228,7 +228,7 @@ namespace slib
 					m_sliderSeek->setHeightWeight(0.05f, UIUpdateMode::Init);
 					m_sliderSeek->setAlignParentBottom(UIUpdateMode::Init);
 					addChild(m_sliderSeek, mode);
-					m_sliderSeek->setOnChange(SLIB_FUNCTION_WEAKREF(VideoView, _onSeek, this));
+					m_sliderSeek->setOnChange(SLIB_FUNCTION_WEAKREF(this, _onSeek));
 				}
 			}
 			_updateControls(mode);
@@ -557,7 +557,7 @@ namespace slib
 		}
 		if (m_mediaPlayer.isNotNull() && !(isRenderEnabled())) {
 			if (m_timerPlayVideo.isNull()) {
-				m_timerPlayVideo = Timer::start(SLIB_FUNCTION_WEAKREF(VideoView, _onTimerPlayVideo, this), 30);
+				m_timerPlayVideo = Timer::start(SLIB_FUNCTION_WEAKREF(this, _onTimerPlayVideo), 30);
 			}
 		} else {
 			m_timerPlayVideo.setNull();

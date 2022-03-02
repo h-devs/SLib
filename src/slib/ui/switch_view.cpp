@@ -162,7 +162,7 @@ namespace slib
 			sl_real f = value ? 1.0f : 0.0f;
 			if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode) && !(Math::isAlmostZero(f - m_posThumb))) {
 				if (m_timer.isNull()) {
-					m_timer = startTimer(SLIB_FUNCTION_WEAKREF(SwitchView, _onTimerAnimation, this), 10);
+					m_timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _onTimerAnimation), 10);
 				}
 				return;
 			}

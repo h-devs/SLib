@@ -323,7 +323,7 @@ namespace slib
 	void CollectionView::_requestLayout()
 	{
 		Base::interlockedIncrement32(&m_idLayoutRequest);
-		dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(CollectionView, _doLayout, this));
+		dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, _doLayout));
 	}
 
 	void CollectionView::_doLayout()

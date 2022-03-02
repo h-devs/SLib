@@ -161,8 +161,7 @@ namespace slib
 			}
 			sl_uint32 duration = m_duration;
 			if (duration > 0) {
-				typedef ExpiringQueue<T, LAYER_COUNT> EXPIRING_QUEUE;
-				m_timer = Timer::startWithLoop(m_dispatchLoop, SLIB_FUNCTION_MEMBER(EXPIRING_QUEUE, _update, this), duration / LAYER_COUNT);
+				m_timer = Timer::startWithLoop(m_dispatchLoop, SLIB_FUNCTION_MEMBER(this, _update), duration / LAYER_COUNT);
 			}
 		}
 

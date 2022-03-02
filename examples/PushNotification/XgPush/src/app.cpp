@@ -236,7 +236,7 @@ void ExampleXgPushApp::initUI()
 	btnSend->setBackgroundColor(Color::LightGray);
 	btnSend->setPadding(padding);
 	btnSend->setText("Send Notification");
-	btnSend->setOnClick(SLIB_FUNCTION_WEAKREF(ExampleXgPushApp, onClickSend, this));
+	btnSend->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickSend));
 	linear->addChild(btnSend);
 	
 	addViewToContent(linear);

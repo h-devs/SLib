@@ -111,8 +111,8 @@ namespace slib
 					edit->setBorder(sl_false, UIUpdateMode::Init);
 					edit->setGravity(Alignment::TopLeft, UIUpdateMode::Init);
 					edit->setMultiLine(view->getMultiLine(), UIUpdateMode::Init);
-					edit->setOnChange(SLIB_FUNCTION_WEAKREF(EditDialog, _onChange, this));
-					edit->setOnReturnKey(SLIB_FUNCTION_WEAKREF(EditDialog, _onReturnKey, this));
+					edit->setOnChange(SLIB_FUNCTION_WEAKREF(this, _onChange));
+					edit->setOnReturnKey(SLIB_FUNCTION_WEAKREF(this, _onReturnKey));
 					UIReturnKeyType returnKeyType = view->getReturnKeyType();
 					MultiLineMode multiLineMode = view->getMultiLine();
 					if (returnKeyType == UIReturnKeyType::Default && multiLineMode == MultiLineMode::Single) {
@@ -123,7 +123,7 @@ namespace slib
 					edit->setKeyboardType(view->getKeyboardType());
 					edit->setAutoCapitalizationType(view->getAutoCaptializationType());
 					window->addView(edit, UIUpdateMode::Init);
-					window->setOnClose(SLIB_FUNCTION_WEAKREF(EditDialog, _onClose, this));
+					window->setOnClose(SLIB_FUNCTION_WEAKREF(this, _onClose));
 					edit->setFocus(sl_true, UIUpdateMode::Init);
 
 #if defined(SLIB_UI_IS_IOS)
@@ -143,7 +143,7 @@ namespace slib
 						}
 						btnDone->setText("Done", UIUpdateMode::Init);
 						btnDone->setAlignParentRight(UIUpdateMode::Init);
-						btnDone->setOnClick(SLIB_FUNCTION_WEAKREF(EditDialog, _onDone, this));
+						btnDone->setOnClick(SLIB_FUNCTION_WEAKREF(this, _onDone));
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
 						edit->setLeftOf(btnDone, UIUpdateMode::Init);
 						btnDone->setWidthWrapping(UIUpdateMode::Init);
@@ -305,7 +305,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setText, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setText, text, mode)
 			m_flagInvalidateText = sl_false;
 			m_text = text;
 			instance->setText(this, text);
@@ -330,7 +330,7 @@ namespace slib
 		}
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::appendText, text.toString(), mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(appendText, text.toString(), mode)
 			if (instance->appendText(this, text)) {
 				m_flagInvalidateText = sl_true;
 				return;
@@ -363,7 +363,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setGravity, gravity, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setGravity, gravity, mode)
 			m_gravity = gravity;
 			instance->setGravity(this, gravity);
 		} else {
@@ -381,7 +381,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setTextColor, color, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setTextColor, color, mode)
 			m_textColor = color;
 			instance->setTextColor(this, color);
 		} else {
@@ -399,7 +399,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setHintText, str, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setHintText, str, mode)
 			m_hintText = str;
 			instance->setHintText(this, str);
 		} else {
@@ -417,7 +417,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setHintGravity, gravity, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setHintGravity, gravity, mode)
 			m_hintGravity = gravity;
 			instance->setHintGravity(this, gravity);
 		} else {
@@ -435,7 +435,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setHintTextColor, color, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setHintTextColor, color, mode)
 			m_hintTextColor = color;
 			instance->setHintTextColor(this, color);
 		} else {
@@ -457,7 +457,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setHintFont, font, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setHintFont, font, mode)
 			m_hintFont = font;
 			instance->setHintFont(this, getHintFont());
 		} else {
@@ -475,7 +475,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setReadOnly, flag, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setReadOnly, flag, mode)
 			m_flagReadOnly = flag;
 			instance->setReadOnly(this, flag);
 		} else {
@@ -493,7 +493,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setPassword, flag, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setPassword, flag, mode)
 			m_flagPassword = flag;
 			instance->setPassword(this, flag);
 		} else {
@@ -512,7 +512,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setMultiLine, multiLineMode, updateMode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setMultiLine, multiLineMode, updateMode)
 			m_multiLine = multiLineMode;
 			instance->setMultiLine(this, multiLineMode);
 		} else {
@@ -530,7 +530,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setReturnKeyType, type)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setReturnKeyType, type)
 			m_returnKeyType = type;
 			instance->setReturnKeyType(this, type);
 		} else {
@@ -547,7 +547,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setKeyboardType, type)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setKeyboardType, type)
 			m_keyboardType = type;
 			instance->setKeyboardType(this, type);
 		} else {
@@ -564,7 +564,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setAutoCapitalizationType, type)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setAutoCapitalizationType, type)
 			m_autoCapitalizationType = type;
 			instance->setAutoCapitalizationType(this, type);
 		} else {
@@ -596,7 +596,7 @@ namespace slib
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&EditView::setSelection, start, end)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setSelection, start, end)
 			m_indexSelectionStart = start;
 			m_indexSelectionEnd = end;
 			instance->setSelection(this, start, end);

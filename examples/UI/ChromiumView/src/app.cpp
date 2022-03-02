@@ -66,7 +66,7 @@ void ExampleChromiumViewApp::onStart()
 	button1->setFontSize(fontSize);
 	button1->setBackgroundColor(Color::LightGray);
 	button1->setText("Start Test");
-	button1->setOnClick(SLIB_FUNCTION_WEAKREF(ExampleChromiumViewApp, onClickTest1, this));
+	button1->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickTest1));
 	linear2->addChild(button1);
 	
 	Ref<Button> button2 = new Button;
@@ -77,7 +77,7 @@ void ExampleChromiumViewApp::onStart()
 	button2->setFontSize(fontSize);
 	button2->setBackgroundColor(Color::LightGray);
 	button2->setText("Call Script");
-	button2->setOnClick(SLIB_FUNCTION_WEAKREF(ExampleChromiumViewApp, onClickTest2, this));
+	button2->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickTest2));
 	linear2->addChild(button2);
 	
 	Ref<Button> button3 = new Button;
@@ -88,7 +88,7 @@ void ExampleChromiumViewApp::onStart()
 	button3->setFontSize(fontSize);
 	button3->setBackgroundColor(Color::LightGray);
 	button3->setText("Local Server");
-	button3->setOnClick(SLIB_FUNCTION_WEAKREF(ExampleChromiumViewApp, onClickTest3, this));
+	button3->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickTest3));
 	linear2->addChild(button3);
 	
 	addViewToContent(linear);

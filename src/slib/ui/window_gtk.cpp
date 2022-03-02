@@ -278,7 +278,7 @@ namespace slib
 				{
 					if (!m_flagClosed) {
 						if (!(UI::isUiThread())) {
-							UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(GTK_WindowInstance, close, this));
+							UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(this, close));
 							return;
 						}
 						GtkWindow* window = m_window;
@@ -735,7 +735,7 @@ namespace slib
 				{
 					if (UIPlatform::isSupportedGtk(3)) {
 						// call after animation
-						UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(GTK_WindowInstance, _on_process_configure, this), 100);
+						UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(this, _on_process_configure), 100);
 					} else {
 						_on_process_configure();
 					}

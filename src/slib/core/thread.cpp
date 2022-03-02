@@ -553,7 +553,7 @@ namespace slib
 		{
 			sl_size nThreads = m_threadWorkers.getCount();
 			if (nThreads == 0 || (nThreads < getMaximumThreadsCount())) {
-				Ref<Thread> worker = Thread::start(SLIB_FUNCTION_MEMBER(ThreadPool, onRunWorker, this), getThreadStackSize());
+				Ref<Thread> worker = Thread::start(SLIB_FUNCTION_MEMBER(this, onRunWorker), getThreadStackSize());
 				if (worker.isNotNull()) {
 					m_threadWorkers.add_NoLock(worker);
 				}

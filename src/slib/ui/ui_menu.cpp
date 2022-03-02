@@ -478,7 +478,7 @@ namespace slib
 				void show(sl_ui_pos x, sl_ui_pos y) override
 				{
 					if (!(UI::isUiThread())) {
-						UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), DrawnMenu, show, this, x, y));
+						UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, show, x, y));
 						return;
 					}
 					Ref<MobileApp> app = MobileApp::getApp();

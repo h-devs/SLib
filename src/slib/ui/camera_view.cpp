@@ -83,7 +83,7 @@ namespace slib
 		ObjectLocker lock(this);
 		stop();
 		CameraParam param(_param);
-		param.onCaptureVideoFrame = SLIB_FUNCTION_WEAKREF(CameraView, _onCaptureCameraFrame, this);
+		param.onCaptureVideoFrame = SLIB_FUNCTION_WEAKREF(this, _onCaptureCameraFrame);
 		m_camera = Camera::create(param);
 	}
 	
@@ -393,7 +393,7 @@ namespace slib
 		}
 		CameraTakePictureParam param;
 		param.flashMode = m_flashMode;
-		param.onComplete = SLIB_FUNCTION_WEAKREF(CameraView, _onTakePicture, this);
+		param.onComplete = SLIB_FUNCTION_WEAKREF(this, _onTakePicture);
 		m_camera->takePicture(param);
 	}
 	

@@ -151,7 +151,7 @@ namespace slib
 				m_flagStarted = sl_true;
 				if (!m_flagDispatched) {
 					m_flagDispatched = sl_true;
-					m_dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(Timer, _runFromDispatcher, this), m_interval);
+					m_dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(this, _runFromDispatcher), m_interval);
 				}
 			} else {
 				Ref<DispatchLoop> loop = m_loop;
@@ -223,7 +223,7 @@ namespace slib
 		}
 		ObjectLocker lock(this);
 		if (m_flagStarted) {
-			m_dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(Timer, _runFromDispatcher, this), m_interval);
+			m_dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(this, _runFromDispatcher), m_interval);
 		} else {
 			m_flagDispatched = sl_false;
 		}

@@ -109,10 +109,10 @@ namespace slib
 		if ([titleNo length] == 0) {
 			titleNo = Apple::getSystemLocalizedNSString(@"No");
 		}
-		Function<void()> onOk = SLIB_BIND_REF(void(), AlertDialog, _onResult, this, DialogResult::Ok);
-		Function<void()> onCancel = SLIB_BIND_REF(void(), AlertDialog, _onResult, this, DialogResult::Cancel);
-		Function<void()> onYes = SLIB_BIND_REF(void(), AlertDialog, _onResult, this, DialogResult::Yes);
-		Function<void()> onNo = SLIB_BIND_REF(void(), AlertDialog, _onResult, this, DialogResult::No);
+		Function<void()> onOk = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Ok);
+		Function<void()> onCancel = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Cancel);
+		Function<void()> onYes = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Yes);
+		Function<void()> onNo = SLIB_BIND_REF(void(), this, _onResult, DialogResult::No);
 		
 		UIAlertController* alert = [UIAlertController alertControllerWithTitle:caption message:text preferredStyle:UIAlertControllerStyleAlert];
 		

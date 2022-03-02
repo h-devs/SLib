@@ -291,7 +291,7 @@ namespace slib
 									if (ret.isNotNull()) {
 										ret->_init(param);
 										ret->m_socketServer = Move(socket);
-										Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(DomainSocketServer, runListen, ret.get()));
+										Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
 										if (thread.isNotNull()) {
 											ret->m_threadListen = Move(thread);
 											return ret;

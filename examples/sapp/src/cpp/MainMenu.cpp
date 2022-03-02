@@ -28,16 +28,16 @@
 
 void MainMenu::onOpen()
 {
-	btnHelloWorld->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickHelloWorld, this));
-	btnViewPager->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickViewPager, this));
-	btnListView->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickListView, this));
-	btnDrawer->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickDrawer, this));
-	btnVideoView->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickVideoView, this));
-	btnCameraView->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickCameraView, this));
-	btnWebView->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickWebView, this));
-	btnControlScreen->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickControlScreen, this));
-	btnLoginPage->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickLoginPage, this));
-	btnToggleTorch->setOnClick(SLIB_FUNCTION_WEAKREF(MainMenu, onClickToggleTorch, this));
+	btnHelloWorld->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickHelloWorld));
+	btnViewPager->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickViewPager));
+	btnListView->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickListView));
+	btnDrawer->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickDrawer));
+	btnVideoView->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickVideoView));
+	btnCameraView->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickCameraView));
+	btnWebView->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickWebView));
+	btnControlScreen->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickControlScreen));
+	btnLoginPage->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickLoginPage));
+	btnToggleTorch->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickToggleTorch));
 }
 
 void MainMenu::onClickHelloWorld(View* view)

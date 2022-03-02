@@ -74,7 +74,7 @@ namespace slib
 	{
 		UIApp::init();
 		
-		m_callbackOnChangeLocale = SLIB_FUNCTION_MEMBER(MobileApp, dispatchChangeCurrentLocale, this);
+		m_callbackOnChangeLocale = SLIB_FUNCTION_MEMBER(this, dispatchChangeCurrentLocale);
 		Locale::addOnChangeCurrentLocale(m_callbackOnChangeLocale);
 	}
 	

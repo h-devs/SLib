@@ -76,7 +76,7 @@ namespace slib
 							m_thread.setNull();
 						}
 						if (mask) {
-							m_thread = Thread::start(SLIB_FUNCTION_MEMBER(Monitor, run, this));
+							m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
 							if (m_thread.isNull()) {
 								return sl_false;
 							}

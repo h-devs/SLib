@@ -39,7 +39,7 @@ namespace slib
 	{
 		if (((VIEW_CLASS*)this)->isNativeWidget()) {
 			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::setTitleFunction, func, mode));
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::setTitleFunction, func, mode));
 				return;
 			}
 		}
@@ -58,7 +58,7 @@ namespace slib
 	{
 		if (((VIEW_CLASS*)this)->isNativeWidget()) {
 			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::setTitles, titles, mode));
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::setTitles, titles, mode));
 				return;
 			}
 		}
@@ -83,7 +83,7 @@ namespace slib
 	{
 		if (((VIEW_CLASS*)this)->isNativeWidget()) {
 			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::addItem, value, title, mode));
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::addItem, value, title, mode));
 				return;
 			}
 		}
@@ -116,7 +116,7 @@ namespace slib
 		if (_index >= 0) {
 			if (((VIEW_CLASS*)this)->isNativeWidget()) {
 				if (!(UI::isUiThread())) {
-					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::insertItem, _index, value, title, mode));
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::insertItem, _index, value, title, mode));
 					return;
 				}
 			}
@@ -154,7 +154,7 @@ namespace slib
 		if (_index >= 0) {
 			if (((VIEW_CLASS*)this)->isNativeWidget()) {
 				if (!(UI::isUiThread())) {
-					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::removeItem, _index, mode));
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::removeItem, _index, mode));
 					return;
 				}
 			}
@@ -175,7 +175,7 @@ namespace slib
 	{
 		if (((VIEW_CLASS*)this)->isNativeWidget()) {
 			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::removeAllItems, mode));
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::removeAllItems, mode));
 				return;
 			}
 		}
@@ -232,7 +232,7 @@ namespace slib
 		if (_index >= 0) {
 			if (((VIEW_CLASS*)this)->isNativeWidget()) {
 				if (!(UI::isUiThread())) {
-					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::setItemTitle, _index, title, mode));
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::setItemTitle, _index, title, mode));
 					return;
 				}
 			}
@@ -334,7 +334,7 @@ namespace slib
 	{
 		if (((VIEW_CLASS*)this)->isNativeWidget()) {
 			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::setItemsCount, n, mode));
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::setItemsCount, n, mode));
 				return;
 			}
 		}
@@ -357,7 +357,7 @@ namespace slib
 		if (index >= 0) {
 			if (((VIEW_CLASS*)this)->isNativeWidget()) {
 				if (!(UI::isUiThread())) {
-					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef(((VIEW_CLASS*)this), &VIEW_CLASS::selectItem, index, mode));
+					UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::selectItem, index, mode));
 					return;
 				}
 			}

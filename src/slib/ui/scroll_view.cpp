@@ -60,7 +60,7 @@ namespace slib
 	{
 		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ScrollView::setContentView, view, mode);
+			SLIB_VIEW_RUN_ON_UI_THREAD(setContentView, view, mode);
 		}
 		ObjectLocker lock(this);
 		Ref<View> viewOld = m_viewContent;
@@ -101,7 +101,7 @@ namespace slib
 		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
 		if (instance.isNotNull()) {
 			void (ScrollView::*func)(sl_scroll_pos, sl_scroll_pos, UIUpdateMode) = &ScrollView::setContentSize;
-			SLIB_VIEW_RUN_ON_UI_THREAD(func, _width, _height, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, _width, _height, mode)
 		}
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
@@ -160,7 +160,7 @@ namespace slib
 	{
 		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ScrollView::_refreshSize)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_refreshSize)
 			instance->refreshContentSize(this);
 		}
 	}

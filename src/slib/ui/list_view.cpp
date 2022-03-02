@@ -92,7 +92,7 @@ namespace slib
 					Ref<ListView> lv = m_listView;
 					if (lv.isNotNull()) {
 						if (lv->m_lockCountLayouting == 0) {
-							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, lv.get(), ListView::LayoutCaller::None, sl_false));
+							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), lv, _layoutItemViews, ListView::LayoutCaller::None, sl_false));
 						}
 					}
 				}
@@ -169,7 +169,7 @@ namespace slib
 			m_flagScrollToLastItem = sl_true;
 		}
 		m_flagSmoothScrollToLastItem = sl_false;
-		runOnDrawingThread(SLIB_FUNCTION_WEAKREF(ListView, _checkUpdateContent, this));
+		runOnDrawingThread(SLIB_FUNCTION_WEAKREF(this, _checkUpdateContent));
 	}
 	
 	void ListView::refreshItems()
@@ -185,7 +185,7 @@ namespace slib
 			m_flagScrollToLastItem = sl_true;
 			m_flagSmoothScrollToLastItem = sl_true;
 		}
-		runOnDrawingThread(SLIB_FUNCTION_WEAKREF(ListView, _checkUpdateContent, this));
+		runOnDrawingThread(SLIB_FUNCTION_WEAKREF(this, _checkUpdateContent));
 		if (param.flagScrollToLastItem) {
 			smoothScrollToEndY();
 		}
@@ -197,13 +197,13 @@ namespace slib
 		if (Math::isAlmostZero(y - m_lastScrollY)) {
 			return;
 		}
-		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Scroll, sl_false));
+		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::Scroll, sl_false));
 	}
 	
 	void ListView::onResize(sl_ui_len x, sl_ui_len y)
 	{
 		VerticalScrollView::onResize(x, y);
-		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Resize, sl_true));
+		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::Resize, sl_true));
 	}
 	
 	void ListView::_checkUpdateContent()
@@ -926,15 +926,15 @@ namespace slib
 								contentView->invalidate();
 							}
 						} else {
-							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::None, sl_false));
+							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::None, sl_false));
 							flagRequireLayouting = sl_false;
 						}
 					} else {
 						if (m_flagSmoothScrollToLastItem) {
 							if (flagNoChangeHeight) {
-								dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Scroll, sl_false));
+								dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::Scroll, sl_false));
 							} else {
-								dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, smoothScrollToEndY, this, UIUpdateMode::Redraw));
+								dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, smoothScrollToEndY, UIUpdateMode::Redraw));
 							}
 						} else {
 							scrollToEndY();
@@ -947,13 +947,13 @@ namespace slib
 							contentView->invalidate();
 						}
 					} else {
-						dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::Scroll, sl_false));
+						dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::Scroll, sl_false));
 						flagRequireLayouting = sl_false;
 					}
 				}
 
 				if (flagRequireLayouting) {
-					dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ListView, _layoutItemViews, this, LayoutCaller::None, sl_false));
+					dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::None, sl_false));
 				}
 				
 			} while (0);

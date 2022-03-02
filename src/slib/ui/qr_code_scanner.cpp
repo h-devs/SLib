@@ -92,7 +92,7 @@ namespace slib
 	void QRCodeScanner::start(const CameraParam& param)
 	{
 		CameraView::start(param);
-		m_timerScanner = Timer::start(SLIB_FUNCTION_WEAKREF(QRCodeScanner, onRunScanner, this), 500);
+		m_timerScanner = Timer::start(SLIB_FUNCTION_WEAKREF(this, onRunScanner), 500);
 	}
 	
 	void QRCodeScanner::stop()

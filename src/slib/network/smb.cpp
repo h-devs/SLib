@@ -729,7 +729,7 @@ namespace slib
 		if (threadPool.isNull()) {
 			return sl_false;
 		}
-		Ref<Thread> threadListen = Thread::start(SLIB_FUNCTION_MEMBER(SmbServer, _onRunListen, this));
+		Ref<Thread> threadListen = Thread::start(SLIB_FUNCTION_MEMBER(this, _onRunListen));
 		if (threadListen.isNull()) {
 			return sl_false;
 		}

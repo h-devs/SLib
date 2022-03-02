@@ -68,7 +68,7 @@ namespace slib
 					}
 					IPCParam param;
 					param.name = GetOpenIpcName(appId);
-					param.onReceiveMessage = SLIB_FUNCTION_MEMBER(StaticContext, onReceiveIPC, this);
+					param.onReceiveMessage = SLIB_FUNCTION_MEMBER(this, onReceiveIPC);
 					m_ipc = IPC::create(param);
 				}
 

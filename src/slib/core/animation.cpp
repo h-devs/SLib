@@ -1003,7 +1003,7 @@ namespace slib
 					AnimationLoop::init();
 					
 					if (m_thread.isNull()) {
-						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(DefaultAnimationLoop, run, this));
+						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
 					} else {
 						m_thread->wake();
 					}

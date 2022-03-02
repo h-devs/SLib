@@ -100,7 +100,7 @@ namespace slib
 					interval = 60;
 				}
 				m_timeStartAnimation = Time::now();
-				m_timerAnimation = startTimer(SLIB_FUNCTION_WEAKREF(ImageView, onAnimationFrame, this), interval);
+				m_timerAnimation = startTimer(SLIB_FUNCTION_WEAKREF(this, onAnimationFrame), interval);
 			}
 		}
 		invalidateLayoutOfWrappingControl(mode);

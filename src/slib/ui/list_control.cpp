@@ -77,7 +77,7 @@ namespace slib
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setColumnsCount, nCount, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnsCount, nCount, mode)
 		}
 		ObjectLocker lock(this);
 		m_columns.setCount(nCount);
@@ -97,7 +97,7 @@ namespace slib
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setRowsCount, nCount, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setRowsCount, nCount, mode)
 		}
 		ObjectLocker lock(this);
 		if (nCount < m_cells.getCount()) {
@@ -128,7 +128,7 @@ namespace slib
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setItemText, iRow, iCol, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setItemText, iRow, iCol, text, mode)
 		}
 		ObjectLocker lock(this);
 		if (iRow < m_nRows) {
@@ -176,7 +176,7 @@ namespace slib
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setHeaderText, iCol, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setHeaderText, iCol, text, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
@@ -204,7 +204,7 @@ namespace slib
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setColumnWidth, iCol, width, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnWidth, iCol, width, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
@@ -232,7 +232,7 @@ namespace slib
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setHeaderAlignment, iCol, align, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setHeaderAlignment, iCol, align, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {
@@ -260,7 +260,7 @@ namespace slib
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ListControl::setColumnAlignment, iCol, align, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnAlignment, iCol, align, mode)
 		}
 		MutexLocker lock(m_columns.getLocker());
 		if (iCol < m_columns.getCount()) {

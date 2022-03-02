@@ -50,7 +50,7 @@ namespace slib
 		View::init();
 		
 		m_cell->setView(this);
-		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(LabelView, dispatchClickLink, this);
+		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, dispatchClickLink);
 	}
 
 	String LabelView::getText()

@@ -64,7 +64,7 @@ namespace slib
 	{
 		ViewGroup::init();
 
-		setCapturingChildInstanceEvents(SLIB_FUNCTION_WEAKREF(SplitLayout, _hitTestForCapturingChildInstanceEvents, this));
+		setCapturingChildInstanceEvents(SLIB_FUNCTION_WEAKREF(this, _hitTestForCapturingChildInstanceEvents));
 	}
 	
 	SplitLayout::Item::Item()

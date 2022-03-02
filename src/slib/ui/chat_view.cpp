@@ -122,7 +122,7 @@ namespace slib
 					m_label->setDetectingHyperlinksInPlainText(sl_true, UIUpdateMode::Init);
 					addChild(m_label, UIUpdateMode::Init);
 
-					setOnTouchEvent(SLIB_FUNCTION_WEAKREF(ChatItemView, onTouchMessage, this));
+					setOnTouchEvent(SLIB_FUNCTION_WEAKREF(this, onTouchMessage));
 				}
 				
 			public:
@@ -622,14 +622,14 @@ namespace slib
 		}
 		ListView::setFrame(frame, mode);
 		if (flagEnd) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), View, smoothScrollToEndY, this, UIUpdateMode::Redraw));
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, smoothScrollToEndY, UIUpdateMode::Redraw));
 		}
 	}
 	
 	void ChatView::setFont(const Ref<Font>& font, UIUpdateMode mode)
 	{
 		ListView::setFont(font, UIUpdateMode::None);
-		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ChatView, _updateListContent, this, UIUpdateMode::UpdateLayout));
+		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _updateListContent, UIUpdateMode::UpdateLayout));
 	}
 	
 	SLIB_DEFINE_EVENT_HANDLER(ChatView, DeleteItem, const String& itemId)
@@ -664,7 +664,7 @@ namespace slib
 			}
 		}
 		if (flagUpdateList) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ChatView, _updateListContent, this, UIUpdateMode::UpdateLayout));
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _updateListContent, UIUpdateMode::UpdateLayout));
 		}
 	}
 	

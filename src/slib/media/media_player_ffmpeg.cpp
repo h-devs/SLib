@@ -311,7 +311,7 @@ namespace slib
 						if (playerParam.channelsCount != 1) {
 							playerParam.channelsCount = 2;
 						}
-						playerParam.onPlayAudio = SLIB_FUNCTION_WEAKREF(FFmpegPlayer, onPlayAudio, this);
+						playerParam.onPlayAudio = SLIB_FUNCTION_WEAKREF(this, onPlayAudio);
 						m_audioPlayer = AudioPlayer::create(playerParam);
 						if (m_audioPlayer.isNotNull()) {
 							SwrContext* swrAudio = swr_alloc();

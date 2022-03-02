@@ -701,7 +701,7 @@ namespace slib
 			Ref<View> parent = m_parent;
 			if (parent.isNull()) {
 				if (m_flagRendering) {
-					dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(View, _updateAndApplyLayout, this));
+					dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, _updateAndApplyLayout));
 				} else {
 					_updateAndApplyLayout();
 				}
@@ -847,7 +847,7 @@ namespace slib
 		}
 		Ref<View> viewCreatingChildInstances = getNearestViewCreatingChildInstances();
 		if (viewCreatingChildInstances.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::addChild, view, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(addChild, view, mode)
 		}
 		_initializeChildAttributes();
 		Ref<ViewChildAttributes>& attrs = m_childAttrs;
@@ -867,7 +867,7 @@ namespace slib
 		}
 		Ref<View> viewCreatingChildInstances = getNearestViewCreatingChildInstances();
 		if (viewCreatingChildInstances.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::insertChild, index, view, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(insertChild, index, view, mode)
 		}
 		_initializeChildAttributes();
 		Ref<ViewChildAttributes>& attrs = m_childAttrs;
@@ -953,7 +953,7 @@ namespace slib
 			return;
 		}
 		if (isInstance()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::removeAllChildren, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(removeAllChildren, mode)
 			ListLocker< Ref<View> > children(attrs->children);
 			if (!(children.count)) {
 				return;
@@ -1128,7 +1128,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::bringToFront, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(bringToFront, mode)
 		}
 		Ref<View> parent = getParent();
 		if (parent.isNotNull()) {
@@ -1236,7 +1236,7 @@ namespace slib
 			if (UI::isUiThread()) {
 				instanceParent->removeChildInstance(this, instanceChild);
 			} else {
-				UI::dispatchToUiThreadUrgently(Function<void()>::with(ToRef(this), SLIB_BIND_WEAKREF(void(), ViewInstance, removeChildInstance, instanceParent, this, instanceChild)));
+				UI::dispatchToUiThreadUrgently(Function<void()>::with(ToRef(this), SLIB_BIND_WEAKREF(void(), instanceParent, removeChildInstance, this, instanceChild)));
 			}
 			child->_detach();
 			ListElements< Ref<View> > children(child->getChildren());
@@ -1277,7 +1277,7 @@ namespace slib
 	{
 		if (m_flagCreatingChildInstances) {
 			if (child.isNotNull() && child->m_flagCreatingInstance) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::_attachChild, child)
+				SLIB_VIEW_RUN_ON_UI_THREAD(_attachChild, child)
 				Ref<ViewInstance> parentInstance = getViewInstance();
 				if (parentInstance.isNotNull()) {
 					child->attachToNewInstance(parentInstance.get());
@@ -1436,7 +1436,7 @@ namespace slib
 			if (instance->isWindowContent()) {
 				return;
 			}
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_updateInstanceFrames)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_updateInstanceFrames)
 			instance->setFrame(this, getFrameInInstance());
 		} else {
 			Ref<ViewChildAttributes>& attrs = m_childAttrs;
@@ -1812,7 +1812,7 @@ namespace slib
 		
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setVisibility, visibility, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setVisibility, visibility, mode)
 		}
 
 		Visibility oldVisibility = m_visibility;
@@ -1903,7 +1903,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setEnabled, flag, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setEnabled, flag, mode)
 			m_flagEnabled = flag;
 			instance->setEnabled(this, flag);
 		} else {
@@ -1921,7 +1921,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setClipping, flagClipping, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setClipping, flagClipping, mode)
 			m_flagClipping = flagClipping;
 			instance->setClipping(this, flagClipping);
 		} else {
@@ -1939,7 +1939,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setDrawing, flagDrawing, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setDrawing, flagDrawing, mode)
 			m_flagDrawing = flagDrawing;
 			instance->setDrawing(this, flagDrawing);
 		} else {
@@ -2017,7 +2017,7 @@ namespace slib
 		if (isUiThread()) {
 			_setFocus(flagFocused, sl_true, mode);
 		} else {
-			dispatchToUiThread(SLIB_BIND_WEAKREF(void(), View, _setFocus, this, flagFocused, sl_true, mode));
+			dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, _setFocus, flagFocused, sl_true, mode));
 		}
 	}
 	
@@ -2042,7 +2042,7 @@ namespace slib
 		if (flagApplyInstance) {
 			Ref<ViewInstance> instance = getNearestViewInstance();
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::_setFocusedFlag, flagFocused, flagApplyInstance)
+				SLIB_VIEW_RUN_ON_UI_THREAD(_setFocusedFlag, flagFocused, flagApplyInstance)
 				instance->setFocus(this, flagFocused);
 			}
 		}
@@ -2214,7 +2214,7 @@ namespace slib
 		m_flagLockScroll = flagLock;
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setLockScroll, flagLock)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setLockScroll, flagLock)
 			instance->setLockScroll(this, flagLock);
 		}
 		Ref<View> parent = m_parent;
@@ -3338,10 +3338,10 @@ namespace slib
 				break;
 			}
 		}
-		view->dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(View, _updateAndApplyLayout, view.get()));
+		view->dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(view, _updateAndApplyLayout));
 		if (view != this) {
 			void (View::*f)(UIUpdateMode) = &View::invalidate;
-			view->dispatchToDrawingThread(Function<void()>::bindWeakRef(WeakRef<View>(this), f, mode));
+			view->dispatchToDrawingThread(Function<void()>::bindWeakRef(this, f, mode));
 		}
 	}
 
@@ -3380,7 +3380,7 @@ namespace slib
 			}
 			parent = view->m_parent;
 		}
-		view->dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(View, _updateAndApplyLayout, view.get()));
+		view->dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(Move(view), _updateAndApplyLayout));
 	}
 	
 	void View::invalidateLayoutOfWrappingControl(UIUpdateMode mode)
@@ -4395,7 +4395,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_setInstancePadding)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_setInstancePadding)
 			instance->setPadding(this, getPadding());
 		}
 	}
@@ -4844,7 +4844,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_updateInstanceTransforms)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_updateInstanceTransforms)
 			instance->setTransform(this, getFinalTransformInInstance());
 		} else {
 			Ref<ViewChildAttributes>& attrs = m_childAttrs;
@@ -5096,7 +5096,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setBackground, drawable, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setBackground, drawable, mode)
 		}
 		_initializeDrawAttributes();
 		Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
@@ -5279,7 +5279,7 @@ namespace slib
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
 			void (View::*func)(sl_bool, UIUpdateMode) = &View::setBorder;
-			SLIB_VIEW_RUN_ON_UI_THREAD(func, flagBorder, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, flagBorder, mode)
 		}
 		if (flagBorder) {
 			if (isBorder()) {
@@ -5571,7 +5571,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_setInstanceFont, font)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_setInstanceFont, font)
 			instance->setFont(this, font);
 		}
 		onUpdateFont(font);
@@ -5590,7 +5590,7 @@ namespace slib
 			}
 			Ref<ViewInstance> instance = getNativeWidget();
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::setFont, font, mode)
+				SLIB_VIEW_RUN_ON_UI_THREAD(setFont, font, mode)
 			}
 			attrs->font = font;
 			Ref<Font> fontFinal = font;
@@ -5699,7 +5699,7 @@ namespace slib
 		if (attrs.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::setOpaque, flag, mode)
+				SLIB_VIEW_RUN_ON_UI_THREAD(setOpaque, flag, mode)
 				attrs->flagOpaque = flag;
 				instance->setOpaque(this, flag);
 			} else {
@@ -5725,7 +5725,7 @@ namespace slib
 		if (attrs.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::setAlpha, alpha, mode)
+				SLIB_VIEW_RUN_ON_UI_THREAD(setAlpha, alpha, mode)
 				attrs->alpha = alpha;
 				instance->setAlpha(this, alpha);
 			} else {
@@ -5828,7 +5828,7 @@ namespace slib
 		if (attrs.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::setShadowOpacity, alpha, mode)
+				SLIB_VIEW_RUN_ON_UI_THREAD(setShadowOpacity, alpha, mode)
 				attrs->shadowOpacity = alpha;
 				instance->setShadowOpacity(this, alpha);
 			} else {
@@ -5854,7 +5854,7 @@ namespace slib
 		if (attrs.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::setShadowRadius, radius, mode)
+				SLIB_VIEW_RUN_ON_UI_THREAD(setShadowRadius, radius, mode)
 				attrs->shadowRadius = radius;
 				instance->setShadowRadius(this, radius);
 			} else {
@@ -5881,7 +5881,7 @@ namespace slib
 			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
 				void (View::*func)(const UIPointf&, UIUpdateMode) = &View::setShadowOffset;
-				SLIB_VIEW_RUN_ON_UI_THREAD(func, offset, mode)
+				SLIB_VIEW_RUN_ON_UI_THREAD2(func, offset, mode)
 				attrs->shadowOffset = offset;
 				instance->setShadowOffset(this, offset.x, offset.y);
 			} else {
@@ -5926,7 +5926,7 @@ namespace slib
 		if (attrs.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
-				SLIB_VIEW_RUN_ON_UI_THREAD(&View::setShadowColor, color, mode)
+				SLIB_VIEW_RUN_ON_UI_THREAD(setShadowColor, color, mode)
 				attrs->shadowColor = color;
 				instance->setShadowColor(this, color);
 			} else {
@@ -6611,7 +6611,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setScrollBarsVisible, flagHorizontal, flagVertical, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setScrollBarsVisible, flagHorizontal, flagVertical, mode)
 		}
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
@@ -6746,7 +6746,7 @@ namespace slib
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
 			void (View::*func)(sl_scroll_pos, sl_scroll_pos, UIUpdateMode) = &View::scrollTo;
-			SLIB_VIEW_RUN_ON_UI_THREAD(func, x, y, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, x, y, mode)
 		}
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
@@ -6782,7 +6782,7 @@ namespace slib
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
 			void (View::*func)(sl_scroll_pos, sl_scroll_pos, UIUpdateMode) = &View::smoothScrollTo;
-			SLIB_VIEW_RUN_ON_UI_THREAD(func, x, y, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, x, y, mode)
 		}
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
@@ -7082,7 +7082,7 @@ namespace slib
 				barHorz->setPage(width, UIUpdateMode::None);
 				barHorz->setValueOfOutRange(attrs->x, UIUpdateMode::None);
 				barHorz->setFrame(UIRect(0, height - attrs->barWidth, width, height), UIUpdateMode::None);
-				barHorz->setOnChange(SLIB_FUNCTION_WEAKREF(View, _onScrollBarChangeValue, this));
+				barHorz->setOnChange(SLIB_FUNCTION_WEAKREF(this, _onScrollBarChangeValue));
 				attrs->flagValidHorz = barHorz->isValid();
 			}
 			Ref<ScrollBar> barVert = attrs->vert;
@@ -7094,7 +7094,7 @@ namespace slib
 				barVert->setPage(height, UIUpdateMode::None);
 				barVert->setValueOfOutRange(attrs->y, UIUpdateMode::None);
 				barVert->setFrame(UIRect(width - attrs->barWidth, 0, width, height), UIUpdateMode::None);
-				barVert->setOnChange(SLIB_FUNCTION_WEAKREF(View, _onScrollBarChangeValue, this));
+				barVert->setOnChange(SLIB_FUNCTION_WEAKREF(this, _onScrollBarChangeValue));
 				attrs->flagValidVert = barVert->isValid();
 			}
 			sl_scroll_pos x = priv::view::ClampScrollPos(attrs->x, attrs->contentWidth - (sl_scroll_pos)(getWidth()));
@@ -7673,7 +7673,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::setDropTarget, flag)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setDropTarget, flag)
 		}
 		m_flagDropTarget = flag;
 		if (flag) {
@@ -10362,7 +10362,7 @@ namespace slib
 			return;
 		}
 		if (!(isDrawingThread())) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), View, _startContentScrollingFlow, this, flagSmoothTarget, speedOrTarget));
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _startContentScrollingFlow, flagSmoothTarget, speedOrTarget));
 			return;
 		}
 		scrollAttrs->flagSmoothTarget = flagSmoothTarget;
@@ -10374,14 +10374,14 @@ namespace slib
 		}
 		scrollAttrs->timeFlowFrameBefore = Time::now();
 		if (scrollAttrs->timerFlow.isNull()) {
-			scrollAttrs->timerFlow = startTimer(SLIB_FUNCTION_WEAKREF(View, _processContentScrollingFlow, this), SMOOTH_SCROLL_FRAME_MS);
+			scrollAttrs->timerFlow = startTimer(SLIB_FUNCTION_WEAKREF(this, _processContentScrollingFlow), SMOOTH_SCROLL_FRAME_MS);
 		}
 	}
 
 	void View::_stopContentScrollingFlow()
 	{
 		if (!(isDrawingThread())) {
-			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(View, _stopContentScrollingFlow, this));
+			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, _stopContentScrollingFlow));
 			return;
 		}
 		Ref<ViewScrollAttributes>& scrollAttrs = m_scrollAttrs;
@@ -10480,7 +10480,7 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&View::_setInstancePaging)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_setInstancePaging)
 			instance->setPaging(this, isPaging(), getPageWidth(), getPageHeight());
 		}
 	}

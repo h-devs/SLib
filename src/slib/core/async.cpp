@@ -100,7 +100,7 @@ namespace slib
 			Ref<AsyncIoLoop> ret = new AsyncIoLoop;
 			if (ret.isNotNull()) {
 				ret->m_handle = handle;
-				ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(AsyncIoLoop, _native_runLoop, ret.get()));
+				ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _native_runLoop));
 				if (ret->m_thread.isNotNull()) {
 					ret->m_flagInit = sl_true;
 					if (flagAutoStart) {
@@ -792,7 +792,7 @@ namespace slib
 			if (!m_flagProcessRequest) {
 				m_flagProcessRequest = sl_true;
 				lock.unlock();
-				dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(AsyncStreamSimulator, _runProcessor, this));
+				dispatcher->dispatch(SLIB_FUNCTION_WEAKREF(this, _runProcessor));
 			}
 			return sl_true;
 		}
@@ -1340,7 +1340,7 @@ namespace slib
 				if (buffer->memRead.isNotNull()) {
 					Ref<AsyncStream> source = m_source;
 					if (source.isNotNull()) {
-						bRet = source->read(buffer->memRead, SLIB_FUNCTION_WEAKREF(AsyncCopy, onReadStream, this));
+						bRet = source->read(buffer->memRead, SLIB_FUNCTION_WEAKREF(this, onReadStream));
 					}
 				}
 				if (!bRet) {
@@ -1364,7 +1364,7 @@ namespace slib
 				sl_bool bRet = sl_false;
 				Ref<AsyncStream> target = m_target;
 				if (target.isNotNull()) {
-					bRet = target->write(buffer->memWrite, SLIB_FUNCTION_WEAKREF(AsyncCopy, onWriteStream, this));
+					bRet = target->write(buffer->memWrite, SLIB_FUNCTION_WEAKREF(this, onWriteStream));
 				}
 				if (!bRet) {
 					m_bufferWriting.setNull();
@@ -1675,7 +1675,7 @@ namespace slib
 			sl_size size = header.pop(m_bufWrite.getData(), m_bufWrite.getSize());
 			if (size > 0) {
 				m_flagWriting = sl_true;
-				if (!(m_streamOutput->write(m_bufWrite.getData(), size, SLIB_FUNCTION_WEAKREF(AsyncOutput, onWriteStream, this), m_bufWrite.ref.get()))) {
+				if (!(m_streamOutput->write(m_bufWrite.getData(), size, SLIB_FUNCTION_WEAKREF(this, onWriteStream), m_bufWrite.ref.get()))) {
 					m_flagWriting = sl_false;
 					_onError();
 				}
@@ -1692,7 +1692,7 @@ namespace slib
 				param.size = sizeBody;
 				param.bufferSize = m_bufferSize;
 				param.bufferCount = m_bufferCount;
-				param.onEnd = SLIB_FUNCTION_WEAKREF(AsyncOutput, onAsyncCopyEnd, this);
+				param.onEnd = SLIB_FUNCTION_WEAKREF(this, onAsyncCopyEnd);
 				Ref<AsyncCopy> copy = AsyncCopy::create(param);
 				if (copy.isNotNull()) {
 					m_copy = copy;
@@ -1913,7 +1913,7 @@ namespace slib
 			return sl_false;
 		}
 		do {
-			Function<void(AsyncStreamResult&)> callback = SLIB_FUNCTION_WEAKREF(AsyncStreamFilter, onReadStream, this);
+			Function<void(AsyncStreamResult&)> callback = SLIB_FUNCTION_WEAKREF(this, onReadStream);
 			if (m_bufReadConverted.getSize() > 0) {
 				if (!(stream->read(sl_null, 0, callback))) {
 					break;

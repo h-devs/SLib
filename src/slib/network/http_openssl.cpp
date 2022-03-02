@@ -74,12 +74,12 @@ namespace slib
 							ret->m_tlsParam = tlsParam;
 							ret->m_tlsParam.context = context;
 							ret->m_tlsParam.flagAutoStartHandshake = sl_false;
-							ret->m_tlsParam.onHandshake = SLIB_FUNCTION_WEAKREF(ServerConnectionProvider, onHandshake, ret);
+							ret->m_tlsParam.onHandshake = SLIB_FUNCTION_WEAKREF(ret, onHandshake);
 							ret->m_loop = loop;
 							ret->setServer(server);
 							AsyncTcpServerParam sp;
 							sp.bindAddress = addressListen;
-							sp.onAccept = SLIB_FUNCTION_WEAKREF(ServerConnectionProvider, onAccept, ret);
+							sp.onAccept = SLIB_FUNCTION_WEAKREF(ret, onAccept);
 							sp.ioLoop = loop;
 							Ref<AsyncTcpServer> server = AsyncTcpServer::create(sp);
 							if (server.isNotNull()) {

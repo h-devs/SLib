@@ -196,7 +196,7 @@ namespace slib
 					Evas_Object* window = m_window;
 					if (window) {
 						if (!(UI::isUiThread())) {
-							UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(EFL_WindowInstance, close, this));
+							UI::dispatchToUiThread(SLIB_FUNCTION_WEAKREF(this, close));
 							return;
 						}
 						UIPlatform::removeWindowInstance(window);

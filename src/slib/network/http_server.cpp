@@ -227,7 +227,7 @@ namespace slib
 				if (ret.isNotNull()) {
 					AsyncOutputParam op;
 					op.stream = io;
-					op.onEnd = SLIB_FUNCTION_WEAKREF(HttpServerConnection, onAsyncOutputEnd, ret);
+					op.onEnd = SLIB_FUNCTION_WEAKREF(ret, onAsyncOutputEnd);
 					op.bufferSize = SIZE_COPY_BUF;
 					Ref<AsyncOutput> output = AsyncOutput::create(op);
 					if (output.isNotNull()) {
@@ -311,7 +311,7 @@ namespace slib
 		if (result) {
 			bSuccess = m_io->read(result->data, result->requestSize, result->callback, result->userObject);
 		} else {
-			bSuccess = m_io->read(m_bufRead, SLIB_FUNCTION_WEAKREF(HttpServerConnection, onReadStream, this));
+			bSuccess = m_io->read(m_bufRead, SLIB_FUNCTION_WEAKREF(this, onReadStream));
 		}
 		if (!bSuccess) {
 			m_flagReading = sl_false;
@@ -494,7 +494,7 @@ namespace slib
 					if (context->isProcessingByThread()) {
 						Ref<ThreadPool> threadPool = server->getThreadPool();
 						if (threadPool.isNotNull()) {
-							threadPool->addTask(SLIB_BIND_WEAKREF(void(), HttpServerConnection, _processContext, this, _context));
+							threadPool->addTask(SLIB_BIND_WEAKREF(void(), this, _processContext, _context));
 						} else {
 							sendResponseAndClose_ServerError();
 						}
@@ -607,7 +607,7 @@ namespace slib
 	{
 		if (mem.isNotNull()) {
 			Ref<priv::http_server::SendResponseAndCloseListener> listener(new priv::http_server::SendResponseAndCloseListener(this));
-			if (m_io->write(mem, SLIB_FUNCTION_REF(priv::http_server::SendResponseAndCloseListener, onWriteStream, listener))) {
+			if (m_io->write(mem, SLIB_FUNCTION_REF(listener, onWriteStream))) {
 				return;
 			}
 		}
@@ -697,7 +697,7 @@ namespace slib
 							ret->setServer(server);
 							AsyncTcpServerParam sp;
 							sp.bindAddress = addressListen;
-							sp.onAccept = SLIB_FUNCTION_WEAKREF(DefaultConnectionProvider, onAccept, ret);
+							sp.onAccept = SLIB_FUNCTION_WEAKREF(ret, onAccept);
 							sp.ioLoop = loop;
 							Ref<AsyncTcpServer> server = AsyncTcpServer::create(sp);
 							if (server.isNotNull()) {
@@ -1340,7 +1340,7 @@ namespace slib
 		ioLoop->start();
 
 		if (m_param.connectionExpiringDuration) {
-			m_timerExpireConnections = Timer::startWithLoop(dispatchLoop, SLIB_FUNCTION_WEAKREF(HttpServer, _onTimerExpireConnections, this), m_param.connectionExpiringDuration);
+			m_timerExpireConnections = Timer::startWithLoop(dispatchLoop, SLIB_FUNCTION_WEAKREF(this, _onTimerExpireConnections), m_param.connectionExpiringDuration);
 		}
 
 		m_dispatchLoop = Move(dispatchLoop);

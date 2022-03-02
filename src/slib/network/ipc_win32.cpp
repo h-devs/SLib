@@ -252,7 +252,7 @@ namespace slib
 					Ref<NamedPipeServer> ret = new NamedPipeServer;
 					if (ret.isNotNull()) {
 						ret->_init(param);
-						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(NamedPipeServer, runListen, ret.get()));
+						Ref<Thread> thread = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), runListen));
 						if (thread.isNotNull()) {
 							ret->m_name = String16::concat(L"\\\\.\\pipe\\", param.name);
 							ret->m_threadListen = Move(thread);

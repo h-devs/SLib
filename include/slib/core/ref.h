@@ -1550,6 +1550,12 @@ namespace slib
 	}
 
 	template <class T>
+	SLIB_INLINE static Ref<T>&& ToRef(Ref<T>&& other) noexcept
+	{
+		return static_cast<Ref<T>&&>(other);
+	}
+
+	template <class T>
 	SLIB_INLINE static Ref<T> ToRef(const AtomicRef<T>& other) noexcept
 	{
 		return Ref<T>(other);
@@ -1589,6 +1595,12 @@ namespace slib
 	SLIB_INLINE static const WeakRef<T>& ToWeakRef(const WeakRef<T>& other) noexcept
 	{
 		return other;
+	}
+
+	template <class T>
+	SLIB_INLINE static WeakRef<T>&& ToWeakRef(WeakRef<T>&& other) noexcept
+	{
+		return static_cast<WeakRef<T>&&>(other);
 	}
 
 	template <class T>

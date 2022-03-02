@@ -203,7 +203,7 @@ namespace slib
 				m_indexCurrent = index;
 			}
 			if (m_offsetPages != 0) {
-				m_timer = startTimer(SLIB_FUNCTION_WEAKREF(ViewPager, _onAnimation, this), 20);
+				m_timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _onAnimation), 20);
 			}
 		} while (0);
 		

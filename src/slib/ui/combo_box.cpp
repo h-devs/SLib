@@ -80,7 +80,7 @@ namespace slib
 	{
 		Ptr<IComboBoxInstance> instance = getComboBoxInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&ComboBox::setText, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setText, text, mode)
 		}
 		m_text = text;
 		if (m_cell.isNotNull()) {

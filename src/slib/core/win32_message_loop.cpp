@@ -116,7 +116,7 @@ namespace slib
 				return;
 			}
 			m_flagRunning = sl_true;
-			m_thread = Thread::start(SLIB_FUNCTION_MEMBER(MessageLoop, _run, this));
+			m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, _run));
 			if (m_thread.isNull()) {
 				m_flagRunning = sl_false;
 			}

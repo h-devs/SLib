@@ -179,7 +179,7 @@ namespace slib
 			public:
 				TcpConnectionTable()
 				{
-					m_threadGC = Thread::start(SLIB_FUNCTION_MEMBER(TcpConnectionTable, onRunGC, this));
+					m_threadGC = Thread::start(SLIB_FUNCTION_MEMBER(this, onRunGC));
 				}
 
 				~TcpConnectionTable()

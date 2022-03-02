@@ -855,7 +855,7 @@ namespace slib
 		if (content.isNotNull()) {
 			m_flagInvalidTreeLayout = sl_true;
 			if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-				dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(TreeView, _makeLayoutContent, this));
+				dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, _makeLayoutContent));
 			}
 		}
 	}

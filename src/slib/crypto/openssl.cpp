@@ -389,10 +389,10 @@ namespace slib
 				{
 					OpenSSL_AsyncStream::init();
 					
-					m_callbackRead = SLIB_FUNCTION_WEAKREF(StreamImpl, onRead, this);
-					m_callbackWrite = SLIB_FUNCTION_WEAKREF(StreamImpl, onWrite, this);
-					m_doStartWritingBase = SLIB_FUNCTION_WEAKREF(StreamImpl, startWritingBase, this);
-					m_doStartWriting = SLIB_FUNCTION_WEAKREF(StreamImpl, startWriting, this);
+					m_callbackRead = SLIB_FUNCTION_WEAKREF(this, onRead);
+					m_callbackWrite = SLIB_FUNCTION_WEAKREF(this, onWrite);
+					m_doStartWritingBase = SLIB_FUNCTION_WEAKREF(this, startWritingBase);
+					m_doStartWriting = SLIB_FUNCTION_WEAKREF(this, startWriting);
 				}
 				
 				~StreamImpl()

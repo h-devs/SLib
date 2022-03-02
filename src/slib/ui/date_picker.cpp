@@ -64,7 +64,7 @@ namespace slib
 	{
 		Ptr<IDatePickerInstance> instance = getDatePickerInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&DatePicker::setDate, date, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setDate, date, mode)
 			m_date = date;
 			instance->setDate(this, date);
 		} else {

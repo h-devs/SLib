@@ -349,7 +349,7 @@ namespace slib
 				void setBackgroundColor(const Color& color) override
 				{
 					if (!(UI::isUiThread()) || priv::view::g_flagDuringPaint) {
-						UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), WindowInstance, setBackgroundColor, this, color));
+						UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, setBackgroundColor, color));
 						return;
 					}
 					if (m_flagLayered) {

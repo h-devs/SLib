@@ -69,7 +69,7 @@ namespace slib
 	{
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::setGravity, gravity, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setGravity, gravity, mode)
 		}
 		m_gravity = gravity;
 		if (m_cell.isNotNull()) {
@@ -91,7 +91,7 @@ namespace slib
 	{
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&SelectView::setTextColor, color, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setTextColor, color, mode)
 		}
 		m_textColor = color;
 		if (m_cell.isNotNull()) {
@@ -113,7 +113,7 @@ namespace slib
 				cell->initLabelList(this);
 				cell->gravity = m_gravity;
 				cell->textColor = m_textColor;
-				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(SelectView, dispatchSelectItem, this);
+				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
 				m_cell = cell;
 			}
 		}
@@ -239,7 +239,7 @@ namespace slib
 
 		m_cell->setView(this);
 		m_cell->initLabelList(this);
-		m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(SelectSwitch, dispatchSelectItem, this);
+		m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
 	}
 
 	const UISize& SelectSwitch::getIconSize()

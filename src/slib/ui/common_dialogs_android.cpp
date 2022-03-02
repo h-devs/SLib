@@ -128,7 +128,7 @@ namespace slib
 		if (context) {
 			Ref<AlertDialogResult> result = new AlertDialogResult();
 			if (result.isNotNull()) {
-				result->onResult = SLIB_FUNCTION_REF(AlertDialog, _onResult, this);
+				result->onResult = SLIB_FUNCTION_REF(this, _onResult);
 
 				JniLocal<jobject> jalert = JAlert::init.newObject(sl_null);
 				if (jalert.isNotNull()) {

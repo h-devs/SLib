@@ -170,7 +170,7 @@ namespace slib
 	{
 		Ptr<IButtonInstance> instance = getButtonInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&Button::setText, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setText, text, mode)
 		} else {
 			if (isMnemonic()) {
 				setMnemonicKeyFromText(text);
@@ -320,7 +320,7 @@ namespace slib
 	{
 		Ptr<IButtonInstance> instance = getButtonInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&Button::setDefaultButton, flag, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setDefaultButton, flag, mode)
 		}
 		m_flagDefaultButton = flag;
 		if (m_cell.isNotNull()) {
@@ -1177,7 +1177,7 @@ namespace slib
 			cell->setView(this);
 			cell->text = m_text;
 			cell->category = m_flagDefaultButton ? 1 : 0;
-			cell->onClick = SLIB_FUNCTION_WEAKREF(View, dispatchClickEvent, this);
+			cell->onClick = SLIB_FUNCTION_WEAKREF(this, dispatchClickEvent);
 			m_cell = cell;
 		}
 	}

@@ -165,7 +165,7 @@ namespace slib
 				}
 				if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, OpenGL_ES)) {
 					RendererParam rp;
-					rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
+					rp.onFrame = SLIB_FUNCTION_WEAKREF(ret, onFrame);
 					Ref<Renderer> renderer = EGL::createRenderer((void*)(ret->getHandle()), rp);
 					if (renderer.isNotNull()) {
 						ret->setRenderer(renderer, m_redrawMode);
@@ -173,7 +173,7 @@ namespace slib
 					}
 				} else {
 					RendererParam rp;
-					rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
+					rp.onFrame = SLIB_FUNCTION_WEAKREF(ret, onFrame);
 					Ref<Renderer> renderer = WGL::createRenderer((void*)(ret->getHandle()), rp);
 					if (renderer.isNotNull()) {
 						ret->setRenderer(renderer, m_redrawMode);
@@ -182,7 +182,7 @@ namespace slib
 				}
 			} else if (SLIB_RENDER_CHECK_ENGINE_TYPE(engineType, D3D)) {
 				RendererParam rp;
-				rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
+				rp.onFrame = SLIB_FUNCTION_WEAKREF(ret, onFrame);
 				Ref<Renderer> renderer = Direct3D::createRenderer(engineType, (void*)(ret->getHandle()), rp);
 				if (renderer.isNotNull()) {
 					ret->setRenderer(renderer, m_redrawMode);

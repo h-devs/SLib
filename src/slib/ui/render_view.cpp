@@ -283,7 +283,7 @@ namespace slib
 	void RenderView::dispatchToDrawingThread(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (delayMillis) {
-			Dispatch::setTimeout(SLIB_BIND_WEAKREF(void(), RenderView, dispatchToDrawingThread, this, callback, 0), delayMillis);
+			Dispatch::setTimeout(SLIB_BIND_WEAKREF(void(), this, dispatchToDrawingThread, callback, 0), delayMillis);
 			return;
 		}
 		m_queuePostedCallbacks.push(callback);
@@ -293,7 +293,7 @@ namespace slib
 		} else {
 			Ref<View> parent = getParent();
 			if (parent.isNotNull()) {
-				parent->dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), RenderView, _processPostedCallbacks, this));
+				parent->dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, _processPostedCallbacks));
 			}
 		}
 	}
@@ -441,7 +441,7 @@ namespace slib
 		if (m_flagDispatchEventsToRenderingThread) {
 			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchMouseEvent, this, ev->duplicate()));
+				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchMouseEvent, ev->duplicate()));
 				requestRender();
 				return;
 			}
@@ -454,7 +454,7 @@ namespace slib
 		if (m_flagDispatchEventsToRenderingThread) {
 			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchTouchEvent, this, ev->duplicate()));
+				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchTouchEvent, ev->duplicate()));
 				requestRender();
 				return;
 			}
@@ -467,7 +467,7 @@ namespace slib
 		if (m_flagDispatchEventsToRenderingThread) {
 			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchMouseWheelEvent, this, ev->duplicate()));
+				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchMouseWheelEvent, ev->duplicate()));
 				requestRender();
 				return;
 			}
@@ -480,7 +480,7 @@ namespace slib
 		if (m_flagDispatchEventsToRenderingThread) {
 			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchKeyEvent, this, ev->duplicate()));
+				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchKeyEvent, ev->duplicate()));
 				requestRender();
 				return;
 			}
@@ -493,7 +493,7 @@ namespace slib
 		if (m_flagDispatchEventsToRenderingThread) {
 			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchSetCursor, this, ev->duplicate()));
+				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchSetCursor, ev->duplicate()));
 				requestRender();
 				return;
 			}
@@ -506,7 +506,7 @@ namespace slib
 		if (m_flagDispatchEventsToRenderingThread) {
 			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), RenderView, _dispatchSwipe, this, ev->duplicate()));
+				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchSwipe, ev->duplicate()));
 				requestRender();
 				return;
 			}

@@ -137,7 +137,7 @@ namespace slib
 	
 	void RefreshView::_setRefreshing_NW(sl_bool flag)
 	{
-		SLIB_VIEW_RUN_ON_UI_THREAD(&RefreshView::_setRefreshing_NW, flag)
+		SLIB_VIEW_RUN_ON_UI_THREAD(_setRefreshing_NW, flag)
 		UIRefreshControl* control = static_cast<RefreshViewHelper*>(this)->getControl();
 		if (control != nil) {
 			RefreshViewHelper::setRefreshing(control, flag);

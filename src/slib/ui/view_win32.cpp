@@ -644,7 +644,7 @@ namespace slib
 		}
 		if (m_layered.isNotNull()) {
 			m_layered->flagInvalidated = sl_true;
-			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(Win32_ViewInstance, updateLayered, this));
+			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, updateLayered));
 			return;
 		}
 		HWND hWnd = m_handle;
@@ -662,7 +662,7 @@ namespace slib
 		}
 		if (m_layered.isNotNull()) {
 			m_layered->flagInvalidated = sl_true;
-			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(Win32_ViewInstance, updateLayered, this));
+			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, updateLayered));
 			return;
 		}
 		HWND hWnd = m_handle;

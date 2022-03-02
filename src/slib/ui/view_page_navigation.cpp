@@ -115,7 +115,7 @@ namespace slib
 		ObjectLocker lock(this);
 		
 		if (m_countActiveTransitionAnimations) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ViewPageNavigationController, _push, this, viewIn, countRemoveTop, _transition), 100);
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _push, viewIn, countRemoveTop, _transition), 100);
 			return;
 		}
 
@@ -167,9 +167,9 @@ namespace slib
 		viewIn->setEnabled(sl_false, UIUpdateMode::None);
 		
 		_applyDefaultPushTransition(transition);
-		Ref<Animation> animationPause = Transition::createAnimation(viewBack, transition, UIPageAction::Pause, SLIB_BIND_REF(void(), ViewPageNavigationController, _onFinishAnimation,this, viewBack, UIPageAction::Pause));
+		Ref<Animation> animationPause = Transition::createAnimation(viewBack, transition, UIPageAction::Pause, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewBack, UIPageAction::Pause));
 		
-		Ref<Animation> animationPush = Transition::createAnimation(viewIn, transition, UIPageAction::Push, SLIB_BIND_REF(void(), ViewPageNavigationController, _onFinishAnimation,this, viewIn, UIPageAction::Push));
+		Ref<Animation> animationPush = Transition::createAnimation(viewIn, transition, UIPageAction::Push, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewIn, UIPageAction::Push));
 		
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
@@ -247,7 +247,7 @@ namespace slib
 			}
 		} else {
 			void (ViewPageNavigationController::*func)(const Ref<View>& page, sl_size countPop, const Transition& transition) = &ViewPageNavigationController::pushPageAfterPopPages;
-			dispatchToDrawingThread(Function<void()>::bindWeakRef(ToWeakRef(this), func, page, countPop, transition));
+			dispatchToDrawingThread(Function<void()>::bindWeakRef(this, func, page, countPop, transition));
 		}
 	}
 	
@@ -265,7 +265,7 @@ namespace slib
 			}
 		} else {
 			void (ViewPageNavigationController::*func)(const Ref<View>& page, sl_size countPop) = &ViewPageNavigationController::pushPageAfterPopPages;
-			dispatchToDrawingThread(Function<void()>::bindWeakRef(ToWeakRef(this), func, page, countPop));
+			dispatchToDrawingThread(Function<void()>::bindWeakRef(this, func, page, countPop));
 		}
 	}
 	
@@ -285,7 +285,7 @@ namespace slib
 		ObjectLocker lock(this);
 		
 		if (m_countActiveTransitionAnimations) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), ViewPageNavigationController, _pop, this, _viewOut, _transition), 100);
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _pop, _viewOut, _transition), 100);
 			return;
 		}
 		
@@ -321,9 +321,9 @@ namespace slib
 		viewOut->setEnabled(sl_false, UIUpdateMode::None);
 		
 		_applyDefaultPopTransition(transition);
-		Ref<Animation> animationPop = Transition::createAnimation(viewOut, transition, UIPageAction::Pop, SLIB_BIND_REF(void(), ViewPageNavigationController, _onFinishAnimation,this, viewOut, UIPageAction::Pop));
+		Ref<Animation> animationPop = Transition::createAnimation(viewOut, transition, UIPageAction::Pop, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewOut, UIPageAction::Pop));
 		
-		Ref<Animation> animationResume = Transition::createAnimation(viewBack, transition, UIPageAction::Resume, SLIB_BIND_REF(void(), ViewPageNavigationController, _onFinishAnimation,this, viewBack, UIPageAction::Resume));
+		Ref<Animation> animationResume = Transition::createAnimation(viewBack, transition, UIPageAction::Resume, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewBack, UIPageAction::Resume));
 		
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
@@ -368,7 +368,7 @@ namespace slib
 			_pop(viewOut, &transition);
 		} else {
 			void (ViewPageNavigationController::*func)(const Ref<View>& viewOut, const Transition& transition) = &ViewPageNavigationController::pop;
-			dispatchToDrawingThread(Function<void()>::bindWeakRef(ToWeakRef(this), func, viewOut, transition));
+			dispatchToDrawingThread(Function<void()>::bindWeakRef(this, func, viewOut, transition));
 		}
 	}
 
@@ -378,7 +378,7 @@ namespace slib
 			_pop(viewOut, sl_null);
 		} else {
 			void (ViewPageNavigationController::*func)(const Ref<View>& viewOut) = &ViewPageNavigationController::pop;
-			dispatchToDrawingThread(Function<void()>::bindWeakRef(ToWeakRef(this), func, viewOut));
+			dispatchToDrawingThread(Function<void()>::bindWeakRef(this, func, viewOut));
 		}
 	}
 

@@ -94,7 +94,7 @@ namespace slib
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&TabView::setTabsCount, nNew, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setTabsCount, nNew, mode)
 		}
 		ObjectLocker lock(this);
 		ListLocker<TabViewItem> items(m_items);
@@ -136,7 +136,7 @@ namespace slib
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&TabView::setTabLabel, index, text, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setTabLabel, index, text, mode)
 		}
 		ObjectLocker lock(this);
 		if (index < m_items.getCount()) {
@@ -186,7 +186,7 @@ namespace slib
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&TabView::setTabContentView, index, view, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setTabContentView, index, view, mode)
 		}
 		MutexLocker lock(m_items.getLocker());
 		if (index < m_items.getCount()) {
@@ -228,7 +228,7 @@ namespace slib
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&TabView::_selectTab, flagEvent, index, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_selectTab, flagEvent, index, mode)
 		}
 		ObjectLocker lock(this);
 		if (instance.isNull()) {
@@ -656,7 +656,7 @@ namespace slib
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&TabView::_refreshSize)
+			SLIB_VIEW_RUN_ON_UI_THREAD(_refreshSize)
 			instance->refreshSize(this);
 		} else {
 			_relayout(UIUpdateMode::Redraw);

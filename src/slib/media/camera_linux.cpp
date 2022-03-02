@@ -403,7 +403,7 @@ namespace slib
 				{
 					ObjectLocker lock(this);
 					if (m_threadCapture.isNull()) {
-						m_threadCapture = Thread::start(SLIB_FUNCTION_WEAKREF(CameraImpl, _run, this));
+						m_threadCapture = Thread::start(SLIB_FUNCTION_WEAKREF(this, _run));
 					}
 				}
 				

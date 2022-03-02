@@ -634,7 +634,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			
 			AsyncUdpSocketParam up;
-			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(StunServer, _onReceiveFrom, ret);
+			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(ret, _onReceiveFrom);
 			up.packetSize = 4096;
 			up.ioLoop = param.ioLoop;
 			up.flagAutoStart = sl_false;

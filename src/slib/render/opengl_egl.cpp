@@ -215,7 +215,7 @@ namespace slib
 															ret->m_config = config;
 															ret->initWithParam(param);
 
-															ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(RendererImpl, run, ret.get()));
+															ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
 
 															return ret;
 														}

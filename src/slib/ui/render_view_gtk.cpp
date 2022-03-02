@@ -162,7 +162,7 @@ namespace slib
 						}
 						if (xwindow) {
 							RendererParam rp;
-							rp.onFrame = SLIB_FUNCTION_WEAKREF(RenderViewInstance, onFrame, ret);
+							rp.onFrame = SLIB_FUNCTION_WEAKREF(ret, onFrame);
 							Ref<Renderer> renderer = GLX::createRenderer(xdisplay, xwindow, rp);
 							if (renderer.isNotNull()) {
 								ret->setRenderer(renderer, m_redrawMode);

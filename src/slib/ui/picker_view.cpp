@@ -134,7 +134,7 @@ namespace slib
 				cell->textColor = m_textColor;
 				cell->linesCount = m_linesCount;
 				cell->flagCircular = m_flagCircular;
-				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(PickerView, dispatchSelectItem, this);
+				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
 				m_cell = cell;
 			}
 		}
@@ -359,7 +359,7 @@ namespace slib
 	{
 		m_speedFlow = speed;
 		m_timeFlowFrameBefore = Time::now();
-		m_timerFlow = startTimer(SLIB_FUNCTION_WEAKREF(PickerViewCell, _animationCallback, this), ANIMATE_FRAME_MS);
+		m_timerFlow = startTimer(SLIB_FUNCTION_WEAKREF(this, _animationCallback), ANIMATE_FRAME_MS);
 	}
 
 	void PickerViewCell::_stopFlow()

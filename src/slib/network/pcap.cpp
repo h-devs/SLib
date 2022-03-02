@@ -133,7 +133,7 @@ namespace slib
 							if (ret.isNotNull()) {
 								ret->_initWithParam(param);
 								ret->m_handle = handle;
-								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(PcapImpl, _run, ret.get()));
+								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
 								if (ret->m_thread.isNotNull()) {
 									ret->m_flagInit = sl_true;
 									if (param.flagAutoStart) {
@@ -166,7 +166,7 @@ namespace slib
 							if (ret.isNotNull()) {
 								ret->_initWithParam(param);
 								ret->m_handle = handle;
-								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(PcapImpl, _run, ret.get()));
+								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
 								if (ret->m_thread.isNotNull()) {
 									ret->m_flagInit = sl_true;
 									if (param.flagAutoStart) {
@@ -435,7 +435,7 @@ namespace slib
 						return;
 					}
 					onAddDevices(sl_null);
-					m_timerAddDevices = Timer::start(SLIB_FUNCTION_MEMBER(AnyPcap, onAddDevices, this), 10000);
+					m_timerAddDevices = Timer::start(SLIB_FUNCTION_MEMBER(this, onAddDevices), 10000);
 				}
 
 				sl_bool isRunning() override
@@ -489,7 +489,7 @@ namespace slib
 									if (capture.isNull()) {
 										PcapParam param = m_param;
 										param.deviceName = dev->name;
-										param.onError = SLIB_BIND_WEAKREF(void(NetCapture*), AnyPcap, onErrorDevice, this, param.onError);
+										param.onError = SLIB_BIND_WEAKREF(void(NetCapture*), this, onErrorDevice, param.onError);
 										param.flagAutoStart = sl_true;
 										Ref<PcapImpl> pcap = PcapImpl::create(param);
 										if (pcap.isNotNull()) {

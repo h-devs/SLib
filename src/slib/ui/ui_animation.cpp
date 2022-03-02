@@ -61,7 +61,7 @@ namespace slib
 	{
 		if (!m_flagRunning) {
 			m_flagRunning = sl_true;
-			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(UIAnimationLoop, _run, this));
+			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, _run));
 		}
 	}
 	
@@ -71,7 +71,7 @@ namespace slib
 		if (n < 0) {
 			m_flagRunning = sl_false;
 		} else {
-			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(UIAnimationLoop, _run, this), n);
+			UI::dispatchToUiThreadUrgently(SLIB_FUNCTION_WEAKREF(this, _run), n);
 		}
 	}
 	

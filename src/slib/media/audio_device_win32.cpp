@@ -235,7 +235,7 @@ namespace slib
 				{
 					HRESULT hr = m_buffer->Start(DSCBSTART_LOOPING);
 					if (SUCCEEDED(hr)) {
-						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioRecorderImpl, run, this));
+						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
 						if (m_thread.isNotNull()) {
 							return sl_true;
 						}
@@ -578,7 +578,7 @@ namespace slib
 				{
 					HRESULT hr = m_dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 					if (SUCCEEDED(hr)) {
-						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(AudioPlayerImpl, run, this));
+						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
 						if (m_thread.isNotNull()) {
 							return sl_true;
 						}

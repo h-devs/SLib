@@ -64,7 +64,7 @@ namespace slib
 	void SystemTrayIcon::setIcon(const Ref<Drawable>& icon)
 	{
 		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), SystemTrayIcon, setIcon, this, icon));
+			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, setIcon, icon));
 			return;
 		}
 		m_icon = icon;
@@ -80,7 +80,7 @@ namespace slib
 	void SystemTrayIcon::setIconName(const String& name)
 	{
 		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), SystemTrayIcon, setIconName, this, name));
+			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, setIconName, name));
 			return;
 		}
 		m_iconName = name;
@@ -96,7 +96,7 @@ namespace slib
 	void SystemTrayIcon::setToolTip(const String& toolTip)
 	{
 		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), SystemTrayIcon, setToolTip, this, toolTip));
+			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, setToolTip, toolTip));
 			return;
 		}
 		m_toolTip = toolTip;
@@ -111,7 +111,7 @@ namespace slib
 	void SystemTrayIcon::setMenu(const Ref<Menu>& menu)
 	{
 		if (!(UI::isUiThread())) {
-			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), SystemTrayIcon, setMenu, this, menu));
+			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, setMenu, menu));
 			return;
 		}
 		m_menu = menu;
@@ -123,7 +123,7 @@ namespace slib
 		if (UI::isUiThread()) {
 			notify_NI(param);
 		} else {
-			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), SystemTrayIcon, notify_NI, this, param));
+			UI::dispatchToUiThread(SLIB_BIND_WEAKREF(void(), this, notify_NI, param));
 		}
 	}
 

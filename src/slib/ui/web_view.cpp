@@ -54,7 +54,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::loadURL, url)
+			SLIB_VIEW_RUN_ON_UI_THREAD(loadURL, url)
 		}
 		m_flagOfflineContent = sl_false;
 		m_offlineContentHTML.setNull();
@@ -68,7 +68,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::loadHTML, html, baseURL)
+			SLIB_VIEW_RUN_ON_UI_THREAD(loadHTML, html, baseURL)
 		}
 		m_flagOfflineContent = sl_true;
 		m_offlineContentHTML = html;
@@ -116,7 +116,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::goBack)
+			SLIB_VIEW_RUN_ON_UI_THREAD(goBack)
 			instance->goBack(this);
 		}
 	}
@@ -125,7 +125,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::goForward)
+			SLIB_VIEW_RUN_ON_UI_THREAD(goForward)
 			instance->goForward(this);
 		}
 	}
@@ -134,7 +134,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::reload)
+			SLIB_VIEW_RUN_ON_UI_THREAD(reload)
 			instance->reload(this);
 		}
 	}
@@ -143,7 +143,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::runJavaScript, script)
+			SLIB_VIEW_RUN_ON_UI_THREAD(runJavaScript, script)
 			instance->runJavaScript(this, script);
 		}
 	}
@@ -162,7 +162,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::setCustomUserAgent, userAgent)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setCustomUserAgent, userAgent)
 			m_customUserAgent = userAgent;
 			instance->setCustomUserAgent(this, userAgent);
 		} else {
@@ -189,7 +189,7 @@ namespace slib
 		m_zoomLevel = level;
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::setZoomLevel, level)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setZoomLevel, level)
 			instance->setZoomLevel(this, level);
 		}
 	}
@@ -220,7 +220,7 @@ namespace slib
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
 			void (WebView::*func)(const StringParam&, const FindOptions&) = &WebView::find;
-			SLIB_VIEW_RUN_ON_UI_THREAD(func, text, options)
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, text, options)
 			instance->find(this, text, options);
 		}
 	}
@@ -234,7 +234,7 @@ namespace slib
 	{
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&WebView::stopFinding)
+			SLIB_VIEW_RUN_ON_UI_THREAD(stopFinding)
 			instance->stopFinding(this);
 		}
 	}

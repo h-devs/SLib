@@ -170,7 +170,7 @@ namespace slib
 	{
 		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(&CheckBox::setChecked, flag, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setChecked, flag, mode)
 				m_flagChecked = flag;
 			setCurrentCategory(flag ? 1 : 0, UIUpdateMode::None);
 			instance->setChecked(this, flag);

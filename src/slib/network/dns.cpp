@@ -735,7 +735,7 @@ namespace slib
 		if (ret.isNotNull()) {
 			ret->m_onAnswer = param.onAnswer;
 			AsyncUdpSocketParam up;
-			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(DnsClient, _onReceiveFrom, ret);
+			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(ret, _onReceiveFrom);
 			up.packetSize = 4096;
 			up.ioLoop = param.ioLoop;
 			Ref<AsyncUdpSocket> socket = AsyncUdpSocket::create(up);
@@ -843,7 +843,7 @@ namespace slib
 		if (ret.isNotNull()) {
 
 			AsyncUdpSocketParam up;
-			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(DnsServer, _onReceiveFrom, ret);
+			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(ret, _onReceiveFrom);
 			up.packetSize = 4096;
 			up.ioLoop = param.ioLoop;
 			up.flagAutoStart = sl_false;

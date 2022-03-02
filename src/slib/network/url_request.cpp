@@ -306,7 +306,7 @@ namespace slib
 	{
 		UrlRequest_AsyncPool* pool = Get_UrlRequestAsyncPool();
 		if (pool) {
-			if (pool->threadPool->addTask(SLIB_FUNCTION_WEAKREF(UrlRequest, _sendSync_call, this))) {
+			if (pool->threadPool->addTask(SLIB_FUNCTION_WEAKREF(this, _sendSync_call))) {
 				return;
 			}
 		}
@@ -368,7 +368,7 @@ namespace slib
 		m_flagClosed = sl_true;
 		if (m_onComplete.isNotNull()) {
 			if (m_dispatcher.isNotNull()) {
-				m_dispatcher->dispatch(SLIB_BIND_REF(void(), UrlRequest, _runCallback, this, m_onComplete));
+				m_dispatcher->dispatch(SLIB_BIND_REF(void(), this, _runCallback, m_onComplete));
 			} else {
 				m_onComplete(this);
 			}

@@ -55,7 +55,7 @@ namespace slib
 	{
 		ViewGroup::init();
 
-		m_callbackParentMouseEvent = SLIB_FUNCTION_WEAKREF(Drawer, _onParentMouseEvent, this);
+		m_callbackParentMouseEvent = SLIB_FUNCTION_WEAKREF(this, _onParentMouseEvent);
 	}
 	
 	sl_bool Drawer::isOpened()
@@ -66,7 +66,7 @@ namespace slib
 	void Drawer::open()
 	{
 		if (!(isDrawingThread())) {
-			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(Drawer, open, this));
+			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, open));
 			return;
 		}
 		Ref<View> content = getContent();
@@ -83,7 +83,7 @@ namespace slib
 		}
 		setVisible(sl_true);
 		sl_real w = (sl_real)(getDrawerSize());
-		m_animation = content->startTranslateAnimationTo(_makeContentTranslation(w), (w - _getContentTranslation()) / w * 0.5f, SLIB_FUNCTION_WEAKREF(Drawer, _onEndOpenAnimation, this), AnimationCurve::EaseOut, AnimationFlags::NotSelfAlive);
+		m_animation = content->startTranslateAnimationTo(_makeContentTranslation(w), (w - _getContentTranslation()) / w * 0.5f, SLIB_FUNCTION_WEAKREF(this, _onEndOpenAnimation), AnimationCurve::EaseOut, AnimationFlags::NotSelfAlive);
 	}
 	
 	void Drawer::_onEndOpenAnimation()
@@ -94,7 +94,7 @@ namespace slib
 	void Drawer::close()
 	{
 		if (!(isDrawingThread())) {
-			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(Drawer, close, this));
+			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, close));
 			return;
 		}
 		Ref<View> content = getContent();
@@ -110,7 +110,7 @@ namespace slib
 			animation->stop();
 		}
 		sl_real w = (sl_real)(getDrawerSize());
-		m_animation = content->startTranslateAnimationTo(_makeContentTranslation(0), _getContentTranslation() / w * 0.5f, SLIB_FUNCTION_WEAKREF(Drawer, _onEndCloseAnimation, this), AnimationCurve::EaseOut, AnimationFlags::NotSelfAlive);
+		m_animation = content->startTranslateAnimationTo(_makeContentTranslation(0), _getContentTranslation() / w * 0.5f, SLIB_FUNCTION_WEAKREF(this, _onEndCloseAnimation), AnimationCurve::EaseOut, AnimationFlags::NotSelfAlive);
 	}
 	
 	void Drawer::_onEndCloseAnimation()
