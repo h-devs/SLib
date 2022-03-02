@@ -87,6 +87,34 @@ int main(int argc, const char * argv[])
 		if (!(doc->generateCpp())) {
 			return -1;
 		}
+	} else if (command == "gen-raw") {
+		if (args.getCount() != 5) {
+			Println("Usage: sapp gen-raw <source-dir> <output-dir> <namespace>");
+			return -1;
+		}
+		String pathSrc = args[2];
+		if (!(File::isDirectory(pathSrc))) {
+			Println("Source directory is not found: %s", pathSrc);
+			return -1;
+		}
+		String pathOut = args[3];
+		if (!(File::isDirectory(pathOut))) {
+			File::createDirectories(pathOut);
+			if (!(File::isDirectory(pathOut))) {
+				Println("Failed to create output directory: %s", pathSrc);
+				return -1;
+			}
+		}
+		String _namespace = args[4];
+		Ref<SAppDocument> doc = new SAppDocument;
+		if (!(doc->openRawResources(pathSrc))) {
+			Println("Failed to open raw resources: %s", pathSrc);
+			return -1;
+		}
+		if (!(doc->generateCppForRawResources(_namespace, pathOut))) {
+			Println("Failed to generate cpp for raw resources: %s->%s", pathSrc, pathOut);
+			return -1;
+		}
 	} else {
 		String path = command;
 		if (File::isFile(path + ".xml")) {
