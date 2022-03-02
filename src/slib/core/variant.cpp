@@ -2818,7 +2818,7 @@ namespace slib
 
 	sl_size Variant::deserialize(const MemoryData& mem)
 	{
-		DeserializeBuffer buf(mem);
+		SerializeBuffer buf(mem);
 		if (Deserialize(&buf, *this)) {
 			return buf.current - buf.begin;
 		} else {
@@ -2828,7 +2828,7 @@ namespace slib
 
 	sl_size Variant::deserialize(MemoryData&& mem)
 	{
-		DeserializeBuffer buf(Move(mem));
+		SerializeBuffer buf(Move(mem));
 		if (Deserialize(&buf, *this)) {
 			return buf.current - buf.begin;
 		} else {
@@ -2838,7 +2838,7 @@ namespace slib
 
 	sl_size Variant::deserialize(const Memory& mem)
 	{
-		DeserializeBuffer buf(mem);
+		SerializeBuffer buf(mem);
 		if (Deserialize(&buf, *this)) {
 			return buf.current - buf.begin;
 		} else {
@@ -2848,7 +2848,7 @@ namespace slib
 
 	sl_size Variant::deserialize(Memory&& mem)
 	{
-		DeserializeBuffer buf(Move(mem));
+		SerializeBuffer buf(Move(mem));
 		if (Deserialize(&buf, *this)) {
 			return buf.current - buf.begin;
 		} else {

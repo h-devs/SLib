@@ -908,7 +908,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Memory::deserialize(DeserializeBuffer* input)
+	sl_bool Memory::deserialize(SerializeBuffer* input)
 	{
 		sl_size size;
 		if (!(CVLI::deserialize(input, size))) {
@@ -939,7 +939,7 @@ namespace slib
 		return _in.toMemory().serialize(output);
 	}
 
-	sl_bool Deserialize(DeserializeBuffer* input, String& _out)
+	sl_bool Deserialize(SerializeBuffer* input, String& _out)
 	{
 		sl_size size;
 		if (!(CVLI::deserialize(input, size))) {

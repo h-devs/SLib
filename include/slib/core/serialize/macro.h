@@ -58,19 +58,30 @@ public: \
 	template <class OUTPUT> \
 	sl_bool serialize(OUTPUT* output) const \
 	{ \
-		return slib::RemoveConstPointerVariable(this)->template doSerialize<sl_false>(output); \
+		sl_bool flagError = sl_false; \
+		slib::RemoveConstPointerVariable(this)->template doSerialize<sl_false>(output, flagError); \
+		return !flagError; \
 	} \
 	template <class INPUT> \
 	sl_bool deserialize(INPUT* input) \
 	{ \
-		return doSerialize<sl_true>(input); \
+		sl_bool flagError = sl_false; \
+		doSerialize<sl_true>(input, flagError); \
+		return !flagError; \
 	} \
 	template <sl_bool flagDeserialize, class IO> \
-	sl_bool doSerialize(IO* io)
+	void doSerialize(IO* io, sl_bool& outFlagError)
+
+#define SLIB_SERIALIZE_CALL_BASE(BASE_CLASS) \
+		BASE_CLASS::doSerialize<flagDeserialize, IO>(io, outFlagError); \
+		if (outFlagError) { \
+			return; \
+		}
 
 #define SLIB_SERIALIZE_ADD_MEMBER(MEMBER_NAME) \
 		if (!(slib::SerializeMemberHelper<flagDeserialize>::doSerialize(io, MEMBER_NAME))) { \
-			return sl_false; \
+			outFlagError = sl_true; \
+			return; \
 		}
 
 #define PRIV_SLIB_SERIALIZE_ADD_MEMBERS0
@@ -145,7 +156,23 @@ public: \
 	SLIB_SERIALIZE \
 	{ \
 		SLIB_SERIALIZE_ADD_MEMBERS(__VA_ARGS__) \
-		return sl_true; \
+	}
+
+#define SLIB_SERIALIZE_BY_JSON \
+	SLIB_SERIALIZE { \
+		{ \
+			Json json; \
+			if (!flagDeserialize) { \
+				json = toJson(); \
+			} \
+			if (!(slib::SerializeMemberHelper<flagDeserialize>::doSerialize(io, json))) { \
+				outFlagError = sl_true; \
+				return; \
+			} \
+			if (flagDeserialize) { \
+				setJson(json); \
+			} \
+		} \
 	}
 
 #endif

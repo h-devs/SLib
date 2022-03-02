@@ -34,7 +34,7 @@ namespace slib
 	class String16;
 	class String32;
 	class MemoryBuffer;
-	class DeserializeBuffer;
+	class SerializeBuffer;
 
 	class SLIB_EXPORT MemoryData
 	{
@@ -227,7 +227,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_SERIALIZE_MEMBERS
 
 		sl_bool serialize(MemoryBuffer* output) const;
-		sl_bool deserialize(DeserializeBuffer* input);
+		sl_bool deserialize(SerializeBuffer* input);
 
 	private:
 		static Memory _createStatic(const void* buf, sl_size size, Referable* ref) noexcept;

@@ -53,7 +53,7 @@ namespace slib
 		if (size < 35) {
 			return 0;
 		}
-		DeserializeBuffer buf(data, size);
+		SerializeBuffer buf(data, size);
 		sl_uint16 _version;
 		if (!(buf.readUint16BE(_version))) {
 			return 0;
@@ -117,7 +117,7 @@ namespace slib
 
 	sl_int32 TlsClientHelloMessage::_parseExtensions(const void* data, sl_size size) noexcept
 	{
-		DeserializeBuffer buf(data, size);
+		SerializeBuffer buf(data, size);
 		while (buf.current < buf.end) {
 			TlsExtension extension;
 			sl_uint16 type;
@@ -139,7 +139,7 @@ namespace slib
 
 	sl_bool TlsServerNameIndicationExtension::parse(const void* data, sl_size size) noexcept
 	{
-		DeserializeBuffer buf(data, size);
+		SerializeBuffer buf(data, size);
 		sl_uint16 n;
 		if (!(buf.readUint16BE(n))) {
 			return sl_false;

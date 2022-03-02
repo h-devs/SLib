@@ -42,6 +42,9 @@ public: \
 	} \
 	void doJson(slib::Json& json, sl_bool isFromJson)
 
+#define SLIB_JSON_CALL_BASE(BASE_CLASS) \
+	BASE_CLASS::doJson(json, isFromJson);
+
 #define SLIB_JSON_ADD_MEMBER(MEMBER_NAME, JSON_NAME) \
 	{ \
 		static sl_char8 _strJsonField_buf[] = JSON_NAME; \

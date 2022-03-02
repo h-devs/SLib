@@ -64,7 +64,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Deserialize(DeserializeBuffer* input, String& _out);
+	sl_bool Deserialize(SerializeBuffer* input, String& _out);
 
 	template <class INPUT>
 	static sl_bool Deserialize(INPUT* input, String& _out)

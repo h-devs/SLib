@@ -57,11 +57,9 @@ namespace slib
 
 	sl_bool DeserializeByte(IReader* reader, sl_uint8& _out) noexcept;
 	sl_bool DeserializeByte(SerializeBuffer* buf, sl_uint8& _out) noexcept;
-	sl_bool DeserializeByte(DeserializeBuffer* buf, sl_uint8& _out) noexcept;
 
 	sl_bool DeserializeRaw(IReader* reader, void* data, sl_size size) noexcept;
 	sl_bool DeserializeRaw(SerializeBuffer* buf, void* data, sl_size size) noexcept;
-	sl_bool DeserializeRaw(DeserializeBuffer* buf, void* data, sl_size size) noexcept;
 	sl_bool DeserializeRaw(sl_uint8** buf, void* data, sl_size size) noexcept;
 	sl_bool DeserializeRaw(sl_uint8 const** buf, void* data, sl_size size) noexcept;
 	sl_bool DeserializeRaw(sl_uint8*& buf, void* data, sl_size size) noexcept;

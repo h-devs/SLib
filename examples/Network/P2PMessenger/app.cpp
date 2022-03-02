@@ -14,7 +14,8 @@ void P2PMsgApp::onStart()
 
 	P2PSocketParam param;
 
-	param.onReceiveBroadcast = [this](P2PSocket*, P2PNodeId& nodeId, P2PMessage& input) {
+	param.onReceiveBroadcast = [this](P2PSocket*, P2PRequest& input) {
+		P2PNodeId& nodeId = input.senderId;
 		String name = input.getJson()["name"].getString();
 		if (name.isNotEmpty()) {
 			String old = m_nodeNames.getValue(nodeId);
@@ -32,8 +33,8 @@ void P2PMsgApp::onStart()
 		}
 	};
 
-	param.onReceiveMessage = [this](P2PSocket*, P2PNodeId& nodeId, P2PMessage& input, P2PResponse& output) {
-		String name = m_nodeNames.getValue(nodeId);
+	param.onReceiveMessage = [this](P2PSocket*, P2PRequest& input, P2PResponse& output) {
+		String name = m_nodeNames.getValue(input.senderId);
 		if (name.isNotEmpty()) {
 			addToBoard("From " + name, input.getString());
 			output.setString("OK");
