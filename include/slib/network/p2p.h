@@ -37,6 +37,12 @@ namespace slib
 	typedef ECPrivateKey_secp256k1 P2PPrivateKey;
 	typedef ECPublicKey_secp256k1 P2PPublicKey;
 
+	enum class P2PConnectionType
+	{
+		Unknown = 0,
+		Direct = 1
+	};
+
 	class SLIB_EXPORT P2PNodeId : public Bytes<16>
 	{
 	public:
@@ -59,6 +65,10 @@ namespace slib
 		const void* data;
 		sl_uint32 size;
 
+	public:
+		P2PConnectionType connectionType;
+		SocketAddress remoteAddress; // For receiver (Broadcast)
+
 	private:
 		Ref<Referable> ref;
 		Memory mem;
@@ -72,7 +82,7 @@ namespace slib
 		P2PMessage(const void* data, sl_uint32 size, Referable* ref = sl_null);
 
 		template <class T>
-		P2PMessage(T&& value): data(sl_null), size(0)
+		P2PMessage(T&& value): data(sl_null), size(0), connectionType(P2PConnectionType::Unknown)
 		{
 			setContent(Forward<T>(value));
 		}
@@ -114,6 +124,23 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT P2PRequest : public P2PMessage
+	{
+	public:
+		P2PNodeId senderId; // For receiver
+
+	public:
+		P2PRequest();
+
+		P2PRequest(const void* data, sl_uint32 size, Referable* ref = sl_null);
+
+		template <class T>
+		P2PRequest(T&& value): P2PMessage(Forward<T>(value)) {}
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PRequest)
+
+	};
+
 	class SLIB_EXPORT P2PResponse : public P2PMessage
 	{
 	public:
@@ -142,8 +169,9 @@ namespace slib
 		sl_uint32 tcpConnectionTimeout; // In milliseconds
 		sl_uint32 maximumMessageSize; // In bytes
 
-		Function<void(P2PSocket*, P2PNodeId&, P2PMessage&, P2PResponse&)> onReceiveMessage;
-		Function<void(P2PSocket*, P2PNodeId&, P2PMessage&)> onReceiveBroadcast;
+		Function<void(P2PSocket*, P2PRequest&, P2PResponse&)> onReceiveMessage;
+		Function<void(P2PSocket*, P2PRequest&)> onReceiveBroadcast;
+		Function<void(P2PSocket*, P2PRequest&)> onReceiveDatagram;
 
 		sl_bool flagAutoStart; // [In] Automatically start the socket
 
@@ -173,9 +201,13 @@ namespace slib
 
 		virtual sl_bool start() = 0;
 
-		virtual void sendMessage(const P2PNodeId& nodeId, const P2PMessage& msg, const Function<void(P2PResponse&)>& callback) = 0;
+		virtual void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis = 0) = 0;
 
-		virtual void sendBroadcast(const P2PMessage& msg) = 0;
+		virtual void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis = 0) = 0;
+
+		virtual void sendBroadcast(const P2PRequest& msg) = 0;
+
+		virtual void sendDatagram(const SocketAddress& address, const P2PRequest& msg) = 0;
 
 	};
 

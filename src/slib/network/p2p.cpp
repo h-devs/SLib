@@ -169,6 +169,7 @@ namespace slib
 				Ping = 6,
 				ReplyPing = 7,
 				Broadcast = 8,
+				Datagram = 9,
 
 				InitTcp = 100,
 				ReplyInitTcp = 101,
@@ -251,20 +252,15 @@ namespace slib
 
 			};
 
-			enum class ConnectionType
-			{
-				Direct = 0
-			};
-
 			class Connection : public Referable
 			{
 			public:
-				ConnectionType m_type;
+				P2PConnectionType m_type;
 				sl_uint32 m_timeLastPing = 0;
 				sl_uint32 m_delayLastPing = 0;
 
 			public:
-				Connection(ConnectionType type) : m_type(type) {}
+				Connection(P2PConnectionType type) : m_type(type) {}
 
 			};
 
@@ -296,7 +292,7 @@ namespace slib
 				IPv4Address m_ip;
 				
 			public:
-				DirectConnection(const IPv4Address& ip): Connection(ConnectionType::Direct), m_ip(ip) {}
+				DirectConnection(const IPv4Address& ip): Connection(P2PConnectionType::Direct), m_ip(ip) {}
 
 			};
 			
@@ -467,6 +463,66 @@ namespace slib
 			public:
 				TcpClientStream(Ref<AsyncTcpSocket>&& _socket, sl_size maximumMessageSize): TcpStream(Move(_socket), maximumMessageSize) {}
 
+			};
+
+			class TimeoutMonitor
+			{
+			public:
+				sl_bool tryFinish() noexcept
+				{
+					return !(Base::interlockedDecrement32(&m_counter));
+				}
+
+				sl_bool isFinished() noexcept
+				{
+					return m_counter != 1;
+				}
+
+			public:
+				static sl_bool create(Shared<TimeoutMonitor>& monitor, sl_uint64 tickEnd) noexcept
+				{
+					if (tickEnd) {
+						monitor = Shared<TimeoutMonitor>::create();
+						return monitor.isNotNull();
+					} else {
+						return sl_true;
+					}
+				}
+
+				static void dispatchTimeout(const Shared<TimeoutMonitor>& monitor, const Ref<DispatchLoop>& loop, const Function<void()>& callbackTimeout, sl_uint64 tickEnd) noexcept
+				{
+					sl_uint64 cur = GetCurrentTick();
+					if (cur < tickEnd) {
+						loop->dispatch([monitor, callbackTimeout]() {
+							if (monitor->tryFinish()) {
+								callbackTimeout();
+							}
+						}, tickEnd - cur);
+					} else {
+						if (monitor->tryFinish()) {
+							callbackTimeout();
+						}
+					}
+				}
+
+				static sl_bool isFinished(const Shared<TimeoutMonitor>& monitor) noexcept
+				{
+					if (monitor.isNull()) {
+						return sl_false;
+					}
+					return monitor->isFinished();
+				}
+
+				static sl_bool tryFinish(const Shared<TimeoutMonitor>& monitor) noexcept
+				{
+					if (monitor.isNull()) {
+						return sl_true;
+					}
+					return monitor->tryFinish();
+				}
+
+			private:
+				volatile sl_int32 m_counter = 1;
 			};
 
 			class MessageBody
@@ -698,7 +754,7 @@ namespace slib
 
 					// Initialize Hello Timer
 					{
-						m_timerHello = Timer::createWithDispatcher(m_dispatchLoop, SLIB_FUNCTION_WEAKREF(This, _onTimerHello, this), INTERVAL_HELLO_DIRECT_CONNECTION);
+						m_timerHello = Timer::createWithDispatcher(m_dispatchLoop, SLIB_FUNCTION_WEAKREF(this, _onTimerHello), INTERVAL_HELLO_DIRECT_CONNECTION);
 						if (m_timerHello.isNull()) {
 							return sl_false;
 						}
@@ -761,7 +817,7 @@ namespace slib
 						break; 
 					case Command::ReplyFindNode:
 						if (sizePacket > 1) {
-							DeserializeBuffer bufRead(packet + 1, sizePacket - 1);
+							SerializeBuffer bufRead(packet + 1, sizePacket - 1);
 							P2PPublicKey remoteKey;
 							if (remoteKey.deserialize(&bufRead)) {
 								_sendVerifyDirectConnection(address, remoteKey);
@@ -773,7 +829,7 @@ namespace slib
 							if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
 								sl_uint8 contentToEncrypt[10];
 								Base::copyMemory(contentToEncrypt, packet + 17, 10);
-								DeserializeBuffer bufRead(packet + 27, sizePacket - 27);
+								SerializeBuffer bufRead(packet + 27, sizePacket - 27);
 								P2PPublicKey remoteKey;
 								if (remoteKey.deserialize(&bufRead)) {
 									ChaCha20_Poly1305 encryptor;
@@ -798,7 +854,7 @@ namespace slib
 					case Command::ReplyVerifyNode:
 						if (sizePacket > 55) {
 							if (Base::equalsMemory(m_localNodeId.data, packet + 1, sizeof(P2PNodeId))) {
-								DeserializeBuffer bufRead(packet + 55, sizePacket - 55);
+								SerializeBuffer bufRead(packet + 55, sizePacket - 55);
 								P2PPublicKey remoteKey;
 								if (remoteKey.deserialize(&bufRead)) {
 									ChaCha20_Poly1305 decryptor;
@@ -846,9 +902,20 @@ namespace slib
 						break;
 					case Command::Broadcast:
 						if (sizePacket > 17) {
-							P2PNodeId nodeId(packet + 1);
-							P2PMessage msg(packet + 17, sizePacket - 17);
-							m_param.onReceiveBroadcast(this, nodeId, msg);
+							P2PRequest request(packet + 17, sizePacket - 17);
+							request.senderId = P2PNodeId(packet + 1);
+							request.connectionType = P2PConnectionType::Direct;
+							request.remoteAddress = address;
+							m_param.onReceiveBroadcast(this, request);
+						}
+						break;
+					case Command::Datagram:
+						if (sizePacket > 17) {
+							P2PRequest request(packet + 17, sizePacket - 17);
+							request.senderId = P2PNodeId(packet + 1);
+							request.connectionType = P2PConnectionType::Direct;
+							request.remoteAddress = address;
+							m_param.onReceiveDatagram(this, request);
 						}
 						break;
 					default:
@@ -949,7 +1016,7 @@ namespace slib
 					case Command::InitTcp:
 						if (sizePacket > 4) {
 							if (Base::equalsMemory(m_localNodeId.data, packet, 4)) {
-								DeserializeBuffer bufRead(packet + 4, sizePacket - 4);
+								SerializeBuffer bufRead(packet + 4, sizePacket - 4);
 								if (stream->m_remoteNodeKey.deserialize(&bufRead)) {
 									_deriveEncryptionKey(stream->m_remoteNodeKey, stream->m_encryptionKey);
 									sl_uint8 c = (sl_uint8)(Command::ReplyInitTcp);
@@ -973,14 +1040,17 @@ namespace slib
 								decryptor.start(header); // iv
 								decryptor.decrypt(packet, packet, sizePacket);
 								if (decryptor.finishAndCheckTag(header + 12)) {
-									P2PMessage msg(packet, (sl_uint32)sizePacket);
-									m_param.onReceiveMessage(this, nodeId, msg, response);
+									P2PRequest request(packet, (sl_uint32)sizePacket);
+									request.senderId = nodeId;
+									request.connectionType = P2PConnectionType::Direct;
+									m_param.onReceiveMessage(this, request, response);
 								} else {
 									return sl_false;
 								}
 							} else {
-								P2PMessage msg;
-								m_param.onReceiveMessage(this, nodeId, msg, response);
+								P2PRequest request;
+								request.senderId = nodeId;
+								m_param.onReceiveMessage(this, request, response);
 							}
 							if (response.size) {
 								sl_uint8 bufSize[16];
@@ -1183,7 +1253,7 @@ namespace slib
 					if (node->m_connectionDefault.isNotNull()) {
 						Ref<Connection> connectionDefault = node->m_connectionDefault;
 						if (connectionDefault.isNotNull()) {
-							if (connectionDefault->m_type == ConnectionType::Direct) {
+							if (connectionDefault->m_type == P2PConnectionType::Direct) {
 								if (_isValidConnection(connectionDefault.get())) {
 									if (connectionDefault->m_delayLastPing <= connection->m_delayLastPing) {
 										return;
@@ -1200,7 +1270,7 @@ namespace slib
 					return CheckDelay(connection->m_timeLastPing, GetCurrentTick(), TIMEOUT_VALID_DIRECT_CONNECTION);
 				}
 
-				void _getTcpClientStream(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientStream*)>& callback)
+				void _getTcpClientStream(Node* node, DirectConnection* connection, const Function<void(This*, Node*, DirectConnection*, TcpClientStream*)>& callback, sl_uint64 tickEnd)
 				{
 					Ref<AsyncTcpSocket> socket;
 					if (m_mapIdleTcpSockets.remove(connection, &socket)) {
@@ -1217,9 +1287,13 @@ namespace slib
 						Ref<AsyncTcpSocket> socket = AsyncTcpSocket::create(param);
 						if (socket.isNotNull()) {
 							Ref<TcpClientStream> stream = new TcpClientStream(Move(socket), m_param.maximumMessageSize);
-							if (stream.isNotNull()) {
+							Shared<TimeoutMonitor> timeoutMonitor;
+							if (stream.isNotNull() && TimeoutMonitor::create(timeoutMonitor, tickEnd)) {
 								WeakRef<TcpClientStream> weakStream = stream;
-								if (stream->m_socket->connect(SocketAddress(connection->m_ip, node->m_portBound), [this, refNode, refConnection, weakStream, callback](AsyncTcpSocket* socket, sl_bool flagError) {
+								if (stream->m_socket->connect(SocketAddress(connection->m_ip, node->m_portBound), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncTcpSocket* socket, sl_bool flagError) {
+									if (TimeoutMonitor::isFinished(timeoutMonitor)) {
+										return;
+									}
 									Node* node = refNode.get();
 									Ref<TcpClientStream> stream = weakStream;
 									if (stream.isNotNull()) {
@@ -1237,29 +1311,41 @@ namespace slib
 												packet += 4;
 												Base::copyMemory(packet, bufKey, nKey);
 												packet += nKey;
-												if (socket->send(Memory::create(bufPacket, packet - bufPacket), [this, refNode, refConnection, weakStream, callback](AsyncStreamResult& result) {
+												if (socket->send(Memory::create(bufPacket, packet - bufPacket), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
+													if (TimeoutMonitor::isFinished(timeoutMonitor)) {
+														return;
+													}
 													Ref<TcpClientStream> stream = weakStream;
 													if (stream.isNotNull()) {
 														if (result.isSuccess()) {
-															if (result.stream->read(Memory::create(16), [this, refNode, refConnection, weakStream, callback](AsyncStreamResult& result) {
+															if (result.stream->read(Memory::create(16), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
+																if (TimeoutMonitor::isFinished(timeoutMonitor)) {
+																	return;
+																}
 																Ref<TcpClientStream> stream = weakStream;
 																if (stream.isNotNull()) {
 																	if (result.isSuccess()) {
 																		if (result.size == 1 && *((sl_uint8*)(result.data)) == (sl_uint8)(Command::ReplyInitTcp)) {
-																			callback(this, refNode.get(), refConnection.get(), stream.get());
+																			if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
+																				callback(this, refNode.get(), refConnection.get(), stream.get());
+																			}
 																			return;
 																		}
 																	}
 																	m_mapTcpStreams.remove(stream.get());
 																}
-																callback(this, refNode.get(), refConnection.get(), sl_null);
+																if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
+																	callback(this, refNode.get(), refConnection.get(), sl_null);
+																}
 															})) {
 																return;
 															}
 														}
 														m_mapTcpStreams.remove(stream.get());
 													}
-													callback(this, refNode.get(), refConnection.get(), sl_null);
+													if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
+														callback(this, refNode.get(), refConnection.get(), sl_null);
+													}
 												})) {
 													return;
 												}
@@ -1267,9 +1353,20 @@ namespace slib
 										}
 										m_mapTcpStreams.remove(stream.get());
 									}
-									callback(this, refNode.get(), refConnection.get(), sl_null);
+									if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
+										callback(this, refNode.get(), refConnection.get(), sl_null);
+									}
 								})) {
 									m_mapTcpStreams.put(stream.get(), stream);
+									if (timeoutMonitor.isNotNull()) {
+										TimeoutMonitor::dispatchTimeout(timeoutMonitor, m_dispatchLoop, [this, refNode, refConnection, weakStream, callback]() {
+											Ref<TcpStream> stream = weakStream;
+											if (stream.isNotNull()) {
+												m_mapTcpStreams.remove(stream.get());
+											}
+											callback(this, refNode.get(), refConnection.get(), sl_null);
+										}, tickEnd);
+									}
 									return;
 								}
 							}
@@ -1277,44 +1374,74 @@ namespace slib
 						callback(this, node, connection, sl_null);
 					}
 				}
-				
-				void _findNode(const P2PNodeId& nodeId, const NodeCallback& callback, sl_uint32 nRetry)
+
+				void _findNode(const P2PNodeId& nodeId, const NodeCallback& callback, sl_uint64 tickEnd)
 				{
 					Ref<Node> node = m_mapNodes.getValue(nodeId);
 					if (node.isNotNull()) {
 						callback(node.get(), sl_null);
 						return;
 					}
-					WeakRef<This> weakThis = this;
-					m_mapFindCallbacks.add(nodeId, [weakThis, nodeId, callback, nRetry](Node* node, void*) {
-						Ref<This> thiz = weakThis;
-						if (thiz.isNull()) {
+					sl_bool flagShortTimeout = sl_false;
+					sl_uint32 timeout = 0;
+					if (tickEnd) {
+						sl_uint64 cur = GetCurrentTick();
+						if (tickEnd <= cur) {
 							callback(sl_null, sl_null);
 							return;
 						}
-						if (node) {
-							callback(node, sl_null);
-						} else {
-							if (nRetry) {
-								thiz->_findNode(nodeId, callback, nRetry - 1);
-							} else {
+						if (tickEnd < cur + EXPIRE_DURATION_FIND_DIRECT_CONNECTION) {
+							flagShortTimeout = sl_true;
+							timeout = (sl_uint32)(tickEnd - cur);
+						}
+					} else {
+						tickEnd = GetCurrentTick() + 5 * EXPIRE_DURATION_FIND_DIRECT_CONNECTION;
+					}
+					WeakRef<This> weakThis = this;
+					if (flagShortTimeout) {
+						Shared<TimeoutMonitor> monitorResult = Shared<TimeoutMonitor>::create();
+						if (monitorResult.isNull()) {
+							callback(sl_null, sl_null);
+							return;
+						}
+						m_mapFindCallbacks.add(nodeId, [weakThis, nodeId, callback, monitorResult](Node* node, void*) {
+							if (monitorResult->tryFinish()) {
+								Ref<This> thiz = weakThis;
+								callback(thiz.isNotNull() ? node : sl_null, sl_null);
+							}
+						});
+						m_dispatchLoop->dispatch([callback, monitorResult]() {
+							if (monitorResult->tryFinish()) {
 								callback(sl_null, sl_null);
 							}
-						}
-					});
+						}, timeout);
+					} else {
+						m_mapFindCallbacks.add(nodeId, [weakThis, nodeId, callback, tickEnd](Node* node, void*) {
+							Ref<This> thiz = weakThis;
+							if (thiz.isNull()) {
+								callback(sl_null, sl_null);
+								return;
+							}
+							if (node) {
+								callback(node, sl_null);
+							} else {
+								thiz->_findNode(nodeId, callback, tickEnd);
+							}
+						});
+					}
 					sl_uint8 buf[1024];
 					buf[0] = (sl_uint8)(Command::FindNode);
 					Base::copyMemory(buf + 1, nodeId.data, sizeof(nodeId));
 					_sendBroadcast(buf, 17);
 				}
 
-				void _sendMessage(Node* node, const MessageBody& body, const Function<void(P2PResponse&)>& callback)
+				void _sendMessage(Node* node, const MessageBody& body, const Function<void(P2PResponse&)>& callback, sl_uint64 tickEnd)
 				{
 					Ref<Connection> connection = node->m_connectionDefault;
 					if (connection.isNotNull()) {
 						if (_isValidConnection(connection.get())) {
-							if (connection->m_type == ConnectionType::Direct) {
-								_sendMessageDirectConnection(node, (DirectConnection*)(connection.get()), body, callback);
+							if (connection->m_type == P2PConnectionType::Direct) {
+								_sendMessageDirectConnection(node, (DirectConnection*)(connection.get()), body, callback, tickEnd);
 								return;
 							}
 						}
@@ -1322,10 +1449,11 @@ namespace slib
 					ReplyErrorResponse(callback);
 				}
 
-				void _sendMessageDirectConnection(Node* node, DirectConnection* connection, const MessageBody& body, const Function<void(P2PResponse&)>& callback)
+				void _sendMessageDirectConnection(Node* node, DirectConnection* connection, const MessageBody& body, const Function<void(P2PResponse&)>& callback, sl_uint64 tickEnd)
 				{
-					_getTcpClientStream(node, connection, [this, body, callback](This* thiz, Node* node, DirectConnection* connection, TcpClientStream* stream) {
-						if (stream) {
+					_getTcpClientStream(node, connection, [this, body, callback, tickEnd](This* thiz, Node* node, DirectConnection* connection, TcpClientStream* stream) {
+						Shared<TimeoutMonitor> timeoutMonitor;
+						if (stream && TimeoutMonitor::create(timeoutMonitor, tickEnd)) {
 							Memory memPacket;
 							sl_uint8* packet;
 							if (body.lengthOfSize) {
@@ -1352,11 +1480,17 @@ namespace slib
 							WeakRef<TcpClientStream> weakStream = stream;
 							Ref<DirectConnection> refConnection = connection;
 							Ref<Node> refNode = node;
-							if (stream->m_socket->send(memPacket, [this, refNode, refConnection, weakStream, callback](AsyncStreamResult& result) {
+							if (stream->m_socket->send(memPacket, [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
+								if (TimeoutMonitor::isFinished(timeoutMonitor)) {
+									return;
+								}
 								Ref<TcpClientStream> stream = weakStream;
 								if (stream.isNotNull()) {
 									if (result.isSuccess()) {
-										if (stream->m_socket->receive(Memory::create(BUFFER_SIZE_TCP_STREAM), [this, refNode, refConnection, weakStream, callback](AsyncStreamResult& result) {
+										if (stream->m_socket->receive(Memory::create(BUFFER_SIZE_TCP_STREAM), [this, refNode, refConnection, weakStream, timeoutMonitor, callback](AsyncStreamResult& result) {
+											if (TimeoutMonitor::isFinished(timeoutMonitor)) {
+												return;
+											}
 											Ref<TcpClientStream> stream = weakStream;
 											DirectConnection* connection = refConnection.get();
 											if (stream.isNotNull()) {
@@ -1364,32 +1498,36 @@ namespace slib
 													sl_int32 iRet = stream->processReceivedData((sl_uint8*)(result.data), result.size);
 													if (iRet >= 0) {
 														if (iRet > 0) {
-															if (stream->m_currentCommand == Command::ReplyMessage) {
-																sl_uint8* buf = stream->getContent();
-																sl_uint32 size = (sl_uint32)(stream->getContentSize());
-																sl_bool flagSuccess = sl_true;
-																if (size) {
-																	ChaCha20_Poly1305 enc;
-																	enc.setKey(refNode->m_encryptionKey);
-																	enc.start(buf);
-																	sl_uint8* content = buf + 28;
-																	size -= 28;
-																	enc.decrypt(content, content, size);
-																	if (enc.finishAndCheckTag(buf + 12)) {
-																		P2PResponse response(content, size);
-																		callback(response);
+															if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
+																if (stream->m_currentCommand == Command::ReplyMessage) {
+																	sl_uint8* buf = stream->getContent();
+																	sl_uint32 size = (sl_uint32)(stream->getContentSize());
+																	sl_bool flagSuccess = sl_true;
+																	if (size) {
+																		ChaCha20_Poly1305 enc;
+																		enc.setKey(refNode->m_encryptionKey);
+																		enc.start(buf);
+																		sl_uint8* content = buf + 28;
+																		size -= 28;
+																		enc.decrypt(content, content, size);
+																		if (enc.finishAndCheckTag(buf + 12)) {
+																			P2PResponse response(content, size);
+																			response.connectionType = P2PConnectionType::Direct;
+																			callback(response);
+																		} else {
+																			flagSuccess = sl_false;
+																		}
 																	} else {
-																		flagSuccess = sl_false;
+																		P2PResponse response;
+																		response.connectionType = P2PConnectionType::Direct;
+																		callback(response);
 																	}
-																} else {
-																	P2PResponse response;
-																	callback(response);
-																}
-																stream->clear();
-																if (flagSuccess) {
-																	m_mapTcpStreams.get(stream.get());
-																	m_mapIdleTcpSockets.add(connection, stream->m_socket);
-																	return;
+																	stream->clear();
+																	if (flagSuccess) {
+																		m_mapTcpStreams.get(stream.get());
+																		m_mapIdleTcpSockets.add(connection, stream->m_socket);
+																		return;
+																	}
 																}
 															}
 														} else {
@@ -1401,21 +1539,34 @@ namespace slib
 												}
 												m_mapTcpStreams.remove(stream.get());
 											}
-											ReplyErrorResponse(callback);
+											if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
+												ReplyErrorResponse(callback);
+											}
 										})) {
 											return;
 										}
 									}
 									m_mapTcpStreams.remove(stream.get());
 								}
-								ReplyErrorResponse(callback);
+								if (TimeoutMonitor::tryFinish(timeoutMonitor)) {
+									ReplyErrorResponse(callback);
+								}
 							})) {
+								if (timeoutMonitor.isNotNull()) {
+									TimeoutMonitor::dispatchTimeout(timeoutMonitor, m_dispatchLoop, [this, weakStream, callback]() {
+										Ref<TcpStream> stream = weakStream;
+										if (stream.isNotNull()) {
+											m_mapTcpStreams.remove(stream.get());
+										}
+										ReplyErrorResponse(callback);
+									}, tickEnd);
+								}
 								return;
 							}
 							m_mapTcpStreams.remove(stream);
 						}
 						ReplyErrorResponse(callback);
-					});
+					}, tickEnd);
 				}
 
 			public:
@@ -1479,7 +1630,7 @@ namespace slib
 					return sl_true;
 				}
 
-				void sendMessage(const P2PNodeId& nodeId, const P2PMessage& msg, const Function<void(P2PResponse&)>& callback) override
+				void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, const Function<void(P2PResponse&)>& callback, sl_uint32 timeoutMillis) override
 				{
 					if (m_flagClosed) {
 						ReplyErrorResponse(callback);
@@ -1498,18 +1649,48 @@ namespace slib
 						Base::copyMemory(packet + 1, bufSize, body.lengthOfSize);
 						Base::copyMemory(packet + 29 + body.lengthOfSize, msg.data, msg.size);
 					}
+					sl_uint64 tickEnd;
+					if (timeoutMillis) {
+						tickEnd = GetCurrentTick() + timeoutMillis;
+					} else {
+						tickEnd = 0;
+					}
 					WeakRef<This> weakThis = this;
-					_findNode(nodeId, [weakThis, body, callback](Node* node, void*) {
+					_findNode(nodeId, [weakThis, body, callback, tickEnd](Node* node, void*) {
 						Ref<This> thiz = weakThis;
 						if (thiz.isNotNull() && node) {
-							thiz->_sendMessage(node, body, callback);
+							thiz->_sendMessage(node, body, callback, tickEnd);
 						} else {
 							ReplyErrorResponse(callback);
 						}
-					}, 3);
+					}, tickEnd);
 				}
 
-				void sendBroadcast(const P2PMessage& msg) override
+				void sendMessage(const P2PNodeId& nodeId, const P2PRequest& msg, P2PResponse& response, sl_uint32 timeoutMillis) override
+				{
+					if (m_flagClosed) {
+						return;
+					}
+					Ref<Event> ev = Event::create();
+					if (ev.isNull()) {
+						return;
+					}
+					Shared<TimeoutMonitor> timeoutMonitor = Shared<TimeoutMonitor>::create();
+					if (timeoutMonitor.isNull()) {
+						return;
+					}
+					P2PResponse* ret = &response;
+					sendMessage(nodeId, msg, [timeoutMonitor, ret, ev](P2PResponse& response) {
+						if (timeoutMonitor->tryFinish()) {
+							*ret = Move(response);
+							ev->set();
+						}
+					}, timeoutMillis);
+					ev->wait();
+					timeoutMonitor->tryFinish();
+				}
+
+				void sendBroadcast(const P2PRequest& msg) override
 				{
 					if (m_flagClosed) {
 						return;
@@ -1519,6 +1700,18 @@ namespace slib
 					Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
 					Base::copyMemory(packet + 17, msg.data, msg.size);
 					_sendBroadcast(packet, 17 + msg.size);
+				}
+
+				void sendDatagram(const SocketAddress& address, const P2PRequest& msg) override
+				{
+					if (m_flagClosed) {
+						return;
+					}
+					SLIB_SCOPED_BUFFER(sl_uint8, 1024, packet, 17 + msg.size);
+					packet[0] = (sl_uint8)(Command::Datagram);
+					Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
+					Base::copyMemory(packet + 17, msg.data, msg.size);
+					_sendUdp(address, packet, 17 + msg.size);
 				}
 
 			};
@@ -1557,11 +1750,11 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(P2PMessage)
 
-	P2PMessage::P2PMessage() : data(sl_null), size(0), flagNotJson(sl_false)
+	P2PMessage::P2PMessage() : data(sl_null), size(0), connectionType(P2PConnectionType::Unknown), flagNotJson(sl_false)
 	{
 	}
 
-	P2PMessage::P2PMessage(const void* _data, sl_uint32 _size, Referable* _ref) : data(_data), size(_size), ref(_ref), flagNotJson(sl_false)
+	P2PMessage::P2PMessage(const void* _data, sl_uint32 _size, Referable* _ref) : data(_data), size(_size), ref(_ref), connectionType(P2PConnectionType::Unknown), flagNotJson(sl_false)
 	{
 	}
 
@@ -1688,6 +1881,17 @@ namespace slib
 				json = _json;
 			}
 		}
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(P2PRequest)
+
+	P2PRequest::P2PRequest()
+	{
+	}
+
+	P2PRequest::P2PRequest(const void* data, sl_uint32 size, Referable* ref): P2PMessage(data, size, ref)
+	{
 	}
 
 
