@@ -1117,7 +1117,7 @@ namespace slib
 				}
 				if (len1 < len2) {
 					return -1;
-				} else {
+				} else if (len1 > len2) {
 					return 1;
 				}
 				return 0;
