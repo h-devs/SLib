@@ -88,8 +88,7 @@ namespace slib
 	sl_bool IniSetting::parseFromUtf8TextFile(const StringParam& filePath)
 	{
 		if (File::exists(filePath)) {
-			String text = File::readAllText(filePath);
-			return parseFromText(text);
+			return parseFromText(File::readAllText(filePath));
 		} else {
 			return sl_false;
 		}

@@ -79,7 +79,7 @@ namespace slib
 			if (startIndex < 0) {
 				startIndex = 0;
 			}
-			for (sl_size i = startIndex; i < count; i++) {
+			for (sl_reg i = startIndex; i < count; i++) {
 				if (equals(data[i], value)) {
 					ret = i;
 					break;
