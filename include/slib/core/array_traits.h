@@ -69,9 +69,9 @@ namespace slib
 	};
 	
 	
-	struct SLIB_EXPORT ArrayTraits_IndexOf
+	struct ArrayTraits_IndexOf_Base
 	{
-		
+
 		template <class T, class VALUE, class EQUALS>
 		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
 		{
@@ -87,104 +87,12 @@ namespace slib
 			}
 			return ret;
 		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, char startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, signed char startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned char startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, short startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned short startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, int startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned int startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
 
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, long startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, unsigned long startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, sl_int64 startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, sl_uint64 startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, float startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, double startIndex) noexcept
-		{
-			return indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-
-		template <class T, class TYPE, class EQUALS>
-		static sl_reg indexOf(T* data, sl_reg count, const TYPE& value, const EQUALS& equals) noexcept
-		{
-			sl_reg ret = -1;
-			for (sl_reg i = 0; i < count; i++) {
-				if (equals(data[i], value)) {
-					ret = i;
-					break;
-				}
-			}
-			return ret;
-		}
-		
-		
 		template <class T, class VALUE, class EQUALS>
-		sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals, sl_reg startIndex) noexcept
 		{
 			sl_reg ret = -1;
-			if (startIndex < 0 || startIndex >= (sl_reg)count) {
+			if (startIndex < 0 || startIndex >= count) {
 				startIndex = count - 1;
 			}
 			for (sl_reg i = startIndex; i >= 0; i--) {
@@ -195,86 +103,46 @@ namespace slib
 			}
 			return ret;
 		}
-		
+
+	};
+
+	template <class ARG, sl_bool isClass = __is_class(ARG)>
+	struct ArrayTraits_IndexOf_Helper;
+
+	template <class EQUALS>
+	struct ArrayTraits_IndexOf_Helper<EQUALS, sl_true>
+	{
 		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, char startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
 		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
+			sl_reg ret = -1;
+			for (sl_reg i = 0; i < count; i++) {
+				if (equals(data[i], value)) {
+					ret = i;
+					break;
+				}
+			}
+			return ret;
 		}
-		
+	};
+
+	template <class INDEX>
+	struct ArrayTraits_IndexOf_Helper<INDEX, sl_false>
+	{
 		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, signed char startIndex) noexcept
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
 		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
+			return ArrayTraits_IndexOf_Base::indexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
 		}
-		
+	};
+
+	template <class ARG, sl_bool isClass = __is_class(ARG)>
+	struct ArrayTraits_LastIndexOf_Helper;
+
+	template <class EQUALS>
+	struct ArrayTraits_LastIndexOf_Helper<EQUALS, sl_true>
+	{
 		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned char startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, short startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned short startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, int startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned int startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, long startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, unsigned long startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, sl_int64 startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, sl_uint64 startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, float startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE>
-		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, double startIndex) noexcept
-		{
-			return lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
-		}
-		
-		template <class T, class VALUE, class EQUALS>
 		sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const EQUALS& equals) noexcept
 		{
 			sl_reg ret = -1;
@@ -286,7 +154,33 @@ namespace slib
 			}
 			return ret;
 		}
-		
+	};
+
+	template <class INDEX>
+	struct ArrayTraits_LastIndexOf_Helper<INDEX, sl_false>
+	{
+		template <class T, class VALUE>
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, INDEX startIndex) noexcept
+		{
+			return ArrayTraits_IndexOf_Base::lastIndexOf(data, count, value, Equals<T, VALUE>(), (sl_reg)startIndex);
+		}
+	};
+
+	struct SLIB_EXPORT ArrayTraits_IndexOf : public ArrayTraits_IndexOf_Base
+	{
+
+		template <class T, class VALUE, class ARG>
+		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
+		{
+			return ArrayTraits_IndexOf_Helper<ARG>::indexOf(data, count, value, arg);
+		}
+
+		template <class T, class VALUE, class ARG>
+		static sl_reg lastIndexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
+		{
+			return ArrayTraits_LastIndexOf_Helper<ARG>::lastIndexOf(data, count, value, arg);
+		}
+
 	};
 	
 	

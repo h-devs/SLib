@@ -301,6 +301,20 @@ namespace slib
 		Variant(const Promise<T>& promise) noexcept: Variant(Promise<Variant>::from(promise)) {}
 
 		template <class T>
+		Variant(const Function<Variant(T&)>& func) noexcept
+		{
+			SLIB_TRY_CONVERT_TYPE(Callable<Variant(T&)>*, Callable<Variant(Variant&)>*)
+			_constructorRef(&func, VariantType::Function);
+		}
+
+		template <class T>
+		Variant(Function<Variant(T&)>&& func) noexcept
+		{
+			SLIB_TRY_CONVERT_TYPE(Callable<Variant(T&)>*, Callable<Variant(Variant&)>*)
+			_constructorMoveRef(&func, VariantType::Function);
+		}
+
+		template <class T>
 		Variant(const Nullable<T>& value) noexcept
 		{
 			if (value.isNotNull()) {
