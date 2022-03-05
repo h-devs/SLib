@@ -2258,9 +2258,11 @@ namespace slib
 						if (ch == 'x' || ch == 'X') {
 							i += 2;
 							return 16;
-						} else {
+						} else if (ch >= '0' && ch <= '7') {
 							i += 1;
 							return 8;
+						} else if (ch == '8' || ch == '9') {
+							return 0;
 						}
 					}
 				}
@@ -2290,6 +2292,9 @@ namespace slib
 						return SLIB_PARSE_ERROR;
 					}
 					radix = DetermineRadix(str, i, n);
+					if (!radix) {
+						return SLIB_PARSE_ERROR;
+					}
 				}
 				const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
 				INTEGER v = 0;
@@ -2340,6 +2345,9 @@ namespace slib
 				}
 				if (!radix) {
 					radix = DetermineRadix(str, i, n);
+					if (!radix) {
+						return SLIB_PARSE_ERROR;
+					}
 				}
 				sl_bool bEmpty = sl_true;
 				const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
