@@ -61,8 +61,10 @@ namespace slib
 	public:
 		void setUserDataElements(sl_uint32* data, sl_size n) noexcept;
 
-		sl_int32 makeNagative() noexcept;
-	
+		sl_int32 makeNegative() noexcept;
+
+		void makeBitwiseNot() noexcept;
+
 		sl_bool getBit(sl_size pos) const noexcept;
 
 		sl_bool setBit(sl_size pos, sl_bool bit) noexcept;
@@ -162,7 +164,13 @@ namespace slib
 
 		sl_uint64 getUint64() const noexcept;
 
-		String toString(sl_uint32 radix = 10) const noexcept;
+		float getFloat() const noexcept;
+
+		double getDouble() const noexcept;
+
+		String toString(sl_uint32 radix) const noexcept;
+
+		String toString() override;
 
 		String toHexString() const noexcept;
 
@@ -289,6 +297,45 @@ namespace slib
 		static sl_bool divUint64(const CBigInt& a, sl_uint64 b, CBigInt* quotient = sl_null, sl_uint64* remainder = sl_null) noexcept;
 	
 
+		sl_bool bitwiseAnd(const CBigInt& a, const CBigInt& b) noexcept;
+
+		sl_bool bitwiseAnd(const CBigInt& a, sl_uint32 v) noexcept;
+
+		sl_bool bitwiseAnd(const CBigInt& a, sl_uint64 v) noexcept;
+
+		sl_bool bitwiseAnd(const CBigInt& o) noexcept;
+
+		sl_bool bitwiseAnd(sl_uint32 v) noexcept;
+
+		sl_bool bitwiseAnd(sl_uint64 v) noexcept;
+
+
+		sl_bool bitwiseXor(const CBigInt& a, const CBigInt& b) noexcept;
+
+		sl_bool bitwiseXor(const CBigInt& a, sl_uint32 v) noexcept;
+
+		sl_bool bitwiseXor(const CBigInt& a, sl_uint64 v) noexcept;
+
+		sl_bool bitwiseXor(const CBigInt& o) noexcept;
+
+		sl_bool bitwiseXor(sl_uint32 v) noexcept;
+
+		sl_bool bitwiseXor(sl_uint64 v) noexcept;
+
+
+		sl_bool bitwiseOr(const CBigInt& a, const CBigInt& b) noexcept;
+
+		sl_bool bitwiseOr(const CBigInt& a, sl_uint32 v) noexcept;
+
+		sl_bool bitwiseOr(const CBigInt& a, sl_uint64 v) noexcept;
+
+		sl_bool bitwiseOr(const CBigInt& o) noexcept;
+
+		sl_bool bitwiseOr(sl_uint32 v) noexcept;
+
+		sl_bool bitwiseOr(sl_uint64 v) noexcept;
+
+
 		sl_bool shiftLeft(const CBigInt& other, sl_size n) noexcept;
 
 		sl_bool shiftRight(const CBigInt& other, sl_size n) noexcept;
@@ -368,6 +415,9 @@ namespace slib
 		
 		sl_size getHashCode() const noexcept;
 	
+
+		sl_bool runOperator(sl_uint32 op, Variant& result, const Variant& secondOperand, sl_bool flagThisOnLeft) override;
+
 	private:
 		void _free() noexcept;
 
@@ -486,6 +536,18 @@ namespace slib
 
 		Memory getBytesBE() const noexcept;
 
+		sl_int32 getInt32() const noexcept;
+
+		sl_uint32 getUint32() const noexcept;
+
+		sl_int64 getInt64() const noexcept;
+
+		sl_uint64 getUint64() const noexcept;
+
+		float getFloat() const noexcept;
+
+		double getDouble() const noexcept;
+
 		String toString(sl_uint32 radix = 10) const noexcept;
 
 		String toHexString() const noexcept;
@@ -565,6 +627,11 @@ namespace slib
 
 		BigInt negative() const noexcept;
 
+
+		void makeBitwiseNot() const noexcept;
+
+		BigInt bitwiseNot() const noexcept;
+
 	
 		static BigInt mul(const BigInt& A, const BigInt& B) noexcept;
 
@@ -634,6 +701,45 @@ namespace slib
 		// non-negative remainder
 		static sl_uint64 modUint64(const BigInt& A, sl_uint64 v) noexcept;
 	
+
+		static BigInt bitwiseAnd(const BigInt& A, const BigInt& B) noexcept;
+
+		sl_bool bitwiseAnd(const BigInt& other) noexcept;
+
+		static BigInt bitwiseAnd(const BigInt& A, sl_uint32 v) noexcept;
+
+		sl_bool bitwiseAnd(sl_uint32 v) noexcept;
+
+		static BigInt bitwiseAnd(const BigInt& A, sl_uint64 v) noexcept;
+
+		sl_bool bitwiseAnd(sl_uint64 v) noexcept;
+
+
+		static BigInt bitwiseXor(const BigInt& A, const BigInt& B) noexcept;
+
+		sl_bool bitwiseXor(const BigInt& other) noexcept;
+
+		static BigInt bitwiseXor(const BigInt& A, sl_uint32 v) noexcept;
+
+		sl_bool bitwiseXor(sl_uint32 v) noexcept;
+
+		static BigInt bitwiseXor(const BigInt& A, sl_uint64 v) noexcept;
+
+		sl_bool bitwiseXor(sl_uint64 v) noexcept;
+
+
+		static BigInt bitwiseOr(const BigInt& A, const BigInt& B) noexcept;
+
+		sl_bool bitwiseOr(const BigInt& other) noexcept;
+
+		static BigInt bitwiseOr(const BigInt& A, sl_uint32 v) noexcept;
+
+		sl_bool bitwiseOr(sl_uint32 v) noexcept;
+
+		static BigInt bitwiseOr(const BigInt& A, sl_uint64 v) noexcept;
+
+		sl_bool bitwiseOr(sl_uint64 v) noexcept;
+
 
 		static BigInt shiftLeft(const BigInt& A, sl_size n) noexcept;
 
@@ -717,283 +823,80 @@ namespace slib
 		SLIB_DECLARE_CLASS_PARSE_INT_MEMBERS(BigInt)
 
 	public:
+
+#define PRIV_SLIB_DECLARE_BIGINT_OPERATORS(OP, RET, SUFFIX) \
+		RET operator##OP(const BigInt& other) SUFFIX noexcept; \
+		RET operator##OP(sl_int32 v) SUFFIX noexcept; \
+		RET operator##OP(sl_uint32 v) SUFFIX noexcept; \
+		RET operator##OP(sl_int64 v) SUFFIX noexcept; \
+		RET operator##OP(sl_uint64 v) SUFFIX noexcept;
+
+#define PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(OP, RET, SUFFIX) \
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(OP, RET, SUFFIX) \
+		friend RET operator##OP(sl_int32 v, const BigInt& n) noexcept; \
+		friend RET operator##OP(sl_uint32 v, const BigInt& n) noexcept; \
+		friend RET operator##OP(sl_int64 v, const BigInt& n) noexcept; \
+		friend RET operator##OP(sl_uint64 v, const BigInt& n) noexcept;
+
+#define PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(OP) \
+		BigInt operator##OP(const BigInt& other) const noexcept; \
+		BigInt operator##OP(sl_uint32 v) const noexcept; \
+		BigInt operator##OP(sl_uint64 v) const noexcept; \
+		friend BigInt operator##OP(sl_uint32 v, const BigInt& n) noexcept; \
+		friend BigInt operator##OP(sl_uint64 v, const BigInt& n) noexcept;
+
 		BigInt& operator=(sl_int32 n) noexcept;
-
 		BigInt& operator=(sl_uint32 n) noexcept;
-
 		BigInt& operator=(sl_int64 n) noexcept;
-
 		BigInt& operator=(sl_uint64 n) noexcept;
 
-		BigInt& operator+=(const BigInt& other) noexcept;
-
-		BigInt& operator+=(sl_int32 v) noexcept;
-
-		BigInt& operator+=(sl_uint32 v) noexcept;
-
-		BigInt& operator+=(sl_int64 v) noexcept;
-
-		BigInt& operator+=(sl_uint64 v) noexcept;
-
 		BigInt& operator++() noexcept;
-
 		BigInt operator++(int) noexcept;
-
-		BigInt& operator-=(const BigInt& other) noexcept;
-
-		BigInt& operator-=(sl_int32 v) noexcept;
-
-		BigInt& operator-=(sl_uint32 v) noexcept;
-
-		BigInt& operator-=(sl_int64 v) noexcept;
-
-		BigInt& operator-=(sl_uint64 v) noexcept;
-
 		BigInt& operator--() noexcept;
-
 		BigInt operator--(int) noexcept;
 
-		BigInt& operator*=(const BigInt& other) noexcept;
-
-		BigInt& operator*=(sl_int32 v) noexcept;
-
-		BigInt& operator*=(sl_uint32 v) noexcept;
-
-		BigInt& operator*=(sl_int64 v) noexcept;
-
-		BigInt& operator*=(sl_uint64 v) noexcept;
-
-		BigInt& operator/=(const BigInt& other) noexcept;
-
-		BigInt& operator/=(sl_int32 v) noexcept;
-
-		BigInt& operator/=(sl_uint32 v) noexcept;
-
-		BigInt& operator/=(sl_int64 v) noexcept;
-
-		BigInt& operator/=(sl_uint64 v) noexcept;
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(+=, BigInt&,)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(-=, BigInt&,)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(*=, BigInt&,)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(/=, BigInt&, )
 
 		BigInt& operator%=(const BigInt& other) noexcept;
-
 		BigInt& operator%=(sl_int32 v) noexcept;
 
 		BigInt& operator<<=(sl_uint32 n) noexcept;
-
 		BigInt& operator>>=(sl_uint32 n) noexcept;
-	
+
+		BigInt operator-() const noexcept;
+		BigInt operator~() const noexcept;
+		sl_bool operator!() const noexcept;
+		explicit operator sl_bool() const noexcept;
+
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(==, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(!= , sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(> , sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(<, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(>=, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(<=, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(+ , BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(-, BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(*, BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(/, BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(&)
+		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(^)
+		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(|)
+
+		BigInt operator%(const BigInt& other) const noexcept;
+		sl_int32 operator%(sl_int32 v) const noexcept;
+		sl_int64 operator%(sl_int64 v) const noexcept;
+		friend BigInt operator%(sl_int32 v, const BigInt& n) noexcept;
+		friend BigInt operator%(sl_uint32 v, const BigInt& n) noexcept;
+		friend BigInt operator%(sl_int64 v, const BigInt& n) noexcept;
+		friend BigInt operator%(sl_uint64 v, const BigInt& n) noexcept;
+
+		BigInt operator<<(sl_size n) const noexcept;
+		BigInt operator>>(sl_size n) const noexcept;
+
 	};
-	
-	
-	sl_bool operator==(const BigInt& a, const BigInt& b) noexcept;
-	
-	sl_bool operator==(const BigInt& a, sl_int32 v) noexcept;
-	
-	sl_bool operator==(sl_int32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator==(const BigInt& a, sl_uint32 v) noexcept;
-	
-	sl_bool operator==(sl_uint32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator==(const BigInt& a, sl_int64 v) noexcept;
-	
-	sl_bool operator==(sl_int64 v, const BigInt& b) noexcept;
-	
-	sl_bool operator==(const BigInt& a, sl_uint64 v) noexcept;
-	
-	sl_bool operator==(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	sl_bool operator!=(const BigInt& a, const BigInt& b) noexcept;
-	
-	sl_bool operator!=(const BigInt& a, sl_int32 v) noexcept;
-	
-	sl_bool operator!=(sl_int32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator!=(const BigInt& a, sl_uint32 v) noexcept;
-	
-	sl_bool operator!=(sl_uint32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator!=(const BigInt& a, sl_int64 v) noexcept;
-	
-	sl_bool operator!=(sl_int64 v, const BigInt& b) noexcept;
-	
-	sl_bool operator!=(const BigInt& a, sl_uint64 v) noexcept;
-	
-	sl_bool operator!=(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	sl_bool operator>=(const BigInt& a, const BigInt& b) noexcept;
-	
-	sl_bool operator>=(const BigInt& a, sl_int32 v) noexcept;
-	
-	sl_bool operator>=(sl_int32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator>=(const BigInt& a, sl_uint32 v) noexcept;
-	
-	sl_bool operator>=(sl_uint32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator>=(const BigInt& a, sl_int64 v) noexcept;
-	
-	sl_bool operator>=(sl_int64 v, const BigInt& b) noexcept;
-	
-	sl_bool operator>=(const BigInt& a, sl_uint64 v) noexcept;
-	
-	sl_bool operator>=(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	sl_bool operator>(const BigInt& a, const BigInt& b) noexcept;
-	
-	sl_bool operator>(const BigInt& a, sl_int32 v) noexcept;
-	
-	sl_bool operator>(sl_int32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator>(const BigInt& a, sl_uint32 v) noexcept;
-	
-	sl_bool operator>(sl_uint32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator>(const BigInt& a, sl_int64 v) noexcept;
-	
-	sl_bool operator>(sl_int64 v, const BigInt& b) noexcept;
-	
-	sl_bool operator>(const BigInt& a, sl_uint64 v) noexcept;
-	
-	sl_bool operator>(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	sl_bool operator<=(const BigInt& a, const BigInt& b) noexcept;
-	
-	sl_bool operator<=(const BigInt& a, sl_int32 v) noexcept;
-	
-	sl_bool operator<=(sl_int32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator<=(const BigInt& a, sl_uint32 v) noexcept;
-	
-	sl_bool operator<=(sl_uint32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator<=(const BigInt& a, sl_int64 v) noexcept;
-	
-	sl_bool operator<=(sl_int64 v, const BigInt& b) noexcept;
-	
-	sl_bool operator<=(const BigInt& a, sl_uint64 v) noexcept;
-	
-	sl_bool operator<=(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	sl_bool operator<(const BigInt& a, const BigInt& b) noexcept;
-	
-	sl_bool operator<(const BigInt& a, sl_int32 v) noexcept;
-	
-	sl_bool operator<(sl_int32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator<(const BigInt& a, sl_uint32 v) noexcept;
-	
-	sl_bool operator<(sl_uint32 v, const BigInt& b) noexcept;
-	
-	sl_bool operator<(const BigInt& a, sl_int64 v) noexcept;
-	
-	sl_bool operator<(sl_int64 v, const BigInt& b) noexcept;
-	
-	sl_bool operator<(const BigInt& a, sl_uint64 v) noexcept;
-	
-	sl_bool operator<(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	BigInt operator+(const BigInt& a, const BigInt& b) noexcept;
-	
-	BigInt operator+(const BigInt& a, sl_int32 v) noexcept;
-	
-	BigInt operator+(sl_int32 v, const BigInt& b) noexcept;
-	
-	BigInt operator+(const BigInt& a, sl_uint32 v) noexcept;
-	
-	BigInt operator+(sl_uint32 v, const BigInt& b) noexcept;
-	
-	BigInt operator+(const BigInt& a, sl_int64 v) noexcept;
-	
-	BigInt operator+(sl_int64 v, const BigInt& b) noexcept;
-	
-	BigInt operator+(const BigInt& a, sl_uint64 v) noexcept;
-	
-	BigInt operator+(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	BigInt operator-(const BigInt& a, const BigInt& b) noexcept;
-	
-	BigInt operator-(const BigInt& a, sl_int32 v) noexcept;
-	
-	BigInt operator-(sl_int32 v, const BigInt& b) noexcept;
-	
-	BigInt operator-(const BigInt& a, sl_uint32 v) noexcept;
-	
-	BigInt operator-(sl_uint32 v, const BigInt& b) noexcept;
-	
-	BigInt operator-(const BigInt& a, sl_int64 v) noexcept;
-	
-	BigInt operator-(sl_int64 v, const BigInt& b) noexcept;
-	
-	BigInt operator-(const BigInt& a, sl_uint64 v) noexcept;
-	
-	BigInt operator-(sl_uint64 v, const BigInt& b) noexcept;
-	
-	BigInt operator-(const BigInt& a) noexcept;
-	
-	
-	BigInt operator*(const BigInt& a, const BigInt& b) noexcept;
-	
-	BigInt operator*(const BigInt& a, sl_int32 v) noexcept;
-	
-	BigInt operator*(sl_int32 v, const BigInt& b) noexcept;
-	
-	BigInt operator*(const BigInt& a, sl_uint32 v) noexcept;
-	
-	BigInt operator*(sl_uint32 v, const BigInt& b) noexcept;
-	
-	BigInt operator*(const BigInt& a, sl_int64 v) noexcept;
-	
-	BigInt operator*(sl_int64 v, const BigInt& b) noexcept;
-	
-	BigInt operator*(const BigInt& a, sl_uint64 v) noexcept;
-	
-	BigInt operator*(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	BigInt operator/(const BigInt& a, const BigInt& b) noexcept;
-	
-	BigInt operator/(const BigInt& a, sl_int32 v) noexcept;
-	
-	BigInt operator/(sl_int32 v, const BigInt& b) noexcept;
-	
-	BigInt operator/(const BigInt& a, sl_uint32 v) noexcept;
-	
-	BigInt operator/(sl_uint32 v, const BigInt& b) noexcept;
-	
-	BigInt operator/(const BigInt& a, sl_int64 v) noexcept;
-	
-	BigInt operator/(sl_int64 v, const BigInt& b) noexcept;
-	
-	BigInt operator/(const BigInt& a, sl_uint64 v) noexcept;
-	
-	BigInt operator/(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	BigInt operator%(const BigInt& a, const BigInt& b) noexcept;
-	
-	sl_int32 operator%(const BigInt& a, sl_int32 v) noexcept;
-	
-	BigInt operator%(sl_int32 v, const BigInt& b) noexcept;
-	
-	BigInt operator%(sl_uint32 v, const BigInt& b) noexcept;
-	
-	sl_int64 operator%(const BigInt& a, sl_int64 v) noexcept;
-	
-	BigInt operator%(sl_int64 v, const BigInt& b) noexcept;
-	
-	BigInt operator%(sl_uint64 v, const BigInt& b) noexcept;
-	
-	
-	BigInt operator<<(const BigInt& a, sl_size n) noexcept;
-	
-	BigInt operator>>(const BigInt& a, sl_size n) noexcept;
 	
 }
 

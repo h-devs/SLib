@@ -127,6 +127,11 @@ namespace slib
 		return buf.addStatic("", 1);
 	}
 
+	sl_bool Referable::runOperator(sl_uint32 op, Variant& result, const Variant& arg, sl_bool flagThisOnLeft)
+	{
+		return sl_false;
+	}
+
 	sl_bool Referable::_isWeakRef() const noexcept
 	{
 		return getObjectType() == CWeakRef::ObjectType();

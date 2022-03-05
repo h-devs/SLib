@@ -30,6 +30,8 @@
 #include "slib/core/list_collection.h"
 #include "slib/core/map_object.h"
 #include "slib/core/serialize.h"
+#include "slib/core/object_op.h"
+#include "slib/math/bigint.h"
 
 #define PTR_VAR(TYPE, x) ((TYPE*)((void*)(&(x))))
 #define REF_VAR(TYPE, x) (*PTR_VAR(TYPE, x))
@@ -223,6 +225,36 @@ namespace slib
 				_out = t.toUnixTimef();
 			}
 
+			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_int32& _out) noexcept
+			{
+				_out = n.getInt32();
+			}
+
+			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_uint32& _out) noexcept
+			{
+				_out = n.getUint32();
+			}
+
+			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_int64& _out) noexcept
+			{
+				_out = n.getInt64();
+			}
+
+			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_uint64& _out) noexcept
+			{
+				_out = n.getUint64();
+			}
+
+			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, float& _out) noexcept
+			{
+				_out = n.getFloat();
+			}
+
+			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, double& _out) noexcept
+			{
+				_out = n.getDouble();
+			}
+
 			template <class NUMBER>
 			static sl_bool GetNumber(const Variant& var, NUMBER* _out) noexcept
 			{
@@ -288,6 +320,11 @@ namespace slib
 					case VariantType::Time:
 						if (_out) {
 							GetNumberFromTime(REF_VAR(Time const, var._value), *_out);
+						}
+						return sl_true;
+					case VariantType::BigInt:
+						if (_out) {
+							GetNumberFromBigInt(REF_VAR(BigInt const, var._value), *_out);
 						}
 						return sl_true;
 					default:
@@ -385,6 +422,8 @@ namespace slib
 					default:
 						if (var.isMemory()) {
 							return STRING::fromMemory(REF_VAR(Memory, var._value));
+						} else if (var.isBigInt()) {
+							return STRING::from(REF_VAR(BigInt, var._value).toString());
 						}
 						break;
 				}
@@ -841,6 +880,16 @@ namespace slib
 		_constructorMoveRef(&mem, VariantType::Memory);
 	}
 
+	Variant::Variant(const BigInt& n) noexcept
+	{
+		_constructorRef(&n, VariantType::BigInt);
+	}
+
+	Variant::Variant(BigInt&& n) noexcept
+	{
+		_constructorMoveRef(&n, VariantType::BigInt);
+	}
+
 	Variant::Variant(const Promise<Variant>& promise) noexcept
 	{
 		_constructorRef(&promise, VariantType::Promise);
@@ -884,6 +933,670 @@ namespace slib
 	{
 		setNull();
 		return *this;
+	}
+
+#define VARIANT_OPERATOR_CALL_REF(OP_NAME) \
+	if (IsReferable(_type)) { \
+		Ref<Referable> ref = getRef(); \
+		if (ref.isNotNull()) { \
+			Variant result; \
+			if (ref->runOperator(ObjectOperator::OP_NAME, result, other, sl_true)) { \
+				return result; \
+			} \
+		} \
+	} \
+	if (IsReferable(other._type)) { \
+		Ref<Referable> ref = other.getRef(); \
+		if (ref.isNotNull()) { \
+			Variant result; \
+			if (ref->runOperator(ObjectOperator::OP_NAME, result, *this, sl_false)) { \
+				return result; \
+			} \
+		} \
+	}
+
+	Variant Variant::operator+(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return sl_null;
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) + REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) + REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+				case VariantType::Time:
+					return REF_VAR(sl_int64 const, _value) + REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) + REF_VAR(sl_uint64 const, other._value);
+				case VariantType::Float:
+					return REF_VAR(float const, _value) + REF_VAR(float const, other._value);
+				case VariantType::Double:
+					return REF_VAR(double const, _value) + REF_VAR(double const, other._value);
+				case VariantType::String8:
+					return REF_VAR(String const, _value) + REF_VAR(String const, other._value);
+				case VariantType::String16:
+					return REF_VAR(String16 const, _value) + REF_VAR(String16 const, other._value);
+				case VariantType::String32:
+					return REF_VAR(String32 const, _value) + REF_VAR(String32 const, other._value);
+				case VariantType::Sz8:
+					return StringView(REF_VAR(sl_char8 const* const, _value)) + StringView(REF_VAR(sl_char8 const* const, other._value));
+				case VariantType::Sz16:
+					return StringView16(REF_VAR(sl_char16 const* const, _value)) + StringView16(REF_VAR(sl_char16 const* const, other._value));
+				case VariantType::Sz32:
+					return StringView32(REF_VAR(sl_char32 const* const, _value)) + StringView32(REF_VAR(sl_char32 const* const, other._value));
+				case VariantType::StringData8:
+					return StringView(REF_VAR(sl_char8 const* const, _value), _value2) + StringView(REF_VAR(sl_char8 const* const, other._value), other._value2);
+				case VariantType::StringData16:
+					return StringView16(REF_VAR(sl_char16 const* const, _value), _value2) + StringView16(REF_VAR(sl_char16 const* const, other._value), other._value2);
+				case VariantType::StringData32:
+					return StringView32(REF_VAR(sl_char32 const* const, _value), _value2) + StringView32(REF_VAR(sl_char32 const* const, other._value), other._value2);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) + REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return *this;
+			}
+			switch (_type) {
+				case VariantType::Null:
+					return other;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() + other.getInt64();
+					}
+					if (other._type == VariantType::Float || other._type == VariantType::Double) {
+						return getDouble() + other.getDouble();
+					}
+					break;
+				case VariantType::Float:
+				case VariantType::Double:
+					if (other.isNumber()) {
+						return getDouble() + other.getDouble();
+					}
+					break;
+				case VariantType::String8:
+				case VariantType::Sz8:
+				case VariantType::StringData8:
+					if (other.is8BitsStringType()) {
+						return getStringView() + other.getStringView();
+					}
+					break;
+				case VariantType::String16:
+				case VariantType::Sz16:
+				case VariantType::StringData16:
+					if (other.is16BitsStringType()) {
+						return getStringView16() + other.getStringView16();
+					}
+					break;
+				case VariantType::String32:
+				case VariantType::Sz32:
+				case VariantType::StringData32:
+					if (other.is8BitsStringType()) {
+						return getStringView32() + other.getStringView32();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(Add)
+		return toString() + other.toString();
+	}
+
+	Variant Variant::operator-(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return sl_null;
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) - REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) - REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+				case VariantType::Time:
+					return REF_VAR(sl_int64 const, _value) - REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) - REF_VAR(sl_uint64 const, other._value);
+				case VariantType::Float:
+					return REF_VAR(float const, _value) - REF_VAR(float const, other._value);
+				case VariantType::Double:
+					return REF_VAR(double const, _value) - REF_VAR(double const, other._value);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) - REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return *this;
+			}
+			switch (_type) {
+				case VariantType::Null:
+					return -other;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() - other.getInt64();
+					}
+					if (other._type == VariantType::Float || other._type == VariantType::Double) {
+						return getDouble() - other.getDouble();
+					}
+					break;
+				case VariantType::Float:
+				case VariantType::Double:
+					if (other.isNumber()) {
+						return getDouble() - other.getDouble();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(Subtract)
+		return Variant();
+	}
+
+	Variant Variant::operator*(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return sl_null;
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) * REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) * REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+					return REF_VAR(sl_int64 const, _value) * REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) * REF_VAR(sl_uint64 const, other._value);
+				case VariantType::Float:
+					return REF_VAR(float const, _value) * REF_VAR(float const, other._value);
+				case VariantType::Double:
+					return REF_VAR(double const, _value) * REF_VAR(double const, other._value);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) * REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return sl_null;
+			}
+			switch (_type) {
+				case VariantType::Null:
+					return sl_null;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() * other.getInt64();
+					}
+					if (other._type == VariantType::Float || other._type == VariantType::Double) {
+						return getDouble() * other.getDouble();
+					}
+					break;
+				case VariantType::Float:
+				case VariantType::Double:
+					if (other.isNumber()) {
+						return getDouble() * other.getDouble();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(Multiply)
+		return Variant();
+	}
+
+	Variant Variant::operator/(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) / REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) / REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+					return REF_VAR(sl_int64 const, _value) / REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) / REF_VAR(sl_uint64 const, other._value);
+				case VariantType::Float:
+					return REF_VAR(float const, _value) / REF_VAR(float const, other._value);
+				case VariantType::Double:
+					return REF_VAR(double const, _value) / REF_VAR(double const, other._value);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) / REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return Variant();
+			}
+			switch (_type) {
+				case VariantType::Null:
+					if (other.isNumber()) {
+						return sl_null;
+					}
+					break;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() / other.getInt64();
+					}
+					if (other._type == VariantType::Float || other._type == VariantType::Double) {
+						return getDouble() / other.getDouble();
+					}
+					break;
+				case VariantType::Float:
+				case VariantType::Double:
+					if (other.isNumber()) {
+						return getDouble() / other.getDouble();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(Divide)
+		return Variant();
+	}
+
+	Variant Variant::operator%(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return 0;
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) % REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) % REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+					return REF_VAR(sl_int64 const, _value) % REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) % REF_VAR(sl_uint64 const, other._value);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) % REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return Variant();
+			}
+			switch (_type) {
+				case VariantType::Null:
+					if (other.isInteger()) {
+						return 0;
+					}
+					break;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() % other.getInt64();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(Remainder)
+		return Variant();
+	}
+
+	Variant Variant::operator-() const noexcept
+	{
+		switch (_type) {
+			case VariantType::Null:
+				return sl_null;
+			case VariantType::Int32:
+				return - REF_VAR(sl_int32 const, _value);
+			case VariantType::Uint32:
+				{
+					sl_uint32 n = REF_VAR(sl_uint32 const, _value);
+					if (n & 0x80000000) {
+						return -((sl_int64)n);
+					} else {
+						return -((sl_int32)n);
+					}
+				}
+			case VariantType::Int64:
+			case VariantType::Uint64:
+				return - REF_VAR(sl_int64 const, _value);
+			case VariantType::Float:
+				return - REF_VAR(float const, _value);
+			case VariantType::Double:
+				return - REF_VAR(double const, _value);
+			case VariantType::BigInt:
+				return - REF_VAR(BigInt const, _value);
+			default:
+				break;
+		}
+		if (IsReferable(_type)) {
+			Ref<Referable> ref = getRef();
+			if (ref.isNotNull()) {
+				Variant result;
+				if (ref->runOperator(ObjectOperator::UnaryMinus, result, Variant(), sl_false)) {
+					return result;
+				}
+			}
+		}
+		return Variant();
+	}
+
+	Variant::operator sl_bool() const noexcept
+	{
+		switch (_type) {
+			case VariantType::Null:
+				return sl_false;
+			case VariantType::Int32:
+			case VariantType::Uint32:
+				return REF_VAR(sl_uint32 const, _value) != 0;
+			case VariantType::Int64:
+			case VariantType::Uint64:
+			case VariantType::Time:
+				return REF_VAR(sl_uint64 const, _value) != 0;
+			case VariantType::Boolean:
+				return REF_VAR(sl_bool const, _value);
+			case VariantType::Float:
+				return REF_VAR(float const, _value) != 0;
+			case VariantType::Double:
+				return REF_VAR(double const, _value) != 0;
+			case VariantType::ObjectId:
+				return REF_VAR(ObjectId const, _value).isNotZero();
+			case VariantType::BigInt:
+				return REF_VAR(BigInt const, _value).isNotZero();
+			default:
+				break;
+		}
+		if (IsReferable(_type)) {
+			Ref<Referable> ref = getRef();
+			if (ref.isNotNull()) {
+				Variant result;
+				if (ref->runOperator(ObjectOperator::LogicalNot, result, Variant(), sl_false)) {
+					return !(result.getBoolean());
+				}
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
+	sl_bool Variant::operator!() const noexcept
+	{
+		return !((sl_bool)*this);
+	}
+	
+	Variant Variant::operator~() const noexcept
+	{
+		switch (_type) {
+			case VariantType::Null:
+				return sl_null;
+			case VariantType::Int32:
+				return ~ REF_VAR(sl_int32 const, _value);
+			case VariantType::Uint32:
+				return ~ REF_VAR(sl_uint32 const, _value);
+			case VariantType::Int64:
+				return ~ REF_VAR(sl_int64 const, _value);
+			case VariantType::Uint64:
+				return ~ REF_VAR(sl_uint64 const, _value);
+			case VariantType::BigInt:
+				return ~ REF_VAR(BigInt const, _value);
+			default:
+				break;
+		}
+		if (IsReferable(_type)) {
+			Ref<Referable> ref = getRef();
+			if (ref.isNotNull()) {
+				Variant result;
+				if (ref->runOperator(ObjectOperator::BitwiseNot, result, Variant(), sl_false)) {
+					return result;
+				}
+			}
+		}
+		return Variant();
+	}
+
+	Variant Variant::operator||(const Variant& other) const noexcept
+	{
+		if (*this) {
+			return *this;
+		}
+		return other;
+	}
+
+	sl_bool Variant::operator&&(const Variant& other) const noexcept
+	{
+		if (*this) {
+			if (other) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+	
+	Variant Variant::operator|(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return sl_null;
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) | REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) | REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+					return REF_VAR(sl_int64 const, _value) | REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) | REF_VAR(sl_uint64 const, other._value);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) | REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return *this;
+			}
+			switch (_type) {
+				case VariantType::Null:
+					return other;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+					if (other._type == VariantType::Int32 || other._type == VariantType::Uint32) {
+						return REF_VAR(sl_int32 const, _value) | REF_VAR(sl_int32 const, other._value);
+					} else if (other._type == VariantType::Int64 || other._type == VariantType::Uint64) {
+						return getInt64() | other.getInt64();
+					}
+					break;
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() | other.getInt64();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(BitwiseOr)
+		return Variant();
+	}
+
+	Variant Variant::operator&(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return sl_null;
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) & REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) & REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+					return REF_VAR(sl_int64 const, _value) & REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) & REF_VAR(sl_uint64 const, other._value);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) & REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return *this;
+			}
+			switch (_type) {
+				case VariantType::Null:
+					return other;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+					if (other._type == VariantType::Int32 || other._type == VariantType::Uint32) {
+						return REF_VAR(sl_int32 const, _value) & REF_VAR(sl_int32 const, other._value);
+					} else if (other._type == VariantType::Int64 || other._type == VariantType::Uint64) {
+						return getInt64() & other.getInt64();
+					}
+					break;
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() & other.getInt64();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(BitwiseAnd)
+		return Variant();
+	}
+	
+	Variant Variant::operator^(const Variant& other) const noexcept
+	{
+		if (_type == other._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return sl_null;
+				case VariantType::Int32:
+					return REF_VAR(sl_int32 const, _value) ^ REF_VAR(sl_int32 const, other._value);
+				case VariantType::Uint32:
+					return REF_VAR(sl_uint32 const, _value) ^ REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+					return REF_VAR(sl_int64 const, _value) ^ REF_VAR(sl_int64 const, other._value);
+				case VariantType::Uint64:
+					return REF_VAR(sl_uint64 const, _value) ^ REF_VAR(sl_uint64 const, other._value);
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value) ^ REF_VAR(BigInt const, other._value);
+				default:
+					break;
+			}
+		} else {
+			if (other._type == VariantType::Null) {
+				return *this;
+			}
+			switch (_type) {
+				case VariantType::Null:
+					return other;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+					if (other._type == VariantType::Int32 || other._type == VariantType::Uint32) {
+						return REF_VAR(sl_int32 const, _value) ^ REF_VAR(sl_int32 const, other._value);
+					} else if (other._type == VariantType::Int64 || other._type == VariantType::Uint64) {
+						return getInt64() ^ other.getInt64();
+					}
+					break;
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return getInt64() ^ other.getInt64();
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		VARIANT_OPERATOR_CALL_REF(BitwiseXor)
+		return Variant();
+	}
+	
+	Variant Variant::operator>>(const Variant& other) const noexcept
+	{
+		switch (_type) {
+			case VariantType::Null:
+				return sl_null;
+			case VariantType::Int32:
+				return REF_VAR(sl_int32 const, _value) >> other.getUint32();
+			case VariantType::Uint32:
+				return REF_VAR(sl_uint32 const, _value) >> other.getUint32();
+			case VariantType::Int64:
+				return REF_VAR(sl_int64 const, _value) >> other.getUint32();
+			case VariantType::Uint64:
+				return REF_VAR(sl_uint64 const, _value) >> other.getUint32();
+			case VariantType::BigInt:
+				return REF_VAR(BigInt const, _value) >> other.getUint32();
+			default:
+				break;
+		}
+		if (IsReferable(_type)) {
+			Ref<Referable> ref = getRef();
+			if (ref.isNotNull()) {
+				Variant result;
+				if (ref->runOperator(ObjectOperator::ShiftRight, result, other, sl_false)) {
+					return result;
+				}
+			}
+		}
+		return Variant();
+	}
+
+	Variant Variant::operator<<(const Variant& other) const noexcept
+	{
+		switch (_type) {
+			case VariantType::Null:
+				return sl_null;
+			case VariantType::Int32:
+				return REF_VAR(sl_int32 const, _value) << other.getUint32();
+			case VariantType::Uint32:
+				return REF_VAR(sl_uint32 const, _value) << other.getUint32();
+			case VariantType::Int64:
+				return REF_VAR(sl_int64 const, _value) << other.getUint32();
+			case VariantType::Uint64:
+				return REF_VAR(sl_uint64 const, _value) << other.getUint32();
+			case VariantType::BigInt:
+				return REF_VAR(BigInt const, _value) << other.getUint32();
+			default:
+				break;
+		}
+		if (IsReferable(_type)) {
+			Ref<Referable> ref = getRef();
+			if (ref.isNotNull()) {
+				Variant result;
+				if (ref->runOperator(ObjectOperator::ShiftLeft, result, other, sl_false)) {
+					return result;
+				}
+			}
+		}
+		return Variant();
 	}
 
 	Variant Variant::operator[](sl_uint64 index) const noexcept
@@ -1993,26 +2706,65 @@ namespace slib
 
 	sl_uint64 Variant::getElementsCount() const
 	{
-		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).getCount();
-		} else {
-			Ref<Collection> collection(GET_COLLECTION(*this));
-			if (collection.isNotNull()) {
-				return collection->getElementsCount();
-			}
+		switch (_type) {
+			case VariantType::List:
+				return REF_VAR(VariantList, _value).getCount();
+			case VariantType::String8:
+				return REF_VAR(String, _value).getLength();
+			case VariantType::String16:
+				return REF_VAR(String16, _value).getLength();
+			case VariantType::String32:
+				return REF_VAR(String32, _value).getLength();
+			case VariantType::StringData8:
+			case VariantType::StringData16:
+			case VariantType::StringData32:
+				return _value2;
+			case VariantType::Sz8:
+				return Base::getStringLength(REF_VAR(sl_char8*, _value));
+			case VariantType::Sz16:
+				return Base::getStringLength2(REF_VAR(sl_char16*, _value));
+			case VariantType::Sz32:
+				return Base::getStringLength4(REF_VAR(sl_char32*, _value));
+			case VariantType::Memory:
+				return REF_VAR(Memory, _value).getSize();
+			default:
+				break;
+		}
+		Ref<Collection> collection(GET_COLLECTION(*this));
+		if (collection.isNotNull()) {
+			return collection->getElementsCount();
 		}
 		return 0;
 	}
 
 	Variant Variant::getElement_NoLock(sl_uint64 index) const
 	{
-		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).getValueAt_NoLock((sl_size)index);
-		} else {
-			Ref<Collection> collection(GET_COLLECTION(*this));
-			if (collection.isNotNull()) {
-				return collection->getElement(index);
-			}
+		switch (_type) {
+			case VariantType::List:
+				return REF_VAR(VariantList, _value).getValueAt_NoLock((sl_size)index);
+			case VariantType::String8:
+				return REF_VAR(String, _value).getAt((sl_size)index);
+			case VariantType::String16:
+				return REF_VAR(String16, _value).getAt((sl_size)index);
+			case VariantType::String32:
+				return REF_VAR(String32, _value).getAt((sl_size)index);
+			case VariantType::StringData8:
+			case VariantType::Sz8:
+				return REF_VAR(sl_char8*, _value)[(sl_size)index];
+			case VariantType::StringData16:
+			case VariantType::Sz16:
+				return REF_VAR(sl_char16*, _value)[(sl_size)index];
+			case VariantType::StringData32:
+			case VariantType::Sz32:
+				return REF_VAR(sl_char32*, _value)[(sl_size)index];
+			case VariantType::Memory:
+				return ((sl_uint8*)(REF_VAR(Memory, _value).getData()))[(sl_size)index];
+			default:
+				break;
+		}
+		Ref<Collection> collection(GET_COLLECTION(*this));
+		if (collection.isNotNull()) {
+			return collection->getElement(index);
 		}
 		return Variant();
 	}
@@ -2022,12 +2774,8 @@ namespace slib
 		if (_type == VariantType::List) {
 			return REF_VAR(VariantList, _value).getValueAt((sl_size)index);
 		} else {
-			Ref<Collection> collection(GET_COLLECTION(*this));
-			if (collection.isNotNull()) {
-				return collection->getElement(index);
-			}
+			return getElement_NoLock(index);
 		}
-		return Variant();
 	}
 
 	sl_bool Variant::setElement_NoLock(sl_uint64 index, const Variant& value) const
@@ -2390,6 +3138,46 @@ namespace slib
 		_assignMoveRef(&mem, VariantType::Memory);
 	}
 
+	sl_bool Variant::isBigInt() const noexcept
+	{
+		return IsObject<CBigInt, VariantType::BigInt>(*this);
+	}
+
+	BigInt Variant::getBigInt() const noexcept
+	{
+		switch (_type) {
+			case VariantType::Int32:
+				return REF_VAR(sl_int32 const, _value);
+			case VariantType::Uint32:
+				return REF_VAR(sl_uint32 const, _value);
+			case VariantType::Int64:
+				return REF_VAR(sl_int64 const, _value);
+			case VariantType::Uint64:
+				return REF_VAR(sl_uint64 const, _value);
+			case VariantType::Boolean:
+				return (sl_uint32)(REF_VAR(sl_bool const, _value) ? 1 : 0);
+			case VariantType::BigInt:
+				return REF_VAR(BigInt, _value);
+			default:
+				if (isStringType()) {
+					return BigInt::fromString(getStringParam());
+				} else if (isRef()) {
+					return GetObjectT<CBigInt, BigInt, VariantType::BigInt>(*this);
+				}
+		}
+		return sl_null;
+	}
+
+	void Variant::setBigInt(const BigInt& n) noexcept
+	{
+		_assignRef(&n, VariantType::BigInt);
+	}
+
+	void Variant::setBigInt(BigInt&& n) noexcept
+	{
+		_assignMoveRef(&n, VariantType::BigInt);
+	}
+
 	sl_bool Variant::isVariantPromise() const noexcept
 	{
 		return _type == VariantType::Promise;
@@ -2411,6 +3199,29 @@ namespace slib
 	void Variant::setVariantPromise(Promise<Variant>&& promise) noexcept
 	{
 		_assignMoveRef(&promise, VariantType::Promise);
+	}
+
+	sl_bool Variant::isVariantFunction() const noexcept
+	{
+		return _type == VariantType::Function;
+	}
+
+	Function<Variant(Variant&)> Variant::getVariantFunction() const noexcept
+	{
+		if (_type == VariantType::Function) {
+			return REF_VAR(Function<Variant(Variant&)> const, _value);
+		}
+		return sl_null;
+	}
+
+	void Variant::setVariantFunction(const Function<Variant(Variant&)>& func) noexcept
+	{
+		_assignRef(&func, VariantType::Function);
+	}
+
+	void Variant::setVariantFunction(Function<Variant(Variant&)>&& func) noexcept
+	{
+		_assignMoveRef(&func, VariantType::Function);
 	}
 
 	void Variant::merge(const Variant& other)
@@ -2518,6 +3329,7 @@ namespace slib
 			case VariantType::Pointer:
 			case VariantType::ObjectId:
 			case VariantType::Memory:
+			case VariantType::BigInt:
 				return getString();
 			case VariantType::Weak:
 				{
@@ -2856,56 +3668,142 @@ namespace slib
 		}
 	}
 
-	sl_compare_result Variant::compare(const Variant& v2) const noexcept
+	sl_compare_result Variant::compare(const Variant& other) const noexcept
 	{
-		const Variant& v1 = *this;
-		sl_uint8 type = v1._type;
-		if (type == v2._type) {
-			switch (type) {
+		if (_type == other._type) {
+			switch (_type) {
 				case VariantType::Null:
 					return 0;
 				case VariantType::Int32:
-					return ComparePrimitiveValues(REF_VAR(sl_int32 const, v1._value), REF_VAR(sl_int32 const, v2._value));
+					return ComparePrimitiveValues(REF_VAR(sl_int32 const, _value), REF_VAR(sl_int32 const, other._value));
 				case VariantType::Uint32:
 				case VariantType::Boolean:
-					return ComparePrimitiveValues(REF_VAR(sl_uint32 const, v1._value), REF_VAR(sl_uint32 const, v2._value));
+					return ComparePrimitiveValues(REF_VAR(sl_uint32 const, _value), REF_VAR(sl_uint32 const, other._value));
 				case VariantType::Int64:
-					return ComparePrimitiveValues(REF_VAR(sl_int64 const, v1._value), REF_VAR(sl_int64 const, v2._value));
+					return ComparePrimitiveValues(REF_VAR(sl_int64 const, _value), REF_VAR(sl_int64 const, other._value));
+				case VariantType::Uint64:
+				case VariantType::Time:
+					return ComparePrimitiveValues(_value, other._value);
 				case VariantType::Float:
-					return ComparePrimitiveValues(REF_VAR(float const, v1._value), REF_VAR(float const, v2._value));
+					return ComparePrimitiveValues(REF_VAR(float const, _value), REF_VAR(float const, other._value));
 				case VariantType::Double:
-					return ComparePrimitiveValues(REF_VAR(double const, v1._value), REF_VAR(double const, v2._value));
+					return ComparePrimitiveValues(REF_VAR(double const, _value), REF_VAR(double const, other._value));
 				case VariantType::String8:
-					return REF_VAR(String const, v1._value).compare(REF_VAR(String const, v2._value));
+					return REF_VAR(String const, _value).compare(REF_VAR(String const, other._value));
 				case VariantType::String16:
-					return REF_VAR(String16 const, v1._value).compare(REF_VAR(String16 const, v2._value));
+					return REF_VAR(String16 const, _value).compare(REF_VAR(String16 const, other._value));
 				case VariantType::String32:
-					return REF_VAR(String32 const, v1._value).compare(REF_VAR(String32 const, v2._value));
+					return REF_VAR(String32 const, _value).compare(REF_VAR(String32 const, other._value));
 				case VariantType::Sz8:
-					return Base::compareString(REF_VAR(sl_char8 const* const, v1._value), REF_VAR(sl_char8 const* const, v2._value));
+					return Base::compareString(REF_VAR(sl_char8 const* const, _value), REF_VAR(sl_char8 const* const, other._value));
 				case VariantType::Sz16:
-					return Base::compareString2(REF_VAR(sl_char16 const* const, v1._value), REF_VAR(sl_char16 const* const, v2._value));
+					return Base::compareString2(REF_VAR(sl_char16 const* const, _value), REF_VAR(sl_char16 const* const, other._value));
 				case VariantType::Sz32:
-					return Base::compareString4(REF_VAR(sl_char32 const* const, v1._value), REF_VAR(sl_char32 const* const, v2._value));
+					return Base::compareString4(REF_VAR(sl_char32 const* const, _value), REF_VAR(sl_char32 const* const, other._value));
 				case VariantType::StringData8:
-					return StringView(REF_VAR(sl_char8 const* const, v1._value), v1._value2).compare(StringView(REF_VAR(sl_char8 const* const, v2._value), v2._value2));
+					return StringView(REF_VAR(sl_char8 const* const, _value), _value2).compare(StringView(REF_VAR(sl_char8 const* const, other._value), other._value2));
 				case VariantType::StringData16:
-					return StringView16(REF_VAR(sl_char16 const* const, v1._value), v1._value2).compare(StringView16(REF_VAR(sl_char16 const* const, v2._value), v2._value2));
+					return StringView16(REF_VAR(sl_char16 const* const, _value), _value2).compare(StringView16(REF_VAR(sl_char16 const* const, other._value), other._value2));
 				case VariantType::StringData32:
-					return StringView32(REF_VAR(sl_char32 const* const, v1._value), v1._value2).compare(StringView32(REF_VAR(sl_char32 const* const, v2._value), v2._value2));
+					return StringView32(REF_VAR(sl_char32 const* const, _value), _value2).compare(StringView32(REF_VAR(sl_char32 const* const, other._value), other._value2));
 				case VariantType::Pointer:
-					return ComparePrimitiveValues(REF_VAR(sl_size const, v1._value), REF_VAR(sl_size const, v2._value));
+					return ComparePrimitiveValues(REF_VAR(sl_size const, _value), REF_VAR(sl_size const, other._value));
 				case VariantType::ObjectId:
-					return REF_VAR(ObjectId const, v1._value).compare(REF_VAR(ObjectId const, v2._value));
+					return REF_VAR(ObjectId const, _value).compare(REF_VAR(ObjectId const, other._value));
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value).compare(REF_VAR(BigInt const, other._value));
 				default:
-					if (type >= VariantType::Referable) {
-						return ComparePrimitiveValues(REF_VAR(sl_size const, v1._value), REF_VAR(sl_size const, v2._value));
+					if (IsReferable(_type)) {
+						{
+							Ref<Referable> ref = getRef();
+							if (ref.isNotNull()) {
+								Variant result;
+								if (ref->runOperator(ObjectOperator::Compare, result, other, sl_true)) {
+									return result.getInt32();
+								}
+							}
+						}
+						{
+							Ref<Referable> ref = other.getRef();
+							if (ref.isNotNull()) {
+								Variant result;
+								if (ref->runOperator(ObjectOperator::Compare, result, *this, sl_false)) {
+									return result.getInt32();
+								}
+							}
+						}
+						return ComparePrimitiveValues(REF_VAR(sl_size const, _value), REF_VAR(sl_size const, other._value));
 					} else {
-						return ComparePrimitiveValues(v1._value, v2._value);
+						return ComparePrimitiveValues(_value, other._value);
 					}
 			}
 		} else {
-			if (type > v2._type) {
+			switch (_type) {
+				case VariantType::Null:
+					return sl_true;
+				case VariantType::Int32:
+				case VariantType::Uint32:
+				case VariantType::Int64:
+				case VariantType::Uint64:
+					if (other.isInteger()) {
+						return ComparePrimitiveValues(getInt64(), other.getInt64());
+					}
+					if (other._type == VariantType::Float || other._type == VariantType::Double) {
+						return ComparePrimitiveValues(getDouble(), other.getDouble());
+					}
+					break;
+				case VariantType::Float:
+				case VariantType::Double:
+					if (other.isNumber()) {
+						return ComparePrimitiveValues(getDouble(), other.getDouble());
+					}
+					break;
+				case VariantType::String8:
+				case VariantType::Sz8:
+				case VariantType::StringData8:
+					if (other.is8BitsStringType()) {
+						return getStringView().compare(other.getStringView());
+					}
+					break;
+				case VariantType::String16:
+				case VariantType::Sz16:
+				case VariantType::StringData16:
+					if (other.is16BitsStringType()) {
+						return getStringView16().compare(other.getStringView16());
+					}
+					break;
+				case VariantType::String32:
+				case VariantType::Sz32:
+				case VariantType::StringData32:
+					if (other.is8BitsStringType()) {
+						return getStringView32().compare(other.getStringView32());
+					}
+					break;
+				default:
+					if (IsReferable(_type)) {
+						Ref<Referable> ref = getRef();
+						if (ref.isNotNull()) {
+							Variant result;
+							if (ref->runOperator(ObjectOperator::Compare, result, other, sl_true)) {
+								return result.getInt32();
+							}
+						}
+					}
+					if (IsReferable(other._type)) {
+						Ref<Referable> ref = other.getRef();
+						if (ref.isNotNull()) {
+							Variant result;
+							if (ref->runOperator(ObjectOperator::Compare, result, *this, sl_false)) {
+								return -(result.getInt32());
+							}
+						}
+						if (IsReferable(_type)) {
+							return ComparePrimitiveValues(REF_VAR(sl_size const, _value), REF_VAR(sl_size const, other._value));
+						}
+					}
+					break;
+			}
+			if (_type > other._type) {
 				return 1;
 			} else {
 				return -1;
@@ -2913,95 +3811,143 @@ namespace slib
 		}
 	}
 
-	sl_bool Variant::equals(const Variant& v2) const noexcept
+	sl_bool Variant::equals(const Variant& other) const noexcept
 	{
-		const Variant& v1 = *this;
-		sl_uint8 type = v1._type;
-		if (type == v2._type) {
-			switch (type) {
+		if (_type == other._type) {
+			switch (_type) {
 				case VariantType::Null:
 					return sl_true;
 				case VariantType::Int32:
 				case VariantType::Uint32:
-					return REF_VAR(sl_int32 const, v1._value) == REF_VAR(sl_int32 const, v2._value);
+					return REF_VAR(sl_uint32 const, _value) == REF_VAR(sl_uint32 const, other._value);
+				case VariantType::Int64:
+				case VariantType::Uint64:
+				case VariantType::Time:
+					return _value == other._value;
 				case VariantType::Float:
-					return REF_VAR(float const, v1._value) == REF_VAR(float const, v2._value);
+					return REF_VAR(float const, _value) == REF_VAR(float const, other._value);
 				case VariantType::Double:
-					return REF_VAR(double const, v1._value) == REF_VAR(double const, v2._value);
+					return REF_VAR(double const, _value) == REF_VAR(double const, other._value);
 				case VariantType::Boolean:
-					return REF_VAR(sl_bool const, v1._value) == REF_VAR(sl_bool const, v2._value);
+					return REF_VAR(sl_bool const, _value) == REF_VAR(sl_bool const, other._value);
 				case VariantType::String8:
-					return REF_VAR(String const, v1._value) == REF_VAR(String const, v2._value);
+					return REF_VAR(String const, _value) == REF_VAR(String const, other._value);
 				case VariantType::String16:
-					return REF_VAR(String16 const, v1._value) == REF_VAR(String16 const, v2._value);
+					return REF_VAR(String16 const, _value) == REF_VAR(String16 const, other._value);
 				case VariantType::String32:
-					return REF_VAR(String32 const, v1._value) == REF_VAR(String32 const, v2._value);
+					return REF_VAR(String32 const, _value) == REF_VAR(String32 const, other._value);
 				case VariantType::Sz8:
-					return Base::equalsString(REF_VAR(sl_char8 const* const, v1._value), REF_VAR(sl_char8 const* const, v2._value));
+					return Base::equalsString(REF_VAR(sl_char8 const* const, _value), REF_VAR(sl_char8 const* const, other._value));
 				case VariantType::Sz16:
-					return Base::equalsString2(REF_VAR(sl_char16 const* const, v1._value), REF_VAR(sl_char16 const* const, v2._value));
+					return Base::equalsString2(REF_VAR(sl_char16 const* const, _value), REF_VAR(sl_char16 const* const, other._value));
 				case VariantType::Sz32:
-					return Base::equalsString4(REF_VAR(sl_char32 const* const, v1._value), REF_VAR(sl_char32 const* const, v2._value));
+					return Base::equalsString4(REF_VAR(sl_char32 const* const, _value), REF_VAR(sl_char32 const* const, other._value));
 				case VariantType::StringData8:
-					return StringView(REF_VAR(sl_char8 const* const, v1._value), v1._value2) == StringView(REF_VAR(sl_char8 const* const, v2._value), v2._value2);
+					return StringView(REF_VAR(sl_char8 const* const, _value), _value2) == StringView(REF_VAR(sl_char8 const* const, other._value), other._value2);
 				case VariantType::StringData16:
-					return StringView16(REF_VAR(sl_char16 const* const, v1._value), v1._value2) == StringView16(REF_VAR(sl_char16 const* const, v2._value), v2._value2);
+					return StringView16(REF_VAR(sl_char16 const* const, _value), _value2) == StringView16(REF_VAR(sl_char16 const* const, other._value), other._value2);
 				case VariantType::StringData32:
-					return StringView32(REF_VAR(sl_char32 const* const, v1._value), v1._value2) == StringView32(REF_VAR(sl_char32 const* const, v2._value), v2._value2);
+					return StringView32(REF_VAR(sl_char32 const* const, _value), _value2) == StringView32(REF_VAR(sl_char32 const* const, other._value), other._value2);
 				case VariantType::Pointer:
-					return REF_VAR(void const* const, v1._value) == REF_VAR(void const* const, v2._value);
+					return REF_VAR(void const* const, _value) == REF_VAR(void const* const, other._value);
 				case VariantType::ObjectId:
-					return REF_VAR(ObjectId const, v1._value).equals(REF_VAR(ObjectId const, v2._value));
+					return REF_VAR(ObjectId const, _value).equals(REF_VAR(ObjectId const, other._value));
+				case VariantType::BigInt:
+					return REF_VAR(BigInt const, _value).equals(REF_VAR(BigInt const, other._value));
 				default:
-					if (type >= VariantType::Referable) {
-						return REF_VAR(void const* const, v1._value) == REF_VAR(void const* const, v2._value);
+					if (IsReferable(_type)) {
+						if (REF_VAR(void const* const, _value) == REF_VAR(void const* const, other._value)) {
+							return sl_true;
+						}
+						{
+							Ref<Referable> ref = getRef();
+							if (ref.isNotNull()) {
+								Variant result;
+								if (ref->runOperator(ObjectOperator::Equals, result, other, sl_true)) {
+									return result.getBoolean();
+								}
+							}
+						}
+						{
+							Ref<Referable> ref = other.getRef();
+							if (ref.isNotNull()) {
+								Variant result;
+								if (ref->runOperator(ObjectOperator::Equals, result, *this, sl_false)) {
+									return result.getBoolean();
+								}
+							}
+						}
+						return sl_false;
 					} else {
-						return v1._value == v2._value;
+						return _value == other._value;
 					}
 			}
 		} else {
-			switch (type) {
+			switch (_type) {
 				case VariantType::Null:
 					return sl_true;
 				case VariantType::Int32:
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (v2.isInteger()) {
-						return getInt64() == v2.getInt64();
+					if (other.isInteger()) {
+						return getInt64() == other.getInt64();
 					}
-					if (v2._type == VariantType::Float || v2._type == VariantType::Double) {
-						return getDouble() == v2.getDouble();
+					if (other._type == VariantType::Float || other._type == VariantType::Double) {
+						return getDouble() == other.getDouble();
 					}
 					break;
 				case VariantType::Float:
 				case VariantType::Double:
-					if (v2.isNumber()) {
-						return getDouble() == v2.getDouble();
+					if (other.isNumber()) {
+						return getDouble() == other.getDouble();
 					}
 					break;
 				case VariantType::String8:
 				case VariantType::Sz8:
 				case VariantType::StringData8:
-					if (v2.is8BitsStringType()) {
-						return getStringView() == v2.getStringView();
+					if (other.is8BitsStringType()) {
+						return getStringView() == other.getStringView();
 					}
 					break;
 				case VariantType::String16:
 				case VariantType::Sz16:
 				case VariantType::StringData16:
-					if (v2.is16BitsStringType()) {
-						return getStringView16() == v2.getStringView16();
+					if (other.is16BitsStringType()) {
+						return getStringView16() == other.getStringView16();
 					}
 					break;
 				case VariantType::String32:
 				case VariantType::Sz32:
 				case VariantType::StringData32:
-					if (v2.is8BitsStringType()) {
-						return getStringView32() == v2.getStringView32();
+					if (other.is8BitsStringType()) {
+						return getStringView32() == other.getStringView32();
 					}
 					break;
 				default:
+					if (IsReferable(_type)) {
+						if (IsReferable(other._type)) {
+							if (REF_VAR(void const* const, _value) == REF_VAR(void const* const, other._value)) {
+								return sl_true;
+							}
+						}
+						Ref<Referable> ref = getRef();
+						if (ref.isNotNull()) {
+							Variant result;
+							if (ref->runOperator(ObjectOperator::Equals, result, other, sl_true)) {
+								return result.getBoolean();
+							}
+						}
+					}
+					if (IsReferable(other._type)) {
+						Ref<Referable> ref = other.getRef();
+						if (ref.isNotNull()) {
+							Variant result;
+							if (ref->runOperator(ObjectOperator::Equals, result, *this, sl_false)) {
+								return result.getBoolean();
+							}
+						}
+					}
 					break;
 			}
 		}

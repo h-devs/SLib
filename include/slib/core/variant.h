@@ -100,6 +100,8 @@ namespace slib
 	}
 
 	class ObjectStore;
+	class BigInt;
+	class CBigInt;
 
 	class SLIB_EXPORT Variant
 	{
@@ -122,8 +124,10 @@ namespace slib
 			Referable* _m_ref;
 			CWeakRef* _m_wref;
 			Collection* _m_collection;
-			CPromise<Variant>* _m_promise;
 			CMemory* _m_mem;
+			CBigInt* _m_bigInt;
+			CPromise<Variant>* _m_promise;
+			Callable<Variant(Variant&)>* _m_function;
 		};
 		union {
 			sl_uint32 _value2;
@@ -285,6 +289,10 @@ namespace slib
 
 		Variant(Memory&& mem) noexcept;
 
+		Variant(const BigInt& n) noexcept;
+
+		Variant(BigInt&& n) noexcept;
+
 		Variant(const Promise<Variant>& promise) noexcept;
 
 		Variant(Promise<Variant>&& promise) noexcept;
@@ -328,6 +336,38 @@ namespace slib
 			set(Forward<T>(value));
 			return *this;
 		}
+
+		Variant operator+(const Variant& other) const noexcept;
+
+		Variant operator-(const Variant& other) const noexcept;
+
+		Variant operator*(const Variant& other) const noexcept;
+
+		Variant operator/(const Variant& other) const noexcept;
+
+		Variant operator%(const Variant& other) const noexcept;
+
+		Variant operator-() const noexcept;
+
+		explicit operator sl_bool() const noexcept;
+
+		sl_bool operator!() const noexcept;
+
+		Variant operator~() const noexcept;
+
+		Variant operator||(const Variant& other) const noexcept;
+
+		sl_bool operator&&(const Variant& other) const noexcept;
+
+		Variant operator|(const Variant& other) const noexcept;
+
+		Variant operator&(const Variant& other) const noexcept;
+
+		Variant operator^(const Variant& other) const noexcept;
+
+		Variant operator>>(const Variant& other) const noexcept;
+
+		Variant operator<<(const Variant& other) const noexcept;
 
 		Variant operator[](sl_uint64 index) const noexcept;
 
@@ -757,6 +797,15 @@ namespace slib
 		void setMemory(Memory&& mem) noexcept;
 
 
+		sl_bool isBigInt() const noexcept;
+
+		BigInt getBigInt() const noexcept;
+
+		void setBigInt(const BigInt& n) noexcept;
+
+		void setBigInt(BigInt&& n) noexcept;
+
+
 		sl_bool isVariantPromise() const noexcept;
 
 		Promise<Variant> getVariantPromise() const noexcept;
@@ -770,6 +819,15 @@ namespace slib
 		{
 			setVariantPromise(Promise<Variant>::from(promise));
 		}
+
+
+		sl_bool isVariantFunction() const noexcept;
+
+		Function<Variant(Variant&)> getVariantFunction() const noexcept;
+
+		void setVariantFunction(const Function<Variant(Variant&)>& promise) noexcept;
+
+		void setVariantFunction(Function<Variant(Variant&)>&& promise) noexcept;
 
 
 		void merge(const Variant& other);

@@ -233,6 +233,8 @@ namespace slib
 
 		virtual sl_bool toJsonBinary(MemoryBuffer& buf);
 
+		virtual sl_bool runOperator(sl_uint32 op, Variant& result, const Variant& secondOperand, sl_bool flagThisOnLeft);
+
 	private:
 		void _clearWeak() noexcept;
 

@@ -60,7 +60,9 @@ namespace slib
 			Map = Referable + 4,
 			List = Referable + 5,
 			Memory = Referable + 6,
-			Promise = Referable + 7
+			BigInt = Referable + 7,
+			Promise = Referable + 8,
+			Function = Referable + 9
 		};
 
 	};

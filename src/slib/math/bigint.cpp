@@ -23,10 +23,9 @@
 #include "slib/math/bigint.h"
 
 #include "slib/core/math.h"
-#include "slib/core/memory.h"
-#include "slib/core/mio.h"
-#include "slib/core/string.h"
+#include "slib/core/variant.h"
 #include "slib/core/scoped_buffer.h"
+#include "slib/core/object_op.h"
 #include "slib/core/compile_optimize.h"
 
 #define STACK_BUFFER_SIZE 4096
@@ -392,10 +391,19 @@ namespace slib
 		}
 	}
 
-	sl_int32 CBigInt::makeNagative() noexcept
+	sl_int32 CBigInt::makeNegative() noexcept
 	{
 		sign = -sign;
 		return sign;
+	}
+
+	void CBigInt::makeBitwiseNot() noexcept
+	{
+		if (elements) {
+			for (sl_size i = 0; i < length; i++) {
+				elements[i] = ~(elements[i]);
+			}
+		}
 	}
 
 	sl_bool CBigInt::getBit(sl_size pos) const noexcept
@@ -483,7 +491,7 @@ namespace slib
 	void CBigInt::setZero() noexcept
 	{
 		if (elements) {
-			Base::zeroMemory(elements, length * 4);
+			Base::zeroMemory(elements, length << 2);
 		}
 	}
 
@@ -939,7 +947,7 @@ namespace slib
 		if (length) {
 			sl_int64 v = elements[0];
 			if (length > 1) {
-				v |= (elements[1] & 0x7FFFFFFF);
+				v |= ((sl_uint64)elements[1]) << 32;
 			}
 			if (sign > 0) {
 				return v;
@@ -955,9 +963,32 @@ namespace slib
 		if (length) {
 			sl_uint64 v = elements[0];
 			if (length > 1) {
-				v |= elements[1];
+				v |= ((sl_uint64)elements[1]) << 32;
 			}
 			return v;
+		}
+		return 0;
+	}
+
+	float CBigInt::getFloat() const noexcept
+	{
+		return (float)(getDouble());
+	}
+
+	double CBigInt::getDouble() const noexcept
+	{
+		if (length) {
+			double ret = (double)(elements[0]);
+			const double p = (double)0x10000 * (double)0x10000;
+			double k = p;
+			for (sl_size i = 1; i < length; i++) {
+				sl_uint32 n = elements[i];
+				if (n) {
+					ret += k * (double)n;
+				}
+				k *= p;
+			}
+			return ret;
 		}
 		return 0;
 	}
@@ -1034,7 +1065,12 @@ namespace slib
 			return String(s + 1, l);
 		}
 	}
-	
+
+	String CBigInt::toString()
+	{
+		return toString(10);
+	}
+
 	String CBigInt::toHexString() const noexcept
 	{
 		return toString(16);
@@ -1302,19 +1338,14 @@ namespace slib
 		sl_size nb = b.getMostSignificantElements();
 		if (!na) {
 			if (nb) {
-				if (this != &b) {
-					return copyAbsFrom(b);
-				} else {
-					return sl_true;
-				}
+				return copyAbsFrom(b);
+			} else {
+				setZero();
+				return sl_true;
 			}
-			return sl_true;
 		}
 		if (!nb) {
-			if (this != &a) {
-				return copyAbsFrom(a);
-			}
-			return sl_true;
+			return copyAbsFrom(a);
 		}
 		sl_size nd;
 		if (&a == this) {
@@ -1447,10 +1478,7 @@ namespace slib
 		sl_size na = a.getMostSignificantElements();
 		sl_size nb = b.getMostSignificantElements();
 		if (!nb) {
-			if (this != &a) {
-				return copyAbsFrom(a);
-			}
-			return sl_true;
+			return copyAbsFrom(a);
 		}
 		if (na < nb) {
 			return sl_false;
@@ -1966,6 +1994,175 @@ namespace slib
 		}
 		return sl_false;
 	}
+
+	sl_bool CBigInt::bitwiseAnd(const CBigInt& a, const CBigInt& b) noexcept
+	{
+		sl_size na = a.getMostSignificantElements();
+		sl_size nb = b.getMostSignificantElements();
+		if (!na || !nb) {
+			setZero();
+			return sl_true;
+		}
+		sl_size nd;
+		if (&a == this) {
+			nd = na;
+		} else if (&b == this) {
+			nd = nb;
+		} else {
+			nd = getMostSignificantElements();
+		}
+		sl_size n = SLIB_MIN(na, nb);
+		if (growLength(n)) {
+			sl_size i;
+			for (i = 0; i < n; i++) {
+				elements[i] = a.elements[i] & b.elements[i];
+			}
+			for (i = n; i < nd; i++) {
+				elements[i] = 0;
+			}
+			sign = a.sign;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool CBigInt::bitwiseXor(const CBigInt& a, const CBigInt& b) noexcept
+	{
+		sl_size na = a.getMostSignificantElements();
+		sl_size nb = b.getMostSignificantElements();
+		if (!na) {
+			if (nb) {
+				sign = b.sign;
+				return copyFrom(b);
+			} else {
+				setZero();
+				return sl_true;
+			}
+		}
+		if (!nb) {
+			sign = a.sign;
+			return copyFrom(a);
+		}
+		sl_size nd;
+		if (&a == this) {
+			nd = na;
+		} else if (&b == this) {
+			nd = nb;
+		} else {
+			nd = getMostSignificantElements();
+		}
+		const CBigInt* p;
+		const CBigInt* q;
+		sl_size np, nq;
+		if (na > nb) {
+			q = &a;
+			nq = na;
+			p = &b;
+			np = nb;
+		} else {
+			p = &a;
+			np = na;
+			q = &b;
+			nq = nb;
+		}
+		if (growLength(nq)) {
+			sl_size i;
+			for (i = 0; i < np; i++) {
+				elements[i] = p->elements[i] ^ q->elements[i];
+			}
+			for (i = np; i < nq; i++) {
+				elements[i] = q->elements[i];
+			}
+			for (i = nq; i < nd; i++) {
+				elements[i] = 0;
+			}
+			sign = a.sign;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool CBigInt::bitwiseOr(const CBigInt& a, const CBigInt& b) noexcept
+	{
+		sl_size na = a.getMostSignificantElements();
+		sl_size nb = b.getMostSignificantElements();
+		if (!na) {
+			if (nb) {
+				return copyFrom(b);
+			} else {
+				setZero();
+				return sl_true;
+			}
+		}
+		if (!nb) {
+			return copyFrom(a);
+		}
+		sl_size nd;
+		if (&a == this) {
+			nd = na;
+		} else if (&b == this) {
+			nd = nb;
+		} else {
+			nd = getMostSignificantElements();
+		}
+		const CBigInt* p;
+		const CBigInt* q;
+		sl_size np, nq;
+		if (na > nb) {
+			q = &a;
+			nq = na;
+			p = &b;
+			np = nb;
+		} else {
+			p = &a;
+			np = na;
+			q = &b;
+			nq = nb;
+		}
+		if (growLength(nq)) {
+			sl_size i;
+			for (i = 0; i < np; i++) {
+				elements[i] = p->elements[i] | q->elements[i];
+			}
+			for (i = np; i < nq; i++) {
+				elements[i] = q->elements[i];
+			}
+			for (i = nq; i < nd; i++) {
+				elements[i] = 0;
+			}
+			sign = a.sign;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+#define DEFINE_CBIGINT_BITWISE_FUNCTIONS(FUNCTION) \
+	sl_bool CBigInt::FUNCTION(const CBigInt& a, sl_uint32 v) noexcept \
+	{ \
+		CBIGINT_UINT32(o, v); \
+		return FUNCTION(a, o); \
+	} \
+	sl_bool CBigInt::FUNCTION(const CBigInt& a, sl_uint64 v) noexcept \
+	{ \
+		CBIGINT_UINT64(o, v); \
+		return FUNCTION(a, o); \
+	} \
+	sl_bool CBigInt::FUNCTION(const CBigInt& o) noexcept \
+	{ \
+		return FUNCTION(*this, o); \
+	} \
+	sl_bool CBigInt::FUNCTION(sl_uint32 v) noexcept \
+	{ \
+		return FUNCTION(*this, v); \
+	} \
+	sl_bool CBigInt::FUNCTION(sl_uint64 v) noexcept \
+	{ \
+		return FUNCTION(*this, v); \
+	}
+
+	DEFINE_CBIGINT_BITWISE_FUNCTIONS(bitwiseAnd)
+	DEFINE_CBIGINT_BITWISE_FUNCTIONS(bitwiseXor)
+	DEFINE_CBIGINT_BITWISE_FUNCTIONS(bitwiseOr)
 
 	sl_bool CBigInt::shiftLeft(const CBigInt& a, sl_size shift) noexcept
 	{
@@ -2779,6 +2976,70 @@ namespace slib
 		return 0;
 	}
 
+	sl_bool CBigInt::runOperator(sl_uint32 op, Variant& result, const Variant& arg, sl_bool flagThisOnLeft)
+	{
+#define BIGINT_RUN_UNARY_OP(OP_NAME, OP) \
+		case ObjectOperator::OP_NAME: \
+			{ \
+				CBigInt* thiz = this; \
+				result = OP(*((BigInt*)((void*)&thiz))); \
+				return sl_true; \
+			}
+
+#define BIGINT_RUN_BINARY_OP(OP_NAME, OP) \
+		case ObjectOperator::OP_NAME: \
+			{ \
+				BigInt n = arg.getBigInt(); \
+				CBigInt* thiz = this; \
+				if (flagThisOnLeft) { \
+					result = *((BigInt*)((void*)&thiz)) OP n; \
+				} else { \
+					result = n OP *((BigInt*)((void*)&thiz)); \
+				} \
+				return sl_true; \
+			}
+
+#define BIGINT_RUN_SHIFT_OP(OP_NAME, OP) \
+		case ObjectOperator::OP_NAME: \
+			{ \
+				sl_uint32 n = arg.getUint32(); \
+				CBigInt* thiz = this; \
+				if (flagThisOnLeft) { \
+					result = *((BigInt*)((void*)&thiz)) OP n; \
+					return sl_true; \
+				} \
+			}
+
+		switch (op) {
+			BIGINT_RUN_UNARY_OP(UnaryMinus, -)
+			BIGINT_RUN_UNARY_OP(LogicalNot, !)
+			BIGINT_RUN_UNARY_OP(BitwiseNot, ~)
+			BIGINT_RUN_BINARY_OP(Multiply, *)
+			BIGINT_RUN_BINARY_OP(Divide, /)
+			BIGINT_RUN_BINARY_OP(Remainder, %)
+			BIGINT_RUN_BINARY_OP(Add, +)
+			BIGINT_RUN_BINARY_OP(Subtract, -)
+			BIGINT_RUN_SHIFT_OP(ShiftLeft, <<)
+			BIGINT_RUN_SHIFT_OP(ShiftRight, >>)
+			case ObjectOperator::Compare:
+				{
+					BigInt n = arg.getBigInt();
+					CBigInt* thiz = this;
+					if (flagThisOnLeft) {
+						result = ((BigInt*)((void*)&thiz))->compare(n);
+					} else {
+						result = n.compare(*((BigInt*)((void*)&thiz)));
+					}
+					return sl_true;
+				}
+			BIGINT_RUN_BINARY_OP(Equals, ==)
+			BIGINT_RUN_BINARY_OP(BitwiseAnd, &)
+			BIGINT_RUN_BINARY_OP(BitwiseXor, ^)
+			BIGINT_RUN_BINARY_OP(BitwiseOr, |)
+		}
+		return sl_false;
+	}
+
 
 	BigInt::BigInt(sl_int32 n) noexcept : ref(CBigInt::fromInt32(n))
 	{
@@ -3021,6 +3282,60 @@ namespace slib
 			return o->getBytesBE();
 		}
 		return sl_null;
+	}
+
+	sl_int32 BigInt::getInt32() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->getInt32();
+		}
+		return 0;
+	}
+
+	sl_uint32 BigInt::getUint32() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->getUint32();
+		}
+		return 0;
+	}
+
+	sl_int64 BigInt::getInt64() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->getInt64();
+		}
+		return 0;
+	}
+
+	sl_uint64 BigInt::getUint64() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->getUint64();
+		}
+		return 0;
+	}
+
+	float BigInt::getFloat() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->getFloat();
+		}
+		return 0;
+	}
+
+	double BigInt::getDouble() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->getDouble();
+		}
+		return 0;
 	}
 
 	String BigInt::toString(sl_uint32 radix) const noexcept
@@ -3391,7 +3706,7 @@ namespace slib
 			} else {
 				CBigInt* r = b->duplicate();
 				if (r) {
-					r->makeNagative();
+					r->makeNegative();
 					return r;
 				}
 			}
@@ -3411,7 +3726,7 @@ namespace slib
 			} else {
 				a = b->duplicate();
 				if (a) {
-					a->makeNagative();
+					a->makeNegative();
 					ref = a;
 					return sl_true;
 				}
@@ -3492,7 +3807,7 @@ namespace slib
 			} else {
 				a = CBigInt::fromUint32(v);
 				if (a) {
-					a->makeNagative();
+					a->makeNegative();
 					ref = a;
 					return sl_true;
 				}
@@ -3558,7 +3873,7 @@ namespace slib
 			} else {
 				CBigInt* r = CBigInt::fromUint64(v);
 				if (r) {
-					r->makeNagative();
+					r->makeNegative();
 					return r;
 				}
 			}
@@ -3577,7 +3892,7 @@ namespace slib
 			} else {
 				a = CBigInt::fromUint64(v);
 				if (a) {
-					a->makeNagative();
+					a->makeNegative();
 					ref = a;
 					return sl_true;
 				}
@@ -3597,7 +3912,7 @@ namespace slib
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			o->makeNagative();
+			o->makeNegative();
 		}
 	}
 
@@ -3605,6 +3920,21 @@ namespace slib
 	{
 		BigInt ret = duplicate();
 		ret.makeNegative();
+		return ret;
+	}
+
+	void BigInt::makeBitwiseNot() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			o->makeBitwiseNot();
+		}
+	}
+
+	BigInt BigInt::bitwiseNot() const noexcept
+	{
+		BigInt ret = duplicate();
+		ret.makeBitwiseNot();
 		return ret;
 	}
 
@@ -3629,8 +3959,8 @@ namespace slib
 	sl_bool BigInt::mul(const BigInt& other) noexcept
 	{
 		CBigInt* a = ref.ptr;
-		CBigInt* b = other.ref.ptr;
 		if (a) {
+			CBigInt* b = other.ref.ptr;
 			if (b) {
 				return a->mul(*a, *b);
 			} else {
@@ -3640,7 +3970,6 @@ namespace slib
 		} else {
 			return sl_true;
 		}
-		return sl_false;
 	}
 
 	BigInt BigInt::mul(const BigInt& A, sl_int32 v) noexcept
@@ -3673,7 +4002,6 @@ namespace slib
 		} else {
 			return sl_true;
 		}
-		return sl_false;
 	}
 
 	BigInt BigInt::mul(const BigInt& A, sl_uint32 v) noexcept
@@ -3706,7 +4034,6 @@ namespace slib
 		} else {
 			return sl_true;
 		}
-		return sl_false;
 	}
 
 	BigInt BigInt::mul(const BigInt& A, sl_int64 v) noexcept
@@ -3739,7 +4066,6 @@ namespace slib
 		} else {
 			return sl_true;
 		}
-		return sl_false;
 	}
 
 	BigInt BigInt::mul(const BigInt& A, sl_uint64 v) noexcept
@@ -3772,7 +4098,6 @@ namespace slib
 		} else {
 			return sl_true;
 		}
-		return sl_false;
 	}
 
 	BigInt BigInt::div(const BigInt& A, const BigInt& B, BigInt* remainder, sl_bool flagNonNegativeRemainder) noexcept
@@ -4123,6 +4448,348 @@ namespace slib
 			}
 		}
 		return 0;
+	}
+
+	BigInt BigInt::bitwiseAnd(const BigInt& A, const BigInt& B) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		if (a) {
+			CBigInt* b = B.ref.ptr;
+			if (b) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseAnd(*a, *b)) {
+						return r;
+					}
+					delete r;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseAnd(const BigInt& other) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		if (a) {
+			CBigInt* b = other.ref.ptr;
+			if (b) {
+				return a->bitwiseAnd(*a, *b);
+			} else {
+				a->setZero();
+				return sl_true;
+			}
+		} else {
+			return sl_true;
+		}
+	}
+	
+	BigInt BigInt::bitwiseAnd(const BigInt& A, sl_uint32 v) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		if (a) {
+			if (v) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseAnd(*a, v)) {
+						return r;
+					}
+					delete r;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseAnd(sl_uint32 v) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		if (a) {
+			if (v) {
+				return a->bitwiseAnd(*a, v);
+			} else {
+				a->setZero();
+				return sl_true;
+			}
+		} else {
+			return sl_true;
+		}
+	}
+
+	BigInt BigInt::bitwiseAnd(const BigInt& A, sl_uint64 v) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		if (a) {
+			if (v) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseAnd(*a, v)) {
+						return r;
+					}
+					delete r;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseAnd(sl_uint64 v) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		if (a) {
+			if (v) {
+				return a->bitwiseAnd(*a, v);
+			} else {
+				a->setZero();
+				return sl_true;
+			}
+		} else {
+			return sl_true;
+		}
+	}
+
+	BigInt BigInt::bitwiseXor(const BigInt& A, const BigInt& B) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
+		if (b) {
+			if (a) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseXor(*a, *b)) {
+						return r;
+					}
+					delete r;
+				}
+			} else {
+				return b;
+			}
+		} else {
+			return a;
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseXor(const BigInt& other) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
+		if (b) {
+			if (a) {
+				return a->bitwiseXor(*a, *b);
+			} else {
+				a = b->duplicate();
+				if (a) {
+					ref = a;
+					return sl_true;
+				}
+			}
+		} else {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	BigInt BigInt::bitwiseXor(const BigInt& A, sl_uint32 v) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		if (v) {
+			if (a) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseXor(*a, v)) {
+						return r;
+					}
+					delete r;
+				}
+			} else {
+				return CBigInt::fromUint32(v);
+			}
+		} else {
+			return a;
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseXor(sl_uint32 v) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		if (v) {
+			if (a) {
+				return a->bitwiseXor(*a, v);
+			} else {
+				a = CBigInt::fromUint32(v);
+				if (a) {
+					ref = a;
+					return sl_true;
+				}
+			}
+		} else {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	BigInt BigInt::bitwiseXor(const BigInt& A, sl_uint64 v) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		if (v) {
+			if (a) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseXor(*a, v)) {
+						return r;
+					}
+					delete r;
+				}
+			} else {
+				return CBigInt::fromUint64(v);
+			}
+		} else {
+			return a;
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseXor(sl_uint64 v) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		if (v) {
+			if (a) {
+				return a->bitwiseXor(*a, v);
+			} else {
+				a = CBigInt::fromUint64(v);
+				if (a) {
+					ref = a;
+					return sl_true;
+				}
+			}
+		} else {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	BigInt BigInt::bitwiseOr(const BigInt& A, const BigInt& B) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		CBigInt* b = B.ref.ptr;
+		if (b) {
+			if (a) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseOr(*a, *b)) {
+						return r;
+					}
+					delete r;
+				}
+			} else {
+				return b;
+			}
+		} else {
+			return a;
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseOr(const BigInt& other) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		CBigInt* b = other.ref.ptr;
+		if (b) {
+			if (a) {
+				return a->bitwiseOr(*a, *b);
+			} else {
+				a = b->duplicate();
+				if (a) {
+					ref = a;
+					return sl_true;
+				}
+			}
+		} else {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	BigInt BigInt::bitwiseOr(const BigInt& A, sl_uint32 v) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		if (v) {
+			if (a) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseOr(*a, v)) {
+						return r;
+					}
+					delete r;
+				}
+			} else {
+				return CBigInt::fromUint32(v);
+			}
+		} else {
+			return a;
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseOr(sl_uint32 v) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		if (v) {
+			if (a) {
+				return a->bitwiseOr(*a, v);
+			} else {
+				a = CBigInt::fromUint32(v);
+				if (a) {
+					ref = a;
+					return sl_true;
+				}
+			}
+		} else {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	BigInt BigInt::bitwiseOr(const BigInt& A, sl_uint64 v) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		if (v) {
+			if (a) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->bitwiseOr(*a, v)) {
+						return r;
+					}
+					delete r;
+				}
+			} else {
+				return CBigInt::fromUint64(v);
+			}
+		} else {
+			return a;
+		}
+		return sl_null;
+	}
+
+	sl_bool BigInt::bitwiseOr(sl_uint64 v) noexcept
+	{
+		CBigInt* a = ref.ptr;
+		if (v) {
+			if (a) {
+				return a->bitwiseOr(*a, v);
+			} else {
+				a = CBigInt::fromUint64(v);
+				if (a) {
+					ref = a;
+					return sl_true;
+				}
+			}
+		} else {
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	BigInt BigInt::shiftLeft(const BigInt& A, sl_size n) noexcept
@@ -4778,6 +5445,148 @@ namespace slib
 		shiftRight(n);
 		return *this;
 	}
+	
+	BigInt BigInt::operator-() const noexcept
+	{
+		return negative();
+	}
+
+	BigInt BigInt::operator~() const noexcept
+	{
+		return bitwiseNot();
+	}
+
+	sl_bool BigInt::operator!() const noexcept
+	{
+		return isZero();
+	}
+
+	BigInt::operator sl_bool() const noexcept
+	{
+		return isNotZero();
+	}
+
+
+#define DEFINE_BIGINT_OP(OP, RET, EXPR, EXPR_FRIEND) \
+	RET BigInt::operator##OP(const BigInt& other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	RET BigInt::operator##OP(sl_int32 other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	RET BigInt::operator##OP(sl_uint32 other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	RET BigInt::operator##OP(sl_int64 other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	RET BigInt::operator##OP(sl_uint64 other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	RET operator##OP(sl_int32 other, const BigInt& thiz) noexcept \
+	{ \
+		EXPR_FRIEND; \
+	} \
+	RET operator##OP(sl_uint32 other, const BigInt& thiz) noexcept \
+	{ \
+		EXPR_FRIEND; \
+	} \
+	RET operator##OP(sl_int64 other, const BigInt& thiz) noexcept \
+	{ \
+		EXPR_FRIEND; \
+	} \
+	RET operator##OP(sl_uint64 other, const BigInt& thiz) noexcept \
+	{ \
+		EXPR_FRIEND; \
+	}
+
+	DEFINE_BIGINT_OP(==, sl_bool, return equals(other), return thiz.equals(other))
+	DEFINE_BIGINT_OP(!= , sl_bool, return !(equals(other)), return !(thiz.equals(other)))
+	DEFINE_BIGINT_OP(>= , sl_bool, return compare(other) >= 0, return thiz.compare(other) <= 0)
+	DEFINE_BIGINT_OP(<= , sl_bool, return compare(other) <= 0, return thiz.compare(other) >= 0)
+	DEFINE_BIGINT_OP(> , sl_bool, return compare(other) > 0, return thiz.compare(other) < 0)
+	DEFINE_BIGINT_OP(<, sl_bool, return compare(other) < 0, return thiz.compare(other) > 0)
+	DEFINE_BIGINT_OP(+, BigInt, return BigInt::add(*this, other), return BigInt::add(thiz, other))
+	DEFINE_BIGINT_OP(-, BigInt, return BigInt::sub(*this, other), BigInt ret = BigInt::sub(thiz, other); ret.makeNegative(); return ret)
+
+	DEFINE_BIGINT_OP(*, BigInt, return BigInt::mul(*this, other), return BigInt::mul(thiz, other))
+	DEFINE_BIGINT_OP(/, BigInt, return BigInt::div(*this, other), return BigInt::div(BigInt(other), thiz))
+
+	BigInt BigInt::operator%(const BigInt& other) const noexcept
+	{
+		return BigInt::mod(*this, other);
+	}
+
+	sl_int32 BigInt::operator%(sl_int32 v) const noexcept
+	{
+		return BigInt::modInt32(*this, v);
+	}
+
+	sl_int64 BigInt::operator%(sl_int64 v) const noexcept
+	{
+		return BigInt::modInt64(*this, v);
+	}
+
+	BigInt operator%(sl_int32 v, const BigInt& thiz) noexcept
+	{
+		return BigInt::mod(BigInt(v), thiz);
+	}
+
+	BigInt operator%(sl_uint32 v, const BigInt& thiz) noexcept
+	{
+		return BigInt::mod(BigInt(v), thiz);
+	}
+
+	BigInt operator%(sl_int64 v, const BigInt& thiz) noexcept
+	{
+		return BigInt::mod(BigInt(v), thiz);
+	}
+
+	BigInt operator%(sl_uint64 v, const BigInt& thiz) noexcept
+	{
+		return BigInt::mod(BigInt(v), thiz);
+	}
+
+#define DEFINE_BIGINT_BITWISE_OP(OP, EXPR, EXPR_FRIEND) \
+	BigInt BigInt::operator##OP(const BigInt& other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	BigInt BigInt::operator##OP(sl_uint32 other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	BigInt BigInt::operator##OP(sl_uint64 other) const noexcept \
+	{ \
+		EXPR; \
+	} \
+	BigInt operator##OP(sl_uint32 other, const BigInt& thiz) noexcept \
+	{ \
+		EXPR_FRIEND; \
+	} \
+	BigInt operator##OP(sl_uint64 other, const BigInt& thiz) noexcept \
+	{ \
+		EXPR_FRIEND; \
+	}
+
+	DEFINE_BIGINT_BITWISE_OP(&, return BigInt::bitwiseAnd(*this, other), return BigInt::bitwiseAnd(thiz, other))
+	DEFINE_BIGINT_BITWISE_OP(^, return BigInt::bitwiseXor(*this, other), return BigInt::bitwiseXor(thiz, other))
+	DEFINE_BIGINT_BITWISE_OP(|, return BigInt::bitwiseOr(*this, other), return BigInt::bitwiseOr(thiz, other))
+
+	BigInt BigInt::operator<<(sl_size n) const noexcept
+	{
+		return BigInt::shiftLeft(*this, n);
+	}
+
+	BigInt BigInt::operator>>(sl_size n) const noexcept
+	{
+		return BigInt::shiftRight(*this, n);
+	}
 
 
 	Atomic<BigInt>::Atomic(sl_int32 n) noexcept : ref(CBigInt::fromInt32(n))
@@ -4822,526 +5631,6 @@ namespace slib
 	{
 		ref = CBigInt::fromUint64(n);
 		return *this;
-	}
-
-
-	sl_bool operator==(const BigInt& a, const BigInt& b) noexcept
-	{
-		return a.equals(b);
-	}
-
-	sl_bool operator==(const BigInt& a, sl_int32 v) noexcept
-	{
-		return a.equals(v);
-	}
-
-	sl_bool operator==(sl_int32 v, const BigInt& b) noexcept
-	{
-		return b.equals(v);
-	}
-
-	sl_bool operator==(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return a.equals(v);
-	}
-
-	sl_bool operator==(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return b.equals(v);
-	}
-
-	sl_bool operator==(const BigInt& a, sl_int64 v) noexcept
-	{
-		return a.equals(v);
-	}
-
-	sl_bool operator==(sl_int64 v, const BigInt& b) noexcept
-	{
-		return b.equals(v);
-	}
-
-	sl_bool operator==(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return a.equals(v);
-	}
-
-	sl_bool operator==(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return b.equals(v);
-	}
-
-
-	sl_bool operator!=(const BigInt& a, const BigInt& b) noexcept
-	{
-		return !(a.equals(b));
-	}
-
-	sl_bool operator!=(const BigInt& a, sl_int32 v) noexcept
-	{
-		return !(a.equals(v));
-	}
-
-	sl_bool operator!=(sl_int32 v, const BigInt& b) noexcept
-	{
-		return !(b.equals(v));
-	}
-
-	sl_bool operator!=(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return !(a.equals(v));
-	}
-
-	sl_bool operator!=(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return !(b.equals(v));
-	}
-
-	sl_bool operator!=(const BigInt& a, sl_int64 v) noexcept
-	{
-		return !(a.equals(v));
-	}
-
-	sl_bool operator!=(sl_int64 v, const BigInt& b) noexcept
-	{
-		return !(b.equals(v));
-	}
-
-	sl_bool operator!=(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return !(a.equals(v));
-	}
-
-	sl_bool operator!=(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return !(b.equals(v));
-	}
-
-
-	sl_bool operator>=(const BigInt& a, const BigInt& b) noexcept
-	{
-		return a.compare(b) >= 0;
-	}
-
-	sl_bool operator>=(const BigInt& a, sl_int32 v) noexcept
-	{
-		return a.compare(v) >= 0;
-	}
-
-	sl_bool operator>=(sl_int32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) <= 0;
-	}
-
-	sl_bool operator>=(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return a.compare(v) >= 0;
-	}
-
-	sl_bool operator>=(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) <= 0;
-	}
-
-	sl_bool operator>=(const BigInt& a, sl_int64 v) noexcept
-	{
-		return a.compare(v) >= 0;
-	}
-
-	sl_bool operator>=(sl_int64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) <= 0;
-	}
-
-	sl_bool operator>=(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return a.compare(v) >= 0;
-	}
-
-	sl_bool operator>=(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) <= 0;
-	}
-
-
-	sl_bool operator>(const BigInt& a, const BigInt& b) noexcept
-	{
-		return a.compare(b) > 0;
-	}
-
-	sl_bool operator>(const BigInt& a, sl_int32 v) noexcept
-	{
-		return a.compare(v) > 0;
-	}
-
-	sl_bool operator>(sl_int32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) < 0;
-	}
-
-	sl_bool operator>(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return a.compare(v) > 0;
-	}
-
-	sl_bool operator>(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) < 0;
-	}
-
-	sl_bool operator>(const BigInt& a, sl_int64 v) noexcept
-	{
-		return a.compare(v) > 0;
-	}
-
-	sl_bool operator>(sl_int64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) < 0;
-	}
-
-	sl_bool operator>(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return a.compare(v) > 0;
-	}
-
-	sl_bool operator>(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) < 0;
-	}
-
-
-	sl_bool operator<=(const BigInt& a, const BigInt& b) noexcept
-	{
-		return a.compare(b) <= 0;
-	}
-
-	sl_bool operator<=(const BigInt& a, sl_int32 v) noexcept
-	{
-		return a.compare(v) <= 0;
-	}
-
-	sl_bool operator<=(sl_int32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) >= 0;
-	}
-
-	sl_bool operator<=(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return a.compare(v) <= 0;
-	}
-
-	sl_bool operator<=(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) >= 0;
-	}
-
-	sl_bool operator<=(const BigInt& a, sl_int64 v) noexcept
-	{
-		return a.compare(v) <= 0;
-	}
-
-	sl_bool operator<=(sl_int64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) >= 0;
-	}
-
-	sl_bool operator<=(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return a.compare(v) <= 0;
-	}
-
-	sl_bool operator<=(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) >= 0;
-	}
-
-
-	sl_bool operator<(const BigInt& a, const BigInt& b) noexcept
-	{
-		return a.compare(b) < 0;
-	}
-
-	sl_bool operator<(const BigInt& a, sl_int32 v) noexcept
-	{
-		return a.compare(v) < 0;
-	}
-
-	sl_bool operator<(sl_int32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) > 0;
-	}
-
-	sl_bool operator<(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return a.compare(v) < 0;
-	}
-
-	sl_bool operator<(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) > 0;
-	}
-
-	sl_bool operator<(const BigInt& a, sl_int64 v) noexcept
-	{
-		return a.compare(v) < 0;
-	}
-
-	sl_bool operator<(sl_int64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) > 0;
-	}
-
-	sl_bool operator<(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return a.compare(v) < 0;
-	}
-
-	sl_bool operator<(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return b.compare(v) > 0;
-	}
-
-
-	BigInt operator+(const BigInt& a, const BigInt& b) noexcept
-	{
-		return BigInt::add(a, b);
-	}
-
-	BigInt operator+(const BigInt& a, sl_int32 v) noexcept
-	{
-		return BigInt::add(a, v);
-	}
-
-	BigInt operator+(sl_int32 v, const BigInt& b) noexcept
-	{
-		return BigInt::add(b, v);
-	}
-
-	BigInt operator+(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return BigInt::add(a, v);
-	}
-
-	BigInt operator+(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return BigInt::add(b, v);
-	}
-
-	BigInt operator+(const BigInt& a, sl_int64 v) noexcept
-	{
-		return BigInt::add(a, v);
-	}
-
-	BigInt operator+(sl_int64 v, const BigInt& b) noexcept
-	{
-		return BigInt::add(b, v);
-	}
-
-	BigInt operator+(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return BigInt::add(a, v);
-	}
-
-	BigInt operator+(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return BigInt::add(b, v);
-	}
-
-
-	BigInt operator-(const BigInt& a, const BigInt& b) noexcept
-	{
-		return BigInt::sub(a, b);
-	}
-
-	BigInt operator-(const BigInt& a, sl_int32 v) noexcept
-	{
-		return BigInt::sub(a, v);
-	}
-
-	BigInt operator-(sl_int32 v, const BigInt& b) noexcept
-	{
-		BigInt ret = BigInt::sub(b, v);
-		ret.makeNegative();
-		return ret;
-	}
-
-	BigInt operator-(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return BigInt::sub(a, v);
-	}
-
-	BigInt operator-(sl_uint32 v, const BigInt& b) noexcept
-	{
-		BigInt ret = BigInt::sub(b, v);
-		ret.makeNegative();
-		return ret;
-	}
-
-	BigInt operator-(const BigInt& a, sl_int64 v) noexcept
-	{
-		return BigInt::sub(a, v);
-	}
-
-	BigInt operator-(sl_int64 v, const BigInt& b) noexcept
-	{
-		BigInt ret = BigInt::sub(b, v);
-		ret.makeNegative();
-		return ret;
-	}
-
-	BigInt operator-(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return BigInt::sub(a, v);
-	}
-
-	BigInt operator-(sl_uint64 v, const BigInt& b) noexcept
-	{
-		BigInt ret = BigInt::sub(b, v);
-		ret.makeNegative();
-		return ret;
-	}
-
-	BigInt operator-(const BigInt& a) noexcept
-	{
-		return a.negative();
-	}
-
-
-	BigInt operator*(const BigInt& a, const BigInt& b) noexcept
-	{
-		return BigInt::mul(a, b);
-	}
-
-	BigInt operator*(const BigInt& a, sl_int32 v) noexcept
-	{
-		return BigInt::mul(a, v);
-	}
-
-	BigInt operator*(sl_int32 v, const BigInt& b) noexcept
-	{
-		return BigInt::mul(b, v);
-	}
-
-	BigInt operator*(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return BigInt::mul(a, v);
-	}
-
-	BigInt operator*(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return BigInt::mul(b, v);
-	}
-
-	BigInt operator*(const BigInt& a, sl_int64 v) noexcept
-	{
-		return BigInt::mul(a, v);
-	}
-
-	BigInt operator*(sl_int64 v, const BigInt& b) noexcept
-	{
-		return BigInt::mul(b, v);
-	}
-
-	BigInt operator*(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return BigInt::mul(a, v);
-	}
-
-	BigInt operator*(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return BigInt::mul(b, v);
-	}
-
-
-	BigInt operator/(const BigInt& a, const BigInt& b) noexcept
-	{
-		return BigInt::div(a, b);
-	}
-
-	BigInt operator/(const BigInt& a, sl_int32 v) noexcept
-	{
-		return BigInt::div(a, v);
-	}
-
-	BigInt operator/(sl_int32 v, const BigInt& b) noexcept
-	{
-		return BigInt::div(BigInt::fromInt32(v), b);
-	}
-
-	BigInt operator/(const BigInt& a, sl_uint32 v) noexcept
-	{
-		return BigInt::div(a, v);
-	}
-
-	BigInt operator/(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return BigInt::div(BigInt::fromUint32(v), b);
-	}
-
-	BigInt operator/(const BigInt& a, sl_int64 v) noexcept
-	{
-		return BigInt::div(a, v);
-	}
-
-	BigInt operator/(sl_int64 v, const BigInt& b) noexcept
-	{
-		return BigInt::div(BigInt::fromInt64(v), b);
-	}
-
-	BigInt operator/(const BigInt& a, sl_uint64 v) noexcept
-	{
-		return BigInt::div(a, v);
-	}
-
-	BigInt operator/(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return BigInt::div(BigInt::fromUint64(v), b);
-	}
-
-
-	BigInt operator%(const BigInt& a, const BigInt& b) noexcept
-	{
-		return BigInt::mod(a, b);
-	}
-
-	sl_int32 operator%(const BigInt& a, sl_int32 v) noexcept
-	{
-		return BigInt::modInt32(a, v);
-	}
-
-	BigInt operator%(sl_int32 v, const BigInt& b) noexcept
-	{
-		return BigInt::mod(BigInt::fromInt32(v), b);
-	}
-
-	BigInt operator%(sl_uint32 v, const BigInt& b) noexcept
-	{
-		return BigInt::mod(BigInt::fromUint32(v), b);
-	}
-
-	sl_int64 operator%(const BigInt& a, sl_int64 v) noexcept
-	{
-		return BigInt::modInt64(a, v);
-	}
-
-	BigInt operator%(sl_int64 v, const BigInt& b) noexcept
-	{
-		return BigInt::mod(BigInt::fromInt64(v), b);
-	}
-
-	BigInt operator%(sl_uint64 v, const BigInt& b) noexcept
-	{
-		return BigInt::mod(BigInt::fromUint64(v), b);
-	}
-
-
-	BigInt operator<<(const BigInt& a, sl_size n) noexcept
-	{
-		return BigInt::shiftLeft(a, n);
-	}
-
-	BigInt operator>>(const BigInt& a, sl_size n) noexcept
-	{
-		return BigInt::shiftRight(a, n);
 	}
 
 }
