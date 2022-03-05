@@ -24,7 +24,7 @@
 
  Template Engine for HTML/CSS/JavaScript
 
- Based on
+ The grammar is based on
 	 https://github.com/melpon/ginger
 	 https://github.com/qicosmos/render
 
@@ -35,6 +35,7 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/parse_util.h"
 #include "slib/core/file.h"
+#include "slib/core/safe_static.h"
 
 namespace slib
 {
@@ -142,7 +143,12 @@ namespace slib
 				{
 					VariantList params = param.getVariantList();
 					StringData s(params.getValueAt(1).getStringParam());
-					return params.getValueAt(0).getString().split(s);
+					ListElements<String> strings(params.getValueAt(0).getString().split(s));
+					VariantList ret;
+					for (sl_size i = 0; i < strings.count; i++) {
+						ret.add_NoLock(strings[i]);
+					}
+					return ret;
 				}
 
 				static Variant concat(Variant& param)
@@ -206,7 +212,80 @@ namespace slib
 					return -1;
 				}
 
+				static Variant lastIndexOf(Variant& param)
+				{
+					VariantList params = param.getVariantList();
+					Variant s = params.getValueAt(0);
+					if (s.isNull()) {
+						return -1;
+					}
+					if (s.isStringType()) {
+						return s.getString().lastIndexOf(params.getValueAt(1).getString(), params.getValueAt(2).getInt32(-1));
+					}
+					if (s.isVariantList()) {
+						return s.getVariantList().lastIndexOf(params.getValueAt(1).getString(), params.getValueAt(2).getInt32(-1));
+					}
+					sl_int64 n = s.getElementsCount();
+					if (!n) {
+						return -1;
+					}
+					sl_int64 i = params.getValueAt(2).getInt64(-1);
+					if (i < 0) {
+						i = n - 1;
+					}
+					Variant what = params.getValueAt(1).getString();
+					for (; i >= 0; i--) {
+						if (s.getElement(i) == what) {
+							return i;
+						}
+					}
+					return -1;
+				}
+
+			public:
+				BuiltIn()
+				{
+					if (m_builtins.isEmpty()) {
+#define REGISTER_BUILTIN_FUNCTION(NAME) \
+						{ \
+							SLIB_STATIC_STRING(s, #NAME) \
+							m_builtins.put_NoLock(s, Function<Variant(Variant&)>(&BuiltIn::NAME)); \
+						}
+						REGISTER_BUILTIN_FUNCTION(format)
+						REGISTER_BUILTIN_FUNCTION(toInt)
+						REGISTER_BUILTIN_FUNCTION(toUint)
+						REGISTER_BUILTIN_FUNCTION(toInt64)
+						REGISTER_BUILTIN_FUNCTION(toUint64)
+						REGISTER_BUILTIN_FUNCTION(toFloat)
+						REGISTER_BUILTIN_FUNCTION(toDouble)
+						REGISTER_BUILTIN_FUNCTION(toString)
+						REGISTER_BUILTIN_FUNCTION(toBool)
+						REGISTER_BUILTIN_FUNCTION(length)
+						REGISTER_BUILTIN_FUNCTION(substring)
+						REGISTER_BUILTIN_FUNCTION(trim)
+						REGISTER_BUILTIN_FUNCTION(toUpper)
+						REGISTER_BUILTIN_FUNCTION(toLower)
+						REGISTER_BUILTIN_FUNCTION(replaceAll)
+						REGISTER_BUILTIN_FUNCTION(split)
+						REGISTER_BUILTIN_FUNCTION(concat)
+						REGISTER_BUILTIN_FUNCTION(join)
+						REGISTER_BUILTIN_FUNCTION(indexOf)
+						REGISTER_BUILTIN_FUNCTION(lastIndexOf)
+					}
+				}
+
+			public:
+				Variant getBuiltIn(const String& name)
+				{
+					return m_builtins.getValue_NoLock(name);
+				}
+
+			private:
+				CHashMap<String, Variant> m_builtins;
+
 			};
+
+			SLIB_SAFE_STATIC_GETTER(BuiltIn, GetBuiltIn)
 
 			class Renderer
 			{
@@ -218,7 +297,6 @@ namespace slib
 
 				Variant m_data;
 				CHashMap<String, Variant> m_locals;
-				CHashMap<String, Variant> m_builtins;
 
 				StringBuffer m_output;
 				sl_bool m_flagError;
@@ -486,34 +564,55 @@ namespace slib
 								EXPR_SKIP_WHITESPACE_AND_CHECK_ENDED
 								break;
 							}
-						case '$':
-							{
-								m_current++;
-								StringView name = readVariableName();
-								if (name.isEmpty()) {
-									return Variant();
-								}
-								if (!flagSkip) {
-									var = getBuiltin(name);
-								}
-								EXPR_SKIP_WHITESPACE_AND_CHECK_ENDED
-								break;
-							}
 						default:
 							{
 								if (SLIB_CHAR_IS_DIGIT(ch)) {
-									sl_uint64 n;
-									sl_reg result = String::parseUint64(0, &n, m_current, 0, m_end - m_current);
-									if (result < 0) {
-										setError("Invalid number");
-										return Variant();
+									sl_bool flagFloat = sl_false;
+									{
+										Char* s = m_current + 1;
+										while (s < m_end) {
+											ch = *(s++);
+											if (ch == '.') {
+												flagFloat = sl_true;
+												break;
+											}
+											if (ch == 'x' || ch == 'X') {
+												break;
+											}
+											if (ch == 'e' || ch == 'E') {
+												flagFloat = sl_true;
+												break;
+											}
+											if (!SLIB_CHAR_IS_DIGIT(ch)) {
+												break;
+											}
+										}
 									}
-									m_current += result;
-									if (!flagSkip) {
-										if (n >> 32) {
+									if (flagFloat) {
+										double n;
+										sl_reg result = String::parseDouble(&n, m_current, 0, m_end - m_current);
+										if (result < 0) {
+											setError("Invalid number");
+											return Variant();
+										}
+										m_current += result;
+										if (!flagSkip) {
 											var = n;
-										} else {
-											var = (sl_uint32)n;
+										}
+									} else {
+										sl_uint64 n;
+										sl_reg result = String::parseUint64(0, &n, m_current, 0, m_end - m_current);
+										if (result < 0) {
+											setError("Invalid integer");
+											return Variant();
+										}
+										m_current += result;
+										if (!flagSkip) {
+											if (n >> 32) {
+												var = n;
+											} else {
+												var = (sl_uint32)n;
+											}
 										}
 									}
 									EXPR_SKIP_WHITESPACE_AND_CHECK_ENDED
@@ -526,6 +625,9 @@ namespace slib
 										String strName = String::fromStatic(name.getData(), name.getLength());
 										if (!(m_locals.get_NoLock(strName, &var))) {
 											var = m_data.getItem(strName);
+											if (var.isUndefined()) {
+												var = getBuiltin(strName);
+											}
 										}
 									}
 									EXPR_SKIP_WHITESPACE_AND_CHECK_ENDED
@@ -896,6 +998,21 @@ namespace slib
 													PropertyIterator iterator = var.getItemIterator();
 													if (iterator.isNotNull()) {
 														GINGER_PROCESS_FOR_IMPL(while (iterator.moveNext()), iterator.getKey())
+													} else if (var.is8BitsStringType()) {
+														StringView str = var.getStringView();
+														sl_size n = str.getLength();
+														sl_char8* data = str.getData();
+														GINGER_PROCESS_FOR_IMPL(for (sl_size i = 0; i < n; i++), data[i])
+													} else if (var.is16BitsStringType()) {
+														StringView16 str = var.getStringView16();
+														sl_size n = str.getLength();
+														sl_char16* data = str.getData();
+														GINGER_PROCESS_FOR_IMPL(for (sl_size i = 0; i < n; i++), data[i])
+													} else if (var.is32BitsStringType()) {
+														StringView32 str = var.getStringView32();
+														sl_size n = str.getLength();
+														sl_char32* data = str.getData();
+														GINGER_PROCESS_FOR_IMPL(for (sl_size i = 0; i < n; i++), data[i])
 													}
 												}
 											}
@@ -1007,34 +1124,9 @@ namespace slib
 					} else if (name == "now") {
 						return Time::now();
 					}
-
-					if (m_builtins.isEmpty()) {
-#define REGISTER_BUILTIN_FUNCTION(NAME) \
-						{ \
-							SLIB_STATIC_STRING(s, #NAME) \
-							Variant v; \
-							v.setVariantFunction(Function<Variant(Variant&)>(&BuiltIn::NAME)); \
-							m_builtins.put(s, Move(v)); \
-						}
-						REGISTER_BUILTIN_FUNCTION(format)
-						REGISTER_BUILTIN_FUNCTION(toInt)
-						REGISTER_BUILTIN_FUNCTION(toUint)
-						REGISTER_BUILTIN_FUNCTION(toInt64)
-						REGISTER_BUILTIN_FUNCTION(toUint64)
-						REGISTER_BUILTIN_FUNCTION(toFloat)
-						REGISTER_BUILTIN_FUNCTION(toDouble)
-						REGISTER_BUILTIN_FUNCTION(toString)
-						REGISTER_BUILTIN_FUNCTION(toBool)
-						REGISTER_BUILTIN_FUNCTION(length)
-						REGISTER_BUILTIN_FUNCTION(substring)
-						REGISTER_BUILTIN_FUNCTION(trim)
-						REGISTER_BUILTIN_FUNCTION(toUpper)
-						REGISTER_BUILTIN_FUNCTION(toLower)
-						REGISTER_BUILTIN_FUNCTION(replaceAll)
-						REGISTER_BUILTIN_FUNCTION(split)
-						REGISTER_BUILTIN_FUNCTION(concat)
-						REGISTER_BUILTIN_FUNCTION(join)
-						REGISTER_BUILTIN_FUNCTION(indexOf)
+					BuiltIn* builtin = GetBuiltIn();
+					if (builtin) {
+						return builtin->getBuiltIn(name);
 					}
 					return Variant();
 				}
