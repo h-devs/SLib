@@ -515,13 +515,10 @@ namespace slib
 		}
 
 		template <class READER>
-		static String readText(READER* reader, sl_size size, Charset* outCharset)
+		static StringParam readText(READER* reader, sl_size size)
 		{
 			if (!size) {
-				if (outCharset) {
-					*outCharset = Charset::UTF8;
-				}
-				return String::getEmpty();
+				return sl_null;
 			}
 			sl_char8 sbuf[3];
 			if (size >= 2) {
@@ -530,29 +527,27 @@ namespace slib
 						sl_bool flagUTF16LE = sbuf[0] == (sl_char8)0xFF && sbuf[1] == (sl_char8)0xFE;
 						sl_bool flagUTF16BE = sbuf[0] == (sl_char8)0xFE && sbuf[1] == (sl_char8)0xFF;
 						if (flagUTF16LE || flagUTF16BE) {
-							if (outCharset) {
-								if (flagUTF16LE) {
-									*outCharset = Charset::UTF16LE;
-								} else {
-									*outCharset = Charset::UTF16BE;
-								}
-							}
 							size -= 2;
-							SLIB_SCOPED_BUFFER(sl_uint8, 4096, buf, size);
-							if (buf) {
+							sl_size len = size >> 1;
+							if (!len) {
+								return StringView16::getEmpty();
+							}
+							String16 str = String16::allocate(len);
+							if (str.isNotNull()) {
+								sl_char16* buf = str.getData();
+								size = len << 1;
 								if (readFully(reader, buf, size) == (sl_reg)size) {
-									if (flagUTF16LE) {
-										return String::fromUtf16LE(buf, size);
-									} else {
-										return String::fromUtf16BE(buf, size);
+									if ((flagUTF16BE && Endian::isLE()) || (flagUTF16LE && Endian::isBE())) {
+										for (sl_size i = 0; i < len; i++) {
+											sl_uint16 c = (sl_uint16)(buf[i]);
+											buf[i] = (sl_char16)((c >> 8) | (c << 8));
+										}
 									}
+									return str;
 								}
 							}
-							return sl_null;
+							return StringParam();
 						}
-					}
-					if (outCharset) {
-						*outCharset = Charset::UTF8;
 					}
 					if (size >= 3) {
 						if (reader->read(sbuf + 2, 1) == 1) {
@@ -585,106 +580,17 @@ namespace slib
 					} else {
 						return String::fromUtf8(sbuf, 2);
 					}
-					return sl_null;
+					return StringParam();
 				}
 			} else {
 				String ret = String::allocate(size);
 				if (ret.isNotNull()) {
 					if (readFully(reader, ret.getData(), size) == (sl_reg)size) {
-						if (outCharset) {
-							*outCharset = Charset::UTF8;
-						}
 						return ret;
 					}
 				}
 			}
-			if (outCharset) {
-				*outCharset = Charset::UTF8;
-			}
-			return sl_null;
-		}
-
-		template <class READER>
-		static String16 readText16(READER* reader, sl_size size, Charset* outCharset)
-		{
-			if (!size) {
-				if (outCharset) {
-					*outCharset = Charset::UTF8;
-				}
-				return String16::getEmpty();
-			}
-			sl_char8 sbuf[3];
-			if (size >= 2) {
-				if (readFully(reader, sbuf, 2) == 2) {
-					if (!(size & 1)) {
-						sl_bool flagUTF16LE = sbuf[0] == (sl_char8)0xFF && sbuf[1] == (sl_char8)0xFE;
-						sl_bool flagUTF16BE = sbuf[0] == (sl_char8)0xFE && sbuf[1] == (sl_char8)0xFF;
-						if (flagUTF16LE || flagUTF16BE) {
-							if (outCharset) {
-								if (flagUTF16LE) {
-									*outCharset = Charset::UTF16LE;
-								} else {
-									*outCharset = Charset::UTF16BE;
-								}
-							}
-							size -= 2;
-							sl_size len = size >> 1;
-							if (!len) {
-								return String16::getEmpty();
-							}
-							String16 str = String16::allocate(len);
-							if (str.isNotNull()) {
-								sl_char16* buf = str.getData();
-								size = len << 1;
-								if (readFully(reader, buf, size) == (sl_reg)size) {
-									if ((flagUTF16BE && Endian::isLE()) || (flagUTF16LE && Endian::isBE())) {
-										for (sl_size i = 0; i < len; i++) {
-											sl_uint16 c = (sl_uint16)(buf[i]);
-											buf[i] = (sl_char16)((c >> 8) | (c << 8));
-										}
-									}
-									return str;
-								}
-							}
-							return sl_null;
-						}
-					}
-					SLIB_SCOPED_BUFFER(sl_char8, 4096, tbuf, size);
-					if (tbuf) {
-						if (outCharset) {
-							*outCharset = Charset::UTF8;
-						}
-						tbuf[0] = sbuf[0];
-						tbuf[1] = sbuf[1];
-						sl_char8* buf = tbuf;
-						if (size >= 3) {
-							if (readFully(reader, tbuf + 2, size - 2) == (sl_reg)(size - 2)) {
-								if (tbuf[0] == (sl_char8)0xEF && tbuf[1] == (sl_char8)0xBB && tbuf[2] == (sl_char8)0xBF) {
-									size -= 3;
-									if (!size) {
-										return String16::getEmpty();
-									}
-									buf = tbuf + 3;
-								}
-							} else {
-								return sl_null;
-							}
-						}
-						return String16::fromUtf8(buf, size);
-					}
-				}
-			} else {
-				if (readFully(reader, sbuf, size) == (sl_reg)size) {
-					if (outCharset) {
-						*outCharset = Charset::UTF8;
-					}
-					return String16::fromUtf8(sbuf, size);
-				}
-			}
-			if (outCharset) {
-				*outCharset = Charset::UTF8;
-			}
-			return sl_null;
+			return StringParam();
 		}
 		
 	};

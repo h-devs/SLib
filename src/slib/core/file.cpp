@@ -457,24 +457,15 @@ namespace slib
 		return sl_null;
 	}
 	
-	String File::readAllText(const StringParam& path, Charset* outCharset, sl_size maxSize) noexcept
+	StringParam File::readAllText(const StringParam& path, sl_size maxSize) noexcept
 	{
 		File file = File::openForRead(path);
 		if (file.isNotNone()) {
-			return file.readAllText(outCharset, maxSize);
+			return file.readAllText(maxSize);
 		}
 		return sl_null;
 	}
 	
-	String16 File::readAllText16(const StringParam& path, Charset* outCharset, sl_size maxSize) noexcept
-	{
-		File file = File::openForRead(path);
-		if (file.isNotNone()) {
-			return file.readAllText16(outCharset, maxSize);
-		}
-		return sl_null;
-	}
-
 	sl_size File::writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
 	{
 		File file = File::openForWrite(path);

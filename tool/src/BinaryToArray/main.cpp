@@ -86,7 +86,7 @@ int main(int argc, const char * argv[])
 		fileOutput = argv[2];
 	}
 	if (flagToBinary) {
-		String text = File::readAllText(fileSource);
+		String text = File::readAllText(fileSource).toString();
 		if (text.isEmpty()) {
 			Println("Source content is empty!");
 			return -1;

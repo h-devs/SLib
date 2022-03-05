@@ -357,10 +357,8 @@ namespace slib
 		
 		static String16 readAllTextUTF16(const StringParam& path, EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
 		
-		static String readAllText(const StringParam& path, Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
+		static StringParam readAllText(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
 		
-		static String16 readAllText16(const StringParam& path, Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
-	
 		static sl_size writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept;
 
 		static sl_size writeAllBytes(const StringParam& path, const Memory& mem) noexcept;

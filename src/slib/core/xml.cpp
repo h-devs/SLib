@@ -2492,11 +2492,10 @@ namespace slib
 
 	Ref<XmlDocument> Xml::parseXmlFromTextFile(const StringParam& filePath, XmlParseParam& param)
 	{
-		String16 xml = File::readAllText16(filePath);
 		if (param.sourceFilePath.isNull()) {
 			param.sourceFilePath = filePath.toString();
 		}
-		return XmlParser<sl_char16>::parseXml(xml.getData(), xml.getLength(), param);
+		return parseXml(File::readAllText(filePath), param);
 	}
 
 	Ref<XmlDocument> Xml::parseXmlFromTextFile(const StringParam& filePath)

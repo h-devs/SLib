@@ -716,7 +716,7 @@ namespace slib
 		param.flagLogError = sl_false;
 		param.flagSupportCpp11String = sl_true;
 		param.setCreatingOnlyElementsAndTexts();
-		String16 textXML = File::readAllText16(filePath);
+		String16 textXML = File::readAllText(filePath).toString16();
 		param.sourceFilePath = filePath;
 		Ref<XmlDocument> xml = Xml::parseXml(textXML, param);
 		if (param.flagError) {

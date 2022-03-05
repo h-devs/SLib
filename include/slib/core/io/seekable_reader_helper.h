@@ -217,7 +217,7 @@ namespace slib
 		}
 
 		template <class READER, class SEEKABLE>
-		static String readAllText(READER* reader, SEEKABLE* seekable, Charset* outCharset, sl_size maxSize)
+		static StringParam readAllText(READER* reader, SEEKABLE* seekable, sl_size maxSize)
 		{
 			sl_uint64 _size = seekable->getSize();
 			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
@@ -228,24 +228,7 @@ namespace slib
 				return sl_null;
 			}
 			if (seekable->seekToBegin()) {
-				return reader->readText(size, outCharset);
-			}
-			return sl_null;
-		}
-
-		template <class READER, class SEEKABLE>
-		static String16 readAllText16(READER* reader, SEEKABLE* seekable, Charset* outCharset, sl_size maxSize)
-		{
-			sl_uint64 _size = seekable->getSize();
-			sl_size size = SLIB_SIZE_FROM_UINT64(_size);
-			if (size > maxSize) {
-				size = maxSize;
-			}
-			if (!size) {
-				return sl_null;
-			}
-			if (seekable->seekToBegin()) {
-				return reader->readText16(size, outCharset);
+				return reader->readText(size);
 			}
 			return sl_null;
 		}

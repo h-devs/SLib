@@ -65,7 +65,7 @@ int main(int argc, const char * argv[])
 		String ext = File::getFileExtension(files[i]);
 		if (exts.contains_NoLock(ext)) {
 			Println("Parsing file: %s", files[i]);
-			String content = File::readAllText(path + "/" + files[i]);
+			String content = File::readAllText(path + "/" + files[i]).toString();
 			if (content.isNotEmpty()) {
 				sl_char8* buf = content.getData();
 				sl_reg len = content.getLength();

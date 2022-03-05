@@ -63,8 +63,7 @@
 	Memory readToMemory(sl_size size) __VA_ARGS__; \
 	String readTextUTF8(sl_size size) __VA_ARGS__; \
 	String16 readTextUTF16(sl_size size, EndianType endian = Endian::Little) __VA_ARGS__; \
-	String readText(sl_size size, Charset* outCharset = sl_null) __VA_ARGS__; \
-	String16 readText16(sl_size size, Charset* outCharset = sl_null) __VA_ARGS__;
+	StringParam readText(sl_size size) __VA_ARGS__; \
 
 #define SLIB_DECLARE_IWRITER_MEMBERS(...) \
 	sl_reg writeFully(const void* buf, sl_size size) __VA_ARGS__; \
@@ -109,8 +108,7 @@
 	Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
 	String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
 	String16 readAllTextUTF16(EndianType endian = Endian::Little, sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	String readAllText(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
-	String16 readAllText16(Charset* outCharset = sl_null, sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
+	StringParam readAllText(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
 	sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_uint64 sizeFind = SLIB_UINT64_MAX) ATTR; \
 	sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX) ATTR;
 

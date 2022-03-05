@@ -60,8 +60,7 @@
 	Memory CLASS::readToMemory(sl_size size) ATTR { return ReaderHelper::readToMemory(this, size); } \
 	String CLASS::readTextUTF8(sl_size size) ATTR { return ReaderHelper::readTextUTF8(this, size); } \
 	String16 CLASS::readTextUTF16(sl_size size, EndianType endian) ATTR { return ReaderHelper::readTextUTF16(this, size, endian); } \
-	String CLASS::readText(sl_size size, Charset* outCharset) ATTR { return ReaderHelper::readText(this, size, outCharset); } \
-	String16 CLASS::readText16(sl_size size, Charset* outCharset) ATTR { return ReaderHelper::readText16(this, size, outCharset); }
+	StringParam CLASS::readText(sl_size size) ATTR { return ReaderHelper::readText(this, size); } \
 
 #define SLIB_DEFINE_IWRITER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::writeFully(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size); } \
@@ -133,8 +132,7 @@
 	Memory CLASS::readAllBytes(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllBytes(this, this, maxSize); } \
 	String CLASS::readAllTextUTF8(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllTextUTF8(this, this, maxSize); } \
 	String16 CLASS::readAllTextUTF16(EndianType endian, sl_size maxSize) ATTR { return SeekableReaderHelper::readAllTextUTF16(this, this, endian, maxSize); } \
-	String CLASS::readAllText(Charset* outCharset, sl_size maxSize) ATTR { return SeekableReaderHelper::readAllText(this, this, outCharset, maxSize); } \
-	String16 CLASS::readAllText16(Charset* outCharset, sl_size maxSize) ATTR { return SeekableReaderHelper::readAllText16(this, this, outCharset, maxSize); } \
+	StringParam CLASS::readAllText(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllText(this, this, maxSize); } \
 	sl_int64 CLASS::find(const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind) ATTR { return SeekableReaderHelper::find(this, this, pattern, nPattern, startPosition, sizeFind); } \
 	sl_int64 CLASS::findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition, sl_uint64 sizeFind) ATTR { return SeekableReaderHelper::findBackward(this, this, pattern, nPattern, startPosition, sizeFind); }
 
