@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/json.h"
+#include "../core/variant.h"
 
 namespace slib
 {
@@ -33,9 +33,9 @@ namespace slib
 	class SLIB_EXPORT Ginger
 	{
 	public:
-		static String render(const String& _template, const Json& data);
+		static String render(const StringView& _template, const Variant& data);
 		
-		static String renderFile(const String& filePath, const Json& data);
+		static String renderFile(const StringParam& filePath, const Variant& data);
 
 	};
 	
