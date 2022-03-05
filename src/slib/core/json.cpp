@@ -421,7 +421,7 @@ namespace slib
 						return Json(sl_false);
 					}
 					sl_int64 vi64;
-					if (str.parseInt64(10, &vi64)) {
+					if (str.parseInt64(0, &vi64)) {
 						if (vi64 >= SLIB_INT64(-0x80000000) && vi64 < SLIB_INT64(0x7fffffff)) {
 							return (sl_int32)vi64;
 						} else {
@@ -911,8 +911,7 @@ namespace slib
 
 	Json Json::parseJsonFromTextFile(const StringParam& filePath, JsonParseParam& param)
 	{
-		String16 json = File::readAllText16(filePath);
-		return parseJson(json, param);
+		return parseJson(File::readAllText(filePath), param);
 	}
 
 	Json Json::parseJsonFromTextFile(const StringParam& filePath)

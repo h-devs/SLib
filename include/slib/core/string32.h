@@ -747,7 +747,7 @@ namespace slib
 		/**
 		* Convert the string to integer of the specified radix.
 		*
-		* @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
+		* @param[in] radix Numerical base used to represent the integer.  Use 10 for the decimal system. Use 0 to let the function determine the radix by the prefix (`0x`: Hexadecimal, `0`: Octal)
 		* @param[out] value Pointer to the result output
 		* @param[in] str String containing the integer
 		* @param[in] posBegin Zero-based position of the integer
@@ -763,7 +763,7 @@ namespace slib
 		/**
 		* Convert this string to integer of the specified radix.
 		*
-		* @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
+		* @param[in] radix Numerical base used to represent the integer.  Use 10 for the decimal system. Use 0 to let the function determine the radix by the prefix (`0x`: Hexadecimal, `0`: Octal)
 		* @param[out] value Pointer to the result output
 		*
 		* @return `true` if this string is valid integer
@@ -784,7 +784,7 @@ namespace slib
 		/**
 		* Convert this string to integer of the specified radix.
 		*
-		* @param[in] radix Numerical base used to represent the integer. For example, use 10 for the decimal system.
+		* @param[in] radix Numerical base used to represent the integer.  Use 10 for the decimal system. Use 0 to let the function determine the radix by the prefix (`0x`: Hexadecimal, `0`: Octal)
 		* @param[in] def Default return value for the non-integer string
 		*
 		* @return Result integer if the conversion is successful, otherwise returns `def`

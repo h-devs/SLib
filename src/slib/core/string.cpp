@@ -2249,18 +2249,32 @@ namespace slib
 			};
 			const sl_uint8* g_conv_radixInversePatternSmall = g_conv_radix_inverse_pattern_small;
 
+			template <class CHAR>
+			static sl_uint32 DetermineRadix(const CHAR* str, sl_size& i, sl_size n)
+			{
+				if (str[i] == '0') {
+					if (i + 1 < n) {
+						CHAR ch = str[i + 1];
+						if (ch == 'x' || ch == 'X') {
+							i += 2;
+							return 16;
+						} else {
+							i += 1;
+							return 8;
+						}
+					}
+				}
+				return 10;
+			}
+
 			template <class INTEGER, class CHAR>
-			static sl_reg ParseInt(sl_int32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
+			static sl_reg ParseInt(sl_uint32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
 				}
-				sl_int32 r = radix;
 
-				const sl_uint8* pattern = r <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
-				INTEGER v = 0;
 				sl_bool bMinus = sl_false;
-				sl_bool bEmpty = sl_true;
 				if (str[i] == '-') {
 					i++;
 					bMinus = sl_true;
@@ -2271,11 +2285,20 @@ namespace slib
 						break;
 					}
 				}
+				if (!radix) {
+					if (i >= n) {
+						return SLIB_PARSE_ERROR;
+					}
+					radix = DetermineRadix(str, i, n);
+				}
+				const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
+				INTEGER v = 0;
+				sl_bool bEmpty = sl_true;
 				for (; i < n; i++) {
 					sl_uint32 c = (sl_uint32)(str[i]);
 					sl_uint32 m = c < 128 ? pattern[c] : 255;
-					if (m < (sl_uint32)r) {
-						v = v * r + m;
+					if (m < (sl_uint32)radix) {
+						v = v * radix + m;
 						bEmpty = sl_false;
 					} else {
 						break;
@@ -2310,20 +2333,22 @@ namespace slib
 			}
 
 			template <class INTEGER, class CHAR>
-			static sl_reg ParseUint(sl_int32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
+			static sl_reg ParseUint(sl_uint32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
 			{
 				if (i >= n) {
 					return SLIB_PARSE_ERROR;
 				}
-				sl_uint32 r = radix;
+				if (!radix) {
+					radix = DetermineRadix(str, i, n);
+				}
 				sl_bool bEmpty = sl_true;
-				const sl_uint8* pattern = r <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
+				const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
 				INTEGER v = 0;
 				for (; i < n; i++) {
 					sl_uint32 c = (sl_uint32)(str[i]);
 					sl_uint32 m = c < 128 ? pattern[c] : 255;
-					if (m < r) {
-						v = v * r + m;
+					if (m < radix) {
+						v = v * radix + m;
 						bEmpty = sl_false;
 					} else {
 						break;
