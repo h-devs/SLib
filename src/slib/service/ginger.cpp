@@ -34,6 +34,7 @@
 
 #include "slib/core/string_buffer.h"
 #include "slib/core/parse_util.h"
+#include "slib/core/locale.h"
 #include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
@@ -113,7 +114,7 @@ namespace slib
 				static Variant substring(Variant& param)
 				{
 					VariantList params = param.getVariantList();
-					return params.getValueAt(0).getString().substring(params.getValueAt(1).getInt32(0), params.getValueAt(2).getInt32(-1));
+					return params.getValueAt_NoLock(0).getString().substring(params.getValueAt_NoLock(1).getInt32(0), params.getValueAt_NoLock(2).getInt32(-1));
 				}
 
 				static Variant trim(Variant& param)
@@ -134,16 +135,16 @@ namespace slib
 				static Variant replaceAll(Variant& param)
 				{
 					VariantList params = param.getVariantList();
-					StringData s1(params.getValueAt(1).getStringParam());
-					StringData s2(params.getValueAt(2).getStringParam());
-					return params.getValueAt(0).getString().replaceAll(s1, s2);
+					StringData s1(params.getValueAt_NoLock(1).getStringParam());
+					StringData s2(params.getValueAt_NoLock(2).getStringParam());
+					return params.getValueAt_NoLock(0).getString().replaceAll(s1, s2);
 				}
 
 				static Variant split(Variant& param)
 				{
 					VariantList params = param.getVariantList();
-					StringData s(params.getValueAt(1).getStringParam());
-					ListElements<String> strings(params.getValueAt(0).getString().split(s));
+					StringData s(params.getValueAt_NoLock(1).getStringParam());
+					ListElements<String> strings(params.getValueAt_NoLock(0).getString().split(s));
 					VariantList ret;
 					for (sl_size i = 0; i < strings.count; i++) {
 						ret.add_NoLock(strings[i]);
@@ -171,13 +172,13 @@ namespace slib
 				static Variant join(Variant& param)
 				{
 					VariantList params = param.getVariantList();
-					ListLocker<Variant> list(params.getValueAt(0).getVariantList());
+					ListLocker<Variant> list(params.getValueAt_NoLock(0).getVariantList());
 					if (list.count) {
 						List<String> strings;
 						for (sl_size i = 0; i < list.count; i++) {
 							strings.add_NoLock(list[i].toString());
 						}
-						return String::join(strings.getData(), strings.getCount(), params.getValueAt(1).getStringView());
+						return String::join(strings.getData(), strings.getCount(), params.getValueAt_NoLock(1).getStringView());
 					}
 					return  Variant();
 				}
@@ -185,25 +186,25 @@ namespace slib
 				static Variant indexOf(Variant& param)
 				{
 					VariantList params = param.getVariantList();
-					Variant s = params.getValueAt(0);
+					Variant s = params.getValueAt_NoLock(0);
 					if (s.isNull()) {
 						return -1;
 					}
 					if (s.isStringType()) {
-						return s.getString().indexOf(params.getValueAt(1).getString(), params.getValueAt(2).getInt32());
+						return s.getString().indexOf(params.getValueAt_NoLock(1).getString(), params.getValueAt_NoLock(2).getInt32());
 					}
 					if (s.isVariantList()) {
-						return s.getVariantList().indexOf(params.getValueAt(1).getString(), params.getValueAt(2).getInt32());
+						return s.getVariantList().indexOf(params.getValueAt_NoLock(1).getString(), params.getValueAt_NoLock(2).getInt32());
 					}
 					sl_int64 n = s.getElementsCount();
 					if (!n) {
 						return -1;
 					}
-					sl_int64 i = params.getValueAt(2).getInt64();
+					sl_int64 i = params.getValueAt_NoLock(2).getInt64();
 					if (i < 0) {
 						i = 0;
 					}
-					Variant what = params.getValueAt(1).getString();
+					Variant what = params.getValueAt_NoLock(1).getString();
 					for (; i < n; i++) {
 						if (s.getElement(i) == what) {
 							return i;
@@ -215,25 +216,25 @@ namespace slib
 				static Variant lastIndexOf(Variant& param)
 				{
 					VariantList params = param.getVariantList();
-					Variant s = params.getValueAt(0);
+					Variant s = params.getValueAt_NoLock(0);
 					if (s.isNull()) {
 						return -1;
 					}
 					if (s.isStringType()) {
-						return s.getString().lastIndexOf(params.getValueAt(1).getString(), params.getValueAt(2).getInt32(-1));
+						return s.getString().lastIndexOf(params.getValueAt_NoLock(1).getString(), params.getValueAt_NoLock(2).getInt32(-1));
 					}
 					if (s.isVariantList()) {
-						return s.getVariantList().lastIndexOf(params.getValueAt(1).getString(), params.getValueAt(2).getInt32(-1));
+						return s.getVariantList().lastIndexOf(params.getValueAt_NoLock(1).getString(), params.getValueAt_NoLock(2).getInt32(-1));
 					}
 					sl_int64 n = s.getElementsCount();
 					if (!n) {
 						return -1;
 					}
-					sl_int64 i = params.getValueAt(2).getInt64(-1);
+					sl_int64 i = params.getValueAt_NoLock(2).getInt64(-1);
 					if (i < 0) {
 						i = n - 1;
 					}
-					Variant what = params.getValueAt(1).getString();
+					Variant what = params.getValueAt_NoLock(1).getString();
 					for (; i >= 0; i--) {
 						if (s.getElement(i) == what) {
 							return i;
@@ -242,6 +243,96 @@ namespace slib
 					return -1;
 				}
 
+				static Variant getDaysCount(Variant& param)
+				{
+					return param.getTime().getDaysCountf();
+				}
+
+				static Variant getHoursCount(Variant& param)
+				{
+					return param.getTime().getHoursCountf();
+				}
+
+				static Variant getMinutesCount(Variant& param)
+				{
+					return param.getTime().getMinutesCountf();
+				}
+
+				static Variant getSecondsCount(Variant& param)
+				{
+					return param.getTime().getSecondsCountf();
+				}
+
+				static Variant getYear(Variant& param)
+				{
+					return param.getTime().getYear();
+				}
+
+				static Variant getMonth(Variant& param)
+				{
+					return param.getTime().getMonth();
+				}
+
+				static Variant getDay(Variant& param)
+				{
+					return param.getTime().getDay();
+				}
+
+				static Variant getDayOfWeek(Variant& param)
+				{
+					return param.getTime().getDayOfWeek();
+				}
+
+				static Variant getWeekday(Variant& param)
+				{
+					VariantList params = param.getVariantList();
+					if (params.isNotNull()) {
+						return params.getValueAt_NoLock(0).getTime().getWeekday(Locale(params.getValueAt_NoLock(1).getStringParam()));
+					} else {
+						return param.getTime().getWeekday();
+					}
+				}
+
+				static Variant getHour(Variant& param)
+				{
+					return param.getTime().getHour();
+				}
+
+				static Variant getMinute(Variant& param)
+				{
+					return param.getTime().getMinute();
+				}
+
+				static Variant getSecond(Variant& param)
+				{
+					return param.getTime().getSecond();
+				}
+
+				static Variant getMillisecond(Variant& param)
+				{
+					return param.getTime().getMillisecond();
+				}
+
+				static Variant getDate(Variant& param)
+				{
+					return param.getTime().getDateString();
+				}
+
+				static Variant time(Variant& param)
+				{
+					VariantList params = param.getVariantList();
+					return Time(
+						params.getValueAt_NoLock(0).getInt32(),
+						params.getValueAt_NoLock(1).getInt32(),
+						params.getValueAt_NoLock(2).getInt32(),
+						params.getValueAt_NoLock(3).getInt32(),
+						params.getValueAt_NoLock(4).getInt32(),
+						params.getValueAt_NoLock(5).getInt32(),
+						params.getValueAt_NoLock(6).getInt32(),
+						params.getValueAt_NoLock(7).getInt32()
+						);
+				}
+				
 			public:
 				BuiltIn()
 				{
@@ -271,6 +362,21 @@ namespace slib
 						REGISTER_BUILTIN_FUNCTION(join)
 						REGISTER_BUILTIN_FUNCTION(indexOf)
 						REGISTER_BUILTIN_FUNCTION(lastIndexOf)
+						REGISTER_BUILTIN_FUNCTION(getDaysCount)
+						REGISTER_BUILTIN_FUNCTION(getHoursCount)
+						REGISTER_BUILTIN_FUNCTION(getMinutesCount)
+						REGISTER_BUILTIN_FUNCTION(getSecondsCount)
+						REGISTER_BUILTIN_FUNCTION(getYear)
+						REGISTER_BUILTIN_FUNCTION(getMonth)
+						REGISTER_BUILTIN_FUNCTION(getDay)
+						REGISTER_BUILTIN_FUNCTION(getDayOfWeek)
+						REGISTER_BUILTIN_FUNCTION(getWeekday)
+						REGISTER_BUILTIN_FUNCTION(getHour)
+						REGISTER_BUILTIN_FUNCTION(getMinute)
+						REGISTER_BUILTIN_FUNCTION(getSecond)
+						REGISTER_BUILTIN_FUNCTION(getMillisecond)
+						REGISTER_BUILTIN_FUNCTION(getDate)
+						REGISTER_BUILTIN_FUNCTION(time)
 					}
 				}
 
