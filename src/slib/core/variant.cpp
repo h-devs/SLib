@@ -3738,9 +3738,12 @@ namespace slib
 					}
 			}
 		} else {
+			if (other._type == VariantType::Null) {
+				return 1;
+			}
 			switch (_type) {
 				case VariantType::Null:
-					return sl_true;
+					return -1;
 				case VariantType::Int32:
 				case VariantType::Uint32:
 				case VariantType::Int64:
@@ -3883,9 +3886,12 @@ namespace slib
 					}
 			}
 		} else {
+			if (other._type == VariantType::Null) {
+				return sl_false;
+			}
 			switch (_type) {
 				case VariantType::Null:
-					return sl_true;
+					return sl_false;
 				case VariantType::Int32:
 				case VariantType::Uint32:
 				case VariantType::Int64:
