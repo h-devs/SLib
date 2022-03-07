@@ -5468,54 +5468,54 @@ namespace slib
 
 
 #define DEFINE_BIGINT_OP(OP, RET, EXPR, EXPR_FRIEND) \
-	RET BigInt::operator##OP(const BigInt& other) const noexcept \
+	RET BigInt::OP(const BigInt& other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	RET BigInt::operator##OP(sl_int32 other) const noexcept \
+	RET BigInt::OP(sl_int32 other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	RET BigInt::operator##OP(sl_uint32 other) const noexcept \
+	RET BigInt::OP(sl_uint32 other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	RET BigInt::operator##OP(sl_int64 other) const noexcept \
+	RET BigInt::OP(sl_int64 other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	RET BigInt::operator##OP(sl_uint64 other) const noexcept \
+	RET BigInt::OP(sl_uint64 other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	RET operator##OP(sl_int32 other, const BigInt& thiz) noexcept \
+	RET OP(sl_int32 other, const BigInt& thiz) noexcept \
 	{ \
 		EXPR_FRIEND; \
 	} \
-	RET operator##OP(sl_uint32 other, const BigInt& thiz) noexcept \
+	RET OP(sl_uint32 other, const BigInt& thiz) noexcept \
 	{ \
 		EXPR_FRIEND; \
 	} \
-	RET operator##OP(sl_int64 other, const BigInt& thiz) noexcept \
+	RET OP(sl_int64 other, const BigInt& thiz) noexcept \
 	{ \
 		EXPR_FRIEND; \
 	} \
-	RET operator##OP(sl_uint64 other, const BigInt& thiz) noexcept \
+	RET OP(sl_uint64 other, const BigInt& thiz) noexcept \
 	{ \
 		EXPR_FRIEND; \
 	}
 
-	DEFINE_BIGINT_OP(==, sl_bool, return equals(other), return thiz.equals(other))
-	DEFINE_BIGINT_OP(!= , sl_bool, return !(equals(other)), return !(thiz.equals(other)))
-	DEFINE_BIGINT_OP(>= , sl_bool, return compare(other) >= 0, return thiz.compare(other) <= 0)
-	DEFINE_BIGINT_OP(<= , sl_bool, return compare(other) <= 0, return thiz.compare(other) >= 0)
-	DEFINE_BIGINT_OP(> , sl_bool, return compare(other) > 0, return thiz.compare(other) < 0)
-	DEFINE_BIGINT_OP(<, sl_bool, return compare(other) < 0, return thiz.compare(other) > 0)
-	DEFINE_BIGINT_OP(+, BigInt, return BigInt::add(*this, other), return BigInt::add(thiz, other))
-	DEFINE_BIGINT_OP(-, BigInt, return BigInt::sub(*this, other), BigInt ret = BigInt::sub(thiz, other); ret.makeNegative(); return ret)
+	DEFINE_BIGINT_OP(operator==, sl_bool, return equals(other), return thiz.equals(other))
+	DEFINE_BIGINT_OP(operator!= , sl_bool, return !(equals(other)), return !(thiz.equals(other)))
+	DEFINE_BIGINT_OP(operator>= , sl_bool, return compare(other) >= 0, return thiz.compare(other) <= 0)
+	DEFINE_BIGINT_OP(operator<= , sl_bool, return compare(other) <= 0, return thiz.compare(other) >= 0)
+	DEFINE_BIGINT_OP(operator> , sl_bool, return compare(other) > 0, return thiz.compare(other) < 0)
+	DEFINE_BIGINT_OP(operator<, sl_bool, return compare(other) < 0, return thiz.compare(other) > 0)
+	DEFINE_BIGINT_OP(operator+, BigInt, return BigInt::add(*this, other), return BigInt::add(thiz, other))
+	DEFINE_BIGINT_OP(operator-, BigInt, return BigInt::sub(*this, other), BigInt ret = BigInt::sub(thiz, other); ret.makeNegative(); return ret)
 
-	DEFINE_BIGINT_OP(*, BigInt, return BigInt::mul(*this, other), return BigInt::mul(thiz, other))
-	DEFINE_BIGINT_OP(/, BigInt, return BigInt::div(*this, other), return BigInt::div(BigInt(other), thiz))
+	DEFINE_BIGINT_OP(operator*, BigInt, return BigInt::mul(*this, other), return BigInt::mul(thiz, other))
+	DEFINE_BIGINT_OP(operator/, BigInt, return BigInt::div(*this, other), return BigInt::div(BigInt(other), thiz))
 
 	BigInt BigInt::operator%(const BigInt& other) const noexcept
 	{
@@ -5553,30 +5553,30 @@ namespace slib
 	}
 
 #define DEFINE_BIGINT_BITWISE_OP(OP, EXPR, EXPR_FRIEND) \
-	BigInt BigInt::operator##OP(const BigInt& other) const noexcept \
+	BigInt BigInt::OP(const BigInt& other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	BigInt BigInt::operator##OP(sl_uint32 other) const noexcept \
+	BigInt BigInt::OP(sl_uint32 other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	BigInt BigInt::operator##OP(sl_uint64 other) const noexcept \
+	BigInt BigInt::OP(sl_uint64 other) const noexcept \
 	{ \
 		EXPR; \
 	} \
-	BigInt operator##OP(sl_uint32 other, const BigInt& thiz) noexcept \
+	BigInt OP(sl_uint32 other, const BigInt& thiz) noexcept \
 	{ \
 		EXPR_FRIEND; \
 	} \
-	BigInt operator##OP(sl_uint64 other, const BigInt& thiz) noexcept \
+	BigInt OP(sl_uint64 other, const BigInt& thiz) noexcept \
 	{ \
 		EXPR_FRIEND; \
 	}
 
-	DEFINE_BIGINT_BITWISE_OP(&, return BigInt::bitwiseAnd(*this, other), return BigInt::bitwiseAnd(thiz, other))
-	DEFINE_BIGINT_BITWISE_OP(^, return BigInt::bitwiseXor(*this, other), return BigInt::bitwiseXor(thiz, other))
-	DEFINE_BIGINT_BITWISE_OP(|, return BigInt::bitwiseOr(*this, other), return BigInt::bitwiseOr(thiz, other))
+	DEFINE_BIGINT_BITWISE_OP(operator&, return BigInt::bitwiseAnd(*this, other), return BigInt::bitwiseAnd(thiz, other))
+	DEFINE_BIGINT_BITWISE_OP(operator^, return BigInt::bitwiseXor(*this, other), return BigInt::bitwiseXor(thiz, other))
+	DEFINE_BIGINT_BITWISE_OP(operator|, return BigInt::bitwiseOr(*this, other), return BigInt::bitwiseOr(thiz, other))
 
 	BigInt BigInt::operator<<(sl_size n) const noexcept
 	{

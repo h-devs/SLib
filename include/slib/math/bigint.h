@@ -825,25 +825,25 @@ namespace slib
 	public:
 
 #define PRIV_SLIB_DECLARE_BIGINT_OPERATORS(OP, RET, SUFFIX) \
-		RET operator##OP(const BigInt& other) SUFFIX noexcept; \
-		RET operator##OP(sl_int32 v) SUFFIX noexcept; \
-		RET operator##OP(sl_uint32 v) SUFFIX noexcept; \
-		RET operator##OP(sl_int64 v) SUFFIX noexcept; \
-		RET operator##OP(sl_uint64 v) SUFFIX noexcept;
+		RET OP(const BigInt& other) SUFFIX noexcept; \
+		RET OP(sl_int32 v) SUFFIX noexcept; \
+		RET OP(sl_uint32 v) SUFFIX noexcept; \
+		RET OP(sl_int64 v) SUFFIX noexcept; \
+		RET OP(sl_uint64 v) SUFFIX noexcept;
 
 #define PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(OP, RET, SUFFIX) \
 		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(OP, RET, SUFFIX) \
-		friend RET operator##OP(sl_int32 v, const BigInt& n) noexcept; \
-		friend RET operator##OP(sl_uint32 v, const BigInt& n) noexcept; \
-		friend RET operator##OP(sl_int64 v, const BigInt& n) noexcept; \
-		friend RET operator##OP(sl_uint64 v, const BigInt& n) noexcept;
+		friend RET OP(sl_int32 v, const BigInt& n) noexcept; \
+		friend RET OP(sl_uint32 v, const BigInt& n) noexcept; \
+		friend RET OP(sl_int64 v, const BigInt& n) noexcept; \
+		friend RET OP(sl_uint64 v, const BigInt& n) noexcept;
 
 #define PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(OP) \
-		BigInt operator##OP(const BigInt& other) const noexcept; \
-		BigInt operator##OP(sl_uint32 v) const noexcept; \
-		BigInt operator##OP(sl_uint64 v) const noexcept; \
-		friend BigInt operator##OP(sl_uint32 v, const BigInt& n) noexcept; \
-		friend BigInt operator##OP(sl_uint64 v, const BigInt& n) noexcept;
+		BigInt OP(const BigInt& other) const noexcept; \
+		BigInt OP(sl_uint32 v) const noexcept; \
+		BigInt OP(sl_uint64 v) const noexcept; \
+		friend BigInt OP(sl_uint32 v, const BigInt& n) noexcept; \
+		friend BigInt OP(sl_uint64 v, const BigInt& n) noexcept;
 
 		BigInt& operator=(sl_int32 n) noexcept;
 		BigInt& operator=(sl_uint32 n) noexcept;
@@ -855,10 +855,10 @@ namespace slib
 		BigInt& operator--() noexcept;
 		BigInt operator--(int) noexcept;
 
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(+=, BigInt&,)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(-=, BigInt&,)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(*=, BigInt&,)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(/=, BigInt&, )
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(operator+=, BigInt&,)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(operator-=, BigInt&,)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(operator*=, BigInt&,)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS(operator/=, BigInt&, )
 
 		BigInt& operator%=(const BigInt& other) noexcept;
 		BigInt& operator%=(sl_int32 v) noexcept;
@@ -871,19 +871,19 @@ namespace slib
 		sl_bool operator!() const noexcept;
 		explicit operator sl_bool() const noexcept;
 
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(==, sl_bool, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(!= , sl_bool, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(> , sl_bool, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(<, sl_bool, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(>=, sl_bool, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(<=, sl_bool, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(+ , BigInt, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(-, BigInt, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(*, BigInt, const)
-		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(/, BigInt, const)
-		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(&)
-		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(^)
-		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(|)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator==, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator!= , sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator> , sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator<, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator>=, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator<=, sl_bool, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator+ , BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator-, BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator*, BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_OPERATORS_WITH_FRIENDS(operator/, BigInt, const)
+		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(operator&)
+		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(operator^)
+		PRIV_SLIB_DECLARE_BIGINT_BITWISE_OPERATORS(operator|)
 
 		BigInt operator%(const BigInt& other) const noexcept;
 		sl_int32 operator%(sl_int32 v) const noexcept;
