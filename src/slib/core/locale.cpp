@@ -139,7 +139,7 @@ namespace slib
 	{
 	}
 
-	Locale::Locale(const String& name)
+	Locale::Locale(const StringParam& name)
 	{
 		if (!(parse(name))) {
 			value = Locale::Unknown;
@@ -492,8 +492,9 @@ namespace slib
 		return Language::Unknown;
 	}
 
-	Language Locale::getLanguageFromCode(const String& code)
+	Language Locale::getLanguageFromCode(const StringParam& _code)
 	{
+		StringData code(_code);
 		if (code.getLength() == 2) {
 			return getLanguageFromCode(code.getData());
 		}
@@ -544,8 +545,9 @@ namespace slib
 		return LanguageScript::Unknown;
 	}
 
-	LanguageScript Locale::getScriptFromCode(const String& code)
+	LanguageScript Locale::getScriptFromCode(const StringParam& _code)
 	{
+		StringData code(_code);
 		if (code.getLength() == 2) {
 			return getScriptFromCode(code.getData());
 		}
@@ -885,8 +887,9 @@ namespace slib
 		return Country::Unknown;
 	}
 
-	Country Locale::getCountryFromCode(const String& code)
+	Country Locale::getCountryFromCode(const StringParam& _code)
 	{
+		StringData code(_code);
 		if (code.getLength() == 2) {
 			return getCountryFromCode(code.getData());
 		}

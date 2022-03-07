@@ -816,7 +816,7 @@ namespace slib
 		Locale(Language language, LanguageScript script, Country country);
 		
 		// [ISO 639-1]-[ISO 3166-1 alpha-2]  or  [ISO 639-1]-[ISO 15924]-[ISO 3166-1 alpha-2])
-		Locale(const String& name);
+		Locale(const StringParam& name);
 		
 	public:
 		static const Locale& Unknown;
@@ -867,7 +867,7 @@ namespace slib
 		static Language getLanguageFromCode(const sl_char8* code);
 		static Language getLanguageFromCode(const sl_char16* code);
 		static Language getLanguageFromCode(const sl_char32* code);
-		static Language getLanguageFromCode(const String& code);
+		static Language getLanguageFromCode(const StringParam& code);
 
 		// ISO 639-1
 		static void getLanguageCode(Language language, sl_char8* _output);
@@ -882,7 +882,7 @@ namespace slib
 		static LanguageScript getScriptFromCode(const sl_char8* code);
 		static LanguageScript getScriptFromCode(const sl_char16* code);
 		static LanguageScript getScriptFromCode(const sl_char32* code);
-		static LanguageScript getScriptFromCode(const String& code);
+		static LanguageScript getScriptFromCode(const StringParam& code);
 		
 		// ISO 15924
 		static void getScriptCode(LanguageScript language, sl_char8* _output);
@@ -899,7 +899,7 @@ namespace slib
 		static Country getCountryFromCode(const sl_char8* code);
 		static Country getCountryFromCode(const sl_char16* code);
 		static Country getCountryFromCode(const sl_char32* code);
-		static Country getCountryFromCode(const String& code);
+		static Country getCountryFromCode(const StringParam& code);
 
 		// ISO 3166-1 alpha-2
 		static void getCountryCode(Country country, sl_char8* _output);
