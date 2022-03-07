@@ -169,6 +169,9 @@ namespace slib
 	struct SLIB_EXPORT ArrayTraits_IndexOf : public ArrayTraits_IndexOf_Base
 	{
 
+		using ArrayTraits_IndexOf_Base::indexOf;
+		using ArrayTraits_IndexOf_Base::lastIndexOf;
+
 		template <class T, class VALUE, class ARG>
 		static sl_reg indexOf(T* data, sl_reg count, const VALUE& value, const ARG& arg) noexcept
 		{
