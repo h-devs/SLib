@@ -46,7 +46,7 @@ namespace slib
 	static void ToJson(Json& json, const Nullable<T>& _in)
 	{
 		if (_in.isNull()) {
-			json.setNull();
+			json.setUndefined();
 		} else {
 			ToJson(json, _in.value);
 		}
