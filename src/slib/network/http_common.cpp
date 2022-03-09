@@ -228,6 +228,10 @@ namespace slib
 	DEFINE_HTTP_HEADER(TransferEncoding, "Transfer-Encoding")
 	DEFINE_HTTP_HEADER(AccessControlAllowOrigin, "Access-Control-Allow-Origin")
 	DEFINE_HTTP_HEADER(AccessControlAllowHeaders, "Access-Control-Allow-Headers")
+	DEFINE_HTTP_HEADER(AccessControlAllowMethods, "Access-Control-Allow-Methods")
+	DEFINE_HTTP_HEADER(AccessControlExposeHeaders, "Access-Control-Expose-Headers")
+	DEFINE_HTTP_HEADER(AccessControlRequestMethod, "Access-Control-Request-Method")
+	DEFINE_HTTP_HEADER(AccessControlRequestHeaders, "Access-Control-Request-Headers")
 	DEFINE_HTTP_HEADER(SetCookie, "Set-Cookie")
 	DEFINE_HTTP_HEADER(AcceptRanges, "Accept-Ranges")
 	DEFINE_HTTP_HEADER(ContentRange, "Content-Range")
@@ -1845,6 +1849,26 @@ namespace slib
 	void HttpResponse::setResponseAccessControlAllowHeaders(const String& headers)
 	{
 		setResponseHeader(HttpHeader::AccessControlAllowHeaders, headers);
+	}
+
+	String HttpResponse::getResponseAccessControlAllowMethods() const
+	{
+		return getResponseHeader(HttpHeader::AccessControlAllowMethods);
+	}
+
+	void HttpResponse::setResponseAccessControlAllowMethods(const String& methods)
+	{
+		setResponseHeader(HttpHeader::AccessControlAllowMethods, methods);
+	}
+
+	String HttpResponse::getResponseAccessControlExposeHeaders() const
+	{
+		return getResponseHeader(HttpHeader::AccessControlExposeHeaders);
+	}
+
+	void HttpResponse::setResponseAccessControlExposeHeaders(const String& headers)
+	{
+		setResponseHeader(HttpHeader::AccessControlExposeHeaders, headers);
 	}
 
 	Time HttpResponse::getResponseLastModified() const

@@ -189,6 +189,10 @@ namespace slib
 		static const String& TransferEncoding;
 		static const String& AccessControlAllowOrigin;
 		static const String& AccessControlAllowHeaders;
+		static const String& AccessControlAllowMethods;
+		static const String& AccessControlExposeHeaders;
+		static const String& AccessControlRequestMethod;
+		static const String& AccessControlRequestHeaders;
 		static const String& SetCookie;
 		static const String& AcceptRanges;
 		static const String& ContentRange;
@@ -476,8 +480,8 @@ namespace slib
 		}
 		
 		String getRequestCookie(const String& cookie) const;
-		
-		
+
+
 		const HashMap<String, String>& getParameters() const;
 		
 		HashMap<String, String>& getParameters();
@@ -699,6 +703,14 @@ namespace slib
 		String getResponseAccessControlAllowHeaders() const;
 
 		void setResponseAccessControlAllowHeaders(const String& headers);
+
+		String getResponseAccessControlAllowMethods() const;
+
+		void setResponseAccessControlAllowMethods(const String& methods);
+
+		String getResponseAccessControlExposeHeaders() const;
+
+		void setResponseAccessControlExposeHeaders(const String& headers);
 
 		Time getResponseLastModified() const;
 		

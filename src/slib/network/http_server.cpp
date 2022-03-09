@@ -1855,8 +1855,10 @@ namespace slib
 	void HttpServer::dispatchPostRequest(HttpServerContext* context)
 	{
 		if (m_param.flagAllowCrossOrigin) {
-			context->setResponseAccessControlAllowOrigin("*");
-			context->setResponseAccessControlAllowHeaders("*");
+			SLIB_STATIC_STRING(s, "*")
+			context->setResponseAccessControlAllowOrigin(s);
+			context->setResponseAccessControlAllowHeaders(s);
+			context->setResponseAccessControlAllowMethods(s);
 		}
 
 		m_param.router.postProcessRequest(context->getPath(), context);
