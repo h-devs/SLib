@@ -1331,19 +1331,7 @@ namespace slib
 
 	sl_bool ObjectId::setJson(const Json& json) noexcept
 	{
-		if (json.isStringType()) {
-			return parse(json.getStringParam());
-		} else if (json.isMemory()) {
-			Memory mem = json.getMemory();
-			if (mem.getSize() == 12) {
-				Base::copyMemory(data, mem.getData(), 12);
-				return sl_true;
-			}
-		} else {
-			SLIB_STATIC_STRING(oid, "$oid");
-			return parse(json.getItem(oid).getString());
-		}
-		return sl_false;
+		return json.getObjectId(this);
 	}
 
 }

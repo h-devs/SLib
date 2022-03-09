@@ -2567,6 +2567,25 @@ namespace slib
 			return REF_VAR(ObjectId, _value);
 		} else if (isStringType()) {
 			return ObjectId(getStringParam());
+		} else if (_type == VariantType::Memory) {
+			Memory& mem = REF_VAR(Memory, _value);
+			if (mem.getSize() == 12) {
+				return ObjectId((sl_uint8*)(mem.getData()));
+			}
+		} else if (_type == VariantType::Map) {
+			VariantMap& map = REF_VAR(VariantMap, _value);
+			SLIB_STATIC_STRING(oid, "$oid");
+			Variant item;
+			if (map.get(oid, &item)) {
+				if (item.isStringType()) {
+					return ObjectId(item.getStringParam());
+				}
+			}
+		} else if (isRef()) {
+			Memory mem = GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
+			if (mem.getSize() == 12) {
+				return ObjectId((sl_uint8*)(mem.getData()));
+			}
 		}
 		return sl_null;
 	}
@@ -2580,13 +2599,40 @@ namespace slib
 			return sl_true;
 		} else if (isStringType()) {
 			if (_out) {
-				if (_out->parse(getStringParam())) {
-					return sl_true;
-				}
-				return sl_false;
+				return _out->parse(getStringParam());
 			} else {
 				ObjectId ret;
 				return ret.parse(getStringParam());
+			}
+		} else if (_type == VariantType::Memory) {
+			Memory& mem = REF_VAR(Memory, _value);
+			if (mem.getSize() == 12) {
+				if (_out) {
+					Base::copyMemory(_out->data, mem.getData(), 12);
+				}
+				return sl_true;
+			}
+		} else if (_type == VariantType::Map) {
+			VariantMap& map = REF_VAR(VariantMap, _value);
+			SLIB_STATIC_STRING(oid, "$oid");
+			Variant item;
+			if (map.get(oid, &item)) {
+				if (item.isStringType()) {
+					if (_out) {
+						return _out->parse(item.getStringParam());
+					} else {
+						ObjectId ret;
+						return ret.parse(item.getStringParam());
+					}
+				}
+			}
+		} else if (isRef()) {
+			Memory mem = GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
+			if (mem.getSize() == 12) {
+				if (_out) {
+					Base::copyMemory(_out->data, mem.getData(), 12);
+				}
+				return sl_true;
 			}
 		}
 		return sl_false;

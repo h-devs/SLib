@@ -94,6 +94,11 @@ namespace slib
 			value = Forward<ARG>(arg);
 			return *this;
 		}
+
+		SLIB_CONSTEXPR explicit operator sl_bool() const
+		{
+			return !flagNull;
+		}
 		
 	public:
 		SLIB_CONSTEXPR sl_bool isNull() const
