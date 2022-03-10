@@ -1480,7 +1480,10 @@ namespace slib
 			}
 		} else {
 			do {
-				if (response.isStringType()) {
+				if (response.isBoolean()) {
+					context->setResponseContentTypeIfEmpty(ContentType::TextHtml_Utf8);
+					break;
+				} else if (response.isStringType()) {
 					context->setResponseContentTypeIfEmpty(ContentType::TextHtml_Utf8);
 					context->write(response.getString());
 					break;
