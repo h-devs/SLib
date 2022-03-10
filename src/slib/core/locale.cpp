@@ -1018,10 +1018,10 @@ namespace slib
 			if (Android::getSdkVersion() >= AndroidSdkVersion::LOLLIPOP) {
 				String script = java::Locale::getScript(locale);
 				if (script.isNotEmpty()) {
-					return String::concat(lang, "_", script, "_", country);
+					return Locale(String::concat(lang, "_", script, "_", country));
 				}
 			}
-			return String::concat(lang, "_", country);
+			return Locale(String::concat(lang, "_", country));
 		}
 		return Locale::Unknown;
 	}
