@@ -72,15 +72,9 @@ namespace slib
 
 		Ref<DocumentStore> getStore();
 
-		virtual sl_int64 getDocumentsCount(const Json& filter) = 0;
+		virtual sl_int64 getDocumentsCount(const Json& filter = sl_null) = 0;
 
-		sl_int64 getDocumentsCount();
-
-		virtual Ref<DocumentCursor> find(const Json& filter, const Json& options) = 0;
-
-		Ref<DocumentCursor> find(const Json& filter);
-
-		Ref<DocumentCursor> find();
+		virtual Ref<DocumentCursor> find(const Json& filter = sl_null, const Json& options = sl_null) = 0;
 
 		virtual sl_bool insert(const Json& document) = 0;
 
@@ -90,32 +84,12 @@ namespace slib
 
 		virtual sl_int64 remove(const Json& filter) = 0;
 
-		virtual Ref<DocumentCursor> aggregate(const Json& pipeline, const Json& options) = 0;
-
-		Ref<DocumentCursor> aggregate(const Json& pipeline);
+		virtual Ref<DocumentCursor> aggregate(const Json& pipeline, const Json& options = sl_null) = 0;
 
 	public:
-		template <class... ARGS>
-		Json getFirstDocument(ARGS&&... args)
-		{
-			Ref<DocumentCursor> cursor = find(Forward<ARGS>(args)...);
-			if (cursor.isNotNull()) {
-				if (cursor->moveNext()) {
-					return cursor->getDocument();
-				}
-			}
-			return sl_null;
-		}
+		Json getFirstDocument(const Json& filter = sl_null, const Json& options = sl_null);
 
-		template <class... ARGS>
-		JsonList getDocuments(ARGS&&... args)
-		{
-			Ref<DocumentCursor> cursor = find(Forward<ARGS>(args)...);
-			if (cursor.isNotNull()) {
-				return cursor->toList();
-			}
-			return sl_null;
-		}
+		JsonList getDocuments(const Json& filter = sl_null, const Json& options = sl_null);
 
 	};
 
@@ -131,11 +105,11 @@ namespace slib
 	public:
 		virtual Ref<DocumentStore> getStore() = 0;
 
-		virtual Ref<DocumentCollection> createCollection(const StringParam& name, const Json& options) = 0;
-
-		Ref<DocumentCollection> createCollection(const StringParam& name);
+		virtual Ref<DocumentCollection> createCollection(const StringParam& name, const Json& options = sl_null) = 0;
 
 		virtual Ref<DocumentCollection> getCollection(const StringParam& name) = 0;
+
+		Ref<DocumentCollection> createOrGetCollection(const StringParam& name, const Json& options = sl_null);
 
 		virtual sl_bool dropCollection(const StringParam& name) = 0;
 
@@ -146,15 +120,9 @@ namespace slib
 		virtual Json execute(const Json& command) = 0;
 
 	public:
-		sl_int64 getDocumentsCount(const StringParam& collectionName, const Json& filter);
+		sl_int64 getDocumentsCount(const StringParam& collectionName, const Json& filter = sl_null);
 
-		sl_int64 getDocumentsCount(const StringParam& collectionName);
-
-		Ref<DocumentCursor> find(const StringParam& collectionName, const Json& filter, const Json& options);
-
-		Ref<DocumentCursor> find(const StringParam& collectionName, const Json& filter);
-
-		Ref<DocumentCursor> find(const StringParam& collectionName);
+		Ref<DocumentCursor> find(const StringParam& collectionName, const Json& filter = sl_null, const Json& options = sl_null);
 
 		sl_bool insert(const StringParam& collectionName, const Json& document);
 
@@ -164,29 +132,11 @@ namespace slib
 
 		sl_int64 remove(const StringParam& collectionName, const Json& filter);
 
-		Ref<DocumentCursor> aggregate(const StringParam& collectionName, const Json& pipeline, const Json& options);
+		Ref<DocumentCursor> aggregate(const StringParam& collectionName, const Json& pipeline, const Json& options = sl_null);
 
-		Ref<DocumentCursor> aggregate(const StringParam& collectionName, const Json& pipeline);
+		Json getFirstDocument(const StringParam& collectionName, const Json& filter = sl_null, const Json& options = sl_null);
 
-		template <class... ARGS>
-		Json getFirstDocument(const StringParam& collectionName, ARGS&&... args)
-		{
-			Ref<DocumentCollection> collection = getCollection(collectionName);
-			if (collection.isNotNull()) {
-				return collection->getFirstDocument(Forward<ARGS>(args)...);
-			}
-			return sl_null;
-		}
-
-		template <class... ARGS>
-		JsonList getDocuments(const StringParam& collectionName, ARGS&&... args)
-		{
-			Ref<DocumentCollection> collection = getCollection(collectionName);
-			if (collection.isNotNull()) {
-				return collection->getDocuments(Forward<ARGS>(args)...);
-			}
-			return sl_null;
-		}
+		JsonList getDocuments(const StringParam& collectionName, const Json& filter = sl_null, const Json& options = sl_null);
 
 	};
 

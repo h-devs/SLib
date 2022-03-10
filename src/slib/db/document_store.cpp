@@ -82,24 +82,24 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_int64 DocumentCollection::getDocumentsCount()
+	Json DocumentCollection::getFirstDocument(const Json& filter, const Json& options)
 	{
-		return getDocumentsCount(sl_null);
+		Ref<DocumentCursor> cursor = find(filter, options);
+		if (cursor.isNotNull()) {
+			if (cursor->moveNext()) {
+				return cursor->getDocument();
+			}
+		}
+		return sl_null;
 	}
 
-	Ref<DocumentCursor> DocumentCollection::find(const Json& filter)
+	JsonList DocumentCollection::getDocuments(const Json& filter, const Json& options)
 	{
-		return find(filter, sl_null);
-	}
-
-	Ref<DocumentCursor> DocumentCollection::find()
-	{
-		return find(sl_null, sl_null);
-	}
-
-	Ref<DocumentCursor> DocumentCollection::aggregate(const Json& pipeline)
-	{
-		return aggregate(pipeline, sl_null);
+		Ref<DocumentCursor> cursor = find(filter, options);
+		if (cursor.isNotNull()) {
+			return cursor->toList();
+		}
+		return sl_null;
 	}
 
 
@@ -113,9 +113,18 @@ namespace slib
 	{
 	}
 
-	Ref<DocumentCollection> DocumentDatabase::createCollection(const StringParam& name)
+	Ref<DocumentCollection> DocumentDatabase::createOrGetCollection(const StringParam& name, const Json& options)
 	{
-		return createCollection(name, sl_null);
+		Ref<DocumentCollection> collection = getCollection(name);
+		if (collection.isNotNull()) {
+			return collection;
+		}
+		collection = createCollection(name, options);
+		if (collection.isNotNull()) {
+			return collection;
+		}
+		// finally retry `getCollection()`, because other threads might create collection
+		return getCollection(name);
 	}
 
 	sl_int64 DocumentDatabase::getDocumentsCount(const StringParam& collectionName, const Json& filter)
@@ -127,11 +136,6 @@ namespace slib
 		return -1;
 	}
 
-	sl_int64 DocumentDatabase::getDocumentsCount(const StringParam& collectionName)
-	{
-		return getDocumentsCount(collectionName, sl_null);
-	}
-
 	Ref<DocumentCursor> DocumentDatabase::find(const StringParam& collectionName, const Json& filter, const Json& options)
 	{
 		Ref<DocumentCollection> collection = getCollection(collectionName);
@@ -139,16 +143,6 @@ namespace slib
 			return collection->find(filter, options);
 		}
 		return sl_null;
-	}
-
-	Ref<DocumentCursor> DocumentDatabase::find(const StringParam& collectionName, const Json& filter)
-	{
-		return find(collectionName, sl_null, sl_null);
-	}
-
-	Ref<DocumentCursor> DocumentDatabase::find(const StringParam& collectionName)
-	{
-		return find(collectionName, sl_null, sl_null);
 	}
 
 	sl_bool DocumentDatabase::insert(const StringParam& collectionName, const Json& document)
@@ -196,9 +190,22 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<DocumentCursor> DocumentDatabase::aggregate(const StringParam& collectionName, const Json& pipeline)
+	Json DocumentDatabase::getFirstDocument(const StringParam& collectionName, const Json& filter, const Json& options)
 	{
-		return aggregate(collectionName, pipeline, sl_null);
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->getFirstDocument(filter, options);
+		}
+		return sl_null;
+	}
+
+	JsonList DocumentDatabase::getDocuments(const StringParam& collectionName, const Json& filter, const Json& options)
+	{
+		Ref<DocumentCollection> collection = getCollection(collectionName);
+		if (collection.isNotNull()) {
+			return collection->getDocuments(filter, options);
+		}
+		return sl_null;
 	}
 
 
