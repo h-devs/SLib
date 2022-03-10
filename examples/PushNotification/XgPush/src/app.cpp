@@ -136,13 +136,13 @@ void ExampleXgPushApp::onClickSend(View*)
 	param.receiverDeviceTokens.add(receiverParams[1]);
 	param.message.title = "XgPush";
 	param.message.content = txtSendingMessage->getText();
-	param.message.data = Json({
-		JsonItem("message", param.message.content),
-		JsonItem("time", Time::now()),
-		JsonItem("list", Json({
+	param.message.data = {
+		{"message", param.message.content},
+		{"time", Time::now()},
+		{"list", JsonList{
 			"string1", "string2", "string3"
-		}))
-	});
+		}}
+	};
 	param.message.badge = 1;
 	param.callback = [](sl_bool flagSuccess, String message) {
 		if (flagSuccess) {

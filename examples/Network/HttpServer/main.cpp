@@ -66,16 +66,16 @@ int main(int argc, const char * argv[])
 		context->addResponseCookie(cookie);
 		
 		Json data = {
-			JsonItem("remote", context->getRemoteAddress().toString()),
-			JsonItem("http", Json({
-				JsonItem("method", context->getMethodText()),
-				JsonItem("path", context->getPath()),
-				JsonItem("list", Json({
+			{"remote", context->getRemoteAddress().toString()},
+			{"http", {
+				{"method", context->getMethodText()},
+				{"path", context->getPath()},
+				{"list", JsonList{
 					"item0", "item1"
-				}))
-			})),
-			JsonItem("cookie1", context->getRequestCookie("Cookie1")),
-			JsonItem("cookie2", context->getRequestCookie("Cookie2"))
+				}}
+			}},
+			{"cookie1", context->getRequestCookie("Cookie1")},
+			{"cookie2", context->getRequestCookie("Cookie2")}
 		};
 		context->write(Ginger::render(SLIB_STRINGIFY(
 													 Welcome ${remote} <BR>

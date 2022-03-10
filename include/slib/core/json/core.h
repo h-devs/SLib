@@ -36,8 +36,8 @@
 namespace slib
 {
 
-	typedef Pair<String, Json> JsonItem;
-	
+	class JsonItem;
+
 	class SLIB_EXPORT JsonParseParam
 	{
 	public:
@@ -175,8 +175,6 @@ namespace slib
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Json(const std::initializer_list<JsonItem>& pairs);
-		
-		Json(const std::initializer_list<Json>& elements);
 #endif
 
 		template <class T>
@@ -223,8 +221,6 @@ namespace slib
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Json& operator=(const std::initializer_list<JsonItem>& pairs);
-		
-		Json& operator=(const std::initializer_list<Json>& elements);
 #endif
 
 		template <class T>
@@ -326,6 +322,21 @@ namespace slib
 	protected:
 		String toString() const;
 		
+	};
+
+	class SLIB_EXPORT JsonItem : public Pair<String, Json>
+	{
+	public:
+		JsonItem() noexcept {}
+
+		JsonItem(const String& key, const Json& value) noexcept : Pair(key, value) {}
+
+		JsonItem(String&& key, const Json& value) noexcept : Pair(Move(key), value) {}
+
+		JsonItem(const String& key, Json&& value) noexcept : Pair(key, Move(value)) {}
+
+		JsonItem(String&& key, Json&& value) noexcept : Pair(Move(key), Move(value)) {}
+
 	};
 
 }

@@ -118,13 +118,13 @@ void ExampleFCMApp::onClickSend(View*)
 	param.receiverDeviceToken = receiver;
 	param.message.title = "FCM";
 	param.message.content = txtSendingMessage->getText();
-	param.message.data = Json({
-		JsonItem("message", param.message.content),
-		JsonItem("time", Time::now()),
-		JsonItem("list", Json({
+	param.message.data = {
+		{"message", param.message.content},
+		{"time", Time::now()},
+		{"list", JsonList{
 			"string1", "string2", "string3"
-		}))
-	});
+		}}
+	};
 	param.message.badge = 1;
 	param.callback = [](FCM_ServiceSendResponse& response) {
 		if (response.flagSuccess) {
