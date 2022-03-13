@@ -131,6 +131,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/dbip.cpp"
  "${SLIB_PATH}/src/slib/network/dns.cpp"
  "${SLIB_PATH}/src/slib/network/ethernet.cpp"
+ "${SLIB_PATH}/src/slib/network/firewall.cpp"
  "${SLIB_PATH}/src/slib/network/http_common.cpp"
  "${SLIB_PATH}/src/slib/network/http_io.cpp"
  "${SLIB_PATH}/src/slib/network/http_server.cpp"

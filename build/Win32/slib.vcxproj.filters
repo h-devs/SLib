@@ -1409,5 +1409,8 @@
     <ClCompile Include="..\..\src\slib\ui\common_dialogs_prompt.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\firewall.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

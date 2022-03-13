@@ -29,10 +29,11 @@
 #include "network/ip_address.h"
 #include "network/socket_address.h"
 
-#include "network/os.h"
 #include "network/socket.h"
 #include "network/async.h"
 #include "network/event.h"
+#include "network/os.h"
+#include "network/firewall.h"
 
 #include "network/tcpip.h"
 #include "network/tcpip_fragment.h"
