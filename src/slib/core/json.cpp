@@ -1239,7 +1239,7 @@ namespace slib
 		if (json.isUndefined()) {
 			return;
 		}
-		_out = Memory::createFromExtendedJson(json);
+		_out = json.getMemory();
 	}
 	
 	void ToJson(Json& json, const Memory& _in)

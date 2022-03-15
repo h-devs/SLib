@@ -3168,6 +3168,8 @@ namespace slib
 			return REF_VAR(Memory, _value);
 		} else if (isStringType()) {
 			return getString().toMemory();
+		} else if (_type == VariantType::Map) {
+			return Memory::createFromExtendedJson(REF_VAR(VariantMap, _value));
 		} else if (isRef()) {
 			return GetObjectT<CMemory, Memory, VariantType::Memory>(*this);
 		}
