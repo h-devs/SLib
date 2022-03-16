@@ -1265,6 +1265,14 @@ namespace slib
 	sl_bool HttpServer::_init(const HttpServerParam& param)
 	{
 		m_param = param;
+		if (param.webRootPath.isEmpty()) {
+			m_param.webRootPath = Application::getApplicationDirectory();
+		} else {
+			String path = File::concatPath(Application::getApplicationDirectory(), param.webRootPath);
+			if (File::isDirectory(path)) {
+				m_param.webRootPath = path;
+			}
+		}
 		Ref<AsyncIoLoop> ioLoop = AsyncIoLoop::create(sl_false);
 		if (ioLoop.isNull()) {
 			return sl_false;
@@ -1540,11 +1548,7 @@ namespace slib
 			}
 		}
 		if (m_param.flagUseWebRoot) {
-			String webRootPath = m_param.webRootPath;
-			if (webRootPath.isEmpty()) {
-				webRootPath = Application::getApplicationDirectory();
-			}
-			String pathFile = File::concatPath(webRootPath, path);
+			String pathFile = File::concatPath(m_param.webRootPath, path);
 			if (processFile(context, pathFile)) {
 				return sl_true;
 			}
