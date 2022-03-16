@@ -371,7 +371,7 @@ namespace slib
 
 		Variant operator||(const Variant& other) const noexcept;
 
-		sl_bool operator&&(const Variant& other) const noexcept;
+		Variant operator&&(const Variant& other) const noexcept;
 
 		Variant operator|(const Variant& other) const noexcept;
 

@@ -1385,14 +1385,12 @@ namespace slib
 		return other;
 	}
 
-	sl_bool Variant::operator&&(const Variant& other) const noexcept
+	Variant Variant::operator&&(const Variant& other) const noexcept
 	{
 		if (*this) {
-			if (other) {
-				return sl_true;
-			}
+			return other;
 		}
-		return sl_false;
+		return *this;
 	}
 	
 	Variant Variant::operator|(const Variant& other) const noexcept
