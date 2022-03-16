@@ -1044,7 +1044,7 @@ namespace slib
 		if (index > 0) {
 			locale = locale.substring(0, index);
 		}
-		return locale;
+		return Locale(locale);
 	}
 }
 
