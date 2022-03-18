@@ -111,7 +111,7 @@ namespace slib
 		if (getState(name) == ServiceState::Running) {
 			stop(name);
 		}
-		String path = String::concat("/etc/systemd/system/", name, ".service");
+		String path = GetUnitFilePath(name);
 		File::deleteFile(path);
 		System::execute("systemctl daemon-reload");
 		return WaitState(name, ServiceState::None, 1000);
