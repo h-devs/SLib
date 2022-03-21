@@ -140,6 +140,8 @@ namespace slib
 
 		static sl_bool shell(const ShellOpenFolderAndSelectItemsParam& param);
 
+		static sl_bool createShortcut(const StringParam& pathTarget, const StringParam& pathLink);
+
 
 		static sl_bool getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out);
 

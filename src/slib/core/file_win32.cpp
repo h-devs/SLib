@@ -33,9 +33,6 @@
 #include "slib/core/dl/win32/kernel32.h"
 
 #include <winioctl.h>
-#include <objbase.h>
-#include <shobjidl.h>
-#include <shlguid.h>
 
 #define FILE_SHARE_ALL (FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE)
 
@@ -625,26 +622,21 @@ namespace slib
 		return ret != 0;
 	}
 
-	sl_bool File::createLink(const StringParam& _pathTarget, const StringParam& _pathLink) noexcept
+	sl_bool File::createLink(const StringParam& pathTarget, const StringParam& pathLink) noexcept
 	{
-		CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-		IShellLinkW* psl = NULL;
-		HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
-		if (SUCCEEDED(hr)) {
+		return createLink(pathTarget, pathLink, File::isDirectory(pathTarget));
+	}
+
+	sl_bool File::createLink(const StringParam& _pathTarget, const StringParam& _pathLink, sl_bool flagDirectory) noexcept
+	{
+		auto func = kernel32::getApi_CreateSymbolicLinkW();
+		if (func) {
 			StringCstr16 pathTarget(_pathTarget);
-			psl->SetPath((LPCWSTR)(pathTarget.getData()));
-			StringCstr16 workDir(getParentDirectoryPath(pathTarget));
-			psl->SetWorkingDirectory((LPCWSTR)(workDir.getData()));
-			IPersistFile* ppf = NULL;
-			hr = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
-			if (SUCCEEDED(hr)) {
-				StringCstr16 pathLink(_pathLink);
-				hr = ppf->Save((LPCWSTR)(pathLink.getData()), TRUE);
-				ppf->Release();
-			}
-			psl->Release();
+			StringCstr16 pathLink(_pathLink);
+			BOOL ret = func((LPCWSTR)(pathLink.getData()), (LPCWSTR)(pathTarget.getData()), flagDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
+			return ret != 0;
 		}
-		return SUCCEEDED(hr);
+		return sl_false;
 	}
 
 	sl_bool File::deleteFile(const StringParam& _filePath) noexcept

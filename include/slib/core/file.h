@@ -317,8 +317,10 @@ namespace slib
 
 		static sl_bool createDirectories(const StringParam& dirPath) noexcept;
 
-		// [Win32] Shortcut, [Unix] Symbolic Link
+		// Symbolic Link
 		static sl_bool createLink(const StringParam& pathTarget, const StringParam& pathLink) noexcept;
+
+		static sl_bool createLink(const StringParam& pathTarget, const StringParam& pathLink, sl_bool flagDirectory) noexcept;
 
 		static sl_bool deleteFile(const StringParam& filePath) noexcept;
 

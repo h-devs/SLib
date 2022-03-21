@@ -28,7 +28,7 @@
 
 #include "slib/core/file.h"
 #include "slib/core/system.h"
-#include "slib/core/win32/windows.h"
+#include "slib/core/platform.h"
 
 namespace slib
 {
@@ -119,7 +119,7 @@ namespace slib
 		if (executablePath.isNull()) {
 			executablePath = Application::getApplicationPath();
 		}
-		File::createLink(executablePath, String::concat(System::getProgramsDirectory(), "/", param.appName, ".lnk"));
+		Win32::createShortcut(executablePath, String16::concat(System::getProgramsDirectory(), "/", param.appName, ".lnk"));
 	}
 
 }

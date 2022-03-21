@@ -27,6 +27,7 @@
 #include "slib/core/win32/platform.h"
 
 #include "slib/core/scoped_buffer.h"
+#include "slib/core/file.h"
 #include "slib/core/dl/win32/shlwapi.h"
 
 #include <objbase.h>
@@ -296,6 +297,28 @@ namespace slib
 		}
 
 		return bRet;
+	}
+
+	sl_bool Win32::createShortcut(const StringParam& _pathTarget, const StringParam& _pathLink)
+	{
+		CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+		IShellLinkW* psl = NULL;
+		HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
+		if (SUCCEEDED(hr)) {
+			StringCstr16 pathTarget(_pathTarget);
+			psl->SetPath((LPCWSTR)(pathTarget.getData()));
+			StringCstr16 workDir(File::getParentDirectoryPath(pathTarget));
+			psl->SetWorkingDirectory((LPCWSTR)(workDir.getData()));
+			IPersistFile* ppf = NULL;
+			hr = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+			if (SUCCEEDED(hr)) {
+				StringCstr16 pathLink(_pathLink);
+				hr = ppf->Save((LPCWSTR)(pathLink.getData()), TRUE);
+				ppf->Release();
+			}
+			psl->Release();
+		}
+		return SUCCEEDED(hr);
 	}
 
 	sl_bool Win32::getSYSTEMTIME(const Time& time, sl_bool flagUTC, SYSTEMTIME* _out)

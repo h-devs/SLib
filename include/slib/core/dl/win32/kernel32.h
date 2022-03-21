@@ -126,8 +126,16 @@ namespace slib
 			PSRWLOCK SRWLock
 		)
 
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			CreateSymbolicLinkW,
+			BOOLEAN, WINAPI,
+			LPCWSTR lpSymlinkFileName,
+			LPCWSTR lpTargetFileName,
+			DWORD dwFlags
+		)
+
 	SLIB_IMPORT_LIBRARY_END
-		
+	
 }
 
 #endif

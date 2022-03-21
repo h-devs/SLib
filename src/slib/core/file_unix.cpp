@@ -753,6 +753,11 @@ namespace slib
 		return !(symlink(pathTarget.getData(), pathLink.getData()));
 	}
 
+	sl_bool File::createLink(const StringParam& pathTarget, const StringParam& pathLink, sl_bool flagDirectory) noexcept
+	{
+		return createLink(pathTarget, pathLink);
+	}
+
 	sl_bool File::deleteFile(const StringParam& _filePath) noexcept
 	{
 		StringCstr filePath(_filePath);
