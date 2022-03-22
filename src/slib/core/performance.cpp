@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *`Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@
 #	include "slib/core/win32/windows.h"
 #elif defined(SLIB_PLATFORM_IS_APPLE)
 #	include <sys/sysctl.h>
+#   include <mach/mach_host.h>
 #elif defined(SLIB_PLATFORM_IS_LINUX)
 #	include <sched.h>
 #	include <sys/sysinfo.h>
@@ -61,7 +62,7 @@ namespace slib
 				int mib[2] = {CTL_HW, HW_NCPU};
 				sl_uint32 n = 1;
 				size_t len = sizeof(n);
-				if (sysctl(mib, 2, &n, &len, sl_null, 0) != -1) {
+				if (!(sysctl(mib, 2, &n, &len, sl_null, 0))) {
 					return n;
 				}
 #elif defined(SLIB_PLATFORM_IS_LINUX)
@@ -119,6 +120,23 @@ namespace slib
 			_out.total = (sl_uint64)(status.ullTotalPhys);
 			_out.available = (sl_uint64)(status.ullAvailPhys);
 			return sl_true;
+		}
+#elif defined(SLIB_PLATFORM_IS_APPLE)
+		int mib[2] = {CTL_HW, HW_MEMSIZE};
+		sl_uint64 n = 0;
+		size_t len = sizeof(n);
+		if (!(sysctl(mib, 2, &n, &len, sl_null, 0))) {
+			_out.total = n;
+			mach_port_t port = mach_host_self();
+			vm_size_t pageSize = 0;
+			if (host_page_size(port, &pageSize) == KERN_SUCCESS) {
+				vm_statistics64_data_t stat;
+				mach_msg_type_number_t sizeStat = sizeof(stat) / sizeof(integer_t);
+				if (host_statistics64(port, HOST_VM_INFO64, (host_info_t)&stat, &sizeStat) == KERN_SUCCESS) {
+					_out.available = stat.free_count * pageSize;
+					return sl_true;
+				}
+			}
 		}
 #elif defined(SLIB_PLATFORM_IS_LINUX)
 		struct sysinfo si;
