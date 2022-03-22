@@ -1403,7 +1403,7 @@
     <ClCompile Include="..\..\src\slib\crypto\sha3.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\cpu.cpp">
+    <ClCompile Include="..\..\src\slib\core\performance.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\common_dialogs_prompt.cpp">

@@ -21,6 +21,7 @@
  */
 
 #include "slib/core/cpu.h"
+#include "slib/core/memory.h"
 
 #include "slib/core/math.h"
 
@@ -38,6 +39,7 @@
 #	include <sys/sysctl.h>
 #elif defined(SLIB_PLATFORM_IS_LINUX)
 #	include <sched.h>
+#	include <sys/sysinfo.h>
 #endif
 
 namespace slib
@@ -105,5 +107,21 @@ namespace slib
 		return f;
 	}
 #endif
+
+
+	sl_bool Memory::getPhysicalMemoryStatus(PhysicalMemoryStatus& _out)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		MEMORYSTATUSEX status;
+		Base::zeroMemory(&status, sizeof(status));
+		status.dwLength = sizeof(status);
+		if (GlobalMemoryStatusEx(&status)) {
+			_out.total = (sl_uint64)(status.ullTotalPhys);
+			_out.available = (sl_uint64)(status.ullAvailPhys);
+			return sl_true;
+		}
+#endif
+		return sl_false;
+	}
 
 }

@@ -104,7 +104,7 @@
 		26ACB3F4220984FF0093FF3F /* ui_app_badge_ios.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26ACB3F3220984FF0093FF3F /* ui_app_badge_ios.mm */; };
 		26ACB3F6220985EE0093FF3F /* device_audio_ios.mm in Sources */ = {isa = PBXBuildFile; fileRef = 26ACB3F5220985EE0093FF3F /* device_audio_ios.mm */; };
 		26AFC60122B197E30034C634 /* crc32c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26AFC60022B197E30034C634 /* crc32c.cpp */; };
-		26AFC60522B198340034C634 /* cpu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26AFC60322B198340034C634 /* cpu.cpp */; };
+		26AFC60522B198340034C634 /* performance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26AFC60322B198340034C634 /* performance.cpp */; };
 		26B13D622527074B001E8027 /* audio_device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B13D612527074B001E8027 /* audio_device.cpp */; };
 		26B92D5021D357AD003F6F82 /* des.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B92D4F21D357AD003F6F82 /* des.cpp */; };
 		26B92D5B21D4CF22003F6F82 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B92D5A21D4CF22003F6F82 /* device.cpp */; };
@@ -599,7 +599,7 @@
 		26ACB3F5220985EE0093FF3F /* device_audio_ios.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = device_audio_ios.mm; sourceTree = "<group>"; };
 		26ACCB901C4A35DD00330F88 /* codec_vpx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = codec_vpx.cpp; path = media/codec_vpx.cpp; sourceTree = "<group>"; };
 		26AFC60022B197E30034C634 /* crc32c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crc32c.cpp; sourceTree = "<group>"; };
-		26AFC60322B198340034C634 /* cpu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cpu.cpp; sourceTree = "<group>"; };
+		26AFC60322B198340034C634 /* performance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = performance.cpp; sourceTree = "<group>"; };
 		26B13D612527074B001E8027 /* audio_device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = audio_device.cpp; path = media/audio_device.cpp; sourceTree = "<group>"; };
 		26B1C99E1DC76BF50092C84F /* text_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = text_view.cpp; sourceTree = "<group>"; };
 		26B571421C9D43A70099E69B /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
@@ -1005,7 +1005,7 @@
 				26C72AD01E22484F00F7D6D0 /* collection.cpp */,
 				265A935D2304783200B155A2 /* console.cpp */,
 				A234D6ED1B3F12F600ADDF4E /* content_type.cpp */,
-				26AFC60322B198340034C634 /* cpu.cpp */,
+				26AFC60322B198340034C634 /* performance.cpp */,
 				26BC2EC51E2DFF4900D0801E /* dispatch.cpp */,
 				A25F2ED11B039EF600854DAF /* event.cpp */,
 				A25F2ED21B039EF600854DAF /* file.cpp */,
@@ -1705,7 +1705,7 @@
 				26635CA1226706FD005E4BA6 /* ui_photo.cpp in Sources */,
 				262D59A523250E7300F85780 /* emoji_png.cpp in Sources */,
 				266CF0F425032CF800E694E3 /* disk.cpp in Sources */,
-				26AFC60522B198340034C634 /* cpu.cpp in Sources */,
+				26AFC60522B198340034C634 /* performance.cpp in Sources */,
 				26D9D8E71E962976005F7BD3 /* video_view.cpp in Sources */,
 				D7C7097F26458FDF00FB3A32 /* dbip.cpp in Sources */,
 				26D9D8D31E962976005F7BD3 /* select_view.cpp in Sources */,
