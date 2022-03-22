@@ -120,6 +120,15 @@ namespace slib
 			_out.available = (sl_uint64)(status.ullAvailPhys);
 			return sl_true;
 		}
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+		struct sysinfo si;
+		Base::zeroMemory(&si, sizeof(si));
+		si.mem_unit = 1;
+		if (!(sysinfo(&si))) {
+			_out.total = (sl_uint64)(si.totalram) * si.mem_unit;
+			_out.available = (sl_uint64)(si.freeram) * si.mem_unit;
+			return sl_true;
+		}
 #endif
 		return sl_false;
 	}
