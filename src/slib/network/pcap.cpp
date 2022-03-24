@@ -37,16 +37,10 @@
 
 #define TAG "Pcap"
 
-#define USE_WINPCAP 0
-
 #if defined(SLIB_PLATFORM_IS_WIN32)
 #	include "slib/core/win32/platform.h"
-#	if !USE_WINPCAP
-#		define USE_STATIC_NPCAP
-#		include "pcap/pcap.h"
-#	else
-#		include "winpcap/pcap/pcap.h"
-#	endif
+#	define USE_STATIC_NPCAP
+#	include "pcap/pcap.h"
 #else
 #	include "slib/core/pipe_event.h"
 #	if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
@@ -122,37 +116,76 @@ namespace slib
 					if (name.isEmpty()) {
 						name = "any";
 					}
-
-					char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
-				
-#if USE_WINPCAP
-					pcap_t* handle = pcap_open_live(name.getData(), MAX_PACKET_SIZE, param.flagPromiscuous, param.timeoutRead, errBuf);
-					if (handle) {
-						if (pcap_setbuff(handle, param.sizeBuffer) == 0) {
-							Ref<PcapImpl> ret = new PcapImpl;
-							if (ret.isNotNull()) {
-								ret->_initWithParam(param);
-								ret->m_handle = handle;
-								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
-								if (ret->m_thread.isNotNull()) {
-									ret->m_flagInit = sl_true;
-									if (param.flagAutoStart) {
-										ret->start();
-									}
-									return ret;
-								} else {
-									LogError(TAG, "Failed to create thread");
-								}
-							} 
-						} else {
-							LogError(TAG, "Set Buffer Size Failed");
-						}
-						pcap_close(handle);
+					pcap_t* handle = sl_null;
+					int iRet = createHandle(handle, name.getData(), param);
+					if (iRet >= 0) {
+						return create(handle, param);
 					} else {
-						LogError(TAG, errBuf);
+						if (iRet == PCAP_ERROR_NO_SUCH_DEVICE) {
+#ifdef SLIB_PLATFORM_IS_WIN32
+							if (name.startsWith("{")) {
+								String _name = "\\Device\\NPF_" + name;
+								iRet = createHandle(handle, _name.getData(), param);
+								if (iRet >= 0) {
+									return create(handle, param);
+								} else {
+									if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
+										return sl_null;
+									}
+								}
+							}
+#endif
+							char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
+							pcap_if_t* devs = NULL;
+							int ret = pcap_findalldevs(&devs, errBuf);
+							if (!ret && devs) {
+								pcap_if_t* dev = devs;
+								while (dev) {
+									if (name == dev->description) {
+										iRet = createHandle(handle, dev->name, param);
+										if (iRet >= 0) {
+											return create(handle, param);
+										} else {
+											if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
+												return sl_null;
+											}
+										}
+									}
+									dev = dev->next;
+								}
+								pcap_freealldevs(devs);
+							}
+							LogError(TAG, "failed to find device: %s", name);
+						}
 					}
-#else
-					pcap_t* handle = pcap_create(name.getData(), errBuf);
+					return sl_null;
+				}
+
+				static Ref<PcapImpl> create(pcap_t* handle, const PcapParam& param)
+				{
+					Ref<PcapImpl> ret = new PcapImpl;
+					if (ret.isNotNull()) {
+						ret->_initWithParam(param);
+						ret->m_handle = handle;
+						ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
+						if (ret->m_thread.isNotNull()) {
+							ret->m_flagInit = sl_true;
+							if (param.flagAutoStart) {
+								ret->start();
+							}
+							return ret;
+						} else {
+							LogError(TAG, "Failed to create thread");
+						}
+					}
+					pcap_close(handle);
+					return sl_null;
+				}
+
+				static int createHandle(pcap_t*& handle, const StringView& name, const PcapParam& param)
+				{
+					char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
+					handle = pcap_create(name.getData(), errBuf);
 					if (handle) {
 						pcap_set_snaplen(handle, MAX_PACKET_SIZE);
 						pcap_set_buffer_size(handle, param.sizeBuffer);
@@ -161,31 +194,18 @@ namespace slib
 						pcap_set_immediate_mode(handle, param.flagImmediate);
 						pcap_setnonblock(handle, 1, errBuf);
 						int iRet = pcap_activate(handle);
-						if (iRet == 0 || iRet == PCAP_WARNING || iRet == PCAP_WARNING_PROMISC_NOTSUP || iRet == PCAP_WARNING_TSTAMP_TYPE_NOTSUP) {
-							Ref<PcapImpl> ret = new PcapImpl;
-							if (ret.isNotNull()) {
-								ret->_initWithParam(param);
-								ret->m_handle = handle;
-								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
-								if (ret->m_thread.isNotNull()) {
-									ret->m_flagInit = sl_true;
-									if (param.flagAutoStart) {
-										ret->start();
-									}
-									return ret;
-								} else {
-									LogError(TAG, "Failed to create thread");
-								}
+						if (iRet < 0) {
+							if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
+								LogError(TAG, "failed to activate: %s", name);
 							}
-						} else {
-							LogError(TAG, "Activate Failed");
+							pcap_close(handle);
+							handle = sl_null;
 						}
-						pcap_close(handle);
+						return iRet;
 					} else {
 						LogError(TAG, errBuf);
 					}
-#endif
-					return sl_null;
+					return PCAP_ERROR;
 				}
 				
 				void release() override
@@ -308,14 +328,14 @@ namespace slib
 				sl_bool setLinkType(sl_uint32 type) override
 				{
 					int ret = pcap_set_datalink(m_handle, type);
-					return ret == 0;
+					return !ret;
 				}
 
 				sl_bool sendPacket(const void* buf, sl_uint32 size) override
 				{
 					if (m_flagInit) {
 						int ret = pcap_sendpacket(m_handle, (const sl_uint8*)buf, size);
-						if (ret == 0) {
+						if (!ret) {
 							return sl_true;
 						}
 					}
@@ -591,7 +611,7 @@ namespace slib
 
 		pcap_if_t* devs = NULL;
 		int ret = pcap_findalldevs(&devs, errBuf);
-		if (ret == 0 && devs) {
+		if (!ret && devs) {
 			pcap_if_t* dev = devs;
 			while (dev) {
 				PcapDeviceInfo item;
@@ -606,8 +626,12 @@ namespace slib
 		return list;
 	}
 
-	sl_bool Pcap::findDevice(const String& name, PcapDeviceInfo& _out)
+	sl_bool Pcap::findDevice(const StringView& name, PcapDeviceInfo& _out)
 	{
+		if (name.isEmpty()) {
+			return sl_false;
+		}
+
 #ifdef USE_STATIC_NPCAP
 		if (!(GetEnv())) {
 			return sl_false;
@@ -618,13 +642,21 @@ namespace slib
 
 		pcap_if_t* devs = NULL;
 		int ret = pcap_findalldevs(&devs, errBuf);
-		if (ret == 0 && devs) {
+		if (!ret && devs) {
 			pcap_if_t* dev = devs;
 			while (dev) {
 				if (name == dev->name || name == dev->description) {
 					ParseDeviceInfo(dev, _out);
 					return sl_true;
 				}
+#ifdef SLIB_PLATFORM_IS_WIN32
+				if (name.startsWith("{") && StringView(dev->name).startsWith("\\Device\\NPF_{")) {
+					if (name == dev->name + 12) {
+						ParseDeviceInfo(dev, _out);
+						return sl_true;
+					}
+				}
+#endif
 				dev = dev->next;
 			}
 			pcap_freealldevs(devs);

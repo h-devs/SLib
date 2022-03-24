@@ -88,7 +88,7 @@ namespace slib
 
 		static List<PcapDeviceInfo> getAllDevices();
 
-		static sl_bool findDevice(const String& name, PcapDeviceInfo& _out);
+		static sl_bool findDevice(const StringView& name, PcapDeviceInfo& _out);
 		
 		static Ref<Pcap> createAny(const PcapParam& param);
 
