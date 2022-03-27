@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,9 @@ namespace slib
 	class SLIB_EXPORT HashMapNode
 	{
 	public:
+		typedef KT KEY_TYPE;
+		typedef VT VALUE_TYPE;
+
 		HashMapNode* parent;
 		HashMapNode* left;
 		HashMapNode* right;
@@ -96,6 +99,7 @@ namespace slib
 	public:
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
+		typedef HashMap<KT, VT, HASH, KEY_COMPARE> MAP_TYPE;
 		typedef HashMapNode<KT, VT> NODE;
 		typedef NodePosition<NODE> POSITION;
 		
@@ -118,12 +122,18 @@ namespace slib
 		KEY_COMPARE m_compare;
 		
 	public:
-		CHashMap(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: m_hash(hash), m_compare(compare)
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		CHashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: m_hash(Forward<HASH_ARG>(hash)), m_compare(Forward<KEY_COMPARE_ARG>(compare))
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 			m_nodeFirst = sl_null;
 			m_nodeLast = sl_null;
 		}
+		
+		template <class HASH_ARG>
+		CHashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: CHashMap(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), KEY_COMPARE()) {}
+		
+		CHashMap(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: CHashMap(capacityMinimum, capacityMaximum, HASH(), KEY_COMPARE()) {}
 		
 		~CHashMap() noexcept
 		{
@@ -158,16 +168,23 @@ namespace slib
 		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: m_hash(hash), m_compare(compare)
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: m_hash(Forward<HASH_ARG>(hash)), m_compare(Forward<KEY_COMPARE_ARG>(compare))
 		{
 			priv::hash_table::Helper::initialize(reinterpret_cast<HashTableStructBase*>(&m_table), capacityMinimum, capacityMaximum);
 			m_nodeFirst = sl_null;
 			m_nodeLast = sl_null;
 			const Pair<KT, VT>* data = l.begin();
-			for (sl_size i = 0; i < l.size(); i++) {
+			sl_size n = l.size();
+			for (sl_size i = 0; i < n; i++) {
 				add_NoLock(data[i].first, data[i].second);
 			}
 		}
+		
+		template <class HASH_ARG>
+		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: CHashMap(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), KEY_COMPARE()) {}
+
+		CHashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: CHashMap(l, capacityMinimum, capacityMaximum, HASH(), KEY_COMPARE()) {}
 #endif
 		
 	public:
@@ -178,7 +195,7 @@ namespace slib
 		
 		sl_bool isEmpty() const noexcept
 		{
-			return m_table.count == 0;
+			return !(m_table.count);
 		}
 		
 		sl_bool isNotEmpty() const noexcept
@@ -716,7 +733,7 @@ namespace slib
 		void removeAt(NODE* node) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return;
 			}
 			_unlinkNode(node);
@@ -727,7 +744,7 @@ namespace slib
 		sl_size removeAt(NODE* node, sl_size count) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return 0;
 			}
 			NODE** nodes = m_table.nodes;
@@ -746,7 +763,7 @@ namespace slib
 		sl_size removeRange(NODE* first, NODE* last) noexcept
 		{
 			sl_size capacity = m_table.capacity;
-			if (capacity == 0) {
+			if (!capacity) {
 				return 0;
 			}
 			NODE* node = first;
@@ -941,7 +958,7 @@ namespace slib
 		
 		sl_size removeAll_NoLock() noexcept
 		{
-			if (m_table.capacity == 0) {
+			if (!(m_table.capacity)) {
 				return 0;
 			}
 			sl_size count = m_table.count;
@@ -1140,7 +1157,7 @@ namespace slib
 			return m_table.nodes + index;
 		}
 		
-        void _linkNode(NODE* node, sl_size hash) noexcept
+		void _linkNode(NODE* node, sl_size hash) noexcept
 		{
 			NODE* last = m_nodeLast;
 			node->hash = hash;
@@ -1169,7 +1186,7 @@ namespace slib
 				m_nodeLast = previous;
 			}
 		}
-        
+
 		void _expand() noexcept
 		{
 			TABLE* table = &m_table;
@@ -1183,7 +1200,7 @@ namespace slib
 			}
 		}
 		
-        void _rebuildTree(sl_size capacity) noexcept
+		void _rebuildTree(sl_size capacity) noexcept
 		{
 			TABLE* table = &m_table;
 			NODE** nodes = table->nodes;
@@ -1258,35 +1275,73 @@ namespace slib
 	class SLIB_EXPORT HashMap
 	{
 	public:
-		Ref< CHashMap<KT, VT, HASH, KEY_COMPARE> > ref;
-		SLIB_REF_WRAPPER(HashMap, CHashMap<KT, VT, HASH, KEY_COMPARE>)
-		
-	public:
+		typedef CHashMap<KT, VT, HASH, KEY_COMPARE> CMAP;
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
 		typedef HashMapNode<KT, VT> NODE;
 		typedef NodePosition<NODE> POSITION;
-		typedef CHashMap<KT, VT, HASH, KEY_COMPARE> CMAP;
+		typedef typename MapBaseHelper::EnumLockHelper<HashMap> EnumLockHelper;
+		typedef typename MapBaseHelper::EnumHelper<HashMap> EnumHelper;
+
+	public:
+		Ref<CMAP> ref;
+		SLIB_REF_WRAPPER(HashMap, CMAP)
 		
 	public:
-		HashMap(sl_size capacityMinimum, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, hash, compare)) {}
-		
+		HashMap(sl_size capacityMinimum, sl_size capacityMaximum = 0) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum)) {}
+
+		template <class HASH_ARG>
+		HashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		HashMap(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
+
 #ifdef SLIB_SUPPORT_STD_TYPES
-		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, hash, compare)) {}
+		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum)) {}
+
+		template <class HASH_ARG>
+		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		HashMap(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
 #endif
-		
+
 	public:
-		static HashMap create(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
+		static HashMap create(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
-			return new CMAP(capacityMinimum, capacityMaximum, hash, compare);
+			return new CMAP(capacityMinimum, capacityMaximum);
+		}
+
+		template <class HASH_ARG>
+		static HashMap create(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
+		{
+			return new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
+		}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		static HashMap create(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		{
+			return new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
 
 		static HashMap create(Object* object);
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
+		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
-			return new CMAP(l, capacityMinimum, capacityMaximum, hash, compare);
+			return new CMAP(l, capacityMinimum, capacityMaximum);
+		}
+
+		template <class HASH_ARG>
+		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
+		{
+			return new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
+		}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		static HashMap create(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		{
+			return new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
 #endif
 		
@@ -1295,10 +1350,22 @@ namespace slib
 		{
 			return *(reinterpret_cast<HashMap const*>(&other));
 		}
-		
-		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
+
+		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
-			ref = new CMAP(capacityMinimum, capacityMaximum, hash, compare);
+			ref = new CMAP(capacityMinimum, capacityMaximum);
+		}
+
+		template <class HASH_ARG>
+		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
+		{
+			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
+		}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		{
+			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
 		}
 
 	public:
@@ -1309,7 +1376,7 @@ namespace slib
 			return *this;
 		}
 #endif
-		
+
 		VT operator[](const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1319,7 +1386,7 @@ namespace slib
 				return VT();
 			}
 		}
-		
+
 		sl_size getCount() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1328,7 +1395,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_bool isEmpty() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1337,7 +1404,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		sl_bool isNotEmpty() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1346,7 +1413,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_size getCapacity() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1355,7 +1422,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_size getMinimumCapacity() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1364,7 +1431,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		void setMinimumCapacity_NoLock(sl_size capacity) noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1372,7 +1439,7 @@ namespace slib
 				obj->setMinimumCapacity_NoLock(capacity);
 			}
 		}
-		
+
 		void setMinimumCapacity(sl_size capacity) noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1380,7 +1447,7 @@ namespace slib
 				obj->setMinimumCapacity(capacity);
 			}
 		}
-		
+
 		sl_size getMaximumCapacity() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1389,7 +1456,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		void setMaximumCapacity_NoLock(sl_size capacity) noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1397,7 +1464,7 @@ namespace slib
 				obj->setMaximumCapacity_NoLock(capacity);
 			}
 		}
-		
+
 		void setMaximumCapacity(sl_size capacity) noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1405,7 +1472,7 @@ namespace slib
 				obj->setMaximumCapacity(capacity);
 			}
 		}
-		
+
 		NODE* getFirstNode() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1414,7 +1481,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		NODE* getLastNode() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1423,7 +1490,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		NODE* find_NoLock(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1432,7 +1499,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		sl_bool find(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1441,7 +1508,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		/* unsynchronized function */
 		sl_bool getEqualRange(const KT& key, MapNode<KT, VT>** pStart = sl_null, MapNode<KT, VT>** pEnd = sl_null) const noexcept
 		{
@@ -1451,7 +1518,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1461,7 +1528,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1471,7 +1538,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		/* unsynchronized function */
 		VT* getItemPointer(const KT& key) const noexcept
 		{
@@ -1481,7 +1548,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		/* unsynchronized function */
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
@@ -1492,7 +1559,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1501,7 +1568,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1510,7 +1577,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get_NoLock(const KT& key, Nullable<VT>* _out) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1519,7 +1586,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1538,7 +1605,7 @@ namespace slib
 				return VT();
 			}
 		}
-		
+
 		VT getValue(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1548,7 +1615,7 @@ namespace slib
 				return VT();
 			}
 		}
-		
+
 		VT getValue_NoLock(const KT& key, const VT& def) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1568,7 +1635,7 @@ namespace slib
 				return def;
 			}
 		}
-		
+
 		List<VT> getValues_NoLock(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1577,7 +1644,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<VT> getValues(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1586,7 +1653,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1596,7 +1663,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1606,49 +1673,19 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class KEY, class VALUE>
 		NODE* put_NoLock(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->put_NoLock(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					if (isInsertion) {
-						*isInsertion = sl_true;
-					}
-					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE>(value));
-				}
-			}
-			return sl_null;
+			return MapBaseHelper::put_NoLock(this, Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 		}
-		
+
 		template <class KEY, class VALUE>
 		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::put(this, Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 		}
-		
+
 		template <class KEY, class VALUE>
 		NODE* replace_NoLock(const KEY& key, VALUE&& value) const noexcept
 		{
@@ -1658,7 +1695,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class KEY, class VALUE>
 		sl_bool replace(const KEY& key, VALUE&& value) const noexcept
 		{
@@ -1666,131 +1703,45 @@ namespace slib
 			if (obj) {
 				return obj->replace(key, Forward<VALUE>(value));
 			}
-			return sl_null;
+			return sl_false;
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_null;
+			return MapBaseHelper::add_NoLock(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::add(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		MapEmplaceReturn<NODE> emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->emplace_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					NODE* node = obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-					if (node) {
-						return MapEmplaceReturn<NODE>(sl_true, node);
-					} else {
-						return sl_null;
-					}
-				}
-			}
-			return sl_null;
+			return MapBaseHelper::emplace_NoLock(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::emplace(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll_NoLock(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->putAll_NoLock(other);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->putAll_NoLock(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::putAll_NoLock(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->putAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->putAll(other);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->putAll(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::putAll(this, other);
 		}
-		
+
 		template <class MAP>
 		void replaceAll_NoLock(const MAP& other) const noexcept
 		{
@@ -1799,7 +1750,7 @@ namespace slib
 				obj->replaceAll_NoLock(other);
 			}
 		}
-		
+
 		template <class MAP>
 		void replaceAll(const MAP& other) const noexcept
 		{
@@ -1808,85 +1759,31 @@ namespace slib
 				obj->replaceAll(other);
 			}
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll_NoLock(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->addAll_NoLock(other);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->addAll_NoLock(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::addAll_NoLock(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->addAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->addAll(other);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->addAll(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::addAll(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll_NoLock(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->emplaceAll_NoLock(other);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->emplaceAll_NoLock(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::emplaceAll_NoLock(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->emplaceAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::emplaceAll(this, other);
 		}
-		
+
 		/* unsynchronized function */
 		void removeAt(NODE* node) const noexcept
 		{
@@ -1895,7 +1792,7 @@ namespace slib
 				obj->removeAt(node);
 			}
 		}
-		
+
 		/* unsynchronized function */
 		sl_size removeAt(NODE* node, sl_size count) const noexcept
 		{
@@ -1905,7 +1802,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		/* unsynchronized function */
 		sl_size removeRange(NODE* first, NODE* last) const noexcept
 		{
@@ -1915,7 +1812,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_bool remove_NoLock(const KT& key, VT* outValue = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1924,7 +1821,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool remove(const KT& key, VT* outValue = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1933,7 +1830,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_size removeItems_NoLock(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1942,7 +1839,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_size removeItems(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1951,7 +1848,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		List<VT> removeItemsAndReturnValues_NoLock(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1960,7 +1857,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<VT> removeItemsAndReturnValues(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1969,7 +1866,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1979,7 +1876,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1989,7 +1886,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1999,7 +1896,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -2009,7 +1906,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_size removeAll_NoLock() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2018,7 +1915,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_size removeAll() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2027,7 +1924,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		void shrink_NoLock() noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2035,7 +1932,7 @@ namespace slib
 				obj->shrink_NoLock();
 			}
 		}
-		
+
 		void shrink() noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2043,8 +1940,8 @@ namespace slib
 				obj->shrink();
 			}
 		}
-		
-		HashMap<KT, VT, HASH, KEY_COMPARE> duplicate_NoLock() const noexcept
+
+		HashMap duplicate_NoLock() const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
@@ -2052,8 +1949,8 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
-		HashMap<KT, VT, HASH, KEY_COMPARE> duplicate() const noexcept
+
+		HashMap duplicate() const noexcept
 		{
 			CMAP* obj = ref.ptr;
 			if (obj) {
@@ -2061,7 +1958,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<KT> getAllKeys_NoLock() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2070,7 +1967,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<KT> getAllKeys() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2079,7 +1976,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<VT> getAllValues_NoLock() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2088,7 +1985,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<VT> getAllValues() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2097,7 +1994,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List< Pair<KT, VT> > toList_NoLock() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2106,7 +2003,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List< Pair<KT, VT> > toList() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2115,7 +2012,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		Ref<Object> toObject() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -2143,227 +2040,115 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		POSITION end() const noexcept
 		{
 			return sl_null;
 		}
-		
-	public:
-		class EnumLockHelper
-		{
-		public:
-			EnumLockHelper(const HashMap& map) noexcept
-			{
-				CMAP* obj = map.ref.ptr;
-				if (obj) {
-					node = obj->getFirstNode();
-					mutex = obj->getLocker();
-				} else {
-					node = sl_null;
-					mutex = sl_null;
-				}
-			}
-		public:
-			NODE* node;
-			Mutex* mutex;
-		};
-		
-		class EnumHelper
-		{
-		public:
-			EnumHelper(const HashMap& map) noexcept
-			{
-				node = map.getFirstNode();
-			}
-		public:
-			NODE* node;
-		};
-		
+
 	};
-	
+
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
 	class SLIB_EXPORT Atomic< HashMap<KT, VT, HASH, KEY_COMPARE> >
 	{
 	public:
-		AtomicRef< CHashMap<KT, VT, HASH, KEY_COMPARE> > ref;
-		SLIB_ATOMIC_REF_WRAPPER(CHashMap<KT, VT, HASH, KEY_COMPARE>)
-		
-	public:
-		typedef KT KEY_TYPE;
-		typedef VT VALUE_TYPE;
-		typedef HashMapNode<KT, VT> NODE;
-		typedef NodePositionWithRef<NODE> POSITION;
 		typedef CHashMap<KT, VT, HASH, KEY_COMPARE> CMAP;
-		
+
 	public:
-		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(capacityMinimum, capacityMaximum, hash, compare)) {}
-		
+		AtomicRef<CMAP> ref;
+		SLIB_ATOMIC_REF_WRAPPER(CMAP)
+
+	public:
+		Atomic(sl_size capacityMinimum, sl_size capacityMaximum = 0) noexcept : ref(new CMAP(capacityMinimum, capacityMaximum)) {}
+
+		template <class HASH_ARG>
+		Atomic(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept : ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		Atomic(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept : ref(new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
+
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, capacityMinimum, capacityMaximum, hash, compare)) {}
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept : ref(new CMAP(l, capacityMinimum, capacityMaximum)) {}
+
+		template <class HASH_ARG>
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept : ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash))) {}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept : ref(new CMAP(l, capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare))) {}
 #endif
-		
+
 	public:
 		template <class KEY, class VALUE, class OTHER_HASH, class OTHER_COMPARE>
 		static const Atomic& from(const Atomic< HashMap<KEY, VALUE, OTHER_HASH, OTHER_COMPARE> >& other) noexcept
 		{
 			return *(reinterpret_cast<Atomic const*>(&other));
 		}
-		
-		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0, const HASH& hash = HASH(), const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
+
+		void initialize(sl_size capacityMinimum = 0, sl_size capacityMaximum = 0) noexcept
 		{
-			ref = new CMAP(capacityMinimum, capacityMaximum, hash, compare);
+			ref = new CMAP(capacityMinimum, capacityMaximum);
 		}
-		
+
+		template <class HASH_ARG>
+		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash) noexcept
+		{
+			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash));
+		}
+
+		template <class HASH_ARG, class KEY_COMPARE_ARG>
+		void initialize(sl_size capacityMinimum, sl_size capacityMaximum, HASH_ARG&& hash, KEY_COMPARE_ARG&& compare) noexcept
+		{
+			ref = new CMAP(capacityMinimum, capacityMaximum, Forward<HASH_ARG>(hash), Forward<KEY_COMPARE_ARG>(compare));
+		}
+
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic< HashMap<KT, VT, HASH, KEY_COMPARE> >& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept
+		Atomic& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept
 		{
 			ref = new CMAP(l);
 			return *this;
 		}
 #endif
-		
+
+	public:
 		template <class KEY, class VALUE>
 		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::put(this, Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::add(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::emplace(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll(const MAP& other) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->putAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->putAll(other);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->putAll(other);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::putAll(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll(const MAP& other) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->addAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->addAll(other);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->addAll(other);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::addAll(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll(const MAP& other) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->emplaceAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::emplaceAll(this, other);
 		}
-		
+
 	};
-	
+
 }
 
 #endif

@@ -118,7 +118,7 @@ namespace slib
 			m_count = 0;
 		}
 
-		CArray(const T* data, sl_size count, Referable* ref) noexcept : m_ref(ref)
+		CArray(const T* data, sl_size count, Referable* ref) noexcept: m_ref(ref)
 		{
 			m_data = const_cast<T*>(data);
 			m_count = count;
@@ -126,7 +126,7 @@ namespace slib
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CArray(const std::initializer_list<T>& l) noexcept : CArray(l.begin(), l.size()) {}
+		CArray(const std::initializer_list<T>& l) noexcept: CArray(l.begin(), l.size()) {}
 #endif
 
 		~CArray() noexcept

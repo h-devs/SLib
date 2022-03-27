@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,9 @@ namespace slib
 	class SLIB_EXPORT MapNode
 	{
 	public:
+		typedef KT KEY_TYPE;
+		typedef VT VALUE_TYPE;
+
 		MapNode* parent;
 		MapNode* left;
 		MapNode* right;
@@ -66,8 +69,7 @@ namespace slib
 #endif
 		
 		template <class KEY, class... VALUE_ARGS>
-		MapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...),
-		parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false) {}
+		MapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...), parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false) {}
 		
 	public:
 		MapNode* getNext() const noexcept
@@ -99,6 +101,7 @@ namespace slib
 	public:
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
+		typedef Map<KT, VT, KEY_COMPARE> MAP_TYPE;
 		typedef MapNode<KT, VT> NODE;
 		typedef NodePosition<NODE> POSITION;
 		
@@ -111,6 +114,8 @@ namespace slib
 		CMap() noexcept: m_root(sl_null), m_count(0) {}
 
 		CMap(const KEY_COMPARE& compare) noexcept: m_root(sl_null), m_count(0), m_compare(compare) {}
+		
+		CMap(KEY_COMPARE&& compare) noexcept: m_root(sl_null), m_count(0), m_compare(Move(compare)) {}
 		
 		~CMap() noexcept
 		{
@@ -148,15 +153,17 @@ namespace slib
 		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES
-		CMap(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: m_compare(compare)
+		template <class KEY_COMPARE_ARG>
+		CMap(const std::initializer_list< Pair<KT, VT> >& l, KEY_COMPARE_ARG&& compare) noexcept: m_root(sl_null), m_count(0), m_compare(Forward<KEY_COMPARE_ARG>(compare))
 		{
-			m_root = sl_null;
-			m_count = 0;
 			const Pair<KT, VT>* data = l.begin();
-			for (sl_size i = 0; i < l.size(); i++) {
+			sl_size n = l.size();
+			for (sl_size i = 0; i < n; i++) {
 				RedBlackTree::add(&m_root, m_count, data[i].first, compare, data[i].second);
 			}
 		}
+
+		CMap(const std::initializer_list< Pair<KT, VT> >& l) noexcept: CMap(l, KEY_COMPARE()) {}
 #endif
 		
 	public:
@@ -167,7 +174,7 @@ namespace slib
 
 		sl_bool isEmpty() const noexcept
 		{
-			return m_count == 0;
+			return !(m_count);
 		}
 		
 		sl_bool isNotEmpty() const noexcept
@@ -860,61 +867,377 @@ namespace slib
 		};
 		
 	};
-	
+
+
+	class MapBaseHelper
+	{
+	public:
+		template <class THIS_MAP, class KEY, class VALUE>
+		static typename THIS_MAP::NODE* put_NoLock(THIS_MAP* thiz, KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->put_NoLock(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					if (isInsertion) {
+						*isInsertion = sl_true;
+					}
+					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE>(value));
+				}
+			}
+			return sl_null;
+		}
+
+		template <class THIS_MAP, class KEY, class VALUE>
+		static sl_bool put(THIS_MAP* thiz, KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+				}
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class KEY, class... VALUE_ARGS>
+		static typename THIS_MAP::NODE* add_NoLock(THIS_MAP* thiz, KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_null;
+		}
+
+		template <class THIS_MAP, class KEY, class... VALUE_ARGS>
+		static sl_bool add(THIS_MAP* thiz, KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class KEY, class... VALUE_ARGS>
+		static MapEmplaceReturn<typename THIS_MAP::NODE> emplace_NoLock(THIS_MAP* thiz, KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			typedef typename THIS_MAP::NODE NODE;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->emplace_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					NODE* node = obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+					if (node) {
+						return MapEmplaceReturn<NODE>(sl_true, node);
+					} else {
+						return sl_null;
+					}
+				}
+			}
+			return sl_null;
+		}
+
+		template <class THIS_MAP, class KEY, class... VALUE_ARGS>
+		static sl_bool emplace(THIS_MAP* thiz, KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool putAll_NoLock(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->putAll_NoLock(other);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					return obj->putAll_NoLock(other);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool putAll(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->putAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->putAll(other);
+				}
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->putAll(other);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool addAll_NoLock(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->addAll_NoLock(other);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					return obj->addAll_NoLock(other);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool addAll(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->addAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->addAll(other);
+				}
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->addAll(other);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool emplaceAll_NoLock(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				return obj->emplaceAll_NoLock(other);
+			} else {
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					return obj->emplaceAll_NoLock(other);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool emplaceAll(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			CMAP* obj = thiz->ref.ptr;
+			if (obj) {
+				obj->emplaceAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref.ptr;
+				if (obj) {
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+				obj = new CMAP;
+				if (obj) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+			}
+			return sl_false;
+		}
+
+	public:
+		template <class MAP_TYPE>
+		class EnumLockHelper
+		{
+		public:
+			EnumLockHelper(const MAP_TYPE& map) noexcept
+			{
+				typename MAP_TYPE::CMAP* obj = map.ref.ptr;
+				if (obj) {
+					node = obj->getFirstNode();
+					mutex = obj->getLocker();
+				} else {
+					node = sl_null;
+					mutex = sl_null;
+				}
+			}
+
+		public:
+			typename MAP_TYPE::NODE* node;
+			Mutex* mutex;
+		};
+		
+		template <class MAP_TYPE>
+		class EnumHelper
+		{
+		public:
+			EnumHelper(const MAP_TYPE& map) noexcept
+			{
+				node = map.getFirstNode();
+			}
+
+		public:
+			typename MAP_TYPE::NODE* node;
+		};
+		
+	};
 	
 	template < class KT, class VT, class KEY_COMPARE = Compare<KT> >
 	class SLIB_EXPORT Map
 	{
 	public:
-		Ref< CMap<KT, VT, KEY_COMPARE> > ref;
-		SLIB_REF_WRAPPER(Map, CMap<KT, VT, KEY_COMPARE>)
-		
-	public:
+		typedef CMap<KT, VT, KEY_COMPARE> CMAP;
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
 		typedef MapNode<KT, VT> NODE;
 		typedef NodePosition<NODE> POSITION;
-		typedef CMap<KT, VT, KEY_COMPARE> CMAP;
-		
+		typedef typename MapBaseHelper::EnumLockHelper<Map> EnumLockHelper;
+		typedef typename MapBaseHelper::EnumHelper<Map> EnumHelper;
+
+	public:
+		Ref<CMAP> ref;
+		SLIB_REF_WRAPPER(Map, CMAP)
+
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Map(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, compare)) {}
+		Map(const std::initializer_list< Pair<KT, VT> >& l) noexcept : ref(new CMAP(l)) {}
+
+		template <class KEY_COMPARE_ARG>
+		Map(const std::initializer_list< Pair<KT, VT> >& l, KEY_COMPARE_ARG&& compare) noexcept : ref(new CMAP(l, Forward<KEY_COMPARE_ARG>(compare))) {}
 #endif
-		
+
 	public:
 		static Map create() noexcept
 		{
 			return new CMAP();
 		}
-		
+
 		static Map create(const KEY_COMPARE& compare) noexcept
 		{
 			return new CMAP(compare);
 		}
 
+		static Map create(KEY_COMPARE&& compare) noexcept
+		{
+			return new CMAP(Move(compare));
+		}
+
 		static Map create(Object* object);
 
 #ifdef SLIB_SUPPORT_STD_TYPES
-		static Map create(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept
+		static Map create(const std::initializer_list< Pair<KT, VT> >& l) noexcept
 		{
-			return new CMAP(l, compare);
+			return new CMAP(l);
+		}
+
+		template <class KEY_COMPARE_ARG>
+		static Map create(const std::initializer_list< Pair<KT, VT> >& l, KEY_COMPARE_ARG&& compare) noexcept
+		{
+			return new CMAP(l, Forward<KEY_COMPARE_ARG>(compare));
 		}
 #endif
-		
+
 		template <class KEY, class VALUE, class OTHER_COMPARE>
 		static const Map& from(const Map<KEY, VALUE, OTHER_COMPARE>& other) noexcept
 		{
 			return *(reinterpret_cast<Map const*>(&other));
 		}
-		
+
 		void initialize() noexcept
 		{
 			ref = new CMAP();
 		}
-		
+
 		void initialize(const KEY_COMPARE& compare) noexcept
 		{
 			ref = new CMAP(compare);
+		}
+
+		void initialize(KEY_COMPARE&& compare) noexcept
+		{
+			ref = new CMAP(Move(compare));
 		}
 
 	public:
@@ -925,7 +1248,7 @@ namespace slib
 			return *this;
 		}
 #endif
-		
+
 		VT operator[](const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -935,7 +1258,7 @@ namespace slib
 				return VT();
 			}
 		}
-		
+
 		sl_size getCount() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -944,7 +1267,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_bool isEmpty() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -962,7 +1285,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		NODE* getFirstNode() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -971,7 +1294,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		NODE* getLastNode() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -980,7 +1303,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		NODE* find_NoLock(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -989,7 +1312,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		sl_bool find(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -998,7 +1321,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		/* unsynchronized function */
 		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept
 		{
@@ -1008,7 +1331,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		/* unsynchronized function */
 		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept
 		{
@@ -1024,7 +1347,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		/* unsynchronized function */
 		NODE* getLowerBound(const KT& key) const noexcept
 		{
@@ -1034,7 +1357,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		/* unsynchronized function */
 		NODE* getUpperBound(const KT& key) const noexcept
 		{
@@ -1054,7 +1377,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1064,7 +1387,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		/* unsynchronized function */
 		VT* getItemPointer(const KT& key) const noexcept
 		{
@@ -1074,7 +1397,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		/* unsynchronized function */
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
@@ -1085,7 +1408,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1094,7 +1417,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1103,7 +1426,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get_NoLock(const KT& key, Nullable<VT>* _out) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1112,7 +1435,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1179,7 +1502,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1189,7 +1512,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1199,49 +1522,19 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class KEY, class VALUE>
 		NODE* put_NoLock(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->put_NoLock(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					if (isInsertion) {
-						*isInsertion = sl_true;
-					}
-					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE>(value));
-				}
-			}
-			return sl_null;
+			return MapBaseHelper::put_NoLock(this, Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 		}
-		
+
 		template <class KEY, class VALUE>
 		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::put(this, Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 		}
-		
+
 		template <class KEY, class VALUE>
 		NODE* replace_NoLock(const KEY& key, VALUE&& value) const noexcept
 		{
@@ -1251,7 +1544,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class KEY, class VALUE>
 		sl_bool replace(const KEY& key, VALUE&& value) const noexcept
 		{
@@ -1261,129 +1554,43 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_null;
+			return MapBaseHelper::add_NoLock(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::add(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
-		MapEmplaceReturn< NODE > emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		MapEmplaceReturn<NODE> emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->emplace_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					NODE* node = obj->add_NoLock(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-					if (node) {
-						return MapEmplaceReturn<NODE>(sl_true, node);
-					} else {
-						return sl_null;
-					}
-				}
-			}
-			return sl_null;
+			return MapBaseHelper::emplace_NoLock(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::emplace(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll_NoLock(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->putAll_NoLock(other);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->putAll_NoLock(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::putAll_NoLock(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->putAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->putAll(other);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->putAll(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::putAll(this, other);
 		}
-		
+
 		template <class MAP>
 		void replaceAll_NoLock(const MAP& other) const noexcept
 		{
@@ -1392,7 +1599,7 @@ namespace slib
 				obj->replaceAll_NoLock(other);
 			}
 		}
-		
+
 		template <class MAP>
 		void replaceAll(const MAP& other) const noexcept
 		{
@@ -1401,85 +1608,31 @@ namespace slib
 				obj->replaceAll(other);
 			}
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll_NoLock(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->addAll_NoLock(other);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->addAll_NoLock(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::addAll_NoLock(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->addAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->addAll(other);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->addAll(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::addAll(this, other);
 		}
 		
 		template <class MAP>
 		sl_bool emplaceAll_NoLock(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				return obj->emplaceAll_NoLock(other);
-			} else {
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					return obj->emplaceAll_NoLock(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::emplaceAll_NoLock(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll(const MAP& other) noexcept
 		{
-			CMAP* obj = ref.ptr;
-			if (obj) {
-				obj->emplaceAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref.ptr;
-				if (obj) {
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-				obj = new CMAP;
-				if (obj) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-			}
-			return sl_false;
+			return MapBaseHelper::emplaceAll(this, other);
 		}
-		
+
 		/* unsynchronized function */
 		void removeAt(NODE* node) const noexcept
 		{
@@ -1488,7 +1641,7 @@ namespace slib
 				obj->removeAt(node);
 			}
 		}
-		
+
 		/* unsynchronized function */
 		sl_size removeAt(NODE* node, sl_size count) const noexcept
 		{
@@ -1498,7 +1651,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		/* unsynchronized function */
 		sl_size removeRange(NODE* first, NODE* last) const noexcept
 		{
@@ -1508,7 +1661,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_bool remove_NoLock(const KT& key, VT* outValue = sl_null) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1544,7 +1697,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		List<VT> removeItemsAndReturnValues_NoLock(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1553,7 +1706,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<VT> removeItemsAndReturnValues(const KT& key) const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1562,7 +1715,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1572,7 +1725,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1582,7 +1735,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1592,7 +1745,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -1602,7 +1755,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		sl_size removeAll_NoLock() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1620,7 +1773,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		Map duplicate_NoLock() const noexcept
 		{
 			CMAP* obj = ref.ptr;
@@ -1720,230 +1873,252 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		POSITION end() const noexcept
 		{
 			return sl_null;
 		}
 
+	};
+
+
+	class AtomicMapBaseHelper
+	{
 	public:
-		class EnumLockHelper
+		template <class THIS_MAP, class KEY, class VALUE>
+		static sl_bool put(THIS_MAP* thiz, KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
-		public:
-			EnumLockHelper(const Map& map) noexcept
-			{
-				CMAP* obj = map.ref.ptr;
-				if (obj) {
-					node = obj->getFirstNode();
-					mutex = obj->getLocker();
-				} else {
-					node = sl_null;
-					mutex = sl_null;
+			typedef typename THIS_MAP::CMAP CMAP;
+			Ref<CMAP> obj(thiz->ref);
+			if (obj.isNotNull()) {
+				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 				}
 			}
-		public:
-			NODE* node;
-			Mutex* mutex;
-		};
-		
-		class EnumHelper
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class KEY, class... VALUE_ARGS>
+		static sl_bool add(THIS_MAP* thiz, KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-		public:
-			EnumHelper(const Map& map) noexcept
-			{
-				node = map.getFirstNode();
+			typedef typename THIS_MAP::CMAP CMAP;
+			Ref<CMAP> obj(thiz->ref);
+			if (obj.isNotNull()) {
+				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
 			}
-		public:
-			NODE* node;
-		};
-		
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class KEY, class... VALUE_ARGS>
+		static sl_bool emplace(THIS_MAP* thiz, KEY&& key, VALUE_ARGS&&... value_args) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			Ref<CMAP> obj(thiz->ref);
+			if (obj.isNotNull()) {
+				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool putAll(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			Ref<CMAP> obj(thiz->ref);
+			if (obj.isNotNull()) {
+				return obj->putAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->putAll(other);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->putAll(other);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool addAll(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			Ref<CMAP> obj(thiz->ref);
+			if (obj.isNotNull()) {
+				return obj->addAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->addAll(other);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->addAll(other);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class THIS_MAP, class MAP>
+		static sl_bool emplaceAll(THIS_MAP* thiz, const MAP& other) noexcept
+		{
+			typedef typename THIS_MAP::CMAP CMAP;
+			Ref<CMAP> obj(thiz->ref);
+			if (obj.isNotNull()) {
+				return obj->emplaceAll(other);
+			} else {
+				SpinLocker lock(SpinLockPoolForMap::get(thiz));
+				obj = thiz->ref;
+				if (obj.isNotNull()) {
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+				obj = new CMAP;
+				if (obj.isNotNull()) {
+					thiz->ref = obj;
+					lock.unlock();
+					return obj->emplaceAll(other);
+				}
+			}
+			return sl_false;
+		}
+
 	};
-	
+
 	template <class KT, class VT, class KEY_COMPARE>
 	class SLIB_EXPORT Atomic< Map<KT, VT, KEY_COMPARE> >
 	{
 	public:
-		AtomicRef< CMap<KT, VT, KEY_COMPARE> > ref;
-		SLIB_ATOMIC_REF_WRAPPER(CMap<KT, VT, KEY_COMPARE>)
-		
-	public:
-		typedef KT KEY_TYPE;
-		typedef VT VALUE_TYPE;
-		typedef MapNode<KT, VT> NODE;
-		typedef NodePositionWithRef<NODE> POSITION;
 		typedef CMap<KT, VT, KEY_COMPARE> CMAP;
-		
+
+	public:
+		AtomicRef<CMAP> ref;
+		SLIB_ATOMIC_REF_WRAPPER(CMAP)
+
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic(const std::initializer_list< Pair<KT, VT> >& l, const KEY_COMPARE& compare = KEY_COMPARE()) noexcept: ref(new CMAP(l, compare)) {}
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l) noexcept : ref(new CMAP(l)) {}
+
+		template <class KEY_COMPARE_ARG>
+		Atomic(const std::initializer_list< Pair<KT, VT> >& l, KEY_COMPARE_ARG&& compare) noexcept : ref(new CMAP(l, Forward<KEY_COMPARE_ARG>(compare))) {}
 #endif
-		
+
 	public:
 		template <class KEY, class VALUE, class OTHER_COMPARE>
 		static const Atomic& from(const Atomic< Map<KEY, VALUE, OTHER_COMPARE> >& other) noexcept
 		{
 			return *(reinterpret_cast<Atomic const*>(&other));
 		}
-		
+
 		void initialize() noexcept
 		{
 			ref = new CMAP;
 		}
-		
+
 		void initialize(const KEY_COMPARE& compare) noexcept
 		{
-			ref = new CMAP;
+			ref = new CMAP(compare);
+		}
+
+		void initialize(KEY_COMPARE&& compare) noexcept
+		{
+			ref = new CMAP(Move(compare));
 		}
 
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
-		Atomic< Map<KT, VT, KEY_COMPARE> >& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept
+		Atomic& operator=(const std::initializer_list< Pair<KT, VT> >& l) noexcept
 		{
 			ref = new CMAP(l);
 			return *this;
 		}
 #endif
-		
+
+	public:
 		template <class KEY, class VALUE>
 		sl_bool put(KEY&& key, VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->put(Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::put(this, Forward<KEY>(key), Forward<VALUE>(value), isInsertion);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->add(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::add(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
 
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplace(Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::emplace(this, Forward<KEY>(key), Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll(const MAP& other) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->putAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->putAll(other);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->putAll(other);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::putAll(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll(const MAP& other) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->addAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->addAll(other);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->addAll(other);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::addAll(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll(const MAP& other) noexcept
 		{
-			Ref<CMAP> obj(ref);
-			if (obj.isNotNull()) {
-				return obj->emplaceAll(other);
-			} else {
-				SpinLocker lock(SpinLockPoolForMap::get(this));
-				obj = ref;
-				if (obj.isNotNull()) {
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-				obj = new CMAP;
-				if (obj.isNotNull()) {
-					ref = obj;
-					lock.unlock();
-					return obj->emplaceAll(other);
-				}
-			}
-			return sl_false;
+			return AtomicMapBaseHelper::emplaceAll(this, other);
 		}
-		
+
 	};
-	
+
 }
 
 #endif
