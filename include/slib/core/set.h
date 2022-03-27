@@ -505,6 +505,24 @@ namespace slib
 			return sl_null;
 		}
 
+		NODE* getFirstNode() const noexcept
+		{
+			CSET* obj = ref.ptr;
+			if (obj) {
+				return obj->getFirstNode();
+			}
+			return sl_null;
+		}
+
+		NODE* getLastNode() const noexcept
+		{
+			CSET* obj = ref.ptr;
+			if (obj) {
+				return obj->getLastNode();
+			}
+			return sl_null;
+		}
+
 		const Mutex* getLocker() const noexcept
 		{
 			CSET* obj = ref.ptr;

@@ -69,19 +69,19 @@ namespace slib
 			}
 
 			template <class MAP>
-			static void ToJsonMap(Json& json, const MAP& _in)
+			static void ToJsonMap(Json& _out, const MAP& _in)
 			{
 				if (_in.isNotNull()) {
 					MutexLocker locker(_in.getLocker());
 					JsonMap map;
 					auto node = _in.getFirstNode();
 					while (node) {
-						map.put_NoLock(Cast<typename MAP::KEY_TYPE, String>()(node->key), Json(node->value));
+						map.put_NoLock(Cast<typename MAP::KEY_TYPE, String>()(node->key), node->value);
 						node = node->getNext();
 					}
-					json = Move(map);
+					_out = Move(map);
 				} else {
-					json.setNull();
+					_out.setNull();
 				}
 			}
 

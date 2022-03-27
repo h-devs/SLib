@@ -543,6 +543,24 @@ namespace slib
 			return sl_null;
 		}
 
+		NODE* getFirstNode() const noexcept
+		{
+			CSET* obj = ref.ptr;
+			if (obj) {
+				return obj->getFirstNode();
+			}
+			return sl_null;
+		}
+
+		NODE* getLastNode() const noexcept
+		{
+			CSET* obj = ref.ptr;
+			if (obj) {
+				return obj->getLastNode();
+			}
+			return sl_null;
+		}
+
 		const Mutex* getLocker() const noexcept
 		{
 			CSET* obj = ref.ptr;
@@ -627,7 +645,7 @@ namespace slib
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic& operator=(const std::initializer_list<T>& l) noexcept
 		{
-			ref = new CMAP(l);
+			ref = new CSET(l);
 			return *this;
 		}
 #endif

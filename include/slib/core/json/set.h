@@ -20,12 +20,13 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_JSON_LIST
-#define CHECKHEADER_SLIB_CORE_JSON_LIST
+#ifndef CHECKHEADER_SLIB_CORE_JSON_SET
+#define CHECKHEADER_SLIB_CORE_JSON_SET
 
 #include "core.h"
 
-#include "../list_helper.h"
+#include "../set.h"
+#include "../hash_set.h"
 
 namespace slib
 {
@@ -35,22 +36,22 @@ namespace slib
 		namespace json
 		{
 
-			template <class LIST>
-			static void GetListFromJson(LIST& _out, const Json& json)
+			template <class SET>
+			static void GetSetFromJson(SET& _out, const Json& json)
 			{
 				if (json.isUndefined()) {
 					return;
 				}
+				_out.setNull();
 				if (json.getType() == VariantType::List) {
 					JsonList list = json.getJsonList();
 					if (list.isNotNull()) {
 						ListLocker<Json> src(list);
 						if (src.count) {
-							if (ListHelper<LIST>::create(_out, src.count)) {
-								auto dst = ListHelper<LIST>::getData(_out);
-								for (sl_size i = 0; i < src.count; i++) {
-									FromJson(src[i], dst[i]);
-								}
+							for (sl_size i = 0; i < src.count; i++) {
+								typename SET::VALUE_TYPE v;
+								FromJson(src[i], v);
+								_out.add_NoLock(Move(v));
 							}
 							return;
 						}
@@ -60,71 +61,61 @@ namespace slib
 					if (src.isNotNull()) {
 						sl_size n = (sl_size)(src->getElementsCount());
 						if (n) {
-							if (ListHelper<LIST>::create(_out, n)) {
-								auto dst = ListHelper<LIST>::getData(_out);
-								for (sl_size i = 0; i < n; i++) {
-									Variant value = src->getElement(i);
-									FromJson(*(static_cast<const Json*>(&value)), dst[i]);
-								}
+							for (sl_size i = 0; i < n; i++) {
+								typename SET::VALUE_TYPE v;
+								Variant value = src->getElement(i);
+								FromJson(*(static_cast<const Json*>(&value)), v);
+								_out.add_NoLock(Move(v));
 							}
 							return;
 						}
 					}
 				}
-				ListHelper<LIST>::clear(_out);
+			}
+
+			template <class SET>
+			static void GetJsonFromSet(Json& _out, const SET& _in)
+			{
+				if (_in.isNotNull()) {
+					MutexLocker locker(_in.getLocker());
+					JsonList list;
+					auto node = _in.getFirstNode();
+					while (node) {
+						list.add_NoLock(node->key);
+						node = node->getNext();
+					}
+					_out = Move(list);
+				} else {
+					_out.setNull();
+				}
 			}
 
 		}
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const Array<T>& _in)
+	static void ToJson(Json& json, const Set<T>& _in)
 	{
-		json = JsonList::create(_in);
+		priv::json::GetJsonFromSet(json, _in);
 	}
 
 	template <class T>
-	static void FromJson(const Json& json, Array<T>& _out)
+	static void FromJson(const Json& json, Set<T>& _out)
 	{
-		priv::json::GetListFromJson(_out, json);
+		priv::json::GetSetFromJson(_out, json);
 	}
 
 	template <class T>
-	static void ToJson(Json& json, const List<T>& _in)
+	static void ToJson(Json& json, const HashSet<T>& _in)
 	{
-		json = JsonList::createCopy(_in);
+		priv::json::GetJsonFromSet(json, _in);
 	}
 
 	template <class T>
-	static void FromJson(const Json& json, List<T>& _out)
+	static void FromJson(const Json& json, HashSet<T>& _out)
 	{
-		priv::json::GetListFromJson(_out, json);
+		priv::json::GetSetFromJson(_out, json);
 	}
-
-	template <class T>
-	static void ToJson(Json& json, const ListParam<T>& _in)
-	{
-		if (_in.isNotNull()) {
-			ListLocker<T> src(_in);
-			json = JsonList::create(src.data, src.count);
-		} else {
-			json.setNull();
-		}
-	}
-
-#ifdef SLIB_SUPPORT_STD_TYPES
-	template <class T, class ALLOC>
-	static void FromJson(const Json& json, std::vector<T, ALLOC>& _out)
-	{
-		priv::json::GetListFromJson(_out, json);
-	}
-
-	template <class T, class ALLOC>
-	static void ToJson(Json& json, const std::vector<T, ALLOC>& _in)
-	{
-		json = JsonList::create(_in.data(), _in.size());
-	}
-#endif
 
 }
 

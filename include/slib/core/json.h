@@ -31,6 +31,7 @@
 #include "json/shared.h"
 #include "json/list.h"
 #include "json/map.h"
+#include "json/set.h"
 #include "json/nullable.h"
 #include "json/atomic.h"
 #include "json/bytes.h"
