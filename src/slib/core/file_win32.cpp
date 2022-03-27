@@ -633,7 +633,7 @@ namespace slib
 		if (func) {
 			StringCstr16 pathTarget(_pathTarget);
 			StringCstr16 pathLink(_pathLink);
-			BOOL ret = func((LPCWSTR)(pathLink.getData()), (LPCWSTR)(pathTarget.getData()), flagDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
+			BOOL ret = func((LPCWSTR)(pathLink.getData()), (LPCWSTR)(pathTarget.getData()), flagDirectory ? 1 /* SYMBOLIC_LINK_FLAG_DIRECTORY */ : 0);
 			return ret != 0;
 		}
 		return sl_false;

@@ -83,7 +83,7 @@ namespace slib
 				return n;
 			}
 
-			static sl_uint64 GetAllocationSize(sl_size size)
+			static sl_uint64 GetAllocationSize(sl_uint64 size)
 			{
 				return ((size - 1) | (ALLOCATION_SIZE - 1)) + 1;
 			}

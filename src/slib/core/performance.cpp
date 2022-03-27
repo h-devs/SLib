@@ -56,7 +56,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 				DWORD_PTR dwMaskProcess, dwMaskSystem;
 				if (GetProcessAffinityMask(GetCurrentProcess(), &dwMaskProcess, &dwMaskSystem)) {
-					return Math::popCount(dwMaskSystem);
+					return Math::popCount((sl_size)dwMaskSystem);
 				}
 #elif defined(SLIB_PLATFORM_IS_APPLE)
 				int mib[2] = {CTL_HW, HW_NCPU};
