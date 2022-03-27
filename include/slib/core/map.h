@@ -1134,7 +1134,7 @@ namespace slib
 		public:
 			EnumLockHelper(const MAP_TYPE& map) noexcept
 			{
-				typename MAP_TYPE::CMAP* obj = map.ref.ptr;
+				auto obj = map.ref.ptr;
 				if (obj) {
 					node = obj->getFirstNode();
 					mutex = obj->getLocker();
