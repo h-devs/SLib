@@ -3723,8 +3723,9 @@ namespace slib
 				case VariantType::Int32:
 					return ComparePrimitiveValues(REF_VAR(sl_int32 const, _value), REF_VAR(sl_int32 const, other._value));
 				case VariantType::Uint32:
-				case VariantType::Boolean:
 					return ComparePrimitiveValues(REF_VAR(sl_uint32 const, _value), REF_VAR(sl_uint32 const, other._value));
+				case VariantType::Boolean:
+					return ComparePrimitiveValues((sl_uint32)(REF_VAR(sl_bool const, _value)), (sl_uint32)(REF_VAR(sl_bool const, other._value)));
 				case VariantType::Int64:
 					return ComparePrimitiveValues(REF_VAR(sl_int64 const, _value), REF_VAR(sl_int64 const, other._value));
 				case VariantType::Uint64:
