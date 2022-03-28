@@ -4397,7 +4397,7 @@ namespace slib
 	\
 	STRING STRING::removeAll(typename STRING::StringViewType const& pattern) const noexcept \
 	{ \
-		return ReplaceAll(*this, pattern.getData(), pattern.getLength(), sl_null, 0); \
+		return ReplaceAll(*this, pattern.getData(), pattern.getLength(), (typename STRING::Char*)sl_null, 0); \
 	} \
 	\
 	STRING STRING::trim() const noexcept \
@@ -5385,7 +5385,7 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	typename VIEW::StringType VIEW::removeAll(const VIEW& pattern) const noexcept \
 	{ \
-		return ReplaceAll(*this, pattern.getData(), pattern.getLength(), sl_null, 0); \
+		return ReplaceAll(*this, pattern.getData(), pattern.getLength(), (typename VIEW::Char*)sl_null, 0); \
 	} \
 	\
 	VIEW VIEW::trim() const noexcept \
