@@ -65,7 +65,7 @@ namespace slib
 				if (!(sysctl(mib, 2, &n, &len, sl_null, 0))) {
 					return n;
 				}
-#elif defined(SLIB_PLATFORM_IS_LINUX)
+#elif defined(SLIB_PLATFORM_IS_LINUX) && defined(CPU_COUNT)
 				cpu_set_t set;
 				CPU_ZERO(&set);
 				if (!(sched_getaffinity(0, sizeof(set), &set))) {
