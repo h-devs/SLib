@@ -36,9 +36,11 @@ namespace slib
 	template <class T> struct RemoveConst<const T> { typedef T Type; };
 
 	template <class T> struct RemoveConstReference { typedef T Type; };
-	template <class T> struct RemoveConstReference<T const&> { typedef T Type; };
 	template <class T> struct RemoveConstReference<T&> { typedef T Type; };
+	template <class T> struct RemoveConstReference<T const&> { typedef T Type; };
 	template <class T> struct RemoveConstReference<T&&> { typedef T Type; };
+	template <class T> struct RemoveConstReference<T const&&> { typedef T Type; };
+	template <class T> struct RemoveConstReference<const T> { typedef typename RemoveConstReference<T>::Type Type; };
 
 	template <class T>
 	constexpr T* RemoveConstPointerVariable(const T* t)
