@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1153F23-72DA-4CFF-B753-6FA6C5F95292}</ProjectGuid>
+    <ProjectGuid>{23497DB2-DAD6-4470-BCB2-25BF9B8E89AC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ReplaceTextInFile</RootNamespace>
   </PropertyGroup>
