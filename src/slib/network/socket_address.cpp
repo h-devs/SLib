@@ -113,41 +113,6 @@ namespace slib
 				}
 			}
 
-			template <class VIEW>
-			static sl_bool ParseIPv4Range(const VIEW& str, IPv4Address* _from, IPv4Address* _to) noexcept
-			{
-				IPv4Address from;
-				IPv4Address to;
-				sl_reg index = str.indexOf('-');
-				if (index > 0) {
-					if (from.parse(str.substring(0, index))) {
-						if (to.parse(str.substring(index + 1))) {
-							if (to >= from) {
-								if (_from) {
-									*_from = from;
-								}
-								if (_to) {
-									*_to = to;
-								}
-								return sl_true;
-							}
-						}
-					}
-				} else {
-					if (from.parse(str)) {
-						to = from;
-						if (_from) {
-							*_from = from;
-						}
-						if (_to) {
-							*_to = to;
-						}
-						return sl_true;
-					}
-				}
-				return sl_false;
-			}
-
 		}
 	}
 
@@ -279,16 +244,7 @@ namespace slib
 	
 	sl_bool SocketAddress::parseIPv4Range(const StringParam& str, IPv4Address* from, IPv4Address* to) noexcept
 	{
-		if (str.isEmpty()) {
-			return sl_false;
-		}
-		if (str.is8BitsStringType()) {
-			return ParseIPv4Range(StringData(str), from, to);
-		} else if (str.is16BitsStringType()) {
-			return ParseIPv4Range(StringData16(str), from, to);
-		} else {
-			return ParseIPv4Range(StringData32(str), from, to);
-		}
+		return IPv4Address::parseRange(str, from, to);
 	}
 	
 	sl_bool SocketAddress::parsePortRange(const StringParam& str, sl_uint16* from, sl_uint16* to) noexcept
@@ -307,6 +263,7 @@ namespace slib
 			if (to) {
 				*to = (sl_uint16)n2;
 			}
+			return sl_true;
 		}
 		return sl_false;
 	}

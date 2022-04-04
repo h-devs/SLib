@@ -52,6 +52,7 @@ namespace slib
 	
 	enum class NetworkInternetProtocol
 	{
+		Unknown = -1,
 		IPv6_HopOption = 0, // IPv6 Hop-by-Hop Option, RFC 8200
 		ICMP = 1, // Internet Control Message Protocol, RFC 792
 		IGMP = 2, // Internet Group Management Protocol, RFC 1112

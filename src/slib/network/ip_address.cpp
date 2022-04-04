@@ -238,6 +238,7 @@ namespace slib
 	{
 		namespace ipv4address
 		{
+
 			template <class CT>
 			SLIB_INLINE static sl_reg Parse(IPv4Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
 			{
@@ -279,10 +280,60 @@ namespace slib
 				}
 				return i;
 			}
+
+			template <class VIEW>
+			static sl_bool ParseRange(const VIEW& str, IPv4Address* _from, IPv4Address* _to) noexcept
+			{
+				IPv4Address from;
+				IPv4Address to;
+				sl_reg index = str.indexOf('-');
+				if (index > 0) {
+					if (from.parse(str.substring(0, index))) {
+						if (to.parse(str.substring(index + 1))) {
+							if (to >= from) {
+								if (_from) {
+									*_from = from;
+								}
+								if (_to) {
+									*_to = to;
+								}
+								return sl_true;
+							}
+						}
+					}
+				} else {
+					if (from.parse(str)) {
+						to = from;
+						if (_from) {
+							*_from = from;
+						}
+						if (_to) {
+							*_to = to;
+						}
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+
 		}
 	}
 
 	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv4Address, priv::ipv4address::Parse)
+
+	sl_bool IPv4Address::parseRange(const StringParam& str, IPv4Address* from, IPv4Address* to) noexcept
+	{
+		if (str.isEmpty()) {
+			return sl_false;
+		}
+		if (str.is8BitsStringType()) {
+			return priv::ipv4address::ParseRange(StringData(str), from, to);
+		} else if (str.is16BitsStringType()) {
+			return priv::ipv4address::ParseRange(StringData16(str), from, to);
+		} else {
+			return priv::ipv4address::ParseRange(StringData32(str), from, to);
+		}
+	}
 
 	IPv4Address& IPv4Address::operator=(const StringParam& address) noexcept
 	{

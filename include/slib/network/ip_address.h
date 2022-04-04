@@ -120,6 +120,8 @@ namespace slib
 		
 		sl_bool setHostName(const StringParam& hostName) noexcept;
 
+		static sl_bool parseRange(const StringParam& str, IPv4Address* from = sl_null, IPv4Address* to = sl_null) noexcept;
+
 	public:
 		SLIB_CONSTEXPR sl_compare_result compare(const IPv4Address& other) const
 		{
