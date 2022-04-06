@@ -90,7 +90,7 @@ namespace slib
 			return m_deviceAddress;
 		}
 		m_timeDeviceAddress = now;
-		String name = m_deviceName;
+		StringView name = m_deviceName;
 		NetworkInterfaceInfo info;
 #ifdef SLIB_PLATFORM_IS_WIN32
 		// Remove prefix: \Device\NPF_

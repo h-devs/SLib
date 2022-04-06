@@ -119,7 +119,7 @@ namespace slib
 					pcap_t* handle = sl_null;
 					int iRet = createHandle(handle, name.getData(), param);
 					if (iRet >= 0) {
-						return create(handle, param);
+						return create(handle, param, name);
 					} else {
 						if (iRet == PCAP_ERROR_NO_SUCH_DEVICE) {
 #ifdef SLIB_PLATFORM_IS_WIN32
@@ -127,7 +127,7 @@ namespace slib
 								String _name = "\\Device\\NPF_" + name;
 								iRet = createHandle(handle, _name.getData(), param);
 								if (iRet >= 0) {
-									return create(handle, param);
+									return create(handle, param, _name);
 								} else {
 									if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
 										return sl_null;
@@ -144,7 +144,7 @@ namespace slib
 									if (name == dev->description) {
 										iRet = createHandle(handle, dev->name, param);
 										if (iRet >= 0) {
-											return create(handle, param);
+											return create(handle, param, dev->name);
 										} else {
 											if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
 												return sl_null;
@@ -161,11 +161,14 @@ namespace slib
 					return sl_null;
 				}
 
-				static Ref<PcapImpl> create(pcap_t* handle, const PcapParam& param)
+				static Ref<PcapImpl> create(pcap_t* handle, const PcapParam& param, const StringView& deviceName)
 				{
 					Ref<PcapImpl> ret = new PcapImpl;
 					if (ret.isNotNull()) {
 						ret->_initWithParam(param);
+						if (ret->m_deviceName.getData() != deviceName.getData()) {
+							ret->m_deviceName = deviceName;
+						}
 						ret->m_handle = handle;
 						ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
 						if (ret->m_thread.isNotNull()) {
