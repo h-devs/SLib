@@ -52,7 +52,9 @@ namespace slib
 	enum class ArpOperation
 	{
 		Request = 1,
-		Reply = 2
+		Reply = 2,
+		RequestReverse = 3,
+		ReplyReverse = 4
 	};
 	
 	class SLIB_EXPORT ArpPacket
