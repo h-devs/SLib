@@ -54,7 +54,9 @@ namespace slib
 		Request = 1,
 		Reply = 2,
 		RequestReverse = 3,
-		ReplyReverse = 4
+		ReplyReverse = 4,
+		RequestInARP = 8,
+		ReplyInARP = 9
 	};
 	
 	class SLIB_EXPORT ArpPacket
