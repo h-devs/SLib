@@ -1412,5 +1412,11 @@
     <ClCompile Include="..\..\src\slib\network\firewall.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\pdf_view.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\doc\pdf_render.cpp">
+      <Filter>src\doc</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

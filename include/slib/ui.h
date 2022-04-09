@@ -101,7 +101,8 @@
 #include "ui/notification.h"
 #include "ui/xgpush.h"
 
-#include "ui/chromium.h"
 #include "ui/chat_view.h"
+#include "ui/pdf_view.h"
+#include "ui/chromium.h"
 
 #endif

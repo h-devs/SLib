@@ -263,6 +263,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
 
  "${SLIB_PATH}/src/slib/doc/pdf.cpp"
+ "${SLIB_PATH}/src/slib/doc/pdf_render.cpp"
  "${SLIB_PATH}/src/slib/doc/rar.cpp"
  "${SLIB_PATH}/src/slib/doc/zip.cpp"
 
@@ -339,6 +340,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/mobile_app.cpp"
  "${SLIB_PATH}/src/slib/ui/mobile_game.cpp"
  "${SLIB_PATH}/src/slib/ui/motion_tracker.cpp"
+ "${SLIB_PATH}/src/slib/ui/pdf_view.cpp"
  "${SLIB_PATH}/src/slib/ui/picker_view.cpp"
  "${SLIB_PATH}/src/slib/ui/progress_bar.cpp"
  "${SLIB_PATH}/src/slib/ui/qr_code_scanner.cpp"

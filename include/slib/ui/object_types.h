@@ -152,7 +152,8 @@ namespace slib
 			WebViewInstance,
 			Window,
 			WindowInstance,
-			WindowContentView
+			WindowContentView,
+			PdfView
 		};
 
 	}

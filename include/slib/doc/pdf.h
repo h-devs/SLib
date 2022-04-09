@@ -32,6 +32,8 @@
 namespace slib
 {
 
+	class Variant;
+
 	class SLIB_EXPORT PdfDocument
 	{
 	public:
@@ -39,7 +41,7 @@ namespace slib
 		sl_uint8 minorVersion;
 		sl_uint32 fileSize;
 		sl_uint32 offsetOfLastCrossRef;
-		HashMap<String, String> lastTrailer;
+		HashMap<String, Variant> lastTrailer;
 
 	public:
 		PdfDocument();
@@ -47,9 +49,11 @@ namespace slib
 		~PdfDocument();
 
 	public:
-		sl_bool setReader(const Ptr<IReader, ISeekable>& reader);
+		sl_bool openFile(const StringParam& filePath);
 
 	public:
+		sl_bool setReader(const Ptr<IReader, ISeekable>& reader);
+
 		sl_bool readHeader();
 
 	public:
@@ -57,14 +61,16 @@ namespace slib
 		static sl_bool isEncryptedFile(const StringParam& path);
 
 	private:
-		String readWord();
+		sl_bool readWord(String& outWord);
+		sl_bool readWordAndEquals(const StringView& word);
+		sl_bool skipWhitespaces();
 
-		sl_bool readInt64(sl_int64& n);
-		sl_bool readUint64(sl_uint64& n);
-		sl_bool readInt32(sl_int32& n);
-		sl_bool readUint32(sl_uint32& n);
-
-		sl_bool readDictionary(HashMap<String, String>& map);
+		sl_bool readObject(Variant& outObject);
+		sl_bool readDictionary(HashMap<String, Variant>& outMap, sl_bool flagReadPrefix = sl_true);
+		sl_bool readName(String& outName, sl_bool flagReadPrefix = sl_true);
+		sl_bool readUint(sl_uint64& outValue, sl_uint64 prefix = 0, sl_bool flagAllowEmpty = sl_false);
+		sl_bool readInt(sl_int64& outValue);
+		sl_bool readFraction(double& outValue, sl_bool flagAllowEmpty = sl_false);
 
 	private:
 		BufferedSeekableReader m_reader;

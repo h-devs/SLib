@@ -208,6 +208,7 @@
     <ClCompile Include="..\..\src\slib\dev\pe.cpp" />
     <ClCompile Include="..\..\src\slib\dev\protect.cpp" />
     <ClCompile Include="..\..\src\slib\doc\pdf.cpp" />
+    <ClCompile Include="..\..\src\slib\doc\pdf_render.cpp" />
     <ClCompile Include="..\..\src\slib\doc\rar.cpp" />
     <ClCompile Include="..\..\src\slib\doc\zip.cpp" />
     <ClCompile Include="..\..\src\slib\geo\earth.cpp" />
@@ -429,6 +430,7 @@
     <ClCompile Include="..\..\src\slib\ui\mobile_app.cpp" />
     <ClCompile Include="..\..\src\slib\ui\mobile_game.cpp" />
     <ClCompile Include="..\..\src\slib\ui\motion_tracker.cpp" />
+    <ClCompile Include="..\..\src\slib\ui\pdf_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\picker_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\progress_bar.cpp" />
     <ClCompile Include="..\..\src\slib\ui\qr_code_scanner.cpp" />

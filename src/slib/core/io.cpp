@@ -2150,22 +2150,22 @@ namespace slib
 			posNew = m_sizeTotal + offset;
 			break;
 		case SeekPosition::Current:
-		{
-			sl_uint64 posCurrent = m_posCurrent;
-			if (offset > 0) {
-				if ((sl_uint64)offset > m_sizeTotal - posCurrent) {
-					return sl_false;
+			{
+				sl_uint64 posCurrent = m_posCurrent;
+				if (offset > 0) {
+					if ((sl_uint64)offset > m_sizeTotal - posCurrent) {
+						return sl_false;
+					}
+				} else if (offset < 0) {
+					if ((sl_uint64)(-offset) > posCurrent) {
+						return sl_false;
+					}
+				} else {
+					return sl_true;
 				}
-			} else if (offset < 0) {
-				if ((sl_uint64)(-offset) > posCurrent) {
-					return sl_false;
-				}
-			} else {
-				return sl_true;
+				m_posCurrent = posCurrent + offset;
+				break;
 			}
-			m_posCurrent = posCurrent + offset;
-			break;
-		}
 		}
 		return sl_true;
 	}
