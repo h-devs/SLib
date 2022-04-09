@@ -133,7 +133,11 @@ namespace slib
 			sl_uint32 _value2;
 			sl_uint8 _m2[4];
 		};
-		sl_uint8 _m3[3];
+		union {
+			sl_uint16 _value3;
+			sl_uint8 _m3[2];
+		};
+		sl_uint8 tag;
 		sl_uint8 _type;
 
 	public:

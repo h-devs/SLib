@@ -84,6 +84,7 @@ namespace slib
 
 			static void Copy(sl_uint8 type, const Variant& src, Variant& dst) noexcept
 			{
+				dst.tag = src.tag;
 				switch (type) {
 					case VariantType::String8:
 						new PTR_VAR(String, dst._value) String(REF_VAR(String, src._value));

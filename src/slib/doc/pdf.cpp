@@ -28,7 +28,8 @@
 
 #define MAX_PDF_FILE_SIZE 0x40000000
 #define MAX_WORD_LENGTH 256
-#define MAX_NAME_LENGTH 1024
+#define MAX_NAME_LENGTH 127
+#define MAX_STRING_LENGTH 32767
 
 namespace slib
 {
@@ -112,7 +113,7 @@ namespace slib
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
 			if (n > 0) {
-				char* buf = (char*)_buf;
+				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					char ch = buf[i];
 					if (IsWhitespace(ch) || IsDelimiter(ch)) {
@@ -155,7 +156,7 @@ namespace slib
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
 			if (n > 0) {
-				char* buf = (char*)_buf;
+				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					char ch = buf[i];
 					if (IsWhitespace(ch) || IsDelimiter(ch)) {
@@ -193,7 +194,7 @@ namespace slib
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
 			if (n > 0) {
-				char* buf = (char*)_buf;
+				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					sl_char8 ch = buf[i];
 					if (flagComment) {
@@ -254,33 +255,50 @@ namespace slib
 					return sl_false;
 				}
 			}
-			sl_uint64 prefix;
+			sl_uint32 prefix;
 			if (ch == '.') {
 				double f;
 				if (!(readFraction(f))) {
 					return sl_false;
 				}
 				if (flagNegative) {
-					outObject.setDouble(-f);
-				} else {
-					outObject.setDouble(f);
+					f = -f;
 				}
+				outObject.setDouble(f);
 				return sl_true;
 			} else if (ch >= '0' && ch <= '9') {
 				prefix = ch - '0';
 			} else {
 				return sl_false;
 			}
-			sl_uint64 value;
-			if (!(readUint(value, prefix, sl_true))) {
+			sl_uint32 value;
+			sl_bool flagEndsWithPoint = sl_false;
+			if (!(readUint(value, prefix, sl_true, &flagEndsWithPoint))) {
 				return sl_false;
 			}
-			if (flagNegative) {
-				outObject.setInt64(-((sl_int64)value));
+			if (flagEndsWithPoint) {
+				double f;
+				if (!(readFraction(f, sl_true))) {
+					return sl_false;
+				}
+				f += (double)value;
+				if (flagNegative) {
+					f = -f;
+				}
+				outObject.setDouble(f);
 			} else {
-				outObject.setUint64(value);
+				if (flagNegative) {
+					outObject.setInt32(-((sl_int32)value));
+				} else {
+					outObject.setUint32((sl_uint32)value);
+				}
 			}
 			return sl_true;
+		} else if (ch == '(') {
+			String s;
+			if (!(readString(s, sl_false))) {
+
+			}
 		}
 		return sl_false;
 	}
@@ -358,7 +376,7 @@ namespace slib
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
 			if (n > 0) {
-				char* buf = (char*)_buf;
+				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					char ch = buf[i];
 					if (flagReadHex) {
@@ -412,7 +430,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readUint(sl_uint64& outValue, sl_uint64 prefix, sl_bool flagAllowEmpty)
+	sl_bool PdfDocument::readUint(sl_uint32& outValue, sl_uint32 prefix, sl_bool flagAllowEmpty, sl_bool* pFlagEndsWithPoint)
 	{
 		outValue = prefix;
 		sl_uint32 nDigits = 0;
@@ -420,10 +438,13 @@ namespace slib
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
 			if (n > 0) {
-				char* buf = (char*)_buf;
+				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					char ch = buf[i];
-					if (IsWhitespace(ch) || IsDelimiter(ch)) {
+					if (IsWhitespace(ch) || IsDelimiter(ch) || (ch == '.' && pFlagEndsWithPoint)) {
+						if (pFlagEndsWithPoint) {
+							*pFlagEndsWithPoint = ch == '.';
+						}
 						m_reader.seek(i - n, SeekPosition::Current);
 						if (flagAllowEmpty) {
 							return sl_true;
@@ -460,13 +481,13 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readInt(sl_int64& outValue)
+	sl_bool PdfDocument::readInt(sl_int32& outValue)
 	{
 		sl_int8 ch;
 		if (!(m_reader.readInt8(&ch))) {
 			return sl_false;
 		}
-		sl_uint64 prefix = 0;
+		sl_uint32 prefix = 0;
 		sl_bool flagNegative = sl_false;
 		sl_bool flagAllowEmpty = sl_false;
 		if (ch >= '0' && ch <= '9') {
@@ -484,12 +505,12 @@ namespace slib
 		} else {
 			return sl_false;
 		}
-		sl_uint64 value;
+		sl_uint32 value;
 		if (!(readUint(value, prefix, flagAllowEmpty))) {
 			return sl_false;
 		}
 		if (flagNegative) {
-			outValue = -((sl_int64)value);
+			outValue = -((sl_int32)value);
 		} else {
 			outValue = value;
 		}
@@ -505,7 +526,7 @@ namespace slib
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
 			if (n > 0) {
-				char* buf = (char*)_buf;
+				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					char ch = buf[i];
 					if (IsWhitespace(ch) || IsDelimiter(ch)) {
@@ -535,6 +556,81 @@ namespace slib
 					} else {
 						return nDigits != 0;
 					}
+				} else {
+					break;
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool PdfDocument::readString(String& outValue, sl_bool flagReadPrefix)
+	{
+		if (flagReadPrefix) {
+			sl_int8 c;
+			if (!(m_reader.readInt8(&c))) {
+				return sl_false;
+			}
+			if (c != '(') {
+				return sl_false;
+			}
+		}
+		List<sl_char8> list;
+		sl_uint32 nOpen = 0;
+		sl_uint32 len = 0;
+		sl_bool flagEscape = sl_false;
+		while (len < MAX_STRING_LENGTH) {
+			void* _buf;
+			sl_reg n = m_reader.read(_buf);
+			if (n > 0) {
+				sl_char8* buf = (sl_char8*)_buf;
+				for (sl_reg i = 0; i < n; i++) {
+					sl_char8 ch = buf[i];
+					if (flagEscape) {
+						switch (ch) {
+						case 'n':
+							ch = '\n';
+							break;
+						case 'r':
+							ch = '\r';
+							break;
+						case 't':
+							ch = '\t';
+							break;
+						case 'b':
+							ch = '\b';
+							break;
+						case 'f':
+							ch = '\f';
+							int p = (int)'\f';
+							break;
+						}
+					} else if (ch == '(') {
+						list.add_NoLock('(');
+						len++;
+						nOpen++;
+					} else if (ch == ')') {
+						list.add_NoLock(')');
+						len++;
+						if (nOpen) {
+							nOpen--;
+						} else {
+							outValue = String::fromRef(list.ref.ptr, list.getData(), len);
+							return sl_true;
+						}
+					} else if (ch == '\\') {
+						flagEscape = sl_true;
+					} else {
+						list.add_NoLock(ch);
+						len++;
+					}
+				}
+			} else {
+				if (n == SLIB_IO_WOULD_BLOCK) {
+					if (Thread::isStoppingCurrent()) {
+						break;
+					}
+					m_reader.waitRead();
 				} else {
 					break;
 				}
@@ -617,7 +713,7 @@ namespace slib
 			if (!(skipWhitespaces())) {
 				return sl_false;
 			}
-			sl_uint64 posCrossRef;
+			sl_uint32 posCrossRef;
 			if (!(readUint(posCrossRef))) {
 				return sl_false;
 			}
@@ -627,7 +723,7 @@ namespace slib
 			if (!(readWordAndEquals(StringView::literal("%%EOF")))) {
 				return sl_false;
 			}
-			offsetOfLastCrossRef = (sl_uint32)posCrossRef;
+			offsetOfLastCrossRef = posCrossRef;
 
 			pos = m_reader.findBackward("trailer", 7, pos, 4096);
 			if (pos <= 0) {

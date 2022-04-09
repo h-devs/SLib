@@ -68,9 +68,10 @@ namespace slib
 		sl_bool readObject(Variant& outObject);
 		sl_bool readDictionary(HashMap<String, Variant>& outMap, sl_bool flagReadPrefix = sl_true);
 		sl_bool readName(String& outName, sl_bool flagReadPrefix = sl_true);
-		sl_bool readUint(sl_uint64& outValue, sl_uint64 prefix = 0, sl_bool flagAllowEmpty = sl_false);
-		sl_bool readInt(sl_int64& outValue);
+		sl_bool readUint(sl_uint32& outValue, sl_uint32 prefix = 0, sl_bool flagAllowEmpty = sl_false, sl_bool* pFlagEndsWithPoint = sl_null);
+		sl_bool readInt(sl_int32& outValue);
 		sl_bool readFraction(double& outValue, sl_bool flagAllowEmpty = sl_false);
+		sl_bool readString(String& outValue, sl_bool flagReadPrefix = sl_true);
 
 	private:
 		BufferedSeekableReader m_reader;

@@ -620,15 +620,15 @@ namespace slib
 	{
 	}
 
-	Json::Json(const StringView& value) : Variant(value)
+	Json::Json(const StringView& value): Variant(value)
 	{
 	}
 
-	Json::Json(const StringView16& value) : Variant(value)
+	Json::Json(const StringView16& value): Variant(value)
 	{
 	}
 
-	Json::Json(const StringView32& value) : Variant(value)
+	Json::Json(const StringView32& value): Variant(value)
 	{
 	}
 
@@ -640,7 +640,7 @@ namespace slib
 	{
 	}
 
-	Json::Json(const sl_char32* sz32) : Variant(sz32)
+	Json::Json(const sl_char32* sz32): Variant(sz32)
 	{
 	}
 
