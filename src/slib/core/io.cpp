@@ -2020,6 +2020,46 @@ namespace slib
 		return nRead;
 	}
 
+	sl_bool BufferedSeekableReader::readInt8(sl_int8* _out)
+	{
+		return readUint8((sl_uint8*)((void*)_out));
+	}
+
+	sl_bool BufferedSeekableReader::peekInt8(sl_int8*_out)
+	{
+		return peekUint8((sl_uint8*)((void*)_out));
+	}
+
+	sl_bool BufferedSeekableReader::readUint8(sl_uint8* _out)
+	{
+		if (m_posCurrent >= m_sizeTotal) {
+			return sl_false;
+		}
+		if (m_posCurrent >= m_posBuf && m_posCurrent < m_posBuf + m_sizeRead) {
+			*_out = m_dataBuf[(sl_size)(m_posCurrent - m_posBuf)];
+			m_posCurrent++;
+			return sl_true;
+		}
+		return readFully(_out, 1);
+	}
+
+	sl_bool BufferedSeekableReader::peekUint8(sl_uint8* _out)
+	{
+		if (m_posCurrent >= m_sizeTotal) {
+			return sl_false;
+		}
+		if (m_posCurrent >= m_posBuf && m_posCurrent < m_posBuf + m_sizeRead) {
+			*_out = m_dataBuf[(sl_size)(m_posCurrent - m_posBuf)];
+			return sl_true;
+		}
+		if (readFully(_out, 1) == 1) {
+			seek(-1, SeekPosition::Current);
+			return sl_true;
+		} else {
+			return sl_false;
+		}
+	}
+
 	sl_reg BufferedSeekableReader::read(void*& buf)
 	{
 		if (m_posCurrent >= m_sizeTotal) {

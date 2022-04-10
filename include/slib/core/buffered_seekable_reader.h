@@ -41,6 +41,18 @@ namespace slib
 
 		sl_bool isOpened();
 
+		using IReader::readInt8;
+
+		sl_bool readInt8(sl_int8* _out);
+
+		sl_bool peekInt8(sl_int8* _out);
+
+		using IReader::readUint8;
+
+		sl_bool readUint8(sl_uint8* _out);
+
+		sl_bool peekUint8(sl_uint8* _out);
+
 		sl_reg read(void*& buf);
 
 		sl_reg read(void* buf, sl_size size) override;
