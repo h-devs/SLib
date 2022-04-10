@@ -52,7 +52,7 @@ namespace slib
 				D - delimiter: %()/<>[]{}
 				R - otherwise.
 			*/
-			static const char g_charType[256] = {
+			static const char g_charType[] = {
 				// NUL  SOH  STX  ETX  EOT  ENQ  ACK  BEL  BS   HT   LF   VT   FF   CR   SO   SI
 				   'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'W', 'W', 'R', 'W', 'W', 'R', 'R',
 				// DLE  DC1  DC2  DC3  DC4  NAK  SYN  ETB  CAN   EM  SUB  ESC  FS   GS   RS   US
@@ -80,22 +80,22 @@ namespace slib
 			};
 
 
-			SLIB_INLINE static sl_bool IsWhitespace(char c)
+			SLIB_INLINE static sl_bool IsWhitespace(sl_uint8 c)
 			{
 				return g_charType[c] == 'W';
 			}
 
-			SLIB_INLINE static sl_bool IsDelimiter(char c)
+			SLIB_INLINE static sl_bool IsDelimiter(sl_uint8 c)
 			{
 				return g_charType[c] == 'D';
 			}
 
-			SLIB_INLINE static sl_bool IsNumeric(char c)
+			SLIB_INLINE static sl_bool IsNumeric(sl_uint8 c)
 			{
 				return g_charType[c] == 'N';
 			}
 
-			SLIB_INLINE static sl_bool IsLineEnding(char c)
+			SLIB_INLINE static sl_bool IsLineEnding(sl_uint8 c)
 			{
 				return c == '\r' || c == '\n';
 			}
@@ -144,7 +144,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readWordAndEquals(const StringView& _word)
+	sl_bool PdfDocument::readWordAndEquals(const StringView& _word, sl_bool flagCheckDelimiter)
 	{
 		sl_size lenWord = _word.getLength();
 		if (!lenWord) {
@@ -159,7 +159,7 @@ namespace slib
 				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					char ch = buf[i];
-					if (IsWhitespace(ch) || IsDelimiter(ch)) {
+					if (IsWhitespace(ch) || (IsDelimiter(ch) && flagCheckDelimiter)) {
 						m_reader.seek(i - n, SeekPosition::Current);
 						return posWord == lenWord;
 					} else {
@@ -187,7 +187,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::skipWhitespaces()
+	sl_bool PdfDocument::skipWhitespaces(sl_bool flagSkipComments)
 	{
 		sl_bool flagComment = sl_false;
 		while (1) {
@@ -201,7 +201,7 @@ namespace slib
 						if (IsLineEnding(ch)) {
 							flagComment = sl_false;
 						}
-					} else if (ch == '%') {
+					} else if (ch == '%' && flagSkipComments) {
 						flagComment = sl_true;
 					} else if (!(IsWhitespace(ch))) {
 						m_reader.seek(i - n, SeekPosition::Current);
@@ -227,36 +227,52 @@ namespace slib
 	sl_bool PdfDocument::readObject(Variant& outObject)
 	{
 		sl_int8 ch;
-		if (!(m_reader.readInt8(&ch))) {
+		if (!(m_reader.peekInt8(&ch))) {
 			return sl_false;
 		}
-		if (ch == 't') {
-			if (!(readWordAndEquals("rue"))) {
+		if (ch == 'n') {
+			if (!(readWordAndEquals("null"))) {
+				return sl_false;
+			}
+			outObject.setNull();
+			return sl_true;
+		} else if (ch == 't') {
+			if (!(readWordAndEquals("true"))) {
 				return sl_false;
 			}
 			outObject.setBoolean(sl_true);
 			return sl_true;
 		} else if (ch == 'f') {
-			if (!(readWordAndEquals("alse"))) {
+			if (!(readWordAndEquals("false"))) {
 				return sl_false;
 			}
 			outObject.setBoolean(sl_false);
 			return sl_true;
 		} else if (IsNumeric(ch)) {
+			if (ch >= '0' && ch <= '9') {
+				sl_uint64 posBackup = m_reader.getPosition();
+				sl_uint32 num, version;
+				if (readReference(num, version)) {
+					outObject.setUint64(SLIB_MAKE_QWORD4(version, num));
+					return sl_true;
+				}
+				m_reader.seek(posBackup, SeekPosition::Begin);
+			}
 			sl_bool flagNegative = sl_false;
 			if (ch == '-' || ch == '+') {
+				m_reader.seek(1, SeekPosition::Current);
 				if (ch == '-') {
 					flagNegative = sl_true;
 				}
 				if (!(skipWhitespaces())) {
 					return sl_false;
 				}
-				if (!(m_reader.readInt8(&ch))) {
+				if (!(m_reader.peekInt8(&ch))) {
 					return sl_false;
 				}
 			}
-			sl_uint32 prefix;
 			if (ch == '.') {
+				m_reader.seek(1, SeekPosition::Current);
 				double f;
 				if (!(readFraction(f))) {
 					return sl_false;
@@ -267,66 +283,103 @@ namespace slib
 				outObject.setDouble(f);
 				return sl_true;
 			} else if (ch >= '0' && ch <= '9') {
-				prefix = ch - '0';
-			} else {
-				return sl_false;
-			}
-			sl_uint32 value;
-			sl_bool flagEndsWithPoint = sl_false;
-			if (!(readUint(value, prefix, sl_true, &flagEndsWithPoint))) {
-				return sl_false;
-			}
-			if (flagEndsWithPoint) {
-				double f;
-				if (!(readFraction(f, sl_true))) {
+				sl_uint32 value;
+				sl_bool flagEndsWithPoint = sl_false;
+				if (!(readUint(value, sl_true))) {
 					return sl_false;
 				}
-				f += (double)value;
-				if (flagNegative) {
-					f = -f;
+				if (m_reader.peekInt8(&ch)) {
+					if (ch == '.') {
+						m_reader.seek(1, SeekPosition::Current);
+						double f;
+						if (!(readFraction(f, sl_true))) {
+							return sl_false;
+						}
+						f += (double)value;
+						if (flagNegative) {
+							f = -f;
+						}
+						outObject.setDouble(f);
+					}
 				}
-				outObject.setDouble(f);
-			} else {
 				if (flagNegative) {
 					outObject.setInt32(-((sl_int32)value));
 				} else {
 					outObject.setUint32((sl_uint32)value);
 				}
+				return sl_true;
+			} else {
+				return sl_false;
 			}
-			return sl_true;
 		} else if (ch == '(') {
 			String s;
-			if (!(readString(s, sl_false))) {
-
+			if (!(readString(s))) {
+				return sl_false;
 			}
+			outObject.setString(Move(s));
+			outObject.tag = 0;
+			return sl_true;
+		} else if (ch == '<') {
+			m_reader.seek(1, SeekPosition::Current);
+			if (!(m_reader.peekInt8(&ch))) {
+				return sl_false;
+			}
+			m_reader.seek(-1, SeekPosition::Current);
+			if (ch == '<') {
+				VariantMap map;
+				if (!(readDictionary(map))) {
+					return sl_false;
+				}
+				outObject.setVariantMap(Move(map));
+				return sl_true;
+			} else {
+				String s;
+				if (!(readHexString(s))) {
+					return sl_false;
+				}
+				outObject.setString(Move(s));
+				outObject.tag = 0;
+				return sl_true;
+			}
+		} else if (ch == '/') {
+			String name;
+			if (!(readName(name))) {
+				return sl_false;
+			}
+			outObject.setString(Move(name));
+			outObject.tag = 1;
+			return sl_true;
+		} else if (ch == '[') {
+			VariantList list;
+			if (!(readArray(list))) {
+				return sl_false;
+			}
+			outObject.setVariantList(Move(list));
+			return sl_true;
 		}
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readDictionary(VariantMap& outMap, sl_bool flagReadPrefix)
+	sl_bool PdfDocument::readDictionary(VariantMap& outMap)
 	{
-		// <<
-		if (flagReadPrefix) {
-			sl_char8 buf[2];
-			if (m_reader.read(buf, 2) != 2) {
-				return sl_false;
-			}
-			if (buf[0] != '<' || buf[1] != '<') {
-				return sl_false;
-			}
-		}
-		if (!(skipWhitespaces())) {
+		sl_char8 buf[2];
+		if (m_reader.readFully(buf, 2) != 2) {
 			return sl_false;
 		}
-		VariantMap map;
+		if (buf[0] != '<' || buf[1] != '<') {
+			return sl_false;
+		}
 		while (1) {
-			sl_int8 c;
-			if (!(m_reader.readInt8(&c))) {
+			if (!(skipWhitespaces())) {
 				break;
 			}
-			if (c == '/') {
+			sl_int8 ch;
+			if (!(m_reader.peekInt8(&ch))) {
+				return sl_false;
+			}
+			if (ch == '/') {
 				String name;
-				if (!(readName(name, sl_false))) {
+				if (!(readName(name))) {
 					return sl_false;
 				}
 				if (!(skipWhitespaces())) {
@@ -336,35 +389,60 @@ namespace slib
 				if (!(readObject(value))) {
 					return sl_false;
 				}
-				if (!(skipWhitespaces())) {
+				outMap.add_NoLock(Move(name), Move(value));
+			} else if (ch == '>') {
+				m_reader.seek(1, SeekPosition::Current);
+				if (!(m_reader.readInt8(&ch))) {
 					return sl_false;
 				}
-				map.add_NoLock(Move(name), Move(value));
-			} else if (c == '>') {
-				if (!(m_reader.readInt8(&c))) {
-					return sl_false;
-				}
-				if (c == '>') {
-					outMap = Move(map);
-					return sl_true;
-				}
+				return ch == '>';
+			} else {
+				return sl_false;
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readName(String& _out, sl_bool flagReadPrefix)
+	sl_bool PdfDocument::readArray(VariantList& outList)
+	{
+		sl_int8 ch;
+		if (!(m_reader.readInt8(&ch))) {
+			return sl_false;
+		}
+		if (ch != '[') {
+			return sl_false;
+		}
+		while (1) {
+			if (!(skipWhitespaces())) {
+				break;
+			}
+			if (!(m_reader.peekInt8(&ch))) {
+				return sl_false;
+			}
+			if (ch == ']') {
+				m_reader.seek(1, SeekPosition::Current);
+				return sl_true;
+			}
+			Variant var;
+			if (readObject(var)) {
+				outList.add_NoLock(Move(var));
+			} else {
+				return sl_false;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool PdfDocument::readName(String& _out)
 	{
 		sl_char8 name[MAX_WORD_LENGTH];
 		sl_size lenName = 0;
-		if (flagReadPrefix) {
-			sl_int8 c;
-			if (!(m_reader.readInt8(&c))) {
-				return sl_false;
-			}
-			if (c != '/') {
-				return sl_false;
-			}
+		sl_int8 ch;
+		if (!(m_reader.readInt8(&ch))) {
+			return sl_false;
+		}
+		if (ch != '/') {
+			return sl_false;
 		}
 		if (!(skipWhitespaces())) {
 			return sl_false;
@@ -378,7 +456,7 @@ namespace slib
 			if (n > 0) {
 				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
-					char ch = buf[i];
+					ch = buf[i];
 					if (flagReadHex) {
 						sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
 						if (h >= 16) {
@@ -430,9 +508,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readUint(sl_uint32& outValue, sl_uint32 prefix, sl_bool flagAllowEmpty, sl_bool* pFlagEndsWithPoint)
+	sl_bool PdfDocument::readUint(sl_uint32& outValue, sl_bool flagAllowEmpty)
 	{
-		outValue = prefix;
+		outValue = 0;
 		sl_uint32 nDigits = 0;
 		while (1) {
 			void* _buf;
@@ -441,10 +519,7 @@ namespace slib
 				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
 					char ch = buf[i];
-					if (IsWhitespace(ch) || IsDelimiter(ch) || (ch == '.' && pFlagEndsWithPoint)) {
-						if (pFlagEndsWithPoint) {
-							*pFlagEndsWithPoint = ch == '.';
-						}
+					if (IsWhitespace(ch) || IsDelimiter(ch) || ch == '.') {
 						m_reader.seek(i - n, SeekPosition::Current);
 						if (flagAllowEmpty) {
 							return sl_true;
@@ -484,29 +559,21 @@ namespace slib
 	sl_bool PdfDocument::readInt(sl_int32& outValue)
 	{
 		sl_int8 ch;
-		if (!(m_reader.readInt8(&ch))) {
+		if (!(m_reader.peekInt8(&ch))) {
 			return sl_false;
 		}
-		sl_uint32 prefix = 0;
 		sl_bool flagNegative = sl_false;
-		sl_bool flagAllowEmpty = sl_false;
-		if (ch >= '0' && ch <= '9') {
-			prefix = ch - '0';
-			flagAllowEmpty = sl_true;
-		} else if (ch == '-') {
-			flagNegative = sl_true;
+		if (ch == '-' || ch == '+') {
+			m_reader.seek(1, SeekPosition::Current);
+			if (ch == '-') {
+				flagNegative = sl_true;
+			}
 			if (!(skipWhitespaces())) {
 				return sl_false;
 			}
-		} else if (ch == '+') {
-			if (!(skipWhitespaces())) {
-				return sl_false;
-			}
-		} else {
-			return sl_false;
 		}
 		sl_uint32 value;
-		if (!(readUint(value, prefix, flagAllowEmpty))) {
+		if (!(readUint(value))) {
 			return sl_false;
 		}
 		if (flagNegative) {
@@ -564,65 +631,90 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readString(String& outValue, sl_bool flagReadPrefix)
+	sl_bool PdfDocument::readString(String& outValue)
 	{
-		if (flagReadPrefix) {
-			sl_int8 c;
-			if (!(m_reader.readInt8(&c))) {
-				return sl_false;
-			}
-			if (c != '(') {
-				return sl_false;
-			}
+		sl_int8 ch;
+		if (!(m_reader.readInt8(&ch))) {
+			return sl_false;
 		}
-		List<sl_char8> list;
+		if (ch != '(') {
+			return sl_false;
+		}
+		CList<sl_char8> list;
 		sl_uint32 nOpen = 0;
-		sl_uint32 len = 0;
 		sl_bool flagEscape = sl_false;
-		while (len < MAX_STRING_LENGTH) {
+		sl_uint32 octal = 0;
+		sl_uint32 nOctal = 0;
+		while (list.getCount() < MAX_STRING_LENGTH) {
 			void* _buf;
 			sl_reg n = m_reader.read(_buf);
 			if (n > 0) {
 				sl_char8* buf = (sl_char8*)_buf;
 				for (sl_reg i = 0; i < n; i++) {
-					sl_char8 ch = buf[i];
+					ch = buf[i];
 					if (flagEscape) {
-						switch (ch) {
-						case 'n':
-							ch = '\n';
-							break;
-						case 'r':
-							ch = '\r';
-							break;
-						case 't':
-							ch = '\t';
-							break;
-						case 'b':
-							ch = '\b';
-							break;
-						case 'f':
-							ch = '\f';
-							int p = (int)'\f';
-							break;
-						}
-					} else if (ch == '(') {
-						list.add_NoLock('(');
-						len++;
-						nOpen++;
-					} else if (ch == ')') {
-						list.add_NoLock(')');
-						len++;
-						if (nOpen) {
-							nOpen--;
+						if (ch >= '0' && ch <= '7') {
+							octal = ch - '0';
+							nOctal = 1;
 						} else {
-							outValue = String::fromRef(list.ref.ptr, list.getData(), len);
-							return sl_true;
+							switch (ch) {
+								case 'n':
+									ch = '\n';
+									break;
+								case 'r':
+									ch = '\r';
+									break;
+								case 't':
+									ch = '\t';
+									break;
+								case 'b':
+									ch = '\b';
+									break;
+								case 'f':
+									ch = '\f';
+									break;
+								case '(':
+									ch = '(';
+									break;
+								case ')':
+									ch = ')';
+									break;
+								case '\\':
+									ch = '\\';
+									break;
+								default:
+									return sl_false;
+							}
 						}
-					} else if (ch == '\\') {
-						flagEscape = sl_true;
 					} else {
-						list.add_NoLock(ch);
-						len++;
+						if (nOctal) {
+							if (nOctal < 3 && ch >= '0' && ch <= '7') {
+								octal = (octal << 3) | (ch - '0');
+								nOctal++;
+							} else {
+								list.add_NoLock(octal);
+								nOctal = 0;
+							}
+						}
+						if (!nOctal) {
+							if (ch == '\\') {
+								flagEscape = sl_true;
+							} else if (ch == '(') {
+								list.add_NoLock('(');
+								nOpen++;
+							} else if (ch == ')') {
+								list.add_NoLock(')');
+								if (nOpen) {
+									nOpen--;
+								} else {
+									m_reader.seek(i + 1 - n, SeekPosition::Current);
+									outValue = String(list.getData(), list.getCount());
+									return sl_true;
+								}
+							} else {
+								list.add_NoLock(ch);
+							}
+						}
 					}
 				}
 			} else {
@@ -639,11 +731,90 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool PdfDocument::readHexString(String& outValue)
+	{
+		sl_int8 ch;
+		if (!(m_reader.readInt8(&ch))) {
+			return sl_false;
+		}
+		if (ch != '<') {
+			return sl_false;
+		}
+		sl_bool flagFirstHex = sl_true;
+		sl_uint32 firstHexValue = 0;
+		CList<sl_char8> list;
+		while (list.getCount() < MAX_STRING_LENGTH) {
+			void* _buf;
+			sl_reg n = m_reader.read(_buf);
+			if (n > 0) {
+				sl_char8* buf = (sl_char8*)_buf;
+				for (sl_reg i = 0; i < n; i++) {
+					ch = buf[i];
+					if (ch == '>') {
+						if (!flagFirstHex) {
+							list.add_NoLock(firstHexValue << 4);
+						}
+						m_reader.seek(i + 1 - n, SeekPosition::Current);
+						outValue = String(list.getData(), list.getCount());
+						return sl_true;
+					} else {
+						sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
+						if (h < 16) {
+							if (flagFirstHex) {
+								firstHexValue = h;
+								flagFirstHex = sl_false;
+							} else {
+								list.add_NoLock((firstHexValue << 4) | h);
+								flagFirstHex = sl_true;
+							}
+						} else if (!(IsWhitespace(ch))) {
+							return sl_false;
+						}
+					}
+				}
+			} else {
+				if (n == SLIB_IO_WOULD_BLOCK) {
+					if (Thread::isStoppingCurrent()) {
+						break;
+					}
+					m_reader.waitRead();
+				} else {
+					break;
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool PdfDocument::readReference(sl_uint32& objectNumber, sl_uint32& version)
+	{
+		if (!(readUint(objectNumber))) {
+			return sl_false;
+		}
+		if (!objectNumber) {
+			return sl_false;
+		}
+		if (!(skipWhitespaces())) {
+			return sl_false;
+		}
+		if (!(readUint(version))) {
+			return sl_false;
+		}
+		if (!(skipWhitespaces())) {
+			return sl_false;
+		}
+		sl_int8 ch;
+		if (!(m_reader.readInt8(&ch))) {
+			return sl_false;
+		}
+		return ch == 'R';
+	}
+
 	sl_bool PdfDocument::openFile(const StringParam& filePath)
 	{
-		auto file = File::openForRead(filePath);
+		File file = File::openForRead(filePath);
 		if (file.isOpened()) {
-			auto ref = NewRefT< IO<File> >(Move(file));
+			RefT< IO<File> > ref = NewRefT< IO<File> >(Move(file));
 			if (ref.isNotNull()) {
 				if (setReader(ref)) {
 					if (readHeader()) {
@@ -717,10 +888,10 @@ namespace slib
 			if (!(readUint(posCrossRef))) {
 				return sl_false;
 			}
-			if (!(skipWhitespaces())) {
+			if (!(skipWhitespaces(sl_false))) {
 				return sl_false;
 			}
-			if (!(readWordAndEquals(StringView::literal("%%EOF")))) {
+			if (!(readWordAndEquals(StringView::literal("%%EOF"), sl_false))) {
 				return sl_false;
 			}
 			offsetOfLastCrossRef = posCrossRef;

@@ -62,16 +62,19 @@ namespace slib
 
 	private:
 		sl_bool readWord(String& outWord);
-		sl_bool readWordAndEquals(const StringView& word);
-		sl_bool skipWhitespaces();
+		sl_bool readWordAndEquals(const StringView& word, sl_bool flagCheckDelimiter = sl_true);
+		sl_bool skipWhitespaces(sl_bool flagSkipComments = sl_true);
 
 		sl_bool readObject(Variant& outObject);
-		sl_bool readDictionary(HashMap<String, Variant>& outMap, sl_bool flagReadPrefix = sl_true);
-		sl_bool readName(String& outName, sl_bool flagReadPrefix = sl_true);
-		sl_bool readUint(sl_uint32& outValue, sl_uint32 prefix = 0, sl_bool flagAllowEmpty = sl_false, sl_bool* pFlagEndsWithPoint = sl_null);
+		sl_bool readDictionary(HashMap<String, Variant>& outMap);
+		sl_bool readArray(List<Variant>& outList);
+		sl_bool readName(String& outName);
+		sl_bool readUint(sl_uint32& outValue, sl_bool flagAllowEmpty = sl_false);
 		sl_bool readInt(sl_int32& outValue);
 		sl_bool readFraction(double& outValue, sl_bool flagAllowEmpty = sl_false);
-		sl_bool readString(String& outValue, sl_bool flagReadPrefix = sl_true);
+		sl_bool readString(String& outValue);
+		sl_bool readHexString(String& outValue);
+		sl_bool readReference(sl_uint32& objectNumber, sl_uint32& version);
 
 	private:
 		BufferedSeekableReader m_reader;
