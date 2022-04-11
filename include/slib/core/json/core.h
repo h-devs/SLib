@@ -189,6 +189,12 @@ namespace slib
 		Json(const ObjectStore& t) noexcept;
 		Json(ObjectStore&& t) noexcept;
 
+		template <class T>
+		Json(T&& arg, sl_uint8 tag): Json(Forward<T>(arg))
+		{
+			_tag = tag;
+		}
+
 	public:
 		static const Json& undefined()
 		{

@@ -137,13 +137,13 @@ namespace slib
 			sl_uint16 _value3;
 			sl_uint8 _m3[2];
 		};
-		sl_uint8 tag;
+		sl_uint8 _tag;
 		sl_uint8 _type;
 
 	public:
-		Variant() noexcept : _value(0), _type(VariantType::Null) {}
+		Variant() noexcept: _value(0), _tag(0), _type(VariantType::Null) {}
 
-		Variant(sl_null_t) noexcept : _value(1), _type(VariantType::Null) {}
+		Variant(sl_null_t) noexcept: _value(1), _tag(0), _type(VariantType::Null) {}
 
 		Variant(const Variant& other) noexcept;
 
@@ -226,6 +226,7 @@ namespace slib
 		template <class T>
 		Variant(T* ptr) noexcept
 		{
+			_tag = 0;
 			if (ptr) {
 				_type = VariantType::Pointer;
 				*((T**)(void*)&_value) = ptr;
@@ -324,6 +325,7 @@ namespace slib
 			if (value.isNotNull()) {
 				new (this) Variant(value.value);
 			} else {
+				_tag = 0;
 				_type = VariantType::Null;
 				_value = 0;
 			}
@@ -334,6 +336,12 @@ namespace slib
 
 		Variant(const ObjectStore& t) noexcept;
 		Variant(ObjectStore&& t) noexcept;
+
+		template <class T>
+		Variant(T&& arg, sl_uint8 tag): Variant(Forward<T>(arg))
+		{
+			_tag = tag;
+		}
 
 	public:
 		Variant& operator=(const Variant& other) noexcept;
@@ -405,31 +413,41 @@ namespace slib
 		}
 
 	public:
-		sl_uint8 getType() const noexcept
+		constexpr sl_uint8 getType() const
 		{
 			return _type;
 		}
 
+		constexpr sl_uint8 getTag() const
+		{
+			return _tag;
+		}
+
+		void setTag(sl_uint8 tag) noexcept
+		{
+			_tag = tag;
+		}
+
 		void setUndefined() noexcept;
 
-		sl_bool isUndefined() const noexcept
+		constexpr sl_bool isUndefined() const
 		{
 			return _type == VariantType::Null && !_value;
 		}
 
-		sl_bool isNotUndefined() const noexcept
+		constexpr sl_bool isNotUndefined() const
 		{
 			return _type != VariantType::Null || _value != 0;
 		}
 
 		void setNull() noexcept;
 
-		sl_bool isNull() const noexcept
+		constexpr sl_bool isNull() const
 		{
 			return _type == VariantType::Null;
 		}
 
-		sl_bool isNotNull() const noexcept
+		constexpr sl_bool isNotNull() const
 		{
 			return _type != VariantType::Null;
 		}

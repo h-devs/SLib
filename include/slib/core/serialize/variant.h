@@ -57,39 +57,74 @@ namespace slib
 	template <class OUTPUT>
 	sl_bool Variant::serialize(OUTPUT* output) const
 	{
-		const Variant& _in = *this;
 		sl_uint8 buf[32];
-		sl_size nWritten = SerializeVariantPrimitive(_in, buf, sizeof(buf));
+		sl_size nWritten = SerializeVariantPrimitive(*this, buf, sizeof(buf));
 		if (nWritten) {
 			return SerializeRaw(output, buf, nWritten);
 		}
-		switch (_in._type) {
+		switch (_type) {
 			case VariantType::String8:
 			case VariantType::String16:
 			case VariantType::Sz8:
 			case VariantType::Sz16:
-				if (!(SerializeByte(output, (sl_uint8)(VariantType::String8)))) {
-					return sl_false;
+				if (_tag) {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::String8) | 0x80))) {
+						return sl_false;
+					}
+					if (!(SerializeByte(output, _tag))) {
+						return sl_false;
+					}
+				} else {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::String8)))) {
+						return sl_false;
+					}
 				}
-				return Serialize(output, _in.getString());
+				return Serialize(output, getString());
 			case VariantType::Memory:
-				if (!(SerializeByte(output, (sl_uint8)(_in._type)))) {
-					return sl_false;
+				if (_tag) {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::Memory) | 0x80))) {
+						return sl_false;
+					}
+					if (!(SerializeByte(output, _tag))) {
+						return sl_false;
+					}
+				} else {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::Memory)))) {
+						return sl_false;
+					}
 				}
-				return Serialize(output, *((Memory*)(void*)&(_in._value)));
+				return Serialize(output, *((Memory*)((void*)&_value)));
 			case VariantType::List:
-				if (!(SerializeByte(output, (sl_uint8)(VariantType::Collection)))) {
-					return sl_false;
+				if (_tag) {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::Collection) | 0x80))) {
+						return sl_false;
+					}
+					if (!(SerializeByte(output, _tag))) {
+						return sl_false;
+					}
+				} else {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::Collection)))) {
+						return sl_false;
+					}
 				}
-				return Serialize(output, *((VariantList*)(void*)&(_in._value)));
+				return Serialize(output, *((VariantList*)((void*)&_value)));
 			case VariantType::Map:
-				if (!(SerializeByte(output, (sl_uint8)(VariantType::Object)))) {
-					return sl_false;
+				if (_tag) {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::Object) | 0x80))) {
+						return sl_false;
+					}
+					if (!(SerializeByte(output, _tag))) {
+						return sl_false;
+					}
+				} else {
+					if (!(SerializeByte(output, (sl_uint8)(VariantType::Object)))) {
+						return sl_false;
+					}
 				}
-				return Serialize(output, *((VariantMap*)(void*)&(_in._value)));
+				return Serialize(output, *((VariantMap*)((void*)&_value)));
 			default:
-				if (_in.isRef()) {
-					Ref<Referable> ref = _in.getRef();
+				if (isRef()) {
+					Ref<Referable> ref = getRef();
 					if (ref.isNotNull()) {
 						return SerializeJsonBinary(output, ref.get());
 					}
@@ -100,20 +135,38 @@ namespace slib
 	}
 
 	template <class INPUT>
-	static sl_bool DeserializeVariantPrimitive(Variant& _out, sl_uint8 type, INPUT* input)
+	sl_bool Variant::deserialize(INPUT* input)
 	{
-		_out.setNull();
+		sl_uint8 type;
+		if (!(DeserializeByte(input, type))) {
+			return sl_false;
+		}
+		sl_uint8 tag;
+		if (type & 0x80) {
+			type &= 0x7f;
+			if (!(DeserializeByte(input, tag))) {
+				return sl_false;
+			}
+		} else {
+			tag = 0;
+		}
 		switch (type) {
+			case VariantType::Null:
+				setNull();
+				break;
 			case VariantType::Int32:
 			case VariantType::Uint32:
 			case VariantType::Float:
 				{
 					sl_uint8 buf[4];
 					if (DeserializeRaw(input, buf, 4)) {
-						*((sl_uint32*)(void*)&(_out._value)) = MIO::readUint32LE(buf);
-						break;
+						_free(_type, _value);
+						_type = type;
+						*((sl_uint32*)((void*)&_value)) = MIO::readUint32LE(buf);
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
 			case VariantType::Int64:
 			case VariantType::Uint64:
@@ -122,93 +175,79 @@ namespace slib
 				{
 					sl_uint8 buf[8];
 					if (DeserializeRaw(input, buf, 8)) {
-						*((sl_uint64*)(void*)&(_out._value)) = MIO::readUint64LE(buf);
-						break;
+						_free(_type, _value);
+						_type = type;
+						_value = MIO::readUint64LE(buf);
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
 			case VariantType::Boolean:
 				{
 					sl_uint8 v;
 					if (DeserializeByte(input, v)) {
-						*((bool*)(void*)&(_out._value)) = v ? true : false;
-						break;
+						setBoolean(v ? true : false);
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
-				break;
 			case VariantType::ObjectId:
 				{
 					ObjectId objectId;
 					if (Deserialize(input, objectId)) {
-						_out.setObjectId(objectId);
-						return sl_true;
+						setObjectId(objectId);
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
-				break;
-			case VariantType::Null:
-				_out.setNull();
-				return sl_true;
-			default:
-				return sl_false;
-		}
-		_out._type = type;
-		return sl_true;
-	}
-
-	template <class INPUT>
-	sl_bool Variant::deserialize(INPUT* input)
-	{
-		Variant& _out = *this;
-		sl_uint8 type;
-		if (!(DeserializeByte(input, type))) {
-			return sl_false;
-		}
-		if (DeserializeVariantPrimitive(_out, type, input)) {
-			return sl_true;
-		}
-		switch (type) {
 			case VariantType::String8:
 				{
 					String value;
 					if (Deserialize(input, value)) {
-						_out.setString(Move(value));
-						return sl_true;
+						setString(Move(value));
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
 			case VariantType::Memory:
 				{
 					Memory value;
 					if (Deserialize(input, value)) {
-						_out.setMemory(Move(value));
-						return sl_true;
+						setMemory(Move(value));
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
 			case VariantType::Collection:
 				{
 					VariantList value;
 					if (Deserialize(input, value)) {
-						_out.setVariantList(Move(value));
-						return sl_true;
+						setVariantList(Move(value));
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
 			case VariantType::Object:
 				{
 					VariantMap value;
 					if (Deserialize(input, value)) {
-						_out.setVariantMap(Move(value));
-						return sl_true;
+						setVariantMap(Move(value));
+					} else {
+						return sl_false;
 					}
-					return sl_false;
+					break;
 				}
 			default:
-				break;
+				return sl_false;
 		}
-		return sl_false;
+		_tag = tag;
+		return sl_true;
 	}
 
 }

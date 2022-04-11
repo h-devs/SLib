@@ -53,7 +53,7 @@ namespace slib
 			Time = 17,
 			Pointer = 18,
 			ObjectId = 19,
-			Referable = 100,
+			Referable = 64,
 			Weak = Referable + 1,
 			Object = Referable + 2,
 			Collection = Referable + 3,
