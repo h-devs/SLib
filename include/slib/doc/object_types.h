@@ -31,7 +31,9 @@ namespace slib
 	{
 
 		enum {
-			Package_Doc = packages::Doc
+			Package_Doc = packages::Doc,
+			PdfDocument,
+			PdfStream
 		};
 
 	}

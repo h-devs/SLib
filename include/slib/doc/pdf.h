@@ -34,14 +34,67 @@ namespace slib
 
 	class Variant;
 
-	class SLIB_EXPORT PdfDocument
+	struct SLIB_EXPORT PdfCrossReferenceEntry
 	{
+		sl_uint32 offset; // 10 digits
+		sl_uint32 generation; // 5 digits. 65535 means the head of the linked list of free objects. First entry (object number 0) is always free and has a generation number of 65535
+		sl_bool flagFree; // free(f) or in-use(n)
+	};
+
+	class SLIB_EXPORT PdfCrossReferenceSection
+	{
+	public:
+		sl_uint32 firstObjectNumber;
+		List<PdfCrossReferenceEntry> entries;
+
+	public:
+		PdfCrossReferenceSection();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCrossReferenceSection)
+
+	};
+
+	class SLIB_EXPORT PdfCrossReferenceTable
+	{
+	public:
+		List<PdfCrossReferenceSection> sections;
+		HashMap<sl_uint64, sl_uint32> objectOffsets;
+
+	public:
+		PdfCrossReferenceTable();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCrossReferenceTable)
+
+	};
+
+	class SLIB_EXPORT PdfStream : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		HashMap<String, Variant> properties;
+		Memory content;
+
+	public:
+		PdfStream();
+
+		~PdfStream();
+
+	public:
+		static Ref<PdfStream> from(const Variant& var);
+
+	};
+
+	class SLIB_EXPORT PdfDocument : public Object
+	{
+		SLIB_DECLARE_OBJECT
+
 	public:
 		sl_uint8 majorVersion;
 		sl_uint8 minorVersion;
 		sl_uint32 fileSize;
-		sl_uint32 offsetOfLastCrossRef;
 		HashMap<String, Variant> lastTrailer;
+		HashMap<sl_uint64, sl_uint32> objectOffsets;
 
 	public:
 		PdfDocument();
@@ -62,10 +115,12 @@ namespace slib
 
 	private:
 		sl_bool readWord(String& outWord);
-		sl_bool readWordAndEquals(const StringView& word, sl_bool flagCheckDelimiter = sl_true);
-		sl_bool skipWhitespaces(sl_bool flagSkipComments = sl_true);
+		sl_bool readWordAndEquals(const StringView& word);
+		sl_bool skipWhitespaces();
 
-		sl_bool readObject(Variant& outObject);
+		sl_bool readObject(sl_uint64& outId, Variant& outValue);
+		sl_bool getObject(sl_uint64 _id, Variant& _out);
+		sl_bool readValue(Variant& _out);
 		sl_bool readDictionary(HashMap<String, Variant>& outMap);
 		sl_bool readArray(List<Variant>& outList);
 		sl_bool readName(String& outName);
@@ -75,7 +130,12 @@ namespace slib
 		sl_bool readString(String& outValue);
 		sl_bool readHexString(String& outValue);
 		sl_bool readReference(sl_uint32& objectNumber, sl_uint32& version);
-
+		sl_bool readStreamContent(sl_uint32 length, Memory& _out);
+		sl_bool getStreamLength(HashMap<String, Variant>& properties, sl_uint32& _out);
+		sl_bool readDictionaryOrStream(HashMap<String, Variant>& outMap, Ref<PdfStream>& outStream);
+		sl_bool readStream(Ref<PdfStream>& outStream);
+		sl_bool readCrossReferenceTable(PdfCrossReferenceTable& table);
+		
 	private:
 		BufferedSeekableReader m_reader;
 

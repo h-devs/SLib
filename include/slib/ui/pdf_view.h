@@ -56,7 +56,7 @@ namespace slib
 
 	public:
 		String m_filePath;
-		AtomicShared<PdfDocument> m_doc;
+		AtomicRef<PdfDocument> m_doc;
 		Ref<DispatchLoop> m_loop;
 
 	};

@@ -74,7 +74,7 @@ namespace slib
 
 	void PdfView::_openFile(const String& filePath)
 	{
-		Shared<PdfDocument> doc = Shared<PdfDocument>::create();
+		Ref<PdfDocument> doc = new PdfDocument;
 		if (doc.isNull()) {
 			close();
 			return;
