@@ -59,6 +59,7 @@ namespace slib
 	public:
 		List<PdfCrossReferenceSection> sections;
 		HashMap<sl_uint64, sl_uint32> objectOffsets;
+		HashMap<String, Variant> trailer;
 
 	public:
 		PdfCrossReferenceTable();
@@ -132,8 +133,8 @@ namespace slib
 		sl_bool readReference(sl_uint32& objectNumber, sl_uint32& version);
 		sl_bool readStreamContent(sl_uint32 length, Memory& _out);
 		sl_bool getStreamLength(HashMap<String, Variant>& properties, sl_uint32& _out);
-		sl_bool readDictionaryOrStream(HashMap<String, Variant>& outMap, Ref<PdfStream>& outStream);
-		sl_bool readStream(Ref<PdfStream>& outStream);
+		sl_bool readCrossReferenceEntry(PdfCrossReferenceEntry& entry);
+		sl_bool readCrossReferenceSection(PdfCrossReferenceSection& section);
 		sl_bool readCrossReferenceTable(PdfCrossReferenceTable& table);
 		
 	private:

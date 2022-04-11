@@ -94,6 +94,14 @@ namespace slib
 				return c == '\r' || c == '\n';
 			}
 
+			static sl_bool EqualsName(const Variant& var, const StringView& name)
+			{
+				if (var.getTag() == 1 && var.isStringType()) {
+					return var.getStringView() == name;
+				}
+				return sl_false;
+			}
+
 		}
 	}
 
@@ -271,6 +279,32 @@ namespace slib
 							if (skipWhitespaces()) {
 								if (readValue(outValue)) {
 									if (skipWhitespaces()) {
+										if (outValue.isVariantMap()) {
+											sl_int8 ch;
+											if (m_reader.peekInt8(&ch)) {
+												if (ch == 's') {
+													VariantMap properties = outValue.getVariantMap();
+													sl_uint32 length;
+													if (getStreamLength(properties, length)) {
+														Memory content;
+														if (readStreamContent(length, content)) {
+															Ref<PdfStream> stream = new PdfStream;
+															if (stream.isNotNull()) {
+																stream->properties = Move(properties);
+																stream->content = Move(content);
+																outValue = Move(stream);
+															} else {
+																return sl_false;
+															}
+														} else {
+															return sl_false;
+														}
+													} else {
+														return sl_false;
+													}
+												}
+											}
+										}
 										if (readWordAndEquals(StringView::literal("endobj"))) {
 											outId = MAKE_OBJECT_ID(num, generation);
 											return sl_true;
@@ -307,17 +341,17 @@ namespace slib
 			return sl_false;
 		}
 		if (ch == 'n') {
-			if (readWordAndEquals("null")) {
+			if (readWordAndEquals(StringView::literal("null"))) {
 				_out.setNull();
 				return sl_true;
 			}
 		} else if (ch == 't') {
-			if (readWordAndEquals("true")) {
+			if (readWordAndEquals(StringView::literal("true"))) {
 				_out.setBoolean(sl_true);
 				return sl_true;
 			}
 		} else if (ch == 'f') {
-			if (readWordAndEquals("false")) {
+			if (readWordAndEquals(StringView::literal("false"))) {
 				_out.setBoolean(sl_false);
 				return sl_true;
 			}
@@ -394,13 +428,8 @@ namespace slib
 				m_reader.seek(-1, SeekPosition::Current);
 				if (ch == '<') {
 					VariantMap map;
-					Ref<PdfStream> stream;
-					if (readDictionaryOrStream(map, stream)) {
-						if (stream.isNotNull()) {
-							_out.setRef(Move(stream));
-						} else {
-							_out.setVariantMap(Move(map));
-						}
+					if (readDictionary(map)) {
+						_out.setVariantMap(Move(map));
 						return sl_true;
 					}
 				} else {
@@ -922,46 +951,52 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool PdfDocument::readDictionaryOrStream(VariantMap& outMap, Ref<PdfStream>& outStream)
+	sl_bool PdfDocument::readCrossReferenceEntry(PdfCrossReferenceEntry& entry)
 	{
-		VariantMap map;
-		if (!(readDictionary(map))) {
-			return sl_false;
-		}
-		sl_uint32 length;
-		if (getStreamLength(map, length)) {
-			sl_uint64 pos = m_reader.getPosition();
-			Memory content;
-			if (readStreamContent(length, content)) {
-				Ref<PdfStream> stream = new PdfStream;
-				if (stream.isNotNull()) {
-					stream->properties = Move(map);
-					stream->content = Move(content);
-					outStream = Move(stream);
-					return sl_true;
+		if (readUint(entry.offset)) {
+			if (skipWhitespaces()) {
+				if (readUint(entry.generation)) {
+					if (skipWhitespaces()) {
+						sl_int8 ch;
+						if (m_reader.readInt8(&ch)) {
+							if (ch == 'f') {
+								entry.flagFree = sl_true;
+							} else if (ch == 'n') {
+								entry.flagFree = sl_false;
+							} else {
+								return sl_false;
+							}
+							if (m_reader.peekInt8(&ch)) {
+								if (!(IsWhitespace(ch))) {
+									return sl_false;
+								}
+							}
+							return sl_true;
+						}
+					}
 				}
 			}
-			m_reader.seek(pos, SeekPosition::Begin);
 		}
-		outMap = Move(map);
-		return sl_true;
+		return sl_false;
 	}
 
-	sl_bool PdfDocument::readStream(Ref<PdfStream>& outStream)
+	sl_bool PdfDocument::readCrossReferenceSection(PdfCrossReferenceSection& section)
 	{
-		VariantMap properties;
-		if (readDictionary(properties)) {
-			sl_uint32 length;
-			if (getStreamLength(properties, length)) {
-				Memory content;
-				if (readStreamContent(length, content)) {
-					Ref<PdfStream> stream = new PdfStream;
-					if (stream.isNotNull()) {
-						stream->properties = Move(properties);
-						stream->content = Move(content);
-						outStream = Move(stream);
-						return sl_true;
+		if (readUint(section.firstObjectNumber)) {
+			if (skipWhitespaces()) {
+				sl_uint32 count;
+				if (readUint(count)) {
+					for (sl_uint32 i = 0; i < count; i++) {
+						if (!(skipWhitespaces())) {
+							return sl_false;
+						}
+						PdfCrossReferenceEntry entry;
+						if (!(readCrossReferenceEntry(entry))) {
+							return sl_false;
+						}
+						section.entries.add_NoLock(entry);
 					}
+					return sl_true;
 				}
 			}
 		}
@@ -970,6 +1005,60 @@ namespace slib
 
 	sl_bool PdfDocument::readCrossReferenceTable(PdfCrossReferenceTable& table)
 	{
+		sl_int8 ch;
+		if (!(m_reader.peekInt8(&ch))) {
+			return sl_false;
+		}
+		if (ch == 'x') {
+			// cross reference table
+			if (readWordAndEquals(StringView::literal("xref"))) {
+				for (;;) {
+					if (!(m_reader.peekInt8(&ch))) {
+						break;
+					}
+					if (ch < '0' || ch > '9') {
+						break;
+					}
+					PdfCrossReferenceSection section;
+					if (!(readCrossReferenceSection(section))) {
+						return sl_false;
+					}
+					ListElements<PdfCrossReferenceEntry> entries(section.entries);
+					for (sl_size i = 0; i < entries.count; i++) {
+						PdfCrossReferenceEntry& entry = entries[i];
+						if (!(entry.flagFree)) {
+							table.objectOffsets.put_NoLock(MAKE_OBJECT_ID(section.firstObjectNumber + i, entry.generation), entry.offset);
+						}
+					}
+					table.sections.add_NoLock(Move(section));
+				}
+				if (!(m_reader.peekInt8(&ch))) {
+					return sl_true;
+				}
+				if (ch == 't') {
+					if (readWordAndEquals(StringView::literal("trailer"))) {
+						if (readDictionary(table.trailer)) {
+							return sl_true;
+						}
+					}
+				} else {
+					return sl_true;
+				}
+			}
+		} else {
+			// cross reference stream
+			sl_uint64 xrefId;
+			Variant varStream;
+			if (readObject(xrefId, varStream)) {
+				Ref<PdfStream> stream = PdfStream::from(varStream);
+				if (stream.isNotNull()) {
+					SLIB_STATIC_STRING(strType, "Type")
+					if (EqualsName(stream->properties.getValue(strType), StringView::literal("XRef"))) {
+						
+					}
+				}
+			}
+		}
 		return sl_false;
 	}
 
