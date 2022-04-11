@@ -484,11 +484,11 @@ namespace slib
 
 		void setUint64(sl_uint64 value) noexcept;
 
-		sl_bool isInteger() const noexcept;
+		sl_bool isIntegerType() const noexcept;
 
-		sl_bool isSignedInteger() const noexcept;
+		sl_bool isSignedIntegerType() const noexcept;
 
-		sl_bool isUnsignedInteger() const noexcept;
+		sl_bool isUnsignedIntegerType() const noexcept;
 
 		sl_bool isFloat() const noexcept;
 
@@ -514,7 +514,7 @@ namespace slib
 
 		sl_bool isNegativeInfinite() const noexcept;
 
-		sl_bool isNumber() const noexcept;
+		sl_bool isNumberType() const noexcept;
 
 
 		sl_bool isBoolean() const noexcept;

@@ -1014,7 +1014,7 @@ namespace slib
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() + other.getInt64();
 					}
 					if (other._type == VariantType::Float || other._type == VariantType::Double) {
@@ -1023,7 +1023,7 @@ namespace slib
 					break;
 				case VariantType::Float:
 				case VariantType::Double:
-					if (other.isNumber()) {
+					if (other.isNumberType()) {
 						return getDouble() + other.getDouble();
 					}
 					break;
@@ -1091,7 +1091,7 @@ namespace slib
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() - other.getInt64();
 					}
 					if (other._type == VariantType::Float || other._type == VariantType::Double) {
@@ -1100,7 +1100,7 @@ namespace slib
 					break;
 				case VariantType::Float:
 				case VariantType::Double:
-					if (other.isNumber()) {
+					if (other.isNumberType()) {
 						return getDouble() - other.getDouble();
 					}
 					break;
@@ -1146,7 +1146,7 @@ namespace slib
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() * other.getInt64();
 					}
 					if (other._type == VariantType::Float || other._type == VariantType::Double) {
@@ -1155,7 +1155,7 @@ namespace slib
 					break;
 				case VariantType::Float:
 				case VariantType::Double:
-					if (other.isNumber()) {
+					if (other.isNumberType()) {
 						return getDouble() * other.getDouble();
 					}
 					break;
@@ -1194,7 +1194,7 @@ namespace slib
 			}
 			switch (_type) {
 				case VariantType::Null:
-					if (other.isNumber()) {
+					if (other.isNumberType()) {
 						return sl_null;
 					}
 					break;
@@ -1202,7 +1202,7 @@ namespace slib
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() / other.getInt64();
 					}
 					if (other._type == VariantType::Float || other._type == VariantType::Double) {
@@ -1211,7 +1211,7 @@ namespace slib
 					break;
 				case VariantType::Float:
 				case VariantType::Double:
-					if (other.isNumber()) {
+					if (other.isNumberType()) {
 						return getDouble() / other.getDouble();
 					}
 					break;
@@ -1248,7 +1248,7 @@ namespace slib
 			}
 			switch (_type) {
 				case VariantType::Null:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return 0;
 					}
 					break;
@@ -1256,7 +1256,7 @@ namespace slib
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() % other.getInt64();
 					}
 					break;
@@ -1435,7 +1435,7 @@ namespace slib
 					break;
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() | other.getInt64();
 					}
 					break;
@@ -1483,7 +1483,7 @@ namespace slib
 					break;
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() & other.getInt64();
 					}
 					break;
@@ -1531,7 +1531,7 @@ namespace slib
 					break;
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() ^ other.getInt64();
 					}
 					break;
@@ -1739,17 +1739,17 @@ namespace slib
 		REF_VAR(sl_uint64, _value) = value;
 	}
 
-	sl_bool Variant::isInteger() const noexcept
+	sl_bool Variant::isIntegerType() const noexcept
 	{
 		return _type == VariantType::Int32 || _type == VariantType::Uint32 || _type == VariantType::Int64 || _type == VariantType::Uint64;
 	}
 
-	sl_bool Variant::isSignedInteger() const noexcept
+	sl_bool Variant::isSignedIntegerType() const noexcept
 	{
 		return _type == VariantType::Int32 || _type == VariantType::Int64;
 	}
 
-	sl_bool Variant::isUnsignedInteger() const noexcept
+	sl_bool Variant::isUnsignedIntegerType() const noexcept
 	{
 		return _type == VariantType::Uint32 || _type == VariantType::Uint64;
 	}
@@ -1846,9 +1846,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::isNumber() const noexcept
+	sl_bool Variant::isNumberType() const noexcept
 	{
-		return isInteger() || _type == VariantType::Float || _type == VariantType::Double;
+		return isIntegerType() || _type == VariantType::Float || _type == VariantType::Double;
 	}
 
 	sl_bool Variant::isBoolean() const noexcept
@@ -3824,7 +3824,7 @@ namespace slib
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return ComparePrimitiveValues(getInt64(), other.getInt64());
 					}
 					if (other._type == VariantType::Float || other._type == VariantType::Double) {
@@ -3833,7 +3833,7 @@ namespace slib
 					break;
 				case VariantType::Float:
 				case VariantType::Double:
-					if (other.isNumber()) {
+					if (other.isNumberType()) {
 						return ComparePrimitiveValues(getDouble(), other.getDouble());
 					}
 					break;
@@ -3972,7 +3972,7 @@ namespace slib
 				case VariantType::Uint32:
 				case VariantType::Int64:
 				case VariantType::Uint64:
-					if (other.isInteger()) {
+					if (other.isIntegerType()) {
 						return getInt64() == other.getInt64();
 					}
 					if (other._type == VariantType::Float || other._type == VariantType::Double) {
@@ -3981,7 +3981,7 @@ namespace slib
 					break;
 				case VariantType::Float:
 				case VariantType::Double:
-					if (other.isNumber()) {
+					if (other.isNumberType()) {
 						return getDouble() == other.getDouble();
 					}
 					break;

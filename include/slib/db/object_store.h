@@ -132,11 +132,11 @@ namespace slib
 
 		sl_uint64 getUint64(sl_uint64 def = 0) const noexcept;
 
-		sl_bool isInteger() const noexcept;
+		sl_bool isIntegerType() const noexcept;
 
-		sl_bool isSignedInteger() const noexcept;
+		sl_bool isSignedIntegerType() const noexcept;
 
-		sl_bool isUnsignedInteger() const noexcept;
+		sl_bool isUnsignedIntegerType() const noexcept;
 
 		sl_bool isFloat() const noexcept;
 
@@ -150,7 +150,7 @@ namespace slib
 
 		double getDouble(double def = 0) const noexcept;
 
-		sl_bool isNumber() const noexcept;
+		sl_bool isNumberType() const noexcept;
 
 
 		sl_bool isBoolean() const noexcept;

@@ -805,19 +805,19 @@ namespace slib
 		return value.getUint64(def);
 	}
 
-	sl_bool ObjectStore::isInteger() const noexcept
+	sl_bool ObjectStore::isIntegerType() const noexcept
 	{
-		return value.isInteger();
+		return value.isIntegerType();
 	}
 
-	sl_bool ObjectStore::isSignedInteger() const noexcept
+	sl_bool ObjectStore::isSignedIntegerType() const noexcept
 	{
-		return value.isSignedInteger();
+		return value.isSignedIntegerType();
 	}
 
-	sl_bool ObjectStore::isUnsignedInteger() const noexcept
+	sl_bool ObjectStore::isUnsignedIntegerType() const noexcept
 	{
-		return value.isUnsignedInteger();
+		return value.isUnsignedIntegerType();
 	}
 
 	sl_bool ObjectStore::isFloat() const noexcept
@@ -850,9 +850,9 @@ namespace slib
 		return value.getDouble(def);
 	}
 
-	sl_bool ObjectStore::isNumber() const noexcept
+	sl_bool ObjectStore::isNumberType() const noexcept
 	{
-		return value.isNumber();
+		return value.isNumberType();
 	}
 
 	sl_bool ObjectStore::isBoolean() const noexcept

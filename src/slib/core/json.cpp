@@ -65,7 +65,7 @@ namespace slib
 					return nTime;
 				}
 				nTimeValue = nTimeValue.getItem(strNumberLong);
-				if (nTimeValue.isInteger()) {
+				if (nTimeValue.isIntegerType()) {
 					return Time::withMilliseconds(nTimeValue.getInt64());
 				}
 				SLIB_STATIC_STRING(strUndefined, "$undefined")

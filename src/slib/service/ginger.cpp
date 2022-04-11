@@ -771,7 +771,7 @@ namespace slib
 									}
 									m_current++;
 									if (!flagSkip) {
-										if (index.isInteger()) {
+										if (index.isIntegerType()) {
 											var = var.getElement(index.getUint64());
 										} else if (index.isStringType()) {
 											var = var.getItem(index.getString());

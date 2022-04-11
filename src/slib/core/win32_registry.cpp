@@ -330,7 +330,7 @@ namespace slib
 				if (ERROR_SUCCESS == RegSetValueExW(hKey, (LPCWSTR)(name.getData()), NULL, REG_QWORD, reinterpret_cast<BYTE*>(&n), 8)) {
 					flagSuccess = sl_true;
 				}
-			} else if (value.isInteger()) {
+			} else if (value.isIntegerType()) {
 				sl_uint32 n = value.getUint32();
 				if (ERROR_SUCCESS == RegSetValueExW(hKey, (LPCWSTR)(name.getData()), NULL, REG_DWORD, reinterpret_cast<BYTE*>(&n), 4)) {
 					flagSuccess = sl_true;
