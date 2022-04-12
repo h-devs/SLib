@@ -26,8 +26,8 @@
 #include "definition.h"
 
 #include "../core/string.h"
+#include "../core/memory.h"
 #include "../core/hash_map.h"
-#include "../core/buffered_seekable_reader.h"
 
 namespace slib
 {
@@ -84,6 +84,9 @@ namespace slib
 	public:
 		static Ref<PdfStream> from(const Variant& var);
 
+	public:
+		Memory getOriginalContent();
+
 	};
 
 	class SLIB_EXPORT PdfDocument : public Object
@@ -91,11 +94,11 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
+		sl_uint32 fileSize;
+
 		sl_uint8 majorVersion;
 		sl_uint8 minorVersion;
-		sl_uint32 fileSize;
 		HashMap<String, Variant> lastTrailer;
-		HashMap<sl_uint64, sl_uint32> objectOffsets;
 
 	public:
 		PdfDocument();
@@ -106,39 +109,12 @@ namespace slib
 		sl_bool openFile(const StringParam& filePath);
 
 	public:
-		sl_bool setReader(const Ptr<IReader, ISeekable>& reader);
+		sl_bool isEncrypted();
 
-		sl_bool readHeader();
-
-	public:
-		static sl_bool isEncrypted(const Ptr<IReader, ISeekable>& reader);
 		static sl_bool isEncryptedFile(const StringParam& path);
 
 	private:
-		sl_bool readWord(String& outWord);
-		sl_bool readWordAndEquals(const StringView& word);
-		sl_bool skipWhitespaces();
-
-		sl_bool readObject(sl_uint64& outId, Variant& outValue);
-		sl_bool getObject(sl_uint64 _id, Variant& _out);
-		sl_bool readValue(Variant& _out);
-		sl_bool readDictionary(HashMap<String, Variant>& outMap);
-		sl_bool readArray(List<Variant>& outList);
-		sl_bool readName(String& outName);
-		sl_bool readUint(sl_uint32& outValue, sl_bool flagAllowEmpty = sl_false);
-		sl_bool readInt(sl_int32& outValue);
-		sl_bool readFraction(double& outValue, sl_bool flagAllowEmpty = sl_false);
-		sl_bool readString(String& outValue);
-		sl_bool readHexString(String& outValue);
-		sl_bool readReference(sl_uint32& objectNumber, sl_uint32& version);
-		sl_bool readStreamContent(sl_uint32 length, Memory& _out);
-		sl_bool getStreamLength(HashMap<String, Variant>& properties, sl_uint32& _out);
-		sl_bool readCrossReferenceEntry(PdfCrossReferenceEntry& entry);
-		sl_bool readCrossReferenceSection(PdfCrossReferenceSection& section);
-		sl_bool readCrossReferenceTable(PdfCrossReferenceTable& table);
-		
-	private:
-		BufferedSeekableReader m_reader;
+		Ref<Referable> m_parser;
 
 	};
 
