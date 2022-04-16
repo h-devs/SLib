@@ -60,12 +60,12 @@ namespace slib
 			class VariantExHelper
 			{
 			public:
-				constexpr static T&& forward(typename RemoveReference<T>::Type& v) noexcept
+				constexpr static T&& forward(typename RemoveReference<T>::Type& v)
 				{
 					return static_cast<T&&>(v);
 				}
 
-				constexpr static T&& forward(typename RemoveReference<T>::Type&& v) noexcept
+				constexpr static T&& forward(typename RemoveReference<T>::Type&& v)
 				{
 					static_assert(!(IsLValue<T>()), "Can't forward an rvalue as an lvalue.");
 					return static_cast<T&&>(v);
@@ -413,12 +413,12 @@ namespace slib
 		}
 
 	public:
-		constexpr sl_uint8 getType() const
+		SLIB_CONSTEXPR sl_uint8 getType() const
 		{
 			return _type;
 		}
 
-		constexpr sl_uint8 getTag() const
+		SLIB_CONSTEXPR sl_uint8 getTag() const
 		{
 			return _tag;
 		}
@@ -430,24 +430,24 @@ namespace slib
 
 		void setUndefined() noexcept;
 
-		constexpr sl_bool isUndefined() const
+		SLIB_CONSTEXPR sl_bool isUndefined() const
 		{
 			return _type == VariantType::Null && !_value;
 		}
 
-		constexpr sl_bool isNotUndefined() const
+		SLIB_CONSTEXPR sl_bool isNotUndefined() const
 		{
 			return _type != VariantType::Null || _value != 0;
 		}
 
 		void setNull() noexcept;
 
-		constexpr sl_bool isNull() const
+		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return _type == VariantType::Null;
 		}
 
-		constexpr sl_bool isNotNull() const
+		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return _type != VariantType::Null;
 		}
