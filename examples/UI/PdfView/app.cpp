@@ -22,4 +22,13 @@ void PdfViewerApp::onStart()
 	setMainWindow(window);
 
 	pdf->openFile("D:\\Temp\\1.pdf");
+
+	auto doc = pdf->getDocument();
+	if (doc) {
+		Log("Test", "%s", doc->getPagesCount());
+		Memory content;
+		Log("Test", "%s", PdfObject(doc->getPage(2, &content)).getVariant());
+		Log("Test", "%s", PdfObject(doc->encrypt).getVariant());
+		Log("Test", "%s", String::fromMemory(content));
+	}
 }

@@ -23,7 +23,6 @@
 #include "slib/ui/pdf_view.h"
 
 #include "slib/doc/pdf.h"
-#include "slib/core/dispatch_loop.h"
 
 namespace slib
 {
@@ -36,29 +35,28 @@ namespace slib
 
 	PdfView::~PdfView()
 	{
-		if (m_loop.isNotNull()) {
-			m_loop->release();
-		}
 	}
 
-	void PdfView::openFile(const StringParam& _filePath)
+	sl_bool PdfView::openFile(const StringParam& _filePath)
 	{
 		String filePath = _filePath.toString();
 		ObjectLocker lock(this);
 		if (m_filePath == filePath) {
-			return;
+			return sl_true;
 		}
 		close();
-		if (m_loop.isNull()) {
-			m_loop = DispatchLoop::create();
-			if (m_loop.isNull()) {
-				return;
+		m_filePath = filePath;
+		if (filePath.isEmpty()) {
+			return sl_true;
+		}
+		Ref<PdfDocument> doc = new PdfDocument;
+		if (doc.isNotNull()) {
+			if (doc->openFile(filePath)) {
+				m_doc = doc;
+				return sl_true;
 			}
 		}
-		m_filePath = filePath;
-		if (filePath.isNotEmpty()) {
-			m_loop->dispatch(SLIB_BIND_WEAKREF(void(), this, _openFile, filePath));
-		}
+		return sl_false;
 	}
 
 	void PdfView::close()
@@ -68,22 +66,13 @@ namespace slib
 		m_doc.setNull();
 	}
 
-	void PdfView::onDraw(Canvas* canvas)
+	Ref<PdfDocument> PdfView::getDocument()
 	{
+		return m_doc;
 	}
 
-	void PdfView::_openFile(const String& filePath)
+	void PdfView::onDraw(Canvas* canvas)
 	{
-		Ref<PdfDocument> doc = new PdfDocument;
-		if (doc.isNull()) {
-			close();
-			return;
-		}
-		if (!(doc->openFile(filePath))) {
-			close();
-			return;
-		}
-		m_doc = doc;
 	}
 
 }

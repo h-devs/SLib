@@ -25,46 +25,189 @@
 
 #include "definition.h"
 
-#include "../core/string.h"
-#include "../core/memory.h"
-#include "../core/hash_map.h"
+#include "../core/variant.h"
 
 namespace slib
 {
 
-	class Variant;
-
-	struct SLIB_EXPORT PdfCrossReferenceEntry
+	enum class PdfObjectType
 	{
-		sl_uint32 offset; // 10 digits
-		sl_uint32 generation; // 5 digits. 65535 means the head of the linked list of free objects. First entry (object number 0) is always free and has a generation number of 65535
-		sl_bool flagFree; // free(f) or in-use(n)
+		Undefined = 0,
+		Null = 1,
+		Boolean = 2,
+		Uint = 3,
+		Int = 4,
+		Float = 5,
+		String = 6,
+		Name = 7,
+		Array = 8,
+		Dictionary = 9,
+		Stream = 10,
+		Reference = 11
 	};
 
-	class SLIB_EXPORT PdfCrossReferenceSection
+	class PdfObject;
+	class PdfStream;
+
+	typedef HashMap<String, PdfObject> PdfDictionary;
+	typedef List<PdfObject> PdfArray;
+
+	class SLIB_EXPORT PdfReference
 	{
 	public:
-		sl_uint32 firstObjectNumber;
-		List<PdfCrossReferenceEntry> entries;
+		sl_uint32 objectNumber;
+		sl_uint32 generation;
 
 	public:
-		PdfCrossReferenceSection();
+		PdfReference() noexcept {}
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCrossReferenceSection)
+		SLIB_CONSTEXPR PdfReference(sl_uint32 _num): objectNumber(_num), generation(0) {}
+
+		SLIB_CONSTEXPR PdfReference(sl_uint32 _num, sl_uint32 _gen): objectNumber(_num), generation(_gen) {}
+
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(PdfReference)
+
+	public:
+		SLIB_CONSTEXPR sl_bool operator==(const PdfReference& other) const
+		{
+			return objectNumber == other.objectNumber && generation == other.generation;
+		}
 
 	};
 
-	class SLIB_EXPORT PdfCrossReferenceTable
+	class SLIB_EXPORT PdfName
 	{
 	public:
-		List<PdfCrossReferenceSection> sections;
-		HashMap<sl_uint64, sl_uint32> objectOffsets;
-		HashMap<String, Variant> trailer;
+		SLIB_CONSTEXPR PdfName() {}
+
+		PdfName(const String& _name) noexcept: value(_name) {}
+		PdfName(String&& _name) noexcept: value(Move(_name)) {}
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfName)
 
 	public:
-		PdfCrossReferenceTable();
+		SLIB_CONSTEXPR sl_bool isNull() const
+		{
+			return value.isNull();
+		}
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCrossReferenceTable)
+		SLIB_CONSTEXPR sl_bool isNotNull() const
+		{
+			return value.isNotNull();
+		}
+
+	public:
+		String value;
+
+	};
+
+	class SLIB_EXPORT PdfObject
+	{
+	public:
+		PdfObject() noexcept {}
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfObject)
+
+	public:
+		PdfObject(sl_null_t) noexcept: m_var(sl_null, (sl_uint8)(PdfObjectType::Null)) {}
+
+		PdfObject(sl_bool v) noexcept;
+
+		PdfObject(sl_int32 v) noexcept;
+		PdfObject(sl_uint32 v) noexcept;
+		PdfObject(float v) noexcept;
+
+		PdfObject(const String& v) noexcept;
+		PdfObject(String&& v) noexcept;
+
+		PdfObject(const PdfArray& v) noexcept;
+		PdfObject(PdfArray&& v) noexcept;
+
+		PdfObject(const PdfDictionary& v) noexcept;
+		PdfObject(PdfDictionary&& v) noexcept;
+
+		PdfObject(const Ref<PdfStream>& v) noexcept;
+		PdfObject(Ref<PdfStream>&& v) noexcept;
+
+		PdfObject(const PdfName& v) noexcept;
+		PdfObject(PdfName&& v) noexcept;
+
+		PdfObject(const PdfReference& v) noexcept;
+
+	public:
+		const Variant& getVariant() const noexcept
+		{
+			return m_var;
+		}
+
+		Variant& getVariant() noexcept
+		{
+			return m_var;
+		}
+
+		SLIB_CONSTEXPR PdfObjectType getType() const
+		{
+			return (PdfObjectType)(m_var.getTag());
+		}
+
+		SLIB_CONSTEXPR sl_bool isUndefined() const
+		{
+			return m_var.isUndefined();
+		}
+
+		SLIB_CONSTEXPR sl_bool isNotUndefined() const
+		{
+			return m_var.isNotUndefined();
+		}
+
+		SLIB_CONSTEXPR sl_bool isNull() const
+		{
+			return m_var.isNull();
+		}
+
+		SLIB_CONSTEXPR sl_bool isNotNull() const
+		{
+			return m_var.isNotNull();
+		}
+
+		sl_bool getBoolean() const noexcept;
+
+		sl_bool getBoolean(sl_bool& _out) const noexcept;
+
+		sl_uint32 getUint() const noexcept;
+
+		sl_bool getUint(sl_uint32& _out) const noexcept;
+
+		sl_int32 getInt() const noexcept;
+
+		sl_bool getInt(sl_int32& _out) const noexcept;
+
+		float getFloat() const noexcept;
+
+		sl_bool getFloat(float& _out) const noexcept;
+
+		sl_bool isNumeric() const noexcept;
+
+		const String& getString() const noexcept;
+
+		const String& getName() const noexcept;
+
+		sl_bool equalsName(const StringView& name) const noexcept;
+
+		const PdfArray& getArray() const noexcept;
+
+		const PdfDictionary& getDictionary() const noexcept;
+
+		const Ref<PdfStream>& getStream() const noexcept;
+
+		Memory getStreamContent() const noexcept;
+
+		PdfReference getReference() const noexcept;
+
+		sl_bool getReference(PdfReference& _out) const noexcept;
+
+	private:
+		Variant m_var;
 
 	};
 
@@ -73,19 +216,18 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		HashMap<String, Variant> properties;
+		PdfDictionary properties;
 		Memory content;
 
 	public:
-		PdfStream();
+		PdfStream() noexcept;
 
 		~PdfStream();
 
 	public:
-		static Ref<PdfStream> from(const Variant& var);
+		PdfObject getProperty(const String& name) noexcept;
 
-	public:
-		Memory getOriginalContent();
+		Memory getOriginalContent() noexcept;
 
 	};
 
@@ -98,7 +240,9 @@ namespace slib
 
 		sl_uint8 majorVersion;
 		sl_uint8 minorVersion;
-		HashMap<String, Variant> lastTrailer;
+		PdfDictionary lastTrailer;
+		PdfDictionary encrypt;
+		PdfDictionary catalog;
 
 	public:
 		PdfDocument();
@@ -108,11 +252,18 @@ namespace slib
 	public:
 		sl_bool openFile(const StringParam& filePath);
 
-	public:
+		PdfObject getObject(const PdfReference& ref);
+
+		sl_uint32 getPagesCount();
+
+		PdfDictionary getPage(sl_uint32 index, Memory* pOutContent = sl_null);
+
 		sl_bool isEncrypted();
 
 		static sl_bool isEncryptedFile(const StringParam& path);
 
+		sl_bool setUserPassword(const StringView& password);
+		
 	private:
 		Ref<Referable> m_parser;
 

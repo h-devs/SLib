@@ -32,7 +32,6 @@ namespace slib
 {
 
 	class PdfDocument;
-	class DispatchLoop;
 
 	class SLIB_EXPORT PdfView : public View
 	{
@@ -44,20 +43,18 @@ namespace slib
 		~PdfView();
 
 	public:
-		void openFile(const StringParam& filePath);
+		sl_bool openFile(const StringParam& filePath);
 
 		void close();
+
+		Ref<PdfDocument> getDocument();
 		
 	protected:
 		void onDraw(Canvas* canvas) override;
 
-	private:
-		void _openFile(const String& filePath);
-
 	public:
 		String m_filePath;
 		AtomicRef<PdfDocument> m_doc;
-		Ref<DispatchLoop> m_loop;
 
 	};
 
