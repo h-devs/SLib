@@ -1650,6 +1650,7 @@ namespace slib
 				{
 					if (revision >= 3) {
 						MD5 hash;
+						hash.start();
 						hash.update(g_encryptionPad, 32);
 						if (fileId.isNotEmpty()) {
 							hash.update(fileId.getData(), fileId.getLength());
@@ -1960,12 +1961,9 @@ namespace slib
 							if (DocumentHelper::readDocument(parser.get(), *this)) {
 								m_parser = Move(parser);
 								if (isEncrypted()) {
-									if (setUserPassword(sl_null)) {
-										return sl_true;
-									}
-								} else {
-									return sl_true;
+									setUserPassword(sl_null);
 								}
+								return sl_true;
 							}
 						}
 					}
@@ -2005,6 +2003,19 @@ namespace slib
 	sl_bool PdfDocument::isEncrypted()
 	{
 		return encrypt.isNotNull();
+	}
+
+	sl_bool PdfDocument::isAuthenticated()
+	{
+		if (isEncrypted()) {
+			BufferedParser* parser = GetParser(m_parser);
+			if (parser) {
+				return parser->context->flagEncrypt;
+			}
+			return sl_false;
+		} else {
+			return sl_true;
+		}
 	}
 
 	sl_bool PdfDocument::isEncryptedFile(const StringParam& path)

@@ -262,6 +262,8 @@ namespace slib
 
 		static sl_bool isEncryptedFile(const StringParam& path);
 
+		sl_bool isAuthenticated();
+
 		sl_bool setUserPassword(const StringView& password);
 		
 	private:
