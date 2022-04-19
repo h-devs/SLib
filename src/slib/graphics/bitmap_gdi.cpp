@@ -311,7 +311,10 @@ namespace slib
 					if (g) {
 						sl_uint32 w = getBitmapWidth();
 						sl_uint32 h = getBitmapHeight();
-						return GraphicsPlatform::createCanvas(CanvasType::Bitmap, g, w, h, sl_true, this);
+						Ref<BitmapImpl> thiz = this;
+						return GraphicsPlatform::createCanvas(CanvasType::Bitmap, g, w, h, [g, thiz]() {
+							delete g;
+						});
 					}
 					return sl_null;
 				}

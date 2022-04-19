@@ -113,11 +113,11 @@ namespace slib
 			class CanvasImpl : public CanvasExt
 			{
 				SLIB_DECLARE_OBJECT
+
 			public:
 				Gdiplus::Graphics* m_graphics;
 				LinkedStack<Gdiplus::GraphicsState> m_stackState;
-				sl_bool m_flagFreeOnRelease;
-				Ref<Referable> m_ref;
+				Function<void()> m_onFreeCanvas;
 
 			public:
 				CanvasImpl()
@@ -126,31 +126,24 @@ namespace slib
 
 				~CanvasImpl()
 				{
-					if (m_flagFreeOnRelease) {
-						delete m_graphics;
-					}
+					m_onFreeCanvas();
 				}
 
 			public:
-				static Ref<CanvasImpl> create(CanvasType type, Gdiplus::Graphics* graphics, sl_real width, sl_real height, sl_bool flagFreeOnRelease, Referable* ref)
+				static Ref<CanvasImpl> create(CanvasType type, Gdiplus::Graphics* graphics, sl_real width, sl_real height, const Function<void()>& onFreeCanvas)
 				{
-					if (graphics) {
-						Ref<CanvasImpl> ret = new CanvasImpl();
-						if (ret.isNotNull()) {
-							ret->m_graphics = graphics;
-							ret->m_flagFreeOnRelease = flagFreeOnRelease;
-							ret->m_ref = ref;
+					Ref<CanvasImpl> ret = new CanvasImpl();
+					if (ret.isNotNull()) {
+						ret->m_graphics = graphics;
+						ret->m_onFreeCanvas = onFreeCanvas;
 
-							ret->setType(type);
-							ret->setSize(Size(width, height));
+						ret->setType(type);
+						ret->setSize(Size(width, height));
 
-							ret->_setAntiAlias(sl_true);
-							return ret;
-						}
-						if (flagFreeOnRelease) {
-							delete graphics;
-						}
+						ret->_setAntiAlias(sl_true);
+						return ret;
 					}
+					onFreeCanvas();
 					return sl_null;
 				}
 
@@ -443,12 +436,12 @@ namespace slib
 
 	using namespace priv::gdi;
 
-	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, Gdiplus::Graphics* graphics, sl_uint32 width, sl_uint32 height, sl_bool flagFreeOnRelease, Referable* ref)
+	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, Gdiplus::Graphics* graphics, sl_uint32 width, sl_uint32 height, const Function<void()>& onFreeCanvas)
 	{
 		if (!graphics) {
 			return sl_null;
 		}
-		return Ref<Canvas>::from(CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height, flagFreeOnRelease, ref));
+		return Ref<Canvas>::from(CanvasImpl::create(type, graphics, (sl_real)width, (sl_real)height, onFreeCanvas));
 	}
 
 	Gdiplus::Graphics* GraphicsPlatform::getCanvasHandle(Canvas* _canvas)

@@ -30,6 +30,8 @@
 #include "../bitmap.h"
 
 #include "../../core/platform.h"
+#include "../../core/function.h"
+
 #include "../dl/win32/gdiplus.h"
 
 namespace slib
@@ -48,7 +50,7 @@ namespace slib
 		static Gdiplus::Font* getGdiplusFont(Font* font);
 		static HFONT getGdiFont(Font* font);
 
-		static Ref<Canvas> createCanvas(CanvasType type, Gdiplus::Graphics* graphics, sl_uint32 width, sl_uint32 height, sl_bool flagFreeOnRelease = sl_true, Referable* ref = sl_null);
+		static Ref<Canvas> createCanvas(CanvasType type, Gdiplus::Graphics* graphics, sl_uint32 width, sl_uint32 height, const Function<void()>& onFreeCanvas);
 		static Gdiplus::Graphics* getCanvasHandle(Canvas* canvas);
 		static void drawImage(Canvas* canvas, const Rectangle& rectDst, Gdiplus::Image* image, const Rectangle& rectSrc, const DrawParam& param);
 

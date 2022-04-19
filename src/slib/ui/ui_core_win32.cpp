@@ -372,8 +372,12 @@ namespace slib
 			Gdiplus::Graphics* graphics = new Gdiplus::Graphics(hDC);
 			if (graphics) {
 				UISize size = getScreenSize();
-				return GraphicsPlatform::createCanvas(CanvasType::View, graphics, size.x, size.y);
+				return GraphicsPlatform::createCanvas(CanvasType::View, graphics, size.x, size.y, [hDC, graphics]() {
+					delete graphics;
+					ReleaseDC(NULL, hDC);
+				});
 			}
+			ReleaseDC(NULL, hDC);
 		}
 		return sl_null;
 	}

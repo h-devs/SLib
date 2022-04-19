@@ -1102,7 +1102,7 @@ namespace slib
 			RECT rectClient;
 			GetClientRect(hWnd, &rectClient);
 			Gdiplus::Graphics graphics(hDC);
-			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rectClient.right, rectClient.bottom, sl_false);
+			Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, &graphics, rectClient.right, rectClient.bottom, sl_null);
 			if (canvas.isNotNull()) {
 				canvas->setAntiAlias(sl_false);
 				canvas->setInvalidatedRect(Rectangle((sl_real)(ps.rcPaint.left), (sl_real)(ps.rcPaint.top), (sl_real)(ps.rcPaint.right), (sl_real)(ps.rcPaint.bottom)));
@@ -1137,7 +1137,7 @@ namespace slib
 			return;
 		}
 
-		Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, m_layered->graphicsCache, width, height, sl_false);
+		Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, m_layered->graphicsCache, width, height, sl_null);
 		if (canvas.isNotNull()) {
 			canvas->setAntiAlias(sl_false);
 			m_layered->graphicsCache->Clear(Gdiplus::Color(0));
