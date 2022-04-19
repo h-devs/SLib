@@ -346,6 +346,13 @@ namespace slib
 			return ppi;
 		}
 	}
+
+#if !defined(SLIB_PLATFORM_IS_WIN32)
+	Ref<Canvas> UI::getScreenCanvas()
+	{
+		return sl_null;
+	}
+#endif
 	
 	sl_real UI::pixelToInch(sl_real px)
 	{

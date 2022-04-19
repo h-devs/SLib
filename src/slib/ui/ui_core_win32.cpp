@@ -365,6 +365,19 @@ namespace slib
 		return ui->m_screenPrimary;
 	}
 
+	Ref<Canvas> UI::getScreenCanvas()
+	{
+		HDC hDC = GetDC(NULL);
+		if (hDC) {
+			Gdiplus::Graphics* graphics = new Gdiplus::Graphics(hDC);
+			if (graphics) {
+				UISize size = getScreenSize();
+				return GraphicsPlatform::createCanvas(CanvasType::View, graphics, size.x, size.y);
+			}
+		}
+		return sl_null;
+	}
+
 	sl_bool UI::isUiThread()
 	{
 		if (g_bSetThreadMain) {

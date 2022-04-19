@@ -34,6 +34,7 @@ namespace slib
 
 	class Window;
 	class Screen;
+	class Canvas;
 	class Cursor;
 	class Menu;
 	class UIApp;
@@ -84,6 +85,8 @@ namespace slib
 		static sl_ui_len getScreenWidth();
 		
 		static sl_ui_len getScreenHeight();
+
+		static Ref<Canvas> getScreenCanvas();
 		
 		
 		static double getScreenPPI();
