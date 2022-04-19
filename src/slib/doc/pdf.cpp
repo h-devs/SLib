@@ -395,6 +395,15 @@ namespace slib
 			public:
 				Ref<Context> context;
 
+				using BASE::readChar;
+				using BASE::peekChar;
+				using BASE::read;
+				using BASE::getPosition;
+				using BASE::setPosition;
+				using BASE::movePosition;
+				using BASE::readBuffer;
+				using BASE::findBackward;
+
 			public:
 				sl_bool getReference(const PdfReference& ref, CrossReferenceEntry& entry)
 				{
@@ -1337,7 +1346,7 @@ namespace slib
 											Memory content = stream->getOriginalContent();
 											if (content.getSize() >= sizeEntry * nEntries) {
 												sl_uint8* p = (sl_uint8*)(content.getData());
-												ListElements< Pair<sl_uint32, sl_uint32> > sectionRanges(&listSectionRanges);
+												ListElements< Pair<sl_uint32, sl_uint32> > sectionRanges(listSectionRanges);
 												for (sl_size iSection = 0; iSection < sectionRanges.count; iSection++) {
 													Pair<sl_uint32, sl_uint32>& range = sectionRanges[iSection];
 													for (sl_uint32 i = 0; i < range.second; i++) {
