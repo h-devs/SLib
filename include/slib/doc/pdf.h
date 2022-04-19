@@ -48,6 +48,8 @@ namespace slib
 
 	class PdfObject;
 	class PdfStream;
+	class PdfPage;
+	class PdfDocument;
 
 	typedef HashMap<String, PdfObject> PdfDictionary;
 	typedef List<PdfObject> PdfArray;
@@ -231,6 +233,40 @@ namespace slib
 
 	};
 
+	class PdfPageTreeItem : public Referable
+	{
+	public:
+		WeakRef<PdfPageTreeItem> parent;
+		PdfDictionary attributes;
+		sl_bool flagPage;
+
+	public:
+		PdfPageTreeItem() noexcept;
+
+		~PdfPageTreeItem();
+
+	public:
+		PdfObject getAttribute(const String& name) noexcept;
+
+	};
+
+	class SLIB_EXPORT PdfPage : public PdfPageTreeItem
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		WeakRef<PdfDocument> document;
+
+	public:
+		PdfPage() noexcept;
+
+		~PdfPage();
+
+	public:
+		Memory getContent() noexcept;
+
+	};
+
 	class SLIB_EXPORT PdfDocument : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -256,7 +292,7 @@ namespace slib
 
 		sl_uint32 getPagesCount();
 
-		PdfDictionary getPage(sl_uint32 index, Memory* pOutContent = sl_null);
+		Ref<PdfPage> getPage(sl_uint32 index);
 
 		sl_bool isEncrypted();
 
@@ -268,6 +304,8 @@ namespace slib
 		
 	private:
 		Ref<Referable> m_parser;
+
+		friend class PdfPage;
 
 	};
 

@@ -193,26 +193,21 @@ namespace slib
 
 			};
 
-			class PageTree
+			class PageTreeParent : public PdfPageTreeItem
 			{
 			public:
-				PdfDictionary properties;
-				List<PageTree> kids;
+				List< Ref<PdfPageTreeItem> > kids;
 				sl_bool flagKids = sl_false;
 				sl_uint32 count = 0;
 				sl_bool flagCount = sl_false;
-				sl_bool flagPage = sl_false;
 
 			public:
 				sl_uint32 getPagesCount()
 				{
-					if (flagPage) {
-						return 1;
-					}
 					if (flagCount) {
 						return count;
 					}
-					count = properties.getValue_NoLock(g_strCount).getUint();
+					count = attributes.getValue_NoLock(g_strCount).getUint();
 					flagCount = sl_true;
 					return count;
 				}
@@ -225,7 +220,7 @@ namespace slib
 				CHashMap<sl_uint64, CrossReferenceEntry> references;
 				ExpiringMap<sl_uint64, PdfObject> objects;
 				ExpiringMap< sl_uint64, Ref<ObjectStream> > objectStreams;
-				PageTree pageTree;
+				Ref<PageTreeParent> pageTree;
 
 				sl_bool flagEncrypt = sl_false;
 				sl_uint8 encryptionKey[16];
@@ -1455,29 +1450,81 @@ namespace slib
 								return sl_false;
 							}
 							doc.encrypt = parser->getObject(doc.lastTrailer.getValue_NoLock(g_strEncrypt)).getDictionary();
-							PdfDictionary pageTree = parser->getObject(doc.catalog.getValue_NoLock(g_strPages)).getDictionary();
-							if (pageTree.isNull()) {
-								return sl_false;
+							// loading page tree
+							{
+								PdfDictionary attrs = parser->getObject(doc.catalog.getValue_NoLock(g_strPages)).getDictionary();
+								if (attrs.isNotNull()) {
+									Ref<PageTreeParent> pageTree = new PageTreeParent;
+									if (pageTree.isNotNull()) {
+										pageTree->attributes = Move(attrs);
+										parser->context->pageTree = Move(pageTree);
+									}
+								}
 							}
-							parser->context->pageTree.properties = pageTree;
 							return sl_true;
 						}
 					}
 					return sl_false;
 				}
 
-				static List<PageTree> buildPageTreeKids(BufferedParser* parser, const PdfDictionary& tree)
+				static List< Ref<PdfPageTreeItem> > buildPageTreeKids(BufferedParser* parser, const PdfDictionary& attributes)
 				{
-					List<PageTree> ret;
-					ListElements<PdfObject> kidIds(tree.getValue_NoLock(g_strKids).getArray());
+					List< Ref<PdfPageTreeItem> > ret;
+					ListElements<PdfObject> kidIds(attributes.getValue_NoLock(g_strKids).getArray());
 					for (sl_size i = 0; i < kidIds.count; i++) {
 						PdfDictionary props = parser->getObject(kidIds[i]).getDictionary();
-						PageTree item;
-						item.flagPage = props.getValue_NoLock(g_strType).equalsName(StringView::literal("Page"));
-						item.properties = Move(props);
-						ret.add_NoLock(Move(item));
+						Ref<PdfPageTreeItem> item;
+						if (props.getValue_NoLock(g_strType).equalsName(StringView::literal("Page"))) {
+							item = new PdfPage;
+						} else {
+							item = new PageTreeParent;
+						}
+						if (item.isNotNull()) {
+							item->attributes = Move(props);
+							ret.add_NoLock(Move(item));
+						}
 					}
 					return ret;
+				}
+
+				static Ref<PdfPage> getPage(BufferedParser* parser, PageTreeParent* parent, sl_uint32 index)
+				{
+					if (index >= parent->getPagesCount()) {
+						return sl_null;
+					}
+					if (!(parent->flagKids)) {
+						parent->kids = buildPageTreeKids(parser, parent->attributes);
+						parent->flagKids = sl_true;
+					}
+					sl_uint32 n = 0;
+					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
+					for (sl_size i = 0; i < kids.count; i++) {
+						Ref<PdfPageTreeItem>& item = kids[i];
+						if (item->flagPage) {
+							if (index == n) {
+								item->parent = parent;
+								return Ref<PdfPage>::from(item);
+							}
+							n++;
+						} else {
+							PageTreeParent* pItem = (PageTreeParent*)(item.get());
+							sl_uint32 m = pItem->getPagesCount();
+							if (index < n + m) {
+								return getPage(parser, pItem, index - n);
+							}
+							n += m;
+						}
+					}
+					return sl_null;
+				}
+
+				static Ref<PdfPage> getPage(BufferedParser* parser, sl_uint32 index)
+				{
+					PageTreeParent* tree = parser->context->pageTree.get();
+					if (tree) {
+						return getPage(parser, tree, index);
+					}
+					return sl_null;
 				}
 
 				static Memory getPageContent(BufferedParser* parser, const PdfObject& contents)
@@ -1493,40 +1540,6 @@ namespace slib
 					} else {
 						return parser->getObject(contents).getStreamContent();
 					}
-				}
-
-				static PdfDictionary getPage(BufferedParser* parser, PageTree& tree, sl_uint32 index, Memory* pOutContent)
-				{
-					if (index >= tree.getPagesCount()) {
-						return sl_null;
-					}
-					if (!(tree.flagKids)) {
-						tree.kids = buildPageTreeKids(parser, tree.properties);
-						tree.flagKids = sl_true;
-					}
-					sl_uint32 n = 0;
-					ListElements<PageTree> kids(tree.kids);
-					for (sl_size i = 0; i < kids.count; i++) {
-						PageTree& item = kids[i];
-						sl_uint32 m = item.getPagesCount();
-						if (index < n + m) {
-							if (item.flagPage) {
-								if (pOutContent) {
-									*pOutContent = getPageContent(parser, item.properties.getValue_NoLock(g_strContents));
-								}
-								return item.properties;
-							} else {
-								return getPage(parser, item, index - n, pOutContent);
-							}
-						}
-						n += m;
-					}
-					return sl_null;
-				}
-
-				static PdfDictionary getPage(BufferedParser* parser, sl_uint32 index, Memory* pOutContent)
-				{
-					return getPage(parser, parser->context->pageTree, index, pOutContent);
 				}
 
 				static Memory applyFilter(const Memory& input, const StringView& filter)
@@ -1934,6 +1947,52 @@ namespace slib
 	}
 
 
+	PdfPageTreeItem::PdfPageTreeItem() noexcept: flagPage(sl_false)
+	{
+	}
+
+	PdfPageTreeItem::~PdfPageTreeItem()
+	{
+	}
+
+	PdfObject PdfPageTreeItem::getAttribute(const String& name) noexcept
+	{
+		PdfObject ret = attributes.getValue_NoLock(name);
+		if (ret.isNotUndefined()) {
+			return ret;
+		}
+		Ref<PdfPageTreeItem> _parent(parent);
+		if (_parent.isNotNull()) {
+			return _parent->getAttribute(name);
+		}
+		return PdfObject();
+	}
+
+
+	SLIB_DEFINE_OBJECT(PdfPage, PdfPageTreeItem)
+
+	PdfPage::PdfPage() noexcept
+	{
+		flagPage = sl_true;
+	}
+
+	PdfPage::~PdfPage()
+	{
+	}
+
+	Memory PdfPage::getContent() noexcept
+	{
+		Ref<PdfDocument> _document(document);
+		if (_document.isNotNull()) {
+			BufferedParser* parser = GetParser(_document->m_parser);
+			if (parser) {
+				return DocumentHelper::getPageContent(parser, attributes.getValue_NoLock(g_strContents));
+			}
+		}
+		return sl_null;
+	}
+
+
 	SLIB_DEFINE_OBJECT(PdfDocument, Object)
 
 	PdfDocument::PdfDocument() : majorVersion(0), minorVersion(0), fileSize(0)
@@ -1995,16 +2054,23 @@ namespace slib
 	{
 		BufferedParser* parser = GetParser(m_parser);
 		if (parser) {
-			return parser->context->pageTree.getPagesCount();
+			PageTreeParent* tree = parser->context->pageTree.get();
+			if (tree) {
+				return tree->getPagesCount();
+			}
 		}
 		return 0;
 	}
 
-	PdfDictionary PdfDocument::getPage(sl_uint32 index, Memory* pOutContent)
+	Ref<PdfPage> PdfDocument::getPage(sl_uint32 index)
 	{
 		BufferedParser* parser = GetParser(m_parser);
 		if (parser) {
-			return DocumentHelper::getPage(parser, index, pOutContent);
+			Ref<PdfPage> page = DocumentHelper::getPage(parser, index);
+			if (page.isNotNull()) {
+				page->document = this;
+				return page;
+			}
 		}
 		return sl_null;
 	}
