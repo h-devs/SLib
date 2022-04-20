@@ -157,16 +157,13 @@ namespace slib
 
 			struct SLIB_EXPORT CrossReferenceEntry
 			{
-				CrossReferenceEntryType type;
 				union {
 					sl_uint32 nextFreeObject; // For free entry
 					sl_uint32 offset; // For normal entry: 10 digits in Cross-Reference-Table
 					sl_uint32 streamObject; // For compressed entry
 				};
-				union {
-					sl_uint32 generation; // For free, normal entry: 5 digits in Cross-Reference-Table
-					sl_uint32 objectIndex; // For compressed entry
-				};
+				CrossReferenceEntryType type : 2;
+				sl_uint32 generation : 30; // For free, normal entry: 5 digits in Cross-Reference-Table. For compressed entry, objectIndex
 			};
 
 			class ObjectStream : public Referable
@@ -217,7 +214,7 @@ namespace slib
 			class Context : public Referable
 			{
 			public:
-				CHashMap<sl_uint64, CrossReferenceEntry> references;
+				Array<CrossReferenceEntry> references;
 				ExpiringMap<sl_uint64, PdfObject> objects;
 				ExpiringMap< sl_uint64, Ref<ObjectStream> > objectStreams;
 				Ref<PageTreeParent> pageTree;
@@ -231,6 +228,22 @@ namespace slib
 				{
 					objects.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT);
 					objectStreams.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT_STREAM);
+				}
+
+			public:
+				sl_bool getReferenceEntry(sl_uint32 objectNumber, CrossReferenceEntry& entry)
+				{
+					return references.getAt(objectNumber, &entry);
+				}
+
+				void setReferenceEntry(sl_uint32 objectNumber, const CrossReferenceEntry& entry)
+				{
+					CrossReferenceEntry* pEntry = references.getPointerAt(objectNumber);
+					if (pEntry) {
+						if (pEntry->type == CrossReferenceEntryType::Free && entry.type != CrossReferenceEntryType::Free) {
+							*pEntry = entry;
+						}
+					}
 				}
 
 			};
@@ -293,9 +306,9 @@ namespace slib
 					return SLIB_IO_ERROR;
 				}
 
-				sl_reg findBackward(const StringView& str, sl_size sizeFind)
+				sl_reg findBackward(const StringView& str, sl_reg startFind, sl_size sizeFind)
 				{
-					return (sl_reg)(reader.findBackward(str.getData(), str.getLength(), -1, sizeFind));
+					return (sl_reg)(reader.findBackward(str.getData(), str.getLength(), startFind, sizeFind));
 				}
 
 			};
@@ -364,14 +377,25 @@ namespace slib
 					return SLIB_IO_ERROR;
 				}
 
-				sl_reg findBackward(const StringView& str, sl_size sizeFind)
+				sl_reg findBackward(const StringView& str, sl_reg _startFind, sl_size sizeFind)
 				{
-					sl_char8* p;
-					if (size > sizeFind) {
-						p = (sl_char8*)(Base::findMemoryBackward(buf + size - sizeFind, sizeFind, str.getData(), str.getLength()));
+					sl_char8* bufStart;
+					sl_size startFind;
+					if (_startFind >= 0) {
+						sl_size startFind = _startFind;
+						if (startFind > size) {
+							return -1;
+						}
 					} else {
-						p = (sl_char8*)(Base::findMemoryBackward(buf, size, str.getData(), str.getLength()));
+						startFind = size;
 					}
+					if (sizeFind >= startFind) {
+						bufStart = buf;
+						sizeFind = startFind;
+					} else {
+						bufStart = buf + startFind - sizeFind;
+					}
+					sl_char8* p = (sl_char8*)(Base::findMemoryBackward(bufStart, sizeFind, str.getData(), str.getLength()));
 					if (p) {
 						return p - buf;
 					} else {
@@ -400,11 +424,6 @@ namespace slib
 				using BASE::findBackward;
 
 			public:
-				sl_bool getReference(const PdfReference& ref, CrossReferenceEntry& entry)
-				{
-					return context->references.get(GetObjectId(ref), &entry);
-				}
-
 				sl_bool peekCharAndEquals(sl_char8 _ch)
 				{
 					sl_char8 ch;
@@ -419,6 +438,15 @@ namespace slib
 					sl_char8 ch;
 					if (readChar(ch)) {
 						return ch == _ch;
+					}
+					return sl_false;
+				}
+
+				sl_bool readCharAndIsWhitespace()
+				{
+					sl_char8 ch;
+					if (readChar(ch)) {
+						return IsWhitespace(ch);
 					}
 					return sl_false;
 				}
@@ -1087,24 +1115,28 @@ namespace slib
 						return ret;
 					}
 					CrossReferenceEntry entry;
-					if (getReference(ref, entry)) {
+					if (context->getReferenceEntry(ref.objectNumber, entry)) {
 						if (entry.type == CrossReferenceEntryType::Normal) {
-							if (setPosition(entry.offset)) {
-								PdfReference n;
-								ret = readObject(n);
-								if (ret.isNotUndefined() && ref == n) {
-									context->objects.put(_id, ret);
-									return ret;
+							if (entry.generation == ref.generation) {
+								if (setPosition(entry.offset)) {
+									PdfReference n;
+									ret = readObject(n);
+									if (ret.isNotUndefined() && ref == n) {
+										context->objects.put(_id, ret);
+										return ret;
+									}
 								}
 							}
 						} else if (entry.type == CrossReferenceEntryType::Compressed) {
-							Ref<ObjectStream> stream = getObjectStream(entry.streamObject);
-							if (stream.isNotNull()) {
-								sl_uint32 n;
-								ret = stream->getItem(entry.objectIndex, n);
-								if (ret.isNotUndefined() && _id == n) {
-									context->objects.put(_id, ret);
-									return ret;
+							if (!(ref.generation)) {
+								Ref<ObjectStream> stream = getObjectStream(entry.streamObject);
+								if (stream.isNotNull()) {
+									sl_uint32 n;
+									ret = stream->getItem(entry.generation, n);
+									if (ret.isNotUndefined() && _id == n) {
+										context->objects.put(_id, ret);
+										return ret;
+									}
 								}
 							}
 						}
@@ -1207,11 +1239,23 @@ namespace slib
 			class DocumentHelper
 			{
 			public:
+				static PdfDictionary readTrailer(BufferedParser* parser)
+				{
+					if (parser->readWordAndEquals(StringView::literal("trailer"))) {
+						if (parser->skipWhitespaces()) {
+							return parser->readDictionary();
+						}
+					}
+					return PdfDictionary();
+				}
+
 				static sl_bool readCrossReferenceEntry(BufferedParser* parser, CrossReferenceEntry& entry)
 				{
 					if (parser->readUint(entry.offset)) {
 						if (parser->skipWhitespaces()) {
-							if (parser->readUint(entry.generation)) {
+							sl_uint32 gen;
+							if (parser->readUint(gen)) {
+								entry.generation = gen;
 								if (parser->skipWhitespaces()) {
 									sl_char8 ch;
 									if (parser->readChar(ch)) {
@@ -1251,9 +1295,7 @@ namespace slib
 									if (!(readCrossReferenceEntry(parser, entry))) {
 										return sl_false;
 									}
-									if (entry.type == CrossReferenceEntryType::Normal) {
-										table.context->references.put_NoLock(MAKE_OBJECT_ID(firstObjectNumber + i, entry.generation), entry);
-									}
+									table.context->setReferenceEntry(firstObjectNumber + i, entry);
 								}
 								return sl_true;
 							}
@@ -1279,14 +1321,8 @@ namespace slib
 									break;
 								}
 								if (ch == 't') {
-									if (parser->readWordAndEquals(StringView::literal("trailer"))) {
-										if (!(parser->skipWhitespaces())) {
-											return sl_false;
-										}
-										table.trailer = parser->readDictionary();
-										return table.trailer.isNotNull();
-									}
-									break;
+									table.trailer = readTrailer(parser);
+									return table.trailer.isNotNull();
 								} else if (ch >= '0' && ch <= '9') {
 									if (!(readCrossReferenceSection(parser, table))) {
 										return sl_false;
@@ -1356,11 +1392,7 @@ namespace slib
 														p += sizeOffset;
 														entry.generation = ReadUint(p, sizeGeneration, 0);
 														p += sizeGeneration;
-														if (entry.type == CrossReferenceEntryType::Normal) {
-															table.context->references.add_NoLock(MAKE_OBJECT_ID(range.first + i, entry.generation), entry);
-														} else if (entry.type == CrossReferenceEntryType::Compressed) {
-															table.context->references.add_NoLock(range.first + i, entry);
-														}
+														table.context->setReferenceEntry(range.first + i, entry);
 													}
 												}
 												table.trailer = stream->properties;
@@ -1376,19 +1408,17 @@ namespace slib
 					return sl_false;
 				}
 
-				static sl_bool readStartXref(BufferedParser* parser, sl_uint32& posXref)
+				static sl_bool readStartXref(BufferedParser* parser, sl_uint32& posStartXref, sl_uint32& posXref)
 				{
-					sl_reg pos = parser->findBackward(StringView::literal("startxref"), 4096);
+					sl_reg pos = parser->findBackward(StringView::literal("startxref"), -1, 4096);
 					if (pos > 0) {
 						if (parser->setPosition(pos - 1)) {
-							sl_char8 ch;
-							if (parser->readChar(ch)) {
-								if (IsWhitespace(ch)) {
-									if (parser->readWordAndEquals(StringView::literal("startxref"))) {
-										if (parser->skipWhitespaces()) {
-											if (parser->readUint(posXref)) {
-												return sl_true;
-											}
+							if (parser->readCharAndIsWhitespace()) {
+								if (parser->readWordAndEquals(StringView::literal("startxref"))) {
+									posStartXref = (sl_uint32)pos;
+									if (parser->skipWhitespaces()) {
+										if (parser->readUint(posXref)) {
+											return sl_true;
 										}
 									}
 								}
@@ -1396,6 +1426,19 @@ namespace slib
 						}
 					}
 					return sl_false;
+				}
+
+				static PdfDictionary readLastTrailer(BufferedParser* parser, sl_uint32 startXref)
+				{
+					sl_reg pos = parser->findBackward(StringView::literal("trailer"), startXref, 4096);
+					if (pos > 0) {
+						if (parser->setPosition(pos - 1)) {
+							if (parser->readCharAndIsWhitespace()) {
+								return readTrailer(parser);
+							}
+						}
+					}
+					return PdfDictionary();
 				}
 
 				static sl_bool readDocument(BufferedParser* parser, PdfDocument& doc)
@@ -1417,54 +1460,65 @@ namespace slib
 					doc.majorVersion = SLIB_CHAR_DIGIT_TO_INT(version[5]);
 					doc.minorVersion = SLIB_CHAR_DIGIT_TO_INT(version[7]);
 
-					sl_uint32 posXref;
-					if (!(readStartXref(parser, posXref))) {
-						return sl_false;
-					}
-					if (parser->setPosition(posXref)) {
-						CrossReferenceTable xrefTable;
-						xrefTable.context = parser->context;
-						if (readCrossReferenceTable(parser, xrefTable)) {
-							doc.lastTrailer = xrefTable.trailer;
-							if (doc.lastTrailer.isNull()) {
+					// read last trailer and initialize reference table
+					{
+						sl_uint32 posStartXref, posXref;
+						if (!(readStartXref(parser, posStartXref, posXref))) {
+							return sl_false;
+						}
+						doc.lastTrailer = readLastTrailer(parser, posStartXref);
+						if (doc.lastTrailer.isNull()) {
+							return sl_false;
+						}
+
+						sl_uint32 countTotalRef = 0;
+						doc.lastTrailer.getValue_NoLock(g_strSize).getUint(countTotalRef);
+						if (!countTotalRef) {
+							return sl_false;
+						}
+						parser->context->references = Array<CrossReferenceEntry>::create(countTotalRef);
+						if (parser->context->references.isNull()) {
+							return sl_false;
+						}
+						Base::zeroMemory(parser->context->references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
+
+						for (;;) {
+							if (!(parser->setPosition(posXref))) {
 								return sl_false;
 							}
-							PdfObject prev = xrefTable.trailer.getValue_NoLock(g_strPrev);
-							while (prev.isNotUndefined()) {
-								sl_uint32 posPrev;
-								if (!(prev.getUint(posPrev))) {
-									return sl_false;
-								}
-								if (!(parser->setPosition(posPrev))) {
-									return sl_false;
-								}
-								CrossReferenceTable subTable;
-								subTable.context = parser->context;
-								if (!(readCrossReferenceTable(parser, subTable))) {
-									return sl_false;
-								}
-								prev = subTable.trailer.getValue_NoLock(g_strPrev);
-							}
-							doc.catalog = parser->getObject(doc.lastTrailer.getValue_NoLock(g_strRoot)).getDictionary();
-							if (doc.catalog.isNull()) {
+							CrossReferenceTable subTable;
+							subTable.context = parser->context;
+							if (!(readCrossReferenceTable(parser, subTable))) {
 								return sl_false;
 							}
-							doc.encrypt = parser->getObject(doc.lastTrailer.getValue_NoLock(g_strEncrypt)).getDictionary();
-							// loading page tree
-							{
-								PdfDictionary attrs = parser->getObject(doc.catalog.getValue_NoLock(g_strPages)).getDictionary();
-								if (attrs.isNotNull()) {
-									Ref<PageTreeParent> pageTree = new PageTreeParent;
-									if (pageTree.isNotNull()) {
-										pageTree->attributes = Move(attrs);
-										parser->context->pageTree = Move(pageTree);
-									}
-								}
+							PdfObject prev = subTable.trailer.getValue_NoLock(g_strPrev);
+							if (prev.isUndefined()) {
+								break;
 							}
-							return sl_true;
+							if (!(prev.getUint(posXref))) {
+								return sl_false;
+							}
 						}
 					}
-					return sl_false;
+
+					doc.catalog = parser->getObject(doc.lastTrailer.getValue_NoLock(g_strRoot)).getDictionary();
+					if (doc.catalog.isNull()) {
+						return sl_false;
+					}
+					doc.encrypt = parser->getObject(doc.lastTrailer.getValue_NoLock(g_strEncrypt)).getDictionary();
+					
+					// loading page tree
+					{
+						PdfDictionary attrs = parser->getObject(doc.catalog.getValue_NoLock(g_strPages)).getDictionary();
+						if (attrs.isNotNull()) {
+							Ref<PageTreeParent> pageTree = new PageTreeParent;
+							if (pageTree.isNotNull()) {
+								pageTree->attributes = Move(attrs);
+								parser->context->pageTree = Move(pageTree);
+							}
+						}
+					}
+					return sl_true;
 				}
 
 				static List< Ref<PdfPageTreeItem> > buildPageTreeKids(BufferedParser* parser, const PdfDictionary& attributes)
