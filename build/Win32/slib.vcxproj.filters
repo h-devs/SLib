@@ -404,9 +404,6 @@
     <ClCompile Include="..\..\src\slib\graphics\pen.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\yuv.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\media\audio_codec.cpp">
       <Filter>src\media</Filter>
     </ClCompile>

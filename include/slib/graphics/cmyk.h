@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,38 +20,23 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_GRAPHICS_HEADER
-#define CHECKHEADER_SLIB_GRAPHICS_HEADER
+#ifndef CHECKHEADER_SLIB_GRAPHICS_CMYK
+#define CHECKHEADER_SLIB_GRAPHICS_CMYK
 
-#include "graphics/constants.h"
+#include "definition.h"
 
-#include "graphics/color.h"
-#include "graphics/yuv.h"
-#include "graphics/cmyk.h"
-#include "graphics/bitmap_format.h"
-#include "graphics/bitmap_data.h"
+namespace slib
+{
+	
+	class SLIB_EXPORT CMYK
+	{
+	public:
+		static void convertRGBToCMYK(sl_uint8 R, sl_uint8 G, sl_uint8 B, sl_uint8& C, sl_uint8& M, sl_uint8& Y, sl_uint8& K);
 
-#include "graphics/pen.h"
-#include "graphics/brush.h"
-#include "graphics/font.h"
-#include "graphics/path.h"
+		static void convertCMYKToRGB(sl_uint8 C, sl_uint8 M, sl_uint8 Y, sl_uint8 K, sl_uint8& R, sl_uint8& G, sl_uint8& B);
 
-#include "graphics/drawable.h"
-#include "graphics/bitmap.h"
-#include "graphics/image.h"
+	};
 
-#include "graphics/canvas.h"
-
-#include "graphics/freetype.h"
-
-#include "graphics/font_atlas.h"
-#include "graphics/text.h"
-#include "graphics/emoji.h"
-#include "graphics/util.h"
-
-#include "graphics/zxing.h"
-
-#include "graphics/json.h"
-#include "graphics/serialize.h"
+}
 
 #endif
