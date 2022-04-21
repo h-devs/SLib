@@ -340,13 +340,19 @@ namespace slib
 					return sl_false;
 				}
 
-				sl_reg read(void* _buf, sl_size size)
+				sl_reg read(void* _out, sl_size nOut)
 				{
 					if (pos < size) {
-						Base::copyMemory(_buf, buf, size);
-						return size - pos;
+						if (pos + nOut > size) {
+							nOut = size - pos;
+						}
+						if (nOut) {
+							Base::copyMemory(_out, buf + pos, nOut);
+							pos += (sl_uint32)nOut;
+						}
+						return nOut;
 					}
-					return sl_false;
+					return SLIB_IO_ERROR;
 				}
 
 				sl_size getPosition()
@@ -370,9 +376,11 @@ namespace slib
 
 				sl_reg readBuffer(sl_char8*& _out)
 				{
-					if (pos < size) {
-						_out = buf + pos;
-						return size - pos;
+					sl_size _pos = pos;
+					if (_pos < size) {
+						_out = buf + _pos;
+						pos = size;
+						return size - _pos;
 					}
 					return SLIB_IO_ERROR;
 				}
@@ -449,6 +457,38 @@ namespace slib
 						return IsWhitespace(ch);
 					}
 					return sl_false;
+				}
+
+				sl_size readWord(void* buf, sl_size nSizeLimit)
+				{
+					if (!nSizeLimit) {
+						return 0;
+					}
+					sl_char8* word = (sl_char8*)buf;
+					sl_size posWord = 0;
+					for (;;) {
+						sl_char8* buf;
+						sl_reg n = readBuffer(buf);
+						if (n > 0) {
+							for (sl_reg i = 0; i < n; i++) {
+								sl_char8 ch = buf[i];
+								if (IsWhitespace(ch) || IsDelimiter(ch)) {
+									movePosition(i - n);
+									return posWord;
+								} else {
+									if (posWord >= nSizeLimit) {
+										return sl_false;
+									}
+									word[posWord++] = ch;
+								}
+							}
+						} else if (n == SLIB_IO_ENDED) {
+							return posWord;
+						} else {
+							break;
+						}
+					}
+					return 0;
 				}
 
 				sl_bool readWordAndEquals(const StringView& _word)
@@ -722,8 +762,8 @@ namespace slib
 											list.add_NoLock('(');
 											nOpen++;
 										} else if (ch == ')') {
-											list.add_NoLock(')');
 											if (nOpen) {
+												list.add_NoLock(')');
 												nOpen--;
 											} else {
 												movePosition(i + 1 - n);
@@ -918,25 +958,10 @@ namespace slib
 					return sl_null;
 				}
 
-				PdfObject readValue()
+				PdfObject readNumber()
 				{
 					sl_char8 ch;
-					if (!(peekChar(ch))) {
-						return PdfObject();
-					}
-					if (ch == 'n') {
-						if (readWordAndEquals(StringView::literal("null"))) {
-							return sl_null;
-						}
-					} else if (ch == 't') {
-						if (readWordAndEquals(StringView::literal("true"))) {
-							return sl_true;
-						}
-					} else if (ch == 'f') {
-						if (readWordAndEquals(StringView::literal("false"))) {
-							return sl_false;
-						}
-					} else if (IsNumeric(ch)) {
+					if (peekChar(ch)) {
 						if (ch >= '0' && ch <= '9') {
 							sl_size posBackup = getPosition();
 							PdfReference ref;
@@ -990,40 +1015,93 @@ namespace slib
 								}
 							}
 						}
-					} else if (ch == '(') {
-						String s = readString();
-						if (s.isNotNull()) {
-							return s;
-						}
-					} else if (ch == '<') {
-						movePosition(1);
-						if (peekChar(ch)) {
-							movePosition(-1);
-							if (ch == '<') {
-								PdfDictionary map = readDictionary();
-								if (map.isNotNull()) {
-									return map;
-								}
-							} else {
-								String s = readHexString();
+					}
+					return PdfObject();
+				}
+
+				PdfOperator readOperator()
+				{
+					sl_char8 buf[3];
+					sl_size len = readWord(buf, 3);
+					return PdfOperation::getOperator(StringView(buf, len));
+				}
+
+				PdfObject readValue()
+				{
+					sl_char8 ch;
+					if (!(peekChar(ch))) {
+						return PdfObject();
+					}
+					switch (ch) {
+						case 'n':
+							if (readWordAndEquals(StringView::literal("null"))) {
+								return sl_null;
+							}
+							break;
+						case 't':
+							if (readWordAndEquals(StringView::literal("true"))) {
+								return sl_true;
+							}
+							break;
+						case 'f':
+							if (readWordAndEquals(StringView::literal("false"))) {
+								return sl_false;
+							}
+							break;
+						case '(':
+							{
+								String s = readString();
 								if (s.isNotNull()) {
 									return s;
 								}
 							}
-						}
-					} else if (ch == '/') {
-						PdfName name = readName();
-						if (name.isNotNull()) {
-							return name;
-						}
-					} else if (ch == '[') {
-						PdfArray list = readArray();
-						if (list.isNotNull()) {
-							return list;
-						}
+							break;
+						case '<':
+							movePosition(1);
+							if (peekChar(ch)) {
+								movePosition(-1);
+								if (ch == '<') {
+									PdfDictionary map = readDictionary();
+									if (map.isNotNull()) {
+										return map;
+									}
+								} else {
+									String s = readHexString();
+									if (s.isNotNull()) {
+										return s;
+									}
+								}
+							}
+							break;
+						case '/':
+							{
+								PdfName name = readName();
+								if (name.isNotNull()) {
+									return name;
+								}
+							}
+							break;
+						case '[':
+							{
+								PdfArray list = readArray();
+								if (list.isNotNull()) {
+									return list;
+								}
+							}
+							break;
+						default:
+							if (IsNumeric(ch)) {
+								return readNumber();
+							} else {
+								PdfOperator op = readOperator();
+								if (op != PdfOperator::Unknown) {
+									return op;
+								}
+							}
+							break;
 					}
-					return sl_null;
-				}
+					return PdfObject();
+				} 
 
 				sl_bool readObjectHeader(PdfReference& outRef)
 				{
@@ -1083,18 +1161,22 @@ namespace slib
 										if (stream.isNull()) {
 											return PdfObject();
 										}
-										if (context->flagEncrypt) {
-											decrypt(outRef, content.getData(), content.getSize());
+										if (context.isNotNull()) {
+											if (context->flagEncrypt) {
+												decrypt(outRef, content.getData(), content.getSize());
+											}
 										}
 										stream->properties = Move(properties);
 										stream->content = Move(content);
 										obj = PdfObject(Move(stream));
 									}
 								} else {
-									if (context->flagEncrypt) {
-										const String& str = obj.getString();
-										if (str.isNotNull()) {
-											decrypt(outRef, str.getData(), str.getLength());
+									if (context.isNotNull()) {
+										if (context->flagEncrypt) {
+											const String& str = obj.getString();
+											if (str.isNotNull()) {
+												decrypt(outRef, str.getData(), str.getLength());
+											}
 										}
 									}
 								}
@@ -1109,6 +1191,9 @@ namespace slib
 
 				PdfObject getObject(const PdfReference& ref)
 				{
+					if (context.isNull()) {
+						return PdfObject();
+					}
 					sl_uint64 _id = GetObjectId(ref);
 					PdfObject ret;
 					if (context->objects.get(_id, &ret)) {
@@ -1155,6 +1240,9 @@ namespace slib
 
 				Ref<ObjectStream> getObjectStream(const PdfReference& ref)
 				{
+					if (context.isNull()) {
+						return sl_null;
+					}
 					sl_uint64 _id = GetObjectId(ref);
 					Ref<ObjectStream> stream;
 					if (context->objectStreams.get(_id, &stream)) {
@@ -1554,7 +1642,7 @@ namespace slib
 					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
 					for (sl_size i = 0; i < kids.count; i++) {
 						Ref<PdfPageTreeItem>& item = kids[i];
-						if (item->flagPage) {
+						if (item->isPage()) {
 							if (index == n) {
 								item->parent = parent;
 								return Ref<PdfPage>::from(item);
@@ -1786,6 +1874,8 @@ namespace slib
 
 	PdfObject::PdfObject(const PdfReference& v) noexcept: m_var(MAKE_OBJECT_ID(v.objectNumber, v.generation), (sl_uint8)(PdfObjectType::Reference)) {}
 
+	PdfObject::PdfObject(PdfOperator v) noexcept: m_var((sl_uint32)v, (sl_uint8)(PdfObjectType::Operator)) {}
+
 	sl_bool PdfObject::getBoolean() const noexcept
 	{
 		if (getType() == PdfObjectType::Boolean) {
@@ -1956,6 +2046,14 @@ namespace slib
 		return sl_false;
 	}
 
+	PdfOperator PdfObject::getOperator() const noexcept
+	{
+		if (getType() == PdfObjectType::Operator) {
+			return (PdfOperator)(m_var._m_uint32);
+		}
+		return PdfOperator::Unknown;
+	}
+
 
 	SLIB_DEFINE_ROOT_OBJECT(PdfStream)
 
@@ -2001,12 +2099,280 @@ namespace slib
 	}
 
 
-	PdfPageTreeItem::PdfPageTreeItem() noexcept: flagPage(sl_false)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfOperation)
+
+	PdfOperation::PdfOperation() noexcept
+	{
+	}
+
+	PdfOperator PdfOperation::getOperator(const StringView& opName)
+	{
+		sl_char8* s = opName.getData();
+		sl_size len = opName.getLength();
+		sl_char8 s1;
+		if (len == 1) {
+			switch (*s) {
+				case 'b':
+					return PdfOperator::b;
+				case 'B':
+					return PdfOperator::B;
+				case 'c':
+					return PdfOperator::c;
+				case 'd':
+					return PdfOperator::d;
+				case 'f':
+					return PdfOperator::f;
+				case 'F':
+					return PdfOperator::F;
+				case 'g':
+					return PdfOperator::g;
+				case 'G':
+					return PdfOperator::G;
+				case 'h':
+					return PdfOperator::h;
+				case 'i':
+					return PdfOperator::i;
+				case 'j':
+					return PdfOperator::j;
+				case 'J':
+					return PdfOperator::J;
+				case 'k':
+					return PdfOperator::k;
+				case 'K':
+					return PdfOperator::K;
+				case 'l':
+					return PdfOperator::l;
+				case 'm':
+					return PdfOperator::m;
+				case 'M':
+					return PdfOperator::M;
+				case 'n':
+					return PdfOperator::n;
+				case 'q':
+					return PdfOperator::q;
+				case 'Q':
+					return PdfOperator::Q;
+				case 's':
+					return PdfOperator::s;
+				case 'S':
+					return PdfOperator::S;
+				case 'v':
+					return PdfOperator::v;
+				case 'w':
+					return PdfOperator::w;
+				case 'W':
+					return PdfOperator::W;
+				case 'y':
+					return PdfOperator::y;
+				case '\'':
+					return PdfOperator::apos;
+				case '"':
+					return PdfOperator::quot;
+				default:
+					break;
+			}
+		} else if (len == 2) {
+			switch (*s) {
+				case 'b':
+					if (s[1] == '*') {
+						return PdfOperator::b_;
+					}
+					break;
+				case 'B':
+					switch (s[1]) {
+						case '*':
+							return PdfOperator::B_;
+						case 'I':
+							return PdfOperator::BI;
+						case 'T':
+							return PdfOperator::BT;
+						case 'X':
+							return PdfOperator::BX;
+						default:
+							break;
+					}
+					break;
+				case 'c':
+					s1 = s[1];
+					if (s1 == 'm') {
+						return PdfOperator::cm;
+					} else if (s1 == 's') {
+						return PdfOperator::cs;
+					}
+					break;
+				case 'd':
+					s1 = s[1];
+					if (s1 == '0') {
+						return PdfOperator::d0;
+					} else if (s1 == '1') {
+						return PdfOperator::d1;
+					}
+					break;
+				case 'C':
+					if (s[1] == 'S') {
+						return PdfOperator::CS;
+					}
+					break;
+				case 'D':
+					s1 = s[1];
+					if (s1 == 'o') {
+						return PdfOperator::Do;
+					} else if (s1 == 'P') {
+						return PdfOperator::DP;
+					}
+					break;
+				case 'E':
+					s1 = s[1];
+					if (s1 == 'I') {
+						return PdfOperator::EI;
+					} else if (s1 == 'T') {
+						return PdfOperator::ET;
+					} else if (s1 == 'X') {
+						return PdfOperator::EX;
+					}
+					break;
+				case 'f':
+					if (s[1] == '*') {
+						return PdfOperator::f_;
+					}
+					break;
+				case 'g':
+					if (s[1] == 's') {
+						return PdfOperator::gs;
+					}
+					break;
+				case 'I':
+					if (s[1] == 'D') {
+						return PdfOperator::ID;
+					}
+					break;
+				case 'M':
+					if (s[1] == 'P') {
+						return PdfOperator::MP;
+					}
+					break;
+				case 'r':
+					s1 = s[1];
+					if (s1 == 'e') {
+						return PdfOperator::re;
+					} else if (s1 == 'g') {
+						return PdfOperator::rg;
+					} else if (s1 == 'i') {
+						return PdfOperator::ri;
+					}
+					break;
+				case 'R':
+					if (s[1] == 'G') {
+						return PdfOperator::RG;
+					}
+					break;
+				case 's':
+					s1 = s[1];
+					if (s1 == 'c') {
+						return PdfOperator::sc;
+					} else if (s1 == 'h') {
+						return PdfOperator::sh;
+					}
+					break;
+				case 'S':
+					if (s[1] == 'C') {
+						return PdfOperator::SC;
+					}
+					break;
+				case 'T':
+					switch (s[1]) {
+						case '*':
+							return PdfOperator::T_;
+						case 'c':
+							return PdfOperator::Tc;
+						case 'd':
+							return PdfOperator::Td;
+						case 'D':
+							return PdfOperator::TD;
+						case 'f':
+							return PdfOperator::Tf;
+						case 'j':
+							return PdfOperator::Tj;
+						case 'J':
+							return PdfOperator::TJ;
+						case 'L':
+							return PdfOperator::TL;
+						case 'm':
+							return PdfOperator::Tm;
+						case 'r':
+							return PdfOperator::Tr;
+						case 's':
+							return PdfOperator::Ts;
+						case 'w':
+							return PdfOperator::Tw;
+						case 'z':
+							return PdfOperator::Tz;
+						default:
+							break;
+					}
+					break;
+				case 'W':
+					if (s[1] == '*') {
+						return PdfOperator::W_;
+					}
+					break;
+				default:
+					break;
+			}
+		} else if (len == 3) {
+			switch (*s) {
+				case 'B':
+					s1 = s[1];
+					if (s1 == 'D') {
+						if (s[2] == 'C') {
+							return PdfOperator::BDC;
+						}
+					} else if (s1 == 'M') {
+						if (s[2] == 'C') {
+							return PdfOperator::BMC;
+						}
+					}
+					break;
+				case 'E':
+					if (s[1] == 'M') {
+						if (s[2] == 'C') {
+							return PdfOperator::EMC;
+						}
+					}
+					break;
+				case 's':
+					if (s[1] == 'c') {
+						if (s[2] == 'n') {
+							return PdfOperator::scn;
+						}
+					}
+					break;
+				case 'S':
+					if (s[1] == 'C') {
+						if (s[2] == 'N') {
+							return PdfOperator::SCN;
+						}
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		return PdfOperator::Unknown;
+	}
+
+
+	PdfPageTreeItem::PdfPageTreeItem() noexcept: m_flagPage(sl_false)
 	{
 	}
 
 	PdfPageTreeItem::~PdfPageTreeItem()
 	{
+	}
+
+	sl_bool PdfPageTreeItem::isPage()
+	{
+		return m_flagPage;
 	}
 
 	PdfObject PdfPageTreeItem::getAttribute(const String& name) noexcept
@@ -2027,23 +2393,75 @@ namespace slib
 
 	PdfPage::PdfPage() noexcept
 	{
-		flagPage = sl_true;
+		m_flagPage = sl_true;
+		m_flagContent = sl_false;
 	}
 
 	PdfPage::~PdfPage()
 	{
 	}
 
-	Memory PdfPage::getContent() noexcept
+	Ref<PdfDocument> PdfPage::getDocument()
 	{
-		Ref<PdfDocument> _document(document);
-		if (_document.isNotNull()) {
-			BufferedParser* parser = GetParser(_document->m_parser);
+		return m_document;
+	}
+
+	Memory PdfPage::getContentStream()
+	{
+		Ref<PdfDocument> document(m_document);
+		if (document.isNotNull()) {
+			ObjectLocker locker(document.get());
+			BufferedParser* parser = GetParser(document->m_parser);
 			if (parser) {
 				return DocumentHelper::getPageContent(parser, attributes.getValue_NoLock(g_strContents));
 			}
 		}
 		return sl_null;
+	}
+
+	List<PdfOperation> PdfPage::getContent()
+	{
+		if (m_flagContent) {
+			return m_content;
+		}
+		Memory data = getContentStream();
+		if (data.isNotNull()) {
+			List<PdfOperation> ret = parseContent((sl_char8*)(data.getData()), data.getSize());
+			if (ret.isNotNull()) {
+				m_content = ret;
+				m_flagContent = sl_true;
+				return ret;
+			}
+		}
+		m_flagContent = sl_true;
+		return sl_null;
+	}
+
+	List<PdfOperation> PdfPage::parseContent(const void* data, sl_size size)
+	{
+		List<PdfOperation> ret;
+		MemoryParser parser;
+		parser.buf = (sl_char8*)data;
+		parser.size = (sl_uint32)size;
+		PdfOperation opCurrent;
+		for (;;) {
+			if (!(parser.skipWhitespaces())) {
+				break;
+			}
+			PdfObject obj = parser.readValue();
+			if (obj.isUndefined()) {
+				break;
+			}
+			PdfOperator op = obj.getOperator();
+			if (op != PdfOperator::Unknown) {
+				opCurrent.op = op;
+				ret.add_NoLock(Move(opCurrent));
+				opCurrent.operands.setNull();
+			} else {
+				opCurrent.operands.add_NoLock(Move(obj));
+			}
+		}
+		return ret;
 	}
 
 
@@ -2097,6 +2515,7 @@ namespace slib
 
 	PdfObject PdfDocument::getObject(const PdfReference& ref)
 	{
+		ObjectLocker lock(this);
 		BufferedParser* parser = GetParser(m_parser);
 		if (parser) {
 			return parser->getObject(ref);
@@ -2118,11 +2537,12 @@ namespace slib
 
 	Ref<PdfPage> PdfDocument::getPage(sl_uint32 index)
 	{
+		ObjectLocker lock(this);
 		BufferedParser* parser = GetParser(m_parser);
 		if (parser) {
 			Ref<PdfPage> page = DocumentHelper::getPage(parser, index);
 			if (page.isNotNull()) {
-				page->document = this;
+				page->m_document = this;
 				return page;
 			}
 		}
@@ -2158,6 +2578,7 @@ namespace slib
 
 	sl_bool PdfDocument::setUserPassword(const StringView& password)
 	{
+		ObjectLocker lock(this);
 		BufferedParser* parser = GetParser(m_parser);
 		if (parser) {
 			if (encrypt.getValue_NoLock(g_strFilter).equalsName(StringView::literal("Standard"))) {

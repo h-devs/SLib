@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/variant.h"
+#include "../math/rectangle.h"
 
 namespace slib
 {
@@ -43,13 +44,93 @@ namespace slib
 		Array = 8,
 		Dictionary = 9,
 		Stream = 10,
-		Reference = 11
+		Reference = 11,
+		Operator = 12
+	};
+
+	enum class PdfOperator
+	{
+		Unknown,
+		b, // close path, fill(nonzero winding number rule), stroke
+		B, // fill(nonzero winding number rule), stroke
+		b_, // b*: closePath, fill(even-odd rule), stroke
+		B_, // B*: fill(even-odd rule), stroke
+		BDC, // begin marked-content sequence with property list
+		BI, // begin inline image object
+		BMC, // begin marked-content sequence
+		BT, // begin text object
+		BX, // begin compatibility section
+		c, // curve to (three control point)
+		cm, // concat matrix to current transformation matrix
+		CS, // set color-space (for stroking)
+		cs, // set color-space (for non-stroking)
+		d, // set line dash pattern
+		d0, // set char width (glphy with in Type3 font)
+		d1, // set cache device (glphy with and bounding box in Type3 font)
+		Do, // invoke named XObject
+		DP, // define marked-content point with property list
+		EI, // end inline image object
+		EMC, // End marked-content sequence
+		ET, // end text object
+		EX, // end compatibility section
+		f, // fill(nonzero winding number rule)
+		F, // fill(nonzero winding number rule, obsolute)
+		f_, // f*: fill(even-odd rule)
+		G, // set gray level for stroking
+		g, // set gray level for non-stroking
+		gs, // set parameters from graphics state parameter dictionary
+		h, // close path
+		i, // set flatness tolerance
+		ID, // begin inline image data
+		j, // set line-join
+		J, // set line-cap
+		K, // set cmyk-color (for stroking)
+		k, // set cmyk-color (for non-stroking)
+		l, // line to
+		m, // move to
+		M, // set miter limit
+		MP, // define marked-content point
+		n, // end path without filling or stroking
+		q, // save graphics state
+		Q, // restore graphics state
+		re, // append rectangle to path
+		RG, // set rgb-color (for stroking)
+		rg, // set rgb-color (for non-stroking)
+		ri, // set color rendering intent
+		s, // close path, stroke
+		S, // stroke
+		SC, // set color (for stroking)
+		sc, // set color (for non-stroking)
+		SCN, // set color (for stroking, ICCBased and special color spaces)
+		scn, // set color (for non-stroking, ICCBased and special color spaces)
+		sh, // paint area defined by shading pattern
+		T_, // T*: move to start of next text line
+		Tc, // set character spacing
+		Td, // move text position
+		TD, // move text position and leading
+		Tf, // select font and size
+		Tj, // show text
+		TJ, // show text, allowing individual glphy positioning
+		TL, // set text leading
+		Tm, // set text matrix and text line matrix
+		Tr, // set text rendering mode
+		Ts, // set text rise
+		Tw, // set word spacing
+		Tz, // set horizontal text scaling
+		v, // curve to (initial point replicated)
+		w, // set line width
+		W, // set clipping path (nonzero winding number rule)
+		W_, // W*: set clipping path (even-odd rule)
+		y, // curve to (final point replicated)
+		apos, // ': move to next line and show text
+		quot, // ": set word and character spacing, move to next line, and show text
 	};
 
 	class PdfObject;
 	class PdfStream;
 	class PdfPage;
 	class PdfDocument;
+	class Canvas;
 
 	typedef HashMap<String, PdfObject> PdfDictionary;
 	typedef List<PdfObject> PdfArray;
@@ -136,6 +217,8 @@ namespace slib
 
 		PdfObject(const PdfReference& v) noexcept;
 
+		PdfObject(PdfOperator op) noexcept;
+
 	public:
 		const Variant& getVariant() const noexcept
 		{
@@ -208,6 +291,8 @@ namespace slib
 
 		sl_bool getReference(PdfReference& _out) const noexcept;
 
+		PdfOperator getOperator() const noexcept;
+
 	private:
 		Variant m_var;
 
@@ -233,12 +318,27 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfOperation
+	{
+	public:
+		PdfOperator op;
+		PdfArray operands;
+
+	public:
+		PdfOperation() noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfOperation)
+
+	public:
+		static PdfOperator getOperator(const StringView& opName);
+
+	};
+
 	class PdfPageTreeItem : public Referable
 	{
 	public:
 		WeakRef<PdfPageTreeItem> parent;
 		PdfDictionary attributes;
-		sl_bool flagPage;
 
 	public:
 		PdfPageTreeItem() noexcept;
@@ -246,7 +346,12 @@ namespace slib
 		~PdfPageTreeItem();
 
 	public:
+		sl_bool isPage();
+
 		PdfObject getAttribute(const String& name) noexcept;
+
+	protected:
+		sl_bool m_flagPage;
 
 	};
 
@@ -255,16 +360,27 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		WeakRef<PdfDocument> document;
-
-	public:
 		PdfPage() noexcept;
 
 		~PdfPage();
 
 	public:
-		Memory getContent() noexcept;
+		Ref<PdfDocument> getDocument();
 
+		Memory getContentStream();
+
+		List<PdfOperation> getContent();
+
+		static List<PdfOperation> parseContent(const void* data, sl_size size);
+
+		void render(Canvas* canvas, const Rectangle& rcDst);
+
+	protected:
+		WeakRef<PdfDocument> m_document;
+		AtomicList<PdfOperation> m_content;
+		sl_bool m_flagContent;
+
+		friend class PdfDocument;
 	};
 
 	class SLIB_EXPORT PdfDocument : public Object
