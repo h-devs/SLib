@@ -350,6 +350,10 @@ namespace slib
 
 		PdfObject getAttribute(const String& name) noexcept;
 
+		PdfObject getResources(const String& type) noexcept;
+
+		PdfObject getResource(const String& type, const String& name) noexcept;
+
 	protected:
 		sl_bool m_flagPage;
 
@@ -374,6 +378,10 @@ namespace slib
 		static List<PdfOperation> parseContent(const void* data, sl_size size);
 
 		void render(Canvas* canvas, const Rectangle& rcDst);
+
+		PdfDictionary getFontResourceAsDictionary(const String& name);
+
+		PdfObject getExternalObjectResource(const String& name);
 
 	protected:
 		WeakRef<PdfDocument> m_document;

@@ -65,6 +65,9 @@ namespace slib
 			SLIB_STATIC_STRING(g_strKids, "Kids")
 			SLIB_STATIC_STRING(g_strContents, "Contents")
 			SLIB_STATIC_STRING(g_strID, "ID")
+			SLIB_STATIC_STRING(g_strResources, "Resources")
+			SLIB_STATIC_STRING(g_strXObject, "XObject")
+			SLIB_STATIC_STRING(g_strFont, "Font")
 			SLIB_STATIC_STRING(g_strN, "N")
 			SLIB_STATIC_STRING(g_strO, "O")
 			SLIB_STATIC_STRING(g_strP, "P")
@@ -2388,6 +2391,41 @@ namespace slib
 		return PdfObject();
 	}
 
+	PdfObject PdfPageTreeItem::getResources(const String& type) noexcept
+	{
+		PdfDictionary dict = attributes.getValue_NoLock(g_strResources).getDictionary();
+		if (dict.isNotNull()) {
+			PdfObject ret = dict.getValue_NoLock(type);
+			if (ret.isNotUndefined()) {
+				return ret;
+			}
+		}
+		Ref<PdfPageTreeItem> _parent(parent);
+		if (_parent.isNotNull()) {
+			return _parent->getResources(type);
+		}
+		return PdfObject();
+	}
+
+	PdfObject PdfPageTreeItem::getResource(const String& type, const String& name) noexcept
+	{
+		PdfDictionary dict = attributes.getValue_NoLock(g_strResources).getDictionary();
+		if (dict.isNotNull()) {
+			PdfDictionary resources = dict.getValue_NoLock(type).getDictionary();
+			if (resources.isNotNull()) {
+				PdfObject ret = resources.getValue_NoLock(name);
+				if (ret.isNotUndefined()) {
+					return ret;
+				}
+			}
+		}
+		Ref<PdfPageTreeItem> _parent(parent);
+		if (_parent.isNotNull()) {
+			return _parent->getResource(type, name);
+		}
+		return PdfObject();
+	}
+
 
 	SLIB_DEFINE_OBJECT(PdfPage, PdfPageTreeItem)
 
@@ -2462,6 +2500,30 @@ namespace slib
 			}
 		}
 		return ret;
+	}
+
+	PdfDictionary PdfPage::getFontResourceAsDictionary(const String& name)
+	{
+		Ref<PdfDocument> doc(m_document);
+		if (doc.isNotNull()) {
+			PdfReference ref;
+			if (getResource(g_strFont, name).getReference(ref)) {
+				return doc->getObject(ref).getDictionary();
+			}
+		}
+		return sl_null;
+	}
+
+	PdfObject PdfPage::getExternalObjectResource(const String& name)
+	{
+		Ref<PdfDocument> doc(m_document);
+		if (doc.isNotNull()) {
+			PdfReference ref;
+			if (getResource(g_strXObject, name).getReference(ref)) {
+				return doc->getObject(ref);
+			}
+		}
+		return PdfObject();
 	}
 
 

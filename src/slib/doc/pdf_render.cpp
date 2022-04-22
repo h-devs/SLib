@@ -24,6 +24,9 @@
 
 #include "slib/graphics/canvas.h"
 #include "slib/graphics/path.h"
+#include "slib/graphics/cmyk.h"
+#include "slib/core/queue.h"
+#include "slib/math/transform2d.h"
 
 namespace slib
 {
@@ -36,28 +39,108 @@ namespace slib
 			class TextState
 			{
 			public:
+				float charSpace = 0;
+				float wordSpace = 0;
+				float widthScale = 1;
+				float leading = 0;
+				float rise = 0;
+				Ref<Font> font;
+				Matrix3 matrix = Matrix3::identity();
+				Matrix3 lineMatrix = Matrix3::identity();
+
 			};
+
+			class PenState : public PenDesc
+			{
+			public:
+				const Ref<Pen>& getHandle()
+				{
+					if (m_handle.isNull() || m_flagInvalidate) {
+						m_handle = Pen::create(*this);
+					}
+					m_flagInvalidate = sl_false;
+					return m_handle;
+				}
+
+				void invalidate()
+				{
+					m_flagInvalidate = sl_true;
+				}
+
+			private:
+				Ref<Pen> m_handle;
+				sl_bool m_flagInvalidate = sl_true;
+
+			};
+
+			class BrushState : public BrushDesc
+			{
+			public:
+				BrushState()
+				{
+					color = Color::Black;
+				}
+
+			public:
+				const Ref<Brush>& getHandle()
+				{
+					if (m_handle.isNull() || m_flagInvalidate) {
+						m_handle = Brush::create(*this);
+					}
+					m_flagInvalidate = sl_false;
+					return m_handle;
+				}
+
+				void invalidate()
+				{
+					m_flagInvalidate = sl_true;
+				}
+
+			private:
+				Ref<Brush> m_handle;
+				sl_bool m_flagInvalidate = sl_true;
+
+			};
+
+			template <class HANDLE_STATE, class VALUE>
+			static void SetHandleState(HANDLE_STATE& state, VALUE& dst, const VALUE& src)
+			{
+				if (dst != src) {
+					dst = src;
+					state.invalidate();
+				}
+			}
+
+#define SET_HANDLE_STATE(STATE, NAME, VALUE) SetHandleState(STATE, STATE.NAME, VALUE)
 
 			class RenderState
 			{
 			public:
-				Ref<GraphicsPath> path;
-				Ref<Brush> brush = Brush::createSolidBrush(Color::Black);
-				BrushDesc brushDesc;
-				Ref<Pen> pen = Pen::createSolidPen(1, Color::Black);
-				PenDesc penDesc;
+				BrushState brush;
+				PenState pen;
+			};
 
-				TextState text;
-
+			enum class PdfColorSpace
+			{
+				Unknown,
+				RGB,
+				Gray,
+				CMYK
 			};
 
 			class Renderer : public RenderState
 			{
 			public:
-				// params
 				Canvas* canvas;
 				PdfPage* page;
-				
+
+				Ref<GraphicsPath> path;
+				TextState text;
+
+				Stack<RenderState> states;
+				PdfColorSpace colorSpaceForStroking = PdfColorSpace::Unknown;
+				PdfColorSpace colorSpaceForNonStroking = PdfColorSpace::Unknown;
+
 			public:
 				sl_bool preparePath()
 				{
@@ -66,6 +149,28 @@ namespace slib
 						return path.isNotNull();
 					}
 					return sl_false;
+				}
+
+				void moveTo(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 2) {
+						return;
+					}
+					if (!(preparePath())) {
+						return;
+					}
+					path->moveTo(operands[0].getFloat(), operands[1].getFloat());
+				}
+
+				void lineTo(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 2) {
+						return;
+					}
+					if (!(preparePath())) {
+						return;
+					}
+					path->lineTo(operands[0].getFloat(), operands[1].getFloat());
 				}
 
 				void curveTo(ListElements<PdfObject> operands)
@@ -81,6 +186,18 @@ namespace slib
 						operands[4].getFloat(), operands[5].getFloat());
 				}
 
+				void appendRect(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 4) {
+						return;
+					}
+					if (!(preparePath())) {
+						return;
+					}
+					path->addRectangle(operands[0].getFloat(), operands[1].getFloat(),
+						operands[2].getFloat(), operands[3].getFloat());
+				}
+
 				void closePath()
 				{
 					if (path.isNotNull()) {
@@ -88,9 +205,9 @@ namespace slib
 					}
 				}
 
-				void createPen()
+				void clearPath()
 				{
-					pen = Pen::create(penDesc);
+					path.setNull();
 				}
 
 				void setLineDashPattern(ListElements<PdfObject> operands)
@@ -98,24 +215,66 @@ namespace slib
 					if (operands.count != 2) {
 						return;
 					}
-					penDesc.style = PenStyle::Dash;
-					createPen();
-				}
-
-				void createBrush()
-				{
-					brush = Brush::create(brushDesc);
+					SET_HANDLE_STATE(pen, style, PenStyle::Dash);
 				}
 
 				void setColor(const Color& color, sl_bool flagStroking)
 				{
 					if (flagStroking) {
-						penDesc.color = color;
-						createPen();
+						SET_HANDLE_STATE(pen, color, color);
 					} else {
-						brushDesc.color = color;
-						createBrush();
+						SET_HANDLE_STATE(brush, color, color);
 					}
+				}
+
+				void setColorSpace(ListElements<PdfObject> operands, sl_bool flagStroking)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					PdfColorSpace cs;
+					const String& name = operands[0].getName();
+					if (name == StringView::literal("DeviceRGB")) {
+						cs = PdfColorSpace::RGB;
+					} else if (name == StringView::literal("DeviceGray")) {
+						cs = PdfColorSpace::Gray;
+					} else if (name == StringView::literal("DeviceCMYK")) {
+						cs = PdfColorSpace::CMYK;
+					} else {
+						return;
+					}
+					if (flagStroking) {
+						colorSpaceForStroking = cs;
+					} else {
+						colorSpaceForNonStroking = cs;
+					}
+				}
+
+				void setColor(ListElements<PdfObject> operands, sl_bool flagStroking)
+				{
+					PdfColorSpace cs = flagStroking ? colorSpaceForStroking : colorSpaceForNonStroking;
+					switch (cs) {
+						case PdfColorSpace::RGB:
+							setRGB(operands, flagStroking);
+							break;
+						case PdfColorSpace::Gray:
+							setGrayLevel(operands, flagStroking);
+							break;
+						case PdfColorSpace::CMYK:
+							setCMYK(operands, flagStroking);
+							break;
+					}
+				}
+
+				void setRGB(ListElements<PdfObject> operands, sl_bool flagStroking)
+				{
+					if (operands.count != 3) {
+						return;
+					}
+					sl_uint8 r = (sl_uint8)(operands[0].getFloat() * 255);
+					sl_uint8 g = (sl_uint8)(operands[1].getFloat() * 255);
+					sl_uint8 b = (sl_uint8)(operands[2].getFloat() * 255);
+					setColor(Color(r, g, b), flagStroking);
 				}
 
 				void setGrayLevel(ListElements<PdfObject> operands, sl_bool flagStroking)
@@ -127,12 +286,26 @@ namespace slib
 					setColor(Color(g, g, g), flagStroking);
 				}
 
+				void setCMYK(ListElements<PdfObject> operands, sl_bool flagStroking)
+				{
+					if (operands.count != 4) {
+						return;
+					}
+					sl_uint8 c = (sl_uint8)(operands[0].getFloat() * 255);
+					sl_uint8 m = (sl_uint8)(operands[1].getFloat() * 255);
+					sl_uint8 y = (sl_uint8)(operands[2].getFloat() * 255);
+					sl_uint8 k = (sl_uint8)(operands[3].getFloat() * 255);
+					sl_uint8 r, g, b;
+					CMYK::convertCMYKToRGB(c, m, y, k, r, g, b);
+					setColor(Color(r, g, b), flagStroking);
+				}
+
 				void setLineJoin(ListElements<PdfObject> operands)
 				{
 					if (operands.count != 1) {
 						return;
 					}
-					penDesc.join = (LineJoin)(operands[0].getUint());
+					SET_HANDLE_STATE(pen, join, (LineJoin)(operands[0].getUint()));
 				}
 
 				void setLineCap(ListElements<PdfObject> operands)
@@ -140,7 +313,15 @@ namespace slib
 					if (operands.count != 1) {
 						return;
 					}
-					penDesc.cap = (LineCap)(operands[0].getUint());
+					SET_HANDLE_STATE(pen, cap, (LineCap)(operands[0].getUint()));
+				}
+
+				void setMiterLimit(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					SET_HANDLE_STATE(pen, miterLimit, operands[0].getFloat());
 				}
 
 				void concatMatrix(ListElements<PdfObject> operands)
@@ -157,20 +338,131 @@ namespace slib
 				void fill(sl_bool flagEvenOddRule)
 				{
 					if (path.isNotNull()) {
-						canvas->fillPath(path, brush);
+						if (flagEvenOddRule) {
+							path->setFillMode(FillMode::Alternate);
+						} else {
+							path->setFillMode(FillMode::Winding);
+						}
+						canvas->fillPath(path, brush.getHandle());
 					}
 				}
 
 				void stroke()
 				{
 					if (path.isNotNull()) {
-						canvas->drawPath(path, pen);
+						canvas->drawPath(path, pen.getHandle());
 					}
 				}
 
 				void beginText()
 				{
 					text = TextState();
+				}
+
+				void setTextCharSpace(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					text.charSpace = operands[0].getFloat();
+				}
+
+				void setTextWordSpace(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					text.wordSpace = operands[0].getFloat();
+				}
+
+				void setTextWidthScale(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					text.widthScale = operands[0].getFloat() / 100.0f;
+				}
+
+				void setTextLeading(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					text.leading = operands[0].getFloat();
+				}
+
+				void setTextRise(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					text.rise = operands[0].getFloat();
+				}
+
+				void setTextMatrix(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 6) {
+						return;
+					}
+					text.matrix = Matrix3(operands[0].getFloat(), operands[1].getFloat(), 0,
+						operands[2].getFloat(), operands[3].getFloat(), 0,
+						operands[4].getFloat(), operands[5].getFloat(), 1);
+					text.lineMatrix = text.matrix;
+				}
+
+				void moveTextMatrix(float tx, float ty)
+				{
+					Transform2::preTranslate(text.lineMatrix, Vector2(tx, ty));
+					text.matrix = text.lineMatrix;
+				}
+
+				void moveTextMatrix(ListElements<PdfObject> operands, sl_bool flagSetLeading)
+				{
+					if (operands.count != 2) {
+						return;
+					}
+					float ty = operands[1].getFloat();
+					moveTextMatrix(operands[0].getFloat(), ty);
+					if (flagSetLeading) {
+						text.leading = -ty;
+					}
+				}
+
+				Ref<Font> getFont(const String& name, float size)
+				{
+					PdfDictionary dict = page->getFontResourceAsDictionary(name);
+					if (dict.isNotNull()) {
+						SLIB_STATIC_STRING(idSubtype, "Subtype")
+						SLIB_STATIC_STRING(idBaseFont, "BaseFont")
+						const String& subType = dict.getValue_NoLock(idSubtype).getName();
+						const String& baseFont = dict.getValue_NoLock(idBaseFont).getName();
+						if (subType == StringView::literal("Type1")) {
+							return Font::create(name, size);
+						} else if (subType == StringView::literal("TrueType")) {
+							return Font::create(name, size);
+						}
+					}
+					return Font::create(Font::getDefaultFontFamily(), size);
+				}
+
+				void setTextFont(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 2) {
+						return;
+					}
+					text.font = getFont(operands[0].getName(), operands[1].getFloat());
+				}
+
+				void saveGraphicsState()
+				{
+					canvas->save();
+					states.push(*this);
+				}
+
+				void restoreGraphicsState()
+				{
+					canvas->restore();
+					states.pop(this);
 				}
 
 				void render(PdfOperation& operation)
@@ -216,10 +508,10 @@ namespace slib
 							concatMatrix(operation.operands);
 							break;
 						case PdfOperator::CS:
-							// set color-space (for stroking)
+							setColorSpace(operation.operands, sl_true);
 							break;
 						case PdfOperator::cs:
-							// set color-space (for non-stroking)
+							setColorSpace(operation.operands, sl_false);
 							break;
 						case PdfOperator::d:
 							setLineDashPattern(operation.operands);
@@ -282,55 +574,56 @@ namespace slib
 							setLineCap(operation.operands);
 							break;
 						case PdfOperator::K:
-							// set cmyk-color (for stroking)
+							setCMYK(operation.operands, sl_true);
 							break;
 						case PdfOperator::k:
-							// set cmyk-color (for non-stroking)
+							setCMYK(operation.operands, sl_false);
 							break;
 						case PdfOperator::l:
-							// line to
+							lineTo(operation.operands);
 							break;
 						case PdfOperator::m:
-							// move to
+							moveTo(operation.operands);
 							break;
 						case PdfOperator::M:
-							// set miter limit
+							setMiterLimit(operation.operands);
 							break;
 						case PdfOperator::MP:
 							// define marked-content point
 							break;
 						case PdfOperator::n:
-							// end path without filling or stroking
+							clearPath();
 							break;
 						case PdfOperator::q:
-							// save graphics state
+							saveGraphicsState();
 							break;
 						case PdfOperator::Q:
-							// restore graphics state
+							restoreGraphicsState();
 							break;
 						case PdfOperator::re:
-							// append rectangle to path
+							appendRect(operation.operands);
 							break;
 						case PdfOperator::RG:
-							// set rgb-color (for stroking)
+							setRGB(operation.operands, sl_true);
 							break;
 						case PdfOperator::rg:
-							// set rgb-color (for non-stroking)
+							setRGB(operation.operands, sl_false);
 							break;
 						case PdfOperator::ri:
 							// set color rendering intent
 							break;
 						case PdfOperator::s:
-							// close path, stroke
+							closePath();
+							stroke();
 							break;
 						case PdfOperator::S:
-							// stroke
+							stroke();
 							break;
 						case PdfOperator::SC:
-							// set color (for stroking)
+							setColor(operation.operands, sl_true);
 							break;
 						case PdfOperator::sc:
-							// set color (for non-stroking)
+							setColor(operation.operands, sl_false);
 							break;
 						case PdfOperator::SCN:
 							// set color (for stroking, ICCBased and special color spaces)
@@ -342,19 +635,19 @@ namespace slib
 							// paint area defined by shading pattern
 							break;
 						case PdfOperator::T_:
-							// T*: move to start of next text line
+							moveTextMatrix(0, text.leading);
 							break;
 						case PdfOperator::Tc:
-							// set character spacing
+							setTextCharSpace(operation.operands);
 							break;
 						case PdfOperator::Td:
-							// move text position
+							moveTextMatrix(operation.operands, sl_false);
 							break;
 						case PdfOperator::TD:
-							// move text position and leading
+							moveTextMatrix(operation.operands, sl_true);
 							break;
 						case PdfOperator::Tf:
-							// select font and size
+							setTextFont(operation.operands);
 							break;
 						case PdfOperator::Tj:
 							// show text
@@ -363,22 +656,22 @@ namespace slib
 							// show text, allowing individual glphy positioning
 							break;
 						case PdfOperator::TL:
-							// set text leading
+							setTextLeading(operation.operands);
 							break;
 						case PdfOperator::Tm:
-							// set text matrix and text line matrix
+							setTextMatrix(operation.operands);
 							break;
 						case PdfOperator::Tr:
 							// set text rendering mode
 							break;
 						case PdfOperator::Ts:
-							// set text rise
+							setTextRise(operation.operands);
 							break;
 						case PdfOperator::Tw:
-							// set word spacing
+							setTextWordSpace(operation.operands);
 							break;
 						case PdfOperator::Tz:
-							// set horizontal text scaling
+							setTextWidthScale(operation.operands);
 							break;
 						case PdfOperator::v:
 							// curve to (initial point replicated)
