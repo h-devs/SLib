@@ -108,7 +108,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Font> Font::create(String familyName, sl_real size, sl_bool flagBold, sl_bool flagItalic, sl_bool flagUnderline, sl_bool flagStrikeout)
+	Ref<Font> Font::create(const String& familyName, sl_real size, sl_bool flagBold, sl_bool flagItalic, sl_bool flagUnderline, sl_bool flagStrikeout)
 	{
 		Ref<Font> ret = new Font;
 		if (ret.isNotNull()) {

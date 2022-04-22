@@ -74,7 +74,7 @@ namespace slib
 	public:
 		static Ref<Font> create(const FontDesc& desc);
 
-		static Ref<Font> create(String familyName, sl_real size, sl_bool flagBold = sl_false, sl_bool flagItalic = sl_false, sl_bool flagUnderline = sl_false, sl_bool flagStrikeout = sl_false);
+		static Ref<Font> create(const String& familyName, sl_real size, sl_bool flagBold = sl_false, sl_bool flagItalic = sl_false, sl_bool flagUnderline = sl_false, sl_bool flagStrikeout = sl_false);
 	
 		static Ref<Font> getDefault();
 
