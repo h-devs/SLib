@@ -88,12 +88,8 @@ namespace slib
 					if (window->isResizable()) {
 						style |= WS_THICKFRAME;
 					}
-					if (window->isLayered()) {
-						styleEx |= WS_EX_LAYERED;
-					}
 				}
-				sl_uint8 alpha = ToWindowAlpha(window->getAlpha());
-				if (alpha < 255) {
+				if (window->isLayered()) {
 					styleEx |= WS_EX_LAYERED;
 				}
 				if (window->isTransparent()) {
@@ -116,6 +112,7 @@ namespace slib
 				sl_bool m_flagResizable;
 				sl_bool m_flagLayered;
 				sl_uint8 m_alpha;
+				Color m_colorKey;
 
 				sl_bool m_flagMinimized;
 				sl_bool m_flagMaximized;
@@ -203,13 +200,6 @@ namespace slib
 						hInst,
 						NULL);
 
-					if (hWnd) {
-						sl_uint8 alpha = ToWindowAlpha(window->getAlpha());
-						if (alpha < 255) {
-							SetLayeredWindowAttributes(hWnd, 0, alpha, LWA_ALPHA);
-						}
-					}
-					
 					return hWnd;
 				}
 
@@ -223,15 +213,15 @@ namespace slib
 						if (window->isDefaultBackgroundColor()) {
 							m_backgroundColor = window->getBackgroundColor();
 						}
+						m_flagLayered = window->isLayered();
 						m_alpha = ToWindowAlpha(window->getAlpha());
+						m_colorKey = window->getColorKey();
+						updateLayeredAttrs();
 					}
 					Ref<ViewInstance> content = UIPlatform::createViewInstance(hWnd, sl_false);
 					if (content.isNotNull()) {
 						content->setWindowContent(sl_true);
 						m_viewContent = content;
-						if (window->isLayered()) {
-							((Win32_ViewInstance*)(content.get()))->setLayered(sl_true);
-						}
 					}
 					UIPlatform::registerWindowInstance(hWnd, this);
 				}
@@ -352,13 +342,12 @@ namespace slib
 						UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, setBackgroundColor, color));
 						return;
 					}
-					if (m_flagLayered) {
-						redrawLayered();
-					} else {
-						HWND hWnd = m_handle;
-						if (hWnd) {
-							m_backgroundColor = color;
-							InvalidateRect(hWnd, NULL, TRUE);
+					m_backgroundColor = color;
+					Ref<ViewInstance> content = m_viewContent;
+					if (content.isNotNull()) {
+						Ref<View> view = content->getView();
+						if (view.isNotNull()) {
+							content->invalidate(view.get());
 						}
 					}
 				}
@@ -482,24 +471,41 @@ namespace slib
 					}
 				}
 
-				void setAlpha(sl_real alpha) override
+				void updateLayeredAttrs()
 				{
-					if (m_flagLayered) {
+					if (!m_flagLayered) {
 						return;
 					}
 					HWND hWnd = m_handle;
 					if (hWnd) {
-						sl_uint8 a = ToWindowAlpha(alpha);
-						if (m_alpha == a) {
-							return;
+						DWORD flags = m_alpha != 255 ? LWA_ALPHA : 0;
+						COLORREF cr = 0;
+						if (m_colorKey.isNotZero()) {
+							cr = GraphicsPlatform::getColorRef(m_colorKey);
+							flags |= LWA_COLORKEY;
 						}
-						m_alpha = a;
-						UIPlatform::setWindowExStyle(hWnd, WS_EX_LAYERED, m_alpha < 255);
-						SetLayeredWindowAttributes(hWnd, 0, m_alpha, LWA_ALPHA);
+						SetLayeredWindowAttributes(hWnd, cr, m_alpha, flags);
 						RedrawWindow(hWnd,
 							NULL,
 							NULL,
 							RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN);
+					}
+				}
+
+				void setAlpha(sl_real alpha) override
+				{
+					sl_uint8 a = ToWindowAlpha(alpha);
+					if (m_alpha != a) {
+						m_alpha = a;
+						updateLayeredAttrs();
+					}
+				}
+
+				void setColorKey(const Color& color) override
+				{
+					if (m_colorKey != color) {
+						m_colorKey = color;
+						updateLayeredAttrs();
 					}
 				}
 
@@ -558,14 +564,6 @@ namespace slib
 						if (GetWindowLongW(hWnd, GWL_STYLE) & WS_POPUP) {
 							WindowInstance::onResize();
 						}
-					}
-				}
-
-				void redrawLayered()
-				{
-					Ref<ViewInstance> instance = m_viewContent;
-					if (instance.isNotNull()) {
-						((Win32_ViewInstance*)(instance.get()))->onDrawLayered();
 					}
 				}
 

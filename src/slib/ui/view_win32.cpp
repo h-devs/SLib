@@ -544,6 +544,9 @@ namespace slib
 					style |= WS_BORDER;
 				}
 			}
+			if (view->isLayer()) {
+				styleEx |= WS_EX_LAYERED;
+			}
 			if (view->isCreatingNativeWidget()) {
 				if (view->isHorizontalScrollBarVisible()) {
 					style |= WS_HSCROLL;
@@ -964,6 +967,7 @@ namespace slib
 
 	void Win32_ViewInstance::setLayered(sl_bool flagLayered)
 	{
+		UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, flagLayered);
 		if (flagLayered) {
 			if (m_layered.isNull()) {
 				m_layered = new Win32_LayeredViewContext;
@@ -988,6 +992,10 @@ namespace slib
 
 	void Win32_ViewInstance::onPaint(Canvas* canvas)
 	{
+		if (m_layered.isNotNull()) {
+			return;
+		}
+
 		Ref<View> view = m_view;
 		if (view.isNull()) {
 			return;
@@ -1162,7 +1170,14 @@ namespace slib
 		size.cx = (LONG)width;
 		size.cy = (LONG)height;
 
-		UpdateLayeredWindow(hWnd, NULL, NULL, &size, m_layered->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA);
+		if (!(UpdateLayeredWindow(hWnd, NULL, NULL, &size, m_layered->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA))) {
+			DWORD dwErr = GetLastError();
+			if (dwErr = ERROR_INVALID_PARAMETER) {
+				UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, sl_false);
+				UIPlatform::setWindowExStyle(m_handle, WS_EX_LAYERED, sl_true);
+				UpdateLayeredWindow(hWnd, NULL, NULL, &size, m_layered->hdcCache, &ptSrc, 0, &bf, ULW_ALPHA);
+			}
+		}
 	}
 
 	sl_bool Win32_ViewInstance::onEventKey(sl_bool flagDown, WPARAM wParam, LPARAM lParam)

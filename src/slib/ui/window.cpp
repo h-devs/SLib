@@ -733,6 +733,23 @@ namespace slib
 		}
 	}
 
+	Color Window::getColorKey()
+	{
+		return m_colorKey;
+	}
+
+	void Window::setColorKey(const Color& color)
+	{
+		Ref<WindowInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setColorKey, color)
+			m_colorKey = color;
+			instance->setColorKey(color);
+		} else {
+			m_colorKey = color;
+		}
+	}
+
 	sl_bool Window::isTransparent()
 	{
 		return m_flagTransparent;
@@ -1798,6 +1815,10 @@ namespace slib
 	}
 
 	void WindowInstance::setAlpha(sl_real alpha)
+	{
+	}
+
+	void WindowInstance::setColorKey(const Color& color)
 	{
 	}
 

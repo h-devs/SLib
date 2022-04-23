@@ -209,15 +209,19 @@ namespace slib
 
 		sl_bool isLayered();
 		
-		void setLayered(sl_bool flag);
+		void setLayered(sl_bool flag = sl_true);
 		
 		sl_real getAlpha();
 		
 		void setAlpha(sl_real alpha);
 		
+		Color getColorKey();
+
+		void setColorKey(const Color& color);
+		
 		sl_bool isTransparent();
 		
-		void setTransparent(sl_bool flag);
+		void setTransparent(sl_bool flag = sl_true);
 
 
 		// aspect = width / height
@@ -474,6 +478,7 @@ namespace slib
 		sl_bool m_flagDefaultBackgroundColor;
 		
 		sl_real m_alpha;
+		Color m_colorKey;
 		
 		UIRect m_frame;
 		UISize m_sizeMin;
@@ -599,6 +604,8 @@ namespace slib
 		virtual void setLayered(sl_bool flag);
 		
 		virtual void setAlpha(sl_real alpha);
+
+		virtual void setColorKey(const Color& color);
 		
 		virtual void setTransparent(sl_bool flag);
 

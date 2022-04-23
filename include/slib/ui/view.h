@@ -859,7 +859,7 @@ namespace slib
 
 		sl_bool isLayer();
 		
-		void setLayer(sl_bool flagLayer, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setLayer(sl_bool flagLayer = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void invalidateLayer();
 		
