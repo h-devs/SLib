@@ -453,6 +453,25 @@ namespace slib
 					text.font = getFont(operands[0].getName(), operands[1].getFloat());
 				}
 
+				void drawText(const String& text)
+				{
+
+				}
+
+				void showText(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					String text = operands[0].getString();
+					drawText(text);
+				}
+
+				void showTextWithPositions(ListElements<PdfObject> operands)
+				{
+
+				}
+
 				void saveGraphicsState()
 				{
 					canvas->save();
@@ -650,10 +669,10 @@ namespace slib
 							setTextFont(operation.operands);
 							break;
 						case PdfOperator::Tj:
-							// show text
+							showText(operation.operands);
 							break;
 						case PdfOperator::TJ:
-							// show text, allowing individual glphy positioning
+							showTextWithPositions(operation.operands);
 							break;
 						case PdfOperator::TL:
 							setTextLeading(operation.operands);
