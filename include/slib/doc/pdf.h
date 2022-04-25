@@ -131,6 +131,7 @@ namespace slib
 	class PdfPage;
 	class PdfDocument;
 	class Canvas;
+	class Font;
 
 	typedef HashMap<String, PdfObject> PdfDictionary;
 	typedef List<PdfObject> PdfArray;
@@ -318,6 +319,18 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfFontResource
+	{
+	public:
+		Ref<Font> font;
+
+	public:
+		PdfFontResource();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
+
+	};
+
 	class SLIB_EXPORT PdfOperation
 	{
 	public:
@@ -348,11 +361,7 @@ namespace slib
 	public:
 		sl_bool isPage();
 
-		PdfObject getAttribute(const String& name) noexcept;
-
-		PdfObject getResources(const String& type) noexcept;
-
-		PdfObject getResource(const String& type, const String& name) noexcept;
+		PdfObject getAttribute(const String& name);
 
 	protected:
 		sl_bool m_flagPage;
@@ -379,7 +388,13 @@ namespace slib
 
 		void render(Canvas* canvas, const Rectangle& rcDst);
 
+		PdfObject getResources(const String& type);
+
+		PdfObject getResource(const String& type, const String& name);
+
 		PdfDictionary getFontResourceAsDictionary(const String& name);
+
+		sl_bool getFontResource(const String& name, PdfFontResource& outResource);
 
 		PdfObject getExternalObjectResource(const String& name);
 
@@ -398,21 +413,20 @@ namespace slib
 	public:
 		sl_uint32 fileSize;
 
-		sl_uint8 majorVersion;
-		sl_uint8 minorVersion;
-		PdfDictionary lastTrailer;
-		PdfDictionary encrypt;
-		PdfDictionary catalog;
-
-	public:
+	protected:
 		PdfDocument();
 
 		~PdfDocument();
 
 	public:
-		sl_bool openFile(const StringParam& filePath);
+		static Ref<PdfDocument> openFile(const StringParam& filePath);
 
+		static Ref<PdfDocument> openMemory(const Memory& mem);
+
+	public:
 		PdfObject getObject(const PdfReference& ref);
+
+		PdfObject getObject(const PdfObject& refOrObj);
 
 		sl_uint32 getPagesCount();
 
@@ -426,6 +440,11 @@ namespace slib
 
 		sl_bool setUserPassword(const StringView& password);
 		
+	protected:
+		sl_bool _openFile(const StringParam& filePath);
+
+		sl_bool _openMemory(const Memory& mem);
+
 	private:
 		Ref<Referable> m_parser;
 

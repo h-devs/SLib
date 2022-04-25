@@ -31,6 +31,7 @@ namespace slib
 
 	PdfView::PdfView()
 	{
+		m_pageNo = 0;
 	}
 
 	PdfView::~PdfView()
@@ -44,17 +45,22 @@ namespace slib
 		if (m_filePath == filePath) {
 			return sl_true;
 		}
-		close();
-		m_filePath = filePath;
-		if (filePath.isEmpty()) {
+		Ref<PdfDocument> doc = PdfDocument::openFile(filePath);
+		if (doc.isNotNull()) {
+			m_filePath = filePath;
+			_setDocument(doc.get());
 			return sl_true;
 		}
-		Ref<PdfDocument> doc = new PdfDocument;
+		return sl_false;
+	}
+
+	sl_bool PdfView::openMemory(const Memory& mem)
+	{
+		ObjectLocker lock(this);
+		Ref<PdfDocument> doc = PdfDocument::openMemory(mem);
 		if (doc.isNotNull()) {
-			if (doc->openFile(filePath)) {
-				m_doc = doc;
-				return sl_true;
-			}
+			_setDocument(doc.get());
+			return sl_true;
 		}
 		return sl_false;
 	}
@@ -71,8 +77,34 @@ namespace slib
 		return m_doc;
 	}
 
+	void PdfView::_setDocument(PdfDocument* doc)
+	{
+		m_doc = doc;
+		m_pages.removeAll();
+		invalidate();
+	}
+
+	Ref<PdfPage> PdfView::_getPage(sl_uint32 no)
+	{
+		Ref<PdfPage> ret;
+		if (m_pages.get(no, &ret)) {
+			return ret;
+		}
+		Ref<PdfDocument> doc = m_doc;
+		if (doc.isNotNull()) {
+			ret = doc->getPage(no);
+			m_pages.put(no, ret);
+			return ret;
+		}
+		return sl_null;
+	}
+
 	void PdfView::onDraw(Canvas* canvas)
 	{
+		Ref<PdfPage> page = _getPage(m_pageNo);
+		if (page.isNotNull()) {
+			page->render(canvas, getBoundsInnerPadding());
+		}
 	}
 
 }

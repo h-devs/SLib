@@ -45,6 +45,7 @@ namespace slib
 				float leading = 0;
 				float rise = 0;
 				Ref<Font> font;
+				float fontScale = 1;
 				Matrix3 matrix = Matrix3::identity();
 				Matrix3 lineMatrix = Matrix3::identity();
 
@@ -173,17 +174,40 @@ namespace slib
 					path->lineTo(operands[0].getFloat(), operands[1].getFloat());
 				}
 
-				void curveTo(ListElements<PdfObject> operands)
+				void curveTo(ListElements<PdfObject> operands, sl_bool flagReplicateInitialPoint, sl_bool flagReplicateFinalPoint)
 				{
-					if (operands.count != 6) {
-						return;
-					}
 					if (!(preparePath())) {
 						return;
 					}
-					path->cubicTo(operands[0].getFloat(), operands[1].getFloat(),
-						operands[2].getFloat(), operands[3].getFloat(),
-						operands[4].getFloat(), operands[5].getFloat());
+					if (flagReplicateInitialPoint || flagReplicateFinalPoint) {
+						if (operands.count != 4) {
+							return;
+						}
+						if (flagReplicateInitialPoint) {
+							sl_size nPoints = path->getPointsCount();
+							if (!nPoints) {
+								return;
+							}
+							GraphicsPathPoint& ptCurrent = (path->getPoints())[nPoints - 1];
+							path->cubicTo(
+								ptCurrent.pt.x, ptCurrent.pt.y,
+								operands[0].getFloat(), operands[1].getFloat(),
+								operands[2].getFloat(), operands[3].getFloat());
+						} else {
+							float lastX = operands[2].getFloat();
+							float lastY = operands[3].getFloat();
+							path->cubicTo(
+								operands[0].getFloat(), operands[1].getFloat(),
+								lastX, lastY, lastX, lastY);
+						}
+					} else {
+						if (operands.count != 6) {
+							return;
+						}
+						path->cubicTo(operands[0].getFloat(), operands[1].getFloat(),
+							operands[2].getFloat(), operands[3].getFloat(),
+							operands[4].getFloat(), operands[5].getFloat());
+					}
 				}
 
 				void appendRect(ListElements<PdfObject> operands)
@@ -208,14 +232,6 @@ namespace slib
 				void clearPath()
 				{
 					path.setNull();
-				}
-
-				void setLineDashPattern(ListElements<PdfObject> operands)
-				{
-					if (operands.count != 2) {
-						return;
-					}
-					SET_HANDLE_STATE(pen, style, PenStyle::Dash);
 				}
 
 				void setColor(const Color& color, sl_bool flagStroking)
@@ -300,6 +316,14 @@ namespace slib
 					setColor(Color(r, g, b), flagStroking);
 				}
 
+				void setLineWidth(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					SET_HANDLE_STATE(pen, width, operands[0].getFloat());
+				}
+
 				void setLineJoin(ListElements<PdfObject> operands)
 				{
 					if (operands.count != 1) {
@@ -316,12 +340,73 @@ namespace slib
 					SET_HANDLE_STATE(pen, cap, (LineCap)(operands[0].getUint()));
 				}
 
+				void setLineDashPattern(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 2) {
+						return;
+					}
+					SET_HANDLE_STATE(pen, style, PenStyle::Dash);
+				}
+
 				void setMiterLimit(ListElements<PdfObject> operands)
 				{
 					if (operands.count != 1) {
 						return;
 					}
 					SET_HANDLE_STATE(pen, miterLimit, operands[0].getFloat());
+				}
+
+				void setGraphicsState(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					SLIB_STATIC_STRING(idExtGState, "ExtGState")
+					PdfDictionary states = page->getResource(idExtGState, operands[0].getName()).getDictionary();
+					if (states.isEmpty()) {
+						return;
+					}
+					{
+						SLIB_STATIC_STRING(fieldId, "LW")
+						float value;
+						if (states.getValue(fieldId).getFloat(value)) {
+							SET_HANDLE_STATE(pen, width, value);
+						}
+					}
+					{
+						SLIB_STATIC_STRING(fieldId, "LC")
+						sl_uint32 value;
+						if (states.getValue(fieldId).getUint(value)) {
+							SET_HANDLE_STATE(pen, cap, (LineCap)value);
+						}
+					}
+					{
+						SLIB_STATIC_STRING(fieldId, "LJ")
+						sl_uint32 value;
+						if (states.getValue(fieldId).getUint(value)) {
+							SET_HANDLE_STATE(pen, join, (LineJoin)value);
+						}
+					}
+					{
+						SLIB_STATIC_STRING(fieldId, "ML")
+						float value;
+						if (states.getValue(fieldId).getFloat(value)) {
+							SET_HANDLE_STATE(pen, miterLimit, value);
+						}
+					}
+					{
+						SLIB_STATIC_STRING(fieldId, "D")
+						if (states.getValue(fieldId).getArray().isNotNull()) {
+							SET_HANDLE_STATE(pen, style, PenStyle::Dash);
+						}
+					}
+					{
+						SLIB_STATIC_STRING(fieldId, "Font")
+						ListElements<PdfObject> values(states.getValue(fieldId).getArray());
+						if (values.count == 2) {
+							setFont(values[0].getName(), values[1].getFloat());
+						}
+					}
 				}
 
 				void concatMatrix(ListElements<PdfObject> operands)
@@ -354,9 +439,22 @@ namespace slib
 					}
 				}
 
+				void setClipping(sl_bool flagEvenOddRule)
+				{
+					if (path.isNotNull()) {
+						if (flagEvenOddRule) {
+							path->setFillMode(FillMode::Alternate);
+						} else {
+							path->setFillMode(FillMode::Winding);
+						}
+						canvas->clipToPath(path);
+					}
+				}
+
 				void beginText()
 				{
-					text = TextState();
+					text.matrix = Matrix3::identity();
+					text.lineMatrix = Matrix3::identity();
 				}
 
 				void setTextCharSpace(ListElements<PdfObject> operands)
@@ -412,7 +510,7 @@ namespace slib
 
 				void moveTextMatrix(float tx, float ty)
 				{
-					Transform2::preTranslate(text.lineMatrix, Vector2(tx, ty));
+					Transform2::preTranslate(text.lineMatrix, tx, ty);
 					text.matrix = text.lineMatrix;
 				}
 
@@ -428,21 +526,13 @@ namespace slib
 					}
 				}
 
-				Ref<Font> getFont(const String& name, float size)
+				void setFont(const String& name, float fontScale)
 				{
-					PdfDictionary dict = page->getFontResourceAsDictionary(name);
-					if (dict.isNotNull()) {
-						SLIB_STATIC_STRING(idSubtype, "Subtype")
-						SLIB_STATIC_STRING(idBaseFont, "BaseFont")
-						const String& subType = dict.getValue_NoLock(idSubtype).getName();
-						const String& baseFont = dict.getValue_NoLock(idBaseFont).getName();
-						if (subType == StringView::literal("Type1")) {
-							return Font::create(name, size);
-						} else if (subType == StringView::literal("TrueType")) {
-							return Font::create(name, size);
-						}
+					PdfFontResource res;
+					if (page->getFontResource(name, res)) {
+						text.font = Move(res.font);
+						text.fontScale = fontScale;
 					}
-					return Font::create(Font::getDefaultFontFamily(), size);
 				}
 
 				void setTextFont(ListElements<PdfObject> operands)
@@ -450,12 +540,38 @@ namespace slib
 					if (operands.count != 2) {
 						return;
 					}
-					text.font = getFont(operands[0].getName(), operands[1].getFloat());
+					setFont(operands[0].getName(), operands[1].getFloat());
 				}
 
-				void drawText(const String& text)
+				void drawText(const String32& str)
 				{
+					sl_char32* array = str.getData();
+					sl_size len = str.getLength();
+					CanvasStateScope scope(canvas);
+					Matrix3 mat = text.matrix;
+					Transform2::preTranslate(mat, 0, text.rise);
+					Transform2::preScale(mat, text.fontScale * text.widthScale, text.fontScale);
+					canvas->concatMatrix(mat);
+					if (text.font.isNotNull()) {
+						sl_real x;
+						for (sl_size i = 0; i < len; i++) {
+							sl_char32 ch = array[i];
+							if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+								x += text.wordSpace;
+							} else {
+								canvas->drawText(StringView32(&ch, 1), x, 0, text.font, pen.color);
+								Size size = text.font->measureText(StringView32(&ch, 1));
+								x += size.x * text.fontScale;
+								x += text.charSpace;
+							}
+						}
+						Transform2::preTranslate(text.matrix, x * text.widthScale, 0);
+					}
+				}
 
+				void adjustTextMatrix(float f)
+				{
+					Transform2::preTranslate(text.matrix, f / 1000.0f * text.font->getSize() * text.widthScale, 0);
 				}
 
 				void showText(ListElements<PdfObject> operands)
@@ -463,13 +579,36 @@ namespace slib
 					if (operands.count != 1) {
 						return;
 					}
-					String text = operands[0].getString();
-					drawText(text);
+					const String& text = operands[0].getString();
+					drawText(String32::from(text));
 				}
 
 				void showTextWithPositions(ListElements<PdfObject> operands)
 				{
+					for (sl_size i = 0; i < operands.count; i++) {
+						PdfObject& obj = operands[i];
+						const String& s = obj.getString();
+						if (s.isNotNull()) {
+							drawText(String32::from(s));
+						} else {
+							float f;
+							if (obj.getFloat(f)) {
+								adjustTextMatrix(f);
+							}
+						}
+					}
+				}
 
+				void showTextWithSpacingParams(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 3) {
+						return;
+					}
+					text.wordSpace = operands[0].getFloat();
+					text.charSpace = operands[1].getFloat();
+					moveTextMatrix(0, text.leading);
+					const String& text = operands[2].getString();
+					drawText(String32::from(text));
 				}
 
 				void saveGraphicsState()
@@ -480,6 +619,9 @@ namespace slib
 
 				void restoreGraphicsState()
 				{
+					if (states.isEmpty()) {
+						return;
+					}
 					canvas->restore();
 					states.pop(this);
 				}
@@ -521,7 +663,7 @@ namespace slib
 							// begin compatibility section
 							break;
 						case PdfOperator::c:
-							curveTo(operation.operands);
+							curveTo(operation.operands, sl_false, sl_false);
 							break;
 						case PdfOperator::cm:
 							concatMatrix(operation.operands);
@@ -575,7 +717,7 @@ namespace slib
 							setGrayLevel(operation.operands, sl_false);
 							break;
 						case PdfOperator::gs:
-							// set parameters from graphics state parameter dictionary
+							setGraphicsState(operation.operands);
 							break;
 						case PdfOperator::h:
 							closePath();
@@ -693,25 +835,26 @@ namespace slib
 							setTextWidthScale(operation.operands);
 							break;
 						case PdfOperator::v:
-							// curve to (initial point replicated)
+							curveTo(operation.operands, sl_true, sl_false);
 							break;
 						case PdfOperator::w:
-							// set line width
+							setLineWidth(operation.operands);
 							break;
 						case PdfOperator::W:
-							// set clipping path (nonzero winding number rule)
+							setClipping(sl_false);
 							break;
 						case PdfOperator::W_:
-							// W*: set clipping path (even-odd rule)
+							setClipping(sl_true);
 							break;
 						case PdfOperator::y:
-							// curve to (final point replicated)
+							curveTo(operation.operands, sl_false, sl_true);
 							break;
 						case PdfOperator::apos:
-							// ': move to next line and show text
+							moveTextMatrix(0, text.leading);
+							showText(operation.operands);
 							break;
 						case PdfOperator::quot:
-							// ": set word and character spacing, move to next line, and show text
+							showTextWithSpacingParams(operation.operands);
 							break;
 						default:
 							break;
@@ -725,6 +868,13 @@ namespace slib
 
 	using namespace priv::pdf;
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
+
+	PdfFontResource::PdfFontResource()
+	{
+	}
+
+
 	void PdfPage::render(Canvas* canvas, const Rectangle& rcDst)
 	{
 		ListElements<PdfOperation> ops(getContent());
@@ -737,6 +887,42 @@ namespace slib
 		for (sl_size i = 0; i < ops.count; i++) {
 			renderer.render(ops[i]);
 		}
+	}
+
+	sl_bool PdfPage::getFontResource(const String& name, PdfFontResource& resource)
+	{
+		Ref<PdfDocument> doc(m_document);
+		if (doc.isNotNull()) {
+			PdfDictionary dict = getFontResourceAsDictionary(name);
+			if (dict.isNotNull()) {
+				SLIB_STATIC_STRING(idSubtype, "Subtype")
+				const String& subType = dict.getValue_NoLock(idSubtype).getName();
+				if (subType == StringView::literal("Type1") || subType == StringView::literal("TrueType")) {
+					SLIB_STATIC_STRING(idFontDescriptor, "FontDescriptor")
+					PdfDictionary desc = doc->getObject(dict.getValue_NoLock(idFontDescriptor)).getDictionary();
+					if (desc.isNotEmpty()) {
+						SLIB_STATIC_STRING(idFontName, "FontName")
+						SLIB_STATIC_STRING(idFontFamily, "FontFamily")
+						SLIB_STATIC_STRING(idAscent, "Ascent")
+						SLIB_STATIC_STRING(idFontWeight, "FontWeight")
+						SLIB_STATIC_STRING(idItalicAngle, "ItalicAngle")
+						FontDesc fd;
+						fd.familyName = desc.getValue_NoLock(idFontName).getString();
+						fd.size = desc.getValue_NoLock(idAscent).getFloat();
+						fd.flagBold = desc.getValue_NoLock(idFontWeight).getFloat() >= 600.0f;
+						fd.flagItalic = Math::abs(desc.getValue_NoLock(idItalicAngle).getFloat()) > 10;
+						Ref<Font> font = Font::create(fd);
+						if (font.isNull()) {
+							fd.familyName = Font::getDefaultFontFamily();
+							font = Font::create(fd);
+						}
+						resource.font = Move(font);
+						return resource.font.isNotNull();
+					}
+				}
+			}
+		}
+		return sl_false;
 	}
 
 }

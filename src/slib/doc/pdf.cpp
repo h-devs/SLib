@@ -150,6 +150,160 @@ namespace slib
 				return ret;
 			}
 
+			static Memory ApplyFilter(const Memory& input, const StringView& filter)
+			{
+				if (filter == StringView::literal("FlateDecode") || filter == StringView::literal("Fl")) {
+					return Zlib::decompress(input.getData(), input.getSize());
+				} else if (filter == StringView::literal("ASCIIHexDecode") || filter == StringView::literal("AHx")) {
+					sl_size len = input.getSize();
+					Memory ret = Memory::create((len + 1) >> 1);
+					if (ret.isNotNull()) {
+						sl_char8* str = (sl_char8*)(input.getData());
+						sl_uint8* dst = (sl_uint8*)(ret.getData());
+						sl_uint8* cur = dst;
+						sl_bool flagFirstHex = sl_true;
+						sl_uint8 firstHex = 0;
+						for (sl_size i = 0; i < len; i++) {
+							sl_char8 ch = str[i];
+							sl_uint8 h = SLIB_CHAR_HEX_TO_INT(ch);
+							if (h < 16) {
+								if (flagFirstHex) {
+									firstHex = h;
+									flagFirstHex = sl_false;
+								} else {
+									*(cur++) = (firstHex << 4) | h;
+									flagFirstHex = sl_true;
+								}
+							} else if (!(IsWhitespace(ch))) {
+								return sl_null;
+							}
+						}
+						if (!flagFirstHex) {
+							*(cur++) = firstHex << 4;
+						}
+						return ret.sub(0, cur - dst);
+					}
+				} else if (filter == StringView::literal("ASCII85Decode") || filter == StringView::literal("A85")) {
+					sl_size len = input.getSize();
+					CList<sl_uint8> list;
+					if (list.setCapacity(((len + 4) / 5) << 2)) {
+						sl_char8* str = (sl_char8*)(input.getData());
+						sl_uint32 indexElement = 0;
+						sl_uint32 dword = 0;
+						for (sl_size i = 0; i < len; i++) {
+							sl_uint8 v = str[i];
+							if (v == 'z') {
+								if (indexElement) {
+									return sl_null;
+								} else {
+									list.addElements_NoLock(4, 0);
+								}
+							} else {
+								if (v >= '!' && v <= 'u') {
+									v -= '!';
+									dword = dword * 85 + v;
+									indexElement++;
+									if (indexElement >= 5) {
+										sl_uint8 bytes[4];
+										MIO::writeUint32BE(bytes, dword);
+										list.addElements_NoLock(bytes, 4);
+										indexElement = 0;
+										dword = 0;
+									}
+								} else if (v == '~') {
+									if (i + 2 == len) {
+										if (str[i + 1] == '>') {
+											if (indexElement == 1) {
+												return sl_null;
+											}
+											if (indexElement) {
+												for (sl_uint32 i = 0; i < indexElement; i++) {
+													dword *= 85;
+												}
+												sl_uint8 bytes[4];
+												MIO::writeUint32BE(bytes, dword);
+												list.addElements_NoLock(bytes, indexElement - 1);
+											}
+											return Memory::create(list.getData(), list.getCount());
+										}
+									}
+									return sl_null;
+								} else if (!(IsWhitespace(v))) {
+									return sl_null;
+								}
+							}
+						}
+					}
+				}
+				return sl_null;
+			}
+
+			static void ComputeEncryptionKey(sl_uint8* outKey, sl_uint32 lenKey, const StringView& password, sl_uint32 revision, const String& ownerHash, sl_uint32 permission, const String& fileId)
+			{
+				MD5 hash;
+				hash.start();
+				sl_size lenPassword = password.getLength();
+				if (lenPassword > 32) {
+					lenPassword = 32;
+				}
+				if (lenPassword) {
+					hash.update(password.getData(), lenPassword);
+				}
+				if (lenPassword < 32) {
+					hash.update(g_encryptionPad, 32 - lenPassword);
+				}
+				hash.update(ownerHash.getData(), ownerHash.getLength());
+				sl_uint8 bufPermission[4];
+				MIO::writeUint32LE(bufPermission, permission);
+				hash.update(bufPermission, 4);
+				if (fileId.isNotEmpty()) {
+					hash.update(fileId.getData(), fileId.getLength());
+				}
+				if (revision >= 4) {
+					static sl_uint8 k[] = { 0xff, 0xff, 0xff, 0xff };
+					hash.update(k, 4);
+				}
+				sl_uint8 h[16];
+				hash.finish(h);
+				if (lenKey > 16) {
+					lenKey = 16;
+				}
+				if (revision >= 3) {
+					for (sl_uint32 i = 0; i < 50; i++) {
+						MD5::hash(h, lenKey, h);
+					}
+				}
+				Base::copyMemory(outKey, h, lenKey);
+			}
+
+			static void ComputeUserPasswordHash(sl_uint8* outHash, const sl_uint8* encryptionKey, sl_uint32 lengthKey, sl_uint32 revision, const String& fileId)
+			{
+				if (revision >= 3) {
+					MD5 hash;
+					hash.start();
+					hash.update(g_encryptionPad, 32);
+					if (fileId.isNotEmpty()) {
+						hash.update(fileId.getData(), fileId.getLength());
+					}
+					sl_uint8 h[16];
+					hash.finish(h);
+					RC4 rc;
+					rc.setKey(encryptionKey, lengthKey);
+					rc.encrypt(h, outHash, 16);
+					for (sl_uint8 i = 1; i <= 19; i++) {
+						sl_uint8 k[16];
+						for (sl_uint32 j = 0; j < lengthKey; j++) {
+							k[j] = encryptionKey[j] ^ i;
+						}
+						rc.setKey(k, lengthKey);
+						rc.encrypt(outHash, outHash, 16);
+					}
+				} else {
+					RC4 rc;
+					rc.setKey(encryptionKey, lengthKey);
+					rc.encrypt(g_encryptionPad, outHash, 32);
+				}
+			}
 
 			enum class CrossReferenceEntryType
 			{
@@ -158,7 +312,7 @@ namespace slib
 				Compressed = 2
 			};
 
-			struct SLIB_EXPORT CrossReferenceEntry
+			struct CrossReferenceEntry
 			{
 				union {
 					sl_uint32 nextFreeObject; // For free entry
@@ -220,11 +374,6 @@ namespace slib
 				Array<CrossReferenceEntry> references;
 				ExpiringMap<sl_uint64, PdfObject> objects;
 				ExpiringMap< sl_uint64, Ref<ObjectStream> > objectStreams;
-				Ref<PageTreeParent> pageTree;
-
-				sl_bool flagEncrypt = sl_false;
-				sl_uint8 encryptionKey[16];
-				sl_uint32 lenEncryptionKey = 0;
 
 			public:
 				Context()
@@ -251,14 +400,80 @@ namespace slib
 
 			};
 
-			class SLIB_EXPORT CrossReferenceTable
+			class CrossReferenceTable
 			{
 			public:
 				Ref<Context> context;
 				PdfDictionary trailer;
 			};
 
-			class SLIB_EXPORT BufferedParserBase
+			class ParserBase : public Referable
+			{
+			public:
+				Ref<Context> context;
+
+				sl_uint8 majorVersion = 0;
+				sl_uint8 minorVersion = 0;
+
+				PdfDictionary lastTrailer;
+				PdfDictionary encrypt;
+				PdfDictionary catalog;
+				Ref<PageTreeParent> pageTree;
+
+				sl_bool flagDecryptContents = sl_false;
+				sl_uint8 encryptionKey[16];
+				sl_uint32 lenEncryptionKey = 0;
+
+			public:
+				virtual sl_bool readDocument() = 0;
+				virtual Ref<PdfPage> getPage(sl_uint32 index) = 0;
+				virtual Memory getPageContent(const PdfObject& contents) = 0;
+				virtual PdfObject getObject(const PdfReference& ref) = 0;
+				virtual PdfObject getObject(const PdfObject& obj) = 0;
+
+			public:
+				sl_bool setUserPassword(const StringView& password)
+				{
+					if (encrypt.getValue_NoLock(g_strFilter).equalsName(StringView::literal("Standard"))) {
+						sl_uint32 encryptionAlgorithm = encrypt.getValue_NoLock(g_strV).getUint();
+						if (encryptionAlgorithm == 1) {
+							sl_uint32 lengthKey = encrypt.getValue_NoLock(g_strLength).getUint();
+							if (!lengthKey) {
+								lengthKey = 40;
+							}
+							if (lengthKey & 7) {
+								return sl_false;
+							}
+							lengthKey >>= 3;
+							if (lengthKey > 16) {
+								return sl_false;
+							}
+							String userHash = encrypt.getValue_NoLock(g_strU).getString();
+							if (userHash.getLength() != 32) {
+								return sl_false;
+							}
+							sl_uint32 revision = encrypt.getValue_NoLock(g_strR).getUint();
+							sl_uint32 permission = encrypt.getValue_NoLock(g_strP).getInt();
+							String ownerHash = encrypt.getValue_NoLock(g_strO).getString();
+							String fileId = lastTrailer.getValue_NoLock(g_strID).getArray().getValueAt_NoLock(0).getString();
+							sl_uint8 key[16];
+							ComputeEncryptionKey(key, lengthKey, password, revision, ownerHash, permission, fileId);
+							sl_uint8 userHashGen[32];
+							ComputeUserPasswordHash(userHashGen, key, lengthKey, revision, fileId);
+							if (Base::equalsMemory(userHashGen, userHash.getData(), 16)) {
+								flagDecryptContents = sl_true;
+								Base::copyMemory(encryptionKey, key, lengthKey);
+								lenEncryptionKey = lengthKey;
+								return sl_true;
+							}
+						}
+					}
+					return sl_false;
+				}
+
+			};
+
+			class BufferedReaderBase
 			{
 			public:
 				BufferedSeekableReader reader;
@@ -316,18 +531,18 @@ namespace slib
 
 			};
 
-			class SLIB_EXPORT MemoryParserBase
+			class MemoryReaderBase
 			{
 			public:
-				sl_char8* buf;
-				sl_uint32 size;
-				Ref<Referable> ref;
+				sl_char8* source;
+				sl_uint32 sizeSource;
+				Ref<Referable> refSource;
 
 			public:
 				sl_bool readChar(sl_char8& ch)
 				{
-					if (pos < size) {
-						ch = buf[pos++];
+					if (pos < sizeSource) {
+						ch = source[pos++];
 						return sl_true;
 					} else {
 						return sl_false;
@@ -336,8 +551,8 @@ namespace slib
 
 				sl_bool peekChar(sl_char8& ch)
 				{
-					if (pos < size) {
-						ch = buf[pos];
+					if (pos < sizeSource) {
+						ch = source[pos];
 						return sl_true;
 					}
 					return sl_false;
@@ -345,12 +560,12 @@ namespace slib
 
 				sl_reg read(void* _out, sl_size nOut)
 				{
-					if (pos < size) {
-						if (pos + nOut > size) {
-							nOut = size - pos;
+					if (pos < sizeSource) {
+						if (pos + nOut > sizeSource) {
+							nOut = sizeSource - pos;
 						}
 						if (nOut) {
-							Base::copyMemory(_out, buf + pos, nOut);
+							Base::copyMemory(_out, source + pos, nOut);
 							pos += (sl_uint32)nOut;
 						}
 						return nOut;
@@ -365,7 +580,7 @@ namespace slib
 
 				sl_bool setPosition(sl_size _pos)
 				{
-					if (_pos <= size) {
+					if (_pos <= sizeSource) {
 						pos = (sl_uint32)_pos;
 						return sl_true;
 					}
@@ -380,10 +595,10 @@ namespace slib
 				sl_reg readBuffer(sl_char8*& _out)
 				{
 					sl_size _pos = pos;
-					if (_pos < size) {
-						_out = buf + _pos;
-						pos = size;
-						return size - _pos;
+					if (_pos < sizeSource) {
+						_out = source + _pos;
+						pos = sizeSource;
+						return sizeSource - _pos;
 					}
 					return SLIB_IO_ERROR;
 				}
@@ -393,22 +608,22 @@ namespace slib
 					sl_char8* bufStart;
 					sl_size startFind;
 					if (_startFind >= 0) {
-						sl_size startFind = _startFind;
-						if (startFind > size) {
+						startFind = _startFind;
+						if (startFind > sizeSource) {
 							return -1;
 						}
 					} else {
-						startFind = size;
+						startFind = sizeSource;
 					}
 					if (sizeFind >= startFind) {
-						bufStart = buf;
+						bufStart = source;
 						sizeFind = startFind;
 					} else {
-						bufStart = buf + startFind - sizeFind;
+						bufStart = source + startFind - sizeFind;
 					}
 					sl_char8* p = (sl_char8*)(Base::findMemoryBackward(bufStart, sizeFind, str.getData(), str.getLength()));
 					if (p) {
-						return p - buf;
+						return p - source;
 					} else {
 						return -1;
 					}
@@ -419,20 +634,18 @@ namespace slib
 
 			};
 
-			template <class BASE>
-			class SLIB_EXPORT Parser : public BASE
+			template <class READER_BASE>
+			class Parser : public ParserBase, public READER_BASE
 			{
 			public:
-				Ref<Context> context;
-
-				using BASE::readChar;
-				using BASE::peekChar;
-				using BASE::read;
-				using BASE::getPosition;
-				using BASE::setPosition;
-				using BASE::movePosition;
-				using BASE::readBuffer;
-				using BASE::findBackward;
+				using READER_BASE::readChar;
+				using READER_BASE::peekChar;
+				using READER_BASE::read;
+				using READER_BASE::getPosition;
+				using READER_BASE::setPosition;
+				using READER_BASE::movePosition;
+				using READER_BASE::readBuffer;
+				using READER_BASE::findBackward;
 
 			public:
 				sl_bool peekCharAndEquals(sl_char8 _ch)
@@ -875,12 +1088,7 @@ namespace slib
 
 				sl_bool getStreamLength(const PdfDictionary& properties, sl_uint32& _out)
 				{
-					PdfObject objLength = properties.getValue_NoLock(g_strLength);
-					PdfReference ref;
-					if (objLength.getReference(ref)) {
-						objLength = getObject(ref);
-					}
-					return objLength.getUint(_out);
+					return getObject(properties.getValue_NoLock(g_strLength)).getUint(_out);
 				}
 
 				PdfDictionary readDictionary()
@@ -1126,8 +1334,8 @@ namespace slib
 				{
 					RC4 rc;
 					sl_uint8 key[21];
-					sl_uint32 l = context->lenEncryptionKey;
-					Base::copyMemory(key, context->encryptionKey, l);
+					sl_uint32 l = lenEncryptionKey;
+					Base::copyMemory(key, encryptionKey, l);
 					MIO::writeUint24LE(key + l, ref.objectNumber);
 					MIO::writeUint16LE(key + l + 3, (sl_uint16)(ref.generation));
 					l += 5;
@@ -1164,22 +1372,18 @@ namespace slib
 										if (stream.isNull()) {
 											return PdfObject();
 										}
-										if (context.isNotNull()) {
-											if (context->flagEncrypt) {
-												decrypt(outRef, content.getData(), content.getSize());
-											}
+										if (flagDecryptContents) {
+											decrypt(outRef, content.getData(), content.getSize());
 										}
 										stream->properties = Move(properties);
 										stream->content = Move(content);
 										obj = PdfObject(Move(stream));
 									}
 								} else {
-									if (context.isNotNull()) {
-										if (context->flagEncrypt) {
-											const String& str = obj.getString();
-											if (str.isNotNull()) {
-												decrypt(outRef, str.getData(), str.getLength());
-											}
+									if (flagDecryptContents) {
+										const String& str = obj.getString();
+										if (str.isNotNull()) {
+											decrypt(outRef, str.getData(), str.getLength());
 										}
 									}
 								}
@@ -1192,7 +1396,7 @@ namespace slib
 					return PdfObject();
 				}
 
-				PdfObject getObject(const PdfReference& ref)
+				PdfObject getObject(const PdfReference& ref) override
 				{
 					if (context.isNull()) {
 						return PdfObject();
@@ -1232,13 +1436,13 @@ namespace slib
 					return PdfObject();
 				}
 
-				PdfObject getObject(const PdfObject& objRef)
+				PdfObject getObject(const PdfObject& obj) override
 				{
 					PdfReference ref;
-					if (objRef.getReference(ref)) {
+					if (obj.getReference(ref)) {
 						return getObject(ref);
 					}
-					return PdfObject();
+					return obj;
 				}
 
 				Ref<ObjectStream> getObjectStream(const PdfReference& ref)
@@ -1276,9 +1480,9 @@ namespace slib
 													return sl_null;
 												}
 											}
-											Parser<MemoryParserBase> parser;
-											parser.buf = (sl_char8*)(content.getData());
-											parser.size = (sl_uint32)(content.getSize());
+											Parser<MemoryReaderBase> parser;
+											parser.source = (sl_char8*)(content.getData());
+											parser.sizeSource = (sl_uint32)(content.getSize());
 											parser.context = context;
 											for (sl_uint32 i = 0; i < nObjects; i++) {
 												if (!(parser.skipWhitespaces())) {
@@ -1317,39 +1521,26 @@ namespace slib
 					return sl_null;
 				}
 
-			};
-
-			typedef Parser<BufferedParserBase> BufferedParser;
-			typedef Parser<MemoryParserBase> MemoryParser;
-
-			SLIB_INLINE static BufferedParser* GetParser(const Ref<Referable>& ref)
-			{
-				return (CRefT<BufferedParser>*)(ref.get());
-			}
-
-			class DocumentHelper
-			{
-			public:
-				static PdfDictionary readTrailer(BufferedParser* parser)
+				PdfDictionary readTrailer()
 				{
-					if (parser->readWordAndEquals(StringView::literal("trailer"))) {
-						if (parser->skipWhitespaces()) {
-							return parser->readDictionary();
+					if (readWordAndEquals(StringView::literal("trailer"))) {
+						if (skipWhitespaces()) {
+							return readDictionary();
 						}
 					}
 					return PdfDictionary();
 				}
 
-				static sl_bool readCrossReferenceEntry(BufferedParser* parser, CrossReferenceEntry& entry)
+				sl_bool readCrossReferenceEntry(CrossReferenceEntry& entry)
 				{
-					if (parser->readUint(entry.offset)) {
-						if (parser->skipWhitespaces()) {
+					if (readUint(entry.offset)) {
+						if (skipWhitespaces()) {
 							sl_uint32 gen;
-							if (parser->readUint(gen)) {
+							if (readUint(gen)) {
 								entry.generation = gen;
-								if (parser->skipWhitespaces()) {
+								if (skipWhitespaces()) {
 									sl_char8 ch;
-									if (parser->readChar(ch)) {
+									if (readChar(ch)) {
 										if (ch == 'f') {
 											entry.type = CrossReferenceEntryType::Free;
 										} else if (ch == 'n') {
@@ -1357,7 +1548,7 @@ namespace slib
 										} else {
 											return sl_false;
 										}
-										if (parser->peekChar(ch)) {
+										if (peekChar(ch)) {
 											if (!(IsWhitespace(ch))) {
 												return sl_false;
 											}
@@ -1371,19 +1562,19 @@ namespace slib
 					return sl_false;
 				}
 
-				static sl_bool readCrossReferenceSection(BufferedParser* parser, CrossReferenceTable& table)
+				sl_bool readCrossReferenceSection(CrossReferenceTable& table)
 				{
 					sl_uint32 firstObjectNumber;
-					if (parser->readUint(firstObjectNumber)) {
-						if (parser->skipWhitespaces()) {
+					if (readUint(firstObjectNumber)) {
+						if (skipWhitespaces()) {
 							sl_uint32 count;
-							if (parser->readUint(count)) {
+							if (readUint(count)) {
 								for (sl_uint32 i = 0; i < count; i++) {
-									if (!(parser->skipWhitespaces())) {
+									if (!(skipWhitespaces())) {
 										return sl_false;
 									}
 									CrossReferenceEntry entry;
-									if (!(readCrossReferenceEntry(parser, entry))) {
+									if (!(readCrossReferenceEntry(entry))) {
 										return sl_false;
 									}
 									table.context->setReferenceEntry(firstObjectNumber + i, entry);
@@ -1395,27 +1586,27 @@ namespace slib
 					return sl_false;
 				}
 
-				static sl_bool readCrossReferenceTable(BufferedParser* parser, CrossReferenceTable& table)
+				sl_bool readCrossReferenceTable(CrossReferenceTable& table)
 				{
 					sl_char8 ch;
-					if (!(parser->peekChar(ch))) {
+					if (!(peekChar(ch))) {
 						return sl_false;
 					}
 					if (ch == 'x') {
 						// cross reference table
-						if (parser->readWordAndEquals(StringView::literal("xref"))) {
+						if (readWordAndEquals(StringView::literal("xref"))) {
 							for (;;) {
-								if (!(parser->skipWhitespaces())) {
+								if (!(skipWhitespaces())) {
 									return sl_false;
 								}
-								if (!(parser->peekChar(ch))) {
+								if (!(peekChar(ch))) {
 									break;
 								}
 								if (ch == 't') {
-									table.trailer = readTrailer(parser);
+									table.trailer = readTrailer();
 									return table.trailer.isNotNull();
 								} else if (ch >= '0' && ch <= '9') {
-									if (!(readCrossReferenceSection(parser, table))) {
+									if (!(readCrossReferenceSection(table))) {
 										return sl_false;
 									}
 								} else {
@@ -1427,7 +1618,7 @@ namespace slib
 					} else {
 						// cross reference stream
 						PdfReference refStream;
-						const Ref<PdfStream> stream = parser->readObject(refStream).getStream();
+						const Ref<PdfStream> stream = readObject(refStream).getStream();
 						if (stream.isNotNull()) {
 							if (stream->getProperty(g_strType).equalsName(StringView::literal("XRef"))) {
 								sl_uint32 size;
@@ -1499,16 +1690,16 @@ namespace slib
 					return sl_false;
 				}
 
-				static sl_bool readStartXref(BufferedParser* parser, sl_uint32& posStartXref, sl_uint32& posXref)
+				sl_bool readStartXref(sl_uint32& posStartXref, sl_uint32& posXref)
 				{
-					sl_reg pos = parser->findBackward(StringView::literal("startxref"), -1, 4096);
+					sl_reg pos = findBackward(StringView::literal("startxref"), -1, 4096);
 					if (pos > 0) {
-						if (parser->setPosition(pos - 1)) {
-							if (parser->readCharAndIsWhitespace()) {
-								if (parser->readWordAndEquals(StringView::literal("startxref"))) {
+						if (setPosition(pos - 1)) {
+							if (readCharAndIsWhitespace()) {
+								if (readWordAndEquals(StringView::literal("startxref"))) {
 									posStartXref = (sl_uint32)pos;
-									if (parser->skipWhitespaces()) {
-										if (parser->readUint(posXref)) {
+									if (skipWhitespaces()) {
+										if (readUint(posXref)) {
 											return sl_true;
 										}
 									}
@@ -1519,23 +1710,27 @@ namespace slib
 					return sl_false;
 				}
 
-				static PdfDictionary readLastTrailer(BufferedParser* parser, sl_uint32 startXref)
+				PdfDictionary readLastTrailer(sl_uint32 startXref)
 				{
-					sl_reg pos = parser->findBackward(StringView::literal("trailer"), startXref, 4096);
+					sl_reg pos = findBackward(StringView::literal("trailer"), startXref, 4096);
 					if (pos > 0) {
-						if (parser->setPosition(pos - 1)) {
-							if (parser->readCharAndIsWhitespace()) {
-								return readTrailer(parser);
+						if (setPosition(pos - 1)) {
+							if (readCharAndIsWhitespace()) {
+								return readTrailer();
 							}
 						}
 					}
 					return PdfDictionary();
 				}
 
-				static sl_bool readDocument(BufferedParser* parser, PdfDocument& doc)
+				sl_bool readDocument() override
 				{
+					context = new Context;
+					if (context.isNull()) {
+						return sl_false;
+					}
 					sl_char8 version[8];
-					if (parser->read(version, 8) != 8) {
+					if (read(version, 8) != 8) {
 						return sl_false;
 					}
 					if (version[0] != '%' || version[1] != 'P' || version[2] != 'D' || version[3] != 'F' || version[4] != '-' || version[6] != '.') {
@@ -1548,38 +1743,38 @@ namespace slib
 						return sl_false;
 					}
 
-					doc.majorVersion = SLIB_CHAR_DIGIT_TO_INT(version[5]);
-					doc.minorVersion = SLIB_CHAR_DIGIT_TO_INT(version[7]);
+					majorVersion = SLIB_CHAR_DIGIT_TO_INT(version[5]);
+					minorVersion = SLIB_CHAR_DIGIT_TO_INT(version[7]);
 
 					// read last trailer and initialize reference table
 					{
 						sl_uint32 posStartXref, posXref;
-						if (!(readStartXref(parser, posStartXref, posXref))) {
+						if (!(readStartXref(posStartXref, posXref))) {
 							return sl_false;
 						}
-						doc.lastTrailer = readLastTrailer(parser, posStartXref);
-						if (doc.lastTrailer.isNull()) {
+						lastTrailer = readLastTrailer(posStartXref);
+						if (lastTrailer.isNull()) {
 							return sl_false;
 						}
 
 						sl_uint32 countTotalRef = 0;
-						doc.lastTrailer.getValue_NoLock(g_strSize).getUint(countTotalRef);
+						lastTrailer.getValue_NoLock(g_strSize).getUint(countTotalRef);
 						if (!countTotalRef) {
 							return sl_false;
 						}
-						parser->context->references = Array<CrossReferenceEntry>::create(countTotalRef);
-						if (parser->context->references.isNull()) {
+						context->references = Array<CrossReferenceEntry>::create(countTotalRef);
+						if (context->references.isNull()) {
 							return sl_false;
 						}
-						Base::zeroMemory(parser->context->references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
+						Base::zeroMemory(context->references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
 
 						for (;;) {
-							if (!(parser->setPosition(posXref))) {
+							if (!(setPosition(posXref))) {
 								return sl_false;
 							}
 							CrossReferenceTable subTable;
-							subTable.context = parser->context;
-							if (!(readCrossReferenceTable(parser, subTable))) {
+							subTable.context = context;
+							if (!(readCrossReferenceTable(subTable))) {
 								return sl_false;
 							}
 							PdfObject prev = subTable.trailer.getValue_NoLock(g_strPrev);
@@ -1592,32 +1787,34 @@ namespace slib
 						}
 					}
 
-					doc.catalog = parser->getObject(doc.lastTrailer.getValue_NoLock(g_strRoot)).getDictionary();
-					if (doc.catalog.isNull()) {
+					catalog = getObject(lastTrailer.getValue_NoLock(g_strRoot)).getDictionary();
+					if (catalog.isNull()) {
 						return sl_false;
 					}
-					doc.encrypt = parser->getObject(doc.lastTrailer.getValue_NoLock(g_strEncrypt)).getDictionary();
-					
+					encrypt = getObject(lastTrailer.getValue_NoLock(g_strEncrypt)).getDictionary();
+
 					// loading page tree
 					{
-						PdfDictionary attrs = parser->getObject(doc.catalog.getValue_NoLock(g_strPages)).getDictionary();
+						PdfDictionary attrs = getObject(catalog.getValue_NoLock(g_strPages)).getDictionary();
 						if (attrs.isNotNull()) {
-							Ref<PageTreeParent> pageTree = new PageTreeParent;
+							pageTree = new PageTreeParent;
 							if (pageTree.isNotNull()) {
 								pageTree->attributes = Move(attrs);
-								parser->context->pageTree = Move(pageTree);
 							}
 						}
+					}
+					if (encrypt.isNotNull()) {
+						setUserPassword(sl_null);
 					}
 					return sl_true;
 				}
 
-				static List< Ref<PdfPageTreeItem> > buildPageTreeKids(BufferedParser* parser, const PdfDictionary& attributes)
+				List< Ref<PdfPageTreeItem> > buildPageTreeKids(const PdfDictionary& attributes)
 				{
 					List< Ref<PdfPageTreeItem> > ret;
 					ListElements<PdfObject> kidIds(attributes.getValue_NoLock(g_strKids).getArray());
 					for (sl_size i = 0; i < kidIds.count; i++) {
-						PdfDictionary props = parser->getObject(kidIds[i]).getDictionary();
+						PdfDictionary props = getObject(kidIds[i]).getDictionary();
 						Ref<PdfPageTreeItem> item;
 						if (props.getValue_NoLock(g_strType).equalsName(StringView::literal("Page"))) {
 							item = new PdfPage;
@@ -1632,13 +1829,13 @@ namespace slib
 					return ret;
 				}
 
-				static Ref<PdfPage> getPage(BufferedParser* parser, PageTreeParent* parent, sl_uint32 index)
+				Ref<PdfPage> getPage(PageTreeParent* parent, sl_uint32 index)
 				{
 					if (index >= parent->getPagesCount()) {
 						return sl_null;
 					}
 					if (!(parent->flagKids)) {
-						parent->kids = buildPageTreeKids(parser, parent->attributes);
+						parent->kids = buildPageTreeKids(parent->attributes);
 						parent->flagKids = sl_true;
 					}
 					sl_uint32 n = 0;
@@ -1655,7 +1852,7 @@ namespace slib
 							PageTreeParent* pItem = (PageTreeParent*)(item.get());
 							sl_uint32 m = pItem->getPagesCount();
 							if (index < n + m) {
-								return getPage(parser, pItem, index - n);
+								return getPage(pItem, index - n);
 							}
 							n += m;
 						}
@@ -1663,186 +1860,39 @@ namespace slib
 					return sl_null;
 				}
 
-				static Ref<PdfPage> getPage(BufferedParser* parser, sl_uint32 index)
+				Ref<PdfPage> getPage(sl_uint32 index) override
 				{
-					PageTreeParent* tree = parser->context->pageTree.get();
+					PageTreeParent* tree = pageTree.get();
 					if (tree) {
-						return getPage(parser, tree, index);
+						return getPage(tree, index);
 					}
 					return sl_null;
 				}
 
-				static Memory getPageContent(BufferedParser* parser, const PdfObject& contents)
+				Memory getPageContent(const PdfObject& contents) override
 				{
 					PdfArray array = contents.getArray();
 					if (array.isNotNull()) {
 						MemoryBuffer buf;
 						ListElements<PdfObject> items(array);
 						for (sl_size i = 0; i < items.count; i++) {
-							buf.add(parser->getObject(items[i]).getStreamContent());
+							buf.add(getObject(items[i]).getStreamContent());
 						}
 						return buf.merge();
 					} else {
-						return parser->getObject(contents).getStreamContent();
-					}
-				}
-
-				static Memory applyFilter(const Memory& input, const StringView& filter)
-				{
-					if (filter == StringView::literal("FlateDecode") || filter == StringView::literal("Fl")) {
-						return Zlib::decompress(input.getData(), input.getSize());
-					} else if (filter == StringView::literal("ASCIIHexDecode") || filter == StringView::literal("AHx")) {
-						sl_size len = input.getSize();
-						Memory ret = Memory::create((len + 1) >> 1);
-						if (ret.isNotNull()) {
-							sl_char8* str = (sl_char8*)(input.getData());
-							sl_uint8* dst = (sl_uint8*)(ret.getData());
-							sl_uint8* cur = dst;
-							sl_bool flagFirstHex = sl_true;
-							sl_uint8 firstHex = 0;
-							for (sl_size i = 0; i < len; i++) {
-								sl_char8 ch = str[i];
-								sl_uint8 h = SLIB_CHAR_HEX_TO_INT(ch);
-								if (h < 16) {
-									if (flagFirstHex) {
-										firstHex = h;
-										flagFirstHex = sl_false;
-									} else {
-										*(cur++) = (firstHex << 4) | h;
-										flagFirstHex = sl_true;
-									}
-								} else if (!(IsWhitespace(ch))) {
-									return sl_null;
-								}
-							}
-							if (!flagFirstHex) {
-								*(cur++) = firstHex << 4;
-							}
-							return ret.sub(0, cur - dst);
-						}
-					} else if (filter == StringView::literal("ASCII85Decode") || filter == StringView::literal("A85")) {
-						sl_size len = input.getSize();
-						CList<sl_uint8> list;
-						if (list.setCapacity(((len + 4) / 5) << 2)) {
-							sl_char8* str = (sl_char8*)(input.getData());
-							sl_uint32 indexElement = 0;
-							sl_uint32 dword = 0;
-							for (sl_size i = 0; i < len; i++) {
-								sl_uint8 v = str[i];
-								if (v == 'z') {
-									if (indexElement) {
-										return sl_null;
-									} else {
-										list.addElements_NoLock(4, 0);
-									}
-								} else {
-									if (v >= '!' && v <= 'u') {
-										v -= '!';
-										dword = dword * 85 + v;
-										indexElement++;
-										if (indexElement >= 5) {
-											sl_uint8 bytes[4];
-											MIO::writeUint32BE(bytes, dword);
-											list.addElements_NoLock(bytes, 4);
-											indexElement = 0;
-											dword = 0;
-										}
-									} else if (v == '~') {
-										if (i + 2 == len) {
-											if (str[i + 1] == '>') {
-												if (indexElement == 1) {
-													return sl_null;
-												}
-												if (indexElement) {
-													for (sl_uint32 i = 0; i < indexElement; i++) {
-														dword *= 85;
-													}
-													sl_uint8 bytes[4];
-													MIO::writeUint32BE(bytes, dword);
-													list.addElements_NoLock(bytes, indexElement - 1);
-												}
-												return Memory::create(list.getData(), list.getCount());
-											}
-										}
-										return sl_null;
-									} else if (!(IsWhitespace(v))) {
-										return sl_null;
-									}
-								}
-							}
-						}
-					}
-					return sl_null;
-				}
-
-				static void computeEncryptionKey(sl_uint8* outKey, sl_uint32 lenKey, const StringView& password, sl_uint32 revision, const String& ownerHash, sl_uint32 permission, const String& fileId)
-				{
-					MD5 hash;
-					hash.start();
-					sl_size lenPassword = password.getLength();
-					if (lenPassword > 32) {
-						lenPassword = 32;
-					}
-					if (lenPassword) {
-						hash.update(password.getData(), lenPassword);
-					}
-					if (lenPassword < 32) {
-						hash.update(g_encryptionPad, 32 - lenPassword);
-					}
-					hash.update(ownerHash.getData(), ownerHash.getLength());
-					sl_uint8 bufPermission[4];
-					MIO::writeUint32LE(bufPermission, permission);
-					hash.update(bufPermission, 4);
-					if (fileId.isNotEmpty()) {
-						hash.update(fileId.getData(), fileId.getLength());
-					}
-					if (revision >= 4) {
-						static sl_uint8 k[] = { 0xff, 0xff, 0xff, 0xff };
-						hash.update(k, 4);
-					}
-					sl_uint8 h[16];
-					hash.finish(h);
-					if (lenKey > 16) {
-						lenKey = 16;
-					}
-					if (revision >= 3) {
-						for (sl_uint32 i = 0; i < 50; i++) {
-							MD5::hash(h, lenKey, h);
-						}
-					}
-					Base::copyMemory(outKey, h, lenKey);
-				}
-
-				static void computeUserPasswordHash(sl_uint8* outHash, const sl_uint8* encryptionKey, sl_uint32 lengthKey, sl_uint32 revision, const String& fileId)
-				{
-					if (revision >= 3) {
-						MD5 hash;
-						hash.start();
-						hash.update(g_encryptionPad, 32);
-						if (fileId.isNotEmpty()) {
-							hash.update(fileId.getData(), fileId.getLength());
-						}
-						sl_uint8 h[16];
-						hash.finish(h);
-						RC4 rc;
-						rc.setKey(encryptionKey, lengthKey);
-						rc.encrypt(h, outHash, 16);
-						for (sl_uint8 i = 1; i <= 19; i++) {
-							sl_uint8 k[16];
-							for (sl_uint32 j = 0; j < lengthKey; j++) {
-								k[j] = encryptionKey[j] ^ i;
-							}
-							rc.setKey(k, lengthKey);
-							rc.encrypt(outHash, outHash, 16);
-						}
-					} else {
-						RC4 rc;
-						rc.setKey(encryptionKey, lengthKey);
-						rc.encrypt(g_encryptionPad, outHash, 32);
+						return getObject(contents).getStreamContent();
 					}
 				}
 
 			};
+
+			typedef Parser<BufferedReaderBase> BufferedParser;
+			typedef Parser<MemoryReaderBase> MemoryParser;
+
+			SLIB_INLINE static ParserBase* GetParser(const Ref<Referable>& ref)
+			{
+				return (ParserBase*)(ref.get());
+			}
 
 		}
 	}
@@ -2086,7 +2136,7 @@ namespace slib
 			for (sl_size i = 0; i < filters.count; i++) {
 				String filter = filters[i].getName();
 				if (filter.isNotNull()) {
-					ret = DocumentHelper::applyFilter(ret, filter);
+					ret = ApplyFilter(ret, filter);
 				} else {
 					return sl_null;
 				}
@@ -2095,7 +2145,7 @@ namespace slib
 		} else {
 			String filter = objFilter.getName();
 			if (filter.isNotNull()) {
-				return DocumentHelper::applyFilter(content, filter);
+				return ApplyFilter(content, filter);
 			}
 		}
 		return sl_null;
@@ -2378,7 +2428,7 @@ namespace slib
 		return m_flagPage;
 	}
 
-	PdfObject PdfPageTreeItem::getAttribute(const String& name) noexcept
+	PdfObject PdfPageTreeItem::getAttribute(const String& name)
 	{
 		PdfObject ret = attributes.getValue_NoLock(name);
 		if (ret.isNotUndefined()) {
@@ -2387,41 +2437,6 @@ namespace slib
 		Ref<PdfPageTreeItem> _parent(parent);
 		if (_parent.isNotNull()) {
 			return _parent->getAttribute(name);
-		}
-		return PdfObject();
-	}
-
-	PdfObject PdfPageTreeItem::getResources(const String& type) noexcept
-	{
-		PdfDictionary dict = attributes.getValue_NoLock(g_strResources).getDictionary();
-		if (dict.isNotNull()) {
-			PdfObject ret = dict.getValue_NoLock(type);
-			if (ret.isNotUndefined()) {
-				return ret;
-			}
-		}
-		Ref<PdfPageTreeItem> _parent(parent);
-		if (_parent.isNotNull()) {
-			return _parent->getResources(type);
-		}
-		return PdfObject();
-	}
-
-	PdfObject PdfPageTreeItem::getResource(const String& type, const String& name) noexcept
-	{
-		PdfDictionary dict = attributes.getValue_NoLock(g_strResources).getDictionary();
-		if (dict.isNotNull()) {
-			PdfDictionary resources = dict.getValue_NoLock(type).getDictionary();
-			if (resources.isNotNull()) {
-				PdfObject ret = resources.getValue_NoLock(name);
-				if (ret.isNotUndefined()) {
-					return ret;
-				}
-			}
-		}
-		Ref<PdfPageTreeItem> _parent(parent);
-		if (_parent.isNotNull()) {
-			return _parent->getResource(type, name);
 		}
 		return PdfObject();
 	}
@@ -2449,9 +2464,9 @@ namespace slib
 		Ref<PdfDocument> document(m_document);
 		if (document.isNotNull()) {
 			ObjectLocker locker(document.get());
-			BufferedParser* parser = GetParser(document->m_parser);
+			ParserBase* parser = GetParser(document->m_parser);
 			if (parser) {
-				return DocumentHelper::getPageContent(parser, attributes.getValue_NoLock(g_strContents));
+				return parser->getPageContent(attributes.getValue_NoLock(g_strContents));
 			}
 		}
 		return sl_null;
@@ -2479,8 +2494,8 @@ namespace slib
 	{
 		List<PdfOperation> ret;
 		MemoryParser parser;
-		parser.buf = (sl_char8*)data;
-		parser.size = (sl_uint32)size;
+		parser.source = (sl_char8*)data;
+		parser.sizeSource = (sl_uint32)size;
 		PdfOperation opCurrent;
 		for (;;) {
 			if (!(parser.skipWhitespaces())) {
@@ -2502,34 +2517,72 @@ namespace slib
 		return ret;
 	}
 
-	PdfDictionary PdfPage::getFontResourceAsDictionary(const String& name)
+	PdfObject PdfPage::getResources(const String& type)
 	{
 		Ref<PdfDocument> doc(m_document);
 		if (doc.isNotNull()) {
-			PdfReference ref;
-			if (getResource(g_strFont, name).getReference(ref)) {
-				return doc->getObject(ref).getDictionary();
-			}
-		}
-		return sl_null;
-	}
-
-	PdfObject PdfPage::getExternalObjectResource(const String& name)
-	{
-		Ref<PdfDocument> doc(m_document);
-		if (doc.isNotNull()) {
-			PdfReference ref;
-			if (getResource(g_strXObject, name).getReference(ref)) {
-				return doc->getObject(ref);
+			ObjectLocker locker(doc.get());
+			ParserBase* parser = GetParser(doc->m_parser);
+			if (parser) {
+				Ref<PdfPageTreeItem> item = this;
+				for (;;) {
+					PdfDictionary dict = parser->getObject(item->attributes.getValue_NoLock(g_strResources)).getDictionary();
+					if (dict.isNotNull()) {
+						PdfObject ret = dict.getValue_NoLock(type);
+						if (ret.isNotUndefined()) {
+							return parser->getObject(ret);
+						}
+					}
+					item = item->parent;
+					if (item.isNull()) {
+						break;
+					}
+				}
 			}
 		}
 		return PdfObject();
 	}
 
+	PdfObject PdfPage::getResource(const String& type, const String& name)
+	{
+		Ref<PdfDocument> doc(m_document);
+		if (doc.isNotNull()) {
+			ObjectLocker locker(doc.get());
+			ParserBase* parser = GetParser(doc->m_parser);
+			if (parser) {
+				Ref<PdfPageTreeItem> item = this;
+				for (;;) {
+					PdfDictionary dict = parser->getObject(item->attributes.getValue_NoLock(g_strResources)).getDictionary();
+					if (dict.isNotNull()) {
+						PdfObject ret = dict.getValue_NoLock(type).getDictionary().getValue_NoLock(name);
+						if (ret.isNotUndefined()) {
+							return parser->getObject(ret);
+						}
+					}
+					item = item->parent;
+					if (item.isNull()) {
+						break;
+					}
+				}
+			}
+		}
+		return PdfObject();
+	}
+
+	PdfDictionary PdfPage::getFontResourceAsDictionary(const String& name)
+	{
+		return getResource(g_strFont, name).getDictionary();
+	}
+
+	PdfObject PdfPage::getExternalObjectResource(const String& name)
+	{
+		return getResource(g_strXObject, name);
+	}
+
 
 	SLIB_DEFINE_OBJECT(PdfDocument, Object)
 
-	PdfDocument::PdfDocument() : majorVersion(0), minorVersion(0), fileSize(0)
+	PdfDocument::PdfDocument(): fileSize(0)
 	{
 	}
 
@@ -2537,7 +2590,7 @@ namespace slib
 	{
 	}
 
-	sl_bool PdfDocument::openFile(const StringParam& filePath)
+	sl_bool PdfDocument::_openFile(const StringParam& filePath)
 	{
 		File file = File::openForRead(filePath);
 		if (file.isOpened()) {
@@ -2554,19 +2607,12 @@ namespace slib
 					}
 					fileSize = (sl_uint32)size;
 				}
-				Ref<Context> context = new Context;
-				if (context.isNotNull()) {
-					RefT<BufferedParser> parser = NewRefT<BufferedParser>();
-					if (parser.isNotNull()) {
-						parser->context = Move(context);
-						if (parser->reader.open(reader)) {
-							if (DocumentHelper::readDocument(parser.get(), *this)) {
-								m_parser = Move(parser);
-								if (isEncrypted()) {
-									setUserPassword(sl_null);
-								}
-								return sl_true;
-							}
+				Ref<BufferedParser> parser = New<BufferedParser>();
+				if (parser.isNotNull()) {
+					if (parser->reader.open(reader)) {
+						if (parser->readDocument()) {
+							m_parser = Move(parser);
+							return sl_true;
 						}
 					}
 				}
@@ -2575,21 +2621,75 @@ namespace slib
 		return sl_false;
 	}
 
+	Ref<PdfDocument> PdfDocument::openFile(const StringParam& filePath)
+	{
+		Ref<PdfDocument> doc = new PdfDocument;
+		if (doc.isNotNull()) {
+			if (doc->_openFile(filePath)) {
+				return doc;
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool PdfDocument::_openMemory(const Memory& mem)
+	{
+		if (mem.isNull()) {
+			return sl_false;
+		}
+		fileSize = (sl_uint32)(mem.getSize());
+		if (fileSize > MAX_PDF_FILE_SIZE) {
+			return sl_false;
+		}
+		Ref<MemoryParser> parser = New<MemoryParser>();
+		if (parser.isNotNull()) {
+			parser->source = (sl_char8*)(mem.getData());
+			parser->sizeSource = fileSize;
+			parser->refSource = mem.getRef();
+			if (parser->readDocument()) {
+				m_parser = Move(parser);
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	Ref<PdfDocument> PdfDocument::openMemory(const Memory& mem)
+	{
+		Ref<PdfDocument> doc = new PdfDocument;
+		if (doc.isNotNull()) {
+			if (doc->_openMemory(mem)) {
+				return doc;
+			}
+		}
+		return sl_null;
+	}
+
 	PdfObject PdfDocument::getObject(const PdfReference& ref)
 	{
 		ObjectLocker lock(this);
-		BufferedParser* parser = GetParser(m_parser);
+		ParserBase* parser = GetParser(m_parser);
 		if (parser) {
 			return parser->getObject(ref);
 		}
 		return PdfObject();
 	}
 
+	PdfObject PdfDocument::getObject(const PdfObject& refOrObj)
+	{
+		ObjectLocker lock(this);
+		ParserBase* parser = GetParser(m_parser);
+		if (parser) {
+			return parser->getObject(refOrObj);
+		}
+		return PdfObject();
+	}
+
 	sl_uint32 PdfDocument::getPagesCount()
 	{
-		BufferedParser* parser = GetParser(m_parser);
+		ParserBase* parser = GetParser(m_parser);
 		if (parser) {
-			PageTreeParent* tree = parser->context->pageTree.get();
+			PageTreeParent* tree = parser->pageTree.get();
 			if (tree) {
 				return tree->getPagesCount();
 			}
@@ -2600,9 +2700,9 @@ namespace slib
 	Ref<PdfPage> PdfDocument::getPage(sl_uint32 index)
 	{
 		ObjectLocker lock(this);
-		BufferedParser* parser = GetParser(m_parser);
+		ParserBase* parser = GetParser(m_parser);
 		if (parser) {
-			Ref<PdfPage> page = DocumentHelper::getPage(parser, index);
+			Ref<PdfPage> page = parser->getPage(index);
 			if (page.isNotNull()) {
 				page->m_document = this;
 				return page;
@@ -2613,15 +2713,19 @@ namespace slib
 
 	sl_bool PdfDocument::isEncrypted()
 	{
-		return encrypt.isNotNull();
+		ParserBase* parser = GetParser(m_parser);
+		if (parser) {
+			return parser->encrypt.isNotNull();
+		}
+		return sl_false;
 	}
 
 	sl_bool PdfDocument::isAuthenticated()
 	{
 		if (isEncrypted()) {
-			BufferedParser* parser = GetParser(m_parser);
+			ParserBase* parser = GetParser(m_parser);
 			if (parser) {
-				return parser->context->flagEncrypt;
+				return parser->flagDecryptContents;
 			}
 			return sl_false;
 		} else {
@@ -2641,42 +2745,9 @@ namespace slib
 	sl_bool PdfDocument::setUserPassword(const StringView& password)
 	{
 		ObjectLocker lock(this);
-		BufferedParser* parser = GetParser(m_parser);
+		ParserBase* parser = GetParser(m_parser);
 		if (parser) {
-			if (encrypt.getValue_NoLock(g_strFilter).equalsName(StringView::literal("Standard"))) {
-				sl_uint32 encryptionAlgorithm = encrypt.getValue_NoLock(g_strV).getUint();
-				if (encryptionAlgorithm == 1) {
-					sl_uint32 lengthKey = encrypt.getValue_NoLock(g_strLength).getUint();
-					if (!lengthKey) {
-						lengthKey = 40;
-					}
-					if (lengthKey & 7) {
-						return sl_false;
-					}
-					lengthKey >>= 3;
-					if (lengthKey > 16) {
-						return sl_false;
-					}
-					String userHash = encrypt.getValue_NoLock(g_strU).getString();
-					if (userHash.getLength() != 32) {
-						return sl_false;
-					}
-					sl_uint32 revision = encrypt.getValue_NoLock(g_strR).getUint();
-					sl_uint32 permission = encrypt.getValue_NoLock(g_strP).getInt();
-					String ownerHash = encrypt.getValue_NoLock(g_strO).getString();
-					String fileId = lastTrailer.getValue_NoLock(g_strID).getArray().getValueAt_NoLock(0).getString();
-					sl_uint8 key[16];
-					DocumentHelper::computeEncryptionKey(key, lengthKey, password, revision, ownerHash, permission, fileId);
-					sl_uint8 userHashGen[32];
-					DocumentHelper::computeUserPasswordHash(userHashGen, key, lengthKey, revision, fileId);
-					if (Base::equalsMemory(userHashGen, userHash.getData(), 16)) {
-						parser->context->flagEncrypt = sl_true;
-						Base::copyMemory(parser->context->encryptionKey, key, lengthKey);
-						parser->context->lenEncryptionKey = lengthKey;
-						return sl_true;
-					}
-				}
-			}
+			return parser->setUserPassword(password);
 		}
 		return sl_false;
 	}

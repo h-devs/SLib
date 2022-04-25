@@ -27,11 +27,13 @@
 
 #include "../core/string.h"
 #include "../core/shared.h"
+#include "../core/expiring_map.h"
 
 namespace slib
 {
 
 	class PdfDocument;
+	class PdfPage;
 
 	class SLIB_EXPORT PdfView : public View
 	{
@@ -45,6 +47,8 @@ namespace slib
 	public:
 		sl_bool openFile(const StringParam& filePath);
 
+		sl_bool openMemory(const Memory& mem);
+
 		void close();
 
 		Ref<PdfDocument> getDocument();
@@ -52,9 +56,17 @@ namespace slib
 	protected:
 		void onDraw(Canvas* canvas) override;
 
+	protected:
+		void _setDocument(PdfDocument* doc);
+
+		Ref<PdfPage> _getPage(sl_uint32 no);
+
 	public:
 		String m_filePath;
 		AtomicRef<PdfDocument> m_doc;
+		ExpiringMap< sl_uint32, Ref<PdfPage> > m_pages;
+
+		sl_uint32 m_pageNo;
 
 	};
 
