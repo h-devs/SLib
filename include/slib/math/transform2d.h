@@ -133,6 +133,19 @@ namespace slib
 			scale(mat, v.x, v.y);
 		}
 
+		static void preScale(Matrix3T<T>& mat, T sx, T sy) noexcept
+		{
+			mat.m00 *= sx;
+			mat.m01 *= sx;
+			mat.m10 *= sy;
+			mat.m11 *= sy;
+		}
+
+		static void preScale(Matrix3T<T>& mat, const Vector2T<T>& v) noexcept
+		{
+			preScale(mat, v.x, v.y);
+		}
+
 		static void setRotation(Matrix3T<T>& _out, T radians) noexcept
 		{
 			T c = Math::cos(radians);
