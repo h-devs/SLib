@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_MATH_TRANSFORM2D
 
 #include "matrix3.h"
+#include "rectangle.h"
 
 namespace slib
 {
@@ -236,7 +237,37 @@ namespace slib
 			setTransformFromDirToDir(ret, from, to);
 			return ret;
 		}
-		
+
+		static void setTransformFromRectToRect(Matrix3T<T>& _out, const RectangleT<T>& from, const RectangleT<T>& to) noexcept
+		{
+			T widthFrom = from.getWidth();
+			T heightFrom = from.getHeight();
+			T widthTo = to.getWidth();
+			T heightTo = to.getHeight();
+			if (Math::isAlmostZero(widthFrom)) {
+				_out.m00 = 0;
+			} else {
+				_out.m00 = widthTo / widthFrom;
+			}
+			if (Math::isAlmostZero(heightFrom)) {
+				_out.m11 = 0;
+			} else {
+				_out.m11 = heightTo / heightFrom;
+			}
+			_out.m01 = 0; _out.m02 = 0;
+			_out.m10 = 0; _out.m12 = 0;
+			_out.m20 = to.left - from.left * _out.m00;
+			_out.m21 = to.top - from.top * _out.m11;
+			_out.m22 = 1;
+		}
+
+		static Matrix3T<T> getTransformMatrixFromRectToRect(const RectangleT<T>& from, const RectangleT<T>& to) noexcept
+		{
+			Matrix3T<T> ret;
+			setTransformFromRectToRect(ret, from, to);
+			return ret;
+		}
+
 		static Vector2T<T> getScaleFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
 			Vector2T<T> ret;
