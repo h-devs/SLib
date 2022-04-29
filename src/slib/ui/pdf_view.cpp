@@ -23,6 +23,7 @@
 #include "slib/ui/pdf_view.h"
 
 #include "slib/doc/pdf.h"
+#include "slib/graphics/font.h"
 
 namespace slib
 {
@@ -103,7 +104,28 @@ namespace slib
 	{
 		Ref<PdfPage> page = _getPage(m_pageNo);
 		if (page.isNotNull()) {
-			page->render(canvas, getBoundsInnerPadding());
+			PdfRenderParam param;
+			param.canvas = canvas;
+			param.bounds = getBoundsInnerPadding();
+			param.onLoadFont = [this](PdfReference& ref) -> String {
+				String name = "pdf_" + String::fromUint32(ref.objectNumber);
+				if (m_fonts.contains(ref.objectNumber)) {
+					return name;
+				}
+				Ref<PdfDocument> doc = m_doc;
+				if (doc.isNotNull()) {
+					Memory content = doc->getObject(ref).getStreamContent();
+					if (content.isNotNull()) {
+						Ref<EmbeddedFont> font = EmbeddedFont::load(content, name);
+						if (font.isNotNull()) {
+							m_fonts.put(ref.objectNumber, Move(font));
+							return name;
+						}
+					}
+				}
+				return sl_null;
+			};
+			page->render(param);
 		}
 	}
 

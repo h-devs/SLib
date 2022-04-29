@@ -34,6 +34,7 @@ namespace slib
 
 	class PdfDocument;
 	class PdfPage;
+	class EmbeddedFont;
 
 	class SLIB_EXPORT PdfView : public View
 	{
@@ -65,6 +66,7 @@ namespace slib
 		String m_filePath;
 		AtomicRef<PdfDocument> m_doc;
 		ExpiringMap< sl_uint32, Ref<PdfPage> > m_pages;
+		ExpiringMap< sl_uint32, Ref<EmbeddedFont> > m_fonts;
 
 		sl_uint32 m_pageNo;
 

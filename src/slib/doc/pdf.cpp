@@ -65,9 +65,26 @@ namespace slib
 			SLIB_STATIC_STRING(g_strKids, "Kids")
 			SLIB_STATIC_STRING(g_strContents, "Contents")
 			SLIB_STATIC_STRING(g_strID, "ID")
+			SLIB_STATIC_STRING(g_strMediaBox, "MediaBox")
+			SLIB_STATIC_STRING(g_strCropBox, "CropBox")
 			SLIB_STATIC_STRING(g_strResources, "Resources")
 			SLIB_STATIC_STRING(g_strXObject, "XObject")
 			SLIB_STATIC_STRING(g_strFont, "Font")
+			SLIB_STATIC_STRING(g_strSubtype, "Subtype")
+			SLIB_STATIC_STRING(g_strFontDescriptor, "FontDescriptor")
+			SLIB_STATIC_STRING(g_strFontName, "FontName")
+			SLIB_STATIC_STRING(g_strFontFamily, "FontFamily")
+			SLIB_STATIC_STRING(g_strAscent, "Ascent")
+			SLIB_STATIC_STRING(g_strDescent, "Descent")
+			SLIB_STATIC_STRING(g_strLeading, "Leading")
+			SLIB_STATIC_STRING(g_strFontWeight, "FontWeight")
+			SLIB_STATIC_STRING(g_strItalicAngle, "ItalicAngle")
+			SLIB_STATIC_STRING(g_strFontFile, "FontFile")
+			SLIB_STATIC_STRING(g_strFontFile2, "FontFile2")
+			SLIB_STATIC_STRING(g_strFontFile3, "FontFile3")
+			SLIB_STATIC_STRING(g_strFirstChar, "FirstChar")
+			SLIB_STATIC_STRING(g_strLastChar, "LastChar")
+			SLIB_STATIC_STRING(g_strWidths, "Widths")
 			SLIB_STATIC_STRING(g_strN, "N")
 			SLIB_STATIC_STRING(g_strO, "O")
 			SLIB_STATIC_STRING(g_strP, "P")
@@ -2004,6 +2021,7 @@ namespace slib
 		PdfObjectType type = getType();
 		if (type == PdfObjectType::Float) {
 			_out = m_var._m_float;
+			return sl_true;
 		} else if (type == PdfObjectType::Uint) {
 			_out = (float)(m_var._m_uint32);
 			return sl_true;
@@ -2107,6 +2125,28 @@ namespace slib
 		return PdfOperator::Unknown;
 	}
 
+	Rectangle PdfObject::getRectangle() const noexcept
+	{
+		Rectangle ret;
+		if (getRectangle(ret)) {
+			return ret;
+		}
+		return Rectangle::zero();
+	}
+
+	sl_bool PdfObject::getRectangle(Rectangle& outRect) const noexcept
+	{
+		ListElements<PdfObject> arr(getArray());
+		if (arr.count == 4) {
+			outRect.left = arr[0].getFloat();
+			outRect.top = arr[1].getFloat();
+			outRect.right = arr[2].getFloat();
+			outRect.bottom = arr[3].getFloat();
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 
 	SLIB_DEFINE_ROOT_OBJECT(PdfStream)
 
@@ -2149,6 +2189,20 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+	
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontDescriptor)
+
+	PdfFontDescriptor::PdfFontDescriptor(): ascent(0), descent(0), leading(0), weight(0), italicAngle(0), content(0, 0)
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
+
+	PdfFontResource::PdfFontResource() : firstChar(0), lastChar(0)
+	{
 	}
 
 
@@ -2517,6 +2571,20 @@ namespace slib
 		return ret;
 	}
 
+	Rectangle PdfPage::getMediaBox()
+	{
+		return getAttribute(g_strMediaBox).getRectangle();
+	}
+
+	Rectangle PdfPage::getCropBox()
+	{
+		Rectangle ret;
+		if (getAttribute(g_strCropBox).getRectangle(ret)) {
+			return ret;
+		}
+		return getMediaBox();
+	}
+
 	PdfObject PdfPage::getResources(const String& type)
 	{
 		Ref<PdfDocument> doc(m_document);
@@ -2572,6 +2640,48 @@ namespace slib
 	PdfDictionary PdfPage::getFontResourceAsDictionary(const String& name)
 	{
 		return getResource(g_strFont, name).getDictionary();
+	}
+
+	sl_bool PdfPage::getFontResource(const String& name, PdfFontResource& resource)
+	{
+		Ref<PdfDocument> doc(m_document);
+		if (doc.isNotNull()) {
+			PdfDictionary dict = getFontResourceAsDictionary(name);
+			if (dict.isNotNull()) {
+				const String& subType = dict.getValue_NoLock(g_strSubtype).getName();
+				if (subType == StringView::literal("Type1") || subType == StringView::literal("TrueType")) {
+					PdfDictionary desc = doc->getObject(dict.getValue_NoLock(g_strFontDescriptor)).getDictionary();
+					if (desc.isNotEmpty()) {
+						resource.family = desc.getValue_NoLock(g_strFontFamily).getString();
+						resource.ascent = desc.getValue_NoLock(g_strAscent).getFloat();
+						resource.descent = desc.getValue_NoLock(g_strDescent).getFloat();
+						resource.leading = desc.getValue_NoLock(g_strLeading).getFloat();
+						resource.weight = desc.getValue_NoLock(g_strFontWeight).getFloat();
+						resource.italicAngle = desc.getValue_NoLock(g_strItalicAngle).getFloat();
+						if (!(desc.getValue_NoLock(g_strFontFile).getReference(resource.content))) {
+							if (!(desc.getValue_NoLock(g_strFontFile2).getReference(resource.content))) {
+								desc.getValue_NoLock(g_strFontFile3).getReference(resource.content);
+							}
+						}
+
+						resource.firstChar = dict.getValue_NoLock(g_strFirstChar).getInt();
+						resource.lastChar = dict.getValue_NoLock(g_strLastChar).getInt();
+						ListElements<PdfObject> widths(dict.getValue_NoLock(g_strWidths).getArray());
+						if (widths.count == resource.lastChar - resource.firstChar + 1) {
+							resource.widths = Array<float>::create(widths.count);
+							if (resource.widths.isNotNull()) {
+								float* f = resource.widths.getData();
+								for (sl_size i = 0; i < widths.count; i++) {
+									f[i] = widths[i].getFloat();
+								}
+							}
+						}
+						return sl_true;
+					}
+				}
+			}
+		}
+		return sl_false;
 	}
 
 	PdfObject PdfPage::getExternalObjectResource(const String& name)

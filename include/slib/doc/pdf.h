@@ -294,6 +294,11 @@ namespace slib
 
 		PdfOperator getOperator() const noexcept;
 
+
+		Rectangle getRectangle() const noexcept;
+
+		sl_bool getRectangle(Rectangle& outRect) const noexcept;
+
 	private:
 		Variant m_var;
 
@@ -319,10 +324,30 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfFontResource
+	class SLIB_EXPORT PdfFontDescriptor
 	{
 	public:
-		Ref<Font> font;
+		String family;
+		float ascent;
+		float descent;
+		float leading;
+		float weight;
+		float italicAngle;
+		PdfReference content;
+
+	public:
+		PdfFontDescriptor();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFontDescriptor)
+
+	};
+
+	class SLIB_EXPORT PdfFontResource : public PdfFontDescriptor
+	{
+	public:
+		sl_int32 firstChar;
+		sl_int32 lastChar;
+		Array<float> widths;
 
 	public:
 		PdfFontResource();
@@ -368,6 +393,21 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfRenderParam
+	{
+	public:
+		Canvas* canvas;
+		Rectangle bounds;
+
+		Function<String(PdfReference& ref)> onLoadFont;
+
+	public:
+		PdfRenderParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+
+	};
+
 	class SLIB_EXPORT PdfPage : public PdfPageTreeItem
 	{
 		SLIB_DECLARE_OBJECT
@@ -386,7 +426,11 @@ namespace slib
 
 		static List<PdfOperation> parseContent(const void* data, sl_size size);
 
-		void render(Canvas* canvas, const Rectangle& rcDst);
+		void render(const PdfRenderParam& param);
+
+		Rectangle getMediaBox();
+
+		Rectangle getCropBox();
 
 		PdfObject getResources(const String& type);
 

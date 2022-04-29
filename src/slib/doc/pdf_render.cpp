@@ -28,6 +28,8 @@
 #include "slib/core/queue.h"
 #include "slib/math/transform2d.h"
 
+#define FONT_SCALE 72.0f
+
 namespace slib
 {
 
@@ -35,6 +37,23 @@ namespace slib
 	{
 		namespace pdf
 		{
+
+			class FontResource : public PdfFontResource
+			{
+			public:
+				Ref<Font> object;
+				float scale = 1;
+
+			public:
+				float getCharWidth(sl_int32 ch)
+				{
+					if (widths.isNotNull() && ch >= firstChar && ch <= lastChar) {
+						return widths[ch - firstChar] / 1000.0f;
+					}
+					return (object->measureText(StringView32((sl_char32*)&ch, 1))).x / FONT_SCALE;
+				}
+
+			};
 
 			class TextState
 			{
@@ -44,8 +63,7 @@ namespace slib
 				float widthScale = 1;
 				float leading = 0;
 				float rise = 0;
-				Ref<Font> font;
-				float fontScale = 1;
+				FontResource font;
 				Matrix3 matrix = Matrix3::identity();
 				Matrix3 lineMatrix = Matrix3::identity();
 
@@ -134,6 +152,7 @@ namespace slib
 			public:
 				Canvas* canvas;
 				PdfPage* page;
+				PdfRenderParam param;
 
 				Ref<GraphicsPath> path;
 				TextState text;
@@ -526,12 +545,39 @@ namespace slib
 					}
 				}
 
+				String loadEmbededFont(PdfReference& ref)
+				{
+					if (ref.objectNumber) {
+						return param.onLoadFont(ref);
+					}
+					return sl_null;
+				}
+
+				Ref<Font> loadFont(PdfFontResource& res)
+				{
+					FontDesc fd;
+					fd.familyName = loadEmbededFont(res.content);
+					if (fd.familyName.isNull()) {
+						fd.familyName = res.family;
+					}
+					fd.size = res.ascent * FONT_SCALE / 1000.0f;
+					fd.flagBold = res.weight >= 600.0f;
+					fd.flagItalic = Math::abs(res.italicAngle) > 10;
+					Ref<Font> font = Font::create(fd);
+					if (font.isNotNull()) {
+						return font;
+					}
+					fd.familyName = Font::getDefaultFontFamily();
+					return Font::create(fd);
+				}
+
 				void setFont(const String& name, float fontScale)
 				{
 					PdfFontResource res;
 					if (page->getFontResource(name, res)) {
-						text.font = Move(res.font);
-						text.fontScale = fontScale;
+						(PdfFontResource&)(text.font) = Move(res);
+						text.font.object = loadFont(text.font);
+						text.font.scale = fontScale;
 					}
 				}
 
@@ -550,18 +596,18 @@ namespace slib
 					CanvasStateScope scope(canvas);
 					Matrix3 mat = text.matrix;
 					Transform2::preTranslate(mat, 0, text.rise);
-					Transform2::preScale(mat, text.fontScale * text.widthScale, text.fontScale);
+					float scaleX = text.font.scale / FONT_SCALE;
+					Transform2::preScale(mat, scaleX * text.widthScale, - text.font.scale / FONT_SCALE);
 					canvas->concatMatrix(mat);
-					if (text.font.isNotNull()) {
-						sl_real x;
+					if (text.font.object.isNotNull()) {
+						sl_real x = 0;
 						for (sl_size i = 0; i < len; i++) {
 							sl_char32 ch = array[i];
-							if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							canvas->drawText(StringView32(&ch, 1), x / scaleX, 0, text.font.object, pen.color);
+							x += text.font.getCharWidth(ch) * text.font.scale;
+							if (ch == ' ') {
 								x += text.wordSpace;
 							} else {
-								canvas->drawText(StringView32(&ch, 1), x, 0, text.font, pen.color);
-								Size size = text.font->measureText(StringView32(&ch, 1));
-								x += size.x * text.fontScale;
 								x += text.charSpace;
 							}
 						}
@@ -571,7 +617,7 @@ namespace slib
 
 				void adjustTextMatrix(float f)
 				{
-					Transform2::preTranslate(text.matrix, f / 1000.0f * text.font->getSize() * text.widthScale, 0);
+					Transform2::preTranslate(text.matrix, - f / 1000.0f * text.font.scale * text.widthScale, 0);
 				}
 
 				void showText(ListElements<PdfObject> operands)
@@ -585,8 +631,12 @@ namespace slib
 
 				void showTextWithPositions(ListElements<PdfObject> operands)
 				{
-					for (sl_size i = 0; i < operands.count; i++) {
-						PdfObject& obj = operands[i];
+					if (operands.count != 1) {
+						return;
+					}
+					ListElements<PdfObject> args(operands[0].getArray());
+					for (sl_size i = 0; i < args.count; i++) {
+						PdfObject& obj = args[i];
 						const String& s = obj.getString();
 						if (s.isNotNull()) {
 							drawText(String32::from(s));
@@ -868,61 +918,38 @@ namespace slib
 
 	using namespace priv::pdf;
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
 
-	PdfFontResource::PdfFontResource()
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+
+	PdfRenderParam::PdfRenderParam()
 	{
 	}
 
-
-	void PdfPage::render(Canvas* canvas, const Rectangle& rcDst)
+	void PdfPage::render(const PdfRenderParam& param)
 	{
 		ListElements<PdfOperation> ops(getContent());
 		if (!(ops.count)) {
 			return;
 		}
+
+		Canvas* canvas = param.canvas;
+
 		Renderer renderer;
 		renderer.canvas = canvas;
 		renderer.page = this;
+		renderer.param = param;
+
+		Rectangle bounds = param.bounds;
+		canvas->fillRectangle(bounds, Color::White);
+		Swap(bounds.top, bounds.bottom);
+
+		CanvasStateScope scope(canvas);
+		canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(getMediaBox(), bounds));
+		canvas->clipToRectangle(getCropBox());
+
 		for (sl_size i = 0; i < ops.count; i++) {
 			renderer.render(ops[i]);
 		}
-	}
-
-	sl_bool PdfPage::getFontResource(const String& name, PdfFontResource& resource)
-	{
-		Ref<PdfDocument> doc(m_document);
-		if (doc.isNotNull()) {
-			PdfDictionary dict = getFontResourceAsDictionary(name);
-			if (dict.isNotNull()) {
-				SLIB_STATIC_STRING(idSubtype, "Subtype")
-				const String& subType = dict.getValue_NoLock(idSubtype).getName();
-				if (subType == StringView::literal("Type1") || subType == StringView::literal("TrueType")) {
-					SLIB_STATIC_STRING(idFontDescriptor, "FontDescriptor")
-					PdfDictionary desc = doc->getObject(dict.getValue_NoLock(idFontDescriptor)).getDictionary();
-					if (desc.isNotEmpty()) {
-						SLIB_STATIC_STRING(idFontName, "FontName")
-						SLIB_STATIC_STRING(idFontFamily, "FontFamily")
-						SLIB_STATIC_STRING(idAscent, "Ascent")
-						SLIB_STATIC_STRING(idFontWeight, "FontWeight")
-						SLIB_STATIC_STRING(idItalicAngle, "ItalicAngle")
-						FontDesc fd;
-						fd.familyName = desc.getValue_NoLock(idFontName).getString();
-						fd.size = desc.getValue_NoLock(idAscent).getFloat();
-						fd.flagBold = desc.getValue_NoLock(idFontWeight).getFloat() >= 600.0f;
-						fd.flagItalic = Math::abs(desc.getValue_NoLock(idItalicAngle).getFloat()) > 10;
-						Ref<Font> font = Font::create(fd);
-						if (font.isNull()) {
-							fd.familyName = Font::getDefaultFontFamily();
-							font = Font::create(fd);
-						}
-						resource.font = Move(font);
-						return resource.font.isNotNull();
-					}
-				}
-			}
-		}
-		return sl_false;
 	}
 
 }
