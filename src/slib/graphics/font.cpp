@@ -401,35 +401,6 @@ namespace slib
 		return m_platformObject;
 	}
 
-	sl_bool Font::addFontResource(const void* data, sl_size size)
-	{
-		return _addFontResource(data, size, sl_null);
-	}
-
-	sl_bool Font::addFontResource(const Memory& mem)
-	{
-		return _addFontResource(mem.getData(), mem.getSize(), sl_null);
-	}
-
-	Ref<Referable> Font::addFontResourceRef(const void* data, sl_size size)
-	{
-		Ref<Referable> ref;
-		if (_addFontResource(data, size, &ref)) {
-			return ref;
-		}
-		return sl_null;
-	}
-
-	Ref<Referable> Font::addFontResourceRef(const Memory& data)
-	{
-		Ref<Referable> ref;
-		if (_addFontResource(data.getData(), data.getSize(), &ref)) {
-			return ref;
-		}
-		return sl_null;
-	}
-
-
 #if !defined(SLIB_GRAPHICS_IS_GDI) && !defined(SLIB_GRAPHICS_IS_QUARTZ)
 	List<String> Font::getAllFamilyNames()
 	{
@@ -437,10 +408,26 @@ namespace slib
 	}
 #endif
 
-#if !defined(SLIB_GRAPHICS_IS_GDI)
-	sl_bool Font::_addFontResource(const void* data, sl_size size, Ref<Referable>* pRef)
+
+	SLIB_DEFINE_ROOT_OBJECT(EmbeddedFont)
+
+	EmbeddedFont::EmbeddedFont()
 	{
-		return sl_false;
+	}
+
+	EmbeddedFont::~EmbeddedFont()
+	{
+	}
+
+	Ref<EmbeddedFont> EmbeddedFont::load(const Memory& content, const StringParam& familyName)
+	{
+		return load(content.getData(), content.getSize(), familyName);
+	}
+
+#if !defined(SLIB_GRAPHICS_IS_GDI)
+	Ref<EmbeddedFont> load(const void* content, sl_size size, const StringParam& familyName)
+	{
+		return sl_null;
 	}
 #endif
 

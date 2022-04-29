@@ -57,6 +57,7 @@ namespace slib
 			Brush,
 			GraphicsPath,
 			Font,
+			EmbeddedFont,
 			FontAtlas,
 			FreeType,
 			Canvas,

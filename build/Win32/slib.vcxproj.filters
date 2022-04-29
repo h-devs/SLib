@@ -1415,5 +1415,8 @@
     <ClCompile Include="..\..\src\slib\doc\pdf_render.cpp">
       <Filter>src\doc</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\dl_windows_t2embed.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

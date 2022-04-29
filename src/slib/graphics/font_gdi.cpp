@@ -26,9 +26,11 @@
 
 #include "slib/graphics/font.h"
 
-#include "slib/graphics/platform.h"
 #include "slib/core/hash_map.h"
+#include "slib/core/memory_reader.h"
 #include "slib/core/safe_static.h"
+#include "slib/graphics/platform.h"
+#include "slib/graphics/dl/win32/t2embed.h"
 
 namespace slib
 {
@@ -237,19 +239,70 @@ namespace slib
 				return TRUE;
 			}
 
-			class FontResourceRef : public Referable
+			class EmbeddedFontImpl : public EmbeddedFont
 			{
 			public:
 				HANDLE m_handle;
 
 			public:
-				FontResourceRef(HANDLE handle) : m_handle(handle)
+				EmbeddedFontImpl(): m_handle(sl_null)
 				{
 				}
 
-				~FontResourceRef()
+				~EmbeddedFontImpl()
 				{
-					RemoveFontMemResourceEx(m_handle);
+					if (m_handle) {
+						auto funcDelete = t2embed::getApi_TTDeleteEmbeddedFont();
+						if (funcDelete) {
+							funcDelete(m_handle, 0, sl_null);
+						}
+					}
+				}
+
+			public:
+				static Ref<EmbeddedFontImpl> _load(const void* data, sl_size size, const StringParam& familyName)
+				{
+					auto funcLoad = t2embed::getApi_TTLoadEmbeddedFont();
+					auto funcDelete = t2embed::getApi_TTDeleteEmbeddedFont();
+					if (funcLoad && funcDelete) {
+						String familyName8 = familyName.newString();
+						String16 familyName16 = familyName.newString16();
+						MemoryReader reader(data, size);
+						HANDLE hRef = NULL;
+						ULONG privileges = 0;
+						ULONG status = 0;
+						LONG uRet = funcLoad(
+							&hRef,
+							1/* TTLOAD_PRIVATE */,
+							&privileges,
+							0/*LICENSE_DEFAULT*/,
+							&status,
+							_onReadFontContent,
+							&reader,
+							(LPWSTR)(familyName16.getData()),
+							familyName8.getData(),
+							NULL
+						);
+						if (uRet == 0/*E_NONE*/) {
+							Ref<EmbeddedFontImpl> ret = new EmbeddedFontImpl;
+							if (ret.isNotNull()) {
+								ret->m_handle = hRef;
+								return ret;
+							}
+							funcDelete(hRef, 0, sl_null);
+						}
+					}
+					return sl_null;
+				}
+
+				static unsigned long CALLBACK _onReadFontContent(
+					void* pStream,
+					void* buf,
+					const unsigned long size
+				)
+				{
+					MemoryReader* reader = (MemoryReader*)pStream;
+					return reader->read32(buf, size);
 				}
 
 			};
@@ -338,23 +391,10 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Font::_addFontResource(const void* data, sl_size size, Ref<Referable>* pRef)
+
+	Ref<EmbeddedFont> EmbeddedFont::load(const void* content, sl_size size, const StringParam& familyName)
 	{
-		DWORD nFonts = 0;
-		HANDLE handle = AddFontMemResourceEx((PVOID)data, (DWORD)size, NULL, &nFonts);
-		if (handle) {
-			if (pRef) {
-				Ref<Referable> ref = new FontResourceRef(handle);
-				if (ref.isNotNull()) {
-					*pRef = Move(ref);
-					return sl_true;
-				}
-				RemoveFontMemResourceEx(handle);
-			} else {
-				return sl_true;
-			}
-		}
-		return sl_false;
+		return Ref<EmbeddedFont>::from(EmbeddedFontImpl::_load(content, size, familyName));
 	}
 
 }

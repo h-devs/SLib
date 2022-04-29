@@ -94,14 +94,6 @@ namespace slib
 
 		static List<String> getAllFamilyNames();
 
-		static sl_bool addFontResource(const void* data, sl_size size);
-
-		static sl_bool addFontResource(const Memory& mem);
-
-		static Ref<Referable> addFontResourceRef(const void* data, sl_size size);
-
-		static Ref<Referable> addFontResourceRef(const Memory& data);
-
 	public:
 		void getDesc(FontDesc& desc);
 
@@ -140,8 +132,6 @@ namespace slib
 
 		Size _measureText_PO(const StringParam& text);
 
-		static sl_bool _addFontResource(const void* data, sl_size size, Ref<Referable>* pRef);
-
 	protected:
 		FontDesc m_desc;
 		FontMetrics m_metricsCache;
@@ -151,6 +141,22 @@ namespace slib
 
 		Ref<Referable> m_platformObject;
 		SpinLock m_lock;
+
+	};
+
+	class SLIB_EXPORT EmbeddedFont : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		EmbeddedFont();
+
+		~EmbeddedFont();
+
+	public:
+		static Ref<EmbeddedFont> load(const void* content, sl_size size, const StringParam& familyName);
+
+		static Ref<EmbeddedFont> load(const Memory& content, const StringParam& familyName);
 
 	};
 
