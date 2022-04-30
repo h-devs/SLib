@@ -154,9 +154,9 @@ namespace slib
 		~EmbeddedFont();
 
 	public:
-		static Ref<EmbeddedFont> load(const void* content, sl_size size, const StringParam& familyName);
+		static Ref<EmbeddedFont> load(const void* content, sl_size size);
 
-		static Ref<EmbeddedFont> load(const Memory& content, const StringParam& familyName);
+		static Ref<EmbeddedFont> load(const Memory& content);
 
 	};
 

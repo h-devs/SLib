@@ -419,13 +419,13 @@ namespace slib
 	{
 	}
 
-	Ref<EmbeddedFont> EmbeddedFont::load(const Memory& content, const StringParam& familyName)
+	Ref<EmbeddedFont> EmbeddedFont::load(const Memory& content)
 	{
-		return load(content.getData(), content.getSize(), familyName);
+		return load(content.getData(), content.getSize());
 	}
 
 #if !defined(SLIB_GRAPHICS_IS_GDI)
-	Ref<EmbeddedFont> load(const void* content, sl_size size, const StringParam& familyName)
+	Ref<EmbeddedFont> EmbeddedFont::load(const void* content, sl_size size)
 	{
 		return sl_null;
 	}
