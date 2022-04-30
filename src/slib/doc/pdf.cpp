@@ -71,6 +71,8 @@ namespace slib
 			SLIB_STATIC_STRING(g_strXObject, "XObject")
 			SLIB_STATIC_STRING(g_strFont, "Font")
 			SLIB_STATIC_STRING(g_strSubtype, "Subtype")
+			SLIB_STATIC_STRING(g_strBaseFont, "BaseFont")
+			SLIB_STATIC_STRING(g_strEncoding, "Encoding")
 			SLIB_STATIC_STRING(g_strFontDescriptor, "FontDescriptor")
 			SLIB_STATIC_STRING(g_strFontName, "FontName")
 			SLIB_STATIC_STRING(g_strFontFamily, "FontFamily")
@@ -511,6 +513,17 @@ namespace slib
 					return reader.readFully(buf, size);
 				}
 
+				sl_reg peek(void* buf, sl_size size)
+				{
+					sl_reg n = reader.readFully(buf, size);
+					if (n > 0) {
+						if (!(reader.seek(-n, SeekPosition::Current))) {
+							return SLIB_IO_ERROR;
+						}
+					}
+					return n;
+				}
+
 				sl_size getPosition()
 				{
 					return (sl_size)(reader.getPosition());
@@ -587,7 +600,21 @@ namespace slib
 						}
 						return nOut;
 					}
-					return SLIB_IO_ERROR;
+					return SLIB_IO_ENDED;
+				}
+
+				sl_reg peek(void* _out, sl_size nOut)
+				{
+					if (pos < sizeSource) {
+						if (pos + nOut > sizeSource) {
+							nOut = sizeSource - pos;
+						}
+						if (nOut) {
+							Base::copyMemory(_out, source + pos, nOut);
+						}
+						return nOut;
+					}
+					return SLIB_IO_ENDED;
 				}
 
 				sl_size getPosition()
@@ -690,38 +717,6 @@ namespace slib
 						return IsWhitespace(ch);
 					}
 					return sl_false;
-				}
-
-				sl_size readWord(void* buf, sl_size nSizeLimit)
-				{
-					if (!nSizeLimit) {
-						return 0;
-					}
-					sl_char8* word = (sl_char8*)buf;
-					sl_size posWord = 0;
-					for (;;) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (IsWhitespace(ch) || IsDelimiter(ch)) {
-									movePosition(i - n);
-									return posWord;
-								} else {
-									if (posWord >= nSizeLimit) {
-										return sl_false;
-									}
-									word[posWord++] = ch;
-								}
-							}
-						} else if (n == SLIB_IO_ENDED) {
-							return posWord;
-						} else {
-							break;
-						}
-					}
-					return 0;
 				}
 
 				sl_bool readWordAndEquals(const StringView& _word)
@@ -1247,11 +1242,26 @@ namespace slib
 					return PdfObject();
 				}
 
-				PdfOperator readOperator()
+				PdfOperator peekAndReadOperator()
 				{
-					sl_char8 buf[3];
-					sl_size len = readWord(buf, 3);
-					return PdfOperation::getOperator(StringView(buf, len));
+					sl_char8 buf[4];
+					sl_reg len = peek(buf, sizeof(buf));
+					if (len > 0) {
+						for (sl_reg i = 0; i < len; i++) {
+							if (IsWhitespace(buf[i])) {
+								len = i;
+								break;
+							}
+						}
+						if (len > 0 && len <= 3) {
+							PdfOperator op = PdfOperation::getOperator(StringView(buf, len));
+							if (op != PdfOperator::Unknown) {
+								movePosition(len);
+								return op;
+							}
+						}
+					}
+					return PdfOperator::Unknown;
 				}
 
 				PdfObject readValue()
@@ -1320,11 +1330,6 @@ namespace slib
 						default:
 							if (IsNumeric(ch)) {
 								return readNumber();
-							} else {
-								PdfOperator op = readOperator();
-								if (op != PdfOperator::Unknown) {
-									return op;
-								}
 							}
 							break;
 					}
@@ -1944,8 +1949,6 @@ namespace slib
 
 	PdfObject::PdfObject(const PdfReference& v) noexcept: m_var(MAKE_OBJECT_ID(v.objectNumber, v.generation), (sl_uint8)(PdfObjectType::Reference)) {}
 
-	PdfObject::PdfObject(PdfOperator v) noexcept: m_var((sl_uint32)v, (sl_uint8)(PdfObjectType::Operator)) {}
-
 	sl_bool PdfObject::getBoolean() const noexcept
 	{
 		if (getType() == PdfObjectType::Boolean) {
@@ -2117,14 +2120,6 @@ namespace slib
 		return sl_false;
 	}
 
-	PdfOperator PdfObject::getOperator() const noexcept
-	{
-		if (getType() == PdfObjectType::Operator) {
-			return (PdfOperator)(m_var._m_uint32);
-		}
-		return PdfOperator::Unknown;
-	}
-
 	Rectangle PdfObject::getRectangle() const noexcept
 	{
 		Rectangle ret;
@@ -2201,8 +2196,34 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
 
-	PdfFontResource::PdfFontResource() : firstChar(0), lastChar(0)
+	PdfFontResource::PdfFontResource(): subtype(PdfFontSubtype::Unknown), firstChar(0), lastChar(0)
 	{
+	}
+
+	PdfFontSubtype PdfFontResource::getSubtype(const StringView& subtype) noexcept
+	{
+		if (subtype == StringView::literal("TrueType")) {
+			return PdfFontSubtype::TrueType;
+		}
+		if (subtype == StringView::literal("Type1")) {
+			return PdfFontSubtype::Type1;
+		}
+		if (subtype == StringView::literal("Type3")) {
+			return PdfFontSubtype::Type3;
+		}
+		if (subtype == StringView::literal("Type0")) {
+			return PdfFontSubtype::Type0;
+		}
+		if (subtype == StringView::literal("CIDFontType0")) {
+			return PdfFontSubtype::CIDFontType0;
+		}
+		if (subtype == StringView::literal("CIDFontType2")) {
+			return PdfFontSubtype::CIDFontType2;
+		}
+		if (subtype == StringView::literal("MMType1")) {
+			return PdfFontSubtype::MMType1;
+		}
+		return PdfFontSubtype::Unknown;
 	}
 
 
@@ -2212,7 +2233,7 @@ namespace slib
 	{
 	}
 
-	PdfOperator PdfOperation::getOperator(const StringView& opName)
+	PdfOperator PdfOperation::getOperator(const StringView& opName) noexcept
 	{
 		sl_char8* s = opName.getData();
 		sl_size len = opName.getLength();
@@ -2555,16 +2576,16 @@ namespace slib
 			if (!(parser.skipWhitespaces())) {
 				break;
 			}
-			PdfObject obj = parser.readValue();
-			if (obj.isUndefined()) {
-				break;
-			}
-			PdfOperator op = obj.getOperator();
+			PdfOperator op = parser.peekAndReadOperator();
 			if (op != PdfOperator::Unknown) {
 				opCurrent.op = op;
 				ret.add_NoLock(Move(opCurrent));
 				opCurrent.operands.setNull();
 			} else {
+				PdfObject obj = parser.readValue();
+				if (obj.isUndefined()) {
+					break;
+				}
 				opCurrent.operands.add_NoLock(Move(obj));
 			}
 		}
@@ -2648,10 +2669,13 @@ namespace slib
 		if (doc.isNotNull()) {
 			PdfDictionary dict = getFontResourceAsDictionary(name);
 			if (dict.isNotNull()) {
-				const String& subType = dict.getValue_NoLock(g_strSubtype).getName();
-				if (subType == StringView::literal("Type1") || subType == StringView::literal("TrueType")) {
+				resource.subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(g_strSubtype).getName());
+				if (resource.subtype == PdfFontSubtype::Type1 || resource.subtype == PdfFontSubtype::TrueType) {
 					PdfDictionary desc = doc->getObject(dict.getValue_NoLock(g_strFontDescriptor)).getDictionary();
 					if (desc.isNotEmpty()) {
+						resource.baseFont = dict.getValue_NoLock(g_strBaseFont).getName();
+						resource.encoding = dict.getValue_NoLock(g_strEncoding).getName();
+						resource.name = desc.getValue_NoLock(g_strFontName).getName();
 						resource.family = desc.getValue_NoLock(g_strFontFamily).getString();
 						resource.ascent = desc.getValue_NoLock(g_strAscent).getFloat();
 						resource.descent = desc.getValue_NoLock(g_strDescent).getFloat();

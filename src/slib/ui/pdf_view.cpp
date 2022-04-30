@@ -33,6 +33,8 @@ namespace slib
 	PdfView::PdfView()
 	{
 		m_pageNo = 0;
+		m_pages.setExpiringMilliseconds(5000);
+		m_fonts.setExpiringMilliseconds(5000);
 	}
 
 	PdfView::~PdfView()
@@ -107,19 +109,19 @@ namespace slib
 			PdfRenderParam param;
 			param.canvas = canvas;
 			param.bounds = getBoundsInnerPadding();
-			param.onLoadFont = [this](PdfReference& ref) -> String {
-				String name = "pdf_" + String::fromUint32(ref.objectNumber);
-				if (m_fonts.contains(ref.objectNumber)) {
-					return name;
+			param.onLoadFont = [this](PdfReference& ref) -> Ref<EmbeddedFont> {
+				Ref<EmbeddedFont> font;
+				if (m_fonts.get(ref.objectNumber, &font)) {
+					return font;
 				}
 				Ref<PdfDocument> doc = m_doc;
 				if (doc.isNotNull()) {
 					Memory content = doc->getObject(ref).getStreamContent();
 					if (content.isNotNull()) {
-						Ref<EmbeddedFont> font = EmbeddedFont::load(content, name);
+						font = EmbeddedFont::load(content);
 						if (font.isNotNull()) {
-							m_fonts.put(ref.objectNumber, Move(font));
-							return name;
+							m_fonts.put(ref.objectNumber, font);
+							return font;
 						}
 					}
 				}

@@ -8,7 +8,7 @@ void PdfViewerApp::onStart()
 {
 	auto window = New<Window>();
 	window->setTitle("PdfViewer");
-	window->setFrame(100, 100, 400, 300);
+	window->setFrame(30, 30, 550, 700);
 	window->setOnClose([](Window* window, UIEvent* ev) {
 		UIApp::quit();
 	});
@@ -23,12 +23,5 @@ void PdfViewerApp::onStart()
 
 	pdf->openFile("D:\\Temp\\1.pdf");
 
-	auto doc = pdf->getDocument();
-	if (doc) {
-		Log("Test", "%s", doc->getPagesCount());
-		Memory content;
-		Log("Test", "%s", PdfObject(doc->getPage(2, &content)).getVariant());
-		Log("Test", "%s", PdfObject(doc->encrypt).getVariant());
-		Log("Test", "%s", String::fromMemory(content));
-	}
+	//File::writeAllBytes("D:\\Temp\\2.dat", pdf->getDocument()->getPage(0)->getContentStream());
 }

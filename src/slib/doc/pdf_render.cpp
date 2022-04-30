@@ -41,6 +41,7 @@ namespace slib
 			class FontResource : public PdfFontResource
 			{
 			public:
+				Ref<EmbeddedFont> embeded;
 				Ref<Font> object;
 				float scale = 1;
 
@@ -545,29 +546,31 @@ namespace slib
 					}
 				}
 
-				String loadEmbededFont(PdfReference& ref)
+				Ref<EmbeddedFont> loadEmbededFont(PdfReference& ref)
 				{
 					if (ref.objectNumber) {
-						return param.onLoadFont(ref);
+						if (param.onLoadFont.isNotNull()) {
+							return param.onLoadFont(ref);
+						} else {
+							Ref<PdfDocument> doc = page->getDocument();
+							if (doc.isNotNull()) {
+								Memory content = doc->getObject(ref).getStreamContent();
+								if (content.isNotNull()) {
+									return EmbeddedFont::load(content);
+								}
+							}
+						}
 					}
 					return sl_null;
 				}
 
-				Ref<Font> loadFont(PdfFontResource& res)
+				Ref<Font> createFont(PdfFontResource& res)
 				{
 					FontDesc fd;
-					fd.familyName = loadEmbededFont(res.content);
-					if (fd.familyName.isNull()) {
-						fd.familyName = res.family;
-					}
+					fd.familyName = res.name;
 					fd.size = res.ascent * FONT_SCALE / 1000.0f;
 					fd.flagBold = res.weight >= 600.0f;
 					fd.flagItalic = Math::abs(res.italicAngle) > 10;
-					Ref<Font> font = Font::create(fd);
-					if (font.isNotNull()) {
-						return font;
-					}
-					fd.familyName = Font::getDefaultFontFamily();
 					return Font::create(fd);
 				}
 
@@ -576,7 +579,8 @@ namespace slib
 					PdfFontResource res;
 					if (page->getFontResource(name, res)) {
 						(PdfFontResource&)(text.font) = Move(res);
-						text.font.object = loadFont(text.font);
+						text.font.embeded = loadEmbededFont(res.content);
+						text.font.object = createFont(text.font);
 						text.font.scale = fontScale;
 					}
 				}
@@ -620,13 +624,18 @@ namespace slib
 					Transform2::preTranslate(text.matrix, - f / 1000.0f * text.font.scale * text.widthScale, 0);
 				}
 
+				String32 decodeText(const String& text)
+				{
+					return String32::from(text);
+				}
+
 				void showText(ListElements<PdfObject> operands)
 				{
 					if (operands.count != 1) {
 						return;
 					}
 					const String& text = operands[0].getString();
-					drawText(String32::from(text));
+					drawText(decodeText(text));
 				}
 
 				void showTextWithPositions(ListElements<PdfObject> operands)
@@ -639,7 +648,7 @@ namespace slib
 						PdfObject& obj = args[i];
 						const String& s = obj.getString();
 						if (s.isNotNull()) {
-							drawText(String32::from(s));
+							drawText(decodeText(s));
 						} else {
 							float f;
 							if (obj.getFloat(f)) {
@@ -658,7 +667,7 @@ namespace slib
 					text.charSpace = operands[1].getFloat();
 					moveTextMatrix(0, text.leading);
 					const String& text = operands[2].getString();
-					drawText(String32::from(text));
+					drawText(decodeText(text));
 				}
 
 				void saveGraphicsState()

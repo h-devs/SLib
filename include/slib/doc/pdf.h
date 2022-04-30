@@ -44,8 +44,7 @@ namespace slib
 		Array = 8,
 		Dictionary = 9,
 		Stream = 10,
-		Reference = 11,
-		Operator = 12
+		Reference = 11
 	};
 
 	enum class PdfOperator
@@ -126,12 +125,25 @@ namespace slib
 		quot, // ": set word and character spacing, move to next line, and show text
 	};
 
+	enum class PdfFontSubtype
+	{
+		Unknown = -1,
+		Type0 = 0,
+		Type1 = 1,
+		TrueType = 2,
+		Type3 = 3,
+		Type5 = 5,
+		CIDFontType0 = 10,
+		CIDFontType2 = 12,
+		MMType1 = 100 // Multiple Master Font
+	};
+
 	class PdfObject;
 	class PdfStream;
 	class PdfPage;
 	class PdfDocument;
 	class Canvas;
-	class Font;
+	class EmbeddedFont;
 
 	typedef HashMap<String, PdfObject> PdfDictionary;
 	typedef List<PdfObject> PdfArray;
@@ -218,8 +230,6 @@ namespace slib
 
 		PdfObject(const PdfReference& v) noexcept;
 
-		PdfObject(PdfOperator op) noexcept;
-
 	public:
 		const Variant& getVariant() const noexcept
 		{
@@ -292,8 +302,6 @@ namespace slib
 
 		sl_bool getReference(PdfReference& _out) const noexcept;
 
-		PdfOperator getOperator() const noexcept;
-
 
 		Rectangle getRectangle() const noexcept;
 
@@ -327,6 +335,7 @@ namespace slib
 	class SLIB_EXPORT PdfFontDescriptor
 	{
 	public:
+		String name;
 		String family;
 		float ascent;
 		float descent;
@@ -345,14 +354,20 @@ namespace slib
 	class SLIB_EXPORT PdfFontResource : public PdfFontDescriptor
 	{
 	public:
+		PdfFontSubtype subtype;
+		String baseFont;
 		sl_int32 firstChar;
 		sl_int32 lastChar;
 		Array<float> widths;
+		String encoding;
 
 	public:
 		PdfFontResource();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
+
+	public:
+		static PdfFontSubtype getSubtype(const StringView& subtype) noexcept;
 
 	};
 
@@ -368,7 +383,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfOperation)
 
 	public:
-		static PdfOperator getOperator(const StringView& opName);
+		static PdfOperator getOperator(const StringView& opName) noexcept;
 
 	};
 
@@ -399,7 +414,7 @@ namespace slib
 		Canvas* canvas;
 		Rectangle bounds;
 
-		Function<String(PdfReference& ref)> onLoadFont;
+		Function<Ref<EmbeddedFont>(PdfReference& ref)> onLoadFont;
 
 	public:
 		PdfRenderParam();
