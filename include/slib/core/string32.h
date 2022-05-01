@@ -73,7 +73,7 @@ namespace slib
 		 */
 		SLIB_CONSTEXPR String32(): m_container(sl_null) {}
 		SLIB_CONSTEXPR String32(sl_null_t): m_container(sl_null) {}
-		SLIB_CONSTEXPR String32(Container* container) : m_container(container) {}
+		SLIB_CONSTEXPR String32(Container* container): m_container(container) {}
 
 		/**
 		 * Constructors

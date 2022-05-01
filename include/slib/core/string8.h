@@ -71,9 +71,9 @@ namespace slib
 		/**
 		 * Initializes as a null string.
 		 */
-		SLIB_CONSTEXPR String() : m_container(sl_null) {}
-		SLIB_CONSTEXPR String(sl_null_t) : m_container(sl_null) {}
-		SLIB_CONSTEXPR String(Container* container) : m_container(container) {}
+		SLIB_CONSTEXPR String(): m_container(sl_null) {}
+		SLIB_CONSTEXPR String(sl_null_t): m_container(sl_null) {}
+		SLIB_CONSTEXPR String(Container* container): m_container(container) {}
 
 		/**
 		 * Contructors

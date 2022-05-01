@@ -592,7 +592,7 @@ namespace slib
 			class Concatenator<CONTAINER, typename CONTAINER::StringType::Char, typename CONTAINER::StringType::Char>
 			{
 			public:
-				static CONTAINER* concat(typename CONTAINER::StringType::Char const * s1, sl_reg len1, typename CONTAINER::StringType::Char const* s2, sl_reg len2) noexcept
+				static CONTAINER* concat(typename CONTAINER::StringType::Char const* s1, sl_reg len1, typename CONTAINER::StringType::Char const* s2, sl_reg len2) noexcept
 				{
 					if (len1 < 0) {
 						len1 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s1);
@@ -4089,7 +4089,7 @@ namespace slib
 			return *this; \
 		} \
 		if (isEmpty()) { \
-			return *this = Move(other); \
+			return *this = Move(_other); \
 		} \
 		if (!(other->len)) { \
 			return *this; \
