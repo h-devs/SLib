@@ -34,7 +34,8 @@ namespace slib
 			Package_Doc = packages::Doc,
 			PdfDocument,
 			PdfPage,
-			PdfStream
+			PdfStream,
+			PdfFont
 		};
 
 	}

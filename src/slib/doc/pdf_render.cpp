@@ -38,24 +38,6 @@ namespace slib
 		namespace pdf
 		{
 
-			class FontResource : public PdfFontResource
-			{
-			public:
-				Ref<EmbeddedFont> embeded;
-				Ref<Font> object;
-				float scale = 1;
-
-			public:
-				float getCharWidth(sl_int32 ch)
-				{
-					if (widths.isNotNull() && ch >= firstChar && ch <= lastChar) {
-						return widths[ch - firstChar] / 1000.0f;
-					}
-					return (object->measureText(StringView32((sl_char32*)&ch, 1))).x / FONT_SCALE;
-				}
-
-			};
-
 			class TextState
 			{
 			public:
@@ -64,7 +46,8 @@ namespace slib
 				float widthScale = 1;
 				float leading = 0;
 				float rise = 0;
-				FontResource font;
+				Ref<PdfFont> font;
+				float fontScale;
 				Matrix3 matrix = Matrix3::identity();
 				Matrix3 lineMatrix = Matrix3::identity();
 
@@ -546,42 +529,19 @@ namespace slib
 					}
 				}
 
-				Ref<EmbeddedFont> loadEmbededFont(PdfReference& ref)
+				void setFont(const String& name, float fontScale)
 				{
-					if (ref.objectNumber) {
+					PdfReference ref;
+					if (page->getFontResource(name, ref)) {
 						if (param.onLoadFont.isNotNull()) {
-							return param.onLoadFont(ref);
+							text.font = param.onLoadFont(ref);
 						} else {
 							Ref<PdfDocument> doc = page->getDocument();
 							if (doc.isNotNull()) {
-								Memory content = doc->getObject(ref).getStreamContent();
-								if (content.isNotNull()) {
-									return EmbeddedFont::load(content);
-								}
+								text.font = PdfFont::create(doc.get(), ref);
 							}
 						}
-					}
-					return sl_null;
-				}
-
-				Ref<Font> createFont(PdfFontResource& res)
-				{
-					FontDesc fd;
-					fd.familyName = res.name;
-					fd.size = res.ascent * FONT_SCALE / 1000.0f;
-					fd.flagBold = res.weight >= 600.0f;
-					fd.flagItalic = Math::abs(res.italicAngle) > 10;
-					return Font::create(fd);
-				}
-
-				void setFont(const String& name, float fontScale)
-				{
-					PdfFontResource res;
-					if (page->getFontResource(name, res)) {
-						(PdfFontResource&)(text.font) = Move(res);
-						text.font.embeded = loadEmbededFont(res.content);
-						text.font.object = createFont(text.font);
-						text.font.scale = fontScale;
+						text.fontScale = fontScale;
 					}
 				}
 
@@ -600,15 +560,15 @@ namespace slib
 					CanvasStateScope scope(canvas);
 					Matrix3 mat = text.matrix;
 					Transform2::preTranslate(mat, 0, text.rise);
-					float scaleX = text.font.scale / FONT_SCALE;
-					Transform2::preScale(mat, scaleX * text.widthScale, - text.font.scale / FONT_SCALE);
+					float scaleX = text.fontScale / FONT_SCALE;
+					Transform2::preScale(mat, scaleX * text.widthScale, - text.fontScale / FONT_SCALE);
 					canvas->concatMatrix(mat);
-					if (text.font.object.isNotNull()) {
+					if (text.font.isNotNull()) {
 						sl_real x = 0;
 						for (sl_size i = 0; i < len; i++) {
 							sl_char32 ch = array[i];
-							canvas->drawText(StringView32(&ch, 1), x / scaleX, 0, text.font.object, pen.color);
-							x += text.font.getCharWidth(ch) * text.font.scale;
+							canvas->drawText(StringView32(&ch, 1), x / scaleX, 0, text.font->object, pen.color);
+							x += text.font->getCharWidth(ch) * text.fontScale;
 							if (ch == ' ') {
 								x += text.wordSpace;
 							} else {
@@ -621,7 +581,7 @@ namespace slib
 
 				void adjustTextMatrix(float f)
 				{
-					Transform2::preTranslate(text.matrix, - f / 1000.0f * text.font.scale * text.widthScale, 0);
+					Transform2::preTranslate(text.matrix, - f / 1000.0f * text.fontScale * text.widthScale, 0);
 				}
 
 				String32 decodeText(const String& text)
@@ -928,6 +888,59 @@ namespace slib
 	using namespace priv::pdf;
 
 
+	SLIB_DEFINE_ROOT_OBJECT(PdfFont)
+
+	PdfFont::PdfFont()
+	{
+	}
+
+	PdfFont::~PdfFont()
+	{
+	}
+
+	Ref<PdfFont> PdfFont::create(PdfDocument* doc, const PdfReference& ref)
+	{
+		const PdfDictionary& dict = doc->getObject(ref).getDictionary();
+		if (dict.isNotNull()) {
+			Ref<PdfFont> font = new PdfFont;
+			if (font.isNotNull()) {
+				if (font->_load(doc, dict)) {
+					return font;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool PdfFont::_load(PdfDocument* doc, const PdfDictionary& dict)
+	{
+		if (!(load(doc, dict))) {
+			return sl_false;
+		}
+		if (descriptor.content.objectNumber) {
+			Memory content = doc->getObject(descriptor.content).getStreamContent();
+			if (content.isNotNull()) {
+				embeddedFont = EmbeddedFont::load(content);
+			}
+		}
+		FontDesc fd;
+		fd.familyName = descriptor.family;
+		fd.size = descriptor.ascent * FONT_SCALE / 1000.0f;
+		fd.flagBold = descriptor.weight >= 600.0f;
+		fd.flagItalic = Math::abs(descriptor.italicAngle) > 10;
+		object = Font::create(fd);
+		return object.isNotNull();
+	}
+
+	float PdfFont::getCharWidth(sl_int32 ch)
+	{
+		if (widths.isNotNull() && ch >= firstChar && ch <= lastChar) {
+			return widths[ch - firstChar] / 1000.0f;
+		}
+		return (object->measureText(StringView32((sl_char32*)&ch, 1))).x / FONT_SCALE;
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
 
 	PdfRenderParam::PdfRenderParam()
@@ -959,6 +972,18 @@ namespace slib
 		for (sl_size i = 0; i < ops.count; i++) {
 			renderer.render(ops[i]);
 		}
+	}
+
+	Ref<PdfFont> PdfPage::getFont(const String& name)
+	{
+		PdfReference ref;
+		if (getFontResource(name, ref)) {
+			Ref<PdfDocument> doc(m_document);
+			if (doc.isNotNull()) {
+				return PdfFont::create(doc.get(), ref);
+			}
+		}
+		return sl_null;
 	}
 
 }

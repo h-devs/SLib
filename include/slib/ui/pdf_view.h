@@ -34,7 +34,7 @@ namespace slib
 
 	class PdfDocument;
 	class PdfPage;
-	class EmbeddedFont;
+	class PdfFont;
 
 	class SLIB_EXPORT PdfView : public View
 	{
@@ -53,6 +53,10 @@ namespace slib
 		void close();
 
 		Ref<PdfDocument> getDocument();
+
+		sl_uint32 getCurrentPageNumber();
+
+		void goToPage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	protected:
 		void onDraw(Canvas* canvas) override;
@@ -66,7 +70,7 @@ namespace slib
 		String m_filePath;
 		AtomicRef<PdfDocument> m_doc;
 		ExpiringMap< sl_uint32, Ref<PdfPage> > m_pages;
-		ExpiringMap< sl_uint32, Ref<EmbeddedFont> > m_fonts;
+		ExpiringMap< sl_uint32, Ref<PdfFont> > m_fonts;
 
 		sl_uint32 m_pageNo;
 

@@ -80,6 +80,17 @@ namespace slib
 		return m_doc;
 	}
 
+	sl_uint32 PdfView::getCurrentPageNumber()
+	{
+		return m_pageNo;
+	}
+
+	void PdfView::goToPage(sl_uint32 pageNo, UIUpdateMode mode)
+	{
+		m_pageNo = pageNo;
+		invalidate(mode);
+	}
+
 	void PdfView::_setDocument(PdfDocument* doc)
 	{
 		m_doc = doc;
@@ -109,20 +120,17 @@ namespace slib
 			PdfRenderParam param;
 			param.canvas = canvas;
 			param.bounds = getBoundsInnerPadding();
-			param.onLoadFont = [this](PdfReference& ref) -> Ref<EmbeddedFont> {
-				Ref<EmbeddedFont> font;
+			param.onLoadFont = [this](PdfReference& ref) -> Ref<PdfFont> {
+				Ref<PdfFont> font;
 				if (m_fonts.get(ref.objectNumber, &font)) {
 					return font;
 				}
 				Ref<PdfDocument> doc = m_doc;
 				if (doc.isNotNull()) {
-					Memory content = doc->getObject(ref).getStreamContent();
-					if (content.isNotNull()) {
-						font = EmbeddedFont::load(content);
-						if (font.isNotNull()) {
-							m_fonts.put(ref.objectNumber, font);
-							return font;
-						}
+					font = PdfFont::create(doc.get(), ref);
+					if (font.isNotNull()) {
+						m_fonts.put(ref.objectNumber, font);
+						return font;
 					}
 				}
 				return sl_null;
