@@ -25,10 +25,9 @@
 #include "slib/core/file.h"
 #include "slib/core/buffered_seekable_reader.h"
 #include "slib/core/thread.h"
-#include "slib/core/shared.h"
 #include "slib/core/mio.h"
 #include "slib/core/memory_buffer.h"
-#include "slib/core/expiring_map.h"
+#include "slib/core/string_buffer.h"
 #include "slib/crypto/zlib.h"
 #include "slib/crypto/md5.h"
 #include "slib/crypto/rc4.h"
@@ -1538,6 +1537,28 @@ namespace slib
 					return PdfOperator::Unknown;
 				}
 
+				PdfCMapOperator readCMapOperator()
+				{
+					sl_char8 buf[20];
+					sl_reg len = peek(buf, sizeof(buf));
+					if (len > 0) {
+						for (sl_reg i = 0; i < len; i++) {
+							if (IsWhitespace(buf[i]) || IsDelimiter(buf[i])) {
+								len = i;
+								break;
+							}
+						}
+						if (len > 0 && len <= 19) {
+							PdfCMapOperator op = PdfOperation::getCMapOperator(StringView(buf, len));
+							if (op != PdfCMapOperator::Unknown) {
+								movePosition(len);
+								return op;
+							}
+						}
+					}
+					return PdfCMapOperator::Unknown;
+				}
+
 				PdfObject readValue()
 				{
 					sl_char8 ch;
@@ -1672,7 +1693,7 @@ namespace slib
 											decrypt(outRef, content.getData(), content.getSize());
 										}
 										stream->properties = Move(properties);
-										stream->content = Move(content);
+										stream->contentUnfiltered = Move(content);
 										obj = PdfObject(Move(stream));
 									}
 								} else {
@@ -1749,7 +1770,7 @@ namespace slib
 							if (obj->getProperty(g_strN).getUint(nObjects)) {
 								sl_uint32 first;
 								if (obj->getProperty(g_strFirst).getUint(first)) {
-									Memory content = obj->getOriginalContent();
+									Memory content = obj->getContent();
 									if (content.isNotNull()) {
 										stream = new ObjectStream;
 										if (stream.isNotNull()) {
@@ -1943,7 +1964,7 @@ namespace slib
 											sl_uint32 sizeOffset = entrySizes[1].getUint();
 											sl_uint32 sizeGeneration = entrySizes[2].getUint();
 											sl_uint32 sizeEntry = sizeType + sizeOffset + sizeGeneration;
-											Memory content = stream->getOriginalContent();
+											Memory content = stream->getContent();
 											if (content.getSize() >= sizeEntry * nEntries) {
 												sl_uint8* p = (sl_uint8*)(content.getData());
 												ListElements< Pair<sl_uint32, sl_uint32> > sectionRanges(listSectionRanges);
@@ -2181,6 +2202,110 @@ namespace slib
 				return (ParserBase*)(ref.get());
 			}
 
+			static HashMap<sl_uint16, String32> ParseCMap(const void* _content, sl_size size)
+			{
+				sl_uint8* content = Base::findMemory(_content, size, "begincmap", 9);
+				if (!content) {
+					return sl_null;
+				}
+				content += 9;
+				size -= 9;
+				HashMap<sl_uint16, String32> ret;
+				MemoryParser parser;
+				parser.source = (sl_char8*)content;
+				parser.sizeSource = (sl_uint32)size;
+				CList<PdfObject> args;
+				for (;;) {
+					if (!(parser.skipWhitespaces())) {
+						break;
+					}
+					PdfCMapOperator op = parser.readCMapOperator();
+					if (op != PdfCMapOperator::Unknown) {
+						switch (op) {
+						case PdfCMapOperator::endbfchar:
+							{
+								PdfObject* m = args.getData();
+								PdfObject* end = m + args.getCount();
+								while (m + 1 < end) {
+									const String& strCode = (m++)->getString();
+									if (strCode.getLength() == 2) {
+										sl_char8* s = strCode.getData();
+										sl_uint16 code = SLIB_MAKE_WORD(s[0], s[1]);
+										const String& strValue = (m++)->getString();
+										if (strValue.isNotNull()) {
+											String32 value = String32::fromUtf16BE(strValue.getData(), strValue.getLength());
+											if (value.isNotEmpty()) {
+												ret.put_NoLock(code, Move(value));
+											}
+										} else {
+											break;
+										}
+									} else {
+										break;
+									}
+								}
+							}
+							break;
+						case PdfCMapOperator::endbfrange:
+							{
+								PdfObject* m = args.getData();
+								PdfObject* end = m + args.getCount();
+								while (m + 2 < end) {
+									const String& strCode1 = (m++)->getString();
+									const String& strCode2 = (m++)->getString();
+									if (strCode1.getLength() == 2 && strCode2.getLength() == 2) {
+										sl_char8* s = strCode1.getData();
+										sl_uint16 code1 = SLIB_MAKE_WORD(s[0], s[1]);
+										s = strCode2.getData();
+										sl_uint16 code2 = SLIB_MAKE_WORD(s[0], s[1]);
+										const String& strValue = m->getString();
+										if (strValue.isNotNull()) {
+											String32 value = String32::fromUtf16BE(strValue.getData(), strValue.getLength());
+											if (value.isNotEmpty()) {
+												sl_char32* k = value.getData() + value.getLength() - 1;
+												for (sl_uint16 code = code1; code <= code2; code++) {
+													ret.put_NoLock(code, value.duplicate());
+													(*k)++;
+												}
+											} else {
+												break;
+											}
+										} else {
+											ListElements<PdfObject> arr(m->getArray());
+											if (arr.count == code2 - code1 + 1) {
+												for (sl_size i = 0; i < arr.count; i++) {
+													const String& strValue = arr[i].getString();
+													String32 value = String32::fromUtf16BE(strValue.getData(), strValue.getLength());
+													if (value.isNotEmpty()) {
+														ret.put_NoLock(code1 + (sl_uint16)i, Move(value));
+													}
+												}
+											} else {
+												break;
+											}
+										}
+										m++;
+									} else {
+										break;
+									}
+								}
+							}
+							break;
+						default:
+							break;
+						}
+						args.removeAll_NoLock();
+					} else {
+						PdfObject obj = parser.readValue();
+						if (obj.isUndefined()) {
+							break;
+						}
+						args.add_NoLock(Move(obj));
+					}
+				}
+				return ret;
+			}
+
 		}
 	}
 
@@ -2357,7 +2482,7 @@ namespace slib
 	Memory PdfObject::getStreamContent() const noexcept
 	{
 		if (getType() == PdfObjectType::Stream) {
-			return (*((Ref<PdfStream>*)((void*)(&m_var._value))))->getOriginalContent();
+			return (*((Ref<PdfStream>*)((void*)(&m_var._value))))->getContent();
 		}
 		return sl_null;
 	}
@@ -2410,7 +2535,7 @@ namespace slib
 
 	SLIB_DEFINE_ROOT_OBJECT(PdfStream)
 
-	PdfStream::PdfStream() noexcept
+	PdfStream::PdfStream() noexcept: m_flagFiltered(sl_false)
 	{
 	}
 
@@ -2423,16 +2548,23 @@ namespace slib
 		return properties.getValue_NoLock(name);
 	}
 
-	Memory PdfStream::getOriginalContent() noexcept
+	Memory PdfStream::getContent() noexcept
 	{
 		PdfObject objFilter = getProperty(g_strFilter);
 		if (objFilter.isUndefined()) {
-			return content;
+			return contentUnfiltered;
+		}
+		if (m_flagFiltered) {
+			return m_contentFiltered;
+		}
+		MutexLocker locker(&m_lock);
+		if (m_flagFiltered) {
+			return m_contentFiltered;
 		}
 		const PdfArray& arrayFilter = objFilter.getArray();
 		if (arrayFilter.isNotNull()) {
-			Memory ret = content;
 			ListElements<PdfObject> filters(arrayFilter);
+			Memory ret = contentUnfiltered;
 			for (sl_size i = 0; i < filters.count; i++) {
 				const String& filter = filters[i].getName();
 				if (filter.isNotNull()) {
@@ -2441,11 +2573,16 @@ namespace slib
 					return sl_null;
 				}
 			}
+			m_contentFiltered = Move(ret);
+			contentUnfiltered.setNull();
+			m_flagFiltered = sl_true;
 			return ret;
 		} else {
 			const String& filter = objFilter.getName();
 			if (filter.isNotNull()) {
-				return ApplyFilter(content, filter);
+				m_contentFiltered = ApplyFilter(contentUnfiltered, filter);
+				m_flagFiltered = sl_true;
+				return m_contentFiltered;
 			}
 		}
 		return sl_null;
@@ -2483,12 +2620,13 @@ namespace slib
 	{
 	}
 
-	void PdfCidFontInfo::load(const PdfDictionary& dict) noexcept
+	void PdfCidFontInfo::load(PdfDocument* doc, const PdfDictionary& dict) noexcept
 	{
 		if (dict.isNotNull()) {
+			subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(g_strSubtype).getName());
 			dict.getValue_NoLock(g_strDW).getFloat(defaultWidth);
 			{
-				ListElements<PdfObject> w(dict.getValue_NoLock(g_strW).getArray());
+				ListElements<PdfObject> w(doc->getObject(dict.getValue_NoLock(g_strW)).getArray());
 				PdfObject* current = w.data;
 				PdfObject* end = current + w.count;
 				while (current < end) {
@@ -2536,6 +2674,15 @@ namespace slib
 		}
 	}
 
+	float PdfCidFontInfo::getWidth(sl_int32 code)
+	{
+		float ret;
+		if (widths.get_NoLock(code, &ret)) {
+			return ret;
+		}
+		return defaultWidth;
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
 
@@ -2551,11 +2698,11 @@ namespace slib
 		subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(g_strSubtype).getName());
 		baseFont = dict.getValue_NoLock(g_strBaseFont).getName();
 		if (subtype == PdfFontSubtype::Type0) {
-			const PdfDictionary& cidFont = doc->getObject(dict.getValue_NoLock(g_strDescendantFonts).getArray().getValueAt(0)).getDictionary();
+			const PdfDictionary& cidFont = doc->getObject(doc->getObject(dict.getValue_NoLock(g_strDescendantFonts)).getArray().getValueAt(0)).getDictionary();
 			if (cidFont.isNull()) {
 				return sl_false;
 			}
-			cid.load(cidFont);
+			cid.load(doc, cidFont);
 			descriptor.load(doc->getObject(cidFont.getValue_NoLock(g_strFontDescriptor)).getDictionary());
 		} else {
 			descriptor.load(doc->getObject(dict.getValue_NoLock(g_strFontDescriptor)).getDictionary());
@@ -2589,11 +2736,40 @@ namespace slib
 		}
 		PdfObject refCmap = dict.getValue_NoLock(g_strToUnicode);
 		if (refCmap.isNotNull()) {
-			Memory cmap = doc->getObject(refCmap).getStreamContent();
-			if (cmap.isNotNull()) {
+			Memory content = doc->getObject(refCmap).getStreamContent();
+			if (content.isNotNull()) {
+				cmap = ParseCMap(content.getData(), content.getSize());
 			}
 		}
 		return sl_true;
+	}
+
+	String32 PdfFontResource::getUnicode(sl_int32 code)
+	{
+		if (cmap.isNotNull()) {
+			return cmap.getValue_NoLock((sl_uint16)code);
+		} else {
+			if (code >= 0 && code < 256) {
+				const sl_char16* map = Pdf::getUnicodeTable(encoding);
+				if (map) {
+					return String32(map[(sl_uint8)code], 1);
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool PdfFontResource::getCharWidth(sl_int32 ch, float& width) noexcept
+	{
+		if (subtype == PdfFontSubtype::Type0) {
+			width = cid.getWidth(ch) / 1000.0f;
+			return sl_true;
+		}
+		if (widths.isNotNull() && ch >= firstChar && ch <= lastChar) {
+			width = widths[ch - firstChar] / 1000.0f;
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	PdfFontSubtype PdfFontResource::getSubtype(const StringView& subtype) noexcept
@@ -2902,6 +3078,58 @@ namespace slib
 		return PdfOperator::Unknown;
 	}
 
+	PdfCMapOperator PdfOperation::getCMapOperator(const StringView& opName) noexcept
+	{
+		sl_char8* s = opName.getData();
+		sl_size len = opName.getLength();
+		if (len < 3) {
+			return PdfCMapOperator::Unknown;
+		}
+		sl_char8 s0 = s[0];
+		if (s0 == 'b') {
+			if (len >= 5) {
+				if (s[1] == 'e' && s[2] == 'g' && s[3] == 'i' && s[4] == 'n') {
+					if (len == 11) {
+						if (Base::equalsMemory(s + 5, "bfchar", 6)) {
+							return PdfCMapOperator::beginbfchar;
+						}
+					} else if (len == 12) {
+						if (Base::equalsMemory(s + 5, "bfrange", 7)) {
+							return PdfCMapOperator::beginbfrange;
+						}
+					} else if (len == 19) {
+						if (Base::equalsMemory(s + 5, "codespacerange", 14)) {
+							return PdfCMapOperator::begincodespacerange;
+						}
+					}
+				}
+			}
+		} else if (s0 == 'd') {
+			if (len == 3) {
+				if (s[1] == 'e' && s[2] == 'f') {
+					return PdfCMapOperator::def;
+				}
+			}
+		} else if (s0 == 'e') {
+			if (s[1] == 'n' && s[2] == 'd') {
+				if (len == 9) {
+					if (Base::equalsMemory(s + 3, "bfchar", 6)) {
+						return PdfCMapOperator::endbfchar;
+					}
+				} else if (len == 10) {
+					if (Base::equalsMemory(s + 3, "bfrange", 7)) {
+						return PdfCMapOperator::endbfrange;
+					}
+				} else if (len == 17) {
+					if (Base::equalsMemory(s + 3, "codespacerange", 14)) {
+						return PdfCMapOperator::endcodespacerange;
+					}
+				}
+			}
+		}
+		return PdfCMapOperator::Unknown;
+	}
+
 
 	PdfPageTreeItem::PdfPageTreeItem() noexcept: m_flagPage(sl_false)
 	{
@@ -3086,7 +3314,7 @@ namespace slib
 
 	sl_bool PdfPage::getFontResource(const String& name, PdfReference& outRef)
 	{
-		return getResource(g_strFont, name).getReference(outRef);
+		return getResource(g_strFont, name, sl_false).getReference(outRef);
 	}
 
 	sl_bool PdfPage::getFontResource(const String& name, PdfFontResource& resource)

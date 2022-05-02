@@ -26,6 +26,7 @@
 #include "slib/graphics/path.h"
 #include "slib/graphics/cmyk.h"
 #include "slib/core/queue.h"
+#include "slib/core/mio.h"
 #include "slib/math/transform2d.h"
 
 #define FONT_SCALE 72.0f
@@ -136,7 +137,7 @@ namespace slib
 			public:
 				Canvas* canvas;
 				PdfPage* page;
-				PdfRenderParam param;
+				PdfRenderParam* param;
 
 				Ref<GraphicsPath> path;
 				TextState text;
@@ -533,13 +534,9 @@ namespace slib
 				{
 					PdfReference ref;
 					if (page->getFontResource(name, ref)) {
-						if (param.onLoadFont.isNotNull()) {
-							text.font = param.onLoadFont(ref);
-						} else {
-							Ref<PdfDocument> doc = page->getDocument();
-							if (doc.isNotNull()) {
-								text.font = PdfFont::create(doc.get(), ref);
-							}
+						Ref<PdfDocument> doc = page->getDocument();
+						if (doc.isNotNull()) {
+							text.font = PdfFont::load(doc.get(), ref, *(param->context));
 						}
 						text.fontScale = fontScale;
 					}
@@ -553,40 +550,47 @@ namespace slib
 					setFont(operands[0].getName(), operands[1].getFloat());
 				}
 
-				void drawText(const String32& str)
+				void drawText(const String& str)
 				{
-					sl_char32* array = str.getData();
-					sl_size len = str.getLength();
+					if (text.font.isNull()) {
+						return;
+					}
+
 					CanvasStateScope scope(canvas);
 					Matrix3 mat = text.matrix;
 					Transform2::preTranslate(mat, 0, text.rise);
 					float scaleX = text.fontScale / FONT_SCALE;
-					Transform2::preScale(mat, scaleX * text.widthScale, - text.fontScale / FONT_SCALE);
+					Transform2::preScale(mat, scaleX * text.widthScale, -text.fontScale / FONT_SCALE);
 					canvas->concatMatrix(mat);
-					if (text.font.isNotNull()) {
-						sl_real x = 0;
-						for (sl_size i = 0; i < len; i++) {
-							sl_char32 ch = array[i];
-							canvas->drawText(StringView32(&ch, 1), x / scaleX, 0, text.font->object, pen.color);
+
+					sl_real x = 0;
+					sl_char8* array = str.getData();
+					sl_size len = str.getLength();
+					sl_size nCh;
+					if (text.font->cmap.isNotNull()) {
+						nCh = 2;
+					} else {
+						nCh = 1;
+					}
+					for (sl_size i = 0; i + nCh <= len; i += nCh) {
+						sl_int32 ch = nCh == 2 ? SLIB_MAKE_WORD(array[i], array[i+1]) : (sl_uint8)array[i];
+						String32 s = text.font->getUnicode(ch);
+						if (s.isNotEmpty()) {
 							x += text.font->getCharWidth(ch) * text.fontScale;
-							if (ch == ' ') {
+							if (s.getLength() == 1 && *(s.getData()) == ' ') {
 								x += text.wordSpace;
 							} else {
+								canvas->drawText(s, x / scaleX, 0, text.font->object, pen.color);
 								x += text.charSpace;
 							}
 						}
-						Transform2::preTranslate(text.matrix, x * text.widthScale, 0);
 					}
+					Transform2::preTranslate(text.matrix, x * text.widthScale, 0);
 				}
 
 				void adjustTextMatrix(float f)
 				{
 					Transform2::preTranslate(text.matrix, - f / 1000.0f * text.fontScale * text.widthScale, 0);
-				}
-
-				String32 decodeText(const String& text)
-				{
-					return String32::from(text);
 				}
 
 				void showText(ListElements<PdfObject> operands)
@@ -595,7 +599,7 @@ namespace slib
 						return;
 					}
 					const String& text = operands[0].getString();
-					drawText(decodeText(text));
+					drawText(text);
 				}
 
 				void showTextWithPositions(ListElements<PdfObject> operands)
@@ -608,7 +612,7 @@ namespace slib
 						PdfObject& obj = args[i];
 						const String& s = obj.getString();
 						if (s.isNotNull()) {
-							drawText(decodeText(s));
+							drawText(s);
 						} else {
 							float f;
 							if (obj.getFloat(f)) {
@@ -627,7 +631,7 @@ namespace slib
 					text.charSpace = operands[1].getFloat();
 					moveTextMatrix(0, text.leading);
 					const String& text = operands[2].getString();
-					drawText(decodeText(text));
+					drawText(text);
 				}
 
 				void saveGraphicsState()
@@ -882,10 +886,150 @@ namespace slib
 
 			};
 
+			enum class TruetypeName
+			{
+				COPYRIGHT = 0,
+				FONT_FAMILY = 1,
+				FONT_SUBFAMILY = 2,
+				UNIQUE_ID = 3,
+				FULL_NAME = 4,
+				VERSION_STRING = 5,
+				PS_NAME = 6,
+				TRADEMARK = 7,
+				MANUFACTURER = 8,
+				DESIGNER = 9,
+				DESCRIPTION = 10,
+				VENDOR_URL = 11,
+				DESIGNER_URL = 12,
+				LICENSE = 13,
+				LICENSE_URL = 14,
+				TYPOGRAPHIC_FAMILY = 16,
+				TYPOGRAPHIC_SUBFAMILY = 17,
+				MAC_FULL_NAME = 18,
+				SAMPLE_TEXT = 19,
+				CID_FINDFONT_NAME = 20,
+				WWS_FAMILY = 21,
+				WWS_SUBFAMILY = 22,
+				LIGHT_BACKGROUND = 23,
+				DARK_BACKGROUND = 24,
+				VARIATIONS_PREFIX = 25
+			};
+
+			static List<String> GetTruetypeNames(const void* _content, sl_size size, TruetypeName name)
+			{
+				sl_uint8* content = (sl_uint8*)_content;
+				struct TTF_HEADER
+				{
+					sl_uint8 version[2];
+					sl_uint8 numTables[4];
+					sl_uint8 searchRange[2];
+					sl_uint8 entrySelector[2];
+					sl_uint8 rangeShift[2];
+				};
+				struct TTF_OFFSET_TABLE
+				{
+					char name[4];
+					sl_uint8 checksum[4];
+					sl_uint8 offset[4];
+					sl_uint8 length[4];
+				};
+				struct TTF_NAME_TABLE_HEADER
+				{
+					sl_uint8 format[2];
+					sl_uint8 count[2];
+					sl_uint8 stringOffset[2];
+				};
+				struct TTF_NAME_TABLE_ENTRY
+				{
+					sl_uint8 platformId[2];
+					sl_uint8 encodingId[2];
+					sl_uint8 languageId[2];
+					sl_uint8 nameId[2];
+					sl_uint8 length[2];
+					sl_uint8 offset[2];
+				};
+				TTF_HEADER* header = (TTF_HEADER*)content;
+				if (size < sizeof(TTF_HEADER)) {
+					return sl_null;
+				}
+				sl_uint8* offsetTables = content + sizeof(TTF_HEADER);
+				sl_uint32 numTables = MIO::readUint32BE(header->numTables);
+				if (size < sizeof(TTF_HEADER) + sizeof(TTF_OFFSET_TABLE) * numTables) {
+					return sl_null;
+				}
+				List<String> ret;
+				for (sl_uint32 i = 0; i < numTables; i++) {
+					TTF_OFFSET_TABLE* offsetTable = (TTF_OFFSET_TABLE*)(offsetTables + sizeof(TTF_OFFSET_TABLE) * i);
+					if (Base::equalsMemory(offsetTable->name, "name", 4)) {
+						sl_uint32 offset = MIO::readUint32BE(offsetTable->offset);
+						if (offset + sizeof(TTF_NAME_TABLE_HEADER) <= size) {
+							TTF_NAME_TABLE_HEADER* nameHeader = (TTF_NAME_TABLE_HEADER*)(content + offset);
+							sl_uint8* entries = content + offset + sizeof(TTF_NAME_TABLE_HEADER);
+							sl_uint16 n = MIO::readUint16BE(nameHeader->count);
+							if (offset + sizeof(TTF_NAME_TABLE_HEADER) + sizeof(TTF_NAME_TABLE_ENTRY) * n <= size) {
+								for (sl_uint16 i = 0; i < n; i++) {
+									TTF_NAME_TABLE_ENTRY* entry = (TTF_NAME_TABLE_ENTRY*)(entries + sizeof(TTF_NAME_TABLE_ENTRY) * i);
+									sl_uint16 nameId = MIO::readUint16BE(entry->nameId);
+									if (nameId == (sl_uint16)name) {
+										sl_uint16 platformId = MIO::readUint16BE(entry->platformId);
+										sl_uint16 encodingId = MIO::readUint16BE(entry->encodingId);
+										sl_bool flagUtf16 = sl_false;
+										switch (platformId) {
+										case 0: // APPLE_UNICODE
+										case 2: // ISO
+											flagUtf16 = sl_true;
+											break;
+										case 1: // MACINTOSH
+											break;
+										case 3: // MICROSOFT
+											switch (encodingId) {
+											case 0: //SYMBOL
+											case 1: // UNICODE
+											case 7: // UCS4
+												flagUtf16 = sl_true;
+												break;
+											case 2: // SJIS
+											case 3: // PRC
+											case 4: // BIG5
+											case 5: // WANSUNG
+											case 6: // JOHAB
+											default:
+												break;
+											}
+											break;
+										default:
+											break;
+										}
+										sl_uint32 len = (sl_uint32)(MIO::readUint16BE(entry->length));
+										sl_uint32 offsetString = offset + MIO::readUint16BE(nameHeader->stringOffset) + MIO::readUint16BE(entry->offset);
+										if (offsetString + len <= size) {
+											if (flagUtf16) {
+												ret.add_NoLock(String::fromUtf16BE(content + offsetString, len));
+											} else {
+												ret.add_NoLock(String::fromUtf8(content + offsetString, len));
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				return ret;
+			}
+
 		}
 	}
 
 	using namespace priv::pdf;
+
+	PdfResourceContext::PdfResourceContext()
+	{
+	}
+
+	PdfResourceContext::~PdfResourceContext()
+	{
+	}
 
 
 	SLIB_DEFINE_ROOT_OBJECT(PdfFont)
@@ -898,33 +1042,58 @@ namespace slib
 	{
 	}
 
-	Ref<PdfFont> PdfFont::create(PdfDocument* doc, const PdfReference& ref)
+	Ref<PdfFont> PdfFont::load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context)
 	{
 		const PdfDictionary& dict = doc->getObject(ref).getDictionary();
 		if (dict.isNotNull()) {
-			Ref<PdfFont> font = new PdfFont;
-			if (font.isNotNull()) {
-				if (font->_load(doc, dict)) {
-					return font;
+			Ref<PdfFont> ret;
+			if (context.fonts.get(ref.objectNumber, &ret)) {
+				return ret;
+			}
+			ret = new PdfFont;
+			if (ret.isNotNull()) {
+				if (ret->_load(doc, dict, context)) {
+					context.fonts.put(ref.objectNumber, ret);
+					return ret;
 				}
 			}
 		}
 		return sl_null;
 	}
 
-	sl_bool PdfFont::_load(PdfDocument* doc, const PdfDictionary& dict)
+	sl_bool PdfFont::_load(PdfDocument* doc, const PdfDictionary& dict, PdfResourceContext& context)
 	{
-		if (!(load(doc, dict))) {
+		if (!(PdfFontResource::load(doc, dict))) {
 			return sl_false;
 		}
+		List<String> familiesInFont;
 		if (descriptor.content.objectNumber) {
 			Memory content = doc->getObject(descriptor.content).getStreamContent();
 			if (content.isNotNull()) {
-				embeddedFont = EmbeddedFont::load(content);
+				if (!(context.embeddedFonts.get(descriptor.content.objectNumber, &embeddedFont))) {
+					embeddedFont = EmbeddedFont::load(content);
+					context.embeddedFonts.put(descriptor.content.objectNumber, embeddedFont);
+				}
+				if (subtype == PdfFontSubtype::TrueType || (subtype == PdfFontSubtype::Type0 && cid.subtype == PdfFontSubtype::CIDFontType2)) {
+					familiesInFont = GetTruetypeNames(content.getData(), content.getSize(), TruetypeName::FONT_FAMILY);
+				}
 			}
 		}
+
 		FontDesc fd;
 		fd.familyName = descriptor.family;
+		if (fd.familyName.isEmpty()) {
+			if (familiesInFont.isNotNull()) {
+				List<String> families(Font::getAllFamilyNames());
+				ListElements<String> f(familiesInFont);
+				for (sl_size i = 0; i < f.count; i++) {
+					if (families.contains(f[i])) {
+						fd.familyName = f[i];
+						break;
+					}
+				}
+			}
+		}
 		fd.size = descriptor.ascent * FONT_SCALE / 1000.0f;
 		fd.flagBold = descriptor.weight >= 600.0f;
 		fd.flagItalic = Math::abs(descriptor.italicAngle) > 10;
@@ -934,10 +1103,25 @@ namespace slib
 
 	float PdfFont::getCharWidth(sl_int32 ch)
 	{
-		if (widths.isNotNull() && ch >= firstChar && ch <= lastChar) {
-			return widths[ch - firstChar] / 1000.0f;
+		float ret;
+		if (PdfFontResource::getCharWidth(ch, ret)) {
+			return ret;
 		}
-		return (object->measureText(StringView32((sl_char32*)&ch, 1))).x / FONT_SCALE;
+		String32 s = getUnicode(ch);
+		if (s.isNotEmpty()) {
+			return object->measureText(s).x / FONT_SCALE;
+		} else {
+			return 0;
+		}
+	}
+
+
+	PdfRenderContext::PdfRenderContext()
+	{
+	}
+
+	PdfRenderContext::~PdfRenderContext()
+	{
 	}
 
 
@@ -947,19 +1131,25 @@ namespace slib
 	{
 	}
 
-	void PdfPage::render(const PdfRenderParam& param)
+	void PdfPage::render(PdfRenderParam& param)
 	{
 		ListElements<PdfOperation> ops(getContent());
 		if (!(ops.count)) {
 			return;
 		}
 
+		if (param.context.isNull()) {
+			param.context = new PdfRenderContext;
+			if (param.context.isNull()) {
+				return;
+			}
+		}
 		Canvas* canvas = param.canvas;
 
 		Renderer renderer;
 		renderer.canvas = canvas;
 		renderer.page = this;
-		renderer.param = param;
+		renderer.param = &param;
 
 		Rectangle bounds = param.bounds;
 		canvas->fillRectangle(bounds, Color::White);
@@ -972,18 +1162,6 @@ namespace slib
 		for (sl_size i = 0; i < ops.count; i++) {
 			renderer.render(ops[i]);
 		}
-	}
-
-	Ref<PdfFont> PdfPage::getFont(const String& name)
-	{
-		PdfReference ref;
-		if (getFontResource(name, ref)) {
-			Ref<PdfDocument> doc(m_document);
-			if (doc.isNotNull()) {
-				return PdfFont::create(doc.get(), ref);
-			}
-		}
-		return sl_null;
 	}
 
 }

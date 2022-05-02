@@ -25,6 +25,8 @@
 #include "slib/doc/pdf.h"
 #include "slib/graphics/font.h"
 
+#define EXPIRE_DURATION_PDF_RESOURCES 5000
+
 namespace slib
 {
 
@@ -33,8 +35,7 @@ namespace slib
 	PdfView::PdfView()
 	{
 		m_pageNo = 0;
-		m_pages.setExpiringMilliseconds(5000);
-		m_fonts.setExpiringMilliseconds(5000);
+		m_pages.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
 	}
 
 	PdfView::~PdfView()
@@ -95,17 +96,23 @@ namespace slib
 	{
 		m_doc = doc;
 		m_pages.removeAll();
+		Ref<PdfRenderContext> context = new PdfRenderContext;
+		if (context.isNotNull()) {
+			context->fonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+			context->embeddedFonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+		}
+		m_context = context;
 		invalidate();
 	}
 
 	Ref<PdfPage> PdfView::_getPage(sl_uint32 no)
 	{
-		Ref<PdfPage> ret;
-		if (m_pages.get(no, &ret)) {
-			return ret;
-		}
 		Ref<PdfDocument> doc = m_doc;
 		if (doc.isNotNull()) {
+			Ref<PdfPage> ret;
+			if (m_pages.get(no, &ret)) {
+				return ret;
+			}
 			ret = doc->getPage(no);
 			m_pages.put(no, ret);
 			return ret;
@@ -120,21 +127,7 @@ namespace slib
 			PdfRenderParam param;
 			param.canvas = canvas;
 			param.bounds = getBoundsInnerPadding();
-			param.onLoadFont = [this](PdfReference& ref) -> Ref<PdfFont> {
-				Ref<PdfFont> font;
-				if (m_fonts.get(ref.objectNumber, &font)) {
-					return font;
-				}
-				Ref<PdfDocument> doc = m_doc;
-				if (doc.isNotNull()) {
-					font = PdfFont::create(doc.get(), ref);
-					if (font.isNotNull()) {
-						m_fonts.put(ref.objectNumber, font);
-						return font;
-					}
-				}
-				return sl_null;
-			};
+			param.context = m_context;
 			page->render(param);
 		}
 	}

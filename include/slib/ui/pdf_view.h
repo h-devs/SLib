@@ -27,14 +27,10 @@
 
 #include "../core/string.h"
 #include "../core/shared.h"
-#include "../core/expiring_map.h"
+#include "../doc/pdf.h"
 
 namespace slib
 {
-
-	class PdfDocument;
-	class PdfPage;
-	class PdfFont;
 
 	class SLIB_EXPORT PdfView : public View
 	{
@@ -69,8 +65,8 @@ namespace slib
 	public:
 		String m_filePath;
 		AtomicRef<PdfDocument> m_doc;
+		AtomicRef<PdfRenderContext> m_context;
 		ExpiringMap< sl_uint32, Ref<PdfPage> > m_pages;
-		ExpiringMap< sl_uint32, Ref<PdfFont> > m_fonts;
 
 		sl_uint32 m_pageNo;
 

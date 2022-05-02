@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/variant.h"
+#include "../core/expiring_map.h"
 #include "../math/rectangle.h"
 
 namespace slib
@@ -128,16 +129,7 @@ namespace slib
 	enum class PdfCMapOperator
 	{
 		Unknown = 0,
-		begin,
-		end,
 		def,
-		dict,
-		pop,
-		findresource,
-		begincmap,
-		endcmap,
-		currentdict,
-		defineresource,
 		begincodespacerange,
 		endcodespacerange,
 		beginbfchar,
@@ -172,10 +164,11 @@ namespace slib
 		Zapf = 8
 	};
 
+	class PdfDocument;
 	class PdfObject;
 	class PdfStream;
 	class PdfPage;
-	class PdfDocument;
+	class PdfFont;
 	class Canvas;
 	class Font;
 	class EmbeddedFont;
@@ -353,7 +346,7 @@ namespace slib
 
 	public:
 		PdfDictionary properties;
-		Memory content;
+		Memory contentUnfiltered;
 
 	public:
 		PdfStream() noexcept;
@@ -363,7 +356,12 @@ namespace slib
 	public:
 		PdfObject getProperty(const String& name) noexcept;
 
-		Memory getOriginalContent() noexcept;
+		Memory getContent() noexcept;
+
+	private:
+		Mutex m_lock;
+		Memory m_contentFiltered;
+		sl_bool m_flagFiltered;
 
 	};
 
@@ -392,6 +390,7 @@ namespace slib
 	class SLIB_EXPORT PdfCidFontInfo
 	{
 	public:
+		PdfFontSubtype subtype;
 		float defaultWidth;
 		HashMap<sl_int32, float> widths;
 
@@ -401,7 +400,9 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCidFontInfo)
 
 	public:
-		void load(const PdfDictionary& dict) noexcept;
+		void load(PdfDocument* doc, const PdfDictionary& dict) noexcept;
+
+		float getWidth(sl_int32 code);
 
 	};
 
@@ -416,6 +417,7 @@ namespace slib
 		PdfEncoding encoding;
 		PdfFontDescriptor descriptor;
 		PdfCidFontInfo cid;
+		HashMap<sl_uint16, String32> cmap;
 
 	public:
 		PdfFontResource();
@@ -425,10 +427,27 @@ namespace slib
 	public:
 		sl_bool load(PdfDocument* doc, const PdfDictionary& dict);
 
+		String32 getUnicode(sl_int32 code);
+
+		sl_bool getCharWidth(sl_int32 ch, float& width) noexcept;
+
 	public:
 		static PdfFontSubtype getSubtype(const StringView& subtype) noexcept;
 
 		static PdfEncoding getEncoding(const StringView& encoding) noexcept;
+
+	};
+
+	class SLIB_EXPORT PdfResourceContext : public Referable
+	{
+	public:
+		ExpiringMap< sl_uint32, Ref<PdfFont> > fonts;
+		ExpiringMap< sl_uint32, Ref<EmbeddedFont> > embeddedFonts;
+
+	public:
+		PdfResourceContext();
+
+		~PdfResourceContext();
 
 	};
 
@@ -446,12 +465,12 @@ namespace slib
 		~PdfFont();
 
 	public:
-		static Ref<PdfFont> create(PdfDocument* doc, const PdfReference& ref);
+		static Ref<PdfFont> load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context);
 
 		float getCharWidth(sl_int32 ch);
 
 	protected:
-		sl_bool _load(PdfDocument* doc, const PdfDictionary& dict);
+		sl_bool _load(PdfDocument* doc, const PdfDictionary& dict, PdfResourceContext& context);
 
 	};
 
@@ -468,6 +487,8 @@ namespace slib
 
 	public:
 		static PdfOperator getOperator(const StringView& opName) noexcept;
+
+		static PdfCMapOperator getCMapOperator(const StringView& opName) noexcept;
 
 	};
 
@@ -492,13 +513,22 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfRenderContext : public PdfResourceContext
+	{
+	public:
+		PdfRenderContext();
+
+		~PdfRenderContext();
+
+	};
+
 	class SLIB_EXPORT PdfRenderParam
 	{
 	public:
 		Canvas* canvas;
 		Rectangle bounds;
 
-		Function<Ref<PdfFont>(PdfReference& ref)> onLoadFont;
+		Ref<PdfRenderContext> context;
 
 	public:
 		PdfRenderParam();
@@ -525,7 +555,7 @@ namespace slib
 
 		static List<PdfOperation> parseContent(const void* data, sl_size size);
 
-		void render(const PdfRenderParam& param);
+		void render(PdfRenderParam& param);
 
 		Rectangle getMediaBox();
 
@@ -540,8 +570,6 @@ namespace slib
 		sl_bool getFontResource(const String& name, PdfReference& outRef);
 
 		sl_bool getFontResource(const String& name, PdfFontResource& outResource);
-
-		Ref<PdfFont> getFont(const String& name);
 
 		PdfObject getExternalObjectResource(const String& name);
 
@@ -603,7 +631,7 @@ namespace slib
 	{
 	public:
 		static const sl_char16* getUnicodeTable(PdfEncoding encoding) noexcept;
-
+		
 	};
 
 }
