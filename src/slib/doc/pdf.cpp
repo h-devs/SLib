@@ -1246,7 +1246,9 @@ namespace slib
 										default:
 											return sl_null;
 										}
+										list.add_NoLock(ch);
 									}
+									flagEscape = sl_false;
 								} else {
 									if (nOctal) {
 										if (nOctal < 3 && ch >= '0' && ch <= '7') {
@@ -1269,7 +1271,12 @@ namespace slib
 												nOpen--;
 											} else {
 												movePosition(i + 1 - n);
-												return String(list.getData(), list.getCount());
+												String ret(list.getData(), list.getCount());
+												if (ret.isNotNull()) {
+													return ret;
+												} else {
+													return String::getEmpty();
+												}
 											}
 										} else {
 											list.add_NoLock(ch);
@@ -1303,7 +1310,12 @@ namespace slib
 										list.add_NoLock(firstHexValue << 4);
 									}
 									movePosition(i + 1 - n);
-									return String(list.getData(), list.getCount());
+									String ret(list.getData(), list.getCount());
+									if (ret.isNotNull()) {
+										return ret;
+									} else {
+										return String::getEmpty();
+									}
 								} else {
 									sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
 									if (h < 16) {
@@ -2617,7 +2629,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfCidFontInfo)
 
-	PdfCidFontInfo::PdfCidFontInfo(): defaultWidth(1000)
+	PdfCidFontInfo::PdfCidFontInfo(): subtype(PdfFontSubtype::Unknown), defaultWidth(1000)
 	{
 	}
 
@@ -2687,7 +2699,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
 
-	PdfFontResource::PdfFontResource(): subtype(PdfFontSubtype::Unknown), firstChar(0), lastChar(0), encoding(PdfEncoding::Standard)
+	PdfFontResource::PdfFontResource(): subtype(PdfFontSubtype::Unknown), firstChar(0), lastChar(0), encoding(PdfEncoding::PdfDoc)
 	{
 	}
 
@@ -2716,7 +2728,10 @@ namespace slib
 				if (objEncoding.getReference(ref)) {
 					const PdfDictionary& dict = doc->getObject(ref).getDictionary();
 					if (dict.isNotNull()) {
-						encoding = PdfFontResource::getEncoding(dict.getValue_NoLock(g_strBaseEncoding).getString());
+						const String& s = dict.getValue_NoLock(g_strBaseEncoding).getString();
+						if (s.isNotNull()) {
+							encoding = PdfFontResource::getEncoding(s);
+						}
 					}
 				}
 			}
@@ -2754,6 +2769,8 @@ namespace slib
 				const sl_char16* map = Pdf::getUnicodeTable(encoding);
 				if (map) {
 					return String32(map[(sl_uint8)code], 1);
+				} else {
+					return String32((sl_uint8)code, 1);
 				}
 			}
 		}

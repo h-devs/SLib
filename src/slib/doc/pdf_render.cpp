@@ -153,7 +153,7 @@ namespace slib
 						path = GraphicsPath::create();
 						return path.isNotNull();
 					}
-					return sl_false;
+					return sl_true;
 				}
 
 				void moveTo(ListElements<PdfObject> operands)
@@ -526,7 +526,7 @@ namespace slib
 					float ty = operands[1].getFloat();
 					moveTextMatrix(operands[0].getFloat(), ty);
 					if (flagSetLeading) {
-						text.leading = -ty;
+						text.leading = ty;
 					}
 				}
 
@@ -555,6 +555,7 @@ namespace slib
 					if (text.font.isNull()) {
 						return;
 					}
+					PdfFont& font = *(text.font);
 
 					CanvasStateScope scope(canvas);
 					Matrix3 mat = text.matrix;
@@ -567,22 +568,22 @@ namespace slib
 					sl_char8* array = str.getData();
 					sl_size len = str.getLength();
 					sl_size nCh;
-					if (text.font->cmap.isNotNull()) {
+					if (font.cmap.isNotNull()) {
 						nCh = 2;
 					} else {
 						nCh = 1;
 					}
 					for (sl_size i = 0; i + nCh <= len; i += nCh) {
 						sl_int32 ch = nCh == 2 ? SLIB_MAKE_WORD(array[i], array[i+1]) : (sl_uint8)array[i];
-						String32 s = text.font->getUnicode(ch);
+						String32 s = font.getUnicode(ch);
 						if (s.isNotEmpty()) {
-							x += text.font->getCharWidth(ch) * text.fontScale;
 							if (s.getLength() == 1 && *(s.getData()) == ' ') {
 								x += text.wordSpace;
 							} else {
-								canvas->drawText(s, x / scaleX, 0, text.font->object, pen.color);
+								canvas->drawText(s, x / scaleX, - font.object->getFontHeight() / 2, font.object, pen.color);
 								x += text.charSpace;
 							}
+							x += font.getCharWidth(ch) * text.fontScale;
 						}
 					}
 					Transform2::preTranslate(text.matrix, x * text.widthScale, 0);

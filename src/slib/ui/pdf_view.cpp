@@ -36,6 +36,7 @@ namespace slib
 	{
 		m_pageNo = 0;
 		m_pages.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 	}
 
 	PdfView::~PdfView()
@@ -127,8 +128,11 @@ namespace slib
 			PdfRenderParam param;
 			param.canvas = canvas;
 			param.bounds = getBoundsInnerPadding();
+			Size pageSize = page->getMediaBox().getSize();
+			param.bounds.setHeight(pageSize.y / pageSize.x * param.bounds.getWidth());
 			param.context = m_context;
 			page->render(param);
+			setContentHeight((sl_ui_len)(param.bounds.getHeight()));
 		}
 	}
 
