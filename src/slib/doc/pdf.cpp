@@ -947,6 +947,7 @@ namespace slib
 				using READER_BASE::readChar;
 				using READER_BASE::peekChar;
 				using READER_BASE::read;
+				using READER_BASE::peek;
 				using READER_BASE::getPosition;
 				using READER_BASE::setPosition;
 				using READER_BASE::movePosition;
