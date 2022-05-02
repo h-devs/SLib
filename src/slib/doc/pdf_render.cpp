@@ -25,6 +25,7 @@
 #include "slib/graphics/canvas.h"
 #include "slib/graphics/path.h"
 #include "slib/graphics/cmyk.h"
+#include "slib/graphics/bitmap.h"
 #include "slib/core/queue.h"
 #include "slib/core/mio.h"
 #include "slib/math/transform2d.h"
@@ -349,7 +350,11 @@ namespace slib
 					if (operands.count != 2) {
 						return;
 					}
-					SET_HANDLE_STATE(pen, style, PenStyle::Dash);
+					if (operands[0].getArray().getCount()) {
+						SET_HANDLE_STATE(pen, style, PenStyle::Dash);
+					} else {
+						SET_HANDLE_STATE(pen, style, PenStyle::Solid);
+					}
 				}
 
 				void setMiterLimit(ListElements<PdfObject> operands)
@@ -635,6 +640,21 @@ namespace slib
 					drawText(text);
 				}
 
+				void drawExternalObject(ListElements<PdfObject> operands)
+				{
+					if (operands.count != 1) {
+						return;
+					}
+					const String& name = operands[0].getName();
+					PdfImageResource res;
+					if (page->getImageResource(name, res)) {
+						Ref<Bitmap> bitmap = Bitmap::loadFromMemory(res.content);
+						if (bitmap.isNotNull()) {
+							canvas->draw(0, 0, 1, 1, bitmap->flip(FlipMode::Vertical));
+						}
+					}
+				}
+
 				void saveGraphicsState()
 				{
 					canvas->save();
@@ -708,7 +728,7 @@ namespace slib
 							// set cache device (glphy with and bounding box in Type3 font)
 							break;
 						case PdfOperator::Do:
-							// invoke named XObject
+							drawExternalObject(operation.operands);
 							break;
 						case PdfOperator::DP:
 							// define marked-content point with property list

@@ -474,6 +474,22 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfImageResource
+	{
+	public:
+		Memory content;
+		sl_bool flagJpeg;
+
+	public:
+		PdfImageResource();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfImageResource)
+
+	public:
+		sl_bool load(PdfStream* stream) noexcept;
+
+	};
+
 	class SLIB_EXPORT PdfOperation
 	{
 	public:
@@ -572,6 +588,8 @@ namespace slib
 		sl_bool getFontResource(const String& name, PdfFontResource& outResource);
 
 		PdfObject getExternalObjectResource(const String& name);
+
+		sl_bool getImageResource(const String& name, PdfImageResource& outResource);
 
 	protected:
 		WeakRef<PdfDocument> m_document;

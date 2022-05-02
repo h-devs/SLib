@@ -2834,6 +2834,25 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfImageResource)
+
+	PdfImageResource::PdfImageResource(): flagJpeg(sl_false)
+	{
+	}
+
+	sl_bool PdfImageResource::load(PdfStream* stream) noexcept
+	{
+		const String& subtype = stream->properties.getValue_NoLock(g_strSubtype).getName();
+		if (subtype == StringView::literal("Image")) {
+			const String& filter = stream->properties.getValue_NoLock(g_strFilter).getName();
+			flagJpeg = filter == StringView::literal("DCTDecode") || filter == StringView::literal("DCT");
+			content = stream->contentUnfiltered;
+			return content.isNotNull();
+		}
+		return sl_false;
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfOperation)
 
 	PdfOperation::PdfOperation() noexcept
@@ -3347,6 +3366,15 @@ namespace slib
 	PdfObject PdfPage::getExternalObjectResource(const String& name)
 	{
 		return getResource(g_strXObject, name);
+	}
+
+	sl_bool PdfPage::getImageResource(const String& name, PdfImageResource& outRes)
+	{
+		const Ref<PdfStream>& stream = getExternalObjectResource(name).getStream();
+		if (stream.isNotNull()) {
+			return outRes.load(stream.get());
+		}
+		return sl_false;
 	}
 
 
