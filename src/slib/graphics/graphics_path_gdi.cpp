@@ -128,6 +128,7 @@ namespace slib
 		if (po) {
 			po->lastX = x;
 			po->lastY = y;
+			po->path->StartFigure();
 		}
 	}
 
