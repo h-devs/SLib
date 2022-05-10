@@ -35,26 +35,28 @@ namespace slib
 		namespace base64
 		{
 			
-			SLIB_INLINE static String Encode(const char* patterns, const void* buf, sl_size size, char padding)
+			template <class CHAR>
+			static typename StringTypeFromCharType<CHAR>::Type Encode(const char* patterns, const void* buf, sl_size size, CHAR padding)
 			{
-				if (size == 0) {
+				typedef typename StringTypeFromCharType<CHAR>::Type STRING;
+				if (!size) {
 					return sl_null;
 				}
 				const sl_uint8* input = (const sl_uint8*)buf;
 				sl_uint32 last = (sl_uint32)(size % 3);
 				sl_size countBlock = (size / 3) + (last ? 1 : 0);
-				String ret = String::allocate(countBlock << 2);
+				STRING ret = STRING::allocate(countBlock << 2);
 				if (ret.isEmpty()) {
 					return ret;
 				}
-				sl_char8* _output = ret.getData();
-				sl_char8* output = _output;
+				CHAR* _output = ret.getData();
+				CHAR* output = _output;
 				sl_uint32 n = 0;
 				for (sl_size iBlock = 0; iBlock < countBlock; iBlock++) {
 					sl_uint8 n0 = input[0];
 					sl_uint8 n1 = (n + 1 < size) ? input[1] : 0;
 					sl_uint8 n2 = (n + 2 < size) ? input[2] : 0;
-					output[0] = patterns[(n0 & 0xFC) >> 2];
+					output[0] = patterns[n0 >> 2];
 					output[1] = patterns[((n0 & 0x03) << 4) + ((n1 & 0xF0) >> 4)];
 					output[2] = patterns[((n1 & 0x0F) << 2) + ((n2 & 0xC0) >> 6)];
 					output[3] = patterns[n2 & 0x3F];
@@ -83,7 +85,7 @@ namespace slib
 				return ret;
 			}
 			
-			SLIB_INLINE static sl_uint32 GetIndex(sl_char8 c)
+			static sl_uint32 GetIndex(sl_uint32 c)
 			{
 				if (c >= 'A' && c <= 'Z') {
 					return c - 'A';
@@ -109,6 +111,80 @@ namespace slib
 				return 64;
 			}
 			
+			template <class CHAR>
+			static sl_size Decode(const CHAR* input, sl_size len, void* buf, CHAR padding)
+			{
+				sl_uint8* output = (sl_uint8*)buf;
+				// trim right (CR, LF)
+				while (len > 0) {
+					CHAR ch = input[len - 1];
+					if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						len--;
+					}
+					else {
+						break;
+					}
+				}
+				sl_uint32 data[4];
+				sl_size indexInput = 0;
+				sl_size indexOutput = 0;
+				sl_uint32 posInBlock = 0;
+				while (indexInput < len) {
+					CHAR ch = input[indexInput];
+					if (SLIB_CHAR_IS_WHITE_SPACE(ch) || ch == padding) {
+						indexInput++;
+						continue;
+					}
+					sl_uint32 sig = GetIndex(ch);
+					if (sig >= 64) {
+						return 0;
+					}
+					data[posInBlock] = sig;
+					switch (posInBlock) {
+					case 0:
+						++posInBlock;
+						break;
+					case 1:
+						output[indexOutput] = (sl_uint8)((data[0] << 2) + ((data[1] & 0x30) >> 4));
+						++indexOutput;
+						++posInBlock;
+						break;
+					case 2:
+						output[indexOutput] = (sl_uint8)(((data[1] & 0xf) << 4) + ((data[2] & 0x3c) >> 2));
+						++indexOutput;
+						++posInBlock;
+						break;
+					case 3:
+						output[indexOutput] = (sl_uint8)(((data[2] & 0x3) << 6) + data[3]);
+						++indexOutput;
+						posInBlock = 0;
+						break;
+					}
+					indexInput++;
+				}
+				return indexOutput;
+			}
+
+			template <class CHAR>
+			static Memory Decode(const CHAR* input, sl_size len, CHAR padding)
+			{
+				sl_size size = Base64::getDecodeOutputSize(len);
+				Memory mem = Memory::create(size);
+				if (mem.isNull()) {
+					return sl_null;
+				}
+				sl_size sizeOutput = Decode(input, len, mem.getData(), padding);
+				if (sizeOutput) {
+					if (size == sizeOutput) {
+						return mem;
+					}
+					else {
+						return mem.sub(0, sizeOutput);
+					}
+				}
+				return sl_null;
+			}
+
 		}
 	}
 	
@@ -124,6 +200,26 @@ namespace slib
 		return Encode(BASE64_CHARS_URL, buf, size, padding);
 	}
 
+	String16 Base64::encode16(const void* buf, sl_size size, sl_char16 padding)
+	{
+		return Encode(BASE64_CHARS, buf, size, padding);
+	}
+
+	String16 Base64::encodeUrl16(const void* buf, sl_size size, sl_char16 padding)
+	{
+		return Encode(BASE64_CHARS_URL, buf, size, padding);
+	}
+
+	String32 Base64::encode32(const void* buf, sl_size size, sl_char32 padding)
+	{
+		return Encode(BASE64_CHARS, buf, size, padding);
+	}
+
+	String32 Base64::encodeUrl32(const void* buf, sl_size size, sl_char32 padding)
+	{
+		return Encode(BASE64_CHARS_URL, buf, size, padding);
+	}
+
 	String Base64::encode(const Memory& mem, sl_char8 padding)
 	{
 		return Encode(BASE64_CHARS, mem.getData(), mem.getSize(), padding);
@@ -134,15 +230,33 @@ namespace slib
 		return Encode(BASE64_CHARS_URL, mem.getData(), mem.getSize(), padding);
 	}
 
-	String Base64::encode(const StringParam& _str, sl_char8 padding)
+	String16 Base64::encode16(const Memory& mem, sl_char16 padding)
 	{
-		StringData str(_str);
+		return Encode(BASE64_CHARS, mem.getData(), mem.getSize(), padding);
+	}
+
+	String16 Base64::encodeUrl16(const Memory& mem, sl_char16 padding)
+	{
+		return Encode(BASE64_CHARS_URL, mem.getData(), mem.getSize(), padding);
+	}
+
+	String32 Base64::encode32(const Memory& mem, sl_char32 padding)
+	{
+		return Encode(BASE64_CHARS, mem.getData(), mem.getSize(), padding);
+	}
+
+	String32 Base64::encodeUrl32(const Memory& mem, sl_char32 padding)
+	{
+		return Encode(BASE64_CHARS_URL, mem.getData(), mem.getSize(), padding);
+	}
+
+	String Base64::encode(const String& str, sl_char8 padding)
+	{
 		return Encode(BASE64_CHARS, str.getData(), str.getLength(), padding);
 	}
 
-	String Base64::encodeUrl(const StringParam& _str, sl_char8 padding)
+	String Base64::encodeUrl(const String& str, sl_char8 padding)
 	{
-		StringData str(_str);
 		return Encode(BASE64_CHARS_URL, str.getData(), str.getLength(), padding);
 	}
 	
@@ -157,78 +271,34 @@ namespace slib
 		return size;
 	}
 
-	sl_size Base64::decode(const StringParam& _str, void* buf, sl_char8 padding)
+	sl_size Base64::decode(const StringParam& _str, void* buf, sl_char32 padding)
 	{
-		StringData str(_str);
-		sl_uint8* output = (sl_uint8*)buf;
-		sl_size len = str.getLength();
-		const sl_char8* input = str.getData();
-		// trim right (CR, LF)
-		while (len > 0) {
-			sl_char16 ch = input[len - 1];
-			if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
-				len--;
-			} else {
-				break;
-			}
+		if (_str.is8BitsStringType()) {
+			StringData str(_str);
+			return Decode(str.getData(), str.getLength(), buf, (sl_char8)padding);
+		} else if (_str.is16BitsStringType()) {
+			StringData16 str(_str);
+			return Decode(str.getData(), str.getLength(), buf, (sl_char16)padding);
+		} else {
+			StringData32 str(_str);
+			return Decode(str.getData(), str.getLength(), buf, (sl_char32)padding);
 		}
-		sl_uint32 data[4];
-		sl_size indexInput = 0;
-		sl_size indexOutput = 0;
-		sl_uint32 posInBlock = 0;
-		while (indexInput < len) {
-			sl_char8 ch = input[indexInput];
-			if (SLIB_CHAR_IS_WHITE_SPACE(ch) || ch == padding) {
-				indexInput++;
-				continue;
-			}
-			sl_uint32 sig = GetIndex(ch);
-			if (sig >= 64) {
-				return 0;
-			}
-			data[posInBlock] = sig;
-			switch (posInBlock) {
-				case 0:
-					++posInBlock;
-					break;
-				case 1:
-					output[indexOutput] = (sl_uint8)((data[0] << 2) + ((data[1] & 0x30) >> 4));
-					++indexOutput;
-					++posInBlock;
-					break;
-				case 2:
-					output[indexOutput] = (sl_uint8)(((data[1] & 0xf) << 4) + ((data[2] & 0x3c) >> 2));
-					++indexOutput;
-					++posInBlock;
-					break;
-				case 3:
-					output[indexOutput] = (sl_uint8)(((data[2] & 0x3) << 6) + data[3]);
-					++indexOutput;
-					posInBlock = 0;
-					break;
-			}
-			indexInput++;
-		}
-		return indexOutput;
 	}
 
-	Memory Base64::decode(const StringParam& _base64, sl_char8 padding)
+	Memory Base64::decode(const StringParam& _str, sl_char32 padding)
 	{
-		StringData base64(_base64);
-		sl_size size = getDecodeOutputSize(base64.getLength());
-		Memory mem = Memory::create(size);
-		if (mem.isNull()) {
-			return sl_null;
+		if (_str.is8BitsStringType()) {
+			StringData str(_str);
+			return Decode(str.getData(), str.getLength(), (sl_char8)padding);
 		}
-		sl_size sizeOutput = decode(base64, mem.getData(), padding);
-		if (sizeOutput) {
-			if (size == sizeOutput) {
-				return mem;
-			} else {
-				return mem.sub(0, sizeOutput);
-			}
+		else if (_str.is16BitsStringType()) {
+			StringData16 str(_str);
+			return Decode(str.getData(), str.getLength(), (sl_char16)padding);
 		}
-		return sl_null;
+		else {
+			StringData32 str(_str);
+			return Decode(str.getData(), str.getLength(), (sl_char32)padding);
+		}
 	}
 
 }

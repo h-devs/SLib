@@ -34,20 +34,36 @@ namespace slib
 		static String encode(const void* byte, sl_size size, sl_char8 padding = '=');
 
 		static String encodeUrl(const void* byte, sl_size size, sl_char8 padding = 0);
-		
+
+		static String16 encode16(const void* byte, sl_size size, sl_char16 padding = '=');
+
+		static String16 encodeUrl16(const void* byte, sl_size size, sl_char16 padding = 0);
+
+		static String32 encode32(const void* byte, sl_size size, sl_char32 padding = '=');
+
+		static String32 encodeUrl32(const void* byte, sl_size size, sl_char32 padding = 0);
+
 		static String encode(const Memory& mem, sl_char8 padding = '=');
 				
 		static String encodeUrl(const Memory& mem, sl_char8 padding = 0);
 
-		static String encode(const StringParam& str, sl_char8 padding = '=');
+		static String16 encode16(const Memory& mem, sl_char16 padding = '=');
 
-		static String encodeUrl(const StringParam& str, sl_char8 padding = 0);
+		static String16 encodeUrl16(const Memory& mem, sl_char16 padding = 0);
+
+		static String32 encode32(const Memory& mem, sl_char32 padding = '=');
+
+		static String32 encodeUrl32(const Memory& mem, sl_char32 padding = 0);
+
+		static String encode(const String& str, sl_char8 padding = '=');
+
+		static String encodeUrl(const String& str, sl_char8 padding = 0);
 		
 		static sl_size getDecodeOutputSize(sl_size lenBase64);
 		
-		static sl_size decode(const StringParam& base64, void* output, sl_char8 padding = '=');
+		static sl_size decode(const StringParam& base64, void* output, sl_char32 padding = '=');
 
-		static Memory decode(const StringParam& base64, sl_char8 padding = '=');
+		static Memory decode(const StringParam& base64, sl_char32 padding = '=');
 		
 	};
 
