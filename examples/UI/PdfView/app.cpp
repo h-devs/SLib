@@ -8,7 +8,10 @@ void PdfViewerApp::onStart()
 {
 	auto window = New<Window>();
 	window->setTitle("PdfViewer");
-	window->setFrame(30, 30, 550, 700);
+	window->setFrame(30, 30, 600, 500);
+	window->setResizable();
+	window->setMinimizeButtonEnabled();
+	window->setMaximizeButtonEnabled();
 	window->setOnClose([](Window* window, UIEvent* ev) {
 		UIApp::quit();
 	});
@@ -18,10 +21,32 @@ void PdfViewerApp::onStart()
 	pdf->setHeightFilling(1, UIUpdateMode::Init);
 	window->addView(pdf, UIUpdateMode::Init);
 
+	auto menu = Menu::create();
+	if (menu.isNotNull()) {
+		auto file = Menu::createPopup();
+		if (file.isNotNull()) {
+			MenuItemParam item;
+			item.text = "&Open";
+			auto weakWindow = ToWeakRef(window);
+			item.action = [weakWindow, pdf]() {
+				FileDialog dlg;
+				dlg.type = FileDialogType::OpenFile;
+				dlg.parent = weakWindow;
+				dlg.title = "Open PDF Document";
+				dlg.addFilter("PDF Documents", "*.pdf");
+				if (dlg.run() == DialogResult::Ok) {
+					if (!(pdf->openFile(dlg.selectedPath))) {
+						UI::alert("Failed to open file!");
+					}
+				}
+			};
+			file->addMenuItem(item);
+		}
+		menu->addSubmenu(file, "&File");
+		window->setMenu(menu);
+		UIApp::setMenu(menu);
+	}
+
 	window->show();
 	setMainWindow(window);
-
-	pdf->openFile("D:\\Temp\\1.pdf");
-
-	//File::writeAllBytes("D:\\Temp\\2.dat", pdf->getDocument()->getPage(0)->getContentStream());
 }

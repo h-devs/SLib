@@ -25,7 +25,7 @@
 #include "slib/graphics/canvas.h"
 #include "slib/graphics/path.h"
 #include "slib/graphics/cmyk.h"
-#include "slib/graphics/bitmap.h"
+#include "slib/graphics/image.h"
 #include "slib/core/queue.h"
 #include "slib/core/mio.h"
 #include "slib/math/transform2d.h"
@@ -123,14 +123,6 @@ namespace slib
 			public:
 				BrushState brush;
 				PenState pen;
-			};
-
-			enum class PdfColorSpace
-			{
-				Unknown,
-				RGB,
-				Gray,
-				CMYK
 			};
 
 			class Renderer : public RenderState
@@ -253,17 +245,7 @@ namespace slib
 					if (operands.count != 1) {
 						return;
 					}
-					PdfColorSpace cs;
-					const String& name = operands[0].getName();
-					if (name == StringView::literal("DeviceRGB")) {
-						cs = PdfColorSpace::RGB;
-					} else if (name == StringView::literal("DeviceGray")) {
-						cs = PdfColorSpace::Gray;
-					} else if (name == StringView::literal("DeviceCMYK")) {
-						cs = PdfColorSpace::CMYK;
-					} else {
-						return;
-					}
+					PdfColorSpace cs = Pdf::getColorSpace(operands[0].getName());
 					if (flagStroking) {
 						colorSpaceForStroking = cs;
 					} else {
@@ -646,11 +628,14 @@ namespace slib
 						return;
 					}
 					const String& name = operands[0].getName();
-					PdfImageResource res;
-					if (page->getImageResource(name, res)) {
-						Ref<Bitmap> bitmap = Bitmap::loadFromMemory(res.content);
-						if (bitmap.isNotNull()) {
-							canvas->draw(0, 0, 1, 1, bitmap->flip(FlipMode::Vertical));
+					PdfReference ref;
+					if (page->getExternalObjectResource(name, ref)) {
+						Ref<PdfDocument> doc = page->getDocument();
+						if (doc.isNotNull()) {
+							Ref<PdfImage> image = PdfImage::load(doc.get(), ref, *(param->context));
+							if (image.isNotNull()) {
+								canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
+							}
 						}
 					}
 				}
@@ -1039,6 +1024,156 @@ namespace slib
 				return ret;
 			}
 
+			SLIB_INLINE static sl_uint8 GetColor4Bits(sl_uint8* row, sl_uint32 index)
+			{
+				sl_uint32 k = index >> 1;
+				sl_uint8 c = (index & 1) ? (row[k] & 15) : (row[k] >> 4);
+				return c;
+			}
+
+			SLIB_INLINE static sl_uint8 GetColor2Bits(sl_uint8* row, sl_uint32 index)
+			{
+				sl_uint32 k = index >> 2;
+				sl_uint32 m = (3 - (index & 3)) << 1;
+				sl_uint8 c = (row[k] >> m) & 3;
+				return c;
+			}
+
+			SLIB_INLINE static sl_uint8 GetColor1Bits(sl_uint8* row, sl_uint32 index)
+			{
+				sl_uint32 k = index >> 3;
+				sl_uint32 m = 7 - (index & 7);
+				return ((row[k] >> m) & 1) ? 1 : 0;
+			}
+
+			static Ref<Image> CreateImageObject(sl_uint8* data, sl_uint32 size, sl_uint32 width, sl_uint32 colors, sl_uint32 bitsPerComponent, Color* indices, sl_uint32 nIndices)
+			{
+				if (width && colors && bitsPerComponent) {
+					sl_uint32 sizeRow = (colors * bitsPerComponent * width + 7) >> 3;
+					sl_uint32 height = size / sizeRow;
+					if (height) {
+						Memory mem = Memory::create(width * height * sizeof(Color));
+						if (mem.isNotNull()) {
+							ImageDesc desc;
+							desc.colors = (Color*)(mem.getData());
+							desc.width = width;
+							desc.height = height;
+							desc.stride = width;
+							desc.ref = mem.getRef();
+							Color* color = desc.colors;
+							sl_uint8* row = data;
+							sl_uint32 nPlane = sizeRow * height;
+							for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+								sl_uint8* col = row;
+								for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+									if (colors == 3) {
+										// RGB
+										switch (bitsPerComponent) {
+											case 8:
+												color->r = *(col++);
+												color->g = *(col++);
+												color->b = *(col++);
+												break;
+											case 16:
+												color->r = *col;
+												col += 2;
+												color->g = *col;
+												col += 2;
+												color->b = *col;
+												col += 2;
+												break;
+											case 4:
+												color->r = GetColor4Bits(row, iCol * 3) * 17;
+												color->g = GetColor4Bits(row, iCol * 3 + 1) * 17;
+												color->b = GetColor4Bits(row, iCol * 3 + 2) * 17;
+												break;
+											case 2:
+												color->r = GetColor2Bits(row, iCol * 3) * 85;
+												color->g = GetColor2Bits(row, iCol * 3 + 1) * 85;
+												color->b = GetColor2Bits(row, iCol * 3 + 2) * 85;
+												break;
+											case 1:
+												color->r = GetColor1Bits(row, iCol * 3) ? 255 : 0;
+												color->g = GetColor1Bits(row, iCol * 3 + 1) ? 255 : 0;
+												color->b = GetColor1Bits(row, iCol * 3 + 2) ? 255 : 0;
+												break;
+											default:
+												return sl_null;
+										}
+									} else if (colors == 4) {
+										// CMYK
+										sl_uint8 C, M, Y, K;
+										if (bitsPerComponent == 8) {
+											C = *(col++);
+											M = *(col++);
+											Y = *(col++);
+											K = *(col++);
+										} else if (bitsPerComponent == 16) {
+											C = *col;
+											col += 2;
+											M = *col;
+											col += 2;
+											Y = *col;
+											col += 2;
+											K = *col;
+											col += 2;
+										} else {
+											return sl_null;
+										}
+										CMYK::convertCMYKToRGB(C, M, Y, K, color->r, color->g, color->b);
+									} else if (colors == 1) {
+										sl_uint8 c;
+										sl_uint32 c2;
+										switch (bitsPerComponent) {
+											case 8:
+												c = *(col++);
+												c2 = c;
+												break;
+											case 16:
+												c = *(col++);
+												c2 = (((sl_uint32)c) << 8) | *(col++);
+												break;
+											case 4:
+												c2 = GetColor4Bits(row, iCol);
+												c = c2 * 17;
+												break;
+											case 2:
+												c2 = GetColor2Bits(row, iCol);
+												c = c2 * 85;
+												break;
+											case 1:
+												c2 = GetColor1Bits(row, iCol);
+												c = c2 ? 255 : 0;
+												break;
+											default:
+												return sl_null;
+										}
+										if (indices) {
+											if (c2 < nIndices) {
+												*color = indices[c2];
+											} else {
+												color->r = 0;
+												color->g = 0;
+												color->b = 0;
+											}
+										} else {
+											color->r = c;
+											color->g = c;
+											color->b = c;
+										}
+									}
+									color->a = 255;
+									color++;
+								}
+								row += sizeRow;
+							}
+							return Image::create(desc);
+						}
+					}
+				}
+				return sl_null;
+			}
+
 		}
 	}
 
@@ -1134,6 +1269,134 @@ namespace slib
 		} else {
 			return 0;
 		}
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(PdfImage)
+
+	PdfImage::PdfImage()
+	{
+	}
+
+	PdfImage::~PdfImage()
+	{
+	}
+
+	Ref<PdfImage> PdfImage::load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context)
+	{
+		Ref<PdfImage> ret;
+		if (context.images.get(ref.objectNumber, &ret)) {
+			return ret;
+		}
+		ret = new PdfImage;
+		if (ret.isNotNull()) {
+			if (ret->_load(doc, ref, context, sl_false)) {
+				context.images.put(ref.objectNumber, ret);
+				return ret;
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool PdfImage::_load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context, sl_bool flagSMask)
+	{
+		const Ref<PdfStream>& stream = doc->getObject(ref).getStream();
+		if (stream.isNotNull()) {
+			if (PdfImageResource::load(stream.get())) {
+				Memory content = stream->getContent();
+				if (content.isNotNull()) {
+					if (flagJpeg) {
+						object = PlatformDrawable::loadFromMemory(content);
+					} else {
+						sl_uint8* data = (sl_uint8*)(content.getData());
+						sl_uint32 size = (sl_uint32)(content.getSize());
+						sl_uint32 w = width;
+						if (flagFlate) {
+							size = predict(data, size);
+							if (!size) {
+								return sl_false;
+							}
+							if (columns) {
+								w = columns;
+							}
+						}
+						Array<Color> indices;
+						if (colorSpaceRef.objectNumber) {
+							ListElements<PdfObject> arr(doc->getObject(colorSpaceRef).getArray());
+							if (arr.count >= 4) {
+								if (arr[0].getName() == StringView::literal("Indexed")) {
+									sl_uint32 maxIndex = arr[2].getUint();
+									if (maxIndex) {
+										PdfObject objTable = doc->getObject(arr[3]);
+										const String& strTable = objTable.getString();
+										Memory memTable;
+										sl_uint8* table;
+										sl_size nTable;
+										if (strTable.isNotNull()) {
+											table = (sl_uint8*)(strTable.getData());
+											nTable = strTable.getLength();
+										} else {
+											memTable = objTable.getStreamContent();
+											table = (sl_uint8*)(memTable.getData());
+											nTable = memTable.getSize();
+										}
+										if (nTable >= (maxIndex + 1) * 3) {
+											indices = Array<Color>::create(maxIndex + 1);
+											if (indices.isNotNull()) {
+												Color* c = indices.getData();
+												for (sl_uint32 i = 0; i <= maxIndex; i++) {
+													c->r = *(table++);
+													c->g = *(table++);
+													c->b = *(table++);
+													c++;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						sl_uint32 nColors = colors;
+						if (!nColors) {
+							if (colorSpace == PdfColorSpace::RGB) {
+								nColors = 3;
+							} else if (colorSpace == PdfColorSpace::CMYK) {
+								nColors = 4;
+							} else {
+								nColors = 1;
+							}
+						}
+						Ref<Image> image = CreateImageObject(data, size, w, nColors, bitsPerComponent, indices.getData(), (sl_uint32)(indices.getCount()));
+						if (image.isNotNull()) {
+							object = image;
+							if (!flagSMask && smask.objectNumber) {
+								PdfImage mask;
+								if (mask._load(doc, smask, context, sl_true)) {
+									Ref<Image> imageMask = CastRef<Image>(mask.object);
+									if (imageMask.isNotNull()) {
+										if (imageMask->getWidth() == image->getWidth() && imageMask->getHeight() == image->getHeight()) {
+											ImageDesc descColor, descAlpha;
+											image->getDesc(descColor);
+											imageMask->getDesc(descAlpha);
+											sl_uint32 n = descColor.width * descColor.height;
+											Color* c = descColor.colors;
+											Color* a = descAlpha.colors;
+											for (sl_uint32 i = 0; i < n; i++) {
+												c->a = a->r;
+												c++;
+												a++;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					return object.isNotNull();
+				}
+			}
+		}
+		return sl_false;
 	}
 
 

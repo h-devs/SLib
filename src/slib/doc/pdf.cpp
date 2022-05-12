@@ -90,6 +90,14 @@ namespace slib
 			SLIB_STATIC_STRING(g_strWidths, "Widths")
 			SLIB_STATIC_STRING(g_strDW, "DW")
 			SLIB_STATIC_STRING(g_strToUnicode, "ToUnicode")
+			SLIB_STATIC_STRING(g_strWidth, "Width")
+			SLIB_STATIC_STRING(g_strHeight, "Height")
+			SLIB_STATIC_STRING(g_strColorSpace, "ColorSpace")
+			SLIB_STATIC_STRING(g_strBitsPerComponent, "BitsPerComponent")
+			SLIB_STATIC_STRING(g_strPredictor, "Predictor")
+			SLIB_STATIC_STRING(g_strColors, "Colors")
+			SLIB_STATIC_STRING(g_strColumns, "Columns")
+			SLIB_STATIC_STRING(g_strSMask, "SMask")
 			SLIB_STATIC_STRING(g_strN, "N")
 			SLIB_STATIC_STRING(g_strO, "O")
 			SLIB_STATIC_STRING(g_strP, "P")
@@ -447,7 +455,7 @@ namespace slib
 									*(cur++) = (firstHex << 4) | h;
 									flagFirstHex = sl_true;
 								}
-							} else if (!(IsWhitespace(ch))) {
+							} else if (!(IsWhitespace(ch)) && ch != '>') {
 								return sl_null;
 							}
 						}
@@ -501,12 +509,14 @@ namespace slib
 										}
 									}
 									return sl_null;
-								} else if (!(IsWhitespace(v))) {
+								} else if (!(IsWhitespace(v)) && v != '>') {
 									return sl_null;
 								}
 							}
 						}
 					}
+				} else if (filter == StringView::literal("DCTDecode") || filter == StringView::literal("DCT")) {
+					return input;
 				}
 				return sl_null;
 			}
@@ -1687,10 +1697,12 @@ namespace slib
 								const PdfDictionary& properties = obj.getDictionary();
 								if (properties.isNotNull()) {
 									if (peekCharAndEquals('s')) {
+										sl_size pos = getPosition();
 										sl_uint32 length;
 										if (!(getStreamLength(properties, length))) {
 											return PdfObject();
 										}
+										setPosition(pos); // Protect position while getting stream length
 										Memory content;
 										if (!(readStreamContent(length, content))) {
 											return PdfObject();
@@ -2319,6 +2331,132 @@ namespace slib
 				return ret;
 			}
 
+			static sl_uint8 PredictPath(sl_int32 a, sl_int32 b, sl_int32 c) {
+				sl_int32 p = a + b - c;
+				sl_int32 pa = Math::abs(p - a);
+				sl_int32 pb = Math::abs(p - b);
+				sl_int32 pc = Math::abs(p - c);
+				if (pa <= pb && pa <= pc) {
+					return (sl_uint8)a;
+				} else if (pb <= pc) {
+					return (sl_uint8)b;
+				} else {
+					return (sl_uint8)c;
+				}
+			}
+
+			static sl_bool PredictPNG(sl_uint8* bufData, sl_uint32& sizeData, sl_uint32 colors, sl_uint32 bitsPerComponent, sl_uint32 columns) {
+				sl_uint32 nBytesPerPixel = (colors * bitsPerComponent + 7) >> 3;
+				sl_uint32 sizeRow = (colors * bitsPerComponent * columns + 7) >> 3;
+				if (!sizeRow) {
+					return sl_false;
+				}
+				sl_uint32 nRows = sizeData / (sizeRow + 1);
+				if (!nRows) {
+					return sl_false;
+				}
+				sizeData = sizeRow * nRows;
+				sl_uint8* pRowDst = bufData;
+				sl_uint8* pRowSrc = bufData;
+				for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
+					sl_uint8 tag = *pRowSrc;
+					if (tag) {
+						for (sl_uint32 i = 0; i < sizeRow; i++) {
+							sl_uint8 diff = pRowSrc[i + 1];
+							sl_uint8 base = 0;
+							switch (tag) {
+								case 1:
+									if (i >= nBytesPerPixel) {
+										base = pRowSrc[i - nBytesPerPixel];
+									}
+									break;
+								case 2:
+									if (iRow) {
+										base = pRowSrc[i - sizeRow];
+									}
+									break;
+								case 3:
+									{
+										sl_uint8 left = 0;
+										if (i >= nBytesPerPixel) {
+											left = pRowSrc[i - nBytesPerPixel];
+										}
+										sl_uint8 up = 0;
+										if (iRow) {
+											up = pRowSrc[i - sizeRow];
+										}
+										base = (sl_uint8)(((sl_uint32)up + (sl_uint32)left) >> 1);
+									}
+									break;
+								case 4:
+									{
+										sl_uint8 left = 0, upperLeft = 0;
+										if (i >= nBytesPerPixel) {
+											left = pRowSrc[i - nBytesPerPixel];
+											if (iRow) {
+												upperLeft = pRowSrc[i - nBytesPerPixel - sizeRow];
+											}
+										}
+										sl_uint8 up = 0;
+										if (iRow) {
+											up = pRowSrc[i - sizeRow];
+										}
+										base = PredictPath(left, up, upperLeft);
+									}
+									break;
+							}
+							pRowDst[i] = base + diff;
+						}
+					} else {
+						Base::moveMemory(pRowDst, pRowSrc + 1, sizeRow);
+					}
+					pRowSrc += sizeRow + 1;
+					pRowDst += sizeRow;
+				}
+				return sl_true;
+			}
+
+			sl_bool PredictTIFF(sl_uint8* bufData, sl_uint32& sizeData, sl_uint32 colors, sl_uint32 bitsPerComponent, sl_uint32 columns) {
+				sl_uint32 sizeRow = (colors * bitsPerComponent * columns + 7) >> 3;
+				if (!sizeRow) {
+					return sl_false;
+				}
+				sl_uint32 nRows = sizeData / sizeRow;
+				sizeData = sizeRow * nRows;
+				sl_uint32 nBitsRow = sizeRow << 3;
+				sl_uint32 nBytesPerPixel = (bitsPerComponent * colors) >> 3;
+				sl_uint8* row = bufData;
+				for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
+					if (bitsPerComponent == 1) {
+						sl_uint8 bit = (*row >> 7) & 1;
+						for (sl_uint32 i = 1; i < nBitsRow; i++) {
+							sl_uint32 x = i >> 3;
+							sl_uint32 iBit = 7 - (i & 7);
+							bit ^= ((row[x] >> iBit) & 1);
+							if (bit) {
+								row[x] |= 1 << iBit;
+							} else {
+								row[x] &= ~(1 << iBit);
+							}
+						}
+					} else {
+						if (bitsPerComponent == 16) {
+							sl_uint16 pixel = MIO::readUint16BE(row);
+							for (sl_uint32 i = nBytesPerPixel; i + 1 < sizeRow; i += 2) {
+								pixel += MIO::readUint16BE(row + i);
+								MIO::writeUint16BE(row + i, pixel);
+							}
+						} else {
+							for (sl_uint32 i = nBytesPerPixel; i < sizeRow; i++) {
+								row[i] += row[i - 1];
+							}
+						}
+					}
+					row += sizeRow;
+				}
+				return sl_true;
+			}
+
 		}
 	}
 
@@ -2574,29 +2712,32 @@ namespace slib
 		if (m_flagFiltered) {
 			return m_contentFiltered;
 		}
+		Memory contentFiltered;
 		const PdfArray& arrayFilter = objFilter.getArray();
 		if (arrayFilter.isNotNull()) {
 			ListElements<PdfObject> filters(arrayFilter);
-			Memory ret = contentUnfiltered;
-			for (sl_size i = 0; i < filters.count; i++) {
-				const String& filter = filters[i].getName();
-				if (filter.isNotNull()) {
-					ret = ApplyFilter(ret, filter);
-				} else {
-					return sl_null;
+			if (filters.count) {
+				contentFiltered = contentUnfiltered;
+				for (sl_size i = 0; i < filters.count; i++) {
+					const String& filter = filters[i].getName();
+					if (filter.isNotNull()) {
+						contentFiltered = ApplyFilter(contentFiltered, filter);
+					} else {
+						return sl_null;
+					}
 				}
 			}
-			m_contentFiltered = Move(ret);
-			contentUnfiltered.setNull();
-			m_flagFiltered = sl_true;
-			return ret;
 		} else {
 			const String& filter = objFilter.getName();
 			if (filter.isNotNull()) {
-				m_contentFiltered = ApplyFilter(contentUnfiltered, filter);
-				m_flagFiltered = sl_true;
-				return m_contentFiltered;
+				contentFiltered = ApplyFilter(contentUnfiltered, filter);
 			}
+		}
+		if (contentFiltered.isNotNull()) {
+			m_contentFiltered = contentFiltered;
+			contentUnfiltered.setNull();
+			m_flagFiltered = sl_true;
+			return contentFiltered;
 		}
 		return sl_null;
 	}
@@ -2722,7 +2863,7 @@ namespace slib
 			PdfObject objEncoding = dict.getValue_NoLock(g_strEncoding);
 			const String& encodingName = objEncoding.getName();
 			if (encodingName.isNotNull()) {
-				encoding = PdfFontResource::getEncoding(encodingName);
+				encoding = Pdf::getEncoding(encodingName);
 			} else {
 				PdfReference ref;
 				if (objEncoding.getReference(ref)) {
@@ -2730,7 +2871,7 @@ namespace slib
 					if (dict.isNotNull()) {
 						const String& s = dict.getValue_NoLock(g_strBaseEncoding).getString();
 						if (s.isNotNull()) {
-							encoding = PdfFontResource::getEncoding(s);
+							encoding = Pdf::getEncoding(s);
 						}
 					}
 				}
@@ -2816,27 +2957,10 @@ namespace slib
 		return PdfFontSubtype::Unknown;
 	}
 
-	PdfEncoding PdfFontResource::getEncoding(const StringView& encoding) noexcept
-	{
-		if (encoding == StringView::literal("StandardEncoding")) {
-			return PdfEncoding::Standard;
-		} else if (encoding == StringView::literal("MacRomanEncoding")) {
-			return PdfEncoding::MacRoman;
-		} else if (encoding == StringView::literal("WinAnsiEncoding")) {
-			return PdfEncoding::WinAnsi;
-		} else if (encoding == StringView::literal("PDFDocEncoding")) {
-			return PdfEncoding::PdfDoc;
-		} else if (encoding == StringView::literal("MacExpertEncoding")) {
-			return PdfEncoding::MacExpert;
-		} else {
-			return PdfEncoding::Unknown;
-		}
-	}
-
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfImageResource)
 
-	PdfImageResource::PdfImageResource(): flagJpeg(sl_false)
+	PdfImageResource::PdfImageResource(): flagJpeg(sl_false), flagFlate(sl_false), width(0), height(0), bitsPerComponent(0), colorSpace(PdfColorSpace::Unknown), colorSpaceRef(0, 0), predictor(0), colors(0), columns(0), smask(0, 0)
 	{
 	}
 
@@ -2844,12 +2968,53 @@ namespace slib
 	{
 		const String& subtype = stream->properties.getValue_NoLock(g_strSubtype).getName();
 		if (subtype == StringView::literal("Image")) {
-			const String& filter = stream->properties.getValue_NoLock(g_strFilter).getName();
-			flagJpeg = filter == StringView::literal("DCTDecode") || filter == StringView::literal("DCT");
-			content = stream->contentUnfiltered;
-			return content.isNotNull();
+			const PdfObject& objFilter = stream->properties.getValue_NoLock(g_strFilter);
+			String filter = objFilter.getName();
+			if (filter.isNull()) {
+				const PdfArray& arrFilter = objFilter.getArray();
+				if (arrFilter.isNotNull()) {
+					filter = arrFilter.getLastValue_NoLock().getName();
+				}
+			}
+			if (filter == StringView::literal("DCTDecode") || filter == StringView::literal("DCT")) {
+				flagJpeg = sl_true;
+			} else if (filter == StringView::literal("FlateDecode") || filter == StringView::literal("Fl")) {
+				flagFlate = sl_true;
+			}
+			stream->properties.getValue_NoLock(g_strWidth).getUint(width);
+			stream->properties.getValue_NoLock(g_strHeight).getUint(height);
+			stream->properties.getValue_NoLock(g_strBitsPerComponent).getUint(bitsPerComponent);
+			const PdfObject& objColorSpace = stream->properties.getValue_NoLock(g_strColorSpace);
+			colorSpace = Pdf::getColorSpace(objColorSpace.getName());
+			if (colorSpace == PdfColorSpace::Unknown) {
+				objColorSpace.getReference(colorSpaceRef);
+			}
+			stream->properties.getValue_NoLock(g_strPredictor).getUint(predictor);
+			stream->properties.getValue_NoLock(g_strColors).getUint(colors);
+			stream->properties.getValue_NoLock(g_strColumns).getUint(columns);
+			stream->properties.getValue_NoLock(g_strSMask).getReference(smask);
+			return sl_true;
 		}
 		return sl_false;
+	}
+
+	sl_uint32 PdfImageResource::predict(void* content, sl_uint32 size) noexcept
+	{
+		if (!flagFlate) {
+			return 0;
+		}
+		if (predictor >= 10) {
+			if (PredictPNG((sl_uint8*)content, size, colors, bitsPerComponent, columns)) {
+				return size;
+			}
+		} else if (predictor == 2) {
+			if (PredictTIFF((sl_uint8*)content, size, colors, bitsPerComponent, columns)) {
+				return size;
+			}
+		} else {
+			return size;
+		}
+		return 0;
 	}
 
 
@@ -3368,6 +3533,11 @@ namespace slib
 		return getResource(g_strXObject, name);
 	}
 
+	sl_bool PdfPage::getExternalObjectResource(const String& name, PdfReference& outRef)
+	{
+		return getResource(g_strXObject, name, sl_false).getReference(outRef);
+	}
+
 	sl_bool PdfPage::getImageResource(const String& name, PdfImageResource& outRes)
 	{
 		const Ref<PdfStream>& stream = getExternalObjectResource(name).getStream();
@@ -3554,26 +3724,56 @@ namespace slib
 	const sl_char16* Pdf::getUnicodeTable(PdfEncoding encoding) noexcept
 	{
 		switch (encoding) {
-		case PdfEncoding::Standard:
-			return g_encodingStandard;
-		case PdfEncoding::MacRoman:
-			return g_encodingMacRoman;
-		case PdfEncoding::WinAnsi:
-			return g_encodingWinAnsi;
-		case PdfEncoding::PdfDoc:
-			return g_encodingPdfDoc;
-		case PdfEncoding::MacExpert:
-			return g_encodingMacExpert;
-		case PdfEncoding::Symbol:
-			return g_encodingAdobeSymbol;
-		case PdfEncoding::MSSymbol:
-			return g_encodingMSSymbol;
-		case PdfEncoding::Zapf:
-			return g_encodingZapf;
-		default:
-			break;
+			case PdfEncoding::Standard:
+				return g_encodingStandard;
+			case PdfEncoding::MacRoman:
+				return g_encodingMacRoman;
+			case PdfEncoding::WinAnsi:
+				return g_encodingWinAnsi;
+			case PdfEncoding::PdfDoc:
+				return g_encodingPdfDoc;
+			case PdfEncoding::MacExpert:
+				return g_encodingMacExpert;
+			case PdfEncoding::Symbol:
+				return g_encodingAdobeSymbol;
+			case PdfEncoding::MSSymbol:
+				return g_encodingMSSymbol;
+			case PdfEncoding::Zapf:
+				return g_encodingZapf;
+			default:
+				break;
 		}
 		return sl_null;
+	}
+
+	PdfEncoding Pdf::getEncoding(const StringView& name) noexcept
+	{
+		if (name == StringView::literal("StandardEncoding")) {
+			return PdfEncoding::Standard;
+		} else if (name == StringView::literal("MacRomanEncoding")) {
+			return PdfEncoding::MacRoman;
+		} else if (name == StringView::literal("WinAnsiEncoding")) {
+			return PdfEncoding::WinAnsi;
+		} else if (name == StringView::literal("PDFDocEncoding")) {
+			return PdfEncoding::PdfDoc;
+		} else if (name == StringView::literal("MacExpertEncoding")) {
+			return PdfEncoding::MacExpert;
+		} else {
+			return PdfEncoding::Unknown;
+		}
+	}
+
+	PdfColorSpace Pdf::getColorSpace(const StringView& name) noexcept
+	{
+		if (name == StringView::literal("DeviceRGB")) {
+			return PdfColorSpace::RGB;
+		} else if (name == StringView::literal("DeviceGray")) {
+			return PdfColorSpace::Gray;
+		} else if (name == StringView::literal("DeviceCMYK")) {
+			return PdfColorSpace::CMYK;
+		} else {
+			return PdfColorSpace::Unknown;
+		}
 	}
 
 }

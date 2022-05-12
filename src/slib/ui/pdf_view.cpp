@@ -23,19 +23,139 @@
 #include "slib/ui/pdf_view.h"
 
 #include "slib/doc/pdf.h"
-#include "slib/graphics/font.h"
+#include "slib/graphics/canvas.h"
 
 #define EXPIRE_DURATION_PDF_RESOURCES 5000
 
 namespace slib
 {
 
+	class PdfViewContext : public PdfRenderContext
+	{
+	public:
+		Ref<PdfDocument> doc;
+		String filePath;
+		sl_uint32 nPages = 1;
+		ExpiringMap< sl_uint32, Ref<PdfPage> > pages;
+		float defaultPageRatio = 1.0f;
+		CHashMap<sl_uint32, float> mapPageRatio;
+
+	public:
+		PdfViewContext()
+		{
+			pages.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+			fonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+			embeddedFonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+			images.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+		}
+
+	public:
+		void initialize(const String& _filePath, PdfDocument* _doc, sl_uint32 _nPages)
+		{
+			filePath = _filePath;
+			doc = _doc;
+			nPages = _nPages;
+			Ref<PdfPage> page = getPage(0);
+			if (page.isNotNull()) {
+				defaultPageRatio = PdfViewContext::getBoxRatio(page->getMediaBox());
+				mapPageRatio.put(0, defaultPageRatio);
+			}
+		}
+
+		Ref<PdfPage> getPage(sl_uint32 no)
+		{
+			if (no == 2) {
+				no = no;
+			}
+			Ref<PdfPage> ret;
+			if (pages.get(no, &ret)) {
+				return ret;
+			}
+			ret = doc->getPage(no);
+			pages.put(no, ret);
+			return ret;
+		}
+
+		float getTotalHeight_NoLock()
+		{
+			float h = 0;
+			for (sl_uint32 i = 0; i < nPages; i++) {
+				float ratio = mapPageRatio.getValue_NoLock(i, defaultPageRatio);
+				h += ratio;
+			}
+			return h;
+		}
+
+		float getTotalHeight()
+		{
+			ObjectLocker lock(&mapPageRatio);
+			return getTotalHeight_NoLock();
+		}
+
+		void findFirstVisiblePage_NoLock(float sy, sl_uint32& pageNo, float& pageY)
+		{
+			float y = 0;
+			for (sl_uint32 i = 0; i < nPages - 1; i++) {
+				float ratio = mapPageRatio.getValue_NoLock(i, defaultPageRatio);
+				if (sy <= y + ratio) {
+					pageNo = i;
+					pageY = y;
+					return;
+				}
+				y += ratio;
+			}
+			pageNo = nPages - 1;
+			pageY = y;
+		}
+
+		Ref<PdfPage> getPageAndGeometry_NoLock(sl_uint32 no, float& ratio, sl_bool& flagUpdateRatio)
+		{
+			Ref<PdfPage> page = getPage(no);
+			if (page.isNotNull()) {
+				Rectangle mediaBox = page->getMediaBox();
+				ratio = getBoxRatio(mediaBox);
+				float oldRatio = mapPageRatio.getValue_NoLock(no, defaultPageRatio);
+				if (Math::isAlmostZero(oldRatio - ratio)) {
+					return page;
+				}
+				mapPageRatio.put_NoLock(no, ratio);
+				flagUpdateRatio = sl_true;
+				return page;
+			}
+			ratio = defaultPageRatio;
+			return sl_null;
+		}
+
+		float getPageY(sl_uint32 no)
+		{
+			ObjectLocker lock(&mapPageRatio);
+			float y = 0;
+			for (sl_uint32 i = 0; i < no; i++) {
+				float ratio = mapPageRatio.getValue_NoLock(i, defaultPageRatio);
+				y += ratio;
+			}
+			return y;
+		}
+
+		float getBoxRatio(const Rectangle& box)
+		{
+			sl_real w = box.getWidth();
+			sl_real h = box.getHeight();
+			if (Math::isAlmostZero(w) || Math::isAlmostZero(h)) {
+				return defaultPageRatio;
+			}
+			return (float)(h / w);
+		}
+
+	};
+
+
 	SLIB_DEFINE_OBJECT(PdfView, View)
 
 	PdfView::PdfView()
 	{
-		m_pageNo = 0;
-		m_pages.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+		m_widthOld = 0;
+
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 	}
 
@@ -46,14 +166,15 @@ namespace slib
 	sl_bool PdfView::openFile(const StringParam& _filePath)
 	{
 		String filePath = _filePath.toString();
-		ObjectLocker lock(this);
-		if (m_filePath == filePath) {
-			return sl_true;
+		Ref<PdfViewContext> context = m_context;
+		if (context.isNotNull()) {
+			if (context->filePath == filePath) {
+				return sl_true;
+			}
 		}
 		Ref<PdfDocument> doc = PdfDocument::openFile(filePath);
 		if (doc.isNotNull()) {
-			m_filePath = filePath;
-			_setDocument(doc.get());
+			_setDocument(filePath, doc.get());
 			return sl_true;
 		}
 		return sl_false;
@@ -61,10 +182,9 @@ namespace slib
 
 	sl_bool PdfView::openMemory(const Memory& mem)
 	{
-		ObjectLocker lock(this);
 		Ref<PdfDocument> doc = PdfDocument::openMemory(mem);
 		if (doc.isNotNull()) {
-			_setDocument(doc.get());
+			_setDocument(sl_null, doc.get());
 			return sl_true;
 		}
 		return sl_false;
@@ -72,68 +192,116 @@ namespace slib
 
 	void PdfView::close()
 	{
-		ObjectLocker lock(this);
-		m_filePath.setNull();
-		m_doc.setNull();
+		m_context.setNull();
+		invalidate();
 	}
 
 	Ref<PdfDocument> PdfView::getDocument()
 	{
-		return m_doc;
-	}
-
-	sl_uint32 PdfView::getCurrentPageNumber()
-	{
-		return m_pageNo;
-	}
-
-	void PdfView::goToPage(sl_uint32 pageNo, UIUpdateMode mode)
-	{
-		m_pageNo = pageNo;
-		invalidate(mode);
-	}
-
-	void PdfView::_setDocument(PdfDocument* doc)
-	{
-		m_doc = doc;
-		m_pages.removeAll();
-		Ref<PdfRenderContext> context = new PdfRenderContext;
+		Ref<PdfViewContext> context = m_context;
 		if (context.isNotNull()) {
-			context->fonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
-			context->embeddedFonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
-		}
-		m_context = context;
-		invalidate();
-	}
-
-	Ref<PdfPage> PdfView::_getPage(sl_uint32 no)
-	{
-		Ref<PdfDocument> doc = m_doc;
-		if (doc.isNotNull()) {
-			Ref<PdfPage> ret;
-			if (m_pages.get(no, &ret)) {
-				return ret;
-			}
-			ret = doc->getPage(no);
-			m_pages.put(no, ret);
-			return ret;
+			return context->doc;
 		}
 		return sl_null;
 	}
 
+	void PdfView::goToPage(sl_uint32 pageNo, UIUpdateMode mode)
+	{
+		Ref<PdfViewContext> context = new PdfViewContext;
+		if (context.isNull()) {
+			return;
+		}
+		sl_real width = (sl_real)(getWidth());
+		if (Math::isAlmostZero(width)) {
+			return;
+		}
+		float y = context->getPageY(pageNo) * width;
+		scrollToY(y, mode);
+	}
+
+	void PdfView::_setDocument(const String& filePath, PdfDocument* doc)
+	{
+		sl_uint32 nPages = doc->getPagesCount();
+		if (!nPages) {
+			return;
+		}
+		Ref<PdfViewContext> context = new PdfViewContext;
+		if (context.isNull()) {
+			return;
+		}
+		context->initialize(filePath, doc, nPages);
+		m_context = context;
+
+		setScrollY(0, UIUpdateMode::None);
+		setContentHeight(context->getTotalHeight() * (float)(getWidth()), UIUpdateMode::None);
+		invalidate();
+	}
+
 	void PdfView::onDraw(Canvas* canvas)
 	{
-		Ref<PdfPage> page = _getPage(m_pageNo);
-		if (page.isNotNull()) {
+		Ref<PdfViewContext> context = m_context;
+		if (context.isNull()) {
+			return;
+		}
+
+		UIRect bounds = getBounds();
+		sl_real height = (sl_real)(bounds.getHeight());
+		sl_real width = (sl_real)(bounds.getWidth());
+		if (Math::isAlmostZero(width)) {
+			return;
+		}
+		float sy = (float)(getScrollY());
+
+		{
+			ObjectLocker lockMap(&(context->mapPageRatio));
+			sl_bool flagUpdateScrollRange = sl_false;
+			sl_uint32 pageFirst = 0;
+			float pageFirstY = 0;
+			context->findFirstVisiblePage_NoLock(sy / width, pageFirst, pageFirstY);
+
+			Ref<Pen> penBorder = Pen::createSolidPen(2, Color::Gray);
+
 			PdfRenderParam param;
 			param.canvas = canvas;
-			param.bounds = getBoundsInnerPadding();
-			Size pageSize = page->getMediaBox().getSize();
-			param.bounds.setHeight(pageSize.y / pageSize.x * param.bounds.getWidth());
 			param.context = m_context;
-			page->render(param);
-			setContentHeight((sl_ui_len)(param.bounds.getHeight()));
+			param.bounds.left = 0;
+			param.bounds.right = width;
+			param.bounds.bottom = pageFirstY * width;
+
+			for (sl_uint32 i = 0; i < 100; i++) {
+				float ratio;
+				Ref<PdfPage> page = context->getPageAndGeometry_NoLock(pageFirst + i, ratio, flagUpdateScrollRange);
+				param.bounds.top = param.bounds.bottom;
+				param.bounds.bottom += ratio * width;
+				if (param.bounds.top < sy + height && sy < param.bounds.bottom) {
+					if (page.isNotNull()) {
+						page->render(param);
+					}
+					if (i) {
+						canvas->drawLine(param.bounds.left, param.bounds.top - 1, param.bounds.right, param.bounds.top - 1, penBorder);
+					}
+				} else {
+					break;
+				}
+			}
+
+			if (flagUpdateScrollRange) {
+				setContentHeight(context->getTotalHeight_NoLock() * width, UIUpdateMode::Redraw);
+			}
 		}
 	}
+
+	void PdfView::onResize(sl_ui_len width, sl_ui_len height)
+	{
+		Ref<PdfViewContext> context = m_context;
+		if (context.isNotNull()) {
+			setContentHeight(context->getTotalHeight() * (float)width, UIUpdateMode::None);
+			if (m_widthOld) {
+				setScrollY(getScrollY() * (sl_scroll_pos)width / (sl_scroll_pos)m_widthOld);
+			}
+		}
+		m_widthOld = width;
+	}
+
 
 }

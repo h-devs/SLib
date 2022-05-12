@@ -35,7 +35,8 @@ namespace slib
 			PdfDocument,
 			PdfPage,
 			PdfStream,
-			PdfFont
+			PdfFont,
+			PdfImage
 		};
 
 	}

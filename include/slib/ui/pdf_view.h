@@ -26,11 +26,12 @@
 #include "view.h"
 
 #include "../core/string.h"
-#include "../core/shared.h"
-#include "../doc/pdf.h"
 
 namespace slib
 {
+
+	class PdfDocument;
+	class PdfViewContext;
 
 	class SLIB_EXPORT PdfView : public View
 	{
@@ -50,25 +51,19 @@ namespace slib
 
 		Ref<PdfDocument> getDocument();
 
-		sl_uint32 getCurrentPageNumber();
-
 		void goToPage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	protected:
 		void onDraw(Canvas* canvas) override;
 
+		void onResize(sl_ui_len width, sl_ui_len height) override;
+
 	protected:
-		void _setDocument(PdfDocument* doc);
+		void _setDocument(const String& path, PdfDocument* doc);
 
-		Ref<PdfPage> _getPage(sl_uint32 no);
-
-	public:
-		String m_filePath;
-		AtomicRef<PdfDocument> m_doc;
-		AtomicRef<PdfRenderContext> m_context;
-		ExpiringMap< sl_uint32, Ref<PdfPage> > m_pages;
-
-		sl_uint32 m_pageNo;
+	protected:
+		AtomicRef<PdfViewContext> m_context;
+		sl_ui_len m_widthOld;
 
 	};
 

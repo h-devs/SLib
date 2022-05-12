@@ -164,14 +164,24 @@ namespace slib
 		Zapf = 8
 	};
 
+	enum class PdfColorSpace
+	{
+		Unknown,
+		RGB,
+		Gray,
+		CMYK
+	};
+
 	class PdfDocument;
 	class PdfObject;
 	class PdfStream;
 	class PdfPage;
 	class PdfFont;
+	class PdfImage;
 	class Canvas;
 	class Font;
 	class EmbeddedFont;
+	class Drawable;
 
 	typedef HashMap<String, PdfObject> PdfDictionary;
 	typedef List<PdfObject> PdfArray;
@@ -434,8 +444,6 @@ namespace slib
 	public:
 		static PdfFontSubtype getSubtype(const StringView& subtype) noexcept;
 
-		static PdfEncoding getEncoding(const StringView& encoding) noexcept;
-
 	};
 
 	class SLIB_EXPORT PdfResourceContext : public Referable
@@ -443,6 +451,7 @@ namespace slib
 	public:
 		ExpiringMap< sl_uint32, Ref<PdfFont> > fonts;
 		ExpiringMap< sl_uint32, Ref<EmbeddedFont> > embeddedFonts;
+		ExpiringMap< sl_uint32, Ref<PdfImage> > images;
 
 	public:
 		PdfResourceContext();
@@ -477,8 +486,21 @@ namespace slib
 	class SLIB_EXPORT PdfImageResource
 	{
 	public:
-		Memory content;
+		PdfReference content;
 		sl_bool flagJpeg;
+		sl_bool flagFlate;
+		sl_uint32 width;
+		sl_uint32 height;
+		sl_uint32 bitsPerComponent;
+		PdfColorSpace colorSpace;
+		PdfReference colorSpaceRef;
+
+		// for `Flate` filter
+		sl_uint32 predictor;
+		sl_uint32 colors;
+		sl_uint32 columns;
+
+		PdfReference smask;
 
 	public:
 		PdfImageResource();
@@ -487,6 +509,28 @@ namespace slib
 
 	public:
 		sl_bool load(PdfStream* stream) noexcept;
+
+		sl_uint32 predict(void* content, sl_uint32 size) noexcept;
+
+	};
+
+	class SLIB_EXPORT PdfImage : public Referable, public PdfImageResource
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		Ref<Drawable> object;
+
+	public:
+		PdfImage();
+
+		~PdfImage();
+
+	public:
+		static Ref<PdfImage> load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context);
+
+	protected:
+		sl_bool _load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context, sl_bool flagSMask);
 
 	};
 
@@ -589,6 +633,8 @@ namespace slib
 
 		PdfObject getExternalObjectResource(const String& name);
 
+		sl_bool getExternalObjectResource(const String& name, PdfReference& outRef);
+
 		sl_bool getImageResource(const String& name, PdfImageResource& outResource);
 
 	protected:
@@ -649,7 +695,11 @@ namespace slib
 	{
 	public:
 		static const sl_char16* getUnicodeTable(PdfEncoding encoding) noexcept;
-		
+
+		static PdfEncoding getEncoding(const StringView& name) noexcept;
+
+		static PdfColorSpace getColorSpace(const StringView& name) noexcept;
+
 	};
 
 }
