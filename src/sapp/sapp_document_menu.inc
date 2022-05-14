@@ -352,13 +352,13 @@ namespace slib
 				}
 				if (item->platformFlags & SAppMenuResourceItem::windows) {
 					if (s.isNotEmpty()) {
-						s += " | ";
+						s += " || ";
 					}
 					s += "defined(SLIB_PLATFORM_IS_WIN32)";
 				}
 				if (item->platformFlags & SAppMenuResourceItem::linux) {
 					if (s.isNotEmpty()) {
-						s += " | ";
+						s += " || ";
 					}
 					s += "defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)";
 				}
@@ -556,21 +556,19 @@ namespace slib
 	
 	sl_bool SAppDocument::_getMenuValue_Item(SAppMenuResource* resource, const Ref<Menu>& parent, SAppMenuResourceItem* item)
 	{
-		if (item->platformFlags & SAppMenuResourceItem::mac) {
-	#if !defined(SLIB_PLATFORM_IS_MACOS)
+#if defined(SLIB_PLATFORM_IS_MACOS)
+		if (!(item->platformFlags & SAppMenuResourceItem::mac)) {
 			return sl_true;
-	#endif
 		}
-		if (item->platformFlags & SAppMenuResourceItem::windows) {
-	#if !defined(SLIB_PLATFORM_IS_WIN32)
+#elif defined(SLIB_PLATFORM_IS_WIN32)
+		if (!(item->platformFlags & SAppMenuResourceItem::windows)) {
 			return sl_true;
-	#endif
 		}
-		if (item->platformFlags & SAppMenuResourceItem::linux) {
-	#if !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+#elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+		if (!(item->platformFlags & SAppMenuResourceItem::linux)) {
 			return sl_true;
-	#endif
 		}
+#endif
 		
 		if (item->type == SAppMenuResourceItem::typeSubmenu) {
 
