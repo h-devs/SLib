@@ -101,7 +101,7 @@ namespace slib
 
 		sl_bool isAntiAlias();
 
-		void setAntiAlias(sl_bool flag);
+		void setAntiAlias(sl_bool flag = sl_true);
 
 	public:
 		virtual void save() = 0;
