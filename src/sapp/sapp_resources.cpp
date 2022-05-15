@@ -494,6 +494,10 @@ namespace slib
 				prefix = "tileLayout";
 				pN = &nAutoIncreaseNameTileLayout;
 				break;
+			case SAppLayoutItemType::Pdf:
+				prefix = "tileLayout";
+				pN = &nAutoIncreaseNamePdf;
+				break;
 			default:
 				return String::null();
 		}
@@ -593,6 +597,8 @@ namespace slib
 			type = SAppLayoutItemType::LabelList;
 		} else if (strType == "tile") {
 			type = SAppLayoutItemType::TileLayout;
+		} else if (strType == "pdf") {
+			type = SAppLayoutItemType::Pdf;
 		}
 		return type;
 	}

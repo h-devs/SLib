@@ -355,6 +355,7 @@ namespace slib
 	class ListBox;
 	class LabelList;
 	class TileLayout;
+	class PdfView;
 
 }
 

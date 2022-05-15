@@ -896,7 +896,6 @@ namespace slib
 	class SAppLayoutRefreshAttributes : public Referable
 	{
 	public:
-		
 	};
 	
 	class SAppLayoutListBoxAttributes : public Referable
@@ -937,7 +936,12 @@ namespace slib
 		SAppFloatValue cellRatio;
 
 	};
-	
+
+	class SAppLayoutPdfAttributes : public Referable
+	{
+	public:
+	};
+
 	class SAppLayoutStyle : public Referable
 	{
 	public:
@@ -1011,7 +1015,8 @@ namespace slib
 		DatePicker = 0x026d,
 		Line = 0x026e,
 		SelectSwitch = 0x026f,
-		ComboBox = 0x0270
+		ComboBox = 0x0270,
+		Pdf = 0x0271
 	};
 
 	class SAppLayoutResourceItem : public Referable
@@ -1067,6 +1072,7 @@ namespace slib
 		Ref<SAppLayoutListBoxAttributes> attrsListBox;
 		Ref<SAppLayoutLabelListAttributes> attrsLabelList;
 		Ref<SAppLayoutTileLayoutAttributes> attrsTileLayout;
+		Ref<SAppLayoutPdfAttributes> attrsPdf;
 
 		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;
@@ -1141,6 +1147,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameListBox = 0;
 		sl_uint32 nAutoIncreaseNameLabelList = 0;
 		sl_uint32 nAutoIncreaseNameTileLayout = 0;
+		sl_uint32 nAutoIncreaseNamePdf = 0;
 
 	public:
 		SAppLayoutResource();

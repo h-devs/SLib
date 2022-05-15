@@ -951,6 +951,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(ListBox)
 			PROCESS_CONTROL_SWITCH(LabelList)
 			PROCESS_CONTROL_SWITCH(TileLayout)
+			PROCESS_CONTROL_SWITCH(Pdf)
 			default:
 				return sl_false;
 		}
@@ -5038,6 +5039,16 @@ namespace slib
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(columnWidth, setColumnWidth, checkScalarSize)
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(cellRatio, setCellRatio)
+
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
+		
+		LAYOUT_CONTROL_ADD_STATEMENT
+		
+	}
+	END_PROCESS_LAYOUT_CONTROL
+	
+	BEGIN_PROCESS_LAYOUT_CONTROL(Pdf, PdfView)
+	{
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 		

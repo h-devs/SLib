@@ -521,7 +521,7 @@ namespace slib
 				Ref<SAppMenuResourceItem>& item = items[i];
 				if (item.isNotNull()) {
 					if (!(_getMenuValue_Item(res.get(), menu, item.get()))) {
-						_logError(g_str_error_out_of_memory);
+						_logError(g_str_error_load_menu_failed, value.resourceName);
 						return sl_false;
 					}
 				}

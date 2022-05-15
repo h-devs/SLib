@@ -64,6 +64,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_str_error_drawable_not_image, "Drawable resource is not image: %s")
 			SLIB_STATIC_STRING(g_str_error_load_image_failed, "Failed to load image drawable resource: %s")
 			SLIB_STATIC_STRING(g_str_error_menu_not_found, "Menu resource is not defined: %s")
+			SLIB_STATIC_STRING(g_str_error_load_menu_failed, "Failed to load menu resource: %s")
 			SLIB_STATIC_STRING(g_str_error_layout_style_not_found, "style is not found: %s")
 			SLIB_STATIC_STRING(g_str_error_layout_include_not_found, "include is not found: %s")
 			SLIB_STATIC_STRING(g_str_error_layout_not_found, "layout is not found: %s")
