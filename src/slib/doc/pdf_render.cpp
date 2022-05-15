@@ -269,6 +269,12 @@ namespace slib
 					}
 				}
 
+				// ICCBased and special color spaces
+				void setSpecialColor(ListElements<PdfObject> operands, sl_bool flagStroking)
+				{
+					setColor(Color(100, 100, 100), flagStroking);
+				}
+
 				void setRGB(ListElements<PdfObject> operands, sl_bool flagStroking)
 				{
 					if (operands.count != 3) {
@@ -816,10 +822,10 @@ namespace slib
 							setColor(operation.operands, sl_false);
 							break;
 						case PdfOperator::SCN:
-							// set color (for stroking, ICCBased and special color spaces)
+							setSpecialColor(operation.operands, sl_true);
 							break;
 						case PdfOperator::scn:
-							// set color (for non-stroking, ICCBased and special color spaces)
+							setSpecialColor(operation.operands, sl_false);
 							break;
 						case PdfOperator::sh:
 							// paint area defined by shading pattern
@@ -1428,7 +1434,10 @@ namespace slib
 				return;
 			}
 		}
+
 		Canvas* canvas = param.canvas;
+		sl_bool flagOldAntiAlias = canvas->isAntiAlias();
+		canvas->setAntiAlias();
 
 		Renderer renderer;
 		renderer.canvas = canvas;
@@ -1446,6 +1455,8 @@ namespace slib
 		for (sl_size i = 0; i < ops.count; i++) {
 			renderer.render(ops[i]);
 		}
+
+		canvas->setAntiAlias(flagOldAntiAlias);
 	}
 
 }

@@ -271,12 +271,13 @@ namespace slib
 			for (sl_uint32 i = 0; i < 100; i++) {
 				float ratio;
 				Ref<PdfPage> page = context->getPageAndGeometry_NoLock(pageFirst + i, ratio, flagUpdateScrollRange);
+				if (page.isNull()) {
+					break;
+				}
 				param.bounds.top = param.bounds.bottom;
 				param.bounds.bottom += ratio * width;
 				if (param.bounds.top < sy + height && sy < param.bounds.bottom) {
-					if (page.isNotNull()) {
-						page->render(param);
-					}
+					page->render(param);
 					if (i) {
 						canvas->drawLine(param.bounds.left, param.bounds.top - 1, param.bounds.right, param.bounds.top - 1, penBorder);
 					}

@@ -2043,19 +2043,6 @@ namespace slib
 					return sl_false;
 				}
 
-				PdfDictionary readLastTrailer(sl_uint32 startXref)
-				{
-					sl_reg pos = findBackward(StringView::literal("trailer"), startXref, 4096);
-					if (pos > 0) {
-						if (setPosition(pos - 1)) {
-							if (readCharAndIsWhitespace()) {
-								return readTrailer();
-							}
-						}
-					}
-					return PdfDictionary();
-				}
-
 				sl_bool readDocument() override
 				{
 					context = new Context;
@@ -2079,28 +2066,37 @@ namespace slib
 					majorVersion = SLIB_CHAR_DIGIT_TO_INT(version[5]);
 					minorVersion = SLIB_CHAR_DIGIT_TO_INT(version[7]);
 
-					// read last trailer and initialize reference table
+					// read last trailer and read reference table
 					{
 						sl_uint32 posStartXref, posXref;
 						if (!(readStartXref(posStartXref, posXref))) {
 							return sl_false;
 						}
-						lastTrailer = readLastTrailer(posStartXref);
-						if (lastTrailer.isNull()) {
-							return sl_false;
+						// last trailer
+						{
+							if (!(setPosition(posXref))) {
+								return sl_false;
+							}
+							CrossReferenceTable subTable;
+							subTable.context = context;
+							if (!(readCrossReferenceTable(subTable))) {
+								return sl_false;
+							}
+							lastTrailer = subTable.trailer;
 						}
-
-						sl_uint32 countTotalRef = 0;
-						lastTrailer.getValue_NoLock(g_strSize).getUint(countTotalRef);
-						if (!countTotalRef) {
-							return sl_false;
+						// initialize reference table
+						{
+							sl_uint32 countTotalRef = 0;
+							lastTrailer.getValue_NoLock(g_strSize).getUint(countTotalRef);
+							if (!countTotalRef) {
+								return sl_false;
+							}
+							context->references = Array<CrossReferenceEntry>::create(countTotalRef);
+							if (context->references.isNull()) {
+								return sl_false;
+							}
+							Base::zeroMemory(context->references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
 						}
-						context->references = Array<CrossReferenceEntry>::create(countTotalRef);
-						if (context->references.isNull()) {
-							return sl_false;
-						}
-						Base::zeroMemory(context->references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
-
 						for (;;) {
 							if (!(setPosition(posXref))) {
 								return sl_false;
