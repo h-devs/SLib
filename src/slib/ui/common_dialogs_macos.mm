@@ -68,10 +68,10 @@ namespace slib
 		[alert setMessageText:text];
 		NSAlertStyle style;
 		switch (icon) {
-			case AlertDialogIcon::Error:
+			case AlertIcon::Error:
 				style = NSAlertStyleCritical;
 				break;
-			case AlertDialogIcon::Warning:
+			case AlertIcon::Warning:
 				style = NSAlertStyleWarning;
 				break;
 			default:
@@ -80,19 +80,19 @@ namespace slib
 		}
 		[alert setAlertStyle:style];
 		[[alert window] setTitle:caption];
-		if (buttons == AlertDialogButtons::OkCancel) {
+		if (buttons == AlertButtons::OkCancel) {
 			[alert addButtonWithTitle:titleOk];
 			NSButton* btnCancel = [alert addButtonWithTitle:titleCancel];
 			[btnCancel setKeyEquivalent:@"Cancel"];
 			result1 = DialogResult::Ok;
 			result2 = DialogResult::Cancel;
-		} else if (buttons == AlertDialogButtons::YesNo) {
+		} else if (buttons == AlertButtons::YesNo) {
 			[alert addButtonWithTitle:titleYes];
 			NSButton* btnNo = [alert addButtonWithTitle:titleNo];
 			[btnNo setKeyEquivalent:@"Don't Save"];
 			result1 = DialogResult::Yes;
 			result2 = DialogResult::No;
-		} else if (buttons == AlertDialogButtons::YesNoCancel) {
+		} else if (buttons == AlertButtons::YesNoCancel) {
 			[alert addButtonWithTitle:titleYes];
 			NSButton* btnCancel = [alert addButtonWithTitle:titleCancel];
 			[btnCancel setKeyEquivalent:@"Cancel"];

@@ -429,6 +429,23 @@ namespace slib
 		alert.run();
 	}
 
+	void UI::alert(AlertIcon icon, const StringParam& text)
+	{
+		AlertDialog alert;
+		alert.icon = icon;
+		alert.text = text.toString();
+		alert.run();
+	}
+
+	void UI::alert(AlertIcon icon, const StringParam& caption, const StringParam& text)
+	{
+		AlertDialog alert;
+		alert.icon = icon;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
+		alert.run();
+	}
+
 	void UI::alert(const Ref<Window>& parent, const StringParam& text)
 	{
 		AlertDialog alert;
@@ -441,6 +458,25 @@ namespace slib
 	{
 		AlertDialog alert;
 		alert.parent = parent;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
+		alert.run();
+	}
+
+	void UI::alert(const Ref<Window>& parent, AlertIcon icon, const StringParam& text)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.icon = icon;
+		alert.text = text.toString();
+		alert.run();
+	}
+
+	void UI::alert(const Ref<Window>& parent, AlertIcon icon, const StringParam& caption, const StringParam& text)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.icon = icon;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
 		alert.run();
@@ -463,6 +499,25 @@ namespace slib
 		alert.show();
 	}
 
+	void UI::showAlert(AlertIcon icon, const StringParam& text, const Function<void()>& onOk)
+	{
+		AlertDialog alert;
+		alert.icon = icon;
+		alert.text = text.toString();
+		alert.onOk = onOk;
+		alert.show();
+	}
+
+	void UI::showAlert(AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
+	{
+		AlertDialog alert;
+		alert.icon = icon;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
+		alert.onOk = onOk;
+		alert.show();
+	}
+
 	void UI::showAlert(const Ref<Window>& parent, const StringParam& text, const Function<void()>& onOk)
 	{
 		AlertDialog alert;
@@ -471,7 +526,7 @@ namespace slib
 		alert.onOk = onOk;
 		alert.show();
 	}
-	
+
 	void UI::showAlert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
 	{
 		AlertDialog alert;
@@ -482,10 +537,31 @@ namespace slib
 		alert.show();
 	}
 
+	void UI::showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& text, const Function<void()>& onOk)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.icon = icon;
+		alert.text = text.toString();
+		alert.onOk = onOk;
+		alert.show();
+	}
+
+	void UI::showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.icon = icon;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
+		alert.onOk = onOk;
+		alert.show();
+	}
+
 	sl_bool UI::confirm(const StringParam& text)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.text = text.toString();
 		return alert.run() == DialogResult::Ok;
 	}
@@ -493,7 +569,7 @@ namespace slib
 	sl_bool UI::confirm(const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
 		return alert.run() == DialogResult::Ok;
@@ -502,7 +578,7 @@ namespace slib
 	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& text)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.parent = parent;
 		alert.text = text.toString();
 		return alert.run() == DialogResult::Ok;
@@ -511,7 +587,7 @@ namespace slib
 	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.parent = parent;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
@@ -521,7 +597,7 @@ namespace slib
 	void UI::showConfirm(const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
 			if (result == DialogResult::Ok) {
@@ -536,7 +612,7 @@ namespace slib
 	void UI::showConfirm(const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
@@ -552,7 +628,7 @@ namespace slib
 	void UI::showConfirm(const Ref<Window>& parent, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.parent = parent;
 		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
@@ -568,7 +644,7 @@ namespace slib
 	void UI::showConfirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
-		alert.buttons = AlertDialogButtons::OkCancel;
+		alert.buttons = AlertButtons::OkCancel;
 		alert.parent = parent;
 		alert.caption = caption.toString();
 		alert.text = text.toString();

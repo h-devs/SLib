@@ -56,13 +56,13 @@ namespace slib
 				SetWindowTextW(hWndMsg, (LPCWSTR)(caption.getData()));
 
 				switch (alert->buttons) {
-				case AlertDialogButtons::Ok:
+				case AlertButtons::Ok:
 					if (alert->titleOk.isNotNull()) {
 						StringCstr16 titleOk = alert->titleOk;
 						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleOk.getData()));
 					}
 					break;
-				case AlertDialogButtons::OkCancel:
+				case AlertButtons::OkCancel:
 					if (alert->titleOk.isNotNull()) {
 						StringCstr16 titleOk = alert->titleOk;
 						SetDlgItemTextW(hWndMsg, 1, (LPCWSTR)(titleOk.getData()));
@@ -72,7 +72,7 @@ namespace slib
 						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleCancel.getData()));
 					}
 					break;
-				case AlertDialogButtons::YesNo:
+				case AlertButtons::YesNo:
 					if (alert->titleYes.isNotNull()) {
 						StringCstr16 titleYes = alert->titleYes;
 						SetDlgItemTextW(hWndMsg, 6, (LPCWSTR)(titleYes.getData()));
@@ -82,7 +82,7 @@ namespace slib
 						SetDlgItemTextW(hWndMsg, 7, (LPCWSTR)(titleNo.getData()));
 					}
 					break;
-				case AlertDialogButtons::YesNoCancel:
+				case AlertButtons::YesNoCancel:
 					if (alert->titleYes.isNotNull()) {
 						StringCstr16 titleYes = alert->titleYes;
 						SetDlgItemTextW(hWndMsg, 6, (LPCWSTR)(titleYes.getData()));
@@ -112,13 +112,13 @@ namespace slib
 		int style;
 
 		switch (buttons) {
-		case AlertDialogButtons::OkCancel:
+		case AlertButtons::OkCancel:
 			style = MB_OKCANCEL;
 			break;
-		case AlertDialogButtons::YesNo:
+		case AlertButtons::YesNo:
 			style = MB_YESNO;
 			break;
-		case AlertDialogButtons::YesNoCancel:
+		case AlertButtons::YesNoCancel:
 			style = MB_YESNOCANCEL;
 			break;
 		default:
@@ -127,16 +127,16 @@ namespace slib
 		}
 
 		switch (icon) {
-		case AlertDialogIcon::Error:
+		case AlertIcon::Error:
 			style |= MB_ICONERROR;
 			break;
-		case AlertDialogIcon::Warning:
+		case AlertIcon::Warning:
 			style |= MB_ICONWARNING;
 			break;
-		case AlertDialogIcon::Question:
+		case AlertIcon::Question:
 			style |= MB_ICONQUESTION;
 			break;
-		case AlertDialogIcon::Information:
+		case AlertIcon::Information:
 			style |= MB_ICONINFORMATION;
 			break;
 		default:

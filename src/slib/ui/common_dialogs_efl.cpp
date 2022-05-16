@@ -118,7 +118,7 @@ namespace slib
 
 	sl_bool AlertDialog::_show()
 	{
-		AlertDialogButtons buttons = this->buttons;
+		AlertButtons buttons = this->buttons;
 
 		Evas_Object* win;
 		Ref<Window> parent = this->parent;
@@ -175,7 +175,7 @@ namespace slib
 			titleNo = "No";
 		}
 		
-		if (buttons == AlertDialogButtons::OkCancel) {
+		if (buttons == AlertButtons::OkCancel) {
 			Evas_Object* button1 = elm_button_add(popup);
 			elm_object_text_set(button1, titleOk.getData());
 			evas_object_smart_callback_add(button1, "clicked", alert_dialog_ok_cb, container);
@@ -186,7 +186,7 @@ namespace slib
 			elm_object_part_content_set(popup, "button2", button2);
 			eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_cancel_cb, container);
 			evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_cancel_cb, container);
-		} else if (buttons == AlertDialogButtons::YesNo) {
+		} else if (buttons == AlertButtons::YesNo) {
 			Evas_Object* button1 = elm_button_add(popup);
 			elm_object_text_set(button1, titleYes.getData());
 			evas_object_smart_callback_add(button1, "clicked", alert_dialog_yes_cb, container);
@@ -195,7 +195,7 @@ namespace slib
 			elm_object_text_set(button2, titleNo.getData());
 			evas_object_smart_callback_add(button2, "clicked", alert_dialog_no_cb, container);
 			elm_object_part_content_set(popup, "button2", button2);
-		} else if (buttons == AlertDialogButtons::YesNoCancel) {
+		} else if (buttons == AlertButtons::YesNoCancel) {
 			Evas_Object* button1 = elm_button_add(popup);
 			elm_object_text_set(button1, titleYes.getData());
 			evas_object_smart_callback_add(button1, "clicked", alert_dialog_yes_cb, container);

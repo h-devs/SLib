@@ -30,23 +30,6 @@
 namespace slib
 {
 
-	enum class AlertDialogButtons
-	{
-		Ok = 0,
-		OkCancel = 1,
-		YesNo = 2,
-		YesNoCancel = 3
-	};
-
-	enum class AlertDialogIcon
-	{
-		None = 0,
-		Information = 1,
-		Warning = 2,
-		Question = 3,
-		Error = 4
-	};
-	
 	class SLIB_EXPORT AlertDialog : public Referable
 	{
 	public:
@@ -64,8 +47,8 @@ namespace slib
 		String caption;
 		String text;
 		sl_bool flagHyperText;
-		AlertDialogButtons buttons;
-		AlertDialogIcon icon;
+		AlertButtons buttons;
+		AlertIcon icon;
 
 		String titleOk;
 		String titleCancel;

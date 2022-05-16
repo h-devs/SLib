@@ -90,7 +90,7 @@ namespace slib
 			return sl_false;
 		}
 
-		AlertDialogButtons buttons = this->buttons;
+		AlertButtons buttons = this->buttons;
 		NSString* caption = Apple::getNSStringFromString(this->caption);
 		NSString* text = Apple::getNSStringFromString(this->text);
 		NSString* titleOk = Apple::getNSStringFromString(this->titleOk);
@@ -118,7 +118,7 @@ namespace slib
 		
 		if (alert != nil) {
 			
-			if (buttons == AlertDialogButtons::OkCancel) {
+			if (buttons == AlertButtons::OkCancel) {
 				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOk style:UIAlertActionStyleDefault handler:
 										   ^(UIAlertAction *) {
 											   onOk();
@@ -129,7 +129,7 @@ namespace slib
 											   }];
 				[alert addAction:actionOK];
 				[alert addAction:actionCancel];
-			} else if (buttons == AlertDialogButtons::YesNo) {
+			} else if (buttons == AlertButtons::YesNo) {
 				UIAlertAction* actionYes = [UIAlertAction actionWithTitle:titleYes style:UIAlertActionStyleDefault handler:
 											^(UIAlertAction *) {
 												onYes();
@@ -140,7 +140,7 @@ namespace slib
 										   }];
 				[alert addAction:actionYes];
 				[alert addAction:actionNo];
-			} else if (buttons == AlertDialogButtons::YesNoCancel) {
+			} else if (buttons == AlertButtons::YesNoCancel) {
 				UIAlertAction* actionYes = [UIAlertAction actionWithTitle:titleYes style:UIAlertActionStyleDefault handler:
 											^(UIAlertAction *) {
 												onYes();

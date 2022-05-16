@@ -120,18 +120,34 @@ namespace slib
 
 		static void alert(const StringParam& caption, const StringParam& text);
 		
+		static void alert(AlertIcon icon, const StringParam& text);
+
+		static void alert(AlertIcon icon, const StringParam& caption, const StringParam& text);
+
 		static void alert(const Ref<Window>& parent, const StringParam& text);
-		
+
 		static void alert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text);
-		
+
+		static void alert(const Ref<Window>& parent, AlertIcon icon, const StringParam& text);
+
+		static void alert(const Ref<Window>& parent, AlertIcon icon, const StringParam& caption, const StringParam& text);
+
 		static void showAlert(const StringParam& text, const Function<void()>& onOk = sl_null);
 		
 		static void showAlert(const StringParam& caption, const StringParam& text, const Function<void()>& onOk = sl_null);
-		
+
+		static void showAlert(AlertIcon icon, const StringParam& text, const Function<void()>& onOk = sl_null);
+
+		static void showAlert(AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOk = sl_null);
+
 		static void showAlert(const Ref<Window>& parent, const StringParam& text, const Function<void()>& onOk = sl_null);
 		
 		static void showAlert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void()>& onOk = sl_null);
-		
+
+		static void showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& text, const Function<void()>& onOk = sl_null);
+
+		static void showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOk = sl_null);
+
 		static sl_bool confirm(const StringParam& text);
 
 		static sl_bool confirm(const StringParam& caption, const StringParam& text);

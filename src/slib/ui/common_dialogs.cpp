@@ -111,8 +111,8 @@ namespace slib
 	AlertDialog::AlertDialog()
 	{
 		flagHyperText = sl_false;
-		buttons = AlertDialogButtons::Ok;
-		icon = AlertDialogIcon::None;
+		buttons = AlertButtons::Ok;
+		icon = AlertIcon::None;
 	}
 	
 	DialogResult AlertDialog::_runOnUiThread()
@@ -205,9 +205,9 @@ namespace slib
 			case DialogResult::Error:
 				onError();
 				if (onComplete.isNull() && onError.isNull()) {
-					if (buttons == AlertDialogButtons::Ok) {
+					if (buttons == AlertButtons::Ok) {
 						onOk();
-					} else if (buttons == AlertDialogButtons::YesNo) {
+					} else if (buttons == AlertButtons::YesNo) {
 						onNo();
 					} else {
 						onCancel();
@@ -276,22 +276,22 @@ namespace slib
 		});
 
 		dlg->setOnBack([alert](ViewPage*, UIEvent* ev) {
-			if (alert->buttons == AlertDialogButtons::YesNo) {
+			if (alert->buttons == AlertButtons::YesNo) {
 				ev->preventDefault();
 			} else {
 				alert->_onResult(DialogResult::Cancel);
 			}
 		});
 		
-		if (buttons == AlertDialogButtons::OkCancel) {
+		if (buttons == AlertButtons::OkCancel) {
 			dlg->btnOK->setVisibility(Visibility::Visible, UIUpdateMode::Init);
 			dlg->btnCancel->setVisibility(Visibility::Visible, UIUpdateMode::Init);
 			dlg->btnCancel->removeAllChildren(UIUpdateMode::Init);
-		} else if (buttons == AlertDialogButtons::YesNo) {
+		} else if (buttons == AlertButtons::YesNo) {
 			dlg->btnYes->setVisibility(Visibility::Visible, UIUpdateMode::Init);
 			dlg->btnNo->setVisibility(Visibility::Visible, UIUpdateMode::Init);
 			dlg->btnNo->removeAllChildren(UIUpdateMode::Init);
-		} else if (buttons == AlertDialogButtons::YesNoCancel) {
+		} else if (buttons == AlertButtons::YesNoCancel) {
 			dlg->btnYes->setVisibility(Visibility::Visible, UIUpdateMode::Init);
 			dlg->btnNo->setVisibility(Visibility::Visible, UIUpdateMode::Init);
 			dlg->btnCancel->setVisibility(Visibility::Visible, UIUpdateMode::Init);

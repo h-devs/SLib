@@ -337,7 +337,24 @@ namespace slib
 		SLIB_CONSTEXPR DialogResult(): value(Ok) {}
 
 	};
-	
+
+	enum class AlertIcon
+	{
+		None = 0,
+		Information = 1,
+		Warning = 2,
+		Question = 3,
+		Error = 4
+	};
+
+	enum class AlertButtons
+	{
+		Ok = 0,
+		OkCancel = 1,
+		YesNo = 2,
+		YesNoCancel = 3
+	};
+
 	enum class UIAttachMode
 	{
 		NotAttach = 0,

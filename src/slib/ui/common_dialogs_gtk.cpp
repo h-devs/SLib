@@ -45,16 +45,16 @@ namespace slib
 		
 		GtkMessageType messgeType;
 		switch (icon) {
-			case AlertDialogIcon::Error:
+			case AlertIcon::Error:
 				messgeType = GTK_MESSAGE_ERROR;
 				break;
-			case AlertDialogIcon::Warning:
+			case AlertIcon::Warning:
 				messgeType = GTK_MESSAGE_WARNING;
 				break;
-			case AlertDialogIcon::Question:
+			case AlertIcon::Question:
 				messgeType = GTK_MESSAGE_QUESTION;
 				break;
-			case AlertDialogIcon::Information:
+			case AlertIcon::Information:
 				messgeType = GTK_MESSAGE_INFO;
 				break;
 			default:
@@ -113,19 +113,19 @@ namespace slib
 			}
 		}
 		
-		if (buttons == AlertDialogButtons::OkCancel) {
+		if (buttons == AlertButtons::OkCancel) {
 			gtk_dialog_add_button(dialog, szTitleOk.getData(), GTK_RESPONSE_OK);
 			gtk_dialog_add_button(dialog, szTitleCancel.getData(), GTK_RESPONSE_CANCEL);
 			if (!flagGtk3) {
 				gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL, -1);
 			}
-		} else if (buttons == AlertDialogButtons::YesNo) {
+		} else if (buttons == AlertButtons::YesNo) {
 			gtk_dialog_add_button(dialog, szTitleYes.getData(), GTK_RESPONSE_YES);
 			gtk_dialog_add_button(dialog, szTitleNo.getData(), GTK_RESPONSE_NO);
 			if (!flagGtk3) {
 				gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_YES, GTK_RESPONSE_NO, -1);
 			}
-		} else if (buttons == AlertDialogButtons::YesNoCancel) {
+		} else if (buttons == AlertButtons::YesNoCancel) {
 			gtk_dialog_add_button(dialog, szTitleYes.getData(), GTK_RESPONSE_YES);
 			gtk_dialog_add_button(dialog, szTitleNo.getData(), GTK_RESPONSE_NO);
 			gtk_dialog_add_button(dialog, szTitleCancel.getData(), GTK_RESPONSE_CANCEL);
