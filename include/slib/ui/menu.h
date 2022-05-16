@@ -60,11 +60,11 @@ namespace slib
 		
 		sl_bool isEnabled() const;
 		
-		virtual void setEnabled(sl_bool flag);
+		virtual void setEnabled(sl_bool flag = sl_true);
 		
 		sl_bool isChecked() const;
 		
-		virtual void setChecked(sl_bool flag);
+		virtual void setChecked(sl_bool flag = sl_true);
 		
 		Ref<Drawable> getIcon() const;
 		
