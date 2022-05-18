@@ -48,7 +48,7 @@ namespace slib
 		namespace named_instance
 		{
 
-#if defined(SLIB_PLATFORM_IS_WIN32)
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
 			static String16 MakeInstanceName(const StringParam& _name)
 			{
 				return String16::concat("Global\\", _name);
@@ -88,7 +88,7 @@ namespace slib
 				}
 				hMutex = CreateMutexW(NULL, FALSE, (LPCWSTR)(name.getData()));
 				if (hMutex) {
-					return hMutex;
+					return (HNamedInstance)hMutex;
 				}
 				return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 #else
@@ -118,14 +118,14 @@ namespace slib
 				fl.l_len = 0;
 				fl.l_type = F_WRLCK;
 				fl.l_whence = SEEK_SET;
-				int ret = fcntl(handle, F_SETLK, &fl);
-				if (ret >= 0) {
+				int iRet = fcntl(handle, F_SETLK, &fl);
+				if (iRet >= 0) {
 					names->put_NoLock(name, sl_true);
 					Container* ret = new Container;
 					if (ret) {
 						ret->handle = handle;
 						ret->name = Move(name);
-						return ret;
+						return (HNamedInstance)((void*)ret);
 					}
 				}
 				close(handle);
@@ -136,9 +136,9 @@ namespace slib
 			static void CloseInstanceHandle(HNamedInstance handle)
 			{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-				CloseHandle(handle);
+				CloseHandle((HANDLE)handle);
 #else
-				Container* container = (Container*)handle;
+				Container* container = (Container*)((void*)handle);
 				struct flock fl;
 				Base::zeroMemory(&fl, sizeof(fl));
 				fl.l_start = 0;
@@ -166,7 +166,7 @@ namespace slib
 	{
 		m_handle = CreateInstanceHandle(name);
 	}
-	
+
 	sl_bool NamedInstance::exists(const StringParam& _name)
 	{
 		if (_name.isEmpty()) {

@@ -29,8 +29,8 @@
 namespace slib
 {
 
-	typedef void* HNamedInstance;
-	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE sl_null
+	typedef sl_size HNamedInstance;
+	#define SLIB_NAMED_INSTANCE_INVALID_HANDLE 0
 
 	class SLIB_EXPORT NamedInstance
 	{
