@@ -73,7 +73,7 @@ namespace slib
 		moveTo(pt.x, pt.y);
 	}
 
-	void GraphicsPath::lineTo(sl_real x, sl_real y)
+	void GraphicsPath::_checkBegin() noexcept
 	{
 		if (!m_flagBegan) {
 			GraphicsPathPoint point;
@@ -83,6 +83,11 @@ namespace slib
 			_moveTo_PO(point.pt.x, point.pt.y);
 			m_flagBegan = sl_true;
 		}
+	}
+
+	void GraphicsPath::lineTo(sl_real x, sl_real y)
+	{
+		_checkBegin();
 		GraphicsPathPoint point;
 		point.pt.x = x;
 		point.pt.y = y;
@@ -96,16 +101,38 @@ namespace slib
 		lineTo(pt.x, pt.y);
 	}
 
+	void GraphicsPath::conicTo(sl_real xc, sl_real yc, sl_real xe, sl_real ye)
+	{
+		_checkBegin();
+		GraphicsPathPoint last = m_points.getLastValue_NoLock();
+		sl_real xc1 = xc - (xc - last.pt.x) / 3.0f;
+		sl_real yc1 = yc - (yc - last.pt.y) / 3.0f;
+		sl_real xc2 = xc + (xe - xc) / 3.0f;
+		sl_real yc2 = yc + (ye - yc) / 3.0f;
+		GraphicsPathPoint point;
+		point.pt.x = xc1;
+		point.pt.y = yc1;
+		point.type = GraphicsPathPoint::BezierCubic;
+		m_points.add_NoLock(point);
+		point.pt.x = xc2;
+		point.pt.y = yc2;
+		point.type = GraphicsPathPoint::BezierCubic;
+		m_points.add_NoLock(point);
+		point.pt.x = xe;
+		point.pt.y = ye;
+		point.type = GraphicsPathPoint::BezierCubic;
+		m_points.add_NoLock(point);
+		_cubicTo_PO(xc1, yc1, xc2, yc2, xe, ye);
+	}
+
+	void GraphicsPath::conicTo(const Point& ptControl, const Point& ptEnd)
+	{
+		conicTo(ptControl.x, ptControl.y, ptEnd.x, ptEnd.y);
+	}
+
 	void GraphicsPath::cubicTo(sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
 	{
-		if (!m_flagBegan) {
-			GraphicsPathPoint point;
-			point.pt = m_pointBegin;
-			point.type = GraphicsPathPoint::Begin;
-			m_points.add_NoLock(point);
-			_moveTo_PO(point.pt.x, point.pt.y);
-			m_flagBegan = sl_true;
-		}
+		_checkBegin();
 		GraphicsPathPoint point;
 		point.pt.x = xc1;
 		point.pt.y = yc1;
@@ -206,7 +233,6 @@ namespace slib
 		Rectangle rect(x, y, x + width, y + height);
 		addArc(rect, 0, 360, sl_true);
 		closeSubpath();
-
 	}
 
 	void GraphicsPath::addEllipse(const Rectangle& rect)
@@ -253,7 +279,6 @@ namespace slib
 	{
 		return containsPoint(pt.x, pt.y);
 	}
-
 
 #if !(defined(SLIB_GRAPHICS_IS_GDI)) && !(defined(SLIB_GRAPHICS_IS_QUARTZ)) && !(defined(SLIB_GRAPHICS_IS_ANDROID))
 

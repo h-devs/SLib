@@ -76,6 +76,10 @@ namespace slib
 
 		void lineTo(const Point& pt);
 
+		void conicTo(sl_real xc, sl_real yc, sl_real xe, sl_real ye);
+
+		void conicTo(const Point& ptControl, const Point& ptEnd);
+
 		void cubicTo(sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye);
 	
 		void cubicTo(const Point& ptControl1, const Point& ptControl2, const Point& ptEnd);
@@ -114,6 +118,8 @@ namespace slib
 		sl_bool containsPoint(const Point& pt);
 
 	protected:
+		void _checkBegin() noexcept;
+
 		sl_bool _initialize_PO();
 
 		void _moveTo_PO(sl_real x, sl_real y);
