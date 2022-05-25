@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,11 @@
  */
 
 #include "slib/graphics/font.h"
+#include "slib/graphics/truetype.h"
 
 #include "slib/graphics/font_atlas.h"
 #include "slib/core/memory.h"
+#include "slib/core/mio.h"
 #include "slib/core/locale.h"
 #include "slib/core/safe_static.h"
 
@@ -430,5 +432,109 @@ namespace slib
 		return sl_null;
 	}
 #endif
+
+
+	List<String> Truetype::getNames(const void* _content, sl_size size, TruetypeNameId _id)
+	{
+		sl_uint8* content = (sl_uint8*)_content;
+		struct TTF_HEADER
+		{
+			sl_uint8 version[2];
+			sl_uint8 numTables[4];
+			sl_uint8 searchRange[2];
+			sl_uint8 entrySelector[2];
+			sl_uint8 rangeShift[2];
+		};
+		struct TTF_OFFSET_TABLE
+		{
+			char name[4];
+			sl_uint8 checksum[4];
+			sl_uint8 offset[4];
+			sl_uint8 length[4];
+		};
+		struct TTF_NAME_TABLE_HEADER
+		{
+			sl_uint8 format[2];
+			sl_uint8 count[2];
+			sl_uint8 stringOffset[2];
+		};
+		struct TTF_NAME_TABLE_ENTRY
+		{
+			sl_uint8 platformId[2];
+			sl_uint8 encodingId[2];
+			sl_uint8 languageId[2];
+			sl_uint8 nameId[2];
+			sl_uint8 length[2];
+			sl_uint8 offset[2];
+		};
+		TTF_HEADER* header = (TTF_HEADER*)content;
+		if (size < sizeof(TTF_HEADER)) {
+			return sl_null;
+		}
+		sl_uint8* offsetTables = content + sizeof(TTF_HEADER);
+		sl_uint32 numTables = MIO::readUint32BE(header->numTables);
+		if (size < sizeof(TTF_HEADER) + sizeof(TTF_OFFSET_TABLE) * numTables) {
+			return sl_null;
+		}
+		List<String> ret;
+		for (sl_uint32 i = 0; i < numTables; i++) {
+			TTF_OFFSET_TABLE* offsetTable = (TTF_OFFSET_TABLE*)(offsetTables + sizeof(TTF_OFFSET_TABLE) * i);
+			if (Base::equalsMemory(offsetTable->name, "name", 4)) {
+				sl_uint32 offset = MIO::readUint32BE(offsetTable->offset);
+				if (offset + sizeof(TTF_NAME_TABLE_HEADER) <= size) {
+					TTF_NAME_TABLE_HEADER* nameHeader = (TTF_NAME_TABLE_HEADER*)(content + offset);
+					sl_uint8* entries = content + offset + sizeof(TTF_NAME_TABLE_HEADER);
+					sl_uint16 n = MIO::readUint16BE(nameHeader->count);
+					if (offset + sizeof(TTF_NAME_TABLE_HEADER) + sizeof(TTF_NAME_TABLE_ENTRY) * n <= size) {
+						for (sl_uint16 i = 0; i < n; i++) {
+							TTF_NAME_TABLE_ENTRY* entry = (TTF_NAME_TABLE_ENTRY*)(entries + sizeof(TTF_NAME_TABLE_ENTRY) * i);
+							sl_uint16 nameId = MIO::readUint16BE(entry->nameId);
+							if (nameId == (sl_uint16)_id) {
+								sl_uint16 platformId = MIO::readUint16BE(entry->platformId);
+								sl_uint16 encodingId = MIO::readUint16BE(entry->encodingId);
+								sl_bool flagUtf16 = sl_false;
+								switch (platformId) {
+								case 0: // APPLE_UNICODE
+								case 2: // ISO
+									flagUtf16 = sl_true;
+									break;
+								case 1: // MACINTOSH
+									break;
+								case 3: // MICROSOFT
+									switch (encodingId) {
+									case 0: //SYMBOL
+									case 1: // UNICODE
+									case 7: // UCS4
+										flagUtf16 = sl_true;
+										break;
+									case 2: // SJIS
+									case 3: // PRC
+									case 4: // BIG5
+									case 5: // WANSUNG
+									case 6: // JOHAB
+									default:
+										break;
+									}
+									break;
+								default:
+									break;
+								}
+								sl_uint32 len = (sl_uint32)(MIO::readUint16BE(entry->length));
+								sl_uint32 offsetString = offset + MIO::readUint16BE(nameHeader->stringOffset) + MIO::readUint16BE(entry->offset);
+								if (offsetString + len <= size) {
+									if (flagUtf16) {
+										ret.add_NoLock(String::fromUtf16BE(content + offsetString, len));
+									} else {
+										ret.add_NoLock(String::fromUtf8(content + offsetString, len));
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return ret;
+	}
 
 }
