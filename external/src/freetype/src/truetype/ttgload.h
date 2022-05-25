@@ -20,7 +20,7 @@
 #define TTGLOAD_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include "ttobjs.h"
 
 #ifdef TT_USE_BYTECODE_INTERPRETER

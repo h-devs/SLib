@@ -20,7 +20,7 @@
 #define PSAUXMOD_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_MODULE_H
 
 #include FT_INTERNAL_POSTSCRIPT_AUX_H

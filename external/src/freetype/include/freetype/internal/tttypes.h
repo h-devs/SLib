@@ -21,7 +21,7 @@
 #define TTTYPES_H_
 
 
-#include <ft2build.h>
+#include "../../ft2build.h"
 #include FT_TRUETYPE_TABLES_H
 #include FT_INTERNAL_OBJECTS_H
 

@@ -20,7 +20,7 @@
 #define PSMODULE_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_MODULE_H
 
 

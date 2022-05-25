@@ -24,12 +24,12 @@
 #error "`ft2build.h' hasn't been included yet!"
 #error "Please always use macros to include FreeType header files."
 #error "Example:"
-#error "  #include <ft2build.h>"
+#error "  #include "../ft2build.h""
 #error "  #include FT_FREETYPE_H"
 #endif
 
 
-#include <ft2build.h>
+#include "../ft2build.h"
 #include FT_CONFIG_CONFIG_H
 #include FT_TYPES_H
 #include FT_ERRORS_H
@@ -56,7 +56,7 @@ FT_BEGIN_HEADER
   /*    files, for example                                                 */
   /*                                                                       */
   /*    {                                                                  */
-  /*      #include <ft2build.h>                                            */
+  /*      #include "../ft2build.h"                                            */
   /*                                                                       */
   /*      #include FT_FREETYPE_H                                           */
   /*      #include FT_OUTLINE_H                                            */

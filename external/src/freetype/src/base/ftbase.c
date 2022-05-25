@@ -16,7 +16,7 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #define  FT_MAKE_OPTION_SINGLE_OBJECT
 
 #include "basepic.c"

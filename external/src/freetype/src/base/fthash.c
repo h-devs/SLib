@@ -39,7 +39,7 @@
   /*************************************************************************/
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_HASH_H
 #include FT_INTERNAL_MEMORY_H
 

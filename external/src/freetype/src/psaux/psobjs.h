@@ -20,7 +20,7 @@
 #define PSOBJS_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_POSTSCRIPT_AUX_H
 #include FT_INTERNAL_CFF_OBJECTS_TYPES_H
 

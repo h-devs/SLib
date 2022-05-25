@@ -217,7 +217,7 @@
 		26D9D86A1E96294F005F7BD3 /* drawable_quartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2601078B1DACE8CF00C40723 /* drawable_quartz.mm */; };
 		26D9D86B1E96294F005F7BD3 /* font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3921C117AE300D47AB0 /* font.cpp */; };
 		26D9D86C1E96294F005F7BD3 /* font_atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2640CB6D1DC27BC7006376AC /* font_atlas.cpp */; };
-		26D9D86D1E96294F005F7BD3 /* font_freetype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3911C117AE300D47AB0 /* font_freetype.cpp */; };
+		26D9D86D1E96294F005F7BD3 /* freetype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3911C117AE300D47AB0 /* freetype.cpp */; };
 		26D9D86F1E96294F005F7BD3 /* graphics_path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 266DD3941C117AE300D47AB0 /* graphics_path.cpp */; };
 		26D9D8701E96294F005F7BD3 /* graphics_path_quartz.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2601078F1DACE8E900C40723 /* graphics_path_quartz.mm */; };
 		26D9D8711E96294F005F7BD3 /* quartz_platform.mm in Sources */ = {isa = PBXBuildFile; fileRef = 260107911DACE8F200C40723 /* quartz_platform.mm */; };
@@ -500,7 +500,7 @@
 		266DD38E1C117AE300D47AB0 /* canvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = canvas.cpp; sourceTree = "<group>"; };
 		266DD38F1C117AE300D47AB0 /* color.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = color.cpp; sourceTree = "<group>"; };
 		266DD3901C117AE300D47AB0 /* drawable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = drawable.cpp; sourceTree = "<group>"; };
-		266DD3911C117AE300D47AB0 /* font_freetype.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = font_freetype.cpp; sourceTree = "<group>"; };
+		266DD3911C117AE300D47AB0 /* freetype.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = freetype.cpp; sourceTree = "<group>"; };
 		266DD3921C117AE300D47AB0 /* font.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = font.cpp; sourceTree = "<group>"; };
 		266DD3941C117AE300D47AB0 /* graphics_path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graphics_path.cpp; sourceTree = "<group>"; };
 		266DD3951C117AE300D47AB0 /* graphics_util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graphics_util.cpp; sourceTree = "<group>"; };
@@ -804,7 +804,7 @@
 				266DD3921C117AE300D47AB0 /* font.cpp */,
 				26072FFB20D8F535004EB272 /* font_quartz.mm */,
 				2640CB6D1DC27BC7006376AC /* font_atlas.cpp */,
-				266DD3911C117AE300D47AB0 /* font_freetype.cpp */,
+				266DD3911C117AE300D47AB0 /* freetype.cpp */,
 				266DD3941C117AE300D47AB0 /* graphics_path.cpp */,
 				2601078F1DACE8E900C40723 /* graphics_path_quartz.mm */,
 				260107911DACE8F200C40723 /* quartz_platform.mm */,
@@ -1674,7 +1674,7 @@
 				26D9D8BD1E962976005F7BD3 /* edit_view_ios.mm in Sources */,
 				263D478D2386E1CB00DAC43F /* chat_client.cpp in Sources */,
 				D7ECA24026317D2E00D366A8 /* libjpeg_unity1.c in Sources */,
-				26D9D86D1E96294F005F7BD3 /* font_freetype.cpp in Sources */,
+				26D9D86D1E96294F005F7BD3 /* freetype.cpp in Sources */,
 				262D59B02325996700F85780 /* noto_emoji.cpp in Sources */,
 				2671F99121E07F7400B39842 /* drawer.cpp in Sources */,
 				26D9D8DC1E962976005F7BD3 /* ui_animation_apple.mm in Sources */,

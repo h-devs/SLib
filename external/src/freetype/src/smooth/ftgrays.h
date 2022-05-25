@@ -27,7 +27,7 @@
 #ifdef STANDALONE_
 #include "ftimage.h"
 #else
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_CONFIG_CONFIG_H /* for FT_CONFIG_OPTION_PIC */
 #include FT_IMAGE_H
 #endif

@@ -32,7 +32,7 @@
 #ifndef AFTYPES_H_
 #define AFTYPES_H_
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H

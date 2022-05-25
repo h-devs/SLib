@@ -374,9 +374,6 @@
     <ClCompile Include="..\..\src\slib\graphics\font_atlas.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\font_freetype.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\graphics_path.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
@@ -1412,10 +1409,13 @@
     <ClCompile Include="..\..\src\slib\ui\pdf_view.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\doc\pdf_render.cpp">
-      <Filter>src\doc</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\dl_windows_t2embed.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\external\src\freetype\freetype_unity.c">
+      <Filter>external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\freetype.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
   </ItemGroup>

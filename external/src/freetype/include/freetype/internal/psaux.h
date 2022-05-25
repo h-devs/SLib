@@ -21,7 +21,7 @@
 #define PSAUX_H_
 
 
-#include <ft2build.h>
+#include "../../ft2build.h"
 #include FT_INTERNAL_OBJECTS_H
 #include FT_INTERNAL_TYPE1_TYPES_H
 #include FT_INTERNAL_HASH_H

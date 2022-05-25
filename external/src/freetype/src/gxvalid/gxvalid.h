@@ -28,7 +28,7 @@
 #ifndef GXVALID_H_
 #define GXVALID_H_
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_FREETYPE_H
 
 #include "gxverror.h"          /* must come before FT_INTERNAL_VALIDATE_H */

@@ -270,7 +270,7 @@ typedef ptrdiff_t  FT_PtrDist;
 #else /* !STANDALONE_ */
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include "ftgrays.h"
 #include FT_INTERNAL_OBJECTS_H
 #include FT_INTERNAL_DEBUG_H
@@ -1770,7 +1770,7 @@ typedef ptrdiff_t  FT_PtrDist;
     for ( y = yMin; y < yMax; )
     {
       ras.min_ey = y;
-      y         += height;
+      y         += (TCoord)height;
       ras.max_ey = FT_MIN( y, yMax );
 
       band    = bands;

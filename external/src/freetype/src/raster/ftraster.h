@@ -20,7 +20,7 @@
 #define FTRASTER_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_CONFIG_CONFIG_H
 #include FT_IMAGE_H
 

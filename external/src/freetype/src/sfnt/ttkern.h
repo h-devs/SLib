@@ -21,7 +21,7 @@
 #define TTKERN_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_STREAM_H
 #include FT_INTERNAL_TRUETYPE_TYPES_H
 

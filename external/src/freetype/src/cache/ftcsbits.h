@@ -20,7 +20,7 @@
 #define FTCSBITS_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_CACHE_H
 #include "ftcglyph.h"
 

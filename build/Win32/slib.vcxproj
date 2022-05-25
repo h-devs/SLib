@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\external\src\brotli\brotli_unity.c" />
+    <ClCompile Include="..\..\external\src\freetype\freetype_unity.c" />
     <ClCompile Include="..\..\external\src\leveldb\leveldb_unity.cc" />
     <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity1.c" />
     <ClCompile Include="..\..\external\src\libjpeg\libjpeg_unity2.c" />
@@ -208,7 +209,6 @@
     <ClCompile Include="..\..\src\slib\dev\pe.cpp" />
     <ClCompile Include="..\..\src\slib\dev\protect.cpp" />
     <ClCompile Include="..\..\src\slib\doc\pdf.cpp" />
-    <ClCompile Include="..\..\src\slib\doc\pdf_render.cpp" />
     <ClCompile Include="..\..\src\slib\doc\rar.cpp" />
     <ClCompile Include="..\..\src\slib\doc\zip.cpp" />
     <ClCompile Include="..\..\src\slib\geo\earth.cpp" />
@@ -237,7 +237,7 @@
     <ClCompile Include="..\..\src\slib\graphics\emoji_png.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\font.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\font_atlas.cpp" />
-    <ClCompile Include="..\..\src\slib\graphics\font_freetype.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\freetype.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\font_gdi.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_path.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\graphics_path_gdi.cpp" />

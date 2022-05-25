@@ -19,7 +19,7 @@
 #ifndef T1AFM_H_
 #define T1AFM_H_
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include "t1objs.h"
 #include FT_INTERNAL_TYPE1_TYPES_H
 

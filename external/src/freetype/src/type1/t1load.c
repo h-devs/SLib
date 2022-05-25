@@ -60,7 +60,7 @@
   /*************************************************************************/
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_DEBUG_H
 #include FT_CONFIG_CONFIG_H
 #include FT_MULTIPLE_MASTERS_H
@@ -1578,7 +1578,7 @@
                   " (from %d to %d)\n",
                   num_subrs,
                   ( parser->root.limit - parser->root.cursor ) >> 3 ));
-      num_subrs = ( parser->root.limit - parser->root.cursor ) >> 3;
+      num_subrs = (FT_Int)(( parser->root.limit - parser->root.cursor ) >> 3);
 
       if ( !loader->subrs_hash )
       {
@@ -1739,7 +1739,7 @@
       FT_TRACE0(( "parse_charstrings: adjusting number of glyphs"
                   " (from %d to %d)\n",
                   num_glyphs, ( limit - cur ) >> 3 ));
-      num_glyphs = ( limit - cur ) >> 3;
+      num_glyphs = (FT_Int)(( limit - cur ) >> 3);
     }
 
     /* some fonts like Optima-Oblique not only define the /CharStrings */

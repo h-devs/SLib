@@ -20,7 +20,7 @@
 #define T42TYPES_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_FREETYPE_H
 #include FT_TYPE1_TABLES_H
 #include FT_INTERNAL_TYPE1_TYPES_H

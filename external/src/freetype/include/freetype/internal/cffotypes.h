@@ -19,7 +19,7 @@
 #ifndef CFFOTYPES_H_
 #define CFFOTYPES_H_
 
-#include <ft2build.h>
+#include "../../ft2build.h"
 #include FT_INTERNAL_OBJECTS_H
 #include FT_INTERNAL_CFF_TYPES_H
 #include FT_INTERNAL_TRUETYPE_TYPES_H

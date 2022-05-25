@@ -20,7 +20,7 @@
 #define CFFPARSE_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_CFF_TYPES_H
 #include FT_INTERNAL_OBJECTS_H
 

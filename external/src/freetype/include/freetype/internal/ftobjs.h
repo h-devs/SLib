@@ -26,7 +26,7 @@
 #ifndef FTOBJS_H_
 #define FTOBJS_H_
 
-#include <ft2build.h>
+#include "../../ft2build.h"
 #include FT_RENDER_H
 #include FT_SIZES_H
 #include FT_LCD_FILTER_H

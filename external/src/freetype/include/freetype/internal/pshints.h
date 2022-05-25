@@ -22,7 +22,7 @@
 #define PSHINTS_H_
 
 
-#include <ft2build.h>
+#include "../../ft2build.h"
 #include FT_FREETYPE_H
 #include FT_TYPE1_TABLES_H
 

@@ -16,7 +16,7 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_DEBUG_H
 #include FT_CONFIG_CONFIG_H
 #include FT_INTERNAL_CALC_H
@@ -1794,7 +1794,7 @@
       /* clear the nodes filled by sibling chains */
       node = ft_list_get_node_at( &loader->composites, recurse_count );
       for ( node2 = node; node2; node2 = node2->next )
-        node2->data = (void*)FT_ULONG_MAX;
+        node2->data = (void*)(size_t)FT_ULONG_MAX;
 
       /* check whether we already have a composite glyph with this index */
       if ( FT_List_Find( &loader->composites,

@@ -17,7 +17,7 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_DRIVER_H
 #include FT_INTERNAL_DEBUG_H
 #include FT_INTERNAL_POSTSCRIPT_AUX_H

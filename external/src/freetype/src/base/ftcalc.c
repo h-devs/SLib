@@ -32,7 +32,7 @@
   /*************************************************************************/
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_GLYPH_H
 #include FT_TRIGONOMETRY_H
 #include FT_INTERNAL_CALC_H

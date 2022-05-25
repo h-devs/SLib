@@ -20,7 +20,7 @@
 #define PFRDRIVR_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_DRIVER_H
 
 

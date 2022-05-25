@@ -20,7 +20,7 @@
 #define FTBASE_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_INTERNAL_OBJECTS_H
 
 

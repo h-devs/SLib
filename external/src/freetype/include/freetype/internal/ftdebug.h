@@ -25,7 +25,7 @@
 #define FTDEBUG_H_
 
 
-#include <ft2build.h>
+#include "../../ft2build.h"
 #include FT_CONFIG_CONFIG_H
 #include FT_FREETYPE_H
 

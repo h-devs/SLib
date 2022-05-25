@@ -39,7 +39,7 @@
 #define FT_CONFIG_OPTION_SYSTEM_ZLIB
 /*************************************************/
 
-#include <freetype/config/ftheader.h>
+#include "freetype/config/ftheader.h"
 
 #endif /* FT2BUILD_H_ */
 

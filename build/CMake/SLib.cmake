@@ -205,7 +205,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/emoji_png.cpp"
  "${SLIB_PATH}/src/slib/graphics/font.cpp"
  "${SLIB_PATH}/src/slib/graphics/font_atlas.cpp"
- "${SLIB_PATH}/src/slib/graphics/font_freetype.cpp"
+ "${SLIB_PATH}/src/slib/graphics/freetype.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_path.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_resource.cpp"
  "${SLIB_PATH}/src/slib/graphics/graphics_text.cpp"
@@ -262,7 +262,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/db/sqlite.cpp"
 
  "${SLIB_PATH}/src/slib/doc/pdf.cpp"
- "${SLIB_PATH}/src/slib/doc/pdf_render.cpp"
  "${SLIB_PATH}/src/slib/doc/rar.cpp"
  "${SLIB_PATH}/src/slib/doc/zip.cpp"
 
@@ -527,6 +526,7 @@ set (
  "${EXTERNAL_SRC_DIR}/libpng/libpng_unity.c"
  "${EXTERNAL_SRC_DIR}/libjpeg/libjpeg_unity1.c"
  "${EXTERNAL_SRC_DIR}/libjpeg/libjpeg_unity2.c"
+ "${EXTERNAL_SRC_DIR}/freetype/freetype_unity.c"
  "${EXTERNAL_SRC_DIR}/zstd/zstd_unity.c"
  "${EXTERNAL_SRC_DIR}/brotli/brotli_unity.c"
  "${EXTERNAL_SRC_DIR}/snappy/snappy_unity.cc"

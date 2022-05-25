@@ -17,7 +17,7 @@
 
 
 #define FT_MAKE_OPTION_SINGLE_OBJECT
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 
 #include "ttdriver.c"   /* driver interface    */
 #include "ttgload.c"    /* glyph loader        */

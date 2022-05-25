@@ -20,7 +20,7 @@
 #define CFFGLOAD_H_
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_FREETYPE_H
 #include FT_INTERNAL_CFF_OBJECTS_TYPES_H
 

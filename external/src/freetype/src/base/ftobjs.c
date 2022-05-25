@@ -16,7 +16,7 @@
 /***************************************************************************/
 
 
-#include <ft2build.h>
+#include "../../include/ft2build.h"
 #include FT_LIST_H
 #include FT_OUTLINE_H
 #include FT_FONT_FORMATS_H
