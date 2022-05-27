@@ -23,9 +23,10 @@
 #include "slib/ui/pdf_view.h"
 
 #include "slib/doc/pdf.h"
-#include "slib/graphics/canvas.h"
+#include "slib/graphics/bitmap.h"
 
 #define EXPIRE_DURATION_PDF_RESOURCES 5000
+#define EXPIRE_DURATION_PAGE_CACHE 3000
 
 namespace slib
 {
@@ -37,15 +38,16 @@ namespace slib
 		String filePath;
 		sl_uint32 nPages = 1;
 		ExpiringMap< sl_uint32, Ref<PdfPage> > pages;
+		ExpiringMap< sl_uint32, Ref<Bitmap> > pageCache;
 		float defaultPageRatio = 1.0f;
 		CHashMap<sl_uint32, float> mapPageRatio;
 
 	public:
 		PdfViewContext()
 		{
+			pageCache.setExpiringMilliseconds(EXPIRE_DURATION_PAGE_CACHE);
 			pages.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
 			fonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
-			embeddedFonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
 			images.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
 		}
 
@@ -157,6 +159,7 @@ namespace slib
 		m_widthOld = 0;
 
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
+		setFocusable();
 	}
 
 	PdfView::~PdfView()
@@ -207,7 +210,7 @@ namespace slib
 
 	void PdfView::goToPage(sl_uint32 pageNo, UIUpdateMode mode)
 	{
-		Ref<PdfViewContext> context = new PdfViewContext;
+		Ref<PdfViewContext> context = m_context;
 		if (context.isNull()) {
 			return;
 		}
@@ -235,6 +238,46 @@ namespace slib
 		setScrollY(0, UIUpdateMode::None);
 		setContentHeight(context->getTotalHeight() * (float)(getWidth()), UIUpdateMode::None);
 		invalidate();
+	}
+
+	void PdfView::_saveCache(PdfViewContext* context, sl_uint32 pageNo)
+	{
+		if (m_context != context) {
+			return;
+		}
+		Ref<PdfPage> page = context->getPage(pageNo);
+		if (page.isNull()) {
+			return;
+		}
+		sl_real width = (sl_real)(getWidth());
+		if (width < 100) {
+			width = 100;
+		}
+		if (width > 1000) {
+			width = 1000;
+		}
+		Rectangle mediaBox = page->getMediaBox();
+		sl_real ratio = (sl_real)(context->getBoxRatio(mediaBox));
+		sl_real height = width * ratio;
+		Ref<Bitmap> bitmap = Bitmap::create((sl_uint32)width, (sl_uint32)height);
+		if (bitmap.isNull()) {
+			return;
+		}
+		{
+			Ref<Canvas> canvas = bitmap->getCanvas();
+			if (canvas.isNull()) {
+				return;
+			}
+			PdfRenderParam param;
+			param.canvas = canvas.get();
+			param.context = context;
+			param.bounds.left = 0;
+			param.bounds.top = 0;
+			param.bounds.right = width;
+			param.bounds.bottom = height;
+			page->render(param);
+		}
+		context->pageCache.put(pageNo, bitmap);
 	}
 
 	void PdfView::onDraw(Canvas* canvas)
@@ -269,20 +312,43 @@ namespace slib
 			param.bounds.bottom = pageFirstY * width;
 
 			for (sl_uint32 i = 0; i < 100; i++) {
+				sl_uint32 pageNo = pageFirst + i;
 				float ratio;
-				Ref<PdfPage> page = context->getPageAndGeometry_NoLock(pageFirst + i, ratio, flagUpdateScrollRange);
+				Ref<PdfPage> page = context->getPageAndGeometry_NoLock(pageNo, ratio, flagUpdateScrollRange);
 				if (page.isNull()) {
 					break;
 				}
 				param.bounds.top = param.bounds.bottom;
 				param.bounds.bottom += ratio * width;
-				if (param.bounds.top < sy + height && sy < param.bounds.bottom) {
-					page->render(param);
+				if (param.bounds.top >= sy + height) {
+					break;
+				}
+				if (sy < param.bounds.bottom) {
+					Ref<Bitmap> cache;
+					if (context->pageCache.get(pageNo, &cache)) {
+						if (cache.isNotNull()) {
+							sl_bool flagAntialias = canvas->isAntiAlias();
+							canvas->setAntiAlias(sl_true);
+							canvas->draw(param.bounds, cache);
+							canvas->setAntiAlias(flagAntialias);
+						}
+					} else {
+						TimeCounter tc;
+						page->render(param);
+						sl_uint64 dt = tc.getElapsedMilliseconds();
+						if (dt > 100) {
+							WeakRef<PdfView> weak = this;
+							Dispatch::dispatch([context, pageNo, weak, this]() {
+								Ref<PdfView> thiz = weak;
+								if (thiz.isNotNull()) {
+									_saveCache(context.get(), pageNo);
+								}
+							});
+						}
+					}
 					if (i) {
 						canvas->drawLine(param.bounds.left, param.bounds.top - 1, param.bounds.right, param.bounds.top - 1, penBorder);
 					}
-				} else {
-					break;
 				}
 			}
 
@@ -303,6 +369,5 @@ namespace slib
 		}
 		m_widthOld = width;
 	}
-
 
 }

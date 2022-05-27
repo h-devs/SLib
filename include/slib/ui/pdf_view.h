@@ -61,6 +61,8 @@ namespace slib
 	protected:
 		void _setDocument(const String& path, PdfDocument* doc);
 
+		void _saveCache(PdfViewContext* context, sl_uint32 page);
+
 	protected:
 		AtomicRef<PdfViewContext> m_context;
 		sl_ui_len m_widthOld;
