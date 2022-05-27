@@ -147,6 +147,7 @@ namespace slib
 			preScale(mat, v.x, v.y);
 		}
 
+
 		static void setRotation(Matrix3T<T>& _out, T radians) noexcept
 		{
 			T c = Math::cos(radians);
@@ -220,7 +221,89 @@ namespace slib
 		{
 			rotate(mat, pt.x, pt.y, radians);
 		}
-	
+
+		static void preRotate(Matrix3T<T>& mat, T radians) noexcept
+		{
+			T c = Math::cos(radians);
+			T s = Math::sin(radians);
+			T _m00 = c * mat.m00 + s * mat.m10;
+			T _m01 = c * mat.m01 + s * mat.m11;
+			T _m10 = c * mat.m10 - s * mat.m00;
+			T _m11 = c * mat.m11 - s * mat.m01;
+			mat.m00 = _m00;
+			mat.m01 = _m01;
+			mat.m10 = _m10;
+			mat.m11 = _m11;
+		}
+
+		static void preRotate(Matrix3T<T>& mat, T cx, T cy, T radians) noexcept
+		{
+			preTranslate(mat, cx, cy);
+			preRotate(mat, radians);
+			preTranslate(mat, -cx, -cy);
+		}
+
+		static void preRotate(Matrix3T<T>& mat, const Vector2T<T>& pt, T radians) noexcept
+		{
+			preRotate(mat, pt.x, pt.y, radians);
+		}
+
+
+		static void setSkewX(Matrix3T<T>& _out, T sx) noexcept
+		{
+			_out.m00 = 1; _out.m01 = 0; _out.m02 = 0;
+			_out.m10 = sx; _out.m11 = 1; _out.m12 = 0;
+			_out.m20 = 0; _out.m21 = 0; _out.m22 = 1;
+		}
+
+		static void setSkewY(Matrix3T<T>& _out, T sy) noexcept
+		{
+			_out.m00 = 1; _out.m01 = sy; _out.m02 = 0;
+			_out.m10 = 0; _out.m11 = 1; _out.m12 = 0;
+			_out.m20 = 0; _out.m21 = 0; _out.m22 = 1;
+		}
+
+		static Matrix3T<T> getSkewXMatrix(T x) noexcept
+		{
+			return { 1, 0, 0,
+				x, 1, 0,
+				0, 0, 1 };
+		}
+
+		static Matrix3T<T> getSkewYMatrix(T y) noexcept
+		{
+			return { 1, y, 0,
+				0, 1, 0,
+				0, 0, 1 };
+		}
+
+		static void skewX(Matrix3T<T>& mat, T sx) noexcept
+		{
+			mat.m00 += mat.m01 * sx;
+			mat.m10 += mat.m11 * sx;
+			mat.m20 += mat.m21 * sx;
+		}
+
+		static void skewY(Matrix3T<T>& mat, T sy) noexcept
+		{
+			mat.m01 += mat.m00 * sy;
+			mat.m11 += mat.m10 * sy;
+			mat.m21 += mat.m20 * sy;
+		}
+
+		static void preSkewX(Matrix3T<T>& mat, T sx) noexcept
+		{
+			mat.m10 += sx * mat.m00;
+			mat.m11 += sx * mat.m01;
+		}
+
+		static void preSkewY(Matrix3T<T>& mat, T sy) noexcept
+		{
+			mat.m00 += sy * mat.m10;
+			mat.m01 += sy * mat.m11;
+		}
+
+
 		static T getRotationAngleFromDirToDir(const Vector2T<T>& from, const Vector2T<T>& to) noexcept
 		{
 			return to.getAngleBetween(from);
