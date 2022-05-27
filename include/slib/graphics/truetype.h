@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	enum class TruetypeNameId
+	enum class TrueTypeNameId
 	{
 		Copyright = 0,
 		FontFamily = 1,
@@ -59,10 +59,85 @@ namespace slib
 		VariationsPrefix = 25
 	};
 
-	class Truetype
+	enum class TrueTypePlatformId
+	{
+		AppleUnicode = 0,
+		Macintosh = 1,
+		ISO = 2,
+		Microsoft = 3,
+		Custom = 4,
+		Adobe = 7
+	};
+
+	enum class TrueTypeEncodingId
+	{
+		// Apple
+		Apple_Default = 0, // Unicode 1.0
+		Apple_Unicode_1_1 = 1,
+		Apple_ISO_10646 = 2, // deprecated
+		Apple_Unicode_2_0 = 3,
+		Apple_Unicode_32 = 4,
+		Apple_VariantSelector = 5, // variation selector data
+		Apple_FullUnicode = 6, // used with type 13 cmaps
+		// Macintosh
+		Mac_Roman = 0,
+		Mac_Japanese = 1,
+		Mac_TraditionalChinese = 2,
+		Mac_Korean = 3,
+		Mac_Arabic = 4,
+		Mac_Hebrew = 5,
+		Mac_Greek = 6,
+		Mac_Russian = 7,
+		Mac_RSymbol = 8,
+		Mac_Devanagari = 9,
+		Mac_Gurmukhi = 10,
+		Mac_Gujarati = 11,
+		Mac_Oriya = 12,
+		Mac_Bengali = 13,
+		Mac_Tamil = 14,
+		Mac_Telugu = 15,
+		Mac_Kannada = 16,
+		Mac_Malayalam = 17,
+		Mac_Sinhalese = 18,
+		Mac_Rurmese = 19,
+		Mac_Khmer = 20,
+		Mac_Thai = 21,
+		Mac_Laotian = 22,
+		Mac_Georgian = 23,
+		Mac_Armenian = 24,
+		Mac_Maldivian = 25,
+		Mac_SimplifiedChinese = 25,
+		Mac_Tibetan = 26,
+		Mac_Mongolian = 27,
+		Mac_Geez = 28,
+		Mac_Slavic = 29,
+		Mac_Vietnamese = 30,
+		Mac_Sindhi = 31,
+		Mac_Uninterp = 32,
+		// ISO
+		ISO_7BitAscii = 0,
+		ISO_10646 = 1,
+		ISO_8859_1 = 2,
+		// Microsoft
+		Microsoft_Symbol = 0,
+		Microsoft_Unicode = 1,
+		Microsoft_SJIS = 2,
+		Microsoft_PRC = 3,
+		Microsoft_BIG5 = 4,
+		Microsoft_Wansung = 5,
+		Microsoft_Johap = 6,
+		Microsoft_UCS4 = 10,
+		// Adobe
+		Adobe_Standard = 0,
+		Adobe_Expert = 1,
+		Adobe_Custom = 2,
+		Adobe_Latin1 = 3
+	};
+
+	class TrueType
 	{
 	public:
-		static List<String> getNames(const void* _content, sl_size size, TruetypeNameId _id);
+		static List<String> getNames(const void* _content, sl_size size, TrueTypeNameId _id);
 
 	};
 

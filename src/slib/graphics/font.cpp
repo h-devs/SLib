@@ -434,7 +434,7 @@ namespace slib
 #endif
 
 
-	List<String> Truetype::getNames(const void* _content, sl_size size, TruetypeNameId _id)
+	List<String> TrueType::getNames(const void* _content, sl_size size, TrueTypeNameId _id)
 	{
 		sl_uint8* content = (sl_uint8*)_content;
 		struct TTF_HEADER
@@ -493,31 +493,26 @@ namespace slib
 								sl_uint16 platformId = MIO::readUint16BE(entry->platformId);
 								sl_uint16 encodingId = MIO::readUint16BE(entry->encodingId);
 								sl_bool flagUtf16 = sl_false;
-								switch (platformId) {
-								case 0: // APPLE_UNICODE
-								case 2: // ISO
-									flagUtf16 = sl_true;
-									break;
-								case 1: // MACINTOSH
-									break;
-								case 3: // MICROSOFT
-									switch (encodingId) {
-									case 0: //SYMBOL
-									case 1: // UNICODE
-									case 7: // UCS4
+								switch ((TrueTypePlatformId)platformId) {
+									case TrueTypePlatformId::AppleUnicode:
+									case TrueTypePlatformId::ISO:
 										flagUtf16 = sl_true;
 										break;
-									case 2: // SJIS
-									case 3: // PRC
-									case 4: // BIG5
-									case 5: // WANSUNG
-									case 6: // JOHAB
+									case TrueTypePlatformId::Macintosh:
+										break;
+									case TrueTypePlatformId::Microsoft:
+										switch ((TrueTypeEncodingId)encodingId) {
+											case TrueTypeEncodingId::Microsoft_Symbol:
+											case TrueTypeEncodingId::Microsoft_Unicode:
+											case TrueTypeEncodingId::Microsoft_UCS4:
+												flagUtf16 = sl_true;
+												break;
+											default:
+												break;
+										}
+										break;
 									default:
 										break;
-									}
-									break;
-								default:
-									break;
 								}
 								sl_uint32 len = (sl_uint32)(MIO::readUint16BE(entry->length));
 								sl_uint32 offsetString = offset + MIO::readUint16BE(nameHeader->stringOffset) + MIO::readUint16BE(entry->offset);
