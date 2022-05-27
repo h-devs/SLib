@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -83,7 +83,7 @@ namespace slib
 		
 		static sl_uint32 createTexture2D(const BitmapData& bitmapData);
 		
-		static sl_uint32 createTexture2D(sl_uint32 width, sl_uint32 height, const Color* pixels = sl_null, sl_int32 stride = 0);
+		static sl_uint32 createTexture2D(sl_uint32 width, sl_uint32 height, const Color* pixels = sl_null, sl_reg stride = 0);
 		
 		static sl_uint32 createTexture2D(const Ref<Bitmap>& bitmap, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 		
@@ -93,7 +93,7 @@ namespace slib
 		
 		static void updateTexture2D(sl_uint32 x, sl_uint32 y, const BitmapData& bitmapData);
 		
-		static void updateTexture2D(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride = 0);
+		static void updateTexture2D(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride = 0);
 		
 		static void updateTexture2D(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Ref<Bitmap>& bitmap, sl_uint32 bitmapX = 0, sl_uint32 bitmapY = 0);
 		
@@ -247,7 +247,7 @@ namespace slib
 #ifdef PRIV_SLIB_RENDER_ENTRIES_CLASS_GL
 		static void drawPixels(const BitmapData& bitmapData);
 
-		static void drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride = 0);
+		static void drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride = 0);
 
 		static void drawPixels(const Ref<Bitmap>& bitmap, sl_uint32 sx, sl_uint32 sy, sl_uint32 width, sl_uint32 height);
 

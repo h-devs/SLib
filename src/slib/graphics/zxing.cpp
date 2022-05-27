@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -164,7 +164,7 @@ namespace slib
 				int stride = image->getWidth();
 				src = std::make_shared<GenericLuminanceSource>(width, height, image->getColors() + (stride * region.top + region.left), stride * 4, 4, 0, 1, 2);
 			} else {
-				src = std::make_shared<GenericLuminanceSource>(image->getWidth(), image->getHeight(), image->getColors(), image->getStride() * 4, 4, 0, 1, 2);
+				src = std::make_shared<GenericLuminanceSource>(image->getWidth(), image->getHeight(), image->getColors(), (int)(image->getStride() * 4), 4, 0, 1, 2);
 			}
 			HybridBinarizer binary(src);
 			Result result = reader.read(binary);

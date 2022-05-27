@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -848,7 +848,7 @@ namespace slib
 		return texture;
 	}
 	
-	sl_uint32 GL_BASE::createTexture2D(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
+	sl_uint32 GL_BASE::createTexture2D(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride)
 	{
 		if (width > 0 && height > 0) {
 			if (pixels) {
@@ -968,7 +968,7 @@ namespace slib
 		}
 	}
 	
-	void GL_BASE::updateTexture2D(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
+	void GL_BASE::updateTexture2D(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride)
 	{
 		BitmapData bitmapData(width, height, pixels, stride);
 		updateTexture2D(x, y, bitmapData);
@@ -1149,7 +1149,7 @@ namespace slib
 #endif
 	}
 
-	void GL_BASE::drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
+	void GL_BASE::drawPixels(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride)
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32
 		if (width > 0 && height > 0 && pixels) {

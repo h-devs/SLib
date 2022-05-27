@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -85,7 +85,7 @@ namespace slib
 
 				sl_uint32 width = image->getWidth();
 				sl_uint32 height = image->getHeight();
-				sl_uint32 stride = image->getStride();
+				sl_reg stride = image->getStride();
 				Color* pixels = image->getColors();
 
 				cinfo.image_width = (JDIMENSION)width;
@@ -159,7 +159,7 @@ namespace slib
 
 	using namespace priv::jpeg;
 
-	Ref<Image> Image::loadJPEG(const void* content, sl_size size)
+	Ref<Image> Image::loadJpeg(const void* content, sl_size size)
 	{
 		if (!content || !size) {
 			return sl_null;
@@ -195,7 +195,7 @@ namespace slib
 			if (row) {
 				row_pointer[0] = (JSAMPROW)(row);
 				Color* pixels = ret->getColors();
-				sl_uint32 stride = ret->getStride();
+				sl_reg stride = ret->getStride();
 				while (cinfo.output_scanline < height) {
 					jpeg_read_scanlines(&cinfo, row_pointer, 1);
 					sl_uint8* p = row;
@@ -216,34 +216,34 @@ namespace slib
 		return ret;
 	}
 
-	Memory Image::saveJPEG(const Ref<Image>& image, float quality)
+	Memory Image::saveJpeg(const Ref<Image>& image, float quality)
 	{
 		return SaveJpeg(image, quality, sl_false);
 	}
 
-	Memory Image::saveMonochromeJPEG(const Ref<Image>& image, float quality)
+	Memory Image::saveGrayJpeg(const Ref<Image>& image, float quality)
 	{
 		return SaveJpeg(image, quality, sl_true);
 	}
 
-	Memory Image::saveJPEG(float quality)
+	Memory Image::saveJpeg(float quality)
 	{
-		return saveJPEG(this, quality);
+		return saveJpeg(this, quality);
 	}
 
-	Memory Image::saveMonochromeJPEG(float quality)
+	Memory Image::saveGrayJpeg(float quality)
 	{
-		return saveMonochromeJPEG(this, quality);
+		return saveGrayJpeg(this, quality);
 	}
 
-	sl_bool Image::saveJPEG(const StringParam& filePath, const Ref<Image>& image, float quality)
+	sl_bool Image::saveJpeg(const StringParam& filePath, const Ref<Image>& image, float quality)
 	{
 		if (image.isNull()) {
 			return sl_false;
 		}
 		File file = File::openForWrite(filePath);
 		if (file.isOpened()) {
-			Memory mem = saveJPEG(image, quality);
+			Memory mem = saveJpeg(image, quality);
 			if (mem.isNotNull()) {
 				sl_reg size = mem.getSize();
 				if (file.write(mem.getData(), size) == size) {
@@ -256,9 +256,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Image::saveJPEG(const StringParam& filePath, float quality)
+	sl_bool Image::saveJpeg(const StringParam& filePath, float quality)
 	{
-		return saveJPEG(filePath, this, quality);
+		return saveJpeg(filePath, this, quality);
 	}
 
 }

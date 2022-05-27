@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #include "slib/graphics/image.h"
 
+#include "slib/graphics/cmyk.h"
 #include "slib/core/file.h"
 #include "slib/core/asset.h"
 #include "slib/core/scoped_buffer.h"
@@ -46,17 +47,39 @@ namespace slib
 	{
 	}
 
+	Ref<Image> Image::allocate(sl_uint32 width, sl_uint32 height)
+	{
+		if (!width || !height) {
+			return sl_null;
+		}
+		Memory mem = Memory::create((width * height) << 2);
+		if (mem.isNull()) {
+			return sl_null;
+		}
+		Ref<Image> ret = new Image;
+		if (ret.isNull()) {
+			return sl_null;
+		}
+		ImageDesc& desc = ret->m_desc;
+		desc.width = width;
+		desc.height = height;
+		desc.stride = width;
+		desc.ref = mem.ref;
+		desc.colors = (Color*)(mem.getData());
+		return ret;
+	}
+
 	Ref<Image> Image::createStatic(const ImageDesc& desc)
 	{
 		return createStatic(desc.width, desc.height, desc.colors, desc.stride, desc.ref.get());
 	}
 
-	Ref<Image> Image::createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride, Referable* ref)
+	Ref<Image> Image::createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride, Referable* ref)
 	{
-		if (width == 0 || height == 0 || pixels == sl_null) {
+		if (!width || !height || !pixels) {
 			return sl_null;
 		}
-		if (stride == 0) {
+		if (!stride) {
 			stride = width;
 		}
 		Ref<Image> ret = new Image;
@@ -72,29 +95,15 @@ namespace slib
 		return ret;
 	}
 
-	Ref<Image> Image::create(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
+	Ref<Image> Image::create(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride)
 	{
-		if (width <= 0 || height <= 0) {
-			return sl_null;
-		}
-		sl_uint32 size = (width*height) << 2;
-		Memory mem = Memory::create(size);
-		if (mem.isNull()) {
-			return sl_null;
-		}
-		Ref<Image> ret = new Image;
+		Ref<Image> ret = allocate(width, height);
 		if (ret.isNull()) {
 			return sl_null;
 		}
-		ImageDesc& desc = ret->m_desc;
-		desc.width = width;
-		desc.height = height;
-		desc.stride = width;
-		desc.ref = mem.ref;
-		desc.colors = (Color*)(mem.getData());
 		if (pixels) {
 			const Color* sr = pixels;
-			Color* dr = desc.colors;
+			Color* dr = ret->getColors();
 			for (sl_uint32 i = 0; i < height; i++) {
 				const Color* ss = sr;
 				Color* ds = dr;
@@ -107,7 +116,7 @@ namespace slib
 				dr += width;
 			}
 		} else {
-			Base::zeroMemory(desc.colors, size);
+			Base::zeroMemory(ret->getColors(), (width * height) << 2);
 		}
 		return ret;
 	}
@@ -125,18 +134,6 @@ namespace slib
 		}
 		sl_uint32 width = desc.width;
 		sl_uint32 height = desc.height;
-		if (width <= 0 || height <= 0) {
-			return sl_null;
-		}
-		sl_uint32 size = (width*height) << 2;
-		Memory mem = Memory::create(size);
-		if (mem.isNull()) {
-			return sl_null;
-		}
-		Ref<Image> ret = new Image;
-		if (ret.isNull()) {
-			return sl_null;
-		}
 		sl_int32 widthDst, heightDst;
 		if (rotate == RotationMode::Rotate90 || rotate == RotationMode::Rotate270) {
 			widthDst = height;
@@ -145,20 +142,18 @@ namespace slib
 			widthDst = width;
 			heightDst = height;
 		}
-		ImageDesc& descDst = ret->m_desc;
-		descDst.width = widthDst;
-		descDst.height = heightDst;
-		descDst.stride = widthDst;
-		descDst.ref = mem.ref;
-		descDst.colors = (Color*)(mem.getData());
+		Ref<Image> ret = allocate(widthDst, heightDst);
+		if (ret.isNull()) {
+			return sl_null;
+		}
 		const Color* colors = desc.colors;
 		if (!colors) {
-			Base::zeroMemory(descDst.colors, size);
+			Base::zeroMemory(ret->getColors(), (widthDst * heightDst) << 2);
 			return ret;
 		}
-		sl_uint32 stride = desc.stride;
+		sl_reg stride = desc.stride;
 		const Color* sr = colors;
-		Color* dr = descDst.colors;
+		Color* dr = ret->getColors();
 		sl_int32 incCol, incRow;
 		if (rotate == RotationMode::Rotate0) {
 			if (flip == FlipMode::Horizontal) {
@@ -213,30 +208,412 @@ namespace slib
 	{
 		sl_uint32 width = bitmapData.width;
 		sl_uint32 height = bitmapData.height;
-		if (width == 0 || height == 0) {
+		if (!width || !height) {
 			return sl_null;
 		}
-		sl_uint32 size = (width*height) << 2;
-		Memory mem = Memory::create(size);
-		if (mem.isNull()) {
-			return sl_null;
-		}
-		Ref<Image> ret = new Image;
+		Ref<Image> ret = allocate(width, height);
 		if (ret.isNull()) {
 			return sl_null;
 		}
-		ImageDesc& desc = ret->m_desc;
-		desc.width = width;
-		desc.height = height;
-		desc.stride = width;
-		desc.ref = mem.ref;
-		desc.colors = (Color*)(mem.getData());
-		BitmapData dst(width, height, desc.colors);
+		BitmapData dst(width, height, ret->getColors());
 		if (BitmapFormats::isPrecomputedAlpha(bitmapData.format)) {
 			dst.format = BitmapFormats::getPrecomputedAlphaFormat(dst.format);
 		}
 		dst.copyPixelsFrom(bitmapData);
 		return ret;
+	}
+
+	namespace priv
+	{
+		namespace image
+		{
+
+			static sl_bool IsValidBitsPerComponent(sl_uint32 bitsPerComponent) noexcept
+			{
+				switch (bitsPerComponent) {
+					case 1:
+					case 2:
+					case 4:
+					case 8:
+					case 16:
+						return sl_true;
+					default:
+						break;
+				}
+				return sl_false;
+			}
+
+			template <int N>
+			class BitReader;
+
+			template <>
+			class BitReader<1>
+			{
+			public:
+				SLIB_INLINE static sl_uint8 read(sl_uint8* row, sl_uint32 index) noexcept
+				{
+					sl_uint32 k = index >> 3;
+					sl_uint32 m = 7 - (index & 7);
+					return (row[k] >> m) & 1;
+				}
+
+				SLIB_INLINE static sl_uint8 readScaled(sl_uint8* row, sl_uint32 index) noexcept
+				{
+					return (sl_uint8)(-(read(row, index)));
+				}
+			};
+
+			template <>
+			class BitReader<2>
+			{
+			public:
+				SLIB_INLINE static sl_uint8 read(sl_uint8* row, sl_uint32 index) noexcept
+				{
+					sl_uint32 k = index >> 2;
+					sl_uint32 m = (3 - (index & 3)) << 1;
+					return (row[k] >> m) & 3;
+				}
+
+				SLIB_INLINE static sl_uint8 readScaled(sl_uint8* row, sl_uint32 index) noexcept
+				{
+					return (sl_uint8)(read(row, index) * 85);
+				}
+			};
+
+			template <>
+			class BitReader<4>
+			{
+			public:
+				SLIB_INLINE static sl_uint8 read(sl_uint8* row, sl_uint32 index) noexcept
+				{
+					sl_uint32 k = index >> 1;
+					sl_uint8 c = (index & 1) ? (row[k] & 15) : (row[k] >> 4);
+					return c;
+				}
+
+				SLIB_INLINE static sl_uint8 readScaled(sl_uint8* row, sl_uint32 index) noexcept
+				{
+					return (sl_uint8)(read(row, index) * 17);
+				}
+			};
+
+			template <int BITS_PER_COMP>
+			static void CopyRGB_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				sl_uint32 nComp = width * 3;
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					Color* c = dst;
+					sl_uint32 iComp = 0;
+					while (iComp < nComp) {
+						c->r = BitReader<BITS_PER_COMP>::readScaled(src, iComp++);
+						c->g = BitReader<BITS_PER_COMP>::readScaled(src, iComp++);
+						c->b = BitReader<BITS_PER_COMP>::readScaled(src, iComp++);
+						c->a = 255;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <sl_uint32 BYTES_PER_COMP>
+			static void CopyRGB_Bytes(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					sl_uint8* s = src;
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						c->r = *s;
+						s += BYTES_PER_COMP;
+						c->g = *s;
+						s += BYTES_PER_COMP;
+						c->b = *s;
+						s += BYTES_PER_COMP;
+						c->a = 255;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <int BITS_PER_COMP>
+			static void CopyGray_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						sl_uint8 v = BitReader<BITS_PER_COMP>::readScaled(src, iCol);
+						c->r = v;
+						c->g = v;
+						c->b = v;
+						c->a = 255;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <sl_uint32 BYTES_PER_COMP>
+			static void CopyGray_Bytes(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					sl_uint8* s = src;
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						sl_uint8 v = *s;
+						c->r = v;
+						c->g = v;
+						c->b = v;
+						c->a = 255;
+						s += BYTES_PER_COMP;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+			
+			template <int BITS_PER_COMP>
+			static void CopyAlpha_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						c->a = BitReader<BITS_PER_COMP>::readScaled(src, iCol);
+						c->r = 255;
+						c->g = 255;
+						c->b = 255;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <sl_uint32 BYTES_PER_COMP>
+			static void CopyAlpha_Bytes(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					sl_uint8* s = src;
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						c->a = *s;
+						c->r = 255;
+						c->g = 255;
+						c->b = 255;
+						s += BYTES_PER_COMP;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+			
+			template <int BITS_PER_COMP>
+			static void CopyOnlyAlpha_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						c->a = BitReader<BITS_PER_COMP>::readScaled(src, iCol);
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <sl_uint32 BYTES_PER_COMP>
+			static void CopyOnlyAlpha_Bytes(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					sl_uint8* s = src;
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						c->a = *s;
+						s += BYTES_PER_COMP;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <int BITS_PER_COMP>
+			static void CopyIndexed_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch, const Color* indices, sl_uint32 nIndices) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						sl_uint8 v = BitReader<BITS_PER_COMP>::read(src, iCol);
+						if (v < nIndices) {
+							*c = indices[v];
+						} else {
+							c->setZero();
+						}
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <sl_uint32 BYTES_PER_COMP>
+			class IndexReader;
+
+			template <>
+			class IndexReader<1>
+			{
+			public:
+				SLIB_INLINE static const Color& read(sl_uint8* s, const Color* indices, sl_uint32 nIndices) noexcept
+				{
+					sl_uint8 v = *s;
+					if (v < nIndices) {
+						return indices[v];
+					} else {
+						return Color::zero();
+					}
+				}
+			};
+
+			template <>
+			class IndexReader<2>
+			{
+			public:
+				SLIB_INLINE static const Color& read(sl_uint8* s, const Color* indices, sl_uint32 nIndices) noexcept
+				{
+					sl_uint16 v = SLIB_MAKE_WORD(*s, s[1]);
+					if (v < nIndices) {
+						return indices[v];
+					} else {
+						return Color::zero();
+					}
+				}
+			};
+
+			template <sl_uint32 BYTES_PER_COMP>
+			static void CopyIndexed_Bytes(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch, const Color* indices, sl_uint32 nIndices) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					sl_uint8* s = src;
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						*c = IndexReader<BYTES_PER_COMP>::read(s, indices, nIndices);
+						s += BYTES_PER_COMP;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <sl_uint32 BYTES_PER_COMP>
+			static void CopyCMYK(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					sl_uint8* s = src;
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						sl_uint8 C = *s;
+						s += BYTES_PER_COMP;
+						sl_uint8 M = *s;
+						s += BYTES_PER_COMP;
+						sl_uint8 Y = *s;
+						s += BYTES_PER_COMP;
+						sl_uint8 K = *s;
+						s += BYTES_PER_COMP;
+						CMYK::convertCMYKToRGB(C, M, Y, K, c->r, c->g, c->b);
+						c->a = 255;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+		}
+	}
+
+#define DEFINE_CREATE_FROM_FUNC(FUNC_PREFIX, ...) \
+		if (width && height) { \
+			if (!(priv::image::IsValidBitsPerComponent(bitsPerComponent))) { \
+				return sl_null; \
+			} \
+			Ref<Image> ret = Image::allocate(width, height); \
+			if (ret.isNull()) { \
+				return sl_null; \
+			} \
+			sl_uint8* data = (sl_uint8*)_data; \
+			Color* colors = ret->getColors(); \
+			if (!pitch) { \
+				pitch = (3 * bitsPerComponent * width + 7) >> 3; \
+			} \
+			switch (bitsPerComponent) { \
+				case 1: \
+					priv::image::FUNC_PREFIX##_Bits<1>(width, height, colors, width, data, pitch, ##__VA_ARGS__); \
+					break; \
+				case 2: \
+					priv::image::FUNC_PREFIX##_Bits<2>(width, height, colors, width, data, pitch, ##__VA_ARGS__); \
+					break; \
+				case 4: \
+					priv::image::FUNC_PREFIX##_Bits<4>(width, height, colors, width, data, pitch, ##__VA_ARGS__); \
+					break; \
+				case 8: \
+					priv::image::FUNC_PREFIX##_Bytes<1>(width, height, colors, width, data, pitch, ##__VA_ARGS__); \
+					break; \
+				case 16: \
+					priv::image::FUNC_PREFIX##_Bytes<2>(width, height, colors, width, data, pitch, ##__VA_ARGS__); \
+					break; \
+				default: \
+					break; \
+			} \
+			return ret; \
+		} \
+		return sl_null;
+
+
+	Ref<Image> Image::createFromRGB(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
+	{
+		DEFINE_CREATE_FROM_FUNC(CopyRGB)
+	}
+	
+	Ref<Image> Image::createFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
+	{
+		DEFINE_CREATE_FROM_FUNC(CopyGray)
+	}
+
+	Ref<Image> Image::createCopyAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
+	{
+		DEFINE_CREATE_FROM_FUNC(CopyAlpha)
+	}
+
+	Ref<Image> Image::createFromIndexed(sl_uint32 width, sl_uint32 height, const void* _data, const Color* indices, sl_uint32 nIndices, sl_uint32 bitsPerComponent, sl_reg pitch)
+	{
+		DEFINE_CREATE_FROM_FUNC(CopyIndexed, indices, nIndices)
+	}
+
+	Ref<Image> Image::createFromCMYK(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
+	{
+		if (width && height && (bitsPerComponent == 8 || bitsPerComponent == 16)) {
+			Ref<Image> ret = Image::allocate(width, height);
+			if (ret.isNull()) {
+				return sl_null;
+			}
+			sl_uint8* data = (sl_uint8*)_data;
+			Color* colors = ret->getColors();
+			if (!pitch) {
+				pitch = ((bitsPerComponent << 2) * width + 7) >> 3;
+			}
+			if (bitsPerComponent == 8) {
+				priv::image::CopyCMYK<1>(width, height, colors, width, data, pitch);
+			} else {
+				priv::image::CopyCMYK<2>(width, height, colors, width, data, pitch);
+			}
+			return ret;
+		}
+		return sl_null;
 	}
 
 	Ref<Image> Image::createCopy(const Ref<Image>& image)
@@ -335,7 +712,7 @@ namespace slib
 
 	sl_bool Image::isEmpty() const
 	{
-		return m_desc.width == 0 || m_desc.height == 0;
+		return !(m_desc.width) || !(m_desc.height);
 	}
 
 	sl_bool Image::isNotEmpty() const
@@ -343,7 +720,7 @@ namespace slib
 		return m_desc.width != 0 && m_desc.height != 0;
 	}
 
-	sl_int32 Image::getStride() const
+	sl_reg Image::getStride() const
 	{
 		return m_desc.stride;
 	}
@@ -421,7 +798,7 @@ namespace slib
 		if (y + height > desc.height) {
 			height = desc.height - y;
 		}
-		sl_int32 stride = desc.stride;
+		sl_reg stride = desc.stride;
 		Color* colors = getColorsAt(x, y);
 		for (sl_uint32 yi = 0; yi < height; yi++) {
 			Color* d = colors;
@@ -434,13 +811,13 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool Image::readPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, Color* colors, sl_int32 stride)
+	sl_bool Image::readPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, Color* colors, sl_reg stride)
 	{
 		BitmapData bitmapData(width, height, colors, stride);
 		return readPixels(x, y, bitmapData);
 	}
 
-	sl_bool Image::writePixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* colors, sl_int32 stride)
+	sl_bool Image::writePixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* colors, sl_reg stride)
 	{
 		BitmapData bitmapData(width, height, colors, stride);
 		return writePixels(x, y, bitmapData);
@@ -455,7 +832,7 @@ namespace slib
 	{
 		sl_uint32 width = m_desc.width;
 		sl_uint32 height = m_desc.height;
-		sl_int32 stride = m_desc.stride;
+		sl_reg stride = m_desc.stride;
 		Color* colors = m_desc.colors;
 		for (sl_uint32 y = 0; y < height; y++) {
 			Color* d = colors;
@@ -471,7 +848,7 @@ namespace slib
 	{
 		sl_uint32 width = m_desc.width;
 		sl_uint32 height = m_desc.height;
-		sl_int32 stride = m_desc.stride;
+		sl_reg stride = m_desc.stride;
 		Color* colors = m_desc.colors;
 		for (sl_uint32 y = 0; y < height; y++) {
 			Color* d = colors;
@@ -489,7 +866,7 @@ namespace slib
 	{
 		sl_uint32 width = m_desc.width;
 		sl_uint32 height = m_desc.height;
-		sl_int32 stride = m_desc.stride;
+		sl_reg stride = m_desc.stride;
 		Color* colors = m_desc.colors;
 		for (sl_uint32 y = 0; y < height; y++) {
 			Color* d = colors;
@@ -501,6 +878,48 @@ namespace slib
 				d++;
 			}
 			colors += stride;
+		}
+	}
+
+	void Image::writeAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
+	{
+		sl_uint32 widthDst = m_desc.width;
+		sl_uint32 heightDst = m_desc.height;
+		if (width > widthDst) {
+			width = widthDst;
+		}
+		if (height > heightDst) {
+			height = heightDst;
+		}
+		if (width && height) {
+			if (!(priv::image::IsValidBitsPerComponent(bitsPerComponent))) {
+				return;
+			}
+			sl_uint8* data = (sl_uint8*)_data;
+			Color* colors = m_desc.colors;
+			sl_reg stride = m_desc.stride;
+			if (!pitch) {
+				pitch = (3 * bitsPerComponent * width + 7) >> 3;
+			}
+			switch (bitsPerComponent) {
+				case 1:
+					priv::image::CopyOnlyAlpha_Bits<1>(width, height, colors, stride, data, pitch);
+					break;
+				case 2:
+					priv::image::CopyOnlyAlpha_Bits<2>(width, height, colors, stride, data, pitch);
+					break;
+				case 4:
+					priv::image::CopyOnlyAlpha_Bits<4>(width, height, colors, stride, data, pitch);
+					break;
+				case 8:
+					priv::image::CopyOnlyAlpha_Bytes<1>(width, height, colors, stride, data, pitch);
+					break;
+				case 16:
+					priv::image::CopyOnlyAlpha_Bytes<2>(width, height, colors, stride, data, pitch);
+					break;
+				default:
+					break;
+			}
 		}
 	}
 
@@ -711,7 +1130,7 @@ namespace slib
 			class Stretch_Smooth_LinearFilter
 			{
 			public:
-				SLIB_INLINE static void getColorAt(Color& _out, const Color* colors, float fx, float fy, sl_uint32 stride, const Stretch_FilterParam& px, const Stretch_FilterParam& py)
+				SLIB_INLINE static void getColorAt(Color& _out, const Color* colors, float fx, float fy, sl_reg stride, const Stretch_FilterParam& px, const Stretch_FilterParam& py)
 				{
 					const Color& c00 = *colors;
 					const Color& c01 = colors[1];
@@ -751,7 +1170,7 @@ namespace slib
 					_out.a = (sl_uint8)(a);
 				}
 				
-				SLIB_INLINE static void getColorAtY(Color& _out, const Color* colors, float fy, sl_uint32 stride, const Stretch_FilterParam& py)
+				SLIB_INLINE static void getColorAtY(Color& _out, const Color* colors, float fy, sl_reg stride, const Stretch_FilterParam& py)
 				{
 					const Color& c0 = *colors;
 					const Color& c1 = colors[stride];
@@ -789,7 +1208,7 @@ namespace slib
 					}
 				}
 				
-				SLIB_INLINE static void getColorAt(Color& _out, const Color* colors, float fx, float fy, sl_uint32 stride, const Stretch_FilterParam& px, const Stretch_FilterParam& py)
+				SLIB_INLINE static void getColorAt(Color& _out, const Color* colors, float fx, float fy, sl_reg stride, const Stretch_FilterParam& px, const Stretch_FilterParam& py)
 				{
 					float sx, ex, ax; int nx;
 					prepareFilter(fx, px, sx, ex, nx, ax);
@@ -862,7 +1281,7 @@ namespace slib
 					_out.a = (sl_uint8)(a / ax);
 				}
 				
-				SLIB_INLINE static void getColorAtY(Color& _out, const Color* colors, float fy, sl_uint32 stride, const Stretch_FilterParam& py)
+				SLIB_INLINE static void getColorAtY(Color& _out, const Color* colors, float fy, sl_reg stride, const Stretch_FilterParam& py)
 				{
 					float sy, ey, ay; int ny;
 					prepareFilter(fy, py, sy, ey, ny, ay);
@@ -1238,7 +1657,7 @@ namespace slib
 					sl_uint32 dw = dst.width;
 					sl_uint32 sw = src.width;
 					sl_uint32 fx = sw / dw;
-					if (fx == 0) {
+					if (!fx) {
 						return;
 					}
 					sl_uint32 dx, sx;
@@ -1246,14 +1665,14 @@ namespace slib
 					sl_uint32 dh = dst.height;
 					sl_uint32 sh = src.height;
 					sl_uint32 fy = sh / dh;
-					if (fy == 0) {
+					if (!fy) {
 						return;
 					}
 					sl_uint32 dy, sy;
 					
 					Color* colorsDst = dst.colors;
 					const Color* colorsSrc = src.colors;
-					sl_uint32 ly = fy * src.stride;
+					sl_reg ly = fy * src.stride;
 					
 					sl_uint32 area = fx * fy;
 					sl_uint32 n = Math::getMostSignificantBits(area) - 1;
@@ -1330,10 +1749,10 @@ namespace slib
 			template <class COLOR_OP>
 			static void Draw(ImageDesc& dst, const ImageDesc& src, const COLOR_OP& src_op, BlendMode blend, StretchMode stretch)
 			{
-				if (src.width == 0 || src.height == 0 || src.stride == 0 || src.colors == sl_null) {
+				if (!(src.width) || !(src.height) || !(src.stride) || !(src.colors)) {
 					return;
 				}
-				if (dst.width == 0 || dst.height == 0 || dst.stride == 0 || dst.colors == sl_null) {
+				if (!(dst.width) || !(dst.height) || !(dst.stride) || !(dst.colors)) {
 					return;
 				}
 				if (src.width == dst.width && src.height == dst.height) {
@@ -1353,7 +1772,7 @@ namespace slib
 						Stretch::template stretch< Stretch_Smooth<Stretch_Smooth_LinearFilter> >(dst, src, src_op, blend);
 						return;
 					}
-					if (src.width % dst.width == 0 && src.height % dst.height == 0) {
+					if (!(src.width % dst.width) && !(src.height % dst.height)) {
 						Stretch::template stretch<Stretch_Smooth_IntBox>(dst, src, src_op, blend);
 						return;
 					}
@@ -1631,7 +2050,7 @@ namespace slib
 
 	Ref<Image> Image::sub(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) const
 	{
-		if (x == 0 && y == 0 && width == m_desc.width && height == m_desc.height) {
+		if (!x && !y && width == m_desc.width && height == m_desc.height) {
 			return (Image*)this;
 		}
 		if (width <= 0 || height <= 0) {
@@ -1692,7 +2111,7 @@ namespace slib
 		}
 		sl_uint32 width = m_desc.width / sampleSize;
 		sl_uint32 height = m_desc.height / sampleSize;
-		if (width == 0 || height == 0) {
+		if (!width || !height) {
 			return sl_null;
 		}
 		Memory temp = Memory::create(width<<4);
@@ -1704,9 +2123,9 @@ namespace slib
 			return sl_null;
 		}
 		Color* row_d = ret->m_desc.colors;
-		sl_int32 pitch_d = ret->m_desc.stride;
+		sl_reg pitch_d = ret->m_desc.stride;
 		Color* row_s = m_desc.colors;
-		sl_int32 pitch_s = m_desc.stride;
+		sl_reg pitch_s = m_desc.stride;
 		sl_uint32* t = (sl_uint32*)(temp.getData());
 		sl_uint32 i, j, row, col;
 		sl_uint32 n = sampleSize * sampleSize;
@@ -1831,12 +2250,12 @@ namespace slib
 	{
 		ImageFileType type = getFileType(mem, size);
 		if (type == ImageFileType::JPEG) {
-			return loadJPEG(mem, size);
+			return loadJpeg(mem, size);
 		}
 		if (type == ImageFileType::PNG) {
-			return loadPNG(mem, size);
+			return loadPng(mem, size);
 		}
-		return loadSTB(mem, size);
+		return loadStb(mem, size);
 	}
 
 	Ref<Image> Image::loadFromMemory(const Memory& mem)
@@ -1857,7 +2276,7 @@ namespace slib
 	{
 		ImageFileType type = getFileType(mem, size);
 		if (type == ImageFileType::GIF) {
-			return loadSTB_GIF(mem, size);
+			return loadStbGif(mem, size);
 		}
 		return sl_null;
 	}
@@ -2146,7 +2565,7 @@ namespace slib
 				}
 				sl_uint32 dx = x2 - x1;
 				Color* c = dst.colors;
-				sl_int32 stride = dst.stride;
+				sl_reg stride = dst.stride;
 				Color* d = c + (y * stride + x1);
 				for (sl_uint32 i = 0; i <= dx; i++) {
 					blend(*d, color);
@@ -2178,7 +2597,7 @@ namespace slib
 				}
 				sl_uint32 dy = y2 - y1;
 				Color* c = dst.colors;
-				sl_int32 stride = dst.stride;
+				sl_reg stride = dst.stride;
 				Color* d = c + (y1 * stride + x);
 				for (sl_uint32 i = 0; i <= dy; i++) {
 					blend(*d, color);
@@ -2218,7 +2637,7 @@ namespace slib
 				sl_int32 dx = x2 - x1;
 				sl_int32 dy = y2 - y1;
 				Color* c = dst.colors;
-				sl_int32 stride = dst.stride;
+				sl_reg stride = dst.stride;
 				if (Math::abs(dx) > Math::abs(dy)) {
 					if (dx < 0) {
 						sl_int32 t = x2;
@@ -2231,7 +2650,7 @@ namespace slib
 						dy = -dy;
 					}
 					c += x1 + y1 * stride;
-					sl_int32 inc_stride;
+					sl_reg inc_stride;
 					if (dy < 0) {
 						inc_stride = -stride;
 						dy = -dy;
@@ -2498,7 +2917,7 @@ namespace slib
 				if (y2 > h) {
 					y2 = h;
 				}
-				sl_int32 stride = dst.stride;
+				sl_reg stride = dst.stride;
 				Color* colors = dst.colors + y1 * stride + x1;
 				for (sl_int32 y = y1; y < y2; y++) {
 					Color* d = colors;
@@ -2739,9 +3158,9 @@ namespace slib
 				}
 
 				Matrix3 transformInverse = transform.inverse();
-				sl_int32 dst_stride = dst.stride;
+				sl_reg dst_stride = dst.stride;
 				Color* src_colors = src.colors;
-				sl_int32 src_stride = src.stride;
+				sl_reg src_stride = src.stride;
 				Color* row = dst.colors + (dst_stride * top + left);
 				if (stretch == StretchMode::Nearest) {
 					for (sl_int32 dy = top; dy <= bottom; dy++) {
@@ -2944,7 +3363,7 @@ namespace slib
 			return sl_false;
 		}
 		
-		sl_int32 stride = m_desc.stride;
+		sl_reg stride = m_desc.stride;
 		Color* c = m_desc.colors;
 		
 		sl_uint32 top = 0;

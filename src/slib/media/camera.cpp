@@ -52,7 +52,7 @@ namespace slib
 			return Image::create(frame->image);
 		}
 		if (jpeg.isNotNull()) {
-			return Image::loadJPEG(jpeg.getData(), jpeg.getSize());
+			return Image::loadJpeg(jpeg.getData(), jpeg.getSize());
 		}
 		return sl_null;
 	}
@@ -76,7 +76,7 @@ namespace slib
 		if (frame) {
 			Ref<Image> image = Image::create(frame->image);
 			if (image.isNotNull()) {
-				return image->saveJPEG();
+				return image->saveJpeg();
 			}
 		}
 		return sl_null;

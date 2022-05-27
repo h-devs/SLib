@@ -41,7 +41,7 @@
 namespace slib
 {
 
-	Ref<Image> Image::loadSTB(const void* content, sl_size size)
+	Ref<Image> Image::loadStb(const void* content, sl_size size)
 	{
 		if (!content || !size) {
 			return sl_null;
@@ -63,7 +63,7 @@ namespace slib
 		return ret;
 	}
 
-	Ref<AnimationDrawable> Image::loadSTB_GIF(const void* content, sl_size size)
+	Ref<AnimationDrawable> Image::loadStbGif(const void* content, sl_size size)
 	{
 		if (!content || !size) {
 			return sl_null;

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,8 @@ namespace slib
 		sl_uint32 width;
 		sl_uint32 height;
 		void* data;
-		sl_int32 pitch; // bytes of a physical row
-		sl_int32 sampleStride; // The distance between adjacent pixel samples, in bytes
+		sl_reg pitch; // bytes of a physical row
+		sl_reg sampleStride; // The distance between adjacent pixel samples, in bytes
 		Ref<Referable> ref;
 
 	public:
@@ -57,32 +57,32 @@ namespace slib
 
 		// plane0
 		void* data; // samples
-		sl_int32 pitch; // number of bytes of a row
-		sl_int32 sampleStride; // The distance between adjacent pixel samples, in bytes
+		sl_reg pitch; // number of bytes of a row
+		sl_reg sampleStride; // The distance between adjacent pixel samples, in bytes
 		Ref<Referable> ref; // reference for samples
 
 		// plane1
 		void* data1; // samples
-		sl_int32 pitch1; // number of bytes of a row
-		sl_int32 sampleStride1; // The distance between adjacent pixel samples, in bytes
+		sl_reg pitch1; // number of bytes of a row
+		sl_reg sampleStride1; // The distance between adjacent pixel samples, in bytes
 		Ref<Referable> ref1; // reference for samples
 	
 		// plane2
 		void* data2; // samples
-		sl_int32 pitch2; // number of bytes of a row
-		sl_int32 sampleStride2; // The distance between adjacent pixel samples, in bytes
+		sl_reg pitch2; // number of bytes of a row
+		sl_reg sampleStride2; // The distance between adjacent pixel samples, in bytes
 		Ref<Referable> ref2; // reference for samples
 
 		// plane3
 		void* data3; // samples
-		sl_int32 pitch3; // number of bytes of a row
-		sl_int32 sampleStride3; // The distance between adjacent pixel samples, in bytes
+		sl_reg pitch3; // number of bytes of a row
+		sl_reg sampleStride3; // The distance between adjacent pixel samples, in bytes
 		Ref<Referable> ref3; // reference for samples
 	
 	public:
 		BitmapData();
 
-		BitmapData(sl_uint32 width, sl_uint32 height, const Color* colors, sl_int32 stride = 0);
+		BitmapData(sl_uint32 width, sl_uint32 height, const Color* colors, sl_reg stride = 0);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(BitmapData)
 
@@ -91,13 +91,13 @@ namespace slib
 
 		void* planeData(sl_uint32 plane) const;
 	
-		sl_int32& planePitch(sl_uint32 plane);
+		sl_reg& planePitch(sl_uint32 plane);
 
-		sl_int32 planePitch(sl_uint32 plane) const;
+		sl_reg planePitch(sl_uint32 plane) const;
 
-		sl_int32& planeSampleStride(sl_uint32 plane);
+		sl_reg& planeSampleStride(sl_uint32 plane);
 
-		sl_int32 planeSampleStride(sl_uint32 plane) const;
+		sl_reg planeSampleStride(sl_uint32 plane) const;
 
 		static sl_int32 calculatePitchAlign1(sl_uint32 width, sl_uint32 bitsPerSample);
 
@@ -118,7 +118,7 @@ namespace slib
 
 		void copyPixelsFrom(const BitmapData& other) const;
 
-		void setFromColors(sl_uint32 width, sl_uint32 height, const Color* colors, sl_int32 stride = 0);
+		void setFromColors(sl_uint32 width, sl_uint32 height, const Color* colors, sl_reg stride = 0);
 
 	};
 

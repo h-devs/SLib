@@ -98,7 +98,7 @@ void SpectrogramApp::onProcessAudio(float* a)
 	bd.width = bd.pitch = 1;
 	bd.height = BITMAP_HEIGHT;
 	bd.data = colors;
-	bd.format = BitmapFormat::GRAY8;
+	bd.format = BitmapFormat::Gray8;
 
 	{
 		ObjectLocker lock(this);

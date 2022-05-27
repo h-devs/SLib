@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@
 namespace slib
 {
 
-	Ref<Image> Image::loadPNG(const void* content, sl_size size)
+	Ref<Image> Image::loadPng(const void* content, sl_size size)
 	{
 		if (!content || !size) {
 			return sl_null;
@@ -75,7 +75,7 @@ namespace slib
 	{
 	}
 
-	Memory Image::savePNG(const Ref<Image>& image)
+	Memory Image::savePng(const Ref<Image>& image)
 	{
 		if (image.isNull()) {
 			return sl_null;
@@ -101,7 +101,7 @@ namespace slib
 
 					sl_uint32 width = image->getWidth();
 					sl_uint32 height = image->getHeight();
-					sl_uint32 stride = image->getStride();
+					sl_reg stride = image->getStride();
 					const Color* pixels = image->getColors();
 					png_set_IHDR(png_ptr, info_ptr
 						, (png_uint_32)width, (png_uint_32)height
@@ -128,19 +128,19 @@ namespace slib
 		return ret;
 	}
 
-	Memory Image::savePNG()
+	Memory Image::savePng()
 	{
-		return savePNG(this);
+		return savePng(this);
 	}
 
-	sl_bool Image::savePNG(const StringParam& filePath, const Ref<Image>& image)
+	sl_bool Image::savePng(const StringParam& filePath, const Ref<Image>& image)
 	{
 		if (image.isNull()) {
 			return sl_false;
 		}
 		File file = File::openForWrite(filePath);
 		if (file.isOpened()) {
-			Memory mem = savePNG(image);
+			Memory mem = savePng(image);
 			if (mem.isNotNull()) {
 				sl_reg size = mem.getSize();
 				if (file.write(mem.getData(), size) == size) {
@@ -153,9 +153,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Image::savePNG(const StringParam& filePath)
+	sl_bool Image::savePng(const StringParam& filePath)
 	{
-		return savePNG(filePath, this);
+		return savePng(filePath, this);
 	}
 
 }

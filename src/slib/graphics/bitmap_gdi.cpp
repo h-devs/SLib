@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -147,7 +147,7 @@ namespace slib
 						data.Width = width;
 						data.Height = height;
 						data.Scan0 = dst.data;
-						data.Stride = dst.pitch;
+						data.Stride = (INT)(dst.pitch);
 						data.PixelFormat = PixelFormat32bppARGB;
 
 						BitmapData src(dst);
@@ -225,7 +225,7 @@ namespace slib
 						data.Width = width;
 						data.Height = height;
 						data.PixelFormat = PixelFormat32bppARGB;
-						data.Stride = src.pitch;
+						data.Stride = (INT)(src.pitch);
 						data.Scan0 = src.data;
 
 						result = m_bitmap->LockBits(&rc, Gdiplus::ImageLockModeWrite | Gdiplus::ImageLockModeUserInputBuf, PixelFormat32bppARGB, &data);

@@ -38,7 +38,7 @@ int main(int argc, const char * argv[])
 				if (image.isNotNull()) {
 					image = image->stretchToSmall(4);
 					if (image.isNotNull()) {
-						mem = image->savePNG();
+						mem = image->savePng();
 						if (mem.isNotNull()) {
 							Println("%s", fileName);
 							String name = fileName.substring(7, fileName.getLength() - 4);

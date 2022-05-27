@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ namespace slib
 	public:
 		sl_uint32 width;
 		sl_uint32 height;
-		sl_int32 stride;
+		sl_reg stride;
 		Color* colors;
 
 		Ref<Referable> ref;
@@ -60,17 +60,29 @@ namespace slib
 		~Image();
 
 	public:
+		static Ref<Image> allocate(sl_uint32 width, sl_uint32 height);
+
 		static Ref<Image> createStatic(const ImageDesc& desc);
 
-		static Ref<Image> createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride = 0, Referable* ref = sl_null);
+		static Ref<Image> createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride = 0, Referable* ref = sl_null);
 
-		static Ref<Image> create(sl_uint32 width, sl_uint32 height, const Color* pixels = sl_null, sl_int32 strideSource = 0);
+		static Ref<Image> create(sl_uint32 width, sl_uint32 height, const Color* pixels = sl_null, sl_reg strideSource = 0);
 
 		static Ref<Image> create(const ImageDesc& desc);
 
 		static Ref<Image> create(const ImageDesc& desc, RotationMode rotate, FlipMode flip = FlipMode::None);
 		
 		static Ref<Image> create(const BitmapData& bitmapData);
+
+		static Ref<Image> createFromRGB(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
+
+		static Ref<Image> createFromGray(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
+
+		static Ref<Image> createCopyAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
+
+		static Ref<Image> createFromIndexed(sl_uint32 width, sl_uint32 height, const void* data, const Color* indices, sl_uint32 nIndices, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
+
+		static Ref<Image> createFromCMYK(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
 
 		static Ref<Image> createCopy(const Ref<Image>& image);
 		
@@ -89,7 +101,7 @@ namespace slib
 	
 		sl_bool isNotEmpty() const;
 
-		sl_int32 getStride() const;
+		sl_reg getStride() const;
 
 		Color* getColors() const;
 
@@ -110,9 +122,9 @@ namespace slib
 
 		sl_bool resetPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color& color) override;
 
-		sl_bool readPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, Color* colors, sl_int32 stride = 0);
+		sl_bool readPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, Color* colors, sl_reg stride = 0);
 
-		sl_bool writePixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* colors, sl_int32 stride = 0);
+		sl_bool writePixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* colors, sl_reg stride = 0);
 
 		sl_bool resetPixels(const Color& color);
 
@@ -123,6 +135,8 @@ namespace slib
 		void tintColor(const Color& color);
 
 		void makeGray();
+
+		void writeAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
 
 
 		static void draw(ImageDesc& dst, const ImageDesc& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
@@ -201,35 +215,35 @@ namespace slib
 		static Ref<AnimationDrawable> loadAnimationFromAsset(const StringParam& path);
 		
 		
-		static Ref<Image> loadSTB(const void* content, sl_size size);
+		static Ref<Image> loadStb(const void* content, sl_size size);
 		
-		static Ref<AnimationDrawable> loadSTB_GIF(const void* content, sl_size size);
+		static Ref<AnimationDrawable> loadStbGif(const void* content, sl_size size);
 	
 		
-		static Ref<Image> loadPNG(const void* content, sl_size size);
+		static Ref<Image> loadPng(const void* content, sl_size size);
 
-		static Memory savePNG(const Ref<Image>& image);
+		static Memory savePng(const Ref<Image>& image);
 
-		Memory savePNG();
+		Memory savePng();
 
-		static sl_bool savePNG(const StringParam& filePath, const Ref<Image>& image);
+		static sl_bool savePng(const StringParam& filePath, const Ref<Image>& image);
 
-		sl_bool savePNG(const StringParam& filePath);
+		sl_bool savePng(const StringParam& filePath);
 		
 
-		static Ref<Image> loadJPEG(const void* content, sl_size size);
+		static Ref<Image> loadJpeg(const void* content, sl_size size);
 
-		static Memory saveJPEG(const Ref<Image>& image, float quality = 0.5f);
+		static Memory saveJpeg(const Ref<Image>& image, float quality = 0.5f);
 
-		static Memory saveMonochromeJPEG(const Ref<Image>& image, float quality = 0.5f);
+		static Memory saveGrayJpeg(const Ref<Image>& image, float quality = 0.5f);
 
-		Memory saveJPEG(float quality = 0.5f);
+		Memory saveJpeg(float quality = 0.5f);
 
-		Memory saveMonochromeJPEG(float quality = 0.5f);
+		Memory saveGrayJpeg(float quality = 0.5f);
 
-		static sl_bool saveJPEG(const StringParam& filePath, const Ref<Image>& image, float quality = 0.5f);
+		static sl_bool saveJpeg(const StringParam& filePath, const Ref<Image>& image, float quality = 0.5f);
 
-		sl_bool saveJPEG(const StringParam& filePath, float quality = 0.5f);
+		sl_bool saveJpeg(const StringParam& filePath, float quality = 0.5f);
 
 		
 		Ref<Drawable> getCustomDrawable();

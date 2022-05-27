@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,7 @@ namespace slib
 		sampleStride3 = 0;
 	}
 
-	BitmapData::BitmapData(sl_uint32 width, sl_uint32 height, const Color* colors, sl_int32 stride)
+	BitmapData::BitmapData(sl_uint32 width, sl_uint32 height, const Color* colors, sl_reg stride)
 	{
 		setFromColors(width, height, colors, stride);
 	}
@@ -99,7 +99,7 @@ namespace slib
 		}
 	}
 
-	sl_int32& BitmapData::planePitch(sl_uint32 plane)
+	sl_reg& BitmapData::planePitch(sl_uint32 plane)
 	{
 		switch (plane) {
 			case 1:
@@ -113,7 +113,7 @@ namespace slib
 		}
 	}
 
-	sl_int32 BitmapData::planePitch(sl_uint32 plane) const
+	sl_reg BitmapData::planePitch(sl_uint32 plane) const
 	{
 		switch (plane) {
 			case 1:
@@ -127,7 +127,7 @@ namespace slib
 		}
 	}
 
-	sl_int32& BitmapData::planeSampleStride(sl_uint32 plane)
+	sl_reg& BitmapData::planeSampleStride(sl_uint32 plane)
 	{
 		switch (plane) {
 			case 1:
@@ -141,7 +141,7 @@ namespace slib
 		}
 	}
 	
-	sl_int32 BitmapData::planeSampleStride(sl_uint32 plane) const
+	sl_reg BitmapData::planeSampleStride(sl_uint32 plane) const
 	{
 		switch (plane) {
 			case 1:
@@ -195,47 +195,47 @@ namespace slib
 			if (format == BitmapFormat::YUV_I420 || format == BitmapFormat::YUV_YV12) {
 				sl_uint32 w2 = width >> 1;
 				sl_uint32 h2 = height >> 1;
-				if (pitch == 0) {
+				if (!pitch) {
 					pitch = calculatePitchAlign16(width, 8);
 				}
-				if (sampleStride == 0) {
+				if (!sampleStride) {
 					sampleStride = 1;
 				}
 				if (!data1) {
 					data1 = (sl_uint8*)(data) + pitch * height;
 				}
-				if (pitch1 == 0) {
+				if (!pitch1) {
 					/*
 						ceil(m/2/16) = ceil(ceil(m/16)/2)
 					*/
 					pitch1 = calculatePitchAlign16(w2, 8);
 				}
-				if (sampleStride1 == 0) {
+				if (!sampleStride1) {
 					sampleStride1 = 1;
 				}
 				if (!data2) {
 					data2 = (sl_uint8*)(data1) + pitch1 * h2;
 				}
-				if (pitch2 == 0) {
+				if (!pitch2) {
 					pitch2 = pitch1;
 				}
-				if (sampleStride2 == 0) {
+				if (!sampleStride2) {
 					sampleStride2 = 1;
 				}
 			} else {
-				if (pitch == 0) {
+				if (!pitch) {
 					pitch = width;
 				}
-				if (sampleStride == 0) {
+				if (!sampleStride) {
 					sampleStride = 1;
 				}
 				if (!data1) {
 					data1 = (sl_uint8*)(data) + pitch * height;
 				}
-				if (pitch1 == 0) {
+				if (!pitch1) {
 					pitch1 = width;
 				}
-				if (sampleStride1 == 0) {
+				if (!sampleStride1) {
 					sampleStride1 = 2;
 				}
 			}
@@ -243,12 +243,12 @@ namespace slib
 			sl_uint32 i;
 			sl_uint32 n = BitmapFormats::getPlanesCount(format);
 			for (i = 0; i < n; i++) {
-				sl_int32& p = planePitch(i);
-				if (p == 0) {
+				sl_reg& p = planePitch(i);
+				if (!p) {
 					p = calculatePitchAlign4(width, BitmapFormats::getBitsPerSample(format));
 				}
-				sl_int32& s = planeSampleStride(i);
-				if (s == 0) {
+				sl_reg& s = planeSampleStride(i);
+				if (!s) {
 					s = BitmapFormats::getBytesPerSample(format);
 				}
 			}
@@ -393,20 +393,8 @@ namespace slib
 			case BitmapFormat::RGB565LE:
 			case BitmapFormat::BGR565BE:
 			case BitmapFormat::BGR565LE:
-				if (buffers) {
-					for (int i = 0; i < 3; i++) {
-						buffers[i].width = bd.width;
-						buffers[i].height = bd.height;
-						buffers[i].sampleStride = bd.sampleStride;
-						buffers[i].pitch = bd.pitch;
-						buffers[i].ref = bd.ref;
-					}
-					buffers[0].data = ((sl_uint8*)(bd.data));
-					buffers[1].data = ((sl_uint8*)(bd.data));
-					buffers[2].data = ((sl_uint8*)(bd.data));
-				}
-				return 3;
-			case BitmapFormat::GRAY8:
+			case BitmapFormat::Gray8:
+			case BitmapFormat::Monochrome:
 				if (buffers) {
 					for (int i = 0; i < 3; i++) {
 						buffers[i].width = bd.width;
@@ -627,6 +615,158 @@ namespace slib
 	{
 		namespace bitmap_data
 		{
+
+			static void CopyPixels_SameFormat(sl_uint32 width, sl_uint32 height, BitmapFormat format,
+				sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides,
+				sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
+			{
+				sl_uint32 nPlanes = BitmapFormats::getPlanesCount(format);
+				for (sl_uint32 iPlane = 0; iPlane < nPlanes; iPlane++) {
+					sl_uint8* src_row = src_planes[iPlane];
+					sl_reg src_pitch = src_pitches[iPlane];
+					sl_reg src_stride = src_sample_strides[iPlane];
+					sl_uint8* dst_row = dst_planes[iPlane];
+					sl_reg dst_pitch = dst_pitches[iPlane];
+					sl_reg dst_stride = dst_sample_strides[iPlane];
+					sl_uint32 bytesPerSample = BitmapFormats::getBytesPerSample(format);
+					if (bytesPerSample == src_stride && bytesPerSample == dst_stride) {
+						sl_uint32 n = bytesPerSample * width;
+						for (sl_uint32 i = 0; i < height; i++) {
+							Base::copyMemory(dst_row, src_row, n);
+							src_row += src_pitch;
+							dst_row += dst_pitch;
+						}
+					} else {
+						if (bytesPerSample == 1) {
+							for (sl_uint32 i = 0; i < height; i++) {
+								sl_uint8* s = src_row;
+								sl_uint8* d = dst_row;
+								for (sl_uint32 j = 0; j < width; j++) {
+									*d = *s;
+									s += src_stride;
+									d += dst_stride;
+								}
+								src_row += src_pitch;
+								dst_row += dst_pitch;
+							}
+						} else if (bytesPerSample == 2) {
+							for (sl_uint32 i = 0; i < height; i++) {
+								sl_uint8* s = src_row;
+								sl_uint8* d = dst_row;
+								for (sl_uint32 j = 0; j < width; j++) {
+									d[0] = s[0];
+									d[1] = s[1];
+									s += src_stride;
+									d += dst_stride;
+								}
+								src_row += src_pitch;
+								dst_row += dst_pitch;
+							}
+						} else if (bytesPerSample == 3) {
+							for (sl_uint32 i = 0; i < height; i++) {
+								sl_uint8* s = src_row;
+								sl_uint8* d = dst_row;
+								for (sl_uint32 j = 0; j < width; j++) {
+									d[0] = s[0];
+									d[1] = s[1];
+									d[2] = s[2];
+									s += src_stride;
+									d += dst_stride;
+								}
+								src_row += src_pitch;
+								dst_row += dst_pitch;
+							}
+						} else if (bytesPerSample == 4) {
+							for (sl_uint32 i = 0; i < height; i++) {
+								sl_uint8* s = src_row;
+								sl_uint8* d = dst_row;
+								for (sl_uint32 j = 0; j < width; j++) {
+									d[0] = s[0];
+									d[1] = s[1];
+									d[2] = s[2];
+									d[3] = s[3];
+									s += src_stride;
+									d += dst_stride;
+								}
+								src_row += src_pitch;
+								dst_row += dst_pitch;
+							}
+						} else {
+							for (sl_uint32 i = 0; i < height; i++) {
+								sl_uint8* s = src_row;
+								sl_uint8* d = dst_row;
+								for (sl_uint32 j = 0; j < width; j++) {
+									for (sl_uint32 k = 0; k < bytesPerSample; k++) {
+										d[k] = s[k];
+									}
+									s += src_stride;
+									d += dst_stride;
+								}
+								src_row += src_pitch;
+								dst_row += dst_pitch;
+							}
+						}
+					}
+				}
+			}
+
+			static void CopyPixels_Components(BitmapData& src, BitmapData& dst)
+			{
+				ColorComponentBuffer src_comps[3];
+				ColorComponentBuffer dst_comps[3];
+				sl_uint32 nBuffers = src.getColorComponentBuffers(src_comps);
+				if (dst.getColorComponentBuffers(dst_comps) != nBuffers) {
+					return;
+				}
+				for (sl_uint32 iPlane = 0; iPlane < nBuffers; iPlane++) {
+					ColorComponentBuffer& src_comp = src_comps[iPlane];
+					ColorComponentBuffer& dst_comp = dst_comps[iPlane];
+					sl_uint32 w = SLIB_MIN(src_comp.width, dst_comp.width);
+					sl_uint32 h = SLIB_MIN(src_comp.height, dst_comp.height);
+					sl_uint8* src_row = (sl_uint8*)(src_comp.data);
+					sl_uint8* dst_row = (sl_uint8*)(dst_comp.data);
+					sl_reg src_pitch = src_comp.pitch;
+					sl_reg dst_pitch = dst_comp.pitch;
+					sl_reg src_stride = src_comp.sampleStride;
+					sl_reg dst_stride = dst_comp.sampleStride;
+					if (src_stride == 1 && dst_stride == 1) {
+						for (sl_uint32 i = 0; i < h; i++) {
+							sl_uint8* s = src_row;
+							sl_uint8* d = dst_row;
+							for (sl_uint32 j = 0; j < w; j++) {
+								*d = *s;
+								s++; d++;
+							}
+							src_row += src_pitch;
+							dst_row += dst_pitch;
+						}
+					} else if (src_stride == 2 && dst_stride == 2) {
+						for (sl_uint32 i = 0; i < h; i++) {
+							sl_uint8* s = src_row;
+							sl_uint8* d = dst_row;
+							for (sl_uint32 j = 0; j < w; j++) {
+								*d = *s;
+								s += 2;
+								d += 2;
+							}
+							src_row += src_pitch;
+							dst_row += dst_pitch;
+						}
+					} else {
+						for (sl_uint32 i = 0; i < h; i++) {
+							sl_uint8* s = src_row;
+							sl_uint8* d = dst_row;
+							for (sl_uint32 j = 0; j < w; j++) {
+								*d = *s;
+								s += src_stride;
+								d += dst_stride;
+							}
+							src_row += src_pitch;
+							dst_row += dst_pitch;
+						}
+					}
+				}
+			}
 
 			class RGBA_PROC
 			{
@@ -996,7 +1136,7 @@ namespace slib
 				}
 			};
 
-			class GRAY8_PROC
+			class Gray8_PROC
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 1;
@@ -1016,6 +1156,37 @@ namespace slib
 					v += g;
 					v += b;
 					p[0] = (sl_uint8)(v / 3);
+				}
+			};
+
+			class Monochrome_PROC
+			{
+			public:
+				SLIB_INLINE static sl_uint8 readSample(sl_uint8* p, sl_uint32 x)
+				{
+					sl_uint8 v = p[x >> 3];
+					return (sl_uint8)(-((v >> (7 - (x & 7))) & 1));
+				}
+
+				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint32 x, sl_uint8 r, sl_uint8 g, sl_uint8 b)
+				{
+					sl_uint32 v = r;
+					v += g;
+					v += b;
+					v = (384 - v) >> 31;
+					sl_uint8& t = p[x >> 3];
+					sl_uint8 n = 7 - (x & 7);
+					t &= (sl_uint8)(~(1 << n));
+					t |= (sl_uint8)(v << n);
+				}
+
+				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint32 x, sl_uint8 y)
+				{
+					y >>= 7;
+					sl_uint8& t = p[x >> 3];
+					sl_uint8 n = 7 - (x & 7);
+					t &= (sl_uint8)(~(1 << n));
+					t |= (sl_uint8)(y << n);
 				}
 			};
 
@@ -1155,23 +1326,35 @@ namespace slib
 					YUV::convertRGBToYUV(r, g, b, *p0, *p1, *p2);
 				}
 			};
-	
-#define CASES_FOR_NORMAL_RGB(CASE) \
-	CASE(RGBA) \
-	CASE(RGBA_PA) \
-	CASE(BGRA) \
-	CASE(BGRA_PA) \
-	CASE(ARGB) \
-	CASE(ARGB_PA) \
-	CASE(ABGR) \
-	CASE(ABGR_PA) \
+
+#define CASES_FOR_NORMAL_RGB_OPAQUE(CASE) \
 	CASE(RGB) \
 	CASE(BGR) \
 	CASE(RGB565BE) \
 	CASE(RGB565LE) \
 	CASE(BGR565BE) \
 	CASE(BGR565LE) \
-	CASE(GRAY8)
+	CASE(Gray8)
+
+#define CASES_FOR_NORMAL_RGB_ALPHA(CASE) \
+	CASE(RGBA) \
+	CASE(BGRA) \
+	CASE(ARGB) \
+	CASE(ABGR)
+
+#define CASES_FOR_NORMAL_RGB_NPA(CASE) \
+	CASES_FOR_NORMAL_RGB_OPAQUE(CASE) \
+	CASES_FOR_NORMAL_RGB_ALPHA(CASE)
+
+#define CASES_FOR_NORMAL_RGB_PA(CASE) \
+	CASE(RGBA_PA) \
+	CASE(BGRA_PA) \
+	CASE(ARGB_PA) \
+	CASE(ABGR_PA)
+
+#define CASES_FOR_NORMAL_RGB(CASE) \
+	CASES_FOR_NORMAL_RGB_NPA(CASE) \
+	CASES_FOR_NORMAL_RGB_PA(CASE)
 
 #define CASES_FOR_NORMAL_YUV(CASE) \
 	CASE(YUVA) \
@@ -1180,11 +1363,14 @@ namespace slib
 #define CASES_FOR_NORMAL(CASE) \
 	CASES_FOR_NORMAL_RGB(CASE) \
 	CASES_FOR_NORMAL_YUV(CASE)
-	
-#define CASES_FOR_PLANAR_RGB(CASE) \
+
+#define CASES_FOR_PLANAR_RGB_NPA(CASE) \
 	CASE(RGBA_PLANAR) \
-	CASE(RGBA_PLANAR_PA) \
 	CASE(RGB_PLANAR)
+
+#define CASES_FOR_PLANAR_RGB(CASE) \
+	CASES_FOR_PLANAR_RGB_NPA(CASE) \
+	CASE(RGBA_PLANAR_PA)
 
 #define CASES_FOR_PLANAR_YUV(CASE) \
 	CASE(YUVA_PLANAR) \
@@ -1194,8 +1380,8 @@ namespace slib
 	CASES_FOR_PLANAR_RGB(CASE) \
 	CASES_FOR_PLANAR_YUV(CASE)
 
-			template<class SourceProc, class TargetProc>
-			static void CopyPixels_Normal_Step2(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			template <class SourceProc, class TargetProc>
+			static void CopyPixels_Normal_Step2(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row = dst;
@@ -1231,28 +1417,15 @@ namespace slib
 #undef __SUB
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_Normal_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			template <class SourceProc>
+			static void CopyPixels_Normal_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
 					case BitmapFormat::FORMAT: \
 						CopyPixels_Normal_Step2<SourceProc, FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst, dst_pitch, dst_sample_stride); \
 						break;
-					CASES_FOR_NORMAL(__CASE)
-					default:
-						break;
-#undef __CASE
-				}
-			}
 
-			static void CopyPixels_Normal(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
-			{
-				switch (src_format) {
-#define __CASE(FORMAT) \
-					case BitmapFormat::FORMAT: \
-						CopyPixels_Normal_Step1<FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_format, dst, dst_pitch, dst_sample_stride); \
-						break;
 					CASES_FOR_NORMAL(__CASE)
 					default:
 						break;
@@ -1260,13 +1433,55 @@ namespace slib
 				}
 			}
 			
-			SLIB_INLINE static sl_bool IsPackedPlanar(sl_uint8** planes, sl_int32* sample_strides)
+			template <class SourceProc>
+			static void CopyPixels_Normal_NPA_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				switch (dst_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_Normal_Step2<SourceProc, FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst, dst_pitch, dst_sample_stride); \
+						break;
+
+					CASES_FOR_NORMAL_RGB_NPA(__CASE)
+					CASES_FOR_NORMAL_YUV(__CASE)
+					default:
+						break;
+#undef __CASE
+				}
+			}
+			
+			static void CopyPixels_Normal(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				switch (src_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_Normal_NPA_Step1<FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_format, dst, dst_pitch, dst_sample_stride); \
+						break;
+
+					CASES_FOR_NORMAL_RGB_PA(__CASE)
+					CASES_FOR_NORMAL_RGB_OPAQUE(__CASE)
+					__CASE(YUV444)
+#undef __CASE
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_Normal_Step1<FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_format, dst, dst_pitch, dst_sample_stride); \
+						break;
+
+					CASES_FOR_NORMAL_RGB_ALPHA(__CASE)
+					__CASE(YUVA)
+#undef __CASE
+					default:
+						break;
+				}
+			}
+			
+			SLIB_INLINE static sl_bool IsPackedPlanar(sl_uint8** planes, sl_reg* sample_strides)
 			{
 				return sample_strides[0] == 1 && sample_strides[1] == 1 && sample_strides[2] == 1 && (!(planes[3]) || sample_strides[3] == 1);
 			}
 
-			template<class SourceProc, class TargetProc>
-			static void CopyPixels_Planar_Step2(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class SourceProc, class TargetProc>
+			static void CopyPixels_Planar_Step2(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				sl_uint8* src_row0 = src_planes[0];
 				sl_uint8* src_row1 = src_planes[1];
@@ -1309,14 +1524,15 @@ namespace slib
 #undef __SUB
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_Planar_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class SourceProc>
+			static void CopyPixels_Planar_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
 					case BitmapFormat::FORMAT: \
 						CopyPixels_Planar_Step2<SourceProc, FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst_planes, dst_pitches, dst_sample_strides); \
 						break;
+
 					CASES_FOR_PLANAR(__CASE)
 					default:
 						break;
@@ -1324,22 +1540,50 @@ namespace slib
 				}
 			}
 			
-			static void CopyPixels_Planar(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class SourceProc>
+			static void CopyPixels_Planar_NPA_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
+			{
+				switch (dst_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_Planar_Step2<SourceProc, FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst_planes, dst_pitches, dst_sample_strides); \
+						break;
+
+					CASES_FOR_PLANAR_RGB_NPA(__CASE)
+					CASES_FOR_PLANAR_YUV(__CASE)
+					default:
+						break;
+#undef __CASE
+				}
+			}
+			
+			static void CopyPixels_Planar(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (src_format) {
 #define __CASE(FORMAT) \
 					case BitmapFormat::FORMAT: \
+						CopyPixels_Planar_NPA_Step1<FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst_format, dst_planes, dst_pitches, dst_sample_strides); \
+						break;
+
+					__CASE(RGBA_PLANAR_PA)
+					__CASE(RGB_PLANAR)
+					__CASE(YUV444_PLANAR)
+#undef __CASE
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
 						CopyPixels_Planar_Step1<FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst_format, dst_planes, dst_pitches, dst_sample_strides); \
 						break;
-					CASES_FOR_PLANAR(__CASE)
+
+					__CASE(RGBA_PLANAR)
+					__CASE(YUVA_PLANAR)
+#undef __CASE
 					default:
 						break;
-#undef __CASE
 				}
 			}
 			
-			template<class SourceProc, class TargetProc>
-			static void CopyPixels_NormalToPlanar_Step2(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class SourceProc, class TargetProc>
+			static void CopyPixels_NormalToPlanar_Step2(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row0 = dst_planes[0];
@@ -1379,14 +1623,15 @@ namespace slib
 #undef __SUB
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_NormalToPlanar_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class SourceProc>
+			static void CopyPixels_NormalToPlanar_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
 					case BitmapFormat::FORMAT: \
 						CopyPixels_NormalToPlanar_Step2<SourceProc, FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_planes, dst_pitches, dst_sample_strides); \
 						break;
+
 					CASES_FOR_PLANAR(__CASE)
 					default:
 						break;
@@ -1394,22 +1639,50 @@ namespace slib
 				}
 			}
 			
-			static void CopyPixels_NormalToPlanar(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class SourceProc>
+			static void CopyPixels_NormalToPlanar_NPA_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
-				switch (src_format) {
+				switch (dst_format) {
 #define __CASE(FORMAT) \
 					case BitmapFormat::FORMAT: \
-						CopyPixels_NormalToPlanar_Step1<FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_format, dst_planes, dst_pitches, dst_sample_strides); \
-					break;
-					CASES_FOR_NORMAL(__CASE)
+						CopyPixels_NormalToPlanar_Step2<SourceProc, FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_planes, dst_pitches, dst_sample_strides); \
+						break;
+
+					CASES_FOR_PLANAR_RGB_NPA(__CASE)
+					CASES_FOR_PLANAR_YUV(__CASE)
 					default:
 						break;
 #undef __CASE
 				}
 			}
 			
-			template<class SourceProc, class TargetProc>
-			static void CopyPixels_PlanarToNormal_Step2(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			static void CopyPixels_NormalToPlanar(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
+			{
+				switch (src_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_NormalToPlanar_NPA_Step1<FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_format, dst_planes, dst_pitches, dst_sample_strides); \
+						break;
+
+					CASES_FOR_NORMAL_RGB_PA(__CASE)
+					CASES_FOR_NORMAL_RGB_OPAQUE(__CASE)
+					__CASE(YUV444)
+#undef __CASE
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_NormalToPlanar_Step1<FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst_format, dst_planes, dst_pitches, dst_sample_strides); \
+						break;
+
+					CASES_FOR_NORMAL_RGB_ALPHA(__CASE)
+					__CASE(YUVA)
+#undef __CASE
+					default:
+						break;
+				}
+			}
+			
+			template <class SourceProc, class TargetProc>
+			static void CopyPixels_PlanarToNormal_Step2(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				sl_uint8* src_row0 = src_planes[0];
 				sl_uint8* src_row1 = src_planes[1];
@@ -1448,38 +1721,475 @@ namespace slib
 				}
 #undef __SUB
 			}
-	
-			template<class SourceProc>
-			static void CopyPixels_PlanarToNormal_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+
+			template <class SourceProc>
+			static void CopyPixels_PlanarToNormal_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
 					case BitmapFormat::FORMAT: \
 						CopyPixels_PlanarToNormal_Step2<SourceProc, FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst, dst_pitch, dst_sample_stride); \
 						break;
+
 					CASES_FOR_NORMAL(__CASE)
 					default:
 						break;
 #undef __CASE
 				}
 			}
-			
-			static void CopyPixels_PlanarToNormal(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+
+			template <class SourceProc>
+			static void CopyPixels_PlanarToNormal_NPA_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
-				switch (src_format) {
+				switch (dst_format) {
 #define __CASE(FORMAT) \
 					case BitmapFormat::FORMAT: \
-						CopyPixels_PlanarToNormal_Step1<FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst_format, dst, dst_pitch, dst_sample_stride); \
+						CopyPixels_PlanarToNormal_Step2<SourceProc, FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst, dst_pitch, dst_sample_stride); \
 						break;
-					CASES_FOR_PLANAR(__CASE)
+
+					CASES_FOR_NORMAL_RGB_NPA(__CASE)
+					CASES_FOR_NORMAL_YUV(__CASE)
 					default:
 						break;
 #undef __CASE
 				}
 			}
 			
-			template<class TargetProc>
-			static void CopyPixels_YUV420ToYUVNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			static void CopyPixels_PlanarToNormal(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				switch (src_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_PlanarToNormal_NPA_Step1<FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst_format, dst, dst_pitch, dst_sample_stride); \
+						break;
+
+					__CASE(RGBA_PLANAR_PA)
+					__CASE(RGB_PLANAR)
+					__CASE(YUV444_PLANAR)
+#undef __CASE
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_PlanarToNormal_Step1<FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst_format, dst, dst_pitch, dst_sample_stride); \
+						break;
+
+					__CASE(RGBA_PLANAR)
+					__CASE(YUVA_PLANAR)
+#undef __CASE
+					default:
+						break;
+				}
+			}
+
+			template <class TargetProc>
+			static void CopyPixels_MonoToNormal_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row = dst;
+				sl_uint8 c;
+
+#define __SUB(DST_SAMPLE_STRIDE) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s= src_row; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						c = Monochrome_PROC::readSample(s, j); \
+						TargetProc::writeSample(d, c, c, c, 255); \
+						d += DST_SAMPLE_STRIDE; \
+					} \
+					src_row += src_pitch; \
+					dst_row += dst_pitch; \
+				}
+
+				if (dst_sample_stride == TargetProc::BytesPerSample) {
+					__SUB(TargetProc::BytesPerSample)
+				} else {
+					__SUB(dst_sample_stride)
+				}
+#undef __SUB
+			}
+			
+			template <>
+			static void CopyPixels_MonoToNormal_Step1<Gray8_PROC>(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row = dst;
+
+#define __SUB(DST_SAMPLE_STRIDE) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s= src_row; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						*d = Monochrome_PROC::readSample(s, j); \
+						d += DST_SAMPLE_STRIDE; \
+					} \
+					src_row += src_pitch; \
+					dst_row += dst_pitch; \
+				}
+
+				if (dst_sample_stride == 1) {
+					__SUB(1)
+				} else {
+					__SUB(dst_sample_stride)
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_MonoToNormal(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				switch (dst_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_MonoToNormal_Step1<FORMAT##_PROC>(width, height, src, src_pitch, dst, dst_pitch, dst_sample_stride); \
+						break;
+
+					CASES_FOR_NORMAL_RGB_NPA(__CASE)
+				default:
+					break;
+#undef __CASE
+				}
+			}
+			
+			template <class TargetProc>
+			static void CopyPixels_MonoToPlanar_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row0 = dst_planes[0];
+				sl_uint8* dst_row1 = dst_planes[1];
+				sl_uint8* dst_row2 = dst_planes[2];
+				sl_uint8* dst_row3 = dst_planes[3];
+				sl_uint8 c;
+				sl_uint8 *d0, *d1, *d2, *d3;
+		
+#define __SUB(D0, D1, D2, D3) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s = src_row; \
+					d0 = dst_row0; d1 = dst_row1; d2 = dst_row2; d3 = dst_row3; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						c = Monochrome_PROC::readSample(s, j); \
+						TargetProc::writeSample(d0, d1, d2, d3, c, c, c, 255); \
+						d0 += D0; d1 += D1; d2 += D2; d3 += D3; \
+					} \
+					src_row += src_pitch; \
+					dst_row0 += dst_pitches[0]; dst_row1 += dst_pitches[1]; dst_row2 += dst_pitches[2]; dst_row3 += dst_pitches[3]; \
+				}
+				
+				if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
+					__SUB(1, 1, 1, 1)
+				} else {
+					__SUB(dst_sample_strides[0], dst_sample_strides[1], dst_sample_strides[2], dst_sample_strides[3])
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_MonoToPlanar(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
+			{
+				switch (dst_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_MonoToPlanar_Step1<FORMAT##_PROC>(width, height, src, src_pitch, dst_planes, dst_pitches, dst_sample_strides); \
+						break;
+
+					CASES_FOR_PLANAR_RGB_NPA(__CASE)
+					default:
+						break;
+#undef __CASE
+				}
+			}
+			
+			template <class TargetProc>
+			static void CopyPixels_MonoToYUVNormal_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row = dst;
+				sl_uint8 c;
+
+#define __SUB(DST_SAMPLE_STRIDE) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s= src_row; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						c = Monochrome_PROC::readSample(s, j); \
+						TargetProc::writeSample(d, c, 128, 128, 255); \
+						d += DST_SAMPLE_STRIDE; \
+					} \
+					src_row += src_pitch; \
+					dst_row += dst_pitch; \
+				}
+
+				if (dst_sample_stride == TargetProc::BytesPerSample) {
+					__SUB(TargetProc::BytesPerSample)
+				} else {
+					__SUB(dst_sample_stride)
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_MonoToYUVNormal(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			{
+				switch (dst_format) {
+				case BitmapFormat::YUVA:
+					CopyPixels_MonoToYUVNormal_Step1<RGBA_PROC>(width, height, src, src_pitch, dst, dst_pitch, dst_sample_stride);
+					break;
+				case BitmapFormat::YUV444:
+					CopyPixels_MonoToYUVNormal_Step1<RGB_PROC>(width, height, src, src_pitch, dst, dst_pitch, dst_sample_stride);
+					break;
+				default:
+					break;
+				}
+			}
+
+			template <class TargetProc>
+			static void CopyPixels_MonoToYUVPlanar_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row0 = dst_planes[0];
+				sl_uint8* dst_row1 = dst_planes[1];
+				sl_uint8* dst_row2 = dst_planes[2];
+				sl_uint8* dst_row3 = dst_planes[3];
+				sl_uint8 c;
+				sl_uint8 *d0, *d1, *d2, *d3;
+
+#define __SUB(D0, D1, D2, D3) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s = src_row; \
+					d0 = dst_row0; d1 = dst_row1; d2 = dst_row2; d3 = dst_row3; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						c = Monochrome_PROC::readSample(s, j); \
+						TargetProc::writeSample(d0, d1, d2, d3, c, 128, 128, 255); \
+						d0 += D0; d1 += D1; d2 += D2; d3 += D3; \
+					} \
+					src_row += src_pitch; \
+					dst_row0 += dst_pitches[0]; dst_row1 += dst_pitches[1]; dst_row2 += dst_pitches[2]; dst_row3 += dst_pitches[3]; \
+				}
+
+				if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
+					__SUB(1, 1, 1, 1)
+				} else {
+					__SUB(dst_sample_strides[0], dst_sample_strides[1], dst_sample_strides[2], dst_sample_strides[3])
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_MonoToYUVPlanar(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
+			{
+				switch (dst_format) {
+				case BitmapFormat::YUVA_PLANAR:
+					CopyPixels_MonoToYUVPlanar_Step1<RGBA_PLANAR_PROC>(width, height, src, src_pitch, dst_planes, dst_pitches, dst_sample_strides);
+					break;
+				case BitmapFormat::YUV444_PLANAR:
+					CopyPixels_MonoToYUVPlanar_Step1<RGB_PLANAR_PROC>(width, height, src, src_pitch, dst_planes, dst_pitches, dst_sample_strides);
+					break;
+				default:
+					break;
+				}
+			}
+			
+			template <class SourceProc>
+			static void CopyPixels_NormalToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row = dst;
+				sl_uint8 c0, c1, c2, c3;
+				
+#define __SUB(SRC_SAMPLE_STRIDE) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s= src_row; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						SourceProc::readSample(s, c0, c1, c2, c3); \
+						Monochrome_PROC::writeSample(d, j, c0, c1, c2); \
+						s += SRC_SAMPLE_STRIDE; \
+					} \
+					src_row += src_pitch; \
+					dst_row += dst_pitch; \
+				}
+				
+				if (src_sample_stride == SourceProc::BytesPerSample) {
+					__SUB(SourceProc::BytesPerSample)
+				} else {
+					__SUB(src_sample_stride)
+				}
+#undef __SUB
+			}
+
+			template <>
+			static void CopyPixels_NormalToMono_Step1<Gray8_PROC>(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row = dst;
+				
+#define __SUB(SRC_SAMPLE_STRIDE) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s= src_row; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						Monochrome_PROC::writeSample(d, j, *s); \
+						s += SRC_SAMPLE_STRIDE; \
+					} \
+					src_row += src_pitch; \
+					dst_row += dst_pitch; \
+				}
+				
+				if (src_sample_stride == 1) {
+					__SUB(1)
+				} else {
+					__SUB(src_sample_stride)
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_NormalToMono(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				switch (src_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_NormalToMono_Step1<FORMAT##_PROC>(width, height, src, src_pitch, src_sample_stride, dst, dst_pitch); \
+						break;
+
+					CASES_FOR_NORMAL_RGB_NPA(__CASE)
+					default:
+						break;
+#undef __CASE
+				}
+			}
+			
+			template <class SourceProc>
+			static void CopyPixels_PlanarToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				sl_uint8* src_row0 = src_planes[0];
+				sl_uint8* src_row1 = src_planes[1];
+				sl_uint8* src_row2 = src_planes[2];
+				sl_uint8* src_row3 = src_planes[3];
+				sl_uint8* dst_row = dst;
+				sl_uint8 c0, c1, c2, c3;
+				sl_uint8 *s0, *s1, *s2, *s3;
+		
+#define __SUB(S0, S1, S2, S3) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					s0 = src_row0; s1 = src_row1; s2 = src_row2; s3 = src_row3; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						SourceProc::readSample(s0, s1, s2, s3, c0, c1, c2, c3); \
+						Monochrome_PROC::writeSample(d, j, c0, c1, c2); \
+						s0 += S0; s1 += S1; s2 += S2; s3 += S3; \
+					} \
+					src_row0 += src_pitches[0]; src_row1 += src_pitches[1]; src_row2 += src_pitches[2]; src_row3 += src_pitches[3]; \
+					dst_row += dst_pitch; \
+				}
+				
+				if (IsPackedPlanar(src_planes, src_sample_strides)) {
+					__SUB(1, 1, 1, 1)
+				} else {
+					__SUB(src_sample_strides[0], src_sample_strides[1], src_sample_strides[2], src_sample_strides[3])
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_PlanarToMono(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				switch (src_format) {
+#define __CASE(FORMAT) \
+					case BitmapFormat::FORMAT: \
+						CopyPixels_PlanarToMono_Step1<FORMAT##_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst, dst_pitch); \
+						break;
+
+					CASES_FOR_PLANAR_RGB_NPA(__CASE)
+#undef __CASE
+					default:
+						break;
+				}
+			}
+			
+			template <class SourceProc>
+			static void CopyPixels_YUVNormalToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				sl_uint8* src_row = src;
+				sl_uint8* dst_row = dst;
+				sl_uint8 c0, c1, c2, c3;
+				
+#define __SUB(SRC_SAMPLE_STRIDE) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					sl_uint8* s= src_row; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						SourceProc::readSample(s, c0, c1, c2, c3); \
+						Monochrome_PROC::writeSample(d, j, c0); \
+						s += SRC_SAMPLE_STRIDE; \
+					} \
+					src_row += src_pitch; \
+					dst_row += dst_pitch; \
+				}
+				
+				if (src_sample_stride == SourceProc::BytesPerSample) {
+					__SUB(SourceProc::BytesPerSample)
+				} else {
+					__SUB(src_sample_stride)
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_YUVNormalToMono(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				switch (src_format) {
+					case BitmapFormat::YUV444:
+						CopyPixels_YUVNormalToMono_Step1<RGB_PROC>(width, height, src, src_pitch, src_sample_stride, dst, dst_pitch);
+						break;
+					case BitmapFormat::YUVA:
+						CopyPixels_YUVNormalToMono_Step1<RGBA_PROC>(width, height, src, src_pitch, src_sample_stride, dst, dst_pitch);
+						break;
+					default:
+						break;
+				}
+			}
+			
+			template <class SourceProc>
+			static void CopyPixels_YUVPlanarToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				sl_uint8* src_row0 = src_planes[0];
+				sl_uint8* src_row1 = src_planes[1];
+				sl_uint8* src_row2 = src_planes[2];
+				sl_uint8* src_row3 = src_planes[3];
+				sl_uint8* dst_row = dst;
+				sl_uint8 c0, c1, c2, c3;
+				sl_uint8 *s0, *s1, *s2, *s3;
+		
+#define __SUB(S0, S1, S2, S3) \
+				for (sl_uint32 i = 0; i < height; i++) { \
+					s0 = src_row0; s1 = src_row1; s2 = src_row2; s3 = src_row3; \
+					sl_uint8* d = dst_row; \
+					for (sl_uint32 j = 0; j < width; j++) { \
+						SourceProc::readSample(s0, s1, s2, s3, c0, c1, c2, c3); \
+						Monochrome_PROC::writeSample(d, j, c0); \
+						s0 += S0; s1 += S1; s2 += S2; s3 += S3; \
+					} \
+					src_row0 += src_pitches[0]; src_row1 += src_pitches[1]; src_row2 += src_pitches[2]; src_row3 += src_pitches[3]; \
+					dst_row += dst_pitch; \
+				}
+				
+				if (IsPackedPlanar(src_planes, src_sample_strides)) {
+					__SUB(1, 1, 1, 1)
+				} else {
+					__SUB(src_sample_strides[0], src_sample_strides[1], src_sample_strides[2], src_sample_strides[3])
+				}
+#undef __SUB
+			}
+
+			static void CopyPixels_YUVPlanarToMono(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				switch (src_format) {
+					case BitmapFormat::YUV444_PLANAR:
+						CopyPixels_YUVPlanarToMono_Step1<RGB_PLANAR_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst, dst_pitch);
+						break;
+					case BitmapFormat::YUVA_PLANAR:
+						CopyPixels_YUVPlanarToMono_Step1<RGBA_PLANAR_PROC>(width, height, src_planes, src_pitches, src_sample_strides, dst, dst_pitch);
+						break;
+					default:
+						break;
+				}
+			}
+
+			template <class TargetProc>
+			static void CopyPixels_YUV420ToYUVNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -1541,7 +2251,7 @@ namespace slib
 #undef __SUB
 			}
 
-			static void CopyPixels_YUV420ToYUVNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			static void CopyPixels_YUV420ToYUVNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (dst_format) {
 					case BitmapFormat::YUVA:
@@ -1555,8 +2265,8 @@ namespace slib
 				}
 			}
 			
-			template<class TargetProc>
-			static void CopyPixels_YUV420ToYUVPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class TargetProc>
+			static void CopyPixels_YUV420ToYUVPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -1624,7 +2334,7 @@ namespace slib
 #undef __SUB
 			}
 
-			static void CopyPixels_YUV420ToYUVPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			static void CopyPixels_YUV420ToYUVPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (dst_format) {
 					case BitmapFormat::YUVA_PLANAR:
@@ -1638,8 +2348,8 @@ namespace slib
 				}
 			}
 
-			template<class TargetProc>
-			static void CopyPixels_YUV420ToOtherNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			template <class TargetProc>
+			static void CopyPixels_YUV420ToOtherNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -1682,7 +2392,7 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_YUV420ToOtherNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			static void CopyPixels_YUV420ToOtherNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
@@ -1696,8 +2406,8 @@ namespace slib
 				}
 			}
 			
-			template<class TargetProc>
-			static void CopyPixels_YUV420ToOtherPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class TargetProc>
+			static void CopyPixels_YUV420ToOtherPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -1746,7 +2456,7 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_YUV420ToOtherPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			static void CopyPixels_YUV420ToOtherPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
@@ -1759,9 +2469,36 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
-			template<class SourceProc>
-			static void CopyPixels_YUVNormalToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+
+			static void CopyPixels_YUV420ToMono(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				sl_uint32 W2 = width >> 1;
+				sl_uint32 H2 = height >> 1;
+				sl_uint8* row_y = (sl_uint8*)(src.data);
+				sl_uint8* dst_row = dst;
+
+				for (sl_uint32 i = 0; i < H2; i++) {
+					sl_uint8* y0 = row_y;
+					sl_uint8* y1 = y0 + src.pitch;
+					sl_uint8* d0 = dst_row;
+					sl_uint8* d1 = d0 + dst_pitch;
+					for (sl_uint32 j = 0; j < W2; j++) {
+						Monochrome_PROC::writeSample(d0, j << 1, *y0);
+						y0 += src.sampleStride;
+						Monochrome_PROC::writeSample(d0, (j << 1) | 1, *y0);
+						y0 += src.sampleStride;
+						Monochrome_PROC::writeSample(d1, j << 1, *y1);
+						y1 += src.sampleStride;
+						Monochrome_PROC::writeSample(d1, (j << 1) | 1, *y1);
+						y1 += src.sampleStride;
+					}
+					row_y += src.pitch + src.pitch;
+					dst_row += dst_pitch + dst_pitch;
+				}
+			}
+
+			template <class SourceProc>
+			static void CopyPixels_YUVNormalToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -1830,7 +2567,7 @@ namespace slib
 #undef __SUB
 			}
 			
-			static void CopyPixels_YUVNormalToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+			static void CopyPixels_YUVNormalToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				switch (src_format) {
 					case BitmapFormat::YUVA:
@@ -1844,8 +2581,8 @@ namespace slib
 				}
 			}
 			
-			template<class SourceProc>
-			static void CopyPixels_YUVPlanarToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			template <class SourceProc>
+			static void CopyPixels_YUVPlanarToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -1920,7 +2657,7 @@ namespace slib
 #undef __SUB
 			}
 			
-			static void CopyPixels_YUVPlanarToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			static void CopyPixels_YUVPlanarToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				switch (src_format) {
 					case BitmapFormat::YUVA_PLANAR:
@@ -1934,8 +2671,8 @@ namespace slib
 				}
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_OtherNormalToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+			template <class SourceProc>
+			static void CopyPixels_OtherNormalToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -1983,7 +2720,7 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_OtherNormalToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+			static void CopyPixels_OtherNormalToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				switch (src_format) {
 #define __CASE(FORMAT) \
@@ -1997,8 +2734,8 @@ namespace slib
 #undef __CASE
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_OtherPlanarToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			template <class SourceProc>
+			static void CopyPixels_OtherPlanarToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -2052,7 +2789,7 @@ namespace slib
 				}
 			}
 			
-			static void CopyPixels_OtherPlanarToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			static void CopyPixels_OtherPlanarToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				switch (src_format) {
 #define __CASE(FORMAT) \
@@ -2066,170 +2803,56 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_SameComponentFormat(BitmapData& src, BitmapData& dst)
+			static void CopyPixels_MonoToYUV420(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, BitmapData& dst)
 			{
-				ColorComponentBuffer src_comps[3];
-				ColorComponentBuffer dst_comps[3];
-				sl_uint32 nBuffers = src.getColorComponentBuffers(src_comps);
-				if (dst.getColorComponentBuffers(dst_comps) != nBuffers) {
+				ColorComponentBuffer components[3];
+				if (dst.getColorComponentBuffers(components) != 3) {
 					return;
 				}
-				for (sl_uint32 iPlane = 0; iPlane < nBuffers; iPlane++) {
-					ColorComponentBuffer& src_comp = src_comps[iPlane];
-					ColorComponentBuffer& dst_comp = dst_comps[iPlane];
-					sl_uint32 w = SLIB_MIN(src_comp.width, dst_comp.width);
-					sl_uint32 h = SLIB_MIN(src_comp.height, dst_comp.height);
-					sl_uint8* src_row = (sl_uint8*)(src_comp.data);
-					sl_uint8* dst_row = (sl_uint8*)(dst_comp.data);
-					sl_int32 src_pitch = src_comp.pitch;
-					sl_int32 dst_pitch = dst_comp.pitch;
-					sl_int32 src_stride = src_comp.sampleStride;
-					sl_int32 dst_stride = dst_comp.sampleStride;
-					if (src_stride == 1 && dst_stride == 1) {
-						for (sl_uint32 i = 0; i < h; i++) {
-							sl_uint8* s = src_row;
-							sl_uint8* d = dst_row;
-							for (sl_uint32 j = 0; j < w; j++) {
-								*d = *s;
-								s++; d++;
-							}
-							src_row += src_pitch;
-							dst_row += dst_pitch;
-						}
-					} else if (src_stride == 2 && dst_stride == 2) {
-						for (sl_uint32 i = 0; i < h; i++) {
-							sl_uint8* s = src_row;
-							sl_uint8* d = dst_row;
-							for (sl_uint32 j = 0; j < w; j++) {
-								*d = *s;
-								s += 2;
-								d += 2;
-							}
-							src_row += src_pitch;
-							dst_row += dst_pitch;
-						}
-					} else {
-						for (sl_uint32 i = 0; i < h; i++) {
-							sl_uint8* s = src_row;
-							sl_uint8* d = dst_row;
-							for (sl_uint32 j = 0; j < w; j++) {
-								*d = *s;
-								s += src_stride;
-								d += dst_stride;
-							}
-							src_row += src_pitch;
-							dst_row += dst_pitch;
-						}
+				sl_uint32 W2 = width >> 1;
+				sl_uint32 H2 = height >> 1;
+				sl_uint8* row_y = (sl_uint8*)(components[0].data);
+				sl_uint8* row_u = (sl_uint8*)(components[1].data);
+				sl_uint8* row_v = (sl_uint8*)(components[2].data);
+				sl_uint8* src_row = src;
+				for (sl_uint32 i = 0; i < H2; i++) {
+					sl_uint8* y0 = row_y;
+					sl_uint8* y1 = y0 + components[0].pitch;
+					sl_uint8* u = row_u;
+					sl_uint8* v = row_v;
+					sl_uint8* s0 = src_row;
+					sl_uint8* s1 = s0 + src_pitch;
+					for (sl_uint32 j = 0; j < W2; j++) {
+						*y0 = Monochrome_PROC::readSample(s0, j << 1);
+						y0 += components[0].sampleStride;
+						*y0 = Monochrome_PROC::readSample(s0, (j << 1) | 1);
+						y0 += components[0].sampleStride;
+						*y1 = Monochrome_PROC::readSample(s1, j << 1);
+						y1 += components[0].sampleStride;
+						*y1 = Monochrome_PROC::readSample(s1, (j << 1) | 1);
+						y1 += components[0].sampleStride;
+						*u = 128; *v = 128;
+						u += components[1].sampleStride; v += components[2].sampleStride;
 					}
+					row_y += components[0].pitch + components[0].pitch;
+					row_u += components[1].pitch;
+					row_v += components[2].pitch;
+					src_row += src_pitch + src_pitch;
 				}
 			}
 
 			static void CopyPixels_YUV420ToYUV420(BitmapData& src, BitmapData& dst)
 			{
-				CopyPixels_SameComponentFormat(src, dst);
-			}
-
-			static void CopyPixels_SameFormat(sl_uint32 width, sl_uint32 height, BitmapFormat format,
-				sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides,
-				sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
-			{
-				sl_uint32 nPlanes = BitmapFormats::getPlanesCount(format);
-				for (sl_uint32 iPlane = 0; iPlane < nPlanes; iPlane++) {
-					sl_uint8* src_row = src_planes[iPlane];
-					sl_int32 src_pitch = src_pitches[iPlane];
-					sl_int32 src_stride = src_sample_strides[iPlane];
-					sl_uint8* dst_row = dst_planes[iPlane];
-					sl_int32 dst_pitch = dst_pitches[iPlane];
-					sl_int32 dst_stride = dst_sample_strides[iPlane];
-					sl_uint32 bytesPerSample = BitmapFormats::getBytesPerSample(format);
-					if (bytesPerSample == src_stride && bytesPerSample == dst_stride) {
-						sl_uint32 n = bytesPerSample * width;
-						for (sl_uint32 i = 0; i < height; i++) {
-							Base::copyMemory(dst_row, src_row, n);
-							src_row += src_pitch;
-							dst_row += dst_pitch;
-						}
-					} else {
-						if (bytesPerSample == 1) {
-							for (sl_uint32 i = 0; i < height; i++) {
-								sl_uint8* s = src_row;
-								sl_uint8* d = dst_row;
-								for (sl_uint32 j = 0; j < width; j++) {
-									*d = *s;
-									s += src_stride;
-									d += dst_stride;
-								}
-								src_row += src_pitch;
-								dst_row += dst_pitch;
-							}
-						} else if (bytesPerSample == 2) {
-							for (sl_uint32 i = 0; i < height; i++) {
-								sl_uint8* s = src_row;
-								sl_uint8* d = dst_row;
-								for (sl_uint32 j = 0; j < width; j++) {
-									d[0] = s[0];
-									d[1] = s[1];
-									s += src_stride;
-									d += dst_stride;
-								}
-								src_row += src_pitch;
-								dst_row += dst_pitch;
-							}
-						} else if (bytesPerSample == 3) {
-							for (sl_uint32 i = 0; i < height; i++) {
-								sl_uint8* s = src_row;
-								sl_uint8* d = dst_row;
-								for (sl_uint32 j = 0; j < width; j++) {
-									d[0] = s[0];
-									d[1] = s[1];
-									d[2] = s[2];
-									s += src_stride;
-									d += dst_stride;
-								}
-								src_row += src_pitch;
-								dst_row += dst_pitch;
-							}
-						} else if (bytesPerSample == 4) {
-							for (sl_uint32 i = 0; i < height; i++) {
-								sl_uint8* s = src_row;
-								sl_uint8* d = dst_row;
-								for (sl_uint32 j = 0; j < width; j++) {
-									d[0] = s[0];
-									d[1] = s[1];
-									d[2] = s[2];
-									d[3] = s[3];
-									s += src_stride;
-									d += dst_stride;
-								}
-								src_row += src_pitch;
-								dst_row += dst_pitch;
-							}
-						} else {
-							for (sl_uint32 i = 0; i < height; i++) {
-								sl_uint8* s = src_row;
-								sl_uint8* d = dst_row;
-								for (sl_uint32 j = 0; j < width; j++) {
-									for (sl_uint32 k = 0; k < bytesPerSample; k++) {
-										d[k] = s[k];
-									}
-									s += src_stride;
-									d += dst_stride;
-								}
-								src_row += src_pitch;
-								dst_row += dst_pitch;
-							}
-						}
-					}
-				}
+				CopyPixels_Components(src, dst);
 			}
 
 			static void CopyPixels_YUV422ToYUV422(BitmapData& src, BitmapData& dst)
 			{
-				CopyPixels_SameComponentFormat(src, dst);
+				CopyPixels_Components(src, dst);
 			}
 
-			template<class TargetProc>
-			static void CopyPixels_YUV422ToYUVNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			template <class TargetProc>
+			static void CopyPixels_YUV422ToYUVNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -2275,7 +2898,7 @@ namespace slib
 #undef __SUB
 			}
 
-			static void CopyPixels_YUV422ToYUVNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			static void CopyPixels_YUV422ToYUVNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (dst_format) {
 				case BitmapFormat::YUVA:
@@ -2289,8 +2912,8 @@ namespace slib
 				}
 			}
 
-			template<class TargetProc>
-			static void CopyPixels_YUV422ToYUVPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class TargetProc>
+			static void CopyPixels_YUV422ToYUVPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -2342,7 +2965,7 @@ namespace slib
 #undef __SUB
 			}
 
-			static void CopyPixels_YUV422ToYUVPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			static void CopyPixels_YUV422ToYUVPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (dst_format) {
 				case BitmapFormat::YUVA_PLANAR:
@@ -2356,8 +2979,8 @@ namespace slib
 				}
 			}
 
-			template<class TargetProc>
-			static void CopyPixels_YUV422ToOtherNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			template <class TargetProc>
+			static void CopyPixels_YUV422ToOtherNormal_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -2391,7 +3014,7 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_YUV422ToOtherNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_int32 dst_pitch, sl_int32 dst_sample_stride)
+			static void CopyPixels_YUV422ToOtherNormal(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
@@ -2405,8 +3028,8 @@ namespace slib
 				}
 			}
 
-			template<class TargetProc>
-			static void CopyPixels_YUV422ToOtherPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			template <class TargetProc>
+			static void CopyPixels_YUV422ToOtherPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				ColorComponentBuffer components[3];
 				if (src.getColorComponentBuffers(components) != 3) {
@@ -2446,7 +3069,7 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_YUV422ToOtherPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_int32* dst_pitches, sl_int32* dst_sample_strides)
+			static void CopyPixels_YUV422ToOtherPlanar(sl_uint32 width, sl_uint32 height, BitmapData& src, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (dst_format) {
 #define __CASE(FORMAT) \
@@ -2460,8 +3083,28 @@ namespace slib
 				}
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_YUVNormalToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+			static void CopyPixels_YUV422ToMono(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8* dst, sl_reg dst_pitch)
+			{
+				sl_uint32 W2 = width >> 1;
+				sl_uint8* row_y = (sl_uint8*)(src.data);
+				sl_uint8* dst_row = dst;
+
+				for (sl_uint32 i = 0; i < height; i++) {
+					sl_uint8* y = row_y;
+					sl_uint8* d = dst_row;
+					for (sl_uint32 j = 0; j < W2; j++) {
+						Monochrome_PROC::writeSample(d, j << 1, *y);
+						y += src.sampleStride;
+						Monochrome_PROC::writeSample(d, (j << 1) | 1, *y);
+						y += src.sampleStride;
+					}
+					row_y += src.pitch;
+					dst_row += dst_pitch;
+				}
+			}
+
+			template <class SourceProc>
+			static void CopyPixels_YUVNormalToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -2512,7 +3155,7 @@ namespace slib
 #undef __SUB
 			}
 
-			static void CopyPixels_YUVNormalToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+			static void CopyPixels_YUVNormalToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				switch (src_format) {
 				case BitmapFormat::YUVA:
@@ -2526,8 +3169,8 @@ namespace slib
 				}
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_YUVPlanarToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			template <class SourceProc>
+			static void CopyPixels_YUVPlanarToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -2584,7 +3227,7 @@ namespace slib
 #undef __SUB
 			}
 
-			static void CopyPixels_YUVPlanarToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			static void CopyPixels_YUVPlanarToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				switch (src_format) {
 				case BitmapFormat::YUVA_PLANAR:
@@ -2598,8 +3241,8 @@ namespace slib
 				}
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_OtherNormalToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+			template <class SourceProc>
+			static void CopyPixels_OtherNormalToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -2628,6 +3271,7 @@ namespace slib
 						TU += U; TV += V;
 						*u = TU >> 1; *v = TV >> 1;
 						u += components[1].sampleStride;
+						v += components[2].sampleStride;
 					}
 					row_y += components[0].pitch;
 					row_u += components[1].pitch;
@@ -2636,7 +3280,7 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_OtherNormalToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_int32 src_pitch, sl_int32 src_sample_stride, BitmapData& dst)
+			static void CopyPixels_OtherNormalToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				switch (src_format) {
 #define __CASE(FORMAT) \
@@ -2650,8 +3294,8 @@ namespace slib
 #undef __CASE
 			}
 
-			template<class SourceProc>
-			static void CopyPixels_OtherPlanarToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			template <class SourceProc>
+			static void CopyPixels_OtherPlanarToYUV422_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				ColorComponentBuffer components[3];
 				if (dst.getColorComponentBuffers(components) != 3) {
@@ -2682,7 +3326,8 @@ namespace slib
 						s0 += src_sample_strides[0]; s1 += src_sample_strides[1]; s2 += src_sample_strides[2]; s3 += src_sample_strides[3]; y += components[0].sampleStride;
 						TU += U; TV += V;
 						*u = TU >> 1; *v = TV >> 1;
-						u += components[1].sampleStride; v += components[2].sampleStride;
+						u += components[1].sampleStride;
+						v += components[2].sampleStride;
 					}
 					row_y += components[0].pitch;
 					row_u += components[1].pitch;
@@ -2694,7 +3339,7 @@ namespace slib
 				}
 			}
 
-			static void CopyPixels_OtherPlanarToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_int32* src_pitches, sl_int32* src_sample_strides, BitmapData& dst)
+			static void CopyPixels_OtherPlanarToYUV422(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				switch (src_format) {
 #define __CASE(FORMAT) \
@@ -2705,6 +3350,38 @@ namespace slib
 				default:
 					break;
 #undef __CASE
+				}
+			}
+
+			static void CopyPixels_MonoToYUV422(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, BitmapData& dst)
+			{
+				ColorComponentBuffer components[3];
+				if (dst.getColorComponentBuffers(components) != 3) {
+					return;
+				}
+				sl_uint32 W2 = width >> 1;
+				sl_uint8* row_y = (sl_uint8*)(components[0].data);
+				sl_uint8* row_u = (sl_uint8*)(components[1].data);
+				sl_uint8* row_v = (sl_uint8*)(components[2].data);
+				sl_uint8* src_row = src;
+				for (sl_uint32 i = 0; i < height; i++) {
+					sl_uint8* y = row_y;
+					sl_uint8* u = row_u;
+					sl_uint8* v = row_v;
+					sl_uint8* s = src_row;
+					for (sl_uint32 j = 0; j < W2; j++) {
+						*y = Monochrome_PROC::readSample(s, j << 1);
+						y += components[0].sampleStride;
+						*y = Monochrome_PROC::readSample(s, (j << 1) | 1);
+						y += components[0].sampleStride;
+						*u = 128; *v = 128;
+						u += components[1].sampleStride;
+						v += components[2].sampleStride;
+					}
+					row_y += components[0].pitch;
+					row_u += components[1].pitch;
+					row_v += components[2].pitch;
+					src_row += src_pitch;
 				}
 			}
 
@@ -2862,40 +3539,53 @@ namespace slib
 		src.fillDefaultValues();
 		dst.fillDefaultValues();
 
-		sl_uint8* src_planes[4];
-		sl_int32 src_pitches[4];
-		sl_int32 src_sample_strides[4];
-		sl_uint8* dst_planes[4];
-		sl_int32 dst_pitches[4];
-		sl_int32 dst_sample_strides[4];
-
-		for (sl_uint32 i = 0; i < 4; i++) {
-			src_planes[i] = (sl_uint8*)(src.planeData(i));
-			src_pitches[i] = src.planePitch(i);
-			src_sample_strides[i] = src.planeSampleStride(i);
-			dst_planes[i] = (sl_uint8*)(dst.planeData(i));
-			dst_pitches[i] = dst.planePitch(i);
-			dst_sample_strides[i] = dst.planeSampleStride(i);
+#define DEFINE_SRC_COMPONENTS \
+		sl_uint8* src_planes[4]; \
+		sl_reg src_pitches[4]; \
+		sl_reg src_sample_strides[4]; \
+		{ \
+			for (sl_uint32 i = 0; i < 4; i++) { \
+				src_planes[i] = (sl_uint8*)(src.planeData(i)); \
+				src_pitches[i] = src.planePitch(i); \
+				src_sample_strides[i] = src.planeSampleStride(i); \
+			} \
 		}
-		
+
+#define DEFINE_DST_COMPONENTS \
+		sl_uint8* dst_planes[4]; \
+		sl_reg dst_pitches[4]; \
+		sl_reg dst_sample_strides[4]; \
+		{ \
+			for (sl_uint32 i = 0; i < 4; i++) { \
+				dst_planes[i] = (sl_uint8*)(dst.planeData(i)); \
+				dst_pitches[i] = dst.planePitch(i); \
+				dst_sample_strides[i] = dst.planeSampleStride(i); \
+			} \
+		}
+
+		sl_uint8* dataSrc = (sl_uint8*)(src.data);
+		sl_uint8* dataDst = (sl_uint8*)(dst.data);
+
 		if (BitmapFormats::isYUV_420(src.format)) {
 			if (BitmapFormats::isYUV_420(dst.format)) {
 				priv::bitmap_data::CopyPixels_YUV420ToYUV420(src, dst);
 			} else if (BitmapFormats::isYUV_422(dst.format)) {
 				priv::bitmap_data::CopyPixels_YUV420ToYUV422(src, dst);
-			} else {
-				if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
-					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
-						priv::bitmap_data::CopyPixels_YUV420ToYUVNormal(width, height, src, dst.format, dst_planes[0], dst_pitches[0], dst_sample_strides[0]);
-					} else {
-						priv::bitmap_data::CopyPixels_YUV420ToYUVPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
-					}
+			} else if (dst.format == BitmapFormat::Monochrome) {
+				priv::bitmap_data::CopyPixels_YUV420ToMono(width, height, src, dst.format, dataDst, dst.pitch);
+			} else if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
+				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					priv::bitmap_data::CopyPixels_YUV420ToYUVNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
-					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
-						priv::bitmap_data::CopyPixels_YUV420ToOtherNormal(width, height, src, dst.format, dst_planes[0], dst_pitches[0], dst_sample_strides[0]);
-					} else {
-						priv::bitmap_data::CopyPixels_YUV420ToOtherPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
-					}
+					DEFINE_DST_COMPONENTS
+					priv::bitmap_data::CopyPixels_YUV420ToYUVPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
+				}
+			} else {
+				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					priv::bitmap_data::CopyPixels_YUV420ToOtherNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
+				} else {
+					DEFINE_DST_COMPONENTS
+					priv::bitmap_data::CopyPixels_YUV420ToOtherPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
 				}
 			}
 		} else if (BitmapFormats::isYUV_422(src.format)) {
@@ -2903,106 +3593,156 @@ namespace slib
 				priv::bitmap_data::CopyPixels_YUV422ToYUV422(src, dst);
 			} else if (BitmapFormats::isYUV_420(dst.format)) {
 				priv::bitmap_data::CopyPixels_YUV422ToYUV420(src, dst);
-			} else {
-				if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
-					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
-						priv::bitmap_data::CopyPixels_YUV422ToYUVNormal(width, height, src, dst.format, dst_planes[0], dst_pitches[0], dst_sample_strides[0]);
-					} else {
-						priv::bitmap_data::CopyPixels_YUV422ToYUVPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
-					}
+			} else if (dst.format == BitmapFormat::Monochrome) {
+				priv::bitmap_data::CopyPixels_YUV422ToMono(width, height, src, dataDst, dst.pitch);
+			} else if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
+				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					priv::bitmap_data::CopyPixels_YUV422ToYUVNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
-					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
-						priv::bitmap_data::CopyPixels_YUV422ToOtherNormal(width, height, src, dst.format, dst_planes[0], dst_pitches[0], dst_sample_strides[0]);
-					} else {
-						priv::bitmap_data::CopyPixels_YUV422ToOtherPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
-					}
+					DEFINE_DST_COMPONENTS
+					priv::bitmap_data::CopyPixels_YUV422ToYUVPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
+				}
+			} else {
+				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					priv::bitmap_data::CopyPixels_YUV422ToOtherNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
+				} else {
+					DEFINE_DST_COMPONENTS
+					priv::bitmap_data::CopyPixels_YUV422ToOtherPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
+				}
+			}
+		} else if (BitmapFormats::isYUV_420(dst.format)) {
+			if (src.format == BitmapFormat::Monochrome) {
+				priv::bitmap_data::CopyPixels_MonoToYUV420(width, height, dataSrc, src.pitch, dst);
+			} else if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
+				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+					priv::bitmap_data::CopyPixels_YUVNormalToYUV420(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
+				} else {
+					DEFINE_SRC_COMPONENTS
+					priv::bitmap_data::CopyPixels_YUVPlanarToYUV420(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
+				}
+			} else {
+				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+					priv::bitmap_data::CopyPixels_OtherNormalToYUV420(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
+				} else {
+					DEFINE_SRC_COMPONENTS
+					priv::bitmap_data::CopyPixels_OtherPlanarToYUV420(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
+				}
+			}
+		} else if (BitmapFormats::isYUV_422(dst.format)) {
+			if (src.format == BitmapFormat::Monochrome) {
+				priv::bitmap_data::CopyPixels_MonoToYUV422(width, height, dataSrc, src.pitch, dst);
+			} else if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
+				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+					priv::bitmap_data::CopyPixels_YUVNormalToYUV422(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
+				} else {
+					DEFINE_SRC_COMPONENTS
+					priv::bitmap_data::CopyPixels_YUVPlanarToYUV422(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
+				}
+			} else {
+				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+					priv::bitmap_data::CopyPixels_OtherNormalToYUV422(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
+				} else {
+					DEFINE_SRC_COMPONENTS
+					priv::bitmap_data::CopyPixels_OtherPlanarToYUV422(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
 				}
 			}
 		} else {
-			if (BitmapFormats::isYUV_420(dst.format)) {
-				if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
-					if (BitmapFormats::getPlanesCount(src.format) == 1) {
-						priv::bitmap_data::CopyPixels_YUVNormalToYUV420(width, height, src.format, src_planes[0], src_pitches[0], src_sample_strides[0], dst);
-					} else {
-						priv::bitmap_data::CopyPixels_YUVPlanarToYUV420(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
-					}
-				} else {
-					if (BitmapFormats::getPlanesCount(src.format) == 1) {
-						priv::bitmap_data::CopyPixels_OtherNormalToYUV420(width, height, src.format, src_planes[0], src_pitches[0], src_sample_strides[0], dst);
-					} else {
-						priv::bitmap_data::CopyPixels_OtherPlanarToYUV420(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
-					}
-				}
-			} else if (BitmapFormats::isYUV_422(dst.format)) {
-				if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
-					if (BitmapFormats::getPlanesCount(src.format) == 1) {
-						priv::bitmap_data::CopyPixels_YUVNormalToYUV422(width, height, src.format, src_planes[0], src_pitches[0], src_sample_strides[0], dst);
-					} else {
-						priv::bitmap_data::CopyPixels_YUVPlanarToYUV422(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
-					}
-				} else {
-					if (BitmapFormats::getPlanesCount(src.format) == 1) {
-						priv::bitmap_data::CopyPixels_OtherNormalToYUV422(width, height, src.format, src_planes[0], src_pitches[0], src_sample_strides[0], dst);
-					} else {
-						priv::bitmap_data::CopyPixels_OtherPlanarToYUV422(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
-					}
-				}
-			} else {
-				if (BitmapFormats::isPrecomputedAlpha(src.format) && BitmapFormats::isPrecomputedAlpha(dst.format)) {
+			if (BitmapFormats::isPrecomputedAlpha(dst.format)) {
+				if (BitmapFormats::isPrecomputedAlpha(src.format)) {
 					src.format = BitmapFormats::getNonPrecomputedAlphaFormat(src.format);
 					dst.format = BitmapFormats::getNonPrecomputedAlphaFormat(dst.format);
+				} else if (!(BitmapFormats::hasAlpha(src.format))) {
+					dst.format = BitmapFormats::getNonPrecomputedAlphaFormat(dst.format);
 				}
-				if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV && BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
-					src.format = BitmapFormats::getCompatibleRGBFormat(src.format);
-					dst.format = BitmapFormats::getCompatibleRGBFormat(dst.format);
+			}
+			if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV && BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
+				src.format = BitmapFormats::getCompatibleRGBFormat(src.format);
+				dst.format = BitmapFormats::getCompatibleRGBFormat(dst.format);
+			}
+			if (src.format == dst.format) {
+				DEFINE_SRC_COMPONENTS
+				DEFINE_DST_COMPONENTS
+				priv::bitmap_data::CopyPixels_SameFormat(width, height, src.format,
+					src_planes, src_pitches, src_sample_strides,
+					dst_planes, dst_pitches, dst_sample_strides);
+			} else if (src.format == BitmapFormat::Monochrome) {
+				if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
+					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+						priv::bitmap_data::CopyPixels_MonoToYUVNormal(width, height, dataSrc, src.pitch, dst.format, dataDst, dst.pitch, dst.sampleStride);
+					} else {
+						DEFINE_DST_COMPONENTS
+						priv::bitmap_data::CopyPixels_MonoToYUVPlanar(width, height, dataSrc, src.pitch, dst.format, dst_planes, dst_pitches, dst_sample_strides);
+					}
+				} else {
+					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+						priv::bitmap_data::CopyPixels_MonoToNormal(width, height, dataSrc, src.pitch, dst.format, dataDst, dst.pitch, dst.sampleStride);
+					} else {
+						DEFINE_DST_COMPONENTS
+						priv::bitmap_data::CopyPixels_MonoToPlanar(width, height, dataSrc, src.pitch, dst.format, dst_planes, dst_pitches, dst_sample_strides);
+					}
 				}
-				if (src.format == dst.format) {
-					priv::bitmap_data::CopyPixels_SameFormat(width, height, src.format,
-						src_planes, src_pitches, src_sample_strides,
-						dst_planes, dst_pitches, dst_sample_strides);
+			} else if (dst.format == BitmapFormat::Monochrome) {
+				if (BitmapFormats::isPrecomputedAlpha(src.format)) {
+					src.format = BitmapFormats::getNonPrecomputedAlphaFormat(src.format);
+				}
+				if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
+					if (BitmapFormats::getPlanesCount(src.format) == 1) {
+						priv::bitmap_data::CopyPixels_YUVNormalToMono(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dataDst, dst.pitch);
+					} else {
+						DEFINE_SRC_COMPONENTS
+						priv::bitmap_data::CopyPixels_YUVPlanarToMono(width, height, src.format, src_planes, src_pitches, src_sample_strides, dataDst, dst.pitch);
+					}
 				} else {
 					if (BitmapFormats::getPlanesCount(src.format) == 1) {
-						if (BitmapFormats::getPlanesCount(dst.format) == 1) {
-							priv::bitmap_data::CopyPixels_Normal(width, height, src.format, src_planes[0], src_pitches[0], src_sample_strides[0], dst.format, dst_planes[0], dst_pitches[0], dst_sample_strides[0]);
-						} else {
-							priv::bitmap_data::CopyPixels_NormalToPlanar(width, height, src.format, src_planes[0], src_pitches[0], src_sample_strides[0], dst.format, dst_planes, dst_pitches, dst_sample_strides);
-						}
+						priv::bitmap_data::CopyPixels_NormalToMono(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dataDst, dst.pitch);
 					} else {
-						if (BitmapFormats::getPlanesCount(dst.format) == 1) {
-							priv::bitmap_data::CopyPixels_PlanarToNormal(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst.format, dst_planes[0], dst_pitches[0], dst_sample_strides[0]);
-						} else {
-							priv::bitmap_data::CopyPixels_Planar(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst.format, dst_planes, dst_pitches, dst_sample_strides);
-						}
+						DEFINE_SRC_COMPONENTS
+						priv::bitmap_data::CopyPixels_PlanarToMono(width, height, src.format, src_planes, src_pitches, src_sample_strides, dataDst, dst.pitch);
 					}
+				}
+			} else if (BitmapFormats::getPlanesCount(src.format) == 1) {
+				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					priv::bitmap_data::CopyPixels_Normal(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst.format, dataDst, dst.pitch, dst.sampleStride);
+				} else {
+					DEFINE_DST_COMPONENTS
+					priv::bitmap_data::CopyPixels_NormalToPlanar(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst.format, dst_planes, dst_pitches, dst_sample_strides);
+				}
+			} else {
+				DEFINE_SRC_COMPONENTS
+				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					priv::bitmap_data::CopyPixels_PlanarToNormal(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst.format, dataDst, dst.pitch, dst.sampleStride);
+				} else {
+					DEFINE_DST_COMPONENTS
+					priv::bitmap_data::CopyPixels_Planar(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst.format, dst_planes, dst_pitches, dst_sample_strides);
 				}
 			}
 		}
 	}
 
-	void BitmapData::setFromColors(sl_uint32 width, sl_uint32 height, const Color* colors, sl_int32 stride)
+	void BitmapData::setFromColors(sl_uint32 _width, sl_uint32 _height, const Color* colors, sl_reg stride)
 	{
-		this->width = width;
-		this->height = height;
-		this->format = BitmapFormat::RGBA;
+		width = _width;
+		height = _height;
+		format = BitmapFormat::RGBA;
 		
-		this->data = (void*)colors;
-		this->pitch = stride * 4;
-		if (this->pitch == 0) {
-			this->pitch = width * 4;
+		data = (void*)colors;
+		pitch = stride << 2;
+		if (!pitch) {
+			pitch = width << 2;
 		}
-		this->sampleStride = 4;
+		sampleStride = 4;
 
-		this->data1 = sl_null;
-		this->pitch1 = 0;
-		this->sampleStride1 = 0;
+		data1 = sl_null;
+		pitch1 = 0;
+		sampleStride1 = 0;
 
-		this->data2 = sl_null;
-		this->pitch2 = 0;
-		this->sampleStride2 = 0;
+		data2 = sl_null;
+		pitch2 = 0;
+		sampleStride2 = 0;
 
-		this->data3 = sl_null;
-		this->pitch3 = 0;
-		this->sampleStride3 = 0;
+		data3 = sl_null;
+		pitch3 = 0;
+		sampleStride3 = 0;
 	}
 
 }

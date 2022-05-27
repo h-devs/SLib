@@ -75,7 +75,10 @@ namespace slib
 		BGR565LE =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::RGB, 0, 0, 1, 16, 16, 0x19),
 
 		// 8 bit formats
-		GRAY8 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::RGB, 0, 0, 1, 8, 8, 0x20),
+		Gray8 =				SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::RGB, 0, 0, 1, 8, 8, 0x20),
+
+		// Monochrome
+		Monochrome =		SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::RGB, 0, 0, 1, 1, 1, 0x21),
 
 		// planar formats
 		RGBA_PLANAR =		SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::RGB, 1, 0, 4, 8, 32, 0x30),
@@ -91,7 +94,7 @@ namespace slib
 
 		// planar formats
 		YUVA_PLANAR =		SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 1, 0, 4, 8, 32, 0x82),
-		YUV444_PLANAR =	SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 3, 8, 24, 0x89),
+		YUV444_PLANAR =		SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 3, 8, 24, 0x89),
 
 		// YUV420 planar formats
 		YUV_I420 =			SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 3, 0, 12, 0xB0), // 8 bit Y plane followed by 8 bit 2x2 subsampled U and V planes

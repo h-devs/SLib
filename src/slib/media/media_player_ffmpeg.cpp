@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -641,7 +641,7 @@ namespace slib
 							vf.image.format = BitmapFormat::BGR565LE;
 							break;
 						case AV_PIX_FMT_GRAY8:
-							vf.image.format = BitmapFormat::GRAY8;
+							vf.image.format = BitmapFormat::Gray8;
 							break;
 						case AV_PIX_FMT_YUVA444P:
 							vf.image.format = BitmapFormat::YUVA_PLANAR;

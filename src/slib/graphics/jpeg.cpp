@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -1273,13 +1273,13 @@ namespace slib
 					ImageDesc desc;
 					image->getDesc(desc);
 					Color* colors = desc.colors;
-					sl_uint32 stride = desc.stride;
+					sl_reg stride = desc.stride;
 
 					file.onLoadBlock = [&file, stride, colors](sl_uint32 ix, sl_uint32 iy, sl_uint8 index, sl_uint8* src) {
 						JpegComponent& comp = file.frame_header.components[index];
 						sl_uint32 fx = file.frame_header.horizontal_sample_factor_max;
 						sl_uint32 fy = file.frame_header.vertical_sample_factor_max;
-						sl_uint32 pitch = stride << 2;
+						sl_reg pitch = stride << 2;
 						if (comp.horizontal_sample_factor == fx && comp.vertical_sample_factor == fy) {
 							Color* p = colors + (ix << 3) + (iy << 3) * stride;
 							sl_uint8* dst = ((sl_uint8*)p) + index;

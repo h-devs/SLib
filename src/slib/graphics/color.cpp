@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -634,7 +634,7 @@ namespace slib
 #define YUV_BG (YUV_UG * 128 + YUV_VG * 128 - YUV_YGB)
 #define YUV_BR (YUV_VR * 128 - YUV_YGB)
 
-	void YUV::convertRGBToYUV(sl_uint8 R, sl_uint8 G, sl_uint8 B, sl_uint8& Y, sl_uint8& U, sl_uint8& V)
+	void YUV::convertRGBToYUV(sl_uint8 R, sl_uint8 G, sl_uint8 B, sl_uint8& Y, sl_uint8& U, sl_uint8& V) noexcept
 	{
 		sl_int32 _r = R;
 		sl_int32 _g = G;
@@ -644,7 +644,7 @@ namespace slib
 		V = (sl_uint8)(Math::clamp0_255((112 * _r - 94 * _g - 18 * _b + 0x8080) >> 8)); // v
 	}
 
-	void YUV::convertYUVToRGB(sl_uint8 Y, sl_uint8 U, sl_uint8 V, sl_uint8& R, sl_uint8& G, sl_uint8& B)
+	void YUV::convertYUVToRGB(sl_uint8 Y, sl_uint8 U, sl_uint8 V, sl_uint8& R, sl_uint8& G, sl_uint8& B) noexcept
 	{
 		sl_int32 _y = Y;
 		sl_int32 _u = U;
@@ -656,7 +656,7 @@ namespace slib
 	}
 
 
-	void CMYK::convertRGBToCMYK(sl_uint8 R, sl_uint8 G, sl_uint8 B, sl_uint8& C, sl_uint8& M, sl_uint8& Y, sl_uint8& K)
+	void CMYK::convertRGBToCMYK(sl_uint8 R, sl_uint8 G, sl_uint8 B, sl_uint8& C, sl_uint8& M, sl_uint8& Y, sl_uint8& K) noexcept
 	{
 		C = 255 - R;
 		M = 255 - G;
@@ -680,7 +680,7 @@ namespace slib
 		}
 	}
 
-	void CMYK::convertCMYKToRGB(sl_uint8 C, sl_uint8 M, sl_uint8 Y, sl_uint8 K, sl_uint8& R, sl_uint8& G, sl_uint8& B)
+	void CMYK::convertCMYKToRGB(sl_uint8 C, sl_uint8 M, sl_uint8 Y, sl_uint8 K, sl_uint8& R, sl_uint8& G, sl_uint8& B) noexcept
 	{
 		sl_uint32 f = 255 - K;
 		R = 255 - (sl_uint8)(Math::clamp0_255((sl_uint32)C * f / 255 + K));

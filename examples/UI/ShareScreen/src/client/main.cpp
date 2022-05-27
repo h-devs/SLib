@@ -21,7 +21,7 @@ int main(int argc, const char * argv[])
 	auto timer = Dispatch::setInterval([serverAddress, userId](Timer*) {
 		auto image = ScreenCapture::takeScreenshot();
 		if (image) {
-			auto jpeg = image->saveJPEG();
+			auto jpeg = image->saveJpeg();
 			if (jpeg) {
 				UrlRequest::sendSynchronous(HttpMethod::PUT, String::format("http://%s/screen/%s", serverAddress, userId), jpeg);
 			}

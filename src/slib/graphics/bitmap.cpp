@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -99,13 +99,13 @@ namespace slib
 		}
 	}
 
-	sl_bool Bitmap::readPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, Color* colors, sl_int32 stride)
+	sl_bool Bitmap::readPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, Color* colors, sl_reg stride)
 	{
 		BitmapData bitmapData(width, height, colors, stride);
 		return readPixels(x, y, bitmapData);
 	}
 
-	sl_bool Bitmap::writePixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* colors, sl_int32 stride)
+	sl_bool Bitmap::writePixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* colors, sl_reg stride)
 	{
 		BitmapData bitmapData(width, height, colors, stride);
 		return writePixels(x, y, bitmapData);

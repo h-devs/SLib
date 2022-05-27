@@ -28,7 +28,7 @@ int main(int argc, const char * argv[])
 			return -1;
 		}
 		String path = String::format("%s/%d.png", pathDst, 1 << i);
-		if (!(sub->savePNG(path))) {
+		if (!(sub->savePng(path))) {
 			Println("Failed to write image file: %s", path);
 			return -1;
 		}

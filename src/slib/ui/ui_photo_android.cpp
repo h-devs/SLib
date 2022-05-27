@@ -200,7 +200,7 @@ namespace slib
 				if (param.image.isNotNull()) {
 					Ref<Image> image = param.image->toImage();
 					if (image.isNotNull()) {
-						content = image->saveJPEG();
+						content = image->saveJpeg();
 					}
 				} else if (param.content.isNotNull()) {
 					content = param.content;
