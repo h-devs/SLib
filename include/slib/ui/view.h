@@ -1748,6 +1748,7 @@ namespace slib
 		
 	protected:
 		AtomicWeakRef<View> m_view;
+		AtomicRef<View> m_childSavedFocus;
 		sl_bool m_flagNativeWidget;
 		sl_bool m_flagWindowContent;
 

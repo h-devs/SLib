@@ -2043,7 +2043,10 @@ namespace slib
 			Ref<ViewInstance> instance = getNearestViewInstance();
 			if (instance.isNotNull()) {
 				SLIB_VIEW_RUN_ON_UI_THREAD(_setFocusedFlag, flagFocused, flagApplyInstance)
-				instance->setFocus(this, flagFocused);
+				Ref<View> view = instance->getView();
+				if (view.isNotNull()) {
+					instance->setFocus(view.get(), flagFocused);
+				}
 			}
 		}
 		if (m_flagFocused != flagFocused) {
@@ -10087,7 +10090,7 @@ namespace slib
 		
 		sl_scroll_pos lineX = (sl_scroll_pos)(getWidth() / 20);
 		sl_scroll_pos lineY = (sl_scroll_pos)(getHeight() / 20);
-		
+
 		switch (action) {
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
@@ -10203,20 +10206,22 @@ namespace slib
 					}
 
 					if (flagHorz) {
+						sl_scroll_pos wheelX = lineX * 3;
 						if (deltaX > SLIB_EPSILON) {
-							sx -= lineX;
+							sx -= wheelX;
 							flagChange = sl_true;
 						} else if (deltaX < -SLIB_EPSILON) {
-							sx += lineX;
+							sx += wheelX;
 							flagChange = sl_true;
 						}
 					}
 					if (flagVert) {
+						sl_scroll_pos wheelY = lineY * 3;
 						if (deltaY > SLIB_EPSILON) {
-							sy -= lineY;
+							sy -= wheelY;
 							flagChange = sl_true;
 						} else if (deltaY < -SLIB_EPSILON) {
-							sy += lineY;
+							sy += wheelY;
 							flagChange = sl_true;
 						}
 					}
@@ -10824,6 +10829,14 @@ namespace slib
 	{
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
+			if (m_childSavedFocus.isNotNull()) {
+				Ref<View> focus = m_childSavedFocus;
+				if (focus.isNotNull()) {
+					m_childSavedFocus.setNull();
+					focus->_setFocus(sl_true, sl_false, UIUpdateMode::Redraw);
+					return;
+				}
+			}
 			view->_setFocus(sl_true, sl_false, UIUpdateMode::Redraw);
 		}
 	}
@@ -10832,6 +10845,7 @@ namespace slib
 	{
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
+			m_childSavedFocus = view->getFocusedDescendant();
 			view->_setFocus(sl_false, sl_false, UIUpdateMode::Redraw);
 		}
 	}
