@@ -21,7 +21,7 @@
  */
 
 #include "slib/crypto/rsa.h"
-
+#include "slib/crypto/dh.h"
 
 namespace slib
 {
@@ -351,4 +351,28 @@ namespace slib
 		return decrypt_pkcs1_v15(sl_null, &key, src, pFlagSign);
 	}
 	
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DHCommonKey)
+		
+	DHCommonKey::DHCommonKey()
+	{
+	}
+
+	void DHCommonKey::generate(sl_uint32 nBits)
+	{
+		P = BigInt::generatePrime(nBits);
+		G = BigInt::random(nBits);
+	}
+
+
+	BigInt DH::getSharedKey(const DHCommonKey& common, const BigInt& localPrivateKey, const BigInt& remotePublicKey)
+	{
+		return BigInt::pow_montgomery(remotePublicKey, localPrivateKey, common.P);
+	}
+	
+	BigInt DH::getPublicKey(const DHCommonKey& common, const BigInt& privateKey)
+	{
+		return BigInt::pow_montgomery(common.G, privateKey, common.P);
+	}
+
 }

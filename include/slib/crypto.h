@@ -49,6 +49,7 @@
 // Public-key cryptosystems
 #include "crypto/rsa.h"
 #include "crypto/ecc.h"
+#include "crypto/dh.h"
 
 // Key Derivation Function
 #include "crypto/pbkdf.h"
