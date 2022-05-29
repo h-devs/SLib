@@ -666,6 +666,9 @@ namespace slib
 	{
 		if (uniformLocation != -1) {
 			SLIB_SCOPED_BUFFER(float, STACK_BUFFER_COUNT, mats, 4 * count);
+			if (!mats) {
+				return;
+			}
 			for (sl_uint32 i = 0; i < count; i++) {
 				float* v = mats + i * 4;
 				Matrix2& value = ((Matrix2*)(values))[i];
@@ -699,6 +702,9 @@ namespace slib
 	{
 		if (uniformLocation != -1) {
 			SLIB_SCOPED_BUFFER(float, STACK_BUFFER_COUNT, mats, 9 * count);
+			if (!mats) {
+				return;
+			}
 			for (sl_uint32 i = 0; i < count; i++) {
 				float* v = mats + i * 9;
 				Matrix3& value = ((Matrix3*)(values))[i];
@@ -744,6 +750,9 @@ namespace slib
 	{
 		if (uniformLocation != -1) {
 			SLIB_SCOPED_BUFFER(float, STACK_BUFFER_COUNT, mats, 16 * count);
+			if (!mats) {
+				return;
+			}
 			for (sl_uint32 i = 0; i < count; i++) {
 				float* v = mats + i * 16;
 				Matrix4& value = ((Matrix4*)(values))[i];
@@ -830,11 +839,14 @@ namespace slib
 			sl_uint32 width = bitmapData.width;
 			sl_uint32 height = bitmapData.height;
 			GL_ENTRY(glBindTexture)(GL_TEXTURE_2D, texture);
-			if (bitmapData.format == BitmapFormat::RGBA && (bitmapData.pitch == 0 || bitmapData.pitch == (sl_int32)(width << 2))) {
+			if (bitmapData.format == BitmapFormat::RGBA && (!(bitmapData.pitch) || bitmapData.pitch == (sl_int32)(width << 2))) {
 				GL_ENTRY(glTexImage2D)(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmapData.data);
 			} else {
 				sl_uint32 size = width * height;
 				SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, size << 2);
+				if (!glImage) {
+					return 0;
+				}
 				BitmapData temp;
 				temp.width = width;
 				temp.height = height;
@@ -844,8 +856,9 @@ namespace slib
 				temp.copyPixelsFrom(bitmapData);
 				GL_ENTRY(glTexImage2D)(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, glImage);
 			}
+			return texture;
 		}
-		return texture;
+		return 0;
 	}
 	
 	sl_uint32 GL_BASE::createTexture2D(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride)
@@ -873,12 +886,12 @@ namespace slib
 		if (bitmap.isNull()) {
 			return 0;
 		}
-		if (w == 0 || h == 0) {
+		if (!w || !h) {
 			return 0;
 		}
 		sl_uint32 bw = bitmap->getWidth();
 		sl_uint32 bh = bitmap->getHeight();
-		if (bw == 0 || bh == 0) {
+		if (!bw || !bh) {
 			return 0;
 		}
 		if (x >= bw) {
@@ -898,6 +911,9 @@ namespace slib
 			return createTexture2D(w, h, image->getColorsAt(x, y), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			if (!glImage) {
+				return 0;
+			}
 			BitmapData temp;
 			temp.width = w;
 			temp.height = h;
@@ -918,10 +934,10 @@ namespace slib
 		}
 		sl_uint32 w = bitmap->getWidth();
 		sl_uint32 h = bitmap->getHeight();
-		if (w == 0) {
+		if (!w) {
 			return 0;
 		}
-		if (h == 0) {
+		if (!h) {
 			return 0;
 		}
 		if (bitmap->isImage()) {
@@ -929,6 +945,9 @@ namespace slib
 			return createTexture2D(w, h, image->getColors(), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			if (!glImage) {
+				return 0;
+			}
 			BitmapData temp;
 			temp.width = w;
 			temp.height = h;
@@ -952,11 +971,14 @@ namespace slib
 	{
 		sl_uint32 width = bitmapData.width;
 		sl_uint32 height = bitmapData.height;
-		if (bitmapData.format == BitmapFormat::RGBA && (bitmapData.pitch == 0 || bitmapData.pitch == (sl_int32)(width << 2))) {
+		if (bitmapData.format == BitmapFormat::RGBA && (!(bitmapData.pitch) || bitmapData.pitch == (sl_int32)(width << 2))) {
 			GL_ENTRY(glTexSubImage2D)(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, bitmapData.data);
 		} else {
 			sl_uint32 size = width * height;
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, size << 2);
+			if (!glImage) {
+				return;
+			}
 			BitmapData temp;
 			temp.width = width;
 			temp.height = height;
@@ -979,12 +1001,12 @@ namespace slib
 		if (bitmap.isNull()) {
 			return;
 		}
-		if (w == 0 || h == 0) {
+		if (!w || !h) {
 			return;
 		}
 		sl_uint32 bw = bitmap->getWidth();
 		sl_uint32 bh = bitmap->getHeight();
-		if (bw == 0 || bh == 0) {
+		if (!bw || !bh) {
 			return;
 		}
 		if (bx >= bw) {
@@ -1004,6 +1026,9 @@ namespace slib
 			updateTexture2D(x, y, w, h, image->getColorsAt(bx, by), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			if (!glImage) {
+				return;
+			}
 			BitmapData temp;
 			temp.width = w;
 			temp.height = h;
@@ -1132,11 +1157,14 @@ namespace slib
 #ifdef SLIB_PLATFORM_IS_WIN32
 		sl_uint32 width = bitmapData.width;
 		sl_uint32 height = bitmapData.height;
-		if (bitmapData.format == BitmapFormat::RGBA && (bitmapData.pitch == 0 || bitmapData.pitch == (sl_int32)(width << 2))) {
+		if (bitmapData.format == BitmapFormat::RGBA && (!(bitmapData.pitch) || bitmapData.pitch == (sl_int32)(width << 2))) {
 			GL_ENTRY(glDrawPixels)(width, height, GL_RGBA, GL_UNSIGNED_BYTE, bitmapData.data);
 		} else {
 			sl_uint32 size = width * height;
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, size << 2);
+			if (!glImage) {
+				return;
+			}
 			BitmapData temp;
 			temp.width = width;
 			temp.height = height;
@@ -1165,12 +1193,12 @@ namespace slib
 		if (bitmap.isNull()) {
 			return;
 		}
-		if (w == 0 || h == 0) {
+		if (!w || !h) {
 			return;
 		}
 		sl_uint32 bw = bitmap->getWidth();
 		sl_uint32 bh = bitmap->getHeight();
-		if (bw == 0 || bh == 0) {
+		if (!bw || !bh) {
 			return;
 		}
 		if (sx >= bw) {
@@ -1190,6 +1218,9 @@ namespace slib
 			drawPixels(w, h, image->getColorsAt(sx, sy), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			if (!glImage) {
+				return;
+			}
 			BitmapData temp;
 			temp.width = w;
 			temp.height = h;
@@ -1211,10 +1242,10 @@ namespace slib
 		}
 		sl_uint32 w = bitmap->getWidth();
 		sl_uint32 h = bitmap->getHeight();
-		if (w == 0) {
+		if (!w) {
 			return;
 		}
-		if (h == 0) {
+		if (!h) {
 			return;
 		}
 		if (bitmap->isImage()) {
@@ -1222,6 +1253,9 @@ namespace slib
 			drawPixels(w, h, image->getColors(), image->getStride());
 		} else {
 			SLIB_SCOPED_BUFFER(sl_uint8, STACK_IMAGE_SIZE, glImage, (w * h) << 2);
+			if (!glImage) {
+				return;
+			}
 			BitmapData temp;
 			temp.width = w;
 			temp.height = h;

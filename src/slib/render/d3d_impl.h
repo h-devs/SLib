@@ -2455,6 +2455,9 @@ namespace slib
 						SLIB_SCOPED_BUFFER(ID3DVertexBuffer*, 16, bufs, list.count)
 						SLIB_SCOPED_BUFFER(UINT, 16, strides, list.count)
 						SLIB_SCOPED_BUFFER(UINT, 16, offsets, list.count)
+						if (!(bufs && strides && offsets)) {
+							return;
+						}
 #endif
 						for (sl_size i = 0; i < list.count; i++) {
 							VertexBufferInstanceImpl* vb = (VertexBufferInstanceImpl*)(list[i].get());

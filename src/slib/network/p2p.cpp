@@ -1696,6 +1696,9 @@ namespace slib
 						return;
 					}
 					SLIB_SCOPED_BUFFER(sl_uint8, 1024, packet, 17 + msg.size);
+					if (!packet) {
+						return;
+					}
 					packet[0] = (sl_uint8)(Command::Broadcast);
 					Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
 					Base::copyMemory(packet + 17, msg.data, msg.size);
@@ -1708,6 +1711,9 @@ namespace slib
 						return;
 					}
 					SLIB_SCOPED_BUFFER(sl_uint8, 1024, packet, 17 + msg.size);
+					if (!packet) {
+						return;
+					}
 					packet[0] = (sl_uint8)(Command::Datagram);
 					Base::copyMemory(packet + 1, m_localNodeId.data, sizeof(P2PNodeId));
 					Base::copyMemory(packet + 17, msg.data, msg.size);

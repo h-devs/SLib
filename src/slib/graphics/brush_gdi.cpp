@@ -58,9 +58,18 @@ namespace slib
 						if (detail) {
 							ListElements<Color> _colors(detail->colors);
 							ListElements<sl_real> _locations(detail->locations);
+							if (_colors.count != _locations.count) {
+								return;
+							}
 							sl_size n = _colors.count;
+							if (!n) {
+								return;
+							}
 							SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, colors, n);
 							SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, locations, n);
+							if (!(colors && locations)) {
+								return;
+							}
 							if (desc.style == BrushStyle::LinearGradient) {
 								for (sl_size i = 0; i < n; i++) {
 									colors[i] = Gdiplus::Color(_colors[i].a, _colors[i].r, _colors[i].g, _colors[i].b);

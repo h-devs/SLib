@@ -90,8 +90,10 @@ namespace slib
 					sl_size len = Charsets::utf8ToUtf16(utf8, lenUtf8, sl_null, -1);
 					if (len) {
 						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						Charsets::utf8ToUtf16(utf8, lenUtf8, buf, len);
-						return Encode16(buf, len, codepage, output, sizeOutputBuffer);
+						if (buf) {
+							Charsets::utf8ToUtf16(utf8, lenUtf8, buf, len);
+							return Encode16(buf, len, codepage, output, sizeOutputBuffer);
+						}
 					}
 				}
 				return 0;
@@ -103,8 +105,10 @@ namespace slib
 					sl_size len = Decode16(codepage, input, sizeInput, sl_null, -1);
 					if (len) {
 						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						Decode16(codepage, input, sizeInput, buf, len);
-						return Charsets::utf16ToUtf8(buf, len, utf8, lenUtf8Buffer);
+						if (buf) {
+							Decode16(codepage, input, sizeInput, buf, len);
+							return Charsets::utf16ToUtf8(buf, len, utf8, lenUtf8Buffer);
+						}
 					}
 				}
 				return 0;
@@ -119,9 +123,11 @@ namespace slib
 			static String DecodeString8(sl_uint32 codepage, const void* data, sl_size size)
 			{
 				SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, size)
-				sl_size len = Decode16(codepage, data, size, buf, size);
-				if (len) {
-					return String::create(buf, len);
+				if (buf) {
+					sl_size len = Decode16(codepage, data, size, buf, size);
+					if (len) {
+						return String::create(buf, len);
+					}
 				}
 				return sl_null;
 			}
@@ -134,8 +140,10 @@ namespace slib
 					sl_size len = Charsets::utf32ToUtf16(utf32, lenUtf32, sl_null, -1);
 					if (len) {
 						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						Charsets::utf32ToUtf16(utf32, lenUtf32, buf, len);
-						return Encode16(buf, len, codepage, output, sizeOutputBuffer);
+						if (buf) {
+							Charsets::utf32ToUtf16(utf32, lenUtf32, buf, len);
+							return Encode16(buf, len, codepage, output, sizeOutputBuffer);
+						}
 					}
 				}
 				return 0;
@@ -147,8 +155,10 @@ namespace slib
 					sl_size len = Decode16(codepage, input, sizeInput, sl_null, -1);
 					if (len) {
 						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						Decode16(codepage, input, sizeInput, buf, len);
-						return Charsets::utf16ToUtf32(buf, len, utf32, lenUtf32Buffer);
+						if (buf) {
+							Decode16(codepage, input, sizeInput, buf, len);
+							return Charsets::utf16ToUtf32(buf, len, utf32, lenUtf32Buffer);
+						}
 					}
 				}
 				return 0;
@@ -163,9 +173,11 @@ namespace slib
 			static String32 DecodeString32(sl_uint32 codepage, const void* data, sl_size size)
 			{
 				SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, size)
+				if (buf) {
 					sl_size len = Decode16(codepage, data, size, buf, size);
-				if (len) {
-					return String32::create(buf, len);
+					if (len) {
+						return String32::create(buf, len);
+					}
 				}
 				return sl_null;
 			}

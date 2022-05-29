@@ -347,7 +347,7 @@ namespace slib
 						MYSQL_BIND bind = m_bind[index];
 						bind.buffer = s.getData();
 						bind.buffer_length = (sl_uint32)(s.getLength());
-						if (0 == mysql_stmt_fetch_column(m_statement, &bind, index, 0)) {
+						if (!(mysql_stmt_fetch_column(m_statement, &bind, index, 0))) {
 							return s;
 						}
 					}
@@ -361,7 +361,7 @@ namespace slib
 						MYSQL_BIND bind = m_bind[index];
 						bind.buffer = mem.getData();
 						bind.buffer_length = (sl_uint32)(mem.getSize());
-						if (0 == mysql_stmt_fetch_column(m_statement, &bind, index, 0)) {
+						if (!(mysql_stmt_fetch_column(m_statement, &bind, index, 0))) {
 							return mem;
 						}
 					}
@@ -754,7 +754,7 @@ namespace slib
 				sl_bool moveNext() override
 				{
 					int iRet = mysql_stmt_fetch(m_statement);
-					if (iRet == 0 || iRet == MYSQL_DATA_TRUNCATED) {
+					if (!iRet || iRet == MYSQL_DATA_TRUNCATED) {
 						return sl_true;
 					}
 					return sl_false;
@@ -798,7 +798,7 @@ namespace slib
 					close();
 					MYSQL_STMT* statement = mysql_stmt_init(m_mysql);
 					if (statement) {
-						if (0 == mysql_stmt_prepare(statement, m_sql.getData(), (sl_uint32)(m_sql.getLength()))) {
+						if (!(mysql_stmt_prepare(statement, m_sql.getData(), (sl_uint32)(m_sql.getLength())))) {
 							m_statement = statement;
 							return sl_true;
 						}
@@ -902,13 +902,13 @@ namespace slib
 										}
 									}
 								}
-								if (0 == mysql_stmt_bind_param(m_statement, bind)) {
-									return sl_true;
-								} else {
+								if (mysql_stmt_bind_param(m_statement, bind)) {
 									if (isLoggingErrors()) {
 										LogError(TAG, "Bind Error: %s", mysql_stmt_error(m_statement));
 									}
+									return sl_false;
 								}
+								return sl_true;
 							} else {
 								if (isLoggingErrors()) {
 									LogError(TAG, "Bind error: Can't create memory for parameter binding");
@@ -933,26 +933,24 @@ namespace slib
 						}
 					}
 					if (_bind(params, nParams)) {
-						if (0 == mysql_stmt_execute(m_statement)) {
+						if (!(mysql_stmt_execute(m_statement))) {
 							return sl_true;
-						} else {
-							int err = mysql_stmt_errno(m_statement);
-							if (err == CR_SERVER_LOST || err == CR_SERVER_GONE_ERROR) {
-								if (prepare()) {
-									if (_bind(params, nParams)) {
-										if (0 == mysql_stmt_execute(m_statement)) {
-											return sl_true;
-										} else {
-											if (isLoggingErrors()) {
-												LogError(TAG, "Execute Statement Error: %s, SQL:%s", mysql_stmt_error(m_statement), m_sql);
-											}
-										}
+						}
+						int err = mysql_stmt_errno(m_statement);
+						if (err == CR_SERVER_LOST || err == CR_SERVER_GONE_ERROR) {
+							if (prepare()) {
+								if (_bind(params, nParams)) {
+									if (!(mysql_stmt_execute(m_statement))) {
+										return sl_true;
+									}
+									if (isLoggingErrors()) {
+										LogError(TAG, "Execute Statement Error: %s, SQL:%s", mysql_stmt_error(m_statement), m_sql);
 									}
 								}
-							} else {
-								if (isLoggingErrors()) {
-									LogError(TAG, "Execute Statement Error: %s, SQL:%s", mysql_stmt_error(m_statement), m_sql);
-								}
+							}
+						} else {
+							if (isLoggingErrors()) {
+								LogError(TAG, "Execute Statement Error: %s, SQL:%s", mysql_stmt_error(m_statement), m_sql);
 							}
 						}
 					}
@@ -1051,7 +1049,7 @@ namespace slib
 											break;
 										}
 									}
-									if (0 == mysql_stmt_bind_result(m_statement, bind)) {
+									if (!(mysql_stmt_bind_result(m_statement, bind))) {
 										ret = new StatementCursor(m_db.get(), this, m_statement, resultMetadata, bind, fds);
 										if (ret.isNotNull()) {
 											return ret;
@@ -1133,7 +1131,7 @@ namespace slib
 				{
 					initThread();
 					ObjectLocker lock(this);
-					if (0 == mysql_ping(m_mysql)) {
+					if (!(mysql_ping(m_mysql))) {
 						return sl_true;
 					}
 					return sl_false;
@@ -1144,19 +1142,18 @@ namespace slib
 					StringData sql(_sql);
 					initThread();
 					ObjectLocker lock(this);
-					if (0 == mysql_real_query(m_mysql, sql.getData(), (sl_uint32)(sql.getLength()))) {
+					if (!(mysql_real_query(m_mysql, sql.getData(), (sl_uint32)(sql.getLength())))) {
 						sl_int64 ret = 0;
 						for (;;) {
 							MYSQL_RES* result = mysql_store_result(m_mysql);
 							if (result) {
 								mysql_free_result(result);
 							} else {
-								if (mysql_field_count(m_mysql) == 0) {
-									ret += mysql_affected_rows(m_mysql);
-								} else {
+								if (mysql_field_count(m_mysql)) {
 									ret = -1;
 									break;
 								}
+								ret += mysql_affected_rows(m_mysql);
 							}
 							int status = mysql_next_result(m_mysql);
 							if (status > 0) {
@@ -1177,7 +1174,7 @@ namespace slib
 					StringData sql(_sql);
 					initThread();
 					ObjectLocker lock(this);
-					if (0 == mysql_real_query(m_mysql, sql.getData(), (sl_uint32)(sql.getLength()))) {
+					if (!(mysql_real_query(m_mysql, sql.getData(), (sl_uint32)(sql.getLength())))) {
 						MYSQL_RES* res = mysql_use_result(m_mysql);
 						if (res) {
 							Ref<DatabaseCursor> ret = new CursorImpl(this, res);

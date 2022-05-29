@@ -279,6 +279,9 @@ namespace slib
 			SetupDiGetDeviceInterfaceDetailW(hDevInfo, &interfaceData, NULL, 0, &dwSizeDetail, NULL);
 			if (dwSizeDetail) {
 				SLIB_SCOPED_BUFFER(sl_uint8, 1024, _detail, dwSizeDetail)
+				if (!_detail) {
+					break;
+				}
 				SP_DEVICE_INTERFACE_DETAIL_DATA* detail = (SP_DEVICE_INTERFACE_DETAIL_DATA*)_detail;
 				Base::zeroMemory(detail, dwSizeDetail);
 				detail->cbSize = sizeof(*detail);

@@ -253,6 +253,9 @@ namespace slib
 			ListLocker<String> args(app->getArguments());
 			sl_uint32 n = (sl_uint32)(args.count);
 			SLIB_SCOPED_BUFFER(char*, 64, p, n)
+			if (!p) {
+				return;
+			}
 			for (sl_uint32 i = 0; i < n; i++) {
 				p[i] = args[i].getData();
 			}

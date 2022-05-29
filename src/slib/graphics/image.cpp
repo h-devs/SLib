@@ -1056,6 +1056,9 @@ namespace slib
 					sl_uint32 dx, dy;
 					
 					SLIB_SCOPED_BUFFER(sl_uint32, 1024, mapx, dst.width);
+					if (!mapx) {
+						return;
+					}
 					sl_uint32 tx = 0;
 					for (dx = 0; dx < dst.width; dx++) {
 						mapx[dx] = tx / dst.width;
@@ -1099,20 +1102,21 @@ namespace slib
 						stretchY(blend, dst, src);
 						return;
 					}
-					
-					sl_uint32 dx, dy;
-					
 					SLIB_SCOPED_BUFFER(sl_uint32, 1024, mapx, dst.width);
-					sl_uint32 tx = 0;
-					for (dx = 0; dx < dst.width; dx++) {
-						mapx[dx] = tx / dst.width;
-						tx += src.width;
+					if (!mapx) {
+						return;
 					}
-					
+					{
+						sl_uint32 tx = 0;
+						for (sl_uint32 dx = 0; dx < dst.width; dx++) {
+							mapx[dx] = tx / dst.width;
+							tx += src.width;
+						}
+					}
 					Color* colorsDst = dst.colors;
-					for (dy = 0; dy < dst.height; dy++) {
+					for (sl_uint32 dy = 0; dy < dst.height; dy++) {
 						const Color* colorsSrc = src.colors + ((dy * src.height) / dst.height) * src.stride;
-						for (dx = 0; dx < dst.width; dx++) {
+						for (sl_uint32 dx = 0; dx < dst.width; dx++) {
 							blend(colorsDst[dx], colorsSrc[mapx[dx]]);
 						}
 						colorsDst += dst.stride;

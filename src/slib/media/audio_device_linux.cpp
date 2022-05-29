@@ -338,6 +338,9 @@ namespace slib
 					sl_uint32 nSamplesPerPeriod = nFramesPerPeriod * nSamplesPerFrame;
 
 					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nSamplesPerPeriod)
+					if (!buf) {
+						return;
+					}
 					
 					TimeCounter t;
 					sl_uint32 st = m_param.frameLengthInMilliseconds / 2;
@@ -481,6 +484,9 @@ namespace slib
 					sl_uint32 nSamplesPerPeriod = nFramesPerPeriod * nSamplesPerFrame;
 					
 					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nSamplesPerPeriod)
+					if (!buf) {
+						return;
+					}
 					
 					TimeCounter t;
 					sl_uint32 st = m_param.frameLengthInMilliseconds / 2;

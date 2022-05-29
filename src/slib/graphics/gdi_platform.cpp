@@ -138,17 +138,19 @@ namespace slib
 			sl_uint32 maskWidth = BitmapData::calculatePitchAlign4(width, 1);
 			sl_uint32 size = maskWidth * height;
 			SLIB_SCOPED_BUFFER(sl_uint8, 4096, bits, size);
-			Base::resetMemory(bits, size, 0xFF);
-			HBITMAP mask = CreateBitmap(width, height, 1, 1, bits);
-			if (mask) {
-				ICONINFO info;
-				info.fIcon = flagCursor ? FALSE : TRUE;
-				info.xHotspot = xHotspot;
-				info.yHotspot = yHotspot;
-				info.hbmMask = mask;
-				info.hbmColor = dib;
-				hIcon = CreateIconIndirect(&info);
-				DeleteObject(mask);
+			if (bits) {
+				Base::resetMemory(bits, size, 0xFF);
+				HBITMAP mask = CreateBitmap(width, height, 1, 1, bits);
+				if (mask) {
+					ICONINFO info;
+					info.fIcon = flagCursor ? FALSE : TRUE;
+					info.xHotspot = xHotspot;
+					info.yHotspot = yHotspot;
+					info.hbmMask = mask;
+					info.hbmColor = dib;
+					hIcon = CreateIconIndirect(&info);
+					DeleteObject(mask);
+				}
 			}
 			DeleteObject(dib);
 			return hIcon;

@@ -622,6 +622,9 @@ namespace slib
 		ListLocker< Ref<AnimationTarget> > _targets(m_targets);
 		sl_size n = _targets.count;
 		SLIB_SCOPED_BUFFER(Ref<AnimationTarget>, 8, targets, n)
+		if (!targets) {
+			return;
+		}
 		sl_size i;
 		for (i = 0; i < n; i++) {
 			targets[i] = _targets[i];

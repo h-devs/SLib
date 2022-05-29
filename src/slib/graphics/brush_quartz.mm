@@ -54,22 +54,25 @@ namespace slib
 							if (colorSpace) {
 								NSMutableArray* array = [[NSMutableArray alloc] init];
 								if (array) {
-									sl_bool flagSuccess = sl_true;
+									sl_bool flagSuccess = sl_false;
 									ListElements<Color> colors(detail->colors);
+									ListElements<sl_real> _locations(detail->locations);
 									sl_size n = colors.count;
-									SLIB_SCOPED_BUFFER(CGFloat, 128, locations, n);
-									{
-										ListElements<sl_real> _locations(detail->locations);
-										for (sl_size i = 0; i < n; i++) {
-											locations[i] = _locations[i];
-											Color& color = colors[i];
-											CGFloat comps[4] = {color.getRedF(), color.getGreenF(), color.getBlueF(), color.getAlphaF()};
-											CGColorRef colorRef = CGColorCreate(colorSpace, comps);
-											if (colorRef) {
-												[array addObject:(__bridge id)colorRef];
-												CFRelease(colorRef);
-											} else {
-												flagSuccess = sl_false;
+									if (n && n == _locations.count) {
+										SLIB_SCOPED_BUFFER(CGFloat, 128, locations, n);
+										if (locations) {
+											flagSuccess = sl_true;
+											for (sl_size i = 0; i < n; i++) {
+												locations[i] = _locations[i];
+												Color& color = colors[i];
+												CGFloat comps[4] = {color.getRedF(), color.getGreenF(), color.getBlueF(), color.getAlphaF()};
+												CGColorRef colorRef = CGColorCreate(colorSpace, comps);
+												if (colorRef) {
+													[array addObject:(__bridge id)colorRef];
+													CFRelease(colorRef);
+												} else {
+													flagSuccess = sl_false;
+												}
 											}
 										}
 									}

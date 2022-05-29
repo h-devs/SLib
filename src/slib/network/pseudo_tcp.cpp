@@ -680,10 +680,13 @@ namespace slib
 		sl_uint32 len)
 	{
 		SLIB_ASSERT(HEADER_SIZE + len <= MAX_PACKET);
-
+		SLIB_SCOPED_BUFFER(sl_uint8, 4096, buffer, len + HEADER_SIZE)
+		if (!buffer) {
+			return PseudoTcpWriteResult::Fail;
+		}
+		
 		sl_uint32 now = PseudoTcp::now();
 
-		SLIB_SCOPED_BUFFER(sl_uint8, 4096, buffer, len + HEADER_SIZE)
 		LongToBytes(m_conv, buffer);
 		LongToBytes(seq, buffer + 4);
 		LongToBytes(m_rcv_nxt, buffer + 8);

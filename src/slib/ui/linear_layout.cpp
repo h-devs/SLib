@@ -131,9 +131,11 @@ namespace slib
 			updateLayoutParam.flagHorizontal = !flagHorizontalLayout;
 			updateLayoutParam.flagVertical = flagHorizontalLayout;
 		}
-
 		
 		SLIB_SCOPED_BUFFER(Size, 512, childSizes, children.count);
+		if (!childSizes) {
+			return;
+		}
 		
 		sl_size i;
 		for (i = 0; i < children.count; i++) {

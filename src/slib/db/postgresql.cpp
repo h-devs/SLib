@@ -284,11 +284,13 @@ namespace slib
 					SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, formats, nParams)
+					if (!(strings && values && lengths && formats)) {
+						return -1;
+					}
 					BindParams(params, nParams, strings, values, lengths, formats);
 					
 					ObjectLocker lock(m_db.get());
 					PGresult* res = PQexecPrepared(m_connection, m_name.getData(), (int)nParams, values, lengths, formats, 0);
-					sl_int64 ret = -1;
 					if (res) {
 						if (PQresultStatus(res) == PGRES_COMMAND_OK) {
 							char* s = PQcmdTuples(res);
@@ -296,11 +298,11 @@ namespace slib
 							if (s) {
 								String::parseUint64(10, &n, s);
 							}
-							ret = n;
+							return n;
 						}
 						PQclear(res);
 					}
-					return ret;
+					return -1;
 				}
 
 				Ref<DatabaseCursor> queryBy(const Variant* params, sl_uint32 nParams) override
@@ -309,6 +311,9 @@ namespace slib
 					SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, formats, nParams)
+					if (!(strings && values && lengths && formats)) {
+						return sl_null;
+					}
 					BindParams(params, nParams, strings, values, lengths, formats);
 					
 					ObjectLocker lock(m_db.get());
@@ -400,6 +405,9 @@ namespace slib
 					SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, formats, nParams)
+					if (!(strings && values && lengths && formats)) {
+						return -1;
+					}
 					BindParams(params, nParams, strings, values, lengths, formats);
 					
 					ObjectLocker lock(this);
@@ -427,6 +435,9 @@ namespace slib
 					SLIB_SCOPED_BUFFER(const char*, 32, values, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, lengths, nParams)
 					SLIB_SCOPED_BUFFER(int, 32, formats, nParams)
+					if (!(strings && values && lengths && formats)) {
+						return sl_null;
+					}
 					BindParams(params, nParams, strings, values, lengths, formats);
 					
 					ObjectLocker lock(this);

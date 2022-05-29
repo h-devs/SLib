@@ -88,10 +88,13 @@ namespace slib
 		{
 			CLASS* thiz = ((CLASS*)this);
 			sl_uint32 n = CLASS::HashSize;
-			if (n == 0) {
+			if (!n) {
 				return;
 			}
 			SLIB_SCOPED_BUFFER(sl_uint8, 128, h, n);
+			if (!h) {
+				return;
+			}
 			sl_uint8* target = (sl_uint8*)(_target);
 			sl_uint32 i = 0;
 			sl_uint8 C[4];

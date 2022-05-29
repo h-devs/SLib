@@ -71,27 +71,31 @@ namespace slib
 							if (detail) {
 								ListElements<Color> _colors(detail->colors);
 								ListElements<sl_real> _locations(detail->locations);
-								sl_size n = _colors.count;
-								JniLocal<jintArray> jcolors = Jni::newIntArray(n);
-								JniLocal<jfloatArray> jlocations = Jni::newFloatArray(n);
-								if (jcolors.isNotNull() && jlocations.isNotNull()) {
-									SLIB_SCOPED_BUFFER(jint, 128, colors, n);
-									SLIB_SCOPED_BUFFER(float, 128, locations, n);
-									for (sl_size i = 0; i < n; i++) {
-										colors[i] = (jint)(_colors[i].getARGB());
-										locations[i] = (jfloat)(_locations[i]);
-									}
-									Jni::setIntArrayRegion(jcolors, 0, n, colors);
-									Jni::setFloatArrayRegion(jlocations, 0, n, locations);
-									JBrush::colors.set(brush, jcolors);
-									JBrush::locations.set(brush, jlocations);
-									JBrush::x.set(brush, (jfloat)(detail->point1.x));
-									JBrush::y.set(brush, (jfloat)(detail->point1.y));
-									if (desc.style == BrushStyle::LinearGradient) {
-										JBrush::x2.set(brush, (jfloat)(detail->point2.x));
-										JBrush::y2.set(brush, (jfloat)(detail->point2.y));
-									} else {
-										JBrush::radius.set(brush, (jfloat)(detail->radius));
+								if (_colors.count && _colors.count == _locations.count) {
+									sl_size n = _colors.count;
+									JniLocal<jintArray> jcolors = Jni::newIntArray(n);
+									JniLocal<jfloatArray> jlocations = Jni::newFloatArray(n);
+									if (jcolors.isNotNull() && jlocations.isNotNull()) {
+										SLIB_SCOPED_BUFFER(jint, 128, colors, n);
+										SLIB_SCOPED_BUFFER(float, 128, locations, n);
+										if (colors && locations) {
+											for (sl_size i = 0; i < n; i++) {
+												colors[i] = (jint)(_colors[i].getARGB());
+												locations[i] = (jfloat)(_locations[i]);
+											}
+											Jni::setIntArrayRegion(jcolors, 0, n, colors);
+											Jni::setFloatArrayRegion(jlocations, 0, n, locations);
+											JBrush::colors.set(brush, jcolors);
+											JBrush::locations.set(brush, jlocations);
+											JBrush::x.set(brush, (jfloat)(detail->point1.x));
+											JBrush::y.set(brush, (jfloat)(detail->point1.y));
+											if (desc.style == BrushStyle::LinearGradient) {
+												JBrush::x2.set(brush, (jfloat)(detail->point2.x));
+												JBrush::y2.set(brush, (jfloat)(detail->point2.y));
+											} else {
+												JBrush::radius.set(brush, (jfloat)(detail->radius));
+											}
+										}
 									}
 								}
 							}

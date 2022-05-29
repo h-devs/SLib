@@ -40,10 +40,11 @@ namespace slib
 		{
 			if (_count < CountStack) {
 				data = stack;
+				count = _count;
 			} else {
 				data = NewHelper<T>::create(_count);
+				count = data ? _count : 0;
 			}
-			count = _count;
 		}
 
 		ScopedBuffer(const ScopedBuffer& other) = delete;

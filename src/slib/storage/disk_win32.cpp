@@ -121,20 +121,21 @@ namespace slib
 		) {
 			sl_size nOutput = (sl_size)(header.Size);
 			SLIB_SCOPED_BUFFER(sl_uint8, 256, output, nOutput)
+			if (output) {
 				Base::zeroMemory(output, nOutput);
-
-			if (DeviceIoControl(
-				hDevice,
-				IOCTL_STORAGE_QUERY_PROPERTY,
-				&query, sizeof(query),
-				output, (DWORD)nOutput,
-				&dwBytes, NULL)
-			) {
-				STORAGE_DEVICE_DESCRIPTOR* descriptor = (STORAGE_DEVICE_DESCRIPTOR*)output;
-				if (descriptor->SerialNumberOffset) {
-					char* sn = (char*)(output + descriptor->SerialNumberOffset);
-					sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
-					ret = ProcessSerialNumber(sn, n);
+				if (DeviceIoControl(
+					hDevice,
+					IOCTL_STORAGE_QUERY_PROPERTY,
+					&query, sizeof(query),
+					output, (DWORD)nOutput,
+					&dwBytes, NULL)
+				) {
+					STORAGE_DEVICE_DESCRIPTOR* descriptor = (STORAGE_DEVICE_DESCRIPTOR*)output;
+					if (descriptor->SerialNumberOffset) {
+						char* sn = (char*)(output + descriptor->SerialNumberOffset);
+						sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
+						ret = ProcessSerialNumber(sn, n);
+					}
 				}
 			}
 		}

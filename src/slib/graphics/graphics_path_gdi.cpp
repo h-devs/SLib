@@ -85,16 +85,18 @@ namespace slib
 					if (n > 0) {
 						SLIB_SCOPED_BUFFER(Gdiplus::PointF, 1024, pts, n);
 						SLIB_SCOPED_BUFFER(BYTE, 1024, types, n);
-						for (sl_size i = 0; i < n; i++) {
-							pts[i].X = points[i].pt.x;
-							pts[i].Y = points[i].pt.y;
-							types[i] = points[i].type;
+						if (pts && types) {
+							for (sl_size i = 0; i < n; i++) {
+								pts[i].X = points[i].pt.x;
+								pts[i].Y = points[i].pt.y;
+								types[i] = points[i].type;
+							}
+							GraphicsPlatform::startGdiplus();
+							Gdiplus::GraphicsPath* handle = new Gdiplus::GraphicsPath(pts, types, (INT)n, ConvertFillMode(getFillMode()));
+							return handle;
 						}
-						GraphicsPlatform::startGdiplus();
-						Gdiplus::GraphicsPath* handle = new Gdiplus::GraphicsPath(pts, types, (INT)n, ConvertFillMode(getFillMode()));
-						return handle;
 					}
-					return NULL;
+					return sl_null;
 				}
 
 				Gdiplus::GraphicsPath* getPlatformPath()
@@ -103,7 +105,7 @@ namespace slib
 					if (po) {
 						return po->path;
 					}
-					return NULL;
+					return sl_null;
 				}
 			};
 

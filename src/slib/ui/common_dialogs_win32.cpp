@@ -284,7 +284,7 @@ namespace slib
 				lenSzFilters++;
 			}
 			SLIB_SCOPED_BUFFER(WCHAR, 1024, szFilters, lenSzFilters);
-			{
+			if (szFilters) {
 				sl_size pos = 0;
 				sl_size len;
 				ListElements<priv::file_dialog::Filter> list(wfilters);

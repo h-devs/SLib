@@ -1257,6 +1257,9 @@ namespace slib
 		sl_size size = body.getSize();
 		sl_size sizeBoundary = 2 + _boundary.getLength();
 		SLIB_SCOPED_BUFFER(sl_char8, 512, boundary, sizeBoundary)
+		if (!boundary) {
+			return;
+		}
 		boundary[0] = '-';
 		boundary[1] = '-';
 		Base::copyMemory(boundary + 2, _boundary.getData(), sizeBoundary - 2);

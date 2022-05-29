@@ -280,6 +280,9 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		SLIB_SCOPED_BUFFER(HANDLE, 64, hEvents, count);
 		SLIB_SCOPED_BUFFER(sl_uint32, 64, indexMap, count);
+		if (!(hEvents && indexMap)) {
+			return sl_false;
+		}
 		sl_uint32 cEvents = 0;
 		for (sl_uint32 i = 0; i < count; i++) {
 			SocketEvent* ev = events[i];
@@ -314,6 +317,9 @@ namespace slib
 #else
 		SLIB_SCOPED_BUFFER(pollfd, 64, fd, 2 * count);
 		SLIB_SCOPED_BUFFER(sl_uint32, 64, indexMap, count);
+		if (!(fd && indexMap)) {
+			return sl_false;
+		}
 		Base::zeroMemory(fd, sizeof(pollfd) * 2 * count);
 		sl_uint32 cEvents = 0;
 		for (sl_uint32 i = 0; i < count; i++) {

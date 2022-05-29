@@ -160,6 +160,9 @@ namespace slib
 				}
 				sl_size nBuf = (lenCode * 5 + 7) >> 3;
 				SLIB_SCOPED_BUFFER(sl_uint8, 256, buf, nBuf)
+				if (!buf) {
+					return sl_null;
+				}
 				Base::zeroMemory(buf, nBuf);
 				char* str = code.getData();
 				sl_size p = 0;
@@ -227,6 +230,9 @@ namespace slib
 		sl_size lenExtra = extraInfo.getLength();
 		sl_size nBuf = 10 + lenExtra;
 		SLIB_SCOPED_BUFFER(sl_uint8, 256, buf, nBuf)
+		if (!buf) {
+			return sl_null;
+		}
 		{
 			Base::zeroMemory(buf, 32);
 			sl_uint8 hash[32];
@@ -291,6 +297,9 @@ namespace slib
 		sl_size lenExtra = extraInfo.getLength();
 		sl_size nBuf = 64 + lenExtra;
 		SLIB_SCOPED_BUFFER(sl_uint8, 512, buf, nBuf)
+		if (!nBuf) {
+			return sl_null;
+		}
 		Base::zeroMemory(buf, nBuf);
 		sig.r.getBytesBE(buf, 32);
 		sig.s.getBytesBE(buf + 32, 32);

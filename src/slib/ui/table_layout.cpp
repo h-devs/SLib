@@ -735,8 +735,12 @@ namespace slib
 		sl_real sumColFillWeights = 0;
 		sl_bool flagWrappingRows = sl_false;
 		sl_bool flagWrappingCols = sl_false;
+		
 		SLIB_SCOPED_BUFFER(SizeMode, 64, colWidthModes, nCols)
 		SLIB_SCOPED_BUFFER(SizeMode, 64, rowHeightModes, nRows)
+		if (!(colWidthModes && rowHeightModes)) {
+			return;
+		}
 
 		for (iRow = 0; iRow < nRows; iRow++) {
 			Row& row = rows[iRow];

@@ -331,6 +331,9 @@ namespace slib
 					len = 0;
 					WinHttpQueryHeaders(m_hRequest, WINHTTP_QUERY_RAW_HEADERS_CRLF, NULL, NULL, &len, NULL);
 					SLIB_SCOPED_BUFFER(char, 1024, bufHeaders, len);
+					if (!bufHeaders) {
+						return;
+					}
 					if (!(WinHttpQueryHeaders(m_hRequest, WINHTTP_QUERY_RAW_HEADERS_CRLF, NULL, bufHeaders, &len, NULL))) {
 						processLastError();
 						return;

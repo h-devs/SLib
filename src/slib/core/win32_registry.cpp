@@ -79,6 +79,9 @@ namespace slib
 								case REG_BINARY:
 									{
 										SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+										if (!buf) {
+											break;
+										}
 										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
 											Memory mem = Memory::create(buf, size);
 											if (mem.isNotNull()) {
@@ -91,6 +94,9 @@ namespace slib
 								case REG_MULTI_SZ:
 									{
 										SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+										if (!buf) {
+											break;
+										}
 										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
 											if (size >= 2) {
 												sl_size len = size >> 1;
@@ -122,6 +128,9 @@ namespace slib
 								case REG_SZ:
 									{
 										SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+										if (!buf) {
+											break;
+										}
 										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
 											if (size >= 2) {
 												String16 s(reinterpret_cast<sl_char16*>(buf), size / 2 - 1);

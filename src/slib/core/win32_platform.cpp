@@ -273,7 +273,10 @@ namespace slib
 
 			sl_uint32 n = (sl_uint32)(items.count);
 			SLIB_SCOPED_BUFFER(LPITEMIDLIST, 256, arr, n)
-			
+			if (!arr) {
+				n = 0;
+			}
+
 			sl_uint32 i;
 			for (i = 0; i < n; i++) {
 				StringCstr16 pathItem(items[i]);
