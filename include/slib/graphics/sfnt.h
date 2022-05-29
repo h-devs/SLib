@@ -141,10 +141,24 @@ namespace slib
 		Adobe_Latin1 = 3
 	};
 
-	class SFNT
+	class SLIB_EXPORT SFNTFontDescriptor
 	{
 	public:
-		static List< List<String> > getFontFamilyNames(const Ptr<IReader, ISeekable>& reader);
+		List<String> familyNames;
+		sl_bool flagBold;
+		sl_bool flagItalic;
+
+	public:
+		SFNTFontDescriptor();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SFNTFontDescriptor)
+
+	};
+
+	class SLIB_EXPORT SFNT
+	{
+	public:
+		static List<SFNTFontDescriptor> getFontDescriptors(const Ptr<IReader, ISeekable>& reader);
 
 	};
 

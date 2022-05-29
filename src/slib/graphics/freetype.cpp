@@ -26,7 +26,7 @@
 #include "slib/graphics/sfnt.h"
 #include "slib/core/file_io.h"
 #include "slib/core/system.h"
-#include "slib/core/hash_map.h"
+#include "slib/core/map.h"
 #include "slib/core/safe_static.h"
 
 #include "freetype/ft2build.h"
@@ -138,14 +138,17 @@ namespace slib
 			class SystemLoader
 			{
 			private:
-				struct Registry
+				struct RegistryItem
 				{
 					String path;
 					sl_uint32 faceIndex;
-					sl_uint32 namedInstanceIndex;
+					sl_bool flagBold;
+					sl_bool flagItalic;
 				};
 
-				CHashMap< String, Registry, HashIgnoreCase<String>, CompareIgnoreCase<String> > registries;
+				typedef CMap< String, RegistryItem, CompareIgnoreCase<String> > Registry;
+				typedef typename Registry::NODE RegistryNode;
+				Registry registry;
 
 			public:
 				SystemLoader()
@@ -168,25 +171,27 @@ namespace slib
 				}
 
 			private:
-				void registerFont(const String& familyName, const String& path, sl_uint32 faceIndex, sl_uint32 instanceId)
+				void registerFont(const String& familyName, const String& path, sl_uint32 faceIndex, sl_bool flagBold, sl_bool flagItalic)
 				{
-					Registry registry;
-					registry.path = path;
-					registry.faceIndex = faceIndex;
-					registry.namedInstanceIndex = instanceId;
-					registries.emplace_NoLock(familyName, Move(registry));
+					RegistryItem item;
+					item.path = path;
+					item.faceIndex = faceIndex;
+					item.flagBold = !!flagBold;
+					item.flagItalic = !!flagItalic;
+					registry.add_NoLock(familyName, Move(item));
 				}
 
 				sl_bool loadFileBySFNT(const String& path, SeekableReader<File>* file)
 				{
-					ListElements< List<String> > faces(SFNT::getFontFamilyNames(file));
+					ListElements<SFNTFontDescriptor> faces(SFNT::getFontDescriptors(file));
 					if (!(faces.count)) {
 						return sl_false;
 					}
 					for (sl_size i = 0; i < faces.count; i++) {
-						ListElements<String> names(faces[i]);
+						SFNTFontDescriptor face(faces[i]);
+						ListElements<String> names(face.familyNames);
 						for (sl_size k = 0; k < names.count; k++) {
-							registerFont(names[k], path, (sl_uint32)i, 0);
+							registerFont(names[k], path, (sl_uint32)i, face.flagBold, face.flagItalic);
 						}
 					}
 					return sl_true;
@@ -195,30 +200,21 @@ namespace slib
 				void loadFileByFreeType(FT_Library lib, const String& path, SeekableReader<File>* file, sl_uint64 size)
 				{
 					FT_Long nFaces = 0;
-					FT_Long nInstances = 0;
 					FT_Long faceId = 0;
-					FT_Long instanceId = 0;
-					for (;;) {
-						FT_Face face = OpenFace(lib, file, size, (instanceId << 16) | faceId);
+					do {
+						FT_Face face = OpenFace(lib, file, size, faceId);
 						if (face) {
 							String name(face->family_name);
 							if (name.isNotEmpty()) {
-								registerFont(name, path, faceId, instanceId);
+								sl_bool flagBold = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
+								sl_bool flagItalic = (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
+								registerFont(name, path, faceId, flagBold, flagItalic);
 							}
 							nFaces = face->num_faces;
-							nInstances = face->style_flags >> 16;
 							FT_Done_Face(face);
 						}
-						instanceId++;
-						if (instanceId >= nInstances) {
-							faceId++;
-							if (faceId >= nFaces) {
-								return;
-							}
-							instanceId = 0;
-							nInstances = 0;
-						}
-					}
+						faceId++;
+					} while (faceId < nFaces);
 				}
 
 				void loadFile(FT_Library lib, const String& path)
@@ -235,15 +231,59 @@ namespace slib
 					loadFileByFreeType(lib, path, &file, size);
 				}
 
-			public:
-				Ref<FreeType> open(const String& family)
+				static Ref<FreeType> open(const RegistryItem& item)
 				{
-					Registry* reg = registries.getItemPointer(family);
-					if (reg) {
-						FreeTypeLoadParam param;
-						param.faceIndex = reg->faceIndex;
-						param.namedInstanceIndex = reg->namedInstanceIndex;
-						return FreeType::loadFromFile(reg->path, param);
+					FreeTypeLoadParam param;
+					param.faceIndex = item.faceIndex;
+					return FreeType::loadFromFile(item.path, param);
+				}
+
+				static RegistryNode* findRegistry(RegistryNode* start, RegistryNode* end, sl_bool flagBold, sl_bool flagItalic)
+				{
+					flagBold = !!flagBold;
+					flagItalic = !!flagItalic;
+					RegistryNode* node = start;
+					for (;;) {
+						if (node->value.flagBold == flagBold && node->value.flagItalic == flagItalic) {
+							return node;
+						}
+						if (node == end) {
+							break;
+						}
+						node = node->getNext();
+					}
+					return sl_null;
+				}
+
+			public:
+				Ref<FreeType> open(const String& family, sl_bool flagBold, sl_bool flagItalic)
+				{
+					RegistryNode* start;
+					RegistryNode* end;
+					if (registry.getEqualRange(family, &start, &end)) {
+						RegistryNode* node = findRegistry(start, end, flagBold, flagItalic);
+						if (node) {
+							return open(node->value);
+						}
+						if (flagBold) {
+							node = findRegistry(start, end, sl_false, flagItalic);
+							if (node) {
+								return open(node->value);
+							}
+						}
+						if (flagItalic) {
+							node = findRegistry(start, end, flagBold, sl_false);
+							if (node) {
+								return open(node->value);
+							}
+						}
+						if (flagBold && flagItalic) {
+							node = findRegistry(start, end, sl_false, sl_false);
+							if (node) {
+								return open(node->value);
+							}
+						}
+						return open(start->value);
 					}
 					return sl_null;
 				}
@@ -458,11 +498,11 @@ namespace slib
 		return loadFromMemory(mem, param);
 	}
 
-	Ref<FreeType> FreeType::loadSystemFont(const String& family)
+	Ref<FreeType> FreeType::loadSystemFont(const String& family, sl_bool flagBold, sl_bool flagItalic)
 	{
 		SystemLoader* loader = GetSystemLoader();
 		if (loader) {
-			return loader->open(family);
+			return loader->open(family, flagBold, flagItalic);
 		}
 		return sl_null;
 	}
@@ -491,6 +531,16 @@ namespace slib
 	const char* FreeType::getFamilyName()
 	{
 		return m_face->family_name;
+	}
+
+	sl_bool FreeType::isBoldStyle()
+	{
+		return (m_face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
+	}
+
+	sl_bool FreeType::isItalicStyle()
+	{
+		return (m_face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 	}
 
 	sl_uint32 FreeType::getGlyphsCount()

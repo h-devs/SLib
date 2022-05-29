@@ -31,6 +31,9 @@
 #define TAG_typ1 SLIB_MAKE_DWORD('t', 'y', 'p', '1')
 
 #define TAG_name SLIB_MAKE_DWORD('n', 'a', 'm', 'e')
+#define TAG_head SLIB_MAKE_DWORD('h', 'e', 'a', 'd')
+#define TAG_bhed SLIB_MAKE_DWORD('b', 'h', 'e', 'd')
+#define TAG_OS2 SLIB_MAKE_DWORD('O', 'S', '/', '2')
 
 namespace slib
 {
@@ -60,6 +63,61 @@ namespace slib
 				sl_uint8 checksum[4];
 				sl_uint8 offset[4];
 				sl_uint8 length[4];
+			};
+
+			struct GENERIC_HEADER
+			{
+				sl_uint8 version[4];
+				sl_uint8 revision[4];
+				sl_uint8 checksum[4];
+				sl_uint8 magicNumber[4];
+				sl_uint8 flags[2];
+				sl_uint8 unitsPerEM[2];
+				sl_uint8 createdTime[8];
+				sl_uint8 modifiedTime[8];
+				sl_uint8 xMin[2];
+				sl_uint8 yMin[2];
+				sl_uint8 xMax[2];
+				sl_uint8 yMax[2];
+				sl_uint8 macStyle[2];
+				sl_uint8 lowestRecPPEM[2];
+				sl_uint8 direction[2];
+				sl_uint8 indexToLocFormat[2];
+				sl_uint8 glyphDataFormat[2];
+			};
+
+			struct OS2_HEADER
+			{
+				sl_uint8 version[2];
+				sl_uint8 xAvgCharWidth[2];
+				sl_uint8 weightClass[2];
+				sl_uint8 widthClass[2];
+				sl_uint8 fsType[2];
+				sl_uint8 subscriptXSize[2];
+				sl_uint8 subscriptYSize[2];
+				sl_uint8 subscriptXOffset[2];
+				sl_uint8 subscriptYOffset[2];
+				sl_uint8 superscriptXSize[2];
+				sl_uint8 superscriptYSize[2];
+				sl_uint8 superscriptXOffset[2];
+				sl_uint8 superscriptYOffset[2];
+				sl_uint8 strikeoutSize[2];
+				sl_uint8 strikeoutPosition[2];
+				sl_uint8 familyClass[2];
+				sl_uint8 panose[10];
+				sl_uint8 unicodeRange1[4];
+				sl_uint8 unicodeRange2[4];
+				sl_uint8 unicodeRange3[4];
+				sl_uint8 unicodeRange4[4];
+				sl_uint8 achVendID[4];
+				sl_uint8 fsSelection[2];
+				sl_uint8 firstCharIndex[2];
+				sl_uint8 lastCharIndex[2];
+				sl_uint8 typoAscender[2];
+				sl_uint8 typoDescender[2];
+				sl_uint8 typoLineGap[2];
+				sl_uint8 winAscent[2];
+				sl_uint8 winDescent[2];
 			};
 
 			struct NAME_TABLE_HEADER
@@ -94,6 +152,12 @@ namespace slib
 
 				sl_uint32 posFileStart = 0;
 				sl_bool flagIsCollection = sl_false;
+
+				GENERIC_HEADER genericHeader;
+				sl_bool flagReadGenericHeader = sl_false;
+
+				OS2_HEADER os2Header;
+				sl_bool flagReadOS2Header = sl_false;
 
 			private:
 				sl_uint32 getPosition()
@@ -187,13 +251,29 @@ namespace slib
 									if (!(readFaceTableOffset(entry))) {
 										return sl_false;
 									}
-									if (entry.name == TAG_name) {
-										_out.add_NoLock(Move(entry));
-									}
+									_out.add_NoLock(Move(entry));
 								}
 								return sl_true;
 							}
 						}
+					}
+					return sl_false;
+				}
+
+				sl_bool readGenericHeader(SFNTFontDescriptor& desc)
+				{
+					if (readFully(&genericHeader, sizeof(genericHeader))) {
+						flagReadGenericHeader = sl_true;
+						return sl_true;
+					}
+					return sl_false;
+				}
+
+				sl_bool readOS2Header(SFNTFontDescriptor& desc)
+				{
+					if (readFully(&os2Header, sizeof(os2Header))) {
+						flagReadOS2Header = sl_true;
+						return sl_true;
 					}
 					return sl_false;
 				}
@@ -252,7 +332,7 @@ namespace slib
 					return sl_true;
 				}
 
-				sl_bool readFamilyNamesFromNameTable(List<String>& _out)
+				sl_bool readNameTable(SFNTFontDescriptor& desc)
 				{
 					sl_uint32 offset = getPosition();
 					NAME_TABLE_HEADER header;
@@ -273,14 +353,14 @@ namespace slib
 								return sl_false;
 							}
 							if (name.isNotEmpty()) {
-								_out.addIfNotExist_NoLock(Move(name));
+								desc.familyNames.addIfNotExist_NoLock(Move(name));
 							}
 						}
 					}
 					return sl_true;
 				}
 
-				sl_bool loadFaceFamilyNames(List<String>& _out)
+				sl_bool loadDescriptor(SFNTFontDescriptor& desc)
 				{
 					List<FaceTableOffset> _offsets;
 					if (!(loadFaceTableOffsets(_offsets))) {
@@ -292,26 +372,56 @@ namespace slib
 						if (!(setPosition(entry.offset))) {
 							return sl_false;
 						}
-						if (entry.name == TAG_name) {
-							if (!(readFamilyNamesFromNameTable(_out))) {
-								return sl_false;
-							}
+						switch (entry.name) {
+							case TAG_head:
+							case TAG_bhed:
+								if (!(readGenericHeader(desc))) {
+									return sl_false;
+								}
+								break;
+							case TAG_OS2:
+								if (!(readOS2Header(desc))) {
+									return sl_false;
+								}
+								break;
+							case TAG_name:
+								if (!(readNameTable(desc))) {
+									return sl_false;
+								}
+								break;
+						}
+					}
+					if (flagReadOS2Header && MIO::readUint16BE(os2Header.version) != (sl_uint16)0xFFFF) {
+						sl_uint16 fsSelection = MIO::readUint16BE(os2Header.fsSelection);
+						if (fsSelection & 32) {
+							desc.flagBold = sl_true;
+						}
+						if (fsSelection & 513) { // bit 0 and bit 9
+							desc.flagItalic = sl_true;
+						}
+					} else if (flagReadGenericHeader) {
+						sl_uint16 macStyle = MIO::readUint16BE(genericHeader.macStyle);
+						if (macStyle & 1) {
+							desc.flagBold = sl_true;
+						}
+						if (macStyle & 2) {
+							desc.flagItalic = sl_true;
 						}
 					}
 					return sl_true;
 				}
 
-				List< List<String> > loadFamilyNames()
+				List<SFNTFontDescriptor> loadDescriptors()
 				{
-					List< List<String> > ret;
+					List<SFNTFontDescriptor> ret;
 					ArrayElements<sl_uint32> offsets(loadFaceOffsets());
 					for (sl_size i = 0; i < offsets.count; i++) {
 						if (!(setPosition(offsets[i]))) {
 							return sl_null;
 						}
-						List<String> names;
-						if (loadFaceFamilyNames(names)) {
-							ret.add_NoLock(Move(names));
+						SFNTFontDescriptor desc;
+						if (loadDescriptor(desc)) {
+							ret.add_NoLock(Move(desc));
 						}
 					}
 					return ret;
@@ -324,7 +434,15 @@ namespace slib
 
 	using namespace priv::sfnt;
 
-	List< List<String> > SFNT::getFontFamilyNames(const Ptr<IReader, ISeekable>& reader)
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SFNTFontDescriptor)
+
+	SFNTFontDescriptor::SFNTFontDescriptor(): flagBold(sl_false), flagItalic(sl_false)
+	{
+	}
+
+
+	List<SFNTFontDescriptor> SFNT::getFontDescriptors(const Ptr<IReader, ISeekable>& reader)
 	{
 		if (reader.isNull()) {
 			return sl_null;
@@ -332,7 +450,7 @@ namespace slib
 		FontLoader loader;
 		loader.reader = reader;
 		loader.seekable = reader;
-		return loader.loadFamilyNames();
+		return loader.loadDescriptors();
 	}
 
 }
