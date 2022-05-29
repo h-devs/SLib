@@ -22,13 +22,14 @@
 
 #include "slib/doc/pdf.h"
 
-#include "slib/core/file.h"
+#include "slib/core/file_io.h"
 #include "slib/core/buffered_seekable_reader.h"
 #include "slib/core/thread.h"
 #include "slib/core/mio.h"
 #include "slib/core/memory_buffer.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/queue.h"
+#include "slib/core/safe_static.h"
 #include "slib/crypto/zlib.h"
 #include "slib/crypto/md5.h"
 #include "slib/crypto/rc4.h"
@@ -2223,6 +2224,95 @@ namespace slib
 			SLIB_INLINE static Context* GetContext(const Ref<Referable>& ref)
 			{
 				return (Context*)(ref.get());
+			}
+
+
+			static const char* g_arrayBase14FontNames[14][10] = {
+				{ "Courier", "CourierNew", "CourierNewPSMT", sl_null },
+				{ "Courier-Bold", "CourierNew,Bold", "Courier,Bold", "CourierNewPS-BoldMT", "CourierNew-Bold", sl_null },
+				{ "Courier-Oblique", "CourierNew,Italic", "Courier,Italic", "CourierNewPS-ItalicMT", "CourierNew-Italic", sl_null },
+				{ "Courier-BoldOblique", "CourierNew,BoldItalic", "Courier,BoldItalic", "CourierNewPS-BoldItalicMT", "CourierNew-BoldItalic", sl_null },
+				{ "Helvetica", "ArialMT", "Arial", sl_null },
+				{ "Helvetica-Bold", "Arial-BoldMT", "Arial,Bold", "Arial-Bold", "Helvetica,Bold", sl_null },
+				{ "Helvetica-Oblique", "Arial-ItalicMT", "Arial,Italic", "Arial-Italic", "Helvetica,Italic", "Helvetica-Italic", sl_null },
+				{ "Helvetica-BoldOblique", "Arial-BoldItalicMT", "Arial,BoldItalic", "Arial-BoldItalic", "Helvetica,BoldItalic", "Helvetica-BoldItalic", sl_null },
+				{ "Times-Roman", "TimesNewRomanPSMT", "TimesNewRoman", "TimesNewRomanPS", sl_null },
+				{ "Times-Bold", "TimesNewRomanPS-BoldMT", "TimesNewRoman,Bold", "TimesNewRomanPS-Bold", "TimesNewRoman-Bold", sl_null },
+				{ "Times-Italic", "TimesNewRomanPS-ItalicMT", "TimesNewRoman,Italic", "TimesNewRomanPS-Italic", "TimesNewRoman-Italic", sl_null },
+				{ "Times-BoldItalic", "TimesNewRomanPS-BoldItalicMT", "TimesNewRoman,BoldItalic", "TimesNewRomanPS-BoldItalic", "TimesNewRoman-BoldItalic", sl_null },
+				{ "Symbol", "Symbol,Italic", "Symbol,Bold", "Symbol,BoldItalic", "SymbolMT", "SymbolMT,Italic", "SymbolMT,Bold", "SymbolMT,BoldItalic", sl_null },
+				{ "ZapfDingbats", sl_null }
+			};
+
+			struct FontMapping
+			{
+				const char* name;
+				sl_bool flagBold;
+				sl_bool flagItalic;
+			};
+
+			static FontMapping g_arrayBase14FontMappings[14][4] = {
+				{ { "Courier", 0, 0}, { "Courier New", 0, 0 }, {0, 0, 0} },
+				{ { "Courier-Bold", 0, 0 }, { "Courier New Bold", 0, 0 }, { "Courier New", 1, 0 }, { 0, 0, 0 } },
+				{ { "Courier-BoldOblique", 0, 0 }, { "Courier New Bold Italic", 0, 0 }, { "Courier New", 1, 1 }, { 0, 0, 0 } },
+				{ { "Courier-Oblique", 0, 0 }, { "Courier New Italic", 0, 0 }, { "Courier New", 0, 1 }, { 0, 0, 0 } },
+				{ { "Helvetica", 0, 0}, { "Arial", 0, 0 }, {0, 0, 0} },
+				{ { "Helvetica-Bold", 0, 0 }, { "Arial Bold", 0, 0 }, { "Arial", 1, 0 }, { 0, 0, 0 } },
+				{ { "Helvetica-BoldOblique", 0, 0 }, { "Arial Bold Italic", 0, 0 }, { "Arial", 1, 1 }, { 0, 0, 0 } },
+				{ { "Helvetica-Oblique", 0, 0 }, { "Arial Italic", 0, 0 }, { "Arial", 0, 1 }, { 0, 0, 0 } },
+				{ { "Times-Roman", 0, 0}, { "Times New Roman", 0, 0 }, {0, 0, 0} },
+				{ { "Times-Bold", 0, 0 }, { "Times New Roman Bold", 0, 0 }, { "Times New Roman", 1, 0 }, { 0, 0, 0 } },
+				{ { "Times-BoldItalic", 0, 0 }, { "Times New Roman Bold Italic", 0, 0 }, { "Times New Roman", 1, 1 }, { 0, 0, 0 } },
+				{ { "Times-Italic", 0, 0 }, { "Times New Roman Italic", 0, 0 }, { "Times New Roman", 0, 1 }, { 0, 0, 0 } },
+				{ { "Symbol", 0, 0}, {0, 0, 0} },
+				{ { "ZapfDingbats", 0, 0}, {0, 0, 0} }
+			};
+
+			class BaseFonts
+			{
+			private:
+				CHashMap< String, sl_uint32, HashIgnoreCase<String>, CompareIgnoreCase<String> > names;
+
+			public:
+				BaseFonts()
+				{
+					for (sl_uint32 i = 0; i < 14; i++) {
+						const char** p = g_arrayBase14FontNames[i];
+						while (*p) {
+							names.put_NoLock(*p, i);
+							p++;
+						}
+					}
+				}
+
+			public:
+				Ref<FreeType> open(const String& name)
+				{
+					sl_uint32 index;
+					if (names.get_NoLock(name, &index)) {
+						FontMapping* mapping = g_arrayBase14FontMappings[index];
+						while (mapping->name) {
+							Ref<FreeType> font = FreeType::loadSystemFont(mapping->name, mapping->flagBold, mapping->flagItalic);
+							if (font.isNotNull()) {
+								return font;
+							}
+							mapping++;
+						}
+					}
+					return sl_null;
+				}
+
+			};
+
+			SLIB_SAFE_STATIC_GETTER(BaseFonts, GetBaseFonts)
+
+			static Ref<FreeType> OpenBaseFont(const String& name)
+			{
+				BaseFonts* fonts = GetBaseFonts();
+				if (fonts) {
+					return fonts->open(name);
+				}
+				return sl_null;
 			}
 
 			class TextState
@@ -4948,14 +5038,22 @@ namespace slib
 			Memory content = doc->getStreamContent(descriptor.content);
 			if (content.isNotNull()) {
 				face = FreeType::loadFromMemory(content);
-				if (face.isNotNull()) {
-					face->setRealSize(32.0f);
-					face->selectCharmap(descriptor.flags & PdfFontFlags::Symbolic);
-					scale = 1.0f / 32.0f;
+			}
+		} else {
+			face = OpenBaseFont(baseFont);
+			if (face.isNull()) {
+				if (descriptor.family.isNotEmpty()) {
+					face = FreeType::loadSystemFont(descriptor.family, descriptor.flags & PdfFontFlags::Bold, descriptor.flags & PdfFontFlags::Italic);
 				}
 			}
 		}
-		return face.isNotNull();
+		if (face.isNotNull()) {
+			face->setRealSize(32.0f);
+			face->selectCharmap(descriptor.flags & PdfFontFlags::Symbolic);
+			scale = (descriptor.ascent - descriptor.descent) / 1000.0f / 32.0f;
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 	sl_uint32 PdfFont::getGlyphIndex(sl_uint32 charcode, sl_char32 unicode)
@@ -5710,28 +5808,25 @@ namespace slib
 
 	sl_bool PdfDocument::_openFile(const StringParam& filePath)
 	{
-		File file = File::openForRead(filePath);
-		if (file.isOpened()) {
-			RefT< IO<File> > reader = NewRefT< IO<File> >(Move(file));
-			if (reader.isNotNull()) {
-				// size
-				{
-					sl_uint64 size = reader->getSize();
-					if (!size) {
-						return sl_false;
-					}
-					if (size > MAX_PDF_FILE_SIZE) {
-						return sl_false;
-					}
-					fileSize = (sl_uint32)size;
+		Ref<FileIO> file = FileIO::openForRead(filePath);
+		if (file.isNotNull()) {
+			// size
+			{
+				sl_uint64 size = file->getSize();
+				if (!size) {
+					return sl_false;
 				}
-				Ref<BufferedContext> context = New<BufferedContext>();
-				if (context.isNotNull()) {
-					if (context->reader.open(reader)) {
-						if (context->readDocument()) {
-							m_context = Move(context);
-							return sl_true;
-						}
+				if (size > MAX_PDF_FILE_SIZE) {
+					return sl_false;
+				}
+				fileSize = (sl_uint32)size;
+			}
+			Ref<BufferedContext> context = New<BufferedContext>();
+			if (context.isNotNull()) {
+				if (context->reader.open(file)) {
+					if (context->readDocument()) {
+						m_context = Move(context);
+						return sl_true;
 					}
 				}
 			}
