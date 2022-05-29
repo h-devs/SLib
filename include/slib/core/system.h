@@ -31,6 +31,9 @@ namespace slib
 	class String;
 	class StringParam;
 
+	template <class T>
+	class List;
+
 	typedef void (*SIGNAL_HANDLER)(int signal);
 	typedef sl_bool(*DEBUG_ALLOC_HOOK)(void* ptr, sl_size size, sl_uint32 requestNumber);
 
@@ -57,6 +60,8 @@ namespace slib
 		static String getCurrentDirectory();
 
 		static sl_bool setCurrentDirectory(const StringParam& dir);
+
+		static List<String> getFontsDirectories();
 		
 #ifdef SLIB_PLATFORM_IS_APPLE
 		static String getMainBundlePath();
@@ -73,6 +78,7 @@ namespace slib
 
 		static String getProgramsDirectory();
 #endif
+
 
 		static String getEnvironmentVariable(const StringParam& name);
 
