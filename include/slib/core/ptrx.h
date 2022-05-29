@@ -80,25 +80,11 @@
 		template <class OTHER> \
 		Ptr& operator=(OTHER&& other) noexcept { set(Forward<OTHER>(other)); return *this; }
 
-#define PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(...) \
-	private: \
-		Ptr<__VA_ARGS__> m_ptr; \
-	public: \
-		template <class... OTHERS> \
-		PtrLocker(const Ptr<OTHERS...>& ptr) noexcept: m_ptr(ptr.lock()) {} \
-	public: \
-		void unlock() noexcept { m_ptr.setNull(); } \
-		SLIB_CONSTEXPR sl_bool isNull() const { return m_ptr.isNull(); } \
-		SLIB_CONSTEXPR sl_bool isNotNull() const { return m_ptr.isNotNull(); }
-
 namespace slib
 {
 
 	template <class T, class... TYPES>
 	using Ptrx = Ptr< PointerxT<T>, TYPES... >;
-
-	template <class T, class... TYPES>
-	using PtrxLocker = PtrLocker< PointerxT<T>, TYPES... >;
 
 	template <class T>
 	class SLIB_EXPORT Ptr< PointerxT<T> > : public Ptr<T>
@@ -479,84 +465,6 @@ namespace slib
 
 	};
 
-
-	template <class T, class T2>
-	class SLIB_EXPORT PtrLocker<T, T2>
-	{
-	public:
-		typedef PointerxHelper<T> Helper;
-		typedef typename Helper::FirstType T1;
-		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2)
-		
-	public:
-		SLIB_CONSTEXPR operator T1*() const
-		{
-			return m_ptr.ptr;
-		}
-
-		SLIB_CONSTEXPR operator T2*() const
-		{
-			return m_ptr.ptr2;
-		}
-
-	};
-	
-	template <class T, class T2, class T3>
-	class SLIB_EXPORT PtrLocker<T, T2, T3>
-	{
-	public:
-		typedef PointerxHelper<T> Helper;
-		typedef typename Helper::FirstType T1;
-		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3)
-
-	public:
-		SLIB_CONSTEXPR operator T1*() const
-		{
-			return m_ptr.ptr;
-		}
-
-		SLIB_CONSTEXPR operator T2*() const
-		{
-			return m_ptr.ptr2;
-		}
-
-		SLIB_CONSTEXPR operator T3*() const
-		{
-			return m_ptr.ptr3;
-		}
-
-	};
-	
-	template <class T, class T2, class T3, class T4>
-	class SLIB_EXPORT PtrLocker<T, T2, T3, T4>
-	{
-	public:
-		typedef PointerxHelper<T> Helper;
-		typedef typename Helper::FirstType T1;
-		PRIV_SLIB_DEFINE_PTRX_LOCKER_COMMON_FUNCTIONS(T, T2, T3, T4)
-
-	public:
-		SLIB_CONSTEXPR operator T1*() const
-		{
-			return m_ptr.ptr;
-		}
-
-		SLIB_CONSTEXPR operator T2*() const
-		{
-			return m_ptr.ptr2;
-		}
-
-		SLIB_CONSTEXPR operator T3*() const
-		{
-			return m_ptr.ptr3;
-		}
-		
-		SLIB_CONSTEXPR operator T4*() const
-		{
-			return m_ptr.ptr4;
-		}
-		
-	};
 
 	template <class T>
 	template <class T1, class T2, class... TYPES>

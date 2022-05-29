@@ -967,64 +967,6 @@ namespace slib
 		return p._ptr != other;
 	}
 
-
-	template <class... TYPES>
-	class SLIB_EXPORT PtrLocker;
-
-	template <class T>
-	class SLIB_EXPORT PtrLocker<T>
-	{
-	private:
-		Ptr<T> m_ptr;
-
-	public:
-		PtrLocker(const Ptr<T>& ptr) noexcept: m_ptr(ptr.lock()) {}
-
-		PtrLocker(const AtomicPtr<T>& ptr) noexcept: m_ptr(ptr.lock()) {}
-
-	public:
-		void unlock() noexcept
-		{
-			m_ptr.setNull();
-		}
-	
-		SLIB_CONSTEXPR T* get() const
-		{
-			return m_ptr.ptr;
-		}
-
-		SLIB_CONSTEXPR sl_bool isNull() const
-		{
-			return m_ptr.isNull();
-		}
-	
-		SLIB_CONSTEXPR sl_bool isNotNull() const
-		{
-			return m_ptr.isNotNull();
-		}
-	
-		SLIB_CONSTEXPR T& operator*() const
-		{
-			return *(m_ptr.ptr);
-		}
-	
-		SLIB_CONSTEXPR T* operator->() const
-		{
-			return m_ptr.ptr;
-		}
-
-		SLIB_CONSTEXPR operator T*() const
-		{
-			return m_ptr.ptr;
-		}
-
-		SLIB_CONSTEXPR explicit operator sl_bool() const
-		{
-			return m_ptr.ptr;
-		}
-
-	};
-	
 }
 
 #endif

@@ -870,6 +870,82 @@ namespace slib
 
 	};
 	
+
+	template <class T>
+	class SLIB_EXPORT ArrayElements
+	{
+	public:
+		T* data;
+		sl_size count;
+		Array<T> array;
+
+	public:
+		ArrayElements(Array<T>&& _array) noexcept: array(Move(_array))
+		{
+			data = array.getData();
+			count = array.getCount();
+		}
+
+		ArrayElements(const Array<T>& _array) noexcept: array(_array)
+		{
+			data = array.getData();
+			count = array.getCount();
+		}
+
+		ArrayElements(const AtomicArray<T>& _array) noexcept: array(_array)
+		{
+			data = array.getData();
+			count = array.getCount();
+		}
+
+		template <class LIST>
+		ArrayElements(LIST&& array, sl_size startIndex) noexcept: ListElements(Forward<LIST>(array))
+		{
+			if (startIndex >= count) {
+				data = sl_null;
+				count = 0;
+			} else {
+				data += startIndex;
+				count -= startIndex;
+			}
+		}
+
+		template <class LIST>
+		ArrayElements(LIST&& array, sl_size startIndex, sl_size _count) noexcept: ArrayElements(Forward<LIST>(array))
+		{
+			if (!_count || startIndex >= count) {
+				data = sl_null;
+				count = 0;
+			} else {
+				data += startIndex;
+				sl_size limit = count - startIndex;
+				if (_count <= limit) {
+					count = _count;
+				} else {
+					count = limit;
+				}
+			}
+		}
+
+	public:
+		T& operator[](sl_reg index) const noexcept
+		{
+			return data[index];
+		}
+
+		// range-based for loop
+		T* begin() const noexcept
+		{
+			return data;
+		}
+
+		T* end() const noexcept
+		{
+			return data + count;
+		}
+
+	};
+
 }
 
 #endif

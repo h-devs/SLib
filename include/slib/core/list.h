@@ -3105,10 +3105,10 @@ namespace slib
 			count = list.getCount();
 		}
 
-		ListElements(const CList<T>& _list) noexcept
+		ListElements(const CList<T>& list) noexcept
 		{
-			data = _list.getData();
-			count = _list.getCount();
+			data = list.getData();
+			count = list.getCount();
 		}
 
 		ListElements(const ListParam<T>& _list) noexcept: list(_list._getList())
@@ -3168,8 +3168,7 @@ namespace slib
 	enum class ListType : sl_reg
 	{
 		List_Ref = (sl_reg)-1,
-		List_NoRef = (sl_reg)-2,
-		CList = (sl_reg)-3
+		List_NoRef = (sl_reg)-2
 	};
 
 	template <class T>
@@ -3234,9 +3233,19 @@ namespace slib
 
 		ListParam(const CList<T>& list) noexcept
 		{
-			_count = (sl_reg)(ListType::CList);
-			_value = (void*)(&list);
+			_count = list.getCount() & SLIB_SIZE_MASK_NO_SIGN_BITS;
+			_value = list.getData();
 		}
+
+		ListParam(CList<T>&& list) = delete;
+
+		ListParam(const Array<T>& arr) noexcept
+		{
+			_count = arr.getCount() & SLIB_SIZE_MASK_NO_SIGN_BITS;
+			_value = arr.getData();
+		}
+
+		ListParam(Array<T>&& arr) = delete;
 
 		ListParam(const T* data, sl_size count) noexcept
 		{
@@ -3340,10 +3349,22 @@ namespace slib
 		ListParam& operator=(const CList<T>& list) noexcept
 		{
 			_free();
-			_count = (sl_reg)(ListType::CList);
-			_value = (void*)(&list);
+			_count = list.getCount() & SLIB_SIZE_MASK_NO_SIGN_BITS;
+			_value = list.getData();
 			return *this;
 		}
+
+		ListParam& operator=(CList<T>&& list) = delete;
+
+		ListParam& operator=(const Array<T>& arr) noexcept
+		{
+			_free();
+			_count = arr.getCount() & SLIB_SIZE_MASK_NO_SIGN_BITS;
+			_value = arr.getData();
+			return *this;
+		}
+
+		ListParam& operator=(Array<T>&& arr) = delete;
 
 		template <sl_size N>
 		ListParam& operator=(T(&data)[N]) noexcept
@@ -3424,8 +3445,6 @@ namespace slib
 		{
 			if (_count == (sl_reg)(ListType::List_Ref) || _count == (sl_reg)(ListType::List_NoRef)) {
 				return (CList<T>*)_value;
-			} else if (_count == (sl_reg)(ListType::CList)) {
-				return ((CList<T>*)_value)->duplicate();
 			} else {
 				return List<T>::create((T*)_value, _count);
 			}
