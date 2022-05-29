@@ -20,12 +20,19 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_GRAPHICS_TRUETYPE
-#define CHECKHEADER_SLIB_GRAPHICS_TRUETYPE
+#ifndef CHECKHEADER_SLIB_GRAPHICS_SFNT
+#define CHECKHEADER_SLIB_GRAPHICS_SFNT
 
 #include "definition.h"
 
 #include "../core/string.h"
+#include "../core/list.h"
+#include "../core/io.h"
+#include "../core/ptrx.h"
+
+/*
+	SFNT: Font file container for TrueType and OpenType font formats
+*/
 
 namespace slib
 {
@@ -134,10 +141,10 @@ namespace slib
 		Adobe_Latin1 = 3
 	};
 
-	class TrueType
+	class SFNT
 	{
 	public:
-		static List<String> getNames(const void* _content, sl_size size, TrueTypeNameId _id);
+		static List< List<String> > getFontFamilyNames(const Ptr<IReader, ISeekable>& reader);
 
 	};
 

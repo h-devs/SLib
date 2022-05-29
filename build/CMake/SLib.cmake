@@ -217,6 +217,7 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/image_stb.cpp"
  "${SLIB_PATH}/src/slib/graphics/jpeg.cpp"
  "${SLIB_PATH}/src/slib/graphics/pen.cpp"
+ "${SLIB_PATH}/src/slib/graphics/sfnt.cpp"
  "${SLIB_PATH}/src/slib/graphics/zxing.cpp"
 
  "${SLIB_PATH}/src/slib/render/opengl_gl.cpp"

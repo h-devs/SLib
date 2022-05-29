@@ -1418,5 +1418,8 @@
     <ClCompile Include="..\..\src\slib\graphics\freetype.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\sfnt.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

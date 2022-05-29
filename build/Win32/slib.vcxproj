@@ -253,6 +253,7 @@
     <ClCompile Include="..\..\src\slib\graphics\jpeg.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\pen.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\pen_gdi.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\sfnt.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\zxing.cpp" />
     <ClCompile Include="..\..\src\slib\math\bigint.cpp" />
     <ClCompile Include="..\..\src\slib\math\calculator.cpp" />
