@@ -105,7 +105,7 @@ namespace slib
 
 		static Ref<FreeType> loadFromMemory(const Memory& content, sl_int32 indexFace = 0);
 
-		static Ref<FreeType> loadSystemFont(const String& family, sl_bool flagBold, sl_bool flagItalic);
+		static Ref<FreeType> loadSystemFont(const String& family);
 
 	public:
 		FT_FaceRec_* getFaceHandle() noexcept
@@ -120,7 +120,7 @@ namespace slib
 
 		FreeTypeKind getKind();
 
-		const char* getFamily();
+		const char* getFamilyName();
 
 		sl_uint32 getGlyphsCount();
 

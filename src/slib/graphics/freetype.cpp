@@ -23,9 +23,11 @@
 #include "slib/graphics/freetype.h"
 
 #include "slib/graphics/image.h"
-#include "slib/graphics/truetype.h"
-#include "slib/core/log.h"
-#include "slib/core/file.h"
+#include "slib/graphics/sfnt.h"
+#include "slib/core/file_io.h"
+#include "slib/core/system.h"
+#include "slib/core/hash_map.h"
+#include "slib/core/safe_static.h"
 
 #include "freetype/ft2build.h"
 #include "freetype/freetype.h"
@@ -35,6 +37,8 @@
 #include "freetype/ttnameid.h"
 
 #define TO_REAL_POS(x) (((sl_real)(x)) / 64.0f)
+
+#define LIBRARY (((Library*)(m_lib.get()))->handle)
 
 namespace slib
 {
@@ -47,33 +51,207 @@ namespace slib
 			class Library : public Referable
 			{
 			public:
-				FT_Library m_library;
+				FT_Library handle;
 
-			public:
-				Library()
+			protected:
+				Library(): handle(sl_null)
 				{
-					FT_Error err = FT_Init_FreeType(&m_library);
-					if (err || !m_library) {
-						LogError("FreeType", "Failed to initialize FreeType");
-					}
 				}
 
 				~Library()
 				{
-					freeLibrary();
+					FT_Done_FreeType(handle);
 				}
 
 			public:
-				void freeLibrary()
+				static Ref<Library> create()
 				{
-					FT_Library library = m_library;
-					if (library) {
-						m_library = sl_null;
-						FT_Done_FreeType(library);
+					FT_Library lib;
+					FT_Error err = FT_Init_FreeType(&lib);
+					if (!err) {
+						Ref<Library> ret = new Library;
+						if (ret.isNotNull()) {
+							ret->handle = lib;
+							return ret;
+						}
+						FT_Done_FreeType(lib);
 					}
+					return sl_null;
 				}
 
 			};
+
+			static unsigned long ReadStreamCallback(FT_Stream stream, unsigned long offset, unsigned char* buffer, unsigned long count)
+			{
+				if (!count) {
+					return 0;
+				}
+				IBlockReader* reader = (IBlockReader*)(stream->descriptor.pointer);
+				sl_int32 n = reader->readAt32(offset, buffer, (sl_uint32)count);
+				if (n > 0) {
+					return n;
+				}
+				return 0;
+			}
+
+			static void CloseStreamCallback(FT_Stream stream)
+			{
+				delete stream;
+			}
+
+			static FT_Face OpenFace(FT_Library lib, IBlockReader* reader, sl_uint64 size,  sl_int32 index)
+			{
+				FT_Stream stream = new FT_StreamRec;
+				if (!stream) {
+					return sl_null;
+				}
+				Base::zeroMemory(stream, sizeof(FT_StreamRec));
+				stream->descriptor.pointer = reader;
+				stream->size = (unsigned long)size;
+				stream->read = &ReadStreamCallback;
+				stream->close = &CloseStreamCallback;
+
+				FT_Open_Args args;
+				Base::zeroMemory(&args, sizeof(args));
+				args.flags = FT_OPEN_STREAM;
+				args.stream = stream;
+				
+				FT_Face face;
+				FT_Error err = FT_Open_Face(lib, &args, (FT_Long)index, &face);
+				if (!err) {
+					return face;
+				}
+				return sl_null;
+			}
+
+			static sl_int32 GetFaceIndex(const FreeTypeLoadParam& param)
+			{
+				if (param.faceIndex < 0) {
+					return param.faceIndex;
+				}
+				if (param.namedInstanceIndex < 0) {
+					return -(param.faceIndex + 1);
+				}
+				return SLIB_MAKE_DWORD2(param.namedInstanceIndex, param.faceIndex);
+			}
+
+			class SystemLoader
+			{
+			private:
+				struct Registry
+				{
+					String path;
+					sl_uint32 faceIndex;
+					sl_uint32 namedInstanceIndex;
+				};
+
+				CHashMap< String, Registry, HashIgnoreCase<String>, CompareIgnoreCase<String> > registries;
+
+			public:
+				SystemLoader()
+				{
+					ListElements<String> listDir(System::getFontsDirectories());
+					if (!(listDir.count)) {
+						return;
+					}
+					Ref<Library> lib = Library::create();
+					if (lib.isNull()) {
+						return;
+					}
+					for (sl_size i = 0; i < listDir.count; i++) {
+						const String& dir = listDir[i];
+						ListElements<String> files(File::getFiles(dir));
+						for (sl_size k = 0; k < files.count; k++) {
+							loadFile(lib->handle, File::concatPath(dir, files[k]));
+						}
+					}
+				}
+
+			private:
+				void registerFont(const String& familyName, const String& path, sl_uint32 faceIndex, sl_uint32 instanceId)
+				{
+					Registry registry;
+					registry.path = path;
+					registry.faceIndex = faceIndex;
+					registry.namedInstanceIndex = instanceId;
+					registries.emplace_NoLock(familyName, Move(registry));
+				}
+
+				sl_bool loadFileBySFNT(const String& path, SeekableReader<File>* file)
+				{
+					ListElements< List<String> > faces(SFNT::getFontFamilyNames(file));
+					if (!(faces.count)) {
+						return sl_false;
+					}
+					for (sl_size i = 0; i < faces.count; i++) {
+						ListElements<String> names(faces[i]);
+						for (sl_size k = 0; k < names.count; k++) {
+							registerFont(names[k], path, (sl_uint32)i, 0);
+						}
+					}
+					return sl_true;
+				}
+
+				void loadFileByFreeType(FT_Library lib, const String& path, SeekableReader<File>* file, sl_uint64 size)
+				{
+					FT_Long nFaces = 0;
+					FT_Long nInstances = 0;
+					FT_Long faceId = 0;
+					FT_Long instanceId = 0;
+					for (;;) {
+						FT_Face face = OpenFace(lib, file, size, (instanceId << 16) | faceId);
+						if (face) {
+							String name(face->family_name);
+							if (name.isNotEmpty()) {
+								registerFont(name, path, faceId, instanceId);
+							}
+							nFaces = face->num_faces;
+							nInstances = face->style_flags >> 16;
+							FT_Done_Face(face);
+						}
+						instanceId++;
+						if (instanceId >= nInstances) {
+							faceId++;
+							if (faceId >= nFaces) {
+								return;
+							}
+							instanceId = 0;
+							nInstances = 0;
+						}
+					}
+				}
+
+				void loadFile(FT_Library lib, const String& path)
+				{
+					SeekableReader<File> file = File::openForRead(path);
+					sl_uint64 size = file.getSize();
+					if (!size) {
+						return;
+					}
+					if (loadFileBySFNT(path, &file)) {
+						return;
+					}
+					file.seekToBegin();
+					loadFileByFreeType(lib, path, &file, size);
+				}
+
+			public:
+				Ref<FreeType> open(const String& family)
+				{
+					Registry* reg = registries.getItemPointer(family);
+					if (reg) {
+						FreeTypeLoadParam param;
+						param.faceIndex = reg->faceIndex;
+						param.namedInstanceIndex = reg->namedInstanceIndex;
+						return FreeType::loadFromFile(reg->path, param);
+					}
+					return sl_null;
+				}
+
+			};
+
+			SLIB_SAFE_STATIC_GETTER(SystemLoader, GetSystemLoader)
+			
 
 			static FT_CharMap SelectCharmap(FT_Face face, FreeTypeKind kind, sl_bool flagSymbolic)
 			{
@@ -186,11 +364,17 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FreeTypeLoadParam)
+
+	FreeTypeLoadParam::FreeTypeLoadParam(): faceIndex(0), namedInstanceIndex(0)
+	{
+	}
+
+
 	SLIB_DEFINE_OBJECT(FreeType, Object)
 
-	FreeType::FreeType()
+	FreeType::FreeType(): m_face(sl_null)
 	{
-		m_face = sl_null;
 	}
 
 	FreeType::~FreeType()
@@ -198,37 +382,99 @@ namespace slib
 		FT_Done_Face(m_face);
 	}
 
-	Ref<FreeType> FreeType::loadFromMemory(const Memory& mem, sl_uint32 index)
+	Ref<FreeType> FreeType::_create(Referable* lib, FT_FaceRec_* face, Referable* source)
 	{
-		if (mem.isNotNull()) {
-			Ref<Library> libraryRef = new Library;
-			if (libraryRef.isNotNull()) {
-				FT_Library library = libraryRef->m_library;
-				if (library) {
-					FT_Error err;
-					FT_Face face;
-					err = FT_New_Memory_Face(library, (FT_Byte*)(mem.getData()), (FT_Long)(mem.getSize()), index, &face);
-					if (!err && face) {
-						Ref<FreeType> ret = new FreeType;
-						if (ret.isNotNull()) {
-							ret->m_libraryRef = libraryRef;
-							ret->m_library = library;
-							ret->m_face = face;
-							ret->m_mem = mem;
-							return ret;
-						}
-						FT_Done_Face(face);
-					}
+		Ref<FreeType> ret = new FreeType;
+		if (ret.isNotNull()) {
+			ret->m_lib = lib;
+			ret->m_face = face;
+			ret->m_source = source;
+			return ret;
+		}
+		FT_Done_Face(face);
+		return sl_null;
+	}
+
+	Ref<FreeType> FreeType::load(const Ptr<IBlockReader>& _reader, sl_uint64 size, const FreeTypeLoadParam& param)
+	{
+		Ptr<IBlockReader> reader = _reader.lock();
+		if (reader.isNotNull()) {
+			Ref<Library> lib = Library::create();
+			if (lib.isNotNull()) {
+				FT_Face face = OpenFace(lib->handle, reader.get(), size, GetFaceIndex(param));
+				if (face) {
+					return _create(lib.get(), face, reader.ref.get());
 				}
 			}
 		}
 		return sl_null;
 	}
 
-	Ref<FreeType> FreeType::loadFromFile(const String& fontFilePath, sl_uint32 index)
+	Ref<FreeType> FreeType::load(const Ptr<IBlockReader>& reader, sl_uint64 size, sl_int32 index)
 	{
-		Memory mem = File::readAllBytes(fontFilePath);
-		return loadFromMemory(mem, index);
+		FreeTypeLoadParam param;
+		param.faceIndex = index;
+		return load(reader, size, param);
+	}
+
+	Ref<FreeType> FreeType::loadFromFile(const StringParam& path, const FreeTypeLoadParam& param)
+	{
+		Ref<FileIO> file = FileIO::openForRead(path);
+		if (file.isNotNull()) {
+			sl_uint64 size = file->getSize();
+			if (size) {
+				return load(file, size, param);
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<FreeType> FreeType::loadFromFile(const StringParam& path, sl_int32 index)
+	{
+		FreeTypeLoadParam param;
+		param.faceIndex = index;
+		return loadFromFile(path, param);
+	}
+
+	Ref<FreeType> FreeType::loadFromMemory(const Memory& mem, const FreeTypeLoadParam& param)
+	{
+		if (mem.isNotNull()) {
+			Ref<Library> lib = Library::create();
+			if (lib.isNotNull()) {
+				FT_Face face;
+				FT_Error err = FT_New_Memory_Face(lib->handle, (FT_Byte*)(mem.getData()), (FT_Long)(mem.getSize()), GetFaceIndex(param), &face);
+				if (!err) {
+					return _create(lib.get(), face, mem.ref.get());
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<FreeType> FreeType::loadFromMemory(const Memory& mem, sl_int32 index)
+	{
+		FreeTypeLoadParam param;
+		param.faceIndex = index;
+		return loadFromMemory(mem, param);
+	}
+
+	Ref<FreeType> FreeType::loadSystemFont(const String& family)
+	{
+		SystemLoader* loader = GetSystemLoader();
+		if (loader) {
+			return loader->open(family);
+		}
+		return sl_null;
+	}
+
+	sl_uint32 FreeType::getFacesCount()
+	{
+		return (sl_uint32)(m_face->num_faces);
+	}
+
+	sl_uint32 FreeType::getNamedInstancesCount()
+	{
+		return (sl_uint32)(m_face->style_flags >> 16);
 	}
 
 	FreeTypeKind FreeType::getKind()
@@ -242,9 +488,9 @@ namespace slib
 		return FreeTypeKind::Unknown;
 	}
 
-	sl_uint32 FreeType::getFacesCount()
+	const char* FreeType::getFamilyName()
 	{
-		return (sl_uint32)(m_face->num_faces);
+		return m_face->family_name;
 	}
 
 	sl_uint32 FreeType::getGlyphsCount()
@@ -331,16 +577,6 @@ namespace slib
 	{
 		FT_Size_Metrics& m = m_face->size->metrics;
 		return TO_REAL_POS(m.height);
-	}
-
-	sl_bool FreeType::isBoldStyle()
-	{
-		return (m_face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
-	}
-
-	sl_bool FreeType::isItalicStyle()
-	{
-		return (m_face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 	}
 
 	Size FreeType::getCharExtent(sl_uint32 charcode)
@@ -534,7 +770,7 @@ namespace slib
 		ObjectLocker lock(this);
 		
 		FT_Stroker stroker = sl_null;
-		FT_Stroker_New(m_library, &stroker);
+		FT_Stroker_New(LIBRARY, &stroker);
 		if (!stroker) {
 			return;
 		}
