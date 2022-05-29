@@ -148,8 +148,10 @@
 #include "core/async_output.h"
 
 #include "core/file.h"
+#include "core/file_io.h"
 #include "core/file_util.h"
 #include "core/pipe.h"
+#include "core/pipe_stream.h"
 #include "core/pipe_event.h"
 #include "core/dispatch.h"
 #include "core/dispatch_loop.h"

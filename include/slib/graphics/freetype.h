@@ -28,9 +28,9 @@
 #include "../core/object.h"
 #include "../core/memory.h"
 #include "../core/string.h"
+#include "../core/ptr.h"
 #include "../math/size.h"
 
-struct FT_LibraryRec_;
 struct FT_FaceRec_;
 
 namespace slib
@@ -43,16 +43,9 @@ namespace slib
 		TrueType = 2
 	};
 	
+	class IBlockReader;
 	class Image;
 	class GraphicsPath;
-
-	namespace priv
-	{
-		namespace freetype
-		{
-			class Library;
-		}
-	}
 
 	class SLIB_EXPORT FreeTypeGlyph : public Referable
 	{
@@ -74,6 +67,22 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT FreeTypeLoadParam
+	{
+	public:
+		// Negative value for loading only faces count and style flags
+		sl_int32 faceIndex;
+
+		// Negative value for loading only named instance count
+		sl_int32 namedInstanceIndex;
+
+	public:
+		FreeTypeLoadParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FreeTypeLoadParam)
+
+	};
+
 	class SLIB_EXPORT FreeType : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -84,9 +93,19 @@ namespace slib
 		~FreeType();
 
 	public:
-		static Ref<FreeType> loadFromMemory(const Memory& mem, sl_uint32 indexFace = 0);
+		static Ref<FreeType> load(const Ptr<IBlockReader>& reader, sl_uint64 size, const FreeTypeLoadParam& param);
 
-		static Ref<FreeType> loadFromFile(const String& fontFilePath, sl_uint32 index = 0);
+		static Ref<FreeType> load(const Ptr<IBlockReader>& reader, sl_uint64 size, sl_int32 indexFace = 0);
+
+		static Ref<FreeType> loadFromFile(const StringParam& path, const FreeTypeLoadParam& param);
+
+		static Ref<FreeType> loadFromFile(const StringParam& path, sl_int32 indexFace = 0);
+
+		static Ref<FreeType> loadFromMemory(const Memory& content, const FreeTypeLoadParam& param);
+
+		static Ref<FreeType> loadFromMemory(const Memory& content, sl_int32 indexFace = 0);
+
+		static Ref<FreeType> loadSystemFont(const String& family, sl_bool flagBold, sl_bool flagItalic);
 
 	public:
 		FT_FaceRec_* getFaceHandle() noexcept
@@ -95,9 +114,13 @@ namespace slib
 		}
 
 	public:
+		sl_uint32 getFacesCount();
+
+		sl_uint32 getNamedInstancesCount();
+
 		FreeTypeKind getKind();
 
-		sl_uint32 getFacesCount();
+		const char* getFamily();
 
 		sl_uint32 getGlyphsCount();
 
@@ -119,10 +142,6 @@ namespace slib
 
 		sl_real getFontHeight();
 
-		sl_bool isBoldStyle();
-
-		sl_bool isItalicStyle();
-
 		Size getCharExtent(sl_uint32 charcode);
 
 		Size getGlyphExtent(sl_uint32 glyphId);
@@ -143,15 +162,16 @@ namespace slib
 		Ref<FreeTypeGlyph> getGlyph(sl_uint32 glyphId);
 
 	protected:
+		static Ref<FreeType> _create(Referable* lib, FT_FaceRec_* face, Referable* source);
+
 		void _strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const sl_char32* str, sl_uint32 len, sl_bool flagBorder, sl_bool flagOutside, sl_uint32 radius, const Color& color);
 
 		Ref<FreeTypeGlyph> _getGlyph(sl_uint32 glyphId);
 
 	protected:
-		Ref<priv::freetype::Library> m_libraryRef;
-		FT_LibraryRec_* m_library;
+		Ref<Referable> m_lib;
 		FT_FaceRec_* m_face;
-		Memory m_mem;
+		Ref<Referable> m_source;
 
 	};
 

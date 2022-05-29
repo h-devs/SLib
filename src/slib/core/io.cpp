@@ -146,7 +146,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_ISIZE_MEMBERS(ISize,)
+	SLIB_DEFINE_ISIZE_MEMBERS(ISizeProvider,)
 
 
 	SLIB_DEFINE_ISEEKABLE_MEMBERS(ISeekable,)
@@ -160,6 +160,9 @@ namespace slib
 		}
 		return sl_false;
 	}
+
+
+	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(SeekableReaderBase,)
 
 
 	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(IOBase,)

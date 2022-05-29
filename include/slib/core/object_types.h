@@ -76,6 +76,8 @@ namespace slib
 			ThreadPool,
 			Process,
 			Logger,
+			FileIO,
+			PipeStream,
 			XmlNode,
 			XmlNodeGroup,
 			XmlElement,

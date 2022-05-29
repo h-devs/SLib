@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,15 @@
 #ifndef CHECKHEADER_SLIB_CORE_IO
 #define CHECKHEADER_SLIB_CORE_IO
 
+#include "wrapper.h"
+
 #include "io/def.h"
+
+#define PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(CLASS) \
+	public: \
+		SLIB_DEFINE_WRAPPER_DEFAULT_MEMBERS_INLINE(CLASS, T, base) \
+		CLASS() {} \
+		SLIB_CONSTEXPR sl_bool isOpened() { return base ? sl_true : sl_false; }
 
 namespace slib
 {
@@ -41,8 +49,7 @@ namespace slib
 		SLIB_DECLARE_IREADER_MEMBERS()
 		
 	};
-	
-	
+
 	class SLIB_EXPORT IWriter
 	{
 	public:
@@ -83,7 +90,8 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ISize
+
+	class SLIB_EXPORT ISizeProvider
 	{
 	public:
 		virtual sl_bool getSize(sl_uint64& outSize) = 0;
@@ -99,7 +107,7 @@ namespace slib
 		virtual sl_bool setSize(sl_uint64 size) = 0;
 	};
 
-	class SLIB_EXPORT ISeekable : public ISize
+	class SLIB_EXPORT ISeekable : public ISizeProvider
 	{
 	public:
 		virtual sl_bool getPosition(sl_uint64& outPos) = 0;
@@ -123,73 +131,179 @@ namespace slib
 	{
 	};
 
+
 	template <class T>
-	class SLIB_EXPORT Stream : public IStream
+	class SLIB_EXPORT Reader : public IReader, public IClosable
 	{
-	public:
-		Stream() noexcept {}
-
-		Stream(const Stream& other) = default;
-
-		Stream(Stream&& other) = default;
-
-		Stream(const T& t) noexcept: m_base(t) {}
-
-		Stream(T&& t) noexcept: m_base(Move(t)) {}
+		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(Reader)
 
 	public:
-		Stream& operator=(const Stream& other) = default;
-
-		Stream& operator=(Stream&& other) = default;
-
-		Stream& operator=(const T& t) noexcept
-		{
-			m_base = t;
-			return *this;
-		}
-
-		Stream& operator=(T&& t) noexcept
-		{
-			m_base = Move(t);
-			return *this;
-		}
-
-	public:
-		sl_bool isOpened() const noexcept
-		{
-			return m_base ? sl_true : sl_false;
-		}
-
 		sl_reg read(void* buf, sl_size size) override
 		{
-			return (*m_base).read(buf, size);
+			return (*base).read(buf, size);
 		}
 
 		sl_bool waitRead(sl_int32 timeout = -1) override
 		{
-			return (*m_base).waitRead(timeout);
-		}
-
-		sl_reg write(const void* buf, sl_size size) override
-		{
-			return (*m_base).write(buf, size);
-		}
-
-		sl_bool waitWrite(sl_int32 timeout = -1) override
-		{
-			return (*m_base).waitWrite(timeout);
+			return (*base).waitRead(timeout);
 		}
 
 		void close() override
 		{
-			return (*m_base).close();
+			return (*base).close();
 		}
 
-	private:
-		T m_base;
+	};
+
+	template <class T>
+	class SLIB_EXPORT Writer : public IWriter, public IClosable
+	{
+		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(Writer)
+
+	public:
+		sl_reg write(const void* buf, sl_size size) override
+		{
+			return (*base).write(buf, size);
+		}
+
+		sl_bool waitWrite(sl_int32 timeout = -1) override
+		{
+			return (*base).waitWrite(timeout);
+		}
+
+		void close() override
+		{
+			return (*base).close();
+		}
 
 	};
+
+	template <class T>
+	class SLIB_EXPORT BlockReader : public IBlockReader, public IClosable
+	{
+		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(BlockReader)
+
+	public:
+		sl_reg readAt(sl_uint64 offset, void* buf, sl_size size) override
+		{
+			return (*base).readAt(offset, buf, size);
+		}
+
+		sl_bool waitRead(sl_int32 timeout = -1) override
+		{
+			return (*base).waitRead(timeout);
+		}
+
+		void close() override
+		{
+			return (*base).close();
+		}
+
+	};
+
+	template <class T>
+	class SLIB_EXPORT BlockWriter : public IBlockWriter, public IClosable
+	{
+		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(BlockWriter)
+
+	public:
+		sl_reg writeAt(sl_uint64 offset, void* buf, sl_size size) override
+		{
+			return (*base).writeAt(offset, buf, size);
+		}
+
+		sl_bool waitWrite(sl_int32 timeout = -1) override
+		{
+			return (*base).waitWrite(timeout);
+		}
+
+		void close() override
+		{
+			return (*base).close();
+		}
+
+	};
+
+	template <class T>
+	class SLIB_EXPORT Stream : public IStream
+	{
+		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(Stream)
+
+	public:
+		sl_reg read(void* buf, sl_size size) override
+		{
+			return (*base).read(buf, size);
+		}
+
+		sl_bool waitRead(sl_int32 timeout = -1) override
+		{
+			return (*base).waitRead(timeout);
+		}
+
+		sl_reg write(const void* buf, sl_size size) override
+		{
+			return (*base).write(buf, size);
+		}
+
+		sl_bool waitWrite(sl_int32 timeout = -1) override
+		{
+			return (*base).waitWrite(timeout);
+		}
+
+		void close() override
+		{
+			return (*base).close();
+		}
+
+	};
+
+	class SLIB_EXPORT SeekableReaderBase : public IReader, public IBlockReader, public ISeekable, public IClosable
+	{
+	public:
+		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(, override)
+	};
 	
+	template <class T>
+	class SLIB_EXPORT SeekableReader : public SeekableReaderBase
+	{
+		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(SeekableReader)
+
+	public:
+		sl_reg read(void* buf, sl_size size) override
+		{
+			return (*base).read(buf, size);
+		}
+
+		sl_bool waitRead(sl_int32 timeout = -1) override
+		{
+			return (*base).waitRead(timeout);
+		}
+
+		void close() override
+		{
+			return (*base).close();
+		}
+
+		using ISizeProvider::getSize;
+		sl_bool getSize(sl_uint64& outSize) override
+		{
+			return (*base).getSize(outSize);
+		}
+
+		using ISeekable::getPosition;
+		sl_bool getPosition(sl_uint64& outPos) override
+		{
+			return (*base).getPosition(outPos);
+		}
+
+		using ISeekable::seek;
+		sl_bool seek(sl_int64 offset, SeekPosition pos) override
+		{
+			return (*base).seek(offset, pos);
+		}
+
+	};
+
 	class SLIB_EXPORT IOBase : public IStream, public IBlockReader, public IBlockWriter, public ISeekable, public IResizable
 	{
 	public:
@@ -200,96 +314,56 @@ namespace slib
 	template <class T>
 	class SLIB_EXPORT IO : public IOBase
 	{
-	public:
-		IO() noexcept {}
-
-		IO(const IO& other) = default;
-
-		IO(IO&& other) = default;
-
-		IO(const T& t) noexcept: m_base(t) {}
-
-		IO(T&& t) noexcept: m_base(Move(t)) {}
+		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(IO)
 
 	public:
-		IO & operator=(const IO& other) = default;
-
-		IO& operator=(IO&& other) = default;
-
-		IO& operator=(const T& t) noexcept
-		{
-			m_base = t;
-			return *this;
-		}
-
-		IO& operator=(T&& t) noexcept
-		{
-			m_base = Move(t);
-			return *this;
-		}
-
-	public:
-		sl_bool isOpened() const noexcept
-		{
-			return m_base ? sl_true : sl_false;
-		}
-
 		sl_reg read(void* buf, sl_size size) override
 		{
-			return (*m_base).read(buf, size);
+			return (*base).read(buf, size);
 		}
 
 		sl_bool waitRead(sl_int32 timeout = -1) override
 		{
-			return (*m_base).waitRead(timeout);
+			return (*base).waitRead(timeout);
 		}
 
 		sl_reg write(const void* buf, sl_size size) override
 		{
-			return (*m_base).write(buf, size);
+			return (*base).write(buf, size);
 		}
 
 		sl_bool waitWrite(sl_int32 timeout = -1) override
 		{
-			return (*m_base).waitWrite(timeout);
+			return (*base).waitWrite(timeout);
 		}
 
 		void close() override
 		{
-			return (*m_base).close();
+			return (*base).close();
 		}
 
-		using ISize::getSize;
+		using ISizeProvider::getSize;
 		sl_bool getSize(sl_uint64& outSize) override
 		{
-			return (*m_base).getSize(outSize);
+			return (*base).getSize(outSize);
 		}
 
 		using ISeekable::getPosition;
 		sl_bool getPosition(sl_uint64& outPos) override
 		{
-			return (*m_base).getPosition(outPos);
+			return (*base).getPosition(outPos);
 		}
 
 		using ISeekable::seek;
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override
 		{
-			return (*m_base).seek(offset, pos);
-		}
-
-		using ISeekable::isEnd;
-		sl_bool isEnd(sl_bool& outFlag) override
-		{
-			return (*m_base).isEnd(outFlag);
+			return (*base).seek(offset, pos);
 		}
 
 		sl_bool setSize(sl_uint64 size) override
 		{
-			return (*m_base).setSize(size);
+			return (*base).setSize(size);
 		}
-
-	private:
-		T m_base;
 
 	};
 	

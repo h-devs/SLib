@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/core/pipe.h"
+#include "slib/core/pipe_stream.h"
 #include "slib/core/pipe_event.h"
 
 #include "slib/core/file.h"
@@ -174,6 +175,30 @@ namespace slib
 	void Pipe::close() noexcept
 	{
 		setNone();
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(PipeStream)
+
+	PipeStream::PipeStream(Pipe&& handle): Stream(Move(handle))
+	{
+	}
+
+	PipeStream::~PipeStream()
+	{
+	}
+
+	Ref<PipeStream> PipeStream::create() noexcept
+	{
+		return create(Pipe::create());
+	}
+
+	Ref<PipeStream> PipeStream::create(Pipe&& handle) noexcept
+	{
+		if (handle.isOpened()) {
+			return new PipeStream(Move(handle));
+		}
+		return sl_null;
 	}
 
 

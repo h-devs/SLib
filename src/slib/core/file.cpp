@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  */
 
 #include "slib/core/file.h"
+#include "slib/core/file_io.h"
 #include "slib/core/file_util.h"
 
 #include "slib/core/string_buffer.h"
@@ -806,6 +807,148 @@ namespace slib
 			segments.segments.popBack();
 		}
 		return sl_null;
+	}
+
+
+	SLIB_DEFINE_ROOT_OBJECT(FileIO)
+
+	FileIO::FileIO(File&& handle): IO(Move(handle))
+	{
+	}
+
+	FileIO::~FileIO()
+	{
+	}
+
+	Ref<FileIO> FileIO::create(File&& handle) noexcept
+	{
+		if (handle.isOpened()) {
+			return new FileIO(Move(handle));
+		}
+		return sl_null;
+	}
+
+#define DEFINE_FILEIO_OPEN_FUNC(FUNC, ...) \
+		return create(File::FUNC(__VA_ARGS__));
+
+	Ref<FileIO> FileIO::open(const StringParam& filePath, const FileOpenParam& param) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(open, filePath, param)
+	}
+
+	Ref<FileIO> FileIO::open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(open, filePath, mode, attrs)
+	}
+
+	Ref<FileIO> FileIO::open(const StringParam& filePath, const FileMode& mode) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(open, filePath, mode)
+	}
+
+	Ref<FileIO> FileIO::openForRead(const StringParam& filePath) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openForRead, filePath)
+	}
+
+	Ref<FileIO> FileIO::openForWrite(const StringParam& filePath) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openForWrite, filePath)
+	}
+
+	Ref<FileIO> FileIO::openForReadWrite(const StringParam& filePath) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openForReadWrite, filePath)
+	}
+
+	Ref<FileIO> FileIO::openForAppend(const StringParam& filePath) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openForAppend, filePath)
+	}
+
+	Ref<FileIO> FileIO::openForRandomAccess(const StringParam& filePath) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openForRandomAccess, filePath)
+	}
+
+	Ref<FileIO> FileIO::openForRandomRead(const StringParam& filePath) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openForRandomRead, filePath)
+	}
+
+	Ref<FileIO> FileIO::openDevice(const StringParam& path, const FileMode& mode) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openDevice, path, mode)
+	}
+
+	Ref<FileIO> FileIO::openDeviceForRead(const StringParam& path) noexcept
+	{
+		DEFINE_FILEIO_OPEN_FUNC(openDeviceForRead, path)
+	}
+
+	sl_bool FileIO::lock(sl_uint64 offset, sl_uint64 length, sl_bool flagShared, sl_bool flagWait) const noexcept
+	{
+		return base.lock(offset, length, flagShared, flagWait);
+	}
+
+	sl_bool FileIO::unlock(sl_uint64 offset, sl_uint64 length) const noexcept
+	{
+		return base.unlock(offset, length);
+	}
+
+	sl_bool FileIO::flush() const noexcept
+	{
+		return base.flush();
+	}
+
+	sl_bool FileIO::setNonBlocking(sl_bool flag) const noexcept
+	{
+		return base.setNonBlocking(flag);
+	}
+
+	sl_bool FileIO::getDiskSize(sl_uint64& outSize) const noexcept
+	{
+		return base.getDiskSize(outSize);
+	}
+
+	sl_uint64 FileIO::getDiskSize() const noexcept
+	{
+		return base.getDiskSize();
+	}
+
+	Time FileIO::getModifiedTime() const noexcept
+	{
+		return base.getModifiedTime();
+	}
+
+	Time FileIO::getAccessedTime() const noexcept
+	{
+		return base.getAccessedTime();
+	}
+
+	Time FileIO::getCreatedTime() const noexcept
+	{
+		return base.getCreatedTime();
+	}
+
+	sl_bool FileIO::setModifiedTime(const Time& time) const noexcept
+	{
+		return base.setModifiedTime(time);
+	}
+
+	sl_bool FileIO::setAccessedTime(const Time& time) const noexcept
+	{
+		return base.setAccessedTime(time);
+	}
+
+	sl_bool FileIO::setCreatedTime(const Time& time) const noexcept
+	{
+		return base.setCreatedTime(time);
+	}
+
+	FileAttributes FileIO::getAttributes() const noexcept
+	{
+		return base.getAttributes();
 	}
 
 

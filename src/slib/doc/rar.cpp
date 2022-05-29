@@ -790,7 +790,7 @@ namespace slib
 
 	sl_uint32 RarFile::getFileVersion(const StringParam& path)
 	{
-		IO<File> file = File::openForRead(path);
+		SeekableReader<File> file = File::openForRead(path);
 		if (file.isOpened()) {
 			return getVersion(&file);
 		}
@@ -810,7 +810,7 @@ namespace slib
 
 	List<String> RarFile::getFileNamesInFile(const StringParam& path)
 	{
-		IO<File> file = File::openForRead(path);
+		SeekableReader<File> file = File::openForRead(path);
 		if (file.isOpened()) {
 			return getFileNames(&file);
 		}
@@ -834,7 +834,7 @@ namespace slib
 
 	sl_bool RarFile::isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount)
 	{
-		IO<File> file = File::openForRead(path);
+		SeekableReader<File> file = File::openForRead(path);
 		if (file.isOpened()) {
 			return isEncrypted(&file, maxCheckFileCount);
 		}
