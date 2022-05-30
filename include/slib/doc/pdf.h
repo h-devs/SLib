@@ -173,6 +173,8 @@ namespace slib
 		ASCIIHex = 1,
 		ASCII85 = 2,
 		Flate = 0x100,
+		LZW = 0x101,
+		RunLength = 0x102,
 		DCT = 0x200,
 		CCITTFax = 0x201
 	};

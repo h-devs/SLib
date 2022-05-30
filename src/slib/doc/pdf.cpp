@@ -31,6 +31,7 @@
 #include "slib/core/queue.h"
 #include "slib/core/safe_static.h"
 #include "slib/crypto/zlib.h"
+#include "slib/crypto/lzw.h"
 #include "slib/crypto/md5.h"
 #include "slib/crypto/rc4.h"
 #include "slib/graphics/freetype.h"
@@ -3385,10 +3386,21 @@ namespace slib
 				return ret.sub(0, cur - dst);
 			}
 
+			static Memory CreateMemoryFromList(CList<sl_uint8>* pList)
+			{
+				sl_size n = pList->getCount();
+				if (!n) {
+					return sl_null;
+				}
+				pList->setCapacity_NoLock(n);
+				return Memory::createStatic(pList->getData(), pList->getCount(), pList);
+			}
+
 			static Memory DecodeASCII85(const void* _input, sl_size len)
 			{
-				CList<sl_uint8> list;
-				if (!(list.setCapacity(((len + 4) / 5) << 2))) {
+				List<sl_uint8> list = List<sl_uint8>::create(0, ((len + 4) / 5) << 2);
+				CList<sl_uint8>* pList = list.ref.get();
+				if (!pList) {
 					return sl_null;
 				}
 				sl_char8* str = (sl_char8*)_input;
@@ -3400,7 +3412,7 @@ namespace slib
 						if (indexElement) {
 							return sl_null;
 						} else {
-							list.addElements_NoLock(4, 0);
+							pList->addElements_NoLock(4, 0);
 						}
 					} else {
 						if (v >= '!' && v <= 'u') {
@@ -3410,7 +3422,7 @@ namespace slib
 							if (indexElement >= 5) {
 								sl_uint8 bytes[4];
 								MIO::writeUint32BE(bytes, dword);
-								list.addElements_NoLock(bytes, 4);
+								pList->addElements_NoLock(bytes, 4);
 								indexElement = 0;
 								dword = 0;
 							}
@@ -3426,9 +3438,9 @@ namespace slib
 										}
 										sl_uint8 bytes[4];
 										MIO::writeUint32BE(bytes, dword);
-										list.addElements_NoLock(bytes, indexElement - 1);
+										pList->addElements_NoLock(bytes, indexElement - 1);
 									}
-									return Memory::create(list.getData(), list.getCount());
+									return CreateMemoryFromList(pList);
 								}
 							}
 							return sl_null;
@@ -3440,6 +3452,52 @@ namespace slib
 				return sl_null;
 			}
 
+			static Memory DecodeRunLength(const void* _input, sl_size size)
+			{
+				if (!size) {
+					return sl_null;
+				}
+				List<sl_uint8> list = List<sl_uint8>::create();
+				CList<sl_uint8>* pList = list.ref.get();
+				if (!pList) {
+					return sl_null;
+				}
+				sl_uint8* input = (sl_uint8*)_input;
+				sl_size pos = 0;
+				for (;;) {
+					sl_uint8 len = input[pos];
+					if (len == 0x80) {
+						break;
+					}
+					if (len & 0x80) {
+						pos++;
+						if (pos >= size) {
+							return sl_null;
+						}
+						sl_uint8 v = input[pos];
+						len = 257 - len;
+						if (!(pList->addElements_NoLock(len, v))) {
+							return sl_null;
+						}
+						pos += len;
+					} else {
+						pos++;
+						len++;
+						if (pos + len > size) {
+							return sl_null;
+						}
+						if (!(pList->addElements_NoLock(input + pos, len))) {
+							return sl_null;
+						}
+						pos += len;
+					}
+					if (pos >= size) {
+						break;
+					}
+				}
+				return CreateMemoryFromList(pList);
+			}
+
 			static Memory ApplyFilter(const Memory& input, PdfFilter filter)
 			{
 				switch (filter) {
@@ -3449,6 +3507,10 @@ namespace slib
 						return DecodeASCII85(input.getData(), input.getSize());
 					case PdfFilter::Flate:
 						return Zlib::decompress(input.getData(), input.getSize());
+					case PdfFilter::LZW:
+						return LZW::decompress(input.getData(), input.getSize());
+					case PdfFilter::RunLength:
+						return DecodeRunLength(input.getData(), input.getSize());
 					case PdfFilter::DCT:
 					case PdfFilter::CCITTFax:
 						return input;
@@ -6048,14 +6110,18 @@ namespace slib
 
 	PdfFilter Pdf::getFilter(const StringView& name) noexcept
 	{
-		if (name == StringView::literal("ASCIIHexDecode") || name == StringView::literal("AHx")) {
-			return PdfFilter::ASCIIHex;
-		} else if (name == StringView::literal("ASCII85Decode") || name == StringView::literal("A85")) {
-			return PdfFilter::ASCII85;
-		} else if (name == StringView::literal("FlateDecode") || name == StringView::literal("Fl")) {
+		if (name == StringView::literal("FlateDecode") || name == StringView::literal("Fl")) {
 			return PdfFilter::Flate;
 		} else if (name == StringView::literal("DCTDecode") || name == StringView::literal("DCT")) {
 			return PdfFilter::DCT;
+		} else if (name == StringView::literal("LZWDecode") || name == StringView::literal("LZW")) {
+			return PdfFilter::LZW;
+		} else if (name == StringView::literal("RunLengthDecode") || name == StringView::literal("RL")) {
+			return PdfFilter::RunLength;
+		} else if (name == StringView::literal("ASCIIHexDecode") || name == StringView::literal("AHx")) {
+			return PdfFilter::ASCIIHex;
+		} else if (name == StringView::literal("ASCII85Decode") || name == StringView::literal("A85")) {
+			return PdfFilter::ASCII85;
 		} else if (name == StringView::literal("CCITTFaxDecode") || name == StringView::literal("CCF")) {
 			return PdfFilter::CCITTFax;;
 		} else {
