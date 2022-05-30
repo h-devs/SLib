@@ -19,7 +19,7 @@
 #ifndef SVFNTFMT_H_
 #define SVFNTFMT_H_
 
-#include FT_INTERNAL_SERVICE_H
+#include "../ftserv.h"
 
 
 FT_BEGIN_HEADER

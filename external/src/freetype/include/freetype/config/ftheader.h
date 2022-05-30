@@ -78,9 +78,9 @@
   /*    statements as in:                                                  */
   /*                                                                       */
   /*    {                                                                  */
-  /*      #include FT_FREETYPE_H                                           */
+  /*      #include "freetype.h"                                           */
   /*      #include FT_MULTIPLE_MASTERS_H                                   */
-  /*      #include FT_GLYPH_H                                              */
+  /*      #include "ftglyph.h"                                              */
   /*    }                                                                  */
   /*                                                                       */
   /*    There are several reasons why we are now using macros to name      */

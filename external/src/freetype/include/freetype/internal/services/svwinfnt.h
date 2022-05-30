@@ -19,8 +19,8 @@
 #ifndef SVWINFNT_H_
 #define SVWINFNT_H_
 
-#include FT_INTERNAL_SERVICE_H
-#include FT_WINFONTS_H
+#include "../ftserv.h"
+#include "../../ftwinfnt.h"
 
 
 FT_BEGIN_HEADER

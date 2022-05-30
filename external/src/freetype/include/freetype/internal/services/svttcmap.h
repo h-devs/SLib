@@ -22,8 +22,8 @@
 #ifndef SVTTCMAP_H_
 #define SVTTCMAP_H_
 
-#include FT_INTERNAL_SERVICE_H
-#include FT_TRUETYPE_TABLES_H
+#include "../ftserv.h"
+#include "../../tttables.h"
 
 
 FT_BEGIN_HEADER

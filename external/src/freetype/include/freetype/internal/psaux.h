@@ -22,13 +22,13 @@
 
 
 #include "../../ft2build.h"
-#include FT_INTERNAL_OBJECTS_H
-#include FT_INTERNAL_TYPE1_TYPES_H
-#include FT_INTERNAL_HASH_H
-#include FT_INTERNAL_TRUETYPE_TYPES_H
-#include FT_SERVICE_POSTSCRIPT_CMAPS_H
-#include FT_INTERNAL_CFF_TYPES_H
-#include FT_INTERNAL_CFF_OBJECTS_TYPES_H
+#include "ftobjs.h"
+#include "t1types.h"
+#include "fthash.h"
+#include "tttypes.h"
+#include "services/svpscmap.h"
+#include "cfftypes.h"
+#include "cffotypes.h"
 
 
 

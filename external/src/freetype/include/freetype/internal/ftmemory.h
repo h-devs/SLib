@@ -21,8 +21,8 @@
 
 
 #include "../../ft2build.h"
-#include FT_CONFIG_CONFIG_H
-#include FT_TYPES_H
+#include "../config/ftconfig.h"
+#include "../fttypes.h"
 
 
 FT_BEGIN_HEADER

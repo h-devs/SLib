@@ -27,19 +27,19 @@
 #define FTOBJS_H_
 
 #include "../../ft2build.h"
-#include FT_RENDER_H
-#include FT_SIZES_H
-#include FT_LCD_FILTER_H
-#include FT_INTERNAL_MEMORY_H
-#include FT_INTERNAL_GLYPH_LOADER_H
-#include FT_INTERNAL_DRIVER_H
-#include FT_INTERNAL_AUTOHINT_H
-#include FT_INTERNAL_SERVICE_H
-#include FT_INTERNAL_PIC_H
-#include FT_INTERNAL_CALC_H
+#include "../ftrender.h"
+#include "../ftsizes.h"
+#include "../ftlcdfil.h"
+#include "ftmemory.h"
+#include "ftgloadr.h"
+#include "ftdrv.h"
+#include "autohint.h"
+#include "ftserv.h"
+#include "ftpic.h"
+#include "ftcalc.h"
 
 #ifdef FT_CONFIG_OPTION_INCREMENTAL
-#include FT_INCREMENTAL_H
+#include "../ftincrem.h"
 #endif
 
 

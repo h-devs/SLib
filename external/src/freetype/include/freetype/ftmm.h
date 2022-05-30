@@ -21,7 +21,7 @@
 
 
 #include "../ft2build.h"
-#include FT_TYPE1_TABLES_H
+#include "t1tables.h"
 
 
 FT_BEGIN_HEADER
