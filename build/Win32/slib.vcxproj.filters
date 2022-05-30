@@ -1421,5 +1421,8 @@
     <ClCompile Include="..\..\src\slib\graphics\sfnt.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\lzw.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

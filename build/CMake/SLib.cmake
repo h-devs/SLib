@@ -105,6 +105,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/gcm.cpp"
  "${SLIB_PATH}/src/slib/crypto/jwt.cpp"
  "${SLIB_PATH}/src/slib/crypto/jwt_openssl.cpp"
+ "${SLIB_PATH}/src/slib/crypto/lzw.cpp"
  "${SLIB_PATH}/src/slib/crypto/md5.cpp"
  "${SLIB_PATH}/src/slib/crypto/openssl.cpp"
  "${SLIB_PATH}/src/slib/crypto/openssl_crypto.cpp"
