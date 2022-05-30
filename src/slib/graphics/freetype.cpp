@@ -99,7 +99,7 @@ namespace slib
 				delete stream;
 			}
 
-			static FT_Face OpenFace(FT_Library lib, IBlockReader* reader, sl_uint64 size,  sl_int32 index)
+			static FT_Face OpenFace(FT_Library lib, IBlockReader* reader, sl_uint64 size,  FT_Long index)
 			{
 				FT_Stream stream = new FT_StreamRec;
 				if (!stream) {
@@ -117,7 +117,7 @@ namespace slib
 				args.stream = stream;
 				
 				FT_Face face;
-				FT_Error err = FT_Open_Face(lib, &args, (FT_Long)index, &face);
+				FT_Error err = FT_Open_Face(lib, &args, index, &face);
 				if (!err) {
 					return face;
 				}
@@ -208,7 +208,7 @@ namespace slib
 							if (name.isNotEmpty()) {
 								sl_bool flagBold = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
 								sl_bool flagItalic = (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
-								registerFont(name, path, faceId, flagBold, flagItalic);
+								registerFont(name, path, (sl_uint32)faceId, flagBold, flagItalic);
 							}
 							nFaces = face->num_faces;
 							FT_Done_Face(face);

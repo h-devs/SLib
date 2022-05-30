@@ -14,6 +14,9 @@
 		18A341EC27357774001F7E4F /* asn1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341EB27357774001F7E4F /* asn1.cpp */; };
 		18A341EE273577B4001F7E4F /* async_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341ED273577B4001F7E4F /* async_unix.cpp */; };
 		18A341F0273577DC001F7E4F /* data_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341EF273577DC001F7E4F /* data_store.cpp */; };
+		18FF0E0D28444F5900FC8F75 /* freetype_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0C28444F5900FC8F75 /* freetype_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
+		18FF0E0F28444FAB00FC8F75 /* sfnt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */; };
+		18FF0E1128444FDD00FC8F75 /* pdf_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */; };
 		26072FFE20D97B66004EB272 /* url_request_curl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26072FFD20D97B66004EB272 /* url_request_curl.cpp */; };
 		2607300E20DCE368004EB272 /* rw_lock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2607300D20DCE367004EB272 /* rw_lock.cpp */; };
 		260B73F5220D7DF600858EEA /* facebook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 260B73F3220D7DF600858EEA /* facebook.cpp */; };
@@ -488,6 +491,9 @@
 		18A341EB27357774001F7E4F /* asn1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asn1.cpp; sourceTree = "<group>"; };
 		18A341ED273577B4001F7E4F /* async_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = async_unix.cpp; sourceTree = "<group>"; };
 		18A341EF273577DC001F7E4F /* data_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = data_store.cpp; sourceTree = "<group>"; };
+		18FF0E0C28444F5900FC8F75 /* freetype_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = freetype_unity.c; path = ../../external/src/freetype/freetype_unity.c; sourceTree = "<group>"; };
+		18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sfnt.cpp; sourceTree = "<group>"; };
+		18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pdf_view.cpp; sourceTree = "<group>"; };
 		260272E51C81877F0079E2F2 /* asset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asset.cpp; sourceTree = "<group>"; };
 		26072FFD20D97B66004EB272 /* url_request_curl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = url_request_curl.cpp; sourceTree = "<group>"; };
 		2607300220D985BF004EB272 /* url_request_common.inc */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.h; path = url_request_common.inc; sourceTree = "<group>"; };
@@ -1042,6 +1048,7 @@
 				D7BF60B726311EA200E0B3DD /* libpng_unity.c */,
 				D7BF60C526311EBF00E0B3DD /* libjpeg_unity1.c */,
 				D7BF60C626311EBF00E0B3DD /* libjpeg_unity2.c */,
+				18FF0E0C28444F5900FC8F75 /* freetype_unity.c */,
 				262D59A8232587AF00F85780 /* noto_emoji_png.cpp */,
 				262D59A7232587AF00F85780 /* noto_emoji.cpp */,
 			);
@@ -1287,6 +1294,7 @@
 				2648D5431D096A7000819E09 /* mobile_app.cpp */,
 				2648D5411D0965C400819E09 /* mobile_game.cpp */,
 				E17DADEE1E0C9A10006161F6 /* motion_tracker.cpp */,
+				18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */,
 				E1B34E9E1E0A90C0006217F4 /* picker_view.cpp */,
 				26BB61391D872FB10049A5C3 /* progress_bar.cpp */,
 				263916EB21C8F462008B335B /* qr_code_scanner.cpp */,
@@ -1401,6 +1409,7 @@
 				266DD48A1C1193C400D47AB0 /* image_stb.cpp */,
 				26E9133B25948C54008A35D2 /* jpeg.cpp */,
 				266DD48D1C1193C400D47AB0 /* pen.cpp */,
+				18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */,
 				2628EED821C4259900D8CD00 /* zxing.cpp */,
 			);
 			path = graphics;
@@ -2023,6 +2032,7 @@
 				26D9D90D1E9645CE005F7BD3 /* charset.cpp in Sources */,
 				26D9D9CC1E96468D005F7BD3 /* radio_button.cpp in Sources */,
 				260B73F6220D7DF600858EEA /* oauth.cpp in Sources */,
+				18FF0E0F28444FAB00FC8F75 /* sfnt.cpp in Sources */,
 				26D9D9CD1E96468D005F7BD3 /* radio_button_macos.mm in Sources */,
 				26D9D90E1E9645CE005F7BD3 /* string.cpp in Sources */,
 				D7BF60D126311EE700E0B3DD /* zstd_unity.c in Sources */,
@@ -2072,6 +2082,7 @@
 				26D9D9CE1E96468D005F7BD3 /* render_view.cpp in Sources */,
 				26D9D9541E964659005F7BD3 /* database_cursor.cpp in Sources */,
 				269E31AD2255F53B005CD0ED /* paypal_ui.cpp in Sources */,
+				18FF0E0D28444F5900FC8F75 /* freetype_unity.c in Sources */,
 				2628EACC21C1059800D8CD00 /* web_view_apple.mm in Sources */,
 				26D9D9151E9645CE005F7BD3 /* blowfish.cpp in Sources */,
 				265EA93A2550D48C0098721F /* file_system_logger.cpp in Sources */,
@@ -2088,6 +2099,7 @@
 				26D9D9E21E96468D005F7BD3 /* ui_core_macos.mm in Sources */,
 				2698A54E226A383500662528 /* refresh_view.cpp in Sources */,
 				D7BF60FB26311FB700E0B3DD /* leveldb_unity.cc in Sources */,
+				18FF0E1128444FDD00FC8F75 /* pdf_view.cpp in Sources */,
 				26D9D97C1E964675005F7BD3 /* audio_data.cpp in Sources */,
 				2647C96A25023EE1005560C7 /* disk.cpp in Sources */,
 				26D9D9F41E968240005F7BD3 /* http_io.cpp in Sources */,

@@ -24,6 +24,7 @@
 
 #include "slib/core/file.h"
 #include "slib/core/string.h"
+#include "slib/core/list.h"
 
 #include <errno.h>
 
@@ -54,6 +55,34 @@ namespace slib
 		return dir;
 	}
 #endif
+
+	List<String> System::getFontsDirectories()
+	{
+		List<String> ret;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		ret.add_NoLock(File::concatPath(System::getWindowsDirectory(), "Fonts"));
+#elif defined(SLIB_PLATFORM_IS_APPLE)
+		SLIB_STATIC_STRING(s1, "~/Library/Fonts")
+		ret.add_NoLock(s1);
+		SLIB_STATIC_STRING(s2, "/Library/Fonts")
+		ret.add_NoLock(s2);
+		SLIB_STATIC_STRING(s3, "/System/Library/Fonts")
+		ret.add_NoLock(s3);
+#elif defined(SLIB_PLATFORM_IS_ANDROID)
+		SLIB_STATIC_STRING(s, "/system/fonts")
+		ret.add_NoLock(s);
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+		SLIB_STATIC_STRING(s1, "/usr/share/fonts")
+		ret.add_NoLock(s1);
+		SLIB_STATIC_STRING(s2, "/usr/share/X11/fonts/Type1")
+		ret.add_NoLock(s2);
+		SLIB_STATIC_STRING(s3, "/usr/share/X11/fonts/TTF")
+		ret.add_NoLock(s3);
+		SLIB_STATIC_STRING(s4, "/usr/local/share/fonts")
+		ret.add_NoLock(s4);
+#endif
+		return ret;
+	}
 
 	void System::yield(sl_uint32 elapsed)
 	{

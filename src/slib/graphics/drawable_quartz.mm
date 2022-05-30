@@ -135,7 +135,7 @@ namespace slib
 		if (height == 0) {
 			return sl_null;
 		}
-		sl_uint32 stride = desc.stride;
+		sl_reg stride = desc.stride;
 		Ref<Drawable> ret;
 		Ref<Referable> refData = desc.ref;
 		if (refData.isNotNull()) {

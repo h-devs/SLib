@@ -1,4 +1,4 @@
-﻿/*
+/*
  *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -126,7 +126,6 @@ namespace slib
 			SLIB_STATIC_STRING(g_strBlackPoint, "BlackPoint")
 			SLIB_STATIC_STRING(g_strGamma, "Gamma")
 			SLIB_STATIC_STRING(g_strMatrix, "Matrix")
-			SLIB_STATIC_STRING(g_strD, "D")
 			SLIB_STATIC_STRING(g_strF, "F")
 			SLIB_STATIC_STRING(g_strH, "H")
 			SLIB_STATIC_STRING(g_strI, "I")
@@ -1621,7 +1620,6 @@ namespace slib
 							}
 						} else if (ch >= '0' && ch <= '9') {
 							sl_uint32 value;
-							sl_bool flagEndsWithPoint = sl_false;
 							if (readUint(value, sl_true)) {
 								if (peekCharAndEquals('.')) {
 									movePosition(1);
@@ -1826,7 +1824,6 @@ namespace slib
 
 				PdfValue readObject(PdfReference& outRef)
 				{
-					sl_uint32 offsetStart = getPosition();
 					if (readObjectHeader(outRef)) {
 						PdfValue value = readValue();
 						if (value.isNotUndefined()) {
@@ -4098,7 +4095,6 @@ namespace slib
 					flagByteAlign = params.flagByteAlign;
 					content = (sl_uint8*)_content;
 					bitSize = (sl_uint32)size << 3;
-					sl_uint8* content = (sl_uint8*)_content;
 					Color* colors = output->getColors();
 					Color* top = sl_null;
 					for (sl_uint32 iRow = 0; iRow < rows; iRow++) {
