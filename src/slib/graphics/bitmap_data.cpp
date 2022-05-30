@@ -1809,7 +1809,7 @@ namespace slib
 			}
 			
 			template <>
-			static void CopyPixels_MonoToNormal_Step1<Gray8_PROC>(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
+			void CopyPixels_MonoToNormal_Step1<Gray8_PROC>(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row = dst;
@@ -2013,7 +2013,7 @@ namespace slib
 			}
 
 			template <>
-			static void CopyPixels_NormalToMono_Step1<Gray8_PROC>(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
+			void CopyPixels_NormalToMono_Step1<Gray8_PROC>(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
 			{
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row = dst;

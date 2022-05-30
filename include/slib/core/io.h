@@ -207,7 +207,7 @@ namespace slib
 		PRIV_SLIB_DEFINE_IO_DEFAULT_MEMBERS(BlockWriter)
 
 	public:
-		sl_reg writeAt(sl_uint64 offset, void* buf, sl_size size) override
+		sl_reg writeAt(sl_uint64 offset, const void* buf, sl_size size) override
 		{
 			return (*base).writeAt(offset, buf, size);
 		}

@@ -899,7 +899,7 @@ namespace slib
 		}
 
 		template <class LIST>
-		ArrayElements(LIST&& array, sl_size startIndex) noexcept: ListElements(Forward<LIST>(array))
+		ArrayElements(LIST&& array, sl_size startIndex) noexcept: ArrayElements(Forward<LIST>(array))
 		{
 			if (startIndex >= count) {
 				data = sl_null;
