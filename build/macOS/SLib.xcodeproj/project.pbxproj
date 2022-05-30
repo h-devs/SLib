@@ -14,6 +14,7 @@
 		18A341EC27357774001F7E4F /* asn1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341EB27357774001F7E4F /* asn1.cpp */; };
 		18A341EE273577B4001F7E4F /* async_unix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341ED273577B4001F7E4F /* async_unix.cpp */; };
 		18A341F0273577DC001F7E4F /* data_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A341EF273577DC001F7E4F /* data_store.cpp */; };
+		18A596162844DA84003743A1 /* lzw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A596152844DA84003743A1 /* lzw.cpp */; };
 		18FF0E0D28444F5900FC8F75 /* freetype_unity.c in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0C28444F5900FC8F75 /* freetype_unity.c */; settings = {COMPILER_FLAGS = "-w"; }; };
 		18FF0E0F28444FAB00FC8F75 /* sfnt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */; };
 		18FF0E1128444FDD00FC8F75 /* pdf_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */; };
@@ -491,6 +492,7 @@
 		18A341EB27357774001F7E4F /* asn1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asn1.cpp; sourceTree = "<group>"; };
 		18A341ED273577B4001F7E4F /* async_unix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = async_unix.cpp; sourceTree = "<group>"; };
 		18A341EF273577DC001F7E4F /* data_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = data_store.cpp; sourceTree = "<group>"; };
+		18A596152844DA84003743A1 /* lzw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lzw.cpp; sourceTree = "<group>"; };
 		18FF0E0C28444F5900FC8F75 /* freetype_unity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = freetype_unity.c; path = ../../external/src/freetype/freetype_unity.c; sourceTree = "<group>"; };
 		18FF0E0E28444FAB00FC8F75 /* sfnt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sfnt.cpp; sourceTree = "<group>"; };
 		18FF0E1028444FDC00FC8F75 /* pdf_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pdf_view.cpp; sourceTree = "<group>"; };
@@ -1588,6 +1590,7 @@
 				266DD45C1C11930800D47AB0 /* gcm.cpp */,
 				2628EAE821C410ED00D8CD00 /* jwt.cpp */,
 				26E1ADB523688B7E002BF6B8 /* jwt_openssl.cpp */,
+				18A596152844DA84003743A1 /* lzw.cpp */,
 				266DD45D1C11930800D47AB0 /* md5.cpp */,
 				26BAE0302223CEC60085B5AB /* openssl.cpp */,
 				269308652368DE7D00C9C7F9 /* openssl_crypto.cpp */,
@@ -1962,6 +1965,7 @@
 				26987D2123BBE05D00872C1D /* captcha.cpp in Sources */,
 				D72A0879263B503E00BCD333 /* object_store.cpp in Sources */,
 				26C1B64220D51D1D00E36539 /* graphics_path.cpp in Sources */,
+				18A596162844DA84003743A1 /* lzw.cpp in Sources */,
 				26D9D8FE1E9645CE005F7BD3 /* base.cpp in Sources */,
 				269308662368DE7E00C9C7F9 /* openssl_crypto.cpp in Sources */,
 				263D478F23872AD200DAC43F /* chat_sqlite.cpp in Sources */,
