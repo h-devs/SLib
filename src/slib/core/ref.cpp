@@ -69,7 +69,7 @@ namespace slib
 	sl_reg Referable::decreaseReference() noexcept
 	{
 		sl_reg nRef = Base::interlockedDecrement(&m_nRefCount);
-		if (nRef == 0) {
+		if (!nRef) {
 			_free();
 		}
 		return nRef;
