@@ -29,6 +29,7 @@
 #include "../core/expiring_map.h"
 #include "../core/flags.h"
 #include "../math/rectangle.h"
+#include "../graphics/color.h"
 
 namespace slib
 {
@@ -380,11 +381,17 @@ namespace slib
 
 		sl_bool equalsName(const StringView& name) const noexcept;
 
-		const PdfArray& getArray() const noexcept;
+		const PdfArray& getArray() const& noexcept;
 
-		const PdfDictionary& getDictionary() const noexcept;
+		PdfArray getArray()&& noexcept;
 
-		const Ref<PdfStream>& getStream() const noexcept;
+		const PdfDictionary& getDictionary() const& noexcept;
+
+		PdfDictionary getDictionary()&& noexcept;
+
+		const Ref<PdfStream>& getStream() const& noexcept;
+
+		Ref<PdfStream> getStream()&& noexcept;
 
 		PdfReference getReference() const noexcept;
 
@@ -647,8 +654,10 @@ namespace slib
 		sl_bool flagImageMask;
 		sl_bool flagInterpolate;
 		sl_bool flagUseDecodeArray;
-		sl_int32 decodeMin[4];
-		sl_int32 decodeMax[4];
+		sl_uint8 decodeMin[4];
+		sl_uint8 decodeMax[4];
+		sl_bool flagUseMatte;
+		Color matte;
 
 		PdfReference mask;
 		PdfReference smask;
@@ -660,6 +669,10 @@ namespace slib
 
 	public:
 		sl_bool load(PdfDocument* doc, PdfStream* stream) noexcept;
+
+		void applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept;
+		
+		void applyDecode(Image* image) noexcept;
 
 	};
 
@@ -681,7 +694,7 @@ namespace slib
 	protected:
 		sl_bool _load(PdfDocument* doc, const PdfReference& ref);
 
-		static void _loadMask(Image* image, PdfDocument* doc, const PdfReference& ref);
+		void _loadSMask(PdfDocument* doc);
 
 	};
 

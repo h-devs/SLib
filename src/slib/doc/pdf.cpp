@@ -119,6 +119,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_strIM, "IM")
 			SLIB_STATIC_STRING(g_strInterpolate, "Interpolate")
 			SLIB_STATIC_STRING(g_strDecode, "Decode")
+			SLIB_STATIC_STRING(g_strMatte, "Matte")
 			SLIB_STATIC_STRING(g_strColors, "Colors")
 			SLIB_STATIC_STRING(g_strRows, "Rows")
 			SLIB_STATIC_STRING(g_strEndOfLine, "EndOfLine")
@@ -708,7 +709,7 @@ namespace slib
 
 				Memory decodeStreamContent(const PdfReference& ref)
 				{
-					const Ref<PdfStream>& stream = getObject(ref).getStream();
+					Ref<PdfStream> stream = getObject(ref).getStream();
 					if (stream.isNotNull()) {
 						return stream->getDecodedContent(this);
 					}
@@ -2548,12 +2549,6 @@ namespace slib
 					}
 				}
 
-				// ICCBased and special color spaces
-				void setSpecialColor(ListElements<PdfValue> operands, sl_bool flagStroking)
-				{
-					setColor(Color(100, 100, 100), flagStroking);
-				}
-
 				void setRGB(ListElements<PdfValue> operands, sl_bool flagStroking)
 				{
 					Color color;
@@ -2951,7 +2946,21 @@ namespace slib
 						if (doc.isNotNull()) {
 							Ref<PdfImage> image = PdfImage::load(doc.get(), ref, *(param->context));
 							if (image.isNotNull()) {
-								canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
+								sl_bool flagAntialiasOld = canvas->isAntiAlias();
+								if (image->flagInterpolate) {
+									canvas->setAntiAlias();
+								} else {
+									canvas->setAntiAlias(sl_false);
+								}
+								if (image->flagImageMask) {
+									DrawParam dp;
+									dp.useColorMatrix = sl_true;
+									dp.colorMatrix.setOverlay(brush.color);
+									canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical), dp);
+								} else {
+									canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
+								}
+								canvas->setAntiAlias(flagAntialiasOld);
 							}
 						}
 					}
@@ -3129,10 +3138,10 @@ namespace slib
 							setColor(operation.operands, sl_false);
 							break;
 						case PdfOperator::SCN:
-							setSpecialColor(operation.operands, sl_true);
+							setColor(operation.operands, sl_true);
 							break;
 						case PdfOperator::scn:
-							setSpecialColor(operation.operands, sl_false);
+							setColor(operation.operands, sl_false);
 							break;
 						case PdfOperator::sh:
 							// paint area defined by shading pattern
@@ -3648,6 +3657,11 @@ namespace slib
 					}
 					colors += image->getStride();
 				}
+			}
+
+			SLIB_INLINE static sl_uint8 ApplyDecode(sl_uint8 source, sl_uint8 min, sl_uint8 max)
+			{
+				return (sl_uint8)(min + (((sl_int32)(max - min) * (sl_int32)source) >> 8));
 			}
 			
 			const sl_uint8 g_faxBlackRunIns[] = {
@@ -4185,23 +4199,23 @@ namespace slib
 				return sl_null;
 			}
 
-			static Ref<Image> CreateImageObject(sl_uint8* data, sl_uint32 size, sl_uint32 width, sl_uint32 colors, sl_uint32 bitsPerComponent, Color* indices, sl_uint32 nIndices)
+			static Ref<Image> CreateImageObject(sl_uint32 width, sl_uint32 height, sl_uint8* data, sl_reg pitch, PdfColorSpaceType colorSpace, sl_uint32 bitsPerComponent, Color* indices, sl_uint32 nIndices)
 			{
-				if (width && colors && bitsPerComponent) {
-					sl_uint32 pitch = (colors * bitsPerComponent * width + 7) >> 3;
-					sl_uint32 height = size / pitch;
-					if (height) {
-						if (colors == 3) {
+				if (width && height && bitsPerComponent) {
+					switch (colorSpace) {
+						case PdfColorSpaceType::RGB:
 							return Image::createFromRGB(width, height, data, bitsPerComponent, pitch);
-						} else if (colors == 4) {
+						case PdfColorSpaceType::CMYK:
 							return Image::createFromCMYK(width, height, data, bitsPerComponent, pitch);
-						} else if (colors == 1) {
+						case PdfColorSpaceType::Gray:
+							return Image::createFromGray(width, height, data, bitsPerComponent, pitch);
+						case PdfColorSpaceType::Indexed:
 							if (indices) {
 								return Image::createFromIndexed(width, height, data, indices, nIndices, bitsPerComponent, pitch);
-							} else {
-								return Image::createFromGray(width, height, data, bitsPerComponent, pitch);
 							}
-						}
+							break;
+						default:
+							break;
 					}
 				}
 				return sl_null;
@@ -4356,7 +4370,7 @@ namespace slib
 		return sl_false;
 	}
 
-	const PdfArray& PdfValue::getArray() const noexcept
+	const PdfArray& PdfValue::getArray() const& noexcept
 	{
 		if (getType() == PdfValueType::Array) {
 			return *((PdfArray*)((void*)(&m_var._value)));
@@ -4364,7 +4378,15 @@ namespace slib
 		return PdfArray::null();
 	}
 
-	const PdfDictionary& PdfValue::getDictionary() const noexcept
+	PdfArray PdfValue::getArray()&& noexcept
+	{
+		if (getType() == PdfValueType::Array) {
+			return *((PdfArray*)((void*)(&m_var._value)));
+		}
+		return sl_null;
+	}
+
+	const PdfDictionary& PdfValue::getDictionary() const& noexcept
 	{
 		if (getType() == PdfValueType::Dictionary) {
 			return *((PdfDictionary*)((void*)(&m_var._value)));
@@ -4372,12 +4394,28 @@ namespace slib
 		return PdfDictionary::null();
 	}
 
-	const Ref<PdfStream>& PdfValue::getStream() const noexcept
+	PdfDictionary PdfValue::getDictionary()&& noexcept
+	{
+		if (getType() == PdfValueType::Dictionary) {
+			return *((PdfDictionary*)((void*)(&m_var._value)));
+		}
+		return sl_null;
+	}
+
+	const Ref<PdfStream>& PdfValue::getStream() const& noexcept
 	{
 		if (getType() == PdfValueType::Stream) {
 			return *((Ref<PdfStream>*)((void*)(&m_var._value)));
 		}
 		return Ref<PdfStream>::null();
+	}
+
+	Ref<PdfStream> PdfValue::getStream()&& noexcept
+	{
+		if (getType() == PdfValueType::Stream) {
+			return *((Ref<PdfStream>*)((void*)(&m_var._value)));
+		}
+		return sl_null;
 	}
 
 	PdfReference PdfValue::getReference() const noexcept
@@ -4624,7 +4662,7 @@ namespace slib
 			}
 		} else if (doc && name == StringView::literal("ICCBased")) {
 			if (arr.count >= 2) {
-				const Ref<PdfStream>& stream = doc->getObject(arr[1]).getStream();
+				Ref<PdfStream> stream = doc->getObject(arr[1]).getStream();
 				if (stream.isNotNull()) {
 					load(sl_null, stream->getProperty(g_strAlternate));
 				}
@@ -5122,7 +5160,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfImageResource)
 
-	PdfImageResource::PdfImageResource(): width(0), height(0), bitsPerComponent(8), flagImageMask(sl_false), flagInterpolate(sl_false), flagUseDecodeArray(sl_false), mask(0, 0), smask(0, 0)
+	PdfImageResource::PdfImageResource(): width(0), height(0), bitsPerComponent(8), flagImageMask(sl_false), flagInterpolate(sl_false), flagUseDecodeArray(sl_false), flagUseMatte(sl_false), mask(0, 0), smask(0, 0)
 	{
 	}
 
@@ -5132,70 +5170,143 @@ namespace slib
 		if (subtype == StringView::literal("Image")) {
 			stream->getProperty(g_strWidth, g_strW).getUint(width);
 			stream->getProperty(g_strHeight, g_strH).getUint(height);
+			stream->getProperty(g_strInterpolate, g_strI).getBoolean(flagInterpolate);
 			stream->getProperty(g_strImageMask, g_strIM).getBoolean(flagImageMask);
 			if (flagImageMask) {
 				bitsPerComponent = 1;
 				colorSpace.type = PdfColorSpaceType::Gray;
 			} else {
 				colorSpace.load(doc, stream->getProperty(g_strColorSpace, g_strCS));
+				stream->getProperty(g_strBitsPerComponent, g_strBPC).getUint(bitsPerComponent);
+				stream->getProperty(g_strMask).getReference(mask);
 			}
-			stream->getProperty(g_strBitsPerComponent, g_strBPC).getUint(bitsPerComponent);
-			stream->getProperty(g_strInterpolate, g_strI).getBoolean(flagInterpolate);
 			ListElements<PdfValue> arrayDecode(stream->getProperty(g_strDecode, g_strD).getArray());
 			if (arrayDecode.count) {
 				switch (colorSpace.type) {
 					case PdfColorSpaceType::RGB:
-						if (arrayDecode.count == 6) {
-							flagUseDecodeArray = sl_true;
-							decodeMin[0] = Math::clamp0_255((sl_int32)(arrayDecode[0].getFloat() * 255));
-							decodeMax[0] = Math::clamp0_255((sl_int32)(arrayDecode[1].getFloat() * 255));
-							decodeMin[1] = Math::clamp0_255((sl_int32)(arrayDecode[2].getFloat() * 255));
-							decodeMax[1] = Math::clamp0_255((sl_int32)(arrayDecode[3].getFloat() * 255));
-							decodeMin[2] = Math::clamp0_255((sl_int32)(arrayDecode[4].getFloat() * 255));
-							decodeMax[2] = Math::clamp0_255((sl_int32)(arrayDecode[5].getFloat() * 255));
-						}
-						break;
 					case PdfColorSpaceType::Gray:
-						if (arrayDecode.count == 2) {
-							flagUseDecodeArray = sl_true;
-							if (bitsPerComponent != 1) {
-								decodeMin[0] = decodeMin[1] = decodeMin[2] = Math::clamp0_255((sl_int32)(arrayDecode[0].getFloat() * 255));
-								decodeMax[0] = decodeMax[1] = decodeMax[2] = Math::clamp0_255((sl_int32)(arrayDecode[1].getFloat() * 255));
-							} else {
+					case PdfColorSpaceType::CMYK:
+						if (flagImageMask) {
+							if (arrayDecode.count >= 2) {
+								flagUseDecodeArray = sl_true;
 								decodeMin[0] = arrayDecode[0].getUint();
 								decodeMax[0] = arrayDecode[1].getUint();
 							}
-						}
-						break;
-					case PdfColorSpaceType::CMYK:
-						if (arrayDecode.count == 8) {
-							flagUseDecodeArray = sl_true;
-							decodeMin[0] = Math::clamp0_255((sl_int32)(arrayDecode[0].getFloat() * 255));
-							decodeMax[0] = Math::clamp0_255((sl_int32)(arrayDecode[1].getFloat() * 255));
-							decodeMin[1] = Math::clamp0_255((sl_int32)(arrayDecode[2].getFloat() * 255));
-							decodeMax[1] = Math::clamp0_255((sl_int32)(arrayDecode[3].getFloat() * 255));
-							decodeMin[2] = Math::clamp0_255((sl_int32)(arrayDecode[4].getFloat() * 255));
-							decodeMax[2] = Math::clamp0_255((sl_int32)(arrayDecode[5].getFloat() * 255));
-							decodeMin[3] = Math::clamp0_255((sl_int32)(arrayDecode[6].getFloat() * 255));
-							decodeMax[3] = Math::clamp0_255((sl_int32)(arrayDecode[7].getFloat() * 255));
+						} else {
+							sl_uint32 nColors = colorSpace.getComponentsCount();
+							if (arrayDecode.count >= nColors * 2) {
+								flagUseDecodeArray = sl_true;
+								for (sl_uint32 i = 0; i < nColors; i++) {
+									decodeMin[i] = Math::clamp0_255((sl_int32)(arrayDecode[i << 1].getFloat() * 255));
+									decodeMax[i] = Math::clamp0_255((sl_int32)(arrayDecode[(i << 1) | 1].getFloat() * 255));
+								}
+								if (nColors == 1) {
+									decodeMin[2] = decodeMin[1] = decodeMin[0];
+									decodeMax[2] = decodeMax[1] = decodeMax[0];
+								}
+							}
 						}
 						break;
 					case PdfColorSpaceType::Indexed:
 						if (arrayDecode.count == 2) {
-							flagUseDecodeArray = sl_true;
-							decodeMin[0] = arrayDecode[0].getUint();
-							decodeMax[0] = arrayDecode[1].getUint();
+							sl_uint32 n = (sl_uint32)(colorSpace.indices.getCount());
+							if (n) {
+								sl_uint32 m0 = arrayDecode[0].getUint();
+								sl_uint32 m1 = arrayDecode[1].getUint();
+								Array<Color> newIndices = Array<Color>::create(n);
+								if (newIndices.isNotNull()) {
+									Color* d = newIndices.getData();
+									Color* s = colorSpace.indices.getData();
+									for (sl_uint32 i = 0; i < n; i++) {
+										sl_uint32 m = m0 + (((m1 - m0) * i) >> bitsPerComponent);
+										if (m >= n) {
+											m = n - 1;
+										}
+										d[i] = s[m];
+									}
+									colorSpace.indices = Move(newIndices);
+								}
+							}
 						}
 						break;
 					default:
 						break;
 				}
 			}
-			stream->getProperty(g_strMask).getReference(mask);
+			PdfArray arrayMatte = stream->getProperty(g_strMatte).getArray();
+			if (arrayMatte.isNotNull()) {
+				if (colorSpace.getColor(matte, arrayMatte.getData(), arrayMatte.getCount())) {
+					if (matte != Color::Black) {
+						flagUseMatte = sl_true;
+					}
+				}
+			}
 			stream->getProperty(g_strSMask).getReference(smask);
 			return sl_true;
 		}
 		return sl_false;
+	}
+
+	void PdfImageResource::applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept
+	{
+		if (!flagUseDecodeArray) {
+			return;
+		}
+		for (sl_uint32 y = 0; y < rows; y++) {
+			sl_uint8* c = colors;
+			for (sl_uint32 x = 0; x < cols; x++) {
+				c[0] = ApplyDecode(c[0], decodeMin[0], decodeMax[0]);
+				c[1] = ApplyDecode(c[1], decodeMin[1], decodeMax[1]);
+				c[2] = ApplyDecode(c[2], decodeMin[2], decodeMax[2]);
+				c[3] = ApplyDecode(c[3], decodeMin[3], decodeMax[3]);
+				c += 4;
+			}
+			colors += pitch;
+		}
+	}
+
+	void PdfImageResource::applyDecode(Image* image) noexcept
+	{
+		if (!(flagImageMask || flagUseDecodeArray)) {
+			return;
+		}
+		sl_uint32 cols = image->getWidth();
+		sl_uint32 rows = image->getHeight();
+		Color* colors = image->getColors();
+		sl_reg stride = image->getStride();
+		if (flagImageMask) {
+			Color color0, color1;
+			if (flagUseDecodeArray && decodeMin[0] == 1 && decodeMax[0] == 0) {
+				color0 = Color::Transparent;
+				color1 = Color::Black;
+			} else {
+				color0 = Color::Black;
+				color1 = Color::Transparent;
+			}
+			for (sl_uint32 y = 0; y < rows; y++) {
+				Color* c = colors;
+				for (sl_uint32 x = 0; x < cols; x++) {
+					if (c->r) {
+						*c = color1;
+					} else {
+						*c = color0;
+					}
+					c++;
+				}
+				colors += stride;
+			}
+		} else {
+			for (sl_uint32 y = 0; y < rows; y++) {
+				Color* c = colors;
+				for (sl_uint32 x = 0; x < cols; x++) {
+					c->r = ApplyDecode(c->r, decodeMin[0], decodeMax[0]);
+					c->g = ApplyDecode(c->g, decodeMin[1], decodeMax[1]);
+					c->b = ApplyDecode(c->b, decodeMin[2], decodeMax[2]);
+					c++;
+				}
+				colors += stride;
+			}
+		}
 	}
 
 	
@@ -5227,7 +5338,7 @@ namespace slib
 
 	sl_bool PdfImage::_load(PdfDocument* doc, const PdfReference& ref)
 	{
-		const Ref<PdfStream>& stream = doc->getObject(ref).getStream();
+		Ref<PdfStream> stream = doc->getObject(ref).getStream();
 		if (stream.isNotNull()) {
 			if (PdfImageResource::load(doc, stream.get())) {
 				Memory content = stream->getDecodedContent(doc);
@@ -5239,12 +5350,23 @@ namespace slib
 						if (colorSpace.type == PdfColorSpaceType::RGB || colorSpace.type == PdfColorSpaceType::Gray || colorSpace.type == PdfColorSpaceType::CMYK || colorSpace.type == PdfColorSpaceType::Indexed) {
 							sl_uint32 nColors = colorSpace.getComponentsCount();
 							if (nColors) {
-								object = CreateImageObject((sl_uint8*)(content.getData()), (sl_uint32)(content.getSize()), width, nColors, bitsPerComponent, colorSpace.indices.getData(), (sl_uint32)(colorSpace.indices.getCount()));
+								sl_uint8* data = (sl_uint8*)(content.getData());
+								sl_uint32 pitch = (nColors * bitsPerComponent * width + 7) >> 3;
+								sl_uint32 height = (sl_uint32)(content.getSize()) / pitch;
+								if (height) {
+									if (colorSpace.type == PdfColorSpaceType::CMYK) {
+										applyDecode4(data, width, height, pitch);
+									}
+									object = CreateImageObject(width, height, data, pitch, colorSpace.type, bitsPerComponent, colorSpace.indices.getData(), (sl_uint32)(colorSpace.indices.getCount()));
+									if (object.isNotNull() && colorSpace.type != PdfColorSpaceType::CMYK) {
+										applyDecode(object.get());
+									}
+								}
 							}
 						}
 					}
 					if (object.isNotNull()) {
-						_loadMask(object.get(), doc, mask);
+						_loadSMask(doc);
 						return sl_true;
 					}
 				}
@@ -5253,24 +5375,110 @@ namespace slib
 		return sl_false;
 	}
 
-	void PdfImage::_loadMask(Image* image, PdfDocument* doc, const PdfReference& ref)
+	void PdfImage::_loadSMask(PdfDocument* doc)
 	{
-		if (ref.objectNumber) {
-			const Ref<PdfStream>& stream = doc->getObject(ref).getStream();
-			if (stream.isNotNull()) {
-				PdfImageResource mask;
-				if (mask.load(doc, stream.get())) {
-					if (image->getWidth() == mask.width && image->getHeight() == mask.height && mask.bitsPerComponent && mask.colorSpace.type == PdfColorSpaceType::Gray) {
-						Memory content = stream->getDecodedContent(doc);
-						if (content.isNotNull()) {
-							sl_uint32 pitch = (mask.bitsPerComponent * mask.width + 7) >> 3;
-							sl_uint32 height = (sl_uint32)(content.getSize()) / pitch;
-							if (height) {
-								image->writeAlphaFromGray(mask.width, height, content.getData(), mask.bitsPerComponent, pitch);
-							}
-						}
-					}
+		if (object.isNull()) {
+			return;
+		}
+		if (!(smask.objectNumber)) {
+			return;
+		}
+		Ref<PdfStream> stream = doc->getObject(smask).getStream();
+		if (stream.isNull()) {
+			return;
+		}
+		PdfImageResource maskDesc;
+		if (!(maskDesc.load(doc, stream.get()))) {
+			return;
+		}
+		sl_uint32 widthMask = maskDesc.width;
+		if (!(widthMask && maskDesc.bitsPerComponent && maskDesc.colorSpace.type == PdfColorSpaceType::Gray)) {
+			return;
+		}
+		Memory content = stream->getDecodedContent(doc);
+		if (content.isNull()) {
+			return;
+		}
+		sl_uint32 pitchMask = (maskDesc.bitsPerComponent * widthMask + 7) >> 3;
+		sl_uint32 heightMask = (sl_uint32)(content.getSize()) / pitchMask;
+		if (!heightMask) {
+			return;
+		}
+		sl_uint32 widthParent = object->getWidth();
+		sl_uint32 heightParent = object->getHeight();
+		if (widthParent < widthMask || heightParent < heightMask) {
+			if (widthParent < widthMask) {
+				widthParent = widthMask;
+			}
+			if (heightParent < heightMask) {
+				heightParent = heightMask;
+			}
+			Ref<Image> image;
+			if (flagInterpolate) {
+				image = object->stretch(widthParent, heightParent, StretchMode::Linear);
+			} else {
+				image = object->stretch(widthParent, heightParent, StretchMode::Nearest);
+			}
+			if (image.isNull()) {
+				return;
+			}
+			object = Move(image);
+		}
+		if (maskDesc.flagInterpolate) {
+			flagInterpolate = sl_true;
+		}
+		if (widthMask == widthParent && heightMask == heightParent && !(maskDesc.flagUseMatte) && !(maskDesc.flagUseDecodeArray)) {
+			object->multiplyAlphaFromGray(widthMask, heightMask, content.getData(), maskDesc.bitsPerComponent, pitchMask);
+			return;
+		}
+		Ref<Image> imageMask = Image::createFromGray(widthMask, heightMask, content.getData(), maskDesc.bitsPerComponent, pitchMask);
+		if (imageMask.isNull()) {
+			return;
+		}
+		if (widthMask != widthParent || heightMask != heightParent) {
+			if (maskDesc.flagInterpolate) {
+				imageMask = imageMask->stretch(widthParent, heightParent, StretchMode::Linear);
+			} else {
+				imageMask = imageMask->stretch(widthParent, heightParent, StretchMode::Nearest);
+			}
+			if (imageMask.isNull()) {
+				return;
+			}
+			widthMask = widthParent;
+			heightMask = heightParent;
+		}
+		maskDesc.applyDecode(imageMask.get());
+		Color* rowDst = object->getColors();
+		Color* rowSrc = imageMask->getColors();
+		sl_reg strideDst = object->getStride();
+		sl_reg strideSrc = object->getStride();
+		if (maskDesc.flagUseMatte) {
+			for (sl_uint32 y = 0; y < heightMask; y++) {
+				Color* dst = rowDst;
+				Color* src = rowSrc;
+				for (sl_uint32 x = 0; x < widthMask; x++) {
+					Color c = matte;
+					c.blend_PA_NPA(dst->r, dst->g, dst->b, src->r);
+					c.convertPAtoNPA();
+					c.a = src->r;
+					*dst = c;
+					dst++;
+					src++;
 				}
+				rowDst += strideDst;
+				rowSrc += strideSrc;
+			}
+		} else {
+			for (sl_uint32 y = 0; y < heightMask; y++) {
+				Color* dst = rowDst;
+				Color* src = rowSrc;
+				for (sl_uint32 x = 0; x < widthMask; x++) {
+					dst->a = (sl_uint8)(((sl_uint32)(dst->a) * (sl_uint32)(src->r)) >> 8);
+					dst++;
+					src++;
+				}
+				rowDst += strideDst;
+				rowSrc += strideSrc;
 			}
 		}
 	}
@@ -6001,7 +6209,7 @@ namespace slib
 				if (entry.type != (sl_uint32)(CrossReferenceEntryType::Free)) {
 					PdfReference n;
 					sl_uint32 offsetEnd;
-					const Ref<PdfStream>& stream = context->readObject(entry.offset, offsetEnd, n).getStream();
+					Ref<PdfStream> stream = context->readObject(entry.offset, offsetEnd, n).getStream();
 					if (stream.isNotNull()) {
 						ret.add_NoLock(stream);
 					}
