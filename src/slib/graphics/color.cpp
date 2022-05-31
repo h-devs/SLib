@@ -23,6 +23,7 @@
 #include "slib/graphics/color.h"
 #include "slib/graphics/yuv.h"
 #include "slib/graphics/cmyk.h"
+#include "slib/graphics/cie.h"
 
 #include "slib/core/string.h"
 #include "slib/core/hash_table.h"
@@ -668,24 +669,36 @@ namespace slib
 		if (K > Y) {
 			K = Y;
 		}
-		if (K == 255) {
-			C = 0;
-			M = 0;
-			Y = 0;
-		} else {
-			sl_uint32 f = 255 - K;
-			C = (sl_uint8)((sl_uint32)(C - K) * (sl_uint32)255 / f);
-			M = (sl_uint8)((sl_uint32)(M - K) * (sl_uint32)255 / f);
-			Y = (sl_uint8)((sl_uint32)(Y - K) * (sl_uint32)255 / f);
-		}
+		C = (sl_uint8)(Math::clamp0_255(C - K));
+		M = (sl_uint8)(Math::clamp0_255(M - K));
+		Y = (sl_uint8)(Math::clamp0_255(Y - K));
 	}
 
 	void CMYK::convertCMYKToRGB(sl_uint8 C, sl_uint8 M, sl_uint8 Y, sl_uint8 K, sl_uint8& R, sl_uint8& G, sl_uint8& B) noexcept
 	{
-		sl_uint32 f = 255 - K;
-		R = 255 - (sl_uint8)(Math::clamp0_255((sl_uint32)C * f / 255 + K));
-		G = 255 - (sl_uint8)(Math::clamp0_255((sl_uint32)M * f / 255 + K));
-		B = 255 - (sl_uint8)(Math::clamp0_255((sl_uint32)Y * f / 255 + K));
+		R = (sl_uint8)(255 - Math::clamp0_255((sl_uint32)C + (sl_uint32)K));
+		G = (sl_uint8)(255 - Math::clamp0_255((sl_uint32)M + (sl_uint32)K));
+		B = (sl_uint8)(255 - Math::clamp0_255((sl_uint32)Y + (sl_uint32)K));
+	}
+
+
+	void CIE::convertXyzToRGB(float x, float y, float z, float& r, float& g, float& b) noexcept
+	{
+		r = Math::sqrt(Math::clamp((3.240449f * x - 1.537136f * y - 0.498531f * z) * 0.830026f, 0.0f, 1.0f));
+		g = Math::sqrt(Math::clamp((-0.969265f * x + 1.876011f * y + 0.041556f * z) * 1.05452f, 0.0f, 1.0f));
+		b = Math::sqrt(Math::clamp((0.055643f * x - 0.204026f * y + 1.057229f * z) * 1.1003f, 0.0f, 1.0f));
+	}
+
+	void CIE::convertLabToRGB(float lstar, float astar, float bstar, float& r, float& g, float& b) noexcept
+	{
+		float m = (lstar + 16.0f) / 116;
+		float l = m + astar / 500.0f;
+		float n = m - bstar / 200.0f;
+#define LAB_FUNG(x) ((x) >= 6.0f / 29.0f ? (x)*(x)*(x) : (108.0f / 841.0f) * ((x) - (4.0f / 29.0f)))
+		float x = LAB_FUNG(l);
+		float y = LAB_FUNG(m);
+		float z = LAB_FUNG(n);
+		convertXyzToRGB(x, y, z, r, g, b);
 	}
 
 }
