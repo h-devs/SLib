@@ -442,6 +442,36 @@ namespace slib
 			}
 
 			template <int BITS_PER_COMP>
+			static void MultiplyAlpha_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						c->a = (sl_uint8)(((sl_uint32)(c->a) * (sl_uint32)(BitReader<BITS_PER_COMP>::read(src, iCol))) >> BITS_PER_COMP);
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <sl_uint32 BYTES_PER_COMP>
+			static void MultiplyAlpha_Bytes(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
+			{
+				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
+					sl_uint8* s = src;
+					Color* c = dst;
+					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
+						c->a = (sl_uint8)(((sl_uint32)(c->a) * (sl_uint32)(*s)) >> 8);
+						s += BYTES_PER_COMP;
+						c++;
+					}
+					src += src_pitch;
+					dst += dst_stride;
+				}
+			}
+
+			template <int BITS_PER_COMP>
 			static void CopyIndexed_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch, const Color* indices, sl_uint32 nIndices) noexcept
 			{
 				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
@@ -916,6 +946,48 @@ namespace slib
 					break;
 				case 16:
 					priv::image::CopyOnlyAlpha_Bytes<2>(width, height, colors, stride, data, pitch);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+	
+	void Image::multiplyAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
+	{
+		sl_uint32 widthDst = m_desc.width;
+		sl_uint32 heightDst = m_desc.height;
+		if (width > widthDst) {
+			width = widthDst;
+		}
+		if (height > heightDst) {
+			height = heightDst;
+		}
+		if (width && height) {
+			if (!(priv::image::IsValidBitsPerComponent(bitsPerComponent))) {
+				return;
+			}
+			sl_uint8* data = (sl_uint8*)_data;
+			Color* colors = m_desc.colors;
+			sl_reg stride = m_desc.stride;
+			if (!pitch) {
+				pitch = (3 * bitsPerComponent * width + 7) >> 3;
+			}
+			switch (bitsPerComponent) {
+				case 1:
+					priv::image::MultiplyAlpha_Bits<1>(width, height, colors, stride, data, pitch);
+					break;
+				case 2:
+					priv::image::MultiplyAlpha_Bits<2>(width, height, colors, stride, data, pitch);
+					break;
+				case 4:
+					priv::image::MultiplyAlpha_Bits<4>(width, height, colors, stride, data, pitch);
+					break;
+				case 8:
+					priv::image::MultiplyAlpha_Bytes<1>(width, height, colors, stride, data, pitch);
+					break;
+				case 16:
+					priv::image::MultiplyAlpha_Bytes<2>(width, height, colors, stride, data, pitch);
 					break;
 				default:
 					break;
@@ -2122,7 +2194,7 @@ namespace slib
 		if (temp.isNull()) {
 			return sl_null;
 		}
-		Ref<Image> ret = Image::create(width, height);
+		Ref<Image> ret = Image::allocate(width, height);
 		if (ret.isNull()) {
 			return sl_null;
 		}
@@ -2215,7 +2287,7 @@ namespace slib
 	Ref<Image> Image::duplicate(sl_uint32 width, sl_uint32 height, StretchMode stretch) const
 	{
 		if (width > 0 && height > 0) {
-			Ref<Image> ret = Image::create(width, height);
+			Ref<Image> ret = Image::allocate(width, height);
 			if (ret.isNotNull()) {
 				draw(ret->m_desc, m_desc, BlendMode::Copy, stretch);
 				return ret;

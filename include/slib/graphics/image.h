@@ -138,6 +138,8 @@ namespace slib
 
 		void writeAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
 
+		void multiplyAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
+
 
 		static void draw(ImageDesc& dst, const ImageDesc& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
