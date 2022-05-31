@@ -185,9 +185,9 @@ namespace slib
 		RGB = 1,
 		Gray = 2,
 		CMYK = 3,
-		CalRGB = 0x101,
-		CalGray = 0x102,
-		Indexed = 0x202
+		Lab = 4,
+		Indexed = 5,
+		Pattern = 6
 	};
 
 	enum class PdfImageType
@@ -407,40 +407,12 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfStreamDecodeParams
-	{
-	public:
-		sl_uint32 predictor;
-		sl_uint32 columns;
-		sl_uint32 rows;
-		sl_uint32 bitsPerComponent;
-		sl_uint32 colors;
-
-		// Fax
-		sl_int32 K; // encoding
-		sl_bool flagEndOfLine;
-		sl_bool flagByteAlign;
-		sl_bool flagBlackIs1;
-
-	public:
-		PdfStreamDecodeParams();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfStreamDecodeParams)
-
-	public:
-		void setParams(const PdfDictionary& dict) noexcept;
-
-		sl_uint32 predict(void* content, sl_uint32 size) noexcept;
-
-	};
-
 	class SLIB_EXPORT PdfStream : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		PdfDictionary properties;
-		PdfStreamDecodeParams decodeParams;
 
 	public:
 		PdfStream() noexcept;
@@ -454,17 +426,60 @@ namespace slib
 
 		PdfValue getProperty(const String& name, const String& alternateName) noexcept;
 
-		Memory getContent(PdfContentReader* reader);
+		Memory getEncodedContent(PdfContentReader* reader);
 
-		void setContent(const Memory& content) noexcept;
+		void setEncodedContent(const Memory& content) noexcept;
 
-		PdfFilter getLastFilter() noexcept;
+		Memory getDecodedContent(PdfContentReader* reader);
+
+		Memory getDecodedContent(const Memory& content);
 
 	private:
-		AtomicMemory m_content;
+		AtomicMemory m_contentEncoded;
 		PdfReference m_ref;
 		sl_uint32 m_offsetContent;
 		sl_uint32 m_sizeContent;
+
+	};
+
+	class SLIB_EXPORT PdfFlateOrLZWDecodeParams
+	{
+	public:
+		sl_uint32 predictor;
+		sl_uint32 columns;
+		sl_uint32 bitsPerComponent;
+		sl_uint32 colors;
+		sl_uint32 earlyChange;
+
+	public:
+		PdfFlateOrLZWDecodeParams();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFlateOrLZWDecodeParams)
+
+	public:
+		void setParams(const PdfDictionary& dict) noexcept;
+
+		sl_uint32 predict(void* content, sl_uint32 size) noexcept;
+
+	};
+
+	class SLIB_EXPORT PdfCCITTFaxDecodeParams
+	{
+	public:
+		sl_int32 K; // encoding
+		sl_uint32 columns;
+		sl_uint32 rows;
+		sl_bool flagEndOfLine;
+		sl_bool flagByteAlign;
+		sl_bool flagBlackIs1;
+
+	public:
+		PdfCCITTFaxDecodeParams();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCCITTFaxDecodeParams)
+
+	public:
+		void setParams(const PdfDictionary& dict) noexcept;
 
 	};
 
@@ -485,15 +500,6 @@ namespace slib
 	{
 	public:
 		PdfColorSpaceType type;
-
-		// calc
-		float whitePoints[3];
-		float blackPoints[3];
-		sl_bool flagGamma;
-		float gamma[3];
-		sl_bool flagMatrix;
-		float matrix[9];
-
 		Array<Color> indices;
 		
 	public:
@@ -506,11 +512,11 @@ namespace slib
 
 		void load(PdfDocument* doc, const PdfValue& value);
 
-		sl_bool isRGB();
-
-		sl_bool isCMYK();
+		sl_uint32 getComponentsCount();
 
 		sl_bool getColor(Color& _out, const PdfValue* values, sl_size count);
+
+		sl_bool getColorAt(Color& _out, sl_uint32 index);
 
 		static sl_bool getColorFromRGB(Color& _out, const PdfValue* values, sl_size count);
 
@@ -518,12 +524,10 @@ namespace slib
 
 		static sl_bool getColorFromCMYK(Color& _out, const PdfValue* values, sl_size count);
 
+		static sl_bool getColorFromLab(Color& _out, const PdfValue* values, sl_size count);
+
 	private:
 		sl_bool _loadName(const String& name);
-
-		sl_bool _loadCalParams(const PdfDictionary& dict, sl_bool flagRGB);
-
-		Color _calcColor(float r, float g, float b);
 
 		sl_bool _loadIndexed(PdfDocument* doc, sl_uint32 maxIndex, const PdfValue& table);
 
@@ -636,15 +640,18 @@ namespace slib
 	class SLIB_EXPORT PdfImageResource
 	{
 	public:
-		PdfImageType type;
 		sl_uint32 width;
 		sl_uint32 height;
 		PdfColorSpace colorSpace;
 		sl_uint32 bitsPerComponent;
 		sl_bool flagImageMask;
 		sl_bool flagInterpolate;
+		sl_bool flagUseDecodeArray;
+		sl_int32 decodeMin[4];
+		sl_int32 decodeMax[4];
 
 		PdfReference mask;
+		PdfReference smask;
 
 	public:
 		PdfImageResource();
@@ -809,11 +816,11 @@ namespace slib
 
 		PdfValue getObject(const PdfValue& refOrValue);
 
-		Memory getStreamContent(PdfStream* stream);
+		Memory decodeStreamContent(PdfStream* stream);
 
-		Memory getStreamContent(const PdfReference& ref);
+		Memory decodeStreamContent(const PdfReference& ref);
 
-		Memory getStreamContent(const PdfValue& refOrStream);
+		Memory decodeStreamContent(const PdfValue& refOrStream);
 
 		List< Ref<PdfStream> > getAllStreams();
 
