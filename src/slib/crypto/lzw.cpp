@@ -335,15 +335,16 @@ namespace slib
 				bytes_in = 0;
 				insize = 0;
 
+				rsize = 0;
 				while (insize < 3 && (rsize = reader->read32(inbuf + insize, IBUFSIZ)) > 0) {
 					insize += rsize;
 				}
-				if (rsize < 0) {
-					// reading error
-					return sl_false;
-				}
 
 				if (insize < 3 || inbuf[0] != MAGIC_1 || inbuf[1] != MAGIC_2) {
+					if (rsize < 0) {
+						// reading error
+						return sl_false;
+					}
 					if (insize > 0) {
 						// not in compressed format
 						return sl_false;
