@@ -548,25 +548,28 @@ namespace slib
 		return (sl_uint32)(m_face->num_glyphs);
 	}
 
-	sl_bool FreeType::getGlyphIndex(sl_uint32 charcode, sl_uint32& outGlyphIndex)
+	sl_uint32 FreeType::getGlyphIndex(const char* name)
 	{
+		ObjectLocker lock(this);
+		return (sl_uint32)(FT_Get_Name_Index(m_face, (FT_String*)name));
+	}
+
+	sl_uint32 FreeType::getGlyphIndex(sl_uint32 charcode)
+	{
+		ObjectLocker lock(this);
 		if (m_face->charmap) {
 			sl_uint32 id = (sl_uint32)(FT_Get_Char_Index(m_face, (FT_ULong)charcode));
 			if (id) {
-				outGlyphIndex = id;
-				return sl_true;
+				return id;
 			}
-			id = (sl_uint32)(FT_Get_Char_Index(m_face, (FT_ULong)(charcode + 0xf000)));
-			if (id) {
-				outGlyphIndex = id;
-				return sl_true;
-			}
+			return (sl_uint32)(FT_Get_Char_Index(m_face, (FT_ULong)(charcode + 0xf000)));
 		}
-		return sl_false;
+		return 0;
 	}
 
 	void FreeType::selectCharmap(sl_bool flagSymbolic)
 	{
+		ObjectLocker lock(this);
 		FT_CharMap charmap = SelectCharmap(m_face, getKind(), flagSymbolic);
 		if (charmap) {
 			FT_Set_Charmap(m_face, charmap);
@@ -935,8 +938,8 @@ namespace slib
 	Ref<FreeTypeGlyph> FreeType::getCharGlyph(sl_uint32 charcode)
 	{
 		ObjectLocker lock(this);
-		sl_uint32 glyphId;
-		if (getGlyphIndex(charcode, glyphId)) {
+		sl_uint32 glyphId = getGlyphIndex(charcode);
+		if (glyphId) {
 			return _getGlyph(glyphId);
 		} else {
 			return _getGlyph(charcode);

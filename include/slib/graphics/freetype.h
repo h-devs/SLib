@@ -128,7 +128,11 @@ namespace slib
 
 		sl_uint32 getGlyphsCount();
 
-		sl_bool getGlyphIndex(sl_uint32 code, sl_uint32& outGlyphIndex);
+		// returns zero on error
+		sl_uint32 getGlyphIndex(const char* name);
+
+		// returns zero on error
+		sl_uint32 getGlyphIndex(sl_uint32 code);
 
 		void selectCharmap(sl_bool flagSymbolic);
 
