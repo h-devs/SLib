@@ -49,7 +49,7 @@
 #define MAX_STRING_LENGTH 32767
 #define EXPIRE_DURATION_OBJECT 5000
 #define EXPIRE_DURATION_OBJECT_STREAM 10000
-#define EXPIRE_DURATION_FONT_BITMAP 5000
+#define EXPIRE_DURATION_FONT_GLYPH 15000
 
 #define MAKE_OBJECT_ID(NUM, GEN) SLIB_MAKE_QWORD4(GEN, NUM)
 
@@ -5250,7 +5250,7 @@ namespace slib
 
 	PdfFont::PdfFont()
 	{
-		m_cacheGlyphs.setExpiringMilliseconds(EXPIRE_DURATION_FONT_BITMAP);
+		m_cacheGlyphs.setExpiringMilliseconds(EXPIRE_DURATION_FONT_GLYPH);
 	}
 
 	PdfFont::~PdfFont()

@@ -25,8 +25,10 @@
 #include "slib/doc/pdf.h"
 #include "slib/graphics/bitmap.h"
 
-#define EXPIRE_DURATION_PDF_RESOURCES 5000
-#define EXPIRE_DURATION_PAGE_CACHE 3000
+#define EXPIRE_DURATION_PAGE 5000
+#define EXPIRE_DURATION_FONT 15000
+#define EXPIRE_DURATION_IMAGE 4000
+#define EXPIRE_DURATION_PAGE_CACHE 7000
 
 namespace slib
 {
@@ -46,9 +48,9 @@ namespace slib
 		PdfViewContext()
 		{
 			pageCache.setExpiringMilliseconds(EXPIRE_DURATION_PAGE_CACHE);
-			pages.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
-			fonts.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
-			images.setExpiringMilliseconds(EXPIRE_DURATION_PDF_RESOURCES);
+			pages.setExpiringMilliseconds(EXPIRE_DURATION_PAGE);
+			fonts.setExpiringMilliseconds(EXPIRE_DURATION_FONT);
+			images.setExpiringMilliseconds(EXPIRE_DURATION_IMAGE);
 		}
 
 	public:
@@ -249,17 +251,12 @@ namespace slib
 		if (page.isNull()) {
 			return;
 		}
-		sl_real width = (sl_real)(getWidth());
-		if (width < 100) {
-			width = 100;
-		}
-		if (width > 1000) {
-			width = 1000;
-		}
+		sl_int32 iWidth = getWidth();
+		sl_real width = (sl_real)iWidth;
 		Rectangle mediaBox = page->getMediaBox();
 		sl_real ratio = (sl_real)(context->getBoxRatio(mediaBox));
 		sl_real height = width * ratio;
-		Ref<Bitmap> bitmap = Bitmap::create((sl_uint32)width, (sl_uint32)height);
+		Ref<Bitmap> bitmap = Bitmap::create(iWidth, (sl_uint32)height);
 		if (bitmap.isNull()) {
 			return;
 		}
@@ -277,7 +274,10 @@ namespace slib
 			param.bounds.bottom = height;
 			page->render(param);
 		}
-		context->pageCache.put(pageNo, bitmap);
+		if (context->pageCache.getCount() > 3) {
+			context->pageCache.removeAll();
+		}
+		context->pageCache.put(pageNo, Move(bitmap));
 	}
 
 	void PdfView::onDraw(Canvas* canvas)
@@ -288,8 +288,9 @@ namespace slib
 		}
 
 		UIRect bounds = getBounds();
+		sl_int32 iWidth = bounds.getWidth();
+		sl_real width = (sl_real)iWidth;
 		sl_real height = (sl_real)(bounds.getHeight());
-		sl_real width = (sl_real)(bounds.getWidth());
 		if (Math::isAlmostZero(width)) {
 			return;
 		}
@@ -324,15 +325,17 @@ namespace slib
 					break;
 				}
 				if (sy < param.bounds.bottom) {
-					Ref<Bitmap> cache;
-					if (context->pageCache.get(pageNo, &cache)) {
-						if (cache.isNotNull()) {
-							sl_bool flagAntialias = canvas->isAntiAlias();
-							canvas->setAntiAlias(sl_true);
-							canvas->draw(param.bounds, cache);
-							canvas->setAntiAlias(flagAntialias);
+					do {
+						Ref<Bitmap> cache;
+						if (context->pageCache.get(pageNo, &cache)) {
+							if (cache->getWidth() >= (sl_uint32)iWidth) {
+								sl_bool flagAntialias = canvas->isAntiAlias();
+								canvas->setAntiAlias(sl_true);
+								canvas->draw(param.bounds, cache);
+								canvas->setAntiAlias(flagAntialias);
+								break;
+							}
 						}
-					} else {
 						TimeCounter tc;
 						page->render(param);
 						sl_uint64 dt = tc.getElapsedMilliseconds();
@@ -345,7 +348,7 @@ namespace slib
 								}
 							});
 						}
-					}
+					} while (0);
 					if (i) {
 						canvas->drawLine(param.bounds.left, param.bounds.top - 1, param.bounds.right, param.bounds.top - 1, penBorder);
 					}
