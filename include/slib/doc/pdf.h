@@ -593,6 +593,7 @@ namespace slib
 		sl_uint32 lastChar;
 		Array<float> widths;
 		PdfEncoding encoding;
+		HashMap<sl_uint32, String> encodingMap;
 		PdfFontDescriptor descriptor;
 		PdfCidFontInfo cid;
 		HashMap<sl_uint16, sl_uint32> toUnicode;
@@ -869,6 +870,8 @@ namespace slib
 	{
 	public:
 		static const sl_char16* getUnicodeTable(PdfEncoding encoding) noexcept;
+
+		static const char* const* getCharNameTable(PdfEncoding encoding) noexcept;
 
 		static PdfFilter getFilter(const StringView& name) noexcept;
 

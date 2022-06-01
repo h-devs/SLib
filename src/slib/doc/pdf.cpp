@@ -86,6 +86,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_strDescendantFonts, "DescendantFonts")
 			SLIB_STATIC_STRING(g_strEncoding, "Encoding")
 			SLIB_STATIC_STRING(g_strBaseEncoding, "BaseEncoding")
+			SLIB_STATIC_STRING(g_strDifferences, "Differences")
 			SLIB_STATIC_STRING(g_strFontDescriptor, "FontDescriptor")
 			SLIB_STATIC_STRING(g_strFontName, "FontName")
 			SLIB_STATIC_STRING(g_strFontFamily, "FontFamily")
@@ -208,6 +209,48 @@ namespace slib
 				0x0000, 0x0000, 0x0131, 0x0000, 0x0000, 0x0142, 0x00f8, 0x0153, 0x00df,
 				0x0000, 0x0000, 0x0000, 0x0000 };
 
+			const char* const g_charNamesStandard[256] = {
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null,
+				"space", "exclam", "quotedbl", "numbersign", "dollar", "percent",
+				"ampersand", "quoteright", "parenleft", "parenright", "asterisk",
+				"plus", "comma", "hyphen", "period", "slash", "zero", "one", "two",
+				"three", "four", "five", "six", "seven", "eight", "nine", "colon",
+				"semicolon", "less", "equal", "greater", "question", "at", "A",
+				"B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+				"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+				"bracketleft", "backslash", "bracketright", "asciicircum", "underscore",
+				"quoteleft", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+				"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x",
+				"y", "z", "braceleft", "bar", "braceright", "asciitilde", sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, "exclamdown", "cent", "sterling",
+				"fraction", "yen", "florin", "section", "currency", "quotesingle",
+				"quotedblleft", "guillemotleft", "guilsinglleft", "guilsinglright",
+				"fi", "fl", sl_null, "endash", "dagger", "daggerdbl", "periodcentered",
+				sl_null, "paragraph", "bullet", "quotesinglbase", "quotedblbase",
+				"quotedblright", "guillemotright", "ellipsis", "perthousand",
+				sl_null, "questiondown", sl_null, "grave", "acute", "circumflex",
+				"tilde", "macron", "breve", "dotaccent", "dieresis", sl_null,
+				"ring", "cedilla", sl_null, "hungarumlaut", "ogonek", "caron",
+				"emdash", sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, "AE",
+				sl_null, "ordfeminine", sl_null, sl_null, sl_null, sl_null,
+				"Lslash", "Oslash", "OE", "ordmasculine", sl_null, sl_null,
+				sl_null, sl_null, sl_null, "ae", sl_null, sl_null,
+				sl_null, "dotlessi", sl_null, sl_null, "lslash", "oslash",
+				"oe", "germandbls", sl_null, sl_null, sl_null, sl_null
+			};
+
 			const sl_char16 g_encodingMacRoman[256] = {
 				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -239,6 +282,48 @@ namespace slib
 				0x00db, 0x00d9, 0x0131, 0x02c6, 0x02dc, 0x00af, 0x02d8, 0x02d9, 0x02da,
 				0x00b8, 0x02dd, 0x02db, 0x02c7 };
 
+			const char* const g_charNamesMacRoman[256] = {
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null,
+				"space", "exclam", "quotedbl", "numbersign", "dollar", "percent",
+				"ampersand", "quotesingle", "parenleft", "parenright", "asterisk",
+				"plus", "comma", "hyphen", "period", "slash", "zero", "one", "two",
+				"three", "four", "five", "six", "seven", "eight", "nine", "colon",
+				"semicolon", "less", "equal", "greater", "question", "at", "A",
+				"B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+				"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+				"bracketleft", "backslash", "bracketright", "asciicircum", "underscore",
+				"grave", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+				"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x",
+				"y", "z", "braceleft", "bar", "braceright", "asciitilde", sl_null,
+				"Adieresis", "Aring", "Ccedilla", "Eacute", "Ntilde", "Odieresis",
+				"Udieresis", "aacute", "agrave", "acircumflex", "adieresis", "atilde",
+				"aring", "ccedilla", "eacute", "egrave", "ecircumflex", "edieresis",
+				"iacute", "igrave", "icircumflex", "idieresis", "ntilde", "oacute",
+				"ograve", "ocircumflex", "odieresis", "otilde", "uacute", "ugrave",
+				"ucircumflex", "udieresis", "dagger", "degree", "cent", "sterling",
+				"section", "bullet", "paragraph", "germandbls", "registered",
+				"copyright", "trademark", "acute", "dieresis", sl_null, "AE",
+				"Oslash", sl_null, "plusminus", sl_null, sl_null, "yen", "mu",
+				sl_null, sl_null, sl_null, sl_null, sl_null, "ordfeminine",
+				"ordmasculine", sl_null, "ae", "oslash", "questiondown", "exclamdown",
+				"logicalnot", sl_null, "florin", sl_null, sl_null, "guillemotleft",
+				"guillemotright", "ellipsis", "space", "Agrave", "Atilde", "Otilde",
+				"OE", "oe", "endash", "emdash", "quotedblleft", "quotedblright",
+				"quoteleft", "quoteright", "divide", sl_null, "ydieresis",
+				"Ydieresis", "fraction", "currency", "guilsinglleft", "guilsinglright",
+				"fi", "fl", "daggerdbl", "periodcentered", "quotesinglbase",
+				"quotedblbase", "perthousand", "Acircumflex", "Ecircumflex", "Aacute",
+				"Edieresis", "Egrave", "Iacute", "Icircumflex", "Idieresis", "Igrave",
+				"Oacute", "Ocircumflex", sl_null, "Ograve", "Uacute", "Ucircumflex",
+				"Ugrave", "dotlessi", "circumflex", "tilde", "macron", "breve",
+				"dotaccent", "ring", "cedilla", "hungarumlaut", "ogonek", "caron"
+			};
+
 			const sl_char16 g_encodingWinAnsi[256] = {
 				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -269,6 +354,49 @@ namespace slib
 				0x00ea, 0x00eb, 0x00ec, 0x00ed, 0x00ee, 0x00ef, 0x00f0, 0x00f1, 0x00f2,
 				0x00f3, 0x00f4, 0x00f5, 0x00f6, 0x00f7, 0x00f8, 0x00f9, 0x00fa, 0x00fb,
 				0x00fc, 0x00fd, 0x00fe, 0x00ff };
+
+			const char* const g_charNamesWinAnsi[256] = {
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, "space",
+				sl_null, sl_null, sl_null,
+				"exclam", "quotedbl", "numbersign", "dollar", "percent", "ampersand",
+				"quotesingle", "parenleft", "parenright", "asterisk", "plus",
+				"comma", "hyphen", "period", "slash", "zero", "one", "two", "three",
+				"four", "five", "six", "seven", "eight", "nine", "colon", "semicolon",
+				"less", "equal", "greater", "question", "at", "A", "B", "C", "D",
+				"E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
+				"R", "S", "T", "U", "V", "W", "X", "Y", "Z", "bracketleft",
+				"backslash", "bracketright", "asciicircum", "underscore", "grave",
+				"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+				"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+				"braceleft", "bar", "braceright", "asciitilde", "bullet", "Euro",
+				"bullet", "quotesinglbase", "florin", "quotedblbase", "ellipsis",
+				"dagger", "daggerdbl", "circumflex", "perthousand", "Scaron",
+				"guilsinglleft", "OE", "bullet", "Zcaron", "bullet", "bullet",
+				"quoteleft", "quoteright", "quotedblleft", "quotedblright", "bullet",
+				"endash", "emdash", "tilde", "trademark", "scaron", "guilsinglright",
+				"oe", "bullet", "zcaron", "Ydieresis", "space", "exclamdown", "cent",
+				"sterling", "currency", "yen", "brokenbar", "section", "dieresis",
+				"copyright", "ordfeminine", "guillemotleft", "logicalnot", "hyphen",
+				"registered", "macron", "degree", "plusminus", "twosuperior",
+				"threesuperior", "acute", "mu", "paragraph", "periodcentered",
+				"cedilla", "onesuperior", "ordmasculine", "guillemotright",
+				"onequarter", "onehalf", "threequarters", "questiondown", "Agrave",
+				"Aacute", "Acircumflex", "Atilde", "Adieresis", "Aring", "AE",
+				"Ccedilla", "Egrave", "Eacute", "Ecircumflex", "Edieresis", "Igrave",
+				"Iacute", "Icircumflex", "Idieresis", "Eth", "Ntilde", "Ograve",
+				"Oacute", "Ocircumflex", "Otilde", "Odieresis", "multiply", "Oslash",
+				"Ugrave", "Uacute", "Ucircumflex", "Udieresis", "Yacute", "Thorn",
+				"germandbls", "agrave", "aacute", "acircumflex", "atilde", "adieresis",
+				"aring", "ae", "ccedilla", "egrave", "eacute", "ecircumflex",
+				"edieresis", "igrave", "iacute", "icircumflex", "idieresis", "eth",
+				"ntilde", "ograve", "oacute", "ocircumflex", "otilde", "odieresis",
+				"divide", "oslash", "ugrave", "uacute", "ucircumflex", "udieresis",
+				"yacute", "thorn", "ydieresis"
+			};
 
 			const sl_char16 g_encodingPdfDoc[256] = {
 				0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008,
@@ -331,6 +459,60 @@ namespace slib
 				0xf6f2, 0xf6eb, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xf6ee, 0xf6fb,
 				0xf6f4, 0xf7af, 0xf6ea, 0x207f, 0xf6ef, 0xf6e2, 0xf6e8, 0xf6f7, 0xf6fc,
 				0x0000, 0x0000, 0x0000, 0x0000 };
+
+			const char* const g_charNamesMacExpert[256] = {
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+				sl_null, sl_null,
+				"space", "exclamsmall", "Hungarumlautsmall", "centoldstyle",
+				"dollaroldstyle", "dollarsuperior", "ampersandsmall", "Acutesmall",
+				"parenleftsuperior", "parenrightsuperior", "twodotenleader",
+				"onedotenleader", "comma", "hyphen", "period", "fraction",
+				"zerooldstyle", "oneoldstyle", "twooldstyle", "threeoldstyle",
+				"fouroldstyle", "fiveoldstyle", "sixoldstyle", "sevenoldstyle",
+				"eightoldstyle", "nineoldstyle", "colon", "semicolon", sl_null,
+				"threequartersemdash", sl_null, "questionsmall", sl_null,
+				sl_null, sl_null, sl_null, "Ethsmall", sl_null, sl_null,
+				"onequarter", "onehalf", "threequarters", "oneeighth", "threeeighths",
+				"fiveeighths", "seveneighths", "onethird", "twothirds", sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, "ff", "fi",
+				"fl", "ffi", "ffl", "parenleftinferior", sl_null, "parenrightinferior",
+				"Circumflexsmall", "hypheninferior", "Gravesmall", "Asmall", "Bsmall",
+				"Csmall", "Dsmall", "Esmall", "Fsmall", "Gsmall", "Hsmall", "Ismall",
+				"Jsmall", "Ksmall", "Lsmall", "Msmall", "Nsmall", "Osmall", "Psmall",
+				"Qsmall", "Rsmall", "Ssmall", "Tsmall", "Usmall", "Vsmall", "Wsmall",
+				"Xsmall", "Ysmall", "Zsmall", "colonmonetary", "onefitted", "rupiah",
+				"Tildesmall", sl_null, sl_null, "asuperior", "centsuperior",
+				sl_null, sl_null, sl_null, sl_null, "Aacutesmall",
+				"Agravesmall", "Acircumflexsmall", "Adieresissmall", "Atildesmall",
+				"Aringsmall", "Ccedillasmall", "Eacutesmall", "Egravesmall",
+				"Ecircumflexsmall", "Edieresissmall", "Iacutesmall", "Igravesmall",
+				"Icircumflexsmall", "Idieresissmall", "Ntildesmall", "Oacutesmall",
+				"Ogravesmall", "Ocircumflexsmall", "Odieresissmall", "Otildesmall",
+				"Uacutesmall", "Ugravesmall", "Ucircumflexsmall", "Udieresissmall",
+				sl_null, "eightsuperior", "fourinferior", "threeinferior",
+				"sixinferior", "eightinferior", "seveninferior", "Scaronsmall",
+				sl_null, "centinferior", "twoinferior", sl_null, "Dieresissmall",
+				sl_null, "Caronsmall", "osuperior", "fiveinferior", sl_null,
+				"commainferior", "periodinferior", "Yacutesmall", sl_null,
+				"dollarinferior", sl_null, sl_null, "Thornsmall", sl_null,
+				"nineinferior", "zeroinferior", "Zcaronsmall", "AEsmall", "Oslashsmall",
+				"questiondownsmall", "oneinferior", "Lslashsmall", sl_null,
+				sl_null, sl_null, sl_null, sl_null, sl_null, "Cedillasmall",
+				sl_null, sl_null, sl_null, sl_null, sl_null, "OEsmall",
+				"figuredash", "hyphensuperior", sl_null, sl_null, sl_null,
+				sl_null, "exclamdownsmall", sl_null, "Ydieresissmall", sl_null,
+				"onesuperior", "twosuperior", "threesuperior", "foursuperior",
+				"fivesuperior", "sixsuperior", "sevensuperior", "ninesuperior",
+				"zerosuperior", sl_null, "esuperior", "rsuperior", "tsuperior",
+				sl_null, sl_null, "isuperior", "ssuperior", "dsuperior",
+				sl_null, sl_null, sl_null, sl_null, sl_null, "lsuperior",
+				"Ogoneksmall", "Brevesmall", "Macronsmall", "bsuperior", "nsuperior",
+				"msuperior", "commasuperior", "periodsuperior", "Dotaccentsmall",
+				"Ringsmall", sl_null, sl_null, sl_null, sl_null };
 
 			const sl_char16 g_encodingAdobeSymbol[256] = {
 				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -1769,6 +1951,12 @@ namespace slib
 						Memory ret = readFully(size);
 						if (ret.isNotNull()) {
 							if (flagDecryptContents) {
+								if (!(ret.getRef())) {
+									ret = Memory::create(ret.getData(), size);
+									if (ret.isNull()) {
+										return sl_null;
+									}
+								}
 								decrypt(ref, ret.getData(), size);
 							}
 							return ret;
@@ -2727,11 +2915,6 @@ namespace slib
 				{
 					text.matrix = Matrix3::identity();
 					text.lineMatrix = Matrix3::identity();
-					text.charSpace = 0;
-					text.wordSpace = 0;
-					text.widthScale = 1;
-					text.leading = 0;
-					text.rise = 0;
 				}
 
 				void setTextCharSpace(ListElements<PdfValue> operands)
@@ -2797,10 +2980,15 @@ namespace slib
 						return;
 					}
 					float ty = operands[1].getFloat();
-					moveTextMatrix(operands[0].getFloat(), ty);
 					if (flagSetLeading) {
-						text.leading = ty;
+						text.leading = -ty;
 					}
+					moveTextMatrix(operands[0].getFloat(), ty);
+				}
+
+				void moveToNextLine()
+				{
+					moveTextMatrix(0, -text.leading);
 				}
 
 				void setTextRenderingMode(ListElements<PdfValue> operands)
@@ -2929,7 +3117,7 @@ namespace slib
 					}
 					text.wordSpace = operands[0].getFloat();
 					text.charSpace = operands[1].getFloat();
-					moveTextMatrix(0, text.leading);
+					moveToNextLine();
 					const String& text = operands[2].getString();
 					drawText(text);
 				}
@@ -2946,12 +3134,6 @@ namespace slib
 						if (doc.isNotNull()) {
 							Ref<PdfImage> image = PdfImage::load(doc.get(), ref, *(param->context));
 							if (image.isNotNull()) {
-								sl_bool flagAntialiasOld = canvas->isAntiAlias();
-								if (image->flagInterpolate) {
-									canvas->setAntiAlias();
-								} else {
-									canvas->setAntiAlias(sl_false);
-								}
 								if (image->flagImageMask) {
 									DrawParam dp;
 									dp.useColorMatrix = sl_true;
@@ -2960,7 +3142,6 @@ namespace slib
 								} else {
 									canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
 								}
-								canvas->setAntiAlias(flagAntialiasOld);
 							}
 						}
 					}
@@ -3147,7 +3328,7 @@ namespace slib
 							// paint area defined by shading pattern
 							break;
 						case PdfOperator::T_:
-							moveTextMatrix(0, text.leading);
+							moveToNextLine();
 							break;
 						case PdfOperator::Tc:
 							setTextCharSpace(operation.operands);
@@ -3201,7 +3382,7 @@ namespace slib
 							curveTo(operation.operands, sl_false, sl_true);
 							break;
 						case PdfOperator::apos:
-							moveTextMatrix(0, text.leading);
+							moveToNextLine();
 							showText(operation.operands);
 							break;
 						case PdfOperator::quot:
@@ -4968,13 +5149,27 @@ namespace slib
 		if (encodingName.isNotNull()) {
 			encoding = Pdf::getEncoding(encodingName);
 		} else {
-			PdfReference ref;
-			if (vEncoding.getReference(ref)) {
-				const PdfDictionary& dict = doc->getObject(ref).getDictionary();
-				if (dict.isNotNull()) {
-					const String& s = dict.getValue_NoLock(g_strBaseEncoding).getString();
-					if (s.isNotNull()) {
-						encoding = Pdf::getEncoding(s);
+			const PdfDictionary& dict = doc->getObject(vEncoding).getDictionary();
+			if (dict.isNotNull()) {
+				encoding = Pdf::getEncoding(dict.getValue_NoLock(g_strBaseEncoding).getString());
+				PdfArray array = dict.getValue_NoLock(g_strDifferences).getArray();
+				sl_uint32 n = (sl_uint32)(array.getCount());
+				if (n >= 2) {
+					PdfValue* diff = array.getData();
+					sl_uint32 code;
+					if (diff[0].getUint(code)) {
+						for (sl_uint32 i = 1; i < n; i++) {
+							PdfValue& v = diff[i];
+							if (!(v.getUint(code))) {
+								const String& name = v.getName();
+								if (name.isNotNull()) {
+									encodingMap.put_NoLock(code, name);
+									code++;
+								} else {
+									break;
+								}
+							}
+						}
 					}
 				}
 			}
@@ -5100,9 +5295,9 @@ namespace slib
 			}
 		}
 		if (face.isNotNull()) {
-			face->setRealSize(32.0f);
+			face->setSize(32);
 			face->selectCharmap(descriptor.flags & PdfFontFlags::Symbolic);
-			scale = (descriptor.ascent - descriptor.descent) / 1000.0f / 32.0f;
+			scale = 1.0f / 32.0f;
 			return sl_true;
 		}
 		return sl_false;
@@ -5114,13 +5309,34 @@ namespace slib
 			return charcode;
 		}
 		if (face.isNotNull()) {
-			sl_uint32 glyphId;
-			if (face->isUnicodeEncoding()) {
-				if (face->getGlyphIndex(unicode, glyphId)) {
-					return glyphId;
+			if (subtype == PdfFontSubtype::Type1) {
+				{
+					String name;
+					if (encodingMap.get_NoLock(charcode, &name)) {
+						sl_uint32 glyphId = face->getGlyphIndex(name.getData());
+						if (glyphId) {
+							return glyphId;
+						}
+					}
 				}
+				if (charcode < 256) {
+					const char* const* names = Pdf::getCharNameTable(encoding);
+					if (names) {
+						const char* name = names[charcode];
+						if (name) {
+							return face->getGlyphIndex(names[charcode]);
+						}
+					}
+				}
+				return 0;
 			} else {
-				if (face->getGlyphIndex(charcode, glyphId)) {
+				sl_uint32 glyphId;
+				if (face->isUnicodeEncoding()) {
+					glyphId = face->getGlyphIndex(unicode);
+				} else {
+					glyphId = face->getGlyphIndex(charcode);
+				}
+				if (glyphId) {
 					return glyphId;
 				}
 			}
@@ -5135,9 +5351,12 @@ namespace slib
 			return glyph;
 		}
 		sl_uint32 glyphId = getGlyphIndex(charcode, unicode);
-		glyph = face->getGlyph(glyphId);
-		m_cacheGlyphs.put(charcode, glyph);
-		return glyph;
+		if (glyphId) {
+			glyph = face->getGlyph(glyphId);
+			m_cacheGlyphs.put(charcode, glyph);
+			return glyph;
+		}
+		return sl_null;
 	}
 
 	float PdfFont::getCharWidth(sl_uint32 charcode, sl_char32 unicode)
@@ -5355,6 +5574,13 @@ namespace slib
 								sl_uint32 height = (sl_uint32)(content.getSize()) / pitch;
 								if (height) {
 									if (colorSpace.type == PdfColorSpaceType::CMYK) {
+										if (!(content.getRef())) {
+											content = content.duplicate();
+											if (content.isNull()) {
+												return sl_false;
+											}
+											data = (sl_uint8*)(content.getData());
+										}
 										applyDecode4(data, width, height, pitch);
 									}
 									object = CreateImageObject(width, height, data, pitch, colorSpace.type, bitsPerComponent, colorSpace.indices.getData(), (sl_uint32)(colorSpace.indices.getCount()));
@@ -5413,12 +5639,7 @@ namespace slib
 			if (heightParent < heightMask) {
 				heightParent = heightMask;
 			}
-			Ref<Image> image;
-			if (flagInterpolate) {
-				image = object->stretch(widthParent, heightParent, StretchMode::Linear);
-			} else {
-				image = object->stretch(widthParent, heightParent, StretchMode::Nearest);
-			}
+			Ref<Image> image = object->stretch(widthParent, heightParent, StretchMode::Linear);
 			if (image.isNull()) {
 				return;
 			}
@@ -5436,11 +5657,7 @@ namespace slib
 			return;
 		}
 		if (widthMask != widthParent || heightMask != heightParent) {
-			if (maskDesc.flagInterpolate) {
-				imageMask = imageMask->stretch(widthParent, heightParent, StretchMode::Linear);
-			} else {
-				imageMask = imageMask->stretch(widthParent, heightParent, StretchMode::Nearest);
-			}
+			imageMask = imageMask->stretch(widthParent, heightParent, StretchMode::Linear);
 			if (imageMask.isNull()) {
 				return;
 			}
@@ -5919,6 +6136,10 @@ namespace slib
 
 	void PdfPage::render(PdfRenderParam& param)
 	{
+		Canvas* canvas = param.canvas;
+		Rectangle bounds = param.bounds;
+		canvas->fillRectangle(bounds, Color::White);
+
 		ListElements<PdfOperation> ops(getContent());
 		if (!(ops.count)) {
 			return;
@@ -5931,7 +6152,6 @@ namespace slib
 			}
 		}
 
-		Canvas* canvas = param.canvas;
 		sl_bool flagOldAntiAlias = canvas->isAntiAlias();
 		canvas->setAntiAlias();
 
@@ -5940,11 +6160,8 @@ namespace slib
 		renderer.page = this;
 		renderer.param = &param;
 
-		Rectangle bounds = param.bounds;
-		canvas->fillRectangle(bounds, Color::White);
-		Swap(bounds.top, bounds.bottom);
-
 		CanvasStateScope scope(canvas);
+		Swap(bounds.top, bounds.bottom);
 		canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(getMediaBox(), bounds));
 		canvas->clipToRectangle(getCropBox());
 
@@ -6313,6 +6530,23 @@ namespace slib
 		return sl_null;
 	}
 
+	const char* const* Pdf::getCharNameTable(PdfEncoding encoding) noexcept
+	{
+		switch (encoding) {
+			case PdfEncoding::Standard:
+				return g_charNamesStandard;
+			case PdfEncoding::MacRoman:
+				return g_charNamesMacRoman;
+			case PdfEncoding::WinAnsi:
+				return g_charNamesWinAnsi;
+			case PdfEncoding::MacExpert:
+				return g_charNamesMacExpert;
+			default:
+				break;
+		}
+		return sl_null;
+	}
+
 	PdfFilter Pdf::getFilter(const StringView& name) noexcept
 	{
 		if (name == StringView::literal("FlateDecode") || name == StringView::literal("Fl")) {
@@ -6336,6 +6570,9 @@ namespace slib
 
 	PdfEncoding Pdf::getEncoding(const StringView& name) noexcept
 	{
+		if (name.isEmpty()) {
+			return PdfEncoding::Unknown;
+		}
 		if (name == StringView::literal("Identity-H")) {
 			return PdfEncoding::IdentityH;
 		} else if (name == StringView::literal("Identity-V")) {
