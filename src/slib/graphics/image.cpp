@@ -447,7 +447,7 @@ namespace slib
 				for (sl_uint32 iRow = 0; iRow < height; iRow++) {
 					Color* c = dst;
 					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
-						c->a = (sl_uint8)(((sl_uint32)(c->a) * (sl_uint32)(BitReader<BITS_PER_COMP>::read(src, iCol))) >> BITS_PER_COMP);
+						c->a = (sl_uint8)((sl_uint32)(c->a) * (sl_uint32)(BitReader<BITS_PER_COMP>::read(src, iCol)) / ((1 << BITS_PER_COMP) - 1));
 						c++;
 					}
 					src += src_pitch;
@@ -462,7 +462,7 @@ namespace slib
 					sl_uint8* s = src;
 					Color* c = dst;
 					for (sl_uint32 iCol = 0; iCol < width; iCol++) {
-						c->a = (sl_uint8)(((sl_uint32)(c->a) * (sl_uint32)(*s)) >> 8);
+						c->a = (sl_uint8)(((sl_uint32)(c->a) * (sl_uint32)(*s)) / 255);
 						s += BYTES_PER_COMP;
 						c++;
 					}
