@@ -159,6 +159,7 @@ namespace slib
 	PdfView::PdfView()
 	{
 		m_widthOld = 0;
+		m_flagUsePageCache = sl_false;
 
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 		setFocusable();
@@ -199,6 +200,16 @@ namespace slib
 	{
 		m_context.setNull();
 		invalidate();
+	}
+
+	sl_bool PdfView::isUsingPageCache()
+	{
+		return m_flagUsePageCache;
+	}
+
+	void PdfView::setUsingPageCache(sl_bool flag)
+	{
+		m_flagUsePageCache = flag;
 	}
 
 	Ref<PdfDocument> PdfView::getDocument()
@@ -325,30 +336,34 @@ namespace slib
 					break;
 				}
 				if (sy < param.bounds.bottom) {
-					do {
-						Ref<Bitmap> cache;
-						if (context->pageCache.get(pageNo, &cache)) {
-							if (cache->getWidth() >= (sl_uint32)iWidth) {
-								sl_bool flagAntialias = canvas->isAntiAlias();
-								canvas->setAntiAlias(sl_true);
-								canvas->draw(param.bounds, cache);
-								canvas->setAntiAlias(flagAntialias);
-								break;
-							}
-						}
-						TimeCounter tc;
-						page->render(param);
-						sl_uint64 dt = tc.getElapsedMilliseconds();
-						if (dt > 100) {
-							WeakRef<PdfView> weak = this;
-							Dispatch::dispatch([context, pageNo, weak, this]() {
-								Ref<PdfView> thiz = weak;
-								if (thiz.isNotNull()) {
-									_saveCache(context.get(), pageNo);
+					if (m_flagUsePageCache) {
+						do {
+							Ref<Bitmap> cache;
+							if (context->pageCache.get(pageNo, &cache)) {
+								if (cache->getWidth() >= (sl_uint32)iWidth) {
+									sl_bool flagAntialias = canvas->isAntiAlias();
+									canvas->setAntiAlias(sl_true);
+									canvas->draw(param.bounds, cache);
+									canvas->setAntiAlias(flagAntialias);
+									break;
 								}
-							});
-						}
-					} while (0);
+							}
+							TimeCounter tc;
+							page->render(param);
+							sl_uint64 dt = tc.getElapsedMilliseconds();
+							if (dt > 100) {
+								WeakRef<PdfView> weak = this;
+								Dispatch::dispatch([context, pageNo, weak, this]() {
+									Ref<PdfView> thiz = weak;
+									if (thiz.isNotNull()) {
+										_saveCache(context.get(), pageNo);
+									}
+								});
+							}
+						} while (0);
+					} else {
+						page->render(param);
+					}
 					if (i) {
 						canvas->drawLine(param.bounds.left, param.bounds.top - 1, param.bounds.right, param.bounds.top - 1, penBorder);
 					}

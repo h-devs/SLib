@@ -49,6 +49,10 @@ namespace slib
 
 		void close();
 
+		sl_bool isUsingPageCache();
+
+		void setUsingPageCache(sl_bool flag = sl_true);
+
 		Ref<PdfDocument> getDocument();
 
 		void goToPage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -66,6 +70,7 @@ namespace slib
 	protected:
 		AtomicRef<PdfViewContext> m_context;
 		sl_ui_len m_widthOld;
+		sl_bool m_flagUsePageCache;
 
 	};
 
