@@ -8,7 +8,7 @@ void PdfViewerApp::onStart()
 {
 	auto window = New<Window>();
 	window->setTitle("PdfViewer");
-	window->setFrame(30, 30, 600, 500);
+	window->setFrame(30, 30, 1000, 600);
 	window->setResizable();
 	window->setMinimizeButtonEnabled();
 	window->setMaximizeButtonEnabled();
