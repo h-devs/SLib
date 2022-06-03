@@ -30,26 +30,23 @@
 
 namespace slib
 {
-	
-	struct SLIB_EXPORT GraphicsPathPoint
+
+	struct SLIB_EXPORT GraphicsPathPoint : public Point
 	{
-		Point pt;
 
-		// flags from GraphicsPathPointType
-		sl_uint8 type;
-
+		// Types
 		enum : sl_uint8
 		{
-			Begin = 0,
-			Line = 1,
-			BezierCubic = 3,
-			TypeMask = 0x0f,
-			FlagClose = 0x80
+			MoveTo = 0,
+			LineTo = 1,
+			CubicTo = 3
 		};
 
+		sl_uint8 type;
+		sl_uint8 flagClose;
+
 	};
-	
-	
+
 	// GraphicsPath is not thread-safe.
 	class SLIB_EXPORT GraphicsPath : public Referable
 	{
@@ -67,6 +64,21 @@ namespace slib
 		sl_size getPointsCount();
 
 		GraphicsPathPoint* getPoints();
+
+		sl_bool getPointAt(sl_size index, GraphicsPathPoint* _out);
+
+		GraphicsPathPoint getPointAt(sl_size index);
+
+		sl_bool getFirstPoint(GraphicsPathPoint* _out);
+
+		GraphicsPathPoint getFirstPoint();
+
+		sl_bool getLastPoint(GraphicsPathPoint* _out);
+
+		GraphicsPathPoint getLastPoint();
+
+		SpinLock* getLock();
+
 
 		void moveTo(sl_real x, sl_real y);
 
@@ -113,36 +125,38 @@ namespace slib
 
 		Rectangle getBounds();
 
+		// bounding box containing all control points in path
+		Rectangle getControlBounds();
+
 		sl_bool containsPoint(sl_real x, sl_real y);
 
 		sl_bool containsPoint(const Point& pt);
 
 	protected:
-		void _checkBegin() noexcept;
+		sl_bool _checkBegin();
 
-		sl_bool _initialize_PO();
+		void _addPoint(sl_real x, sl_real y, sl_uint8 type, sl_bool flagClose = sl_false);
 
-		void _moveTo_PO(sl_real x, sl_real y);
+		void _initPlatformObject();
 
-		void _lineTo_PO(sl_real x, sl_real y);
+		static Ref<Referable> _createPlatformObject();
 
-		void _cubicTo_PO(sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye);
+		static void _moveTo_PO(Referable* po, sl_real x, sl_real y);
 
-		void _closeSubpath_PO();
+		static void _lineTo_PO(Referable* po, sl_real x, sl_real y);
 
-		void _setFillMode_PO(FillMode mode);
-	
-		Rectangle _getBounds_PO();
-	
-		sl_bool _containsPoint_PO(sl_real x, sl_real y);
-	
+		static void _cubicTo_PO(Referable* po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye);
+
+		static void _closeSubpath_PO(Referable* po);
+
+		static void _setFillMode_PO(Referable* po, FillMode mode);
+
 	protected:
 		CList<GraphicsPathPoint> m_points;
-		sl_bool m_flagBegan;
-		Point m_pointBegin;
 		FillMode m_fillMode;
 
 		Ref<Referable> m_platformObject;
+		SpinLock m_lock;
 
 	};
 

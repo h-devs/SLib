@@ -33,25 +33,34 @@ namespace slib
 
 	namespace priv
 	{
-		namespace quartz
+		namespace graphics_path
 		{
 
-			class GraphicsPathPlatformObject : public Referable
+			class PlatformObject : public Referable
 			{
 			public:
 				CGMutablePathRef path;
 				
-			public:
-				GraphicsPathPlatformObject()
-				{
-					path = CGPathCreateMutable();
-				}
+			protected:
+				PlatformObject(CGMutablePathRef _path): path(_path) {}
 				
-				~GraphicsPathPlatformObject()
+				~PlatformObject()
 				{
+					CGPathRelease(path);
+				}
+
+			public:
+				static Ref<PlatformObject> create()
+				{
+					CGMutablePathRef path = CGPathCreateMutable();
 					if (path) {
+						Ref<PlatformObject> ret = new PlatformObject(path);
+						if (ret.isNotNull()) {
+							return ret;
+						}
 						CGPathRelease(path);
 					}
+					return sl_null;
 				}
 				
 			};
@@ -61,90 +70,51 @@ namespace slib
 			public:
 				CGPathRef getPlatformPath()
 				{
-					GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
+					_initPlatformObject();
+					PlatformObject* po = (PlatformObject*)(m_platformObject.get());
 					if (po) {
 						return po->path;
 					}
-					return NULL;
+					return sl_null;
 				}
 			};
 
 		}
 	}
 
-	using namespace priv::quartz;
+	using namespace priv::graphics_path;
 
-	sl_bool GraphicsPath::_initialize_PO()
+	Ref<Referable> GraphicsPath::_createPlatformObject()
 	{
-		Ref<GraphicsPathPlatformObject> po = new GraphicsPathPlatformObject;
-		if (po.isNotNull() && po->path) {
-			m_platformObject = po;
-			return sl_true;
-		}
-		return sl_false;
+		return Ref<Referable>::from(PlatformObject::create());
 	}
 
-	void GraphicsPath::_moveTo_PO(sl_real x, sl_real y)
+	void GraphicsPath::_moveTo_PO(Referable* _po, sl_real x, sl_real y)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			CGPathMoveToPoint(po->path, NULL, x, y);
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		CGPathMoveToPoint(po->path, sl_null, x, y);
 	}
 
-	void GraphicsPath::_lineTo_PO(sl_real x, sl_real y)
+	void GraphicsPath::_lineTo_PO(Referable* _po, sl_real x, sl_real y)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			CGPathAddLineToPoint(po->path, NULL, x, y);
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		CGPathAddLineToPoint(po->path, sl_null, x, y);
 	}
 
-	void GraphicsPath::_cubicTo_PO(sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
+	void GraphicsPath::_cubicTo_PO(Referable* _po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			CGPathAddCurveToPoint(po->path, NULL, xc1, yc1, xc2, yc2, xe, ye);
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		CGPathAddCurveToPoint(po->path, sl_null, xc1, yc1, xc2, yc2, xe, ye);
 	}
 
-	void GraphicsPath::_closeSubpath_PO()
+	void GraphicsPath::_closeSubpath_PO(Referable* _po)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			CGPathCloseSubpath(po->path);
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		CGPathCloseSubpath(po->path);
 	}
 
-	void GraphicsPath::_setFillMode_PO(FillMode mode)
+	void GraphicsPath::_setFillMode_PO(Referable* po, FillMode mode)
 	{
-	}
-
-	Rectangle GraphicsPath::_getBounds_PO()
-	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			Rectangle ret;
-			CGRect rc = CGPathGetPathBoundingBox(po->path);
-			ret.left = (sl_real)(rc.origin.x);
-			ret.top = (sl_real)(rc.origin.y);
-			ret.right = ret.left + (sl_real)(rc.size.width);
-			ret.bottom = ret.top + (sl_real)(rc.size.height);
-			return ret;
-		}
-		return Rectangle::zero();
-	}
-
-	sl_bool GraphicsPath::_containsPoint_PO(sl_real x, sl_real y)
-	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			CGPoint pt;
-			pt.x = x;
-			pt.y = y;
-			return CGPathContainsPoint(po->path, NULL, pt, m_fillMode != FillMode::Winding);
-		}
-		return sl_false;
 	}
 
 	CGPathRef GraphicsPlatform::getGraphicsPath(GraphicsPath* path)

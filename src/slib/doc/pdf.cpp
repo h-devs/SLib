@@ -2651,7 +2651,7 @@ namespace slib
 							}
 							GraphicsPathPoint& ptCurrent = (path->getPoints())[nPoints - 1];
 							path->cubicTo(
-								ptCurrent.pt.x, ptCurrent.pt.y,
+								ptCurrent.x, ptCurrent.y,
 								operands[0].getFloat(), operands[1].getFloat(),
 								operands[2].getFloat(), operands[3].getFloat());
 						} else {

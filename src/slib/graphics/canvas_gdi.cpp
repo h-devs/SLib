@@ -184,6 +184,7 @@ namespace slib
 					if (path.isNotNull()) {
 						Gdiplus::GraphicsPath* handle = GraphicsPlatform::getGraphicsPath(path.get());
 						if (handle) {
+							SpinLocker locker(path->getLock());
 							m_graphics->SetClip(handle, Gdiplus::CombineModeIntersect);
 						}
 					}
@@ -344,6 +345,7 @@ namespace slib
 						Gdiplus::GraphicsPath* pPath = GraphicsPlatform::getGraphicsPath(path.get());
 						if (pPath) {
 							DRAW_PEN_BRUSH_BEGIN
+							SpinLocker locker(path->getLock());
 							if (hBrush) {
 								graphics->FillPath(hBrush, pPath);
 							}

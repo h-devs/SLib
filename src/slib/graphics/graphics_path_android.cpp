@@ -34,7 +34,7 @@ namespace slib
 
 	namespace priv
 	{
-		namespace android
+		namespace graphics_path
 		{
 			
 			SLIB_JNI_BEGIN_CLASS(JRectF, "android/graphics/RectF")
@@ -51,22 +51,24 @@ namespace slib
 				SLIB_JNI_METHOD(lineTo, "lineTo", "(FF)V");
 				SLIB_JNI_METHOD(cubicTo, "cubicTo", "(FFFFFF)V");
 				SLIB_JNI_METHOD(closeSubpath, "closeSubpath", "()V");
-				SLIB_JNI_METHOD(getBounds, "getBounds", "()Landroid/graphics/RectF;");
-				SLIB_JNI_METHOD(containsPoint, "containsPoint", "(FF)Z");
 			SLIB_JNI_END_CLASS
 
-			class GraphicsPathPlatformObject : public Referable
+			class PlatformObject : public Referable
 			{
 			public:
 				JniGlobal<jobject> m_path;
 
+			protected:
+				PlatformObject(JniGlobal<jobject>&& path): m_path(Move(path)) {}
+
 			public:
-				GraphicsPathPlatformObject()
+				static Ref<PlatformObject> create()
 				{
 					JniGlobal<jobject> path = JPath::init.newObject(sl_null);
 					if (path.isNotNull()) {
-						m_path = Move(path);
+						return new PlatformObject(Move(path));
 					}
+					return sl_null;
 				}
 			};
 
@@ -75,7 +77,8 @@ namespace slib
 			public:
 				jobject getPlatformPath()
 				{
-					GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
+					_initPlatformObject();
+					PlatformObject* po = (PlatformObject*)(m_platformObject.get());
 					if (po) {
 						return po->m_path;
 					}
@@ -86,82 +89,41 @@ namespace slib
 		}
 	}
 
-	using namespace priv::android;
+	using namespace priv::graphics_path;
 
-	sl_bool GraphicsPath::_initialize_PO()
+	Ref<Referable> GraphicsPath::_createPlatformObject()
 	{
-		Ref<GraphicsPathPlatformObject> po = new GraphicsPathPlatformObject;
-		if (po.isNotNull() && po->m_path.isNotNull()) {
-			m_platformObject = po;
-			return sl_true;
-		}
-		return sl_false;
+		return Ref<Referable>::from(PlatformObject::create());
 	}
 
-	void GraphicsPath::_moveTo_PO(sl_real x, sl_real y)
+	void GraphicsPath::_moveTo_PO(Referable* _po, sl_real x, sl_real y)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			JPath::moveTo.call(po->m_path, (float)(x), (float)(y));
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		JPath::moveTo.call(po->m_path, (float)(x), (float)(y));
 	}
 
-	void GraphicsPath::_lineTo_PO(sl_real x, sl_real y)
+	void GraphicsPath::_lineTo_PO(Referable* _po, sl_real x, sl_real y)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			JPath::lineTo.call(po->m_path, (float)(x), (float)(y));
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		JPath::lineTo.call(po->m_path, (float)(x), (float)(y));
 	}
 
-	void GraphicsPath::_cubicTo_PO(sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
+	void GraphicsPath::_cubicTo_PO(Referable* _po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			JPath::cubicTo.call(po->m_path, (float)(xc1), (float)(yc1) , (float)(xc2), (float)(yc2) , (float)(xe), (float)(ye));
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		JPath::cubicTo.call(po->m_path, (float)(xc1), (float)(yc1) , (float)(xc2), (float)(yc2) , (float)(xe), (float)(ye));
 	}
 
-	void GraphicsPath::_closeSubpath_PO()
+	void GraphicsPath::_closeSubpath_PO(Referable* _po)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			JPath::closeSubpath.call(po->m_path);
-		}
+		PlatformObject* po = (PlatformObject*)_po;
+		JPath::closeSubpath.call(po->m_path);
 	}
 
-	void GraphicsPath::_setFillMode_PO(FillMode mode)
+	void GraphicsPath::_setFillMode_PO(Referable* _po, FillMode mode)
 	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			JPath::setFillMode.call(po->m_path, (int)mode);
-		}
-	}
-
-	Rectangle GraphicsPath::_getBounds_PO()
-	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			JniLocal<jobject> jrect = JPath::getBounds.callObject(po->m_path);
-			if (jrect.isNotNull()) {
-				Rectangle ret;
-				ret.left = JRectF::left.get(jrect);
-				ret.top = JRectF::top.get(jrect);
-				ret.right = JRectF::right.get(jrect);
-				ret.bottom = JRectF::bottom.get(jrect);
-				return ret;
-			}
-		}
-		return Rectangle::zero();
-	}
-
-	sl_bool GraphicsPath::_containsPoint_PO(sl_real x, sl_real y)
-	{
-		GraphicsPathPlatformObject* po = (GraphicsPathPlatformObject*)(m_platformObject.get());
-		if (po) {
-			return (JPath::containsPoint.callBoolean(po->m_path, x, y)) != 0;
-		}
-		return sl_false;
+		PlatformObject* po = (PlatformObject*)_po;
+		JPath::setFillMode.call(po->m_path, (int)mode);
 	}
 
 	jobject GraphicsPlatform::getGraphicsPath(GraphicsPath* path)
