@@ -91,23 +91,26 @@ namespace slib
 				{
 					sl_size n = path->getPointsCount();
 					if (n > 0) {
-						GraphicsPathPoint* data = path->getPoints();
+						GraphicsPathPoint* pts = path->getPoints();
 						for (sl_size i = 0; i < n; i++) {
-							switch (data[i].type & GraphicsPathPoint::TypeMask) {
-								case GraphicsPathPoint::Begin:
-									cairo_move_to(graphics, data[i].pt.x, data[i].pt.y);
+							GraphicsPathPoint& pt = pts[i];
+							switch (pt.type) {
+								case GraphicsPathPoint::MoveTo:
+									cairo_move_to(graphics, pt.x, pt.y);
 									break;
-								case GraphicsPathPoint::Line:
-									cairo_line_to(graphics, data[i].pt.x, data[i].pt.y);
+								case GraphicsPathPoint::LineTo:
+									cairo_line_to(graphics, pt.x, pt.y);
 									break;
-								case GraphicsPathPoint::BezierCubic:
+								case GraphicsPathPoint::CubicTo:
 									if (i + 2 < n) {
-										cairo_curve_to(graphics, data[i].pt.x, data[i].pt.y, data[i+1].pt.x, data[i+1].pt.y, data[i+2].pt.x, data[i+2].pt.y);
+										cairo_curve_to(graphics, pt.x, pt.y, pts[i+1].x, pts[i+1].y, pts[i+2].x, pts[i+2].y);
 										i += 2;
 									}
 									break;
+								default:
+									break;
 							}
-							if (data[i].type & GraphicsPathPoint::FlagClose) {
+							if (pts[i].flagClose) {
 								cairo_close_path(graphics);
 							}
 						}

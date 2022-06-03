@@ -28,6 +28,8 @@
 #include "slib/core/system.h"
 #include "slib/core/map.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/console.h"
+#include "slib/core/variant.h"
 
 #include "freetype/ft2build.h"
 #include "freetype/freetype.h"
@@ -161,18 +163,35 @@ namespace slib
 					if (lib.isNull()) {
 						return;
 					}
+					FT_Library hLib = lib->handle;
 					for (sl_size i = 0; i < listDir.count; i++) {
-						const String& dir = listDir[i];
-						ListElements<String> files(File::getFiles(dir));
-						for (sl_size k = 0; k < files.count; k++) {
-							loadFile(lib->handle, File::concatPath(dir, files[k]));
-						}
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_APPLE)
+						loadDirectory(hLib, listDir[i], 0);
+#else
+						loadDirectory(hLib, listDir[i], 1);
+#endif
 					}
 				}
 
 			private:
+				void loadDirectory(FT_Library lib, const String& dir, sl_uint32 recursive)
+				{
+					ListElements<String> files(File::getFiles(dir));
+					for (sl_size k = 0; k < files.count; k++) {
+						String path = File::concatPath(dir, files[k]);
+						if (File::isDirectory(path)) {
+							if (recursive) {
+								loadDirectory(lib, path, recursive - 1);
+							}
+						} else {
+							loadFile(lib, path);
+						}
+					}
+				}
+
 				void registerFont(const String& familyName, const String& path, sl_uint32 faceIndex, sl_bool flagBold, sl_bool flagItalic)
 				{
+					Println("%s %s %s", familyName, path, faceIndex);
 					RegistryItem item;
 					item.path = path;
 					item.faceIndex = faceIndex;
