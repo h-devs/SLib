@@ -288,10 +288,10 @@ namespace slib
 		template <class WRITER>
 		static sl_reg writeAtWithWriteAt32(WRITER* writer, sl_uint64 offset, const void* _buf, sl_size size)
 		{
-			sl_uint8* buf = (sl_uint8*)_buf;
 #if !defined(SLIB_ARCH_IS_64BIT)
 			return writer->writeAt32(offset, _buf, (sl_uint32)size);
 #else
+			sl_uint8* buf = (sl_uint8*)_buf;
 			if (!(size >> 31)) {
 				return writer->writeAt32(offset, buf, (sl_uint32)size);
 			}

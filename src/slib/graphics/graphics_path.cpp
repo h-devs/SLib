@@ -322,7 +322,6 @@ namespace slib
 
 				sl_bool run(GraphicsPathPoint* pts, sl_size n, FillMode fillMode)
 				{
-					Point last = *pts;
 					for (sl_size i = 0; i < n; i++) {
 						GraphicsPathPoint& pt = pts[i];
 						switch (pt.type) {
