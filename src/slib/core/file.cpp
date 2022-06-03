@@ -825,7 +825,7 @@ namespace slib
 	sl_bool File::isDotOrDotDot(const sl_char16* name) noexcept
 	{
 		if (*name == '.') {
-			char ch = name[1];
+			sl_char16 ch = name[1];
 			if (!ch) {
 				return sl_true;
 			}

@@ -28,8 +28,6 @@
 #include "slib/core/system.h"
 #include "slib/core/map.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/console.h"
-#include "slib/core/variant.h"
 
 #include "freetype/ft2build.h"
 #include "freetype/freetype.h"
@@ -191,7 +189,6 @@ namespace slib
 
 				void registerFont(const String& familyName, const String& path, sl_uint32 faceIndex, sl_bool flagBold, sl_bool flagItalic)
 				{
-					Println("%s %s %s", familyName, path, faceIndex);
 					RegistryItem item;
 					item.path = path;
 					item.faceIndex = faceIndex;
