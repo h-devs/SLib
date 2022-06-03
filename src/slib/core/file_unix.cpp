@@ -891,7 +891,10 @@ namespace slib
 		if (dir) {
 			dirent* ent;
 			while ((ent = readdir(dir))) {
-				ret.add_NoLock(String::fromUtf8(ent->d_name));
+				char* name = ent->d_name;
+				if (!(isDotOrDotDot(name))) {
+					ret.add_NoLock(String::fromUtf8(name));
+				}
 			}
 			closedir(dir);
 		}
@@ -915,14 +918,18 @@ namespace slib
 		if (dir) {
 			dirent* ent;
 			while ((ent = readdir(dir))) {
-				FileInfo info;
-				filePath = String::concat(dirPath, "/", String::fromUtf8(ent->d_name));
-				info.attributes = File::getAttributes(filePath);
-				info.size = info.allocSize = File::getSize(filePath);
-				info.createdAt = File::getCreatedTime(filePath);
-				info.modifiedAt = File::getModifiedTime(filePath);
-				info.accessedAt = File::getAccessedTime(filePath);
-				ret.add_NoLock(String::fromUtf8(ent->d_name), info);
+				char* name = ent->d_name;
+				if (!(isDotOrDotDot(name))) {
+					FileInfo info;
+					String strName = String::fromUtf8(name);
+					filePath = String::concat(dirPath, "/", strName);
+					info.attributes = File::getAttributes(filePath);
+					info.size = info.allocSize = File::getSize(filePath);
+					info.createdAt = File::getCreatedTime(filePath);
+					info.modifiedAt = File::getModifiedTime(filePath);
+					info.accessedAt = File::getAccessedTime(filePath);
+					ret.add_NoLock(strName, info);
+				}
 			}
 			closedir(dir);
 		}

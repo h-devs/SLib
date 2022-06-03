@@ -563,18 +563,15 @@ namespace slib
 		List<String> ret;
 		List<String> listCurrent = getFiles(dirPath);
 		listCurrent.sort_NoLock();
-		String* p = listCurrent.getData();
-		sl_size n = listCurrent.getCount();
-		for (sl_size i = 0; i < n; i++) {
-			String& item = p[i];
-			if (item != "." && item != "..") {
-				ret.add_NoLock(item);
-				String dir = dirPath.toString() + "/" + item;
-				if (File::isDirectory(dir)) {
-					ListElements<String> sub(File::getAllDescendantFiles(dir));
-					for (sl_size j = 0; j < sub.count; j++) {
-						ret.add_NoLock(item + "/" + sub[j]);
-					}
+		ListElements<String> current(listCurrent);
+		for (sl_size i = 0; i < current.count; i++) {
+			String& item = current[i];
+			ret.add_NoLock(item);
+			String dir = dirPath.toString() + "/" + item;
+			if (File::isDirectory(dir)) {
+				ListElements<String> sub(File::getAllDescendantFiles(dir));
+				for (sl_size j = 0; j < sub.count; j++) {
+					ret.add_NoLock(item + "/" + sub[j]);
 				}
 			}
 		}
@@ -807,6 +804,38 @@ namespace slib
 			segments.segments.popBack();
 		}
 		return sl_null;
+	}
+
+	sl_bool File::isDotOrDotDot(const char* name) noexcept
+	{
+		if (*name == '.') {
+			char ch = name[1];
+			if (!ch) {
+				return sl_true;
+			}
+			if (ch == '.') {
+				if (!(name[2])) {
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool File::isDotOrDotDot(const sl_char16* name) noexcept
+	{
+		if (*name == '.') {
+			char ch = name[1];
+			if (!ch) {
+				return sl_true;
+			}
+			if (ch == '.') {
+				if (!(name[2])) {
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
 	}
 
 

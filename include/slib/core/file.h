@@ -406,9 +406,13 @@ namespace slib
 	
 		// converts any invalid characters (0~0x1f, 0x7f~0x9f, :*?"<>|) into "_"
 		static String makeSafeFilePath(const StringParam& filePath) noexcept;
-	
+
 		static String findParentPathContainingFile(const StringParam& basePath, const StringParam& filePath, sl_uint32 nDeep = SLIB_UINT32_MAX) noexcept;
-	
+
+		static sl_bool isDotOrDotDot(const char* fileName) noexcept;
+
+		static sl_bool isDotOrDotDot(const sl_char16* fileName) noexcept;
+
 	private:
 		static sl_file _open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;
 

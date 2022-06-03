@@ -707,9 +707,9 @@ namespace slib
 			List<String> ret;
 			BOOL c = TRUE;
 			while (c) {
-				String str = String::create((sl_char16*)(fd.cFileName));
-				if (str != "." && str != "..") {
-					ret.add_NoLock(Move(str));
+				sl_char16* name = (sl_char16*)(fd.cFileName);
+				if (!(isDotOrDotDot(name))) {
+					ret.add_NoLock(String::create(name));
 				}
 				c = FindNextFileW(handle, &fd);
 			}
@@ -739,15 +739,15 @@ namespace slib
 			HashMap<String, FileInfo> ret;
 			BOOL c = TRUE;
 			while (c) {
-				String str = String::create((sl_char16*)(fd.cFileName));
-				if (str != "." && str != "..") {
+				sl_char16* name = (sl_char16*)(fd.cFileName);
+				if (!(isDotOrDotDot(name))) {
 					FileInfo info;
 					info.attributes = (int)fd.dwFileAttributes;
 					info.size = info.allocSize = SLIB_MAKE_QWORD4(fd.nFileSizeHigh, fd.nFileSizeLow);
 					info.createdAt = FileTimeToTime(fd.ftCreationTime);
 					info.modifiedAt = FileTimeToTime(fd.ftLastWriteTime);
 					info.accessedAt = FileTimeToTime(fd.ftLastAccessTime);
-					ret.add_NoLock(Move(str), info);
+					ret.add_NoLock(String::create(name), info);
 				}
 				c = FindNextFileW(handle, &fd);
 			}
