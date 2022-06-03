@@ -440,6 +440,8 @@ namespace slib
 		Memory getDecodedContent(PdfContentReader* reader);
 
 		Memory getDecodedContent(const Memory& content);
+		
+		Memory decodeContent(const Memory& input, PdfFilter filter, const PdfDictionary& decodeParam);
 
 	private:
 		AtomicMemory m_contentEncoded;

@@ -4337,48 +4337,6 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
-			static Memory DecodeStreamContent(const Memory& input, PdfFilter filter, const PdfDictionary& params)
-			{
-				switch (filter) {
-					case PdfFilter::ASCIIHex:
-						return DecodeASCIIHex(input.getData(), input.getSize());
-					case PdfFilter::ASCII85:
-						return DecodeASCII85(input.getData(), input.getSize());
-					case PdfFilter::Flate:
-					case PdfFilter::LZW:
-						{
-							Memory ret;
-							if (filter == PdfFilter::Flate) {
-								ret = Zlib::decompress(input.getData(), input.getSize());
-							} else {
-								ret = LZW::decompress(input.getData(), input.getSize());;
-							}
-							if (ret.isNotNull() && params.isNotNull()) {
-								PdfFlateOrLZWDecodeParams dp;
-								dp.setParams(params);
-								sl_uint32 n = dp.predict(ret.getData(), (sl_uint32)(ret.getSize()));
-								if (n) {
-									ret = ret.sub(0, n);
-								}
-							}
-							return ret;
-						}
-					case PdfFilter::RunLength:
-						return DecodeRunLength(input.getData(), input.getSize());
-					case PdfFilter::CCITTFax:
-						{
-							PdfCCITTFaxDecodeParams dp;
-							dp.setParams(params);
-							
-						}
-					case PdfFilter::DCT:
-						return CreateImageMemory(Image::loadFromMemory(input));
-					default:
-						break;
-				}
-				return sl_null;
-			}
 
 			static Ref<Image> CreateImageObject(sl_uint32 width, sl_uint32 height, sl_uint8* data, sl_reg pitch, PdfColorSpaceType colorSpace, sl_uint32 bitsPerComponent, Color* indices, sl_uint32 nIndices)
 			{
@@ -4716,7 +4674,7 @@ namespace slib
 				for (sl_size i = 0; i < filters.count; i++) {
 					PdfFilter filter = Pdf::getFilter(filters[i].getName());
 					if (filter != PdfFilter::Unknown) {
-						ret = DecodeStreamContent(ret, filter, arrDecodeParams.getValueAt_NoLock(i).getDictionary());
+						ret = decodeContent(ret, filter, arrDecodeParams.getValueAt_NoLock(i).getDictionary());
 					} else {
 						return sl_null;
 					}
@@ -4726,12 +4684,56 @@ namespace slib
 		} else {
 			PdfFilter filter = Pdf::getFilter(vFilter.getName());
 			if (filter != PdfFilter::Unknown) {
-				return DecodeStreamContent(content, filter, decodeParams.getDictionary());
+				return decodeContent(content, filter, decodeParams.getDictionary());
 			}
 		}
 		return sl_null;
 	}
-
+	
+	Memory PdfStream::decodeContent(const Memory& input, PdfFilter filter, const PdfDictionary& params)
+	{
+		switch (filter) {
+			case PdfFilter::ASCIIHex:
+				return DecodeASCIIHex(input.getData(), input.getSize());
+			case PdfFilter::ASCII85:
+				return DecodeASCII85(input.getData(), input.getSize());
+			case PdfFilter::Flate:
+			case PdfFilter::LZW:
+				{
+					Memory ret;
+					if (filter == PdfFilter::Flate) {
+						ret = Zlib::decompress(input.getData(), input.getSize());
+					} else {
+						ret = LZW::decompress(input.getData(), input.getSize());;
+					}
+					if (ret.isNotNull() && params.isNotNull()) {
+						PdfFlateOrLZWDecodeParams dp;
+						dp.setParams(params);
+						sl_uint32 n = dp.predict(ret.getData(), (sl_uint32)(ret.getSize()));
+						if (n) {
+							ret = ret.sub(0, n);
+						}
+					}
+					return ret;
+				}
+				case PdfFilter::RunLength:
+				return DecodeRunLength(input.getData(), input.getSize());
+			case PdfFilter::CCITTFax:
+				{
+					PdfCCITTFaxDecodeParams dp;
+					dp.setParams(params);
+					sl_uint32 width = getProperty(g_strWidth, g_strW).getUint();
+					sl_uint32 height = getProperty(g_strHeight, g_strH).getUint();
+					return CreateImageMemory(DecodeFaxImage(input.getData(), input.getSize(), width, height, dp));
+				}
+			case PdfFilter::DCT:
+				return CreateImageMemory(Image::loadFromMemory(input));
+			default:
+				break;
+		}
+		return sl_null;
+	}
+	
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFlateOrLZWDecodeParams)
 
@@ -4953,13 +4955,12 @@ namespace slib
 
 	sl_bool PdfColorSpace::getColorFromLab(Color& _out, const PdfValue* values, sl_size count)
 	{
-		if (count < 4) {
+		if (count < 3) {
 			return sl_false;
 		}
 		float l = values[0].getFloat();
 		float a = values[1].getFloat();
 		float b = values[2].getFloat();
-		sl_uint8 k = (sl_uint8)(values[3].getFloat() * 255);
 		Color3f c;
 		CIE::convertLabToRGB(l, a, b, c.x, c.y, c.z);
 		_out = c;
