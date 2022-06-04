@@ -440,7 +440,9 @@ namespace slib
 		Memory getDecodedContent(PdfContentReader* reader);
 
 		Memory getDecodedContent(const Memory& content);
-		
+
+		Memory getFilterInput(PdfContentReader* reader, PdfFilter filter);
+
 		Memory decodeContent(const Memory& input, PdfFilter filter, const PdfDictionary& decodeParam);
 
 	private:
@@ -828,9 +830,13 @@ namespace slib
 		static Ref<PdfDocument> openMemory(const Memory& mem);
 
 	public:
+		sl_uint32 getObjectTableLength();
+
 		PdfValue getObject(const PdfReference& ref);
 
 		PdfValue getObject(const PdfValue& refOrValue);
+
+		PdfValue readObject(sl_uint32 objectNumber, sl_uint32& outGeneration);
 
 		Memory decodeStreamContent(PdfStream* stream);
 
@@ -851,7 +857,7 @@ namespace slib
 		sl_bool isAuthenticated();
 
 		sl_bool setUserPassword(const StringView& password);
-		
+
 	public:
 		// PdfContentReader
 		Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) override;
