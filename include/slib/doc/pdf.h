@@ -703,6 +703,38 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfShadingResource
+	{
+	public:
+		sl_uint32 type;
+		PdfColorSpace colorSpace;
+
+	public:
+		PdfShadingResource();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfShadingResource)
+
+	public:
+		sl_bool load(const PdfDictionary& dict);
+
+	};
+
+	class SLIB_EXPORT PdfPatternResource
+	{
+	public:
+		sl_uint32 type;
+		PdfShadingResource shading;
+
+	public:
+		PdfPatternResource();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfPatternResource)
+
+	public:
+		sl_bool load(const PdfDictionary& dict);
+
+	};
+
 	class SLIB_EXPORT PdfOperation
 	{
 	public:

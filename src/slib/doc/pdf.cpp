@@ -80,6 +80,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_strCropBox, "CropBox")
 			SLIB_STATIC_STRING(g_strResources, "Resources")
 			SLIB_STATIC_STRING(g_strXObject, "XObject")
+			SLIB_STATIC_STRING(g_strPattern, "Pattern")
 			SLIB_STATIC_STRING(g_strFont, "Font")
 			SLIB_STATIC_STRING(g_strSubtype, "Subtype")
 			SLIB_STATIC_STRING(g_strBaseFont, "BaseFont")
@@ -2754,10 +2755,20 @@ namespace slib
 
 				void setColor(ListElements<PdfValue> operands, sl_bool flagStroking)
 				{
+					if (!(operands.count)) {
+						return;
+					}
 					PdfColorSpace& cs = flagStroking ? colorSpaceForStroking : colorSpaceForNonStroking;
-					Color color;
-					if (cs.getColor(color, operands.data, operands.count)) {
-						setColor(color, flagStroking);
+					if (cs.type == PdfColorSpaceType::Pattern) {
+						const String& patternName = operands[0].getName();
+						if (patternName.isNotNull()) {
+							
+						}
+					} else {
+						Color color;
+						if (cs.getColor(color, operands.data, operands.count)) {
+							setColor(color, flagStroking);
+						}
 					}
 				}
 
@@ -4924,15 +4935,15 @@ namespace slib
 			}
 		} else if (name == StringView::literal("Pattern")) {
 			if (arr.count >= 2) {
-				load(doc, arr[1]);
+				_loadName(arr[1].getString());
 			}
 		} else if (name == StringView::literal("Separation")) {
 			if (arr.count >= 3) {
-				load(doc, arr[2]);
+				_loadName(arr[2].getString());
 			}
 		} else if (name == StringView::literal("DeviceN")) {
 			if (arr.count >= 3) {
-				load(doc, arr[2]);
+				_loadName(arr[2].getString());
 			}
 		}
 	}
@@ -5657,14 +5668,14 @@ namespace slib
 										applyDecode4(data, width, height, pitch);
 									}
 									object = CreateImageObject(width, height, data, pitch, colorSpace.type, bitsPerComponent, colorSpace.indices.getData(), (sl_uint32)(colorSpace.indices.getCount()));
-									if (object.isNotNull() && colorSpace.type != PdfColorSpaceType::CMYK) {
-										applyDecode(object.get());
-									}
 								}
 							}
 						}
 					}
 					if (object.isNotNull()) {
+						if (colorSpace.type != PdfColorSpaceType::CMYK) {
+							applyDecode(object.get());
+						}
 						_loadSMask(doc);
 						return sl_true;
 					}
@@ -5718,9 +5729,6 @@ namespace slib
 			}
 			object = Move(image);
 		}
-		if (maskDesc.flagInterpolate) {
-			flagInterpolate = sl_true;
-		}
 		if (widthMask == widthParent && heightMask == heightParent && !(maskDesc.flagUseMatte) && !(maskDesc.flagUseDecodeArray)) {
 			object->multiplyAlphaFromGray(widthMask, heightMask, content.getData(), maskDesc.bitsPerComponent, pitchMask);
 			return;
@@ -5771,6 +5779,32 @@ namespace slib
 				rowSrc += strideSrc;
 			}
 		}
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfShadingResource)
+
+	PdfShadingResource::PdfShadingResource()
+	{
+	}
+
+	sl_bool PdfShadingResource::load(const PdfDictionary& dict)
+	{
+		
+		return sl_false;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfPatternResource)
+
+	PdfPatternResource::PdfPatternResource()
+	{
+	}
+
+	sl_bool PdfPatternResource::load(const PdfDictionary& dict)
+	{
+
+		return sl_false;
 	}
 
 
