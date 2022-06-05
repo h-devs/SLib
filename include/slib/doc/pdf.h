@@ -375,9 +375,13 @@ namespace slib
 
 		sl_bool isNumeric() const noexcept;
 
-		const String& getString() const noexcept;
+		const String& getString() const& noexcept;
 
-		const String& getName() const noexcept;
+		String getString()&& noexcept;
+
+		const String& getName() const& noexcept;
+
+		String getName()&& noexcept;
 
 		sl_bool equalsName(const StringView& name) const noexcept;
 
@@ -400,7 +404,11 @@ namespace slib
 
 		Rectangle getRectangle() const noexcept;
 
-		sl_bool getRectangle(Rectangle& outRect) const noexcept;
+		sl_bool getRectangle(Rectangle& _out) const noexcept;
+
+		Matrix3 getMatrix() const noexcept;
+
+		sl_bool getMatrix(Matrix3& _out) const noexcept;
 
 	private:
 		Variant m_var;
@@ -411,6 +419,20 @@ namespace slib
 	{
 	public:
 		virtual Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) = 0;
+
+	};
+
+	class SLIB_EXPORT PdfResourceProvider
+	{
+	public:
+		virtual PdfValue getResources(const String& type, sl_bool flagResolveReference = sl_true) = 0;
+
+		virtual PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference = sl_true) = 0;
+
+	public:
+		sl_bool getFontResource(const String& name, PdfReference& outRef);
+
+		sl_bool getExternalObjectResource(const String& name, PdfReference& outRef);
 
 	};
 
@@ -519,7 +541,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfColorSpace)
 
 	public:
-		void load(PdfPage* page, const String& name);
+		void load(PdfDocument* doc, PdfResourceProvider* res, const String& name);
 
 		void load(PdfDocument* doc, const PdfValue& value);
 
@@ -679,6 +701,9 @@ namespace slib
 		
 		void applyDecode(Image* image) noexcept;
 
+	protected:
+		void _load(PdfDocument* doc, PdfStream* stream) noexcept;
+
 	};
 
 	class SLIB_EXPORT PdfImage : public Referable, public PdfImageResource
@@ -697,7 +722,7 @@ namespace slib
 		static Ref<PdfImage> load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context);
 
 	protected:
-		sl_bool _load(PdfDocument* doc, const PdfReference& ref);
+		sl_bool _load(PdfDocument* doc, PdfStream* stream, Memory& content);
 
 		void _loadSMask(PdfDocument* doc);
 
@@ -753,6 +778,53 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfRenderContext : public PdfResourceContext
+	{
+	public:
+		PdfRenderContext();
+
+		~PdfRenderContext();
+
+	};
+
+	class SLIB_EXPORT PdfRenderParam
+	{
+	public:
+		Canvas * canvas;
+		Rectangle bounds;
+
+		Ref<PdfRenderContext> context;
+
+	public:
+		PdfRenderParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+
+	};
+
+	class SLIB_EXPORT PdfFormResource
+	{
+	public:
+		Rectangle bounds;
+		Matrix3 matrix;
+		PdfDictionary resources;
+		List<PdfOperation> content;
+
+	public:
+		PdfFormResource();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFormResource)
+
+	public:
+		sl_bool load(PdfDocument* doc, PdfStream* stream);
+
+		void render(Canvas* canvas, PdfPage* page, PdfRenderContext* context);
+
+	protected:
+		void _load(PdfDocument* doc, PdfStream* stream);
+
+	};
+
 	class PdfPageTreeItem : public Referable
 	{
 	public:
@@ -774,31 +846,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfRenderContext : public PdfResourceContext
-	{
-	public:
-		PdfRenderContext();
-
-		~PdfRenderContext();
-
-	};
-
-	class SLIB_EXPORT PdfRenderParam
-	{
-	public:
-		Canvas* canvas;
-		Rectangle bounds;
-
-		Ref<PdfRenderContext> context;
-
-	public:
-		PdfRenderParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
-
-	};
-
-	class SLIB_EXPORT PdfPage : public PdfPageTreeItem
+	class SLIB_EXPORT PdfPage : public PdfPageTreeItem, public PdfResourceProvider
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -822,19 +870,9 @@ namespace slib
 
 		Rectangle getCropBox();
 
-		PdfValue getResources(const String& type, sl_bool flagResolveReference = sl_true);
+		PdfValue getResources(const String& type, sl_bool flagResolveReference = sl_true) override;
 
-		PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference = sl_true);
-
-		PdfDictionary getFontResourceAsDictionary(const String& name);
-
-		sl_bool getFontResource(const String& name, PdfReference& outRef);
-
-		sl_bool getFontResource(const String& name, PdfFontResource& outResource);
-
-		PdfValue getExternalObjectResource(const String& name);
-
-		sl_bool getExternalObjectResource(const String& name, PdfReference& outRef);
+		PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference = sl_true) override;
 
 	protected:
 		WeakRef<PdfDocument> m_document;

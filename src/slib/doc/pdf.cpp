@@ -130,6 +130,8 @@ namespace slib
 			SLIB_STATIC_STRING(g_strSMask, "SMask")
 			SLIB_STATIC_STRING(g_strMask, "Mask")
 			SLIB_STATIC_STRING(g_strAlternate, "Alternate")
+			SLIB_STATIC_STRING(g_strBBox, "BBox")
+			SLIB_STATIC_STRING(g_strMatrix, "Matrix")
 			SLIB_STATIC_STRING(g_strD, "D")
 			SLIB_STATIC_STRING(g_strF, "F")
 			SLIB_STATIC_STRING(g_strH, "H")
@@ -1032,14 +1034,14 @@ namespace slib
 							if (lengthKey > 16) {
 								return sl_false;
 							}
-							const String& userHash = encrypt.getValue_NoLock(g_strU).getString();
+							String userHash = encrypt.getValue_NoLock(g_strU).getString();
 							if (userHash.getLength() != 32) {
 								return sl_false;
 							}
 							sl_uint32 revision = encrypt.getValue_NoLock(g_strR).getUint();
 							sl_uint32 permission = encrypt.getValue_NoLock(g_strP).getInt();
-							const String& ownerHash = encrypt.getValue_NoLock(g_strO).getString();
-							const String& fileId = lastTrailer.getValue_NoLock(g_strID).getArray().getValueAt_NoLock(0).getString();
+							String ownerHash = encrypt.getValue_NoLock(g_strO).getString();
+							String fileId = lastTrailer.getValue_NoLock(g_strID).getArray().getValueAt_NoLock(0).getString();
 							sl_uint8 key[16];
 							ComputeEncryptionKey(key, lengthKey, password, revision, ownerHash, permission, fileId);
 							sl_uint8 userHashGen[32];
@@ -2621,8 +2623,9 @@ namespace slib
 			{
 			public:
 				Canvas* canvas;
-				PdfPage* page;
-				PdfRenderParam* param;
+				PdfDocument* document;
+				PdfRenderContext* context;
+				PdfResourceProvider* resources;
 
 				Ref<GraphicsPath> path;
 
@@ -2735,7 +2738,7 @@ namespace slib
 						return;
 					}
 					PdfColorSpace cs;
-					cs.load(page, operands[0].getName());
+					cs.load(document, resources, operands[0].getName());
 					if (flagStroking) {
 						colorSpaceForStroking = cs;
 					} else {
@@ -2846,7 +2849,7 @@ namespace slib
 						return;
 					}
 					SLIB_STATIC_STRING(idExtGState, "ExtGState")
-					PdfDictionary states = page->getResource(idExtGState, operands[0].getName()).getDictionary();
+					PdfDictionary states = resources->getResource(idExtGState, operands[0].getName()).getDictionary();
 					if (states.isEmpty()) {
 						return;
 					}
@@ -3037,11 +3040,8 @@ namespace slib
 				void setFont(const String& name, float fontScale)
 				{
 					PdfReference ref;
-					if (page->getFontResource(name, ref)) {
-						Ref<PdfDocument> doc = page->getDocument();
-						if (doc.isNotNull()) {
-							text.font = PdfFont::load(doc.get(), ref, *(param->context));
-						}
+					if (resources->getFontResource(name, ref)) {
+						text.font = PdfFont::load(document, ref, *context);
 						text.fontScale = fontScale;
 					}
 				}
@@ -3164,19 +3164,16 @@ namespace slib
 					}
 					const String& name = operands[0].getName();
 					PdfReference ref;
-					if (page->getExternalObjectResource(name, ref)) {
-						Ref<PdfDocument> doc = page->getDocument();
-						if (doc.isNotNull()) {
-							Ref<PdfImage> image = PdfImage::load(doc.get(), ref, *(param->context));
-							if (image.isNotNull()) {
-								if (image->flagImageMask) {
-									DrawParam dp;
-									dp.useColorMatrix = sl_true;
-									dp.colorMatrix.setOverlay(brush.color);
-									canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical), dp);
-								} else {
-									canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
-								}
+					if (resources->getExternalObjectResource(name, ref)) {
+						Ref<PdfImage> image = PdfImage::load(document, ref, *context);
+						if (image.isNotNull()) {
+							if (image->flagImageMask) {
+								DrawParam dp;
+								dp.useColorMatrix = sl_true;
+								dp.colorMatrix.setOverlay(brush.color);
+								canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical), dp);
+							} else {
+								canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
 							}
 						}
 					}
@@ -3426,6 +3423,26 @@ namespace slib
 						default:
 							break;
 					}
+				}
+
+			};
+
+			class FormResources : public PdfResourceProvider
+			{
+			public:
+				FormResources(const PdfDictionary& resources, PdfPage* page)
+				{
+				}
+
+			public:
+				PdfValue getResources(const String& type, sl_bool flagResolveReference)
+				{
+					return PdfValue();
+				}
+
+				PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference) override
+				{
+					return PdfValue();
 				}
 
 			};
@@ -4520,7 +4537,7 @@ namespace slib
 		return type == PdfValueType::Int || type == PdfValueType::Uint || type == PdfValueType::Float;
 	}
 
-	const String& PdfValue::getString() const noexcept
+	const String& PdfValue::getString() const& noexcept
 	{
 		if (getType() == PdfValueType::String) {
 			return *((String*)((void*)(&m_var._value)));
@@ -4528,12 +4545,28 @@ namespace slib
 		return String::null();
 	}
 
-	const String& PdfValue::getName() const noexcept
+	String PdfValue::getString()&& noexcept
+	{
+		if (getType() == PdfValueType::String) {
+			return *((String*)((void*)(&m_var._value)));
+		}
+		return sl_null;
+	}
+
+	const String& PdfValue::getName() const& noexcept
 	{
 		if (getType() == PdfValueType::Name) {
 			return *((String*)((void*)(&m_var._value)));
 		}
 		return String::null();
+	}
+
+	String PdfValue::getName()&& noexcept
+	{
+		if (getType() == PdfValueType::Name) {
+			return *((String*)((void*)(&m_var._value)));
+		}
+		return sl_null;
 	}
 
 	sl_bool PdfValue::equalsName(const StringView& name) const noexcept
@@ -4624,18 +4657,57 @@ namespace slib
 		return Rectangle::zero();
 	}
 
-	sl_bool PdfValue::getRectangle(Rectangle& outRect) const noexcept
+	sl_bool PdfValue::getRectangle(Rectangle& _out) const noexcept
 	{
 		ListElements<PdfValue> arr(getArray());
 		if (arr.count == 4) {
-			outRect.left = arr[0].getFloat();
-			outRect.top = arr[1].getFloat();
-			outRect.right = arr[2].getFloat();
-			outRect.bottom = arr[3].getFloat();
+			_out.left = arr[0].getFloat();
+			_out.top = arr[1].getFloat();
+			_out.right = arr[2].getFloat();
+			_out.bottom = arr[3].getFloat();
 			return sl_true;
 		}
 		return sl_false;
 	}
+
+	Matrix3 PdfValue::getMatrix() const noexcept
+	{
+		Matrix3 ret;
+		if (getMatrix(ret)) {
+			return ret;
+		}
+		return Matrix3::zero();
+	}
+
+	sl_bool PdfValue::getMatrix(Matrix3& _out) const noexcept
+	{
+		ListElements<PdfValue> arr(getArray());
+		if (arr.count == 6) {
+			_out.m00 = arr[0].getFloat();
+			_out.m01 = arr[1].getFloat();
+			_out.m02 = 0;
+			_out.m10 = arr[2].getFloat();
+			_out.m11 = arr[3].getFloat();
+			_out.m12 = 0;
+			_out.m20 = arr[4].getFloat();
+			_out.m21 = arr[5].getFloat();
+			_out.m22 = 1;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
+	sl_bool PdfResourceProvider::getFontResource(const String& name, PdfReference& outRef)
+	{
+		return getResource(g_strFont, name, sl_false).getReference(outRef);
+	}
+
+	sl_bool PdfResourceProvider::getExternalObjectResource(const String& name, PdfReference& outRef)
+	{
+		return getResource(g_strXObject, name, sl_false).getReference(outRef);
+	}
+
 
 
 	SLIB_DEFINE_ROOT_OBJECT(PdfStream)
@@ -4881,15 +4953,12 @@ namespace slib
 	{
 	}
 
-	void PdfColorSpace::load(PdfPage* page, const String& name)
+	void PdfColorSpace::load(PdfDocument* doc, PdfResourceProvider* res, const String& name)
 	{
 		if (_loadName(name)) {
 			return;
 		}
-		Ref<PdfDocument> doc = page->getDocument();
-		if (doc.isNotNull()) {
-			load(doc.get(), page->getResource(g_strColorSpace, name, sl_false));
-		}
+		load(doc, res->getResource(g_strColorSpace, name, sl_false));
 	}
 
 	void PdfColorSpace::load(PdfDocument* doc, const PdfValue& _value)
@@ -5469,85 +5538,90 @@ namespace slib
 
 	sl_bool PdfImageResource::load(PdfDocument* doc, PdfStream* stream) noexcept
 	{
-		const String& subtype = stream->getProperty(g_strSubtype).getName();
+		String subtype = stream->getProperty(g_strSubtype).getName();
 		if (subtype == StringView::literal("Image")) {
-			stream->getProperty(g_strWidth, g_strW).getUint(width);
-			stream->getProperty(g_strHeight, g_strH).getUint(height);
-			stream->getProperty(g_strInterpolate, g_strI).getBoolean(flagInterpolate);
-			stream->getProperty(g_strImageMask, g_strIM).getBoolean(flagImageMask);
-			if (flagImageMask) {
-				bitsPerComponent = 1;
-				colorSpace.type = PdfColorSpaceType::Gray;
-			} else {
-				colorSpace.load(doc, stream->getProperty(g_strColorSpace, g_strCS));
-				stream->getProperty(g_strBitsPerComponent, g_strBPC).getUint(bitsPerComponent);
-				stream->getProperty(g_strMask).getReference(mask);
-			}
-			ListElements<PdfValue> arrayDecode(stream->getProperty(g_strDecode, g_strD).getArray());
-			if (arrayDecode.count) {
-				switch (colorSpace.type) {
-					case PdfColorSpaceType::RGB:
-					case PdfColorSpaceType::Gray:
-					case PdfColorSpaceType::CMYK:
-						if (flagImageMask) {
-							if (arrayDecode.count >= 2) {
-								flagUseDecodeArray = sl_true;
-								decodeMin[0] = arrayDecode[0].getUint();
-								decodeMax[0] = arrayDecode[1].getUint();
-							}
-						} else {
-							sl_uint32 nColors = colorSpace.getComponentsCount();
-							if (arrayDecode.count >= nColors * 2) {
-								flagUseDecodeArray = sl_true;
-								for (sl_uint32 i = 0; i < nColors; i++) {
-									decodeMin[i] = Math::clamp0_255((sl_int32)(arrayDecode[i << 1].getFloat() * 255));
-									decodeMax[i] = Math::clamp0_255((sl_int32)(arrayDecode[(i << 1) | 1].getFloat() * 255));
-								}
-								if (nColors == 1) {
-									decodeMin[2] = decodeMin[1] = decodeMin[0];
-									decodeMax[2] = decodeMax[1] = decodeMax[0];
-								}
-							}
-						}
-						break;
-					case PdfColorSpaceType::Indexed:
-						if (arrayDecode.count == 2) {
-							sl_uint32 n = (sl_uint32)(colorSpace.indices.getCount());
-							if (n) {
-								sl_uint32 m0 = arrayDecode[0].getUint();
-								sl_uint32 m1 = arrayDecode[1].getUint();
-								Array<Color> newIndices = Array<Color>::create(n);
-								if (newIndices.isNotNull()) {
-									Color* d = newIndices.getData();
-									Color* s = colorSpace.indices.getData();
-									for (sl_uint32 i = 0; i < n; i++) {
-										sl_uint32 m = m0 + (((m1 - m0) * i) >> bitsPerComponent);
-										if (m >= n) {
-											m = n - 1;
-										}
-										d[i] = s[m];
-									}
-									colorSpace.indices = Move(newIndices);
-								}
-							}
-						}
-						break;
-					default:
-						break;
-				}
-			}
-			PdfArray arrayMatte = stream->getProperty(g_strMatte).getArray();
-			if (arrayMatte.isNotNull()) {
-				if (colorSpace.getColor(matte, arrayMatte.getData(), arrayMatte.getCount())) {
-					if (matte != Color::Black) {
-						flagUseMatte = sl_true;
-					}
-				}
-			}
-			stream->getProperty(g_strSMask).getReference(smask);
+			_load(doc, stream);
 			return sl_true;
 		}
 		return sl_false;
+	}
+
+	void PdfImageResource::_load(PdfDocument* doc, PdfStream* stream) noexcept
+	{
+		stream->getProperty(g_strWidth, g_strW).getUint(width);
+		stream->getProperty(g_strHeight, g_strH).getUint(height);
+		stream->getProperty(g_strInterpolate, g_strI).getBoolean(flagInterpolate);
+		stream->getProperty(g_strImageMask, g_strIM).getBoolean(flagImageMask);
+		if (flagImageMask) {
+			bitsPerComponent = 1;
+			colorSpace.type = PdfColorSpaceType::Gray;
+		} else {
+			colorSpace.load(doc, stream->getProperty(g_strColorSpace, g_strCS));
+			stream->getProperty(g_strBitsPerComponent, g_strBPC).getUint(bitsPerComponent);
+			stream->getProperty(g_strMask).getReference(mask);
+		}
+		ListElements<PdfValue> arrayDecode(stream->getProperty(g_strDecode, g_strD).getArray());
+		if (arrayDecode.count) {
+			switch (colorSpace.type) {
+				case PdfColorSpaceType::RGB:
+				case PdfColorSpaceType::Gray:
+				case PdfColorSpaceType::CMYK:
+					if (flagImageMask) {
+						if (arrayDecode.count >= 2) {
+							flagUseDecodeArray = sl_true;
+							decodeMin[0] = arrayDecode[0].getUint();
+							decodeMax[0] = arrayDecode[1].getUint();
+						}
+					} else {
+						sl_uint32 nColors = colorSpace.getComponentsCount();
+						if (arrayDecode.count >= nColors * 2) {
+							flagUseDecodeArray = sl_true;
+							for (sl_uint32 i = 0; i < nColors; i++) {
+								decodeMin[i] = Math::clamp0_255((sl_int32)(arrayDecode[i << 1].getFloat() * 255));
+								decodeMax[i] = Math::clamp0_255((sl_int32)(arrayDecode[(i << 1) | 1].getFloat() * 255));
+							}
+							if (nColors == 1) {
+								decodeMin[2] = decodeMin[1] = decodeMin[0];
+								decodeMax[2] = decodeMax[1] = decodeMax[0];
+							}
+						}
+					}
+					break;
+				case PdfColorSpaceType::Indexed:
+					if (arrayDecode.count == 2) {
+						sl_uint32 n = (sl_uint32)(colorSpace.indices.getCount());
+						if (n) {
+							sl_uint32 m0 = arrayDecode[0].getUint();
+							sl_uint32 m1 = arrayDecode[1].getUint();
+							Array<Color> newIndices = Array<Color>::create(n);
+							if (newIndices.isNotNull()) {
+								Color* d = newIndices.getData();
+								Color* s = colorSpace.indices.getData();
+								for (sl_uint32 i = 0; i < n; i++) {
+									sl_uint32 m = m0 + (((m1 - m0) * i) >> bitsPerComponent);
+									if (m >= n) {
+										m = n - 1;
+									}
+									d[i] = s[m];
+								}
+								colorSpace.indices = Move(newIndices);
+							}
+						}
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		PdfArray arrayMatte = stream->getProperty(g_strMatte).getArray();
+		if (arrayMatte.isNotNull()) {
+			if (colorSpace.getColor(matte, arrayMatte.getData(), arrayMatte.getCount())) {
+				if (matte != Color::Black) {
+					flagUseMatte = sl_true;
+				}
+			}
+		}
+		stream->getProperty(g_strSMask).getReference(smask);
 	}
 
 	void PdfImageResource::applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept
@@ -5629,58 +5703,60 @@ namespace slib
 		if (context.images.get(ref.objectNumber, &ret)) {
 			return ret;
 		}
-		ret = new PdfImage;
-		if (ret.isNotNull()) {
-			if (ret->_load(doc, ref)) {
-				context.images.put(ref.objectNumber, ret);
-				return ret;
+		Ref<PdfStream> stream = doc->getObject(ref).getStream();
+		if (stream.isNotNull()) {
+			String subtype = stream->getProperty(g_strSubtype).getName();
+			if (subtype == StringView::literal("Image")) {
+				Memory content = stream->getDecodedContent(doc);
+				if (content.isNotNull()) {
+					ret = new PdfImage;
+					if (ret.isNotNull()) {
+						if (ret->_load(doc, stream.get(), content)) {
+							context.images.put(ref.objectNumber, ret);
+							return ret;
+						}
+					}
+				}
 			}
 		}
 		return sl_null;
 	}
 
-	sl_bool PdfImage::_load(PdfDocument* doc, const PdfReference& ref)
+	sl_bool PdfImage::_load(PdfDocument* doc, PdfStream* stream, Memory& content)
 	{
-		Ref<PdfStream> stream = doc->getObject(ref).getStream();
-		if (stream.isNotNull()) {
-			if (PdfImageResource::load(doc, stream.get())) {
-				Memory content = stream->getDecodedContent(doc);
-				if (content.isNotNull()) {
-					Referable* ref = content.getRef();
-					if (IsInstanceOf<Image>(ref)) {
-						object = (Image*)ref;
-					} else {
-						if (colorSpace.type == PdfColorSpaceType::RGB || colorSpace.type == PdfColorSpaceType::Gray || colorSpace.type == PdfColorSpaceType::CMYK || colorSpace.type == PdfColorSpaceType::Indexed) {
-							sl_uint32 nColors = colorSpace.getComponentsCount();
-							if (nColors) {
-								sl_uint8* data = (sl_uint8*)(content.getData());
-								sl_uint32 pitch = (nColors * bitsPerComponent * width + 7) >> 3;
-								sl_uint32 height = (sl_uint32)(content.getSize()) / pitch;
-								if (height) {
-									if (colorSpace.type == PdfColorSpaceType::CMYK) {
-										if (!(content.getRef())) {
-											content = content.duplicate();
-											if (content.isNull()) {
-												return sl_false;
-											}
-											data = (sl_uint8*)(content.getData());
-										}
-										applyDecode4(data, width, height, pitch);
-									}
-									object = CreateImageObject(width, height, data, pitch, colorSpace.type, bitsPerComponent, colorSpace.indices.getData(), (sl_uint32)(colorSpace.indices.getCount()));
+		PdfImageResource::_load(doc, stream);
+		Referable* ref = content.getRef();
+		if (IsInstanceOf<Image>(ref)) {
+			object = (Image*)ref;
+		} else {
+			if (colorSpace.type == PdfColorSpaceType::RGB || colorSpace.type == PdfColorSpaceType::Gray || colorSpace.type == PdfColorSpaceType::CMYK || colorSpace.type == PdfColorSpaceType::Indexed) {
+				sl_uint32 nColors = colorSpace.getComponentsCount();
+				if (nColors) {
+					sl_uint8* data = (sl_uint8*)(content.getData());
+					sl_uint32 pitch = (nColors * bitsPerComponent * width + 7) >> 3;
+					sl_uint32 height = (sl_uint32)(content.getSize()) / pitch;
+					if (height) {
+						if (colorSpace.type == PdfColorSpaceType::CMYK) {
+							if (!(content.getRef())) {
+								content = content.duplicate();
+								if (content.isNull()) {
+									return sl_false;
 								}
+								data = (sl_uint8*)(content.getData());
 							}
+							applyDecode4(data, width, height, pitch);
 						}
-					}
-					if (object.isNotNull()) {
-						if (colorSpace.type != PdfColorSpaceType::CMYK) {
-							applyDecode(object.get());
-						}
-						_loadSMask(doc);
-						return sl_true;
+						object = CreateImageObject(width, height, data, pitch, colorSpace.type, bitsPerComponent, colorSpace.indices.getData(), (sl_uint32)(colorSpace.indices.getCount()));
 					}
 				}
 			}
+		}
+		if (object.isNotNull()) {
+			if (colorSpace.type != PdfColorSpaceType::CMYK) {
+				applyDecode(object.get());
+			}
+			_loadSMask(doc);
+			return sl_true;
 		}
 		return sl_false;
 	}
@@ -6123,6 +6199,80 @@ namespace slib
 	}
 
 
+	PdfRenderContext::PdfRenderContext()
+	{
+	}
+
+	PdfRenderContext::~PdfRenderContext()
+	{
+	}
+	
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+
+	PdfRenderParam::PdfRenderParam(): canvas(sl_null)
+	{
+	}
+
+	
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFormResource)
+
+	PdfFormResource::PdfFormResource()
+	{
+	}
+
+	sl_bool PdfFormResource::load(PdfDocument* doc, PdfStream* stream)
+	{
+		String subtype = stream->getProperty(g_strSubtype).getName();
+		if (subtype == StringView::literal("Form")) {
+			_load(doc, stream);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	void PdfFormResource::_load(PdfDocument* doc, PdfStream* stream)
+	{
+		bounds = stream->getProperty(g_strBBox).getRectangle();
+		if (!(stream->getProperty(g_strMatrix).getMatrix(matrix))) {
+			matrix = Matrix3::identity();
+		}
+		resources = stream->getProperty(g_strResources).getDictionary();
+		Memory contentData = stream->getDecodedContent(doc);
+		if (contentData.isNotNull()) {
+			content = PdfPage::parseContent(contentData.getData(), contentData.getSize());
+		}
+	}
+
+	void PdfFormResource::render(Canvas* canvas, PdfPage* page, PdfRenderContext* context)
+	{
+		Ref<PdfDocument> doc = page->getDocument();
+		if (doc.isNull()) {
+			return;
+		}
+
+		ListElements<PdfOperation> ops(content);
+		if (!(ops.count)) {
+			return;
+		}
+
+		FormResources res(resources, page);
+
+		Renderer renderer;
+		renderer.canvas = canvas;
+		renderer.document = doc.get();
+		renderer.resources = &res;
+		renderer.context = context;
+
+		CanvasStateScope scope(canvas);
+		canvas->concatMatrix(matrix);
+		canvas->clipToRectangle(bounds);
+		for (sl_size i = 0; i < ops.count; i++) {
+			renderer.render(ops[i]);
+		}
+	}
+
+
 	PdfPageTreeItem::PdfPageTreeItem() noexcept: m_flagPage(sl_false)
 	{
 	}
@@ -6147,22 +6297,6 @@ namespace slib
 			return _parent->getAttribute(name);
 		}
 		return PdfValue();
-	}
-
-
-	PdfRenderContext::PdfRenderContext()
-	{
-	}
-
-	PdfRenderContext::~PdfRenderContext()
-	{
-	}
-	
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
-
-	PdfRenderParam::PdfRenderParam(): canvas(sl_null)
-	{
 	}
 
 
@@ -6243,6 +6377,11 @@ namespace slib
 
 	void PdfPage::render(PdfRenderParam& param)
 	{
+		Ref<PdfDocument> doc = m_document;
+		if (doc.isNull()) {
+			return;
+		}
+
 		ListElements<PdfOperation> ops(getContent());
 		if (!(ops.count)) {
 			return;
@@ -6256,17 +6395,18 @@ namespace slib
 		}
 
 		Canvas* canvas = param.canvas;
-		Rectangle bounds = param.bounds;
 
 		sl_bool flagOldAntiAlias = canvas->isAntiAlias();
 		canvas->setAntiAlias();
 
 		Renderer renderer;
 		renderer.canvas = canvas;
-		renderer.page = this;
-		renderer.param = &param;
+		renderer.document = doc.get();
+		renderer.resources = this;
+		renderer.context = param.context.get();
 
 		CanvasStateScope scope(canvas);
+		Rectangle bounds = param.bounds;
 		Swap(bounds.top, bounds.bottom);
 		canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(getMediaBox(), bounds));
 		canvas->clipToRectangle(getCropBox());
@@ -6350,35 +6490,6 @@ namespace slib
 			}
 		}
 		return PdfValue();
-	}
-
-	PdfDictionary PdfPage::getFontResourceAsDictionary(const String& name)
-	{
-		return getResource(g_strFont, name).getDictionary();
-	}
-
-	sl_bool PdfPage::getFontResource(const String& name, PdfReference& outRef)
-	{
-		return getResource(g_strFont, name, sl_false).getReference(outRef);
-	}
-
-	sl_bool PdfPage::getFontResource(const String& name, PdfFontResource& resource)
-	{
-		Ref<PdfDocument> doc(m_document);
-		if (doc.isNotNull()) {
-			return resource.load(doc.get(), getFontResourceAsDictionary(name));
-		}
-		return sl_false;
-	}
-
-	PdfValue PdfPage::getExternalObjectResource(const String& name)
-	{
-		return getResource(g_strXObject, name);
-	}
-
-	sl_bool PdfPage::getExternalObjectResource(const String& name, PdfReference& outRef)
-	{
-		return getResource(g_strXObject, name, sl_false).getReference(outRef);
 	}
 
 
