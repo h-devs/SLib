@@ -308,10 +308,14 @@ namespace slib
 		
 		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
+		sl_bool hasFocusedChild();
+
 		Ref<View> getFocusedChild();
 		
 		Ref<View> getFocusedDescendant();
-		
+
+		Ref<View> getFocusedView();
+
 		
 		sl_bool isPressedState();
 		
@@ -1466,7 +1470,7 @@ namespace slib
 		
 		void _setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance);
 		
-		void _killChildFocus();
+		void _killFocusRecursively();
 		
 		void _setFocusedChild(View* child, UIUpdateMode mode);
 		
@@ -1593,20 +1597,20 @@ namespace slib
 		UIAction m_actionMouseDown;
 		AtomicRef<UIEvent> m_currentEvent;
 
-	protected:		
+	protected:
 		Ref<ViewLayoutAttributes> m_layoutAttrs;
 		void _initializeLayoutAttributes();
-				
-		Ref<ViewPaddingAttributes> m_paddingAttrs;		
+
+		Ref<ViewPaddingAttributes> m_paddingAttrs;
 		void _initializePaddingAttributes();
 
 		Ref<ViewTransformAttributes> m_transformAttrs;
 		void _initializeTransformAttributes();
 		
-		Ref<ViewDrawAttributes> m_drawAttrs;		
+		Ref<ViewDrawAttributes> m_drawAttrs;
 		void _initializeDrawAttributes();
 
-		Ref<ViewScrollAttributes> m_scrollAttrs;		
+		Ref<ViewScrollAttributes> m_scrollAttrs;
 		void _initializeScrollAttributes();
 		
 		Ref<ViewChildAttributes> m_childAttrs;
@@ -1615,7 +1619,7 @@ namespace slib
 		Ref<ViewOtherAttributes> m_otherAttrs;
 		void _initializeOtherAttributes();
 		
-		Ref<ViewEventAttributes> m_eventAttrs;		
+		Ref<ViewEventAttributes> m_eventAttrs;
 		void _initializeEventAttributes();
 
 		friend class ViewInstance;
@@ -1748,7 +1752,6 @@ namespace slib
 		
 	protected:
 		AtomicWeakRef<View> m_view;
-		AtomicRef<View> m_childSavedFocus;
 		sl_bool m_flagNativeWidget;
 		sl_bool m_flagWindowContent;
 

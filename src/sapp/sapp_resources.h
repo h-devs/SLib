@@ -321,6 +321,7 @@ namespace slib
 		SAppBooleanValue autoHideScrollBar;
 
 		SAppBooleanValue focusable;
+		SAppBooleanValue focus;
 		SAppBooleanValue hitTest;
 		SAppBooleanValue touchMultipleChildren;
 		SAppBooleanValue tabStop;
@@ -1103,8 +1104,6 @@ namespace slib
 			sl_uint32 itemsCount;
 		};
 		CMap<String, ItemArrayDesc> itemArrays;
-
-		String initialFocus;
 
 		sl_uint32 nAutoIncreaseNameView = 0;
 		sl_uint32 nAutoIncreaseNameViewGroup = 0;

@@ -562,19 +562,6 @@ namespace slib
 		}
 	}
 
-	Ref<View> ViewPage::getInitialFocus()
-	{
-		return m_viewInitialFocus;
-	}
-
-	void ViewPage::setInitialFocus(const Ref<View>& view)
-	{
-		m_viewInitialFocus = view;
-		if (view.isNotNull()) {
-			view->setFocus();
-		}
-	}
-
 
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Open)
 
@@ -635,7 +622,7 @@ namespace slib
 		m_navigationController = controller;
 
 		if (action == UIPageAction::Resume || action == UIPageAction::Push) {
-			Ref<View> focus = m_viewInitialFocus;
+			Ref<View> focus = getFocusedDescendant();
 			if (focus.isNotNull()) {
 				focus->setFocus();
 			}

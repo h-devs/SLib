@@ -35,6 +35,7 @@ namespace slib
 			input->setHeightWrapping(slib::UIUpdateMode::Init);
 			input->setAlignParentLeft(slib::UIUpdateMode::Init);
 			input->setMarginTop(10, slib::UIUpdateMode::Init);
+			input->setFocus(sl_true, slib::UIUpdateMode::Init);
 			_linear1->addChild(input, slib::UIUpdateMode::Init);
 
 			_linear2 = new slib::LinearLayout;
@@ -68,8 +69,6 @@ namespace slib
 			cancel->setCancelOnClick();
 			cancel->setText(string::cancel::get(), slib::UIUpdateMode::Init);
 			_linear2->addChild(cancel, slib::UIUpdateMode::Init);
-
-			setInitialFocus(input);
 		}
 
 		void PromptDialog::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)

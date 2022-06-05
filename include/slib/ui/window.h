@@ -74,11 +74,7 @@ namespace slib
 		
 		void setMenu(const Ref<Menu>& menu);
 
-		Ref<View> getInitialFocus();
 
-		void setInitialFocus(const Ref<View>& view);
-		
-		
 		sl_bool isActive();
 		
 		void activate();
@@ -470,7 +466,6 @@ namespace slib
 		Ref<WindowContentView> m_viewContent;
 		AtomicRef<Screen> m_screen;
 		AtomicRef<Menu> m_menu;
-		AtomicRef<View> m_viewInitialFocus;
 		
 		AtomicString m_title;
 		AtomicRef<Drawable> m_icon;
