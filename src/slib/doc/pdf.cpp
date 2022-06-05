@@ -6243,10 +6243,6 @@ namespace slib
 
 	void PdfPage::render(PdfRenderParam& param)
 	{
-		Canvas* canvas = param.canvas;
-		Rectangle bounds = param.bounds;
-		canvas->fillRectangle(bounds, Color::White);
-
 		ListElements<PdfOperation> ops(getContent());
 		if (!(ops.count)) {
 			return;
@@ -6258,6 +6254,9 @@ namespace slib
 				return;
 			}
 		}
+
+		Canvas* canvas = param.canvas;
+		Rectangle bounds = param.bounds;
 
 		sl_bool flagOldAntiAlias = canvas->isAntiAlias();
 		canvas->setAntiAlias();

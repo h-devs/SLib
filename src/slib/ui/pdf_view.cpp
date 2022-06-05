@@ -161,6 +161,8 @@ namespace slib
 		m_widthOld = 0;
 		m_flagUsePageCache = sl_false;
 
+		setCreatingInstance();
+		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 		setFocusable();
 	}
@@ -324,13 +326,13 @@ namespace slib
 			param.bounds.bottom = pageFirstY * width;
 
 			for (sl_uint32 i = 0; i < 100; i++) {
+				param.bounds.top = param.bounds.bottom;
 				sl_uint32 pageNo = pageFirst + i;
 				float ratio;
 				Ref<PdfPage> page = context->getPageAndGeometry_NoLock(pageNo, ratio, flagUpdateScrollRange);
 				if (page.isNull()) {
 					break;
 				}
-				param.bounds.top = param.bounds.bottom;
 				param.bounds.bottom += ratio * width;
 				if (param.bounds.top >= sy + height) {
 					break;
