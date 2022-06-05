@@ -27,13 +27,13 @@
 
 #define EXPIRE_DURATION_PAGE 5000
 #define EXPIRE_DURATION_FONT 15000
-#define EXPIRE_DURATION_IMAGE 4000
+#define EXPIRE_DURATION_XOBJECT 4000
 #define EXPIRE_DURATION_PAGE_CACHE 7000
 
 namespace slib
 {
 
-	class PdfViewContext : public PdfRenderContext
+	class PdfViewContext : public PdfResourceCache
 	{
 	public:
 		Ref<PdfDocument> doc;
@@ -50,7 +50,7 @@ namespace slib
 			pageCache.setExpiringMilliseconds(EXPIRE_DURATION_PAGE_CACHE);
 			pages.setExpiringMilliseconds(EXPIRE_DURATION_PAGE);
 			fonts.setExpiringMilliseconds(EXPIRE_DURATION_FONT);
-			images.setExpiringMilliseconds(EXPIRE_DURATION_IMAGE);
+			xObjects.setExpiringMilliseconds(EXPIRE_DURATION_XOBJECT);
 		}
 
 	public:
@@ -280,7 +280,7 @@ namespace slib
 			}
 			PdfRenderParam param;
 			param.canvas = canvas.get();
-			param.context = context;
+			param.cache = context;
 			param.bounds.left = 0;
 			param.bounds.top = 0;
 			param.bounds.right = width;
@@ -320,7 +320,7 @@ namespace slib
 
 			PdfRenderParam param;
 			param.canvas = canvas;
-			param.context = m_context;
+			param.cache = m_context;
 			param.bounds.left = 0;
 			param.bounds.right = width;
 			param.bounds.bottom = pageFirstY * width;

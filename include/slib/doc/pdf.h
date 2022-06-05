@@ -47,7 +47,8 @@ namespace slib
 		Array = 8,
 		Dictionary = 9,
 		Stream = 10,
-		Reference = 11
+		Reference = 11,
+		Image = 12
 	};
 
 	enum class PdfOperator
@@ -191,11 +192,30 @@ namespace slib
 		Pattern = 6
 	};
 
-	enum class PdfImageType
+	enum class PdfPatternType
 	{
-		Normal = 0,
-		Jpeg = 1,
-		Fax = 2
+		Unknown = 0,
+		Tiling = 1,
+		Shading = 2
+	};
+
+	enum class PdfShadingType
+	{
+		Unknown = 0,
+		Function = 1,
+		Axial = 2,
+		Radial = 3,
+		Free = 4, // Free-form Gouraud-shaded triangle mesh
+		Lattice = 5, // Lattice-form Gouraud-shaded triangle mesh
+		Coons = 6, // Coons patch mesh
+		Tensor = 7 // Tensor-product patch mesh
+	};
+
+	enum class PdfExternalObjectType
+	{
+		Unknown = 0,
+		Image = 1,
+		Form = 2
 	};
 
 	enum class PdfTextRenderingMode
@@ -228,7 +248,9 @@ namespace slib
 	class PdfStream;
 	class PdfPage;
 	class PdfFont;
+	class PdfExternalObject;
 	class PdfImage;
+	class PdfOperation;
 	class Canvas;
 	class Image;
 	class Color;
@@ -321,6 +343,9 @@ namespace slib
 
 		PdfValue(const PdfReference& v) noexcept;
 
+		PdfValue(const Ref<PdfImage>& v) noexcept;
+		PdfValue(Ref<PdfImage>&& v) noexcept;
+
 	public:
 		const Variant& getVariant() const noexcept
 		{
@@ -400,6 +425,10 @@ namespace slib
 		PdfReference getReference() const noexcept;
 
 		sl_bool getReference(PdfReference& _out) const noexcept;
+
+		const Ref<PdfImage>& getImage() const& noexcept;
+
+		Ref<PdfImage> getImage() && noexcept;
 
 
 		Rectangle getRectangle() const noexcept;
@@ -516,16 +545,16 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfResourceContext : public Referable
+	class SLIB_EXPORT PdfResourceCache : public Referable
 	{
 	public:
 		ExpiringMap< sl_uint32, Ref<PdfFont> > fonts;
-		ExpiringMap< sl_uint32, Ref<PdfImage> > images;
+		ExpiringMap< sl_uint32, Ref<PdfExternalObject> > xObjects;
 
 	public:
-		PdfResourceContext();
+		PdfResourceCache();
 
-		~PdfResourceContext();
+		~PdfResourceCache();
 
 	};
 
@@ -541,9 +570,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfColorSpace)
 
 	public:
-		void load(PdfDocument* doc, PdfResourceProvider* res, const String& name);
-
-		void load(PdfDocument* doc, const PdfValue& value);
+		void load(PdfDocument* doc, const PdfValue& value, PdfResourceProvider* res = sl_null);
 
 		sl_uint32 getComponentsCount();
 
@@ -561,6 +588,8 @@ namespace slib
 
 	private:
 		sl_bool _loadName(const String& name);
+
+		void _loadArray(PdfDocument* doc, const PdfArray& array);
 
 		sl_bool _loadIndexed(PdfDocument* doc, sl_uint32 maxIndex, const PdfValue& table);
 
@@ -648,13 +677,13 @@ namespace slib
 		Ref<FreeType> face;
 		sl_real scale;
 
-	public:
+	protected:
 		PdfFont();
 
 		~PdfFont();
 
 	public:
-		static Ref<PdfFont> load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context);
+		static Ref<PdfFont> load(PdfDocument* doc, const PdfReference& ref, PdfResourceCache& cache);
 
 	public:
 		sl_uint32 getGlyphIndex(sl_uint32 charcode, sl_char32 unicode);
@@ -668,6 +697,37 @@ namespace slib
 
 	private:
 		ExpiringMap< sl_uint32, Ref<FreeTypeGlyph> > m_cacheGlyphs;
+
+	};
+
+	class SLIB_EXPORT PdfRenderParam
+	{
+	public:
+		Canvas * canvas;
+		Rectangle bounds;
+		Ref<PdfResourceCache> cache;
+
+	public:
+		PdfRenderParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+
+	};
+
+	class SLIB_EXPORT PdfExternalObject : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		PdfExternalObjectType type;
+
+	protected:
+		PdfExternalObject(PdfExternalObjectType type);
+
+		~PdfExternalObject();
+
+	public:
+		static Ref<PdfExternalObject> load(PdfDocument* doc, const PdfReference& ref, PdfResourceCache& cache);
 
 	};
 
@@ -695,110 +755,48 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfImageResource)
 
 	public:
-		sl_bool load(PdfDocument* doc, PdfStream* stream) noexcept;
+		sl_bool load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources = sl_null) noexcept;
 
 		void applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept;
 		
 		void applyDecode(Image* image) noexcept;
 
 	protected:
-		void _load(PdfDocument* doc, PdfStream* stream) noexcept;
+		void _load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources) noexcept;
 
 	};
 
-	class SLIB_EXPORT PdfImage : public Referable, public PdfImageResource
+	class SLIB_EXPORT PdfImage : public PdfExternalObject, public PdfImageResource
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		Ref<Image> object;
 
-	public:
+	protected:
 		PdfImage();
 
 		~PdfImage();
 
 	public:
-		static Ref<PdfImage> load(PdfDocument* doc, const PdfReference& ref, PdfResourceContext& context);
+		static Ref<PdfImage> load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources = sl_null);
+
+		static Ref<PdfImage> loadInline(PdfDocument* doc, PdfResourceProvider* resources, const void* data, sl_uint32& size);
 
 	protected:
-		sl_bool _load(PdfDocument* doc, PdfStream* stream, Memory& content);
+		static Ref<PdfImage> _load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources = sl_null);
+
+		sl_bool _load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources, Memory& content);
+
+		sl_bool _loadContent(PdfDocument* doc, Memory& content);
+
+		sl_bool _loadInline(PdfDocument* doc, PdfResourceProvider* resources, const PdfDictionary& properties, sl_uint8* data, sl_uint32& size);
+
+		sl_bool _loadInlineContent(PdfDocument* doc, PdfStream* stream, sl_uint8* data, sl_uint32 size);
 
 		void _loadSMask(PdfDocument* doc);
 
-	};
-
-	class SLIB_EXPORT PdfShadingResource
-	{
-	public:
-		sl_uint32 type;
-		PdfColorSpace colorSpace;
-
-	public:
-		PdfShadingResource();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfShadingResource)
-
-	public:
-		sl_bool load(const PdfDictionary& dict);
-
-	};
-
-	class SLIB_EXPORT PdfPatternResource
-	{
-	public:
-		sl_uint32 type;
-		PdfShadingResource shading;
-
-	public:
-		PdfPatternResource();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfPatternResource)
-
-	public:
-		sl_bool load(const PdfDictionary& dict);
-
-	};
-
-	class SLIB_EXPORT PdfOperation
-	{
-	public:
-		PdfOperator op;
-		PdfArray operands;
-
-	public:
-		PdfOperation() noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfOperation)
-
-	public:
-		static PdfOperator getOperator(const StringView& opName) noexcept;
-
-		static PdfCMapOperator getCMapOperator(const StringView& opName) noexcept;
-
-	};
-
-	class SLIB_EXPORT PdfRenderContext : public PdfResourceContext
-	{
-	public:
-		PdfRenderContext();
-
-		~PdfRenderContext();
-
-	};
-
-	class SLIB_EXPORT PdfRenderParam
-	{
-	public:
-		Canvas * canvas;
-		Rectangle bounds;
-
-		Ref<PdfRenderContext> context;
-
-	public:
-		PdfRenderParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+		friend class PdfExternalObject;
 
 	};
 
@@ -818,10 +816,88 @@ namespace slib
 	public:
 		sl_bool load(PdfDocument* doc, PdfStream* stream);
 
-		void render(Canvas* canvas, PdfPage* page, PdfRenderContext* context);
-
 	protected:
 		void _load(PdfDocument* doc, PdfStream* stream);
+
+	};
+
+	class SLIB_EXPORT PdfForm : public PdfExternalObject, public PdfFormResource, public PdfResourceProvider
+	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		PdfForm();
+
+		~PdfForm();
+
+	public:
+		static Ref<PdfForm> load(PdfDocument* doc, PdfStream* stream);
+
+	public:
+		PdfValue getResources(const String& type, sl_bool flagResolveReference) override;
+
+		PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference) override;
+
+	protected:
+		static Ref<PdfForm> _load(PdfDocument* doc, PdfStream* stream);
+
+		sl_bool _load(PdfDocument* doc, PdfStream* stream, Memory& content);
+
+	private:
+		WeakRef<PdfDocument> m_document;
+
+		friend class PdfExternalObject;
+	};
+
+	class SLIB_EXPORT PdfShadingResource
+	{
+	public:
+		PdfShadingType type;
+		PdfColorSpace colorSpace;
+		PdfArray domain;
+		PdfValue function;
+
+	public:
+		PdfShadingResource();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfShadingResource)
+
+	public:
+		void load(PdfDocument* doc, const PdfDictionary& dict);
+
+	};
+
+	class SLIB_EXPORT PdfPatternResource
+	{
+	public:
+		PdfPatternType type;
+		PdfShadingResource shading;
+
+	public:
+		PdfPatternResource();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfPatternResource)
+
+	public:
+		void load(PdfDocument* doc, const PdfDictionary& dict);
+
+	};
+
+	class SLIB_EXPORT PdfOperation
+	{
+	public:
+		PdfOperator op;
+		PdfArray operands;
+
+	public:
+		PdfOperation() noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfOperation)
+
+	public:
+		static PdfOperator getOperator(const StringView& opName) noexcept;
+
+		static PdfCMapOperator getCMapOperator(const StringView& opName) noexcept;
 
 	};
 
@@ -862,7 +938,7 @@ namespace slib
 
 		List<PdfOperation> getContent();
 
-		static List<PdfOperation> parseContent(const void* data, sl_size size);
+		static List<PdfOperation> parseContent(PdfDocument* doc, PdfResourceProvider* resources, const void* data, sl_size size);
 
 		void render(PdfRenderParam& param);
 
