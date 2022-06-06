@@ -51,6 +51,15 @@ namespace slib
 		Image = 12
 	};
 
+	enum class PdfFunctionType
+	{
+		Unknown = -1,
+		Sampled = 0,
+		Exponential = 2,
+		Stiching = 3,
+		PostScript = 4
+	};
+
 	enum class PdfOperator
 	{
 		Unknown = 0,
@@ -441,6 +450,45 @@ namespace slib
 
 	private:
 		Variant m_var;
+
+	};
+
+	class SLIB_EXPORT PdfFunction
+	{
+	public:
+		PdfFunctionType type;
+		sl_uint32 countInput;
+		sl_uint32 countOutput;
+		Array< Pair<float, float> > domain; // input range
+		Array< Pair<float, float> > range; // output range. used for Sampled/PostScript types
+		
+		// Sampled Function type
+		sl_uint32 bitsPerSample;
+		Array< Pair<sl_uint32, sl_uint32> > encodeSampled;
+		Array<sl_uint32> size;
+		Array<sl_uint32> stride;
+		Array< Pair<float, float> > decode;
+		Array< Array<float> > samples;
+
+		// Exponential
+		Array<float> C0;
+		Array<float> C1;
+		float N;
+
+		// Stiching
+		Array<PdfFunction> functions;
+		Array<float> bounds;
+		Array< Pair<float, float> > encodeStiching;
+
+	public:
+		PdfFunction();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFunction)
+
+	public:
+		sl_bool load(PdfDocument* doc, const PdfValue& value);
+
+		sl_bool call(float* input, sl_size nInput, float* output, sl_size nOutput);
 
 	};
 
@@ -854,8 +902,14 @@ namespace slib
 	public:
 		PdfShadingType type;
 		PdfColorSpace colorSpace;
-		PdfArray domain;
-		PdfValue function;
+
+		// Axial & Radial
+		float domainStart, domainEnd;
+		Point coordsStart, coordsEnd;
+		PdfFunction function; // 1-in, n-out
+		Array<PdfFunction> functions; // n 1-in, 1-out
+		// Radial
+		float radiiStart, radiiEnd;
 
 	public:
 		PdfShadingResource();
@@ -863,7 +917,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfShadingResource)
 
 	public:
-		void load(PdfDocument* doc, const PdfDictionary& dict);
+		sl_bool load(PdfDocument* doc, const PdfDictionary& dict);
 
 	};
 
@@ -879,7 +933,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfPatternResource)
 
 	public:
-		void load(PdfDocument* doc, const PdfDictionary& dict);
+		sl_bool load(PdfDocument* doc, const PdfDictionary& dict);
 
 	};
 

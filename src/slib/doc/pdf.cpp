@@ -27,6 +27,7 @@
 #include "slib/core/thread.h"
 #include "slib/core/mio.h"
 #include "slib/core/memory_buffer.h"
+#include "slib/core/sample_reader.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/queue.h"
 #include "slib/core/safe_static.h"
@@ -53,6 +54,8 @@
 
 #define MAKE_OBJECT_ID(NUM, GEN) SLIB_MAKE_QWORD4(GEN, NUM)
 
+#define DEFINE_PDF_NAME(NAME) SLIB_STATIC_STRING(NAME, #NAME)
+
 namespace slib
 {
 
@@ -61,94 +64,106 @@ namespace slib
 		namespace pdf
 		{
 
-			SLIB_STATIC_STRING(g_strType, "Type")
-			SLIB_STATIC_STRING(g_strSize, "Size")
-			SLIB_STATIC_STRING(g_strLength, "Length")
-			SLIB_STATIC_STRING(g_strIndex, "Index")
-			SLIB_STATIC_STRING(g_strFirst, "First")
-			SLIB_STATIC_STRING(g_strExtends, "Extends")
-			SLIB_STATIC_STRING(g_strPrev, "Prev")
-			SLIB_STATIC_STRING(g_strFilter, "Filter")
-			SLIB_STATIC_STRING(g_strEncrypt, "Encrypt");
-			SLIB_STATIC_STRING(g_strRoot, "Root")
-			SLIB_STATIC_STRING(g_strPages, "Pages")
-			SLIB_STATIC_STRING(g_strCount, "Count")
-			SLIB_STATIC_STRING(g_strKids, "Kids")
-			SLIB_STATIC_STRING(g_strContents, "Contents")
-			SLIB_STATIC_STRING(g_strID, "ID")
-			SLIB_STATIC_STRING(g_strMediaBox, "MediaBox")
-			SLIB_STATIC_STRING(g_strCropBox, "CropBox")
-			SLIB_STATIC_STRING(g_strResources, "Resources")
-			SLIB_STATIC_STRING(g_strXObject, "XObject")
-			SLIB_STATIC_STRING(g_strPattern, "Pattern")
-			SLIB_STATIC_STRING(g_strFont, "Font")
-			SLIB_STATIC_STRING(g_strSubtype, "Subtype")
-			SLIB_STATIC_STRING(g_strBaseFont, "BaseFont")
-			SLIB_STATIC_STRING(g_strDescendantFonts, "DescendantFonts")
-			SLIB_STATIC_STRING(g_strEncoding, "Encoding")
-			SLIB_STATIC_STRING(g_strBaseEncoding, "BaseEncoding")
-			SLIB_STATIC_STRING(g_strDifferences, "Differences")
-			SLIB_STATIC_STRING(g_strFontDescriptor, "FontDescriptor")
-			SLIB_STATIC_STRING(g_strFontName, "FontName")
-			SLIB_STATIC_STRING(g_strFontFamily, "FontFamily")
-			SLIB_STATIC_STRING(g_strAscent, "Ascent")
-			SLIB_STATIC_STRING(g_strDescent, "Descent")
-			SLIB_STATIC_STRING(g_strLeading, "Leading")
-			SLIB_STATIC_STRING(g_strFontWeight, "FontWeight")
-			SLIB_STATIC_STRING(g_strItalicAngle, "ItalicAngle")
-			SLIB_STATIC_STRING(g_strFlags, "Flags")
-			SLIB_STATIC_STRING(g_strFontFile, "FontFile")
-			SLIB_STATIC_STRING(g_strFontFile2, "FontFile2")
-			SLIB_STATIC_STRING(g_strFontFile3, "FontFile3")
-			SLIB_STATIC_STRING(g_strFirstChar, "FirstChar")
-			SLIB_STATIC_STRING(g_strLastChar, "LastChar")
-			SLIB_STATIC_STRING(g_strWidths, "Widths")
-			SLIB_STATIC_STRING(g_strDW, "DW")
-			SLIB_STATIC_STRING(g_strCIDToGIDMap, "CIDToGIDMap")
-			SLIB_STATIC_STRING(g_strToUnicode, "ToUnicode")
-			SLIB_STATIC_STRING(g_strWidth, "Width")
-			SLIB_STATIC_STRING(g_strHeight, "Height")
-			SLIB_STATIC_STRING(g_strColorSpace, "ColorSpace")
-			SLIB_STATIC_STRING(g_strCS, "CS")
-			SLIB_STATIC_STRING(g_strDecodeParms, "DecodeParms")
-			SLIB_STATIC_STRING(g_strDP, "DP")
-			SLIB_STATIC_STRING(g_strPredictor, "Predictor")
-			SLIB_STATIC_STRING(g_strEarlyChange, "EarlyChange")
-			SLIB_STATIC_STRING(g_strColumns, "Columns")
-			SLIB_STATIC_STRING(g_strBitsPerComponent, "BitsPerComponent")
-			SLIB_STATIC_STRING(g_strBPC, "BPC")
-			SLIB_STATIC_STRING(g_strImageMask, "ImageMask")
-			SLIB_STATIC_STRING(g_strIM, "IM")
-			SLIB_STATIC_STRING(g_strInterpolate, "Interpolate")
-			SLIB_STATIC_STRING(g_strDecode, "Decode")
-			SLIB_STATIC_STRING(g_strMatte, "Matte")
-			SLIB_STATIC_STRING(g_strColors, "Colors")
-			SLIB_STATIC_STRING(g_strRows, "Rows")
-			SLIB_STATIC_STRING(g_strEndOfLine, "EndOfLine")
-			SLIB_STATIC_STRING(g_strEncodedByteAlign, "EncodedByteAlign")
-			SLIB_STATIC_STRING(g_strBlackIs1, "BlackIs1")
-			SLIB_STATIC_STRING(g_strSMask, "SMask")
-			SLIB_STATIC_STRING(g_strMask, "Mask")
-			SLIB_STATIC_STRING(g_strAlternate, "Alternate")
-			SLIB_STATIC_STRING(g_strBBox, "BBox")
-			SLIB_STATIC_STRING(g_strMatrix, "Matrix")
-			SLIB_STATIC_STRING(g_strFunction, "Function")
-			SLIB_STATIC_STRING(g_strPatternType, "PatternType")
-			SLIB_STATIC_STRING(g_strShading, "Shading")
-			SLIB_STATIC_STRING(g_strShadingType, "ShadingType")
-			SLIB_STATIC_STRING(g_strDomain, "Domain")
-			SLIB_STATIC_STRING(g_strD, "D")
-			SLIB_STATIC_STRING(g_strF, "F")
-			SLIB_STATIC_STRING(g_strH, "H")
-			SLIB_STATIC_STRING(g_strI, "I")
-			SLIB_STATIC_STRING(g_strK, "K")
-			SLIB_STATIC_STRING(g_strN, "N")
-			SLIB_STATIC_STRING(g_strO, "O")
-			SLIB_STATIC_STRING(g_strP, "P")
-			SLIB_STATIC_STRING(g_strR, "R")
-			SLIB_STATIC_STRING(g_strU, "U")
-			SLIB_STATIC_STRING(g_strV, "V")
-			SLIB_STATIC_STRING(g_strW, "W")
+			namespace name
+			{
+				DEFINE_PDF_NAME(Type)
+				DEFINE_PDF_NAME(Size)
+				DEFINE_PDF_NAME(Length)
+				DEFINE_PDF_NAME(Index)
+				DEFINE_PDF_NAME(First)
+				DEFINE_PDF_NAME(Extends)
+				DEFINE_PDF_NAME(Prev)
+				DEFINE_PDF_NAME(Filter)
+				DEFINE_PDF_NAME(FunctionType)
+				DEFINE_PDF_NAME(Range)
+				DEFINE_PDF_NAME(Encode)
+				DEFINE_PDF_NAME(BitsPerSample)
+				DEFINE_PDF_NAME(C0)
+				DEFINE_PDF_NAME(C1)
+				DEFINE_PDF_NAME(Functions)
+				DEFINE_PDF_NAME(Bounds)
+				DEFINE_PDF_NAME(Encrypt);
+				DEFINE_PDF_NAME(Root)
+				DEFINE_PDF_NAME(Pages)
+				DEFINE_PDF_NAME(Count)
+				DEFINE_PDF_NAME(Kids)
+				DEFINE_PDF_NAME(Contents)
+				DEFINE_PDF_NAME(ID)
+				DEFINE_PDF_NAME(MediaBox)
+				DEFINE_PDF_NAME(CropBox)
+				DEFINE_PDF_NAME(Resources)
+				DEFINE_PDF_NAME(XObject)
+				DEFINE_PDF_NAME(Pattern)
+				DEFINE_PDF_NAME(Font)
+				DEFINE_PDF_NAME(Subtype)
+				DEFINE_PDF_NAME(BaseFont)
+				DEFINE_PDF_NAME(DescendantFonts)
+				DEFINE_PDF_NAME(Encoding)
+				DEFINE_PDF_NAME(BaseEncoding)
+				DEFINE_PDF_NAME(Differences)
+				DEFINE_PDF_NAME(FontDescriptor)
+				DEFINE_PDF_NAME(FontName)
+				DEFINE_PDF_NAME(FontFamily)
+				DEFINE_PDF_NAME(Ascent)
+				DEFINE_PDF_NAME(Descent)
+				DEFINE_PDF_NAME(Leading)
+				DEFINE_PDF_NAME(FontWeight)
+				DEFINE_PDF_NAME(ItalicAngle)
+				DEFINE_PDF_NAME(Flags)
+				DEFINE_PDF_NAME(FontFile)
+				DEFINE_PDF_NAME(FontFile2)
+				DEFINE_PDF_NAME(FontFile3)
+				DEFINE_PDF_NAME(FirstChar)
+				DEFINE_PDF_NAME(LastChar)
+				DEFINE_PDF_NAME(Widths)
+				DEFINE_PDF_NAME(DW)
+				DEFINE_PDF_NAME(CIDToGIDMap)
+				DEFINE_PDF_NAME(ToUnicode)
+				DEFINE_PDF_NAME(Width)
+				DEFINE_PDF_NAME(Height)
+				DEFINE_PDF_NAME(ColorSpace)
+				DEFINE_PDF_NAME(CS)
+				DEFINE_PDF_NAME(DecodeParms)
+				DEFINE_PDF_NAME(DP)
+				DEFINE_PDF_NAME(Predictor)
+				DEFINE_PDF_NAME(EarlyChange)
+				DEFINE_PDF_NAME(Columns)
+				DEFINE_PDF_NAME(BitsPerComponent)
+				DEFINE_PDF_NAME(BPC)
+				DEFINE_PDF_NAME(ImageMask)
+				DEFINE_PDF_NAME(IM)
+				DEFINE_PDF_NAME(Interpolate)
+				DEFINE_PDF_NAME(Decode)
+				DEFINE_PDF_NAME(Matte)
+				DEFINE_PDF_NAME(Colors)
+				DEFINE_PDF_NAME(Rows)
+				DEFINE_PDF_NAME(EndOfLine)
+				DEFINE_PDF_NAME(EncodedByteAlign)
+				DEFINE_PDF_NAME(BlackIs1)
+				DEFINE_PDF_NAME(SMask)
+				DEFINE_PDF_NAME(Mask)
+				DEFINE_PDF_NAME(Alternate)
+				DEFINE_PDF_NAME(BBox)
+				DEFINE_PDF_NAME(Matrix)
+				DEFINE_PDF_NAME(Function)
+				DEFINE_PDF_NAME(PatternType)
+				DEFINE_PDF_NAME(Shading)
+				DEFINE_PDF_NAME(ShadingType)
+				DEFINE_PDF_NAME(Domain)
+				DEFINE_PDF_NAME(Coords)
+				DEFINE_PDF_NAME(D)
+				DEFINE_PDF_NAME(F)
+				DEFINE_PDF_NAME(H)
+				DEFINE_PDF_NAME(I)
+				DEFINE_PDF_NAME(K)
+				DEFINE_PDF_NAME(N)
+				DEFINE_PDF_NAME(O)
+				DEFINE_PDF_NAME(P)
+				DEFINE_PDF_NAME(R)
+				DEFINE_PDF_NAME(U)
+				DEFINE_PDF_NAME(V)
+				DEFINE_PDF_NAME(W)
+			}
 
 			static const sl_uint8 g_encryptionPad[] = { 0x28, 0xbf, 0x4e, 0x5e, 0x4e, 0x75, 0x8a, 0x41, 0x64, 0x00, 0x4e, 0x56, 0xff, 0xfa, 0x01, 0x08, 0x2e, 0x2e, 0x00, 0xb6, 0xd0, 0x68, 0x3e, 0x80, 0x2f, 0x0c, 0xa9, 0xfe, 0x64, 0x53, 0x69, 0x7a };
 
@@ -779,7 +794,7 @@ namespace slib
 					if (flagCount) {
 						return count;
 					}
-					count = attributes.getValue_NoLock(g_strCount).getUint();
+					count = attributes.getValue_NoLock(name::Count).getUint();
 					flagCount = sl_true;
 					return count;
 				}
@@ -945,17 +960,17 @@ namespace slib
 
 				sl_bool getStreamLength(const PdfDictionary& properties, sl_uint32& _out)
 				{
-					return getObject(properties.getValue_NoLock(g_strLength)).getUint(_out);
+					return getObject(properties.getValue_NoLock(name::Length)).getUint(_out);
 				}
 
 				List< Ref<PdfPageTreeItem> > buildPageTreeKids(const PdfDictionary& attributes)
 				{
 					List< Ref<PdfPageTreeItem> > ret;
-					ListElements<PdfValue> kidIds(attributes.getValue_NoLock(g_strKids).getArray());
+					ListElements<PdfValue> kidIds(attributes.getValue_NoLock(name::Kids).getArray());
 					for (sl_size i = 0; i < kidIds.count; i++) {
 						const PdfDictionary& props = getObject(kidIds[i]).getDictionary();
 						Ref<PdfPageTreeItem> item;
-						if (props.getValue_NoLock(g_strType).equalsName(StringView::literal("Page"))) {
+						if (props.getValue_NoLock(name::Type).equalsName(StringView::literal("Page"))) {
 							item = new PdfPage;
 						} else {
 							item = new PageTreeParent;
@@ -1025,10 +1040,10 @@ namespace slib
 
 				sl_bool setUserPassword(const StringView& password)
 				{
-					if (encrypt.getValue_NoLock(g_strFilter).equalsName(StringView::literal("Standard"))) {
-						sl_uint32 encryptionAlgorithm = encrypt.getValue_NoLock(g_strV).getUint();
+					if (encrypt.getValue_NoLock(name::Filter).equalsName(StringView::literal("Standard"))) {
+						sl_uint32 encryptionAlgorithm = encrypt.getValue_NoLock(name::V).getUint();
 						if (encryptionAlgorithm == 1) {
-							sl_uint32 lengthKey = encrypt.getValue_NoLock(g_strLength).getUint();
+							sl_uint32 lengthKey = encrypt.getValue_NoLock(name::Length).getUint();
 							if (!lengthKey) {
 								lengthKey = 40;
 							}
@@ -1039,14 +1054,14 @@ namespace slib
 							if (lengthKey > 16) {
 								return sl_false;
 							}
-							String userHash = encrypt.getValue_NoLock(g_strU).getString();
+							String userHash = encrypt.getValue_NoLock(name::U).getString();
 							if (userHash.getLength() != 32) {
 								return sl_false;
 							}
-							sl_uint32 revision = encrypt.getValue_NoLock(g_strR).getUint();
-							sl_uint32 permission = encrypt.getValue_NoLock(g_strP).getInt();
-							String ownerHash = encrypt.getValue_NoLock(g_strO).getString();
-							String fileId = lastTrailer.getValue_NoLock(g_strID).getArray().getValueAt_NoLock(0).getString();
+							sl_uint32 revision = encrypt.getValue_NoLock(name::R).getUint();
+							sl_uint32 permission = encrypt.getValue_NoLock(name::P).getInt();
+							String ownerHash = encrypt.getValue_NoLock(name::O).getString();
+							String fileId = lastTrailer.getValue_NoLock(name::ID).getArray().getValueAt_NoLock(0).getString();
 							sl_uint8 key[16];
 							ComputeEncryptionKey(key, lengthKey, password, revision, ownerHash, permission, fileId);
 							sl_uint8 userHashGen[32];
@@ -1064,14 +1079,14 @@ namespace slib
 
 				sl_bool initDocument()
 				{
-					catalog = getObject(lastTrailer.getValue_NoLock(g_strRoot)).getDictionary();
+					catalog = getObject(lastTrailer.getValue_NoLock(name::Root)).getDictionary();
 					if (catalog.isNull()) {
 						return sl_false;
 					}
-					encrypt = getObject(lastTrailer.getValue_NoLock(g_strEncrypt)).getDictionary();
+					encrypt = getObject(lastTrailer.getValue_NoLock(name::Encrypt)).getDictionary();
 					// loading page tree
 					{
-						const PdfDictionary& attrs = getObject(catalog.getValue_NoLock(g_strPages)).getDictionary();
+						const PdfDictionary& attrs = getObject(catalog.getValue_NoLock(name::Pages)).getDictionary();
 						if (attrs.isNotNull()) {
 							pageTree = new PageTreeParent;
 							if (pageTree.isNotNull()) {
@@ -2203,15 +2218,15 @@ namespace slib
 						PdfReference refStream;
 						const Ref<PdfStream> stream = readObject(refStream).getStream();
 						if (stream.isNotNull()) {
-							if (stream->getProperty(g_strType).equalsName(StringView::literal("XRef"))) {
+							if (stream->getProperty(name::Type).equalsName(StringView::literal("XRef"))) {
 								sl_uint32 size;
-								if (stream->getProperty(g_strSize).getUint(size)) {
-									ListElements<PdfValue> entrySizes(stream->getProperty(g_strW).getArray());
+								if (stream->getProperty(name::Size).getUint(size)) {
+									ListElements<PdfValue> entrySizes(stream->getProperty(name::W).getArray());
 									if (entrySizes.count == 3) {
 										if (entrySizes[0].getType() == PdfValueType::Uint && entrySizes[1].getType() == PdfValueType::Uint && entrySizes[2].getType() == PdfValueType::Uint) {
 											CList< Pair<sl_uint32, sl_uint32> > listSectionRanges;
 											sl_size nEntries = 0;
-											PdfValue vIndex = stream->getProperty(g_strIndex);
+											PdfValue vIndex = stream->getProperty(name::Index);
 											if (vIndex.isNotUndefined()) {
 												if (vIndex.getType() != PdfValueType::Array) {
 													return sl_false;
@@ -2333,7 +2348,7 @@ namespace slib
 						// initialize reference table
 						{
 							sl_uint32 countTotalRef = 0;
-							lastTrailer.getValue_NoLock(g_strSize).getUint(countTotalRef);
+							lastTrailer.getValue_NoLock(name::Size).getUint(countTotalRef);
 							if (!countTotalRef) {
 								return sl_false;
 							}
@@ -2352,7 +2367,7 @@ namespace slib
 							if (!(readCrossReferenceTable(subTable))) {
 								return sl_false;
 							}
-							PdfValue prev = subTable.trailer.getValue_NoLock(g_strPrev);
+							PdfValue prev = subTable.trailer.getValue_NoLock(name::Prev);
 							if (prev.isUndefined()) {
 								break;
 							}
@@ -2378,16 +2393,16 @@ namespace slib
 				}
 				Ref<PdfStream> stream = getObject(ref).getStream();
 				if (stream.isNotNull()) {
-					if (stream->getProperty(g_strType).equalsName(StringView::literal("ObjStm"))) {
+					if (stream->getProperty(name::Type).equalsName(StringView::literal("ObjStm"))) {
 						sl_uint32 nObjects;
-						if (stream->getProperty(g_strN).getUint(nObjects)) {
+						if (stream->getProperty(name::N).getUint(nObjects)) {
 							sl_uint32 first;
-							if (stream->getProperty(g_strFirst).getUint(first)) {
+							if (stream->getProperty(name::First).getUint(first)) {
 								Memory content = stream->getDecodedContent(this);
 								if (content.isNotNull()) {
 									ret = new ObjectStream;
 									if (ret.isNotNull()) {
-										PdfValue vExtends = stream->getProperty(g_strExtends);
+										PdfValue vExtends = stream->getProperty(name::Extends);
 										if (vExtends.isNotUndefined()) {
 											PdfReference refExtends;
 											if (!(vExtends.getReference(refExtends))) {
@@ -2558,8 +2573,8 @@ namespace slib
 				{
 					if (m_handle.isNull() || m_flagInvalidate) {
 						m_handle = Pen::create(*this);
+						m_flagInvalidate = sl_false;
 					}
-					m_flagInvalidate = sl_false;
 					return m_handle;
 				}
 
@@ -2587,14 +2602,20 @@ namespace slib
 				{
 					if (m_handle.isNull() || m_flagInvalidate) {
 						m_handle = Brush::create(*this);
+						m_flagInvalidate = sl_false;
 					}
-					m_flagInvalidate = sl_false;
 					return m_handle;
 				}
 
 				void invalidate()
 				{
 					m_flagInvalidate = sl_true;
+				}
+
+				void setHandle(const Ref<Brush>& handle)
+				{
+					m_handle = handle;
+					m_flagInvalidate = sl_false;
 				}
 
 			private:
@@ -2770,7 +2791,53 @@ namespace slib
 					if (cs.type == PdfColorSpaceType::Pattern) {
 						const String& patternName = operands[0].getName();
 						if (patternName.isNotNull()) {
-							
+							PdfPatternResource res;
+							if (res.load(document, resources->getResource(name::Pattern, patternName).getDictionary())) {
+								if (res.type == PdfPatternType::Shading && (res.shading.type == PdfShadingType::Axial || res.shading.type == PdfShadingType::Radial)) {
+									sl_uint32 n = res.shading.colorSpace.getComponentsCount();
+									if (n > 4) {
+										n = 4;
+									}
+									PdfValue c1[4], c2[4];
+									Color color1 = Color::Black, color2 = Color::White;
+									if (res.shading.functions.isNotNull()) {
+										for (sl_uint32 i = 0; i < n; i++) {
+											float f = 0;
+											float t = 0;
+											res.shading.functions[i].call(&t, 1, &f, 1);
+											c1[i] = f;
+											f = 0;
+											t = 1;
+											res.shading.functions[i].call(&t, 1, &f, 1);
+											c2[i] = f;
+										}
+									} else {
+										{
+											float f[4] = { 0 };
+											float t = 0;
+											res.shading.function.call(&t, 1, f, n);
+											for (sl_uint32 i = 0; i < n; i++) {
+												c1[i] = f[i];
+											}
+										}
+										{
+											float f[4] = { 0 };
+											float t = 1;
+											res.shading.function.call(&t, 1, f, n);
+											for (sl_uint32 i = 0; i < n; i++) {
+												c2[i] = f[i];
+											}
+										}
+									}
+									res.shading.colorSpace.getColor(color1, c1, n);
+									res.shading.colorSpace.getColor(color2, c2, n);
+									if (res.shading.type == PdfShadingType::Axial) {
+										brush.setHandle(Brush::createLinearGradientBrush(res.shading.coordsStart, res.shading.coordsEnd, color1, color2));
+									} else {
+										brush.setHandle(Brush::createRadialGradientBrush((res.shading.coordsStart + res.shading.coordsEnd) / 2.0f, Math::max(res.shading.radiiStart, res.shading.radiiEnd), color1, color2));
+									}
+								}
+							}
 						}
 					} else {
 						Color color;
@@ -4727,16 +4794,388 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFunction)
+
+	PdfFunction::PdfFunction() : type(PdfFunctionType::Unknown), countInput(0), countOutput(0), bitsPerSample(0), N(0)
+	{
+	}
+
+	sl_bool PdfFunction::load(PdfDocument* doc, const PdfValue& _value)
+	{
+		const PdfDictionary* pDict;
+		PdfStream* stream = sl_null;
+		{
+			PdfValue value = doc->getObject(_value);
+			const PdfDictionary& dict = value.getDictionary();
+			if (dict.isNotNull()) {
+				pDict = &dict;
+			} else {
+				const Ref<PdfStream>& refStream = value.getStream();
+				if (refStream.isNotNull()) {
+					stream = refStream.get();
+					pDict = &(stream->properties);
+				} else {
+					return sl_false;
+				}
+			}
+		}
+		const PdfDictionary& dict = *pDict;
+		PdfFunctionType _type;
+		{
+			sl_uint32 n;
+			if (dict.getValue_NoLock(name::FunctionType).getUint(n)) {
+				_type = (PdfFunctionType)n;
+			} else {
+				return sl_false;
+			}
+		}
+		{
+			ListElements<PdfValue> arr(dict.getValue_NoLock(name::Domain).getArray());
+			if (arr.count & 1) {
+				return sl_false;
+			}
+			countInput = (sl_uint32)(arr.count) >> 1;
+			if (!countInput) {
+				return sl_false;
+			}
+			domain = Array< Pair<float, float> >::create(countInput);
+			if (domain.isNull()) {
+				return sl_false;
+			}
+			for (sl_uint32 i = 0; i < countInput; i++) {
+				domain[i].first = arr[i << 1].getFloat();
+				domain[i].second = arr[(i << 1) & 1].getFloat();
+			}
+		}
+
+		{
+			ListElements<PdfValue> arr(dict.getValue_NoLock(name::Range).getArray());
+			if (arr.count & 1) {
+				return sl_false;
+			}
+			countOutput = (sl_uint32)(arr.count) >> 1;
+			if (countOutput) {
+				range = Array< Pair<float, float> >::create(countOutput);
+				if (range.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < countOutput; i++) {
+					range[i].first = arr[i << 1].getFloat();
+					range[i].second = arr[(i << 1) & 1].getFloat();
+				}
+			} else {
+				if (_type == PdfFunctionType::Sampled || _type == PdfFunctionType::PostScript) {
+					return sl_false;
+				}
+			}
+		}
+
+		if (_type == PdfFunctionType::Sampled) {
+
+			if (!stream) {
+				return sl_false;
+			}
+
+			bitsPerSample = dict.getValue_NoLock(name::BitsPerSample).getUint();
+			switch (bitsPerSample) {
+				case 1:
+				case 2:
+				case 4:
+				case 8:
+				case 12:
+				case 24:
+				case 32:
+					break;
+				default:
+					return sl_false;
+			}
+
+			ListElements<PdfValue> arrEncode(dict.getValue_NoLock(name::Encode).getArray());
+			if (arrEncode.count) {
+				if (arrEncode.count != countInput << 1) {
+					return sl_false;
+				}
+				encodeSampled = Array< Pair<sl_uint32, sl_uint32> >::create(countInput);
+				if (encodeSampled.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < countInput; i++) {
+					encodeSampled[i].first = arrEncode[i << 1].getUint();
+					encodeSampled[i].second = arrEncode[(i << 1) & 1].getUint();
+				}
+			}
+
+			sl_uint32 nSamples = 1;
+			ListElements<PdfValue> arrSize(dict.getValue_NoLock(name::Size).getArray());
+			if (arrSize.count == countInput) {
+				size = Array<sl_uint32>::create(countInput);
+				if (size.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < countInput; i++) {
+					sl_uint32 n = arrSize[i].getUint();
+					if (!n) {
+						return sl_false;
+					}
+					size[i] = n;
+					stride[i] = nSamples;
+					nSamples *= n;
+				}
+			} else {
+				return sl_false;
+			}
+
+			Memory content = stream->getDecodedContent(doc);
+			if (content.isNull()) {
+				return sl_false;
+			}
+
+			ListElements<PdfValue> arrDecode(dict.getValue_NoLock(name::Decode).getArray());
+			if (arrDecode.count) {
+				if (arrDecode.count != countOutput << 1) {
+					return sl_false;
+				}
+				decode = Array< Pair<float, float> >::create(countInput);
+				if (decode.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < countOutput; i++) {
+					decode[i].first = arrDecode[i << 1].getFloat();
+					decode[i].second = arrDecode[(i << 1) & 1].getFloat();
+				}
+			}
+
+			samples = Array< Array<float> >::create(countOutput);
+			if (samples.isNull()) {
+				return sl_false;
+			}
+
+			SampleReader reader(content.getData(), content.getSize(), bitsPerSample);
+			{
+				for (sl_uint32 i = 0; i < countOutput; i++) {
+					float add, scale;
+					if (decode.isNotNull()) {
+						add = decode[i].first;
+						scale = (decode[i].second - decode[i].first) / (float)(1 << bitsPerSample);
+					} else {
+						add = range[i].first;
+						scale = (range[i].second - range[i].first) / (float)(1 << bitsPerSample);
+					}
+					float min = range[i].first;
+					float max = range[i].second;
+					Array<float> s = Array<float>::create(nSamples);
+					if (s.isNull()) {
+						return sl_false;
+					}
+					for (sl_uint32 k = 0; k < nSamples; k++) {
+						sl_uint32 n;
+						if (reader.read(n)) {
+							s[k] = Math::clamp((float)n * scale + add, min, max);
+						} else {
+							return sl_false;
+						}
+					}
+					samples[i] = Move(s);
+				}
+			}
+			type = _type;
+
+		} else if (_type == PdfFunctionType::Exponential) {
+
+			if (countInput != 1) {
+				return sl_false;
+			}
+
+			if (!(dict.getValue_NoLock(name::N).getFloat(N))) {
+				return sl_false;
+			}
+			ListElements<PdfValue> arrC0(dict.getValue_NoLock(name::C0).getArray());
+			if (arrC0.count) {
+				if (countOutput) {
+					if (countOutput != arrC0.count) {
+						return sl_false;
+					}
+				} else {
+					countOutput = (sl_uint32)(arrC0.count);
+				}
+				C0 = Array<float>::create(countOutput);
+				if (C0.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < countOutput; i++) {
+					C0[i] = arrC0[i].getFloat();
+				}
+			}
+			ListElements<PdfValue> arrC1(dict.getValue_NoLock(name::C1).getArray());
+			if (arrC1.count) {
+				if (countOutput) {
+					if (countOutput != arrC1.count) {
+						return sl_false;
+					}
+				} else {
+					countOutput = (sl_uint32)(arrC1.count);
+				}
+				C1 = Array<float>::create(countOutput);
+				if (C1.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < countOutput; i++) {
+					C1[i] = arrC1[i].getFloat();
+				}
+			}
+			if (!countOutput) {
+				countOutput = 1;
+			}
+			type = _type;
+
+		} else if (_type == PdfFunctionType::Stiching) {
+
+			if (countInput != 1) {
+				return sl_false;
+			}
+
+			ListElements<PdfValue> arrFuncs(dict.getValue_NoLock(name::Functions).getArray());
+			sl_uint32 k = (sl_uint32)(arrFuncs.count);
+			if (k) {
+				functions = Array<PdfFunction>::create(k);
+				for (sl_uint32 i = 0; i < k; i++) {
+					if (!(functions[i].load(doc, arrFuncs[i]))) {
+						return sl_false;
+					}
+					if (countOutput) {
+						if (functions[i].countOutput != countOutput) {
+							return sl_false;
+						}
+					} else {
+						countOutput = functions[i].countOutput;
+					}
+				}
+			} else {
+				return sl_false;
+			}
+
+			ListElements<PdfValue> arrBounds(dict.getValue_NoLock(name::Bounds).getArray());
+			if (arrBounds.count == k - 1) {
+				bounds = Array<float>::create(k - 1);
+				if (bounds.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < k - 1; i++) {
+					bounds[i] = arrBounds[i].getFloat();
+				}
+			} else {
+				return sl_false;
+			}
+
+			ListElements<PdfValue> arrEncode(dict.getValue_NoLock(name::Encode).getArray());
+			if (arrEncode.count == k << 1) {
+				encodeStiching = Array< Pair<float, float> >::create(k);
+				if (encodeStiching.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < k; i++) {
+					encodeStiching[i].first = arrEncode[i << 1].getFloat();
+					encodeStiching[i].second = arrEncode[(i << 1) & 1].getFloat();
+				}
+			} else {
+				return sl_false;
+			}
+			type = _type;
+
+		} else {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+	sl_bool PdfFunction::call(float* input, sl_size nInput, float* output, sl_size nOutput)
+	{
+		if (nInput != countInput || nOutput != countOutput) {
+			return sl_false;
+		}
+		if (type == PdfFunctionType::Sampled) {
+			for (sl_uint32 i = 0; i < countOutput; i++) {
+				sl_uint32 index = 0;
+				for (sl_uint32 j = 0; j < countInput; j++) {
+					sl_int32 maxIndex = size[j] - 1;
+					float f = input[j];
+					float add, scale;
+					if (encodeSampled.isNotNull()) {
+						add = (float)(encodeSampled[j].first);
+						scale = (float)(encodeSampled[j].second - encodeSampled[j].first);
+					} else {
+						add = 0;
+						scale = (float)maxIndex;
+					}
+					float drange = domain[j].second - domain[j].first;
+					if (Math::isAlmostZero(drange)) {
+						f = 0;
+					} else {
+						f = (f - domain[j].first) / drange;
+					}
+					f = add + f * scale;
+					sl_int32 n = Math::clamp((sl_int32)f, 0, maxIndex);
+					index += n * stride[j];
+				}
+				output[i] = samples[i][index];
+			}
+			return sl_true;
+		} else if (type == PdfFunctionType::Exponential) {
+			for (sl_uint32 i = 0; i < countOutput; i++) {
+				float f = Math::pow(input[0], N);
+				float c0 = 0, c1 = 1;
+				if (C0.isNotNull()) {
+					c0 = C0[i];
+				}
+				if (C1.isNotNull()) {
+					c1 = C1[i];
+				}
+				f = c0 + f * (c1 - c0);
+				if (range.isNotNull()) {
+					f = Math::clamp(f, range[i].first, range[i].second);
+				}
+				output[i] = f;
+			}
+			return sl_true;
+		} else if (type == PdfFunctionType::Stiching) {
+			float f = input[0];
+			float start = domain[0].first;
+			float end = domain[0].second;
+			f = Math::clamp(f, start, end);
+			sl_uint32 k = (sl_uint32)(functions.getCount());
+			for (sl_uint32 i = 0; i < k; i++) {
+				float limit;
+				if (i == k - 1) {
+					limit = end;
+				} else {
+					limit = bounds[i];
+				}
+				if (i == k - 1 || f < limit) {
+					float r = limit - start;
+					if (Math::isAlmostZero(r)) {
+						f = 0;
+					} else {
+						f = (f - start) / r;
+					}
+					f = encodeStiching[i].first + f * (encodeStiching[i].second - encodeStiching[i].first);
+					return functions[i].call(&f, 1, output, nOutput);
+				}
+				start = limit;
+			}
+		}
+		return sl_false;
+	}
+
+
 	sl_bool PdfResourceProvider::getFontResource(const String& name, PdfReference& outRef)
 	{
-		return getResource(g_strFont, name, sl_false).getReference(outRef);
+		return getResource(name::Font, name, sl_false).getReference(outRef);
 	}
 
 	sl_bool PdfResourceProvider::getExternalObjectResource(const String& name, PdfReference& outRef)
 	{
-		return getResource(g_strXObject, name, sl_false).getReference(outRef);
+		return getResource(name::XObject, name, sl_false).getReference(outRef);
 	}
-
 
 
 	SLIB_DEFINE_ROOT_OBJECT(PdfStream)
@@ -4796,11 +5235,11 @@ namespace slib
 		if (content.isNull()) {
 			return sl_null;
 		}
-		PdfValue vFilter = getProperty(g_strFilter, g_strF);
+		PdfValue vFilter = getProperty(name::Filter, name::F);
 		if (vFilter.isUndefined()) {
 			return content;
 		}
-		PdfValue decodeParams = getProperty(g_strDecodeParms, g_strDP);
+		PdfValue decodeParams = getProperty(name::DecodeParms, name::DP);
 		const PdfArray& arrayFilter = vFilter.getArray();
 		if (arrayFilter.isNotNull()) {
 			Memory ret = content;
@@ -4829,7 +5268,7 @@ namespace slib
 		if (filterMatch == PdfFilter::Unknown) {
 			return sl_null;
 		}
-		PdfValue vFilter = getProperty(g_strFilter, g_strF);
+		PdfValue vFilter = getProperty(name::Filter, name::F);
 		if (vFilter.isUndefined()) {
 			return sl_null;
 		}
@@ -4851,7 +5290,7 @@ namespace slib
 			}
 			{
 				Memory content = getEncodedContent(reader);
-				PdfValue decodeParams = getProperty(g_strDecodeParms, g_strDP);
+				PdfValue decodeParams = getProperty(name::DecodeParms, name::DP);
 				const PdfArray& arrDecodeParams = decodeParams.getArray();
 				for (sl_size i = 0; i < filters.count; i++) {
 					PdfFilter filter = Pdf::getFilter(filters[i].getName());
@@ -4906,8 +5345,8 @@ namespace slib
 				{
 					PdfCCITTFaxDecodeParams dp;
 					dp.setParams(params);
-					sl_uint32 width = getProperty(g_strWidth, g_strW).getUint();
-					sl_uint32 height = getProperty(g_strHeight, g_strH).getUint();
+					sl_uint32 width = getProperty(name::Width, name::W).getUint();
+					sl_uint32 height = getProperty(name::Height, name::H).getUint();
 					return CreateImageMemory(DecodeFaxImage(input.getData(), input.getSize(), width, height, dp));
 				}
 			case PdfFilter::DCT:
@@ -4927,11 +5366,11 @@ namespace slib
 
 	void PdfFlateOrLZWDecodeParams::setParams(const PdfDictionary& dict) noexcept
 	{
-		dict.getValue_NoLock(g_strPredictor).getUint(predictor);
-		dict.getValue_NoLock(g_strColumns).getUint(columns);
-		dict.getValue_NoLock(g_strBitsPerComponent).getUint(bitsPerComponent);
-		dict.getValue_NoLock(g_strColors).getUint(colors);
-		dict.getValue_NoLock(g_strEarlyChange).getUint(earlyChange);
+		dict.getValue_NoLock(name::Predictor).getUint(predictor);
+		dict.getValue_NoLock(name::Columns).getUint(columns);
+		dict.getValue_NoLock(name::BitsPerComponent).getUint(bitsPerComponent);
+		dict.getValue_NoLock(name::Colors).getUint(colors);
+		dict.getValue_NoLock(name::EarlyChange).getUint(earlyChange);
 	}
 
 	sl_uint32 PdfFlateOrLZWDecodeParams::predict(void* content, sl_uint32 size) noexcept
@@ -4958,12 +5397,12 @@ namespace slib
 
 	void PdfCCITTFaxDecodeParams::setParams(const PdfDictionary& dict) noexcept
 	{
-		dict.getValue_NoLock(g_strK).getInt(K);
-		dict.getValue_NoLock(g_strColumns).getUint(columns);
-		dict.getValue_NoLock(g_strRows).getUint(rows);
-		dict.getValue_NoLock(g_strEndOfLine).getBoolean(flagEndOfLine);
-		dict.getValue_NoLock(g_strEncodedByteAlign).getBoolean(flagByteAlign);
-		dict.getValue_NoLock(g_strBlackIs1).getBoolean(flagBlackIs1);
+		dict.getValue_NoLock(name::K).getInt(K);
+		dict.getValue_NoLock(name::Columns).getUint(columns);
+		dict.getValue_NoLock(name::Rows).getUint(rows);
+		dict.getValue_NoLock(name::EndOfLine).getBoolean(flagEndOfLine);
+		dict.getValue_NoLock(name::EncodedByteAlign).getBoolean(flagByteAlign);
+		dict.getValue_NoLock(name::BlackIs1).getBoolean(flagBlackIs1);
 	}
 
 
@@ -4990,7 +5429,7 @@ namespace slib
 				return;
 			}
 			if (res) {
-				load(doc, res->getResource(g_strColorSpace, name, sl_false));
+				load(doc, res->getResource(name::ColorSpace, name, sl_false));
 			}
 			return;
 		}
@@ -5050,7 +5489,7 @@ namespace slib
 			if (arr.count >= 2) {
 				Ref<PdfStream> stream = doc->getObject(arr[1]).getStream();
 				if (stream.isNotNull()) {
-					load(sl_null, stream->getProperty(g_strAlternate));
+					load(sl_null, stream->getProperty(name::Alternate));
 				}
 			}
 		} else if (name == StringView::literal("Pattern")) {
@@ -5214,17 +5653,17 @@ namespace slib
 	void PdfFontDescriptor::load(const PdfDictionary& desc) noexcept
 	{
 		if (desc.isNotNull()) {
-			name = desc.getValue_NoLock(g_strFontName).getName();
-			family = desc.getValue_NoLock(g_strFontFamily).getString();
-			ascent = desc.getValue_NoLock(g_strAscent).getFloat();
-			descent = desc.getValue_NoLock(g_strDescent).getFloat();
-			leading = desc.getValue_NoLock(g_strLeading).getFloat();
-			weight = desc.getValue_NoLock(g_strFontWeight).getFloat();
-			italicAngle = desc.getValue_NoLock(g_strItalicAngle).getFloat();
-			flags = desc.getValue_NoLock(g_strFlags).getUint();
-			if (!(desc.getValue_NoLock(g_strFontFile).getReference(content))) {
-				if (!(desc.getValue_NoLock(g_strFontFile2).getReference(content))) {
-					desc.getValue_NoLock(g_strFontFile3).getReference(content);
+			name = desc.getValue_NoLock(name::FontName).getName();
+			family = desc.getValue_NoLock(name::FontFamily).getString();
+			ascent = desc.getValue_NoLock(name::Ascent).getFloat();
+			descent = desc.getValue_NoLock(name::Descent).getFloat();
+			leading = desc.getValue_NoLock(name::Leading).getFloat();
+			weight = desc.getValue_NoLock(name::FontWeight).getFloat();
+			italicAngle = desc.getValue_NoLock(name::ItalicAngle).getFloat();
+			flags = desc.getValue_NoLock(name::Flags).getUint();
+			if (!(desc.getValue_NoLock(name::FontFile).getReference(content))) {
+				if (!(desc.getValue_NoLock(name::FontFile2).getReference(content))) {
+					desc.getValue_NoLock(name::FontFile3).getReference(content);
 				}
 			}
 		}
@@ -5240,10 +5679,10 @@ namespace slib
 	void PdfCidFontInfo::load(PdfDocument* doc, const PdfDictionary& dict) noexcept
 	{
 		if (dict.isNotNull()) {
-			subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(g_strSubtype).getName());
-			dict.getValue_NoLock(g_strDW).getFloat(defaultWidth);
+			subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(name::Subtype).getName());
+			dict.getValue_NoLock(name::DW).getFloat(defaultWidth);
 			{
-				ListElements<PdfValue> w(doc->getObject(dict.getValue_NoLock(g_strW)).getArray());
+				ListElements<PdfValue> w(doc->getObject(dict.getValue_NoLock(name::W)).getArray());
 				PdfValue* current = w.data;
 				PdfValue* end = current + w.count;
 				while (current < end) {
@@ -5289,7 +5728,7 @@ namespace slib
 				}
 			}
 			{
-				const PdfValue& vCIDToGIDMap = dict.getValue(g_strCIDToGIDMap);
+				const PdfValue& vCIDToGIDMap = dict.getValue(name::CIDToGIDMap);
 				cidToGidMapName = vCIDToGIDMap.getName();
 				if (cidToGidMapName == StringView::literal("Identity")) {
 					flagCidIsGid = sl_true;
@@ -5319,27 +5758,27 @@ namespace slib
 		if (dict.isNull()) {
 			return sl_false;
 		}
-		subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(g_strSubtype).getName());
-		baseFont = dict.getValue_NoLock(g_strBaseFont).getName();
+		subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(name::Subtype).getName());
+		baseFont = dict.getValue_NoLock(name::BaseFont).getName();
 		if (subtype == PdfFontSubtype::Type0) {
-			const PdfDictionary& cidFont = doc->getObject(doc->getObject(dict.getValue_NoLock(g_strDescendantFonts)).getArray().getValueAt(0)).getDictionary();
+			const PdfDictionary& cidFont = doc->getObject(doc->getObject(dict.getValue_NoLock(name::DescendantFonts)).getArray().getValueAt(0)).getDictionary();
 			if (cidFont.isNull()) {
 				return sl_false;
 			}
 			cid.load(doc, cidFont);
-			descriptor.load(doc->getObject(cidFont.getValue_NoLock(g_strFontDescriptor)).getDictionary());
+			descriptor.load(doc->getObject(cidFont.getValue_NoLock(name::FontDescriptor)).getDictionary());
 		} else {
-			descriptor.load(doc->getObject(dict.getValue_NoLock(g_strFontDescriptor)).getDictionary());
+			descriptor.load(doc->getObject(dict.getValue_NoLock(name::FontDescriptor)).getDictionary());
 		}
-		PdfValue vEncoding = dict.getValue_NoLock(g_strEncoding);
+		PdfValue vEncoding = dict.getValue_NoLock(name::Encoding);
 		const String& encodingName = vEncoding.getName();
 		if (encodingName.isNotNull()) {
 			encoding = Pdf::getEncoding(encodingName);
 		} else {
 			const PdfDictionary& dict = doc->getObject(vEncoding).getDictionary();
 			if (dict.isNotNull()) {
-				encoding = Pdf::getEncoding(dict.getValue_NoLock(g_strBaseEncoding).getString());
-				PdfArray array = dict.getValue_NoLock(g_strDifferences).getArray();
+				encoding = Pdf::getEncoding(dict.getValue_NoLock(name::BaseEncoding).getString());
+				PdfArray array = dict.getValue_NoLock(name::Differences).getArray();
 				sl_uint32 n = (sl_uint32)(array.getCount());
 				if (n >= 2) {
 					PdfValue* diff = array.getData();
@@ -5361,10 +5800,10 @@ namespace slib
 				}
 			}
 		}
-		firstChar = dict.getValue_NoLock(g_strFirstChar).getUint();
-		lastChar = dict.getValue_NoLock(g_strLastChar).getUint();
+		firstChar = dict.getValue_NoLock(name::FirstChar).getUint();
+		lastChar = dict.getValue_NoLock(name::LastChar).getUint();
 		{
-			ListElements<PdfValue> arr(dict.getValue_NoLock(g_strWidths).getArray());
+			ListElements<PdfValue> arr(dict.getValue_NoLock(name::Widths).getArray());
 			if (arr.count == lastChar - firstChar + 1) {
 				widths = Array<float>::create(arr.count);
 				if (widths.isNotNull()) {
@@ -5375,7 +5814,7 @@ namespace slib
 				}
 			}
 		}
-		const PdfValue& vToUnicode = dict.getValue_NoLock(g_strToUnicode);
+		const PdfValue& vToUnicode = dict.getValue_NoLock(name::ToUnicode);
 		if (vToUnicode.isNotNull()) {
 			Memory content = doc->decodeStreamContent(vToUnicode);
 			if (content.isNotNull()) {
@@ -5589,7 +6028,7 @@ namespace slib
 		}
 		Ref<PdfStream> stream = doc->getObject(ref).getStream();
 		if (stream.isNotNull()) {
-			String subtype = stream->getProperty(g_strSubtype).getName();
+			String subtype = stream->getProperty(name::Subtype).getName();
 			if (subtype == StringView::literal("Image")) {
 				ret = PdfImage::_load(doc, stream.get());
 			} else if (subtype == StringView::literal("Form")) {
@@ -5615,7 +6054,7 @@ namespace slib
 	sl_bool PdfImageResource::load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources) noexcept
 	{
 		if (stream) {
-			String subtype = stream->getProperty(g_strSubtype).getName();
+			String subtype = stream->getProperty(name::Subtype).getName();
 			if (subtype == StringView::literal("Image")) {
 				_load(doc, stream, resources);
 				return sl_true;
@@ -5626,19 +6065,19 @@ namespace slib
 
 	void PdfImageResource::_load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources) noexcept
 	{
-		stream->getProperty(g_strWidth, g_strW).getUint(width);
-		stream->getProperty(g_strHeight, g_strH).getUint(height);
-		stream->getProperty(g_strInterpolate, g_strI).getBoolean(flagInterpolate);
-		stream->getProperty(g_strImageMask, g_strIM).getBoolean(flagImageMask);
+		stream->getProperty(name::Width, name::W).getUint(width);
+		stream->getProperty(name::Height, name::H).getUint(height);
+		stream->getProperty(name::Interpolate, name::I).getBoolean(flagInterpolate);
+		stream->getProperty(name::ImageMask, name::IM).getBoolean(flagImageMask);
 		if (flagImageMask) {
 			bitsPerComponent = 1;
 			colorSpace.type = PdfColorSpaceType::Gray;
 		} else {
-			colorSpace.load(doc, stream->getProperty(g_strColorSpace, g_strCS), resources);
-			stream->getProperty(g_strBitsPerComponent, g_strBPC).getUint(bitsPerComponent);
-			stream->getProperty(g_strMask).getReference(mask);
+			colorSpace.load(doc, stream->getProperty(name::ColorSpace, name::CS), resources);
+			stream->getProperty(name::BitsPerComponent, name::BPC).getUint(bitsPerComponent);
+			stream->getProperty(name::Mask).getReference(mask);
 		}
-		ListElements<PdfValue> arrayDecode(stream->getProperty(g_strDecode, g_strD).getArray());
+		ListElements<PdfValue> arrayDecode(stream->getProperty(name::Decode, name::D).getArray());
 		if (arrayDecode.count) {
 			switch (colorSpace.type) {
 				case PdfColorSpaceType::RGB:
@@ -5691,7 +6130,7 @@ namespace slib
 					break;
 			}
 		}
-		PdfArray arrayMatte = stream->getProperty(g_strMatte).getArray();
+		PdfArray arrayMatte = stream->getProperty(name::Matte).getArray();
 		if (arrayMatte.isNotNull()) {
 			if (colorSpace.getColor(matte, arrayMatte.getData(), arrayMatte.getCount())) {
 				if (matte != Color::Black) {
@@ -5699,7 +6138,7 @@ namespace slib
 				}
 			}
 		}
-		stream->getProperty(g_strSMask).getReference(smask);
+		stream->getProperty(name::SMask).getReference(smask);
 	}
 
 	void PdfImageResource::applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept
@@ -5778,7 +6217,7 @@ namespace slib
 	Ref<PdfImage> PdfImage::load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources)
 	{
 		if (stream) {
-			String subtype = stream->getProperty(g_strSubtype).getName();
+			String subtype = stream->getProperty(name::Subtype).getName();
 			if (subtype == StringView::literal("Image")) {
 				return _load(doc, stream, resources);
 			}
@@ -6047,7 +6486,7 @@ namespace slib
 
 	sl_bool PdfFormResource::load(PdfDocument* doc, PdfStream* stream)
 	{
-		String subtype = stream->getProperty(g_strSubtype).getName();
+		String subtype = stream->getProperty(name::Subtype).getName();
 		if (subtype == StringView::literal("Form")) {
 			_load(doc, stream);
 			return sl_true;
@@ -6057,11 +6496,11 @@ namespace slib
 
 	void PdfFormResource::_load(PdfDocument* doc, PdfStream* stream)
 	{
-		bounds = stream->getProperty(g_strBBox).getRectangle();
-		if (!(stream->getProperty(g_strMatrix).getMatrix(matrix))) {
+		bounds = stream->getProperty(name::BBox).getRectangle();
+		if (!(stream->getProperty(name::Matrix).getMatrix(matrix))) {
 			matrix = Matrix3::identity();
 		}
-		resources = stream->getProperty(g_strResources).getDictionary();
+		resources = stream->getProperty(name::Resources).getDictionary();
 	}
 
 
@@ -6078,7 +6517,7 @@ namespace slib
 	Ref<PdfForm> PdfForm::load(PdfDocument* doc, PdfStream* stream)
 	{
 		if (stream) {
-			String subtype = stream->getProperty(g_strSubtype).getName();
+			String subtype = stream->getProperty(name::Subtype).getName();
 			if (subtype == StringView::literal("Form")) {
 				return _load(doc, stream);
 			}
@@ -6149,16 +6588,83 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfShadingResource)
 
-	PdfShadingResource::PdfShadingResource()
+	PdfShadingResource::PdfShadingResource(): type(PdfShadingType::Unknown)
 	{
 	}
 
-	void PdfShadingResource::load(PdfDocument* doc, const PdfDictionary& dict)
+	sl_bool PdfShadingResource::load(PdfDocument* doc, const PdfDictionary& dict)
 	{
-		type = (PdfShadingType)(dict.getValue_NoLock(g_strShadingType).getUint());
-		colorSpace.load(doc, dict.getValue_NoLock(g_strShadingType));
-		domain = dict.getValue_NoLock(g_strDomain).getArray();
-		function = dict.getValue_NoLock(g_strFunction).getArray();
+		PdfShadingType _type = (PdfShadingType)(dict.getValue_NoLock(name::ShadingType).getUint());
+		colorSpace.load(doc, dict.getValue_NoLock(name::ColorSpace));
+		if (colorSpace.type == PdfColorSpaceType::Unknown || colorSpace.type == PdfColorSpaceType::Pattern) {
+			return sl_false;
+		}
+		if (_type == PdfShadingType::Axial || _type == PdfShadingType::Radial) {
+			ListElements<PdfValue> arrCoords(dict.getValue_NoLock(name::Coords).getArray());
+			if (_type == PdfShadingType::Radial) {
+				if (arrCoords.count == 6) {
+					coordsStart.x = arrCoords[0].getFloat();
+					coordsStart.y = arrCoords[1].getFloat();
+					radiiStart = arrCoords[2].getFloat();
+					coordsEnd.x = arrCoords[3].getFloat();
+					coordsEnd.y = arrCoords[4].getFloat();
+					radiiEnd = arrCoords[5].getFloat();
+				} else {
+					return sl_false;
+				}
+			} else {
+				if (arrCoords.count == 4) {
+					coordsStart.x = arrCoords[0].getFloat();
+					coordsStart.y = arrCoords[1].getFloat();
+					coordsEnd.x = arrCoords[2].getFloat();
+					coordsEnd.y = arrCoords[3].getFloat();
+				} else {
+					return sl_false;
+				}
+			}
+			ListElements<PdfValue> arrDomain(dict.getValue_NoLock(name::Domain).getArray());
+			if (arrDomain.count) {
+				if (arrDomain.count != 2) {
+					return sl_false;
+				}
+				domainStart = arrDomain[0].getFloat();
+				domainEnd = arrDomain[1].getFloat();
+			} else {
+				domainStart = 0;
+				domainEnd = 1;
+			}
+			PdfValue vFunction = doc->getObject(dict.getValue_NoLock(name::Function));
+			ListElements<PdfValue> arrFunctions(vFunction.getArray());
+			if (arrFunctions.count) {
+				sl_uint32 n = (sl_uint32)(arrFunctions.count);
+				if (n != colorSpace.getComponentsCount()) {
+					return sl_false;
+				}
+				functions = Array<PdfFunction>::create(n);
+				if (functions.isNull()) {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < n; i++) {
+					if (!(functions[i].load(doc, arrFunctions[i]))) {
+						return sl_false;
+					}
+					if (functions[i].countInput != 1 || functions[i].countOutput != 1) {
+						return sl_false;
+					}
+				}
+			} else {
+				if (!(function.load(doc, vFunction))) {
+					return sl_false;
+				}
+				if (function.countInput != 1 || function.countOutput != colorSpace.getComponentsCount()) {
+					return sl_false;
+				}
+			}
+			type = _type;
+		} else {
+			return sl_false;
+		}
+		return sl_true;
 	}
 
 
@@ -6168,10 +6674,18 @@ namespace slib
 	{
 	}
 
-	void PdfPatternResource::load(PdfDocument* doc, const PdfDictionary& dict)
+	sl_bool PdfPatternResource::load(PdfDocument* doc, const PdfDictionary& dict)
 	{
-		type = (PdfPatternType)(dict.getValue_NoLock(g_strPatternType).getUint());
-		shading.load(doc, doc->getObject(dict.getValue_NoLock(g_strShading)).getDictionary());
+		PdfPatternType _type = (PdfPatternType)(dict.getValue_NoLock(name::PatternType).getUint());
+		if (_type == PdfPatternType::Shading) {
+			if (!(shading.load(doc, doc->getObject(dict.getValue_NoLock(name::Shading)).getDictionary()))) {
+				return sl_false;
+			}
+			type = _type;
+		} else {
+			return sl_false;
+		}
+		return sl_true;
 	}
 
 
@@ -6541,7 +7055,7 @@ namespace slib
 			ObjectLocker locker(document.get());
 			Context* context = GetContext(document->m_context);
 			if (context) {
-				return context->getPageContent(attributes.getValue_NoLock(g_strContents));
+				return context->getPageContent(attributes.getValue_NoLock(name::Contents));
 			}
 		}
 		return sl_null;
@@ -6658,13 +7172,13 @@ namespace slib
 
 	Rectangle PdfPage::getMediaBox()
 	{
-		return getAttribute(g_strMediaBox).getRectangle();
+		return getAttribute(name::MediaBox).getRectangle();
 	}
 
 	Rectangle PdfPage::getCropBox()
 	{
 		Rectangle ret;
-		if (getAttribute(g_strCropBox).getRectangle(ret)) {
+		if (getAttribute(name::CropBox).getRectangle(ret)) {
 			return ret;
 		}
 		return getMediaBox();
@@ -6679,7 +7193,7 @@ namespace slib
 			if (context) {
 				Ref<PdfPageTreeItem> item = this;
 				for (;;) {
-					const PdfDictionary& dict = context->getObject(item->attributes.getValue_NoLock(g_strResources)).getDictionary();
+					const PdfDictionary& dict = context->getObject(item->attributes.getValue_NoLock(name::Resources)).getDictionary();
 					if (dict.isNotNull()) {
 						PdfValue ret = dict.getValue_NoLock(type);
 						if (ret.isNotUndefined()) {
@@ -6709,7 +7223,7 @@ namespace slib
 			if (context) {
 				Ref<PdfPageTreeItem> item = this;
 				for (;;) {
-					const PdfDictionary& dict = context->getObject(item->attributes.getValue_NoLock(g_strResources)).getDictionary();
+					const PdfDictionary& dict = context->getObject(item->attributes.getValue_NoLock(name::Resources)).getDictionary();
 					if (dict.isNotNull()) {
 						PdfValue ret = dict.getValue_NoLock(type).getDictionary().getValue_NoLock(name);
 						if (ret.isNotUndefined()) {
