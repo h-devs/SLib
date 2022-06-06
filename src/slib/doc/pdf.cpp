@@ -2793,48 +2793,10 @@ namespace slib
 						if (patternName.isNotNull()) {
 							PdfPatternResource res;
 							if (res.load(document, resources->getResource(name::Pattern, patternName).getDictionary())) {
-								if (res.type == PdfPatternType::Shading && (res.shading.type == PdfShadingType::Axial || res.shading.type == PdfShadingType::Radial)) {
-									sl_uint32 n = res.shading.colorSpace.getComponentsCount();
-									if (n > 4) {
-										n = 4;
-									}
-									PdfValue c1[4], c2[4];
-									Color color1 = Color::Black, color2 = Color::White;
-									if (res.shading.functions.isNotNull()) {
-										for (sl_uint32 i = 0; i < n; i++) {
-											float f = 0;
-											float t = 0;
-											res.shading.functions[i].call(&t, 1, &f, 1);
-											c1[i] = f;
-											f = 0;
-											t = 1;
-											res.shading.functions[i].call(&t, 1, &f, 1);
-											c2[i] = f;
-										}
-									} else {
-										{
-											float f[4] = { 0 };
-											float t = 0;
-											res.shading.function.call(&t, 1, f, n);
-											for (sl_uint32 i = 0; i < n; i++) {
-												c1[i] = f[i];
-											}
-										}
-										{
-											float f[4] = { 0 };
-											float t = 1;
-											res.shading.function.call(&t, 1, f, n);
-											for (sl_uint32 i = 0; i < n; i++) {
-												c2[i] = f[i];
-											}
-										}
-									}
-									res.shading.colorSpace.getColor(color1, c1, n);
-									res.shading.colorSpace.getColor(color2, c2, n);
-									if (res.shading.type == PdfShadingType::Axial) {
-										brush.setHandle(Brush::createLinearGradientBrush(res.shading.coordsStart, res.shading.coordsEnd, color1, color2));
-									} else {
-										brush.setHandle(Brush::createRadialGradientBrush((res.shading.coordsStart + res.shading.coordsEnd) / 2.0f, Math::max(res.shading.radiiStart, res.shading.radiiEnd), color1, color2));
+								if (res.type == PdfPatternType::Shading) {
+									Ref<Brush> handle = res.shading.getBrush(res.matrix);
+									if (handle.isNotNull()) {
+										brush.setHandle(handle);
 									}
 								}
 							}
@@ -4844,7 +4806,7 @@ namespace slib
 			}
 			for (sl_uint32 i = 0; i < countInput; i++) {
 				domain[i].first = arr[i << 1].getFloat();
-				domain[i].second = arr[(i << 1) & 1].getFloat();
+				domain[i].second = arr[(i << 1) | 1].getFloat();
 			}
 		}
 
@@ -4861,7 +4823,7 @@ namespace slib
 				}
 				for (sl_uint32 i = 0; i < countOutput; i++) {
 					range[i].first = arr[i << 1].getFloat();
-					range[i].second = arr[(i << 1) & 1].getFloat();
+					range[i].second = arr[(i << 1) | 1].getFloat();
 				}
 			} else {
 				if (_type == PdfFunctionType::Sampled || _type == PdfFunctionType::PostScript) {
@@ -4901,7 +4863,7 @@ namespace slib
 				}
 				for (sl_uint32 i = 0; i < countInput; i++) {
 					encodeSampled[i].first = arrEncode[i << 1].getUint();
-					encodeSampled[i].second = arrEncode[(i << 1) & 1].getUint();
+					encodeSampled[i].second = arrEncode[(i << 1) | 1].getUint();
 				}
 			}
 
@@ -4941,7 +4903,7 @@ namespace slib
 				}
 				for (sl_uint32 i = 0; i < countOutput; i++) {
 					decode[i].first = arrDecode[i << 1].getFloat();
-					decode[i].second = arrDecode[(i << 1) & 1].getFloat();
+					decode[i].second = arrDecode[(i << 1) | 1].getFloat();
 				}
 			}
 
@@ -5075,7 +5037,7 @@ namespace slib
 				}
 				for (sl_uint32 i = 0; i < k; i++) {
 					encodeStiching[i].first = arrEncode[i << 1].getFloat();
-					encodeStiching[i].second = arrEncode[(i << 1) & 1].getFloat();
+					encodeStiching[i].second = arrEncode[(i << 1) | 1].getFloat();
 				}
 			} else {
 				return sl_false;
@@ -6605,10 +6567,10 @@ namespace slib
 				if (arrCoords.count == 6) {
 					coordsStart.x = arrCoords[0].getFloat();
 					coordsStart.y = arrCoords[1].getFloat();
-					radiiStart = arrCoords[2].getFloat();
+					radiusStart = arrCoords[2].getFloat();
 					coordsEnd.x = arrCoords[3].getFloat();
 					coordsEnd.y = arrCoords[4].getFloat();
-					radiiEnd = arrCoords[5].getFloat();
+					radiusEnd = arrCoords[5].getFloat();
 				} else {
 					return sl_false;
 				}
@@ -6637,6 +6599,9 @@ namespace slib
 			ListElements<PdfValue> arrFunctions(vFunction.getArray());
 			if (arrFunctions.count) {
 				sl_uint32 n = (sl_uint32)(arrFunctions.count);
+				if (!n) {
+					return sl_false;
+				}
 				if (n != colorSpace.getComponentsCount()) {
 					return sl_false;
 				}
@@ -6667,6 +6632,95 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_bool PdfShadingResource::getColor(float t, Color& _out)
+	{
+		sl_uint32 n = colorSpace.getComponentsCount();
+		if (n > 4) {
+			n = 4;
+		}
+		PdfValue c[4];
+		if (functions.isNotNull()) {
+			for (sl_uint32 i = 0; i < n; i++) {
+				float f = 0;
+				if (functions[i].call(&t, 1, &f, 1)) {
+					c[i] = f;
+				} else {
+					return sl_false;
+				}
+			}
+		} else {
+			float f[4] = { 0 };
+			if (function.call(&t, 1, f, n)) {
+				for (sl_uint32 i = 0; i < n; i++) {
+					c[i] = f[i];
+				}
+			} else {
+				return sl_false;
+			}
+		}
+		return colorSpace.getColor(_out, c, n);
+	}
+
+	Ref<Brush> PdfShadingResource::getBrush(const Matrix3& transform)
+	{
+		if (type == PdfShadingType::Axial || type == PdfShadingType::Radial) {
+			Array<Color> c;
+			Array<sl_real> loc;
+			if (function.type == PdfFunctionType::Stiching) {
+				sl_uint32 n = (sl_uint32)(function.bounds.getCount());
+				c = Array<Color>::create(n + 2);
+				if (c.isNull()) {
+					return sl_null;
+				}
+				loc = Array<sl_real>::create(n + 2);
+				if (loc.isNull()) {
+					return sl_null;
+				}
+				for (sl_uint32 i = 0; i < n; i++) {
+					float f = function.bounds[i];
+					loc[i + 1] = f;
+					if (!(getColor(f, c[i + 1]))) {
+						return sl_null;
+					}
+				}
+				loc[0] = domainStart;
+				if (!(getColor(domainStart, c[0]))) {
+					return sl_null;
+				}
+				loc[n + 1] = domainEnd;
+				if (!(getColor(domainEnd, c[n + 1]))) {
+					return sl_null;
+				}
+			} else {
+				sl_uint32 n = 16;
+				c = Array<Color>::create(n);
+				if (c.isNull()) {
+					return sl_null;
+				}
+				loc = Array<sl_real>::create(n);
+				if (loc.isNull()) {
+					return sl_null;
+				}
+				for (sl_uint32 i = 0; i < n; i++) {
+					float f = domainStart + (float)i * (domainEnd - domainStart) / (float)(n - 1);
+					loc[i] = f;
+					if (!(getColor(f, c[i]))) {
+						return sl_null;
+					}
+				}
+			}
+			Point p0 = transform.transformPosition(coordsStart);
+			Point p1 = transform.transformPosition(coordsEnd);
+			if (type == PdfShadingType::Axial) {
+				return Brush::createLinearGradientBrush(p0, p1, (sl_uint32)(c.getCount()), c.getData(), loc.getData());
+			} else {
+				float r = transform.transformDirection(0, radiusEnd).getLength();
+				return Brush::createRadialGradientBrush((p0 + p1) / 2.0f, r, (sl_uint32)(c.getCount()), c.getData(), loc.getData());
+			}
+		}
+		return sl_null;
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfPatternResource)
 
@@ -6680,6 +6734,9 @@ namespace slib
 		if (_type == PdfPatternType::Shading) {
 			if (!(shading.load(doc, doc->getObject(dict.getValue_NoLock(name::Shading)).getDictionary()))) {
 				return sl_false;
+			}
+			if (!(dict.getValue_NoLock(name::Matrix).getMatrix(matrix))) {
+				matrix = Matrix3::identity();
 			}
 			type = _type;
 		} else {

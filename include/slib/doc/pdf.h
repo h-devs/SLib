@@ -263,6 +263,7 @@ namespace slib
 	class Canvas;
 	class Image;
 	class Color;
+	class Brush;
 	class Font;
 	class FreeType;
 	class FreeTypeGlyph;
@@ -909,7 +910,7 @@ namespace slib
 		PdfFunction function; // 1-in, n-out
 		Array<PdfFunction> functions; // n 1-in, 1-out
 		// Radial
-		float radiiStart, radiiEnd;
+		float radiusStart, radiusEnd;
 
 	public:
 		PdfShadingResource();
@@ -919,6 +920,10 @@ namespace slib
 	public:
 		sl_bool load(PdfDocument* doc, const PdfDictionary& dict);
 
+		sl_bool getColor(float t, Color& _out);
+
+		Ref<Brush> getBrush(const Matrix3& transform);
+
 	};
 
 	class SLIB_EXPORT PdfPatternResource
@@ -926,6 +931,7 @@ namespace slib
 	public:
 		PdfPatternType type;
 		PdfShadingResource shading;
+		Matrix3 matrix;
 
 	public:
 		PdfPatternResource();
