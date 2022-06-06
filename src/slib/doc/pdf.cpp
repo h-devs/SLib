@@ -2890,40 +2890,40 @@ namespace slib
 					{
 						SLIB_STATIC_STRING(fieldId, "LW")
 						float value;
-						if (states.getValue(fieldId).getFloat(value)) {
+						if (states.getValue_NoLock(fieldId).getFloat(value)) {
 							SET_HANDLE_STATE(pen, width, value);
 						}
 					}
 					{
 						SLIB_STATIC_STRING(fieldId, "LC")
 						sl_uint32 value;
-						if (states.getValue(fieldId).getUint(value)) {
+						if (states.getValue_NoLock(fieldId).getUint(value)) {
 							SET_HANDLE_STATE(pen, cap, (LineCap)value);
 						}
 					}
 					{
 						SLIB_STATIC_STRING(fieldId, "LJ")
 						sl_uint32 value;
-						if (states.getValue(fieldId).getUint(value)) {
+						if (states.getValue_NoLock(fieldId).getUint(value)) {
 							SET_HANDLE_STATE(pen, join, (LineJoin)value);
 						}
 					}
 					{
 						SLIB_STATIC_STRING(fieldId, "ML")
 						float value;
-						if (states.getValue(fieldId).getFloat(value)) {
+						if (states.getValue_NoLock(fieldId).getFloat(value)) {
 							SET_HANDLE_STATE(pen, miterLimit, value);
 						}
 					}
 					{
 						SLIB_STATIC_STRING(fieldId, "D")
-						if (states.getValue(fieldId).getArray().isNotNull()) {
+						if (states.getValue_NoLock(fieldId).getArray().isNotNull()) {
 							SET_HANDLE_STATE(pen, style, PenStyle::Dash);
 						}
 					}
 					{
 						SLIB_STATIC_STRING(fieldId, "Font")
-						ListElements<PdfValue> values(states.getValue(fieldId).getArray());
+						ListElements<PdfValue> values(states.getValue_NoLock(fieldId).getArray());
 						if (values.count == 2) {
 							setFont(values[0].getName(), values[1].getFloat());
 						}
@@ -5690,7 +5690,7 @@ namespace slib
 				}
 			}
 			{
-				const PdfValue& vCIDToGIDMap = dict.getValue(name::CIDToGIDMap);
+				const PdfValue& vCIDToGIDMap = dict.getValue_NoLock(name::CIDToGIDMap);
 				cidToGidMapName = vCIDToGIDMap.getName();
 				if (cidToGidMapName == StringView::literal("Identity")) {
 					flagCidIsGid = sl_true;
