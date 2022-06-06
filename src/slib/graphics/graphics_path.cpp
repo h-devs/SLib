@@ -469,14 +469,18 @@ namespace slib
 
 	void GraphicsPath::moveTo(sl_real x, sl_real y)
 	{
-		sl_size n = m_points.getCount();
-		if (n) {
-			GraphicsPathPoint& pt = (m_points.getData())[n - 1];
-			if (pt.type == GraphicsPathPoint::MoveTo) {
-				return;
+		do {
+			sl_size n = m_points.getCount();
+			if (n) {
+				GraphicsPathPoint& pt = (m_points.getData())[n - 1];
+				if (pt.type == GraphicsPathPoint::MoveTo) {
+					pt.x = x;
+					pt.y = y;
+					break;
+				}
 			}
-		}
-		_addPoint(x, y, GraphicsPathPoint::MoveTo);
+			_addPoint(x, y, GraphicsPathPoint::MoveTo);
+		} while (0);
 		Referable* po = m_platformObject.get();
 		if (po) {
 			_moveTo_PO(po, x, y);
