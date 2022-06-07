@@ -51,9 +51,10 @@
 #define EXPIRE_DURATION_OBJECT 5000
 #define EXPIRE_DURATION_OBJECT_STREAM 10000
 #define EXPIRE_DURATION_FONT_GLYPH 15000
+#define MAX_IMAGE_WIDTH 1000
+#define MAX_IMAGE_HEIGHT 700
 
 #define MAKE_OBJECT_ID(NUM, GEN) SLIB_MAKE_QWORD4(GEN, NUM)
-
 #define DEFINE_PDF_NAME(NAME) SLIB_STATIC_STRING(NAME, #NAME)
 
 namespace slib
@@ -4874,6 +4875,10 @@ namespace slib
 				if (size.isNull()) {
 					return sl_false;
 				}
+				stride = Array<sl_uint32>::create(countInput);
+				if (stride.isNull()) {
+					return sl_false;
+				}
 				for (sl_uint32 i = 0; i < countInput; i++) {
 					sl_uint32 n = arrSize[i].getUint();
 					if (!n) {
@@ -4897,7 +4902,7 @@ namespace slib
 				if (arrDecode.count != countOutput << 1) {
 					return sl_false;
 				}
-				decode = Array< Pair<float, float> >::create(countInput);
+				decode = Array< Pair<float, float> >::create(countOutput);
 				if (decode.isNull()) {
 					return sl_false;
 				}
@@ -5711,7 +5716,7 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
 
-	PdfFontResource::PdfFontResource(): subtype(PdfFontSubtype::Unknown), firstChar(0), lastChar(0), encoding(PdfEncoding::PdfDoc), codeLength(1)
+	PdfFontResource::PdfFontResource(): subtype(PdfFontSubtype::Unknown), firstChar(0), lastChar(0), encoding(PdfEncoding::Standard), codeLength(1)
 	{
 	}
 
@@ -5912,21 +5917,23 @@ namespace slib
 					if (names) {
 						const char* name = names[charcode];
 						if (name) {
-							return face->getGlyphIndex(names[charcode]);
+							sl_uint32 glyphId = face->getGlyphIndex(names[charcode]);
+							if (glyphId) {
+								return glyphId;
+							}
+
 						}
 					}
 				}
-				return 0;
+			}
+			sl_uint32 glyphId;
+			if (face->isUnicodeEncoding()) {
+				glyphId = face->getGlyphIndex(unicode);
 			} else {
-				sl_uint32 glyphId;
-				if (face->isUnicodeEncoding()) {
-					glyphId = face->getGlyphIndex(unicode);
-				} else {
-					glyphId = face->getGlyphIndex(charcode);
-				}
-				if (glyphId) {
-					return glyphId;
-				}
+				glyphId = face->getGlyphIndex(charcode);
+			}
+			if (glyphId) {
+				return glyphId;
 			}
 		}
 		return charcode;
@@ -6276,7 +6283,14 @@ namespace slib
 				if (nColors) {
 					sl_uint8* data = (sl_uint8*)(content.getData());
 					sl_uint32 pitch = (nColors * bitsPerComponent * width + 7) >> 3;
-					sl_uint32 height = (sl_uint32)(content.getSize()) / pitch;
+					sl_uint32 heightFile = (sl_uint32)(content.getSize()) / pitch;
+					if (height) {
+						if (height > heightFile) {
+							height = heightFile;
+						}
+					} else {
+						height = heightFile;
+					}
 					if (height) {
 						if (colorSpace.type == PdfColorSpaceType::CMYK) {
 							if (!(content.getRef())) {
@@ -6294,6 +6308,7 @@ namespace slib
 			}
 		}
 		if (object.isNotNull()) {
+			_restrictSize(object);
 			if (colorSpace.type != PdfColorSpaceType::CMYK) {
 				applyDecode(object.get());
 			}
@@ -6368,25 +6383,23 @@ namespace slib
 			return;
 		}
 		sl_uint32 pitchMask = (maskDesc.bitsPerComponent * widthMask + 7) >> 3;
-		sl_uint32 heightMask = (sl_uint32)(content.getSize()) / pitchMask;
+		sl_uint32 heightMask = maskDesc.height;
+		sl_uint32 heightMaskFile = (sl_uint32)(content.getSize()) / pitchMask;
+		if (heightMask) {
+			if (heightMask > heightMaskFile) {
+				heightMask = heightMaskFile;
+			}
+		} else {
+			heightMask = heightMaskFile;
+		}
 		if (!heightMask) {
 			return;
 		}
+		if (widthMask <= MAX_IMAGE_WIDTH && heightMask <= MAX_IMAGE_HEIGHT) {
+			_growSize(object, widthMask, heightMask);
+		}
 		sl_uint32 widthParent = object->getWidth();
 		sl_uint32 heightParent = object->getHeight();
-		if (widthParent < widthMask || heightParent < heightMask) {
-			if (widthParent < widthMask) {
-				widthParent = widthMask;
-			}
-			if (heightParent < heightMask) {
-				heightParent = heightMask;
-			}
-			Ref<Image> image = object->stretch(widthParent, heightParent, StretchMode::Linear);
-			if (image.isNull()) {
-				return;
-			}
-			object = Move(image);
-		}
 		if (widthMask == widthParent && heightMask == heightParent && !(maskDesc.flagUseMatte) && !(maskDesc.flagUseDecodeArray)) {
 			object->multiplyAlphaFromGray(widthMask, heightMask, content.getData(), maskDesc.bitsPerComponent, pitchMask);
 			return;
@@ -6400,19 +6413,17 @@ namespace slib
 			if (imageMask.isNull()) {
 				return;
 			}
-			widthMask = widthParent;
-			heightMask = heightParent;
 		}
 		maskDesc.applyDecode(imageMask.get());
 		Color* rowDst = object->getColors();
 		Color* rowSrc = imageMask->getColors();
 		sl_reg strideDst = object->getStride();
-		sl_reg strideSrc = object->getStride();
+		sl_reg strideSrc = imageMask->getStride();
 		if (maskDesc.flagUseMatte) {
-			for (sl_uint32 y = 0; y < heightMask; y++) {
+			for (sl_uint32 y = 0; y < heightParent; y++) {
 				Color* dst = rowDst;
 				Color* src = rowSrc;
-				for (sl_uint32 x = 0; x < widthMask; x++) {
+				for (sl_uint32 x = 0; x < widthParent; x++) {
 					Color c = matte;
 					c.blend_PA_NPA(dst->r, dst->g, dst->b, src->r);
 					c.convertPAtoNPA();
@@ -6425,10 +6436,10 @@ namespace slib
 				rowSrc += strideSrc;
 			}
 		} else {
-			for (sl_uint32 y = 0; y < heightMask; y++) {
+			for (sl_uint32 y = 0; y < heightParent; y++) {
 				Color* dst = rowDst;
 				Color* src = rowSrc;
-				for (sl_uint32 x = 0; x < widthMask; x++) {
+				for (sl_uint32 x = 0; x < widthParent; x++) {
 					dst->a = (sl_uint8)(((sl_uint32)(dst->a) * (sl_uint32)(src->r)) >> 8);
 					dst++;
 					src++;
@@ -6438,7 +6449,43 @@ namespace slib
 			}
 		}
 	}
-	
+
+	void PdfImage::_growSize(Ref<Image>& image, sl_uint32 minWidth, sl_uint32 minHeight)
+	{
+		sl_uint32 width = image->getWidth();
+		sl_uint32 height = image->getHeight();
+		if (width < minWidth || height < minHeight) {
+			if (width < minWidth) {
+				width = minWidth;
+			}
+			if (height < minHeight) {
+				height = minHeight;
+			}
+			Ref<Image> imageNew = image->stretch(width, height, StretchMode::Linear);
+			if (imageNew.isNotNull()) {
+				image = Move(imageNew);
+			}
+		}
+	}
+
+	void PdfImage::_restrictSize(Ref<Image>& image)
+	{
+		sl_uint32 width = image->getWidth();
+		sl_uint32 height = image->getHeight();
+		if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+			if (width > MAX_IMAGE_WIDTH) {
+				width = MAX_IMAGE_WIDTH;
+			}
+			if (height > MAX_IMAGE_HEIGHT) {
+				height = MAX_IMAGE_HEIGHT;
+			}
+			Ref<Image> imageNew = image->stretch(width, height, StretchMode::Linear);
+			if (imageNew.isNotNull()) {
+				image = Move(imageNew);
+			}
+		}
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfFormResource)
 

@@ -845,6 +845,10 @@ namespace slib
 
 		void _loadSMask(PdfDocument* doc);
 
+		static void _growSize(Ref<Image>& image, sl_uint32 minWidth, sl_uint32 minHeight);
+
+		static void _restrictSize(Ref<Image>& image);
+
 		friend class PdfExternalObject;
 
 	};
