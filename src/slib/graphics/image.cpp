@@ -1386,14 +1386,13 @@ namespace slib
 				
 			};
 			
-			SLIB_INLINE static void Stretch_Smooth_Prepare(sl_int32 sw, sl_int32 dw, sl_int32& step_num, sl_int32& step_denom, float& sx_start, sl_int32& dx_start, sl_int32& dx_end, Stretch_FilterParam& param)
+			SLIB_INLINE static void Stretch_Smooth_Prepare(sl_int32 sw, sl_int32 dw, sl_int32& step_num, sl_int32& step_denom, sl_int32& dx_start, sl_int32& dx_end, Stretch_FilterParam& param)
 			{
 				if (sw >= dw) {
 					step_num = sw;
 					step_denom = dw;
 					param.flagBox = sl_true;
 					param.filterSize = (float)(sw) / (float)(dw);
-					sx_start = 0;
 					dx_start = 0;
 					dx_end = dw;
 				} else {
@@ -1401,7 +1400,6 @@ namespace slib
 					step_denom = dw - 1;
 					param.flagBox = sl_false;
 					param.filterSize = 1;
-					sx_start = (float)(sw - 1) / (float)(dw - 1);
 					dx_start = 1;
 					dx_end = dw - 1;
 				}
@@ -1416,11 +1414,10 @@ namespace slib
 				{
 					sl_int32 sw = src.width;
 					sl_int32 dw = dst.width;
-					float sx_start;
 					sl_int32 sx_step_num, sx_step_denom;
 					sl_int32 isx, dx_start, dx_end;
 					Stretch_FilterParam px;
-					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, sx_start, dx_start, dx_end, px);
+					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, dx_start, dx_end, px);
 					float f_sx_step_denom = (float)(sx_step_denom);
 					
 					sl_int32 dx, dy;
@@ -1454,7 +1451,7 @@ namespace slib
 					colorsSrc = src.colors;
 					for (dy = 0; dy < dh; dy++) {
 						for (dx = dx_start; dx < dx_end; dx++) {
-							sx = sx_start + (float)(dx * sx_step_num) / f_sx_step_denom;
+							sx = (float)(dx * sx_step_num) / f_sx_step_denom;
 							isx = (sl_int32)sx;
 							FILTER::getColorAtX(color, colorsSrc + isx, sx - (float)isx, px);
 							blend(colorsDst[dx], color);
@@ -1469,11 +1466,10 @@ namespace slib
 				{
 					sl_int32 sh = src.height;
 					sl_int32 dh = dst.height;
-					float sy_start;
 					sl_int32 sy_step_num, sy_step_denom;
 					sl_int32 isy, dy_start, dy_end;
 					Stretch_FilterParam py;
-					Stretch_Smooth_Prepare(sh, dh, sy_step_num, sy_step_denom, sy_start, dy_start, dy_end, py);
+					Stretch_Smooth_Prepare(sh, dh, sy_step_num, sy_step_denom, dy_start, dy_end, py);
 					float f_sy_step_denom = (float)(sy_step_denom);
 					
 					sl_int32 dx, dy;
@@ -1502,7 +1498,7 @@ namespace slib
 					colorsDst = dst.colors + dy_start * dst.stride;
 					colorsSrc = src.colors;
 					for (dy = dy_start; dy < dy_end; dy++) {
-						sy = sy_start + (float)(dy * sy_step_num) / f_sy_step_denom;
+						sy = (float)(dy * sy_step_num) / f_sy_step_denom;
 						isy = (sl_int32)sy;
 						float fsy = sy - (float)isy;
 						const Color* lineSrc = colorsSrc + (sl_uint32)isy * src.stride;
@@ -1519,11 +1515,10 @@ namespace slib
 				{
 					sl_int32 sw = src.width;
 					sl_int32 dw = dst.width;
-					float sx_start;
 					sl_int32 sx_step_num, sx_step_denom;
 					sl_int32 isx, dx_start, dx_end;
 					Stretch_FilterParam px;
-					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, sx_start, dx_start, dx_end, px);
+					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, dx_start, dx_end, px);
 					float f_sx_step_denom = (float)(sx_step_denom);
 					
 					sl_int32 dx, dy;
@@ -1551,7 +1546,7 @@ namespace slib
 					}
 					
 					for (dx = dx_start; dx < dx_end; dx++) {
-						sx = sx_start + (float)(dx * sx_step_num) / f_sx_step_denom;
+						sx = (float)(dx * sx_step_num) / f_sx_step_denom;
 						isx = (sl_int32)sx;
 						FILTER::getColorAtX(color, src.colors + isx, sx - (float)isx, px);
 						colorsDst = dst.colors + dx;
@@ -1567,11 +1562,10 @@ namespace slib
 				{
 					sl_int32 sh = src.height;
 					sl_int32 dh = dst.height;
-					float sy_start;
 					sl_int32 sy_step_num, sy_step_denom;
 					sl_int32 isy, dy_start, dy_end;
 					Stretch_FilterParam py;
-					Stretch_Smooth_Prepare(sh, dh, sy_step_num, sy_step_denom, sy_start, dy_start, dy_end, py);
+					Stretch_Smooth_Prepare(sh, dh, sy_step_num, sy_step_denom, dy_start, dy_end, py);
 					float f_sy_step_denom = (float)sy_step_denom;
 					sl_int32 dx, dy;
 					sl_int32 dw = dst.width;
@@ -1597,7 +1591,7 @@ namespace slib
 					
 					colorsDst = dst.colors + dy_start * dst.stride;
 					for (dy = dy_start; dy < dy_end; dy++) {
-						sy = sy_start + (float)(dy * sy_step_num) / f_sy_step_denom;
+						sy = (float)(dy * sy_step_num) / f_sy_step_denom;
 						isy = (sl_int32)sy;
 						float fsy = sy - (float)isy;
 						FILTER::getColorAtY(color, src.colors + isy * src.stride, fsy, src.stride, py);
@@ -1630,20 +1624,18 @@ namespace slib
 					
 					sl_int32 sw = src.width;
 					sl_int32 dw = dst.width;
-					float sx_start;
 					sl_int32 sx_step_num, sx_step_denom;
 					sl_int32 isx, dx_start, dx_end;
 					Stretch_FilterParam px;
-					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, sx_start, dx_start, dx_end, px);
+					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, dx_start, dx_end, px);
 					float f_sx_step_denom = (float)sx_step_denom;
 					
 					sl_int32 sh = src.height;
 					sl_int32 dh = dst.height;
-					float sy_start;
 					sl_int32 sy_step_num, sy_step_denom;
 					sl_int32 isy, dy_start, dy_end;
 					Stretch_FilterParam py;
-					Stretch_Smooth_Prepare(sh, dh, sy_step_num, sy_step_denom, sy_start, dy_start, dy_end, py);
+					Stretch_Smooth_Prepare(sh, dh, sy_step_num, sy_step_denom, dy_start, dy_end, py);
 					float f_sy_step_denom = (float)sy_step_denom;
 
 					sl_int32 dx, dy;
@@ -1668,7 +1660,7 @@ namespace slib
 						colorsDst = dst.colors;
 						colorsSrc = src.colors;
 						for (dx = dx_start; dx < dx_end; dx++) {
-							sx = sx_start + (float)(dx * sx_step_num) / f_sx_step_denom;
+							sx = (float)(dx * sx_step_num) / f_sx_step_denom;
 							isx = (sl_int32)sx;
 							FILTER::getColorAtX(color, colorsSrc + isx, sx - (float)isx, px);
 							blend(colorsDst[dx], color);
@@ -1677,7 +1669,7 @@ namespace slib
 						colorsDst = dst.colors + (dh - 1) * dst.stride;
 						colorsSrc = src.colors + (sh - 1) * src.stride;
 						for (dx = dx_start; dx < dx_end; dx++) {
-							sx = sx_start + (float)(dx * sx_step_num) / f_sx_step_denom;
+							sx = (float)(dx * sx_step_num) / f_sx_step_denom;
 							isx = (sl_int32)sx;
 							FILTER::getColorAtX(color, colorsSrc + isx, sx - (float)isx, px);
 							blend(colorsDst[dx], color);
@@ -1688,7 +1680,7 @@ namespace slib
 						colorsDst = dst.colors + dy_start * dst.stride;
 						colorsSrc = src.colors;
 						for (dy = dy_start; dy < dy_end; dy++) {
-							sy = sy_start + (float)(dy * sy_step_num) / f_sy_step_denom;
+							sy = (float)(dy * sy_step_num) / f_sy_step_denom;
 							isy = (sl_int32)sy;
 							FILTER::getColorAtY(color, colorsSrc + isy * src.stride, sy - (float)isy, src.stride, py);
 							blend(*colorsDst, color);
@@ -1698,7 +1690,7 @@ namespace slib
 						colorsDst = dst.colors + (dy_start * dst.stride + dw - 1);
 						colorsSrc = src.colors + (sw - 1);
 						for (dy = dy_start; dy < dy_end; dy++) {
-							sy = sy_start + (float)(dy * sy_step_num) / f_sy_step_denom;
+							sy = (float)(dy * sy_step_num) / f_sy_step_denom;
 							isy = (sl_int32)sy;
 							FILTER::getColorAtY(color, colorsSrc + isy * src.stride, sy - (float)isy, src.stride, py);
 							blend(*colorsDst, color);
@@ -1709,12 +1701,12 @@ namespace slib
 					colorsDst = dst.colors + dy_start * dst.stride;
 					colorsSrc = src.colors;
 					for (dy = dy_start; dy < dy_end; dy++) {
-						sy = sy_start + (float)(dy * sy_step_num) / f_sy_step_denom;
+						sy = (float)(dy * sy_step_num) / f_sy_step_denom;
 						isy = (sl_int32)sy;
 						float fsy = sy - (float)isy;
 						const Color* lineSrc = colorsSrc + isy * src.stride;
 						for (dx = dx_start; dx < dx_end; dx++) {
-							sx = sx_start + (float)(dx * sx_step_num) / f_sx_step_denom;
+							sx = (float)(dx * sx_step_num) / f_sx_step_denom;
 							isx = (sl_int32)sx;
 							FILTER::getColorAt(color, lineSrc + isx, sx - (float)isx, fsy, src.stride, px, py);
 							blend(colorsDst[dx], color);
