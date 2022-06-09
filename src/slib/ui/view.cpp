@@ -10131,13 +10131,15 @@ namespace slib
 		}
 		sl_scroll_pos width = (sl_scroll_pos)iWidth;
 		sl_scroll_pos height = (sl_scroll_pos)iHeight;
+		sl_scroll_pos pageWidth = priv::view::GetPageWidth(scrollAttrs, width);
+		sl_scroll_pos pageHeight = priv::view::GetPageHeight(scrollAttrs, height);
 
 		sl_bool flagHorz = scrollAttrs->flagHorz;
 		sl_bool flagVert = scrollAttrs->flagVert;
-		if (flagHorz && scrollAttrs->contentWidth <= width) {
+		if (flagHorz && scrollAttrs->contentWidth <= pageWidth) {
 			flagHorz = sl_false;
 		}
-		if (flagVert && scrollAttrs->contentHeight <= height) {
+		if (flagVert && scrollAttrs->contentHeight <= pageHeight) {
 			flagVert = sl_false;
 		}
 		if (!flagHorz && !flagVert) {
@@ -10181,8 +10183,6 @@ namespace slib
 			}
 		}
 
-		sl_scroll_pos pageWidth = priv::view::GetPageWidth(scrollAttrs, width);
-		sl_scroll_pos pageHeight = priv::view::GetPageHeight(scrollAttrs, height);
 		sl_scroll_pos lineX = pageWidth / 20.0;
 		sl_scroll_pos lineY = pageHeight / 20.0;
 
