@@ -1054,11 +1054,11 @@ namespace slib
 
 		Memory decodeStreamContent(const PdfValue& refOrStream);
 
-		List< Ref<PdfStream> > getAllStreams();
-
 		sl_uint32 getPagesCount();
 
 		Ref<PdfPage> getPage(sl_uint32 index);
+
+		void deletePage(sl_uint32 index);
 
 		sl_bool isEncrypted();
 

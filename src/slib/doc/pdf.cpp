@@ -811,21 +811,22 @@ namespace slib
 				PdfDictionary lastTrailer;
 				PdfDictionary encrypt;
 				PdfDictionary catalog;
-				Ref<PageTreeParent> pageTree;
 
 				sl_bool flagDecryptContents = sl_false;
 				sl_uint8 encryptionKey[16];
 				sl_uint32 lenEncryptionKey = 0;
 
-				Array<CrossReferenceEntry> references;
-				ExpiringMap<sl_uint64, PdfValue> objects;
-				ExpiringMap< sl_uint64, Ref<ObjectStream> > objectStreams;
+			protected:
+				Array<CrossReferenceEntry> m_references;
+				ExpiringMap<sl_uint64, PdfValue> m_objects;
+				ExpiringMap< sl_uint64, Ref<ObjectStream> > m_objectStreams;
+				Ref<PageTreeParent> m_pageTree;
 
 			public:
 				Context()
 				{
-					objects.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT);
-					objectStreams.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT_STREAM);
+					m_objects.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT);
+					m_objectStreams.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT_STREAM);
 				}
 
 			public:
@@ -833,16 +834,21 @@ namespace slib
 				virtual sl_bool readDocument() = 0;
 				
 			public:
+				sl_uint32 getObjectTableLength()
+				{
+					return (sl_uint32)(m_references.getCount());
+				}
+
 				Ref<ObjectStream> getObjectStream(const PdfReference& ref);
 
 				sl_bool getReferenceEntry(sl_uint32 objectNumber, CrossReferenceEntry& entry)
 				{
-					return references.getAt(objectNumber, &entry);
+					return m_references.getAt(objectNumber, &entry);
 				}
 
 				void setReferenceEntry(sl_uint32 objectNumber, const CrossReferenceEntry& entry)
 				{
-					CrossReferenceEntry* pEntry = references.getPointerAt(objectNumber);
+					CrossReferenceEntry* pEntry = m_references.getPointerAt(objectNumber);
 					if (pEntry) {
 						if (pEntry->type == (sl_uint32)(CrossReferenceEntryType::Free) && entry.type != (sl_uint32)(CrossReferenceEntryType::Free)) {
 							*pEntry = entry;
@@ -899,12 +905,12 @@ namespace slib
 				{
 					sl_uint64 _id = GetObjectId(ref);
 					PdfValue ret;
-					if (objects.get(_id, &ret)) {
+					if (m_objects.get(_id, &ret)) {
 						return ret;
 					}
 					ret = readObject(ref);
 					if (ret.isNotUndefined()) {
-						objects.put(_id, ret);
+						m_objects.put(_id, ret);
 						return ret;
 					}
 					return PdfValue();
@@ -964,6 +970,23 @@ namespace slib
 					return getObject(properties.getValue_NoLock(name::Length)).getUint(_out);
 				}
 
+				PageTreeParent* getPageTree()
+				{
+					if (m_pageTree.isNotNull()) {
+						return m_pageTree.get();
+					}
+					const PdfDictionary& attrs = getObject(catalog.getValue_NoLock(name::Pages)).getDictionary();
+					if (attrs.isNotNull()) {
+						Ref<PageTreeParent> tree = new PageTreeParent;
+						if (tree.isNotNull()) {
+							tree->attributes = Move(attrs);
+							m_pageTree = Move(tree);
+							return m_pageTree.get();
+						}
+					}
+					return sl_null;
+				}
+
 				List< Ref<PdfPageTreeItem> > buildPageTreeKids(const PdfDictionary& attributes)
 				{
 					List< Ref<PdfPageTreeItem> > ret;
@@ -1017,7 +1040,7 @@ namespace slib
 
 				Ref<PdfPage> getPage(sl_uint32 index)
 				{
-					PageTreeParent* tree = pageTree.get();
+					PageTreeParent* tree = getPageTree();
 					if (tree) {
 						return getPage(tree, index);
 					}
@@ -1036,6 +1059,49 @@ namespace slib
 						return buf.merge();
 					} else {
 						return decodeStreamContent(getObject(contents));
+					}
+				}
+
+				void deletePage(PdfPage* page)
+				{
+				}
+
+				void deletePage(PageTreeParent* parent, sl_uint32 index)
+				{
+					if (index >= parent->getPagesCount()) {
+						return;
+					}
+					if (parent->flagKids) {
+						parent->kids = buildPageTreeKids(parent->attributes);
+						parent->flagKids = sl_true;
+					}
+					sl_uint32 n = 0;
+					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
+					for (sl_size i = 0; i < kids.count; i++) {
+						Ref<PdfPageTreeItem>& item = kids[i];
+						if (item->isPage()) {
+							if (index == n) {
+								deletePage((PdfPage*)(item.get()));
+								return;
+							}
+							n++;
+						} else {
+							PageTreeParent* pItem = (PageTreeParent*)(item.get());
+							sl_uint32 m = pItem->getPagesCount();
+							if (index < n + m) {
+								deletePage(pItem, index - n);
+								return;
+							}
+							n += m;
+						}
+					}
+				}
+
+				void deletePage(sl_uint32 index)
+				{
+					PageTreeParent* tree = getPageTree();
+					if (tree) {
+						deletePage(tree, index);
 					}
 				}
 
@@ -1085,16 +1151,6 @@ namespace slib
 						return sl_false;
 					}
 					encrypt = getObject(lastTrailer.getValue_NoLock(name::Encrypt)).getDictionary();
-					// loading page tree
-					{
-						const PdfDictionary& attrs = getObject(catalog.getValue_NoLock(name::Pages)).getDictionary();
-						if (attrs.isNotNull()) {
-							pageTree = new PageTreeParent;
-							if (pageTree.isNotNull()) {
-								pageTree->attributes = Move(attrs);
-							}
-						}
-					}
 					if (encrypt.isNotNull()) {
 						setUserPassword(sl_null);
 					}
@@ -2353,11 +2409,11 @@ namespace slib
 							if (!countTotalRef) {
 								return sl_false;
 							}
-							references = Array<CrossReferenceEntry>::create(countTotalRef);
-							if (references.isNull()) {
+							m_references = Array<CrossReferenceEntry>::create(countTotalRef);
+							if (m_references.isNull()) {
 								return sl_false;
 							}
-							Base::zeroMemory(references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
+							Base::zeroMemory(m_references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
 						}
 						for (;;) {
 							if (!(setPosition(posXref))) {
@@ -2389,7 +2445,7 @@ namespace slib
 			{
 				sl_uint64 _id = GetObjectId(ref);
 				Ref<ObjectStream> ret;
-				if (objectStreams.get(_id, &ret)) {
+				if (m_objectStreams.get(_id, &ret)) {
 					return ret;
 				}
 				Ref<PdfStream> stream = getObject(ref).getStream();
@@ -2446,7 +2502,7 @@ namespace slib
 											ret->objects.add_NoLock(innerId, Move(innerValue));
 											context.setPosition(pos);
 										}
-										objectStreams.put(_id, ret);
+										m_objectStreams.put(_id, ret);
 										return ret;
 									}
 								}
@@ -7435,7 +7491,7 @@ namespace slib
 	{
 		Context* context = GetContext(m_context);
 		if (context) {
-			return (sl_uint32)(context->references.getCount());
+			return context->getObjectTableLength();
 		}
 		return 0;
 	}
@@ -7507,31 +7563,12 @@ namespace slib
 		return sl_null;
 	}
 
-	List< Ref<PdfStream> > PdfDocument::getAllStreams()
-	{
-		List< Ref<PdfStream> > ret;
-		ObjectLocker lock(this);
-		Context* context = GetContext(m_context);
-		if (context) {
-			CrossReferenceEntry* refTable = context->references.getData();
-			sl_uint32 nRefs = (sl_uint32)(context->references.getCount());
-			for (sl_uint32 i = 0; i < nRefs; i++) {
-				sl_int32 gen = -1;
-				Ref<PdfStream> stream = context->readObject(i, gen).getStream();
-				if (stream.isNotNull()) {
-					ret.add_NoLock(stream);
-				}
-			}
-		}
-		return ret;
-	}
-
 	sl_uint32 PdfDocument::getPagesCount()
 	{
 		ObjectLocker lock(this);
 		Context* context = GetContext(m_context);
 		if (context) {
-			PageTreeParent* tree = context->pageTree.get();
+			PageTreeParent* tree = context->getPageTree();
 			if (tree) {
 				return tree->getPagesCount();
 			}
@@ -7551,6 +7588,15 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	void PdfDocument::deletePage(sl_uint32 index)
+	{
+		ObjectLocker lock(this);
+		Context* context = GetContext(m_context);
+		if (context) {
+			context->deletePage(index);
+		}
 	}
 
 	sl_bool PdfDocument::isEncrypted()
