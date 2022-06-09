@@ -51,7 +51,7 @@ namespace slib
 
 		sl_bool isUsingPageCache();
 
-		void setUsingPageCache(sl_bool flag = sl_true);
+		void setUsingPageCache(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<PdfDocument> getDocument();
 
@@ -65,11 +65,10 @@ namespace slib
 	protected:
 		void _setDocument(const String& path, PdfDocument* doc);
 
-		void _saveCache(PdfViewContext* context, sl_uint32 page);
+		static Ref<Bitmap> _saveCache(PdfViewContext* context, sl_uint32 page, sl_int32 width, sl_int32 height);
 
 	protected:
 		AtomicRef<PdfViewContext> m_context;
-		sl_ui_len m_widthOld;
 		sl_bool m_flagUsePageCache;
 
 	};

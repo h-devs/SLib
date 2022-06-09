@@ -257,10 +257,10 @@ namespace slib
 		sl_scroll_pos y;
 		sl_scroll_pos contentWidth;
 		sl_scroll_pos contentHeight;
+		sl_scroll_pos pageWidth;
+		sl_scroll_pos pageHeight;
 		sl_ui_len barWidth;
-		sl_ui_pos pageWidth;
-		sl_ui_pos pageHeight;
-		
+
 		Point mousePointDown;
 		Point mousePointBefore;
 		sl_uint64 touchPointerIdBefore;

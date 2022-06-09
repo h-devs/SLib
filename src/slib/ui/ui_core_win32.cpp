@@ -776,7 +776,7 @@ namespace slib
 		SCROLLINFO si;
 		Base::zeroMemory(&si, sizeof(si));
 		si.cbSize = sizeof(si);
-		si.fMask = SIF_PAGE | SIF_RANGE;
+		si.fMask = SIF_PAGE | SIF_RANGE | SIF_DISABLENOSCROLL;
 		si.nMin = nMin;
 		si.nMax = nMax;
 		si.nPage = nPage;
@@ -791,7 +791,7 @@ namespace slib
 		SCROLLINFO si;
 		Base::zeroMemory(&si, sizeof(si));
 		si.cbSize = sizeof(si);
-		si.fMask = SIF_PAGE | SIF_RANGE;
+		si.fMask = SIF_PAGE | SIF_RANGE | SIF_DISABLENOSCROLL;
 		si.nMin = nMin;
 		si.nMax = nMax;
 		si.nPage = nPage;

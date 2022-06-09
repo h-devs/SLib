@@ -24,11 +24,18 @@
 
 #include "slib/doc/pdf.h"
 #include "slib/graphics/bitmap.h"
+#include "slib/ui/scroll_bar.h"
 
 #define EXPIRE_DURATION_PAGE 5000
-#define EXPIRE_DURATION_FONT 15000
-#define EXPIRE_DURATION_XOBJECT 4000
+#define EXPIRE_DURATION_FONT 10000
+#define EXPIRE_DURATION_XOBJECT 500
 #define EXPIRE_DURATION_PAGE_CACHE 7000
+
+#define BACKGROUND_COLOR Color::White
+#define BORDER_COLOR Color::Gray
+
+#define MIN_PAGE_RATIO 0.1f
+#define MAX_PAGE_RATIO 5.0f
 
 namespace slib
 {
@@ -80,9 +87,9 @@ namespace slib
 			return ret;
 		}
 
-		float getTotalHeight_NoLock()
+		double getTotalHeight_NoLock()
 		{
-			float h = 0;
+			double h = 0;
 			for (sl_uint32 i = 0; i < nPages; i++) {
 				float ratio = mapPageRatio.getValue_NoLock(i, defaultPageRatio);
 				h += ratio;
@@ -90,15 +97,15 @@ namespace slib
 			return h;
 		}
 
-		float getTotalHeight()
+		double getTotalHeight()
 		{
 			ObjectLocker lock(&mapPageRatio);
 			return getTotalHeight_NoLock();
 		}
 
-		void findFirstVisiblePage_NoLock(float sy, sl_uint32& pageNo, float& pageY)
+		void findFirstVisiblePage_NoLock(double sy, sl_uint32& pageNo, double& pageY)
 		{
-			float y = 0;
+			double y = 0;
 			for (sl_uint32 i = 0; i < nPages - 1; i++) {
 				float ratio = mapPageRatio.getValue_NoLock(i, defaultPageRatio);
 				if (sy <= y + ratio) {
@@ -148,7 +155,7 @@ namespace slib
 			if (Math::isAlmostZero(w) || Math::isAlmostZero(h)) {
 				return defaultPageRatio;
 			}
-			return (float)(h / w);
+			return Math::clamp((float)(h / w), MIN_PAGE_RATIO, MAX_PAGE_RATIO);
 		}
 
 	};
@@ -158,13 +165,14 @@ namespace slib
 
 	PdfView::PdfView()
 	{
-		m_widthOld = 0;
-		m_flagUsePageCache = sl_false;
-
 		setCreatingInstance();
-		setBackgroundColor(Color::White, UIUpdateMode::Init);
-		setVerticalScrolling(sl_true, UIUpdateMode::Init);
+		setScrolling(sl_false, sl_true, UIUpdateMode::Init);
+		setPageHeight(1.0, UIUpdateMode::Init);
+		setCanvasScrolling(sl_false);
+		setAutoHideScrollBar(sl_false);
 		setFocusable();
+
+		setUsingPageCache(sl_true, UIUpdateMode::Init);
 	}
 
 	PdfView::~PdfView()
@@ -209,9 +217,33 @@ namespace slib
 		return m_flagUsePageCache;
 	}
 
-	void PdfView::setUsingPageCache(sl_bool flag)
+	void PdfView::setUsingPageCache(sl_bool flag, UIUpdateMode mode)
 	{
 		m_flagUsePageCache = flag;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (flag) {
+			setDoubleBuffer(sl_false);
+			setOpaque(sl_true, mode != UIUpdateMode::Init ? UIUpdateMode::None : UIUpdateMode::Init);
+			setBackground(sl_null, mode);
+		} else {
+			if (mode != UIUpdateMode::Init) {
+				Ref<ScrollBar> sbar = getVerticalScrollBar();
+				if (sbar.isNotNull()) {
+					sbar->setBackground(sl_null, UIUpdateMode::None);
+					sbar->setLayer(sl_false, UIUpdateMode::None);
+				}
+			}
+			setDoubleBuffer(sl_true);
+			setOpaque(sl_false, mode != UIUpdateMode::Init ? UIUpdateMode::None : UIUpdateMode::Init);
+			setBackgroundColor(BACKGROUND_COLOR, mode);
+		}
+#else
+		if (flag) {
+			setBackground(sl_null, mode);
+		} else {
+			setBackgroundColor(BACKGROUND_COLOR, mode);
+		}
+#endif
 	}
 
 	Ref<PdfDocument> PdfView::getDocument()
@@ -229,11 +261,7 @@ namespace slib
 		if (context.isNull()) {
 			return;
 		}
-		sl_real width = (sl_real)(getWidth());
-		if (Math::isAlmostZero(width)) {
-			return;
-		}
-		float y = context->getPageY(pageNo) * width;
+		float y = context->getPageY(pageNo);
 		scrollToY(y, mode);
 	}
 
@@ -251,143 +279,174 @@ namespace slib
 		m_context = context;
 
 		setScrollY(0, UIUpdateMode::None);
-		setContentHeight(context->getTotalHeight() * (float)(getWidth()), UIUpdateMode::None);
+		setContentHeight(context->getTotalHeight(), UIUpdateMode::None);
 		invalidate();
 	}
 
-	void PdfView::_saveCache(PdfViewContext* context, sl_uint32 pageNo)
+	Ref<Bitmap> PdfView::_saveCache(PdfViewContext* context, sl_uint32 pageNo, sl_int32 iWidth, sl_int32 iHeight)
 	{
-		if (m_context != context) {
-			return;
-		}
 		Ref<PdfPage> page = context->getPage(pageNo);
 		if (page.isNull()) {
-			return;
+			return sl_null;
 		}
-		sl_int32 iWidth = getWidth();
-		sl_real width = (sl_real)iWidth;
-		Rectangle mediaBox = page->getMediaBox();
-		sl_real ratio = (sl_real)(context->getBoxRatio(mediaBox));
-		sl_real height = width * ratio;
-		Ref<Bitmap> bitmap = Bitmap::create(iWidth, (sl_uint32)height);
+		Ref<Bitmap> bitmap = Bitmap::create(iWidth, iHeight);
 		if (bitmap.isNull()) {
-			return;
+			return sl_null;
 		}
+		bitmap->resetPixels(BACKGROUND_COLOR);
 		{
 			Ref<Canvas> canvas = bitmap->getCanvas();
 			if (canvas.isNull()) {
-				return;
+				return sl_null;
 			}
 			PdfRenderParam param;
 			param.canvas = canvas.get();
 			param.cache = context;
 			param.bounds.left = 0;
 			param.bounds.top = 0;
-			param.bounds.right = width;
-			param.bounds.bottom = height;
+			param.bounds.right = (sl_real)iWidth;
+			param.bounds.bottom = (sl_real)iHeight;
 			page->render(param);
+			if (pageNo) {
+				canvas->fillRectangle(0, 0, (sl_real)iWidth, 2.0f, BORDER_COLOR);
+			}
 		}
-		if (context->pageCache.getCount() > 3) {
+		if (context->pageCache.getCount() > 6) {
 			context->pageCache.removeAll();
 		}
-		context->pageCache.put(pageNo, Move(bitmap));
+		context->pageCache.put(pageNo, bitmap);
+		return bitmap;
 	}
 
 	void PdfView::onDraw(Canvas* canvas)
 	{
-		Ref<PdfViewContext> context = m_context;
-		if (context.isNull()) {
+		UIRect bounds = getBounds();
+		sl_int32 iWidth = bounds.getWidth();
+		sl_int32 iHeight = bounds.getHeight();
+		if (iWidth <= 0 || iHeight <= 0) {
 			return;
 		}
 
-		UIRect bounds = getBounds();
-		sl_int32 iWidth = bounds.getWidth();
+		Ref<PdfViewContext> context = m_context;
+		if (context.isNull()) {
+			if (m_flagUsePageCache) {
+				canvas->fillRectangle(bounds, BACKGROUND_COLOR);
+			}
+			return;
+		}
+
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		if (m_flagUsePageCache) {
+			Ref<ScrollBar> sbar = getVerticalScrollBar();
+			if (sbar.isNotNull()) {
+				iWidth -= sbar->getWidth();
+				if (sbar->getBackground().isNull()) {
+					sbar->setBackgroundColor(Color::White, UIUpdateMode::None);
+					sbar->setLayer(sl_true, UIUpdateMode::None);
+				}
+				if (!(isVerticalScrollBarVisible())) {
+					canvas->fillRectangle((sl_real)iWidth, 0.0f, (sl_real)(sbar->getWidth()), (sl_real)iHeight, BACKGROUND_COLOR);
+				}
+			}
+		}
+#endif
+
 		sl_real width = (sl_real)iWidth;
-		sl_real height = (sl_real)(bounds.getHeight());
 		if (Math::isAlmostZero(width)) {
 			return;
 		}
-		float sy = (float)(getScrollY());
+		double sy = (double)(getScrollY());
 
 		{
 			ObjectLocker lockMap(&(context->mapPageRatio));
 			sl_bool flagUpdateScrollRange = sl_false;
 			sl_uint32 pageFirst = 0;
-			float pageFirstY = 0;
-			context->findFirstVisiblePage_NoLock(sy / width, pageFirst, pageFirstY);
+			double pageFirstY = 0;
+			context->findFirstVisiblePage_NoLock(sy, pageFirst, pageFirstY);
 
-			Ref<Pen> penBorder = Pen::createSolidPen(2, Color::Gray);
-
-			PdfRenderParam param;
-			param.canvas = canvas;
-			param.cache = m_context;
-			param.bounds.left = 0;
-			param.bounds.right = width;
-			param.bounds.bottom = pageFirstY * width;
-
+			sl_int32 bottomPage = (sl_int32)((pageFirstY - sy) * width);
 			for (sl_uint32 i = 0; i < 100; i++) {
-				param.bounds.top = param.bounds.bottom;
+				if (bottomPage >= iHeight) {
+					break;
+				}
 				sl_uint32 pageNo = pageFirst + i;
 				float ratio;
 				Ref<PdfPage> page = context->getPageAndGeometry_NoLock(pageNo, ratio, flagUpdateScrollRange);
 				if (page.isNull()) {
 					break;
 				}
-				param.bounds.bottom += ratio * width;
-				if (param.bounds.top >= sy + height) {
-					break;
+				sl_int32 topPage = bottomPage;
+				sl_int32 iHeighPage = (sl_int32)(ratio * width);
+				if (iHeighPage < 1) {
+					iHeighPage = 1;
 				}
-				if (sy < param.bounds.bottom) {
-					if (m_flagUsePageCache) {
-						do {
-							Ref<Bitmap> cache;
-							if (context->pageCache.get(pageNo, &cache)) {
-								if (cache->getWidth() >= (sl_uint32)iWidth) {
-									sl_bool flagAntialias = canvas->isAntiAlias();
-									canvas->setAntiAlias(sl_true);
-									canvas->draw(param.bounds, cache);
-									canvas->setAntiAlias(flagAntialias);
-									break;
-								}
-							}
-							TimeCounter tc;
-							page->render(param);
-							sl_uint64 dt = tc.getElapsedMilliseconds();
-							if (dt > 100) {
-								WeakRef<PdfView> weak = this;
-								Dispatch::dispatch([context, pageNo, weak, this]() {
-									Ref<PdfView> thiz = weak;
-									if (thiz.isNotNull()) {
-										_saveCache(context.get(), pageNo);
-									}
-								});
-							}
-						} while (0);
-					} else {
-						page->render(param);
+				bottomPage += iHeighPage;
+				if (bottomPage < 0) {
+					continue;
+				}
+				if (m_flagUsePageCache) {
+					Ref<Bitmap> cache;
+					if (context->pageCache.get(pageNo, &cache)) {
+						if (cache->getWidth() != (sl_uint32)iWidth && cache->getHeight() != (sl_uint32)iHeighPage) {
+							cache.setNull();
+						}
 					}
+					if (cache.isNull()) {
+						cache = _saveCache(context.get(), pageNo, iWidth, iHeighPage);
+					}
+					sl_int32 dy1 = topPage;
+					sl_int32 dy2 = bottomPage;
+					if (dy1 < 0) {
+						dy1 = 0;
+					}
+					if (dy2 > iHeight) {
+						dy2 = iHeight;
+					}
+					if (dy2 > dy1) {
+						if (cache.isNotNull()) {
+							sl_bool flagAntialias = canvas->isAntiAlias();
+							canvas->setAntiAlias(sl_false);
+							Rectangle rcSrc(0, (sl_real)(dy1 - topPage), width, (sl_real)(dy2 - topPage));
+							canvas->draw(Rectangle(0, (sl_real)dy1, width, (sl_real)dy2), cache, rcSrc);
+							canvas->setAntiAlias(flagAntialias);
+						} else {
+							canvas->fillRectangle(Rectangle(0, (sl_real)dy1, width, (sl_real)dy2), BACKGROUND_COLOR);
+						}
+					}
+				} else {
+					PdfRenderParam param;
+					param.canvas = canvas;
+					param.cache = m_context;
+					param.bounds.left = 0;
+					param.bounds.right = width;
+					param.bounds.top = (sl_real)topPage;
+					param.bounds.bottom = (sl_real)bottomPage;
+					page->render(param);
 					if (i) {
-						canvas->drawLine(param.bounds.left, param.bounds.top - 1, param.bounds.right, param.bounds.top - 1, penBorder);
+						canvas->fillRectangle(0, (sl_real)topPage, width, 2, BORDER_COLOR);
 					}
 				}
 			}
 
 			if (flagUpdateScrollRange) {
-				setContentHeight(context->getTotalHeight_NoLock() * width, UIUpdateMode::Redraw);
+				setContentHeight(context->getTotalHeight_NoLock(), UIUpdateMode::Redraw);
+			}
+
+			if (m_flagUsePageCache) {
+				if (bottomPage < iHeight) {
+					canvas->fillRectangle(0, (sl_real)bottomPage, width, (sl_real)(iHeight - bottomPage), BACKGROUND_COLOR);
+				}
 			}
 		}
 	}
 
 	void PdfView::onResize(sl_ui_len width, sl_ui_len height)
 	{
-		Ref<PdfViewContext> context = m_context;
-		if (context.isNotNull()) {
-			setContentHeight(context->getTotalHeight() * (float)width, UIUpdateMode::None);
-			if (m_widthOld) {
-				setScrollY(getScrollY() * (sl_scroll_pos)width / (sl_scroll_pos)m_widthOld);
-			}
+		if (width && height) {
+			setPageHeight((sl_scroll_pos)height / (sl_scroll_pos)width);
+		} else {
+			setPageHeight(1.0);
 		}
-		m_widthOld = width;
 	}
 
 }

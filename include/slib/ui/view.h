@@ -1161,13 +1161,13 @@ namespace slib
 		
 		void setPaging(sl_bool flagPaging = sl_true);
 		
-		sl_ui_len getPageWidth();
+		sl_scroll_pos getPageWidth();
 		
-		void setPageWidth(sl_ui_len width);
+		void setPageWidth(sl_scroll_pos width, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		sl_ui_len getPageHeight();
+		sl_scroll_pos getPageHeight();
 		
-		void setPageHeight(sl_ui_len height);
+		void setPageHeight(sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		
 		sl_bool isContentScrollingByMouse();

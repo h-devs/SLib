@@ -1304,7 +1304,11 @@ namespace slib
 
 	void View::invalidate(UIUpdateMode mode)
 	{
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
 		if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
+			invalidateLayer();
 			return;
 		}
 		
@@ -5796,6 +5800,10 @@ namespace slib
 		Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
 			attrs->flagLayer = flagLayer;
+			if (!flagLayer) {
+				attrs->bitmapLayer.setNull();
+				attrs->canvasLayer.setNull();
+			}
 			invalidate(mode);
 		}
 	}
@@ -6639,7 +6647,7 @@ namespace slib
 	{
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagHorz && attrs->flagHorzScrollBarVisible;
+			return attrs->flagHorz && attrs->flagHorzScrollBarVisible && attrs->flagValidHorz;
 		}
 		return sl_false;
 	}
@@ -6648,7 +6656,7 @@ namespace slib
 	{
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagVert && attrs->flagVertScrollBarVisible;
+			return attrs->flagVert && attrs->flagVertScrollBarVisible && attrs->flagValidVert;
 		}
 		return sl_false;
 	}
@@ -6774,6 +6782,7 @@ namespace slib
 	{
 		namespace view
 		{
+
 			SLIB_INLINE static sl_scroll_pos ClampScrollPos(sl_scroll_pos x, sl_scroll_pos max)
 			{
 				if (x > max) {
@@ -6784,6 +6793,29 @@ namespace slib
 				}
 				return x;
 			}
+
+			template <typename WIDTH>
+			SLIB_INLINE static sl_scroll_pos GetPageWidth(Ref<ViewScrollAttributes>& attrs, WIDTH width)
+			{
+				return attrs->pageWidth > 0 ? attrs->pageWidth : (sl_scroll_pos)width;
+			}
+
+			template <typename HEIGHT>
+			SLIB_INLINE static sl_scroll_pos GetPageHeight(Ref<ViewScrollAttributes>& attrs, HEIGHT height)
+			{
+				return attrs->pageHeight > 0 ? attrs->pageHeight : (sl_scroll_pos)height;
+			}
+
+			SLIB_INLINE static sl_scroll_pos GetPageWidth(View* view, Ref<ViewScrollAttributes>& attrs)
+			{
+				return attrs->pageWidth > 0 ? attrs->pageWidth : view->getWidth();
+			}
+
+			SLIB_INLINE static sl_scroll_pos GetPageHeight(View* view, Ref<ViewScrollAttributes>& attrs)
+			{
+				return attrs->pageHeight > 0 ? attrs->pageHeight : view->getHeight();
+			}
+
 		}
 	}
 
@@ -6800,8 +6832,8 @@ namespace slib
 			if (instance.isNotNull()) {
 				instance->scrollTo(this, x, y, sl_false);
 			}
-			x = priv::view::ClampScrollPos(x, attrs->contentWidth - (sl_scroll_pos)(getWidth()));
-			y = priv::view::ClampScrollPos(y, attrs->contentHeight - (sl_scroll_pos)(getHeight()));
+			x = priv::view::ClampScrollPos(x, attrs->contentWidth - priv::view::GetPageWidth(this, attrs));
+			y = priv::view::ClampScrollPos(y, attrs->contentHeight - priv::view::GetPageHeight(this, attrs));
 			if (_scrollTo(x, y, sl_true, sl_true, sl_false)) {
 				invalidate(mode);
 			}
@@ -6833,8 +6865,8 @@ namespace slib
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			x = priv::view::ClampScrollPos(x, attrs->contentWidth - (sl_scroll_pos)(getWidth()));
-			y = priv::view::ClampScrollPos(y, attrs->contentHeight - (sl_scroll_pos)(getHeight()));
+			x = priv::view::ClampScrollPos(x, attrs->contentWidth - priv::view::GetPageWidth(this, attrs));
+			y = priv::view::ClampScrollPos(y, attrs->contentHeight - priv::view::GetPageHeight(this, attrs));
 			if (instance.isNotNull()) {
 				instance->scrollTo(this, x, y, sl_true);
 			} else {
@@ -7120,12 +7152,14 @@ namespace slib
 		if (attrs.isNotNull()) {
 			sl_ui_pos width = getWidth();
 			sl_ui_pos height = getHeight();
+			sl_scroll_pos pageWidth = priv::view::GetPageWidth(attrs, width);
+			sl_scroll_pos pageHeight = priv::view::GetPageHeight(attrs, height);
 			Ref<ScrollBar> barHorz = attrs->horz;
 			if (barHorz.isNotNull()) {
 				barHorz->setParent(this);
 				barHorz->setMinimumValue(0, UIUpdateMode::None);
 				barHorz->setMaximumValue(attrs->contentWidth, UIUpdateMode::None);
-				barHorz->setPage(width, UIUpdateMode::None);
+				barHorz->setPage(pageWidth, UIUpdateMode::None);
 				barHorz->setValueOfOutRange(attrs->x, UIUpdateMode::None);
 				barHorz->setFrame(UIRect(0, height - attrs->barWidth, width, height), UIUpdateMode::None);
 				barHorz->setOnChange(SLIB_FUNCTION_WEAKREF(this, _onScrollBarChangeValue));
@@ -7137,14 +7171,14 @@ namespace slib
 				barVert->setVertical(UIUpdateMode::None);
 				barVert->setMinimumValue(0, UIUpdateMode::None);
 				barVert->setMaximumValue(attrs->contentHeight, UIUpdateMode::None);
-				barVert->setPage(height, UIUpdateMode::None);
+				barVert->setPage(pageHeight, UIUpdateMode::None);
 				barVert->setValueOfOutRange(attrs->y, UIUpdateMode::None);
 				barVert->setFrame(UIRect(width - attrs->barWidth, 0, width, height), UIUpdateMode::None);
 				barVert->setOnChange(SLIB_FUNCTION_WEAKREF(this, _onScrollBarChangeValue));
 				attrs->flagValidVert = barVert->isValid();
 			}
-			sl_scroll_pos x = priv::view::ClampScrollPos(attrs->x, attrs->contentWidth - (sl_scroll_pos)(getWidth()));
-			sl_scroll_pos y = priv::view::ClampScrollPos(attrs->y, attrs->contentHeight - (sl_scroll_pos)(getHeight()));
+			sl_scroll_pos x = priv::view::ClampScrollPos(attrs->x, attrs->contentWidth - pageWidth);
+			sl_scroll_pos y = priv::view::ClampScrollPos(attrs->y, attrs->contentHeight - pageHeight);
 			if (!(Math::isAlmostZero(x - attrs->x) && Math::isAlmostZero(y - attrs->y))) {
 				if (_scrollTo(x, y, sl_true, sl_true, sl_false)) {
 					invalidate(mode);
@@ -7172,7 +7206,7 @@ namespace slib
 		}
 	}
 
-	sl_ui_len View::getPageWidth()
+	sl_scroll_pos View::getPageWidth()
 	{
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
@@ -7181,17 +7215,22 @@ namespace slib
 		return 0;
 	}
 
-	void View::setPageWidth(sl_ui_len width)
+	void View::setPageWidth(sl_scroll_pos width, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
+			if (Math::isAlmostZero(width - attrs->pageWidth)) {
+				attrs->pageWidth = width;
+				return;
+			}
 			attrs->pageWidth = width;
 			onUpdatePaging();
+			refreshScroll(mode);
 		}
 	}
 
-	sl_ui_len View::getPageHeight()
+	sl_scroll_pos View::getPageHeight()
 	{
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
@@ -7200,13 +7239,18 @@ namespace slib
 		return 0;
 	}
 
-	void View::setPageHeight(sl_ui_len height)
+	void View::setPageHeight(sl_scroll_pos height, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
+			if (Math::isAlmostZero(height - attrs->pageHeight)) {
+				attrs->pageHeight = height;
+				return;
+			}
 			attrs->pageHeight = height;
 			onUpdatePaging();
+			refreshScroll(mode);
 		}
 	}
 
@@ -7271,8 +7315,8 @@ namespace slib
 			return sl_false;
 		}
 		
-		sl_real width = (sl_real)(getWidth());;
-		sl_real height = (sl_real)(getHeight());
+		sl_scroll_pos pageWidth = priv::view::GetPageWidth(this, attrs);
+		sl_scroll_pos pageHeight = priv::view::GetPageHeight(this, attrs);
 
 		sl_bool flagFinishX = flagFinish;
 		sl_bool flagFinishY = flagFinish;
@@ -7280,7 +7324,7 @@ namespace slib
 		if (flagPreprocess) {
 			sl_scroll_pos comp;
 			if (attrs->flagHorz) {
-				sl_real w = width;
+				sl_scroll_pos w = pageWidth;
 				if (attrs->contentWidth > w) {
 					comp = -(w * BOUNCE_WEIGHT);
 					if (x < comp) {
@@ -7299,7 +7343,7 @@ namespace slib
 				flagFinishX = sl_true;
 			}
 			if (attrs->flagVert) {
-				sl_real h = height;
+				sl_scroll_pos h = pageHeight;
 				if (attrs->contentHeight > h) {
 					comp = -(h * BOUNCE_WEIGHT);
 					if (y < comp) {
@@ -7350,9 +7394,9 @@ namespace slib
 						x = 0;
 						flagTarget = sl_true;
 					}
-					if (attrs->contentWidth > width) {
-						if (x > attrs->contentWidth - width) {
-							x = attrs->contentWidth - width;
+					if (attrs->contentWidth > pageWidth) {
+						if (x > attrs->contentWidth - pageWidth) {
+							x = attrs->contentWidth - pageWidth;
 							flagTarget = sl_true;
 						}
 					}
@@ -7362,9 +7406,9 @@ namespace slib
 						y = 0;
 						flagTarget = sl_true;
 					}
-					if (attrs->contentHeight > height) {
-						if (y > attrs->contentHeight - height) {
-							y = attrs->contentHeight - height;
+					if (attrs->contentHeight > pageHeight) {
+						if (y > attrs->contentHeight - pageHeight) {
+							y = attrs->contentHeight - pageHeight;
 							flagTarget = sl_true;
 						}
 					}
@@ -10080,21 +10124,28 @@ namespace slib
 			return;
 		}
 
-		UIAction action = ev->getAction();
-		
+		sl_ui_len iWidth = getWidth();
+		sl_ui_len iHeight = getHeight();
+		if (iWidth < 1 || iHeight < 1) {
+			return;
+		}
+		sl_scroll_pos width = (sl_scroll_pos)iWidth;
+		sl_scroll_pos height = (sl_scroll_pos)iHeight;
+
 		sl_bool flagHorz = scrollAttrs->flagHorz;
 		sl_bool flagVert = scrollAttrs->flagVert;
-		
-		if (flagHorz && scrollAttrs->contentWidth <= (sl_scroll_pos)(getWidth())) {
+		if (flagHorz && scrollAttrs->contentWidth <= width) {
 			flagHorz = sl_false;
 		}
-		if (flagVert && scrollAttrs->contentHeight <= (sl_scroll_pos)(getHeight())) {
+		if (flagVert && scrollAttrs->contentHeight <= height) {
 			flagVert = sl_false;
 		}
-
 		if (!flagHorz && !flagVert) {
 			return;
 		}
+
+		UIAction action = ev->getAction();
+
 		if (!(flagHorz && flagVert)) {
 			if (action == UIAction::TouchMove) {
 				if (scrollAttrs->flagDownContent) {
@@ -10129,9 +10180,11 @@ namespace slib
 				}
 			}
 		}
-		
-		sl_scroll_pos lineX = (sl_scroll_pos)(getWidth() / 20);
-		sl_scroll_pos lineY = (sl_scroll_pos)(getHeight() / 20);
+
+		sl_scroll_pos pageWidth = priv::view::GetPageWidth(scrollAttrs, width);
+		sl_scroll_pos pageHeight = priv::view::GetPageHeight(scrollAttrs, height);
+		sl_scroll_pos lineX = pageWidth / 20.0;
+		sl_scroll_pos lineY = pageHeight / 20.0;
 
 		switch (action) {
 			case UIAction::LeftButtonDown:
@@ -10158,10 +10211,10 @@ namespace slib
 						sl_scroll_pos sx = scrollAttrs->x;
 						sl_scroll_pos sy = scrollAttrs->y;
 						if (flagHorz) {
-							sx -= offset.x;
+							sx -= offset.x * pageWidth / width;
 						}
 						if (flagVert) {
-							sy -= offset.y;
+							sy -= offset.y * pageHeight / height;
 						}
 						if (scrollAttrs->flagSmoothContentScrolling) {
 							_scrollTo(sx, sy, sl_true, sl_true, sl_false);
@@ -10207,12 +10260,10 @@ namespace slib
 							scrollAttrs->motionTracker.getVelocity(&speed);
 						}
 						if (flagHorz) {
-							sl_scroll_pos pageWidth = (sl_scroll_pos)(scrollAttrs->pageWidth == 0 ? getWidth() : scrollAttrs->pageWidth);
-							priv::view::ScrollPagingElement(x, speed.x, pageWidth);
+							priv::view::ScrollPagingElement(x, speed.x * pageWidth / width, pageWidth);
 						}
 						if (flagVert) {
-							sl_scroll_pos pageHeight = (sl_scroll_pos)(scrollAttrs->pageHeight == 0 ? getHeight() : scrollAttrs->pageHeight);
-							priv::view::ScrollPagingElement(y, speed.y, pageHeight);
+							priv::view::ScrollPagingElement(y, speed.y * pageHeight / height, pageHeight);
 						}
 						smoothScrollTo(x, y);
 					} else {
@@ -10220,10 +10271,14 @@ namespace slib
 							scrollAttrs->motionTracker.addMovement(ev->getPoint());
 							Point speed;
 							if (scrollAttrs->motionTracker.getVelocity(&speed)) {
-								if (!flagHorz) {
+								if (flagHorz) {
+									speed.x = (sl_real)(speed.x * pageWidth / width);
+								} else {
 									speed.x = 0;
 								}
-								if (!flagVert) {
+								if (flagVert) {
+									speed.y = (sl_real)(speed.y * pageHeight / height);
+								} else {
 									speed.y = 0;
 								}
 								_startContentScrollingFlow(sl_false, speed);
@@ -10337,12 +10392,12 @@ namespace slib
 					case Keycode::PageUp:
 						if (ev->isShiftKey()) {
 							if (flagHorz) {
-								sx -= (sl_scroll_pos)(getWidth());
+								sx -= pageWidth;
 								flagChange = sl_true;
 							}
 						} else {
 							if (flagVert) {
-								sy -= (sl_scroll_pos)(getHeight());
+								sy -= pageHeight;
 								flagChange = sl_true;
 							}
 						}
@@ -10350,12 +10405,12 @@ namespace slib
 					case Keycode::PageDown:
 						if (ev->isShiftKey()) {
 							if (flagHorz) {
-								sx += (sl_scroll_pos)(getWidth());
+								sx += pageWidth;
 								flagChange = sl_true;
 							}
 						} else {
 							if (flagVert) {
-								sy += (sl_scroll_pos)(getHeight());
+								sy += pageHeight;
 								flagChange = sl_true;
 							}
 						}
@@ -10454,7 +10509,7 @@ namespace slib
 #else
 		sl_real T = (sl_real)(UIResource::getScreenMinimum() / 4);
 #endif
-		
+
 		if (scrollAttrs->flagSmoothTarget) {
 
 			sl_bool flagX = sl_false, flagY = sl_false;
@@ -10476,11 +10531,21 @@ namespace slib
 			sl_scroll_pos y = scrollAttrs->y;
 			
 			sl_bool flagFinish = sl_false;
-			if (scrollAttrs->speedFlow.getLength() <= T / 5) {
+			Point speedFlow = scrollAttrs->speedFlow;
+			Point speedScreen(0, 0);
+			if (scrollAttrs->flagValidHorz) {
+				sl_ui_len width = getWidth();
+				speedScreen.x = (sl_real)(speedFlow.x * width / priv::view::GetPageWidth(scrollAttrs, width));
+			}
+			if (scrollAttrs->flagValidVert) {
+				sl_ui_len height = getHeight();
+				speedScreen.y = (sl_real)(speedFlow.y * height / priv::view::GetPageHeight(scrollAttrs, height));
+			}
+			if (speedScreen.getLength() <= T / 5) {
 				flagFinish = sl_true;
 			} else {
-				x -= scrollAttrs->speedFlow.x * dt;
-				y -= scrollAttrs->speedFlow.y * dt;
+				x -= speedFlow.x * dt;
+				y -= speedFlow.y * dt;
 				scrollAttrs->speedFlow *= 0.95f;
 			}
 
@@ -10528,7 +10593,7 @@ namespace slib
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
 			SLIB_VIEW_RUN_ON_UI_THREAD(_setInstancePaging)
-			instance->setPaging(this, isPaging(), getPageWidth(), getPageHeight());
+			instance->setPaging(this, isPaging(), (sl_ui_len)(getPageWidth()), (sl_ui_len)(getPageHeight()));
 		}
 	}
 
