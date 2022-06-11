@@ -817,15 +817,17 @@ namespace slib
 				sl_uint32 lenEncryptionKey = 0;
 
 			protected:
+				sl_uint32 m_maxObjectNumber = 0;
 				Array<CrossReferenceEntry> m_references;
-				ExpiringMap<sl_uint64, PdfValue> m_objects;
+				ExpiringMap<sl_uint64, PdfValue> m_objectsCache;
+				CHashMap< sl_uint32, Pair<PdfValue, sl_uint32> > m_objectsUpdate;
 				ExpiringMap< sl_uint64, Ref<ObjectStream> > m_objectStreams;
 				Ref<PageTreeParent> m_pageTree;
 
 			public:
 				Context()
 				{
-					m_objects.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT);
+					m_objectsCache.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT);
 					m_objectStreams.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT_STREAM);
 				}
 
@@ -834,9 +836,9 @@ namespace slib
 				virtual sl_bool readDocument() = 0;
 				
 			public:
-				sl_uint32 getObjectTableLength()
+				sl_uint32 getMaximumObjectNumber()
 				{
-					return (sl_uint32)(m_references.getCount());
+					return m_maxObjectNumber;
 				}
 
 				Ref<ObjectStream> getObjectStream(const PdfReference& ref);
@@ -903,14 +905,25 @@ namespace slib
 
 				PdfValue getObject(const PdfReference& ref)
 				{
+					if (!(ref.objectNumber)) {
+						return PdfValue();
+					}
+					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(ref.objectNumber);
+					if (pItem) {
+						if (ref.generation == pItem->second) {
+							return pItem->first;
+						} else {
+							return sl_false;
+						}
+					}
 					sl_uint64 _id = GetObjectId(ref);
 					PdfValue ret;
-					if (m_objects.get(_id, &ret)) {
+					if (m_objectsCache.get(_id, &ret)) {
 						return ret;
 					}
 					ret = readObject(ref);
 					if (ret.isNotUndefined()) {
-						m_objects.put(_id, ret);
+						m_objectsCache.put(_id, ret);
 						return ret;
 					}
 					return PdfValue();
@@ -923,6 +936,108 @@ namespace slib
 						return getObject(ref);
 					}
 					return value;
+				}
+
+				sl_bool _setObject(const PdfReference& ref, const PdfValue& value)
+				{
+					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(ref.objectNumber);
+					if (pItem) {
+						pItem->first = value;
+						pItem->second = ref.generation;
+						return sl_true;
+					} else {
+						return m_objectsUpdate.add_NoLock(ref.objectNumber, value, ref.generation);
+					}
+				}
+
+				sl_bool setObject(const PdfReference& ref, const PdfValue& value)
+				{
+					if (!(ref.objectNumber)) {
+						return sl_false;
+					}
+					if (value.isUndefined()) {
+						return deleteObject(ref);
+					}
+					if (ref.objectNumber > m_maxObjectNumber) {
+						return sl_false;
+					}
+					return _setObject(ref, value);
+				}
+
+				sl_bool isFreeObject(sl_uint32 objectNumber, sl_uint32& outGeneration)
+				{
+					if (m_objectsUpdate.find_NoLock(objectNumber)) {
+						return sl_false;
+					}
+					CrossReferenceEntry* entry = m_references.getPointerAt(objectNumber);
+					if (!entry) {
+						outGeneration = 0;
+						return sl_true;
+					}
+					if (entry->type == (sl_uint32)(CrossReferenceEntryType::Free)) {
+						outGeneration = entry->generation;
+						return sl_true;
+					}
+					return sl_false;
+				}
+
+				sl_bool addObject(const PdfValue& value, PdfReference& outRef)
+				{
+					if (value.isUndefined()) {
+						return sl_false;
+					}
+					ArrayElements<CrossReferenceEntry> ref(m_references);
+					sl_uint32 n = m_maxObjectNumber;
+					for (sl_uint32 i = 1; i <= n; i++) {
+						if (isFreeObject(i, outRef.generation)) {
+							outRef.objectNumber = i;
+							return _setObject(outRef, value);
+						}
+					}
+					n++;
+					m_maxObjectNumber = n;
+					outRef.objectNumber = n;
+					outRef.generation = 0;
+					return _setObject(outRef, value);
+				}
+
+				sl_bool deleteObject(const PdfReference& ref)
+				{
+					if (!(ref.objectNumber) || ref.objectNumber >= m_maxObjectNumber) {
+						return sl_false;
+					}
+					sl_uint64 _id = GetObjectId(ref);
+					m_objectsCache.remove(_id);
+					CrossReferenceEntry* entry = m_references.getPointerAt(ref.objectNumber);
+					if (entry) {
+						m_objectsUpdate.remove_NoLock(ref.objectNumber);
+						if (entry->type == (sl_uint32)(CrossReferenceEntryType::Normal)) {
+							if (entry->generation == ref.generation) {
+								entry->type = (sl_uint32)(CrossReferenceEntryType::Free);
+								entry->generation++;
+								entry->nextFreeObject = 0;
+								return sl_true;
+							}
+						} else if (entry->type == (sl_uint32)(CrossReferenceEntryType::Compressed)) {
+							entry->type = (sl_uint32)(CrossReferenceEntryType::Free);
+							entry->generation = 1;
+							entry->nextFreeObject = 0;
+							return sl_true;
+						}
+						return sl_false;
+					} else {
+						return m_objectsUpdate.remove_NoLock(ref.objectNumber);
+					}
+				}
+
+				sl_bool deleteObject(const PdfValue& value)
+				{
+					PdfReference ref;
+					if (value.getReference(ref)) {
+						return deleteObject(ref);
+					} else {
+						return sl_true;
+					}
 				}
 
 				void decrypt(const PdfReference& ref, void* buf, sl_size size)
@@ -975,7 +1090,7 @@ namespace slib
 					if (m_pageTree.isNotNull()) {
 						return m_pageTree.get();
 					}
-					const PdfDictionary& attrs = getObject(catalog.getValue_NoLock(name::Pages)).getDictionary();
+					PdfDictionary attrs = getObject(catalog.getValue_NoLock(name::Pages)).getDictionary();
 					if (attrs.isNotNull()) {
 						Ref<PageTreeParent> tree = new PageTreeParent;
 						if (tree.isNotNull()) {
@@ -990,9 +1105,9 @@ namespace slib
 				List< Ref<PdfPageTreeItem> > buildPageTreeKids(const PdfDictionary& attributes)
 				{
 					List< Ref<PdfPageTreeItem> > ret;
-					ListElements<PdfValue> kidIds(attributes.getValue_NoLock(name::Kids).getArray());
+					ListElements<PdfValue> kidIds(getObject(attributes.getValue_NoLock(name::Kids)).getArray());
 					for (sl_size i = 0; i < kidIds.count; i++) {
-						const PdfDictionary& props = getObject(kidIds[i]).getDictionary();
+						PdfDictionary props = getObject(kidIds[i]).getDictionary();
 						Ref<PdfPageTreeItem> item;
 						if (props.getValue_NoLock(name::Type).equalsName(StringView::literal("Page"))) {
 							item = new PdfPage;
@@ -1062,8 +1177,25 @@ namespace slib
 					}
 				}
 
-				void deletePage(PdfPage* page)
+				void deletePageContent(PdfPage* page)
 				{
+					PdfValue vContents = getObject(page->attributes.getValue_NoLock(name::Contents));
+					const PdfArray& arrContents = vContents.getArray();
+					if (arrContents.isNotNull()) {
+						ListElements<PdfValue> items(arrContents);
+						for (sl_size i = 0; i < items.count; i++) {
+							deleteObject(items[i]);
+						}
+					} else {
+						deleteObject(vContents);
+					}
+					PdfValue vResources;
+					if (page->attributes.remove(name::Resources, &vResources)) {
+						PdfDictionary resources = getObject(vResources).getDictionary();
+						if (resources.isNotNull()) {
+							deleteObject(vResources);
+						}
+					}
 				}
 
 				void deletePage(PageTreeParent* parent, sl_uint32 index)
@@ -1081,7 +1213,8 @@ namespace slib
 						Ref<PdfPageTreeItem>& item = kids[i];
 						if (item->isPage()) {
 							if (index == n) {
-								deletePage((PdfPage*)(item.get()));
+								deleteObject(getObject(parent->attributes.getValue_NoLock(name::Kids)).getArray().getValueAt_NoLock(index));
+								deletePageContent((PdfPage*)(item.get()));
 								return;
 							}
 							n++;
@@ -1371,13 +1504,6 @@ namespace slib
 			private:
 				sl_uint32 pos = 0;
 
-			};
-
-			class CrossReferenceTable
-			{
-			public:
-				Ref<Context> context;
-				PdfDictionary trailer;
 			};
 
 			template <class READER_BASE>
@@ -2217,7 +2343,7 @@ namespace slib
 					return sl_false;
 				}
 
-				sl_bool readCrossReferenceSection(CrossReferenceTable& table)
+				sl_bool readCrossReferenceSection()
 				{
 					sl_uint32 firstObjectNumber;
 					if (readUint(firstObjectNumber)) {
@@ -2232,7 +2358,7 @@ namespace slib
 									if (!(readCrossReferenceEntry(entry))) {
 										return sl_false;
 									}
-									table.context->setReferenceEntry(firstObjectNumber + i, entry);
+									setReferenceEntry(firstObjectNumber + i, entry);
 								}
 								return sl_true;
 							}
@@ -2241,106 +2367,125 @@ namespace slib
 					return sl_false;
 				}
 
-				sl_bool readCrossReferenceTable(CrossReferenceTable& table)
+				sl_bool readCrossReferenceStream(PdfDictionary& outTrailer)
+				{
+					PdfReference refStream;
+					PdfValue vStream = readObject(refStream);
+					if (refStream.generation) {
+						return sl_false;
+					}
+					const Ref<PdfStream>& stream = vStream.getStream();
+					if (stream.isNull()) {
+						return sl_false;
+					}
+					if (!(stream->getProperty(name::Type).equalsName(StringView::literal("XRef")))) {
+						return sl_false;
+					}
+					sl_uint32 size;
+					if (!(stream->getProperty(name::Size).getUint(size))) {
+						return sl_false;
+					}
+					ListElements<PdfValue> entrySizes(stream->getProperty(name::W).getArray());
+					if (entrySizes.count != 3) {
+						return sl_false;
+					}
+					if (!(entrySizes[0].getType() == PdfValueType::Uint && entrySizes[1].getType() == PdfValueType::Uint && entrySizes[2].getType() == PdfValueType::Uint)) {
+						return sl_false;
+					}
+					CList< Pair<sl_uint32, sl_uint32> > listSectionRanges;
+					sl_size nEntries = 0;
+					PdfValue vIndex = stream->getProperty(name::Index);
+					if (vIndex.isNotUndefined()) {
+						if (vIndex.getType() != PdfValueType::Array) {
+							return sl_false;
+						}
+						ListElements<PdfValue> indices(vIndex.getArray());
+						if (indices.count & 1) {
+							return sl_false;
+						}
+						for (sl_size i = 0; i < indices.count; i += 2) {
+							sl_uint32 start, count;
+							if (!(indices[i].getUint(start))) {
+								return sl_false;
+							}
+							if (!(indices[i + 1].getUint(count))) {
+								return sl_false;
+							}
+							listSectionRanges.add_NoLock(start, count);
+							nEntries += count;
+						}
+					} else {
+						listSectionRanges.add_NoLock(0, size);
+						nEntries = size;
+					}
+					sl_uint32 sizeType = entrySizes[0].getUint();
+					sl_uint32 sizeOffset = entrySizes[1].getUint();
+					sl_uint32 sizeGeneration = entrySizes[2].getUint();
+					sl_uint32 sizeEntry = sizeType + sizeOffset + sizeGeneration;
+					Memory content = stream->getDecodedContent(this);
+					if (content.getSize() >= sizeEntry * nEntries) {
+						sl_uint8* p = (sl_uint8*)(content.getData());
+						ListElements< Pair<sl_uint32, sl_uint32> > sectionRanges(listSectionRanges);
+						for (sl_size iSection = 0; iSection < sectionRanges.count; iSection++) {
+							Pair<sl_uint32, sl_uint32>& range = sectionRanges[iSection];
+							for (sl_uint32 i = 0; i < range.second; i++) {
+								CrossReferenceEntry entry;
+								sl_uint32 type = ReadUint(p, sizeType, 1);
+								if (type > 2) {
+									return sl_false;
+								}
+								entry.type = type;
+								p += sizeType;
+								entry.offset = ReadUint(p, sizeOffset, 0);
+								p += sizeOffset;
+								entry.generation = ReadUint(p, sizeGeneration, 0);
+								p += sizeGeneration;
+								setReferenceEntry(range.first + i, entry);
+							}
+						}
+						outTrailer = stream->properties;
+						return sl_true;
+					}
+					return sl_false;
+				}
+
+				sl_bool readCrossReferenceTable(PdfDictionary& outTrailer)
+				{
+					if (!(readWordAndEquals(StringView::literal("xref")))) {
+						return sl_false;
+					}
+					sl_char8 ch;
+					for (;;) {
+						if (!(skipWhitespaces())) {
+							return sl_false;
+						}
+						if (!(peekChar(ch))) {
+							break;
+						}
+						if (ch == 't') {
+							outTrailer = readTrailer();
+							return outTrailer.isNotNull();
+						} else if (ch >= '0' && ch <= '9') {
+							if (!(readCrossReferenceSection())) {
+								return sl_false;
+							}
+						} else {
+							break;
+						}
+					}
+					return sl_true;
+				}
+
+				sl_bool readCrossReferences(PdfDictionary& outTrailer)
 				{
 					sl_char8 ch;
 					if (!(peekChar(ch))) {
 						return sl_false;
 					}
 					if (ch == 'x') {
-						// cross reference table
-						if (readWordAndEquals(StringView::literal("xref"))) {
-							for (;;) {
-								if (!(skipWhitespaces())) {
-									return sl_false;
-								}
-								if (!(peekChar(ch))) {
-									break;
-								}
-								if (ch == 't') {
-									table.trailer = readTrailer();
-									return table.trailer.isNotNull();
-								} else if (ch >= '0' && ch <= '9') {
-									if (!(readCrossReferenceSection(table))) {
-										return sl_false;
-									}
-								} else {
-									break;
-								}
-							}
-							return sl_true;
-						}
+						return readCrossReferenceTable(outTrailer);
 					} else {
-						// cross reference stream
-						PdfReference refStream;
-						const Ref<PdfStream> stream = readObject(refStream).getStream();
-						if (stream.isNotNull()) {
-							if (stream->getProperty(name::Type).equalsName(StringView::literal("XRef"))) {
-								sl_uint32 size;
-								if (stream->getProperty(name::Size).getUint(size)) {
-									ListElements<PdfValue> entrySizes(stream->getProperty(name::W).getArray());
-									if (entrySizes.count == 3) {
-										if (entrySizes[0].getType() == PdfValueType::Uint && entrySizes[1].getType() == PdfValueType::Uint && entrySizes[2].getType() == PdfValueType::Uint) {
-											CList< Pair<sl_uint32, sl_uint32> > listSectionRanges;
-											sl_size nEntries = 0;
-											PdfValue vIndex = stream->getProperty(name::Index);
-											if (vIndex.isNotUndefined()) {
-												if (vIndex.getType() != PdfValueType::Array) {
-													return sl_false;
-												}
-												ListElements<PdfValue> indices(vIndex.getArray());
-												if (indices.count & 1) {
-													return sl_false;
-												}
-												for (sl_size i = 0; i < indices.count; i += 2) {
-													sl_uint32 start, count;
-													if (!(indices[i].getUint(start))) {
-														return sl_false;
-													}
-													if (!(indices[i + 1].getUint(count))) {
-														return sl_false;
-													}
-													listSectionRanges.add_NoLock(start, count);
-													nEntries += count;
-												}
-											} else {
-												listSectionRanges.add_NoLock(0, size);
-												nEntries = size;
-											}
-											sl_uint32 sizeType = entrySizes[0].getUint();
-											sl_uint32 sizeOffset = entrySizes[1].getUint();
-											sl_uint32 sizeGeneration = entrySizes[2].getUint();
-											sl_uint32 sizeEntry = sizeType + sizeOffset + sizeGeneration;
-											Memory content = stream->getDecodedContent(this);
-											if (content.getSize() >= sizeEntry * nEntries) {
-												sl_uint8* p = (sl_uint8*)(content.getData());
-												ListElements< Pair<sl_uint32, sl_uint32> > sectionRanges(listSectionRanges);
-												for (sl_size iSection = 0; iSection < sectionRanges.count; iSection++) {
-													Pair<sl_uint32, sl_uint32>& range = sectionRanges[iSection];
-													for (sl_uint32 i = 0; i < range.second; i++) {
-														CrossReferenceEntry entry;
-														sl_uint32 type = ReadUint(p, sizeType, 1);
-														if (type > 2) {
-															return sl_false;
-														}
-														entry.type = type;
-														p += sizeType;
-														entry.offset = ReadUint(p, sizeOffset, 0);
-														p += sizeOffset;
-														entry.generation = ReadUint(p, sizeGeneration, 0);
-														p += sizeGeneration;
-														table.context->setReferenceEntry(range.first + i, entry);
-													}
-												}
-												table.trailer = stream->properties;
-												return sl_true;
-											}
-										}
-
-									}
-								}
-							}
-						}
+						return readCrossReferenceStream(outTrailer);
 					}
 					return sl_false;
 				}
@@ -2395,12 +2540,9 @@ namespace slib
 							if (!(setPosition(posXref))) {
 								return sl_false;
 							}
-							CrossReferenceTable subTable;
-							subTable.context = this;
-							if (!(readCrossReferenceTable(subTable))) {
+							if (!(readCrossReferences(lastTrailer))) {
 								return sl_false;
 							}
-							lastTrailer = subTable.trailer;
 						}
 						// initialize reference table
 						{
@@ -2414,17 +2556,17 @@ namespace slib
 								return sl_false;
 							}
 							Base::zeroMemory(m_references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
+							m_maxObjectNumber = countTotalRef - 1;
 						}
 						for (;;) {
 							if (!(setPosition(posXref))) {
 								return sl_false;
 							}
-							CrossReferenceTable subTable;
-							subTable.context = this;
-							if (!(readCrossReferenceTable(subTable))) {
+							PdfDictionary trailer;
+							if (!(readCrossReferences(trailer))) {
 								return sl_false;
 							}
-							PdfValue prev = subTable.trailer.getValue_NoLock(name::Prev);
+							PdfValue prev = trailer.getValue_NoLock(name::Prev);
 							if (prev.isUndefined()) {
 								break;
 							}
@@ -5784,7 +5926,7 @@ namespace slib
 		subtype = PdfFontResource::getSubtype(dict.getValue_NoLock(name::Subtype).getName());
 		baseFont = dict.getValue_NoLock(name::BaseFont).getName();
 		if (subtype == PdfFontSubtype::Type0) {
-			const PdfDictionary& cidFont = doc->getObject(doc->getObject(dict.getValue_NoLock(name::DescendantFonts)).getArray().getValueAt(0)).getDictionary();
+			PdfDictionary cidFont = doc->getObject(doc->getObject(dict.getValue_NoLock(name::DescendantFonts)).getArray().getValueAt(0)).getDictionary();
 			if (cidFont.isNull()) {
 				return sl_false;
 			}
@@ -5798,7 +5940,7 @@ namespace slib
 		if (encodingName.isNotNull()) {
 			encoding = Pdf::getEncoding(encodingName);
 		} else {
-			const PdfDictionary& dict = doc->getObject(vEncoding).getDictionary();
+			PdfDictionary dict = doc->getObject(vEncoding).getDictionary();
 			if (dict.isNotNull()) {
 				encoding = Pdf::getEncoding(dict.getValue_NoLock(name::BaseEncoding).getString());
 				PdfArray array = dict.getValue_NoLock(name::Differences).getArray();
@@ -5912,7 +6054,7 @@ namespace slib
 		if (cache.fonts.get(ref.objectNumber, &ret)) {
 			return ret;
 		}
-		const PdfDictionary& dict = doc->getObject(ref).getDictionary();
+		PdfDictionary dict = doc->getObject(ref).getDictionary();
 		if (dict.isNotNull()) {
 			ret = new PdfFont;
 			if (ret.isNotNull()) {
@@ -7215,7 +7357,7 @@ namespace slib
 			ObjectLocker locker(document.get());
 			Context* context = GetContext(document->m_context);
 			if (context) {
-				return context->getPageContent(attributes.getValue_NoLock(name::Contents));
+				return context->getPageContent(context->getObject(attributes.getValue_NoLock(name::Contents)));
 			}
 		}
 		return sl_null;
@@ -7353,7 +7495,7 @@ namespace slib
 			if (context) {
 				Ref<PdfPageTreeItem> item = this;
 				for (;;) {
-					const PdfDictionary& dict = context->getObject(item->attributes.getValue_NoLock(name::Resources)).getDictionary();
+					PdfDictionary dict = context->getObject(item->attributes.getValue_NoLock(name::Resources)).getDictionary();
 					if (dict.isNotNull()) {
 						PdfValue ret = dict.getValue_NoLock(type);
 						if (ret.isNotUndefined()) {
@@ -7383,7 +7525,7 @@ namespace slib
 			if (context) {
 				Ref<PdfPageTreeItem> item = this;
 				for (;;) {
-					const PdfDictionary& dict = context->getObject(item->attributes.getValue_NoLock(name::Resources)).getDictionary();
+					PdfDictionary dict = context->getObject(item->attributes.getValue_NoLock(name::Resources)).getDictionary();
 					if (dict.isNotNull()) {
 						PdfValue ret = dict.getValue_NoLock(type).getDictionary().getValue_NoLock(name);
 						if (ret.isNotUndefined()) {
@@ -7487,11 +7629,11 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 PdfDocument::getObjectTableLength()
+	sl_uint32 PdfDocument::getMaximumObjectNumber()
 	{
 		Context* context = GetContext(m_context);
 		if (context) {
-			return context->getObjectTableLength();
+			return context->getMaximumObjectNumber();
 		}
 		return 0;
 	}
@@ -7526,6 +7668,46 @@ namespace slib
 			return context->readObject(objectNumber, gen);
 		}
 		return PdfValue();
+	}
+
+	sl_bool PdfDocument::setObject(const PdfReference& ref, const PdfValue& value)
+	{
+		ObjectLocker lock(this);
+		Context* context = GetContext(m_context);
+		if (context) {
+			return context->setObject(ref, value);
+		}
+		return sl_false;
+	}
+
+	sl_bool PdfDocument::addObject(const PdfValue& value, PdfReference& outRef)
+	{
+		ObjectLocker lock(this);
+		Context* context = GetContext(m_context);
+		if (context) {
+			return context->addObject(value, outRef);
+		}
+		return sl_false;
+	}
+
+	sl_bool PdfDocument::deleteObject(const PdfReference& ref)
+	{
+		ObjectLocker lock(this);
+		Context* context = GetContext(m_context);
+		if (context) {
+			return context->deleteObject(ref);
+		}
+		return sl_false;
+	}
+
+	sl_bool PdfDocument::deleteObject(const PdfValue& refOrValue)
+	{
+		ObjectLocker lock(this);
+		Context* context = GetContext(m_context);
+		if (context) {
+			return context->deleteObject(refOrValue);
+		}
+		return sl_false;
 	}
 
 	Memory PdfDocument::readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref)

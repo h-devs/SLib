@@ -454,6 +454,17 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfObject : public PdfValue
+	{
+	public:
+		PdfDocument* document;
+
+	public:
+		template <class T>
+		PdfObject(PdfDocument* _document, T&& t): document(_document), PdfValue(Forward<T>(t)) {}
+
+	};
+
 	class SLIB_EXPORT PdfFunction
 	{
 	public:
@@ -1040,13 +1051,21 @@ namespace slib
 		static Ref<PdfDocument> openMemory(const Memory& mem);
 
 	public:
-		sl_uint32 getObjectTableLength();
+		sl_uint32 getMaximumObjectNumber();
 
 		PdfValue getObject(const PdfReference& ref);
 
-		PdfValue getObject(const PdfValue& refOrValue);
+		PdfValue getObject(const PdfValue& value);
 
 		PdfValue readObject(sl_uint32 objectNumber, sl_uint32& outGeneration);
+
+		sl_bool setObject(const PdfReference& ref, const PdfValue& value);
+
+		sl_bool addObject(const PdfValue& value, PdfReference& outRef);
+
+		sl_bool deleteObject(const PdfReference& ref);
+
+		sl_bool deleteObject(const PdfValue& refOrValue);
 
 		Memory decodeStreamContent(PdfStream* stream);
 
