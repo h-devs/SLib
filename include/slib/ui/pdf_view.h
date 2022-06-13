@@ -43,11 +43,11 @@ namespace slib
 		~PdfView();
 
 	public:
-		sl_bool openFile(const StringParam& filePath);
+		sl_bool openFile(const StringParam& filePath, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool openMemory(const Memory& mem);
+		sl_bool openMemory(const Memory& mem, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void close();
+		void close(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isUsingPageCache();
 
@@ -55,7 +55,11 @@ namespace slib
 
 		Ref<PdfDocument> getDocument();
 
+		sl_uint32 getCurrentPage();
+
 		void goToPage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool deletePage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	protected:
 		void onDraw(Canvas* canvas) override;
@@ -63,7 +67,9 @@ namespace slib
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	protected:
-		void _setDocument(const String& path, PdfDocument* doc);
+		sl_bool _setDocument(const String& path, PdfDocument* doc, UIUpdateMode mode);
+
+		void _invalidateChanges(UIUpdateMode mode);
 
 		static Ref<Bitmap> _saveCache(PdfViewContext* context, sl_uint32 page, sl_int32 width, sl_int32 height);
 

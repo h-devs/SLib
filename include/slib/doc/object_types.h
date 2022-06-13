@@ -34,6 +34,8 @@ namespace slib
 			Package_Doc = packages::Doc,
 			PdfDocument,
 			PdfPage,
+			PdfDictionary,
+			PdfArray,
 			PdfStream,
 			PdfFont,
 			PdfExternalObject,

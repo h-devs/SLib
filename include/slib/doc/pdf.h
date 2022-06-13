@@ -254,6 +254,8 @@ namespace slib
 
 	class PdfDocument;
 	class PdfValue;
+	class PdfDictionary;
+	class PdfArray;
 	class PdfStream;
 	class PdfPage;
 	class PdfFont;
@@ -267,9 +269,6 @@ namespace slib
 	class Font;
 	class FreeType;
 	class FreeTypeGlyph;
-
-	typedef HashMap<String, PdfValue> PdfDictionary;
-	typedef List<PdfValue> PdfArray;
 
 	class SLIB_EXPORT PdfReference
 	{
@@ -339,19 +338,19 @@ namespace slib
 		PdfValue(const String& v) noexcept;
 		PdfValue(String&& v) noexcept;
 
-		PdfValue(const PdfArray& v) noexcept;
-		PdfValue(PdfArray&& v) noexcept;
-
-		PdfValue(const PdfDictionary& v) noexcept;
-		PdfValue(PdfDictionary&& v) noexcept;
-
-		PdfValue(const Ref<PdfStream>& v) noexcept;
-		PdfValue(Ref<PdfStream>&& v) noexcept;
-
 		PdfValue(const PdfName& v) noexcept;
 		PdfValue(PdfName&& v) noexcept;
 
 		PdfValue(const PdfReference& v) noexcept;
+
+		PdfValue(const Ref<PdfArray>& v) noexcept;
+		PdfValue(Ref<PdfArray>&& v) noexcept;
+
+		PdfValue(const Ref<PdfDictionary>& v) noexcept;
+		PdfValue(Ref<PdfDictionary>&& v) noexcept;
+
+		PdfValue(const Ref<PdfStream>& v) noexcept;
+		PdfValue(Ref<PdfStream>&& v) noexcept;
 
 		PdfValue(const Ref<PdfImage>& v) noexcept;
 		PdfValue(Ref<PdfImage>&& v) noexcept;
@@ -420,21 +419,37 @@ namespace slib
 
 		sl_bool equalsName(const StringView& name) const noexcept;
 
-		const PdfArray& getArray() const& noexcept;
+		PdfReference getReference() const noexcept;
 
-		PdfArray getArray()&& noexcept;
+		sl_bool getReference(PdfReference& _out) const noexcept;
 
-		const PdfDictionary& getDictionary() const& noexcept;
+		const Ref<PdfArray>& getArray() const& noexcept;
 
-		PdfDictionary getDictionary()&& noexcept;
+		Ref<PdfArray> getArray()&& noexcept;
+
+		// Not resolve indirect reference
+		const List<PdfValue>& getElements() const& noexcept;
+
+		// Not resolve indirect reference
+		List<PdfValue> getElements() && noexcept;
+
+		sl_uint32 getElementsCount() const noexcept;
+
+		PdfValue getElement(sl_size index, sl_bool flagResolveReference = sl_true) const;
+
+		const Ref<PdfDictionary>& getDictionary() const& noexcept;
+
+		Ref<PdfDictionary> getDictionary()&& noexcept;
+
+		PdfValue getItem(const String& name, sl_bool flagResolveReference = sl_true) const;
+
+		PdfValue getItem(const String& name, const String& alternateName, sl_bool flagResolveReference = sl_true) const;
 
 		const Ref<PdfStream>& getStream() const& noexcept;
 
 		Ref<PdfStream> getStream()&& noexcept;
 
-		PdfReference getReference() const noexcept;
-
-		sl_bool getReference(PdfReference& _out) const noexcept;
+		Memory getDecodedStreamContent() const;
 
 		const Ref<PdfImage>& getImage() const& noexcept;
 
@@ -449,19 +464,111 @@ namespace slib
 
 		sl_bool getMatrix(Matrix3& _out) const noexcept;
 
+	public:
+		PdfValue operator[](const String& name) const;
+
+		PdfValue operator[](sl_size index) const;
+
 	private:
 		Variant m_var;
 
 	};
 
-	class SLIB_EXPORT PdfObject : public PdfValue
+	class SLIB_EXPORT PdfArray : public CList<PdfValue>
 	{
-	public:
-		PdfDocument* document;
+		SLIB_DECLARE_OBJECT
 
 	public:
-		template <class T>
-		PdfObject(PdfDocument* _document, T&& t): document(_document), PdfValue(Forward<T>(t)) {}
+		PdfArray(Referable* context) noexcept;
+
+		~PdfArray();
+
+	public:
+		sl_uint32 getCount() const noexcept;
+
+		PdfValue get(sl_size index, sl_bool flagResolveReference = sl_true) const;
+
+		template <class VALUE>
+		sl_bool add(VALUE&& value)
+		{
+			return add_NoLock(Forward<VALUE>(value));
+		}
+
+	private:
+		WeakRef<Referable> m_context;
+
+	};
+
+	class SLIB_EXPORT PdfDictionary : public CHashMap<String, PdfValue>
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		PdfDictionary(Referable* context) noexcept;
+
+		~PdfDictionary();
+
+	public:
+		PdfValue get(const String& name, sl_bool flagResolveReference = sl_true) const;
+
+		PdfValue get(const String& name, const String& alternateName, sl_bool flagResolveReference = sl_true) const;
+
+		template <class KEY, class VALUE>
+		sl_bool add(KEY&& name, VALUE&& value)
+		{
+			return add_NoLock(Forward<KEY>(name), Forward<VALUE>(value));
+		}
+
+		template <class KEY, class VALUE>
+		sl_bool put(KEY&& name, VALUE&& value)
+		{
+			return put_NoLock(Forward<KEY>(name), Forward<VALUE>(value));
+		}
+
+		sl_bool remove(const String& name, PdfValue* pOut = sl_null);
+
+	private:
+		WeakRef<Referable> m_context;
+
+	};
+
+	class SLIB_EXPORT PdfStream : public Referable
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		Ref<PdfDictionary> properties;
+
+	public:
+		PdfStream(Referable* context) noexcept;
+
+		~PdfStream();
+
+	public:
+		void initialize(const Ref<PdfDictionary>& properties, const PdfReference& ref, sl_uint32 offsetContent, sl_uint32 sizeContent) noexcept;
+
+		PdfValue getProperty(const String& name, sl_bool flagResolveReference = sl_true) noexcept;
+
+		PdfValue getProperty(const String& name, const String& alternateName, sl_bool flagResolveReference = sl_true) noexcept;
+
+		Memory getEncodedContent();
+
+		void setEncodedContent(const Memory& content) noexcept;
+
+		Memory getDecodedContent();
+
+		Memory getDecodedContent(const Memory& content);
+
+		Memory getFilterInput(PdfFilter filter);
+
+		Memory decodeContent(const Memory& input, PdfFilter filter, PdfDictionary* decodeParam);
+
+	private:
+		WeakRef<Referable> m_context;
+		AtomicMemory m_contentEncoded;
+		PdfReference m_ref;
+		sl_uint32 m_offsetContent;
+		sl_uint32 m_sizeContent;
 
 	};
 
@@ -498,16 +605,9 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFunction)
 
 	public:
-		sl_bool load(PdfDocument* doc, const PdfValue& value);
+		sl_bool load(const PdfValue& value);
 
 		sl_bool call(float* input, sl_size nInput, float* output, sl_size nOutput);
-
-	};
-
-	class SLIB_EXPORT PdfContentReader
-	{
-	public:
-		virtual Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) = 0;
 
 	};
 
@@ -522,45 +622,6 @@ namespace slib
 		sl_bool getFontResource(const String& name, PdfReference& outRef);
 
 		sl_bool getExternalObjectResource(const String& name, PdfReference& outRef);
-
-	};
-
-	class SLIB_EXPORT PdfStream : public Referable
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		PdfDictionary properties;
-
-	public:
-		PdfStream() noexcept;
-
-		~PdfStream();
-
-	public:
-		void initialize(const PdfDictionary& properties, const PdfReference& ref, sl_uint32 offsetContent, sl_uint32 sizeContent) noexcept;
-
-		PdfValue getProperty(const String& name) noexcept;
-
-		PdfValue getProperty(const String& name, const String& alternateName) noexcept;
-
-		Memory getEncodedContent(PdfContentReader* reader);
-
-		void setEncodedContent(const Memory& content) noexcept;
-
-		Memory getDecodedContent(PdfContentReader* reader);
-
-		Memory getDecodedContent(const Memory& content);
-
-		Memory getFilterInput(PdfContentReader* reader, PdfFilter filter);
-
-		Memory decodeContent(const Memory& input, PdfFilter filter, const PdfDictionary& decodeParam);
-
-	private:
-		AtomicMemory m_contentEncoded;
-		PdfReference m_ref;
-		sl_uint32 m_offsetContent;
-		sl_uint32 m_sizeContent;
 
 	};
 
@@ -579,7 +640,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFlateOrLZWDecodeParams)
 
 	public:
-		void setParams(const PdfDictionary& dict) noexcept;
+		void setParams(PdfDictionary* dict) noexcept;
 
 		sl_uint32 predict(void* content, sl_uint32 size) noexcept;
 
@@ -601,7 +662,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCCITTFaxDecodeParams)
 
 	public:
-		void setParams(const PdfDictionary& dict) noexcept;
+		void setParams(PdfDictionary* dict) noexcept;
 
 	};
 
@@ -630,7 +691,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfColorSpace)
 
 	public:
-		void load(PdfDocument* doc, const PdfValue& value, PdfResourceProvider* res = sl_null);
+		void load(const PdfValue& value, PdfResourceProvider* res = sl_null);
 
 		sl_uint32 getComponentsCount();
 
@@ -647,11 +708,13 @@ namespace slib
 		static sl_bool getColorFromLab(Color& _out, const PdfValue* values, sl_size count);
 
 	private:
+		void _load(const PdfValue& value, PdfResourceProvider* res, sl_bool flagICCBasedAlternate);
+
 		sl_bool _loadName(const String& name);
 
-		void _loadArray(PdfDocument* doc, const PdfArray& array);
+		void _loadArray(PdfArray* array, sl_bool flagICCBasedAlternate);
 
-		sl_bool _loadIndexed(PdfDocument* doc, sl_uint32 maxIndex, const PdfValue& table);
+		sl_bool _loadIndexed(sl_uint32 maxIndex, const PdfValue& table);
 
 	};
 
@@ -666,7 +729,7 @@ namespace slib
 		float weight;
 		float italicAngle;
 		sl_uint32 flags;
-		PdfReference content;
+		Ref<PdfStream> content;
 
 	public:
 		PdfFontDescriptor();
@@ -674,7 +737,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFontDescriptor)
 
 	public:
-		void load(const PdfDictionary& dict) noexcept;
+		void load(PdfDictionary* dict) noexcept;
 
 	};
 
@@ -693,7 +756,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfCidFontInfo)
 
 	public:
-		void load(PdfDocument* doc, const PdfDictionary& dict) noexcept;
+		void load(PdfDictionary* dict) noexcept;
 
 		float getWidth(sl_uint32 code);
 
@@ -720,7 +783,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFontResource)
 
 	public:
-		sl_bool load(PdfDocument* doc, const PdfDictionary& dict);
+		sl_bool load(PdfDictionary* dict);
 
 		sl_char32 getUnicode(sl_uint32 charcode);
 
@@ -753,7 +816,7 @@ namespace slib
 		float getCharWidth(sl_uint32 charcode, sl_char32 unicode);
 
 	protected:
-		sl_bool _load(PdfDocument* doc, const PdfDictionary& dict);
+		sl_bool _load(PdfDictionary* dict);
 
 	private:
 		ExpiringMap< sl_uint32, Ref<FreeTypeGlyph> > m_cacheGlyphs;
@@ -806,8 +869,8 @@ namespace slib
 		sl_bool flagUseMatte;
 		Color matte;
 
-		PdfReference mask;
-		PdfReference smask;
+		PdfValue mask;
+		Ref<PdfStream> smask;
 
 	public:
 		PdfImageResource();
@@ -815,14 +878,14 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfImageResource)
 
 	public:
-		sl_bool load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources = sl_null) noexcept;
+		sl_bool load(PdfStream* stream, PdfResourceProvider* resources = sl_null) noexcept;
 
 		void applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept;
 		
 		void applyDecode(Image* image) noexcept;
 
 	protected:
-		void _load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources) noexcept;
+		void _load(PdfStream* stream, PdfResourceProvider* resources) noexcept;
 
 	};
 
@@ -839,22 +902,22 @@ namespace slib
 		~PdfImage();
 
 	public:
-		static Ref<PdfImage> load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources = sl_null);
+		static Ref<PdfImage> load(PdfStream* stream, PdfResourceProvider* resources = sl_null);
 
-		static Ref<PdfImage> loadInline(PdfDocument* doc, PdfResourceProvider* resources, const void* data, sl_uint32& size);
+		static Ref<PdfImage> loadInline(PdfResourceProvider* resources, const void* data, sl_uint32& size);
 
 	protected:
-		static Ref<PdfImage> _load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources = sl_null);
+		static Ref<PdfImage> _load(PdfStream* stream, PdfResourceProvider* resources = sl_null);
 
-		sl_bool _load(PdfDocument* doc, PdfStream* stream, PdfResourceProvider* resources, Memory& content);
+		sl_bool _load(PdfStream* stream, PdfResourceProvider* resources, Memory& content);
 
-		sl_bool _loadContent(PdfDocument* doc, Memory& content);
+		sl_bool _loadContent(Memory& content);
 
-		sl_bool _loadInline(PdfDocument* doc, PdfResourceProvider* resources, const PdfDictionary& properties, sl_uint8* data, sl_uint32& size);
+		sl_bool _loadInline(PdfResourceProvider* resources, const Ref<PdfDictionary>& properties, sl_uint8* data, sl_uint32& size);
 
-		sl_bool _loadInlineContent(PdfDocument* doc, PdfStream* stream, sl_uint8* data, sl_uint32 size);
+		sl_bool _loadInlineContent(PdfStream* stream, sl_uint8* data, sl_uint32 size);
 
-		void _loadSMask(PdfDocument* doc);
+		void _loadSMask();
 
 		static void _growSize(Ref<Image>& image, sl_uint32 minWidth, sl_uint32 minHeight);
 
@@ -869,7 +932,7 @@ namespace slib
 	public:
 		Rectangle bounds;
 		Matrix3 matrix;
-		PdfDictionary resources;
+		Ref<PdfDictionary> resources;
 		List<PdfOperation> content;
 
 	public:
@@ -878,10 +941,10 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfFormResource)
 
 	public:
-		sl_bool load(PdfDocument* doc, PdfStream* stream);
+		sl_bool load(PdfStream* stream);
 
 	protected:
-		void _load(PdfDocument* doc, PdfStream* stream);
+		void _load(PdfStream* stream);
 
 	};
 
@@ -895,7 +958,7 @@ namespace slib
 		~PdfForm();
 
 	public:
-		static Ref<PdfForm> load(PdfDocument* doc, PdfStream* stream);
+		static Ref<PdfForm> load(PdfStream* stream);
 
 	public:
 		PdfValue getResources(const String& type, sl_bool flagResolveReference) override;
@@ -903,13 +966,11 @@ namespace slib
 		PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference) override;
 
 	protected:
-		static Ref<PdfForm> _load(PdfDocument* doc, PdfStream* stream);
+		static Ref<PdfForm> _load(PdfStream* stream);
 
-		sl_bool _load(PdfDocument* doc, PdfStream* stream, Memory& content);
+		sl_bool _load(PdfStream* stream, Memory& content);
 
 	private:
-		WeakRef<PdfDocument> m_document;
-
 		friend class PdfExternalObject;
 	};
 
@@ -933,7 +994,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfShadingResource)
 
 	public:
-		sl_bool load(PdfDocument* doc, const PdfDictionary& dict);
+		sl_bool load(PdfDictionary* dict);
 
 		sl_bool getColor(float t, Color& _out);
 
@@ -954,7 +1015,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfPatternResource)
 
 	public:
-		sl_bool load(PdfDocument* doc, const PdfDictionary& dict);
+		sl_bool load(PdfDictionary* dict);
 
 	};
 
@@ -962,7 +1023,7 @@ namespace slib
 	{
 	public:
 		PdfOperator op;
-		PdfArray operands;
+		List<PdfValue> operands;
 
 	public:
 		PdfOperation() noexcept;
@@ -979,8 +1040,9 @@ namespace slib
 	class PdfPageTreeItem : public Referable
 	{
 	public:
+		PdfReference reference;
 		WeakRef<PdfPageTreeItem> parent;
-		PdfDictionary attributes;
+		Ref<PdfDictionary> attributes; // NotNull
 
 	public:
 		PdfPageTreeItem() noexcept;
@@ -1013,7 +1075,7 @@ namespace slib
 
 		List<PdfOperation> getContent();
 
-		static List<PdfOperation> parseContent(PdfDocument* doc, PdfResourceProvider* resources, const void* data, sl_size size);
+		static List<PdfOperation> parseContent(PdfResourceProvider* resources, const void* data, sl_size size);
 
 		void render(PdfRenderParam& param);
 
@@ -1033,7 +1095,22 @@ namespace slib
 		friend class PdfDocument;
 	};
 
-	class SLIB_EXPORT PdfDocument : public Object, public PdfContentReader
+	class SLIB_EXPORT PdfDocumentParam
+	{
+	public:
+		StringParam filePath;
+		Memory content;
+
+		StringParam password;
+
+	public:
+		PdfDocumentParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfDocumentParam)
+
+	};
+
+	class SLIB_EXPORT PdfDocument : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -1046,16 +1123,16 @@ namespace slib
 		~PdfDocument();
 
 	public:
-		static Ref<PdfDocument> openFile(const StringParam& filePath);
+		static Ref<PdfDocument> open(const PdfDocumentParam& param);
 
-		static Ref<PdfDocument> openMemory(const Memory& mem);
+		static Ref<PdfDocument> openFile(const StringParam& filePath, const StringParam& password = sl_null);
+
+		static Ref<PdfDocument> openMemory(const Memory& mem, const StringParam& password = sl_null);
 
 	public:
 		sl_uint32 getMaximumObjectNumber();
 
 		PdfValue getObject(const PdfReference& ref);
-
-		PdfValue getObject(const PdfValue& value);
 
 		PdfValue readObject(sl_uint32 objectNumber, sl_uint32& outGeneration);
 
@@ -1065,19 +1142,15 @@ namespace slib
 
 		sl_bool deleteObject(const PdfReference& ref);
 
-		sl_bool deleteObject(const PdfValue& refOrValue);
-
-		Memory decodeStreamContent(PdfStream* stream);
-
-		Memory decodeStreamContent(const PdfReference& ref);
-
-		Memory decodeStreamContent(const PdfValue& refOrStream);
-
 		sl_uint32 getPagesCount();
 
 		Ref<PdfPage> getPage(sl_uint32 index);
 
-		void deletePage(sl_uint32 index);
+		sl_bool addJpegPage(const Memory& jpeg);
+
+		sl_bool insertJpegPage(sl_uint32 index, const Memory& jpeg);
+
+		sl_bool deletePage(sl_uint32 index);
 
 		sl_bool isEncrypted();
 
@@ -1085,16 +1158,8 @@ namespace slib
 
 		sl_bool isAuthenticated();
 
-		sl_bool setUserPassword(const StringView& password);
-
-	public:
-		// PdfContentReader
-		Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) override;
-
 	protected:
-		sl_bool _openFile(const StringParam& filePath);
-
-		sl_bool _openMemory(const Memory& mem);
+		sl_bool _open(const PdfDocumentParam& param);
 
 	private:
 		Ref<Referable> m_context;
