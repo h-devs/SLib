@@ -190,6 +190,12 @@ namespace slib
 			m_mapBackup.removeAll_NoLock();
 		}
 
+		void removeOld()
+		{
+			ObjectLocker lock(this);
+			m_mapBackup.removeAll_NoLock();
+		}
+
 		sl_bool contains(const KT& key) const
 		{
 			ObjectLocker lock(this);
