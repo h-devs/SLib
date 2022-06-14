@@ -9,7 +9,7 @@ int main(int argc, const char * argv[])
 	for (auto& file : files) {
 		if (file.endsWith(".pdf")) {
 			Println("------------ %s -----------", file);
-			if (PdfDocument::isEncryptedFile(dir + file)) {
+			if (Pdf::isEncryptedFile(dir + file)) {
 				Println("Encrypted");
 			} else {
 				Println("Not Encrypted");

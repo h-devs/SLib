@@ -29,13 +29,16 @@
 #define EXPIRE_DURATION_PAGE 5000
 #define EXPIRE_DURATION_FONT 10000
 #define EXPIRE_DURATION_XOBJECT 500
-#define EXPIRE_DURATION_PAGE_CACHE 7000
+#define EXPIRE_DURATION_BITMAP 7000
 
 #define BACKGROUND_COLOR Color::White
 #define BORDER_COLOR Color::Gray
 
 #define MIN_PAGE_RATIO 0.1f
 #define MAX_PAGE_RATIO 5.0f
+
+#define CACHE_MIN_COUNT 3
+#define CACHE_MAX_COUNT 6
 
 namespace slib
 {
@@ -45,19 +48,46 @@ namespace slib
 	public:
 		Ref<PdfDocument> doc;
 		String filePath;
+
 		sl_uint32 nPages = 1;
-		ExpiringMap< sl_uint32, Ref<PdfPage> > pages;
-		ExpiringMap< sl_uint32, Ref<Bitmap> > pageCache;
+
 		CList<float> pageRatios;
 		float defaultPageRatio = 1.0f;
+
+		class BitmapCache : public Referable
+		{
+		public:
+			PdfViewContext * context;
+			Ref<Bitmap> bitmap;
+
+		public:
+			BitmapCache(PdfViewContext* _context)
+			{
+				context = _context;
+			}
+
+			~BitmapCache()
+			{
+				if (context) {
+					if (context->bitmapsFree.getCount() < CACHE_MIN_COUNT) {
+						context->bitmapsFree.push(Move(bitmap));
+					}
+				}
+			}
+
+		};
+		sl_bool flagUsePageContentCache = sl_true;
+		ExpiringMap< sl_uint32, Ref<PdfPage> > pages;
+		ExpiringMap< sl_uint32, Ref<BitmapCache> > bitmapsValid;
+		Queue< Ref<Bitmap> > bitmapsFree;
 
 	public:
 		PdfViewContext()
 		{
-			pageCache.setExpiringMilliseconds(EXPIRE_DURATION_PAGE_CACHE);
+			bitmapsValid.setExpiringMilliseconds(EXPIRE_DURATION_BITMAP);
 			pages.setExpiringMilliseconds(EXPIRE_DURATION_PAGE);
 			fonts.setExpiringMilliseconds(EXPIRE_DURATION_FONT);
-			xObjects.setExpiringMilliseconds(EXPIRE_DURATION_XOBJECT);
+			externalObjects.setExpiringMilliseconds(EXPIRE_DURATION_XOBJECT);
 		}
 
 	public:
@@ -86,17 +116,24 @@ namespace slib
 			return sl_true;
 		}
 
+		void setUseBitmapCache(sl_bool flag)
+		{
+			flagUsePageContentCache = !flag;
+			flagUseExternalObjectsCache = !flag;
+		}
+
 		Ref<PdfPage> getPage(sl_uint32 no)
 		{
-			if (no == 2) {
-				no = no;
+			if (flagUsePageContentCache) {
+				Ref<PdfPage> ret;
+				if (pages.get(no, &ret)) {
+					return ret;
+				}
 			}
-			Ref<PdfPage> ret;
-			if (pages.get(no, &ret)) {
-				return ret;
+			Ref<PdfPage> ret = doc->getPage(no);
+			if (flagUsePageContentCache) {
+				pages.put(no, ret);
 			}
-			ret = doc->getPage(no);
-			pages.put(no, ret);
 			return ret;
 		}
 
@@ -168,9 +205,81 @@ namespace slib
 			return Math::clamp((float)(h / w), MIN_PAGE_RATIO, MAX_PAGE_RATIO);
 		}
 
+		Ref<Bitmap> getBitmap(sl_uint32 iWidth, sl_uint32 iHeight)
+		{
+			Ref<Bitmap> bitmap;
+			while (bitmapsFree.pop(&bitmap)) {
+				if (bitmap->getWidth() == iWidth && bitmap->getHeight() == iHeight) {
+					return bitmap;
+				}
+			}
+			if (bitmapsValid.getCount() >= CACHE_MAX_COUNT) {
+				bitmapsValid.removeOld();
+			}
+			while (bitmapsFree.pop(&bitmap)) {
+				if (bitmap->getWidth() == iWidth && bitmap->getHeight() == iHeight) {
+					return bitmap;
+				}
+			}
+			if (bitmapsValid.getCount() >= CACHE_MAX_COUNT) {
+				bitmapsValid.removeAll();
+			}
+			while (bitmapsFree.pop(&bitmap)) {
+				if (bitmap->getWidth() == iWidth && bitmap->getHeight() == iHeight) {
+					return bitmap;
+				}
+			}
+			return Bitmap::create(iWidth, iHeight);
+		}
+
+		Ref<BitmapCache> getCache(sl_uint32 pageNo, sl_uint32 iWidth, sl_uint32 iHeight)
+		{
+			Ref<BitmapCache> cache;
+			if (bitmapsValid.get(pageNo, &cache)) {
+				if (cache->bitmap->getWidth() == iWidth && cache->bitmap->getHeight() == iHeight) {
+					return cache;
+				} else {
+					cache->context = sl_null;
+				}
+			}
+			Ref<PdfPage> page = getPage(pageNo);
+			if (page.isNull()) {
+				return sl_null;
+			}
+			Ref<Bitmap> bitmap = getBitmap(iWidth, iHeight);
+			if (bitmap.isNull()) {
+				return sl_null;
+			}
+			cache = new BitmapCache(this);
+			if (cache.isNull()) {
+				return sl_null;
+			}
+			bitmap->resetPixels(BACKGROUND_COLOR);
+			{
+				Ref<Canvas> canvas = bitmap->getCanvas();
+				if (canvas.isNull()) {
+					return sl_null;
+				}
+				PdfRenderParam param;
+				param.canvas = canvas.get();
+				param.cache = this;
+				param.bounds.left = 0;
+				param.bounds.top = 0;
+				param.bounds.right = (sl_real)iWidth;
+				param.bounds.bottom = (sl_real)iHeight;
+				page->render(param);
+				if (pageNo) {
+					canvas->fillRectangle(0, 0, (sl_real)iWidth, 2.0f, BORDER_COLOR);
+				}
+			}
+			cache->bitmap = Move(bitmap);
+			bitmapsValid.put(pageNo, cache);
+			return cache;
+		}
+
 		void invalidate()
 		{
-			pageCache.removeAll();
+			bitmapsValid.removeAll();
 			pages.removeAll();
 			nPages = doc->getPagesCount();
 		}
@@ -235,6 +344,10 @@ namespace slib
 	void PdfView::setUsingPageCache(sl_bool flag, UIUpdateMode mode)
 	{
 		m_flagUsePageCache = flag;
+		Ref<PdfViewContext> context(m_context);
+		if (context.isNotNull()) {
+			context->setUseBitmapCache(flag);
+		}
 #if defined(SLIB_PLATFORM_IS_WIN32)
 		if (flag) {
 			setDoubleBuffer(sl_false);
@@ -294,6 +407,34 @@ namespace slib
 		scrollToY(y, mode);
 	}
 
+	sl_bool PdfView::addJpegImagePage(sl_uint32 width, sl_uint32 height, const Memory& content, UIUpdateMode mode)
+	{
+		return insertJpegImagePage(SLIB_UINT32_MAX, width, height, content, mode);
+	}
+
+	sl_bool PdfView::insertJpegImagePage(sl_uint32 pageNo, sl_uint32 width, sl_uint32 height, const Memory& content, UIUpdateMode mode)
+	{
+		Ref<PdfViewContext> context(m_context);
+		if (context.isNull()) {
+			return sl_false;
+		}
+		ObjectLocker lock(context.get());
+		if (pageNo == SLIB_UINT32_MAX) {
+			if (!(context->doc->addJpegImagePage(width, height, content))) {
+				return sl_false;
+			}
+			context->pageRatios.add_NoLock((float)height / (float)width);
+		} else {
+			if (!(context->doc->insertJpegImagePage(pageNo, width, height, content))) {
+				return sl_false;
+			}
+			context->pageRatios.insert_NoLock(pageNo, (float)height / (float)width);
+		}
+		context->invalidate();
+		_invalidateChanges(mode);
+		return sl_true;
+	}
+
 	sl_bool PdfView::deletePage(sl_uint32 pageNo, UIUpdateMode mode)
 	{
 		Ref<PdfViewContext> context(m_context);
@@ -327,6 +468,7 @@ namespace slib
 		if (!(context->initialize(filePath, doc, nPages))) {
 			return sl_false;
 		}
+		context->setUseBitmapCache(m_flagUsePageCache);
 		m_context = Move(context);
 
 		setScrollY(0, UIUpdateMode::None);
@@ -344,41 +486,6 @@ namespace slib
 			setContentHeight(0, UIUpdateMode::None);
 		}
 		invalidate(mode);
-	}
-
-	Ref<Bitmap> PdfView::_saveCache(PdfViewContext* context, sl_uint32 pageNo, sl_int32 iWidth, sl_int32 iHeight)
-	{
-		Ref<PdfPage> page = context->getPage(pageNo);
-		if (page.isNull()) {
-			return sl_null;
-		}
-		Ref<Bitmap> bitmap = Bitmap::create(iWidth, iHeight);
-		if (bitmap.isNull()) {
-			return sl_null;
-		}
-		bitmap->resetPixels(BACKGROUND_COLOR);
-		{
-			Ref<Canvas> canvas = bitmap->getCanvas();
-			if (canvas.isNull()) {
-				return sl_null;
-			}
-			PdfRenderParam param;
-			param.canvas = canvas.get();
-			param.cache = context;
-			param.bounds.left = 0;
-			param.bounds.top = 0;
-			param.bounds.right = (sl_real)iWidth;
-			param.bounds.bottom = (sl_real)iHeight;
-			page->render(param);
-			if (pageNo) {
-				canvas->fillRectangle(0, 0, (sl_real)iWidth, 2.0f, BORDER_COLOR);
-			}
-		}
-		if (context->pageCache.getCount() > 6) {
-			context->pageCache.removeAll();
-		}
-		context->pageCache.put(pageNo, bitmap);
-		return bitmap;
 	}
 
 	void PdfView::onDraw(Canvas* canvas)
@@ -448,15 +555,7 @@ namespace slib
 					continue;
 				}
 				if (m_flagUsePageCache) {
-					Ref<Bitmap> cache;
-					if (context->pageCache.get(pageNo, &cache)) {
-						if (cache->getWidth() != (sl_uint32)iWidth && cache->getHeight() != (sl_uint32)iHeighPage) {
-							cache.setNull();
-						}
-					}
-					if (cache.isNull()) {
-						cache = _saveCache(context.get(), pageNo, iWidth, iHeighPage);
-					}
+					auto cache = context->getCache(pageNo, iWidth, iHeighPage);
 					sl_int32 dy1 = topPage;
 					sl_int32 dy2 = bottomPage;
 					if (dy1 < 0) {
@@ -470,7 +569,7 @@ namespace slib
 							sl_bool flagAntialias = canvas->isAntiAlias();
 							canvas->setAntiAlias(sl_false);
 							Rectangle rcSrc(0, (sl_real)(dy1 - topPage), width, (sl_real)(dy2 - topPage));
-							canvas->draw(Rectangle(0, (sl_real)dy1, width, (sl_real)dy2), cache, rcSrc);
+							canvas->draw(Rectangle(0, (sl_real)dy1, width, (sl_real)dy2), cache->bitmap, rcSrc);
 							canvas->setAntiAlias(flagAntialias);
 						} else {
 							canvas->fillRectangle(Rectangle(0, (sl_real)dy1, width, (sl_real)dy2), BACKGROUND_COLOR);

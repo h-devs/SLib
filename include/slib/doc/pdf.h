@@ -355,6 +355,8 @@ namespace slib
 		PdfValue(const Ref<PdfImage>& v) noexcept;
 		PdfValue(Ref<PdfImage>&& v) noexcept;
 
+		PdfValue(const Rectangle& v) noexcept;
+
 	public:
 		const Variant& getVariant() const noexcept
 		{
@@ -494,6 +496,9 @@ namespace slib
 			return add_NoLock(Forward<VALUE>(value));
 		}
 
+	public:
+		static Ref<PdfArray> create(const Rectangle& rc);
+
 	private:
 		WeakRef<Referable> m_context;
 
@@ -562,6 +567,11 @@ namespace slib
 		Memory getFilterInput(PdfFilter filter);
 
 		Memory decodeContent(const Memory& input, PdfFilter filter, PdfDictionary* decodeParam);
+
+	public:
+		static Ref<PdfStream> create(const Memory& content);
+
+		static Ref<PdfStream> createJpegImage(sl_uint32 width, sl_uint32 height, const Memory& content);
 
 	private:
 		WeakRef<Referable> m_context;
@@ -663,19 +673,6 @@ namespace slib
 
 	public:
 		void setParams(PdfDictionary* dict) noexcept;
-
-	};
-
-	class SLIB_EXPORT PdfResourceCache : public Referable
-	{
-	public:
-		ExpiringMap< sl_uint32, Ref<PdfFont> > fonts;
-		ExpiringMap< sl_uint32, Ref<PdfExternalObject> > xObjects;
-
-	public:
-		PdfResourceCache();
-
-		~PdfResourceCache();
 
 	};
 
@@ -806,7 +803,7 @@ namespace slib
 		~PdfFont();
 
 	public:
-		static Ref<PdfFont> load(PdfDocument* doc, const PdfReference& ref, PdfResourceCache& cache);
+		static Ref<PdfFont> load(PdfDictionary* dict);
 
 	public:
 		sl_uint32 getGlyphIndex(sl_uint32 charcode, sl_char32 unicode);
@@ -823,20 +820,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfRenderParam
-	{
-	public:
-		Canvas * canvas;
-		Rectangle bounds;
-		Ref<PdfResourceCache> cache;
-
-	public:
-		PdfRenderParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
-
-	};
-
 	class SLIB_EXPORT PdfExternalObject : public Referable
 	{
 		SLIB_DECLARE_OBJECT
@@ -850,7 +833,7 @@ namespace slib
 		~PdfExternalObject();
 
 	public:
-		static Ref<PdfExternalObject> load(PdfDocument* doc, const PdfReference& ref, PdfResourceCache& cache);
+		static Ref<PdfExternalObject> load(PdfStream* stream);
 
 	};
 
@@ -1044,7 +1027,7 @@ namespace slib
 		WeakRef<PdfPageTreeItem> parent;
 		Ref<PdfDictionary> attributes; // NotNull
 
-	public:
+	protected:
 		PdfPageTreeItem() noexcept;
 
 		~PdfPageTreeItem();
@@ -1059,18 +1042,45 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PdfResourceCache : public Referable
+	{
+	public:
+		sl_bool flagUseFontsCache;
+		ExpiringMap< sl_uint32, Ref<PdfFont> > fonts;
+		sl_bool flagUseExternalObjectsCache;
+		ExpiringMap< sl_uint32, Ref<PdfExternalObject> > externalObjects;
+
+	public:
+		PdfResourceCache();
+
+		~PdfResourceCache();
+
+	};
+
+	class SLIB_EXPORT PdfRenderParam
+	{
+	public:
+		Canvas* canvas;
+		Rectangle bounds;
+		Ref<PdfResourceCache> cache;
+
+	public:
+		PdfRenderParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+
+	};
+
 	class SLIB_EXPORT PdfPage : public PdfPageTreeItem, public PdfResourceProvider
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		PdfPage() noexcept;
+		PdfPage(Referable* context) noexcept;
 
 		~PdfPage();
 
 	public:
-		Ref<PdfDocument> getDocument();
-
 		Memory getContentData();
 
 		List<PdfOperation> getContent();
@@ -1088,11 +1098,10 @@ namespace slib
 		PdfValue getResource(const String& type, const String& name, sl_bool flagResolveReference = sl_true) override;
 
 	protected:
-		WeakRef<PdfDocument> m_document;
+		WeakRef<Referable> m_context;
 		AtomicList<PdfOperation> m_content;
 		sl_bool m_flagContent;
 
-		friend class PdfDocument;
 	};
 
 	class SLIB_EXPORT PdfDocumentParam
@@ -1146,15 +1155,17 @@ namespace slib
 
 		Ref<PdfPage> getPage(sl_uint32 index);
 
-		sl_bool addJpegPage(const Memory& jpeg);
+		sl_bool addJpegImagePage(sl_uint32 width, sl_uint32 height, const Memory& jpeg);
 
-		sl_bool insertJpegPage(sl_uint32 index, const Memory& jpeg);
+		sl_bool insertJpegImagePage(sl_uint32 index, sl_uint32 width, sl_uint32 height, const Memory& jpeg);
 
 		sl_bool deletePage(sl_uint32 index);
 
-		sl_bool isEncrypted();
+		Ref<PdfFont> getFont(const PdfReference& ref, PdfResourceCache& cache);
 
-		static sl_bool isEncryptedFile(const StringParam& path);
+		Ref<PdfExternalObject> getExternalObject(const PdfReference& ref, PdfResourceCache& cache);
+
+		sl_bool isEncrypted();
 
 		sl_bool isAuthenticated();
 
@@ -1164,8 +1175,7 @@ namespace slib
 	private:
 		Ref<Referable> m_context;
 
-		friend class PdfPage;
-
+		friend class Pdf;
 	};
 
 	class SLIB_EXPORT Pdf
@@ -1178,6 +1188,11 @@ namespace slib
 		static PdfFilter getFilter(const StringView& name) noexcept;
 
 		static PdfEncoding getEncoding(const StringView& name) noexcept;
+
+
+		static sl_bool isPdfFile(const StringParam& path);
+
+		static sl_bool isEncryptedFile(const StringParam& path);
 
 	};
 

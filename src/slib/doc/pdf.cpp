@@ -88,13 +88,20 @@ namespace slib
 				DEFINE_PDF_NAME(Root)
 				DEFINE_PDF_NAME(Pages)
 				DEFINE_PDF_NAME(Count)
+				DEFINE_PDF_NAME(Parent)
 				DEFINE_PDF_NAME(Kids)
 				DEFINE_PDF_NAME(Contents)
 				DEFINE_PDF_NAME(ID)
 				DEFINE_PDF_NAME(MediaBox)
 				DEFINE_PDF_NAME(CropBox)
 				DEFINE_PDF_NAME(Resources)
+				DEFINE_PDF_NAME(ProcSet)
+				DEFINE_PDF_NAME(PDF)
+				DEFINE_PDF_NAME(ImageC)
+				DEFINE_PDF_NAME(Page)
 				DEFINE_PDF_NAME(XObject)
+				DEFINE_PDF_NAME(Image)
+				DEFINE_PDF_NAME(Form)
 				DEFINE_PDF_NAME(Pattern)
 				DEFINE_PDF_NAME(Font)
 				DEFINE_PDF_NAME(Subtype)
@@ -121,10 +128,39 @@ namespace slib
 				DEFINE_PDF_NAME(DW)
 				DEFINE_PDF_NAME(CIDToGIDMap)
 				DEFINE_PDF_NAME(ToUnicode)
+				DEFINE_PDF_NAME(Identity)
+				DEFINE_PDF_NAME(FlateDecode)
+				DEFINE_PDF_NAME(Fl)
+				DEFINE_PDF_NAME(DCTDecode)
+				DEFINE_PDF_NAME(DCT)
+				DEFINE_PDF_NAME(LZWDecode)
+				DEFINE_PDF_NAME(LZW)
+				DEFINE_PDF_NAME(RunLengthDecode)
+				DEFINE_PDF_NAME(RL)
+				DEFINE_PDF_NAME(ASCIIHexDecode)
+				DEFINE_PDF_NAME(AHx)
+				DEFINE_PDF_NAME(ASCII85Decode)
+				DEFINE_PDF_NAME(A85)
+				DEFINE_PDF_NAME(CCITTFaxDecode)
+				DEFINE_PDF_NAME(CCF)
+				DEFINE_PDF_NAME(Standard)
 				DEFINE_PDF_NAME(Width)
 				DEFINE_PDF_NAME(Height)
 				DEFINE_PDF_NAME(ColorSpace)
 				DEFINE_PDF_NAME(CS)
+				DEFINE_PDF_NAME(DeviceRGB)
+				DEFINE_PDF_NAME(RGB)
+				DEFINE_PDF_NAME(DeviceGray)
+				DEFINE_PDF_NAME(DeviceCMYK)
+				DEFINE_PDF_NAME(CMYK)
+				DEFINE_PDF_NAME(CalRGB)
+				DEFINE_PDF_NAME(CalGray)
+				DEFINE_PDF_NAME(CalCMYK)
+				DEFINE_PDF_NAME(Lab)
+				DEFINE_PDF_NAME(Indexed)
+				DEFINE_PDF_NAME(ICCBased)
+				DEFINE_PDF_NAME(Separation)
+				DEFINE_PDF_NAME(DeviceN)
 				DEFINE_PDF_NAME(DecodeParms)
 				DEFINE_PDF_NAME(DP)
 				DEFINE_PDF_NAME(Predictor)
@@ -153,8 +189,10 @@ namespace slib
 				DEFINE_PDF_NAME(ShadingType)
 				DEFINE_PDF_NAME(Domain)
 				DEFINE_PDF_NAME(Coords)
+				DEFINE_PDF_NAME(ObjStm)
 				DEFINE_PDF_NAME(D)
 				DEFINE_PDF_NAME(F)
+				DEFINE_PDF_NAME(G)
 				DEFINE_PDF_NAME(H)
 				DEFINE_PDF_NAME(I)
 				DEFINE_PDF_NAME(K)
@@ -801,6 +839,14 @@ namespace slib
 					return count;
 				}
 
+				void increasePagesCount()
+				{
+					sl_uint32 countNew = getPagesCount();
+					countNew++;
+					count = countNew;
+					attributes->put(name::Count, countNew);
+				}
+
 				void decreasePagesCount()
 				{
 					sl_uint32 countNew = getPagesCount();
@@ -811,12 +857,38 @@ namespace slib
 					}
 				}
 
+				void insertKidAfter(Referable* context, PdfPageTreeItem* item, PdfPageTreeItem* after)
+				{
+					sl_size index = 0;
+					if (after) {
+						ListElements< Ref<PdfPageTreeItem> > items(kids);
+						for (sl_size i = 0; i < items.count; i++) {
+							if (items[i] == after) {
+								kids.insert_NoLock(i + 1, item);
+								index = i + 1;
+								break;
+							}
+						}
+					} else {
+						kids.insert_NoLock(0, item);
+					}
+					Ref<PdfArray> arrKids = attributes->get(name::Kids).getArray();
+					if (arrKids.isNull()) {
+						arrKids = new PdfArray(context);
+						if (arrKids.isNull()) {
+							return;
+						}
+					}
+					arrKids->insert_NoLock(index, item->reference);
+					attributes->put(name::Kids, Move(arrKids));
+				}
+
 				void deleteKidAt(sl_uint32 index)
 				{
 					kids.removeAt_NoLock(index);
-					PdfValue arrKids = attributes->get(name::Kids);
-					if (arrKids.isNotUndefined()) {
-						arrKids.getElements().removeAt_NoLock(index);
+					Ref<PdfArray> arrKids = attributes->get(name::Kids).getArray();
+					if (arrKids.isNotNull()) {
+						arrKids->removeAt_NoLock(index);
 						attributes->put(name::Kids, Move(arrKids));
 					}
 				}
@@ -1097,35 +1169,40 @@ namespace slib
 					return m_pageTree.get();
 				}
 
-				List< Ref<PdfPageTreeItem> > buildPageTreeKids(PdfDictionary* attributes)
+				void preparePageKids(PageTreeParent* parent)
 				{
-					ListElements<PdfValue> arrKids(attributes->get(name::Kids).getElements());
-					List< Ref<PdfPageTreeItem> > ret;
+					if (parent->flagKids) {
+						return;
+					}
+					parent->flagKids = sl_true;
+					ListElements<PdfValue> arrKids(parent->attributes->get(name::Kids).getElements());
+					List< Ref<PdfPageTreeItem> > kids;
 					for (sl_uint32 i = 0; i < arrKids.count; i++) {
 						PdfReference refKid;
 						if (!(arrKids[i].getReference(refKid))) {
-							return sl_null;
+							return;
 						}
 						Ref<PdfDictionary> props = getObject(refKid).getDictionary();
 						if (props.isNull()) {
-							return sl_null;
+							return;
 						}
 						Ref<PdfPageTreeItem> item;
-						if (props->get(name::Type).equalsName(StringView::literal("Page"))) {
-							item = new PdfPage;
+						if (props->get(name::Type).equalsName(name::Page)) {
+							item = new PdfPage(m_baseContext);
 						} else {
 							item = new PageTreeParent;
 						}
 						if (item.isNull()) {
-							return sl_null;
+							return;
 						}
+						item->parent = parent;
 						item->reference = refKid;
 						item->attributes = Move(props);
-						if (!(ret.add_NoLock(Move(item)))) {
-							return sl_null;
+						if (!(kids.add_NoLock(Move(item)))) {
+							return;
 						}
 					}
-					return ret;
+					parent->kids = Move(kids);
 				}
 
 				Ref<PdfPage> getPage(PageTreeParent* parent, sl_uint32 index)
@@ -1133,17 +1210,13 @@ namespace slib
 					if (index >= parent->getPagesCount()) {
 						return sl_null;
 					}
-					if (!(parent->flagKids)) {
-						parent->kids = buildPageTreeKids(parent->attributes);
-						parent->flagKids = sl_true;
-					}
+					preparePageKids(parent);
 					sl_uint32 n = 0;
 					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
 					for (sl_size i = 0; i < kids.count; i++) {
 						Ref<PdfPageTreeItem>& item = kids[i];
 						if (item->isPage()) {
 							if (index == n) {
-								item->parent = parent;
 								return Ref<PdfPage>::from(item);
 							}
 							n++;
@@ -1166,6 +1239,105 @@ namespace slib
 						return getPage(tree, index);
 					}
 					return sl_null;
+				}
+
+				Ref<PdfPage> createJpegImagePage(PageTreeParent* parent, sl_uint32 imageWidth, sl_uint32 imageHeight, const Memory& jpeg, sl_real pageWidth, sl_real pageHeight = 0.0f)
+				{
+					if (pageHeight < SLIB_EPSILON) {
+						pageHeight = pageWidth * (sl_real)imageHeight / (sl_real)imageWidth;
+					}
+					Ref<PdfStream> streamImage = PdfStream::createJpegImage(imageWidth, imageHeight, jpeg);
+					if (streamImage.isNull()) {
+						return sl_null;
+					}
+					Ref<PdfDictionary> resources = new PdfDictionary(this);
+					if (resources.isNull()) {
+						return sl_null;
+					}
+					Ref<PdfDictionary> xobjects = new PdfDictionary(this);
+					if (xobjects.isNull()) {
+						return sl_null;
+					}
+					resources->put(name::XObject, xobjects);
+					String pageContent = String::format("Q %s 0 0 %s 0 0 cm /BackImage Do q", pageWidth, pageHeight);
+					Ref<PdfStream> streamContent = PdfStream::create(pageContent.toMemory());
+					if (streamContent.isNull()) {
+						return sl_null;
+					}
+					Ref<PdfDictionary> attrs = new PdfDictionary(this);
+					if (attrs.isNull()) {
+						return sl_null;
+					}
+					Ref<PdfArray> procs = new PdfArray(this);
+					if (procs.isNull()) {
+						return sl_null;
+					}
+					PdfReference refImage;
+					if (addObject(streamImage, refImage)) {
+						PdfReference refContent;
+						if (addObject(streamContent, refContent)) {
+							attrs->put(name::Type, PdfName(name::Page));
+							attrs->put(name::Parent, parent->reference);
+							xobjects->put("BackImage", refImage);
+							attrs->put(name::Resources, resources);
+							procs->add(name::PDF);
+							procs->add(name::ImageC); // Color Image
+							attrs->put(name::ProcSet, procs);
+							attrs->put(name::MediaBox, Rectangle(0, 0, pageWidth, pageHeight));
+							attrs->put(name::Contents, refContent);
+							Ref<PdfPage> page = new PdfPage(this);
+							if (page.isNotNull()) {
+								if (addObject(attrs, page->reference)) {
+									page->attributes = Move(attrs);
+									page->parent = parent;
+									return page;
+								}
+							}
+							deleteObject(refContent);
+						}
+						deleteObject(refImage);
+					}
+					return sl_null;
+				}
+
+				sl_bool insertJpegImagePage(sl_uint32 index, sl_uint32 imageWidth, sl_uint32 imageHeight, const Memory& jpeg)
+				{
+					if (jpeg.isNull() || !imageWidth || !imageHeight) {
+						return sl_false;
+					}
+					PageTreeParent* tree = getPageTree();
+					if (!tree) {
+						return sl_false;
+					}
+					if (index > tree->getPagesCount()) {
+						return sl_false;
+					}
+					sl_real pageWidth;
+					Ref<PdfPage> pageNear = getPage(index ? index - 1 : 0);
+					if (pageNear.isNotNull()) {
+						pageWidth = pageNear->getMediaBox().getWidth();
+					} else {
+						pageWidth = 612.0f;
+					}
+					Ref<PdfPageTreeItem> _parent(pageNear->parent);
+					PageTreeParent* parent;
+					if (_parent.isNotNull()) {
+						parent = (PageTreeParent*)(_parent.get());
+					} else {
+						parent = tree;
+					}
+					Ref<PdfPage> page = createJpegImagePage(parent, imageWidth, imageHeight, jpeg, pageWidth);
+					if (page.isNull()) {
+						return sl_false;
+					}
+					parent->insertKidAfter(this, page.get(), index ? pageNear.get() : sl_null);
+					do {
+						parent->increasePagesCount();
+						setObject(parent->reference, parent->attributes);
+						_parent = parent->parent;
+						parent = (PageTreeParent*)(_parent.get());
+					} while (parent);
+					return sl_true;
 				}
 
 				sl_bool isUsingPageResource(PdfPageTreeItem* item, const PdfReference& refMatch)
@@ -1198,10 +1370,7 @@ namespace slib
 						return sl_false;
 					}
 					PageTreeParent* parent = (PageTreeParent*)item;
-					if (!(parent->flagKids)) {
-						parent->kids = buildPageTreeKids(parent->attributes);
-						parent->flagKids = sl_true;
-					}
+					preparePageKids(parent);
 					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
 					for (sl_size i = 0; i < kids.count; i++) {
 						Ref<PdfPageTreeItem>& kid = kids[i];
@@ -1270,10 +1439,7 @@ namespace slib
 					if (pageNo >= parent->getPagesCount()) {
 						return sl_false;
 					}
-					if (!(parent->flagKids)) {
-						parent->kids = buildPageTreeKids(parent->attributes);
-						parent->flagKids = sl_true;
-					}
+					preparePageKids(parent);
 					sl_uint32 n = 0;
 					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
 					for (sl_size i = 0; i < kids.count; i++) {
@@ -1319,12 +1485,65 @@ namespace slib
 					return sl_false;
 				}
 
+				Ref<PdfFont> getFont(const PdfReference& ref, PdfResourceCache& cache)
+				{
+					if (cache.flagUseFontsCache) {
+						Ref<PdfFont> ret;
+						if (cache.fonts.get(ref.objectNumber, &ret)) {
+							return ret;
+						}
+					}
+					Ref<PdfDictionary> dict = getObject(ref).getDictionary();
+					if (dict.isNotNull()) {
+						Ref<PdfFont> ret = PdfFont::load(dict);
+						if (cache.flagUseFontsCache) {
+							cache.fonts.put(ref.objectNumber, ret);
+						}
+						return ret;
+					}
+					return sl_null;
+				}
+
+				Ref<PdfExternalObject> getExternalObject(const PdfReference& ref, PdfResourceCache& cache)
+				{
+					if (cache.flagUseExternalObjectsCache) {
+						Ref<PdfExternalObject> ret;
+						if (cache.externalObjects.get(ref.objectNumber, &ret)) {
+							return ret;
+						}
+					}
+					Ref<PdfStream> stream = getObject(ref).getStream();
+					if (stream.isNotNull()) {
+						Ref<PdfExternalObject> ret = PdfExternalObject::load(stream.get());
+						if (cache.flagUseExternalObjectsCache) {
+							cache.externalObjects.put(ref.objectNumber, ret);
+						}
+						return ret;
+					}
+					return sl_null;
+				}
+
+				sl_bool initDocument(const PdfDocumentParam& param)
+				{
+					catalog = lastTrailer->get(name::Root).getDictionary();
+					if (catalog.isNull()) {
+						return sl_false;
+					}
+					encrypt = lastTrailer->get(name::Encrypt).getDictionary();
+					if (encrypt.isNotNull()) {
+						StringData password(param.password);
+						return setUserPassword(password);
+					} else {
+						return sl_true;
+					}
+				}
+
 				sl_bool setUserPassword(const StringView& password)
 				{
 					if (encrypt.isNull()) {
 						return sl_false;
 					}
-					if (encrypt->get(name::Filter).equalsName(StringView::literal("Standard"))) {
+					if (encrypt->get(name::Filter).equalsName(name::Standard)) {
 						sl_uint32 encryptionAlgorithm = encrypt->get(name::V).getUint();
 						if (encryptionAlgorithm == 1) {
 							sl_uint32 lengthKey = encrypt->get(name::Length).getUint();
@@ -1359,21 +1578,6 @@ namespace slib
 						}
 					}
 					return sl_false;
-				}
-
-				sl_bool initDocument(const PdfDocumentParam& param)
-				{
-					catalog = lastTrailer->get(name::Root).getDictionary();
-					if (catalog.isNull()) {
-						return sl_false;
-					}
-					encrypt = lastTrailer->get(name::Encrypt).getDictionary();
-					if (encrypt.isNotNull()) {
-						StringData password(param.password);
-						return setUserPassword(password);
-					} else {
-						return sl_true;
-					}
 				}
 
 			};
@@ -2688,7 +2892,7 @@ namespace slib
 				if (stream.isNull()) {
 					return sl_null;
 				}
-				if (!(stream->getProperty(name::Type).equalsName(StringView::literal("ObjStm")))) {
+				if (!(stream->getProperty(name::Type).equalsName(name::ObjStm))) {
 					return sl_null;
 				}
 				sl_uint32 nObjects;
@@ -2757,6 +2961,11 @@ namespace slib
 			SLIB_INLINE static Context* GetContext(const Ref<Referable>& ref)
 			{
 				return (Context*)(ref.get());
+			}
+
+			SLIB_INLINE static Ref<Context> GetContextRef(const Ref<Referable>& ref)
+			{
+				return Ref<Context>::from(ref);
 			}
 
 
@@ -2946,8 +3155,8 @@ namespace slib
 			class Renderer : public RenderState
 			{
 			public:
+				Context* context;
 				Canvas* canvas;
-				PdfDocument* document;
 				PdfResourceCache* cache;
 				PdfResourceProvider* resources;
 
@@ -3374,9 +3583,12 @@ namespace slib
 
 				void setFont(const String& name, float fontScale)
 				{
+					if (!context) {
+						return;
+					}
 					PdfReference ref;
 					if (resources->getFontResource(name, ref)) {
-						text.font = PdfFont::load(document, ref, *cache);
+						text.font = context->getFont(ref, *cache);
 						text.fontScale = fontScale;
 					}
 				}
@@ -3506,13 +3718,16 @@ namespace slib
 
 				void drawExternalObject(ListElements<PdfValue> operands)
 				{
+					if (!context) {
+						return;
+					}
 					if (operands.count != 1) {
 						return;
 					}
 					const String& name = operands[0].getName();
 					PdfReference ref;
 					if (resources->getExternalObjectResource(name, ref)) {
-						Ref<PdfExternalObject> xobj = PdfExternalObject::load(document, ref, *cache);
+						Ref<PdfExternalObject> xobj = context->getExternalObject(ref, *cache);
 						if (xobj.isNotNull()) {
 							if (xobj->type == PdfExternalObjectType::Image) {
 								PdfImage* image = (PdfImage*)(xobj.get());
@@ -4771,10 +4986,10 @@ namespace slib
 	PdfValue::PdfValue(const String& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::String : PdfValueType::Null)) {}
 	PdfValue::PdfValue(String&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::String : PdfValueType::Null)) {}
 
-	PdfValue::PdfValue(const PdfName& v) noexcept : m_var(v.value, (sl_uint8)(v.isNotNull() ? PdfValueType::Name : PdfValueType::Null)) {}
-	PdfValue::PdfValue(PdfName&& v) noexcept : m_var(Move(v.value), (sl_uint8)(v.isNotNull() ? PdfValueType::Name : PdfValueType::Null)) {}
+	PdfValue::PdfValue(const PdfName& v) noexcept: m_var(v.value, (sl_uint8)(v.isNotNull() ? PdfValueType::Name : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfName&& v) noexcept: m_var(Move(v.value), (sl_uint8)(v.isNotNull() ? PdfValueType::Name : PdfValueType::Null)) {}
 
-	PdfValue::PdfValue(const PdfReference& v) noexcept : m_var(MAKE_OBJECT_ID(v.objectNumber, v.generation), (sl_uint8)(PdfValueType::Reference)) {}
+	PdfValue::PdfValue(const PdfReference& v) noexcept: m_var(MAKE_OBJECT_ID(v.objectNumber, v.generation), (sl_uint8)(PdfValueType::Reference)) {}
 
 	PdfValue::PdfValue(const Ref<PdfArray>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Array : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfArray>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Array : PdfValueType::Null)) {}
@@ -4785,8 +5000,10 @@ namespace slib
 	PdfValue::PdfValue(const Ref<PdfStream>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Stream : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfStream>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Stream : PdfValueType::Null)) {}
 
-	PdfValue::PdfValue(const Ref<PdfImage>& v) noexcept : m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
-	PdfValue::PdfValue(Ref<PdfImage>&& v) noexcept : m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
+	PdfValue::PdfValue(const Ref<PdfImage>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
+	PdfValue::PdfValue(Ref<PdfImage>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
+
+	PdfValue::PdfValue(const Rectangle& v) noexcept: PdfValue(PdfArray::create(v)) {}
 
 	sl_bool PdfValue::getBoolean() const noexcept
 	{
@@ -5162,9 +5379,9 @@ namespace slib
 		if (getAt_NoLock(index, &ret)) {
 			PdfReference ref;
 			if (ret.getReference(ref)) {
-				Context* context = GetContext(m_context);
-				if (context) {
-					ObjectLocker locker(context);
+				Ref<Context> context = GetContextRef(m_context);
+				if (context.isNotNull()) {
+					ObjectLocker locker(context.get());
 					return context->getObject(ref);
 				}
 			} else {
@@ -5172,6 +5389,20 @@ namespace slib
 			}
 		}
 		return PdfValue();
+	}
+
+	Ref<PdfArray> PdfArray::create(const Rectangle& v)
+	{
+		Ref<PdfArray> ret = new PdfArray(sl_null);
+		if (ret.isNotNull()) {
+			ret->add(v.left);
+			ret->add(v.top);
+			ret->add(v.right);
+			ret->add(v.bottom);
+			return ret;
+		} else {
+			return sl_null;
+		}
 	}
 
 
@@ -5192,9 +5423,9 @@ namespace slib
 		if (get_NoLock(name, &ret)) {
 			PdfReference ref;
 			if (ret.getReference(ref)) {
-				Context* context = GetContext(m_context);
-				if (context) {
-					ObjectLocker locker(context);
+				Ref<Context> context = GetContextRef(m_context);
+				if (context.isNotNull()) {
+					ObjectLocker locker(context.get());
 					return context->getObject(ref);
 				}
 			} else {
@@ -5260,9 +5491,9 @@ namespace slib
 		if (!m_offsetContent) {
 			return m_contentEncoded;
 		}
-		Context* context = GetContext(m_context);
-		if (context) {
-			ObjectLocker locker(context);
+		Ref<Context> context = GetContextRef(m_context);
+		if (context.isNotNull()) {
+			ObjectLocker locker(context.get());
 			return context->readContent(m_offsetContent, m_sizeContent, m_ref);
 		}
 		return sl_null;
@@ -5412,6 +5643,43 @@ namespace slib
 				return CreateImageMemory(Image::loadFromMemory(input));
 			default:
 				break;
+		}
+		return sl_null;
+	}
+
+	Ref<PdfStream> PdfStream::create(const Memory& content)
+	{
+		Ref<PdfDictionary> properties = new PdfDictionary(sl_null);
+		if (properties.isNotNull()) {
+			Ref<PdfStream> ret = new PdfStream(sl_null);
+			if (ret.isNotNull()) {
+				properties->put(name::Length, (sl_uint32)(content.getSize()));
+				ret->properties = Move(properties);
+				ret->setEncodedContent(content);
+				return ret;
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<PdfStream> PdfStream::createJpegImage(sl_uint32 width, sl_uint32 height, const Memory& content)
+	{
+		Ref<PdfDictionary> properties = new PdfDictionary(sl_null);
+		if (properties.isNotNull()) {
+			Ref<PdfStream> ret = new PdfStream(sl_null);
+			if (ret.isNotNull()) {
+				properties->put(name::Type, PdfName(name::XObject));
+				properties->put(name::Subtype, PdfName(name::Image));
+				properties->put(name::Length, (sl_uint32)(content.getSize()));
+				properties->put(name::Filter, PdfName(name::DCTDecode));
+				properties->put(name::Width, width);
+				properties->put(name::Height, height);
+				properties->put(name::ColorSpace, PdfName(name::DeviceRGB));
+				properties->put(name::BitsPerComponent, (sl_uint32)8);
+				ret->properties = Move(properties);
+				ret->setEncodedContent(content);
+				return ret;
+			}
 		}
 		return sl_null;
 	}
@@ -5883,15 +6151,6 @@ namespace slib
 	}
 
 
-	PdfResourceCache::PdfResourceCache()
-	{
-	}
-
-	PdfResourceCache::~PdfResourceCache()
-	{
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfColorSpace)
 
 	PdfColorSpace::PdfColorSpace(): type(PdfColorSpaceType::Unknown)
@@ -5921,15 +6180,15 @@ namespace slib
 		}
 	}
 
-	sl_bool PdfColorSpace::_loadName(const String& name)
+	sl_bool PdfColorSpace::_loadName(const String& v)
 	{
-		if (name == StringView::literal("DeviceRGB") || name == StringView::literal("RGB")) {
+		if (v == name::DeviceRGB || v == name::RGB) {
 			type = PdfColorSpaceType::RGB;
-		} else if (name == StringView::literal("DeviceGray") || name == StringView::literal("G")) {
+		} else if (v == name::DeviceGray || v == name::G) {
 			type = PdfColorSpaceType::Gray;
-		} else if (name == StringView::literal("DeviceCMYK") || name == StringView::literal("CMYK")) {
+		} else if (v == name::DeviceCMYK || v == name::CMYK) {
 			type = PdfColorSpaceType::CMYK;
-		} else if (name == StringView::literal("Pattern")) {
+		} else if (v == name::Pattern) {
 			type = PdfColorSpaceType::Pattern;
 		} else {
 			return sl_false;
@@ -5943,22 +6202,22 @@ namespace slib
 		if (!n) {
 			return;
 		}
-		const String& name = arr->get(0).getName();
-		if (name == StringView::literal("CalRGB")) {
+		const String& strType = arr->get(0).getName();
+		if (strType == name::CalRGB) {
 			type = PdfColorSpaceType::RGB;
-		} else if (name == StringView::literal("CalGray")) {
+		} else if (strType == name::CalGray) {
 			type = PdfColorSpaceType::Gray;
-		} else if (name == StringView::literal("CalCMYK")) {
+		} else if (strType == name::CalCMYK) {
 			type = PdfColorSpaceType::CMYK;
-		} else if (name == StringView::literal("Lab")) {
+		} else if (strType == name::Lab) {
 			type = PdfColorSpaceType::Lab;
-		} else if (name == StringView::literal("Indexed") || name == StringView::literal("I")) {
+		} else if (strType == name::Indexed || strType == name::I) {
 			if (n >= 4) {
 				if (_loadIndexed(arr->get(2).getUint(), arr->get(3))) {
 					type = PdfColorSpaceType::Indexed;
 				}
 			}
-		} else if (name == StringView::literal("ICCBased")) {
+		} else if (strType == name::ICCBased) {
 			if (flagICCBasedAlternate) {
 				return;
 			}
@@ -5968,15 +6227,15 @@ namespace slib
 					_load(stream->getProperty(name::Alternate), sl_null, sl_true);
 				}
 			}
-		} else if (name == StringView::literal("Pattern")) {
+		} else if (strType == name::Pattern) {
 			if (n >= 2) {
 				_loadName(arr->get(1).getString());
 			}
-		} else if (name == StringView::literal("Separation")) {
+		} else if (strType == name::Separation) {
 			if (n >= 3) {
 				_loadName(arr->get(2).getString());
 			}
-		} else if (name == StringView::literal("DeviceN")) {
+		} else if (strType == name::DeviceN) {
 			if (n >= 3) {
 				_loadName(arr->get(2).getString());
 			}
@@ -6205,7 +6464,7 @@ namespace slib
 		{
 			PdfValue vCIDToGIDMap = dict->get(name::CIDToGIDMap);
 			cidToGidMapName = vCIDToGIDMap.getName();
-			if (cidToGidMapName == StringView::literal("Identity")) {
+			if (cidToGidMapName == name::Identity) {
 				flagCidIsGid = sl_true;
 			}
 		}
@@ -6359,20 +6618,12 @@ namespace slib
 	{
 	}
 
-	Ref<PdfFont> PdfFont::load(PdfDocument* doc, const PdfReference& ref, PdfResourceCache& cache)
+	Ref<PdfFont> PdfFont::load(PdfDictionary* dict)
 	{
-		Ref<PdfFont> ret;
-		if (cache.fonts.get(ref.objectNumber, &ret)) {
-			return ret;
-		}
-		Ref<PdfDictionary> dict = doc->getObject(ref).getDictionary();
-		if (dict.isNotNull()) {
-			ret = new PdfFont;
-			if (ret.isNotNull()) {
-				if (ret->_load(dict.get())) {
-					cache.fonts.put(ref.objectNumber, ret);
-					return ret;
-				}
+		Ref<PdfFont> ret = new PdfFont;
+		if (ret.isNotNull()) {
+			if (ret->_load(dict)) {
+				return ret;
 			}
 		}
 		return sl_null;
@@ -6481,13 +6732,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
-
-	PdfRenderParam::PdfRenderParam(): canvas(sl_null)
-	{
-	}
-
-	
 	SLIB_DEFINE_ROOT_OBJECT(PdfExternalObject)
 
 	PdfExternalObject::PdfExternalObject(PdfExternalObjectType _type): type(_type)
@@ -6498,28 +6742,16 @@ namespace slib
 	{
 	}
 
-	Ref<PdfExternalObject> PdfExternalObject::load(PdfDocument* doc, const PdfReference& ref, PdfResourceCache& cache)
+	Ref<PdfExternalObject> PdfExternalObject::load(PdfStream* stream)
 	{
-		Ref<PdfExternalObject> ret;
-		if (cache.xObjects.get(ref.objectNumber, &ret)) {
-			return ret;
+		String subtype = stream->getProperty(name::Subtype).getName();
+		if (subtype == name::Image) {
+			return PdfImage::_load(stream);
+		} else if (subtype == name::Form) {
+			return PdfForm::_load(stream);
+		} else {
+			return sl_null;
 		}
-		Ref<PdfStream> stream = doc->getObject(ref).getStream();
-		if (stream.isNotNull()) {
-			String subtype = stream->getProperty(name::Subtype).getName();
-			if (subtype == StringView::literal("Image")) {
-				ret = PdfImage::_load(stream.get());
-			} else if (subtype == StringView::literal("Form")) {
-				ret = PdfForm::_load(stream.get());
-			} else {
-				return sl_null;
-			}
-			if (ret.isNotNull()) {
-				cache.xObjects.put(ref.objectNumber, ret);
-				return ret;
-			}
-		}
-		return sl_null;
 	}
 
 
@@ -6532,7 +6764,7 @@ namespace slib
 	sl_bool PdfImageResource::load(PdfStream* stream, PdfResourceProvider* resources) noexcept
 	{
 		String subtype = stream->getProperty(name::Subtype).getName();
-		if (subtype == StringView::literal("Image")) {
+		if (subtype == name::Image) {
 			_load(stream, resources);
 			return sl_true;
 		}
@@ -6694,7 +6926,7 @@ namespace slib
 	{
 		if (stream) {
 			String subtype = stream->getProperty(name::Subtype).getName();
-			if (subtype == StringView::literal("Image")) {
+			if (subtype == name::Image) {
 				return _load(stream, resources);
 			}
 		}
@@ -7002,7 +7234,7 @@ namespace slib
 	sl_bool PdfFormResource::load(PdfStream* stream)
 	{
 		String subtype = stream->getProperty(name::Subtype).getName();
-		if (subtype == StringView::literal("Form")) {
+		if (subtype == name::Form) {
 			_load(stream);
 			return sl_true;
 		}
@@ -7033,7 +7265,7 @@ namespace slib
 	{
 		if (stream) {
 			String subtype = stream->getProperty(name::Subtype).getName();
-			if (subtype == StringView::literal("Form")) {
+			if (subtype == name::Form) {
 				return _load(stream);
 			}
 		}
@@ -7633,9 +7865,25 @@ namespace slib
 	}
 
 
+	PdfResourceCache::PdfResourceCache(): flagUseFontsCache(sl_true), flagUseExternalObjectsCache(sl_true)
+	{
+	}
+
+	PdfResourceCache::~PdfResourceCache()
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
+
+	PdfRenderParam::PdfRenderParam(): canvas(sl_null)
+	{
+	}
+
+
 	SLIB_DEFINE_OBJECT(PdfPage, PdfPageTreeItem)
 
-	PdfPage::PdfPage() noexcept
+	PdfPage::PdfPage(Referable* context) noexcept: m_context(context)
 	{
 		m_flagPage = sl_true;
 		m_flagContent = sl_false;
@@ -7645,32 +7893,19 @@ namespace slib
 	{
 	}
 
-	Ref<PdfDocument> PdfPage::getDocument()
-	{
-		return m_document;
-	}
-
 	Memory PdfPage::getContentData()
 	{
-		Ref<PdfDocument> document(m_document);
-		if (document.isNotNull()) {
-			Context* context = GetContext(document->m_context);
-			if (context) {
-				ObjectLocker locker(context);
-				PdfValue contents = attributes->get(name::Contents);
-				const Ref<PdfArray>& arrContents = contents.getArray();
-				if (arrContents.isNotNull()) {
-					MemoryBuffer buf;
-					sl_uint32 nItems = arrContents->getCount();
-					for (sl_uint32 i = 0; i < nItems; i++) {
-						buf.add(arrContents->get(i).getDecodedStreamContent());
-					}
-					return buf.merge();
-				} else {
-					return contents.getDecodedStreamContent();
-				}
-				return sl_null;
+		PdfValue contents = attributes->get(name::Contents);
+		const Ref<PdfArray>& arrContents = contents.getArray();
+		if (arrContents.isNotNull()) {
+			MemoryBuffer buf;
+			sl_uint32 nItems = arrContents->getCount();
+			for (sl_uint32 i = 0; i < nItems; i++) {
+				buf.add(arrContents->get(i).getDecodedStreamContent());
 			}
+			return buf.merge();
+		} else {
+			return contents.getDecodedStreamContent();
 		}
 		return sl_null;
 	}
@@ -7732,11 +7967,6 @@ namespace slib
 
 	void PdfPage::render(PdfRenderParam& param)
 	{
-		Ref<PdfDocument> doc = m_document;
-		if (doc.isNull()) {
-			return;
-		}
-
 		ListElements<PdfOperation> ops(getContent());
 		if (!(ops.count)) {
 			return;
@@ -7754,9 +7984,11 @@ namespace slib
 		sl_bool flagOldAntiAlias = canvas->isAntiAlias();
 		canvas->setAntiAlias();
 
+		Ref<Context> context = GetContextRef(m_context);
+
 		Renderer renderer;
+		renderer.context = context.get();
 		renderer.canvas = canvas;
-		renderer.document = doc.get();
 		renderer.resources = this;
 		renderer.cache = param.cache.get();
 
@@ -8003,22 +8235,23 @@ namespace slib
 		Context* context = GetContext(m_context);
 		if (context) {
 			ObjectLocker lock(context);
-			Ref<PdfPage> page = context->getPage(index);
-			if (page.isNotNull()) {
-				page->m_document = this;
-				return page;
-			}
+			return context->getPage(index);
 		}
 		return sl_null;
 	}
 
-	sl_bool PdfDocument::addJpegPage(const Memory& jpeg)
+	sl_bool PdfDocument::addJpegImagePage(sl_uint32 width, sl_uint32 height, const Memory& jpeg)
 	{
-		return sl_false;
+		return insertJpegImagePage(getPagesCount(), width, height, jpeg);
 	}
 
-	sl_bool PdfDocument::insertJpegPage(sl_uint32 index, const Memory& jpeg)
+	sl_bool PdfDocument::insertJpegImagePage(sl_uint32 index, sl_uint32 width, sl_uint32 height, const Memory& jpeg)
 	{
+		Context* context = GetContext(m_context);
+		if (context) {
+			ObjectLocker lock(context);
+			return context->insertJpegImagePage(index, width, height, jpeg);
+		}
 		return sl_false;
 	}
 
@@ -8030,6 +8263,26 @@ namespace slib
 			return context->deletePage(index);
 		}
 		return sl_false;
+	}
+
+	Ref<PdfFont> PdfDocument::getFont(const PdfReference& ref, PdfResourceCache& cache)
+	{
+		Context* context = GetContext(m_context);
+		if (context) {
+			ObjectLocker lock(context);
+			return context->getFont(ref, cache);
+		}
+		return sl_null;
+	}
+
+	Ref<PdfExternalObject> PdfDocument::getExternalObject(const PdfReference& ref, PdfResourceCache& cache)
+	{
+		Context* context = GetContext(m_context);
+		if (context) {
+			ObjectLocker lock(context);
+			return context->getExternalObject(ref, cache);
+		}
+		return sl_null;
 	}
 
 	sl_bool PdfDocument::isEncrypted()
@@ -8052,15 +8305,6 @@ namespace slib
 		} else {
 			return sl_true;
 		}
-	}
-
-	sl_bool PdfDocument::isEncryptedFile(const StringParam& path)
-	{
-		PdfDocument doc;
-		if (doc.openFile(path)) {
-			return doc.isEncrypted();
-		}
-		return sl_false;
 	}
 
 
@@ -8106,21 +8350,21 @@ namespace slib
 		return sl_null;
 	}
 
-	PdfFilter Pdf::getFilter(const StringView& name) noexcept
+	PdfFilter Pdf::getFilter(const StringView& filter) noexcept
 	{
-		if (name == StringView::literal("FlateDecode") || name == StringView::literal("Fl")) {
+		if (filter == name::FlateDecode || filter == name::Fl) {
 			return PdfFilter::Flate;
-		} else if (name == StringView::literal("DCTDecode") || name == StringView::literal("DCT")) {
+		} else if (filter == name::DCTDecode || filter == name::DCT) {
 			return PdfFilter::DCT;
-		} else if (name == StringView::literal("LZWDecode") || name == StringView::literal("LZW")) {
+		} else if (filter == name::LZWDecode || filter == name::LZW) {
 			return PdfFilter::LZW;
-		} else if (name == StringView::literal("RunLengthDecode") || name == StringView::literal("RL")) {
+		} else if (filter == name::RunLengthDecode || filter == name::RL) {
 			return PdfFilter::RunLength;
-		} else if (name == StringView::literal("ASCIIHexDecode") || name == StringView::literal("AHx")) {
+		} else if (filter == name::ASCIIHexDecode || filter == name::AHx) {
 			return PdfFilter::ASCIIHex;
-		} else if (name == StringView::literal("ASCII85Decode") || name == StringView::literal("A85")) {
+		} else if (filter == name::ASCII85Decode || filter == name::A85) {
 			return PdfFilter::ASCII85;
-		} else if (name == StringView::literal("CCITTFaxDecode") || name == StringView::literal("CCF")) {
+		} else if (filter == name::CCITTFaxDecode || filter == name::CCF) {
 			return PdfFilter::CCITTFax;;
 		} else {
 			return PdfFilter::Unknown;
@@ -8149,6 +8393,27 @@ namespace slib
 		} else {
 			return PdfEncoding::Unknown;
 		}
+	}
+
+	sl_bool Pdf::isPdfFile(const StringParam& path)
+	{
+		File file = File::openForRead(path);
+		if (file.isOpened()) {
+			sl_uint8 c[5];
+			if (file.readFully(c, 5) == 5) {
+				return Base::equalsMemory(c, "%PDF-", 5);
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Pdf::isEncryptedFile(const StringParam& path)
+	{
+		PdfDocument doc;
+		if (doc.openFile(path)) {
+			return doc.isEncrypted();
+		}
+		return sl_false;
 	}
 
 }

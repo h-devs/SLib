@@ -59,6 +59,10 @@ namespace slib
 
 		void goToPage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool addJpegImagePage(sl_uint32 width, sl_uint32 height, const Memory& content, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool insertJpegImagePage(sl_uint32 pageNo, sl_uint32 width, sl_uint32 height, const Memory& content, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool deletePage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 	protected:
@@ -70,8 +74,6 @@ namespace slib
 		sl_bool _setDocument(const String& path, PdfDocument* doc, UIUpdateMode mode);
 
 		void _invalidateChanges(UIUpdateMode mode);
-
-		static Ref<Bitmap> _saveCache(PdfViewContext* context, sl_uint32 page, sl_int32 width, sl_int32 height);
 
 	protected:
 		AtomicRef<PdfViewContext> m_context;
