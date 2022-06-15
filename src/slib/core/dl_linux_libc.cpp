@@ -23,20 +23,3 @@
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
 #include "slib/core/dl/linux/libc.h"
-
-namespace slib
-{
-	namespace libc
-	{
-
-		FUNC_fcntl get_fcntl()
-		{
-			FUNC_fcntl func = getApi_fcntl64();
-			if (func) {
-				return func;
-			}
-			return getApi_fcntl();
-		}
-
-	}
-}
