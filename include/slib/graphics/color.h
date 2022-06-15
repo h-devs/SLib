@@ -333,7 +333,7 @@ namespace slib
 		}
 
 
-		// assume that` dst is premultiplied alpha, and src is non-premultiplied alpha
+		// assume that dst is premultiplied alpha, and src is non-premultiplied alpha
 		void blend_PA_NPA(sl_uint32 r, sl_uint32 g, sl_uint32 b, sl_uint32 a) noexcept;
 	
 		// assume that dst is premultiplied alpha, and src is non-premultiplied alpha
