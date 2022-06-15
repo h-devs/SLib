@@ -134,6 +134,10 @@ namespace slib
 
 		void tintColor(const Color& color);
 
+		void blend(const Color& colorBack, const Ref<Image>& imageOver);
+
+		void blend(const Ref<Image>& imageBack, const Color& colorOver);
+
 		void makeGray();
 
 		void writeAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);

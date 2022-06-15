@@ -892,6 +892,69 @@ namespace slib
 		}
 	}
 
+	void Image::blend(const Color& colorBack, const Ref<Image>& imageOver)
+	{
+		if (imageOver.isNull()) {
+			return;
+		}
+		sl_uint32 width = getWidth();
+		sl_uint32 height = getHeight();
+		if (imageOver->getWidth() != width) {
+			return;
+		}
+		if (imageOver->getHeight() != height) {
+			return;
+		}
+		Color* rowDst = getColors();
+		Color* rowSrc = imageOver->getColors();
+		sl_reg strideDst = getStride();
+		sl_reg strideSrc = imageOver->getStride();
+		for (sl_uint32 y = 0; y < height; y++) {
+			Color* dst = rowDst;
+			Color* src = rowSrc;
+			for (sl_uint32 x = 0; x < width; x++) {
+				Color c = colorBack;
+				c.blend_NPA_NPA(*src);
+				*dst = c;
+				dst++;
+				src++;
+			}
+			rowDst += strideDst;
+			rowSrc += strideSrc;
+		}
+	}
+
+	void Image::blend(const Ref<Image>& imageBack, const Color& colorOver)
+	{
+		if (imageBack.isNull()) {
+			return;
+		}
+		sl_uint32 width = getWidth();
+		sl_uint32 height = getHeight();
+		if (imageBack->getWidth() != width) {
+			return;
+		}
+		if (imageBack->getHeight() != height) {
+			return;
+		}
+		Color* rowDst = getColors();
+		Color* rowSrc = imageBack->getColors();
+		sl_reg strideDst = getStride();
+		sl_reg strideSrc = imageBack->getStride();
+		for (sl_uint32 y = 0; y < height; y++) {
+			Color* dst = rowDst;
+			Color* src = rowSrc;
+			for (sl_uint32 x = 0; x < width; x++) {
+				*dst = *src;
+				dst->blend_NPA_NPA(colorOver);
+				dst++;
+				src++;
+			}
+			rowDst += strideDst;
+			rowSrc += strideSrc;
+		}
+	}
+
 	void Image::makeGray()
 	{
 		sl_uint32 width = m_desc.width;
