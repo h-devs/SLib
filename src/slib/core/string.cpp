@@ -2325,7 +2325,7 @@ namespace slib
 			static sl_bool ParseViewInt(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
 			{
 				typename VIEW::Char* data = view.getUnsafeData();
-				sl_size len = view.getUnsafeLength();
+				sl_reg len = view.getUnsafeLength();
 				if (data && len) {
 					if (len > 0) {
 						return ParseInt(radix, data, 0, len, _out) == (sl_reg)len;
@@ -2375,7 +2375,7 @@ namespace slib
 			static sl_bool ParseViewUint(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
 			{
 				typename VIEW::Char* data = view.getUnsafeData();
-				sl_size len = view.getUnsafeLength();
+				sl_reg len = view.getUnsafeLength();
 				if (data && len) {
 					if (len > 0) {
 						return ParseUint(radix, data, 0, len, _out) == (sl_reg)len;
@@ -2546,7 +2546,7 @@ namespace slib
 			static sl_bool ParseViewFloat(const VIEW& view, FLOAT* _out) noexcept
 			{
 				typename VIEW::Char* data = view.getUnsafeData();
-				sl_size len = view.getUnsafeLength();
+				sl_reg len = view.getUnsafeLength();
 				if (data && len) {
 					if (len > 0) {
 						return ParseFloat(data, 0, len, _out) == (sl_reg)len;
@@ -2650,7 +2650,7 @@ namespace slib
 			static sl_bool ParseViewBoolean(const VIEW& view, sl_bool* _out) noexcept
 			{
 				typename VIEW::Char* data = view.getUnsafeData();
-				sl_size len = view.getUnsafeLength();
+				sl_reg len = view.getUnsafeLength();
 				if (data && len) {
 					if (len > 0) {
 						return ParseBoolean(data, 0, len, _out) == (sl_reg)len;
@@ -2705,7 +2705,7 @@ namespace slib
 			static sl_bool ParseViewHexString(const VIEW& view, void* _out) noexcept
 			{
 				typename VIEW::Char* data = view.getUnsafeData();
-				sl_size len = view.getUnsafeLength();
+				sl_reg len = view.getUnsafeLength();
 				if (data && len) {
 					if (len > 0) {
 						return ParseHexString(data, 0, len, _out) == (sl_reg)len;
@@ -3146,7 +3146,7 @@ namespace slib
 					} else {
 						ch = 0;
 					}
-					if (ch == '%' || ch == 0) {
+					if (ch == '%' || !ch) {
 						sb.addStatic(format + posText, pos - posText);
 						posText = pos;
 						pos++;
