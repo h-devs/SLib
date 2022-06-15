@@ -70,7 +70,12 @@ extern "C"
 	END_WRAPPER
 
 	BEGIN_WRAPPER(c, fcntl64, int, int fd, int cmd, size_t arg)
-		return CALL_ORIGINAL(fd, cmd, arg);
+		if (func) {
+			return CALL_ORIGINAL(fd, cmd, arg);
+		} else {
+			func = (FUNC_fcntl64)(dlsym(g_libc, "fcntl"));
+			return CALL_ORIGINAL(fd, cmd, arg);
+		}
 	END_WRAPPER
 
 	BEGIN_WRAPPER(m, powf, float, float x, float y)

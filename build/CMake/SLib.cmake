@@ -175,6 +175,7 @@ else()
  set (SLIB_CORE_PLATFORM_FILES
   "${SLIB_PATH}/src/slib/core/dl_linux_cap.cpp"
   "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
+  "${SLIB_PATH}/src/slib/core/dl_linux_libc.cpp"
   "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
   "${SLIB_PATH}/src/slib/network/dl_linux_curl.cpp"
   "${SLIB_PATH}/src/slib/network/dl_linux_pcap.cpp"
