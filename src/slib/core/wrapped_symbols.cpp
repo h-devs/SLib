@@ -22,6 +22,8 @@
 
 #if defined(__linux__) && !defined(__ANDROID__)
 
+#include "slib/core/definition.h"
+
 #include <dlfcn.h>
 #include <stdlib.h>
 
@@ -69,6 +71,7 @@ extern "C"
 		CALL_ORIGINAL(dst, src, size);
 	END_WRAPPER
 
+#if defined(SLIB_ARCH_IS_64BIT)
 	BEGIN_WRAPPER(c, fcntl64, int, int fd, int cmd, size_t arg)
 		if (func) {
 			return CALL_ORIGINAL(fd, cmd, arg);
@@ -77,6 +80,7 @@ extern "C"
 			return CALL_ORIGINAL(fd, cmd, arg);
 		}
 	END_WRAPPER
+#endif
 
 	BEGIN_WRAPPER(m, powf, float, float x, float y)
 		return CALL_ORIGINAL(x, y);

@@ -60,11 +60,11 @@
 #endif
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 #	include "slib/core/dl/linux/libc.h"
-#	ifndef F_SETLK64
-#		define flock64 flock
-#		define F_SETLK64 F_SETLK
-#		define F_SETLKW64 F_SETLKW
-#	endif
+#endif
+#ifndef F_SETLK64
+#	define flock64 flock
+#	define F_SETLK64 F_SETLK
+#	define F_SETLKW64 F_SETLKW
 #endif
 
 namespace slib
@@ -451,37 +451,17 @@ namespace slib
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-			auto func64 = libc::getApi_fcntl64();
-			if (func64) {
-				struct flock64 fl = {0};
-				fl.l_start = offset;
-				fl.l_len = length;
-				fl.l_type = flagShared ? F_RDLCK : F_WRLCK;
-				fl.l_whence = SEEK_SET;
-				if (flagWait) {
-					if (func64(fd, F_SETLKW64, &fl) >= 0) {
-						return sl_true;
-					}
-				} else {
-					if (func64(fd, F_SETLK64, &fl) >= 0) {
-						return sl_true;
-					}
-				}
-				return sl_false;
-			}
-#endif
-			struct flock fl = {0};
+			struct flock64 fl = {0};
 			fl.l_start = offset;
 			fl.l_len = length;
 			fl.l_type = flagShared ? F_RDLCK : F_WRLCK;
 			fl.l_whence = SEEK_SET;
 			if (flagWait) {
-				if (fcntl(fd, F_SETLK, &fl) >= 0) {
+				if (fcntl(fd, F_SETLK64, &fl) >= 0) {
 					return sl_true;
 				}
 			} else {
-				if (fcntl(fd, F_SETLK, &fl) >= 0) {
+				if (fcntl(fd, F_SETLK64, &fl) >= 0) {
 					return sl_true;
 				}
 			}
@@ -493,26 +473,12 @@ namespace slib
 	{
 		int fd = m_file;
 		if (fd != SLIB_FILE_INVALID_HANDLE) {
-#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-			auto func64 = libc::getApi_fcntl64();
-			if (func64) {
-				struct flock64 fl = {0};
-				fl.l_start = offset;
-				fl.l_len = length;
-				fl.l_type = F_UNLCK;
-				fl.l_whence = SEEK_SET;
-				if (func64(fd, F_SETLK64, &fl) >= 0) {
-					return sl_true;
-				}
-				return sl_false;
-			}
-#endif
-			struct flock fl = {0};
+			struct flock64 fl = {0};
 			fl.l_start = offset;
 			fl.l_len = length;
 			fl.l_type = F_UNLCK;
 			fl.l_whence = SEEK_SET;
-			if (fcntl(fd, F_SETLK, &fl) >= 0) {
+			if (fcntl(fd, F_SETLK64, &fl) >= 0) {
 				return sl_true;
 			}
 		}

@@ -32,8 +32,6 @@
 namespace slib
 {
 
-	typedef int (*FUNC_fcntl)(int fd, int cmd, ...);
-
 	SLIB_IMPORT_LIBRARY_BEGIN(libc, "libc.so.6")
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
@@ -49,6 +47,15 @@ namespace slib
 		)
 
 	SLIB_IMPORT_LIBRARY_END
+
+#if defined(SLIB_ARCH_IS_64BIT)
+	typedef int (*FUNC_fcntl)(int fd, int cmd, ...);
+	FUNC_fcntl getApi_fcntl();
+#	ifdef fcntl
+#		undef fcntl
+#	endif
+#	define fcntl getApi_fcntl()
+#endif
 
 }
 

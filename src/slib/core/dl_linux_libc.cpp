@@ -23,3 +23,42 @@
 #define SLIB_IMPLEMENT_DYNAMIC_LIBRARY
 
 #include "slib/core/dl/linux/libc.h"
+
+namespace slib
+{
+
+	namespace priv
+	{
+		namespace libc
+		{
+
+			int EmptyFcntl(int fd, int cmd, ...)
+			{
+				return -1;
+			}
+
+		}
+	}
+
+	using namespace priv::libc;
+
+#if defined(SLIB_ARCH_IS_64BIT)
+	FUNC_fcntl getApi_fcntl()
+	{
+		static FUNC_fcntl func = sl_null;
+		static sl_bool flagInit = sl_true;
+		if (flagInit) {
+			func = libc::getApi_fcntl64();
+			if (!func) {
+				func = libc::getApi_fcntl();
+				if (!func) {
+					func = &EmptyFcntl;
+				}
+			}
+			flagInit = sl_false;
+		}
+		return func;
+	}
+#endif
+
+}
