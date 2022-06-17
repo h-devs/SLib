@@ -62,6 +62,10 @@ namespace slib
 	public:
 		static Ref<AsyncTcpSocket> create(AsyncTcpSocketParam& param);
 		
+		static Ref<AsyncTcpSocket> create();
+
+		static Ref<AsyncTcpSocket> create(Socket&& socket);
+
 	public:
 		sl_socket getSocket();
 		
