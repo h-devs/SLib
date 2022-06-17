@@ -1433,8 +1433,9 @@ namespace slib
 	void HttpServer::processRequest(HttpServerContext* context, HttpServerConnection* connection)
 	{
 		if (m_param.flagLogDebug) {
-			Log(SERVER_TAG, "[%s] Method=%s Path=%s Query=%s Host=%s",
+			Log(SERVER_TAG, "[%s] %s Method=%s Path=%s Query=%s Host=%s",
 				String::fromPointerValue(connection),
+				context->getRequestVersion(),
 				context->getMethodText(),
 				context->getPath(),
 				context->getQuery(),
@@ -1873,6 +1874,7 @@ namespace slib
 		onPostRequest(context);
 		
 		if (!(context->isProcessed())) {
+			context->write(StringView("Not Found"));
 			context->setResponseCode(HttpStatus::NotFound);
 		}
 		if (context->isKeepAlive() && !(context->containsResponseHeader(HttpHeader::KeepAlive))) {

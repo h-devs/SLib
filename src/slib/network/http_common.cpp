@@ -900,12 +900,12 @@ namespace slib
 	{
 		String connection = getRequestHeader(HttpHeader::Connection);
 		if (connection.isEmpty()) {
-			if (m_requestVersion != "HTTP/1.0") {
-				return sl_true;
-			}
+			SLIB_STATIC_STRING(str, "HTTP/1.0");
+			return m_requestVersion != str;
+		} else {
+			SLIB_STATIC_STRING(str, "Keep-Alive");
+			return connection.equalsIgnoreCase(str);
 		}
-		SLIB_STATIC_STRING(str, "Keep-Alive");
-		return connection.equalsIgnoreCase(str);
 	}
 	
 	void HttpRequest::setRequestKeepAlive()

@@ -27,8 +27,8 @@ using namespace slib;
 int main(int argc, const char * argv[])
 {
 
-	if (argc != 3) {
-		Println("Usage: StaticWeb <PORT> <DOCUMENT_PATH>");
+	if (argc < 3) {
+		Println("Usage: StaticWeb <PORT> <DOCUMENT_PATH> [d]");
 		return 0;
 	}
 
@@ -37,6 +37,8 @@ int main(int argc, const char * argv[])
 	param.port = StringView(argv[1]).parseUint32();
 	param.flagUseWebRoot = sl_true;
 	param.webRootPath = argv[2];
+	StringView flags(argc > 3 ? argv[3] : sl_null);
+	param.flagLogDebug = flags.contains('d');
 	
 	Ref<HttpServer> server = HttpServer::create(param);
 	if (server.isNull()) {
