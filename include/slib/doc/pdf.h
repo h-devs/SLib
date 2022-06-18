@@ -269,6 +269,7 @@ namespace slib
 	class Font;
 	class FreeType;
 	class FreeTypeGlyph;
+	class IWriter;
 
 	class SLIB_EXPORT PdfReference
 	{
@@ -490,12 +491,6 @@ namespace slib
 
 		PdfValue get(sl_size index, sl_bool flagResolveReference = sl_true) const;
 
-		template <class VALUE>
-		sl_bool add(VALUE&& value)
-		{
-			return add_NoLock(Forward<VALUE>(value));
-		}
-
 	public:
 		static Ref<PdfArray> create(const Rectangle& rc);
 
@@ -517,20 +512,6 @@ namespace slib
 		PdfValue get(const String& name, sl_bool flagResolveReference = sl_true) const;
 
 		PdfValue get(const String& name, const String& alternateName, sl_bool flagResolveReference = sl_true) const;
-
-		template <class KEY, class VALUE>
-		sl_bool add(KEY&& name, VALUE&& value)
-		{
-			return add_NoLock(Forward<KEY>(name), Forward<VALUE>(value));
-		}
-
-		template <class KEY, class VALUE>
-		sl_bool put(KEY&& name, VALUE&& value)
-		{
-			return put_NoLock(Forward<KEY>(name), Forward<VALUE>(value));
-		}
-
-		sl_bool remove(const String& name, PdfValue* pOut = sl_null);
 
 	private:
 		WeakRef<Referable> m_context;
@@ -1161,6 +1142,10 @@ namespace slib
 
 		sl_bool deletePage(sl_uint32 index);
 
+		Memory save();
+
+		sl_bool save(IWriter* writer);
+
 		Ref<PdfFont> getFont(const PdfReference& ref, PdfResourceCache& cache);
 
 		Ref<PdfExternalObject> getExternalObject(const PdfReference& ref, PdfResourceCache& cache);
@@ -1173,7 +1158,7 @@ namespace slib
 		sl_bool _open(const PdfDocumentParam& param);
 
 	private:
-		Ref<Referable> m_context;
+		Ref<Referable> m_context; // NotNull
 
 		friend class Pdf;
 	};
