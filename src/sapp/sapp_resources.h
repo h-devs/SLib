@@ -467,6 +467,9 @@ namespace slib
 		SAppFontValue hintFont;
 		SAppBooleanValue readOnly;
 		SAppBooleanValue password;
+		SAppBooleanValue number;
+		SAppBooleanValue lowercase;
+		SAppBooleanValue uppercase;
 		SAppMultiLineModeValue multiLine;
 		SAppUIReturnKeyTypeValue returnKey;
 		SAppUIKeyboardTypeValue keyboard;

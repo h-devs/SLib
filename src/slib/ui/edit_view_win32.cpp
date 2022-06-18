@@ -226,6 +226,21 @@ namespace slib
 					}
 				}
 
+				void setLowercase(EditView* view, sl_bool flag) override
+				{
+					UIPlatform::setWindowStyle(m_handle, ES_LOWERCASE, flag);
+				}
+
+				void setUppercase(EditView* view, sl_bool flag) override
+				{
+					UIPlatform::setWindowStyle(m_handle, ES_UPPERCASE, flag);
+				}
+
+				void setKeyboardType(EditView* view, UIKeyboardType mode) override
+				{
+					UIPlatform::setWindowStyle(m_handle, ES_NUMBER, mode == UIKeyboardType::Numpad);
+				}
+
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
 					UIPlatform::setWindowStyle(m_handle, ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN, mode != MultiLineMode::Single);
@@ -677,6 +692,14 @@ namespace slib
 		}
 		if (m_flagPassword) {
 			style |= ES_PASSWORD;
+		}
+		if (m_keyboardType == UIKeyboardType::Numpad) {
+			style |= ES_NUMBER;
+		}
+		if (m_flagUppercase) {
+			style |= ES_UPPERCASE;
+		} else if (m_flagLowercase) {
+			style |= ES_LOWERCASE;
 		}
 		return Win32_ViewInstance::create<EditViewInstance>(this, parent, L"Edit", getText(), style, 0);
 	}

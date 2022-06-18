@@ -2902,6 +2902,9 @@ namespace slib
 		}
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(readOnly, setReadOnly)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(password, setPassword)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(number, setNumber)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lowercase, setLowercase)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(uppercase, setUppercase)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multiLine, setMultiLine)
 		LAYOUT_CONTROL_GENERIC_ATTR(returnKey, setReturnKeyType)
 		LAYOUT_CONTROL_GENERIC_ATTR(keyboard, setKeyboardType)

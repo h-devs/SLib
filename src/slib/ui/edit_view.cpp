@@ -259,6 +259,8 @@ namespace slib
 		m_hintTextColor = Color(150, 150, 150);
 		m_flagReadOnly = sl_false;
 		m_flagPassword = sl_false;
+		m_flagLowercase = sl_false;
+		m_flagUppercase = sl_false;
 		m_multiLine = MultiLineMode::Single;
 		m_returnKeyType = UIReturnKeyType::Default;
 		m_keyboardType = UIKeyboardType::Default;
@@ -502,6 +504,52 @@ namespace slib
 		}
 	}
 
+	sl_bool EditView::isNumber()
+	{
+		return getKeyboardType() == UIKeyboardType::Numpad;
+	}
+
+	void EditView::setNumber(sl_bool flag, UIUpdateMode mode)
+	{
+		setKeyboardType(UIKeyboardType::Numpad);
+		invalidate(mode);
+	}
+
+	sl_bool EditView::isLowercase()
+	{
+		return m_flagLowercase;
+	}
+
+	void EditView::setLowercase(sl_bool flag, UIUpdateMode mode)
+	{
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setLowercase, flag, mode)
+			m_flagLowercase = flag;
+			instance->setLowercase(this, flag);
+		} else {
+			m_flagLowercase = flag;
+			invalidate(mode);
+		}
+	}
+
+	sl_bool EditView::isUppercase()
+	{
+		return m_flagUppercase;
+	}
+
+	void EditView::setUppercase(sl_bool flag, UIUpdateMode mode)
+	{
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setUppercase, flag, mode)
+			m_flagUppercase = flag;
+			instance->setUppercase(this, flag);
+		} else {
+			m_flagUppercase = flag;
+			invalidate(mode);
+		}
+	}
 	
 	MultiLineMode EditView::getMultiLine()
 	{
@@ -911,7 +959,15 @@ namespace slib
 	{
 		return sl_false;
 	}
-	
+
+	void IEditViewInstance::setLowercase(EditView* view, sl_bool flag)
+	{
+	}
+
+	void IEditViewInstance::setUppercase(EditView* view, sl_bool flag)
+	{
+	}
+
 	void IEditViewInstance::setReturnKeyType(EditView* view, UIReturnKeyType type)
 	{
 	}
