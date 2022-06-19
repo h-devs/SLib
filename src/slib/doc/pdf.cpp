@@ -87,6 +87,7 @@ namespace slib
 				DEFINE_PDF_NAME(Bounds)
 				DEFINE_PDF_NAME(Encrypt);
 				DEFINE_PDF_NAME(Root)
+				DEFINE_PDF_NAME(Catalog)
 				DEFINE_PDF_NAME(Pages)
 				DEFINE_PDF_NAME(Count)
 				DEFINE_PDF_NAME(Parent)
@@ -1322,18 +1323,19 @@ namespace slib
 					} else {
 						pageWidth = 612.0f;
 					}
-					Ref<PdfPageTreeItem> _parent(pageNear->parent);
-					PageTreeParent* parent;
-					if (_parent.isNotNull()) {
-						parent = (PageTreeParent*)(_parent.get());
-					} else {
-						parent = tree;
+					PageTreeParent* parent = tree;
+					if (pageNear.isNotNull()) {
+						Ref<PdfPageTreeItem> _parent(pageNear->parent);
+						if (_parent.isNotNull()) {
+							parent = (PageTreeParent*)(_parent.get());
+						}
 					}
 					Ref<PdfPage> page = createJpegImagePage(parent, imageWidth, imageHeight, jpeg, pageWidth);
 					if (page.isNull()) {
 						return sl_false;
 					}
 					parent->insertKidAfter(this, page.get(), index ? pageNear.get() : sl_null);
+					Ref<PdfPageTreeItem>_parent;
 					do {
 						parent->increasePagesCount();
 						setObject(parent->reference, parent->attributes);
@@ -1942,6 +1944,39 @@ namespace slib
 						return ret;
 					}
 					return sl_null;
+				}
+
+				sl_bool createDocument()
+				{
+					majorVersion = 1;
+					minorVersion = 4;
+					lastTrailer = new PdfDictionary(this);
+					if (lastTrailer.isNull()) {
+						return sl_false;
+					}
+					catalog = new PdfDictionary(this);
+					if (catalog.isNull()) {
+						return sl_false;
+					}
+					PdfReference refCatalog;
+					if (!(addObject(catalog, refCatalog))) {
+						return sl_false;
+					}
+					catalog->add_NoLock(name::Type, PdfName(name::Catalog));
+					Ref<PdfDictionary> rootPageTree = new PdfDictionary(this);
+					if (rootPageTree.isNull()) {
+						return sl_false;
+					}
+					PdfReference refPages;
+					if (!(addObject(rootPageTree, refPages))) {
+						return sl_false;
+					}
+					rootPageTree->add_NoLock(name::Type, PdfName(name::Pages));
+					rootPageTree->add_NoLock(name::Kids, new PdfArray(this));
+					rootPageTree->add_NoLock(name::Count, (sl_uint32)0);
+					catalog->add_NoLock(name::Pages, refPages);
+					lastTrailer->add_NoLock(name::Root, refCatalog);
+					return sl_true;
 				}
 
 				sl_bool initDocument(const PdfDocumentParam& param)
@@ -8514,17 +8549,34 @@ namespace slib
 	{
 	}
 
-	sl_bool PdfDocument::_open(const PdfDocumentParam& param)
+	Ref<PdfDocument> PdfDocument::create()
+	{
+		Ref<MemoryContext> context = new MemoryContext(sl_true);
+		if (context.isNotNull()) {
+			context->source = "";
+			context->sizeSource = 0;
+			if (context->createDocument()) {
+				Ref<PdfDocument> ret = new PdfDocument;
+				if (ret.isNotNull()) {
+					ret->m_context = Move(context);
+					return ret;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	Ref<PdfDocument> PdfDocument::open(const PdfDocumentParam& param)
 	{
 		Ref<Context> context;
 		if (param.content.isNotNull()) {
 			sl_uint32 fileSize = (sl_uint32)(param.content.getSize());
 			if (fileSize > MAX_PDF_FILE_SIZE) {
-				return sl_false;
+				return sl_null;
 			}
 			Ref<MemoryContext> contextMem = new MemoryContext(sl_true);
 			if (contextMem.isNull()) {
-				return sl_false;
+				return sl_null;
 			}
 			contextMem->source = (sl_char8*)(param.content.getData());
 			contextMem->sizeSource = fileSize;
@@ -8533,39 +8585,31 @@ namespace slib
 		} else if (param.filePath.isNotNull()) {
 			Ref<FileIO> file = FileIO::openForRead(param.filePath);
 			if (file.isNull()) {
-				return sl_false;
+				return sl_null;
 			}
 			sl_uint64 fileSize = file->getSize();
 			if (!fileSize) {
-				return sl_false;
+				return sl_null;
 			}
 			if (fileSize > MAX_PDF_FILE_SIZE) {
-				return sl_false;
+				return sl_null;
 			}
 			Ref<BufferedContext> contextFile = new BufferedContext(sl_true);
 			if (contextFile.isNull()) {
-				return sl_false;
+				return sl_null;
 			}
 			if (!(contextFile->reader.open(file))) {
-				return sl_false;
+				return sl_null;
 			}
 			context = Move(contextFile);
 		} else {
-			return sl_false;
+			return sl_null;
 		}
 		if (context->readDocument(param)) {
-			m_context = Move(context);
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	Ref<PdfDocument> PdfDocument::open(const PdfDocumentParam& param)
-	{
-		Ref<PdfDocument> doc = new PdfDocument;
-		if (doc.isNotNull()) {
-			if (doc->_open(param)) {
-				return doc;
+			Ref<PdfDocument> ret = new PdfDocument;
+			if (ret.isNotNull()) {
+				ret->m_context = Move(context);
+				return ret;
 			}
 		}
 		return sl_null;

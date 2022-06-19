@@ -1113,6 +1113,8 @@ namespace slib
 		~PdfDocument();
 
 	public:
+		static Ref<PdfDocument> create();
+
 		static Ref<PdfDocument> open(const PdfDocumentParam& param);
 
 		static Ref<PdfDocument> openFile(const StringParam& filePath, const StringParam& password = sl_null);
@@ -1153,9 +1155,6 @@ namespace slib
 		sl_bool isEncrypted();
 
 		sl_bool isAuthenticated();
-
-	protected:
-		sl_bool _open(const PdfDocumentParam& param);
 
 	private:
 		Ref<Referable> m_context; // NotNull

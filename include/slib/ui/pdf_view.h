@@ -47,6 +47,8 @@ namespace slib
 
 		sl_bool openMemory(const Memory& mem, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool openNew(UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		void close(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isUsingPageCache();
@@ -54,6 +56,8 @@ namespace slib
 		void setUsingPageCache(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<PdfDocument> getDocument();
+
+		sl_uint32 getPagesCount();
 
 		sl_uint32 getCurrentPage();
 
