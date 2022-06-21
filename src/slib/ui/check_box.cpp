@@ -233,7 +233,7 @@ namespace slib
 
 	CheckBoxCell::CheckBoxCell(const Array<ButtonCategory>& categories): ButtonCell(categories)
 	{
-		gravity = Alignment::MiddleLeft;
+		gravity = Alignment::Left;
 		textColor = Color::Black;
 		textMarginLeft = 2 * UIResource::toUiPos(UIResource::dpToPixel(1));
 		textMarginTop = 1;

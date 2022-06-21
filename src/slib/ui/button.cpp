@@ -277,12 +277,12 @@ namespace slib
 		if (m_cell.isNotNull()) {
 			return m_cell->gravity;
 		}
-		return Alignment::MiddleCenter;
+		return Alignment::Default;
 	}
 
 	void Button::setGravity(const Alignment& gravity, UIUpdateMode updateMode)
 	{
-		if (gravity != Alignment::MiddleCenter) {
+		if (gravity != Alignment::Default) {
 			_initCell();
 		}
 		if (m_cell.isNotNull()) {
@@ -1207,7 +1207,7 @@ namespace slib
 		categories = _categories;
 
 		textColor = BUTTON_TEXT_DEFAULT_COLOR;
-		gravity = Alignment::MiddleCenter;
+		gravity = Alignment::Default;
 
 		state = ButtonState::Normal;
 		category = 0;

@@ -71,7 +71,7 @@ namespace slib
 		m_tabWidth = 0;
 		m_tabHeight = 0;
 		
-		m_tabAlignment = Alignment::MiddleCenter;
+		m_tabAlignment = Alignment::Default;
 		m_tabPaddingLeft = 0;
 		m_tabPaddingTop = 0;
 		m_tabPaddingRight = 0;

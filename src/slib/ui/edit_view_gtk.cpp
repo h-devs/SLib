@@ -102,13 +102,15 @@ namespace slib
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
 					if (handle) {
-						float alignment = 0;
+						float alignment;
 						Alignment align = gravity & Alignment::HorizontalMask;
-						if (align == Alignment::Center) {
-							alignment = 0.5;
+						if (align == Alignment::Left) {
+							alignment = 0;
 						} else if (align == Alignment::Right) {
 							alignment = 1;
-						} 
+						} else {
+							alignment = 0.5f;
+						}
 						gtk_entry_set_alignment(handle, alignment);
 					}
 				}
@@ -329,12 +331,14 @@ namespace slib
 				{
 					GtkTextView* handle = m_handleTextView;
 					if (handle) {
-						GtkJustification alignment = GTK_JUSTIFY_LEFT;
+						GtkJustification alignment;
 						Alignment align = gravity & Alignment::HorizontalMask;
-						if (align == Alignment::Center) {
-							alignment = GTK_JUSTIFY_CENTER;
+						if (align == Alignment::Left) {
+							alignment = GTK_JUSTIFY_LEFT;
 						} else if (align == Alignment::Right) {
 							alignment = GTK_JUSTIFY_RIGHT;
+						} else {
+							alignment = GTK_JUSTIFY_CENTER;
 						}
 						gtk_text_view_set_justification(handle, alignment);
 					}

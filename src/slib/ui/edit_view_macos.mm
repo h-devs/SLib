@@ -72,12 +72,13 @@ namespace slib
 			static NSTextAlignment TranslateAlignment(Alignment _align)
 			{
 				Alignment align = _align & Alignment::HorizontalMask;
-				if (align == Alignment::Center) {
-					return NSCenterTextAlignment;
+				if (align == Alignment::Left) {
+					return NSLeftTextAlignment;
 				} else if (align == Alignment::Right) {
 					return NSRightTextAlignment;
+				} else {
+					return NSCenterTextAlignment;
 				}
-				return NSLeftTextAlignment;
 			}
 			
 			static NSAttributedString* GenerateHintString(EditView* view)

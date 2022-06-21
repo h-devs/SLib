@@ -69,12 +69,14 @@ namespace slib
 
 			static void SetGravity(HWND handle, const Alignment& gravity)
 			{
-				LONG style = 0;
+				LONG style;
 				Alignment align = gravity & Alignment::HorizontalMask;
-				if (align == Alignment::Center) {
-					style = ES_CENTER;
+				if (align == Alignment::Left) {
+					style = 0;
 				} else if (align == Alignment::Right) {
 					style = ES_RIGHT;
+				} else {
+					style = ES_CENTER;
 				}
 				UIPlatform::removeAndAddWindowStyle(handle, ES_RIGHT | ES_CENTER, style);
 			}
@@ -580,7 +582,7 @@ namespace slib
 									Alignment valign = m_hintGravity & Alignment::VerticalMask;
 									if (halign == Alignment::Right) {
 										format |= DT_RIGHT;
-									} else if (halign == Alignment::Center) {
+									} else if (halign != Alignment::Left) {
 										format |= DT_CENTER;
 									}
 									if (valign != Alignment::Top) {
@@ -671,10 +673,10 @@ namespace slib
 	{
 		int style = WS_TABSTOP;
 		Alignment align = m_gravity & Alignment::HorizontalMask;
-		if (align == Alignment::Center) {
-			style |= ES_CENTER;
-		} else if (align == Alignment::Right) {
+		if (align == Alignment::Right) {
 			style |= ES_RIGHT;
+		} else if (align != Alignment::Left) {
+			style |= ES_CENTER;
 		}
 		if (m_multiLine != MultiLineMode::Single) {
 			style |= ES_MULTILINE | ES_WANTRETURN;
@@ -721,10 +723,10 @@ namespace slib
 		}
 		int style = WS_TABSTOP | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN;
 		Alignment align = m_gravity & Alignment::HorizontalMask;
-		if (align == Alignment::Center) {
-			style |= ES_CENTER;
-		} else if (align == Alignment::Right) {
+		if (align == Alignment::Right) {
 			style |= ES_RIGHT;
+		} else if (align != Alignment::Left) {
+			style |= ES_CENTER;
 		}
 		if (m_multiLine != MultiLineMode::WordWrap && m_multiLine != MultiLineMode::BreakWord) {
 			style |= ES_AUTOHSCROLL;

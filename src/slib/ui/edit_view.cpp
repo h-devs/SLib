@@ -253,9 +253,9 @@ namespace slib
 		
 		m_flagInvalidateText = sl_false;
 		m_flagChangeEvent = sl_true;
-		m_gravity = Alignment::MiddleCenter;
+		m_gravity = Alignment::Default;
 		m_textColor = Color::Black;
-		m_hintGravity = Alignment::MiddleCenter;
+		m_hintGravity = Alignment::Default;
 		m_hintTextColor = Color(150, 150, 150);
 		m_flagReadOnly = sl_false;
 		m_flagPassword = sl_false;
@@ -766,19 +766,19 @@ namespace slib
 			Alignment hAlign = gravity & Alignment::HorizontalMask;
 			Alignment vAlign = gravity & Alignment::VerticalMask;
 			sl_real xCaret, yCaret;
-			if (hAlign == Alignment::Right) {
-				xCaret = rect.right;
-			} else if (hAlign == Alignment::Center) {
-				xCaret = (rect.left + rect.right + size.x) / 2;
-			} else {
+			if (hAlign == Alignment::Left) {
 				xCaret = rect.left + size.x;
-			}
-			if (vAlign == Alignment::Bottom) {
-				yCaret = rect.bottom - size.y;
-			} else if (vAlign == Alignment::Middle) {
-				yCaret = (rect.top + rect.bottom - size.y) / 2;
+			} else if (hAlign == Alignment::Right) {
+				xCaret = rect.right;
 			} else {
+				xCaret = (rect.left + rect.right + size.x) / 2;
+			}
+			if (vAlign == Alignment::Top) {
 				yCaret = rect.top;
+			} else if (vAlign == Alignment::Bottom) {
+				yCaret = rect.bottom - size.y;
+			} else {
+				yCaret = (rect.top + rect.bottom - size.y) / 2;
 			}
 			if (!(m_nCountDrawCaret % 2)) {
 				canvas->fillRectangle(xCaret, yCaret, 1, size.y, Color::Black);

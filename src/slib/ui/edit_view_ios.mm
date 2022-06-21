@@ -67,12 +67,13 @@ namespace slib
 			static NSTextAlignment TranslateAlignment(Alignment _align)
 			{
 				Alignment align = _align & Alignment::HorizontalMask;
-				if (align == Alignment::Center) {
-					return NSTextAlignmentCenter;
+				if (align == Alignment::Left) {
+					return NSTextAlignmentLeft;
 				} else if (align == Alignment::Right) {
 					return NSTextAlignmentRight;
+				} else {
+					return NSTextAlignmentCenter;
 				}
-				return NSTextAlignmentLeft;
 			}
 			
 			static ::UIReturnKeyType ConvertReturnKeyType(UIReturnKeyType type)
