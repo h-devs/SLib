@@ -80,12 +80,12 @@ namespace slib
 		sl_bool flagUseStock = !(UIPlatform::isSupportedGtk(3, 10));
 		sl_bool flagGtk3 = UIPlatform::isSupportedGtk(3);
 
-		StringCstr szTitleOk = titleOk;
-		if (titleOk.isEmpty()) {
+		StringCstr szTitleOK = titleOK;
+		if (titleOK.isEmpty()) {
 			if (flagUseStock) {
-				szTitleOk = "gtk-ok"; // GTK_OK
+				szTitleOK = "gtk-ok"; // GTK_OK
 			} else {
-				szTitleOk = "_OK";
+				szTitleOK = "_OK";
 			}
 		}
 		StringCstr szTitleCancel = titleCancel;
@@ -114,7 +114,7 @@ namespace slib
 		}
 		
 		if (buttons == AlertButtons::OkCancel) {
-			gtk_dialog_add_button(dialog, szTitleOk.getData(), GTK_RESPONSE_OK);
+			gtk_dialog_add_button(dialog, szTitleOK.getData(), GTK_RESPONSE_OK);
 			gtk_dialog_add_button(dialog, szTitleCancel.getData(), GTK_RESPONSE_CANCEL);
 			if (!flagGtk3) {
 				gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL, -1);
@@ -133,7 +133,7 @@ namespace slib
 				gtk_dialog_set_alternative_button_order(dialog, GTK_RESPONSE_YES, GTK_RESPONSE_NO, GTK_RESPONSE_CANCEL, -1);
 			}
 		} else {
-			gtk_dialog_add_button(dialog, szTitleOk.getData(), GTK_RESPONSE_OK);
+			gtk_dialog_add_button(dialog, szTitleOK.getData(), GTK_RESPONSE_OK);
 		}
 		
 		gint response = gtk_dialog_run(dialog);
@@ -142,7 +142,7 @@ namespace slib
 		
 		switch (response) {
 			case GTK_RESPONSE_OK:
-				return DialogResult::Ok;
+				return DialogResult::OK;
 			case GTK_RESPONSE_YES:
 				return DialogResult::Yes;
 			case GTK_RESPONSE_NO:
@@ -284,7 +284,7 @@ namespace slib
 					} while (item);
 					g_slist_free(list);
 				}
-				ret = DialogResult::Ok;
+				ret = DialogResult::OK;
 			}
 		} else {
 			ret = DialogResult::Cancel;

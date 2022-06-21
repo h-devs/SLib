@@ -93,9 +93,9 @@ namespace slib
 		AlertButtons buttons = this->buttons;
 		NSString* caption = Apple::getNSStringFromString(this->caption);
 		NSString* text = Apple::getNSStringFromString(this->text);
-		NSString* titleOk = Apple::getNSStringFromString(this->titleOk);
-		if ([titleOk length] == 0) {
-			titleOk = Apple::getSystemLocalizedNSString(@"OK");
+		NSString* titleOK = Apple::getNSStringFromString(this->titleOK);
+		if ([titleOK length] == 0) {
+			titleOK = Apple::getSystemLocalizedNSString(@"OK");
 		}
 		NSString* titleCancel = Apple::getNSStringFromString(this->titleCancel);
 		if ([titleCancel length] == 0) {
@@ -109,7 +109,7 @@ namespace slib
 		if ([titleNo length] == 0) {
 			titleNo = Apple::getSystemLocalizedNSString(@"No");
 		}
-		Function<void()> onOk = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Ok);
+		Function<void()> onOK = SLIB_BIND_REF(void(), this, _onResult, DialogResult::OK);
 		Function<void()> onCancel = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Cancel);
 		Function<void()> onYes = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Yes);
 		Function<void()> onNo = SLIB_BIND_REF(void(), this, _onResult, DialogResult::No);
@@ -119,9 +119,9 @@ namespace slib
 		if (alert != nil) {
 			
 			if (buttons == AlertButtons::OkCancel) {
-				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOk style:UIAlertActionStyleDefault handler:
+				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOK style:UIAlertActionStyleDefault handler:
 										   ^(UIAlertAction *) {
-											   onOk();
+											   onOK();
 										   }];
 				UIAlertAction* actionCancel = [UIAlertAction actionWithTitle:titleCancel style:UIAlertActionStyleCancel handler:
 											   ^(UIAlertAction *) {
@@ -157,9 +157,9 @@ namespace slib
 				[alert addAction:actionNo];
 				[alert addAction:actionCancel];
 			} else {
-				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOk style:UIAlertActionStyleCancel handler:
+				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOK style:UIAlertActionStyleCancel handler:
 										   ^(UIAlertAction *) {
-											   onOk();
+											   onOK();
 										   }];
 				[alert addAction:actionOK];
 			}

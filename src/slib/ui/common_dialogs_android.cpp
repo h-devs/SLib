@@ -48,7 +48,7 @@ namespace slib
 				SLIB_JNI_STRING_FIELD(text);
 				SLIB_JNI_BOOLEAN_FIELD(flagHyperText);
 				SLIB_JNI_STRING_FIELD(caption);
-				SLIB_JNI_STRING_FIELD(titleOk);
+				SLIB_JNI_STRING_FIELD(titleOK);
 				SLIB_JNI_STRING_FIELD(titleCancel);
 				SLIB_JNI_STRING_FIELD(titleYes);
 				SLIB_JNI_STRING_FIELD(titleNo);
@@ -82,7 +82,7 @@ namespace slib
 					alertMap->remove(_alert);
 					switch (result) {
 					case 0: // OK
-						alert->onResult(DialogResult::Ok);
+						alert->onResult(DialogResult::OK);
 						break;
 					case 2: // Yes
 						alert->onResult(DialogResult::Yes);
@@ -138,7 +138,7 @@ namespace slib
 					JAlert::flagHyperText.set(jalert, flagHyperText);
 					jlong lresult = (jlong)(result.get());
 					JAlert::nativeObject.set(jalert, lresult);
-					JAlert::titleOk.set(jalert, titleOk);
+					JAlert::titleOK.set(jalert, titleOK);
 					JAlert::titleCancel.set(jalert, titleCancel);
 					String _titleYes = titleYes;
 					if (_titleYes.isEmpty()) {

@@ -326,7 +326,7 @@ namespace slib
 
 	public:
 		enum {
-			Ok = 0,
+			OK = 0,
 			Yes = -1,
 			No = -2,
 			Cancel = -3,
@@ -334,7 +334,7 @@ namespace slib
 		};
 
 	public:
-		SLIB_CONSTEXPR DialogResult(): value(Ok) {}
+		SLIB_CONSTEXPR DialogResult(): value(OK) {}
 
 	};
 
@@ -349,7 +349,7 @@ namespace slib
 
 	enum class AlertButtons
 	{
-		Ok = 0,
+		OK = 0,
 		OkCancel = 1,
 		YesNo = 2,
 		YesNoCancel = 3

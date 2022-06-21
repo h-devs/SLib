@@ -50,12 +50,12 @@ namespace slib
 		AlertButtons buttons;
 		AlertIcon icon;
 
-		String titleOk;
+		String titleOK;
 		String titleCancel;
 		String titleYes;
 		String titleNo;
 		
-		Function<void()> onOk;
+		Function<void()> onOK;
 		Function<void()> onCancel;
 		Function<void()> onYes;
 		Function<void()> onNo;
@@ -187,7 +187,7 @@ namespace slib
 		String message;
 		String defaultValue;
 
-		Function<void(String&)> onOk;
+		Function<void(String&)> onOK;
 		Function<void()> onCancel;
 
 	};

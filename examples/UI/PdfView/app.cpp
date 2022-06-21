@@ -34,7 +34,7 @@ void PdfViewerApp::onStart()
 				dlg.parent = weakWindow;
 				dlg.title = "Open PDF Document";
 				dlg.addFilter("PDF Documents", "*.pdf");
-				if (dlg.run() == DialogResult::Ok) {
+				if (dlg.run() == DialogResult::OK) {
 					if (!(pdf->openFile(dlg.selectedPath))) {
 						UI::alert("Failed to open file!");
 					}

@@ -111,7 +111,7 @@ namespace slib
 	AlertDialog::AlertDialog()
 	{
 		flagHyperText = sl_false;
-		buttons = AlertButtons::Ok;
+		buttons = AlertButtons::OK;
 		icon = AlertIcon::None;
 	}
 	
@@ -190,8 +190,8 @@ namespace slib
 	{
 		onComplete(result);
 		switch (result) {
-			case DialogResult::Ok:
-				onOk();
+			case DialogResult::OK:
+				onOK();
 				break;
 			case DialogResult::Yes:
 				onYes();
@@ -205,8 +205,8 @@ namespace slib
 			case DialogResult::Error:
 				onError();
 				if (onComplete.isNull() && onError.isNull()) {
-					if (buttons == AlertButtons::Ok) {
-						onOk();
+					if (buttons == AlertButtons::OK) {
+						onOK();
 					} else if (buttons == AlertButtons::YesNo) {
 						onNo();
 					} else {
@@ -240,11 +240,11 @@ namespace slib
 		
 		auto alert = ToRef(this);
 		dlg->btnOK->setVisibility(Visibility::Gone, UIUpdateMode::Init);
-		if (titleOk.isNotNull()) {
-			dlg->btnOK->setText(titleOk, UIUpdateMode::Init);
+		if (titleOK.isNotNull()) {
+			dlg->btnOK->setText(titleOK, UIUpdateMode::Init);
 		}
 		dlg->btnOK->setOnClick([alert](View* view) {
-			alert->_onResult(DialogResult::Ok);
+			alert->_onResult(DialogResult::OK);
 			view->getNearestViewPage()->close();
 		});
 		
@@ -428,7 +428,7 @@ namespace slib
 		FileDialog dlg;
 		dlg.type = FileDialogType::OpenFiles;
 		dlg.parent = parent;
-		if (dlg.run() == DialogResult::Ok) {
+		if (dlg.run() == DialogResult::OK) {
 			return dlg.selectedPaths;
 		}
 		return sl_null;
@@ -439,7 +439,7 @@ namespace slib
 		FileDialog dlg;
 		dlg.type = FileDialogType::OpenFile;
 		dlg.parent = parent;
-		if (dlg.run() == DialogResult::Ok) {
+		if (dlg.run() == DialogResult::OK) {
 			return dlg.selectedPath;
 		}
 		return sl_null;
@@ -450,7 +450,7 @@ namespace slib
 		FileDialog dlg;
 		dlg.type = FileDialogType::SaveFile;
 		dlg.parent = parent;
-		if (dlg.run() == DialogResult::Ok) {
+		if (dlg.run() == DialogResult::OK) {
 			return dlg.selectedPath;
 		}
 		return sl_null;
@@ -461,7 +461,7 @@ namespace slib
 		FileDialog dlg;
 		dlg.type = FileDialogType::SelectDirectory;
 		dlg.parent = parent;
-		if (dlg.run() == DialogResult::Ok) {
+		if (dlg.run() == DialogResult::OK) {
 			return dlg.selectedPath;
 		}
 		return sl_null;

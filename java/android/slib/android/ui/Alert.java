@@ -45,7 +45,7 @@ public class Alert {
 	public boolean flagHyperText;
 	public String caption;
 	
-	public String titleOk;
+	public String titleOK;
 	public String titleCancel;
 	public String titleYes;
 	public String titleNo;
@@ -90,8 +90,8 @@ public class Alert {
 				}
 				switch (type) {
 				case TYPE_OK:
-					if (titleOk != null) {
-						alertDialogBuilder.setPositiveButton(titleOk, new AlertDialog.OnClickListener() {
+					if (titleOK != null) {
+						alertDialogBuilder.setPositiveButton(titleOK, new AlertDialog.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
 								nativeShowResult(nativeObject, RESULT_OK);
@@ -114,8 +114,8 @@ public class Alert {
 					alertDialogBuilder.setCancelable(true);
 					break;
 				case TYPE_OKCANCEL:
-					if (titleOk != null) {
-						alertDialogBuilder.setPositiveButton(titleOk, new AlertDialog.OnClickListener() {
+					if (titleOK != null) {
+						alertDialogBuilder.setPositiveButton(titleOK, new AlertDialog.OnClickListener() {
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
 								nativeShowResult(nativeObject, RESULT_OK);

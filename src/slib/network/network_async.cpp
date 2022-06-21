@@ -160,7 +160,8 @@ namespace slib
 
 	Ref<AsyncTcpSocket> AsyncTcpSocket::create()
 	{
-		return create(AsyncTcpSocketParam());
+		AsyncTcpSocketParam param;
+		return create(param);
 	}
 
 	Ref<AsyncTcpSocket> AsyncTcpSocket::create(Socket&& socket)

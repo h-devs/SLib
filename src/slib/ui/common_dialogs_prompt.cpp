@@ -70,7 +70,7 @@ namespace slib
 	{
 		Ref<ui::PromptDialog> dlg = CreateDialog(*this);
 		if (dlg.isNotNull()) {
-			if (dlg->doModal() == DialogResult::Ok) {
+			if (dlg->doModal() == DialogResult::OK) {
 				return dlg->input->getText();
 			}
 		}
@@ -82,12 +82,12 @@ namespace slib
 		Ref<ui::PromptDialog> dlg = CreateDialog(*this);
 		if (dlg.isNotNull()) {
 			dlg->increaseReference();
-			const Function<void(String&)>& _onOk = onOk;
+			const Function<void(String&)>& _onOK = onOK;
 			const Function<void()>& _onCancel = onCancel;
-			dlg->setOnDestroy([_onOk, _onCancel](Window* dlg) {
-				if (dlg->getResult() == DialogResult::Ok) {
+			dlg->setOnDestroy([_onOK, _onCancel](Window* dlg) {
+				if (dlg->getResult() == DialogResult::OK) {
 					String text = ((ui::PromptDialog*)dlg)->input->getText();
-					_onOk(text);
+					_onOK(text);
 				} else {
 					_onCancel();
 				}
@@ -147,7 +147,7 @@ namespace slib
 		dlg.caption = caption.toString();
 		dlg.message = message.toString();
 		dlg.defaultValue = defaultValue.toString();
-		dlg.onOk = [onResult](String& value) {
+		dlg.onOK = [onResult](String& value) {
 			onResult(value);
 		};
 		dlg.onCancel = [onResult]() {

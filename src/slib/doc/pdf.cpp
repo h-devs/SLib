@@ -8553,7 +8553,7 @@ namespace slib
 	{
 		Ref<MemoryContext> context = new MemoryContext(sl_true);
 		if (context.isNotNull()) {
-			context->source = "";
+			context->source = sl_null;
 			context->sizeSource = 0;
 			if (context->createDocument()) {
 				Ref<PdfDocument> ret = new PdfDocument;

@@ -482,79 +482,79 @@ namespace slib
 		alert.run();
 	}
 
-	void UI::showAlert(const StringParam& text, const Function<void()>& onOk)
+	void UI::showAlert(const StringParam& text, const Function<void()>& onOK)
 	{
 		AlertDialog alert;
 		alert.text = text.toString();
-		alert.onOk = onOk;
+		alert.onOK = onOK;
 		alert.show();
 	}
 
-	void UI::showAlert(const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
+	void UI::showAlert(const StringParam& caption, const StringParam& text, const Function<void()>& onOK)
 	{
 		AlertDialog alert;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
-		alert.onOk = onOk;
+		alert.onOK = onOK;
 		alert.show();
 	}
 
-	void UI::showAlert(AlertIcon icon, const StringParam& text, const Function<void()>& onOk)
+	void UI::showAlert(AlertIcon icon, const StringParam& text, const Function<void()>& onOK)
 	{
 		AlertDialog alert;
 		alert.icon = icon;
 		alert.text = text.toString();
-		alert.onOk = onOk;
+		alert.onOK = onOK;
 		alert.show();
 	}
 
-	void UI::showAlert(AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
+	void UI::showAlert(AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOK)
 	{
 		AlertDialog alert;
-		alert.icon = icon;
-		alert.caption = caption.toString();
-		alert.text = text.toString();
-		alert.onOk = onOk;
-		alert.show();
-	}
-
-	void UI::showAlert(const Ref<Window>& parent, const StringParam& text, const Function<void()>& onOk)
-	{
-		AlertDialog alert;
-		alert.parent = parent;
-		alert.text = text.toString();
-		alert.onOk = onOk;
-		alert.show();
-	}
-
-	void UI::showAlert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
-	{
-		AlertDialog alert;
-		alert.parent = parent;
-		alert.caption = caption.toString();
-		alert.text = text.toString();
-		alert.onOk = onOk;
-		alert.show();
-	}
-
-	void UI::showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& text, const Function<void()>& onOk)
-	{
-		AlertDialog alert;
-		alert.parent = parent;
-		alert.icon = icon;
-		alert.text = text.toString();
-		alert.onOk = onOk;
-		alert.show();
-	}
-
-	void UI::showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOk)
-	{
-		AlertDialog alert;
-		alert.parent = parent;
 		alert.icon = icon;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
-		alert.onOk = onOk;
+		alert.onOK = onOK;
+		alert.show();
+	}
+
+	void UI::showAlert(const Ref<Window>& parent, const StringParam& text, const Function<void()>& onOK)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.text = text.toString();
+		alert.onOK = onOK;
+		alert.show();
+	}
+
+	void UI::showAlert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void()>& onOK)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
+		alert.onOK = onOK;
+		alert.show();
+	}
+
+	void UI::showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& text, const Function<void()>& onOK)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.icon = icon;
+		alert.text = text.toString();
+		alert.onOK = onOK;
+		alert.show();
+	}
+
+	void UI::showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOK)
+	{
+		AlertDialog alert;
+		alert.parent = parent;
+		alert.icon = icon;
+		alert.caption = caption.toString();
+		alert.text = text.toString();
+		alert.onOK = onOK;
 		alert.show();
 	}
 
@@ -563,7 +563,7 @@ namespace slib
 		AlertDialog alert;
 		alert.buttons = AlertButtons::OkCancel;
 		alert.text = text.toString();
-		return alert.run() == DialogResult::Ok;
+		return alert.run() == DialogResult::OK;
 	}
 	
 	sl_bool UI::confirm(const StringParam& caption, const StringParam& text)
@@ -572,7 +572,7 @@ namespace slib
 		alert.buttons = AlertButtons::OkCancel;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
-		return alert.run() == DialogResult::Ok;
+		return alert.run() == DialogResult::OK;
 	}
 	
 	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& text)
@@ -581,7 +581,7 @@ namespace slib
 		alert.buttons = AlertButtons::OkCancel;
 		alert.parent = parent;
 		alert.text = text.toString();
-		return alert.run() == DialogResult::Ok;
+		return alert.run() == DialogResult::OK;
 	}
 	
 	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text)
@@ -591,7 +591,7 @@ namespace slib
 		alert.parent = parent;
 		alert.caption = caption.toString();
 		alert.text = text.toString();
-		return alert.run() == DialogResult::Ok;
+		return alert.run() == DialogResult::OK;
 	}
 	
 	void UI::showConfirm(const StringParam& text, const Function<void(sl_bool)>& onResult)
@@ -600,7 +600,7 @@ namespace slib
 		alert.buttons = AlertButtons::OkCancel;
 		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
-			if (result == DialogResult::Ok) {
+			if (result == DialogResult::OK) {
 				onResult(sl_true);
 			} else {
 				onResult(sl_false);
@@ -616,7 +616,7 @@ namespace slib
 		alert.caption = caption.toString();
 		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
-			if (result == DialogResult::Ok) {
+			if (result == DialogResult::OK) {
 				onResult(sl_true);
 			} else {
 				onResult(sl_false);
@@ -632,7 +632,7 @@ namespace slib
 		alert.parent = parent;
 		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
-			if (result == DialogResult::Ok) {
+			if (result == DialogResult::OK) {
 				onResult(sl_true);
 			} else {
 				onResult(sl_false);
@@ -649,7 +649,7 @@ namespace slib
 		alert.caption = caption.toString();
 		alert.text = text.toString();
 		alert.onComplete = [onResult](DialogResult result) {
-			if (result == DialogResult::Ok) {
+			if (result == DialogResult::OK) {
 				onResult(sl_true);
 			} else {
 				onResult(sl_false);

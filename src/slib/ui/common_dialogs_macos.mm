@@ -43,9 +43,9 @@ namespace slib
 	{
 		NSString* caption = Apple::getNSStringFromString(this->caption);
 		NSString* text = Apple::getNSStringFromString(this->text);
-		NSString* titleOk = Apple::getNSStringFromString(this->titleOk);
-		if ([titleOk length] == 0) {
-			titleOk = Apple::getNSStringFromString(string::ok::get());
+		NSString* titleOK = Apple::getNSStringFromString(this->titleOK);
+		if ([titleOK length] == 0) {
+			titleOK = Apple::getNSStringFromString(string::ok::get());
 		}
 		NSString* titleCancel = Apple::getNSStringFromString(this->titleCancel);
 		if ([titleCancel length] == 0) {
@@ -81,10 +81,10 @@ namespace slib
 		[alert setAlertStyle:style];
 		[[alert window] setTitle:caption];
 		if (buttons == AlertButtons::OkCancel) {
-			[alert addButtonWithTitle:titleOk];
+			[alert addButtonWithTitle:titleOK];
 			NSButton* btnCancel = [alert addButtonWithTitle:titleCancel];
 			[btnCancel setKeyEquivalent:@"Cancel"];
-			result1 = DialogResult::Ok;
+			result1 = DialogResult::OK;
 			result2 = DialogResult::Cancel;
 		} else if (buttons == AlertButtons::YesNo) {
 			[alert addButtonWithTitle:titleYes];
@@ -102,8 +102,8 @@ namespace slib
 			result2 = DialogResult::Cancel;
 			result3 = DialogResult::No;
 		} else {
-			[alert addButtonWithTitle:titleOk];
-			result1 = DialogResult::Ok;
+			[alert addButtonWithTitle:titleOK];
+			result1 = DialogResult::OK;
 		}
 		
 		NSWindow* hParent = UIPlatform::getWindowHandle(parent.get());
@@ -232,14 +232,14 @@ namespace slib
 					if (paths.getCount() > 0) {
 						selectedPath = paths.getValueAt(0);
 						selectedPaths = paths;
-						return DialogResult::Ok;
+						return DialogResult::OK;
 					}
 				} else {
 					String path = Apple::getFilePathFromNSURL([panel URL]);
 					if (path.isNotEmpty()) {
 						selectedPath = path;
 						selectedPaths = List<String>::createFromElement(path);
-						return DialogResult::Ok;
+						return DialogResult::OK;
 					}
 				}
 			} else {

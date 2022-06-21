@@ -147,7 +147,7 @@ namespace slib
 			} else {
 				tr.setResult(result.getImage());
 			}
-			dlg->close(DialogResult::Ok);
+			dlg->close(DialogResult::OK);
 			thiz.onComplete(tr);
 		});
 		dlg->addView(camera, UIUpdateMode::Init);
@@ -168,7 +168,7 @@ namespace slib
 		dlg.addFilter(string::file_dialog_filter_image::get() + " (*.jpg;*.jpeg;*.png;*.gif;*.bmp)", "*.jpg;*.jpeg;*.png;*.gif;*.bmp");
 		dlg.addFilter(string::file_dialog_filter_all::get() + " (*.*)", "*");
 		priv::ui_photo::TakePhotoResultEx result;
-		if (dlg.run() == DialogResult::Ok) {
+		if (dlg.run() == DialogResult::OK) {
 			String path = dlg.selectedPath;
 			if (path.isNotEmpty()) {
 				result.setResult(Image::loadFromFile(path));
