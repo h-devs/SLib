@@ -573,6 +573,14 @@ namespace slib
 		SAppDimensionValue width;
 		SAppDimensionValue minWidth;
 		SAppDimensionValue maxWidth;
+		SAppDimensionValue margin;
+		SAppDimensionValue marginLeft;
+		SAppDimensionValue marginRight;
+		SAppDimensionValue padding;
+		SAppDimensionValue paddingLeft;
+		SAppDimensionValue paddingRight;
+		SAppDrawableValue background;
+		SAppAlignmentValue align;
 	};
 
 	class SAppLayoutTableCell
@@ -589,7 +597,15 @@ namespace slib
 		SAppDimensionValue height;
 		SAppDimensionValue minHeight;
 		SAppDimensionValue maxHeight;
-		
+		SAppDimensionValue margin;
+		SAppDimensionValue marginTop;
+		SAppDimensionValue marginBottom;
+		SAppDimensionValue padding;
+		SAppDimensionValue paddingTop;
+		SAppDimensionValue paddingBottom;
+		SAppDrawableValue background;
+		SAppAlignmentValue align;
+
 		List<SAppLayoutTableCell> cells;
 	};
 

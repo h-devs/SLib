@@ -23,6 +23,7 @@
 #include "slib/ui/table_layout.h"
 
 #include "slib/core/scoped_buffer.h"
+#include "slib/graphics/canvas.h"
 
 namespace slib
 {
@@ -36,41 +37,32 @@ namespace slib
 			{
 			public:
 				Ref<View> view;
-				sl_uint32 rowspan;
-				sl_uint32 colspan;
+				sl_uint32 rowspan = 1;
+				sl_uint32 colspan = 1;
+				sl_bool flagSelfHorzAlign = sl_false;
+				sl_bool flagSelfVertAlign = sl_false;
 
-			public:
-				Cell()
-				{
-					rowspan = 1;
-					colspan = 1;
-				}
 			};
 
 			class Column
 			{
 			public:
-				SizeMode widthMode;
-				sl_ui_len widthLayout;
-				sl_ui_len widthFixed;
-				sl_real widthWeight;
+				SizeMode widthMode = SizeMode::Filling;
+				sl_ui_len widthLayout = 0;
+				sl_ui_len widthFixed = 0;
+				sl_real widthWeight = 1;
 
-				sl_ui_len minWidth;
-				sl_ui_len maxWidth;
-				sl_bool flagMaxWidthDefined;
+				sl_ui_len minWidth = 0;
+				sl_ui_len maxWidth = 0;
+				sl_bool flagMaxWidthDefined = sl_false;
 
-			public:
-				Column()
-				{
-					widthMode = SizeMode::Filling;
-					widthLayout = 0;
-					widthFixed = 0;
-					widthWeight = 1;
+				sl_ui_len marginLeft = 0;
+				sl_ui_len marginRight = 0;
+				sl_ui_len paddingLeft = 0;
+				sl_ui_len paddingRight = 0;
 
-					minWidth = 0;
-					maxWidth = 0;
-					flagMaxWidthDefined = sl_false;
-				}
+				Ref<Drawable> background;
+				Alignment align = Alignment::Default;
 
 			public:
 				sl_ui_len restrictWidth(sl_ui_len width)
@@ -101,29 +93,24 @@ namespace slib
 			class Row
 			{
 			public:
-				SizeMode heightMode;
-				sl_ui_len heightLayout;
-				sl_ui_len heightFixed;
-				sl_real heightWeight;
+				SizeMode heightMode = SizeMode::Filling;
+				sl_ui_len heightLayout = 0;
+				sl_ui_len heightFixed = 0;
+				sl_real heightWeight = 1;
 
-				sl_ui_len minHeight;
-				sl_ui_len maxHeight;
-				sl_bool flagMaxHeightDefined;
+				sl_ui_len minHeight = 0;
+				sl_ui_len maxHeight = 0;
+				sl_bool flagMaxHeightDefined = sl_false;
+
+				sl_ui_len marginTop = 0;
+				sl_ui_len marginBottom = 0;
+				sl_ui_len paddingTop = 0;
+				sl_ui_len paddingBottom = 0;
+
+				Ref<Drawable> background;
+				Alignment align = Alignment::Default;
 
 				CList<Cell> cells;
-
-			public:
-				Row()
-				{
-					heightMode = SizeMode::Filling;
-					heightLayout = 0;
-					heightFixed = 0;
-					heightWeight = 1;
-
-					minHeight = 0;
-					maxHeight = 0;
-					flagMaxHeightDefined = sl_false;
-				}
 
 			public:
 				sl_ui_len restrictHeight(sl_ui_len height)
@@ -390,7 +377,166 @@ namespace slib
 			invalidateLayout(mode);
 		}
 	}
-	
+
+	sl_ui_len TableLayout::getColumnMarginLeft(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			return col->marginLeft;
+		}
+		return 0;
+	}
+
+	void TableLayout::setColumnMarginLeft(sl_uint32 iCol, sl_ui_len margin, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->marginLeft = margin;
+			invalidateLayout(mode);
+		}
+	}
+
+	sl_ui_len TableLayout::getColumnMarginRight(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			return col->marginRight;
+		}
+		return 0;
+	}
+
+	void TableLayout::setColumnMarginRight(sl_uint32 iCol, sl_ui_len margin, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->marginRight = margin;
+			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::setColumnMargin(sl_uint32 iCol, sl_ui_len margin, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->marginLeft = margin;
+			col->marginRight = margin;
+			invalidateLayout(mode);
+		}
+	}
+
+	sl_ui_len TableLayout::getColumnPaddingLeft(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			return col->paddingLeft;
+		}
+		return 0;
+	}
+
+	void TableLayout::setColumnPaddingLeft(sl_uint32 iCol, sl_ui_len padding, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->paddingLeft = padding;
+			invalidateLayout(mode);
+		}
+	}
+
+	sl_ui_len TableLayout::getColumnPaddingRight(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			return col->paddingRight;
+		}
+		return 0;
+	}
+
+	void TableLayout::setColumnPaddingRight(sl_uint32 iCol, sl_ui_len padding, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->paddingRight = padding;
+			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::setColumnPadding(sl_uint32 iCol, sl_ui_len padding, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->paddingLeft = padding;
+			col->paddingRight = padding;
+			invalidateLayout(mode);
+		}
+	}
+
+	Ref<Drawable> TableLayout::getColumnBackground(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			return col->background;
+		}
+		return sl_null;
+	}
+
+	void TableLayout::setColumnBackground(sl_uint32 iCol, const Ref<Drawable>& background, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->background = background;
+			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::setColumnBackgroundColor(sl_uint32 iCol, const Color& color, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->background = Drawable::createColorDrawable(color);
+			invalidateLayout(mode);
+		}
+	}
+
+	Alignment TableLayout::getColumnAlignment(sl_uint32 iCol)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			return col->align;
+		}
+		return Alignment::Default;
+	}
+
+	void TableLayout::setColumnAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			col->align = align;
+			sl_uint32 nRows = (sl_uint32)(m_rows.getCount());
+			for (sl_uint32 i = 0; i < nRows; i++) {
+				Cell* cell = _getCell(i, iCol);
+				if (cell) {
+					_applyCellAlign(cell, i, iCol, mode);
+				}
+			}
+			invalidateLayout(mode);
+		}
+	}
+
 	sl_uint32 TableLayout::getRowsCount()
 	{
 		ObjectLocker lock(this);
@@ -611,6 +757,162 @@ namespace slib
 		}
 	}
 
+	sl_ui_len TableLayout::getRowMarginTop(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->marginTop;
+		}
+		return 0;
+	}
+
+	void TableLayout::setRowMarginTop(sl_uint32 iRow, sl_ui_len margin, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->marginTop = margin;
+			invalidateLayout(mode);
+		}
+	}
+
+	sl_ui_len TableLayout::getRowMarginBottom(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->marginBottom;
+		}
+		return 0;
+	}
+
+	void TableLayout::setRowMarginBottom(sl_uint32 iRow, sl_ui_len margin, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->marginBottom = margin;
+			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::setRowMargin(sl_uint32 iRow, sl_ui_len margin, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->marginTop = margin;
+			row->marginBottom = margin;
+			invalidateLayout(mode);
+		}
+	}
+
+	sl_ui_len TableLayout::getRowPaddingTop(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->paddingTop;
+		}
+		return 0;
+	}
+
+	void TableLayout::setRowPaddingTop(sl_uint32 iRow, sl_ui_len padding, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->paddingTop = padding;
+			invalidateLayout(mode);
+		}
+	}
+
+	sl_ui_len TableLayout::getRowPaddingBottom(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->paddingBottom;
+		}
+		return 0;
+	}
+
+	void TableLayout::setRowPaddingBottom(sl_uint32 iRow, sl_ui_len padding, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->paddingBottom = padding;
+			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::setRowPadding(sl_uint32 iRow, sl_ui_len padding, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->paddingTop = padding;
+			row->paddingBottom = padding;
+			invalidateLayout(mode);
+		}
+	}
+
+	Ref<Drawable> TableLayout::getRowBackground(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->background;
+		}
+		return sl_null;
+	}
+
+	void TableLayout::setRowBackground(sl_uint32 iRow, const Ref<Drawable>& background, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->background = background;
+			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::setRowBackgroundColor(sl_uint32 iRow, const Color& color, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->background = Drawable::createColorDrawable(color);
+			invalidateLayout(mode);
+		}
+	}
+
+	Alignment TableLayout::getRowAlignment(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->align;
+		}
+		return Alignment::Default;
+	}
+
+	void TableLayout::setRowAlignment(sl_uint32 iRow, const Alignment& align, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->align = align;
+			ListElements<Cell> cells(row->cells);
+			for (sl_size i = 0; i < cells.count; i++) {
+				_applyCellAlign(cells.data + i, iRow, (sl_uint32)i, mode);
+			}
+			invalidateLayout(mode);
+		}
+	}
+
 	Cell* TableLayout::_getCell(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		Row* row = m_rows.getPointerAt(iRow);
@@ -618,6 +920,122 @@ namespace slib
 			return row->cells.getPointerAt(iCol);
 		}
 		return sl_null;
+	}
+
+	priv::table_layout::Cell* TableLayout::_allocCell(sl_uint32 iRow, sl_uint32 iCol)
+	{
+		if (iCol >= m_columns.getCount() || iRow >= m_rows.getCount()) {
+			return sl_null;
+		}
+		Row* row = m_rows.getData() + iRow;
+		if (iCol < row->cells.getCount()) {
+			return row->cells.getData() + iCol;
+		} else {
+			if (row->cells.setCount_NoLock(iCol + 1)) {
+				return row->cells.getData() + iCol;
+			}
+		}
+		return sl_null;
+	}
+
+	Alignment TableLayout::_getCellAlign(sl_uint32 iRow, sl_uint32 iCol)
+	{
+		Alignment ret = Alignment::Default;
+		Row* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			ret = row->align;
+		}
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			if (!(ret & Alignment::HorizontalMask)) {
+				ret |= col->align & Alignment::HorizontalMask;
+			}
+			if (!(ret & Alignment::VerticalMask)) {
+				ret |= col->align & Alignment::VerticalMask;
+			}
+		}
+		return ret;
+	}
+
+	void TableLayout::_initCellAlign(priv::table_layout::Cell* cell, sl_uint32 iRow, sl_uint32 iCol)
+	{
+		View* view = cell->view.get();
+		sl_bool flagHorz = view->isLeftFree() && view->isRightFree();
+		sl_bool flagVert = view->isTopFree() && view->isBottomFree();
+		if (flagHorz || flagVert) {
+			Alignment align = _getCellAlign(iRow, iCol);
+			if (flagHorz) {
+				Alignment horz = align & Alignment::HorizontalMask;
+				if (horz == Alignment::Left) {
+					view->setAlignParentLeft(UIUpdateMode::Init);
+				} else if (horz == Alignment::Right) {
+					view->setAlignParentRight(UIUpdateMode::Init);
+				} else {
+					view->setCenterHorizontal(UIUpdateMode::Init);
+				}
+			}
+			if (flagVert) {
+				Alignment vert = align & Alignment::VerticalMask;
+				if (vert == Alignment::Top) {
+					view->setAlignParentTop(UIUpdateMode::Init);
+				} else if (vert == Alignment::Bottom) {
+					view->setAlignParentBottom(UIUpdateMode::Init);
+				} else {
+					view->setCenterVertical(UIUpdateMode::Init);
+				}
+			}
+		}
+		cell->flagSelfHorzAlign = !flagHorz;
+		cell->flagSelfVertAlign = !flagVert;
+	}
+
+	void TableLayout::_applyCellAlign(priv::table_layout::Cell* cell, sl_uint32 iRow, sl_uint32 iCol, UIUpdateMode mode)
+	{
+		if (!SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			mode = UIUpdateMode::None;
+		}
+		View* view = cell->view.get();
+		if (view && !(cell->flagSelfHorzAlign && cell->flagSelfVertAlign)) {
+			Alignment align = _getCellAlign(iRow, iCol);
+			if (!(cell->flagSelfHorzAlign)) {
+				Alignment horz = align & Alignment::HorizontalMask;
+				if (horz == Alignment::Left) {
+					if (!(view->isAlignParentLeft())) {
+						view->setRightFree(UIUpdateMode::Init);
+						view->setAlignParentLeft(mode);
+					}
+				} else if (horz == Alignment::Right) {
+					if (!(view->isAlignParentRight())) {
+						view->setLeftFree(UIUpdateMode::Init);
+						view->setAlignParentRight(mode);
+					}
+				} else {
+					if (!(view->isCenterHorizontal())) {
+						view->setRightFree(UIUpdateMode::Init);
+						view->setCenterHorizontal(mode);
+					}
+				}
+			}
+			if (!(cell->flagSelfVertAlign)) {
+				Alignment vert = align & Alignment::VerticalMask;
+				if (vert == Alignment::Top) {
+					if (!(view->isAlignParentTop())) {
+						view->setBottomFree(UIUpdateMode::Init);
+						view->setAlignParentTop(mode);
+					}
+				} else if (vert == Alignment::Bottom) {
+					if (!(view->isAlignParentRight())) {
+						view->setTopFree(UIUpdateMode::Init);
+						view->setAlignParentRight(mode);
+					}
+				} else {
+					if (!(view->isCenterVertical())) {
+						view->setBottomFree(UIUpdateMode::Init);
+						view->setCenterVertical(mode);
+					}
+				}
+			}
+		}
 	}
 
 	Ref<View> TableLayout::getCell(sl_uint32 iRow, sl_uint32 iCol)
@@ -630,6 +1048,52 @@ namespace slib
 		return sl_null;
 	}
 
+	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Cell* cell;
+		if (view.isNotNull()) {
+			cell = _allocCell(iRow, iCol);
+		} else {
+			cell = _getCell(iRow, iCol);
+		}
+		if (!cell) {
+			return;
+		}
+		if (cell->view.isNotNull()) {
+			removeChild(cell->view, mode == UIUpdateMode::Init ? UIUpdateMode::Init : UIUpdateMode::None);
+		}
+		cell->view = view;
+		if (view.isNotNull()) {
+			_initCellAlign(cell, iRow, iCol);
+			addChild(view, mode);
+		}
+	}
+
+	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Cell* cell;
+		if (view.isNotNull() || rowspan >= 2 || colspan >= 2) {
+			cell = _allocCell(iRow, iCol);
+		} else {
+			cell = _getCell(iRow, iCol);
+		}
+		if (!cell) {
+			return;
+		}
+		if (cell->view.isNotNull()) {
+			removeChild(cell->view, mode == UIUpdateMode::Init ? UIUpdateMode::Init : UIUpdateMode::None);
+		}
+		cell->view = view;
+		cell->rowspan = rowspan;
+		cell->colspan = colspan;
+		if (view.isNotNull()) {
+			_initCellAlign(cell, iRow, iCol);
+			addChild(view, mode);
+		}
+	}
+
 	sl_uint32 TableLayout::getRowspan(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -638,6 +1102,24 @@ namespace slib
 			return cell->rowspan;
 		}
 		return 1;
+	}
+
+	void TableLayout::setRowspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, UIUpdateMode mode)
+	{
+		if (rowspan < 1) {
+			rowspan = 1;
+		}
+		ObjectLocker lock(this);
+		Cell* cell;
+		if (rowspan >= 2) {
+			cell = _allocCell(iRow, iCol);
+		} else {
+			cell = _getCell(iRow, iCol);
+		}
+		if (cell) {
+			cell->rowspan = rowspan;
+			invalidate(mode);
+		}
 	}
 
 	sl_uint32 TableLayout::getColspan(sl_uint32 iRow, sl_uint32 iCol)
@@ -650,55 +1132,43 @@ namespace slib
 		return 1;
 	}
 
-	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, UIUpdateMode mode)
+	void TableLayout::setColspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 colspan, UIUpdateMode mode)
 	{
-		setCell(iRow, iCol, view, 1, 1, mode);
-	}
-
-	void TableLayout::setCell(sl_uint32 iRow, sl_uint32 iCol, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
-	{
-		if (rowspan < 1) {
-			rowspan = 1;
-		}
 		if (colspan < 1) {
 			colspan = 1;
 		}
 		ObjectLocker lock(this);
-		if (iCol >= m_columns.getCount() || iRow >= m_rows.getCount()) {
-			return;
-		}
-		Row* row = m_rows.getData() + iRow;
 		Cell* cell;
-		if (iCol < row->cells.getCount()) {
-			cell = row->cells.getData() + iCol;
+		if (colspan >= 2) {
+			cell = _allocCell(iRow, iCol);
 		} else {
-			if (view.isNotNull()) {
-				if (row->cells.setCount_NoLock(iCol + 1)) {
-					cell = row->cells.getData() + iCol;
-				} else {
-					return;
-				}
-			} else {
-				return;
-			}
+			cell = _getCell(iRow, iCol);
 		}
-		if (cell->view.isNotNull()) {
-			removeChild(cell->view, (mode == UIUpdateMode::Init) ? (UIUpdateMode::Init) : (UIUpdateMode::None));
-		}
-		cell->view = view;
-		cell->colspan = colspan;
-		cell->rowspan = rowspan;
-		if (view.isNotNull()) {
-			if (view->isLeftFree() && view->isRightFree()) {
-				view->setAlignParentLeft(UIUpdateMode::Init);
-			}
-			if (view->isTopFree() && view->isBottomFree()) {
-				view->setAlignParentTop(UIUpdateMode::Init);
-			}
-			addChild(view, mode);
+		if (cell) {
+			cell->colspan = colspan;
+			invalidate(mode);
 		}
 	}
-	
+
+	void TableLayout::setCellSpan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode)
+	{
+		if (colspan < 1) {
+			colspan = 1;
+		}
+		ObjectLocker lock(this);
+		Cell* cell;
+		if (rowspan >= 2 || colspan >= 2) {
+			cell = _allocCell(iRow, iCol);
+		} else {
+			cell = _getCell(iRow, iCol);
+		}
+		if (cell) {
+			cell->rowspan = rowspan;
+			cell->colspan = colspan;
+			invalidate(mode);
+		}
+	}
+
 	void TableLayout::onUpdateLayout()
 	{
 		ObjectLocker lock(this);
@@ -718,10 +1188,10 @@ namespace slib
 		}
 
 		UIRect layoutFrameContainer = getLayoutFrame();
-		sl_ui_len widthLayout = layoutFrameContainer.getWidth();
-		sl_ui_len heightLayout = layoutFrameContainer.getHeight();
-		sl_ui_len widthContainer = widthLayout - getPaddingLeft() - getPaddingTop();
-		sl_ui_len heightContainer = heightLayout - getPaddingTop() - getPaddingBottom();
+		sl_ui_len paddingContainerLeft = getPaddingLeft();
+		sl_ui_len paddingContainerTop = getPaddingTop();
+		sl_ui_len widthContainer = layoutFrameContainer.getWidth() - paddingContainerLeft - getPaddingTop();
+		sl_ui_len heightContainer = layoutFrameContainer.getHeight() - paddingContainerTop - getPaddingBottom();
 
 		sl_uint32 iRow, iCol;
 		Row* rows = m_rows.getData();
@@ -748,7 +1218,7 @@ namespace slib
 				if (row.heightMode == SizeMode::Fixed) {
 					rowHeightModes[iRow] = SizeMode::Fixed;
 					row.heightLayout = row.getFixedHeight();
-					sumHeight += row.heightLayout;
+					sumHeight += row.heightLayout + row.marginTop + row.marginBottom;
 				} else {
 					rowHeightModes[iRow] = SizeMode::Wrapping;
 					row.heightLayout = 0;
@@ -757,23 +1227,24 @@ namespace slib
 			} else {
 				rowHeightModes[iRow] = row.heightMode;
 				switch (row.heightMode) {
-				case SizeMode::Fixed:
-					row.heightLayout = row.getFixedHeight();
-					sumHeight += row.heightLayout;
-					break;
-				case SizeMode::Weight:
-					row.heightLayout = row.getWeightHeight(heightContainer);
-					sumHeight += row.heightLayout;
-					break;
-				case SizeMode::Filling:
-					nFillRows++;
-					sumRowFillWeights += row.heightWeight;
-					row.heightLayout = 0;
-					break;
-				case SizeMode::Wrapping:
-					row.heightLayout = 0;
-					flagWrappingRows = sl_true;
-					break;
+					case SizeMode::Fixed:
+						row.heightLayout = row.getFixedHeight();
+						sumHeight += row.heightLayout + row.marginTop + row.marginBottom;
+						break;
+					case SizeMode::Weight:
+						row.heightLayout = row.getWeightHeight(heightContainer);
+						sumHeight += row.heightLayout + row.marginTop + row.marginBottom;
+						break;
+					case SizeMode::Filling:
+						sumHeight += row.marginTop + row.marginBottom;
+						nFillRows++;
+						sumRowFillWeights += row.heightWeight;
+						row.heightLayout = 0;
+						break;
+					case SizeMode::Wrapping:
+						row.heightLayout = 0;
+						flagWrappingRows = sl_true;
+						break;
 				}
 			}
 		}
@@ -783,7 +1254,7 @@ namespace slib
 				if (col.widthMode == SizeMode::Fixed) {
 					colWidthModes[iCol] = SizeMode::Fixed;
 					col.widthLayout = col.getFixedWidth();
-					sumWidth += col.widthLayout;
+					sumWidth += col.widthLayout + col.marginLeft + col.marginRight;
 				} else {
 					colWidthModes[iCol] = SizeMode::Wrapping;
 					col.widthLayout = 0;
@@ -792,23 +1263,24 @@ namespace slib
 			} else {
 				colWidthModes[iCol] = col.widthMode;
 				switch (col.widthMode) {
-				case SizeMode::Fixed:
-					col.widthLayout = col.getFixedWidth();
-					sumWidth += col.widthLayout;
-					break;
-				case SizeMode::Weight:
-					col.widthLayout = col.getWeightWidth(widthContainer);
-					sumWidth += col.widthLayout;
-					break;
-				case SizeMode::Filling:
-					nFillCols++;
-					sumColFillWeights += col.widthWeight;
-					col.widthLayout = 0;
-					break;
-				case SizeMode::Wrapping:
-					col.widthLayout = 0;
-					flagWrappingCols = sl_true;
-					break;
+					case SizeMode::Fixed:
+						col.widthLayout = col.getFixedWidth();
+						sumWidth += col.widthLayout + col.marginLeft + col.marginRight;
+						break;
+					case SizeMode::Weight:
+						col.widthLayout = col.getWeightWidth(widthContainer);
+						sumWidth += col.widthLayout + col.marginLeft + col.marginRight;
+						break;
+					case SizeMode::Filling:
+						sumWidth += col.marginLeft + col.marginRight;
+						nFillCols++;
+						sumColFillWeights += col.widthWeight;
+						col.widthLayout = 0;
+						break;
+					case SizeMode::Wrapping:
+						col.widthLayout = 0;
+						flagWrappingCols = sl_true;
+						break;
 				}
 			}
 		}
@@ -832,11 +1304,11 @@ namespace slib
 						if (view && cell.colspan == 1) {
 							SizeMode mode = view->getWidthMode();
 							if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
-								updateLayoutParam.parentContentFrame.right = col.widthLayout;
-								updateLayoutParam.parentContentFrame.bottom = row.heightLayout;
+								updateLayoutParam.parentContentFrame.right = col.widthLayout - col.paddingLeft - col.paddingRight;
+								updateLayoutParam.parentContentFrame.bottom = row.heightLayout - row.paddingTop - row.paddingBottom;
 								view->setInvalidateLayoutFrameInParent();
 								view->updateLayoutFrameInParent(updateLayoutParam);
-								sl_ui_len w = col.restrictWidth(view->getLayoutWidth() + view->getMarginLeft() + view->getMarginRight());
+								sl_ui_len w = col.restrictWidth(view->getLayoutWidth() + view->getMarginLeft() + view->getMarginRight() + col.paddingLeft + col.paddingRight);
 								if (w > col.widthLayout) {
 									col.widthLayout = w;
 								}
@@ -848,7 +1320,7 @@ namespace slib
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
 				if (colWidthModes[iCol] == SizeMode::Wrapping) {
-					sumWidth += col.widthLayout;
+					sumWidth += col.widthLayout + col.marginLeft + col.marginRight;;
 				}
 			}
 		}
@@ -895,11 +1367,11 @@ namespace slib
 						if (view && cell.rowspan == 1) {
 							SizeMode mode = view->getHeightMode();
 							if (mode == SizeMode::Fixed || mode == SizeMode::Wrapping) {
-								updateLayoutParam.parentContentFrame.right = col.widthLayout;
-								updateLayoutParam.parentContentFrame.bottom = row.heightLayout;
+								updateLayoutParam.parentContentFrame.right = col.widthLayout - col.paddingLeft - col.paddingRight;
+								updateLayoutParam.parentContentFrame.bottom = row.heightLayout - row.paddingTop - row.paddingBottom;
 								view->setInvalidateLayoutFrameInParent();
 								view->updateLayoutFrameInParent(updateLayoutParam);
-								sl_ui_len h = row.restrictHeight(view->getLayoutHeight() + view->getMarginTop() + view->getMarginBottom());
+								sl_ui_len h = row.restrictHeight(view->getLayoutHeight() + view->getMarginTop() + view->getMarginBottom() + row.paddingTop + row.paddingBottom);
 								if (h > row.heightLayout) {
 									row.heightLayout = h;
 								}
@@ -911,7 +1383,7 @@ namespace slib
 			for (iRow = 0; iRow < nRows; iRow++) {
 				Row& row = rows[iRow];
 				if (rowHeightModes[iRow] == SizeMode::Wrapping) {
-					sumHeight += row.heightLayout;
+					sumHeight += row.heightLayout + row.marginTop + row.marginBottom;
 				}
 			}
 		}
@@ -943,54 +1415,100 @@ namespace slib
 		updateLayoutParam.flagUseLayout = sl_true;
 		updateLayoutParam.flagHorizontal = sl_true;
 		updateLayoutParam.flagVertical = sl_true;
-		sl_ui_len y = 0;
+		sl_ui_len y = paddingContainerTop;
 		for (iRow = 0; iRow < nRows; iRow++) {
 			Row& row = rows[iRow];
 			Cell* cells = row.cells.getData();
 			sl_uint32 nCells = Math::min((sl_uint32)(row.cells.getCount()), nCols);
-			sl_ui_len x = 0;
+			sl_ui_len x = paddingContainerLeft;
 			for (iCol = 0; iCol < nCells; iCol++) {
 				Cell& cell = cells[iCol];
 				Column& col = cols[iCol];
 				View* view = cell.view.get();
 				if (view) {
-					updateLayoutParam.parentContentFrame.left = x;
-					updateLayoutParam.parentContentFrame.top = y;
-					updateLayoutParam.parentContentFrame.right = x + col.widthLayout;
-					updateLayoutParam.parentContentFrame.bottom = y + row.heightLayout;
+					updateLayoutParam.parentContentFrame.left = x + col.marginLeft + col.paddingLeft;
+					updateLayoutParam.parentContentFrame.top = y + row.marginTop + row.paddingTop;
+					updateLayoutParam.parentContentFrame.right = x + col.marginLeft + col.widthLayout - col.paddingRight;
+					updateLayoutParam.parentContentFrame.bottom = y + row.marginTop + row.heightLayout - row.paddingBottom;
 					if (cell.colspan > 1) {
 						for (sl_uint32 k = 1; k < cell.colspan; k++) {
+							updateLayoutParam.parentContentFrame.right += cols[iCol + k - 1].paddingRight + cols[iCol + k - 1].marginRight;
 							if (iCol + k >= nCols) {
 								break;
 							}
-							updateLayoutParam.parentContentFrame.right += cols[iCol + k].widthLayout;
+							updateLayoutParam.parentContentFrame.right += cols[iCol + k].marginLeft + cols[iCol + k].widthLayout - cols[iCol + k].paddingRight;
 						}
 					}
 					if (cell.rowspan > 1) {
 						for (sl_uint32 k = 1; k < cell.rowspan; k++) {
+							updateLayoutParam.parentContentFrame.bottom += rows[iRow + k - 1].paddingBottom + rows[iRow + k - 1].marginBottom;
 							if (iRow + k >= nRows) {
 								break;
 							}
-							updateLayoutParam.parentContentFrame.bottom += rows[iRow + k].heightLayout;
+							updateLayoutParam.parentContentFrame.bottom += rows[iRow + k].marginTop + rows[iRow + k].heightLayout - rows[iRow + k].paddingBottom;
 						}
 					}
 					view->setInvalidateLayoutFrameInParent();
 					view->updateLayoutFrameInParent(updateLayoutParam);
 				}
-				x += col.widthLayout;
+				x += col.widthLayout + col.marginLeft + col.marginRight;
 			}
-			y += row.heightLayout;
+			y += row.heightLayout + row.marginTop + row.marginBottom;
 		}
 		if (isWidthWrapping()) {
 			sl_ui_len x = 0;
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
-				x += col.widthLayout;
+				x += col.widthLayout + col.marginLeft + col.marginRight;
 			}
 			setLayoutWidth(x);
 		}
 		if (isHeightWrapping()) {
 			setLayoutHeight(y);
+		}
+	}
+
+	void TableLayout::onDraw(Canvas* canvas)
+	{
+		ObjectLocker lock(this);
+		
+		UIRect layoutFrameContainer = getLayoutFrame();
+		sl_ui_len paddingContainerLeft = getPaddingLeft();
+		sl_ui_len paddingContainerTop = getPaddingTop();
+		
+		{
+			UIRect rc;
+			rc.left = paddingContainerLeft;
+			rc.right = rc.left + layoutFrameContainer.getWidth() - paddingContainerLeft - getPaddingTop();
+			rc.top = paddingContainerTop;
+			Row* rows = m_rows.getData();
+			sl_uint32 nRows = (sl_uint32)(m_rows.getCount());
+			for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
+				Row& row = rows[iRow];
+				rc.top += row.marginTop;
+				rc.bottom = rc.top + row.heightLayout;
+				if (row.background.isNotNull()) {
+					canvas->draw(rc, row.background);
+				}
+				rc.top = rc.bottom + row.marginBottom;
+			}
+		}
+		{
+			UIRect rc;
+			rc.top = paddingContainerTop;
+			rc.bottom = rc.top + layoutFrameContainer.getHeight() - paddingContainerTop - getPaddingBottom();
+			rc.left = paddingContainerLeft;
+			Column* cols = m_columns.getData();
+			sl_uint32 nCols = (sl_uint32)(m_columns.getCount());
+			for (sl_uint32 iCol = 0; iCol < nCols; iCol++) {
+				Column& col = cols[iCol];
+				rc.left += col.marginLeft;
+				rc.right = rc.left + col.widthLayout;
+				if (col.background.isNotNull()) {
+					canvas->draw(rc, col.background);
+				}
+				rc.left = rc.right + col.marginRight;
+			}
 		}
 	}
 	
