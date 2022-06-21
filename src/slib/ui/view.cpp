@@ -2597,8 +2597,7 @@ namespace slib
 					default:
 						break;
 				}
-				switch (bottomMode)
-				{
+				switch (bottomMode) {
 					case PositionMode::ParentEdge:
 						frame.bottom = param.parentContentFrame.bottom - layoutAttrs->marginBottom;
 						break;
