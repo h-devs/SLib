@@ -330,7 +330,7 @@ namespace slib
 	public:
 		PdfValue(sl_null_t) noexcept: m_var(sl_null, (sl_uint8)(PdfValueType::Null)) {}
 
-		PdfValue(sl_bool v) noexcept;
+		explicit PdfValue(sl_bool v) noexcept;
 
 		PdfValue(sl_int32 v) noexcept;
 		PdfValue(sl_uint32 v) noexcept;
@@ -346,15 +346,19 @@ namespace slib
 
 		PdfValue(const Ref<PdfArray>& v) noexcept;
 		PdfValue(Ref<PdfArray>&& v) noexcept;
+		PdfValue(PdfArray* v) noexcept;
 
 		PdfValue(const Ref<PdfDictionary>& v) noexcept;
 		PdfValue(Ref<PdfDictionary>&& v) noexcept;
+		PdfValue(PdfDictionary*) noexcept;
 
 		PdfValue(const Ref<PdfStream>& v) noexcept;
 		PdfValue(Ref<PdfStream>&& v) noexcept;
+		PdfValue(PdfStream*) noexcept;
 
 		PdfValue(const Ref<PdfImage>& v) noexcept;
 		PdfValue(Ref<PdfImage>&& v) noexcept;
+		PdfValue(PdfImage* v) noexcept;
 
 		PdfValue(const Rectangle& v) noexcept;
 

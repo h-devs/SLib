@@ -5469,15 +5469,19 @@ namespace slib
 
 	PdfValue::PdfValue(const Ref<PdfArray>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Array : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfArray>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Array : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfArray* v) noexcept : m_var(Ref<PdfArray>(v), (sl_uint8)(v ? PdfValueType::Array : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Ref<PdfDictionary>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Dictionary : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfDictionary>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Dictionary : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfDictionary* v) noexcept : m_var(Ref<PdfDictionary>(v), (sl_uint8)(v ? PdfValueType::Dictionary : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Ref<PdfStream>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Stream : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfStream>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Stream : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfStream* v) noexcept : m_var(Ref<PdfStream>(v), (sl_uint8)(v ? PdfValueType::Stream : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Ref<PdfImage>& v) noexcept: m_var(v, (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
 	PdfValue::PdfValue(Ref<PdfImage>&& v) noexcept: m_var(Move(v), (sl_uint8)(v.isNotNull() ? PdfValueType::Image : PdfValueType::Null)) {}
+	PdfValue::PdfValue(PdfImage* v) noexcept : m_var(Ref<PdfImage>(v), (sl_uint8)(v ? PdfValueType::Image : PdfValueType::Null)) {}
 
 	PdfValue::PdfValue(const Rectangle& v) noexcept: PdfValue(PdfArray::create(v)) {}
 
