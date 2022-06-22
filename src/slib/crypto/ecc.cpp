@@ -69,32 +69,122 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_bool ECPoint::parseUncompressedFormat(const void* _buf, sl_size size) noexcept
+	Memory ECPoint::toCompressedFormat(const EllipticCurve& curve) const noexcept
+	{
+		return toCompressedFormat(curve.n.getMostSignificantBytes());
+	}
+
+	Memory ECPoint::toCompressedFormat(sl_size nBytesPerComponent) const noexcept
+	{
+		if (isO()) {
+			sl_uint8 c = 0;
+			return Memory::create(&c, 1);
+		}
+		if (!nBytesPerComponent) {
+			nBytesPerComponent = Math::max(x.getMostSignificantBytes(), y.getMostSignificantBytes());
+		}
+		Memory ret = Memory::create(nBytesPerComponent + 1);
+		if (ret.isNotNull()) {
+			sl_uint8* buf = (sl_uint8*)(ret.getData());
+			buf[0] = y.getBit(0) ? 3 : 2;
+			x.getBytesBE(buf + 1, nBytesPerComponent);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	Memory ECPoint::toHybridFormat(const EllipticCurve& curve) const noexcept
+	{
+		return toHybridFormat(curve.n.getMostSignificantBytes());
+	}
+
+	Memory ECPoint::toHybridFormat(sl_size nBytesPerComponent) const noexcept
+	{
+		if (isO()) {
+			sl_uint8 c = 0;
+			return Memory::create(&c, 1);
+		}
+		if (!nBytesPerComponent) {
+			nBytesPerComponent = Math::max(x.getMostSignificantBytes(), y.getMostSignificantBytes());
+		}
+		Memory ret = Memory::create((nBytesPerComponent << 1) + 1);
+		if (ret.isNotNull()) {
+			sl_uint8* buf = (sl_uint8*)(ret.getData());
+			buf[0] = y.getBit(0) ? 7 : 6;
+			x.getBytesBE(buf + 1, nBytesPerComponent);
+			y.getBytesBE(buf + 1 + nBytesPerComponent, nBytesPerComponent);
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool ECPoint::parseBinaryFormat(const void* _buf, sl_size size, const EllipticCurve* curve) noexcept
 	{
 		const sl_uint8* buf = (const sl_uint8*)_buf;
 		if (size) {
-			if (buf[0] == 4) {
-				size--;
-				if (!(size & 1)) {
-					size >>= 1;
-					BigInt _x = BigInt::fromBytesBE(buf + 1, size);
-					if (_x.isNotNull()) {
-						BigInt _y = BigInt::fromBytesBE(buf + 1 + size, size);
-						if (_y.isNotNull()) {
-							x = Move(_x);
-							y = Move(_y);
-							return sl_true;
+			sl_uint8 type = buf[0];
+			switch (type) {
+				case 0:
+					if (size == 1) {
+						x.setNull();
+						y.setNull();
+						return sl_true;
+					}
+					break;
+				case 2:
+				case 3:
+					if (curve) {
+						size--;
+						BigInt _x = BigInt::fromBytesBE(buf + 1, size);
+						if (_x.isNotNull()) {
+							BigInt _y = curve->getY(x, type & 1);
+							if (_y.isNotNull()) {
+								x = Move(_x);
+								y = Move(_y);
+								return sl_true;
+							}
 						}
 					}
-				}
+					break;
+				case 4:
+				case 6:
+				case 7:
+					size--;
+					if (!(size & 1)) {
+						size >>= 1;
+						BigInt _x = BigInt::fromBytesBE(buf + 1, size);
+						if (_x.isNotNull()) {
+							BigInt _y = BigInt::fromBytesBE(buf + 1 + size, size);
+							if (_y.isNotNull()) {
+								x = Move(_x);
+								y = Move(_y);
+								if (type == 4) {
+									return sl_true;
+								} else {
+									return (type & 1) == y.getBit(0) ? 1 : 0;
+								}
+							}
+						}
+					}
+					break;
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool ECPoint::parseUncompressedFormat(const Memory& mem) noexcept
+	sl_bool ECPoint::parseBinaryFormat(const Memory& mem, const EllipticCurve* curve) noexcept
 	{
-		return parseUncompressedFormat(mem.getData(), mem.getSize());
+		return parseBinaryFormat(mem.getData(), mem.getSize(), curve);
+	}
+
+	sl_bool ECPoint::parseBinaryFormat(const EllipticCurve& curve, const void* buf, sl_size n) noexcept
+	{
+		return parseBinaryFormat(buf, n, &curve);
+	}
+
+	sl_bool ECPoint::parseBinaryFormat(const EllipticCurve& curve, const Memory& mem) noexcept
+	{
+		return parseBinaryFormat(mem.getData(), mem.getSize(), &curve);
 	}
 
 	
@@ -193,7 +283,13 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
+	BigInt EllipticCurve::getY(const BigInt& x, sl_bool yBit) const noexcept
+	{
+		return sl_null;
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
 	
 	ECPublicKey::ECPublicKey() noexcept
@@ -259,12 +355,18 @@ namespace slib
 			return sl_false;
 		}
 		BigInt n2 = curve.n - 2;
+		sl_size nBits = curve.n.getMostSignificantBits();
 		for (;;) {
-			d = BigInt::random(curve.n.getMostSignificantBits());
+			d = BigInt::random(nBits);
 			if (d.isNull()) {
 				return sl_false;
 			}
-			d = BigInt::mod_NonNegativeRemainder(d, n2) + 2;
+			d = BigInt::mod_NonNegativeRemainder(d, n2);
+			if (d.getMostSignificantBits() + 2 < nBits) {
+				d = n2 - d + 1;
+			} else {
+				d += 2;
+			}
 			Q = curve.multiplyG(d);
 			if (checkValid(curve)) {
 				break;

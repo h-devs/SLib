@@ -54,15 +54,28 @@ namespace slib
 		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 		
 	public:
+		// infinity
 		sl_bool isO() const noexcept;
 
 		Memory toUncompressedFormat(const EllipticCurve& curve) const noexcept;
 		
 		Memory toUncompressedFormat(sl_size nBytesPerComponent = 0) const noexcept;
-		
-		sl_bool parseUncompressedFormat(const void* buf, sl_size n) noexcept;
 
-		sl_bool parseUncompressedFormat(const Memory& mem) noexcept;
+		Memory toCompressedFormat(const EllipticCurve& curve) const noexcept;
+
+		Memory toCompressedFormat(sl_size nBytesPerComponent = 0) const noexcept;
+
+		Memory toHybridFormat(const EllipticCurve& curve) const noexcept;
+
+		Memory toHybridFormat(sl_size nBytesPerComponent = 0) const noexcept;
+
+		sl_bool parseBinaryFormat(const void* buf, sl_size n, const EllipticCurve* curve = sl_null) noexcept;
+
+		sl_bool parseBinaryFormat(const Memory& mem, const EllipticCurve* curve = sl_null) noexcept;
+
+		sl_bool parseBinaryFormat(const EllipticCurve& curve, const void* buf, sl_size n) noexcept;
+
+		sl_bool parseBinaryFormat(const EllipticCurve& curve, const Memory& mem) noexcept;
 
 	};
 	
@@ -95,6 +108,8 @@ namespace slib
 		
 		ECPoint multiplyG(const BigInt& k) const noexcept;
 		
+		BigInt getY(const BigInt& x, sl_bool yBit) const noexcept;
+
 	};
 	
 	class SLIB_EXPORT ECPublicKey
