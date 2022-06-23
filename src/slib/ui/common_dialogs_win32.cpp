@@ -321,6 +321,7 @@ namespace slib
 				fileName = String16::from(File::getFileName(selectedPath));
 			}
 			if (initialDir.isNotEmpty()) {
+				initialDir = initialDir.replaceAll('/', '\\');
 				ofn.lpstrInitialDir = (LPCWSTR)(initialDir.getData());
 			}
 			if (fileName.isNotEmpty()) {
