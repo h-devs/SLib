@@ -702,6 +702,11 @@ namespace slib
 				return MAKE_OBJECT_ID(ref.objectNumber, ref.generation);
 			}
 
+			SLIB_INLINE static sl_uint64 GetObjectId(sl_uint32 objectNumber, sl_uint32 generation)
+			{
+				return MAKE_OBJECT_ID(objectNumber, generation);
+			}
+
 			static sl_uint32 ReadUint(const void* _src, sl_uint32 size, sl_uint32 def)
 			{
 				if (!size) {
@@ -936,7 +941,7 @@ namespace slib
 				}
 
 			public:
-				virtual PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef) = 0;
+				virtual PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef, sl_bool flagReadOnlyStream) = 0;
 				virtual Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) = 0;
 				virtual sl_bool readDocument(const PdfDocumentParam& param) = 0;
 				
@@ -969,7 +974,7 @@ namespace slib
 					}
 				}
 
-				PdfValue readObject(sl_uint32 objectNumber, sl_int32& generation)
+				PdfValue readObject(sl_uint32 objectNumber, sl_int32& generation, sl_bool flagReadOnlyStream = sl_false)
 				{
 					CrossReferenceEntry entry;
 					if (getReferenceEntry(objectNumber, entry)) {
@@ -979,10 +984,12 @@ namespace slib
 							}
 							PdfReference n;
 							sl_uint32 offsetEnd;
-							PdfValue ret = readObject(entry.offset, offsetEnd, n);
+							PdfValue ret = readObject(entry.offset, offsetEnd, n, flagReadOnlyStream);
 							if (ret.isNotUndefined() && n.objectNumber == objectNumber) {
-								if (generation >= 0 && !(n.generation == generation)) {
-									return PdfValue();
+								if (generation >= 0) {
+									if (n.generation != generation) {
+										return PdfValue();
+									}
 								} else {
 									generation = n.generation;
 								}
@@ -1008,36 +1015,46 @@ namespace slib
 					return PdfValue();
 				}
 
-				PdfValue readObject(const PdfReference& ref)
+				PdfValue getObject(sl_uint32 objectNumber, sl_int32& generation, sl_bool flagReadOnlyStream = sl_false)
 				{
-					sl_int32 generation = ref.generation;
-					return readObject(ref.objectNumber, generation);
+					if (!objectNumber) {
+						return PdfValue();
+					}
+					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(objectNumber);
+					if (pItem) {
+						if (generation >= 0) {
+							if (generation != pItem->second) {
+								return sl_false;
+							}
+						} else {
+							generation = pItem->second;
+						}
+						return pItem->first;
+					}
+					if (generation >= 0) {
+						sl_uint64 _id = GetObjectId(objectNumber, generation);
+						PdfValue ret;
+						if (m_objectsCache.get(_id, &ret)) {
+							return ret;
+						}
+					}
+					PdfValue ret = readObject(objectNumber, generation, flagReadOnlyStream);
+					if (ret.isNotUndefined()) {
+						m_objectsCache.put(GetObjectId(objectNumber, generation), ret);
+						return ret;
+					}
+					return PdfValue();
 				}
 
 				PdfValue getObject(const PdfReference& ref)
 				{
-					if (!(ref.objectNumber)) {
-						return PdfValue();
-					}
-					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(ref.objectNumber);
-					if (pItem) {
-						if (ref.generation == pItem->second) {
-							return pItem->first;
-						} else {
-							return sl_false;
-						}
-					}
-					sl_uint64 _id = GetObjectId(ref);
-					PdfValue ret;
-					if (m_objectsCache.get(_id, &ret)) {
-						return ret;
-					}
-					ret = readObject(ref);
-					if (ret.isNotUndefined()) {
-						m_objectsCache.put(_id, ret);
-						return ret;
-					}
-					return PdfValue();
+					sl_int32 generation = ref.generation;
+					return getObject(ref.objectNumber, generation);
+				}
+
+				Ref<PdfStream> getStream(sl_uint32 objectNumber, sl_int32& generation)
+				{
+					return getObject(objectNumber, generation, sl_true).getStream();
 				}
 
 				sl_bool _setObject(const PdfReference& ref, const PdfValue& value)
@@ -2870,11 +2887,16 @@ namespace slib
 					return PdfCMapOperator::Unknown;
 				}
 
-				PdfValue readValue(const PdfReference& objectId)
+				PdfValue readValue(const PdfReference& objectId, sl_bool flagReadOnlyStream = sl_false)
 				{
 					sl_char8 ch;
 					if (!(peekChar(ch))) {
 						return PdfValue();
+					}
+					if (flagReadOnlyStream) {
+						if (ch != '<') {
+							return PdfValue();
+						}
 					}
 					switch (ch) {
 						case 'n':
@@ -3010,10 +3032,10 @@ namespace slib
 					return sl_false;
 				}
 
-				PdfValue readObject(PdfReference& outRef)
+				PdfValue readObject(PdfReference& outRef, sl_bool flagReadOnlyStream = sl_false)
 				{
 					if (readObjectHeader(outRef)) {
-						PdfValue value = readValue(outRef);
+						PdfValue value = readValue(outRef, flagReadOnlyStream);
 						if (value.isNotUndefined()) {
 							if (skipWhitespaces()) {
 								const Ref<PdfDictionary>& properties = value.getDictionary();
@@ -3050,10 +3072,10 @@ namespace slib
 					return PdfValue();
 				}
 
-				PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef) override
+				PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef, sl_bool flagReadOnlyStream) override
 				{
 					if (setPosition(pos)) {
-						PdfValue ret = readObject(outRef);
+						PdfValue ret = readObject(outRef, flagReadOnlyStream);
 						if (ret.isNotUndefined()) {
 							outOffsetAfterEndObj = getPosition();
 							return ret;
@@ -6123,6 +6145,31 @@ namespace slib
 		return sl_null;
 	}
 
+	sl_bool PdfStream::isJpegImage() noexcept
+	{
+		String subtype = getProperty(name::Subtype).getName();
+		if (subtype == name::Image) {
+			PdfValue vFilter = getProperty(name::Filter, name::F);
+			if (vFilter.isUndefined()) {
+				return sl_false;
+			}
+			const Ref<PdfArray>& arrFilter = vFilter.getArray();
+			if (arrFilter.isNotNull()) {
+				sl_uint32 nFilters = arrFilter->getCount();
+				for (sl_uint32 i = 0; i < nFilters; i++) {
+					PdfFilter filter = Pdf::getFilter(arrFilter->get(i).getName());
+					if (filter == PdfFilter::DCT) {
+						return sl_true;
+					}
+				}
+			} else {
+				PdfFilter filter = Pdf::getFilter(vFilter.getName());
+				return filter == PdfFilter::DCT;
+			}
+		}
+		return sl_false;
+	}
+
 	Ref<PdfStream> PdfStream::create(const Memory& content)
 	{
 		Ref<PdfDictionary> properties = new PdfDictionary(sl_null);
@@ -8654,13 +8701,22 @@ namespace slib
 		return context->getObject(ref);
 	}
 
-	PdfValue PdfDocument::readObject(sl_uint32 objectNumber, sl_uint32& outGeneration)
+	PdfValue PdfDocument::getObject(sl_uint32 objectNumber, sl_uint32& outGeneration)
 	{
 		Context* context = GetContext(m_context);
 		ObjectLocker lock(context);
 		sl_int32& gen = *((sl_int32*)&outGeneration);
 		gen = -1;
-		return context->readObject(objectNumber, gen);
+		return context->getObject(objectNumber, gen);
+	}
+
+	Ref<PdfStream> PdfDocument::getStream(sl_uint32 objectNumber, sl_uint32& outGeneration)
+	{
+		Context* context = GetContext(m_context);
+		ObjectLocker lock(context);
+		sl_int32& gen = *((sl_int32*)&outGeneration);
+		gen = -1;
+		return context->getStream(objectNumber, gen);
 	}
 
 	sl_bool PdfDocument::setObject(const PdfReference& ref, const PdfValue& value)

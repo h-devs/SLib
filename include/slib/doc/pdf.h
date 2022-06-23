@@ -553,6 +553,8 @@ namespace slib
 
 		Memory decodeContent(const Memory& input, PdfFilter filter, PdfDictionary* decodeParam);
 
+		sl_bool isJpegImage() noexcept;
+
 	public:
 		static Ref<PdfStream> create(const Memory& content);
 
@@ -1130,7 +1132,9 @@ namespace slib
 
 		PdfValue getObject(const PdfReference& ref);
 
-		PdfValue readObject(sl_uint32 objectNumber, sl_uint32& outGeneration);
+		PdfValue getObject(sl_uint32 objectNumber, sl_uint32& outGeneration);
+
+		Ref<PdfStream> getStream(sl_uint32 objectNumber, sl_uint32& outGeneration);
 
 		sl_bool setObject(const PdfReference& ref, const PdfValue& value);
 
