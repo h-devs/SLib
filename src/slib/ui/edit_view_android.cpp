@@ -255,17 +255,18 @@ namespace slib
 					if (handle) {
 						Ref<EditViewHelper> helper = getHelper();
 						if (helper.isNotNull()) {
-							if (!(helper->isChangeEventEnabled())) {
+							if (helper->isChangeEventEnabled()) {
+								String text = JEditView::getText.callString(sl_null, handle);
+								String textNew = text;
+								helper->dispatchChange(textNew);
+								if (text != textNew) {
+									JniLocal<jstring> jstr = Jni::getJniString(textNew);
+									JEditView::setText.callBoolean(sl_null, handle, jstr.get());
+								}
+							} else {
 								helper->invalidateText();
-								return;
 							}
-							String text = JEditView::getText.callString(sl_null, handle);
-							String textNew = text;
-							helper->dispatchChange(textNew);
-							if (text != textNew) {
-								JniLocal<jstring> jstr = Jni::getJniString(textNew);
-								JEditView::setText.callBoolean(sl_null, handle, jstr.get());
-							}
+							helper->dispatchPostChange();
 						}
 					}
 				}

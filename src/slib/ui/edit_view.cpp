@@ -841,6 +841,13 @@ namespace slib
 			return;
 		}
 		m_text = value;
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(EditView, PostChange)
+
+	void EditView::dispatchPostChange()
+	{
+		SLIB_INVOKE_EVENT_HANDLER(PostChange)
 		if (isNativeWidget()) {
 			invalidateLayoutOfWrappingControl();
 		}

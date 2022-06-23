@@ -280,17 +280,18 @@ namespace slib
 				{
 					Ref<EditView> view = getView();
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = Apple::getStringFromNSString([control stringValue]);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								NSString* str = Apple::getNSStringFromString(textNew, @"");
+								[control setStringValue:str];
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = Apple::getStringFromNSString([control stringValue]);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							NSString* str = Apple::getNSStringFromString(textNew, @"");
-							[control setStringValue:str];
-						}
+						view->dispatchPostChange();
 					}
 				}
 				
@@ -512,17 +513,18 @@ namespace slib
 				{
 					Ref<TextArea> view = getView();
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = Apple::getStringFromNSString([control->m_textView string]);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								NSString* str = Apple::getNSStringFromString(textNew, @"");
+								[control->m_textView setString:str];
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = Apple::getStringFromNSString([control->m_textView string]);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							NSString* str = Apple::getNSStringFromString(textNew, @"");
-							[control->m_textView setString:str];
-						}
+						view->dispatchPostChange();
 					}
 				}
 

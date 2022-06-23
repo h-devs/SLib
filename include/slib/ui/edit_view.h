@@ -144,6 +144,8 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
 		
+		SLIB_DECLARE_EVENT_HANDLER(EditView, PostChange)
+		
 		SLIB_DECLARE_EVENT_HANDLER(EditView, ReturnKey)
 		
 	protected:

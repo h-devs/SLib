@@ -197,17 +197,18 @@ namespace slib
 					GtkEntry* handle = (GtkEntry*)user_data;
 					Ref<EditView> view = CastRef<EditView>(UIPlatform::getView((GtkWidget*)handle));
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = gtk_entry_get_text(handle);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								StringCstr _text(textNew);
+								gtk_entry_set_text(handle, _text.getData());
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = gtk_entry_get_text(handle);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							StringCstr _text(textNew);
-							gtk_entry_set_text(handle, _text.getData());
-						}
+						view->dispatchPostChange();
 					}
 				}
 
@@ -461,16 +462,17 @@ namespace slib
 					GtkWidget* handle = (GtkWidget*)user_data;
 					Ref<TextArea> view = CastRef<TextArea>(UIPlatform::getView(handle));
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = _getText(buffer);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = _getText(buffer);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
-						}
+						view->dispatchPostChange();
 					}
 				}
 

@@ -43,18 +43,18 @@ namespace slib
 			public:
 				void onChange(Win32_ViewInstance* instance, HWND handle)
 				{
-					if (!(isChangeEventEnabled())) {
+					if (isChangeEventEnabled()) {
+						String textOld = m_text;
+						String text = UIPlatform::getWindowText(handle);
+						String textNew = text;
+						dispatchChange(textNew);
+						if (text != textNew) {
+							instance->setText(textNew);
+						}
+					} else {
 						invalidateText();
-						invalidateLayoutOfWrappingControl();
-						return;
 					}
-					String textOld = m_text;
-					String text = UIPlatform::getWindowText(handle);
-					String textNew = text;
-					dispatchChange(textNew);
-					if (text != textNew) {
-						instance->setText(textNew);
-					}
+					dispatchPostChange();
 				}
 
 			};
@@ -612,6 +612,14 @@ namespace slib
 						m_flagInputingIME = sl_false;
 						_refreshHintText();
 						break;
+					case WM_SIZE:
+						{
+							Ref<View> view = getView();
+							if (view.isNotNull()) {
+								setPadding(view, view->getPadding());
+							}
+							break;
+						}
 					}
 					return Win32_ViewInstance::processSubclassMessage(msg, wParam, lParam);
 				}
