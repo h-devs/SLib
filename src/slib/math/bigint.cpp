@@ -5224,8 +5224,8 @@ namespace slib
 			if (m) {
 				CBigInt* r = new CBigInt;
 				if (r) {
-					if (a->inverseMod(*m)) {
-						return a;
+					if (r->inverseMod(*a, *m)) {
+						return r;
 					}
 					delete r;
 				}
