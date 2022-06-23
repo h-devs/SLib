@@ -534,7 +534,7 @@ namespace slib
 
 			HINSTANCE hInst = GetModuleHandleW(NULL);
 			style |= WS_CHILD;
-			if (view->isVisible()) {
+			if (view->isVisibleInInstance()) {
 				style |= WS_VISIBLE;
 			}
 			if (view->isBorder()) {
