@@ -1759,7 +1759,66 @@ namespace slib
 			}
 
 			template <class STRING>
-			static STRING ReplaceCharSub(typename STRING::Char const* str, sl_size count, typename STRING::Char pattern, typename STRING::Char replace) noexcept
+			SLIB_INLINE static STRING ReplaceChar(const STRING& str, typename STRING::Char pattern, typename STRING::Char replace) noexcept
+			{
+				if (str.isNull()) {
+					return str;
+				}
+				sl_size len;
+				typename STRING::Char const* dataSrc = str.getData(len);
+				sl_size posStart = 0;
+				{
+					sl_size i = 0;
+					for (; i < len; i++) {
+						typename STRING::Char ch = dataSrc[i];
+						if (ch == pattern) {
+							posStart = i;
+							break;
+						}
+					}
+					if (i == len) {
+						return str;
+					}
+				}
+				STRING ret = STRING::allocate(len);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				typename STRING::Char* dataDst = ret.getData();
+				{
+					for (sl_size i = 0; i < posStart; i++) {
+						dataDst[i] = dataSrc[i];
+					}
+				}
+				if (replace) {
+					dataDst[posStart] = replace;
+					posStart++;
+					for (sl_size i = posStart; i < len; i++) {
+						typename STRING::Char ch = dataSrc[i];
+						if (ch == pattern) {
+							dataDst[i] = replace;
+						} else {
+							dataDst[i] = ch;
+						}
+					}
+				} else {
+					sl_size k = posStart;
+					posStart++;
+					for (sl_size i = posStart; i < len; i++) {
+						typename STRING::Char ch = dataSrc[i];
+						if (ch != pattern) {
+							dataDst[k] = ch;
+							k++;
+						}
+					}
+					dataDst[k] = 0;
+					ret.setLength(k);
+				}
+				return ret;
+			}
+
+			template <class STRING>
+			static STRING ReplaceSzCharSub(typename STRING::Char const* str, sl_size count, typename STRING::Char pattern, typename STRING::Char replace) noexcept
 			{
 				if (!count) {
 					return STRING::getEmpty();
@@ -1796,17 +1855,6 @@ namespace slib
 			}
 
 			template <class STRING>
-			SLIB_INLINE static STRING ReplaceChar(const STRING& str, typename STRING::Char pattern, typename STRING::Char replace) noexcept
-			{
-				if (str.isNull()) {
-					return str;
-				}
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return ReplaceCharSub<STRING>(data, len, pattern, replace);
-			}
-
-			template <class STRING>
 			SLIB_INLINE static STRING ReplaceSzChar(typename STRING::Char const* str, sl_reg len, typename STRING::Char pattern, typename STRING::Char replace) noexcept
 			{
 				if (!str) {
@@ -1815,7 +1863,7 @@ namespace slib
 				if (len < 0) {
 					len = StringTraits<typename STRING::Char>::getLength(str);
 				}
-				return ReplaceCharSub<STRING>(str, len, pattern, replace);
+				return ReplaceSzCharSub<STRING>(str, len, pattern, replace);
 			}
 
 			struct STRING_REPLACE_SUBSET
