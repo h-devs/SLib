@@ -285,7 +285,25 @@ namespace slib
 	}
 
 	BigInt EllipticCurve::getY(const BigInt& x, sl_bool yBit) const noexcept
-	{
+	{	
+		// yBit is true -> odd
+		BigInt p = secp256k1().p;
+
+		// y ^ 2 = x ^ 3 + 7 (mod p)
+		BigInt temp;
+		temp = x.duplicate();
+		temp.pow_montgomery(3, p);
+		temp = (temp + 7) % p;
+		BigInt y;
+		y = BigInt::sqrtMod(temp, p);
+
+		if (yBit && y % 2) {
+			return y;
+		}
+		else {
+			return p - y;
+		}
+
 		return sl_null;
 	}
 

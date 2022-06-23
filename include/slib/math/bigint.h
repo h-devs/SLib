@@ -388,7 +388,22 @@ namespace slib
 		sl_bool inverseMod(const CBigInt& A, const CBigInt& M) noexcept;
 
 		sl_bool inverseMod(const CBigInt& M) noexcept;
-	
+
+		sl_int32 checkEulerCriterion(const CBigInt& A, const CBigInt& M) const noexcept;
+
+		sl_int32 checkEulerCriterion(const CBigInt& M) const noexcept;
+		
+		/*
+			Calculate R:
+				R ^ 2 = A (mod M)
+			Input:
+				A is quadratic residue (satisfy Euler's Criterion),
+				M is prime number.
+		*/
+		sl_bool sqrtMod(const CBigInt& A, const CBigInt& M) noexcept;
+
+		sl_bool sqrtMod(const CBigInt& M) noexcept;
+
 		/*
 			gcd - greatest common divisor
 		*/
@@ -795,6 +810,23 @@ namespace slib
 				gcd(A, M) = 1
 		*/
 		static BigInt inverseMod(const BigInt& A, const BigInt& M) noexcept;
+
+		/*
+			Euler's Criterion
+				P is Prime number, gcd(A, p) = 1 &&
+				pow(A, (p-1)/2) mod p = 1 => A is quadratic residue.
+				p = -1 => A is quadratic non residue.
+			Return:
+				-1 : A is quadratic non residue
+				1 : A is quadratic residue
+				0 : p is not prime number
+		*/
+		static BigInt checkEulerCriterion(const BigInt& A, BigInt& p)  noexcept;
+		
+		/*
+			M: Prime
+		*/
+		static BigInt sqrtMod(const BigInt& A, const BigInt& M) noexcept;
 	
 		/*
 			gcd - greatest common divisor
