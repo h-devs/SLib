@@ -537,7 +537,7 @@ namespace slib
 					sbar->setBackgroundColor(Color::White, UIUpdateMode::None);
 					sbar->setLayer(sl_true, UIUpdateMode::None);
 				}
-				if (!(isVerticalScrollBarVisible())) {
+				if (!(isVerticalScrollBarVisible() && isValidVerticalScrolling())) {
 					canvas->fillRectangle((sl_real)iWidth, 0.0f, (sl_real)(sbar->getWidth()), (sl_real)iHeight, BACKGROUND_COLOR);
 				}
 			}

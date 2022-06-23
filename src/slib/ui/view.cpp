@@ -6602,6 +6602,24 @@ namespace slib
 		}
 	}
 
+	sl_bool View::isValidHorizontalScrolling()
+	{
+		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagHorz && attrs->flagValidHorz;
+		}
+		return sl_false;
+	}
+
+	sl_bool View::isValidVerticalScrolling()
+	{
+		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagVert && attrs->flagValidVert;
+		}
+		return sl_false;
+	}
+
 	Ref<ScrollBar> View::getHorizontalScrollBar()
 	{
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
@@ -6646,7 +6664,7 @@ namespace slib
 	{
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagHorz && attrs->flagHorzScrollBarVisible && attrs->flagValidHorz;
+			return attrs->flagHorz && attrs->flagHorzScrollBarVisible;
 		}
 		return sl_false;
 	}
@@ -6655,7 +6673,7 @@ namespace slib
 	{
 		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->flagVert && attrs->flagVertScrollBarVisible && attrs->flagValidVert;
+			return attrs->flagVert && attrs->flagVertScrollBarVisible;
 		}
 		return sl_false;
 	}
