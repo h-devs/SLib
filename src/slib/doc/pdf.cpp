@@ -6170,6 +6170,20 @@ namespace slib
 		return sl_false;
 	}
 
+	void PdfStream::setJpegFilter() noexcept
+	{
+		if (properties.isNotNull()) {
+			properties->put_NoLock(name::Filter, PdfName(name::DCT));
+		}
+	}
+
+	void PdfStream::setLength(sl_uint32 len) noexcept
+	{
+		if (properties.isNotNull()) {
+			properties->put_NoLock(name::Length, len);
+		}
+	}
+
 	Ref<PdfStream> PdfStream::create(const Memory& content)
 	{
 		Ref<PdfDictionary> properties = new PdfDictionary(sl_null);

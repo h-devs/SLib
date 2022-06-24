@@ -555,6 +555,10 @@ namespace slib
 
 		sl_bool isJpegImage() noexcept;
 
+		void setJpegFilter() noexcept;
+
+		void setLength(sl_uint32 len) noexcept;
+
 	public:
 		static Ref<PdfStream> create(const Memory& content);
 
