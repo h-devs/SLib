@@ -69,7 +69,7 @@ namespace slib
 			~BitmapCache()
 			{
 				if (context) {
-					if (context->bitmapsFree.getCount() < CACHE_MIN_COUNT) {
+					if (context->m_flagCollectFreeBitmaps && context->bitmapsFree.getCount() < CACHE_MIN_COUNT) {
 						context->bitmapsFree.push(Move(bitmap));
 					}
 				}
@@ -80,6 +80,7 @@ namespace slib
 		ExpiringMap< sl_uint32, Ref<PdfPage> > pages;
 		ExpiringMap< sl_uint32, Ref<BitmapCache> > bitmapsValid;
 		Queue< Ref<Bitmap> > bitmapsFree;
+		sl_bool m_flagCollectFreeBitmaps = sl_true;
 
 	public:
 		PdfViewContext()
@@ -88,6 +89,12 @@ namespace slib
 			pages.setExpiringMilliseconds(EXPIRE_DURATION_PAGE);
 			fonts.setExpiringMilliseconds(EXPIRE_DURATION_FONT);
 			externalObjects.setExpiringMilliseconds(EXPIRE_DURATION_XOBJECT);
+		}
+
+		~PdfViewContext()
+		{
+			m_flagCollectFreeBitmaps = sl_false;
+			bitmapsValid.removeAll();
 		}
 
 	public:
