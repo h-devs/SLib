@@ -309,21 +309,25 @@ namespace slib
 		sl_real width = src->getDrawableWidth();
 		sl_real height = src->getDrawableHeight();
 		if (width > height) {
-			sl_real x = 0;
+			sl_real x;
 			Alignment halign = align & Alignment::HorizontalMask;
-			if (halign == Alignment::Center) {
-				x = (width - height) / 2;
+			if (halign == Alignment::Left) {
+				x = 0;
 			} else if (halign == Alignment::Right) {
 				x = width - height;
+			} else {
+				x = (width - height) / 2;
 			}
 			return src->subDrawable(x, 0, height, height);
 		} else if (width < height) {
-			sl_real y = 0;
+			sl_real y;
 			Alignment valign = align & Alignment::VerticalMask;
-			if (valign == Alignment::Middle) {
-				y = (height - width) / 2;
+			if (valign == Alignment::Top) {
+				y = 0;
 			} else if (valign == Alignment::Bottom) {
 				y = height - width;
+			} else {
+				y = (height - width) / 2;
 			}
 			return src->subDrawable(0, y, width, width);
 		} else {

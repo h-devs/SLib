@@ -253,12 +253,14 @@ namespace slib
 		
 		m_flagInvalidateText = sl_false;
 		m_flagChangeEvent = sl_true;
-		m_gravity = Alignment::MiddleCenter;
+		m_gravity = Alignment::Default;
 		m_textColor = Color::Black;
-		m_hintGravity = Alignment::MiddleCenter;
+		m_hintGravity = Alignment::Default;
 		m_hintTextColor = Color(150, 150, 150);
 		m_flagReadOnly = sl_false;
 		m_flagPassword = sl_false;
+		m_flagLowercase = sl_false;
+		m_flagUppercase = sl_false;
 		m_multiLine = MultiLineMode::Single;
 		m_returnKeyType = UIReturnKeyType::Default;
 		m_keyboardType = UIKeyboardType::Default;
@@ -502,6 +504,52 @@ namespace slib
 		}
 	}
 
+	sl_bool EditView::isNumber()
+	{
+		return getKeyboardType() == UIKeyboardType::Numpad;
+	}
+
+	void EditView::setNumber(sl_bool flag, UIUpdateMode mode)
+	{
+		setKeyboardType(UIKeyboardType::Numpad);
+		invalidate(mode);
+	}
+
+	sl_bool EditView::isLowercase()
+	{
+		return m_flagLowercase;
+	}
+
+	void EditView::setLowercase(sl_bool flag, UIUpdateMode mode)
+	{
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setLowercase, flag, mode)
+			m_flagLowercase = flag;
+			instance->setLowercase(this, flag);
+		} else {
+			m_flagLowercase = flag;
+			invalidate(mode);
+		}
+	}
+
+	sl_bool EditView::isUppercase()
+	{
+		return m_flagUppercase;
+	}
+
+	void EditView::setUppercase(sl_bool flag, UIUpdateMode mode)
+	{
+		Ptr<IEditViewInstance> instance = getEditViewInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setUppercase, flag, mode)
+			m_flagUppercase = flag;
+			instance->setUppercase(this, flag);
+		} else {
+			m_flagUppercase = flag;
+			invalidate(mode);
+		}
+	}
 	
 	MultiLineMode EditView::getMultiLine()
 	{
@@ -718,19 +766,19 @@ namespace slib
 			Alignment hAlign = gravity & Alignment::HorizontalMask;
 			Alignment vAlign = gravity & Alignment::VerticalMask;
 			sl_real xCaret, yCaret;
-			if (hAlign == Alignment::Right) {
-				xCaret = rect.right;
-			} else if (hAlign == Alignment::Center) {
-				xCaret = (rect.left + rect.right + size.x) / 2;
-			} else {
+			if (hAlign == Alignment::Left) {
 				xCaret = rect.left + size.x;
-			}
-			if (vAlign == Alignment::Bottom) {
-				yCaret = rect.bottom - size.y;
-			} else if (vAlign == Alignment::Middle) {
-				yCaret = (rect.top + rect.bottom - size.y) / 2;
+			} else if (hAlign == Alignment::Right) {
+				xCaret = rect.right;
 			} else {
+				xCaret = (rect.left + rect.right + size.x) / 2;
+			}
+			if (vAlign == Alignment::Top) {
 				yCaret = rect.top;
+			} else if (vAlign == Alignment::Bottom) {
+				yCaret = rect.bottom - size.y;
+			} else {
+				yCaret = (rect.top + rect.bottom - size.y) / 2;
 			}
 			if (!(m_nCountDrawCaret % 2)) {
 				canvas->fillRectangle(xCaret, yCaret, 1, size.y, Color::Black);
@@ -793,6 +841,13 @@ namespace slib
 			return;
 		}
 		m_text = value;
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(EditView, PostChange)
+
+	void EditView::dispatchPostChange()
+	{
+		SLIB_INVOKE_EVENT_HANDLER(PostChange)
 		if (isNativeWidget()) {
 			invalidateLayoutOfWrappingControl();
 		}
@@ -911,7 +966,15 @@ namespace slib
 	{
 		return sl_false;
 	}
-	
+
+	void IEditViewInstance::setLowercase(EditView* view, sl_bool flag)
+	{
+	}
+
+	void IEditViewInstance::setUppercase(EditView* view, sl_bool flag)
+	{
+	}
+
 	void IEditViewInstance::setReturnKeyType(EditView* view, UIReturnKeyType type)
 	{
 	}

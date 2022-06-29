@@ -1303,12 +1303,12 @@ namespace slib
 					}
 
 					sl_real x;
-					if (m_align == Alignment::Center) {
-						x = - m_lineWidth / 2;
+					if (m_align == Alignment::Left) {
+						x = 0;
 					} else if (m_align == Alignment::Right) {
 						x = - m_lineWidth;
 					} else {
-						x = 0;
+						x = - m_lineWidth / 2;
 					}
 
 					sl_real bottom = m_y + m_lineHeight;
@@ -1799,12 +1799,12 @@ namespace slib
 		TextItemDrawParam param = _param;
 
 		sl_real x;
-		if (m_align == Alignment::Center) {
-			x = (left + right) / 2;
+		if (m_align == Alignment::Left) {
+			x = left;
 		} else if (m_align == Alignment::Right) {
 			x = right;
 		} else {
-			x = left;
+			x = (left + right) / 2;
 		}
 
 		Rectangle rc = canvas->getInvalidatedRect();
@@ -1905,12 +1905,12 @@ namespace slib
 	Ref<TextItem> TextParagraph::getTextItemAtPosition(sl_real x, sl_real y, sl_real left, sl_real right) noexcept
 	{
 		sl_real startX;
-		if (m_align == Alignment::Center) {
-			startX = (left + right) / 2;
+		if (m_align == Alignment::Left) {
+			startX = left;
 		} else if (m_align == Alignment::Right) {
 			startX = right;
 		} else {
-			startX = left;
+			startX = (left + right) / 2;
 		}
 		x -= startX;
 		ListElements< Ref<TextItem> > items(m_layoutItems);
@@ -2129,12 +2129,12 @@ namespace slib
 		if (m_paragraph.isNotNull()) {
 			sl_real height = m_paragraph->getContentHeight();
 			sl_real y;
-			if (m_alignVertical == Alignment::Middle) {
-				y = (param.frame.top + param.frame.bottom - height) / 2;
+			if (m_alignVertical == Alignment::Left) {
+				y = param.frame.top;
 			} else if (m_alignVertical == Alignment::Bottom) {
 				y = param.frame.bottom - height;
 			} else {
-				y = param.frame.top;
+				y = (param.frame.top + param.frame.bottom - height) / 2;
 			}
 			m_paragraph->draw(canvas, param.frame.left, param.frame.right, y, param);
 		}
@@ -2146,12 +2146,12 @@ namespace slib
 		if (m_paragraph.isNotNull()) {
 			sl_real height = m_paragraph->getContentHeight();
 			sl_real startY;
-			if (m_alignVertical == Alignment::Middle) {
-				startY = (frame.top + frame.bottom - height) / 2;
+			if (m_alignVertical == Alignment::Top) {
+				startY = frame.top;
 			} else if (m_alignVertical == Alignment::Bottom) {
 				startY = frame.bottom - height;
 			} else {
-				startY = frame.top;
+				startY = (frame.top + frame.bottom - height) / 2;
 			}
 			return m_paragraph->getTextItemAtPosition(x, y - startY, frame.left, frame.right);
 		}

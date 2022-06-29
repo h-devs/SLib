@@ -1882,7 +1882,7 @@ namespace slib
 					}
 				}
 
-				if (resourceItem->itemType != SAppLayoutItemType::Import) {
+				if (params->parentResourceItem && resourceItem->itemType != SAppLayoutItemType::Import && params->parentResourceItem->itemType != SAppLayoutItemType::Table) {
 					if (!(attr->left.flagDefined)) {
 						if (attr->leftMode == PositionMode::Free && attr->rightMode == PositionMode::Free) {
 							attr->leftMode = PositionMode::ParentEdge;
@@ -1938,75 +1938,45 @@ namespace slib
 					}
 				}
 			} else if (op == OP_SIMULATE) {
-				if (attr->leftMode == PositionMode::CenterInParent) {
-					if (!flagOnLayout) {
+				if (!flagOnLayout) {
+					if (attr->leftMode == PositionMode::CenterInParent) {
 						view->setCenterHorizontal(UIUpdateMode::Init);
-					}
-				} else if (attr->leftMode == PositionMode::CenterInOther) {
-					if (!flagOnLayout) {
+					} else if (attr->leftMode == PositionMode::CenterInOther) {
 						view->setAlignCenterHorizontal(params->simulator->getViewByName(attr->leftReferingView), UIUpdateMode::Init);
-					}
-				} else {
-					if (attr->leftMode == PositionMode::ParentEdge) {
-						if (!flagOnLayout) {
+					} else {
+						if (attr->leftMode == PositionMode::ParentEdge) {
 							view->setAlignParentLeft(UIUpdateMode::Init);
-						}
-					} else if (attr->leftMode == PositionMode::OtherStart) {
-						if (!flagOnLayout) {
+						} else if (attr->leftMode == PositionMode::OtherStart) {
 							view->setAlignLeft(params->simulator->getViewByName(attr->leftReferingView), UIUpdateMode::Init);
-						}
-					} else if (attr->leftMode == PositionMode::OtherEnd) {
-						if (!flagOnLayout) {
+						} else if (attr->leftMode == PositionMode::OtherEnd) {
 							view->setRightOf(params->simulator->getViewByName(attr->leftReferingView), UIUpdateMode::Init);
 						}
-					}
-					if (attr->rightMode == PositionMode::ParentEdge) {
-						if (!flagOnLayout) {
+						if (attr->rightMode == PositionMode::ParentEdge) {
 							view->setAlignParentRight(UIUpdateMode::Init);
-						}
-					} else if (attr->rightMode == PositionMode::OtherStart) {
-						if (!flagOnLayout) {
+						} else if (attr->rightMode == PositionMode::OtherStart) {
 							view->setLeftOf(params->simulator->getViewByName(attr->rightReferingView), UIUpdateMode::Init);
-						}
-					} else if (attr->rightMode == PositionMode::OtherEnd) {
-						if (!flagOnLayout) {
+						} else if (attr->rightMode == PositionMode::OtherEnd) {
 							view->setAlignRight(params->simulator->getViewByName(attr->rightReferingView), UIUpdateMode::Init);
 						}
 					}
-				}
 				
-				if (attr->topMode == PositionMode::CenterInParent) {
-					if (!flagOnLayout) {
+					if (attr->topMode == PositionMode::CenterInParent) {
 						view->setCenterVertical(UIUpdateMode::Init);
-					}
-				} else if (attr->topMode == PositionMode::CenterInOther) {
-					if (!flagOnLayout) {
+					} else if (attr->topMode == PositionMode::CenterInOther) {
 						view->setAlignCenterVertical(params->simulator->getViewByName(attr->topReferingView), UIUpdateMode::Init);
-					}
-				} else {
-					if (attr->topMode == PositionMode::ParentEdge) {
-						if (!flagOnLayout) {
+					} else {
+						if (attr->topMode == PositionMode::ParentEdge) {
 							view->setAlignParentTop(UIUpdateMode::Init);
-						}
-					} else if (attr->topMode == PositionMode::OtherStart) {
-						if (!flagOnLayout) {
+						} else if (attr->topMode == PositionMode::OtherStart) {
 							view->setAlignTop(params->simulator->getViewByName(attr->topReferingView), UIUpdateMode::Init);
-						}
-					} else if (attr->topMode == PositionMode::OtherEnd) {
-						if (!flagOnLayout) {
+						} else if (attr->topMode == PositionMode::OtherEnd) {
 							view->setBelow(params->simulator->getViewByName(attr->topReferingView), UIUpdateMode::Init);
 						}
-					}
-					if (attr->bottomMode == PositionMode::ParentEdge) {
-						if (!flagOnLayout) {
+						if (attr->bottomMode == PositionMode::ParentEdge) {
 							view->setAlignParentBottom(UIUpdateMode::Init);
-						}
-					} else if (attr->bottomMode == PositionMode::OtherStart) {
-						if (!flagOnLayout) {
+						} else if (attr->bottomMode == PositionMode::OtherStart) {
 							view->setAbove(params->simulator->getViewByName(attr->bottomReferingView), UIUpdateMode::Init);
-						}
-					} else if (attr->bottomMode == PositionMode::OtherEnd) {
-						if (!flagOnLayout) {
+						} else if (attr->bottomMode == PositionMode::OtherEnd) {
 							view->setAlignBottom(params->simulator->getViewByName(attr->bottomReferingView), UIUpdateMode::Init);
 						}
 					}
@@ -2323,8 +2293,10 @@ namespace slib
 				params->sbDefineInit->add(String::format("%s%s->setScrollBarsVisible(%s, %s, slib::UIUpdateMode::Init);%n", strTab, name, attr->scrollBars.horizontalScrollBar ? "sl_true" : "sl_false", attr->scrollBars.verticalScrollBar ? "sl_true" : "sl_false"));
 			}
 		} else if (op == OP_SIMULATE) {
-			if (attr->scrollBars.flagDefined) {
-				view->setScrollBarsVisible(attr->scrollBars.horizontalScrollBar, attr->scrollBars.verticalScrollBar, UIUpdateMode::None);
+			if (!flagOnLayout) {
+				if (attr->scrollBars.flagDefined) {
+					view->setScrollBarsVisible(attr->scrollBars.horizontalScrollBar, attr->scrollBars.verticalScrollBar, UIUpdateMode::Init);
+				}
 			}
 		}
 		LAYOUT_CONTROL_GENERIC_ATTR(scrollingByMouse, setContentScrollingByMouse)
@@ -2691,30 +2663,30 @@ namespace slib
 					}
 				} else if (op == OP_SIMULATE) {
 					if (category.textColor[k].flagDefined) {
-						Color _textColor;
-						if (!(_getColorValue(resource->name, category.textColor[k], element, _textColor))) {
-							return sl_false;
-						}
 						if (!flagOnLayout) {
+							Color _textColor;
+							if (!(_getColorValue(resource->name, category.textColor[k], element, _textColor))) {
+								return sl_false;
+							}
 							view->setTextColor(_textColor, (ButtonState)k, i, UIUpdateMode::Init);
 						}
 					}
 					if (category.background[k].flagDefined) {
-						Ref<Drawable> _background;
-						if (!(_getDrawableValue(resource->name, category.background[k], element, _background))) {
-							return sl_false;
-						}
 						if (flagOnLayout) {
-							view->setBackground(_background, (ButtonState)k, i, UIUpdateMode::Redraw);
+							Ref<Drawable> _background;
+							if (!(_getDrawableValue(resource->name, category.background[k], element, _background))) {
+								return sl_false;
+							}
+							view->setBackground(_background, (ButtonState)k, i, UIUpdateMode::None);
 						}
 					}
 					if (category.icon[k].flagDefined) {
-						Ref<Drawable> _icon;
-						if (!(_getDrawableValue(resource->name, category.icon[k], element, _icon))) {
-							return sl_false;
-						}
 						if (flagOnLayout) {
-							view->setIcon(_icon, (ButtonState)k, i, UIUpdateMode::Redraw);
+							Ref<Drawable> _icon;
+							if (!(_getDrawableValue(resource->name, category.icon[k], element, _icon))) {
+								return sl_false;
+							}
+							view->setIcon(_icon, (ButtonState)k, i, UIUpdateMode::None);
 						}
 					}
 					if (category.borderWidth[k].flagDefined || category.borderColor[k].flagDefined || category.borderStyle[k].flagDefined) {
@@ -2749,11 +2721,11 @@ namespace slib
 						}
 					}
 					if (category.colorOverlay[k].flagDefined) {
-						Color _colorOverlay;
-						if (!(_getColorValue(resource->name, category.colorOverlay[k], element, _colorOverlay))) {
-							return sl_false;
-						}
 						if (!flagOnLayout) {
+							Color _colorOverlay;
+							if (!(_getColorValue(resource->name, category.colorOverlay[k], element, _colorOverlay))) {
+								return sl_false;
+							}
 							view->setColorOverlay(_colorOverlay, (ButtonState)k, i, UIUpdateMode::Init);
 						}
 					}
@@ -2902,6 +2874,9 @@ namespace slib
 		}
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(readOnly, setReadOnly)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(password, setPassword)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(number, setNumber)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lowercase, setLowercase)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(uppercase, setUppercase)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multiLine, setMultiLine)
 		LAYOUT_CONTROL_GENERIC_ATTR(returnKey, setReturnKeyType)
 		LAYOUT_CONTROL_GENERIC_ATTR(keyboard, setKeyboardType)
@@ -3083,9 +3058,7 @@ namespace slib
 						}
 					}
 					if (flagSelected) {
-						if (!flagOnLayout) {
-							view->selectItem(indexSelected, UIUpdateMode::Init);
-						}
+						view->selectItem(indexSelected, UIUpdateMode::Init);
 					}
 				}
 			}
@@ -3200,9 +3173,7 @@ namespace slib
 						}
 					}
 					if (flagSelected) {
-						if (!flagOnLayout) {
-							view->selectItem(indexSelected, UIUpdateMode::Init);
-						}
+						view->selectItem(indexSelected, UIUpdateMode::Init);
 					}
 				}
 			}
@@ -3296,9 +3267,7 @@ namespace slib
 						}
 					}
 					if (flagSelected) {
-						if (!flagOnLayout) {
-							view->selectItem(indexSelected, UIUpdateMode::Init);
-						}
+						view->selectItem(indexSelected, UIUpdateMode::Init);
 					}
 				}
 			}
@@ -3520,6 +3489,39 @@ namespace slib
 							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, maxWidth)
 							return sl_false;
 						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., margin)
+						if (!(column.margin.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, margin)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., marginLeft)
+						if (!(column.marginLeft.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, marginLeft)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., marginRight)
+						if (!(column.marginRight.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, marginRight)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., padding)
+						if (!(column.padding.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, padding)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., paddingLeft)
+						if (!(column.paddingLeft.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, paddingLeft)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., paddingRight)
+						if (!(column.paddingRight.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, paddingRight)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(columnXml, column., background)
+						LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, column., align)
+
 						if (!(attr->columns.add_NoLock(column))) {
 							_logError(columnXml, g_str_error_out_of_memory);
 							return sl_false;
@@ -3550,18 +3552,52 @@ namespace slib
 							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, maxHeight)
 							return sl_false;
 						}
-						
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., margin)
+						if (!(row.margin.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, margin)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., marginTop)
+						if (!(row.marginTop.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, marginTop)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., marginBottom)
+						if (!(row.marginBottom.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, marginBottom)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., padding)
+						if (!(row.padding.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, padding)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., paddingTop)
+						if (!(row.paddingTop.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, paddingTop)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., paddingBottom)
+						if (!(row.paddingBottom.checkPosition())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, paddingBottom)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(rowXml, row., background)
+						LAYOUT_CONTROL_PARSE_XML_ATTR(rowXml, row., align)
+
 						sl_uint32 iCell = 0;
 						ListLocker< Ref<XmlElement> > childXmls(rowXml->getChildElements());
 						for (sl_size k = 0; k < childXmls.count; k++) {
 							Ref<XmlElement>& xmlView = childXmls[k];
 							if (xmlView.isNotNull()) {
-								Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, xmlView, params->source);
-								if (subItemView.isNull()) {
-									return sl_false;
-								}
 								SAppLayoutTableCell cell;
-								cell.view = subItemView;
+								if (xmlView->getName() != "cell") {
+									Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, xmlView, params->source);
+									if (subItemView.isNull()) {
+										return sl_false;
+									}
+									cell.view = subItemView;
+								}
 								LAYOUT_CONTROL_PARSE_XML_ATTR(xmlView, cell., rowspan)
 								LAYOUT_CONTROL_PARSE_XML_ATTR(xmlView, cell., colspan)
 								if (!(cell.rowspan.flagDefined) || cell.rowspan.value < 1) {
@@ -3632,6 +3668,58 @@ namespace slib
 						params->sbDefineInit->add(String::format("%s%s->setColumnMaximumWidth(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.maxWidth.getAccessString()));
 					}
 				}
+				if (col.margin.flagDefined) {
+					if (col.margin.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setColumnMargin(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iCol, col.margin.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setColumnMargin(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.margin.getAccessString()));
+					}
+				}
+				if (col.marginLeft.flagDefined) {
+					if (col.marginLeft.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setColumnMarginLeft(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iCol, col.marginLeft.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setColumnMarginLeft(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.marginLeft.getAccessString()));
+					}
+				}
+				if (col.marginRight.flagDefined) {
+					if (col.marginRight.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setColumnMarginRight(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iCol, col.marginRight.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setColumnMarginRight(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.marginRight.getAccessString()));
+					}
+				}
+				if (col.padding.flagDefined) {
+					if (col.padding.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setColumnPadding(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iCol, col.padding.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setColumnPadding(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.padding.getAccessString()));
+					}
+				}
+				if (col.paddingLeft.flagDefined) {
+					if (col.paddingLeft.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setColumnPaddingLeft(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iCol, col.paddingLeft.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setColumnPaddingLeft(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.paddingLeft.getAccessString()));
+					}
+				}
+				if (col.paddingRight.flagDefined) {
+					if (col.paddingRight.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setColumnPaddingRight(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iCol, col.paddingRight.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setColumnPaddingRight(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.paddingRight.getAccessString()));
+					}
+				}
+				if (col.background.flagDefined) {
+					String strBackground;
+					if (!(_getDrawableAccessString(resource->name, col.background, element, strBackground))) {
+						return sl_false;
+					}
+					params->sbDefineInit->add(String::format("%s%s->setColumnBackground(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, strBackground));
+				}
+				if (col.align.flagDefined) {
+					params->sbDefineInit->add(String::format("%s%s->setColumnAlignment(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iCol, col.align.getAccessString()));
+				}
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
@@ -3663,6 +3751,58 @@ namespace slib
 					} else {
 						params->sbDefineInit->add(String::format("%s%s->setRowMaximumHeight(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.maxHeight.getAccessString()));
 					}
+				}
+				if (row.margin.flagDefined) {
+					if (row.margin.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setRowMargin(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iRow, row.margin.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setRowMargin(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.margin.getAccessString()));
+					}
+				}
+				if (row.marginTop.flagDefined) {
+					if (row.marginTop.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setRowMarginTop(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iRow, row.marginTop.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setRowMarginTop(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.marginTop.getAccessString()));
+					}
+				}
+				if (row.marginBottom.flagDefined) {
+					if (row.marginBottom.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setRowMarginBottom(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iRow, row.marginBottom.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setRowMarginBottom(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.marginBottom.getAccessString()));
+					}
+				}
+				if (row.padding.flagDefined) {
+					if (row.padding.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setRowPadding(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iRow, row.padding.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setRowPadding(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.padding.getAccessString()));
+					}
+				}
+				if (row.paddingTop.flagDefined) {
+					if (row.paddingTop.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setRowPaddingTop(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iRow, row.paddingTop.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setRowPaddingTop(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.paddingTop.getAccessString()));
+					}
+				}
+				if (row.paddingBottom.flagDefined) {
+					if (row.paddingBottom.isNeededOnLayoutFunction()) {
+						params->sbDefineLayout->add(String::format("%s%s->setRowPaddingBottom(%d, %s, slib::UIUpdateMode::None);%n", strTab, name, iRow, row.paddingBottom.getAccessString()));
+					} else {
+						params->sbDefineInit->add(String::format("%s%s->setRowPaddingBottom(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.paddingBottom.getAccessString()));
+					}
+				}
+				if (row.background.flagDefined) {
+					String strBackground;
+					if (!(_getDrawableAccessString(resource->name, row.background, element, strBackground))) {
+						return sl_false;
+					}
+					params->sbDefineInit->add(String::format("%s%s->setRowBackground(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, strBackground));
+				}
+				if (row.align.flagDefined) {
+					params->sbDefineInit->add(String::format("%s%s->setRowAlignment(%d, %s, slib::UIUpdateMode::Init);%n", strTab, name, iRow, row.align.getAccessString()));
 				}
 			}
 		} else if (op == OP_SIMULATE) {
@@ -3696,14 +3836,42 @@ namespace slib
 						}
 					}
 				}
-				if (col.minWidth.flagDefined) {
-					if (flagOnLayout) {
+				if (flagOnLayout) {
+					if (col.minWidth.flagDefined) {
 						view->setColumnMinimumWidth(iCol, _getDimensionIntValue(col.minWidth), UIUpdateMode::None);
 					}
-				}
-				if (col.maxWidth.flagDefined) {
-					if (flagOnLayout) {
+					if (col.maxWidth.flagDefined) {
 						view->setColumnMaximumWidth(iCol, _getDimensionIntValue(col.maxWidth), UIUpdateMode::None);
+					}
+					if (col.margin.flagDefined) {
+						view->setColumnMargin(iCol, _getDimensionIntValue(col.margin), UIUpdateMode::None);
+					}
+					if (col.marginLeft.flagDefined) {
+						view->setColumnMarginLeft(iCol, _getDimensionIntValue(col.marginLeft), UIUpdateMode::None);
+					}
+					if (col.marginRight.flagDefined) {
+						view->setColumnMarginRight(iCol, _getDimensionIntValue(col.marginRight), UIUpdateMode::None);
+					}
+					if (col.padding.flagDefined) {
+						view->setColumnPadding(iCol, _getDimensionIntValue(col.padding), UIUpdateMode::None);
+					}
+					if (col.paddingLeft.flagDefined) {
+						view->setColumnPaddingLeft(iCol, _getDimensionIntValue(col.paddingLeft), UIUpdateMode::None);
+					}
+					if (col.paddingRight.flagDefined) {
+						view->setColumnPaddingRight(iCol, _getDimensionIntValue(col.paddingRight), UIUpdateMode::None);
+					}
+					if (col.background.flagDefined) {
+						Ref<Drawable> _background;
+						if (!(_getDrawableValue(resource->name, col.background, element, _background))) {
+							return sl_false;
+						}
+						view->setColumnBackground(iCol, _background, UIUpdateMode::None);
+					}
+				}
+				if (col.align.flagDefined) {
+					if (!flagOnLayout) {
+						view->setColumnAlignment(iCol, col.align.value, UIUpdateMode::Init);
 					}
 				}
 			}
@@ -3728,14 +3896,42 @@ namespace slib
 						}
 					}
 				}
-				if (row.minHeight.flagDefined) {
-					if (flagOnLayout) {
+				if (flagOnLayout) {
+					if (row.minHeight.flagDefined) {
 						view->setRowMinimumHeight(iRow, _getDimensionIntValue(row.minHeight), UIUpdateMode::None);
 					}
-				}
-				if (row.maxHeight.flagDefined) {
-					if (flagOnLayout) {
+					if (row.maxHeight.flagDefined) {
 						view->setRowMaximumHeight(iRow, _getDimensionIntValue(row.maxHeight), UIUpdateMode::None);
+					}
+					if (row.margin.flagDefined) {
+						view->setRowMargin(iRow, _getDimensionIntValue(row.margin), UIUpdateMode::None);
+					}
+					if (row.marginTop.flagDefined) {
+						view->setRowMarginTop(iRow, _getDimensionIntValue(row.marginTop), UIUpdateMode::None);
+					}
+					if (row.marginBottom.flagDefined) {
+						view->setRowMarginBottom(iRow, _getDimensionIntValue(row.marginBottom), UIUpdateMode::None);
+					}
+					if (row.padding.flagDefined) {
+						view->setRowPadding(iRow, _getDimensionIntValue(row.padding), UIUpdateMode::None);
+					}
+					if (row.paddingTop.flagDefined) {
+						view->setRowPaddingTop(iRow, _getDimensionIntValue(row.paddingTop), UIUpdateMode::None);
+					}
+					if (row.paddingBottom.flagDefined) {
+						view->setRowPaddingBottom(iRow, _getDimensionIntValue(row.paddingBottom), UIUpdateMode::None);
+					}
+					if (row.background.flagDefined) {
+						Ref<Drawable> _background;
+						if (!(_getDrawableValue(resource->name, row.background, element, _background))) {
+							return sl_false;
+						}
+						view->setRowBackground(iRow, _background, UIUpdateMode::None);
+					}
+				}
+				if (row.align.flagDefined) {
+					if (!flagOnLayout) {
+						view->setRowAlignment(iRow, row.align.value, UIUpdateMode::Init);
 					}
 				}
 			}
@@ -3850,17 +4046,15 @@ namespace slib
 			ListLocker<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				sl_uint32 n = (sl_uint32)(columns.count);
-				if (!flagOnLayout) {
-					view->setColumnsCount(n, UIUpdateMode::Init);
-				}
+				view->setColumnsCount(n, UIUpdateMode::Init);
 				for (sl_uint32 i = 0; i < n; i++) {
 					SAppLayoutListControlColumn& column = columns[i];
 					if (!flagOnLayout) {
-						String columnTitle;
-						if (!(_getStringValue(resource->name, column.title, element, columnTitle))) {
-							return sl_false;
-						}
 						if (column.title.flagDefined) {
+							String columnTitle;
+							if (!(_getStringValue(resource->name, column.title, element, columnTitle))) {
+								return sl_false;
+							}
 							view->setHeaderText(i, columnTitle, UIUpdateMode::Init);
 						}
 						if (column.align.flagDefined) {
@@ -4046,17 +4240,15 @@ namespace slib
 				for (sl_uint32 i = 0; i < nSubItems; i++) {
 					
 					SAppLayoutTabItem& subItem = subItems[i];
-					if (subItem.label.flagDefined) {
-						if (!flagOnLayout) {
+					if (!flagOnLayout) {
+						if (subItem.label.flagDefined) {
 							String itemLabel;
 							if (!(_getStringValue(resource->name, subItem.label, subItem.element, itemLabel))) {
 								return sl_false;
 							}
 							view->setTabLabel(i, itemLabel, UIUpdateMode::Init);
 						}
-					}
-					if (subItem.icon.flagDefined) {
-						if (!flagOnLayout) {
+						if (subItem.icon.flagDefined) {
 							Ref<Drawable> itemIcon;
 							if (!(_getDrawableValue(resource->name, subItem.icon, subItem.element, itemIcon))) {
 								return sl_false;
@@ -4080,14 +4272,13 @@ namespace slib
 						}
 					}
 					
-					if (flagSelected) {
-						if (!flagOnLayout) {
-							view->selectTab(indexSelected, UIUpdateMode::Init);
-						}
-					}
-					
 				}
 				
+				if (flagSelected) {
+					if (!flagOnLayout) {
+						view->selectTab(indexSelected, UIUpdateMode::Init);
+					}
+				}
 			}
 
 		}
@@ -4294,52 +4485,40 @@ namespace slib
 				}
 				for (sl_size i = 0; i < subItems.count; i++) {
 					SAppLayoutSplitItem& subItem = subItems[i];
-					if (subItem.weight.flagDefined) {
-						if (!flagOnLayout) {
+					if (!flagOnLayout) {
+						if (subItem.weight.flagDefined) {
 							view->setItemWeight(i, subItem.weight.value, UIUpdateMode::Init);
 						}
-					}
-					if (subItem.minWeight.flagDefined) {
-						if (!flagOnLayout) {
+						if (subItem.minWeight.flagDefined) {
 							view->setItemMinimumWeight(i, subItem.minWeight.value, UIUpdateMode::Init);
 						}
-					}
-					if (subItem.maxWeight.flagDefined) {
-						if (!flagOnLayout) {
+						if (subItem.maxWeight.flagDefined) {
 							view->setItemMaximumWeight(i, subItem.maxWeight.value, UIUpdateMode::Init);
 						}
-					}
-					if (subItem.minSize.flagDefined) {
-						if (flagOnLayout) {
+						if (subItem.minSize.flagDefined) {
 							view->setItemMinimumSize(i, _getDimensionIntValue(subItem.minSize));
 						}
-					}
-					if (subItem.maxSize.flagDefined) {
-						if (flagOnLayout) {
+						if (subItem.maxSize.flagDefined) {
 							view->setItemMaximumSize(i, _getDimensionIntValue(subItem.maxSize));
 						}
-					}
-					if (subItem.dividerWidth.flagDefined) {
-						if (flagOnLayout) {
+						if (subItem.dividerWidth.flagDefined) {
 							view->setItemDividerWidth(i, _getDimensionIntValue(subItem.dividerWidth));
+						}
+						if (subItem.dividerColor.flagDefined) {
+							Color dividerColor;
+							if (!(_getColorValue(resource->name, subItem.dividerColor, subItem.element, dividerColor))) {
+								return sl_false;
+							}
+							view->setItemDividerColor(i, dividerColor, UIUpdateMode::Init);
 						}
 					}
 					if (subItem.dividerBackground.flagDefined) {
-						Ref<Drawable> dividerBackground;
-						if (!(_getDrawableValue(resource->name, subItem.dividerBackground, subItem.element, dividerBackground))) {
-							return sl_false;
-						}
 						if (flagOnLayout) {
+							Ref<Drawable> dividerBackground;
+							if (!(_getDrawableValue(resource->name, subItem.dividerBackground, subItem.element, dividerBackground))) {
+								return sl_false;
+							}
 							view->setItemDividerBackground(i, dividerBackground, UIUpdateMode::None);
-						}
-					}
-					if (subItem.dividerColor.flagDefined) {
-						Color dividerColor;
-						if (!(_getColorValue(resource->name, subItem.dividerColor, subItem.element, dividerColor))) {
-							return sl_false;
-						}
-						if (!flagOnLayout) {
-							view->setItemDividerColor(i, dividerColor, UIUpdateMode::Init);
 						}
 					}
 					if (subItem.view.isNotNull()) {
@@ -4639,9 +4818,7 @@ namespace slib
 						}
 					}
 					if (flagSelected) {
-						if (!flagOnLayout) {
-							view->selectItem(indexSelected, UIUpdateMode::Init);
-						}
+						view->selectItem(indexSelected, UIUpdateMode::Init);
 					}
 				}
 			}

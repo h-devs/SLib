@@ -93,7 +93,7 @@ namespace slib
 			if (m_type == EFL_ViewType::Grid) {
 				elm_grid_size_set(handle, frame.getWidth(), frame.getHeight());
 			}
-			if (view->isVisible()) {
+			if (view->isVisibleInInstance()) {
 				evas_object_show(handle);
 			}
 			sl_real alpha = view->getAlpha();

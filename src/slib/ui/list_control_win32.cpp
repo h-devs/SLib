@@ -41,12 +41,13 @@ namespace slib
 			static int TranslateAlignment(Alignment _align)
 			{
 				Alignment align = _align & Alignment::HorizontalMask;
-				if (align == Alignment::Center) {
-					return LVCFMT_CENTER;
+				if (align == Alignment::Left) {
+					return LVCFMT_LEFT;
 				} else if (align == Alignment::Right) {
 					return LVCFMT_RIGHT;
+				} else {
+					return LVCFMT_CENTER;
 				}
-				return LVCFMT_LEFT;
 			}
 
 			class ListControlHelper : public ListControl

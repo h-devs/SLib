@@ -269,6 +269,7 @@ namespace slib
 	class Font;
 	class FreeType;
 	class FreeTypeGlyph;
+	class IWriter;
 
 	class SLIB_EXPORT PdfReference
 	{
@@ -329,7 +330,7 @@ namespace slib
 	public:
 		PdfValue(sl_null_t) noexcept: m_var(sl_null, (sl_uint8)(PdfValueType::Null)) {}
 
-		PdfValue(sl_bool v) noexcept;
+		explicit PdfValue(sl_bool v) noexcept;
 
 		PdfValue(sl_int32 v) noexcept;
 		PdfValue(sl_uint32 v) noexcept;
@@ -345,15 +346,19 @@ namespace slib
 
 		PdfValue(const Ref<PdfArray>& v) noexcept;
 		PdfValue(Ref<PdfArray>&& v) noexcept;
+		PdfValue(PdfArray* v) noexcept;
 
 		PdfValue(const Ref<PdfDictionary>& v) noexcept;
 		PdfValue(Ref<PdfDictionary>&& v) noexcept;
+		PdfValue(PdfDictionary*) noexcept;
 
 		PdfValue(const Ref<PdfStream>& v) noexcept;
 		PdfValue(Ref<PdfStream>&& v) noexcept;
+		PdfValue(PdfStream*) noexcept;
 
 		PdfValue(const Ref<PdfImage>& v) noexcept;
 		PdfValue(Ref<PdfImage>&& v) noexcept;
+		PdfValue(PdfImage* v) noexcept;
 
 		PdfValue(const Rectangle& v) noexcept;
 
@@ -490,12 +495,6 @@ namespace slib
 
 		PdfValue get(sl_size index, sl_bool flagResolveReference = sl_true) const;
 
-		template <class VALUE>
-		sl_bool add(VALUE&& value)
-		{
-			return add_NoLock(Forward<VALUE>(value));
-		}
-
 	public:
 		static Ref<PdfArray> create(const Rectangle& rc);
 
@@ -517,20 +516,6 @@ namespace slib
 		PdfValue get(const String& name, sl_bool flagResolveReference = sl_true) const;
 
 		PdfValue get(const String& name, const String& alternateName, sl_bool flagResolveReference = sl_true) const;
-
-		template <class KEY, class VALUE>
-		sl_bool add(KEY&& name, VALUE&& value)
-		{
-			return add_NoLock(Forward<KEY>(name), Forward<VALUE>(value));
-		}
-
-		template <class KEY, class VALUE>
-		sl_bool put(KEY&& name, VALUE&& value)
-		{
-			return put_NoLock(Forward<KEY>(name), Forward<VALUE>(value));
-		}
-
-		sl_bool remove(const String& name, PdfValue* pOut = sl_null);
 
 	private:
 		WeakRef<Referable> m_context;
@@ -567,6 +552,12 @@ namespace slib
 		Memory getFilterInput(PdfFilter filter);
 
 		Memory decodeContent(const Memory& input, PdfFilter filter, PdfDictionary* decodeParam);
+
+		sl_bool isJpegImage() noexcept;
+
+		void setJpegFilter() noexcept;
+
+		void setLength(sl_uint32 len) noexcept;
 
 	public:
 		static Ref<PdfStream> create(const Memory& content);
@@ -1132,6 +1123,8 @@ namespace slib
 		~PdfDocument();
 
 	public:
+		static Ref<PdfDocument> create();
+
 		static Ref<PdfDocument> open(const PdfDocumentParam& param);
 
 		static Ref<PdfDocument> openFile(const StringParam& filePath, const StringParam& password = sl_null);
@@ -1143,7 +1136,9 @@ namespace slib
 
 		PdfValue getObject(const PdfReference& ref);
 
-		PdfValue readObject(sl_uint32 objectNumber, sl_uint32& outGeneration);
+		PdfValue getObject(sl_uint32 objectNumber, sl_uint32& outGeneration);
+
+		Ref<PdfStream> getStream(sl_uint32 objectNumber, sl_uint32& outGeneration);
 
 		sl_bool setObject(const PdfReference& ref, const PdfValue& value);
 
@@ -1161,6 +1156,10 @@ namespace slib
 
 		sl_bool deletePage(sl_uint32 index);
 
+		Memory save();
+
+		sl_bool save(IWriter* writer);
+
 		Ref<PdfFont> getFont(const PdfReference& ref, PdfResourceCache& cache);
 
 		Ref<PdfExternalObject> getExternalObject(const PdfReference& ref, PdfResourceCache& cache);
@@ -1169,11 +1168,8 @@ namespace slib
 
 		sl_bool isAuthenticated();
 
-	protected:
-		sl_bool _open(const PdfDocumentParam& param);
-
 	private:
-		Ref<Referable> m_context;
+		Ref<Referable> m_context; // NotNull
 
 		friend class Pdf;
 	};

@@ -40,11 +40,13 @@ namespace slib
 
 			static gfloat TranslateAlignment(Alignment _align)
 			{
-				gfloat align = 0;
-				if(_align == Alignment::Center){
-					align = 0.5f;
-				}else if(_align == Alignment::Right){
+				gfloat align;
+				if(_align == Alignment::Left){
+					align = 0;
+				} else if(_align == Alignment::Right){
 					align = 1.0f;
+				} else {
+					align = 0.5f;
 				}
 				return align;
 			}

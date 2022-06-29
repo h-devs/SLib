@@ -1868,37 +1868,47 @@ namespace slib
 						Alignment
 	************************************************/
 
-	SAppAlignmentValue::SAppAlignmentValue()
-	: flagDefined(sl_false), value(Alignment::Center)
+	SAppAlignmentValue::SAppAlignmentValue(): flagDefined(sl_false), value(Alignment::Default)
 	{
 	}
 
 	String SAppAlignmentValue::getAccessString()
 	{
-		if (!flagDefined) {
-			return "slib::LayoutOrientation::Vertical";
+		if (flagDefined) {
+			switch (value) {
+				case Alignment::Left:
+					return "slib::Alignment::Left";
+				case Alignment::Center:
+					return "slib::Alignment::Center";
+				case Alignment::Right:
+					return "slib::Alignment::Right";
+				case Alignment::Top:
+					return "slib::Alignment::Top";
+				case Alignment::TopLeft:
+					return "slib::Alignment::TopLeft";
+				case Alignment::TopCenter:
+					return "slib::Alignment::TopCenter";
+				case Alignment::TopRight:
+					return "slib::Alignment::TopRight";
+				case Alignment::Middle:
+					return "slib::Alignment::Middle";
+				case Alignment::MiddleLeft:
+					return "slib::Alignment::MiddleLeft";
+				case Alignment::MiddleCenter:
+					return "slib::Alignment::MiddleCenter";
+				case Alignment::MiddleRight:
+					return "slib::Alignment::MiddleRight";
+				case Alignment::Bottom:
+					return "slib::Alignment::Bottom";
+				case Alignment::BottomLeft:
+					return "slib::Alignment::BottomLeft";
+				case Alignment::BottomCenter:
+					return "slib::Alignment::BottomCenter";
+				case Alignment::BottomRight:
+					return "slib::Alignment::BottomRight";
+			}
 		}
-		switch (value) {
-			case Alignment::TopLeft:
-				return "slib::Alignment::TopLeft";
-			case Alignment::TopCenter:
-				return "slib::Alignment::TopCenter";
-			case Alignment::TopRight:
-				return "slib::Alignment::TopRight";
-			case Alignment::MiddleLeft:
-				return "slib::Alignment::MiddleLeft";
-			case Alignment::MiddleCenter:
-				return "slib::Alignment::MiddleCenter";
-			case Alignment::MiddleRight:
-				return "slib::Alignment::MiddleRight";
-			case Alignment::BottomLeft:
-				return "slib::Alignment::BottomLeft";
-			case Alignment::BottomCenter:
-				return "slib::Alignment::BottomCenter";
-			case Alignment::BottomRight:
-				return "slib::Alignment::BottomRight";
-		}
-		return "slib::Alignment::MiddleCenter";
+		return "slib::Alignment::Default";
 	}
 
 	sl_bool SAppAlignmentValue::parse(const String& _str)

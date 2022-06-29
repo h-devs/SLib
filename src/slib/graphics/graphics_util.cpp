@@ -99,15 +99,12 @@ namespace slib
 		Alignment hAlign = align & Alignment::HorizontalMask;
 		switch (hAlign) {
 			case Alignment::Left:
-				break;
-			case Alignment::Center:
-				return leftDst + (rightDst - leftDst - widthSrc) / 2;
+				return leftDst;
 			case Alignment::Right:
 				return rightDst - widthSrc;
 			default:
-				break;
+				return leftDst + (rightDst - leftDst - widthSrc) / 2;
 		}
-		return leftDst;
 	}
 
 	sl_real GraphicsUtil::calculateAlignY(sl_real topDst, sl_real bottomDst, sl_real heightSrc, const Alignment& align)
@@ -115,15 +112,12 @@ namespace slib
 		Alignment vAlign = align & Alignment::VerticalMask;
 		switch (vAlign) {
 			case Alignment::Top:
-				break;
-			case Alignment::Middle:
-				return topDst + (bottomDst - topDst - heightSrc) / 2;
+				return topDst;
 			case Alignment::Bottom:
 				return bottomDst - heightSrc;
 			default:
-				break;
+				return topDst + (bottomDst - topDst - heightSrc) / 2;
 		}
-		return topDst;
 	}
 
 	Point GraphicsUtil::calculateAlignPosition(const Rectangle& rcDst, sl_real widthSrc, sl_real heightSrc, const Alignment& align)

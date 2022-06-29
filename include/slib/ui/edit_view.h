@@ -87,11 +87,23 @@ namespace slib
 		sl_bool isPassword();
 		
 		void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
+		sl_bool isNumber();
+
+		void setNumber(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isLowercase();
+
+		void setLowercase(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isUppercase();
+
+		void setUppercase(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		MultiLineMode getMultiLine();
 		
 		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
-		
+
 		UIReturnKeyType getReturnKeyType();
 		
 		void setReturnKeyType(UIReturnKeyType type);
@@ -132,6 +144,8 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
 		
+		SLIB_DECLARE_EVENT_HANDLER(EditView, PostChange)
+		
 		SLIB_DECLARE_EVENT_HANDLER(EditView, ReturnKey)
 		
 	protected:
@@ -156,6 +170,8 @@ namespace slib
 		sl_bool m_flagChangeEvent : 1;
 		sl_bool m_flagReadOnly : 1;
 		sl_bool m_flagPassword : 1;
+		sl_bool m_flagUppercase : 1;
+		sl_bool m_flagLowercase : 1;
 		sl_bool m_flagAutoDismissKeyboard : 1;
 		sl_bool m_flagAutoHorizontalScrolling : 1;
 		sl_bool m_flagAutoVerticalScrolling : 1;
@@ -228,7 +244,11 @@ namespace slib
 		virtual void setReadOnly(EditView* view, sl_bool flag) = 0;
 		
 		virtual void setPassword(EditView* view, sl_bool flag) = 0;
-		
+
+		virtual void setLowercase(EditView* view, sl_bool flag);
+
+		virtual void setUppercase(EditView* view, sl_bool flag);
+
 		virtual void setMultiLine(EditView* view, MultiLineMode mode) = 0;
 		
 		virtual void setReturnKeyType(EditView* view, UIReturnKeyType type);

@@ -52,7 +52,7 @@ namespace slib
 		setFocusable(sl_true);
 #endif
 
-		m_gravity = Alignment::MiddleLeft;
+		m_gravity = Alignment::Left;
 		m_textColor = Color::Black;
 	}
 	
@@ -447,7 +447,7 @@ namespace slib
 
 	SelectSwitchCell::SelectSwitchCell()
 	{
-		gravity = Alignment::MiddleLeft;
+		gravity = Alignment::Left;
 		textColor = Color::Black;
 
 		iconSize.x = 0;

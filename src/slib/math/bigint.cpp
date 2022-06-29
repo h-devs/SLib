@@ -348,7 +348,6 @@ namespace slib
 				}
 				return 0;
 			}
-
 		}
 	}
 
@@ -2676,6 +2675,164 @@ namespace slib
 	sl_bool CBigInt::inverseMod(const CBigInt& M) noexcept
 	{
 		return inverseMod(*this, M);
+	}
+
+	sl_int32 CBigInt::checkEulerCriterion(const CBigInt& A, const CBigInt& M) const noexcept
+	{
+		CBigInt g;
+
+		if (g.equals(1)) {
+			return 0;
+		}
+
+		CBigInt exp;
+		exp.copyFrom(M);
+		exp.sub(1);
+		exp.shiftRight(1);
+
+		CBigInt a;
+		a.copyFrom(A);
+		a.pow_montgomery(exp, M);
+
+		if (a.compare(1) > 0) {
+			return -1;
+		}
+		return 1;
+	}
+
+	sl_int32 CBigInt::checkEulerCriterion(const CBigInt& M) const noexcept
+	{
+		return checkEulerCriterion(*this, M);
+	}
+
+	sl_bool CBigInt::sqrtMod(const CBigInt& inA, const CBigInt& M) noexcept
+	{
+		CBigInt A;
+		A.copyFrom(inA);
+		divAbs(A, M, sl_null, &A);
+
+		if (checkEulerCriterion(A, M) != 1) {
+			// A is not quadratic residue!!!
+			return sl_false;
+		}
+
+		CBigInt P;
+		P.copyFrom(M);
+		P.sub(1);
+		sl_size e = P.getLeastSignificantBits();
+		if (!e) {
+			return sl_false;
+		}
+		e--;
+
+		if (e == 1) {
+			P.shiftRight(2);
+			P.add(1);
+			return pow_montgomery(inA, P, M);
+		}
+
+		if (e == 2) {
+			P.add(1); // tmp <- p
+			A.shiftLeft(1);
+			CBigInt t;
+			divAbs(A, P, sl_null, &t);
+
+			CBigInt q;
+			q.copyFrom(P);
+			q.shiftRight(3);
+
+			CBigInt b;
+			b.copyFrom(t);
+			b.pow_montgomery(q, P);
+
+			CBigInt y;
+			y.copyFrom(b);
+			y.mulAbs(y, b);;
+			divAbs(y, P, sl_null, &y);
+
+			t.mulAbs(t, y);
+			divAbs(t, P, sl_null, &t);
+			t.sub(1);
+
+			A.shiftRight(1);
+			A.mulAbs(A, b);
+			A.mulAbs(A, t);
+			return divAbs(A, P, sl_null, this);
+		}
+
+		sl_size nBitsM = M.getMostSignificantBits();
+		CBigInt q, y;
+		q.copyFrom(M);
+		sl_int32 r;
+		sl_uint32 i = 2;
+		do {
+			if (i < 22) {
+				y.setValue(i);
+			} else {
+				y.random(nBitsM - 1);
+				if (y.isZero()) {
+					y.setValue(i);
+				}
+			}
+			r = checkEulerCriterion(y, q);
+			i++;
+		} while (r == 1 && i < 82);
+
+		q.shiftRight(e);
+		
+		CBigInt c, tt;
+		c.pow_montgomery(y, q, M);
+		tt.pow_montgomery(A, q, M);
+
+		CBigInt _q;
+		_q.copyFrom(q);
+		_q.add(1);
+		_q.shiftRight(1);
+
+		CBigInt& R = *this;
+		R.pow_montgomery(A, _q, M);
+
+		sl_size k = 0;
+		for (;;) {
+			if (tt.equals(1)) {
+				return sl_true;
+			} else {
+				for (sl_size j = 1; j < e; j++) {
+					CBigInt exp;
+					exp.setValue(1);
+					exp.shiftLeft(j);
+					CBigInt temp;
+					temp.pow_montgomery(tt, exp, M);
+					if (temp.equals(1)) {
+						k = j;
+						break;
+					}
+				}
+			}
+			
+			CBigInt temp;
+			temp.setValue(1);
+			temp.shiftLeft(e - k - 1);
+			CBigInt bb;
+			bb.pow_montgomery(c, temp, M);
+
+			e = k;
+
+			c.copyFrom(bb);
+			c.mulAbs(c, bb);
+			divAbs(c, M, sl_null, &c);
+
+			tt.mulAbs(tt, c);
+			divAbs(tt, M, sl_null, &tt);
+
+			R.mulAbs(R, bb);
+			divAbs(R, M, sl_null, &R);
+		}
+	}
+
+	sl_bool CBigInt::sqrtMod(const CBigInt& M) noexcept
+	{
+		return sqrtMod(*this, M);
 	}
 
 	sl_bool CBigInt::gcd(const CBigInt& inA, const CBigInt& inB) noexcept
@@ -5068,6 +5225,24 @@ namespace slib
 				CBigInt* r = new CBigInt;
 				if (r) {
 					if (r->inverseMod(*a, *m)) {
+						return r;
+					}
+					delete r;
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	BigInt BigInt::sqrtMod(const BigInt& A, const BigInt& M) noexcept
+	{
+		CBigInt* a = A.ref.ptr;
+		CBigInt* m = M.ref.ptr;
+		if (a) {
+			if (m) {
+				CBigInt* r = new CBigInt;
+				if (r) {
+					if (r->sqrtMod(*a, *m)) {
 						return r;
 					}
 					delete r;

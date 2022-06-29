@@ -102,13 +102,15 @@ namespace slib
 				{
 					GtkEntry* handle = (GtkEntry*)m_handle;
 					if (handle) {
-						float alignment = 0;
+						float alignment;
 						Alignment align = gravity & Alignment::HorizontalMask;
-						if (align == Alignment::Center) {
-							alignment = 0.5;
+						if (align == Alignment::Left) {
+							alignment = 0;
 						} else if (align == Alignment::Right) {
 							alignment = 1;
-						} 
+						} else {
+							alignment = 0.5f;
+						}
 						gtk_entry_set_alignment(handle, alignment);
 					}
 				}
@@ -195,17 +197,18 @@ namespace slib
 					GtkEntry* handle = (GtkEntry*)user_data;
 					Ref<EditView> view = CastRef<EditView>(UIPlatform::getView((GtkWidget*)handle));
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = gtk_entry_get_text(handle);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								StringCstr _text(textNew);
+								gtk_entry_set_text(handle, _text.getData());
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = gtk_entry_get_text(handle);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							StringCstr _text(textNew);
-							gtk_entry_set_text(handle, _text.getData());
-						}
+						view->dispatchPostChange();
 					}
 				}
 
@@ -329,12 +332,14 @@ namespace slib
 				{
 					GtkTextView* handle = m_handleTextView;
 					if (handle) {
-						GtkJustification alignment = GTK_JUSTIFY_LEFT;
+						GtkJustification alignment;
 						Alignment align = gravity & Alignment::HorizontalMask;
-						if (align == Alignment::Center) {
-							alignment = GTK_JUSTIFY_CENTER;
+						if (align == Alignment::Left) {
+							alignment = GTK_JUSTIFY_LEFT;
 						} else if (align == Alignment::Right) {
 							alignment = GTK_JUSTIFY_RIGHT;
+						} else {
+							alignment = GTK_JUSTIFY_CENTER;
 						}
 						gtk_text_view_set_justification(handle, alignment);
 					}
@@ -457,16 +462,17 @@ namespace slib
 					GtkWidget* handle = (GtkWidget*)user_data;
 					Ref<TextArea> view = CastRef<TextArea>(UIPlatform::getView(handle));
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = _getText(buffer);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = _getText(buffer);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							gtk_text_buffer_set_text(buffer, textNew.getData(), textNew.getLength());
-						}
+						view->dispatchPostChange();
 					}
 				}
 

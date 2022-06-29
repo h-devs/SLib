@@ -84,7 +84,37 @@ namespace slib
 		sl_ui_len getColumnMaximumWidth(sl_uint32 column);
 		
 		void setColumnMaximumWidth(sl_uint32 column, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
+		sl_ui_len getColumnMarginLeft(sl_uint32 column);
+
+		void setColumnMarginLeft(sl_uint32 column, sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getColumnMarginRight(sl_uint32 column);
+
+		void setColumnMarginRight(sl_uint32 column, sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setColumnMargin(sl_uint32 column, sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getColumnPaddingLeft(sl_uint32 column);
+
+		void setColumnPaddingLeft(sl_uint32 column, sl_ui_len padding, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getColumnPaddingRight(sl_uint32 column);
+
+		void setColumnPaddingRight(sl_uint32 column, sl_ui_len padding, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setColumnPadding(sl_uint32 column, sl_ui_len padding, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		Ref<Drawable> getColumnBackground(sl_uint32 column);
+
+		void setColumnBackground(sl_uint32 column, const Ref<Drawable>& background, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setColumnBackgroundColor(sl_uint32 column, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Alignment getColumnAlignment(sl_uint32 column);
+
+		void setColumnAlignment(sl_uint32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 		sl_uint32 getRowsCount();
 		
 		void setRowsCount(sl_uint32 nRows, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -120,22 +150,68 @@ namespace slib
 		sl_ui_len getRowMaximumHeight(sl_uint32 row);
 		
 		void setRowMaximumHeight(sl_uint32 row, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
+		sl_ui_len getRowMarginTop(sl_uint32 row);
+
+		void setRowMarginTop(sl_uint32 row, sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getRowMarginBottom(sl_uint32 row);
+
+		void setRowMarginBottom(sl_uint32 row, sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setRowMargin(sl_uint32 row, sl_ui_len margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getRowPaddingTop(sl_uint32 row);
+
+		void setRowPaddingTop(sl_uint32 row, sl_ui_len padding, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_ui_len getRowPaddingBottom(sl_uint32 row);
+
+		void setRowPaddingBottom(sl_uint32 row, sl_ui_len padding, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setRowPadding(sl_uint32 row, sl_ui_len padding, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		Ref<Drawable> getRowBackground(sl_uint32 row);
+
+		void setRowBackground(sl_uint32 row, const Ref<Drawable>& background, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setRowBackgroundColor(sl_uint32 row, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Alignment getRowAlignment(sl_uint32 row);
+
+		void setRowAlignment(sl_uint32 row, const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 		Ref<View> getCell(sl_uint32 row, sl_uint32 col);
-
-		sl_uint32 getRowspan(sl_uint32 row, sl_uint32 col);
-
-		sl_uint32 getColspan(sl_uint32 row, sl_uint32 col);
 
 		void setCell(sl_uint32 row, sl_uint32 col, const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void setCell(sl_uint32 row, sl_uint32 col, const Ref<View>& view, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
+		sl_uint32 getRowspan(sl_uint32 row, sl_uint32 col);
+
+		void setRowspan(sl_uint32 row, sl_uint32 col, sl_uint32 rowspan, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_uint32 getColspan(sl_uint32 row, sl_uint32 col);
+
+		void setColspan(sl_uint32 row, sl_uint32 col, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setCellSpan(sl_uint32 row, sl_uint32 col, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 	protected:
 		void onUpdateLayout() override;
+
+		void onDraw(Canvas* canvas) override;
 		
 	private:
 		priv::table_layout::Cell* _getCell(sl_uint32 row, sl_uint32 col);
+
+		priv::table_layout::Cell* _allocCell(sl_uint32 row, sl_uint32 col);
+
+		Alignment _getCellAlign(sl_uint32 row, sl_uint32 col);
+
+		void _initCellAlign(priv::table_layout::Cell* cell, sl_uint32 row, sl_uint32 col);
+
+		void _applyCellAlign(priv::table_layout::Cell* cell, sl_uint32 row, sl_uint32 col, UIUpdateMode mode);
 		
 	protected:
 		List<priv::table_layout::Column> m_columns;

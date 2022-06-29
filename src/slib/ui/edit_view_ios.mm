@@ -67,12 +67,13 @@ namespace slib
 			static NSTextAlignment TranslateAlignment(Alignment _align)
 			{
 				Alignment align = _align & Alignment::HorizontalMask;
-				if (align == Alignment::Center) {
-					return NSTextAlignmentCenter;
+				if (align == Alignment::Left) {
+					return NSTextAlignmentLeft;
 				} else if (align == Alignment::Right) {
 					return NSTextAlignmentRight;
+				} else {
+					return NSTextAlignmentCenter;
 				}
-				return NSTextAlignmentLeft;
 			}
 			
 			static ::UIReturnKeyType ConvertReturnKeyType(UIReturnKeyType type)
@@ -362,17 +363,18 @@ namespace slib
 				{
 					Ref<EditView> view = CastRef<EditView>(getView());
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = Apple::getStringFromNSString([control text]);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								NSString* str = Apple::getNSStringFromString(textNew, @"");
+								[control setText:str];
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = Apple::getStringFromNSString([control text]);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							NSString* str = Apple::getNSStringFromString(textNew, @"");
-							[control setText:str];
-						}
+						view->dispatchPostChange();
 					}
 				}
 				
@@ -624,17 +626,18 @@ namespace slib
 				{
 					Ref<TextArea> view = CastRef<TextArea>(getView());
 					if (view.isNotNull()) {
-						if (!(view->isChangeEventEnabled())) {
+						if (view->isChangeEventEnabled()) {
+							String text = Apple::getStringFromNSString([control text]);
+							String textNew = text;
+							view->dispatchChange(textNew);
+							if (text != textNew) {
+								NSString* str = Apple::getNSStringFromString(textNew, @"");
+								[control setText:str];
+							}
+						} else {
 							view->invalidateText();
-							return;
 						}
-						String text = Apple::getStringFromNSString([control text]);
-						String textNew = text;
-						view->dispatchChange(textNew);
-						if (text != textNew) {
-							NSString* str = Apple::getNSStringFromString(textNew, @"");
-							[control setText:str];
-						}
+						view->dispatchPostChange();
 					}
 				}
 				

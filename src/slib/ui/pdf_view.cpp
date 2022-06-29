@@ -69,7 +69,7 @@ namespace slib
 			~BitmapCache()
 			{
 				if (context) {
-					if (context->bitmapsFree.getCount() < CACHE_MIN_COUNT) {
+					if (context->m_flagCollectFreeBitmaps && context->bitmapsFree.getCount() < CACHE_MIN_COUNT) {
 						context->bitmapsFree.push(Move(bitmap));
 					}
 				}
@@ -80,6 +80,7 @@ namespace slib
 		ExpiringMap< sl_uint32, Ref<PdfPage> > pages;
 		ExpiringMap< sl_uint32, Ref<BitmapCache> > bitmapsValid;
 		Queue< Ref<Bitmap> > bitmapsFree;
+		sl_bool m_flagCollectFreeBitmaps = sl_true;
 
 	public:
 		PdfViewContext()
@@ -90,24 +91,29 @@ namespace slib
 			externalObjects.setExpiringMilliseconds(EXPIRE_DURATION_XOBJECT);
 		}
 
+		~PdfViewContext()
+		{
+			m_flagCollectFreeBitmaps = sl_false;
+			bitmapsValid.removeAll();
+		}
+
 	public:
 		sl_bool initialize(const String& _filePath, PdfDocument* _doc, sl_uint32 _nPages)
 		{
 			doc = _doc;
 			filePath = _filePath;
 			nPages = _nPages;
-			if (nPages < 1) {
-				return sl_false;
-			}
 			if (!(pageRatios.setCount_NoLock(nPages))) {
 				return sl_false;
 			}
-			Ref<PdfPage> pageFirst = getPage(0);
-			if (pageFirst.isNull()) {
-				return sl_false;
-			}
-			defaultPageRatio = PdfViewContext::getBoxRatio(pageFirst->getMediaBox());
-			{
+			if (nPages < 1) {
+				defaultPageRatio = 1.0f;
+			} else {
+				Ref<PdfPage> pageFirst = getPage(0);
+				if (pageFirst.isNull()) {
+					return sl_false;
+				}
+				defaultPageRatio = PdfViewContext::getBoxRatio(pageFirst->getMediaBox());
 				ListElements<float> items(pageRatios);
 				for (sl_size i = 0; i < nPages; i++) {
 					items[i] = defaultPageRatio;
@@ -177,6 +183,9 @@ namespace slib
 				float oldRatio = pageRatios.getValueAt_NoLock(no);
 				if (!(Math::isAlmostZero(oldRatio - ratio))) {
 					pageRatios.setAt_NoLock(no, ratio);
+					if (!no) {
+						defaultPageRatio = ratio;
+					}
 					flagUpdateRatio = sl_true;
 				}
 				return page;
@@ -189,6 +198,9 @@ namespace slib
 		{
 			double y = 0;
 			for (sl_uint32 i = 0; i < no; i++) {
+				if (i >= nPages) {
+					break;
+				}
 				float ratio = pageRatios.getValueAt_NoLock(i);
 				y += ratio;
 			}
@@ -330,6 +342,15 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool PdfView::openNew(UIUpdateMode mode)
+	{
+		Ref<PdfDocument> doc = PdfDocument::create();
+		if (doc.isNotNull()) {
+			return _setDocument(sl_null, doc.get(), mode);
+		}
+		return sl_false;
+	}
+
 	void PdfView::close(UIUpdateMode mode)
 	{
 		m_context.setNull();
@@ -383,6 +404,15 @@ namespace slib
 		return sl_null;
 	}
 
+	sl_uint32 PdfView::getPagesCount()
+	{
+		Ref<PdfDocument> doc = getDocument();
+		if (doc.isNotNull()) {
+			return doc->getPagesCount();
+		}
+		return 0;
+	}
+
 	sl_uint32 PdfView::getCurrentPage()
 	{
 		Ref<PdfViewContext> context(m_context);
@@ -403,6 +433,9 @@ namespace slib
 			return;
 		}
 		ObjectLocker lock(context.get());
+		if (pageNo >= context->nPages) {
+			return;
+		}
 		double y = context->getPageY(pageNo);
 		scrollToY(y, mode);
 	}
@@ -456,15 +489,11 @@ namespace slib
 
 	sl_bool PdfView::_setDocument(const String& filePath, PdfDocument* doc, UIUpdateMode mode)
 	{
-		sl_uint32 nPages = doc->getPagesCount();
-		if (!nPages) {
-			return sl_false;
-		}
-
 		Ref<PdfViewContext> context(new PdfViewContext);
 		if (context.isNull()) {
 			return sl_false;
 		}
+		sl_uint32 nPages = doc->getPagesCount();
 		if (!(context->initialize(filePath, doc, nPages))) {
 			return sl_false;
 		}
@@ -515,7 +544,7 @@ namespace slib
 					sbar->setBackgroundColor(Color::White, UIUpdateMode::None);
 					sbar->setLayer(sl_true, UIUpdateMode::None);
 				}
-				if (!(isVerticalScrollBarVisible())) {
+				if (!(isVerticalScrollBarVisible() && isValidVerticalScrolling())) {
 					canvas->fillRectangle((sl_real)iWidth, 0.0f, (sl_real)(sbar->getWidth()), (sl_real)iHeight, BACKGROUND_COLOR);
 				}
 			}

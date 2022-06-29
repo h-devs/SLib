@@ -110,7 +110,7 @@ namespace slib
 		UIRect layoutFrameContainer = getLayoutFrame();
 		sl_ui_len widthLayout = layoutFrameContainer.getWidth();
 		sl_ui_len heightLayout = layoutFrameContainer.getHeight();
-		sl_ui_len widthContainer = widthLayout - getPaddingLeft() - getPaddingTop();
+		sl_ui_len widthContainer = widthLayout - getPaddingLeft() - getPaddingRight();
 		sl_ui_len heightContainer = heightLayout - getPaddingTop() - getPaddingBottom();
 		
 		UpdateLayoutFrameParam updateLayoutParam;

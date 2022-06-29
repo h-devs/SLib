@@ -448,6 +448,7 @@ namespace slib
 					if (helper.isNotNull()) {
 						if (!(helper->isChangeEventEnabled())) {
 							helper->invalidateText();
+							helper->dispatchPostChange();
 							return;
 						}
 						String text;
@@ -473,6 +474,7 @@ namespace slib
 								}
 							}
 						}
+						helper->dispatchPostChange();
 					}
 				}
 

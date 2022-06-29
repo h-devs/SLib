@@ -71,23 +71,24 @@ namespace slib
 		HorizontalMask = 3,
 		VerticalMask = 12,
 
-		Center = 0,
+		Default = 0,
 		Left = 1,
 		Right = 2,
+		Center = 3,
 
-		Middle = 0,
 		Top = 4,
 		Bottom = 8,
+		Middle = 12,
 
-		MiddleCenter = 0,
-		MiddleLeft = 1,
-		MiddleRight = 2,
-		TopCenter = 4,
 		TopLeft = 5,
 		TopRight = 6,
-		BottomCenter = 8,
+		TopCenter = 7,
 		BottomLeft = 9,
-		BottomRight = 10
+		BottomRight = 10,
+		BottomCenter = 11,
+		MiddleLeft = 13,
+		MiddleRight = 14,
+		MiddleCenter = 15
 	})
 
 	enum class ImageFileType

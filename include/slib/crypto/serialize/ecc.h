@@ -43,7 +43,7 @@ namespace slib
 	{
 		Memory mem;
 		if (mem.deserialize(input)) {
-			return parseUncompressedFormat(mem);
+			return parseBinaryFormat(mem);
 		}
 		return sl_false;
 	}

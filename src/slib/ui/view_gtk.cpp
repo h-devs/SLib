@@ -95,7 +95,7 @@ namespace slib
 
 		gtk_widget_set_size_request(handle, m_frame.getWidth(), m_frame.getHeight());
 
-		if (view->isVisible()) {
+		if (view->isVisibleInInstance()) {
 			gtk_widget_show(handle);
 		}
 	}

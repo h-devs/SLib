@@ -78,13 +78,10 @@ int main(int argc, const char * argv[])
 			return -1;
 		}
 		address.port = PORT;
-		
+
 		Println("Connecting to %s", address.toString());
 
-		AsyncTcpSocketParam param;
-		param.connectAddress = address;
-
-		auto socket = AsyncTcpSocket::create(param);
+		auto socket = AsyncTcpSocket::create();
 		if (socket.isNull()) {
 			Println("Failed to start socket!");
 			return -1;
@@ -106,6 +103,12 @@ int main(int argc, const char * argv[])
 				Println("Sent: %s", StringView((char*)(result.data), result.size));
 			});
 		}, 1000);
+
+		socket->connect(address, [timer](AsyncTcpSocket*, sl_bool flagError) {
+			if (!flagError) {
+				timer->start();
+			}
+		});
 
 		Println("Press x to exit!");
 		for (;;) {

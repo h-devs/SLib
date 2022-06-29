@@ -87,12 +87,12 @@ namespace slib
 				sl_real y = param.y;
 				if (hAlign == Alignment::Right) {
 					x += param.width - size.x;
-				} else if (hAlign == Alignment::Center) {
+				} else if (hAlign != Alignment::Left) {
 					x += (param.width - size.x) / 2;
 				}
 				if (vAlign == Alignment::Bottom) {
 					y += param.height - size.y;
-				} else if (vAlign == Alignment::Middle){
+				} else if (vAlign != Alignment::Top){
 					y += (param.height - size.y) / 2;
 				}
 				onDrawText(param.text, x, y, font, param);
@@ -124,12 +124,12 @@ namespace slib
 					StringView16 line(sz + startLine, pos - startLine);
 					Size s = measureText(font, line);
 					sl_real x;
-					if (hAlign == Alignment::Center) {
-						x = pt.x + (size.x - s.x) / 2;
+					if (hAlign == Alignment::Left) {
+						x = pt.x;
 					} else if (hAlign == Alignment::Right) {
 						x = pt.x + size.x - s.x;
 					} else {
-						x = pt.x;
+						x = pt.x + (size.x - s.x) / 2;
 					}
 					onDrawText(line, x, y, font, param);
 					y += s.y;

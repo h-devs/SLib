@@ -56,16 +56,16 @@ namespace slib
 				SetWindowTextW(hWndMsg, (LPCWSTR)(caption.getData()));
 
 				switch (alert->buttons) {
-				case AlertButtons::Ok:
-					if (alert->titleOk.isNotNull()) {
-						StringCstr16 titleOk = alert->titleOk;
-						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleOk.getData()));
+				case AlertButtons::OK:
+					if (alert->titleOK.isNotNull()) {
+						StringCstr16 titleOK = alert->titleOK;
+						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleOK.getData()));
 					}
 					break;
 				case AlertButtons::OkCancel:
-					if (alert->titleOk.isNotNull()) {
-						StringCstr16 titleOk = alert->titleOk;
-						SetDlgItemTextW(hWndMsg, 1, (LPCWSTR)(titleOk.getData()));
+					if (alert->titleOK.isNotNull()) {
+						StringCstr16 titleOK = alert->titleOK;
+						SetDlgItemTextW(hWndMsg, 1, (LPCWSTR)(titleOK.getData()));
 					}
 					if (alert->titleCancel.isNotNull()) {
 						StringCstr16 titleCancel = alert->titleCancel;
@@ -162,7 +162,7 @@ namespace slib
 
 		switch (result) {
 		case IDOK:
-			return DialogResult::Ok;
+			return DialogResult::OK;
 		case IDCANCEL:
 			return DialogResult::Cancel;
 		case IDYES:
@@ -249,7 +249,7 @@ namespace slib
 					if (SHGetPathFromIDListW(pidl, szPath)) {
 						selectedPath = String::create(szPath);
 						selectedPaths = List<String>::createFromElement(selectedPath);
-						result = DialogResult::Ok;
+						result = DialogResult::OK;
 					} else {
 						result = DialogResult::Cancel;
 					}
@@ -321,6 +321,7 @@ namespace slib
 				fileName = String16::from(File::getFileName(selectedPath));
 			}
 			if (initialDir.isNotEmpty()) {
+				initialDir = initialDir.replaceAll('/', '\\');
 				ofn.lpstrInitialDir = (LPCWSTR)(initialDir.getData());
 			}
 			if (fileName.isNotEmpty()) {
@@ -345,7 +346,7 @@ namespace slib
 				if (GetOpenFileNameW(&ofn)) {
 					selectedPath = String::create(ofn.lpstrFile);
 					selectedPaths = List<String>::createFromElement(selectedPath);
-					return DialogResult::Ok;
+					return DialogResult::OK;
 				} else {
 					return DialogResult::Cancel;
 				}
@@ -373,13 +374,13 @@ namespace slib
 								if (files.isNotEmpty()) {
 									selectedPaths = files;
 									selectedPath = files.getValueAt(0);
-									return DialogResult::Ok;
+									return DialogResult::OK;
 								}
 							}
 						} else {
 							selectedPath = String::create(ofn.lpstrFile);
 							selectedPaths = List<String>::createFromElement(selectedPath);
-							return DialogResult::Ok;
+							return DialogResult::OK;
 						}
 					}
 				} else {
@@ -390,7 +391,7 @@ namespace slib
 				if (GetSaveFileNameW(&ofn)) {
 					selectedPath = String::create(ofn.lpstrFile);
 					selectedPaths = List<String>::createFromElement(selectedPath);
-					return DialogResult::Ok;
+					return DialogResult::OK;
 				} else {
 					return DialogResult::Cancel;
 				}

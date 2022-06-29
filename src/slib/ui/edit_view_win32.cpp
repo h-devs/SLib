@@ -43,18 +43,18 @@ namespace slib
 			public:
 				void onChange(Win32_ViewInstance* instance, HWND handle)
 				{
-					if (!(isChangeEventEnabled())) {
+					if (isChangeEventEnabled()) {
+						String textOld = m_text;
+						String text = UIPlatform::getWindowText(handle);
+						String textNew = text;
+						dispatchChange(textNew);
+						if (text != textNew) {
+							instance->setText(textNew);
+						}
+					} else {
 						invalidateText();
-						invalidateLayoutOfWrappingControl();
-						return;
 					}
-					String textOld = m_text;
-					String text = UIPlatform::getWindowText(handle);
-					String textNew = text;
-					dispatchChange(textNew);
-					if (text != textNew) {
-						instance->setText(textNew);
-					}
+					dispatchPostChange();
 				}
 
 			};
@@ -69,12 +69,14 @@ namespace slib
 
 			static void SetGravity(HWND handle, const Alignment& gravity)
 			{
-				LONG style = 0;
+				LONG style;
 				Alignment align = gravity & Alignment::HorizontalMask;
-				if (align == Alignment::Center) {
-					style = ES_CENTER;
+				if (align == Alignment::Left) {
+					style = 0;
 				} else if (align == Alignment::Right) {
 					style = ES_RIGHT;
+				} else {
+					style = ES_CENTER;
 				}
 				UIPlatform::removeAndAddWindowStyle(handle, ES_RIGHT | ES_CENTER, style);
 			}
@@ -224,6 +226,21 @@ namespace slib
 						SendMessageW(handle, EM_SETPASSWORDCHAR, (WPARAM)(flag ? TRUE : FALSE), 0);
 						InvalidateRect(handle, NULL, TRUE);
 					}
+				}
+
+				void setLowercase(EditView* view, sl_bool flag) override
+				{
+					UIPlatform::setWindowStyle(m_handle, ES_LOWERCASE, flag);
+				}
+
+				void setUppercase(EditView* view, sl_bool flag) override
+				{
+					UIPlatform::setWindowStyle(m_handle, ES_UPPERCASE, flag);
+				}
+
+				void setKeyboardType(EditView* view, UIKeyboardType mode) override
+				{
+					UIPlatform::setWindowStyle(m_handle, ES_NUMBER, mode == UIKeyboardType::Numpad);
 				}
 
 				void setMultiLine(EditView* view, MultiLineMode mode) override
@@ -565,7 +582,7 @@ namespace slib
 									Alignment valign = m_hintGravity & Alignment::VerticalMask;
 									if (halign == Alignment::Right) {
 										format |= DT_RIGHT;
-									} else if (halign == Alignment::Center) {
+									} else if (halign != Alignment::Left) {
 										format |= DT_CENTER;
 									}
 									if (valign != Alignment::Top) {
@@ -595,6 +612,14 @@ namespace slib
 						m_flagInputingIME = sl_false;
 						_refreshHintText();
 						break;
+					case WM_SIZE:
+						{
+							Ref<View> view = getView();
+							if (view.isNotNull()) {
+								setPadding(view, view->getPadding());
+							}
+							break;
+						}
 					}
 					return Win32_ViewInstance::processSubclassMessage(msg, wParam, lParam);
 				}
@@ -656,10 +681,10 @@ namespace slib
 	{
 		int style = WS_TABSTOP;
 		Alignment align = m_gravity & Alignment::HorizontalMask;
-		if (align == Alignment::Center) {
-			style |= ES_CENTER;
-		} else if (align == Alignment::Right) {
+		if (align == Alignment::Right) {
 			style |= ES_RIGHT;
+		} else if (align != Alignment::Left) {
+			style |= ES_CENTER;
 		}
 		if (m_multiLine != MultiLineMode::Single) {
 			style |= ES_MULTILINE | ES_WANTRETURN;
@@ -677,6 +702,14 @@ namespace slib
 		}
 		if (m_flagPassword) {
 			style |= ES_PASSWORD;
+		}
+		if (m_keyboardType == UIKeyboardType::Numpad) {
+			style |= ES_NUMBER;
+		}
+		if (m_flagUppercase) {
+			style |= ES_UPPERCASE;
+		} else if (m_flagLowercase) {
+			style |= ES_LOWERCASE;
 		}
 		return Win32_ViewInstance::create<EditViewInstance>(this, parent, L"Edit", getText(), style, 0);
 	}
@@ -698,10 +731,10 @@ namespace slib
 		}
 		int style = WS_TABSTOP | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN;
 		Alignment align = m_gravity & Alignment::HorizontalMask;
-		if (align == Alignment::Center) {
-			style |= ES_CENTER;
-		} else if (align == Alignment::Right) {
+		if (align == Alignment::Right) {
 			style |= ES_RIGHT;
+		} else if (align != Alignment::Left) {
+			style |= ES_CENTER;
 		}
 		if (m_multiLine != MultiLineMode::WordWrap && m_multiLine != MultiLineMode::BreakWord) {
 			style |= ES_AUTOHSCROLL;

@@ -1074,7 +1074,11 @@ namespace slib
 		void setVerticalScrolling(sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		virtual void setScrolling(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
+		sl_bool isValidHorizontalScrolling();
+
+		sl_bool isValidVerticalScrolling();
+
 		Ref<ScrollBar> getHorizontalScrollBar();
 		
 		Ref<ScrollBar> getVerticalScrollBar();
@@ -1082,7 +1086,7 @@ namespace slib
 		void setHorizontalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void setVerticalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isHorizontalScrollBarVisible();
 		
 		sl_bool isVerticalScrollBarVisible();

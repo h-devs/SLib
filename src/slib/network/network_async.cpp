@@ -158,6 +158,19 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<AsyncTcpSocket> AsyncTcpSocket::create()
+	{
+		AsyncTcpSocketParam param;
+		return create(param);
+	}
+
+	Ref<AsyncTcpSocket> AsyncTcpSocket::create(Socket&& socket)
+	{
+		AsyncTcpSocketParam param;
+		param.socket = Move(socket);
+		return create(param);
+	}
+
 	sl_socket AsyncTcpSocket::getSocket()
 	{
 		Ref<AsyncTcpSocketInstance> instance = _getIoInstance();

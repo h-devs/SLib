@@ -153,7 +153,7 @@ namespace slib
 	Toast::Toast()
 	{
 		duration = 0; // default duration will be used
-		gravity = Alignment::MiddleCenter;
+		gravity = Alignment::Default;
 		margin.left = margin.top = margin.right = margin.bottom = (sl_ui_len)(UI::dpToPixel(50));
 	}
 	

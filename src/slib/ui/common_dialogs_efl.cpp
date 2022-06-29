@@ -50,7 +50,7 @@ namespace slib
 			static void alert_dialog_ok_cb(void *data, Evas_Object *obj, void *event_info)
 			{
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
-				container->result = DialogResult::Ok;
+				container->result = DialogResult::OK;
 				elm_popup_dismiss(container->popup);
 			}
 
@@ -80,8 +80,8 @@ namespace slib
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
 				evas_object_del(container->popup);
 				switch (container->result) {
-					case DialogResult::Ok:
-						container->alert->_onResult(DialogResult::Ok);
+					case DialogResult::OK:
+						container->alert->_onResult(DialogResult::OK);
 						break;
 					case DialogResult::Yes:
 						container->alert->_onResult(DialogResult::Yes);
@@ -158,9 +158,9 @@ namespace slib
 		StringCstr _text(text);
 		elm_object_text_set(popup, _text.getData());
 
-		StringCstr titleOk = this->titleOk;
-		if (titleOk.isEmpty()) {
-			titleOk = "OK";
+		StringCstr titleOK = this->titleOK;
+		if (titleOK.isEmpty()) {
+			titleOK = "OK";
 		}
 		StringCstr titleCancel = this->titleCancel;
 		if (titleCancel.isEmpty()) {
@@ -177,7 +177,7 @@ namespace slib
 		
 		if (buttons == AlertButtons::OkCancel) {
 			Evas_Object* button1 = elm_button_add(popup);
-			elm_object_text_set(button1, titleOk.getData());
+			elm_object_text_set(button1, titleOK.getData());
 			evas_object_smart_callback_add(button1, "clicked", alert_dialog_ok_cb, container);
 			elm_object_part_content_set(popup, "button1", button1);
 			Evas_Object* button2 = elm_button_add(popup);
@@ -212,7 +212,7 @@ namespace slib
 			evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_cancel_cb, container);
 		} else {
 			Evas_Object* button1 = elm_button_add(popup);
-			elm_object_text_set(button1, titleOk.getData());
+			elm_object_text_set(button1, titleOK.getData());
 			evas_object_smart_callback_add(button1, "clicked", alert_dialog_ok_cb, container);
 			elm_object_part_content_set(popup, "button1", button1);
 			eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_ok_cb, container);

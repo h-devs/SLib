@@ -1539,7 +1539,7 @@ namespace slib
 	{
 		SLIB_INVOKE_EVENT_HANDLER(OK, ev)
 		if (m_flagCloseOnOK) {
-			close(DialogResult::Ok);
+			close(DialogResult::OK);
 		}
 	}
 

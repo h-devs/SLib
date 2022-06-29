@@ -1074,16 +1074,13 @@ namespace slib
 							if (!(reader.decodeBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no]))) {
 								return sl_false;
 							}
-							if (onDecodeHuffmanBlock.isNull() || onDecodeHuffmanBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no])) {
-								if (onFinishJob.isNotNull()) {
-									if (onFinishJob()) {
-										return sl_true;
-									}
-									else {
-										continue;
-									}
-								}
-
+							Result result = Result::OK;
+							if (onDecodeHuffmanBlock.isNotNull()) {
+								result = onDecodeHuffmanBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no]);
+							}
+							if (result == Result::Finish) {
+								return sl_true;
+							} else if (result == Result::OK) {
 								dequantizeBlock(data, quantization_table[comp.quant_table_no]);
 								dezigzag(data, dataz);
 								idctBlock(dataz, colors);
@@ -1358,18 +1355,30 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool Jpeg::loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<sl_bool(sl_int16 data[64])>& onLoadBlock)
+	sl_uint32 Jpeg::getBlocksCount(const Ptrx<IReader, ISeekable>& reader)
+	{
+		sl_uint32 n = 0;
+		if (loadHuffmanBlocks(reader, [&n](sl_int16*, sl_bool&) {
+			n++;
+		})) {
+			return n;
+		}
+		return 0;
+	}
+
+	sl_bool Jpeg::loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64], sl_bool& outFlagFinish)>& onLoadBlock)
 	{
 		JpegFile file;
 		file.setReader(reader);
-		sl_bool isFinished = sl_false;
 		if (file.readHeader()) {
-			file.onDecodeHuffmanBlock = [&isFinished, onLoadBlock](sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
-				isFinished = onLoadBlock(data);
-				return sl_true;
-			};
-			file.onFinishJob = [&isFinished]() {
-				return isFinished;
+			file.onDecodeHuffmanBlock = [onLoadBlock](sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
+				sl_bool flagFinish = sl_false;
+				onLoadBlock(data, flagFinish);
+				if (flagFinish) {
+					return JpegFile::Result::Finish;
+				} else {
+					return JpegFile::Result::Ignore;
+				}
 			};
 			if (file.readContent()) {
 				return sl_true;
@@ -1391,8 +1400,8 @@ namespace slib
 
 			file.onDecodeHuffmanBlock = [&huffWriter, &file, onLoadBlock](sl_int16 data[64], JpegComponent& comp, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
 				onLoadBlock(data);
-				huffWriter.encodeBlock(data, comp, dc_huffman_table, ac_huffman_table);// encode and write data;
-				return sl_true;
+				huffWriter.encodeBlock(data, comp, dc_huffman_table, ac_huffman_table); // encode and write data;
+				return JpegFile::Result::Ignore;
 			};
 
 			file.onDecodeRestartControl = [&file, &writer, &huffWriter, &nRestartIndex](sl_int32& count) {
