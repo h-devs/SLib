@@ -147,6 +147,20 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT ComPortParam
+	{
+	public:
+		sl_uint32 baudRate;
+		sl_uint32 dataBits;
+		sl_uint32 stopBits;
+
+	public:
+		ComPortParam() noexcept;
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ComPortParam)
+
+	};
+
 	class SLIB_EXPORT FileOpenParam
 	{
 	public:
@@ -199,6 +213,8 @@ namespace slib
 		static File openDevice(const StringParam& path, const FileMode& mode) noexcept;
 
 		static File openDeviceForRead(const StringParam& path) noexcept;
+
+		static File openCOM(sl_uint32 no, const FileMode& mode);
 
 	public:
 		SLIB_CONSTEXPR sl_bool isOpened() const
@@ -256,6 +272,8 @@ namespace slib
 		sl_bool getDiskSize(sl_uint64& outSize) const noexcept;
 
 		sl_uint64 getDiskSize() const noexcept;
+
+		sl_bool setComPortParam(const ComPortParam& param) noexcept;
 
 		
 		Time getModifiedTime() const noexcept;

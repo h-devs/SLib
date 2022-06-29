@@ -422,6 +422,20 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool File::setComPortParam(const ComPortParam& param) noexcept
+	{
+		HANDLE handle = m_file;
+		if (handle != INVALID_HANDLE_VALUE) {
+			DCB dcb;
+			Base::zeroMemory(&dcb, sizeof(dcb));
+			dcb.BaudRate = (DWORD)(param.baudRate);
+			dcb.ByteSize = (BYTE)(param.dataBits);
+			dcb.StopBits = (BYTE)(param.stopBits);
+			return SetCommState(handle, &dcb) != 0;
+		}
+		return sl_false;
+	}
+
 	Time File::getModifiedTime() const noexcept
 	{
 		HANDLE handle = m_file;

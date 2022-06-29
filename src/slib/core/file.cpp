@@ -38,6 +38,13 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ComPortParam)
+
+	ComPortParam::ComPortParam() noexcept: baudRate(9600), dataBits(8), stopBits(1)
+	{
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
 
 	FileOpenParam::FileOpenParam() noexcept
@@ -113,6 +120,14 @@ namespace slib
 	File File::openDeviceForRead(const StringParam& path) noexcept
 	{
 		return openDevice(path, FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite);
+	}
+
+	File File::openCOM(sl_uint32 no, const FileMode& mode)
+	{
+#ifdef SLIB_PLATFORM_IS_WIN32
+		return openDevice(String::concat("\\\\.\\COM", String::fromUint32(no)), mode);
+#endif
+		return SLIB_FILE_INVALID_HANDLE;
 	}
 
 	void File::close() noexcept
