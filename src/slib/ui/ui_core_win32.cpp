@@ -423,8 +423,10 @@ namespace slib
 		Win32::shell(param);
 	}
 
-	void UI::openDirectoryAndSelectFile(const StringParam& path)
+	void UI::openDirectoryAndSelectFile(const StringParam& _path)
 	{
+		StringData temp(_path);
+		String path = temp.replaceAll('/', '\\');
 		String dir = File::getParentDirectoryPath(path);
 		ShellOpenFolderAndSelectItemsParam param;
 		param.path = dir;
