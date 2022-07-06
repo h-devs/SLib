@@ -425,8 +425,7 @@ namespace slib
 
 	void UI::openDirectoryAndSelectFile(const StringParam& _path)
 	{
-		StringData temp(_path);
-		String path = temp.replaceAll('/', '\\');
+		String path = _path.toString().replaceAll('/', '\\');
 		String dir = File::getParentDirectoryPath(path);
 		ShellOpenFolderAndSelectItemsParam param;
 		param.path = dir;
