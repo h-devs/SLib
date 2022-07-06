@@ -141,14 +141,41 @@ namespace slib
 		return new FileLogger(fileNameFormat);
 	}
 
+	Ref<Logger> Logger::createFileLogger(const String& fileNameFormat, const String& errorFileNameFormat)
+	{
+		return new FileLogger(fileNameFormat, errorFileNameFormat);
+	}
+
+	Ref<Logger> Logger::join(const Ref<Logger>& logger1, const Ref<Logger>& logger2)
+	{
+		if (logger1.isNotNull()) {
+			if (logger2.isNotNull()) {
+				Ref<LoggerSet> ret = new LoggerSet;
+				if (ret.isNotNull()) {
+					ret->add(logger1);
+					ret->add(logger2);
+					return ret;
+				}
+				return sl_null;
+			} else {
+				return logger1;
+			}
+		} else {
+			return logger2;
+		}
+	}
+
 
 	FileLogger::FileLogger()
 	{
 	}
 
-	FileLogger::FileLogger(const String& fileNameFormat)
+	FileLogger::FileLogger(const String& fileNameFormat): m_fileNameFormat(fileNameFormat)
 	{
-		m_fileNameFormat = fileNameFormat;
+	}
+
+	FileLogger::FileLogger(const String& fileNameFormat, const String& errorFileNameFormat): m_fileNameFormat(fileNameFormat), m_errorFileNameFormat(errorFileNameFormat)
+	{
 	}
 
 	FileLogger::~FileLogger()
@@ -157,17 +184,17 @@ namespace slib
 
 	void FileLogger::log(LogPriority priority, const StringParam& tag, const StringParam& content)
 	{
-		String fmt = getFileNameFormat();
-		if (fmt.isEmpty()) {
+		String path;
+		if (priority >= LogPriority::Error && m_errorFileNameFormat.isNotNull()) {
+			path = String::format(m_errorFileNameFormat, Time::now());
+		} else {
+			path = String::format(m_fileNameFormat, Time::now());
+		}
+		if (path.isEmpty()) {
 			return;
 		}
 		ObjectLocker lock(this);
-		File::appendAllTextUTF8(String::format(fmt, Time::now()), GetLineStringCRLF(tag, content));
-	}
-	
-	String FileLogger::getFileNameFormat()
-	{
-		return String::format(m_fileNameFormat, Time::now());
+		File::appendAllTextUTF8(path, GetLineStringCRLF(tag, content));
 	}
 
 
@@ -219,6 +246,31 @@ namespace slib
 			printf("%s", s.getData());
 		}
 #endif
+	}
+
+
+	LoggerSet::LoggerSet()
+	{
+	}
+
+	LoggerSet::~LoggerSet()
+	{
+	}
+
+	void LoggerSet::add(const Ref<Logger>& logger)
+	{
+		if (logger.isNotNull()) {
+			m_loggers.add(logger);
+		}
+	}
+
+	void LoggerSet::log(LogPriority priority, const StringParam& tag, const StringParam& content)
+	{
+		ListLocker< Ref<Logger> > loggers(m_loggers);
+		for (sl_size i = 0; i < loggers.count; i++) {
+			Ref<Logger>& logger = loggers[i];
+			logger->log(priority, tag, content);
+		}
 	}
 
 }

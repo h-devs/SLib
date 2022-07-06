@@ -73,6 +73,10 @@ namespace slib
 
 		static Ref<Logger> createFileLogger(const String& fileNameFormat);
 
+		static Ref<Logger> createFileLogger(const String& fileNameFormat, const String& errorFileNameFormat);
+
+		static Ref<Logger> join(const Ref<Logger>& logger1, const Ref<Logger>& logger2);
+
 	protected:
 		LogPriority m_priorityMinimum;
 
@@ -85,15 +89,16 @@ namespace slib
 
 		FileLogger(const String& fileNameFormat);
 
+		FileLogger(const String& fileNameFormat, const String& errorFileNameFormat);
+
 		~FileLogger();
 
 	public:
 		void log(LogPriority priority, const StringParam& tag, const StringParam& content) override;
 
-		String getFileNameFormat();
-
 	protected:
 		String m_fileNameFormat;
+		String m_errorFileNameFormat;
 
 	};
 
@@ -106,6 +111,24 @@ namespace slib
 
 	public:
 		void log(LogPriority priority, const StringParam& tag, const StringParam& content) override;
+
+	};
+
+	class LoggerSet : public Logger
+	{
+	public:
+		LoggerSet();
+
+		~LoggerSet();
+
+	public:
+		void add(const Ref<Logger>& logger);
+
+	public:
+		void log(LogPriority priority, const StringParam& tag, const StringParam& content) override;
+
+	protected:
+		CList< Ref<Logger> > m_loggers;
 
 	};
 
