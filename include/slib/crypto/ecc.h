@@ -96,7 +96,6 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EllipticCurve)
 		
 	public:
-		static const EllipticCurve& secp256k1() noexcept;
 		static const EllipticCurve& secp112r1() noexcept;
 		static const EllipticCurve& secp112r2() noexcept;
 		static const EllipticCurve& secp128r1() noexcept;
@@ -106,6 +105,7 @@ namespace slib
 		static const EllipticCurve& secp160r2() noexcept;
 		static const EllipticCurve& secp192k1() noexcept;
 		static const EllipticCurve& secp224k1() noexcept;
+		static const EllipticCurve& secp256k1() noexcept;
 		static const EllipticCurve& secp384r1() noexcept;
 		static const EllipticCurve& secp521r1() noexcept;
 		

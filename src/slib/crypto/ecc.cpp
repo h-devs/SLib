@@ -36,46 +36,6 @@ namespace slib
 		namespace ecc
 		{
 
-			class Curve_secp256k1 : public EllipticCurve
-			{
-			public:
-				Curve_secp256k1()
-				{	
-					seed = BigInt::null();
-					static const sl_uint8 _p[] = {
-						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-						0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F
-					};
-					p = BigInt::fromBytesBE(_p, sizeof(_p));
-					a = BigInt::null();
-					b = BigInt::fromUint32(7);
-					static const sl_uint8 _gx[] = {
-						0x79, 0xBE, 0x66, 0x7E, 0xF9, 0xDC, 0xBB, 0xAC,
-						0x55, 0xA0, 0x62, 0x95, 0xCE, 0x87, 0x0B, 0x07,
-						0x02, 0x9B, 0xFC, 0xDB, 0x2D, 0xCE, 0x28, 0xD9,
-						0x59, 0xF2, 0x81, 0x5B, 0x16, 0xF8, 0x17, 0x98
-					};
-					G.x = BigInt::fromBytesBE(_gx, sizeof(_gx));
-					static const sl_uint8 _gy[] = {
-						0x48, 0x3a, 0xda, 0x77, 0x26, 0xa3, 0xc4, 0x65,
-						0x5d, 0xa4, 0xfb, 0xfc, 0x0e, 0x11, 0x08, 0xa8,
-						0xfd, 0x17, 0xb4, 0x48, 0xa6, 0x85, 0x54, 0x19,
-						0x9c, 0x47, 0xd0, 0x8f, 0xfb, 0x10, 0xd4, 0xb8
-					};
-					G.y = BigInt::fromBytesBE(_gy, sizeof(_gy));
-					static const sl_uint8 _n[] = {
-						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
-						0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
-						0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41
-					};
-					n = BigInt::fromBytesBE(_n, sizeof(_n));
-				}
-
-			};
-
 			class Curve_secp112r1 : public EllipticCurve
 			{
 			public:
@@ -119,6 +79,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}	
 			};
+
 			class Curve_secp112r2 : public EllipticCurve
 			{
 			public:
@@ -162,6 +123,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp128r1 : public EllipticCurve
 			{
 			public:
@@ -205,6 +167,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp128r2 : public EllipticCurve
 			{
 			public:
@@ -248,6 +211,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp160k1 : public EllipticCurve
 			{
 			public:
@@ -282,6 +246,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp160r1 : public EllipticCurve
 			{
 			public:
@@ -331,6 +296,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp160r2 : public EllipticCurve
 			{
 			public:
@@ -380,6 +346,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp192k1 : public EllipticCurve
 			{
 			public:
@@ -414,6 +381,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp224k1 : public EllipticCurve
 			{
 			public:
@@ -452,6 +420,47 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
+			class Curve_secp256k1 : public EllipticCurve
+			{
+			public:
+				Curve_secp256k1()
+				{
+					seed = BigInt::null();
+					static const sl_uint8 _p[] = {
+						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+						0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F
+					};
+					p = BigInt::fromBytesBE(_p, sizeof(_p));
+					a = BigInt::null();
+					b = BigInt::fromUint32(7);
+					static const sl_uint8 _gx[] = {
+						0x79, 0xBE, 0x66, 0x7E, 0xF9, 0xDC, 0xBB, 0xAC,
+						0x55, 0xA0, 0x62, 0x95, 0xCE, 0x87, 0x0B, 0x07,
+						0x02, 0x9B, 0xFC, 0xDB, 0x2D, 0xCE, 0x28, 0xD9,
+						0x59, 0xF2, 0x81, 0x5B, 0x16, 0xF8, 0x17, 0x98
+					};
+					G.x = BigInt::fromBytesBE(_gx, sizeof(_gx));
+					static const sl_uint8 _gy[] = {
+						0x48, 0x3a, 0xda, 0x77, 0x26, 0xa3, 0xc4, 0x65,
+						0x5d, 0xa4, 0xfb, 0xfc, 0x0e, 0x11, 0x08, 0xa8,
+						0xfd, 0x17, 0xb4, 0x48, 0xa6, 0x85, 0x54, 0x19,
+						0x9c, 0x47, 0xd0, 0x8f, 0xfb, 0x10, 0xd4, 0xb8
+					};
+					G.y = BigInt::fromBytesBE(_gy, sizeof(_gy));
+					static const sl_uint8 _n[] = {
+						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE,
+						0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B,
+						0xBF, 0xD2, 0x5E, 0x8C, 0xD0, 0x36, 0x41, 0x41
+					};
+					n = BigInt::fromBytesBE(_n, sizeof(_n));
+				}
+
+			};
+
 			class Curve_secp384r1 : public EllipticCurve
 			{
 			public:
@@ -519,6 +528,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 			class Curve_secp521r1 : public EllipticCurve
 			{
 			public:
@@ -604,6 +614,7 @@ namespace slib
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
 				}
 			};
+
 		}
 	}
 
@@ -1173,18 +1184,19 @@ namespace slib
 			return zero; \
 		} \
 		return ret; \
-	};
+	}
 
-	DEFINE_CURVE(secp256k1);
-	DEFINE_CURVE(secp112r1);
-	DEFINE_CURVE(secp112r2);
-	DEFINE_CURVE(secp128r1);
-	DEFINE_CURVE(secp128r2);
-	DEFINE_CURVE(secp160k1);
-	DEFINE_CURVE(secp160r1);
-	DEFINE_CURVE(secp160r2);
-	DEFINE_CURVE(secp192k1);
-	DEFINE_CURVE(secp224k1);
-	DEFINE_CURVE(secp384r1);
-	DEFINE_CURVE(secp521r1);
+	DEFINE_CURVE(secp112r1)
+	DEFINE_CURVE(secp112r2)
+	DEFINE_CURVE(secp128r1)
+	DEFINE_CURVE(secp128r2)
+	DEFINE_CURVE(secp160k1)
+	DEFINE_CURVE(secp160r1)
+	DEFINE_CURVE(secp160r2)
+	DEFINE_CURVE(secp192k1)
+	DEFINE_CURVE(secp224k1)
+	DEFINE_CURVE(secp256k1)
+	DEFINE_CURVE(secp384r1)
+	DEFINE_CURVE(secp521r1)
+
 }
