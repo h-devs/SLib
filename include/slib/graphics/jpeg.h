@@ -373,9 +373,9 @@ namespace slib
 		};
 
 		// x, y: block number
-		Function<Result(sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table)> onDecodeHuffmanBlock;
+		Function<Result(sl_uint32 colorIndex, sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table)> onDecodeHuffmanBlock;
 		Function<void(sl_int32& count)> onDecodeRestartControl;
-		Function<void(sl_uint32 x, sl_uint32 y, sl_uint8 color_index, sl_uint8 data[64])> onLoadBlock;
+		Function<void(sl_uint32 x, sl_uint32 y, sl_uint8 colorIndex, sl_uint8 data[64])> onLoadBlock;
 		Function<void()> onReachedScanData;
 		SkippableReader m_reader;
 
@@ -456,11 +456,11 @@ namespace slib
 
 		static Ref<Image> loadFromFile(const StringParam& path);
 
-		static sl_uint32 getBlocksCount(const Ptrx<IReader, ISeekable>& reader);
+		static sl_uint32 getBlocksCount(const Ptrx<IReader, ISeekable>& reader, sl_uint32 colorIndex);
 		
-		static sl_bool loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64], sl_bool& outFlagFinish)>& onLoadBlock);
+		static sl_bool loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64], sl_bool& outFlagFinish)>& onLoadBlock);
 		
-		static Memory modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock);
+		static Memory modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64])>& onLoadBlock);
 
 	};
 

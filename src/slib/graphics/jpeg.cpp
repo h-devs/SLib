@@ -1076,7 +1076,7 @@ namespace slib
 							}
 							Result result = Result::OK;
 							if (onDecodeHuffmanBlock.isNotNull()) {
-								result = onDecodeHuffmanBlock(data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no]);
+								result = onDecodeHuffmanBlock(iComp, data, comp, dc_huffman_tables[dc_huffman_table_no], ac_huffman_tables[ac_huffman_table_no]);
 							}
 							if (result == Result::Finish) {
 								return sl_true;
@@ -1355,25 +1355,27 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 Jpeg::getBlocksCount(const Ptrx<IReader, ISeekable>& reader)
+	sl_uint32 Jpeg::getBlocksCount(const Ptrx<IReader, ISeekable>& reader, sl_uint32 _colorIndex)
 	{
 		sl_uint32 n = 0;
-		if (loadHuffmanBlocks(reader, [&n](sl_int16*, sl_bool&) {
-			n++;
+		if (loadHuffmanBlocks(reader, [&n, _colorIndex](sl_uint32 colorIndex, sl_int16*, sl_bool&) {
+			if (colorIndex == _colorIndex) {
+				n++;
+			}
 		})) {
 			return n;
 		}
 		return 0;
 	}
 
-	sl_bool Jpeg::loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64], sl_bool& outFlagFinish)>& onLoadBlock)
+	sl_bool Jpeg::loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64], sl_bool& outFlagFinish)>& onLoadBlock)
 	{
 		JpegFile file;
 		file.setReader(reader);
 		if (file.readHeader()) {
-			file.onDecodeHuffmanBlock = [onLoadBlock](sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
+			file.onDecodeHuffmanBlock = [onLoadBlock](sl_uint32 colorIndex, sl_int16 data[64], JpegComponent& component, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
 				sl_bool flagFinish = sl_false;
-				onLoadBlock(data, flagFinish);
+				onLoadBlock(colorIndex, data, flagFinish);
 				if (flagFinish) {
 					return JpegFile::Result::Finish;
 				} else {
@@ -1387,7 +1389,7 @@ namespace slib
 		return sl_false;
 	}
 
-	Memory Jpeg::modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_int16 data[64])>& onLoadBlock)
+	Memory Jpeg::modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64])>& onLoadBlock)
 	{
 		JpegFile file;
 		file.setReader(reader);
@@ -1398,8 +1400,8 @@ namespace slib
 			JpegHuffmanWriter huffWriter(&file, &writer);
 			sl_int32 nRestartIndex = 0;
 
-			file.onDecodeHuffmanBlock = [&huffWriter, &file, onLoadBlock](sl_int16 data[64], JpegComponent& comp, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
-				onLoadBlock(data);
+			file.onDecodeHuffmanBlock = [&huffWriter, &file, onLoadBlock](sl_uint32 colorIndex, sl_int16 data[64], JpegComponent& comp, JpegHuffmanTable& dc_huffman_table, JpegHuffmanTable& ac_huffman_table) {
+				onLoadBlock(colorIndex, data);
 				huffWriter.encodeBlock(data, comp, dc_huffman_table, ac_huffman_table); // encode and write data;
 				return JpegFile::Result::Ignore;
 			};
