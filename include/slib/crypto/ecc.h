@@ -85,11 +85,10 @@ namespace slib
 		BigInt p;
 		BigInt a;
 		BigInt b;
+		BigInt seed;
 		ECPoint G;
 		BigInt n; // order
 		sl_uint8 h; // cofactor
-		
-		List<ECPoint> pow2g;
 		
 	public:
 		EllipticCurve() noexcept;
@@ -98,6 +97,17 @@ namespace slib
 		
 	public:
 		static const EllipticCurve& secp256k1() noexcept;
+		static const EllipticCurve& secp112r1() noexcept;
+		static const EllipticCurve& secp112r2() noexcept;
+		static const EllipticCurve& secp128r1() noexcept;
+		static const EllipticCurve& secp128r2() noexcept;
+		static const EllipticCurve& secp160k1() noexcept;
+		static const EllipticCurve& secp160r1() noexcept;
+		static const EllipticCurve& secp160r2() noexcept;
+		static const EllipticCurve& secp192k1() noexcept;
+		static const EllipticCurve& secp224k1() noexcept;
+		static const EllipticCurve& secp384r1() noexcept;
+		static const EllipticCurve& secp521r1() noexcept;
 		
 	public:
 		ECPoint addPoint(const ECPoint& p1, const ECPoint& p2) const noexcept;
