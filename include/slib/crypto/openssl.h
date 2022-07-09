@@ -24,8 +24,7 @@
 #define CHECKHEADER_SLIB_CRYPTO_OPENSSL
 
 #include "tls.h"
-#include "rsa.h"
-#include "ecc.h"
+#include "x509.h"
 #include "block_cipher.h"
 
 struct ssl_ctx_st;
@@ -95,50 +94,6 @@ namespace slib
 	private:
 		evp_pkey_st* m_key;
 		
-	};
-
-	class SLIB_EXPORT OpenSSL_ECPublicKey_secp256k1 : public ECPublicKey_secp256k1
-	{
-	public:
-		OpenSSL_ECPublicKey_secp256k1();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPublicKey_secp256k1)
-		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
-
-	public:
-		sl_bool checkValid() const;
-		
-		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const;
-
-	};
-
-	class SLIB_EXPORT OpenSSL_ECPrivateKey_secp256k1 : public ECPrivateKey_secp256k1
-	{
-	public:
-		OpenSSL_ECPrivateKey_secp256k1();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpenSSL_ECPrivateKey_secp256k1)
-
-	public:
-		const OpenSSL_ECPublicKey_secp256k1& toPublicKey() const noexcept
-		{
-			return *((const OpenSSL_ECPublicKey_secp256k1*)(const ECPublicKey*)this);
-		}
-
-		OpenSSL_ECPublicKey_secp256k1& toPublicKey() noexcept
-		{
-			return *((OpenSSL_ECPublicKey_secp256k1*)(ECPublicKey*)this);
-		}
-
-	public:
-		sl_bool generate() noexcept;
-
-		Memory generateSignature(const void* hash, sl_size size) const noexcept;
-
-		sl_bool checkValid() const noexcept;
-
-		sl_bool verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
-
 	};
 
 	class SLIB_EXPORT OpenSSL_Context : public TlsContext
@@ -312,41 +267,62 @@ namespace slib
 	{
 	public:
 		static Ref<OpenSSL_Context> createContext(const TlsContextParam& param);
-		
+
 		static Ref<OpenSSL_AsyncStream> connectStream(const Ref<AsyncStream>& baseStream, const TlsConnectStreamParam& param);
-		
+
 		static Ref<OpenSSL_AsyncStream> acceptStream(const Ref<AsyncStream>& baseStream, const TlsAcceptStreamParam& param);
-		
-		
+
+
 		static sl_bool isProbablePrime(const void* num_BigEndian, sl_uint32 nBytes, sl_bool* pFlagError = sl_null);
-		
+
 		// returns value in Big-endian form
 		static Memory generatePrime(sl_uint32 nBits);
-		
+
 		static sl_bool randomBytes(void* bytes, sl_uint32 nBytes, sl_bool flagPrivate = sl_false);
-		
-		
+
+
 		static void generateRSA(RSAPrivateKey& _output, sl_uint32 nBits);
+
+
+		static sl_bool generate_ECKey(EllipticCurveId curveId, ECPrivateKey& _output);
+
+		static sl_bool check_ECKey(EllipticCurveId curveId, const ECPublicKey& key);
+
+		static ECDSA_Signature sign_ECDSA(EllipticCurveId curveId, const ECPrivateKey& key, const BigInt& z);
+
+		static ECDSA_Signature sign_ECDSA(EllipticCurveId curveId, const ECPrivateKey& key, const void* hash, sl_size sizeHash);
+
+		static ECDSA_Signature sign_ECDSA_SHA256(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size);
+
+		static ECDSA_Signature sign_ECDSA_SHA384(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size);
+
+		static ECDSA_Signature sign_ECDSA_SHA512(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size);
+
+		static sl_bool verify_ECDSA(EllipticCurveId curveId, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature);
 		
+		static sl_bool verify_ECDSA(EllipticCurveId curveId, const ECPublicKey& key, const void* hash, sl_size sizeHash, const ECDSA_Signature& signature);
 		
-		static sl_bool generate_ECKey_secp256k1(ECPrivateKey& _output);
-		
-		static sl_bool check_ECKey_secp256k1(const ECPublicKey& key);
-		
-		static ECDSA_Signature sign_ECDSA_secp256k1(const ECPrivateKey& key, const BigInt& z);
-		
-		static ECDSA_Signature sign_ECDSA_secp256k1(const ECPrivateKey& key, const void* hash, sl_size sizeHash);
-		
-		static ECDSA_Signature sign_ECDSA_SHA256_secp256k1(const ECPrivateKey& key, const void* data, sl_size size);
-		
-		static sl_bool verify_ECDSA_secp256k1(const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature);
-		
-		static sl_bool verify_ECDSA_secp256k1(const ECPublicKey& key, const void* hash, sl_size sizeHash, const ECDSA_Signature& signature);
-		
-		static sl_bool verify_ECDSA_SHA256_secp256k1(const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
-		
-		static BigInt getSharedKey_ECDH_secp256k1(const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote);
-		
+		static sl_bool verify_ECDSA_SHA256(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
+
+		static sl_bool verify_ECDSA_SHA384(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
+
+		static sl_bool verify_ECDSA_SHA512(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
+
+		static BigInt getSharedKey_ECDH(EllipticCurveId curveId, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote);
+
+
+		static sl_bool loadX509(X509& _out, const void* content, sl_size size);
+
+		static sl_bool loadX509(X509& _out, const Memory& memory);
+
+		static sl_bool loadX509File(X509& _out, const StringParam& filePath);
+
+		static Memory signX509_SHA256(const X509& cert, const PrivateKey& issuerKey);
+
+		static Memory signX509_SHA384(const X509& cert, const PrivateKey& issuerKey);
+
+		static Memory signX509_SHA512(const X509& cert, const PrivateKey& issuerKey);
+
 	};
 
 }

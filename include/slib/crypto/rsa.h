@@ -44,7 +44,9 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RSAPublicKey)
 
 	public:
-		sl_uint32 getLength() const;
+		sl_bool isDefined() const noexcept;
+
+		sl_uint32 getLength() const noexcept;
 
 	};
 	
@@ -67,12 +69,14 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RSAPrivateKey)
 
 	public:
-		void generate(sl_uint32 nBits);
+		sl_bool isDefined() const noexcept;
+		
+		void generate(sl_uint32 nBits) noexcept;
 
-		sl_bool generateFromPrimes(sl_uint32 nBits);
+		sl_bool generateFromPrimes(sl_uint32 nBits) noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT RSA
 	{
 	public:

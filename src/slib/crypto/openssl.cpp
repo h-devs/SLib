@@ -26,6 +26,8 @@
 
 #include "openssl/ssl.h"
 
+#pragma comment(lib, "ws2_32.lib")
+
 namespace slib
 {
 	
@@ -78,8 +80,8 @@ namespace slib
 			class KeyStore : public Referable
 			{
 			public:
-				X509* certificate;
-				Queue<X509*> certificateChain;
+				::X509* certificate;
+				Queue<::X509*> certificateChain;
 				EVP_PKEY* privateKey;
 				
 			public:
@@ -105,7 +107,7 @@ namespace slib
 						X509_free(certificate);
 						certificate = sl_null;
 					}
-					X509* x;
+					::X509* x;
 					while (certificateChain.pop_NoLock(&x)) {
 						X509_free(x);
 					}
@@ -120,7 +122,7 @@ namespace slib
 					BIO* bio = BIO_new(BIO_s_mem());
 					if (bio) {
 						BIO_write(bio, certificate.getData(), (int)(certificate.getSize()));
-						X509* x = PEM_read_bio_X509_AUX(bio, sl_null, sl_null, sl_null);
+						::X509* x = PEM_read_bio_X509_AUX(bio, sl_null, sl_null, sl_null);
 						if (x) {
 							this->certificate = x;
 							for (;;) {
@@ -143,7 +145,7 @@ namespace slib
 					BIO* bio = BIO_new(BIO_s_mem());
 					if (bio) {
 						BIO_write(bio, certificate.getData(), (int)(certificate.getSize()));
-						X509* x = PEM_read_bio_X509_AUX(bio, sl_null, sl_null, sl_null);
+						::X509* x = PEM_read_bio_X509_AUX(bio, sl_null, sl_null, sl_null);
 						if (x) {
 							SSL_CTX_use_certificate(ctx, x);
 							X509_free(x);
@@ -166,7 +168,7 @@ namespace slib
 						SSL_use_certificate(ssl, certificate);
 					}
 					SSL_clear_chain_certs(ssl);
-					Link<X509*>* link = certificateChain.getFront();
+					Link<::X509*>* link = certificateChain.getFront();
 					while (link) {
 						X509_up_ref(link->value);
 						SSL_add0_chain_cert(ssl, link->value);

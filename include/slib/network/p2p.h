@@ -34,8 +34,8 @@
 namespace slib
 {
 
-	typedef ECPrivateKey_secp256k1 P2PPrivateKey;
-	typedef ECPublicKey_secp256k1 P2PPublicKey;
+	typedef ECPrivateKey P2PPrivateKey;
+	typedef ECPublicKey P2PPublicKey;
 
 	enum class P2PConnectionType
 	{

@@ -35,6 +35,8 @@
 #include "slib/crypto/chacha.h"
 #include "slib/crypto/serialize/ecc.h"
 
+#define EC_CURVE EllipticCurve::secp256k1()
+
 /*
 			P2P Socket Protocol
 
@@ -585,14 +587,14 @@ namespace slib
 						return sl_null;
 					}
 
-					if (param.key.isNull()) {
-						if (!(param.key.generate())) {
+					if (!(param.key.isDefined())) {
+						if (!(param.key.generate(EC_CURVE))) {
 							SLIB_STATIC_STRING(err, "Failed to generate private key")
 							param.errorText = err;
 							return sl_null;
 						}
 					} else {
-						if (!(param.key.checkValid())) {
+						if (!(param.key.checkValid(EC_CURVE))) {
 							SLIB_STATIC_STRING(err, "key is invalid")
 							param.errorText = err;
 							return sl_null;
@@ -844,7 +846,7 @@ namespace slib
 									encryptor.encrypt(contentToEncrypt, packet + 29, sizeof(contentToEncrypt));
 									encryptor.finish(packet + 39);
 									SerializeBuffer bufWrite(packet + 55, 1024);
-									if (m_key.toPublicKey().serialize(&bufWrite)) {
+									if (P2PPublicKey(m_key).serialize(&bufWrite)) {
 										_sendUdp(address, packet, bufWrite.current - packet);
 									}
 								}
@@ -968,7 +970,7 @@ namespace slib
 						sl_uint8 packet[1024];
 						packet[0] = (sl_uint8)(Command::ReplyFindNode);
 						SerializeBuffer bufWrite(packet + 1, 1024);
-						if (m_key.toPublicKey().serialize(&bufWrite)) {
+						if (P2PPublicKey(m_key).serialize(&bufWrite)) {
 							_sendUdp(senderAddress, packet, bufWrite.current - packet);
 						}
 					}
@@ -1153,7 +1155,7 @@ namespace slib
 					packet[24] = remoteIP.d;
 					MIO::writeUint16LE(packet + 25, address.port);
 					SerializeBuffer bufWrite(packet + 27, 1024);
-					if (m_key.toPublicKey().serialize(&bufWrite)) {
+					if (P2PPublicKey(m_key).serialize(&bufWrite)) {
 						_sendUdp(address, packet, bufWrite.current - packet);
 					}
 				}
@@ -1300,7 +1302,7 @@ namespace slib
 										if (!flagError) {
 											sl_uint8 bufKey[1024];
 											SerializeBuffer sbKey(bufKey, sizeof(bufKey));
-											if (m_key.toPublicKey().serialize(&sbKey)) {
+											if (P2PPublicKey(m_key).serialize(&sbKey)) {
 												sl_uint32 nKey = (sl_uint32)(sbKey.current - sbKey.begin);
 												sl_uint8 bufPacket[1024];
 												sl_uint8* packet = bufPacket;

@@ -41,12 +41,7 @@ namespace slib
 			public:
 				Curve_secp112r1()
 				{
-					static const sl_uint8 _seed[] = {
-						0x00, 0xF5, 0x0B, 0x02, 0x8E, 0x4D, 0x69, 0x6E,
-						0x67, 0x68, 0x75, 0x61, 0x51, 0x75, 0x29, 0x04,
-						0x72, 0x78, 0x3F, 0xB1
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					id = EllipticCurveId::secp112r1;
 					static const sl_uint8 _p[] = {
 						0xDB, 0x7C, 0x2A, 0xBF, 0x62, 0xE3, 0x5E, 0x66, 
 						0x80, 0x76, 0xBE, 0xAD, 0x20, 0x8B
@@ -77,7 +72,15 @@ namespace slib
 						0x28, 0xDF, 0xAC, 0x65, 0x61, 0xC5
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
-				}	
+					/*
+					static const sl_uint8 _seed[] = {
+					0x00, 0xF5, 0x0B, 0x02, 0x8E, 0x4D, 0x69, 0x6E,
+					0x67, 0x68, 0x75, 0x61, 0x51, 0x75, 0x29, 0x04,
+					0x72, 0x78, 0x3F, 0xB1
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
+				}
 			};
 
 			class Curve_secp112r2 : public EllipticCurve
@@ -85,12 +88,7 @@ namespace slib
 			public:
 				Curve_secp112r2()
 				{
-					static const sl_uint8 _seed[] = {
-						0x00, 0x27, 0x57, 0xA1, 0x11, 0x4D, 0x69, 0x6E,
-						0x67, 0x68, 0x75, 0x61, 0x51, 0x75, 0x53, 0x16,
-						0xC0, 0x5E, 0x0B, 0xD4
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					id = EllipticCurveId::secp112r2;
 					static const sl_uint8 _p[] = {
 						0xDB, 0x7C, 0x2A, 0xBF, 0x62, 0xE3, 0x5E, 0x66,
 						0x80, 0x76, 0xBE, 0xAD, 0x20, 0x8B
@@ -121,6 +119,14 @@ namespace slib
 						0x7C, 0xA1, 0x05, 0x20, 0xD0, 0x4B
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
+					/*
+					static const sl_uint8 _seed[] = {
+					0x00, 0x27, 0x57, 0xA1, 0x11, 0x4D, 0x69, 0x6E,
+					0x67, 0x68, 0x75, 0x61, 0x51, 0x75, 0x53, 0x16,
+					0xC0, 0x5E, 0x0B, 0xD4
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
 				}
 			};
 
@@ -129,12 +135,7 @@ namespace slib
 			public:
 				Curve_secp128r1()
 				{
-					static const sl_uint8 _seed[] = {
-						0x00, 0x0E, 0x0D, 0x4D, 0x69, 0x6E, 0x67, 0x68,
-						0x75, 0x61, 0x51, 0x75, 0x0C, 0xC0, 0x3A, 0x44,
-						0x73, 0xD0, 0x36, 0x79
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					id = EllipticCurveId::secp128r1;
 					static const sl_uint8 _p[] = {
 						0xFF, 0xFF, 0xFF, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
@@ -165,6 +166,14 @@ namespace slib
 						0x75, 0xA3, 0x0D, 0x1B, 0x90, 0x38, 0xA1, 0x15
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
+					/*
+					static const sl_uint8 _seed[] = {
+					0x00, 0x0E, 0x0D, 0x4D, 0x69, 0x6E, 0x67, 0x68,
+					0x75, 0x61, 0x51, 0x75, 0x0C, 0xC0, 0x3A, 0x44,
+					0x73, 0xD0, 0x36, 0x79
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
 				}
 			};
 
@@ -173,12 +182,7 @@ namespace slib
 			public:
 				Curve_secp128r2()
 				{
-					static const sl_uint8 _seed[] = {
-						0x00, 0x4D, 0x69, 0x6E, 0x67, 0x68, 0x75, 0x61,
-						0x51, 0x75, 0x12, 0xD8, 0xF0, 0x34, 0x31, 0xFC,
-						0xE6, 0x3B, 0x88, 0xF4
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					id = EllipticCurveId::secp128r2;
 					static const sl_uint8 _p[] = {
 						0xFF, 0xFF, 0xFF, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
@@ -209,6 +213,14 @@ namespace slib
 						0xBE, 0x00, 0x24, 0x72, 0x06, 0x13, 0xB5, 0xA3
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
+					/*
+					static const sl_uint8 _seed[] = {
+					0x00, 0x4D, 0x69, 0x6E, 0x67, 0x68, 0x75, 0x61,
+					0x51, 0x75, 0x12, 0xD8, 0xF0, 0x34, 0x31, 0xFC,
+					0xE6, 0x3B, 0x88, 0xF4
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
 				}
 			};
 
@@ -217,7 +229,7 @@ namespace slib
 			public:
 				Curve_secp160k1()
 				{
-					seed = BigInt::null();
+					id = EllipticCurveId::secp160k1;
 					static const sl_uint8 _p[] = {
 						0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -252,12 +264,7 @@ namespace slib
 			public:
 				Curve_secp160r1()
 				{
-					static const sl_uint8 _seed[] = {
-						0x10, 0x53, 0xCD, 0xE4, 0x2C, 0x14, 0xD6, 0x96,
-						0xE6, 0x76, 0x87, 0x56, 0x15, 0x17, 0x53, 0x3B,
-						0xF3, 0xF8, 0x33, 0x45
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					id = EllipticCurveId::secp160r1;
 					static const sl_uint8 _p[] = {
 						0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -294,6 +301,14 @@ namespace slib
 						0xD3, 0xCA, 0x75, 0x22, 0x57
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
+					/*
+					static const sl_uint8 _seed[] = {
+					0x10, 0x53, 0xCD, 0xE4, 0x2C, 0x14, 0xD6, 0x96,
+					0xE6, 0x76, 0x87, 0x56, 0x15, 0x17, 0x53, 0x3B,
+					0xF3, 0xF8, 0x33, 0x45
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
 				}
 			};
 
@@ -302,12 +317,7 @@ namespace slib
 			public:
 				Curve_secp160r2()
 				{
-					static const sl_uint8 _seed[] = {
-						0xB9, 0x9B, 0x99, 0xB0, 0x99, 0xB3, 0x23, 0xE0,
-						0x27, 0x09, 0xA4, 0xD6, 0x96, 0xE6, 0x76, 0x87,
-						0x56, 0x15, 0x17, 0x51
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					id = EllipticCurveId::secp160r2;
 					static const sl_uint8 _p[] = {
 						0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -344,6 +354,14 @@ namespace slib
 						0x18, 0xF3, 0xA1, 0xA1, 0x6B
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
+					/*
+					static const sl_uint8 _seed[] = {
+					0xB9, 0x9B, 0x99, 0xB0, 0x99, 0xB3, 0x23, 0xE0,
+					0x27, 0x09, 0xA4, 0xD6, 0x96, 0xE6, 0x76, 0x87,
+					0x56, 0x15, 0x17, 0x51
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
 				}
 			};
 
@@ -352,7 +370,7 @@ namespace slib
 			public:
 				Curve_secp192k1()
 				{
-					seed = BigInt::null();
+					id = EllipticCurveId::secp192k1;
 					static const sl_uint8 _p[] = {
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -387,7 +405,7 @@ namespace slib
 			public:
 				Curve_secp224k1()
 				{
-					seed = BigInt::null();
+					id = EllipticCurveId::secp224k1;
 					static const sl_uint8 _p[] = {
 						0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -426,7 +444,7 @@ namespace slib
 			public:
 				Curve_secp256k1()
 				{
-					seed = BigInt::null();
+					id = EllipticCurveId::secp256k1;
 					static const sl_uint8 _p[] = {
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -465,13 +483,8 @@ namespace slib
 			{
 			public:
 				Curve_secp384r1()
-				{	
-					static const sl_uint8 _seed[] = {
-						0xA3, 0x35, 0x92, 0x6A, 0xA3, 0x19, 0xA2, 0x7A,
-						0x1D, 0x00, 0x89, 0x6A, 0x67, 0x73, 0xA4, 0x82,
-						0x7A, 0xCD, 0xAC, 0x73
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+				{
+					id = EllipticCurveId::secp384r1;
 					static const sl_uint8 _p[] = {
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -526,6 +539,14 @@ namespace slib
 						0xEC, 0xEC, 0x19, 0x6A, 0xCC, 0xC5, 0x29, 0x73
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
+					/*
+					static const sl_uint8 _seed[] = {
+					0xA3, 0x35, 0x92, 0x6A, 0xA3, 0x19, 0xA2, 0x7A,
+					0x1D, 0x00, 0x89, 0x6A, 0x67, 0x73, 0xA4, 0x82,
+					0x7A, 0xCD, 0xAC, 0x73
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
 				}
 			};
 
@@ -534,12 +555,7 @@ namespace slib
 			public:
 				Curve_secp521r1()
 				{
-					static const sl_uint8 _seed[] = {
-						0xD0, 0x9E, 0x88, 0x00, 0x29, 0x1C, 0xB8, 0x53,
-						0x96, 0xCC, 0x67, 0x17, 0x39, 0x32, 0x84, 0xAA,
-						0xA0, 0xDA, 0x64, 0xBA
-					};
-					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					id = EllipticCurveId::secp521r1;
 					static const sl_uint8 _p[] = {
 						0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 						0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -612,6 +628,14 @@ namespace slib
 						0x64, 0x09
 					};
 					n = BigInt::fromBytesBE(_n, sizeof(_n));
+					/*
+					static const sl_uint8 _seed[] = {
+					0xD0, 0x9E, 0x88, 0x00, 0x29, 0x1C, 0xB8, 0x53,
+					0x96, 0xCC, 0x67, 0x17, 0x39, 0x32, 0x84, 0xAA,
+					0xA0, 0xDA, 0x64, 0xBA
+					};
+					seed = BigInt::fromBytesBE(_seed, sizeof(_seed));
+					*/
 				}
 			};
 
@@ -777,11 +801,62 @@ namespace slib
 
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EllipticCurve)
-
-	EllipticCurve::EllipticCurve() noexcept: h(1)
+	
+	EllipticCurve::EllipticCurve() noexcept: id(EllipticCurveId::Unknown)
 	{
 	}
-	
+
+	sl_bool EllipticCurve::isDefined() const noexcept
+	{
+		return p.isNotNull() && a.isNotNull() && b.isNotNull() && !(G.isO()) && n.isNotNull();
+	}
+
+	sl_bool EllipticCurve::setId(EllipticCurveId _id) noexcept
+	{
+		switch (_id) {
+			case EllipticCurveId::secp112r1:
+				*this = EllipticCurve::secp112r1();
+				break;
+			case EllipticCurveId::secp112r2:
+				*this = EllipticCurve::secp112r2();
+				break;
+			case EllipticCurveId::secp128r1:
+				*this = EllipticCurve::secp128r1();
+				break;
+			case EllipticCurveId::secp128r2:
+				*this = EllipticCurve::secp128r2();
+				break;
+			case EllipticCurveId::secp160k1:
+				*this = EllipticCurve::secp160k1();
+				break;
+			case EllipticCurveId::secp160r1:
+				*this = EllipticCurve::secp160r1();
+				break;
+			case EllipticCurveId::secp160r2:
+				*this = EllipticCurve::secp160r2();
+				break;
+			case EllipticCurveId::secp192k1:
+				*this = EllipticCurve::secp192k1();
+				break;
+			case EllipticCurveId::secp224k1:
+				*this = EllipticCurve::secp224k1();
+				break;
+			case EllipticCurveId::secp256k1:
+				*this = EllipticCurve::secp256k1();
+				break;
+			case EllipticCurveId::secp384r1:
+				*this = EllipticCurve::secp384r1();
+				break;
+			case EllipticCurveId::secp521r1:
+				*this = EllipticCurve::secp521r1();
+				break;
+			default:
+				return sl_false;
+		}
+		id = _id;
+		return sl_true;
+	}
+
 	ECPoint EllipticCurve::addPoint(const ECPoint& p1, const ECPoint& p2) const noexcept
 	{
 		if (p1.isO()) {
@@ -864,9 +939,9 @@ namespace slib
 	{
 	}
 
-	sl_bool ECPublicKey::isNull() const noexcept
+	sl_bool ECPublicKey::isDefined() const noexcept
 	{
-		return Q.x.isNull();
+		return Q.x.isNotNull();
 	}
 
 	sl_bool ECPublicKey::equals(const ECPublicKey& other) const noexcept
@@ -916,7 +991,12 @@ namespace slib
 	ECPrivateKey::ECPrivateKey() noexcept
 	{
 	}
-	
+
+	sl_bool ECPrivateKey::isDefined() const noexcept
+	{
+		return ECPublicKey::isDefined() && d.isNotNull();
+	}
+
 	sl_bool ECPrivateKey::generate(const EllipticCurve& curve) noexcept
 	{
 		if (curve.n < 3) {
@@ -945,51 +1025,31 @@ namespace slib
 
 	Memory ECPrivateKey::generateSignature(const EllipticCurve& curve, const void* hash, sl_size size) const noexcept
 	{
-		return ECDSA::sign(curve, *this, hash, size).serialize();		
+		return ECDSA::sign(curve, *this, hash, size).serialize();
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKey_secp256k1)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKeyWithCurve)
 
-	ECPublicKey_secp256k1::ECPublicKey_secp256k1() noexcept
+	ECPublicKeyWithCurve::ECPublicKeyWithCurve() noexcept
 	{
 	}
 
-	sl_bool ECPublicKey_secp256k1::checkValid() const noexcept
+	sl_bool ECPublicKeyWithCurve::isDefined() const noexcept
 	{
-		return ECPublicKey::checkValid(EllipticCurve::secp256k1());
+		return EllipticCurve::isDefined() && ECPublicKey::isDefined();
 	}
 
-	sl_bool ECPublicKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
-	{
-		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
-	}
+	
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKeyWithCurve)
 
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKey_secp256k1)
-
-	ECPrivateKey_secp256k1::ECPrivateKey_secp256k1() noexcept
+	ECPrivateKeyWithCurve::ECPrivateKeyWithCurve() noexcept
 	{
 	}
 
-	sl_bool ECPrivateKey_secp256k1::generate() noexcept
+	sl_bool ECPrivateKeyWithCurve::isDefined() const noexcept
 	{
-		return ECPrivateKey::generate(EllipticCurve::secp256k1());
-	}
-
-	Memory ECPrivateKey_secp256k1::generateSignature(const void* hash, sl_size size) const noexcept
-	{
-		return ECPrivateKey::generateSignature(EllipticCurve::secp256k1(), hash, size);
-	}
-
-	sl_bool ECPrivateKey_secp256k1::checkValid() const noexcept
-	{
-		return ECPublicKey::checkValid(EllipticCurve::secp256k1());
-	}
-
-	sl_bool ECPrivateKey_secp256k1::verifySignature(const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
-	{
-		return ECPublicKey::verifySignature(EllipticCurve::secp256k1(), hash, size, signature, sizeSignature);
+		return EllipticCurve::isDefined() && ECPrivateKey::isDefined();
 	}
 
 
@@ -1121,9 +1181,23 @@ namespace slib
 	{
 		sl_uint8 hash[SHA256::HashSize];
 		SHA256::hash(data, size, hash);
-		return sign(curve, key, priv::ecdsa::MakeZ(curve, hash, SHA256::HashSize), k);
+		return sign(curve, key, priv::ecdsa::MakeZ(curve, hash, sizeof(hash)), k);
 	}
-	
+
+	ECDSA_Signature ECDSA::sign_SHA384(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size, BigInt* k) noexcept
+	{
+		sl_uint8 hash[SHA384::HashSize];
+		SHA384::hash(data, size, hash);
+		return sign(curve, key, priv::ecdsa::MakeZ(curve, hash, sizeof(hash)), k);
+	}
+
+	ECDSA_Signature ECDSA::sign_SHA512(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size, BigInt* k) noexcept
+	{
+		sl_uint8 hash[SHA512::HashSize];
+		SHA512::hash(data, size, hash);
+		return sign(curve, key, priv::ecdsa::MakeZ(curve, hash, sizeof(hash)), k);
+	}
+
 	sl_bool ECDSA::verify(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature) noexcept
 	{
 		if (!(key.checkValid(curve))) {
@@ -1162,9 +1236,23 @@ namespace slib
 	{
 		sl_uint8 hash[SHA256::HashSize];
 		SHA256::hash(data, size, hash);
-		return verify(curve, key, priv::ecdsa::MakeZ(curve, hash, SHA256::HashSize), signature);
+		return verify(curve, key, priv::ecdsa::MakeZ(curve, hash, sizeof(hash)), signature);
 	}
-	
+
+	sl_bool ECDSA::verify_SHA384(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature) noexcept
+	{
+		sl_uint8 hash[SHA384::HashSize];
+		SHA384::hash(data, size, hash);
+		return verify(curve, key, priv::ecdsa::MakeZ(curve, hash, sizeof(hash)), signature);
+	}
+
+	sl_bool ECDSA::verify_SHA512(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature) noexcept
+	{
+		sl_uint8 hash[SHA512::HashSize];
+		SHA512::hash(data, size, hash);
+		return verify(curve, key, priv::ecdsa::MakeZ(curve, hash, sizeof(hash)), signature);
+	}
+
 	BigInt ECDH::getSharedKey(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote) noexcept
 	{
 		if (!(keyRemote.checkValid(curve))) {

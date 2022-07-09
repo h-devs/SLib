@@ -20,61 +20,52 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_HEADER
-#define CHECKHEADER_SLIB_CRYPTO_HEADER
+#ifndef CHECKHEADER_SLIB_CRYPTO_CERTIFICATE
+#define CHECKHEADER_SLIB_CRYPTO_CERTIFICATE
 
-// Hash, Checksum
-#include "crypto/hash.h"
-#include "crypto/md5.h"
-#include "crypto/sha1.h"
-#include "crypto/sha2.h"
-#include "crypto/sha3.h"
-#include "crypto/crc32.h"
+#include "rsa.h"
+#include "ecc.h"
 
-// Block Cipher
-#include "crypto/block_cipher.h"
-#include "crypto/aes.h"
-#include "crypto/blowfish.h"
-#include "crypto/des.h"
-#include "crypto/gcm.h"
+namespace slib
+{
 
-// Stream Cipher
-#include "crypto/rc4.h"
-#include "crypto/chacha.h"
+	class SLIB_EXPORT PublicKey
+	{
+	public:
+		RSAPublicKey rsa;
+		ECPublicKeyWithCurve ecc;
 
-// Message authentication code
-#include "crypto/hmac.h"
-#include "crypto/poly1305.h"
+	public:
+		PublicKey();
 
-// Public-key cryptosystems
-#include "crypto/rsa.h"
-#include "crypto/ecc.h"
-#include "crypto/dh.h"
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PublicKey)
 
-// Key Derivation Function
-#include "crypto/pbkdf.h"
+	public:
+		sl_bool isRSA() const noexcept;
 
-// Transport Protocol
-#include "crypto/tls.h"
+		sl_bool isECC() const noexcept;
 
-// Key File
-#include "crypto/x509.h"
+	};
 
-// Compression
-#include "crypto/compress.h"
-#include "crypto/zlib.h"
-#include "crypto/lzw.h"
-#include "crypto/zstd.h"
-#include "crypto/brotli.h"
+	class SLIB_EXPORT PrivateKey
+	{
+	public:
+		RSAPrivateKey rsa;
+		ECPrivateKeyWithCurve ecc;
 
-// Other
-#include "crypto/base64.h"
-#include "crypto/jwt.h"
+	public:
+		PrivateKey();
 
-// Third-party
-#include "crypto/openssl.h"
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PrivateKey)
 
-#include "crypto/json.h"
-#include "crypto/serialize.h"
+	public:
+		sl_bool isRSA() const noexcept;
+
+		sl_bool isECC() const noexcept;
+
+	};
+
+}
 
 #endif
+

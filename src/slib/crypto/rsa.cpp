@@ -32,7 +32,12 @@ namespace slib
 	{
 	}
 
-	sl_uint32 RSAPublicKey::getLength() const
+	sl_bool RSAPublicKey::isDefined() const noexcept
+	{
+		return N.isNotNull() && E.isNotNull();
+	}
+
+	sl_uint32 RSAPublicKey::getLength() const noexcept
 	{
 		return (sl_uint32)(N.getMostSignificantBytes());
 	}
@@ -43,8 +48,13 @@ namespace slib
 	RSAPrivateKey::RSAPrivateKey(): flagUseOnlyD(sl_false)
 	{
 	}
-	
-	void RSAPrivateKey::generate(sl_uint32 nBits)
+
+	sl_bool RSAPrivateKey::isDefined() const noexcept
+	{
+		return RSAPublicKey::isDefined() && D.isNotNull();
+	}
+
+	void RSAPrivateKey::generate(sl_uint32 nBits) noexcept
 	{
 		sl_uint32 h = nBits >> 1;
 		nBits = h << 1;
@@ -57,7 +67,7 @@ namespace slib
 		}
 	}
 	
-	sl_bool RSAPrivateKey::generateFromPrimes(sl_uint32 nBits)
+	sl_bool RSAPrivateKey::generateFromPrimes(sl_uint32 nBits) noexcept
 	{
 		sl_uint32 h = nBits >> 1;
 		if (h > 100) {
