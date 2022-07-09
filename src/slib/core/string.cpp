@@ -31,6 +31,7 @@
 #include "slib/core/json.h"
 #include "slib/core/locale.h"
 #include "slib/core/time_zone.h"
+#include "slib/math/bigint.h"
 
 #define EMPTY_SZ(CHAR_TYPE) ((CHAR_TYPE*)"\0\0\0\0")
 
@@ -3551,6 +3552,13 @@ namespace slib
 													content = FromInt<sl_int32, CHAR>(arg.getInt32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 												} else if (arg.isUint64()) {
 													content = FromUint<sl_uint64, CHAR>(arg.getUint64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
+												} else if (arg.isInt64()) {
+													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+												} else if (arg.isBigInt()) {
+													content = STRING::from(arg.getBigInt().toString(radix));
+													if (!flagUpperCase) {
+														content.makeLower();
+													}
 												} else {
 													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 												}
