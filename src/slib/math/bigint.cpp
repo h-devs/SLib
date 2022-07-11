@@ -992,7 +992,7 @@ namespace slib
 		return 0;
 	}
 
-	String CBigInt::toString(sl_uint32 radix) const noexcept
+	String CBigInt::toString(sl_uint32 radix, sl_bool flagUpperCase) const noexcept
 	{
 		if (radix < 2 || radix > 64) {
 			return sl_null;
@@ -1024,13 +1024,14 @@ namespace slib
 					if (vh < 10) {
 						buf[i] = (sl_char8)(vh + 0x30);
 					} else {
-						buf[i] = (sl_char8)(vh + 0x37);
+						buf[i] = (sl_char8)(vh + flagUpperCase ? 0x37 : 0x57);
 					}
 					ih--;
 				}
 			}
 			return ret;
 		} else {
+			const char* pattern = flagUpperCase ? priv::string::g_conv_radixPatternUpper : priv::string::g_conv_radixPatternLower;
 			sl_size ne = (nb + 31) >> 5;
 			sl_size n = (sl_size)(Math::ceil((nb + 1) / Math::log2((double)radix))) + 1;
 			SLIB_SCOPED_BUFFER(sl_uint32, STACK_BUFFER_SIZE, a, ne);
@@ -1049,7 +1050,7 @@ namespace slib
 				sl_uint32 v = priv::bigint::Div_uint32(a, a, ne, radix, 0);
 				ne = priv::bigint::Mse(a, ne);
 				if (v < radix) {
-					*s = priv::string::g_conv_radixPatternUpper[v];
+					*s = pattern[v];
 				} else {
 					*s = '?';
 				}
@@ -1070,9 +1071,9 @@ namespace slib
 		return toString(10);
 	}
 
-	String CBigInt::toHexString() const noexcept
+	String CBigInt::toHexString(sl_bool flagUpperCase) const noexcept
 	{
-		return toString(16);
+		return toString(16, flagUpperCase);
 	}
 
 	sl_bool CBigInt::equals(const CBigInt& other) const noexcept
@@ -3495,19 +3496,19 @@ namespace slib
 		return 0;
 	}
 
-	String BigInt::toString(sl_uint32 radix) const noexcept
+	String BigInt::toString(sl_uint32 radix, sl_bool flagUpperCase) const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			return o->toString(radix);
+			return o->toString(radix, flagUpperCase);
 		} else {
 			SLIB_RETURN_STRING("0");
 		}
 	}
 
-	String BigInt::toHexString() const noexcept
+	String BigInt::toHexString(sl_bool flagUpperCase) const noexcept
 	{
-		return toString(16);
+		return toString(16, flagUpperCase);
 	}
 
 	sl_bool BigInt::equals(const BigInt& other) const noexcept

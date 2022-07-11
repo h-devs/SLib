@@ -168,11 +168,11 @@ namespace slib
 
 		double getDouble() const noexcept;
 
-		String toString(sl_uint32 radix) const noexcept;
+		String toString(sl_uint32 radix, sl_bool flagUpperCase = sl_true) const noexcept;
 
 		String toString() override;
 
-		String toHexString() const noexcept;
+		String toHexString(sl_bool flagUpperCase = sl_true) const noexcept;
 
 
 		sl_bool equals(const CBigInt& other) const noexcept;
@@ -563,9 +563,9 @@ namespace slib
 
 		double getDouble() const noexcept;
 
-		String toString(sl_uint32 radix = 10) const noexcept;
+		String toString(sl_uint32 radix = 10, sl_bool flagUpperCase = sl_true) const noexcept;
 
-		String toHexString() const noexcept;
+		String toHexString(sl_bool flagUpperCase = sl_true) const noexcept;
 
 		
 		sl_bool equals(const BigInt& other) const noexcept;
