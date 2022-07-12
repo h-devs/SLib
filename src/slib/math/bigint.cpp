@@ -1024,7 +1024,7 @@ namespace slib
 					if (vh < 10) {
 						buf[i] = (sl_char8)(vh + 0x30);
 					} else {
-						buf[i] = (sl_char8)(vh + flagUpperCase ? 0x37 : 0x57);
+						buf[i] = (sl_char8)(vh + (flagUpperCase ? 0x37 : 0x57));
 					}
 					ih--;
 				}
