@@ -3555,10 +3555,7 @@ namespace slib
 												} else if (arg.isInt64()) {
 													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 												} else if (arg.isBigInt()) {
-													content = STRING::from(arg.getBigInt().toString(radix));
-													if (!flagUpperCase) {
-														content.makeLower();
-													}
+													content = STRING::from(arg.getBigInt().toString(radix, flagUpperCase));
 												} else {
 													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 												}
