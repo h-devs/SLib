@@ -92,7 +92,8 @@ namespace slib
 	public:
 		sl_uint32 version;
 		BigInt serialNumber;					// 80 bit
-		String signatureAlgorithm;
+		sl_uint32 signatureAlgorithm;
+		BigInt signature;
 		Time validFrom;
 		Time validTo;
 		HashMap<X509SubjectKey, String> subject;

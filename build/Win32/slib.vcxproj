@@ -163,6 +163,7 @@
     <ClCompile Include="..\..\src\slib\crypto\chacha.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\compress.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\lzw.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\pkcs12.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\sha3.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\x509.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\zlib.cpp" />

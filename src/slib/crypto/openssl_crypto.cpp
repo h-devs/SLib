@@ -31,6 +31,8 @@
 #include "openssl/rand.h"
 #include "openssl/ec.h"
 #include "openssl/x509v3.h"
+#include "openssl/asn1.h"
+#include "openssl/pkcs12.h"
 #include "openssl/evp.h"
 #include "openssl/pem.h"
 
@@ -865,6 +867,26 @@ namespace slib
 					AUTHORITY_INFO_ACCESS_free(authInfo);
 				}
 			}
+
+			static sl_bool Get_X509_Signature(X509& _out, ::X509* handle)
+			{
+				const X509_ALGOR* algorithm;
+				ASN1_BIT_STRING* bitString = ASN1_BIT_STRING_new();
+				X509_get0_signature((const ASN1_BIT_STRING**)&bitString, &algorithm, handle);
+
+				if (!bitString) {
+					ASN1_BIT_STRING_free(bitString);
+					return sl_false;
+				}
+				if (!algorithm) {
+					return sl_false;
+				}
+
+				_out.signatureAlgorithm = OBJ_obj2nid(algorithm->algorithm);
+				_out.signature = BigInt::fromBytesLE(bitString->data, bitString->length);
+				ASN1_BIT_STRING_free(bitString);
+				return sl_true;
+			}
 			
 			static sl_bool Get_X509(X509& _out, ::X509* handle)
 			{
@@ -873,11 +895,8 @@ namespace slib
 				}
 				_out.version = (sl_uint32)(X509_get_version(handle));
 				_out.serialNumber = Get_BigInt_from_ASN1_INTEGER(X509_get0_serialNumber(handle));
-				const X509_ALGOR* algorithm;
-				X509_get0_signature(sl_null, &algorithm, handle);
-				if (algorithm) {
-					_out.signatureAlgorithm = Get_String_from_ASN1_OBJECT(algorithm->algorithm);
-				}
+				
+				Get_X509_Signature(_out, handle);
 				_out.subject = Get_Map_from_X509_NAME<X509SubjectKey>(X509_get_subject_name(handle));
 				_out.issuer = Get_Map_from_X509_NAME<X509SubjectKey>(X509_get_issuer_name(handle));
 				_out.validFrom = Get_Time_from_ASN1_TIME(X509_get0_notBefore(handle));
@@ -999,6 +1018,7 @@ namespace slib
 						X509_set_subject_name(handle, subject);
 						X509_NAME_free(subject);
 						X509_NAME* issuer = Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.issuer);
+						
 						if (issuer) {
 							X509_set_issuer_name(handle, issuer);
 							X509_NAME_free(issuer);
@@ -1019,7 +1039,7 @@ namespace slib
 				return sl_null;
 			}
 
-			static Memory Save_X509(::X509* handle)
+			static Memory Get_Memory_from_X509(::X509* handle)
 			{
 				sl_int32 size = (sl_int32)(i2d_X509(handle, sl_null));
 				if (size > 0) {
@@ -1027,6 +1047,21 @@ namespace slib
 					if (ret.isNotNull()) {
 						unsigned char* buf = (unsigned char*)(ret.getData());
 						if (i2d_X509(handle, &buf) == size) {
+							return ret;
+						}
+					}
+				}
+				return sl_null;
+			}
+
+			static Memory Save_P12(::PKCS12* handle)
+			{
+				sl_int32 size = (sl_int32)(i2d_PKCS12(handle, sl_null));
+				if (size > 0) {
+					Memory ret = Memory::create(size);
+					if (ret.isNotNull()) {
+						unsigned char* buf = (unsigned char*)(ret.getData());
+						if (i2d_PKCS12(handle, &buf) == size) {
 							return ret;
 						}
 					}
@@ -1042,7 +1077,7 @@ namespace slib
 					::X509* handle = Get_X509_Handle(cert);
 					if (handle) {
 						if (X509_sign(handle, key, md)) {
-							ret = Save_X509(handle);
+							ret = Get_Memory_from_X509(handle);
 						}
 						X509_free(handle);
 					}
@@ -1051,7 +1086,6 @@ namespace slib
 				}
 				return sl_null;
 			}
-
 
 			static int Do_Sign_Init(EVP_MD_CTX *ctx, EVP_PKEY *pkey, const EVP_MD *md)
 			{
@@ -1119,7 +1153,7 @@ namespace slib
 										X509_set_version(handleCert, 2); /* version 3 certificate */
 										X509V3_set_ctx(&ctx2, handleIssuer, handleCert, NULL, NULL, 0);
 										if (Do_X509_Sign(handleCert, _issuerKey, md)) {
-											ret = Save_X509(handleCert);
+											ret = Get_Memory_from_X509(handleCert);
 										}
 									}
 								}
@@ -1609,6 +1643,93 @@ namespace slib
 		return loadX509(_out, mem.getData(), mem.getSize());
 	}
 
+	Memory OpenSSL::generatePKCS12(const PKCS12& p12, const StringParam& name, const StringParam& password)
+	{
+		StringCstr strPassword(password);
+		StringCstr strName(name);
+		stack_st_X509 *certificates = sk_X509_new_null();
+		::X509* mainCert = sl_null;
+
+		EVP_PKEY* pKey = Get_EVP_PKEY_from_PrivateKey(p12.key);
+		if (pKey) {
+			if (certificates) {
+				for (auto certificate : p12.certificates) {
+					const sl_uint8* buf = (const sl_uint8*)certificate.getData();
+					sl_int32 size = certificate.getSize();
+					::X509* handle = d2i_X509(sl_null, &buf, (long)size);
+					if (handle) {
+						sk_X509_push(certificates, handle);
+					}
+				}
+				for (sl_int32 i = 0; i < sk_X509_num(certificates); i++) {
+					::X509* handle = sk_X509_value(certificates, i);
+					if (X509_check_private_key(handle, pKey)) {
+						mainCert = handle;
+						/* Zero keyid and alias */
+						X509_keyid_set1(mainCert, NULL, 0);
+						X509_alias_set1(mainCert, NULL, 0);
+						/* Remove from list */
+						(void)sk_X509_delete(certificates, i);
+						break;
+					}
+				}
+				if (mainCert) {
+					::PKCS12* p12 = PKCS12_create(strPassword.getData(), strName.getData(), pKey, mainCert, certificates, 0, 0, 0, 0, 0);
+					if (p12) {
+						Memory ret = Save_P12(p12);
+						sk_X509_free(certificates);
+						EVP_PKEY_free(pKey);
+						return ret;
+					}
+				}
+				sk_X509_free(certificates);
+			}
+			EVP_PKEY_free(pKey);
+		}
+		return sl_null;
+	}
+
+
+	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& password)
+	{
+		PKCS12 ret;
+		EVP_PKEY *pKey = sl_null;
+		stack_st_X509 *certificates = sl_null;
+		StringCstr str(password);
+		::PKCS12 *p12 = d2i_PKCS12(sl_null, (const unsigned char**)&content, size);
+
+		if (p12 && PKCS12_parse(p12, str.getData(), &pKey, sl_null, &certificates)) {
+			if (!Get_PrivateKey_from_EVP_PKEY(ret.key, pKey)) {
+				PKCS12_free(p12);
+				return sl_false;
+			}
+			if (certificates) {
+				for (sl_int32 i = 0; i < sk_X509_num(certificates); i++) {
+					::X509 *handleCert = sk_X509_value(certificates, i);
+					Memory cert = Get_Memory_from_X509(handleCert);
+					ret.certificates.add(cert);
+				}
+				PKCS12_free(p12);
+				return sl_true;
+			}
+			PKCS12_free(p12);
+		}
+
+		PKCS12_free(p12);
+		return sl_false;
+	}
+
+	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password)
+	{
+		return loadPKCS12(_out, memory.getData(), memory.getSize(), password);
+	}
+
+	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password)
+	{
+		Memory mem = File::readAllBytes(filePath);
+		return loadPKCS12(_out, mem.getData(), mem.getSize(), password);
+	}
+
 	Memory OpenSSL::signX509_SHA256(const X509& cert, const PrivateKey& issuerKey)
 	{
 		return Sign_X509(cert, issuerKey, EVP_sha256());
@@ -1638,4 +1759,11 @@ namespace slib
 	{
 		return Cert_X509(cert, issuer, issuerKey, EVP_sha512());
 	}
+
+	Memory OpenSSL::generateX509(const X509& cert)
+	{
+		::X509* handle = Get_X509_Handle(cert);
+		return Get_Memory_from_X509(handle);
+	}
+
 }

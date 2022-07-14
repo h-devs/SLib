@@ -25,6 +25,7 @@
 
 #include "tls.h"
 #include "x509.h"
+#include "pkcs12.h"
 #include "block_cipher.h"
 
 struct ssl_ctx_st;
@@ -317,6 +318,12 @@ namespace slib
 
 		static sl_bool loadX509File(X509& _out, const StringParam& filePath);
 
+		static sl_bool loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& password);
+
+		static sl_bool loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password);
+
+		static sl_bool loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password);
+
 		static Memory signX509_SHA256(const X509& cert, const PrivateKey& issuerKey);
 
 		static Memory signX509_SHA384(const X509& cert, const PrivateKey& issuerKey);
@@ -328,6 +335,10 @@ namespace slib
 		static Memory certX509_SHA384(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
 
 		static Memory certX509_SHA512(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
+
+		static Memory generatePKCS12(const PKCS12& p12, const StringParam& name, const StringParam& password);
+
+		static Memory generateX509(const X509& cert);
 	};
 
 }
