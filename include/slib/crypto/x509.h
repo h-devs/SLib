@@ -52,6 +52,35 @@ namespace slib
 		TelephoneNumber = 864
 	};
 
+	enum class X509ExtensionKey 
+	{
+		AuthorityKeyIdentifier = 90,
+		AuthorityInfoAccess = 177,
+		CertificatePolicies = 89,
+		SubjectKeyIdentifier = 82,
+		BasicConstraints = 87,
+		ExtendedKeyUsage = 126,
+		KeyUsage = 83
+	};
+
+	enum class PolicyQualifierID
+	{
+		Qualifier_CPS = 164,
+		Qualifier_User_Notice = 165
+	};
+
+	struct X509Policy 
+	{
+		String identifier;
+		HashMap<PolicyQualifierID, String> qualifiers;
+	};
+	struct X509AuthorityInformation
+	{
+		String generalName;
+		sl_int32 method;
+		sl_int32 generalNameType;
+	};
+
 	// .cer file format
 	class SLIB_EXPORT X509
 	{
@@ -62,13 +91,23 @@ namespace slib
 
 	public:
 		sl_uint32 version;
-		BigInt serialNumber;
+		BigInt serialNumber;					// 80 bit
 		String signatureAlgorithm;
 		Time validFrom;
 		Time validTo;
 		HashMap<X509SubjectKey, String> subject;
 		HashMap<X509SubjectKey, String> issuer;
 		PublicKey key;
+
+		BigInt authKeyId;						// 160 bit
+		BigInt subjectKeyId;					// 160 bit
+		List<sl_int32> usages;					// NID_email_protect, NID_client_auth
+		String keyUsage;						// KU_DIGITAL_SIGNATURE ||
+		sl_int32 basicCA;						// BASIC_CONSTRAINTS -> ca
+
+		List<X509Policy> certPolicies;
+		List<X509AuthorityInformation> authorityInfo;
+		
 
 	public:
 		sl_bool load(const void* content, sl_size size);

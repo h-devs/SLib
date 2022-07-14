@@ -323,6 +323,11 @@ namespace slib
 
 		static Memory signX509_SHA512(const X509& cert, const PrivateKey& issuerKey);
 
+		static Memory certX509_SHA256(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
+
+		static Memory certX509_SHA384(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
+
+		static Memory certX509_SHA512(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
 	};
 
 }
