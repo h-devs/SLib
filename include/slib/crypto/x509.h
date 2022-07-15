@@ -92,8 +92,6 @@ namespace slib
 	public:
 		sl_uint32 version;
 		BigInt serialNumber;					// 80 bit
-		sl_uint32 signatureAlgorithm;
-		BigInt signature;
 		Time validFrom;
 		Time validTo;
 		HashMap<X509SubjectKey, String> subject;
@@ -103,7 +101,7 @@ namespace slib
 		BigInt authKeyId;						// 160 bit
 		BigInt subjectKeyId;					// 160 bit
 		List<sl_int32> usages;					// NID_email_protect, NID_client_auth
-		String keyUsage;						// KU_DIGITAL_SIGNATURE ||
+		sl_int32 keyUsage;						// KU_DIGITAL_SIGNATURE ||
 		sl_int32 basicCA;						// BASIC_CONSTRAINTS -> ca
 
 		List<X509Policy> certPolicies;
