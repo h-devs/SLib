@@ -1692,7 +1692,6 @@ namespace slib
 					_out.certificates.add(cert);
 				}
 
-				testP12(pKey, certificates);
 				sk_X509_free(certificates);
 				PKCS12_free(p12);
 				return sl_true;
