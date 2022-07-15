@@ -798,7 +798,8 @@ namespace slib
 
 				ASN1_BIT_STRING *usage = (ASN1_BIT_STRING*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::KeyUsage, NULL, NULL);
 				if (usage) {
-					_out.keyUsage = String::makeHexString(usage->data, usage->length);
+					BigInt keyUsage = BigInt::fromBytesLE(usage->data, usage->length);
+					_out.keyUsage = keyUsage.getInt32();
 					ASN1_BIT_STRING_free(usage);
 				}
 
@@ -868,25 +869,6 @@ namespace slib
 				}
 			}
 
-			static sl_bool Get_X509_Signature(X509& _out, ::X509* handle)
-			{
-				const X509_ALGOR* algorithm;
-				ASN1_BIT_STRING* bitString = ASN1_BIT_STRING_new();
-				X509_get0_signature((const ASN1_BIT_STRING**)&bitString, &algorithm, handle);
-
-				if (!bitString) {
-					ASN1_BIT_STRING_free(bitString);
-					return sl_false;
-				}
-				if (!algorithm) {
-					return sl_false;
-				}
-
-				_out.signatureAlgorithm = OBJ_obj2nid(algorithm->algorithm);
-				_out.signature = BigInt::fromBytesLE(bitString->data, bitString->length);
-				ASN1_BIT_STRING_free(bitString);
-				return sl_true;
-			}
 			
 			static sl_bool Get_X509(X509& _out, ::X509* handle)
 			{
@@ -895,13 +877,12 @@ namespace slib
 				}
 				_out.version = (sl_uint32)(X509_get_version(handle));
 				_out.serialNumber = Get_BigInt_from_ASN1_INTEGER(X509_get0_serialNumber(handle));
-				
-				Get_X509_Signature(_out, handle);
+
 				_out.subject = Get_Map_from_X509_NAME<X509SubjectKey>(X509_get_subject_name(handle));
 				_out.issuer = Get_Map_from_X509_NAME<X509SubjectKey>(X509_get_issuer_name(handle));
 				_out.validFrom = Get_Time_from_ASN1_TIME(X509_get0_notBefore(handle));
 				_out.validTo = Get_Time_from_ASN1_TIME(X509_get0_notAfter(handle));
-
+				
 				Get_X509_Extension(_out, handle);
 				return Get_PublicKey_from_EVP_PKEY(_out.key, X509_get0_pubkey(handle));
 			}
@@ -927,9 +908,9 @@ namespace slib
 
 				ASN1_BIT_STRING* bitString = ASN1_BIT_STRING_new();
 				if (bitString) {
-					Memory mem = Memory::create(in.keyUsage.getLength() / 2);
-					in.keyUsage.parseHexString(mem.getData());
-					ASN1_BIT_STRING_set(bitString, (sl_uint8*)mem.getData(), mem.getSize());
+					BigInt keyUsage = BigInt::fromInt32(in.keyUsage);
+					
+					ASN1_BIT_STRING_set(bitString, (sl_uint8*)keyUsage.getBytesLE().getData(), keyUsage.getBytesLE().getSize());
 					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::KeyUsage, bitString, 1, 0);
 					ASN1_BIT_STRING_free(bitString);
 				}
@@ -953,7 +934,7 @@ namespace slib
 					for (auto policy : in.certPolicies) {
 						POLICYINFO *pinfo = POLICYINFO_new();
 						pinfo->policyid = OBJ_txt2obj(policy.identifier.getData(), 0);
-
+						pinfo->qualifiers = sk_POLICYQUALINFO_new_null();
 						auto qualify = policy.qualifiers.getFirstNode();
 						while (qualify) {
 							POLICYQUALINFO* qualInfo = POLICYQUALINFO_new();
@@ -974,7 +955,9 @@ namespace slib
 
 						sk_POLICYINFO_push(certPolicies, pinfo);
 					}
-					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::CertificatePolicies, certPolicies, 0, 0);
+					if (sk_POLICYINFO_num(certPolicies) > 0) {
+						X509_add1_ext_i2d(handle, (int)X509ExtensionKey::CertificatePolicies, certPolicies, 0, 0);
+					}
 
 					CERTIFICATEPOLICIES_free(certPolicies);
 				}
@@ -996,8 +979,9 @@ namespace slib
 							sk_ACCESS_DESCRIPTION_push(authorityInfo, desc);
 						}
 					}
-
-					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::AuthorityInfoAccess, authorityInfo, 0, 0);
+					if (sk_ACCESS_DESCRIPTION_num(authorityInfo) > 0) {
+						X509_add1_ext_i2d(handle, (int)X509ExtensionKey::AuthorityInfoAccess, authorityInfo, 0, 0);
+					}
 					AUTHORITY_INFO_ACCESS_free(authorityInfo);
 				}
 			}
@@ -1041,12 +1025,12 @@ namespace slib
 
 			static Memory Get_Memory_from_X509(::X509* handle)
 			{
-				sl_int32 size = (sl_int32)(i2d_X509(handle, sl_null));
+				sl_int32 size = (sl_int32)(i2d_X509_AUX(handle, sl_null));
 				if (size > 0) {
 					Memory ret = Memory::create(size);
 					if (ret.isNotNull()) {
 						unsigned char* buf = (unsigned char*)(ret.getData());
-						if (i2d_X509(handle, &buf) == size) {
+						if (i2d_X509_AUX(handle, &buf) == size) {
 							return ret;
 						}
 					}
@@ -1146,7 +1130,8 @@ namespace slib
 								if (X509_STORE_set_default_paths(ctx)) {
 									if (X509_STORE_CTX_init(xsc, ctx, handleCert, NULL)) {
 										X509_STORE_CTX_set_cert(xsc, handleCert);
-										X509_STORE_CTX_set_flags(xsc, X509_V_FLAG_CHECK_SS_SIGNATURE);
+										X509_STORE_set_trust(ctx, 1);
+										//X509_STORE_CTX_set_flags(xsc, X509_V_FLAG_CHECK_SS_SIGNATURE);
 										X509_verify_cert(xsc);
 
 										X509V3_CTX ctx2;
@@ -1623,7 +1608,7 @@ namespace slib
 	sl_bool OpenSSL::loadX509(X509& _out, const void* content, sl_size size)
 	{
 		const sl_uint8* buf = (sl_uint8*)content;
-		::X509* handle = d2i_X509(sl_null, &buf, (long)size);
+		::X509* handle = d2i_X509_AUX(sl_null, &buf, (long)size);
 		if (handle) {
 			sl_bool bRet = Get_X509(_out, handle);
 			X509_free(handle);
@@ -1658,29 +1643,27 @@ namespace slib
 					sl_int32 size = certificate.getSize();
 					::X509* handle = d2i_X509(sl_null, &buf, (long)size);
 					if (handle) {
+						if (X509_check_private_key(handle, pKey)) {
+							mainCert = handle;
+							X509_keyid_set1(mainCert, NULL, 0);
+							X509_alias_set1(mainCert, NULL, 0);
+							continue;
+						}
 						sk_X509_push(certificates, handle);
 					}
 				}
-				for (sl_int32 i = 0; i < sk_X509_num(certificates); i++) {
-					::X509* handle = sk_X509_value(certificates, i);
-					if (X509_check_private_key(handle, pKey)) {
-						mainCert = handle;
-						/* Zero keyid and alias */
-						X509_keyid_set1(mainCert, NULL, 0);
-						X509_alias_set1(mainCert, NULL, 0);
-						/* Remove from list */
-						(void)sk_X509_delete(certificates, i);
-						break;
-					}
-				}
+				
 				if (mainCert) {
 					::PKCS12* p12 = PKCS12_create(strPassword.getData(), strName.getData(), pKey, mainCert, certificates, 0, 0, 0, 0, 0);
 					if (p12) {
 						Memory ret = Save_P12(p12);
+						X509_free(mainCert);
+						PKCS12_free(p12);
 						sk_X509_free(certificates);
 						EVP_PKEY_free(pKey);
 						return ret;
 					}
+					X509_free(mainCert);
 				}
 				sk_X509_free(certificates);
 			}
@@ -1692,14 +1675,13 @@ namespace slib
 
 	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& password)
 	{
-		PKCS12 ret;
 		EVP_PKEY *pKey = sl_null;
 		stack_st_X509 *certificates = sl_null;
 		StringCstr str(password);
 		::PKCS12 *p12 = d2i_PKCS12(sl_null, (const unsigned char**)&content, size);
 
 		if (p12 && PKCS12_parse(p12, str.getData(), &pKey, sl_null, &certificates)) {
-			if (!Get_PrivateKey_from_EVP_PKEY(ret.key, pKey)) {
+			if (!Get_PrivateKey_from_EVP_PKEY(_out.key, pKey)) {
 				PKCS12_free(p12);
 				return sl_false;
 			}
@@ -1707,8 +1689,11 @@ namespace slib
 				for (sl_int32 i = 0; i < sk_X509_num(certificates); i++) {
 					::X509 *handleCert = sk_X509_value(certificates, i);
 					Memory cert = Get_Memory_from_X509(handleCert);
-					ret.certificates.add(cert);
+					_out.certificates.add(cert);
 				}
+
+				testP12(pKey, certificates);
+				sk_X509_free(certificates);
 				PKCS12_free(p12);
 				return sl_true;
 			}
