@@ -51,14 +51,15 @@
 #include "crypto/ecc.h"
 #include "crypto/dh.h"
 
+#include "crypto/certificate.h"
+#include "crypto/x509.h"
+#include "crypto/pkcs12.h"
+
 // Key Derivation Function
 #include "crypto/pbkdf.h"
 
 // Transport Protocol
 #include "crypto/tls.h"
-
-// Key File
-#include "crypto/x509.h"
 
 // Compression
 #include "crypto/compress.h"

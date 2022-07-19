@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,15 @@
 
 #include "../core/time.h"
 #include "../core/hash_map.h"
+#include "../core/flags.h"
+
+/*
+
+	.cer file format
+
+	X.509 is a standard that defines the format of public key certificates.
+
+*/
 
 namespace slib
 {
@@ -52,36 +61,69 @@ namespace slib
 		TelephoneNumber = 864
 	};
 
-	enum class X509ExtensionKey 
+	// OpenSSL NID
+	enum class X509EnhancedKeyUsage
 	{
-		AuthorityKeyIdentifier = 90,
-		AuthorityInfoAccess = 177,
-		CertificatePolicies = 89,
-		SubjectKeyIdentifier = 82,
-		BasicConstraints = 87,
-		ExtendedKeyUsage = 126,
-		KeyUsage = 83
+		EmailProtect = 132,
+		ClientAuthentication = 130,
+		AnyExtendedKeyUsage = 910
 	};
 
-	enum class PolicyQualifierID
+	// OpenSSL NID
+	enum class X509AuthorityInformationAccessMethod
 	{
-		Qualifier_CPS = 164,
-		Qualifier_User_Notice = 165
+		
 	};
 
-	struct X509Policy 
+	enum class X509AuthorityInformationLocationType
 	{
+		Unknown = 0,
+		Email = 1,
+		DNS = 2,
+		URI = 3
+	};
+
+	SLIB_DEFINE_FLAGS(X509KeyUsages, {
+		Default = 0,
+		EncipherOnly = 1,
+		ControlSign = 2,
+		KeyCertificateSign = 4,
+		KeyAgreement = 8,
+		DataEncipherment = 0x10,
+		KeyEncipherment = 0x20,
+		NonRepudiation = 0x40,
+		DigitalSignature = 0x80,
+		DecipherOnly = 0x8000
+	})
+
+	class SLIB_EXPORT X509CertificatePolicy
+	{
+	public:
 		String identifier;
-		HashMap<PolicyQualifierID, String> qualifiers;
-	};
-	struct X509AuthorityInformation
-	{
-		String generalName;
-		sl_int32 method;
-		sl_int32 generalNameType;
+		String userNotice;
+		String CPS;
+
+	public:
+		X509CertificatePolicy();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(X509CertificatePolicy)
+
 	};
 
-	// .cer file format
+	class SLIB_EXPORT X509AuthorityInformation
+	{
+	public:
+		X509AuthorityInformationAccessMethod method;
+		X509AuthorityInformationLocationType type;
+		String value;
+
+	public:
+		X509AuthorityInformation();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(X509AuthorityInformation)
+
+	};
+
 	class SLIB_EXPORT X509
 	{
 	public:
@@ -90,23 +132,25 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(X509)
 
 	public:
+		// Version 1 Fields
 		sl_uint32 version;
-		BigInt serialNumber;					// 80 bit
+		BigInt serialNumber;
 		Time validFrom;
 		Time validTo;
 		HashMap<X509SubjectKey, String> subject;
 		HashMap<X509SubjectKey, String> issuer;
 		PublicKey key;
 
-		BigInt authKeyId;						// 160 bit
-		BigInt subjectKeyId;					// 160 bit
-		List<sl_int32> usages;					// NID_email_protect, NID_client_auth
-		sl_int32 keyUsage;						// KU_DIGITAL_SIGNATURE ||
-		sl_int32 basicCA;						// BASIC_CONSTRAINTS -> ca
+		// Extensions
+		BigInt authorityKeyId;
+		BigInt subjectKeyId;
+		List<X509CertificatePolicy> policies;
+		List<X509AuthorityInformation> authorityInformations;
+		List<X509EnhancedKeyUsage> enhancedKeyUsages;
 
-		List<X509Policy> certPolicies;
-		List<X509AuthorityInformation> authorityInfo;
-		
+		// Critical Extensions
+		X509KeyUsages keyUsages;
+		sl_bool flagEndEntity;
 
 	public:
 		sl_bool load(const void* content, sl_size size);

@@ -97,6 +97,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/base64.cpp"
  "${SLIB_PATH}/src/slib/crypto/block_cipher.cpp"
  "${SLIB_PATH}/src/slib/crypto/blowfish.cpp"
+ "${SLIB_PATH}/src/slib/crypto/certificate.cpp"
  "${SLIB_PATH}/src/slib/crypto/chacha.cpp"
  "${SLIB_PATH}/src/slib/crypto/compress.cpp"
  "${SLIB_PATH}/src/slib/crypto/crc32c.cpp"
@@ -117,7 +118,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/sha2.cpp"
  "${SLIB_PATH}/src/slib/crypto/sha3.cpp"
  "${SLIB_PATH}/src/slib/crypto/tls.cpp"
- "${SLIB_PATH}/src/slib/crypto/x509.cpp"
  "${SLIB_PATH}/src/slib/crypto/zlib.cpp"
  "${SLIB_PATH}/src/slib/crypto/zstd.cpp"
 

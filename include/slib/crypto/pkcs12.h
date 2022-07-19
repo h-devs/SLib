@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,22 @@
 #define CHECKHEADER_SLIB_CRYPTO_PKCS12
 
 #include "certificate.h"
-#include "./x509.h"
-#include "../core/time.h"
-#include "../core/hash_map.h"
+
+#include "../core/memory.h"
+#include "../core/list.h"
+
+/*
+
+	.p12 file format
+
+	PKCS #12 defines an archive file format for storing many cryptography objects as a single file.
+	It is commonly used to bundle a private key with its X.509 certificate or to bundle all the members of a chain of trust.
+
+*/
 
 namespace slib
 {
-	// .p12 file format
+
 	class SLIB_EXPORT PKCS12
 	{
 	public:
@@ -39,9 +48,9 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PKCS12)
 
 	public:
-		
-		List<Memory> certificates;
 		PrivateKey key;
+		List<Memory> certificates;
+		String friendlyName;
 
 	public:
 		sl_bool load(const void* content, sl_size size);

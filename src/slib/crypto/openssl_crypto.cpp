@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include "slib/crypto/sha2.h"
 #include "slib/core/file.h"
 #include "slib/core/time_zone.h"
+#include "slib/core/handle_container.h"
 #include "slib/core/scoped_buffer.h"
 
 #include "openssl/aes.h"
@@ -47,13 +48,37 @@ namespace slib
 		{
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-			void initThread();
+			void InitThread();
 #else
-			static void initThread()
+			static void InitThread()
 			{
 			}
 #endif
-		
+
+			class SLIB_EXPORT X509_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(X509_Handle, ::X509*, handle, sl_null, X509_free)
+			};
+
+			class SLIB_EXPORT Stack_X509_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(Stack_X509_Handle, stack_st_X509*, handle, sl_null, sk_X509_free)
+			};
+
+			class SLIB_EXPORT PKCS12_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(PKCS12_Handle, ::PKCS12*, handle, sl_null, PKCS12_free)
+			};
+
+			class SLIB_EXPORT EVP_PKEY_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EVP_PKEY_Handle, EVP_PKEY*, handle, sl_null, EVP_PKEY_free)
+			};
+
 			static Memory Generate_RSA_Signature(EVP_PKEY* key, const EVP_MD* md, const void* data, sl_size size)
 			{
 				unsigned int len = EVP_PKEY_size(key);
@@ -215,7 +240,38 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
+			static ::EC_GROUP* Get_EC_GROUP_from_EllipticCurve(const EllipticCurve& curve)
+			{
+				if (curve.id != EllipticCurveId::Unknown) {
+					EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curve.id);
+					if (group) {
+						return group;
+					}
+					return sl_null;
+				}
+				BIGNUM* p = Get_BIGNUM_from_BigInt(curve.p);
+				if (p) {
+					BIGNUM* a = Get_BIGNUM_from_BigInt(curve.a);
+					if (a) {
+						BIGNUM* b = Get_BIGNUM_from_BigInt(curve.b);
+						if (b) {
+							::EC_GROUP* ec_group = EC_GROUP_new_curve_GFp(p, a, b, sl_null);
+							if (ec_group) {
+								BN_free(p);
+								BN_free(a);
+								BN_free(b);
+								return ec_group;
+							}
+							BN_free(b);
+						}
+						BN_free(a);
+					}
+					BN_free(p);
+				}
+				return sl_null;
+			}
+
 			static ECPoint Get_ECPoint_from_EC_POINT(const EC_GROUP* group, const EC_POINT* pt)
 			{
 				ECPoint ret;
@@ -322,11 +378,11 @@ namespace slib
 				return sl_null;
 			}
 			
-			static ECDSA_Signature Do_sign_ECDSA(EllipticCurveId curveId, const ECPrivateKey& key, const void* hash, sl_size size)
+			static ECDSA_Signature Do_sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size)
 			{
-				initThread();
+				InitThread();
 				ECDSA_Signature ret;
-				EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curveId);
+				EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
 				if (group) {
 					EC_KEY* ek = Get_EC_KEY_from_ECPrivateKey(group, key);
 					if (ek) {
@@ -349,11 +405,11 @@ namespace slib
 				return ret;
 			}
 			
-			static sl_bool Do_verify_ECDSA(EllipticCurveId curveId, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& _sig)
+			static sl_bool Do_verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& _sig)
 			{
-				initThread();
+				InitThread();
 				sl_bool flagVerified = sl_false;
-				EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curveId);
+				EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
 				if (group) {
 					EC_KEY* ek = Get_EC_KEY_from_ECPublicKey(group, key);
 					if (ek) {
@@ -412,7 +468,7 @@ namespace slib
 			{
 				ASN1_STRING *ret = ASN1_STRING_new();
 				if (ret) {
-					ASN1_STRING_set(ret, str.getData(), str.getLength());
+					ASN1_STRING_set(ret, str.getData(), (int)(str.getLength()));
 					return ret;
 				}
 				return sl_null;
@@ -469,7 +525,7 @@ namespace slib
 				ASN1_OCTET_STRING* ret = ASN1_OCTET_STRING_new();
 				Memory mem = num.getBytesBE();
 				if (ret) {
-					ASN1_OCTET_STRING_set(ret, (sl_uint8*)mem.getData(), mem.getSize());
+					ASN1_OCTET_STRING_set(ret, (sl_uint8*)mem.getData(), (int)(mem.getSize()));
 					return ret;
 				}
 				return sl_null;
@@ -583,40 +639,6 @@ namespace slib
 				return sl_false;
 			}
 
-			static ::EC_GROUP* Get_EC_GROUP_from_EllipticCurve(const EllipticCurve& curve)
-			{
-				if (curve.id != EllipticCurveId::Unknown) {
-					EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curve.id);
-					if (group) {
-						return group;
-					}
-					return sl_null;
-				}
-
-				BIGNUM* p = Get_BIGNUM_from_BigInt(curve.p);
-				if (p) {
-					BIGNUM* a = Get_BIGNUM_from_BigInt(curve.a);
-					if (a) {
-						BIGNUM* b = Get_BIGNUM_from_BigInt(curve.b);
-						if (b) {
-							::EC_GROUP* ec_group = EC_GROUP_new_curve_GFp(p, a, b, sl_null);
-							if (ec_group) {
-								BN_free(p);
-								BN_free(a);
-								BN_free(b);
-								return ec_group;
-							}
-							BN_free(b);
-						}
-						BN_free(a);
-					}
-					BN_free(p);
-				}
-				
-				return sl_null;
-			}
-
-
 			static sl_bool Get_ECPublicKeyWithCurve_from_EC_KEY(ECPublicKeyWithCurve& _out, const EC_KEY* ekey)
 			{
 				if (ekey) {
@@ -700,7 +722,6 @@ namespace slib
 				return Get_RSA_from_RSAPublicKey(key, &(key.D));
 			}
 
-
 			static EVP_PKEY* Get_EVP_PKEY_from_RSAPublicKey(const RSAPublicKey& key, const BigInt* D = sl_null)
 			{
 				EVP_PKEY* ret = EVP_PKEY_new();
@@ -758,7 +779,6 @@ namespace slib
 				return Get_EVP_PKEY_from_RSAPublicKey(key, &(key.D));
 			}
 
-			
 			static EVP_PKEY* Get_EVP_PKEY_from_PublicKey(const PublicKey& key)
 			{
 				if (key.isRSA()) {
@@ -779,211 +799,128 @@ namespace slib
 				return sl_null;
 			}
 			
-			static void Get_X509_Extension(X509& _out, ::X509* handle) 
+			static ::X509* Load_X509(const void* content, sl_size size)
 			{
-				BASIC_CONSTRAINTS *bs = (BASIC_CONSTRAINTS*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::BasicConstraints, NULL, NULL);
-				if (bs) {
-					_out.basicCA = bs->ca;
-					BASIC_CONSTRAINTS_free(bs);
+				if (content && size) {
+					const sl_uint8* buf = (sl_uint8*)content;
+					return d2i_X509_AUX(sl_null, &buf, (long)size);
 				}
-
-				EXTENDED_KEY_USAGE *extusage = (EXTENDED_KEY_USAGE*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::ExtendedKeyUsage, NULL, NULL);
-				if (extusage) {
-					for (int i = 0; i < sk_ASN1_OBJECT_num(extusage); i++) {
-						int nid = OBJ_obj2nid(sk_ASN1_OBJECT_value(extusage, i));
-						_out.usages.add_NoLock(nid);
-					}
-					sk_ASN1_OBJECT_pop_free(extusage, ASN1_OBJECT_free);
-				}
-
-				ASN1_BIT_STRING *usage = (ASN1_BIT_STRING*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::KeyUsage, NULL, NULL);
-				if (usage) {
-					BigInt keyUsage = BigInt::fromBytesLE(usage->data, usage->length);
-					_out.keyUsage = keyUsage.getInt32();
-					ASN1_BIT_STRING_free(usage);
-				}
-
-				ASN1_OCTET_STRING* skid = (ASN1_INTEGER*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::SubjectKeyIdentifier, NULL, NULL);
-				if (skid) {
-					_out.subjectKeyId = Get_BigInt_from_ASN1_OCTET_STRING(skid);
-					ASN1_OCTET_STRING_free(skid);
-				}
-
-				AUTHORITY_KEYID *akid = (AUTHORITY_KEYID*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::AuthorityKeyIdentifier, NULL, NULL);
-				if (akid) {
-					_out.authKeyId = Get_BigInt_from_ASN1_OCTET_STRING(akid->keyid);
-					AUTHORITY_KEYID_free(akid);
-				}
-
-				sl_int32 i;
-				CERTIFICATEPOLICIES *ext_cpols = (CERTIFICATEPOLICIES*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::CertificatePolicies, &i, NULL);
-				if (ext_cpols) {
-					POLICYINFO *pinfo;
-
-					for (i = 0; i < sk_POLICYINFO_num(ext_cpols); i++) {
-						pinfo = sk_POLICYINFO_value(ext_cpols, i);
-						X509Policy policy;
-						policy.identifier = Get_String_from_ASN1_OBJECT(pinfo->policyid);
-						POLICYQUALINFO *qualinfo;
-						for (int j = 0; i < sk_POLICYQUALINFO_num(pinfo->qualifiers); i++) {
-							qualinfo = sk_POLICYQUALINFO_value(pinfo->qualifiers, i);
-							PolicyQualifierID nid = (PolicyQualifierID)OBJ_obj2nid(qualinfo->pqualid);
-							if (nid == PolicyQualifierID::Qualifier_CPS) {
-								String str = Get_String_from_ASN1_STRING(qualinfo->d.cpsuri);
-								policy.qualifiers.add(PolicyQualifierID::Qualifier_CPS, str);
-							} else if (nid == PolicyQualifierID::Qualifier_User_Notice) {
-								USERNOTICE *notice = qualinfo->d.usernotice;
-								if (notice) {
-									String str = Get_String_from_ASN1_STRING(notice->exptext);
-									policy.qualifiers.add(PolicyQualifierID::Qualifier_User_Notice, str);
-								}
-								
-							}
-						}
-						_out.certPolicies.add_NoLock(policy);
-					}
-					sk_POLICYINFO_pop_free(ext_cpols, POLICYINFO_free);
-				}
-				
-				AUTHORITY_INFO_ACCESS *authInfo = (AUTHORITY_INFO_ACCESS*)X509_get_ext_d2i(handle, (int)X509ExtensionKey::AuthorityInfoAccess, NULL, NULL);
-				if (authInfo) {
-					ACCESS_DESCRIPTION *desc;
-					for (i = 0; i < sk_ACCESS_DESCRIPTION_num(authInfo); i++) {
-						desc = sk_ACCESS_DESCRIPTION_value(authInfo, i);
-						X509AuthorityInformation info;
-
-						info.method = OBJ_obj2nid(desc->method);
-						info.generalNameType = desc->location->type;
-						info.generalName = "<unsupported>";
-						switch (info.generalNameType) {
-						case GEN_EMAIL:
-						case GEN_DNS:
-						case GEN_URI:
-							info.generalName = Get_String_from_ASN1_STRING(desc->location->d.ia5);
-							break;
-						}
-
-						_out.authorityInfo.add_NoLock(info);
-					}
-					AUTHORITY_INFO_ACCESS_free(authInfo);
-				}
+				return sl_null;
 			}
 
-			
 			static sl_bool Get_X509(X509& _out, ::X509* handle)
 			{
 				if (!handle) {
 					return sl_false;
 				}
+
+				// Version 1 Fields
 				_out.version = (sl_uint32)(X509_get_version(handle));
 				_out.serialNumber = Get_BigInt_from_ASN1_INTEGER(X509_get0_serialNumber(handle));
-
 				_out.subject = Get_Map_from_X509_NAME<X509SubjectKey>(X509_get_subject_name(handle));
 				_out.issuer = Get_Map_from_X509_NAME<X509SubjectKey>(X509_get_issuer_name(handle));
 				_out.validFrom = Get_Time_from_ASN1_TIME(X509_get0_notBefore(handle));
 				_out.validTo = Get_Time_from_ASN1_TIME(X509_get0_notAfter(handle));
-				
-				Get_X509_Extension(_out, handle);
-				return Get_PublicKey_from_EVP_PKEY(_out.key, X509_get0_pubkey(handle));
-			}
 
-			static void Set_X509_Extension(const X509& in, ::X509* handle)
-			{
-				BASIC_CONSTRAINTS *basicConstraint = BASIC_CONSTRAINTS_new();
-				if (basicConstraint) {
-					basicConstraint->ca = in.basicCA;
-					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::BasicConstraints, basicConstraint, 1, 0);
-					BASIC_CONSTRAINTS_free(basicConstraint);
+				// Extensions
+				BASIC_CONSTRAINTS* basicConstraints = (BASIC_CONSTRAINTS*)(X509_get_ext_d2i(handle, NID_basic_constraints, sl_null, sl_null));
+				if (basicConstraints) {
+					_out.flagEndEntity = !(basicConstraints->ca);
+					BASIC_CONSTRAINTS_free(basicConstraints);
 				}
-
-				EXTENDED_KEY_USAGE *extendKeyUsage = EXTENDED_KEY_USAGE_new();
-				if (extendKeyUsage) {
-					for (auto nid : in.usages) {
-						ASN1_OBJECT* obj = OBJ_nid2obj(nid);
-						sk_ASN1_OBJECT_push(extendKeyUsage, obj);
+				EXTENDED_KEY_USAGE* extendedKeyUsage = (EXTENDED_KEY_USAGE*)(X509_get_ext_d2i(handle, NID_ext_key_usage, sl_null, sl_null));
+				if (extendedKeyUsage) {
+					int n = sk_ASN1_OBJECT_num(extendedKeyUsage);
+					for (int i = 0; i < n; i++) {
+						int nid = OBJ_obj2nid(sk_ASN1_OBJECT_value(extendedKeyUsage, i));
+						if (nid != NID_undef) {
+							_out.enhancedKeyUsages.add_NoLock((X509EnhancedKeyUsage)nid);
+						}
 					}
-					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::ExtendedKeyUsage, extendKeyUsage, 0, 0);
-					EXTENDED_KEY_USAGE_free(extendKeyUsage);
+					sk_ASN1_OBJECT_pop_free(extendedKeyUsage, ASN1_OBJECT_free);
 				}
-
-				ASN1_BIT_STRING* bitString = ASN1_BIT_STRING_new();
-				if (bitString) {
-					BigInt keyUsage = BigInt::fromInt32(in.keyUsage);
-					
-					ASN1_BIT_STRING_set(bitString, (sl_uint8*)keyUsage.getBytesLE().getData(), keyUsage.getBytesLE().getSize());
-					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::KeyUsage, bitString, 1, 0);
-					ASN1_BIT_STRING_free(bitString);
+				ASN1_BIT_STRING* keyUsage = (ASN1_BIT_STRING*)(X509_get_ext_d2i(handle, NID_key_usage, sl_null, sl_null));
+				if (keyUsage) {
+					sl_uint32 flags;
+					if (keyUsage->length > 0) {
+						flags = keyUsage->data[0];
+						if (keyUsage->length > 1) {
+							flags |= ((sl_uint32)(keyUsage->data[1])) << 8;
+						}
+					} else {
+						flags = 0;
+					}
+					_out.keyUsages.value = flags;
+					ASN1_BIT_STRING_free(keyUsage);
 				}
-
-
-				ASN1_OCTET_STRING* skid = Get_ASN1_OCTET_STRING_from_BigInt(in.subjectKeyId);
-				if (skid) {
-					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::SubjectKeyIdentifier, skid, 0, 0);
-					ASN1_OCTET_STRING_free(skid);
+				ASN1_OCTET_STRING* subjectKeyId = (ASN1_INTEGER*)(X509_get_ext_d2i(handle, NID_subject_key_identifier, sl_null, sl_null));
+				if (subjectKeyId) {
+					_out.subjectKeyId = Get_BigInt_from_ASN1_OCTET_STRING(subjectKeyId);
+					ASN1_OCTET_STRING_free(subjectKeyId);
 				}
-
-				AUTHORITY_KEYID *akid = AUTHORITY_KEYID_new();
-				if (akid) {
-					akid->keyid = Get_ASN1_OCTET_STRING_from_BigInt(in.authKeyId);
-					X509_add1_ext_i2d(handle, (int)X509ExtensionKey::AuthorityKeyIdentifier, akid, 0, 0);
-					ASN1_OCTET_STRING_free(skid);
+				AUTHORITY_KEYID* authorityKeyId = (AUTHORITY_KEYID*)(X509_get_ext_d2i(handle, NID_authority_key_identifier, sl_null, sl_null));
+				if (authorityKeyId) {
+					_out.authorityKeyId = Get_BigInt_from_ASN1_OCTET_STRING(authorityKeyId->keyid);
+					AUTHORITY_KEYID_free(authorityKeyId);
 				}
-
-				CERTIFICATEPOLICIES *certPolicies = CERTIFICATEPOLICIES_new();
-				if (certPolicies) {
-					for (auto policy : in.certPolicies) {
-						POLICYINFO *pinfo = POLICYINFO_new();
-						pinfo->policyid = OBJ_txt2obj(policy.identifier.getData(), 0);
-						pinfo->qualifiers = sk_POLICYQUALINFO_new_null();
-						auto qualify = policy.qualifiers.getFirstNode();
-						while (qualify) {
-							POLICYQUALINFO* qualInfo = POLICYQUALINFO_new();
-							if (qualInfo) {
-								qualInfo->pqualid = OBJ_nid2obj((sl_int32)qualify->key);
-								if (qualify->key == PolicyQualifierID::Qualifier_CPS) {
-									qualInfo->d.cpsuri = (ASN1_IA5STRING*)Get_ASN1_STRING_from_String(qualify->value);
-								} else if (qualify->key == PolicyQualifierID::Qualifier_User_Notice) {
-									qualInfo->d.usernotice = USERNOTICE_new();
-									if (qualInfo->d.usernotice) {
-										qualInfo->d.usernotice->exptext = Get_ASN1_STRING_from_String(qualify->value);
-									}
+				CERTIFICATEPOLICIES* certificatePolicies = (CERTIFICATEPOLICIES*)(X509_get_ext_d2i(handle, NID_certificate_policies, sl_null, sl_null));
+				if (certificatePolicies) {
+					int nPolicies = sk_POLICYINFO_num(certificatePolicies);
+					for (int iPolicy = 0; iPolicy < nPolicies; iPolicy++) {
+						POLICYINFO* policyInfo = sk_POLICYINFO_value(certificatePolicies, iPolicy);
+						X509CertificatePolicy policy;
+						policy.identifier = Get_String_from_ASN1_OBJECT(policyInfo->policyid);
+						int nQualifiers = sk_POLICYQUALINFO_num(policyInfo->qualifiers);
+						for (int iQualifier = 0; iQualifier < nQualifiers; iQualifier++) {
+							POLICYQUALINFO* qualifierInfo = sk_POLICYQUALINFO_value(policyInfo->qualifiers, iQualifier);
+							int nid = OBJ_obj2nid(qualifierInfo->pqualid);
+							if (nid == NID_id_qt_cps) {
+								policy.CPS = Get_String_from_ASN1_STRING(qualifierInfo->d.cpsuri);
+							} else if (nid == NID_id_qt_unotice) {
+								USERNOTICE* notice = qualifierInfo->d.usernotice;
+								if (notice) {
+									policy.userNotice = Get_String_from_ASN1_STRING(notice->exptext);
 								}
-								sk_POLICYQUALINFO_push(pinfo->qualifiers, qualInfo);
 							}
-							qualify = qualify->next;
 						}
-
-						sk_POLICYINFO_push(certPolicies, pinfo);
+						_out.policies.add_NoLock(Move(policy));
 					}
-					if (sk_POLICYINFO_num(certPolicies) > 0) {
-						X509_add1_ext_i2d(handle, (int)X509ExtensionKey::CertificatePolicies, certPolicies, 0, 0);
-					}
-
-					CERTIFICATEPOLICIES_free(certPolicies);
+					sk_POLICYINFO_pop_free(certificatePolicies, POLICYINFO_free);
 				}
-
-				AUTHORITY_INFO_ACCESS *authorityInfo = AUTHORITY_INFO_ACCESS_new();
-				if (authorityInfo) {
-					for (auto info : in.authorityInfo) {
-						ACCESS_DESCRIPTION* desc = ACCESS_DESCRIPTION_new();
-						if (desc) {
-							desc->method = OBJ_nid2obj(info.method);
-							switch (info.generalNameType) {
-							case GEN_EMAIL:
-							case GEN_DNS:
-							case GEN_URI:
-								desc->location->type = info.generalNameType;
-								desc->location->d.ia5 = Get_ASN1_STRING_from_String(info.generalName);
-								break;
+				AUTHORITY_INFO_ACCESS* infoAccess = (AUTHORITY_INFO_ACCESS*)(X509_get_ext_d2i(handle, NID_info_access, sl_null, sl_null));
+				if (infoAccess) {
+					int n = sk_ACCESS_DESCRIPTION_num(infoAccess);
+					for (int i = 0; i < n; i++) {
+						ACCESS_DESCRIPTION* desc = sk_ACCESS_DESCRIPTION_value(infoAccess, i);
+						int nid = OBJ_obj2nid(desc->method);
+						if (nid != NID_undef) {
+							X509AuthorityInformation info;
+							info.method = (X509AuthorityInformationAccessMethod)nid;
+							switch (desc->location->type) {
+								case GEN_EMAIL:
+									info.type = X509AuthorityInformationLocationType::Email;
+									info.value = Get_String_from_ASN1_STRING(desc->location->d.rfc822Name);
+									break;
+								case GEN_DNS:
+									info.type = X509AuthorityInformationLocationType::DNS;
+									info.value = Get_String_from_ASN1_STRING(desc->location->d.dNSName);
+									break;
+								case GEN_URI:
+									info.type = X509AuthorityInformationLocationType::URI;
+									info.value = Get_String_from_ASN1_STRING(desc->location->d.uniformResourceIdentifier);
+									break;
+								default:
+									info.type = X509AuthorityInformationLocationType::Unknown;
+									break;
 							}
-							sk_ACCESS_DESCRIPTION_push(authorityInfo, desc);
+							if (info.type != X509AuthorityInformationLocationType::Unknown) {
+								_out.authorityInformations.add_NoLock(Move(info));
+							}
 						}
 					}
-					if (sk_ACCESS_DESCRIPTION_num(authorityInfo) > 0) {
-						X509_add1_ext_i2d(handle, (int)X509ExtensionKey::AuthorityInfoAccess, authorityInfo, 0, 0);
-					}
-					AUTHORITY_INFO_ACCESS_free(authorityInfo);
+					AUTHORITY_INFO_ACCESS_free(infoAccess);
 				}
+				return Get_PublicKey_from_EVP_PKEY(_out.key, X509_get0_pubkey(handle));
 			}
 
 			static ::X509* Get_X509_Handle(const X509& _in)
@@ -992,35 +929,189 @@ namespace slib
 				if (!handle) {
 					return sl_null;
 				}
-				X509_set_version(handle, 2);
+				X509_Handle hX509(handle);
+
+				X509_set_version(handle, (long)(_in.version));
+
 				ASN1_INTEGER* sn = Get_ASN1_INTEGER_from_BigInt(_in.serialNumber);
 				if (sn) {
 					X509_set_serialNumber(handle, sn);
 					ASN1_INTEGER_free(sn);
-					X509_NAME* subject = Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.subject);
-					if (subject) {
-						X509_set_subject_name(handle, subject);
-						X509_NAME_free(subject);
-						X509_NAME* issuer = Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.issuer);
-						
-						if (issuer) {
-							X509_set_issuer_name(handle, issuer);
-							X509_NAME_free(issuer);
-							Set_Time_to_ASN1_TIME(X509_getm_notBefore(handle), _in.validFrom);
-							Set_Time_to_ASN1_TIME(X509_getm_notAfter(handle), _in.validTo);
-							EVP_PKEY* pkey = Get_EVP_PKEY_from_PublicKey(_in.key);
-							if (pkey) {
-								X509_set_pubkey(handle, pkey);
-								EVP_PKEY_free(pkey);
-								Set_X509_Extension(_in, handle);
-								return handle;
+				} else {
+					return sl_null;
+				}
+
+				X509_NAME* subject = Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.subject);
+				if (subject) {
+					X509_set_subject_name(handle, subject);
+					X509_NAME_free(subject);
+				} else {
+					return sl_null;
+				}
+
+				X509_NAME* issuer = Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.issuer);
+				if (issuer) {
+					X509_set_issuer_name(handle, issuer);
+					X509_NAME_free(issuer);
+				} else {
+					return sl_null;
+				}
+
+				Set_Time_to_ASN1_TIME(X509_getm_notBefore(handle), _in.validFrom);
+				Set_Time_to_ASN1_TIME(X509_getm_notAfter(handle), _in.validTo);
+
+				EVP_PKEY* pkey = Get_EVP_PKEY_from_PublicKey(_in.key);
+				if (pkey) {
+					X509_set_pubkey(handle, pkey);
+					EVP_PKEY_free(pkey);
+				} else {
+					return sl_null;
+				}
+
+				BASIC_CONSTRAINTS *basicConstraints = BASIC_CONSTRAINTS_new();
+				if (basicConstraints) {
+					basicConstraints->ca = !(_in.flagEndEntity);
+					X509_add1_ext_i2d(handle, NID_basic_constraints, basicConstraints, 1, 0);
+					BASIC_CONSTRAINTS_free(basicConstraints);
+				} else {
+					return sl_null;
+				}
+
+				ListElements<X509EnhancedKeyUsage> enhancedKeyUsages(_in.enhancedKeyUsages);
+				if (enhancedKeyUsages.count) {
+					EXTENDED_KEY_USAGE* hExtendedKeyUsage = EXTENDED_KEY_USAGE_new();
+					if (hExtendedKeyUsage) {
+						for (sl_size i = 0; i < enhancedKeyUsages.count; i++) {
+							ASN1_OBJECT* obj = OBJ_nid2obj((int)(enhancedKeyUsages[i]));
+							if (obj) {
+								sk_ASN1_OBJECT_push(hExtendedKeyUsage, obj);
 							}
 						}
+						X509_add1_ext_i2d(handle, NID_ext_key_usage, hExtendedKeyUsage, 0, 0);
+						EXTENDED_KEY_USAGE_free(hExtendedKeyUsage);
+					} else {
+						return sl_null;
 					}
 				}
 
-				X509_free(handle);
-				return sl_null;
+				if (_in.keyUsages.value) {
+					ASN1_BIT_STRING* keyUsage = ASN1_BIT_STRING_new();
+					if (keyUsage) {
+						if (_in.keyUsages.value & 0xff00) {
+							sl_uint8 value[2];
+							value[0] = (sl_uint8)(_in.keyUsages.value);
+							value[1] = (sl_uint8)(_in.keyUsages.value >> 8);
+							ASN1_BIT_STRING_set(keyUsage, value, 2);
+						} else {
+							sl_uint8 value = (sl_uint8)(_in.keyUsages.value);
+							ASN1_BIT_STRING_set(keyUsage, &value, 1);
+						}
+						X509_add1_ext_i2d(handle, NID_key_usage, keyUsage, 1, 0);
+						ASN1_BIT_STRING_free(keyUsage);
+					} else {
+						return sl_null;
+					}
+				}
+
+				if (_in.subjectKeyId.isNotNull()) {
+					ASN1_OCTET_STRING* subjectKeyId = Get_ASN1_OCTET_STRING_from_BigInt(_in.subjectKeyId);
+					if (subjectKeyId) {
+						X509_add1_ext_i2d(handle, NID_subject_key_identifier, subjectKeyId, 0, 0);
+						ASN1_OCTET_STRING_free(subjectKeyId);
+					} else {
+						return sl_null;
+					}
+				}
+
+				if (_in.authorityKeyId.isNotNull()) {
+					AUTHORITY_KEYID* authorityKeyId = AUTHORITY_KEYID_new();
+					if (authorityKeyId) {
+						authorityKeyId->keyid = Get_ASN1_OCTET_STRING_from_BigInt(_in.authorityKeyId);
+						X509_add1_ext_i2d(handle, NID_authority_key_identifier, authorityKeyId, 0, 0);
+						AUTHORITY_KEYID_free(authorityKeyId);
+					} else {
+						return sl_null;
+					}
+				}
+
+				ListElements<X509CertificatePolicy> policies(_in.policies);
+				if (policies.count) {
+					CERTIFICATEPOLICIES* hPolicies = CERTIFICATEPOLICIES_new();
+					if (hPolicies) {
+						for (sl_size i = 0; i < policies.count; i++) {
+							X509CertificatePolicy& policy = policies[i];
+							POLICYINFO* policyInfo = POLICYINFO_new();
+							if (policyInfo) {
+								StringCstr str(policy.identifier);
+								policyInfo->policyid = OBJ_txt2obj(policy.identifier.getData(), 0);
+								policyInfo->qualifiers = sk_POLICYQUALINFO_new_null();
+								if (policyInfo->qualifiers) {
+									if (policy.CPS.isNotNull()) {
+										POLICYQUALINFO* qualiferInfo = POLICYQUALINFO_new();
+										if (qualiferInfo) {
+											qualiferInfo->d.cpsuri = (ASN1_IA5STRING*)(Get_ASN1_STRING_from_String(policy.CPS));
+											qualiferInfo->pqualid = OBJ_nid2obj(NID_id_qt_cps);
+											sk_POLICYQUALINFO_push(policyInfo->qualifiers, qualiferInfo);
+										}
+									}
+									if (policy.userNotice.isNotNull()) {
+										POLICYQUALINFO* qualiferInfo = POLICYQUALINFO_new();
+										if (qualiferInfo) {
+											qualiferInfo->d.usernotice = USERNOTICE_new();
+											if (qualiferInfo->d.usernotice) {
+												qualiferInfo->d.usernotice->exptext = (ASN1_IA5STRING*)(Get_ASN1_STRING_from_String(policy.userNotice));
+												qualiferInfo->pqualid = OBJ_nid2obj(NID_id_qt_cps);
+												sk_POLICYQUALINFO_push(policyInfo->qualifiers, qualiferInfo);
+											}
+										}
+									}
+								}
+							}
+							sk_POLICYINFO_push(hPolicies, policyInfo);
+						}
+						X509_add1_ext_i2d(handle, NID_certificate_policies, hPolicies, 0, 0);
+						CERTIFICATEPOLICIES_free(hPolicies);
+					} else {
+						return sl_null;
+					}
+				}
+
+				ListElements<X509AuthorityInformation> authorityInformations(_in.authorityInformations);
+				if (authorityInformations.count) {
+					AUTHORITY_INFO_ACCESS* hAuthorityInfo = AUTHORITY_INFO_ACCESS_new();
+					if (hAuthorityInfo) {
+						for (sl_size i = 0; i < authorityInformations.count; i++) {
+							X509AuthorityInformation& info = authorityInformations[i];
+							ACCESS_DESCRIPTION* desc = ACCESS_DESCRIPTION_new();
+							if (desc) {
+								desc->method = OBJ_nid2obj((int)info.method);
+								switch (info.type) {
+									case X509AuthorityInformationLocationType::Email:
+										desc->location->type = GEN_EMAIL;
+										desc->location->d.rfc822Name = Get_ASN1_STRING_from_String(info.value);
+										break;
+									case X509AuthorityInformationLocationType::DNS:
+										desc->location->type = GEN_DNS;
+										desc->location->d.dNSName = Get_ASN1_STRING_from_String(info.value);
+										break;
+									case X509AuthorityInformationLocationType::URI:
+										desc->location->type = GEN_URI;
+										desc->location->d.uniformResourceIdentifier = Get_ASN1_STRING_from_String(info.value);
+										break;
+									default:
+										break;
+								}
+								sk_ACCESS_DESCRIPTION_push(hAuthorityInfo, desc);
+							}
+						}
+						X509_add1_ext_i2d(handle, NID_info_access, hAuthorityInfo, 0, 0);
+						AUTHORITY_INFO_ACCESS_free(hAuthorityInfo);
+					} else {
+						return sl_null;
+					}
+				}
+
+				return hX509.release();
 			}
 
 			static Memory Get_Memory_from_X509(::X509* handle)
@@ -1038,122 +1129,23 @@ namespace slib
 				return sl_null;
 			}
 
-			static Memory Save_P12(::PKCS12* handle)
-			{
-				sl_int32 size = (sl_int32)(i2d_PKCS12(handle, sl_null));
-				if (size > 0) {
-					Memory ret = Memory::create(size);
-					if (ret.isNotNull()) {
-						unsigned char* buf = (unsigned char*)(ret.getData());
-						if (i2d_PKCS12(handle, &buf) == size) {
-							return ret;
-						}
-					}
-				}
-				return sl_null;
-			}
-
 			static Memory Sign_X509(const X509& cert, const PrivateKey& issuerKey, const EVP_MD* md)
 			{
-				EVP_PKEY* key = Get_EVP_PKEY_from_PrivateKey(issuerKey);
-				if (key) {
-					Memory ret;
-					::X509* handle = Get_X509_Handle(cert);
-					if (handle) {
-						if (X509_sign(handle, key, md)) {
-							ret = Get_Memory_from_X509(handle);
-						}
-						X509_free(handle);
-					}
-					EVP_PKEY_free(key);
-					return ret;
+				InitThread();
+				EVP_PKEY_Handle key(Get_EVP_PKEY_from_PrivateKey(issuerKey));
+				if (key.isNone()) {
+					return sl_null;
+				}
+				X509_Handle handle(Get_X509_Handle(cert));
+				if (handle.isNone()) {
+					return sl_null;
+				}
+				if (X509_sign(handle.get(), key.get(), md)) {
+					return Get_Memory_from_X509(handle.get());
 				}
 				return sl_null;
 			}
 
-			static int Do_Sign_Init(EVP_MD_CTX *ctx, EVP_PKEY *pkey, const EVP_MD *md)
-			{
-				EVP_PKEY_CTX *pkctx = NULL;
-				sl_int32 def_nid;
-
-				/*
-				* EVP_PKEY_get_default_digest_nid() returns 2 if the digest is mandatory
-				* for this algorithm.
-				*/
-				if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
-					&& def_nid == NID_undef) {
-					/* The signing algorithm requires there to be no digest */
-					md = NULL;
-				}
-				if (!EVP_DigestSignInit(ctx, &pkctx, md, NULL, pkey))
-					return 0;
-				
-				return 1;
-			}
-
-			sl_int32 Do_X509_Sign(::X509 *x, EVP_PKEY *pkey, const EVP_MD *md)
-			{
-				int rv;
-				EVP_MD_CTX *mctx = EVP_MD_CTX_new();
-
-				rv = Do_Sign_Init(mctx, pkey, md);
-				if (rv > 0)
-					rv = X509_sign_ctx(x, mctx);
-				EVP_MD_CTX_free(mctx);
-				return rv > 0 ? 1 : 0;
-			}
-
-			static Memory Cert_X509(const X509& cert, const X509& issuer, const PrivateKey& issuerKey, const EVP_MD* md)
-			{
-				Memory ret = sl_null;
-				::X509* handleCert = Get_X509_Handle(cert);
-				if (!handleCert) {
-					return ret;
-				}
-				::X509* handleIssuer = Get_X509_Handle(issuer);
-				if (!handleIssuer) {
-					X509_free(handleCert);
-					return ret;
-				}
-				if (!X509_set_issuer_name(handleCert, X509_get_subject_name(handleIssuer))) {
-					X509_free(handleIssuer);
-					X509_free(handleCert);
-					return ret;
-				}
-				EVP_PKEY *_issuerKey = Get_EVP_PKEY_from_PrivateKey(issuerKey);
-				if (_issuerKey) {
-					if (X509_check_private_key(handleIssuer, _issuerKey)) {
-						X509_STORE_CTX *xsc = X509_STORE_CTX_new();
-						if (xsc) {
-							X509_STORE* ctx = X509_STORE_new();
-							if (ctx) {
-								if (X509_STORE_set_default_paths(ctx)) {
-									if (X509_STORE_CTX_init(xsc, ctx, handleCert, NULL)) {
-										X509_STORE_CTX_set_cert(xsc, handleCert);
-										X509_STORE_set_trust(ctx, 1);
-										//X509_STORE_CTX_set_flags(xsc, X509_V_FLAG_CHECK_SS_SIGNATURE);
-										X509_verify_cert(xsc);
-
-										X509V3_CTX ctx2;
-										X509_set_version(handleCert, 2); /* version 3 certificate */
-										X509V3_set_ctx(&ctx2, handleIssuer, handleCert, NULL, NULL, 0);
-										if (Do_X509_Sign(handleCert, _issuerKey, md)) {
-											ret = Get_Memory_from_X509(handleCert);
-										}
-									}
-								}
-								X509_STORE_free(ctx);
-							}
-
-							X509_STORE_CTX_free(xsc);
-						}
-					}
-					EVP_PKEY_free(_issuerKey);
-				}
-				X509_free(handleIssuer);
-				X509_free(handleCert);
-				return ret;
-			}
 		}
 	}
 	
@@ -1381,7 +1373,7 @@ namespace slib
 
 	sl_bool OpenSSL::isProbablePrime(const void* num_BigEndian, sl_uint32 nBytes, sl_bool* pFlagError)
 	{
-		initThread();
+		InitThread();
 		if (!nBytes) {
 			if (pFlagError) {
 				*pFlagError = sl_false;
@@ -1410,7 +1402,7 @@ namespace slib
 	
 	Memory OpenSSL::generatePrime(sl_uint32 nBits)
 	{
-		initThread();
+		InitThread();
 		BIGNUM* prime = BN_new();
 		if (BN_generate_prime_ex(prime, (int)nBits, sl_false, sl_null, sl_null, sl_null)) {
 			sl_size n = (sl_size)(BN_num_bytes(prime));
@@ -1426,7 +1418,7 @@ namespace slib
 	
 	sl_bool OpenSSL::randomBytes(void* bytes, sl_uint32 nBytes, sl_bool flagPrivate)
 	{
-		initThread();
+		InitThread();
 		if (flagPrivate) {
 			if (RAND_priv_bytes((unsigned char*)bytes, (int)nBytes) == 1) {
 				return sl_true;
@@ -1441,7 +1433,7 @@ namespace slib
 
 	void OpenSSL::generateRSA(RSAPrivateKey& key, sl_uint32 nBits)
 	{
-		initThread();
+		InitThread();
 		sl_uint32 h = nBits >> 1;
 		nBits = h << 1;
 		for (;;) {
@@ -1453,11 +1445,11 @@ namespace slib
 		}
 	}
 
-	sl_bool OpenSSL::generate_ECKey(EllipticCurveId curveId, ECPrivateKey& _output)
+	sl_bool OpenSSL::generate_ECKey(const EllipticCurve& curve, ECPrivateKey& _output)
 	{
-		initThread();
+		InitThread();
 		sl_bool flagSuccess = sl_false;
-		EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curveId);
+		EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
 		if (group) {
 			EC_KEY* key = EC_KEY_new();
 			if (key) {
@@ -1487,11 +1479,11 @@ namespace slib
 		return flagSuccess;
 	}
 	
-	sl_bool OpenSSL::check_ECKey(EllipticCurveId curveId, const ECPublicKey& key)
+	sl_bool OpenSSL::check_ECKey(const EllipticCurve& curve, const ECPublicKey& key)
 	{
-		initThread();
+		InitThread();
 		sl_bool flagSuccess = sl_false;
-		EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curveId);
+		EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
 		if (group) {
 			EC_KEY* ek = Get_EC_KEY_from_ECPublicKey(group, key);
 			if (ek) {
@@ -1503,81 +1495,81 @@ namespace slib
 		return flagSuccess;
 	}
 
-	ECDSA_Signature OpenSSL::sign_ECDSA(EllipticCurveId curveId, const ECPrivateKey& key, const BigInt& z)
+	ECDSA_Signature OpenSSL::sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z)
 	{
 		Memory mem = z.getBytesBE();
 		if (mem.isNull()) {
 			return ECDSA_Signature();
 		}
-		return Do_sign_ECDSA(curveId, key, mem.getData(), mem.getSize());
+		return Do_sign_ECDSA(curve, key, mem.getData(), mem.getSize());
 	}
 	
-	ECDSA_Signature OpenSSL::sign_ECDSA(EllipticCurveId curveId, const ECPrivateKey& key, const void* hash, sl_size size)
+	ECDSA_Signature OpenSSL::sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size)
 	{
-		return Do_sign_ECDSA(curveId, key, hash, size);
+		return Do_sign_ECDSA(curve, key, hash, size);
 	}
 
-	ECDSA_Signature OpenSSL::sign_ECDSA_SHA256(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size)
+	ECDSA_Signature OpenSSL::sign_ECDSA_SHA256(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size)
 	{
 		sl_uint8 hash[SHA256::HashSize];
 		SHA256::hash(data, size, hash);
-		return Do_sign_ECDSA(curveId, key, hash, sizeof(hash));
+		return Do_sign_ECDSA(curve, key, hash, sizeof(hash));
 	}
 
-	ECDSA_Signature OpenSSL::sign_ECDSA_SHA384(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size)
+	ECDSA_Signature OpenSSL::sign_ECDSA_SHA384(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size)
 	{
 		sl_uint8 hash[SHA384::HashSize];
 		SHA384::hash(data, size, hash);
-		return Do_sign_ECDSA(curveId, key, hash, sizeof(hash));
+		return Do_sign_ECDSA(curve, key, hash, sizeof(hash));
 	}
 
-	ECDSA_Signature OpenSSL::sign_ECDSA_SHA512(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size)
+	ECDSA_Signature OpenSSL::sign_ECDSA_SHA512(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size)
 	{
 		sl_uint8 hash[SHA512::HashSize];
 		SHA512::hash(data, size, hash);
-		return Do_sign_ECDSA(curveId, key, hash, sizeof(hash));
+		return Do_sign_ECDSA(curve, key, hash, sizeof(hash));
 	}
 
-	sl_bool OpenSSL::verify_ECDSA(EllipticCurveId curveId, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature)
+	sl_bool OpenSSL::verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature)
 	{
 		Memory mem = z.getBytesBE();
 		if (mem.isNull()) {
 			return sl_false;
 		}
-		return Do_verify_ECDSA(curveId, key, mem.getData(), mem.getSize(), signature);
+		return Do_verify_ECDSA(curve, key, mem.getData(), mem.getSize(), signature);
 	}
 	
-	sl_bool OpenSSL::verify_ECDSA(EllipticCurveId curveId, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& signature)
+	sl_bool OpenSSL::verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& signature)
 	{
-		return Do_verify_ECDSA(curveId, key, hash, size, signature);
+		return Do_verify_ECDSA(curve, key, hash, size, signature);
 	}
 	
-	sl_bool OpenSSL::verify_ECDSA_SHA256(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
+	sl_bool OpenSSL::verify_ECDSA_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
 	{
 		sl_uint8 hash[SHA256::HashSize];
 		SHA256::hash(data, size, hash);
-		return Do_verify_ECDSA(curveId, key, hash, sizeof(hash), signature);
+		return Do_verify_ECDSA(curve, key, hash, sizeof(hash), signature);
 	}
 
-	sl_bool OpenSSL::verify_ECDSA_SHA384(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
+	sl_bool OpenSSL::verify_ECDSA_SHA384(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
 	{
 		sl_uint8 hash[SHA384::HashSize];
 		SHA384::hash(data, size, hash);
-		return Do_verify_ECDSA(curveId, key, hash, sizeof(hash), signature);
+		return Do_verify_ECDSA(curve, key, hash, sizeof(hash), signature);
 	}
 
-	sl_bool OpenSSL::verify_ECDSA_SHA512(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
+	sl_bool OpenSSL::verify_ECDSA_SHA512(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
 	{
 		sl_uint8 hash[SHA512::HashSize];
 		SHA512::hash(data, size, hash);
-		return Do_verify_ECDSA(curveId, key, hash, sizeof(hash), signature);
+		return Do_verify_ECDSA(curve, key, hash, sizeof(hash), signature);
 	}
 
-	BigInt OpenSSL::getSharedKey_ECDH(EllipticCurveId curveId, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote)
+	BigInt OpenSSL::getSharedKey_ECDH(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote)
 	{
-		initThread();
+		InitThread();
 		BigInt ret;
-		EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curveId);
+		EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
 		if (group) {
 			BIGNUM* priv = Get_BIGNUM_from_BigInt(keyLocal.d);
 			if (priv) {
@@ -1607,8 +1599,8 @@ namespace slib
 
 	sl_bool OpenSSL::loadX509(X509& _out, const void* content, sl_size size)
 	{
-		const sl_uint8* buf = (sl_uint8*)content;
-		::X509* handle = d2i_X509_AUX(sl_null, &buf, (long)size);
+		InitThread();
+		::X509* handle = Load_X509(content, size);
 		if (handle) {
 			sl_bool bRet = Get_X509(_out, handle);
 			X509_free(handle);
@@ -1622,96 +1614,10 @@ namespace slib
 		return loadX509(_out, memory.getData(), memory.getSize());
 	}
 
-	sl_bool OpenSSL::loadX509File(X509& _out, const StringParam& filePath)
+	sl_bool OpenSSL::loadX509(X509& _out, const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
 		return loadX509(_out, mem.getData(), mem.getSize());
-	}
-
-	Memory OpenSSL::generatePKCS12(const PKCS12& p12, const StringParam& name, const StringParam& password)
-	{
-		StringCstr strPassword(password);
-		StringCstr strName(name);
-		stack_st_X509 *certificates = sk_X509_new_null();
-		::X509* mainCert = sl_null;
-
-		EVP_PKEY* pKey = Get_EVP_PKEY_from_PrivateKey(p12.key);
-		if (pKey) {
-			if (certificates) {
-				for (auto certificate : p12.certificates) {
-					const sl_uint8* buf = (const sl_uint8*)certificate.getData();
-					sl_int32 size = certificate.getSize();
-					::X509* handle = d2i_X509(sl_null, &buf, (long)size);
-					if (handle) {
-						if (X509_check_private_key(handle, pKey)) {
-							mainCert = handle;
-							X509_keyid_set1(mainCert, NULL, 0);
-							X509_alias_set1(mainCert, NULL, 0);
-							continue;
-						}
-						sk_X509_push(certificates, handle);
-					}
-				}
-				
-				if (mainCert) {
-					::PKCS12* p12 = PKCS12_create(strPassword.getData(), strName.getData(), pKey, mainCert, certificates, 0, 0, 0, 0, 0);
-					if (p12) {
-						Memory ret = Save_P12(p12);
-						X509_free(mainCert);
-						PKCS12_free(p12);
-						sk_X509_free(certificates);
-						EVP_PKEY_free(pKey);
-						return ret;
-					}
-					X509_free(mainCert);
-				}
-				sk_X509_free(certificates);
-			}
-			EVP_PKEY_free(pKey);
-		}
-		return sl_null;
-	}
-
-
-	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& password)
-	{
-		EVP_PKEY *pKey = sl_null;
-		stack_st_X509 *certificates = sl_null;
-		StringCstr str(password);
-		::PKCS12 *p12 = d2i_PKCS12(sl_null, (const unsigned char**)&content, size);
-
-		if (p12 && PKCS12_parse(p12, str.getData(), &pKey, sl_null, &certificates)) {
-			if (!Get_PrivateKey_from_EVP_PKEY(_out.key, pKey)) {
-				PKCS12_free(p12);
-				return sl_false;
-			}
-			if (certificates) {
-				for (sl_int32 i = 0; i < sk_X509_num(certificates); i++) {
-					::X509 *handleCert = sk_X509_value(certificates, i);
-					Memory cert = Get_Memory_from_X509(handleCert);
-					_out.certificates.add(cert);
-				}
-
-				sk_X509_free(certificates);
-				PKCS12_free(p12);
-				return sl_true;
-			}
-			PKCS12_free(p12);
-		}
-
-		PKCS12_free(p12);
-		return sl_false;
-	}
-
-	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password)
-	{
-		return loadPKCS12(_out, memory.getData(), memory.getSize(), password);
-	}
-
-	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password)
-	{
-		Memory mem = File::readAllBytes(filePath);
-		return loadPKCS12(_out, mem.getData(), mem.getSize(), password);
 	}
 
 	Memory OpenSSL::signX509_SHA256(const X509& cert, const PrivateKey& issuerKey)
@@ -1729,25 +1635,115 @@ namespace slib
 		return Sign_X509(cert, issuerKey, EVP_sha512());
 	}
 
-	Memory OpenSSL::certX509_SHA256(const X509& cert, const X509& issuer, const PrivateKey& issuerKey)
+
+	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& _password)
 	{
-		return Cert_X509(cert, issuer, issuerKey, EVP_sha256());
+		if (!content) {
+			return sl_false;
+		}
+		if (!size) {
+			return sl_false;
+		}
+		InitThread();
+
+		PKCS12_Handle p12(d2i_PKCS12(sl_null, (const unsigned char**)&content, (long)size));
+		if (p12.isNone()) {
+			return sl_false;
+		}
+
+		StringCstr password(_password);
+		EVP_PKEY_Handle key;
+		Stack_X509_Handle certificates;
+		if (!(PKCS12_parse(p12.get(), password.getData(), &(key.handle), sl_null, &(certificates.handle)))) {
+			return sl_false;
+		}
+		if (key.isNotNone()) {
+			if (!(Get_PrivateKey_from_EVP_PKEY(_out.key, key.get()))) {
+				return sl_false;
+			}
+		}
+		if (certificates.isNotNone()) {
+			int n = sk_X509_num(certificates.get());
+			for (int i = 0; i < n; i++) {
+				::X509* x509 = sk_X509_value(certificates.get(), i);
+				Memory mem = Get_Memory_from_X509(x509);
+				if (mem.isNull()) {
+					return sl_false;
+				}
+				_out.certificates.add_NoLock(Move(mem));
+			}
+		}
+		return sl_true;
 	}
 
-	Memory OpenSSL::certX509_SHA384(const X509& cert, const X509& issuer, const PrivateKey& issuerKey)
+	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password)
 	{
-		return Cert_X509(cert, issuer, issuerKey, EVP_sha384());
+		return loadPKCS12(_out, memory.getData(), memory.getSize(), password);
 	}
 
-	Memory OpenSSL::certX509_SHA512(const X509& cert, const X509& issuer, const PrivateKey& issuerKey)
+	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password)
 	{
-		return Cert_X509(cert, issuer, issuerKey, EVP_sha512());
+		Memory mem = File::readAllBytes(filePath);
+		return loadPKCS12(_out, mem.getData(), mem.getSize(), password);
 	}
 
-	Memory OpenSSL::generateX509(const X509& cert)
+	Memory OpenSSL::savePKCS12(const PKCS12& p12, const StringParam& _password)
 	{
-		::X509* handle = Get_X509_Handle(cert);
-		return Get_Memory_from_X509(handle);
+		StringCstr password(_password);
+
+		EVP_PKEY_Handle key(Get_EVP_PKEY_from_PrivateKey(p12.key));
+		if (key.isNone()) {
+			return sl_null;
+		}
+		ListElements<Memory> certDataList(p12.certificates);
+		if (!(certDataList.count)) {
+			return sl_null;
+		}
+		Stack_X509_Handle certificates(sk_X509_new_null());
+		if (certificates.isNone()) {
+			return sl_null;
+		}
+		X509_Handle mainCertificate;
+		List<X509_Handle> listX509;
+		for (sl_size i = 0; i < certDataList.count; i++) {
+			Memory& certData = certDataList[i];
+			const sl_uint8* data = (const sl_uint8*)(certData.getData());
+			sl_size size = certData.getSize();
+			::X509* x509 = d2i_X509(sl_null, &data, (long)size);
+			if (x509) {
+				if (X509_check_private_key(x509, key.get())) {
+					mainCertificate.handle = x509;
+				} else {
+					sk_X509_push(certificates.get(), x509);
+					listX509.add_NoLock(x509);
+				}
+			}
+		}
+		if (mainCertificate.isNone()) {
+			return sl_null;
+		}
+
+		const char* name;
+		StringCstr _name(p12.friendlyName);
+		if (p12.friendlyName.isNotNull()) {
+			name = _name.getData();
+		} else {
+			name = sl_null;
+		}
+		PKCS12_Handle handle(PKCS12_create(password.getData(), name, key.get(), mainCertificate.get(), certificates.get(), 0, 0, 0, 0, 0));
+		if (handle.isNotNone()) {
+			int size = i2d_PKCS12(handle.get(), sl_null);
+			if (size > 0) {
+				Memory ret = Memory::create((sl_size)size);
+				if (ret.isNotNull()) {
+					unsigned char* buf = (unsigned char*)(ret.getData());
+					if (i2d_PKCS12(handle, &buf) == size) {
+						return ret;
+					}
+				}
+			}
+		}
+		return sl_null;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,9 @@
  *   THE SOFTWARE.
  */
 
+#include "slib/crypto/certificate.h"
 #include "slib/crypto/x509.h"
+#include "slib/crypto/pkcs12.h"
 
 namespace slib
 {
@@ -59,9 +61,30 @@ namespace slib
 	}
 
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(X509CertificatePolicy)
+
+	X509CertificatePolicy::X509CertificatePolicy()
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(X509AuthorityInformation)
+
+	X509AuthorityInformation::X509AuthorityInformation()
+	{
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(X509)
 
-	X509::X509() noexcept
+	X509::X509() noexcept: version(2), flagEndEntity(sl_true)
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PKCS12)
+
+	PKCS12::PKCS12() noexcept
 	{
 	}
 

@@ -1424,10 +1424,7 @@
     <ClCompile Include="..\..\src\slib\crypto\lzw.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\x509.cpp">
-      <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\pkcs12.cpp">
+    <ClCompile Include="..\..\src\slib\crypto\certificate.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
   </ItemGroup>

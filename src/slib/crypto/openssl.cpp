@@ -51,7 +51,7 @@ namespace slib
 				}
 			};
 
-			void initThread()
+			void InitThread()
 			{
 				static SLIB_THREAD int check = 0;
 				if (check) {
@@ -72,7 +72,7 @@ namespace slib
 				}
 			}
 #else
-			static void initThread()
+			static void InitThread()
 			{
 			}
 #endif
@@ -252,7 +252,7 @@ namespace slib
 			public:
 				static Ref<ContextImpl> create(const TlsContextParam& param)
 				{
-					initThread();
+					InitThread();
 					SSL_CTX* ctx = SSL_CTX_new(TLS_method());
 					if (ctx) {
 						KeyStore::applyCertificate(ctx, param.certificate);
@@ -434,7 +434,7 @@ namespace slib
 			private:
 				static Ref<StreamImpl> create(const Ref<AsyncStream>& baseStream, const TlsStreamParam& param)
 				{
-					initThread();
+					InitThread();
 					if (baseStream.isNull()) {
 						return sl_null;
 					}
@@ -684,7 +684,7 @@ namespace slib
 				
 				void doIO(ObjectLocker& lock)
 				{
-					initThread();
+					InitThread();
 					if (m_flagHandshaking) {
 						doHandshake(lock);
 					} else {

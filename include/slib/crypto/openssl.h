@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -285,44 +285,38 @@ namespace slib
 		static void generateRSA(RSAPrivateKey& _output, sl_uint32 nBits);
 
 
-		static sl_bool generate_ECKey(EllipticCurveId curveId, ECPrivateKey& _output);
+		static sl_bool generate_ECKey(const EllipticCurve& curve, ECPrivateKey& _output);
 
-		static sl_bool check_ECKey(EllipticCurveId curveId, const ECPublicKey& key);
+		static sl_bool check_ECKey(const EllipticCurve& curve, const ECPublicKey& key);
 
-		static ECDSA_Signature sign_ECDSA(EllipticCurveId curveId, const ECPrivateKey& key, const BigInt& z);
+		static ECDSA_Signature sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z);
 
-		static ECDSA_Signature sign_ECDSA(EllipticCurveId curveId, const ECPrivateKey& key, const void* hash, sl_size sizeHash);
+		static ECDSA_Signature sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size sizeHash);
 
-		static ECDSA_Signature sign_ECDSA_SHA256(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size);
+		static ECDSA_Signature sign_ECDSA_SHA256(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size);
 
-		static ECDSA_Signature sign_ECDSA_SHA384(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size);
+		static ECDSA_Signature sign_ECDSA_SHA384(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size);
 
-		static ECDSA_Signature sign_ECDSA_SHA512(EllipticCurveId curveId, const ECPrivateKey& key, const void* data, sl_size size);
+		static ECDSA_Signature sign_ECDSA_SHA512(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size);
 
-		static sl_bool verify_ECDSA(EllipticCurveId curveId, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature);
+		static sl_bool verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature);
 		
-		static sl_bool verify_ECDSA(EllipticCurveId curveId, const ECPublicKey& key, const void* hash, sl_size sizeHash, const ECDSA_Signature& signature);
+		static sl_bool verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size sizeHash, const ECDSA_Signature& signature);
 		
-		static sl_bool verify_ECDSA_SHA256(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
+		static sl_bool verify_ECDSA_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
 
-		static sl_bool verify_ECDSA_SHA384(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
+		static sl_bool verify_ECDSA_SHA384(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
 
-		static sl_bool verify_ECDSA_SHA512(EllipticCurveId curveId, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
+		static sl_bool verify_ECDSA_SHA512(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature);
 
-		static BigInt getSharedKey_ECDH(EllipticCurveId curveId, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote);
+		static BigInt getSharedKey_ECDH(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote);
 
 
 		static sl_bool loadX509(X509& _out, const void* content, sl_size size);
 
 		static sl_bool loadX509(X509& _out, const Memory& memory);
 
-		static sl_bool loadX509File(X509& _out, const StringParam& filePath);
-
-		static sl_bool loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& password);
-
-		static sl_bool loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password);
-
-		static sl_bool loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password);
+		static sl_bool loadX509(X509& _out, const StringParam& filePath);
 
 		static Memory signX509_SHA256(const X509& cert, const PrivateKey& issuerKey);
 
@@ -330,15 +324,15 @@ namespace slib
 
 		static Memory signX509_SHA512(const X509& cert, const PrivateKey& issuerKey);
 
-		static Memory certX509_SHA256(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
 
-		static Memory certX509_SHA384(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
+		static sl_bool loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& password);
 
-		static Memory certX509_SHA512(const X509& cert, const X509& issuer, const PrivateKey& issuerKey);
+		static sl_bool loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password);
 
-		static Memory generatePKCS12(const PKCS12& p12, const StringParam& name, const StringParam& password);
+		static sl_bool loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password);
 
-		static Memory generateX509(const X509& cert);
+		static Memory savePKCS12(const PKCS12& p12, const StringParam& password);
+
 	};
 
 }
