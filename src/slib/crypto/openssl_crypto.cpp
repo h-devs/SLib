@@ -31,11 +31,11 @@
 #include "openssl/aes.h"
 #include "openssl/rand.h"
 #include "openssl/ec.h"
+#include "openssl/evp.h"
+#include "openssl/pem.h"
 #include "openssl/x509v3.h"
 #include "openssl/asn1.h"
 #include "openssl/pkcs12.h"
-#include "openssl/evp.h"
-#include "openssl/pem.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -55,10 +55,64 @@ namespace slib
 			}
 #endif
 
+			class SLIB_EXPORT EVP_PKEY_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EVP_PKEY_Handle, EVP_PKEY*, handle, sl_null, EVP_PKEY_free)
+			};
+
+			class SLIB_EXPORT RSA_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(RSA_Handle, ::RSA*, handle, sl_null, RSA_free)
+			};
+
+			class SLIB_EXPORT BIGNUM_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(BIGNUM_Handle, BIGNUM*, handle, sl_null, BN_free)
+			};
+
+			class SLIB_EXPORT EC_POINT_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EC_POINT_Handle, EC_POINT*, handle, sl_null, EC_POINT_free)
+			};
+
+			class SLIB_EXPORT EC_GROUP_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EC_GROUP_Handle, EC_GROUP*, handle, sl_null, EC_GROUP_free)
+			};
+
+			class SLIB_EXPORT EC_KEY_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EC_KEY_Handle, EC_KEY*, handle, sl_null, EC_KEY_free)
+			};
+
+			class SLIB_EXPORT EVP_MD_CTX_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EVP_MD_CTX_Handle, EVP_MD_CTX*, handle, sl_null, EVP_MD_CTX_free)
+			};
+
+			class SLIB_EXPORT ECDSA_SIG_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(ECDSA_SIG_Handle, ECDSA_SIG*, handle, sl_null, ECDSA_SIG_free)
+			};
+
 			class SLIB_EXPORT X509_Handle
 			{
 			public:
 				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(X509_Handle, ::X509*, handle, sl_null, X509_free)
+			};
+
+			class SLIB_EXPORT X509_NAME_Handle
+			{
+			public:
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(X509_NAME_Handle, X509_NAME*, handle, sl_null, X509_NAME_free)
 			};
 
 			class SLIB_EXPORT Stack_X509_Handle
@@ -73,30 +127,22 @@ namespace slib
 				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(PKCS12_Handle, ::PKCS12*, handle, sl_null, PKCS12_free)
 			};
 
-			class SLIB_EXPORT EVP_PKEY_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EVP_PKEY_Handle, EVP_PKEY*, handle, sl_null, EVP_PKEY_free)
-			};
-
 			static Memory Generate_RSA_Signature(EVP_PKEY* key, const EVP_MD* md, const void* data, sl_size size)
 			{
 				unsigned int len = EVP_PKEY_size(key);
 				if (len > 0) {
-					EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-					if (ctx) {
-						if (EVP_DigestInit(ctx, md)) {
-							if (EVP_DigestUpdate(ctx, data, (size_t)size)) {
+					EVP_MD_CTX_Handle ctx(EVP_MD_CTX_new());
+					if (ctx.isNotNone()) {
+						if (EVP_DigestInit(ctx.get(), md)) {
+							if (EVP_DigestUpdate(ctx.get(), data, (size_t)size)) {
 								Memory mem = Memory::create(len);
 								if (mem.isNotNull()) {
-									if (EVP_SignFinal(ctx, (unsigned char*)(mem.getData()), &len, key)) {
-										EVP_MD_CTX_free(ctx);
+									if (EVP_SignFinal(ctx.get(), (unsigned char*)(mem.getData()), &len, key)) {
 										return mem;
 									}
 								}
 							}
 						}
-						EVP_MD_CTX_free(ctx);
 					}
 				}
 				return sl_null;
@@ -104,17 +150,15 @@ namespace slib
 		
 			static sl_bool Verify_RSA_Signature(EVP_PKEY* key, const EVP_MD* md, const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 			{
-				EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-				if (ctx) {
-					if (EVP_DigestInit(ctx, md)) {
-						if (EVP_DigestUpdate(ctx, data, (size_t)sizeData)) {
-							if (1 == EVP_VerifyFinal(ctx, (unsigned char*)(signature), (unsigned int)(sizeSignature), key)) {
-								EVP_MD_CTX_free(ctx);
+				EVP_MD_CTX_Handle ctx(EVP_MD_CTX_new());
+				if (ctx.isNotNone()) {
+					if (EVP_DigestInit(ctx.get(), md)) {
+						if (EVP_DigestUpdate(ctx.get(), data, (size_t)sizeData)) {
+							if (EVP_VerifyFinal(ctx.get(), (unsigned char*)(signature), (unsigned int)(sizeSignature), key) == 1) {
 								return sl_true;
 							}
 						}
 					}
-					EVP_MD_CTX_free(ctx);
 				}
 				return sl_false;
 			}
@@ -125,26 +169,25 @@ namespace slib
 				if (!ekey) {
 					return sl_null;
 				}
-				Memory ret;
-				ECDSA_SIG* sig = ECDSA_do_sign((unsigned char*)hash, (int)sizeHash, ekey);
-				if (sig) {
+				ECDSA_SIG_Handle sig(ECDSA_do_sign((unsigned char*)hash, (int)sizeHash, ekey));
+				if (sig.isNotNone()) {
 					const BIGNUM* r;
 					const BIGNUM* s;
-					ECDSA_SIG_get0(sig, &r, &s);
+					ECDSA_SIG_get0(sig.get(), &r, &s);
 					sl_uint32 nr = (sl_uint32)(BN_num_bytes(r));
 					sl_uint32 ns = (sl_uint32)(BN_num_bytes(s));
 					sl_uint32 m = SLIB_MAX(nr, ns);
 					sl_uint32 n = m << 1;
-					ret = Memory::create(n);
+					Memory ret = Memory::create(n);
 					if (ret.isNotNull()) {
 						unsigned char* t = (unsigned char*)(ret.getData());
 						Base::zeroMemory(t, n);
 						BN_bn2bin(r, t + (m - nr));
 						BN_bn2bin(s, t + (n - ns));
+						return ret;
 					}
-					ECDSA_SIG_free(sig);
 				}
-				return ret;
+				return sl_null;
 			}
 		
 			static sl_bool Verify_ECDSA_Signature(EVP_PKEY* key, const void* hash, sl_uint32 sizeHash, const void* signature, sl_size sizeSignature)
@@ -156,18 +199,16 @@ namespace slib
 				if (!ekey) {
 					return sl_false;
 				}
-				sl_bool bRet = sl_false;
-				ECDSA_SIG* sig = ECDSA_SIG_new();
-				if (sig) {
+				ECDSA_SIG_Handle sig(ECDSA_SIG_new());
+				if (sig.isNotNone()) {
 					unsigned char* t = (unsigned char*)signature;
 					sl_uint32 m = (sl_uint32)(sizeSignature >> 1);
 					BIGNUM* r = BN_bin2bn(t, (int)m, sl_null);
 					BIGNUM* s = BN_bin2bn(t + m, (int)m, sl_null);
-					ECDSA_SIG_set0(sig, r, s);
-					bRet = ECDSA_do_verify((unsigned char*)hash, (int)sizeHash, sig, ekey) == 1;
-					ECDSA_SIG_free(sig);
+					ECDSA_SIG_set0(sig.get(), r, s);
+					return ECDSA_do_verify((unsigned char*)hash, (int)sizeHash, sig.get(), ekey) == 1;
 				}
-				return bRet;
+				return sl_false;
 			}
 
 			static Memory Generate_RSA_PSS_Signature(EVP_PKEY* key, const EVP_MD* md, const void* hash, sl_size sizeHash)
@@ -241,7 +282,7 @@ namespace slib
 				return sl_null;
 			}
 
-			static ::EC_GROUP* Get_EC_GROUP_from_EllipticCurve(const EllipticCurve& curve)
+			static EC_GROUP* Get_EC_GROUP_from_EllipticCurve(const EllipticCurve& curve)
 			{
 				if (curve.id != EllipticCurveId::Unknown) {
 					EC_GROUP* group = EC_GROUP_new_by_curve_name((int)curve.id);
@@ -250,70 +291,58 @@ namespace slib
 					}
 					return sl_null;
 				}
-				BIGNUM* p = Get_BIGNUM_from_BigInt(curve.p);
-				if (p) {
-					BIGNUM* a = Get_BIGNUM_from_BigInt(curve.a);
-					if (a) {
-						BIGNUM* b = Get_BIGNUM_from_BigInt(curve.b);
-						if (b) {
-							::EC_GROUP* ec_group = EC_GROUP_new_curve_GFp(p, a, b, sl_null);
-							if (ec_group) {
-								BN_free(p);
-								BN_free(a);
-								BN_free(b);
-								return ec_group;
-							}
-							BN_free(b);
-						}
-						BN_free(a);
-					}
-					BN_free(p);
+				BIGNUM_Handle p(Get_BIGNUM_from_BigInt(curve.p));
+				if (p.isNone()) {
+					return sl_null;
 				}
-				return sl_null;
+				BIGNUM_Handle a(Get_BIGNUM_from_BigInt(curve.a));
+				if (a.isNone()) {
+					return sl_null;
+				}
+				BIGNUM_Handle b(Get_BIGNUM_from_BigInt(curve.b));
+				if (b.isNone()) {
+					return sl_null;
+				}
+				return EC_GROUP_new_curve_GFp(p.get(), a.get(), b.get(), sl_null);
 			}
 
 			static ECPoint Get_ECPoint_from_EC_POINT(const EC_GROUP* group, const EC_POINT* pt)
 			{
-				ECPoint ret;
 				if (pt) {
-					BIGNUM* x = BN_new();
-					if (x) {
-						BIGNUM* y = BN_new();
-						if (y) {
-							if (1 == EC_POINT_get_affine_coordinates(group, pt, x, y, sl_null)) {
-								ret.x = Get_BigInt_from_BIGNUM(x);
-								if (ret.x.isNotZero()) {
-									ret.y = Get_BigInt_from_BIGNUM(y);
-								}
-							}
-							BN_free(y);
-						}
-						BN_free(x);
+					BIGNUM_Handle x(BN_new());
+					if (x.isNone()) {
+						return ECPoint();
+					}
+					BIGNUM_Handle y(BN_new());
+					if (y.isNone()) {
+						return ECPoint();
+					}
+					if (EC_POINT_get_affine_coordinates(group, pt, x.get(), y.get(), sl_null) == 1) {
+						ECPoint ret;
+						ret.x = Get_BigInt_from_BIGNUM(x);
+						ret.y = Get_BigInt_from_BIGNUM(y);
+						return ret;
 					}
 				}
-				return ret;
+				return ECPoint();
 			}
 			
 			static EC_POINT* Get_EC_POINT_from_ECPoint(const EC_GROUP* group, const ECPoint& pt)
 			{
-				EC_POINT* ret = EC_POINT_new(group);
-				if (ret) {
-					sl_bool flagSuccess = sl_false;
-					BIGNUM* x = Get_BIGNUM_from_BigInt(pt.x);
-					if (x) {
-						BIGNUM* y = Get_BIGNUM_from_BigInt(pt.y);
-						if (y) {
-							if (1 == EC_POINT_set_affine_coordinates(group, ret, x, y, sl_null)) {
-								flagSuccess = sl_true;
-							}
-							BN_free(y);
-						}
-						BN_free(x);
-					}
-					if (flagSuccess) {
-						return ret;
-					}
-					EC_POINT_free(ret);
+				EC_POINT_Handle ret(EC_POINT_new(group));
+				if (ret.isNone()) {
+					return sl_false;
+				}
+				BIGNUM_Handle x(Get_BIGNUM_from_BigInt(pt.x));
+				if (x.isNone()) {
+					return sl_false;
+				}
+				BIGNUM_Handle y(Get_BIGNUM_from_BigInt(pt.y));
+				if (y.isNone()) {
+					return sl_false;
+				}
+				if (EC_POINT_set_affine_coordinates(group, ret.get(), x.get(), y.get(), sl_null) == 1) {
+					return ret.release();
 				}
 				return sl_null;
 			}
@@ -323,84 +352,81 @@ namespace slib
 				if (key.Q.isO()) {
 					return sl_null;
 				}
-				EC_KEY* ek = EC_KEY_new();
-				if (ek) {
-					sl_bool flagSuccess = sl_false;
-					EC_KEY_set_group(ek, group);
-					EC_POINT* pt = Get_EC_POINT_from_ECPoint(group, key.Q);
-					if (pt) {
-						EC_KEY_set_public_key(ek, pt);
-						flagSuccess = sl_true;
-						EC_POINT_free(pt);
+				EC_KEY_Handle ekey(EC_KEY_new());
+				if (ekey.isNone()) {
+					return sl_null;
+				}
+				EC_KEY_set_group(ekey.get(), group);
+				EC_POINT_Handle pt(Get_EC_POINT_from_ECPoint(group, key.Q));
+				if (pt.isNotNone()) {
+					if (EC_KEY_set_public_key(ekey.get(), pt.get()) == 1) {
+						return ekey.release();
 					}
-					if (flagSuccess) {
-						return ek;
-					}
-					EC_KEY_free(ek);
 				}
 				return sl_null;
 			}
 			
 			static EC_KEY* Get_EC_KEY_from_ECPrivateKey(const EC_GROUP* group, const ECPrivateKey& key)
 			{
-				EC_KEY* ek = Get_EC_KEY_from_ECPublicKey(group, key);
-				if (ek) {
-					sl_bool flagSuccess = sl_false;
-					BIGNUM* bn = Get_BIGNUM_from_BigInt(key.d);
-					if (bn) {
-						EC_KEY_set_private_key(ek, bn);
-						flagSuccess = sl_true;
-						BN_free(bn);
-					}
-					if (flagSuccess) {
-						return ek;
-					}
-					EC_KEY_free(ek);
+				EC_KEY_Handle ekey(Get_EC_KEY_from_ECPublicKey(group, key));
+				if (ekey.isNone()) {
+					return sl_null;
+				}
+				BIGNUM_Handle d(Get_BIGNUM_from_BigInt(key.d));
+				if (d.isNone()) {
+					return sl_null;
+				}
+				if (EC_KEY_set_private_key(ekey.get(), d.get()) == 1) {
+					return ekey.release();
 				}
 				return sl_null;
 			}
 			
 			static ECDSA_SIG* get_ECDSA_SIG_from_ECDSA_Signature(const ECDSA_Signature& _sig)
 			{
-				ECDSA_SIG* sig = ECDSA_SIG_new();
-				if (sig) {
-					BIGNUM* r = Get_BIGNUM_from_BigInt(_sig.r);
-					if (r) {
-						BIGNUM* s = Get_BIGNUM_from_BigInt(_sig.s);
-						if (s) {
-							ECDSA_SIG_set0(sig, r, s);
-							return sig;
-						}
-						BN_free(r);
-					}
-					ECDSA_SIG_free(sig);
+				BIGNUM_Handle r(Get_BIGNUM_from_BigInt(_sig.r));
+				if (r.isNone()) {
+					return sl_null;
 				}
-				return sl_null;
+				BIGNUM_Handle s(Get_BIGNUM_from_BigInt(_sig.s));
+				if (s.isNone()) {
+					return sl_null;
+				}
+				ECDSA_SIG* sig = ECDSA_SIG_new();
+				if (!sig) {
+					return sl_null;
+				}
+				ECDSA_SIG_set0(sig, r.get(), s.get());
+				return sig;
 			}
-			
+
+			static sl_bool get_ECDSA_Signature_from_ECDSA_SIG(ECDSA_Signature& _out, const ECDSA_SIG* _in)
+			{
+				if (_in) {
+					const BIGNUM* r = ECDSA_SIG_get0_r(_in);
+					if (r) {
+						_out.r = Get_BigInt_from_BIGNUM(r);
+					}
+					const BIGNUM* s = ECDSA_SIG_get0_s(_in);
+					if (s) {
+						_out.s = Get_BigInt_from_BIGNUM(s);
+					}
+					return sl_true;
+				}
+				return sl_false;
+			}
+
 			static ECDSA_Signature Do_sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size)
 			{
 				InitThread();
 				ECDSA_Signature ret;
-				EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
-				if (group) {
-					EC_KEY* ek = Get_EC_KEY_from_ECPrivateKey(group, key);
-					if (ek) {
-						ECDSA_SIG* sig = ECDSA_do_sign((unsigned char*)hash, (int)size, ek);
-						if (sig) {
-							const BIGNUM* r = ECDSA_SIG_get0_r(sig);
-							if (r) {
-								ret.r = Get_BigInt_from_BIGNUM(r);
-							}
-							const BIGNUM* s = ECDSA_SIG_get0_s(sig);
-							if (s) {
-								ret.s = Get_BigInt_from_BIGNUM(s);
-							}
-							ECDSA_SIG_free(sig);
-						}
-						EC_KEY_free(ek);
+				EC_GROUP_Handle group(Get_EC_GROUP_from_EllipticCurve(curve));
+				if (group.isNotNone()) {
+					EC_KEY_Handle ekey(Get_EC_KEY_from_ECPrivateKey(group.get(), key));
+					if (ekey.isNotNone()) {
+						ECDSA_SIG_Handle sig(ECDSA_do_sign((unsigned char*)hash, (int)size, ekey.get()));
+						get_ECDSA_Signature_from_ECDSA_SIG(ret, sig.get());
 					}
-					EC_GROUP_free(group);
 				}
 				return ret;
 			}
@@ -408,23 +434,19 @@ namespace slib
 			static sl_bool Do_verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& _sig)
 			{
 				InitThread();
-				sl_bool flagVerified = sl_false;
-				EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
-				if (group) {
-					EC_KEY* ek = Get_EC_KEY_from_ECPublicKey(group, key);
-					if (ek) {
-						ECDSA_SIG* sig = get_ECDSA_SIG_from_ECDSA_Signature(_sig);
-						if (sig) {
-							if (1 == ECDSA_do_verify((unsigned char*)hash, (int)size, sig, ek)) {
-								flagVerified = sl_true;
+				EC_GROUP_Handle group(Get_EC_GROUP_from_EllipticCurve(curve));
+				if (group.isNotNone()) {
+					EC_KEY_Handle ekey(Get_EC_KEY_from_ECPublicKey(group.get(), key));
+					if (ekey.isNotNone()) {
+						ECDSA_SIG_Handle sig(get_ECDSA_SIG_from_ECDSA_Signature(_sig));
+						if (sig.isNotNone()) {
+							if (ECDSA_do_verify((unsigned char*)hash, (int)size, sig.get(), ekey.get()) == 1) {
+								return sl_true;
 							}
-							ECDSA_SIG_free(sig);
 						}
-						EC_KEY_free(ek);
 					}
-					EC_GROUP_free(group);
 				}
-				return flagVerified;
+				return sl_false;
 			}
 
 			static String Get_String_from_ASN1_OBJECT(const ASN1_OBJECT* object)
@@ -491,11 +513,9 @@ namespace slib
 
 			static ASN1_INTEGER* Get_ASN1_INTEGER_from_BigInt(const BigInt& n)
 			{
-				BIGNUM* bn = Get_BIGNUM_from_BigInt(n);
-				if (bn) {
-					ASN1_INTEGER* ret = BN_to_ASN1_INTEGER(bn, sl_null);
-					BN_free(bn);
-					return ret;
+				BIGNUM_Handle bn(Get_BIGNUM_from_BigInt(n));
+				if (bn.isNotNone()) {
+					return BN_to_ASN1_INTEGER(bn.get(), sl_null);
 				}
 				return sl_null;
 			}
@@ -503,11 +523,9 @@ namespace slib
 			static BigInt Get_BigInt_from_ASN1_INTEGER(const ASN1_INTEGER* ai)
 			{
 				if (ai) {
-					BIGNUM* bn = ASN1_INTEGER_to_BN(ai, sl_null);
-					if (bn) {
-						BigInt ret = Get_BigInt_from_BIGNUM(bn);
-						BN_free(bn);
-						return ret;
+					BIGNUM_Handle bn(ASN1_INTEGER_to_BN(ai, sl_null));
+					if (bn.isNotNone()) {
+						return Get_BigInt_from_BIGNUM(bn.get());
 					}
 				}
 				return sl_null;
@@ -515,18 +533,23 @@ namespace slib
 
 			static BigInt Get_BigInt_from_ASN1_OCTET_STRING(const ASN1_OCTET_STRING* oct)
 			{
-				Memory memory = Memory::create(oct->length);
-				Base::copyMemory(memory.getData(), oct->data, oct->length);
-				return BigInt::fromBytesBE(memory);
+				Memory mem = Memory::create(oct->length);
+				if (mem.isNotNull()) {
+					Base::copyMemory(mem.getData(), oct->data, oct->length);
+					return BigInt::fromBytesBE(mem);
+				}
+				return sl_null;
 			}
 
 			static ASN1_OCTET_STRING* Get_ASN1_OCTET_STRING_from_BigInt(const BigInt& num)
 			{
-				ASN1_OCTET_STRING* ret = ASN1_OCTET_STRING_new();
 				Memory mem = num.getBytesBE();
-				if (ret) {
-					ASN1_OCTET_STRING_set(ret, (sl_uint8*)mem.getData(), (int)(mem.getSize()));
-					return ret;
+				if (mem.isNotNull()) {
+					ASN1_OCTET_STRING* ret = ASN1_OCTET_STRING_new();
+					if (ret) {
+						ASN1_OCTET_STRING_set(ret, (sl_uint8*)(mem.getData()), (int)(mem.getSize()));
+						return ret;
+					}
 				}
 				return sl_null;
 			}
@@ -555,20 +578,19 @@ namespace slib
 			template <class NID>
 			static X509_NAME* Get_X509_NAME_from_HashMap(const HashMap<NID, String>& map)
 			{
-				X509_NAME* ret = X509_NAME_new();
-				if (!ret) {
+				X509_NAME_Handle ret(X509_NAME_new());
+				if (ret.isNone()) {
 					return sl_null;
 				}
 				auto node = map.getFirstNode();
 				while (node) {
 					StringCstr value(node->value);
-					if (!(X509_NAME_add_entry_by_NID(ret, (int)(node->key), MBSTRING_UTF8, (sl_uint8*)(value.getData()), (int)(value.getLength()), 0, 0))) {
-						X509_NAME_free(ret);
+					if (!(X509_NAME_add_entry_by_NID(ret.get(), (int)(node->key), MBSTRING_UTF8, (sl_uint8*)(value.getData()), (int)(value.getLength()), 0, 0))) {
 						return sl_null;
 					}
 					node = node->next;
 				}
-				return ret;
+				return ret.release();
 			}
 
 			static sl_bool Get_RSAPublicKey_from_RSA(RSAPublicKey& _out, const ::RSA* rsa)
@@ -597,7 +619,28 @@ namespace slib
 						_out.N = Get_BigInt_from_BIGNUM(n);
 						_out.E = Get_BigInt_from_BIGNUM(e);
 						_out.D = Get_BigInt_from_BIGNUM(d);
-						_out.flagUseOnlyD = sl_true;
+						const BIGNUM* p = sl_null;
+						const BIGNUM* q = sl_null;
+						RSA_get0_factors(rsa, &p, &q);
+						if (p) {
+							_out.P = Get_BigInt_from_BIGNUM(p);
+						}
+						if (q) {
+							_out.Q = Get_BigInt_from_BIGNUM(q);
+						}
+						const BIGNUM* dp = sl_null;
+						const BIGNUM* dq = sl_null;
+						const BIGNUM* iq = sl_null;
+						RSA_get0_crt_params(rsa, &dp, &dq, &iq);
+						if (dp) {
+							_out.DP = Get_BigInt_from_BIGNUM(dp);
+						}
+						if (dq) {
+							_out.DQ = Get_BigInt_from_BIGNUM(dq);
+						}
+						if (iq) {
+							_out.IQ = Get_BigInt_from_BIGNUM(iq);
+						}
 						return sl_true;
 					}
 				}
@@ -606,35 +649,35 @@ namespace slib
 
 			static sl_bool Get_EllipticCurve_from_EC_KEY(EllipticCurve& _out, const EC_KEY* ekey)
 			{
-				if (ekey) {
-					const EC_GROUP* group = EC_KEY_get0_group(ekey);
-					if (group) {
-						if (_out.setId((EllipticCurveId)(EC_GROUP_get_curve_name(group)))) {
-							return sl_true;
-						}
-						sl_bool flagSuccess = sl_false;
-						BIGNUM* a = BN_new();
-						if (a) {
-							BIGNUM* b = BN_new();
-							if (b) {
-								BIGNUM* p = BN_new();
-								if (p) {
-									if (EC_GROUP_get_curve(group, p, a, b, sl_null)) {
-										_out.a = Get_BigInt_from_BIGNUM(a);
-										_out.b = Get_BigInt_from_BIGNUM(b);
-										_out.p = Get_BigInt_from_BIGNUM(p);
-										_out.G = Get_ECPoint_from_EC_POINT(group, EC_GROUP_get0_generator(group));
-										_out.n = Get_BigInt_from_BIGNUM(EC_GROUP_get0_order(group));
-										flagSuccess = sl_true;
-									}
-									BN_free(p);
-								}
-								BN_free(b);
-							}
-							BN_free(a);
-						}
-						return flagSuccess;
-					}
+				if (!ekey) {
+					return sl_false;
+				}
+				const EC_GROUP* group = EC_KEY_get0_group(ekey);
+				if (!group) {
+					return sl_false;
+				}
+				if (_out.setId((EllipticCurveId)(EC_GROUP_get_curve_name(group)))) {
+					return sl_true;
+				}
+				BIGNUM_Handle a(BN_new());
+				if (a.isNone()) {
+					return sl_false;
+				}
+				BIGNUM_Handle b(BN_new());
+				if (b.isNone()) {
+					return sl_false;
+				}
+				BIGNUM_Handle p(BN_new());
+				if (p.isNone()) {
+					return sl_false;
+				}
+				if (EC_GROUP_get_curve(group, p.get(), a.get(), b.get(), sl_null) == 1) {
+					_out.a = Get_BigInt_from_BIGNUM(a.get());
+					_out.b = Get_BigInt_from_BIGNUM(b.get());
+					_out.p = Get_BigInt_from_BIGNUM(p.get());
+					_out.G = Get_ECPoint_from_EC_POINT(group, EC_GROUP_get0_generator(group));
+					_out.n = Get_BigInt_from_BIGNUM(EC_GROUP_get0_order(group));
+					return sl_true;
 				}
 				return sl_false;
 			}
@@ -688,95 +731,96 @@ namespace slib
 				return sl_false;
 			}
 
-			static ::RSA* Get_RSA_from_RSAPublicKey(const RSAPublicKey& key, const BigInt* D = sl_null)
+			static ::RSA* Get_RSA_from_RSAPublicKey(const RSAPublicKey& key, const RSAPrivateKey* priv = sl_null)
 			{
-				::RSA* rsa = RSA_new();
-				if (rsa) {
-					BIGNUM* n = Get_BIGNUM_from_BigInt(key.N);
-					if (n) {
-						BIGNUM* e = Get_BIGNUM_from_BigInt(key.E);
-						if (e) {
-							sl_bool flagSuccess = sl_true;
-							BIGNUM* d = sl_null;
-							if (D) {
-								d = Get_BIGNUM_from_BigInt(*D);
-								if (!d) {
-									flagSuccess = sl_false;
-								}
-							}
-							if (flagSuccess) {
-								RSA_set0_key(rsa, n, e, d);
-								return rsa;
-							}
-							BN_free(e);
-						}
-						BN_free(n);
-					}
-					RSA_free(rsa);
+				BIGNUM_Handle n = Get_BIGNUM_from_BigInt(key.N);
+				if (n.isNone()) {
+					return sl_null;
 				}
-				return sl_null;
+				BIGNUM_Handle e = Get_BIGNUM_from_BigInt(key.E);
+				if (e.isNone()) {
+					return sl_null;
+				}
+				RSA_Handle rsa(RSA_new());
+				if (rsa.isNone()) {
+					return sl_null;
+				}
+				if (priv) {
+					BIGNUM* d = Get_BIGNUM_from_BigInt(priv->D);
+					if (!d) {
+						return sl_null;
+					}
+					RSA_set0_key(rsa.get(), n.release(), e.release(), d);
+					if (priv->P.isNotNull() || priv->Q.isNotNull()) {
+						BIGNUM* p = Get_BIGNUM_from_BigInt(priv->P);
+						BIGNUM* q = Get_BIGNUM_from_BigInt(priv->Q);
+						RSA_set0_factors(rsa.get(), p, q);
+					}
+					if (priv->DP.isNotNull() || priv->DQ.isNotNull() || priv->IQ.isNotNull()) {
+						BIGNUM* dp = Get_BIGNUM_from_BigInt(priv->DP);
+						BIGNUM* dq = Get_BIGNUM_from_BigInt(priv->DQ);
+						BIGNUM* iq = Get_BIGNUM_from_BigInt(priv->IQ);
+						RSA_set0_crt_params(rsa.get(), dp, dq, iq);
+					}
+				} else {
+					RSA_set0_key(rsa.get(), n.release(), e.release(), sl_null);
+				}
+				return rsa.release();
 			}
 
 			static ::RSA* Get_RSA_from_RSAPrivateKey(const RSAPrivateKey& key)
 			{
-				return Get_RSA_from_RSAPublicKey(key, &(key.D));
+				return Get_RSA_from_RSAPublicKey(key, &key);
 			}
 
-			static EVP_PKEY* Get_EVP_PKEY_from_RSAPublicKey(const RSAPublicKey& key, const BigInt* D = sl_null)
+			static EVP_PKEY* Get_EVP_PKEY_from_RSAPublicKey(const RSAPublicKey& key, const RSAPrivateKey* priv = sl_null)
 			{
-				EVP_PKEY* ret = EVP_PKEY_new();
-				if (ret) {
-					::RSA* rsa = Get_RSA_from_RSAPublicKey(key, D);
-					if (rsa) {
-						EVP_PKEY_set_alias_type(ret, EVP_PKEY_RSA);
-						EVP_PKEY_set1_RSA(ret, rsa);
-						RSA_free(rsa);
+				RSA_Handle rsa(Get_RSA_from_RSAPublicKey(key, priv));
+				if (rsa.isNotNone()) {
+					EVP_PKEY* ret = EVP_PKEY_new();
+					if (ret) {
+						EVP_PKEY_assign_RSA(ret, rsa.release());
 						return ret;
 					}
-					EVP_PKEY_free(ret);
 				}
 				return sl_null;
 			}
 
 			static EVP_PKEY* Get_EVP_PKEY_from_ECPublicKey(const ECPublicKeyWithCurve curve)
 			{
-				EVP_PKEY* ret = EVP_PKEY_new();
-				if (ret) {
-					EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
-					if (group) {
-						EC_KEY* ek = Get_EC_KEY_from_ECPublicKey(group, curve);
-						if (ek) {
-							EVP_PKEY_set1_EC_KEY(ret, ek);
+				EC_GROUP_Handle group(Get_EC_GROUP_from_EllipticCurve(curve));
+				if (group.isNotNone()) {
+					EC_KEY_Handle ekey(Get_EC_KEY_from_ECPublicKey(group.get(), curve));
+					if (ekey.isNotNone()) {
+						EVP_PKEY* ret = EVP_PKEY_new();
+						if (ret) {
+							EVP_PKEY_assign_EC_KEY(ret, ekey.release());
 							return ret;
 						}
-						EC_GROUP_free(group);
 					}
-					EVP_PKEY_free(ret);
 				}
 				return sl_null;
 			}
 
 			static EVP_PKEY* Get_EVP_PKEY_from_ECPrivateKey(const ECPrivateKeyWithCurve& curve)
 			{
-				EVP_PKEY* ret = EVP_PKEY_new();
-				if (ret) {
-					EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
-					if (group) {
-						EC_KEY* ek = Get_EC_KEY_from_ECPrivateKey(group, curve);
-						if (ek) {
-							EVP_PKEY_set1_EC_KEY(ret, ek);
+				EC_GROUP_Handle group(Get_EC_GROUP_from_EllipticCurve(curve));
+				if (group.isNotNone()) {
+					EC_KEY_Handle ekey(Get_EC_KEY_from_ECPrivateKey(group.get(), curve));
+					if (ekey.isNotNone()) {
+						EVP_PKEY* ret = EVP_PKEY_new();
+						if (ret) {
+							EVP_PKEY_assign_EC_KEY(ret, ekey.release());
 							return ret;
 						}
-						EC_GROUP_free(group);
 					}
-					EVP_PKEY_free(ret);
 				}
 				return sl_null;
 			}
 
 			static EVP_PKEY* Get_EVP_PKEY_from_RSAPrivateKey(const RSAPrivateKey& key)
 			{
-				return Get_EVP_PKEY_from_RSAPublicKey(key, &(key.D));
+				return Get_EVP_PKEY_from_RSAPublicKey(key, &key);
 			}
 
 			static EVP_PKEY* Get_EVP_PKEY_from_PublicKey(const PublicKey& key)
@@ -1380,10 +1424,9 @@ namespace slib
 			}
 			return sl_false;
 		}
-		BIGNUM* num = BN_bin2bn((unsigned char*)num_BigEndian, nBytes, sl_null);
-		if (num) {
-			int ret = BN_is_prime_fasttest_ex(num, 0, sl_null, sl_false, sl_null);
-			BN_free(num);
+		BIGNUM_Handle num(BN_bin2bn((unsigned char*)num_BigEndian, nBytes, sl_null));
+		if (num.isNotNone()) {
+			int ret = BN_is_prime_fasttest_ex(num.get(), 0, sl_null, sl_false, sl_null);
 			if (pFlagError) {
 				if (ret < 0) {
 					*pFlagError = sl_true;
@@ -1403,15 +1446,19 @@ namespace slib
 	Memory OpenSSL::generatePrime(sl_uint32 nBits)
 	{
 		InitThread();
-		BIGNUM* prime = BN_new();
-		if (BN_generate_prime_ex(prime, (int)nBits, sl_false, sl_null, sl_null, sl_null)) {
+		BIGNUM_Handle prime(BN_new());
+		if (prime.isNone()) {
+			return sl_null;
+		}
+		if (BN_generate_prime_ex(prime.get(), (int)nBits, sl_false, sl_null, sl_null, sl_null)) {
 			sl_size n = (sl_size)(BN_num_bytes(prime));
-			Memory ret = Memory::create(n);
-			if (ret.isNotNull()) {
-				BN_bn2bin(prime, (unsigned char*)(ret.getData()));
+			if (n) {
+				Memory ret = Memory::create(n);
+				if (ret.isNotNull()) {
+					BN_bn2bin(prime.get(), (unsigned char*)(ret.getData()));
+					return ret;
+				}
 			}
-			BN_free(prime);
-			return ret;
 		}
 		return sl_null;
 	}
@@ -1448,60 +1495,51 @@ namespace slib
 	sl_bool OpenSSL::generate_ECKey(const EllipticCurve& curve, ECPrivateKey& _output)
 	{
 		InitThread();
-		sl_bool flagSuccess = sl_false;
-		EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
-		if (group) {
-			EC_KEY* key = EC_KEY_new();
-			if (key) {
-				flagSuccess = sl_true;
-				EC_KEY_set_group(key, group);
-				for (;;) {
-					if (1 == EC_KEY_generate_key(key)) {
-						const BIGNUM* p = EC_KEY_get0_private_key(key);
-						_output.d = Get_BigInt_from_BIGNUM(p);
-						if (_output.d.isNull()) {
-							flagSuccess = sl_false;
-							break;
-						}
-						const EC_POINT* Q = EC_KEY_get0_public_key(key);
-						_output.Q = Get_ECPoint_from_EC_POINT(group, Q);
-						if (_output.Q.isO()) {
-							flagSuccess = sl_false;
-							break;
-						}
-						break;
-					}
-				}
-				EC_KEY_free(key);
-			}
-			EC_GROUP_free(group);
+		EC_GROUP_Handle group(Get_EC_GROUP_from_EllipticCurve(curve));
+		if (group.isNone()) {
+			return sl_false;
 		}
-		return flagSuccess;
+		EC_KEY_Handle ekey(EC_KEY_new());
+		if (ekey.isNone()) {
+			return sl_false;
+		}
+		EC_KEY_set_group(ekey.get(), group.get());
+		for (;;) {
+			if (EC_KEY_generate_key(ekey.get()) == 1) {
+				const BIGNUM* p = EC_KEY_get0_private_key(ekey.get());
+				_output.d = Get_BigInt_from_BIGNUM(p);
+				if (_output.d.isNull()) {
+					return sl_false;
+				}
+				const EC_POINT* Q = EC_KEY_get0_public_key(ekey.get());
+				_output.Q = Get_ECPoint_from_EC_POINT(group.get(), Q);
+				return !(_output.Q.isO());
+			}
+		}
+		return sl_false;
 	}
 	
 	sl_bool OpenSSL::check_ECKey(const EllipticCurve& curve, const ECPublicKey& key)
 	{
 		InitThread();
-		sl_bool flagSuccess = sl_false;
-		EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
-		if (group) {
-			EC_KEY* ek = Get_EC_KEY_from_ECPublicKey(group, key);
-			if (ek) {
-				flagSuccess = EC_KEY_check_key(ek) == 1;
-				EC_KEY_free(ek);
-			}
-			EC_GROUP_free(group);
+		EC_GROUP_Handle group(Get_EC_GROUP_from_EllipticCurve(curve));
+		if (group.isNone()) {
+			return sl_false;
 		}
-		return flagSuccess;
+		EC_KEY_Handle ekey(Get_EC_KEY_from_ECPublicKey(group.get(), key));
+		if (ekey.isNone()) {
+			return sl_false;
+		}
+		return EC_KEY_check_key(ekey.get()) == 1;
 	}
 
 	ECDSA_Signature OpenSSL::sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z)
 	{
 		Memory mem = z.getBytesBE();
-		if (mem.isNull()) {
-			return ECDSA_Signature();
+		if (mem.isNotNull()) {
+			return Do_sign_ECDSA(curve, key, mem.getData(), mem.getSize());
 		}
-		return Do_sign_ECDSA(curve, key, mem.getData(), mem.getSize());
+		return ECDSA_Signature();
 	}
 	
 	ECDSA_Signature OpenSSL::sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size)
@@ -1569,42 +1607,39 @@ namespace slib
 	{
 		InitThread();
 		BigInt ret;
-		EC_GROUP* group = Get_EC_GROUP_from_EllipticCurve(curve);
-		if (group) {
-			BIGNUM* priv = Get_BIGNUM_from_BigInt(keyLocal.d);
-			if (priv) {
-				EC_POINT* pub = Get_EC_POINT_from_ECPoint(group, keyRemote.Q);
-				if (pub) {
-					EC_POINT* pt = EC_POINT_new(group);
-					if (pt) {
-						if (EC_POINT_mul(group, pt, sl_null, pub, priv, sl_null)) {
-							BIGNUM* x = BN_new();
-							if (x) {
-								if (EC_POINT_get_affine_coordinates(group, pt, x, sl_null, sl_null)) {
-									ret = Get_BigInt_from_BIGNUM(x);
-								}
-								BN_free(x);
-							}
-						}
-						EC_POINT_free(pt);
-					}
-					EC_POINT_free(pub);
-				}
-				BN_free(priv);
-			}
-			EC_GROUP_free(group);
+		EC_GROUP_Handle group(Get_EC_GROUP_from_EllipticCurve(curve));
+		if (group.isNone()) {
+			return sl_null;
 		}
-		return ret;
+		BIGNUM_Handle priv(Get_BIGNUM_from_BigInt(keyLocal.d));
+		if (priv.isNone()) {
+			return sl_null;
+		}
+		EC_POINT_Handle pub(Get_EC_POINT_from_ECPoint(group.get(), keyRemote.Q));
+		if (pub.isNone()) {
+			return sl_null;
+		}
+		EC_POINT_Handle pt(EC_POINT_new(group.get()));
+		if (pt.isNone()) {
+			return sl_null;
+		}
+		if (EC_POINT_mul(group.get(), pt.get(), sl_null, pub.get(), priv.get(), sl_null) == 1) {
+			BIGNUM_Handle x(BN_new());
+			if (x.isNotNone()) {
+				if (EC_POINT_get_affine_coordinates(group.get(), pt.get(), x.get(), sl_null, sl_null)) {
+					return Get_BigInt_from_BIGNUM(x.get());
+				}
+			}
+		}
+		return sl_null;
 	}
 
 	sl_bool OpenSSL::loadX509(X509& _out, const void* content, sl_size size)
 	{
 		InitThread();
-		::X509* handle = Load_X509(content, size);
-		if (handle) {
-			sl_bool bRet = Get_X509(_out, handle);
-			X509_free(handle);
-			return bRet;
+		X509_Handle handle(Load_X509(content, size));
+		if (handle.isNotNone()) {
+			return Get_X509(_out, handle);
 		}
 		return sl_false;
 	}
@@ -1657,20 +1692,22 @@ namespace slib
 		if (!(PKCS12_parse(p12.get(), password.getData(), &(key.handle), sl_null, &(certificates.handle)))) {
 			return sl_false;
 		}
-		if (key.isNotNone()) {
-			if (!(Get_PrivateKey_from_EVP_PKEY(_out.key, key.get()))) {
-				return sl_false;
-			}
-		}
 		if (certificates.isNotNone()) {
 			int n = sk_X509_num(certificates.get());
 			for (int i = 0; i < n; i++) {
 				::X509* x509 = sk_X509_value(certificates.get(), i);
-				Memory mem = Get_Memory_from_X509(x509);
-				if (mem.isNull()) {
-					return sl_false;
+				if (x509) {
+					Memory mem = Get_Memory_from_X509(x509);
+					if (mem.isNotNull()) {
+						_out.certificates.add_NoLock(Move(mem));
+					}
+					X509_free(x509);
 				}
-				_out.certificates.add_NoLock(Move(mem));
+			}
+		}
+		if (key.isNotNone()) {
+			if (!(Get_PrivateKey_from_EVP_PKEY(_out.key, key.get()))) {
+				return sl_false;
 			}
 		}
 		return sl_true;
@@ -1691,46 +1728,30 @@ namespace slib
 	{
 		StringCstr password(_password);
 
-		EVP_PKEY_Handle key(Get_EVP_PKEY_from_PrivateKey(p12.key));
-		if (key.isNone()) {
-			return sl_null;
-		}
-		ListElements<Memory> certDataList(p12.certificates);
-		if (!(certDataList.count)) {
-			return sl_null;
-		}
-		Stack_X509_Handle certificates(sk_X509_new_null());
-		if (certificates.isNone()) {
-			return sl_null;
-		}
-		X509_Handle mainCertificate;
+		Stack_X509_Handle certificates;
 		List<X509_Handle> listX509;
-		for (sl_size i = 0; i < certDataList.count; i++) {
-			Memory& certData = certDataList[i];
-			const sl_uint8* data = (const sl_uint8*)(certData.getData());
-			sl_size size = certData.getSize();
-			::X509* x509 = d2i_X509(sl_null, &data, (long)size);
-			if (x509) {
-				if (X509_check_private_key(x509, key.get())) {
-					mainCertificate.handle = x509;
-				} else {
+		ListElements<Memory> certDataList(p12.certificates);
+		if (certDataList.count) {
+			certificates.handle = sk_X509_new_null();
+			if (certificates.isNone()) {
+				return sl_null;
+			}
+			for (sl_size i = 0; i < certDataList.count; i++) {
+				Memory& certData = certDataList[i];
+				const sl_uint8* data = (const sl_uint8*)(certData.getData());
+				sl_size size = certData.getSize();
+				::X509* x509 = d2i_X509(sl_null, &data, (long)size);
+				if (x509) {
 					sk_X509_push(certificates.get(), x509);
 					listX509.add_NoLock(x509);
 				}
 			}
 		}
-		if (mainCertificate.isNone()) {
-			return sl_null;
-		}
 
-		const char* name;
-		StringCstr _name(p12.friendlyName);
-		if (p12.friendlyName.isNotNull()) {
-			name = _name.getData();
-		} else {
-			name = sl_null;
-		}
-		PKCS12_Handle handle(PKCS12_create(password.getData(), name, key.get(), mainCertificate.get(), certificates.get(), 0, 0, 0, 0, 0));
+		EVP_PKEY_Handle key(Get_EVP_PKEY_from_PrivateKey(p12.key));
+
+		StringCstr name(p12.friendlyName);
+		PKCS12_Handle handle(PKCS12_create(password.getData(), name.isEmpty() ? sl_null : name.getData(), key.get(), sl_null, certificates.get(), 0, 0, 0, 0, 0));
 		if (handle.isNotNone()) {
 			int size = i2d_PKCS12(handle.get(), sl_null);
 			if (size > 0) {

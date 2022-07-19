@@ -141,13 +141,13 @@ namespace slib
 		if (T >= key.N) {
 			return sl_false;
 		}
-		if (key.flagUseOnlyD) {
-			T = BigInt::pow_montgomery(T, key.D, key.N);
-		} else {
+		if (!(key.flagUseOnlyD) && key.P.isNotNull() && key.Q.isNotNull() && key.DP.isNotNull() && key.DQ.isNotNull() && key.IQ.isNotNull()) {
 			BigInt TP = BigInt::pow_montgomery(T, key.DP, key.P);
 			BigInt TQ = BigInt::pow_montgomery(T, key.DQ, key.Q);
 			T = BigInt::mod_NonNegativeRemainder((TP - TQ) * key.IQ, key.P);
 			T = TQ + T * key.Q;
+		} else {
+			T = BigInt::pow_montgomery(T, key.D, key.N);
 		}
 		if (T.isNotNull()) {
 			if (T.getMostSignificantBytes() <= n) {
