@@ -55,78 +55,41 @@ namespace slib
 			}
 #endif
 
-			class SLIB_EXPORT EVP_PKEY_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EVP_PKEY_Handle, EVP_PKEY*, handle, sl_null, EVP_PKEY_free)
+#define DEFINE_HANDLE(NAME) \
+			struct SLIB_EXPORT NAME##_Handle \
+			{ \
+				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(NAME##_Handle, ::NAME*, handle, sl_null, NAME##_free) \
 			};
 
-			class SLIB_EXPORT RSA_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(RSA_Handle, ::RSA*, handle, sl_null, RSA_free)
-			};
+#define BIGNUM_free BN_free
 
-			class SLIB_EXPORT BIGNUM_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(BIGNUM_Handle, BIGNUM*, handle, sl_null, BN_free)
-			};
+			DEFINE_HANDLE(ASN1_OBJECT)
+			DEFINE_HANDLE(EVP_PKEY)
+			DEFINE_HANDLE(RSA)
+			DEFINE_HANDLE(BIGNUM)
+			DEFINE_HANDLE(EC_POINT)
+			DEFINE_HANDLE(EC_GROUP)
+			DEFINE_HANDLE(EC_KEY)
+			DEFINE_HANDLE(EVP_MD_CTX)
+			DEFINE_HANDLE(ECDSA_SIG)
+			DEFINE_HANDLE(X509)
+			DEFINE_HANDLE(X509_NAME)
+			DEFINE_HANDLE(PKCS12)
+			DEFINE_HANDLE(ASN1_STRING)
+			DEFINE_HANDLE(AUTHORITY_KEYID)
+			DEFINE_HANDLE(BASIC_CONSTRAINTS)
+			DEFINE_HANDLE(CERTIFICATEPOLICIES)
+			DEFINE_HANDLE(EXTENDED_KEY_USAGE)
+			DEFINE_HANDLE(POLICYINFO)
+			DEFINE_HANDLE(AUTHORITY_INFO_ACCESS)
+			DEFINE_HANDLE(ACCESS_DESCRIPTION)
 
-			class SLIB_EXPORT EC_POINT_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EC_POINT_Handle, EC_POINT*, handle, sl_null, EC_POINT_free)
-			};
-
-			class SLIB_EXPORT EC_GROUP_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EC_GROUP_Handle, EC_GROUP*, handle, sl_null, EC_GROUP_free)
-			};
-
-			class SLIB_EXPORT EC_KEY_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EC_KEY_Handle, EC_KEY*, handle, sl_null, EC_KEY_free)
-			};
-
-			class SLIB_EXPORT EVP_MD_CTX_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(EVP_MD_CTX_Handle, EVP_MD_CTX*, handle, sl_null, EVP_MD_CTX_free)
-			};
-
-			class SLIB_EXPORT ECDSA_SIG_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(ECDSA_SIG_Handle, ECDSA_SIG*, handle, sl_null, ECDSA_SIG_free)
-			};
-
-			class SLIB_EXPORT X509_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(X509_Handle, ::X509*, handle, sl_null, X509_free)
-			};
-
-			class SLIB_EXPORT X509_NAME_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(X509_NAME_Handle, X509_NAME*, handle, sl_null, X509_NAME_free)
-			};
 
 			class SLIB_EXPORT Stack_X509_Handle
 			{
 			public:
 				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(Stack_X509_Handle, stack_st_X509*, handle, sl_null, sk_X509_free)
 			};
-
-			class SLIB_EXPORT PKCS12_Handle
-			{
-			public:
-				SLIB_DEFINE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(PKCS12_Handle, ::PKCS12*, handle, sl_null, PKCS12_free)
-			};
-
 			static Memory Generate_RSA_Signature(EVP_PKEY* key, const EVP_MD* md, const void* data, sl_size size)
 			{
 				unsigned int len = EVP_PKEY_size(key);
@@ -867,48 +830,44 @@ namespace slib
 				_out.validTo = Get_Time_from_ASN1_TIME(X509_get0_notAfter(handle));
 
 				// Extensions
-				BASIC_CONSTRAINTS* basicConstraints = (BASIC_CONSTRAINTS*)(X509_get_ext_d2i(handle, NID_basic_constraints, sl_null, sl_null));
-				if (basicConstraints) {
-					_out.flagEndEntity = !(basicConstraints->ca);
-					BASIC_CONSTRAINTS_free(basicConstraints);
+				BASIC_CONSTRAINTS_Handle basicConstraints((BASIC_CONSTRAINTS*)(X509_get_ext_d2i(handle, NID_basic_constraints, sl_null, sl_null)));
+				if (basicConstraints.isNotNone()) {
+					_out.flagEndEntity = !(basicConstraints.handle->ca);
 				}
-				EXTENDED_KEY_USAGE* extendedKeyUsage = (EXTENDED_KEY_USAGE*)(X509_get_ext_d2i(handle, NID_ext_key_usage, sl_null, sl_null));
-				if (extendedKeyUsage) {
+				EXTENDED_KEY_USAGE_Handle extendedKeyUsage((EXTENDED_KEY_USAGE*)(X509_get_ext_d2i(handle, NID_ext_key_usage, sl_null, sl_null)));
+				if (extendedKeyUsage.isNotNone()) {
 					int n = sk_ASN1_OBJECT_num(extendedKeyUsage);
 					for (int i = 0; i < n; i++) {
-						int nid = OBJ_obj2nid(sk_ASN1_OBJECT_value(extendedKeyUsage, i));
+						ASN1_OBJECT_Handle object(sk_ASN1_OBJECT_value(extendedKeyUsage, i));
+						int nid = OBJ_obj2nid(object);
 						if (nid != NID_undef) {
 							_out.enhancedKeyUsages.add_NoLock((X509EnhancedKeyUsage)nid);
 						}
 					}
-					sk_ASN1_OBJECT_pop_free(extendedKeyUsage, ASN1_OBJECT_free);
 				}
-				ASN1_BIT_STRING* keyUsage = (ASN1_BIT_STRING*)(X509_get_ext_d2i(handle, NID_key_usage, sl_null, sl_null));
-				if (keyUsage) {
+				ASN1_STRING_Handle keyUsage((ASN1_STRING*)(X509_get_ext_d2i(handle, NID_key_usage, sl_null, sl_null)));
+				if (keyUsage.isNotNone()) {
 					sl_uint32 flags;
-					if (keyUsage->length > 0) {
-						flags = keyUsage->data[0];
-						if (keyUsage->length > 1) {
-							flags |= ((sl_uint32)(keyUsage->data[1])) << 8;
+					if (keyUsage.handle->length > 0) {
+						flags = keyUsage.handle->data[0];
+						if (keyUsage.handle->length > 1) {
+							flags |= ((sl_uint32)(keyUsage.handle->data[1])) << 8;
 						}
 					} else {
 						flags = 0;
 					}
 					_out.keyUsages.value = flags;
-					ASN1_BIT_STRING_free(keyUsage);
 				}
-				ASN1_OCTET_STRING* subjectKeyId = (ASN1_INTEGER*)(X509_get_ext_d2i(handle, NID_subject_key_identifier, sl_null, sl_null));
-				if (subjectKeyId) {
+				ASN1_STRING_Handle subjectKeyId((ASN1_STRING*)(X509_get_ext_d2i(handle, NID_subject_key_identifier, sl_null, sl_null)));
+				if (subjectKeyId.isNotNone()) {
 					_out.subjectKeyId = Get_BigInt_from_ASN1_OCTET_STRING(subjectKeyId);
-					ASN1_OCTET_STRING_free(subjectKeyId);
 				}
-				AUTHORITY_KEYID* authorityKeyId = (AUTHORITY_KEYID*)(X509_get_ext_d2i(handle, NID_authority_key_identifier, sl_null, sl_null));
-				if (authorityKeyId) {
-					_out.authorityKeyId = Get_BigInt_from_ASN1_OCTET_STRING(authorityKeyId->keyid);
-					AUTHORITY_KEYID_free(authorityKeyId);
+				AUTHORITY_KEYID_Handle authorityKeyId((AUTHORITY_KEYID*)(X509_get_ext_d2i(handle, NID_authority_key_identifier, sl_null, sl_null)));
+				if (authorityKeyId.isNotNone()) {
+					_out.authorityKeyId = Get_BigInt_from_ASN1_OCTET_STRING(authorityKeyId.handle->keyid);
 				}
-				CERTIFICATEPOLICIES* certificatePolicies = (CERTIFICATEPOLICIES*)(X509_get_ext_d2i(handle, NID_certificate_policies, sl_null, sl_null));
-				if (certificatePolicies) {
+				CERTIFICATEPOLICIES_Handle certificatePolicies((CERTIFICATEPOLICIES*)(X509_get_ext_d2i(handle, NID_certificate_policies, sl_null, sl_null)));
+				if (certificatePolicies.isNotNone()) {
 					int nPolicies = sk_POLICYINFO_num(certificatePolicies);
 					for (int iPolicy = 0; iPolicy < nPolicies; iPolicy++) {
 						POLICYINFO* policyInfo = sk_POLICYINFO_value(certificatePolicies, iPolicy);
@@ -929,10 +888,9 @@ namespace slib
 						}
 						_out.policies.add_NoLock(Move(policy));
 					}
-					sk_POLICYINFO_pop_free(certificatePolicies, POLICYINFO_free);
 				}
-				AUTHORITY_INFO_ACCESS* infoAccess = (AUTHORITY_INFO_ACCESS*)(X509_get_ext_d2i(handle, NID_info_access, sl_null, sl_null));
-				if (infoAccess) {
+				AUTHORITY_INFO_ACCESS_Handle infoAccess((AUTHORITY_INFO_ACCESS*)(X509_get_ext_d2i(handle, NID_info_access, sl_null, sl_null)));
+				if (infoAccess.isNotNone()) {
 					int n = sk_ACCESS_DESCRIPTION_num(infoAccess);
 					for (int i = 0; i < n; i++) {
 						ACCESS_DESCRIPTION* desc = sk_ACCESS_DESCRIPTION_value(infoAccess, i);
@@ -962,7 +920,6 @@ namespace slib
 							}
 						}
 					}
-					AUTHORITY_INFO_ACCESS_free(infoAccess);
 				}
 				return Get_PublicKey_from_EVP_PKEY(_out.key, X509_get0_pubkey(handle));
 			}
@@ -977,26 +934,23 @@ namespace slib
 
 				X509_set_version(handle, (long)(_in.version));
 
-				ASN1_INTEGER* sn = Get_ASN1_INTEGER_from_BigInt(_in.serialNumber);
-				if (sn) {
-					X509_set_serialNumber(handle, sn);
-					ASN1_INTEGER_free(sn);
+				ASN1_STRING_Handle serialNumber(Get_ASN1_INTEGER_from_BigInt(_in.serialNumber));
+				if (serialNumber.isNotNone()) {
+					X509_set_serialNumber(handle, serialNumber);
 				} else {
 					return sl_null;
 				}
 
-				X509_NAME* subject = Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.subject);
-				if (subject) {
+				X509_NAME_Handle subject(Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.subject));
+				if (subject.isNotNone()) {
 					X509_set_subject_name(handle, subject);
-					X509_NAME_free(subject);
 				} else {
 					return sl_null;
 				}
 
-				X509_NAME* issuer = Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.issuer);
-				if (issuer) {
+				X509_NAME_Handle issuer(Get_X509_NAME_from_HashMap<X509SubjectKey>(_in.issuer));
+				if (issuer.isNotNone()) {
 					X509_set_issuer_name(handle, issuer);
-					X509_NAME_free(issuer);
 				} else {
 					return sl_null;
 				}
@@ -1004,19 +958,17 @@ namespace slib
 				Set_Time_to_ASN1_TIME(X509_getm_notBefore(handle), _in.validFrom);
 				Set_Time_to_ASN1_TIME(X509_getm_notAfter(handle), _in.validTo);
 
-				EVP_PKEY* pkey = Get_EVP_PKEY_from_PublicKey(_in.key);
-				if (pkey) {
-					X509_set_pubkey(handle, pkey);
-					EVP_PKEY_free(pkey);
+				EVP_PKEY_Handle key(Get_EVP_PKEY_from_PublicKey(_in.key));
+				if (key.isNotNone()) {
+					X509_set_pubkey(handle, key);
 				} else {
 					return sl_null;
 				}
 
-				BASIC_CONSTRAINTS *basicConstraints = BASIC_CONSTRAINTS_new();
-				if (basicConstraints) {
-					basicConstraints->ca = !(_in.flagEndEntity);
+				BASIC_CONSTRAINTS_Handle basicConstraints(BASIC_CONSTRAINTS_new());
+				if (basicConstraints.isNotNone()) {
+					basicConstraints.handle->ca = !(_in.flagEndEntity);
 					X509_add1_ext_i2d(handle, NID_basic_constraints, basicConstraints, 1, 0);
-					BASIC_CONSTRAINTS_free(basicConstraints);
 				} else {
 					return sl_null;
 				}
@@ -1039,8 +991,8 @@ namespace slib
 				}
 
 				if (_in.keyUsages.value) {
-					ASN1_BIT_STRING* keyUsage = ASN1_BIT_STRING_new();
-					if (keyUsage) {
+					ASN1_STRING_Handle keyUsage(ASN1_BIT_STRING_new());
+					if (keyUsage.isNotNone()) {
 						if (_in.keyUsages.value & 0xff00) {
 							sl_uint8 value[2];
 							value[0] = (sl_uint8)(_in.keyUsages.value);
@@ -1051,28 +1003,25 @@ namespace slib
 							ASN1_BIT_STRING_set(keyUsage, &value, 1);
 						}
 						X509_add1_ext_i2d(handle, NID_key_usage, keyUsage, 1, 0);
-						ASN1_BIT_STRING_free(keyUsage);
 					} else {
 						return sl_null;
 					}
 				}
 
 				if (_in.subjectKeyId.isNotNull()) {
-					ASN1_OCTET_STRING* subjectKeyId = Get_ASN1_OCTET_STRING_from_BigInt(_in.subjectKeyId);
-					if (subjectKeyId) {
+					ASN1_STRING_Handle subjectKeyId(Get_ASN1_OCTET_STRING_from_BigInt(_in.subjectKeyId));
+					if (subjectKeyId.isNotNone()) {
 						X509_add1_ext_i2d(handle, NID_subject_key_identifier, subjectKeyId, 0, 0);
-						ASN1_OCTET_STRING_free(subjectKeyId);
 					} else {
 						return sl_null;
 					}
 				}
 
 				if (_in.authorityKeyId.isNotNull()) {
-					AUTHORITY_KEYID* authorityKeyId = AUTHORITY_KEYID_new();
-					if (authorityKeyId) {
-						authorityKeyId->keyid = Get_ASN1_OCTET_STRING_from_BigInt(_in.authorityKeyId);
+					AUTHORITY_KEYID_Handle authorityKeyId(AUTHORITY_KEYID_new());
+					if (authorityKeyId.isNotNone()) {
+						authorityKeyId.handle->keyid = Get_ASN1_OCTET_STRING_from_BigInt(_in.authorityKeyId);
 						X509_add1_ext_i2d(handle, NID_authority_key_identifier, authorityKeyId, 0, 0);
-						AUTHORITY_KEYID_free(authorityKeyId);
 					} else {
 						return sl_null;
 					}
@@ -1080,8 +1029,8 @@ namespace slib
 
 				ListElements<X509CertificatePolicy> policies(_in.policies);
 				if (policies.count) {
-					CERTIFICATEPOLICIES* hPolicies = CERTIFICATEPOLICIES_new();
-					if (hPolicies) {
+					CERTIFICATEPOLICIES_Handle hPolicies(CERTIFICATEPOLICIES_new());
+					if (hPolicies.isNotNone()) {
 						for (sl_size i = 0; i < policies.count; i++) {
 							X509CertificatePolicy& policy = policies[i];
 							POLICYINFO* policyInfo = POLICYINFO_new();
@@ -1110,11 +1059,10 @@ namespace slib
 										}
 									}
 								}
+								sk_POLICYINFO_push(hPolicies, policyInfo);
 							}
-							sk_POLICYINFO_push(hPolicies, policyInfo);
 						}
 						X509_add1_ext_i2d(handle, NID_certificate_policies, hPolicies, 0, 0);
-						CERTIFICATEPOLICIES_free(hPolicies);
 					} else {
 						return sl_null;
 					}
@@ -1122,8 +1070,8 @@ namespace slib
 
 				ListElements<X509AuthorityInformation> authorityInformations(_in.authorityInformations);
 				if (authorityInformations.count) {
-					AUTHORITY_INFO_ACCESS* hAuthorityInfo = AUTHORITY_INFO_ACCESS_new();
-					if (hAuthorityInfo) {
+					AUTHORITY_INFO_ACCESS_Handle hAuthorityInfo(AUTHORITY_INFO_ACCESS_new());
+					if (hAuthorityInfo.isNotNone()) {
 						for (sl_size i = 0; i < authorityInformations.count; i++) {
 							X509AuthorityInformation& info = authorityInformations[i];
 							ACCESS_DESCRIPTION* desc = ACCESS_DESCRIPTION_new();
@@ -1149,7 +1097,6 @@ namespace slib
 							}
 						}
 						X509_add1_ext_i2d(handle, NID_info_access, hAuthorityInfo, 0, 0);
-						AUTHORITY_INFO_ACCESS_free(hAuthorityInfo);
 					} else {
 						return sl_null;
 					}
