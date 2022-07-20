@@ -44,11 +44,31 @@ namespace slib
 		
 		samplesPerSecond = 16000;
 		channelsCount = 1;
+		samplesPerFrame = 0;
 		frameLengthInMilliseconds = 50;
-		bufferLengthInMilliseconds = 1000;
+		bufferLengthInMilliseconds = 0;
+		samplesPerCallback = 0;
 		flagAutoStart = sl_true;
 	}
 	
+	sl_uint32 AudioRecorderParam::getSamplesPerFrame() const
+	{
+		if (samplesPerFrame) {
+			return samplesPerFrame;
+		} else {
+			return samplesPerSecond * frameLengthInMilliseconds / 1000;
+		}
+	}
+
+	sl_uint32 AudioRecorderParam::getFrameLengthInMilliseconds() const
+	{
+		if (samplesPerFrame) {
+			return samplesPerFrame * 1000 / samplesPerSecond;
+		} else {
+			return frameLengthInMilliseconds;
+		}
+	}
+
 	
 	SLIB_DEFINE_OBJECT(AudioRecorder, Object)
 	
@@ -58,6 +78,7 @@ namespace slib
 		m_flagRunning = sl_false;
 		m_volume = 256;
 		m_flagMute = sl_false;
+		m_nSamplesInCallbackBuffer = 0;
 	}
 	
 	AudioRecorder::~AudioRecorder()
@@ -210,27 +231,78 @@ namespace slib
 		if (m_flagMute) {
 			return;
 		}
+
 		sl_int32 volume = m_volume;
 		if (volume < 256) {
 			for (sl_uint32 i = 0; i < count; i++) {
 				s[i] = (sl_int16)((((sl_int32)(s[i])) * volume) >> 8);
 			}
 		}
+
 		if (m_param.onRecordAudio.isNotNull()) {
-			AudioData audio;
-			AudioFormat format;
+
 			sl_uint32 nChannels = m_param.channelsCount;
+			sl_uint32 nSamples = count / nChannels;
+			sl_uint32 nSamplesPerChannel = m_param.samplesPerCallback;
+			sl_uint32 nSamplesInBuf = m_nSamplesInCallbackBuffer;
+
+			AudioData audio;
 			if (nChannels == 1) {
-				format = AudioFormat::Int16_Mono;
+				audio.format = AudioFormat::Int16_Mono;
 			} else {
-				format = AudioFormat::Int16_Stereo;
+				audio.format = AudioFormat::Int16_Stereo;
 			}
-			audio.format = format;
-			audio.count = count / nChannels;
-			audio.data = s;
-			m_param.onRecordAudio(this, audio);
+
+			if (!nSamplesPerChannel || (!nSamplesInBuf && nSamplesPerChannel == nSamples)) {
+				audio.count = nSamples;
+				audio.data = s;
+				m_param.onRecordAudio(this, audio);
+			} else {
+				sl_uint32 nSamplesPerCallback = nSamplesPerChannel * nChannels;
+				if (nSamplesInBuf >= nSamplesPerCallback) {
+					nSamplesInBuf = 0;
+				}
+				Array<sl_int16> buf = m_bufCallback;
+				if (buf.getCount() != nSamplesPerCallback) {
+					buf = Array<sl_int16>::create(nSamplesPerCallback);
+					if (buf.isNull()) {
+						return;
+					}
+					m_bufCallback = buf;
+				}
+				sl_int16* pBufData = buf.getData();
+				if (nSamplesInBuf) {
+					if (nSamplesInBuf + count < nSamplesPerCallback) {
+						Base::copyMemory(pBufData + nSamplesInBuf, s, count << 1);
+						m_nSamplesInCallbackBuffer = nSamplesInBuf + count;
+						return;
+					} else {
+						sl_uint32 nRemain = nSamplesPerCallback - nSamplesInBuf;
+						Base::copyMemory(pBufData + nSamplesInBuf, s, nRemain << 1);
+						audio.count = nSamplesPerChannel;
+						audio.data = pBufData;
+						m_param.onRecordAudio(this, audio);
+						s += nRemain;
+						count -= nRemain;
+					}
+				}
+				sl_uint32 nFrames = count / nSamplesPerCallback;
+				for (sl_uint32 i = 0; i < nFrames; i++) {
+					audio.count = nSamplesPerChannel;
+					audio.data = s;
+					m_param.onRecordAudio(this, audio);
+					s += nSamplesPerCallback;
+					count -= nSamplesPerCallback;
+				}
+				if (count) {
+					Base::copyMemory(pBufData, s, count << 1);
+				}
+				m_nSamplesInCallbackBuffer = count;
+			}
 		}
+
 		m_queue.push(s, count);
+
 		if (m_param.event.isNotNull()) {
 			m_param.event->set();
 		}

@@ -118,12 +118,13 @@ namespace slib
 					wf.nChannels = param.channelsCount;
 					wf.wBitsPerSample = 16;
 					wf.nSamplesPerSec = param.samplesPerSecond;
-					wf.nBlockAlign = wf.wBitsPerSample * wf.nChannels / 8;
+					wf.nBlockAlign = (wf.wBitsPerSample * wf.nChannels) >> 3;
 					wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
 					wf.cbSize = 0;
 					
-					sl_uint32 samplesPerFrame = wf.nSamplesPerSec * param.frameLengthInMilliseconds / 1000 * param.channelsCount;
+					sl_uint32 samplesPerFrame = param.getSamplesPerFrame();
 					sl_uint32 sizeBuffer = samplesPerFrame * wf.nBlockAlign * 2;
+					samplesPerFrame *= param.channelsCount;
 					DSCBUFFERDESC desc;
 					desc.dwSize = sizeof(desc);
 					desc.dwBufferBytes = sizeBuffer;
@@ -444,7 +445,6 @@ namespace slib
 				LPDIRECTSOUNDNOTIFY m_dsNotify;
 				HANDLE              m_hNotificationEvents[2];
 
-				sl_uint32 m_nSamplesFrame;
 				sl_uint32 m_nBufferSize;
 				sl_uint32 m_nOffsetNextWrite;
 				sl_uint32 m_nNotifySize;
@@ -531,7 +531,6 @@ namespace slib
 									ret->m_nNotifySize = notifySize;
 									ret->m_hNotificationEvents[0] = hNotificationEvents[0];
 									ret->m_hNotificationEvents[1] = hNotificationEvents[1];
-									ret->m_nSamplesFrame = samplesPerFrame;
 									ret->m_nBufferSize = sizeBuffer;
 
 									ret->_init(param);

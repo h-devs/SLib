@@ -15,5 +15,6 @@ protected:
 
 private:
 	Ref<AudioRecorder> m_recorder;
-	
+	AtomicRef<FileIO> m_fileRecording;
+
 };

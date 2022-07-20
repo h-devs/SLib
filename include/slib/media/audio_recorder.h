@@ -57,11 +57,13 @@ namespace slib
 		String deviceId;
 		AudioRecordingPreset recordingPreset;
 		
-		sl_uint32 samplesPerSecond;
+		sl_uint32 samplesPerSecond; // per channel
 		sl_uint32 channelsCount;
-		sl_uint32 frameLengthInMilliseconds;
+		sl_uint32 samplesPerFrame; // samples per frame (per channel)
+		sl_uint32 frameLengthInMilliseconds; // required when `samplesPerFrame` is not set
 		sl_uint32 bufferLengthInMilliseconds;
-		
+		sl_uint32 samplesPerCallback; // samples per callback (per channel)
+
 		sl_bool flagAutoStart;
 		
 		Function<void(AudioRecorder*, AudioData&)> onRecordAudio;
@@ -72,6 +74,11 @@ namespace slib
 		
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioRecorderParam)
 		
+	public:
+		sl_uint32 getSamplesPerFrame() const;
+
+		sl_uint32 getFrameLengthInMilliseconds() const;
+
 	};
 	
 	class SLIB_EXPORT AudioRecorder : public Object
@@ -135,6 +142,8 @@ namespace slib
 
 		LoopQueue<sl_int16> m_queue;
 		AtomicArray<sl_int16> m_processData;
+		AtomicArray<sl_int16> m_bufCallback;
+		sl_uint32 m_nSamplesInCallbackBuffer;
 		
 	};
 }
