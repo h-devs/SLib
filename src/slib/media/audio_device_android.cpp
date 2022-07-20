@@ -150,7 +150,7 @@ namespace slib
 								
 								if ((*recorderObject)->GetInterface(recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &bufferQueue) == SL_RESULT_SUCCESS) {
 									
-									sl_uint32 nSamplesPerFrame = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000 * param.channelsCount;
+									sl_uint32 nSamplesPerFrame = param.getSamplesPerFrame() * param.channelsCount;
 									Memory memFrame = Memory::create(nSamplesPerFrame << 2);
 
 									if (memFrame.isNotNull()) {

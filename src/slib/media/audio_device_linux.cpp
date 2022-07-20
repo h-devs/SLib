@@ -263,7 +263,7 @@ namespace slib
 
 					snd_pcm_t* handle;
 					if (snd_pcm_open(&handle, deviceId.getData(), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) >= 0) {
-						sl_uint32 nFramesPerPeriod = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000;
+						sl_uint32 nFramesPerPeriod = param.getSamplesPerFrame();
 						if (SetParameters(handle, param.channelsCount, param.samplesPerSecond, nFramesPerPeriod)) {
 							Ref<AudioRecorderImpl> ret = new AudioRecorderImpl;
 							if (ret.isNotNull()) {
@@ -343,7 +343,7 @@ namespace slib
 					}
 					
 					TimeCounter t;
-					sl_uint32 st = m_param.frameLengthInMilliseconds / 2;
+					sl_uint32 st = m_param.getFrameLengthInMilliseconds() / 2;
 					
 					while (thread->isNotStopping()) {
 						sl_bool flagRead = sl_false;

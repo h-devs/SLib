@@ -259,7 +259,7 @@ namespace slib
 						return sl_null;
 					}
 					
-					UInt32 sizeFrame = param.frameLengthInMilliseconds * formatSrc.mSampleRate * formatSrc.mBytesPerFrame / 1000;
+					UInt32 sizeFrame = param.getFrameLengthInMilliseconds() * formatSrc.mSampleRate * formatSrc.mBytesPerFrame / 1000;
 					if (sizeFrame < rangeBufferSize.mMinimum) {
 						LOG_ERROR("Required frame size(%d) is smaller than minimum %d", sizeFrame, rangeBufferSize.mMinimum);
 						return sl_null;
