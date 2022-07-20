@@ -870,12 +870,12 @@ namespace slib
 				if (certificatePolicies.isNotNone()) {
 					int nPolicies = sk_POLICYINFO_num(certificatePolicies);
 					for (int iPolicy = 0; iPolicy < nPolicies; iPolicy++) {
-						POLICYINFO_Handle policyInfo(sk_POLICYINFO_value(certificatePolicies, iPolicy));
+						POLICYINFO* policyInfo = sk_POLICYINFO_value(certificatePolicies, iPolicy);
 						X509CertificatePolicy policy;
-						policy.identifier = Get_String_from_ASN1_OBJECT(policyInfo.handle->policyid);
-						int nQualifiers = sk_POLICYQUALINFO_num(policyInfo.handle->qualifiers);
+						policy.identifier = Get_String_from_ASN1_OBJECT(policyInfo->policyid);
+						int nQualifiers = sk_POLICYQUALINFO_num(policyInfo->qualifiers);
 						for (int iQualifier = 0; iQualifier < nQualifiers; iQualifier++) {
-							POLICYQUALINFO* qualifierInfo = sk_POLICYQUALINFO_value(policyInfo.handle->qualifiers, iQualifier);
+							POLICYQUALINFO* qualifierInfo = sk_POLICYQUALINFO_value(policyInfo->qualifiers, iQualifier);
 							int nid = OBJ_obj2nid(qualifierInfo->pqualid);
 							if (nid == NID_id_qt_cps) {
 								policy.CPS = Get_String_from_ASN1_STRING(qualifierInfo->d.cpsuri);
@@ -893,23 +893,23 @@ namespace slib
 				if (infoAccess.isNotNone()) {
 					int n = sk_ACCESS_DESCRIPTION_num(infoAccess);
 					for (int i = 0; i < n; i++) {
-						ACCESS_DESCRIPTION_Handle desc(sk_ACCESS_DESCRIPTION_value(infoAccess, i));
-						int nid = OBJ_obj2nid(desc.handle->method);
+						ACCESS_DESCRIPTION* desc = sk_ACCESS_DESCRIPTION_value(infoAccess, i);
+						int nid = OBJ_obj2nid(desc->method);
 						if (nid != NID_undef) {
 							X509AuthorityInformation info;
 							info.method = (X509AuthorityInformationAccessMethod)nid;
-							switch (desc.handle->location->type) {
+							switch (desc->location->type) {
 								case GEN_EMAIL:
 									info.type = X509AuthorityInformationLocationType::Email;
-									info.value = Get_String_from_ASN1_STRING(desc.handle->location->d.rfc822Name);
+									info.value = Get_String_from_ASN1_STRING(desc->location->d.rfc822Name);
 									break;
 								case GEN_DNS:
 									info.type = X509AuthorityInformationLocationType::DNS;
-									info.value = Get_String_from_ASN1_STRING(desc.handle->location->d.dNSName);
+									info.value = Get_String_from_ASN1_STRING(desc->location->d.dNSName);
 									break;
 								case GEN_URI:
 									info.type = X509AuthorityInformationLocationType::URI;
-									info.value = Get_String_from_ASN1_STRING(desc.handle->location->d.uniformResourceIdentifier);
+									info.value = Get_String_from_ASN1_STRING(desc->location->d.uniformResourceIdentifier);
 									break;
 								default:
 									info.type = X509AuthorityInformationLocationType::Unknown;
@@ -1030,22 +1030,21 @@ namespace slib
 				ListElements<X509CertificatePolicy> policies(_in.policies);
 				if (policies.count) {
 					CERTIFICATEPOLICIES_Handle hPolicies(CERTIFICATEPOLICIES_new());
-					List<POLICYINFO_Handle> listPoliceHandles;
 					if (hPolicies.isNotNone()) {
 						for (sl_size i = 0; i < policies.count; i++) {
 							X509CertificatePolicy& policy = policies[i];
-							POLICYINFO_Handle policyInfo(POLICYINFO_new());
-							if (policyInfo.isNotNone()) {
+							POLICYINFO* policyInfo = POLICYINFO_new();
+							if (policyInfo) {
 								StringCstr str(policy.identifier);
-								policyInfo.handle->policyid = OBJ_txt2obj(policy.identifier.getData(), 0);
-								policyInfo.handle->qualifiers = sk_POLICYQUALINFO_new_null();
-								if (policyInfo.handle->qualifiers) {
+								policyInfo->policyid = OBJ_txt2obj(policy.identifier.getData(), 0);
+								policyInfo->qualifiers = sk_POLICYQUALINFO_new_null();
+								if (policyInfo->qualifiers) {
 									if (policy.CPS.isNotNull()) {
 										POLICYQUALINFO* qualiferInfo = POLICYQUALINFO_new();
 										if (qualiferInfo) {
 											qualiferInfo->d.cpsuri = (ASN1_IA5STRING*)(Get_ASN1_STRING_from_String(policy.CPS));
 											qualiferInfo->pqualid = OBJ_nid2obj(NID_id_qt_cps);
-											sk_POLICYQUALINFO_push(policyInfo.handle->qualifiers, qualiferInfo);
+											sk_POLICYQUALINFO_push(policyInfo->qualifiers, qualiferInfo);
 										}
 									}
 									if (policy.userNotice.isNotNull()) {
@@ -1055,12 +1054,11 @@ namespace slib
 											if (qualiferInfo->d.usernotice) {
 												qualiferInfo->d.usernotice->exptext = (ASN1_IA5STRING*)(Get_ASN1_STRING_from_String(policy.userNotice));
 												qualiferInfo->pqualid = OBJ_nid2obj(NID_id_qt_cps);
-												sk_POLICYQUALINFO_push(policyInfo.handle->qualifiers, qualiferInfo);
+												sk_POLICYQUALINFO_push(policyInfo->qualifiers, qualiferInfo);
 											}
 										}
 									}
 								}
-								listPoliceHandles.add_NoLock(policyInfo);
 								sk_POLICYINFO_push(hPolicies, policyInfo);
 							}
 						}
@@ -1073,30 +1071,28 @@ namespace slib
 				ListElements<X509AuthorityInformation> authorityInformations(_in.authorityInformations);
 				if (authorityInformations.count) {
 					AUTHORITY_INFO_ACCESS_Handle hAuthorityInfo(AUTHORITY_INFO_ACCESS_new());
-					List<ACCESS_DESCRIPTION_Handle> listAccessDescription;
 					if (hAuthorityInfo.isNotNone()) {
 						for (sl_size i = 0; i < authorityInformations.count; i++) {
 							X509AuthorityInformation& info = authorityInformations[i];
-							ACCESS_DESCRIPTION_Handle desc(ACCESS_DESCRIPTION_new());
-							if (desc.isNotNone()) {
-								desc.handle->method = OBJ_nid2obj((int)info.method);
+							ACCESS_DESCRIPTION* desc = ACCESS_DESCRIPTION_new();
+							if (desc) {
+								desc->method = OBJ_nid2obj((int)info.method);
 								switch (info.type) {
 									case X509AuthorityInformationLocationType::Email:
-										desc.handle->location->type = GEN_EMAIL;
-										desc.handle->location->d.rfc822Name = Get_ASN1_STRING_from_String(info.value);
+										desc->location->type = GEN_EMAIL;
+										desc->location->d.rfc822Name = Get_ASN1_STRING_from_String(info.value);
 										break;
 									case X509AuthorityInformationLocationType::DNS:
-										desc.handle->location->type = GEN_DNS;
-										desc.handle->location->d.dNSName = Get_ASN1_STRING_from_String(info.value);
+										desc->location->type = GEN_DNS;
+										desc->location->d.dNSName = Get_ASN1_STRING_from_String(info.value);
 										break;
 									case X509AuthorityInformationLocationType::URI:
-										desc.handle->location->type = GEN_URI;
-										desc.handle->location->d.uniformResourceIdentifier = Get_ASN1_STRING_from_String(info.value);
+										desc->location->type = GEN_URI;
+										desc->location->d.uniformResourceIdentifier = Get_ASN1_STRING_from_String(info.value);
 										break;
 									default:
 										break;
 								}
-								listAccessDescription.add_NoLock(desc);
 								sk_ACCESS_DESCRIPTION_push(hAuthorityInfo, desc);
 							}
 						}
