@@ -65,4 +65,62 @@ namespace slib
 		return sl_true;
 	}
 
+
+	sl_bool Asn1MemoryReader::readByte(sl_uint8& _out)
+	{
+		if (current < end) {
+			_out = *current;
+			current++;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readAndCheckTag(sl_uint8 tag)
+	{
+		if (current < end) {
+			if (*current == tag) {
+				current++;
+				return sl_true;
+			}
+			current++;
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readElementBody(Asn1MemoryReader& body)
+	{
+		sl_size len;
+		if (readLength(len)) {
+			if (current + len <= end) {
+				body.current = current;
+				body.end = current + len;
+				current += len;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1MemoryReader& body)
+	{
+		if (!(readAndCheckTag(tag))) {
+			return sl_false;
+		}
+		return readElementBody(body);
+	}
+
+	sl_bool Asn1MemoryReader::readAnyElement(sl_uint8& outTag, Asn1MemoryReader& body)
+	{
+		if (!(readByte(outTag))) {
+			return sl_false;
+		}
+		return readElementBody(body);
+	}
+
+	sl_bool Asn1MemoryReader::readSequence(Asn1MemoryReader& body)
+	{
+		return readElement(SLIB_ASN1_TAG_SEQUENCE, body);
+	}
+
 }

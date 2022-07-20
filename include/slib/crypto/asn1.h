@@ -99,7 +99,7 @@ X.690 is an ITU-T standard specifying several ASN.1 encoding formats:
 
 #define SLIB_ASN1_TAG_EOC SLIB_ASN1_TAG_TYPE_EOC // 0x00
 #define SLIB_ASN1_TAG_BOOL SLIB_ASN1_TAG_TYPE_BOOL // 0x01
-#define SLIB_ASN1_TAG_INT 2 SLIB_ASN1_TAG_TYPE_INT // 0x02
+#define SLIB_ASN1_TAG_INT SLIB_ASN1_TAG_TYPE_INT // 0x02
 #define SLIB_ASN1_TAG_BIT_STRING SLIB_ASN1_TAG_TYPE_BIT_STRING // 0x03
 #define SLIB_ASN1_TAG_OCTET_STRING SLIB_ASN1_TAG_TYPE_OCTET_STRING // 0x04
 #define SLIB_ASN1_TAG_NULL SLIB_ASN1_TAG_TYPE_NULL // 0x05
@@ -163,6 +163,32 @@ namespace slib
 		}
 
 		static sl_size getSerializedLengthSize(sl_size value) noexcept;
+
+		template <class INPUT, class LENGTH>
+		static sl_bool deserializeLength(INPUT* input, LENGTH& outValue)
+		{
+			sl_uint8 v;
+			if (!(DeserializeByte(input, v))) {
+				return sl_false;
+			}
+			if (v < 128) {
+				outValue = v;
+				return sl_true;
+			}
+			sl_uint32 n = v & 0x7f;
+			if (n > sizeof(LENGTH) || !n) {
+				return sl_false;
+			}
+			sl_uint8 octets[8];
+			if (!(DeserializeRaw(input, octets, n))) {
+				return sl_false;
+			}
+			outValue = 0;
+			for (sl_uint32 i = 0; i < n; i++) {
+				outValue = (outValue << 8) | octets[i];
+			}
+			return sl_true;
+		}
 
 		template <class OUTPUT>
 		static sl_bool serializeElement(OUTPUT* output, sl_uint8 tag, const void* data, sl_size size)
@@ -236,6 +262,73 @@ namespace slib
 		static sl_bool serialize(OUTPUT* output, const char(&s)[N]) noexcept
 		{
 			return SerializeStatic(output, s, N - 1);
+		}
+
+	};
+
+	class Asn1MemoryReader
+	{
+	public:
+		const sl_uint8* current;
+		const sl_uint8* end;
+
+	public:
+		Asn1MemoryReader() : current(sl_null), end(sl_null) {}
+
+		Asn1MemoryReader(const void* data, sl_size size) : current((const sl_uint8*)data), end(((const sl_uint8*)data) + size) {}
+
+	public:
+		sl_bool readByte(sl_uint8& _out);
+
+		sl_bool readAndCheckTag(sl_uint8 tag);
+
+		template <typename N>
+		sl_bool readLength(N& len)
+		{
+			SerializeBuffer buf(current, end - current);
+			return Asn1::deserializeLength(&buf, len);
+		}
+
+		sl_bool readElementBody(Asn1MemoryReader& outBody);
+
+		sl_bool readElement(sl_uint8 tag, Asn1MemoryReader& outBody);
+
+		sl_bool readAnyElement(sl_uint8& outTag, Asn1MemoryReader& outBody);
+
+		sl_bool readSequence(Asn1MemoryReader& outBody);
+
+		template <typename N>
+		static sl_bool parseInt(N& n, const void* _data, sl_size len)
+		{
+			if (len > sizeof(N)) {
+				return sl_false;
+			}
+			n = 0;
+			const sl_uint8* data = (const sl_uint8*)_data;
+			sl_uint8 data0 = data[0];
+			if (data0 & 0x80) {
+				n = (sl_int8)data0;
+			} else {
+				n = data0;
+			}
+			for (sl_size i = 1; i < len; i++) {
+				n = (n << 8) | data[i];
+			}
+			return sl_true;
+		}
+
+		template <typename N>
+		sl_bool readInt(N& n)
+		{
+			if (readAndCheckTag(SLIB_ASN1_TAG_INT)) {
+				sl_uint32 len;
+				if (readLength(len)) {
+					if (current + len <= end) {
+						return parseInt(n, current, len);
+					}
+				}
+			}
+			return sl_false;
 		}
 
 	};

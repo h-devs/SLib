@@ -53,11 +53,11 @@ namespace slib
 		String friendlyName;
 
 	public:
-		sl_bool load(const void* content, sl_size size);
+		sl_bool load(const void* content, sl_size size, const StringParam& password);
 
-		sl_bool load(const Memory& memory);
+		sl_bool load(const Memory& memory, const StringParam& password);
 
-		sl_bool loadFile(const StringParam& filePath);
+		sl_bool load(const StringParam& filePath, const StringParam& password);
 
 	};
 

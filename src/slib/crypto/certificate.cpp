@@ -24,6 +24,9 @@
 #include "slib/crypto/x509.h"
 #include "slib/crypto/pkcs12.h"
 
+#include "slib/core/file.h"
+#include "slib/crypto/asn1.h"
+
 namespace slib
 {
 
@@ -65,6 +68,7 @@ namespace slib
 
 	X509CertificatePolicy::X509CertificatePolicy()
 	{
+
 	}
 
 
@@ -86,6 +90,34 @@ namespace slib
 
 	PKCS12::PKCS12() noexcept
 	{
+	}
+
+	sl_bool PKCS12::load(const void* content, sl_size size, const StringParam& password)
+	{
+		Asn1MemoryReader reader(content, size);
+		Asn1MemoryReader p12Body;
+		if (!(reader.readSequence(p12Body))) {
+			return sl_false;
+		}
+		sl_uint32 version;
+		if (!(p12Body.readInt(version))) {
+			return sl_false;
+		}
+		Asn1MemoryReader authSafes;
+		if (!(p12Body.readSequence(authSafes))) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+	sl_bool PKCS12::load(const Memory& mem, const StringParam& password)
+	{
+		return load(mem.getData(), mem.getSize(), password);
+	}
+
+	sl_bool PKCS12::load(const StringParam& filePath, const StringParam& password)
+	{
+		return load(File::readAllBytes(filePath), password);
 	}
 
 }

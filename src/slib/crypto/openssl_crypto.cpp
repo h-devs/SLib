@@ -1726,8 +1726,6 @@ namespace slib
 
 	Memory OpenSSL::savePKCS12(const PKCS12& p12, const StringParam& _password)
 	{
-		StringCstr password(_password);
-
 		Stack_X509_Handle certificates;
 		List<X509_Handle> listX509;
 		ListElements<Memory> certDataList(p12.certificates);
@@ -1750,8 +1748,9 @@ namespace slib
 
 		EVP_PKEY_Handle key(Get_EVP_PKEY_from_PrivateKey(p12.key));
 
+		StringCstr password(_password);
 		StringCstr name(p12.friendlyName);
-		PKCS12_Handle handle(PKCS12_create(password.getData(), name.isEmpty() ? sl_null : name.getData(), key.get(), sl_null, certificates.get(), 0, 0, 0, 0, 0));
+		PKCS12_Handle handle(PKCS12_create(password.getUnsafeData(), name.getUnsafeData(), key.get(), sl_null, certificates.get(), 0, 0, 0, 0, 0));
 		if (handle.isNotNone()) {
 			int size = i2d_PKCS12(handle.get(), sl_null);
 			if (size > 0) {
