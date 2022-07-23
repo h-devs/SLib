@@ -201,6 +201,8 @@ namespace slib
 			return sl_false;
 		}
 
+		static String getObjectIdentifierString(const void* encodedData, sl_size length);
+
 	};
 
 	template <sl_uint8 TAG, class BODY>
@@ -266,7 +268,32 @@ namespace slib
 
 	};
 
-	class Asn1MemoryReader
+	class SLIB_EXPORT Asn1ObjectIdentifier
+	{
+	public:
+		const sl_uint8* data;
+		sl_uint32 length;
+
+	public:
+		template <sl_size N>
+		sl_bool equals(const char(&s)[N])
+		{
+			if (length == N - 1) {
+				return Base::equalsMemory(data, s, length);
+			}
+			return sl_false;
+		}
+
+	};
+
+	class SLIB_EXPORT Asn1String
+	{
+	public:
+		const char* data;
+		sl_uint32 length;
+	};
+
+	class SLIB_EXPORT Asn1MemoryReader
 	{
 	public:
 		const sl_uint8* current;
@@ -286,12 +313,16 @@ namespace slib
 		sl_bool readLength(N& len)
 		{
 			SerializeBuffer buf(current, end - current);
-			return Asn1::deserializeLength(&buf, len);
+			if (Asn1::deserializeLength(&buf, len)) {
+				current = buf.current;
+				return sl_true;
+			}
+			return sl_false;
 		}
 
 		sl_bool readElementBody(Asn1MemoryReader& outBody);
 
-		sl_bool readElement(sl_uint8 tag, Asn1MemoryReader& outBody);
+		sl_bool readElement(sl_uint8 tag, Asn1MemoryReader& outBody, sl_bool flagInNotUniversal = sl_true);
 
 		sl_bool readAnyElement(sl_uint8& outTag, Asn1MemoryReader& outBody);
 
@@ -320,16 +351,18 @@ namespace slib
 		template <typename N>
 		sl_bool readInt(N& n)
 		{
-			if (readAndCheckTag(SLIB_ASN1_TAG_INT)) {
-				sl_uint32 len;
-				if (readLength(len)) {
-					if (current + len <= end) {
-						return parseInt(n, current, len);
-					}
+			Asn1MemoryReader content;
+			if (readElement(SLIB_ASN1_TAG_INT, content)) {
+				if (parseInt(n, content.current, content.end - content.current)) {
+					return sl_true;
 				}
 			}
 			return sl_false;
 		}
+
+		sl_bool readObjectIdentifier(Asn1ObjectIdentifier& _out);
+
+		sl_bool readOctetString(Asn1String& _out);
 
 	};
 

@@ -23,6 +23,7 @@
 #include "slib/crypto/asn1.h"
 
 #include "slib/core/memory_buffer.h"
+#include "slib/core/string_buffer.h"
 
 namespace slib
 {
@@ -41,6 +42,45 @@ namespace slib
 			return 1 + count;
 		}
 		return sl_false;
+	}
+
+	String Asn1::getObjectIdentifierString(const void* _data, sl_size length)
+	{
+		sl_uint8* data = (sl_uint8*)_data;
+		if (!data || !length) {
+			return sl_null;
+		}
+		StringBuffer buf;
+		sl_bool flagFirst = sl_true;
+		sl_uint32 current = 0;
+		for (sl_size i = 0; i < length; i++) {
+			sl_uint8 n = data[i];
+			current = (current << 7) | (n & 0x7f);
+			if (!(n & 0x80)) {
+				if (flagFirst) {
+					flagFirst = sl_false;
+					sl_uint32 n1, n2;
+					if (current >= 80) {
+						n1 = 2;
+						n2 = current - 80;
+					} else if (current >= 40) {
+						n1 = 1;
+						n2 = current - 40;
+					} else {
+						n1 = 0;
+						n2 = current;
+					}
+					buf.add(String::fromUint32(n1));
+					buf.addStatic(".");
+					buf.add(String::fromUint32(n2));
+				} else {
+					buf.addStatic(".");
+					buf.add(String::fromUint32(current));
+				}
+				current = 0;
+			}
+		}
+		return buf.merge();
 	}
 
 
@@ -102,12 +142,44 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1MemoryReader& body)
+	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1MemoryReader& body, sl_bool flagInNotUniversal)
 	{
-		if (!(readAndCheckTag(tag))) {
+		sl_uint8 v;
+		if (!(readByte(v))) {
 			return sl_false;
 		}
-		return readElementBody(body);
+		if (flagInNotUniversal) {
+			if ((v & 0xC0)) {
+				// Not Universal
+				Asn1MemoryReader sub;
+				if (readElementBody(sub)) {
+					return sub.readElement(tag, body, sl_false);
+				}
+				return sl_false;
+			}
+		}
+		switch (tag) {
+			case SLIB_ASN1_TAG_BIT_STRING:
+			case SLIB_ASN1_TAG_OCTET_STRING:
+			case SLIB_ASN1_TAG_OBJECT_DESCRIPTOR:
+			case SLIB_ASN1_TAG_UTF8_STRING:
+				// both encoding
+				break;
+			default:
+				if (tag >= SLIB_ASN1_TAG_NUMERIC_STRING && tag <= SLIB_ASN1_TAG_BMP_STRING) {
+					// both encoding
+					break;
+				}
+				if (v == tag) {
+					return readElementBody(body);
+				}
+				return sl_false;
+		}
+		// Primitive or Constructed
+		if (v == tag || v == (0x20 | tag)) {
+			return readElementBody(body);
+		}
+		return sl_false;
 	}
 
 	sl_bool Asn1MemoryReader::readAnyElement(sl_uint8& outTag, Asn1MemoryReader& body)
@@ -121,6 +193,28 @@ namespace slib
 	sl_bool Asn1MemoryReader::readSequence(Asn1MemoryReader& body)
 	{
 		return readElement(SLIB_ASN1_TAG_SEQUENCE, body);
+	}
+
+	sl_bool Asn1MemoryReader::readObjectIdentifier(Asn1ObjectIdentifier& _id)
+	{
+		Asn1MemoryReader body;
+		if (readElement(SLIB_ASN1_TAG_OID, body)) {
+			_id.data = body.current;
+			_id.length = (sl_uint32)(body.end - body.current);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readOctetString(Asn1String& _out)
+	{
+		Asn1MemoryReader body;
+		if (readElement(SLIB_ASN1_TAG_OCTET_STRING, body)) {
+			_out.data = (const char*)(body.current);
+			_out.length = (sl_uint32)(body.end - body.current);
+			return sl_true;
+		}
+		return sl_false;
 	}
 
 }
