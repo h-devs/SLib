@@ -128,37 +128,76 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Asn1MemoryReader::readElementBody(Asn1MemoryReader& body)
+	sl_bool Asn1MemoryReader::readElementBody(Asn1String& body)
 	{
 		sl_size len;
 		if (readLength(len)) {
-			if (current + len <= end) {
-				body.current = current;
-				body.end = current + len;
-				current += len;
+			const sl_uint8* _end = current + len;
+			if (_end <= end) {
+				body.data = current;
+				body.length = (sl_uint32)len;
+				current = _end;
 				return sl_true;
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1MemoryReader& body, sl_bool flagInNotUniversal)
+	sl_bool Asn1MemoryReader::readElement(Asn1Element& _out)
 	{
-		sl_uint8 v;
-		if (!(readByte(v))) {
-			return sl_false;
+		if (readByte(_out.tag)) {
+			return readElementBody(_out);
 		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1String& body, sl_bool flagInNotUniversal)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getBody(tag, body, flagInNotUniversal);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readSequence(Asn1MemoryReader& elements)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getSequence(elements);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readObjectIdentifier(Asn1ObjectIdentifier& _id)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getObjectIdentifier(_id);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readOctetString(Asn1String& _out)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getOctetString(_out);
+		}
+		return sl_false;
+	}
+
+
+	sl_bool Asn1Element::getBody(sl_uint8 reqTag, Asn1String& body, sl_bool flagInNotUniversal) const
+	{
 		if (flagInNotUniversal) {
-			if ((v & 0xC0)) {
+			if (tag & 0xC0) {
 				// Not Universal
-				Asn1MemoryReader sub;
-				if (readElementBody(sub)) {
-					return sub.readElement(tag, body, sl_false);
-				}
-				return sl_false;
+				Asn1MemoryReader reader(*this);
+				return reader.readElement(reqTag, body, sl_false);
 			}
 		}
-		switch (tag) {
+		switch (reqTag) {
 			case SLIB_ASN1_TAG_BIT_STRING:
 			case SLIB_ASN1_TAG_OCTET_STRING:
 			case SLIB_ASN1_TAG_OBJECT_DESCRIPTOR:
@@ -166,55 +205,43 @@ namespace slib
 				// both encoding
 				break;
 			default:
-				if (tag >= SLIB_ASN1_TAG_NUMERIC_STRING && tag <= SLIB_ASN1_TAG_BMP_STRING) {
+				if (reqTag >= SLIB_ASN1_TAG_NUMERIC_STRING && reqTag <= SLIB_ASN1_TAG_BMP_STRING) {
 					// both encoding
 					break;
 				}
-				if (v == tag) {
-					return readElementBody(body);
+				if (tag == reqTag) {
+					body = *this;
+					return sl_true;
 				}
 				return sl_false;
 		}
 		// Primitive or Constructed
-		if (v == tag || v == (0x20 | tag)) {
-			return readElementBody(body);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readAnyElement(sl_uint8& outTag, Asn1MemoryReader& body)
-	{
-		if (!(readByte(outTag))) {
-			return sl_false;
-		}
-		return readElementBody(body);
-	}
-
-	sl_bool Asn1MemoryReader::readSequence(Asn1MemoryReader& body)
-	{
-		return readElement(SLIB_ASN1_TAG_SEQUENCE, body);
-	}
-
-	sl_bool Asn1MemoryReader::readObjectIdentifier(Asn1ObjectIdentifier& _id)
-	{
-		Asn1MemoryReader body;
-		if (readElement(SLIB_ASN1_TAG_OID, body)) {
-			_id.data = body.current;
-			_id.length = (sl_uint32)(body.end - body.current);
+		if (tag == reqTag || tag == (0x20 | reqTag)) {
+			body = *this;
 			return sl_true;
 		}
 		return sl_false;
 	}
 
-	sl_bool Asn1MemoryReader::readOctetString(Asn1String& _out)
+	sl_bool Asn1Element::getSequence(Asn1MemoryReader& elements) const
 	{
-		Asn1MemoryReader body;
-		if (readElement(SLIB_ASN1_TAG_OCTET_STRING, body)) {
-			_out.data = (const char*)(body.current);
-			_out.length = (sl_uint32)(body.end - body.current);
+		Asn1String body;
+		if (getBody(SLIB_ASN1_TAG_SEQUENCE, body)) {
+			elements.current = body.data;
+			elements.end = body.data + body.length;
 			return sl_true;
 		}
 		return sl_false;
+	}
+
+	sl_bool Asn1Element::getObjectIdentifier(Asn1ObjectIdentifier& _id) const
+	{
+		return getBody(SLIB_ASN1_TAG_OID, _id);
+	}
+
+	sl_bool Asn1Element::getOctetString(Asn1String& _out) const
+	{
+		return getBody(SLIB_ASN1_TAG_OCTET_STRING, _out);
 	}
 
 }

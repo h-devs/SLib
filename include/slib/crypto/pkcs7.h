@@ -25,6 +25,8 @@
 
 #include "asn1.h"
 
+#include "../core/function.h"
+
 /*
 	PKCS#7 (RFC-2315)
 */
@@ -35,15 +37,18 @@ namespace slib
 	class SLIB_EXPORT PKCS7
 	{
 	public:
+		Asn1ObjectIdentifier type;
+		Asn1Element content;
+
+	public:
 		PKCS7();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PKCS7)
 
 	public:
-		sl_bool load(Asn1MemoryReader& reader);
+		sl_bool load(const Asn1Element& element);
 
-	private:
-		sl_bool readEncryptedData(Asn1MemoryReader& reader);
+		sl_bool getData(Asn1String& _out);
 
 	};
 
