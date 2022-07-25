@@ -106,6 +106,10 @@ namespace slib
 	}
 
 
+	Asn1MemoryReader::Asn1MemoryReader(const Memory& mem): current((sl_uint8*)(mem.getData())), end((sl_uint8*)(mem.getData()) + mem.getSize())
+	{
+	}
+
 	sl_bool Asn1MemoryReader::readByte(sl_uint8& _out)
 	{
 		if (current < end) {
@@ -165,6 +169,15 @@ namespace slib
 		Asn1Element element;
 		if (readElement(element)) {
 			return element.getSequence(elements);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readBigInt(BigInt& n)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getBigInt(n);
 		}
 		return sl_false;
 	}
@@ -230,6 +243,20 @@ namespace slib
 			elements.current = body.data;
 			elements.end = body.data + body.length;
 			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1Element::getBigInt(BigInt& n) const
+	{
+		Asn1String body;
+		if (getBody(SLIB_ASN1_TAG_INT, body)) {
+			if (!(body.length)) {
+				n.setNull();
+				return sl_true;
+			}
+			n = BigInt::fromBytesBE(body.data, body.length);
+			return n.isNotNull();
 		}
 		return sl_false;
 	}

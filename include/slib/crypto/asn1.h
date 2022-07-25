@@ -26,9 +26,11 @@
 #include "definition.h"
 
 #include "../core/memory.h"
-#include "../core/serialize/io.h"
+#include "../math/bigint.h"
 
-/*
+#include "../core/serialize/io.h"
+ 
+ /*
 
 X.690 is an ITU-T standard specifying several ASN.1 encoding formats:
 	Basic Encoding Rules (BER)
@@ -310,6 +312,8 @@ namespace slib
 
 		Asn1MemoryReader(const Asn1String& data): current(data.data), end(data.data + data.length) {}
 
+		Asn1MemoryReader(const Memory& mem);
+
 	public:
 		sl_bool readByte(sl_uint8& _out);
 
@@ -336,6 +340,8 @@ namespace slib
 
 		template <typename N>
 		sl_bool readInt(N& n);
+
+		sl_bool readBigInt(BigInt& n);
 
 		sl_bool readObjectIdentifier(Asn1ObjectIdentifier& _out);
 
@@ -389,6 +395,8 @@ namespace slib
 			}
 			return sl_false;
 		}
+
+		sl_bool getBigInt(BigInt& n) const;
 
 		sl_bool getObjectIdentifier(Asn1ObjectIdentifier& _out) const;
 

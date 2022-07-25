@@ -23,17 +23,17 @@
 #include "slib/crypto/certificate.h"
 #include "slib/crypto/x509.h"
 #include "slib/crypto/pkcs12.h"
-#include "slib/crypto/pkcs7.h"
 
 #include "slib/core/file.h"
 #include "slib/crypto/asn1.h"
 #include "slib/crypto/sha1.h"
 #include "slib/crypto/des.h"
-#include "slib/crypto/rc4.h"
 
 #define OID_US "\x2A\x86\x48" // ISO(1) Member-Body(2) US(840)
 #define OID_RSADSI OID_US "\x86\xF7\x0D" // 113549
 #define OID_PKCS OID_RSADSI "\x01"
+#define OID_PKCS1 OID_PKCS "\x01"
+#define OID_PKCS1_RSA OID_PKCS1 "\x01"
 #define OID_PKCS7 OID_PKCS "\x07"
 #define OID_PKCS7_DATA OID_PKCS7 "\x01"
 #define OID_PKCS7_ENCRYPTED_DATA OID_PKCS7 "\x06"
@@ -95,6 +95,33 @@ namespace slib
 						}
 					}
 					return sl_false;
+				}
+
+			};
+
+			class PKCS7
+			{
+			public:
+				Asn1ObjectIdentifier type;
+				Asn1Element content;
+
+			public:
+				sl_bool load(const Asn1Element& element)
+				{
+					Asn1MemoryReader body;
+					if (!(element.getSequence(body))) {
+						return sl_false;
+					}
+					if (!(body.readObjectIdentifier(type))) {
+						return sl_false;
+					}
+					body.readElement(content);
+					return sl_true;
+				}
+
+				sl_bool getData(Asn1String& _out)
+				{
+					return content.getOctetString(_out);
 				}
 
 			};
@@ -271,23 +298,18 @@ namespace slib
 				}
 				sl_uint32 lenKey;
 				sl_uint32 lenIV;
-				sl_bool flagRC;
 				if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_RC4_128)) {
-					lenKey = 16;
-					lenIV = 16;
-					flagRC = sl_true;
+					// Not Supported
+					return sl_null;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_RC4_40)) {
-					lenKey = 5;
-					lenIV = 16;
-					flagRC = sl_true;
+					// Not Supported
+					return sl_null;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_3DES)) {
 					lenKey = 24;
 					lenIV = 8;
-					flagRC = sl_false;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_2DES)) {
 					lenKey = 16;
 					lenIV = 8;
-					flagRC = sl_false;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_RC2_128)) {
 					// Not Supported
 					return sl_null;
@@ -296,27 +318,23 @@ namespace slib
 					return sl_null;
 				}
 
-				// Uses UTF16-BE Encoding
+				// Uses UTF16-BE Encoding with tailing 2 zero bytes
 				StringData16 password(_password);
-				sl_size lenPassword = password.getLength();
-				Memory memPassword;
-				sl_uint8* bufPassword = sl_null;
-				sl_size sizePassword = 0;
-				if (lenPassword) {
-					sizePassword = lenPassword << 1;
-					memPassword = Memory::create(sizePassword);
-					if (memPassword.isNull()) {
-						return sl_null;
-					}
-					bufPassword = (sl_uint8*)(memPassword.getData());
-					sl_uint8* buf = bufPassword;
-					sl_char16* cur = password.getData();
-					sl_char16* end = cur + lenPassword;
+				sl_size sizePassword = (password.getLength() + 1) << 1;
+				SLIB_SCOPED_BUFFER(sl_uint8, 128, bufPassword, sizePassword)
+				if (bufPassword) {
+					sl_uint8* cur = bufPassword;
+					sl_uint8* end = cur + sizePassword - 2;
+					sl_char16* src = password.getData();
 					while (cur < end) {
-						MIO::writeUint16BE(buf, *cur);
-						cur++;
-						buf += 2;
+						MIO::writeUint16BE(cur, *src);
+						src++;
+						cur += 2;
 					}
+					*(cur++) = 0;
+					*(cur++) = 0;
+				} else {
+					return sl_null;
 				}
 				
 				PKCS12_PBE_Param param;
@@ -332,18 +350,72 @@ namespace slib
 					return sl_null;
 				}
 
-				if (flagRC) {
-					return sl_null;
+				TripleDES cipher;
+				if (lenKey == 24) {
+					cipher.setKey24(key);
 				} else {
-					TripleDES cipher;
-					if (lenKey == 24) {
-						cipher.setKey24(key);
-					} else {
-						cipher.setKey16(key);
-					}
-					return cipher.decrypt_CBC_PKCS7Padding(iv, data, size);
+					cipher.setKey16(key);
 				}
+				return cipher.decrypt_CBC_PKCS7Padding(iv, data, size);
 			}
+
+			class PKCS8_PrivateKey
+			{
+			public:
+				X509Algorithm algorithm;
+				Asn1String key;
+				
+			public:
+				sl_bool load(const Asn1Element& element)
+				{
+					Asn1MemoryReader body;
+					if (!(element.getSequence(body))) {
+						return sl_false;
+					}
+					sl_uint32 version;
+					if (!(body.readInt(version))) {
+						return sl_false;
+					}
+					if (!(body.readObject(algorithm))) {
+						return sl_false;
+					}
+					if (!(body.readOctetString(key))) {
+						return sl_false;
+					}
+					return sl_true;
+				}
+
+				sl_bool getPrivateKey(PrivateKey& _out)
+				{
+					if (algorithm.algorithm.equals(OID_PKCS1_RSA)) {
+						Asn1MemoryReader reader(key);
+						Asn1MemoryReader body;
+						if (reader.readSequence(body)) {
+							sl_uint32 version;
+							if (!(body.readInt(version))) {
+								return sl_false;
+							}
+							if (!(body.readBigInt(_out.rsa.N))) {
+								return sl_false;
+							}
+							if (!(body.readBigInt(_out.rsa.E))) {
+								return sl_false;
+							}
+							if (!(body.readBigInt(_out.rsa.D))) {
+								return sl_false;
+							}
+							body.readBigInt(_out.rsa.P);
+							body.readBigInt(_out.rsa.Q);
+							body.readBigInt(_out.rsa.DP);
+							body.readBigInt(_out.rsa.DQ);
+							body.readBigInt(_out.rsa.IQ);
+							return sl_true;
+						}
+					}
+					return sl_false;
+				}
+
+			};
 
 			static sl_bool PKCS12_ParseBag(PKCS12& p12, PKCS12_SafeBag& bag, const StringParam& password)
 			{
@@ -351,8 +423,15 @@ namespace slib
 					X509Signature sig;
 					if (sig.load(bag.content)) {
 						Memory dec = PKCS12_Decrypt(sig.digest.data, sig.digest.length, sig.algorithm, password);
-						dec = dec;
+						if (dec.isNotNull()) {
+							PKCS8_PrivateKey p8;
+							Asn1MemoryReader reader(dec);
+							if (reader.readObject(p8)) {
+								return p8.getPrivateKey(p12.key);
+							}
+						}
 					}
+					return sl_false;
 				}
 				return sl_true;
 			}
@@ -480,31 +559,6 @@ namespace slib
 	sl_bool PKCS12::load(const StringParam& filePath, const StringParam& password)
 	{
 		return load(File::readAllBytes(filePath), password);
-	}
-
-	
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PKCS7)
-
-	PKCS7::PKCS7()
-	{
-	}
-
-	sl_bool PKCS7::load(const Asn1Element& element)
-	{
-		Asn1MemoryReader body;
-		if (!(element.getSequence(body))) {
-			return sl_false;
-		}
-		if (!(body.readObjectIdentifier(type))) {
-			return sl_false;
-		}
-		body.readElement(content);
-		return sl_true;
-	}
-
-	sl_bool PKCS7::getData(Asn1String& _out)
-	{
-		return content.getOctetString(_out);
 	}
 
 	/*
