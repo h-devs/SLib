@@ -2244,6 +2244,7 @@ namespace slib
 		
 		if (flagView) {
 			LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(alpha, setAlpha)
+			LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(antiAlias, setAntiAlias)
 		}
 		
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(opaque, setOpaque)

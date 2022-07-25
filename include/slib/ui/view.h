@@ -861,6 +861,10 @@ namespace slib
 		
 		virtual void setAlpha(sl_real alpha, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		sl_bool isAntiAlias();
+
+		void setAntiAlias(sl_bool flagAntiAlias, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool isLayer();
 		
 		void setLayer(sl_bool flagLayer = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -872,7 +876,7 @@ namespace slib
 		sl_bool isForcedDraw();
 		
 		void forceDraw(sl_bool flagInvalidate = sl_true);
-		
+
 				
 		float getShadowOpacity();
 		

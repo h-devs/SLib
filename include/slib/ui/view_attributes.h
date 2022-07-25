@@ -181,6 +181,7 @@ namespace slib
 	public:
 		sl_bool flagUsingFont : 1;
 		sl_bool flagOpaque : 1;
+		sl_bool flagAntiAlias : 1;
 		sl_bool flagLayer : 1;
 		
 		sl_bool flagForcedDraw : 1;
