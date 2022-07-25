@@ -282,6 +282,7 @@ namespace slib
 	ViewDrawAttributes::ViewDrawAttributes():
 		flagUsingFont(sl_false),
 		flagOpaque(sl_false),
+		flagAntiAlias(sl_false),
 		flagLayer(sl_false),
 
 		flagForcedDraw(sl_false),
@@ -5784,6 +5785,25 @@ namespace slib
 		}
 	}
 
+	sl_bool View::isAntiAlias()
+	{
+		Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->flagAntiAlias;
+		}
+		return sl_false;
+	}
+
+	void View::setAntiAlias(sl_bool flagAntiAlias, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->flagAntiAlias = flagAntiAlias;
+			invalidateBoundsInParent(mode);
+		}
+	}
+
 	sl_bool View::isLayer()
 	{
 		Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
@@ -8694,8 +8714,13 @@ namespace slib
 				_updateAndApplyLayoutWithMode(UIUpdateMode::None);
 			}
 
+			sl_bool flagAntiAlias = isAntiAlias() && !(canvas->isAntiAlias());
+			if (flagAntiAlias) {
+				canvas->setAntiAlias();
+			}
+
 			if (m_flagDrawing) {
-				
+
 				getOnPreDraw()(this, canvas);
 
 				draw(canvas);
@@ -8718,7 +8743,11 @@ namespace slib
 					}
 				}
 			}
-			
+
+			if (flagAntiAlias) {
+				canvas->setAntiAlias(sl_false);
+			}
+
 			Ref<ViewScrollAttributes>& scrollAttrs = m_scrollAttrs;
 			if (scrollAttrs.isNotNull() && !isNativeWidget()) {
 				sl_bool flagShowScrollBar = sl_true;
