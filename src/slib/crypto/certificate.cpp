@@ -171,7 +171,7 @@ namespace slib
 			{
 			public:
 				Asn1String salt;
-				sl_uint32 iteration;
+				sl_uint64 iteration;
 
 			public:
 				sl_bool load(const Asn1Element& element)
@@ -191,24 +191,102 @@ namespace slib
 
 			};
 
+			template <class MD>
+			static sl_bool PKCS12_DeriveKey(
+				const void* _password, sl_size sizePassword,
+				const void* _salt, sl_size sizeSalt,
+				sl_uint8 id, sl_uint64 iteration,
+				void* _output, sl_size sizeOutput)
+			{
+				sl_size lenSalt = ((sizeSalt + MD::BlockSize - 1) / MD::BlockSize) * MD::BlockSize;
+				sl_size lenPassword = ((sizePassword + MD::BlockSize - 1) / MD::BlockSize) * MD::BlockSize;
+				sl_size lenI = lenSalt + lenPassword;
+				SLIB_SCOPED_BUFFER(sl_uint8, 256, I, lenI)
+				if (!I) {
+					return sl_false;
+				}
+
+				sl_uint8* salt = (sl_uint8*)_salt;
+				sl_uint8* password = (sl_uint8*)_password;
+				sl_uint8* output = (sl_uint8*)_output;
+
+				sl_uint8 D[MD::BlockSize];
+				sl_size i;
+
+				for (i = 0; i < sizeof(D); i++) {
+					D[i] = id;
+				}
+				{
+					sl_uint8* p = I;
+					for (i = 0; i < lenSalt; i++) {
+						*p = salt[i % sizeSalt];
+						p++;
+					}
+					for (i = 0; i < lenPassword; i++) {
+						*p = password[i % sizePassword];
+						p++;
+					}
+				}
+
+				MD md;
+				for (;;) {
+					md.start();
+					md.update(D, sizeof(D));
+					md.update(I, lenI);
+					sl_uint8 H[MD::HashSize];
+					md.finish(H);
+					for (i = 1; i < iteration; i++) {
+						md.start();
+						md.update(H, sizeof(H));
+						md.finish(H);
+					}
+					if (sizeof(H) >= sizeOutput) {
+						Base::copyMemory(output, H, sizeOutput);
+						return sl_true;
+					}
+					Base::copyMemory(output, H, sizeof(H));
+					sizeOutput -= sizeof(H);
+					output += sizeof(H);
+					sl_uint8 B[MD::BlockSize];
+					for (i = 0; i < sizeof(B); i++) {
+						B[i] = H[i % sizeof(H)];
+					}
+					for (i = 0; i < lenI; i += sizeof(B)) {
+						sl_uint8* I1 = I + i;
+						sl_uint16 c = 1;
+						for (sl_uint32 k = sizeof(B); k > 0;) {
+							k--;
+							c += I1[k] + B[k];
+							I1[k] = (sl_uint8)c;
+							c >>= 8;
+						}
+					}
+				}
+			}
+
 			static Memory PKCS12_Decrypt(const void* data, sl_size size, const X509Algorithm& alg, const StringParam& _password)
 			{
 				if (!data || !size) {
 					return sl_null;
 				}
 				sl_uint32 lenKey;
+				sl_uint32 lenIV;
 				sl_bool flagRC;
 				if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_RC4_128)) {
 					lenKey = 16;
+					lenIV = 16;
 					flagRC = sl_true;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_RC4_40)) {
 					lenKey = 5;
+					lenIV = 16;
 					flagRC = sl_true;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_3DES)) {
 					lenKey = 24;
+					lenIV = 8;
 					flagRC = sl_false;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_2DES)) {
 					lenKey = 16;
+					lenIV = 8;
 					flagRC = sl_false;
 				} else if (alg.algorithm.equals(OID_PKCS12_PBE_SHA1_RC2_128)) {
 					// Not Supported
@@ -245,8 +323,26 @@ namespace slib
 				if (!(param.load(alg.parameter))) {
 					return sl_null;
 				}
+				sl_uint8 key[32];
+				if (!(PKCS12_DeriveKey<SHA1>(bufPassword, sizePassword, param.salt.data, param.salt.length, 1, param.iteration, key, lenKey))) {
+					return sl_null;
+				}
+				sl_uint8 iv[32];
+				if (!(PKCS12_DeriveKey<SHA1>(bufPassword, sizePassword, param.salt.data, param.salt.length, 2, param.iteration, iv, lenIV))) {
+					return sl_null;
+				}
 
-				return sl_null;
+				if (flagRC) {
+					return sl_null;
+				} else {
+					TripleDES cipher;
+					if (lenKey == 24) {
+						cipher.setKey24(key);
+					} else {
+						cipher.setKey16(key);
+					}
+					return cipher.decrypt_CBC_PKCS7Padding(iv, data, size);
+				}
 			}
 
 			static sl_bool PKCS12_ParseBag(PKCS12& p12, PKCS12_SafeBag& bag, const StringParam& password)
