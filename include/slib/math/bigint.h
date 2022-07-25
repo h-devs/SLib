@@ -112,32 +112,32 @@ namespace slib
 		sl_bool setValueFromElements(const sl_uint32* data, sl_size n) noexcept;
 
 		// set/get data from/to bytes buffer (Little Endian), the sign is not changed
-		sl_bool setBytesLE(const void* bytes, sl_size nBytes) noexcept;
+		sl_bool setBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
-		void setBytesLE(const Memory& mem) noexcept;
+		void setBytesLE(const Memory& mem, sl_bool flagSigned = sl_false) noexcept;
 
-		static CBigInt* fromBytesLE(const void* bytes, sl_size nBytes) noexcept;
+		static CBigInt* fromBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
-		static CBigInt* fromBytesLE(const Memory& mem) noexcept;
+		static CBigInt* fromBytesLE(const Memory& mem, sl_bool flagSigned = sl_false) noexcept;
 
 		// fill zeros in remaining spaces
-		void getBytesLE(void* buf, sl_size n) const noexcept;
+		void getBytesLE(void* buf, sl_size n, sl_bool flagSigned = sl_false) const noexcept;
 
-		Memory getBytesLE() const noexcept;
+		Memory getBytesLE(sl_bool flagSigned = sl_false) const noexcept;
 
 		// set/get data from/to bytes buffer (Big Endian), the sign is not changed
-		sl_bool setBytesBE(const void* bytes, sl_size nBytes) noexcept;
+		sl_bool setBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
-		void setBytesBE(const Memory& mem) noexcept;
+		void setBytesBE(const Memory& mem, sl_bool flagSigned = sl_false) noexcept;
 
-		static CBigInt* fromBytesBE(const void* bytes, sl_size nBytes) noexcept;
+		static CBigInt* fromBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
-		static CBigInt* fromBytesBE(const Memory& mem) noexcept;
+		static CBigInt* fromBytesBE(const Memory& mem, sl_bool flagSigned = sl_false) noexcept;
 
 		// fill zeros in remaining spaces
-		void getBytesBE(void* buf, sl_size n) const noexcept;
+		void getBytesBE(void* buf, sl_size n, sl_bool flagSigned = sl_false) const noexcept;
 
-		Memory getBytesBE() const noexcept;
+		Memory getBytesBE(sl_bool flagSigned = sl_false) const noexcept;
 
 
 		sl_bool setValue(sl_int32 v) noexcept;
@@ -499,13 +499,13 @@ namespace slib
 
 		static BigInt fromUint64(sl_uint64 v) noexcept;
 
-		static BigInt fromBytesLE(const void* bytes, sl_size nBytes) noexcept;
+		static BigInt fromBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
-		static BigInt fromBytesLE(const Memory& mem) noexcept;
+		static BigInt fromBytesLE(const Memory& mem, sl_bool flagSigned = sl_false) noexcept;
 
-		static BigInt fromBytesBE(const void* bytes, sl_size nBytes) noexcept;
+		static BigInt fromBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
-		static BigInt fromBytesBE(const Memory& mem) noexcept;
+		static BigInt fromBytesBE(const Memory& mem, sl_bool flagSigned = sl_false) noexcept;
 
 		static BigInt fromString(const StringParam& str, sl_uint32 radix = 10) noexcept;
 
@@ -542,14 +542,14 @@ namespace slib
 		sl_bool isNotZero() const noexcept;
 
 		// fill zeros in remaining spaces
-		void getBytesLE(void* buf, sl_size n) const noexcept;
+		void getBytesLE(void* buf, sl_size n, sl_bool flagSigned = sl_false) const noexcept;
 
-		Memory getBytesLE() const noexcept;
+		Memory getBytesLE(sl_bool flagSigned = sl_false) const noexcept;
 
 		// fill zeros in remaining spaces
-		void getBytesBE(void* buf, sl_size n) const noexcept;
+		void getBytesBE(void* buf, sl_size n, sl_bool flagSigned = sl_false) const noexcept;
 
-		Memory getBytesBE() const noexcept;
+		Memory getBytesBE(sl_bool flagSigned = sl_false) const noexcept;
 
 		sl_int32 getInt32() const noexcept;
 

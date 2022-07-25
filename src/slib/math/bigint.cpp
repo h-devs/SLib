@@ -348,6 +348,20 @@ namespace slib
 				}
 				return 0;
 			}
+
+			static sl_size GetBytesCount(const sl_uint32* elements, sl_size length, sl_bool flagSigned) noexcept
+			{
+				if (elements) {
+					if (flagSigned) {
+						return (priv::bigint::MsBits(elements, length) + 8) >> 3;
+					} else {
+						sl_size n = priv::bigint::MsBytes(elements, length);
+						return n ? n : 1;
+					}
+				}
+				return 0;
+			}
+
 		}
 	}
 
@@ -489,6 +503,7 @@ namespace slib
 
 	void CBigInt::setZero() noexcept
 	{
+		sign = 1;
 		if (elements) {
 			Base::zeroMemory(elements, length << 2);
 		}
@@ -650,41 +665,75 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool CBigInt::setBytesLE(const void* _bytes, sl_size nBytes) noexcept
+	sl_bool CBigInt::setBytesLE(const void* _bytes, sl_size nBytes, sl_bool flagSigned) noexcept
 	{
 		sl_uint8* bytes = (sl_uint8*)_bytes;
-		// remove zeros
-		{
-			sl_size n;
-			for (n = nBytes; n > 0; n--) {
-				if (bytes[n - 1]) {
-					break;
+		if (flagSigned && nBytes && (bytes[nBytes-1] & 0x80)) {
+			// compact negative
+			{
+				sl_size n;
+				for (n = nBytes; n > 0; n--) {
+					if (bytes[n - 1] != 0xff) {
+						break;
+					}
 				}
+				if (!(bytes[n - 1] & 0x80)) {
+					n++;
+				}
+				if (!n) {
+					n = 1;
+				}
+				nBytes = n;
 			}
-			nBytes = n;
-		}
-		setZero();
-		if (nBytes) {
-			if (growLength((nBytes + 3) >> 2)) {
-				for (sl_size i = 0; i < nBytes; i++) {
-					elements[i >> 2] |= ((sl_uint32)(bytes[i])) << ((i & 3) << 3);
+			setZero();
+			sl_size n = (nBytes + 3) >> 2;
+			if (growLength(n)) {
+				sl_size i = 0;
+				for (; i < nBytes; i++) {
+					elements[i >> 2] |= ((sl_uint32)((sl_uint8)(~(bytes[i])))) << ((i & 3) << 3);
 				}
+				priv::bigint::Add_uint32(elements, elements, n, 1);
+				sign = -1;
+				return sl_true;
+			} else {
+				return sl_true;
+			}
+		} else {
+			// remove zeros
+			{
+				sl_size n;
+				for (n = nBytes; n > 0; n--) {
+					if (bytes[n - 1]) {
+						break;
+					}
+				}
+				nBytes = n;
+			}
+			setZero();
+			if (nBytes) {
+				if (growLength((nBytes + 3) >> 2)) {
+					for (sl_size i = 0; i < nBytes; i++) {
+						elements[i >> 2] |= ((sl_uint32)(bytes[i])) << ((i & 3) << 3);
+					}
+					return sl_true;
+				}
+			} else {
 				return sl_true;
 			}
 		}
 		return sl_false;
 	}
 
-	void CBigInt::setBytesLE(const Memory& mem) noexcept
+	void CBigInt::setBytesLE(const Memory& mem, sl_bool flagSigned) noexcept
 	{
-		setBytesLE(mem.getData(), mem.getSize());
+		setBytesLE(mem.getData(), mem.getSize(), flagSigned);
 	}
 
-	CBigInt* CBigInt::fromBytesLE(const void* bytes, sl_size nBytes) noexcept
+	CBigInt* CBigInt::fromBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned) noexcept
 	{
 		CBigInt* ret = CBigInt::allocate((nBytes + 3) >> 2);
 		if (ret) {
-			if (ret->setBytesLE(bytes, nBytes)) {
+			if (ret->setBytesLE(bytes, nBytes, flagSigned)) {
 				return ret;
 			}
 			delete ret;
@@ -692,130 +741,234 @@ namespace slib
 		return sl_null;
 	}
 
-	CBigInt* CBigInt::fromBytesLE(const Memory& mem) noexcept
+	CBigInt* CBigInt::fromBytesLE(const Memory& mem, sl_bool flagSigned) noexcept
 	{
-		return fromBytesLE(mem.getData(), mem.getSize());
+		return fromBytesLE(mem.getData(), mem.getSize(), flagSigned);
 	}
 
-	void CBigInt::getBytesLE(void* _bytes, sl_size n) const noexcept
+	void CBigInt::getBytesLE(void* _bytes, sl_size n, sl_bool flagSigned) const noexcept
 	{
 		sl_uint8* bytes = (sl_uint8*)_bytes;
-		sl_size size = getMostSignificantBytes();
-		if (n <= size) {
-			for (sl_size i = 0; i < n; i++) {
-				bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+		sl_size l = length << 2;
+		if (flagSigned && sign < 0) {
+			sl_uint8 o = 1;
+			if (n <= l) {
+				for (sl_size i = 0; i < n; i++) {
+					sl_uint8 k = (sl_uint8)((~(elements[i >> 2] >> ((i & 3) << 3))) + o);
+					o = k ? 0 : 1;
+					bytes[i] = k;
+				}
+			} else {
+				sl_size i = 0;
+				for (; i < l; i++) {
+					sl_uint8 k = (sl_uint8)((~(elements[i >> 2] >> ((i & 3) << 3))) + o);
+					o = k ? 0 : 1;
+					bytes[i] = k;
+				}
+				if (o) {
+					for (; i < n; i++) {
+						bytes[i] = 0;
+					}
+				} else {
+					for (; i < n; i++) {
+						bytes[i] = 0xff;
+					}
+				}
 			}
 		} else {
-			sl_size i;
-			for (i = 0; i < size; i++) {
-				bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
-			}
-			for (; i < n; i++) {
-				bytes[i] = 0;
+			if (n <= l) {
+				for (sl_size i = 0; i < n; i++) {
+					bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+				}
+			} else {
+				sl_size i;
+				for (i = 0; i < l; i++) {
+					bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+				}
+				for (; i < n; i++) {
+					bytes[i] = 0;
+				}
 			}
 		}
 	}
 
-	Memory CBigInt::getBytesLE() const noexcept
+	Memory CBigInt::getBytesLE(sl_bool flagSigned) const noexcept
 	{
-		sl_size size = getMostSignificantBytes();
+		sl_size size = priv::bigint::GetBytesCount(elements, length, flagSigned);
 		Memory mem = Memory::create(size);
 		if (mem.isNotNull()) {
 			sl_uint8* bytes = (sl_uint8*)(mem.getData());
-			for (sl_size i = 0; i < size; i++) {
-				bytes[i] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+			getBytesLE(bytes, mem.getSize(), flagSigned);
+			if (flagSigned && size >= 2 && bytes[size - 1] == 0xff && (bytes[size - 2] & 0x80)) {
+				return mem.sub(0, size - 1);
+			} else {
+				return mem;
 			}
 		}
-		return mem;
+		return sl_null;
 	}
 
-	sl_bool CBigInt::setBytesBE(const void* _bytes, sl_size nBytes) noexcept
+	sl_bool CBigInt::setBytesBE(const void* _bytes, sl_size nBytes, sl_bool flagSigned) noexcept
 	{
 		sl_uint8* bytes = (sl_uint8*)_bytes;
-		// remove zeros
-		{
-			sl_size n;
-			for (n = 0; n < nBytes; n++) {
-				if (bytes[n]) {
-					break;
+		if (flagSigned && nBytes && (*bytes & 0x80)) {
+			// compact negative
+			{
+				sl_size n;
+				for (n = 0; n < nBytes; n++) {
+					if (bytes[n] != 0xff) {
+						break;
+					}
+				}
+				if (!(bytes[n] & 0x80)) {
+					n--;
+				}
+				if (n < nBytes) {
+					nBytes -= n;
+					bytes += n;
+				} else {
+					nBytes = 1;
 				}
 			}
-			nBytes -= n;
-			bytes += n;
+			setZero();
+			if (nBytes) {
+				sl_size n = (nBytes + 3) >> 2;
+				if (growLength(n)) {
+					sl_size m = nBytes - 1;
+					sl_size i = 0;
+					for (; i < nBytes; i++) {
+						elements[i >> 2] |= ((sl_uint32)((sl_uint8)(~(bytes[m])))) << ((i & 3) << 3);
+						m--;
+					}
+					priv::bigint::Add_uint32(elements, elements, length, 1);
+					sign = -1;
+					return sl_true;
+				}
+			} else {
+				return sl_true;
+			}
+		} else {
+			// remove zeros
+			{
+				sl_size n;
+				for (n = 0; n < nBytes; n++) {
+					if (bytes[n]) {
+						break;
+					}
+				}
+				nBytes -= n;
+				bytes += n;
+			}
+			setZero();
+			if (nBytes) {
+				if (growLength((nBytes + 3) >> 2)) {
+					sl_size m = nBytes - 1;
+					for (sl_size i = 0; i < nBytes; i++) {
+						elements[i >> 2] |= ((sl_uint32)(bytes[m])) << ((i & 3) << 3);
+						m--;
+					}
+					return sl_true;
+				}
+			} else {
+				return sl_true;
+			}
 		}
-		setZero();
-		if (nBytes) {
-			if (growLength((nBytes + 3) >> 2)) {
-				sl_size m = nBytes - 1;
-				for (sl_size i = 0; i < nBytes; i++) {
-					elements[i >> 2] |= ((sl_uint32)(bytes[m])) << ((i & 3) << 3);
+		return sl_false;
+	}
+
+	void CBigInt::setBytesBE(const Memory& mem, sl_bool flagSigned) noexcept
+	{
+		setBytesBE(mem.getData(), mem.getSize(), flagSigned);
+	}
+
+	CBigInt* CBigInt::fromBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned) noexcept
+	{
+		CBigInt* ret = CBigInt::allocate((nBytes + 3) >> 2);
+		if (ret) {
+			if (ret->setBytesBE(bytes, nBytes, flagSigned)) {
+				return ret;
+			}
+			delete ret;
+		}
+		return sl_null;
+	}
+
+	CBigInt* CBigInt::fromBytesBE(const Memory& mem, sl_bool flagSigned) noexcept
+	{
+		return fromBytesBE(mem.getData(), mem.getSize(), flagSigned);
+	}
+
+	void CBigInt::getBytesBE(void* _bytes, sl_size n, sl_bool flagSigned) const noexcept
+	{
+		sl_uint8* bytes = (sl_uint8*)_bytes;
+		sl_size l = length << 2;
+		if (flagSigned && sign < 0) {
+			sl_uint8 o = 1;
+			if (n <= l) {
+				sl_size m = n - 1;
+				for (sl_size i = 0; i < n; i++) {
+					sl_uint8 k = (sl_uint8)((~(elements[i >> 2] >> ((i & 3) << 3))) + o);
+					o = k ? 0 : 1;
+					bytes[m] = k;
 					m--;
 				}
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-
-	void CBigInt::setBytesBE(const Memory& mem) noexcept
-	{
-		setBytesBE(mem.getData(), mem.getSize());
-	}
-
-	CBigInt* CBigInt::fromBytesBE(const void* bytes, sl_size nBytes) noexcept
-	{
-		CBigInt* ret = CBigInt::allocate((nBytes + 3) >> 2);
-		if (ret) {
-			if (ret->setBytesBE(bytes, nBytes)) {
-				return ret;
-			}
-			delete ret;
-		}
-		return sl_null;
-	}
-
-	CBigInt* CBigInt::fromBytesBE(const Memory& mem) noexcept
-	{
-		return fromBytesBE(mem.getData(), mem.getSize());
-	}
-
-	void CBigInt::getBytesBE(void* _bytes, sl_size n) const noexcept
-	{
-		sl_uint8* bytes = (sl_uint8*)_bytes;
-		sl_size size = getMostSignificantBytes();
-		if (n <= size) {
-			sl_size m = n - 1;
-			for (sl_size i = size - n; i < size; i++) {
-				bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
-				m--;
+			} else {
+				sl_size i;
+				sl_size m = n - 1;
+				for (i = 0; i < l; i++) {
+					sl_uint8 k = (sl_uint8)((~(elements[i >> 2] >> ((i & 3) << 3))) + o);
+					o = k ? 0 : 1;
+					bytes[m] = k;
+					m--;
+				}
+				if (o) {
+					for (; i < n; i++) {
+						bytes[m] = 0;
+						m--;
+					}
+				} else {
+					for (; i < n; i++) {
+						bytes[m] = 0xff;
+						m--;
+					}
+				}
 			}
 		} else {
-			sl_size i;
-			sl_size m = n - 1;
-			for (i = 0; i < size; i++) {
-				bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
-				m--;
-			}
-			for (; i < n; i++) {
-				bytes[m] = 0;
-				m--;
+			if (n <= l) {
+				sl_size m = n - 1;
+				for (sl_size i = 0; i < n; i++) {
+					bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+					m--;
+				}
+			} else {
+				sl_size i;
+				sl_size m = n - 1;
+				for (i = 0; i < l; i++) {
+					bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
+					m--;
+				}
+				for (; i < n; i++) {
+					bytes[m] = 0;
+					m--;
+				}
 			}
 		}
 	}
 
-	Memory CBigInt::getBytesBE() const noexcept
+	Memory CBigInt::getBytesBE(sl_bool flagSigned) const noexcept
 	{
-		sl_size size = getMostSignificantBytes();
+		sl_size size = priv::bigint::GetBytesCount(elements, length, flagSigned);
 		Memory mem = Memory::create(size);
 		if (mem.isNotNull()) {
 			sl_uint8* bytes = (sl_uint8*)(mem.getData());
-			sl_size m = size - 1;
-			for (sl_size i = 0; i < size; i++) {
-				bytes[m] = (sl_uint8)(elements[i >> 2] >> ((i & 3) << 3));
-				m--;
+			getBytesBE(bytes, size, flagSigned);
+			if (flagSigned && size >= 2 && *bytes == 0xff && (bytes[1] & 0x80)) {
+				return mem.sub(1);
+			} else {
+				return mem;
 			}
 		}
-		return mem;
+		return sl_null;
 	}
 
 	sl_bool CBigInt::setValue(sl_int32 v) noexcept
@@ -3239,24 +3392,24 @@ namespace slib
 		return CBigInt::fromUint64(v);
 	}
 
-	BigInt BigInt::fromBytesLE(const void* bytes, sl_size nBytes) noexcept
+	BigInt BigInt::fromBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned) noexcept
 	{
-		return CBigInt::fromBytesLE(bytes, nBytes);
+		return CBigInt::fromBytesLE(bytes, nBytes, flagSigned);
 	}
 
-	BigInt BigInt::fromBytesLE(const Memory& mem) noexcept
+	BigInt BigInt::fromBytesLE(const Memory& mem, sl_bool flagSigned) noexcept
 	{
-		return CBigInt::fromBytesLE(mem.getData(), mem.getSize());
+		return CBigInt::fromBytesLE(mem.getData(), mem.getSize(), flagSigned);
 	}
 
-	BigInt BigInt::fromBytesBE(const void* bytes, sl_size nBytes) noexcept
+	BigInt BigInt::fromBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned) noexcept
 	{
-		return CBigInt::fromBytesBE(bytes, nBytes);
+		return CBigInt::fromBytesBE(bytes, nBytes, flagSigned);
 	}
 
-	BigInt BigInt::fromBytesBE(const Memory& mem) noexcept
+	BigInt BigInt::fromBytesBE(const Memory& mem, sl_bool flagSigned) noexcept
 	{
-		return CBigInt::fromBytesBE(mem.getData(), mem.getSize());
+		return CBigInt::fromBytesBE(mem.getData(), mem.getSize(), flagSigned);
 	}
 
 	BigInt BigInt::fromString(const StringParam& str, sl_uint32 radix) noexcept
@@ -3404,40 +3557,40 @@ namespace slib
 		return sl_false;
 	}
 
-	void BigInt::getBytesLE(void* buf, sl_size n) const noexcept
+	void BigInt::getBytesLE(void* buf, sl_size n, sl_bool flagSigned) const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			o->getBytesLE(buf, n);
+			o->getBytesLE(buf, n, flagSigned);
 		} else {
 			Base::zeroMemory(buf, n);
 		}
 	}
 
-	Memory BigInt::getBytesLE() const noexcept
+	Memory BigInt::getBytesLE(sl_bool flagSigned) const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			return o->getBytesLE();
+			return o->getBytesLE(flagSigned);
 		}
 		return sl_null;
 	}
 
-	void BigInt::getBytesBE(void* buf, sl_size n) const noexcept
+	void BigInt::getBytesBE(void* buf, sl_size n, sl_bool flagSigned) const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			o->getBytesBE(buf, n);
+			o->getBytesBE(buf, n, flagSigned);
 		} else {
 			Base::zeroMemory(buf, n);
 		}
 	}
 
-	Memory BigInt::getBytesBE() const noexcept
+	Memory BigInt::getBytesBE(sl_bool flagSigned) const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {
-			return o->getBytesBE();
+			return o->getBytesBE(flagSigned);
 		}
 		return sl_null;
 	}
