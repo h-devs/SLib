@@ -20,63 +20,47 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_HEADER
-#define CHECKHEADER_SLIB_CRYPTO_HEADER
+#ifndef CHECKHEADER_SLIB_CRYPTO_RC2
+#define CHECKHEADER_SLIB_CRYPTO_RC2
 
-// Hash, Checksum
-#include "crypto/hash.h"
-#include "crypto/md5.h"
-#include "crypto/sha1.h"
-#include "crypto/sha2.h"
-#include "crypto/sha3.h"
-#include "crypto/crc32.h"
+#include "block_cipher.h"
 
-// Block Cipher
-#include "crypto/block_cipher.h"
-#include "crypto/aes.h"
-#include "crypto/blowfish.h"
-#include "crypto/des.h"
-#include "crypto/rc2.h"
-#include "crypto/gcm.h"
+namespace slib
+{
 
-// Stream Cipher
-#include "crypto/rc4.h"
-#include "crypto/chacha.h"
+	class String;
 
-// Message authentication code
-#include "crypto/hmac.h"
-#include "crypto/poly1305.h"
+	class SLIB_EXPORT RC2 : public BlockCipher<RC2>
+	{
+	public:
+		enum {
+			BlockSize = 8
+		};
 
-// Public-key cryptosystems
-#include "crypto/rsa.h"
-#include "crypto/ecc.h"
-#include "crypto/dh.h"
+	public:
+		RC2();
 
-#include "crypto/certificate.h"
-#include "crypto/x509.h"
-#include "crypto/pkcs12.h"
+		~RC2();
 
-// Key Derivation Function
-#include "crypto/pbkdf.h"
+	public:
+		// 8-1024 bits (1-128 bytes)
+		void setKey(const void* key, sl_uint32 lenKey);
 
-// Transport Protocol
-#include "crypto/tls.h"
+		void encrypt(sl_uint32& d0, sl_uint32& d1) const;
+	
+		void decrypt(sl_uint32& d0, sl_uint32& d1) const;
+		
+		// 64 bits (8 bytes) block
+		void encryptBlock(const void* src, void* dst) const;
 
-// Compression
-#include "crypto/compress.h"
-#include "crypto/zlib.h"
-#include "crypto/lzw.h"
-#include "crypto/zstd.h"
-#include "crypto/brotli.h"
+		// 64 bits (8 bytes) block
+		void decryptBlock(const void* src, void* dst) const;
 
-// Other
-#include "crypto/base64.h"
-#include "crypto/jwt.h"
+	private:
+		sl_uint16 m_key[64];
 
-// Third-party
-#include "crypto/openssl.h"
-
-#include "crypto/json.h"
-#include "crypto/serialize.h"
+	};
+	
+}
 
 #endif
