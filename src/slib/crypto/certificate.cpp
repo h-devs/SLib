@@ -28,6 +28,7 @@
 #include "slib/crypto/asn1.h"
 #include "slib/crypto/sha1.h"
 #include "slib/crypto/des.h"
+#include "slib/crypto/rc4.h"
 
 #define OID_US "\x2A\x86\x48" // ISO(1) Member-Body(2) US(840)
 #define OID_RSADSI OID_US "\x86\xF7\x0D" // 113549
@@ -37,10 +38,15 @@
 #define OID_PKCS7 OID_PKCS "\x07"
 #define OID_PKCS7_DATA OID_PKCS7 "\x01"
 #define OID_PKCS7_ENCRYPTED_DATA OID_PKCS7 "\x06"
+#define OID_PKCS9 OID_PKCS "\x09"
+#define OID_PKCS9_CERTIFICATE_TYPES OID_PKCS9 "\x16"
+#define OID_PKCS9_X509_CERTIFICATE OID_PKCS9_CERTIFICATE_TYPES "\x01"
 #define OID_PKCS12 OID_PKCS "\x0C"
 #define OID_PKCS12_VERSION1 OID_PKCS12 "\x0A"
 #define OID_PKCS12_BAG_IDS OID_PKCS12_VERSION1 "\x01"
+#define OID_PKCS12_KEY_BAG OID_PKCS12_BAG_IDS "\x01"
 #define OID_PKCS12_PKCS8_SHROUNDED_KEY_BAG OID_PKCS12_BAG_IDS "\x02"
+#define OID_PKCS12_CERTIFICATE_BAG OID_PKCS12_BAG_IDS "\x03"
 #define OID_PKCS12_PBE_IDS OID_PKCS12 "\x01"
 #define OID_PKCS12_PBE_SHA1_RC4_128 OID_PKCS12_PBE_IDS "\x01"
 #define OID_PKCS12_PBE_SHA1_RC4_40 OID_PKCS12_PBE_IDS "\x02"
@@ -148,6 +154,30 @@ namespace slib
 				return ret;
 			}
 
+			class PKCS12_Bag
+			{
+			public:
+				Asn1ObjectIdentifier type;
+				Asn1Element content;
+
+			public:
+				sl_bool load(const Asn1Element& element)
+				{
+					Asn1MemoryReader body;
+					if (!(element.getSequence(body))) {
+						return sl_false;
+					}
+					if (!(body.readObjectIdentifier(type))) {
+						return sl_false;
+					}
+					if (!(body.readElement(content))) {
+						return sl_false;
+					}
+					return sl_true;
+				}
+
+			};
+
 			class PKCS12_SafeBag
 			{
 			public:
@@ -174,9 +204,6 @@ namespace slib
 
 			static List<PKCS12_SafeBag> PKCS12_Unpack_PKCS7_Data(PKCS7& p7)
 			{
-				if (!(p7.type.equals(OID_PKCS7_DATA))) {
-					return sl_null;
-				}
 				Asn1String data;
 				if (!(p7.getData(data))) {
 					return sl_null;
@@ -419,7 +446,12 @@ namespace slib
 
 			static sl_bool PKCS12_ParseBag(PKCS12& p12, PKCS12_SafeBag& bag, const StringParam& password)
 			{
-				if (bag.type.equals(OID_PKCS12_PKCS8_SHROUNDED_KEY_BAG)) {
+				if (bag.type.equals(OID_PKCS12_KEY_BAG)) {
+					PKCS8_PrivateKey p8;
+					if (p8.load(bag.content)) {
+						return p8.getPrivateKey(p12.key);
+					}
+				} else if (bag.type.equals(OID_PKCS12_PKCS8_SHROUNDED_KEY_BAG)) {
 					X509Signature sig;
 					if (sig.load(bag.content)) {
 						Memory dec = PKCS12_Decrypt(sig.digest.data, sig.digest.length, sig.algorithm, password);
@@ -428,6 +460,16 @@ namespace slib
 							Asn1MemoryReader reader(dec);
 							if (reader.readObject(p8)) {
 								return p8.getPrivateKey(p12.key);
+							}
+						}
+					}
+					return sl_false;
+				} else if (bag.type.equals(OID_PKCS12_CERTIFICATE_BAG)) {
+					PKCS12_Bag value;
+					if (value.load(bag.content)) {
+						if (value.type.equals(OID_PKCS9_X509_CERTIFICATE)) {
+							if (value.content.length) {
+								return p12.certificates.add_NoLock(Memory::create(value.content.data, value.content.length));
 							}
 						}
 					}
@@ -444,6 +486,40 @@ namespace slib
 					}
 				}
 				return sl_true;
+			}
+
+			static List<PKCS12_SafeBag> PKCS12_Unpack_PKCS7_EncryptedData(PKCS7& p7, const StringParam& password)
+			{
+				Asn1MemoryReader reader(p7.content);
+				Asn1MemoryReader body;
+				if (!(reader.readSequence(body))) {
+					return sl_null;
+				}
+				sl_uint32 version;
+				if (!(body.readInt(version))) {
+					return sl_null;
+				}
+				Asn1MemoryReader contentInfo;
+				if (!(body.readSequence(contentInfo))) {
+					return sl_null;
+				}
+				Asn1ObjectIdentifier contentType;
+				if (!(contentInfo.readObjectIdentifier(contentType))) {
+					return sl_null;
+				}
+				X509Algorithm algorithm;
+				if (!(contentInfo.readObject(algorithm))) {
+					return sl_null;
+				}
+				Asn1Element encData;
+				if (!(contentInfo.readElement(encData))) {
+					return sl_null;
+				}
+				Memory mem = PKCS12_Decrypt(encData.data, encData.length, algorithm, password);
+				if (mem.isNull()) {
+					return sl_null;
+				}
+				return sl_null;
 			}
 
 			static sl_bool PKCS12_Load(PKCS12& p12, const void* content, sl_size size, const StringParam& password)
@@ -473,7 +549,10 @@ namespace slib
 							return sl_false;
 						}
 					} else if (p7.type.equals(OID_PKCS7_ENCRYPTED_DATA)) {
-
+						ListElements<PKCS12_SafeBag> bags(PKCS12_Unpack_PKCS7_EncryptedData(p7, password));
+						if (!(PKCS12_ParseBags(p12, bags.data, bags.count, password))) {
+							return sl_false;
+						}
 					}
 				}
 				return sl_true;
@@ -561,53 +640,4 @@ namespace slib
 		return load(File::readAllBytes(filePath), password);
 	}
 
-	/*
-	sl_bool PKCS7::readEncryptedData(Asn1MemoryReader& reader)
-	{
-		if (contentType.equals(OID_PKCS7_DATA)) {
-			// 1.2.840.113549.1.7.1 (data)
-			Asn1String content;
-			if (body.readOctetString(content)) {
-				Asn1MemoryReader readerContent(content.data, content.length);
-				Asn1MemoryReader contents;
-				if (readerContent.readSequence(contents)) {
-					while (load(contents));
-				}
-			}
-		} else if (contentType.equals(OID_PKCS7_ENCRYPTED_DATA)) {
-			// 1.2.840.113549.1.7.6 (encryptedData)
-			return readEncryptedData(body);
-		} else if (contentType.equals(OID_PKCS12_PKCS8_SHROUNDED_KEY_BAG)) {
-			auto s = Asn1::getObjectIdentifierString(contentType.data, contentType.length);
-		}
-		Asn1MemoryReader body;
-		if (!(reader.readSequence(body))) {
-			return sl_false;
-		}
-		sl_uint32 version;
-		if (!(body.readInt(version))) {
-			return sl_false;
-		}
-		// EncryptedContentInfo
-		Asn1MemoryReader contentInfo;
-		if (!(body.readSequence(contentInfo))) {
-			return sl_false;
-		}
-		Asn1ObjectIdentifier contentType;
-		if (!(contentInfo.readObjectIdentifier(contentType))) {
-			return sl_false;
-		}
-		// ContentEncryptionAlgorithmIdentifier
-		X509Algorithm algorithm;
-		if (!(algorithm.load(contentInfo))) {
-			return sl_false;
-		}
-		// Encryption Content
-		sl_uint8 contentTag;
-		Asn1MemoryReader contentBody;
-		contentInfo.readAnyElement(contentTag, contentBody);
-		return sl_true;
-	}
-
-	*/
 }

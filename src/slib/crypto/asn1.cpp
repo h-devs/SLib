@@ -255,7 +255,7 @@ namespace slib
 				n.setNull();
 				return sl_true;
 			}
-			n = BigInt::fromBytesBE(body.data, body.length);
+			n = BigInt::fromBytesBE(body.data, body.length, sl_true);
 			return n.isNotNull();
 		}
 		return sl_false;
