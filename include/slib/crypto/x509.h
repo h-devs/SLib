@@ -62,6 +62,20 @@ namespace slib
 	};
 
 	// OpenSSL NID
+	enum class X509SignatureAlgorithm
+	{
+		Unknown = 0,
+		Sha256WithRSA = 668,
+		Sha384WithRSA = 669,
+		Sha512WithRSA = 670,
+		Sha224WithRSA = 671,
+		Sha224WithECDSA = 793,
+		Sha256WithECDSA = 794,
+		Sha384WithECDSA = 795,
+		Sha512WithECDSA = 796
+	};
+
+	// OpenSSL NID
 	enum class X509EnhancedKeyUsage
 	{
 		EmailProtect = 132,
@@ -72,7 +86,6 @@ namespace slib
 	// OpenSSL NID
 	enum class X509AuthorityInformationAccessMethod
 	{
-		
 	};
 
 	enum class X509AuthorityInformationLocationType
@@ -152,15 +165,19 @@ namespace slib
 		X509KeyUsages keyUsages;
 		sl_bool flagEndEntity;
 
+		// Signature
+		X509SignatureAlgorithm signatureAlgorithm;
+		Memory contentHash;
+		Memory signature;
+
 	public:
 		sl_bool load(const void* content, sl_size size);
 
 		sl_bool load(const Memory& memory);
 
-		sl_bool loadFile(const StringParam& filePath);
+		sl_bool load(const StringParam& filePath);
 
-	public:
-		Memory sign(const PrivateKey& issuerKey) const;
+		sl_bool verify(const PublicKey& issuerKey);
 
 	};
 

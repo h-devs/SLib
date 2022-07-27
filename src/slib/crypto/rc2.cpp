@@ -119,9 +119,9 @@ namespace slib
 	{
 	}
 	
-	void RC2::setKey(const void* key, sl_uint32 lenKey)
+	void RC2::setKey(const void* key, sl_uint32 lenKey, sl_int32 nBits)
 	{
-		SetKey(m_key, (sl_uint8*)key, lenKey, 0);
+		SetKey(m_key, (sl_uint8*)key, lenKey, nBits < 0 ? (lenKey << 3) : nBits);
 	}
 
 	void RC2::encrypt(sl_uint32& d0, sl_uint32& d1) const
@@ -199,13 +199,13 @@ namespace slib
 		const sl_uint8* IN = (const sl_uint8*)_src;
 		sl_uint8* OUT = (sl_uint8*)_dst;
 
-		sl_uint32 d0 = MIO::readUint32BE(IN);
-		sl_uint32 d1 = MIO::readUint32BE(IN + 4);
+		sl_uint32 d0 = MIO::readUint32LE(IN);
+		sl_uint32 d1 = MIO::readUint32LE(IN + 4);
 		
 		encrypt(d0, d1);
 
-		MIO::writeUint32BE(OUT, d0);
-		MIO::writeUint32BE(OUT + 4, d1);
+		MIO::writeUint32LE(OUT, d0);
+		MIO::writeUint32LE(OUT + 4, d1);
 	}
 
 	void RC2::decryptBlock(const void* _src, void *_dst) const
@@ -213,13 +213,13 @@ namespace slib
 		const sl_uint8* IN = (const sl_uint8*)_src;
 		sl_uint8* OUT = (sl_uint8*)_dst;
 		
-		sl_uint32 d0 = MIO::readUint32BE(IN);
-		sl_uint32 d1 = MIO::readUint32BE(IN + 4);
+		sl_uint32 d0 = MIO::readUint32LE(IN);
+		sl_uint32 d1 = MIO::readUint32LE(IN + 4);
 		
 		decrypt(d0, d1);
 		
-		MIO::writeUint32BE(OUT, d0);
-		MIO::writeUint32BE(OUT + 4, d1);
+		MIO::writeUint32LE(OUT, d0);
+		MIO::writeUint32LE(OUT + 4, d1);
 	}
 
 }

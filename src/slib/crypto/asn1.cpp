@@ -24,6 +24,7 @@
 
 #include "slib/core/memory_buffer.h"
 #include "slib/core/string_buffer.h"
+#include "slib/core/time_zone.h"
 
 namespace slib
 {
@@ -173,6 +174,15 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool Asn1MemoryReader::readSet(Asn1MemoryReader& elements)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getSet(elements);
+		}
+		return sl_false;
+	}
+
 	sl_bool Asn1MemoryReader::readBigInt(BigInt& n)
 	{
 		Asn1Element element;
@@ -196,6 +206,33 @@ namespace slib
 		Asn1Element element;
 		if (readElement(element)) {
 			return element.getOctetString(_out);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readUtf8String(Asn1String& _out)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getUtf8String(_out);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readBitString(Asn1String& _out, sl_uint8& outBitsRemain)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getBitString(_out, outBitsRemain);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readTime(Time& _out)
+	{
+		Asn1Element element;
+		if (readElement(element)) {
+			return element.getTime(_out);
 		}
 		return sl_false;
 	}
@@ -247,6 +284,17 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool Asn1Element::getSet(Asn1MemoryReader& elements) const
+	{
+		Asn1String body;
+		if (getBody(SLIB_ASN1_TAG_SET, body)) {
+			elements.current = body.data;
+			elements.end = body.data + body.length;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
 	sl_bool Asn1Element::getBigInt(BigInt& n) const
 	{
 		Asn1String body;
@@ -269,6 +317,56 @@ namespace slib
 	sl_bool Asn1Element::getOctetString(Asn1String& _out) const
 	{
 		return getBody(SLIB_ASN1_TAG_OCTET_STRING, _out);
+	}
+
+	sl_bool Asn1Element::getUtf8String(Asn1String& _out) const
+	{
+		return getBody(SLIB_ASN1_TAG_UTF8_STRING, _out);
+	}
+
+	sl_bool Asn1Element::getBitString(Asn1String& _out, sl_uint8& outBitsRemain) const
+	{
+		Asn1String body;
+		if (getBody(SLIB_ASN1_TAG_BIT_STRING, body)) {
+			if (body.length) {
+				outBitsRemain = *(body.data);
+				if (outBitsRemain > 7) {
+					return sl_false;
+				}
+				_out.data = body.data + 1;
+				_out.length = body.length - 1;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1Element::getTime(Time& _out) const
+	{
+		Asn1String body;
+		if (getBody(SLIB_ASN1_TAG_UTC_TIME, body)) {
+			if (body.length == 13) {
+				const sl_uint8* c = body.data;
+				if (c[12] != 'Z') {
+					return sl_false;
+				}
+				for (sl_uint32 i = 0; i < 12; i++) {
+					if (!(SLIB_CHAR_IS_DIGIT(c[i]))) {
+						return sl_false;
+					}
+				}
+				TimeComponents tc;
+				tc.year = 2000 + (c[0] - '0') * 10 + (c[1] - '0');
+				tc.month = (c[2] - '0') * 10 + (c[3] - '0');
+				tc.day = (c[4] - '0') * 10 + (c[5] - '0');
+				tc.hour = (c[6] - '0') * 10 + (c[7] - '0');
+				tc.minute = (c[8] - '0') * 10 + (c[9] - '0');
+				tc.second = (c[10] - '0') * 10 + (c[11] - '0');
+				_out = Time(tc, TimeZone::UTC());
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 }

@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/memory.h"
+#include "../core/time.h"
 #include "../math/bigint.h"
 
 #include "../core/serialize/io.h"
@@ -338,6 +339,8 @@ namespace slib
 
 		sl_bool readSequence(Asn1MemoryReader& outElements);
 
+		sl_bool readSet(Asn1MemoryReader& outElements);
+
 		template <typename N>
 		sl_bool readInt(N& n);
 
@@ -346,6 +349,12 @@ namespace slib
 		sl_bool readObjectIdentifier(Asn1ObjectIdentifier& _out);
 
 		sl_bool readOctetString(Asn1String& _out);
+
+		sl_bool readUtf8String(Asn1String& _out);
+
+		sl_bool readBitString(Asn1String& _out, sl_uint8& outBitsRemain);
+
+		sl_bool readTime(Time& _out);
 
 		template <class TYPE>
 		sl_bool readObject(TYPE& _out);
@@ -366,6 +375,8 @@ namespace slib
 		sl_bool getBody(sl_uint8 tag, Asn1String& outBody, sl_bool flagInNotUniversal = sl_true) const;
 
 		sl_bool getSequence(Asn1MemoryReader& outElements) const;
+
+		sl_bool getSet(Asn1MemoryReader& outElements) const;
 
 		template <typename N>
 		static sl_bool parseInt(N& n, const void* _data, sl_size len)
@@ -390,8 +401,11 @@ namespace slib
 		template <typename N>
 		sl_bool getInt(N& n) const
 		{
-			if (parseInt(n, data, length)) {
-				return sl_true;
+			Asn1String body;
+			if (getBody(SLIB_ASN1_TAG_INT, body)) {
+				if (parseInt(n, body.data, body.length)) {
+					return sl_true;
+				}
 			}
 			return sl_false;
 		}
@@ -401,6 +415,12 @@ namespace slib
 		sl_bool getObjectIdentifier(Asn1ObjectIdentifier& _out) const;
 
 		sl_bool getOctetString(Asn1String& _out) const;
+
+		sl_bool getUtf8String(Asn1String& _out) const;
+
+		sl_bool getBitString(Asn1String& _out, sl_uint8& outBitsRemain) const;
+
+		sl_bool getTime(Time& _out) const;
 
 	};
 

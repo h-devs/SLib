@@ -318,6 +318,10 @@ namespace slib
 
 		static sl_bool loadX509(X509& _out, const StringParam& filePath);
 
+		static sl_bool verifyX509(const void* content, sl_size size, const PublicKey& issuerKey);
+
+		static sl_bool verifyX509(const Memory& cert, const PublicKey& issuerKey);
+
 		static Memory signX509_SHA256(const X509& cert, const PrivateKey& issuerKey);
 
 		static Memory signX509_SHA384(const X509& cert, const PrivateKey& issuerKey);

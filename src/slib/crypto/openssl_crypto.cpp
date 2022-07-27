@@ -1105,6 +1105,20 @@ namespace slib
 				return hX509.release();
 			}
 
+			static sl_bool Verify_X509(const void* content, sl_size size, const PublicKey& issuerKey)
+			{
+				InitThread();
+				X509_Handle handle(Load_X509(content, size));
+				if (handle.isNone()) {
+					return sl_null;
+				}
+				EVP_PKEY_Handle key(Get_EVP_PKEY_from_PublicKey(issuerKey));
+				if (key.isNone()) {
+					return sl_null;
+				}
+				return X509_verify(handle.get(), key.get()) == 1;
+			}
+
 			static Memory Get_Memory_from_X509(::X509* handle)
 			{
 				sl_int32 size = (sl_int32)(i2d_X509_AUX(handle, sl_null));
@@ -1600,6 +1614,16 @@ namespace slib
 	{
 		Memory mem = File::readAllBytes(filePath);
 		return loadX509(_out, mem.getData(), mem.getSize());
+	}
+
+	sl_bool OpenSSL::verifyX509(const void* content, sl_size size, const PublicKey& issuerKey)
+	{
+		return Verify_X509(content, size, issuerKey);
+	}
+
+	sl_bool OpenSSL::verifyX509(const Memory& cert, const PublicKey& issuerKey)
+	{
+		return Verify_X509(cert.getData(), cert.getSize(), issuerKey);
 	}
 
 	Memory OpenSSL::signX509_SHA256(const X509& cert, const PrivateKey& issuerKey)
