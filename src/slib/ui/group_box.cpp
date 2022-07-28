@@ -36,6 +36,8 @@ namespace slib
 		setBorder(Pen::createSolidPen(1, Color(150, 150, 150)), UIUpdateMode::Init);
 
 		m_labelColor = Color::Black;
+		m_paddingBorder = 0;
+		m_paddingTop = 0;
 	}
 
 	GroupBox::~GroupBox()
@@ -66,6 +68,9 @@ namespace slib
 
 	void GroupBox::onDrawBorder(Canvas* canvas)
 	{
+		if (!m_paddingBorder) {
+			_updatePaddings(getFont());
+		}
 		Rectangle bounds = getBounds();
 		sl_real p = (sl_real)(m_paddingBorder / 2);
 		sl_real t = (sl_real)(m_paddingTop / 2);
