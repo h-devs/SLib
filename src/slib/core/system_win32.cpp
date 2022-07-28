@@ -503,7 +503,7 @@ namespace slib
 	{
 		sl_uint64 productVersion = 0;
 		if (getFileVersionInfo(System::getSystemDirectory() + "/kernel32.dll", sl_null, &productVersion)) {
-			return String::join(String::fromUint32(SLIB_GET_WORD1(productVersion)), ".", String::fromUint32(SLIB_GET_WORD0(productVersion)));
+			return String::concat(String::fromUint32(SLIB_GET_WORD1(productVersion)), ".", String::fromUint32(SLIB_GET_WORD0(productVersion)));
 		}
 		return sl_null;
 	}
