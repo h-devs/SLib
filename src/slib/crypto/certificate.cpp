@@ -89,7 +89,7 @@
 #define OID_X509_POSTAL_OFFICE_BOX OID_X509 "\x12" // 18
 #define OID_X509_TELEPHONE_NUMBER OID_X509 "\x14" // 20
 #define OID_IDENTIFIED_ORGANIZATION "\x2B" // ISO(1), 3
-#define OID_CERTICOM_ARC OID_IDENTIFIED_ORGANIZATION "\x84" // 132
+#define OID_CERTICOM_ARC OID_IDENTIFIED_ORGANIZATION "\x81\x04" // 132
 #define OID_SECG_ELLIPTIC_CURVE OID_CERTICOM_ARC "\x00"
 #define OID_secp112r1 OID_SECG_ELLIPTIC_CURVE "\x06"
 #define OID_secp112r2 OID_SECG_ELLIPTIC_CURVE "\x07"
@@ -124,9 +124,8 @@ namespace slib
 					Asn1MemoryReader body;
 					if (element.getSequence(body)) {
 						if (body.readObjectIdentifier(algorithm)) {
-							if (body.readElement(parameter)) {
-								return sl_true;
-							}
+							body.readElement(parameter);
+							return sl_true;
 						}
 					}
 					return sl_false;
@@ -586,6 +585,7 @@ namespace slib
 							return sl_true;
 						}
 					} else if (algorithm.algorithm.equals(OID_X9_62_EC_PUBLIC_KEY)) {
+						GetEllipticCurve(_out.ecc, algorithm.parameter);
 						Asn1MemoryReader reader(key);
 						Asn1MemoryReader body;
 						if (reader.readSequence(body)) {
@@ -605,20 +605,22 @@ namespace slib
 							if (!(body.readElement(param))) {
 								return sl_false;
 							}
-							if (!(GetEllipticCurve(_out.ecc, param))) {
-								return sl_false;
+							if (GetEllipticCurve(_out.ecc, param)) {
+								if (!(body.readElement(param))) {
+									return sl_false;
+								}
 							}
 							Asn1String pub;
 							sl_uint8 nBitsRemain;
-							if (body.readBitString(pub, nBitsRemain)) {
+							if (param.getBitString(pub, nBitsRemain)) {
 								if (nBitsRemain) {
 									return sl_false;
 								}
-								return _out.ecc.Q.parseBinaryFormat(_out.ecc, pub.data, pub.length);
+								_out.ecc.Q.parseBinaryFormat(_out.ecc, pub.data, pub.length);
 							} else {
 								_out.ecc.Q = _out.ecc.multiplyG(_out.ecc.d);
 							}
-							return sl_true;
+							return _out.isECC();
 						}
 					}
 					return sl_false;
