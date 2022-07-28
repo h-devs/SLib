@@ -117,60 +117,70 @@ namespace slib
 	}
 
 
-	sl_bool RSA::executePublic(const RSAPublicKey& key, const void* src, void* dst)
+	BigInt RSA::executePublic(const RSAPublicKey& key, const BigInt& input)
 	{
-		sl_size n = key.N.getMostSignificantBytes();
-		BigInt T = BigInt::fromBytesBE(src, n);
-		if (T >= key.N) {
-			return sl_false;
-		}
-		T = BigInt::pow_montgomery(T, key.E, key.N);
-		if (T.isNotNull()) {
-			if (T.getMostSignificantBytes() <= n) {
-				T.getBytesBE(dst, n);
-				return sl_true;
-			}
-		}
-		return sl_false;
+		return BigInt::pow_montgomery(input, key.E, key.N);
 	}
 
-	sl_bool RSA::executePrivate(const RSAPrivateKey& key, const void* src, void* dst)
+	BigInt RSA::executePrivate(const RSAPrivateKey& key, const BigInt& input)
 	{
-		sl_size n = key.N.getMostSignificantBytes();
-		BigInt T = BigInt::fromBytesBE(src, n);
-		if (T >= key.N) {
-			return sl_false;
-		}
 		if (!(key.flagUseOnlyD) && key.P.isNotNull() && key.Q.isNotNull() && key.DP.isNotNull() && key.DQ.isNotNull() && key.IQ.isNotNull()) {
-			BigInt TP = BigInt::pow_montgomery(T, key.DP, key.P);
-			BigInt TQ = BigInt::pow_montgomery(T, key.DQ, key.Q);
-			T = BigInt::mod_NonNegativeRemainder((TP - TQ) * key.IQ, key.P);
-			T = TQ + T * key.Q;
+			BigInt TP = BigInt::pow_montgomery(input, key.DP, key.P);
+			BigInt TQ = BigInt::pow_montgomery(input, key.DQ, key.Q);
+			BigInt T = BigInt::mod_NonNegativeRemainder((TP - TQ) * key.IQ, key.P);
+			return TQ + T * key.Q;
 		} else {
-			T = BigInt::pow_montgomery(T, key.D, key.N);
+			return BigInt::pow_montgomery(input, key.D, key.N);
 		}
+	}
+
+	sl_bool RSA::executePublic(const RSAPublicKey& key, const void* input, sl_size sizeInput, void* output)
+	{
+		BigInt T = BigInt::fromBytesBE(input, sizeInput);
+		if (T >= key.N) {
+			return sl_false;
+		}
+		T = executePublic(key, T);
 		if (T.isNotNull()) {
+			sl_uint32 n = key.getLength();
 			if (T.getMostSignificantBytes() <= n) {
-				T.getBytesBE(dst, n);
+				T.getBytesBE(output, n);
 				return sl_true;
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool RSA::execute(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* src, void* dst)
+	sl_bool RSA::executePrivate(const RSAPrivateKey& key, const void* input, sl_size sizeInput, void* output)
+	{
+		BigInt T = BigInt::fromBytesBE(input, sizeInput);
+		if (T >= key.N) {
+			return sl_false;
+		}
+		T = executePrivate(key, T);
+		if (T.isNotNull()) {
+			sl_uint32 n = key.getLength();
+			if (T.getMostSignificantBytes() <= n) {
+				T.getBytesBE(output, n);
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool RSA::execute(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, void* output)
 	{
 		if (keyPublic) {
-			return RSA::executePublic(*keyPublic, src, dst);
+			return RSA::executePublic(*keyPublic, input, sizeInput, output);
 		} else {
-			return RSA::executePrivate(*keyPrivate, src, dst);
+			return RSA::executePrivate(*keyPrivate, input, sizeInput, output);
 		}
 	}
 
 #define RSA_PKCS1_SIGN		1
 #define RSA_PKCS1_CRYPT		2
 
-	sl_bool RSA::encrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* src, sl_uint32 n, void* dst)
+	sl_bool RSA::encrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, void* output)
 	{
 		sl_uint32 len;
 		if (keyPublic) {
@@ -179,18 +189,14 @@ namespace slib
 			len = keyPrivate->getLength();
 		}
 		// check (len - 8 < n + 3), 8 bytes is for enough random region
-		if (n == 0 || (n & 0x80000000) || len < n + 11) {
+		if (!sizeInput || (sizeInput & 0x80000000) || len < sizeInput + 11) {
 			return sl_false;
 		}
-		char* p = (char*)dst;
+		char* p = (char*)output;
 		
-		// avoid error when input=output
-		for (sl_uint32 i = n; i > 0; i--) {
-			p[len - n + i - 1] = ((char*)src)[i - 1];
-		}
-		
+		Base::moveMemory(p + len - sizeInput, input, sizeInput);
 		*(p++) = 0;
-		sl_uint32 lenPadding = len - 3 - n;
+		sl_uint32 lenPadding = len - 3 - (sl_uint32)sizeInput;
 		if (keyPublic) {
 			// encrypt mode
 			*(p++) = RSA_PKCS1_CRYPT;
@@ -209,10 +215,10 @@ namespace slib
 			}
 		}
 		*(p++) = 0;
-		return execute(keyPublic, keyPrivate, dst, dst);
+		return execute(keyPublic, keyPrivate, output, len, output);
 	}
 
-	Memory RSA::encrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* src, sl_uint32 n)
+	Memory RSA::encrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput)
 	{
 		sl_uint32 len;
 		if (keyPublic) {
@@ -221,20 +227,20 @@ namespace slib
 			len = keyPrivate->getLength();
 		}
 		// check (len - 8 < n + 3), 8 bytes is for enough random region
-		if (n == 0 || (n & 0x80000000) || len < n + 11) {
+		if (!sizeInput || (sizeInput & 0x80000000) || len < sizeInput + 11) {
 			return sl_null;
 		}
 		Memory mem = Memory::create(len);
 		if (mem.isNull()) {
 			return sl_null;
 		}
-		if (encrypt_pkcs1_v15(keyPublic, keyPrivate, src, n, mem.getData())) {
+		if (encrypt_pkcs1_v15(keyPublic, keyPrivate, input, sizeInput, mem.getData())) {
 			return mem;
 		}
 		return sl_null;
 	}
 	
-	sl_uint32 RSA::decrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* src, void* dst, sl_uint32 n, sl_bool* pFlagSign)
+	sl_uint32 RSA::decrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, void* _output, sl_bool* pFlagSign)
 	{
 		sl_uint32 len;
 		if (keyPublic) {
@@ -245,17 +251,14 @@ namespace slib
 		if (len < 32) {
 			return sl_false;
 		}
-		SLIB_SCOPED_BUFFER(char, 4096, buf, len);
-		if (!buf) {
+		sl_uint8* output = (sl_uint8*)_output;
+		if (!(execute(keyPublic, keyPrivate, input, sizeInput, output))) {
 			return 0;
 		}
-		if (!(execute(keyPublic, keyPrivate, src, buf))) {
-			return 0;
-		}
-		if (buf[0] != 0) {
+		if (output[0]) {
 			return sl_false;
 		}
-		sl_uint32 type = buf[1];
+		sl_uint32 type = output[1];
 		if (type == RSA_PKCS1_SIGN) {
 			if (pFlagSign) {
 				*pFlagSign = sl_true;
@@ -269,16 +272,16 @@ namespace slib
 		}
 		sl_uint32 pos;
 		for (pos = 2; pos + 1 < len; pos++) {
-			if (buf[pos] == 0) {
+			if (!(output[pos])) {
 				break;
 			}
 		}
 		pos++;
-		Base::copyMemory(dst, buf + pos, Math::min(len - pos, n));
+		Base::moveMemory(output, output + pos, len - pos);
 		return len - pos;
 	}
 
-	Memory RSA::decrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* src, sl_bool* pFlagSign)
+	Memory RSA::decrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, sl_bool* pFlagSign)
 	{
 		sl_uint32 len;
 		if (keyPublic) {
@@ -289,76 +292,55 @@ namespace slib
 		if (len < 32) {
 			return sl_null;
 		}
-		SLIB_SCOPED_BUFFER(char, 4096, buf, len);
-		if (!buf) {
+		Memory mem = Memory::create(len);
+		if (mem.isNull()) {
 			return sl_null;
 		}
-		if (!(execute(keyPublic, keyPrivate, src, buf))) {
-			return sl_null;
+		sl_uint32 n = decrypt_pkcs1_v15(keyPublic, keyPrivate, input, sizeInput, mem.getData(), pFlagSign);
+		if (n) {
+			return mem.sub(0, n);
 		}
-		if (buf[0] != 0) {
-			return sl_null;
-		}
-		sl_uint32 type = buf[1];
-		if (type == RSA_PKCS1_SIGN) {
-			if (pFlagSign) {
-				*pFlagSign = sl_true;
-			}
-		} else if (type == RSA_PKCS1_CRYPT) {
-			if (pFlagSign) {
-				*pFlagSign = sl_false;
-			}
-		} else {
-			return sl_null;
-		}
-		sl_uint32 pos;
-		for (pos = 2; pos + 1 < len; pos++) {
-			if (buf[pos] == 0) {
-				break;
-			}
-		}
-		pos++;
-		return Memory::create(buf + pos, len - pos);
+		return sl_null;
 	}
 	
-	sl_bool RSA::encryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* src, sl_uint32 n, void* dst)
+	sl_bool RSA::encryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* input, sl_size sizeInput, void* output)
 	{
-		return encrypt_pkcs1_v15(&key, sl_null, src, n, dst);
+		return encrypt_pkcs1_v15(&key, sl_null, input, sizeInput, output);
 	}
 
-	Memory RSA::encryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* src, sl_uint32 n)
+	Memory RSA::encryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* input, sl_size sizeInput)
 	{
-		return encrypt_pkcs1_v15(&key, sl_null, src, n);
+		return encrypt_pkcs1_v15(&key, sl_null, input, sizeInput);
 	}
 
-	sl_bool RSA::encryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* src, sl_uint32 n, void* dst)
+	sl_bool RSA::encryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* input, sl_size sizeInput, void* output)
 	{
-		return encrypt_pkcs1_v15(sl_null, &key, src, n, dst);
+		return encrypt_pkcs1_v15(sl_null, &key, input, sizeInput, output);
 	}
 
-	Memory RSA::encryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* src, sl_uint32 n)
+	Memory RSA::encryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* input, sl_size sizeInput)
 	{
-		return encrypt_pkcs1_v15(sl_null, &key, src, n);
+		return encrypt_pkcs1_v15(sl_null, &key, input, sizeInput);
 	}
 	
-	sl_uint32 RSA::decryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* src, void* dst, sl_uint32 n, sl_bool* pFlagSign)
+	sl_uint32 RSA::decryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* input, sl_size sizeInput, void* output, sl_bool* pFlagSign)
 	{
-		return decrypt_pkcs1_v15(&key, sl_null, src, dst, n, pFlagSign);
+		return decrypt_pkcs1_v15(&key, sl_null, input, sizeInput, output, pFlagSign);
 	}
 
-	Memory RSA::decryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* src, sl_bool* pFlagSign)
+	Memory RSA::decryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* input, sl_size sizeInput, sl_bool* pFlagSign)
 	{
-		return decrypt_pkcs1_v15(&key, sl_null, src, pFlagSign);
+		return decrypt_pkcs1_v15(&key, sl_null, input, sizeInput, pFlagSign);
 	}
 
-	sl_uint32 RSA::decryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* src, void* dst, sl_uint32 n, sl_bool* pFlagSign)
+	sl_uint32 RSA::decryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* input, sl_size sizeInput, void* output, sl_bool* pFlagSign)
 	{
-		return decrypt_pkcs1_v15(sl_null, &key, src, dst, n, pFlagSign);
+		return decrypt_pkcs1_v15(sl_null, &key, input, sizeInput, output, pFlagSign);
 	}
 
-	Memory RSA::decryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* src, sl_bool* pFlagSign)
+	Memory RSA::decryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* input, sl_size sizeInput, sl_bool* pFlagSign)
 	{
-		return decrypt_pkcs1_v15(sl_null, &key, src, pFlagSign);
+		return decrypt_pkcs1_v15(sl_null, &key, input, sizeInput, pFlagSign);
 	}
 	
 

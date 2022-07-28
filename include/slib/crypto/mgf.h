@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,60 +20,62 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CRYPTO_HASH
-#define CHECKHEADER_SLIB_CRYPTO_HASH
+#ifndef CHECKHEADER_SLIB_CRYPTO_MGF
+#define CHECKHEADER_SLIB_CRYPTO_MGF
 
 #include "definition.h"
 
-#include "../core/string.h"
-#include "../core/memory.h"
+#include "../core/mio.h"
+#include "../core/scoped_buffer.h"
+
+/*
+	Mask Generation Function (PKCS#1)
+*/
 
 namespace slib
 {
 	
-	template <class CLASS>
-	class SLIB_EXPORT CryptoHash
+	template <class HASH>
+	class SLIB_EXPORT MGF1
 	{
 	public:
-		static void hash(const void* input, sl_size n, void* output) noexcept
+		static void applyMask(const void* seed, sl_size sizeSeed, void* _target, sl_size sizeTarget) noexcept
 		{
-			CLASS h;
-			h.start();
-			h.update(input, n);
-			h.finish(output);
+			sl_uint32 n = HASH::HashSize;
+			if (!n) {
+				return;
+			}
+			SLIB_SCOPED_BUFFER(sl_uint8, 128, h, n);
+			if (!h) {
+				return;
+			}
+			sl_uint8* target = (sl_uint8*)(_target);
+			sl_uint32 i = 0;
+			sl_uint8 C[4];
+			HASH hash;
+			while (sizeTarget >= n) {
+				hash.start();
+				hash.update(seed, sizeSeed);
+				MIO::writeUint32BE(C, i);
+				hash.update(C, 4);
+				hash.finish(h);
+				for (sl_uint32 k = 0; k < n; k++) {
+					target[k] ^= h[k];
+				}
+				i++;
+				target += n;
+				sizeTarget -= n;
+			}
+			hash.start();
+			hash.update(seed, sizeSeed);
+			MIO::writeUint32BE(C, i);
+			hash.update(C, 4);
+			hash.finish(h);
+			for (sl_size k = 0; k < sizeTarget; k++) {
+				target[k] ^= h[k];
+			}
 		}
-		
-		static void hash(const StringData& s, void* output) noexcept
-		{
-			hash(s.getData(), s.getLength(), output);
-		}
-		
-		static void hash(const Memory& data, void* output) noexcept
-		{
-			hash(data.getData(), data.getSize(), output);
-		}
-		
-		static Memory hash(const void* input, sl_size n) noexcept
-		{
-			char v[CLASS::HashSize];
-			hash(input, n, v);
-			return Memory::create(v, CLASS::HashSize);
-		}
-		
-		static Memory hash(const StringData& s) noexcept
-		{
-			char v[CLASS::HashSize];
-			hash(s.getData(), s.getLength(), v);
-			return Memory::create(v, CLASS::HashSize);
-		}
-		
-		static Memory hash(const Memory& data) noexcept
-		{
-			char v[CLASS::HashSize];
-			hash(data.getData(), data.getSize(), v);
-			return Memory::create(v, CLASS::HashSize);
-		}
-		
+
 	};
 	
 }

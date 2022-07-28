@@ -1083,9 +1083,9 @@ namespace slib
 			case X509SignatureAlgorithm::Sha256WithRSA:
 			case X509SignatureAlgorithm::Sha384WithRSA:
 			case X509SignatureAlgorithm::Sha512WithRSA:
-				if (signature.getSize() == issuerKey.rsa.N.getMostSignificantBytes()) {
+				if (issuerKey.rsa.isDefined()) {
 					sl_bool flagSign;
-					Memory dec = RSA::decryptPublic_pkcs1_v15(issuerKey.rsa, signature.getData(), &flagSign);
+					Memory dec = RSA::decryptPublic_pkcs1_v15(issuerKey.rsa, signature.getData(), signature.getSize(), &flagSign);
 					Asn1MemoryReader reader(dec);
 					X509Signature sig;
 					if (reader.readObject(sig)) {

@@ -28,6 +28,7 @@
 #include "slib/crypto/chacha.h"
 #include "slib/crypto/ecc.h"
 #include "slib/crypto/base64.h"
+#include "slib/core/scoped_buffer.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 #include "slib/device/device.h"
