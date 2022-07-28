@@ -963,6 +963,14 @@ namespace slib
 	public:
 	};
 
+	class SAppLayoutGroupBoxAttributes : public Referable
+	{
+	public:
+		SAppStringValue label;
+		SAppColorValue labelColor;
+
+	};
+
 	class SAppLayoutStyle : public Referable
 	{
 	public:
@@ -1021,6 +1029,7 @@ namespace slib
 		ListBox = 0x023B,
 		LabelList = 0x023C,
 		TileLayout = 0x023D,
+		GroupBox = 0x023F,
 
 		Progress = 0x0260,
 		Slider = 0x0261,
@@ -1094,6 +1103,7 @@ namespace slib
 		Ref<SAppLayoutLabelListAttributes> attrsLabelList;
 		Ref<SAppLayoutTileLayoutAttributes> attrsTileLayout;
 		Ref<SAppLayoutPdfAttributes> attrsPdf;
+		Ref<SAppLayoutGroupBoxAttributes> attrsGroupBox;
 
 		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;
@@ -1167,6 +1177,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameLabelList = 0;
 		sl_uint32 nAutoIncreaseNameTileLayout = 0;
 		sl_uint32 nAutoIncreaseNamePdf = 0;
+		sl_uint32 nAutoIncreaseNameGroupBox = 0;
 
 	public:
 		SAppLayoutResource();

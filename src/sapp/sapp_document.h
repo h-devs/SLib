@@ -284,6 +284,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_LabelList(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_TileLayout(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Pdf(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_GroupBox(LayoutControlProcessParams* params);
 
 	private:
 		sl_bool m_flagOpened;

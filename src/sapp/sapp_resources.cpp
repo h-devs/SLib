@@ -498,6 +498,10 @@ namespace slib
 				prefix = "tileLayout";
 				pN = &nAutoIncreaseNamePdf;
 				break;
+			case SAppLayoutItemType::GroupBox:
+				prefix = "groupBox";
+				pN = &nAutoIncreaseNameGroupBox;
+				break;
 			default:
 				return String::null();
 		}
@@ -599,6 +603,8 @@ namespace slib
 			type = SAppLayoutItemType::TileLayout;
 		} else if (strType == "pdf") {
 			type = SAppLayoutItemType::Pdf;
+		} else if (strType == "groupbox" || strType == "group-box") {
+			type = SAppLayoutItemType::GroupBox;
 		}
 		return type;
 	}

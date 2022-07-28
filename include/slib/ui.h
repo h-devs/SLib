@@ -55,6 +55,7 @@
 #include "ui/switch_view.h"
 #include "ui/picker_view.h"
 #include "ui/date_picker.h"
+#include "ui/group_box.h"
 #include "ui/text_view.h"
 
 #include "ui/tree_view.h"
