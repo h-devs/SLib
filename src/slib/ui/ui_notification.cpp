@@ -203,9 +203,19 @@ namespace slib
 #endif
 
 #if !defined(SLIB_PLATFORM_IS_APPLE)
+	void UserNotification::checkAuthorizationStatus(const Function<void(sl_bool flagGranted)>& callback)
+	{
+		callback(sl_true);
+	}
+
 	void UserNotification::requestAuthorization(const UserNotificationAuthorizationOptions& options, const Function<void(sl_bool flagGranted)>& callback)
 	{
 		callback(sl_true);
+	}
+
+	void UserNotification::openSystemPreferencesForNotification()
+	{
+		
 	}
 #endif
 

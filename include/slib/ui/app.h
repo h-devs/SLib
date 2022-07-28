@@ -44,6 +44,11 @@ namespace slib
 		~UIApp();
 
 	public:
+	
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+		static void enableXlibThreadsSupport();
+#endif
+
 		static Ref<UIApp> getApp();
 		
 	public:

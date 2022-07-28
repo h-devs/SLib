@@ -171,6 +171,11 @@ namespace slib
 		return List< Ref<Image> >::createFromElement(takeScreenshot());
 	}
 
+	sl_uint32 ScreenCapture::getScreensCount()
+	{
+		return (sl_uint32)1;
+	}
+
 }
 
 #endif

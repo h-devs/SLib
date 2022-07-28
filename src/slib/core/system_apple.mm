@@ -48,6 +48,7 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
 			sl_uint32 g_systemVersionMajor = 0;
 			sl_uint32 g_systemVersionMinor = 0;
+			sl_uint32 g_systemVersionPatch = 0;
 			sl_bool g_flagInitSystemVersion = sl_true;
 			
 			void InitSystemVersion()
@@ -59,7 +60,11 @@ namespace slib
 						NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
 						g_systemVersionMajor = (sl_uint32)(version.majorVersion);
 						g_systemVersionMinor = (sl_uint32)(version.minorVersion);
+						g_systemVersionPatch = (sl_uint32)(version.patchVersion);
 						g_systemVersion = String::concat(String::fromUint32(g_systemVersionMajor), ".", String::fromUint32(g_systemVersionMinor));
+						if (g_systemVersionPatch > 0) {
+							g_systemVersion = String::join(g_systemVersion, ".", String::fromUint32(g_systemVersionPatch));
+						}
 					} else if (v >= NSAppKitVersionNumber10_9) {
 						g_systemVersion = "10.9";
 						g_systemVersionMajor = 10;
@@ -162,10 +167,11 @@ namespace slib
 
 	String System::getSystemName()
 	{
+		InitSystemVersion();
 #if defined(SLIB_PLATFORM_IS_MACOS)
-		return "macOS " + getSystemVersion();
+		return "macOS " + g_systemVersion;
 #elif defined(SLIB_PLATFORM_IS_IOS)
-		return "iOS " + getSystemVersion();
+		return "iOS " + g_systemVersion;
 #else
 		return sl_null;
 #endif
@@ -173,6 +179,16 @@ namespace slib
 	
 	String System::getSystemVersion()
 	{
+		String plistFileName = "/System/Library/CoreServices/SystemVersion.plist";
+		if (File::isFile(plistFileName)) {
+			NSString* path = Apple::getNSStringFromString(plistFileName);
+			NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:path];
+			NSString* info = [dict objectForKey:@"ProductVersion"];
+			String version = Apple::getStringFromNSString(info);
+			if (version.isNotEmpty()) {
+				return version;
+			}
+		}
 		InitSystemVersion();
 		return g_systemVersion;
 	}
@@ -187,6 +203,27 @@ namespace slib
 	{
 		InitSystemVersion();
 		return g_systemVersionMinor;
+	}
+
+	sl_uint32 System::getPatchVersion()
+	{
+		InitSystemVersion();
+		return g_systemVersionPatch;
+	}
+
+	String System::getBuildVersion()
+	{
+		String plistFileName = "/System/Library/CoreServices/SystemVersion.plist";
+		if (File::isFile(plistFileName)) {
+			NSString* path = Apple::getNSStringFromString(plistFileName);
+			NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:path];
+			NSString* info = [dict objectForKey:@"ProductBuildVersion"];
+			String version = Apple::getStringFromNSString(info);
+			if (version.isNotEmpty()) {
+				return version;
+			}
+		}
+		return sl_null;
 	}
 	
 	String System::getComputerName()

@@ -70,10 +70,13 @@ namespace slib
 		// Not thread safe
 		sl_bool parseFile(const StringParam& pathToCSVFile);
 
+		void clearAll();
+
 	public:
-		const char* getCountryCode(const IPv4Address& ipv4);
+		// `depth`: reverse loopup level for overlapped case. 0 means exact match
+		const char* getCountryCode(const IPv4Address& ipv4, sl_size depth = 1);
 		
-		const char* getCountryCode(const IPv6Address& ipv6);
+		const char* getCountryCode(const IPv6Address& ipv6, sl_size depth = 1);
 
 		List<IPv4Item> getIPv4Items(const StringParam& code);
 

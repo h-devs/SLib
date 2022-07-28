@@ -40,6 +40,11 @@ namespace slib
 	{
 		return sl_null;
 	}
+
+	sl_uint32 ScreenCapture::getScreensCount()
+	{
+		return 0;
+	}
 #endif
 
 #if !defined(SLIB_UI_IS_MACOS)

@@ -138,6 +138,12 @@ namespace slib
 		}
 		return ret;
 	}
+
+	sl_uint32 ScreenCapture::getScreensCount()
+	{
+		sl_uint32 count = (sl_uint32)([[NSScreen screens] count]);
+		return count;
+	}
 	
 	// https://stackoverflow.com/a/58985069
 	sl_bool ScreenCapture::isScreenRecordingEnabled()

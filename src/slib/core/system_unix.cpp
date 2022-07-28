@@ -90,9 +90,14 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 				String strRelease = File::readAllTextUTF8("/etc/os-release");
 				if (strRelease.isNotEmpty()) {
+					// FIXME: parse non-quoted values such as NAME=Fedora, VERSION_ID=32
 					sl_reg indexVersion = strRelease.indexOf("VERSION_ID=\"");
 					sl_reg indexName = strRelease.indexOf("NAME=\"");
-					if (indexVersion >=0 && indexName >= 0) {
+					if (indexName > 0 && strRelease.getAt(indexName - 1) == '_') {
+						// prevent matching PRETTY_NAME, CFE_NAME, etc
+						indexName = strRelease.indexOf("NAME=\"", indexName + 1);
+					}
+					if (indexVersion >= 0 && indexName >= 0) {
 						indexVersion += 12;
 						indexName += 6;
 						sl_reg lastVersion = strRelease.indexOf('"', indexVersion);

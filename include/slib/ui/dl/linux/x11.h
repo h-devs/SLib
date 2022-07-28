@@ -60,6 +60,13 @@ namespace slib
 		#define XGetErrorText slib::x11::getApi_XGetErrorText()
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			XInitThreads,
+			int, ,
+			void
+		)
+		#define XInitThreads slib::x11::getApi_XInitThreads()
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			XOpenDisplay,
 			Display *, ,
 			_Xconst char*	/* display_name */

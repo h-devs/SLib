@@ -152,7 +152,11 @@ namespace slib
 		
 		static void removeAllDeliveredNotifications();
 		
+		static void checkAuthorizationStatus(const Function<void(sl_bool flagGranted)>& callback);
+		
 		static void requestAuthorization(const UserNotificationAuthorizationOptions& options, const Function<void(sl_bool flagGranted)>& callback);
+		
+		static void openSystemPreferencesForNotification();
 
 		static void addOnClickMessage(const Function<void(UserNotificationMessage&)>& callback);
 		

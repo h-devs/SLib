@@ -121,7 +121,7 @@ namespace slib
 
 			SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 
-			Ref<Image> CaptureScreen(HMONITOR hMonitor)
+			static Ref<Image> CaptureScreen(HMONITOR hMonitor)
 			{
 				Helper* helper = GetHelper();
 				if (!helper) {
@@ -158,7 +158,7 @@ namespace slib
 				List< Ref<Image> > list;
 			};
 
-			BOOL CALLBACK EnumDisplayMonitorsCallback(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+			static BOOL CALLBACK EnumDisplayMonitorsCallbackForCaptureScreens(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
 			{
 				CaptureScreensContext& context = *((CaptureScreensContext*)lParam);
 				Ref<Image> image = CaptureScreen(hMonitor);
@@ -168,11 +168,25 @@ namespace slib
 				return TRUE;
 			}
 
-			List< Ref<Image> > CaptureScreens()
+			static List< Ref<Image> > CaptureScreens()
 			{
 				CaptureScreensContext context;
-				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallback, (LPARAM)&context);
+				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForCaptureScreens, (LPARAM)&context);
 				return context.list;
+			}
+
+			static BOOL CALLBACK EnumDisplayMonitorsCallbackForGetScreensCount(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+			{
+				sl_uint32 *count = (sl_uint32*)lParam;
+				(*count)++;
+				return TRUE;
+			}
+
+			static sl_uint32 GetScreensCount()
+			{
+				sl_uint32 count = 0;
+				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForGetScreensCount, (LPARAM)&count);
+				return count;
 			}
 
 		}
@@ -204,6 +218,11 @@ namespace slib
 	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
 	{
 		return CaptureScreens();
+	}
+
+	sl_uint32 ScreenCapture::getScreensCount()
+	{
+		return GetScreensCount();
 	}
 
 }

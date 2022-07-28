@@ -60,12 +60,15 @@ namespace slib
 					if (text.isNotEmpty()) {
 						gtk_entry_set_text(handle, text.getData());
 					}
-					if(view->isPassword()) {
+					if (view->isPassword()) {
 						gtk_entry_set_visibility(handle, 0);
 					}
 					Color textColor = view->getTextColor();
 					if (textColor != Color::Black) {
 						setTextColor(view, textColor);
+					}
+					if (view->getWidthMode() == SizeMode::Fixed) {
+						gtk_entry_set_width_chars(handle, 0);
 					}
 					setGravity(view, view->getGravity());
 					if (view->isReadOnly()) {
@@ -147,7 +150,7 @@ namespace slib
 					if (handle) {
 						GValue value = G_VALUE_INIT;
 						g_value_init(&value, G_TYPE_BOOLEAN);
-						g_value_set_boolean(&value, flag);
+						g_value_set_boolean(&value, !flag);
 						g_object_set_property((GObject*)handle, "editable", &value);
 					}
 				}
@@ -413,7 +416,7 @@ namespace slib
 					GtkTextView* handle = m_handleTextView;
 					if (handle) {
 						gtk_text_view_set_left_margin(handle, inset.left);
-						gtk_text_view_set_right_margin (handle, inset.right);
+						gtk_text_view_set_right_margin(handle, inset.right);
 					}
 				}
 
