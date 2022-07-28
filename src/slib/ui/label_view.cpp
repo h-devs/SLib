@@ -355,12 +355,12 @@ namespace slib
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
 				if (style->flagLink) {
-					setCursor(Cursor::getHand());
+					Cursor::setCurrent(Cursor::getHand());
+					ev->preventDefault();
 					return;
 				}
 			}
 		}
-		setCursor(Cursor::getArrow());
 	}
 
 	void LabelViewCell::onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping)

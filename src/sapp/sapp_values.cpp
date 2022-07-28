@@ -2606,4 +2606,81 @@ namespace slib
 		return sl_false;
 	}
 	
+
+	/************************************************
+	 				Cursor
+	************************************************/
+	
+	SAppCursorValue::SAppCursorValue()
+	: flagDefined(sl_false)
+	{
+		type = Type::Arrow;
+	}
+	
+	String SAppCursorValue::getAccessString()
+	{
+		if (!flagDefined) {
+			return "sl_null";
+		}
+		switch (type) {
+			case Type::Arrow:
+				return "slib::Cursor::getArrow()";
+			case Type::IBeam:
+				return "slib::Cursor::getIBeam()";
+			case Type::Cross:
+				return "slib::Cursor::getCross()";
+			case Type::Hand:
+				return "slib::Cursor::getHand()";
+			case Type::ResizeLeftRight:
+				return "slib::Cursor::getResizeLeftRight()";
+			case Type::ResizeUpDown:
+				return "slib::Cursor::getResizeUpDown()";
+			default:
+				break;
+		}
+		return "sl_null";
+	}
+	
+	sl_bool SAppCursorValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			flagDefined = sl_false;
+			return sl_true;
+		}
+		str = str.toLower();
+		if (str == "arrow") {
+			value = Cursor::getArrow();
+			type = Type::Arrow;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "ibeam") {
+			value = Cursor::getIBeam();
+			type = Type::IBeam;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "cross") {
+			value = Cursor::getCross();
+			type = Type::Cross;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "hand") {
+			value = Cursor::getHand();
+			type = Type::Hand;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "resize-x" || str == "resizex" || str == "resizeleftright") {
+			value = Cursor::getResizeLeftRight();
+			type = Type::ResizeLeftRight;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "resize-y" || str == "resizey" || str == "resizeupdown") {
+			value = Cursor::getResizeUpDown();
+			type = Type::ResizeUpDown;
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+	
 }

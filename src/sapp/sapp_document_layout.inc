@@ -2313,6 +2313,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR(touchMultipleChildren, setTouchMultipleChildren)
 		if (flagView) {
 			LAYOUT_CONTROL_GENERIC_ATTR(tabStop, setTabStopEnabled)
+			LAYOUT_CONTROL_GENERIC_ATTR(cursor, setCursor)
 		}
 		if (!flagRoot) {
 			if (op == OP_PARSE) {

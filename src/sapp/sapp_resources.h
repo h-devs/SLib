@@ -328,6 +328,7 @@ namespace slib
 		SAppBooleanValue tabStop;
 		String nextTabStop;
 		String previousTabStop;
+		SAppCursorValue cursor;
 
 		SAppBooleanValue instance;
 		SAppBooleanValue childInstances;

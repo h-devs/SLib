@@ -49,7 +49,7 @@ namespace slib
 				~NativeCursorImpl()
 				{
 					if (m_flagDestroyOnRelease) {
-						::DestroyCursor(m_hCursor);
+						DestroyCursor(m_hCursor);
 					}
 				}
 
@@ -65,7 +65,7 @@ namespace slib
 							return ret;
 						}
 						if (flagFreeOnDestroy) {
-							::DestroyCursor(hCursor);
+							DestroyCursor(hCursor);
 						}
 					}
 					return ret;
@@ -93,37 +93,37 @@ namespace slib
 
 	Ref<Cursor> Cursor::getArrow()
 	{
-		HCURSOR hCursor = ::LoadCursor(NULL, IDC_ARROW);
+		HCURSOR hCursor = LoadCursorW(NULL, IDC_ARROW);
 		return UIPlatform::createCursor(hCursor, sl_false);
 	}
 
 	Ref<Cursor> Cursor::getIBeam()
 	{
-		HCURSOR hCursor = ::LoadCursor(NULL, IDC_IBEAM);
+		HCURSOR hCursor = LoadCursorW(NULL, IDC_IBEAM);
 		return UIPlatform::createCursor(hCursor, sl_false);
 	}
 
 	Ref<Cursor> Cursor::getCross()
 	{
-		HCURSOR hCursor = ::LoadCursor(NULL, IDC_CROSS);
+		HCURSOR hCursor = LoadCursorW(NULL, IDC_CROSS);
 		return UIPlatform::createCursor(hCursor, sl_false);
 	}
 
 	Ref<Cursor> Cursor::getHand()
 	{
-		HCURSOR hCursor = ::LoadCursor(NULL, IDC_HAND);
+		HCURSOR hCursor = LoadCursorW(NULL, IDC_HAND);
 		return UIPlatform::createCursor(hCursor, sl_false);
 	}
 
 	Ref<Cursor> Cursor::getResizeLeftRight()
 	{
-		HCURSOR hCursor = ::LoadCursor(NULL, IDC_SIZEWE);
+		HCURSOR hCursor = LoadCursorW(NULL, IDC_SIZEWE);
 		return UIPlatform::createCursor(hCursor, sl_false);
 	}
 
 	Ref<Cursor> Cursor::getResizeUpDown()
 	{
-		HCURSOR hCursor = ::LoadCursor(NULL, IDC_SIZENS);
+		HCURSOR hCursor = LoadCursorW(NULL, IDC_SIZENS);
 		return UIPlatform::createCursor(hCursor, sl_false);
 	}
 
@@ -133,7 +133,7 @@ namespace slib
 			return;
 		}
 		NativeCursorImpl* c = (NativeCursorImpl*)(cursor.get());
-		::SetCursor(c->m_hCursor);
+		SetCursor(c->m_hCursor);
 	}
 
 	Ref<Cursor> Cursor::getCurrent()
@@ -144,12 +144,12 @@ namespace slib
 
 	void Cursor::show()
 	{
-		::ShowCursor(TRUE);
+		ShowCursor(TRUE);
 	}
 
 	void Cursor::hide()
 	{
-		::ShowCursor(FALSE);
+		ShowCursor(FALSE);
 	}
 
 }

@@ -32,6 +32,7 @@
 #include "slib/graphics/color.h"
 #include "slib/graphics/font.h"
 #include "slib/ui/constants.h"
+#include "slib/ui/cursor.h"
 
 namespace slib
 {
@@ -668,7 +669,34 @@ namespace slib
 		sl_bool parse(const String& str);
 		
 	};
-	
+
+	class SAppCursorValue
+	{
+	public:
+		sl_bool flagDefined;
+		Ref<Cursor> value;
+
+		enum class Type
+		{
+			Arrow,
+			IBeam,
+			Cross,
+			Hand,
+			ResizeLeftRight,
+			ResizeUpDown
+		};
+		Type type;
+
+	public:
+		SAppCursorValue();
+
+	public:
+		String getAccessString();
+
+		sl_bool parse(const String& str);
+
+	};
+
 }
 
 #endif
