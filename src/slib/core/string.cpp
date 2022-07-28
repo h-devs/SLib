@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -3556,6 +3556,8 @@ namespace slib
 													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 												} else if (arg.isBigInt()) {
 													content = STRING::from(arg.getBigInt().toString(radix, flagUpperCase));
+												} else if (arg.isMemory() && radix == 16) {
+													content = STRING::makeHexString(arg.getMemory(), !flagUpperCase);
 												} else {
 													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
 												}

@@ -294,15 +294,15 @@ namespace slib
 			{
 				EC_POINT_Handle ret(EC_POINT_new(group));
 				if (ret.isNone()) {
-					return sl_false;
+					return sl_null;
 				}
 				BIGNUM_Handle x(Get_BIGNUM_from_BigInt(pt.x));
 				if (x.isNone()) {
-					return sl_false;
+					return sl_null;
 				}
 				BIGNUM_Handle y(Get_BIGNUM_from_BigInt(pt.y));
 				if (y.isNone()) {
-					return sl_false;
+					return sl_null;
 				}
 				if (EC_POINT_set_affine_coordinates(group, ret.get(), x.get(), y.get(), sl_null) == 1) {
 					return ret.release();
