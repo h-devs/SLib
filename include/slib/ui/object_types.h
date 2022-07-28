@@ -153,7 +153,8 @@ namespace slib
 			Window,
 			WindowInstance,
 			WindowContentView,
-			PdfView
+			PdfView,
+			GroupBox
 		};
 
 	}
