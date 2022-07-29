@@ -2025,12 +2025,38 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		
-		if (param.font.isNull()) {
+		Ref<Font> font = param.font;
+		if (font.isNull()) {
 			return;
 		}
 
-		m_style->font = param.font;
-		
+		FontDesc fd;
+		font->getDesc(fd);
+		if (fd.flagUnderline || fd.flagStrikeout) {
+			if (fd.flagUnderline) {
+				m_style->flagUnderline = sl_true;
+				m_style->flagDefinedUnderline = sl_true;
+			}
+			if (fd.flagStrikeout) {
+				m_style->flagLineThrough = sl_true;
+			}
+			fd.flagStrikeout = sl_false;
+			fd.flagUnderline = sl_false;
+			font = Font::create(fd);
+		}
+		sl_bool flagChangedFont = sl_false;
+		if (m_font.isNotNull()) {
+			FontDesc fdOld;
+			m_font->getDesc(fdOld);
+			if (fdOld.familyName != fd.familyName || fdOld.size != fd.size || fdOld.flagBold != fd.flagBold || fdOld.flagItalic != fd.flagItalic) {
+				flagChangedFont = sl_true;
+			}
+		} else {
+			flagChangedFont = sl_true;
+		}
+
+		m_style->font = font;
+
 		sl_real width = param.width;
 		if (width < SLIB_EPSILON) {
 			width = 0;
@@ -2062,16 +2088,16 @@ namespace slib
 				width = 0;
 			}
 		}
-		
+
 		sl_bool flagReLayout = sl_false;
-		if (m_text != param.text || m_flagHyperText != param.flagHyperText || (param.flagHyperText && m_font != param.font) || (!(param.flagHyperText) && param.flagEnabledHyperlinksInPlainText)) {
+		if (m_text != param.text || m_flagHyperText != param.flagHyperText || (param.flagHyperText && flagChangedFont) || (!(param.flagHyperText) && param.flagEnabledHyperlinksInPlainText)) {
 			m_paragraph.setNull();
 			m_contentWidth = 0;
 			m_contentHeight = 0;
 			if (param.text.isNotEmpty()) {
 				m_paragraph = new TextParagraph;
 				if (param.flagHyperText) {
-					m_font = param.font;
+					m_font = font;
 					m_paragraph->addHyperText(param.text, m_style);
 				} else {
 					m_paragraph->addText(param.text, m_style, param.flagEnabledHyperlinksInPlainText, param.flagMnemonic);
@@ -2085,13 +2111,13 @@ namespace slib
 			return;
 		}
 		if (m_paragraph.isNotNull()) {
-			if (m_font != param.font || !(Math::isAlmostZero(m_width - width)) || m_multiLineMode != multiLineMode || m_ellipsisMode != ellipsizeMode || m_linesCount != linesCount || m_alignHorizontal != alignHorizontal) {
+			if (flagChangedFont || !(Math::isAlmostZero(m_width - width)) || m_multiLineMode != multiLineMode || m_ellipsisMode != ellipsizeMode || m_linesCount != linesCount || m_alignHorizontal != alignHorizontal) {
 				flagReLayout = sl_true;
 			}
 			if (flagReLayout) {
 				TextParagraphLayoutParam paramParagraph;
 				paramParagraph.width = width;
-				paramParagraph.tabWidth = param.font->getFontHeight() * 2;
+				paramParagraph.tabWidth = font->getFontHeight() * 2;
 				paramParagraph.tabMargin = paramParagraph.tabWidth / 4;
 				paramParagraph.multiLineMode = multiLineMode;
 				paramParagraph.ellipsisMode = ellipsizeMode;
@@ -2099,7 +2125,7 @@ namespace slib
 				paramParagraph.align = alignHorizontal;
 				m_paragraph->layout(paramParagraph);
 				
-				m_font = param.font;
+				m_font = font;
 				m_width = width;
 				m_multiLineMode = multiLineMode;
 				m_ellipsisMode = ellipsizeMode;
