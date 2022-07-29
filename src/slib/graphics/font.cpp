@@ -409,26 +409,21 @@ namespace slib
 #endif
 
 
-	SLIB_DEFINE_ROOT_OBJECT(EmbeddedFont)
-
-	EmbeddedFont::EmbeddedFont()
-	{
-	}
-
-	EmbeddedFont::~EmbeddedFont()
-	{
-	}
-
-	Ref<EmbeddedFont> EmbeddedFont::load(const Memory& content)
-	{
-		return load(content.getData(), content.getSize());
-	}
-
 #if !defined(SLIB_GRAPHICS_IS_GDI)
-	Ref<EmbeddedFont> EmbeddedFont::load(const void* content, sl_size size)
+	sl_bool Font::addResource(const StringParam& filePath)
 	{
-		return sl_null;
+		return sl_false;
+	}
+
+	sl_bool Font::addResource(const void* content, sl_size size)
+	{
+		return sl_false;
 	}
 #endif
+
+	sl_bool Font::addResource(const Memory& content)
+	{
+		return addResource(content.getData(), content.getSize());
+	}
 
 }

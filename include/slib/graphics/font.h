@@ -94,6 +94,12 @@ namespace slib
 
 		static List<String> getAllFamilyNames();
 
+		static sl_bool addResource(const StringParam& filePath);
+
+		static sl_bool addResource(const void* content, sl_size size);
+
+		static sl_bool addResource(const Memory& content);
+
 	public:
 		void getDesc(FontDesc& desc);
 
@@ -141,22 +147,6 @@ namespace slib
 
 		Ref<Referable> m_platformObject;
 		SpinLock m_lock;
-
-	};
-
-	class SLIB_EXPORT EmbeddedFont : public Referable
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		EmbeddedFont();
-
-		~EmbeddedFont();
-
-	public:
-		static Ref<EmbeddedFont> load(const void* content, sl_size size);
-
-		static Ref<EmbeddedFont> load(const Memory& content);
 
 	};
 

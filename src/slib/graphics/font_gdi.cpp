@@ -29,6 +29,7 @@
 #include "slib/core/hash_map.h"
 #include "slib/core/memory_reader.h"
 #include "slib/core/safe_static.h"
+#include "slib/core/shared.h"
 #include "slib/graphics/platform.h"
 
 namespace slib
@@ -44,6 +45,7 @@ namespace slib
 			public:
 				Gdiplus::Bitmap* image;
 				Gdiplus::Graphics* graphics;
+				CHashMap< String, SharedPtr<Gdiplus::PrivateFontCollection> > fontCollections;
 
 			public:
 				FontStaticContext()
@@ -59,8 +61,30 @@ namespace slib
 
 				~FontStaticContext()
 				{
-					delete graphics;
-					delete image;
+					if (graphics) {
+						delete graphics;
+					}
+					if (image) {
+						delete image;
+					}
+				}
+
+			public:
+				void addCollection(const SharedPtr<Gdiplus::PrivateFontCollection>& collection)
+				{
+					INT n = collection->GetFamilyCount();
+					Gdiplus::FontFamily* families = new Gdiplus::FontFamily[n];
+					if (families) {
+						if (collection->GetFamilies(n, families, &n) == Gdiplus::Ok) {
+							for (INT i = 0; i < n; i++) {
+								WCHAR name[LF_FACESIZE];
+								if (families[i].GetFamilyName(name) == Gdiplus::Ok) {
+									fontCollections.add(String::from(name), collection);
+								}
+							}
+						}
+						delete[] families;
+					}
 				}
 			};
 
@@ -89,9 +113,11 @@ namespace slib
 
 				~FontPlatformObject()
 				{
-					delete m_fontGdiplus;
+					if (m_fontGdiplus) {
+						delete m_fontGdiplus;
+					}
 					if (m_fontGDI) {
-						::DeleteObject(m_fontGDI);
+						DeleteObject(m_fontGDI);
 					}
 				}
 				
@@ -99,6 +125,11 @@ namespace slib
 				void _createGdiplus(const FontDesc& desc)
 				{
 					if (m_flagCreatedGdiplus) {
+						return;
+					}
+
+					FontStaticContext* context = GetFontStaticContext();
+					if (!context) {
 						return;
 					}
 
@@ -124,17 +155,18 @@ namespace slib
 						style |= Gdiplus::FontStyleStrikeout;
 					}
 
-					StringCstr16 fontName = desc.familyName;
+					StringCstr16 fontName(desc.familyName);
 
-					GraphicsPlatform::startGdiplus();
-					Gdiplus::Font* font = new Gdiplus::Font(
+					SharedPtr<Gdiplus::PrivateFontCollection> collection = context->fontCollections.getValue(desc.familyName);
+					
+					m_fontGdiplus = new Gdiplus::Font(
 						(LPCWSTR)(fontName.getData()),
 						desc.size,
 						style,
-						Gdiplus::UnitPixel);
+						Gdiplus::UnitPixel,
+						collection.get()
+					);
 					
-					m_fontGdiplus = font;
-
 				}
 
 				void _createGDI(const FontDesc& desc)
@@ -238,42 +270,6 @@ namespace slib
 				return TRUE;
 			}
 
-			class EmbeddedFontImpl : public EmbeddedFont
-			{
-			public:
-				HANDLE m_handle;
-
-			public:
-				EmbeddedFontImpl(): m_handle(sl_null)
-				{
-				}
-
-				~EmbeddedFontImpl()
-				{
-					if (m_handle) {
-						RemoveFontMemResourceEx(m_handle);
-					}
-				}
-
-			public:
-				static Ref<EmbeddedFontImpl> _load(const void* data, sl_size size)
-				{
-					MemoryReader reader(data, size);
-					DWORD dwFonts = 0;
-					HANDLE handle = AddFontMemResourceEx((void*)data, (DWORD)size, NULL, &dwFonts);
-					if (handle) {
-						Ref<EmbeddedFontImpl> ret = new EmbeddedFontImpl;
-						if (ret.isNotNull()) {
-							ret->m_handle = handle;
-							return ret;
-						}
-						RemoveFontMemResourceEx(handle);
-					}
-					return sl_null;
-				}
-
-			};
-
 		}
 	}
 
@@ -283,7 +279,8 @@ namespace slib
 	{
 		Gdiplus::Font* handle = GraphicsPlatform::getGdiplusFont(this);
 		if (handle) {
-			Gdiplus::FontFamily family;
+			sl_uint8 bufFamily[sizeof(Gdiplus::FontFamily)] = { 0 };
+			Gdiplus::FontFamily& family = *((Gdiplus::FontFamily*)bufFamily);
 			if (handle->GetFamily(&family) == Gdiplus::Ok) {
 				int style = handle->GetStyle();
 				sl_real ratio = (sl_real)(handle->GetSize()) / (sl_real)(family.GetEmHeight(style));
@@ -358,10 +355,52 @@ namespace slib
 		return sl_null;
 	}
 
-
-	Ref<EmbeddedFont> EmbeddedFont::load(const void* content, sl_size size)
+	sl_bool Font::addResource(const StringParam& _filePath)
 	{
-		return Ref<EmbeddedFont>::from(EmbeddedFontImpl::_load(content, size));
+		FontStaticContext* context = GetFontStaticContext();
+		if (!context) {
+			return sl_false;
+		}
+		StringCstr16 filePath(_filePath);
+		// Register Font Collection
+		{
+			SharedPtr<Gdiplus::PrivateFontCollection> collection = new Gdiplus::PrivateFontCollection;
+			if (collection.isNotNull()) {
+				if (collection->AddFontFile((WCHAR*)(filePath.getData())) != Gdiplus::Ok) {
+					return sl_false;
+				}
+				context->addCollection(collection);
+			}
+		}
+		int nFonts = AddFontResourceExW((WCHAR*)(filePath.getData()), FR_PRIVATE, NULL);
+		if (nFonts <= 0) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+	sl_bool Font::addResource(const void* data, sl_size size)
+	{
+		FontStaticContext* context = GetFontStaticContext();
+		if (!context) {
+			return sl_false;
+		}
+		// Register Font Collection
+		{
+			SharedPtr<Gdiplus::PrivateFontCollection> collection = new Gdiplus::PrivateFontCollection;
+			if (collection.isNotNull()) {
+				if (collection->AddMemoryFont(data, (INT)size) != Gdiplus::Ok) {
+					return sl_false;
+				}
+				context->addCollection(collection);
+			}
+		}
+		DWORD dwFonts = 0;
+		HANDLE handle = AddFontMemResourceEx((void*)data, (DWORD)size, NULL, &dwFonts);
+		if (!handle) {
+			return sl_false;
+		}
+		return sl_true;
 	}
 
 }

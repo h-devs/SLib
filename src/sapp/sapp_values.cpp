@@ -2664,7 +2664,7 @@ namespace slib
 			type = Type::Cross;
 			flagDefined = sl_true;
 			return sl_true;
-		} else if (str == "hand") {
+		} else if (str == "hand" || str == "pointer") {
 			value = Cursor::getHand();
 			type = Type::Hand;
 			flagDefined = sl_true;
