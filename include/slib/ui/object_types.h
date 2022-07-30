@@ -118,6 +118,7 @@ namespace slib
 			MouseEvent,
 			MouseWheelEvent,
 			TouchEvent,
+			SetCursorEvent,
 			DragEvent,
 			Menu,
 			MenuImpl,

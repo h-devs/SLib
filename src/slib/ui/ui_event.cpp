@@ -25,6 +25,7 @@
 
 #include "slib/ui/core.h"
 #include "slib/ui/view.h"
+#include "slib/ui/cursor.h"
 #include "slib/graphics/drawable.h"
 #include "slib/core/hash_table.h"
 #include "slib/core/string_buffer.h"
@@ -307,7 +308,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 				sl_uint32 m_systemKeycode;
 				
 			public:
-				KeyboardEvent(UIAction action, const Time& time, sl_uint32 systemKeyboard) : UIEvent(action, time), m_systemKeycode(systemKeyboard)
+				KeyboardEvent(UIAction action, const Time& time, sl_uint32 systemKeyboard): UIEvent(action, time), m_systemKeycode(systemKeyboard)
 				{
 				}
 				
@@ -335,11 +336,11 @@ sl_bool UIEvent::is##NAME##Key() const \
 				TouchPoint m_pt;
 				
 			public:
-				MouseEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y) : UIEvent(action, time), m_pt(x, y)
+				MouseEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y): UIEvent(action, time), m_pt(x, y)
 				{
 				}
 
-				MouseEvent(UIAction action, const Time& time, const TouchPoint& pt) : UIEvent(action, time), m_pt(pt)
+				MouseEvent(UIAction action, const Time& time, const TouchPoint& pt): UIEvent(action, time), m_pt(pt)
 				{
 				}
 				
@@ -368,14 +369,14 @@ sl_bool UIEvent::is##NAME##Key() const \
 				sl_real m_deltaY;
 				
 			public:
-				MouseWheelEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY) : MouseEvent(action, time, x, y), m_deltaX(deltaX), m_deltaY(deltaY)
+				MouseWheelEvent(const Time& time, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY): MouseEvent(UIAction::MouseWheel, time, x, y), m_deltaX(deltaX), m_deltaY(deltaY)
 				{
 				}
 				
 			public:
 				Ref<UIEvent> duplicate() const override
 				{
-					MouseWheelEvent* ret = new MouseWheelEvent(m_action, m_time, m_pt.point.x, m_pt.point.y, m_deltaX, m_deltaY);
+					MouseWheelEvent* ret = new MouseWheelEvent(m_time, m_pt.point.x, m_pt.point.y, m_deltaX, m_deltaY);
 					if (ret) {
 						ret->_copyProperties(this);
 						return ret;
@@ -387,7 +388,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 			
 			SLIB_DEFINE_OBJECT(MouseWheelEvent, MouseEvent)
 			
-			
+
 			class TouchEvent : public MouseEvent
 			{
 				SLIB_DECLARE_OBJECT
@@ -431,7 +432,37 @@ sl_bool UIEvent::is##NAME##Key() const \
 			
 			SLIB_DEFINE_OBJECT(TouchEvent, MouseEvent)
 			
-		
+
+			class SetCursorEvent : public MouseEvent
+			{
+				SLIB_DECLARE_OBJECT
+
+			public:
+				Ref<Cursor> cursor;
+				String toolTip;
+				Ref<View> toolTipView;
+
+			public:
+				SetCursorEvent(const Time& time, sl_ui_posf x, sl_ui_posf y): MouseEvent(UIAction::SetCursor, time, x, y)
+				{
+				}
+
+			public:
+				Ref<UIEvent> duplicate() const override
+				{
+					SetCursorEvent* ret = new SetCursorEvent(m_time, m_pt.point.x, m_pt.point.y);
+					if (ret) {
+						ret->_copyProperties(this);
+						return ret;
+					}
+					return sl_null;
+				}
+
+			};
+
+			SLIB_DEFINE_OBJECT(SetCursorEvent, MouseEvent)
+
+
 			class DragEvent : public MouseEvent
 			{
 				SLIB_DECLARE_OBJECT
@@ -507,14 +538,9 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return new MouseEvent(action, time, x, y);
 	}
 
-	Ref<UIEvent> UIEvent::createSetCursorEvent(sl_ui_posf x, sl_ui_posf y, const Time& time)
-	{
-		return new MouseEvent(UIAction::SetCursor, time, x, y);
-	}
-
 	Ref<UIEvent> UIEvent::createMouseWheelEvent(sl_ui_posf mouseX, sl_ui_posf mouseY, sl_real deltaX, sl_real deltaY, const Time& time)
 	{
-		return new MouseWheelEvent(UIAction::MouseWheel, time, mouseX, mouseY, deltaX, deltaY);
+		return new MouseWheelEvent(time, mouseX, mouseY, deltaX, deltaY);
 	}
 
 	Ref<UIEvent> UIEvent::createTouchEvent(UIAction action, const Array<TouchPoint>& points, const Time& time)
@@ -525,6 +551,11 @@ sl_bool UIEvent::is##NAME##Key() const \
 	Ref<UIEvent> UIEvent::createTouchEvent(UIAction action, const TouchPoint& point, const Time& time)
 	{
 		return new TouchEvent(action, time, Array<TouchPoint>::create(&point, 1));
+	}
+
+	Ref<UIEvent> UIEvent::createSetCursorEvent(sl_ui_posf x, sl_ui_posf y, const Time& time)
+	{
+		return new SetCursorEvent(time, x, y);
 	}
 
 	Ref<UIEvent> UIEvent::createDragEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const DragContext& context, const Time& time)
@@ -837,6 +868,45 @@ sl_bool UIEvent::is##NAME##Key() const \
 			for (sl_size i = 0; i < n; i++) {
 				pts[i].point = mat.transformPosition(pts[i].point);
 			}
+		}
+	}
+
+	const Ref<Cursor>& UIEvent::getCursor() const
+	{
+		if (IsInstanceOf<SetCursorEvent>(this)) {
+			return ((SetCursorEvent*)this)->cursor;
+		}
+		return Ref<Cursor>::null();
+	}
+
+	void UIEvent::setCursor(const Ref<Cursor>& cursor)
+	{
+		if (IsInstanceOf<SetCursorEvent>(this)) {
+			((SetCursorEvent*)this)->cursor = cursor;
+		}
+	}
+
+	const String& UIEvent::getToolTip() const
+	{
+		if (IsInstanceOf<SetCursorEvent>(this)) {
+			return ((SetCursorEvent*)this)->toolTip;
+		}
+		return String::null();
+	}
+
+	View* UIEvent::getToolTipView() const
+	{
+		if (IsInstanceOf<SetCursorEvent>(this)) {
+			return ((SetCursorEvent*)this)->toolTipView.get();
+		}
+		return sl_null;
+	}
+
+	void UIEvent::setToolTip(View* view, const String& toolTip)
+	{
+		if (IsInstanceOf<SetCursorEvent>(this)) {
+			((SetCursorEvent*)this)->toolTip = toolTip;
+			((SetCursorEvent*)this)->toolTipView = view;
 		}
 	}
 

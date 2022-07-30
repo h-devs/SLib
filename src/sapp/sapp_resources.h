@@ -329,6 +329,7 @@ namespace slib
 		String nextTabStop;
 		String previousTabStop;
 		SAppCursorValue cursor;
+		SAppStringValue toolTip;
 
 		SAppBooleanValue instance;
 		SAppBooleanValue childInstances;

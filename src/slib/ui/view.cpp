@@ -7880,6 +7880,23 @@ namespace slib
 		context.operationMask = operationMask;
 	}
 
+	String View::getToolTip()
+	{
+		Ref<ViewOtherAttributes>& attrs = m_otherAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->toolTip;
+		}
+		return sl_null;
+	}
+
+	void View::setToolTip(const String& text)
+	{
+		_initializeOtherAttributes();
+		Ref<ViewOtherAttributes>& attrs = m_otherAttrs;
+		if (attrs.isNotNull()) {
+			attrs->toolTip = text;
+		}
+	}
 
 	sl_bool View::isPlaySoundOnClick()
 	{
@@ -9627,6 +9644,15 @@ namespace slib
 			return;
 		}
 
+		Ref<Cursor> cursor = getCursor();
+		if (cursor.isNotNull()) {
+			ev->setCursor(cursor);
+		}
+		String toolTip = getToolTip();
+		if (toolTip.isNotNull()) {
+			ev->setToolTip(this, toolTip);
+		}
+
 		if (isNativeWidget() && !(getChildrenCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
@@ -9660,16 +9686,6 @@ namespace slib
 		ev->resetFlags();
 		
 		SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
-		
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-
-		Ref<Cursor> cursor = getCursor();
-		if (cursor.isNotNull()) {
-			Cursor::setCurrent(cursor);
-			ev->preventDefault();
-		}
 		
 	}
 
@@ -10967,6 +10983,13 @@ namespace slib
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
 			view->dispatchSetCursor(ev);
+			const Ref<Cursor>& cursor = ev->getCursor();
+			if (cursor.isNotNull()) {
+				Cursor::setCurrent(cursor);
+				ev->preventDefault();
+			} else {
+				ev->setPreventedDefault(sl_false);
+			}
 		}
 	}
 	

@@ -31,6 +31,8 @@
 namespace slib
 {
 
+	class Cursor;
+	class View;
 	class DragItem;
 	class DragContext;
 
@@ -167,14 +169,14 @@ namespace slib
 		
 		static Ref<UIEvent> createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time);
 		
-		static Ref<UIEvent> createSetCursorEvent(sl_ui_posf x, sl_ui_posf y, const Time& time);
-		
 		static Ref<UIEvent> createMouseWheelEvent(sl_ui_posf mouseX, sl_ui_posf mouseY, sl_real deltaX, sl_real deltaY, const Time& time);
 		
 		static Ref<UIEvent> createTouchEvent(UIAction action, const Array<TouchPoint>& points, const Time& time);
 		
 		static Ref<UIEvent> createTouchEvent(UIAction action, const TouchPoint& point, const Time& time);
-		
+
+		static Ref<UIEvent> createSetCursorEvent(sl_ui_posf x, sl_ui_posf y, const Time& time);
+
 		static Ref<UIEvent> createDragEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const DragContext& context, const Time& time);
 		
 	public:
@@ -269,7 +271,18 @@ namespace slib
 		void transformPoints(const Matrix3f& mat);
 		
 		void transformPoints(const Matrix3lf& mat);
+
+		// set cursor
+		const Ref<Cursor>& getCursor() const;
+
+		void setCursor(const Ref<Cursor>& cursor);
 		
+		const String& getToolTip() const;
+
+		View* getToolTipView() const;
+
+		void setToolTip(View* view, const String& toolTip);
+
 		// drag & drop
 		const DragItem& getDragItem() const;
 		

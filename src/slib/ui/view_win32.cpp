@@ -990,6 +990,20 @@ namespace slib
 		}
 	}
 
+	void Win32_ViewInstance::updateToolTip(View* viewToolTip, const String& toolTip)
+	{
+		if (m_tooltip.isNotNull()) {
+			m_tooltip->update(this, viewToolTip, toolTip);
+		} else {
+			if (viewToolTip && toolTip.isNotNull()) {
+				m_tooltip = new Win32_ToolTipViewContext;
+				if (m_tooltip.isNotNull()) {
+					m_tooltip->update(this, viewToolTip, toolTip);
+				}
+			}
+		}
+	}
+
 	void Win32_ViewInstance::onPaint(Canvas* canvas)
 	{
 		if (m_layered.isNotNull()) {
@@ -1286,6 +1300,7 @@ namespace slib
 			Ref<UIEvent> ev = UIEvent::createSetCursorEvent((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), t);
 			if (ev.isNotNull()) {
 				onSetCursor(ev.get());
+				updateToolTip(ev->getToolTipView(), ev->getToolTip());
 				if (ev->isPreventedDefault()) {
 					return sl_true;
 				}
@@ -1644,6 +1659,7 @@ namespace slib
 	{
 	}
 
+
 	Win32_LayeredViewContext::Win32_LayeredViewContext()
 	{
 		flagInvalidated = sl_false;
@@ -1768,6 +1784,57 @@ namespace slib
 			}
 		}
 	}
+
+
+	Win32_ToolTipViewContext::Win32_ToolTipViewContext(): hWndToolTip(sl_null)
+	{
+	}
+
+	Win32_ToolTipViewContext::~Win32_ToolTipViewContext()
+	{
+		if (hWndToolTip) {
+			DestroyWindow(hWndToolTip);
+		}
+	}
+
+	void Win32_ToolTipViewContext::update(Win32_ViewInstance* instance, View* _viewToolTip, const String& _toolTip)
+	{
+		Ref<View> view = instance->getView();
+		if (view.isNull()) {
+			return;
+		}
+		if (viewToolTip == _viewToolTip && toolTip == _toolTip) {
+			return;
+		}
+		viewToolTip = _viewToolTip;
+		toolTip = _toolTip;
+		if (hWndToolTip) {
+			DestroyWindow(hWndToolTip);
+		}
+		if (viewToolTip.isNotNull() && toolTip.isNotNull()) {
+			HINSTANCE hInstance = GetModuleHandleW(NULL);
+			HWND hWndParent = instance->getHandle();
+			hWndToolTip = CreateWindowExW(
+				0, TOOLTIPS_CLASS, NULL,
+				WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+				CW_USEDEFAULT, CW_USEDEFAULT,
+				CW_USEDEFAULT, CW_USEDEFAULT,
+				hWndParent,
+				NULL, hInstance, NULL);
+			if (!hWndToolTip) {
+				return;
+			}
+			TOOLINFOW toolInfo = { 0 };
+			toolInfo.cbSize = sizeof(toolInfo);
+			toolInfo.hwnd = hWndParent;
+			toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+			toolInfo.uId = (UINT_PTR)hWndParent;
+			StringCstr16 text(toolTip);
+			toolInfo.lpszText = (LPWSTR)(text.getData());
+			SendMessageW(hWndToolTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+		}
+	}
+
 
 	Ref<ViewInstance> View::createGenericInstance(ViewInstance* parent)
 	{

@@ -239,7 +239,7 @@ namespace slib
 		void setLocation(sl_ui_pos x, sl_ui_pos y, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		UIRect getFrameInInstance();
-		
+
 		// local coordinate
 		UIRect getBounds();
 
@@ -1273,6 +1273,11 @@ namespace slib
 		
 		void beginDragging(const DragItem& item, DragOperations operationMask = DragOperations::All);
 		
+
+		String getToolTip();
+
+		void setToolTip(const String& text);
+
 
 		sl_bool isPlaySoundOnClick();
 

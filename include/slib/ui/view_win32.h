@@ -35,6 +35,7 @@ namespace slib
 {
 
 	class Win32_LayeredViewContext;
+	class Win32_ToolTipViewContext;
 
 	class Win32_ViewInstance : public ViewInstance
 	{
@@ -166,6 +167,8 @@ namespace slib
 
 		void updateLayered();
 
+		void updateToolTip(View* view, const String& toolTip);
+
 	public:
 		void onPaint(Canvas* canvas);
 
@@ -197,10 +200,11 @@ namespace slib
 		Ref<Font> m_font;
 
 		Ref<Win32_LayeredViewContext> m_layered;
+		Ref<Win32_ToolTipViewContext> m_tooltip;
 		IUnknown* m_dropTarget;
 
 	};
-
+	
 	class Win32_LayeredViewContext : public Referable
 	{
 	public:
@@ -225,6 +229,23 @@ namespace slib
 		void clear();
 
 		void sync(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
+
+	};
+
+	class Win32_ToolTipViewContext : public Referable
+	{
+	public:
+		HWND hWndToolTip;
+		Ref<View> viewToolTip;
+		String toolTip;
+
+	public:
+		Win32_ToolTipViewContext();
+
+		~Win32_ToolTipViewContext();
+
+	public:
+		void update(Win32_ViewInstance* instance, View* viewToolTip, const String& toolTip);
 
 	};
 

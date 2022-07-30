@@ -318,6 +318,7 @@ namespace slib
 		AtomicWeakRef<View> viewNextTabStop;
 		AtomicWeakRef<View> viewPrevTabStop;
 		AtomicRef<Cursor> cursor;
+		AtomicString toolTip;
 		AtomicRef<GestureDetector> gestureDetector;
 		AtomicShared<DragItem> dragItem;
 		DragOperations dragOperationMask;

@@ -2314,6 +2314,7 @@ namespace slib
 		if (flagView) {
 			LAYOUT_CONTROL_GENERIC_ATTR(tabStop, setTabStopEnabled)
 			LAYOUT_CONTROL_GENERIC_ATTR(cursor, setCursor)
+			LAYOUT_CONTROL_STRING_ATTR(toolTip, setToolTip)
 		}
 		if (!flagRoot) {
 			if (op == OP_PARSE) {

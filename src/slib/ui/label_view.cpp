@@ -355,9 +355,7 @@ namespace slib
 			Ref<TextStyle> style = item->getStyle();
 			if (style.isNotNull()) {
 				if (style->flagLink) {
-					Cursor::setCurrent(Cursor::getHand());
-					ev->preventDefault();
-					return;
+					ev->setCursor(Cursor::getHand());
 				}
 			}
 		}

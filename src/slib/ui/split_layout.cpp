@@ -583,8 +583,7 @@ namespace slib
 			ObjectLocker lock(this);
 			sl_int32 index = _getDividerIndexAtPoint(pt);
 			if (index >= 0) {
-				Cursor::setCurrent(m_cursor);
-				ev->preventDefault();
+				ev->setCursor(m_cursor);
 				return;
 			}
 		}
