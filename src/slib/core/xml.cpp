@@ -1298,7 +1298,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size XmlNodeGroup::getChildrenCount() const
+	sl_size XmlNodeGroup::getChildCount() const
 	{
 		return m_children.getCount();
 	}
@@ -1377,7 +1377,7 @@ namespace slib
 		return ret;
 	}
 
-	sl_size XmlNodeGroup::getChildElementsCount() const
+	sl_size XmlNodeGroup::getChildElementCount() const
 	{
 		sl_size n = 0;
 		ListLocker< Ref<XmlNode> > nodes(m_children);
@@ -1764,7 +1764,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_size XmlElement::getAttributesCount() const
+	sl_size XmlElement::getAttributeCount() const
 	{
 		return m_attributes.getCount();
 	}

@@ -53,7 +53,7 @@ namespace slib
 
 		m_textColor = Color::Black;
 
-		m_linesCount = 5;
+		m_lineCount = 5;
 		m_flagCircular = sl_false;
 	}
 
@@ -75,14 +75,14 @@ namespace slib
 		invalidate(mode);
 	}
 
-	sl_uint32 PickerView::getLinesCount()
+	sl_uint32 PickerView::getLineCount()
 	{
-		return m_linesCount;
+		return m_lineCount;
 	}
 
-	void PickerView::setLinesCount(sl_uint32 count)
+	void PickerView::setLineCount(sl_uint32 count)
 	{
-		m_linesCount = count;
+		m_lineCount = count;
 	}
 
 	sl_bool PickerView::isCircular()
@@ -132,7 +132,7 @@ namespace slib
 				cell->setView(this);
 				cell->initLabelList(this);
 				cell->textColor = m_textColor;
-				cell->linesCount = m_linesCount;
+				cell->lineCount = m_lineCount;
 				cell->flagCircular = m_flagCircular;
 				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
 				m_cell = cell;
@@ -158,7 +158,7 @@ namespace slib
 	PickerViewCell::PickerViewCell()
 	{
 		textColor = Color::Black;
-		linesCount = 5;
+		lineCount = 5;
 		flagCircular = sl_false;
 
 		m_yOffset = 0;
@@ -175,7 +175,7 @@ namespace slib
 		if (font.isNull()) {
 			return;
 		}
-		sl_int32 nLinesHalf = linesCount >> 1;
+		sl_int32 nLinesHalf = lineCount >> 1;
 		sl_real lineHeight = (sl_real)(_getLineHeight());
 		sl_real height = (nLinesHalf * 2 + 1) * lineHeight;
 
@@ -196,7 +196,7 @@ namespace slib
 				} else {
 					index = selectedIndex + i;
 				}
-				if (index >= 0 && index < (sl_int32)itemsCount) {
+				if (index >= 0 && index < (sl_int32)itemCount) {
 					sl_int32 alpha = 50 + 100 * (nLinesHalf + 1 - Math::abs(i)) / (nLinesHalf + 1);
 					Color c = textColor;
 					c.a = (sl_uint8)((sl_int32)(c.a) * alpha / 256);
@@ -218,7 +218,7 @@ namespace slib
 				} else {
 					index = selectedIndex + i;
 				}
-				if (index >= 0 && index < (sl_int32)itemsCount) {
+				if (index >= 0 && index < (sl_int32)itemCount) {
 					sl_int32 alpha = 50 + 100 * (nLinesHalf + 1 - Math::abs(i)) / (nLinesHalf + 1);
 					Color c = textColor;
 					c.a = (sl_uint8)((sl_int32)(c.a) * alpha / 256);
@@ -241,7 +241,7 @@ namespace slib
 				} else {
 					index = selectedIndex + i;
 				}
-				if (index >= 0 && index < (sl_int32)itemsCount) {
+				if (index >= 0 && index < (sl_int32)itemCount) {
 					canvas->drawText(titleGetter(index), rect, font, c, Alignment::Center);
 				}
 				rect.top = rect.bottom;
@@ -282,7 +282,7 @@ namespace slib
 		if (flagCircular) {
 			index = _getCircularIndex(index);
 		} else {
-			sl_int32 n = itemsCount;
+			sl_int32 n = itemCount;
 			if (n <= 0) {
 				return;
 			}
@@ -300,7 +300,7 @@ namespace slib
 
 	sl_uint32 PickerViewCell::_getCircularIndex(sl_int32 index)
 	{
-		sl_int32 n = itemsCount;
+		sl_int32 n = itemCount;
 		if (n <= 0) {
 			return 0;
 		}
@@ -370,7 +370,7 @@ namespace slib
 	void PickerViewCell::_animationCallback(Timer* timer)
 	{
 		Time time = Time::now();
-		sl_real ellapsed = (sl_real)((time - m_timeFlowFrameBefore).getSecondsCountf());
+		sl_real ellapsed = (sl_real)((time - m_timeFlowFrameBefore).getSecondCountf());
 		m_timeFlowFrameBefore = time;
 
 		float T = UIResource::getScreenMinimum() /

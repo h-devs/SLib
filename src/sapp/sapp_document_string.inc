@@ -90,7 +90,7 @@ namespace slib
 		
 		name = getNameInLocalNamespace(localNamespace, name);
 		String value;
-		if (element->getChildElementsCount() > 0 || element->getAttribute("raw") == "true") {
+		if (element->getChildElementCount() > 0 || element->getAttribute("raw") == "true") {
 			value = String::create(source.substring(element->getStartContentPositionInSource(), element->getEndContentPositionInSource()));
 		} else {
 			value = element->getText();

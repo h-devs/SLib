@@ -61,7 +61,7 @@ namespace slib
 		static Ref<GraphicsPath> create();
 	
 	public:
-		sl_size getPointsCount();
+		sl_size getPointCount();
 
 		GraphicsPathPoint* getPoints();
 

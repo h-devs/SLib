@@ -384,7 +384,7 @@ namespace slib
 			if (ViewPage* page = CastInstance<ViewPage>(_page.get())) {
 				page->dispatchBackPressed(ev);
 				if (!(ev->isPreventedDefault())) {
-					if (controller->getPagesCount() > 1) {
+					if (controller->getPageCount() > 1) {
 						page->close();
 						ev->preventDefault();
 					}
@@ -449,7 +449,7 @@ namespace slib
 	{
 		UIResource::updateDefaultScreenSize();
 		
-		if (m_navigationController->getPagesCount() == 0) {
+		if (m_navigationController->getPageCount() == 0) {
 			Ref<View> page = getLoadingPage();
 			if (page.isNotNull()) {
 				m_navigationController->setVisibility(Visibility::Visible);
@@ -472,7 +472,7 @@ namespace slib
 
 	void MobileApp::dispatchChangeCurrentLocale()
 	{
-		if (m_navigationController->getPagesCount() > 0) {
+		if (m_navigationController->getPageCount() > 0) {
 			openStartupPage();
 		}
 		

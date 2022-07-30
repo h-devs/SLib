@@ -53,7 +53,7 @@ namespace slib
 		return 0;
 	}
 
-	sl_uint32 ViewAdapter::getMaximumItemsCountPerPage(View* parent)
+	sl_uint32 ViewAdapter::getMaximumItemCountPerPage(View* parent)
 	{
 		return 50;
 	}
@@ -64,7 +64,7 @@ namespace slib
 			return;
 		}
 		UIUpdateMode _mode = SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None;
-		sl_uint64 n = getItemsCount();
+		sl_uint64 n = getItemCount();
 		for (sl_uint64 i = 0; i < n; i++) {
 			Ref<View> view = getView(i, sl_null, parent);
 			if (view.isNotNull()) {
@@ -109,7 +109,7 @@ namespace slib
 		m_list.add(view);
 	}
 	
-	sl_uint64 ViewListAdapter::getItemsCount()
+	sl_uint64 ViewListAdapter::getItemCount()
 	{
 		return List< Ref<View> >(m_list).getCount();
 	}
@@ -148,12 +148,12 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_uint32 ViewRowAdapter::getColumnsCount()
+	sl_uint32 ViewRowAdapter::getColumnCount()
 	{
 		return m_nColumns;
 	}
 	
-	void ViewRowAdapter::setColumnsCount(sl_uint32 nColumns)
+	void ViewRowAdapter::setColumnCount(sl_uint32 nColumns)
 	{
 		m_nColumns = nColumns;
 	}
@@ -168,13 +168,13 @@ namespace slib
 		m_itemAdapter = adapter;
 	}
 	
-	sl_uint64 ViewRowAdapter::getItemsCount()
+	sl_uint64 ViewRowAdapter::getItemCount()
 	{
 		Ref<ViewAdapter> adapter = m_itemAdapter;
 		if (adapter.isNotNull()) {
 			sl_uint32 m = m_nColumns;
 			if (m >= 1) {
-				sl_uint64 n = adapter->getItemsCount();
+				sl_uint64 n = adapter->getItemCount();
 				sl_uint64 r = n / m;
 				if (n % m) {
 					r++;
@@ -191,7 +191,7 @@ namespace slib
 		if (adapter.isNotNull()) {
 			sl_uint32 m = m_nColumns;
 			if (m >= 1) {
-				sl_uint64 nTotal = adapter->getItemsCount();
+				sl_uint64 nTotal = adapter->getItemCount();
 				sl_uint64 start = index * m;
 				sl_uint32 n = m;
 				if (start + n > nTotal) {
@@ -221,7 +221,7 @@ namespace slib
 						children.push_NoLock(childNew);
 					}
 				}
-				sl_size nChildren = group->getChildrenCount();
+				sl_size nChildren = group->getChildCount();
 				if (flagRebuild || nChildren != children.getCount()) {
 					if (nChildren) {
 						group->removeAllChildren(UIUpdateMode::None);
@@ -254,7 +254,7 @@ namespace slib
 		if (adapter.isNotNull()) {
 			sl_uint32 m = m_nColumns;
 			if (m >= 1) {
-				sl_uint64 nTotal = adapter->getItemsCount();
+				sl_uint64 nTotal = adapter->getItemCount();
 				sl_uint64 start = index * m;
 				sl_uint32 n = m;
 				if (start + n > nTotal) {
@@ -273,13 +273,13 @@ namespace slib
 		return ViewAdapter::getItemHeight(index, parent);
 	}
 	
-	sl_uint32 ViewRowAdapter::getMaximumItemsCountPerPage(View* parent)
+	sl_uint32 ViewRowAdapter::getMaximumItemCountPerPage(View* parent)
 	{
 		Ref<ViewAdapter> adapter = m_itemAdapter;
 		if (adapter.isNotNull()) {
-			return adapter->getMaximumItemsCountPerPage(parent);
+			return adapter->getMaximumItemCountPerPage(parent);
 		}
-		return ViewAdapter::getMaximumItemsCountPerPage(parent);
+		return ViewAdapter::getMaximumItemCountPerPage(parent);
 	}
 
 }

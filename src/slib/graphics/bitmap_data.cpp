@@ -241,7 +241,7 @@ namespace slib
 			}
 		} else {
 			sl_uint32 i;
-			sl_uint32 n = BitmapFormats::getPlanesCount(format);
+			sl_uint32 n = BitmapFormats::getPlaneCount(format);
 			for (i = 0; i < n; i++) {
 				sl_reg& p = planePitch(i);
 				if (!p) {
@@ -283,7 +283,7 @@ namespace slib
 			}
 		}
 		sl_size ret = 0;
-		sl_uint32 n = BitmapFormats::getPlanesCount(bd.format);
+		sl_uint32 n = BitmapFormats::getPlaneCount(bd.format);
 		for (sl_uint32 i = 0; i < n; i++) {
 			ret += (sl_size)(bd.planePitch(i)) * (sl_size)(bd.height);
 		}
@@ -620,7 +620,7 @@ namespace slib
 				sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides,
 				sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
-				sl_uint32 nPlanes = BitmapFormats::getPlanesCount(format);
+				sl_uint32 nPlanes = BitmapFormats::getPlaneCount(format);
 				for (sl_uint32 iPlane = 0; iPlane < nPlanes; iPlane++) {
 					sl_uint8* src_row = src_planes[iPlane];
 					sl_reg src_pitch = src_pitches[iPlane];
@@ -3574,14 +3574,14 @@ namespace slib
 			} else if (dst.format == BitmapFormat::Monochrome) {
 				priv::bitmap_data::CopyPixels_YUV420ToMono(width, height, src, dst.format, dataDst, dst.pitch);
 			} else if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
-				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+				if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 					priv::bitmap_data::CopyPixels_YUV420ToYUVNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
 					DEFINE_DST_COMPONENTS
 					priv::bitmap_data::CopyPixels_YUV420ToYUVPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
 				}
 			} else {
-				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+				if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 					priv::bitmap_data::CopyPixels_YUV420ToOtherNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
 					DEFINE_DST_COMPONENTS
@@ -3596,14 +3596,14 @@ namespace slib
 			} else if (dst.format == BitmapFormat::Monochrome) {
 				priv::bitmap_data::CopyPixels_YUV422ToMono(width, height, src, dataDst, dst.pitch);
 			} else if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
-				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+				if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 					priv::bitmap_data::CopyPixels_YUV422ToYUVNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
 					DEFINE_DST_COMPONENTS
 					priv::bitmap_data::CopyPixels_YUV422ToYUVPlanar(width, height, src, dst.format, dst_planes, dst_pitches, dst_sample_strides);
 				}
 			} else {
-				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+				if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 					priv::bitmap_data::CopyPixels_YUV422ToOtherNormal(width, height, src, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
 					DEFINE_DST_COMPONENTS
@@ -3614,14 +3614,14 @@ namespace slib
 			if (src.format == BitmapFormat::Monochrome) {
 				priv::bitmap_data::CopyPixels_MonoToYUV420(width, height, dataSrc, src.pitch, dst);
 			} else if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
-				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+				if (BitmapFormats::getPlaneCount(src.format) == 1) {
 					priv::bitmap_data::CopyPixels_YUVNormalToYUV420(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
 				} else {
 					DEFINE_SRC_COMPONENTS
 					priv::bitmap_data::CopyPixels_YUVPlanarToYUV420(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
 				}
 			} else {
-				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+				if (BitmapFormats::getPlaneCount(src.format) == 1) {
 					priv::bitmap_data::CopyPixels_OtherNormalToYUV420(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
 				} else {
 					DEFINE_SRC_COMPONENTS
@@ -3632,14 +3632,14 @@ namespace slib
 			if (src.format == BitmapFormat::Monochrome) {
 				priv::bitmap_data::CopyPixels_MonoToYUV422(width, height, dataSrc, src.pitch, dst);
 			} else if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
-				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+				if (BitmapFormats::getPlaneCount(src.format) == 1) {
 					priv::bitmap_data::CopyPixels_YUVNormalToYUV422(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
 				} else {
 					DEFINE_SRC_COMPONENTS
 					priv::bitmap_data::CopyPixels_YUVPlanarToYUV422(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst);
 				}
 			} else {
-				if (BitmapFormats::getPlanesCount(src.format) == 1) {
+				if (BitmapFormats::getPlaneCount(src.format) == 1) {
 					priv::bitmap_data::CopyPixels_OtherNormalToYUV422(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst);
 				} else {
 					DEFINE_SRC_COMPONENTS
@@ -3667,14 +3667,14 @@ namespace slib
 					dst_planes, dst_pitches, dst_sample_strides);
 			} else if (src.format == BitmapFormat::Monochrome) {
 				if (BitmapFormats::getColorSpace(dst.format) == ColorSpace::YUV) {
-					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 						priv::bitmap_data::CopyPixels_MonoToYUVNormal(width, height, dataSrc, src.pitch, dst.format, dataDst, dst.pitch, dst.sampleStride);
 					} else {
 						DEFINE_DST_COMPONENTS
 						priv::bitmap_data::CopyPixels_MonoToYUVPlanar(width, height, dataSrc, src.pitch, dst.format, dst_planes, dst_pitches, dst_sample_strides);
 					}
 				} else {
-					if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+					if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 						priv::bitmap_data::CopyPixels_MonoToNormal(width, height, dataSrc, src.pitch, dst.format, dataDst, dst.pitch, dst.sampleStride);
 					} else {
 						DEFINE_DST_COMPONENTS
@@ -3686,22 +3686,22 @@ namespace slib
 					src.format = BitmapFormats::getNonPrecomputedAlphaFormat(src.format);
 				}
 				if (BitmapFormats::getColorSpace(src.format) == ColorSpace::YUV) {
-					if (BitmapFormats::getPlanesCount(src.format) == 1) {
+					if (BitmapFormats::getPlaneCount(src.format) == 1) {
 						priv::bitmap_data::CopyPixels_YUVNormalToMono(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dataDst, dst.pitch);
 					} else {
 						DEFINE_SRC_COMPONENTS
 						priv::bitmap_data::CopyPixels_YUVPlanarToMono(width, height, src.format, src_planes, src_pitches, src_sample_strides, dataDst, dst.pitch);
 					}
 				} else {
-					if (BitmapFormats::getPlanesCount(src.format) == 1) {
+					if (BitmapFormats::getPlaneCount(src.format) == 1) {
 						priv::bitmap_data::CopyPixels_NormalToMono(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dataDst, dst.pitch);
 					} else {
 						DEFINE_SRC_COMPONENTS
 						priv::bitmap_data::CopyPixels_PlanarToMono(width, height, src.format, src_planes, src_pitches, src_sample_strides, dataDst, dst.pitch);
 					}
 				}
-			} else if (BitmapFormats::getPlanesCount(src.format) == 1) {
-				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+			} else if (BitmapFormats::getPlaneCount(src.format) == 1) {
+				if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 					priv::bitmap_data::CopyPixels_Normal(width, height, src.format, dataSrc, src.pitch, src.sampleStride, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
 					DEFINE_DST_COMPONENTS
@@ -3709,7 +3709,7 @@ namespace slib
 				}
 			} else {
 				DEFINE_SRC_COMPONENTS
-				if (BitmapFormats::getPlanesCount(dst.format) == 1) {
+				if (BitmapFormats::getPlaneCount(dst.format) == 1) {
 					priv::bitmap_data::CopyPixels_PlanarToNormal(width, height, src.format, src_planes, src_pitches, src_sample_strides, dst.format, dataDst, dst.pitch, dst.sampleStride);
 				} else {
 					DEFINE_DST_COMPONENTS

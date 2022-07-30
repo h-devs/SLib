@@ -44,7 +44,7 @@ namespace slib
 		
 		void addPage(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_uint64 getPagesCount();
+		sl_uint64 getPageCount();
 		
 		sl_uint64 getCurrentIndex();
 		

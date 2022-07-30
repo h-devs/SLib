@@ -464,7 +464,7 @@ namespace slib
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			Time time;
-			time.setMillisecondsCount(gevent->time);
+			time.setMillisecondCount(gevent->time);
 			Ref<UIEvent> event = UIEvent::createMouseEvent(m_actionDrag, gevent->x, gevent->y, time);
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
@@ -516,7 +516,7 @@ namespace slib
 				return sl_false;
 			}
 			Time time;
-			time.setMillisecondsCount(gevent->time);
+			time.setMillisecondCount(gevent->time);
 			gdouble x = gevent->x;
 			gdouble y = gevent->y;
 			GdkWindow* window = gtk_widget_get_window(handle);
@@ -549,7 +549,7 @@ namespace slib
 				action = UIAction::MouseLeave;
 			}
 			Time time;
-			time.setMillisecondsCount(gevent->time);
+			time.setMillisecondCount(gevent->time);
 			gdouble x = gevent->x;
 			gdouble y = gevent->y;
 			GdkWindow* window = gtk_widget_get_window(handle);
@@ -583,7 +583,7 @@ namespace slib
 			}
 			Keycode key = UIEvent::getKeycodeFromSystemKeycode(gevent->keyval);
 			Time time;
-			time.setMillisecondsCount(gevent->time);
+			time.setMillisecondCount(gevent->time);
 			Ref<UIEvent> event = UIEvent::createKeyEvent(action, key, gevent->keyval, time);
 			if (event.isNotNull()) {
 				UIPlatform::applyEventModifiers(event.get(), gevent->state);
@@ -618,7 +618,7 @@ namespace slib
 		GtkWidget* handle = m_handle;
 		if (handle) {
 			Time time;
-			time.setMillisecondsCount(gevent->time);
+			time.setMillisecondCount(gevent->time);
 			gdouble x = gevent->x;
 			gdouble y = gevent->y;
 			GdkWindow* window = gtk_widget_get_window(handle);

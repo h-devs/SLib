@@ -1469,7 +1469,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size MipmapDrawable::getSourcesCount()
+	sl_size MipmapDrawable::getSourceCount()
 	{
 		return m_sources.getCount();
 	}

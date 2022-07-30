@@ -40,7 +40,7 @@ namespace slib
 		return ((sl_uint32)(format) >> 11) & 31;
 	}
 
-	sl_uint32 AudioFormatHelper::getChannelsCount(AudioFormat format)
+	sl_uint32 AudioFormatHelper::getChannelCount(AudioFormat format)
 	{
 		return ((sl_uint32)(format) >> 16) & 255;
 	}

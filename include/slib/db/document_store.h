@@ -72,7 +72,7 @@ namespace slib
 
 		Ref<DocumentStore> getStore();
 
-		virtual sl_int64 getDocumentsCount(const Json& filter = sl_null) = 0;
+		virtual sl_int64 getDocumentCount(const Json& filter = sl_null) = 0;
 
 		virtual Ref<DocumentCursor> find(const Json& filter = sl_null, const Json& options = sl_null) = 0;
 
@@ -120,7 +120,7 @@ namespace slib
 		virtual Json execute(const Json& command) = 0;
 
 	public:
-		sl_int64 getDocumentsCount(const StringParam& collectionName, const Json& filter = sl_null);
+		sl_int64 getDocumentCount(const StringParam& collectionName, const Json& filter = sl_null);
 
 		Ref<DocumentCursor> find(const StringParam& collectionName, const Json& filter = sl_null, const Json& options = sl_null);
 

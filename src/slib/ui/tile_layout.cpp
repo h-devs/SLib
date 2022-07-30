@@ -45,23 +45,23 @@ namespace slib
 	{
 	}
 
-	sl_uint32 TileLayout::getColumnsCount()
+	sl_uint32 TileLayout::getColumnCount()
 	{
 		return m_countColumns;
 	}
 
-	void TileLayout::setColumnsCount(sl_uint32 nColumns, UIUpdateMode mode)
+	void TileLayout::setColumnCount(sl_uint32 nColumns, UIUpdateMode mode)
 	{
 		m_countColumns = nColumns;
 		invalidateLayout(mode);
 	}
 
-	sl_uint32 TileLayout::getRowsCount()
+	sl_uint32 TileLayout::getRowCount()
 	{
 		return m_countRows;
 	}
 
-	void TileLayout::setRowsCount(sl_uint32 nRows, UIUpdateMode mode)
+	void TileLayout::setRowCount(sl_uint32 nRows, UIUpdateMode mode)
 	{
 		m_countRows = nRows;
 		invalidateLayout(mode);

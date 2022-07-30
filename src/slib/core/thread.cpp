@@ -447,8 +447,8 @@ namespace slib
 
 	ThreadPool::ThreadPool()
 	{
-		m_minimumThreadsCount = 1;
-		m_maximumThreadsCount = 30;
+		m_minimumThreadCount = 1;
+		m_maximumThreadCount = 30;
 		m_threadStackSize = SLIB_THREAD_DEFAULT_STACK_SIZE;
 		m_flagRunning = sl_true;
 	}
@@ -462,30 +462,30 @@ namespace slib
 	{
 		Ref<ThreadPool> ret = new ThreadPool();
 		if (ret.isNotNull()) {
-			ret->setMinimumThreadsCount(minThreads);
-			ret->setMaximumThreadsCount(maxThreads);
+			ret->setMinimumThreadCount(minThreads);
+			ret->setMaximumThreadCount(maxThreads);
 		}
 		return ret;
 	}
 
-	sl_uint32 ThreadPool::getMinimumThreadsCount()
+	sl_uint32 ThreadPool::getMinimumThreadCount()
 	{
-		return m_minimumThreadsCount;
+		return m_minimumThreadCount;
 	}
 
-	void ThreadPool::setMinimumThreadsCount(sl_uint32 n)
+	void ThreadPool::setMinimumThreadCount(sl_uint32 n)
 	{
-		m_minimumThreadsCount = n;
+		m_minimumThreadCount = n;
 	}
 
-	sl_uint32 ThreadPool::getMaximumThreadsCount()
+	sl_uint32 ThreadPool::getMaximumThreadCount()
 	{
-		return m_maximumThreadsCount;
+		return m_maximumThreadCount;
 	}
 
-	void ThreadPool::setMaximumThreadsCount(sl_uint32 n)
+	void ThreadPool::setMaximumThreadCount(sl_uint32 n)
 	{
-		m_maximumThreadsCount = n;
+		m_maximumThreadCount = n;
 	}
 
 	sl_uint32 ThreadPool::getThreadStackSize()
@@ -521,7 +521,7 @@ namespace slib
 		return m_flagRunning;
 	}
 
-	sl_uint32 ThreadPool::getThreadsCount()
+	sl_uint32 ThreadPool::getThreadCount()
 	{
 		return (sl_uint32)(m_threadWorkers.getCount());
 	}
@@ -552,7 +552,7 @@ namespace slib
 		// increase workers
 		{
 			sl_size nThreads = m_threadWorkers.getCount();
-			if (nThreads == 0 || (nThreads < getMaximumThreadsCount())) {
+			if (nThreads == 0 || (nThreads < getMaximumThreadCount())) {
 				Ref<Thread> worker = Thread::start(SLIB_FUNCTION_MEMBER(this, onRunWorker), getThreadStackSize());
 				if (worker.isNotNull()) {
 					m_threadWorkers.add_NoLock(worker);
@@ -583,7 +583,7 @@ namespace slib
 			} else {
 				ObjectLocker lock(this);
 				sl_size nThreads = m_threadWorkers.getCount();
-				if (nThreads > getMinimumThreadsCount()) {
+				if (nThreads > getMinimumThreadCount()) {
 					m_threadWorkers.remove_NoLock(thread);
 					return;
 				} else {

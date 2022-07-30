@@ -73,7 +73,7 @@ namespace slib
 
 	
 		// Works on Android
-		static sl_uint32 getSimSlotsCount();
+		static sl_uint32 getSimSlotCount();
 		
 		// Works on Android
 		static List<String> getIMEIs();

@@ -65,7 +65,7 @@ namespace slib
 		
 		List< Ref<TreeViewItem> > getChildren();
 		
-		sl_size getChildrenCount();
+		sl_size getChildCount();
 		
 		Ref<TreeViewItem> getChild(sl_size index);
 		
@@ -195,7 +195,7 @@ namespace slib
 		
 		List< Ref<TreeViewItem> > getItems();
 		
-		sl_size getItemsCount();
+		sl_size getItemCount();
 		
 		Ref<TreeViewItem> getItem(sl_size index);
 		

@@ -39,7 +39,7 @@ namespace slib
 			class TabViewHelper : public TabView
 			{
 			public:
-				void applyTabsCount(GtkNotebook* handle)
+				void applyTabCount(GtkNotebook* handle)
 				{
 					ObjectLocker lock(this);
 					sl_uint32 nNew = (sl_uint32)(m_items.getCount());
@@ -63,7 +63,7 @@ namespace slib
 				void copyTabs(GtkNotebook* handle)
 				{
 					ListLocker<TabViewItem> items(m_items);
-					applyTabsCount(handle);
+					applyTabCount(handle);
 					for (sl_uint32 i = 0; i < items.count; i++) {
 						GtkWidget* child = gtk_notebook_get_nth_page(handle, i);
 						if (child){
@@ -145,11 +145,11 @@ namespace slib
 					g_signal_connect((GtkNotebook*)handle, "switch-page", G_CALLBACK(onSelectTab), handle);
 				}
 				
-				void refreshTabsCount(TabView* view) override
+				void refreshTabCount(TabView* view) override
 				{
 					GtkNotebook* handle = getHandle();
 					if (handle) {
-						static_cast<TabViewHelper*>(view)->applyTabsCount(handle);
+						static_cast<TabViewHelper*>(view)->applyTabCount(handle);
 					}
 				}
 				

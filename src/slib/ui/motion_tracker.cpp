@@ -62,7 +62,7 @@ namespace slib
 	
 	void CMotionTracker::addMovement(sl_real x, sl_real y, const Time& time)
 	{
-		if (m_lastTime.isNotZero() && (time - m_lastTime).getMillisecondsCount() > MOVEMENT_STOP_MILLIS) {
+		if (m_lastTime.isNotZero() && (time - m_lastTime).getMillisecondCount() > MOVEMENT_STOP_MILLIS) {
 			clearMovements();
 		}
 		sl_uint32 top = m_topHistory;
@@ -286,7 +286,7 @@ namespace slib
 			x[i] = m_history[index].x;
 			y[i] = m_history[index].y;
 			w[i] = 1; // coefficient weight (currently no-weight is applied)
-			time[i] = (sl_real)((lastTime - m_history[index].time).getSecondsCountf());
+			time[i] = (sl_real)((lastTime - m_history[index].time).getSecondCountf());
 			if (time[i] > MAX_TRACK_HORIZON) {
 				nHistory = i;
 				break;

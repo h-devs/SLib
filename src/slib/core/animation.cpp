@@ -944,7 +944,7 @@ namespace slib
 		}
 
 		Time tCurrent = Time::now();
-		sl_int64 timeCurrent = tCurrent.getMillisecondsCount();
+		sl_int64 timeCurrent = tCurrent.getMillisecondCount();
 		if (m_lastTime == 0) {
 			m_lastTime = timeCurrent;
 		}
@@ -978,7 +978,7 @@ namespace slib
 		m_lastTime = timeCurrent;
 		Time tEnd = Time::now();
 
-		sl_int64 n = (tEnd - tCurrent).getMillisecondsCount();
+		sl_int64 n = (tEnd - tCurrent).getMillisecondCount();
 		if (n < 15) {
 			if (n < 0) {
 				n = 0;

@@ -245,28 +245,28 @@ namespace slib
 		void setResponseCode(DnsResponseCode code);
 		
 		// QDCOUNT
-		sl_uint16 getQuestionsCount() const;
+		sl_uint16 getQuestionCount() const;
 		
 		// QDCOUNT
-		void setQuestionsCount(sl_uint16 count);
+		void setQuestionCount(sl_uint16 count);
 		
 		// ANCOUNT
-		sl_uint16 getAnswersCount() const;
+		sl_uint16 getAnswerCount() const;
 		
 		// ANCOUNT
-		void setAnswersCount(sl_uint16 count);
+		void setAnswerCount(sl_uint16 count);
 		
 		// NSCOUNT
-		sl_uint16 getAuthoritiesCount() const;
+		sl_uint16 getAuthorityCount() const;
 		
 		// NSCOUNT
-		void setAuthoritiesCount(sl_uint16 count);
+		void setAuthorityCount(sl_uint16 count);
 		
 		// ARCOUNT
-		sl_uint16 getAdditionalsCount() const;
+		sl_uint16 getAdditionalCount() const;
 		
 		// ARCOUNT
-		void setAdditionalsCount(sl_uint16 count);
+		void setAdditionalCount(sl_uint16 count);
 		
 	private:
 		sl_uint8 _id[2];

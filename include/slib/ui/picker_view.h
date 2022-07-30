@@ -47,13 +47,13 @@ namespace slib
 
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_uint32 getLinesCount();
+		sl_uint32 getLineCount();
 
 		/*
 			call this function before drawing control
 			count: odd number
 		*/
-		void setLinesCount(sl_uint32 count);
+		void setLineCount(sl_uint32 count);
 
 		sl_bool isCircular();
 
@@ -85,7 +85,7 @@ namespace slib
 	protected:
 		Color m_textColor;
 
-		sl_uint32 m_linesCount;
+		sl_uint32 m_lineCount;
 		sl_bool m_flagCircular;
 
 	};
@@ -104,7 +104,7 @@ namespace slib
 	public:
 		Color textColor;
 
-		sl_uint32 linesCount;
+		sl_uint32 lineCount;
 		sl_bool flagCircular;
 
 		Function<void(sl_uint32 index)> onSelectItem;

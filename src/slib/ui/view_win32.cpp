@@ -1215,7 +1215,7 @@ namespace slib
 			}
 			Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
 			Time t;
-			t.setMillisecondsCount(GetMessageTime());
+			t.setMillisecondCount(GetMessageTime());
 			Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get());
@@ -1240,7 +1240,7 @@ namespace slib
 			sl_ui_posf y = (sl_ui_posf)(_y);
 
 			Time t;
-			t.setMillisecondsCount(GetMessageTime());
+			t.setMillisecondCount(GetMessageTime());
 			Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get());
@@ -1273,7 +1273,7 @@ namespace slib
 			pt.y = (short)((lParam >> 16) & 0xffff);
 			ScreenToClient(hWnd, &pt);
 			Time t;
-			t.setMillisecondsCount(GetMessageTime());
+			t.setMillisecondCount(GetMessageTime());
 			Ref<UIEvent> ev = UIEvent::createMouseWheelEvent((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), deltaX, deltaY, t);
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get());
@@ -1296,7 +1296,7 @@ namespace slib
 			pt.y = (short)((lParam >> 16) & 0xffff);
 			ScreenToClient(hWnd, &pt);
 			Time t;
-			t.setMillisecondsCount(GetMessageTime());
+			t.setMillisecondCount(GetMessageTime());
 			Ref<UIEvent> ev = UIEvent::createSetCursorEvent((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), t);
 			if (ev.isNotNull()) {
 				onSetCursor(ev.get());

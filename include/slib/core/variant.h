@@ -756,7 +756,7 @@ namespace slib
 
 		void setJsonList(JsonList&& list) noexcept;
 
-		sl_uint64 getElementsCount() const;
+		sl_uint64 getElementCount() const;
 
 		Variant getElement_NoLock(sl_uint64 index) const;
 
@@ -1218,7 +1218,7 @@ namespace slib
 			LIST CreateListFromCollection(Collection* collection)
 			{
 				if (collection) {
-					sl_size n = (sl_size)(collection->getElementsCount());
+					sl_size n = (sl_size)(collection->getElementCount());
 					if (n) {
 						LIST ret = LIST::create(n);
 						if (ret.isNotNull()) {

@@ -53,7 +53,7 @@ namespace slib
 			class ListControlHelper : public ListControl
 			{
 			public:
-				static sl_uint32 getColumnsCountFromListView(HWND hWnd)
+				static sl_uint32 getColumnCountFromListView(HWND hWnd)
 				{
 					HWND hWndHeader = (HWND)(SendMessageW(hWnd, LVM_GETHEADER, 0, 0));
 					if (hWndHeader) {
@@ -62,11 +62,11 @@ namespace slib
 					return 0;
 				}
 
-				void applyColumnsCount(HWND hWnd)
+				void applyColumnCount(HWND hWnd)
 				{
 					ObjectLocker lock(this);
 					sl_uint32 nNew = (sl_uint32)(m_columns.getCount());
-					sl_uint32 nOrig = getColumnsCountFromListView(hWnd);
+					sl_uint32 nOrig = getColumnCountFromListView(hWnd);
 					if (nOrig == nNew) {
 						return;
 					}
@@ -87,7 +87,7 @@ namespace slib
 
 				void copyColumns(HWND hWnd)
 				{
-					applyColumnsCount(hWnd);
+					applyColumnCount(hWnd);
 					LVCOLUMNW lvc;
 					Base::zeroMemory(&lvc, sizeof(lvc));
 					lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT;
@@ -106,7 +106,7 @@ namespace slib
 					}
 				}
 
-				void applyRowsCount(HWND hWnd)
+				void applyRowCount(HWND hWnd)
 				{
 					sl_uint32 nNew = m_nRows;
 					SendMessageW(hWnd, LVM_SETITEMCOUNT, (WPARAM)nNew, LVSICF_NOINVALIDATEALL | LVSICF_NOSCROLL);
@@ -127,22 +127,22 @@ namespace slib
 					UINT exStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_ONECLICKACTIVATE | LVS_EX_DOUBLEBUFFER;
 					SendMessageW(handle, LVM_SETEXTENDEDLISTVIEWSTYLE, exStyle, exStyle);
 					view->copyColumns(handle);
-					view->applyRowsCount(handle);
+					view->applyRowCount(handle);
 				}
 
-				void refreshColumnsCount(ListControl* view) override
+				void refreshColumnCount(ListControl* view) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						(static_cast<ListControlHelper*>(view))->applyColumnsCount(handle);
+						(static_cast<ListControlHelper*>(view))->applyColumnCount(handle);
 					}
 				}
 
-				void refreshRowsCount(ListControl* view) override
+				void refreshRowCount(ListControl* view) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						(static_cast<ListControlHelper*>(view))->applyRowsCount(handle);
+						(static_cast<ListControlHelper*>(view))->applyRowCount(handle);
 						InvalidateRect(handle, NULL, TRUE);
 					}
 				}

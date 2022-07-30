@@ -501,7 +501,7 @@ namespace slib
 		return m_requestsRead.pop(&request);
 	}
 
-	sl_size AsyncStreamInstance::getReadRequestsCount()
+	sl_size AsyncStreamInstance::getReadRequestCount()
 	{
 		return m_requestsRead.getCount();
 	}
@@ -511,7 +511,7 @@ namespace slib
 		return m_requestsWrite.pop(&request);
 	}
 
-	sl_size AsyncStreamInstance::getWriteRequestsCount()
+	sl_size AsyncStreamInstance::getWriteRequestCount()
 	{
 		return m_requestsWrite.getCount();
 	}

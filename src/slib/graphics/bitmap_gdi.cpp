@@ -141,7 +141,7 @@ namespace slib
 					Gdiplus::Rect rc(x, y, width, height);
 					Gdiplus::Status result;
 
-					if (BitmapFormats::getBitsPerSample(dst.format) == 32 && BitmapFormats::getPlanesCount(dst.format) == 1) {
+					if (BitmapFormats::getBitsPerSample(dst.format) == 32 && BitmapFormats::getPlaneCount(dst.format) == 1) {
 
 						Gdiplus::BitmapData data;
 						data.Width = width;

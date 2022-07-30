@@ -814,7 +814,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return Array<TouchPoint>::null();
 	}
 
-	sl_uint32 UIEvent::getTouchPointsCount() const
+	sl_uint32 UIEvent::getTouchPointCount() const
 	{
 		if (IsInstanceOf<TouchEvent>(this)) {
 			return (sl_uint32)(((TouchEvent*)this)->m_points.getCount());

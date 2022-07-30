@@ -78,7 +78,7 @@ namespace slib
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 				{
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 					
@@ -114,7 +114,7 @@ namespace slib
 					SLDataFormat_PCM configuration;
 					{
 						configuration.formatType = SL_DATAFORMAT_PCM;
-						configuration.numChannels = param.channelsCount;
+						configuration.numChannels = param.channelCount;
 						configuration.samplesPerSec = param.samplesPerSecond * 1000;
 						configuration.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
 						configuration.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
@@ -150,7 +150,7 @@ namespace slib
 								
 								if ((*recorderObject)->GetInterface(recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &bufferQueue) == SL_RESULT_SUCCESS) {
 									
-									sl_uint32 nSamplesPerFrame = param.getSamplesPerFrame() * param.channelsCount;
+									sl_uint32 nSamplesPerFrame = param.getSamplesPerFrame() * param.channelCount;
 									Memory memFrame = Memory::create(nSamplesPerFrame << 2);
 
 									if (memFrame.isNotNull()) {
@@ -353,7 +353,7 @@ namespace slib
 			public:
 				static Ref<AudioPlayerImpl> create(Ref<AudioPlayerDeviceImpl> engine, const AudioPlayerParam& param)
 				{					
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 					
@@ -365,7 +365,7 @@ namespace slib
 					SLDataFormat_PCM configuration;
 					{
 						configuration.formatType = SL_DATAFORMAT_PCM;
-						configuration.numChannels = param.channelsCount;
+						configuration.numChannels = param.channelCount;
 						configuration.samplesPerSec = param.samplesPerSecond * 1000;
 						configuration.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
 						configuration.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
@@ -406,7 +406,7 @@ namespace slib
 								
 								if ((*playerObject)->GetInterface(playerObject, SL_IID_BUFFERQUEUE, &bufferQueue) == SL_RESULT_SUCCESS) {
 									
-									sl_uint32 nSamplesPerFrame = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000 * param.channelsCount;
+									sl_uint32 nSamplesPerFrame = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000 * param.channelCount;
 									Memory memFrame = Memory::create(nSamplesPerFrame << 2);
 
 									if (memFrame.isNotNull()) {

@@ -440,7 +440,7 @@ namespace slib
 		// Not resolve indirect reference
 		List<PdfValue> getElements() && noexcept;
 
-		sl_uint32 getElementsCount() const noexcept;
+		sl_uint32 getElementCount() const noexcept;
 
 		PdfValue getElement(sl_size index, sl_bool flagResolveReference = sl_true) const;
 
@@ -681,7 +681,7 @@ namespace slib
 	public:
 		void load(const PdfValue& value, PdfResourceProvider* res = sl_null);
 
-		sl_uint32 getComponentsCount();
+		sl_uint32 getComponentCount();
 
 		sl_bool getColor(Color& _out, const PdfValue* values, sl_size count);
 
@@ -1146,7 +1146,7 @@ namespace slib
 
 		sl_bool deleteObject(const PdfReference& ref);
 
-		sl_uint32 getPagesCount();
+		sl_uint32 getPageCount();
 
 		Ref<PdfPage> getPage(sl_uint32 index);
 

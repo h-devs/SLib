@@ -307,9 +307,9 @@ namespace slib
 						playerParam.flagAutoStart = sl_false;
 						playerParam.frameLengthInMilliseconds = 50;
 						playerParam.samplesPerSecond = params->sample_rate;
-						playerParam.channelsCount = params->channels;
-						if (playerParam.channelsCount != 1) {
-							playerParam.channelsCount = 2;
+						playerParam.channelCount = params->channels;
+						if (playerParam.channelCount != 1) {
+							playerParam.channelCount = 2;
 						}
 						playerParam.onPlayAudio = SLIB_FUNCTION_WEAKREF(this, onPlayAudio);
 						m_audioPlayer = AudioPlayer::create(playerParam);
@@ -317,9 +317,9 @@ namespace slib
 							SwrContext* swrAudio = swr_alloc();
 							if (swrAudio) {
 								av_opt_set_int(swrAudio, "in_channel_count",  params->channels, 0);
-								av_opt_set_int(swrAudio, "out_channel_count", playerParam.channelsCount, 0);
+								av_opt_set_int(swrAudio, "out_channel_count", playerParam.channelCount, 0);
 								av_opt_set_channel_layout(swrAudio, "in_channel_layout",  params->channel_layout, 0);
-								av_opt_set_channel_layout(swrAudio, "out_channel_layout", playerParam.channelsCount == 1 ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO, 0);
+								av_opt_set_channel_layout(swrAudio, "out_channel_layout", playerParam.channelCount == 1 ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO, 0);
 								av_opt_set_int(swrAudio, "in_sample_rate", params->sample_rate, 0);
 								av_opt_set_int(swrAudio, "out_sample_rate", playerParam.samplesPerSecond, 0);
 								av_opt_set_sample_fmt(swrAudio, "in_sample_fmt",  (AVSampleFormat)(params->format), 0);
@@ -401,7 +401,7 @@ namespace slib
 					}
 				}
 				
-				void onPlayAudio(AudioPlayer* buffer, sl_uint32 requestedSamplesCount)
+				void onPlayAudio(AudioPlayer* buffer, sl_uint32 requestedSampleCount)
 				{
 				}
 				
@@ -475,7 +475,7 @@ namespace slib
 						return sl_false;
 					}
 					if (m_audioPlayer.isNotNull()) {
-						if (m_audioPlayer->getSamplesCountInQueue() > m_audioPlayer->getParam().samplesPerSecond * 3) {
+						if (m_audioPlayer->getSampleCountInQueue() > m_audioPlayer->getParam().samplesPerSecond * 3) {
 							Thread::sleep(10);
 							return sl_true;
 						}
@@ -490,7 +490,7 @@ namespace slib
 								}
 							} else {
 								m_timeCurrent = _getAudioFrameTimestamp(m_frameAudio);
-								sl_size sizeBuf = m_frameAudio->nb_samples * m_audioPlayer->getParam().channelsCount * 2;
+								sl_size sizeBuf = m_frameAudio->nb_samples * m_audioPlayer->getParam().channelCount * 2;
 								if (m_bufResample.getSize() < sizeBuf) {
 									m_bufResample = Memory::create(sizeBuf);
 								}
@@ -500,7 +500,7 @@ namespace slib
 								int n = swr_convert(m_swrAudio, (uint8_t**)(bufs), m_frameAudio->nb_samples, (const uint8_t**)(m_frameAudio->data), m_frameAudio->nb_samples);
 								if (n > 0) {
 									AudioData data;
-									if (m_audioPlayer->getParam().channelsCount == 1) {
+									if (m_audioPlayer->getParam().channelCount == 1) {
 										data.format = AudioFormat::Int16_Mono;
 									} else {
 										data.format = AudioFormat::Int16_Stereo;

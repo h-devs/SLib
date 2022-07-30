@@ -38,7 +38,7 @@ namespace slib
 	OpusEncoderParam::OpusEncoderParam()
 	{
 		samplesPerSecond = 16000;
-		channelsCount = 1;
+		channelCount = 1;
 		bitsPerSecond = 8000;
 		type = OpusEncoderType::Voice;
 	}
@@ -113,12 +113,12 @@ namespace slib
 						logError("Encoding sampling rate must be one of 8000, 12000, 16000, 24000, 48000");
 						return sl_null;
 					}
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						logError("Encoding channel must be 1 or 2");
 						return sl_null;
 					}
 					
-					int sizeEncoder = opus_encoder_get_size((opus_int32)(param.channelsCount));
+					int sizeEncoder = opus_encoder_get_size((opus_int32)(param.channelCount));
 					if (sizeEncoder <= 0) {
 						return sl_null;
 					}
@@ -133,7 +133,7 @@ namespace slib
 							if (param.type != OpusEncoderType::Voice) {
 								app = OPUS_APPLICATION_AUDIO;
 							}
-							int error = opus_encoder_init(encoder, (opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelsCount), app);
+							int error = opus_encoder_init(encoder, (opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelCount), app);
 							if (error == OPUS_OK) {
 								
 								if (param.type == OpusEncoderType::Voice) {
@@ -158,7 +158,7 @@ namespace slib
 #endif
 							
 									ret->m_nSamplesPerSecond = param.samplesPerSecond;
-									ret->m_nChannels = param.channelsCount;
+									ret->m_nChannels = param.channelCount;
 									
 									ret->setBitrate(param.bitsPerSecond);
 									
@@ -281,7 +281,7 @@ namespace slib
 	OpusDecoderParam::OpusDecoderParam()
 	{
 		samplesPerSecond = 16000;
-		channelsCount = 1;
+		channelCount = 1;
 	}
 
 
@@ -333,12 +333,12 @@ namespace slib
 						logError("Decoding sampling rate must be one of 8000, 12000, 16000, 24000, 48000");
 						return sl_null;
 					}
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						logError("Decoding channel must be 1 or 2");
 						return sl_null;
 					}
 					int error;
-					::OpusDecoder* decoder = opus_decoder_create((opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelsCount), &error);
+					::OpusDecoder* decoder = opus_decoder_create((opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelCount), &error);
 					if (! decoder) {
 						return sl_null;
 					}
@@ -346,7 +346,7 @@ namespace slib
 					if (ret.isNotNull()) {
 						ret->m_decoder = decoder;
 						ret->m_nSamplesPerSecond = param.samplesPerSecond;
-						ret->m_nChannels = param.channelsCount;
+						ret->m_nChannels = param.channelCount;
 					} else {
 						opus_decoder_destroy(decoder);
 					}

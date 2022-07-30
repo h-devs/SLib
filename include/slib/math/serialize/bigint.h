@@ -36,7 +36,7 @@ namespace slib
 	SLIB_INLINE sl_bool BigInt::serialize(OUTPUT* output) const
 	{
 		sl_uint32* e = getElements();
-		sl_size n = getElementsCount();
+		sl_size n = getElementCount();
 		if (!(CVLI::serialize(output, n))) {
 			return sl_false;
 		}

@@ -38,7 +38,7 @@ namespace slib
 		~ViewAdapter();
 		
 	public:
-		virtual sl_uint64 getItemsCount() = 0;
+		virtual sl_uint64 getItemCount() = 0;
 		
 		virtual Ref<View> getView(sl_uint64 index, View* original, View* parent) = 0;
 		
@@ -48,7 +48,7 @@ namespace slib
 		
 		virtual sl_ui_len getItemHeight(sl_uint64 index, View* parent);
 		
-		virtual sl_uint32 getMaximumItemsCountPerPage(View* parent);
+		virtual sl_uint32 getMaximumItemCountPerPage(View* parent);
 		
 		void populateInto(View* parent, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
@@ -111,7 +111,7 @@ namespace slib
 			m_onBindView = onBindView;
 		}
 		
-		sl_uint64 getItemsCount() override
+		sl_uint64 getItemCount() override
 		{
 			return List<DataType>(m_list).getCount();
 		}
@@ -157,7 +157,7 @@ namespace slib
 		void addView(const Ref<View>& view);
 		
 	public:
-		sl_uint64 getItemsCount() override;
+		sl_uint64 getItemCount() override;
 		
 		Ref<View> getView(sl_uint64 index, View* original, View* parent) override;
 		
@@ -180,16 +180,16 @@ namespace slib
 		static Ref<ViewRowAdapter> create(sl_uint32 nColumns, const Ref<ViewAdapter>& itemAdapter);
 		
 	public:
-		sl_uint32 getColumnsCount();
+		sl_uint32 getColumnCount();
 		
-		void setColumnsCount(sl_uint32 nColumns);
+		void setColumnCount(sl_uint32 nColumns);
 		
 		Ref<ViewAdapter> getItemAdapter();
 		
 		void setItemAdapter(const Ref<ViewAdapter>& adapter);
 		
 	public:
-		sl_uint64 getItemsCount() override;
+		sl_uint64 getItemCount() override;
 		
 		Ref<View> getView(sl_uint64 index, View* original, View* parent) override;
 		
@@ -197,7 +197,7 @@ namespace slib
 		
 		sl_ui_len getItemHeight(sl_uint64 index, View* parent) override;
 		
-		sl_uint32 getMaximumItemsCountPerPage(View* parent) override;
+		sl_uint32 getMaximumItemCountPerPage(View* parent) override;
 		
 	protected:
 		sl_uint32 m_nColumns;

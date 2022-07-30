@@ -187,7 +187,7 @@ namespace slib
 		return create(sl_true);
 	}
 
-	sl_uint32 Menu::getMenuItemsCount() const
+	sl_uint32 Menu::getMenuItemCount() const
 	{
 		return (sl_uint32)(m_items.getCount());
 	}

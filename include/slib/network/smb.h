@@ -179,7 +179,7 @@ namespace slib
 
 		HashMap< String16, Ref<SmbServerShare>, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > shares;
 
-		sl_uint32 maxThreadsCount;
+		sl_uint32 maxThreadCount;
 		sl_bool flagStopWindowsService;
 
 		sl_bool flagAutoStart;

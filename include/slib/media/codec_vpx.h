@@ -50,7 +50,7 @@ namespace slib
 		sl_uint32 framesPerSecond;
 		sl_uint32 keyFrameInterval;
 		sl_uint32 bitrate; // kbps
-		sl_uint32 threadsCount;
+		sl_uint32 threadCount;
 		sl_uint32 cpuUsage;
 		VpxBitrateMode bitrateMode;
 		

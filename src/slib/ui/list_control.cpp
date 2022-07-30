@@ -68,36 +68,36 @@ namespace slib
 	{
 	}
 
-	sl_uint32 ListControl::getColumnsCount()
+	sl_uint32 ListControl::getColumnCount()
 	{
 		return (sl_uint32)(m_columns.getCount());
 	}
 	
-	void ListControl::setColumnsCount(sl_uint32 nCount, UIUpdateMode mode)
+	void ListControl::setColumnCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnsCount, nCount, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnCount, nCount, mode)
 		}
 		ObjectLocker lock(this);
 		m_columns.setCount(nCount);
 		if (instance.isNotNull()) {
-			instance->refreshColumnsCount(this);
+			instance->refreshColumnCount(this);
 		} else {
 			invalidate(mode);
 		}
 	}
 	
-	sl_uint32 ListControl::getRowsCount()
+	sl_uint32 ListControl::getRowCount()
 	{
 		return m_nRows;
 	}
 	
-	void ListControl::setRowsCount(sl_uint32 nCount, UIUpdateMode mode)
+	void ListControl::setRowCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setRowsCount, nCount, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setRowCount, nCount, mode)
 		}
 		ObjectLocker lock(this);
 		if (nCount < m_cells.getCount()) {
@@ -105,7 +105,7 @@ namespace slib
 		}
 		m_nRows = nCount;
 		if (instance.isNotNull()) {
-			instance->refreshRowsCount(this);
+			instance->refreshRowCount(this);
 		} else {
 			invalidate(mode);
 		}
@@ -154,7 +154,7 @@ namespace slib
 			}
 			if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
 				if (instance.isNotNull()) {
-					instance->refreshRowsCount(this);
+					instance->refreshRowCount(this);
 				} else {
 					invalidate();
 				}
@@ -286,8 +286,8 @@ namespace slib
 	sl_uint32 ListControl::addRow(UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		setRowsCount(m_nRows+1, mode);
-		return getRowsCount()-1;
+		setRowCount(m_nRows+1, mode);
+		return getRowCount()-1;
 	}
 	
 	void ListControl::insertRow(sl_uint32 iRow, UIUpdateMode mode)
@@ -296,7 +296,7 @@ namespace slib
 		if (iRow < m_cells.getCount()) {
 			m_cells.insert(iRow, List<ListControlCell>::null());
 		}
-		setRowsCount(m_nRows+1, mode);
+		setRowCount(m_nRows+1, mode);
 	}
 	
 	void ListControl::removeRow(sl_uint32 iRow, UIUpdateMode mode)
@@ -306,13 +306,13 @@ namespace slib
 			if (iRow < m_cells.getCount()) {
 				m_cells.removeAt(iRow);
 			}
-			setRowsCount(m_nRows - 1, mode);
+			setRowCount(m_nRows - 1, mode);
 		}
 	}
 	
 	void ListControl::removeAllRows(UIUpdateMode mode)
 	{
-		setRowsCount(0, mode);
+		setRowCount(0, mode);
 	}
 	
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)

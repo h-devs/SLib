@@ -399,7 +399,7 @@ namespace slib
 		return new GraphicsPath;
 	}
 
-	sl_size GraphicsPath::getPointsCount()
+	sl_size GraphicsPath::getPointCount()
 	{
 		return m_points.getCount();
 	}

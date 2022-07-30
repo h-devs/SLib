@@ -349,7 +349,7 @@ namespace slib
 				return 0;
 			}
 
-			static sl_size GetBytesCount(const sl_uint32* elements, sl_size length, sl_bool flagSigned) noexcept
+			static sl_size GetByteCount(const sl_uint32* elements, sl_size length, sl_bool flagSigned) noexcept
 			{
 				if (elements) {
 					if (flagSigned) {
@@ -794,7 +794,7 @@ namespace slib
 
 	Memory CBigInt::getBytesLE(sl_bool flagSigned) const noexcept
 	{
-		sl_size size = priv::bigint::GetBytesCount(elements, length, flagSigned);
+		sl_size size = priv::bigint::GetByteCount(elements, length, flagSigned);
 		Memory mem = Memory::create(size);
 		if (mem.isNotNull()) {
 			sl_uint8* bytes = (sl_uint8*)(mem.getData());
@@ -957,7 +957,7 @@ namespace slib
 
 	Memory CBigInt::getBytesBE(sl_bool flagSigned) const noexcept
 	{
-		sl_size size = priv::bigint::GetBytesCount(elements, length, flagSigned);
+		sl_size size = priv::bigint::GetByteCount(elements, length, flagSigned);
 		Memory mem = Memory::create(size);
 		if (mem.isNotNull()) {
 			sl_uint8* bytes = (sl_uint8*)(mem.getData());
@@ -3449,7 +3449,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size BigInt::getElementsCount() const noexcept
+	sl_size BigInt::getElementCount() const noexcept
 	{
 		CBigInt* o = ref.ptr;
 		if (o) {

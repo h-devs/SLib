@@ -240,7 +240,7 @@ namespace slib
 					return DOKAN_ERROR_CODE(err);
 				}
 
-				host->increaseOpenHandlesCount();
+				host->increaseOpenHandleCount();
 				context->increaseReference();
 				pDokanFileInfo->Context = (ULONG64)(sl_size)(context.get());
 
@@ -358,7 +358,7 @@ namespace slib
 
 				FileSystem::setLastError(FileSystemError::Success);
 				provider->closeFile(context);
-				host->decreaseOpenHandlesCount();
+				host->decreaseOpenHandleCount();
 				context->decreaseReference();
 				pDokanFileInfo->Context = 0;
 			}

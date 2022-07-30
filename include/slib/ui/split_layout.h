@@ -53,9 +53,9 @@ namespace slib
 		
 		void setVertical(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
-		sl_size getItemsCount();
+		sl_size getItemCount();
 		
-		void setItemsCount(sl_size count, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setItemCount(sl_size count, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		Ref<View> getItemView(sl_size index);
 		

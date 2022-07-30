@@ -43,7 +43,7 @@ namespace slib
 		recordingPreset = AudioRecordingPreset::None;
 		
 		samplesPerSecond = 16000;
-		channelsCount = 1;
+		channelCount = 1;
 		samplesPerFrame = 0;
 		frameLengthInMilliseconds = 50;
 		bufferLengthInMilliseconds = 0;
@@ -176,7 +176,7 @@ namespace slib
 	sl_bool AudioRecorder::read(const AudioData& audioOut)
 	{
 		AudioFormat format;
-		sl_uint32 nChannels = m_param.channelsCount;
+		sl_uint32 nChannels = m_param.channelCount;
 		if (nChannels == 1) {
 			format = AudioFormat::Int16_Mono;
 		} else {
@@ -211,7 +211,7 @@ namespace slib
 	void AudioRecorder::_init(const AudioRecorderParam& param)
 	{
 		m_param = param;
-		m_queue.setQueueSize(param.samplesPerSecond * param.bufferLengthInMilliseconds / 1000 * param.channelsCount);
+		m_queue.setQueueSize(param.samplesPerSecond * param.bufferLengthInMilliseconds / 1000 * param.channelCount);
 	}
 	
 	Array<sl_int16> AudioRecorder::_getProcessData(sl_uint32 count)
@@ -241,7 +241,7 @@ namespace slib
 
 		if (m_param.onRecordAudio.isNotNull()) {
 
-			sl_uint32 nChannels = m_param.channelsCount;
+			sl_uint32 nChannels = m_param.channelCount;
 			sl_uint32 nSamples = count / nChannels;
 			sl_uint32 nSamplesPerChannel = m_param.samplesPerCallback;
 			sl_uint32 nSamplesInBuf = m_nSamplesInCallbackBuffer;
@@ -323,7 +323,7 @@ namespace slib
 		streamType = AudioStreamType::Default;
 
 		samplesPerSecond = 16000;
-		channelsCount = 1;
+		channelCount = 1;
 		frameLengthInMilliseconds = 50;
 		maxBufferLengthInMilliseconds = 0;
 
@@ -439,7 +439,7 @@ namespace slib
 	void AudioPlayer::write(const AudioData& audioIn)
 	{
 		AudioFormat format;
-		sl_uint32 nChannels = m_param.channelsCount;
+		sl_uint32 nChannels = m_param.channelCount;
 		if (nChannels == 1) {
 			format = AudioFormat::Int16_Mono;
 		} else {
@@ -485,7 +485,7 @@ namespace slib
 		m_buffer.clear();
 	}
 	
-	sl_size AudioPlayer::getSamplesCountInQueue()
+	sl_size AudioPlayer::getSampleCountInQueue()
 	{
 		return m_buffer.getSize() >> 1;
 	}
@@ -493,7 +493,7 @@ namespace slib
 	void AudioPlayer::_init(const AudioPlayerParam& param)
 	{
 		m_param = param;
-		m_lenBufferMax = param.samplesPerSecond * param.maxBufferLengthInMilliseconds / 1000 * param.channelsCount;
+		m_lenBufferMax = param.samplesPerSecond * param.maxBufferLengthInMilliseconds / 1000 * param.channelCount;
 	}
 
 	Array<sl_int16> AudioPlayer::_getProcessData(sl_uint32 count)
@@ -513,7 +513,7 @@ namespace slib
 		if (m_param.event.isNotNull()) {
 			m_param.event->set();
 		}
-		m_param.onPlayAudio(this, count / m_param.channelsCount);
+		m_param.onPlayAudio(this, count / m_param.channelCount);
 		if (!(m_buffer.pop(s, count << 1))) {
 			for (sl_uint32 i = 0; i < count; i++) {
 				s[i] = m_lastSample;

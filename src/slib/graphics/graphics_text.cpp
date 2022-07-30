@@ -548,7 +548,7 @@ namespace slib
 		width(1),
 		tabWidth(1), tabMargin(1),
 		multiLineMode(MultiLineMode::Single),
-		linesCount(0)
+		lineCount(0)
 	{
 	}
 
@@ -731,7 +731,7 @@ namespace slib
 		if (group.isNull()) {
 			return;
 		}
-		sl_size n = group->getChildrenCount();
+		sl_size n = group->getChildCount();
 		for (sl_size i = 0; i < n; i++) {
 			Ref<XmlNode> child = group->getChild(i);
 			if (child.isNotNull()) {
@@ -1258,7 +1258,7 @@ namespace slib
 				Alignment m_align;
 				MultiLineMode m_multiLineMode;
 				EllipsizeMode m_ellipsizeMode;
-				sl_uint32 m_linesCount;
+				sl_uint32 m_lineCount;
 				sl_real m_tabMargin;
 				sl_real m_tabWidth;
 				
@@ -1281,7 +1281,7 @@ namespace slib
 					m_align = param.align;
 					m_multiLineMode = param.multiLineMode;
 					m_ellipsizeMode = param.ellipsisMode;
-					m_linesCount = param.linesCount;
+					m_lineCount = param.lineCount;
 					m_tabWidth = param.tabWidth;
 					m_tabMargin = param.tabMargin;
 					
@@ -1328,7 +1328,7 @@ namespace slib
 
 					m_lineNo++;
 					if (m_ellipsizeMode != EllipsizeMode::None) {
-						if ((m_lineWidth > m_layoutWidth && m_multiLineMode == MultiLineMode::Single) || (m_linesCount > 0 && m_lineNo >= m_linesCount)) {
+						if ((m_lineWidth > m_layoutWidth && m_multiLineMode == MultiLineMode::Single) || (m_lineCount > 0 && m_lineNo >= m_lineCount)) {
 							endEllipsize();
 						}
 					}
@@ -1355,8 +1355,8 @@ namespace slib
 					if (m_multiLineMode == MultiLineMode::Single) {
 						m_flagEnd = sl_true;
 					} else {
-						if (m_linesCount > 0) {
-							if (m_lineNo >= m_linesCount) {
+						if (m_lineCount > 0) {
+							if (m_lineNo >= m_lineCount) {
 								m_flagEnd = sl_true;
 							}
 						}
@@ -1987,7 +1987,7 @@ namespace slib
 		width(0),
 		multiLineMode(MultiLineMode::WordWrap),
 		ellipsizeMode(EllipsizeMode::None),
-		linesCount(0),
+		lineCount(0),
 		align(Alignment::TopLeft),
 		flagEnabledHyperlinksInPlainText(sl_false)
 	{
@@ -2063,10 +2063,10 @@ namespace slib
 		}
 		MultiLineMode multiLineMode = param.multiLineMode;
 		EllipsizeMode ellipsizeMode = param.ellipsizeMode;
-		sl_uint32 linesCount = param.linesCount;
+		sl_uint32 lineCount = param.lineCount;
 		
 		if (multiLineMode != MultiLineMode::Single) {
-			if (linesCount == 0) {
+			if (lineCount == 0) {
 				ellipsizeMode = EllipsizeMode::None;
 			} else {
 				if (ellipsizeMode != EllipsizeMode::End) {
@@ -2111,7 +2111,7 @@ namespace slib
 			return;
 		}
 		if (m_paragraph.isNotNull()) {
-			if (flagChangedFont || !(Math::isAlmostZero(m_width - width)) || m_multiLineMode != multiLineMode || m_ellipsisMode != ellipsizeMode || m_linesCount != linesCount || m_alignHorizontal != alignHorizontal) {
+			if (flagChangedFont || !(Math::isAlmostZero(m_width - width)) || m_multiLineMode != multiLineMode || m_ellipsisMode != ellipsizeMode || m_lineCount != lineCount || m_alignHorizontal != alignHorizontal) {
 				flagReLayout = sl_true;
 			}
 			if (flagReLayout) {
@@ -2121,7 +2121,7 @@ namespace slib
 				paramParagraph.tabMargin = paramParagraph.tabWidth / 4;
 				paramParagraph.multiLineMode = multiLineMode;
 				paramParagraph.ellipsisMode = ellipsizeMode;
-				paramParagraph.linesCount = linesCount;
+				paramParagraph.lineCount = lineCount;
 				paramParagraph.align = alignHorizontal;
 				m_paragraph->layout(paramParagraph);
 				
@@ -2130,7 +2130,7 @@ namespace slib
 				m_multiLineMode = multiLineMode;
 				m_ellipsisMode = ellipsizeMode;
 				m_alignHorizontal = alignHorizontal;
-				m_linesCount = linesCount;
+				m_lineCount = lineCount;
 				
 				m_contentWidth = m_paragraph->getContentWidth();
 				m_contentHeight = m_paragraph->getContentHeight();

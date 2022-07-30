@@ -89,7 +89,7 @@ namespace slib
 
 				sl_bool _applyPath(cairo_t* graphics, GraphicsPath* path)
 				{
-					sl_size n = path->getPointsCount();
+					sl_size n = path->getPointCount();
 					if (n > 0) {
 						GraphicsPathPoint* pts = path->getPoints();
 						for (sl_size i = 0; i < n; i++) {

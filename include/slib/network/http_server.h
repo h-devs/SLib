@@ -327,8 +327,8 @@ namespace slib
 		IPAddress bindAddress;
 		sl_uint16 port;
 		
-		sl_uint32 minimumThreadsCount;
-		sl_uint32 maximumThreadsCount;
+		sl_uint32 minimumThreadCount;
+		sl_uint32 maximumThreadCount;
 		sl_bool flagProcessByThreads;
 		
 		sl_bool flagUseWebRoot;

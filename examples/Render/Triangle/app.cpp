@@ -19,7 +19,7 @@ void TriangleApp::onStart()
 		engine->clearColor(Color::Blue);
 		RenderProgramScope<RenderProgramState2D_Position> scope;
 		if (scope.begin(engine, program)) {
-			scope->setTransform(Transform2::getRotationMatrix((sl_real)((Time::now().getMillisecondsCount() % 1000) * SLIB_PI_DUAL / 1000)));
+			scope->setTransform(Transform2::getRotationMatrix((sl_real)((Time::now().getMillisecondCount() % 1000) * SLIB_PI_DUAL / 1000)));
 			scope->setColor(Color(Color::Red));
 			engine->drawPrimitive(3, vb);
 		}

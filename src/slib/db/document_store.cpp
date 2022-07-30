@@ -127,11 +127,11 @@ namespace slib
 		return getCollection(name);
 	}
 
-	sl_int64 DocumentDatabase::getDocumentsCount(const StringParam& collectionName, const Json& filter)
+	sl_int64 DocumentDatabase::getDocumentCount(const StringParam& collectionName, const Json& filter)
 	{
 		Ref<DocumentCollection> collection = getCollection(collectionName);
 		if (collection.isNotNull()) {
-			return collection->getDocumentsCount(filter);
+			return collection->getDocumentCount(filter);
 		}
 		return -1;
 	}

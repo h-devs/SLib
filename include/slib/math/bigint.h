@@ -517,7 +517,7 @@ namespace slib
 
 		BigInt compact() const noexcept;
 
-		sl_size getElementsCount() const noexcept;
+		sl_size getElementCount() const noexcept;
 
 		sl_uint32* getElements() const noexcept;
 

@@ -265,7 +265,7 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 		public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
 
 			EGLConfig[] configs = new EGLConfig[1];
-			int[] configsCount = new int[1];
+			int[] configCount = new int[1];
 			int[] configSpec;
 
 			if (mIsMultisample) {
@@ -283,8 +283,8 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 							EGL10.EGL_SAMPLE_BUFFERS, 1 /* true */,
 							EGL10.EGL_SAMPLES, 2,
 							EGL10.EGL_NONE };
-					if (egl.eglChooseConfig(display, configSpec, configs, 1, configsCount)) {
-						if (configsCount[0] == 1) {
+					if (egl.eglChooseConfig(display, configSpec, configs, 1, configCount)) {
+						if (configCount[0] == 1) {
 							return configs[0];
 						}
 					}
@@ -301,8 +301,8 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 						EGL10.EGL_SAMPLE_BUFFERS, 1 /* true */,
 						EGL10.EGL_SAMPLES, 2,
 						EGL10.EGL_NONE };
-				if (egl.eglChooseConfig(display, configSpec, configs, 1, configsCount)) {
-					if (configsCount[0] == 1) {
+				if (egl.eglChooseConfig(display, configSpec, configs, 1, configCount)) {
+					if (configCount[0] == 1) {
 						return configs[0];
 					}
 				}
@@ -326,8 +326,8 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 							EGL_COVERAGE_BUFFERS_NV, 1 /* true */,
 							EGL_COVERAGE_SAMPLES_NV, 2, // always 5 in practice on tegra 2
 							EGL10.EGL_NONE };
-					if (egl.eglChooseConfig(display, configSpec, configs, 1, configsCount)) {
-						if (configsCount[0] == 1) {
+					if (egl.eglChooseConfig(display, configSpec, configs, 1, configCount)) {
+						if (configCount[0] == 1) {
 							return configs[0];
 						}
 					}
@@ -343,8 +343,8 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 						EGL_COVERAGE_BUFFERS_NV, 1 /* true */,
 						EGL_COVERAGE_SAMPLES_NV, 2, // always 5 in practice on tegra 2
 						EGL10.EGL_NONE };
-				if (egl.eglChooseConfig(display, configSpec, configs, 1, configsCount)) {
-					if (configsCount[0] == 1) {
+				if (egl.eglChooseConfig(display, configSpec, configs, 1, configCount)) {
+					if (configCount[0] == 1) {
 						return configs[0];
 					}
 				}
@@ -363,8 +363,8 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 						// Requires that setEGLContextClientVersion(2) is called on the view.
 						EGL10.EGL_RENDERABLE_TYPE, 4 /* EGL_OPENGL_ES2_BIT */,
 						EGL10.EGL_NONE };
-				if (egl.eglChooseConfig(display, configSpec, configs, 1, configsCount)) {
-					if (configsCount[0] == 1) {
+				if (egl.eglChooseConfig(display, configSpec, configs, 1, configCount)) {
+					if (configCount[0] == 1) {
 						return configs[0];
 					}
 				}
@@ -378,8 +378,8 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 					// Requires that setEGLContextClientVersion(2) is called on the view.
 					EGL10.EGL_RENDERABLE_TYPE, 4 /* EGL_OPENGL_ES2_BIT */,
 					EGL10.EGL_NONE };
-			if (egl.eglChooseConfig(display, configSpec, configs, 1, configsCount)) {
-				if (configsCount[0] == 1) {
+			if (egl.eglChooseConfig(display, configSpec, configs, 1, configCount)) {
+				if (configCount[0] == 1) {
 					return configs[0];
 				}
 			}

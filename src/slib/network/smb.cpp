@@ -609,7 +609,7 @@ namespace slib
 		SLIB_STATIC_STRING(_targetName, "Server")
 		targetName = _targetName;
 
-		maxThreadsCount = 16;
+		maxThreadCount = 16;
 		flagStopWindowsService = sl_true;
 
 		flagAutoStart = sl_true;
@@ -725,7 +725,7 @@ namespace slib
 			return sl_true;
 		}
 
-		Ref<ThreadPool> threadPool = ThreadPool::create(0, m_param.maxThreadsCount);
+		Ref<ThreadPool> threadPool = ThreadPool::create(0, m_param.maxThreadCount);
 		if (threadPool.isNull()) {
 			return sl_false;
 		}

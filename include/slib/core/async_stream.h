@@ -113,11 +113,11 @@ namespace slib
 	protected:
 		sl_bool popReadRequest(Ref<AsyncStreamRequest>& request);
 
-		sl_size getReadRequestsCount();
+		sl_size getReadRequestCount();
 	
 		sl_bool popWriteRequest(Ref<AsyncStreamRequest>& request);
 
-		sl_size getWriteRequestsCount();
+		sl_size getWriteRequestCount();
 
 		void processStreamResult(AsyncStreamRequest* request, sl_size size, AsyncStreamResultCode resultCode);
 

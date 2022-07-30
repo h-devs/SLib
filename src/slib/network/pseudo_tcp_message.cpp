@@ -225,7 +225,7 @@ namespace slib
 	PseudoTcpMessage::PseudoTcpMessage()
 	{
 		m_timeout = DEFAULT_TIMEOUT;
-		m_conversationNoLastSent = (sl_uint32)(Time::now().getMillisecondsCount());
+		m_conversationNoLastSent = (sl_uint32)(Time::now().getMillisecondCount());
 		m_eventProcess = Event::create();
 		m_threadProcess = Thread::start(SLIB_FUNCTION_MEMBER(this, process));
 	}

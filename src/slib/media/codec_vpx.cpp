@@ -46,7 +46,7 @@ namespace slib
 		bitrate = 150;
 		keyFrameInterval = 5;
 		cpuUsage = 3;
-		threadsCount = 1;
+		threadCount = 1;
 	}
 
 	
@@ -149,7 +149,7 @@ namespace slib
 										codec_config.g_h = param.height;
 										codec_config.rc_end_usage = _getBitrateControlMode(param.bitrateMode);
 										codec_config.rc_target_bitrate = param.bitrate;
-										codec_config.g_threads = param.threadsCount;
+										codec_config.g_threads = param.threadCount;
 										codec_config.g_usage = param.cpuUsage;
 										codec_config.g_timebase.den = param.framesPerSecond;
 										codec_config.g_timebase.num = 1;

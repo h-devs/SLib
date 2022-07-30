@@ -33,7 +33,7 @@ void LanTvClientApp::onStart()
 		Ref<AudioPlayer> audioPlayer;
 		{
 			AudioPlayerParam param;
-			param.channelsCount = 1;
+			param.channelCount = 1;
 			param.samplesPerSecond = AUDIO_SAMPLES_PER_SECOND;
 			param.frameLengthInMilliseconds = AUDIO_FRAME_MS;
 			param.maxBufferLengthInMilliseconds = AUDIO_BUFFER_MS;
@@ -47,7 +47,7 @@ void LanTvClientApp::onStart()
 		Ref<OpusDecoder> decoderAudio;
 		{
 			OpusDecoderParam param;
-			param.channelsCount = 1;
+			param.channelCount = 1;
 			param.samplesPerSecond = AUDIO_SAMPLES_PER_SECOND;
 			decoderAudio = OpusDecoder::create(param);
 		}

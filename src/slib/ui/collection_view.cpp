@@ -107,9 +107,9 @@ namespace slib
 				sl_uint32 nColumns;
 				
 			public:
-				sl_uint64 getItemsCount() override
+				sl_uint64 getItemCount() override
 				{
-					sl_uint64 m = adapterTotal->getItemsCount() ;
+					sl_uint64 m = adapterTotal->getItemCount() ;
 					sl_uint64 n = m / nColumns;
 					if (indexColumn < (m % nColumns)) {
 						n++;
@@ -137,9 +137,9 @@ namespace slib
 					return adapterTotal->getItemHeight(index * nColumns + indexColumn, parent);
 				}
 				
-				sl_uint32 getMaximumItemsCountPerPage(View* parent) override
+				sl_uint32 getMaximumItemCountPerPage(View* parent) override
 				{
-					return adapterTotal->getMaximumItemsCountPerPage(parent);
+					return adapterTotal->getMaximumItemCountPerPage(parent);
 				}
 				
 			};
@@ -176,7 +176,7 @@ namespace slib
 		setContentView(m_contentView, UIUpdateMode::Init);
 	}
 	
-	sl_uint32 CollectionView::getColumnsCount()
+	sl_uint32 CollectionView::getColumnCount()
 	{
 		return (sl_uint32)(List<Column>(m_columns).getCount());
 	}
@@ -436,7 +436,7 @@ namespace slib
 			return;
 		}
 		
-		sl_uint32 nTotalCount = (sl_uint32)(adapter->getItemsCount());
+		sl_uint32 nTotalCount = (sl_uint32)(adapter->getItemCount());
 		sl_uint32 nOrigTotalCount = (sl_uint32)(column->heights.getCount());
 		if (nTotalCount != nOrigTotalCount) {
 			column->heights.setCount_NoLock(nTotalCount);
@@ -454,9 +454,9 @@ namespace slib
 		}
 		
 		sl_ui_len heightAverage = adapter->getAverageItemHeight(this);
-		sl_uint32 maxItemsCountPerPage = adapter->getMaximumItemsCountPerPage(this);
-		if (maxItemsCountPerPage > MAX_ITEMS_PER_PAGE) {
-			maxItemsCountPerPage = MAX_ITEMS_PER_PAGE;
+		sl_uint32 maxItemCountPerPage = adapter->getMaximumItemCountPerPage(this);
+		if (maxItemCountPerPage > MAX_ITEMS_PER_PAGE) {
+			maxItemCountPerPage = MAX_ITEMS_PER_PAGE;
 		}
 		
 		{
@@ -495,7 +495,7 @@ namespace slib
 			if (h < heightMinimum) {
 				h = heightMinimum;
 			}
-			if (y < scrollY + heightCollectionView && y + h > scrollY && column->viewsVisible.getCount() < maxItemsCountPerPage) {
+			if (y < scrollY + heightCollectionView && y + h > scrollY && column->viewsVisible.getCount() < maxItemCountPerPage) {
 				
 				h = adapter->getItemHeight(indexItem, this);
 

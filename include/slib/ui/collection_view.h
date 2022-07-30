@@ -52,7 +52,7 @@ namespace slib
 		void init() override;
 		
 	public:		
-		sl_uint32 getColumnsCount();
+		sl_uint32 getColumnCount();
 		
 		Ref<ViewAdapter> getAdapter();
 		

@@ -729,133 +729,133 @@ namespace slib
 		return *this;
 	}
 
-	sl_int64 Time::getDaysCount() const noexcept
+	sl_int64 Time::getDayCount() const noexcept
 	{
 		return (m_time / TIME_DAY);
 	}
 
-	Time& Time::setDaysCount(sl_int64 days) noexcept
+	Time& Time::setDayCount(sl_int64 days) noexcept
 	{
 		m_time = days*TIME_DAY + (m_time % TIME_DAY);
 		return *this;
 	}
 
-	double Time::getDaysCountf() const noexcept
+	double Time::getDayCountf() const noexcept
 	{
 		return (m_time / TIME_DAYF);
 	}
 
-	Time& Time::setDaysCountf(double days) noexcept
+	Time& Time::setDayCountf(double days) noexcept
 	{
 		m_time = (sl_int64)(days*TIME_DAYF);
 		return *this;
 	}
 
-	sl_int64 Time::getHoursCount() const noexcept
+	sl_int64 Time::getHourCount() const noexcept
 	{
 		return (m_time / TIME_HOUR);
 	}
 
-	Time& Time::setHoursCount(sl_int64 hours) noexcept
+	Time& Time::setHourCount(sl_int64 hours) noexcept
 	{
 		m_time = hours*TIME_HOUR + (m_time % TIME_HOUR);
 		return *this;
 	}
 
-	double Time::getHoursCountf() const noexcept
+	double Time::getHourCountf() const noexcept
 	{
 		return (m_time / TIME_HOURF);
 	}
 
-	Time& Time::setHoursCountf(double hours) noexcept
+	Time& Time::setHourCountf(double hours) noexcept
 	{
 		m_time = (sl_int64)(hours*TIME_HOURF);
 		return *this;
 	}
 
-	sl_int64 Time::getMinutesCount() const noexcept
+	sl_int64 Time::getMinuteCount() const noexcept
 	{
 		return (m_time / TIME_MINUTE);
 	}
 
-	Time& Time::setMinutesCount(sl_int64 minutes) noexcept
+	Time& Time::setMinuteCount(sl_int64 minutes) noexcept
 	{
 		m_time = minutes*TIME_MINUTE + (m_time % TIME_MINUTE);
 		return *this;
 	}
 
-	double Time::getMinutesCountf() const noexcept
+	double Time::getMinuteCountf() const noexcept
 	{
 		return (m_time / TIME_MINUTEF);
 	}
 
-	Time& Time::setMinutesCountf(double minutes) noexcept
+	Time& Time::setMinuteCountf(double minutes) noexcept
 	{
 		m_time = (sl_int64)(minutes*TIME_MINUTEF);
 		return *this;
 	}
 
-	sl_int64 Time::getSecondsCount() const noexcept
+	sl_int64 Time::getSecondCount() const noexcept
 	{
 		return (m_time / TIME_SECOND);
 	}
 
-	Time& Time::setSecondsCount(sl_int64 seconds) noexcept
+	Time& Time::setSecondCount(sl_int64 seconds) noexcept
 	{
 		m_time = seconds*TIME_SECOND + (m_time % TIME_SECOND);
 		return *this;
 	}
 
-	double Time::getSecondsCountf() const noexcept
+	double Time::getSecondCountf() const noexcept
 	{
 		return (m_time / TIME_SECONDF);
 	}
 
-	Time& Time::setSecondsCountf(double seconds) noexcept
+	Time& Time::setSecondCountf(double seconds) noexcept
 	{
 		m_time = (sl_int64)(seconds*TIME_SECONDF);
 		return *this;
 	}
 
-	sl_int64 Time::getMillisecondsCount() const noexcept
+	sl_int64 Time::getMillisecondCount() const noexcept
 	{
 		return (m_time / TIME_MILLIS);
 	}
 
-	Time& Time::setMillisecondsCount(sl_int64 millis) noexcept
+	Time& Time::setMillisecondCount(sl_int64 millis) noexcept
 	{
 		m_time = millis*TIME_MILLIS + (m_time % TIME_MILLIS);
 		return *this;
 	}
 
-	double Time::getMillisecondsCountf() const noexcept
+	double Time::getMillisecondCountf() const noexcept
 	{
 		return (m_time / TIME_MILLISF);
 	}
 
-	Time& Time::setMillisecondsCountf(double millis) noexcept
+	Time& Time::setMillisecondCountf(double millis) noexcept
 	{
 		m_time = (sl_int64)(millis*TIME_MILLISF);
 		return *this;
 	}
 
-	sl_int64 Time::getMicrosecondsCount() const noexcept
+	sl_int64 Time::getMicrosecondCount() const noexcept
 	{
 		return m_time;
 	}
 
-	Time& Time::setMicrosecondsCount(sl_int64 micros) noexcept
+	Time& Time::setMicrosecondCount(sl_int64 micros) noexcept
 	{
 		m_time = micros;
 		return *this;
 	}
 
-	double Time::getMicrosecondsCountf() const noexcept
+	double Time::getMicrosecondCountf() const noexcept
 	{
 		return (double)m_time;
 	}
 
-	Time& Time::setMicrosecondsCountf(double micros) noexcept
+	Time& Time::setMicrosecondCountf(double micros) noexcept
 	{
 		m_time = (sl_int64)(micros);
 		return *this;
@@ -867,10 +867,10 @@ namespace slib
 		TimeComponents comps;
 		o._get(comps, sl_false);
 		Time t = Time::_set(comps.year, comps.month, comps.day, comps.hour, comps.minute, comps.second, sl_true);
-		return (t - o).getSecondsCount();
+		return (t - o).getSecondCount();
 	}
 
-	sl_int32 Time::getDaysCountInMonth(const TimeZone& zone) const noexcept
+	sl_int32 Time::getDayCountInMonth(const TimeZone& zone) const noexcept
 	{
 		TimeComponents comps;
 		get(comps, zone);
@@ -880,7 +880,7 @@ namespace slib
 		return (sl_int32)((timeEnd.m_time - timeStart.m_time) / TIME_DAY);
 	}
 
-	sl_int32 Time::getDaysCountInYear(const TimeZone& zone) const noexcept
+	sl_int32 Time::getDayCountInYear(const TimeZone& zone) const noexcept
 	{
 		TimeComponents comps;
 		get(comps, zone);
@@ -1452,10 +1452,10 @@ namespace slib
 		}
 		Language lang = locale.getLanguage();
 		if (n < TIME_SECOND || max < TIME_SECOND) {
-			sl_int64 t = getMillisecondsCount();
+			sl_int64 t = getMillisecondCount();
 			return String::fromInt64(t) + "ms";
 		} else if (n < TIME_MINUTE || max <= TIME_SECOND) {
-			sl_int64 t = getSecondsCount();
+			sl_int64 t = getSecondCount();
 			if (lang == Language::Korean) {
 				return String::fromInt64(t) + "\xEC\xB4\x88";
 			} else {
@@ -1466,7 +1466,7 @@ namespace slib
 				}
 			}
 		} else if (n < TIME_HOUR || max <= TIME_MINUTE) {
-			sl_int64 t = getMinutesCount();
+			sl_int64 t = getMinuteCount();
 			if (lang == Language::Korean) {
 				return String::fromInt64(t) + "\xEB\xB6\x84";
 			} else {
@@ -1477,7 +1477,7 @@ namespace slib
 				}
 			}
 		} else if (n < TIME_DAY || max <= TIME_HOUR) {
-			sl_int64 t = getHoursCount();
+			sl_int64 t = getHourCount();
 			if (lang == Language::Korean) {
 				return String::fromInt64(t) + "\xEC\x8B\x9C\xEA\xB0\x84";
 			} else {
@@ -1488,7 +1488,7 @@ namespace slib
 				}
 			}
 		} else if (n < TIME_DAY*32 || max <= TIME_DAY) {
-			sl_int64 t = getDaysCount();
+			sl_int64 t = getDayCount();
 			if (lang == Language::Korean) {
 				return String::fromInt64(t) + "\xEC\x9D\xBC";
 			} else {
@@ -1499,7 +1499,7 @@ namespace slib
 				}
 			}
 		} else if (n < TIME_DAY*366 || max < TIME_DAY*32) {
-			sl_int64 t = (sl_int64)(getDaysCountf() / 30.5);
+			sl_int64 t = (sl_int64)(getDayCountf() / 30.5);
 			if (lang == Language::Korean) {
 				return String::fromInt64(t) + "\xEA\xB0\x9C\xEB\x8B\xAC";
 			} else {
@@ -1510,7 +1510,7 @@ namespace slib
 				}
 			}
 		} else {
-			sl_int64 t = (sl_int64)(getDaysCountf() / 365.25);
+			sl_int64 t = (sl_int64)(getDayCountf() / 365.25);
 			if (lang == Language::Korean) {
 				return String::fromInt64(t) + "\xEB\x85\x84";
 			} else {

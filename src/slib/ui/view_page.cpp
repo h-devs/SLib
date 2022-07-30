@@ -199,7 +199,7 @@ namespace slib
 		pager->push(this);
 		window->addView(pager, UIUpdateMode::Init);
 		window->setOnCancel([pager](Window* window, UIEvent* ev) {
-			if (pager->getPagesCount() > 1) {
+			if (pager->getPageCount() > 1) {
 				pager->pop();
 				ev->preventDefault();
 			}
@@ -670,7 +670,7 @@ namespace slib
 
 		Ref<ViewPageNavigationController> controller = getNavigationController();
 		if (controller.isNotNull()) {
-			if (controller->getPagesCount() > 1) {
+			if (controller->getPageCount() > 1) {
 				close();
 				ev->preventDefault();
 				return;

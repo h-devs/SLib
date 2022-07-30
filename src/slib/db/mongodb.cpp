@@ -112,7 +112,7 @@ namespace slib
 				} else {
 					Ref<Collection> collection = json.getCollection();
 					if (collection.isNotNull()) {
-						sl_uint32 n = (sl_uint32)(collection->getElementsCount());
+						sl_uint32 n = (sl_uint32)(collection->getElementCount());
 						char buf[16];
 						for (sl_uint32 i = 0; i < n; i++) {
 							const char* key;
@@ -156,7 +156,7 @@ namespace slib
 						bson_append_double(bson, key.getData(), (int)(key.getLength()), REF_VAR(float, json._value));
 						return;
 					case VariantType::Time:
-						bson_append_date_time(bson, key.getData(), (int)(key.getLength()), REF_VAR(Time, json._value).getMillisecondsCount());
+						bson_append_date_time(bson, key.getData(), (int)(key.getLength()), REF_VAR(Time, json._value).getMillisecondCount());
 						return;
 					case VariantType::ObjectId:
 						bson_append_oid(bson, key.getData(), (int)(key.getLength()), PTR_VAR(bson_oid_t, json._value));
@@ -670,7 +670,7 @@ namespace slib
 					return m_db.get();
 				}
 
-				sl_int64 getDocumentsCount(const Json& filter) override
+				sl_int64 getDocumentCount(const Json& filter) override
 				{
 					bson_t* bson = sl_null;
 					if (filter.isNotNull()) {

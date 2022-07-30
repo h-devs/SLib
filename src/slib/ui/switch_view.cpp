@@ -589,7 +589,7 @@ namespace slib
 			case UIAction::LeftButtonUp:
 			case UIAction::TouchEnd:
 				if (isPressedState()) {
-					if (m_flagTapping && (ev->getTime() - m_timeMouseDown).getMillisecondsCount() < 250) {
+					if (m_flagTapping && (ev->getTime() - m_timeMouseDown).getMillisecondCount() < 250) {
 						_changeValue(!m_value);
 					} else {
 						sl_real v = 0;

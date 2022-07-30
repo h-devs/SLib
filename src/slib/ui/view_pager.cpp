@@ -74,11 +74,11 @@ namespace slib
 		setAdapter(listAdapter, mode);
 	}
 	
-	sl_uint64 ViewPager::getPagesCount()
+	sl_uint64 ViewPager::getPageCount()
 	{
 		Ref<ViewAdapter> adapter = m_adapter;
 		if (adapter.isNotNull()) {
-			return adapter->getItemsCount();
+			return adapter->getItemCount();
 		}
 		return 0;
 	}
@@ -97,7 +97,7 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		
-		sl_uint64 n = getPagesCount();
+		sl_uint64 n = getPageCount();
 		if (n <= 0) {
 			index = 0;
 		} else {
@@ -264,7 +264,7 @@ namespace slib
 	
 	void ViewPager::onMouseEvent(UIEvent* ev)
 	{
-		sl_uint64 countPages = getPagesCount();
+		sl_uint64 countPages = getPageCount();
 		if (countPages <= 0) {
 			return;
 		}
@@ -438,7 +438,7 @@ namespace slib
 			return offset;
 		} else {
 			if (m_flagLoop && offset != 0) {
-				sl_uint64 countPages = getPagesCount();
+				sl_uint64 countPages = getPageCount();
 				if (offset < 0) {
 					sl_uint64 n;
 					if (index >= cur) {

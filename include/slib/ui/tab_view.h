@@ -56,9 +56,9 @@ namespace slib
 		~TabView();
 
 	public:
-		sl_uint32 getTabsCount();
+		sl_uint32 getTabCount();
 		
-		virtual void setTabsCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setTabCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		String getTabLabel(sl_uint32 index);
 		
@@ -243,7 +243,7 @@ namespace slib
 	class SLIB_EXPORT ITabViewInstance
 	{
 	public:
-		virtual void refreshTabsCount(TabView* view) = 0;
+		virtual void refreshTabCount(TabView* view) = 0;
 		
 		virtual void refreshSize(TabView* view) = 0;
 		

@@ -41,7 +41,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 ScreenCapture::getScreensCount()
+	sl_uint32 ScreenCapture::getScreenCount()
 	{
 		return 0;
 	}

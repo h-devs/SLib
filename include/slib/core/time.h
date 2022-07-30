@@ -452,60 +452,60 @@ namespace slib
 
 		Time& setDayOfYear(sl_int32 day, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		sl_int64 getDaysCount() const noexcept;
+		sl_int64 getDayCount() const noexcept;
 
-		Time& setDaysCount(sl_int64 days) noexcept;
+		Time& setDayCount(sl_int64 days) noexcept;
 
-		double getDaysCountf() const noexcept;
+		double getDayCountf() const noexcept;
 
-		Time& setDaysCountf(double days) noexcept;
+		Time& setDayCountf(double days) noexcept;
 
-		sl_int64 getHoursCount() const noexcept;
+		sl_int64 getHourCount() const noexcept;
 
-		Time& setHoursCount(sl_int64 hours) noexcept;
+		Time& setHourCount(sl_int64 hours) noexcept;
 
-		double getHoursCountf() const noexcept;
+		double getHourCountf() const noexcept;
 
-		Time& setHoursCountf(double hours) noexcept;
+		Time& setHourCountf(double hours) noexcept;
 
-		sl_int64 getMinutesCount() const noexcept;
+		sl_int64 getMinuteCount() const noexcept;
 
-		Time& setMinutesCount(sl_int64 minutes) noexcept;
+		Time& setMinuteCount(sl_int64 minutes) noexcept;
 
-		double getMinutesCountf() const noexcept;
+		double getMinuteCountf() const noexcept;
 
-		Time& setMinutesCountf(double minutes) noexcept;
+		Time& setMinuteCountf(double minutes) noexcept;
 
-		sl_int64 getSecondsCount() const noexcept;
+		sl_int64 getSecondCount() const noexcept;
 
-		Time& setSecondsCount(sl_int64 seconds) noexcept;
+		Time& setSecondCount(sl_int64 seconds) noexcept;
 
-		double getSecondsCountf() const noexcept;
+		double getSecondCountf() const noexcept;
 
-		Time& setSecondsCountf(double seconds) noexcept;
+		Time& setSecondCountf(double seconds) noexcept;
 
-		sl_int64 getMillisecondsCount() const noexcept;
+		sl_int64 getMillisecondCount() const noexcept;
 
-		Time& setMillisecondsCount(sl_int64 milis) noexcept;
+		Time& setMillisecondCount(sl_int64 milis) noexcept;
 
-		double getMillisecondsCountf() const noexcept;
+		double getMillisecondCountf() const noexcept;
 
-		Time& setMillisecondsCountf(double milis) noexcept;
+		Time& setMillisecondCountf(double milis) noexcept;
 
-		sl_int64 getMicrosecondsCount() const noexcept;
+		sl_int64 getMicrosecondCount() const noexcept;
 
-		Time& setMicrosecondsCount(sl_int64 micros) noexcept;
+		Time& setMicrosecondCount(sl_int64 micros) noexcept;
 
-		double getMicrosecondsCountf() const noexcept;
+		double getMicrosecondCountf() const noexcept;
 	
-		Time& setMicrosecondsCountf(double micros) noexcept;
+		Time& setMicrosecondCountf(double micros) noexcept;
 	
 		// In Seconds
 		sl_int64 getLocalTimeOffset() const noexcept;
 
-		sl_int32 getDaysCountInMonth(const TimeZone& zone = Time::LocalZone) const noexcept;
+		sl_int32 getDayCountInMonth(const TimeZone& zone = Time::LocalZone) const noexcept;
 
-		sl_int32 getDaysCountInYear(const TimeZone& zone = Time::LocalZone) const noexcept;
+		sl_int32 getDayCountInYear(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		sl_int32 getQuarter(const TimeZone& zone = Time::LocalZone) const noexcept;
 		

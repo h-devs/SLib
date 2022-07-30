@@ -240,11 +240,11 @@ namespace slib
 
 		virtual Memory getAssembledPixelShader(RenderEngine* engine);
 
-		virtual sl_uint32 getVertexShaderConstantBuffersCount();
+		virtual sl_uint32 getVertexShaderConstantBufferCount();
 
 		virtual sl_uint32 getVertexShaderConstantBufferSize(sl_uint32 bufferNo);
 
-		virtual sl_uint32 getPixelShaderConstantBuffersCount();
+		virtual sl_uint32 getPixelShaderConstantBufferCount();
 
 		virtual sl_uint32 getPixelShaderConstantBufferSize(sl_uint32 bufferNo);
 

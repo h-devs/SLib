@@ -293,7 +293,7 @@ namespace slib
 		{
 			bitmapsValid.removeAll();
 			pages.removeAll();
-			nPages = doc->getPagesCount();
+			nPages = doc->getPageCount();
 		}
 
 	};
@@ -404,11 +404,11 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 PdfView::getPagesCount()
+	sl_uint32 PdfView::getPageCount()
 	{
 		Ref<PdfDocument> doc = getDocument();
 		if (doc.isNotNull()) {
-			return doc->getPagesCount();
+			return doc->getPageCount();
 		}
 		return 0;
 	}
@@ -493,7 +493,7 @@ namespace slib
 		if (context.isNull()) {
 			return sl_false;
 		}
-		sl_uint32 nPages = doc->getPagesCount();
+		sl_uint32 nPages = doc->getPageCount();
 		if (!(context->initialize(filePath, doc, nPages))) {
 			return sl_false;
 		}

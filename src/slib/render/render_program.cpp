@@ -123,7 +123,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 RenderProgram::getVertexShaderConstantBuffersCount()
+	sl_uint32 RenderProgram::getVertexShaderConstantBufferCount()
 	{
 		return 1;
 	}
@@ -133,7 +133,7 @@ namespace slib
 		return 128;
 	}
 
-	sl_uint32 RenderProgram::getPixelShaderConstantBuffersCount()
+	sl_uint32 RenderProgram::getPixelShaderConstantBufferCount()
 	{
 		return 1;
 	}

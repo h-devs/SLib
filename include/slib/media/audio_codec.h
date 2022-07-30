@@ -43,9 +43,9 @@ namespace slib
 		virtual Memory encode(const AudioData& input) = 0;
 		
 	public:
-		sl_uint32 getSamplesCountPerSecond() const;
+		sl_uint32 getSampleCountPerSecond() const;
 		
-		sl_uint32 getChannelsCount() const;
+		sl_uint32 getChannelCount() const;
 		
 		sl_uint32 getBitrate();
 
@@ -72,9 +72,9 @@ namespace slib
 		virtual sl_uint32 decode(const void* input, sl_uint32 sizeInput, const AudioData& output) = 0;
 		
 	public:
-		sl_uint32 getSamplesCountPerSecond() const;
+		sl_uint32 getSampleCountPerSecond() const;
 		
-		sl_uint32 getChannelsCount() const;
+		sl_uint32 getChannelCount() const;
 		
 	protected:
 		sl_uint32 m_nSamplesPerSecond;

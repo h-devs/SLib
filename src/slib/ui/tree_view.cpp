@@ -183,7 +183,7 @@ namespace slib
 		return m_children.duplicate();
 	}
 	
-	sl_size TreeViewItem::getChildrenCount()
+	sl_size TreeViewItem::getChildCount()
 	{
 		return m_children.getCount();
 	}
@@ -560,11 +560,11 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_size TreeView::getItemsCount()
+	sl_size TreeView::getItemCount()
 	{
 		Ref<TreeViewItem> root = m_root;
 		if (root.isNotNull()) {
-			return root->getChildrenCount();
+			return root->getChildCount();
 		}
 		return 0;
 	}

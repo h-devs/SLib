@@ -44,7 +44,7 @@ namespace slib
 	public:
 		Ref<Database> getDatabase();
 	
-		virtual sl_uint32 getColumnsCount() = 0;
+		virtual sl_uint32 getColumnCount() = 0;
 	
 		virtual String getColumnName(sl_uint32 index) = 0;
 

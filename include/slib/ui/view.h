@@ -140,7 +140,7 @@ namespace slib
 		
 		List< Ref<View> > getChildren();
 		
-		sl_size getChildrenCount();
+		sl_size getChildCount();
 		
 		Ref<View> getChild(sl_size index);
 		

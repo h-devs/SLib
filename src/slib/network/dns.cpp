@@ -132,42 +132,42 @@ namespace slib
 		_flags[1] = (sl_uint8)((_flags[1] & 0xF0) | (((sl_uint32)code) & 0x0F));
 	}
 
-	sl_uint16 DnsHeader::getQuestionsCount() const
+	sl_uint16 DnsHeader::getQuestionCount() const
 	{
 		return MIO::readUint16BE(_totalQuestions);
 	}
 
-	void DnsHeader::setQuestionsCount(sl_uint16 count)
+	void DnsHeader::setQuestionCount(sl_uint16 count)
 	{
 		MIO::writeUint16BE(_totalQuestions, count);
 	}
 
-	sl_uint16 DnsHeader::getAnswersCount() const
+	sl_uint16 DnsHeader::getAnswerCount() const
 	{
 		return MIO::readUint16BE(_totalAnswers);
 	}
 
-	void DnsHeader::setAnswersCount(sl_uint16 count)
+	void DnsHeader::setAnswerCount(sl_uint16 count)
 	{
 		MIO::writeUint16BE(_totalAnswers, count);
 	}
 
-	sl_uint16 DnsHeader::getAuthoritiesCount() const
+	sl_uint16 DnsHeader::getAuthorityCount() const
 	{
 		return MIO::readUint16BE(_totalAuthorities);
 	}
 
-	void DnsHeader::setAuthoritiesCount(sl_uint16 count)
+	void DnsHeader::setAuthorityCount(sl_uint16 count)
 	{
 		MIO::writeUint16BE(_totalAuthorities, count);
 	}
 
-	sl_uint16 DnsHeader::getAdditionalsCount() const
+	sl_uint16 DnsHeader::getAdditionalCount() const
 	{
 		return MIO::readUint16BE(_totalAdditionals);
 	}
 
-	void DnsHeader::setAdditionalsCount(sl_uint16 count)
+	void DnsHeader::setAdditionalCount(sl_uint16 count)
 	{
 		MIO::writeUint16BE(_totalAdditionals, count);
 	}
@@ -561,7 +561,7 @@ namespace slib
 			sl_uint32 i, n;
 			sl_uint32 offset = sizeof(DnsHeader);
 			
-			n = header->getQuestionsCount();
+			n = header->getQuestionCount();
 			for (i = 0; i < n; i++) {
 				DnsQuestionRecord record;
 				offset = record.parseRecord(buf, offset, size);
@@ -576,7 +576,7 @@ namespace slib
 			if (i != n) {
 				break;
 			}
-			n = header->getAnswersCount() + header->getAuthoritiesCount() + header->getAdditionalsCount();
+			n = header->getAnswerCount() + header->getAuthorityCount() + header->getAdditionalCount();
 			for (i = 0; i < n; i++) {
 				DnsResponseRecord record;
 				offset = record.parseRecord(buf, offset, size);
@@ -640,7 +640,7 @@ namespace slib
 		header->setId(id);
 		header->setRD(sl_true); // Recursive Desired
 		header->setOpcode(DnsOpcode::Query);
-		header->setQuestionsCount(1);
+		header->setQuestionCount(1);
 		DnsQuestionRecord record;
 		record.setName(host);
 		record.setType(DnsRecordType::A);
@@ -664,10 +664,10 @@ namespace slib
 			header->setRD(sl_false);
 			header->setOpcode(DnsOpcode::Query);
 			header->setResponseCode(DnsResponseCode::NoError);
-			header->setQuestionsCount(1);
-			header->setAnswersCount(1);
-			header->setAuthoritiesCount(0);
-			header->setAdditionalsCount(0);
+			header->setQuestionCount(1);
+			header->setAnswerCount(1);
+			header->setAuthorityCount(0);
+			header->setAdditionalCount(0);
 			
 			sl_uint32 offset = sizeof(DnsHeader);
 			DnsQuestionRecord recordQuestion;
@@ -691,10 +691,10 @@ namespace slib
 			header->setRD(sl_false);
 			header->setOpcode(DnsOpcode::Query);
 			header->setResponseCode(DnsResponseCode::NameError);
-			header->setQuestionsCount(1);
-			header->setAnswersCount(0);
-			header->setAuthoritiesCount(0);
-			header->setAdditionalsCount(0);
+			header->setQuestionCount(1);
+			header->setAnswerCount(0);
+			header->setAuthorityCount(0);
+			header->setAdditionalCount(0);
 			
 			sl_uint32 offset = sizeof(DnsHeader);
 			DnsQuestionRecord recordQuestion;

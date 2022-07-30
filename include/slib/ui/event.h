@@ -262,7 +262,7 @@ namespace slib
 		
 		const Array<TouchPoint>& getTouchPoints() const;
 		
-		sl_uint32 getTouchPointsCount() const;
+		sl_uint32 getTouchPointCount() const;
 		
 		const TouchPoint& getTouchPoint(sl_uint32 index) const;
 		

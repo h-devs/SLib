@@ -14,8 +14,8 @@ void LanTvServerApp::onStart()
 	table->setAlignParentTop();
 	table->setAlignParentLeft();
 	table->setMargin(10);
-	table->setRowsCount(3);
-	table->setColumnsCount(2);
+	table->setRowCount(3);
+	table->setColumnCount(2);
 	table->setColumnWidth(0, 100);
 
 	// Row 0
@@ -38,7 +38,7 @@ void LanTvServerApp::onStart()
 			values.add(cameraInfo.id);
 			titles.add(cameraInfo.name);
 		}
-		m_viewSelectVideoSource->setItemsCount((sl_uint32)(values.getCount()));
+		m_viewSelectVideoSource->setItemCount((sl_uint32)(values.getCount()));
 		m_viewSelectVideoSource->setValues(values);
 		m_viewSelectVideoSource->setTitles(titles);
 		table->setCell(0, 1, m_viewSelectVideoSource);
@@ -64,7 +64,7 @@ void LanTvServerApp::onStart()
 			values.add(audioInfo.id);
 			titles.add(audioInfo.name);
 		}
-		m_viewSelectAudioSource->setItemsCount((sl_uint32)(values.getCount()));
+		m_viewSelectAudioSource->setItemCount((sl_uint32)(values.getCount()));
 		m_viewSelectAudioSource->setValues(values);
 		m_viewSelectAudioSource->setTitles(titles);
 		table->setCell(1, 1, m_viewSelectAudioSource);
@@ -128,7 +128,7 @@ void LanTvServerApp::doRunServer()
 		OpusEncoderParam param;
 		param.type = OpusEncoderType::Music;
 		param.bitsPerSecond = AUDIO_BITS_PER_SECOND;
-		param.channelsCount = 1;
+		param.channelCount = 1;
 		param.samplesPerSecond = AUDIO_SAMPLES_PER_SECOND;
 		encoderAudio = OpusEncoder::create(param);
 	}
@@ -138,7 +138,7 @@ void LanTvServerApp::doRunServer()
 		Memory packet = Memory::create(PACKET_SIZE);
 		AudioRecorderParam param;
 		param.deviceId = audioId;
-		param.channelsCount = 1;
+		param.channelCount = 1;
 		param.samplesPerSecond = AUDIO_SAMPLES_PER_SECOND;
 		param.frameLengthInMilliseconds = AUDIO_FRAME_MS;
 		param.bufferLengthInMilliseconds = AUDIO_BUFFER_MS;

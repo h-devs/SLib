@@ -46,7 +46,7 @@ int main(int argc, const char * argv[])
 		FromJson(req->getResponseContentAsJson(), users);
 		lvUsers->setValues(users);
 		lvUsers->setTitles(users);
-		lvUsers->setItemsCount(users.getCount());
+		lvUsers->setItemCount(users.getCount());
 	}, 1000);
 
 	auto timerScreen = Dispatch::setInterval([serverAddress, lvUsers, viewScreen](Timer*) {

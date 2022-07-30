@@ -144,7 +144,7 @@ namespace slib
 			scanner_height = 5;
 		}
 		Time time = Time::now();
-		float ftime = (float)(time.getMillisecondsCount() % 4000) / 2000;
+		float ftime = (float)(time.getMillisecondCount() % 4000) / 2000;
 		sl_real scanner_y;
 		if (ftime < 1) {
 			ftime = (Math::cos((ftime + 1) * SLIB_PI) / 2) + 0.5f;

@@ -103,7 +103,7 @@ namespace slib
 #endif
 
 #if !defined(SLIB_PLATFORM_IS_ANDROID)
-	sl_uint32 Device::getSimSlotsCount()
+	sl_uint32 Device::getSimSlotCount()
 	{
 #ifdef SLIB_PLATFORM_IS_MOBILE
 		return 1;

@@ -59,7 +59,7 @@ namespace slib
 				} else {
 					Ref<Collection> src = json.getCollection();
 					if (src.isNotNull()) {
-						sl_size n = (sl_size)(src->getElementsCount());
+						sl_size n = (sl_size)(src->getElementCount());
 						if (n) {
 							for (sl_size i = 0; i < n; i++) {
 								typename SET::VALUE_TYPE v;

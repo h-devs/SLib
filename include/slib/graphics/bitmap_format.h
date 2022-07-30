@@ -118,7 +118,7 @@ namespace slib
 
 		static sl_bool isPrecomputedAlpha(BitmapFormat format);
 
-		static sl_uint32 getPlanesCount(BitmapFormat format);
+		static sl_uint32 getPlaneCount(BitmapFormat format);
 
 		static sl_uint32 getBitsPerSample(BitmapFormat format);
 

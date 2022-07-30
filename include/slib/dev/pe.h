@@ -74,7 +74,7 @@ namespace slib
 	public:
 		char signature[2]; // "MZ"
 		sl_uint16 sizeLastPage; // Bytes on last page of file
-		sl_uint16 pagesCount; // Pages in file
+		sl_uint16 pageCount; // Pages in file
 		sl_uint16 relocations; // Relocations
 		sl_uint16 sizeHeaderInParagraphs; // Size of header in paragraphs
 		sl_uint16 minAlloc; // Minimum extra paragraphs needed

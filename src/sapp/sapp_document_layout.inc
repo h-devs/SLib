@@ -332,13 +332,13 @@ namespace slib
 				if (desc.className != item->className) {
 					_logError(element, g_str_error_resource_layout_name_array_item_class_different, item->name);
 				}
-				if (desc.itemsCount < n) {
-					desc.itemsCount = n;
+				if (desc.itemCount < n) {
+					desc.itemCount = n;
 					layout->itemArrays.put(item->arrayName, desc);
 				}
 			} else {
 				desc.className = item->className;
-				desc.itemsCount = n;
+				desc.itemCount = n;
 				layout->itemArrays.put(item->arrayName, desc);
 			}
 		}
@@ -514,7 +514,7 @@ namespace slib
 		{
 			ObjectLocker lock(&(layout->itemArrays));
 			for (auto& item : layout->itemArrays) {
-				sbHeader.add(String::format("\t\t\tslib::Ref<%s> %s[%d];%n", item.value.className, item.key, item.value.itemsCount));
+				sbHeader.add(String::format("\t\t\tslib::Ref<%s> %s[%d];%n", item.value.className, item.key, item.value.itemCount));
 			}
 			if (layout->itemArrays.isNotEmpty()) {
 				sbHeader.add("\r\n");
@@ -2461,7 +2461,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multiLine, setMultiLine)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(ellipsize, setEllipsize)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lines, setLinesCount)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lines, setLineCount)
 		LAYOUT_CONTROL_GENERIC_ATTR(mnemonic, setMnemonic)
 
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(defaultButton, setDefaultButton)
@@ -2757,7 +2757,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multiLine, setMultiLine)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(ellipsize, setEllipsize)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lines, setLinesCount)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lines, setLineCount)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(linksInText, setDetectingHyperlinksInPlainText);
 		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(linkColor, setLinkColor)
 		LAYOUT_CONTROL_GENERIC_ATTR(mnemonic, setMnemonic)
@@ -3291,7 +3291,7 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 		
 		if (op == OP_PARSE) {
-			sl_size nChildren = element->getChildElementsCount();
+			sl_size nChildren = element->getChildElementCount();
 			if (nChildren > 0) {
 				if (nChildren != 1) {
 					_logError(element, g_str_error_resource_layout_scrollview_must_contain_one_child);
@@ -3369,7 +3369,7 @@ namespace slib
 		Ref<SAppLayoutResource> layout;
 		
 	public:
-		sl_uint64 getItemsCount() override
+		sl_uint64 getItemCount() override
 		{
 			return 100;
 		}
@@ -3639,8 +3639,8 @@ namespace slib
 			sl_uint32 iRow, iCol;
 			sl_uint32 nCols = (sl_uint32)(cols.count);
 			sl_uint32 nRows = (sl_uint32)(rows.count);
-			params->sbDefineInit->add(String::format("%s%s->setColumnsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, nCols));
-			params->sbDefineInit->add(String::format("%s%s->setRowsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, nRows));
+			params->sbDefineInit->add(String::format("%s%s->setColumnCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, nCols));
+			params->sbDefineInit->add(String::format("%s%s->setRowCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, nRows));
 			for (iCol = 0; iCol < nCols; iCol++) {
 				SAppLayoutTableColumn& col = cols[iCol];
 				if (col.width.flagDefined) {
@@ -3816,8 +3816,8 @@ namespace slib
 			sl_uint32 nCols = (sl_uint32)(cols.count);
 			sl_uint32 nRows = (sl_uint32)(rows.count);
 			if (!flagOnLayout) {
-				view->setColumnsCount(nCols, UIUpdateMode::Init);
-				view->setRowsCount(nRows, UIUpdateMode::Init);
+				view->setColumnCount(nCols, UIUpdateMode::Init);
+				view->setRowCount(nRows, UIUpdateMode::Init);
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				SAppLayoutTableColumn& col = cols[iCol];
@@ -4021,7 +4021,7 @@ namespace slib
 		} else if (op == OP_GENERATE_CPP) {
 			ListLocker<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
-				params->sbDefineInit->add(String::format("%s%s->setColumnsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, columns.count));
+				params->sbDefineInit->add(String::format("%s%s->setColumnCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, columns.count));
 				for (sl_size i = 0; i < columns.count; i++) {
 					SAppLayoutListControlColumn& column = columns[i];
 					String strColumnTitle;
@@ -4050,7 +4050,7 @@ namespace slib
 			ListLocker<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				sl_uint32 n = (sl_uint32)(columns.count);
-				view->setColumnsCount(n, UIUpdateMode::Init);
+				view->setColumnCount(n, UIUpdateMode::Init);
 				for (sl_uint32 i = 0; i < n; i++) {
 					SAppLayoutListControlColumn& column = columns[i];
 					if (!flagOnLayout) {
@@ -4170,7 +4170,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(itemXml, subItem., icon)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					
-					sl_size nViews = itemXml->getChildElementsCount();
+					sl_size nViews = itemXml->getChildElementCount();
 					if (nViews > 0) {
 						if (nViews != 1) {
 							_logError(itemXml, g_str_error_resource_layout_item_must_contain_one_child);
@@ -4201,7 +4201,7 @@ namespace slib
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
 				
-				params->sbDefineInit->add(String::format("%s%s->setTabsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, subItems.count));
+				params->sbDefineInit->add(String::format("%s%s->setTabCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, subItems.count));
 				
 				for (sl_size i = 0; i < subItems.count; i++) {
 					SAppLayoutTabItem& subItem = subItems[i];
@@ -4238,7 +4238,7 @@ namespace slib
 				
 				sl_uint32 nSubItems = (sl_uint32)(subItems.count);
 				if (!flagOnLayout) {
-					view->setTabsCount(nSubItems, UIUpdateMode::Init);
+					view->setTabCount(nSubItems, UIUpdateMode::Init);
 				}
 				
 				for (sl_uint32 i = 0; i < nSubItems; i++) {
@@ -4384,7 +4384,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(itemXml, subItem., dividerBackground)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., dividerColor)
 					
-					sl_size nViews = itemXml->getChildElementsCount();
+					sl_size nViews = itemXml->getChildElementCount();
 					if (nViews > 0) {
 						if (nViews != 1) {
 							_logError(itemXml, g_str_error_resource_layout_item_must_contain_one_child);
@@ -4416,7 +4416,7 @@ namespace slib
 			ListLocker<SAppLayoutSplitItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				if (subItems.count > 2) {
-					params->sbDefineInit->add(String::format("%s%s->setItemsCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, subItems.count));
+					params->sbDefineInit->add(String::format("%s%s->setItemCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, subItems.count));
 				}
 				
 				for (sl_size i = 0; i < subItems.count; i++) {
@@ -4484,7 +4484,7 @@ namespace slib
 			if (subItems.count > 0) {
 				if (!flagOnLayout) {
 					if (subItems.count > 2) {
-						view->setItemsCount(subItems.count, UIUpdateMode::Init);
+						view->setItemCount(subItems.count, UIUpdateMode::Init);
 					}
 				}
 				for (sl_size i = 0; i < subItems.count; i++) {
@@ -4743,7 +4743,7 @@ namespace slib
 		
 		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
 		LAYOUT_CONTROL_GENERIC_ATTR(circular, setCircular)
-		LAYOUT_CONTROL_GENERIC_ATTR(linesCount, setLinesCount)
+		LAYOUT_CONTROL_GENERIC_ATTR(lineCount, setLineCount)
 
 		LAYOUT_CONTROL_SET_NATIVE_WIDGET
 		
@@ -4858,7 +4858,7 @@ namespace slib
 					SAppLayoutPagerItem subItem;
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					
-					sl_size nViews = itemXml->getChildElementsCount();
+					sl_size nViews = itemXml->getChildElementCount();
 					if (nViews > 0) {
 						if (nViews != 1) {
 							_logError(itemXml, g_str_error_resource_layout_item_must_contain_one_child);
@@ -5083,7 +5083,7 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 		
 		if (op == OP_PARSE) {
-			sl_size nChildren = element->getChildElementsCount();
+			sl_size nChildren = element->getChildElementCount();
 			if (nChildren > 0) {
 				if (nChildren != 1) {
 					_logError(element, g_str_error_resource_layout_refreshview_must_contain_one_child);
@@ -5100,7 +5100,7 @@ namespace slib
 		
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(itemsCount, setItemsCount)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(itemCount, setItemCount)
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(itemHeight, setItemHeight, checkScalarSize)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multipleSelection, setMultipleSelection)
 		LAYOUT_CONTROL_DRAWABLE_ATTR(itemBackground, setItemBackground)
@@ -5205,8 +5205,8 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 		
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(columns, setColumnsCount)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(rows, setRowsCount)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(columns, setColumnCount)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(rows, setRowCount)
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(columnWidth, setColumnWidth, checkScalarSize)
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(rowHeight, setRowHeight, checkScalarSize)
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(cellRatio, setCellRatio)

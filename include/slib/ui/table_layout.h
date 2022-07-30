@@ -49,9 +49,9 @@ namespace slib
 		~TableLayout();
 		
 	public:
-		sl_uint32 getColumnsCount();
+		sl_uint32 getColumnCount();
 		
-		void setColumnsCount(sl_uint32 nColumns, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setColumnCount(sl_uint32 nColumns, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		SizeMode getColumnWidthMode(sl_uint32 column);
 		
@@ -115,9 +115,9 @@ namespace slib
 
 		void setColumnAlignment(sl_uint32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		sl_uint32 getRowsCount();
+		sl_uint32 getRowCount();
 		
-		void setRowsCount(sl_uint32 nRows, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setRowCount(sl_uint32 nRows, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		SizeMode getRowHeightMode(sl_uint32 row);
 

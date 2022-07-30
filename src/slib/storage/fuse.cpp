@@ -87,9 +87,9 @@ namespace slib
 			}
 			
 #if defined(SLIB_PLATFORM_IS_APPLE)
-#	define TO_UNIX_TIME1(NAME, T) { sl_uint64 t = T.getMicrosecondsCount(); NAME##timespec.tv_sec = (time_t)(t / 1000000); NAME##timespec.tv_nsec = (long)((t % 1000000) * 1000); }
+#	define TO_UNIX_TIME1(NAME, T) { sl_uint64 t = T.getMicrosecondCount(); NAME##timespec.tv_sec = (time_t)(t / 1000000); NAME##timespec.tv_nsec = (long)((t % 1000000) * 1000); }
 #else
-#	define TO_UNIX_TIME1(NAME, T) { sl_uint64 t = T.getMicrosecondsCount(); NAME##tim.tv_sec = (time_t)(t / 1000000); NAME##tim.tv_nsec = (long)((t % 1000000) * 1000); }
+#	define TO_UNIX_TIME1(NAME, T) { sl_uint64 t = T.getMicrosecondCount(); NAME##tim.tv_sec = (time_t)(t / 1000000); NAME##tim.tv_nsec = (long)((t % 1000000) * 1000); }
 #endif
 #define TO_UNIX_TIME(st, info) \
 			TO_UNIX_TIME1((st).st_c, info.createdAt) \
@@ -332,7 +332,7 @@ namespace slib
 					return FUSE_ERROR_CODE(FileSystem::getLastError());
 				}
 
-				host->increaseOpenHandlesCount();
+				host->increaseOpenHandleCount();
 				context->increaseReference();
 				fi->fh = (sl_uint64)(sl_size)(context.get());
 
@@ -404,7 +404,7 @@ namespace slib
 
 				FileSystem::setLastError(FileSystemError::Success);
 				provider->closeFile(context);
-				host->decreaseOpenHandlesCount();
+				host->decreaseOpenHandleCount();
 				context->decreaseReference();
 				fi->fh = 0;
 				return FUSE_ERROR_CODE(FileSystem::getLastError());

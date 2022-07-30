@@ -501,7 +501,7 @@ namespace slib
 			} else if (m_clickedIconNo == ICON_RIGHT) {
 				if (getRightIconRegion().containsPoint(pt)) {
 					sl_uint32 index = selectedIndex;
-					if (index + 1 < itemsCount) {
+					if (index + 1 < itemCount) {
 						index++;
 						selectedIndex = index;
 						onSelectItem(index);

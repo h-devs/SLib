@@ -91,14 +91,14 @@ namespace slib
 		invalidateLayoutOfWrappingControl(updateMode);
 	}
 
-	sl_uint32 LabelView::getLinesCount()
+	sl_uint32 LabelView::getLineCount()
 	{
-		return m_cell->linesCount;
+		return m_cell->lineCount;
 	}
 
-	void LabelView::setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode)
+	void LabelView::setLineCount(sl_uint32 nLines, UIUpdateMode updateMode)
 	{
-		m_cell->linesCount = nLines;
+		m_cell->lineCount = nLines;
 		invalidateLayoutOfWrappingControl(updateMode);
 	}
 
@@ -242,7 +242,7 @@ namespace slib
 		flagHyperText = sl_false;
 		flagMnemonic = sl_true;
 		multiLineMode = MultiLineMode::Single;
-		linesCount = 0;
+		lineCount = 0;
 
 		textColor = Color::Black;
 		gravity = Alignment::Left;
@@ -301,7 +301,7 @@ namespace slib
 		param.flagMnemonic = flagMnemonic;
 		param.width = (sl_real)width;
 		param.multiLineMode = multiLineMode;
-		param.linesCount = linesCount;
+		param.lineCount = lineCount;
 		param.align = align;
 		param.ellipsizeMode = ellipsizeMode;
 		param.flagEnabledHyperlinksInPlainText = flagEnabledHyperlinksInPlainText;

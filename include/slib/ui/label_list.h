@@ -92,7 +92,7 @@ namespace slib
 		void initLabelList(VIEW* view);
 
 	public:
-		INDEX_TYPE itemsCount;
+		INDEX_TYPE itemCount;
 		Function<String(INDEX_TYPE index)> titleGetter;
 
 	};
@@ -120,9 +120,9 @@ public: \
 		SingleSelectionViewBase();
 
 	public:
-		INDEX_TYPE getItemsCount();
+		INDEX_TYPE getItemCount();
 
-		void setItemsCount(INDEX_TYPE n, UIUpdateMode  mode = UIUpdateMode::Redraw);
+		void setItemCount(INDEX_TYPE n, UIUpdateMode  mode = UIUpdateMode::Redraw);
 
 		INDEX_TYPE getSelectedIndex();
 

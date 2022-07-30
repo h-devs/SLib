@@ -838,7 +838,7 @@ namespace slib
 				sl_bool flagCount = sl_false;
 
 			public:
-				sl_uint32 getPagesCount()
+				sl_uint32 getPageCount()
 				{
 					if (flagCount) {
 						return count;
@@ -848,17 +848,17 @@ namespace slib
 					return count;
 				}
 
-				void increasePagesCount()
+				void increasePageCount()
 				{
-					sl_uint32 countNew = getPagesCount();
+					sl_uint32 countNew = getPageCount();
 					countNew++;
 					count = countNew;
 					attributes->put_NoLock(name::Count, countNew);
 				}
 
-				void decreasePagesCount()
+				void decreasePageCount()
 				{
-					sl_uint32 countNew = getPagesCount();
+					sl_uint32 countNew = getPageCount();
 					if (countNew) {
 						countNew--;
 						count = countNew;
@@ -1228,7 +1228,7 @@ namespace slib
 
 				Ref<PdfPage> getPage(PageTreeParent* parent, sl_uint32 index)
 				{
-					if (index >= parent->getPagesCount()) {
+					if (index >= parent->getPageCount()) {
 						return sl_null;
 					}
 					preparePageKids(parent);
@@ -1243,7 +1243,7 @@ namespace slib
 							n++;
 						} else {
 							PageTreeParent* pItem = (PageTreeParent*)(item.get());
-							sl_uint32 m = pItem->getPagesCount();
+							sl_uint32 m = pItem->getPageCount();
 							if (index < n + m) {
 								return getPage(pItem, index - n);
 							}
@@ -1330,7 +1330,7 @@ namespace slib
 					if (!tree) {
 						return sl_false;
 					}
-					if (index > tree->getPagesCount()) {
+					if (index > tree->getPageCount()) {
 						return sl_false;
 					}
 					sl_real pageWidth;
@@ -1354,7 +1354,7 @@ namespace slib
 					parent->insertKidAfter(this, page.get(), index ? pageNear.get() : sl_null);
 					Ref<PdfPageTreeItem>_parent;
 					do {
-						parent->increasePagesCount();
+						parent->increasePageCount();
 						setObject(parent->reference, parent->attributes);
 						_parent = parent->parent;
 						parent = (PageTreeParent*)(_parent.get());
@@ -1458,7 +1458,7 @@ namespace slib
 
 				sl_bool deletePage(PageTreeParent* parent, sl_uint32 pageNo)
 				{
-					if (pageNo >= parent->getPagesCount()) {
+					if (pageNo >= parent->getPageCount()) {
 						return sl_false;
 					}
 					preparePageKids(parent);
@@ -1470,7 +1470,7 @@ namespace slib
 							if (pageNo == n) {
 								Ref<PdfPage> page = Ref<PdfPage>::from(Move(item));
 								deleteObject(page->reference);
-								parent->decreasePagesCount();
+								parent->decreasePageCount();
 								parent->deleteKidAt((sl_uint32)i);
 								setObject(parent->reference, parent->attributes);
 								deletePageContent(page.get());
@@ -1479,10 +1479,10 @@ namespace slib
 							n++;
 						} else {
 							PageTreeParent* pItem = (PageTreeParent*)(item.get());
-							sl_uint32 m = pItem->getPagesCount();
+							sl_uint32 m = pItem->getPageCount();
 							if (pageNo < n + m) {
 								if (deletePage(pItem, pageNo - n)) {
-									parent->decreasePagesCount();
+									parent->decreasePageCount();
 									if (pItem->kids.isEmpty()) {
 										deleteObject(pItem->reference);
 										parent->deleteKidAt((sl_uint32)i);
@@ -3704,7 +3704,7 @@ namespace slib
 							return;
 						}
 						if (flagReplicateInitialPoint) {
-							sl_size nPoints = path->getPointsCount();
+							sl_size nPoints = path->getPointCount();
 							if (!nPoints) {
 								return;
 							}
@@ -3870,7 +3870,7 @@ namespace slib
 					if (operands.count != 2) {
 						return;
 					}
-					if (operands[0].getElementsCount()) {
+					if (operands[0].getElementCount()) {
 						SET_HANDLE_STATE(pen, style, PenStyle::Dash);
 					} else {
 						SET_HANDLE_STATE(pen, style, PenStyle::Solid);
@@ -3925,7 +3925,7 @@ namespace slib
 					}
 					{
 						SLIB_STATIC_STRING(fieldId, "D")
-						if (states->get(fieldId).getElementsCount()) {
+						if (states->get(fieldId).getElementCount()) {
 							SET_HANDLE_STATE(pen, style, PenStyle::Dash);
 						}
 					}
@@ -5694,7 +5694,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 PdfValue::getElementsCount() const noexcept
+	sl_uint32 PdfValue::getElementCount() const noexcept
 	{
 		if (getType() == PdfValueType::Array) {
 			return CAST_VAR(PdfArray*, m_var._value)->getCount();
@@ -6813,7 +6813,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_uint32 PdfColorSpace::getComponentsCount()
+	sl_uint32 PdfColorSpace::getComponentCount()
 	{
 		switch (type) {
 			case PdfColorSpaceType::RGB:
@@ -7335,7 +7335,7 @@ namespace slib
 							decodeMax[0] = arrayDecode->get(1).getUint();
 						}
 					} else {
-						sl_uint32 nColors = colorSpace.getComponentsCount();
+						sl_uint32 nColors = colorSpace.getComponentCount();
 						if (arrayDecode->getCount() >= nColors * 2) {
 							flagUseDecodeArray = sl_true;
 							for (sl_uint32 i = 0; i < nColors; i++) {
@@ -7558,7 +7558,7 @@ namespace slib
 			object = (Image*)ref;
 		} else {
 			if (colorSpace.type == PdfColorSpaceType::RGB || colorSpace.type == PdfColorSpaceType::Gray || colorSpace.type == PdfColorSpaceType::CMYK || colorSpace.type == PdfColorSpaceType::Indexed) {
-				sl_uint32 nColors = colorSpace.getComponentsCount();
+				sl_uint32 nColors = colorSpace.getComponentCount();
 				if (nColors) {
 					sl_uint8* data = (sl_uint8*)(content.getData());
 					sl_uint32 pitch = (nColors * bitsPerComponent * width + 7) >> 3;
@@ -7912,7 +7912,7 @@ namespace slib
 				if (!n) {
 					return sl_false;
 				}
-				if (n != colorSpace.getComponentsCount()) {
+				if (n != colorSpace.getComponentCount()) {
 					return sl_false;
 				}
 				functions = Array<PdfFunction>::create(n);
@@ -7931,7 +7931,7 @@ namespace slib
 				if (!(function.load(vFunction))) {
 					return sl_false;
 				}
-				if (function.countInput != 1 || function.countOutput != colorSpace.getComponentsCount()) {
+				if (function.countInput != 1 || function.countOutput != colorSpace.getComponentCount()) {
 					return sl_false;
 				}
 			}
@@ -7944,7 +7944,7 @@ namespace slib
 
 	sl_bool PdfShadingResource::getColor(float t, Color& _out)
 	{
-		sl_uint32 n = colorSpace.getComponentsCount();
+		sl_uint32 n = colorSpace.getComponentCount();
 		if (n > 4) {
 			n = 4;
 		}
@@ -8754,13 +8754,13 @@ namespace slib
 		return context->deleteObject(ref);
 	}
 
-	sl_uint32 PdfDocument::getPagesCount()
+	sl_uint32 PdfDocument::getPageCount()
 	{
 		Context* context = GetContext(m_context);
 		ObjectLocker lock(context);
 		PageTreeParent* tree = context->getPageTree();
 		if (tree) {
-			return tree->getPagesCount();
+			return tree->getPageCount();
 		} else {
 			return 0;
 		}
@@ -8775,7 +8775,7 @@ namespace slib
 
 	sl_bool PdfDocument::addJpegImagePage(sl_uint32 width, sl_uint32 height, const Memory& jpeg)
 	{
-		return insertJpegImagePage(getPagesCount(), width, height, jpeg);
+		return insertJpegImagePage(getPageCount(), width, height, jpeg);
 	}
 
 	sl_bool PdfDocument::insertJpegImagePage(sl_uint32 index, sl_uint32 width, sl_uint32 height, const Memory& jpeg)

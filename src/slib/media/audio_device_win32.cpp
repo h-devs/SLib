@@ -77,7 +77,7 @@ namespace slib
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 				{
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 					
@@ -115,7 +115,7 @@ namespace slib
 					
 					WAVEFORMATEX wf;
 					wf.wFormatTag = WAVE_FORMAT_PCM;
-					wf.nChannels = param.channelsCount;
+					wf.nChannels = param.channelCount;
 					wf.wBitsPerSample = 16;
 					wf.nSamplesPerSec = param.samplesPerSecond;
 					wf.nBlockAlign = (wf.wBitsPerSample * wf.nChannels) >> 3;
@@ -124,7 +124,7 @@ namespace slib
 					
 					sl_uint32 samplesPerFrame = param.getSamplesPerFrame();
 					sl_uint32 sizeBuffer = samplesPerFrame * wf.nBlockAlign * 2;
-					samplesPerFrame *= param.channelsCount;
+					samplesPerFrame *= param.channelCount;
 					DSCBUFFERDESC desc;
 					desc.dwSize = sizeof(desc);
 					desc.dwBufferBytes = sizeBuffer;
@@ -470,13 +470,13 @@ namespace slib
 			public:
 				static Ref<AudioPlayerImpl> create(const Ref<AudioPlayerDeviceImpl>& device, const AudioPlayerParam& param)
 				{
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 
 					WAVEFORMATEX wf;
 					wf.wFormatTag = WAVE_FORMAT_PCM;
-					wf.nChannels = param.channelsCount;
+					wf.nChannels = param.channelCount;
 					wf.wBitsPerSample = 16;
 					wf.nSamplesPerSec = param.samplesPerSecond;
 					wf.nBlockAlign = wf.wBitsPerSample * wf.nChannels / 8;

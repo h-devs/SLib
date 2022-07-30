@@ -155,13 +155,13 @@ namespace slib
 	{
 	}
 
-	sl_uint32 TableLayout::getColumnsCount()
+	sl_uint32 TableLayout::getColumnCount()
 	{
 		ObjectLocker lock(this);
 		return (sl_uint32)(m_columns.getCount());
 	}
 
-	void TableLayout::setColumnsCount(sl_uint32 nColumns, UIUpdateMode mode)
+	void TableLayout::setColumnCount(sl_uint32 nColumns, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		sl_uint32 nColumnsOld = (sl_uint32)(m_columns.getCount());
@@ -537,13 +537,13 @@ namespace slib
 		}
 	}
 
-	sl_uint32 TableLayout::getRowsCount()
+	sl_uint32 TableLayout::getRowCount()
 	{
 		ObjectLocker lock(this);
 		return (sl_uint32)(m_rows.getCount());
 	}
 	
-	void TableLayout::setRowsCount(sl_uint32 nRows, UIUpdateMode mode)
+	void TableLayout::setRowCount(sl_uint32 nRows, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		sl_uint32 nRowsOld = (sl_uint32)(m_rows.getCount());

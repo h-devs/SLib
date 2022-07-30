@@ -161,7 +161,7 @@ namespace slib
 
 		String getInnerXml() const;
 	
-		sl_size getChildrenCount() const;
+		sl_size getChildCount() const;
 
 		Ref<XmlNode> getChild(sl_size index) const;
 
@@ -177,7 +177,7 @@ namespace slib
 
 		List< Ref<XmlElement> > getChildElements() const;
 
-		sl_size getChildElementsCount() const;
+		sl_size getChildElementCount() const;
 
 		List< Ref<XmlElement> > getChildElements(const StringView& tagName) const;
 
@@ -264,7 +264,7 @@ namespace slib
 
 		sl_bool setName(const String& name, const String& uri, const String& localName);
 
-		sl_size getAttributesCount() const;
+		sl_size getAttributeCount() const;
 
 		sl_bool getAttribute(sl_size index, XmlAttribute* _out = sl_null) const;
 

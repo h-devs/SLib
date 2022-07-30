@@ -686,7 +686,7 @@ namespace slib
 		HashMap<String, String> params;
 		params.add_NoLock("access_token", payload.accessToken);
 		params.add_NoLock("token_type", "Bearer");
-		sl_int64 exp = (payload.accessTokenExpirationTime - Time::now()).getSecondsCount();
+		sl_int64 exp = (payload.accessTokenExpirationTime - Time::now()).getSecondCount();
 		if (exp < 0) {
 			exp = 0;
 		}

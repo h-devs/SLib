@@ -523,12 +523,12 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 FreeType::getFacesCount()
+	sl_uint32 FreeType::getFaceCount()
 	{
 		return (sl_uint32)(m_face->num_faces);
 	}
 
-	sl_uint32 FreeType::getNamedInstancesCount()
+	sl_uint32 FreeType::getNamedInstanceCount()
 	{
 		return (sl_uint32)(m_face->style_flags >> 16);
 	}
@@ -559,7 +559,7 @@ namespace slib
 		return (m_face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 	}
 
-	sl_uint32 FreeType::getGlyphsCount()
+	sl_uint32 FreeType::getGlyphCount()
 	{
 		return (sl_uint32)(m_face->num_glyphs);
 	}

@@ -151,7 +151,7 @@ namespace slib
 							JUserNotificationMessage::priority.set(jmsg.get(), (jint)(message.priority));
 
 							if (message.deliveryTime.isNotZero()) {
-								JUserNotificationMessage::deliveryTime.set(jmsg.get(), (jlong)(message.deliveryTime.getMillisecondsCount()));
+								JUserNotificationMessage::deliveryTime.set(jmsg.get(), (jlong)(message.deliveryTime.getMillisecondCount()));
 							}
 							if (message.deliveryInterval > 0.5) {
 								JUserNotificationMessage::deliveryInterval.set(jmsg.get(), (jdouble)(message.deliveryInterval));

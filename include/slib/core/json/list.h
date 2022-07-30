@@ -58,7 +58,7 @@ namespace slib
 				} else {
 					Ref<Collection> src = json.getCollection();
 					if (src.isNotNull()) {
-						sl_size n = (sl_size)(src->getElementsCount());
+						sl_size n = (sl_size)(src->getElementCount());
 						if (n) {
 							if (ListHelper<LIST>::create(_out, n)) {
 								auto dst = ListHelper<LIST>::getData(_out);

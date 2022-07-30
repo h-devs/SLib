@@ -199,9 +199,9 @@ namespace slib
 		void* random; // 32 bytes
 		sl_uint8 sessionIdLength;
 		void* sessionId;
-		sl_uint16 cipherSuitesCount;
+		sl_uint16 cipherSuiteCount;
 		sl_uint16* cipherSuites;
-		sl_uint8 compressionMethodsCount;
+		sl_uint8 compressionMethodCount;
 		sl_uint8* compressionMethods;
 		sl_uint16 extentionsSize;
 		List<TlsExtension> extensions;

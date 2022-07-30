@@ -223,11 +223,11 @@ namespace slib
 
 		sl_bool run(const FileSystemHostParam& param);
 
-		sl_size getOpenedHandlesCount();
+		sl_size getOpenedHandleCount();
 
-		sl_size increaseOpenHandlesCount();
+		sl_size increaseOpenHandleCount();
 
-		sl_size decreaseOpenHandlesCount();
+		sl_size decreaseOpenHandleCount();
 
 		virtual String getErrorMessage() = 0;
 

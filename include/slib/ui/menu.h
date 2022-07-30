@@ -136,7 +136,7 @@ namespace slib
 		
 		static Ref<Menu> createPopup();
 		
-		sl_uint32 getMenuItemsCount() const;
+		sl_uint32 getMenuItemCount() const;
 		
 		Ref<MenuItem> getMenuItem(sl_uint32 index) const;
 		

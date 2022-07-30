@@ -1092,7 +1092,7 @@ namespace slib
 				static sl_bool createConstantBuffers(ID3DDevice* device, RenderProgram* program, List<ConstantBuffer>& buffersVS, List<ID3DBuffer*>& handlesVS, List<ConstantBuffer>& buffersPS, List<ID3DBuffer*>& handlesPS)
 				{
 					{
-						sl_uint32 n = program->getVertexShaderConstantBuffersCount();
+						sl_uint32 n = program->getVertexShaderConstantBufferCount();
 						if (!n) {
 							return sl_false;
 						}
@@ -1111,7 +1111,7 @@ namespace slib
 						}
 					}
 					{
-						sl_uint32 n = program->getPixelShaderConstantBuffersCount();
+						sl_uint32 n = program->getPixelShaderConstantBufferCount();
 						if (!n) {
 							return sl_false;
 						}

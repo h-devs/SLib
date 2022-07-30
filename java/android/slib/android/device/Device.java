@@ -57,7 +57,7 @@ public class Device {
 	private static final int MAX_SIM_SLOT_COUNT = 8;
 
 	@SuppressLint("MissingPermission")
-	public static int getSimSlotsCount(Context context) {
+	public static int getSimSlotCount(Context context) {
 		try {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 				TelephonyManager tm = (TelephonyManager) (context.getSystemService(Context.TELEPHONY_SERVICE));

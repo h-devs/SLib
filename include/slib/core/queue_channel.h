@@ -48,12 +48,12 @@ namespace slib
 			m_channelCurrent = 0;
 		}
 	
-		sl_size getChannelsCount() noexcept
+		sl_size getChannelCount() noexcept
 		{
 			return m_arr.getCount();
 		}
 	
-		sl_bool setChannelsCount(sl_size n) noexcept
+		sl_bool setChannelCount(sl_size n) noexcept
 		{
 			Array<Channel> arr = Array<Channel>::create(n);
 			if (arr.isNotNull()) {
@@ -64,7 +64,7 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_size getAllItemsCount() const noexcept
+		sl_size getAllItemCount() const noexcept
 		{
 			sl_size count = 0;
 			ArrayData<Channel> info;

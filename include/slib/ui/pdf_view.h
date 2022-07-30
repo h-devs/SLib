@@ -57,7 +57,7 @@ namespace slib
 
 		Ref<PdfDocument> getDocument();
 
-		sl_uint32 getPagesCount();
+		sl_uint32 getPageCount();
 
 		sl_uint32 getCurrentPage();
 

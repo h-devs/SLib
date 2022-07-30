@@ -64,17 +64,17 @@ namespace slib
 			class ListControlHelper : public ListControl
 			{
 			public:
-				static sl_uint32 getColumnsCountFromListView(GtkTreeView* handle)
+				static sl_uint32 getColumnCountFromListView(GtkTreeView* handle)
 				{
 					GList* _list = gtk_tree_view_get_columns(handle);
 					return g_list_length(_list);
 				}
 
-				void applyColumnsCount(GtkTreeView* handle)
+				void applyColumnCount(GtkTreeView* handle)
 				{
 					ObjectLocker lock(this);
 					sl_uint32 nNew = (sl_uint32)(m_columns.getCount());
-					sl_uint32 nOrig = getColumnsCountFromListView(handle);
+					sl_uint32 nOrig = getColumnCountFromListView(handle);
 
 					if (nOrig == nNew) {
 						return;
@@ -95,7 +95,7 @@ namespace slib
 
 				void copyColumns(GtkTreeView* handle)
 				{
-					applyColumnsCount(handle);
+					applyColumnCount(handle);
 					ListLocker<ListControlColumn> columns(m_columns);
 					for (sl_size i = 0; i < columns.count; i++) {
 						ListControlColumn& column = columns[i];
@@ -113,7 +113,7 @@ namespace slib
 					}
 				}
 
-				void applyRowsCount(GtkTreeView* handle)
+				void applyRowCount(GtkTreeView* handle)
 				{
 					GtkTreeModel *model = gtk_tree_view_get_model(handle);
 					gtk_tree_view_set_model(handle, sl_null);
@@ -222,7 +222,7 @@ namespace slib
 			static gint list_control_model_get_n_columns(GtkTreeModel* model)
 			{
 				ListControlHelper* helper = GetModelView(model);
-				return helper->getColumnsCount();
+				return helper->getColumnCount();
 			}
 
 			static GType list_control_model_get_column_type(GtkTreeModel* model, gint  index)
@@ -322,26 +322,26 @@ namespace slib
 						gtk_tree_view_set_vadjustment(handle, vadjustment);
 						view->copyColumns(handle);
 						view->setupModel(handle);
-						refreshRowsCount(view);
+						refreshRowCount(view);
 
 						g_signal_connect((GtkWidget*)selection, "changed", G_CALLBACK(_callback_selection_changed), handleScrollWindow);
 						g_signal_connect((GtkWidget*)handle, "button-press-event", G_CALLBACK(_callback_button_press_event), handleScrollWindow);
 					}
 				}
 
-				void refreshColumnsCount(ListControl* view) override
+				void refreshColumnCount(ListControl* view) override
 				{
 					GtkTreeView* handle = getHandle();
 					if (handle) {
-						(static_cast<ListControlHelper*>(view))->applyColumnsCount(handle);
+						(static_cast<ListControlHelper*>(view))->applyColumnCount(handle);
 					}
 				}
 				
-				void refreshRowsCount(ListControl* view) override
+				void refreshRowCount(ListControl* view) override
 				{
 					GtkTreeView* handle = getHandle();
 					if (handle) {
-						(static_cast<ListControlHelper*>(view))->applyRowsCount(handle);
+						(static_cast<ListControlHelper*>(view))->applyRowCount(handle);
 					}
 				}
 				

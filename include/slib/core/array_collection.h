@@ -40,7 +40,7 @@ namespace slib
 		ArrayCollection(CArray<T>* array) : m_array(array) {}
 
 	public:
-		sl_uint64 getElementsCount() override
+		sl_uint64 getElementCount() override
 		{
 			return m_array->getCount();
 		}

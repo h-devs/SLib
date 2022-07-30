@@ -110,7 +110,7 @@ namespace slib
 					}
 					Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
 					Time t;
-					t.setMillisecondsCount(GetMessageTime());
+					t.setMillisecondCount(GetMessageTime());
 					Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
 					if (ev.isNotNull()) {
 						UIPlatform::applyEventModifiers(ev.get());
@@ -133,7 +133,7 @@ namespace slib
 						}
 					}
 					Time t;
-					t.setMillisecondsCount(GetMessageTime());
+					t.setMillisecondCount(GetMessageTime());
 					sl_uint32 buttons = raw.data.mouse.usButtonFlags;
 					if ((buttons & RI_MOUSE_WHEEL) || (buttons & 0x0800 /*RI_MOUSE_HWHEEL*/)) {
 						sl_real dx = 0;

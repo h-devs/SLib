@@ -80,16 +80,16 @@ namespace slib
 		if (cipherSuitesSize & 1) {
 			return -1;
 		}
-		cipherSuitesCount = cipherSuitesSize >> 1;
+		cipherSuiteCount = cipherSuitesSize >> 1;
 		cipherSuites = (sl_uint16*)(buf.current);
 		if (!(buf.skip(cipherSuitesSize))) {
 			return 0;
 		}
-		if (!(buf.readUint8(compressionMethodsCount))) {
+		if (!(buf.readUint8(compressionMethodCount))) {
 			return 0;
 		}
 		compressionMethods = buf.current;
-		if (!(buf.skip(compressionMethodsCount))) {
+		if (!(buf.skip(compressionMethodCount))) {
 			return 0;
 		}
 		if (buf.current == buf.end) {

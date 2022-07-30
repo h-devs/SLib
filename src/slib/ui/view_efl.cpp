@@ -425,7 +425,7 @@ namespace slib
 		}
 
 		Time t;
-		t.setMillisecondsCount(timestamp);
+		t.setMillisecondCount(timestamp);
 		Ref<UIEvent> ev = UIEvent::createTouchEvent(action, m_touchEventInfo->getPoints(), t);
 		if (ev.isNotNull()) {
 			onTouchEvent(ev.get());

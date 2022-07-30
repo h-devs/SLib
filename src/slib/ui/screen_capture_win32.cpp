@@ -175,17 +175,17 @@ namespace slib
 				return context.list;
 			}
 
-			static BOOL CALLBACK EnumDisplayMonitorsCallbackForGetScreensCount(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+			static BOOL CALLBACK EnumDisplayMonitorsCallbackForGetScreenCount(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
 			{
 				sl_uint32 *count = (sl_uint32*)lParam;
 				(*count)++;
 				return TRUE;
 			}
 
-			static sl_uint32 GetScreensCount()
+			static sl_uint32 GetScreenCount()
 			{
 				sl_uint32 count = 0;
-				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForGetScreensCount, (LPARAM)&count);
+				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForGetScreenCount, (LPARAM)&count);
 				return count;
 			}
 
@@ -220,9 +220,9 @@ namespace slib
 		return CaptureScreens();
 	}
 
-	sl_uint32 ScreenCapture::getScreensCount()
+	sl_uint32 ScreenCapture::getScreenCount()
 	{
-		return GetScreensCount();
+		return GetScreenCount();
 	}
 
 }

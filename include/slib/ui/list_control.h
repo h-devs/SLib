@@ -69,13 +69,13 @@ namespace slib
 		~ListControl();
 
 	public:
-		sl_uint32 getColumnsCount();
+		sl_uint32 getColumnCount();
 		
-		virtual void setColumnsCount(sl_uint32 nCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setColumnCount(sl_uint32 nCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		sl_uint32 getRowsCount();
+		sl_uint32 getRowCount();
 		
-		virtual void setRowsCount(sl_uint32 nCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setRowCount(sl_uint32 nCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		virtual String getItemText(sl_uint32 row, sl_uint32 col);
 		
@@ -129,9 +129,9 @@ namespace slib
 	class IListControlInstance
 	{
 	public:
-		virtual void refreshColumnsCount(ListControl* view) = 0;
+		virtual void refreshColumnCount(ListControl* view) = 0;
 		
-		virtual void refreshRowsCount(ListControl* view) = 0;
+		virtual void refreshRowCount(ListControl* view) = 0;
 		
 		virtual void setHeaderText(ListControl* view, sl_uint32 col, const String& text) = 0;
 		

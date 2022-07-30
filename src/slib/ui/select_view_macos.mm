@@ -59,7 +59,7 @@ namespace slib
 				void refreshItems(NSPopUpButton* v)
 				{
 					[v removeAllItems];
-					sl_uint32 n = (sl_uint32)(getItemsCount());
+					sl_uint32 n = (sl_uint32)(getItemCount());
 					for (sl_uint32 i = 0; i < n; i++) {
 						[v addItemWithTitle:@"____dummy____"];
 						NSMenuItem* item = [v lastItem];

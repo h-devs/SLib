@@ -75,7 +75,7 @@ namespace slib
 					}
 
 					Ref<AsyncStreamRequest> request = Move(m_requestReading);
-					sl_size nQueue = getReadRequestsCount();
+					sl_size nQueue = getReadRequestCount();
 
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {
@@ -125,7 +125,7 @@ namespace slib
 					}
 
 					Ref<AsyncStreamRequest> request = Move(m_requestWriting);
-					sl_size nQueue = getWriteRequestsCount();
+					sl_size nQueue = getWriteRequestCount();
 
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {

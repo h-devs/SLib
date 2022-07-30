@@ -252,7 +252,7 @@ namespace slib
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 				{
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 
@@ -264,7 +264,7 @@ namespace slib
 					snd_pcm_t* handle;
 					if (snd_pcm_open(&handle, deviceId.getData(), SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) >= 0) {
 						sl_uint32 nFramesPerPeriod = param.getSamplesPerFrame();
-						if (SetParameters(handle, param.channelsCount, param.samplesPerSecond, nFramesPerPeriod)) {
+						if (SetParameters(handle, param.channelCount, param.samplesPerSecond, nFramesPerPeriod)) {
 							Ref<AudioRecorderImpl> ret = new AudioRecorderImpl;
 							if (ret.isNotNull()) {
 								ret->m_handle = handle;
@@ -398,7 +398,7 @@ namespace slib
 			public:
 				static Ref<AudioPlayerImpl> create(const StringParam& _deviceId, const AudioPlayerParam& param)
 				{
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 
@@ -410,7 +410,7 @@ namespace slib
 					snd_pcm_t* handle;
 					if (snd_pcm_open(&handle, deviceId.getData(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) >= 0) {
 						sl_uint32 nFramesPerPeriod = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000;
-						if (SetParameters(handle, param.channelsCount, param.samplesPerSecond, nFramesPerPeriod)) {
+						if (SetParameters(handle, param.channelCount, param.samplesPerSecond, nFramesPerPeriod)) {
 							Ref<AudioPlayerImpl> ret = new AudioPlayerImpl;
 							if (ret.isNotNull()) {
 								ret->m_handle = handle;

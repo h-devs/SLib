@@ -83,8 +83,8 @@ void MainPage::onResume()
 	switchSystemOverlay->setValue(Application::isSystemOverlayEnabled());
 
 	Application::grantPermissions(AppPermissions::ReadPhoneState, [this]() {
-		sl_uint32 nSIM = Device::getSimSlotsCount();
-		selectSIM->setItemsCount(1 + nSIM);
+		sl_uint32 nSIM = Device::getSimSlotCount();
+		selectSIM->setItemCount(1 + nSIM);
 		for (sl_uint32 i = 0; i < nSIM; i++) {
 			String phoneNumber = Device::getPhoneNumber(i);
 			if (phoneNumber.isNotEmpty()) {
@@ -167,7 +167,7 @@ void MainPage::stopRecording()
 			AudioPlayerParam param;
 			param.samplesPerSecond = SAMPLE_PER_SECOND;
 			param.onPlayAudio = [this](AudioPlayer* player, sl_uint32 nSamples) {
-				if (player->getSamplesCountInQueue()) {
+				if (player->getSampleCountInQueue()) {
 					m_nSamplesPlayed += nSamples;
 				} else {
 					btnStop->dispatchClick();

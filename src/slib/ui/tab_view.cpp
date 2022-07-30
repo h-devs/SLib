@@ -85,16 +85,16 @@ namespace slib
 	{
 	}
 
-	sl_uint32 TabView::getTabsCount()
+	sl_uint32 TabView::getTabCount()
 	{
 		return (sl_uint32)(m_items.getCount());
 	}
 	
-	void TabView::setTabsCount(sl_uint32 nNew, UIUpdateMode mode)
+	void TabView::setTabCount(sl_uint32 nNew, UIUpdateMode mode)
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setTabsCount, nNew, mode)
+			SLIB_VIEW_RUN_ON_UI_THREAD(setTabCount, nNew, mode)
 		}
 		ObjectLocker lock(this);
 		ListLocker<TabViewItem> items(m_items);
@@ -116,7 +116,7 @@ namespace slib
 		}
 		m_items.setCount(nNew);
 		if (instance.isNotNull()) {
-			instance->refreshTabsCount(this);
+			instance->refreshTabCount(this);
 		}
 		selectTab(m_indexSelected, UIUpdateMode::None);
 		invalidate(mode);

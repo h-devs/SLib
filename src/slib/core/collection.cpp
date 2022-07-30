@@ -39,7 +39,7 @@ namespace slib
 	{
 	}
 
-	sl_uint64 Collection::getElementsCount()
+	sl_uint64 Collection::getElementCount()
 	{
 		return 0;
 	}
@@ -70,7 +70,7 @@ namespace slib
 
 	sl_bool Collection::toJsonString(StringBuffer& buf)
 	{
-		sl_uint64 n = getElementsCount();
+		sl_uint64 n = getElementCount();
 		if (!(buf.addStatic("["))) {
 			return sl_false;
 		}
@@ -96,7 +96,7 @@ namespace slib
 		if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Collection)))) {
 			return sl_false;
 		}
-		sl_uint64 n = getElementsCount();
+		sl_uint64 n = getElementCount();
 		if (!(CVLI::serialize(&buf, n))) {
 			return sl_false;
 		}

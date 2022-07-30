@@ -61,7 +61,7 @@ namespace slib
 		}
 	}
 
-	sl_size ViewPageNavigationController::getPagesCount()
+	sl_size ViewPageNavigationController::getPageCount()
 	{
 		return m_pages.getCount();
 	}

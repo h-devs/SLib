@@ -38,9 +38,9 @@ namespace slib
 		~ListBox();
 
 	public:
-		sl_uint64 getItemsCount();
+		sl_uint64 getItemCount();
 
-		virtual void setItemsCount(sl_uint64 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setItemCount(sl_uint64 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getItemHeight();
 

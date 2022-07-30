@@ -43,14 +43,14 @@ namespace slib
 		static Ref<ThreadPool> create(sl_uint32 minThreads = 0, sl_uint32 maxThreads = 30);
 	
 	public:
-		sl_uint32 getMinimumThreadsCount();
+		sl_uint32 getMinimumThreadCount();
 
-		void setMinimumThreadsCount(sl_uint32 n);
+		void setMinimumThreadCount(sl_uint32 n);
 
 		
-		sl_uint32 getMaximumThreadsCount();
+		sl_uint32 getMaximumThreadCount();
 
-		void setMaximumThreadsCount(sl_uint32 n);
+		void setMaximumThreadCount(sl_uint32 n);
 
 		
 		sl_uint32 getThreadStackSize();
@@ -62,7 +62,7 @@ namespace slib
 
 		sl_bool isRunning();
 
-		sl_uint32 getThreadsCount();
+		sl_uint32 getThreadCount();
 	
 		sl_bool addTask(const Function<void()>& task);
 
@@ -76,8 +76,8 @@ namespace slib
 		LinkedQueue< Ref<Thread> > m_threadSleeping;
 		LinkedQueue< Function<void()> > m_tasks;
 
-		sl_uint32 m_minimumThreadsCount;
-		sl_uint32 m_maximumThreadsCount;
+		sl_uint32 m_minimumThreadCount;
+		sl_uint32 m_maximumThreadCount;
 		sl_uint32 m_threadStackSize;
 
 		sl_bool m_flagRunning;

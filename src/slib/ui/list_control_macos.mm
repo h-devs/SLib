@@ -78,7 +78,7 @@ namespace slib
 			class ListControlHelper : public ListControl
 			{
 			public:
-				void applyColumnsCount(SLIBListControlHandle* tv)
+				void applyColumnCount(SLIBListControlHandle* tv)
 				{
 					ObjectLocker lock(this);
 					CList<NSTableColumn*>& _columns = tv->m_columns;
@@ -108,7 +108,7 @@ namespace slib
 				{
 					ObjectLocker lock(this);
 					ListLocker<ListControlColumn> columns(m_columns);
-					applyColumnsCount(tv);
+					applyColumnCount(tv);
 					for (sl_uint32 i = 0; i < columns.count; i++) {
 						NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
 						if (tc != nil) {
@@ -175,16 +175,16 @@ namespace slib
 					[handle->table reloadData];
 				}
 				
-				void refreshColumnsCount(ListControl* view) override
+				void refreshColumnCount(ListControl* view) override
 				{
 					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
-						static_cast<ListControlHelper*>(view)->applyColumnsCount(handle);
+						static_cast<ListControlHelper*>(view)->applyColumnCount(handle);
 						[handle->table reloadData];
 					}
 				}
 				
-				void refreshRowsCount(ListControl* view) override
+				void refreshRowCount(ListControl* view) override
 				{
 					SLIBListControlHandle* handle = getHandle();
 					if (handle != nil) {
@@ -348,7 +348,7 @@ using namespace slib::priv::list_control;
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView{
 	Ref<ListControlHelper> helper = [self getHelper];
 	if (helper.isNotNull()) {
-		return helper->getRowsCount();
+		return helper->getRowCount();
 	}
 	return 0;
 }

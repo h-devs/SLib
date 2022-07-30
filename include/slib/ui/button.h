@@ -55,9 +55,9 @@ namespace slib
 
 		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
-		sl_uint32 getLinesCount();
+		sl_uint32 getLineCount();
 
-		void setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+		void setLineCount(sl_uint32 nLines, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isMnemonic();
 
@@ -85,7 +85,7 @@ namespace slib
 
 		void setCategories(const Array<ButtonCategory>& categories);
 
-		sl_uint32 getCategoriesCount();
+		sl_uint32 getCategoryCount();
 
 		sl_uint32 getCurrentCategory();
 		

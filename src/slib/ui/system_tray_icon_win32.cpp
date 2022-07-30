@@ -394,7 +394,7 @@ namespace slib
 						return;
 					}
 					Time t;
-					t.setMillisecondsCount(GetMessageTime());
+					t.setMillisecondCount(GetMessageTime());
 					Ref<UIEvent> ev;
 					if (action == UIAction::KeyDown) {
 						ev = UIEvent::createKeyEvent(action, Keycode::Enter, 0, t);

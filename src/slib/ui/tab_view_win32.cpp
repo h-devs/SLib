@@ -43,7 +43,7 @@ namespace slib
 			class TabViewHelper : public TabView
 			{
 			public:
-				void applyTabsCount(HWND hWnd)
+				void applyTabCount(HWND hWnd)
 				{
 					ObjectLocker lock(this);
 					sl_uint32 nOrig = (sl_uint32)(SendMessageW(hWnd, TCM_GETITEMCOUNT, 0, 0));
@@ -70,7 +70,7 @@ namespace slib
 
 				void copyTabs(ViewInstance* instance, HWND hWnd)
 				{
-					applyTabsCount(hWnd);
+					applyTabCount(hWnd);
 					ListLocker<TabViewItem> items(m_items);
 					for (sl_size i = 0; i < items.count; i++) {
 						TCITEMW tci;
@@ -154,11 +154,11 @@ namespace slib
 					view->copyTabs(this, handle);
 				}
 
-				void refreshTabsCount(TabView* view) override
+				void refreshTabCount(TabView* view) override
 				{
 					HWND handle = m_handle;
 					if (handle) {
-						(static_cast<TabViewHelper*>(view))->applyTabsCount(handle);
+						(static_cast<TabViewHelper*>(view))->applyTabCount(handle);
 					}
 				}
 

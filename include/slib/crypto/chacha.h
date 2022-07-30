@@ -197,19 +197,19 @@ namespace slib
 	public:
 		// outHeader: `HeaderSize` bytes
 		void create(void* outHeader, const void* password, sl_size lenPassword) noexcept;
-		void create(void* outHeader, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCount) noexcept;
+		void create(void* outHeader, const void* password, sl_size lenPassword, sl_uint32 iterationBitCount) noexcept;
 
 		// header: `HeaderSize` bytes
 		sl_bool open(const void* header, const void* password, sl_size lenPassword) noexcept;
-		sl_bool open(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept;
+		sl_bool open(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept;
 
 		// header: `HeaderSize` bytes
 		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword) noexcept;
-		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept;
+		static sl_bool checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept;
 
 		// header: `HeaderSize` bytes
 		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword) noexcept;
-		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitsCountLimit) noexcept;
+		static sl_bool changePassword(void* header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitCountLimit) noexcept;
 
 	};
 

@@ -310,7 +310,7 @@ namespace slib
 		Alignment align;
 		MultiLineMode multiLineMode;
 		EllipsizeMode ellipsisMode;
-		sl_uint32 linesCount;
+		sl_uint32 lineCount;
 
 	public:
 		TextParagraphLayoutParam() noexcept;
@@ -395,7 +395,7 @@ namespace slib
 		sl_real width;
 		MultiLineMode multiLineMode;
 		EllipsizeMode ellipsizeMode;
-		sl_uint32 linesCount;
+		sl_uint32 lineCount;
 		Alignment align;
 		sl_bool flagEnabledHyperlinksInPlainText;
 		
@@ -458,7 +458,7 @@ namespace slib
 		sl_bool m_flagHyperText;
 		MultiLineMode m_multiLineMode;
 		EllipsizeMode m_ellipsisMode;
-		sl_uint32 m_linesCount;
+		sl_uint32 m_lineCount;
 		Alignment m_alignHorizontal;
 		Alignment m_alignVertical;
 		sl_real m_width;

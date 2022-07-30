@@ -17,7 +17,7 @@ void PayPage::onOpen()
 	btnOrder->setOnClick([this, thiz](View*) {
 		// Note: This section should be implemented on server-side. Here, added for testing purpose
 		WeChatCreateOrderParam param;
-		param.orderId = "Test" + String::fromUint64(Time::now().getMillisecondsCount());
+		param.orderId = "Test" + String::fromUint64(Time::now().getMillisecondCount());
 		param.amount = (sl_uint64)(txtAmount->getText().parseDouble() * 100);
 		param.body = "Test Payment";
 		param.apiKey = WECHAT_PAY_API_KEY;

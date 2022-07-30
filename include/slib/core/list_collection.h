@@ -40,7 +40,7 @@ namespace slib
 		ListCollection(CList<T>* list): m_list(list) {}
 
 	public:
-		sl_uint64 getElementsCount() override
+		sl_uint64 getElementCount() override
 		{
 			return m_list->getCount();
 		}

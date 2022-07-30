@@ -80,7 +80,7 @@ namespace slib
 				{
 					Ref<ListView> lv = m_listView;
 					if (lv.isNotNull()) {
-						if (!(lv->getChildrenCount())) {
+						if (!(lv->getChildCount())) {
 							lv->_layoutItemViews(ListView::LayoutCaller::Draw, sl_false);
 						}
 					}
@@ -275,7 +275,7 @@ namespace slib
 	{
 		if (adapter) {
 			View* parent = this;
-			sl_uint64 nTotal = adapter->getItemsCount();
+			sl_uint64 nTotal = adapter->getItemCount();
 			sl_uint32 i;
 			if (nTotal <= MAX_ITEMS_SAVE_HEIGHTS) {
 				for (i = 0; i < nTotal; i++) {
@@ -540,14 +540,14 @@ namespace slib
 				}
 				sl_ui_pos windowEnd = scrollY + heightListView + heightListView / 2;
 				
-				sl_uint32 nMaxItemsPerPage = adapter->getMaximumItemsCountPerPage(this);
+				sl_uint32 nMaxItemsPerPage = adapter->getMaximumItemCountPerPage(this);
 				if (nMaxItemsPerPage > MAX_ITEMS_PER_PAGE) {
 					nMaxItemsPerPage = MAX_ITEMS_PER_PAGE;
 				}
 
 				if (flagRefresh) {
 					
-					countTotalItems = adapter->getItemsCount();
+					countTotalItems = adapter->getItemCount();
 					
 					flagClearAll = sl_true;
 					

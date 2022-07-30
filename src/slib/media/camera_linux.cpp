@@ -465,7 +465,7 @@ namespace slib
 					if (frame.image.width && frame.image.height) {
 						frame.image.format = m_bitmapFormat;
 						frame.image.data = pData;
-						if (BitmapFormats::getPlanesCount(m_bitmapFormat) == 1) {
+						if (BitmapFormats::getPlaneCount(m_bitmapFormat) == 1) {
 							frame.image.pitch = size / frame.image.height;
 						}
 						if (frame.image.getTotalSize() <= size) {

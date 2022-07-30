@@ -1355,7 +1355,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_uint32 Jpeg::getBlocksCount(const Ptrx<IReader, ISeekable>& reader, sl_uint32 _colorIndex)
+	sl_uint32 Jpeg::getBlockCount(const Ptrx<IReader, ISeekable>& reader, sl_uint32 _colorIndex)
 	{
 		sl_uint32 n = 0;
 		if (loadHuffmanBlocks(reader, [&n, _colorIndex](sl_uint32 colorIndex, sl_int16*, sl_bool&) {

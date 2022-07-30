@@ -114,9 +114,9 @@ namespace slib
 		}
 
 	public:
-		sl_uint32 getFacesCount();
+		sl_uint32 getFaceCount();
 
-		sl_uint32 getNamedInstancesCount();
+		sl_uint32 getNamedInstanceCount();
 
 		FreeTypeKind getKind();
 
@@ -126,7 +126,7 @@ namespace slib
 
 		sl_bool isItalicStyle();
 
-		sl_uint32 getGlyphsCount();
+		sl_uint32 getGlyphCount();
 
 		// returns zero on error
 		sl_uint32 getGlyphIndex(const char* name);

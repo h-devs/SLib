@@ -73,7 +73,7 @@ namespace slib
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 				{
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 					
@@ -121,7 +121,7 @@ namespace slib
 								formatDst.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
 								formatDst.mSampleRate = param.samplesPerSecond;
 								formatDst.mBitsPerChannel = 16;
-								formatDst.mChannelsPerFrame = param.channelsCount;
+								formatDst.mChannelsPerFrame = param.channelCount;
 								formatDst.mBytesPerFrame = formatDst.mChannelsPerFrame * formatDst.mBitsPerChannel / 8;
 								formatDst.mFramesPerPacket = 1;
 								formatDst.mBytesPerPacket = formatDst.mBytesPerFrame * formatDst.mFramesPerPacket;
@@ -255,7 +255,7 @@ namespace slib
 					const AudioBuffer& buffer = data->mBuffers[0];
 					sl_uint32 nFrames = buffer.mDataByteSize / m_formatSrc.mBytesPerPacket * m_formatDst.mSampleRate / m_formatSrc.mSampleRate * 2; // double buffer to be enough to convert all source packets
 					
-					sl_uint32 nChannels = m_param.channelsCount;
+					sl_uint32 nChannels = m_param.channelCount;
 					sl_uint32 nSamples = nFrames * nChannels;
 					
 					Array<sl_int16> arrData = _getProcessData(nSamples);
@@ -375,7 +375,7 @@ namespace slib
 			public:
 				static Ref<AudioPlayerImpl> create(const AudioPlayerParam& param)
 				{
-					if (param.channelsCount != 1 && param.channelsCount != 2) {
+					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
 					
@@ -423,7 +423,7 @@ namespace slib
 								formatSrc.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
 								formatSrc.mSampleRate = param.samplesPerSecond;
 								formatSrc.mBitsPerChannel = 16;
-								formatSrc.mChannelsPerFrame = (UInt32)(param.channelsCount);
+								formatSrc.mChannelsPerFrame = (UInt32)(param.channelCount);
 								formatSrc.mBytesPerFrame = formatSrc.mChannelsPerFrame * formatSrc.mBitsPerChannel / 8;
 								formatSrc.mFramesPerPacket = 1;
 								formatSrc.mBytesPerPacket = formatSrc.mBytesPerFrame * formatSrc.mFramesPerPacket;
@@ -522,7 +522,7 @@ namespace slib
 				AtomicArray<sl_int16> m_dataConvert;
 				void onConvert(sl_uint32 nFrames, AudioBufferList* data)
 				{
-					sl_uint32 nChannels = m_param.channelsCount;
+					sl_uint32 nChannels = m_param.channelCount;
 					sl_uint32 nSamples = nFrames * nChannels;
 					
 					Array<sl_int16> dataConvert = _getProcessData(nSamples);

@@ -40,7 +40,7 @@ namespace slib
 					GtkListStore* model = (GtkListStore*)(gtk_combo_box_get_model(handle));
 					gtk_list_store_clear(model);
 				}
-				sl_uint32 n = view->getItemsCount();
+				sl_uint32 n = view->getItemCount();
 				for (sl_uint32 i = 0; i < n; i++) {
 					StringCstr s = view->getItemTitle(i);
 					gtk_combo_box_append_text(handle, (const gchar*)(s.getData()));

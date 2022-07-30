@@ -79,7 +79,7 @@ namespace slib
 					if (data.isNotNull()) {
 						if (_targetName.isNotEmpty()) {
 							String16 targetName = String16::concat(L"\\\\.\\pipe\\", _targetName);
-							if (m_threads.getCount() < m_maxThreadsCount) {
+							if (m_threads.getCount() < m_maxThreadCount) {
 								HANDLE hPipe = CreateFileW(
 									(LPCWSTR)(targetName.getData()),
 									GENERIC_READ | GENERIC_WRITE,
@@ -291,7 +291,7 @@ namespace slib
 
 					while (thread->isNotStopping()) {
 
-						if (m_threads.getCount() < m_maxThreadsCount) {
+						if (m_threads.getCount() < m_maxThreadCount) {
 
 							HANDLE hPipe = CreateNamedPipeW(
 								(LPCWSTR)(m_name.getData()),

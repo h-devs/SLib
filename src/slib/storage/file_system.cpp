@@ -357,17 +357,17 @@ namespace slib
 		return bRet;
 	}
 
-	sl_size FileSystemHost::getOpenedHandlesCount()
+	sl_size FileSystemHost::getOpenedHandleCount()
 	{
 		return m_nOpenedHandles;
 	}
 
-	sl_size FileSystemHost::increaseOpenHandlesCount()
+	sl_size FileSystemHost::increaseOpenHandleCount()
 	{
 		return Base::interlockedIncrement(&m_nOpenedHandles);
 	}
 
-	sl_size FileSystemHost::decreaseOpenHandlesCount()
+	sl_size FileSystemHost::decreaseOpenHandleCount()
 	{
 		return Base::interlockedDecrement(&m_nOpenedHandles);
 	}

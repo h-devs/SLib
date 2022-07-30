@@ -61,15 +61,15 @@ namespace slib
 			return 0;
 		}
 		if (AudioFormatHelper::isNonInterleaved(format)) {
-			return getSizeForChannel() * AudioFormatHelper::getChannelsCount(format);
+			return getSizeForChannel() * AudioFormatHelper::getChannelCount(format);
 		} else {
-			return ((AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelsCount(format) * count) + 7) >> 3;
+			return ((AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelCount(format) * count) + 7) >> 3;
 		}
 	}
 
 	sl_uint32 AudioData::getChannelBuffers(AudioChannelBuffer* buffers) const
 	{
-		sl_uint32 nChannels = AudioFormatHelper::getChannelsCount(format);
+		sl_uint32 nChannels = AudioFormatHelper::getChannelCount(format);
 		if (nChannels == 1) {
 			if (buffers) {
 				buffers[0].count = count;
@@ -220,8 +220,8 @@ namespace slib
 				IN_TYPE _in1;
 				OUT_TYPE _out;
 				OUT_TYPE _out1;
-				sl_uint32 nChannels_in = AudioFormatHelper::getChannelsCount(format_in);
-				sl_uint32 nChannels_out = AudioFormatHelper::getChannelsCount(format_out);
+				sl_uint32 nChannels_in = AudioFormatHelper::getChannelCount(format_in);
+				sl_uint32 nChannels_out = AudioFormatHelper::getChannelCount(format_out);
 				if (nChannels_in == 1) {
 					if (nChannels_out == 1) {
 						for (sl_size i = 0; i < count; i++) {
@@ -455,7 +455,7 @@ namespace slib
 				Base::copyMemory(data_out, data_in, n);
 				Base::copyMemory(data_out1, data_in1, n);
 			} else {
-				sl_size n = (countSamples * AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelsCount(format) + 7) >> 3;
+				sl_size n = (countSamples * AudioFormatHelper::getBitsPerSample(format) * AudioFormatHelper::getChannelCount(format) + 7) >> 3;
 				Base::copyMemory(data_out, data_in, n);
 			}
 			return;

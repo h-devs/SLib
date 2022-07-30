@@ -49,12 +49,12 @@ namespace slib
 	{
 	}
 
-	sl_uint64 ListBox::getItemsCount()
+	sl_uint64 ListBox::getItemCount()
 	{
 		return m_countItems;
 	}
 
-	void ListBox::setItemsCount(sl_uint64 _count, UIUpdateMode mode)
+	void ListBox::setItemCount(sl_uint64 _count, UIUpdateMode mode)
 	{
 		sl_int64 count = _count;
 		if (count < 0) {

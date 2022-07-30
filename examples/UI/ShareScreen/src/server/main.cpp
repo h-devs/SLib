@@ -28,7 +28,7 @@ int main(int argc, const char * argv[])
 	param.router.GET("/screen/:userId", [](HttpServerContext* context) {
 		auto userId = context->getParameter("userId");
 		auto user = g_mapUsers.getValue(userId);
-		if (user && user->screen && (Time::now() - user->lastScreenTime).getSecondsCount() < 5) {
+		if (user && user->screen && (Time::now() - user->lastScreenTime).getSecondCount() < 5) {
 			context->setResponseContentType(ContentType::ImageJpeg);
 			context->write(user->screen);
 		} else {

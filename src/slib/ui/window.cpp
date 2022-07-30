@@ -1978,7 +1978,7 @@ namespace slib
 			return;
 		}
 		if (window->getWindowInstance().isNotNull()) {
-			if (window->isCenterScreen() && (Time::now() - window->getCreationTime()).getMillisecondsCount() < 500) {
+			if (window->isCenterScreen() && (Time::now() - window->getCreationTime()).getMillisecondCount() < 500) {
 				UISize sizeWindow = window->getWindowSizeFromClientSize(sizeNew);
 				UISize sizeScreen;
 				Ref<Screen> screen = window->getScreen();

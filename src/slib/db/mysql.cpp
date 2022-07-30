@@ -179,7 +179,7 @@ namespace slib
 				}
 
 			public:
-				sl_uint32 getColumnsCount() override
+				sl_uint32 getColumnCount() override
 				{
 					return m_nColumnNames;
 				}
@@ -311,7 +311,7 @@ namespace slib
 				}
 
 			public:
-				sl_uint32 getColumnsCount() override
+				sl_uint32 getColumnCount() override
 				{
 					return m_nColumnNames;
 				}

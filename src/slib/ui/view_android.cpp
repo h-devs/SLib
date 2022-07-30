@@ -71,7 +71,7 @@ namespace slib
 					sl_uint32 vkey = keycode;
 					Keycode key = UIEvent::getKeycodeFromSystemKeycode(keycode);
 					Time t;
-					t.setMillisecondsCount(time);
+					t.setMillisecondCount(time);
 					Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
 					if (ev.isNotNull()) {
 						if (flagControl) {

@@ -835,7 +835,7 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_size View::getChildrenCount()
+	sl_size View::getChildCount()
 	{
 		Ref<ViewChildAttributes>& attrs = m_childAttrs;
 		if (attrs.isNotNull()) {
@@ -3063,7 +3063,7 @@ namespace slib
 		size.x += paddingHorz;
 		size.y += paddingVert;
 
-		if (getChildrenCount()) {
+		if (getChildCount()) {
 			UISize sizeLayout = measureLayoutWrappingSize(flagHorizontalWrapping, flagVerticalWrapping);
 			if (sizeLayout.x > size.x) {
 				size.x = sizeLayout.x;
@@ -8594,7 +8594,7 @@ namespace slib
 	
 	void View::onUpdateLayout()
 	{
-		if (getChildrenCount() > 0) {
+		if (getChildCount() > 0) {
 			measureAndSetLayoutWrappingSize(isWidthWrapping(), isHeightWrapping());
 		} else {
 #if defined(SLIB_PLATFORM_IS_MOBILE)
@@ -8769,7 +8769,7 @@ namespace slib
 			if (scrollAttrs.isNotNull() && !isNativeWidget()) {
 				sl_bool flagShowScrollBar = sl_true;
 				if (scrollAttrs->flagAutoHideScrollBar) {
-					if ((Time::now() - scrollAttrs->timeLastInside).getSecondsCount() >= 1) {
+					if ((Time::now() - scrollAttrs->timeLastInside).getSecondCount() >= 1) {
 						flagShowScrollBar = sl_false;
 					}
 				}
@@ -8863,7 +8863,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget() && !(getChildrenCount())) {
+		if (isNativeWidget() && !(getChildCount())) {
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
@@ -9113,7 +9113,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget() && !(getChildrenCount())) {
+		if (isNativeWidget() && !(getChildCount())) {
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
@@ -9468,7 +9468,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget() && !(getChildrenCount())) {
+		if (isNativeWidget() && !(getChildCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(MouseWheelEvent, ev)
 			return;
@@ -9570,7 +9570,7 @@ namespace slib
 			}
 		}
 
-		if (isNativeWidget() && !(getChildrenCount())) {
+		if (isNativeWidget() && !(getChildCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
 			if (ev->isPreventedDefault()) {
@@ -9653,7 +9653,7 @@ namespace slib
 			ev->setToolTip(this, toolTip);
 		}
 
-		if (isNativeWidget() && !(getChildrenCount())) {
+		if (isNativeWidget() && !(getChildCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
 			return;
@@ -9746,7 +9746,7 @@ namespace slib
 			return;
 		}
 
-		if (isNativeWidget() && !(getChildrenCount())) {
+		if (isNativeWidget() && !(getChildCount())) {
 			priv::view::DuringEventScope scope(this, ev);
 			SLIB_INVOKE_EVENT_HANDLER(DragDropEvent, ev)
 			return;
@@ -10563,7 +10563,7 @@ namespace slib
 		}
 		
 		Time time = Time::now();
-		sl_real dt = (sl_real)((time - scrollAttrs->timeFlowFrameBefore).getSecondsCountf());
+		sl_real dt = (sl_real)((time - scrollAttrs->timeFlowFrameBefore).getSecondCountf());
 		scrollAttrs->timeFlowFrameBefore = time;
 		
 #ifdef SLIB_PLATFORM_IS_MOBILE
@@ -10626,7 +10626,7 @@ namespace slib
 			if (scrollAttrs->flagAutoHideScrollBar && (scrollAttrs->flagValidHorz || scrollAttrs->flagValidVert)) {
 				UIAction action = ev->getAction();
 				sl_bool flagInvalidateScrollBar = sl_false;
-				if ((Time::now() - scrollAttrs->timeLastInside).getSecondsCount() >= 1) {
+				if ((Time::now() - scrollAttrs->timeLastInside).getSecondCount() >= 1) {
 					flagInvalidateScrollBar = sl_true;
 				}
 				scrollAttrs->timeLastInside = Time::now();
@@ -10636,7 +10636,7 @@ namespace slib
 						Ref<ViewScrollAttributes>& scrollAttrs = m_scrollAttrs;
 						if (scrollAttrs.isNotNull() && (scrollAttrs->flagValidHorz || scrollAttrs->flagValidVert)) {
 							if (scrollAttrs->flagAutoHideScrollBar) {
-								if ((Time::now() - scrollAttrs->timeLastInside).getSecondsCount() >= 1) {
+								if ((Time::now() - scrollAttrs->timeLastInside).getSecondCount() >= 1) {
 									invalidate();
 								}
 							}

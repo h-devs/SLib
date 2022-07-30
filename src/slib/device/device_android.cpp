@@ -211,8 +211,8 @@ namespace slib
 	}
 
 	// Require permission: android.permission.READ_PHONE_STATE
-	// From Java code: slib.android.device.Device.getSimSlotsCount
-	sl_uint32 Device::getSimSlotsCount()
+	// From Java code: slib.android.device.Device.getSimSlotCount
+	sl_uint32 Device::getSimSlotCount()
 	{
 		AndroidSdkVersion version = Android::getSdkVersion();
 		if (version >= AndroidSdkVersion::M) {

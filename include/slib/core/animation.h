@@ -476,7 +476,7 @@ namespace slib
 			return INTERPOLATION::interpolate(*m_currentStartValue, *m_currentEndValue, w);
 		}
 
-		sl_size getFramesCount()
+		sl_size getFrameCount()
 		{
 			return m_countFrames;
 		}
@@ -545,9 +545,9 @@ namespace slib
 			return m_seeker.endValue;
 		}
 	
-		sl_size getFramesCount()
+		sl_size getFrameCount()
 		{
-			return m_seeker.getFramesCount();
+			return m_seeker.getFrameCount();
 		}
 
 		AnimationFrame<T>& getFrame(sl_size index)

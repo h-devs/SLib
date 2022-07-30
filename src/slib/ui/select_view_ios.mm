@@ -350,7 +350,7 @@ IOS_VIEW_DEFINE_ON_FOCUS
 {
 	Ref<SelectViewHelper> view = m_view;
 	if (view.isNotNull()) {
-		return (NSInteger)(view->getItemsCount());
+		return (NSInteger)(view->getItemCount());
 	}
 	return 0;
 }
@@ -368,7 +368,7 @@ IOS_VIEW_DEFINE_ON_FOCUS
 {
 	Ref<SelectViewHelper> view = m_view;
 	if (view.isNotNull()) {
-		if ((NSInteger)(view->getItemsCount()) > 0) {
+		if ((NSInteger)(view->getItemCount()) > 0) {
 			return YES;
 		}
 	}

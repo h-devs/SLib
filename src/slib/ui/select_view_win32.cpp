@@ -52,7 +52,7 @@ namespace slib
 					HWND handle = m_handle;
 					if (handle) {
 						SendMessageW(handle, CB_RESETCONTENT, 0, 0);
-						sl_uint32 n = view->getItemsCount();
+						sl_uint32 n = view->getItemCount();
 						for (sl_uint32 i = 0; i < n; i++) {
 							StringCstr16 s = view->getItemTitle(i);
 							SendMessageW(handle, CB_ADDSTRING, 0, (LPARAM)(s.getData()));

@@ -1156,11 +1156,11 @@ namespace slib
 	{
 		port = 8080;
 		
-		maximumThreadsCount = Cpu::getCoreCount();
-		if (!maximumThreadsCount) {
-			maximumThreadsCount = 1;
+		maximumThreadCount = Cpu::getCoreCount();
+		if (!maximumThreadCount) {
+			maximumThreadCount = 1;
 		}
-		minimumThreadsCount = maximumThreadsCount / 2;
+		minimumThreadCount = maximumThreadCount / 2;
 		flagProcessByThreads = sl_true;
 		
 		flagUseWebRoot = sl_false;
@@ -1333,13 +1333,13 @@ namespace slib
 		if (dispatchLoop.isNull()) {
 			return sl_false;
 		}
-		if (!(m_param.maximumThreadsCount)) {
-			m_param.maximumThreadsCount = 1;
+		if (!(m_param.maximumThreadCount)) {
+			m_param.maximumThreadCount = 1;
 		}
-		if (m_param.minimumThreadsCount >= m_param.maximumThreadsCount) {
-			m_param.minimumThreadsCount = m_param.maximumThreadsCount / 2;
+		if (m_param.minimumThreadCount >= m_param.maximumThreadCount) {
+			m_param.minimumThreadCount = m_param.maximumThreadCount / 2;
 		}
-		Ref<ThreadPool> threadPool = ThreadPool::create(m_param.minimumThreadsCount, m_param.maximumThreadsCount);
+		Ref<ThreadPool> threadPool = ThreadPool::create(m_param.minimumThreadCount, m_param.maximumThreadCount);
 		if (threadPool.isNull()) {
 			return sl_false;
 		}

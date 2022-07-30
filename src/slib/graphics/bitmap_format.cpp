@@ -40,7 +40,7 @@ namespace slib
 		return (((sl_uint32)format) >> 26) & 1;
 	}
 
-	sl_uint32 BitmapFormats::getPlanesCount(BitmapFormat format)
+	sl_uint32 BitmapFormats::getPlaneCount(BitmapFormat format)
 	{
 		return (((sl_uint32)format) >> 24) & 3;
 	}

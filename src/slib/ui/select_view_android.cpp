@@ -64,7 +64,7 @@ namespace slib
 			public:
 				void refreshItems(jobject jview)
 				{
-					sl_uint32 n = (sl_uint32)(getItemsCount());
+					sl_uint32 n = (sl_uint32)(getItemCount());
 					JniLocal<jobjectArray> arr = Jni::newStringArray(n);
 					if (arr.isNotNull()) {
 						for (sl_uint32 i = 0; i < n; i++) {

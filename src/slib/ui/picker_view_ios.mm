@@ -202,7 +202,7 @@ IOS_VIEW_DEFINE_ON_FOCUS
 {
 	Ref<PickerViewHelper> helper = [self helper];
 	if (helper.isNotNull()) {
-		return (NSInteger)(helper->getItemsCount());
+		return (NSInteger)(helper->getItemCount());
 	}
 	return 0;
 }

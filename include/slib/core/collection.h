@@ -38,7 +38,7 @@ namespace slib
 		~Collection();
 
 	public:
-		virtual sl_uint64 getElementsCount();
+		virtual sl_uint64 getElementCount();
 
 		virtual Variant getElement(sl_uint64 index);
 

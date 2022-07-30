@@ -101,7 +101,7 @@ namespace slib
 		
 		static sl_uint32 getBytesPerSample(AudioFormat format);
 		
-		static sl_uint32 getChannelsCount(AudioFormat format);
+		static sl_uint32 getChannelCount(AudioFormat format);
 		
 		static sl_bool isNonInterleaved(AudioFormat format);
 		

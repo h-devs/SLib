@@ -108,7 +108,7 @@ namespace slib
 
 				static Variant length(Variant& param)
 				{
-					return param.getElementsCount();
+					return param.getElementCount();
 				}
 
 				static Variant substring(Variant& param)
@@ -196,7 +196,7 @@ namespace slib
 					if (s.isVariantList()) {
 						return s.getVariantList().indexOf(params.getValueAt_NoLock(1).getString(), params.getValueAt_NoLock(2).getInt32());
 					}
-					sl_int64 n = s.getElementsCount();
+					sl_int64 n = s.getElementCount();
 					if (!n) {
 						return -1;
 					}
@@ -226,7 +226,7 @@ namespace slib
 					if (s.isVariantList()) {
 						return s.getVariantList().lastIndexOf(params.getValueAt_NoLock(1).getString(), params.getValueAt_NoLock(2).getInt32(-1));
 					}
-					sl_int64 n = s.getElementsCount();
+					sl_int64 n = s.getElementCount();
 					if (!n) {
 						return -1;
 					}
@@ -243,24 +243,24 @@ namespace slib
 					return -1;
 				}
 
-				static Variant getDaysCount(Variant& param)
+				static Variant getDayCount(Variant& param)
 				{
-					return param.getTime().getDaysCountf();
+					return param.getTime().getDayCountf();
 				}
 
-				static Variant getHoursCount(Variant& param)
+				static Variant getHourCount(Variant& param)
 				{
-					return param.getTime().getHoursCountf();
+					return param.getTime().getHourCountf();
 				}
 
-				static Variant getMinutesCount(Variant& param)
+				static Variant getMinuteCount(Variant& param)
 				{
-					return param.getTime().getMinutesCountf();
+					return param.getTime().getMinuteCountf();
 				}
 
-				static Variant getSecondsCount(Variant& param)
+				static Variant getSecondCount(Variant& param)
 				{
-					return param.getTime().getSecondsCountf();
+					return param.getTime().getSecondCountf();
 				}
 
 				static Variant getYear(Variant& param)
@@ -362,10 +362,10 @@ namespace slib
 						REGISTER_BUILTIN_FUNCTION(join)
 						REGISTER_BUILTIN_FUNCTION(indexOf)
 						REGISTER_BUILTIN_FUNCTION(lastIndexOf)
-						REGISTER_BUILTIN_FUNCTION(getDaysCount)
-						REGISTER_BUILTIN_FUNCTION(getHoursCount)
-						REGISTER_BUILTIN_FUNCTION(getMinutesCount)
-						REGISTER_BUILTIN_FUNCTION(getSecondsCount)
+						REGISTER_BUILTIN_FUNCTION(getDayCount)
+						REGISTER_BUILTIN_FUNCTION(getHourCount)
+						REGISTER_BUILTIN_FUNCTION(getMinuteCount)
+						REGISTER_BUILTIN_FUNCTION(getSecondCount)
 						REGISTER_BUILTIN_FUNCTION(getYear)
 						REGISTER_BUILTIN_FUNCTION(getMonth)
 						REGISTER_BUILTIN_FUNCTION(getDay)
@@ -1096,7 +1096,7 @@ namespace slib
 											} else {
 												Ref<Collection> collection = var.getCollection();
 												if (collection.isNotNull()) {
-													sl_uint64 n = collection->getElementsCount();
+													sl_uint64 n = collection->getElementCount();
 													if (n) {
 														GINGER_PROCESS_FOR_IMPL(for (sl_uint64 i = 0; i < n; i++), collection->getElement(i))
 													}

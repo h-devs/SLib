@@ -826,7 +826,7 @@ namespace slib
 	{
 	public:
 		SAppColorValue textColor;
-		SAppUint32Value linesCount;
+		SAppUint32Value lineCount;
 		SAppBooleanValue circular;
 
 		CList<SAppLayoutSelectItem> items;
@@ -924,7 +924,7 @@ namespace slib
 	class SAppLayoutListBoxAttributes : public Referable
 	{
 	public:
-		SAppUint64Value itemsCount;
+		SAppUint64Value itemCount;
 		SAppDimensionValue itemHeight;
 		SAppBooleanValue multipleSelection;
 		SAppDrawableValue itemBackground;
@@ -1133,7 +1133,7 @@ namespace slib
 		struct ItemArrayDesc
 		{
 			String className;
-			sl_uint32 itemsCount;
+			sl_uint32 itemCount;
 		};
 		CMap<String, ItemArrayDesc> itemArrays;
 

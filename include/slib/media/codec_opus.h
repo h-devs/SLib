@@ -46,7 +46,7 @@ namespace slib
 	{
 	public:
 		sl_uint32 samplesPerSecond;
-		sl_uint32 channelsCount;
+		sl_uint32 channelCount;
 		sl_uint32 bitsPerSecond;
 		
 		OpusEncoderType type;
@@ -79,7 +79,7 @@ namespace slib
 	{
 	public:
 		sl_uint32 samplesPerSecond;
-		sl_uint32 channelsCount;
+		sl_uint32 channelCount;
 		
 	public:
 		OpusDecoderParam();

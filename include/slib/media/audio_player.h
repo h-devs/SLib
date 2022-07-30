@@ -70,14 +70,14 @@ namespace slib
 		AudioStreamType streamType;
 		
 		sl_uint32 samplesPerSecond;
-		sl_uint32 channelsCount;
+		sl_uint32 channelCount;
 		sl_uint32 frameLengthInMilliseconds;
 		sl_uint32 maxBufferLengthInMilliseconds;
 
 		sl_bool flagAutoStart;
 		
 		// called before playing a frame
-		Function<void(AudioPlayer*, sl_uint32 samplesCount)> onPlayAudio;
+		Function<void(AudioPlayer*, sl_uint32 sampleCount)> onPlayAudio;
 		Ref<Event> event;
 		
 	public:
@@ -126,7 +126,7 @@ namespace slib
 
 		void flush();
 
-		sl_size getSamplesCountInQueue();
+		sl_size getSampleCountInQueue();
 
 	protected:
 		virtual void _release() = 0;

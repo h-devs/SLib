@@ -40,7 +40,7 @@ namespace slib
 	public:
 		StringParam name;
 
-		sl_uint32 maxThreadsCount;
+		sl_uint32 maxThreadCount;
 		sl_uint32 maxReceivingMessageSize;
 		sl_uint32 timeout; // milliseconds
 
@@ -78,7 +78,7 @@ namespace slib
 		void _init(const IPCParam& param) noexcept;
 		
 	protected:
-		sl_uint32 m_maxThreadsCount;
+		sl_uint32 m_maxThreadCount;
 		sl_uint32 m_maxReceivingMessageSize;
 		sl_uint32 m_timeout;
 		sl_bool m_flagAcceptOtherUsers;

@@ -37,7 +37,7 @@ namespace slib
 
 		static List< Ref<Image> > takeScreenshotsFromAllMonitors();
 
-		static sl_uint32 getScreensCount();
+		static sl_uint32 getScreenCount();
 		
 		static sl_bool isScreenRecordingEnabled();
 		

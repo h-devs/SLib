@@ -2758,7 +2758,7 @@ namespace slib
 		_assignMoveRef(&list, VariantType::List);
 	}
 
-	sl_uint64 Variant::getElementsCount() const
+	sl_uint64 Variant::getElementCount() const
 	{
 		switch (_type) {
 			case VariantType::List:
@@ -2786,7 +2786,7 @@ namespace slib
 		}
 		Ref<Collection> collection(GET_COLLECTION(*this));
 		if (collection.isNotNull()) {
-			return collection->getElementsCount();
+			return collection->getElementCount();
 		}
 		return 0;
 	}
@@ -3313,7 +3313,7 @@ namespace slib
 				Ref<Collection> src(getCollection());
 				if (src.isNotNull()) {
 					MutexLocker lock(dst.getLocker());
-					sl_size n = (sl_size)(src->getElementsCount());
+					sl_size n = (sl_size)(src->getElementCount());
 					for (sl_size i = 0; i < n; i++) {
 						dst.add_NoLock(src->getElement(i));
 					}
@@ -3350,7 +3350,7 @@ namespace slib
 				} else {
 					Ref<Collection> src(getCollection());
 					if (src.isNotNull()) {
-						sl_size n = (sl_size)(src->getElementsCount());
+						sl_size n = (sl_size)(src->getElementCount());
 						for (sl_size i = 0; i < n; i++) {
 							dst->addElement(src->getElement(i));
 						}

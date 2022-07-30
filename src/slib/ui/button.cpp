@@ -219,19 +219,19 @@ namespace slib
 		}
 	}
 
-	sl_uint32 Button::getLinesCount()
+	sl_uint32 Button::getLineCount()
 	{
 		if (m_cell.isNotNull()) {
-			return m_cell->linesCount;
+			return m_cell->lineCount;
 		}
 		return 1;
 	}
 
-	void Button::setLinesCount(sl_uint32 nLines, UIUpdateMode updateMode)
+	void Button::setLineCount(sl_uint32 nLines, UIUpdateMode updateMode)
 	{
 		_initCell();
 		if (m_cell.isNotNull()) {
-			m_cell->linesCount = nLines;
+			m_cell->lineCount = nLines;
 			invalidateLayoutOfWrappingControl(updateMode);
 		}
 	}
@@ -338,7 +338,7 @@ namespace slib
 		m_categories = categories;
 	}
 
-	sl_uint32 Button::getCategoriesCount()
+	sl_uint32 Button::getCategoryCount()
 	{
 		if (m_cell.isNotNull()) {
 			return (sl_uint32)(m_cell->categories.getCount());

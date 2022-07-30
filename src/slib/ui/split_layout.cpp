@@ -123,12 +123,12 @@ namespace slib
 		setOrientation(LayoutOrientation::Vertical, mode);
 	}
 	
-	sl_size SplitLayout::getItemsCount()
+	sl_size SplitLayout::getItemCount()
 	{
 		return m_items.getCount();
 	}
 	
-	void SplitLayout::setItemsCount(sl_size count, UIUpdateMode mode)
+	void SplitLayout::setItemCount(sl_size count, UIUpdateMode mode)
 	{
 		if (count < 2) {
 			return;

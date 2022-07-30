@@ -61,7 +61,7 @@ namespace slib
 			class TabViewHelper : public TabView
 			{
 			public:
-				void applyTabsCount(NSTabView* tv)
+				void applyTabCount(NSTabView* tv)
 				{
 					ObjectLocker lock(this);
 					sl_uint32 nNew = (sl_uint32)(m_items.getCount());
@@ -89,7 +89,7 @@ namespace slib
 				void copyTabs(NSTabView* tv)
 				{
 					ListLocker<TabViewItem> items(m_items);
-					applyTabsCount(tv);
+					applyTabCount(tv);
 					for (sl_uint32 i = 0; i < items.count; i++) {
 						NSTabViewItem* t = [tv tabViewItemAtIndex:i];
 						if (t != nil) {
@@ -170,11 +170,11 @@ namespace slib
 					view->copyTabs(handle);
 				}
 				
-				void refreshTabsCount(TabView* view) override
+				void refreshTabCount(TabView* view) override
 				{
 					NSTabView* handle = getHandle();
 					if (handle != nil) {
-						static_cast<TabViewHelper*>(view)->applyTabsCount(handle);
+						static_cast<TabViewHelper*>(view)->applyTabCount(handle);
 					}
 				}
 				

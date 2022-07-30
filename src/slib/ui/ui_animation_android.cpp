@@ -95,7 +95,7 @@ namespace slib
 				if (target) {
 					Ref<View> view;
 					if (ViewTranslateAnimationTarget* transform = CastInstance<ViewTranslateAnimationTarget>(target)) {
-						if (transform->getFramesCount() > 0) {
+						if (transform->getFrameCount() > 0) {
 							return sl_false;
 						}
 						view = transform->getView();
@@ -103,7 +103,7 @@ namespace slib
 						translateEnd = transform->getEndValue();
 						flagTranslate = sl_true;
 					} else if (ViewScaleAnimationTarget* transform = CastInstance<ViewScaleAnimationTarget>(target)) {
-						if (transform->getFramesCount() > 0) {
+						if (transform->getFrameCount() > 0) {
 							return sl_false;
 						}
 						view = transform->getView();
@@ -111,7 +111,7 @@ namespace slib
 						scaleEnd = transform->getEndValue();
 						flagScale = sl_true;
 					} else if (ViewRotateAnimationTarget* transform = CastInstance<ViewRotateAnimationTarget>(target)) {
-						if (transform->getFramesCount() > 0) {
+						if (transform->getFrameCount() > 0) {
 							return sl_false;
 						}
 						view = transform->getView();
@@ -119,7 +119,7 @@ namespace slib
 						rotateEnd = transform->getEndValue();
 						flagRotate = sl_true;
 					} else if (ViewAlphaAnimationTarget* transform = CastInstance<ViewAlphaAnimationTarget>(target)) {
-						if (transform->getFramesCount() > 0) {
+						if (transform->getFrameCount() > 0) {
 							return sl_false;
 						}
 						view = transform->getView();

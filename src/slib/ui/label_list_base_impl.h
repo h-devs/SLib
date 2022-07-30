@@ -90,7 +90,7 @@ namespace slib
 		ObjectLocker lock(((VIEW_CLASS*)this));
 		List<String> titles(m_titles);
 		List<String> values(m_values);
-		sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+		sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemCount());
 		if (titles.getCount() != nCount) {
 			titles.setCount(nCount);
 		}
@@ -122,7 +122,7 @@ namespace slib
 			}
 			sl_size index = (sl_size)_index;
 			ObjectLocker lock(((VIEW_CLASS*)this));
-			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemCount());
 			if (index > nCount) {
 				return;
 			}
@@ -160,7 +160,7 @@ namespace slib
 			}
 			sl_size index = (sl_size)_index;
 			ObjectLocker lock(((VIEW_CLASS*)this));
-			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemCount());
 			if (index >= nCount) {
 				return;
 			}
@@ -181,7 +181,7 @@ namespace slib
 		}
 		m_titles.setNull();
 		m_values.setNull();
-		((VIEW_CLASS*)this)->setItemsCount(0, mode);
+		((VIEW_CLASS*)this)->setItemCount(0, mode);
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
@@ -199,7 +199,7 @@ namespace slib
 		if (_index >= 0) {
 			ObjectLocker lock(((VIEW_CLASS*)this));
 			sl_size index = (sl_size)_index;
-			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemCount());
 			if (index >= nCount) {
 				return;
 			}
@@ -238,7 +238,7 @@ namespace slib
 			}
 			ObjectLocker lock(((VIEW_CLASS*)this));
 			sl_size index = (sl_size)_index;
-			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemsCount());
+			sl_size nCount = (sl_size)(((VIEW_CLASS*)this)->getItemCount());
 			if (index >= nCount) {
 				return;
 			}
@@ -297,14 +297,14 @@ namespace slib
 	template <class INDEX_TYPE>
 	LabelListViewCellBase<INDEX_TYPE>::LabelListViewCellBase()
 	{
-		itemsCount = 0;
+		itemCount = 0;
 	}
 
 	template <class INDEX_TYPE>
 	template <class VIEW>
 	void LabelListViewCellBase<INDEX_TYPE>::initLabelList(VIEW* view)
 	{
-		itemsCount = (INDEX_TYPE)(view->getItemsCount());
+		itemCount = (INDEX_TYPE)(view->getItemCount());
 		WeakRef<VIEW> weak = view;
 		titleGetter = [weak](INDEX_TYPE index) {
 			Ref<VIEW> view = weak;
@@ -324,17 +324,17 @@ namespace slib
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
-	INDEX_TYPE SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>::getItemsCount()
+	INDEX_TYPE SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>::getItemCount()
 	{
 		return m_countItems;
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
-	void SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>::setItemsCount(INDEX_TYPE n, UIUpdateMode  mode)
+	void SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>::setItemCount(INDEX_TYPE n, UIUpdateMode  mode)
 	{
 		if (((VIEW_CLASS*)this)->isNativeWidget()) {
 			if (!(UI::isUiThread())) {
-				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::setItemsCount, n, mode));
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::setItemCount, n, mode));
 				return;
 			}
 		}
@@ -382,7 +382,7 @@ namespace slib
 	void VIEW_CLASS::notifyRefreshItems(UIUpdateMode mode) \
 	{ \
 		if (m_cell.isNotNull()) { \
-			m_cell->itemsCount = m_countItems; \
+			m_cell->itemCount = m_countItems; \
 		} \
 		invalidate(mode); \
 	} \
@@ -390,7 +390,7 @@ namespace slib
 	{ \
 		m_countItems++; \
 		if (m_cell.isNotNull()) { \
-			m_cell->itemsCount = m_countItems; \
+			m_cell->itemCount = m_countItems; \
 		} \
 		invalidate(mode); \
 	} \
@@ -402,7 +402,7 @@ namespace slib
 		} \
 		m_countItems = n - 1; \
 		if (m_cell.isNotNull()) { \
-			m_cell->itemsCount = m_countItems; \
+			m_cell->itemCount = m_countItems; \
 		} \
 		invalidate(mode); \
 	} \
@@ -416,7 +416,7 @@ namespace slib
 	void VIEW_CLASS::notifyRefreshItems(UIUpdateMode mode) \
 	{ \
 		if (m_cell.isNotNull()) { \
-			m_cell->itemsCount = m_countItems; \
+			m_cell->itemCount = m_countItems; \
 		} \
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \
@@ -429,7 +429,7 @@ namespace slib
 	{ \
 		m_countItems++; \
 		if (m_cell.isNotNull()) { \
-			m_cell->itemsCount = m_countItems; \
+			m_cell->itemCount = m_countItems; \
 		} \
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \
@@ -446,7 +446,7 @@ namespace slib
 		} \
 		m_countItems = n - 1; \
 		if (m_cell.isNotNull()) { \
-			m_cell->itemsCount = m_countItems; \
+			m_cell->itemCount = m_countItems; \
 		} \
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \

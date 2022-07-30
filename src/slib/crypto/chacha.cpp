@@ -505,14 +505,14 @@ namespace slib
 				return GetCheckIteration(code, len);
 			}
 
-			static sl_bool CheckPassword(const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit, sl_uint32& nIterationBitsCount) noexcept
+			static sl_bool CheckPassword(const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit, sl_uint32& nIterationBitCount) noexcept
 			{
 				sl_uint8* header = (sl_uint8*)_header;
 				sl_uint8 h[32];
 				PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, h, 4);
 				sl_uint32 code = MIO::readUint32LE(header + 12) ^ MIO::readUint32LE(h);
-				sl_uint32 iter = GetCheckIteration(code, nIterationBitsCount);
-				if (nIterationBitsCount > iterationBitsCountLimit) {
+				sl_uint32 iter = GetCheckIteration(code, nIterationBitCount);
+				if (nIterationBitCount > iterationBitCountLimit) {
 					return sl_false;
 				}
 				SHA256::hash(password, lenPassword, h);
@@ -521,22 +521,22 @@ namespace slib
 				return Base::equalsMemory(c, header + 16, 32);
 			}
 
-			static sl_bool CheckPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept
+			static sl_bool CheckPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept
 			{
-				sl_uint32 nIterationBitsCount;
-				return CheckPassword(header, password, lenPassword, iterationBitsCountLimit, nIterationBitsCount);
+				sl_uint32 nIterationBitCount;
+				return CheckPassword(header, password, lenPassword, iterationBitCountLimit, nIterationBitCount);
 			}
 
 			// key: 32 Bytes
-			static sl_bool GetEncryptionKey(sl_uint8* key, const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit, sl_uint32& iteration) noexcept
+			static sl_bool GetEncryptionKey(sl_uint8* key, const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit, sl_uint32& iteration) noexcept
 			{
 				sl_uint8* header = (sl_uint8*)_header;
-				sl_uint32 nIterationBitsCount;
-				if (!(CheckPassword(header, password, lenPassword, iterationBitsCountLimit, nIterationBitsCount))) {
+				sl_uint32 nIterationBitCount;
+				if (!(CheckPassword(header, password, lenPassword, iterationBitCountLimit, nIterationBitCount))) {
 					return sl_false;
 				}
 				sl_uint32 code = MIO::readUint32LE(header + 60);
-				iteration = GetMainIteration(code, nIterationBitsCount);
+				iteration = GetMainIteration(code, nIterationBitCount);
 				PBKDF2_HMAC_SHA256::generateKey(password, lenPassword, header + 48, 12, iteration, key, 32);
 				for (sl_uint32 i = 0; i < 32; i++) {
 					key[i] ^= header[80 + i];
@@ -545,10 +545,10 @@ namespace slib
 			}
 
 			// key: 32 Bytes
-			static sl_bool GetEncryptionKey(sl_uint8* key, const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept
+			static sl_bool GetEncryptionKey(sl_uint8* key, const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept
 			{
 				sl_uint32 iteration;
-				return GetEncryptionKey(key, header, password, lenPassword, iterationBitsCountLimit, iteration);
+				return GetEncryptionKey(key, header, password, lenPassword, iterationBitCountLimit, iteration);
 			}
 
 		}
@@ -556,21 +556,21 @@ namespace slib
 
 	using namespace priv::chacha_file_enc;
 
-	void ChaCha20_FileEncryptor::create(void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCount) noexcept
+	void ChaCha20_FileEncryptor::create(void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCount) noexcept
 	{
 		sl_uint8* header = (sl_uint8*)_header;
 		Math::randomMemory(header, HeaderSize);
 
-		if (iterationBitsCount < 11) {
-			iterationBitsCount = 11;
+		if (iterationBitCount < 11) {
+			iterationBitCount = 11;
 		}
-		if (iterationBitsCount > 26) {
-			iterationBitsCount = 26;
+		if (iterationBitCount > 26) {
+			iterationBitCount = 26;
 		}
 		{
 			sl_uint8 h[32];
 			sl_uint32 code = MIO::readUint32LE(header + 12);
-			sl_uint32 iter = GenerateCheckIteration(code, iterationBitsCount);
+			sl_uint32 iter = GenerateCheckIteration(code, iterationBitCount);
 			PBKDF2_HMAC_SHA256::generateKey(header + 48, 12, header, 12, CHECK_LEN_HASH_ITERATION, h, 4);
 			MIO::writeUint32LE(header + 12, code ^ MIO::readUint32LE(h));
 			SHA256::hash(password, lenPassword, h);
@@ -578,7 +578,7 @@ namespace slib
 		}
 		{
 			sl_uint32 code = MIO::readUint32LE(header + 60);
-			sl_uint32 iter = GetMainIteration(code, iterationBitsCount);
+			sl_uint32 iter = GetMainIteration(code, iterationBitCount);
 			sl_uint8 key[32];
 			PBKDF2_HMAC_SHA256::generateKey(password, lenPassword, header + 48, 12, iter, key, 32);
 			for (sl_uint32 i = 0; i < 32; i++) {
@@ -594,11 +594,11 @@ namespace slib
 		create(header, password, lenPassword, FILE_ENCRYPT_ITERATION_CREATE_DEFAULT);
 	}
 
-	sl_bool ChaCha20_FileEncryptor::open(const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept
+	sl_bool ChaCha20_FileEncryptor::open(const void* _header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept
 	{
 		sl_uint8* header = (sl_uint8*)_header;
 		sl_uint8 key[32];
-		if (GetEncryptionKey(key, header, password, lenPassword, iterationBitsCountLimit)) {
+		if (GetEncryptionKey(key, header, password, lenPassword, iterationBitCountLimit)) {
 			setKey(key);
 			setIV(header + 64);
 			return sl_true;
@@ -611,9 +611,9 @@ namespace slib
 		return open(header, password, lenPassword, FILE_ENCRYPT_ITERATION_OPEN_DEFAULT);
 	}
 
-	sl_bool ChaCha20_FileEncryptor::checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitsCountLimit) noexcept
+	sl_bool ChaCha20_FileEncryptor::checkPassword(const void* header, const void* password, sl_size lenPassword, sl_uint32 iterationBitCountLimit) noexcept
 	{
-		return CheckPassword(header, password, lenPassword, iterationBitsCountLimit);
+		return CheckPassword(header, password, lenPassword, iterationBitCountLimit);
 	}
 
 	sl_bool ChaCha20_FileEncryptor::checkPassword(const void* header, const void* password, sl_size lenPassword) noexcept
@@ -621,12 +621,12 @@ namespace slib
 		return checkPassword(header, password, lenPassword, FILE_ENCRYPT_ITERATION_OPEN_DEFAULT);
 	}
 
-	sl_bool ChaCha20_FileEncryptor::changePassword(void* _header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitsCountLimit) noexcept
+	sl_bool ChaCha20_FileEncryptor::changePassword(void* _header, const void* oldPassword, sl_size lenOldPassword, const void* newPassword, sl_size lenNewPassword, sl_uint32 iterationBitCountLimit) noexcept
 	{
 		sl_uint8* header = (sl_uint8*)_header;
 		sl_uint8 key[32];
 		sl_uint32 iteration = 0;
-		if (GetEncryptionKey(key, header, oldPassword, lenOldPassword, iterationBitsCountLimit, iteration)) {
+		if (GetEncryptionKey(key, header, oldPassword, lenOldPassword, iterationBitCountLimit, iteration)) {
 			sl_uint8 t[32];
 			PBKDF2_HMAC_SHA256::generateKey(newPassword, lenNewPassword, header + 48, 12, iteration, t, 32);
 			for (sl_uint32 i = 0; i < 32; i++) {

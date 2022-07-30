@@ -624,7 +624,7 @@ namespace slib
 
 		Ref<Drawable> getSource(sl_size index);
 
-		sl_size getSourcesCount();
+		sl_size getSourceCount();
 
 		Ref<Drawable> getMatchingSource(sl_real requiredWidth, sl_real requiredHeight);
 

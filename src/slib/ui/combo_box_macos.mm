@@ -59,7 +59,7 @@ namespace slib
 				void refreshItems(NSComboBox* v)
 				{
 					[v removeAllItems];
-					sl_uint32 n = (sl_uint32)(getItemsCount());
+					sl_uint32 n = (sl_uint32)(getItemCount());
 					for (sl_uint32 i = 0; i < n; i++) {
 						[v addItemWithObjectValue:Apple::getNSStringFromString(getItemTitle(i), @"")];
 					}

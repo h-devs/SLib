@@ -277,7 +277,7 @@ namespace slib
 						}
 					}
 					Time t;
-					t.setSecondsCountf([event timestamp]);
+					t.setSecondCountf([event timestamp]);
 					NSPoint pt = [NSEvent mouseLocation];
 					sl_ui_posf x = (sl_ui_posf)(pt.x);
 					sl_ui_posf y = (sl_ui_posf)(pt.y);

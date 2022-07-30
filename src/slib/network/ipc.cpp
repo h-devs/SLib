@@ -89,7 +89,7 @@ namespace slib
 					String targetName = _targetName.toString();
 					if (targetName.isNotEmpty()) {
 						if (data.isNotNull()) {
-							if (m_threads.getCount() < m_maxThreadsCount) {
+							if (m_threads.getCount() < m_maxThreadCount) {
 								MoveT<Socket> socket = Socket::openDomainStream();
 								if (socket.isOpened()) {
 									auto thiz = ToWeakRef(this);
@@ -315,7 +315,7 @@ namespace slib
 						return;
 					}
 					while (thread->isNotStopping()) {
-						if (m_threads.getCount() < m_maxThreadsCount) {
+						if (m_threads.getCount() < m_maxThreadCount) {
 							String address;
 							MoveT<Socket> socket = m_socketServer.acceptDomain(address);
 							if (socket.isOpened()) {
@@ -373,7 +373,7 @@ namespace slib
 
 	IPCParam::IPCParam()
 	{
-		maxThreadsCount = 16;
+		maxThreadCount = 16;
 		maxReceivingMessageSize = 64 << 20;
 		timeout = 10000;
 		flagAcceptOtherUsers = sl_true;
@@ -414,7 +414,7 @@ namespace slib
 
 	void IPC::_init(const IPCParam& param) noexcept
 	{
-		m_maxThreadsCount = param.maxThreadsCount;
+		m_maxThreadCount = param.maxThreadCount;
 		m_maxReceivingMessageSize = param.maxReceivingMessageSize;
 		m_timeout = param.timeout;
 		m_flagAcceptOtherUsers = param.flagAcceptOtherUsers;

@@ -41,7 +41,7 @@ namespace slib
 		~ViewPageNavigationController();
 
 	public:
-		sl_size getPagesCount();
+		sl_size getPageCount();
 		
 		List< Ref<View> > getPages();
 		

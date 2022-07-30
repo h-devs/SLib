@@ -38,12 +38,12 @@ namespace slib
 	{
 	}
 
-	sl_uint32 AudioEncoder::getSamplesCountPerSecond() const
+	sl_uint32 AudioEncoder::getSampleCountPerSecond() const
 	{
 		return m_nSamplesPerSecond;
 	}
 
-	sl_uint32 AudioEncoder::getChannelsCount() const
+	sl_uint32 AudioEncoder::getChannelCount() const
 	{
 		return m_nChannels;
 	}
@@ -71,12 +71,12 @@ namespace slib
 	{
 	}
 
-	sl_uint32 AudioDecoder::getSamplesCountPerSecond() const
+	sl_uint32 AudioDecoder::getSampleCountPerSecond() const
 	{
 		return m_nSamplesPerSecond;
 	}
 
-	sl_uint32 AudioDecoder::getChannelsCount() const
+	sl_uint32 AudioDecoder::getChannelCount() const
 	{
 		return m_nChannels;
 	}
