@@ -26,6 +26,7 @@
 #include "slib/core/endian.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/search.h"
+#include "slib/core/scoped_buffer.h"
 
 namespace slib
 {
@@ -150,78 +151,96 @@ namespace slib
 
 	List<NetworkInterfaceInfo> Network::findAllInterfaces()
 	{
+		auto funcGetIpAddrTable = iphlpapi::getApi_GetIpAddrTable();
+		if (!funcGetIpAddrTable) {
+			return sl_null;
+		}
+		auto funcGetAdaptersAddresses = iphlpapi::getApi_GetAdaptersAddresses();
+		if (!funcGetAdaptersAddresses) {
+			return sl_null;
+		}
+
 		Socket::initializeSocket();
 
-		List<NetworkInterfaceInfo> ret;
-		ULONG ulOutBufLen;
-
-		MIB_IPADDRTABLE* iptable = 0;
-		ulOutBufLen = 0;
-
-		auto funcGetIpAddrTable = iphlpapi::getApi_GetIpAddrTable();
-		auto funcGetAdaptersAddresses = iphlpapi::getApi_GetAdaptersAddresses();
-
-		if (funcGetIpAddrTable(iptable, &ulOutBufLen, TRUE) == ERROR_INSUFFICIENT_BUFFER) {
-			iptable = (MIB_IPADDRTABLE*)(Base::createMemory(ulOutBufLen));
+		ULONG ulOutBufLen = 0;
+		if (funcGetAdaptersAddresses(AF_UNSPEC, 0, NULL, sl_null, &ulOutBufLen) != ERROR_BUFFER_OVERFLOW) {
+			return sl_null;
 		}
-		if (iptable) {
-			if (funcGetIpAddrTable(iptable, &ulOutBufLen, TRUE) == NO_ERROR) {
-				IP_ADAPTER_ADDRESSES* pinfo = 0;
-				ulOutBufLen = 0;
-				if (funcGetAdaptersAddresses(AF_UNSPEC, 0, NULL, pinfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
-				{
-					pinfo = (IP_ADAPTER_ADDRESSES*)(Base::createMemory(ulOutBufLen));
-				}
-				if (pinfo) {
-					if (funcGetAdaptersAddresses(AF_UNSPEC, 0, NULL, pinfo, &ulOutBufLen) == NO_ERROR)
-					{
-						IP_ADAPTER_ADDRESSES* adapter = pinfo;
-						while (adapter) {
-							NetworkInterfaceInfo device;
-							device.name = adapter->AdapterName;
-							device.displayName = String::create(adapter->FriendlyName);
-							device.description = String::create(adapter->Description);
-							
-							IP_ADAPTER_UNICAST_ADDRESS* pip = adapter->FirstUnicastAddress;
-							while (pip) {
-								SocketAddress sa;
-								sa.setSystemSocketAddress(pip->Address.lpSockaddr, pip->Address.iSockaddrLength);
-								if (sa.ip.isIPv4()) {
-									IPv4AddressInfo a4;
-									a4.address = sa.ip.getIPv4();
-									sl_uint32 networkPrefixLength = 0;
-									if (Win32::getVersion() >= WindowsVersion::Vista) {
-										networkPrefixLength = ((IP_ADAPTER_UNICAST_ADDRESS_LH*)pip)->OnLinkPrefixLength;
-									} else {
-										sl_size indexTable = 0;
-										if (BinarySearch::search(iptable->table, iptable->dwNumEntries, a4.address, &indexTable)) {
-											networkPrefixLength = IPv4Address(Endian::swap32LE(iptable->table[indexTable].dwMask)).getNetworkPrefixLengthFromMask();
-										}
-									}
-									a4.networkPrefixLength = networkPrefixLength;
-									device.addresses_IPv4.add_NoLock(a4);
-								} else if (sa.ip.isIPv6()) {
-									IPv6Address a6;
-									a6 = sa.ip.getIPv6();
-									device.addresses_IPv6.add_NoLock(a6);
-								}
-								pip = pip->Next;
-							}
-							if (adapter->PhysicalAddressLength == 6) {
-								device.macAddress.setBytes(adapter->PhysicalAddress);
-							} else {
-								device.macAddress.setZero();
-							}
-							ret.add_NoLock(device);
-							adapter = adapter->Next;
+		SLIB_SCOPED_BUFFER(sl_uint8, 4096, bufAdapter, (sl_size)ulOutBufLen)
+		if (!bufAdapter) {
+			return sl_null;
+		}
+		IP_ADAPTER_ADDRESSES* adapter = (IP_ADAPTER_ADDRESSES*)bufAdapter;
+		if (funcGetAdaptersAddresses(AF_UNSPEC, 0, NULL, adapter, &ulOutBufLen) != NO_ERROR) {
+			return sl_null;
+		}
+
+		sl_bool flagVista = Win32::getVersion() >= WindowsVersion::Vista;
+		ulOutBufLen = 0;
+		if (!flagVista) {
+			if (funcGetIpAddrTable(sl_null, &ulOutBufLen, TRUE) != ERROR_INSUFFICIENT_BUFFER) {
+				return sl_null;
+			}
+		}
+		SLIB_SCOPED_BUFFER(sl_uint8, 1024, bufIptable, (sl_size)ulOutBufLen);
+		MIB_IPADDRTABLE* iptable = (MIB_IPADDRTABLE*)bufIptable;
+		if (!flagVista) {
+			if (!iptable) {
+				return sl_null;
+			}
+			if (funcGetIpAddrTable(iptable, &ulOutBufLen, TRUE) != NO_ERROR) {
+				return sl_null;
+			}
+		}
+
+		List<NetworkInterfaceInfo> ret;
+
+		do {
+
+			NetworkInterfaceInfo device;
+
+			device.name = adapter->AdapterName;
+			device.displayName = String::create(adapter->FriendlyName);
+			device.description = String::create(adapter->Description);
+
+			IP_ADAPTER_UNICAST_ADDRESS* pip = adapter->FirstUnicastAddress;
+			while (pip) {
+				SocketAddress sa;
+				sa.setSystemSocketAddress(pip->Address.lpSockaddr, pip->Address.iSockaddrLength);
+				if (sa.ip.isIPv4()) {
+					IPv4AddressInfo a4;
+					a4.address = sa.ip.getIPv4();
+					sl_uint32 networkPrefixLength = 0;
+					if (flagVista) {
+						networkPrefixLength = ((IP_ADAPTER_UNICAST_ADDRESS_LH*)pip)->OnLinkPrefixLength;
+					} else {
+						sl_size indexTable = 0;
+						if (BinarySearch::search(iptable->table, iptable->dwNumEntries, a4.address, &indexTable)) {
+							networkPrefixLength = IPv4Address(Endian::swap32LE(iptable->table[indexTable].dwMask)).getNetworkPrefixLengthFromMask();
 						}
 					}
-					Base::freeMemory(pinfo);
+					a4.networkPrefixLength = networkPrefixLength;
+					device.addresses_IPv4.add_NoLock(a4);
+				} else if (sa.ip.isIPv6()) {
+					IPv6Address a6;
+					a6 = sa.ip.getIPv6();
+					device.addresses_IPv6.add_NoLock(a6);
 				}
+				pip = pip->Next;
 			}
 
-			Base::freeMemory(iptable);
-		}
+			if (adapter->PhysicalAddressLength == 6) {
+				device.macAddress.setBytes(adapter->PhysicalAddress);
+			} else {
+				device.macAddress.setZero();
+			}
+
+			ret.add_NoLock(device);
+
+			adapter = adapter->Next;
+
+		} while (adapter);
+
 		return ret;
 	}
 
@@ -514,6 +533,109 @@ namespace slib
 			}
 		}
 		return IPv6Address::zero();
+	}
+
+}
+
+#if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_FREEBSD)
+#include <stdio.h>
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+#include "slib/core/file.h"
+#endif
+
+namespace slib
+{
+
+	// Reference: PcapPlusPlus (https://github.com/seladb/PcapPlusPlus/blob/master/Pcap%2B%2B/src/PcapLiveDevice.cpp#setDefaultGateway)
+	IPv4Address Network::getDefaultGateway(const StringParam& _interfaceName)
+	{
+#if defined(SLIB_PLATFORM_IS_WIN32)
+
+		auto funcGetAdaptersInfo = iphlpapi::getApi_GetAdaptersInfo();
+		if (!funcGetAdaptersInfo) {
+			return IPv4Address::zero();
+		}
+
+		Socket::initializeSocket();
+
+		ULONG ulOutBufLen = 0;
+		if (funcGetAdaptersInfo(sl_null, &ulOutBufLen) != ERROR_BUFFER_OVERFLOW) {
+			return IPv4Address::zero();
+		}
+		SLIB_SCOPED_BUFFER(sl_uint8, 1024, bufInfo, (sl_size)ulOutBufLen)
+		if (!bufInfo) {
+			return IPv4Address::zero();
+		}
+		IP_ADAPTER_INFO* info = (IP_ADAPTER_INFO*)bufInfo;
+		if (funcGetAdaptersInfo(info, &ulOutBufLen) != NO_ERROR) {
+			return IPv4Address::zero();
+		}
+
+		StringData interfaceName(_interfaceName);
+		do {
+			if (interfaceName.equals(info->AdapterName) || interfaceName.equals(info->Description)) {
+				return IPv4Address(info->GatewayList.IpAddress.String);
+			}
+			info = info->Next;
+		} while (info);
+
+#elif defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_FREEBSD)
+
+		String command = String::concat("netstat -nr | grep default | grep ", _interfaceName);
+		FILE* fp = popen(command.getData(), "r");
+		char buf[1024];
+		*buf = 0;
+		if (fp) {
+			fgets(buf, sizeof(buf), fp);
+			pclose(fp);
+		}
+		if (!(*buf)) {
+			return IPv4Address::zero();
+		}
+		buf[sizeof(buf) - 1] = 0;
+		if (!(Base::equalsMemory(buf, "default ", 8))) {
+			return IPv4Address::zero();
+		}
+		char* p = buf + 8;
+		while (*p == ' ') {
+			p++;
+		}
+		char* e = (char*)(Base::findMemory(p, buf + sizeof(buf) - 1 - p, ' '));
+		if (e) {
+			return IPv4Address(StringView(p, e - p));
+		}
+
+#elif defined(SLIB_PLATFORM_IS_LINUX)
+
+		File file = File::openForRead("/proc/net/route");
+		if (file.isNone()) {
+			return IPv4Address::zero();
+		}
+		StringData interfaceName(_interfaceName);
+		for (;;) {
+			String line = file.readLine();
+			if (line.isNull()) {
+				break;
+			}
+			sl_reg index = line.indexOf('\t');
+			if (index > 0) {
+				StringView name = StringView(line).substring(0, index);
+				if (name == interfaceName) {
+					StringView remain = StringView(line).substring(index + 1);
+					if (remain.startsWith("00000000\t")) {
+						remain = remain.substring(9);
+						sl_reg index = remain.indexOf('\t');
+						if (index > 0) {
+							StringView gateway = remain.substring(0, index);
+							return IPv4Address(gateway.parseUint32(16));
+						}
+					}
+				}
+			}
+		}
+
+#endif
+		return IPv4Address::zero();
 	}
 
 }

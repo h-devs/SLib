@@ -1525,14 +1525,14 @@ namespace slib
 		static sl_bool flagInit = sl_false;
 		if (!flagInit) {
 			SLIB_STATIC_SPINLOCKER(lock)
-				if (!flagInit) {
-					WSADATA wsaData;
-					int err = WSAStartup(MAKEWORD(2, 2), &wsaData);
-					if (err != 0) {
-						LogError("SOCKET", "WSA Startup failed");
-					}
-					flagInit = sl_true;
+			if (!flagInit) {
+				WSADATA wsaData;
+				int err = WSAStartup(MAKEWORD(2, 2), &wsaData);
+				if (err != 0) {
+					LogError("SOCKET", "WSA Startup failed");
 				}
+				flagInit = sl_true;
+			}
 		}
 #else
 		//signal(SIGPIPE, SIG_IGN);

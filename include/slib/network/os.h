@@ -81,6 +81,9 @@ namespace slib
 		
 		static IPv6Address getIPv6AddressFromHostName(const StringParam& hostName);
 		
+
+		static IPv4Address getDefaultGateway(const StringParam& interfaceName);
+
 	};
 
 }
