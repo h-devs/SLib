@@ -2029,6 +2029,73 @@ namespace slib
 			}
 
 			template <class STRING>
+			SLIB_INLINE static void MakeReverse(STRING& str) noexcept
+			{
+				sl_size len;
+				typename STRING::Char* data = str.getData(len);
+				typename STRING::Char* end = data + (len - 1);
+				while (data < end) {
+					Swap(*data, *end);
+					data++;
+					end--;
+				}
+			}
+
+			template <class CHAR>
+			SLIB_INLINE static void DoReverse(CHAR* dst, const CHAR* src, sl_size len) noexcept
+			{
+				CHAR* end = dst + len;
+				src = src + (len - 1);
+				while (dst < end) {
+					*dst = *src;
+					dst++;
+					src--;
+				}
+			}
+
+			template <class STRING>
+			static STRING CreateReverseString(typename STRING::Char const* str, sl_reg _len) noexcept
+			{
+				if (!str) {
+					return sl_null;
+				}
+				if (!_len) {
+					return STRING::getEmpty();
+				}
+				sl_size len;
+				if (_len < 0) {
+					len = StringTraits<typename STRING::Char>::getLength(str);
+				} else {
+					len = _len;
+				}
+				STRING ret = STRING::allocate(len);
+				if (ret.isNull()) {
+					return ret;
+				}
+				DoReverse(ret.getData(), str, len);
+				return ret;
+			}
+
+			template <class STRING>
+			static STRING CreateReverseString(const STRING& str) noexcept
+			{
+				if (str.isNull()) {
+					return sl_null;
+				}
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				if (!len) {
+					return STRING::getEmpty();
+				}
+				STRING ret = STRING::allocate(len);
+				if (ret.isNull()) {
+					return ret;
+				}
+				DoReverse(ret.getData(), data, len);
+				return ret;
+			}
+
+			template <class STRING>
 			static List<STRING> Split(const STRING& str, typename STRING::Char const* pattern, sl_size countPattern) noexcept
 			{
 				sl_size len;
@@ -4415,19 +4482,9 @@ namespace slib
 		MakeLowerString(*this); \
 	} \
 	\
-	STRING STRING::toUpper(typename STRING::Char const* sz, sl_reg len) noexcept \
-	{ \
-		return CreateUpperString<STRING>(sz, len); \
-	} \
-	\
 	STRING STRING::toUpper() const noexcept \
 	{ \
 		return CreateUpperString(*this); \
-	} \
-	\
-	STRING STRING::toLower(typename STRING::Char const* sz, sl_reg len) noexcept \
-	{ \
-		return CreateLowerString<STRING>(sz, len); \
 	} \
 	\
 	STRING STRING::toLower() const noexcept \
@@ -4473,6 +4530,16 @@ namespace slib
 	STRING STRING::trimLine() const noexcept \
 	{ \
 		return TrimLine(*this); \
+	} \
+	\
+	void STRING::makeReverse() noexcept \
+	{ \
+		MakeReverse(*this); \
+	} \
+	\
+	STRING STRING::reverse() const noexcept \
+	{ \
+		return CreateReverseString(*this); \
 	} \
 	\
 	List<STRING> STRING::split(typename STRING::StringViewType const& pattern) const noexcept \
@@ -5461,6 +5528,16 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	VIEW VIEW::trimLine() const noexcept \
 	{ \
 		return TrimLine(*this); \
+	} \
+	\
+	void VIEW::makeReverse() noexcept \
+	{ \
+		MakeReverse(*this); \
+	} \
+	\
+	typename VIEW::StringType VIEW::reverse() const noexcept \
+	{ \
+		return CreateReverseString<StringType>(getUnsafeData(), getUnsafeLength()); \
 	} \
 	\
 	List<VIEW> VIEW::split(const VIEW& pattern) const noexcept \

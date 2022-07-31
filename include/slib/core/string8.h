@@ -668,16 +668,6 @@ namespace slib
 		void makeLower() noexcept;
 		
 		/**
-		 * @return a copy of the specified string converted to uppercase.
-		 */
-		static String toUpper(const sl_char8* str, sl_reg len = -1) noexcept;
-		
-		/**
-		 * @return a copy of the specified string converted to lowercase.
-		 */
-		static String toLower(const sl_char8* str, sl_reg len = -1) noexcept;
-		
-		/**
 		 * @return a copy of this string converted to uppercase.
 		 */
 		String toUpper() const noexcept;
@@ -723,9 +713,19 @@ namespace slib
 		String trimRight() const noexcept;
 
 		/**
-		* Copy this string and then removes CR/LF from both ends of the new string.
-		*/
+		 * Copy this string and then removes CR/LF from both ends of the new string.
+		 */
 		String trimLine() const noexcept;
+
+		/**
+		 * Reverse the characters on this string
+		 */
+		void makeReverse() noexcept;
+
+		/**
+		 * Returns reversed copy of this string
+		 */
+		String reverse() const noexcept;
 
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.

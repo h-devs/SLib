@@ -325,6 +325,16 @@ namespace slib
 		StringView trimLine() const noexcept;
 
 		/**
+		* Reverse the characters on this string
+		*/
+		void makeReverse() noexcept;
+
+		/**
+		* Returns reversed copy of this string
+		*/
+		String reverse() const noexcept;
+
+		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
 		List<StringView> split(const StringView& pattern) const noexcept;
@@ -727,6 +737,16 @@ namespace slib
 		* Copy this string and then removes CR/LF from both ends of the new string.
 		*/
 		StringView16 trimLine() const noexcept;
+
+		/**
+		* Reverse the characters on this string
+		*/
+		void makeReverse() noexcept;
+
+		/**
+		* Returns reversed copy of this string
+		*/
+		String16 reverse() const noexcept;
 
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
@@ -1132,6 +1152,16 @@ namespace slib
 		* Copy this string and then removes CR/LF from both ends of the new string.
 		*/
 		StringView32 trimLine() const noexcept;
+
+		/**
+		* Reverse the characters on this string
+		*/
+		void makeReverse() noexcept;
+
+		/**
+		* Returns reversed copy of this string
+		*/
+		String32 reverse() const noexcept;
 
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.

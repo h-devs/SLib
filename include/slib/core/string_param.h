@@ -232,8 +232,7 @@ namespace slib
 		String32 newString32() const noexcept;
 
 		Variant toVariant() const noexcept;
-		
-	public:
+
 		sl_size getHashCode() const noexcept;
 
 	public:
