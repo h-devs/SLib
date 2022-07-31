@@ -164,9 +164,24 @@ namespace slib
 
 	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(SeekableReaderBase,)
 
+	sl_bool SeekableReaderBase::waitRead(sl_int32 timeout)
+	{
+		return IReader::waitRead(timeout);
+	}
+
 
 	SLIB_DEFINE_SEEKABLE_READER_MEMBERS(IOBase,)
 	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(IOBase,)
+
+	sl_bool IOBase::waitRead(sl_int32 timeout)
+	{
+		return IReader::waitRead(timeout);
+	}
+
+	sl_bool IOBase::waitWrite(sl_int32 timeout)
+	{
+		return IWriter::waitWrite(timeout);
+	}
 
 
 	MemoryIO::MemoryIO()
@@ -653,6 +668,11 @@ namespace slib
 			return p - buf;
 		}
 		return -1;
+	}
+
+	sl_bool MemoryReader::waitRead(sl_int32 timeout)
+	{
+		return sl_true;
 	}
 
 	sl_bool MemoryReader::readInt8(sl_int8* output)
