@@ -26,6 +26,7 @@
 #include "../endian.h"
 #include "../memory.h"
 #include "../string_buffer.h"
+#include "../thread.h"
 
 namespace slib
 {
@@ -39,85 +40,62 @@ namespace slib
 			StringBuffer sb;
 			char buf[512];
 			sl_bool flagNull = sl_true;
+			CurrentThread thread;
 			for (;;) {
 				sl_reg n = reader->read(buf, sizeof(buf));
-				if (n <= 0) {
-					break;
-				}
-				flagNull = sl_false;
-				for (sl_reg i = 0; i < n; i++) {
-					char ch = buf[i];
-					if (ch == '\r' || ch == '\n') {
-						if (i) {
-							sb.add(String(buf, i));
-						}
-						if (ch == '\r') {
-							if (i == n - 1) {
-								if (reader->readUint8('\n') != '\n') {
-									seekable->seek(-1, SeekPosition::Current);
-								}
-							} else {
-								if (buf[i + 1] == '\n') {
-									if (i != n - 2) {
-										seekable->seek(i + 2 - n, SeekPosition::Current);
+				if (n > 0) {
+					flagNull = sl_false;
+					for (sl_reg i = 0; i < n; i++) {
+						char ch = buf[i];
+						if (ch == '\r' || ch == '\n') {
+							if (ch == '\r') {
+								if (i == n - 1) {
+									if (reader->readUint8('\n') != '\n') {
+										seekable->seek(-1, SeekPosition::Current);
 									}
 								} else {
+									if (buf[i + 1] == '\n') {
+										if (i != n - 2) {
+											seekable->seek(i + 2 - n, SeekPosition::Current);
+										}
+									} else {
+										seekable->seek(i + 1 - n, SeekPosition::Current);
+									}
+								}
+							} else {
+								if (i != n - 1) {
 									seekable->seek(i + 1 - n, SeekPosition::Current);
 								}
 							}
-						} else {
-							if (i != n - 1) {
-								seekable->seek(i + 1 - n, SeekPosition::Current);
+							if (i) {
+								if (sb.getLength()) {
+									if (!(sb.addStatic(buf, i))) {
+										return sl_null;
+									}
+								} else {
+									return String(buf, i);
+								}
 							}
+							return sb.merge();
 						}
-						return sb.merge();
 					}
-				}
-				if (!(sb.add(String(buf, n)))) {
+					String str(buf, n);
+					if (str.isNull()) {
+						return sl_null;
+					}
+					if (!(sb.add(Move(str)))) {
+						return sl_null;
+					}
+				} else if (n == SLIB_IO_WOULD_BLOCK) {
+					reader->waitRead();
+				} else if (n == SLIB_IO_ENDED) {
+					break;
+				} else {
 					return sl_null;
 				}
-			}
-			if (flagNull) {
-				return sl_null;
-			}
-			return sb.merge();
-		}
-
-		template <class READER, class SEEKABLE>
-		static String readStringUntilWhitespace(READER* reader, SEEKABLE* seekable)
-		{
-			StringBuffer sb;
-			char buf[512];
-			sl_bool flagNull = sl_true;
-			sl_bool flagFoundStart = sl_false;
-			for (;;) {
-				sl_reg n = reader->read(buf, sizeof(buf));
-				if (n <= 0) {
-					break;
+				if (thread.isStopping()) {
+					return sl_null;
 				}
-				flagNull = sl_false;
-				sl_reg start = 0;
-				if (!flagFoundStart) {
-					for (sl_reg i = 0; i < n; i++) {
-						sl_char8 ch = buf[i];
-						if (ch && !SLIB_CHAR_IS_WHITE_SPACE(buf[i])) {
-							flagFoundStart = sl_true;
-							start = i;
-							break;
-						}
-					}
-				}
-				for (sl_reg i = start; i < n; i++) {
-					char ch = buf[i];
-					if (!ch || SLIB_CHAR_IS_WHITE_SPACE(ch)) {
-						sb.add(String(buf + start, i - start));
-						if (i != n - 1) {
-							seekable->seek(i + 1 - n, SeekPosition::Current);
-						}
-						return sb.merge();
-					}
-				}
-				sb.add(String(buf + start, n - start));
 			}
 			if (flagNull) {
 				return sl_null;
@@ -131,25 +109,44 @@ namespace slib
 			StringBuffer sb;
 			char buf[128];
 			sl_bool flagNull = sl_true;
+			CurrentThread thread;
 			for (;;) {
 				sl_reg n = reader->read(buf, sizeof(buf));
-				if (n <= 0) {
-					break;
-				}
-				flagNull = sl_false;
-				for (sl_reg i = 0; i < n; i++) {
-					char ch = buf[i];
-					if (!ch) {
-						if (i) {
-							sb.add(String(buf, i));
+				if (n > 0) {
+					flagNull = sl_false;
+					for (sl_reg i = 0; i < n; i++) {
+						char ch = buf[i];
+						if (!ch) {
+							if (i != n - 1) {
+								seekable->seek(i + 1 - n, SeekPosition::Current);
+							}
+							if (i) {
+								if (sb.getLength()) {
+									if (!(sb.addStatic(buf, i))) {
+										return sl_null;
+									}
+								} else {
+									return String(buf, i);
+								}
+							}
+							return sb.merge();
 						}
-						if (i != n - 1) {
-							seekable->seek(i + 1 - n, SeekPosition::Current);
-						}
-						return sb.merge();
 					}
+					String str(buf, n);
+					if (str.isNull()) {
+						return sl_null;
+					}
+					if (!(sb.add(Move(str)))) {
+						return sl_null;
+					}
+				} else if (n == SLIB_IO_WOULD_BLOCK) {
+					reader->waitRead();
+				} else if (n == SLIB_IO_ENDED) {
+					break;
+				} else {
+					return sl_null;
 				}
-				if (!(sb.add(String(buf, n)))) {
+				if (thread.isStopping()) {
 					return sl_null;
 				}
 			}
@@ -174,7 +171,7 @@ namespace slib
 			if (ret.isNotNull()) {
 				char* buf = (char*)(ret.getData());
 				if (seekable->seekToBegin()) {
-					if (reader->read(buf, size) == (sl_reg)size) {
+					if (reader->readFully(buf, size) == (sl_reg)size) {
 						return ret;
 					}
 				}

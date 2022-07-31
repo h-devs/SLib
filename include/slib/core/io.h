@@ -261,6 +261,10 @@ namespace slib
 	{
 	public:
 		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(, override)
+
+	public:
+		sl_bool waitRead(sl_int32 timeout = -1) override;
+
 	};
 	
 	template <class T>
@@ -309,6 +313,12 @@ namespace slib
 	public:
 		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(,override)
 		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(,override)
+
+	public:
+		sl_bool waitRead(sl_int32 timeout = -1) override;
+
+		sl_bool waitWrite(sl_int32 timeout = -1) override;
+
 	};
 
 	template <class T>

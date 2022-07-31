@@ -69,6 +69,8 @@ namespace slib
 
 		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1);
 
+		sl_bool waitRead(sl_int32 timeout = -1) override;
+
 	public:
 		sl_bool readInt8(sl_int8* output);
 

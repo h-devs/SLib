@@ -103,7 +103,6 @@
 	sl_int32 readAt32(sl_uint64 offset, void* buf, sl_uint32 size) ATTR OVERRIDE; \
 	sl_reg readFullyAt(sl_uint64 offset, void* buf, sl_size size) ATTR OVERRIDE; \
 	String readLine() ATTR; \
-	String readStringUntilWhitespace() ATTR; \
 	String readNullTerminatedString() ATTR; \
 	Memory readAllBytes(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \
 	String readAllTextUTF8(sl_size maxSize = SLIB_SIZE_MAX) ATTR; \

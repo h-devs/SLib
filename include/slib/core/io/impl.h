@@ -127,7 +127,6 @@
 	sl_int32 CLASS::readAt32(sl_uint64 offset, void* buf, sl_uint32 size) ATTR { return (seek(offset, SeekPosition::Begin)) ? read32(buf, size) : -1; } \
 	sl_reg CLASS::readFullyAt(sl_uint64 offset, void* buf, sl_size size) ATTR { return (seek(offset, SeekPosition::Begin)) ? readFully(buf, size) : -1; } \
 	String CLASS::readLine() ATTR { return SeekableReaderHelper::readLine(this, this); } \
-	String CLASS::readStringUntilWhitespace() ATTR { return SeekableReaderHelper::readStringUntilWhitespace(this, this); } \
 	String CLASS::readNullTerminatedString() ATTR { return SeekableReaderHelper::readNullTerminatedString(this, this); } \
 	Memory CLASS::readAllBytes(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllBytes(this, this, maxSize); } \
 	String CLASS::readAllTextUTF8(sl_size maxSize) ATTR { return SeekableReaderHelper::readAllTextUTF8(this, this, maxSize); } \
