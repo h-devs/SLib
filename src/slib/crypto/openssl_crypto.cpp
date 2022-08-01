@@ -1110,11 +1110,11 @@ namespace slib
 				InitThread();
 				X509_Handle handle(Load_X509(content, size));
 				if (handle.isNone()) {
-					return sl_null;
+					return sl_false;
 				}
 				EVP_PKEY_Handle key(Get_EVP_PKEY_from_PublicKey(issuerKey));
 				if (key.isNone()) {
-					return sl_null;
+					return sl_false;
 				}
 				return X509_verify(handle.get(), key.get()) == 1;
 			}
