@@ -209,7 +209,7 @@ namespace slib
 	sl_uint32 SocketEvent::waitEvents(sl_int32 timeout) noexcept
 	{
 		sl_uint32 status;
-		if (wait(&status)) {
+		if (wait(&status, timeout)) {
 			return status;
 		}
 		return 0;

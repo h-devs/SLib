@@ -286,8 +286,9 @@ namespace slib
 	sl_uint32 ListControl::addRow(UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		setRowCount(m_nRows+1, mode);
-		return getRowCount()-1;
+		sl_uint32 n = m_nRows;
+		setRowCount(n + 1, mode);
+		return n;
 	}
 	
 	void ListControl::insertRow(sl_uint32 iRow, UIUpdateMode mode)
