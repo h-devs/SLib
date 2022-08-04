@@ -334,7 +334,7 @@ namespace slib
 
 			};
 
-			template <class T, sl_bool CanBeBool = __is_class(T) && SLIB_IS_CONVERTIBLE(T, sl_bool)>
+			template <class T, sl_bool CanBeBool = __is_class(T) && (SLIB_IS_CONVERTIBLE(T, sl_bool) || SLIB_IS_CONVERTIBLE(const T&, sl_bool))>
 			class SharedContainerHelper;
 
 			template <class T>
