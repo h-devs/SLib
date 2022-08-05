@@ -123,6 +123,9 @@
     <PreBuildEvent>
       <Command>"$(SLIB_PATH)/tool/bin/sapp" gen "$(ProjectDir)../src/sapp"</Command>
     </PreBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -146,6 +149,9 @@
     <PreBuildEvent>
       <Command>"$(SLIB_PATH)/tool/bin/sapp" gen "$(ProjectDir)../src/sapp"</Command>
     </PreBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -173,6 +179,9 @@
     <PreBuildEvent>
       <Command>"$(SLIB_PATH)/tool/bin/sapp" gen "$(ProjectDir)../src/sapp"</Command>
     </PreBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -200,6 +209,9 @@
     <PreBuildEvent>
       <Command>"$(SLIB_PATH)/tool/bin/sapp" gen "$(ProjectDir)../src/sapp"</Command>
     </PreBuildEvent>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cpp\app.cpp" />
