@@ -50,6 +50,16 @@ namespace slib
 		m[5] = m5;
 	}
 
+	MacAddress::MacAddress(sl_uint64 v) noexcept
+	{
+		m[0] = SLIB_GET_BYTE5(v);
+		m[1] = SLIB_GET_BYTE4(v);
+		m[2] = SLIB_GET_BYTE3(v);
+		m[3] = SLIB_GET_BYTE2(v);
+		m[4] = SLIB_GET_BYTE1(v);
+		m[5] = SLIB_GET_BYTE0(v);
+	}
+
 	MacAddress::MacAddress(const StringParam& address) noexcept
 	{
 		if (!(parse(address))) {

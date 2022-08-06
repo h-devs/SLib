@@ -44,7 +44,9 @@ namespace slib
 		MacAddress(const sl_uint8* m) noexcept;
 		
 		MacAddress(sl_uint8 m0, sl_uint8 m1, sl_uint8 m2, sl_uint8 m3, sl_uint8 m4, sl_uint8 m5) noexcept;
-		
+
+		MacAddress(sl_uint64 v) noexcept;
+
 		MacAddress(const StringParam& address) noexcept;
 		
 	public:
