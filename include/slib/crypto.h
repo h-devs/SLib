@@ -55,6 +55,8 @@
 #include "crypto/certificate.h"
 #include "crypto/x509.h"
 #include "crypto/pkcs12.h"
+#include "crypto/pkcs8.h"
+#include "crypto/pem.h"
 
 // Key Derivation Function
 #include "crypto/pbkdf.h"

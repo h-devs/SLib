@@ -23,6 +23,8 @@
 #include "slib/crypto/certificate.h"
 #include "slib/crypto/x509.h"
 #include "slib/crypto/pkcs12.h"
+#include "slib/crypto/pkcs8.h"
+#include "slib/crypto/pem.h"
 
 #include "slib/core/file.h"
 #include "slib/crypto/asn1.h"
@@ -30,6 +32,7 @@
 #include "slib/crypto/sha2.h"
 #include "slib/crypto/des.h"
 #include "slib/crypto/rc2.h"
+#include "slib/crypto/base64.h"
 
 #define OID_ISO_US "\x2A\x86\x48" // ISO(1) Member-Body(2) US(840)
 #define OID_RSADSI OID_ISO_US "\x86\xF7\x0D" // 113549
@@ -448,7 +451,99 @@ namespace slib
 				}
 			}
 
-			static sl_bool GetEllipticCurve(EllipticCurve& curve, const Asn1Element& element)
+			static sl_bool Load_RSAPrivateKey(RSAPrivateKey& _out, const void* content, sl_size size)
+			{
+				Asn1MemoryReader reader(content, size);
+				Asn1MemoryReader body;
+				if (reader.readSequence(body)) {
+					sl_uint32 version;
+					if (!(body.readInt(version))) {
+						return sl_false;
+					}
+					if (!(body.readBigInt(_out.N))) {
+						return sl_false;
+					}
+					if (!(body.readBigInt(_out.E))) {
+						return sl_false;
+					}
+					if (!(body.readBigInt(_out.D))) {
+						return sl_false;
+					}
+					body.readBigInt(_out.P);
+					body.readBigInt(_out.Q);
+					body.readBigInt(_out.DP);
+					body.readBigInt(_out.DQ);
+					body.readBigInt(_out.IQ);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			static Memory Save_RSAPrivateKey(const RSAPrivateKey& _in)
+			{
+				Asn1MemoryWriter writer;
+				// Version
+				if (!(writer.writeInt(0))) {
+					return sl_null;
+				}
+				if (!(writer.writeBigInt(_in.N))) {
+					return sl_null;
+				}
+				if (!(writer.writeBigInt(_in.E))) {
+					return sl_null;
+				}
+				if (!(writer.writeBigInt(_in.D))) {
+					return sl_null;
+				}
+				if (_in.P.isNotNull() && _in.Q.isNotNull() && _in.DP.isNotNull() && _in.DQ.isNotNull() && _in.IQ.isNotNull()) {
+					if (!(writer.writeBigInt(_in.P))) {
+						return sl_null;
+					}
+					if (!(writer.writeBigInt(_in.Q))) {
+						return sl_null;
+					}
+					if (!(writer.writeBigInt(_in.DP))) {
+						return sl_null;
+					}
+					if (!(writer.writeBigInt(_in.DQ))) {
+						return sl_null;
+					}
+					if (!(writer.writeBigInt(_in.IQ))) {
+						return sl_null;
+					}
+				}
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+			}
+
+			static sl_bool Load_RSAPublicKey(RSAPublicKey& _out, const void* content, sl_size size)
+			{
+				Asn1MemoryReader reader(content, size);
+				Asn1MemoryReader body;
+				if (reader.readSequence(body)) {
+					if (!(body.readBigInt(_out.N))) {
+						return sl_false;
+					}
+					if (!(body.readBigInt(_out.E))) {
+						return sl_false;
+					}
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			static Memory Save_RSAPublicKey(const RSAPublicKey& _in)
+			{
+				Asn1MemoryWriter writer;
+				if (!(writer.writeBigInt(_in.N))) {
+					return sl_null;
+				}
+				if (!(writer.writeBigInt(_in.E))) {
+					return sl_null;
+				}
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+			}
+
+			static sl_bool Load_EllipticCurve(EllipticCurve& curve, const Asn1Element& element)
 			{
 				if (element.tag == SLIB_ASN1_TAG_OID) {
 					Asn1ObjectIdentifier& oid = *((Asn1ObjectIdentifier*)((Asn1String*)&element));
@@ -532,6 +627,141 @@ namespace slib
 				return sl_false;
 			}
 
+			static Memory Save_EllipticCurve(const EllipticCurve& curve)
+			{
+				switch (curve.id) {
+					case EllipticCurveId::secp112r1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp112r1);
+					case EllipticCurveId::secp112r2:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp112r2);
+					case EllipticCurveId::secp128r1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp128r1);
+					case EllipticCurveId::secp128r2:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp128r2);
+					case EllipticCurveId::secp160k1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp160k1);
+					case EllipticCurveId::secp160r1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp160r1);
+					case EllipticCurveId::secp160r2:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp160r2);
+					case EllipticCurveId::secp192k1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp192k1);
+					case EllipticCurveId::secp224k1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp224k1);
+					case EllipticCurveId::secp256k1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp256k1);
+					case EllipticCurveId::secp384r1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp384r1);
+					case EllipticCurveId::secp521r1:
+						return Asn1::serializeElement(SLIB_ASN1_TAG_OID, OID_secp521r1);
+					default:
+						break;
+				}
+
+				Asn1MemoryWriter writer;
+				// Version
+				if (!(writer.writeInt(1))) {
+					return sl_null;
+				}
+				{
+					Asn1MemoryWriter field;
+					if (!(field.writeElement(SLIB_ASN1_TAG_OID, OID_X9_62_PRIME_FIELD))) {
+						return sl_null;
+					}
+					if (!(field.writeBigInt(curve.p))) {
+						return sl_null;
+					}
+					if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, field))) {
+						return sl_null;
+					}
+				}
+				{
+					Asn1MemoryWriter ec;
+					if (!(ec.writeElement(SLIB_ASN1_TAG_OCTET_STRING, curve.a.getBytesBE(sl_true)))) {
+						return sl_null;
+					}
+					if (!(ec.writeElement(SLIB_ASN1_TAG_OCTET_STRING, curve.b.getBytesBE(sl_true)))) {
+						return sl_null;
+					}
+					if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, ec))) {
+						return sl_null;
+					}
+				}
+				if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, curve.G.toCompressedFormat(curve)))) {
+					return sl_null;
+				}
+				if (!(writer.writeBigInt(curve.n))) {
+					return sl_null;
+				}
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+			}
+
+			static sl_bool Load_ECPrivateKey(ECPrivateKeyWithCurve& _out, const void* content, sl_size size)
+			{
+				Asn1MemoryReader reader(content, size);
+				Asn1MemoryReader body;
+				if (reader.readSequence(body)) {
+					sl_uint32 version;
+					if (!(body.readInt(version))) {
+						return sl_false;
+					}
+					Asn1String key;
+					if (!(body.readOctetString(key))) {
+						return sl_false;
+					}
+					_out.d = BigInt::fromBytesBE(key.data, key.length);
+					if (_out.d.isNull()) {
+						return sl_false;
+					}
+					Asn1Element paramOrPubKey;
+					if (!(body.readElement(paramOrPubKey))) {
+						return sl_false;
+					}
+					// [Optional] Parameter
+					if (Load_EllipticCurve(_out, paramOrPubKey)) {
+						// Read Public Key
+						if (!(body.readElement(paramOrPubKey))) {
+							return sl_false;
+						}
+					}
+					Asn1String pub;
+					sl_uint8 nBitsRemain;
+					if (paramOrPubKey.getBitString(pub, nBitsRemain)) {
+						if (nBitsRemain) {
+							return sl_false;
+						}
+						_out.Q.parseBinaryFormat(_out, pub.data, pub.length);
+					} else {
+						_out.Q = _out.multiplyG(_out.d);
+					}
+					return _out.isDefined();
+				}
+				return sl_false;
+			}
+
+			static Memory Save_ECPrivateKey(const ECPrivateKeyWithCurve& _in)
+			{
+				Asn1MemoryWriter writer;
+				// Version
+				if (!(writer.writeInt(1))) {
+					return sl_null;
+				}
+				if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, _in.d.getBytesBE(sl_true)))) {
+					return sl_null;
+				}
+				Memory curve = Save_EllipticCurve(_in);
+				if (curve.isNull()) {
+					return sl_null;
+				}
+				if (!(writer.output.write(curve))) {
+					return sl_null;
+				}
+				if (!(writer.writeBitString(_in.Q.toCompressedFormat(_in)))) {
+					return sl_null;
+				}
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+			}
+
 			class PKCS8_PrivateKey
 			{
 			public:
@@ -561,69 +791,61 @@ namespace slib
 				sl_bool getPrivateKey(PrivateKey& _out)
 				{
 					if (algorithm.algorithm.equals(OID_PKCS1_RSA)) {
-						Asn1MemoryReader reader(key);
-						Asn1MemoryReader body;
-						if (reader.readSequence(body)) {
-							sl_uint32 version;
-							if (!(body.readInt(version))) {
-								return sl_false;
-							}
-							if (!(body.readBigInt(_out.rsa.N))) {
-								return sl_false;
-							}
-							if (!(body.readBigInt(_out.rsa.E))) {
-								return sl_false;
-							}
-							if (!(body.readBigInt(_out.rsa.D))) {
-								return sl_false;
-							}
-							body.readBigInt(_out.rsa.P);
-							body.readBigInt(_out.rsa.Q);
-							body.readBigInt(_out.rsa.DP);
-							body.readBigInt(_out.rsa.DQ);
-							body.readBigInt(_out.rsa.IQ);
-							return sl_true;
-						}
+						return Load_RSAPrivateKey(_out.rsa, key.data, key.length);
 					} else if (algorithm.algorithm.equals(OID_X9_62_EC_PUBLIC_KEY)) {
-						GetEllipticCurve(_out.ecc, algorithm.parameter);
-						Asn1MemoryReader reader(key);
-						Asn1MemoryReader body;
-						if (reader.readSequence(body)) {
-							sl_uint32 version;
-							if (!(body.readInt(version))) {
-								return sl_false;
-							}
-							Asn1String key;
-							if (!(body.readOctetString(key))) {
-								return sl_false;
-							}
-							_out.ecc.d = BigInt::fromBytesBE(key.data, key.length);
-							if (_out.ecc.d.isNull()) {
-								return sl_false;
-							}
-							Asn1Element param;
-							if (!(body.readElement(param))) {
-								return sl_false;
-							}
-							if (GetEllipticCurve(_out.ecc, param)) {
-								if (!(body.readElement(param))) {
-									return sl_false;
-								}
-							}
-							Asn1String pub;
-							sl_uint8 nBitsRemain;
-							if (param.getBitString(pub, nBitsRemain)) {
-								if (nBitsRemain) {
-									return sl_false;
-								}
-								_out.ecc.Q.parseBinaryFormat(_out.ecc, pub.data, pub.length);
-							} else {
-								_out.ecc.Q = _out.ecc.multiplyG(_out.ecc.d);
-							}
-							return _out.isECC();
-						}
+						Load_EllipticCurve(_out.ecc, algorithm.parameter);
+						return Load_ECPrivateKey(_out.ecc, key.data, key.length);
 					}
 					return sl_false;
+				}
+
+				static Memory savePrivateKey(const PrivateKey& _in)
+				{
+					Asn1MemoryWriter writer;
+					// Version
+					if (!(writer.writeInt(0))) {
+						return sl_null;
+					}
+					Asn1MemoryWriter algorithm;
+					if (_in.isRSA()) {
+						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_PKCS1_RSA))) {
+							return sl_null;
+						}
+						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+							return sl_null;
+						}
+						Memory key = Save_RSAPrivateKey(_in.rsa);
+						if (key.isNull()) {
+							return sl_null;
+						}
+						if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, key))) {
+							return sl_null;
+						}
+					} else if (_in.isECC()) {
+						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_X9_62_EC_PUBLIC_KEY))) {
+							return sl_null;
+						}
+						Memory param = Save_EllipticCurve(_in.ecc);
+						if (param.isNull()) {
+							return sl_null;
+						}
+						if (!(algorithm.output.write(param))) {
+							return sl_null;
+						}
+						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+							return sl_null;
+						}
+						Memory key = Save_ECPrivateKey(_in.ecc);
+						if (key.isNull()) {
+							return sl_null;
+						}
+						if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, key))) {
+							return sl_null;
+						}
+					} else {
+						return sl_null;
+					}
+					return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
 				}
 
 			};
@@ -871,24 +1093,59 @@ namespace slib
 				sl_bool getPublicKey(PublicKey& _out)
 				{
 					if (algorithm.algorithm.equals(OID_PKCS1_RSA)) {
-						Asn1MemoryReader reader(key);
-						Asn1MemoryReader body;
-						if (reader.readSequence(body)) {
-							if (!(body.readBigInt(_out.rsa.N))) {
-								return sl_false;
-							}
-							if (!(body.readBigInt(_out.rsa.E))) {
-								return sl_false;
-							}
-							return sl_true;
-						}
+						return Load_RSAPublicKey(_out.rsa, key.data, key.length);
 					} else if (algorithm.algorithm.equals(OID_X9_62_EC_PUBLIC_KEY)) {
-						if (!(GetEllipticCurve(_out.ecc, algorithm.parameter))) {
+						if (!(Load_EllipticCurve(_out.ecc, algorithm.parameter))) {
 							return sl_false;
 						}
 						return _out.ecc.Q.parseBinaryFormat(_out.ecc, key.data, key.length);
 					}
 					return sl_false;
+				}
+
+				static Memory savePublicKey(const PublicKey& _in)
+				{
+					Asn1MemoryWriter writer;
+					Asn1MemoryWriter algorithm;
+					if (_in.isRSA()) {
+						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_PKCS1_RSA))) {
+							return sl_null;
+						}
+						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+							return sl_null;
+						}
+						Memory key = Save_RSAPublicKey(_in.rsa);
+						if (key.isNull()) {
+							return sl_null;
+						}
+						if (!(writer.writeBitString(key))) {
+							return sl_null;
+						}
+					} else if (_in.isECC()) {
+						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_X9_62_EC_PUBLIC_KEY))) {
+							return sl_null;
+						}
+						Memory param = Save_EllipticCurve(_in.ecc);
+						if (param.isNull()) {
+							return sl_null;
+						}
+						if (!(algorithm.output.write(param))) {
+							return sl_null;
+						}
+						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+							return sl_null;
+						}
+						Memory key = _in.ecc.Q.toCompressedFormat(_in.ecc);
+						if (key.isNull()) {
+							return sl_null;
+						}
+						if (!(writer.writeBitString(key))) {
+							return sl_null;
+						}
+					} else {
+						return sl_null;
+					}
+					return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
 				}
 
 			};
@@ -1123,6 +1380,37 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool X509::loadPublicKey(PublicKey& _out, const void* input, sl_size size) noexcept
+	{
+		Asn1MemoryReader reader(input, size);
+		X509_PublicKey key;
+		if (reader.readObject(key)) {
+			return key.getPublicKey(_out);
+		}
+		return sl_false;
+	}
+
+	Memory X509::savePublicKey(const PublicKey& _in) noexcept
+	{
+		return X509_PublicKey::savePublicKey(_in);
+	}
+
+
+	sl_bool PKCS8::loadPrivateKey(PrivateKey& _out, const void* input, sl_size size) noexcept
+	{
+		Asn1MemoryReader reader(input, size);
+		PKCS8_PrivateKey key;
+		if (reader.readObject(key)) {
+			return key.getPrivateKey(_out);
+		}
+		return sl_false;
+	}
+
+	Memory PKCS8::savePrivateKey(const PrivateKey& _in) noexcept
+	{
+		return PKCS8_PrivateKey::savePrivateKey(_in);
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PKCS12)
 
@@ -1143,6 +1431,360 @@ namespace slib
 	sl_bool PKCS12::load(const StringParam& filePath, const StringParam& password)
 	{
 		return load(File::readAllBytes(filePath), password);
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PEMInstance)
+
+	PEMInstance::PEMInstance() noexcept: type(PEMInstanceType::Unknown)
+	{
+	}
+
+	sl_bool PEMInstance::getPrivateKey(PrivateKey& _out)
+	{
+		switch (type) {
+			case PEMInstanceType::PrivateKey:
+				return PKCS8::loadPrivateKey(_out, content.getData(), content.getSize());
+			case PEMInstanceType::RSAPrivateKey:
+				return Load_RSAPrivateKey(_out.rsa, content.getData(), content.getSize());
+			case PEMInstanceType::ECPrivateKey:
+				return Load_ECPrivateKey(_out.ecc, content.getData(), content.getSize());
+			default:
+				break;
+		}
+		return sl_false;
+	}
+
+	sl_bool PEMInstance::getPublicKey(PublicKey& _out)
+	{
+		switch (type) {
+			case PEMInstanceType::PublicKey:
+				return X509::loadPublicKey(_out, content.getData(), content.getSize());
+			case PEMInstanceType::RSAPrivateKey:
+				return Load_RSAPublicKey(_out.rsa, content.getData(), content.getSize());
+			case PEMInstanceType::ECPublicKey:
+				return _out.ecc.Q.parseBinaryFormat(_out.ecc, content.getData(), content.getSize());
+			case PEMInstanceType::Certificate:
+				{
+					X509 cert;
+					if (cert.load(content)) {
+						_out = cert.key;
+						return sl_true;
+					}
+					return sl_false;
+				}
+			default:
+				break;
+		}
+		return sl_false;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PEM)
+
+	PEM::PEM() noexcept
+	{
+	}
+
+	sl_bool PEM::load(const void* content, sl_size size)
+	{
+		instances.setNull();
+		sl_uint8* s = (sl_uint8*)content;
+		sl_uint8* end = s + size;
+		if (s + 3 <= end) {
+			if (*s == 0xEF && s[1] == 0xBB && s[2] == 0xBF) {
+				s += 3;
+			}
+		}
+		for (;;) {
+			while (s < end) {
+				if (!SLIB_CHAR_IS_WHITE_SPACE(*s)) {
+					break;
+				}
+				s++;
+			}
+			if (s >= end) {
+				break;
+			}
+			if (s + 11 >= end) {
+				return sl_false;
+			}
+			if (!(Base::equalsMemory(s, "-----BEGIN ", 11))) {
+				return sl_false;
+			}
+			s += 11;
+			sl_uint8* r = Base::findMemory(s, end - s, '-');
+			if (!r) {
+				return sl_false;
+			}
+			if (r + 5 >= end) {
+				return sl_false;
+			}
+			if (!(Base::equalsMemory(r, "-----", 5))) {
+				return sl_false;
+			}
+			StringView type((char*)s, r - s);
+			PEMInstance instance;
+			if (type == StringView::literal("CERTIFICATE")) {
+				instance.type = PEMInstanceType::Certificate;
+			} else if (type == StringView::literal("TRUSTED CERTIFICATE")) {
+				instance.type = PEMInstanceType::TrustedCertificate;
+			} else if (type == StringView::literal("CERTIFICATE REQUEST")) {
+				instance.type = PEMInstanceType::CertificateRequest;
+			} else if (type == StringView::literal("X509 CRL")) {
+				instance.type = PEMInstanceType::X509Control;
+			} else if (type == StringView::literal("PUBLIC KEY")) {
+				instance.type = PEMInstanceType::PublicKey;
+			} else if (type == StringView::literal("RSA PRIVATE KEY")) {
+				instance.type = PEMInstanceType::RSAPrivateKey;
+			} else if (type == StringView::literal("RSA PUBLIC KEY")) {
+				instance.type = PEMInstanceType::RSAPublicKey;
+			} else if (type == StringView::literal("DSA PRIVATE KEY")) {
+				instance.type = PEMInstanceType::DSAPrivateKey;
+			} else if (type == StringView::literal("DSA PUBLIC KEY")) {
+				instance.type = PEMInstanceType::DSAPublicKey;
+			} else if (type == StringView::literal("PKCS7")) {
+				instance.type = PEMInstanceType::PKCS7;
+			} else if (type == StringView::literal("PKCS #7 SIGNED DATA")) {
+				instance.type = PEMInstanceType::SignedPKCS7;
+			} else if (type == StringView::literal("ENCRYPTED PRIVATE KEY")) {
+				instance.type = PEMInstanceType::EncryptedPrivateKey;
+			} else if (type == StringView::literal("PRIVATE KEY")) {
+				instance.type = PEMInstanceType::PrivateKey;
+			} else if (type == StringView::literal("DH PARAMETERS")) {
+				instance.type = PEMInstanceType::DHParameters;
+			} else if (type == StringView::literal("X9.42 DH PARAMETERS")) {
+				instance.type = PEMInstanceType::DHXParameters;
+			} else if (type == StringView::literal("SSL SESSION PARAMETERS")) {
+				instance.type = PEMInstanceType::SSLSessionParameters;
+			} else if (type == StringView::literal("DSA PARAMETERS")) {
+				instance.type = PEMInstanceType::DSAParameters;
+			} else if (type == StringView::literal("ECDSA PUBLIC KEY")) {
+				instance.type = PEMInstanceType::ECPublicKey;
+			} else if (type == StringView::literal("EC PARAMETERS")) {
+				instance.type = PEMInstanceType::ECParamters;
+			} else if (type == StringView::literal("EC PRIVATE KEY")) {
+				instance.type = PEMInstanceType::ECPrivateKey;
+			} else if (type == StringView::literal("PARAMETERS")) {
+				instance.type = PEMInstanceType::Paramters;
+			} else if (type == StringView::literal("CMS")) {
+				instance.type = PEMInstanceType::CMS;
+			}
+			s = r + 5;
+			r = Base::findMemory(s, end - s, '-');
+			if (!r) {
+				return sl_false;
+			}
+			if (r + 9 >= end) {
+				return sl_false;
+			}
+			if (!(Base::equalsMemory(r, "-----END ", 9))) {
+				return sl_false;
+			}
+			instance.content = Base64::decode(StringView((char*)s, r - s));
+			if (instance.content.isNull()) {
+				return sl_false;
+			}
+			s = r + 9;
+			r = Base::findMemory(s, end - s, '-');
+			if (!r) {
+				return sl_false;
+			}
+			if (r + 5 >= end) {
+				return sl_false;
+			}
+			if (!(Base::equalsMemory(r, "-----", 5))) {
+				return sl_false;
+			}
+			if (StringView((char*)s, r - s) != type) {
+				return sl_false;
+			}
+			if (!(instances.add_NoLock(Move(instance)))) {
+				return sl_false;
+			}
+			s = r + 5;
+		}
+		return instances.isNotNull();
+	}
+
+	sl_bool PEM::load(const Memory& memory)
+	{
+		return load(memory.getData(), memory.getSize());
+	}
+
+	sl_bool PEM::load(const StringParam& filePath)
+	{
+		return load(File::readAllBytes(filePath));
+	}
+
+	Memory PEM::save()
+	{
+		ListElements<PEMInstance> items(instances);
+		if (!(items.count)) {
+			return sl_null;
+		}
+		SerializeOutput output;
+		for (sl_size i = 0; i < items.count; i++) {
+			PEMInstance& instance = items[i];
+			StringView type;
+			switch (instance.type) {
+				case PEMInstanceType::Certificate:
+					type = StringView::literal("CERTIFICATE");
+					break;
+				case PEMInstanceType::TrustedCertificate:
+					type = StringView::literal("TRUSTED CERTIFICATE");
+					break;
+				case PEMInstanceType::CertificateRequest:
+					type = StringView::literal("CERTIFICATE REQUEST");
+					break;
+				case PEMInstanceType::X509Control:
+					type = StringView::literal("X509 CRL");
+					break;
+				case PEMInstanceType::PublicKey:
+					type = StringView::literal("PUBLIC KEY");
+					break;
+				case PEMInstanceType::RSAPrivateKey:
+					type = StringView::literal("RSA PRIVATE KEY");
+					break;
+				case PEMInstanceType::RSAPublicKey:
+					type = StringView::literal("RSA PUBLIC KEY");
+					break;
+				case PEMInstanceType::DSAPrivateKey:
+					type = StringView::literal("DSA PRIVATE KEY");
+					break;
+				case PEMInstanceType::DSAPublicKey:
+					type = StringView::literal("DSA PUBLIC KEY");
+					break;
+				case PEMInstanceType::PKCS7:
+					type = StringView::literal("PKCS7");
+					break;
+				case PEMInstanceType::SignedPKCS7:
+					type = StringView::literal("PKCS #7 SIGNED DATA");
+					break;
+				case PEMInstanceType::EncryptedPrivateKey:
+					type = StringView::literal("ENCRYPTED PRIVATE KEY");
+					break;
+				case PEMInstanceType::PrivateKey:
+					type = StringView::literal("PRIVATE KEY");
+					break;
+				case PEMInstanceType::DHParameters:
+					type = StringView::literal("DH PARAMETERS");
+					break;
+				case PEMInstanceType::DHXParameters:
+					type = StringView::literal("X9.42 DH PARAMETERS");
+					break;
+				case PEMInstanceType::SSLSessionParameters:
+					type = StringView::literal("SSL SESSION PARAMETERS");
+					break;
+				case PEMInstanceType::DSAParameters:
+					type = StringView::literal("DSA PARAMETERS");
+					break;
+				case PEMInstanceType::ECPublicKey:
+					type = StringView::literal("ECDSA PUBLIC KEY");
+					break;
+				case PEMInstanceType::ECParamters:
+					type = StringView::literal("EC PARAMETERS");
+					break;
+				case PEMInstanceType::ECPrivateKey:
+					type = StringView::literal("EC PRIVATE KEY");
+					break;
+				case PEMInstanceType::Paramters:
+					type = StringView::literal("PARAMETERS");
+					break;
+				case PEMInstanceType::CMS:
+					type = StringView::literal("CMS");
+					break;
+				default:
+					return sl_null;
+			}
+			if (!(output.write("-----BEGIN ", 11))) {
+				return sl_null;
+			}
+			if (!(output.write(type.getData(), type.getLength()))) {
+				return sl_null;
+			}
+			if (!(output.write("-----\r\n", 7))) {
+				return sl_null;
+			}
+			String base64 = Base64::encode(instance.content);
+			if (base64.isNull()) {
+				return sl_null;
+			}
+			sl_char8* s = base64.getData();
+			sl_size len = base64.getLength();
+			for (sl_size i = 0; i < len; i += 64) {
+				sl_size n = len - i;
+				if (!(output.write(s + i, n > 64 ? 64 : n))) {
+					return sl_null;
+				}
+				if (!(output.write("\r\n", 2))) {
+					return sl_null;
+				}
+			}
+			if (!(output.write("-----END ", 9))) {
+				return sl_null;
+			}
+			if (!(output.write(type.getData(), type.getLength()))) {
+				return sl_null;
+			}
+			if (!(output.write("-----\r\n", 7))) {
+				return sl_null;
+			}
+		}
+		return output.releaseToMemory();
+	}
+
+	sl_bool PEM::save(const StringParam& filePath)
+	{
+		Memory content = save();
+		if (content.isNotNull()) {
+			return File::writeAllBytes(filePath, content);
+		}
+		return sl_false;
+	}
+
+	sl_bool PEM::getPrivateKey(PrivateKey& _out)
+	{
+		ListElements<PEMInstance> items(instances);
+		for (sl_size i = 0; i < items.count; i++) {
+			if (items[i].getPrivateKey(_out)) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool PEM::addPrivateKey(const PrivateKey& privateKey)
+	{
+		PEMInstance instance;
+		instance.content = PKCS8::savePrivateKey(privateKey);
+		if (instance.content.isNotNull()) {
+			instance.type = PEMInstanceType::PrivateKey;
+			return instances.add_NoLock(Move(instance));
+		}
+		return sl_false;
+	}
+
+	sl_bool PEM::getPublicKey(PublicKey& _out)
+	{
+		ListElements<PEMInstance> items(instances);
+		for (sl_size i = 0; i < items.count; i++) {
+			if (items[i].getPublicKey(_out)) {
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool PEM::addPublicKey(const PublicKey& publicKey)
+	{
+		PEMInstance instance;
+		instance.content = X509_PublicKey::savePublicKey(publicKey);
+		if (instance.content.isNotNull()) {
+			instance.type = PEMInstanceType::PublicKey;
+			return instances.add_NoLock(Move(instance));
+		}
+		return sl_false;
 	}
 
 }
