@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,115 +20,95 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
-#define CHECKHEADER_SLIB_CORE_SERIALIZE_BUFFER
+#ifndef CHECKHEADER_SLIB_CORE_SERIALIZE_OUTPUT
+#define CHECKHEADER_SLIB_CORE_SERIALIZE_OUTPUT
 
-#include "../default_members.h"
+#include "../definition.h"
 
 namespace slib
 {
 
-	class MemoryData;
 	class Memory;
 
-	class SLIB_EXPORT SerializeBuffer
+	class SLIB_EXPORT SerializeOutput
 	{
 	public:
-		sl_uint8* current;
 		sl_uint8* begin;
-		sl_uint8* end;
-		Ref<Referable> ref;
+		sl_size size;
+		sl_size offset;
 
 	public:
-		SerializeBuffer(const void* buf, sl_size size) noexcept;
+		SerializeOutput() noexcept: begin(sl_null), size(0), offset(0) {}
 
-		template <class REF>
-		SerializeBuffer(const void* buf, sl_size size, REF&& _ref) noexcept: ref(Forward<REF>(_ref))
+		SerializeOutput(const SerializeOutput&) = delete;
+
+		SerializeOutput(SerializeOutput&& other) noexcept
 		{
-			current = begin = (sl_uint8*)buf;
-			end = begin ? begin + size : sl_null;
+			begin = other.begin;
+			size = other.size;
+			offset = other.offset;
+			other.begin = sl_null;
+			other.size = 0;
+			other.offset = 0;
 		}
 
-		SerializeBuffer(const MemoryData& data) noexcept;
-
-		SerializeBuffer(MemoryData&& data) noexcept;
-
-		SerializeBuffer(const Memory& mem) noexcept;
-
-		SerializeBuffer(Memory&& mem) noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SerializeBuffer)
+		~SerializeOutput();
 
 	public:
-		sl_bool read(sl_uint8& _out) noexcept;
+		SerializeOutput& operator=(const SerializeOutput&) = delete;
 
+		SerializeOutput& operator=(SerializeOutput&& other) noexcept
+		{
+			begin = other.begin;
+			size = other.size;
+			offset = other.offset;
+			other.begin = sl_null;
+			other.size = 0;
+			other.offset = 0;
+			return *this;
+		}
+
+	public:
 		sl_bool write(sl_uint8 value) noexcept;
-
-		sl_size read(void* buf, sl_size size) noexcept;
 
 		sl_size write(const void* buf, sl_size size) noexcept;
 
 		sl_size write(const Memory& mem) noexcept;
 
-		sl_bool readUint8(sl_uint8& _out) noexcept;
-
 		sl_bool writeUint8(sl_uint8 value) noexcept;
-
-		sl_bool readInt8(sl_int8& _out) noexcept;
 
 		sl_bool writeInt8(sl_int8 value) noexcept;
 
-		sl_bool readUint16BE(sl_uint16& _out) noexcept;
-
 		sl_bool writeUint16BE(sl_uint16 value) noexcept;
-
-		sl_bool readUint16LE(sl_uint16& _out) noexcept;
 
 		sl_bool writeUint16LE(sl_uint16 value) noexcept;
 
-		sl_bool readInt16BE(sl_int16& _out) noexcept;
-
 		sl_bool writeInt16BE(sl_int16 value) noexcept;
-
-		sl_bool readInt16LE(sl_int16& _out) noexcept;
 
 		sl_bool writeInt16LE(sl_int16 value) noexcept;
 
-		sl_bool readUint32BE(sl_uint32& _out) noexcept;
-
 		sl_bool writeUint32BE(sl_uint32 value) noexcept;
-
-		sl_bool readUint32LE(sl_uint32& _out) noexcept;
 
 		sl_bool writeUint32LE(sl_uint32 value) noexcept;
 
-		sl_bool readInt32BE(sl_int32& _out) noexcept;
-
 		sl_bool writeInt32BE(sl_int32 value) noexcept;
-
-		sl_bool readInt32LE(sl_int32& _out) noexcept;
 
 		sl_bool writeInt32LE(sl_int32 value) noexcept;
 
-		sl_bool readUint64BE(sl_uint64& _out) noexcept;
-
 		sl_bool writeUint64BE(sl_uint64 value) noexcept;
-
-		sl_bool readUint64LE(sl_uint64& _out) noexcept;
 
 		sl_bool writeUint64LE(sl_uint64 value) noexcept;
 
-		sl_bool readInt64BE(sl_int64& _out) noexcept;
-
 		sl_bool writeInt64BE(sl_int64 value) noexcept;
-
-		sl_bool readInt64LE(sl_int64& _out) noexcept;
 
 		sl_bool writeInt64LE(sl_int64 value) noexcept;
 
-		sl_bool readSection(void* buf, sl_size size) noexcept;
+		Memory releaseToMemory() noexcept;
+		
+	protected:
+		sl_bool _growSmallSize(sl_size addSize) noexcept;
 
-		sl_bool skip(sl_size size) noexcept;
+		sl_bool _growSize(sl_size newSize) noexcept;
 
 	};
 

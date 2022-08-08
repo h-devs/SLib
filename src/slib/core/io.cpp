@@ -2432,6 +2432,11 @@ namespace slib
 		return 0;
 	}
 
+	sl_size SerializeBuffer::write(const Memory& mem) noexcept
+	{
+		return write(mem.getData(), mem.getSize());
+	}
+
 #define DEFINE_SERIALIZE_BUFFER_READWRITE_INT8(TYPE, SUFFIX) \
 	sl_bool SerializeBuffer::read##SUFFIX(TYPE& _out) noexcept \
 	{ \
@@ -2514,6 +2519,126 @@ namespace slib
 	}
 
 
+	SerializeOutput::~SerializeOutput()
+	{
+		if (begin) {
+			delete[] begin;
+		}
+	}
+
+	sl_bool SerializeOutput::write(sl_uint8 value) noexcept
+	{
+		if (_growSmallSize(1)) {
+			begin[offset] = value;
+			offset++;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_size SerializeOutput::write(const void* buf, sl_size sizeAdd) noexcept
+	{
+		sl_size sizeNew = offset + sizeAdd;
+		if (sizeNew <= size) {
+			Base::copyMemory(begin + offset, buf, sizeAdd);
+			offset += sizeAdd;
+			return sizeAdd;
+		} else {
+			if (sizeAdd < 64) {
+				if (!(_growSize(offset + 64))) {
+					return 0;
+				}
+			} else {
+				if (!(_growSize(sizeNew))) {
+					return 0;
+				}
+			}
+			Base::copyMemory(begin + offset, buf, sizeAdd);
+			offset += sizeAdd;
+			return sizeAdd;
+		}
+	}
+
+	sl_size SerializeOutput::write(const Memory& mem) noexcept
+	{
+		return write(mem.getData(), mem.getSize());
+	}
+
+#define DEFINE_SERIALIZE_OUTPUT_WRITE_INT8(TYPE, SUFFIX) \
+	sl_bool SerializeOutput::write##SUFFIX(TYPE value) noexcept \
+	{ \
+		return write(value); \
+	}
+
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT8(sl_uint8, Uint8)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT8(sl_int8, Int8)
+
+#define DEFINE_SERIALIZE_OUTPUT_WRITE_INT(TYPE, SUFFIX) \
+	sl_bool SerializeOutput::write##SUFFIX(TYPE value) noexcept \
+	{ \
+		if (_growSmallSize(sizeof(TYPE))) { \
+			MIO::write##SUFFIX(begin + offset, value); \
+			offset += sizeof(TYPE); \
+			return sl_true; \
+		} \
+		return sl_false; \
+	}
+
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_uint16, Uint16BE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_uint16, Uint16LE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_int16, Int16BE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_int16, Int16LE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_uint32, Uint32BE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_uint32, Uint32LE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_int32, Int32BE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_int32, Int32LE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_uint64, Uint64BE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_uint64, Uint64LE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_int64, Int64BE)
+	DEFINE_SERIALIZE_OUTPUT_WRITE_INT(sl_int64, Int64LE)
+
+	Memory SerializeOutput::releaseToMemory() noexcept
+	{
+		Memory ret = Memory::createNoCopy(begin, offset);
+		if (ret.isNotNull()) {
+			begin = sl_null;
+			offset = 0;
+			size = 0;
+			return ret;
+		}
+		return sl_null;
+	}
+
+	sl_bool SerializeOutput::_growSmallSize(sl_size addSize) noexcept
+	{
+		if (offset + addSize <= size) {
+			return sl_true;
+		} else {
+			return _growSize(offset + 64);
+		}
+	}
+
+	sl_bool SerializeOutput::_growSize(sl_size newSize) noexcept
+	{
+		if (begin) {
+			sl_uint8* data = (sl_uint8*)(Base::reallocMemory(begin, newSize));
+			if (data) {
+				begin = data;
+				size = newSize;
+				return sl_true;
+			}
+		} else {
+			sl_uint8* data = (sl_uint8*)(Base::createMemory(newSize));
+			if (data) {
+				begin = data;
+				size = newSize;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+
 	sl_bool SerializeByte(IWriter* writer, sl_uint8 value) noexcept
 	{
 		return writer->writeUint8(value);
@@ -2529,6 +2654,11 @@ namespace slib
 		return buf->write(value);
 	}
 
+	sl_bool SerializeByte(SerializeOutput* output, sl_uint8 value) noexcept
+	{
+		return output->write(value);
+	}
+
 	sl_bool SerializeRaw(IWriter* writer, const void* data, sl_size size) noexcept
 	{
 		return writer->writeFully(data, size) == size;
@@ -2542,6 +2672,11 @@ namespace slib
 	sl_bool SerializeRaw(SerializeBuffer* buf, const void* data, sl_size size) noexcept
 	{
 		return buf->write(data, size) == size;
+	}
+
+	sl_bool SerializeRaw(SerializeOutput* output, const void* data, sl_size size) noexcept
+	{
+		return output->write(data, size) == size;
 	}
 
 	sl_bool SerializeRaw(sl_uint8** _buf, const void* data, sl_size size) noexcept
@@ -2579,6 +2714,11 @@ namespace slib
 		return buf->write(data.data, data.size) == data.size;
 	}
 
+	sl_bool SerializeRaw(SerializeOutput* output, const MemoryData& data) noexcept
+	{
+		return output->write(data.data, data.size) == data.size;
+	}
+
 	sl_bool SerializeRaw(sl_uint8** _buf, const MemoryData& data) noexcept
 	{
 		sl_uint8*& buf = *_buf;
@@ -2607,6 +2747,11 @@ namespace slib
 	sl_bool SerializeStatic(SerializeBuffer* buf, const void* data, sl_size size) noexcept
 	{
 		return buf->write(data, size) == size;
+	}
+
+	sl_bool SerializeStatic(SerializeOutput* output, const void* data, sl_size size) noexcept
+	{
+		return output->write(data, size) == size;
 	}
 
 	sl_bool SerializeStatic(sl_uint8** _buf, const void* data, sl_size size) noexcept

@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_CORE_SERIALIZE_IO
 
 #include "buffer.h"
+#include "output.h"
 
 namespace slib
 {
@@ -35,10 +36,12 @@ namespace slib
 	sl_bool SerializeByte(IWriter* writer, sl_uint8 value) noexcept;
 	sl_bool SerializeByte(MemoryBuffer* buf, sl_uint8 value) noexcept;
 	sl_bool SerializeByte(SerializeBuffer* buf, sl_uint8 value) noexcept;
+	sl_bool SerializeByte(SerializeOutput* output, sl_uint8 value) noexcept;
 
 	sl_bool SerializeRaw(IWriter* writer, const void* data, sl_size size) noexcept;
 	sl_bool SerializeRaw(MemoryBuffer* buf, const void* data, sl_size size) noexcept;
 	sl_bool SerializeRaw(SerializeBuffer* buf, const void* data, sl_size size) noexcept;
+	sl_bool SerializeRaw(SerializeOutput* output, const void* data, sl_size size) noexcept;
 	sl_bool SerializeRaw(sl_uint8** buf, const void* data, sl_size size) noexcept;
 	sl_bool SerializeRaw(sl_uint8*& buf, const void* data, sl_size size) noexcept;
 
@@ -46,12 +49,14 @@ namespace slib
 	sl_bool SerializeRaw(MemoryBuffer* buf, const MemoryData& data) noexcept;
 	sl_bool SerializeRaw(MemoryBuffer* buf, MemoryData&& data) noexcept;
 	sl_bool SerializeRaw(SerializeBuffer* buf, const MemoryData& data) noexcept;
+	sl_bool SerializeRaw(SerializeOutput* output, const MemoryData& data) noexcept;
 	sl_bool SerializeRaw(sl_uint8** buf, const MemoryData& data) noexcept;
 	sl_bool SerializeRaw(sl_uint8*& buf, const MemoryData& data) noexcept;
 
 	sl_bool SerializeStatic(IWriter* writer, const void* data, sl_size size) noexcept;
 	sl_bool SerializeStatic(MemoryBuffer* buf, const void* data, sl_size size) noexcept;
 	sl_bool SerializeStatic(SerializeBuffer* buf, const void* data, sl_size size) noexcept;
+	sl_bool SerializeStatic(SerializeOutput* output, const void* data, sl_size size) noexcept;
 	sl_bool SerializeStatic(sl_uint8** buf, const void* data, sl_size size) noexcept;
 	sl_bool SerializeStatic(sl_uint8*& buf, const void* data, sl_size size) noexcept;
 
