@@ -204,6 +204,16 @@ namespace slib
 			return sl_false;
 		}
 
+		static Memory serializeElement(sl_uint8 tag, const void* data, sl_size size);
+
+		static Memory serializeElement(sl_uint8 tag, const Memory& mem);
+
+		template <sl_size N>
+		static Memory serializeElement(sl_uint8 tag, const char(&s)[N]) noexcept
+		{
+			return serializeElement(tag, s, N - 1);
+		}
+
 		static String getObjectIdentifierString(const void* encodedData, sl_size length);
 
 	};
@@ -298,68 +308,7 @@ namespace slib
 
 	};
 
-	class Asn1Element;
-
-	class SLIB_EXPORT Asn1MemoryReader
-	{
-	public:
-		const sl_uint8* current;
-		const sl_uint8* end;
-
-	public:
-		Asn1MemoryReader(): current(sl_null), end(sl_null) {}
-
-		Asn1MemoryReader(const void* data, sl_size size): current((const sl_uint8*)data), end(((const sl_uint8*)data) + size) {}
-
-		Asn1MemoryReader(const Asn1String& data): current(data.data), end(data.data + data.length) {}
-
-		Asn1MemoryReader(const Memory& mem);
-
-	public:
-		sl_bool readByte(sl_uint8& _out);
-
-		sl_bool readAndCheckTag(sl_uint8 tag);
-
-		template <typename N>
-		sl_bool readLength(N& len)
-		{
-			SerializeBuffer buf(current, end - current);
-			if (Asn1::deserializeLength(&buf, len)) {
-				current = buf.current;
-				return sl_true;
-			}
-			return sl_false;
-		}
-
-		sl_bool readElementBody(Asn1String& outBody);
-
-		sl_bool readElement(sl_uint8 tag, Asn1String& outBody, sl_bool flagInNotUniversal = sl_true);
-
-		sl_bool readElement(Asn1Element& _out);
-
-		sl_bool readSequence(Asn1MemoryReader& outElements);
-
-		sl_bool readSet(Asn1MemoryReader& outElements);
-
-		template <typename N>
-		sl_bool readInt(N& n);
-
-		sl_bool readBigInt(BigInt& n);
-
-		sl_bool readObjectIdentifier(Asn1ObjectIdentifier& _out);
-
-		sl_bool readOctetString(Asn1String& _out);
-
-		sl_bool readUtf8String(Asn1String& _out);
-
-		sl_bool readBitString(Asn1String& _out, sl_uint8& outBitsRemain);
-
-		sl_bool readTime(Time& _out);
-
-		template <class TYPE>
-		sl_bool readObject(TYPE& _out);
-
-	};
+	class Asn1MemoryReader;
 
 	class SLIB_EXPORT Asn1Element : public Asn1String
 	{
@@ -424,25 +373,129 @@ namespace slib
 
 	};
 
-	template <typename N>
-	SLIB_INLINE sl_bool Asn1MemoryReader::readInt(N& n)
+	class SLIB_EXPORT Asn1MemoryReader
 	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getInt(n);
-		}
-		return sl_false;
-	}
+	public:
+		const sl_uint8* current;
+		const sl_uint8* end;
 
-	template <class TYPE>
-	SLIB_INLINE sl_bool Asn1MemoryReader::readObject(TYPE& _out)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return _out.load(element);
+	public:
+		Asn1MemoryReader(): current(sl_null), end(sl_null) {}
+
+		Asn1MemoryReader(const void* data, sl_size size): current((const sl_uint8*)data), end(((const sl_uint8*)data) + size) {}
+
+		Asn1MemoryReader(const Asn1String& data): current(data.data), end(data.data + data.length) {}
+
+		Asn1MemoryReader(const Memory& mem);
+
+	public:
+		sl_bool readByte(sl_uint8& _out);
+
+		sl_bool readAndCheckTag(sl_uint8 tag);
+
+		template <typename N>
+		sl_bool readLength(N& len)
+		{
+			SerializeBuffer buf(current, end - current);
+			if (Asn1::deserializeLength(&buf, len)) {
+				current = buf.current;
+				return sl_true;
+			}
+			return sl_false;
 		}
-		return sl_false;
-	}
+
+		sl_bool readElementBody(Asn1String& outBody);
+
+		sl_bool readElement(sl_uint8 tag, Asn1String& outBody, sl_bool flagInNotUniversal = sl_true);
+
+		sl_bool readElement(Asn1Element& _out);
+
+		sl_bool readSequence(Asn1MemoryReader& outElements);
+
+		sl_bool readSet(Asn1MemoryReader& outElements);
+
+		template <typename N>
+		sl_bool readInt(N& n)
+		{
+			Asn1Element element;
+			if (readElement(element)) {
+				return element.getInt(n);
+			}
+			return sl_false;
+		}
+
+		sl_bool readBigInt(BigInt& n);
+
+		sl_bool readObjectIdentifier(Asn1ObjectIdentifier& _out);
+
+		sl_bool readOctetString(Asn1String& _out);
+
+		sl_bool readUtf8String(Asn1String& _out);
+
+		sl_bool readBitString(Asn1String& _out, sl_uint8& outBitsRemain);
+
+		sl_bool readTime(Time& _out);
+
+		template <class TYPE>
+		sl_bool readObject(TYPE& _out)
+		{
+			Asn1Element element;
+			if (readElement(element)) {
+				return _out.load(element);
+			}
+			return sl_false;
+		}
+
+	};
+
+	class SLIB_EXPORT Asn1MemoryWriter
+	{
+	public:
+		SerializeOutput output;
+
+	public:
+		Asn1MemoryWriter();
+
+		~Asn1MemoryWriter();
+
+	public:
+		sl_bool writeByte(sl_uint8 _in);
+
+		sl_bool writeLength(sl_size len);
+
+		sl_bool writeElement(sl_uint8 tag, const void* content, sl_size size);
+
+		sl_bool writeElement(sl_uint8 tag, const Memory& mem);
+
+		sl_bool writeElement(sl_uint8 tag, const SerializeOutput& output);
+
+		sl_bool writeElement(sl_uint8 tag, const Asn1MemoryWriter& output);
+
+		template <sl_size N>
+		sl_bool writeElement(sl_uint8 tag, const char(&s)[N])
+		{
+			return writeElement(tag, s, N - 1);
+		}
+
+		sl_bool writeInt(const void* content, sl_size size);
+
+		template <typename N>
+		sl_bool writeInt(N n)
+		{
+			sl_uint8 buf[sizeof(N)];
+			for (sl_uint32 i = 0; i < sizeof(N); i++) {
+				buf[i] = (sl_uint8)(n >> ((sizeof(N) - 1 - i) << 3));
+			}
+			return writeInt(buf, sizeof(N));
+		}
+
+		sl_bool writeBigInt(const BigInt& n);
+
+		sl_bool writeBitString(const void* content, sl_size size);
+
+		sl_bool writeBitString(const Memory& mem);
+
+	};
 
 }
 
