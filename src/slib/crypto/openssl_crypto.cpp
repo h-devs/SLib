@@ -619,7 +619,7 @@ namespace slib
 				if (!group) {
 					return sl_false;
 				}
-				if (_out.setId((EllipticCurveId)(EC_GROUP_get_curve_name(group)))) {
+				if (_out.setCurveId((EllipticCurveId)(EC_GROUP_get_curve_name(group)))) {
 					return sl_true;
 				}
 				BIGNUM_Handle a(BN_new());

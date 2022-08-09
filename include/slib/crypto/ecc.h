@@ -130,7 +130,7 @@ namespace slib
 	public:
 		sl_bool isDefined() const noexcept;
 
-		sl_bool setId(EllipticCurveId id) noexcept;
+		sl_bool setCurveId(EllipticCurveId id) noexcept;
 
 		ECPoint addPoint(const ECPoint& p1, const ECPoint& p2) const noexcept;
 		
@@ -166,8 +166,6 @@ namespace slib
 	public:
 		sl_bool checkValid(const EllipticCurve& curve) const noexcept;
 
-		sl_bool verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept;
-
 	};
 
 	class SLIB_EXPORT ECPrivateKey : public ECPublicKey
@@ -185,8 +183,6 @@ namespace slib
 		sl_bool isDefined() const noexcept;
 
 		sl_bool generate(const EllipticCurve& curve) noexcept;
-
-		Memory generateSignature(const EllipticCurve& curve, const void* hash, sl_size size) const noexcept;
 
 	};
 
@@ -211,6 +207,8 @@ namespace slib
 
 	public:
 		sl_bool isDefined() const noexcept;
+
+		sl_bool generate() noexcept;
 
 	};
 

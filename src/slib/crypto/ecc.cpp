@@ -811,7 +811,7 @@ namespace slib
 		return p.isNotNull() && a.isNotNull() && b.isNotNull() && !(G.isO()) && n.isNotNull();
 	}
 
-	sl_bool EllipticCurve::setId(EllipticCurveId _id) noexcept
+	sl_bool EllipticCurve::setCurveId(EllipticCurveId _id) noexcept
 	{
 		switch (_id) {
 			case EllipticCurveId::secp112r1:
@@ -976,15 +976,6 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool ECPublicKey::verifySignature(const EllipticCurve& curve, const void* hash, sl_size size, const void* signature, sl_size sizeSignature) const noexcept
-	{
-		ECDSA_Signature sig;
-		if (sig.deserialize(signature, sizeSignature)) {
-			return ECDSA::verify(curve, *this, hash, size, sig);
-		}
-		return sl_false;
-	}
-
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKey)
 	
@@ -1023,11 +1014,6 @@ namespace slib
 		return sl_true;
 	}
 
-	Memory ECPrivateKey::generateSignature(const EllipticCurve& curve, const void* hash, sl_size size) const noexcept
-	{
-		return ECDSA::sign(curve, *this, hash, size).serialize();
-	}
-
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPublicKeyWithCurve)
 
@@ -1050,6 +1036,11 @@ namespace slib
 	sl_bool ECPrivateKeyWithCurve::isDefined() const noexcept
 	{
 		return EllipticCurve::isDefined() && ECPrivateKey::isDefined();
+	}
+
+	sl_bool ECPrivateKeyWithCurve::generate() noexcept
+	{
+		return ECPrivateKey::generate(*this);
 	}
 
 
