@@ -91,6 +91,9 @@
 #define OID_X509_POSTAL_CODE OID_X509 "\x11" // 17
 #define OID_X509_POSTAL_OFFICE_BOX OID_X509 "\x12" // 18
 #define OID_X509_TELEPHONE_NUMBER OID_X509 "\x14" // 20
+#define OID_CE OID_X500 "\x1D" // 29
+#define OID_SUBJECT_KEY_ID OID_CE "\x0E" // 14
+#define OID_AUTHORITY_KEY_ID OID_CE "\x23" // 35
 #define OID_IDENTIFIED_ORGANIZATION "\x2B" // ISO(1), 3
 #define OID_CERTICOM_ARC OID_IDENTIFIED_ORGANIZATION "\x81\x04" // 132
 #define OID_SECG_ELLIPTIC_CURVE OID_CERTICOM_ARC "\x00"
@@ -119,15 +122,15 @@ namespace slib
 			{
 			public:
 				Asn1ObjectIdentifier algorithm;
-				Asn1Element parameter;
+				Asn1MemoryReader parameter;
 
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (element.getSequence(body)) {
+					if (reader.readSequence(body)) {
 						if (body.readObjectIdentifier(algorithm)) {
-							body.readElement(parameter);
+							parameter = body;
 							return sl_true;
 						}
 					}
@@ -143,10 +146,10 @@ namespace slib
 				Asn1String digest;
 
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (element.getSequence(body)) {
+					if (reader.readSequence(body)) {
 						if (body.readObject(algorithm)) {
 							return body.readOctetString(digest);
 						}
@@ -160,25 +163,25 @@ namespace slib
 			{
 			public:
 				Asn1ObjectIdentifier type;
-				Asn1Element content;
+				Asn1MemoryReader content;
 
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (!(element.getSequence(body))) {
-						return sl_false;
+					if (reader.readSequence(body)) {
+						if (!(body.readObjectIdentifier(type))) {
+							return sl_false;
+						}
+						content = body;
+						return sl_true;
 					}
-					if (!(body.readObjectIdentifier(type))) {
-						return sl_false;
-					}
-					body.readElement(content);
-					return sl_true;
+					return sl_false;
 				}
 
 				sl_bool getData(Asn1String& _out)
 				{
-					return content.getOctetString(_out);
+					return content.readOctetString(_out, SLIB_ASN1_TAG_CONTEXT(0));
 				}
 
 			};
@@ -193,38 +196,37 @@ namespace slib
 					return sl_null;
 				}
 				Asn1MemoryReader reader(data.data, data.length);
-				Asn1MemoryReader body;
-				if (!(reader.readSequence(body))) {
-					return sl_null;
+				if (reader.readSequence(reader)) {
+					List<PKCS7> ret;
+					PKCS7 item;
+					while (reader.readObject(item)) {
+						ret.add_NoLock(Move(item));
+					}
+					return ret;
 				}
-				List<PKCS7> ret;
-				PKCS7 item;
-				while (body.readObject(item)) {
-					ret.add_NoLock(Move(item));
-				}
-				return ret;
+				return sl_null;
 			}
 
 			class PKCS12_Bag
 			{
 			public:
 				Asn1ObjectIdentifier type;
-				Asn1Element content;
+				Asn1String content;
 
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (!(element.getSequence(body))) {
-						return sl_false;
+					if (reader.readSequence(body)) {
+						if (!(body.readObjectIdentifier(type))) {
+							return sl_false;
+						}
+						if (!(body.readOctetString(content, SLIB_ASN1_TAG_CONTEXT(0)))) {
+							return sl_false;
+						}
+						return sl_true;
 					}
-					if (!(body.readObjectIdentifier(type))) {
-						return sl_false;
-					}
-					if (!(body.readOctetString(content))) {
-						return sl_false;
-					}
-					return sl_true;
+					return sl_false;
 				}
 
 			};
@@ -233,22 +235,20 @@ namespace slib
 			{
 			public:
 				Asn1ObjectIdentifier type;
-				Asn1Element content;
+				Asn1MemoryReader content;
 				
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (!(element.getSequence(body))) {
-						return sl_false;
+					if (reader.readSequence(body)) {
+						if (!(body.readObjectIdentifier(type))) {
+							return sl_false;
+						}
+						content = body;
+						return sl_true;
 					}
-					if (!(body.readObjectIdentifier(type))) {
-						return sl_false;
-					}
-					if (!(body.readElement(content))) {
-						return sl_false;
-					}
-					return sl_true;
+					return sl_false;
 				}
 
 			};
@@ -256,16 +256,15 @@ namespace slib
 			static List<PKCS12_SafeBag> PKCS12_UnpackSafeBags(const void* data, sl_size size)
 			{
 				Asn1MemoryReader reader(data, size);
-				Asn1MemoryReader body;
-				if (!(reader.readSequence(body))) {
-					return sl_null;
+				if (reader.readSequence(reader)) {
+					List<PKCS12_SafeBag> ret;
+					PKCS12_SafeBag item;
+					while (reader.readObject(item)) {
+						ret.add_NoLock(Move(item));
+					}
+					return ret;
 				}
-				List<PKCS12_SafeBag> ret;
-				PKCS12_SafeBag item;
-				while (body.readObject(item)) {
-					ret.add_NoLock(Move(item));
-				}
-				return ret;
+				return sl_null;
 			}
 
 			static List<PKCS12_SafeBag> PKCS12_Unpack_PKCS7_Data(PKCS7& p7)
@@ -284,19 +283,19 @@ namespace slib
 				sl_uint64 iteration;
 
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (!(element.getSequence(body))) {
-						return sl_false;
+					if (reader.readSequence(body)) {
+						if (!(body.readOctetString(salt))) {
+							return sl_false;
+						}
+						if (!(body.readInt(iteration))) {
+							return sl_false;
+						}
+						return sl_true;
 					}
-					if (!(body.readOctetString(salt))) {
-						return sl_false;
-					}
-					if (!(body.readInt(iteration))) {
-						return sl_false;
-					}
-					return sl_true;
+					return sl_false;
 				}
 
 			};
@@ -424,7 +423,7 @@ namespace slib
 				}
 				
 				PKCS12_PBE_Param param;
-				if (!(param.load(alg.parameter))) {
+				if (!(alg.parameter.peekObject(param))) {
 					return sl_null;
 				}
 				sl_uint8 key[32];
@@ -543,40 +542,41 @@ namespace slib
 				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
 			}
 
-			static sl_bool Load_EllipticCurve(EllipticCurve& curve, const Asn1Element& element)
+			static sl_bool Load_EllipticCurve(EllipticCurve& curve, Asn1MemoryReader& input)
 			{
-				if (element.tag == SLIB_ASN1_TAG_OID) {
-					Asn1ObjectIdentifier& oid = *((Asn1ObjectIdentifier*)((Asn1String*)&element));
+				Asn1ObjectIdentifier oid;
+				if (input.readObjectIdentifier(oid)) {
 					if (oid.equals(OID_secp112r1)) {
-						curve.setId(EllipticCurveId::secp112r1);
+						curve.setCurveId(EllipticCurveId::secp112r1);
 					} else if (oid.equals(OID_secp112r2)) {
-						curve.setId(EllipticCurveId::secp112r2);
+						curve.setCurveId(EllipticCurveId::secp112r2);
 					} else if (oid.equals(OID_secp128r1)) {
-						curve.setId(EllipticCurveId::secp128r1);
+						curve.setCurveId(EllipticCurveId::secp128r1);
 					} else if (oid.equals(OID_secp128r2)) {
-						curve.setId(EllipticCurveId::secp128r2);
+						curve.setCurveId(EllipticCurveId::secp128r2);
 					} else if (oid.equals(OID_secp160k1)) {
-						curve.setId(EllipticCurveId::secp160k1);
+						curve.setCurveId(EllipticCurveId::secp160k1);
 					} else if (oid.equals(OID_secp160r1)) {
-						curve.setId(EllipticCurveId::secp160r1);
+						curve.setCurveId(EllipticCurveId::secp160r1);
 					} else if (oid.equals(OID_secp160r2)) {
-						curve.setId(EllipticCurveId::secp160r2);
+						curve.setCurveId(EllipticCurveId::secp160r2);
 					} else if (oid.equals(OID_secp192k1)) {
-						curve.setId(EllipticCurveId::secp192k1);
+						curve.setCurveId(EllipticCurveId::secp192k1);
 					} else if (oid.equals(OID_secp224k1)) {
-						curve.setId(EllipticCurveId::secp224k1);
+						curve.setCurveId(EllipticCurveId::secp224k1);
 					} else if (oid.equals(OID_secp256k1)) {
-						curve.setId(EllipticCurveId::secp256k1);
+						curve.setCurveId(EllipticCurveId::secp256k1);
 					} else if (oid.equals(OID_secp384r1)) {
-						curve.setId(EllipticCurveId::secp384r1);
+						curve.setCurveId(EllipticCurveId::secp384r1);
 					} else if (oid.equals(OID_secp521r1)) {
-						curve.setId(EllipticCurveId::secp521r1);
+						curve.setCurveId(EllipticCurveId::secp521r1);
 					} else {
 						return sl_false;
 					}
 					return sl_true;
-				} else if (element.tag == SLIB_ASN1_TAG_SEQUENCE) {
-					Asn1MemoryReader reader(element.data, element.length);
+				}
+				Asn1MemoryReader reader;
+				if (input.readSequence(reader)) {
 					sl_uint32 version;
 					if (!(reader.readInt(version))) {
 						return sl_false;
@@ -665,29 +665,29 @@ namespace slib
 				}
 				{
 					Asn1MemoryWriter field;
-					if (!(field.writeElement(SLIB_ASN1_TAG_OID, OID_X9_62_PRIME_FIELD))) {
+					if (!(field.writeObjectIdentifier(OID_X9_62_PRIME_FIELD))) {
 						return sl_null;
 					}
 					if (!(field.writeBigInt(curve.p))) {
 						return sl_null;
 					}
-					if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, field))) {
+					if (!(writer.writeSequence(field))) {
 						return sl_null;
 					}
 				}
 				{
 					Asn1MemoryWriter ec;
-					if (!(ec.writeElement(SLIB_ASN1_TAG_OCTET_STRING, curve.a.getBytesBE(sl_true)))) {
+					if (!(ec.writeOctetString(curve.a.getBytesBE(sl_true)))) {
 						return sl_null;
 					}
-					if (!(ec.writeElement(SLIB_ASN1_TAG_OCTET_STRING, curve.b.getBytesBE(sl_true)))) {
+					if (!(ec.writeOctetString(curve.b.getBytesBE(sl_true)))) {
 						return sl_null;
 					}
-					if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, ec))) {
+					if (!(writer.writeSequence(ec))) {
 						return sl_null;
 					}
 				}
-				if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, curve.G.toCompressedFormat(curve)))) {
+				if (!(writer.writeOctetString(curve.G.toCompressedFormat(curve)))) {
 					return sl_null;
 				}
 				if (!(writer.writeBigInt(curve.n))) {
@@ -713,20 +713,13 @@ namespace slib
 					if (_out.d.isNull()) {
 						return sl_false;
 					}
-					Asn1Element paramOrPubKey;
-					if (!(body.readElement(paramOrPubKey))) {
-						return sl_false;
-					}
-					// [Optional] Parameter
-					if (Load_EllipticCurve(_out, paramOrPubKey)) {
-						// Read Public Key
-						if (!(body.readElement(paramOrPubKey))) {
-							return sl_false;
-						}
+					Asn1MemoryReader param;
+					if (body.readElement(SLIB_ASN1_TAG_CONTEXT(0), param)) {
+						Load_EllipticCurve(_out, param);
 					}
 					Asn1String pub;
 					sl_uint8 nBitsRemain;
-					if (paramOrPubKey.getBitString(pub, nBitsRemain)) {
+					if (body.readBitString(pub, nBitsRemain, SLIB_ASN1_TAG_CONTEXT(1))) {
 						if (nBitsRemain) {
 							return sl_false;
 						}
@@ -746,17 +739,17 @@ namespace slib
 				if (!(writer.writeInt(1))) {
 					return sl_null;
 				}
-				if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, _in.d.getBytesBE(sl_true)))) {
+				if (!(writer.writeOctetString(_in.d.getBytesBE(sl_true)))) {
 					return sl_null;
 				}
 				Memory curve = Save_EllipticCurve(_in);
 				if (curve.isNull()) {
 					return sl_null;
 				}
-				if (!(writer.output.write(curve))) {
+				if (!(writer.writeElement(SLIB_ASN1_TAG_CONTEXT(0), curve))) {
 					return sl_null;
 				}
-				if (!(writer.writeBitString(_in.Q.toCompressedFormat(_in)))) {
+				if (!(writer.writeBitString(_in.Q.toCompressedFormat(_in), SLIB_ASN1_TAG_CONTEXT(1)))) {
 					return sl_null;
 				}
 				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
@@ -769,23 +762,23 @@ namespace slib
 				Asn1String key;
 				
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (!(element.getSequence(body))) {
-						return sl_false;
+					if (reader.readSequence(body)) {
+						sl_uint32 version;
+						if (!(body.readInt(version))) {
+							return sl_false;
+						}
+						if (!(body.readObject(algorithm))) {
+							return sl_false;
+						}
+						if (!(body.readOctetString(key))) {
+							return sl_false;
+						}
+						return sl_true;
 					}
-					sl_uint32 version;
-					if (!(body.readInt(version))) {
-						return sl_false;
-					}
-					if (!(body.readObject(algorithm))) {
-						return sl_false;
-					}
-					if (!(body.readOctetString(key))) {
-						return sl_false;
-					}
-					return sl_true;
+					return sl_false;
 				}
 
 				sl_bool getPrivateKey(PrivateKey& _out)
@@ -793,7 +786,8 @@ namespace slib
 					if (algorithm.algorithm.equals(OID_PKCS1_RSA)) {
 						return Load_RSAPrivateKey(_out.rsa, key.data, key.length);
 					} else if (algorithm.algorithm.equals(OID_X9_62_EC_PUBLIC_KEY)) {
-						Load_EllipticCurve(_out.ecc, algorithm.parameter);
+						Asn1MemoryReader reader(algorithm.parameter);
+						Load_EllipticCurve(_out.ecc, reader);
 						return Load_ECPrivateKey(_out.ecc, key.data, key.length);
 					}
 					return sl_false;
@@ -808,21 +802,21 @@ namespace slib
 					}
 					Asn1MemoryWriter algorithm;
 					if (_in.isRSA()) {
-						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_PKCS1_RSA))) {
+						if (!(algorithm.writeObjectIdentifier(OID_PKCS1_RSA))) {
 							return sl_null;
 						}
-						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+						if (!(writer.writeSequence(algorithm))) {
 							return sl_null;
 						}
 						Memory key = Save_RSAPrivateKey(_in.rsa);
 						if (key.isNull()) {
 							return sl_null;
 						}
-						if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, key))) {
+						if (!(writer.writeOctetString(key))) {
 							return sl_null;
 						}
 					} else if (_in.isECC()) {
-						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_X9_62_EC_PUBLIC_KEY))) {
+						if (!(algorithm.writeObjectIdentifier(OID_X9_62_EC_PUBLIC_KEY))) {
 							return sl_null;
 						}
 						Memory param = Save_EllipticCurve(_in.ecc);
@@ -832,14 +826,14 @@ namespace slib
 						if (!(algorithm.output.write(param))) {
 							return sl_null;
 						}
-						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+						if (!(writer.writeSequence(algorithm))) {
 							return sl_null;
 						}
 						Memory key = Save_ECPrivateKey(_in.ecc);
 						if (key.isNull()) {
 							return sl_null;
 						}
-						if (!(writer.writeElement(SLIB_ASN1_TAG_OCTET_STRING, key))) {
+						if (!(writer.writeOctetString(key))) {
 							return sl_null;
 						}
 					} else {
@@ -854,12 +848,12 @@ namespace slib
 			{
 				if (bag.type.equals(OID_PKCS12_KEY_BAG)) {
 					PKCS8_PrivateKey p8;
-					if (p8.load(bag.content)) {
+					if (bag.content.readObject(p8, SLIB_ASN1_TAG_CONTEXT(0))) {
 						return p8.getPrivateKey(p12.key);
 					}
 				} else if (bag.type.equals(OID_PKCS12_PKCS8_SHROUNDED_KEY_BAG)) {
 					X509Signature sig;
-					if (sig.load(bag.content)) {
+					if (bag.content.readObject(sig, SLIB_ASN1_TAG_CONTEXT(0))) {
 						Memory dec = PKCS12_Decrypt(sig.digest.data, sig.digest.length, sig.algorithm, password);
 						if (dec.isNotNull()) {
 							PKCS8_PrivateKey p8;
@@ -872,7 +866,7 @@ namespace slib
 					return sl_false;
 				} else if (bag.type.equals(OID_PKCS12_CERTIFICATE_BAG)) {
 					PKCS12_Bag value;
-					if (value.load(bag.content)) {
+					if (bag.content.readObject(value, SLIB_ASN1_TAG_CONTEXT(0))) {
 						if (value.type.equals(OID_PKCS9_X509_CERTIFICATE)) {
 							if (value.content.length) {
 								return p12.certificates.add_NoLock(Memory::create(value.content.data, value.content.length));
@@ -896,9 +890,8 @@ namespace slib
 
 			static List<PKCS12_SafeBag> PKCS12_Unpack_PKCS7_EncryptedData(PKCS7& p7, const StringParam& password, Memory& outDecryptedData)
 			{
-				Asn1MemoryReader reader(p7.content);
 				Asn1MemoryReader body;
-				if (!(reader.readSequence(body))) {
+				if (!(p7.content.readSequence(body, SLIB_ASN1_TAG_CONTEXT(0)))) {
 					return sl_null;
 				}
 				sl_uint32 version;
@@ -917,8 +910,8 @@ namespace slib
 				if (!(contentInfo.readObject(algorithm))) {
 					return sl_null;
 				}
-				Asn1Element encData;
-				if (!(contentInfo.readElement(encData))) {
+				Asn1String encData;
+				if (!(contentInfo.readElement(SLIB_ASN1_TAG_CONTEXT_IMPLICIT(0), encData))) {
 					return sl_null;
 				}
 				outDecryptedData = PKCS12_Decrypt(encData.data, encData.length, algorithm, password);
@@ -1071,23 +1064,23 @@ namespace slib
 				Asn1String key;
 
 			public:
-				sl_bool load(const Asn1Element& element)
+				sl_bool load(Asn1MemoryReader& reader)
 				{
 					Asn1MemoryReader body;
-					if (!(element.getSequence(body))) {
-						return sl_false;
+					if (reader.readSequence(body)) {
+						if (!(body.readObject(algorithm))) {
+							return sl_false;
+						}
+						sl_uint8 nBitsRemain;
+						if (!(body.readBitString(key, nBitsRemain))) {
+							return sl_false;
+						}
+						if (nBitsRemain) {
+							return sl_false;
+						}
+						return sl_true;
 					}
-					if (!(body.readObject(algorithm))) {
-						return sl_false;
-					}
-					sl_uint8 nBitsRemain;
-					if (!(body.readBitString(key, nBitsRemain))) {
-						return sl_false;
-					}
-					if (nBitsRemain) {
-						return sl_false;
-					}
-					return sl_true;
+					return sl_false;
 				}
 
 				sl_bool getPublicKey(PublicKey& _out)
@@ -1108,10 +1101,10 @@ namespace slib
 					Asn1MemoryWriter writer;
 					Asn1MemoryWriter algorithm;
 					if (_in.isRSA()) {
-						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_PKCS1_RSA))) {
+						if (!(algorithm.writeObjectIdentifier(OID_PKCS1_RSA))) {
 							return sl_null;
 						}
-						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+						if (!(writer.writeSequence(algorithm))) {
 							return sl_null;
 						}
 						Memory key = Save_RSAPublicKey(_in.rsa);
@@ -1122,7 +1115,7 @@ namespace slib
 							return sl_null;
 						}
 					} else if (_in.isECC()) {
-						if (!(algorithm.writeElement(SLIB_ASN1_TAG_OID, OID_X9_62_EC_PUBLIC_KEY))) {
+						if (!(algorithm.writeObjectIdentifier(OID_X9_62_EC_PUBLIC_KEY))) {
 							return sl_null;
 						}
 						Memory param = Save_EllipticCurve(_in.ecc);
@@ -1132,7 +1125,7 @@ namespace slib
 						if (!(algorithm.output.write(param))) {
 							return sl_null;
 						}
-						if (!(writer.writeElement(SLIB_ASN1_TAG_SEQUENCE, algorithm))) {
+						if (!(writer.writeSequence(algorithm))) {
 							return sl_null;
 						}
 						Memory key = _in.ecc.Q.toCompressedFormat(_in.ecc);
@@ -1242,16 +1235,15 @@ namespace slib
 	sl_bool X509::load(const void* input, sl_size size)
 	{
 		Asn1MemoryReader reader(input, size);
-		Asn1MemoryReader root;
-		if (!(reader.readSequence(root))) {
+		if (!(reader.readSequence(reader))) {
 			return sl_false;
 		}
 		Asn1String content;
-		content.data = root.current;
+		content.data = reader.current;
 		Asn1MemoryReader body;
-		if (root.readSequence(body)) {
+		if (reader.readSequence(body)) {
 			content.length = (sl_uint32)(body.end - content.data);
-			body.readInt(version);
+			body.readInt(version, SLIB_ASN1_TAG_CONTEXT(0));
 			if (!(body.readBigInt(serialNumber))) {
 				return sl_false;
 			}
@@ -1280,11 +1272,49 @@ namespace slib
 			} else {
 				return sl_false;
 			}
+			Asn1String issuerUID;
+			{
+				sl_uint8 bitsRemain;
+				body.readBitString(issuerUID, bitsRemain, SLIB_ASN1_TAG_CONTEXT(1));
+			}
+			Asn1String subjectUID;
+			{
+				sl_uint8 bitsRemain;
+				body.readBitString(subjectUID, bitsRemain, SLIB_ASN1_TAG_CONTEXT(2));
+			}
+			Asn1MemoryReader extensions;
+			if (body.readSequence(extensions, SLIB_ASN1_TAG_CONTEXT(3))) {
+				Asn1MemoryReader extension;
+				while (extensions.readSequence(extension)) {
+					Asn1ObjectIdentifier oid;
+					if (extension.readObjectIdentifier(oid)) {
+						sl_bool flagCritical = sl_false;
+						extension.readBoolean(flagCritical);
+						Asn1String value;
+						if (extension.readOctetString(value)) {
+							if (oid.equals(OID_SUBJECT_KEY_ID)) {
+								Asn1MemoryReader item(value);
+								if (item.readOctetString(value)) {
+									subjectKeyId = BigInt::fromBytesBE(value.data, value.length);
+								}
+							} else if (oid.equals(OID_AUTHORITY_KEY_ID)) {
+								Asn1MemoryReader item(value);
+								Asn1MemoryReader keyId;
+								if (item.readSequence(keyId)) {
+									if (keyId.readElement(SLIB_ASN1_TAG_CONTEXT_IMPLICIT(0), value)) {
+										authorityKeyId = BigInt::fromBytesBE(value.data, value.length);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		} else {
 			return sl_false;
 		}
 		X509Algorithm sigAlg;
-		if (root.readObject(sigAlg)) {
+		if (reader.readObject(sigAlg)) {
 			signatureAlgorithm = GetSignatureAlgorithm(sigAlg.algorithm);
 			if (signatureAlgorithm == X509SignatureAlgorithm::Unknown) {
 				return sl_false;
@@ -1294,7 +1324,7 @@ namespace slib
 		}
 		Asn1String sig;
 		sl_uint8 nSigBitsRemain;
-		if (root.readBitString(sig, nSigBitsRemain)) {
+		if (reader.readBitString(sig, nSigBitsRemain)) {
 			if (nSigBitsRemain) {
 				return sl_false;
 			}

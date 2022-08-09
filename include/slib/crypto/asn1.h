@@ -45,7 +45,7 @@ X.690 is an ITU-T standard specifying several ASN.1 encoding formats:
 #define SLIB_ASN1_TAG_CLASS_CONTEXT 2
 #define SLIB_ASN1_TAG_CLASS_PRIVATE 3
 
-#define SLIB_ASN1_TAG_PC_PRIVATE 0
+#define SLIB_ASN1_TAG_PC_PRIMITIVE 0
 #define SLIB_ASN1_TAG_PC_CONSTRUCTED 1
 
 #define SLIB_ASN1_TAG_TYPE_EOC 0 // End Of Content, Primitive
@@ -98,7 +98,7 @@ X.690 is an ITU-T standard specifying several ASN.1 encoding formats:
 #define SLIB_ASN1_TAG_TYPE_15 15
 
 #define SLIB_ASN1_TAG_RAW(CLASS, CONSTRUCTED, TYPE) (((CLASS) << 6) | ((CONSTRUCTED) << 5) | (TYPE))
-#define SLIB_ASN1_TAG(CLASS, PRIVATE_OR_CONSTRUCTED, TYPE) SLIB_ASN1_TAG_RAW(SLIB_ASN1_TAG_CLASS_##CLASS, SLIB_ASN1_TAG_PC_##PRIVATE_OR_CONSTRUCTED, SLIB_ASN1_TAG_TYPE_##TYPE)
+#define SLIB_ASN1_TAG(CLASS, PRIMITIVE_OR_CONSTRUCTED, TYPE) SLIB_ASN1_TAG_RAW(SLIB_ASN1_TAG_CLASS_##CLASS, SLIB_ASN1_TAG_PC_##PRIMITIVE_OR_CONSTRUCTED, SLIB_ASN1_TAG_TYPE_##TYPE)
 
 #define SLIB_ASN1_TAG_EOC SLIB_ASN1_TAG_TYPE_EOC // 0x00
 #define SLIB_ASN1_TAG_BOOL SLIB_ASN1_TAG_TYPE_BOOL // 0x01
@@ -130,7 +130,11 @@ X.690 is an ITU-T standard specifying several ASN.1 encoding formats:
 #define SLIB_ASN1_TAG_CHARACTER_STRING SLIB_ASN1_TAG_TYPE_CHARACTER_STRING // 0x1D
 #define SLIB_ASN1_TAG_BMP_STRING SLIB_ASN1_TAG_TYPE_BMP_STRING // 0x1E
 
+#define SLIB_ASN1_TAG_APP_IMPLICIT(TYPE) SLIB_ASN1_TAG(APP, PRIMITIVE, TYPE) // 0x40
+// Explicit tag that wraps the base tag
 #define SLIB_ASN1_TAG_APP(TYPE) SLIB_ASN1_TAG(APP, CONSTRUCTED, TYPE) // 0x60
+#define SLIB_ASN1_TAG_CONTEXT_IMPLICIT(TYPE) SLIB_ASN1_TAG(CONTEXT, PRIMITIVE, TYPE) // 0x80
+// Explicit tag that wraps the base tag
 #define SLIB_ASN1_TAG_CONTEXT(TYPE) SLIB_ASN1_TAG(CONTEXT, CONSTRUCTED, TYPE) // 0xA0
 
 #define SLIB_ASN1_ENCODED_OID_SPNEGO "\x06\x06\x2b\x06\x01\x05\x05\x02" // 1.3.6.1.5.5.2 (Simple Protected Negotiation)
@@ -308,24 +312,48 @@ namespace slib
 
 	};
 
-	class Asn1MemoryReader;
-
-	class SLIB_EXPORT Asn1Element : public Asn1String
+	class SLIB_EXPORT Asn1MemoryReader
 	{
 	public:
-		sl_uint8 tag;
+		const sl_uint8* current;
+		const sl_uint8* end;
 
 	public:
-		Asn1Element(): tag(0) {}
+		Asn1MemoryReader(): current(sl_null), end(sl_null) {}
 
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Asn1Element)
+		Asn1MemoryReader(const void* data, sl_size size): current((const sl_uint8*)data), end(((const sl_uint8*)data) + size) {}
+
+		Asn1MemoryReader(const Asn1String& data): current(data.data), end(data.data + data.length) {}
+
+		Asn1MemoryReader(const Memory& mem);
 
 	public:
-		sl_bool getBody(sl_uint8 tag, Asn1String& outBody, sl_bool flagInNotUniversal = sl_true) const;
+		sl_bool checkAndReadByte(sl_uint8 v);
 
-		sl_bool getSequence(Asn1MemoryReader& outElements) const;
+		template <typename N>
+		sl_bool readLength(N& len)
+		{
+			SerializeBuffer buf(current, end - current);
+			if (Asn1::deserializeLength(&buf, len)) {
+				current = buf.current;
+				return sl_true;
+			}
+			return sl_false;
+		}
 
-		sl_bool getSet(Asn1MemoryReader& outElements) const;
+		sl_bool readElementBody(Asn1String& outBody);
+
+		sl_bool readElement(sl_uint8 tag, Asn1String& outBody);
+
+		sl_bool readElement(sl_uint8 outerTag, sl_uint8 innerTag, Asn1String& outBody);
+
+		sl_bool readElement(sl_uint8 tag, Asn1MemoryReader& outBody);
+
+		sl_bool readElement(sl_uint8 outerTag, sl_uint8 innerTag, Asn1MemoryReader& outBody);
+
+		sl_bool readSequence(Asn1MemoryReader& outElements, sl_uint8 outerTag = 0);
+
+		sl_bool readSet(Asn1MemoryReader& outElements, sl_uint8 outerTag = 0);
 
 		template <typename N>
 		static sl_bool parseInt(N& n, const void* _data, sl_size len)
@@ -348,10 +376,10 @@ namespace slib
 		}
 
 		template <typename N>
-		sl_bool getInt(N& n) const
+		sl_bool readInt(N& n, sl_uint8 outerTag = 0)
 		{
 			Asn1String body;
-			if (getBody(SLIB_ASN1_TAG_INT, body)) {
+			if (readElement(outerTag, SLIB_ASN1_TAG_INT, body)) {
 				if (parseInt(n, body.data, body.length)) {
 					return sl_true;
 				}
@@ -359,91 +387,40 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_bool getBigInt(BigInt& n) const;
+		sl_bool readBigInt(BigInt& n, sl_uint8 outerTag = 0);
 
-		sl_bool getObjectIdentifier(Asn1ObjectIdentifier& _out) const;
+		sl_bool readObjectIdentifier(Asn1ObjectIdentifier& _out, sl_uint8 outerTag = 0);
 
-		sl_bool getOctetString(Asn1String& _out) const;
+		sl_bool readOctetString(Asn1String& _out, sl_uint8 outerTag = 0);
 
-		sl_bool getUtf8String(Asn1String& _out) const;
+		sl_bool readUtf8String(Asn1String& _out, sl_uint8 outerTag = 0);
 
-		sl_bool getBitString(Asn1String& _out, sl_uint8& outBitsRemain) const;
+		sl_bool readBitString(Asn1String& _out, sl_uint8& outBitsRemain, sl_uint8 outerTag = 0);
 
-		sl_bool getTime(Time& _out) const;
+		sl_bool readTime(Time& _out, sl_uint8 outerTag = 0);
 
-	};
-
-	class SLIB_EXPORT Asn1MemoryReader
-	{
-	public:
-		const sl_uint8* current;
-		const sl_uint8* end;
-
-	public:
-		Asn1MemoryReader(): current(sl_null), end(sl_null) {}
-
-		Asn1MemoryReader(const void* data, sl_size size): current((const sl_uint8*)data), end(((const sl_uint8*)data) + size) {}
-
-		Asn1MemoryReader(const Asn1String& data): current(data.data), end(data.data + data.length) {}
-
-		Asn1MemoryReader(const Memory& mem);
-
-	public:
-		sl_bool readByte(sl_uint8& _out);
-
-		sl_bool readAndCheckTag(sl_uint8 tag);
-
-		template <typename N>
-		sl_bool readLength(N& len)
-		{
-			SerializeBuffer buf(current, end - current);
-			if (Asn1::deserializeLength(&buf, len)) {
-				current = buf.current;
-				return sl_true;
-			}
-			return sl_false;
-		}
-
-		sl_bool readElementBody(Asn1String& outBody);
-
-		sl_bool readElement(sl_uint8 tag, Asn1String& outBody, sl_bool flagInNotUniversal = sl_true);
-
-		sl_bool readElement(Asn1Element& _out);
-
-		sl_bool readSequence(Asn1MemoryReader& outElements);
-
-		sl_bool readSet(Asn1MemoryReader& outElements);
-
-		template <typename N>
-		sl_bool readInt(N& n)
-		{
-			Asn1Element element;
-			if (readElement(element)) {
-				return element.getInt(n);
-			}
-			return sl_false;
-		}
-
-		sl_bool readBigInt(BigInt& n);
-
-		sl_bool readObjectIdentifier(Asn1ObjectIdentifier& _out);
-
-		sl_bool readOctetString(Asn1String& _out);
-
-		sl_bool readUtf8String(Asn1String& _out);
-
-		sl_bool readBitString(Asn1String& _out, sl_uint8& outBitsRemain);
-
-		sl_bool readTime(Time& _out);
+		sl_bool readBoolean(sl_bool& _out, sl_uint8 outerTag = 0);
 
 		template <class TYPE>
-		sl_bool readObject(TYPE& _out)
+		sl_bool readObject(TYPE& _out, sl_uint8 outerTag = 0)
 		{
-			Asn1Element element;
-			if (readElement(element)) {
-				return _out.load(element);
+			if (outerTag) {
+				Asn1String data;
+				if (readElement(outerTag, data)) {
+					Asn1MemoryReader reader(data);
+					return _out.load(reader);
+				}
+				return sl_false;
+			} else {
+				return _out.load(*this);
 			}
-			return sl_false;
+		}
+
+		template <class TYPE>
+		sl_bool peekObject(TYPE& _out, sl_uint8 outerTag = 0) const
+		{
+			Asn1MemoryReader reader(*this);
+			return reader.readObject(_out, outerTag);
 		}
 
 	};
@@ -463,13 +440,23 @@ namespace slib
 
 		sl_bool writeLength(sl_size len);
 
+		sl_bool writeElementHeader(sl_uint8 outerTag, sl_uint8 innerTag, sl_size contentSize);
+
 		sl_bool writeElement(sl_uint8 tag, const void* content, sl_size size);
+
+		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const void* content, sl_size size);
 
 		sl_bool writeElement(sl_uint8 tag, const Memory& mem);
 
+		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const Memory& mem);
+
 		sl_bool writeElement(sl_uint8 tag, const SerializeOutput& output);
 
+		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const SerializeOutput& output);
+
 		sl_bool writeElement(sl_uint8 tag, const Asn1MemoryWriter& output);
+
+		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const Asn1MemoryWriter& output);
 
 		template <sl_size N>
 		sl_bool writeElement(sl_uint8 tag, const char(&s)[N])
@@ -477,23 +464,61 @@ namespace slib
 			return writeElement(tag, s, N - 1);
 		}
 
-		sl_bool writeInt(const void* content, sl_size size);
+		template <sl_size N>
+		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const char(&s)[N])
+		{
+			return writeElement(outerTag, innerTag, s, N - 1);
+		}
+
+		template <class TYPE>
+		sl_bool writeSequence(const TYPE& elements, sl_uint8 outerTag = 0)
+		{
+			return writeElement(outerTag, SLIB_ASN1_TAG_SEQUENCE, elements);
+		}
+
+		template <class TYPE>
+		sl_bool writeSet(const TYPE& elements, sl_uint8 outerTag = 0)
+		{
+			return writeElement(outerTag, SLIB_ASN1_TAG_SET, elements);
+		}
+
+		sl_bool writeInt(const void* content, sl_size size, sl_uint8 outerTag = 0);
 
 		template <typename N>
-		sl_bool writeInt(N n)
+		sl_bool writeInt(N n, sl_uint8 outerTag = 0)
 		{
 			sl_uint8 buf[sizeof(N)];
 			for (sl_uint32 i = 0; i < sizeof(N); i++) {
 				buf[i] = (sl_uint8)(n >> ((sizeof(N) - 1 - i) << 3));
 			}
-			return writeInt(buf, sizeof(N));
+			return writeInt(buf, sizeof(N), outerTag);
 		}
 
-		sl_bool writeBigInt(const BigInt& n);
+		sl_bool writeBigInt(const BigInt& n, sl_uint8 outerTag = 0);
 
-		sl_bool writeBitString(const void* content, sl_size size);
+		sl_bool writeObjectIdentifier(const void* content, sl_size size, sl_uint8 outerTag = 0);
 
-		sl_bool writeBitString(const Memory& mem);
+		template <sl_size N>
+		sl_bool writeObjectIdentifier(const char(&s)[N])
+		{
+			return writeObjectIdentifier(s, N - 1);
+		}
+
+		template <class TYPE>
+		sl_bool writeOctetString(const TYPE& _in, sl_uint8 outerTag = 0)
+		{
+			return writeElement(outerTag, SLIB_ASN1_TAG_OCTET_STRING, _in);
+		}
+
+		template <class TYPE>
+		sl_bool writeUtf8String(const TYPE& _in, sl_uint8 outerTag = 0)
+		{
+			return writeElement(outerTag, SLIB_ASN1_TAG_UTF8_STRING, _in);
+		}
+
+		sl_bool writeBitString(const void* content, sl_size size, sl_uint8 outerTag = 0);
+
+		sl_bool writeBitString(const Memory& mem, sl_uint8 outerTag = 0);
 
 	};
 

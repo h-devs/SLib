@@ -126,16 +126,43 @@ namespace slib
 	}
 
 
-	sl_bool Asn1Element::getBody(sl_uint8 reqTag, Asn1String& body, sl_bool flagInNotUniversal) const
+
+	Asn1MemoryReader::Asn1MemoryReader(const Memory& mem): current((sl_uint8*)(mem.getData())), end((sl_uint8*)(mem.getData()) + mem.getSize())
 	{
-		if (flagInNotUniversal) {
-			if (tag & 0xC0) {
-				// Not Universal
-				Asn1MemoryReader reader(*this);
-				return reader.readElement(reqTag, body, sl_false);
+	}
+
+	sl_bool Asn1MemoryReader::checkAndReadByte(sl_uint8 tag)
+	{
+		if (current < end) {
+			if (*current == tag) {
+				current++;
+				return sl_true;
 			}
 		}
-		switch (reqTag) {
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readElementBody(Asn1String& body)
+	{
+		sl_size len;
+		if (readLength(len)) {
+			const sl_uint8* _end = current + len;
+			if (_end <= end) {
+				body.data = current;
+				body.length = (sl_uint32)len;
+				current = _end;
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1String& body)
+	{
+		if (checkAndReadByte(tag)) {
+			return readElementBody(body);
+		}
+		switch (tag) {
 			case SLIB_ASN1_TAG_BIT_STRING:
 			case SLIB_ASN1_TAG_OCTET_STRING:
 			case SLIB_ASN1_TAG_OBJECT_DESCRIPTOR:
@@ -143,50 +170,75 @@ namespace slib
 				// both encoding
 				break;
 			default:
-				if (reqTag >= SLIB_ASN1_TAG_NUMERIC_STRING && reqTag <= SLIB_ASN1_TAG_BMP_STRING) {
+				if (tag >= SLIB_ASN1_TAG_NUMERIC_STRING && tag <= SLIB_ASN1_TAG_BMP_STRING) {
 					// both encoding
 					break;
 				}
-				if (tag == reqTag) {
-					body = *this;
-					return sl_true;
-				}
 				return sl_false;
 		}
-		// Primitive or Constructed
-		if (tag == reqTag || tag == (0x20 | reqTag)) {
-			body = *this;
+		// Constructed
+		if (checkAndReadByte(0x20 | tag)) {
+			return readElementBody(body);
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryReader::readElement(sl_uint8 outerTag, sl_uint8 innerTag, Asn1String& body)
+	{
+		if (outerTag) {
+			if (outerTag & 0x20) {
+				// Explicit (Constructed)
+				Asn1String inner;
+				if (readElement(outerTag, inner)) {
+					Asn1MemoryReader reader(inner);
+					return reader.readElement(innerTag, body);
+				}
+				return sl_false;
+			} else {
+				// Implicit (Primitive)
+				return readElement(outerTag, body);
+			}
+		} else {
+			return readElement(innerTag, body);
+		}
+	}
+
+	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1MemoryReader& _out)
+	{
+		Asn1String body;
+		if (readElement(tag, body)) {
+			_out.current = body.data;
+			_out.end = body.data + body.length;
 			return sl_true;
 		}
 		return sl_false;
 	}
 
-	sl_bool Asn1Element::getSequence(Asn1MemoryReader& elements) const
+	sl_bool Asn1MemoryReader::readElement(sl_uint8 outerTag, sl_uint8 innerTag, Asn1MemoryReader& _out)
 	{
 		Asn1String body;
-		if (getBody(SLIB_ASN1_TAG_SEQUENCE, body)) {
-			elements.current = body.data;
-			elements.end = body.data + body.length;
+		if (readElement(outerTag, innerTag, body)) {
+			_out.current = body.data;
+			_out.end = body.data + body.length;
 			return sl_true;
 		}
 		return sl_false;
 	}
 
-	sl_bool Asn1Element::getSet(Asn1MemoryReader& elements) const
+	sl_bool Asn1MemoryReader::readSequence(Asn1MemoryReader& elements, sl_uint8 outerTag)
 	{
-		Asn1String body;
-		if (getBody(SLIB_ASN1_TAG_SET, body)) {
-			elements.current = body.data;
-			elements.end = body.data + body.length;
-			return sl_true;
-		}
-		return sl_false;
+		return readElement(outerTag, SLIB_ASN1_TAG_SEQUENCE, elements);
 	}
 
-	sl_bool Asn1Element::getBigInt(BigInt& n) const
+	sl_bool Asn1MemoryReader::readSet(Asn1MemoryReader& elements, sl_uint8 outerTag)
+	{
+		return readElement(outerTag, SLIB_ASN1_TAG_SET, elements);
+	}
+
+	sl_bool Asn1MemoryReader::readBigInt(BigInt& n, sl_uint8 outerTag)
 	{
 		Asn1String body;
-		if (getBody(SLIB_ASN1_TAG_INT, body)) {
+		if (readElement(outerTag, SLIB_ASN1_TAG_INT, body)) {
 			if (!(body.length)) {
 				n.setNull();
 				return sl_true;
@@ -197,25 +249,25 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Asn1Element::getObjectIdentifier(Asn1ObjectIdentifier& _id) const
+	sl_bool Asn1MemoryReader::readObjectIdentifier(Asn1ObjectIdentifier& _id, sl_uint8 outerTag)
 	{
-		return getBody(SLIB_ASN1_TAG_OID, _id);
+		return readElement(outerTag, SLIB_ASN1_TAG_OID, _id);
 	}
 
-	sl_bool Asn1Element::getOctetString(Asn1String& _out) const
+	sl_bool Asn1MemoryReader::readOctetString(Asn1String& _out, sl_uint8 outerTag)
 	{
-		return getBody(SLIB_ASN1_TAG_OCTET_STRING, _out);
+		return readElement(outerTag, SLIB_ASN1_TAG_OCTET_STRING, _out);
 	}
 
-	sl_bool Asn1Element::getUtf8String(Asn1String& _out) const
+	sl_bool Asn1MemoryReader::readUtf8String(Asn1String& _out, sl_uint8 outerTag)
 	{
-		return getBody(SLIB_ASN1_TAG_UTF8_STRING, _out);
+		return readElement(outerTag, SLIB_ASN1_TAG_UTF8_STRING, _out);
 	}
 
-	sl_bool Asn1Element::getBitString(Asn1String& _out, sl_uint8& outBitsRemain) const
+	sl_bool Asn1MemoryReader::readBitString(Asn1String& _out, sl_uint8& outBitsRemain, sl_uint8 outerTag)
 	{
 		Asn1String body;
-		if (getBody(SLIB_ASN1_TAG_BIT_STRING, body)) {
+		if (readElement(outerTag, SLIB_ASN1_TAG_BIT_STRING, body)) {
 			if (body.length) {
 				outBitsRemain = *(body.data);
 				if (outBitsRemain > 7) {
@@ -229,10 +281,10 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Asn1Element::getTime(Time& _out) const
+	sl_bool Asn1MemoryReader::readTime(Time& _out, sl_uint8 outerTag)
 	{
 		Asn1String body;
-		if (getBody(SLIB_ASN1_TAG_UTC_TIME, body)) {
+		if (readElement(outerTag, SLIB_ASN1_TAG_UTC_TIME, body)) {
 			if (body.length == 13) {
 				const sl_uint8* c = body.data;
 				if (c[12] != 'Z') {
@@ -257,133 +309,14 @@ namespace slib
 		return sl_false;
 	}
 
-
-	Asn1MemoryReader::Asn1MemoryReader(const Memory& mem): current((sl_uint8*)(mem.getData())), end((sl_uint8*)(mem.getData()) + mem.getSize())
+	sl_bool Asn1MemoryReader::readBoolean(sl_bool& _out, sl_uint8 outerTag)
 	{
-	}
-
-	sl_bool Asn1MemoryReader::readByte(sl_uint8& _out)
-	{
-		if (current < end) {
-			_out = *current;
-			current++;
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readAndCheckTag(sl_uint8 tag)
-	{
-		if (current < end) {
-			if (*current == tag) {
-				current++;
+		Asn1String body;
+		if (readElement(outerTag, SLIB_ASN1_TAG_BOOL, body)) {
+			if (body.length == 1) {
+				_out = *(body.data) != 0;
 				return sl_true;
 			}
-			current++;
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readElementBody(Asn1String& body)
-	{
-		sl_size len;
-		if (readLength(len)) {
-			const sl_uint8* _end = current + len;
-			if (_end <= end) {
-				body.data = current;
-				body.length = (sl_uint32)len;
-				current = _end;
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readElement(Asn1Element& _out)
-	{
-		if (readByte(_out.tag)) {
-			return readElementBody(_out);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readElement(sl_uint8 tag, Asn1String& body, sl_bool flagInNotUniversal)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getBody(tag, body, flagInNotUniversal);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readSequence(Asn1MemoryReader& elements)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getSequence(elements);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readSet(Asn1MemoryReader& elements)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getSet(elements);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readBigInt(BigInt& n)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getBigInt(n);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readObjectIdentifier(Asn1ObjectIdentifier& _id)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getObjectIdentifier(_id);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readOctetString(Asn1String& _out)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getOctetString(_out);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readUtf8String(Asn1String& _out)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getUtf8String(_out);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readBitString(Asn1String& _out, sl_uint8& outBitsRemain)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getBitString(_out, outBitsRemain);
-		}
-		return sl_false;
-	}
-
-	sl_bool Asn1MemoryReader::readTime(Time& _out)
-	{
-		Asn1Element element;
-		if (readElement(element)) {
-			return element.getTime(_out);
 		}
 		return sl_false;
 	}
@@ -407,12 +340,52 @@ namespace slib
 		return Asn1::serializeLength(&output, size);
 	}
 
+	sl_bool Asn1MemoryWriter::writeElementHeader(sl_uint8 outerTag, sl_uint8 innerTag, sl_size contentSize)
+	{
+		if (outerTag) {
+			if (outerTag & 0x20) {
+				// Explicit (Constructed)
+				if (writeByte(outerTag)) {
+					sl_size n = Asn1::getSerializedLengthSize(contentSize);
+					sl_size m = 1 + n + contentSize;
+					if (writeLength(m)) {
+						if (writeByte(innerTag)) {
+							if (writeLength(contentSize)) {
+								return sl_true;
+							}
+						}
+					}
+				}
+			} else {
+				// Implicit (Primitive)
+				if (writeByte(outerTag)) {
+					if (writeLength(contentSize)) {
+						return sl_true;
+					}
+				}
+			}
+		} else {
+			if (writeByte(innerTag)) {
+				if (writeLength(contentSize)) {
+					return sl_true;
+				}
+			}
+		}
+		return sl_false;
+	}
+
 	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 tag, const void* content, sl_size size)
 	{
-		if (writeByte(tag)) {
-			if (writeLength(size)) {
-				return output.write(content, size) == size;
-			}
+		if (writeElementHeader(0, tag, size)) {
+			return output.write(content, size) == size;
+		}
+		return sl_false;
+	}
+
+	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const void* content, sl_size size)
+	{
+		if (writeElementHeader(outerTag, innerTag, size)) {
+			return output.write(content, size) == size;
 		}
 		return sl_false;
 	}
@@ -422,9 +395,19 @@ namespace slib
 		return writeElement(tag, mem.getData(), mem.getSize());
 	}
 
+	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const Memory& mem)
+	{
+		return writeElement(outerTag, innerTag, mem.getData(), mem.getSize());
+	}
+
 	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 tag, const SerializeOutput& output)
 	{
 		return writeElement(tag, output.begin, output.offset);
+	}
+
+	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const SerializeOutput& output)
+	{
+		return writeElement(outerTag, innerTag, output.begin, output.offset);
 	}
 
 	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 tag, const Asn1MemoryWriter& writer)
@@ -432,15 +415,20 @@ namespace slib
 		return writeElement(tag, writer.output);
 	}
 
-	sl_bool Asn1MemoryWriter::writeInt(const void* _content, sl_size size)
+	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const Asn1MemoryWriter& writer)
+	{
+		return writeElement(outerTag, innerTag, writer.output);
+	}
+
+	sl_bool Asn1MemoryWriter::writeInt(const void* _content, sl_size size, sl_uint8 outerTag)
 	{
 		if (!size) {
 			const sl_uint8 c = 0;
-			return writeElement(SLIB_ASN1_TAG_INT, &c, 1);
+			return writeElement(outerTag, SLIB_ASN1_TAG_INT, &c, 1);
 		}
 		const sl_uint8* content = (const sl_uint8*)_content;
 		if (size == 1) {
-			return writeElement(SLIB_ASN1_TAG_INT, content, 1);
+			return writeElement(outerTag, SLIB_ASN1_TAG_INT, content, 1);
 		}
 		sl_size offset = 0;
 		if (*content == 0xff) {
@@ -466,29 +454,32 @@ namespace slib
 				}
 			}
 		}
-		return writeElement(SLIB_ASN1_TAG_INT, content + offset, size - offset);
+		return writeElement(outerTag, SLIB_ASN1_TAG_INT, content + offset, size - offset);
 	}
 
-	sl_bool Asn1MemoryWriter::writeBigInt(const BigInt& n)
+	sl_bool Asn1MemoryWriter::writeBigInt(const BigInt& n, sl_uint8 outerTag)
 	{
-		return writeElement(SLIB_ASN1_TAG_INT, n.getBytesBE(sl_true));
+		return writeElement(outerTag, SLIB_ASN1_TAG_INT, n.getBytesBE(sl_true));
 	}
 
-	sl_bool Asn1MemoryWriter::writeBitString(const void* content, sl_size size)
+	sl_bool Asn1MemoryWriter::writeObjectIdentifier(const void* content, sl_size size, sl_uint8 outerTag)
 	{
-		if (writeByte(SLIB_ASN1_TAG_BIT_STRING)) {
-			if (writeLength(size + 1)) {
-				if (writeByte(0)) {
-					return output.write(content, size) == size;
-				}
+		return writeElement(outerTag, SLIB_ASN1_TAG_OID, content, size);
+	}
+
+	sl_bool Asn1MemoryWriter::writeBitString(const void* content, sl_size size, sl_uint8 outerTag)
+	{
+		if (writeElementHeader(outerTag, SLIB_ASN1_TAG_BIT_STRING, size + 1)) {
+			if (writeByte(0)) {
+				return output.write(content, size) == size;
 			}
 		}
-		return sl_true;
+		return sl_false;
 	}
 
-	sl_bool Asn1MemoryWriter::writeBitString(const Memory& mem)
+	sl_bool Asn1MemoryWriter::writeBitString(const Memory& mem, sl_uint8 outerTag)
 	{
-		return writeBitString(mem.getData(), mem.getSize());
+		return writeBitString(mem.getData(), mem.getSize(), outerTag);
 	}
 
 }
