@@ -1101,9 +1101,9 @@ namespace slib
 		}
 	}
 
-	void DnsServer::_sendPacket(sl_bool flagEncrypted, const SocketAddress& targetAddress, const Memory& packet)
+	void DnsServer::_sendPacket(sl_bool flagEncrypted, const SocketAddress& targetAddress, const MemoryView& packet)
 	{
-		if (packet.isNotNull()) {
+		if (packet.size) {
 			Ref<AsyncUdpSocket> socket;
 			if (flagEncrypted) {
 				socket = m_udpEncrypt;

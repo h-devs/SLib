@@ -53,9 +53,7 @@ namespace slib
 		String friendlyName;
 
 	public:
-		sl_bool load(const void* content, sl_size size, const StringParam& password);
-
-		sl_bool load(const Memory& memory, const StringParam& password);
+		sl_bool load(const MemoryView& input, const StringParam& password);
 
 		sl_bool load(const StringParam& filePath, const StringParam& password);
 

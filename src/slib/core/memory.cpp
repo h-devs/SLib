@@ -965,6 +965,18 @@ namespace slib
 	}
 
 
+	MemoryView::MemoryView(const Memory& mem) noexcept: data(mem.getData()), size(mem.getSize())
+	{
+	}
+
+	MemoryView& MemoryView::operator=(const Memory& mem) noexcept
+	{
+		data = mem.getData();
+		size = mem.getSize();
+		return *this;
+	}
+
+
 	MemoryBuffer::MemoryBuffer(): m_size(0)
 	{
 	}
@@ -1033,6 +1045,11 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool MemoryBuffer::addNew(const MemoryView& mem)
+	{
+		return addNew(mem.data, mem.size);
+	}
+
 	sl_bool MemoryBuffer::addStatic(const void* buf, sl_size size)
 	{
 		if (!size) {
@@ -1042,6 +1059,11 @@ namespace slib
 			return add(MemoryData(buf, size));
 		}
 		return sl_false;
+	}
+
+	sl_bool MemoryBuffer::addStatic(const MemoryView& mem)
+	{
+		return addStatic(mem.data, mem.size);
 	}
 
 	sl_bool MemoryBuffer::pop(MemoryData& data)

@@ -681,9 +681,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool AsyncUdpSocket::sendTo(const SocketAddress& addressTo, const Memory& mem)
+	sl_bool AsyncUdpSocket::sendTo(const SocketAddress& addressTo, const MemoryView& mem)
 	{
-		return sendTo(addressTo, mem.getData(), (sl_uint32)(mem.getSize()));
+		return sendTo(addressTo, mem.data, (sl_uint32)(mem.size));
 	}
 	
 	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_getIoInstance()

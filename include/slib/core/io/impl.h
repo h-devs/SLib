@@ -64,6 +64,7 @@
 
 #define SLIB_DEFINE_IWRITER_MEMBERS(CLASS, ATTR) \
 	sl_reg CLASS::writeFully(const void* buf, sl_size size) ATTR { return WriterHelper::writeFully(this, buf, size); } \
+	sl_reg CLASS::writeFully(const MemoryView& mem) ATTR { return WriterHelper::writeFully(this, mem.data, mem.size); } \
 	sl_bool CLASS::writeInt8(sl_int8 value) ATTR { return WriterHelper::writeInt8(this, value); } \
 	sl_bool CLASS::writeUint8(sl_uint8 value) ATTR { return WriterHelper::writeInt8(this, value); } \
 	sl_bool CLASS::writeInt16(sl_int16 value, EndianType endian) ATTR { return WriterHelper::writeInt16(this, value, endian); } \
@@ -77,7 +78,6 @@
 	sl_bool CLASS::writeCVLI32(sl_uint32 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
 	sl_bool CLASS::writeCVLI64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
 	sl_bool CLASS::writeCVLI(sl_size value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
-	sl_size CLASS::writeFromMemory(const Memory& mem) ATTR { return writeFully(mem.getData(), mem.getSize()); } \
 	sl_bool CLASS::writeTextUTF8(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF8(this, text, flagWriteByteOrderMark); } \
 	sl_bool CLASS::writeTextUTF16LE(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16LE(this, text, flagWriteByteOrderMark); } \
 	sl_bool CLASS::writeTextUTF16BE(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16BE(this, text, flagWriteByteOrderMark); }

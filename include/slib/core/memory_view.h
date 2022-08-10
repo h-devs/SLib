@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,37 +20,43 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_TIME_COUNTER
-#define CHECKHEADER_SLIB_CORE_TIME_COUNTER
+#ifndef CHECKHEADER_SLIB_CORE_MEMORY_VIEW
+#define CHECKHEADER_SLIB_CORE_MEMORY_VIEW
 
 #include "default_members.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT TimeCounter
+	class Memory;
+	
+	class SLIB_EXPORT MemoryView
 	{
 	public:
-		TimeCounter() noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TimeCounter)
+		void* data;
+		sl_size size;
 
 	public:
-		static sl_uint64 now() noexcept;
+		SLIB_CONSTEXPR MemoryView(): data(sl_null), size(0) {}
 
-		sl_uint64 getElapsedMilliseconds() const noexcept;
+		SLIB_CONSTEXPR MemoryView(const void* _data, sl_size _size): data((void*)_data), size(_size) {}
 
-		sl_uint64 getElapsedMilliseconds(sl_uint64 now) const noexcept;
+		MemoryView(const Memory& mem) noexcept;
 
-		void reset() noexcept;
+		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(MemoryView)
 
-		void reset(sl_uint64 now) noexcept;
+	public:
+		template <sl_size N>
+		static MemoryView literal(const char(&s)[N]) noexcept
+		{
+			return MemoryView(s, N - 1);
+		}
 
-	protected:
-		sl_uint64 m_timeStart;
+	public:
+		MemoryView& operator=(const Memory& mem) noexcept;
 
 	};
-
+	
 }
 
 #endif

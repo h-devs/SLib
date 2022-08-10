@@ -312,15 +312,11 @@ namespace slib
 		static BigInt getSharedKey_ECDH(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote);
 
 
-		static sl_bool loadX509(X509& _out, const void* content, sl_size size);
-
-		static sl_bool loadX509(X509& _out, const Memory& memory);
+		static sl_bool loadX509(X509& _out, const MemoryView& mem);
 
 		static sl_bool loadX509(X509& _out, const StringParam& filePath);
 
-		static sl_bool verifyX509(const void* content, sl_size size, const PublicKey& issuerKey);
-
-		static sl_bool verifyX509(const Memory& cert, const PublicKey& issuerKey);
+		static sl_bool verifyX509(const MemoryView& cert, const PublicKey& issuerKey);
 
 		static Memory signX509_SHA256(const X509& cert, const PrivateKey& issuerKey);
 
@@ -329,9 +325,7 @@ namespace slib
 		static Memory signX509_SHA512(const X509& cert, const PrivateKey& issuerKey);
 
 
-		static sl_bool loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& password);
-
-		static sl_bool loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password);
+		static sl_bool loadPKCS12(PKCS12& _out, const MemoryView& mem, const StringParam& password);
 
 		static sl_bool loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password);
 

@@ -51,10 +51,10 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<Bitmap> Bitmap::loadFromMemory(const Memory& mem)
+	Ref<Bitmap> Bitmap::loadFromMemory(const MemoryView& mem)
 	{
-		if (mem.isNotNull()) {
-			return Bitmap::loadFromMemory(mem.getData(), mem.getSize());
+		if (mem.size) {
+			return Bitmap::loadFromMemory(mem.data, mem.size);
 		}
 		return sl_null;
 	}

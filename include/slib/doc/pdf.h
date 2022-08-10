@@ -551,7 +551,7 @@ namespace slib
 
 		Memory getFilterInput(PdfFilter filter);
 
-		Memory decodeContent(const Memory& input, PdfFilter filter, PdfDictionary* decodeParam);
+		Memory decodeContent(const MemoryView& input, PdfFilter filter, PdfDictionary* decodeParam);
 
 		sl_bool isJpegImage() noexcept;
 
@@ -942,7 +942,7 @@ namespace slib
 	protected:
 		static Ref<PdfForm> _load(PdfStream* stream);
 
-		sl_bool _load(PdfStream* stream, Memory& content);
+		sl_bool _load(PdfStream* stream, const MemoryView& content);
 
 	private:
 		friend class PdfExternalObject;

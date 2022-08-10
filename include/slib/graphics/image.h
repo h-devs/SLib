@@ -202,11 +202,11 @@ namespace slib
 
 		static ImageFileType getFileType(const void* mem, sl_size size);
 
-		static ImageFileType getFileType(const Memory& mem);
+		static ImageFileType getFileType(const MemoryView& mem);
 
 		static Ref<Image> loadFromMemory(const void* mem, sl_size size);
 
-		static Ref<Image> loadFromMemory(const Memory& mem);
+		static Ref<Image> loadFromMemory(const MemoryView& mem);
 
 		static Ref<Image> loadFromFile(const StringParam& filePath);
 
@@ -214,7 +214,7 @@ namespace slib
 		
 		static Ref<AnimationDrawable> loadAnimationFromMemory(const void* mem, sl_size size);
 		
-		static Ref<AnimationDrawable> loadAnimationFromMemory(const Memory& mem);
+		static Ref<AnimationDrawable> loadAnimationFromMemory(const MemoryView& mem);
 		
 		static Ref<AnimationDrawable> loadAnimationFromFile(const StringParam& filePath);
 		

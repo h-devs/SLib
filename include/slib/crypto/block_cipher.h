@@ -23,6 +23,8 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_BLOCKCIPHER
 #define CHECKHEADER_SLIB_CRYPTO_BLOCKCIPHER
 
+#include "definition.h"
+
 #include "../core/memory.h"
 #include "../core/base.h"
 #include "../core/mio.h"
@@ -389,14 +391,14 @@ namespace slib
 			return BlockCipher_ECB<CLASS, BlockCipherPadding_PKCS7>::decrypt((CLASS*)this, src, size);
 		}
 		
-		Memory encrypt_ECB_PKCS7Padding(const Memory& mem) const
+		Memory encrypt_ECB_PKCS7Padding(const MemoryView& mem) const
 		{
-			return BlockCipher_ECB<CLASS, BlockCipherPadding_PKCS7>::encrypt((CLASS*)this, mem.getData(), mem.getSize());
+			return BlockCipher_ECB<CLASS, BlockCipherPadding_PKCS7>::encrypt((CLASS*)this, mem.data, mem.size);
 		}
 		
-		Memory decrypt_ECB_PKCS7Padding(const Memory& mem) const
+		Memory decrypt_ECB_PKCS7Padding(const MemoryView& mem) const
 		{
-			return BlockCipher_ECB<CLASS, BlockCipherPadding_PKCS7>::decrypt((CLASS*)this, mem.getData(), mem.getSize());
+			return BlockCipher_ECB<CLASS, BlockCipherPadding_PKCS7>::decrypt((CLASS*)this, mem.data, mem.size);
 		}
 		
 		sl_size encrypt_CBC_PKCS7Padding(const void* iv, const void* src, sl_size size, void* dst) const
@@ -439,14 +441,14 @@ namespace slib
 			return BlockCipher_CBC<CLASS, BlockCipherPadding_PKCS7>::decrypt((CLASS*)this, src, size);
 		}
 		
-		Memory encrypt_CBC_PKCS7Padding(const Memory& mem) const
+		Memory encrypt_CBC_PKCS7Padding(const MemoryView& mem) const
 		{
-			return BlockCipher_CBC<CLASS, BlockCipherPadding_PKCS7>::encrypt((CLASS*)this, mem.getData(), mem.getSize());
+			return BlockCipher_CBC<CLASS, BlockCipherPadding_PKCS7>::encrypt((CLASS*)this, mem.data, mem.size);
 		}
 		
-		Memory decrypt_CBC_PKCS7Padding(const Memory& mem) const
+		Memory decrypt_CBC_PKCS7Padding(const MemoryView& mem) const
 		{
-			return BlockCipher_CBC<CLASS, BlockCipherPadding_PKCS7>::decrypt((CLASS*)this, mem.getData(), mem.getSize());
+			return BlockCipher_CBC<CLASS, BlockCipherPadding_PKCS7>::decrypt((CLASS*)this, mem.data, mem.size);
 		}
 		
 		sl_size encrypt_CTR(const void* input, sl_size size, void* output, void* counter, sl_uint32 offset) const

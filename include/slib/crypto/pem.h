@@ -91,9 +91,7 @@ namespace slib
 		List<PEMInstance> instances;
 
 	public:
-		sl_bool load(const void* content, sl_size size);
-
-		sl_bool load(const Memory& memory);
+		sl_bool load(const MemoryView& mem);
 
 		sl_bool load(const StringParam& filePath);
 

@@ -66,7 +66,7 @@ namespace slib
 
 		static Ref<Bitmap> loadFromMemory(const void* mem, sl_size size);
 
-		static Ref<Bitmap> loadFromMemory(const Memory& mem);
+		static Ref<Bitmap> loadFromMemory(const MemoryView& mem);
 
 		static Ref<Bitmap> loadFromFile(const StringParam& filePath);
 

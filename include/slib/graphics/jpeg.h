@@ -452,7 +452,7 @@ namespace slib
 
 		static Ref<Image> loadFromMemory(const void* mem, sl_size size);
 
-		static Ref<Image> loadFromMemory(const Memory& mem);
+		static Ref<Image> loadFromMemory(const MemoryView& mem);
 
 		static Ref<Image> loadFromFile(const StringParam& path);
 

@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_TIME
 #define CHECKHEADER_SLIB_CORE_TIME
 
-#include "definition.h"
-
 #include "default_members.h"
 #include "common_members.h"
 

@@ -1595,35 +1595,25 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool OpenSSL::loadX509(X509& _out, const void* content, sl_size size)
+	sl_bool OpenSSL::loadX509(X509& _out, const MemoryView& mem)
 	{
 		InitThread();
-		X509_Handle handle(Load_X509(content, size));
+		X509_Handle handle(Load_X509(mem.data, mem.size));
 		if (handle.isNotNone()) {
 			return Get_X509(_out, handle);
 		}
 		return sl_false;
 	}
 
-	sl_bool OpenSSL::loadX509(X509& _out, const Memory& memory)
-	{
-		return loadX509(_out, memory.getData(), memory.getSize());
-	}
-
 	sl_bool OpenSSL::loadX509(X509& _out, const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
-		return loadX509(_out, mem.getData(), mem.getSize());
+		return loadX509(_out, mem);
 	}
 
-	sl_bool OpenSSL::verifyX509(const void* content, sl_size size, const PublicKey& issuerKey)
+	sl_bool OpenSSL::verifyX509(const MemoryView& cert, const PublicKey& issuerKey)
 	{
-		return Verify_X509(content, size, issuerKey);
-	}
-
-	sl_bool OpenSSL::verifyX509(const Memory& cert, const PublicKey& issuerKey)
-	{
-		return Verify_X509(cert.getData(), cert.getSize(), issuerKey);
+		return Verify_X509(cert.data, cert.size, issuerKey);
 	}
 
 	Memory OpenSSL::signX509_SHA256(const X509& cert, const PrivateKey& issuerKey)
@@ -1642,17 +1632,15 @@ namespace slib
 	}
 
 
-	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const void* content, sl_size size, const StringParam& _password)
+	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const MemoryView& input, const StringParam& _password)
 	{
-		if (!content) {
-			return sl_false;
-		}
-		if (!size) {
+		if (!(input.size)) {
 			return sl_false;
 		}
 		InitThread();
 
-		PKCS12_Handle p12(d2i_PKCS12(sl_null, (const unsigned char**)&content, (long)size));
+		void* content = input.data;
+		PKCS12_Handle p12(d2i_PKCS12(sl_null, (const unsigned char**)&content, (long)(input.size)));
 		if (p12.isNone()) {
 			return sl_false;
 		}
@@ -1684,15 +1672,10 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const Memory& memory, const StringParam& password)
-	{
-		return loadPKCS12(_out, memory.getData(), memory.getSize(), password);
-	}
-
 	sl_bool OpenSSL::loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password)
 	{
 		Memory mem = File::readAllBytes(filePath);
-		return loadPKCS12(_out, mem.getData(), mem.getSize(), password);
+		return loadPKCS12(_out, mem, password);
 	}
 
 	Memory OpenSSL::savePKCS12(const PKCS12& p12, const StringParam& _password)

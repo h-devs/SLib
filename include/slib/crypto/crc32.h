@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class Memory;
+	class MemoryView;
 
 	class SLIB_EXPORT Crc32
 	{
@@ -37,9 +37,9 @@ namespace slib
 
 		static sl_uint32 get(const void* data, sl_size size);
 
-		static sl_uint32 extend(sl_uint32 crc, const Memory& mem);
+		static sl_uint32 extend(sl_uint32 crc, const MemoryView& mem);
 
-		static sl_uint32 get(const Memory& mem);
+		static sl_uint32 get(const MemoryView& mem);
 
 	};
 
@@ -50,9 +50,9 @@ namespace slib
 
 		static sl_uint32 get(const void* data, sl_size size);
 
-		static sl_uint32 extend(sl_uint32 crc, const Memory& mem);
+		static sl_uint32 extend(sl_uint32 crc, const MemoryView& mem);
 
-		static sl_uint32 get(const Memory& mem);
+		static sl_uint32 get(const MemoryView& mem);
 
 	};
 

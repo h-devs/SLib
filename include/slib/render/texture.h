@@ -67,7 +67,7 @@ namespace slib
 		
 		static Ref<Texture> loadFromMemory(const void* mem, sl_size size);
 		
-		static Ref<Texture> loadFromMemory(const Memory& mem);
+		static Ref<Texture> loadFromMemory(const MemoryView& mem);
 		
 		static Ref<Texture> loadFromFile(const String& filePath);
 		

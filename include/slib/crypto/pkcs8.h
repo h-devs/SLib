@@ -31,7 +31,7 @@ namespace slib
 	class SLIB_EXPORT PKCS8
 	{
 	public:
-		static sl_bool loadPrivateKey(PrivateKey& _out, const void* input, sl_size size) noexcept;
+		static sl_bool loadPrivateKey(PrivateKey& _out, const MemoryView& _in) noexcept;
 
 		static Memory savePrivateKey(const PrivateKey& _in) noexcept;
 

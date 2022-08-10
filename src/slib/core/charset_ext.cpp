@@ -425,6 +425,11 @@ namespace slib
 		return sl_null;
 	}
 
+	String Charsets::decode8(Charset charset, const MemoryView& mem)
+	{
+		return decode8(charset, mem.data, mem.size);
+	}
+
 	Memory Charsets::encode16(const sl_char16* src, sl_size len, Charset charset)
 	{
 		if (src && len) {
@@ -485,6 +490,11 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	String16 Charsets::decode16(Charset charset, const MemoryView& mem)
+	{
+		return decode16(charset, mem.data, mem.size);
 	}
 
 	Memory Charsets::encode32(const sl_char32* src, sl_size len, Charset charset)
@@ -549,14 +559,19 @@ namespace slib
 		return sl_null;
 	}
 
+	String32 Charsets::decode32(Charset charset, const MemoryView& mem)
+	{
+		return decode32(charset, mem.data, mem.size);
+	}
+
 	String String::decode(Charset charset, const void* text, sl_size size)
 	{
 		return Charsets::decode8(charset, text, size);
 	}
 	
-	String String::decode(Charset charset, const Memory& mem)
+	String String::decode(Charset charset, const MemoryView& mem)
 	{
-		return Charsets::decode8(charset, mem.getData(), mem.getSize());
+		return Charsets::decode8(charset, mem.data, mem.size);
 	}
 	
 	String16 String16::decode(Charset charset, const void* text, sl_size size)
@@ -564,9 +579,9 @@ namespace slib
 		return Charsets::decode16(charset, text, size);
 	}
 	
-	String16 String16::decode(Charset charset, const Memory& mem)
+	String16 String16::decode(Charset charset, const MemoryView& mem)
 	{
-		return Charsets::decode16(charset, mem.getData(), mem.getSize());
+		return Charsets::decode16(charset, mem.data, mem.size);
 	}
 
 	String32 String32::decode(Charset charset, const void* text, sl_size size)
@@ -574,9 +589,9 @@ namespace slib
 		return Charsets::decode32(charset, text, size);
 	}
 
-	String32 String32::decode(Charset charset, const Memory& mem)
+	String32 String32::decode(Charset charset, const MemoryView& mem)
 	{
-		return Charsets::decode32(charset, mem.getData(), mem.getSize());
+		return Charsets::decode32(charset, mem.data, mem.size);
 	}
 
 	Memory String::encode(Charset charset) const

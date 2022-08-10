@@ -724,9 +724,9 @@ namespace slib
 		return sl_false;
 	}
 
-	void CBigInt::setBytesLE(const Memory& mem, sl_bool flagSigned) noexcept
+	void CBigInt::setBytesLE(const MemoryView& mem, sl_bool flagSigned) noexcept
 	{
-		setBytesLE(mem.getData(), mem.getSize(), flagSigned);
+		setBytesLE(mem.data, mem.size, flagSigned);
 	}
 
 	CBigInt* CBigInt::fromBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned) noexcept
@@ -741,9 +741,9 @@ namespace slib
 		return sl_null;
 	}
 
-	CBigInt* CBigInt::fromBytesLE(const Memory& mem, sl_bool flagSigned) noexcept
+	CBigInt* CBigInt::fromBytesLE(const MemoryView& mem, sl_bool flagSigned) noexcept
 	{
-		return fromBytesLE(mem.getData(), mem.getSize(), flagSigned);
+		return fromBytesLE(mem.data, mem.size, flagSigned);
 	}
 
 	void CBigInt::getBytesLE(void* _bytes, sl_size n, sl_bool flagSigned) const noexcept
@@ -876,9 +876,9 @@ namespace slib
 		return sl_false;
 	}
 
-	void CBigInt::setBytesBE(const Memory& mem, sl_bool flagSigned) noexcept
+	void CBigInt::setBytesBE(const MemoryView& mem, sl_bool flagSigned) noexcept
 	{
-		setBytesBE(mem.getData(), mem.getSize(), flagSigned);
+		setBytesBE(mem.data, mem.size, flagSigned);
 	}
 
 	CBigInt* CBigInt::fromBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned) noexcept
@@ -893,9 +893,9 @@ namespace slib
 		return sl_null;
 	}
 
-	CBigInt* CBigInt::fromBytesBE(const Memory& mem, sl_bool flagSigned) noexcept
+	CBigInt* CBigInt::fromBytesBE(const MemoryView& mem, sl_bool flagSigned) noexcept
 	{
-		return fromBytesBE(mem.getData(), mem.getSize(), flagSigned);
+		return fromBytesBE(mem.data, mem.size, flagSigned);
 	}
 
 	void CBigInt::getBytesBE(void* _bytes, sl_size n, sl_bool flagSigned) const noexcept
@@ -3397,9 +3397,9 @@ namespace slib
 		return CBigInt::fromBytesLE(bytes, nBytes, flagSigned);
 	}
 
-	BigInt BigInt::fromBytesLE(const Memory& mem, sl_bool flagSigned) noexcept
+	BigInt BigInt::fromBytesLE(const MemoryView& mem, sl_bool flagSigned) noexcept
 	{
-		return CBigInt::fromBytesLE(mem.getData(), mem.getSize(), flagSigned);
+		return CBigInt::fromBytesLE(mem.data, mem.size, flagSigned);
 	}
 
 	BigInt BigInt::fromBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned) noexcept
@@ -3407,9 +3407,9 @@ namespace slib
 		return CBigInt::fromBytesBE(bytes, nBytes, flagSigned);
 	}
 
-	BigInt BigInt::fromBytesBE(const Memory& mem, sl_bool flagSigned) noexcept
+	BigInt BigInt::fromBytesBE(const MemoryView& mem, sl_bool flagSigned) noexcept
 	{
-		return CBigInt::fromBytesBE(mem.getData(), mem.getSize(), flagSigned);
+		return CBigInt::fromBytesBE(mem.data, mem.size, flagSigned);
 	}
 
 	BigInt BigInt::fromString(const StringParam& str, sl_uint32 radix) noexcept

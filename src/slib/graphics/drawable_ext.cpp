@@ -80,10 +80,10 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<Drawable> PlatformDrawable::loadFromMemory(const Memory& mem)
+	Ref<Drawable> PlatformDrawable::loadFromMemory(const MemoryView& mem)
 	{
-		if (mem.isNotNull()) {
-			return PlatformDrawable::loadFromMemory(mem.getData(), mem.getSize());
+		if (mem.size) {
+			return PlatformDrawable::loadFromMemory(mem.data, mem.size);
 		}
 		return sl_null;
 	}

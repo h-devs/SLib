@@ -74,7 +74,7 @@ namespace slib
 		setAlgorithm(JwtAlgorithm::HS256);
 	}
 	
-	String Jwt::encode(const Memory& secret) const noexcept
+	String Jwt::encode(const MemoryView& secret) const noexcept
 	{
 		StringBuffer sb;
 		sb.add(Base64::encodeUrl(header.toJsonString()));
@@ -134,7 +134,7 @@ namespace slib
 		return pos2;
 	}
 
-	sl_bool Jwt::decode(const Memory& secret, const StringView& token) noexcept
+	sl_bool Jwt::decode(const MemoryView& secret, const StringView& token) noexcept
 	{
 		String signature;
 		sl_size n = _decode(token, signature);
@@ -144,21 +144,21 @@ namespace slib
 		return sl_false;
 	}
 	
-	String Jwt::generateSignature(const Memory& secret, const void* data, sl_size size) const noexcept
+	String Jwt::generateSignature(const MemoryView& secret, const void* data, sl_size size) const noexcept
 	{
 		sl_uint8 signature[SHA512::HashSize];
 		sl_size sizeSignature;
 		switch (getAlgorithm()) {
 			case JwtAlgorithm::HS256:
-				HMAC<SHA256>::execute(secret.getData(), secret.getSize(), data, size, signature);
+				HMAC<SHA256>::execute(secret.data, secret.size, data, size, signature);
 				sizeSignature = SHA256::HashSize;
 				break;
 			case JwtAlgorithm::HS384:
-				HMAC<SHA384>::execute(secret.getData(), secret.getSize(), data, size, signature);
+				HMAC<SHA384>::execute(secret.data, secret.size, data, size, signature);
 				sizeSignature = SHA384::HashSize;
 				break;
 			case JwtAlgorithm::HS512:
-				HMAC<SHA512>::execute(secret.getData(), secret.getSize(), data, size, signature);
+				HMAC<SHA512>::execute(secret.data, secret.size, data, size, signature);
 				sizeSignature = SHA512::HashSize;
 				break;
 			default:

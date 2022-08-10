@@ -421,9 +421,9 @@ namespace slib
 	}
 #endif
 
-	sl_bool Font::addResource(const Memory& content)
+	sl_bool Font::addResource(const MemoryView& content)
 	{
-		return addResource(content.getData(), content.getSize());
+		return addResource(content.data, content.size);
 	}
 
 }

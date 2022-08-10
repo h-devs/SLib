@@ -223,6 +223,7 @@ namespace slib
 	};
 
 	class Memory;
+	class MemoryView;
 	class String;
 	class String16;
 	class String32;
@@ -292,13 +293,19 @@ namespace slib
 
 		static String decode8(Charset charset, const void* input, sl_size sizeInput);
 
+		static String decode8(Charset charset, const MemoryView& input);
+
 		static Memory encode16(const sl_char16* utf16, sl_size lenUtf16, Charset outputCharset);
 
 		static String16 decode16(Charset charset, const void* input, sl_size sizeInput);
 
+		static String16 decode16(Charset charset, const MemoryView& input);
+
 		static Memory encode32(const sl_char32* utf16, sl_size lenUtf32, Charset outputCharset);
 
 		static String32 decode32(Charset charset, const void* input, sl_size sizeInput);
+
+		static String32 decode32(Charset charset, const MemoryView& input);
 
 		
 		static sl_bool checkUtf8(const void* utf8, sl_size size);

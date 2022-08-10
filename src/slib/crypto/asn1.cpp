@@ -59,9 +59,9 @@ namespace slib
 		return sl_null;
 	}
 
-	Memory Asn1::serializeElement(sl_uint8 tag, const Memory& mem)
+	Memory Asn1::serializeElement(sl_uint8 tag, const MemoryView& mem)
 	{
-		return serializeElement(tag, mem.getData(), mem.getSize());
+		return serializeElement(tag, mem.data, mem.size);
 	}
 
 	String Asn1::getObjectIdentifierString(const void* _data, sl_size length)
@@ -127,7 +127,7 @@ namespace slib
 
 
 
-	Asn1MemoryReader::Asn1MemoryReader(const Memory& mem): current((sl_uint8*)(mem.getData())), end((sl_uint8*)(mem.getData()) + mem.getSize())
+	Asn1MemoryReader::Asn1MemoryReader(const MemoryView& mem): current((sl_uint8*)(mem.data)), end((sl_uint8*)(mem.data) + mem.size)
 	{
 	}
 
@@ -390,14 +390,14 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 tag, const Memory& mem)
+	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 tag, const MemoryView& mem)
 	{
-		return writeElement(tag, mem.getData(), mem.getSize());
+		return writeElement(tag, mem.data, mem.size);
 	}
 
-	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const Memory& mem)
+	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const MemoryView& mem)
 	{
-		return writeElement(outerTag, innerTag, mem.getData(), mem.getSize());
+		return writeElement(outerTag, innerTag, mem.data, mem.size);
 	}
 
 	sl_bool Asn1MemoryWriter::writeElement(sl_uint8 tag, const SerializeOutput& output)
@@ -477,9 +477,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Asn1MemoryWriter::writeBitString(const Memory& mem, sl_uint8 outerTag)
+	sl_bool Asn1MemoryWriter::writeBitString(const MemoryView& mem, sl_uint8 outerTag)
 	{
-		return writeBitString(mem.getData(), mem.getSize(), outerTag);
+		return writeBitString(mem.data, mem.size, outerTag);
 	}
 
 }

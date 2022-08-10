@@ -133,10 +133,10 @@ namespace slib
 		return sl_null;
 	}
 
-	NSData* Apple::getNSDataFromMemory(const Memory& memory)
+	NSData* Apple::getNSDataFromMemory(const MemoryView& mem)
 	{
-		if(memory.isNotNull()) {
-			return [NSData dataWithBytes:memory.getData() length:memory.getSize()];
+		if(mem.size) {
+			return [NSData dataWithBytes:mem.data length:mem.size];
 		}
 		return nil;
 	}

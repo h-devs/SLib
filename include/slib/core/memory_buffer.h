@@ -56,7 +56,11 @@ namespace slib
 
 		sl_bool addNew(const void* buf, sl_size size);
 
+		sl_bool addNew(const MemoryView& mem);
+
 		sl_bool addStatic(const void* buf, sl_size size);
+
+		sl_bool addStatic(const MemoryView& mem);
 	
 		template <sl_size N>
 		sl_bool addStatic(const char (&buf)[N])

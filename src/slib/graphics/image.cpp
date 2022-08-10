@@ -2372,9 +2372,9 @@ namespace slib
 		return ImageFileType::Unknown;
 	}
 
-	ImageFileType Image::getFileType(const Memory& mem)
+	ImageFileType Image::getFileType(const MemoryView& mem)
 	{
-		return getFileType(mem.getData(), mem.getSize());
+		return getFileType(mem.data, mem.size);
 	}
 
 	Ref<Image> Image::loadFromMemory(const void* mem, sl_size size)
@@ -2389,9 +2389,9 @@ namespace slib
 		return loadStb(mem, size);
 	}
 
-	Ref<Image> Image::loadFromMemory(const Memory& mem)
+	Ref<Image> Image::loadFromMemory(const MemoryView& mem)
 	{
-		return loadFromMemory(mem.getData(), mem.getSize());
+		return loadFromMemory(mem.data, mem.size);
 	}
 
 	Ref<Image> Image::loadFromFile(const StringParam& filePath)
@@ -2412,9 +2412,9 @@ namespace slib
 		return sl_null;
 	}
 	
-	Ref<AnimationDrawable> Image::loadAnimationFromMemory(const Memory& mem)
+	Ref<AnimationDrawable> Image::loadAnimationFromMemory(const MemoryView& mem)
 	{
-		return loadAnimationFromMemory(mem.getData(), mem.getSize());
+		return loadAnimationFromMemory(mem.data, mem.size);
 	}
 	
 	Ref<AnimationDrawable> Image::loadAnimationFromFile(const StringParam& filePath)

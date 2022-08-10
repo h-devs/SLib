@@ -3960,9 +3960,9 @@ namespace slib
 		return create((const sl_char8*)utf8, len); \
 	} \
 	\
-	STRING STRING::fromUtf8(const Memory& mem) noexcept \
+	STRING STRING::fromUtf8(const MemoryView& mem) noexcept \
 	{ \
-		return fromUtf8(mem.getData(), mem.getSize()); \
+		return fromUtf8(mem.data, mem.size); \
 	} \
 	\
 	STRING STRING::fromUtf16(const sl_char16* utf16, sl_reg len) noexcept \
@@ -3975,9 +3975,9 @@ namespace slib
 		return CreateFromUtf16<Container>(Endian::Big, utf16, size); \
 	} \
 	\
-	STRING STRING::fromUtf16BE(const Memory& mem) noexcept \
+	STRING STRING::fromUtf16BE(const MemoryView& mem) noexcept \
 	{ \
-		return fromUtf16BE(mem.getData(), mem.getSize()); \
+		return fromUtf16BE(mem.data, mem.size); \
 	} \
 	\
 	STRING STRING::fromUtf16LE(const void* utf16, sl_size size) noexcept \
@@ -3985,9 +3985,9 @@ namespace slib
 		return CreateFromUtf16<Container>(Endian::Little, utf16, size); \
 	} \
 	\
-	STRING STRING::fromUtf16LE(const Memory& mem) noexcept \
+	STRING STRING::fromUtf16LE(const MemoryView& mem) noexcept \
 	{ \
-		return fromUtf16LE(mem.getData(), mem.getSize()); \
+		return fromUtf16LE(mem.data, mem.size); \
 	} \
 	\
 	STRING STRING::fromUtf32(const sl_char32* utf32, sl_reg len) noexcept \
@@ -4000,9 +4000,9 @@ namespace slib
 		return CreateFromUtf<Container>(buf, size); \
 	} \
 	\
-	STRING STRING::fromUtf(const Memory& mem) noexcept \
+	STRING STRING::fromUtf(const MemoryView& mem) noexcept \
 	{ \
-		return fromUtf(mem.getData(), mem.getSize()); \
+		return fromUtf(mem.data, mem.size); \
 	} \
 	\
 	STRING STRING::from(const StringView& str) noexcept \
@@ -4918,9 +4918,9 @@ namespace slib
 		return MakeHexString<typename STRING::Char>(buf, size, flagUseLowerChar); \
 	} \
 	\
-	STRING STRING::makeHexString(const Memory& mem, sl_bool flagUseLowerChar) noexcept \
+	STRING STRING::makeHexString(const MemoryView& mem, sl_bool flagUseLowerChar) noexcept \
 	{ \
-		return makeHexString(mem.getData(), mem.getSize(), flagUseLowerChar); \
+		return makeHexString(mem.data, mem.size, flagUseLowerChar); \
 	} \
 	\
 	STRING STRING::from(signed char value) noexcept \

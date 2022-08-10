@@ -69,13 +69,9 @@ namespace slib
 
 		Memory toHybridFormat(sl_size nBytesPerComponent = 0) const noexcept;
 
-		sl_bool parseBinaryFormat(const void* buf, sl_size n, const EllipticCurve* curve = sl_null) noexcept;
+		sl_bool parseBinaryFormat(const MemoryView& mem, const EllipticCurve* curve = sl_null) noexcept;
 
-		sl_bool parseBinaryFormat(const Memory& mem, const EllipticCurve* curve = sl_null) noexcept;
-
-		sl_bool parseBinaryFormat(const EllipticCurve& curve, const void* buf, sl_size n) noexcept;
-
-		sl_bool parseBinaryFormat(const EllipticCurve& curve, const Memory& mem) noexcept;
+		sl_bool parseBinaryFormat(const EllipticCurve& curve, const MemoryView& mem) noexcept;
 
 	};
 
@@ -230,8 +226,7 @@ namespace slib
 	public:
 		Memory serialize() const noexcept;
 
-		sl_bool deserialize(const void* buf, sl_size size);
-		sl_bool deserialize(const Memory& mem) noexcept;
+		sl_bool deserialize(const MemoryView& mem) noexcept;
 
 	};
 	

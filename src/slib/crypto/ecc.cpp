@@ -730,9 +730,10 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool ECPoint::parseBinaryFormat(const void* _buf, sl_size size, const EllipticCurve* curve) noexcept
+	sl_bool ECPoint::parseBinaryFormat(const MemoryView& mem, const EllipticCurve* curve) noexcept
 	{
-		const sl_uint8* buf = (const sl_uint8*)_buf;
+		const sl_uint8* buf = (const sl_uint8*)(mem.data);
+		sl_size size = mem.size;
 		if (size) {
 			sl_uint8 type = buf[0];
 			switch (type) {
@@ -784,19 +785,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool ECPoint::parseBinaryFormat(const Memory& mem, const EllipticCurve* curve) noexcept
+	sl_bool ECPoint::parseBinaryFormat(const EllipticCurve& curve, const MemoryView& mem) noexcept
 	{
-		return parseBinaryFormat(mem.getData(), mem.getSize(), curve);
-	}
-
-	sl_bool ECPoint::parseBinaryFormat(const EllipticCurve& curve, const void* buf, sl_size n) noexcept
-	{
-		return parseBinaryFormat(buf, n, &curve);
-	}
-
-	sl_bool ECPoint::parseBinaryFormat(const EllipticCurve& curve, const Memory& mem) noexcept
-	{
-		return parseBinaryFormat(mem.getData(), mem.getSize(), &curve);
+		return parseBinaryFormat(mem, &curve);
 	}
 
 	
@@ -1065,9 +1056,10 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool ECDSA_Signature::deserialize(const void* buf, sl_size size)
+	sl_bool ECDSA_Signature::deserialize(const MemoryView& mem) noexcept
 	{
-		const sl_uint8* signature = (const sl_uint8*)buf;
+		const sl_uint8* signature = (const sl_uint8*)(mem.data);
+		sl_size size = mem.size;
 		if (size & 1) {
 			return sl_false;
 		}
@@ -1075,11 +1067,6 @@ namespace slib
 		r = BigInt::fromBytesBE(signature, size);
 		s = BigInt::fromBytesBE(signature + size, size);
 		return sl_true;
-	}
-
-	sl_bool ECDSA_Signature::deserialize(const Memory& mem) noexcept
-	{
-		return deserialize(mem.getData(), mem.getSize());
 	}
 
 	namespace priv

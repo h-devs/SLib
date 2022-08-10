@@ -98,7 +98,7 @@ namespace slib
 
 		static sl_bool addResource(const void* content, sl_size size);
 
-		static sl_bool addResource(const Memory& content);
+		static sl_bool addResource(const MemoryView& content);
 
 	public:
 		void getDesc(FontDesc& desc);

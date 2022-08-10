@@ -171,16 +171,14 @@ namespace slib
 		Memory signature;
 
 	public:
-		sl_bool load(const void* content, sl_size size);
-
-		sl_bool load(const Memory& memory);
+		sl_bool load(const MemoryView& input);
 
 		sl_bool load(const StringParam& filePath);
 
 		sl_bool verify(const PublicKey& issuerKey);
 
 	public:
-		static sl_bool loadPublicKey(PublicKey& _out, const void* input, sl_size size) noexcept;
+		static sl_bool loadPublicKey(PublicKey& _out, const MemoryView& _in) noexcept;
 
 		static Memory savePublicKey(const PublicKey& _in) noexcept;
 

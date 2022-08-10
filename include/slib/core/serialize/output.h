@@ -73,7 +73,7 @@ namespace slib
 
 		sl_size write(const void* buf, sl_size size) noexcept;
 
-		sl_size write(const Memory& mem) noexcept;
+		sl_size write(const MemoryView& mem) noexcept;
 
 		sl_bool writeUint8(sl_uint8 value) noexcept;
 

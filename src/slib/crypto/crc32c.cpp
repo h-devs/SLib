@@ -687,14 +687,14 @@ namespace slib
 		return priv::crc32c::extend(0, data, size);
 	}
 	
-	sl_uint32 Crc32c::extend(sl_uint32 crc, const Memory& mem)
+	sl_uint32 Crc32c::extend(sl_uint32 crc, const MemoryView& mem)
 	{
-		return priv::crc32c::extend(crc, mem.getData(), mem.getSize());
+		return priv::crc32c::extend(crc, mem.data, mem.size);
 	}
 	
-	sl_uint32 Crc32c::get(const Memory& mem)
+	sl_uint32 Crc32c::get(const MemoryView& mem)
 	{
-		return priv::crc32c::extend(0, mem.getData(), mem.getSize());
+		return priv::crc32c::extend(0, mem.data, mem.size);
 	}
 
 }

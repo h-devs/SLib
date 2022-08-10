@@ -23,8 +23,6 @@
 #ifndef CHECKHEADER_SLIB_CORE_POINTER
 #define CHECKHEADER_SLIB_CORE_POINTER
 
-#include "definition.h"
-
 #include "default_members.h"
 
 #define PRIV_SLIB_DEFINE_POINTER_COMMON_FUNCTIONS \

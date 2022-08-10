@@ -119,18 +119,15 @@ namespace slib
 	
 	Ref<Texture> Texture::loadFromMemory(const void* mem, sl_size size)
 	{
-		if (size == 0) {
+		if (!size) {
 			return sl_null;
 		}
 		return create(Image::loadFromMemory(mem, size));
 	}
 	
-	Ref<Texture> Texture::loadFromMemory(const Memory& mem)
+	Ref<Texture> Texture::loadFromMemory(const MemoryView& mem)
 	{
-		if (mem.isNull()) {
-			return sl_null;
-		}
-		return loadFromMemory(mem.getData(), mem.getSize());
+		return loadFromMemory(mem.data, mem.size);
 	}
 	
 	Ref<Texture> Texture::loadFromFile(const String& filePath)

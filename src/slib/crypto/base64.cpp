@@ -220,42 +220,42 @@ namespace slib
 		return Encode(BASE64_CHARS_URL, buf, size, padding);
 	}
 
-	String Base64::encode(const Memory& mem, sl_char8 padding)
+	String Base64::encode(const MemoryView& mem, sl_char8 padding)
 	{
-		return Encode(BASE64_CHARS, mem.getData(), mem.getSize(), padding);
+		return Encode(BASE64_CHARS, mem.data, mem.size, padding);
 	}
 
-	String Base64::encodeUrl(const Memory& mem, sl_char8 padding)
+	String Base64::encodeUrl(const MemoryView& mem, sl_char8 padding)
 	{
-		return Encode(BASE64_CHARS_URL, mem.getData(), mem.getSize(), padding);
+		return Encode(BASE64_CHARS_URL, mem.data, mem.size, padding);
 	}
 
-	String16 Base64::encode16(const Memory& mem, sl_char16 padding)
+	String16 Base64::encode16(const MemoryView& mem, sl_char16 padding)
 	{
-		return Encode(BASE64_CHARS, mem.getData(), mem.getSize(), padding);
+		return Encode(BASE64_CHARS, mem.data, mem.size, padding);
 	}
 
-	String16 Base64::encodeUrl16(const Memory& mem, sl_char16 padding)
+	String16 Base64::encodeUrl16(const MemoryView& mem, sl_char16 padding)
 	{
-		return Encode(BASE64_CHARS_URL, mem.getData(), mem.getSize(), padding);
+		return Encode(BASE64_CHARS_URL, mem.data, mem.size, padding);
 	}
 
-	String32 Base64::encode32(const Memory& mem, sl_char32 padding)
+	String32 Base64::encode32(const MemoryView& mem, sl_char32 padding)
 	{
-		return Encode(BASE64_CHARS, mem.getData(), mem.getSize(), padding);
+		return Encode(BASE64_CHARS, mem.data, mem.size, padding);
 	}
 
-	String32 Base64::encodeUrl32(const Memory& mem, sl_char32 padding)
+	String32 Base64::encodeUrl32(const MemoryView& mem, sl_char32 padding)
 	{
-		return Encode(BASE64_CHARS_URL, mem.getData(), mem.getSize(), padding);
+		return Encode(BASE64_CHARS_URL, mem.data, mem.size, padding);
 	}
 
-	String Base64::encode(const String& str, sl_char8 padding)
+	String Base64::encode(const StringView& str, sl_char8 padding)
 	{
 		return Encode(BASE64_CHARS, str.getData(), str.getLength(), padding);
 	}
 
-	String Base64::encodeUrl(const String& str, sl_char8 padding)
+	String Base64::encodeUrl(const StringView& str, sl_char8 padding)
 	{
 		return Encode(BASE64_CHARS_URL, str.getData(), str.getLength(), padding);
 	}

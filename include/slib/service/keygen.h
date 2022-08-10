@@ -35,25 +35,25 @@ namespace slib
 	public:
 		static void generateKey(String& privateKey, String& publicKey);
 
-		static String getPublicKey(const StringParam& privateKey);
+		static String getPublicKey(const StringView& privateKey);
 
 		static String getMachineCode();
 
-		static String getRequestCode(const StringParam& machineCode, const StringParam& publicKey, const StringParam& extraInfo);
+		static String getRequestCode(const StringView& machineCode, const StringView& publicKey, const StringView& extraInfo);
 
-		static String getRequestCode(const StringParam& publicKey, const StringParam& extraInfo);
+		static String getRequestCode(const StringView& publicKey, const StringView& extraInfo);
 
 		static String getRequestCode();
 
-		static String getExtraFromRequestCode(const StringParam& publicKey, const StringParam& requestCode);
+		static String getExtraFromRequestCode(const StringView& publicKey, const StringView& requestCode);
 
-		static String generateAuthorizationCode(const StringParam& privateKey, const StringParam& requestCode, const StringParam& extraInfo);
+		static String generateAuthorizationCode(const StringView& privateKey, const StringView& requestCode, const StringView& extraInfo);
 
-		static String generateAuthorizationCode(const StringParam& privateKey, const StringParam& requestCode);
+		static String generateAuthorizationCode(const StringView& privateKey, const StringView& requestCode);
 
-		static sl_bool verifyAuthorizationCode(const StringParam& publicKey, const StringParam& requestCode, const StringParam& authCode);
+		static sl_bool verifyAuthorizationCode(const StringView& publicKey, const StringView& requestCode, const StringView& authCode);
 
-		static String getExtraFromAuthorizationCode(const StringParam& publicKey, const StringParam& authCode);
+		static String getExtraFromAuthorizationCode(const StringView& publicKey, const StringView& authCode);
 
 	};
 

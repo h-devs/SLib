@@ -210,7 +210,7 @@ namespace slib
 
 		static Memory serializeElement(sl_uint8 tag, const void* data, sl_size size);
 
-		static Memory serializeElement(sl_uint8 tag, const Memory& mem);
+		static Memory serializeElement(sl_uint8 tag, const MemoryView& mem);
 
 		template <sl_size N>
 		static Memory serializeElement(sl_uint8 tag, const char(&s)[N]) noexcept
@@ -325,7 +325,7 @@ namespace slib
 
 		Asn1MemoryReader(const Asn1String& data): current(data.data), end(data.data + data.length) {}
 
-		Asn1MemoryReader(const Memory& mem);
+		Asn1MemoryReader(const MemoryView& mem);
 
 	public:
 		sl_bool checkAndReadByte(sl_uint8 v);
@@ -446,9 +446,9 @@ namespace slib
 
 		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const void* content, sl_size size);
 
-		sl_bool writeElement(sl_uint8 tag, const Memory& mem);
+		sl_bool writeElement(sl_uint8 tag, const MemoryView& mem);
 
-		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const Memory& mem);
+		sl_bool writeElement(sl_uint8 outerTag, sl_uint8 innerTag, const MemoryView& mem);
 
 		sl_bool writeElement(sl_uint8 tag, const SerializeOutput& output);
 
@@ -518,7 +518,7 @@ namespace slib
 
 		sl_bool writeBitString(const void* content, sl_size size, sl_uint8 outerTag = 0);
 
-		sl_bool writeBitString(const Memory& mem, sl_uint8 outerTag = 0);
+		sl_bool writeBitString(const MemoryView& mem, sl_uint8 outerTag = 0);
 
 	};
 

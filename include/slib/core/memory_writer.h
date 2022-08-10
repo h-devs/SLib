@@ -49,7 +49,7 @@ namespace slib
 		
 		sl_reg write(const void* buf, sl_size size) override;
 
-		sl_reg write(const Memory& mem);
+		sl_reg write(const MemoryView& mem);
 	
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
 

@@ -50,6 +50,7 @@ namespace slib
 {
 
 	class Memory;
+	class MemoryView;
 	class MemoryData;
 	class Locale;
 	class Time;

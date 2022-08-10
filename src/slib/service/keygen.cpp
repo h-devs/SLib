@@ -76,7 +76,7 @@ namespace slib
 				return Base64::encodeUrl(buf, 64);
 			}
 
-			static sl_bool DecodePublicKey(const StringParam& strKey, ECPublicKey& key)
+			static sl_bool DecodePublicKey(const StringView& strKey, ECPublicKey& key)
 			{
 				Memory mem = Base64::decode(strKey);
 				sl_size n = mem.getSize();
@@ -98,7 +98,7 @@ namespace slib
 				return Base64::encodeUrl(buf, 96);
 			}
 
-			static sl_bool DecodePrivateKey(const StringParam& strKey, ECPrivateKey& key)
+			static sl_bool DecodePrivateKey(const StringView& strKey, ECPrivateKey& key)
 			{
 				Memory mem = Base64::decode(strKey);
 				sl_size n = mem.getSize();
@@ -152,9 +152,8 @@ namespace slib
 				return sl_null;
 			}
 
-			static Memory DecodeCode(const StringParam& _code)
+			static Memory DecodeCode(const StringView& code)
 			{
-				StringData code(_code);
 				sl_size lenCode = code.getLength();
 				if (!lenCode) {
 					return sl_null;
@@ -206,7 +205,7 @@ namespace slib
 		privateKey = EncodePrivateKey(key);
 	}
 
-	String Keygen::getPublicKey(const StringParam& privateKey)
+	String Keygen::getPublicKey(const StringView& privateKey)
 	{
 		ECPrivateKey key;
 		if (DecodePrivateKey(privateKey, key)) {
@@ -224,10 +223,8 @@ namespace slib
 #endif
 	}
 
-	String Keygen::getRequestCode(const StringParam& machineCode, const StringParam& _publicKey, const StringParam& _extraInfo)
+	String Keygen::getRequestCode(const StringView& machineCode, const StringView& publicKey, const StringView& extraInfo)
 	{
-		StringData publicKey(_publicKey);
-		StringData extraInfo(_extraInfo);
 		sl_size lenExtra = extraInfo.getLength();
 		sl_size nBuf = 10 + lenExtra;
 		SLIB_SCOPED_BUFFER(sl_uint8, 256, buf, nBuf)
@@ -252,7 +249,7 @@ namespace slib
 		return EncodeCode(buf, nBuf);
 	}
 
-	String Keygen::getRequestCode(const StringParam& publicKey, const StringParam& extraInfo)
+	String Keygen::getRequestCode(const StringView& publicKey, const StringView& extraInfo)
 	{
 		return getRequestCode(getMachineCode(), publicKey, extraInfo);
 	}
@@ -262,9 +259,8 @@ namespace slib
 		return getRequestCode(sl_null, sl_null);
 	}
 
-	String Keygen::getExtraFromRequestCode(const StringParam& _publicKey, const StringParam& requestCode)
+	String Keygen::getExtraFromRequestCode(const StringView& publicKey, const StringView& requestCode)
 	{
-		StringData publicKey(_publicKey);
 		Memory mem = DecodeCode(requestCode);
 		sl_size n = mem.getSize();
 		if (n > 10) {
@@ -279,9 +275,8 @@ namespace slib
 		return sl_null;
 	}
 
-	String Keygen::generateAuthorizationCode(const StringParam& strPrivateKey, const StringParam& requestCode, const StringParam& _extraInfo)
+	String Keygen::generateAuthorizationCode(const StringView& strPrivateKey, const StringView& requestCode, const StringView& extraInfo)
 	{
-		StringData extraInfo(_extraInfo);
 		ECPrivateKey key;
 		if (!(DecodePrivateKey(strPrivateKey, key))) {
 			return sl_null;
@@ -314,12 +309,12 @@ namespace slib
 		return EncodeCode(buf, nBuf);
 	}
 
-	String Keygen::generateAuthorizationCode(const StringParam& privateKey, const StringParam& requestCode)
+	String Keygen::generateAuthorizationCode(const StringView& privateKey, const StringView& requestCode)
 	{
 		return generateAuthorizationCode(privateKey, requestCode, sl_null);
 	}
 
-	sl_bool Keygen::verifyAuthorizationCode(const StringParam& strPublicKey, const StringParam& requestCode, const StringParam& authCode)
+	sl_bool Keygen::verifyAuthorizationCode(const StringView& strPublicKey, const StringView& requestCode, const StringView& authCode)
 	{
 		ECPublicKey key;
 		if (!(DecodePublicKey(strPublicKey, key))) {
@@ -351,7 +346,7 @@ namespace slib
 #endif
 	}
 
-	String Keygen::getExtraFromAuthorizationCode(const StringParam& publicKey, const StringParam& authCode)
+	String Keygen::getExtraFromAuthorizationCode(const StringView& publicKey, const StringView& authCode)
 	{
 		Memory mem = DecodeCode(authCode);
 		sl_size n = mem.getSize();

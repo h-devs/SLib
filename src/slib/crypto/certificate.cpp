@@ -613,7 +613,7 @@ namespace slib
 					}
 					Asn1String _g;
 					if (reader.readOctetString(_g)) {
-						if (!(curve.G.parseBinaryFormat(_g.data, _g.length))) {
+						if (!(curve.G.parseBinaryFormat(curve, MemoryView(_g.data, _g.length)))) {
 							return sl_false;
 						}
 					} else {
@@ -723,7 +723,7 @@ namespace slib
 						if (nBitsRemain) {
 							return sl_false;
 						}
-						_out.Q.parseBinaryFormat(_out, pub.data, pub.length);
+						_out.Q.parseBinaryFormat(_out, MemoryView(pub.data, pub.length));
 					} else {
 						_out.Q = _out.multiplyG(_out.d);
 					}
@@ -1091,7 +1091,7 @@ namespace slib
 						if (!(Load_EllipticCurve(_out.ecc, algorithm.parameter))) {
 							return sl_false;
 						}
-						return _out.ecc.Q.parseBinaryFormat(_out.ecc, key.data, key.length);
+						return _out.ecc.Q.parseBinaryFormat(_out.ecc, MemoryView(key.data, key.length));
 					}
 					return sl_false;
 				}
@@ -1232,9 +1232,9 @@ namespace slib
 	{
 	}
 
-	sl_bool X509::load(const void* input, sl_size size)
+	sl_bool X509::load(const MemoryView& input)
 	{
-		Asn1MemoryReader reader(input, size);
+		Asn1MemoryReader reader(input);
 		if (!(reader.readSequence(reader))) {
 			return sl_false;
 		}
@@ -1355,11 +1355,6 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool X509::load(const Memory& mem)
-	{
-		return load(mem.getData(), mem.getSize());
-	}
-
 	sl_bool X509::load(const StringParam& filePath)
 	{
 		return load(File::readAllBytes(filePath));
@@ -1410,9 +1405,9 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool X509::loadPublicKey(PublicKey& _out, const void* input, sl_size size) noexcept
+	sl_bool X509::loadPublicKey(PublicKey& _out, const MemoryView& _in) noexcept
 	{
-		Asn1MemoryReader reader(input, size);
+		Asn1MemoryReader reader(_in);
 		X509_PublicKey key;
 		if (reader.readObject(key)) {
 			return key.getPublicKey(_out);
@@ -1426,9 +1421,9 @@ namespace slib
 	}
 
 
-	sl_bool PKCS8::loadPrivateKey(PrivateKey& _out, const void* input, sl_size size) noexcept
+	sl_bool PKCS8::loadPrivateKey(PrivateKey& _out, const MemoryView& _in) noexcept
 	{
-		Asn1MemoryReader reader(input, size);
+		Asn1MemoryReader reader(_in);
 		PKCS8_PrivateKey key;
 		if (reader.readObject(key)) {
 			return key.getPrivateKey(_out);
@@ -1448,14 +1443,9 @@ namespace slib
 	{
 	}
 
-	sl_bool PKCS12::load(const void* content, sl_size size, const StringParam& password)
+	sl_bool PKCS12::load(const MemoryView& input, const StringParam& password)
 	{
-		return PKCS12_Load(*this, content, size, password);
-	}
-
-	sl_bool PKCS12::load(const Memory& mem, const StringParam& password)
-	{
-		return load(mem.getData(), mem.getSize(), password);
+		return PKCS12_Load(*this, input.data, input.size, password);
 	}
 
 	sl_bool PKCS12::load(const StringParam& filePath, const StringParam& password)
@@ -1474,7 +1464,7 @@ namespace slib
 	{
 		switch (type) {
 			case PEMInstanceType::PrivateKey:
-				return PKCS8::loadPrivateKey(_out, content.getData(), content.getSize());
+				return PKCS8::loadPrivateKey(_out, content);
 			case PEMInstanceType::RSAPrivateKey:
 				return Load_RSAPrivateKey(_out.rsa, content.getData(), content.getSize());
 			case PEMInstanceType::ECPrivateKey:
@@ -1489,11 +1479,11 @@ namespace slib
 	{
 		switch (type) {
 			case PEMInstanceType::PublicKey:
-				return X509::loadPublicKey(_out, content.getData(), content.getSize());
+				return X509::loadPublicKey(_out, content);
 			case PEMInstanceType::RSAPrivateKey:
 				return Load_RSAPublicKey(_out.rsa, content.getData(), content.getSize());
 			case PEMInstanceType::ECPublicKey:
-				return _out.ecc.Q.parseBinaryFormat(_out.ecc, content.getData(), content.getSize());
+				return _out.ecc.Q.parseBinaryFormat(_out.ecc, content);
 			case PEMInstanceType::Certificate:
 				{
 					X509 cert;
@@ -1516,11 +1506,11 @@ namespace slib
 	{
 	}
 
-	sl_bool PEM::load(const void* content, sl_size size)
+	sl_bool PEM::load(const MemoryView& input)
 	{
 		instances.setNull();
-		sl_uint8* s = (sl_uint8*)content;
-		sl_uint8* end = s + size;
+		sl_uint8* s = (sl_uint8*)(input.data);
+		sl_uint8* end = s + input.size;
 		if (s + 3 <= end) {
 			if (*s == 0xEF && s[1] == 0xBB && s[2] == 0xBF) {
 				s += 3;
@@ -1635,11 +1625,6 @@ namespace slib
 			s = r + 5;
 		}
 		return instances.isNotNull();
-	}
-
-	sl_bool PEM::load(const Memory& memory)
-	{
-		return load(memory.getData(), memory.getSize());
 	}
 
 	sl_bool PEM::load(const StringParam& filePath)

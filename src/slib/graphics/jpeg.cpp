@@ -1340,10 +1340,9 @@ namespace slib
 		return load(&reader);
 	}
 
-	Ref<Image> Jpeg::loadFromMemory(const Memory& mem)
+	Ref<Image> Jpeg::loadFromMemory(const MemoryView& mem)
 	{
-		MemoryReader reader(mem);
-		return load(&reader);
+		return loadFromMemory(mem.data, mem.size);
 	}
 
 	Ref<Image> Jpeg::loadFromFile(const StringParam& path)

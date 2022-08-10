@@ -185,7 +185,7 @@ namespace slib
 		/**
 		 * Creates a string copying the characters from the UTF-8 text in `mem`.
 		 */
-		static String fromUtf8(const Memory& mem) noexcept;
+		static String fromUtf8(const MemoryView& mem) noexcept;
 
 		/**
 		 * Creates a string copying the characters from the UTF-16 text.
@@ -206,7 +206,7 @@ namespace slib
 		/**
 		 * Creates a string copying the characters from the UTF-16 Big Endian text in `mem`.
 		 */
-		static String fromUtf16BE(const Memory& mem) noexcept;
+		static String fromUtf16BE(const MemoryView& mem) noexcept;
 
 		/**
 		 * Creates a string copying the characters from the UTF-16 Little Endian text.
@@ -219,7 +219,7 @@ namespace slib
 		/**
 		 * Creates a string copying the characters from the UTF-16 Little Endian text in `mem`.
 		 */
-		static String fromUtf16LE(const Memory& mem) noexcept;
+		static String fromUtf16LE(const MemoryView& mem) noexcept;
 
 		/**
 		 * Creates a string copying the characters from the UTF-32 text.
@@ -242,7 +242,7 @@ namespace slib
 		 * Creates a string copying the characters from the UTF-8, UTF-16BE, or UTF-16LE text in `mem`.
 		 * This function detects the encoding type from the first 3 bytes of the text.
 		 */
-		static String fromUtf(const Memory& mem) noexcept;
+		static String fromUtf(const MemoryView& mem) noexcept;
 
 		/**
 		 * Creates a string copying the characters from `text` encoded by `charset`.
@@ -252,7 +252,7 @@ namespace slib
 		/**
 		 * Creates a string copying the characters from text in `mem`, encoded by `charset`.
 		 */
-		static String decode(Charset charset, const Memory& mem);
+		static String decode(Charset charset, const MemoryView& mem);
 
 		static const String& from(const String& str) noexcept
 		{
@@ -960,7 +960,7 @@ namespace slib
 		 * @param mem The buffer to be converted.
 		 * @param flagUseLowerChar uses a-f (`true`) or A-F (`false`) for encoding
 		 */
-		static String makeHexString(const Memory& mem, sl_bool flagUseLowerChar = sl_true) noexcept;
+		static String makeHexString(const MemoryView& mem, sl_bool flagUseLowerChar = sl_true) noexcept;
 		
 		/**
 		 * Returns the formatted string from the format string and arbitrary list of arguments.

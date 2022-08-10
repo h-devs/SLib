@@ -32,7 +32,7 @@
 namespace slib
 {
 
-	class Memory;
+	class MemoryView;
 	
 	class SLIB_EXPORT DrawParam
 	{
@@ -184,7 +184,7 @@ namespace slib
 
 		static Ref<Drawable> loadFromMemory(const void* mem, sl_size size);
 
-		static Ref<Drawable> loadFromMemory(const Memory& mem);
+		static Ref<Drawable> loadFromMemory(const MemoryView& mem);
 
 		static Ref<Drawable> loadFromFile(const StringParam& filePath);
 

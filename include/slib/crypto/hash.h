@@ -43,14 +43,14 @@ namespace slib
 			h.finish(output);
 		}
 		
-		static void hash(const StringData& s, void* output) noexcept
+		static void hash(const StringView& s, void* output) noexcept
 		{
 			hash(s.getData(), s.getLength(), output);
 		}
 		
-		static void hash(const Memory& data, void* output) noexcept
+		static void hash(const MemoryView& mem, void* output) noexcept
 		{
-			hash(data.getData(), data.getSize(), output);
+			hash(mem.data, mem.size, output);
 		}
 		
 		static Memory hash(const void* input, sl_size n) noexcept
@@ -60,17 +60,17 @@ namespace slib
 			return Memory::create(v, CLASS::HashSize);
 		}
 		
-		static Memory hash(const StringData& s) noexcept
+		static Memory hash(const StringView& s) noexcept
 		{
 			char v[CLASS::HashSize];
 			hash(s.getData(), s.getLength(), v);
 			return Memory::create(v, CLASS::HashSize);
 		}
 		
-		static Memory hash(const Memory& data) noexcept
+		static Memory hash(const MemoryView& mem) noexcept
 		{
 			char v[CLASS::HashSize];
-			hash(data.getData(), data.getSize(), v);
+			hash(mem.data, mem.size, v);
 			return Memory::create(v, CLASS::HashSize);
 		}
 		

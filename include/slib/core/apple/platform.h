@@ -62,7 +62,7 @@ namespace slib
 
 		static Memory getMemoryFromNSData(NSData* data);
 
-		static NSData* getNSDataFromMemory(const Memory& memory);
+		static NSData* getNSDataFromMemory(const MemoryView& mem);
 		
 		static NSString* getSystemLocalizedNSString(NSString* key);
 #endif

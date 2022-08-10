@@ -43,21 +43,21 @@ namespace slib
 
 		static String32 encodeUrl32(const void* byte, sl_size size, sl_char32 padding = 0);
 
-		static String encode(const Memory& mem, sl_char8 padding = '=');
+		static String encode(const MemoryView& mem, sl_char8 padding = '=');
 				
-		static String encodeUrl(const Memory& mem, sl_char8 padding = 0);
+		static String encodeUrl(const MemoryView& mem, sl_char8 padding = 0);
 
-		static String16 encode16(const Memory& mem, sl_char16 padding = '=');
+		static String16 encode16(const MemoryView& mem, sl_char16 padding = '=');
 
-		static String16 encodeUrl16(const Memory& mem, sl_char16 padding = 0);
+		static String16 encodeUrl16(const MemoryView& mem, sl_char16 padding = 0);
 
-		static String32 encode32(const Memory& mem, sl_char32 padding = '=');
+		static String32 encode32(const MemoryView& mem, sl_char32 padding = '=');
 
-		static String32 encodeUrl32(const Memory& mem, sl_char32 padding = 0);
+		static String32 encodeUrl32(const MemoryView& mem, sl_char32 padding = 0);
 
-		static String encode(const String& str, sl_char8 padding = '=');
+		static String encode(const StringView& str, sl_char8 padding = '=');
 
-		static String encodeUrl(const String& str, sl_char8 padding = 0);
+		static String encodeUrl(const StringView& str, sl_char8 padding = 0);
 		
 		static sl_size getDecodeOutputSize(sl_size lenBase64);
 		

@@ -1007,9 +1007,9 @@ namespace slib
 		return size;
 	}
 
-	sl_reg MemoryWriter::write(const Memory& mem)
+	sl_reg MemoryWriter::write(const MemoryView& mem)
 	{
-		return write(mem.getData(), mem.getSize());
+		return write(mem.data, mem.size);
 	}
 
 	sl_bool MemoryWriter::seek(sl_int64 offset, SeekPosition pos)
@@ -2432,9 +2432,9 @@ namespace slib
 		return 0;
 	}
 
-	sl_size SerializeBuffer::write(const Memory& mem) noexcept
+	sl_size SerializeBuffer::write(const MemoryView& mem) noexcept
 	{
-		return write(mem.getData(), mem.getSize());
+		return write(mem.data, mem.size);
 	}
 
 #define DEFINE_SERIALIZE_BUFFER_READWRITE_INT8(TYPE, SUFFIX) \
@@ -2559,9 +2559,9 @@ namespace slib
 		}
 	}
 
-	sl_size SerializeOutput::write(const Memory& mem) noexcept
+	sl_size SerializeOutput::write(const MemoryView& mem) noexcept
 	{
-		return write(mem.getData(), mem.getSize());
+		return write(mem.data, mem.size);
 	}
 
 #define DEFINE_SERIALIZE_OUTPUT_WRITE_INT8(TYPE, SUFFIX) \

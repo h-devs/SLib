@@ -218,7 +218,7 @@ namespace slib
 		
 		sl_bool sendTo(const SocketAddress& addressTo, const void* data, sl_size size);
 		
-		sl_bool sendTo(const SocketAddress& addressTo, const Memory& mem);
+		sl_bool sendTo(const SocketAddress& addressTo, const MemoryView& mem);
 		
 	protected:
 		Ref<AsyncUdpSocketInstance> _getIoInstance();

@@ -494,9 +494,9 @@ namespace slib
 		return 0;
 	}
 
-	sl_size File::writeAllBytes(const StringParam& path, const Memory& mem) noexcept
+	sl_size File::writeAllBytes(const StringParam& path, const MemoryView& mem) noexcept
 	{
-		return File::writeAllBytes(path, mem.getData(), mem.getSize());
+		return File::writeAllBytes(path, mem.data, mem.size);
 	}
 
 	sl_bool File::writeAllTextUTF8(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark) noexcept
@@ -538,9 +538,9 @@ namespace slib
 		return 0;
 	}
 
-	sl_size File::appendAllBytes(const StringParam& path, const Memory& mem) noexcept
+	sl_size File::appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept
 	{
-		return File::appendAllBytes(path, mem.getData(), mem.getSize());
+		return File::appendAllBytes(path, mem.data, mem.size);
 	}
 
 	sl_bool File::appendAllTextUTF8(const StringParam& path, const StringParam& text) noexcept

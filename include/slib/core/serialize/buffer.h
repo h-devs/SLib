@@ -28,8 +28,9 @@
 namespace slib
 {
 
-	class MemoryData;
 	class Memory;
+	class MemoryData;
+	class MemoryView;
 
 	class SLIB_EXPORT SerializeBuffer
 	{
@@ -68,7 +69,7 @@ namespace slib
 
 		sl_size write(const void* buf, sl_size size) noexcept;
 
-		sl_size write(const Memory& mem) noexcept;
+		sl_size write(const MemoryView& mem) noexcept;
 
 		sl_bool readUint8(sl_uint8& _out) noexcept;
 

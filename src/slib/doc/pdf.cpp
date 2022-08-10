@@ -6100,21 +6100,21 @@ namespace slib
 		return sl_null;
 	}
 
-	Memory PdfStream::decodeContent(const Memory& input, PdfFilter filter, PdfDictionary* params)
+	Memory PdfStream::decodeContent(const MemoryView& input, PdfFilter filter, PdfDictionary* params)
 	{
 		switch (filter) {
 			case PdfFilter::ASCIIHex:
-				return DecodeASCIIHex(input.getData(), input.getSize());
+				return DecodeASCIIHex(input.data, input.size);
 			case PdfFilter::ASCII85:
-				return DecodeASCII85(input.getData(), input.getSize());
+				return DecodeASCII85(input.data, input.size);
 			case PdfFilter::Flate:
 			case PdfFilter::LZW:
 				{
 					Memory ret;
 					if (filter == PdfFilter::Flate) {
-						ret = Zlib::decompress(input.getData(), input.getSize());
+						ret = Zlib::decompress(input.data, input.size);
 					} else {
-						ret = LZW::decompress(input.getData(), input.getSize());;
+						ret = LZW::decompress(input.data, input.size);
 					}
 					if (ret.isNotNull() && params) {
 						PdfFlateOrLZWDecodeParams dp;
@@ -6127,14 +6127,14 @@ namespace slib
 					return ret;
 				}
 			case PdfFilter::RunLength:
-				return DecodeRunLength(input.getData(), input.getSize());
+				return DecodeRunLength(input.data, input.size);
 			case PdfFilter::CCITTFax:
 				if (params) {
 					PdfCCITTFaxDecodeParams dp;
 					dp.setParams(params);
 					sl_uint32 width = getProperty(name::Width, name::W).getUint();
 					sl_uint32 height = getProperty(name::Height, name::H).getUint();
-					return CreateImageMemory(DecodeFaxImage(input.getData(), input.getSize(), width, height, dp));
+					return CreateImageMemory(DecodeFaxImage(input.data, input.size, width, height, dp));
 				}
 				break;
 			case PdfFilter::DCT:
@@ -7823,11 +7823,11 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_bool PdfForm::_load(PdfStream* stream, Memory& contentData)
+	sl_bool PdfForm::_load(PdfStream* stream, const MemoryView& contentData)
 	{
 		PdfFormResource::_load(stream);
-		if (contentData.isNotNull()) {
-			content = PdfPage::parseContent(this, contentData.getData(), contentData.getSize());
+		if (contentData.size) {
+			content = PdfPage::parseContent(this, contentData.data, contentData.size);
 		}
 		return content.isNotEmpty();
 	}

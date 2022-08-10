@@ -580,7 +580,7 @@ namespace slib
 		
 		void _processReceivedProxyAnswer(void* data, sl_uint32 size);
 		
-		void _sendPacket(sl_bool flagEncrypted, const SocketAddress& targetAddress, const Memory& packet);
+		void _sendPacket(sl_bool flagEncrypted, const SocketAddress& targetAddress, const MemoryView& packet);
 		
 		Memory _buildQuestionPacket(sl_uint16 id, const String& host, sl_bool flagEncrypt);
 		

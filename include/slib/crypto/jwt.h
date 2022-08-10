@@ -66,12 +66,14 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Jwt)
 		
 	public:
-		String encode(const Memory& secret) const noexcept;
+		String encode(const MemoryView& secret) const noexcept;
 		
-		sl_bool decode(const Memory& secret, const StringView& token) noexcept;
+		sl_bool decode(const MemoryView& secret, const StringView& token) noexcept;
 		
-		String generateSignature(const Memory& secret, const void* data, sl_size size) const noexcept;
-		
+		String generateSignature(const MemoryView& secret, const void* data, sl_size size) const noexcept;
+
+		String generateSignature(const MemoryView& secret, const MemoryView& mem) const noexcept;
+
 		String encode_OpenSSL(const Ref<OpenSSL_Key>& key) const noexcept;
 		
 		sl_bool decode_OpenSSL(const Ref<OpenSSL_Key>& key, const StringView& token) noexcept;
