@@ -30,6 +30,8 @@
 #include "../crypto/ecc.h"
 
 #define SLIB_P2P_DEFAULT_PORT 39000
+#define SLIB_P2P_ELLIPTIC_CURVE secp384r1
+#define SLIB_P2P_NODE_ID_SIZE 16
 
 namespace slib
 {
@@ -43,7 +45,7 @@ namespace slib
 		Direct = 1
 	};
 
-	class SLIB_EXPORT P2PNodeId : public Bytes<16>
+	class SLIB_EXPORT P2PNodeId : public Bytes<SLIB_P2P_NODE_ID_SIZE>
 	{
 	public:
 		P2PNodeId() noexcept;
@@ -182,6 +184,9 @@ namespace slib
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(P2PSocketParam)
 
+	public:
+		sl_bool generateKey();
+
 	};
 
 	class P2PSocket : public Object
@@ -208,6 +213,9 @@ namespace slib
 		virtual void sendBroadcast(const P2PRequest& msg) = 0;
 
 		virtual void sendDatagram(const SocketAddress& address, const P2PRequest& msg) = 0;
+
+	public:
+		static sl_bool checkPrivateKey(const P2PPrivateKey& key);
 
 	};
 

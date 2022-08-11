@@ -35,7 +35,8 @@
 #include "slib/crypto/chacha.h"
 #include "slib/crypto/serialize/ecc.h"
 
-#define EC_CURVE EllipticCurve::secp256k1()
+#define EC_CURVE EllipticCurve::SLIB_P2P_ELLIPTIC_CURVE()
+#define NODE_ID_SIZE SLIB_P2P_NODE_ID_SIZE
 
 /*
 			P2P Socket Protocol
@@ -182,13 +183,13 @@ namespace slib
 			// `out`: 16 bytes
 			static void GetNodeId(const ECPublicKey& key, sl_uint8* out)
 			{
-				key.Q.x.getBytesBE(out, 16);
+				key.Q.x.getBytesBE(out, NODE_ID_SIZE);
 			}
 
 			// `out`: 32 bytes
 			static void DeriveKey(const ECPrivateKey& local, const ECPublicKey& remote, sl_uint8* out)
 			{
-				ECDH::getSharedKey(EllipticCurve::secp256k1(), local, remote).getBytesBE(out, 32);
+				ECDH::getSharedKey(EC_CURVE, local, remote).getBytesBE(out, 32);
 			}
 
 			SLIB_INLINE static sl_uint32 GetCurrentTick()
@@ -1928,6 +1929,11 @@ namespace slib
 		flagAutoStart = sl_true;
 	}
 
+	sl_bool P2PSocketParam::generateKey()
+	{
+		return key.generate(EC_CURVE);
+	}
+
 
 	SLIB_DEFINE_OBJECT(P2PSocket, Object)
 
@@ -1942,6 +1948,11 @@ namespace slib
 	Ref<P2PSocket> P2PSocket::open(P2PSocketParam& param)
 	{
 		return Ref<P2PSocket>::from(P2PSocketImpl::open(param));
+	}
+
+	sl_bool P2PSocket::checkPrivateKey(const P2PPrivateKey& key)
+	{
+		return key.checkValid(EC_CURVE);
 	}
 
 }
