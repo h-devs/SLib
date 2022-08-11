@@ -940,18 +940,20 @@ namespace slib
 	{
 		HWND handle = m_handle;
 		if (handle) {
-			if (m_dropTarget) {
-				return;
+			if (flag) {
+				if (m_dropTarget) {
+					return;
+				}
+				ViewDropTarget* target = new ViewDropTarget(this);
+				m_dropTarget = target;
+				RegisterDragDrop(handle, target);
+			} else {
+				if (!m_dropTarget) {
+					return;
+				}
+				RevokeDragDrop(handle);
+				m_dropTarget = sl_null;
 			}
-			ViewDropTarget* target = new ViewDropTarget(this);
-			m_dropTarget = target;
-			RegisterDragDrop(handle, target);
-		} else {
-			if (!m_dropTarget) {
-				return;
-			}
-			RevokeDragDrop(handle);
-			m_dropTarget = sl_null;
 		}
 	}
 
