@@ -30,7 +30,6 @@
 #include "../crypto/ecc.h"
 
 #define SLIB_P2P_DEFAULT_PORT 39000
-#define SLIB_P2P_ELLIPTIC_CURVE secp384r1
 #define SLIB_P2P_NODE_ID_SIZE 16
 
 namespace slib
@@ -162,6 +161,7 @@ namespace slib
 	class SLIB_EXPORT P2PSocketParam
 	{
 	public:
+		EllipticCurve curve;
 		P2PPrivateKey key; // [In, Out] If not initialized, socket will generate new key
 
 		sl_uint16 port; // [In] Lobby port. We recommend you don't change `port` or `portCount`
@@ -213,9 +213,6 @@ namespace slib
 		virtual void sendBroadcast(const P2PRequest& msg) = 0;
 
 		virtual void sendDatagram(const SocketAddress& address, const P2PRequest& msg) = 0;
-
-	public:
-		static sl_bool checkPrivateKey(const P2PPrivateKey& key);
 
 	};
 

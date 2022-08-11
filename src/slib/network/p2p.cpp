@@ -35,7 +35,6 @@
 #include "slib/crypto/chacha.h"
 #include "slib/crypto/serialize/ecc.h"
 
-#define EC_CURVE EllipticCurve::SLIB_P2P_ELLIPTIC_CURVE()
 #define NODE_ID_SIZE SLIB_P2P_NODE_ID_SIZE
 
 /*
@@ -187,9 +186,9 @@ namespace slib
 			}
 
 			// `out`: 32 bytes
-			static void DeriveKey(const ECPrivateKey& local, const ECPublicKey& remote, sl_uint8* out)
+			static void DeriveKey(const EllipticCurve& curve, const ECPrivateKey& local, const ECPublicKey& remote, sl_uint8* out)
 			{
-				ECDH::getSharedKey(EC_CURVE, local, remote).getBytesBE(out, 32);
+				ECDH::getSharedKey(curve, local, remote).getBytesBE(out, 32);
 			}
 
 			SLIB_INLINE static sl_uint32 GetCurrentTick()
@@ -589,13 +588,13 @@ namespace slib
 					}
 
 					if (!(param.key.isDefined())) {
-						if (!(param.key.generate(EC_CURVE))) {
+						if (!(param.key.generate(param.curve))) {
 							SLIB_STATIC_STRING(err, "Failed to generate private key")
 							param.errorText = err;
 							return sl_null;
 						}
 					} else {
-						if (!(param.key.checkValid(EC_CURVE))) {
+						if (!(param.key.checkValid(param.curve))) {
 							SLIB_STATIC_STRING(err, "key is invalid")
 							param.errorText = err;
 							return sl_null;
@@ -1208,7 +1207,7 @@ namespace slib
 							return;
 						}
 					}
-					DeriveKey(m_key, remoteKey, key);
+					DeriveKey(m_param.curve, m_key, remoteKey, key);
 					if (m_mapEncryptionKey.getCount() > 10000) {
 						m_mapEncryptionKey.removeAll();
 					}
@@ -1919,6 +1918,8 @@ namespace slib
 
 	P2PSocketParam::P2PSocketParam()
 	{
+		curve = EllipticCurve::secp256k1();
+
 		port = SLIB_P2P_DEFAULT_PORT;
 		portCount = 1000;
 		boundPort = 0;
@@ -1931,7 +1932,7 @@ namespace slib
 
 	sl_bool P2PSocketParam::generateKey()
 	{
-		return key.generate(EC_CURVE);
+		return key.generate(curve);
 	}
 
 
@@ -1948,11 +1949,6 @@ namespace slib
 	Ref<P2PSocket> P2PSocket::open(P2PSocketParam& param)
 	{
 		return Ref<P2PSocket>::from(P2PSocketImpl::open(param));
-	}
-
-	sl_bool P2PSocket::checkPrivateKey(const P2PPrivateKey& key)
-	{
-		return key.checkValid(EC_CURVE);
 	}
 
 }
