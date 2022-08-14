@@ -622,6 +622,9 @@ namespace slib
 					if (!(reader.readBigInt(curve.n))) {
 						return sl_false;
 					}
+					if (!(reader.readInt(curve.h))) {
+						return sl_false;
+					}
 					return sl_true;
 				}
 				return sl_false;

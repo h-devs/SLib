@@ -103,6 +103,7 @@ namespace slib
 		BigInt b;
 		ECPoint G; // generator
 		BigInt n; // order
+		sl_uint32 h; // cofactor, <=4
 
 	public:
 		EllipticCurve() noexcept;

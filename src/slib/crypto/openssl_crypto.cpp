@@ -640,6 +640,7 @@ namespace slib
 					_out.p = Get_BigInt_from_BIGNUM(p.get());
 					_out.G = Get_ECPoint_from_EC_POINT(group, EC_GROUP_get0_generator(group));
 					_out.n = Get_BigInt_from_BIGNUM(EC_GROUP_get0_order(group));
+					_out.h = Get_BigInt_from_BIGNUM(EC_GROUP_get0_cofactor(group)).getUint32();
 					return sl_true;
 				}
 				return sl_false;

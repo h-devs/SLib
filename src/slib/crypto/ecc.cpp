@@ -793,7 +793,7 @@ namespace slib
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EllipticCurve)
 	
-	EllipticCurve::EllipticCurve() noexcept: id(EllipticCurveId::Unknown)
+	EllipticCurve::EllipticCurve() noexcept: id(EllipticCurveId::Unknown), h(1)
 	{
 	}
 
