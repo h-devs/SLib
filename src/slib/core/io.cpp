@@ -2538,6 +2538,9 @@ namespace slib
 
 	sl_size SerializeOutput::write(const void* buf, sl_size sizeAdd) noexcept
 	{
+		if (!sizeAdd) {
+			return 0;
+		}
 		sl_size sizeNew = offset + sizeAdd;
 		if (sizeNew <= size) {
 			Base::copyMemory(begin + offset, buf, sizeAdd);
@@ -2562,6 +2565,25 @@ namespace slib
 	sl_size SerializeOutput::write(const MemoryView& mem) noexcept
 	{
 		return write(mem.data, mem.size);
+	}
+
+	void* SerializeOutput::allocate(sl_size sizeAdd) noexcept
+	{
+		sl_size sizeNew = offset + sizeAdd;
+		if (sizeNew > size) {
+			if (sizeAdd < 64) {
+				if (!(_growSize(offset + 64))) {
+					return sl_null;
+				}
+			} else {
+				if (!(_growSize(sizeNew))) {
+					return sl_null;
+				}
+			}
+		}
+		void* ret = begin + offset;
+		offset += sizeAdd;
+		return ret;
 	}
 
 #define DEFINE_SERIALIZE_OUTPUT_WRITE_INT8(TYPE, SUFFIX) \

@@ -69,11 +69,18 @@ namespace slib
 		}
 
 	public:
+		sl_size getWrittenSize() noexcept
+		{
+			return offset;
+		}
+
 		sl_bool write(sl_uint8 value) noexcept;
 
 		sl_size write(const void* buf, sl_size size) noexcept;
 
 		sl_size write(const MemoryView& mem) noexcept;
+
+		void* allocate(sl_size size) noexcept;
 
 		sl_bool writeUint8(sl_uint8 value) noexcept;
 
