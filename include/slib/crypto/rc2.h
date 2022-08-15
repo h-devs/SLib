@@ -44,7 +44,7 @@ namespace slib
 
 	public:
 		// 8-1024 bits (1-128 bytes)
-		void setKey(const void* key, sl_uint32 lenKey, sl_int32 nBits = -1);
+		sl_bool setKey(const void* key, sl_size lenKey, sl_int32 nBits = -1);
 
 		void encrypt(sl_uint32& d0, sl_uint32& d1) const;
 	

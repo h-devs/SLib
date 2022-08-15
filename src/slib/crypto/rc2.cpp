@@ -55,10 +55,13 @@ namespace slib
 				0xfe, 0x7f, 0xc1, 0xad,
 			};
 
-			static void SetKey(sl_uint16 key[64], const sl_uint8* input, sl_uint32 sizeKey, sl_uint32 nBits)
+			static sl_bool SetKey(sl_uint16 key[64], const sl_uint8* input, sl_uint32 sizeKey, sl_uint32 nBits)
 			{
+				if (!sizeKey) {
+					return sl_false;
+				}
 				if (sizeKey > 128) {
-					sizeKey = 128;
+					return sl_false;
 				}
 				if (!nBits) {
 					nBits = 1024;
@@ -104,6 +107,7 @@ namespace slib
 						j += 2;
 					}
 				}
+				return sl_true;
 			}
 
 		}
@@ -119,9 +123,10 @@ namespace slib
 	{
 	}
 	
-	void RC2::setKey(const void* key, sl_uint32 lenKey, sl_int32 nBits)
+	sl_bool RC2::setKey(const void* key, sl_size _lenKey, sl_int32 nBits)
 	{
-		SetKey(m_key, (sl_uint8*)key, lenKey, nBits < 0 ? (lenKey << 3) : nBits);
+		sl_uint32 lenKey = (sl_uint32)_lenKey;
+		return SetKey(m_key, (sl_uint8*)key, lenKey, nBits < 0 ? (lenKey << 3) : nBits);
 	}
 
 	void RC2::encrypt(sl_uint32& d0, sl_uint32& d1) const

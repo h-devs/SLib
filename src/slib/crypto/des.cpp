@@ -218,11 +218,6 @@ namespace slib
 	{
 	}
 
-	void DES::setKey(const void* key)
-	{
-		setKey(MIO::readUint64BE(key));
-	}
-	
 	void DES::setKey(sl_uint64 key)
 	{
 		int i, j;
@@ -245,7 +240,21 @@ namespace slib
 			m_K[i] = K;
 		}
 	}
-	
+
+	void DES::setKey(const void* key)
+	{
+		setKey(MIO::readUint64BE(key));
+	}
+
+	sl_bool DES::setKey(const void* key, sl_size lenKey)
+	{
+		if (lenKey != 8) {
+			return sl_false;
+		}
+		setKey(MIO::readUint64BE(key));
+		return sl_true;
+	}
+
 	sl_uint64 DES::encrypt(sl_uint64 n) const
 	{
 		n = DoInitialPermutation(n);
@@ -337,6 +346,18 @@ namespace slib
 		m_des1.setKey(key);
 		m_des2.setKey(key + 8);
 		m_des3.setKey(key);
+	}
+
+	sl_bool TripleDES::setKey(const void* key, sl_size lenKey)
+	{
+		if (lenKey == 24) {
+			setKey24(key);
+			return sl_true;
+		} else if (lenKey == 16) {
+			setKey16(key);
+			return sl_true;
+		}
+		return sl_false;
 	}
 	
 	sl_uint64 TripleDES::encrypt(sl_uint64 n) const

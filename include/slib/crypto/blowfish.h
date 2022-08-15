@@ -50,7 +50,7 @@ namespace slib
 		~Blowfish();
 
 	public:
-		sl_bool setKey(const void* key, sl_uint32 lenKey /* 4 to 56 bytes */);
+		sl_bool setKey(const void* key, sl_size lenKey /* 4 to 56 bytes */);
 
 		void setKey_SHA256(const String& key);
 		

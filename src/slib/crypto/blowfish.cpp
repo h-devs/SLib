@@ -381,9 +381,10 @@ namespace slib
 	{
 	}
 	
-	sl_bool Blowfish::setKey(const void* _key, sl_uint32 lenKey)
+	sl_bool Blowfish::setKey(const void* _key, sl_size _lenKey)
 	{
 		const sl_uint8* key = (const sl_uint8*)_key;
+		sl_uint32 lenKey = (sl_uint32)_lenKey;
 		
 		sl_uint32* P = m_P;
 		sl_uint32 (*S)[256] = m_S;

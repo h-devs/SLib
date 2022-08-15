@@ -48,10 +48,13 @@ namespace slib
 		~DES();
 
 	public:
+		void setKey(sl_uint64 key);
+
 		// 64 bit (8 bytes), note that most significant bit of each byte is not used
 		void setKey(const void* key);
-		void setKey(sl_uint64 key);
-		
+
+		sl_bool setKey(const void* key, sl_size lenKey);
+
 		sl_uint64 encrypt(sl_uint64 data) const;
 		
 		sl_uint64 decrypt(sl_uint64 data) const;
@@ -87,6 +90,9 @@ namespace slib
 		void setKey(const void* key1, const void* key2);
 		void setKey(sl_uint64 key1, sl_uint64 key2);
 		void setKey16(const void* key);
+
+		// 16 or 24 bytes
+		sl_bool setKey(const void* key, sl_size lenKey);
 
 		sl_uint64 encrypt(sl_uint64 data) const;
 		

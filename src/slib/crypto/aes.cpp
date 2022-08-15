@@ -415,7 +415,7 @@ namespace slib
 	{
 	}
 	
-	sl_bool AES::setKey(const void* _key, sl_uint32 lenKey)
+	sl_bool AES::setKey(const void* _key, sl_size lenKey)
 	{
 		const sl_uint8* key = (const sl_uint8*)_key;
 
@@ -425,7 +425,7 @@ namespace slib
 		// key expansion
 		W = m_roundKeyEnc;
 
-		j = lenKey >> 2;
+		j = (sl_uint32)(lenKey >> 2);
 		for (i = 0; i < j; i++) {
 			W[i] = *(key++);
 			W[i] <<= 8;
@@ -579,7 +579,7 @@ namespace slib
 	{
 	}
 
-	void AES_GCM::setKey(const void* key, sl_uint32 lenKey)
+	void AES_GCM::setKey(const void* key, sl_size lenKey)
 	{
 		m_cipher.setKey(key, lenKey);
 		setCipher(&m_cipher);

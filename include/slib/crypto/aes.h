@@ -50,7 +50,7 @@ namespace slib
 		~AES();
 
 	public:
-		sl_bool setKey(const void* key, sl_uint32 lenKey /* 16, 24, 32 bytes */);
+		sl_bool setKey(const void* key, sl_size lenKey /* 16, 24, 32 bytes */);
 
 		void setKey_SHA256(const String& key);
 		
@@ -79,7 +79,7 @@ namespace slib
 		~AES_GCM();
 
 	public:
-		void setKey(const void* key, sl_uint32 lenKey /* 16, 24, 32 bytes */);
+		void setKey(const void* key, sl_size lenKey /* 16, 24, 32 bytes */);
 	
 		void setKey_SHA256(const String& key);
 
