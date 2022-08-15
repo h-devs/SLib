@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../core/memory.h"
+#include "../core/string.h"
 #include "../core/time.h"
 #include "../math/bigint.h"
 
@@ -143,6 +144,8 @@ X.690 is an ITU-T standard specifying several ASN.1 encoding formats:
 namespace slib
 {
 
+	class Asn1MemoryWriter;
+
 	class SLIB_EXPORT Asn1
 	{
 	public:
@@ -211,6 +214,8 @@ namespace slib
 		static Memory serializeElement(sl_uint8 tag, const void* data, sl_size size);
 
 		static Memory serializeElement(sl_uint8 tag, const MemoryView& mem);
+
+		static Memory serializeElement(sl_uint8 tag, const Asn1MemoryWriter& writer);
 
 		template <sl_size N>
 		static Memory serializeElement(sl_uint8 tag, const char(&s)[N]) noexcept
@@ -397,6 +402,8 @@ namespace slib
 
 		sl_bool readBitString(Asn1String& _out, sl_uint8& outBitsRemain, sl_uint8 outerTag = 0);
 
+		sl_bool readBmpString(String16& _out, sl_uint8 outerTag = 0);
+
 		sl_bool readTime(Time& _out, sl_uint8 outerTag = 0);
 
 		sl_bool readBoolean(sl_bool& _out, sl_uint8 outerTag = 0);
@@ -436,7 +443,11 @@ namespace slib
 		~Asn1MemoryWriter();
 
 	public:
+		sl_size getWrittenSize();
+
 		sl_bool writeByte(sl_uint8 _in);
+
+		sl_bool writeBytes(const MemoryView& mem);
 
 		sl_bool writeLength(sl_size len);
 
@@ -519,6 +530,8 @@ namespace slib
 		sl_bool writeBitString(const void* content, sl_size size, sl_uint8 outerTag = 0);
 
 		sl_bool writeBitString(const MemoryView& mem, sl_uint8 outerTag = 0);
+
+		sl_bool writeBmpString(const StringView16& str, sl_uint8 outerTag = 0);
 
 	};
 

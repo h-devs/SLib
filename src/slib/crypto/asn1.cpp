@@ -64,6 +64,11 @@ namespace slib
 		return serializeElement(tag, mem.data, mem.size);
 	}
 
+	Memory Asn1::serializeElement(sl_uint8 tag, const Asn1MemoryWriter& writer)
+	{
+		return serializeElement(tag, writer.output.begin, writer.output.offset);
+	}
+
 	String Asn1::getObjectIdentifierString(const void* _data, sl_size length)
 	{
 		sl_uint8* data = (sl_uint8*)_data;
@@ -281,6 +286,24 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool Asn1MemoryReader::readBmpString(String16& _out, sl_uint8 outerTag)
+	{
+		Asn1String body;
+		if (readElement(outerTag, SLIB_ASN1_TAG_BMP_STRING, body)) {
+			if (!(body.length & 1)) {
+				_out = String16::allocate(body.length >> 1);
+				if (_out.isNotEmpty()) {
+					sl_char16* p = _out.getData();
+					for (sl_uint32 i = 0; i < body.length; i += 2) {
+						*(p++) = SLIB_MAKE_WORD(body.data[i], body.data[i + 1]);
+					}
+				}
+				return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
 	sl_bool Asn1MemoryReader::readTime(Time& _out, sl_uint8 outerTag)
 	{
 		Asn1String body;
@@ -330,9 +353,19 @@ namespace slib
 	{
 	}
 
+	sl_size Asn1MemoryWriter::getWrittenSize()
+	{
+		return output.getWrittenSize();
+	}
+
 	sl_bool Asn1MemoryWriter::writeByte(sl_uint8 _in)
 	{
 		return output.write(&_in, 1);
+	}
+
+	sl_bool Asn1MemoryWriter::writeBytes(const MemoryView& mem)
+	{
+		return output.write(mem) == mem.size;
 	}
 
 	sl_bool Asn1MemoryWriter::writeLength(sl_size size)
@@ -480,6 +513,30 @@ namespace slib
 	sl_bool Asn1MemoryWriter::writeBitString(const MemoryView& mem, sl_uint8 outerTag)
 	{
 		return writeBitString(mem.data, mem.size, outerTag);
+	}
+
+	sl_bool Asn1MemoryWriter::writeBmpString(const StringView16& str, sl_uint8 outerTag)
+	{
+		sl_uint32 len = (sl_uint32)(str.getLength());
+		sl_uint32 size = len << 1;
+		if (writeElementHeader(outerTag, SLIB_ASN1_TAG_BMP_STRING, size)) {
+			if (size) {
+				sl_uint8* buf = (sl_uint8*)(output.allocate(size));
+				if (buf) {
+					sl_uint8* end = buf + size;
+					sl_char16* p = str.getData();
+					while (buf < end) {
+						*(buf++) = SLIB_GET_BYTE1(*p);
+						*(buf++) = SLIB_GET_BYTE0(*p);
+						p++;
+					}
+					return sl_true;
+				}
+			} else {
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 }
