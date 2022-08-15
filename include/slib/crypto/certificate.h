@@ -59,6 +59,8 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PrivateKey)
 
 	public:
+		sl_bool isDefined() const noexcept;
+
 		sl_bool isRSA() const noexcept;
 
 		sl_bool isECC() const noexcept;

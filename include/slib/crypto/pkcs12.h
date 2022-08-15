@@ -50,12 +50,17 @@ namespace slib
 	public:
 		PrivateKey key;
 		List<Memory> certificates;
-		String friendlyName;
+		String16 friendlyName; // For PrivateKey
+		List<String16> friendlyNames; // For Certificates
 
 	public:
 		sl_bool load(const MemoryView& input, const StringParam& password);
 
 		sl_bool load(const StringParam& filePath, const StringParam& password);
+		
+		Memory save(const StringParam& password) const;
+
+		sl_bool save(const StringParam& filePath, const StringParam& password) const;
 
 	};
 

@@ -34,6 +34,9 @@
 #include "slib/crypto/rc2.h"
 #include "slib/crypto/base64.h"
 
+#define PKCS12_DEFAULT_ITERATION 51200
+#define PKCS12_DEFAULT_SALT_SIZE 20
+
 #define OID_ISO_US "\x2A\x86\x48" // ISO(1) Member-Body(2) US(840)
 #define OID_RSADSI OID_ISO_US "\x86\xF7\x0D" // 113549
 #define OID_PKCS OID_RSADSI "\x01"
@@ -47,6 +50,7 @@
 #define OID_PKCS7_DATA OID_PKCS7 "\x01"
 #define OID_PKCS7_ENCRYPTED_DATA OID_PKCS7 "\x06"
 #define OID_PKCS9 OID_PKCS "\x09"
+#define OID_PKCS9_FRIENDLY_NAME OID_PKCS9 "\x14" // 20
 #define OID_PKCS9_CERTIFICATE_TYPES OID_PKCS9 "\x16" // 22
 #define OID_PKCS9_X509_CERTIFICATE OID_PKCS9_CERTIFICATE_TYPES "\x01"
 #define OID_PKCS12 OID_PKCS "\x0C" // 12
@@ -253,29 +257,6 @@ namespace slib
 
 			};
 
-			static List<PKCS12_SafeBag> PKCS12_UnpackSafeBags(const void* data, sl_size size)
-			{
-				Asn1MemoryReader reader(data, size);
-				if (reader.readSequence(reader)) {
-					List<PKCS12_SafeBag> ret;
-					PKCS12_SafeBag item;
-					while (reader.readObject(item)) {
-						ret.add_NoLock(Move(item));
-					}
-					return ret;
-				}
-				return sl_null;
-			}
-
-			static List<PKCS12_SafeBag> PKCS12_Unpack_PKCS7_Data(PKCS7& p7)
-			{
-				Asn1String data;
-				if (!(p7.getData(data))) {
-					return sl_null;
-				}
-				return PKCS12_UnpackSafeBags(data.data, data.length);
-			}
-
 			class PKCS12_PBE_Param
 			{
 			public:
@@ -373,7 +354,42 @@ namespace slib
 				}
 			}
 
-			static Memory PKCS12_Decrypt(const void* data, sl_size size, const X509Algorithm& alg, const StringParam& _password)
+			template <class MD>
+			static sl_bool PKCS12_DeriveKeyAndIV(
+				const StringParam& _password,
+				const void* salt, sl_size sizeSalt,
+				sl_uint64 iteration,
+				void* key, sl_size sizeKey,
+				void* iv, sl_size sizeIV)
+			{
+				// Uses UTF16-BE Encoding with tailing 2 zero bytes
+				StringData16 password(_password);
+				sl_size sizePassword = (password.getLength() + 1) << 1;
+				SLIB_SCOPED_BUFFER(sl_uint8, 128, bufPassword, sizePassword)
+				if (bufPassword) {
+					sl_uint8* cur = bufPassword;
+					sl_uint8* end = cur + sizePassword - 2;
+					sl_char16* src = password.getData();
+					while (cur < end) {
+						MIO::writeUint16BE(cur, *src);
+						src++;
+						cur += 2;
+					}
+					*(cur++) = 0;
+					*(cur++) = 0;
+				} else {
+					return sl_false;
+				}
+				if (!(PKCS12_DeriveKey<MD>(bufPassword, sizePassword, salt, sizeSalt, 1, iteration, key, sizeKey))) {
+					return sl_false;
+				}
+				if (!(PKCS12_DeriveKey<MD>(bufPassword, sizePassword, salt, sizeSalt, 2, iteration, iv, sizeIV))) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+
+			static Memory PKCS12_Decrypt(const void* data, sl_size size, const StringParam& password, const X509Algorithm& alg)
 			{
 				if (!data || !size) {
 					return sl_null;
@@ -402,52 +418,46 @@ namespace slib
 					lenIV = RC2::BlockSize;
 					flagRC2 = sl_true;
 				}
-
-				// Uses UTF16-BE Encoding with tailing 2 zero bytes
-				StringData16 password(_password);
-				sl_size sizePassword = (password.getLength() + 1) << 1;
-				SLIB_SCOPED_BUFFER(sl_uint8, 128, bufPassword, sizePassword)
-				if (bufPassword) {
-					sl_uint8* cur = bufPassword;
-					sl_uint8* end = cur + sizePassword - 2;
-					sl_char16* src = password.getData();
-					while (cur < end) {
-						MIO::writeUint16BE(cur, *src);
-						src++;
-						cur += 2;
-					}
-					*(cur++) = 0;
-					*(cur++) = 0;
-				} else {
-					return sl_null;
-				}
-				
 				PKCS12_PBE_Param param;
 				if (!(alg.parameter.peekObject(param))) {
 					return sl_null;
 				}
 				sl_uint8 key[32];
-				if (!(PKCS12_DeriveKey<SHA1>(bufPassword, sizePassword, param.salt.data, param.salt.length, 1, param.iteration, key, lenKey))) {
-					return sl_null;
-				}
 				sl_uint8 iv[32];
-				if (!(PKCS12_DeriveKey<SHA1>(bufPassword, sizePassword, param.salt.data, param.salt.length, 2, param.iteration, iv, lenIV))) {
+				if (!(PKCS12_DeriveKeyAndIV<SHA1>(password, param.salt.data, param.salt.length, param.iteration, key, lenKey, iv, lenIV))) {
 					return sl_null;
 				}
-
 				if (flagRC2) {
 					RC2 cipher;
-					cipher.setKey(key, lenKey);
+					if (!(cipher.setKey(key, lenKey))) {
+						return sl_null;
+					}
 					return cipher.decrypt_CBC_PKCS7Padding(iv, data, size);
 				} else {
 					TripleDES cipher;
-					if (lenKey == 24) {
-						cipher.setKey24(key);
-					} else {
-						cipher.setKey16(key);
+					if (!(cipher.setKey(key, lenKey))) {
+						return sl_null;
 					}
 					return cipher.decrypt_CBC_PKCS7Padding(iv, data, size);
 				}
+			}
+
+			template <class CIPHER, sl_uint32 KeySize, class MD>
+			static Memory PKCS12_Encrypt(const void* data, sl_size sizeData, const StringParam& password, const void* salt, sl_size sizeSalt, sl_uint64 iteration)
+			{
+				if (!data || !sizeData) {
+					return sl_null;
+				}
+				sl_uint8 key[KeySize];
+				sl_uint8 iv[CIPHER::BlockSize];
+				if (!(PKCS12_DeriveKeyAndIV<MD>(password, salt, sizeSalt, iteration, key, sizeof(key), iv, sizeof(iv)))) {
+					return sl_null;
+				}
+				CIPHER cipher;
+				if (!(cipher.setKey(key, sizeof(key)))) {
+					return sl_null;
+				}
+				return cipher.encrypt_CBC_PKCS7Padding(iv, data, sizeData);
 			}
 
 			static sl_bool Load_RSAPrivateKey(RSAPrivateKey& _out, const void* content, sl_size size)
@@ -511,7 +521,7 @@ namespace slib
 						return sl_null;
 					}
 				}
-				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer);
 			}
 
 			static sl_bool Load_RSAPublicKey(RSAPublicKey& _out, const void* content, sl_size size)
@@ -539,7 +549,7 @@ namespace slib
 				if (!(writer.writeBigInt(_in.E))) {
 					return sl_null;
 				}
-				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer);
 			}
 
 			static sl_bool Load_EllipticCurve(EllipticCurve& curve, Asn1MemoryReader& input)
@@ -696,7 +706,7 @@ namespace slib
 				if (!(writer.writeBigInt(curve.n))) {
 					return sl_null;
 				}
-				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer);
 			}
 
 			static sl_bool Load_ECPrivateKey(ECPrivateKeyWithCurve& _out, const void* content, sl_size size)
@@ -755,7 +765,7 @@ namespace slib
 				if (!(writer.writeBitString(_in.Q.toCompressedFormat(_in), SLIB_ASN1_TAG_CONTEXT(1)))) {
 					return sl_null;
 				}
-				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer);
 			}
 
 			class PKCS8_PrivateKey
@@ -826,7 +836,7 @@ namespace slib
 						if (param.isNull()) {
 							return sl_null;
 						}
-						if (!(algorithm.output.write(param))) {
+						if (!(algorithm.writeBytes(param))) {
 							return sl_null;
 						}
 						if (!(writer.writeSequence(algorithm))) {
@@ -842,56 +852,119 @@ namespace slib
 					} else {
 						return sl_null;
 					}
-					return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+					return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer);
 				}
 
 			};
+
+			static void PKCS12_LoadBagFriendlyName(String16& _out, PKCS12_SafeBag& bag)
+			{
+				Asn1MemoryReader attrs;
+				if (bag.content.readSet(attrs)) {
+					// X.509 Attribute
+					Asn1MemoryReader attr;
+					while (attrs.readSequence(attr)) {
+						Asn1ObjectIdentifier oid;
+						if (attr.readObjectIdentifier(oid)) {
+							if (oid.equals(OID_PKCS9_FRIENDLY_NAME)) {
+								Asn1MemoryReader value;
+								if (attr.readSet(value)) {
+									value.readBmpString(_out);
+								}
+								return;
+							}
+						}
+					}
+				}
+			}
+
+			static Memory PKCS12_SaveBagFriendlyName(const String16& friendlyName)
+			{
+				if (friendlyName.isEmpty()) {
+					return sl_null;
+				}
+				Asn1MemoryWriter attr;
+				if (!(attr.writeObjectIdentifier(OID_PKCS9_FRIENDLY_NAME))) {
+					return sl_null;
+				}
+				if (!(attr.writeBmpString(friendlyName, SLIB_ASN1_TAG_SET))) {
+					return sl_null;
+				}
+				Asn1MemoryWriter attrs;
+				if (!(attrs.writeSequence(attr))) {
+					return sl_null;
+				}
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SET, attrs);
+			}
 
 			static sl_bool PKCS12_ParseBag(PKCS12& p12, PKCS12_SafeBag& bag, const StringParam& password)
 			{
 				if (bag.type.equals(OID_PKCS12_KEY_BAG)) {
 					PKCS8_PrivateKey p8;
-					if (bag.content.readObject(p8, SLIB_ASN1_TAG_CONTEXT(0))) {
-						return p8.getPrivateKey(p12.key);
+					if (!(bag.content.readObject(p8, SLIB_ASN1_TAG_CONTEXT(0)))) {
+						return sl_false;
 					}
+					if (!(p8.getPrivateKey(p12.key))) {
+						return sl_false;
+					}
+					PKCS12_LoadBagFriendlyName(p12.friendlyName, bag);
 				} else if (bag.type.equals(OID_PKCS12_PKCS8_SHROUNDED_KEY_BAG)) {
 					X509Signature sig;
-					if (bag.content.readObject(sig, SLIB_ASN1_TAG_CONTEXT(0))) {
-						Memory dec = PKCS12_Decrypt(sig.digest.data, sig.digest.length, sig.algorithm, password);
-						if (dec.isNotNull()) {
-							PKCS8_PrivateKey p8;
-							Asn1MemoryReader reader(dec);
-							if (reader.readObject(p8)) {
-								return p8.getPrivateKey(p12.key);
-							}
-						}
+					if (!(bag.content.readObject(sig, SLIB_ASN1_TAG_CONTEXT(0)))) {
+						return sl_false;
 					}
-					return sl_false;
+					Memory dec = PKCS12_Decrypt(sig.digest.data, sig.digest.length, password, sig.algorithm);
+					if (dec.isNull()) {
+						return sl_false;
+					}
+					PKCS8_PrivateKey p8;
+					Asn1MemoryReader reader(dec);
+					if (!(reader.readObject(p8))) {
+						return sl_false;
+					}
+					if (!(p8.getPrivateKey(p12.key))) {
+						return sl_false;
+					}
+					PKCS12_LoadBagFriendlyName(p12.friendlyName, bag);
 				} else if (bag.type.equals(OID_PKCS12_CERTIFICATE_BAG)) {
 					PKCS12_Bag value;
-					if (bag.content.readObject(value, SLIB_ASN1_TAG_CONTEXT(0))) {
-						if (value.type.equals(OID_PKCS9_X509_CERTIFICATE)) {
-							if (value.content.length) {
-								return p12.certificates.add_NoLock(Memory::create(value.content.data, value.content.length));
-							}
-						}
+					if (!(bag.content.readObject(value, SLIB_ASN1_TAG_CONTEXT(0)))) {
+						return sl_false;
 					}
-					return sl_false;
-				}
-				return sl_true;
-			}
-
-			static sl_bool PKCS12_ParseBags(PKCS12& p12, PKCS12_SafeBag* bags, sl_size nBags, const StringParam& password)
-			{
-				for (sl_size i = 0; i < nBags; i++) {
-					if (!(PKCS12_ParseBag(p12, bags[i], password))) {
+					if (!(value.type.equals(OID_PKCS9_X509_CERTIFICATE))) {
+						return sl_false;
+					}
+					if (!(value.content.length)) {
+						return sl_false;
+					}
+					if (!(p12.certificates.add_NoLock(Memory::create(value.content.data, value.content.length)))) {
+						return sl_false;
+					}
+					String16 friendlyName;
+					PKCS12_LoadBagFriendlyName(friendlyName, bag);
+					if (!(p12.friendlyNames.add_NoLock(Move(friendlyName)))) {
 						return sl_false;
 					}
 				}
 				return sl_true;
 			}
 
-			static List<PKCS12_SafeBag> PKCS12_Unpack_PKCS7_EncryptedData(PKCS7& p7, const StringParam& password, Memory& outDecryptedData)
+			static sl_bool PKCS12_ParseBags(PKCS12& p12, const void* content, sl_size size, const StringParam& password)
+			{
+				Asn1MemoryReader reader(content, size);
+				if (reader.readSequence(reader)) {
+					PKCS12_SafeBag item;
+					while (reader.readObject(item)) {
+						if (!(PKCS12_ParseBag(p12, item, password))) {
+							return sl_false;
+						}
+					}
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			static Memory PKCS12_Decrypt_PKCS7(PKCS7& p7, const StringParam& password)
 			{
 				Asn1MemoryReader body;
 				if (!(p7.content.readSequence(body, SLIB_ASN1_TAG_CONTEXT(0)))) {
@@ -917,11 +990,53 @@ namespace slib
 				if (!(contentInfo.readElement(SLIB_ASN1_TAG_CONTEXT_IMPLICIT(0), encData))) {
 					return sl_null;
 				}
-				outDecryptedData = PKCS12_Decrypt(encData.data, encData.length, algorithm, password);
-				if (outDecryptedData.isNull()) {
+				return PKCS12_Decrypt(encData.data, encData.length, password, algorithm);
+			}
+
+			static Memory PKCS12_Encrypt_PKCS7(const MemoryView& content, const StringParam& password, sl_uint32 iteration)
+			{
+				Asn1MemoryWriter contentInfo;
+				if (!(contentInfo.writeObjectIdentifier(OID_PKCS7_DATA))) {
 					return sl_null;
 				}
-				return PKCS12_UnpackSafeBags(outDecryptedData.getData(), outDecryptedData.getSize());
+				sl_uint8 salt[PKCS12_DEFAULT_SALT_SIZE];
+				{
+					Math::randomMemory(salt, sizeof(salt));
+					Asn1MemoryWriter algorithm;
+					if (!(algorithm.writeObjectIdentifier(OID_PKCS12_PBE_SHA1_3DES))) {
+						return sl_null;
+					}
+					Asn1MemoryWriter param;
+					if (!(param.writeOctetString(MemoryView(salt, sizeof(salt))))) {
+						return sl_null;
+					}
+					if (!(param.writeInt(iteration))) {
+						return sl_null;
+					}
+					if (!(algorithm.writeSequence(param))) {
+						return sl_null;
+					}
+					if (!(contentInfo.writeSequence(algorithm))) {
+						return sl_null;
+					}
+				}
+				Memory encData = PKCS12_Encrypt<TripleDES, 24, SHA1>(content.data, content.size, password, salt, sizeof(salt), iteration);
+				if (encData.isNull()) {
+					return sl_null;
+				}
+				if (!(contentInfo.writeElement(SLIB_ASN1_TAG_CONTEXT_IMPLICIT(0), encData))) {
+					return sl_null;
+				}
+
+				Asn1MemoryWriter body;
+				// version
+				if (!(body.writeInt(0))) {
+					return sl_null;
+				}
+				if (!(body.writeSequence(contentInfo))) {
+					return sl_null;
+				}
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, body);
 			}
 
 			static sl_bool PKCS12_Load(PKCS12& p12, const void* content, sl_size size, const StringParam& password)
@@ -946,19 +1061,121 @@ namespace slib
 				for (sl_size i = 0; i < authSafes.count; i++) {
 					PKCS7& p7 = authSafes[i];
 					if (p7.type.equals(OID_PKCS7_DATA)) {
-						ListElements<PKCS12_SafeBag> bags(PKCS12_Unpack_PKCS7_Data(p7));
-						if (!(PKCS12_ParseBags(p12, bags.data, bags.count, password))) {
+						Asn1String content;
+						if (!(p7.getData(content))) {
+							return sl_false;
+						}
+						if (!(PKCS12_ParseBags(p12, content.data, content.length, password))) {
 							return sl_false;
 						}
 					} else if (p7.type.equals(OID_PKCS7_ENCRYPTED_DATA)) {
-						Memory mem;
-						ListElements<PKCS12_SafeBag> bags(PKCS12_Unpack_PKCS7_EncryptedData(p7, password, mem));
-						if (!(PKCS12_ParseBags(p12, bags.data, bags.count, password))) {
+						Memory mem = PKCS12_Decrypt_PKCS7(p7, password);
+						if (mem.isNull()) {
+							return sl_null;
+						}
+						if (!(PKCS12_ParseBags(p12, mem.getData(), mem.getSize(), password))) {
 							return sl_false;
 						}
 					}
 				}
 				return sl_true;
+			}
+
+			static Memory PKCS12_Save(const PKCS12& p12, const StringParam& password)
+			{
+				Asn1MemoryWriter bags;
+				if (p12.key.isDefined()) {
+					Memory key = PKCS8_PrivateKey::savePrivateKey(p12.key);
+					if (key.isNull()) {
+						return sl_null;
+					}
+					Asn1MemoryWriter bag;
+					if (!(bag.writeObjectIdentifier(OID_PKCS12_KEY_BAG))) {
+						return sl_null;
+					}
+					if (!(bag.writeElement(SLIB_ASN1_TAG_CONTEXT(0), key))) {
+						return sl_null;
+					}
+					Memory attrs = PKCS12_SaveBagFriendlyName(p12.friendlyName);
+					if (attrs.isNotNull()) {
+						if (!(bag.writeBytes(attrs))) {
+							return sl_null;
+						}
+					}
+					if (!(bags.writeSequence(bag))) {
+						return sl_null;
+					}
+				}
+				ListElements<Memory> certificates(p12.certificates);
+				for (sl_size i = 0; i < certificates.count; i++) {
+					Asn1MemoryWriter bag;
+					if (!(bag.writeObjectIdentifier(OID_PKCS9_X509_CERTIFICATE))) {
+						return sl_null;
+					}
+					if (!(bag.writeElement(SLIB_ASN1_TAG_CONTEXT(0), SLIB_ASN1_TAG_OCTET_STRING, certificates[i]))) {
+						return sl_null;
+					}
+					Asn1MemoryWriter safeBag;
+					if (!(safeBag.writeObjectIdentifier(OID_PKCS12_CERTIFICATE_BAG))) {
+						return sl_null;
+					}
+					if (!(safeBag.writeSequence(bag, SLIB_ASN1_TAG_CONTEXT(0)))) {
+						return sl_null;
+					}
+					Memory attrs = PKCS12_SaveBagFriendlyName(p12.friendlyNames.getValueAt_NoLock(i));
+					if (attrs.isNotNull()) {
+						if (!(safeBag.writeBytes(attrs))) {
+							return sl_null;
+						}
+					}
+					if (!(bags.writeSequence(safeBag))) {
+						return sl_null;
+					}
+				}
+				if (!(bags.getWrittenSize())) {
+					return sl_null;
+				}
+				Memory encData = Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, bags);
+				if (encData.isNull()) {
+					return sl_null;
+				}
+				encData = PKCS12_Encrypt_PKCS7(encData, password, PKCS12_DEFAULT_ITERATION);
+				if (encData.isNull()) {
+					return sl_null;
+				}
+				Asn1MemoryWriter encBag;
+				if (!(encBag.writeObjectIdentifier(OID_PKCS7_ENCRYPTED_DATA))) {
+					return sl_null;
+				}
+				if (!(encBag.writeElement(SLIB_ASN1_TAG_CONTEXT(0), encData))) {
+					return sl_null;
+				}
+				Memory authSafes = Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, encBag);
+				if (authSafes.isNull()) {
+					return sl_null;
+				}
+				authSafes = Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, authSafes);
+				if (authSafes.isNull()) {
+					return sl_null;
+				}
+
+				Asn1MemoryWriter p7Body;
+				if (!(p7Body.writeObjectIdentifier(OID_PKCS7_DATA))) {
+					return sl_null;
+				}
+				if (!(p7Body.writeOctetString(authSafes, SLIB_ASN1_TAG_CONTEXT(0)))) {
+					return sl_null;
+				}
+
+				Asn1MemoryWriter p12Body;
+				// version
+				if (!(p12Body.writeInt(3))) {
+					return sl_null;
+				}
+				if (!(p12Body.writeSequence(p7Body))) {
+					return sl_null;
+				}
+				return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, p12Body);
 			}
 
 			static sl_bool X509_GetNameKey(const Asn1ObjectIdentifier& id, X509SubjectKey& key)
@@ -1125,7 +1342,7 @@ namespace slib
 						if (param.isNull()) {
 							return sl_null;
 						}
-						if (!(algorithm.output.write(param))) {
+						if (!(algorithm.writeBytes(param))) {
 							return sl_null;
 						}
 						if (!(writer.writeSequence(algorithm))) {
@@ -1141,7 +1358,7 @@ namespace slib
 					} else {
 						return sl_null;
 					}
-					return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer.output.begin, writer.output.offset);
+					return Asn1::serializeElement(SLIB_ASN1_TAG_SEQUENCE, writer);
 				}
 
 			};
@@ -1202,6 +1419,11 @@ namespace slib
 
 	PrivateKey::PrivateKey()
 	{
+	}
+
+	sl_bool PrivateKey::isDefined() const noexcept
+	{
+		return rsa.isDefined() || ecc.isDefined();
 	}
 
 	sl_bool PrivateKey::isRSA() const noexcept
@@ -1454,6 +1676,20 @@ namespace slib
 	sl_bool PKCS12::load(const StringParam& filePath, const StringParam& password)
 	{
 		return load(File::readAllBytes(filePath), password);
+	}
+
+	Memory PKCS12::save(const StringParam& password) const
+	{
+		return PKCS12_Save(*this, password);
+	}
+
+	sl_bool PKCS12::save(const StringParam& filePath, const StringParam& password) const
+	{
+		Memory content = save(password);
+		if (content.isNotNull()) {
+			return File::writeAllBytes(filePath, content);
+		}
+		return sl_false;
 	}
 
 
