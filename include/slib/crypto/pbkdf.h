@@ -29,7 +29,7 @@
 
 	PKCS #5: PBKDF (Password-Based Key Derivation Function)
  
- 		https://tools.ietf.org/html/rfc2898
+ 		https://tools.ietf.org/html/rfc8018
 
 */
 
