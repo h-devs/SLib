@@ -60,6 +60,7 @@
 
 // Key Derivation Function
 #include "crypto/pbkdf.h"
+#include "crypto/hkdf.h"
 
 // Transport Protocol
 #include "crypto/tls.h"
