@@ -1339,7 +1339,7 @@ namespace slib
 				sl_bool flagDrawOutside = sl_false;
 				Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
 				if (attrs.isNotNull()) {
-					if (attrs->shadowOpacity > 0.0001f) {
+					if (attrs->shadowOpacity > 0.0001f || attrs->penBorder.isNotNull()) {
 						flagDrawOutside = sl_true;
 					}
 				}
@@ -1416,30 +1416,21 @@ namespace slib
 
 	void View::updateAndInvalidateBoundsInParent(UIUpdateMode mode)
 	{
+		UIRect boundsNew = convertCoordinateToParent(getBoundsIncludingShadow());
 		if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-			m_boundsInParent = convertCoordinateToParent(getBoundsIncludingShadow());
+			m_boundsInParent = boundsNew;
 			return;
 		}
 		Ref<View> parent = m_parent;
 		if (parent.isNull() || isInstance()) {
-			m_boundsInParent = convertCoordinateToParent(getBoundsIncludingShadow());
+			m_boundsInParent = boundsNew;
 			return;
 		}
 		UIRect boundsOld = m_boundsInParent;
-		if (Math::isAlmostZero(boundsOld.getWidth()) || Math::isAlmostZero(boundsOld.getHeight())) {
-			m_boundsInParent = convertCoordinateToParent(getBoundsIncludingShadow());
-			if (m_instance.isNull()) {
-				parent->invalidate(m_boundsInParent, mode);
-			}
-			return;
-		}
-		UIRect boundsNew = convertCoordinateToParent(getBoundsIncludingShadow());
-		boundsNew.left -= 2;
-		boundsNew.top -= 2;
-		boundsNew.right += 2;
-		boundsNew.bottom += 2;
 		m_boundsInParent = boundsNew;
-		if (m_instance.isNull()) {
+		if (Math::isAlmostZero(boundsOld.getWidth()) || Math::isAlmostZero(boundsOld.getHeight())) {
+			parent->invalidate(boundsNew, mode);
+		} else {
 			if (boundsOld.intersectRectangle(boundsNew)) {
 				boundsNew.mergeRectangle(boundsOld);
 				parent->invalidate(boundsNew, mode);
@@ -1765,32 +1756,34 @@ namespace slib
 		if (m_instance.isNull()) {
 			Ref<ViewDrawAttributes>& drawAttrs = m_drawAttrs;
 			if (drawAttrs.isNotNull()) {
+				UIRect bounds(getBounds());
+				UIRect rect(bounds);
+				if (drawAttrs->penBorder.isNotNull()) {
+					sl_ui_pos w = (sl_ui_pos)(Math::ceil(drawAttrs->borderWidth));
+					rect.left -= w;
+					rect.top -= w;
+					rect.right += w;
+					rect.bottom += w;
+				}
 				if (drawAttrs->shadowOpacity > 0) {
-					UIRect rect;
-					sl_ui_pos left = (sl_ui_pos)(Math::floor(-drawAttrs->shadowRadius + drawAttrs->shadowOffset.x));
-					if (left > 0) {
-						rect.left = 0;
-					} else {
+					sl_ui_pos left = bounds.left + (sl_ui_pos)(Math::floor(-drawAttrs->shadowRadius + drawAttrs->shadowOffset.x));
+					if (left < rect.left) {
 						rect.left = left;
 					}
-					sl_ui_pos top = (sl_ui_pos)(Math::floor(-drawAttrs->shadowRadius + drawAttrs->shadowOffset.y));
-					if (top > 0) {
-						rect.top = 0;
-					} else {
+					sl_ui_pos top = bounds.top + (sl_ui_pos)(Math::floor(-drawAttrs->shadowRadius + drawAttrs->shadowOffset.y));
+					if (top < rect.top) {
 						rect.top = left;
 					}
-					rect.right = m_frame.getWidth();
-					sl_ui_pos right = (sl_ui_pos)(Math::ceil(drawAttrs->shadowRadius + drawAttrs->shadowOffset.x));
-					if (right > 0) {
-						rect.right += right;
+					sl_ui_pos right = bounds.right + (sl_ui_pos)(Math::ceil(drawAttrs->shadowRadius + drawAttrs->shadowOffset.x));
+					if (right > rect.right) {
+						rect.right = right;
 					}
-					rect.bottom = m_frame.getHeight();
-					sl_ui_pos bottom = (sl_ui_pos)(Math::ceil(drawAttrs->shadowRadius + drawAttrs->shadowOffset.y));
-					if (bottom > 0) {
-						rect.bottom += bottom;
+					sl_ui_pos bottom = bounds.bottom + (sl_ui_pos)(Math::ceil(drawAttrs->shadowRadius + drawAttrs->shadowOffset.y));
+					if (bottom > rect.bottom) {
+						rect.bottom = bottom;
 					}
-					return rect;
 				}
+				return rect;
 			}
 		}
 		return UIRect(0, 0, m_frame.getWidth(), m_frame.getHeight());
