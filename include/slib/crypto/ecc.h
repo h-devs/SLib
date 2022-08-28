@@ -193,6 +193,10 @@ namespace slib
 	public:
 		sl_bool isDefined() const noexcept;
 		
+		void set(const EllipticCurve& curve, const ECPublicKey& key) noexcept;
+
+		void set(const EllipticCurve& curve, ECPublicKey&& key) noexcept;
+
 	};
 
 	class SLIB_EXPORT ECPrivateKeyWithCurve : public ECPrivateKey, public EllipticCurve
@@ -204,6 +208,10 @@ namespace slib
 
 	public:
 		sl_bool isDefined() const noexcept;
+
+		void set(const EllipticCurve& curve, const ECPrivateKey& key) noexcept;
+
+		void set(const EllipticCurve& curve, ECPrivateKey&& key) noexcept;
 
 		sl_bool generate() noexcept;
 

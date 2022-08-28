@@ -1414,6 +1414,16 @@ namespace slib
 		return ecc.isDefined();
 	}
 
+	void PublicKey::setECC(const EllipticCurve& curve, const ECPublicKey& key) noexcept
+	{
+		ecc.set(curve, key);
+	}
+
+	void PublicKey::setECC(const EllipticCurve& curve, ECPublicKey&& key) noexcept
+	{
+		ecc.set(curve, Move(key));
+	}
+
 	
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PrivateKey)
 
@@ -1434,6 +1444,16 @@ namespace slib
 	sl_bool PrivateKey::isECC() const noexcept
 	{
 		return ecc.isDefined();
+	}
+
+	void PrivateKey::setECC(const EllipticCurve& curve, const ECPrivateKey& key) noexcept
+	{
+		ecc.set(curve, key);
+	}
+
+	void PrivateKey::setECC(const EllipticCurve& curve, ECPrivateKey&& key) noexcept
+	{
+		ecc.set(curve, Move(key));
 	}
 
 

@@ -45,6 +45,10 @@ namespace slib
 
 		sl_bool isECC() const noexcept;
 
+		void setECC(const EllipticCurve& curve, const ECPublicKey& key) noexcept;
+
+		void setECC(const EllipticCurve& curve, ECPublicKey&& key) noexcept;
+
 	};
 
 	class SLIB_EXPORT PrivateKey
@@ -64,6 +68,10 @@ namespace slib
 		sl_bool isRSA() const noexcept;
 
 		sl_bool isECC() const noexcept;
+
+		void setECC(const EllipticCurve& curve, const ECPrivateKey& key) noexcept;
+
+		void setECC(const EllipticCurve& curve, ECPrivateKey&& key) noexcept;
 
 	};
 

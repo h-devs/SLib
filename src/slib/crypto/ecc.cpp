@@ -1017,7 +1017,19 @@ namespace slib
 		return EllipticCurve::isDefined() && ECPublicKey::isDefined();
 	}
 
-	
+	void ECPublicKeyWithCurve::set(const EllipticCurve& curve, const ECPublicKey& key) noexcept
+	{
+		*((EllipticCurve*)this) = curve;
+		*((ECPublicKey*)this) = key;
+	}
+
+	void ECPublicKeyWithCurve::set(const EllipticCurve& curve, ECPublicKey&& key) noexcept
+	{
+		*((EllipticCurve*)this) = curve;
+		*((ECPublicKey*)this) = Move(key);
+	}
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ECPrivateKeyWithCurve)
 
 	ECPrivateKeyWithCurve::ECPrivateKeyWithCurve() noexcept
@@ -1027,6 +1039,18 @@ namespace slib
 	sl_bool ECPrivateKeyWithCurve::isDefined() const noexcept
 	{
 		return EllipticCurve::isDefined() && ECPrivateKey::isDefined();
+	}
+
+	void ECPrivateKeyWithCurve::set(const EllipticCurve& curve, const ECPrivateKey& key) noexcept
+	{
+		*((EllipticCurve*)this) = curve;
+		*((ECPrivateKey*)this) = key;
+	}
+
+	void ECPrivateKeyWithCurve::set(const EllipticCurve& curve, ECPrivateKey&& key) noexcept
+	{
+		*((EllipticCurve*)this) = curve;
+		*((ECPrivateKey*)this) = Move(key);
 	}
 
 	sl_bool ECPrivateKeyWithCurve::generate() noexcept
