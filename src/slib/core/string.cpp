@@ -2184,33 +2184,30 @@ namespace slib
 				if (count == 2) {
 					return ConcatParams<STRING>(*strings, strings[1]);
 				}
-				sl_size len = 0;
 				sl_bool flagNotNull = sl_false;
-				List<StringRawData> list;
-				for (sl_size i = 0; i < count; i++) {
-					StringRawData data;
+				sl_size len = 0;
+				sl_size i;
+				for (i = 0; i < count; i++) {
 					const StringParam& s = strings[i];
 					if (s.isNotNull()) {
 						flagNotNull = sl_true;
+						StringRawData data;
 						s.getData(data);
 						if (data.length) {
 							if (data.charSize == 1) {
 								sl_size n = ConvertCharset(data.data8, data.length, (typename STRING::Char*)sl_null);
 								if (n) {
 									len += n;
-									list.add_NoLock(Move(data));
 								}
 							} else if (data.charSize == 2) {
 								sl_size n = ConvertCharset(data.data16, data.length, (typename STRING::Char*)sl_null);
 								if (n) {
 									len += n;
-									list.add_NoLock(Move(data));
 								}
 							} else {
 								sl_size n = ConvertCharset(data.data32, data.length, (typename STRING::Char*)sl_null);
 								if (n) {
 									len += n;
-									list.add_NoLock(Move(data));
 								}
 							}
 						}
@@ -2225,18 +2222,21 @@ namespace slib
 				STRING ret = STRING::allocate(len);
 				if (ret.isNotNull()) {
 					typename STRING::Char* dst = ret.getData();
-					ListElements<StringRawData> l(list);
-					for (sl_size i = 0; i < l.count; i++) {
-						StringRawData& data = l[i];
-						if (data.charSize == 1) {
-							sl_size n = ConvertCharset(data.data8, data.length, dst);
-							dst += n;
-						} else if (data.charSize == 2) {
-							sl_size n = ConvertCharset(data.data16, data.length, dst);
-							dst += n;
-						} else {
-							sl_size n = ConvertCharset(data.data32, data.length, dst);
-							dst += n;
+					for (i = 0; i < count; i++) {
+						const StringParam& s = strings[i];
+						StringRawData data;
+						s.getData(data);
+						if (data.length) {
+							if (data.charSize == 1) {
+								sl_size n = ConvertCharset(data.data8, data.length, dst);
+								dst += n;
+							} else if (data.charSize == 2) {
+								sl_size n = ConvertCharset(data.data16, data.length, dst);
+								dst += n;
+							} else {
+								sl_size n = ConvertCharset(data.data32, data.length, dst);
+								dst += n;
+							}
 						}
 					}
 					return ret;
@@ -2256,34 +2256,29 @@ namespace slib
 				sl_size lenDelimiter;
 				typename STRING::Char* strDelimiter = delimiter.getData(lenDelimiter);
 				sl_size len = 0;
-				List<StringRawData> list;
-				for (sl_size i = 0; i < count; i++) {
+				sl_size i;
+				for (i = 0; i < count; i++) {
 					if (i) {
 						len += lenDelimiter;
 					}
 					StringRawData data;
 					const StringParam& s = strings[i];
-					if (s.isNotNull()) {
-						s.getData(data);
-						if (data.length) {
-							if (data.charSize == 1) {
-								sl_size n = ConvertCharset(data.data8, data.length, (typename STRING::Char*)sl_null);
-								if (n) {
-									len += n;
-									list.add_NoLock(Move(data));
-								}
-							} else if (data.charSize == 2) {
-								sl_size n = ConvertCharset(data.data16, data.length, (typename STRING::Char*)sl_null);
-								if (n) {
-									len += n;
-									list.add_NoLock(Move(data));
-								}
-							} else {
-								sl_size n = ConvertCharset(data.data32, data.length, (typename STRING::Char*)sl_null);
-								if (n) {
-									len += n;
-									list.add_NoLock(Move(data));
-								}
+					s.getData(data);
+					if (data.length) {
+						if (data.charSize == 1) {
+							sl_size n = ConvertCharset(data.data8, data.length, (typename STRING::Char*)sl_null);
+							if (n) {
+								len += n;
+							}
+						} else if (data.charSize == 2) {
+							sl_size n = ConvertCharset(data.data16, data.length, (typename STRING::Char*)sl_null);
+							if (n) {
+								len += n;
+							}
+						} else {
+							sl_size n = ConvertCharset(data.data32, data.length, (typename STRING::Char*)sl_null);
+							if (n) {
+								len += n;
 							}
 						}
 					}
@@ -2294,22 +2289,25 @@ namespace slib
 				STRING ret = STRING::allocate(len);
 				if (ret.isNotNull()) {
 					typename STRING::Char* dst = ret.getData();
-					ListElements<StringRawData> l(list);
-					for (sl_size i = 0; i < l.count; i++) {
+					for (i = 0; i < count; i++) {
 						if (i) {
 							MemoryTraits<typename STRING::Char>::copy(dst, strDelimiter, lenDelimiter);
 							dst += lenDelimiter;
 						}
-						StringRawData& data = l[i];
-						if (data.charSize == 1) {
-							sl_size n = ConvertCharset(data.data8, data.length, dst);
-							dst += n;
-						} else if (data.charSize == 2) {
-							sl_size n = ConvertCharset(data.data16, data.length, dst);
-							dst += n;
-						} else {
-							sl_size n = ConvertCharset(data.data32, data.length, dst);
-							dst += n;
+						StringRawData data;
+						const StringParam& s = strings[i];
+						s.getData(data);
+						if (data.length) {
+							if (data.charSize == 1) {
+								sl_size n = ConvertCharset(data.data8, data.length, dst);
+								dst += n;
+							} else if (data.charSize == 2) {
+								sl_size n = ConvertCharset(data.data16, data.length, dst);
+								dst += n;
+							} else {
+								sl_size n = ConvertCharset(data.data32, data.length, dst);
+								dst += n;
+							}
 						}
 					}
 					return ret;
