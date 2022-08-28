@@ -421,29 +421,89 @@ namespace slib
 		}
 	}
 
-	String File::joinPath(const StringParam* list, sl_size count) noexcept
+	String File::joinPath(const StringParam* params, sl_size count) noexcept
 	{
 		if (!count) {
 			return sl_null;
 		}
 		if (count == 1) {
-			return list[0].toString();
+			return params->toString();
 		}
-		sl_bool flagNeedsDelimiter = sl_false;
-		StringBuffer buf;
-		for (sl_size i = 0; i < count; i++) {
-			if (i && flagNeedsDelimiter) {
-				buf.addStatic("/", 1);
+		sl_size len = 0;
+		sl_size i;
+		for (i = 0; i < count; i++) {
+			const StringParam& s = params[i];
+			if (s.isNotEmpty()) {
+				if (i) {
+					len++;
+				}
+				StringRawData data;
+				s.getData(data);
+				sl_size n = 0;
+				if (data.charSize == 1) {
+					if (data.length < 0) {
+						n = Base::getStringLength(data.data8);
+					} else {
+						n = data.length;
+					}
+				} else if (data.charSize == 2) {
+					n = Charsets::utf16ToUtf8(data.data16, data.length, sl_null, -1);
+				} else {
+					n = Charsets::utf32ToUtf8(data.data32, data.length, sl_null, -1);
+				}
+				len += n;
 			}
-			StringData data(list[i]);
-			if (data.string.isNotNull()) {
-				buf.add(data.string);
+		}
+		if (!len) {
+			return String::getEmpty();
+		}
+		String ret = String::allocate(len);
+		if (ret.isNotNull()) {
+			sl_char8* dst = ret.getData();
+			sl_size nWritten = 0;
+			sl_bool flagFirst = sl_true;
+			sl_bool flagNeedsDelimiter = sl_false;
+			for (i = 0; i < count; i++) {
+				const StringParam& s = params[i];
+				if (s.isNotEmpty()) {
+					if (flagFirst) {
+						flagFirst = sl_false;
+					} else {
+						if (flagNeedsDelimiter) {
+							dst[nWritten++] = '/';
+						}
+					}
+					StringRawData data;
+					s.getData(data);
+					sl_size n = 0;
+					if (data.charSize == 1) {
+						if (data.length < 0) {
+							n = Base::copyString(dst + nWritten, data.data8);
+						} else {
+							n = data.length;
+							Base::copyMemory(dst + nWritten, data.data8, n);
+						}
+					} else if (data.charSize == 2) {
+						n = Charsets::utf16ToUtf8(data.data16, data.length, dst + nWritten, -1);
+					} else {
+						n = Charsets::utf32ToUtf8(data.data32, data.length, dst + nWritten, -1);
+					}
+					if (n) {
+						nWritten += n;
+						sl_char8 last = dst[nWritten - 1];
+						flagNeedsDelimiter = !(last == '\\' || last == '/');
+					} else {
+						flagNeedsDelimiter = sl_false;
+					}
+				}
+			}
+			if (nWritten == len) {
+				return ret;
 			} else {
-				buf.addStatic(data.getData(), data.getLength());
+				return ret.substring(0, nWritten);
 			}
-			flagNeedsDelimiter = !(data.endsWith('\\') || data.endsWith('/'));
 		}
-		return buf.merge();
+		return sl_null;
 	}
 
 	Memory File::readAllBytes(const StringParam& path, sl_size maxSize) noexcept
@@ -570,23 +630,31 @@ namespace slib
 		return sl_false;
 	}
 
-	List<String> File::getAllDescendantFiles(const StringParam& dirPath) noexcept
+	List<String> File::getAllDescendantFiles(const StringParam& _dirPath) noexcept
 	{
+		String dirPath = _dirPath.toString();
 		if (!isDirectory(dirPath)) {
 			return sl_null;
 		}
-		List<String> ret;
 		List<String> listCurrent = getFiles(dirPath);
 		listCurrent.sort_NoLock();
 		ListElements<String> current(listCurrent);
+		if (!(current.count)) {
+			return sl_null;
+		}
+		String dirPathPrefix = dirPath + "/";
+		List<String> ret;
 		for (sl_size i = 0; i < current.count; i++) {
 			String& item = current[i];
 			ret.add_NoLock(item);
-			String dir = dirPath.toString() + "/" + item;
+			String dir = dirPathPrefix + item;
 			if (File::isDirectory(dir)) {
 				ListElements<String> sub(File::getAllDescendantFiles(dir));
-				for (sl_size j = 0; j < sub.count; j++) {
-					ret.add_NoLock(item + "/" + sub[j]);
+				if (sub.count) {
+					String itemPrefix = item + "/";
+					for (sl_size j = 0; j < sub.count; j++) {
+						ret.add_NoLock(itemPrefix + sub[j]);
+					}
 				}
 			}
 		}
