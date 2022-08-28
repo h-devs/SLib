@@ -227,7 +227,10 @@ namespace slib
 		if (!(_openImageResources())) {
 			return sl_false;
 		}
-		if (!(_openGlobalResources())) {
+		if (!(_openGlobalResources(sl_null))) {
+			return sl_false;
+		}
+		if (!(_openGlobalResources("global"))) {
 			return sl_false;
 		}
 		if (!(_openUiResources())) {
@@ -253,7 +256,10 @@ namespace slib
 		if (!(_openImageResources())) {
 			return sl_false;
 		}
-		if (!(_openGlobalResources())) {
+		if (!(_openGlobalResources(sl_null))) {
+			return sl_false;
+		}
+		if (!(_openGlobalResources("global"))) {
 			return sl_false;
 		}
 		if (!(_openUiResource(filePath))) {
@@ -293,7 +299,7 @@ namespace slib
 						_logError(g_str_error_resource_drawable_locale_invalid, fileName);
 						return sl_false;
 					}
-					if (!(_registerImageResources(fileName, m_pathApp + "/" + fileName, locale))) {
+					if (!(_registerImageResources(fileName, File::concatPath(m_pathApp, fileName), locale))) {
 						return sl_false;
 					}
 				}
@@ -314,11 +320,11 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_openGlobalResources()
+	sl_bool SAppDocument::_openGlobalResources(const String& subdir)
 	{
-		String pathDir = m_pathApp + "/global";
+		String pathDir = File::concatPath(m_pathApp, subdir);
 		for (auto& fileName : File::getFiles(pathDir)) {
-			String path = pathDir + "/" + fileName;
+			String path = File::concatPath(pathDir, fileName);
 			if (File::exists(path)) {
 				if (!(File::isDirectory(path))) {
 					if (File::getFileExtension(fileName) == "xml") {
@@ -336,7 +342,7 @@ namespace slib
 	{
 		String pathDir = m_pathApp + "/ui";
 		for (auto& fileName : File::getFiles(pathDir)) {
-			String path = pathDir + "/" + fileName;
+			String path = File::concatPath(pathDir, fileName);
 			if (File::getFileExtension(fileName) == "xml" || File::getFileExtension(fileName) == "uiml") {
 				if (!(_openUiResource(path))) {
 					return sl_false;
@@ -612,7 +618,7 @@ namespace slib
 			if (el_app_path.isNotNull()) {
 				String strPath = el_app_path->getText();
 				if (strPath.startsWith('.')) {
-					strPath = File::getParentDirectoryPath(filePath) + "/" + strPath;
+					strPath = File::concatPath(File::getParentDirectoryPath(filePath), strPath);
 				}
 				if (File::isDirectory(strPath)) {
 					conf.app_path = strPath;
@@ -636,7 +642,7 @@ namespace slib
 					return sl_false;
 				}
 				if (strPath.startsWith('.')) {
-					strPath = File::getParentDirectoryPath(filePath) + "/" + strPath;
+					strPath = File::concatPath(File::getParentDirectoryPath(filePath), strPath);
 				}
 				conf.generate_cpp_target_path = strPath;
 			}

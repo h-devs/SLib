@@ -344,7 +344,7 @@ namespace slib
 						name = name.substring(0, indexSharp);
 					}
 					if (name.isEmpty()) {
-						_logError(g_str_error_resource_drawable_filename_invalid, resourcePath + "/" + fileName);
+						_logError(g_str_error_resource_drawable_filename_invalid, File::concatPath(resourcePath, fileName));
 						return sl_false;
 					}
 					name = Resources::makeResourceName(name);
@@ -372,7 +372,7 @@ namespace slib
 						}
 					}
 					if (res->type != SAppDrawableResource::typeImage) {
-						_logError(g_str_error_resource_drawable_type_duplicated, resourcePath + "/" + fileName);
+						_logError(g_str_error_resource_drawable_type_duplicated, File::concatPath(resourcePath, fileName));
 						return sl_false;
 					}
 					
@@ -406,8 +406,8 @@ namespace slib
 						return sl_false;
 					}
 					item->fileName = fileName;
-					item->filePath = fileDirPath + "/" + fileName;
-					if (!(_registerRawResource(resourcePath + "/" + fileName, sl_null, item->filePath, item->rawName))) {
+					item->filePath = File::concatPath(fileDirPath, fileName);
+					if (!(_registerRawResource(File::concatPath(resourcePath, fileName), sl_null, item->filePath, item->rawName))) {
 						return sl_false;
 					}
 					if (flagMain) {

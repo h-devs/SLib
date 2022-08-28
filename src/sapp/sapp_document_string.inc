@@ -109,17 +109,21 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+		sl_bool flagOverride = element->getAttribute("override").equalsIgnoreCase(StringView::literal("true"));
 		if (locale == Locale::Unknown) {
-			if (res->defaultValue.isNotNull()) {
-				_logError(element, g_str_error_resource_string_redefine_default);
-				return sl_false;
+			if (!flagOverride) {
+				if (res->defaultValue.isNotNull()) {
+					_logError(element, g_str_error_resource_string_redefine_default);
+					return sl_false;
+				}
 			}
 			res->defaultValue = value;
 		} else {
-			if (res->values.find(locale)) {
-				_logError(element, g_str_error_resource_string_redefine_locale, locale.toString());
-				return sl_false;
+			if (!flagOverride) {
+				if (res->values.find(locale)) {
+					_logError(element, g_str_error_resource_string_redefine_locale, locale.toString());
+					return sl_false;
+				}
 			}
 			if (!(res->values.put(locale, value))) {
 				_logError(element, g_str_error_out_of_memory);

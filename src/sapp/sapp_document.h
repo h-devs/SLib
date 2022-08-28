@@ -109,7 +109,7 @@ namespace slib
 	protected:
 		sl_bool _openImageResources();
 		sl_bool _openRawResources();
-		sl_bool _openGlobalResources();
+		sl_bool _openGlobalResources(const String& subdir);
 		sl_bool _openUiResources();
 		sl_bool _openUiResource(const String& path);
 

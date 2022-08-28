@@ -207,7 +207,7 @@ namespace slib
 		Ref<SAppLayoutResource> layoutImport;
 		if (!(m_layouts.get(fileName, &layoutImport))) {
 			do {
-				String path = File::getParentDirectoryPath(layout->filePath) + "/" + fileName;
+				String path = File::concatPath(File::getParentDirectoryPath(layout->filePath), fileName);
 				if (File::isFile(path + ".xml")) {
 					path += ".xml";
 				} else if (File::isFile(path + ".uiml")) {
@@ -559,7 +559,7 @@ namespace slib
 		sbHeader.add("\t}\r\n}\r\n");
 		sbCpp.add("\t}\r\n}\r\n");
 
-		String pathHeader = targetPath + "/ui/" + name + ".h";
+		String pathHeader = String::concat(targetPath, "/ui/", name, ".h");
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
@@ -568,7 +568,7 @@ namespace slib
 			}
 		}
 		
-		String pathCpp = targetPath + "/ui/" + name + ".cpp.inc";
+		String pathCpp = String::concat(targetPath, "/ui/", name, ".cpp.inc");
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
@@ -4979,7 +4979,7 @@ namespace slib
 						return sl_false;
 					}
 					if (value.startsWith("asset://")) {
-						value = m_pathApp + "/asset/" + value.substring(8);
+						value = String::concat(m_pathApp, "/asset/", value.substring(8));
 					}
 					view->setSource(value);
 				}
