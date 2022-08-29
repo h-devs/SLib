@@ -221,22 +221,12 @@ namespace slib
 		
 		_freeResources();
 		
-		if (!(_openRawResources())) {
-			return sl_false;
-		}
-		if (!(_openImageResources())) {
-			return sl_false;
-		}
-		if (!(_openGlobalResources(sl_null))) {
-			return sl_false;
-		}
-		if (!(_openGlobalResources("global"))) {
+		if (!(_openResourcesExceptUi())) {
 			return sl_false;
 		}
 		if (!(_openUiResources())) {
 			return sl_false;
 		}
-
 		return sl_true;
 	}
 	
@@ -250,22 +240,12 @@ namespace slib
 		
 		_freeResources();
 		
-		if (!(_openRawResources())) {
-			return sl_false;
-		}
-		if (!(_openImageResources())) {
-			return sl_false;
-		}
-		if (!(_openGlobalResources(sl_null))) {
-			return sl_false;
-		}
-		if (!(_openGlobalResources("global"))) {
+		if (!(_openResourcesExceptUi())) {
 			return sl_false;
 		}
 		if (!(_openUiResource(filePath))) {
 			return sl_false;
 		}
-		
 		return sl_true;
 	}
 
@@ -279,14 +259,41 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool SAppDocument::_openImageResources()
+	sl_bool SAppDocument::_openResourcesExceptUi()
 	{
-		List<String> fileList = File::getFiles(m_pathApp);
+		for (auto& include : m_conf.includes) {
+			if (!(_openResourcesExceptUi(include))) {
+				return sl_false;
+			}
+		}
+		return _openResourcesExceptUi(m_pathApp);
+	}
+
+	sl_bool SAppDocument::_openResourcesExceptUi(const String& pathApp)
+	{
+		if (!(_openRawResources(pathApp))) {
+			return sl_false;
+		}
+		if (!(_openImageResources(pathApp))) {
+			return sl_false;
+		}
+		if (!(_openGlobalResources(pathApp, sl_null))) {
+			return sl_false;
+		}
+		if (!(_openGlobalResources(pathApp, "global"))) {
+			return sl_false;
+		}
+		return sl_true;
+	}
+
+	sl_bool SAppDocument::_openImageResources(const String& pathApp)
+	{
+		List<String> fileList = File::getFiles(pathApp);
 		fileList.sort();
 		for (auto& fileName : fileList) {
 			if (fileName.isNotNull()) {
 				if (fileName == "image") {
-					if (!(_registerImageResources("image", m_pathApp + "/image", Locale::Unknown))) {
+					if (!(_registerImageResources("image", pathApp + "/image", Locale::Unknown))) {
 						return sl_false;
 					}
 				} else if (fileName.startsWith("image-")) {
@@ -299,7 +306,7 @@ namespace slib
 						_logError(g_str_error_resource_drawable_locale_invalid, fileName);
 						return sl_false;
 					}
-					if (!(_registerImageResources(fileName, File::concatPath(m_pathApp, fileName), locale))) {
+					if (!(_registerImageResources(fileName, File::concatPath(pathApp, fileName), locale))) {
 						return sl_false;
 					}
 				}
@@ -308,10 +315,10 @@ namespace slib
 		return sl_true;
 	}
 	
-	sl_bool SAppDocument::_openRawResources()
+	sl_bool SAppDocument::_openRawResources(const String& pathApp)
 	{
 		m_raws.removeAll();
-		String path = m_pathApp + "/raw";
+		String path = pathApp + "/raw";
 		if (File::exists(path)) {
 			if (!(_registerRawResources(path))) {
 				return sl_false;
@@ -320,14 +327,14 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_openGlobalResources(const String& subdir)
+	sl_bool SAppDocument::_openGlobalResources(const String& pathApp, const String& subdir)
 	{
-		String pathDir = File::concatPath(m_pathApp, subdir);
+		String pathDir = File::concatPath(pathApp, subdir);
 		for (auto& fileName : File::getFiles(pathDir)) {
 			String path = File::concatPath(pathDir, fileName);
 			if (File::exists(path)) {
 				if (!(File::isDirectory(path))) {
-					if (File::getFileExtension(fileName) == "xml") {
+					if (File::getFileExtension(fileName) == "xml" && !(subdir.isEmpty() && fileName == "sapp.xml")) {
 						if (!(_parseResourcesXml(sl_null, path))) {
 							return sl_false;
 						}
@@ -338,9 +345,20 @@ namespace slib
 		return sl_true;
 	}
 	
+
 	sl_bool SAppDocument::_openUiResources()
 	{
-		String pathDir = m_pathApp + "/ui";
+		for (auto& include : m_conf.includes) {
+			if (!(_openUiResources(include))) {
+				return sl_false;
+			}
+		}
+		return _openUiResources(m_pathApp);
+	}
+
+	sl_bool SAppDocument::_openUiResources(const String& pathApp)
+	{
+		String pathDir = pathApp + "/ui";
 		for (auto& fileName : File::getFiles(pathDir)) {
 			String path = File::concatPath(pathDir, fileName);
 			if (File::getFileExtension(fileName) == "xml" || File::getFileExtension(fileName) == "uiml") {
@@ -370,6 +388,26 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool SAppDocument::_openUiResourceByName(const String& name)
+	{
+		for (auto& include : m_conf.includes) {
+			String path = File::concatPath(include, name);
+			if (File::isFile(path + ".xml")) {
+				return _openUiResources(path + ".xml");
+			} else if (File::isFile(path + ".uiml")) {
+				return _openUiResources(path + ".uiml");
+			}
+		}
+		String path = File::concatPath(m_pathApp, name);
+		if (File::isFile(path + ".xml")) {
+			return _openUiResources(path + ".xml");
+		} else if (File::isFile(path + ".uiml")) {
+			return _openUiResources(path + ".uiml");
+		} else {
+			return sl_false;
+		}
+	}
+	
 	sl_bool SAppDocument::generateCpp()
 	{
 		ObjectLocker lock(this);
@@ -628,6 +666,24 @@ namespace slib
 				}
 			} else {
 				conf.app_path = File::getParentDirectoryPath(filePath);
+			}
+		}
+
+		// include
+		{
+			ListElements< Ref<XmlElement> > el_includes(root->getChildElements("include"));
+			for (sl_size i = 0; i < el_includes.count; i++) {
+				Ref<XmlElement>& el_include = el_includes[i];
+				String strPath = el_include->getText();
+				if (strPath.startsWith('.')) {
+					strPath = File::concatPath(File::getParentDirectoryPath(filePath), strPath);
+				}
+				if (File::isDirectory(strPath)) {
+					conf.includes.add_NoLock(Move(strPath));
+				} else {
+					_logError(el_include, String::format(g_str_error_directory_not_found, strPath));
+					return sl_false;
+				}
 			}
 		}
 		

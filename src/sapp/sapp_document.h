@@ -36,6 +36,8 @@ namespace slib
 	{
 	public:
 		String app_path;
+
+		CList<String> includes;
 		
 		String generate_cpp_target_path;
 		String generate_cpp_namespace;
@@ -107,11 +109,15 @@ namespace slib
 		static String getNameInLocalNamespace(const String& localNamespace, const String& name);
 		
 	protected:
-		sl_bool _openImageResources();
-		sl_bool _openRawResources();
-		sl_bool _openGlobalResources(const String& subdir);
+		sl_bool _openResourcesExceptUi();
+		sl_bool _openResourcesExceptUi(const String& pathApp);
+		sl_bool _openImageResources(const String& pathApp);
+		sl_bool _openRawResources(const String& pathApp);
+		sl_bool _openGlobalResources(const String& pathApp, const String& subdir);
 		sl_bool _openUiResources();
+		sl_bool _openUiResources(const String& pathApp);
 		sl_bool _openUiResource(const String& path);
+		sl_bool _openUiResourceByName(const String& name);
 
 		// Log
 		void _log(const StringView& text);
@@ -205,7 +211,7 @@ namespace slib
 		sl_bool _parseLayoutInclude(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _parseLayoutUnit(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _parseLayoutResource(const String& filePath, const String& localNamespace, const Ref<XmlElement>& element, const String16& source);
-		void _openLayoutResource(SAppLayoutResource* layout, const String& fileName);
+		void _openLayoutResource(SAppLayoutResource* layout, const String& name);
 		sl_bool _parseLayoutResourceItem(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, const String16& source);
 		Ref<SAppLayoutResourceItem> _parseLayoutResourceItemChild(SAppLayoutResource* layout, SAppLayoutResourceItem* parentItem, const Ref<XmlElement>& element, const String16& source);
 		sl_bool _generateLayoutsCpp(const String& targetPath);

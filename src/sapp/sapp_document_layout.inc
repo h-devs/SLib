@@ -202,22 +202,12 @@ namespace slib
 		return sl_true;
 	}
 	
-	void SAppDocument::_openLayoutResource(SAppLayoutResource* layout, const String& fileName)
+	void SAppDocument::_openLayoutResource(SAppLayoutResource* layout, const String& name)
 	{
 		Ref<SAppLayoutResource> layoutImport;
-		if (!(m_layouts.get(fileName, &layoutImport))) {
-			do {
-				String path = File::concatPath(File::getParentDirectoryPath(layout->filePath), fileName);
-				if (File::isFile(path + ".xml")) {
-					path += ".xml";
-				} else if (File::isFile(path + ".uiml")) {
-					path += ".uiml";
-				} else {
-					break;
-				}
-				_openUiResource(path);
-			} while (0);
-			m_layouts.emplace(fileName, sl_null);
+		if (!(m_layouts.get(name, &layoutImport))) {
+			_openUiResourceByName(name);
+			m_layouts.emplace(name, sl_null);
 		}
 	}
 
