@@ -317,7 +317,6 @@ namespace slib
 	
 	sl_bool SAppDocument::_openRawResources(const String& pathApp)
 	{
-		m_raws.removeAll();
 		String path = pathApp + "/raw";
 		if (File::exists(path)) {
 			if (!(_registerRawResources(path))) {
@@ -344,7 +343,6 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
 
 	sl_bool SAppDocument::_openUiResources()
 	{
