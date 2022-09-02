@@ -48,6 +48,8 @@ namespace slib
 
 		static String getApplicationDirectory();
 
+		static String getApplicationVersion();
+
 		static String getHomeDirectory();
 
 		static String getLocalAppDataDirectory();

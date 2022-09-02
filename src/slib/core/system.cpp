@@ -41,6 +41,13 @@ namespace slib
 	}
 
 #if !defined(SLIB_PLATFORM_IS_WINDOWS) && !defined(SLIB_PLATFORM_IS_MACOS)
+	String System::getApplicationVersion()
+	{
+		return sl_null;
+	}
+#endif
+
+#if !defined(SLIB_PLATFORM_IS_WINDOWS) && !defined(SLIB_PLATFORM_IS_MACOS)
 	String System::getLocalAppDataDirectory()
 	{
 		return getHomeDirectory();
