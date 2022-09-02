@@ -115,6 +115,13 @@ namespace slib
 		}
 		return pathResolved;
 	}
+	
+	String System::getApplicationVersion()
+	{
+		NSDictionary* dict = [[NSBundle mainBundle] infoDictionary];
+		NSString* info = [dict objectForKey:@"CFBundleShortVersionString"];
+		return Apple::getStringFromNSString(info);
+	}
 
 	String System::getHomeDirectory()
 	{
@@ -179,10 +186,9 @@ namespace slib
 	
 	String System::getSystemVersion()
 	{
-		String plistFileName = "/System/Library/CoreServices/SystemVersion.plist";
-		if (File::isFile(plistFileName)) {
-			NSString* path = Apple::getNSStringFromString(plistFileName);
-			NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:path];
+#define SYSTEM_VERSION_PLIST 
+		NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+		if (dict != nil) {
 			NSString* info = [dict objectForKey:@"ProductVersion"];
 			String version = Apple::getStringFromNSString(info);
 			if (version.isNotEmpty()) {

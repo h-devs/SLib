@@ -4407,6 +4407,9 @@ namespace slib
 	\
 	STRING STRING::mid(sl_reg start, sl_reg len) const noexcept \
 	{ \
+		if (len < 0) { \
+			return substring(start, -1); \
+		} \
 		return substring(start, start + len); \
 	} \
 	\

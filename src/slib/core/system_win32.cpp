@@ -204,6 +204,11 @@ namespace slib
 #endif
 	}
 
+	String System::getApplicationVersion()
+	{
+		return getFileVersion(System::getApplicationPath());
+	}
+
 	String System::getHomeDirectory()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
