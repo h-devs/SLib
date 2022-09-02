@@ -23,6 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CORE_PROPERTY
 #define CHECKHEADER_SLIB_CORE_PROPERTY
 
+#include "cpp_helper.h"
 #include "primitive_wrapper.h"
 
 namespace slib
