@@ -330,8 +330,8 @@ namespace slib
 	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
 	void set##NAME(const slib::Matrix4* values, sl_uint32 count) { if (NAME.uniform.location >= 0) setMatrix4Array(NAME.uniform, values, count); }
 
-#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(NAME, SHADER_NAME, ...) \
-	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, ##__VA_ARGS__) \
+#define SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(NAME, SHADER_NAME, SHADER_TYPE, REGISTER_NO) \
+	SLIB_RENDER_INPUT_ITEM(NAME, #SHADER_NAME, SHADER_TYPE, REGISTER_NO) \
 	void set##NAME(const Ref<slib::Texture>& texture) { if (NAME.uniform.location >= 0) setTextureValue(NAME.uniform, texture); }
 
 #define SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT(MEMBER, SHADER_NAME, ...) \
@@ -565,7 +565,7 @@ namespace slib
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_DiffuseColor)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(AmbientColor, u_AmbientColor)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_FLOAT(Alpha, u_Alpha)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
 
 		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
 		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(normal, a_Normal)
@@ -591,7 +591,7 @@ namespace slib
 	SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderProgramState3D_PositionTexture, RenderVertex3D_PositionTexture)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX4(Transform, u_Transform)
 		SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR3(DiffuseColor, u_Color)
-		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture)
+		SLIB_RENDER_PROGRAM_STATE_UNIFORM_TEXTURE(Texture, u_Texture, RenderShaderType::Pixel, 0)
 
 		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT3(position, a_Position)
 		SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(texCoord, a_TexCoord)
