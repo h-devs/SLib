@@ -27,6 +27,35 @@
 
 namespace slib
 {
+	
+	namespace priv
+	{
+		namespace db
+		{
+
+			String GetDatabaseDialectText(DatabaseDialect dialect)
+			{
+				switch (dialect) {
+				case DatabaseDialect::MSSQL:
+					SLIB_RETURN_STRING("MSSQL")
+				case DatabaseDialect::SQLite:
+					SLIB_RETURN_STRING("SQLite")
+				case DatabaseDialect::PostgreSQL:
+					SLIB_RETURN_STRING("PostgreSQL")
+				case DatabaseDialect::MySQL:
+					SLIB_RETURN_STRING("MySQL")
+				case DatabaseDialect::Oracle:
+					SLIB_RETURN_STRING("Oracle")
+				default:
+					SLIB_RETURN_STRING("Database")
+				}
+			}
+
+		}
+	}
+
+	using namespace priv::db;
+
 
 	SLIB_DEFINE_OBJECT(Database, Object)
 
@@ -393,28 +422,28 @@ namespace slib
 	void Database::_logSQL(const StringParam& sql)
 	{
 		if (m_flagLogSQL) {
-			Log((char*)(getObjectType()), "SQL: %s", sql);
+			Log(GetDatabaseDialectText(getDialect()), "SQL: %s", sql);
 		}
 	}
 	
 	void Database::_logSQL(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		if (m_flagLogSQL) {
-			Log((char*)(getObjectType()), "SQL: %s Params=%s", sql, Variant(List<Variant>(params, nParams)).toJsonString());
+			Log(GetDatabaseDialectText(getDialect()), "SQL: %s Params=%s", sql, Variant(List<Variant>(params, nParams)).toJsonString());
 		}
 	}
 	
 	void Database::_logError(const StringParam& sql)
 	{
 		if (m_flagLogErrors) {
-			LogError((char*)(getObjectType()), "Error: %s, SQL: %s", getErrorMessage(), sql);
+			LogError(GetDatabaseDialectText(getDialect()), "Error: %s, SQL: %s", getErrorMessage(), sql);
 		}
 	}
 
 	void Database::_logError(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		if (m_flagLogErrors) {
-			LogError((char*)(getObjectType()), "Error: %s, SQL: %s Params=%s", getErrorMessage(), sql, Variant(List<Variant>(params, nParams)).toJsonString());
+			LogError(GetDatabaseDialectText(getDialect()), "Error: %s, SQL: %s Params=%s", getErrorMessage(), sql, Variant(List<Variant>(params, nParams)).toJsonString());
 		}
 	}
 

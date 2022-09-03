@@ -805,7 +805,7 @@ namespace slib
 						Ref<Database> db = getDatabase();
 						if (db.isNotNull()) {
 							if (db->isLoggingErrors()) {
-								LogError((char*)(getObjectType()), "Error: %s SQL: %s", mysql_stmt_error(statement), m_sql);
+								LogError(TAG, "Error: %s SQL: %s", mysql_stmt_error(statement), m_sql);
 							}
 						}
 						mysql_stmt_close(statement);
