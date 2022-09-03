@@ -2040,9 +2040,6 @@ namespace slib
 		void _setInputLayout(RenderInputLayout* _layout) override
 		{
 			GLRenderInputLayout* layout = (GLRenderInputLayout*)_layout;
-			if (m_currentInputLayout == layout) {
-				return;
-			}
 			Ref<GLRenderInputLayout> old = Move(m_currentInputLayout);
 			if (old.isNotNull()) {
 				old->unload();
