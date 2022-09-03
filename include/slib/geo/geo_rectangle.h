@@ -35,7 +35,7 @@ namespace slib
 		LatLon topRight;
 
 	public:
-		GeoRectangle();
+		SLIB_CONSTEXPR GeoRectangle() {}
 
 		GeoRectangle(const LatLon& pt1, const LatLon& pt2);
 
