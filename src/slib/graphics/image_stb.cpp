@@ -27,6 +27,7 @@
 #pragma warning(disable : 4996)
 #endif
 
+#define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 
 #ifdef SLIB_PLATFORM_IS_APPLE
