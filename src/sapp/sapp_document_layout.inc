@@ -168,28 +168,12 @@ namespace slib
 		layout->filePath = filePath;
 		layout->element = element;
 
-		SAppLayoutType type;
-		String strType = element->getAttribute("type");
-		if (strType.isEmpty() || strType == "view") {
-			type = SAppLayoutType::View;
-		} else if (strType == "window") {
-			type = SAppLayoutType::Window;
-		} else if (strType == "page") {
-			type = SAppLayoutType::Page;
-		} else {
-			_logError(element, g_str_error_resource_layout_type_invalid, strType);
-			return sl_false;
-		}
-		layout->layoutType = type;
-		
 		if (m_layouts.find(localNamespace)) {
 			_logError(element, g_str_error_resource_layout_name_redefined, localNamespace);
 			return sl_false;
 		}
 		layout->name = localNamespace;
 		
-		layout->baseClassName = layout->getXmlAttribute("base");
-
 		if (!(_parseLayoutResourceItem(layout.get(), layout.get(), sl_null, source))) {
 			return sl_false;
 		}
@@ -247,6 +231,40 @@ namespace slib
 					return sl_false;
 				}
 			}
+		}
+
+		if (layout == item) {
+			
+			SAppLayoutType type;
+			String strType = layout->getXmlAttribute("type");
+			if (strType.isEmpty() || strType == "view") {
+				type = SAppLayoutType::View;
+			} else if (strType == "window") {
+				type = SAppLayoutType::Window;
+			} else if (strType == "page") {
+				type = SAppLayoutType::Page;
+			} else {
+				_logError(element, g_str_error_resource_layout_type_invalid, strType);
+				return sl_false;
+			}
+			layout->layoutType = type;
+		
+			layout->baseClassName = layout->getXmlAttribute("base");
+
+		} else {
+
+			String strType = item->getXmlAttribute("type");
+			if (strType.isEmpty()) {
+				strType = element->getName();
+			}
+			SAppLayoutItemType type = SAppLayoutResource::getTypeFromName(strType);
+			if (type == SAppLayoutItemType::Unknown) {
+				_logError(element, g_str_error_resource_layout_type_invalid, strType);
+				return sl_false;
+			}
+
+			item->itemType = type;
+
 		}
 		
 		if (parent) {
@@ -338,24 +356,16 @@ namespace slib
 
 	Ref<SAppLayoutResourceItem> SAppDocument::_parseLayoutResourceItemChild(SAppLayoutResource* layout, SAppLayoutResourceItem* parentItem, const Ref<XmlElement>& element, const String16& source)
 	{
-		String strType = element->getName();
-		SAppLayoutItemType type = SAppLayoutResource::getTypeFromName(strType);
-		if (type == SAppLayoutItemType::Unknown) {
-			_logError(element, g_str_error_resource_layout_type_invalid, strType);
-			return Ref<SAppLayoutResourceItem>::null();
-		}
-		
 		Ref<SAppLayoutResourceItem> childItem = new SAppLayoutResourceItem;
 		if (childItem.isNull()) {
 			_logError(element, g_str_error_out_of_memory);
-			return Ref<SAppLayoutResourceItem>::null();
+			return sl_null;
 		}
-		
-		childItem->itemType = type;
+
 		childItem->element = element;
 		
 		if (!(_parseLayoutResourceItem(layout, childItem.get(), parentItem, source))) {
-			return Ref<SAppLayoutResourceItem>::null();
+			return sl_null;
 		}
 		
 		return childItem;

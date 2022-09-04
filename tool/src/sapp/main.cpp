@@ -131,7 +131,7 @@ int main(int argc, const char * argv[])
 			return -1;
 		}
 		String pathDir = File::getParentDirectoryPath(path);
-		if (File::getFileName(pathDir) == "ui") {
+		if (File::getFileName(pathDir) == "layout" || File::getFileName(pathDir) == "ui") {
 			String pathApp = File::getParentDirectoryPath(pathDir);
 			if (!(File::isFile(pathApp + "/sapp.xml"))) {
 				Println("sapp.xml is not found in %s", pathApp);

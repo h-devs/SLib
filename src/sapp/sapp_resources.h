@@ -1057,6 +1057,7 @@ namespace slib
 		Ref<XmlElement> element;
 		
 		SAppLayoutItemType itemType;
+		String itemTypeName;
 		String name;
 		sl_bool flagGeneratedName;
 		String arrayName;
