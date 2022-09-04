@@ -347,18 +347,26 @@ namespace slib
 	sl_bool SAppDocument::_openUiResources()
 	{
 		for (auto& include : m_conf.includes) {
-			if (!(_openUiResources(include))) {
+			if (!(_openUiResources(File::concatPath(include, "layout")))) {
+				return sl_false;
+			}
+			if (!(_openUiResources(File::concatPath(include, "ui")))) {
 				return sl_false;
 			}
 		}
-		return _openUiResources(m_pathApp);
+		if (!(_openUiResources(File::concatPath(m_pathApp, "layout")))) {
+			return sl_false;
+		}
+		if (!(_openUiResources(File::concatPath(m_pathApp, "ui")))) {
+			return sl_false;
+		}
+		return sl_true;
 	}
 
-	sl_bool SAppDocument::_openUiResources(const String& pathApp)
+	sl_bool SAppDocument::_openUiResources(const String& pathLayouts)
 	{
-		String pathDir = pathApp + "/ui";
-		for (auto& fileName : File::getFiles(pathDir)) {
-			String path = File::concatPath(pathDir, fileName);
+		for (auto& fileName : File::getFiles(pathLayouts)) {
+			String path = File::concatPath(pathLayouts, fileName);
 			if (File::getFileExtension(fileName) == "xml" || File::getFileExtension(fileName) == "uiml") {
 				if (!(_openUiResource(path))) {
 					return sl_false;
@@ -389,20 +397,33 @@ namespace slib
 	sl_bool SAppDocument::_openUiResourceByName(const String& name)
 	{
 		for (auto& include : m_conf.includes) {
-			String path = File::concatPath(include, name);
+			String path = File::concatPath(include, "layout", name);
 			if (File::isFile(path + ".xml")) {
-				return _openUiResources(path + ".xml");
+				return _openUiResource(path + ".xml");
 			} else if (File::isFile(path + ".uiml")) {
-				return _openUiResources(path + ".uiml");
+				return _openUiResource(path + ".uiml");
+			}
+			path = File::concatPath(include, "ui", name);
+			if (File::isFile(path + ".xml")) {
+				return _openUiResource(path + ".xml");
+			} else if (File::isFile(path + ".uiml")) {
+				return _openUiResource(path + ".uiml");
 			}
 		}
-		String path = File::concatPath(m_pathApp, name);
+		String path = File::concatPath(m_pathApp, "layout", name);
 		if (File::isFile(path + ".xml")) {
-			return _openUiResources(path + ".xml");
+			return _openUiResource(path + ".xml");
 		} else if (File::isFile(path + ".uiml")) {
-			return _openUiResources(path + ".uiml");
+			return _openUiResource(path + ".uiml");
 		} else {
-			return sl_false;
+			path = File::concatPath(m_pathApp, "ui", name);
+			if (File::isFile(path + ".xml")) {
+				return _openUiResource(path + ".xml");
+			} else if (File::isFile(path + ".uiml")) {
+				return _openUiResource(path + ".uiml");
+			} else {
+				return sl_false;
+			}
 		}
 	}
 	

@@ -115,7 +115,7 @@ namespace slib
 		sl_bool _openRawResources(const String& pathApp);
 		sl_bool _openGlobalResources(const String& pathApp, const String& subdir);
 		sl_bool _openUiResources();
-		sl_bool _openUiResources(const String& pathApp);
+		sl_bool _openUiResources(const String& pathLayouts);
 		sl_bool _openUiResource(const String& path);
 		sl_bool _openUiResourceByName(const String& name);
 
