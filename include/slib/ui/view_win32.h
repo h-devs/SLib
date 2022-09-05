@@ -176,7 +176,7 @@ namespace slib
 
 		void onDrawLayered();
 
-		sl_bool onEventKey(sl_bool flagDown, WPARAM wParam, LPARAM lParam);
+		sl_bool onEventKey(UIAction action, WPARAM wParam, LPARAM lParam);
 
 		sl_bool onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam);
 

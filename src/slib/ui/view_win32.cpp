@@ -1196,11 +1196,10 @@ namespace slib
 		}
 	}
 
-	sl_bool Win32_ViewInstance::onEventKey(sl_bool flagDown, WPARAM wParam, LPARAM lParam)
+	sl_bool Win32_ViewInstance::onEventKey(UIAction action, WPARAM wParam, LPARAM lParam)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
-			UIAction action = flagDown ? UIAction::KeyDown : UIAction::KeyUp;
 			sl_uint32 vkey = (sl_uint32)wParam;
 			UINT scancode = (lParam & 0x00ff0000) >> 16;
 			int extended = (lParam & 0x01000000) != 0;
@@ -1324,15 +1323,12 @@ namespace slib
 		}
 		switch (msg) {
 			case WM_ERASEBKGND:
-				{
-					return TRUE;
-				}
+				return TRUE;
 
 			case WM_PAINT:
-				{
-					onPaint();
-					return 0;
-				}
+				onPaint();
+				return 0;
+
 			case WM_LBUTTONDOWN:
 				{
 					DragContext& dragContext = UIEvent::getCurrentDragContext();
@@ -1494,70 +1490,54 @@ namespace slib
 					break;
 				}
 			case WM_MOUSELEAVE:
-				{
-					if (onEventMouse(UIAction::MouseLeave, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventMouse(UIAction::MouseLeave, wParam, lParam)) {
+					return 0;
 				}
+				break;
 			case WM_MOUSEWHEEL:
-				{
-					if (onEventMouseWheel(sl_true, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventMouseWheel(sl_true, wParam, lParam)) {
+					return 0;
 				}
+				break;
 			case 0x020E: // WM_MOUSEHWHEEL
-				{
-					if (onEventMouseWheel(sl_false, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventMouseWheel(sl_false, wParam, lParam)) {
+					return 0;
 				}
+				break;
 			case WM_KEYDOWN:
 			case WM_SYSKEYDOWN:
-				{
-					if (onEventKey(sl_true, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventKey(UIAction::KeyDown, wParam, lParam)) {
+					return 0;
 				}
+				break;
 			case WM_KEYUP:
 			case WM_SYSKEYUP:
-				{
-					if (onEventKey(sl_false, wParam, lParam)) {
-						return 0;
-					}
-					break;
+				if (onEventKey(UIAction::KeyUp, wParam, lParam)) {
+					return 0;
 				}
+				break;
 			case WM_SETFOCUS:
-				{
-					onSetFocus();
-					break;
-				}
+				onSetFocus();
+				break;
 			case WM_KILLFOCUS:
-				{
-					onKillFocus();
-					break;
-				}
+				onKillFocus();
+				break;
 			case WM_SETCURSOR:
-				{
-					if (onEventSetCursor()) {
-						return TRUE;
-					}
-					break;
+				if (onEventSetCursor()) {
+					return TRUE;
 				}
+				break;
 		}
 		return DefaultViewInstanceProc(hWnd, msg, wParam, lParam);
 	}
 
-	LRESULT Win32_ViewInstance::processSubclassMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+	LRESULT Win32_ViewInstance::processSubclassMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		HWND hWnd = m_handle;
 		if (!hWnd) {
 			return 0;
 		}
-		switch (msg) {
+		switch (uMsg) {
 		case WM_LBUTTONDOWN:
 			if (onEventMouse(UIAction::LeftButtonDown, wParam, lParam)) {
 				return 0;
@@ -1620,18 +1600,31 @@ namespace slib
 			break;
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			if (onEventKey(sl_true, wParam, lParam)) {
+			if (onEventKey(UIAction::KeyDown, wParam, lParam)) {
 				return 0;
+			}
+			if (wParam == VK_TAB) {
+				DefSubclassProc(hWnd, WM_CHAR, '\t', lParam);
+			} else if (wParam == VK_RETURN) {
+				DefSubclassProc(hWnd, WM_CHAR, '\r', lParam);
 			}
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			if (onEventKey(sl_false, wParam, lParam)) {
+			if (onEventKey(UIAction::KeyUp, wParam, lParam)) {
+				return 0;
+			}
+			break;
+		case WM_CHAR:
+			if (wParam == '\t' || wParam == '\r' || wParam == '\n') {
 				return 0;
 			}
 			break;
 		case WM_SETFOCUS:
 			onSetFocus();
+			break;
+		case WM_KILLFOCUS:
+			onKillFocus();
 			break;
 		case WM_SETCURSOR:
 			if (onEventSetCursor()) {
@@ -1639,7 +1632,7 @@ namespace slib
 			}
 			break;
 		}
-		return DefSubclassProc(hWnd, msg, wParam, lParam);
+		return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 	}
 
 	sl_bool Win32_ViewInstance::processCommand(SHORT code, LRESULT& result)

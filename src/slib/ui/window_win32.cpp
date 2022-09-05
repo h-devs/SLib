@@ -800,6 +800,8 @@ namespace slib
 							}
 							break;
 						}
+					case WM_KILLFOCUS:
+						return 0;
 					}
 				}
 				return priv::view::ViewInstanceProc(hWnd, uMsg, wParam, lParam);

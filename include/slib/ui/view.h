@@ -308,11 +308,11 @@ namespace slib
 		
 		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		sl_bool hasFocusedChild();
+		sl_bool hasFocalChild();
 
-		Ref<View> getFocusedChild();
+		Ref<View> getFocalChild();
 		
-		Ref<View> getFocusedDescendant();
+		Ref<View> getFocalDescendant();
 
 		Ref<View> getFocusedView();
 
@@ -1487,7 +1487,7 @@ namespace slib
 		
 		void _killFocusRecursively();
 		
-		void _setFocusedChild(View* child, UIUpdateMode mode);
+		void _setFocalChild(View* child, UIUpdateMode mode);
 		
 		void _restrictSize(sl_ui_len& width, sl_ui_len& height);
 		

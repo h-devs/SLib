@@ -772,7 +772,7 @@ namespace slib
 		if (isFocused()) {
 			Ref<View> root = getRootView();
 			if (root.isNotNull()) {
-				if (root->getFocusedDescendant() != this) {
+				if (root->getFocalDescendant() != this) {
 					return;
 				}
 			}

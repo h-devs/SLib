@@ -21,7 +21,7 @@ namespace slib
 		XControl::init();
 
 		setCursor(Cursor::getIBeam());
-		setPadding(5, UIUpdateMode::Init);
+		setPadding(5, 7, 5, 3, UIUpdateMode::Init);
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 
 		m_edit = new EditView;

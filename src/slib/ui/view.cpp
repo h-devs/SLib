@@ -695,7 +695,7 @@ namespace slib
 			if (m_flagFocused) {
 				instance->setFocus(this, sl_true);
 			} else {
-				Ref<View> view = getFocusedChild();
+				Ref<View> view = getFocalChild();
 				while (view.isNotNull()) {
 					if (view->m_instance.isNotNull()) {
 						break;
@@ -704,7 +704,7 @@ namespace slib
 						instance->setFocus(this, sl_true);
 						break;
 					}
-					view = view->getFocusedChild();
+					view = view->getFocalChild();
 				}
 			}
 			Ref<GestureDetector> gesture = getGestureDetector();
@@ -917,11 +917,11 @@ namespace slib
 		if (view == attrs->childDragOver) {
 			attrs->childDragOver.setNull();
 		}
-		if (view == attrs->childFocused) {
+		if (view == attrs->childFocal) {
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
-				_setFocusedChild(sl_null, UIUpdateMode::Init);
+				_setFocalChild(sl_null, UIUpdateMode::Init);
 			} else {
-				_setFocusedChild(sl_null, UIUpdateMode::None);
+				_setFocalChild(sl_null, UIUpdateMode::None);
 			}
 		}
 		invalidateLayout(mode);
@@ -949,11 +949,11 @@ namespace slib
 		if (view == attrs->childDragOver) {
 			attrs->childDragOver.setNull();
 		}
-		if (view == attrs->childFocused) {
+		if (view == attrs->childFocal) {
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
-				_setFocusedChild(sl_null, UIUpdateMode::Init);
+				_setFocalChild(sl_null, UIUpdateMode::Init);
 			} else {
-				_setFocusedChild(sl_null, UIUpdateMode::None);
+				_setFocalChild(sl_null, UIUpdateMode::None);
 			}
 		}
 		invalidateLayout(mode);
@@ -990,11 +990,11 @@ namespace slib
 		attrs->childMouseDown.setNull();
 		attrs->childMouseMove.setNull();
 		attrs->childDragOver.setNull();
-		if (attrs->childFocused.isNotNull()) {
+		if (attrs->childFocal.isNotNull()) {
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
-				_setFocusedChild(sl_null, UIUpdateMode::Init);
+				_setFocalChild(sl_null, UIUpdateMode::Init);
 			} else {
-				_setFocusedChild(sl_null, UIUpdateMode::None);
+				_setFocalChild(sl_null, UIUpdateMode::None);
 			}
 		}
 		invalidateLayout(mode);
@@ -1172,11 +1172,12 @@ namespace slib
 		child->setParent(this);
 		onAddChild(child);
 
-		if (child->isFocused() || child->hasFocusedChild()) {
-			if (hasFocusedChild()) {
+		if (child->isFocused() || child->hasFocalChild()) {
+			if (hasFocalChild()) {
+				// If this view has a focal child, the child focus is ignored
 				child->_setFocus(sl_false, sl_false, UIUpdateMode::None);
 			} else {
-				_setFocusedChild(child, UIUpdateMode::None);
+				_setFocalChild(child, UIUpdateMode::None);
 			}
 		}
 		if (child->isDropTarget() && !(child->isInstance())) {
@@ -2039,27 +2040,28 @@ namespace slib
 	{
 		Ref<ViewChildAttributes>& childAttrs = m_childAttrs;
 		if (childAttrs.isNotNull()) {
-			Ref<View> child = childAttrs->childFocused;
+			Ref<View> child = childAttrs->childFocal;
 			if (child.isNotNull()) {
 				child->_killFocusRecursively();
 			}
-			childAttrs->childFocused.setNull();
+			childAttrs->childFocal.setNull();
 		}
 		_setFocusedFlag(flagFocused, flagApplyInstance);
 		Ref<View> parent = getParent();
 		if (parent.isNotNull()) {
 			if (flagFocused) {
-				parent->_setFocusedChild(this, mode);
+				parent->_setFocalChild(this, mode);
+				return;
 			} else {
 				if (flagApplyInstance) {
-					if (parent->getFocusedChild() == this) {
-						parent->_setFocusedChild(sl_null, mode);
+					if (parent->getFocalChild() == this) {
+						parent->_setFocalChild(sl_null, mode);
+						return;
 					}
 				}
 			}
-		} else {
-			invalidate(mode);
 		}
+		invalidate(mode);
 	}
 	
 	void View::_setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance)
@@ -2087,59 +2089,62 @@ namespace slib
 		if (childAttrs.isNull()) {
 			return;
 		}
-		Ref<View> child = childAttrs->childFocused;
+		Ref<View> child = childAttrs->childFocal;
 		if (child.isNotNull()) {
 			child->_killFocusRecursively();
 		}
 	}
 
-	void View::_setFocusedChild(View* child, UIUpdateMode mode)
+	void View::_setFocalChild(View* child, UIUpdateMode mode)
 	{
 		Ref<ViewChildAttributes>& childAttrs = m_childAttrs;
 		if (childAttrs.isNull()) {
 			return;
 		}
-		Ref<View> old = childAttrs->childFocused;
+		Ref<View> old = childAttrs->childFocal;
 		if (old != child) {
 			if (old.isNotNull()) {
 				old->_killFocusRecursively();
 			}
-			childAttrs->childFocused = child;
+			childAttrs->childFocal = child;
 		}
 		if (child) {
 			_setFocusedFlag(sl_false, sl_false);
 			Ref<View> parent = getParent();
 			if (parent.isNotNull()) {
-				parent->_setFocusedChild(this, mode);
+				parent->_setFocalChild(this, mode);
+				if (m_instance.isNotNull()) {
+					invalidate(mode);
+				}
 				return;
 			}
 		}
 		invalidate(mode);
 	}
 
-	sl_bool View::hasFocusedChild()
+	sl_bool View::hasFocalChild()
 	{
 		Ref<ViewChildAttributes>& childAttrs = m_childAttrs;
 		if (childAttrs.isNotNull()) {
-			return childAttrs->childFocused.isNotNull();
+			return childAttrs->childFocal.isNotNull();
 		}
 		return sl_false;
 	}
 
-	Ref<View> View::getFocusedChild()
+	Ref<View> View::getFocalChild()
 	{
 		Ref<ViewChildAttributes>& childAttrs = m_childAttrs;
 		if (childAttrs.isNotNull()) {
-			return childAttrs->childFocused;
+			return childAttrs->childFocal;
 		}
 		return sl_null;
 	}
 	
-	Ref<View> View::getFocusedDescendant()
+	Ref<View> View::getFocalDescendant()
 	{
-		Ref<View> focused = getFocusedChild();
+		Ref<View> focused = getFocalChild();
 		if (focused.isNotNull()) {
-			Ref<View> descendant = focused->getFocusedDescendant();
+			Ref<View> descendant = focused->getFocalDescendant();
 			if (descendant.isNotNull()) {
 				return descendant;
 			}
@@ -2153,7 +2158,11 @@ namespace slib
 		if (m_flagFocused) {
 			return this;
 		}
-		return getFocusedDescendant();
+		Ref<View> focused = getFocalChild();
+		if (focused.isNotNull()) {
+			return focused->getFocusedView();
+		}
+		return sl_null;
 	}
 
 	sl_bool View::isPressedState()
@@ -9568,10 +9577,10 @@ namespace slib
 			return;
 		}
 
-		Ref<View> childFocused = getFocusedChild();
-		if (childFocused.isNotNull()) {
-			if (childFocused->isInstance()) {
-				childFocused.setNull();
+		Ref<View> childFocal = getFocalChild();
+		if (childFocal.isNotNull()) {
+			if (childFocal->isInstance()) {
+				childFocal.setNull();
 			}
 		}
 
@@ -9588,8 +9597,8 @@ namespace slib
 		_processAutoHideScrollBar(ev);
 		
 		if (!(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
-			if (childFocused.isNotNull()) {
-				childFocused->dispatchKeyEvent(ev);
+			if (childFocal.isNotNull()) {
+				childFocal->dispatchKeyEvent(ev);
 			}
 		}
 		
@@ -10048,7 +10057,7 @@ namespace slib
 				Keycode keycode = ev->getKeycode();
 				switch (keycode) {
 				case Keycode::Tab:
-					if (isTabStopEnabled() && getFocusedChild().isNull()) {
+					if (isTabStopEnabled() && !(hasFocalChild())) {
 						if (ev->isShiftKey()) {
 							Ref<View> v = getPreviousTabStop();
 							if (v.isNotNull() && v != this) {
@@ -11010,7 +11019,7 @@ namespace slib
 	{
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
-			Ref<View> focus = view->getFocusedDescendant();
+			Ref<View> focus = view->getFocalDescendant();
 			if (focus.isNotNull()) {
 				focus->_setFocus(sl_true, sl_true, UIUpdateMode::Redraw);
 			} else {
@@ -11023,7 +11032,7 @@ namespace slib
 	{
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
-			Ref<View> focus = view->getFocusedDescendant();
+			Ref<View> focus = view->getFocalDescendant();
 			if (focus.isNotNull()) {
 				focus->_setFocus(sl_false, sl_false, UIUpdateMode::Redraw);
 			} else {

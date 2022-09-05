@@ -41,7 +41,7 @@ namespace slib
 
 	void XControl::onDrawBorder(Canvas* canvas)
 	{
-		if (hasFocusedChild()) {
+		if (getFocusedView().isNotNull()) {
 			drawBorder(canvas, m_focusedBorder);
 		} else {
 			drawBorder(canvas, getBorder());

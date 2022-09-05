@@ -622,7 +622,7 @@ namespace slib
 		m_navigationController = controller;
 
 		if (action == UIPageAction::Resume || action == UIPageAction::Push) {
-			Ref<View> focus = getFocusedDescendant();
+			Ref<View> focus = getFocalDescendant();
 			if (focus.isNotNull()) {
 				focus->setFocus();
 			}

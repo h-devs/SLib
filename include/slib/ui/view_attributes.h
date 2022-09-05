@@ -298,7 +298,7 @@ namespace slib
 		AtomicRef<View> childMouseMove;
 		AtomicRef<View> childMouseDown;
 		AtomicRef<View> childDragOver;
-		AtomicRef<View> childFocused;
+		AtomicRef<View> childFocal;
 
 		AtomicFunction<sl_bool(const UIPoint& pt)> hitTestCapturingChildInstanceEvents;
 		
