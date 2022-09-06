@@ -531,7 +531,7 @@ namespace slib
 			}
 		}
 		
-		if (!(_generateLayoutsCpp_Item(layout, layout, sl_null, sbHeader, sbCpp, sbLayout, String::null()))) {
+		if (!(_generateLayoutsCpp_Item(layout, layout, sl_null, sbHeader, sbCpp, sbLayout, sl_null))) {
 			return sl_false;
 		}
 
@@ -641,11 +641,11 @@ namespace slib
 	{
 		Ref<SAppLayoutSimulationWindow> window = simulator->getSimulationWindow();
 		if (window.isNull()) {
-			return Ref<View>::null();
+			return sl_null;
 		}
 		Ref<SAppLayoutResource> layout = simulator->getLayoutResource();
 		if (layout.isNull()) {
-			return Ref<View>::null();
+			return sl_null;
 		}
 		
 		Ref<View> view;
@@ -653,13 +653,13 @@ namespace slib
 			if (flagOnLayout) {
 				view = simulator->getViewByName(item->name);
 				if (view.isNull()) {
-					return Ref<View>::null();
+					return sl_null;
 				}
 			}
 		} else {
 			view = simulator->getSimulationContentView();
 			if (view.isNull()) {
-				return Ref<View>::null();
+				return sl_null;
 			}
 			if (layout->layoutType == SAppLayoutType::Window) {
 				UISize size = UI::getScreenSize();
@@ -694,14 +694,14 @@ namespace slib
 		pp.name = item->name;
 		pp.flagOnLayout = flagOnLayout;
 		if (!(_processLayoutResourceControl(&pp))) {
-			return Ref<View>::null();
+			return sl_null;
 		}
 		
 		if (parent) {
 			if (!flagOnLayout) {
 				view = pp.view;
 				if (view.isNull()) {
-					return Ref<View>::null();
+					return sl_null;
 				}
 				simulator->registerViewByName(item->name, view);
 			}
@@ -945,6 +945,9 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(TileLayout)
 			PROCESS_CONTROL_SWITCH(Pdf)
 			PROCESS_CONTROL_SWITCH(GroupBox)
+			PROCESS_CONTROL_SWITCH(XControl)
+			PROCESS_CONTROL_SWITCH(XEdit)
+			PROCESS_CONTROL_SWITCH(XPassword)
 			default:
 				return sl_false;
 		}
@@ -958,7 +961,7 @@ namespace slib
 						if (params->resourceItem->flagNoChildren) {
 							break;
 						}
-						ListLocker< Ref<XmlElement> > children(_getLayoutItemChildElements(resourceItem, params->resource->name, String::null()));
+						ListLocker< Ref<XmlElement> > children(_getLayoutItemChildElements(resourceItem, params->resource->name, sl_null));
 						for (sl_size i = 0; i < children.count; i++) {
 							const Ref<XmlElement>& child = children[i];
 							if (child.isNotNull()) {
@@ -1467,12 +1470,14 @@ namespace slib
 	
 
 #define LAYOUT_CONTROL_PROCESS_SUPER(BASE) \
-	String tempAddStatement = params->addStatement; \
-	params->addStatement = String::null(); \
-	if (!(_processLayoutResourceControl_##BASE(params))) { \
-		return sl_false; \
-	} \
-	params->addStatement = tempAddStatement;
+	{ \
+		String tempAddStatement = params->addStatement; \
+		params->addStatement = sl_null; \
+		if (!(_processLayoutResourceControl_##BASE(params))) { \
+			return sl_false; \
+		} \
+		params->addStatement = tempAddStatement; \
+	}
 
 #define LAYOUT_CONTROL_ADD_STATEMENT \
 	if (op == OP_GENERATE_CPP) { \
@@ -2155,7 +2160,7 @@ namespace slib
 			} else if (op == OP_GENERATE_CPP){
 				if (attr->borderWidth.flagDefined) {
 					if (Math::isAlmostZero(attr->borderWidth.amount)) {
-						params->sbDefineInit->add(String::format("%s%s->setBorder(slib::Ref<slib::Pen>::null(), slib::UIUpdateMode::Init);%n", strTab, name));
+						params->sbDefineInit->add(String::format("%s%s->setBorder(sl_null, slib::UIUpdateMode::Init);%n", strTab, name));
 					} else {
 						if (attr->borderColor.flagDefined && attr->borderStyle.flagDefined) {
 							String strBorderColor;
@@ -2182,7 +2187,7 @@ namespace slib
 				if (attr->borderWidth.flagDefined) {
 					if (Math::isAlmostZero(attr->borderWidth.amount)) {
 						if (!flagOnLayout) {
-							view->setBorder(Ref<Pen>::null(), UIUpdateMode::Init);
+							view->setBorder(sl_null, UIUpdateMode::Init);
 						}
 					} else {
 						if (attr->borderColor.flagDefined && attr->borderStyle.flagDefined) {
@@ -2625,7 +2630,7 @@ namespace slib
 					}
 					if (category.borderWidth[k].flagDefined || category.borderColor[k].flagDefined || category.borderStyle[k].flagDefined) {
 						if (category.borderWidth[k].flagDefined && Math::isAlmostZero(category.borderWidth[k].amount)) {
-							params->sbDefineInit->add(String::format("%s%s->setBorder(slib::Ref<slib::Pen>::null(), slib::ButtonState::%s, %d, slib::UIUpdateMode::Init);%n", strTab, name, strStates[k], i));
+							params->sbDefineInit->add(String::format("%s%s->setBorder(sl_null, slib::ButtonState::%s, %d, slib::UIUpdateMode::Init);%n", strTab, name, strStates[k], i));
 						} else {
 							StringBuffer* sb;
 							String strUpdateMode;
@@ -2696,7 +2701,7 @@ namespace slib
 					if (category.borderWidth[k].flagDefined || category.borderColor[k].flagDefined || category.borderStyle[k].flagDefined) {
 						if (category.borderWidth[k].flagDefined && Math::isAlmostZero(category.borderWidth[k].amount)) {
 							if (!flagOnLayout) {
-								view->setBorder(Ref<Pen>::null(), (ButtonState)k, i, UIUpdateMode::Init);
+								view->setBorder(sl_null, (ButtonState)k, i, UIUpdateMode::Init);
 							}
 						} else {
 							if (flagOnLayout) {
@@ -3381,7 +3386,7 @@ namespace slib
 			}
 			Ref<Referable> _refer = refer;
 			if (_refer.isNull()) {
-				return Ref<View>::null();
+				return sl_null;
 			}
 			Ref<SAppLayoutImportView> view = new SAppLayoutImportView;
 			if (view.isNotNull()) {
@@ -4588,7 +4593,7 @@ namespace slib
 					if (attr->url.flagDefined) {
 						params->sbDefineInit->add(String::format("%s%s->loadHTML(%s, %s);%n%n", strTab, name, strHtml, strUrl));
 					} else {
-						params->sbDefineInit->add(String::format("%s%s->loadHTML(%s, slib::String::null());%n%n", strTab, name, strHtml));
+						params->sbDefineInit->add(String::format("%s%s->loadHTML(%s, sl_null);%n%n", strTab, name, strHtml));
 					}
 				} else {
 					if (attr->url.flagDefined) {
@@ -4609,7 +4614,7 @@ namespace slib
 						if (attr->url.flagDefined) {
 							view->loadHTML(_html, _url);
 						} else {
-							view->loadHTML(_html, String::null());
+							view->loadHTML(_html, sl_null);
 						}
 					} else {
 						if (attr->url.flagDefined) {
@@ -5234,6 +5239,37 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
+	}
+	END_PROCESS_LAYOUT_CONTROL
+	
+	
+	BEGIN_PROCESS_LAYOUT_CONTROL(XControl, XControl)
+	{
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
+		
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(focusedBorderColor, setFocusedBorderColor)
+		
+		LAYOUT_CONTROL_ADD_STATEMENT
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(XEdit, XEditView)
+	{
+		LAYOUT_CONTROL_PROCESS_SUPER(XControl)
+		LAYOUT_CONTROL_PROCESS_SUPER(Edit)
+		
+		LAYOUT_CONTROL_ADD_STATEMENT
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+
+#define SAppLayoutXPasswordAttributes SAppLayoutXEditAttributes
+#define attrsXPassword attrsXEdit
+	BEGIN_PROCESS_LAYOUT_CONTROL(XPassword, XPasswordView)
+	{
+		if (!(_processLayoutResourceControl_XEdit(params))) {
+			return sl_false;
+		}
 	}
 	END_PROCESS_LAYOUT_CONTROL
 

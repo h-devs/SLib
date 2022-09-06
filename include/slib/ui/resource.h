@@ -357,6 +357,10 @@ namespace slib
 	class TileLayout;
 	class PdfView;
 
+	class XControl;
+	class XEditView;
+	class XPasswordView;
+
 }
 
 #endif

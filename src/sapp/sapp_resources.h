@@ -973,6 +973,17 @@ namespace slib
 
 	};
 
+	class SAppLayoutXControlAttributes : public Referable
+	{
+	public:
+		SAppColorValue focusedBorderColor;
+	};
+
+	class SAppLayoutXEditAttributes : public Referable
+	{
+	public:
+	};
+
 	class SAppLayoutStyle : public Referable
 	{
 	public:
@@ -1048,7 +1059,11 @@ namespace slib
 		Line = 0x026e,
 		SelectSwitch = 0x026f,
 		ComboBox = 0x0270,
-		Pdf = 0x0271
+		Pdf = 0x0271,
+
+		XControl = 0x02a0,
+		XEdit = 0x02a1,
+		XPassword = 0x02a2
 	};
 
 	class SAppLayoutResourceItem : public Referable
@@ -1107,6 +1122,8 @@ namespace slib
 		Ref<SAppLayoutTileLayoutAttributes> attrsTileLayout;
 		Ref<SAppLayoutPdfAttributes> attrsPdf;
 		Ref<SAppLayoutGroupBoxAttributes> attrsGroupBox;
+		Ref<SAppLayoutXControlAttributes> attrsXControl;
+		Ref<SAppLayoutXEditAttributes> attrsXEdit;
 
 		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;

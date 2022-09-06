@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,21 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_OBJECT_TYPES
-#define CHECKHEADER_SLIB_OBJECT_TYPES
+#ifndef CHECKHEADER_SLIB_UIX_OBJECT_TYPES
+#define CHECKHEADER_SLIB_UIX_OBJECT_TYPES
+
+#include "../object_types.h"
 
 namespace slib
 {
 	namespace object_types
 	{
 
-		namespace packages
-		{
-			enum {
-				Core = 0xff010000,
-				Math = 0xff020000,
-				Crypto = 0xff030000,
-				Network = 0xff040000,
-				Graphics = 0xff050000,
-				Render = 0xff060000,
-				Device = 0xff070000,
-				Ui = 0xff080000,
-				Db = 0xff090000,
-				Media = 0xff0a0000,
-				Social = 0xff0b0000,
-				Service = 0xff0c0000,
-				Geo = 0xff0d0000,
-				Doc = 0xff0e0000,
-				Storage = 0xff0f0000,
-				Dev = 0xff100000,
-				Uix = 0xff110000
-			};
-		}
+		enum {
+			Package_Uix = packages::Uix,
+			XControl,
+			XEditView
+		};
 
 	}
 }

@@ -61,6 +61,9 @@
     <Filter Include="inc">
       <UniqueIdentifier>{ee59f2d4-03fa-45eb-9fd2-80029c13eb53}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\uix">
+      <UniqueIdentifier>{72aba02e-46df-4579-9d83-af88c7933bb3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\slib\core\async_config.h">
@@ -1432,6 +1435,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\group_box.cpp">
       <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\uix\x_edit_view.cpp">
+      <Filter>src\uix</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\uix\x_control.cpp">
+      <Filter>src\uix</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

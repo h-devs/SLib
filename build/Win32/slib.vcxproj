@@ -388,6 +388,8 @@
     <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp" />
     <ClCompile Include="..\..\src\slib\storage\winspd.cpp" />
     <ClCompile Include="..\..\src\slib\storage\winspd_install.cpp" />
+    <ClCompile Include="..\..\src\slib\uix\x_control.cpp" />
+    <ClCompile Include="..\..\src\slib\uix\x_edit_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\audio_view.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button.cpp" />
     <ClCompile Include="..\..\src\slib\ui\button_win32.cpp" />

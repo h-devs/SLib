@@ -674,6 +674,26 @@ namespace slib
 		return m_indexSelectionEnd;
 	}
 
+	sl_bool EditView::isAutoHorizontalScrolling()
+	{
+		return m_flagAutoHorizontalScrolling;
+	}
+
+	void EditView::setAutoHorizontalScrolling(sl_bool flag)
+	{
+		m_flagAutoHorizontalScrolling = flag;
+	}
+
+	sl_bool EditView::isAutoVerticalScrolling()
+	{
+		return m_flagAutoVerticalScrolling;
+	}
+
+	void EditView::setAutoVerticalScrolling(sl_bool flag)
+	{
+		m_flagAutoVerticalScrolling = flag;
+	}
+
 	void EditView::onUpdateLayout()
 	{
 		sl_bool flagHorizontalWrapping = isWidthWrapping();

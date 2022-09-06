@@ -331,6 +331,7 @@ namespace slib
 			case SAppLayoutItemType::Unknown:
 				return String::null();
 			case SAppLayoutItemType::View:
+			case SAppLayoutItemType::XControl:
 				prefix = "view";
 				pN = &nAutoIncreaseNameView;
 				break;
@@ -363,10 +364,12 @@ namespace slib
 				pN = &nAutoIncreaseNameRadio;
 				break;
 			case SAppLayoutItemType::Edit:
+			case SAppLayoutItemType::XEdit:
 				prefix = "edit";
 				pN = &nAutoIncreaseNameEdit;
 				break;
 			case SAppLayoutItemType::Password:
+			case SAppLayoutItemType::XPassword:
 				prefix = "password";
 				pN = &nAutoIncreaseNamePassword;
 				break;
@@ -537,8 +540,12 @@ namespace slib
 			type = SAppLayoutItemType::Radio;
 		} else if (strType == "edit") {
 			type = SAppLayoutItemType::Edit;
+		} else if (strType == "xedit" || strType == "x-edit") {
+			type = SAppLayoutItemType::XEdit;
 		} else if (strType == "password") {
 			type = SAppLayoutItemType::Password;
+		} else if (strType == "xpassword" || strType == "x-password") {
+			type = SAppLayoutItemType::XPassword;
 		} else if (strType == "textarea" || strType == "text-area") {
 			type = SAppLayoutItemType::TextArea;
 		} else if (strType == "image") {
