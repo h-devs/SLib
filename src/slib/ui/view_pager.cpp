@@ -257,7 +257,7 @@ namespace slib
 		_resizePages();
 	}
 	
-	void ViewPager::onChangePadding()
+	void ViewPager::onChangePadding(UIUpdateMode mode)
 	{
 		_resizePages();
 	}

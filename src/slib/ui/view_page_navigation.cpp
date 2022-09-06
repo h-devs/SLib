@@ -519,13 +519,14 @@ namespace slib
 		}
 	}
 
-	void ViewPageNavigationController::onChangePadding()
+	void ViewPageNavigationController::onChangePadding(UIUpdateMode mode)
 	{
+		mode = SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None;
 		Rectangle rect(getBoundsInnerPadding());
 		ObjectLocker lock(this);
 		ListElements< Ref<View> > pages(m_pages);
 		for (sl_size i = 0; i < pages.count; i++) {
-			pages[i]->setFrame(rect);
+			pages[i]->setFrame(rect, mode);
 		}
 	}
 

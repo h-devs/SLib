@@ -277,7 +277,7 @@ namespace slib
 	protected:		
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 		
-		void onChangePadding() override;
+		void onChangePadding(UIUpdateMode mode) override;
 		
 	private:
 		void _createRootItem();

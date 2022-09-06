@@ -294,7 +294,7 @@ namespace slib
 		void setHitTestable(sl_bool flag = sl_true);
 		
 		// local coordinate
-		virtual sl_bool hitTest(sl_ui_pos x, sl_ui_pos y);
+		sl_bool hitTest(sl_ui_pos x, sl_ui_pos y);
 		
 		// local coordinate
 		sl_bool hitTest(const UIPoint& point);
@@ -745,7 +745,7 @@ namespace slib
 		
 		Ref<Drawable> getBackground();
 		
-		virtual void setBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Color getBackgroundColor();
 		
@@ -753,7 +753,7 @@ namespace slib
 		
 		Ref<Drawable> getPressedBackground();
 		
-		virtual void setPressedBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setPressedBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Color getPressedBackgroundColor();
 		
@@ -761,7 +761,7 @@ namespace slib
 		
 		Ref<Drawable> getHoverBackground();
 		
-		virtual void setHoverBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHoverBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Color getHoverBackgroundColor();
 		
@@ -769,15 +769,15 @@ namespace slib
 		
 		ScaleMode getBackgroundScaleMode();
 		
-		virtual void setBackgroundScaleMode(ScaleMode scaleMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setBackgroundScaleMode(ScaleMode scaleMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		
 		Alignment getBackgroundAlignment();
 		
-		virtual void setBackgroundAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBackgroundAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Ref<Pen> getBorder();
 		
-		virtual void setBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		PenStyle getBorderStyle();
 		
@@ -855,11 +855,11 @@ namespace slib
 		
 		sl_bool isOpaque();
 		
-		virtual void setOpaque(sl_bool flagOpaque = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setOpaque(sl_bool flagOpaque = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_real getAlpha();
 		
-		virtual void setAlpha(sl_real alpha, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setAlpha(sl_real alpha, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isAntiAlias();
 
@@ -880,15 +880,15 @@ namespace slib
 				
 		float getShadowOpacity();
 		
-		virtual void setShadowOpacity(float alpha, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setShadowOpacity(float alpha, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_ui_posf getShadowRadius();
 		
-		virtual void setShadowRadius(sl_ui_posf radius, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setShadowRadius(sl_ui_posf radius, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		const UIPointf& getShadowOffset();
 		
-		virtual void setShadowOffset(const UIPointf& offset, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setShadowOffset(const UIPointf& offset, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void setShadowOffset(sl_ui_posf x, sl_ui_posf y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -898,7 +898,7 @@ namespace slib
 		
 		Color getShadowColor();
 		
-		virtual void setShadowColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setShadowColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		
 		virtual Ref<AnimationLoop> getAnimationLoop();
@@ -1077,7 +1077,7 @@ namespace slib
 		
 		void setVerticalScrolling(sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		virtual void setScrolling(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setScrolling(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isValidHorizontalScrolling();
 
@@ -1095,7 +1095,7 @@ namespace slib
 		
 		sl_bool isVerticalScrollBarVisible();
 		
-		virtual void setScrollBarsVisible(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setScrollBarsVisible(sl_bool flagHorizontal = sl_true, sl_bool flagVertical = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void setHorizontalScrollBarVisible(sl_bool flagVisible = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -1109,13 +1109,13 @@ namespace slib
 
 		void setCanvasScrolling(sl_bool flag = sl_true);
 
-		virtual Pointlf getScrollPosition();
+		Pointlf getScrollPosition();
 		
 		sl_scroll_pos getScrollX();
 		
 		sl_scroll_pos getScrollY();
 		
-		virtual void scrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void scrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void scrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -1123,7 +1123,7 @@ namespace slib
 		
 		void scrollToY(sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
-		virtual void smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		void smoothScrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
@@ -1157,7 +1157,7 @@ namespace slib
 		
 		void setContentHeight(sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
-		virtual ScrollPoint getScrollRange();
+		ScrollPoint getScrollRange();
 		
 		sl_ui_len getScrollBarWidth();
 		
@@ -1376,8 +1376,10 @@ namespace slib
 		virtual void onUpdateLayout();
 
 		virtual void onUpdateFont(const Ref<Font>& font);
+
+		virtual void onChangeSizeMode(UIUpdateMode mode);
 		
-		virtual void onChangePadding();
+		virtual void onChangePadding(UIUpdateMode mode);
 		
 		virtual void onUpdatePaging();
 		

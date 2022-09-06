@@ -815,9 +815,10 @@ namespace slib
 		}
 	}
 	
-	void TreeView::onChangePadding()
+	void TreeView::onChangePadding(UIUpdateMode mode)
 	{
-		_relayoutContent(UIUpdateMode::None);
+		mode = SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None;
+		_relayoutContent(mode);
 	}
 	
 	SLIB_DEFINE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item)

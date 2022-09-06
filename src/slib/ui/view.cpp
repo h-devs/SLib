@@ -3484,6 +3484,7 @@ namespace slib
 		if (attrs.isNotNull()) {
 			attrs->widthMode = SizeMode::Fixed;
 			invalidateParentLayout(mode);
+			onChangeSizeMode(mode);
 		}
 	}
 
@@ -3502,6 +3503,7 @@ namespace slib
 		if (attrs.isNotNull()) {
 			attrs->heightMode = SizeMode::Fixed;
 			invalidateParentLayout(mode);
+			onChangeSizeMode(mode);
 		}
 	}
 
@@ -3548,6 +3550,7 @@ namespace slib
 			if (attrs->rightMode == PositionMode::Free) {
 				attrs->rightMode = PositionMode::ParentEdge;
 			}
+			onChangeSizeMode(mode);
 			invalidateParentLayout(mode);
 		}
 	}
@@ -3577,6 +3580,7 @@ namespace slib
 			if (attrs->bottomMode == PositionMode::Free) {
 				attrs->bottomMode = PositionMode::ParentEdge;
 			}
+			onChangeSizeMode(mode);
 			invalidateParentLayout(mode);
 		}
 	}
@@ -3596,6 +3600,7 @@ namespace slib
 		Ref<ViewLayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->widthMode = SizeMode::Wrapping;
+			onChangeSizeMode(mode);
 			invalidateSelfAndParentLayout(mode);
 		}
 	}
@@ -3615,6 +3620,7 @@ namespace slib
 		Ref<ViewLayoutAttributes>& attrs = m_layoutAttrs;
 		if (attrs.isNotNull()) {
 			attrs->heightMode = SizeMode::Wrapping;
+			onChangeSizeMode(mode);
 			invalidateSelfAndParentLayout(mode);
 		}
 	}
@@ -3638,6 +3644,7 @@ namespace slib
 				weight = 0;
 			}
 			attrs->widthWeight = weight;
+			onChangeSizeMode(mode);
 			invalidateParentLayout(mode);
 		}
 	}
@@ -3661,6 +3668,7 @@ namespace slib
 				weight = 0;
 			}
 			attrs->heightWeight = weight;
+			onChangeSizeMode(mode);
 			invalidateParentLayout(mode);
 		}
 	}
@@ -4394,7 +4402,7 @@ namespace slib
 			attrs->padding##NAME = padding; \
 			invalidateLayout(mode); \
 			if (!SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
-				onChangePadding(); \
+				onChangePadding(mode); \
 			} \
 		} \
 	} \
@@ -4424,7 +4432,7 @@ namespace slib
 			attrs->padding##NAME = (sl_ui_pos)(PARENT_LEN * weight); \
 			invalidateLayout(mode); \
 			if (!SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
-				onChangePadding(); \
+				onChangePadding(mode); \
 			} \
 		} \
 	}
@@ -4455,7 +4463,7 @@ namespace slib
 			attrs->paddingBottom = bottom;
 			invalidateLayout(mode);
 			if (!SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
-				onChangePadding();
+				onChangePadding(mode);
 			}
 		}
 	}
@@ -8611,8 +8619,12 @@ namespace slib
 	void View::onUpdateFont(const Ref<Font>& font)
 	{
 	}
+
+	void View::onChangeSizeMode(UIUpdateMode mode)
+	{
+	}
 	
-	void View::onChangePadding()
+	void View::onChangePadding(UIUpdateMode mode)
 	{
 		_setInstancePadding();
 	}
