@@ -2074,7 +2074,10 @@ namespace slib
 				SLIB_VIEW_RUN_ON_UI_THREAD(_setFocusedFlag, flagFocused, flagApplyInstance)
 				Ref<View> view = instance->getView();
 				if (view.isNotNull()) {
-					m_flagFocused = flagFocused;
+					if (m_flagFocused != flagFocused) {
+						m_flagFocused = flagFocused;
+						dispatchChangeFocus(flagFocused);
+					}
 					instance->setFocus(view.get(), flagFocused);
 					return;
 				}
