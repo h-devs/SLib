@@ -1188,10 +1188,9 @@ namespace slib
 		}
 
 		UIRect layoutFrameContainer = getLayoutFrame();
-		sl_ui_len paddingContainerLeft = getPaddingLeft();
-		sl_ui_len paddingContainerTop = getPaddingTop();
-		sl_ui_len widthContainer = layoutFrameContainer.getWidth() - paddingContainerLeft - getPaddingTop();
-		sl_ui_len heightContainer = layoutFrameContainer.getHeight() - paddingContainerTop - getPaddingBottom();
+		UIEdgeInsets paddingContainer = getPadding();
+		sl_ui_len widthContainer = layoutFrameContainer.getWidth() - paddingContainer.left - paddingContainer.right;
+		sl_ui_len heightContainer = layoutFrameContainer.getHeight() - paddingContainer.top - paddingContainer.bottom;
 
 		sl_uint32 iRow, iCol;
 		Row* rows = m_rows.getData();
@@ -1415,12 +1414,12 @@ namespace slib
 		updateLayoutParam.flagUseLayout = sl_true;
 		updateLayoutParam.flagHorizontal = sl_true;
 		updateLayoutParam.flagVertical = sl_true;
-		sl_ui_len y = paddingContainerTop;
+		sl_ui_len y = paddingContainer.top;
 		for (iRow = 0; iRow < nRows; iRow++) {
 			Row& row = rows[iRow];
 			Cell* cells = row.cells.getData();
 			sl_uint32 nCells = Math::min((sl_uint32)(row.cells.getCount()), nCols);
-			sl_ui_len x = paddingContainerLeft;
+			sl_ui_len x = paddingContainer.left;
 			for (iCol = 0; iCol < nCells; iCol++) {
 				Cell& cell = cells[iCol];
 				Column& col = cols[iCol];
@@ -1456,15 +1455,15 @@ namespace slib
 			y += row.heightLayout + row.marginTop + row.marginBottom;
 		}
 		if (isWidthWrapping()) {
-			sl_ui_len x = 0;
+			sl_ui_len x = paddingContainer.left;
 			for (iCol = 0; iCol < nCols; iCol++) {
 				Column& col = cols[iCol];
 				x += col.widthLayout + col.marginLeft + col.marginRight;
 			}
-			setLayoutWidth(x);
+			setLayoutWidth(x + paddingContainer.right);
 		}
 		if (isHeightWrapping()) {
-			setLayoutHeight(y);
+			setLayoutHeight(y + paddingContainer.bottom);
 		}
 	}
 
