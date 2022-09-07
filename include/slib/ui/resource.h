@@ -358,6 +358,7 @@ namespace slib
 	class PdfView;
 
 	class XControl;
+	class XButton;
 	class XEditView;
 	class XPasswordView;
 

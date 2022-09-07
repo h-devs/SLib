@@ -264,6 +264,7 @@ namespace slib
 			}
 
 			item->itemType = type;
+			item->itemTypeName = strType;
 
 		}
 		
@@ -946,6 +947,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Pdf)
 			PROCESS_CONTROL_SWITCH(GroupBox)
 			PROCESS_CONTROL_SWITCH(XControl)
+			PROCESS_CONTROL_SWITCH(XButton)
 			PROCESS_CONTROL_SWITCH(XEdit)
 			PROCESS_CONTROL_SWITCH(XPassword)
 			default:
@@ -2265,11 +2267,11 @@ namespace slib
 		if (op == OP_PARSE) {
 			LAYOUT_CONTROL_PARSE_ATTR(attr->, scrolling)
 			if (!(attr->scrolling.flagDefined)) {
-				if (element->getName() == "hscroll") {
+				if (resourceItem->itemTypeName == "hscroll") {
 					attr->scrolling.flagDefined = sl_true;
 					attr->scrolling.horizontal = sl_true;
 					attr->scrolling.vertical = sl_false;
-				} else if (element->getName() == "vscroll") {
+				} else if (resourceItem->itemTypeName == "vscroll") {
 					attr->scrolling.flagDefined = sl_true;
 					attr->scrolling.horizontal = sl_false;
 					attr->scrolling.vertical = sl_true;
@@ -2790,10 +2792,10 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
 			if (op == OP_PARSE) {
-				if (element->getName() == "hline") {
+				if (resourceItem->itemTypeName == "hline") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Horizontal;
-				} else if (element->getName() == "vline") {
+				} else if (resourceItem->itemTypeName == "vline") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Vertical;
 				}
@@ -2864,34 +2866,36 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
+#define PROCESS_EDIT_ATTRS \
+		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(text, setText) \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity) \
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor) \
+		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(hintText, setHintText) \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(hintGravity, setHintGravity) \
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(hintTextColor, setHintTextColor) \
+		LAYOUT_CONTROL_FONT_ATTR(hintFont, setHintFont) \
+		if (op == OP_PARSE) { \
+			if (attr->hintFont.isDefined()) { \
+				attr->hintFont.inheritFrom(resourceItem->attrsView->finalFont); \
+			} \
+		} \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(readOnly, setReadOnly) \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(password, setPassword) \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(number, setNumber) \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lowercase, setLowercase) \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(uppercase, setUppercase) \
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multiLine, setMultiLine) \
+		LAYOUT_CONTROL_GENERIC_ATTR(returnKey, setReturnKeyType) \
+		LAYOUT_CONTROL_GENERIC_ATTR(keyboard, setKeyboardType) \
+		LAYOUT_CONTROL_GENERIC_ATTR(autoCap, setAutoCapitalizationType) \
+		LAYOUT_CONTROL_NOPARAM_ATTR(focusNextOnReturnKey, setFocusNextOnReturnKey)
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Edit, EditView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 		
-		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(text, setText)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(textColor, setTextColor)
-		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(hintText, setHintText)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(hintGravity, setHintGravity)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(hintTextColor, setHintTextColor)
-		LAYOUT_CONTROL_FONT_ATTR(hintFont, setHintFont)
-		if (op == OP_PARSE) {
-			if (attr->hintFont.isDefined()) {
-				attr->hintFont.inheritFrom(resourceItem->attrsView->finalFont);
-			}
-		}
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(readOnly, setReadOnly)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(password, setPassword)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(number, setNumber)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(lowercase, setLowercase)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(uppercase, setUppercase)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(multiLine, setMultiLine)
-		LAYOUT_CONTROL_GENERIC_ATTR(returnKey, setReturnKeyType)
-		LAYOUT_CONTROL_GENERIC_ATTR(keyboard, setKeyboardType)
-		LAYOUT_CONTROL_GENERIC_ATTR(autoCap, setAutoCapitalizationType)
-		LAYOUT_CONTROL_NOPARAM_ATTR(focusNextOnReturnKey, setFocusNextOnReturnKey)
-		
+		PROCESS_EDIT_ATTRS
+
 		LAYOUT_CONTROL_ADD_STATEMENT
 		
 	}
@@ -3348,10 +3352,10 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
 			if (op == OP_PARSE) {
-				if (element->getName() == "hlinear") {
+				if (resourceItem->itemTypeName == "hlinear") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Horizontal;
-				} else if (element->getName() == "vlinear") {
+				} else if (resourceItem->itemTypeName == "vlinear") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Vertical;
 				}
@@ -4344,10 +4348,10 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
 			if (op == OP_PARSE) {
-				if (element->getName() == "hsplit") {
+				if (resourceItem->itemTypeName == "hsplit") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Horizontal;
-				} else if (element->getName() == "vsplit") {
+				} else if (resourceItem->itemTypeName == "vsplit") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Vertical;
 				}
@@ -5242,26 +5246,41 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 	
-	
+#define PROCESS_XCONTROL_ATTRS \
+		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(focusedBorderColor, setFocusedBorderColor)
+
 	BEGIN_PROCESS_LAYOUT_CONTROL(XControl, XControl)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 		
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(focusedBorderColor, setFocusedBorderColor)
+		PROCESS_XCONTROL_ATTRS
+		
+		LAYOUT_CONTROL_ADD_STATEMENT
+	}
+	END_PROCESS_LAYOUT_CONTROL
+	
+#define SAppLayoutXButtonAttributes SAppLayoutButtonAttributes
+#define attrsXButton attrsButton
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(XButton, XButton)
+	{
+		LAYOUT_CONTROL_PROCESS_SUPER(Button)
 		
 		LAYOUT_CONTROL_ADD_STATEMENT
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
+#define SAppLayoutXEditAttributes SAppLayoutEditAttributes
+#define attrsXEdit attrsEdit
 	BEGIN_PROCESS_LAYOUT_CONTROL(XEdit, XEditView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(XControl)
-		LAYOUT_CONTROL_PROCESS_SUPER(Edit)
+
+		PROCESS_EDIT_ATTRS
 		
 		LAYOUT_CONTROL_ADD_STATEMENT
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 #define SAppLayoutXPasswordAttributes SAppLayoutXEditAttributes
 #define attrsXPassword attrsXEdit

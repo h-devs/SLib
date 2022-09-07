@@ -25,6 +25,7 @@
 
 #include "uix/control.h"
 
+#include "uix/button.h"
 #include "uix/edit_view.h"
 
 #endif

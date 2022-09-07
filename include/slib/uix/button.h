@@ -20,55 +20,26 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UIX_CONTROL
-#define CHECKHEADER_SLIB_UIX_CONTROL
+#ifndef CHECKHEADER_SLIB_UIX_BUTTON
+#define CHECKHEADER_SLIB_UIX_BUTTON
 
 #include "definition.h"
 
-#include "../ui/view.h"
+#include "../ui/button.h"
 
 namespace slib
 {
-
-	class SLIB_EXPORT XControlProvider
-	{
-	public:
-		XControlProvider();
-
-		~XControlProvider();
-
-	public:
-		void initXControl(View* view);
-
-	public:
-		Color getFocusedBorderColor();
-
-		void setFocusedBorderColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-	protected:
-		void drawXControlBorder(Canvas* canvas);
-
-	protected:
-		View* m_view;
-		Ref<Pen> m_focusedBorder;
-
-	};
 	
-	class SLIB_EXPORT XControl : public ViewGroup, public XControlProvider
+	class SLIB_EXPORT XButton : public Button
 	{
-		SLIB_DECLARE_OBJECT
-		
 	public:
-		XControl();
+		XButton();
 
-		~XControl();
+		~XButton();
 
 	protected:
 		void init() override;
 		
-	protected:
-		void onDrawBorder(Canvas* canvas) override;
-
 	};
 	
 }

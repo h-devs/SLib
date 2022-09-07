@@ -1442,5 +1442,8 @@
     <ClCompile Include="..\..\src\slib\uix\x_control.cpp">
       <Filter>src\uix</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\uix\x_button.cpp">
+      <Filter>src\uix</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -134,7 +134,7 @@ namespace slib
 
 		void setAutoVerticalScrolling(sl_bool flag = sl_true);
 
-		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(XEditView, Change, String& value)

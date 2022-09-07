@@ -344,6 +344,7 @@ namespace slib
 				pN = &nAutoIncreaseNameImport;
 				break;
 			case SAppLayoutItemType::Button:
+			case SAppLayoutItemType::XButton:
 				prefix = "button";
 				pN = &nAutoIncreaseNameButton;
 				break;
@@ -530,6 +531,8 @@ namespace slib
 			type = SAppLayoutItemType::Import;
 		} else if (strType == "button") {
 			type = SAppLayoutItemType::Button;
+		} else if (strType == "xbutton" || strType == "x-button") {
+			type = SAppLayoutItemType::XButton;
 		} else if (strType == "label") {
 			type = SAppLayoutItemType::Label;
 		} else if (strType == "line" || strType == "hline" || strType == "vline") {

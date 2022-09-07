@@ -27,6 +27,7 @@ namespace slib
 		m_edit = new EditView;
 		if (m_edit.isNotNull()) {
 
+			m_edit->setBackgroundColor(Color::White, UIUpdateMode::Init);
 			m_edit->setWidthFilling(1.0f, UIUpdateMode::Init);
 			m_edit->setHeightFilling(1.0f, UIUpdateMode::Init);
 			m_edit->setAlignParentLeft(UIUpdateMode::Init);
