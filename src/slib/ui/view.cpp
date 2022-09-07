@@ -2046,21 +2046,23 @@ namespace slib
 			}
 			childAttrs->childFocal.setNull();
 		}
-		_setFocusedFlag(flagFocused, flagApplyInstance);
 		Ref<View> parent = getParent();
 		if (parent.isNotNull()) {
 			if (flagFocused) {
 				parent->_setFocalChild(this, mode);
+				_setFocusedFlag(flagFocused, flagApplyInstance);
 				return;
 			} else {
 				if (flagApplyInstance) {
 					if (parent->getFocalChild() == this) {
 						parent->_setFocalChild(sl_null, mode);
+						_setFocusedFlag(flagFocused, flagApplyInstance);
 						return;
 					}
 				}
 			}
 		}
+		_setFocusedFlag(flagFocused, flagApplyInstance);
 		invalidate(mode);
 	}
 	
@@ -2072,7 +2074,9 @@ namespace slib
 				SLIB_VIEW_RUN_ON_UI_THREAD(_setFocusedFlag, flagFocused, flagApplyInstance)
 				Ref<View> view = instance->getView();
 				if (view.isNotNull()) {
+					m_flagFocused = flagFocused;
 					instance->setFocus(view.get(), flagFocused);
+					return;
 				}
 			}
 		}

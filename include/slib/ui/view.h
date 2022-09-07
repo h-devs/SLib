@@ -306,7 +306,7 @@ namespace slib
 		
 		sl_bool isFocused();
 		
-		void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setFocus(sl_bool flagFocused = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_bool hasFocalChild();
 
