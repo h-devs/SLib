@@ -144,13 +144,18 @@ namespace slib
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
 
-		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
-
 		m_flagDefaultButton = sl_false;
 	}
 
 	Button::~Button()
 	{
+	}
+
+	void Button::init()
+	{
+		View::init();
+		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
+		setAntiAlias(sl_true, UIUpdateMode::Init);
 	}
 
 	String Button::getText()

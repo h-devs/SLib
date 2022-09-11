@@ -41,6 +41,9 @@ namespace slib
 		Button();
 
 		~Button();
+
+	protected:
+		void init() override;
 		
 	public:
 		String getText();
