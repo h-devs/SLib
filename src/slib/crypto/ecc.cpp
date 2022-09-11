@@ -698,7 +698,7 @@ namespace slib
 		Memory ret = Memory::create(nBytesPerComponent + 1);
 		if (ret.isNotNull()) {
 			sl_uint8* buf = (sl_uint8*)(ret.getData());
-			buf[0] = y.getBit(0) ? 3 : 2;
+			buf[0] = y.isOdd() ? 3 : 2;
 			x.getBytesBE(buf + 1, nBytesPerComponent);
 			return ret;
 		}
@@ -722,7 +722,7 @@ namespace slib
 		Memory ret = Memory::create((nBytesPerComponent << 1) + 1);
 		if (ret.isNotNull()) {
 			sl_uint8* buf = (sl_uint8*)(ret.getData());
-			buf[0] = y.getBit(0) ? 7 : 6;
+			buf[0] = y.isOdd() ? 7 : 6;
 			x.getBytesBE(buf + 1, nBytesPerComponent);
 			y.getBytesBE(buf + 1 + nBytesPerComponent, nBytesPerComponent);
 			return ret;
@@ -750,7 +750,7 @@ namespace slib
 						size--;
 						BigInt _x = BigInt::fromBytesBE(buf + 1, size);
 						if (_x.isNotNull()) {
-							BigInt _y = curve->getY(x, type & 1);
+							BigInt _y = curve->getY(_x, type & 1);
 							if (_y.isNotNull()) {
 								x = Move(_x);
 								y = Move(_y);
@@ -774,7 +774,7 @@ namespace slib
 								if (type == 4) {
 									return sl_true;
 								} else {
-									return (type & 1) == y.getBit(0) ? 1 : 0;
+									return (type & 1) == y.isOdd() ? 1 : 0;
 								}
 							}
 						}
@@ -863,9 +863,9 @@ namespace slib
 			}
 		} else {
 			ECPoint ret;
-			BigInt lambda = BigInt::mod_NonNegativeRemainder((p2.y - p1.y) * BigInt::inverseMod(p2.x - p1.x, p), p);
-			ret.x = BigInt::mod_NonNegativeRemainder((lambda * lambda) - p1.x - p2.x, p);
-			ret.y = BigInt::mod_NonNegativeRemainder((lambda * (p1.x - ret.x)) - p1.y, p);
+			BigInt lambda = BigInt::mod((p2.y - p1.y) * BigInt::inverseMod(p2.x - p1.x, p), p, sl_true);
+			ret.x = BigInt::mod((lambda * lambda) - p1.x - p2.x, p, sl_true);
+			ret.y = BigInt::mod((lambda * (p1.x - ret.x)) - p1.y, p, sl_true);
 			return ret;
 		}
 	}
@@ -877,9 +877,9 @@ namespace slib
 		}
 		ECPoint ret;
 		BigInt x2 = pt.x * pt.x;
-		BigInt lambda = BigInt::mod_NonNegativeRemainder((x2 + x2 + x2 + a) * BigInt::inverseMod(pt.y + pt.y, p), p);
-		ret.x = BigInt::mod_NonNegativeRemainder((lambda * lambda) - pt.x - pt.x, p);
-		ret.y = BigInt::mod_NonNegativeRemainder((lambda * (pt.x - ret.x)) - pt.y, p);
+		BigInt lambda = BigInt::mod((x2 + x2 + x2 + a) * BigInt::inverseMod(pt.y + pt.y, p), p, sl_true);
+		ret.x = BigInt::mod((lambda * lambda) - pt.x - pt.x, p, sl_true);
+		ret.y = BigInt::mod((lambda * (pt.x - ret.x)) - pt.y, p, sl_true);
 		return ret;
 	}
 	
@@ -916,7 +916,7 @@ namespace slib
 	{	
 		// y ^ 2 = x ^ 3 + ax + b (mod p)
 		BigInt y = BigInt::sqrtMod(x * x * x + x * a + b, p);
-		if (!yBit == !(y.getBit(0))) {
+		if (!yBit == y.isEven()) {
 			return y;
 		} else {
 			return p - y;
@@ -956,7 +956,7 @@ namespace slib
 		if (Q.y >= curve.p) {
 			return sl_false;
 		}
-		BigInt dy = BigInt::mod_NonNegativeRemainder((Q.x * Q.x * Q.x) + (curve.a * Q.x) + curve.b - (Q.y * Q.y), curve.p);
+		BigInt dy = BigInt::mod((Q.x * Q.x * Q.x) + (curve.a * Q.x) + curve.b - (Q.y * Q.y), curve.p, sl_true);
 		if (dy.isNotZero()) {
 			return sl_false;
 		}
@@ -991,7 +991,7 @@ namespace slib
 			if (d.isNull()) {
 				return sl_false;
 			}
-			d = BigInt::mod_NonNegativeRemainder(d, n2);
+			d = BigInt::mod(d, n2, sl_true);
 			if (d.getMostSignificantBits() + 2 < nBits) {
 				d = n2 - d + 1;
 			} else {
@@ -1134,13 +1134,13 @@ namespace slib
 			BigInt k;
 			if (_k) {
 				if (_k->isNull()) {
-					k = BigInt::mod_NonNegativeRemainder(BigInt::random(nBitsOrder), curve.n - 1) + 1;
+					k = BigInt::mod(BigInt::random(nBitsOrder), curve.n - 1, sl_true) + 1;
 				} else {
 					flagInputK = sl_true;
 					k = *_k;
 				}
 			} else {
-				k = BigInt::mod_NonNegativeRemainder(BigInt::random(nBitsOrder), curve.n - 1) + 1;
+				k = BigInt::mod(BigInt::random(nBitsOrder), curve.n - 1, sl_true) + 1;
 			}
 			ECPoint kG = curve.multiplyG(k);
 			if (kG.isO()) {
@@ -1149,7 +1149,7 @@ namespace slib
 				}
 				continue;
 			}
-			r = BigInt::mod_NonNegativeRemainder(kG.x, curve.n);
+			r = BigInt::mod(kG.x, curve.n, sl_true);
 			if (r.isZero()) {
 				if (flagInputK) {
 					return ECDSA_Signature();
@@ -1157,7 +1157,7 @@ namespace slib
 				continue;
 			}
 			BigInt k1 = BigInt::inverseMod(k, curve.n);
-			s = BigInt::mod_NonNegativeRemainder(k1 * (z + r * key.d), curve.n);
+			s = BigInt::mod(k1 * (z + r * key.d), curve.n, sl_true);
 			if (s.isZero()) {
 				if (flagInputK) {
 					return ECDSA_Signature();
@@ -1218,8 +1218,8 @@ namespace slib
 			return sl_false;
 		}
 		BigInt s1 = BigInt::inverseMod(signature.s, curve.n);
-		BigInt u1 = BigInt::mod_NonNegativeRemainder(z * s1, curve.n);
-		BigInt u2 = BigInt::mod_NonNegativeRemainder(signature.r * s1, curve.n);
+		BigInt u1 = BigInt::mod(z * s1, curve.n, sl_true);
+		BigInt u2 = BigInt::mod(signature.r * s1, curve.n, sl_true);
 		ECPoint p1 = curve.multiplyG(u1);
 		ECPoint p2 = curve.multiplyPoint(key.Q, u2);
 		ECPoint kG = curve.addPoint(p1, p2);

@@ -69,7 +69,11 @@ namespace slib
 		sl_bool getBit(sl_size pos) const noexcept;
 
 		sl_bool setBit(sl_size pos, sl_bool bit) noexcept;
-	
+
+		sl_bool isEven() const noexcept;
+
+		sl_bool isOdd() const noexcept;
+
 		// get size in elements
 		sl_size getMostSignificantElements() const noexcept;
 
@@ -103,6 +107,8 @@ namespace slib
 		sl_bool copyAbsFrom(const CBigInt& other) noexcept;
 
 		sl_bool copyFrom(const CBigInt& other) noexcept;
+
+		void moveFrom(CBigInt& other) noexcept;
 
 		sl_bool compact() noexcept;
 
@@ -279,7 +285,9 @@ namespace slib
 		sl_bool mul(sl_int64 v) noexcept;
 
 		sl_bool mul(sl_uint64 v) noexcept;
-	
+
+		sl_bool mulMod(const CBigInt& a, const CBigInt& b, const CBigInt& M) noexcept;
+
 
 		static sl_bool divAbs(const CBigInt& a, const CBigInt& b, CBigInt* quotient = sl_null, CBigInt* remainder = sl_null) noexcept;
 
@@ -296,7 +304,11 @@ namespace slib
 
 		// always non-negative remainder
 		static sl_bool divUint64(const CBigInt& a, sl_uint64 b, CBigInt* quotient = sl_null, sl_uint64* remainder = sl_null) noexcept;
-	
+
+		sl_bool mod(const CBigInt& a, const CBigInt& M, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
+
+		sl_bool mod(const CBigInt& M, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
+
 
 		sl_bool bitwiseAnd(const CBigInt& a, const CBigInt& b) noexcept;
 
@@ -337,7 +349,9 @@ namespace slib
 		sl_bool bitwiseOr(sl_uint64 v) noexcept;
 
 
-		sl_bool shiftLeft(const CBigInt& other, sl_size n) noexcept;
+		sl_bool shiftLeft(const CBigInt& other, sl_size n, const CBigInt* pM = sl_null) noexcept;
+
+		sl_bool shiftLeftOneBit(const CBigInt& other, const CBigInt* pM = sl_null) noexcept;
 
 		sl_bool shiftRight(const CBigInt& other, sl_size n) noexcept;
 
@@ -352,20 +366,20 @@ namespace slib
 		*/
 		sl_bool pow(const CBigInt& A, const CBigInt& E, const CBigInt* pM = sl_null) noexcept;
 
-		sl_bool pow_mod(const CBigInt& A, const CBigInt& E, const CBigInt& M) noexcept;
+		sl_bool pow(const CBigInt& E, const CBigInt* pM = sl_null) noexcept;
 
-		sl_bool pow_mod(const CBigInt& E, const CBigInt& M) noexcept;
+		sl_bool powMod(const CBigInt& A, const CBigInt& E, const CBigInt& M) noexcept;
 
-		sl_bool pow(const CBigInt& E) noexcept;
+		sl_bool powMod(const CBigInt& E, const CBigInt& M) noexcept;
 
 		sl_bool pow(const CBigInt& A, sl_uint32 E, const CBigInt* pM = sl_null) noexcept;
 	
-		sl_bool pow_mod(const CBigInt& A, sl_uint32 E, const CBigInt& M) noexcept;
+		sl_bool pow(sl_uint32 E, const CBigInt* pM = sl_null) noexcept;
 
-		sl_bool pow_mod(sl_uint32 E, const CBigInt& M) noexcept;
+		sl_bool powMod(const CBigInt& A, sl_uint32 E, const CBigInt& M) noexcept;
 
-		sl_bool pow(sl_uint32 E) noexcept;
-	
+		sl_bool powMod(sl_uint32 E, const CBigInt& M) noexcept;
+
 
 		/*
 			Exponentiation based on Montgomery Reduction
@@ -390,15 +404,10 @@ namespace slib
 
 		sl_bool inverseMod(const CBigInt& M) noexcept;
 
-		sl_int32 checkEulerCriterion(const CBigInt& A, const CBigInt& M) const noexcept;
-
-		sl_int32 checkEulerCriterion(const CBigInt& M) const noexcept;
-		
 		/*
 			Calculate R:
 				R ^ 2 = A (mod M)
 			Input:
-				A is quadratic residue (satisfy Euler's Criterion),
 				M is prime number.
 		*/
 		sl_bool sqrtMod(const CBigInt& A, const CBigInt& M) noexcept;
@@ -525,6 +534,10 @@ namespace slib
 		sl_int32 getSign() const noexcept;
 
 		sl_bool getBit(sl_uint32 pos) const noexcept;
+
+		sl_bool isEven() const noexcept;
+
+		sl_bool isOdd() const noexcept;
 
 		sl_size getMostSignificantElements() const noexcept;
 
@@ -695,24 +708,16 @@ namespace slib
 		sl_bool divUint64(sl_uint64 v, sl_uint64* remainder = sl_null) noexcept;
 
 
-		static BigInt mod(const BigInt& A, const BigInt& B) noexcept;
+		static BigInt mod(const BigInt& A, const BigInt& B, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
 	
-		static BigInt mod_NonNegativeRemainder(const BigInt& A, const BigInt& B) noexcept;
-		
-		sl_bool mod(const BigInt& other) noexcept;
+		sl_bool mod(const BigInt& other, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
 
-		sl_bool mod_NonNegativeRemainder(const BigInt& other) noexcept;
-
-		static sl_int32 modInt32(const BigInt& A, sl_int32 v) noexcept;
-
-		static sl_int32 modInt32_NonNegativeRemainder(const BigInt& A, sl_int32 v) noexcept;
+		static sl_int32 modInt32(const BigInt& A, sl_int32 v, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
 
 		// non-negative remainder
 		static sl_uint32 modUint32(const BigInt& A, sl_uint32 v) noexcept;
 
-		static sl_int64 modInt64(const BigInt& A, sl_int64 v) noexcept;
-
-		static sl_int64 modInt64_NonNegativeRemainder(const BigInt& A, sl_int64 v) noexcept;
+		static sl_int64 modInt64(const BigInt& A, sl_int64 v, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
 
 		// non-negative remainder
 		static sl_uint64 modUint64(const BigInt& A, sl_uint64 v) noexcept;
@@ -777,18 +782,18 @@ namespace slib
 		static BigInt pow(const BigInt& A, const BigInt& E, const BigInt* pM = sl_null) noexcept;
 
 		sl_bool pow(const BigInt& E, const BigInt* pM = sl_null) noexcept;
+		
+		static BigInt powMod(const BigInt& A, const BigInt& E, const BigInt& M) noexcept;
 
-		static BigInt pow_mod(const BigInt& A, const BigInt& E, const BigInt& M) noexcept;
-	
-		sl_bool pow_mod(const BigInt& E, const BigInt& M) noexcept;
+		sl_bool powMod(const BigInt& E, const BigInt& M) noexcept;
 
 		static BigInt pow(const BigInt& A, sl_uint32 E, const BigInt* pM = sl_null) noexcept;
 
 		sl_bool pow(sl_uint32 E, const BigInt* pM = sl_null) noexcept;
 
-		BigInt pow_mod(const BigInt& A, sl_uint32 E, const BigInt& M) noexcept;
+		static BigInt powMod(const BigInt& A, sl_uint32 E, const BigInt& M) noexcept;
 
-		sl_bool pow_mod(sl_uint32 E, const BigInt& M) noexcept;
+		sl_bool powMod(sl_uint32 E, const BigInt& M) noexcept;
 
 		/*
 			Exponentiation based on Montgomery Reduction
@@ -812,18 +817,6 @@ namespace slib
 		*/
 		static BigInt inverseMod(const BigInt& A, const BigInt& M) noexcept;
 
-		/*
-			Euler's Criterion
-				P is Prime number, gcd(A, p) = 1 &&
-				pow(A, (p-1)/2) mod p = 1 => A is quadratic residue.
-				p = -1 => A is quadratic non residue.
-			Return:
-				-1 : A is quadratic non residue
-				1 : A is quadratic residue
-				0 : p is not prime number
-		*/
-		static BigInt checkEulerCriterion(const BigInt& A, BigInt& p)  noexcept;
-		
 		/*
 			M: Prime
 		*/

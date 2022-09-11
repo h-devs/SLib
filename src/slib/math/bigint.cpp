@@ -250,7 +250,18 @@ namespace slib
 				}
 				return of;
 			}
-			
+
+			SLIB_INLINE static sl_uint32 ShiftLeftOneBit(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 valueRight) noexcept
+			{
+				sl_uint32 of = valueRight >> 31;
+				for (sl_size i = 0; i < n; i++) {
+					sl_uint32 t = a[i];
+					c[i] = (t << 1) | of;
+					of = t >> 31;
+				}
+				return of;
+			}
+
 			// shift 0~31 bits
 			// returns overflow
 			SLIB_INLINE static sl_uint32 ShiftRight(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 shift, sl_uint32 valueLeft) noexcept
@@ -434,13 +445,31 @@ namespace slib
 			sl_size ni = pos >> 5;
 			sl_uint32 nb = (sl_uint32)(pos & 0x1F);
 			if (bit) {
-				elements[ni] |= (((sl_uint32)(1)) << nb);
+				elements[ni] |= (((sl_uint32)1) << nb);
 			} else {
-				elements[ni] &= ~(((sl_uint32)(1)) << nb);
+				elements[ni] &= ~(((sl_uint32)1) << nb);
 			}
 			return sl_true;
 		}
 		return sl_true;
+	}
+
+	sl_bool CBigInt::isEven() const noexcept
+	{
+		if (length) {
+			return !(elements[0] & 1);
+		} else {
+			return sl_true;
+		}
+	}
+
+	sl_bool CBigInt::isOdd() const noexcept
+	{
+		if (length) {
+			return (sl_bool)(elements[0] & 1);
+		} else {
+			return sl_false;
+		}
 	}
 
 	sl_size CBigInt::getMostSignificantElements() const noexcept
@@ -514,12 +543,12 @@ namespace slib
 		CBigInt* newObject = new CBigInt;
 		if (newObject) {
 			if (length > 0) {
-				sl_uint32* elements = (sl_uint32*)(Base::createMemory(length * 4));
+				sl_uint32* elements = (sl_uint32*)(Base::createMemory(length << 2));
 				if (elements) {
 					newObject->m_flagUserData = sl_false;
 					newObject->length = length;
 					newObject->elements = elements;
-					Base::zeroMemory(elements, length * 4);
+					Base::zeroMemory(elements, length << 2);
 					return newObject;
 				}
 				delete newObject;
@@ -536,7 +565,7 @@ namespace slib
 		if (ret) {
 			sl_size n = Math::min(length, newLength);
 			if (n > 0) {
-				Base::copyMemory(ret->elements, elements, n * 4);
+				Base::copyMemory(ret->elements, elements, n << 2);
 			}
 			ret->sign = sign;
 			ret->length = newLength;
@@ -563,8 +592,8 @@ namespace slib
 		sl_size n = other.getMostSignificantElements();
 		if (growLength(n)) {
 			if (other.elements) {
-				Base::copyMemory(elements, other.elements, n * 4);
-				Base::zeroMemory(elements + n, (length - n) * 4);
+				Base::copyMemory(elements, other.elements, n << 2);
+				Base::zeroMemory(elements + n, (length - n) << 2);
 			} else {
 				setZero();
 			}
@@ -583,6 +612,19 @@ namespace slib
 		return sl_false;
 	}
 
+	void CBigInt::moveFrom(CBigInt& other) noexcept
+	{
+		_free();
+		sign = other.sign;
+		length = other.length;
+		elements = other.elements;
+		m_flagUserData = other.m_flagUserData;
+		other.sign = 1;
+		other.length = 0;
+		other.elements = sl_null;
+		other.m_flagUserData = sl_false;
+	}
+
 	sl_bool CBigInt::compact() noexcept
 	{
 		return setLength(getMostSignificantElements());
@@ -593,24 +635,30 @@ namespace slib
 		if (length >= newLength) {
 			return sl_true;
 		}
-		sl_uint32* newData = (sl_uint32*)(Base::createMemory(newLength * 4));
-		if (newData) {
-			if (elements) {
-				Base::copyMemory(newData, elements, length * 4);
-				Base::zeroMemory(newData + length, (newLength - length) * 4);
-				if (!m_flagUserData) {
-					Base::freeMemory(elements);
-				}
-			} else {
-				Base::zeroMemory(newData, newLength * 4);
+		if (elements && !m_flagUserData) {
+			sl_uint32* newData = (sl_uint32*)(Base::reallocMemory(elements, newLength << 2));
+			if (newData) {
+				Base::zeroMemory(newData + length, (newLength - length) << 2);
+				length = newLength;
+				elements = newData;
+				return sl_true;
 			}
-			m_flagUserData = sl_false;
-			length = newLength;
-			elements = newData;
-			return sl_true;
 		} else {
-			return sl_false;
+			sl_uint32* newData = (sl_uint32*)(Base::createMemory(newLength << 2));
+			if (newData) {
+				if (elements) {
+					Base::copyMemory(newData, elements, length << 2);
+					Base::zeroMemory(newData + length, (newLength - length) << 2);
+				} else {
+					Base::zeroMemory(newData, newLength << 2);
+				}
+				m_flagUserData = sl_false;
+				length = newLength;
+				elements = newData;
+				return sl_true;
+			}
 		}
+		return sl_false;
 	}
 
 	sl_bool CBigInt::setLength(sl_size newLength) noexcept
@@ -621,10 +669,10 @@ namespace slib
 			return sl_true;
 		} else {
 			if (newLength) {
-				sl_uint32* newData = (sl_uint32*)(Base::createMemory(newLength * 4));
+				sl_uint32* newData = (sl_uint32*)(Base::createMemory(newLength << 2));
 				if (newData) {
 					if (elements) {
-						Base::copyMemory(newData, elements, newLength * 4);
+						Base::copyMemory(newData, elements, newLength << 2);
 						if (!m_flagUserData) {
 							Base::freeMemory(elements);
 						}
@@ -963,7 +1011,7 @@ namespace slib
 			sl_uint8* bytes = (sl_uint8*)(mem.getData());
 			getBytesBE(bytes, size, flagSigned);
 			if (flagSigned && size >= 2 && *bytes == 0xff && (bytes[1] & 0x80)) {
-				return mem.sub(1);
+				return mem.sub((sl_uint32)1);
 			} else {
 				return mem;
 			}
@@ -981,7 +1029,7 @@ namespace slib
 				elements[0] = v;
 				sign = 1;
 			}
-			Base::zeroMemory(elements + 1, (length - 1) * 4);
+			Base::zeroMemory(elements + 1, (length - 1) << 2);
 			return sl_true;
 		} else {
 			return sl_false;
@@ -1003,7 +1051,7 @@ namespace slib
 		if (growLength(1)) {
 			sign = 1;
 			elements[0] = v;
-			Base::zeroMemory(elements + 1, (length - 1) * 4);
+			Base::zeroMemory(elements + 1, (length - 1) << 2);
 			return sl_true;
 		} else {
 			return sl_false;
@@ -1033,7 +1081,7 @@ namespace slib
 			}
 			elements[0] = (sl_uint32)(_v);
 			elements[1] = (sl_uint32)(_v >> 32);
-			Base::zeroMemory(elements + 2, (length - 2) * 4);
+			Base::zeroMemory(elements + 2, (length - 2) << 2);
 			return sl_true;
 		} else {
 			return sl_false;
@@ -1056,7 +1104,7 @@ namespace slib
 			sign = 1;
 			elements[0] = (sl_uint32)(v);
 			elements[1] = (sl_uint32)(v >> 32);
-			Base::zeroMemory(elements + 2, (length - 2) * 4);
+			Base::zeroMemory(elements + 2, (length - 2) << 2);
 			return sl_true;
 		} else {
 			return sl_false;
@@ -1197,7 +1245,7 @@ namespace slib
 			}
 			s = s + n;
 			s[1] = 0;
-			Base::copyMemory(a, elements, ne * 4);
+			Base::copyMemory(a, elements, ne << 2);
 			sl_size l = 0;
 			for (; ne > 0;) {
 				sl_uint32 v = priv::bigint::Div_uint32(a, a, ne, radix, 0);
@@ -1538,7 +1586,7 @@ namespace slib
 				}
 			} else {
 				if (elements != q.elements) {
-					Base::copyMemory(elements + np, q.elements + np, (nq - np) * 4);
+					Base::copyMemory(elements + np, q.elements + np, (nq - np) << 2);
 				}
 			}
 			for (sl_size i = nq; i < nd; i++) {
@@ -1658,7 +1706,7 @@ namespace slib
 			}
 		} else {
 			if (elements != a.elements) {
-				Base::copyMemory(elements + nb, a.elements + nb, (na - nb) * 4);
+				Base::copyMemory(elements + nb, a.elements + nb, (na - nb) << 2);
 			}
 		}
 		for (sl_size i = na; i < nd; i++) {
@@ -1878,6 +1926,14 @@ namespace slib
 		return mul(*this, v);
 	}
 
+	sl_bool CBigInt::mulMod(const CBigInt& a, const CBigInt& b, const CBigInt& M) noexcept
+	{
+		if (mul(a, b)) {
+			return mod(M, sl_true);
+		}
+		return sl_false;
+	}
+
 	sl_bool CBigInt::divAbs(const CBigInt& a, const CBigInt& b, CBigInt* quotient, CBigInt* remainder) noexcept
 	{
 		sl_size nba = a.getMostSignificantBits();
@@ -1931,9 +1987,9 @@ namespace slib
 		if (!rem) {
 			return sl_false;
 		}
-		Base::copyMemory(rem, a.elements, na * 4);
+		Base::copyMemory(rem, a.elements, na << 2);
 		sl_uint32* q = rem + na;
-		Base::zeroMemory(q, na * 4);
+		Base::zeroMemory(q, na << 2);
 		sl_size nbr = nba;
 		sl_size shift = nbc;
 		sl_size nq = 0;
@@ -2148,6 +2204,42 @@ namespace slib
 		return sl_false;
 	}
 
+	sl_bool CBigInt::mod(const CBigInt& a, const CBigInt& M, sl_bool flagNonNegativeRemainder) noexcept
+	{
+		if (a.sign < 0 || M.sign < 0) {
+			return div(a, M, sl_null, this, flagNonNegativeRemainder);
+		}
+		sign = 1;
+		if (a.compareAbs(M) < 0) {
+			return copyAbsFrom(a);
+		}
+		if (this == &M) {
+			CBigInt t;
+			if (t.subAbs(a, M)) {
+				if (t.compareAbs(M) < 0) {
+					moveFrom(t);
+					return sl_true;
+				} else {
+					return divAbs(t, M, sl_null, this);
+				}
+			}
+		} else {
+			if (subAbs(a, M)) {
+				if (compareAbs(M) < 0) {
+					return sl_true;
+				} else {
+					return divAbs(*this, M, sl_null, this);
+				}
+			}
+		}
+		return sl_false;
+	}
+
+	sl_bool CBigInt::mod(const CBigInt& M, sl_bool flagNonNegativeRemainder) noexcept
+	{
+		return mod(*this, M, flagNonNegativeRemainder);
+	}
+
 	sl_bool CBigInt::bitwiseAnd(const CBigInt& a, const CBigInt& b) noexcept
 	{
 		sl_size na = a.getMostSignificantElements();
@@ -2317,15 +2409,19 @@ namespace slib
 	DEFINE_CBIGINT_BITWISE_FUNCTIONS(bitwiseXor)
 	DEFINE_CBIGINT_BITWISE_FUNCTIONS(bitwiseOr)
 
-	sl_bool CBigInt::shiftLeft(const CBigInt& a, sl_size shift) noexcept
+	sl_bool CBigInt::shiftLeft(const CBigInt& a, sl_size shift, const CBigInt* pM) noexcept
 	{
 		if (!shift) {
 			return copyFrom(a);
 		}
+		if (shift == 1) {
+			return shiftLeftOneBit(a, pM);
+		}
 		sl_size nba = a.getMostSignificantBits();
+		sl_size na = (nba + 31) >> 5;
 		sl_size nd;
 		if (&a == this) {
-			nd = (nba + 31) >> 5;
+			nd = na;
 		} else {
 			sign = a.sign;
 			nd = getMostSignificantElements();
@@ -2337,7 +2433,10 @@ namespace slib
 			sl_uint32 sb = (sl_uint32)(shift & 31);
 			if (se > 0 || elements != a.elements) {
 				sl_size i;
-				for (i = nt; i > se; i--) {
+				for (i = nt; i > na + se; i--) {
+					elements[i - 1] = 0;
+				}
+				for (; i > se; i--) {
 					elements[i - 1] = a.elements[i - 1 - se];
 				}
 				for (; i > 0; i--) {
@@ -2350,10 +2449,47 @@ namespace slib
 			for (sl_size i = nt; i < nd; i++) {
 				elements[i] = 0;
 			}
-			return sl_true;
-		} else {
-			return sl_false;
+			if (pM) {
+				return mod(*pM, sl_true);
+			} else {
+				return sl_true;
+			}
 		}
+		return sl_false;
+	}
+
+	sl_bool CBigInt::shiftLeftOneBit(const CBigInt& a, const CBigInt* pM) noexcept
+	{
+		sl_size nba = a.getMostSignificantBits();
+		sl_size na = (nba + 31) >> 5;
+		sl_size nd;
+		if (&a == this) {
+			nd = na;
+		} else {
+			sign = a.sign;
+			nd = getMostSignificantElements();
+		}
+		sl_size nbt = nba + 1;
+		sl_size nt = (nbt + 31) >> 5;
+		if (growLength(nt)) {
+			if (elements != a.elements) {
+				Base::copyMemory(elements, a.elements, na << 2);
+				sl_size k = nt - na;
+				if (k) {
+					Base::zeroMemory(elements + na, k << 2);
+				}
+			}
+			priv::bigint::ShiftLeftOneBit(elements, elements, nt, 0);
+			for (sl_size i = nt; i < nd; i++) {
+				elements[i] = 0;
+			}
+			if (pM) {
+				return mod(*pM, sl_true);
+			} else {
+				return sl_true;
+			}
+		}
+		return sl_false;
 	}
 
 	sl_bool CBigInt::shiftRight(const CBigInt& a, sl_size shift) noexcept
@@ -2453,7 +2589,8 @@ namespace slib
 		if (!(setValue((sl_uint32)1))) {
 			return sl_false;
 		}
-		for (sl_size ib = 0; ib < nbE; ib++) {
+		sl_size ib = 0;
+		for (;;) {
 			sl_size ke = ib >> 5;
 			sl_uint32 kb = (sl_uint32)(ib & 31);
 			if (((TE->elements[ke]) >> kb) & 1) {
@@ -2461,36 +2598,41 @@ namespace slib
 					return sl_false;
 				}
 				if (pM) {
-					if (!(CBigInt::div(*this, *pM, sl_null, this, sl_true))) {
+					if (!(mod(*pM, sl_true))) {
 						return sl_false;
 					}
 				}
 			}
-			if (!(T.mul(T, T))) {
-				return sl_false;
-			}
-			if (pM) {
-				if (!(CBigInt::div(T, *pM, sl_null, &T, sl_true))) {
+			ib++;
+			if (ib < nbE) {
+				if (!(T.mul(T, T))) {
 					return sl_false;
 				}
+				if (pM) {
+					if (!(T.mod(*pM, sl_true))) {
+						return sl_false;
+					}
+				}
+			} else {
+				break;
 			}
 		}
 		return sl_true;
 	}
 
-	sl_bool CBigInt::pow_mod(const CBigInt& A, const CBigInt& E, const CBigInt& M) noexcept
+	sl_bool CBigInt::pow(const CBigInt& E, const CBigInt* pM) noexcept
+	{
+		return pow(*this, E, pM);
+	}
+
+	sl_bool CBigInt::powMod(const CBigInt& A, const CBigInt& E, const CBigInt& M) noexcept
 	{
 		return pow(A, E, &M);
 	}
 
-	sl_bool CBigInt::pow_mod(const CBigInt& E, const CBigInt& M) noexcept
+	sl_bool CBigInt::powMod(const CBigInt& E, const CBigInt& M) noexcept
 	{
 		return pow(*this, E, &M);
-	}
-
-	sl_bool CBigInt::pow(const CBigInt& E) noexcept
-	{
-		return pow(*this, E);
 	}
 
 	sl_bool CBigInt::pow(const CBigInt& A, sl_uint32 E, const CBigInt* pM) noexcept
@@ -2499,19 +2641,19 @@ namespace slib
 		return pow(A, o, pM);
 	}
 
-	sl_bool CBigInt::pow_mod(const CBigInt& A, sl_uint32 E, const CBigInt& M) noexcept
+	sl_bool CBigInt::pow(sl_uint32 E, const CBigInt* pM) noexcept
+	{
+		return pow(*this, E, pM);
+	}
+
+	sl_bool CBigInt::powMod(const CBigInt& A, sl_uint32 E, const CBigInt& M) noexcept
 	{
 		return pow(A, E, &M);
 	}
 
-	sl_bool CBigInt::pow_mod(sl_uint32 E, const CBigInt& M) noexcept
+	sl_bool CBigInt::powMod(sl_uint32 E, const CBigInt& M) noexcept
 	{
 		return pow(*this, E, &M);
-	}
-
-	sl_bool CBigInt::pow(sl_uint32 E) noexcept
-	{
-		return pow(*this, E);
 	}
 
 	namespace priv
@@ -2530,7 +2672,7 @@ namespace slib
 				if (!out) {
 					return sl_false;
 				}
-				Base::zeroMemory(out, nOut * 4);
+				Base::zeroMemory(out, nOut << 2);
 				for (sl_size i = 0; i < nM; i++) {
 					// T = (T + cB*B + cM*M) / 2^(32*nM)
 					sl_uint32 cB = i < A.length ? A.elements[i] : 0;
@@ -2562,14 +2704,12 @@ namespace slib
 			struct PowMontgomeryContext
 			{
 				CBigInt M;
-				CBigInt R2;
 				CBigInt T;
 			};
 			
 			static sl_bool pow_montgomery(priv::bigint::PowMontgomeryContext& context, CBigInt& ret, const CBigInt& A, const CBigInt& inE, const CBigInt& inM) noexcept
 			{
 				CBigInt& M = context.M;
-				CBigInt& R2 = context.R2;
 				CBigInt& T = context.T;
 				
 				M.copyFrom(inM);
@@ -2626,21 +2766,19 @@ namespace slib
 				
 				// pre-compute R^2 mod M
 				// R = 2^(nM*32)
+				CBigInt R2;
 				{
 					if (!(R2.setValue((sl_uint32)1))) {
 						return sl_false;
 					}
-					if (!(R2.shiftLeft(nM * 64))) {
-						return sl_false;
-					}
-					if (!(CBigInt::divAbs(R2, M, sl_null, &R2))) {
+					if (!(R2.shiftLeft(R2, nM * 64, &M))) {
 						return sl_false;
 					}
 				}
 				
 				sl_bool flagNegative = A.sign < 0;
 				// T = A * R^2 * R^-1 mod M = A * R mod M
-				if (!(CBigInt::divAbs(A, M, sl_null, &T))) {
+				if (!(T.mod(A, M, sl_true))) {
 					return sl_false;
 				}
 				if (!(mont_mul(T, R2, M, MI))) {
@@ -2648,9 +2786,7 @@ namespace slib
 				}
 				
 				// C = R^2 * R^-1 mod M = R mod M
-				if (!(ret.copyFrom(R2))) {
-					return sl_false;
-				}
+				ret.moveFrom(R2);
 				if (!(mont_reduction(ret, M, MI))) {
 					return sl_false;
 				}
@@ -2720,7 +2856,7 @@ namespace slib
 			return sl_false;
 		}
 		CBigInt Xa;
-		if (!(CBigInt::div(A, M, sl_null, &Xa, sl_true))) {
+		if (!(Xa.mod(A, M, sl_true))) {
 			return sl_false;
 		}
 		CBigInt Xb;
@@ -2820,9 +2956,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		if (!(copyFrom(T2a))) {
-			return sl_false;
-		}
+		moveFrom(T2a);
 		return sl_true;
 	}
 
@@ -2831,156 +2965,282 @@ namespace slib
 		return inverseMod(*this, M);
 	}
 
-	sl_int32 CBigInt::checkEulerCriterion(const CBigInt& A, const CBigInt& M) const noexcept
+	namespace priv
 	{
-		CBigInt g;
+		namespace bigint
+		{
+			
+			/*
+				Euler's Criterion
+					P is Prime number
 
-		if (g.equals(1)) {
-			return 0;
+				Return:
+					-1: A is quadratic non residue
+					 1: A is quadratic residue
+					 0: P is not prime number
+					-2: Error
+			*/
+			static sl_int32 CheckEulerCriterion(const CBigInt& A, CBigInt& P) noexcept
+			{
+				if (P.isEven()) {
+					return 0;
+				}
+				CBigInt q; // q = (P-1)/2
+				if (!(q.sub(P, 1))) {
+					return -2;
+				}
+				if (!(q.shiftRight(1))) {
+					return -2;
+				}
+				CBigInt a;
+				if (!(a.pow_montgomery(A, q, P))) {
+					return -2;
+				}
+				sl_compare_result c = a.compare((sl_uint32)1);
+				if (c > 0) {
+					return -1;
+				}
+				return 1;
+			}
+		
+			// x^x = y (mod M)
+			static sl_bool CheckSqrtResult(const CBigInt& x, const CBigInt& y, const CBigInt& M)
+			{
+				CBigInt t;
+				if (!(t.mulMod(x, x, M))) {
+					return sl_false;
+				}
+				return t.equals(y);
+			}
+
 		}
-
-		CBigInt exp;
-		exp.copyFrom(M);
-		exp.sub(1);
-		exp.shiftRight(1);
-
-		CBigInt a;
-		a.copyFrom(A);
-		a.pow_montgomery(exp, M);
-
-		if (a.compare(1) > 0) {
-			return -1;
-		}
-		return 1;
-	}
-
-	sl_int32 CBigInt::checkEulerCriterion(const CBigInt& M) const noexcept
-	{
-		return checkEulerCriterion(*this, M);
 	}
 
 	sl_bool CBigInt::sqrtMod(const CBigInt& inA, const CBigInt& M) noexcept
 	{
+		if (M.equals((sl_uint32)1)) {
+			return sl_false;
+		}
+		if (M.isEven()) {
+			if (M.equals((sl_uint32)2)) {
+				if (inA.isOdd()) {
+					return setValue((sl_uint32)1);
+				} else {
+					setZero();
+					return sl_true;
+				}
+			} else {
+				// M is not prime
+				return sl_false;
+			}
+		}
+
+		if (inA.isZero()) {
+			setZero();
+			return sl_true;
+		}
+		if (inA.equals((sl_uint32)1)) {
+			return setValue((sl_uint32)1);
+		}
+
 		CBigInt A;
-		A.copyFrom(inA);
-		divAbs(A, M, sl_null, &A);
-
-		if (checkEulerCriterion(A, M) != 1) {
-			// A is not quadratic residue!!!
+		if (!(A.mod(inA, M, sl_true))) {
 			return sl_false;
 		}
-
-		CBigInt P;
-		P.copyFrom(M);
-		P.sub(1);
-		sl_size e = P.getLeastSignificantBits();
-		if (!e) {
-			return sl_false;
+		if (A.isZero()) {
+			setZero();
+			return sl_true;
 		}
-		e--;
+		if (A.equals((sl_uint32)1)) {
+			return setValue((sl_uint32)1);
+		}
+
+		sl_size e = 1;
+		while (!(M.getBit(e))) {
+			e++;
+		}
 
 		if (e == 1) {
-			P.shiftRight(2);
-			P.add(1);
-			return pow_montgomery(inA, P, M);
+			CBigInt q;
+			if (!(q.shiftRight(M, 2))) {
+				return sl_false;
+			}
+			if (!(q.add((sl_uint32)1))) {
+				return sl_false;
+			}
+			if (!(pow_montgomery(A, q, M))) {
+				return sl_false;
+			}
+			return priv::bigint::CheckSqrtResult(*this, A, M);
 		}
 
 		if (e == 2) {
-			P.add(1); // tmp <- p
-			A.shiftLeft(1);
-			CBigInt t;
-			divAbs(A, P, sl_null, &t);
-
-			CBigInt q;
-			q.copyFrom(P);
-			q.shiftRight(3);
-
-			CBigInt b;
-			b.copyFrom(t);
-			b.pow_montgomery(q, P);
-
-			CBigInt y;
-			y.copyFrom(b);
-			y.mulAbs(y, b);;
-			divAbs(y, P, sl_null, &y);
-
-			t.mulAbs(t, y);
-			divAbs(t, P, sl_null, &t);
-			t.sub(1);
-
-			A.shiftRight(1);
-			A.mulAbs(A, b);
-			A.mulAbs(A, t);
-			return divAbs(A, P, sl_null, this);
+			// M == 5 (mod 8)
+			CBigInt t; // t = 2*A (mod M)
+			if (!(t.shiftLeftOneBit(A, &M))) {
+				return sl_false;
+			}
+			CBigInt q; // q = (M-5)/8
+			if (!(q.shiftRight(M, 3))) {
+				return sl_false;
+			}
+			CBigInt b; // b = (2*A)^((M-5)/8) (mod M)
+			if (!(b.pow_montgomery(t, q, M))) {
+				return sl_false;
+			}
+			CBigInt y; // y = b^2 (mod M)
+			if (!(y.mulMod(b, b, M))) {
+				return sl_false;
+			}
+			// t = (2*A)*(b*b) - 1 (mod M)
+			if (!(t.mulMod(t, y, M))) {
+				return sl_false;
+			}
+			if (!(t.sub((sl_uint32)1))) {
+				return sl_false;
+			}
+			// x = A*b*t (mod M)
+			if (this == &M) {
+				CBigInt x;
+				if (!(x.mulMod(A, b, M))) {
+					return sl_false;
+				}
+				if (!(x.mulMod(x, t, M))) {
+					return sl_false;
+				}
+				moveFrom(x);
+				return priv::bigint::CheckSqrtResult(*this, A, M);
+			} else {
+				if (!(mulMod(A, b, M))) {
+					return sl_false;
+				}
+				if (!(mulMod(*this, t, M))) {
+					return sl_false;
+				}
+				return priv::bigint::CheckSqrtResult(*this, A, M);
+			}
 		}
 
-		sl_size nBitsM = M.getMostSignificantBits();
-		CBigInt q, y;
-		q.copyFrom(M);
-		sl_int32 r;
-		sl_uint32 i = 2;
-		do {
-			if (i < 22) {
-				y.setValue(i);
-			} else {
-				y.random(nBitsM - 1);
-				if (y.isZero()) {
-					y.setValue(i);
-				}
-			}
-			r = checkEulerCriterion(y, q);
-			i++;
-		} while (r == 1 && i < 82);
-
-		q.shiftRight(e);
-		
-		CBigInt c, tt;
-		c.pow_montgomery(y, q, M);
-		tt.pow_montgomery(A, q, M);
-
-		CBigInt _q;
-		_q.copyFrom(q);
-		_q.add(1);
-		_q.shiftRight(1);
-
-		CBigInt& R = *this;
-		R.pow_montgomery(A, _q, M);
-
-		sl_size k = 0;
-		for (;;) {
-			if (tt.equals(1)) {
-				return sl_true;
-			} else {
-				for (sl_size j = 1; j < e; j++) {
-					CBigInt exp;
-					exp.setValue(1);
-					exp.shiftLeft(j);
-					CBigInt temp;
-					temp.pow_montgomery(tt, exp, M);
-					if (temp.equals(1)) {
-						k = j;
-						break;
+		// Tonelli/Shanks algorithm
+		CBigInt q;
+		if (!(q.copyAbsFrom(M))) {
+			return sl_false;
+		}
+		sl_size nM = M.getMostSignificantBits();
+		CBigInt y;
+		{
+			sl_uint32 i = 2;
+			for (;;) {
+				if (i < 22) {
+					if (!(y.setValue(i))) {
+						return sl_false;
+					}
+				} else {
+					if (!(y.random(nM))) {
+						return sl_false;
+					}
+					if (!(y.mod(M))) {
+						return sl_false;
+					}
+					if (y.isZero()) {
+						if (!(y.setValue(i))) {
+							return sl_false;
+						}
 					}
 				}
+				sl_int32 r = priv::bigint::CheckEulerCriterion(y, q);
+				if (r == -1) {
+					break;
+				}
+				if (r != 1) {
+					return sl_false;
+				}
+				i++;
+				if (i >= 82) {
+					return sl_false;
+				}
 			}
-			
-			CBigInt temp;
-			temp.setValue(1);
-			temp.shiftLeft(e - k - 1);
-			CBigInt bb;
-			bb.pow_montgomery(c, temp, M);
+		}
 
-			e = k;
+		if (!(q.shiftRight(e))) {
+			return sl_false;
+		}		
+		if (!(y.pow_montgomery(y, q, M))) {
+			return sl_false;
+		}
+		if (y.equals((sl_uint32)1)) {
+			return sl_false;
+		}
 
-			c.copyFrom(bb);
-			c.mulAbs(c, bb);
-			divAbs(c, M, sl_null, &c);
+		CBigInt t; // t = (q-1)/2 (mod M)
+		if (!(t.shiftRight(1))) {
+			return sl_false;
+		}
+		CBigInt x; // x = A^((q-1)/2) (mod M)
+		if (t.isZero()) {
+			// M == 2^e + 1
+			if (!(t.mod(A, M, sl_true))) {
+				return sl_false;
+			}
+			if (t.isZero()) {
+				return sl_false;
+			}
+			if (!(x.setValue((sl_uint32)1))) {
+				return sl_false;
+			}
+		} else {
+			if (!(x.pow_montgomery(A, t, M))) {
+				return sl_false;
+			}
+			if (x.isZero()) {
+				return sl_false;
+			}
+		}
 
-			tt.mulAbs(tt, c);
-			divAbs(tt, M, sl_null, &tt);
-
-			R.mulAbs(R, bb);
-			divAbs(R, M, sl_null, &R);
+		CBigInt b; // b = A^q (mod M)
+		if (!(b.pow_montgomery(A, q, M))) {
+			return sl_false;
+		}
+		// x = A*x = A^((q+1)/2)) (mod M)
+		if (!(x.mulMod(A, x, M))) {
+			return sl_false;
+		}
+		for (;;) {
+			if (b.equals((sl_uint32)1)) {
+				moveFrom(x);
+				return priv::bigint::CheckSqrtResult(*this, A, M);
+			}
+			sl_size i = 0;
+			if (!(t.mulMod(b, b, M))) {
+				return sl_false;
+			}
+			while (!(t.equals((sl_uint32)1))) {
+				i++;
+				if (i == e) {
+					return sl_false;
+				}
+				if (!(t.mulMod(t, t, M))) {
+					return sl_false;
+				}
+			}
+			if (!(t.copyFrom(y))) {
+				return sl_false;
+			}
+			for (sl_size j = e - i - 1; j > 0; j--) {
+				if (!(t.mulMod(t, t, M))) {
+					return sl_false;
+				}
+			}
+			if (!(y.mulMod(t, t, M))) {
+				return sl_false;
+			}
+			if (!(x.mulMod(x, t, M))) {
+				return sl_false;
+			}
+			if (!(b.mulMod(b, y, M))) {
+				return sl_false;
+			}
+			e = i;
 		}
 	}
 
@@ -3154,7 +3414,7 @@ namespace slib
 							if (!(y.mul(x, x))) {
 								RETURN_ERROR;
 							}
-							if (!(CBigInt::div(y, n, sl_null, &x, sl_true))) {
+							if (!(x.mod(y, n, sl_true))) {
 								RETURN_ERROR;
 							}
 							if (x.equals((sl_uint32)1)) {
@@ -3481,6 +3741,24 @@ namespace slib
 		CBigInt* o = ref.ptr;
 		if (o) {
 			return o->getBit(pos);
+		}
+		return sl_false;
+	}
+
+	sl_bool BigInt::isEven() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->isEven();
+		}
+		return sl_true;
+	}
+
+	sl_bool BigInt::isOdd() const noexcept
+	{
+		CBigInt* o = ref.ptr;
+		if (o) {
+			return o->isOdd();
 		}
 		return sl_false;
 	}
@@ -4625,7 +4903,7 @@ namespace slib
 		return sl_false;
 	}
 
-	BigInt BigInt::mod(const BigInt& A, const BigInt& B) noexcept
+	BigInt BigInt::mod(const BigInt& A, const BigInt& B, sl_bool flagNonNegativeRemainder) noexcept
 	{
 		CBigInt* a = A.ref.ptr;
 		CBigInt* b = B.ref.ptr;
@@ -4633,25 +4911,7 @@ namespace slib
 			if (a) {
 				CBigInt* r = new CBigInt;
 				if (r) {
-					if (CBigInt::div(*a, *b, sl_null, r)) {
-						return r;
-					}
-					delete r;
-				}
-			}
-		}
-		return sl_null;
-	}
-
-	BigInt BigInt::mod_NonNegativeRemainder(const BigInt& A, const BigInt& B) noexcept
-	{
-		CBigInt* a = A.ref.ptr;
-		CBigInt* b = B.ref.ptr;
-		if (b) {
-			if (a) {
-				CBigInt* r = new CBigInt;
-				if (r) {
-					if (CBigInt::div(*a, *b, sl_null, r, sl_true)) {
+					if (r->mod(*a, *b, flagNonNegativeRemainder)) {
 						return r;
 					}
 					delete r;
@@ -4661,13 +4921,13 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_bool BigInt::mod(const BigInt& other) noexcept
+	sl_bool BigInt::mod(const BigInt& other, sl_bool flagNonNegativeRemainder) noexcept
 	{
 		CBigInt* a = ref.ptr;
 		CBigInt* b = other.ref.ptr;
 		if (b) {
 			if (a) {
-				return CBigInt::div(*a, *b, sl_null, a);
+				return a->mod(*a, *b, flagNonNegativeRemainder);
 			} else {
 				return sl_true;
 			}
@@ -4675,38 +4935,12 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool BigInt::mod_NonNegativeRemainder(const BigInt& other) noexcept
-	{
-		CBigInt* a = ref.ptr;
-		CBigInt* b = other.ref.ptr;
-		if (b) {
-			if (a) {
-				return CBigInt::div(*a, *b, sl_null, a, sl_true);
-			} else {
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-
-	sl_int32 BigInt::modInt32(const BigInt& A, sl_int32 v) noexcept
+	sl_int32 BigInt::modInt32(const BigInt& A, sl_int32 v, sl_bool flagNonNegativeRemainder) noexcept
 	{
 		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_int32 r = 0;
-			if (CBigInt::divInt32(*a, v, sl_null, &r)) {
-				return r;
-			}
-		}
-		return 0;
-	}
-
-	sl_int32 BigInt::modInt32_NonNegativeRemainder(const BigInt& A, sl_int32 v) noexcept
-	{
-		CBigInt* a = A.ref.ptr;
-		if (a) {
-			sl_int32 r = 0;
-			if (CBigInt::divInt32(*a, v, sl_null, &r, sl_true)) {
+			if (CBigInt::divInt32(*a, v, sl_null, &r, flagNonNegativeRemainder)) {
 				return r;
 			}
 		}
@@ -4725,24 +4959,12 @@ namespace slib
 		return 0;
 	}
 
-	sl_int64 BigInt::modInt64(const BigInt& A, sl_int64 v) noexcept
+	sl_int64 BigInt::modInt64(const BigInt& A, sl_int64 v, sl_bool flagNonNegativeRemainder) noexcept
 	{
 		CBigInt* a = A.ref.ptr;
 		if (a) {
 			sl_int64 r;
-			if (CBigInt::divInt64(*a, v, sl_null, &r)) {
-				return r;
-			}
-		}
-		return 0;
-	}
-
-	sl_int64 BigInt::modInt64_NonNegativeRemainder(const BigInt& A, sl_int64 v) noexcept
-	{
-		CBigInt* a = A.ref.ptr;
-		if (a) {
-			sl_int64 r;
-			if (CBigInt::divInt64(*a, v, sl_null, &r, sl_true)) {
+			if (CBigInt::divInt64(*a, v, sl_null, &r, flagNonNegativeRemainder)) {
 				return r;
 			}
 		}
@@ -5190,7 +5412,7 @@ namespace slib
 		CBigInt* a = A.ref.ptr;
 		CBigInt* e = E.ref.ptr;
 		if (!e || e->isZero()) {
-			return fromInt32(1);
+			return fromUint32(1);
 		}
 		if (a) {
 			CBigInt* r = new CBigInt;
@@ -5216,11 +5438,11 @@ namespace slib
 		CBigInt* e = E.ref.ptr;
 		if (!e || e->isZero()) {
 			if (a) {
-				if (a->setValue(1)) {
+				if (a->setValue((sl_uint32)1)) {
 					return sl_true;
 				}
 			} else {
-				a = CBigInt::fromInt32(1);
+				a = CBigInt::fromUint32(1);
 				if (a) {
 					ref = a;
 					return sl_true;
@@ -5263,17 +5485,17 @@ namespace slib
 				}
 			}
 		} else {
-			return fromInt32(1);
+			return fromUint32(1);
 		}
 		return sl_null;
 	}
 
-	BigInt BigInt::pow_mod(const BigInt& A, const BigInt& E, const BigInt& M) noexcept
+	BigInt BigInt::powMod(const BigInt& A, const BigInt& E, const BigInt& M) noexcept
 	{
 		return pow(A, E, &M);
 	}
 
-	sl_bool BigInt::pow_mod(const BigInt& E, const BigInt& M) noexcept
+	sl_bool BigInt::powMod(const BigInt& E, const BigInt& M) noexcept
 	{
 		return pow(E, &M);
 	}
@@ -5294,11 +5516,11 @@ namespace slib
 			}
 		} else {
 			if (a) {
-				if (a->setValue(1)) {
+				if (a->setValue((sl_uint32)1)) {
 					return sl_true;
 				}
 			} else {
-				a = CBigInt::fromInt32(1);
+				a = CBigInt::fromUint32(1);
 				if (a) {
 					ref = a;
 					return sl_true;
@@ -5308,12 +5530,12 @@ namespace slib
 		return sl_false;
 	}
 
-	BigInt BigInt::pow_mod(const BigInt& A, sl_uint32 E, const BigInt& M) noexcept
+	BigInt BigInt::powMod(const BigInt& A, sl_uint32 E, const BigInt& M) noexcept
 	{
 		return pow(A, E, &M);
 	}
 
-	sl_bool BigInt::pow_mod(sl_uint32 E, const BigInt& M) noexcept
+	sl_bool BigInt::powMod(sl_uint32 E, const BigInt& M) noexcept
 	{
 		return pow(E, &M);
 	}
@@ -5324,7 +5546,7 @@ namespace slib
 		CBigInt* e = E.ref.ptr;
 		CBigInt* m = M.ref.ptr;
 		if (!e || e->isZero()) {
-			return fromInt32(1);
+			return fromUint32(1);
 		} else {
 			if (m) {
 				if (a) {
@@ -5348,11 +5570,11 @@ namespace slib
 		CBigInt* m = M.ref.ptr;
 		if (!e || e->isZero()) {
 			if (a) {
-				if (a->setValue(1)) {
+				if (a->setValue((sl_uint32)1)) {
 					return sl_true;
 				}
 			} else {
-				a = CBigInt::fromInt32(1);
+				a = CBigInt::fromUint32(1);
 				if (a) {
 					ref = a;
 					return sl_true;
