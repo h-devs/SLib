@@ -111,7 +111,7 @@ namespace slib
 		BigInt b = BigInt::pow_montgomery(a, E, N);
 		BigInt TP = BigInt::pow_montgomery(b, DP, P);
 		BigInt TQ = BigInt::pow_montgomery(b, DQ, Q);
-		BigInt c = BigInt::mod_NonNegativeRemainder((TP - TQ) * IQ, P);
+		BigInt c = BigInt::mod((TP - TQ) * IQ, P, sl_true);
 		c = TQ + c * Q;
 		return c == 3;
 	}
@@ -127,7 +127,7 @@ namespace slib
 		if (!(key.flagUseOnlyD) && key.P.isNotNull() && key.Q.isNotNull() && key.DP.isNotNull() && key.DQ.isNotNull() && key.IQ.isNotNull()) {
 			BigInt TP = BigInt::pow_montgomery(input, key.DP, key.P);
 			BigInt TQ = BigInt::pow_montgomery(input, key.DQ, key.Q);
-			BigInt T = BigInt::mod_NonNegativeRemainder((TP - TQ) * key.IQ, key.P);
+			BigInt T = BigInt::mod((TP - TQ) * key.IQ, key.P, sl_true);
 			return TQ + T * key.Q;
 		} else {
 			return BigInt::pow_montgomery(input, key.D, key.N);

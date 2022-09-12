@@ -863,7 +863,7 @@ namespace slib
 
 		sl_bool isAntiAlias();
 
-		void setAntiAlias(sl_bool flagAntiAlias, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setAntiAlias(sl_bool flagAntiAlias = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isLayer();
 		

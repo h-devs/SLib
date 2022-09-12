@@ -39,6 +39,9 @@ namespace slib
 		
 		~ImageView();
 
+	protected:
+		void init() override;
+
 	public:
 		static Ref<ImageView> create(sl_ui_len width, sl_ui_len height, const Ref<Drawable>& drawable);
 		

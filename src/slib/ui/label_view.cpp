@@ -48,6 +48,8 @@ namespace slib
 	void LabelView::init()
 	{
 		View::init();
+
+		setAntiAlias(sl_true, UIUpdateMode::Init);
 		
 		m_cell->setView(this);
 		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, dispatchClickLink);
