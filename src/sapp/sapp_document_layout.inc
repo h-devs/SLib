@@ -386,6 +386,7 @@ namespace slib
 
 		StringBuffer sbHeader, sbHeaderBase, sbCpp;
 		sbHeaderBase.add("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n\r\n");
+		sbHeader.add("#pragma once\r\n\r\n");
 
 		{
 			ListLocker<String> includes(m_conf.generate_cpp_layout_include_headers);
@@ -426,7 +427,6 @@ namespace slib
 		sbHeaderBase.add("\t}\r\n}\r\n");
 
 		{
-			String headerPrefix = sbHeader.merge();
 			for (auto& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
 					sbHeader.add(String::format("#include \"ui/%s.h\"%n", pair.key));
