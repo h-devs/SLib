@@ -27,6 +27,7 @@
 
 #include "slib/core/locale.h"
 #include "slib/core/xml.h"
+#include "slib/core/property.h"
 #include "slib/graphics/image.h"
 #include "slib/ui/event.h"
 #include "slib/ui/resource.h"
@@ -1270,6 +1271,9 @@ namespace slib
 		
 		void onClose(UIEvent* ev) override;
 		
+	public:
+		SLIB_BOOLEAN_PROPERTY(SavingPageSize)
+
 	};
 
 	class SAppLayoutImportView : public ViewLayout, public SAppLayoutSimulator

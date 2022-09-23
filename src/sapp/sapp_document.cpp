@@ -507,7 +507,7 @@ namespace slib
 		
 	}
 
-	sl_bool SAppDocument::simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param)
+	sl_bool SAppDocument::simulateLayoutInWindow(const String& layoutName, SAppSimulateLayoutParam& param)
 	{
 		ObjectLocker lock(this);
 		

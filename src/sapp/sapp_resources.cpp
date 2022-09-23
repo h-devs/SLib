@@ -672,6 +672,7 @@ namespace slib
 
 	SAppLayoutSimulationWindow::SAppLayoutSimulationWindow()
 	{
+		setSavingPageSize(sl_true);
 	}
 
 	void SAppLayoutSimulationWindow::init()

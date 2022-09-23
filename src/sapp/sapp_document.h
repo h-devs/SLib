@@ -57,12 +57,14 @@ namespace slib
 		
 	};
 	
+	class SAppLayoutSimulationWindow;
+
 	class SAppSimulateLayoutParam
 	{
 	public:
 		UISize pageSize;
-		Function<void(Window*, UIEvent*)> onClosePage;
-		Function<void(Window*, UIEvent*)> onCloseWindow;
+		Function<void(SAppLayoutSimulationWindow*, UIEvent*)> onClosePage;
+		Function<void(SAppLayoutSimulationWindow*, UIEvent*)> onCloseWindow;
 
 	public:
 		SAppSimulateLayoutParam();
@@ -93,7 +95,7 @@ namespace slib
 		
 		List< Ref<SAppLayoutResource> > getLayouts();
 		
-		sl_bool simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param);
+		sl_bool simulateLayoutInWindow(const String& layoutName, SAppSimulateLayoutParam& param);
 		
 		Locale getCurrentSimulatorLocale();
 
@@ -217,7 +219,7 @@ namespace slib
 		sl_bool _generateLayoutsCpp(const String& targetPath);
 		sl_bool _generateLayoutsCpp_Layout(const String& targetPath, SAppLayoutResource* layout);
 		sl_bool _generateLayoutsCpp_Item(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, StringBuffer& sbDeclare, StringBuffer& sbDefineInit, StringBuffer& sbDefineLayout, const String& addStatement);
-		sl_bool _simulateLayoutInWindow(SAppLayoutResource* layout, const SAppSimulateLayoutParam& param);
+		sl_bool _simulateLayoutInWindow(SAppLayoutResource* layout, SAppSimulateLayoutParam& param);
 		void _registerLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
 		void _removeLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
 		Ref<View> _simulateLayoutCreateOrLayoutView(SAppLayoutSimulator* simulator, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, View* parentView, sl_bool flagOnLayout);
