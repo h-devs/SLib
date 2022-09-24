@@ -103,6 +103,22 @@ namespace slib
 
 	};
 
+	class AnyDevicePcap : public Pcap
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		AnyDevicePcap();
+
+		~AnyDevicePcap();
+
+	public:
+		static Ref<AnyDevicePcap> create(const PcapParam& param);
+
+	public:
+		virtual List< Ref<Pcap> > getDevices() = 0;
+
+	};
 
 }
 

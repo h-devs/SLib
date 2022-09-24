@@ -23,6 +23,49 @@
 #include "slib/network/pcap.h"
 #include "slib/network/npcap.h"
 
+namespace slib
+{
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapDeviceInfo)
+
+	PcapDeviceInfo::PcapDeviceInfo(): flagLoopback(sl_false), flagUp(sl_false), flagRunning(sl_false), flagWireless(sl_false), connectionStatus(PcapConnectionStatus::Unknown)
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapParam)
+
+	PcapParam::PcapParam()
+	{
+		timeoutRead = 0; // no timeout specified
+		flagImmediate = sl_true;
+		sizeBuffer = 0x200000; // 2MB (16Mb)
+	}
+
+
+	SLIB_DEFINE_OBJECT(Pcap, NetCapture)
+
+	Pcap::Pcap()
+	{
+	}
+
+	Pcap::~Pcap()
+	{
+	}
+
+
+	SLIB_DEFINE_OBJECT(AnyDevicePcap, Pcap)
+
+	AnyDevicePcap::AnyDevicePcap()
+	{
+	}
+
+	AnyDevicePcap::~AnyDevicePcap()
+	{
+	}
+
+}
+
 #if defined(SLIB_PLATFORM_IS_UNIX) || defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/network/socket_address.h"
@@ -409,7 +452,7 @@ namespace slib
 				_out.ipv6Addresses = addrs6;
 			}
 
-			class AnyPcap : public Pcap
+			class AnyDevicePcapImpl : public AnyDevicePcap
 			{
 			public:
 				PcapParam m_param;
@@ -417,19 +460,19 @@ namespace slib
 				AtomicRef<Timer> m_timerAddDevices;
 
 			public:
-				AnyPcap()
+				AnyDevicePcapImpl()
 				{
 				}
 
-				~AnyPcap()
+				~AnyDevicePcapImpl()
 				{
 					release();
 				}
 
 			public:
-				static Ref<AnyPcap> create(const PcapParam& param)
+				static Ref<AnyDevicePcapImpl> create(const PcapParam& param)
 				{
-					Ref<AnyPcap> ret = new AnyPcap;
+					Ref<AnyDevicePcapImpl> ret = new AnyDevicePcapImpl;
 					if (ret.isNotNull()) {
 						ret->_initWithParam(param);
 						ret->m_param = param;
@@ -474,6 +517,11 @@ namespace slib
 				sl_bool sendPacket(const void*, sl_uint32) override
 				{
 					return sl_false;
+				}
+
+				List< Ref<Pcap> > getDevices() override
+				{
+					return reinterpret_cast<CList< Ref<Pcap> >*>(m_devices.duplicate());
 				}
 
 			protected:
@@ -563,34 +611,6 @@ namespace slib
 
 	using namespace priv::pcap;
 
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapDeviceInfo)
-
-	PcapDeviceInfo::PcapDeviceInfo(): flagLoopback(sl_false), flagUp(sl_false), flagRunning(sl_false), flagWireless(sl_false), connectionStatus(PcapConnectionStatus::Unknown)
-	{
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapParam)
-
-	PcapParam::PcapParam()
-	{
-		timeoutRead = 0; // no timeout specified
-		flagImmediate = sl_true;
-		sizeBuffer = 0x200000; // 2MB (16Mb)
-	}
-
-
-	SLIB_DEFINE_OBJECT(Pcap, NetCapture)
-
-	Pcap::Pcap()
-	{
-	}
-
-	Pcap::~Pcap()
-	{
-	}
-
 	Ref<Pcap> Pcap::create(const PcapParam& param)
 	{
 #ifdef USE_STATIC_NPCAP
@@ -671,7 +691,7 @@ namespace slib
 
 	Ref<Pcap> Pcap::createAny(const PcapParam& param)
 	{
-		return Ref<Pcap>::from(AnyPcap::create(param));
+		return Ref<Pcap>::from(AnyDevicePcapImpl::create(param));
 	}
 
 	sl_bool Pcap::isAllowedNonRoot(const StringParam& executablePath)
@@ -749,6 +769,11 @@ namespace slib
 	}
 #endif
 
+	Ref<AnyDevicePcap> AnyDevicePcap::create(const PcapParam& param)
+	{
+		return AnyDevicePcapImpl::create(param);
+	}
+
 
 	ServiceState Npcap::getDriverState()
 	{
@@ -803,6 +828,11 @@ namespace slib
 	}
 
 	Ref<Pcap> Pcap::createAny(const PcapParam& param)
+	{
+		return sl_null;
+	}
+
+	Ref<AnyDevicePcap> AnyDevicePcap::create(const PcapParam& param)
 	{
 		return sl_null;
 	}
