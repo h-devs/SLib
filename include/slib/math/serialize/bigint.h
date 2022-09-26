@@ -36,8 +36,8 @@ namespace slib
 	SLIB_INLINE sl_bool BigInt::serialize(OUTPUT* output) const
 	{
 		sl_uint32* e = getElements();
-		sl_size n = getElementCount();
-		if (!(CVLI::serialize(output, n))) {
+		sl_size n = getMostSignificantElements();
+		if (!(CVLI::serialize(output, (n << 1) | (getSign() < 0 ? 1 : 0)))) {
 			return sl_false;
 		}
 		for (sl_size i = 0; i < n; i++) {
@@ -55,6 +55,8 @@ namespace slib
 		if (!(CVLI::deserialize(input, n))) {
 			return sl_false;
 		}
+		sl_bool flagNegative = (sl_bool)(n & 1);
+		n >>= 1;
 		CBigInt* bi = CBigInt::allocate(n);
 		if (!bi) {
 			return sl_false;
@@ -65,6 +67,9 @@ namespace slib
 				delete bi;
 				return sl_false;
 			}
+		}
+		if (flagNegative) {
+			bi->sign = -1;
 		}
 		ref = bi;
 		return sl_true;
