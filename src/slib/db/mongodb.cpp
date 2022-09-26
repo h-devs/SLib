@@ -333,7 +333,7 @@ namespace slib
 					size_t size;
 					char* sz = bson_as_canonical_extended_json(&bson, &size);
 					if (sz) {
-						Json json = Json::parseJson(StringView(sz, size));
+						Json json = Json::parse(StringView(sz, size));
 						SLIB_STATIC_STRING(a, "a")
 						ret = json.getItem(a);
 						bson_free(sz);

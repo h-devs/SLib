@@ -51,7 +51,7 @@ namespace slib
 				PushNotificationMessage message;
 				message.title = Jni::getString(title);
 				message.content = Jni::getString(content);
-				message.data = Json::parseJson(Jni::getString(data));
+				message.data = Json::parse(Jni::getString(data));
 				message.flagClicked = flagClicked ? sl_true : sl_false;
 				XgPush::getInstance()->dispatchReceiveMessage(message);
 			}

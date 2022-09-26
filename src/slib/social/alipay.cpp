@@ -120,7 +120,7 @@ namespace slib
 
 	void AlipayPaymentResult::applyAppResponse(const String& result)
 	{
-		Json json = Json::parseJson(result);
+		Json json = Json::parse(result);
 		if (json["alipay_trade_app_pay_response"]["msg"].getString() == "Success") {
 			flagSuccess = sl_true;
 		}

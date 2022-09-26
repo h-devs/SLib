@@ -183,7 +183,7 @@ namespace slib
 						if (gstrResult) {
 							gsize lenResult = 0;
 							const gchar* szResult = g_variant_get_string(gstrResult, &lenResult);
-							Json json = Json::parseJson(szResult);
+							Json json = Json::parse(szResult);
 							cls = json["cls"].getString();
 							title = json["title"].getString();
 							if (cls.isNotNull() || title.isNotNull()) {

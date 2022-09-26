@@ -147,12 +147,12 @@ int main(int argc, const char * argv[])
 			String layoutName = File::getFileNameOnly(path);
 			SAppSimulateLayoutParam param;
 			String pathConfig = pathApp + "/.sapp.conf";
-			Json config = Json::parseJsonFromTextFile(pathConfig);
+			Json config = Json::parseTextFile(pathConfig);
 			param.pageSize.x = config["simulator_window_width"].getInt32(param.pageSize.x);
 			param.pageSize.y = config["simulator_window_height"].getInt32(param.pageSize.y);
 			param.onClosePage = [pathConfig](SAppLayoutSimulationWindow* window, UIEvent* ev) {
 				if (window->isSavingPageSize()) {
-					Json config = Json::parseJsonFromTextFile(pathConfig);
+					Json config = Json::parseTextFile(pathConfig);
 					if (config.isNull()) {
 						config = Json::createMap();
 					}

@@ -111,7 +111,7 @@ namespace slib
 				return 0;
 			}
 			JsonParseParam pp;
-			header = Json::parseJson(String::fromUtf8(mem), pp);
+			header = Json::parse(String::fromUtf8(mem), pp);
 			if (pp.flagError) {
 				return 0;
 			}
@@ -122,7 +122,7 @@ namespace slib
 				return 0;
 			}
 			JsonParseParam pp;
-			payload = Json::parseJson(String::fromUtf8(mem), pp);
+			payload = Json::parse(String::fromUtf8(mem), pp);
 			if (pp.flagError) {
 				return 0;
 			}

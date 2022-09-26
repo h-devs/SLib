@@ -110,9 +110,9 @@ namespace slib
 			public:
 				void escapeSpaceAndComments();
 				
-				Json parseJson();
+				Json parse();
 
-				static Json parseJson(const CHAR* buf, sl_size len, JsonParseParam& param);
+				static Json parse(const CHAR* buf, sl_size len, JsonParseParam& param);
 				
 			};
 
@@ -198,7 +198,7 @@ namespace slib
 			}
 
 			template <class CHAR>
-			Json Parser<CHAR>::parseJson()
+			Json Parser<CHAR>::parse()
 			{
 				escapeSpaceAndComments();
 				if (pos == len) {
@@ -240,7 +240,7 @@ namespace slib
 						if (ch == ']' || ch == ',') {
 							list.add_NoLock(Json::null());
 						} else {
-							Json item = parseJson();
+							Json item = parse();
 							if (flagError) {
 								return sl_null;
 							}
@@ -378,7 +378,7 @@ namespace slib
 						if (buf[pos] == '}' || buf[pos] == ',') {
 							map.put_NoLock(String::from(key), Json::null());
 						} else {
-							Json item = parseJson();
+							Json item = parse();
 							if (flagError) {
 								return sl_null;
 							}
@@ -439,7 +439,7 @@ namespace slib
 			}
 
 			template <class CHAR>
-			Json Parser<CHAR>::parseJson(const CHAR* buf, sl_size len, JsonParseParam& param)
+			Json Parser<CHAR>::parse(const CHAR* buf, sl_size len, JsonParseParam& param)
 			{
 				if (!len) {
 					return sl_null;
@@ -455,7 +455,7 @@ namespace slib
 				parser.pos = 0;
 				parser.flagError = sl_false;
 				
-				Json var = parser.parseJson();
+				Json var = parser.parse();
 				if (!(parser.flagError)) {
 					parser.escapeSpaceAndComments();
 					if (parser.pos != len) {
@@ -832,83 +832,83 @@ namespace slib
 		return Variant::toString();
 	}
 
-	Json Json::parseJson(const sl_char8* str, sl_size len, JsonParseParam& param)
+	Json Json::parse(const sl_char8* str, sl_size len, JsonParseParam& param)
 	{
-		return Parser<sl_char8>::parseJson(str, len, param);
+		return Parser<sl_char8>::parse(str, len, param);
 	}
 
-	Json Json::parseJson(const sl_char8* str, sl_size len)
-	{
-		if (!len) {
-			return sl_null;
-		}
-		JsonParseParam param;
-		return parseJson(str, len, param);
-	}
-
-	Json Json::parseJson(const sl_char16* str, sl_size len, JsonParseParam& param)
-	{
-		return Parser<sl_char16>::parseJson(str, len, param);
-	}
-
-	Json Json::parseJson(const sl_char16* str, sl_size len)
+	Json Json::parse(const sl_char8* str, sl_size len)
 	{
 		if (!len) {
 			return sl_null;
 		}
 		JsonParseParam param;
-		return parseJson(str, len, param);
+		return parse(str, len, param);
 	}
 
-	Json Json::parseJson(const sl_char32* str, sl_size len, JsonParseParam& param)
+	Json Json::parse(const sl_char16* str, sl_size len, JsonParseParam& param)
 	{
-		return Parser<sl_char32>::parseJson(str, len, param);
+		return Parser<sl_char16>::parse(str, len, param);
 	}
 
-	Json Json::parseJson(const sl_char32* str, sl_size len)
+	Json Json::parse(const sl_char16* str, sl_size len)
 	{
 		if (!len) {
 			return sl_null;
 		}
 		JsonParseParam param;
-		return parseJson(str, len, param);
+		return parse(str, len, param);
 	}
 
-	Json Json::parseJson(const StringParam& _str, JsonParseParam& param)
+	Json Json::parse(const sl_char32* str, sl_size len, JsonParseParam& param)
+	{
+		return Parser<sl_char32>::parse(str, len, param);
+	}
+
+	Json Json::parse(const sl_char32* str, sl_size len)
+	{
+		if (!len) {
+			return sl_null;
+		}
+		JsonParseParam param;
+		return parse(str, len, param);
+	}
+
+	Json Json::parse(const StringParam& _str, JsonParseParam& param)
 	{
 		if (_str.isEmpty()) {
 			return sl_null;
 		}
 		if (_str.is8BitsStringType()) {
 			StringData str(_str);
-			return Parser<sl_char8>::parseJson(str.getData(), str.getLength(), param);
+			return Parser<sl_char8>::parse(str.getData(), str.getLength(), param);
 		} else if (_str.is16BitsStringType()) {
 			StringData16 str(_str);
-			return Parser<sl_char16>::parseJson(str.getData(), str.getLength(), param);
+			return Parser<sl_char16>::parse(str.getData(), str.getLength(), param);
 		} else {
 			StringData32 str(_str);
-			return Parser<sl_char32>::parseJson(str.getData(), str.getLength(), param);
+			return Parser<sl_char32>::parse(str.getData(), str.getLength(), param);
 		}
 	}
 
-	Json Json::parseJson(const StringParam& str)
+	Json Json::parse(const StringParam& str)
 	{
 		if (str.isEmpty()) {
 			return sl_null;
 		}
 		JsonParseParam param;
-		return parseJson(str, param);
+		return parse(str, param);
 	}
 
-	Json Json::parseJsonFromTextFile(const StringParam& filePath, JsonParseParam& param)
+	Json Json::parseTextFile(const StringParam& filePath, JsonParseParam& param)
 	{
-		return parseJson(File::readAllText(filePath), param);
+		return parse(File::readAllText(filePath), param);
 	}
 
-	Json Json::parseJsonFromTextFile(const StringParam& filePath)
+	Json Json::parseTextFile(const StringParam& filePath)
 	{
 		JsonParseParam param;
-		return parseJsonFromTextFile(filePath, param);
+		return parseTextFile(filePath, param);
 	}
 
 

@@ -60,7 +60,7 @@ namespace slib
 			String s = buf;
 			Json ret;
 			if (s.isNotEmpty()) {
-				ret = Json::parseJson(s);
+				ret = Json::parse(s);
 			}
 			::free(buf);
 			return ret;
