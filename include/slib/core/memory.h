@@ -36,27 +36,25 @@ namespace slib
 	class MemoryBuffer;
 	class SerializeBuffer;
 
-	class SLIB_EXPORT MemoryData
+	class SLIB_EXPORT MemoryData : public MemoryView
 	{
 	public:
-		void* data;
-		sl_size size;
 		Ref<Referable> ref;
 
 	public:
-		MemoryData() noexcept;
+		SLIB_CONSTEXPR MemoryData() {}
 
-		MemoryData(const void* _data, sl_size _size) noexcept;
+		SLIB_CONSTEXPR MemoryData(const void* data, sl_size size): MemoryView(data, size) {}
 
 		template <class REF>
-		MemoryData(const void* _data, sl_size _size, REF&& _ref) noexcept: data((void*)_data), size(_size), ref(Forward<REF>(_ref)) {}
+		MemoryData(const void* data, sl_size size, REF&& _ref) noexcept: MemoryView(data, size), ref(Forward<REF>(_ref)) {}
 
 		MemoryData(const Memory& memory) noexcept;
 
 		MemoryData(Memory&& memory) noexcept;
 
 		template <sl_size N>
-		MemoryData(const char(&s)[N]) noexcept: data((void*)s), size(N-1) {}
+		MemoryData(const char(&s)[N]) noexcept: MemoryView(s, N-1) {}
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
@@ -231,7 +229,12 @@ namespace slib
 		
 	public:
 		Memory operator+(const Memory& other) const noexcept;
-	
+
+		SLIB_CONSTEXPR explicit operator sl_bool() const
+		{
+			return ref.ptr != sl_null;
+		}
+
 		SLIB_DECLARE_CLASS_COMPARE_HASH_MEMBERS(Memory)
 		SLIB_DECLARE_CLASS_SERIALIZE_MEMBERS
 

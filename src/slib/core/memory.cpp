@@ -262,14 +262,6 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
-	MemoryData::MemoryData() noexcept : data(sl_null), size(0)
-	{
-	}
-
-	MemoryData::MemoryData(const void* _data, sl_size _size) noexcept: data((void*)_data), size(_size)
-	{
-	}
-
 	MemoryData::MemoryData(const Memory& memory) noexcept
 	{
 		CMemory* p = memory.ref.get();
