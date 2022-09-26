@@ -85,7 +85,7 @@ namespace slib
 	static Memory SerializeToMemory(const T& t)
 	{
 		SerializeOutput output;
-		if (t.serialize(&output)) {
+		if (Serialize(&output, t)) {
 			return output.releaseToMemory();
 		}
 		return sl_null;
@@ -96,7 +96,7 @@ namespace slib
 	{
 		if (data && size) {
 			SerializeBuffer buf(data, size);
-			return t.deserialize(&buf);
+			return Deserialize(&buf, t);
 		}
 		return sl_false;
 	}
