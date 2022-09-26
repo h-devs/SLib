@@ -99,6 +99,7 @@
 #include "core/btree.h"
 #include "core/expiring_map.h"
 #include "core/expiring_queue.h"
+#include "core/reverse_stack.h"
 
 #include "core/math.h"
 #include "core/interpolation.h"
