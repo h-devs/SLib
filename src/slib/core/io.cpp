@@ -2370,15 +2370,11 @@ namespace slib
 		end = begin ? begin + size : sl_null;
 	}
 
-	SerializeBuffer::SerializeBuffer(const MemoryData& data) noexcept: SerializeBuffer(data.data, data.size, data.ref)
+	SerializeBuffer::SerializeBuffer(const MemoryView& mem) noexcept: SerializeBuffer(mem.data, mem.size)
 	{
 	}
 
 	SerializeBuffer::SerializeBuffer(MemoryData&& data) noexcept: SerializeBuffer(data.data, data.size, Move(data.ref))
-	{
-	}
-
-	SerializeBuffer::SerializeBuffer(const Memory& mem) noexcept: SerializeBuffer(mem.getData(), mem.getSize(), Move(mem.getRef()))
 	{
 	}
 

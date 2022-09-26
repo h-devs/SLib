@@ -51,7 +51,7 @@ namespace slib
 	template <class INPUT>
 	static sl_bool Deserialize(INPUT* input, unsigned char& _out)
 	{
-		return DeserializeByte(input, &_out);
+		return DeserializeByte(input, *((sl_uint8*)&_out));
 	}
 
 
