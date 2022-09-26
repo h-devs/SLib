@@ -132,14 +132,22 @@ namespace slib
 		const char* hex = "0123456789ABCDEF";
 		char s[17];
 		char* p = s;
-		for (int i = 0; i < 6; i++) {
-			if (i) {
+		if (sep) {
+			*(p++) = hex[*m >> 4];
+			*(p++) = hex[*m & 15];
+			for (int i = 1; i < 6; i++) {
 				*(p++) = sep;
+				*(p++) = hex[m[i] >> 4];
+				*(p++) = hex[m[i] & 15];
 			}
-			*(p++) = hex[m[i] >> 4];
-			*(p++) = hex[m[i] & 15];
+			return String(s, sizeof(s));
+		} else {
+			for (int i = 0; i < 6; i++) {
+				*(p++) = hex[m[i] >> 4];
+				*(p++) = hex[m[i] & 15];
+			}
+			return String(s, 12);
 		}
-		return String(s, sizeof(s));
 	}
 
 	namespace priv
