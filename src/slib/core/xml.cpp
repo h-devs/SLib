@@ -88,9 +88,9 @@ namespace slib
 
 				void parseNodes(XmlNodeGroup* parent, const String& defNamespace, const HashMap<String, String>& namespaces);
 
-				void parseXml();
+				void parse();
 
-				static Ref<XmlDocument> parseXml(const CHAR* buf, sl_size len, XmlParseParam& param);
+				static Ref<XmlDocument> parse(const CHAR* buf, sl_size len, XmlParseParam& param);
 
 			};
 
@@ -967,7 +967,7 @@ namespace slib
 			}
 
 			template <class CHAR>
-			void XmlParser<CHAR>::parseXml()
+			void XmlParser<CHAR>::parse()
 			{
 				CALL_CALLBACK(onStartDocument, document.get(), document.get())
 					parseNodes(document.get(), String::null(), HashMap<String, String>::null());
@@ -986,7 +986,7 @@ namespace slib
 			}
 
 			template <class CHAR>
-			Ref<XmlDocument> XmlParser<CHAR>::parseXml(const CHAR* buf, sl_size len, XmlParseParam& param)
+			Ref<XmlDocument> XmlParser<CHAR>::parse(const CHAR* buf, sl_size len, XmlParseParam& param)
 			{
 				param.flagError = sl_false;
 
@@ -1009,7 +1009,7 @@ namespace slib
 				parser.control.source.length = len;
 				parser.control.characterSize = sizeof(CHAR);
 
-				parser.parseXml();
+				parser.parse();
 
 				if (!(parser.flagError)) {
 					return parser.document;
@@ -2434,74 +2434,74 @@ namespace slib
 	}
 
 
-	Ref<XmlDocument> Xml::parseXml(const sl_char8* str, sl_size len, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char8* str, sl_size len, XmlParseParam& param)
 	{
-		return XmlParser<sl_char8>::parseXml(str, len, param);
+		return XmlParser<sl_char8>::parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parseXml(const sl_char16* str, sl_size len, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char16* str, sl_size len, XmlParseParam& param)
 	{
-		return XmlParser<sl_char16>::parseXml(str, len, param);
+		return XmlParser<sl_char16>::parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parseXml(const sl_char32* str, sl_size len, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char32* str, sl_size len, XmlParseParam& param)
 	{
-		return XmlParser<sl_char32>::parseXml(str, len, param);
+		return XmlParser<sl_char32>::parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parseXml(const sl_char8* sz, sl_size len)
-	{
-		XmlParseParam param;
-		return parseXml(sz, len, param);
-	}
-
-	Ref<XmlDocument> Xml::parseXml(const sl_char16* str, sl_size len)
+	Ref<XmlDocument> Xml::parse(const sl_char8* sz, sl_size len)
 	{
 		XmlParseParam param;
-		return parseXml(str, len, param);
+		return parse(sz, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parseXml(const sl_char32* str, sl_size len)
+	Ref<XmlDocument> Xml::parse(const sl_char16* str, sl_size len)
 	{
 		XmlParseParam param;
-		return parseXml(str, len, param);
+		return parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parseXml(const StringParam& _xml, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char32* str, sl_size len)
+	{
+		XmlParseParam param;
+		return parse(str, len, param);
+	}
+
+	Ref<XmlDocument> Xml::parse(const StringParam& _xml, XmlParseParam& param)
 	{
 		if (_xml.isEmpty()) {
 			return sl_null;
 		}
 		if (_xml.is8BitsStringType()) {
 			StringData xml(_xml);
-			return XmlParser<sl_char8>::parseXml(xml.getData(), xml.getLength(), param);
+			return XmlParser<sl_char8>::parse(xml.getData(), xml.getLength(), param);
 		} else if (_xml.is16BitsStringType()) {
 			StringData16 xml(_xml);
-			return XmlParser<sl_char16>::parseXml(xml.getData(), xml.getLength(), param);
+			return XmlParser<sl_char16>::parse(xml.getData(), xml.getLength(), param);
 		} else {
 			StringData32 xml(_xml);
-			return XmlParser<sl_char32>::parseXml(xml.getData(), xml.getLength(), param);
+			return XmlParser<sl_char32>::parse(xml.getData(), xml.getLength(), param);
 		}
 	}
 
-	Ref<XmlDocument> Xml::parseXml(const StringParam& xml)
+	Ref<XmlDocument> Xml::parse(const StringParam& xml)
 	{
 		XmlParseParam param;
-		return parseXml(xml, param);
+		return parse(xml, param);
 	}
 
-	Ref<XmlDocument> Xml::parseXmlFromTextFile(const StringParam& filePath, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath, XmlParseParam& param)
 	{
 		if (param.sourceFilePath.isNull()) {
 			param.sourceFilePath = filePath.toString();
 		}
-		return parseXml(File::readAllText(filePath), param);
+		return parse(File::readAllText(filePath), param);
 	}
 
-	Ref<XmlDocument> Xml::parseXmlFromTextFile(const StringParam& filePath)
+	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath)
 	{
 		XmlParseParam param;
-		return parseXmlFromTextFile(filePath, param);
+		return parseTextFile(filePath, param);
 	}
 
 	

@@ -121,14 +121,14 @@ namespace slib
 	{
 		Memory mem = m_bufResponseContent.merge();
 		String16 s = String16::fromUtf(mem);
-		return Json::parseJson(s);
+		return Json::parse(s);
 	}
 	
 	Ref<XmlDocument> UrlRequest::getResponseContentAsXml()
 	{
 		Memory mem = m_bufResponseContent.merge();
 		String16 s = String16::fromUtf(mem);
-		return Xml::parseXml(s);
+		return Xml::parse(s);
 	}
 	
 	HttpStatus UrlRequest::getResponseStatus()
