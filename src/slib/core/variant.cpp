@@ -3696,47 +3696,17 @@ namespace slib
 	sl_size Variant::deserialize(const void* data, sl_size size)
 	{
 		SerializeBuffer buf(data, size);
-		if (Deserialize(&buf, *this)) {
+		if (deserialize(&buf)) {
 			return buf.current - buf.begin;
 		} else {
 			return 0;
 		}
 	}
 
-	sl_size Variant::deserialize(const MemoryData& mem)
+	sl_size Variant::deserialize(const MemoryView& mem)
 	{
 		SerializeBuffer buf(mem);
-		if (Deserialize(&buf, *this)) {
-			return buf.current - buf.begin;
-		} else {
-			return 0;
-		}
-	}
-
-	sl_size Variant::deserialize(MemoryData&& mem)
-	{
-		SerializeBuffer buf(Move(mem));
-		if (Deserialize(&buf, *this)) {
-			return buf.current - buf.begin;
-		} else {
-			return 0;
-		}
-	}
-
-	sl_size Variant::deserialize(const Memory& mem)
-	{
-		SerializeBuffer buf(mem);
-		if (Deserialize(&buf, *this)) {
-			return buf.current - buf.begin;
-		} else {
-			return 0;
-		}
-	}
-
-	sl_size Variant::deserialize(Memory&& mem)
-	{
-		SerializeBuffer buf(Move(mem));
-		if (Deserialize(&buf, *this)) {
+		if (deserialize(&buf)) {
 			return buf.current - buf.begin;
 		} else {
 			return 0;

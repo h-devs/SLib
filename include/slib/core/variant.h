@@ -884,18 +884,22 @@ namespace slib
 
 		sl_size deserialize(const void* data, sl_size size);
 
-		sl_size deserialize(const MemoryData& data);
-
-		sl_size deserialize(MemoryData&& data);
-
-		sl_size deserialize(const Memory& mem);
-
-		sl_size deserialize(Memory&& mem);
+		sl_size deserialize(const MemoryView& mem);
 
 		template <class INPUT>
 		sl_bool deserialize(INPUT* input);
 
-		
+		template <class... ARGS>
+		static Variant getDeserialized(ARGS&&... args)
+		{
+			Variant ret;
+			if (ret.deserialize(Forward<ARGS>(args)...)) {
+				return ret;
+			}
+			return Variant();
+		}
+
+
 		sl_compare_result compare(const Variant& other) const noexcept;
 		
 		sl_bool equals(const Variant& other) const noexcept;

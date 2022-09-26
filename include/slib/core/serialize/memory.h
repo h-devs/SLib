@@ -81,6 +81,32 @@ namespace slib
 		return sl_true;
 	}
 
+	template <class T>
+	static Memory SerializeToMemory(const T& t)
+	{
+		SerializeOutput output;
+		if (t.serialize(&output)) {
+			return output.releaseToMemory();
+		}
+		return sl_null;
+	}
+
+	template <class T>
+	static sl_bool DeserializeFromMemory(T& t, const void* data, sl_size size)
+	{
+		if (data && size) {
+			SerializeBuffer buf(data, size);
+			return t.deserialize(&buf);
+		}
+		return sl_false;
+	}
+
+	template <class T>
+	static sl_bool DeserializeFromMemory(T& t, const MemoryView& mem)
+	{
+		return DeserializeFromMemory(t, mem.data, mem.size);
+	}
+
 }
 
 #endif
