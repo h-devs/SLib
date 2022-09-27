@@ -202,7 +202,7 @@ namespace slib
 			{
 				escapeSpaceAndComments();
 				if (pos == len) {
-					return sl_null;
+					return Json();
 				}
 				
 				CHAR first = buf[pos];
@@ -216,7 +216,7 @@ namespace slib
 					if (f) {
 						flagError = sl_true;
 						errorMessage = "String: Missing character  \" or ' ";
-						return sl_null;
+						return Json();
 					}
 					return str;
 				}
@@ -228,7 +228,7 @@ namespace slib
 					if (pos == len) {
 						flagError = sl_true;
 						errorMessage = "Array: Missing character ] ";
-						return sl_null;
+						return Json();
 					}
 					if (buf[pos] == ']') {
 						pos++;
@@ -242,14 +242,14 @@ namespace slib
 						} else {
 							Json item = parse();
 							if (flagError) {
-								return sl_null;
+								return Json();
 							}
 							list.add_NoLock(item);
 							escapeSpaceAndComments();
 							if (pos == len) {
 								flagError = sl_true;
 								errorMessage = "Array: Missing character ] ";
-								return sl_null;
+								return Json();
 							}
 							ch = buf[pos];
 						}
@@ -261,18 +261,18 @@ namespace slib
 						} else {
 							flagError = sl_true;
 							errorMessage = "Array: Missing character ] ";
-							return sl_null;
+							return Json();
 						}
 						escapeSpaceAndComments();
 						if (pos == len) {
 							flagError = sl_true;
 							errorMessage = "Array: Missing character ] ";
-							return sl_null;
+							return Json();
 						}
 					}
 					flagError = sl_true;
 					errorMessage = "Array: Missing character ] ";
-					return sl_null;
+					return Json();
 				}
 				
 				// object
@@ -281,7 +281,7 @@ namespace slib
 					if (pos == len) {
 						flagError = sl_true;
 						errorMessage = "Object: Missing character } ";
-						return sl_null;
+						return Json();
 					}
 					JsonMap map = JsonMap::create();
 					sl_bool flagFirst = sl_true;
@@ -291,7 +291,7 @@ namespace slib
 						if (pos == len) {
 							flagError = sl_true;
 							errorMessage = "Object: Missing character } ";
-							return sl_null;
+							return Json();
 						}
 						CHAR ch = buf[pos];
 						if (ch == '}') {
@@ -308,14 +308,14 @@ namespace slib
 							} else {
 								flagError = sl_true;
 								errorMessage = "Object: Missing character , ";
-								return sl_null;
+								return Json();
 							}
 						}
 						escapeSpaceAndComments();
 						if (pos == len) {
 							flagError = sl_true;
 							errorMessage = "Object: Missing character } ";
-							return sl_null;
+							return Json();
 						}
 						StringType key;
 						ch = buf[pos];
@@ -337,7 +337,7 @@ namespace slib
 							if (f) {
 								flagError = sl_true;
 								errorMessage = "Object Item Name: Missing terminating character \" or ' ";
-								return sl_null;
+								return Json();
 							}
 						} else {
 							sl_size s = pos;
@@ -352,7 +352,7 @@ namespace slib
 							if (pos == len) {
 								flagError = sl_true;
 								errorMessage = "Object: Missing character : ";
-								return sl_null;
+								return Json();
 							}
 							key = StringType(buf + s, pos - s);
 						}
@@ -360,27 +360,27 @@ namespace slib
 						if (pos == len) {
 							flagError = sl_true;
 							errorMessage = "Object: Missing character : ";
-							return sl_null;
+							return Json();
 						}
 						if (buf[pos] == ':') {
 							pos++;
 						} else {
 							flagError = sl_true;
 							errorMessage = "Object: Missing character : ";
-							return sl_null;
+							return Json();
 						}
 						escapeSpaceAndComments();
 						if (pos == len) {
 							flagError = sl_true;
 							errorMessage = "Object: Missing Item value";
-							return sl_null;
+							return Json();
 						}
 						if (buf[pos] == '}' || buf[pos] == ',') {
 							map.put_NoLock(String::from(key), Json::null());
 						} else {
 							Json item = parse();
 							if (flagError) {
-								return sl_null;
+								return Json();
 							}
 							if (item.isNotUndefined()) {
 								map.put_NoLock(String::from(key), item);
@@ -390,7 +390,7 @@ namespace slib
 					}
 					flagError = sl_true;
 					errorMessage = "Object: Missing character } ";
-					return sl_null;
+					return Json();
 				}
 				{
 					sl_size s = pos;
@@ -405,11 +405,11 @@ namespace slib
 					if (pos == s) {
 						flagError = sl_true;
 						errorMessage = "Invalid token";
-						return sl_null;
+						return Json();
 					}
 					StringType str(buf + s, pos - s);
 					if (str == strUndefined) {
-						return Json::undefined();
+						return Json();
 					}
 					if (str == strNull) {
 						return sl_null;
@@ -435,14 +435,14 @@ namespace slib
 				}
 				flagError = sl_true;
 				errorMessage = "Invalid token";
-				return sl_null;
+				return Json();
 			}
 
 			template <class CHAR>
 			Json Parser<CHAR>::parse(const CHAR* buf, sl_size len, JsonParseParam& param)
 			{
 				if (!len) {
-					return sl_null;
+					return Json();
 				}
 				
 				param.flagError = sl_false;
@@ -476,7 +476,7 @@ namespace slib
 					LogError("Json", param.getErrorText());
 				}
 				
-				return sl_null;
+				return Json();
 				
 			}
 			
@@ -840,7 +840,7 @@ namespace slib
 	Json Json::parse(const sl_char8* str, sl_size len)
 	{
 		if (!len) {
-			return sl_null;
+			return Json();
 		}
 		JsonParseParam param;
 		return parse(str, len, param);
@@ -854,7 +854,7 @@ namespace slib
 	Json Json::parse(const sl_char16* str, sl_size len)
 	{
 		if (!len) {
-			return sl_null;
+			return Json();
 		}
 		JsonParseParam param;
 		return parse(str, len, param);
@@ -868,7 +868,7 @@ namespace slib
 	Json Json::parse(const sl_char32* str, sl_size len)
 	{
 		if (!len) {
-			return sl_null;
+			return Json();
 		}
 		JsonParseParam param;
 		return parse(str, len, param);
@@ -877,7 +877,7 @@ namespace slib
 	Json Json::parse(const StringParam& _str, JsonParseParam& param)
 	{
 		if (_str.isEmpty()) {
-			return sl_null;
+			return Json();
 		}
 		if (_str.is8BitsStringType()) {
 			StringData str(_str);
@@ -894,7 +894,7 @@ namespace slib
 	Json Json::parse(const StringParam& str)
 	{
 		if (str.isEmpty()) {
-			return sl_null;
+			return Json();
 		}
 		JsonParseParam param;
 		return parse(str, param);
@@ -1317,7 +1317,7 @@ namespace slib
 		if (ret.put_NoLock(oid, toString())) {
 			return ret;
 		}
-		return sl_null;
+		return Json();
 	}
 
 	sl_bool ObjectId::setJson(const Json& json) noexcept
