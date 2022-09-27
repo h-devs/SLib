@@ -22,6 +22,7 @@
 
 #include "slib/ui/slider.h"
 
+#include "slib/ui/cursor.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
@@ -93,6 +94,7 @@ namespace slib
 		m_indexHoverThumb = -1;
 		m_indexPressedThumb = -1;
 		
+		setCursor(Cursor::getHand());
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		setFocusable(sl_true);
 #endif

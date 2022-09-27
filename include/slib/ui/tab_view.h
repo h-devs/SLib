@@ -196,7 +196,9 @@ namespace slib
 		void onClickEvent(UIEvent* ev) override;
 		
 		void onMouseEvent(UIEvent* ev) override;
-		
+
+		void onSetCursor(UIEvent* ev) override;
+
 		void onDraw(Canvas* canvas) override;
 		
 		void onResize(sl_ui_len width, sl_ui_len height) override;

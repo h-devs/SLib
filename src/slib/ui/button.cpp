@@ -24,6 +24,7 @@
 
 #include "slib/ui/view_attributes.h"
 #include "slib/ui/core.h"
+#include "slib/ui/cursor.h"
 #include "slib/graphics/util.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/new_helper.h"
@@ -140,6 +141,7 @@ namespace slib
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 
+		setCursor(Cursor::getHand());
 		setSavingCanvasState(sl_false);
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
