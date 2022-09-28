@@ -347,7 +347,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is empty.
 		 */
-		SLIB_CONSTEXPR sl_bool isEmpty() const
+		sl_bool isEmpty() const noexcept
 		{
 			return !(m_container && m_container->len);
 		}
@@ -355,7 +355,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not empty.
 		 */
-		SLIB_CONSTEXPR sl_bool isNotEmpty() const
+		sl_bool isNotEmpty() const noexcept
 		{
 			return m_container && m_container->len;
 		}
@@ -451,9 +451,9 @@ namespace slib
 		
 		sl_char8& operator[](sl_size index) noexcept;
 
-		SLIB_CONSTEXPR explicit operator sl_bool() const
+		explicit operator sl_bool() const noexcept
 		{
-			return m_container != sl_null;
+			return isNotEmpty();
 		}
 		
 #ifdef SLIB_SUPPORT_STD_TYPES

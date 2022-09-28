@@ -76,9 +76,9 @@ namespace slib
 			return data[index];
 		}
 
-		SLIB_CONSTEXPR explicit operator sl_bool() const
+		explicit operator sl_bool() const noexcept
 		{
-			return data != sl_null;
+			return !(isEmpty());
 		}
 
 	public:
@@ -490,9 +490,9 @@ namespace slib
 			return data[index];
 		}
 
-		SLIB_CONSTEXPR explicit operator sl_bool() const
+		explicit operator sl_bool() const noexcept
 		{
-			return data != sl_null;
+			return !(isEmpty());
 		}
 
 	public:
@@ -905,9 +905,9 @@ namespace slib
 			return data[index];
 		}
 
-		SLIB_CONSTEXPR explicit operator sl_bool() const
+		explicit operator sl_bool() const noexcept
 		{
-			return data != sl_null;
+			return !(isEmpty());
 		}
 
 	public:

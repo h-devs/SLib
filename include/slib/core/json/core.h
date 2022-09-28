@@ -345,13 +345,13 @@ namespace slib
 	public:
 		JsonItem() noexcept {}
 
-		JsonItem(const String& key, const Json& value) noexcept : Pair(key, value) {}
+		JsonItem(const String& key, const Json& value) noexcept: Pair(key, value) {}
 
-		JsonItem(String&& key, const Json& value) noexcept : Pair(Move(key), value) {}
+		JsonItem(String&& key, const Json& value) noexcept: Pair(Move(key), value) {}
 
-		JsonItem(const String& key, Json&& value) noexcept : Pair(key, Move(value)) {}
+		JsonItem(const String& key, Json&& value) noexcept: Pair(key, Move(value)) {}
 
-		JsonItem(String&& key, Json&& value) noexcept : Pair(Move(key), Move(value)) {}
+		JsonItem(String&& key, Json&& value) noexcept: Pair(Move(key), Move(value)) {}
 
 	};
 
