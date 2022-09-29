@@ -72,29 +72,29 @@ namespace slib
 
 	using namespace priv::setting;
 
-	IniSetting::IniSetting()
+	Ini::Ini()
 	{
 	}
 
-	IniSetting::~IniSetting()
+	Ini::~Ini()
 	{
 	}
 
-	void IniSetting::initialize()
+	void Ini::initialize()
 	{
 		m_mapValues.removeAll();
 	}
 
-	sl_bool IniSetting::parseFromUtf8TextFile(const StringParam& filePath)
+	sl_bool Ini::parseTextFile(const StringParam& filePath)
 	{
 		if (File::exists(filePath)) {
-			return parseFromText(File::readAllText(filePath));
+			return parseText(File::readAllText(filePath));
 		} else {
 			return sl_false;
 		}
 	}
 
-	sl_bool IniSetting::parseFromText(const StringParam& _text)
+	sl_bool Ini::parseText(const StringParam& _text)
 	{
 		StringData text(_text);
 		sl_size len = text.getLength();
@@ -109,7 +109,7 @@ namespace slib
 				if (indexAssign < 0 && indexComment < 0) {
 					indexAssign = i;
 				}
-			} else if (ch == '#') {
+			} else if (ch == '#' || ch == ';') {
 				if (indexComment < 0) {
 					indexComment = i;
 				}
@@ -132,14 +132,9 @@ namespace slib
 		return sl_true;
 	}
 
-	Variant IniSetting::getValue(const String& name)
+	String Ini::getValue(const String& name)
 	{
-		String ret = m_mapValues.getValue(name, String::null());
-		if (ret.isEmpty()) {
-			return sl_null;
-		} else {
-			return ret;
-		}
+		return m_mapValues.getValue_NoLock(name, sl_null);
 	}
 
 

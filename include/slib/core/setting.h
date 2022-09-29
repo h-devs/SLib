@@ -28,21 +28,21 @@
 namespace slib
 {
 	
-	class SLIB_EXPORT IniSetting
+	class SLIB_EXPORT Ini
 	{
 	public:
-		IniSetting();
+		Ini();
 
-		~IniSetting();
+		~Ini();
 
 	public:
 		void initialize();
 
-		sl_bool parseFromUtf8TextFile(const StringParam& filePath);
+		sl_bool parseTextFile(const StringParam& filePath);
 
-		sl_bool parseFromText(const StringParam& text);
+		sl_bool parseText(const StringParam& text);
 
-		Variant getValue(const String& name);
+		String getValue(const String& name);
 
 	private:
 		CHashMap<String, String> m_mapValues;
