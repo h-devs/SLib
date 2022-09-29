@@ -29,6 +29,8 @@
 #include "slib/core/file.h"
 #include "slib/core/process.h"
 #include "slib/core/string.h"
+#include "slib/core/list.h"
+#include "slib/core/ini.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/dl/linux/rt.h"
 
@@ -263,7 +265,7 @@ namespace slib
 			*outActiveSessionName = sessionName;
 		}
 		if (sessionName.isNotEmpty()) {
-			ListElements<String> sessions(Process::getOutput("loginctl", "list-sessions", "--no-legend").split("\n"));
+			ListElements<String> sessions(Process::getOutput("loginctl", "list-sessions", "--no-legend").split('\n'));
 			for (sl_size i = 0; i < sessions.count; i++) {
 				String row = sessions[i].trim();
 				if (row.endsWith(sessionName)) {
@@ -369,16 +371,16 @@ namespace slib
 		sa.sa_flags = SA_NODEFER;
 		sa.sa_handler = handler;
 		sigemptyset(&(sa.sa_mask));
-		sigaction(SIGFPE, &sa, NULL);
-		sigaction(SIGSEGV, &sa, NULL);
-		sigaction(SIGBUS, &sa, NULL);
-		sigaction(SIGILL, &sa, NULL);
-		sigaction(SIGABRT, &sa, NULL);
-		sigaction(SIGIOT, &sa, NULL);
+        sigaction(SIGFPE, &sa, sl_null);
+        sigaction(SIGSEGV, &sa, sl_null);
+        sigaction(SIGBUS, &sa, sl_null);
+        sigaction(SIGILL, &sa, sl_null);
+        sigaction(SIGABRT, &sa, sl_null);
+        sigaction(SIGIOT, &sa, sl_null);
 #	if defined(SLIB_PLATFORM_IS_MACOS)
-		sigaction(SIGEMT, &sa, NULL);
+        sigaction(SIGEMT, &sa, sl_null);
 #	endif
-		sigaction(SIGSYS, &sa, NULL);
+        sigaction(SIGSYS, &sa, sl_null);
 	}
 #endif
 
