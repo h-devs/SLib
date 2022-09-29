@@ -251,6 +251,15 @@ namespace slib
 		return Apple::getStringFromNSString(NSFullUserName());
 	}
 
+	String System::getActiveUserName(String* outActiveSessionName)
+	{
+		if (outActiveSessionName) {
+			SLIB_STATIC_STRING(sessionName, "console")
+			*outActiveSessionName = sessionName;
+		}
+		return File::getOwnerName("/dev/console");
+	}
+
 	sl_uint64 System::getTickCount64()
 	{
 		static sl_bool flagInit = sl_true;

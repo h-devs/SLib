@@ -83,6 +83,7 @@
     <ClCompile Include="..\..\src\slib\core\animation.cpp" />
     <ClCompile Include="..\..\src\slib\core\app.cpp" />
     <ClCompile Include="..\..\src\slib\core\app_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_win32_wtsapi32.cpp" />
     <ClCompile Include="..\..\src\slib\core\performance.cpp" />
     <ClCompile Include="..\..\src\slib\core\async.cpp" />
     <ClCompile Include="..\..\src\slib\core\async_iocp.cpp" />

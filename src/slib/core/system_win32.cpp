@@ -31,6 +31,7 @@
 #include "slib/core/win32/platform.h"
 #include "slib/core/dl/win32/kernel32.h"
 #include "slib/core/dl/win32/wininet.h"
+#include "slib/core/dl/win32/wtsapi32.h"
 
 #include <assert.h>
 #include <signal.h>
@@ -606,6 +607,48 @@ namespace slib
 	String System::getFullUserName()
 	{
 		return getUserName();
+	}
+
+	String System::getActiveUserName(String* outActiveSessionName)
+	{
+		auto apiEnumSessions = wtsapi32::getApi_WTSEnumerateSessionsW();
+		if (!apiEnumSessions) {
+			return sl_null;
+		}
+		auto apiQuerySessionInfo = wtsapi32::getApi_WTSQuerySessionInformationW();
+		if (!apiQuerySessionInfo) {
+			return sl_null;
+		}
+		auto apiFreeMemory = wtsapi32::getApi_WTSFreeMemory();
+		if (!apiFreeMemory) {
+			return sl_null;
+		}
+		String ret;
+		WTS_SESSION_INFOW* pSessionInfos = sl_null;
+		DWORD nSessions = 0;
+		if (apiEnumSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &pSessionInfos, &nSessions)) {
+			for (DWORD iSession = 0; iSession < nSessions; iSession++) {
+				WTS_SESSION_INFOW& si = pSessionInfos[iSession];
+				if (si.State == WTSActive && ret.isNull()) {
+					if (outActiveSessionName) {
+						*outActiveSessionName = String::create(si.pWinStationName);
+					}
+					WCHAR* bufUserName = sl_null;
+					DWORD sizeUserName = 0;
+					if (apiQuerySessionInfo(WTS_CURRENT_SERVER_HANDLE, si.SessionId, WTSUserName, &bufUserName, &sizeUserName)) {
+						if (bufUserName) {
+							sl_size lenUserName = (sl_size)(sizeUserName >> 1);
+							if (lenUserName) {
+								ret = String::create(bufUserName, lenUserName - 1);
+							}
+							apiFreeMemory(bufUserName);
+						}
+					}
+				}
+			}
+			apiFreeMemory(pSessionInfos);
+		}
+		return ret;
 	}
 
 	sl_uint32 System::getTickCount()

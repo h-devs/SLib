@@ -27,6 +27,7 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
+#include "slib/core/process.h"
 #include "slib/core/string.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/dl/linux/rt.h"
@@ -252,6 +253,32 @@ namespace slib
 	String System::getFullUserName()
 	{
 		return getUserName();
+	}
+
+	String System::getActiveUserName(String* outActiveSessionName)
+	{
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+		String sessionName = File::readAllTextUTF8("/sys/class/tty/tty0/active").trim();
+		if (outActiveSessionName) {
+			*outActiveSessionName = sessionName;
+		}
+		if (sessionName.isNotEmpty()) {
+			ListElements<String> sessions(Process::getOutput("loginctl", "list-sessions", "--no-legend").split("\n"));
+			for (sl_size i = 0; i < sessions.count; i++) {
+				String row = sessions[i].trim();
+				if (row.endsWith(sessionName)) {
+					String sid = row.split(' ', 1).getFirstValue_NoLock();
+					Ini session;
+					if (session.parseText(Process::getOutput("loginctl", "show-session", sid))) {
+						if (session.getValue("Active") == "yes" && session.getValue("Remote") == "no") {
+							return session.getValue("Name");
+						}
+					}
+				}
+			}
+		}
+#endif
+		return sl_null;
 	}
 #endif
 

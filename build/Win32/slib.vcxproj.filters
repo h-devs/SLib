@@ -1445,5 +1445,8 @@
     <ClCompile Include="..\..\src\slib\uix\x_button.cpp">
       <Filter>src\uix</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\dl_win32_wtsapi32.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
