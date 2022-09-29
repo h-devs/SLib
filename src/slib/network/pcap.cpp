@@ -155,7 +155,7 @@ namespace slib
 			public:
 				static Ref<PcapImpl> create(const PcapParam& param)
 				{
-					StringCstr name = param.deviceName;
+					StringCstr name(param.deviceName);
 					if (name.isEmpty()) {
 						name = "any";
 					}
@@ -198,7 +198,7 @@ namespace slib
 								}
 								pcap_freealldevs(devs);
 							}
-							LogError(TAG, "failed to find device: %s", name);
+							LogError(TAG, "Failed to find device: %s", name);
 						}
 					}
 					return sl_null;
@@ -242,7 +242,7 @@ namespace slib
 						int iRet = pcap_activate(handle);
 						if (iRet < 0) {
 							if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
-								LogError(TAG, "failed to activate: %s", name);
+								LogError(TAG, "Failed to activate: %s", name);
 							}
 							pcap_close(handle);
 							handle = sl_null;
