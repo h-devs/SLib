@@ -22,17 +22,17 @@
 
 #include "slib/graphics/image.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4312)
-#pragma warning(disable : 4996)
-#endif
-
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 
-#ifdef SLIB_PLATFORM_IS_APPLE
+#if defined(_MSC_VER)
+#	pragma warning(disable : 4312)
+#	pragma warning(disable : 4996)
+#	include "stb/stb_image.h"
+#elif defined(SLIB_PLATFORM_IS_APPLE)
 #	pragma clang diagnostic push
 #	pragma clang diagnostic ignored "-Wcomma"
+#	pragma clang diagnostic ignored "-Wunused-function"
 #	include "stb/stb_image.h"
 #	pragma clang diagnostic pop
 #else

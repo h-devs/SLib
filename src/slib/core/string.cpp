@@ -544,19 +544,19 @@ namespace slib
 			}
 
 			template <>
-			SLIB_INLINE static StringView MidPriv<StringView>(const StringView* thiz, const sl_char8* data, sl_size start, sl_size length)
+			SLIB_INLINE StringView MidPriv<StringView>(const StringView* thiz, const sl_char8* data, sl_size start, sl_size length)
 			{
 				return StringView(data + start, length);
 			}
 
 			template <>
-			SLIB_INLINE static StringView16 MidPriv<StringView16>(const StringView16* thiz, const sl_char16* data, sl_size start, sl_size length)
+			SLIB_INLINE StringView16 MidPriv<StringView16>(const StringView16* thiz, const sl_char16* data, sl_size start, sl_size length)
 			{
 				return StringView16(data + start, length);
 			}
 
 			template <>
-			SLIB_INLINE static StringView32 MidPriv<StringView32>(const StringView32* thiz, const sl_char32* data, sl_size start, sl_size length)
+			SLIB_INLINE StringView32 MidPriv<StringView32>(const StringView32* thiz, const sl_char32* data, sl_size start, sl_size length)
 			{
 				return StringView32(data + start, length);
 			}

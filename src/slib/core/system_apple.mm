@@ -63,7 +63,7 @@ namespace slib
 						g_systemVersionPatch = (sl_uint32)(version.patchVersion);
 						g_systemVersion = String::concat(String::fromUint32(g_systemVersionMajor), ".", String::fromUint32(g_systemVersionMinor));
 						if (g_systemVersionPatch > 0) {
-							g_systemVersion = String::join(g_systemVersion, ".", String::fromUint32(g_systemVersionPatch));
+							g_systemVersion = String::concat(g_systemVersion, ".", String::fromUint32(g_systemVersionPatch));
 						}
 					} else if (v >= NSAppKitVersionNumber10_9) {
 						g_systemVersion = "10.9";
