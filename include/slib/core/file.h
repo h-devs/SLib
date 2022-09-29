@@ -379,9 +379,9 @@ namespace slib
 		
 		static StringParam readAllText(const StringParam& path, sl_size maxSize = SLIB_SIZE_MAX) noexcept;
 		
-		static sl_size writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept;
+		static sl_reg writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept;
 
-		static sl_size writeAllBytes(const StringParam& path, const MemoryView& mem) noexcept;
+		static sl_reg writeAllBytes(const StringParam& path, const MemoryView& mem) noexcept;
 
 		static sl_bool writeAllTextUTF8(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) noexcept;
 
@@ -389,9 +389,9 @@ namespace slib
 
 		static sl_bool writeAllTextUTF16BE(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark = sl_false) noexcept;
 
-		static sl_size appendAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept;
+		static sl_reg appendAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept;
 
-		static sl_size appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept;
+		static sl_reg appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept;
 
 		static sl_bool appendAllTextUTF8(const StringParam& path, const StringParam& text) noexcept;
 
