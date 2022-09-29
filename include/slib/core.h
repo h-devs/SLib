@@ -174,6 +174,7 @@
 #include "core/regex.h"
 #include "core/json.h"
 #include "core/xml.h"
+#include "core/ini.h"
 
 #include "core/platform_type.h"
 #include "core/find_options.h"

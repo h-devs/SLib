@@ -20,21 +20,36 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_SETTING
-#define CHECKHEADER_SLIB_CORE_SETTING
+#ifndef CHECKHEADER_SLIB_CORE_INI
+#define CHECKHEADER_SLIB_CORE_INI
 
+#include "hash_map.h"
 #include "string.h"
 
 namespace slib
 {
-
-	class SLIB_EXPORT SettingUtil
+	
+	class SLIB_EXPORT Ini
 	{
 	public:
-		static sl_bool parseUint32Range(const StringParam& str, sl_uint32* from = sl_null, sl_uint32* to = sl_null);
-	
-	};
+		Ini();
 
+		~Ini();
+
+	public:
+		void initialize();
+
+		sl_bool parseTextFile(const StringParam& filePath);
+
+		sl_bool parseText(const StringParam& text);
+
+		String getValue(const String& name);
+
+	private:
+		CHashMap<String, String> m_mapValues;
+
+	};
+	
 }
 
 #endif
