@@ -1186,7 +1186,7 @@ namespace slib
 		return sl_true;
 	}
 	
-	void OpenSSL_AES::setKey_SHA256(const String& key)
+	void OpenSSL_AES::setKey_SHA256(const StringView& key)
 	{
 		char sig[32];
 		SHA256::hash(key, sig);

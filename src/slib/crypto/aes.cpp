@@ -563,7 +563,7 @@ namespace slib
 		MIO::writeUint32BE(OUT + 12, d3);
 	}
 
-	void AES::setKey_SHA256(const String& key)
+	void AES::setKey_SHA256(const StringView& key)
 	{
 		char sig[32];
 		SHA256::hash(key, sig);
@@ -585,7 +585,7 @@ namespace slib
 		setCipher(&m_cipher);
 	}
 
-	void AES_GCM::setKey_SHA256(const String& key)
+	void AES_GCM::setKey_SHA256(const StringView& key)
 	{
 		m_cipher.setKey_SHA256(key);
 		setCipher(&m_cipher);

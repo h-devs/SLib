@@ -140,7 +140,7 @@ namespace slib
 	public:
 		sl_bool setKey(const void* key, sl_uint32 lenKey /* 16, 24, 32 bytes */);
 		
-		void setKey_SHA256(const String& key);
+		void setKey_SHA256(const StringView& key);
 		
 		// 128 bits (16 bytes) block
 		void encryptBlock(const void* src, void* dst) const;
