@@ -30,6 +30,26 @@ namespace slib
 	SLIB_ALIGN(8) const sl_uint8 MacAddress::_zero[6] = { 0 };
 	SLIB_ALIGN(8) const sl_uint8 MacAddress::_broadcast[6] = { 255, 255, 255, 255, 255, 255 };
 
+	MacAddress::MacAddress() noexcept
+	{
+		m[0] = 0;
+		m[1] = 0;
+		m[2] = 0;
+		m[3] = 0;
+		m[4] = 0;
+		m[5] = 0;
+	}
+
+	MacAddress::MacAddress(sl_null_t) noexcept
+	{
+		m[0] = 0;
+		m[1] = 0;
+		m[2] = 0;
+		m[3] = 0;
+		m[4] = 0;
+		m[5] = 0;
+	}
+
 	MacAddress::MacAddress(const sl_uint8* _m) noexcept
 	{
 		m[0] = _m[0];
@@ -210,6 +230,12 @@ namespace slib
 	}
 
 	SLIB_DEFINE_CLASS_PARSE_MEMBERS(MacAddress, priv::mac_address::Parse)
+
+	MacAddress& MacAddress::operator=(sl_null_t) noexcept
+	{
+		setZero();
+		return *this;
+	}
 
 	MacAddress& MacAddress::operator=(const StringParam& address) noexcept
 	{

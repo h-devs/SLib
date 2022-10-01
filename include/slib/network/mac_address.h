@@ -37,9 +37,11 @@ namespace slib
 		sl_uint8 m[6];
 		
 	public:
-		MacAddress() = default;
+		MacAddress() noexcept;
 		
 		MacAddress(const MacAddress& other) = default;
+
+		MacAddress(sl_null_t) noexcept;
 		
 		MacAddress(const sl_uint8* m) noexcept;
 		
@@ -132,6 +134,7 @@ namespace slib
 
 	public:
 		MacAddress& operator=(const MacAddress& other) = default;
+		MacAddress& operator=(sl_null_t) noexcept;
 		MacAddress& operator=(const StringParam& address) noexcept;
 		
 	private:

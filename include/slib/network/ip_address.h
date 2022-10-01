@@ -54,7 +54,9 @@ namespace slib
 		SLIB_CONSTEXPR IPv4Address(): a(0), b(0), c(0), d(0) {}
 		
 		SLIB_CONSTEXPR IPv4Address(const IPv4Address& other): a(other.a), b(other.b), c(other.c), d(other.d) {}
-		
+
+		SLIB_CONSTEXPR IPv4Address(sl_null_t): a(0), b(0), c(0), d(0) {}
+
 		SLIB_CONSTEXPR IPv4Address(sl_uint8 const addr[4]): a(addr[0]), b(addr[1]), c(addr[2]), d(addr[3]) {}
 		
 		SLIB_CONSTEXPR IPv4Address(sl_uint8 _a, sl_uint8 _b, sl_uint8 _c, sl_uint8 _d): a(_a), b(_b), c(_c), d(_d) {}
@@ -154,7 +156,16 @@ namespace slib
 
 	public:
 		IPv4Address& operator=(const IPv4Address& other) = default;
-		
+
+		IPv4Address& operator=(sl_null_t) noexcept
+		{
+			a = 0;
+			b = 0;
+			c = 0;
+			d = 0;
+			return *this;
+		}
+
 		IPv4Address& operator=(sl_uint32 addr) noexcept
 		{
 			a = (sl_uint8)(addr >> 24);
@@ -195,10 +206,12 @@ namespace slib
 		sl_uint8 m[16];
 		
 	public:
-		IPv6Address() = default;
+		IPv6Address() noexcept;
 		
 		IPv6Address(const IPv6Address& other) = default;
 		
+		IPv6Address(sl_null_t) noexcept;
+
 		// 8 elements
 		IPv6Address(const sl_uint16* s) noexcept;
 		
@@ -265,7 +278,9 @@ namespace slib
 
 	public:
 		IPv6Address& operator=(const IPv6Address& other) = default;
-		
+
+		IPv6Address& operator=(sl_null_t) noexcept;
+
 		IPv6Address& operator=(const StringParam& address) noexcept;
 		
 	private:
