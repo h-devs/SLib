@@ -48,6 +48,13 @@ namespace slib
 	ListControlCell::ListControlCell()
 	{
 	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlRow)
+	
+	ListControlRow::ListControlRow()
+	{
+	}
 	
 	
 	SLIB_DEFINE_OBJECT(ListControl, View)
@@ -60,7 +67,6 @@ namespace slib
 		setUsingFont(sl_true);
 		
 		m_columns.setCount(1);
-		m_nRows = 0;
 		m_selectedRow = -1;
 	}
 	
@@ -75,14 +81,18 @@ namespace slib
 	
 	void ListControl::setColumnCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
+		{
+			ObjectLocker lock(this);
+			m_columns.setCount_NoLock(nCount);
+		}
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnCount, nCount, mode)
-		}
-		ObjectLocker lock(this);
-		m_columns.setCount(nCount);
-		if (instance.isNotNull()) {
-			instance->refreshColumnCount(this);
+			if (UI::isUiThread()) {
+				instance->refreshColumnCount(this);
+			}
 		} else {
 			invalidate(mode);
 		}
@@ -90,22 +100,30 @@ namespace slib
 	
 	sl_uint32 ListControl::getRowCount()
 	{
-		return m_nRows;
+		return (sl_uint32)(m_rows.getCount());
 	}
 	
 	void ListControl::setRowCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
+		{
+			ObjectLocker lock(this);
+			m_rows.setCount_NoLock(nCount);
+		}
+		invalidateItems(mode);
+	}
+
+	void ListControl::invalidateItems(UIUpdateMode mode)
+	{
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setRowCount, nCount, mode)
-		}
-		ObjectLocker lock(this);
-		if (nCount < m_cells.getCount()) {
-			m_cells.setCount(nCount);
-		}
-		m_nRows = nCount;
-		if (instance.isNotNull()) {
-			instance->refreshRowCount(this);
+			if (UI::isUiThread()) {
+				instance->refreshRowCount(this);
+			} else {
+				UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, invalidateItems, mode));
+			}
 		} else {
 			invalidate(mode);
 		}
@@ -113,11 +131,11 @@ namespace slib
 	
 	String ListControl::getItemText(sl_uint32 iRow, sl_uint32 iCol)
 	{
-		List<ListControlCell> row = m_cells.getValueAt(iRow);
-		if (row.isNotNull()) {
-			MutexLocker lock(row.getLocker());
-			if (iCol < row.getCount()) {
-				ListControlCell* cell = row.getPointerAt(iCol);
+		ObjectLocker lock(this);
+		ListControlRow* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			ListControlCell* cell = row->cells.getPointerAt(iCol);
+			if (cell) {
 				return cell->text;
 			}
 		}
@@ -126,47 +144,51 @@ namespace slib
 	
 	void ListControl::setItemText(sl_uint32 iRow, sl_uint32 iCol, const String& text, UIUpdateMode mode)
 	{
-		Ptr<IListControlInstance> instance = getListControlInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setItemText, iRow, iCol, text, mode)
-		}
-		ObjectLocker lock(this);
-		if (iRow < m_nRows) {
-			if (iRow >= m_cells.getCount()) {
-				if (!(m_cells.setCount(iRow + 1))) {
-					return;
-				}
-			}
-			List<ListControlCell> row = m_cells.getValueAt(iRow);
-			if (row.isNull()) {
-				row.setCount(iCol + 1);
-				m_cells.setAt(iRow, row);
-			}
-			if (row.isNotNull()) {
-				MutexLocker lock(row.getLocker());
-				if (iCol >= row.getCount()) {
-					if (!(row.setCount(iCol + 1))) {
-						return;
+		{
+			ObjectLocker lock(this);
+			ListControlCell* cell = sl_null;
+			ListControlRow* row = m_rows.getPointerAt(iRow);
+			if (row) {
+				cell = row->cells.getPointerAt(iCol);
+				if (!cell) {
+					if (row->cells.setCount_NoLock(iCol + 1)) {
+						cell = row->cells.getPointerAt(iCol);
 					}
 				}
-				ListControlCell* cell = row.getPointerAt(iCol);
-				cell->text = text;
 			}
-			if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-				if (instance.isNotNull()) {
-					instance->refreshRowCount(this);
-				} else {
-					invalidate();
-				}
+			if (cell) {
+				cell->text = text;
+			} else {
+				return;
 			}
 		}
+		invalidateItems(mode);
 	}
-	
+
+	String ListControl::getRowId(sl_uint32 iRow)
+	{
+		ObjectLocker lock(this);
+		ListControlRow* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			return row->id;
+		}
+		return sl_null;
+	}
+
+	void ListControl::setRowId(sl_uint32 iRow, const String& id)
+	{
+		ObjectLocker lock(this);
+		ListControlRow* row = m_rows.getPointerAt(iRow);
+		if (row) {
+			row->id = id;
+		}
+	}
+
 	String ListControl::getHeaderText(sl_uint32 iCol)
 	{
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+		ObjectLocker lock(this);
+		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		if (col) {
 			return col->title;
 		}
 		return sl_null;
@@ -174,27 +196,33 @@ namespace slib
 	
 	void ListControl::setHeaderText(sl_uint32 iCol, const String& text, UIUpdateMode mode)
 	{
+		{
+			ObjectLocker lock(this);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			if (col) {
+				col->title = text;
+			} else {
+				return;
+			}
+		}
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setHeaderText, iCol, text, mode)
-		}
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
-			col->title = text;
-			if (instance.isNotNull()) {
+			if (UI::isUiThread()) {
 				instance->setHeaderText(this, iCol, text);
-			} else {
-				invalidate(mode);
 			}
+		} else {
+			invalidate(mode);
 		}
 	}
 	
 	sl_ui_len ListControl::getColumnWidth(sl_uint32 iCol)
 	{
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+		ObjectLocker lock(this);
+		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		if (col) {
 			return col->width;
 		}
 		return 0;
@@ -202,27 +230,33 @@ namespace slib
 	
 	void ListControl::setColumnWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
+		{
+			ObjectLocker lock(this);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			if (col) {
+				col->width = width;
+			} else {
+				return;
+			}
+		}
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnWidth, iCol, width, mode)
-		}
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
-			col->width = width;
-			if (instance.isNotNull()) {
+			if (UI::isUiThread()) {
 				instance->setColumnWidth(this, iCol, width);
-			} else {
-				invalidate(mode);
 			}
+		} else {
+			invalidate(mode);
 		}
 	}
 	
 	Alignment ListControl::getHeaderAlignment(sl_uint32 iCol)
 	{
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+		ObjectLocker lock(this);
+		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		if (col) {
 			return col->headerAlign;
 		}
 		return Alignment::Center;
@@ -230,27 +264,33 @@ namespace slib
 	
 	void ListControl::setHeaderAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
 	{
+		{
+			ObjectLocker lock(this);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			if (col) {
+				col->headerAlign = align;
+			} else {
+				return;
+			}
+		}
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setHeaderAlignment, iCol, align, mode)
-		}
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
-			col->headerAlign = align;
-			if (instance.isNotNull()) {
+			if (UI::isUiThread()) {
 				instance->setHeaderAlignment(this, iCol, align);
-			} else {
-				invalidate(mode);
 			}
+		} else {
+			invalidate(mode);
 		}
 	}
 	
 	Alignment ListControl::getColumnAlignment(sl_uint32 iCol)
 	{
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+		ObjectLocker lock(this);
+		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		if (col) {
 			return col->align;
 		}
 		return Alignment::Center;
@@ -258,19 +298,25 @@ namespace slib
 	
 	void ListControl::setColumnAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
 	{
+		{
+			ObjectLocker lock(this);
+			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			if (col) {
+				col->align = align;
+			} else {
+				return;
+			}
+		}
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
 		Ptr<IListControlInstance> instance = getListControlInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setColumnAlignment, iCol, align, mode)
-		}
-		MutexLocker lock(m_columns.getLocker());
-		if (iCol < m_columns.getCount()) {
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
-			col->align = align;
-			if (instance.isNotNull()) {
+			if (UI::isUiThread()) {
 				instance->setColumnAlignment(this, iCol, align);
-			} else {
-				invalidate(mode);
 			}
+		} else {
+			invalidate(mode);
 		}
 	}
 	
@@ -285,30 +331,31 @@ namespace slib
 	
 	sl_uint32 ListControl::addRow(UIUpdateMode mode)
 	{
-		ObjectLocker lock(this);
-		sl_uint32 n = m_nRows;
+		sl_uint32 n = (sl_uint32)(m_rows.getCount());
 		setRowCount(n + 1, mode);
 		return n;
 	}
 	
 	void ListControl::insertRow(sl_uint32 iRow, UIUpdateMode mode)
 	{
-		ObjectLocker lock(this);
-		if (iRow < m_cells.getCount()) {
-			m_cells.insert(iRow, List<ListControlCell>::null());
+		{
+			ObjectLocker lock(this);
+			if (!(m_rows.insert_NoLock(iRow))) {
+				return;
+			}
 		}
-		setRowCount(m_nRows+1, mode);
+		invalidateItems(mode);
 	}
 	
 	void ListControl::removeRow(sl_uint32 iRow, UIUpdateMode mode)
 	{
-		ObjectLocker lock(this);
-		if (iRow < m_nRows) {
-			if (iRow < m_cells.getCount()) {
-				m_cells.removeAt(iRow);
+		{
+			ObjectLocker lock(this);
+			if (!(m_rows.removeAt_NoLock(iRow))) {
+				return;
 			}
-			setRowCount(m_nRows - 1, mode);
 		}
+		invalidateItems(mode);
 	}
 	
 	void ListControl::removeAllRows(UIUpdateMode mode)

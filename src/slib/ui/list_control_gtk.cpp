@@ -117,7 +117,7 @@ namespace slib
 				{
 					GtkTreeModel *model = gtk_tree_view_get_model(handle);
 					gtk_tree_view_set_model(handle, sl_null);
-					SetModelRows(model, m_nRows);
+					SetModelRows(model, getRowCount());
 					gtk_tree_view_set_model(handle, model);
 
 				}
@@ -268,7 +268,7 @@ namespace slib
 			{
 				GtkTreeModel* model = list_control_model_new();
 				SetModelView(model, this);
-				SetModelRows(model, m_nRows);
+				SetModelRows(model, getRowCount());
 				gtk_tree_view_set_model(view, model);
 			}
 
