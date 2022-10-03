@@ -74,6 +74,8 @@ namespace slib
 
 		String getSelectedTitle();
 
+		void sortByTitle(sl_bool flagAsc = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	protected:
 		AtomicFunction<String(sl_uint64 index)> m_functionTitle;
 		AtomicList<String> m_titles;

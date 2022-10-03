@@ -293,6 +293,44 @@ namespace slib
 		return sl_null;
 	}
 
+	template <class VIEW_CLASS, class INDEX_TYPE>
+	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::sortByTitle(sl_bool flagAsc, UIUpdateMode mode)
+	{
+		if (((VIEW_CLASS*)this)->isNativeWidget()) {
+			if (!(UI::isUiThread())) {
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::sortByTitle, flagAsc, mode));
+				return;
+			}
+		}
+		ObjectLocker lock(((VIEW_CLASS*)this));
+		ListLocker<String> values(m_values);
+		ListLocker<String> titles(m_titles);
+		sl_size n = SLIB_MIN(values.count, titles.count);
+		if (n < 2) {
+			return;
+		}
+		sl_size n1 = n - 1;
+		for (sl_size i = 0; i < n1; i++) {
+			sl_size sel = i;
+			for (sl_size j = i + 1; j < n; j++) {
+				if (flagAsc) {
+					if (titles[i] > titles[j]) {
+						sel = j;
+					}
+				} else {
+					if (titles[i] < titles[j]) {
+						sel = j;
+					}
+				}
+			}
+			if (sel != i) {
+				Swap(titles[sel], titles[i]);
+				Swap(values[sel], values[i]);
+			}
+		}
+		((VIEW_CLASS*)this)->notifyRefreshItems(mode);
+	}
+
 
 	template <class INDEX_TYPE>
 	LabelListViewCellBase<INDEX_TYPE>::LabelListViewCellBase()
