@@ -2146,9 +2146,10 @@ namespace slib
 									break;
 								}
 							} else if (ch == '.') {
-								if (index < 6) {
+								if (index >= 4 && index <= 5) {
 									break;
 								}
+								posParsed = i + 1;
 							} else {
 								break;
 							}
