@@ -190,7 +190,6 @@ namespace slib
 				{
 					Ref<ListControlHelper> helper = CastRef<ListControlHelper>(getView());
 					if (helper.isNotNull()) {
-						NMITEMACTIVATE* nm = (NMITEMACTIVATE*)nmhdr;
 						UINT code = nmhdr->code;
 						if (code == LVN_GETDISPINFOW) {
 							NMLVDISPINFOW* disp = (NMLVDISPINFOW*)nmhdr;
@@ -208,7 +207,7 @@ namespace slib
 							}
 							return sl_true;
 						} else if (code == LVN_ITEMCHANGED) {
-							NMLISTVIEW* v = (NMLISTVIEW*)(nm);
+							NMLISTVIEW* v = (NMLISTVIEW*)nmhdr;
 							if (v->hdr.hwndFrom == getHandle()) {
 								if (!(v->uOldState & LVIS_SELECTED) && (v->uNewState & LVIS_SELECTED)) {
 									helper->dispatchSelectRow(v->iItem);
@@ -216,6 +215,7 @@ namespace slib
 							}
 							return sl_true;
 						} else if (code == NM_CLICK || code == NM_DBLCLK || code == NM_RCLICK) {
+							NMITEMACTIVATE* nm = (NMITEMACTIVATE*)nmhdr;
 							LVHITTESTINFO lvhi;
 							Base::zeroMemory(&lvhi, sizeof(lvhi));
 							lvhi.pt.x = (LONG)(nm->ptAction.x);
@@ -232,6 +232,9 @@ namespace slib
 								}
 							}
 							return sl_true;
+						} else if (code == LVN_COLUMNCLICK) {
+							NMLISTVIEW* v = (NMLISTVIEW*)nmhdr;
+							helper->dispatchClickHeader((sl_uint32)(v->iSubItem));
 						}
 					}
 					return sl_false;

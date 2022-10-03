@@ -68,6 +68,10 @@ namespace slib
 		
 		m_columns.setCount(1);
 		m_selectedRow = -1;
+
+		m_flagSortingOnClickHeader = sl_false;
+		m_sortedColumn = -1;
+		m_flagSortedAsc = sl_false;
 	}
 	
 	ListControl::~ListControl()
@@ -362,7 +366,51 @@ namespace slib
 	{
 		setRowCount(0, mode);
 	}
-	
+
+	sl_bool ListControl::isSortingOnClickHeader()
+	{
+		return m_flagSortingOnClickHeader;
+	}
+
+	void ListControl::setSortingOnClickHeader(sl_bool flag)
+	{
+		m_flagSortingOnClickHeader = flag;
+	}
+
+	void ListControl::sort(sl_uint32 col, sl_bool flagAsc, UIUpdateMode mode)
+	{
+		struct Compare
+		{
+			sl_uint32 m_col;
+
+			Compare(sl_uint32 col): m_col(col) {}
+
+			sl_compare_result operator()(const ListControlRow& row1, const ListControlRow& row2) const noexcept
+			{
+				String value1;
+				ListControlCell* cell1 = row1.cells.getPointerAt(m_col);
+				if (cell1) {
+					value1 = cell1->text;
+				}
+				String value2;
+				ListControlCell* cell2 = row2.cells.getPointerAt(m_col);
+				if (cell2) {
+					value2 = cell2->text;
+				}
+				return value1.compare(value2);
+			}
+		};
+		{
+			ObjectLocker lock(this);
+			if (flagAsc) {
+				m_rows.sort_NoLock(Compare(col));
+			} else {
+				m_rows.sortDesc_NoLock(Compare(col));
+			}
+		}
+		invalidateItems(mode);
+	}
+
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)
 
 	void ListControl::dispatchSelectRow(sl_uint32 row)
@@ -398,6 +446,22 @@ namespace slib
 			dispatchMouseEvent(ev.get());
 		}
 		SLIB_INVOKE_EVENT_HANDLER(DoubleClickRow, row, pt)
+	}
+	
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickHeader, sl_uint32 col)
+
+	void ListControl::dispatchClickHeader(sl_uint32 col)
+	{
+		if (m_flagSortingOnClickHeader) {
+			if (m_sortedColumn == col) {
+				m_flagSortedAsc = !m_flagSortedAsc;
+			} else {
+				m_sortedColumn = col;
+				m_flagSortedAsc = sl_true;
+			}
+			sort(col, m_flagSortedAsc);
+		}
+		SLIB_INVOKE_EVENT_HANDLER(ClickHeader, col)
 	}
 	
 	

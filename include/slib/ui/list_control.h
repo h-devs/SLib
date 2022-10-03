@@ -137,12 +137,20 @@ namespace slib
 		// Run on UI thread
 		virtual void removeAllRows(UIUpdateMode mode = UIUpdateMode::Redraw);
 		
+		sl_bool isSortingOnClickHeader();
+
+		void setSortingOnClickHeader(sl_bool flag = sl_true);
+
+		// Run on UI thread
+		void sort(sl_uint32 col, sl_bool flagAsc = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
-		
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickHeader, sl_uint32 column)
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
@@ -152,6 +160,10 @@ namespace slib
 		CList<ListControlColumn> m_columns;
 		CList<ListControlRow> m_rows;
 		sl_int32 m_selectedRow;
+
+		sl_bool m_flagSortingOnClickHeader;
+		sl_int32 m_sortedColumn;
+		sl_bool m_flagSortedAsc;
 		
 	};
 	
