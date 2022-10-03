@@ -102,6 +102,8 @@ namespace slib
 		virtual String getRowId(sl_uint32 row);
 
 		virtual void setRowId(sl_uint32 row, const String& id);
+
+		virtual sl_int32 findRowById(const String& id);
 		
 		String getHeaderText(sl_uint32 col);
 		

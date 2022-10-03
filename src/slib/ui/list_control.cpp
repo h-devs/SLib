@@ -188,6 +188,18 @@ namespace slib
 		}
 	}
 
+	sl_int32 ListControl::findRowById(const String& id)
+	{
+		ObjectLocker lock(this);
+		ListElements<ListControlRow> rows(m_rows);
+		for (sl_size i = 0; i < rows.count; i++) {
+			if (rows[i].id == id) {
+				return (sl_int32)i;
+			}
+		}
+		return -1;
+	}
+
 	String ListControl::getHeaderText(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
