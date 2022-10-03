@@ -31,12 +31,23 @@ namespace slib
 	template <sl_size N>
 	Json Bytes<N>::toJson() const noexcept
 	{
-		return toString();
+		if (isZero()) {
+			return sl_null;
+		} else {
+			return toString();
+		}
 	}
 
 	template <sl_size N>
 	sl_bool Bytes<N>::setJson(const Json& json) noexcept
 	{
+		if (json.isUndefined()) {
+			return sl_false;
+		}
+		if (json.isNull()) {
+			setZero();
+			return sl_true;
+		}
 		if (json.isStringType()) {
 			return parse(json.getStringParam());
 		} else if (json.isMemory()) {
