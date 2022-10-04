@@ -216,6 +216,7 @@
     <ClCompile Include="..\..\src\slib\db\key_value_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\leveldb.cpp" />
     <ClCompile Include="..\..\src\slib\db\lmdb.cpp" />
+    <ClCompile Include="..\..\src\slib\db\log_package.cpp" />
     <ClCompile Include="..\..\src\slib\db\mongodb.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql_data.cpp" />
