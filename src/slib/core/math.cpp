@@ -610,7 +610,7 @@ namespace slib
 						if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, (ULONG)size, 0) != 0) {
 							flagSuccess = sl_false;
 						}
-				}
+					}
 #else
 					if (funcBCryptGenRandom(hAlgorithm, (PUCHAR)_mem, size, 0) != 0) {
 						flagSuccess = sl_false;

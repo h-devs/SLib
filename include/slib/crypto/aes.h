@@ -83,6 +83,12 @@ namespace slib
 	
 		void setKey_SHA256(const StringView& key);
 
+		using GCM<AES>::encrypt;
+		Memory encrypt(const MemoryView& content, sl_size lenIV = 12, sl_size lenTag = 16);
+
+		using GCM<AES>::decrypt;
+		Memory decrypt(const MemoryView& encryptedContent, sl_size lenIV = 12, sl_size lenTag = 16);
+
 	private:
 		AES m_cipher;
 

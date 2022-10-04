@@ -591,4 +591,42 @@ namespace slib
 		setCipher(&m_cipher);
 	}
 
+	Memory AES_GCM::encrypt(const MemoryView& content, sl_size lenIV, sl_size lenTag)
+	{
+		if (!(content.size)) {
+			return sl_null;
+		}
+		Memory ret = Memory::create(content.size + lenIV + lenTag);
+		if (ret.isNotNull()) {
+			sl_uint8* buf = (sl_uint8*)(ret.getData());
+			sl_uint8* iv = buf;
+			Math::randomMemory(iv, lenIV);
+			sl_uint8* data = buf + lenIV;
+			sl_uint8* tag = data + content.size;
+			if (encrypt(iv, lenIV, sl_null, 0, content.data, data, content.size, tag, lenTag)) {
+				return ret;
+			}
+		}
+		return sl_null;
+	}
+
+	Memory AES_GCM::decrypt(const MemoryView& encryptedContent, sl_size lenIV, sl_size lenTag)
+	{
+		if (encryptedContent.size <= lenIV + lenTag) {
+			return sl_null;
+		}
+		sl_size n = encryptedContent.size - lenIV - lenTag;
+		Memory ret = Memory::create(n);
+		if (ret.isNotNull()) {
+			sl_uint8* buf = (sl_uint8*)(encryptedContent.data);
+			sl_uint8* iv = buf;
+			sl_uint8* data = buf + lenIV;
+			sl_uint8* tag = data + n;
+			if (decrypt(iv, lenIV, sl_null, 0, data, ret.getData(), n, tag, lenTag)) {
+				return ret;
+			}
+		}
+		return sl_null;
+	}
+
 }
