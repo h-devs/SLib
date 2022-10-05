@@ -5904,21 +5904,6 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return String32::create(value.toString());
 	}
 
-	String String::from(const Json& json) noexcept
-	{
-		return json.toJsonString();
-	}
-
-	String16 String16::from(const Json& json) noexcept
-	{
-		return String16::create(json.toJsonString());
-	}
-
-	String32 String32::from(const Json& json) noexcept
-	{
-		return String32::create(json.toJsonString());
-	}
-
 	String String::from(const Variant& var) noexcept
 	{
 		return var.toString();

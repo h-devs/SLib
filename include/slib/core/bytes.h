@@ -25,6 +25,7 @@
 
 #include "base.h"
 #include "string.h"
+#include "cast.h"
 
 namespace slib
 {
@@ -154,6 +155,16 @@ namespace slib
 	{
 		return Base::compareMemory(a.data, b.data, N) < 0;
 	}
+
+	template <sl_size N>
+	class Cast< Bytes<N>, String >
+	{
+	public:
+		String operator()(const Bytes<N>& v) const noexcept
+		{
+			return v.toString();
+		}
+	};
 
 }
 

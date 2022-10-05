@@ -299,7 +299,6 @@ namespace slib
 		static String32 from(double value) noexcept;
 		static String32 from(sl_bool value) noexcept;
 		static String32 from(const Time& value) noexcept;
-		static String32 from(const Json& json) noexcept;
 		static String32 from(const Variant& var) noexcept;
 		
 	public:
