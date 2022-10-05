@@ -29,6 +29,7 @@
 #include "../core/file.h"
 #include "../core/memory.h"
 #include "../core/list.h"
+#include "../core/pair.h"
 
 namespace slib
 {
@@ -67,7 +68,7 @@ namespace slib
 
 		Memory readRecord(sl_uint64 id, sl_size maxSize = SLIB_SIZE_MAX);
 
-		List<Memory> readRecords(sl_uint64 startId, sl_uint64 endId, sl_size maxSize = SLIB_SIZE_MAX);
+		List< Pair<sl_uint64, Memory> > readRecords(sl_uint64 startId, sl_uint64 endId, sl_size maxSize = SLIB_SIZE_MAX);
 
 	protected:
 		Memory _readRecord(sl_uint64 position, sl_size size);

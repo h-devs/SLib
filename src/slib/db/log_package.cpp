@@ -136,15 +136,18 @@ namespace slib
 		return sl_null;
 	}
 
-	List<Memory> LogPackageReader::readRecords(sl_uint64 start, sl_uint64 end, sl_size maxSize)
+	List< Pair<sl_uint64, Memory> > LogPackageReader::readRecords(sl_uint64 start, sl_uint64 end, sl_size maxSize)
 	{
-		List<Memory> ret;
+		if (end == start) {
+			end = start + 1;
+		}
+		List< Pair<sl_uint64, Memory> > ret;
 		for (sl_size i = 0; i < m_nIndices; i++) {
 			Index& index = m_indices[i];
 			if (index.id >= start && index.id < end && index.size <= maxSize) {
 				Memory mem = _readRecord(index.position, index.size);
 				if (mem.isNotNull()) {
-					if (!(ret.add_NoLock(Move(mem)))) {
+					if (!(ret.add_NoLock(Pair<sl_uint64, Memory>(index.id, Move(mem))))) {
 						return sl_null;
 					}
 				}
