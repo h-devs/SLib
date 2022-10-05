@@ -95,6 +95,27 @@ namespace slib
 					return sl_false;
 				}
 
+				sl_bool processNotify(NMHDR* nmhdr, LRESULT& result) override
+				{
+					Ref<DatePicker> view = CastRef<DatePicker>(getView());
+					if (view.isNotNull()) {
+						UINT code = nmhdr->code;
+						if (code == DTN_DATETIMECHANGE) {
+							NMDATETIMECHANGE* change = (NMDATETIMECHANGE*)nmhdr;
+							Time time;
+							if (change->dwFlags == GDT_VALID) {
+								time = Win32::getTime(&(change->st), sl_false);
+							}
+							Time old = time;
+							view->dispatchChange(time);
+							if (old != time) {
+								setDate(view.get(), time);
+							}
+						}
+					}
+					return sl_false;
+				}
+
 			};
 
 			SLIB_DEFINE_OBJECT(DatePickerInstance, Win32_ViewInstance)
