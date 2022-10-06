@@ -35,7 +35,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
- set (SLIB_LINK_WRAP_FLAGS "-Wl,--wrap=memcpy -Wl,--wrap=powf -Wl,--wrap=logf -Wl,--wrap=expf")
+ set (SLIB_LINK_WRAP_FLAGS "-Wl,--wrap=memcpy -Wl,--wrap=pow -Wl,--wrap=powf -Wl,--wrap=log -Wl,--wrap=logf -Wl,--wrap=exp -Wl,--wrap=expf")
  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(SLIB_LINK_WRAP_FLAGS "${SLIB_LINK_WRAP_FLAGS} -Wl,--wrap=fcntl64")
  endif()
