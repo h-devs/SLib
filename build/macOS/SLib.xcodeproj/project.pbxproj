@@ -389,6 +389,7 @@
 		D738404128F1A77E005F5ED8 /* x_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738403E28F1A77E005F5ED8 /* x_control.cpp */; };
 		D738404228F1A77E005F5ED8 /* x_edit_view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */; };
 		D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738404A28F1A7A8005F5ED8 /* group_box.cpp */; };
+		D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D765664928F1B501002ED52F /* storage_volume_macos.cpp */; };
 		D79AF2072693598300FCDE3D /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D79AF2062693598300FCDE3D /* asset_apple.mm */; };
 		D7B1C86D26453B1A00E60145 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C86C26453B1A00E60145 /* dbip.cpp */; };
 		D7B1C87926453EC200E60145 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
@@ -897,6 +898,7 @@
 		D738403E28F1A77E005F5ED8 /* x_control.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_control.cpp; sourceTree = "<group>"; };
 		D738403F28F1A77E005F5ED8 /* x_edit_view.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_edit_view.cpp; sourceTree = "<group>"; };
 		D738404A28F1A7A8005F5ED8 /* group_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = group_box.cpp; sourceTree = "<group>"; };
+		D765664928F1B501002ED52F /* storage_volume_macos.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = storage_volume_macos.cpp; sourceTree = "<group>"; };
 		D79AF2062693598300FCDE3D /* asset_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = asset_apple.mm; sourceTree = "<group>"; };
 		D7B1C86C26453B1A00E60145 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
 		D7B1C87E26453EC200E60145 /* GenerateAppIcons */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateAppIcons; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1090,6 +1092,7 @@
 				265EA9382550D48C0098721F /* file_system_mirror.cpp */,
 				265EA9392550D48C0098721F /* file_system.cpp */,
 				267A25EC2553DA7C008C7757 /* fuse.cpp */,
+				D765664928F1B501002ED52F /* storage_volume_macos.cpp */,
 			);
 			path = storage;
 			sourceTree = "<group>";
@@ -2178,6 +2181,7 @@
 				D7C3BB0226AEEEC400FD529D /* zip.cpp in Sources */,
 				26D9D9C31E96468D005F7BD3 /* linear_layout.cpp in Sources */,
 				26446D66249377BE00430AC5 /* list_box.cpp in Sources */,
+				D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */,
 				26D9D97E1E964675005F7BD3 /* audio_device.cpp in Sources */,
 				26D9D9B41E96468D005F7BD3 /* button.cpp in Sources */,
 				2614723623944E6D00F7CD0C /* wechat.cpp in Sources */,
