@@ -251,7 +251,12 @@ set (SLIB_EXTRA_FILES
  
  "${SLIB_PATH}/src/slib/device/device.cpp"
  "${SLIB_PATH}/src/slib/device/sensor.cpp"
- 
+
+ "${SLIB_PATH}/src/slib/storage/fuse.cpp"
+ "${SLIB_PATH}/src/slib/storage/file_system.cpp"
+ "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
+ "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
+
  "${SLIB_PATH}/src/slib/db/database.cpp"
  "${SLIB_PATH}/src/slib/db/database_cursor.cpp"
  "${SLIB_PATH}/src/slib/db/database_expression.cpp"
@@ -474,12 +479,9 @@ else()
   "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
-  
-  "${SLIB_PATH}/src/slib/storage/fuse.cpp"
-  "${SLIB_PATH}/src/slib/storage/file_system.cpp"
-  "${SLIB_PATH}/src/slib/storage/file_system_logger.cpp"
-  "${SLIB_PATH}/src/slib/storage/file_system_mirror.cpp"
- 
+
+  "${SLIB_PATH}/src/slib/storage/storage_volume_linux.cpp"
+
   "${SLIB_PATH}/src/slib/ui/button_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/check_box_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/clipboard_gtk.cpp"

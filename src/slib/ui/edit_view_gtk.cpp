@@ -74,6 +74,9 @@ namespace slib
 					if (view->isReadOnly()) {
 						setReadOnly(view, sl_true);
 					}
+					if (!(view->isBorder())) {
+						setBorder(view, sl_false);
+					}
 					sl_reg indexSelection = view->getRawSelectionStart();
 					if (indexSelection >= 0) {
 						setSelection(view, indexSelection, view->getRawSelectionEnd());
@@ -174,6 +177,21 @@ namespace slib
 						GtkEditable* editable = GTK_EDITABLE(handle);
 						if (editable) {
 							gtk_editable_select_region(editable, (gint)start, (gint)end);
+						}
+					}
+				}
+
+				void setBorder(View* view, sl_bool flag) override
+				{
+					GtkEntry* handle = (GtkEntry*)m_handle;
+					if (handle) {
+						gtk_entry_set_has_frame(handle, flag ? 1 : 0);
+						if (UIPlatform::isSupportedGtk(3)) {
+							StringView style;
+							if (!flag) {
+								style = StringView::literal("* { border: none; box-shadow: none; }");
+							}
+							UIPlatform::setWidgetGtk3Style((GtkWidget*)handle, "outline-color-provider", style);
 						}
 					}
 				}
