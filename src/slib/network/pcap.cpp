@@ -230,6 +230,11 @@ namespace slib
 
 				static int createHandle(pcap_t*& handle, const StringView& name, const PcapParam& param)
 				{
+#ifdef SLIB_PLATFORM_IS_LINUX_DESKTOP
+					if (!(slib::pcap::getApi_pcap_create())) {
+						return PCAP_ERROR;
+					}
+#endif
 					char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
 					handle = pcap_create(name.getData(), errBuf);
 					if (handle) {
