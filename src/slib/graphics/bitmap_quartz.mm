@@ -168,7 +168,7 @@ namespace slib
 					source.height = m_height - y;
 					source.format = BitmapFormat::RGBA_PA;
 					source.data = ((sl_uint32*)m_buf) + m_width * (m_height - 1 - y) + x;
-					source.pitch = -(m_width << 2);
+					source.pitch = -((sl_int32)(m_width << 2));
 					
 					bitmapData.copyPixelsFrom(source);
 					
