@@ -629,7 +629,7 @@ namespace slib
 		if (apiEnumSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &pSessionInfos, &nSessions)) {
 			for (DWORD iSession = 0; iSession < nSessions; iSession++) {
 				WTS_SESSION_INFOW& si = pSessionInfos[iSession];
-				if (si.State == WTSActive && ret.isNull()) {
+				if (si.State == WTSActive && si.SessionId != -1 && ret.isNull()) {
 					if (outActiveSessionName) {
 						*outActiveSessionName = String::create(si.pWinStationName);
 					}
