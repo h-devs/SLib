@@ -715,7 +715,7 @@ namespace slib
 				}
 			}
 		}
-		return sl_false;
+		return sl_true;
 #elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 		return File::equalsCap(executablePath, "cap_net_admin,cap_net_raw=eip");
 #else
