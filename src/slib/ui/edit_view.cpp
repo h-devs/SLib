@@ -268,8 +268,8 @@ namespace slib
 		m_flagAutoDismissKeyboard = sl_true;
 		m_flagAutoHorizontalScrolling = sl_true;
 		m_flagAutoVerticalScrolling = sl_true;
-		m_indexSelectionStart = -1;
-		m_indexSelectionEnd = 0;
+		m_indexSelectionStart = 0;
+		m_indexSelectionEnd = -1;
 
 		m_nCountDrawCaret = 0;
 
