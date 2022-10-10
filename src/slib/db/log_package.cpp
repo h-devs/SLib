@@ -121,6 +121,20 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_size LogPackageReader::getRecordCount()
+	{
+		return m_nIndices;
+	}
+
+	Pair<sl_uint64, Memory> LogPackageReader::readRecordAt(sl_size n, sl_size maxSize)
+	{
+		Index& index = m_indices[n];
+		if (index.size <= maxSize) {
+			return { index.id, _readRecord(index.position, index.size) };
+		}
+		return { 0, sl_null };
+	}
+
 	Memory LogPackageReader::readRecord(sl_uint64 id, sl_size maxSize)
 	{
 		for (sl_size i = 0; i < m_nIndices; i++) {

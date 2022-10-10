@@ -66,6 +66,10 @@ namespace slib
 
 		sl_bool open(const StringParam& pathContent, const StringParam& pathIndex);
 
+		sl_size getRecordCount();
+
+		Pair<sl_uint64, Memory> readRecordAt(sl_size index, sl_size maxSize = SLIB_SIZE_MAX);
+
 		Memory readRecord(sl_uint64 id, sl_size maxSize = SLIB_SIZE_MAX);
 
 		List< Pair<sl_uint64, Memory> > readRecords(sl_uint64 startId, sl_uint64 endId, sl_size maxSize = SLIB_SIZE_MAX);
