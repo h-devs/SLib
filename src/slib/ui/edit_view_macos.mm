@@ -129,13 +129,12 @@ namespace slib
 					}
 					
 					setHandleFont(handle, view->getFont());
-					[handle setStringValue:(Apple::getNSStringFromString(view->getText(), @""))];
-					[handle setAlignment:TranslateAlignment(view->getGravity())];
-					[handle setTextColor:(GraphicsPlatform::getNSColorFromColor(view->getTextColor()))];
-					[handle setBordered: (view->isBorder() ? YES : NO)];
-					[handle setBezeled: (view->isBorder() ? YES : NO)];
-					[handle setEditable:(view->isReadOnly()? NO : YES)];
-					[handle setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(view->getBackgroundColor()))];
+					setText(view, view->getText());
+					setGravity(view, view->getGravity());
+					setReadOnly(view, view->isReadOnly());
+					setBorder(view, view->isBorder());
+					setTextColor(view, view->getTextColor());
+					setBackgroundColor(view, view->getBackgroundColor());
 					[handle setSelectable:YES];
 
 					applyHint(handle, view);
@@ -251,6 +250,7 @@ namespace slib
 					if (handle != nil) {
 						[handle setBordered:(flag ? YES : NO)];
 						[handle setBezeled:(flag ? YES : NO)];
+						[handle setFocusRingType:(flag ? NSFocusRingTypeDefault : NSFocusRingTypeNone)];
 					}
 				}
 				
@@ -573,6 +573,11 @@ MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 		[self setDelegate:self];
 	}
 	return self;
+}
+
+- (BOOL)acceptsFirstResponder
+{
+	return TRUE;
 }
 
 - (void)controlTextDidChange:(NSNotification *)obj
