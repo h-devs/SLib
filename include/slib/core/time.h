@@ -143,9 +143,9 @@ namespace slib
 
 		SLIB_CONSTEXPR Time(sl_uint64 time) noexcept: m_time(time) {}
 
-		Time(sl_int32 year, sl_int32 month, sl_int32 date, const TimeZone& zone = Time::LocalZone) noexcept;
+		Time(sl_int32 year, sl_int32 month, sl_int32 day, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		Time(sl_int32 year, sl_int32 month, sl_int32 date, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_int32 milliseconds = 0, sl_int32 microseconds = 0, const TimeZone& zone = Time::LocalZone) noexcept;
+		Time(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_int32 milliseconds = 0, sl_int32 microseconds = 0, const TimeZone& zone = Time::LocalZone) noexcept;
 
 		Time(const TimeComponents& comps, const TimeZone& zone = Time::LocalZone) noexcept;
 		
@@ -338,9 +338,9 @@ namespace slib
 		
 		Time& setUTC(const TimeComponents& comps) noexcept;
 
-		Time& set(sl_int32 year, sl_int32 month, sl_int32 date, sl_int32 hour = 0, sl_int32 minute = 0, sl_int32 second = 0, sl_int32 milliseconds = 0, sl_int32 microseconds = 0, const TimeZone& zone = Time::LocalZone) noexcept;
+		Time& set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour = 0, sl_int32 minute = 0, sl_int32 second = 0, sl_int32 milliseconds = 0, sl_int32 microseconds = 0, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		Time& setUTC(sl_int32 year, sl_int32 month, sl_int32 date, sl_int32 hour = 0, sl_int32 minute = 0, sl_int32 second = 0, sl_int32 milliseconds = 0, sl_int32 microseconds = 0) noexcept;
+		Time& setUTC(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour = 0, sl_int32 minute = 0, sl_int32 second = 0, sl_int32 milliseconds = 0, sl_int32 microseconds = 0) noexcept;
 
 		Time& setDate(sl_int32 year, sl_int32 month, sl_int32 day, const TimeZone& zone = Time::LocalZone) noexcept;
 
