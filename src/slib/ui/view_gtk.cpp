@@ -790,7 +790,7 @@ namespace slib
 	{
 		if (isSupportedGtk(3)) {
 			if (color.a) {
-				String style = String::concat("*:not(selection) { background: rgb(", String::fromUint32(color.r), ",", String::fromUint32(color.g), ",", String::fromUint32(color.b), "); }");
+				String style = String::concat("* { background: rgb(", String::fromUint32(color.r), ",", String::fromUint32(color.g), ",", String::fromUint32(color.b), "); }");
 				setWidgetGtk3Style(handle, "bgcolor-provider", style);
 			} else {
 				setWidgetGtk3Style(handle, "bgcolor-provider", sl_null);

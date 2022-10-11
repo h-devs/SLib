@@ -63,10 +63,7 @@ namespace slib
 					if (view->isPassword()) {
 						gtk_entry_set_visibility(handle, 0);
 					}
-					Color textColor = view->getTextColor();
-					if (textColor != Color::Black) {
-						setTextColor(view, textColor);
-					}
+					setTextColor(view, view->getTextColor());
 					if (view->getWidthMode() == SizeMode::Fixed) {
 						gtk_entry_set_width_chars(handle, 0);
 					}
@@ -76,6 +73,10 @@ namespace slib
 					}
 					if (!(view->isBorder())) {
 						setBorder(view, sl_false);
+					}
+					Color backColor = view->getBackgroundColor();
+					if (backColor.isNotZero()) {
+						setBackgroundColor(view, backColor);
 					}
 					sl_reg indexSelection = view->getRawSelectionStart();
 					if (indexSelection >= 0) {
@@ -125,9 +126,15 @@ namespace slib
 				{
 					GtkWidget* handle = m_handle;
 					if (handle) {
-						GdkColor gdkColor;
-						UIPlatform::getGdkColor(color, &gdkColor);
-						gtk_widget_modify_text(handle, GTK_STATE_NORMAL, &gdkColor);
+						if (UIPlatform::isSupportedGtk(3)) {
+							String strColor = String::concat("rgb(", String::fromUint32(color.r), ",", String::fromUint32(color.g), ",", String::fromUint32(color.b));
+							String style = String::concat("* { color: ", strColor, "); caret-color: ", strColor, "); }");
+							UIPlatform::setWidgetGtk3Style((GtkWidget*)handle, "text-color-provider", style);
+						} else {
+							GdkColor gdkColor;
+							UIPlatform::getGdkColor(color, &gdkColor);
+							gtk_widget_modify_text(handle, GTK_STATE_NORMAL, &gdkColor);
+						}
 					}
 				}
 
@@ -272,10 +279,7 @@ namespace slib
 						if (text.isNotEmpty()) {
 							setText(view, text);
 						}
-						Color textColor = view->getTextColor();
-						if (textColor != Color::Black) {
-							setTextColor(view, textColor);
-						}
+						setTextColor(view, view->getTextColor());
 						setGravity(view, view->getGravity());
 						if (view->isReadOnly()) {
 							setReadOnly(view, sl_true);
