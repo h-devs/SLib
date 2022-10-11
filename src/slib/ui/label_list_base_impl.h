@@ -79,6 +79,21 @@ namespace slib
 	}
 
 	template <class VIEW_CLASS, class INDEX_TYPE>
+	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::refreshItems(UIUpdateMode mode)
+	{
+		if (((VIEW_CLASS*)this)->isNativeWidget()) {
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+				return;
+			}
+			if (!(UI::isUiThread())) {
+				UI::dispatchToUiThreadUrgently(Function<void()>::bindWeakRef((VIEW_CLASS*)this, &VIEW_CLASS::notifyRefreshItems, mode));
+				return;
+			}
+		}
+		((VIEW_CLASS*)this)->notifyRefreshItems(mode);
+	}
+
+	template <class VIEW_CLASS, class INDEX_TYPE>
 	void LabelListViewBase<VIEW_CLASS, INDEX_TYPE>::addItem(const String& value, const String& title, UIUpdateMode mode)
 	{
 		if (((VIEW_CLASS*)this)->isNativeWidget()) {
@@ -314,11 +329,11 @@ namespace slib
 			sl_size sel = i;
 			for (sl_size j = i + 1; j < n; j++) {
 				if (flagAsc) {
-					if (titles[i] > titles[j]) {
+					if (titles[sel] > titles[j]) {
 						sel = j;
 					}
 				} else {
-					if (titles[i] < titles[j]) {
+					if (titles[sel] < titles[j]) {
 						sel = j;
 					}
 				}

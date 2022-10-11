@@ -126,7 +126,7 @@ namespace slib
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
-		UINT style = CBS_DROPDOWNLIST | WS_TABSTOP;
+		UINT style = CBS_DROPDOWNLIST | WS_TABSTOP | WS_VSCROLL;
 		return Win32_ViewInstance::create<SelectViewInstance>(this, parent, L"COMBOBOX", sl_null, style, 0);
 	}
 

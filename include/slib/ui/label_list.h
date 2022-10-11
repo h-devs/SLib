@@ -44,6 +44,8 @@ namespace slib
 
 		void setValues(const List<String>& values);
 
+		void refreshItems(UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		void addItem(const String& value, const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void addTitle(const String& title, UIUpdateMode mode = UIUpdateMode::Redraw);

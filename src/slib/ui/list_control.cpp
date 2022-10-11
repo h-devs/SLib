@@ -113,10 +113,10 @@ namespace slib
 			ObjectLocker lock(this);
 			m_rows.setCount_NoLock(nCount);
 		}
-		invalidateItems(mode);
+		refreshItems(mode);
 	}
 
-	void ListControl::invalidateItems(UIUpdateMode mode)
+	void ListControl::refreshItems(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			return;
@@ -126,7 +126,7 @@ namespace slib
 			if (UI::isUiThread()) {
 				instance->refreshRowCount(this);
 			} else {
-				UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, invalidateItems, mode));
+				UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, refreshItems, mode));
 			}
 		} else {
 			invalidate(mode);
@@ -166,7 +166,7 @@ namespace slib
 				return;
 			}
 		}
-		invalidateItems(mode);
+		refreshItems(mode);
 	}
 
 	String ListControl::getRowId(sl_uint32 iRow)
@@ -360,7 +360,7 @@ namespace slib
 				return;
 			}
 		}
-		invalidateItems(mode);
+		refreshItems(mode);
 	}
 	
 	void ListControl::removeRow(sl_uint32 iRow, UIUpdateMode mode)
@@ -371,7 +371,7 @@ namespace slib
 				return;
 			}
 		}
-		invalidateItems(mode);
+		refreshItems(mode);
 	}
 	
 	void ListControl::removeAllRows(UIUpdateMode mode)
@@ -420,7 +420,7 @@ namespace slib
 				m_rows.sortDesc_NoLock(Compare(col));
 			}
 		}
-		invalidateItems(mode);
+		refreshItems(mode);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)

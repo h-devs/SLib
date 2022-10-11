@@ -92,7 +92,7 @@ namespace slib
 		// Run on UI thread
 		virtual void setRowCount(sl_uint32 nCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void invalidateItems(UIUpdateMode mode = UIUpdateMode::Redraw);
+		void refreshItems(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		virtual String getItemText(sl_uint32 row, sl_uint32 col);
 		
