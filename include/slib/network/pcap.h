@@ -28,6 +28,8 @@
 #include "ip_address.h"
 #include "mac_address.h"
 
+#include "../core/thread.h"
+
 namespace slib
 {
 
@@ -66,6 +68,7 @@ namespace slib
 		sl_uint32 timeoutRead; // read timeout, in milliseconds
 		sl_bool flagImmediate; // immediate mode
 		sl_uint32 sizeBuffer; // buffer size
+		ThreadPriority threadPriority;
 
 	public:
 		PcapParam();

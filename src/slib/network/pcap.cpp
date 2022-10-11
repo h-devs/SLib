@@ -40,6 +40,7 @@ namespace slib
 		timeoutRead = 0; // no timeout specified
 		flagImmediate = sl_true;
 		sizeBuffer = 0x200000; // 2MB (16Mb)
+		threadPriority = ThreadPriority::Normal;
 	}
 
 
@@ -70,7 +71,6 @@ namespace slib
 
 #include "slib/network/socket_address.h"
 
-#include "slib/core/thread.h"
 #include "slib/core/timer.h"
 #include "slib/core/process.h"
 #include "slib/core/file.h"
@@ -215,6 +215,7 @@ namespace slib
 						ret->m_handle = handle;
 						ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
 						if (ret->m_thread.isNotNull()) {
+							ret->m_thread->setPriority(param.threadPriority);
 							ret->m_flagInit = sl_true;
 							if (param.flagAutoStart) {
 								ret->start();
