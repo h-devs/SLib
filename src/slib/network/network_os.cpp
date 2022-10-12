@@ -620,14 +620,15 @@ namespace slib
 			sl_reg index = line.indexOf('\t');
 			if (index > 0) {
 				StringView name = StringView(line).substring(0, index);
-				if (name == interfaceName) {
+				if (interfaceName.equals(name)) {
 					StringView remain = StringView(line).substring(index + 1);
 					if (remain.startsWith("00000000\t")) {
 						remain = remain.substring(9);
 						sl_reg index = remain.indexOf('\t');
 						if (index > 0) {
 							StringView gateway = remain.substring(0, index);
-							return IPv4Address(gateway.parseUint32(16));
+							sl_uint32 nip = gateway.parseUint32(16);
+							return IPv4Address(SLIB_GET_BYTE0(nip), SLIB_GET_BYTE1(nip), SLIB_GET_BYTE2(nip), SLIB_GET_BYTE3(nip));
 						}
 					}
 				}
