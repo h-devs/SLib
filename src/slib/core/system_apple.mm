@@ -33,7 +33,7 @@
 #include "slib/core/apple/platform.h"
 
 #include <mach-o/dyld.h>
-#include <mach/mach_time.h>
+#include <time.h>
 
 #define PRIV_PATH_MAX 1024
 
@@ -262,18 +262,7 @@ namespace slib
 
 	sl_uint64 System::getTickCount64()
 	{
-		static sl_bool flagInit = sl_true;
-		static mach_timebase_info_data_t base;
-		static sl_uint64 start = 0;
-		
-		if (flagInit) {
-			mach_timebase_info(&base);
-			start = mach_absolute_time();
-			flagInit = sl_false;
-			return 0;
-		}
-		sl_uint64 t = (sl_uint64)(mach_absolute_time() - start);
-		return t * base.numer / base.denom / 1000000;
+		return clock_gettime_nsec_np(CLOCK_UPTIME_RAW) / 1000000;
 	}
 
 }

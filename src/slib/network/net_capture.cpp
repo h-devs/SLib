@@ -86,7 +86,7 @@ namespace slib
 	const MacAddress& NetCapture::getDeviceAddress()
 	{
 		sl_uint64 now = System::getTickCount64();
-		if (now < m_timeDeviceAddress + 10000) {
+		if (m_timeDeviceAddress && now > m_timeDeviceAddress && now < m_timeDeviceAddress + 10000) {
 			return m_deviceAddress;
 		}
 		m_timeDeviceAddress = now;

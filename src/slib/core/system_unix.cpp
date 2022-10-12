@@ -302,12 +302,10 @@ namespace slib
 				return (sl_uint64)(ts.tv_sec) * 1000 + (sl_uint64)(ts.tv_nsec) / 1000000;
 			} else {
 				if (flagCheck) {
+					flagCheck = sl_false;
 					int iRet = clock_gettime(CLOCK_MONOTONIC, &ts);
-					if (iRet < 0) {
-						flagCheck = sl_false;
-					} else {
+					if (iRet >= 0) {
 						flagEnabled = sl_true;
-						flagCheck = sl_false;
 						return (sl_uint64)(ts.tv_sec) * 1000 + (sl_uint64)(ts.tv_nsec) / 1000000;
 					}
 				}
