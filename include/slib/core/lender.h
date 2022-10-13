@@ -113,7 +113,45 @@ namespace slib
 		virtual sl_bool create(TYPE& _out) = 0;
 
 	};
-	
+
+	template <class TYPE, sl_size STOCK_SIZE>
+	class SLIB_EXPORT StaticArrayLender
+	{
+	protected:
+		TYPE m_list[STOCK_SIZE];
+		sl_size m_count;
+		SpinLock m_lock;
+
+	public:
+		sl_bool lend(TYPE& _out)
+		{
+			SpinLocker locker(&m_lock);
+			sl_size n = m_count;
+			if (n) {
+				n--;
+				_out = Move(m_list[n]);
+				m_count = n;
+				return sl_true;
+			} else {
+				locker.unlock();
+				return create(_out);
+			}
+		}
+
+		void collect(TYPE&& object)
+		{
+			SpinLocker locker(&m_lock);
+			sl_size n = m_count;
+			if (n < STOCK_SIZE) {
+				m_list[n] = Move(object);
+				m_count++;
+			}
+		}
+
+		virtual sl_bool create(TYPE& _out) = 0;
+
+	};
+
 	template <class TYPE, class LENDER>
 	class SLIB_EXPORT Borrower
 	{
