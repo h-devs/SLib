@@ -301,7 +301,7 @@ namespace slib
 			}
 		}
 
-		m_queue.push(s, count);
+		m_queue.pushAll(s, count);
 
 		if (m_param.event.isNotNull()) {
 			m_param.event->set();
