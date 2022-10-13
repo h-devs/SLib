@@ -27,6 +27,7 @@
 
 #include "../core/common_members.h"
 #include "../core/hash.h"
+#include "../core/cast.h"
 
 namespace slib
 {
@@ -141,6 +142,13 @@ namespace slib
 		static const sl_uint8 _zero[6];
 		static const sl_uint8 _broadcast[6];
 		
+	};
+
+	template <>
+	class Cast<MacAddress, String>
+	{
+	public:
+		String operator()(const MacAddress& v) const;
 	};
 
 }

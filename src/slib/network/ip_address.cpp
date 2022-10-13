@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -842,6 +842,17 @@ namespace slib
 			setNone();
 		}
 		return *this;
+	}
+
+
+	String Cast<IPv4Address, String>::operator()(const IPv4Address& v) const
+	{
+		return v.toString();
+	}
+
+	String Cast<IPv6Address, String>::operator()(const IPv6Address& v) const
+	{
+		return v.toString();
 	}
 
 }

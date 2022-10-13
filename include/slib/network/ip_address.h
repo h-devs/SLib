@@ -27,6 +27,7 @@
 
 #include "../core/common_members.h"
 #include "../core/hash.h"
+#include "../core/cast.h"
 
 namespace slib
 {
@@ -373,6 +374,20 @@ namespace slib
 		
 	};
 	
+	template <>
+	class Cast<IPv4Address, String>
+	{
+	public:
+		String operator()(const IPv4Address& v) const;
+	};
+
+	template <>
+	class Cast<IPv6Address, String>
+	{
+	public:
+		String operator()(const IPv6Address& v) const;
+	};
+
 }
 
 #endif
