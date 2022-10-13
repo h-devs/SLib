@@ -475,7 +475,7 @@ namespace slib
 			return new Container(Forward<Args>(args)...);
 		}
 
-		SLIB_CONSTEXPR T* get() const&
+		T* get() const& noexcept
 		{
 			return &(container->value);
 		}
@@ -504,7 +504,12 @@ namespace slib
 		{
 			return *(get());
 		}
-		
+
+		operator T*() const noexcept
+		{
+			return get();
+		}
+
 	};
 
 	template <class T>
