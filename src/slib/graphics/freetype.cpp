@@ -937,8 +937,8 @@ namespace slib
 								}
 
 							}
-							x += TO_REAL_POS(glyph->advance.x);
-							y += TO_REAL_POS(glyph->advance.y);
+							x += TO_REAL_POS(m_face->glyph->advance.x);
+							y += TO_REAL_POS(m_face->glyph->advance.y);
 						}
 					}
 					if (glyph) {

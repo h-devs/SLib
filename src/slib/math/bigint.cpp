@@ -2980,7 +2980,7 @@ namespace slib
 					 0: P is not prime number
 					-2: Error
 			*/
-			static sl_int32 CheckEulerCriterion(const CBigInt& A, CBigInt& P) noexcept
+			static sl_int32 CheckEulerCriterion(const CBigInt& A, const CBigInt& P) noexcept
 			{
 				if (P.isEven()) {
 					return 0;
@@ -3053,6 +3053,11 @@ namespace slib
 		}
 		if (A.equals((sl_uint32)1)) {
 			return setValue((sl_uint32)1);
+		}
+
+		if (priv::bigint::CheckEulerCriterion(A, M) != 1) {
+			setZero();
+			return sl_false;
 		}
 
 		sl_size e = 1;
@@ -3139,8 +3144,10 @@ namespace slib
 					if (!(y.random(nM))) {
 						return sl_false;
 					}
-					if (!(y.mod(M))) {
-						return sl_false;
+					if (y.compareAbs(M) >= 0) {
+						if (!(!M.sign ? y.add(M) : y.sub(M))) {
+							return sl_false;
+						}
 					}
 					if (y.isZero()) {
 						if (!(y.setValue(i))) {
@@ -3210,7 +3217,7 @@ namespace slib
 				moveFrom(x);
 				return priv::bigint::CheckSqrtResult(*this, A, M);
 			}
-			sl_size i = 0;
+			sl_size i = 1;
 			if (!(t.mulMod(b, b, M))) {
 				return sl_false;
 			}
