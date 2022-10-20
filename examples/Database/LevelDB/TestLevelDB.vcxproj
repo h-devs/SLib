@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D1153F23-72DA-4CFF-B753-6FA6C5F95292}</ProjectGuid>
+    <ProjectGuid>{56AB7584-718B-423B-8129-A5DBED2CDB23}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>TestLevelDB</RootNamespace>
   </PropertyGroup>

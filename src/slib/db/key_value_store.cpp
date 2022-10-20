@@ -173,13 +173,15 @@ namespace slib
 			sl_uint8 buf[1024];
 			Memory mem;
 			sl_size nWrite = SerializeVariant(value, buf, sizeof(buf), &mem, "", 1);
+			Memory temp = value.getMemory();
 			if (nWrite) {
 				StringData key(_key);
 				void* p = buf;
 				if (mem.isNotNull()) {
 					p = mem.getData();
 				}
-				return put(key.getUnsafeData(), key.getLength(), p, nWrite);
+				//return put(key.getUnsafeData(), key.getLength(), temp.getData(), nWrite); // nWrite가 수상함.
+				return put(key.getUnsafeData(), key.getLength(), temp.getData(), temp.getSize());
 			}
 		}
 		return sl_false;

@@ -53,7 +53,6 @@ namespace slib
 			public:
 				static Ref<LMDBImpl> open(const LMDB_Param& param)
 				{
-					
 					StringCstr path(param.path);
 					if (path.isEmpty()) {
 						return sl_null;
@@ -69,8 +68,10 @@ namespace slib
 
 					MDB_env* env = sl_null;
 					int iResult = mdb_env_create(&env);
+					mdb_env_set_mapsize(env, 10485760);
+					mdb_env_set_maxdbs(env, 4);
 					if (!iResult) {
-						iResult = mdb_env_open(env, path.getData(), 0, (int)(param.mode));
+						iResult = mdb_env_open(env, "./testdb", MDB_WRITEMAP&MDB_MAPASYNC&MDB_NOLOCK, (int)(param.mode));
 						if (!iResult) {
 							Ref<LMDBImpl> ret = new LMDBImpl;
 							if (ret.isNotNull()) {
