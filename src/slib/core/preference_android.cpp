@@ -70,7 +70,7 @@ namespace slib
 		JniLocal<jobject> pref = GetSharedPreference();
 		if (pref.isNotNull()) {
 			String value = android::SharedPreferences::getString(pref, key, sl_null);
-			return Json::parseJson(value);
+			return Json::parse(value);
 		}
 		return sl_null;
 	}

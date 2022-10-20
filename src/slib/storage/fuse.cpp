@@ -29,6 +29,9 @@
 #include "slib/core/dynamic_library.h"
 
 #define FUSE_USE_VERSION 27
+#ifndef _MSC_VER
+#define _FILE_OFFSET_BITS 64
+#endif
 #include "fuse/fuse.h"
 
 #include <errno.h>

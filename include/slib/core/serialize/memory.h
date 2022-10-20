@@ -33,17 +33,22 @@ namespace slib
 {
 
 	template <class OUTPUT>
-	sl_bool Memory::serialize(OUTPUT* output) const
+	static sl_bool Serialize(OUTPUT* output, const MemoryView& _in)
 	{
-		sl_size size = getSize();
-		if (!(CVLI::serialize(output, size))) {
+		if (!(CVLI::serialize(output, _in.size))) {
 			return sl_false;
 		}
-		if (size) {
-			return SerializeRaw(output, getData(), size);
+		if (_in.size) {
+			return SerializeRaw(output, _in.data, _in.size);
 		} else {
 			return sl_true;
 		}
+	}
+
+	template <class OUTPUT>
+	sl_bool Memory::serialize(OUTPUT* output) const
+	{
+		return Serialize(output, MemoryView(getData(), getSize()));
 	}
 
 	template <class INPUT>
@@ -79,6 +84,32 @@ namespace slib
 			}
 		}
 		return sl_true;
+	}
+
+	template <class T>
+	static Memory SerializeToMemory(const T& t)
+	{
+		SerializeOutput output;
+		if (Serialize(&output, t)) {
+			return output.releaseToMemory();
+		}
+		return sl_null;
+	}
+
+	template <class T>
+	static sl_bool DeserializeFromMemory(T& t, const void* data, sl_size size)
+	{
+		if (data && size) {
+			SerializeBuffer buf(data, size);
+			return Deserialize(&buf, t);
+		}
+		return sl_false;
+	}
+
+	template <class T>
+	static sl_bool DeserializeFromMemory(T& t, const MemoryView& mem)
+	{
+		return DeserializeFromMemory(t, mem.data, mem.size);
 	}
 
 }

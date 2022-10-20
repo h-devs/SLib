@@ -1292,6 +1292,9 @@ namespace slib
 		}
 		setDialog(sl_true);
 		setModal(sl_true);
+		if (m_result) {
+			m_result->setUndefined();
+		}
 		forceCreate();
 		Ref<WindowInstance> instance = m_instance;
 		if (instance.isNotNull()) {

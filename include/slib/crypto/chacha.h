@@ -129,6 +129,9 @@ namespace slib
 	 	https://tools.ietf.org/html/rfc8439
 	*/
 	
+	class Memory;
+	class MemoryView;
+
 	class SLIB_EXPORT ChaCha20_Poly1305
 	{
 	public:
@@ -170,11 +173,15 @@ namespace slib
 		// IV: 8 bytes (64 bits)
 		// outputTag: 16 bytes (128 bits)
 		void encrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, void* outputTag) noexcept;
+
+		Memory encrypt(const MemoryView& content) noexcept;
 		
 		// IV: 8 bytes (64 bits)
 		// tag: 16 bytes (128 bits)
 		sl_bool decrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, const void* tag) noexcept;
 		
+		Memory decrypt(const MemoryView& encryptedContent) noexcept;
+
 		// IV: 8 bytes (64 bits)
 		// tag: 16 bytes (128 bits)
 		sl_bool check(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, sl_size len, const void* tag) noexcept;

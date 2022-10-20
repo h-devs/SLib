@@ -60,7 +60,7 @@ namespace slib
 			return;
 		}
 		String path = GetFilePath(appName);
-		Json json = Json::parseJsonFromTextFile(path);
+		Json json = Json::parseTextFile(path);
 		json.putItem(key.toString(), value);
 		File::writeAllTextUTF8(path, json.toJsonString());
 	}
@@ -75,7 +75,7 @@ namespace slib
 			return sl_null;
 		}
 		String path = GetFilePath(appName);
-		Json json = Json::parseJsonFromTextFile(path);
+		Json json = Json::parseTextFile(path);
 		return json[key.toString()];
 	}
 

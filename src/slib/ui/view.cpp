@@ -1166,6 +1166,23 @@ namespace slib
 		}
 	}
 
+	List< Ref<View> > View::_getRawChildren()
+	{
+		Ref<ViewChildAttributes>& attrs = m_childAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->children;
+		}
+		return sl_null;
+	}
+
+	void View::_clearChildrenCache()
+	{
+		Ref<ViewChildAttributes>& attrs = m_childAttrs;
+		if (attrs.isNotNull()) {
+			attrs->childrenCache.setNull();
+		}
+	}
+
 	// Run on UI thread
 	void View::_addChild(View* child, View* viewCreatingChildInstances, UIUpdateMode mode)
 	{

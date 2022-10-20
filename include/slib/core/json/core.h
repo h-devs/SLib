@@ -305,25 +305,35 @@ namespace slib
 		sl_bool putItem(const String& key, const Json& value);
 
 	public:
-		static Json parseJson(const sl_char8* sz, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char8* sz, sl_size len, JsonParseParam& param);
 
-		static Json parseJson(const sl_char8* sz, sl_size len);
+		static Json parse(const sl_char8* sz, sl_size len);
 
-		static Json parseJson(const sl_char16* sz, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char16* sz, sl_size len, JsonParseParam& param);
 
-		static Json parseJson(const sl_char16* sz, sl_size len);
+		static Json parse(const sl_char16* sz, sl_size len);
 
-		static Json parseJson(const sl_char32* sz, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char32* sz, sl_size len, JsonParseParam& param);
 
-		static Json parseJson(const sl_char32* sz, sl_size len);
+		static Json parse(const sl_char32* sz, sl_size len);
 
-		static Json parseJson(const StringParam& str, JsonParseParam& param);
+		static Json parse(const StringParam& str, JsonParseParam& param);
 
-		static Json parseJson(const StringParam& str);
+		static Json parse(const StringParam& str);
 
-		static Json parseJsonFromTextFile(const StringParam& filePath, JsonParseParam& param);
+		static Json parseTextFile(const StringParam& filePath, JsonParseParam& param);
 
-		static Json parseJsonFromTextFile(const StringParam& filePath);
+		static Json parseTextFile(const StringParam& filePath);
+
+		template <class... ARGS>
+		static Json getDeserialized(ARGS&&... args)
+		{
+			Json ret;
+			if (ret.deserialize(Forward<ARGS>(args)...)) {
+				return ret;
+			}
+			return Json();
+		}
 
 	protected:
 		String toString() const;
@@ -335,13 +345,13 @@ namespace slib
 	public:
 		JsonItem() noexcept {}
 
-		JsonItem(const String& key, const Json& value) noexcept : Pair(key, value) {}
+		JsonItem(const String& key, const Json& value) noexcept: Pair(key, value) {}
 
-		JsonItem(String&& key, const Json& value) noexcept : Pair(Move(key), value) {}
+		JsonItem(String&& key, const Json& value) noexcept: Pair(Move(key), value) {}
 
-		JsonItem(const String& key, Json&& value) noexcept : Pair(key, Move(value)) {}
+		JsonItem(const String& key, Json&& value) noexcept: Pair(key, Move(value)) {}
 
-		JsonItem(String&& key, Json&& value) noexcept : Pair(Move(key), Move(value)) {}
+		JsonItem(String&& key, Json&& value) noexcept: Pair(Move(key), Move(value)) {}
 
 	};
 

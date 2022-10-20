@@ -404,6 +404,10 @@ namespace slib
 						setBackgroundColor(view, backgroundColor);
 					}
 					setPadding(view, view->getPadding());
+					MultiLineMode multiLine = view->getMultiLine();
+					if (multiLine == MultiLineMode::WordWrap || multiLine == MultiLineMode::BreakWord) {
+						SendMessageW(handle, EM_SETTARGETDEVICE, 0, 0);
+					}
 				}
 
 				sl_bool getText(EditView* view, String& _out) override
@@ -506,6 +510,14 @@ namespace slib
 
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
+					HWND handle = m_handle;
+					if (handle) {
+						if (mode == MultiLineMode::WordWrap || mode == MultiLineMode::BreakWord) {
+							SendMessageW(handle, EM_SETTARGETDEVICE, 0, 0);
+						} else {
+							SendMessageW(handle, EM_SETTARGETDEVICE, 0, 1);
+						}
+					}
 				}
 
 				void setSelection(EditView* view, sl_reg start, sl_reg end) override

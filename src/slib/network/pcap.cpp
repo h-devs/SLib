@@ -23,11 +23,54 @@
 #include "slib/network/pcap.h"
 #include "slib/network/npcap.h"
 
+namespace slib
+{
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapDeviceInfo)
+
+	PcapDeviceInfo::PcapDeviceInfo(): flagLoopback(sl_false), flagUp(sl_false), flagRunning(sl_false), flagWireless(sl_false), connectionStatus(PcapConnectionStatus::Unknown)
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapParam)
+
+	PcapParam::PcapParam()
+	{
+		timeoutRead = 0; // no timeout specified
+		flagImmediate = sl_true;
+		sizeBuffer = 0x200000; // 2MB (16Mb)
+		threadPriority = ThreadPriority::Normal;
+	}
+
+
+	SLIB_DEFINE_OBJECT(Pcap, NetCapture)
+
+	Pcap::Pcap()
+	{
+	}
+
+	Pcap::~Pcap()
+	{
+	}
+
+
+	SLIB_DEFINE_OBJECT(AnyDevicePcap, Pcap)
+
+	AnyDevicePcap::AnyDevicePcap()
+	{
+	}
+
+	AnyDevicePcap::~AnyDevicePcap()
+	{
+	}
+
+}
+
 #if defined(SLIB_PLATFORM_IS_UNIX) || defined(SLIB_PLATFORM_IS_WIN32)
 
 #include "slib/network/socket_address.h"
 
-#include "slib/core/thread.h"
 #include "slib/core/timer.h"
 #include "slib/core/process.h"
 #include "slib/core/file.h"
@@ -112,7 +155,7 @@ namespace slib
 			public:
 				static Ref<PcapImpl> create(const PcapParam& param)
 				{
-					StringCstr name = param.deviceName;
+					StringCstr name(param.deviceName);
 					if (name.isEmpty()) {
 						name = "any";
 					}
@@ -155,7 +198,7 @@ namespace slib
 								}
 								pcap_freealldevs(devs);
 							}
-							LogError(TAG, "failed to find device: %s", name);
+							LogError(TAG, "Failed to find device: %s", name);
 						}
 					}
 					return sl_null;
@@ -172,6 +215,7 @@ namespace slib
 						ret->m_handle = handle;
 						ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
 						if (ret->m_thread.isNotNull()) {
+							ret->m_thread->setPriority(param.threadPriority);
 							ret->m_flagInit = sl_true;
 							if (param.flagAutoStart) {
 								ret->start();
@@ -187,6 +231,11 @@ namespace slib
 
 				static int createHandle(pcap_t*& handle, const StringView& name, const PcapParam& param)
 				{
+#ifdef SLIB_PLATFORM_IS_LINUX_DESKTOP
+					if (!(slib::pcap::getApi_pcap_create())) {
+						return PCAP_ERROR;
+					}
+#endif
 					char errBuf[PCAP_ERRBUF_SIZE] = { 0 };
 					handle = pcap_create(name.getData(), errBuf);
 					if (handle) {
@@ -199,7 +248,7 @@ namespace slib
 						int iRet = pcap_activate(handle);
 						if (iRet < 0) {
 							if (iRet != PCAP_ERROR_NO_SUCH_DEVICE) {
-								LogError(TAG, "failed to activate: %s", name);
+								LogError(TAG, "Failed to activate: %s", name);
 							}
 							pcap_close(handle);
 							handle = sl_null;
@@ -409,7 +458,7 @@ namespace slib
 				_out.ipv6Addresses = addrs6;
 			}
 
-			class AnyPcap : public Pcap
+			class AnyDevicePcapImpl : public AnyDevicePcap
 			{
 			public:
 				PcapParam m_param;
@@ -417,19 +466,19 @@ namespace slib
 				AtomicRef<Timer> m_timerAddDevices;
 
 			public:
-				AnyPcap()
+				AnyDevicePcapImpl()
 				{
 				}
 
-				~AnyPcap()
+				~AnyDevicePcapImpl()
 				{
 					release();
 				}
 
 			public:
-				static Ref<AnyPcap> create(const PcapParam& param)
+				static Ref<AnyDevicePcapImpl> create(const PcapParam& param)
 				{
-					Ref<AnyPcap> ret = new AnyPcap;
+					Ref<AnyDevicePcapImpl> ret = new AnyDevicePcapImpl;
 					if (ret.isNotNull()) {
 						ret->_initWithParam(param);
 						ret->m_param = param;
@@ -474,6 +523,11 @@ namespace slib
 				sl_bool sendPacket(const void*, sl_uint32) override
 				{
 					return sl_false;
+				}
+
+				List< Ref<Pcap> > getDevices() override
+				{
+					return reinterpret_cast<CList< Ref<Pcap> >*>(m_devices.duplicate());
 				}
 
 			protected:
@@ -563,34 +617,6 @@ namespace slib
 
 	using namespace priv::pcap;
 
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapDeviceInfo)
-
-	PcapDeviceInfo::PcapDeviceInfo(): flagLoopback(sl_false), flagUp(sl_false), flagRunning(sl_false), flagWireless(sl_false), connectionStatus(PcapConnectionStatus::Unknown)
-	{
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PcapParam)
-
-	PcapParam::PcapParam()
-	{
-		timeoutRead = 0; // no timeout specified
-		flagImmediate = sl_true;
-		sizeBuffer = 0x200000; // 2MB (16Mb)
-	}
-
-
-	SLIB_DEFINE_OBJECT(Pcap, NetCapture)
-
-	Pcap::Pcap()
-	{
-	}
-
-	Pcap::~Pcap()
-	{
-	}
-
 	Ref<Pcap> Pcap::create(const PcapParam& param)
 	{
 #ifdef USE_STATIC_NPCAP
@@ -671,7 +697,7 @@ namespace slib
 
 	Ref<Pcap> Pcap::createAny(const PcapParam& param)
 	{
-		return Ref<Pcap>::from(AnyPcap::create(param));
+		return Ref<Pcap>::from(AnyDevicePcapImpl::create(param));
 	}
 
 	sl_bool Pcap::isAllowedNonRoot(const StringParam& executablePath)
@@ -690,7 +716,7 @@ namespace slib
 				}
 			}
 		}
-		return sl_false;
+		return sl_true;
 #elif defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 		return File::equalsCap(executablePath, "cap_net_admin,cap_net_raw=eip");
 #else
@@ -749,6 +775,11 @@ namespace slib
 	}
 #endif
 
+	Ref<AnyDevicePcap> AnyDevicePcap::create(const PcapParam& param)
+	{
+		return AnyDevicePcapImpl::create(param);
+	}
+
 
 	ServiceState Npcap::getDriverState()
 	{
@@ -803,6 +834,11 @@ namespace slib
 	}
 
 	Ref<Pcap> Pcap::createAny(const PcapParam& param)
+	{
+		return sl_null;
+	}
+
+	Ref<AnyDevicePcap> AnyDevicePcap::create(const PcapParam& param)
 	{
 		return sl_null;
 	}

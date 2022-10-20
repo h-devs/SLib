@@ -62,6 +62,15 @@ namespace slib
 			{
 				return String16::format(SLIB_UNICODE("%s [%s] %s\n"), Time::now(), tag, content);
 			}
+
+			void PrintError(const void* data, sl_size size)
+			{
+				HANDLE handle = GetStdHandle(STD_ERROR_HANDLE);
+				if (handle) {
+					DWORD dwWritten = 0;
+					WriteFile(handle, data, (DWORD)size, &dwWritten, NULL);
+				}
+			}
 #endif
 			
 		}
@@ -230,11 +239,11 @@ namespace slib
 		StringCstr16 s(GetLineString16(_tag, _content));
 		OutputDebugStringW((LPCWSTR)(s.getData()));
 		if (priority >= LogPriority::Error) {
-			HWND hWnd = GetConsoleWindow();
-			if (hWnd) {
-				Memory mem = Charsets::encode16(s.getData(), s.getLength() + 1, Charset::ANSI);
-				fprintf(stderr, "%s", (char*)(mem.getData()));
+			if (s.isEmpty()) {
+				return;
 			}
+			Memory mem = Charsets::encode16(s.getData(), s.getLength(), Charset::ANSI);
+			PrintError(mem.getData(), mem.getSize());
 		} else {
 			Console::print(s);
 		}

@@ -568,9 +568,9 @@ namespace slib
 		 * @return XmlDocument object on success
 		 * @return nullptr on failure
 		 */
-		static Ref<XmlDocument> parseXml(const sl_char8* xml, sl_size length, XmlParseParam& param);
-		static Ref<XmlDocument> parseXml(const sl_char16* xml, sl_size length, XmlParseParam& param);
-		static Ref<XmlDocument> parseXml(const sl_char32* xml, sl_size length, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const sl_char8* xml, sl_size length, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const sl_char16* xml, sl_size length, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const sl_char32* xml, sl_size length, XmlParseParam& param);
 
 		/**
 		 * parses XML text contained in `xml`.
@@ -582,11 +582,11 @@ namespace slib
 		 * @return XmlDocument object on success
 		 * @return nullptr on failure
 		 */
-		static Ref<XmlDocument> parseXml(const sl_char8* xml, sl_size length);
-		static Ref<XmlDocument> parseXml(const sl_char16* xml, sl_size length);
-		static Ref<XmlDocument> parseXml(const sl_char32* xml, sl_size length);
-		static Ref<XmlDocument> parseXml(const StringParam& xml, XmlParseParam& param);
-		static Ref<XmlDocument> parseXml(const StringParam& xml);
+		static Ref<XmlDocument> parse(const sl_char8* xml, sl_size length);
+		static Ref<XmlDocument> parse(const sl_char16* xml, sl_size length);
+		static Ref<XmlDocument> parse(const sl_char32* xml, sl_size length);
+		static Ref<XmlDocument> parse(const StringParam& xml, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const StringParam& xml);
 
 		/**
 		 * parses XML text file located in `filePath`.
@@ -598,7 +598,7 @@ namespace slib
 		 * @return XmlDocument object on success
 		 * @return nullptr on failure
 		 */
-		static Ref<XmlDocument> parseXmlFromTextFile(const StringParam& filePath, XmlParseParam& param);
+		static Ref<XmlDocument> parseTextFile(const StringParam& filePath, XmlParseParam& param);
 
 		/**
 		 * parses XML text file located in `filePath`.
@@ -610,7 +610,7 @@ namespace slib
 		 * @return XmlDocument object on success
 		 * @return nullptr on failure
 		 */
-		static Ref<XmlDocument> parseXmlFromTextFile(const StringParam& filePath);
+		static Ref<XmlDocument> parseTextFile(const StringParam& filePath);
 
 
 		/**

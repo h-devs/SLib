@@ -307,7 +307,7 @@ namespace slib
 			result.request = req;
 			result.responseText = req->getResponseContentAsString();
 			if (!(req->isError())) {
-				result.response = Xml::parseXml(result.responseText);
+				result.response = Xml::parse(result.responseText);
 				if (result.response.isNotNull()) {
 					Ref<XmlElement> root = result.response->getFirstChildElement();
 					if (root.isNotNull()) {

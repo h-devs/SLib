@@ -672,6 +672,19 @@ namespace slib
 		)
 		#define gtk_entry_set_visibility slib::gtk::getApi_gtk_entry_set_visibility()
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_set_has_frame,
+			void, ,
+			GtkEntry *entry,
+			gboolean setting
+		)
+		#define gtk_entry_set_has_frame slib::gtk::getApi_gtk_entry_set_has_frame()
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			gtk_entry_set_inner_border,
+			void, ,
+			GtkEntry *entry,
+			const GtkBorder *border
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			gtk_editable_get_type,
 			GType, ,
 		)

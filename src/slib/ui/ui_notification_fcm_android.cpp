@@ -75,7 +75,7 @@ namespace slib
 							if (strValue.isNotEmpty()) {
 								JsonParseParam p;
 								p.flagLogError = sl_false;
-								value = Json::parseJson(strValue, p);
+								value = Json::parse(strValue, p);
 								if (value.isNull()) {
 									value = strValue;
 								}

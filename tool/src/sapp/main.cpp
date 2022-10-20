@@ -147,21 +147,23 @@ int main(int argc, const char * argv[])
 			String layoutName = File::getFileNameOnly(path);
 			SAppSimulateLayoutParam param;
 			String pathConfig = pathApp + "/.sapp.conf";
-			Json config = Json::parseJsonFromTextFile(pathConfig);
+			Json config = Json::parseTextFile(pathConfig);
 			param.pageSize.x = config["simulator_window_width"].getInt32(param.pageSize.x);
 			param.pageSize.y = config["simulator_window_height"].getInt32(param.pageSize.y);
-			param.onClosePage = [pathConfig](Window* window, UIEvent* ev) {
-				Json config = Json::parseJsonFromTextFile(pathConfig);
-				if (config.isNull()) {
-					config = Json::createMap();
+			param.onClosePage = [pathConfig](SAppLayoutSimulationWindow* window, UIEvent* ev) {
+				if (window->isSavingPageSize()) {
+					Json config = Json::parseTextFile(pathConfig);
+					if (config.isNull()) {
+						config = Json::createMap();
+					}
+					UISize size = window->getClientSize();
+					config.putItem("simulator_window_width", size.x);
+					config.putItem("simulator_window_height", size.y);
+					File::writeAllTextUTF8(pathConfig, config.toJsonString());
 				}
-				UISize size = window->getClientSize();
-				config.putItem("simulator_window_width", size.x);
-				config.putItem("simulator_window_height", size.y);
-				File::writeAllTextUTF8(pathConfig, config.toJsonString());
 				UI::quitApp();
 			};
-			param.onCloseWindow = [pathConfig](Window* window, UIEvent* ev) {
+			param.onCloseWindow = [](SAppLayoutSimulationWindow* window, UIEvent* ev) {
 				UI::quitApp();
 			};
 			if (!(doc->simulateLayoutInWindow(layoutName, param))) {

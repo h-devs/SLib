@@ -565,7 +565,6 @@ namespace slib
 		if (!image) {
 			return;
 		}
-
 		CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas);
 		if (!canvas) {
 			return;
@@ -576,7 +575,6 @@ namespace slib
 		if (dw < SLIB_EPSILON || dh < SLIB_EPSILON) {
 			return;
 		}
-
 		sl_real sw = cairo_image_surface_get_width(image);
 		sl_real sh = cairo_image_surface_get_height(image);
 		if (sw < SLIB_EPSILON || sh < SLIB_EPSILON) {
@@ -590,7 +588,7 @@ namespace slib
 		if (param.useAlpha && !flagOpaque) {
 			alpha = param.alpha;
 		}
-		
+
 		cairo_save(graphics);
 		cairo_translate(graphics, rectDst.left, rectDst.top);
 		cairo_scale(graphics, dw / sw, dh / sh);
@@ -601,11 +599,18 @@ namespace slib
 			cairo_paint_with_alpha(graphics, alpha);
 		}
 		cairo_restore(graphics);
-
 	}
 
-	void GraphicsPlatform::drawImage(Canvas* canvas, const Rectangle& rectDst, cairo_surface_t* image, const Rectangle& rectSrc, const DrawParam& param)
+	void GraphicsPlatform::drawImage(Canvas* _canvas, const Rectangle& rectDst, cairo_surface_t* image, const Rectangle& rectSrc, const DrawParam& param)
 	{
+		if (!image) {
+			return;
+		}
+		CanvasImpl* canvas = CastInstance<CanvasImpl>(_canvas);
+		if (!canvas) {
+			return;
+		}
+
 		sl_real dw = rectDst.getWidth();
 		sl_real dh = rectDst.getHeight();
 		if (dw < SLIB_EPSILON || dh < SLIB_EPSILON) {
@@ -616,11 +621,27 @@ namespace slib
 		if (sw < SLIB_EPSILON || sh < SLIB_EPSILON) {
 			return;
 		}
-		cairo_surface_t* sub = cairo_surface_create_for_rectangle(image, rectSrc.left, rectSrc.top, sw, sh);
-		if (sub) {
-			drawImage(canvas, rectDst, sub, param);
-			cairo_surface_destroy(sub);
+
+		cairo_t* graphics = canvas->m_graphics;
+
+		sl_bool flagOpaque = param.isOpaque();
+		sl_real alpha = 1;
+		if (param.useAlpha && !flagOpaque) {
+			alpha = param.alpha;
 		}
+
+		cairo_save(graphics);
+		cairo_translate(graphics, rectDst.left, rectDst.top);
+		cairo_scale(graphics, dw / sw, dh / sh);
+		cairo_rectangle(graphics, 0, 0, dw, dh);
+		cairo_clip(graphics);
+		cairo_set_source_surface(graphics, image, rectSrc.left, rectSrc.top);
+		if (alpha > 0.999) {
+			cairo_paint(graphics);
+		} else {
+			cairo_paint_with_alpha(graphics, alpha);
+		}
+		cairo_restore(graphics);
 	}
 
 }

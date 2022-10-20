@@ -1,7 +1,5 @@
 #include "slib/uix/button.h"
 
-#include "slib/ui/cursor.h"
-
 namespace slib
 {
 
@@ -17,7 +15,6 @@ namespace slib
 	{
 		Button::init();
 
-		setCursor(Cursor::getHand());
 		setAntiAlias(sl_true, UIUpdateMode::Init);
 		setBoundRadius(7.0f, UIUpdateMode::Init);
 		setBackgroundColor(Color(0, 128, 255), UIUpdateMode::Init);

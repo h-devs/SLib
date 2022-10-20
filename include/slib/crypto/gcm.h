@@ -124,7 +124,7 @@ namespace slib
 			calculateCIV(IV, lenIV, CIV);
 			m_cipher->encryptBlock(CIV, GCTR0);
 			for (sl_uint32 i = 0; i < 16; i++) {
-	    		GHASH_X[i] = 0;
+				GHASH_X[i] = 0;
 			}
 			return sl_true;
 		}
@@ -218,7 +218,7 @@ namespace slib
 			void* tag /* out */, sl_size lenTag = 16 /* 4 <= lenTag <= 16 */
 		)
 		{
-			if (!start(IV, lenIV)) {
+			if (!(start(IV, lenIV))) {
 				return sl_false;
 			}
 			put(A, lenA);
@@ -233,7 +233,7 @@ namespace slib
 			const void* tag, sl_size lenTag = 16 /* 4 <= lenTag <= 16 */
 		)
 		{
-			if (!start(IV, lenIV)) {
+			if (!(start(IV, lenIV))) {
 				return sl_false;
 			}
 			put(A, lenA);
@@ -252,7 +252,7 @@ namespace slib
 			const void* tag, sl_size lenTag = 16 /* 4 <= lenTag <= 16 */
 		)
 		{
-			if (!start(IV, lenIV)) {
+			if (!(start(IV, lenIV))) {
 				return sl_false;
 			}
 			put(A, lenA);

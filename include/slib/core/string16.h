@@ -298,7 +298,6 @@ namespace slib
 		static String16 from(double value) noexcept;
 		static String16 from(sl_bool value) noexcept;
 		static String16 from(const Time& value) noexcept;
-		static String16 from(const Json& json) noexcept;
 		static String16 from(const Variant& var) noexcept;
 		
 	public:
@@ -348,7 +347,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is empty.
 		 */
-		SLIB_CONSTEXPR sl_bool isEmpty() const
+		sl_bool isEmpty() const noexcept
 		{
 			return !(m_container && m_container->len);
 		}
@@ -356,7 +355,7 @@ namespace slib
 		/**
 		 * @return `true` if this string is not empty.
 		 */
-		SLIB_CONSTEXPR sl_bool isNotEmpty() const
+		sl_bool isNotEmpty() const noexcept
 		{
 			return m_container && m_container->len;
 		}
@@ -449,9 +448,9 @@ namespace slib
 		
 		sl_char16& operator[](sl_size index) noexcept;
 
-		SLIB_CONSTEXPR explicit operator sl_bool() const
+		explicit operator sl_bool() const noexcept
 		{
-			return m_container != sl_null;
+			return isNotEmpty();
 		}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
@@ -583,65 +582,39 @@ namespace slib
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg indexOf(sl_char16 ch, sl_reg start = 0) const noexcept;
-		
-		/**
-		 * @return the index within this string of the first occurrence of the specified string, starting the search at `start` index.
-		 * @return -1 if no occurrence is found.
-		 */
 		sl_reg indexOf(const StringView16& str, sl_reg start = 0) const noexcept;
+		sl_reg indexOf(sl_char16 ch, sl_reg start = 0) const noexcept;
 		
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg lastIndexOf(sl_char16 ch, sl_reg start = -1) const noexcept;
-		
-		/**
-		 * @return the index within this string of the last occurrence of the specified string, searching backwards from `start` index.
-		 * @return -1 if no occurrence is found.
-		 */
 		sl_reg lastIndexOf(const StringView16& str, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf(sl_char16 ch, sl_reg start = -1) const noexcept;
 		
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
-		sl_bool startsWith(sl_char16 ch) const noexcept;
-		
-		/**
-		 * @return `true` if this string starts with the specified string.
-		 */
 		sl_bool startsWith(const StringView16& str) const noexcept;
+		sl_bool startsWith(sl_char16 ch) const noexcept;
 		
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
-		sl_bool endsWith(sl_char16 ch) const noexcept;
-		
-		/**
-		 * @return `true` if this string ends with the specified string.
-		 */
 		sl_bool endsWith(const StringView16& str) const noexcept;
+		sl_bool endsWith(sl_char16 ch) const noexcept;
 		
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
+		sl_bool contains(const StringView16& str) const noexcept;
 		sl_bool contains(sl_char16 ch) const noexcept;
 		
 		/**
-		 * @return `true` if the specified substring occurs within this string.
-		 */
-		sl_bool contains(const StringView16& str) const noexcept;
-
-		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
-		sl_size countOf(sl_char16 ch) const noexcept;
-
-		/**
-		* @return the total count of the specified substring occurs within this string.
-		*/
 		sl_size countOf(const StringView16& str) const noexcept;
+		sl_size countOf(sl_char16 ch) const noexcept;
 
 		/**
 		 * Converts the characters of this string to uppercase.
@@ -666,22 +639,14 @@ namespace slib
 		/**
 		* Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
 		*/
-		String16 replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept;
-
-		/**
-		 * Replaces each substring of this string that matches the given `pattern` with the given `replacement`.
-		 */
 		String16 replaceAll(const StringView16& pattern, const StringView16& replacement) const noexcept;
-
-		/**
-		* Removes all characters that matches the given `pattern`
-		*/
-		String16 removeAll(sl_char16 pattern) const noexcept;
+		String16 replaceAll(sl_char16 pattern, sl_char16 replacement) const noexcept;
 
 		/**
 		* Removes all characters that matches the given `pattern`
 		*/
 		String16 removeAll(const StringView16& pattern) const noexcept;
+		String16 removeAll(sl_char16 pattern) const noexcept;
 
 		/**
 		 * Copy this string and then removes whitespaces from both ends of the new string.
@@ -716,7 +681,8 @@ namespace slib
 		/**
 		 * Splits this string into the list of strings by the `pattern` separator.
 		 */
-		List<String16> split(const StringView16& pattern) const noexcept;
+		List<String16> split(const StringView16& pattern, sl_reg nMaxSplit = -1) const noexcept;
+		List<String16> split(sl_char16 pattern, sl_reg nMaxSplit = -1) const noexcept;
 		
 		/**
 		 * Join all strings in the list

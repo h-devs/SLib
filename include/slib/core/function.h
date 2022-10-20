@@ -785,11 +785,11 @@ namespace slib
 			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
-					List< Function<RET_TYPE(ARGS...)> > list(((FunctionList<RET_TYPE(ARGS...)>*)object)->list.duplicate_NoLock());
+					List<Function> list(((FunctionList<RET_TYPE(ARGS...)>*)object)->list.duplicate_NoLock());
 					list.add_NoLock(function);
 					return (Callable<RET_TYPE(ARGS...)>*)(new FunctionList<RET_TYPE(ARGS...)>(list));
 				} else {
-					return (Callable<RET_TYPE(ARGS...)>*)(new FunctionList<RET_TYPE(ARGS...)>(List< Function<RET_TYPE(ARGS...)> >::createFromElements(*this, function)));
+					return (Callable<RET_TYPE(ARGS...)>*)(new FunctionList<RET_TYPE(ARGS...)>(List<Function>::createFromElements(*this, function)));
 				}
 			} else {
 				return function;
@@ -815,10 +815,10 @@ namespace slib
 			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
-					List< Function<RET_TYPE(ARGS...)> >& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
+					List<Function>& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
 					sl_size count = list.getCount();
 					if (count > 0) {
-						Function<RET_TYPE(ARGS...)>* data = list.getData();
+						Function* data = list.getData();
 						if (count == 1) {
 							if (*data == function) {
 								return sl_null;
@@ -834,7 +834,7 @@ namespace slib
 						} else {
 							sl_reg index = list.indexOf_NoLock(function);
 							if (index >= 0) {
-								List< Function<RET_TYPE(ARGS...)> > newList(data, index);
+								List<Function> newList(data, index);
 								if ((sl_size)index + 1 < count) {
 									newList.addElements_NoLock(data + index + 1, count - index - 1);
 								}
@@ -851,13 +851,13 @@ namespace slib
 
 	public:
 		template <class FUNC>
-		static Function<RET_TYPE(ARGS...)> create(FUNC&& func) noexcept
+		static Function create(FUNC&& func) noexcept
 		{
 			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func)));
 		}
 
 		template <class CLASS, class FUNC>
-		static Function<RET_TYPE(ARGS...)> fromMember(CLASS* object, const FUNC& func) noexcept
+		static Function fromMember(CLASS* object, const FUNC& func) noexcept
 		{
 			if (object) {
 				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromMember<CLASS, FUNC, RET_TYPE, ARGS...>(object, func));
@@ -866,7 +866,7 @@ namespace slib
 		}
 
 		template <class OBJECT, class FUNC>
-		static Function<RET_TYPE(ARGS...)> fromRef(OBJECT&& _object, const FUNC& func) noexcept
+		static Function fromRef(OBJECT&& _object, const FUNC& func) noexcept
 		{
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ref<CLASS> object(Forward<OBJECT>(_object));
@@ -877,7 +877,7 @@ namespace slib
 		}
 
 		template <class OBJECT, class FUNC>
-		static Function<RET_TYPE(ARGS...)> fromWeakRef(OBJECT&& _object, const FUNC& func) noexcept
+		static Function fromWeakRef(OBJECT&& _object, const FUNC& func) noexcept
 		{
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			WeakRef<CLASS> object(Forward<OBJECT>(_object));
@@ -888,7 +888,7 @@ namespace slib
 		}
 		
 		template <class OBJECT, class FUNC>
-		static Function<RET_TYPE(ARGS...)> fromPtr(OBJECT&& _object, const FUNC& func) noexcept
+		static Function fromPtr(OBJECT&& _object, const FUNC& func) noexcept
 		{
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ptr<CLASS> object(Forward<OBJECT>(_object));
@@ -899,26 +899,26 @@ namespace slib
 		}
 		
 		template <class FUNC>
-		static Function<RET_TYPE(ARGS...)> bind(FUNC&& func) noexcept
+		static Function bind(FUNC&& func) noexcept
 		{
 			return create(Forward<FUNC>(func));
 		}
 		
 		template <class FUNC, class... BINDS>
-		static Function<RET_TYPE(ARGS...)> bind(FUNC&& func, BINDS&&... binds) noexcept
+		static Function bind(FUNC&& func, BINDS&&... binds) noexcept
 		{
 			typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
 			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::BindFromFunction<TUPLE, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func), TUPLE(Forward<BINDS>(binds)...)));
 		}
 		
 		template <class CLASS, class FUNC>
-		static Function<RET_TYPE(ARGS...)> bindMember(CLASS* object, const FUNC& func) noexcept
+		static Function bindMember(CLASS* object, const FUNC& func) noexcept
 		{
 			return fromMember(object, func);
 		}
 		
 		template <class CLASS, class FUNC, class... BINDS>
-		static Function<RET_TYPE(ARGS...)> bindMember(CLASS* object, const FUNC& func, BINDS&&... binds) noexcept
+		static Function bindMember(CLASS* object, const FUNC& func, BINDS&&... binds) noexcept
 		{
 			if (object) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
@@ -928,13 +928,13 @@ namespace slib
 		}
 		
 		template <class OBJECT, class FUNC>
-		static Function<RET_TYPE(ARGS...)> bindRef(OBJECT&& object, const FUNC& func) noexcept
+		static Function bindRef(OBJECT&& object, const FUNC& func) noexcept
 		{
 			return fromRef(Forward<OBJECT>(object), func);
 		}
 		
 		template <class OBJECT, class FUNC, class... BINDS>
-		static Function<RET_TYPE(ARGS...)> bindRef(OBJECT&& _object, const FUNC& func, BINDS&&... binds) noexcept
+		static Function bindRef(OBJECT&& _object, const FUNC& func, BINDS&&... binds) noexcept
 		{
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ref<CLASS> object(Forward<OBJECT>(_object));
@@ -946,13 +946,13 @@ namespace slib
 		}
 		
 		template <class OBJECT, class FUNC>
-		static Function<RET_TYPE(ARGS...)> bindWeakRef(OBJECT&& object, const FUNC& func) noexcept
+		static Function bindWeakRef(OBJECT&& object, const FUNC& func) noexcept
 		{
 			return fromWeakRef(Forward<OBJECT>(object), func);
 		}
 		
 		template <class OBJECT, class FUNC, class... BINDS>
-		static Function<RET_TYPE(ARGS...)> bindWeakRef(OBJECT&& _object, const FUNC& func, BINDS&&... binds) noexcept
+		static Function bindWeakRef(OBJECT&& _object, const FUNC& func, BINDS&&... binds) noexcept
 		{
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			WeakRef<CLASS> object(Forward<OBJECT>(_object));
@@ -964,13 +964,13 @@ namespace slib
 		}
 		
 		template <class OBJECT, class FUNC>
-		static Function<RET_TYPE(ARGS...)> bindPtr(OBJECT&& object, const FUNC& func) noexcept
+		static Function bindPtr(OBJECT&& object, const FUNC& func) noexcept
 		{
 			return fromPtr(Forward<OBJECT>(object), func);
 		}
 		
 		template <class OBJECT, class FUNC, class... BINDS>
-		static Function<RET_TYPE(ARGS...)> bindPtr(OBJECT&& _object, const FUNC& func, BINDS&&... binds) noexcept
+		static Function bindPtr(OBJECT&& _object, const FUNC& func, BINDS&&... binds) noexcept
 		{
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ptr<CLASS> object(Forward<OBJECT>(_object));
@@ -982,7 +982,7 @@ namespace slib
 		}
 		
 		template <class CLASS, class FUNC>
-		static Function<RET_TYPE(ARGS...)> with(const Ref<CLASS>& object, FUNC&& func) noexcept
+		static Function with(const Ref<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
 				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableWithRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
@@ -991,7 +991,7 @@ namespace slib
 		}
 		
 		template <class CLASS, class FUNC>
-		static Function<RET_TYPE(ARGS...)> with(const WeakRef<CLASS>& object, FUNC&& func) noexcept
+		static Function with(const WeakRef<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
 				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableWithWeakRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
@@ -1000,7 +1000,7 @@ namespace slib
 		}
 		
 		template <class CLASS, class FUNC>
-		static Function<RET_TYPE(ARGS...)> with(const Ptr<CLASS>& object, FUNC&& func) noexcept
+		static Function with(const Ptr<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
 				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableWithPtr<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
@@ -1008,29 +1008,47 @@ namespace slib
 			return sl_null;
 		}
 
-		static Function<RET_TYPE(ARGS...)> fromList(const List< Function<RET_TYPE(ARGS...)> >& list) noexcept
+		static Function fromList(const List< Function<RET_TYPE(ARGS...)> >& list) noexcept
 		{
 			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new FunctionList<RET_TYPE(ARGS...)>(list));
 		}
-		
+
+		template <class OTHER_RET_TYPE, class... OTHER_ARGS>
+		static const Function& from(const Function<OTHER_RET_TYPE(OTHER_ARGS...)>& other) noexcept
+		{
+			return *(reinterpret_cast<Function const*>(&other));
+		}
+
+		template <class OTHER_RET_TYPE, class... OTHER_ARGS>
+		static Function& from(Function<OTHER_RET_TYPE(OTHER_ARGS...)>& other) noexcept
+		{
+			return *(reinterpret_cast<Function*>(&other));
+		}
+
+		template <class OTHER_RET_TYPE, class... OTHER_ARGS>
+		static Function&& from(Function<OTHER_RET_TYPE(OTHER_ARGS...)>&& other) noexcept
+		{
+			return static_cast<Function&&>(*(reinterpret_cast<Function*>(&other)));
+		}
+
 	public:
 		sl_bool isList() const noexcept
 		{
 			return IsInstanceOf< FunctionList<RET_TYPE(ARGS...)> >(ref.get());
 		}
 		
-		const List< Function<RET_TYPE(ARGS...)> >& getList() const noexcept
+		const List<Function>& getList() const noexcept
 		{
 			FunctionList<RET_TYPE(ARGS...)>* obj = CastInstance< FunctionList<RET_TYPE(ARGS...)> >(ref.get());
 			if (obj) {
 				return obj->list;
 			} else {
-				return List< Function<RET_TYPE(ARGS...)> >::null();
+				return List<Function>::null();
 			}
 		}
 
 		// return `function`
-		Function<RET_TYPE(ARGS...)> add(const Function& function) noexcept
+		Function add(const Function& function) noexcept
 		{
 			if (function.isNull()) {
 				return function;
@@ -1040,7 +1058,7 @@ namespace slib
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
 					((FunctionList<RET_TYPE(ARGS...)>*)object)->list.add_NoLock(function);
 				} else {
-					ref = new FunctionList<RET_TYPE(ARGS...)>(List< Function<RET_TYPE(ARGS...)> >::createFromElements(*this, function));
+					ref = new FunctionList<RET_TYPE(ARGS...)>(List<Function>::createFromElements(*this, function));
 				}
 			} else {
 				ref = function.ref;
@@ -1049,7 +1067,7 @@ namespace slib
 		}
 		
 		// return `function`
-		Function<RET_TYPE(ARGS...)> addIfNotExist(const Function& function) noexcept
+		Function addIfNotExist(const Function& function) noexcept
 		{
 			if (function.isNull()) {
 				return function;
@@ -1060,7 +1078,7 @@ namespace slib
 					((FunctionList<RET_TYPE(ARGS...)>*)object)->list.addIfNotExist_NoLock(function);
 				} else {
 					if (ref != function.ref) {
-						ref = new FunctionList<RET_TYPE(ARGS...)>(List< Function<RET_TYPE(ARGS...)> >::createFromElements(*this, function));
+						ref = new FunctionList<RET_TYPE(ARGS...)>(List<Function>::createFromElements(*this, function));
 					}
 				}
 			} else {
@@ -1081,9 +1099,9 @@ namespace slib
 			Callable<RET_TYPE(ARGS...)>* object = ref.ptr;
 			if (object) {
 				if (object->isInstanceOf(FunctionList<RET_TYPE(ARGS...)>::ObjectType())) {
-					List< Function<RET_TYPE(ARGS...)> >& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
+					List<Function>& list = ((FunctionList<RET_TYPE(ARGS...)>*)object)->list;
 					sl_size count = list.getCount();
-					Function<RET_TYPE(ARGS...)>* data = list.getData();
+					Function* data = list.getData();
 					if (count == 0) {
 						ref.setNull();
 					} else if (count == 1) {

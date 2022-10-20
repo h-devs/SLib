@@ -187,7 +187,7 @@ namespace slib
 				message.identifier = String::fromUint32(message.id);
 				message.title = JUserNotificationMessage::title.get(jmsg);
 				message.content = JUserNotificationMessage::content.get(jmsg);
-				message.data = Json::parseJson(JUserNotificationMessage::data.get(jmsg));
+				message.data = Json::parse(JUserNotificationMessage::data.get(jmsg));
 				message.action = JUserNotificationMessage::action.get(jmsg);
 				message.response = JUserNotificationMessage::response.get(jmsg);
 				message.actualDeliveryTime = Time::withMilliseconds((sl_int64)(JUserNotificationMessage::actualDeliveryTime.get(jmsg)));

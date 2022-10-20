@@ -507,7 +507,7 @@ namespace slib
 		
 	}
 
-	sl_bool SAppDocument::simulateLayoutInWindow(const String& layoutName, const SAppSimulateLayoutParam& param)
+	sl_bool SAppDocument::simulateLayoutInWindow(const String& layoutName, SAppSimulateLayoutParam& param)
 	{
 		ObjectLocker lock(this);
 		
@@ -645,7 +645,7 @@ namespace slib
 		XmlParseParam param;
 		param.flagLogError = sl_false;
 		param.setCreatingOnlyElementsAndTexts();
-		Ref<XmlDocument> xml = Xml::parseXmlFromTextFile(filePath, param);
+		Ref<XmlDocument> xml = Xml::parseTextFile(filePath, param);
 		if (param.flagError) {
 			_logError(filePath, param.errorLine, param.errorColumn, param.errorMessage);
 			return sl_false;
@@ -800,7 +800,7 @@ namespace slib
 		param.setCreatingOnlyElementsAndTexts();
 		String16 textXML = File::readAllText(filePath).toString16();
 		param.sourceFilePath = filePath;
-		Ref<XmlDocument> xml = Xml::parseXml(textXML, param);
+		Ref<XmlDocument> xml = Xml::parse(textXML, param);
 		if (param.flagError) {
 			_logErrorSource(filePath, param.errorLine, param.errorColumn, param.errorMessage);
 			return sl_false;

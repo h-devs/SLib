@@ -57,7 +57,7 @@ namespace slib
 			NSString* _key = Apple::getNSStringFromString(key);
 			NSString* _value = [[NSUserDefaults standardUserDefaults] stringForKey:_key];
 			if (_value != nil) {
-				return Json::parseJson(Apple::getStringFromNSString(_value));
+				return Json::parse(Apple::getStringFromNSString(_value));
 			}
 		}
 		return sl_null;

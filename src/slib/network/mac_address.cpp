@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,26 @@ namespace slib
 
 	SLIB_ALIGN(8) const sl_uint8 MacAddress::_zero[6] = { 0 };
 	SLIB_ALIGN(8) const sl_uint8 MacAddress::_broadcast[6] = { 255, 255, 255, 255, 255, 255 };
+
+	MacAddress::MacAddress() noexcept
+	{
+		m[0] = 0;
+		m[1] = 0;
+		m[2] = 0;
+		m[3] = 0;
+		m[4] = 0;
+		m[5] = 0;
+	}
+
+	MacAddress::MacAddress(sl_null_t) noexcept
+	{
+		m[0] = 0;
+		m[1] = 0;
+		m[2] = 0;
+		m[3] = 0;
+		m[4] = 0;
+		m[5] = 0;
+	}
 
 	MacAddress::MacAddress(const sl_uint8* _m) noexcept
 	{
@@ -132,14 +152,22 @@ namespace slib
 		const char* hex = "0123456789ABCDEF";
 		char s[17];
 		char* p = s;
-		for (int i = 0; i < 6; i++) {
-			if (i) {
+		if (sep) {
+			*(p++) = hex[*m >> 4];
+			*(p++) = hex[*m & 15];
+			for (int i = 1; i < 6; i++) {
 				*(p++) = sep;
+				*(p++) = hex[m[i] >> 4];
+				*(p++) = hex[m[i] & 15];
 			}
-			*(p++) = hex[m[i] >> 4];
-			*(p++) = hex[m[i] & 15];
+			return String(s, sizeof(s));
+		} else {
+			for (int i = 0; i < 6; i++) {
+				*(p++) = hex[m[i] >> 4];
+				*(p++) = hex[m[i] & 15];
+			}
+			return String(s, 12);
 		}
-		return String(s, sizeof(s));
 	}
 
 	namespace priv
@@ -203,12 +231,23 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_PARSE_MEMBERS(MacAddress, priv::mac_address::Parse)
 
+	MacAddress& MacAddress::operator=(sl_null_t) noexcept
+	{
+		setZero();
+		return *this;
+	}
+
 	MacAddress& MacAddress::operator=(const StringParam& address) noexcept
 	{
 		if (!(parse(address))) {
 			setZero();
 		}
 		return *this;
+	}
+
+	String Cast<MacAddress, String>::operator()(const MacAddress& v) const
+	{
+		return v.toString();
 	}
 
 }

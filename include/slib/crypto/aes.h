@@ -36,7 +36,7 @@
 namespace slib
 {
 
-	class String;
+	class StringView;
 
 	class SLIB_EXPORT AES : public BlockCipher<AES>
 	{
@@ -52,7 +52,7 @@ namespace slib
 	public:
 		sl_bool setKey(const void* key, sl_size lenKey /* 16, 24, 32 bytes */);
 
-		void setKey_SHA256(const String& key);
+		void setKey_SHA256(const StringView& key);
 		
 		void encrypt(sl_uint32& d0, sl_uint32& d1, sl_uint32& d2, sl_uint32& d3) const;
 	
@@ -81,7 +81,13 @@ namespace slib
 	public:
 		void setKey(const void* key, sl_size lenKey /* 16, 24, 32 bytes */);
 	
-		void setKey_SHA256(const String& key);
+		void setKey_SHA256(const StringView& key);
+
+		using GCM<AES>::encrypt;
+		Memory encrypt(const MemoryView& content, sl_size lenIV = 12, sl_size lenTag = 16);
+
+		using GCM<AES>::decrypt;
+		Memory decrypt(const MemoryView& encryptedContent, sl_size lenIV = 12, sl_size lenTag = 16);
 
 	private:
 		AES m_cipher;

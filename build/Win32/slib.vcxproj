@@ -83,6 +83,7 @@
     <ClCompile Include="..\..\src\slib\core\animation.cpp" />
     <ClCompile Include="..\..\src\slib\core\app.cpp" />
     <ClCompile Include="..\..\src\slib\core\app_win32.cpp" />
+    <ClCompile Include="..\..\src\slib\core\dl_win32_wtsapi32.cpp" />
     <ClCompile Include="..\..\src\slib\core\performance.cpp" />
     <ClCompile Include="..\..\src\slib\core\async.cpp" />
     <ClCompile Include="..\..\src\slib\core\async_iocp.cpp" />
@@ -154,7 +155,12 @@
     <ClCompile Include="..\..\src\slib\core\service_manager.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp" />
     <ClCompile Include="..\..\src\slib\core\xml.cpp" />
-    <ClCompile Include="..\..\src\slib\crypto\aes.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\aes.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\asn1.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\block_cipher.cpp" />
@@ -164,7 +170,12 @@
     <ClCompile Include="..\..\src\slib\crypto\compress.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\lzw.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\rc2.cpp" />
-    <ClCompile Include="..\..\src\slib\crypto\sha3.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\sha3.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\certificate.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\zlib.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\crc32c.cpp" />
@@ -180,8 +191,18 @@
     <ClCompile Include="..\..\src\slib\crypto\poly1305.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\rc4.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\rsa.cpp" />
-    <ClCompile Include="..\..\src\slib\crypto\sha1.cpp" />
-    <ClCompile Include="..\..\src\slib\crypto\sha2.cpp" />
+    <ClCompile Include="..\..\src\slib\crypto\sha1.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\sha2.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\tls.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\zstd.cpp" />
     <ClCompile Include="..\..\src\slib\db\database.cpp" />
@@ -195,6 +216,7 @@
     <ClCompile Include="..\..\src\slib\db\key_value_store.cpp" />
     <ClCompile Include="..\..\src\slib\db\leveldb.cpp" />
     <ClCompile Include="..\..\src\slib\db\lmdb.cpp" />
+    <ClCompile Include="..\..\src\slib\db\log_package.cpp" />
     <ClCompile Include="..\..\src\slib\db\mongodb.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql.cpp" />
     <ClCompile Include="..\..\src\slib\db\mysql_data.cpp" />
@@ -258,7 +280,12 @@
     <ClCompile Include="..\..\src\slib\graphics\pen_gdi.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\sfnt.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\zxing.cpp" />
-    <ClCompile Include="..\..\src\slib\math\bigint.cpp" />
+    <ClCompile Include="..\..\src\slib\math\bigint.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+    </ClCompile>
     <ClCompile Include="..\..\src\slib\math\calculator.cpp" />
     <ClCompile Include="..\..\src\slib\math\decimal128.cpp" />
     <ClCompile Include="..\..\src\slib\math\fft.cpp" />

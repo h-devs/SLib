@@ -542,19 +542,21 @@ namespace slib
 		return sl_null;
 	}
 	
-	sl_size File::writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
+	sl_reg File::writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
 	{
 		File file = File::openForWrite(path);
 		if (file.isNotNone()) {
-			sl_reg ret = file.write(buf, size);
-			if (ret > 0) {
-				return ret;
+			if (size) {
+				return file.writeFully(buf, size);
+			} else {
+				return 0;
 			}
+		} else {
+			return SLIB_IO_ERROR;
 		}
-		return 0;
 	}
 
-	sl_size File::writeAllBytes(const StringParam& path, const MemoryView& mem) noexcept
+	sl_reg File::writeAllBytes(const StringParam& path, const MemoryView& mem) noexcept
 	{
 		return File::writeAllBytes(path, mem.data, mem.size);
 	}
@@ -586,19 +588,21 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_size File::appendAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
+	sl_reg File::appendAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
 	{
 		File file = File::openForAppend(path);
 		if (file.isNotNone()) {
-			sl_reg ret = file.write(buf, size);
-			if (ret > 0) {
-				return ret;
+			if (size) {
+				return file.writeFully(buf, size);
+			} else {
+				return 0;
 			}
+		} else {
+			return SLIB_IO_ERROR;
 		}
-		return 0;
 	}
 
-	sl_size File::appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept
+	sl_reg File::appendAllBytes(const StringParam& path, const MemoryView& mem) noexcept
 	{
 		return File::appendAllBytes(path, mem.data, mem.size);
 	}

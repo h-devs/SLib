@@ -90,7 +90,7 @@ namespace slib
 	Json HttpServerContext::getRequestBodyAsJson() const
 	{
 		Memory body = m_requestBody;
-		return Json::parseJson((sl_char8*)(body.getData()), body.getSize());
+		return Json::parse((sl_char8*)(body.getData()), body.getSize());
 	}
 
 	void HttpServerContext::applyRequestBodyAsFormUrlEncoded()
@@ -1228,7 +1228,7 @@ namespace slib
 	{
 		JsonParseParam param;
 		param.flagLogError = sl_true;
-		Json json = Json::parseJsonFromTextFile(filePath);
+		Json json = Json::parseTextFile(filePath);
 		if (json.isNotNull()) {
 			setJson(json);
 			return sl_true;

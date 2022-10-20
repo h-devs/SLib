@@ -65,7 +65,8 @@ namespace slib
 				void applyColumnCount(HWND hWnd)
 				{
 					ObjectLocker lock(this);
-					sl_uint32 nNew = (sl_uint32)(m_columns.getCount());
+					ListElements<ListControlColumn> columns(m_columns);
+					sl_uint32 nNew = (sl_uint32)(columns.count);
 					sl_uint32 nOrig = getColumnCountFromListView(hWnd);
 					if (nOrig == nNew) {
 						return;
@@ -77,38 +78,26 @@ namespace slib
 					} else {
 						LVCOLUMNW lvc;
 						Base::zeroMemory(&lvc, sizeof(lvc));
-						lvc.mask = LVCF_SUBITEM;
+						lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT | LVCF_SUBITEM;
 						for (sl_uint32 i = nOrig; i < nNew; i++) {
+							ListControlColumn& column = columns[i];
+							StringCstr16 title(column.title);
+							lvc.pszText = (LPWSTR)(title.getData());
+							int width = (int)(column.width);
+							if (width < 0) {
+								width = 0;
+							}
+							lvc.cx = width;
+							lvc.fmt = TranslateAlignment(column.align);
 							lvc.iSubItem = i;
 							SendMessageW(hWnd, LVM_INSERTCOLUMNW, (WPARAM)i, (LPARAM)&lvc);
 						}
 					}
 				}
 
-				void copyColumns(HWND hWnd)
-				{
-					applyColumnCount(hWnd);
-					LVCOLUMNW lvc;
-					Base::zeroMemory(&lvc, sizeof(lvc));
-					lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT;
-					ListLocker<ListControlColumn> columns(m_columns);
-					for (sl_size i = 0; i < columns.count; i++) {
-						ListControlColumn& column = columns[i];
-						StringCstr16 title = column.title;
-						lvc.pszText = (LPWSTR)(title.getData());
-						int width = (int)(column.width);
-						if (width < 0) {
-							width = 0;
-						}
-						lvc.cx = width;
-						lvc.fmt = TranslateAlignment(column.align);
-						SendMessageW(hWnd, LVM_SETCOLUMNW, (WPARAM)i, (LPARAM)(&lvc));
-					}
-				}
-
 				void applyRowCount(HWND hWnd)
 				{
-					sl_uint32 nNew = m_nRows;
+					sl_uint32 nNew = getRowCount();
 					SendMessageW(hWnd, LVM_SETITEMCOUNT, (WPARAM)nNew, LVSICF_NOINVALIDATEALL | LVSICF_NOSCROLL);
 				}
 
@@ -126,7 +115,7 @@ namespace slib
 
 					UINT exStyle = LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_ONECLICKACTIVATE | LVS_EX_DOUBLEBUFFER;
 					SendMessageW(handle, LVM_SETEXTENDEDLISTVIEWSTYLE, exStyle, exStyle);
-					view->copyColumns(handle);
+					view->applyColumnCount(handle);
 					view->applyRowCount(handle);
 				}
 
@@ -154,7 +143,7 @@ namespace slib
 						LVCOLUMNW lvc;
 						Base::zeroMemory(&lvc, sizeof(lvc));
 						lvc.mask = LVCF_TEXT;
-						StringCstr16 text = _text;
+						StringCstr16 text(_text);
 						lvc.pszText = (LPWSTR)(text.getData());
 						SendMessageW(handle, LVM_SETCOLUMNW, (WPARAM)iCol, (LPARAM)(&lvc));
 					}
@@ -201,7 +190,6 @@ namespace slib
 				{
 					Ref<ListControlHelper> helper = CastRef<ListControlHelper>(getView());
 					if (helper.isNotNull()) {
-						NMITEMACTIVATE* nm = (NMITEMACTIVATE*)nmhdr;
 						UINT code = nmhdr->code;
 						if (code == LVN_GETDISPINFOW) {
 							NMLVDISPINFOW* disp = (NMLVDISPINFOW*)nmhdr;
@@ -219,7 +207,7 @@ namespace slib
 							}
 							return sl_true;
 						} else if (code == LVN_ITEMCHANGED) {
-							NMLISTVIEW* v = (NMLISTVIEW*)(nm);
+							NMLISTVIEW* v = (NMLISTVIEW*)nmhdr;
 							if (v->hdr.hwndFrom == getHandle()) {
 								if (!(v->uOldState & LVIS_SELECTED) && (v->uNewState & LVIS_SELECTED)) {
 									helper->dispatchSelectRow(v->iItem);
@@ -227,6 +215,7 @@ namespace slib
 							}
 							return sl_true;
 						} else if (code == NM_CLICK || code == NM_DBLCLK || code == NM_RCLICK) {
+							NMITEMACTIVATE* nm = (NMITEMACTIVATE*)nmhdr;
 							LVHITTESTINFO lvhi;
 							Base::zeroMemory(&lvhi, sizeof(lvhi));
 							lvhi.pt.x = (LONG)(nm->ptAction.x);
@@ -243,6 +232,9 @@ namespace slib
 								}
 							}
 							return sl_true;
+						} else if (code == LVN_COLUMNCLICK) {
+							NMLISTVIEW* v = (NMLISTVIEW*)nmhdr;
+							helper->dispatchClickHeader((sl_uint32)(v->iSubItem));
 						}
 					}
 					return sl_false;

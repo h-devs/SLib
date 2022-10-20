@@ -423,7 +423,25 @@ namespace slib
 		}
 		finish(outputTag);
 	}
-	
+
+	Memory ChaCha20_Poly1305::encrypt(const MemoryView& content) noexcept
+	{
+		if (!(content.size)) {
+			return sl_null;
+		}
+		Memory ret = Memory::create(content.size + 28);
+		if (ret.isNotNull()) {
+			sl_uint8* buf = (sl_uint8*)(ret.getData());
+			sl_uint8* iv = buf;
+			Math::randomMemory(iv, 12);
+			sl_uint8* data = buf + 12;
+			sl_uint8* tag = data + content.size;
+			encrypt(MIO::readUint32BE(iv), iv + 4, sl_null, 0, content.data, data, content.size, tag);
+			return ret;
+		}
+		return sl_null;
+	}
+
 	sl_bool ChaCha20_Poly1305::decrypt(sl_uint32 senderId, const void* iv, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, const void* tag) noexcept
 	{
 		start(senderId, iv);
@@ -435,6 +453,25 @@ namespace slib
 			decrypt(src, dst, len);
 		}
 		return finishAndCheckTag(tag);
+	}
+
+	Memory ChaCha20_Poly1305::decrypt(const MemoryView& encryptedContent) noexcept
+	{
+		if (encryptedContent.size <= 28) {
+			return sl_null;
+		}
+		sl_size n = encryptedContent.size - 28;
+		Memory ret = Memory::create(n);
+		if (ret.isNotNull()) {
+			sl_uint8* buf = (sl_uint8*)(encryptedContent.data);
+			sl_uint8* iv = buf;
+			sl_uint8* data = buf + 12;
+			sl_uint8* tag = data + n;
+			if (decrypt(MIO::readUint32BE(iv), iv + 4, sl_null, 0, data, ret.getData(), n, tag)) {
+				return ret;
+			}
+		}
+		return sl_null;
 	}
 
 	sl_bool ChaCha20_Poly1305::check(sl_uint32 senderId, const void* iv, const void* AAD, sl_size lenAAD, const void* src, sl_size len, const void* tag) noexcept

@@ -27,7 +27,10 @@
 #include "slib/core/system.h"
 
 #include "slib/core/file.h"
+#include "slib/core/process.h"
 #include "slib/core/string.h"
+#include "slib/core/list.h"
+#include "slib/core/ini.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/dl/linux/rt.h"
 
@@ -253,6 +256,32 @@ namespace slib
 	{
 		return getUserName();
 	}
+
+	String System::getActiveUserName(String* outActiveSessionName)
+	{
+#if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
+		String sessionName = File::readAllTextUTF8("/sys/class/tty/tty0/active").trim();
+		if (outActiveSessionName) {
+			*outActiveSessionName = sessionName;
+		}
+		if (sessionName.isNotEmpty()) {
+			ListElements<String> sessions(Process::getOutput("loginctl", "list-sessions", "--no-legend").split('\n'));
+			for (sl_size i = 0; i < sessions.count; i++) {
+				String row = sessions[i].trim();
+				if (row.endsWith(sessionName)) {
+					String sid = row.split(' ', 1).getFirstValue_NoLock();
+					Ini session;
+					if (session.parseText(Process::getOutput("loginctl", "show-session", sid))) {
+						if (session.getValue("Active") == "yes" && session.getValue("Remote") == "no") {
+							return session.getValue("Name");
+						}
+					}
+				}
+			}
+		}
+#endif
+		return sl_null;
+	}
 #endif
 
 	sl_uint32 System::getTickCount()
@@ -273,12 +302,10 @@ namespace slib
 				return (sl_uint64)(ts.tv_sec) * 1000 + (sl_uint64)(ts.tv_nsec) / 1000000;
 			} else {
 				if (flagCheck) {
+					flagCheck = sl_false;
 					int iRet = clock_gettime(CLOCK_MONOTONIC, &ts);
-					if (iRet < 0) {
-						flagCheck = sl_false;
-					} else {
+					if (iRet >= 0) {
 						flagEnabled = sl_true;
-						flagCheck = sl_false;
 						return (sl_uint64)(ts.tv_sec) * 1000 + (sl_uint64)(ts.tv_nsec) / 1000000;
 					}
 				}
@@ -342,16 +369,16 @@ namespace slib
 		sa.sa_flags = SA_NODEFER;
 		sa.sa_handler = handler;
 		sigemptyset(&(sa.sa_mask));
-		sigaction(SIGFPE, &sa, NULL);
-		sigaction(SIGSEGV, &sa, NULL);
-		sigaction(SIGBUS, &sa, NULL);
-		sigaction(SIGILL, &sa, NULL);
-		sigaction(SIGABRT, &sa, NULL);
-		sigaction(SIGIOT, &sa, NULL);
+        sigaction(SIGFPE, &sa, sl_null);
+        sigaction(SIGSEGV, &sa, sl_null);
+        sigaction(SIGBUS, &sa, sl_null);
+        sigaction(SIGILL, &sa, sl_null);
+        sigaction(SIGABRT, &sa, sl_null);
+        sigaction(SIGIOT, &sa, sl_null);
 #	if defined(SLIB_PLATFORM_IS_MACOS)
-		sigaction(SIGEMT, &sa, NULL);
+        sigaction(SIGEMT, &sa, sl_null);
 #	endif
-		sigaction(SIGSYS, &sa, NULL);
+        sigaction(SIGSYS, &sa, sl_null);
 	}
 #endif
 

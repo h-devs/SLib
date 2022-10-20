@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -423,45 +423,21 @@ namespace slib
 		template <class READER>
 		static String readTextUTF8(READER* reader, sl_size size)
 		{
-			if (!size) {
-				return String::getEmpty();
-			}
 			sl_char8 sbuf[3];
 			if (size >= 3) {
-				if (readFully(reader, sbuf, 3) == 3) {
+				sl_reg iRet = readFully(reader, sbuf, 3);
+				if (iRet == 3) {
+					size -= 3;
 					if ((sl_uint8)(sbuf[0]) == 0xEF && (sl_uint8)(sbuf[1]) == 0xBB && (sl_uint8)(sbuf[2]) == 0xBF) {
-						size -= 3;
-						if (!size) {
-							return String::getEmpty();
-						}
-						String ret = String::allocate(size);
-						if (ret.isNotNull()) {
-							if (readFully(reader, ret.getData(), size) == (sl_reg)size) {
-								return ret;
-							}
-						}
+						return _readText8(reader, size);
 					} else {
-						String ret = String::allocate(size);
-						if (ret.isNotNull()) {
-							sl_char8* buf = ret.getData();
-							Base::copyMemory(buf, sbuf, 3);
-							if (size == 3) {
-								return ret;
-							}
-							size -= 3;
-							if (readFully(reader, buf+3, size) == (sl_reg)size) {
-								return ret;
-							}
-						}
+						return _readText8(reader, size, sbuf, 3);
 					}
+				} else if (iRet > 0) {
+					return String(sbuf, iRet);
 				}
 			} else {
-				String ret = String::allocate(size);
-				if (ret.isNotNull()) {
-					if (readFully(reader, ret.getData(), size) == (sl_reg)size) {
-						return ret;
-					}
-				}
+				return _readText8(reader, size);
 			}
 			return sl_null;
 		}
@@ -469,46 +445,17 @@ namespace slib
 		template <class READER>
 		static String16 readTextUTF16(READER* reader, sl_size size, EndianType endian)
 		{
-			if (!size) {
+			sl_size len = size >> 1;
+			if (!len) {
 				return String16::getEmpty();
 			}
-			sl_size len = (size >> 1) + (size & 1);
 			sl_uint16 first;
 			if (readUint16(reader, &first, endian)) {
 				len--;
-				// check BOM(Byte Order Mark = U+FEFF)
-				String16 str;
-				sl_char16* buf;
 				if (first == 0xFEFF) {
-					if (!len) {
-						return String16::getEmpty();
-					}
-					str = String16::allocate(len);
-					if (str.isNull()) {
-						return str;
-					}
-					buf = str.getData();
+					return _readText16(reader, len, endian);
 				} else {
-					str = String16::allocate(len + 1);
-					if (str.isNull()) {
-						return str;
-					}
-					buf = str.getData();
-					*buf = first;
-					buf++;
-				}
-				if (!len) {
-					return str;
-				}
-				buf[len - 1] = 0;
-				if (readFully(reader, buf, size) == (sl_reg)size) {
-					if ((endian == Endian::Big && Endian::isLE()) || (endian == Endian::Little && Endian::isBE())) {
-						for (sl_size i = 0; i < len; i++) {
-							sl_uint16 c = (sl_uint16)(buf[i]);
-							buf[i] = (sl_char16)((c >> 8) | (c << 8));
-						}
-					}
-					return str;
+					return _readText16(reader, len, first, endian);
 				}
 			}
 			return sl_null;
@@ -522,77 +469,149 @@ namespace slib
 			}
 			sl_char8 sbuf[3];
 			if (size >= 2) {
-				if (readFully(reader, sbuf, 2) == 2) {
+				sl_reg iRet = readFully(reader, sbuf, 2);
+				if (iRet == 2) {
 					if (!(size & 1)) {
 						sl_bool flagUTF16LE = sbuf[0] == (sl_char8)0xFF && sbuf[1] == (sl_char8)0xFE;
 						sl_bool flagUTF16BE = sbuf[0] == (sl_char8)0xFE && sbuf[1] == (sl_char8)0xFF;
 						if (flagUTF16LE || flagUTF16BE) {
 							size -= 2;
-							sl_size len = size >> 1;
-							if (!len) {
-								return StringView16::getEmpty();
-							}
-							String16 str = String16::allocate(len);
-							if (str.isNotNull()) {
-								sl_char16* buf = str.getData();
-								size = len << 1;
-								if (readFully(reader, buf, size) == (sl_reg)size) {
-									if ((flagUTF16BE && Endian::isLE()) || (flagUTF16LE && Endian::isBE())) {
-										for (sl_size i = 0; i < len; i++) {
-											sl_uint16 c = (sl_uint16)(buf[i]);
-											buf[i] = (sl_char16)((c >> 8) | (c << 8));
-										}
-									}
-									return str;
-								}
-							}
-							return StringParam();
+							return _readText16(reader, size >> 1, flagUTF16LE ? EndianType::Little : EndianType::Big);
 						}
 					}
 					if (size >= 3) {
-						if (reader->read(sbuf + 2, 1) == 1) {
+						iRet = reader->read(sbuf + 2, 1);
+						if (iRet == 1) {
+							size -= 3;
 							if (sbuf[0] == (sl_char8)0xEF && sbuf[1] == (sl_char8)0xBB && sbuf[2] == (sl_char8)0xBF) {
-								size -= 3;
-								if (!size) {
-									return String::getEmpty();
-								}
-								String ret = String::allocate(size);
-								if (ret.isNotNull()) {
-									if (readFully(reader, ret.getData(), size) == (sl_reg)size) {
-										return ret;
-									}
-								}
+								return _readText8(reader, size);
 							} else {
-								String ret = String::allocate(size);
-								if (ret.isNotNull()) {
-									sl_char8* buf = ret.getData();
-									Base::copyMemory(buf, sbuf, 3);
-									if (size == 3) {
-										return ret;
-									}
-									size -= 3;
-									if (readFully(reader, buf + 3, size) == (sl_reg)size) {
-										return ret;
-									}
-								}
+								return _readText8(reader, size, sbuf, 3);
 							}
+						} else if (!iRet) {
+							return String::fromUtf8(sbuf, 2);
 						}
 					} else {
 						return String::fromUtf8(sbuf, 2);
 					}
 					return StringParam();
+				} else if (iRet > 0) {
+					return String::fromUtf8(sbuf, iRet);
 				}
 			} else {
-				String ret = String::allocate(size);
-				if (ret.isNotNull()) {
-					if (readFully(reader, ret.getData(), size) == (sl_reg)size) {
-						return ret;
-					}
-				}
+				return _readText8(reader, size);
 			}
 			return StringParam();
 		}
+
+	private:
+		template <class READER>
+		static String _readText8(READER* reader, sl_size size)
+		{
+			if (!size) {
+				return String::getEmpty();
+			}
+			String ret = String::allocate(size);
+			if (ret.isNotNull()) {
+				sl_char8* buf = ret.getData();
+				sl_reg iRet = readFully(reader, buf, size);
+				if (iRet > 0) {
+					if ((sl_size)iRet < size) {
+						buf[iRet] = 0;
+						ret.setLength(iRet);
+					}
+					return ret;
+				} else if (!iRet) {
+					return String::getEmpty();
+				}
+			}
+			return sl_null;
+		}
 		
+		template <class READER>
+		static String _readText8(READER* reader, sl_size size, const sl_char8* prefix, sl_size nPrefix)
+		{
+			if (!size) {
+				return String(prefix, nPrefix);
+			}
+			String ret = String::allocate(nPrefix + size);
+			if (ret.isNotNull()) {
+				sl_char8* buf = ret.getData();
+				Base::copyMemory(buf, prefix, nPrefix);
+				buf += nPrefix;
+				sl_reg iRet = readFully(reader, buf, size);
+				if (iRet >= 0) {
+					if ((sl_size)iRet < size) {
+						buf[iRet] = 0;
+						ret.setLength(nPrefix + (sl_size)iRet);
+					}
+					return ret;
+				}
+			}
+			return sl_null;
+		}
+
+		template <class READER>
+		static String16 _readText16(READER* reader, sl_size len, EndianType endian)
+		{
+			if (!len) {
+				return String16::getEmpty();
+			}
+			String16 ret = String16::allocate(len);
+			if (ret.isNotNull()) {
+				sl_char16* buf = ret.getData();
+				sl_size size = len << 1;
+				sl_reg iRet = readFully(reader, buf, size);
+				if (iRet > 0) {
+					if ((sl_size)iRet < size) {
+						len = ((sl_size)iRet) >> 1;
+						buf[len] = 0;
+						ret.setLength(len);
+					}
+					if ((endian == Endian::Big && Endian::isLE()) || (endian == Endian::Little && Endian::isBE())) {
+						for (sl_size i = 0; i < len; i++) {
+							sl_uint16 c = (sl_uint16)(buf[i]);
+							buf[i] = (sl_char16)((c >> 8) | (c << 8));
+						}
+					}
+					return ret;
+				}
+			}
+			return sl_null;
+		}
+
+		template <class READER>
+		static String16 _readText16(READER* reader, sl_size len, sl_char16 prefix, EndianType endian)
+		{
+			if (!len) {
+				return String16(&prefix, 1);
+			}
+			String16 ret = String16::allocate(1 + len);
+			if (ret.isNotNull()) {
+				sl_char16* buf = ret.getData();
+				*buf = prefix;
+				buf++;
+				len--;
+				sl_size size = len << 1;
+				sl_reg iRet = readFully(reader, buf, size);
+				if (iRet > 0) {
+					if ((sl_size)iRet < size) {
+						len = ((sl_size)iRet) >> 1;
+						buf[len] = 0;
+						ret.setLength(1 + len);
+					}
+					if ((endian == Endian::Big && Endian::isLE()) || (endian == Endian::Little && Endian::isBE())) {
+						for (sl_size i = 0; i < len; i++) {
+							sl_uint16 c = (sl_uint16)(buf[i]);
+							buf[i] = (sl_char16)((c >> 8) | (c << 8));
+						}
+					}
+					return ret;
+				}
+			}
+			return sl_null;
+		}
+
 	};
 
 	class BlockReaderHelper

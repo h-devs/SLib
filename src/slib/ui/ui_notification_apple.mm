@@ -410,7 +410,7 @@ namespace slib
 					message.id = message.identifier.parseUint32();
 					message.title = Apple::getStringFromNSString(notification.title);
 					message.content = Apple::getStringFromNSString(notification.informativeText);
-					message.data = Json::parseJson(Apple::getStringFromNSString(notification.userInfo[@"data"]));
+					message.data = Json::parse(Apple::getStringFromNSString(notification.userInfo[@"data"]));
 					message.action = Apple::getStringFromNSString(notification.additionalActivationAction.identifier);
 					message.response = Apple::getStringFromNSString(notification.response.string);
 					message.actualDeliveryTime = Apple::getTimeFromNSDate(notification.actualDeliveryDate);
@@ -441,7 +441,7 @@ namespace slib
 					message.id = message.identifier.parseUint32();
 					message.title = Apple::getStringFromNSString(content.title);
 					message.content = Apple::getStringFromNSString(content.body);
-					message.data = Json::parseJson(Apple::getStringFromNSString(content.userInfo[@"data"]));
+					message.data = Json::parse(Apple::getStringFromNSString(content.userInfo[@"data"]));
 					message.action = Apple::getStringFromNSString(action);
 					message.response = Apple::getStringFromNSString(input);
 					message.actualDeliveryTime = Apple::getTimeFromNSDate(notification.date);

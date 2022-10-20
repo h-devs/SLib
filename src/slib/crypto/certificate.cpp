@@ -1071,7 +1071,7 @@ namespace slib
 					} else if (p7.type.equals(OID_PKCS7_ENCRYPTED_DATA)) {
 						Memory mem = PKCS12_Decrypt_PKCS7(p7, password);
 						if (mem.isNull()) {
-							return sl_null;
+							return sl_false;
 						}
 						if (!(PKCS12_ParseBags(p12, mem.getData(), mem.getSize(), password))) {
 							return sl_false;

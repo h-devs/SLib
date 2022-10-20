@@ -167,12 +167,17 @@ namespace slib
 			if (!size) {
 				return sl_null;
 			}
-			Memory ret = Memory::create(size);
-			if (ret.isNotNull()) {
-				char* buf = (char*)(ret.getData());
-				if (seekable->seekToBegin()) {
-					if (reader->readFully(buf, size) == (sl_reg)size) {
-						return ret;
+			if (seekable->seekToBegin()) {
+				Memory ret = Memory::create(size);
+				if (ret.isNotNull()) {
+					char* buf = (char*)(ret.getData());
+					sl_reg iRet = reader->readFully(buf, size);
+					if (iRet > 0) {
+						if ((sl_size)iRet < size) {
+							return ret.sub(0, iRet);
+						} else {
+							return ret;
+						}
 					}
 				}
 			}

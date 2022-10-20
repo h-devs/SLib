@@ -386,6 +386,7 @@ namespace slib
 
 		StringBuffer sbHeader, sbHeaderBase, sbCpp;
 		sbHeaderBase.add("#pragma once\r\n\r\n#include <slib/ui/resource.h>\r\n\r\n");
+		sbHeader.add("#pragma once\r\n\r\n");
 
 		{
 			ListLocker<String> includes(m_conf.generate_cpp_layout_include_headers);
@@ -426,7 +427,6 @@ namespace slib
 		sbHeaderBase.add("\t}\r\n}\r\n");
 
 		{
-			String headerPrefix = sbHeader.merge();
 			for (auto& pair : m_layouts) {
 				if (pair.value.isNotNull()) {
 					sbHeader.add(String::format("#include \"ui/%s.h\"%n", pair.key));
@@ -613,15 +613,32 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_simulateLayoutInWindow(SAppLayoutResource* layout, const SAppSimulateLayoutParam& param)
+	sl_bool SAppDocument::_simulateLayoutInWindow(SAppLayoutResource* layout, SAppSimulateLayoutParam& param)
 	{
 		Ref<SAppLayoutSimulationWindow> window = new SAppLayoutSimulationWindow;
 		if (window.isNotNull()) {
+			UISize size = UI::getScreenSize();
+			m_layoutSimulationParams.screenWidth = size.x;
+			m_layoutSimulationParams.screenHeight = size.y;
+			SAppDimensionValue simulatorWidth;
+			if (simulatorWidth.parse(layout->getXmlAttribute("simulatorWidth"), sl_null)) {
+				if (simulatorWidth.flagDefined && simulatorWidth.checkForWindowSize()) {
+					param.pageSize.x = _getDimensionIntValue(simulatorWidth);
+					window->setSavingPageSize(sl_false);
+				}
+			}
+			SAppDimensionValue simulatorHeight;
+			if (simulatorHeight.parse(layout->getXmlAttribute("simulatorHeight"), sl_null)) {
+				if (simulatorHeight.flagDefined && simulatorHeight.checkForWindowSize()) {
+					param.pageSize.y = _getDimensionIntValue(simulatorHeight);
+					window->setSavingPageSize(sl_false);
+				}
+			}
 			if (layout->layoutType == SAppLayoutType::Window) {
-				window->setOnClose(param.onCloseWindow);
+				window->setOnClose(Function<void(Window*,UIEvent*)>::from(param.onCloseWindow));
 			} else {
 				window->setClientSize(param.pageSize);
-				window->setOnClose(param.onClosePage);
+				window->setOnClose(Function<void(Window*,UIEvent*)>::from(param.onClosePage));
 			}
 			return window->open(this, layout);
 		}
@@ -662,19 +679,19 @@ namespace slib
 			if (view.isNull()) {
 				return sl_null;
 			}
-			if (layout->layoutType == SAppLayoutType::Window) {
+			if (layout->layoutType == SAppLayoutType::Page) {
+				UISize size = window->getClientSize();
+				m_layoutSimulationParams.screenWidth = size.x;
+				m_layoutSimulationParams.screenHeight = size.y;
+				m_layoutSimulationParams.viewportWidth = view->getWidth();
+				m_layoutSimulationParams.viewportHeight = view->getHeight();
+			} else {
 				UISize size = UI::getScreenSize();
 				m_layoutSimulationParams.screenWidth = size.x;
 				m_layoutSimulationParams.screenHeight = size.y;
 				size = window->getClientSize();
 				m_layoutSimulationParams.viewportWidth = size.x;
 				m_layoutSimulationParams.viewportHeight = size.y;
-			} else {
-				UISize size = window->getClientSize();
-				m_layoutSimulationParams.screenWidth = size.x;
-				m_layoutSimulationParams.screenHeight = size.y;
-				m_layoutSimulationParams.viewportWidth = view->getWidth();
-				m_layoutSimulationParams.viewportHeight = view->getHeight();
 			}
 			if (layout->sp.flagDefined) {
 				m_layoutSimulationParams.sp = _getDimensionFloatValue(layout->sp);

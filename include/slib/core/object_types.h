@@ -42,7 +42,6 @@ namespace slib
 			CHashMapBase,
 			CLinkedListBase,
 			LinkedObjectListBase,
-			LoopQueueBase,
 			CMemory,
 			CallableBase,
 			FunctionList,

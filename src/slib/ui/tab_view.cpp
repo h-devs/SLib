@@ -23,6 +23,7 @@
 #include "slib/ui/tab_view.h"
 
 #include "slib/ui/core.h"
+#include "slib/ui/cursor.h"
 #include "slib/graphics/canvas.h"
 #include "slib/graphics/util.h"
 
@@ -722,6 +723,20 @@ namespace slib
 			if (-1 != m_indexHover) {
 				m_indexHover = -1;
 				_invalidateTabBar(UIUpdateMode::Redraw);
+			}
+		}
+	}
+
+	void TabView::onSetCursor(UIEvent* ev)
+	{
+		UIPoint pt = ev->getPoint();
+		ObjectLocker lock(this);
+		ListLocker<TabViewItem> items(m_items);
+		sl_int32 n = (sl_int32)(items.count);
+		for (sl_int32 i = 0; i < n; i++) {
+			if (getTabRegion(i).containsPoint(pt)) {
+				ev->setCursor(Cursor::getHand());
+				return;
 			}
 		}
 	}

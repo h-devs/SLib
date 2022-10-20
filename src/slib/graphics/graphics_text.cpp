@@ -1240,7 +1240,7 @@ namespace slib
 		param.setCreatingOnlyElementsAndTexts();
 		param.flagCreateWhiteSpaces = sl_true;
 		param.flagCheckWellFormed = sl_false;
-		Ref<XmlDocument> xml = Xml::parseXml(text, param);
+		Ref<XmlDocument> xml = Xml::parse(text, param);
 		if (xml.isNotNull()) {
 			addHyperTextNodeGroup(Ref<XmlNodeGroup>::from(xml), style);
 		}

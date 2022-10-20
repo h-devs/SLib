@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 
 #include "../graphics/color.h"
 #include "../core/animation.h"
+#include "../core/sort.h"
 
 namespace slib
 {
@@ -153,6 +154,17 @@ namespace slib
 		void removeChild(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 		
 		void removeAllChildren(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		template <class COMPARE>
+		void sortChildren(const COMPARE& compare, UIUpdateMode mode = UIUpdateMode::UpdateLayout)
+		{
+			{
+				List< Ref<View> > children = _getRawChildren();
+				children.sort(compare);
+				_clearChildrenCache();
+			}
+			invalidateLayout(mode);
+		}
 		
 		Ref<View> getChildAt(sl_ui_pos x, sl_ui_pos y);
 		
@@ -1464,13 +1476,17 @@ namespace slib
 		void _doAttach();
 		
 		Ref<ViewInstance> _createInstance(ViewInstance* parent);
-		
+
+		List< Ref<View> > _getRawChildren();
+
+		void _clearChildrenCache();
+
 		void _addChild(View* child, View* viewCreatingChildInstances, UIUpdateMode mode);
 
 		void _removeChild(View* child);
-		
+
 		void _removeChildInstances(View* child);
-		
+
 		void _removeAllViewInstances();
 		
 		void _attachChild(const Ref<View>& child);

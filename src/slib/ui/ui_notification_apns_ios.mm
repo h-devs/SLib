@@ -88,7 +88,7 @@ namespace slib
 		NSError* error;
 		NSData* dataUserInfo = [NSJSONSerialization dataWithJSONObject:_userInfo options:0 error:&error];
 		String strUserInfo = Apple::getStringFromNSString([[NSString alloc] initWithData:dataUserInfo encoding:NSUTF8StringEncoding]);
-		Json userInfo = Json::parseJson(strUserInfo);
+		Json userInfo = Json::parse(strUserInfo);
 		if (userInfo.isNotNull()) {
 			Json aps = userInfo["aps"];
 			Json alert = aps["alert"];

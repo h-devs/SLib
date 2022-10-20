@@ -33,7 +33,7 @@ namespace slib
 	class ListControlColumn
 	{
 	public:
-		AtomicString title;
+		String title;
 		sl_ui_len width;
 		Alignment align;
 		Alignment headerAlign;
@@ -48,7 +48,7 @@ namespace slib
 	class ListControlCell
 	{
 	public:
-		AtomicString text;
+		String text;
 
 	public:
 		ListControlCell();
@@ -56,7 +56,20 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListControlCell)
 
 	};
-	
+
+	class ListControlRow
+	{
+	public:
+		String id;
+		List<ListControlCell> cells;
+
+	public:
+		ListControlRow();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListControlRow)
+
+	};
+
 	class IListControlInstance;
 	
 	class SLIB_EXPORT ListControl : public View
@@ -71,48 +84,75 @@ namespace slib
 	public:
 		sl_uint32 getColumnCount();
 		
+		// Run on UI thread
 		virtual void setColumnCount(sl_uint32 nCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_uint32 getRowCount();
 		
+		// Run on UI thread
 		virtual void setRowCount(sl_uint32 nCount, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
+		void refreshItems(UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		virtual String getItemText(sl_uint32 row, sl_uint32 col);
 		
+		// Run on UI thread
 		virtual void setItemText(sl_uint32 row, sl_uint32 col, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		virtual String getRowId(sl_uint32 row);
+
+		virtual void setRowId(sl_uint32 row, const String& id);
+
+		virtual sl_int32 findRowById(const String& id);
 		
 		String getHeaderText(sl_uint32 col);
 		
+		// Run on UI thread
 		virtual void setHeaderText(sl_uint32 col, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_ui_len getColumnWidth(sl_uint32 col);
 		
+		// Run on UI thread
 		virtual void setColumnWidth(sl_uint32 col, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Alignment getHeaderAlignment(sl_uint32 col);
 		
+		// Run on UI thread
 		virtual void setHeaderAlignment(sl_uint32 col, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		Alignment getColumnAlignment(sl_uint32 col);
 		
+		// Run on UI thread
 		virtual void setColumnAlignment(sl_uint32 col, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
 		sl_int32 getSelectedRow();
 		
+		// Returns added row index. Run on UI thread
 		virtual sl_uint32 addRow(UIUpdateMode mode = UIUpdateMode::Redraw);
 		
+		// Run on UI thread
 		virtual void insertRow(sl_uint32 row, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
+		// Run on UI thread
 		virtual void removeRow(sl_uint32 row, UIUpdateMode mode = UIUpdateMode::Redraw);
 		
+		// Run on UI thread
 		virtual void removeAllRows(UIUpdateMode mode = UIUpdateMode::Redraw);
 		
+		sl_bool isSortingOnClickHeader();
+
+		void setSortingOnClickHeader(sl_bool flag = sl_true);
+
+		// Run on UI thread
+		void sort(sl_uint32 col, sl_bool flagAsc = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
-		
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickHeader, sl_uint32 column)
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 		
@@ -120,9 +160,12 @@ namespace slib
 
 	protected:
 		CList<ListControlColumn> m_columns;
-		sl_uint32 m_nRows;
-		CList< List<ListControlCell> > m_cells;
+		CList<ListControlRow> m_rows;
 		sl_int32 m_selectedRow;
+
+		sl_bool m_flagSortingOnClickHeader;
+		sl_int32 m_sortedColumn;
+		sl_bool m_flagSortedAsc;
 		
 	};
 	

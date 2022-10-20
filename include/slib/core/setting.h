@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +23,11 @@
 #ifndef CHECKHEADER_SLIB_CORE_SETTING
 #define CHECKHEADER_SLIB_CORE_SETTING
 
-#include "variant.h"
+#include "string.h"
 
 namespace slib
 {
-	
-	class SLIB_EXPORT IniSetting
-	{
-	public:
-		IniSetting();
 
-		~IniSetting();
-
-	public:
-		void initialize();
-
-		sl_bool parseFromUtf8TextFile(const StringParam& filePath);
-
-		sl_bool parseFromText(const StringParam& text);
-
-		Variant getValue(const String& name);
-
-	private:
-		CHashMap<String, String> m_mapValues;
-
-	};
-	
 	class SLIB_EXPORT SettingUtil
 	{
 	public:

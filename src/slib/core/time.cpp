@@ -62,14 +62,14 @@ namespace slib
 	}
 
 
-	Time::Time(sl_int32 year, sl_int32 month, sl_int32 date, const TimeZone& zone) noexcept
+	Time::Time(sl_int32 year, sl_int32 month, sl_int32 day, const TimeZone& zone) noexcept
 	{
-		set(year, month, date, 0, 0, 0, 0, 0, zone);
+		set(year, month, day, 0, 0, 0, 0, 0, zone);
 	}
 
-	Time::Time(sl_int32 year, sl_int32 month, sl_int32 date, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_int32 milliseconds, sl_int32 microseconds, const TimeZone& zone) noexcept
+	Time::Time(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_int32 milliseconds, sl_int32 microseconds, const TimeZone& zone) noexcept
 	{
-		set(year, month, date, hour, minute, second, milliseconds, microseconds, zone);
+		set(year, month, day, hour, minute, second, milliseconds, microseconds, zone);
 	}
 
 	Time::Time(const TimeComponents& comps, const TimeZone& zone) noexcept
@@ -2146,9 +2146,10 @@ namespace slib
 									break;
 								}
 							} else if (ch == '.') {
-								if (index < 6) {
+								if (index >= 4 && index <= 5) {
 									break;
 								}
+								posParsed = i + 1;
 							} else {
 								break;
 							}

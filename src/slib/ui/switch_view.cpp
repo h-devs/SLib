@@ -23,6 +23,7 @@
 #include "slib/ui/switch_view.h"
 
 #include "slib/ui/core.h"
+#include "slib/ui/cursor.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/timer.h"
 #include "slib/core/safe_static.h"
@@ -123,6 +124,7 @@ namespace slib
 
 		m_posThumb(0)
 	{
+		setCursor(Cursor::getHand());
 	}
 	
 	SwitchView::~SwitchView()

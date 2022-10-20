@@ -732,11 +732,6 @@ namespace slib
 				return rsa.release();
 			}
 
-			static ::RSA* Get_RSA_from_RSAPrivateKey(const RSAPrivateKey& key)
-			{
-				return Get_RSA_from_RSAPublicKey(key, &key);
-			}
-
 			static EVP_PKEY* Get_EVP_PKEY_from_RSAPublicKey(const RSAPublicKey& key, const RSAPrivateKey* priv = sl_null)
 			{
 				RSA_Handle rsa(Get_RSA_from_RSAPublicKey(key, priv));
@@ -1191,7 +1186,7 @@ namespace slib
 		return sl_true;
 	}
 	
-	void OpenSSL_AES::setKey_SHA256(const String& key)
+	void OpenSSL_AES::setKey_SHA256(const StringView& key)
 	{
 		char sig[32];
 		SHA256::hash(key, sig);

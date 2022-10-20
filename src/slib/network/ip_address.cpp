@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -371,6 +371,16 @@ namespace slib
 	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_loopback[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 	SLIB_ALIGN(8) const sl_uint8 IPv6Address::_loopback_linkLocal[16] = { 0xFE, 0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 
+	IPv6Address::IPv6Address() noexcept
+	{
+		Base::zeroMemory(m, 16);
+	}
+
+	IPv6Address::IPv6Address(sl_null_t) noexcept
+	{
+		Base::zeroMemory(m, 16);
+	}
+
 	IPv6Address::IPv6Address(const sl_uint16* s) noexcept
 	{
 		for (int i = 0; i < 8; i++) {
@@ -646,6 +656,12 @@ namespace slib
 
 	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv6Address, priv::ipv6address::Parse)
 
+	IPv6Address& IPv6Address::operator=(sl_null_t) noexcept
+	{
+		setZero();
+		return *this;
+	}
+
 	IPv6Address& IPv6Address::operator=(const StringParam& address) noexcept
 	{
 		if (!(parse(address))) {
@@ -826,6 +842,17 @@ namespace slib
 			setNone();
 		}
 		return *this;
+	}
+
+
+	String Cast<IPv4Address, String>::operator()(const IPv4Address& v) const
+	{
+		return v.toString();
+	}
+
+	String Cast<IPv6Address, String>::operator()(const IPv6Address& v) const
+	{
+		return v.toString();
 	}
 
 }

@@ -55,6 +55,11 @@ namespace slib
 	public:
 		MemoryView& operator=(const Memory& mem) noexcept;
 
+		SLIB_CONSTEXPR explicit operator sl_bool() const
+		{
+			return size != 0;
+		}
+
 	};
 	
 }

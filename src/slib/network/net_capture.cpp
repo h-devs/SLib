@@ -86,10 +86,9 @@ namespace slib
 	const MacAddress& NetCapture::getDeviceAddress()
 	{
 		sl_uint64 now = System::getTickCount64();
-		if (now < m_timeDeviceAddress + 10000) {
+		if (m_timeDeviceAddress && now >= m_timeDeviceAddress && now < m_timeDeviceAddress + 10000) {
 			return m_deviceAddress;
 		}
-		m_timeDeviceAddress = now;
 		StringView name = m_deviceName;
 		NetworkInterfaceInfo info;
 #ifdef SLIB_PLATFORM_IS_WIN32
@@ -104,6 +103,7 @@ namespace slib
 		} else {
 			m_deviceAddress.setZero();
 		}
+		m_timeDeviceAddress = now;
 		return m_deviceAddress;
 	}
 	

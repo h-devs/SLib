@@ -44,5 +44,6 @@
 #include "db/object_store.h"
 #include "db/data_package.h"
 #include "db/data_store.h"
+#include "db/log_package.h"
 
 #endif

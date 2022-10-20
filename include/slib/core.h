@@ -99,6 +99,7 @@
 #include "core/btree.h"
 #include "core/expiring_map.h"
 #include "core/expiring_queue.h"
+#include "core/reverse_stack.h"
 
 #include "core/math.h"
 #include "core/interpolation.h"
@@ -173,6 +174,7 @@
 #include "core/regex.h"
 #include "core/json.h"
 #include "core/xml.h"
+#include "core/ini.h"
 
 #include "core/platform_type.h"
 #include "core/find_options.h"

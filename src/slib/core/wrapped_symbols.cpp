@@ -82,11 +82,23 @@ extern "C"
 	END_WRAPPER
 #endif
 
+	BEGIN_WRAPPER(m, pow, float, float x, float y)
+		return CALL_ORIGINAL(x, y);
+	END_WRAPPER
+
 	BEGIN_WRAPPER(m, powf, float, float x, float y)
 		return CALL_ORIGINAL(x, y);
 	END_WRAPPER
 
+	BEGIN_WRAPPER(m, log, float, float f)
+		return CALL_ORIGINAL(f);
+	END_WRAPPER
+
 	BEGIN_WRAPPER(m, logf, float, float f)
+		return CALL_ORIGINAL(f);
+	END_WRAPPER
+
+	BEGIN_WRAPPER(m, exp, float, float f)
 		return CALL_ORIGINAL(f);
 	END_WRAPPER
 

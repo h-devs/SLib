@@ -61,7 +61,7 @@ namespace slib
 		if (win32::Registry::getValue(HKEY_CURRENT_USER, "Software\\" + appName, key, &v)) {
 			String s = v.getString();
 			if (s.isNotEmpty()) {
-				return Json::parseJson(s);
+				return Json::parse(s);
 			}
 		}
 		return sl_null;

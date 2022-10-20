@@ -534,29 +534,97 @@ namespace slib
 			}
 
 			template <class STRING>
-			static STRING SubString(STRING* thiz, sl_reg start, sl_reg end) noexcept
+			SLIB_INLINE static STRING MidPriv(const STRING* thiz, typename STRING::Char const* data, sl_size start, sl_size length)
+			{
+				if (length <= 32) {
+					return STRING(data + start, length);
+				} else {
+					return AllocSub<typename STRING::Container>(*thiz, data + start, length);
+				}
+			}
+
+			template <>
+			SLIB_INLINE StringView MidPriv<StringView>(const StringView* thiz, const sl_char8* data, sl_size start, sl_size length)
+			{
+				return StringView(data + start, length);
+			}
+
+			template <>
+			SLIB_INLINE StringView16 MidPriv<StringView16>(const StringView16* thiz, const sl_char16* data, sl_size start, sl_size length)
+			{
+				return StringView16(data + start, length);
+			}
+
+			template <>
+			SLIB_INLINE StringView32 MidPriv<StringView32>(const StringView32* thiz, const sl_char32* data, sl_size start, sl_size length)
+			{
+				return StringView32(data + start, length);
+			}
+
+			template <class STRING>
+			static STRING SubString(const STRING* thiz, sl_reg start, sl_reg end) noexcept
 			{
 				if (thiz->isNull()) {
 					return sl_null;
 				}
-				sl_reg count = thiz->getLength();
+				sl_size length;
+				typename STRING::Char* data = thiz->getData(length);
 				if (start < 0) {
 					start = 0;
 				}
-				if (end < 0 || end > count) {
-					end = count;
+				if (end < 0 || (sl_size)end > length) {
+					end = length;
 				}
 				if (start >= end) {
-					return thiz->getEmpty();
+					return STRING::getEmpty();
 				}
-				if (!start && end == count) {
+				if (!start && end == length) {
 					return *thiz;
 				}
-				count = end - start;
-				if (count <= 32) {
-					return STRING(thiz->getData() + start, count);
+				return MidPriv(thiz, data, start, end - start);
+			}
+
+			template <class STRING>
+			static STRING Left(const STRING* thiz, sl_reg len) noexcept
+			{
+				if (thiz->isNull()) {
+					return sl_null;
+				}
+				if (len <= 0) {
+					return STRING::getEmpty();
+				}
+				sl_size total;
+				typename STRING::Char* data = thiz->getData(total);
+				if ((sl_size)len >= total) {
+					return *thiz;
+				}
+				return MidPriv(thiz, data, 0, len);
+			}
+
+			template <class STRING>
+			static STRING Right(const STRING* thiz, sl_reg len) noexcept
+			{
+				if (thiz->isNull()) {
+					return sl_null;
+				}
+				if (len <= 0) {
+					return STRING::getEmpty();
+				}
+				sl_size total;
+				typename STRING::Char* data = thiz->getData(total);
+				if ((sl_size)len >= total) {
+					return *thiz;
+				}
+				return MidPriv(thiz, data, total - (sl_size)len, len);
+			}
+
+			template <class STRING>
+			static STRING Mid(const STRING* thiz, sl_reg start, sl_reg len) noexcept
+			{
+				if (len < 0) {
+					return SubString(thiz, start, -1);
 				} else {
-					return AllocSub<typename STRING::Container>(*thiz, thiz->getData() + start, count);
+					return SubString(thiz, start, start + len);
 				}
 			}
 
@@ -1955,7 +2023,7 @@ namespace slib
 						break;
 					}
 				}
-				return str.substring(i, j + 1);
+				return MidPriv(&str, data, i, j + 1 - i);
 			}
 
 			template <class STRING>
@@ -1976,7 +2044,7 @@ namespace slib
 				if (i >= len) {
 					return STRING::getEmpty();
 				}
-				return str.substring(i);
+				return MidPriv(&str, data, i, len - i);
 			}
 
 			template <class STRING>
@@ -1997,7 +2065,7 @@ namespace slib
 				if (!j) {
 					return STRING::getEmpty();
 				}
-				return str.substring(0, j);
+				return MidPriv(&str, data, 0, j);
 			}
 
 			template <class STRING>
@@ -2025,7 +2093,7 @@ namespace slib
 						break;
 					}
 				}
-				return str.substring(i, j + 1);
+				return MidPriv(&str, data, i, j + 1 - i);
 			}
 
 			template <class STRING>
@@ -2096,7 +2164,7 @@ namespace slib
 			}
 
 			template <class STRING>
-			static List<STRING> Split(const STRING& str, typename STRING::Char const* pattern, sl_size countPattern) noexcept
+			static List<STRING> Split(const STRING& str, typename STRING::Char const* pattern, sl_size countPattern, sl_size nMaxSplit) noexcept
 			{
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
@@ -2105,16 +2173,46 @@ namespace slib
 				}
 				List<STRING> ret;
 				sl_reg start = 0;
-				while (1) {
+				for (sl_size nSplit = 0; nSplit < nMaxSplit; nSplit++) {
 					sl_reg index = IndexOf(data, len, pattern, countPattern, start);
 					if (index < 0) {
-						ret.add_NoLock(STRING(data + start, len - start));
 						break;
 					}
-					ret.add_NoLock(STRING(data + start, index - start));
+					if (!(ret.add_NoLock(MidPriv(&str, data, start, index - start)))) {
+						return sl_null;
+					}
 					start = index + countPattern;
 				}
-				return ret;
+				if (ret.add_NoLock(MidPriv(&str, data, start, len - start))) {
+					return ret;
+				}
+				return sl_null;
+			}
+
+			template <class STRING>
+			static List<STRING> Split(const STRING& str, typename STRING::Char pattern, sl_size nMaxSplit) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				if (!len) {
+					return sl_null;
+				}
+				List<STRING> ret;
+				sl_reg start = 0;
+				for (sl_size nSplit = 0; nSplit < nMaxSplit; nSplit++) {
+					sl_reg index = IndexOfChar(data, len, pattern, start);
+					if (index < 0) {
+						break;
+					}
+					if (!(ret.add_NoLock(MidPriv(&str, data, start, index - start)))) {
+						return sl_null;
+					}
+					start = index + 1;
+				}
+				if (ret.add_NoLock(MidPriv(&str, data, start, len - start))) {
+					return ret;
+				}
+				return sl_null;
 			}
 
 			template <class STRING>
@@ -4397,20 +4495,17 @@ namespace slib
 	\
 	STRING STRING::left(sl_reg len) const noexcept \
 	{ \
-		return substring(0, len); \
+		return Left(this, len); \
 	} \
 	\
 	STRING STRING::right(sl_reg len) const noexcept \
 	{ \
-		return substring(getLength() - len); \
+		return Right(this, len); \
 	} \
 	\
 	STRING STRING::mid(sl_reg start, sl_reg len) const noexcept \
 	{ \
-		if (len < 0) { \
-			return substring(start, -1); \
-		} \
-		return substring(start, start + len); \
+		return Mid(this, start, len); \
 	} \
 	\
 	sl_reg STRING::indexOf(typename STRING::Char ch, sl_reg start) const noexcept \
@@ -4543,9 +4638,14 @@ namespace slib
 		return CreateReverseString(*this); \
 	} \
 	\
-	List<STRING> STRING::split(typename STRING::StringViewType const& pattern) const noexcept \
+	List<STRING> STRING::split(typename STRING::StringViewType const& pattern, sl_reg nMaxSplit) const noexcept \
 	{ \
-		return Split(*this, pattern.getData(), pattern.getLength()); \
+		return Split(*this, pattern.getData(), pattern.getLength(), nMaxSplit); \
+	} \
+	\
+	List<STRING> STRING::split(typename STRING::Char pattern, sl_reg nMaxSplit) const noexcept \
+	{ \
+		return Split(*this, pattern, nMaxSplit); \
 	} \
 	\
 	STRING STRING::join(const STRING* strings, sl_size count, typename STRING::StringViewType const& delimiter) noexcept \
@@ -5380,35 +5480,22 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	\
 	VIEW VIEW::substring(sl_reg start, sl_reg end) const noexcept\
 	{ \
-		if (isNull()) { \
-			return sl_null; \
-		} \
-		sl_reg count = getLength(); \
-		if (start < 0) { \
-			start = 0; \
-		} \
-		if (end < 0 || end > count) { \
-			end = count; \
-		} \
-		if (start >= end) { \
-			return getEmpty(); \
-		} \
-		return VIEW(getData() + start, end - start); \
+		return SubString(this, start, end); \
 	} \
 	\
 	VIEW VIEW::left(sl_reg len) const noexcept \
 	{ \
-		return substring(0, len); \
+		return Left(this, len); \
 	} \
 	\
 	VIEW VIEW::right(sl_reg len) const noexcept \
 	{ \
-		return substring(getLength() - len); \
+		return Right(this, len); \
 	} \
 	\
 	VIEW VIEW::mid(sl_reg start, sl_reg len) const noexcept \
 	{ \
-		return substring(start, start + len); \
+		return Mid(this, start, len); \
 	} \
 	\
 	sl_reg VIEW::indexOf(typename VIEW::Char ch, sl_reg start) const noexcept \
@@ -5541,9 +5628,14 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return CreateReverseString<StringType>(getUnsafeData(), getUnsafeLength()); \
 	} \
 	\
-	List<VIEW> VIEW::split(const VIEW& pattern) const noexcept \
+	List<VIEW> VIEW::split(const VIEW& pattern, sl_reg nMaxSplit) const noexcept \
 	{ \
-		return Split(*this, pattern.getData(), pattern.getLength()); \
+		return Split(*this, pattern.getData(), pattern.getLength(), nMaxSplit); \
+	} \
+	\
+	List<VIEW> VIEW::split(typename VIEW::Char pattern, sl_reg nMaxSplit) const noexcept \
+	{ \
+		return Split(*this, pattern, nMaxSplit); \
 	} \
 	\
 	sl_bool VIEW::parseInt32(sl_int32 radix, sl_int32* _out) const noexcept \
@@ -5810,21 +5902,6 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	String32 String32::from(const Time& value) noexcept
 	{
 		return String32::create(value.toString());
-	}
-
-	String String::from(const Json& json) noexcept
-	{
-		return json.toJsonString();
-	}
-
-	String16 String16::from(const Json& json) noexcept
-	{
-		return String16::create(json.toJsonString());
-	}
-
-	String32 String32::from(const Json& json) noexcept
-	{
-		return String32::create(json.toJsonString());
 	}
 
 	String String::from(const Variant& var) noexcept

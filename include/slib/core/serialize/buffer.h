@@ -50,11 +50,9 @@ namespace slib
 			end = begin ? begin + size : sl_null;
 		}
 
-		SerializeBuffer(const MemoryData& data) noexcept;
+		SerializeBuffer(const MemoryView& mem) noexcept;
 
 		SerializeBuffer(MemoryData&& data) noexcept;
-
-		SerializeBuffer(const Memory& mem) noexcept;
 
 		SerializeBuffer(Memory&& mem) noexcept;
 

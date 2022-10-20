@@ -33,7 +33,7 @@
 #include "slib/core/apple/platform.h"
 
 #include <mach-o/dyld.h>
-#include <mach/mach_time.h>
+#include <time.h>
 
 #define PRIV_PATH_MAX 1024
 
@@ -63,7 +63,7 @@ namespace slib
 						g_systemVersionPatch = (sl_uint32)(version.patchVersion);
 						g_systemVersion = String::concat(String::fromUint32(g_systemVersionMajor), ".", String::fromUint32(g_systemVersionMinor));
 						if (g_systemVersionPatch > 0) {
-							g_systemVersion = String::join(g_systemVersion, ".", String::fromUint32(g_systemVersionPatch));
+							g_systemVersion = String::concat(g_systemVersion, ".", String::fromUint32(g_systemVersionPatch));
 						}
 					} else if (v >= NSAppKitVersionNumber10_9) {
 						g_systemVersion = "10.9";
@@ -251,20 +251,18 @@ namespace slib
 		return Apple::getStringFromNSString(NSFullUserName());
 	}
 
+	String System::getActiveUserName(String* outActiveSessionName)
+	{
+		if (outActiveSessionName) {
+			SLIB_STATIC_STRING(sessionName, "console")
+			*outActiveSessionName = sessionName;
+		}
+		return File::getOwnerName("/dev/console");
+	}
+
 	sl_uint64 System::getTickCount64()
 	{
-		static sl_bool flagInit = sl_true;
-		static mach_timebase_info_data_t base;
-		static sl_uint64 start = 0;
-		
-		if (flagInit) {
-			mach_timebase_info(&base);
-			start = mach_absolute_time();
-			flagInit = sl_false;
-			return 0;
-		}
-		sl_uint64 t = (sl_uint64)(mach_absolute_time() - start);
-		return t * base.numer / base.denom / 1000000;
+		return clock_gettime_nsec_np(CLOCK_MONOTONIC) / 1000000;
 	}
 
 }
