@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_REGEX
-#define CHECKHEADER_SLIB_CORE_REGEX
+#ifndef CHECKHEADER_SLIB_CORE_REGULAR_EXPRESSION
+#define CHECKHEADER_SLIB_CORE_REGULAR_EXPRESSION
 
 #include "string.h"
 #include "flags.h"
@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	SLIB_DEFINE_FLAGS(RegExFlags, {
+	SLIB_DEFINE_FLAGS(RegularExpressionFlags, {
 		Default = 0,
 		Icase = 0x0001,
 		Nosubs = 0x0002,
@@ -44,7 +44,7 @@ namespace slib
 		Egrep = 0x0200
 	})
 
-	SLIB_DEFINE_FLAGS(RegExMatchFlags, {
+	SLIB_DEFINE_FLAGS(RegularExpressionMatchFlags, {
 		Default = 0,
 		NotBol = 0x0001,
 		NotEol = 0x0002,
@@ -61,17 +61,17 @@ namespace slib
 
 	typedef struct HRegEx_ *HRegEx;
 
-	class RegEx
+	class RegularExpression
 	{
-		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle, sl_null)
+		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(RegularExpression, HRegEx, m_handle, sl_null)
 
 	public:
-		RegEx(const StringParam& pattern) noexcept;
+		RegularExpression(const StringParam& pattern) noexcept;
 		
-		RegEx(const StringParam& pattern, const RegExFlags& flags) noexcept;
+		RegularExpression(const StringParam& pattern, const RegularExpressionFlags& flags) noexcept;
 
 	public:
-		sl_bool match(const StringParam& str, const RegExMatchFlags& flags = RegExMatchFlags::Default) noexcept;
+		sl_bool match(const StringParam& str, const RegularExpressionMatchFlags& flags = RegularExpressionMatchFlags::Default) noexcept;
 		
 		static sl_bool matchEmail(const StringParam& str) noexcept;
 

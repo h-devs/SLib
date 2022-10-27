@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/core/regex.h"
+#include "slib/core/regular_expression.h"
 
 #include "slib/core/base.h"
 #include "slib/core/safe_static.h"
@@ -53,34 +53,34 @@ namespace slib
 				std::regex* handle = (std::regex*)(Base::createMemory(sizeof(std::regex)));
 				if (handle) {
 					int flags = 0;
-					if (_flags & RegExFlags::Icase) {
+					if (_flags & RegularExpressionFlags::Icase) {
 						flags |= std::regex_constants::icase;
 					}
-					if (_flags & RegExFlags::Nosubs) {
+					if (_flags & RegularExpressionFlags::Nosubs) {
 						flags |= std::regex_constants::nosubs;
 					}
-					if (_flags & RegExFlags::Optimize) {
+					if (_flags & RegularExpressionFlags::Optimize) {
 						flags |= std::regex_constants::optimize;
 					}
-					if (_flags & RegExFlags::Collate) {
+					if (_flags & RegularExpressionFlags::Collate) {
 						flags |= std::regex_constants::collate;
 					}
-					if (_flags & RegExFlags::ECMAScript) {
+					if (_flags & RegularExpressionFlags::ECMAScript) {
 						flags |= std::regex_constants::ECMAScript;
 					}
-					if (_flags & RegExFlags::Basic) {
+					if (_flags & RegularExpressionFlags::Basic) {
 						flags |= std::regex_constants::basic;
 					}
-					if (_flags & RegExFlags::Extended) {
+					if (_flags & RegularExpressionFlags::Extended) {
 						flags |= std::regex_constants::extended;
 					}
-					if (_flags & RegExFlags::Awk) {
+					if (_flags & RegularExpressionFlags::Awk) {
 						flags |= std::regex_constants::awk;
 					}
-					if (_flags & RegExFlags::Grep) {
+					if (_flags & RegularExpressionFlags::Grep) {
 						flags |= std::regex_constants::grep;
 					}
-					if (_flags & RegExFlags::Egrep) {
+					if (_flags & RegularExpressionFlags::Egrep) {
 						flags |= std::regex_constants::egrep;
 					}
 					try {
@@ -112,19 +112,19 @@ namespace slib
 
 	using namespace priv::regex;
 
-	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(RegEx, HRegEx, m_handle, sl_null, DeleteRegExHandle)
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(RegularExpression, HRegEx, m_handle, sl_null, DeleteRegExHandle)
 
-	RegEx::RegEx(const StringParam& pattern) noexcept
+	RegularExpression::RegularExpression(const StringParam& pattern) noexcept
 	{
 		m_handle = reinterpret_cast<HRegEx>(Create(pattern, 0));
 	}
 	
-	RegEx::RegEx(const StringParam& pattern, const RegExFlags& flags) noexcept
+	RegularExpression::RegularExpression(const StringParam& pattern, const RegularExpressionFlags& flags) noexcept
 	{
 		m_handle = reinterpret_cast<HRegEx>(Create(pattern, flags));
 	}
 	
-	sl_bool RegEx::match(const StringParam& _str, const RegExMatchFlags& _flags) noexcept
+	sl_bool RegularExpression::match(const StringParam& _str, const RegularExpressionMatchFlags& _flags) noexcept
 	{
 		std::regex* handle = reinterpret_cast<std::regex*>(m_handle);
 		if (handle) {
@@ -132,37 +132,37 @@ namespace slib
 			int flags = 0;
 			int v = _flags.value;
 			if (v) {
-				if (v & RegExMatchFlags::NotBol) {
+				if (v & RegularExpressionMatchFlags::NotBol) {
 					flags |= ToInt(std::regex_constants::match_not_bol);
 				}
-				if (v & RegExMatchFlags::NotEol) {
+				if (v & RegularExpressionMatchFlags::NotEol) {
 					flags |= ToInt(std::regex_constants::match_not_eol);
 				}
-				if (v & RegExMatchFlags::NotBow) {
+				if (v & RegularExpressionMatchFlags::NotBow) {
 					flags |= ToInt(std::regex_constants::match_not_bow);
 				}
-				if (v & RegExMatchFlags::NotEow) {
+				if (v & RegularExpressionMatchFlags::NotEow) {
 					flags |= ToInt(std::regex_constants::match_not_eow);
 				}
-				if (v & RegExMatchFlags::Any) {
+				if (v & RegularExpressionMatchFlags::Any) {
 					flags |= ToInt(std::regex_constants::match_any);
 				}
-				if (v & RegExMatchFlags::NotNull) {
+				if (v & RegularExpressionMatchFlags::NotNull) {
 					flags |= ToInt(std::regex_constants::match_not_null);
 				}
-				if (v & RegExMatchFlags::Continuous) {
+				if (v & RegularExpressionMatchFlags::Continuous) {
 					flags |= ToInt(std::regex_constants::match_continuous);
 				}
-				if (v & RegExMatchFlags::PrevAvail) {
+				if (v & RegularExpressionMatchFlags::PrevAvail) {
 					flags |= ToInt(std::regex_constants::match_prev_avail);
 				}
-				if (v & RegExMatchFlags::FormatSed) {
+				if (v & RegularExpressionMatchFlags::FormatSed) {
 					flags |= ToInt(std::regex_constants::format_sed);
 				}
-				if (v & RegExMatchFlags::FormatNoCopy) {
+				if (v & RegularExpressionMatchFlags::FormatNoCopy) {
 					flags |= ToInt(std::regex_constants::format_no_copy);
 				}
-				if (v & RegExMatchFlags::FormatFirstOnly) {
+				if (v & RegularExpressionMatchFlags::FormatFirstOnly) {
 					flags |= ToInt(std::regex_constants::format_first_only);
 				}
 			}
@@ -173,9 +173,9 @@ namespace slib
 		return sl_false;
 	}
 	
-	sl_bool RegEx::matchEmail(const StringParam& str) noexcept
+	sl_bool RegularExpression::matchEmail(const StringParam& str) noexcept
 	{
-		SLIB_SAFE_LOCAL_STATIC(RegEx, regex, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
+		SLIB_SAFE_LOCAL_STATIC(RegularExpression, regex, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
 		if (SLIB_SAFE_STATIC_CHECK_FREED(regex)) {
 			return sl_false;
 		}

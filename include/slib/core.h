@@ -171,7 +171,7 @@
 #include "core/preference.h"
 #include "core/setting.h"
 
-#include "core/regex.h"
+#include "core/regular_expression.h"
 #include "core/json.h"
 #include "core/xml.h"
 #include "core/ini.h"

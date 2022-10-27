@@ -131,7 +131,7 @@
     <ClCompile Include="..\..\src\slib\core\process_win32.cpp" />
     <ClCompile Include="..\..\src\slib\core\red_black_tree.cpp" />
     <ClCompile Include="..\..\src\slib\core\ref.cpp" />
-    <ClCompile Include="..\..\src\slib\core\regex.cpp" />
+    <ClCompile Include="..\..\src\slib\core\regular_expression.cpp" />
     <ClCompile Include="..\..\src\slib\core\resource.cpp" />
     <ClCompile Include="..\..\src\slib\core\rw_lock.cpp" />
     <ClCompile Include="..\..\src\slib\core\safe_static.cpp" />

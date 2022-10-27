@@ -29,7 +29,7 @@
 		2614723823944E7300F7CD0C /* wechat_sdk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2614723723944E7300F7CD0C /* wechat_sdk.cpp */; };
 		261782C8251C9E1200C2AAC0 /* service_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 261782C7251C9E1200C2AAC0 /* service_manager.cpp */; };
 		2628EACC21C1059800D8CD00 /* web_view_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2628EACB21C1059700D8CD00 /* web_view_apple.mm */; };
-		2628EACE21C157A800D8CD00 /* regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EACD21C157A800D8CD00 /* regex.cpp */; };
+		2628EACE21C157A800D8CD00 /* regular_expression.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EACD21C157A800D8CD00 /* regular_expression.cpp */; };
 		2628EAE621C410E500D8CD00 /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EAE521C410E500D8CD00 /* base64.cpp */; };
 		2628EAE921C410ED00D8CD00 /* jwt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EAE821C410ED00D8CD00 /* jwt.cpp */; };
 		2628EED921C4259900D8CD00 /* zxing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EED821C4259900D8CD00 /* zxing.cpp */; };
@@ -522,7 +522,7 @@
 		2626C12E1E15AA55004E150C /* collection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = collection.cpp; sourceTree = "<group>"; };
 		2626C1301E15AA73004E150C /* preference.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = preference.cpp; sourceTree = "<group>"; };
 		2628EACB21C1059700D8CD00 /* web_view_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = web_view_apple.mm; sourceTree = "<group>"; };
-		2628EACD21C157A800D8CD00 /* regex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = regex.cpp; sourceTree = "<group>"; };
+		2628EACD21C157A800D8CD00 /* regular_expression.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = regular_expression.cpp; sourceTree = "<group>"; };
 		2628EAE521C410E500D8CD00 /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = base64.cpp; sourceTree = "<group>"; };
 		2628EAE821C410ED00D8CD00 /* jwt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jwt.cpp; sourceTree = "<group>"; };
 		2628EED821C4259900D8CD00 /* zxing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zxing.cpp; sourceTree = "<group>"; };
@@ -1559,7 +1559,7 @@
 				265A934F230428D400B155A2 /* process_unix.cpp */,
 				26F2F8D81EC2E0EB0074C29E /* red_black_tree.cpp */,
 				A25F2FB31B03A33700854DAF /* ref.cpp */,
-				2628EACD21C157A800D8CD00 /* regex.cpp */,
+				2628EACD21C157A800D8CD00 /* regular_expression.cpp */,
 				26D3A1A31C85894A00FB8DBD /* resource.cpp */,
 				2607300D20DCE367004EB272 /* rw_lock.cpp */,
 				2647C96C25023F22005560C7 /* safe_static.cpp */,
@@ -2185,7 +2185,7 @@
 				26D9D97E1E964675005F7BD3 /* audio_device.cpp in Sources */,
 				26D9D9B41E96468D005F7BD3 /* button.cpp in Sources */,
 				2614723623944E6D00F7CD0C /* wechat.cpp in Sources */,
-				2628EACE21C157A800D8CD00 /* regex.cpp in Sources */,
+				2628EACE21C157A800D8CD00 /* regular_expression.cpp in Sources */,
 				D7C3BAEB26AEEC0200FD529D /* packet_analyzer.cpp in Sources */,
 				D7BF60AA26311E8B00E0B3DD /* zlib_unity.c in Sources */,
 				26D9D9681E96466A005F7BD3 /* color.cpp in Sources */,

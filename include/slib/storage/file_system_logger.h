@@ -25,7 +25,7 @@
 
 #include "file_system.h"
 
-#include "../core/regex.h"
+#include "../core/regular_expression.h"
 
 namespace slib
 {
@@ -120,7 +120,7 @@ namespace slib
 	private:
 		FileSystemLogFlags m_flags;
 
-		RegEx m_regex;
+		RegularExpression m_regex;
 
 	};
 

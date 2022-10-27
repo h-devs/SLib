@@ -752,7 +752,7 @@
     <ClCompile Include="..\..\src\slib\network\stun.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\regex.cpp">
+    <ClCompile Include="..\..\src\slib\core\regular_expression.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\base64.cpp">

@@ -71,7 +71,7 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/process_unix.cpp"
  "${SLIB_PATH}/src/slib/core/red_black_tree.cpp"
  "${SLIB_PATH}/src/slib/core/ref.cpp"
- "${SLIB_PATH}/src/slib/core/regex.cpp"
+ "${SLIB_PATH}/src/slib/core/regular_expression.cpp"
  "${SLIB_PATH}/src/slib/core/resource.cpp"
  "${SLIB_PATH}/src/slib/core/rw_lock.cpp"
  "${SLIB_PATH}/src/slib/core/safe_static.cpp"
