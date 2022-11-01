@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT TwitterUser
 	{
 	public:
@@ -48,97 +48,97 @@ namespace slib
 		String lang; // The BCP 47 code for the user's self-declared user interface language. May or may not have anything to do with the content of their Tweets.
 		String profile_image_url; // A HTTP-based URL pointing to the user's profile image.
 		String profile_image_url_https; // A HTTPS-based URL pointing to the user's profile image.
-		
+
 		Json json; // raw-response data from API
-		
+
 	public:
 		TwitterUser();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TwitterUser)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	public:
 		static String getPublicProfileURL(const String& screenName);
-		
+
 		// Url for User Home Page
 		String getPublicProfileURL() const;
-		
+
 	};
-	
+
 	typedef OAuthApiResult TwitterResult;
-	
+
 	typedef OAuth1_LoginResult TwitterLoginResult;
-	
+
 	typedef OAuth1_LoginParam TwitterLoginParam;
-	
+
 	class SLIB_EXPORT TwitterShareResult : public TwitterResult
 	{
 	public:
 		TwitterShareResult(UrlRequest* request);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TwitterShareResult)
-		
+
 	};
-	
+
 	class SLIB_EXPORT TwitterShareParam
 	{
 	public:
 		String status;
 		List<Memory> medias;
-		
+
 		Function<void(TwitterShareResult& result)> onComplete;
-		
+
 	public:
 		TwitterShareParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TwitterShareParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT TwitterParam : public OAuth1_Param
 	{
 	public:
 		TwitterParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TwitterParam)
-		
+
 	};
-	
+
 	class Twitter : public OAuth1
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		Twitter(const TwitterParam& param);
-		
+
 		~Twitter();
-		
+
 	public:
 		static Ref<Twitter> create(const TwitterParam& param);
-		
+
 		static void initialize(const TwitterParam& param);
-		
+
 		static void initialize();
-		
+
 		static Ref<Twitter> create(const String& consumerKey, const String& consumerSecret, const String& callbackUrl);
 
 		static void initialize(const String& consumerKey, const String& consumerSecret, const String& callbackUrl);
-		
+
 		static Ref<Twitter> createWithAccessToken(const String& token, const String tokenSecret);
-		
+
 		static Ref<Twitter> getInstance();
 
 	public:
 		static String getRequestUrl(const String& path);
-		
+
 		// get user by userId or screenName (if two arguments are empty, then the loginned user will be returned)
 		void getUser(const String& userId, const String& screenName, const Function<void(TwitterResult&, TwitterUser&)>& callback);
-		
+
 		void share(const TwitterShareParam& param);
-		
+
 	};
-	
+
 }
 
 #endif

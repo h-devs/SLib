@@ -29,12 +29,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace base64
 		{
-			
+
 			template <class CHAR>
 			static typename StringTypeFromCharType<CHAR>::Type Encode(const char* patterns, const void* buf, sl_size size, CHAR padding)
 			{
@@ -84,7 +84,7 @@ namespace slib
 				}
 				return ret;
 			}
-			
+
 			static sl_uint32 GetIndex(sl_uint32 c)
 			{
 				if (c >= 'A' && c <= 'Z') {
@@ -110,7 +110,7 @@ namespace slib
 				}
 				return 64;
 			}
-			
+
 			template <class CHAR>
 			static sl_size Decode(const CHAR* input, sl_size len, void* buf, CHAR padding)
 			{
@@ -187,9 +187,9 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::base64;
-	
+
 	String Base64::encode(const void* buf, sl_size size, sl_char8 padding)
 	{
 		return Encode(BASE64_CHARS, buf, size, padding);
@@ -259,7 +259,7 @@ namespace slib
 	{
 		return Encode(BASE64_CHARS_URL, str.getData(), str.getLength(), padding);
 	}
-	
+
 	sl_size Base64::getDecodeOutputSize(sl_size len)
 	{
 		sl_size size = (len >> 2) * 3;

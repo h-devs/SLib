@@ -27,76 +27,76 @@
 
 namespace slib
 {
-	
+
 	template <class T, class COMPARE>
 	class CSet;
-	
+
 	template <class T, class COMPARE>
 	class Set;
-	
+
 	template < class T, class COMPARE = Compare<T> >
 	using AtomicSet = Atomic< Set<T, COMPARE> >;
-	
-	
+
+
 	template <class NODE>
 	class SLIB_EXPORT SetPosition
 	{
 	public:
 		SLIB_CONSTEXPR SetPosition(): node(sl_null) {}
-		
+
 		SLIB_CONSTEXPR SetPosition(sl_null_t): node(sl_null) {}
-		
+
 		SLIB_CONSTEXPR SetPosition(NODE* other): node(other) {}
-		
+
 		SLIB_CONSTEXPR SetPosition(const SetPosition& other): node(other.node) {}
-		
+
 	public:
 		SetPosition& operator=(const SetPosition& other) noexcept
 		{
 			node = other.node;
 			return *this;
 		}
-		
+
 		SetPosition& operator=(NODE* other) noexcept
 		{
 			node = other;
 			return *this;
 		}
-		
+
 		typename NODE::KEY_TYPE& operator*() const noexcept
 		{
 			return node->key;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator==(const SetPosition& other) const
 		{
 			return node == other.node;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator==(const NODE* other) const
 		{
 			return node == other;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator!=(const SetPosition& other) const
 		{
 			return node != other.node;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator!=(const NODE* other) const
 		{
 			return node != other;
 		}
-		
+
 		SetPosition& operator++() noexcept
 		{
 			node = node->getNext();
 			return *this;
 		}
-		
+
 	public:
 		NODE* node;
-		
+
 	};
 
 	template < class T, class COMPARE = Compare<T> >
@@ -112,18 +112,18 @@ namespace slib
 		CSet() noexcept {}
 
 		CSet(const COMPARE& compare) noexcept: CMAP(compare) {}
-		
+
 		CSet(COMPARE&& compare) noexcept: CMAP(Move(compare)) {}
-		
+
 	public:
 		CSet(const CSet& other) = delete;
-		
+
 		CSet& operator=(const CSet& other) = delete;
-		
+
 		CSet(CSet&& other) = default;
-		
+
 		CSet& operator=(CSet&& other) = default;
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		template <class COMPARE_ARG>
 		CSet(const std::initializer_list<T>& l, COMPARE_ARG&& compare) noexcept: CMAP(Forward<COMPARE_ARG>(compare))
@@ -137,7 +137,7 @@ namespace slib
 
 		CSet(const std::initializer_list<T>& l) noexcept: CSet(l, COMPARE()) {}
 #endif
-		
+
 	public:
 		template <class VALUE>
 		NODE* put_NoLock(VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
@@ -150,19 +150,19 @@ namespace slib
 		{
 			return CMAP::put(Forward<VALUE>(value), isInsertion);
 		}
-		
+
 		template <class VALUE>
 		NODE* add_NoLock(VALUE&& value) noexcept
 		{
 			return CMAP::add_NoLock(Forward<VALUE>(value), sl_true);
 		}
-		
+
 		template <class VALUE>
 		NODE* add(VALUE&& value) noexcept
 		{
 			return CMAP::add(Forward<VALUE>(value), sl_true);
 		}
-		
+
 		sl_bool remove_NoLock(const T& value) noexcept
 		{
 			return CMAP::remove_NoLock(value);
@@ -172,7 +172,7 @@ namespace slib
 		{
 			return CMAP::remove(value);
 		}
-		
+
 		sl_size removeItems_NoLock(const T& value) noexcept
 		{
 			return CMAP::removeItem_NoLock(value);
@@ -182,7 +182,7 @@ namespace slib
 		{
 			return CMAP::removeItem(value);
 		}
-		
+
 		CSet* duplicate_NoLock() const noexcept
 		{
 			return (CSet*)(CMAP::duplicate_NoLock());
@@ -192,7 +192,7 @@ namespace slib
 		{
 			return (CSet*)(CMAP::duplicate());
 		}
-		
+
 		List<T> toList_NoLock() const noexcept
 		{
 			return CMAP::getAllKeys_NoLock();
@@ -232,7 +232,7 @@ namespace slib
 	public:
 		Ref<CSET> ref;
 		SLIB_REF_WRAPPER(Set, CSET)
-		
+
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Set(const std::initializer_list<T>& l) noexcept: ref(new CSET(l)) {}
@@ -240,18 +240,18 @@ namespace slib
 		template <class COMPARE_ARG>
 		Set(const std::initializer_list<T>& l, COMPARE_ARG&& compare) noexcept: ref(new CSET(l, Forward<COMPARE_ARG>(compare))) {}
 #endif
-		
+
 	public:
 		static Set create() noexcept
 		{
 			return new CSET();
 		}
-		
+
 		static Set create(const COMPARE& compare) noexcept
 		{
 			return new CSET(compare);
 		}
-		
+
 		static Set create(COMPARE&& compare) noexcept
 		{
 			return new CSET(Move(compare));
@@ -269,18 +269,18 @@ namespace slib
 			return new CSET(l, Forward<COMPARE_ARG>(compare));
 		}
 #endif
-		
+
 		template <class TYPE, class COMPARE_ARG>
 		static const Set& from(const Set<TYPE, COMPARE_ARG>& other) noexcept
 		{
 			return *(reinterpret_cast<Set const*>(&other));
 		}
-		
+
 		void initialize() noexcept
 		{
 			ref = new CSET();
 		}
-		
+
 		void initialize(const COMPARE& compare) noexcept
 		{
 			ref = new CSET(compare);
@@ -337,7 +337,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class VALUE>
 		NODE* put_NoLock(VALUE&& value, sl_bool* isInsertion = sl_null) noexcept
 		{
@@ -349,7 +349,7 @@ namespace slib
 		{
 			return ((MAP_TYPE*)((void*)this))->put(Forward<VALUE>(value), sl_true, isInsertion);
 		}
-		
+
 		template <class VALUE>
 		NODE* add_NoLock(VALUE&& value) noexcept
 		{
@@ -559,7 +559,7 @@ namespace slib
 	public:
 		AtomicRef<CSET> ref;
 		SLIB_ATOMIC_REF_WRAPPER(CSET)
-		
+
 	public:
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic(const std::initializer_list<T>& l) noexcept: ref(new CSET(l)) {}
@@ -567,19 +567,19 @@ namespace slib
 		template <class COMPARE_ARG>
 		Atomic(const std::initializer_list<T>& l, COMPARE_ARG&& compare) noexcept: ref(new CSET(l, Forward<COMPARE_ARG>(compare))) {}
 #endif
-		
+
 	public:
 		template <class TYPE, class COMPARE_ARG>
 		static const Atomic& from(const Atomic< Set<TYPE, COMPARE_ARG> >& other) noexcept
 		{
 			return *(reinterpret_cast<Atomic const*>(&other));
 		}
-		
+
 		void initialize() noexcept
 		{
 			ref = new CSET;
 		}
-		
+
 		void initialize(const COMPARE& compare) noexcept
 		{
 			ref = new CSET(compare);
@@ -625,7 +625,7 @@ namespace slib
 		}
 
 	};
-	
+
 }
 
 #endif

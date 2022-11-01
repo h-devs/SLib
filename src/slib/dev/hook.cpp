@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	void* Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, const void* newFunctionAddress)
 	{
 		sl_uint8* base = (sl_uint8*)moduleBaseAddress;
@@ -65,7 +65,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void* Hook::replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress)
 	{
 		const void* base = Module::getBaseAddress();

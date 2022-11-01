@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT Transform2T
 	{
@@ -72,19 +72,19 @@ namespace slib
 			mat.m20 += v.x;
 			mat.m21 += v.y;
 		}
-		
+
 		static void preTranslate(Matrix3T<T>& mat, T x, T y) noexcept
 		{
 			mat.m20 += (x * mat.m00 + y * mat.m10);
 			mat.m21 += (x * mat.m01 + y * mat.m11);
 		}
-		
+
 		static void preTranslate(Matrix3T<T>& mat, const Vector2T<T>& v) noexcept
 		{
 			mat.m20 += (v.x * mat.m00 + v.y * mat.m10);
 			mat.m21 += (v.x * mat.m01 + v.y * mat.m11);
 		}
-		
+
 		static sl_bool isTranslation(const Matrix3T<T>& mat) noexcept
 		{
 			return Math::isAlmostZero(mat.m00 - 1) && Math::isAlmostZero(mat.m11 - 1) && Math::isAlmostZero(mat.m01) && Math::isAlmostZero(mat.m10);
@@ -358,7 +358,7 @@ namespace slib
 			ret.y = Math::sqrt(mat.m10 * mat.m10 + mat.m11 * mat.m11);
 			return ret;
 		}
-		
+
 		static T getRotationAngleFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
 			T x = mat.m00;
@@ -370,7 +370,7 @@ namespace slib
 			}
 			return a;
 		}
-		
+
 		static Vector2T<T> getTranslationFromMatrix(const Matrix3T<T>& mat) noexcept
 		{
 			Vector2T<T> ret;
@@ -378,9 +378,9 @@ namespace slib
 			ret.y = mat.m21;
 			return ret;
 		}
-		
+
 	};
-	
+
 	typedef Transform2T<sl_real> Transform2;
 	typedef Transform2T<float> Transform2f;
 	typedef Transform2T<double> Transform2lf;

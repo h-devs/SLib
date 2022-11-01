@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	class IPickerViewInstance;
 
 	class PickerViewCell;
@@ -36,10 +36,10 @@ namespace slib
 	class SLIB_EXPORT PickerView : public View, public SingleSelectionViewBase<PickerView, sl_uint32>
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		PickerView();
-		
+
 		~PickerView();
 
 	public:
@@ -65,17 +65,17 @@ namespace slib
 
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onMouseEvent(UIEvent* ev) override;
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		virtual Ptr<IPickerViewInstance> getPickerViewInstance();
-	
+
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(PickerView, sl_uint32)
-	
+
 	private:
 		void _initCell();
 
@@ -89,7 +89,7 @@ namespace slib
 		sl_bool m_flagCircular;
 
 	};
-	
+
 	class SLIB_EXPORT IPickerViewInstance
 	{
 	public:

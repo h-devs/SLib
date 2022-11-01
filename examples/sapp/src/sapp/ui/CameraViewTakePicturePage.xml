@@ -10,7 +10,7 @@
 			height='fill'
 			scale='contain'
 			/>
-		
+
 		<button
 			style='button_back'
 			colorOverlay='white'

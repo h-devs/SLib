@@ -8,7 +8,7 @@ public:
 	MyAuth()
 	{
 		// setMasterKey("1234", 4); // HS256
-		
+
 		setAlgorithm(JwtAlgorithm::ES256);
 		setPrivateKey(R"(-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgevZzL1gdAFr88hb2
@@ -20,7 +20,7 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEVs/o5+uQbTjL3chynL4wXgUg2R9
 q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
 -----END PUBLIC KEY-----)");
 	}
-	
+
 public:
 	sl_bool onClientCredentialsGrant(OAuthTokenPayload& payload) override
 	{
@@ -34,14 +34,14 @@ public:
 		payload.user.putItem("username", username);
 		return sl_true;
 	}
-	
+
 } oauth;
 
 int main(int argc, const char * argv[])
-{	
+{
 	HttpServerParam param;
 	param.port = 8080;
-	
+
 	param.router.GET("/", [](HttpServerContext* context) {
 		return "Welcome to OAuth 2.0 Test Server";
 	});
@@ -116,20 +116,20 @@ int main(int argc, const char * argv[])
 		}
 		return Json("Invalid Authorization");
 	});
-	
+
 	Ref<HttpServer> server = HttpServer::create(param);
 	if (server.isNull()) {
 		return -1;
 	}
-	
+
 	Console::println("Server is running on port: %d", param.port);
-	
+
 	for(;;) {
 		Console::println("\nPress x to exit!!!");
 		if (Console::readChar() == 'x') {
 			break;
 		}
 	}
-	
+
 	return 0;
 }

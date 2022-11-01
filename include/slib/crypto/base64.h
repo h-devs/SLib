@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Base64
 	{
 	public:
@@ -44,7 +44,7 @@ namespace slib
 		static String32 encodeUrl32(const void* byte, sl_size size, sl_char32 padding = 0);
 
 		static String encode(const MemoryView& mem, sl_char8 padding = '=');
-				
+
 		static String encodeUrl(const MemoryView& mem, sl_char8 padding = 0);
 
 		static String16 encode16(const MemoryView& mem, sl_char16 padding = '=');
@@ -58,13 +58,13 @@ namespace slib
 		static String encode(const StringView& str, sl_char8 padding = '=');
 
 		static String encodeUrl(const StringView& str, sl_char8 padding = 0);
-		
+
 		static sl_size getDecodeOutputSize(sl_size lenBase64);
-		
+
 		static sl_size decode(const StringParam& base64, void* output, sl_char32 padding = '=');
 
 		static Memory decode(const StringParam& base64, sl_char32 padding = '=');
-		
+
 	};
 
 }

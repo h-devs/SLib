@@ -38,7 +38,7 @@ namespace slib
 		{
 		public:
 			static JniLocal<jobject> getDefault() noexcept;
-			
+
 			static String getLanguage(jobject thiz) noexcept;
 			static String getCountry(jobject thiz) noexcept;
 			static String getScript(jobject thiz) noexcept;

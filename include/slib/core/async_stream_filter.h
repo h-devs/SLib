@@ -77,7 +77,7 @@ namespace slib
 		virtual sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* userObject);
 
 		virtual sl_bool filterWrite(MemoryData& output, void* data, sl_size size, Referable* userObject);
-		
+
 	protected:
 		void setReadingError();
 
@@ -113,7 +113,7 @@ namespace slib
 		virtual void onReadStream(AsyncStreamResult& result);
 
 	};
-	
+
 }
 
 #endif

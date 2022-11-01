@@ -35,19 +35,19 @@
 
 namespace slib
 {
-	
+
 	Ref<APNs> APNs::getInstance()
 	{
 		SLIB_SAFE_LOCAL_STATIC(Mutex, lock)
 		MutexLocker locker(&lock);
-		
+
 		SLIB_LOCAL_STATIC_ZERO_INITIALIZED(Ref<APNs>, instance);
 		if (instance.isNotNull()) {
 			return instance;
 		}
-		
+
 		instance = new APNs;
-		
+
 		UIPlatform::registerDidRegisterForRemoteNotifications([&instance](NSData* deviceToken, NSError* error) {
 			String token = String::makeHexString([deviceToken bytes], [deviceToken length]);
 			instance->dispatchRefreshToken(token);
@@ -60,7 +60,7 @@ namespace slib
 		});
 		return instance;
 	}
-	
+
 	void APNs::onStart()
 	{
 		UIApplication* application = [UIApplication sharedApplication];
@@ -82,7 +82,7 @@ namespace slib
 		}
 		[application registerForRemoteNotifications];
 	}
-	
+
 	sl_bool UIPlatform::parseRemoteNotificationInfo(NSDictionary* _userInfo, PushNotificationMessage& message)
 	{
 		NSError* error;
@@ -105,7 +105,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }
 
 #endif

@@ -34,7 +34,7 @@
 
 namespace slib
 {
-	
+
 	class Locale;
 	class Time;
 	class TimeZone;
@@ -42,14 +42,14 @@ namespace slib
 	class StringParam;
 
 	template <class T> class Atomic;
-	
+
 	enum class TimeTextType
 	{
 		Long = 0,
 		Short = 1,
 		SingleChar = 2
 	};
-	
+
 	enum class TimeFormat
 	{
 		DateTime,
@@ -108,20 +108,20 @@ namespace slib
 		sl_uint8 second;
 		sl_uint16 milliseconds;
 		sl_uint16 microseconds;
-		
+
 	public:
 		TimeComponents() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TimeComponents)
-		
+
 	public:
 		void clearTime() noexcept;
-		
+
 	public:
 		SLIB_DECLARE_CLASS_PARSE_MEMBERS(TimeComponents)
 
 	};
-	
+
 	class SLIB_EXPORT Time
 	{
 	protected:
@@ -148,46 +148,46 @@ namespace slib
 		Time(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_int32 milliseconds = 0, sl_int32 microseconds = 0, const TimeZone& zone = Time::LocalZone) noexcept;
 
 		Time(const TimeComponents& comps, const TimeZone& zone = Time::LocalZone) noexcept;
-		
+
 	public:
 		static Time now() noexcept;
-		
+
 		static Time withMicroseconds(sl_int64 s) noexcept;
-		
+
 		static Time withMicrosecondsf(double s) noexcept;
 
 		static Time withMilliseconds(sl_int64 s) noexcept;
-		
+
 		static Time withMillisecondsf(double s) noexcept;
 
 		static Time withSeconds(sl_int64 s) noexcept;
-		
+
 		static Time withSecondsf(double s) noexcept;
 
 		static Time withMinutes(sl_int64 minutes) noexcept;
-		
+
 		static Time withMinutesf(double minutes) noexcept;
-		
+
 		static Time withHours(sl_int64 hours) noexcept;
-		
+
 		static Time withHoursf(double hours) noexcept;
-		
+
 		static Time withDays(sl_int64 days) noexcept;
-		
+
 		static Time withDaysf(double days) noexcept;
-		
+
 		static Time withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds) noexcept;
-		
+
 		static Time withTimef(double hours, double minutes, double seconds) noexcept;
 
 		static Time withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds, sl_int64 milliseconds) noexcept;
-		
+
 		static Time withTimef(double hours, double minutes, double seconds, double milliseconds) noexcept;
 
 		static Time withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds, sl_int64 milliseconds, sl_int64 microseconds) noexcept;
-		
+
 		static Time withTimef(double hours, double minutes, double seconds, double milliseconds, double microseconds) noexcept;
-		
+
 		SLIB_CONSTEXPR static Time zero()
 		{
 			return 0;
@@ -209,30 +209,30 @@ namespace slib
 			return m_time != 0;
 		}
 
-		sl_int64 toInt() const noexcept	
+		sl_int64 toInt() const noexcept
 		{
 			return m_time;
 		}
-	
+
 		Time& setInt(sl_int64 time) noexcept;
-		
+
 		static Time fromInt(sl_int64 time) noexcept;
-		
+
 		// Convert to time_t mode (1970 Based)
 		sl_int64 toUnixTime() const noexcept;
 
 		// Convert from time_t mode (1970 Based)
 		Time& setUnixTime(sl_int64 time) noexcept;
-		
+
 		// Convert from time_t mode (1970 Based)
 		static Time fromUnixTime(sl_int64 time) noexcept;
-		
+
 		// Convert to time_t mode (1970 Based)
 		double toUnixTimef() const noexcept;
 
 		// Convert from time_t mode (1970 Based)
 		Time& setUnixTimef(double time) noexcept;
-		
+
 		// Convert from time_t mode (1970 Based)
 		static Time fromUnixTimef(double time) noexcept;
 
@@ -248,7 +248,7 @@ namespace slib
 		Time& add(sl_int64 time) noexcept;
 
 		Time& add(const Time& other) noexcept;
-	
+
 	public:
 		Time& operator=(const Time& other) noexcept
 		{
@@ -331,11 +331,11 @@ namespace slib
 		static sl_bool setSystemTime(const Time& time) noexcept;
 
 		void get(TimeComponents& output, const TimeZone& zone = Time::LocalZone) const noexcept;
-		
+
 		void getUTC(TimeComponents& output) const noexcept;
-		
+
 		Time& set(const TimeComponents& comps, const TimeZone& zone = Time::LocalZone) noexcept;
-		
+
 		Time& setUTC(const TimeComponents& comps) noexcept;
 
 		Time& set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour = 0, sl_int32 minute = 0, sl_int32 second = 0, sl_int32 milliseconds = 0, sl_int32 microseconds = 0, const TimeZone& zone = Time::LocalZone) noexcept;
@@ -401,7 +401,7 @@ namespace slib
 		Time& addMinutes(sl_int64 minutes) noexcept;
 
 		double getMinutef(const TimeZone& zone = Time::LocalZone) const noexcept;
-	
+
 		Time& setMinutef(double minute, const TimeZone& zone = Time::LocalZone) noexcept;
 
 		Time& addMinutesf(double minutes) noexcept;
@@ -437,7 +437,7 @@ namespace slib
 		Time& addMicroseconds(sl_int64 micros) noexcept;
 
 		double getMicrosecondf() const noexcept;
-	
+
 		Time& setMicrosecondf(double micros) noexcept;
 
 		Time& addMicrosecondsf(double micros) noexcept;
@@ -495,9 +495,9 @@ namespace slib
 		Time& setMicrosecondCount(sl_int64 micros) noexcept;
 
 		double getMicrosecondCountf() const noexcept;
-	
+
 		Time& setMicrosecondCountf(double micros) noexcept;
-	
+
 		// In Seconds
 		sl_int64 getLocalTimeOffset() const noexcept;
 
@@ -506,12 +506,12 @@ namespace slib
 		sl_int32 getDayCountInYear(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		sl_int32 getQuarter(const TimeZone& zone = Time::LocalZone) const noexcept;
-		
+
 		Time getDateOnly(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		Time getTimeOnly(const TimeZone& zone = Time::LocalZone) const noexcept;
 
-		
+
 		static String getWeekdayText(sl_int32 weekday, TimeTextType type, const Locale& locale) noexcept;
 
 		String getWeekdayShort(const TimeZone& zone, const Locale& locale) const noexcept;
@@ -527,15 +527,15 @@ namespace slib
 		String getWeekdayLong(const TimeZone& zone) const noexcept;
 
 		String getWeekdayLong(const Locale& locale) const noexcept;
-		
+
 		String getWeekdayLong() const noexcept;
 
 		String getWeekday(const TimeZone& zone, const Locale& locale) const noexcept;
 
 		String getWeekday(const TimeZone& zone) const noexcept;
-		
+
 		String getWeekday(const Locale& locale) const noexcept;
-		
+
 		String getWeekday() const noexcept;
 
 
@@ -543,23 +543,23 @@ namespace slib
 
 		static String getPM_Text(const Locale& locale) noexcept;
 
-		
+
 		// English
 		static String getMonthText(sl_int32 month, TimeTextType type) noexcept;
-		
+
 		String getMonthShort(const TimeZone& zone = Time::LocalZone) const noexcept;
-		
+
 		String getMonthLong(const TimeZone& zone = Time::LocalZone) const noexcept;
-		
-		
+
+
 		// IMF-fixdate
 		String toHttpDate() const noexcept;
-		
+
 		static sl_reg parseHttpDate(Time* _output, const sl_char8* buf, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+
 		sl_bool parseHttpDate(const StringParam& date) noexcept;
-		
-		
+
+
 		String toString(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		// ISO 8601 (UTC): YYYY-MM-DDTHH:mm:ss.sssZ
@@ -568,7 +568,7 @@ namespace slib
 		String getDateString(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		String getDateString(sl_char8 delimiter, const TimeZone& zone = Time::LocalZone) const noexcept;
-		
+
 		String getTimeString(const TimeZone& zone = Time::LocalZone) const noexcept;
 
 		String getPeriodString(const Time& minUnit, const Time& maxUnit, const Locale& locale) const noexcept;
@@ -579,9 +579,9 @@ namespace slib
 
 		String getDiffString(const Time& timeFrom, const Time& minUnit = Time::withSeconds(1), const Time& maxUnit = Time::zero()) const noexcept;
 
-		
+
 		static String format(const TimeComponents& comps, TimeFormat fmt, const Locale& locale) noexcept;
-	
+
 		static String format(const TimeComponents& comps, TimeFormat fmt) noexcept;
 
 		String format(TimeFormat fmt, const TimeZone& zone, const Locale& locale) const noexcept;
@@ -596,7 +596,7 @@ namespace slib
 
 		String format(const StringView& fmt) const noexcept;
 
-		
+
 		static Time fromString(const StringParam& str, const TimeZone& zone = Time::LocalZone) noexcept;
 
 	public:
@@ -604,7 +604,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_PARSE_MEMBERS(Time)
 		SLIB_DECLARE_CLASS_PARSE2_MEMBERS(Time, const TimeZone&, zone)
 
-		sl_bool equals(sl_int64 other) const noexcept;		
+		sl_bool equals(sl_int64 other) const noexcept;
 		sl_compare_result compare(sl_int64 other) const noexcept;
 
 		/* platform functions */
@@ -618,7 +618,7 @@ namespace slib
 		sl_bool _setToSystem() const noexcept;
 
 	};
-	
+
 }
 
 #endif

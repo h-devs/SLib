@@ -45,7 +45,7 @@ namespace slib
 	{
 		namespace wechat_ios
 		{
-			
+
 			class StaticContext
 			{
 			public:
@@ -53,7 +53,7 @@ namespace slib
 				Mutex lock;
 				Function<void(WeChatLoginResult&)> callbackLogin;
 				Function<void(WeChatPaymentResult&)> callbackPay;
-				
+
 			public:
 				StaticContext()
 				{
@@ -63,7 +63,7 @@ namespace slib
 						return [WXApi handleOpenURL:url delegate:delegate];
 					});
 				}
-				
+
 			public:
 				void setLoginCallback(const Function<void(WeChatLoginResult&)>& callback)
 				{
@@ -75,14 +75,14 @@ namespace slib
 					}
 					callbackLogin = callback;
 				}
-				
+
 				void onLoginResult(WeChatLoginResult& result)
 				{
 					MutexLocker locker(&lock);
 					callbackLogin(result);
 					callbackLogin.setNull();
 				}
-				
+
 				void setPayCallback(const Function<void(WeChatPaymentResult&)>& callback)
 				{
 					MutexLocker locker(&lock);
@@ -93,23 +93,23 @@ namespace slib
 					}
 					callbackPay = callback;
 				}
-				
+
 				void onPayResult(WeChatPaymentResult& result)
 				{
 					MutexLocker locker(&lock);
 					callbackPay(result);
 					callbackPay.setNull();
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-		
+
 		}
 	}
-	
+
 	using namespace priv::wechat_ios;
-	
+
 	void WeChatSDK::initialize(const String& appId, const String& universalLink)
 	{
 		GetStaticContext();
@@ -123,9 +123,9 @@ namespace slib
 			UI::dispatchToUiThread(Function<void()>::bind(f, param));
 			return;
 		}
-		
+
 		GetStaticContext()->setLoginCallback(param.onComplete);
-		
+
 		SendAuthReq* req = [SendAuthReq new];
 		req.scope = @"snsapi_userinfo";
 		req.state = [NSString stringWithFormat:@"%d", (int)(Time::now().toInt())];
@@ -143,9 +143,9 @@ namespace slib
 			UI::dispatchToUiThread(Function<void()>::bind(&WeChatSDK::pay, param));
 			return;
 		}
-		
+
 		GetStaticContext()->setPayCallback(param.onComplete);
-		
+
 		PayReq* req = [PayReq new];
 		req.partnerId = Apple::getNSStringFromString(param.order.partnerId);
 		req.prepayId = Apple::getNSStringFromString(param.order.prepayId);
@@ -160,7 +160,7 @@ namespace slib
 			}
 		}];
 	}
-	
+
 }
 
 using namespace slib;

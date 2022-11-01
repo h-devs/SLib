@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT SHA1 : public CryptoHash<SHA1>
 	{
 	public:
@@ -41,12 +41,12 @@ namespace slib
 			HashSize = 20,
 			BlockSize = 64
 		};
-		
+
 	public:
 		SHA1();
 
 		~SHA1();
-	
+
 	public:
 		void start();
 
@@ -56,7 +56,7 @@ namespace slib
 
 	private:
 		void _updateSection(const sl_uint8* input);
-	
+
 	private:
 		sl_size sizeTotalInput;
 		sl_uint32 rdata_len;

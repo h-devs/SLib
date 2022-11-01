@@ -125,11 +125,11 @@ namespace slib
 
 	public:
 		RenderProgramState();
-		
+
 		~RenderProgramState();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(RenderProgramState)
-		
+
 	public:
 		RenderProgramInstance* getProgramInstance();
 
@@ -183,12 +183,12 @@ namespace slib
 	class SLIB_EXPORT RenderProgramInstance : public RenderBaseObjectInstance
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		RenderProgramInstance();
-		
+
 		~RenderProgramInstance();
-		
+
 	public:
 		virtual Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) = 0;
 
@@ -202,26 +202,26 @@ namespace slib
 	class SLIB_EXPORT RenderProgram : public RenderBaseObject
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		RenderProgram();
-		
+
 		~RenderProgram();
 
 	public:
 		virtual Ref<RenderProgramState> onCreate(RenderEngine* engine) = 0;
-		
+
 		virtual sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
-		
+
 		virtual sl_bool onPreRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
-		
+
 		virtual void onPostRender(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state);
 
 		virtual sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param);
-		
+
 
 		virtual String getGLSLVertexShader(RenderEngine* engine);
-		
+
 		virtual String getGLSLFragmentShader(RenderEngine* engine);
 
 		virtual String getHLSLVertexShader(RenderEngine* engine);
@@ -381,7 +381,7 @@ namespace slib
 		{
 			return new StateType;
 		}
-		
+
 	};
 
 
@@ -405,7 +405,7 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
 
 		String getHLSLVertexShader(RenderEngine* engine) override;
@@ -422,7 +422,7 @@ namespace slib
 	{
 	public:
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 		String getHLSLPixelShader(RenderEngine* engine) override;
 
 	};
@@ -431,7 +431,7 @@ namespace slib
 	{
 	public:
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 	};
 
 
@@ -453,7 +453,7 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
 
 		String getHLSLVertexShader(RenderEngine* engine) override;
@@ -483,9 +483,9 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 		String getHLSLVertexShader(RenderEngine* engine) override;
 
 		String getHLSLPixelShader(RenderEngine* engine) override;
@@ -521,9 +521,9 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 	};
 
 
@@ -545,9 +545,9 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 	};
 
 
@@ -576,9 +576,9 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 	};
 
 
@@ -601,9 +601,9 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 	};
 
 
@@ -629,9 +629,9 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 	};
 
 
@@ -651,9 +651,9 @@ namespace slib
 	{
 	public:
 		String getGLSLVertexShader(RenderEngine* engine) override;
-		
+
 		String getGLSLFragmentShader(RenderEngine* engine) override;
-		
+
 	};
 
 }

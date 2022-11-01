@@ -193,7 +193,7 @@ namespace slib
 	}
 
 	using namespace priv::screen_capture;
-	
+
 	Ref<Image> ScreenCapture::takeScreenshot()
 	{
 		POINT pt = { 0, 0 };

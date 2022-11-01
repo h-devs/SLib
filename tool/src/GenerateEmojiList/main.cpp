@@ -6,20 +6,20 @@ int main(int argc, const char * argv[])
 {
 	// Read emoji list from google noto emoji fonts
 	// https://github.com/googlefonts/noto-emoji
-	
+
 	String dirSrc = "PATH TO GOOGLE NOTO EMOJI REPO";
 	String dirDst = "PATH TO SLIB REPO";
 
 	String pathSrc = dirSrc + "/png/128";
 	String pathDst = dirDst + "/external/src/noto_emoji";
-	
+
 	StringBuffer sbEmojiString;
 	StringBuffer sbEmojiList;
 	StringBuffer sbEmojiPng;
 	StringBuffer sbEmojiPngSize;
 	StringBuffer sbEmojiPngData[20];
 	sl_uint32 nDataFile = CountOfArray(sbEmojiPngData);
-	
+
 	sbEmojiList.add("const char32_t* emojis[] = {");
 	sbEmojiPng.add("const void* png[] = {");
 	sbEmojiPngSize.add("unsigned int png_size[] = {");
@@ -82,16 +82,16 @@ int main(int argc, const char * argv[])
 			}
 		}
 	}
-	
+
 	sbEmojiList.add(", 0};\r\n");
 	sbEmojiPng.add("};\r\n");
 	sbEmojiPngSize.add("};\r\n");
-	
+
 	File::writeAllTextUTF8(pathDst + "/emoji.inc", sbEmojiString.merge() + sbEmojiList.merge());
 	File::writeAllTextUTF8(pathDst + "/emoji_png.inc", sbEmojiPng.merge() + sbEmojiPngSize.merge());
 	for (sl_uint32 i = 0; i < nDataFile; i++) {
 		File::writeAllTextUTF8(String::format("%s/emoji_png_data%d.inc", pathDst, i), sbEmojiPngData[i].merge());
 	}
-	
+
 	return 0;
 }

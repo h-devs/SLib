@@ -71,7 +71,7 @@ namespace slib
 		GraphicsResource::setScreenWidth(size.x);
 		GraphicsResource::setScreenHeight(size.y);
 	}
-	
+
 	sl_ui_len UIResource::getScreenWidth()
 	{
 		sl_ui_len ret = g_screenWidth;
@@ -86,12 +86,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setScreenWidth(sl_ui_len width)
 	{
 		g_screenWidth = width;
 	}
-	
+
 	sl_ui_len UIResource::getScreenHeight()
 	{
 		sl_ui_len ret = g_screenHeight;
@@ -106,22 +106,22 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setScreenHeight(sl_ui_len height)
 	{
 		g_screenHeight = height;
 	}
-	
+
 	sl_ui_len UIResource::getScreenMinimum()
 	{
 		return SLIB_MIN(getScreenWidth(), getScreenHeight());
 	}
-	
+
 	sl_ui_len UIResource::getScreenMaximum()
 	{
 		return SLIB_MAX(getScreenWidth(), getScreenHeight());
 	}
-	
+
 	double UIResource::getScreenPPI()
 	{
 		double ret = g_screenPPI;
@@ -136,12 +136,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setScreenPPI(double ppi)
 	{
 		g_screenPPI = ppi;
 	}
-	
+
 	sl_ui_len UIResource::getStatusBarHeight()
 	{
 		sl_ui_len ret = g_statusBarHeight;
@@ -156,12 +156,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setStatusBarHeight(sl_ui_len height)
 	{
 		g_statusBarHeight = height;
 	}
-	
+
 	sl_ui_len UIResource::getSafeAreaInsetLeft()
 	{
 		sl_ui_len ret = g_safeAreaLeft;
@@ -176,12 +176,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setSafeAreaInsetLeft(sl_ui_len left)
 	{
 		g_safeAreaLeft = left;
 	}
-	
+
 	sl_ui_len UIResource::getSafeAreaInsetTop()
 	{
 		sl_ui_len ret = g_safeAreaTop;
@@ -196,12 +196,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setSafeAreaInsetTop(sl_ui_len top)
 	{
 		g_safeAreaTop = top;
 	}
-	
+
 	sl_ui_len UIResource::getSafeAreaInsetRight()
 	{
 		sl_ui_len ret = g_safeAreaRight;
@@ -216,12 +216,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setSafeAreaInsetRight(sl_ui_len right)
 	{
 		g_safeAreaRight = right;
 	}
-	
+
 	sl_ui_len UIResource::getSafeAreaInsetBottom()
 	{
 		sl_ui_len ret = g_safeAreaBottom;
@@ -236,12 +236,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void UIResource::setSafeAreaInsetBottom(sl_ui_len bottom)
 	{
 		g_safeAreaBottom = bottom;
 	}
-	
+
 	sl_ui_len UIResource::getSafeAreaWidth()
 	{
 		sl_ui_len w = getScreenWidth() - getSafeAreaInsetLeft() - getSafeAreaInsetRight();
@@ -250,7 +250,7 @@ namespace slib
 		}
 		return w;
 	}
-	
+
 	sl_ui_len UIResource::getSafeAreaHeight()
 	{
 		sl_ui_len h = getScreenHeight() - getSafeAreaInsetTop() - getSafeAreaInsetBottom();
@@ -259,22 +259,22 @@ namespace slib
 		}
 		return h;
 	}
-	
+
 	sl_real UIResource::pixelToInch(sl_real px)
 	{
 		return (sl_real)(px / getScreenPPI());
 	}
-	
+
 	sl_real UIResource::inchToPixel(sl_real inch)
 	{
 		return (sl_real)(inch * getScreenPPI());
 	}
-	
+
 	sl_real UIResource::pixelToMeter(sl_real px)
 	{
 		return (sl_real)(px * 0.0254 / getScreenPPI());
 	}
-	
+
 	sl_real UIResource::meterToPixel(sl_real meters)
 	{
 		return (sl_real)(meters * getScreenPPI() * 39.3701);
@@ -284,52 +284,52 @@ namespace slib
 	{
 		return (sl_real)(px * 2.54 / getScreenPPI());
 	}
-	
+
 	sl_real UIResource::centimeterToPixel(sl_real cm)
 	{
 		return (sl_real)(cm * getScreenPPI() * 0.393701);
 	}
-	
+
 	sl_real UIResource::pixelToMillimeter(sl_real px)
 	{
 		return (sl_real)(px * 25.4 / getScreenPPI());
 	}
-	
+
 	sl_real UIResource::millimeterToPixel(sl_real mm)
 	{
 		return (sl_real)(mm * getScreenPPI() * 0.0393701);
 	}
-	
+
 	sl_real UIResource::pixelToPoint(sl_real px)
 	{
 		return (sl_real)(px * 72 / getScreenPPI());
 	}
-	
+
 	sl_real UIResource::pointToPixel(sl_real pt)
 	{
 		return (sl_real)(pt * getScreenPPI() / 72);
 	}
-	
+
 	sl_real UIResource::pixelToPicas(sl_real px)
 	{
 		return (sl_real)(px * 12 / getScreenPPI());
 	}
-	
+
 	sl_real UIResource::picasToPixel(sl_real pc)
 	{
 		return (sl_real)(pc * getScreenPPI() / 12);
 	}
-	
+
 	sl_real UIResource::pixelToDp(sl_real px)
 	{
 		return (sl_real)(px * 160 / getScreenPPI());
 	}
-	
+
 	sl_real UIResource::dpToPixel(sl_real dp)
 	{
 		return (sl_real)(dp * getScreenPPI() / 160);
 	}
-	
+
 	sl_ui_pos UIResource::toUiPos(sl_real f)
 	{
 		if (Math::isAlmostZero(f)) {
@@ -343,7 +343,7 @@ namespace slib
 		}
 		return (sl_ui_pos)f;
 	}
-	
+
 	UILayoutResource::UILayoutResource()
 	{
 		m_sp = 1;
@@ -351,7 +351,7 @@ namespace slib
 		m_flagInitialized = sl_false;
 		m_contentView = sl_null;
 	}
-	
+
 	UILayoutResource::~UILayoutResource()
 	{
 	}
@@ -360,21 +360,21 @@ namespace slib
 	{
 		return m_contentView;
 	}
-	
+
 	sl_real UILayoutResource::getScaledPixel()
 	{
 		return m_sp;
 	}
-	
+
 	void UILayoutResource::setScaledPixel(sl_real sp)
 	{
 		m_sp = sp;
 	}
-	
+
 	void UILayoutResource::onInit()
 	{
 	}
-	
+
 	// avoid recursively layouting
 	void UILayoutResource::_layoutViews_safe(sl_ui_len width, sl_ui_len height)
 	{
@@ -390,12 +390,12 @@ namespace slib
 			Base::interlockedDecrement32(&m_countRecursiveLayout);
 		}
 	}
-	
+
 	sl_bool UILayoutResource::isInitialized()
 	{
 		return m_flagInitialized;
 	}
-	
+
 	void UILayoutResource::setInitialized()
 	{
 		if (m_flagInitialized) {
@@ -404,9 +404,9 @@ namespace slib
 		m_flagInitialized = sl_true;
 		onInit();
 	}
-	
+
 	SLIB_DEFINE_OBJECT(WindowLayout, Window)
-	
+
 	WindowLayout::WindowLayout()
 	{
 		m_contentWidth = 0;
@@ -416,7 +416,7 @@ namespace slib
 		m_contentViewRef = view;
 		m_contentView = view.get();
 	}
-	
+
 	WindowLayout::~WindowLayout()
 	{
 	}
@@ -429,7 +429,7 @@ namespace slib
 			return getClientSize();
 		}
 	}
-	
+
 	void WindowLayout::dispatchResize(sl_ui_len width, sl_ui_len height)
 	{
 		m_contentWidth = width;
@@ -437,14 +437,14 @@ namespace slib
 		_layoutViews_safe(width, height);
 		Window::dispatchResize(width, height);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(ViewLayout, ViewGroup)
-	
+
 	ViewLayout::ViewLayout()
 	{
 	}
-	
+
 	ViewLayout::~ViewLayout()
 	{
 	}
@@ -460,20 +460,20 @@ namespace slib
 	{
 		return getSize();
 	}
-	
+
 	void ViewLayout::dispatchResize(sl_ui_len width, sl_ui_len height)
 	{
 		_layoutViews_safe(width, height);
 		ViewGroup::dispatchResize(width, height);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(PageLayout, ViewPage)
-	
+
 	PageLayout::PageLayout()
 	{
 	}
-	
+
 	PageLayout::~PageLayout()
 	{
 	}
@@ -489,7 +489,7 @@ namespace slib
 	{
 		return getSize();
 	}
-	
+
 	void PageLayout::dispatchResize(sl_ui_len width, sl_ui_len height)
 	{
 		_layoutViews_safe(width, height);

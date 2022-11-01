@@ -31,34 +31,34 @@ namespace slib
 	class SLIB_EXPORT QRCodeScanner : public CameraView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		QRCodeScanner();
-		
+
 		~QRCodeScanner();
-		
+
 	public:
 		using CameraView::start;
-		
+
 		void start(const CameraParam& param) override;
-		
+
 		void stop() override;
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(QRCodeScanner, Detect, const String& code)
-		
+
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onCapture(VideoCaptureFrame& frame) override;
-		
+
 		void onRunScanner(Timer* timer);
 
 	protected:
 		Ref<RenderProgram2D_Position> m_programScanBar;
 		Ref<Timer> m_timerScanner;
 		sl_bool m_flagUpdateCameraFrame;
-		
+
 	};
 
 }

@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 #define DEFINE_CONTENT_TYPE(name, text) \
 	namespace priv { \
 		namespace content_type { \
@@ -88,7 +88,7 @@ namespace slib
 			{
 			public:
 				CHashMap<String, String> maps;
-				
+
 			public:
 				Mapping()
 				{
@@ -100,7 +100,7 @@ namespace slib
 					maps.put("js", ContentType::TextJavascript);
 					maps.put("rtf", ContentType::TextRtf);
 					maps.put("csv", ContentType::TextCsv);
-					
+
 					maps.put("gif", ContentType::ImageGif);
 					maps.put("jpeg", ContentType::ImageJpeg);
 					maps.put("jpg", ContentType::ImageJpeg);
@@ -108,7 +108,7 @@ namespace slib
 					maps.put("bmp", ContentType::ImageBmp);
 					maps.put("tiff", ContentType::ImageTiff);
 					maps.put("tif", ContentType::ImageTiff);
-					
+
 					maps.put("oga", ContentType::AudioOgg);
 					maps.put("opus", ContentType::AudioOpus);
 					maps.put("weba", ContentType::AudioWebm);
@@ -118,7 +118,7 @@ namespace slib
 					maps.put("mp3", ContentType::AudioMpeg);
 					maps.put("m4a", ContentType::AudioMp4);
 					maps.put("aac", ContentType::AudioMp4);
-					
+
 					maps.put("avi", ContentType::VideoAvi);
 					maps.put("mpg", ContentType::VideoMpeg);
 					maps.put("mpeg", ContentType::VideoMpeg);
@@ -130,7 +130,7 @@ namespace slib
 					maps.put("webm", ContentType::VideoWebm);
 					maps.put("flv", ContentType::VideoFlv);
 					maps.put("mkv", ContentType::VideoMatroska);
-					
+
 					maps.put("json", ContentType::Json);
 					maps.put("pdf", ContentType::Pdf);
 					maps.put("woff", ContentType::FontWOFF);

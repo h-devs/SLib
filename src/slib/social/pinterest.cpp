@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace pinterest
@@ -35,11 +35,11 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Pinterest>, g_instance)
 		}
 	}
-	
+
 	using namespace priv::pinterest;
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestUser)
-	
+
 	SLIB_DEFINE_JSON(PinterestUser)
 	{
 		if (isFromJson) {
@@ -47,14 +47,14 @@ namespace slib
 		}
 		SLIB_JSON_ADD_MEMBERS(id, url, first_name, last_name)
 	}
-	
+
 	PinterestUser::PinterestUser()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestBoard)
-	
+
 	SLIB_DEFINE_JSON(PinterestBoard)
 	{
 		if (isFromJson) {
@@ -62,14 +62,14 @@ namespace slib
 		}
 		SLIB_JSON_ADD_MEMBERS(id, name, url)
 	}
-	
+
 	PinterestBoard::PinterestBoard()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestParam)
-	
+
 	PinterestParam::PinterestParam()
 	{
 		authorizeUrl = "https://api.pinterest.com/oauth/";
@@ -77,22 +77,22 @@ namespace slib
 		defaultScopes.add_NoLock("read_public");
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(Pinterest, OAuth2)
-	
+
 	Pinterest::Pinterest(const PinterestParam& param) : OAuth2(param)
 	{
 	}
-	
+
 	Pinterest::~Pinterest()
 	{
 	}
-	
+
 	Ref<Pinterest> Pinterest::create(const PinterestParam& param)
 	{
 		return new Pinterest(param);
 	}
-		
+
 	void Pinterest::initialize(const PinterestParam& param)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -100,14 +100,14 @@ namespace slib
 		}
 		g_instance = create(param);
 	}
-	
+
 	void Pinterest::initialize()
 	{
 		PinterestParam param;
 		param.preferenceName = "pinterest";
 		initialize(param);
 	}
-	
+
 	Ref<Pinterest> Pinterest::create(const String& appId, const String& appSecret, const String& redirectUri)
 	{
 		PinterestParam param;
@@ -116,7 +116,7 @@ namespace slib
 		param.redirectUri = redirectUri;
 		return create(param);
 	}
-	
+
 	void Pinterest::initialize(const String& appId, const String& appSecret, const String& redirectUri)
 	{
 		PinterestParam param;
@@ -126,24 +126,24 @@ namespace slib
 		param.redirectUri = redirectUri;
 		initialize(param);
 	}
-	
+
 	Ref<Pinterest> Pinterest::create(const String& appId, const String& redirectUri)
 	{
 		return create(appId, String::null(), redirectUri);
 	}
-	
+
 	void Pinterest::initialize(const String& appId, const String& redirectUri)
 	{
 		initialize(appId, String::null(), redirectUri);
 	}
-	
+
 	Ref<Pinterest> Pinterest::createWithAccessToken(const String& accessToken)
 	{
 		PinterestParam param;
 		param.accessToken.token = accessToken;
 		return create(param);
 	}
-	
+
 	Ref<Pinterest> Pinterest::getInstance()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -156,12 +156,12 @@ namespace slib
 	{
 		param.parameters.put("access_token", token.token);
 	}
-	
+
 	String Pinterest::getRequestUrl(const String& path)
 	{
 		return "https://api.pinterest.com/v1/" + path;
 	}
-	
+
 	void Pinterest::getUser(const String& userId, const Function<void(PinterestResult&, PinterestUser&)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -183,7 +183,7 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
+
 	void Pinterest::getMyBoards(const Function<void(PinterestResult&, List<PinterestBoard>& boards)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -200,20 +200,20 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreateBoardResult)
-	
+
 	PinterestCreateBoardResult::PinterestCreateBoardResult(UrlRequest* request): PinterestResult(request)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreateBoardParam)
-	
+
 	PinterestCreateBoardParam::PinterestCreateBoardParam()
 	{
 	}
-	
+
 	void Pinterest::createBoard(const PinterestCreateBoardParam& param)
 	{
 		UrlRequestParam rp;
@@ -239,20 +239,20 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreatePinResult)
-	
+
 	PinterestCreatePinResult::PinterestCreatePinResult(UrlRequest* request): PinterestResult(request)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreatePinParam)
-	
+
 	PinterestCreatePinParam::PinterestCreatePinParam()
 	{
 	}
-	
+
 	void Pinterest::createPin(const PinterestCreatePinParam& param)
 	{
 		UrlRequestParam rp;
@@ -280,5 +280,5 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
+
 }

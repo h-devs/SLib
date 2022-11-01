@@ -67,16 +67,16 @@ namespace slib
 
 	public:
 		RegularExpression(const StringParam& pattern) noexcept;
-		
+
 		RegularExpression(const StringParam& pattern, const RegularExpressionFlags& flags) noexcept;
 
 	public:
 		sl_bool match(const StringParam& str, const RegularExpressionMatchFlags& flags = RegularExpressionMatchFlags::Default) noexcept;
-		
+
 		static sl_bool matchEmail(const StringParam& str) noexcept;
 
 	};
-	
+
 }
 
 #endif

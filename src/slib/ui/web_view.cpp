@@ -299,22 +299,22 @@ namespace slib
 	void IWebViewInstance::stopFinding(WebView* view)
 	{
 	}
-	
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<IWebViewInstance> WebView::getWebViewInstance()
 	{
 		return sl_null;
 	}
-	
+
 	void DefaultWebViewProvider::clearCache()
 	{
 	}
-	
+
 	void DefaultWebViewProvider::clearCookie()
 	{
 	}

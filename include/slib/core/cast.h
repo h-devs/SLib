@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T, class V>
 	SLIB_INLINE T& ForcedCast(const V& v)
 	{
@@ -44,7 +44,7 @@ namespace slib
 			return T2(Forward<T>(v));
 		}
 	};
-	
+
 	template <class T>
 	class Cast<T, T>
 	{

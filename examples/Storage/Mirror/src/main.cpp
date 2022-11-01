@@ -13,7 +13,7 @@ int main(int argc, const char * argv[])
 
 	String rootPath = StringCstr(argv[1]);
 	String mountPoint = StringCstr(argv[2]);
-	
+
 	Ref<FileSystemProvider> rootFs = MirrorFileSystem::create(rootPath);
 
 	// name wrapper
@@ -22,7 +22,7 @@ int main(int argc, const char * argv[])
 	// logger
 	sl_uint32 logFlags = 0;
 	String logFilter = ".*";
-	
+
 	if (argc > 3 && String(argv[3]).getLength() == 8) {
 		String::parseUint32(16, &logFlags, argv[3]);
 		if (argc > 4) logFilter = argv[4];

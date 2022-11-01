@@ -165,7 +165,7 @@ namespace slib
 		}
 		return defaultValue;
 	}
-	
+
 	Time DatabaseCursor::getTime(sl_uint32 index, const Time& defaultValue)
 	{
 		return getValue(index).getTime(defaultValue);

@@ -32,5 +32,5 @@ class ListViewPage : public example::ui::ListView
 {
 public:
 	void onOpen() override;
-	
+
 };

@@ -115,7 +115,7 @@ namespace slib
 			static List<String> getDeviceIdentifiers();
 
 			static List<PortableDeviceInfo> getDeviceInfos();
-			
+
 			static PortableDevice open(const StringParam& id);
 
 		public:
@@ -132,7 +132,7 @@ namespace slib
 		};
 
 	}
-	
+
 }
 
 #endif

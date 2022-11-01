@@ -52,7 +52,7 @@ namespace slib
 
 #ifdef SLIB_PLATFORM_IS_UNIX
 		sl_bool waitFd(int fd, sl_uint32 events, sl_uint32* revents, sl_int32 timeout = -1);
-		
+
 		sl_bool waitReadFd(int fd, sl_int32 timeout = -1);
 
 		sl_bool waitWriteFd(int fd, sl_int32 timeout = -1);

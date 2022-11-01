@@ -59,18 +59,18 @@ public class SMediaPlayer implements MediaPlayer.OnCompletionListener, MediaPlay
 			return null;
 		}
 	}
-	
+
 	private SMediaPlayer(MediaPlayer player) {
 		mPlayer = player;
 		player.setOnCompletionListener(this);
 		player.setOnPreparedListener(this);
 		mPlayer.prepareAsync();
 	}
-	
+
 	public void setInstance(long instance) {
 		mInstance = instance;
 	}
-	
+
 	public void start() {
 		try {
 			mPlayer.start();
@@ -149,7 +149,7 @@ public class SMediaPlayer implements MediaPlayer.OnCompletionListener, MediaPlay
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void setLooping(boolean flag) {
 		try {
 			mPlayer.setLooping(flag);
@@ -180,12 +180,12 @@ public class SMediaPlayer implements MediaPlayer.OnCompletionListener, MediaPlay
 	private Surface mSurface;
 	private boolean mFlagUpdatedVideo = false;
 	private float[] mTextureMatrix = new float[16];
-	
+
 	public boolean renderVideo(int textureName, boolean flagResetTexture) {
 		try {
 			if (flagResetTexture || mTexture == null) {
 				mTexture = new SurfaceTexture(textureName);
-				mTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {					
+				mTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
 					@Override
 					public void onFrameAvailable(SurfaceTexture surfaceTexture) {
 						if (surfaceTexture == mTexture) {
@@ -212,17 +212,17 @@ public class SMediaPlayer implements MediaPlayer.OnCompletionListener, MediaPlay
 	}
 
 	private static native void nativeOnCompleted(long instance);
-	
+
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		nativeOnCompleted(mInstance);
 	}
-	
+
 	private static native void nativeOnPrepared(long instance);
-	
+
 	@Override
 	public void onPrepared(MediaPlayer mp) {
 		nativeOnPrepared(mInstance);
 	}
-	
+
 }

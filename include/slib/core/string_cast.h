@@ -32,91 +32,91 @@
 
 namespace slib
 {
-	
+
 	template <>
 	class Cast<String, signed char>
 	{
 	public:
 		signed char operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, unsigned char>
 	{
 	public:
 		unsigned char operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, short>
 	{
 	public:
 		short operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, unsigned short>
 	{
 	public:
 		unsigned short operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, int>
 	{
 	public:
 		int operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, unsigned int>
 	{
 	public:
 		unsigned int operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, long>
 	{
 	public:
 		long operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, unsigned long>
 	{
 	public:
 		unsigned long operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, sl_int64>
 	{
 	public:
 		sl_int64 operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, sl_uint64>
 	{
 	public:
 		sl_uint64 operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, float>
 	{
 	public:
 		float operator()(const String& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String, double>
 	{
 	public:
 		double operator()(const String& v) const noexcept;
 	};
-	
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 	template <>
 	class Cast<String, std::string>
@@ -126,91 +126,91 @@ namespace slib
 	};
 #endif
 
-	
+
 	template <>
 	class Cast<String16, signed char>
 	{
 	public:
 		signed char operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, unsigned char>
 	{
 	public:
 		unsigned char operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, short>
 	{
 	public:
 		short operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, unsigned short>
 	{
 	public:
 		unsigned short operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, int>
 	{
 	public:
 		int operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, unsigned int>
 	{
 	public:
 		unsigned int operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, long>
 	{
 	public:
 		long operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, unsigned long>
 	{
 	public:
 		unsigned long operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, sl_int64>
 	{
 	public:
 		sl_int64 operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, sl_uint64>
 	{
 	public:
 		sl_uint64 operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, float>
 	{
 	public:
 		float operator()(const String16& v) const noexcept;
 	};
-	
+
 	template <>
 	class Cast<String16, double>
 	{
 	public:
 		double operator()(const String16& v) const noexcept;
 	};
-	
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 	template <>
 	class Cast<String16, std::u16string>
@@ -313,7 +313,7 @@ namespace slib
 		std::u32string operator()(const String32& v) const noexcept;
 	};
 #endif
-	
+
 
 	template <class T>
 	class Cast<T, String>
@@ -324,7 +324,7 @@ namespace slib
 			return String::from(v);
 		}
 	};
-	
+
 	template <>
 	class Cast<String, String>
 	{
@@ -334,7 +334,7 @@ namespace slib
 			return v;
 		}
 	};
-	
+
 
 	template <class T>
 	class Cast<T, String16>

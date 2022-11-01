@@ -224,7 +224,7 @@ namespace slib
 
 	public:
 		static ObjectStore open(const ObjectStoreParam& param);
-		
+
 		static ObjectStore open(const StringParam& path);
 
 	public:
@@ -273,7 +273,7 @@ namespace slib
 
 	public:
 		virtual Ref<KeyValueStore> getStore() = 0;
-		
+
 		virtual Ref<ObjectStoreDictionary> getRootDictionary() = 0;
 
 	};

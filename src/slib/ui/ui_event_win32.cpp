@@ -44,14 +44,14 @@ namespace slib
 			private:
 				HashTable<sl_uint32, sl_uint32> mapKeyToVK;
 				HashTable<sl_uint32, sl_uint32> mapVKToKey;
-				
+
 			public:
 				KeyMapper()
 				{
 					map(Keycode::Tab, VK_TAB);
 					map(Keycode::Enter, VK_RETURN);
 					map(Keycode::Escape, VK_ESCAPE);
-					
+
 					map(Keycode::Space, VK_SPACE);
 					map(Keycode::Grave, VK_OEM_3);
 					map(Keycode::Equal, VK_OEM_PLUS);
@@ -64,7 +64,7 @@ namespace slib
 					map(Keycode::Minus, VK_OEM_MINUS);
 					map(Keycode::Period, VK_OEM_PERIOD);
 					map(Keycode::Divide, VK_OEM_2);
-					
+
 					map(Keycode::Num0, '0');
 					map(Keycode::Num1, '1');
 					map(Keycode::Num2, '2');
@@ -75,7 +75,7 @@ namespace slib
 					map(Keycode::Num7, '7');
 					map(Keycode::Num8, '8');
 					map(Keycode::Num9, '9');
-					
+
 					map(Keycode::A, 'A');
 					map(Keycode::B, 'B');
 					map(Keycode::C, 'C');
@@ -102,7 +102,7 @@ namespace slib
 					map(Keycode::X, 'X');
 					map(Keycode::Y, 'Y');
 					map(Keycode::Z, 'Z');
-					
+
 					map(Keycode::Numpad0, VK_NUMPAD0);
 					map(Keycode::Numpad1, VK_NUMPAD1);
 					map(Keycode::Numpad2, VK_NUMPAD2);
@@ -113,14 +113,14 @@ namespace slib
 					map(Keycode::Numpad7, VK_NUMPAD7);
 					map(Keycode::Numpad8, VK_NUMPAD8);
 					map(Keycode::Numpad9, VK_NUMPAD9);
-					
+
 					map(Keycode::NumpadDivide, VK_DIVIDE);
 					map(Keycode::NumpadMultiply, VK_MULTIPLY);
 					map(Keycode::NumpadMinus, VK_SUBTRACT);
 					map(Keycode::NumpadPlus, VK_ADD);
 					mapKeyToVK.put((int)Keycode::NumpadEnter, VK_RETURN);
 					map(Keycode::NumpadDecimal, VK_DECIMAL);
-					
+
 					map(Keycode::F1, VK_F1);
 					map(Keycode::F2, VK_F2);
 					map(Keycode::F3, VK_F3);
@@ -133,7 +133,7 @@ namespace slib
 					map(Keycode::F10, VK_F10);
 					map(Keycode::F11, VK_F11);
 					map(Keycode::F12, VK_F12);
-					
+
 					map(Keycode::Backspace, VK_BACK);
 					map(Keycode::PageUp, VK_PRIOR);
 					map(Keycode::PageDown, VK_NEXT);
@@ -148,7 +148,7 @@ namespace slib
 					map(Keycode::Delete, VK_DELETE);
 					map(Keycode::Sleep, VK_SLEEP);
 					map(Keycode::Pause, VK_PAUSE);
-					
+
 					map(Keycode::GoHome, -1);
 					map(Keycode::GoMenu, -1);
 					map(Keycode::GoBack, -1);
@@ -162,7 +162,7 @@ namespace slib
 					map(Keycode::MediaStop, VK_MEDIA_STOP);
 					map(Keycode::PhoneStar, -1);
 					map(Keycode::PhonePound, -1);
-					
+
 					map(Keycode::LeftShift, VK_LSHIFT);
 					map(Keycode::RightShift, VK_RSHIFT);
 					map(Keycode::LeftControl, VK_LCONTROL);
@@ -179,7 +179,7 @@ namespace slib
 					map(Keycode::Chinese, VK_HANJA);
 					map(Keycode::Korean, VK_HANGUL);
 				}
-				
+
 			public:
 				void map(Keycode key, sl_uint32 vk)
 				{
@@ -189,7 +189,7 @@ namespace slib
 					mapKeyToVK.put((int)key, vk);
 					mapVKToKey.put(vk, (int)key);
 				}
-				
+
 				Keycode vkToKey(sl_uint32 vk)
 				{
 					sl_uint32 ret;
@@ -199,7 +199,7 @@ namespace slib
 						return Keycode::Unknown;
 					}
 				}
-				
+
 				sl_uint32 keyToVk(Keycode code)
 				{
 					sl_uint32 ret;
@@ -209,7 +209,7 @@ namespace slib
 						return -1;
 					}
 				}
-				
+
 			};
 
 			SLIB_SAFE_STATIC_GETTER(KeyMapper, GetKeyMapper)

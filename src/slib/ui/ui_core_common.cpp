@@ -28,18 +28,18 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ui_core
 		{
-			
+
 			SLIB_SAFE_STATIC_GETTER(LinkedQueue< Function<void()> >, GetDispatchQueue)
-			
+
 			typedef CHashMap< sl_reg, Function<void()> > DelayedDispatchMap;
 			SLIB_SAFE_STATIC_GETTER(DelayedDispatchMap, GetDelayedDispatchMap)
 			volatile sl_reg g_idLastDelayedDispatch = 0;
-			
+
 
 			sl_bool UIDispatcher::addCallback(const Function<void()>& callback)
 			{
@@ -51,7 +51,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-			
+
 			void UIDispatcher::processCallbacks()
 			{
 				LinkedQueue< Function<void()> >* queue = GetDispatchQueue();
@@ -64,7 +64,7 @@ namespace slib
 					}
 				}
 			}
-			
+
 			sl_bool UIDispatcher::addDelayedCallback(const Function<void()>& callback, sl_reg& outId)
 			{
 				if (callback.isNotNull()) {
@@ -79,7 +79,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-			
+
 			void UIDispatcher::processDelayedCallback(sl_reg id)
 			{
 				DelayedDispatchMap* map = GetDelayedDispatchMap();
@@ -91,7 +91,7 @@ namespace slib
 					map->remove(id);
 				}
 			}
-			
+
 			void UIDispatcher::removeAllCallbacks()
 			{
 				LinkedQueue< Function<void()> >* queue = GetDispatchQueue();
@@ -106,5 +106,5 @@ namespace slib
 
 		}
 	}
-	
+
 }

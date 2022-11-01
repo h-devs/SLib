@@ -48,7 +48,7 @@ int main(int argc, const char * argv[])
 			Println("Invalid STUN server address.");
 		}
 	}
-	
+
 	AsyncUdpSocketParam param;
 	param.onReceiveFrom = [](AsyncUdpSocket* socket, const SocketAddress& addressFrom, void* packet, sl_uint32 size) {
 		StunPacket* stunPacket = (StunPacket*)packet;
@@ -77,7 +77,7 @@ int main(int argc, const char * argv[])
 			Println("Received Packet, From: %s, Data: %s", addressFrom.toString(), String((sl_char8*)packet, size));
 		}
 	};
-	
+
 	Println("Input the UDP binding address. Format: [HOST:]PORT, Default: 0");
 	String strAddressBind = Console::readLine().trim();
 	sl_uint32 bindPort;
@@ -86,7 +86,7 @@ int main(int argc, const char * argv[])
 	} else {
 		param.bindAddress.setString(strAddressBind);
 	}
-	
+
 	for (;;) {
 		Println("Is IPv6? Y/N, default: N");
 		String v = Console::readLine().trim();
@@ -106,7 +106,7 @@ int main(int argc, const char * argv[])
 		Println("Unable to create Async UDP Socket.");
 		return -1;
 	}
-	
+
 	Ref<Timer> timerSTUN = Timer::start([socket, stunAddress](Timer* timer) {
 		static sl_uint32 transactionID[3] = {0};
 		transactionID[0]++;
@@ -117,7 +117,7 @@ int main(int argc, const char * argv[])
 			socket->sendTo(stunAddress, packet);
 		}
 	}, 2000);
-	
+
 	for (;;) {
 		Println("Please input target address. Format: IP:PORT");
 		String strAddress = Console::readLine().trim();
@@ -135,6 +135,6 @@ int main(int argc, const char * argv[])
 		}
 		socket->sendTo(address, text.getData(), (sl_uint32)(text.getLength()));
 	}
-	
+
 	return 0;
 }

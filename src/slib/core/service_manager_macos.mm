@@ -35,7 +35,7 @@ namespace slib
 	{
 		namespace svmng
 		{
-		
+
 			static String GetName(const StringParam& _name)
 			{
 				StringData name(_name);
@@ -45,7 +45,7 @@ namespace slib
 					return String::concat("system/", name);
 				}
 			}
-	
+
 		}
 	}
 
@@ -116,7 +116,7 @@ namespace slib
 	{
 		return ServiceStartType::Unknown;
 	}
-	
+
 }
 
 #endif

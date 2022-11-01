@@ -145,7 +145,7 @@ namespace slib
 		virtual void getId(void* outId) = 0;
 
 		virtual sl_uint64 getCurrentPosition() = 0;
-		
+
 	};
 
 	class SLIB_EXPORT DataPackage

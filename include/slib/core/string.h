@@ -69,7 +69,7 @@ namespace slib
 	class StringView32;
 	class StringParam;
 	class StringStorage;
-	
+
 	typedef Atomic<String> AtomicString;
 	typedef Atomic<String16> AtomicString16;
 	typedef Atomic<String32> AtomicString32;
@@ -92,7 +92,7 @@ namespace slib
 	struct StringViewTypeFromCharType<sl_char16> { typedef StringView16 Type; };
 	template <>
 	struct StringViewTypeFromCharType<sl_char32> { typedef StringView32 Type; };
-	
+
 
 	template <class CharType>
 	struct OtherCharType;
@@ -111,7 +111,7 @@ namespace slib
 
 			extern StringContainer* const g_null;
 			extern StringContainer* const g_empty;
-			
+
 			extern StringContainer16* const g_null16;
 			extern StringContainer16* const g_empty16;
 

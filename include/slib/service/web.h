@@ -43,35 +43,35 @@ namespace slib
 
 	protected:
 		WebController();
-		
+
 	public:
 		static Ref<WebController> create();
-		
+
 	public:
 		void registerHandler(HttpMethod method, const String& path, const WebHandler& handler);
-		
+
 		sl_bool processHttpRequest(HttpServerContext* context);
-		
+
 	protected:
 		static String _getHandlerSignature(HttpMethod method, const String& path);
-		
+
 	protected:
 		CMap<String, WebHandler> m_handlers;
-		
+
 		friend class WebModule;
-		
+
 	};
-	
+
 	class WebModule
 	{
 	public:
 		WebModule(const String& path);
-		
+
 	public:
 		void registerToController();
-		
+
 		void addHandler(HttpMethod method, const String& path, const WebHandler& handler);
-		
+
 	protected:
 		String m_path;
 		struct Handler
@@ -81,9 +81,9 @@ namespace slib
 			WebHandler handler;
 		};
 		CList<Handler> m_handlers;
-		
+
 	};
-	
+
 	class SLIB_EXPORT WebService : public Service
 	{
 		SLIB_DECLARE_OBJECT
@@ -102,7 +102,7 @@ namespace slib
 		sl_uint16 getHttpPort();
 
 		void setHttpPort(sl_uint16 port);
-	
+
 		void useAsset(const String& prefixForAssetPath);
 
 		const Ref<WebController>& getController();
@@ -111,7 +111,7 @@ namespace slib
 		sl_bool dispatchStartService() override;
 
 		void dispatchStopService() override;
-		
+
 		sl_bool onHttpRequest(HttpServerContext*);
 
 	protected:

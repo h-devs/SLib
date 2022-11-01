@@ -42,7 +42,7 @@
 	@public CGFloat m_viewportHeight;
 
 	@public slib::Mutex m_lockRender;
-	
+
 	slib::AtomicRef<slib::Thread> m_thread;
 }
 
@@ -52,16 +52,16 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace render_view
 		{
-			
+
 			class RenderViewInstance : public macOS_ViewInstance, public IRenderViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBGLViewHandle* getHandle()
 				{
@@ -75,7 +75,7 @@ namespace slib
 
 					handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
 				}
-				
+
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
 					SLIBGLViewHandle* handle = getHandle();
@@ -83,7 +83,7 @@ namespace slib
 						handle->m_flagRenderingContinuously = mode == RedrawMode::Continuously;
 					}
 				}
-				
+
 				void requestRender(RenderView* view) override
 				{
 					SLIBGLViewHandle* handle = getHandle();
@@ -91,21 +91,21 @@ namespace slib
 						handle->m_flagRequestRender = sl_true;
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(RenderViewInstance, ViewInstance)
-			
+
 		}
 	}
-	
+
 	using namespace priv::render_view;
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
 		return macOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}
-	
+
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()
 	{
 		return CastRef<RenderViewInstance>(getViewInstance());
@@ -126,12 +126,12 @@ namespace slib
 				if (engine.isNull()) {
 					return;
 				}
-				
+
 				sl_bool flagFirstFrame = sl_true;
-				
+
 				TimeCounter timer;
 				NSOpenGLContext* context = nil;
-				
+
 				NSOpenGLPixelFormatAttribute attrs[] = {
 					NSOpenGLPFADoubleBuffer,
 					NSOpenGLPFAColorSize, 24,
@@ -144,15 +144,15 @@ namespace slib
 				if (pf == nil) {
 					return;
 				}
-				
+
 				int frameNumber = 0;
-				
+
 				while (1) {
-					
+
 					sl_bool flagWorking = sl_false;
-					
+
 					if (thread->isNotStopping()) {
-						
+
 						SLIBGLViewHandle* handle = _handle;
 						if (handle == nil) {
 							return;
@@ -161,7 +161,7 @@ namespace slib
 						if (instance.isNull()) {
 							return;
 						}
-						
+
 						if (frameNumber % 10 == 0) {
 							dispatch_async(dispatch_get_main_queue(), ^{
 								[handle queryViewStatus];
@@ -170,7 +170,7 @@ namespace slib
 								handle->m_flagUpdate = sl_true;
 							}
 						}
-						
+
 						do {
 							MutexLocker lock(&(handle->m_lockRender));
 							if (!(handle->m_flagViewVisible)) {
@@ -204,15 +204,15 @@ namespace slib
 							}
 							lock.unlock();
 							handle->m_flagRequestRender = sl_false;
-							
+
 							flagWorking = sl_true;
 							if (flagUpdate) {
 								sl_uint32 viewportWidth = (sl_uint32)(handle->m_viewportWidth);
 								sl_uint32 viewportHeight = (sl_uint32)(handle->m_viewportHeight);
 								if (viewportWidth != 0 && viewportHeight != 0) {
-									
+
 									[context makeCurrentContext];
-									
+
 									Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
 									if (instance.isNotNull()) {
 										Ref<View> _view = instance->getView();
@@ -227,20 +227,20 @@ namespace slib
 									} else {
 										return;
 									}
-									
+
 									GL::flush();
 									[context flushBuffer];
-									
+
 								}
 							}
 						} while(0);
-						
+
 						frameNumber++;
-						
+
 					} else {
 						break;
 					}
-					
+
 					if (thread->isNotStopping()) {
 						if (flagWorking) {
 							sl_uint64 t = timer.getElapsedMilliseconds();
@@ -254,7 +254,7 @@ namespace slib
 					} else {
 						break;
 					}
-					
+
 				}
 			}
 		}

@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT MatrixT<4, 4, T>
 	{
@@ -44,10 +44,10 @@ namespace slib
 			};
 			T m[4][4];
 		};
-	
+
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(MatrixT)
-		
+
 		MatrixT() = default;
 
 		template <class O>
@@ -56,7 +56,7 @@ namespace slib
 			m10((T)(other.m10)), m11((T)(other.m11)), m12((T)(other.m12)), m13((T)(other.m13)),
 			m20((T)(other.m20)), m21((T)(other.m21)), m22((T)(other.m22)), m23((T)(other.m23)),
 			m30((T)(other.m30)), m31((T)(other.m31)), m32((T)(other.m32)), m33((T)(other.m33)) {}
-	
+
 		SLIB_CONSTEXPR MatrixT(
 			T _m00, T _m01, T _m02, T _m03,
 			T _m10, T _m11, T _m12, T _m13,
@@ -66,7 +66,7 @@ namespace slib
 			m10(_m10), m11(_m11), m12(_m12), m13(_m13),
 			m20(_m20), m21(_m21), m22(_m22), m23(_m23),
 			m30(_m30), m31(_m31), m32(_m32), m33(_m33) {}
-	
+
 		SLIB_CONSTEXPR MatrixT(const VectorT<4, T>& row0, const VectorT<4, T>& row1, const VectorT<4, T>& row2, const VectorT<4, T>& row3):
 			m00(row0.x), m01(row0.y), m02(row0.z), m03(row0.w),
 			m10(row1.x), m11(row1.y), m12(row1.z), m13(row1.w),
@@ -268,7 +268,7 @@ namespace slib
 			m23 = v.z;
 			m33 = v.w;
 		}
-	
+
 		VectorT<4, T> getColumn(sl_uint32 index) const noexcept
 		{
 			const T* t = &m00 + index;
@@ -283,7 +283,7 @@ namespace slib
 			t[8] = v.z;
 			t[12] = v.w;
 		}
-	
+
 		void add(const MatrixT& other) noexcept
 		{
 			m00 += other.m00; m01 += other.m01; m02 += other.m02; m03 += other.m03;
@@ -437,7 +437,7 @@ namespace slib
 			T A32 = -SLIB_MATH_MATRIX_DETERMINANT3(m00, m01, m03, m10, m11, m13, m20, m21, m23);
 			T A33 = SLIB_MATH_MATRIX_DETERMINANT3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
 			T D = 1 / (m00*A00 + m01*A01 + m02*A02 + m03*A03);
-			
+
 			m00 = A00*D; m10 = A01*D; m20 = A02*D; m30 = A03*D;
 			m01 = A10*D; m11 = A11*D; m21 = A12*D; m31 = A13*D;
 			m02 = A20*D; m12 = A21*D; m22 = A22*D; m32 = A23*D;
@@ -507,7 +507,7 @@ namespace slib
 				Math::isAlmostZero(m20 - other.m20) && Math::isAlmostZero(m21 - other.m21) && Math::isAlmostZero(m22 - other.m22) && Math::isAlmostZero(m23 - other.m23) &&
 				Math::isAlmostZero(m30 - other.m30) && Math::isAlmostZero(m31 - other.m31) && Math::isAlmostZero(m32 - other.m32) && Math::isAlmostZero(m33 - other.m33);
 		}
-	
+
 	public:
 		template <class O>
 		MatrixT& operator=(const MatrixT<4, 4, O>& other) noexcept
@@ -518,12 +518,12 @@ namespace slib
 			m30 = (T)(other.m30); m31 = (T)(other.m31); m32 = (T)(other.m32); m33 = (T)(other.m33);
 			return *this;
 		}
-	
+
 	};
 
 	template <class T>
 	using Matrix4T = MatrixT<4, 4, T>;
-	
+
 	typedef Matrix4T<sl_real> Matrix4;
 	typedef Matrix4T<float> Matrix4f;
 	typedef Matrix4T<double> Matrix4lf;

@@ -40,77 +40,77 @@ namespace slib
 			class BitmapImpl : public Bitmap
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				CGContextRef m_bitmap;
 				Memory m_mem;
 				void* m_buf;
 				sl_uint32 m_width;
 				sl_uint32 m_height;
-				
+
 			public:
 				BitmapImpl()
 				{
 				}
-				
+
 				~BitmapImpl()
 				{
 					CFRelease(m_bitmap);
 				}
-				
+
 			public:
 				static Ref<BitmapImpl> create(sl_uint32 width, sl_uint32 height)
 				{
-					
+
 					if (width > 0 && height > 0) {
-						
+
 						sl_uint32 size = (width * height) << 2;
-						
+
 						Memory mem = Memory::create(size);
-						
+
 						if (mem.isNotNull()) {
-							
+
 							Base::zeroMemory(mem.getData(), mem.getSize());
-							
+
 							CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-							
+
 							if (colorSpace) {
-								
+
 								CGContextRef bitmap = CGBitmapContextCreate(mem.getData(), width, height, 8, width << 2, colorSpace, kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast);
-								
+
 								CFRelease(colorSpace);
 
 								if (bitmap) {
-									
+
 									Ref<BitmapImpl> ret = new BitmapImpl();
-									
+
 									if (ret.isNotNull()) {
-									
+
 										ret->m_bitmap = bitmap;
 										ret->m_width = width;
 										ret->m_height = height;
 										ret->m_mem = mem;
 										ret->m_buf = mem.getData();
-										
+
 										return ret;
 									}
-									
+
 									CFRelease(bitmap);
 								}
-								
+
 							}
-							
+
 						}
 					}
 					return sl_null;
 				}
-				
+
 				static Ref<BitmapImpl> createFromCGImage(CGImageRef image)
 				{
 					if (!image) {
 						return sl_null;
 					}
-					
+
 					sl_uint32 width = (sl_uint32)(CGImageGetWidth(image));
 					sl_uint32 height = (sl_uint32)(CGImageGetHeight(image));
 
@@ -121,19 +121,19 @@ namespace slib
 						rect.origin.y = 0;
 						rect.size.width = width;
 						rect.size.height = height;
-						
+
 						CGContextSaveGState(ret->m_bitmap);
 						CGContextTranslateCTM(ret->m_bitmap, 0, height);
 						CGContextScaleCTM(ret->m_bitmap, 1, -1);
 						CGContextDrawImage(ret->m_bitmap, rect, image);
 						CGContextRestoreGState(ret->m_bitmap);
-						
+
 						return ret;
 					}
-					
+
 					return sl_null;
 				}
-				
+
 				static Ref<BitmapImpl> loadFromMemory(const void* mem, sl_size size)
 				{
 					CGImageRef image = GraphicsPlatform::loadCGImageFromMemory(mem, size);
@@ -144,17 +144,17 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_uint32 getBitmapWidth() override
 				{
 					return m_width;
 				}
-				
+
 				sl_uint32 getBitmapHeight() override
 				{
 					return m_height;
 				}
-				
+
 				sl_bool readPixels(sl_uint32 x, sl_uint32 y, BitmapData& bitmapData) override
 				{
 					if (x > m_width) {
@@ -169,12 +169,12 @@ namespace slib
 					source.format = BitmapFormat::RGBA_PA;
 					source.data = ((sl_uint32*)m_buf) + m_width * (m_height - 1 - y) + x;
 					source.pitch = -((sl_int32)(m_width << 2));
-					
+
 					bitmapData.copyPixelsFrom(source);
-					
+
 					return sl_true;
 				}
-				
+
 				sl_bool writePixels(sl_uint32 x, sl_uint32 y, const BitmapData& bitmapData) override
 				{
 					if (x > m_width) {
@@ -183,19 +183,19 @@ namespace slib
 					if (y > m_height) {
 						return sl_false;
 					}
-					
+
 					BitmapData target;
 					target.width = m_width - x;
 					target.height = m_height - y;
 					target.format = BitmapFormat::RGBA_PA;
 					target.data = ((sl_uint32*)m_buf) + m_width * (m_height - 1 - y) + x;
 					target.pitch = -(m_width << 2);
-					
+
 					target.copyPixelsFrom(bitmapData);
 
 					return sl_true;
 				}
-				
+
 				sl_bool resetPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color& _color) override
 				{
 					if (x > m_width) {
@@ -227,12 +227,12 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				Ref<Canvas> getCanvas() override
 				{
 					return GraphicsPlatform::createCanvas(CanvasType::Bitmap, m_bitmap, m_width, m_height);
 				}
-				
+
 				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
 				{
 					CGImageRef image = CGBitmapContextCreateImage(m_bitmap);
@@ -245,7 +245,7 @@ namespace slib
 						CFRelease(image);
 					}
 				}
-				
+
 				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
 				{
 					CGImageRef image = CGBitmapContextCreateImage(m_bitmap);
@@ -254,7 +254,7 @@ namespace slib
 						CFRelease(image);
 					}
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
@@ -286,7 +286,7 @@ namespace slib
 	{
 		return BitmapImpl::createFromCGImage(image);
 	}
-	
+
 }
 
 #endif

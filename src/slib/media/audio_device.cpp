@@ -30,18 +30,18 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioRecorderInfo)
-	
+
 	AudioRecorderInfo::AudioRecorderInfo()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioRecorderParam)
-	
+
 	AudioRecorderParam::AudioRecorderParam()
 	{
 		recordingPreset = AudioRecordingPreset::None;
-		
+
 		samplesPerSecond = 16000;
 		channelCount = 1;
 		samplesPerFrame = 0;
@@ -50,7 +50,7 @@ namespace slib
 		samplesPerCallback = 0;
 		flagAutoStart = sl_true;
 	}
-	
+
 	sl_uint32 AudioRecorderParam::getSamplesPerFrame() const
 	{
 		if (samplesPerFrame) {
@@ -69,9 +69,9 @@ namespace slib
 		}
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(AudioRecorder, Object)
-	
+
 	AudioRecorder::AudioRecorder()
 	{
 		m_flagOpened = sl_true;
@@ -80,11 +80,11 @@ namespace slib
 		m_flagMute = sl_false;
 		m_nSamplesInCallbackBuffer = 0;
 	}
-	
+
 	AudioRecorder::~AudioRecorder()
 	{
 	}
-	
+
 	void AudioRecorder::release()
 	{
 		ObjectLocker lock(this);
@@ -95,12 +95,12 @@ namespace slib
 		m_flagOpened = sl_false;
 		_release();
 	}
-	
+
 	sl_bool AudioRecorder::isOpened()
 	{
 		return m_flagOpened;
 	}
-	
+
 	sl_bool AudioRecorder::start()
 	{
 		ObjectLocker lock(this);
@@ -116,7 +116,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void AudioRecorder::stop()
 	{
 		ObjectLocker lock(this);
@@ -129,12 +129,12 @@ namespace slib
 		m_flagRunning = sl_false;
 		_stop();
 	}
-	
+
 	sl_bool AudioRecorder::isRunning()
 	{
 		return m_flagRunning;
 	}
-	
+
 	float AudioRecorder::getVolume()
 	{
 		if (m_volume >= 256) {
@@ -145,7 +145,7 @@ namespace slib
 		}
 		return (float)(m_volume) / 256.0f;
 	}
-	
+
 	void AudioRecorder::setVolume(float volume)
 	{
 		sl_int32 v = (sl_int32)(volume * 256);
@@ -157,22 +157,22 @@ namespace slib
 		}
 		m_volume = v;
 	}
-	
+
 	sl_bool AudioRecorder::isMute()
 	{
 		return m_flagMute;
 	}
-	
+
 	void AudioRecorder::setMute(sl_bool flag)
 	{
 		m_flagMute = flag;
 	}
-	
+
 	const AudioRecorderParam& AudioRecorder::getParam()
 	{
 		return m_param;
 	}
-	
+
 	sl_bool AudioRecorder::read(const AudioData& audioOut)
 	{
 		AudioFormat format;
@@ -207,13 +207,13 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	void AudioRecorder::_init(const AudioRecorderParam& param)
 	{
 		m_param = param;
 		m_queue.setQueueSize(param.samplesPerSecond * param.bufferLengthInMilliseconds / 1000 * param.channelCount);
 	}
-	
+
 	Array<sl_int16> AudioRecorder::_getProcessData(sl_uint32 count)
 	{
 		Array<sl_int16> data = m_processData;
@@ -225,7 +225,7 @@ namespace slib
 			return data;
 		}
 	}
-	
+
 	void AudioRecorder::_processFrame(sl_int16* s, sl_uint32 count)
 	{
 		if (m_flagMute) {
@@ -308,7 +308,7 @@ namespace slib
 		}
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerInfo)
 
 	AudioPlayerInfo::AudioPlayerInfo()
@@ -479,12 +479,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void AudioPlayer::flush()
 	{
 		m_buffer.clear();
 	}
-	
+
 	sl_size AudioPlayer::getSampleCountInQueue()
 	{
 		return m_buffer.getSize() >> 1;
@@ -520,7 +520,7 @@ namespace slib
 			}
 		}
 		m_lastSample = s[count - 1];
-		
+
 		if (m_flagMute) {
 			for (sl_uint32 i = 0; i < count; i++) {
 				s[i] = 0;
@@ -535,7 +535,7 @@ namespace slib
 		}
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceParam)
 
 	AudioPlayerDeviceParam::AudioPlayerDeviceParam()

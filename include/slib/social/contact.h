@@ -32,7 +32,7 @@ namespace slib
 
 	class SLIB_EXPORT Contact
 	{
-	public:		
+	public:
 		String namePrefix;
 		String givenName;
 		String middleName;
@@ -43,17 +43,17 @@ namespace slib
 
 		HashMap<String, String> phoneNumbers;
 		HashMap<String, String> emails;
-		
+
 	public:
 		Contact();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Contact)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	public:
 		String generateVCard();
-		
+
 	};
 
 }

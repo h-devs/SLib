@@ -98,7 +98,7 @@ namespace slib
 	sl_bool SAppDocument::_generateRawCpp(const String& targetPath, const String& namespace1, const String& namespace2)
 	{
 		_log(g_str_log_generate_cpp_raws_begin);
-		
+
 		if (!(File::isDirectory(targetPath + "/raw"))) {
 			File::createDirectory(targetPath + "/raw");
 			if (!(File::isDirectory(targetPath + "/raw"))) {
@@ -106,9 +106,9 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		StringBuffer sbHeader, sbCpp, sbMap;
-		
+
 		sl_uint32 tabCountStart = 0;
 		if (namespace2.isNotEmpty()) {
 			tabCountStart = 2;
@@ -141,9 +141,9 @@ namespace slib
 		String tabs('\t', tabCountStart);
 		sbMap.add(tabs);
 		sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_BEGIN\r\n");
-		
+
 		StringBuffer sbData;
-		
+
 		for (auto& pair : m_raws) {
 			if (pair.value.isNotNull()) {
 				Ref<SAppRawResource> res = pair.value;
@@ -152,19 +152,19 @@ namespace slib
 				}
 			}
 		}
-		
+
 		sbMap.add(tabs);
 		sbMap.add("SLIB_DEFINE_RAW_RESOURCE_MAP_END\r\n");
-		
+
 		sbHeader.add("\r\n");
 		sbHeader.add(tabs);
 
 		sbCpp.add("\r\n");
 		sbCpp.link(sbMap);
-		
+
 		sbCpp.add("\r\n");
 		sbCpp.link(sbData);
-		
+
 		if (namespace2.isNotEmpty()) {
 			sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
 			sbCpp.add("\r\n\t}\r\n}\r\n");
@@ -172,7 +172,7 @@ namespace slib
 			sbHeader.add("SLIB_DECLARE_RAW_RESOURCE_MAP\r\n\r\n}\r\n");
 			sbCpp.add("\r\n}\r\n");
 		}
-		
+
 		String pathHeader = targetPath + "/raws.h";
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
@@ -181,7 +181,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		String pathCpp = targetPath + "/raws.cpp";
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
@@ -243,7 +243,7 @@ namespace slib
 			return sl_true;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_generateRawDataFile(const String& targetPath, const String& sourcePath, const String& resourceName)
 	{
 		if (!(File::exists(sourcePath))) {

@@ -106,7 +106,7 @@ namespace slib
 				}
 
 				Ref<ObjectStoreDictionary> getRootDictionary() override;
-				
+
 			public:
 				Ref<ObjectStoreDictionary> createDictionary(sl_uint64 parentId, const StringView& key);
 

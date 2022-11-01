@@ -50,14 +50,14 @@ namespace slib
 				BitmapImpl()
 				{
 				}
-					
+
 				~BitmapImpl()
 				{
 					if (m_flagFreeOnRelease) {
 						delete m_bitmap;
 					}
 				}
-				
+
 			public:
 				static Ref<BitmapImpl> create(Gdiplus::Bitmap* handle, sl_bool flagFreeOnRelease, Referable* ref)
 				{
@@ -89,7 +89,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				static Ref<BitmapImpl> loadFromMemory(const void* mem, sl_size size)
 				{
 					IStream* stream = SHCreateMemStream((BYTE*)mem, (sl_uint32)size);
@@ -103,17 +103,17 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_uint32 getBitmapWidth() override
 				{
 					return m_bitmap->GetWidth();
 				}
-				
+
 				sl_uint32 getBitmapHeight() override
 				{
 					return m_bitmap->GetHeight();
 				}
-				
+
 				sl_bool readPixels(sl_uint32 x, sl_uint32 y, BitmapData& _dst) override
 				{
 					sl_uint32 w = getBitmapWidth();
@@ -163,7 +163,7 @@ namespace slib
 						return sl_false;
 
 					} else {
-						
+
 						SLIB_SCOPED_BUFFER(Color, 65536, buf, width*height);
 						if (!buf) {
 							return sl_false;
@@ -191,7 +191,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-				
+
 				sl_bool writePixels(sl_uint32 x, sl_uint32 y, const BitmapData& _src) override
 				{
 					sl_uint32 w = getBitmapWidth();
@@ -233,9 +233,9 @@ namespace slib
 							result = m_bitmap->UnlockBits(&data);
 							return result == Gdiplus::Ok;
 						}
-						
+
 					} else {
-						
+
 						SLIB_SCOPED_BUFFER(Color, 65536, buf, width*height);
 						if (!buf) {
 							return sl_false;
@@ -262,7 +262,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_bool resetPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color& color) override
 				{
 					sl_uint32 w = getBitmapWidth();
@@ -279,9 +279,9 @@ namespace slib
 					if (width == 0 || height == 0) {
 						return sl_true;
 					}
-					
+
 					Gdiplus::Rect rc(x, y, width, height);
-					
+
 					Gdiplus::BitmapData data;
 					data.Width = width;
 					data.Height = height;
@@ -304,7 +304,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				Ref<Canvas> getCanvas() override
 				{
 					Gdiplus::Graphics* g = new Gdiplus::Graphics(m_bitmap);
@@ -318,7 +318,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
 				{
 					GraphicsPlatform::drawImage(canvas, rectDst, m_bitmap, rectSrc, param);

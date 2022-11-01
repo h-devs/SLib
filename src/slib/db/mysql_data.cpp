@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	sl_uint8* MysqlData::readVarchar(String& str, const void* _buf, sl_size size)
 	{
 		if (!size) {

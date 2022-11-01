@@ -27,9 +27,9 @@
 
 namespace slib
 {
-	
+
 	class Event;
-	
+
 	class SLIB_EXPORT Service : public Application
 	{
 		SLIB_DECLARE_OBJECT
@@ -50,7 +50,7 @@ namespace slib
 		virtual void onStopService() = 0;
 
 		sl_int32 doRun() override;
-	
+
 		sl_int32 onRunApp() override;
 
 		String getApplicationId() override;
@@ -68,14 +68,14 @@ namespace slib
 		void statusService();
 
 		sl_int32 runService();
-	
+
 	public:
 		static Ref<Service> getApp();
-		
+
 		static void quitApp();
-		
+
 		void quit();
-	
+
 	private:
 		sl_bool _tryPlatformService();
 

@@ -72,7 +72,7 @@ namespace slib
 				SLIB_JNI_NATIVE(onClose, "nativeOnClose", "(J)Z", OnClose);
 
 			SLIB_JNI_END_CLASS
-				
+
 			class Android_WindowInstance : public WindowInstance
 			{
 			public:
@@ -219,7 +219,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void activate() override
 				{
 					if (m_flagClosed) {

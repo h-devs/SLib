@@ -43,7 +43,7 @@ namespace slib
 {
 	@public sl_uint32 m_selectionBefore;
 	@public slib::WeakRef<slib::priv::picker_view::PickerViewInstance> m_viewInstance;
-	
+
 	UIFont* m_font;
 }
 
@@ -66,19 +66,19 @@ namespace slib
 				{
 					return Apple::getNSStringFromString(PickerView::getItemTitle(row));
 				}
-				
+
 			};
-			
+
 			class PickerViewInstance : public iOS_ViewInstance, public IPickerViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBPickerViewHandle* getHandle()
 				{
 					return (SLIBPickerViewHandle*)m_handle;
 				}
-				
+
 				Ref<PickerViewHelper> getHelper()
 				{
 					return CastRef<PickerViewHelper>(getView());
@@ -92,12 +92,12 @@ namespace slib
 					setHandleFont(handle, view->getFont());
 					_select(handle, view->getSelectedIndex());
 				}
-				
+
 				static void _select(SLIBPickerViewHandle* handle, sl_uint32 index)
 				{
 					[handle selectRow:index inComponent:0 animated:NO];
 				}
-				
+
 				void selectItem(PickerView* view, sl_uint32 index) override
 				{
 					SLIBPickerViewHandle* handle = getHandle();
@@ -105,7 +105,7 @@ namespace slib
 						_select(handle, index);
 					}
 				}
-				
+
 				void refreshItems(PickerView* view) override
 				{
 					SLIBPickerViewHandle* handle = getHandle();
@@ -114,7 +114,7 @@ namespace slib
 						_select(handle, view->getSelectedIndex());
 					}
 				}
-				
+
 				void setFont(View* view, const Ref<Font>& font) override
 				{
 					SLIBPickerViewHandle* handle = getHandle();
@@ -123,7 +123,7 @@ namespace slib
 						[handle reloadAllComponents];
 					}
 				}
-				
+
 				void onSelectItem(SLIBPickerViewHandle* handle, sl_uint32 row)
 				{
 					Ref<PickerViewHelper> helper = getHelper();
@@ -131,26 +131,26 @@ namespace slib
 						helper->dispatchSelectItem(row);
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(PickerViewInstance, iOS_ViewInstance)
 
 		}
 	}
 
 	using namespace priv::picker_view;
-	
+
 	Ref<ViewInstance> PickerView::createNativeWidget(ViewInstance* parent)
 	{
 		return iOS_ViewInstance::create<PickerViewInstance, SLIBPickerViewHandle>(this, parent);
 	}
-	
+
 	Ptr<IPickerViewInstance> PickerView::getPickerViewInstance()
 	{
 		return CastRef<PickerViewInstance>(getViewInstance());
 	}
-	
+
 }
 
 using namespace slib;

@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ChatViewItem
 	{
 	public:
@@ -38,14 +38,14 @@ namespace slib
 		String userName;
 		sl_bool flagMe;
 		ChatMessage message;
-	
+
 	public:
 		ChatViewItem();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ChatViewItem)
-		
+
 	};
-	
+
 	namespace priv
 	{
 		namespace chat_view
@@ -53,92 +53,92 @@ namespace slib
 			class ChatItemView;
 		}
 	}
-	
+
 	class SLIB_EXPORT ChatView : public ListView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ChatView();
-		
+
 		~ChatView();
-		
+
 	public:
 		void setItems(const List<ChatViewItem>& items, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		void addItem(const ChatViewItem& item, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		void addItems(const List<ChatViewItem>& items, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_ui_len getChatWidth();
-		
+
 		void setChatWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_real getChatWidthWeight();
-		
+
 		void setChatWidthWeight(sl_real weight, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_ui_len getUserIconSize();
-		
+
 		void setUserIconSize(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_real getUserIconSizeWeight();
-		
+
 		void setUserIconSizeWeight(sl_real weight, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		String getDateFormat();
-		
+
 		void setDateFormat(const String& format, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		String getTimeFormat();
-		
+
 		void setTimeFormat(const String& format, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getReceivedChatBackColor();
-		
+
 		void setReceivedChatBackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getReceivedChatTextColor();
-		
+
 		void setReceivedChatTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getSentChatBackColor();
-		
+
 		void setSentChatBackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getSentChatTextColor();
-		
+
 		void setSentChatTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getDateTextColor();
-		
+
 		void setDateTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setFrame(const UIRect& frame, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
-		
+
 		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ChatView, DeleteItem, const String& itemId)
 
 	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 	protected:
 		void _updateListContent(UIUpdateMode mode);
-				
+
 		void _addListContent(UIUpdateMode mode);
-		
+
 	private:
 		void _onRemoveItem(const String& itemId);
-		
+
 	protected:
 		AtomicList<ChatViewItem> m_items;
 		sl_ui_len m_chatWidth;
 		sl_real m_chatWidthWeight;
 		sl_ui_len m_userIconSize;
 		sl_real m_userIconSizeWeight;
-		
+
 		String m_formatDate;
 		String m_formatTime;
 		Color m_backColorReceived;
@@ -146,7 +146,7 @@ namespace slib
 		Color m_backColorSent;
 		Color m_textColorSent;
 		Color m_textColorDate;
-		
+
 		friend class priv::chat_view::ChatItemView;
 
 	};

@@ -41,7 +41,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace charset
@@ -56,7 +56,7 @@ namespace slib
 			#undef ucnv_countAvailable
 			#undef ucnv_getAvailableName
 			#endif
-			
+
 			#define ucnv_open SLIB_ucnv_open
 			typedef UConverter* (*TYPE_ucnv_open)(const char *converterName, UErrorCode *err);
 			TYPE_ucnv_open SLIB_ucnv_open = sl_null;
@@ -151,7 +151,7 @@ namespace slib
 				String strCodepage = strCodepagePrefix + String::fromUint32(codepage);
 				return ucnv_open(strCodepage.getData(), &err);
 			}
-			
+
 			sl_size Encode16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
 			{
 				if (!lenUtf16) {
@@ -178,7 +178,7 @@ namespace slib
 				}
 				return ret;
 			}
-			
+
 			sl_size Decode16(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer)
 			{
 				if (!sizeInput) {
@@ -205,10 +205,10 @@ namespace slib
 				}
 				return ret;
 			}
-			
+
 		}
 	}
-	
+
 }
 
 #endif

@@ -34,7 +34,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT FontDesc
 	{
 	public:
@@ -44,24 +44,24 @@ namespace slib
 		sl_bool flagItalic;
 		sl_bool flagUnderline;
 		sl_bool flagStrikeout;
-	
+
 	public:
 		FontDesc();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FontDesc)
 
 	};
-	
+
 	struct SLIB_EXPORT FontMetrics
 	{
 		sl_real ascent;
 		sl_real descent;
 		sl_real leading;
 	};
-	
+
 	class Locale;
 	class FontAtlas;
-	
+
 	class SLIB_EXPORT Font : public Referable
 	{
 		SLIB_DECLARE_OBJECT
@@ -75,7 +75,7 @@ namespace slib
 		static Ref<Font> create(const FontDesc& desc);
 
 		static Ref<Font> create(const String& familyName, sl_real size, sl_bool flagBold = sl_false, sl_bool flagItalic = sl_false, sl_bool flagUnderline = sl_false, sl_bool flagStrikeout = sl_false);
-	
+
 		static Ref<Font> getDefault();
 
 		static void setDefault(const Ref<Font>& font);
@@ -112,7 +112,7 @@ namespace slib
 		sl_bool isItalic();
 
 		sl_bool isUnderline();
-		
+
 		sl_bool isStrikeout();
 
 		sl_bool getFontMetrics(FontMetrics& _out);

@@ -79,7 +79,7 @@ namespace slib
 						g_signal_connect(entry, "key-press-event", G_CALLBACK(eventCallback), handle);
 					}
 				}
-				
+
 				void refreshItems(ComboBox* view, sl_bool flagInit)
 				{
 					GtkComboBox* handle = (GtkComboBox*)m_handle;

@@ -9,7 +9,7 @@ class P2PMsgApp : public UIApp
 	SLIB_APPLICATION(P2PMsgApp)
 public:
 	P2PMsgApp();
-	
+
 protected:
 	void onStart() override;
 
@@ -17,7 +17,7 @@ protected:
 
 private:
 	void addToBoard(const StringParam& title, const StringParam& content);
-	
+
 protected:
 	Ref<P2PSocket> m_p2p;
 	Ref<Timer> m_timerBroadcast;

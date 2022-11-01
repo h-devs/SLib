@@ -94,7 +94,7 @@ namespace slib
 					}
 
 					priv::ui_core::g_wndProc_SystemTrayIcon = &messageProc;
-					
+
 					NOTIFYICONDATAW nid;
 					if (!(prepareNID(nid))) {
 						return sl_null;

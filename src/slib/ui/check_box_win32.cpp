@@ -49,7 +49,7 @@ namespace slib
 			void CheckBoxInstance::initialize(View* _view)
 			{
 				CheckBox* view = (CheckBox*)_view;
-				
+
 				ButtonInstance::initialize(view);
 				setChecked(view, view->isChecked());
 			}

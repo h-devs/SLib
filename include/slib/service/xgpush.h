@@ -27,14 +27,14 @@
 
 namespace slib
 {
-	
+
 	enum class XgPushPlatform
 	{
 		All = 0,
 		iOS = 1,
 		Android = 2
 	};
-	
+
 	enum class XgPushEnvironment
 	{
 		Production = 0,
@@ -51,29 +51,29 @@ namespace slib
 
 		List<String> receiverDeviceTokens;
 		PushNotificationMessage message;
-		
+
 		Json customMessage;
-		
+
 		Function<void(sl_bool, String)> callback;
-		
+
 	public:
 		XgPushSendParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(XgPushSendParam)
-		
+
 	};
-	
+
 	class XgPushService
 	{
 	public:
 		static void sendNotification(const XgPushSendParam& param);
-		
+
 		static String getPlatformString(XgPushPlatform platform);
-		
+
 		static String getEnvironmentString(XgPushEnvironment environment);
 
 	};
-	
+
 }
 
 #endif

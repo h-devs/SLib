@@ -32,14 +32,14 @@ namespace slib
 {
 
 	class MobileMainWindow;
-	
+
 	class SLIB_EXPORT MobileApp : public UIApp
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		MobileApp();
-		
+
 		~MobileApp();
 
 	protected:
@@ -47,84 +47,84 @@ namespace slib
 
 	public:
 		static Ref<MobileApp> getApp();
-		
+
 		Ref<MobileMainWindow> getMainWindow();
-		
+
 		static sl_bool isPaused();
-		
+
 		Ref<View> getRootView();
-		
+
 		Ref<View> getContentView();
-		
+
 		Ref<ViewPageNavigationController> getNavigationController();
-		
+
 		virtual Ref<View> getLoadingPage();
 
 		virtual Ref<View> getStartupPage();
-		
+
 		void addViewToRoot(const Ref<View>& view);
-		
+
 		void addViewToContent(const Ref<View>& view);
-		
+
 		void openPage(const Ref<View>& page, const Transition& transition);
-		
+
 		void openPage(const Ref<View>& page);
-		
+
 		void openHomePage(const Ref<View>& page, const Transition& transition);
-		
+
 		void openHomePage(const Ref<View>& page);
-		
+
 		void closePage(const Ref<View>& page, const Transition& transition);
-		
+
 		void closePage(const Ref<View>& page);
-		
+
 		void closePage(const Transition& transition);
-		
+
 		void closePage();
-		
+
 		void popupPage(const Ref<ViewPage>& page, const Transition& transition, sl_bool flagFillParentBackground = sl_true);
-		
+
 		void popupPage(const Ref<ViewPage>& page, sl_bool flagFillParentBackground = sl_true);
-		
+
 		void closePopup(const Ref<ViewPage>& page, const Transition& transition);
-		
+
 		void closePopup(const Ref<ViewPage>& page);
-		
+
 		void closePopup(const Transition& transition);
-		
+
 		void closePopup();
-		
+
 		void openStartupPage();
-		
+
 	public:
 		static List<ScreenOrientation> getAvailableScreenOrientations();
-		
+
 		static void setAvailableScreenOrientations(const List<ScreenOrientation>& orientations);
-		
+
 		static void setAvailableScreenOrientation(const ScreenOrientation& orientation);
-		
+
 		// ScreenOrientationPortrait
 		static void setAvailableScreenOrientationsPortrait();
-		
+
 		// ScreenOrientationLandscapeRight, ScreenOrientationLandscapeLeft
 		static void setAvailableScreenOrientationsLandscape();
-		
+
 		static void setAvailableScreenOrientationsAll();
-		
+
 		static ScreenOrientation getScreenOrientation();
-		
+
 		static void attemptRotateScreenOrientation();
 
 
 		static sl_ui_len getStatusBarHeight();
-		
+
 		static void setStatusBarStyle(StatusBarStyle style);
-		
+
 		static UIEdgeInsets getSafeAreaInsets();
-		
-		
+
+
 		static UIKeyboardAdjustMode getKeyboardAdjustMode();
-		
+
 		static void setKeyboardAdjustMode(UIKeyboardAdjustMode mode);
 
 	public:
@@ -140,41 +140,41 @@ namespace slib
 		void dispatchStart() override;
 
 		static void dispatchPauseToApp();
-		
+
 		static void dispatchResumeToApp();
-		
+
 		static sl_bool dispatchBackPressedToApp();
-		
+
 		static void dispatchCreateActivityToApp();
-		
+
 		static void dispatchDestroyActivityToApp();
-		
+
 		static void dispatchResizeToApp(sl_ui_len width, sl_ui_len height);
-				
+
 	protected:
 		static sl_bool m_flagPaused;
-		
+
 		Ref<View> m_contentView;
 		Ref<ViewPageNavigationController> m_navigationController;
 		CList< Ref<ViewPage> > m_popupPages;
 		Function<void()> m_callbackOnChangeLocale;
-		
+
 		friend class ViewPage;
-		
+
 	};
-	
+
 	class SLIB_EXPORT MobileMainWindow : public Window
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		MobileMainWindow();
-		
+
 		~MobileMainWindow();
 
 	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 	};
 
 }

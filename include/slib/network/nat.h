@@ -32,7 +32,7 @@
 
 /*
 	If you are usiing kernel-mode NAT on linux (for example on port range 40000~60000), following configuration will avoid to conflict with kernel-networking.
-		
+
 		iptables -A INPUT -p tcp --dport 40000:60000 -j DROP
 		sysctl -w net.ipv4.ip_local_port_range="30000 39000"
 */ 
@@ -46,99 +46,99 @@ namespace slib
 		sl_bool flagActive;
 		SocketAddress addressSource;
 		Time timeLastAccess;
-		
+
 	public:
 		NatTablePort();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NatTablePort)
-		
+
 	};
-	
+
 	class NatTableMapping : public Object
 	{
 	public:
 		NatTableMapping();
-		
+
 		~NatTableMapping();
-		
+
 	public:
 		void setup(sl_uint16 portBegin, sl_uint16 portEnd);
-		
+
 		sl_bool mapToExternalPort(const SocketAddress& address, sl_uint16& port);
-		
+
 		sl_bool mapToInternalAddress(sl_uint16 port, SocketAddress& address);
-		
+
 	protected:
 		CHashMap< SocketAddress, sl_uint16 > m_mapPorts;
-		
+
 		NatTablePort* m_ports;
 		sl_uint16 m_nPorts;
 		sl_uint16 m_pos;
-		
+
 		sl_uint16 m_portBegin;
 		sl_uint16 m_portEnd;
-		
+
 	};
-	
+
 	class SLIB_EXPORT NatTableParam
 	{
 	public:
 		IPv4Address targetAddress;
-		
+
 		sl_uint16 tcpPortBegin;
 		sl_uint16 tcpPortEnd;
-		
+
 		sl_uint16 udpPortBegin;
 		sl_uint16 udpPortEnd;
-		
+
 		sl_uint16 icmpEchoIdentifier;
-		
+
 	public:
 		NatTableParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NatTableParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT NatTable : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		NatTable();
-		
+
 		~NatTable();
-		
+
 	public:
 		const NatTableParam& getParam() const;
-		
+
 		void setup(const NatTableParam& param);
-		
+
 	public:
 		sl_bool translateOutgoingPacket(IPv4Packet* ipHeader, void* ipContent, sl_uint32 sizeContent);
-		
+
 		sl_bool translateIncomingPacket(IPv4Packet* ipHeader, void* ipContent, sl_uint32 sizeContent);
-		
+
 		sl_uint16 getMappedIcmpEchoSequenceNumber(const IcmpEchoAddress& address);
-		
+
 	protected:
 		NatTableParam m_param;
-		
+
 		NatTableMapping m_mappingTcp;
-		
+
 		NatTableMapping m_mappingUdp;
-		
+
 		sl_uint16 m_icmpEchoSequenceCurrent;
-		
+
 		struct IcmpEchoElement
 		{
 			IcmpEchoAddress addressSource;
 			sl_uint16 sequenceNumberTarget;
 		};
-		
+
 		CHashMap<IcmpEchoAddress, IcmpEchoElement> m_mapIcmpEchoOutgoing;
 		CHashMap<sl_uint32, IcmpEchoElement> m_mapIcmpEchoIncoming;
-		
+
 	};
 
 }

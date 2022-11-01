@@ -69,10 +69,10 @@ namespace slib
 				{
 					RenderView* view = (RenderView*)_view;
 					jobject jhandle = getHandle();
-					
+
 					JGLView::setRenderMode.callBoolean(sl_null, jhandle, view->getRedrawMode());
 				}
-			
+
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
 					jobject handle = m_handle.get();

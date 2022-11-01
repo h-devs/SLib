@@ -76,9 +76,9 @@ namespace slib
 		DragEnter = SLIB_UI_ACTION_TYPE_DRAG | 0x12,
 		DragLeave = SLIB_UI_ACTION_TYPE_DRAG | 0x13,
 		DragOver = SLIB_UI_ACTION_TYPE_DRAG | 0x14
-		
+
 	};
-	
+
 	SLIB_DEFINE_FLAGS(UIEventFlags, {
 		PreventDefault = 0x0001,
 		StopPropagation = 0x0002,
@@ -89,7 +89,7 @@ namespace slib
 		KeepKeyboard = 0x4000,
 		Captured = 0x8000
 	})
-	
+
 	enum class TouchPhase
 	{
 		Move = 0,
@@ -97,7 +97,7 @@ namespace slib
 		End = 2,
 		Cancel = 3
 	};
-	
+
 	enum class Keycode
 	{
 		Unknown = 0,
@@ -105,7 +105,7 @@ namespace slib
 		Tab = 0x09,
 		Enter = 0x0D,
 		Escape = 0x1B,
-		
+
 		Space = 0x20,
 		Grave = 0x21, // ` ~
 		Equal = 0x22, // = +
@@ -118,7 +118,7 @@ namespace slib
 		Minus = 0x2D, // - _
 		Period = 0x2E, // . >
 		Divide = 0x2F, // / ?
-		
+
 		Num0 = 0x30,
 		Num1 = 0x31,
 		Num2 = 0x32,
@@ -129,7 +129,7 @@ namespace slib
 		Num7 = 0x37,
 		Num8 = 0x38,
 		Num9 = 0x39,
-		
+
 		A = 0x41,
 		B = 0x42,
 		C = 0x43,
@@ -156,7 +156,7 @@ namespace slib
 		X = 0x58,
 		Y = 0x59,
 		Z = 0x5A,
-		
+
 		Numpad0 = 0x60,
 		Numpad1 = 0x61,
 		Numpad2 = 0x62,
@@ -173,7 +173,7 @@ namespace slib
 		NumpadPlus = 0x6D,
 		NumpadEnter = 0x6E,
 		NumpadDecimal = 0x6F,
-		
+
 		F1 = 0x71,
 		F2 = 0x72,
 		F3 = 0x73,
@@ -186,7 +186,7 @@ namespace slib
 		F10 = 0x80,
 		F11 = 0x81,
 		F12 = 0x82,
-		
+
 		PageUp = 0xA0,
 		PageDown = 0xA1,
 		Home = 0xA2,
@@ -200,7 +200,7 @@ namespace slib
 		Delete = 0xAA,
 		Sleep = 0xAB,
 		Pause = 0xAC,
-		
+
 		GoHome = 0xC0,
 		GoMenu = 0xC1,
 		GoBack = 0xC2,
@@ -214,7 +214,7 @@ namespace slib
 		MediaStop = 0xCE,
 		PhoneStar = 0xD8,
 		PhonePound = 0xD9,
-		
+
 		LeftShift = 0xE0,
 		RightShift = 0xE1,
 		LeftControl = 0xE2,
@@ -236,11 +236,11 @@ namespace slib
 		Korean = 0xF9
 
 	};
-	
+
 	SLIB_DEFINE_FLAGS(Modifiers, {
 
 		Mask = 0xFFFF0000,
-			
+
 		Control = 0x00010000,
 		Alt = 0x00020000,
 		Option = Alt,
@@ -249,7 +249,7 @@ namespace slib
 		Command = Windows
 
 	})
-	
+
 	enum class ButtonState
 	{
 		Default = 0,
@@ -262,7 +262,7 @@ namespace slib
 
 		Count = 7
 	};
-	
+
 	enum class UIUpdateMode
 	{
 		None = 0,
@@ -271,7 +271,7 @@ namespace slib
 		Animate = 5,
 		Init = 0x8000
 	};
-	
+
 #define SLIB_UI_UPDATE_MODE_IS_REDRAW(mode) (((int)(mode)) & ((int)(UIUpdateMode::Redraw)))
 #define SLIB_UI_UPDATE_MODE_IS_UPDATE_LAYOUT(mode) ((((int)(mode)) & ((int)(UIUpdateMode::UpdateLayout))) == ((int)(UIUpdateMode::UpdateLayout)))
 #define SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode) ((((int)(mode)) & ((int)(UIUpdateMode::Animate))) == ((int)(UIUpdateMode::Animate)))
@@ -282,20 +282,20 @@ namespace slib
 		Continuously = 0,
 		WhenDirty = 1
 	};
-	
+
 	enum class Visibility
 	{
 		Visible = 0,
 		Hidden = 1,
 		Gone = 2,
 	};
-	
+
 	enum class LayoutOrientation
 	{
 		Horizontal = 0,
 		Vertical = 1
 	};
-	
+
 	enum class SizeMode
 	{
 		Fixed = 0,
@@ -303,7 +303,7 @@ namespace slib
 		Wrapping = 2,
 		Weight = 3
 	};
-	
+
 	enum class PositionMode
 	{
 		Free = 0,
@@ -313,14 +313,14 @@ namespace slib
 		CenterInParent = 4,
 		CenterInOther = 5
 	};
-	
+
 	enum class AspectRatioMode
 	{
 		None = 0,
 		AdjustWidth = 1,
 		AdjustHeight = 2
 	};
-	
+
 	class DialogResult
 	{
 	public:
@@ -365,17 +365,17 @@ namespace slib
 		AttachInNativeWidget = 3,
 		AttachInInstance = 4
 	};
-	
+
 	enum class GestureType
 	{
 		SwipeLeft = 0,
 		SwipeRight = 1,
 		SwipeUp = 2,
 		SwipeDown = 3,
-		
+
 		Count = 4
 	};
-	
+
 	enum class UIPageAction
 	{
 		Push = 0,
@@ -383,7 +383,7 @@ namespace slib
 		Resume = 2,
 		Pause = 3
 	};
-	
+
 	enum class UIReturnKeyType
 	{
 		Default = 0,
@@ -400,7 +400,7 @@ namespace slib
 		Google = 11,
 		Yahoo = 12
 	};
-	
+
 	enum class UIKeyboardType
 	{
 		Default = 0,
@@ -417,14 +417,14 @@ namespace slib
 		Ascii = 11,
 		AsciiNumpad = 12
 	};
-	
+
 	enum class UIKeyboardAdjustMode
 	{
 		None = 0,
 		Pan = 1,
 		Resize = 2
 	};
-	
+
 	enum class UIAutoCapitalizationType
 	{
 		None = 0,
@@ -440,14 +440,14 @@ namespace slib
 		PortraitUpsideDown = 180,
 		LandscapeLeft = 270
 	};
-	
+
 	enum class StatusBarStyle
 	{
 		Hidden = 0,
 		Dark = 1,
 		Light = 2
 	};
-	
+
 	class UIEdgeInsets
 	{
 	public:
@@ -455,16 +455,16 @@ namespace slib
 		sl_ui_len top;
 		sl_ui_len right;
 		sl_ui_len bottom;
-		
+
 	public:
 		UIEdgeInsets(): left(0), top(0), right(0), bottom(0) {}
-		
+
 		UIEdgeInsets(sl_ui_len _left, sl_ui_len _top, sl_ui_len _right, sl_ui_len _bottom): left(_left), top(_top), right(_right), bottom(_bottom) {}
-		
+
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(UIEdgeInsets)
-		
+
 	};
-	
+
 	SLIB_DEFINE_FLAGS(DragOperations, {
 		None = 0,
 		All = 0xFFFF,
@@ -476,7 +476,7 @@ namespace slib
 		Delete = 0x0020, // The data can be deleted. [macOS]
 		Scroll = 0x0040 // Scrolling is about to start or is currently occurring in the target. [Win32]
 	})
-	
+
 }
 
 #endif

@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace app
@@ -44,12 +44,12 @@ namespace slib
 				if (path.isEmpty()) {
 					return;
 				}
-				
+
 				NSURL *itemURL = [NSURL fileURLWithPath:(Apple::getNSStringFromString(path))];
 				LSSharedFileListItemRef existingItem = NULL;
-				
+
 				LSSharedFileListRef loginItems = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
-				
+
 				if(loginItems) {
 					UInt32 seed = 0U;
 					NSArray *currentLoginItems = CFBridgingRelease(LSSharedFileListCopySnapshot(loginItems, &seed));
@@ -79,10 +79,10 @@ namespace slib
 					CFRelease(loginItems);
 				}
 			}
-			
+
 		}
 	}
-	
+
 	using namespace priv::app;
 
 	sl_bool Application::isAccessibilityEnabled()

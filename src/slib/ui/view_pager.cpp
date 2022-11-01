@@ -34,22 +34,22 @@ namespace slib
 	{
 		setUsingChildLayouts(sl_false);
 		setClipping(sl_true, UIUpdateMode::Init);
-		
+
 		m_indexCurrent = 0;
-		
+
 		m_flagLoop = sl_false;
-		
+
 		m_flagMouseDown = sl_false;
 		m_posMouseDown.x = 0;
 		m_posMouseDown.y = 0;
 		m_offsetPages = 0;
 		m_offsetPagesMouseDown = 0;
 	}
-	
+
 	ViewPager::~ViewPager()
 	{
 	}
-	
+
 	void ViewPager::setAdapter(const Ref<ViewAdapter>& adapter, UIUpdateMode mode)
 	{
 		m_adapter = adapter;
@@ -57,7 +57,7 @@ namespace slib
 			_reloadPages();
 		}
 	}
-	
+
 	void ViewPager::addPage(const Ref<View>& view, UIUpdateMode mode)
 	{
 		Ref<ViewAdapter> adapter = m_adapter;
@@ -73,7 +73,7 @@ namespace slib
 		listAdapter->addView(view);
 		setAdapter(listAdapter, mode);
 	}
-	
+
 	sl_uint64 ViewPager::getPageCount()
 	{
 		Ref<ViewAdapter> adapter = m_adapter;
@@ -82,12 +82,12 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	sl_uint64 ViewPager::getCurrentIndex()
 	{
 		return m_indexCurrent;
 	}
-	
+
 	void ViewPager::selectPage(sl_uint64 index, UIUpdateMode mode)
 	{
 		_selectPage(sl_false, index, mode);
@@ -96,7 +96,7 @@ namespace slib
 	void ViewPager::_selectPage(sl_bool flagEvent, sl_uint64 index, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		
+
 		sl_uint64 n = getPageCount();
 		if (n <= 0) {
 			index = 0;
@@ -114,7 +114,7 @@ namespace slib
 				index = n - 1;
 			}
 		}
-		
+
 		sl_uint64 indexCurrent = m_indexCurrent;
 
 		do {
@@ -206,7 +206,7 @@ namespace slib
 				m_timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _onAnimation), 20);
 			}
 		} while (0);
-		
+
 		if (indexCurrent != index) {
 			m_indexCurrent = index;
 			if (flagEvent) {
@@ -215,22 +215,22 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void ViewPager::goToPrevious(UIUpdateMode mode)
 	{
 		selectPage(m_indexCurrent - 1, mode);
 	}
-	
+
 	void ViewPager::goToNext(UIUpdateMode mode)
 	{
 		selectPage(m_indexCurrent + 1, mode);
 	}
-	
+
 	sl_bool ViewPager::isLoop()
 	{
 		return m_flagLoop;
 	}
-	
+
 	void ViewPager::setLoop(sl_bool flag)
 	{
 		m_flagLoop = flag;
@@ -244,9 +244,9 @@ namespace slib
 			_selectPage(sl_true, m_indexCurrent);
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ViewPager, SelectPage, sl_uint64 index)
-	
+
 	void ViewPager::dispatchSelectPage(sl_uint64 index)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(SelectPage, index)
@@ -256,27 +256,27 @@ namespace slib
 	{
 		_resizePages();
 	}
-	
+
 	void ViewPager::onChangePadding(UIUpdateMode mode)
 	{
 		_resizePages();
 	}
-	
+
 	void ViewPager::onMouseEvent(UIEvent* ev)
 	{
 		sl_uint64 countPages = getPageCount();
 		if (countPages <= 0) {
 			return;
 		}
-		
+
 		sl_real dimUnit = Math::ceil(UI::dpToPixel(1));
 		if (dimUnit < 1) {
 			dimUnit = 1;
 		}
-		
+
 		UIAction action = ev->getAction();
 		Point pos = ev->getPoint();
-		
+
 		if (action != UIAction::LeftButtonDrag && action != UIAction::TouchMove) {
 			setCapturingEvents(sl_false);
 			if (action != UIAction::LeftButtonDown || action != UIAction::TouchBegin) {
@@ -286,7 +286,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
 			m_motionTracker.clearMovements();
 			m_flagMouseDown = sl_true;
@@ -407,7 +407,7 @@ namespace slib
 			m_motionTracker.clearMovements();
 		}
 	}
-	
+
 	Ref<View> ViewPager::_loadPage(sl_uint64 index)
 	{
 		ObjectLocker lock(this);
@@ -429,7 +429,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_ui_pos ViewPager::_getPagePosition(sl_uint64 index)
 	{
 		sl_ui_len offset = m_offsetPages;
@@ -489,7 +489,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void ViewPager::_relocatePages()
 	{
 		ObjectLocker lock(this);
@@ -498,7 +498,7 @@ namespace slib
 			item.value->setTranslationX((sl_real)(_getPagePosition(item.key)));
 		}
 	}
-	
+
 	void ViewPager::_resizePages()
 	{
 		ObjectLocker lock(this);
@@ -509,7 +509,7 @@ namespace slib
 			item.value->setTranslationX((sl_real)(_getPagePosition(item.key)));
 		}
 	}
-	
+
 	void ViewPager::_reloadPages()
 	{
 		ObjectLocker lock(this);
@@ -520,7 +520,7 @@ namespace slib
 		m_offsetPages = 0;
 		_loadPage(m_indexCurrent);
 	}
-	
+
 	void ViewPager::_cleanCache()
 	{
 		ObjectLocker lock(this);
@@ -538,7 +538,7 @@ namespace slib
 			m_cache.put_NoLock(indexCurrent, current);
 		}
 	}
-	
+
 	void ViewPager::_onAnimation(Timer* timer)
 	{
 		ObjectLocker lock(this);
@@ -561,5 +561,5 @@ namespace slib
 			item.value->setTranslationX((sl_real)(_getPagePosition(item.key)));
 		}
 	}
-	
+
 }

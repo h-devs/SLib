@@ -31,7 +31,7 @@ class ExampleChromiumViewApp : public UIApp
 	SLIB_APPLICATION(ExampleChromiumViewApp)
 public:
 	ExampleChromiumViewApp();
-	
+
 	void onStart() override;
-	
+
 };

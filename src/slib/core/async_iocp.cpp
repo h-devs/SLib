@@ -66,7 +66,7 @@ namespace slib
 	}
 
 	using namespace priv::async_iocp;
-	
+
 	void* AsyncIoLoop::_native_createHandle()
 	{
 		HANDLE hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 1);
@@ -104,7 +104,7 @@ namespace slib
 			_stepBegin();
 
 			DWORD nCount = 0;
-			
+
 			if (!fGetQueuedCompletionStatusEx(handle->hCompletionPort, entries, ASYNC_MAX_WAIT_EVENT, &nCount, 5000, FALSE)) {
 				nCount = 0;
 			}

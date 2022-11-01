@@ -60,7 +60,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(share, "share", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 				SLIB_JNI_NATIVE(nativeOnShareResult, "nativeOnShareResult", "(ZZ)V", OnShareResult);
 			SLIB_JNI_END_CLASS
-			
+
 			class FacebookSDKContext
 			{
 			public:
@@ -213,7 +213,7 @@ namespace slib
 	{
 		JFacebook::clearAccessToken.call(sl_null);
 	}
-	
+
 }
 
 #endif

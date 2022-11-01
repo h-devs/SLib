@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class READER>
 	class SLIB_EXPORT BitReaderLE
 	{

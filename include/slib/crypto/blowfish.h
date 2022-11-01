@@ -34,7 +34,7 @@
 
 namespace slib
 {
-	
+
 	class StringView;
 
 	class SLIB_EXPORT Blowfish : public BlockCipher<Blowfish>
@@ -43,7 +43,7 @@ namespace slib
 		enum {
 			BlockSize = 8
 		};
-		
+
 	public:
 		Blowfish();
 
@@ -53,9 +53,9 @@ namespace slib
 		sl_bool setKey(const void* key, sl_size lenKey /* 4 to 56 bytes */);
 
 		void setKey_SHA256(const StringView& key);
-		
+
 		void encrypt(sl_uint32& d0, sl_uint32& d1) const;
-		
+
 		void decrypt(sl_uint32& d0, sl_uint32& d1) const;
 
 		// 64 bit (8 byte) block
@@ -70,7 +70,7 @@ namespace slib
 		sl_uint32 m_S[4][256];
 
 	};
-	
+
 }
 
 #endif

@@ -29,9 +29,9 @@ ExampleXgPushApp::ExampleXgPushApp()
 void ExampleXgPushApp::onStart()
 {
 	setAvailableScreenOrientationsLandscape();
-	
+
 	initUI();
-	
+
 	setBadgeNumber(0);
 
 	XgPush::setEnableDebug(sl_true);
@@ -160,29 +160,29 @@ void ExampleXgPushApp::initUI()
 	sl_real fontSizeEdit = UIResource::getScreenMinimum() / 30;
 	sl_real heightEdit = UIResource::getScreenMinimum() / 20;
 	sl_real padding = UIResource::getScreenMinimum() / 35;
-	
+
 	getMainWindow()->setBackgroundColor(Color::White);
-	
+
 	Ref<LinearLayout> linear = new LinearLayout;
 	linear->setWidthFilling();
 	linear->setMargin(getSafeAreaInsets());
 	linear->setHeightWrapping();
 	linear->setCenterVertical();
 	linear->setPadding(padding);
-	
+
 	Ref<LabelView> lblMyToken = new LabelView;
 	lblMyToken->setWidthFilling();
 	lblMyToken->setHeightWrapping();
 	lblMyToken->setFontSize(fontSizeLabel);
 	lblMyToken->setText("My Device Token:");
 	linear->addChild(lblMyToken);
-	
+
 	txtMyToken = new EditView;
 	txtMyToken->setWidthFilling();
 	txtMyToken->setHeight(heightEdit);
 	txtMyToken->setFontSize(fontSizeEdit);
 	linear->addChild(txtMyToken);
-	
+
 	Ref<LabelView> lblOtherToken = new LabelView;
 	lblOtherToken->setMarginTop(padding);
 	lblOtherToken->setWidthFilling();
@@ -190,13 +190,13 @@ void ExampleXgPushApp::initUI()
 	lblOtherToken->setFontSize(fontSizeLabel);
 	lblOtherToken->setText("Select Target Device:");
 	linear->addChild(lblOtherToken);
-	
+
 	selectReceiver = new SelectView;
 	selectReceiver->setWidthFilling();
 	selectReceiver->setHeight(heightEdit);
 	selectReceiver->setFontSize(fontSizeEdit);
 	linear->addChild(selectReceiver);
-	
+
 	Ref<LabelView> lblSendingMessage = new LabelView;
 	lblSendingMessage->setMarginTop(padding);
 	lblSendingMessage->setWidthFilling();
@@ -204,14 +204,14 @@ void ExampleXgPushApp::initUI()
 	lblSendingMessage->setFontSize(fontSizeLabel);
 	lblSendingMessage->setText("Sending Message:");
 	linear->addChild(lblSendingMessage);
-	
+
 	txtSendingMessage = new EditView;
 	txtSendingMessage->setWidthFilling();
 	txtSendingMessage->setHeight(heightEdit);
 	txtSendingMessage->setFontSize(fontSizeEdit);
 	txtSendingMessage->setHintText("Input message");
 	linear->addChild(txtSendingMessage);
-	
+
 	Ref<LabelView> lblReceivedMessage = new LabelView;
 	lblReceivedMessage->setMarginTop(padding);
 	lblReceivedMessage->setWidthFilling();
@@ -219,14 +219,14 @@ void ExampleXgPushApp::initUI()
 	lblReceivedMessage->setFontSize(fontSizeLabel);
 	lblReceivedMessage->setText("Received Message:");
 	linear->addChild(lblReceivedMessage);
-	
+
 	txtReceivedMessage = new EditView;
 	txtReceivedMessage->setWidthFilling();
 	txtReceivedMessage->setHeight(heightEdit);
 	txtReceivedMessage->setFontSize(fontSizeEdit);
 	txtReceivedMessage->setHintText("");
 	linear->addChild(txtReceivedMessage);
-	
+
 	Ref<Button> btnSend = new Button;
 	btnSend->setWidthWrapping();
 	btnSend->setHeightWrapping();
@@ -238,6 +238,6 @@ void ExampleXgPushApp::initUI()
 	btnSend->setText("Send Notification");
 	btnSend->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickSend));
 	linear->addChild(btnSend);
-	
+
 	addViewToContent(linear);
 }

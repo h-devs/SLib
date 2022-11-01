@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	Ref<Bitmap> Bitmap::create(const ImageDesc& desc)
 	{
 		Ref<Bitmap> ret = Bitmap::create(desc.width, desc.height);
@@ -40,7 +40,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Bitmap> Bitmap::create(const Ref<Image>& image)
 	{
 		if (image.isNotNull()) {
@@ -50,7 +50,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Bitmap> Bitmap::loadFromMemory(const MemoryView& mem)
 	{
 		if (mem.size) {
@@ -58,7 +58,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Bitmap> Bitmap::loadFromFile(const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
@@ -67,7 +67,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Bitmap> Bitmap::loadFromAsset(const StringParam& path)
 	{
 		Memory mem = Assets::readAllBytes(path);
@@ -97,5 +97,5 @@ namespace slib
 		return sl_null;
 #endif
 	}
-	
+
 }

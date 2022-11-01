@@ -41,12 +41,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ui_core
 		{
-		
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
 
 			class ScreenImpl : public Screen
@@ -54,7 +54,7 @@ namespace slib
 			public:
 				NSScreen* m_screen;
 				UIRect m_region;
-				
+
 			public:
 				static Ref<ScreenImpl> create(NSScreen* screen, NSScreen* primary)
 				{
@@ -82,7 +82,7 @@ namespace slib
 					}
 					return ret;
 				}
-				
+
 				static NSScreen* getPrimaryScreen()
 				{
 					NSArray* arr = [NSScreen screens];
@@ -93,30 +93,30 @@ namespace slib
 					NSScreen* primary = [arr objectAtIndex:0];
 					return primary;
 				}
-				
+
 			public:
 				UIRect getRegion() override
 				{
 					return m_region;
 				}
-				
+
 			};
-			
+
 			class StaticContext
 			{
 			public:
 				NSEvent* dispatchEvent;
 				Function<void()> customMessageLoop;
 				Function<void()> customQuitApp;
-				
+
 			public:
 				StaticContext()
 				{
 					dispatchEvent = [NSEvent otherEventWithType:NSEventTypeApplicationDefined location:NSMakePoint(0, 0) modifierFlags:0 timestamp:0 windowNumber:0 context:nil subtype:0 data1:0 data2:0];
 				}
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
 			static Function<void()> GetCustomMessageLoop()
@@ -127,7 +127,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			void SetCustomMessageLoop(const Function<void()>& func)
 			{
 				StaticContext* context = GetStaticContext();
@@ -135,7 +135,7 @@ namespace slib
 					context->customMessageLoop = func;
 				}
 			}
-			
+
 			static Function<void()> GetCustomQuitApp()
 			{
 				StaticContext* context = GetStaticContext();
@@ -144,7 +144,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			void SetCustomQuitApp(const Function<void()>& func)
 			{
 				StaticContext* context = GetStaticContext();
@@ -152,7 +152,7 @@ namespace slib
 					context->customQuitApp = func;
 				}
 			}
-			
+
 		}
 	}
 
@@ -212,7 +212,7 @@ namespace slib
 	{
 		return [NSThread isMainThread];
 	}
-	
+
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (callback.isNull()) {
@@ -242,7 +242,7 @@ namespace slib
 			});
 		}
 	}
-	
+
 	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		Function<void()> refCallback(callback);
@@ -266,7 +266,7 @@ namespace slib
 			[[NSWorkspace sharedWorkspace] openURL:url];
 		}
 	}
-	
+
 	String UI::getActiveApplicationName()
 	{
 		NSRunningApplication* app = [[NSWorkspace sharedWorkspace] frontmostApplication];
@@ -337,9 +337,9 @@ namespace slib
 	void UIPlatform::initApp()
 	{
 		[NSApplication sharedApplication];
-		
+
 		[[NSBundle mainBundle] loadNibNamed:@"MainMenu" owner:NSApp topLevelObjects:nil];
-		
+
 		SLIBAppDelegate * delegate = [[SLIBAppDelegate alloc] init];
 		[NSApp setDelegate:delegate];
 

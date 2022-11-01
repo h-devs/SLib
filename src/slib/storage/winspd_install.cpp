@@ -101,7 +101,7 @@ namespace slib
 	}
 
 	using namespace priv::winspd;
-	
+
 	sl_bool Winspd::install()
 	{
 		return InstallDriver();

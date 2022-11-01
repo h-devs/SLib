@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template < class T, class CONTAINER = CLinkedList<T> >
 	class SLIB_EXPORT Queue : public CONTAINER
 	{
@@ -72,7 +72,7 @@ namespace slib
 		}
 
 	};
-	
+
 	template < class T, class CONTAINER = CLinkedList<T> >
 	class SLIB_EXPORT Stack : public CONTAINER
 	{
@@ -117,10 +117,10 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	using LinkedQueue = Queue< T, CLinkedList<T> >;
-	
+
 	template <class T>
 	using LinkedStack = Stack< T, CLinkedList<T> >;
 

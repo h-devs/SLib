@@ -33,105 +33,105 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT HttpOutputBuffer
 	{
 	public:
 		HttpOutputBuffer();
-		
+
 		~HttpOutputBuffer();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(HttpOutputBuffer)
-		
+
 	public:
 		void clearOutput();
-		
+
 		sl_bool write(const void* buf, sl_size size);
 
 		sl_bool write(const Memory& mem);
 
 		sl_bool write(const StringParam& str);
-		
+
 		sl_bool copyFrom(AsyncStream* stream, sl_uint64 size);
-		
+
 		sl_bool copyFromFile(const StringParam& path);
-		
+
 		sl_bool copyFromFile(const StringParam& path, const Ref<AsyncIoLoop>& ioLoop, const Ref<Dispatcher>& dispatcher);
-		
+
 		sl_uint64 getOutputLength() const;
-		
+
 	protected:
 		AsyncOutputBuffer m_bufferOutput;
-		
+
 	};
-	
+
 	class SLIB_EXPORT HttpHeaderReader
 	{
 	public:
 		HttpHeaderReader();
-		
+
 		~HttpHeaderReader();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(HttpHeaderReader)
-		
+
 	public:
 		// return sl_true when body section (\r\n\r\n) is detected
 		sl_bool add(const void* buf, sl_size size, sl_size& posBody);
-		
+
 		Memory mergeHeader();
-		
+
 		sl_size getHeaderSize();
-		
+
 		void clear();
-		
+
 	protected:
 		sl_char16 m_last[3];
 		MemoryQueue m_buffer;
-		
+
 	};
-	
+
 	typedef Function<void(void* dataRemained, sl_size sizeRemained, sl_bool flagError)> HttpContentReaderOnComplete;
-	
+
 	class SLIB_EXPORT HttpContentReader : public AsyncStreamFilter
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		HttpContentReader();
-		
+
 		~HttpContentReader();
-		
+
 	public:
 		static Ref<HttpContentReader> createPersistent(const Ref<AsyncStream>& io,
 													   const HttpContentReaderOnComplete& onComplete,
 													   sl_uint64 contentLength,
 													   sl_uint32 bufferSize,
 													   sl_bool flagDecompress);
-		
+
 		static Ref<HttpContentReader> createChunked(const Ref<AsyncStream>& io,
 													const HttpContentReaderOnComplete& onComplete,
 													sl_uint32 bufferSize,
 													sl_bool flagDecompress);
-		
+
 		static Ref<HttpContentReader> createTearDown(const Ref<AsyncStream>& io,
 													 const HttpContentReaderOnComplete& onComplete,
 													 sl_uint32 bufferSize,
 													 sl_bool flagDecompress);
 	public:
 		sl_bool isDecompressing();
-		
+
 	protected:
 		void onReadStream(AsyncStreamResult& result) override;
-		
+
 	protected:
 		void setError();
-		
+
 		void setCompleted(void* dataRemain, sl_size size);
-		
+
 		sl_bool setDecompressing();
-		
+
 		sl_bool decompressData(MemoryData& output, void* data, sl_size size, Referable* refData);
-		
+
 	protected:
 		sl_bool m_flagDecompressing;
 		ZlibDecompressor m_zlib;

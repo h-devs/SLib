@@ -31,16 +31,16 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT RSAPublicKey
 	{
 	public:
 		BigInt N; // modulus
 		BigInt E; // public exponent
-	
+
 	public:
 		RSAPublicKey();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RSAPublicKey)
 
 	public:
@@ -49,7 +49,7 @@ namespace slib
 		sl_uint32 getLength() const noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT RSAPrivateKey : public RSAPublicKey
 	{
 	public:
@@ -62,7 +62,7 @@ namespace slib
 
 		// Use N and D only for decryption
 		sl_bool flagUseOnlyD;
-	
+
 	public:
 		RSAPrivateKey();
 
@@ -70,7 +70,7 @@ namespace slib
 
 	public:
 		sl_bool isDefined() const noexcept;
-		
+
 		void generate(sl_uint32 nBits) noexcept;
 
 		sl_bool generateFromPrimes(sl_uint32 nBits) noexcept;
@@ -87,7 +87,7 @@ namespace slib
 		static sl_bool executePublic(const RSAPublicKey& key, const void* input, sl_size sizeInput, void* output);
 
 		static sl_bool executePrivate(const RSAPrivateKey& key, const void* input, sl_size sizeInput, void* output);
-	
+
 		static sl_bool execute(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, void* output);
 
 		/*
@@ -96,10 +96,10 @@ namespace slib
 		static sl_bool encrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, void* output);
 
 		static Memory encrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput);
-		
+
 		// returns output size
 		static sl_uint32 decrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, void* output, sl_bool* pFlagSign = sl_null);
-		
+
 		static Memory decrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, sl_bool* pFlagSign = sl_null);
 
 		static sl_bool encryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* input, sl_size sizeInput, void* output);
@@ -117,7 +117,7 @@ namespace slib
 
 		// returns output size
 		static sl_uint32 decryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* input, sl_size sizeInput, void* output, sl_bool* pFlagSign = sl_null);
-	
+
 		static Memory decryptPrivate_pkcs1_v15(const RSAPrivateKey& key, const void* input, sl_size sizeInput, sl_bool* pFlagSign = sl_null);
 
 		/*
@@ -135,7 +135,7 @@ namespace slib
 			if (!sizeInput || (sizeInput & 0x80000000) || sizeRSA < sizeInput + 2 * HASH::HashSize + 2) {
 				return sl_false;
 			}
-			
+
 			const sl_uint8* input = (const sl_uint8*)_input;
 			sl_uint8* output = (sl_uint8*)_output;
 			sl_uint8* seed = output + 1;
@@ -144,17 +144,17 @@ namespace slib
 			sl_uint8* lHash = DB;
 			sl_uint8* PS = lHash + HASH::HashSize; // Zero Area
 			sl_uint8* M = output + (sizeRSA - sizeInput);
-			
+
 			Base::moveMemory(M, input, sizeInput);
 			*output = 0;
 			Math::randomMemory(seed, HASH::HashSize);
 			HASH::hash(label, sizeLabel, lHash);
-			
+
 			Base::zeroMemory(PS, M - PS - 1);
 			*(M - 1) = 1;
 			MGF1<HASH>::applyMask(seed, HASH::HashSize, DB, sizeDB);
 			MGF1<HASH>::applyMask(DB, sizeDB, seed, HASH::HashSize);
-			
+
 			return execute(keyPublic, keyPrivate, output, sizeRSA, output);
 		}
 
@@ -175,15 +175,15 @@ namespace slib
 			if (!(execute(keyPublic, keyPrivate, input, sizeInput, output))) {
 				return 0;
 			}
-			
+
 			sl_uint8* seed = output + 1;
 			sl_uint8* DB = seed + HASH::HashSize;
 			sl_uint32 sizeDB = sizeRSA - HASH::HashSize - 1;
 			sl_uint8* lHash = DB;
-			
+
 			MGF1<HASH>::applyMask(DB, sizeDB, seed, HASH::HashSize);
 			MGF1<HASH>::applyMask(seed, HASH::HashSize, DB, sizeDB);
-			
+
 			HASH::hash(label, sizeLabel, seed);
 			sl_uint8 _check = output[0];
 			sl_uint32 i;
@@ -226,7 +226,7 @@ namespace slib
 		{
 			return decrypt_oaep_v21<HASH>(sl_null, &key, input, sizeInput, output, label, sizeLabel);
 		}
-	
+
 	};
 
 }

@@ -32,62 +32,62 @@ namespace slib
 	class SLIB_EXPORT Drawer : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		Drawer();
-		
+
 		~Drawer();
 
 	protected:
 		void init() override;
-		
+
 	public:
 		sl_bool isOpened();
-		
+
 		virtual void open();
-		
+
 		virtual void close();
-		
+
 		Ref<View> getContent();
-		
+
 		void setContent(const Ref<View>& view);
-		
+
 		sl_ui_len getDrawerSize();
-		
+
 		void setDrawerSize(sl_ui_len size);
-		
+
 		sl_ui_len getDragEdgeSize();
-		
+
 		void setDragEdgeSize(sl_ui_len size);
-		
+
 		Alignment getGravity();
-		
+
 		void setGravity(const Alignment& align);
-		
+
 	protected:
 		void onChangeParent(View* oldParent, View* newParent) override;
-		
+
 		void dispatchMouseEvent(UIEvent* ev) override;
-		
+
 		void dispatchTouchEvent(UIEvent* ev) override;
 
 		void onCancel(UIEvent* ev) override;
-		
+
 	private:
 		void _onEndOpenAnimation();
-		
+
 		void _onEndCloseAnimation();
-		
+
 		void _onParentMouseEvent(View* view, UIEvent* ev);
-		
+
 		void _onMouseEvent(UIEvent* ev);
-		
+
 		Vector2 _makeContentTranslation(sl_real t);
-		
+
 		sl_real _getContentTranslation();
 
 		void _setContentTranslation(sl_real t);
-		
+
 
 	private:
 		sl_bool m_flagOpened;
@@ -97,12 +97,12 @@ namespace slib
 
 		AtomicRef<Animation> m_animation;
 		Function<void(View*, UIEvent*)> m_callbackParentMouseEvent;
-		
+
 		sl_bool m_flagMouseDown;
 		sl_real m_posMouseDown;
 		MotionTracker m_motionTracker;
 	};
-	
+
 }
 
 #endif

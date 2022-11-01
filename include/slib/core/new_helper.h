@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class NewHelper
 	{

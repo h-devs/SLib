@@ -40,14 +40,14 @@ namespace slib
 		RecordVideo = 5,
 		VideoChat = 6
 	};
-	
+
 	enum class DeviceAudioMode
 	{
 		Default = 0,
 		Ringtone = 1,
 		InCall = 2,
 		InCommunication = 3,
-		
+
 		Current = -1,
 		Invalid = -2
 	};

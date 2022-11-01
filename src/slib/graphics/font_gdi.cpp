@@ -120,7 +120,7 @@ namespace slib
 						DeleteObject(m_fontGDI);
 					}
 				}
-				
+
 			public:
 				void _createGdiplus(const FontDesc& desc)
 				{
@@ -158,7 +158,7 @@ namespace slib
 					StringCstr16 fontName(desc.familyName);
 
 					SharedPtr<Gdiplus::PrivateFontCollection> collection = context->fontCollections.getValue(desc.familyName);
-					
+
 					m_fontGdiplus = new Gdiplus::Font(
 						(LPCWSTR)(fontName.getData()),
 						desc.size,
@@ -166,7 +166,7 @@ namespace slib
 						Gdiplus::UnitPixel,
 						collection.get()
 					);
-					
+
 				}
 
 				void _createGDI(const FontDesc& desc)
@@ -182,7 +182,7 @@ namespace slib
 					}
 
 					m_flagCreatedGDI = sl_true;
-					
+
 					int height = -(int)(desc.size);
 					int weight;
 					if (desc.flagBold) {

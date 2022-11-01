@@ -26,7 +26,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace http_openssl
@@ -38,7 +38,7 @@ namespace slib
 				Ref<AsyncTcpServer> m_server;
 				Ref<AsyncIoLoop> m_loop;
 				TlsAcceptStreamParam m_tlsParam;
-				
+
 				struct StreamDesc
 				{
 					Ref<OpenSSL_AsyncStream> stream;
@@ -46,17 +46,17 @@ namespace slib
 					SocketAddress addressRemote;
 				};
 				HashMap< AsyncStream*, StreamDesc > m_streamsHandshaking;
-				
+
 			public:
 				ServerConnectionProvider()
 				{
 				}
-				
+
 				~ServerConnectionProvider()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<HttpServerConnectionProvider> create(HttpServer* server, const TlsAcceptStreamParam& tlsParam, const SocketAddress& addressListen)
 				{
@@ -90,7 +90,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void release() override
 				{
 					ObjectLocker lock(this);
@@ -99,7 +99,7 @@ namespace slib
 					}
 					m_streamsHandshaking.setNull();
 				}
-				
+
 				void onAccept(AsyncTcpServer* socketListen, Socket& socketAccept, const SocketAddress& address)
 				{
 					Ref<HttpServer> server = getServer();
@@ -127,7 +127,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void onHandshake(TlsStreamResult& result)
 				{
 					StreamDesc desc;
@@ -140,7 +140,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
 
 		}
@@ -157,15 +157,15 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool HttpServer::addHttpsBinding(const TlsAcceptStreamParam& param, sl_uint16 port)
 	{
 		return addHttpsBinding(param, SocketAddress(port));
 	}
-	
+
 	sl_bool HttpServer::addHttpsBinding(const TlsAcceptStreamParam& param, const IPAddress& addr, sl_uint16 port)
 	{
 		return addHttpsBinding(param, SocketAddress(addr, port));
 	}
-	
+
 }

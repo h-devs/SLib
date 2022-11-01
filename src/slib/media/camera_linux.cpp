@@ -54,7 +54,7 @@ namespace slib
 	{
 		namespace camera
 		{
-			
+
 			struct FORMAT_MAPPING
 			{
 				__u32 v4l_fmt;
@@ -145,7 +145,7 @@ namespace slib
 				}
 
 				List<CaptureBuffer> ret;
-				
+
 				sl_uint32 sizeMax = 0;
 				sl_uint32 i;
 
@@ -393,12 +393,12 @@ namespace slib
 						m_handle = -1;
 					}
 				}
-				
+
 				sl_bool isOpened() override
 				{
 					return m_handle != 1;
 				}
-				
+
 				void start() override
 				{
 					ObjectLocker lock(this);
@@ -406,7 +406,7 @@ namespace slib
 						m_threadCapture = Thread::start(SLIB_FUNCTION_WEAKREF(this, _run));
 					}
 				}
-				
+
 				void stop() override
 				{
 					ObjectLocker lock(this);
@@ -415,7 +415,7 @@ namespace slib
 						m_threadCapture.setNull();
 					}
 				}
-				
+
 				sl_bool isRunning() override
 				{
 					return m_threadCapture.isNotNull();
@@ -424,7 +424,7 @@ namespace slib
 				sl_bool _runStep()
 				{
 					int handle = m_handle;
-					
+
 					v4l2_buffer buf;
 					Base::zeroMemory(&buf, sizeof(buf));
 					buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -500,7 +500,7 @@ namespace slib
 						t.reset();
 					}
 				}
-				
+
 			};
 
 		}

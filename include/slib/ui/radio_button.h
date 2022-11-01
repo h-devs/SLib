@@ -79,39 +79,39 @@ namespace slib
 	class SLIB_EXPORT RadioGroup : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		RadioGroup();
-		
+
 		~RadioGroup();
 
 	public:
 		List< Ref<RadioButton> > getButtons();
-		
+
 		void add(const Ref<RadioButton>& button);
-		
+
 		void remove(const Ref<RadioButton>& button);
-		
+
 		void select(const Ref<RadioButton>& button);
-		
+
 		Ref<RadioButton> getSelected();
-		
+
 		void selectValue(const String& value);
-		
+
 		String getSelectedValue();
-		
+
 	private:
 		void _setChecked(RadioButton* button, sl_bool flag, UIUpdateMode mode);
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(RadioGroup, Select, RadioButton*)
-		
+
 	protected:
 		CList< Ref<RadioButton> > m_buttons;
 		Ref<RadioButton> m_buttonSelected;
-		
+
 		friend class RadioButton;
-		
+
 	};
 
 }

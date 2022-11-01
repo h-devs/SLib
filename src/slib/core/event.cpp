@@ -36,7 +36,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_ROOT_OBJECT(Event)
-	
+
 	Event::Event()
 	{
 	}
@@ -170,7 +170,7 @@ namespace slib
 	}
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-	
+
 	Ref<Event> Win32::createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease)
 	{
 		return Ref<Event>::from(GenericEvent::create(hEvent, flagCloseOnRelease));

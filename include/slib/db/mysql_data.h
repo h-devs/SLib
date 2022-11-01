@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT MysqlData
 	{
 	public:

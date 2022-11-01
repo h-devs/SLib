@@ -31,12 +31,12 @@ class SAppExampleApp : public MobileApp
 	SLIB_APPLICATION(SAppExampleApp)
 public:
 	SAppExampleApp();
-	
+
 protected:
 	Ref<View> getLoadingPage() override;
 
 	Ref<View> getStartupPage() override;
 
 	void onStart() override;
-	
+
 };

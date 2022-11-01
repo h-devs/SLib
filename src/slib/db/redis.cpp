@@ -68,8 +68,8 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
-			public:				
+
+			public:
 				Variant _parseReply(redisReply* reply)
 				{
 					clearErrorMessage();
@@ -95,7 +95,7 @@ namespace slib
 					}
 					return Variant();
 				}
-				
+
 				Variant _processReply(redisReply* reply)
 				{
 					if (reply) {
@@ -112,12 +112,12 @@ namespace slib
 				{
 					return _processReply(reply) == check;
 				}
-				
+
 				sl_bool _processIntReply(redisReply* reply, sl_int64* pValue)
 				{
 					return _processReply(reply).getInt64(pValue);
 				}
-				
+
 				Variant get(const StringParam& _key) override
 				{
 					StringCstr key(_key);
@@ -147,7 +147,7 @@ namespace slib
 				{
 					return sl_null;
 				}
-				
+
 				Ref<KeyValueIterator> getIterator() override
 				{
 					return sl_null;
@@ -165,7 +165,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, s.getData()));
 					return _processReply(reply);
 				}
-				
+
 				sl_bool incr(const StringParam& _key, sl_int64* pValue) override
 				{
 					StringCstr key(_key);
@@ -173,7 +173,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "INCR %s", key.getData()));
 					return _processIntReply(reply, pValue);
 				}
-				
+
 				sl_bool decr(const StringParam& _key, sl_int64* pValue) override
 				{
 					StringCstr key(_key);
@@ -181,7 +181,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "DECR %s", key.getData()));
 					return _processIntReply(reply, pValue);
 				}
-				
+
 				sl_bool incrby(const StringParam& _key, sl_int64 n, sl_int64* pValue) override
 				{
 					StringCstr key(_key);
@@ -189,7 +189,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "INCRBY %s %lld", key.getData(), n));
 					return _processIntReply(reply, pValue);
 				}
-				
+
 				sl_bool decrby(const StringParam& _key, sl_int64 n, sl_int64* pValue) override
 				{
 					StringCstr key(_key);
@@ -197,7 +197,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "DECRBY %s %lld", key.getData(), n));
 					return _processIntReply(reply, pValue);
 				}
-				
+
 				sl_bool llen(const StringParam& _key, sl_int64* pValue) override
 				{
 					StringCstr key(_key);
@@ -205,7 +205,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "LLEN %s", key.getData()));
 					return _processIntReply(reply, pValue);
 				}
-				
+
 				sl_int64 lpush(const StringParam& _key, const Variant& value) override
 				{
 					StringCstr key(_key);
@@ -235,7 +235,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "LINDEX %s %lld", key.getData(), index));
 					return _processReply(reply);
 				}
-				
+
 				sl_bool lset(const StringParam& _key, sl_int64 index, const Variant& value) override
 				{
 					StringCstr key(_key);
@@ -244,7 +244,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "LSET %s %lld %s", key.getData(), index, str.getData()));
 					return _processCheckReply(reply, "OK");
 				}
-				
+
 				sl_bool ltrm(const StringParam& _key, sl_int64 start, sl_int64 stop) override
 				{
 					StringCstr key(_key);
@@ -252,7 +252,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "LSET %s %lld %lld", key.getData(), start, stop));
 					return _processCheckReply(reply, "OK");
 				}
-				
+
 				Variant lpop(const StringParam& _key) override
 				{
 					StringCstr key(_key);
@@ -260,7 +260,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "LPOP %s", key.getData()));
 					return _processReply(reply);
 				}
-				
+
 				Variant rpop(const StringParam& _key) override
 				{
 					StringCstr key(_key);
@@ -268,7 +268,7 @@ namespace slib
 					redisReply* reply = (redisReply*)(redisCommand(m_context, "RPOP %s", key.getData()));
 					return _processReply(reply);
 				}
-				
+
 				VariantList lrange(const StringParam& _key, sl_int64 start, sl_int64 stop) override
 				{
 					StringCstr key(_key);
@@ -281,7 +281,7 @@ namespace slib
 
 		}
 	}
-	
+
 	SLIB_DEFINE_OBJECT(Redis, KeyValueStore)
 
 	Redis::Redis()
@@ -292,7 +292,7 @@ namespace slib
 	Redis::~Redis()
 	{
 	}
-	
+
 	sl_bool Redis::get(const void* key, sl_size sizeKey, MemoryData* pOutValue)
 	{
 		Variant var = get(StringView((sl_char8*)key, sizeKey));
@@ -343,7 +343,7 @@ namespace slib
 		}
 		return def;
 	}
-	
+
 	sl_int64 Redis::decrby(const StringParam& key, sl_int64 n, sl_int64 def)
 	{
 		sl_int64 val;
@@ -361,12 +361,12 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	sl_bool Redis::isLoggingErrors()
 	{
 		return m_flagLogErrors;
 	}
-	
+
 	void Redis::setLoggingErrors(sl_bool flag)
 	{
 		m_flagLogErrors = flag;
@@ -376,7 +376,7 @@ namespace slib
 	{
 		return m_errorMessage;
 	}
-	
+
 	void Redis::processError(const String& error)
 	{
 		m_errorMessage = error;

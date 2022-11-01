@@ -27,14 +27,14 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ReadWriteSpinLock
 	{
 	public:
 		SLIB_CONSTEXPR ReadWriteSpinLock(): m_nReading(0) {}
 
 		SLIB_CONSTEXPR ReadWriteSpinLock(const ReadWriteSpinLock& other): m_nReading(0) {}
-		
+
 		SLIB_CONSTEXPR ReadWriteSpinLock(ReadWriteSpinLock&& other): m_nReading(0) {}
 
 	public:
@@ -45,32 +45,32 @@ namespace slib
 		void unlockRead() const noexcept;
 
 		sl_bool tryLockWrite() const noexcept;
-		
+
 		void lockWrite() const noexcept;
-		
+
 		void unlockWrite() const noexcept;
-		
+
 	public:
 		ReadWriteSpinLock& operator=(const ReadWriteSpinLock& other) noexcept;
-	
+
 		ReadWriteSpinLock& operator=(ReadWriteSpinLock&& other) noexcept;
-		
+
 	private:
 		SpinLock m_lockReading;
 		SpinLock m_lockWriting;
 		mutable sl_reg m_nReading;
 
 	};
-	
+
 	class SLIB_EXPORT ReadSpinLocker
 	{
 	public:
 		ReadSpinLocker() noexcept;
-	
+
 		ReadSpinLocker(const ReadWriteSpinLock* lock) noexcept;
-		
+
 		ReadSpinLocker(const ReadSpinLocker& other) = delete;
-		
+
 		ReadSpinLocker(ReadSpinLocker&& other) = delete;
 
 		~ReadSpinLocker() noexcept;
@@ -79,43 +79,43 @@ namespace slib
 		void lock(const ReadWriteSpinLock* rwLock) noexcept;
 
 		void unlock() noexcept;
-		
+
 	public:
 		ReadSpinLocker& operator=(const ReadSpinLocker& other) = delete;
-		
+
 		ReadSpinLocker& operator=(ReadSpinLocker&& other) = delete;
 
 	private:
 		const ReadWriteSpinLock* m_lock;
 
 	};
-	
+
 	class SLIB_EXPORT WriteSpinLocker
 	{
 	public:
 		WriteSpinLocker() noexcept;
-		
+
 		WriteSpinLocker(const ReadWriteSpinLock* lock) noexcept;
-		
+
 		WriteSpinLocker(const WriteSpinLocker& other) = delete;
-		
+
 		WriteSpinLocker(WriteSpinLocker&& other) = delete;
-		
+
 		~WriteSpinLocker() noexcept;
-		
+
 	public:
 		void lock(const ReadWriteSpinLock* rwLock) noexcept;
-		
+
 		void unlock() noexcept;
-		
+
 	public:
 		WriteSpinLocker& operator=(const WriteSpinLocker& other) = delete;
-		
+
 		WriteSpinLocker& operator=(WriteSpinLocker&& other) = delete;
-		
+
 	private:
 		const ReadWriteSpinLock* m_lock;
-		
+
 	};
 
 }

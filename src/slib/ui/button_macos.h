@@ -34,41 +34,41 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace button
 		{
-			
+
 			class ButtonInstance : public macOS_ViewInstance, public IButtonInstance, public ICheckBoxInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				ButtonInstance();
-				
+
 				~ButtonInstance();
-				
+
 			public:
 				NSButton* getHandle();
 
 				void initialize(View* view) override;
 
 				void setText(Button* view, const String& text) override;
-				
+
 				void setDefaultButton(Button* view, sl_bool flag) override;
-				
+
 				sl_bool measureSize(Button* view, UISize& _out) override;
-				
+
 				sl_bool getChecked(CheckBox* view, sl_bool& flag) override;
-				
+
 				void setChecked(CheckBox* view, sl_bool flag) override;
-				
+
 			};
-			
+
 		}
 	}
-	
+
 }
 
 @interface SLIBButtonHandle : NSButton

@@ -58,7 +58,7 @@ namespace slib
 		RequestInARP = 8,
 		ReplyInARP = 9
 	};
-	
+
 	class SLIB_EXPORT ArpPacket
 	{
 	public:
@@ -66,69 +66,69 @@ namespace slib
 		{
 			SizeForIPv4 = 28
 		};
-		
+
 	public:
 		sl_uint16 getHardwareType() const;
-		
+
 		void setHardwareType(sl_uint16 hardwareType);
-		
+
 		NetworkLinkProtocol getProtocolType() const;
-		
+
 		void setProtocolType(NetworkLinkProtocol protocolType);
-		
+
 		sl_uint8 getHardwareAddressLength() const;
-		
+
 		void setHardwareAddressLength(sl_uint8 length);
-		
+
 		sl_uint8 getProtocolAddressLength() const;
-		
+
 		void setProtocolAddressLength(sl_uint8 length);
-		
+
 		ArpOperation getOperation() const;
-		
+
 		void setOperation(ArpOperation operation);
-		
+
 		const sl_uint8* getSenderHardwareAddress() const;
-		
+
 		sl_uint8* getSenderHardwareAddress();
-		
+
 		MacAddress getSenderMacAddress() const;
-		
+
 		void setSenderMacAddress(const MacAddress& address);
-		
+
 		const sl_uint8* getSenderProtocolAddress() const;
-		
+
 		sl_uint8* getSenderProtocolAddress();
-		
+
 		IPv4Address getSenderIPv4Address() const;
-		
+
 		void setSenderIPv4Address(const IPv4Address& address);
-		
+
 		const sl_uint8* getTargetHardwareAddress() const;
-		
+
 		sl_uint8* getTargetHardwareAddress();
-		
+
 		MacAddress getTargetMacAddress() const;
-		
+
 		void setTargetMacAddress(const MacAddress& address);
-		
+
 		const sl_uint8* getTargetProtocolAddress() const;
-		
+
 		sl_uint8* getTargetProtocolAddress();
-		
+
 		IPv4Address getTargetIPv4Address() const;
-		
+
 		void setTargetIPv4Address(const IPv4Address& address);
-		
+
 		sl_bool isValidEthernetIPv4() const;
-		
+
 	private:
 		sl_uint8 _hardwareType[2];
 		sl_uint8 _protocolType[2];
 		sl_uint8 _hardwareAddressLength;
 		sl_uint8 _protocolAddressLength;
 		sl_uint8 _operation[2];
-		
+
 	};
 
 }

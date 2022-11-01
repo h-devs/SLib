@@ -32,16 +32,16 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(CameraView, VideoView)
-	
+
 	CameraView::CameraView()
 	{
 		m_flagAutoStart = sl_false;
 		m_flashMode = CameraFlashMode::Auto;
-		
+
 		m_flagTouchFocus = sl_false;
 		m_flagDuringTouchFocusEffect = sl_false;
 	}
-	
+
 	CameraView::~CameraView()
 	{
 		Ref<Camera> camera = m_camera;
@@ -77,7 +77,7 @@ namespace slib
 		}
 		start(param);
 	}
-	
+
 	void CameraView::start(const CameraParam& _param)
 	{
 		ObjectLocker lock(this);
@@ -86,7 +86,7 @@ namespace slib
 		param.onCaptureVideoFrame = SLIB_FUNCTION_WEAKREF(this, _onCaptureCameraFrame);
 		m_camera = Camera::create(param);
 	}
-	
+
 	void CameraView::stop()
 	{
 		ObjectLocker lock(this);
@@ -96,23 +96,23 @@ namespace slib
 		}
 		m_camera.setNull();
 	}
-	
+
 	sl_bool CameraView::isAutoStart()
 	{
 		return m_flagAutoStart;
 	}
-	
+
 	void CameraView::setAutoStart(sl_bool flagAutoStart)
 	{
 		m_flagAutoStart = flagAutoStart;
 	}
-	
+
 	String CameraView::getDeviceId()
 	{
 		ObjectLocker lock(this);
 		return m_deviceId;
 	}
-	
+
 	void CameraView::setDeviceId(const String& deviceId)
 	{
 		ObjectLocker lock(this);
@@ -125,18 +125,18 @@ namespace slib
 			start();
 		}
 	}
-	
+
 	Ref<Camera> CameraView::getCamera()
 	{
 		ObjectLocker lock(this);
 		return m_camera;
 	}
-	
+
 	namespace priv
 	{
 		namespace camera
 		{
-			
+
 			class ShutterIcon : public Drawable
 			{
 			public:
@@ -148,20 +148,20 @@ namespace slib
 						canvas->fillEllipse(rectDst, Color::White);
 					}
 				}
-				
+
 			};
-			
+
 			class Controls : public ui::CameraControlView
 			{
 			public:
 				CameraView* cameraView;
-				
+
 			public:
 				Controls(CameraView* _cameraView)
 				{
 					cameraView = (CameraView*)_cameraView;
 				}
-				
+
 			public:
 				void init() override
 				{
@@ -199,7 +199,7 @@ namespace slib
 					btnFlash->setVisible(sl_false, UIUpdateMode::Init);
 #endif
 				}
-				
+
 				static Ref<Drawable> getFlashIcon(CameraFlashMode flash)
 				{
 					switch (flash) {
@@ -212,14 +212,14 @@ namespace slib
 					}
 					return drawable::camera_view_control_flash_auto::get();
 				}
-				
+
 			};
 
 		}
 	}
-	
+
 	using namespace priv::camera;
-	
+
 	void CameraView::setControlsVisible(sl_bool flagVisible, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -234,7 +234,7 @@ namespace slib
 			m_controls->setVisible(flagVisible, mode);
 		}
 	}
-	
+
 	Ref<Button> CameraView::getShutterButton()
 	{
 		ObjectLocker lock(this);
@@ -244,7 +244,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Button> CameraView::getSwitchCameraButton()
 	{
 		ObjectLocker lock(this);
@@ -254,7 +254,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Button> CameraView::getChangeFlashModeButton()
 	{
 		ObjectLocker lock(this);
@@ -264,12 +264,12 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	CameraFlashMode CameraView::getFlashMode()
 	{
 		return m_flashMode;
 	}
-	
+
 	void CameraView::setFlashMode(CameraFlashMode flashMode, UIUpdateMode updateMode)
 	{
 		m_flashMode = flashMode;
@@ -280,40 +280,40 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool CameraView::isTouchFocusEnabled()
 	{
 		return m_flagTouchFocus;
 	}
-	
+
 	void CameraView::setTouchFocusEnabled(sl_bool flag)
 	{
 		m_flagTouchFocus = flag;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(CameraView, Capture, VideoCaptureFrame& frame)
 
 	void CameraView::dispatchCapture(VideoCaptureFrame& frame)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Capture, frame)
-		
+
 		updateCurrentFrame(frame);
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(CameraView, TakePicture, CameraTakePictureResult& result)
-	
+
 	void CameraView::dispatchTakePicture(CameraTakePictureResult& result)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(TakePicture, result)
 	}
-	
+
 	void CameraView::onAttach()
 	{
 		if (m_flagAutoStart) {
 			start();
 		}
 	}
-	
+
 	void CameraView::onDraw(Canvas* canvas)
 	{
 		VideoView::onDraw(canvas);
@@ -353,7 +353,7 @@ namespace slib
 			} while (0);
 		}
 	}
-	
+
 	void CameraView::onClickEvent(UIEvent* ev)
 	{
 		if (m_flagTouchFocus) {
@@ -380,7 +380,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void CameraView::onClickShutter()
 	{
 		ObjectLocker lock(this);
@@ -396,12 +396,12 @@ namespace slib
 		param.onComplete = SLIB_FUNCTION_WEAKREF(this, _onTakePicture);
 		m_camera->takePicture(param);
 	}
-	
+
 	void CameraView::_onCaptureCameraFrame(VideoCapture* capture, VideoCaptureFrame& frame)
 	{
 		dispatchCapture(frame);
 	}
-	
+
 	void CameraView::_onTakePicture(CameraTakePictureResult& result)
 	{
 		dispatchTakePicture(result);
@@ -410,5 +410,5 @@ namespace slib
 			button->setEnabled(sl_true);
 		}
 	}
-	
+
 }

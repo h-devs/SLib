@@ -37,7 +37,7 @@ namespace slib
 	{
 		namespace edit_view
 		{
-			
+
 			class EditViewHelper : public EditView
 			{
 			public:
@@ -363,7 +363,7 @@ namespace slib
 				Alignment m_hintGravity;
 				Color m_hintTextColor;
 				Ref<Font> m_hintFont;
-				
+
 				sl_bool m_flagInputingIME;
 				sl_bool m_flagVisibleHintText;
 				sl_uint32 m_heightRequested;
@@ -756,7 +756,7 @@ namespace slib
 		}
 		return Win32_ViewInstance::create<TextAreaInstance>(this, parent, className, getText(), style, 0);
 	}
-	
+
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
 	{
 		return CastRef<TextAreaInstance>(getViewInstance());

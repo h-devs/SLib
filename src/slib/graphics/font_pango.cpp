@@ -36,7 +36,7 @@ namespace slib
 	{
 		namespace cairo
 		{
-			
+
 			class FontPlatformObject : public Referable
 			{
 			public:

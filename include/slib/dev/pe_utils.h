@@ -14,7 +14,7 @@ namespace slib
 		static Memory generateShellCode(const void* obj, sl_size size, const StringParam& entryFuntionName);
 
 		static Memory generateShellCodeFromFile(const StringParam& filePath, const StringParam& entryFuntionName);
-		
+
 	};
 
 }

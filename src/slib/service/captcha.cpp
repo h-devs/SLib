@@ -32,7 +32,7 @@ namespace slib
 	{
 		namespace captcha
 		{
-		
+
 			static sl_int32 GetRandom(sl_int32 vmin, sl_int32 vmax)
 			{
 				if (vmin >= vmax) {
@@ -42,12 +42,12 @@ namespace slib
 				Math::randomMemory(&c, 4);
 				return ((c & 0x7FFFFFFF) % (vmax - vmin + 1)) + vmin;
 			}
-		
+
 			static sl_uint8 GetRandom8(sl_uint8 vmin, sl_uint8 vmax)
 			{
 				return (sl_uint8)(GetRandom(vmin, vmax));
 			}
-		
+
 			static Ref<Image> GenerateCharImage(sl_char16 ch, const Ref<Font>& font)
 			{
 				StringParam str(&ch, 1);
@@ -77,12 +77,12 @@ namespace slib
 				}
 				return sl_null;
 			}
-		
+
 		}
 	}
 
 	using namespace priv::captcha;
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Captcha)
 
@@ -94,7 +94,7 @@ namespace slib
 		SLIB_STATIC_STRING16(codeset, "abcdefghkmnprstuvwxyzABCDEFGHKMNPRSTUVWXYZ23456789")
 		m_codeset = codeset;
 		m_interferingCount = 10;
-		
+
 		m_flagPrepared = sl_false;
 	}
 
@@ -202,10 +202,10 @@ namespace slib
 		if (m_flagPrepared) {
 			return sl_true;
 		}
-		
+
 		m_imagesCodeset.setNull();
 		m_imagesInterferingElements.setNull();
-		
+
 		sl_uint32 width = m_width;
 		sl_uint32 height = m_height;
 		if (!width) {
@@ -214,7 +214,7 @@ namespace slib
 		if (!height) {
 			return sl_false;
 		}
-				
+
 		if (m_interferingElements.isNotEmpty()) {
 			Ref<Font> font = this->m_fontInterfering;
 			if (font.isNull()) {
@@ -245,7 +245,7 @@ namespace slib
 				m_imagesCodeset.add_NoLock(Move(image));
 			}
 		}
-		
+
 		m_flagPrepared = sl_true;
 		return sl_true;
 	}
@@ -267,13 +267,13 @@ namespace slib
 		if (image.isNull()) {
 			return sl_null;
 		}
-		
+
 		if (m_backgroundColor.isNotZero()) {
 			image->resetPixels(m_backgroundColor);
 		} else {
 			image->resetPixels(Color(GetRandom8(157,255), GetRandom8(157,255), GetRandom8(157,255)));
 		}
-		
+
 		// draw line
 		{
 			for (int i = 0; i < 6; i++) {
@@ -316,7 +316,7 @@ namespace slib
 				codes[i] = code;
 			}
 		}
-		
+
 		// draw code
 		if (code.isNotEmpty()) {
 			sl_uint32 length = (sl_uint32)(code.getLength());
@@ -343,7 +343,7 @@ namespace slib
 		} else {
 			return sl_null;
 		}
-		
+
 		_code = String::from(code);
 		return image;
 	}

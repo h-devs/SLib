@@ -42,7 +42,7 @@ namespace slib
 	{
 		namespace ui_photo
 		{
-			
+
 			void JNICALL OnCompleteTakePhoto(JNIEnv* env, jobject _this, jstring filePath, jint fd, jint rotation, jboolean flipHorz, jboolean flipVert, jboolean flagCancel);
 
 			SLIB_JNI_BEGIN_CLASS(JTakePhoto, "slib/android/camera/TakePhoto")
@@ -180,7 +180,7 @@ namespace slib
 	}
 
 	using namespace priv::ui_photo;
-	
+
 	void TakePhoto::takeFromCamera()
 	{
 		RunTakePhoto(*this, sl_true);
@@ -206,7 +206,7 @@ namespace slib
 					content = param.content;
 				}
 				if (content.isNotNull()) {
-					JniLocal<jobject> dir = android::Context::getPicturesDir(Android::getCurrentContext());					
+					JniLocal<jobject> dir = android::Context::getPicturesDir(Android::getCurrentContext());
 					String path = java::File::getAbsolutePath(dir);
 					if (path.isNotEmpty()) {
 						path += "/" + Time::now().format("%04y-%02m-%02d_%02H%02M%02S.jpg");

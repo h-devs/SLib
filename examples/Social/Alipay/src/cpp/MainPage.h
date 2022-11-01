@@ -6,5 +6,5 @@ class MainPage : public ui::MainPage
 {
 public:
 	void onOpen() override;
-	
+
 };

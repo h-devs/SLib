@@ -29,14 +29,14 @@
 
 namespace slib
 {
-	
+
 	class Instagram
 	{
 	public:
 		static void openInstagramAppSharingFile(const Memory& data);
-		
+
 	};
-	
+
 }
 
 #endif

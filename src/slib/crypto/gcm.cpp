@@ -69,7 +69,7 @@ namespace slib
 		const sl_uint8* X = (const sl_uint8*)inX;
 		sl_uint8* O = (sl_uint8*)inO;
 		Uint128 Z;
-		
+
 		static const sl_uint64 R[16] =
 		{
 			SLIB_UINT64(0x0000000000000000)
@@ -89,7 +89,7 @@ namespace slib
 			, SLIB_UINT64(0xa9c0000000000000)
 			, SLIB_UINT64(0xb5e0000000000000)
 		};
-		
+
 		Z.setZero();
 		for (sl_uint32 i = 15; i >= 1; i--) {
 			// process low 4-bit
@@ -179,7 +179,7 @@ namespace slib
 		sl_uint8* O = (sl_uint8*)inO;
 
 		Base::zeroMemory(O, 16);
-		
+
 		multiplyData(O, A, lenA);
 
 		multiplyData(O, C, lenC);

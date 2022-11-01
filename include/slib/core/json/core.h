@@ -66,14 +66,14 @@ namespace slib
 		String getErrorText();
 
 	};
-	
+
 	class SLIB_EXPORT Json : public Variant
 	{
 	public:
 		Json();
-		
+
 		Json(const Json& other);
-		
+
 		Json(Json&& other);
 
 		Json(const Atomic<Json>& other);
@@ -83,38 +83,38 @@ namespace slib
 		Json(Variant&& other);
 
 		Json(const Atomic<Variant>& other);
-		
+
 		~Json();
-		
+
 	public:
 		Json(sl_null_t);
-		
+
 		Json(signed char value);
-		
+
 		Json(unsigned char value);
-		
+
 		Json(short value);
-		
+
 		Json(unsigned short value);
-		
+
 		Json(int value);
-		
+
 		Json(unsigned int value);
-		
+
 		Json(long value);
-		
+
 		Json(unsigned long value);
-		
+
 		Json(sl_int64 value);
-		
+
 		Json(sl_uint64 value);
-		
+
 		Json(float value);
-		
+
 		Json(double value);
-		
+
 		Json(sl_bool value);
-		
+
 		Json(const String& value);
 
 		Json(String&& value);
@@ -134,13 +134,13 @@ namespace slib
 		Json(const StringView32& value);
 
 		Json(const sl_char8* sz8);
-		
+
 		Json(const sl_char16* sz16);
 
 		Json(const sl_char32* sz32);
 
 		Json(const StringParam& param);
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Json(const std::string& value);
 
@@ -148,7 +148,7 @@ namespace slib
 
 		Json(const std::u32string& value);
 #endif
-		
+
 		Json(const Time& value);
 
 		Json(const Memory& value);
@@ -185,7 +185,7 @@ namespace slib
 		{
 			ToJson(*this, value);
 		}
-		
+
 		Json(const ObjectStore& t) noexcept;
 		Json(ObjectStore&& t) noexcept;
 
@@ -205,14 +205,14 @@ namespace slib
 		{
 			return *(reinterpret_cast<Json const*>(&(priv::variant::g_null)));
 		}
-		
+
 		static Json createList();
-		
+
 		static Json createMap();
-		
+
 	public:
 		Json& operator=(const Json& json);
-		
+
 		Json& operator=(Json&& json);
 
 		Json& operator=(const Atomic<Json>& json);
@@ -222,9 +222,9 @@ namespace slib
 		Json& operator=(Variant&& variant);
 
 		Json& operator=(const Atomic<Variant>& variant);
-		
+
 		Json& operator=(sl_null_t);
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Json& operator=(const std::initializer_list<JsonItem>& pairs);
 #endif
@@ -293,7 +293,7 @@ namespace slib
 		}
 
 		Json getItem(const String& key) const;
-		
+
 		template <class T>
 		void getItem(const String& key, T& _out) const
 		{
@@ -337,7 +337,7 @@ namespace slib
 
 	protected:
 		String toString() const;
-		
+
 	};
 
 	class SLIB_EXPORT JsonItem : public Pair<String, Json>

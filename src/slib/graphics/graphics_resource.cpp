@@ -27,12 +27,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace graphics_resource
 		{
-			
+
 			sl_uint32 g_screenWidth = 0;
 			sl_uint32 g_screenHeight = 0;
 
@@ -97,7 +97,7 @@ namespace slib
 				return s;
 			}
 
-			
+
 			FreeImageContext::FreeImageContext(ImageEntry* entries)
 			{
 				m_entries = entries;
@@ -124,7 +124,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_uint32 minSize = 0;
 				ImageEntry* minEntry = sl_null;
 				entry = entries;
@@ -183,7 +183,7 @@ namespace slib
 			class ImageResourceDrawable : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			private:
 				ImageEntry* m_entries;
 				sl_uint32 m_width;
@@ -196,18 +196,18 @@ namespace slib
 					m_width = width;
 					m_height = height;
 				}
-				
+
 			public:
 				sl_real getDrawableWidth() override
 				{
 					return (sl_real)m_width;
 				}
-				
+
 				sl_real getDrawableHeight() override
 				{
 					return (sl_real)m_height;
 				}
-				
+
 				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
 				{
 					Rectangle rectDstWhole = GraphicsUtil::transformRectangle(rectDst, rectSrc, Rectangle(0, 0, (float)m_width, (float)m_height));
@@ -239,7 +239,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool getAnimationInfo(DrawableAnimationInfo* info) override
 				{
 					if (m_entries->flagValid) {
@@ -250,7 +250,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(ImageResourceDrawable, Drawable)
@@ -259,12 +259,12 @@ namespace slib
 			class SimpleImageResourceDrawable : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			private:
 				ImageEntry* m_entry;
 				sl_uint32 m_width;
 				sl_uint32 m_height;
-				
+
 			public:
 				SimpleImageResourceDrawable(ImageEntry* entry, sl_uint32 width, sl_uint32 height)
 				{
@@ -272,18 +272,18 @@ namespace slib
 					m_width = width;
 					m_height = height;
 				}
-				
+
 			public:
 				sl_real getDrawableWidth() override
 				{
 					return (sl_real)m_width;
 				}
-				
+
 				sl_real getDrawableHeight() override
 				{
 					return (sl_real)m_height;
 				}
-				
+
 				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
 				{
 					Rectangle rectDstWhole = GraphicsUtil::transformRectangle(rectDst, rectSrc, Rectangle(0, 0, (float)m_width, (float)m_height));
@@ -303,7 +303,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
 				{
 					sl_int32 width = (sl_int32)(rectDst.getWidth());
@@ -315,7 +315,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool getAnimationInfo(DrawableAnimationInfo* info) override
 				{
 					Ref<Image> image = m_entry->getImage();
@@ -324,7 +324,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(SimpleImageResourceDrawable, Drawable)
@@ -340,7 +340,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 		}
 	}
 
@@ -350,20 +350,20 @@ namespace slib
 	{
 		return g_screenWidth;
 	}
-	
+
 	void GraphicsResource::setScreenWidth(sl_uint32 width)
 	{
 		g_screenWidth = width;
 	}
-	
+
 	sl_uint32 GraphicsResource::getScreenHeight()
 	{
 		return g_screenHeight;
 	}
-	
+
 	void GraphicsResource::setScreenHeight(sl_uint32 height)
 	{
 		g_screenHeight = height;
 	}
-	
+
 }

@@ -43,7 +43,7 @@ namespace slib
 
 	public:
 		Win32_ViewInstance();
-		
+
 		~Win32_ViewInstance();
 
 	public:
@@ -151,9 +151,9 @@ namespace slib
 		void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override;
 
 		sl_bool getScrollPosition(View* view, ScrollPoint& _out) override;
-		
+
 		sl_bool getScrollRange(View* view, ScrollPoint& _out) override;
-		
+
 		void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override;
 
 		sl_bool getClientSize(View* view, UISize& _out) override;
@@ -192,7 +192,7 @@ namespace slib
 		sl_bool m_flagDestroyOnRelease;
 
 		UIAction m_actionMouseCapture;
-		
+
 		UIRect m_frame;
 		Vector2 m_translation;
 
@@ -204,7 +204,7 @@ namespace slib
 		IUnknown* m_dropTarget;
 
 	};
-	
+
 	class Win32_LayeredViewContext : public Referable
 	{
 	public:

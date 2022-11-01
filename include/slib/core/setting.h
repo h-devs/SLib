@@ -32,7 +32,7 @@ namespace slib
 	{
 	public:
 		static sl_bool parseUint32Range(const StringParam& str, sl_uint32* from = sl_null, sl_uint32* to = sl_null);
-	
+
 	};
 
 }

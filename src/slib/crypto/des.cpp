@@ -32,12 +32,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace des
 		{
-			
+
 			// Permuted choice 1
 			static const sl_uint8 g_PC1[] = {
 				57, 49, 41, 33, 25, 17,  9,
@@ -49,7 +49,7 @@ namespace slib
 				14,  6, 61, 53, 45, 37, 29,
 				21, 13,  5, 28, 20, 12,  4
 			};
-			
+
 			// Permuted choice 2
 			static const char g_PC2[] = {
 				14, 17, 11, 24,  1,  5,
@@ -61,10 +61,10 @@ namespace slib
 				44, 49, 39, 56, 34, 53,
 				46, 42, 50, 36, 29, 32
 			};
-			
+
 			// Number Of Left Shifts
 			static const char g_LS[] = {1,  1,  2,  2,  2,  2,  2,  2,  1,  2,  2,  2,  2,  2,  2,  1};
-			
+
 			// Initial Permutation Table
 			static const sl_uint8 g_IP[] = {
 				58, 50, 42, 34, 26, 18, 10, 2,
@@ -76,7 +76,7 @@ namespace slib
 				61, 53, 45, 37, 29, 21, 13, 5,
 				63, 55, 47, 39, 31, 23, 15, 7
 			};
-			
+
 			// Inverse of Initial Permutation Table
 			static const sl_uint8 g_IIP[] = {
 				40, 8, 48, 16, 56, 24, 64, 32,
@@ -88,7 +88,7 @@ namespace slib
 				34, 2, 42, 10, 50, 18, 58, 26,
 				33, 1, 41,  9, 49, 17, 57, 25
 			};
-			
+
 			// E Bit-Selection Table
 			static const sl_uint8 g_E[] = {
 				32,  1,  2,  3,  4,  5,
@@ -100,7 +100,7 @@ namespace slib
 				24, 25, 26, 27, 28, 29,
 				28, 29, 30, 31, 32,  1
 			};
-			
+
 			static const sl_uint8 g_S[8][64] = {
 				{
 					14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7,
@@ -151,7 +151,7 @@ namespace slib
 					2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11
 				}
 			};
-			
+
 			static const sl_uint8 g_P[] = {
 				16,  7, 20, 21,
 				29, 12, 28, 17,
@@ -163,7 +163,7 @@ namespace slib
 				22, 11,  4, 25
 			};
 
-			
+
 			SLIB_INLINE static sl_uint64 DoInitialPermutation(sl_uint64 n)
 			{
 				sl_uint64 m = 0;
@@ -172,7 +172,7 @@ namespace slib
 				}
 				return m;
 			}
-			
+
 			SLIB_INLINE static sl_uint64 DoInverseInitialPermutation(sl_uint64 n)
 			{
 				sl_uint64 m = 0;
@@ -181,7 +181,7 @@ namespace slib
 				}
 				return m;
 			}
-			
+
 			SLIB_INLINE static sl_uint32 F(sl_uint32 R, sl_uint64 K)
 			{
 				int i;
@@ -202,12 +202,12 @@ namespace slib
 					f = (f << 1) | ((N >> (32 - g_P[i])) & 1);
 				}
 				return f;
-				
+
 			}
-			
+
 		}
 	}
-	
+
 	using namespace priv::des;
 
 	DES::DES()
@@ -270,7 +270,7 @@ namespace slib
 		n = DoInverseInitialPermutation(n);
 		return n;
 	}
-	
+
 	sl_uint64 DES::decrypt(sl_uint64 n) const
 	{
 		n = DoInitialPermutation(n);
@@ -286,42 +286,42 @@ namespace slib
 		n = DoInverseInitialPermutation(n);
 		return n;
 	}
-	
+
 	void DES::encryptBlock(const void* src, void* dst) const
 	{
 		sl_uint64 n = encrypt(MIO::readUint64BE(src));
 		MIO::writeUint64BE(dst, n);
 	}
-	
+
 	void DES::decryptBlock(const void* src, void* dst) const
 	{
 		sl_uint64 n = decrypt(MIO::readUint64BE(src));
 		MIO::writeUint64BE(dst, n);
 	}
 
-	
+
 	TripleDES::TripleDES()
 	{
 	}
-	
+
 	TripleDES::~TripleDES()
 	{
 	}
-	
+
 	void TripleDES::setKey(const void* key1, const void* key2, const void* key3)
 	{
 		m_des1.setKey(key1);
 		m_des2.setKey(key2);
 		m_des3.setKey(key3);
 	}
-	
+
 	void TripleDES::setKey(sl_uint64 key1, sl_uint64 key2, sl_uint64 key3)
 	{
 		m_des1.setKey(key1);
 		m_des2.setKey(key2);
 		m_des3.setKey(key3);
 	}
-	
+
 	void TripleDES::setKey24(const void* _key)
 	{
 		char* key = (char*)(_key);
@@ -329,17 +329,17 @@ namespace slib
 		m_des2.setKey(key + 8);
 		m_des3.setKey(key + 16);
 	}
-	
+
 	void TripleDES::setKey(const void* key1, const void* key2)
 	{
 		setKey(key1, key2, key1);
 	}
-	
+
 	void TripleDES::setKey(sl_uint64 key1, sl_uint64 key2)
 	{
 		setKey(key1, key2, key1);
 	}
-	
+
 	void TripleDES::setKey16(const void* _key)
 	{
 		char* key = (char*)(_key);
@@ -359,27 +359,27 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_uint64 TripleDES::encrypt(sl_uint64 n) const
 	{
 		return m_des3.encrypt(m_des2.decrypt(m_des1.encrypt(n)));
 	}
-	
+
 	sl_uint64 TripleDES::decrypt(sl_uint64 n) const
 	{
 		return m_des1.decrypt(m_des2.encrypt(m_des3.decrypt(n)));
 	}
-	
+
 	void TripleDES::encryptBlock(const void* src, void* dst) const
 	{
 		sl_uint64 n = encrypt(MIO::readUint64BE(src));
 		MIO::writeUint64BE(dst, n);
 	}
-	
+
 	void TripleDES::decryptBlock(const void* src, void* dst) const
 	{
 		sl_uint64 n = decrypt(MIO::readUint64BE(src));
 		MIO::writeUint64BE(dst, n);
 	}
-	
+
 }

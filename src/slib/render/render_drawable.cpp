@@ -28,15 +28,15 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(RenderDrawable, Drawable)
-	
+
 	RenderDrawable::RenderDrawable()
 	{
 	}
-	
+
 	RenderDrawable::~RenderDrawable()
 	{
 	}
-	
+
 	void RenderDrawable::onDrawAll(Canvas* _canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
 		RenderCanvas* canvas = CastInstance<RenderCanvas>(_canvas);
@@ -44,26 +44,26 @@ namespace slib
 			dispatchRender(canvas, rectDst, param);
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(RenderDrawable, Render, RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param)
-	
+
 	void RenderDrawable::dispatchRender(RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Render, canvas, rectDst, param)
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(ShaderDrawable, Drawable)
-	
+
 	ShaderDrawable::ShaderDrawable()
 	{
-		
+
 	}
-	
+
 	ShaderDrawable::~ShaderDrawable()
 	{
 	}
-	
+
 	Ref<ShaderDrawable> ShaderDrawable::create(const String& vertexShader, const String& fragmentShader)
 	{
 		Ref<ShaderDrawable> ret = new ShaderDrawable;
@@ -74,7 +74,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<ShaderDrawable> ShaderDrawable::createWithFragmentShader(const String& fragmentShader)
 	{
 		String vs =
@@ -91,29 +91,29 @@ namespace slib
 					   );
 		return create(vs, fragmentShader);
 	}
-	
+
 	String ShaderDrawable::getVertexShader()
 	{
 		return m_fragmentShader;
 	}
-	
+
 	void ShaderDrawable::setVertexShader(const String& shader)
 	{
 		m_fragmentShader = shader;
 		m_program.setNull();
 	}
-	
+
 	String ShaderDrawable::getFragmentShader()
 	{
 		return m_fragmentShader;
 	}
-	
+
 	void ShaderDrawable::setFragmentShader(const String& shader)
 	{
 		m_fragmentShader = shader;
 		m_program.setNull();
 	}
-	
+
 	namespace priv
 	{
 		namespace render_drawable
@@ -124,23 +124,23 @@ namespace slib
 			public:
 				String m_vertexShader;
 				String m_fragmentShader;
-				
+
 			public:
 				ShaderDrawable_Program(const String& vs, const String& fs)
 				: m_vertexShader(vs), m_fragmentShader(fs)
 				{
 				}
-				
+
 				String getGLSLVertexShader(RenderEngine* engine) override
 				{
 					return m_vertexShader;
 				}
-				
+
 				String getGLSLFragmentShader(RenderEngine* engine) override
 				{
 					return m_fragmentShader;
 				}
-				
+
 			};
 
 		}
@@ -170,5 +170,5 @@ namespace slib
 			canvas->drawRectangle(rectDst, scope.getState(), param);
 		}
 	}
-	
+
 }

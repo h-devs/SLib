@@ -204,7 +204,7 @@ namespace slib
 	{
 		return g_threadMain == ::pthread_self();
 	}
-	
+
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (callback.isNull()) {

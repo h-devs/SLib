@@ -40,83 +40,83 @@ namespace slib
 		sl_uint8* data;
 		sl_uint32 length;
 		Time time;
-		
+
 	public:
 		NetCapturePacket();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NetCapturePacket)
-		
+
 	};
-	
+
 	class NetCapture;
-	
+
 	class SLIB_EXPORT NetCaptureParam
 	{
 	public:
 		StringParam deviceName; // <null> or <empty string> for any devices
-		
+
 		sl_bool flagPromiscuous; // ignored for "any devices" mode
 		NetworkLinkDeviceType preferedLinkDeviceType; // NetworkLinkDeviceType, used in Packet Socket mode. now supported Ethernet and Raw
-		
+
 		sl_bool flagAutoStart; // default: true
-		
+
 		Function<void(NetCapture*, NetCapturePacket&)> onCapturePacket;
 		Function<void(NetCapture*)> onError;
 
 	public:
 		NetCaptureParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NetCaptureParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT NetCapture : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		NetCapture();
-		
+
 		~NetCapture();
-		
+
 	public:
 		// linux packet datagram socket
 		static Ref<NetCapture> createRawPacket(const NetCaptureParam& param);
-		
+
 		// raw socket
 		static Ref<NetCapture> createRawIPv4(const NetCaptureParam& param);
-		
+
 	public:
 		virtual void release() = 0;
-		
+
 		virtual void start() = 0;
-		
+
 		virtual sl_bool isRunning() = 0;
-		
+
 		virtual NetworkLinkDeviceType getLinkType() = 0;
-		
+
 		virtual sl_bool setLinkType(sl_uint32 type);
-		
+
 		// send a L2-packet
 		virtual sl_bool sendPacket(const void* buf, sl_uint32 size) = 0;
-		
+
 		virtual String getErrorMessage();
 
 	public:
 		const String& getDeviceName();
 
 		const MacAddress& getDeviceAddress();
-		
+
 	protected:
 		void _initWithParam(const NetCaptureParam& param);
-		
+
 		void _onCapturePacket(NetCapturePacket& packet);
 
 		void _onError();
 
 	protected:
 		String m_deviceName;
-		
+
 		sl_uint64 m_timeDeviceAddress;
 		MacAddress m_deviceAddress;
 
@@ -133,7 +133,7 @@ namespace slib
 		OtherHost = 3,
 		OutGoing = 4
 	};
-	
+
 	class SLIB_EXPORT LinuxCookedFrame
 	{
 	public:
@@ -141,39 +141,39 @@ namespace slib
 		{
 			HeaderSize = 16
 		};
-		
+
 	public:
 		LinuxCookedPacketType getPacketType() const;
-		
+
 		void setPacketType(LinuxCookedPacketType type);
-		
+
 		NetworkLinkDeviceType getDeviceType() const;
-		
+
 		void setDeviceType(NetworkLinkDeviceType type);
-		
+
 		sl_uint16 getAddressLength() const;
-		
+
 		void setAddressLength(sl_uint16 len);
-		
+
 		const sl_uint8* getAddress() const;
-		
+
 		sl_uint8* getAddress();
-		
+
 		NetworkLinkProtocol getProtocolType() const;
-		
+
 		void setProtocolType(NetworkLinkProtocol type);
-		
+
 		const sl_uint8* getContent() const;
-		
+
 		sl_uint8* getContent();
-		
+
 	private:
 		sl_uint8 m_packetType[2];
 		sl_uint8 m_deviceType[2];
 		sl_uint8 m_lenAddress[2];
 		sl_uint8 m_address[8];
 		sl_uint8 m_protocol[2];
-		
+
 	};
 
 }

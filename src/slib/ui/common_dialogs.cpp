@@ -32,64 +32,64 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace alert_dialog
 		{
-			
+
 			class RunOnUiThread
 			{
 			public:
 				AlertDialog* alert;
 				Ref<Event> event;
 				DialogResult result = DialogResult::Cancel;
-				
+
 			public:
 				void run()
 				{
 					result = alert->_run();
 					event->set();
 				}
-				
+
 			};
-			
+
 			class RunByShowOnUiThread
 			{
 			public:
 				DialogResult result = DialogResult::Error;
-				
+
 			public:
 				void onComplete(DialogResult _result)
 				{
 					result = _result;
 					UI::quitLoop();
 				}
-				
+
 			};
-			
+
 			class RunByShowOnWorkingThread
 			{
 			public:
 				DialogResult result = DialogResult::Error;
 				Ref<Event> event;
-				
+
 			public:
 				void onComplete(DialogResult _result)
 				{
 					result = _result;
 					event->set();
 				}
-				
+
 			};
-			
+
 			void ShowOnWorkingThread(AlertDialog* alert, RunByShowOnWorkingThread* m)
 			{
 				if (!(alert->_show())) {
 					m->onComplete(DialogResult::Error);
 				}
 			}
-			
+
 			void ShowOnUiThread(const Ref<AlertDialog>& alert)
 			{
 				if (!(alert->_show())) {
@@ -105,16 +105,16 @@ namespace slib
 
 		}
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AlertDialog)
-	
+
 	AlertDialog::AlertDialog()
 	{
 		flagHyperText = sl_false;
 		buttons = AlertButtons::OK;
 		icon = AlertIcon::None;
 	}
-	
+
 	DialogResult AlertDialog::_runOnUiThread()
 	{
 		if (UI::isUiThread()) {
@@ -131,7 +131,7 @@ namespace slib
 		}
 		return DialogResult::Error;
 	}
-	
+
 	DialogResult AlertDialog::_runByShow()
 	{
 		Ref<AlertDialog> alert = new AlertDialog(*this);
@@ -165,7 +165,7 @@ namespace slib
 		}
 		return DialogResult::Error;
 	}
-	
+
 	void AlertDialog::_showOnUiThread()
 	{
 		Ref<AlertDialog> alert = _getReferable();
@@ -185,7 +185,7 @@ namespace slib
 			UI::dispatchToUiThread(Function<void()>::bind(&(priv::alert_dialog::ShowOnUiThreadByRun), alert));
 		}
 	}
-	
+
 	void AlertDialog::_onResult(DialogResult result)
 	{
 		onComplete(result);
@@ -217,7 +217,7 @@ namespace slib
 				break;
 		}
 	}
-	
+
 	sl_bool AlertDialog::_showMobilePopup()
 	{
 		Ref<MobileApp> app = MobileApp::getApp();
@@ -226,7 +226,7 @@ namespace slib
 		}
 
 		Ref<ui::MobileAlertDialog> dlg = new ui::MobileAlertDialog;
-		
+
 		if (caption.isNotNull()) {
 			dlg->txtTitle->setText(caption, UIUpdateMode::Init);
 		} else {
@@ -237,7 +237,7 @@ namespace slib
 		} else {
 			dlg->txtContent->setText(text, UIUpdateMode::Init);
 		}
-		
+
 		auto alert = ToRef(this);
 		dlg->btnOK->setVisibility(Visibility::Gone, UIUpdateMode::Init);
 		if (titleOK.isNotNull()) {
@@ -247,7 +247,7 @@ namespace slib
 			alert->_onResult(DialogResult::OK);
 			view->getNearestViewPage()->close();
 		});
-		
+
 		dlg->btnYes->setVisibility(Visibility::Gone, UIUpdateMode::Init);
 		if (titleYes.isNotNull()) {
 			dlg->btnYes->setText(titleYes, UIUpdateMode::Init);
@@ -282,7 +282,7 @@ namespace slib
 				alert->_onResult(DialogResult::Cancel);
 			}
 		});
-		
+
 		if (buttons == AlertButtons::OkCancel) {
 			dlg->btnOK->setVisibility(Visibility::Visible, UIUpdateMode::Init);
 			dlg->btnCancel->setVisibility(Visibility::Visible, UIUpdateMode::Init);
@@ -303,11 +303,11 @@ namespace slib
 		}
 
 		app->popupPage(dlg);
-		
+
 		return sl_true;
-		
+
 	}
-	
+
 	AlertDialog* AlertDialog::_getReferable()
 	{
 		if (getReferenceCount() > 0) {
@@ -317,28 +317,28 @@ namespace slib
 		}
 	}
 
-	
+
 	namespace priv
 	{
 		namespace file_dialog
 		{
-			
+
 			class RunOnUiThread
 			{
 			public:
 				FileDialog* dlg;
 				Ref<Event> event;
 				DialogResult result = sl_false;
-				
+
 			public:
 				void run()
 				{
 					result = dlg->_run();
 					event->set();
 				}
-				
+
 			};
-			
+
 			class RunByShowOnUiThread
 			{
 			public:
@@ -354,9 +354,9 @@ namespace slib
 					list = dialog.selectedPaths;
 					UI::quitLoop();
 				}
-				
+
 			};
-			
+
 			class RunByShowOnWorkingThread
 			{
 			public:
@@ -373,9 +373,9 @@ namespace slib
 					list = dialog.selectedPaths;
 					event->set();
 				}
-				
+
 			};
-			
+
 			void ShowOnWorkingThread(FileDialog* dialog, RunByShowOnWorkingThread* m)
 			{
 				if (!(dialog->_show())) {
@@ -383,35 +383,35 @@ namespace slib
 					m->onComplete(*dialog);
 				}
 			}
-			
+
 			void ShowOnUiThread(const Ref<FileDialog>& dialog)
 			{
 				if (!(dialog->_show())) {
 					dialog->_onResult(DialogResult::Error);
 				}
 			}
-			
+
 			void ShowOnUiThreadByRun(const Ref<FileDialog>& dialog)
 			{
 				DialogResult result = dialog->_run();
 				dialog->_onResult(result);
 			}
-			
+
 		}
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileDialogFilter)
 
 	FileDialogFilter::FileDialogFilter()
 	{
 	}
-	
+
 	FileDialogFilter::FileDialogFilter(const String& _title, const String& _patterns): title(_title), patterns(_patterns)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileDialog)
-	
+
 	FileDialog::FileDialog()
 	{
 		type = FileDialogType::OpenFile;
@@ -433,7 +433,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String FileDialog::openFile(const Ref<Window>& parent)
 	{
 		FileDialog dlg;
@@ -444,7 +444,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String FileDialog::saveFile(const Ref<Window>& parent)
 	{
 		FileDialog dlg;
@@ -455,7 +455,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String FileDialog::selectDirectory(const Ref<Window>& parent)
 	{
 		FileDialog dlg;
@@ -466,7 +466,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	DialogResult FileDialog::_runOnUiThread()
 	{
 		if (UI::isUiThread()) {
@@ -483,7 +483,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	DialogResult FileDialog::_runByShow()
 	{
 		Ref<FileDialog> dialog = new FileDialog(*this);
@@ -516,7 +516,7 @@ namespace slib
 		}
 		return DialogResult::Error;
 	}
-	
+
 	void FileDialog::_showOnUiThread()
 	{
 		Ref<FileDialog> dialog = _getReferable();
@@ -528,7 +528,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void FileDialog::_showByRun()
 	{
 		Ref<FileDialog> dialog = _getReferable();
@@ -536,13 +536,13 @@ namespace slib
 			UI::dispatchToUiThread(Function<void()>::bind(&(priv::file_dialog::ShowOnUiThreadByRun), dialog));
 		}
 	}
-	
+
 	void FileDialog::_onResult(DialogResult _result)
 	{
 		result = _result;
 		onComplete(*this);
 	}
-	
+
 	FileDialog* FileDialog::_getReferable()
 	{
 		if (getReferenceCount() > 0) {
@@ -551,27 +551,27 @@ namespace slib
 			return new FileDialog(*this);
 		}
 	}
-	
+
 #if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
 	DialogResult FileDialog::run()
 	{
 		return DialogResult::Error;
 	}
-	
+
 	DialogResult FileDialog::_run()
 	{
 		return DialogResult::Error;
 	}
-	
+
 	void FileDialog::show()
 	{
 		_onResult(DialogResult::Error);
 	}
-	
+
 	sl_bool FileDialog::_show()
 	{
 		return sl_false;
 	}
 #endif
-	
+
 }

@@ -37,9 +37,9 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StringStorage)
-	
+
 	StringStorage::StringStorage() noexcept: data(0), length(0), charSize(0) {}
 
 	StringStorage::StringStorage(const String& str) noexcept: string8(str)
@@ -98,11 +98,11 @@ namespace slib
 			StringContainer* const g_empty = const_cast<StringContainer*>(&g_empty_container);
 
 			StringContainer16* const g_null16 = sl_null;
-			
+
 			const sl_char16 g_empty_buf16[] = {0, 0};
 			const StringContainer16 g_empty_container16 = {const_cast<sl_char16*>(g_empty_buf16), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
 			StringContainer16* const g_empty16 = const_cast<StringContainer16*>(&g_empty_container16);
-			
+
 			StringContainer32* const g_null32 = sl_null;
 
 			const sl_char32 g_empty_buf32[] = { 0, 0 };
@@ -208,7 +208,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			template <class CONTAINER>
 			static CONTAINER* AllocStatic(typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
 			{
@@ -226,7 +226,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			template <class CONTAINER, class VALUE>
 			static CONTAINER* AllocStd(VALUE&& str) noexcept
 			{
@@ -254,7 +254,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			template <class CONTAINER>
 			static CONTAINER* AllocRef(Referable* obj, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
 			{
@@ -273,7 +273,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			template <class CONTAINER>
 			static CONTAINER* AllocSub(typename CONTAINER::StringType const& str, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
 			{
@@ -412,7 +412,7 @@ namespace slib
 			{
 				return Charsets::utf16ToUtf8(endian, utf16, sizeUtf16, utf8, lenUtf8Buffer);
 			}
-			
+
 			SLIB_INLINE sl_size FromUtf16(EndianType endian, const void* utf16, sl_size sizeUtf16, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept
 			{
 				return Charsets::utf16ToUtf32(endian, utf16, sizeUtf16, utf32, lenUtf32Buffer);

@@ -217,7 +217,7 @@ namespace slib
 		m_toolTip = param.toolTip;
 		m_flagHighlight = param.flagHighlight;
 		m_menu = param.menu;
-		
+
 		m_onClick = param.onClick;
 		m_onRightClick = param.onRightClick;
 		m_onKeySelect = param.onKeySelect;

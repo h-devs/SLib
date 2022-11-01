@@ -70,8 +70,8 @@ namespace slib
 			SLIB_JNI_BEGIN_CLASS(JTelephonyManager, "android/telephony/TelephonyManager")
 				SLIB_JNI_METHOD(getPhoneCount, "getPhoneCount", "()I")
 				SLIB_JNI_METHOD(getImei, "getImei", "(I)Ljava/lang/String;")
-				SLIB_JNI_METHOD(getDeviceId, "getDeviceId", "()Ljava/lang/String;")					
-				SLIB_JNI_METHOD(getDeviceIdWithSlotIndex, "getDeviceId", "(I)Ljava/lang/String;")					
+				SLIB_JNI_METHOD(getDeviceId, "getDeviceId", "()Ljava/lang/String;")
+				SLIB_JNI_METHOD(getDeviceIdWithSlotIndex, "getDeviceId", "(I)Ljava/lang/String;")
 				SLIB_JNI_METHOD(getLine1Number, "getLine1Number", "()Ljava/lang/String;")
 			SLIB_JNI_END_CLASS
 

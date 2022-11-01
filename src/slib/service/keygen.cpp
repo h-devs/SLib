@@ -253,7 +253,7 @@ namespace slib
 	{
 		return getRequestCode(getMachineCode(), publicKey, extraInfo);
 	}
-	
+
 	String Keygen::getRequestCode()
 	{
 		return getRequestCode(sl_null, sl_null);

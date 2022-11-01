@@ -39,7 +39,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TabViewItem)
-	
+
 	TabViewItem::TabViewItem()
 	{
 	}
@@ -55,11 +55,11 @@ namespace slib
 		setUsingChildLayouts(sl_false);
 		setUsingFont(sl_true);
 		setSavingCanvasState(sl_false);
-		
+
 		m_items.setCount(1);
 		m_indexSelected = 0;
 		m_indexHover = -1;
-		
+
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setBarBackground(Color(230, 230, 230), UIUpdateMode::Init);
 		setSelectedTabBackground(Color(150, 150, 150), UIUpdateMode::Init);
@@ -67,11 +67,11 @@ namespace slib
 		m_labelColor = Color(50, 50, 50);
 		m_selectedLabelColor = Color::Black;
 		m_hoverLabelColor = Color(0, 20, 250);
-		
+
 		m_orientation = LayoutOrientation::Horizontal;
 		m_tabWidth = 0;
 		m_tabHeight = 0;
-		
+
 		m_tabAlignment = Alignment::Default;
 		m_tabPaddingLeft = 0;
 		m_tabPaddingTop = 0;
@@ -81,7 +81,7 @@ namespace slib
 		m_iconWidth = 0;
 		m_iconHeight = 0;
 	}
-	
+
 	TabView::~TabView()
 	{
 	}
@@ -90,7 +90,7 @@ namespace slib
 	{
 		return (sl_uint32)(m_items.getCount());
 	}
-	
+
 	void TabView::setTabCount(sl_uint32 nNew, UIUpdateMode mode)
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
@@ -122,7 +122,7 @@ namespace slib
 		selectTab(m_indexSelected, UIUpdateMode::None);
 		invalidate(mode);
 	}
-	
+
 	String TabView::getTabLabel(sl_uint32 index)
 	{
 		MutexLocker lock(m_items.getLocker());
@@ -132,7 +132,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void TabView::setTabLabel(sl_uint32 index, const String& text, UIUpdateMode mode)
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
@@ -150,7 +150,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	Ref<Drawable> TabView::getTabIcon(sl_uint32 index)
 	{
 		MutexLocker lock(m_items.getLocker());
@@ -160,7 +160,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void TabView::setTabIcon(sl_uint32 index, const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -172,7 +172,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	Ref<View> TabView::getTabContentView(sl_uint32 index)
 	{
 		MutexLocker lock(m_items.getLocker());
@@ -182,7 +182,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void TabView::setTabContentView(sl_uint32 index, const Ref<View>& view, UIUpdateMode mode)
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
@@ -214,12 +214,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_uint32 TabView::getSelectedTabIndex()
 	{
 		return m_indexSelected;
 	}
-	
+
 	void TabView::selectTab(sl_uint32 index, UIUpdateMode mode)
 	{
 		_selectTab(sl_false, index, mode);
@@ -264,7 +264,7 @@ namespace slib
 			dispatchSelectTab(index);
 		}
 	}
-	
+
 	UISize TabView::getContentViewSize()
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
@@ -282,12 +282,12 @@ namespace slib
 		}
 		return getTabContentRegion().getSize();
 	}
-	
+
 	LayoutOrientation TabView::getOrientation()
 	{
 		return m_orientation;
 	}
-	
+
 	void TabView::setOrientation(LayoutOrientation orientation, UIUpdateMode mode)
 	{
 		m_orientation = orientation;
@@ -295,7 +295,7 @@ namespace slib
 			_relayout(mode);
 		}
 	}
-	
+
 	sl_real TabView::getTabWidth()
 	{
 		sl_real width = m_tabWidth;
@@ -313,7 +313,7 @@ namespace slib
 			return getFontSize() * 2;
 		}
 	}
-	
+
 	void TabView::setTabWidth(sl_real width, UIUpdateMode mode)
 	{
 		m_tabWidth = width;
@@ -321,7 +321,7 @@ namespace slib
 			_relayout(mode);
 		}
 	}
-	
+
 	sl_real TabView::getTabHeight()
 	{
 		sl_real height = m_tabHeight;
@@ -339,7 +339,7 @@ namespace slib
 			return getFontSize() * 2;
 		}
 	}
-	
+
 	void TabView::setTabHeight(sl_real height, UIUpdateMode mode)
 	{
 		m_tabHeight = height;
@@ -347,92 +347,92 @@ namespace slib
 			_relayout(mode);
 		}
 	}
-	
+
 	Ref<Drawable> TabView::getBarBackground()
 	{
 		return m_barBackground;
 	}
-	
+
 	void TabView::setBarBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_barBackground = drawable;
 		_invalidateTabBar(mode);
 	}
-	
+
 	void TabView::setBarBackground(const Color& color, UIUpdateMode mode)
 	{
 		setBarBackground(Drawable::createColorDrawable(color), mode);
 	}
-	
+
 	Ref<Drawable> TabView::getContentBackground()
 	{
 		return m_contentBackground;
 	}
-	
+
 	void TabView::setContentBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_contentBackground = drawable;
 		invalidate(mode);
 	}
-	
+
 	void TabView::setContentBackground(const Color& color, UIUpdateMode mode)
 	{
 		setContentBackground(Drawable::createColorDrawable(color), mode);
 	}
-	
+
 	Ref<Drawable> TabView::getTabBackground()
 	{
 		return m_tabBackground;
 	}
-	
+
 	void TabView::setTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_tabBackground = drawable;
 		_invalidateTabBar(mode);
 	}
-	
+
 	void TabView::setTabBackground(const Color& color, UIUpdateMode mode)
 	{
 		setTabBackground(Drawable::createColorDrawable(color), mode);
 	}
-	
+
 	Ref<Drawable> TabView::getSelectedTabBackground()
 	{
 		return m_selectedTabBackground;
 	}
-	
+
 	void TabView::setSelectedTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_selectedTabBackground = drawable;
 		_invalidateTabBar(mode);
 	}
-	
+
 	void TabView::setSelectedTabBackground(const Color& color, UIUpdateMode mode)
 	{
 		setSelectedTabBackground(Drawable::createColorDrawable(color), mode);
 	}
-	
+
 	Ref<Drawable> TabView::getHoverTabBackground()
 	{
 		return m_hoverTabBackground;
 	}
-	
+
 	void TabView::setHoverTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_hoverTabBackground = drawable;
 		_invalidateTabBar(mode);
 	}
-	
+
 	void TabView::setHoverTabBackground(const Color& color, UIUpdateMode mode)
 	{
 		setHoverTabBackground(Drawable::createColorDrawable(color), mode);
 	}
-	
+
 	Color TabView::getLabelColor()
 	{
 		return m_labelColor;
 	}
-	
+
 	void TabView::setLabelColor(const Color& color, UIUpdateMode mode)
 	{
 		m_labelColor = color;
@@ -443,35 +443,35 @@ namespace slib
 	{
 		return m_selectedLabelColor;
 	}
-	
+
 	void TabView::setSelectedLabelColor(const Color& color, UIUpdateMode mode)
 	{
 		m_selectedLabelColor = color;
 		_invalidateTabBar(mode);
 	}
-	
+
 	Color TabView::getHoverLabelColor()
 	{
 		return m_hoverLabelColor;
 	}
-	
+
 	void TabView::setHoverLabelColor(const Color& color, UIUpdateMode mode)
 	{
 		m_hoverLabelColor = color;
 		_invalidateTabBar(mode);
 	}
-	
+
 	Alignment TabView::getTabAlignment()
 	{
 		return m_tabAlignment;
 	}
-	
+
 	void TabView::setTabAlignment(const Alignment& align, UIUpdateMode mode)
 	{
 		m_tabAlignment = align;
 		invalidate(mode);
 	}
-	
+
 	void TabView::setTabPadding(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode)
 	{
 		m_tabPaddingLeft = left;
@@ -480,47 +480,47 @@ namespace slib
 		m_tabPaddingBottom = bottom;
 		invalidate(mode);
 	}
-	
+
 	void TabView::setTabPadding(sl_ui_pos margin, UIUpdateMode mode)
 	{
 		setTabPadding(margin, margin, margin, margin, mode);
 	}
-	
+
 	sl_ui_pos TabView::getTabPaddingLeft()
 	{
 		return m_tabPaddingLeft;
 	}
-	
+
 	void TabView::setTabPaddingLeft(sl_ui_pos padding, UIUpdateMode mode)
 	{
 		setTabPadding(padding, m_tabPaddingTop, m_tabPaddingRight, m_tabPaddingBottom, mode);
 	}
-	
+
 	sl_ui_pos TabView::getTabPaddingTop()
 	{
 		return m_tabPaddingTop;
 	}
-	
+
 	void TabView::setTabPaddingTop(sl_ui_pos padding, UIUpdateMode mode)
 	{
 		setTabPadding(m_tabPaddingLeft, padding, m_tabPaddingRight, m_tabPaddingBottom, mode);
 	}
-	
+
 	sl_ui_pos TabView::getTabPaddingRight()
 	{
 		return m_tabPaddingRight;
 	}
-	
+
 	void TabView::setTabPaddingRight(sl_ui_pos padding, UIUpdateMode mode)
 	{
 		setTabPadding(m_tabPaddingLeft, m_tabPaddingTop, padding, m_tabPaddingBottom, mode);
 	}
-	
+
 	sl_ui_pos TabView::getTabPaddingBottom()
 	{
 		return m_tabPaddingBottom;
 	}
-	
+
 	void TabView::setTabPaddingBottom(sl_ui_pos padding, UIUpdateMode mode)
 	{
 		setTabPadding(m_tabPaddingLeft, m_tabPaddingTop, m_tabPaddingRight, padding, mode);
@@ -530,55 +530,55 @@ namespace slib
 	{
 		return m_tabSpaceSize;
 	}
-	
+
 	void TabView::setTabSpaceSize(sl_ui_pos size, UIUpdateMode mode)
 	{
 		m_tabSpaceSize = size;
 		invalidate(mode);
 	}
-	
+
 	UISize TabView::getIconSize()
 	{
 		return UISize(m_iconWidth, m_iconHeight);
 	}
-	
+
 	void TabView::setIconSize(const UISize& size, UIUpdateMode mode)
 	{
 		m_iconWidth = size.x;
 		m_iconHeight = size.y;
 		invalidate(mode);
 	}
-	
+
 	void TabView::setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode)
 	{
 		setIconSize(UISize(width, height), mode);
 	}
-	
+
 	void TabView::setIconSize(sl_ui_len size, UIUpdateMode mode)
 	{
 		setIconSize(UISize(size, size), mode);
 	}
-	
+
 	sl_ui_len TabView::getIconWidth()
 	{
 		return m_iconWidth;
 	}
-	
+
 	void TabView::setIconWidth(sl_ui_len width, UIUpdateMode mode)
 	{
 		setIconSize(UISize(width, m_iconHeight), mode);
 	}
-	
+
 	sl_ui_len TabView::getIconHeight()
 	{
 		return m_iconHeight;
 	}
-	
+
 	void TabView::setIconHeight(sl_ui_len height, UIUpdateMode mode)
 	{
 		setIconSize(UISize(m_iconWidth, height), mode);
 	}
-	
+
 	UIRect TabView::getTabBarRegion()
 	{
 		UISize size = getSize();
@@ -615,7 +615,7 @@ namespace slib
 		ret.fixSizeError();
 		return ret;
 	}
-	
+
 	UIRect TabView::getWholeContentRegion()
 	{
 		UIRect ret = getBounds();
@@ -645,14 +645,14 @@ namespace slib
 		ret.fixSizeError();
 		return ret;
 	}
-	
+
 	void TabView::_invalidateTabBar(UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
 			invalidate(getTabBarRegion());
 		}
 	}
-	
+
 	void TabView::_refreshSize()
 	{
 		Ptr<ITabViewInstance> instance = getTabViewInstance();
@@ -663,7 +663,7 @@ namespace slib
 			_relayout(UIUpdateMode::Redraw);
 		}
 	}
-	
+
 	void TabView::_relayout(UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -677,13 +677,13 @@ namespace slib
 		}
 		invalidate(mode);
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index)
 
 	void TabView::dispatchSelectTab(sl_uint32 index)
 	{
 		m_indexSelected = index;
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(SelectTab, index)
 	}
 
@@ -700,7 +700,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TabView::onMouseEvent(UIEvent* ev)
 	{
 		if (ev->getAction() == UIAction::MouseLeave || ev->getAction() == UIAction::LeftButtonUp || ev->getAction() == UIAction::TouchEnd || ev->getAction() == UIAction::TouchCancel) {
@@ -740,7 +740,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TabView::onDraw(Canvas* canvas)
 	{
 		canvas->draw(getTabBarRegion(), m_barBackground);
@@ -752,14 +752,14 @@ namespace slib
 			onDrawTab(canvas, getTabRegion(i), i, items[i].icon, items[i].label);
 		}
 	}
-	
+
 	void TabView::onDrawTab(Canvas* canvas, const UIRect& rect, sl_uint32 index, const Ref<Drawable>& icon, const String& label)
 	{
 		UIRect rc = getTabRegion(index);
-		
+
 		Color labelColor;
 		Ref<Drawable> background;
-		
+
 		if (m_indexSelected == index) {
 			background = m_selectedTabBackground;
 			labelColor = m_selectedLabelColor;
@@ -770,18 +770,18 @@ namespace slib
 			background = m_tabBackground;
 			labelColor = m_labelColor;
 		}
-		
+
 		if (background.isNull()) {
 			background = m_tabBackground;
 		}
 		if (labelColor.isZero()) {
 			labelColor = m_labelColor;
 		}
-		
+
 		if (background.isNotNull()) {
 			canvas->draw(rc, background);
 		}
-		
+
 		rc.left += m_tabPaddingLeft;
 		rc.top += m_tabPaddingTop;
 		rc.right -= m_tabPaddingRight;
@@ -789,7 +789,7 @@ namespace slib
 		if (!(rc.isValidSize())) {
 			return;
 		}
-		
+
 		sl_ui_pos space = m_tabSpaceSize;
 		sl_ui_len widthIcon = m_iconWidth;
 		sl_ui_len heightIcon = m_iconHeight;
@@ -826,15 +826,15 @@ namespace slib
 		} else {
 			space = 0;
 		}
-		
+
 		sl_ui_len widthTotal = widthIcon + space + widthLabel;
 		sl_ui_len heightTotal = Math::max(heightIcon, heightLabel);
 		if (widthTotal <= 0 || heightTotal <= 0) {
 			return;
 		}
-		
+
 		UIPoint pt = GraphicsUtil::calculateAlignPosition(rc, (sl_real)widthTotal, (sl_real)heightTotal, m_tabAlignment);
-		
+
 		if (icon.isNotNull() && widthIcon > 0 && heightIcon > 0) {
 			UIRect rcIcon;
 			rcIcon.left = pt.x;
@@ -847,19 +847,19 @@ namespace slib
 			canvas->drawText(label, (sl_real)(pt.x + widthIcon + space), (sl_real)(pt.y + heightTotal / 2 - heightLabel / 2), font, labelColor);
 		}
 	}
-	
+
 	void TabView::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		_refreshSize();
 	}
-	
-	
+
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> TabView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()
 	{
 		return sl_null;

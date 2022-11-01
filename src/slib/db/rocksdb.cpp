@@ -100,7 +100,7 @@ namespace slib
 					if (path.isEmpty()) {
 						return sl_null;
 					}
-					
+
 					rocksdb::Options options;
 					options.create_if_missing = (bool)(param.flagCreateIfMissing);
 					options.keep_log_file_num = 2;

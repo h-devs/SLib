@@ -42,14 +42,14 @@ namespace slib
 		sl_size hash;
 		sl_uint32 type;
 		volatile sl_reg ref;
-		
+
 	public:
 		sl_reg increaseReference() noexcept;
-		
+
 		sl_reg decreaseReference() noexcept;
-		
+
 	};
-	
+
 	/**
 	 * @class String32
 	 * @brief String32 class provides an extensive set of APIs for working with strings, including method for comparing, searching, and modifying strings.
@@ -66,7 +66,7 @@ namespace slib
 
 	private:
 		Container* m_container;
-		
+
 	public:
 		/**
 		 * Initializes as a null string.
@@ -92,14 +92,14 @@ namespace slib
 		 * Destructor
 		 */
 		~String32();
-		
+
 	public:
-		
+
 		/**
 		 * Fill the string with `nRepeatCount` consecutive copies of charactor `ch`
 		 */
 		String32(sl_char32 ch, sl_size nRepeatCount) noexcept;
-		
+
 		/**
          * Copies the null-terminated character sequence pointed by `str`.
 		 */
@@ -109,7 +109,7 @@ namespace slib
 		 * Copies the first `length` characters from the array of characters pointed by `str`
 		 */
 		String32(const sl_char32* str, sl_reg length) noexcept;
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		/**
 		 * Initialize from `std::u32string`.
@@ -124,7 +124,7 @@ namespace slib
 		 * Create a string of `len` characters.
 		 */
 		static String32 allocate(sl_size len) noexcept;
-		
+
 		/**
 		 * Creates a string copying other string
 		 */
@@ -163,13 +163,13 @@ namespace slib
 		}
 
 		static String32 fromStatic(const sl_char32* str, sl_reg len) noexcept;
-		
+
 		/**
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `ref` should be used to keep the alive of the string content.
 		 */
 		static String32 fromRef(Referable* ref, const sl_char32* str, sl_size len) noexcept;
-		
+
 		/**
 		 * Creates a string pointing the `mem` as the UTF-32 content, without copying the data.
 		 */
@@ -182,12 +182,12 @@ namespace slib
 		 * @param[in] len length of the `text`. negative value means that `text` is null terminated.
 		 */
 		static String32 fromUtf8(const void* text, sl_reg len = -1) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-8 text in `mem`.
 		 */
 		static String32 fromUtf8(const MemoryView& mem) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 text.
 		 *
@@ -195,7 +195,7 @@ namespace slib
 		 * @param[in] len length of the `text`. negative value means that `text` is null terminated.
 		 */
 		static String32 fromUtf16(const sl_char16* text, sl_reg len = -1) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Big Endian text.
 		 *
@@ -203,12 +203,12 @@ namespace slib
 		 * @param[in] size size (in bytes) of the `text`
 		 */
 		static String32 fromUtf16BE(const void* text, sl_size size) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Big Endian text in `mem`.
 		 */
 		static String32 fromUtf16BE(const MemoryView& mem) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Little Endian text.
 		 *
@@ -216,12 +216,12 @@ namespace slib
 		 * @param[in] size size (in bytes) of the `text`
 		 */
 		static String32 fromUtf16LE(const void* text, sl_size size) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-16 Little Endian text in `mem`.
 		 */
 		static String32 fromUtf16LE(const MemoryView& mem) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-32 text.
 		 *
@@ -229,7 +229,7 @@ namespace slib
 		 * @param[in] len length of the `text`. negative value means that `text` is null terminated.
 		 */
 		static String32 fromUtf32(const sl_char32* text, sl_reg len = -1) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-8, UTF-16BE, or UTF-16LE text.
 		 * This function detects the encoding type from the first 3 bytes of `text`.
@@ -238,23 +238,23 @@ namespace slib
 		 * @param[in] size size (in bytes) of the `text`
 		 */
 		static String32 fromUtf(const void* text, sl_size size) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from the UTF-8, UTF-16BE, or UTF-16LE text in `mem`.
 		 * This function detects the encoding type from the first 3 bytes of the text.
 		 */
 		static String32 fromUtf(const MemoryView& mem) noexcept;
-		
+
 		/**
 		 * Creates a string copying the characters from `text` encoded by `charset`.
 		 */
 		static String32 decode(Charset charset, const void* text, sl_size size);
-		
+
 		/**
 		 * Creates a string copying the characters from text in `mem`, encoded by `charset`.
 		 */
 		static String32 decode(Charset charset, const MemoryView& mem);
-		
+
 
 		static const String32& from(const String32& str) noexcept
 		{
@@ -300,7 +300,7 @@ namespace slib
 		static String32 from(sl_bool value) noexcept;
 		static String32 from(const Time& value) noexcept;
 		static String32 from(const Variant& var) noexcept;
-		
+
 	public:
 		/**
 		 * @return null string.
@@ -309,7 +309,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<String32 const*>(&(priv::string::g_null32)));
 		}
-		
+
 		/**
 		 * @return empty string.
 		 */
@@ -317,7 +317,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<String32 const*>(&(priv::string::g_empty32)));
 		}
-		
+
 		/**
 		 * @return empty string if this string is null. otherwise returns this string.
 		 */
@@ -328,7 +328,7 @@ namespace slib
 			}
 			return *this;
 		}
-		
+
 		/**
 		 * @return `true` if this string is null.
 		 */
@@ -336,7 +336,7 @@ namespace slib
 		{
 			return !m_container;
 		}
-		
+
 		/**
 		 * @return `true` if this string is not null.
 		 */
@@ -344,7 +344,7 @@ namespace slib
 		{
 			return m_container != sl_null;
 		}
-		
+
 		/**
 		 * @return `true` if this string is empty.
 		 */
@@ -352,7 +352,7 @@ namespace slib
 		{
 			return !(m_container && m_container->len);
 		}
-		
+
 		/**
 		 * @return `true` if this string is not empty.
 		 */
@@ -360,17 +360,17 @@ namespace slib
 		{
 			return m_container && m_container->len;
 		}
-		
+
 		/**
 		 * Sets this string as a null.
 		 */
 		void setNull() noexcept;
-		
+
 		/**
 		 * Sets this string as an empty.
 		 */
 		void setEmpty() noexcept;
-		
+
 	public:
 		/**
 		 * @return string content.
@@ -383,7 +383,7 @@ namespace slib
 				return (sl_char32*)((void*)(U""));
 			}
 		}
-		
+
 		/**
 		 * @return string content and length.
 		 */
@@ -397,7 +397,7 @@ namespace slib
 				return (sl_char32*)((void*)(U""));
 			}
 		}
-		
+
 		sl_char32* getNullTerminatedData(sl_size& outLength, String32& outStringConverted) const noexcept;
 
 		/**
@@ -407,7 +407,7 @@ namespace slib
 		{
 			return m_container ? m_container->len : 0;
 		}
-		
+
 		/**
 		 * @return the hash code.
 		 */
@@ -426,27 +426,27 @@ namespace slib
 		 * Don't use for null or empty string
 		 */
 		void setLength(sl_size len) noexcept;
-		
+
 		/**
 		 * Sets the hash code.
 		 *
 		 * Don't use for null or empty string
 		 */
 		void setHashCode(sl_size hash) noexcept;
-		
+
 		/**
 		 * @return the character at `index` in string.
 		 */
 		sl_char32 getAt(sl_reg index) const noexcept;
-		
+
 		/**
 		 * Sets the character at `index` in string.
 		 * @return `true` on success.
 		 */
 		sl_bool setAt(sl_reg index, sl_char32 ch) noexcept;
-		
+
 		sl_char32 operator[](sl_size index) const noexcept;
-		
+
 		sl_char32& operator[](sl_size index) noexcept;
 
 		explicit operator sl_bool() const noexcept
@@ -475,11 +475,11 @@ namespace slib
 		String32& operator=(const std::u32string& other) noexcept;
 		String32& operator=(std::u32string&& other) noexcept;
 #endif
-		
+
 	public:
 		String32& operator+=(String32&& other) noexcept;
 		String32& operator+=(const String32& other) noexcept;
-		
+
 		template <class T>
 		String32& operator+=(const T& other) noexcept
 		{
@@ -523,7 +523,7 @@ namespace slib
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compareIgnoreCase(const StringView32& other) const noexcept;
-		
+
 	public:
 		/**
 		 * @return duplicated string.
@@ -539,79 +539,79 @@ namespace slib
 		 * @return memory containing string content.
 		 */
 		Memory toMemory() const noexcept;
-		
+
 		/**
 		 * Fills Utf8 characters to the provided buffer
 		 */
 		sl_size getUtf8(sl_char8* utf8, sl_size len) const noexcept;
-		
+
 		/**
 		 * Fills Utf8 characters to the provided buffer
 		 */
 		sl_bool getUtf8(StringStorage& output) const noexcept;
-		
+
 		/**
 		 * Converts to Utf8 and Returns a Memory containing the Utf8 characters and null at last
 		 */
 		Memory toUtf8() const noexcept;
-		
+
 		/**
 		 * Encodes using `charset` and Returns Memory containing the encoded bytes
 		 */
 		Memory encode(Charset charset) const;
-		
+
 		/**
 		 * @return a substring of this string.
 		 */
 		String32 substring(sl_reg start, sl_reg end = -1) const noexcept;
-		
+
 		/**
 		 * @return a string containing a specified number of characters from the left side of this string.
 		 */
 		String32 left(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a string containing a specified number of characters from the right side of this string.
 		 */
 		String32 right(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a string that contains a specified number of characters starting from a specified position in this string.
 		 */
 		String32 mid(sl_reg start, sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg indexOf(const StringView32& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char32 ch, sl_reg start = 0) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg lastIndexOf(const StringView32& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char32 ch, sl_reg start = -1) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
 		sl_bool startsWith(const StringView32& str) const noexcept;
 		sl_bool startsWith(sl_char32 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
 		sl_bool endsWith(const StringView32& str) const noexcept;
 		sl_bool endsWith(sl_char32 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
 		sl_bool contains(const StringView32& str) const noexcept;
 		sl_bool contains(sl_char32 ch) const noexcept;
-		
+
 		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
@@ -622,17 +622,17 @@ namespace slib
 		 * Converts the characters of this string to uppercase.
 		 */
 		void makeUpper() noexcept;
-		
+
 		/**
 		 * Converts the characters of this string to lowercase.
 		 */
 		void makeLower() noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to uppercase.
 		 */
 		String32 toUpper() const noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to lowercase.
 		 */
@@ -654,12 +654,12 @@ namespace slib
 		 * Copy this string and then removes whitespaces from both ends of the new string.
 		 */
 		String32 trim() const noexcept;
-		
+
 		/**
 		 * Copy this string and then removes whitespaces from the left of the new string.
 		 */
 		String32 trimLeft() const noexcept;
-		
+
 		/**
 		 * Copy this string and then removes whitespaces from the right of the new string.
 		 */
@@ -891,14 +891,14 @@ namespace slib
 		 * @param pointer The memory address to be parsed.
 		 */
 		static String32 fromPointerValue(const void* pointer) noexcept;
-		
+
 		/**
 		 * @return the string representation of the boolean argument.
 		 *
 		 * @param value The boolean value to be parsed.
 		 */
 		static String32 fromBoolean(sl_bool value) noexcept;
-		
+
 		/**
 		 * @return the converted hex string from the buffer.
 		 *
@@ -907,7 +907,7 @@ namespace slib
 		 * @param flagUseLowerChar uses a-f (`true`) or A-F (`false`) for encoding
 		 */
 		static String32 makeHexString(const void* data, sl_size size, sl_bool flagUseLowerChar = sl_true) noexcept;
-		
+
 		/**
 		 * @return the converted hex string from the buffer.
 		 *
@@ -915,7 +915,7 @@ namespace slib
 		 * @param flagUseLowerChar uses a-f (`true`) or A-F (`false`) for encoding
 		 */
 		static String32 makeHexString(const MemoryView& mem, sl_bool flagUseLowerChar = sl_true) noexcept;
-		
+
 		/**
 		 * Returns the formatted string from the format string and arbitrary list of arguments.
 		 *
@@ -940,13 +940,13 @@ namespace slib
 
 	private:
 		void _replaceContainer(Container* container) noexcept;
-		
+
 	public:
 		friend class Atomic<String32>;
-		
+
 	};
-	
-	
+
+
 	template <>
 	class SLIB_EXPORT Atomic<String32>
 	{
@@ -961,14 +961,14 @@ namespace slib
 	private:
 		Container* m_container;
 		SpinLock m_lock;
-		
+
 	public:
 		/**
 		 * Initialize as a null string.
 		 */
 		SLIB_CONSTEXPR Atomic(): m_container(sl_null) {}
 		SLIB_CONSTEXPR Atomic(sl_null_t): m_container(sl_null) {}
-		
+
 		/**
 		 * Constructors
 		 */
@@ -981,18 +981,18 @@ namespace slib
 		Atomic(const String32& src) noexcept;
 		Atomic(const AtomicString32& src) noexcept;
 		Atomic(const StringView32& src) noexcept;
-		
+
 		/**
 		 * Destructor
 		 */
 		~Atomic();
-		
+
 	public:
 		/**
 		 * Fill the string with `nRepeatCount` consecutive copies of charactor `ch`
 		 */
 		Atomic(sl_char32 ch, sl_size nRepeatCount) noexcept;
-		
+
 		/**
 		 * Copies the null-terminated character sequence pointed by `str`.
 		 */
@@ -1020,7 +1020,7 @@ namespace slib
 		{
 			return !m_container;
 		}
-		
+
 		/**
 		 * @return `true` if this string is not null.
 		 */
@@ -1028,12 +1028,12 @@ namespace slib
 		{
 			return m_container != sl_null;
 		}
-		
+
 		/**
 		 * Sets this string as a null.
 		 */
 		void setNull() noexcept;
-		
+
 		/**
 		 * Sets this string as an empty.
 		 */
@@ -1053,14 +1053,14 @@ namespace slib
 		AtomicString32& operator=(const std::u32string& other) noexcept;
 		AtomicString32& operator=(std::u32string&& other) noexcept;
 #endif
-		
+
 	private:
 		Container* _retainContainer() const noexcept;
 		void _replaceContainer(Container* other) noexcept;
 
 		friend class String32;
 	};
-	
+
 }
 
 /// @}

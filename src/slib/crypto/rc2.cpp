@@ -29,7 +29,7 @@ namespace slib
 	{
 		namespace rc2
 		{
-			
+
 			static const sl_uint8 g_tableKey[256] = {
 				0xd9, 0x78, 0xf9, 0xc4, 0x19, 0xdd, 0xb5, 0xed, 0x28, 0xe9, 0xfd, 0x79,
 				0x4a, 0xa0, 0xd8, 0x9d, 0xc6, 0x7e, 0x37, 0x83, 0x2b, 0x76, 0x53, 0x8e,
@@ -112,7 +112,7 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::rc2;
 
 	RC2::RC2()
@@ -122,7 +122,7 @@ namespace slib
 	RC2::~RC2()
 	{
 	}
-	
+
 	sl_bool RC2::setKey(const void* key, sl_size _lenKey, sl_int32 nBits)
 	{
 		sl_uint32 lenKey = (sl_uint32)_lenKey;
@@ -206,7 +206,7 @@ namespace slib
 
 		sl_uint32 d0 = MIO::readUint32LE(IN);
 		sl_uint32 d1 = MIO::readUint32LE(IN + 4);
-		
+
 		encrypt(d0, d1);
 
 		MIO::writeUint32LE(OUT, d0);
@@ -217,12 +217,12 @@ namespace slib
 	{
 		const sl_uint8* IN = (const sl_uint8*)_src;
 		sl_uint8* OUT = (sl_uint8*)_dst;
-		
+
 		sl_uint32 d0 = MIO::readUint32LE(IN);
 		sl_uint32 d1 = MIO::readUint32LE(IN + 4);
-		
+
 		decrypt(d0, d1);
-		
+
 		MIO::writeUint32LE(OUT, d0);
 		MIO::writeUint32LE(OUT + 4, d1);
 	}

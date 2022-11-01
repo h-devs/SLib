@@ -287,7 +287,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void seekTo(double seconds) override
 				{
 					ObjectLocker lock(this);

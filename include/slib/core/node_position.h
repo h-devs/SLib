@@ -27,71 +27,71 @@
 
 namespace slib
 {
-	
+
 	template <class NODE>
 	class SLIB_EXPORT NodePosition
 	{
 	public:
 		SLIB_CONSTEXPR NodePosition(): node(sl_null) {}
-		
+
 		SLIB_CONSTEXPR NodePosition(sl_null_t): node(sl_null) {}
-		
+
 		SLIB_CONSTEXPR NodePosition(NODE* other): node(other) {}
-		
+
 		SLIB_CONSTEXPR NodePosition(const NodePosition& other): node(other.node) {}
-		
+
 	public:
 		NodePosition& operator=(const NodePosition& other) noexcept
 		{
 			node = other.node;
 			return *this;
 		}
-		
+
 		NodePosition& operator=(NODE* other) noexcept
 		{
 			node = other;
 			return *this;
 		}
-		
+
 		NODE& operator*() const noexcept
 		{
 			return *node;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator==(const NodePosition& other) const
 		{
 			return node == other.node;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator==(const NODE* other) const
 		{
 			return node == other;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator!=(const NodePosition& other) const
 		{
 			return node != other.node;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator!=(const NODE* other) const
 		{
 			return node != other;
 		}
-		
+
 		SLIB_CONSTEXPR operator NODE*() const
 		{
 			return node;
 		}
-		
+
 		NodePosition& operator++() noexcept
 		{
 			node = node->getNext();
 			return *this;
 		}
-		
+
 	public:
 		NODE* node;
-		
+
 	};
 
 }

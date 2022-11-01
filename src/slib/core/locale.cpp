@@ -33,7 +33,7 @@ namespace slib
 	{
 		namespace locale
 		{
-			
+
 			sl_uint64 g_localeUnknown = 0;
 
 			Locale g_localeCurrent = Locale::Unknown;
@@ -520,7 +520,7 @@ namespace slib
 		return getLanguageName(language).isNotNull();
 	}
 
-	
+
 	LanguageScript Locale::getScriptFromCode(const sl_char8* code)
 	{
 		if (code && code[0] && code[1] && code[2] && code[3]) {
@@ -528,7 +528,7 @@ namespace slib
 		}
 		return LanguageScript::Unknown;
 	}
-	
+
 	LanguageScript Locale::getScriptFromCode(const sl_char16* code)
 	{
 		if (code && code[0] && code[1] && code[2] && code[3]) {
@@ -553,7 +553,7 @@ namespace slib
 		}
 		return LanguageScript::Unknown;
 	}
-	
+
 	void Locale::getScriptCode(LanguageScript script, sl_char8* sz)
 	{
 		sz[0] = SLIB_GET_BYTE0((sl_uint32)script);
@@ -561,7 +561,7 @@ namespace slib
 		sz[2] = SLIB_GET_BYTE2((sl_uint32)script);
 		sz[3] = SLIB_GET_BYTE3((sl_uint32)script);
 	}
-	
+
 	String Locale::getScriptCode(LanguageScript script)
 	{
 		char sz[5];
@@ -895,7 +895,7 @@ namespace slib
 		}
 		return Country::Unknown;
 	}
-	
+
 	void Locale::getCountryCode(Country country, sl_char8* sz)
 	{
 		sz[0] = SLIB_GET_BYTE0((int)country);
@@ -923,7 +923,7 @@ namespace slib
 		}
 		return _getCurrent();
 	}
-	
+
 	void Locale::setCurrent(const Locale& locale)
 	{
 		g_localeCurrent = locale;
@@ -947,14 +947,14 @@ namespace slib
 		_setupOnChangeCurrentLocale();
 		return callback;
 	}
-	
+
 	void Locale::removeOnChangeCurrentLocale(const Function<void()>& callback)
 	{
 		if (!(SLIB_SAFE_STATIC_CHECK_FREED(g_callback_onChangeCurrent))) {
 			g_callback_onChangeCurrent.remove(callback);
 		}
 	}
-	
+
 	void Locale::dispatchChangeCurrentLocale()
 	{
 		Locale locale = _getCurrent();
@@ -966,7 +966,7 @@ namespace slib
 			g_callback_onChangeCurrent();
 		}
 	}
-	
+
 #if !defined(SLIB_PLATFORM_IS_MACOS)
 	void Locale::_setupOnChangeCurrentLocale()
 	{

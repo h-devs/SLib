@@ -33,7 +33,7 @@ namespace slib
 
 	class Thread;
 	class Timer;
-	
+
 	class SLIB_EXPORT DispatchLoop : public Dispatcher
 	{
 		SLIB_DECLARE_OBJECT
@@ -42,17 +42,17 @@ namespace slib
 		DispatchLoop();
 
 		~DispatchLoop();
-	
+
 	public:
 		static Ref<DispatchLoop> getDefault();
-	
+
 		static void releaseDefault();
-	
+
 		static Ref<DispatchLoop> create(sl_bool flagAutoStart = sl_true);
-	
+
 	public:
 		void release();
-	
+
 		void start();
 
 		sl_bool isRunning();
@@ -60,7 +60,7 @@ namespace slib
 		sl_bool dispatch(const Function<void()>& task, sl_uint64 delayMillis = 0) override;
 
 		sl_bool addTimer(const Ref<Timer>& timer);
-		
+
 		void removeTimer(const Ref<Timer>& timer);
 
 		sl_uint64 getElapsedMilliseconds();

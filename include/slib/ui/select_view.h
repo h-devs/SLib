@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class ISelectViewInstance;
 
 	class SelectSwitchCell;
@@ -35,42 +35,42 @@ namespace slib
 	class SLIB_EXPORT SelectView : public View, public SingleSelectionViewBase<SelectView, sl_uint32>
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		SelectView();
-		
+
 		~SelectView();
 
 	public:
 		Alignment getGravity();
-		
+
 		void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getTextColor();
-		
+
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)
 
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onMouseEvent(UIEvent* ev) override;
-		
+
 		void onUpdateLayout() override;
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		virtual Ptr<ISelectViewInstance> getSelectViewInstance();
-	
+
 	private:
 		void _initCell();
 
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
-	
+
 	protected:
 		Ref<SelectSwitchCell> m_cell;
 
@@ -78,16 +78,16 @@ namespace slib
 		Color m_textColor;
 
 	};
-	
+
 	class SLIB_EXPORT ISelectViewInstance
 	{
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
 
 		virtual void setGravity(SelectView* view, const Alignment& gravity);
-		
+
 		virtual void setTextColor(SelectView* view, const Color& color);
-		
+
 		virtual sl_bool measureSize(SelectView* view, UISize& _out);
 
 	};

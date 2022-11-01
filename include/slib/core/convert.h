@@ -39,7 +39,7 @@ namespace slib
 {
 
 	template <class T> T&& DeclaredValue() noexcept;
-	
+
 	template <class FROM, class TO>
 	class IsConvertibleHelper
 	{
@@ -56,7 +56,7 @@ namespace slib
 		typedef decltype(_test<FROM, TO>(0)) type;
 
 	};
-	
+
 	template <typename FROM, typename TO>
 	struct IsConvertible : public IsConvertibleHelper<FROM, TO>::type {};
 

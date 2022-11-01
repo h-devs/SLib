@@ -944,7 +944,7 @@ namespace slib
 				virtual PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef, sl_bool flagReadOnlyStream) = 0;
 				virtual Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) = 0;
 				virtual sl_bool readDocument(const PdfDocumentParam& param) = 0;
-				
+
 			public:
 				void _init()
 				{
@@ -1907,7 +1907,7 @@ namespace slib
 							}
 						}
 					} while (start < nObjects);
-					
+
 					if (!(writeText(writer, StringView::literal("trailer\n"), offsetCurrent))) {
 						return sl_false;
 					}
@@ -4611,7 +4611,7 @@ namespace slib
 														for (sl_size i = 0; i < arr.count; i++) {
 															sl_uint32 value;
 															if (DecodeCMapValue(arr[i].getString(), value)) {
-																
+
 																map.put_NoLock((sl_uint16)(code1 + i), value);
 
 															}
@@ -4927,7 +4927,7 @@ namespace slib
 					row += sizeRow;
 				}
 			}
-			
+
 			static void InvertBlackWhite(Image* image)
 			{
 				Color* colors = image->getColors();
@@ -4949,7 +4949,7 @@ namespace slib
 			{
 				return (sl_uint8)(min + (((sl_int32)(max - min) * (sl_int32)source) >> 8));
 			}
-			
+
 			const sl_uint8 g_faxBlackRunIns[] = {
 				0,          2,          0x02,       3,          0,          0x03,
 				2,          0,          2,          0x02,       1,          0,
@@ -5474,7 +5474,7 @@ namespace slib
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfName)
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfValue)
-	
+
 	PdfValue::PdfValue(sl_bool v) noexcept: m_var(v, (sl_uint8)(PdfValueType::Boolean)) {}
 
 	PdfValue::PdfValue(sl_int32 v) noexcept: m_var(v, (sl_uint8)(PdfValueType::Int)) {}
@@ -5857,7 +5857,7 @@ namespace slib
 			return PdfValue();
 		}
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(PdfArray, CListBase)
 
@@ -6327,7 +6327,7 @@ namespace slib
 				default:
 					return sl_false;
 			}
-			
+
 			Ref<PdfArray> arrEncode = dict->get(name::Encode).getArray();
 			if (arrEncode.isNotNull()) {
 				if (arrEncode->getCount() != countInput << 1) {
@@ -7448,7 +7448,7 @@ namespace slib
 		}
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(PdfImage, PdfExternalObject)
 
 	PdfImage::PdfImage(): PdfExternalObject(PdfExternalObjectType::Image)

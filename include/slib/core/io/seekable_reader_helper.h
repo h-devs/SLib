@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	class SeekableReaderHelper
 	{
 	public:

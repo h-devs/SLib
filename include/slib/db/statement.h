@@ -29,7 +29,7 @@ namespace slib
 {
 
 	class Database;
-	
+
 	class SLIB_EXPORT DatabaseStatement : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -41,11 +41,11 @@ namespace slib
 
 	public:
 		Ref<Database> getDatabase();
-		
+
 		List<String> getParameterNames();
-		
+
 		void setParameterNames(const ListParam<String>& names);
-		
+
 		virtual sl_int64 executeBy(const Variant* params, sl_uint32 nParams) = 0;
 
 		template <class T>
@@ -87,9 +87,9 @@ namespace slib
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return queryBy(params, sizeof...(args));
 		}
-	
+
 		virtual List<VariantMap> getRecordsBy(const Variant* params, sl_uint32 nParams);
-		
+
 		template <class T>
 		List<VariantMap> getRecordsBy(const T& _params)
 		{
@@ -131,14 +131,14 @@ namespace slib
 		}
 
 		virtual Variant getValueBy(const Variant* params, sl_uint32 nParams);
-		
+
 		template <class T>
 		Variant getValueBy(const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, m_names);
 			return getValueBy(params.data, params.count);
 		}
-		
+
 		Variant getValue()
 		{
 			return getValueBy(sl_null, 0);

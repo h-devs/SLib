@@ -32,14 +32,14 @@
 
 namespace slib
 {
-	
+
 	class iOS_TextInput
 	{
 	public:
 		static UIResponder* getNativeInstance(TextInput* input);
-		
+
 	};
-	
+
 }
 
 

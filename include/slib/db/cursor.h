@@ -29,93 +29,93 @@
 
 namespace slib
 {
-	
+
 	class Database;
-	
+
 	class SLIB_EXPORT DatabaseCursor : public Object
 	{
 		SLIB_DECLARE_OBJECT
-	
+
 	public:
 		DatabaseCursor();
-	
+
 		~DatabaseCursor();
-	
+
 	public:
 		Ref<Database> getDatabase();
-	
+
 		virtual sl_uint32 getColumnCount() = 0;
-	
+
 		virtual String getColumnName(sl_uint32 index) = 0;
 
 		// returns -1 when the column name not found
 		virtual sl_int32 getColumnIndex(const StringParam& name) = 0;
-	
+
 
 		virtual VariantMap getRow() = 0;
-	
+
 
 		virtual Variant getValue(sl_uint32 index);
 
 		virtual Variant getValue(const StringParam& name);
-	
+
 
 		virtual String getString(sl_uint32 index);
 
 		virtual String getString(const StringParam& name);
-	
+
 
 		virtual sl_int64 getInt64(sl_uint32 index, sl_int64 defaultValue = 0);
 
 		virtual sl_int64 getInt64(const StringParam& name, sl_int64 defaultValue = 0);
-	
+
 
 		virtual sl_uint64 getUint64(sl_uint32 index, sl_uint64 defaultValue = 0);
 
 		virtual sl_uint64 getUint64(const StringParam& name, sl_uint64 defaultValue = 0);
-	
+
 
 		virtual sl_int32 getInt32(sl_uint32 index, sl_int32 defaultValue = 0);
 
 		virtual sl_int32 getInt32(const StringParam& name, sl_int32 defaultValue = 0);
-	
+
 
 		virtual sl_uint32 getUint32(sl_uint32 index, sl_uint32 defaultValue = 0);
 
 		virtual sl_uint32 getUint32(const StringParam& name, sl_uint32 defaultValue = 0);
-	
+
 
 		virtual float getFloat(sl_uint32 index, float defaultValue = 0);
 
 		virtual float getFloat(const StringParam& name, float defaultValue = 0);
-	
+
 
 		virtual double getDouble(sl_uint32 index, double defaultValue = 0);
 
 		virtual double getDouble(const StringParam& name, double defaultValue = 0);
-	
+
 
 		virtual sl_bool getBoolean(sl_uint32 index, sl_bool defaultValue = sl_false);
 
 		virtual sl_bool getBoolean(const StringParam& name, sl_bool defaultValue = sl_false);
-	
-		
+
+
 		virtual Time getTime(sl_uint32 index, const Time& defaultValue);
 
 		virtual Time getTime(const StringParam& name, const Time& defaultValue);
-	
+
 		Time getTime(sl_uint32 index);
 
 		Time getTime(const StringParam& name);
-	
+
 
 		virtual Memory getBlob(sl_uint32 index);
 
 		virtual Memory getBlob(const StringParam& name);
-	
+
 
 		virtual sl_bool moveNext() = 0;
-	
+
 	protected:
 		Ref<Database> m_db;
 

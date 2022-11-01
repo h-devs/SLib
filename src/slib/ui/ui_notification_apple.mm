@@ -75,12 +75,12 @@ DEFINE_UN_API
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ui_notification_apple
 		{
-		
+
 			class StaticContext
 			{
 			public:
@@ -122,11 +122,11 @@ namespace slib
 #endif
 					}
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 			class UserNotificationImpl : public UserNotification
 			{
 			public:
@@ -151,7 +151,7 @@ namespace slib
 					return createUN(message);
 #endif
 				}
-				
+
 				static String getIdentifier(const UserNotificationMessage& message)
 				{
 					if (message.identifier.isNotNull()) {
@@ -244,7 +244,7 @@ namespace slib
 						} else {
 							content.sound = nil;
 						}
-					
+
 						UNNotificationTrigger* trigger = nil;
 						if (message.deliveryTime.isNotZero()) {
 							NSDateComponents* comps = [NSDateComponents new];
@@ -264,18 +264,18 @@ namespace slib
 							}
 							trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:interval repeats:message.flagRepeat];
 						}
-						
+
 						NSString* _id = Apple::getNSStringFromString(getIdentifier(message), @"");
 						UNNotificationRequest* notification = [UNNotificationRequest requestWithIdentifier:_id content:content trigger:trigger];
 						[context->centerUN addNotificationRequest:notification withCompletionHandler:nil];
-					
+
 						ret->m_identifier = _id;
 						return ret;
 					}
 					return sl_null;
 				}
 #endif
-		
+
 #if defined(SLIB_PLATFORM_IS_MACOS)
 				static Ref<UserNotificationImpl> createNS(const UserNotificationMessage& message)
 				{
@@ -286,7 +286,7 @@ namespace slib
 					Ref<UserNotificationImpl> ret = new UserNotificationImpl;
 					if (ret.isNotNull()) {
 						NSUserNotification* notification = [NSUserNotification new];
-								
+
 						notification.identifier = Apple::getNSStringFromString(getIdentifier(message), @"");
 						if (message.title.isNotEmpty()) {
 							notification.title = Apple::getNSStringFromString(message.title);
@@ -297,7 +297,7 @@ namespace slib
 						if (message.data.isNotUndefined()) {
 							notification.userInfo = @{@"data": Apple::getNSStringFromString(message.data.toJsonString())};
 						}
-				
+
 						if (message.subTitle.isNotEmpty()) {
 							notification.subtitle = Apple::getNSStringFromString(message.subTitle);
 						}
@@ -337,7 +337,7 @@ namespace slib
 						if (message.responsePlaceholder.isNotEmpty()) {
 							notification.responsePlaceholder = Apple::getNSStringFromString(message.responsePlaceholder);
 						}
-				
+
 						if (message.deliveryTime.isNotZero()) {
 							notification.deliveryDate = Apple::getNSDateFromTime(message.deliveryTime);
 						}
@@ -354,16 +354,16 @@ namespace slib
 								notification.deliveryDate = Apple::getNSDateFromTime(Time::now() + Time::withSecondsf(message.deliveryInterval));
 							}
 						}
-				
+
 						ret->m_object = notification;
 						[context->centerNS scheduleNotification:notification];
-				
+
 						return ret;
 					}
 					return sl_null;
 				}
 #endif
-	
+
 			public:
 				void cancelPending() override
 				{
@@ -382,7 +382,7 @@ namespace slib
 #endif
 					}
 				}
-		
+
 				void removeFromDeliveredList() override
 				{
 					StaticContext* context = GetStaticContext();
@@ -400,7 +400,7 @@ namespace slib
 #endif
 					}
 				}
-				
+
 #if defined(SLIB_PLATFORM_IS_MACOS)
 				static sl_bool onMessage(NSUserNotification* notification, sl_bool flagPresent)
 				{
@@ -428,7 +428,7 @@ namespace slib
 					}
 				}
 #endif
-				
+
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
 				DEFINE_UN_API
 				static sl_bool onMessage(UNNotification* notification, NSString* action, NSString* input, sl_bool flagPresent)
@@ -468,7 +468,7 @@ namespace slib
 					}
 					onMessage(response.notification, response.actionIdentifier, input, sl_false);
 				}
-	
+
 				DEFINE_UN_API
 				static sl_bool onPresentMessage(UNNotification* notification)
 				{
@@ -520,7 +520,7 @@ namespace slib
 			return;
 		}
 #endif
-		
+
 		_callback(sl_true);
 	}
 
@@ -571,7 +571,7 @@ namespace slib
 #endif
 		}
 	}
-	
+
 	void UserNotification::removePendingNotification(sl_uint32 _id)
 	{
 		removePendingNotification(String::fromUint32(_id));
@@ -617,7 +617,7 @@ namespace slib
 #endif
 		}
 	}
-	
+
 	void UserNotification::removeDeliveredNotification(sl_uint32 _id)
 	{
 		removeDeliveredNotification(String::fromUint32(_id));

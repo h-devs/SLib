@@ -29,15 +29,15 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(LinearLayout, ViewGroup)
-	
+
 	LinearLayout::LinearLayout()
 	{
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
-		
+
 		m_orientation = LayoutOrientation::Vertical;
 	}
-	
+
 	LinearLayout::~LinearLayout()
 	{
 	}
@@ -46,7 +46,7 @@ namespace slib
 	{
 		return m_orientation;
 	}
-	
+
 	void LinearLayout::setOrientation(LayoutOrientation orientation, UIUpdateMode mode)
 	{
 		if (m_orientation == orientation) {
@@ -55,27 +55,27 @@ namespace slib
 		m_orientation = orientation;
 		invalidateLayout(mode);
 	}
-	
+
 	sl_bool LinearLayout::isHorizontal()
 	{
 		return m_orientation == LayoutOrientation::Horizontal;
 	}
-	
+
 	void LinearLayout::setHorizontal(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Horizontal, mode);
 	}
-	
+
 	sl_bool LinearLayout::isVertical()
 	{
 		return m_orientation == LayoutOrientation::Vertical;
 	}
-	
+
 	void LinearLayout::setVertical(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Vertical, mode);
 	}
-	
+
 	void LinearLayout::onAddChild(View* child)
 	{
 		if (m_orientation == LayoutOrientation::Vertical) {
@@ -86,11 +86,11 @@ namespace slib
 			child->setRightFree(UIUpdateMode::Init);
 		}
 	}
-	
+
 	void LinearLayout::onUpdateLayout()
 	{
 		ListElements< Ref<View> > children(getChildren());
-		
+
 		if (!(children.count)) {
 			if (isWidthWrapping()) {
 				setLayoutWidth(getPaddingLeft() + getPaddingRight());
@@ -102,7 +102,7 @@ namespace slib
 		}
 
 		sl_bool flagHorizontalLayout = m_orientation == LayoutOrientation::Horizontal;
-		
+
 		sl_ui_pos sizeSum = 0;
 		sl_uint32 countFill = 0;
 		sl_real sumFillWeights = 0;
@@ -112,7 +112,7 @@ namespace slib
 		sl_ui_len heightLayout = layoutFrameContainer.getHeight();
 		sl_ui_len widthContainer = widthLayout - getPaddingLeft() - getPaddingRight();
 		sl_ui_len heightContainer = heightLayout - getPaddingTop() - getPaddingBottom();
-		
+
 		UpdateLayoutFrameParam updateLayoutParam;
 		{
 			Ref<ViewPaddingAttributes>& paddingAttrs = m_paddingAttrs;
@@ -131,12 +131,12 @@ namespace slib
 			updateLayoutParam.flagHorizontal = !flagHorizontalLayout;
 			updateLayoutParam.flagVertical = flagHorizontalLayout;
 		}
-		
+
 		SLIB_SCOPED_BUFFER(Size, 512, childSizes, children.count);
 		if (!childSizes) {
 			return;
 		}
-		
+
 		sl_size i;
 		for (i = 0; i < children.count; i++) {
 			Ref<View>& child = children[i];
@@ -166,7 +166,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (countFill > 0) {
 			if (sizeSum < 0) {
 				sizeSum = 0;
@@ -193,7 +193,7 @@ namespace slib
 			if (sumFillWeights < SLIB_EPSILON) {
 				sumFillWeights = 1;
 			}
-			
+
 			for (i = 0; i < children.count; i++) {
 				Ref<View>& child = children[i];
 				if (child->getVisibility() != Visibility::Gone) {
@@ -223,14 +223,14 @@ namespace slib
 				}
 			}
 		}
-		
+
 		sl_ui_pos pos;
 		if (flagHorizontalLayout) {
 			pos = getPaddingLeft();
 		} else {
 			pos = getPaddingTop();
 		}
-		
+
 		for (i = 0; i < children.count; i++) {
 			Ref<View>& child = children[i];
 			if (child->getVisibility() != Visibility::Gone) {
@@ -258,7 +258,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (flagHorizontalLayout) {
 			measureAndSetLayoutWrappingSize(sl_false, isHeightWrapping());
 			if (isWidthWrapping()) {
@@ -274,12 +274,12 @@ namespace slib
 		}
 
 	}
-	
+
 	VerticalLinearLayout::VerticalLinearLayout()
 	{
 		setOrientation(LayoutOrientation::Vertical, UIUpdateMode::Init);
 	}
-	
+
 	VerticalLinearLayout::~VerticalLinearLayout()
 	{
 	}

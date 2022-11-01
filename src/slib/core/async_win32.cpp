@@ -75,7 +75,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void onOrder() override
 				{
 					sl_file handle = getHandle();
@@ -215,7 +215,7 @@ namespace slib
 
 		}
 	}
-	
+
 	Ref<AsyncFileStream> AsyncFileStream::create(const AsyncFileStreamParam& param)
 	{
 		Ref<priv::async::FileInstance> ret = priv::async::FileInstance::create(param);

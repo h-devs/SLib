@@ -30,7 +30,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ColorComponentBuffer)
-	
+
 	ColorComponentBuffer::ColorComponentBuffer()
 	{
 		width = 0;
@@ -48,11 +48,11 @@ namespace slib
 		width = 0;
 		height = 0;
 		format = BitmapFormat::None;
-		
+
 		data = sl_null;
 		pitch = 0;
 		sampleStride = 0;
-		
+
 		data1 = sl_null;
 		pitch1 = 0;
 		sampleStride1 = 0;
@@ -140,7 +140,7 @@ namespace slib
 				return sampleStride;
 		}
 	}
-	
+
 	sl_reg BitmapData::planeSampleStride(sl_uint32 plane) const
 	{
 		switch (plane) {
@@ -610,7 +610,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	namespace priv
 	{
 		namespace bitmap_data
@@ -772,7 +772,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					r = p[0];
@@ -780,7 +780,7 @@ namespace slib
 					b = p[2];
 					a = p[3];
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					p[0] = r;
@@ -788,14 +788,14 @@ namespace slib
 					p[2] = b;
 					p[3] = a;
 				}
-				
+
 			};
 
 			class BGRA_PROC
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					b = p[0];
@@ -803,7 +803,7 @@ namespace slib
 					r = p[2];
 					a = p[3];
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					p[0] = b;
@@ -817,7 +817,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					a = p[0];
@@ -825,7 +825,7 @@ namespace slib
 					g = p[2];
 					b = p[3];
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					p[0] = a;
@@ -839,7 +839,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					a = p[0];
@@ -847,7 +847,7 @@ namespace slib
 					g = p[2];
 					r = p[3];
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					p[0] = a;
@@ -862,7 +862,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					Color c;
@@ -876,7 +876,7 @@ namespace slib
 					b = c.b;
 					a = c.a;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					Color c;
@@ -896,7 +896,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					Color c;
@@ -910,7 +910,7 @@ namespace slib
 					b = c.b;
 					a = c.a;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					Color c;
@@ -930,7 +930,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					Color c;
@@ -944,7 +944,7 @@ namespace slib
 					b = c.b;
 					a = c.a;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					Color c;
@@ -964,7 +964,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					Color c;
@@ -978,7 +978,7 @@ namespace slib
 					b = c.b;
 					a = c.a;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					Color c;
@@ -998,7 +998,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 3;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					r = p[0];
@@ -1006,7 +1006,7 @@ namespace slib
 					b = p[2];
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					p[0] = r;
@@ -1019,7 +1019,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 3;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					b = p[0];
@@ -1027,7 +1027,7 @@ namespace slib
 					r = p[2];
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					p[0] = b;
@@ -1040,7 +1040,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 2;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					sl_uint32 s = p[0];
@@ -1050,7 +1050,7 @@ namespace slib
 					b = (sl_uint8)((s & 0x001F) << 3);
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					sl_uint32 s = r >> 3;
@@ -1065,7 +1065,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 2;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					sl_uint16 s = p[1];
@@ -1075,7 +1075,7 @@ namespace slib
 					b = (sl_uint8)((s & 0x001F) << 3);
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					sl_uint32 s = r >> 3;
@@ -1090,7 +1090,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 2;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					sl_uint32 s = p[0];
@@ -1100,7 +1100,7 @@ namespace slib
 					r = (sl_uint8)((s & 0x001F) << 3);
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					sl_uint32 s = b >> 3;
@@ -1115,7 +1115,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 2;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					sl_uint16 s = p[1];
@@ -1125,7 +1125,7 @@ namespace slib
 					r = (sl_uint8)((s & 0x001F) << 3);
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					sl_uint32 s = b >> 3;
@@ -1140,7 +1140,7 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 1;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					sl_uint8 v = p[0];
@@ -1149,7 +1149,7 @@ namespace slib
 					b = v;
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					sl_uint32 v = r;
@@ -1194,13 +1194,13 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 4;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					YUV::convertYUVToRGB(p[0], p[1], p[2], r, g, b);
 					a = p[3];
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					YUV::convertRGBToYUV(r, g, b, p[0], p[1], p[2]);
@@ -1212,13 +1212,13 @@ namespace slib
 			{
 			public:
 				static constexpr sl_int32 BytesPerSample = 3;
-				
+
 				SLIB_INLINE static void readSample(sl_uint8* p, sl_uint8& r, sl_uint8& g, sl_uint8& b, sl_uint8& a)
 				{
 					YUV::convertYUVToRGB(p[0], p[1], p[2], r, g, b);
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					YUV::convertRGBToYUV(r, g, b, p[0], p[1], p[2]);
@@ -1235,7 +1235,7 @@ namespace slib
 					b = *p2;
 					a = *p3;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p0, sl_uint8* p1, sl_uint8* p2, sl_uint8* p3, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					*p0 = r;
@@ -1244,7 +1244,7 @@ namespace slib
 					*p3 = a;
 				}
 			};
-			
+
 			class RGBA_PLANAR_PA_PROC
 			{
 			public:
@@ -1261,7 +1261,7 @@ namespace slib
 					b = c.b;
 					a = c.a;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p0, sl_uint8* p1, sl_uint8* p2, sl_uint8* p3, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					Color c;
@@ -1276,7 +1276,7 @@ namespace slib
 					*p3 = c.a;
 				}
 			};
-			
+
 			class RGB_PLANAR_PROC
 			{
 			public:
@@ -1287,7 +1287,7 @@ namespace slib
 					b = *p2;
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p0, sl_uint8* p1, sl_uint8* p2, sl_uint8* p3, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					*p0 = r;
@@ -1304,14 +1304,14 @@ namespace slib
 					YUV::convertYUVToRGB(*p0, *p1, *p2, r, g, b);
 					a = *p3;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p0, sl_uint8* p1, sl_uint8* p2, sl_uint8* p3, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					YUV::convertRGBToYUV(r, g, b, *p0, *p1, *p2);
 					*p3 = a;
 				}
 			};
-			
+
 			class YUV444_PLANAR_PROC
 			{
 			public:
@@ -1320,7 +1320,7 @@ namespace slib
 					YUV::convertYUVToRGB(*p0, *p1, *p2, r, g, b);
 					a = 255;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8* p0, sl_uint8* p1, sl_uint8* p2, sl_uint8* p3, sl_uint8 r, sl_uint8 g, sl_uint8 b, sl_uint8 a)
 				{
 					YUV::convertRGBToYUV(r, g, b, *p0, *p1, *p2);
@@ -1359,7 +1359,7 @@ namespace slib
 #define CASES_FOR_NORMAL_YUV(CASE) \
 	CASE(YUVA) \
 	CASE(YUV444)
-	
+
 #define CASES_FOR_NORMAL(CASE) \
 	CASES_FOR_NORMAL_RGB(CASE) \
 	CASES_FOR_NORMAL_YUV(CASE)
@@ -1375,7 +1375,7 @@ namespace slib
 #define CASES_FOR_PLANAR_YUV(CASE) \
 	CASE(YUVA_PLANAR) \
 	CASE(YUV444_PLANAR)
-	
+
 #define CASES_FOR_PLANAR(CASE) \
 	CASES_FOR_PLANAR_RGB(CASE) \
 	CASES_FOR_PLANAR_YUV(CASE)
@@ -1386,7 +1386,7 @@ namespace slib
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row = dst;
 				sl_uint8 c0, c1, c2, c3;
-				
+
 #define __SUB(SRC_SAMPLE_STRIDE, DST_SAMPLE_STRIDE) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					sl_uint8* s= src_row; \
@@ -1400,7 +1400,7 @@ namespace slib
 					src_row += src_pitch; \
 					dst_row += dst_pitch; \
 				}
-				
+
 				if (src_sample_stride == SourceProc::BytesPerSample) {
 					if (dst_sample_stride == TargetProc::BytesPerSample) {
 						__SUB(SourceProc::BytesPerSample, TargetProc::BytesPerSample)
@@ -1432,7 +1432,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_Normal_NPA_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
@@ -1449,7 +1449,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			static void CopyPixels_Normal(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (src_format) {
@@ -1474,7 +1474,7 @@ namespace slib
 						break;
 				}
 			}
-			
+
 			SLIB_INLINE static sl_bool IsPackedPlanar(sl_uint8** planes, sl_reg* sample_strides)
 			{
 				return sample_strides[0] == 1 && sample_strides[1] == 1 && sample_strides[2] == 1 && (!(planes[3]) || sample_strides[3] == 1);
@@ -1493,7 +1493,7 @@ namespace slib
 				sl_uint8* dst_row3 = dst_planes[3];
 				sl_uint8 c0, c1, c2, c3;
 				sl_uint8 *s0, *s1, *s2, *s3, *d0, *d1, *d2, *d3;
-		
+
 #define __SUB(S0, S1, S2, S3, D0, D1, D2, D3) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					s0 = src_row0; s1 = src_row1; s2 = src_row2; s3 = src_row3; \
@@ -1507,7 +1507,7 @@ namespace slib
 					src_row0 += src_pitches[0]; src_row1 += src_pitches[1]; src_row2 += src_pitches[2]; src_row3 += src_pitches[3]; \
 					dst_row0 += dst_pitches[0]; dst_row1 += dst_pitches[1]; dst_row2 += dst_pitches[2]; dst_row3 += dst_pitches[3]; \
 				}
-				
+
 				if (IsPackedPlanar(src_planes, src_sample_strides)) {
 					if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
 						__SUB(1, 1, 1, 1, 1, 1, 1, 1)
@@ -1539,7 +1539,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_Planar_NPA_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
@@ -1556,7 +1556,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			static void CopyPixels_Planar(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (src_format) {
@@ -1581,7 +1581,7 @@ namespace slib
 						break;
 				}
 			}
-			
+
 			template <class SourceProc, class TargetProc>
 			static void CopyPixels_NormalToPlanar_Step2(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
@@ -1592,7 +1592,7 @@ namespace slib
 				sl_uint8* dst_row3 = dst_planes[3];
 				sl_uint8 c0, c1, c2, c3;
 				sl_uint8 *d0, *d1, *d2, *d3;
-		
+
 #define __SUB(S, D0, D1, D2, D3) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					sl_uint8* s = src_row; \
@@ -1606,7 +1606,7 @@ namespace slib
 					src_row += src_pitch; \
 					dst_row0 += dst_pitches[0]; dst_row1 += dst_pitches[1]; dst_row2 += dst_pitches[2]; dst_row3 += dst_pitches[3]; \
 				}
-				
+
 				if (src_sample_stride == SourceProc::BytesPerSample) {
 					if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
 						__SUB(SourceProc::BytesPerSample, 1, 1, 1, 1)
@@ -1638,7 +1638,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_NormalToPlanar_NPA_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
@@ -1655,7 +1655,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			static void CopyPixels_NormalToPlanar(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapFormat dst_format, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
 				switch (src_format) {
@@ -1680,7 +1680,7 @@ namespace slib
 						break;
 				}
 			}
-			
+
 			template <class SourceProc, class TargetProc>
 			static void CopyPixels_PlanarToNormal_Step2(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
@@ -1691,7 +1691,7 @@ namespace slib
 				sl_uint8* dst_row = dst;
 				sl_uint8 c0, c1, c2, c3;
 				sl_uint8 *s0, *s1, *s2, *s3;
-		
+
 #define __SUB(S0, S1, S2, S3, D) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					s0 = src_row0; s1 = src_row1; s2 = src_row2; s3 = src_row3; \
@@ -1705,7 +1705,7 @@ namespace slib
 					src_row0 += src_pitches[0]; src_row1 += src_pitches[1]; src_row2 += src_pitches[2]; src_row3 += src_pitches[3]; \
 					dst_row += dst_pitch; \
 				}
-				
+
 				if (IsPackedPlanar(src_planes, src_sample_strides)) {
 					if (dst_sample_stride == TargetProc::BytesPerSample) {
 						__SUB(1, 1, 1, 1, TargetProc::BytesPerSample)
@@ -1754,7 +1754,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			static void CopyPixels_PlanarToNormal(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapFormat dst_format, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
 				switch (src_format) {
@@ -1807,7 +1807,7 @@ namespace slib
 				}
 #undef __SUB
 			}
-			
+
 			template <>
 			void CopyPixels_MonoToNormal_Step1<Gray8_PROC>(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
@@ -1848,7 +1848,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			template <class TargetProc>
 			static void CopyPixels_MonoToPlanar_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
@@ -1859,7 +1859,7 @@ namespace slib
 				sl_uint8* dst_row3 = dst_planes[3];
 				sl_uint8 c;
 				sl_uint8 *d0, *d1, *d2, *d3;
-		
+
 #define __SUB(D0, D1, D2, D3) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					sl_uint8* s = src_row; \
@@ -1872,7 +1872,7 @@ namespace slib
 					src_row += src_pitch; \
 					dst_row0 += dst_pitches[0]; dst_row1 += dst_pitches[1]; dst_row2 += dst_pitches[2]; dst_row3 += dst_pitches[3]; \
 				}
-				
+
 				if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
 					__SUB(1, 1, 1, 1)
 				} else {
@@ -1895,7 +1895,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			template <class TargetProc>
 			static void CopyPixels_MonoToYUVNormal_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_uint8* dst, sl_reg dst_pitch, sl_reg dst_sample_stride)
 			{
@@ -1983,14 +1983,14 @@ namespace slib
 					break;
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_NormalToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
 			{
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row = dst;
 				sl_uint8 c0, c1, c2, c3;
-				
+
 #define __SUB(SRC_SAMPLE_STRIDE) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					sl_uint8* s= src_row; \
@@ -2003,7 +2003,7 @@ namespace slib
 					src_row += src_pitch; \
 					dst_row += dst_pitch; \
 				}
-				
+
 				if (src_sample_stride == SourceProc::BytesPerSample) {
 					__SUB(SourceProc::BytesPerSample)
 				} else {
@@ -2017,7 +2017,7 @@ namespace slib
 			{
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row = dst;
-				
+
 #define __SUB(SRC_SAMPLE_STRIDE) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					sl_uint8* s= src_row; \
@@ -2029,7 +2029,7 @@ namespace slib
 					src_row += src_pitch; \
 					dst_row += dst_pitch; \
 				}
-				
+
 				if (src_sample_stride == 1) {
 					__SUB(1)
 				} else {
@@ -2052,7 +2052,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_PlanarToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch)
 			{
@@ -2063,7 +2063,7 @@ namespace slib
 				sl_uint8* dst_row = dst;
 				sl_uint8 c0, c1, c2, c3;
 				sl_uint8 *s0, *s1, *s2, *s3;
-		
+
 #define __SUB(S0, S1, S2, S3) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					s0 = src_row0; s1 = src_row1; s2 = src_row2; s3 = src_row3; \
@@ -2076,7 +2076,7 @@ namespace slib
 					src_row0 += src_pitches[0]; src_row1 += src_pitches[1]; src_row2 += src_pitches[2]; src_row3 += src_pitches[3]; \
 					dst_row += dst_pitch; \
 				}
-				
+
 				if (IsPackedPlanar(src_planes, src_sample_strides)) {
 					__SUB(1, 1, 1, 1)
 				} else {
@@ -2099,14 +2099,14 @@ namespace slib
 						break;
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_YUVNormalToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, sl_uint8* dst, sl_reg dst_pitch)
 			{
 				sl_uint8* src_row = src;
 				sl_uint8* dst_row = dst;
 				sl_uint8 c0, c1, c2, c3;
-				
+
 #define __SUB(SRC_SAMPLE_STRIDE) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					sl_uint8* s= src_row; \
@@ -2119,7 +2119,7 @@ namespace slib
 					src_row += src_pitch; \
 					dst_row += dst_pitch; \
 				}
-				
+
 				if (src_sample_stride == SourceProc::BytesPerSample) {
 					__SUB(SourceProc::BytesPerSample)
 				} else {
@@ -2141,7 +2141,7 @@ namespace slib
 						break;
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_YUVPlanarToMono_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, sl_uint8* dst, sl_reg dst_pitch)
 			{
@@ -2152,7 +2152,7 @@ namespace slib
 				sl_uint8* dst_row = dst;
 				sl_uint8 c0, c1, c2, c3;
 				sl_uint8 *s0, *s1, *s2, *s3;
-		
+
 #define __SUB(S0, S1, S2, S3) \
 				for (sl_uint32 i = 0; i < height; i++) { \
 					s0 = src_row0; s1 = src_row1; s2 = src_row2; s3 = src_row3; \
@@ -2165,7 +2165,7 @@ namespace slib
 					src_row0 += src_pitches[0]; src_row1 += src_pitches[1]; src_row2 += src_pitches[2]; src_row3 += src_pitches[3]; \
 					dst_row += dst_pitch; \
 				}
-				
+
 				if (IsPackedPlanar(src_planes, src_sample_strides)) {
 					__SUB(1, 1, 1, 1)
 				} else {
@@ -2201,7 +2201,7 @@ namespace slib
 				sl_uint8* row_u = (sl_uint8*)(components[1].data);
 				sl_uint8* row_v = (sl_uint8*)(components[2].data);
 				sl_uint8* dst_row = dst;
-		
+
 #define __SUB(D, Y, U, V) \
 				for (sl_uint32 i = 0; i < H2; i++) { \
 					sl_uint8* y0 = row_y; \
@@ -2226,7 +2226,7 @@ namespace slib
 					row_v += components[2].pitch; \
 					dst_row += dst_pitch + dst_pitch; \
 				}
-				
+
 				if (components[0].sampleStride == 1) {
 					if (components[1].sampleStride == 1 && components[2].sampleStride == 1) {
 						if (dst_sample_stride == TargetProc::BytesPerSample) {
@@ -2247,7 +2247,7 @@ namespace slib
 				{
 					__SUB(dst_sample_stride, components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
 				}
-		
+
 #undef __SUB
 			}
 
@@ -2264,7 +2264,7 @@ namespace slib
 						break;
 				}
 			}
-			
+
 			template <class TargetProc>
 			static void CopyPixels_YUV420ToYUVPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
@@ -2309,7 +2309,7 @@ namespace slib
 					dst_row2 += dst_pitches[2] + dst_pitches[2]; \
 					dst_row3 += dst_pitches[3] + dst_pitches[3]; \
 				}
-				
+
 				if (components[0].sampleStride == 1) {
 					if (components[1].sampleStride == 1 && components[2].sampleStride == 1) {
 						if (IsPackedPlanar(dst_planes, dst_sample_strides)) {
@@ -2330,7 +2330,7 @@ namespace slib
 				{
 					__SUB(dst_sample_strides[0], dst_sample_strides[1], dst_sample_strides[2], dst_sample_strides[3], components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
 				}
-		
+
 #undef __SUB
 			}
 
@@ -2405,7 +2405,7 @@ namespace slib
 #undef __CASE
 				}
 			}
-			
+
 			template <class TargetProc>
 			static void CopyPixels_YUV420ToOtherPlanar_Step1(sl_uint32 width, sl_uint32 height, BitmapData& src, sl_uint8** dst_planes, sl_reg* dst_pitches, sl_reg* dst_sample_strides)
 			{
@@ -2512,7 +2512,7 @@ namespace slib
 				sl_uint8* src_row = src;
 				sl_uint8 A, U, V;
 				sl_uint32 TU, TV;
-		
+
 #define __SUB(S, DY, DU, DV) \
 				for (sl_uint32 i = 0; i < H2; i++) { \
 					sl_uint8* y0 = row_y; \
@@ -2563,10 +2563,10 @@ namespace slib
 				{
 					__SUB(src_sample_stride, components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
 				}
-		
+
 #undef __SUB
 			}
-			
+
 			static void CopyPixels_YUVNormalToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8* src, sl_reg src_pitch, sl_reg src_sample_stride, BitmapData& dst)
 			{
 				switch (src_format) {
@@ -2580,7 +2580,7 @@ namespace slib
 						break;
 				}
 			}
-			
+
 			template <class SourceProc>
 			static void CopyPixels_YUVPlanarToYUV420_Step1(sl_uint32 width, sl_uint32 height, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
@@ -2599,7 +2599,7 @@ namespace slib
 				sl_uint8* src_row3 = src_planes[3];
 				sl_uint8 A, U, V;
 				sl_uint32 TU, TV;
-		
+
 #define __SUB(S0, S1, S2, S3, DY, DU, DV) \
 				for (sl_uint32 i = 0; i < H2; i++) { \
 					sl_uint8* y0 = row_y; \
@@ -2632,7 +2632,7 @@ namespace slib
 					src_row2 += src_pitches[2] + src_pitches[2]; \
 					src_row3 += src_pitches[3] + src_pitches[3]; \
 				}
-				
+
 				if (components[0].sampleStride == 1) {
 					if (components[1].sampleStride == 1 && components[2].sampleStride == 1) {
 						if (IsPackedPlanar(src_planes, src_sample_strides)) {
@@ -2653,10 +2653,10 @@ namespace slib
 				{
 					__SUB(src_sample_strides[0], src_sample_strides[1], src_sample_strides[2], src_sample_strides[3], components[0].sampleStride, components[1].sampleStride, components[2].sampleStride)
 				}
-		
+
 #undef __SUB
 			}
-			
+
 			static void CopyPixels_YUVPlanarToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				switch (src_format) {
@@ -2788,7 +2788,7 @@ namespace slib
 					src_row3 += src_pitches[3] + src_pitches[3];
 				}
 			}
-			
+
 			static void CopyPixels_OtherPlanarToYUV420(sl_uint32 width, sl_uint32 height, BitmapFormat src_format, sl_uint8** src_planes, sl_reg* src_pitches, sl_reg* src_sample_strides, BitmapData& dst)
 			{
 				switch (src_format) {
@@ -3535,7 +3535,7 @@ namespace slib
 		if (!width || !height) {
 			return;
 		}
-		
+
 		src.fillDefaultValues();
 		dst.fillDefaultValues();
 
@@ -3724,7 +3724,7 @@ namespace slib
 		width = _width;
 		height = _height;
 		format = BitmapFormat::RGBA;
-		
+
 		data = (void*)colors;
 		pitch = stride << 2;
 		if (!pitch) {

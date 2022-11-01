@@ -31,15 +31,15 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace network_async
 		{
-			
+
 			class TcpInstance : public AsyncTcpSocketInstance
 			{
-			public:				
+			public:
 				sl_bool m_flagConnecting;
 
 			public:
@@ -47,7 +47,7 @@ namespace slib
 				{
 					m_flagConnecting = sl_false;
 				}
-				
+
 			public:
 				static Ref<TcpInstance> create(Socket&& socket)
 				{
@@ -66,7 +66,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void processRead(sl_bool flagError)
 				{
 					HandlePtr<Socket> socket = getSocket();
@@ -116,7 +116,7 @@ namespace slib
 						request.setNull();
 					}
 				}
-				
+
 				void processWrite(sl_bool flagError)
 				{
 					HandlePtr<Socket> socket = getSocket();
@@ -174,7 +174,7 @@ namespace slib
 						request.setNull();
 					}
 				}
-				
+
 				void onOrder() override
 				{
 					HandlePtr<Socket> socket = getSocket();
@@ -197,7 +197,7 @@ namespace slib
 					processRead(sl_false);
 					processWrite(sl_false);
 				}
-				
+
 				void onEvent(EventDesc* pev) override
 				{
 					sl_bool flagProcessed = sl_false;
@@ -237,13 +237,13 @@ namespace slib
 			{
 			public:
 				sl_bool m_flagListening;
-				
+
 			public:
 				TcpServerInstance()
 				{
 					m_flagListening = sl_false;
 				}
-				
+
 			public:
 				static Ref<TcpServerInstance> create(Socket&& socket)
 				{
@@ -262,7 +262,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void onOrder() override
 				{
 					HandlePtr<Socket> socket = getSocket();
@@ -285,7 +285,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void onEvent(EventDesc* pev) override
 				{
 					if (pev->flagIn) {
@@ -296,14 +296,14 @@ namespace slib
 					}
 				}
 			};
-			
+
 			class UdpInstance : public AsyncUdpSocketInstance
 			{
 			public:
 				UdpInstance()
 				{
 				}
-				
+
 			public:
 				static Ref<UdpInstance> create(Socket&& socket, const Memory& buffer)
 				{
@@ -323,19 +323,19 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void onOrder() override
 				{
 					processReceive();
 				}
-				
+
 				void onEvent(EventDesc* pev) override
 				{
 					if (pev->flagIn) {
 						processReceive();
 					}
 				}
-				
+
 				void processReceive()
 				{
 					HandlePtr<Socket> socket = getSocket();
@@ -345,7 +345,7 @@ namespace slib
 
 					void* buf = m_buffer.getData();
 					sl_uint32 sizeBuf = (sl_uint32)(m_buffer.getSize());
-					
+
 					Thread* thread = Thread::getCurrent();
 					while (!thread || thread->isNotStopping()) {
 						SocketAddress addr;
@@ -360,7 +360,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
 
 		}
@@ -384,7 +384,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 }
 
 #endif

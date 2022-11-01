@@ -242,7 +242,7 @@ namespace slib
 				{
 					return m_base->Flush();
 				}
-				
+
 				leveldb::Status Sync() override
 				{
 					return m_base->Sync();

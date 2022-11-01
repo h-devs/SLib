@@ -30,7 +30,7 @@ void ExampleImageViewApp::onStart()
 {
 	getMainWindow()->setResizable(sl_true);
 	getMainWindow()->setTitle("Example - ImageView");
-	
+
 	sl_real fontSize;
 #if defined(SLIB_PLATFORM_IS_DESKTOP)
 	fontSize = UIResource::dpToPixel(25);
@@ -38,18 +38,18 @@ void ExampleImageViewApp::onStart()
 	fontSize = UIResource::dpToPixel(18);
 	getContentView()->setBackgroundColor(Color::White);
 #endif
-	
+
 	Ref<LinearLayout> linear1 = new LinearLayout;
 	linear1->setWidthFilling();
 	linear1->setHeightFilling();
-	
+
 	Ref<ImageView> image = new ImageView;
 	image->setWidthFilling();
 	image->setHeightFilling();
 	image->setScaleMode(ScaleMode::Contain);
 	image->setSource(Image::loadFromAsset("images/slib.png"));
 	linear1->addChild(image);
-	
+
 	Ref<HorizontalLinearLayout> linear2 = new HorizontalLinearLayout;
 	linear2->setWidthWrapping();
 	linear2->setHeightWrapping();
@@ -121,6 +121,6 @@ void ExampleImageViewApp::onStart()
 		linear3->addChild(button);
 	}
 	linear1->addChild(linear3);
-	
+
 	addViewToContent(linear1);
 }

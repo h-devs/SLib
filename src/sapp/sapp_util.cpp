@@ -67,7 +67,7 @@ namespace slib
 	{
 		return _SAppUtil_checkName(sz, len);
 	}
-	
+
 	sl_bool SAppUtil::checkNameOrArrayMember(const String& input, String* outName, sl_int32* outIndex)
 	{
 		if (input.endsWith(']')) {
@@ -152,5 +152,5 @@ namespace slib
 		sz[pos++] = 0;
 		return s;
 	}
-	
+
 }

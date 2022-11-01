@@ -44,7 +44,7 @@ namespace slib
 			public:
 				friend class ScrollViewInstance;
 			};
-				
+
 			class ScrollViewInstance : public Win32_ViewInstance, public IScrollViewInstance
 			{
 				SLIB_DECLARE_OBJECT
@@ -156,7 +156,7 @@ namespace slib
 			};
 
 			SLIB_DEFINE_OBJECT(ScrollViewInstance, Win32_ViewInstance)
-			
+
 		}
 	}
 

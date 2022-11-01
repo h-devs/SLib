@@ -38,27 +38,27 @@
 
 namespace slib
 {
-	
+
 	class EllipticCurve;
-	
+
 	class SLIB_EXPORT ECPoint
 	{
 	public:
 		BigInt x;
 		BigInt y;
-		
+
 	public:
 		ECPoint() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPoint)
 		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
-		
+
 	public:
 		// infinity
 		sl_bool isO() const noexcept;
 
 		Memory toUncompressedFormat(const EllipticCurve& curve) const noexcept;
-		
+
 		Memory toUncompressedFormat(sl_size nBytesPerComponent = 0) const noexcept;
 
 		Memory toCompressedFormat(const EllipticCurve& curve) const noexcept;
@@ -92,7 +92,7 @@ namespace slib
 		secp384r1 = 715,
 		secp521r1 = 716
 	};
-	
+
 	// y^2 = x^3 + a*x + b
 	class SLIB_EXPORT EllipticCurve
 	{
@@ -107,9 +107,9 @@ namespace slib
 
 	public:
 		EllipticCurve() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EllipticCurve)
-		
+
 	public:
 		static const EllipticCurve& secp112r1() noexcept;
 		static const EllipticCurve& secp112r2() noexcept;
@@ -123,24 +123,24 @@ namespace slib
 		static const EllipticCurve& secp256k1() noexcept;
 		static const EllipticCurve& secp384r1() noexcept;
 		static const EllipticCurve& secp521r1() noexcept;
-		
+
 	public:
 		sl_bool isDefined() const noexcept;
 
 		sl_bool setCurveId(EllipticCurveId id) noexcept;
 
 		ECPoint addPoint(const ECPoint& p1, const ECPoint& p2) const noexcept;
-		
+
 		ECPoint doublePoint(const ECPoint& pt) const noexcept;
-		
+
 		ECPoint multiplyPoint(const ECPoint& pt, const BigInt& k) const noexcept;
-		
+
 		ECPoint multiplyG(const BigInt& k) const noexcept;
-		
+
 		BigInt getY(const BigInt& x, sl_bool yBit) const noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT ECPublicKey
 	{
 	public:
@@ -148,7 +148,7 @@ namespace slib
 
 	public:
 		ECPublicKey() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPublicKey)
 		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
@@ -169,10 +169,10 @@ namespace slib
 	{
 	public:
 		BigInt d;
-		
+
 	public:
 		ECPrivateKey() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECPrivateKey)
 		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
 
@@ -192,7 +192,7 @@ namespace slib
 
 	public:
 		sl_bool isDefined() const noexcept;
-		
+
 		void set(const EllipticCurve& curve, const ECPublicKey& key) noexcept;
 
 		void set(const EllipticCurve& curve, ECPublicKey&& key) noexcept;
@@ -222,30 +222,30 @@ namespace slib
 	public:
 		BigInt r;
 		BigInt s;
-		
+
 	public:
 		ECDSA_Signature() noexcept;
 
 		template <class R, class S>
 		ECDSA_Signature(R&& _r, S&& _s) noexcept: r(Forward<R>(_r)), s(Forward<S>(_s)) {}
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ECDSA_Signature)
 		SLIB_DECLARE_CLASS_JSON_SERIALIZE_MEMBERS
-	
+
 	public:
 		Memory serialize() const noexcept;
 
 		sl_bool deserialize(const MemoryView& mem) noexcept;
 
 	};
-	
+
 	// Elliptic Curve Digital Signature Algorithm
 	class SLIB_EXPORT ECDSA
 	{
 	public:
 		// z < curve.n
 		static ECDSA_Signature sign(const EllipticCurve& curve, const ECPrivateKey& key, const BigInt& z, BigInt* k = sl_null) noexcept;
-		
+
 		static ECDSA_Signature sign(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size sizeHash, BigInt* k = sl_null) noexcept;
 
 		static ECDSA_Signature sign_SHA256(const EllipticCurve& curve, const ECPrivateKey& key, const void* data, sl_size size, BigInt* k = sl_null) noexcept;
@@ -256,7 +256,7 @@ namespace slib
 
 		// z < curve.n
 		static sl_bool verify(const EllipticCurve& curve, const ECPublicKey& key, const BigInt& z, const ECDSA_Signature& signature) noexcept;
-		
+
 		static sl_bool verify(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size sizeHash, const ECDSA_Signature& signature) noexcept;
 
 		static sl_bool verify_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature) noexcept;
@@ -266,15 +266,15 @@ namespace slib
 		static sl_bool verify_SHA512(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature) noexcept;
 
 	};
-	
+
 	// Elliptic Curve Diffie-Hellman
 	class SLIB_EXPORT ECDH
 	{
 	public:
 		static BigInt getSharedKey(const EllipticCurve& curve, const ECPrivateKey& keyLocal, const ECPublicKey& keyRemote) noexcept;
-		
+
 	};
-	
+
 }
 
 #endif

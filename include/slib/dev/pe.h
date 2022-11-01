@@ -56,9 +56,9 @@ namespace slib
 {
 
 	/*
-			
+
 		Structure of PE
-		
+
 		PE_DosHeader
 		MS-DOS Stub Program
 		PE_Signature
@@ -68,7 +68,7 @@ namespace slib
 		Sections
 
 	*/
-	
+
 	class SLIB_EXPORT PE_DosHeader
 	{
 	public:
@@ -96,7 +96,7 @@ namespace slib
 		sl_bool checkSignature() const;
 
 	};
-	
+
 	class SLIB_EXPORT PE_Signature
 	{
 	public:
@@ -113,7 +113,7 @@ namespace slib
 		sl_uint32 address; // relative virtual address of the table.
 		sl_uint32 size;
 	};
-	
+
 	class SLIB_EXPORT PE_OptionalHeader32
 	{
 	public:
@@ -237,7 +237,7 @@ namespace slib
 		PE_DirectoryEntry* getExportTableDirectory();
 
 		PE_ImportDescriptor* findImportTable(const StringParam& dllName);
-		
+
 		void* findExportFunction(const StringParam& functionName);
 
 	};

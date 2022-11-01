@@ -26,12 +26,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace charset
 		{
-			
+
 			template <EndianType endian>
 			SLIB_INLINE static sl_char16 Read16(const void* src, sl_size pos) noexcept
 			{
@@ -56,7 +56,7 @@ namespace slib
 					d[1] = (sl_uint8)(v);
 				}
 			}
-			
+
 			template <EndianType endian>
 			SLIB_INLINE static sl_char32 Read32(const void* src, sl_size pos) noexcept
 			{
@@ -67,7 +67,7 @@ namespace slib
 					return (sl_char32)(((sl_uint32)(s[0]) << 24) | ((sl_uint32)(s[1]) << 16) | ((sl_uint32)(s[2]) << 8) | ((sl_uint32)(s[3])));
 				}
 			}
-			
+
 			template <EndianType endian>
 			SLIB_INLINE static void Write32(void* dst, sl_size pos, sl_char32 _v) noexcept
 			{
@@ -85,7 +85,7 @@ namespace slib
 					d[3] = (sl_uint8)(v);
 				}
 			}
-			
+
 			template <EndianType endian>
 			static sl_size ConvertUtf8ToUtf16(const sl_char8* utf8, sl_reg lenUtf8, void* utf16, sl_reg lenUtf16Buffer) noexcept
 			{
@@ -677,9 +677,9 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::charset;
-	
+
 	sl_size Charsets::utf8ToUtf16(const sl_char8* utf8, sl_reg lenUtf8, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept
 	{
 		return Utf8ToUtf16(utf8, lenUtf8, Endian::get(), utf16, lenUtf16Buffer);
@@ -699,7 +699,7 @@ namespace slib
 	{
 		return Utf8ToUtf32(utf8, lenUtf8, endianUtf32, utf32, sizeUtf32Buffer < 0 ? -1 : (sizeUtf32Buffer >> 2)) << 2;
 	}
-	
+
 	sl_size Charsets::utf16ToUtf8(const sl_char16* utf16, sl_reg lenUtf16, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept
 	{
 		return Utf16ToUtf8(Endian::get(), utf16, lenUtf16, utf8, lenUtf8Buffer);

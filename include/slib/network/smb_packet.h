@@ -514,7 +514,7 @@ namespace slib
 		{
 			MIO::writeUint16LE(_blobLength, value);
 		}
-		
+
 		sl_uint32 getContextOffset() const noexcept
 		{
 			return MIO::readUint32LE(_contextOffset);
@@ -823,7 +823,7 @@ namespace slib
 		sl_uint8 _fileNameLength[2];
 		sl_uint8 _blobOffset[4];
 		sl_uint8 _blobLength[4];
-		
+
 	};
 
 	class SLIB_EXPORT Smb2CreateResponseMessage : public Smb2Message
@@ -1772,7 +1772,7 @@ namespace slib
 		{
 			MIO::writeUint16LE(_dataOffset, value);
 		}
-		
+
 		sl_uint32 getReadCount() const noexcept
 		{
 			return MIO::readUint32LE(_readCount);

@@ -35,7 +35,7 @@
 
 namespace slib
 {
-	
+
 	const void* Module::getBaseAddress()
 	{
 		return getBaseAddress(sl_null);

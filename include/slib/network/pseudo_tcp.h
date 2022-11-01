@@ -107,9 +107,9 @@ namespace slib
 			};
 
 			typedef CLinkedList<SSegment> SList;
-			
+
 			typedef CLinkedList<RSegment> RList;
-			
+
 			class LockedFifoBuffer
 			{
 			public:

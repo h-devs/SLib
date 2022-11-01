@@ -32,7 +32,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlColumn)
 
 	ListControlColumn::ListControlColumn()
@@ -41,31 +41,31 @@ namespace slib
 		align = Alignment::MiddleCenter;
 		headerAlign = Alignment::MiddleCenter;
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlCell)
-	
+
 	ListControlCell::ListControlCell()
 	{
 	}
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlRow)
-	
+
 	ListControlRow::ListControlRow()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(ListControl, View)
-	
+
 	ListControl::ListControl()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 
 		setUsingFont(sl_true);
-		
+
 		m_columns.setCount(1);
 		m_selectedRow = -1;
 
@@ -73,7 +73,7 @@ namespace slib
 		m_sortedColumn = -1;
 		m_flagSortedAsc = sl_false;
 	}
-	
+
 	ListControl::~ListControl()
 	{
 	}
@@ -82,7 +82,7 @@ namespace slib
 	{
 		return (sl_uint32)(m_columns.getCount());
 	}
-	
+
 	void ListControl::setColumnCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
 		{
@@ -101,12 +101,12 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	sl_uint32 ListControl::getRowCount()
 	{
 		return (sl_uint32)(m_rows.getCount());
 	}
-	
+
 	void ListControl::setRowCount(sl_uint32 nCount, UIUpdateMode mode)
 	{
 		{
@@ -132,7 +132,7 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	String ListControl::getItemText(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -145,7 +145,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void ListControl::setItemText(sl_uint32 iRow, sl_uint32 iCol, const String& text, UIUpdateMode mode)
 	{
 		{
@@ -209,7 +209,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void ListControl::setHeaderText(sl_uint32 iCol, const String& text, UIUpdateMode mode)
 	{
 		{
@@ -233,7 +233,7 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	sl_ui_len ListControl::getColumnWidth(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -243,7 +243,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	void ListControl::setColumnWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
 		{
@@ -267,7 +267,7 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	Alignment ListControl::getHeaderAlignment(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -277,7 +277,7 @@ namespace slib
 		}
 		return Alignment::Center;
 	}
-	
+
 	void ListControl::setHeaderAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
 	{
 		{
@@ -301,7 +301,7 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	Alignment ListControl::getColumnAlignment(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -311,7 +311,7 @@ namespace slib
 		}
 		return Alignment::Center;
 	}
-	
+
 	void ListControl::setColumnAlignment(sl_uint32 iCol, const Alignment& align, UIUpdateMode mode)
 	{
 		{
@@ -335,7 +335,7 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	sl_int32 ListControl::getSelectedRow()
 	{
 		Ptr<IListControlInstance> instance = getListControlInstance();
@@ -344,14 +344,14 @@ namespace slib
 		}
 		return m_selectedRow;
 	}
-	
+
 	sl_uint32 ListControl::addRow(UIUpdateMode mode)
 	{
 		sl_uint32 n = (sl_uint32)(m_rows.getCount());
 		setRowCount(n + 1, mode);
 		return n;
 	}
-	
+
 	void ListControl::insertRow(sl_uint32 iRow, UIUpdateMode mode)
 	{
 		{
@@ -362,7 +362,7 @@ namespace slib
 		}
 		refreshItems(mode);
 	}
-	
+
 	void ListControl::removeRow(sl_uint32 iRow, UIUpdateMode mode)
 	{
 		{
@@ -373,7 +373,7 @@ namespace slib
 		}
 		refreshItems(mode);
 	}
-	
+
 	void ListControl::removeAllRows(UIUpdateMode mode)
 	{
 		setRowCount(0, mode);
@@ -430,7 +430,7 @@ namespace slib
 		m_selectedRow = row;
 		SLIB_INVOKE_EVENT_HANDLER(SelectRow, row)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
 
 	void ListControl::dispatchClickRow(sl_uint32 row, const UIPoint& pt)
@@ -441,14 +441,14 @@ namespace slib
 		}
 		SLIB_INVOKE_EVENT_HANDLER(ClickRow, row, pt)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
 
 	void ListControl::dispatchRightButtonClickRow(sl_uint32 row, const UIPoint& pt)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(RightButtonClickRow, row, pt)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
 
 	void ListControl::dispatchDoubleClickRow(sl_uint32 row, const UIPoint& pt)
@@ -459,7 +459,7 @@ namespace slib
 		}
 		SLIB_INVOKE_EVENT_HANDLER(DoubleClickRow, row, pt)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickHeader, sl_uint32 col)
 
 	void ListControl::dispatchClickHeader(sl_uint32 col)
@@ -475,14 +475,14 @@ namespace slib
 		}
 		SLIB_INVOKE_EVENT_HANDLER(ClickHeader, col)
 	}
-	
-	
+
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<IListControlInstance> ListControl::getListControlInstance()
 	{
 		return sl_null;

@@ -35,48 +35,48 @@ namespace slib
 	{
 	public:
 		GestureType type;
-		
+
 	public:
 		GestureEvent();
-		
+
 		~GestureEvent();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(GestureEvent)
-		
+
 	public:
 		Ref<GestureEvent> duplicate();
-		
+
 	};
-	
+
 	class View;
 	class UIEvent;
-	
+
 	class GestureRecognizer;
-	
+
 	class GestureDetector : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		GestureDetector(const Ref<View>& view);
-		
+
 		~GestureDetector();
 
 	public:
 		void enable(GestureType type);
-		
+
 		void enableNative();
-		
+
 		void processEvent(UIEvent* ev);
-		
+
 	private:
 		static sl_bool _enableNative(const Ref<View>& view, GestureType type);
-		
+
 	protected:
 		WeakRef<View> m_view;
 		MotionTracker m_tracker;
 		Ref<GestureRecognizer> m_recognizers[(int)(GestureType::Count)];
-		
+
 		friend class GestureRecognizer;
 	};
 

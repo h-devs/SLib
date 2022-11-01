@@ -96,15 +96,15 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(VertexBufferInstance, RenderBufferInstance)
-	
+
 	VertexBufferInstance::VertexBufferInstance()
 	{
 	}
-	
+
 	VertexBufferInstance::~VertexBufferInstance()
 	{
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(VertexBuffer, RenderBuffer)
 
@@ -115,7 +115,7 @@ namespace slib
 	VertexBuffer::~VertexBuffer()
 	{
 	}
-	
+
 	Ref<VertexBuffer> VertexBuffer::create(const Memory& mem)
 	{
 		if (mem.isNotNull()) {
@@ -123,7 +123,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<VertexBuffer> VertexBuffer::create(const void* buf, sl_size size)
 	{
 		return create(Memory::create(buf, size));

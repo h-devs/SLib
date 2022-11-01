@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Console
 	{
 	public:
@@ -38,7 +38,7 @@ namespace slib
 		{
 			print(String::format(fmt, Forward<ARGS>(args)...));
 		}
-	
+
 		static void println(const StringParam& s);
 
 		template <class... ARGS>
@@ -46,7 +46,7 @@ namespace slib
 		{
 			println(String::format(fmt, Forward<ARGS>(args)...));
 		}
-	
+
 		static String readLine();
 
 		static sl_char16 readChar(sl_bool flagPrintEcho = sl_false);
@@ -91,21 +91,21 @@ namespace slib
 		static sl_bool close();
 
 	};
-	
+
 	template <class... ARGS>
 	void Printf(const StringView& fmt, ARGS&&... args)
 	{
 		String content = String::format(fmt, Forward<ARGS>(args)...);
 		Console::print(content);
 	}
-	
+
 	template <class... ARGS>
 	void Println(const StringView& fmt, ARGS&&... args)
 	{
 		String content = String::format(fmt, Forward<ARGS>(args)...);
 		Console::println(content);
 	}
-	
+
 }
 
 #endif

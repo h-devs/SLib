@@ -35,7 +35,7 @@ namespace slib
 
 /*
 	Notice:
-		
+
 		CBigInt, BigInt is not thread-safe on modification operations
 */
 	class SLIB_EXPORT CBigInt : public Referable
@@ -58,7 +58,7 @@ namespace slib
 		CBigInt() noexcept;
 
 		~CBigInt() noexcept;
-	
+
 	public:
 		void setUserDataElements(sl_uint32* data, sl_size n) noexcept;
 
@@ -88,7 +88,7 @@ namespace slib
 		sl_size getMostSignificantBits() const noexcept;
 
 		sl_size getLeastSignificantBits() const noexcept;
-	
+
 		sl_bool isZero() const noexcept;
 
 		sl_bool isNotZero() const noexcept;
@@ -160,13 +160,13 @@ namespace slib
 		static CBigInt* fromInt64(sl_int64 v) noexcept;
 
 		sl_bool setValue(sl_uint64 v) noexcept;
-		
+
 		static CBigInt* fromUint64(sl_uint64 v) noexcept;
 
 		sl_int32 getInt32() const noexcept;
 
 		sl_uint32 getUint32() const noexcept;
-		
+
 		sl_int64 getInt64() const noexcept;
 
 		sl_uint64 getUint64() const noexcept;
@@ -183,16 +183,16 @@ namespace slib
 
 
 		sl_bool equals(const CBigInt& other) const noexcept;
-		
+
 		sl_bool equals(sl_int32 v) const noexcept;
-		
+
 		sl_bool equals(sl_uint32 v) const noexcept;
-		
+
 		sl_bool equals(sl_int64 v) const noexcept;
-		
+
 		sl_bool equals(sl_uint64 v) const noexcept;
-		
-		
+
+
 		// compare returns
 		//  0: equal,  negative: less than, positive: greater than
 		sl_compare_result compareAbs(const CBigInt& other) const noexcept;
@@ -206,7 +206,7 @@ namespace slib
 		sl_compare_result compare(sl_int64 v) const noexcept;
 
 		sl_compare_result compare(sl_uint64 v) const noexcept;
-	
+
 
 		sl_bool addAbs(const CBigInt& a, const CBigInt& b) noexcept;
 
@@ -233,7 +233,7 @@ namespace slib
 		sl_bool add(sl_int64 v) noexcept;
 
 		sl_bool add(sl_uint64 v) noexcept;
-	
+
 
 		sl_bool subAbs(const CBigInt& a, const CBigInt& b) noexcept;
 
@@ -261,7 +261,7 @@ namespace slib
 
 		sl_bool sub(sl_uint64 v) noexcept;
 
-	
+
 		sl_bool mulAbs(const CBigInt& a, const CBigInt& b) noexcept;
 
 		sl_bool mulAbs(const CBigInt& a, sl_uint32 v) noexcept;
@@ -358,7 +358,7 @@ namespace slib
 		sl_bool shiftLeft(sl_size n) noexcept;
 
 		sl_bool shiftRight(sl_size n) noexcept;
-	
+
 		/*
 			E > 0
 			M is not null => C = A^E mod M
@@ -373,7 +373,7 @@ namespace slib
 		sl_bool powMod(const CBigInt& E, const CBigInt& M) noexcept;
 
 		sl_bool pow(const CBigInt& A, sl_uint32 E, const CBigInt* pM = sl_null) noexcept;
-	
+
 		sl_bool pow(sl_uint32 E, const CBigInt* pM = sl_null) noexcept;
 
 		sl_bool powMod(const CBigInt& A, sl_uint32 E, const CBigInt& M) noexcept;
@@ -391,10 +391,10 @@ namespace slib
 		sl_bool pow_montgomery(const CBigInt& A, const CBigInt& E, const CBigInt& M) noexcept;
 
 		sl_bool pow_montgomery(const CBigInt& E, const CBigInt& M) noexcept;
-	
+
 		/*
 			C = A^-1 mod M
-	
+
 			Available Input:
 				A != 0
 				M > 0
@@ -420,26 +420,26 @@ namespace slib
 		sl_bool gcd(const CBigInt& A, const CBigInt& B) noexcept;
 
 		sl_bool gcd(const CBigInt& B) noexcept;
-		
+
 		/*
 		 	lcm - least common multiple
 		*/
 		sl_bool lcm(const CBigInt& A, const CBigInt& B) noexcept;
-		
+
 		sl_bool lcm(const CBigInt& B) noexcept;
-		
+
 		/*
 		 	prime check and generation
 		*/
 		sl_bool isProbablePrime(sl_uint32 nChecks = 0, sl_bool* pFlagError = sl_null) const noexcept;
-		
+
 		sl_bool generatePrime(sl_size nBits) noexcept;
-		
+
 		sl_bool random(sl_size nBits) noexcept;
-		
-		
+
+
 		sl_size getHashCode() const noexcept;
-	
+
 
 		sl_bool runOperator(sl_uint32 op, Variant& result, const Variant& secondOperand, sl_bool flagThisOnLeft) override;
 
@@ -447,10 +447,10 @@ namespace slib
 		void _free() noexcept;
 
 	};
-	
-	
+
+
 	class BigInt;
-	
+
 	template <>
 	class SLIB_EXPORT Atomic<BigInt>
 	{
@@ -479,16 +479,16 @@ namespace slib
 		Atomic& operator=(sl_uint64 n) noexcept;
 
 	};
-	
+
 	typedef Atomic<BigInt> AtomicBigInt;
-	
-	
+
+
 	class SLIB_EXPORT BigInt
 	{
 	public:
 		Ref<CBigInt> ref;
 		SLIB_REF_WRAPPER_NO_OP(BigInt, CBigInt)
-	
+
 	public:
 		BigInt(sl_int32 n) noexcept;
 
@@ -581,18 +581,18 @@ namespace slib
 
 		String toHexString(sl_bool flagUpperCase = sl_true) const noexcept;
 
-		
+
 		sl_bool equals(const BigInt& other) const noexcept;
-		
+
 		sl_bool equals(sl_int32 v) const noexcept;
-		
+
 		sl_bool equals(sl_uint32 v) const noexcept;
-		
+
 		sl_bool equals(sl_int64 v) const noexcept;
-		
+
 		sl_bool equals(sl_uint64 v) const noexcept;
-		
-		
+
+
 		// compare returns
 		//  0: equal,  negative: less than, positive: greater than
 		sl_compare_result compare(const BigInt& other) const noexcept;
@@ -605,7 +605,7 @@ namespace slib
 
 		sl_compare_result compare(sl_uint64 v) const noexcept;
 
-	
+
 		static BigInt add(const BigInt& A, const BigInt& B) noexcept;
 
 		sl_bool add(const BigInt& other) noexcept;
@@ -619,18 +619,18 @@ namespace slib
 		sl_bool add(sl_uint32 v) noexcept;
 
 		static BigInt add(const BigInt& A, sl_int64 v) noexcept;
-	
+
 		sl_bool add(sl_int64 v) noexcept;
 
 		static BigInt add(const BigInt& A, sl_uint64 v) noexcept;
-	
+
 		sl_bool add(sl_uint64 v) noexcept;
 
 		sl_bool increase() noexcept;
 
 
 		static BigInt sub(const BigInt& A, const BigInt& B) noexcept;
-	
+
 		sl_bool sub(const BigInt& other) noexcept;
 
 		static BigInt sub(const BigInt& A, sl_int32 v) noexcept;
@@ -642,11 +642,11 @@ namespace slib
 		sl_bool sub(sl_uint32 v) noexcept;
 
 		static BigInt sub(const BigInt& A, sl_int64 v) noexcept;
-	
+
 		sl_bool sub(sl_int64 v) noexcept;
 
 		static BigInt sub(const BigInt& A, sl_uint64 v) noexcept;
-	
+
 		sl_bool sub(sl_uint64 v) noexcept;
 
 		sl_bool decrease() noexcept;
@@ -661,11 +661,11 @@ namespace slib
 
 		BigInt bitwiseNot() const noexcept;
 
-	
+
 		static BigInt mul(const BigInt& A, const BigInt& B) noexcept;
 
 		sl_bool mul(const BigInt& other) noexcept;
-	
+
 		static BigInt mul(const BigInt& A, sl_int32 v) noexcept;
 
 		sl_bool mul(sl_int32 v) noexcept;
@@ -709,7 +709,7 @@ namespace slib
 
 
 		static BigInt mod(const BigInt& A, const BigInt& B, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
-	
+
 		sl_bool mod(const BigInt& other, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
 
 		static sl_int32 modInt32(const BigInt& A, sl_int32 v, sl_bool flagNonNegativeRemainder = sl_false) noexcept;
@@ -721,7 +721,7 @@ namespace slib
 
 		// non-negative remainder
 		static sl_uint64 modUint64(const BigInt& A, sl_uint64 v) noexcept;
-	
+
 
 		static BigInt bitwiseAnd(const BigInt& A, const BigInt& B) noexcept;
 
@@ -769,10 +769,10 @@ namespace slib
 		static BigInt shiftRight(const BigInt& A, sl_size n) noexcept;
 
 		sl_bool shiftRight(sl_size n) noexcept;
-		
-		
+
+
 		BigInt abs() const noexcept;
-	
+
 
 		/*
 			E > 0
@@ -782,7 +782,7 @@ namespace slib
 		static BigInt pow(const BigInt& A, const BigInt& E, const BigInt* pM = sl_null) noexcept;
 
 		sl_bool pow(const BigInt& E, const BigInt* pM = sl_null) noexcept;
-		
+
 		static BigInt powMod(const BigInt& A, const BigInt& E, const BigInt& M) noexcept;
 
 		sl_bool powMod(const BigInt& E, const BigInt& M) noexcept;
@@ -805,11 +805,11 @@ namespace slib
 		static BigInt pow_montgomery(const BigInt& A, const BigInt& E, const BigInt& M) noexcept;
 
 		sl_bool pow_montgomery(const BigInt& E, const BigInt& M) noexcept;
-	
+
 
 		/*
 			C = A^-1 mod M
-	
+
 			Available Input:
 				A != 0
 				M > 0
@@ -821,26 +821,26 @@ namespace slib
 			M: Prime
 		*/
 		static BigInt sqrtMod(const BigInt& A, const BigInt& M) noexcept;
-	
+
 		/*
 			gcd - greatest common divisor
 		*/
 		static BigInt gcd(const BigInt& A, const BigInt& B) noexcept;
-		
+
 		/*
 		 	lcm - least common multiple
 		 */
 		static BigInt lcm(const BigInt& A, const BigInt& B) noexcept;
-		
+
 		/*
 		 	prime check and generation
 		*/
 		sl_bool isProbablePrime(sl_uint32 nChecks = 0, sl_bool* pFlagError = sl_null) const noexcept;
-		
+
 		static BigInt generatePrime(sl_size nBits) noexcept;
-		
+
 		static BigInt random(sl_size nBits) noexcept;
-		
+
 
 		sl_size getHashCode() const noexcept;
 
@@ -923,7 +923,7 @@ namespace slib
 		BigInt operator>>(sl_size n) const noexcept;
 
 	};
-	
+
 }
 
 #endif

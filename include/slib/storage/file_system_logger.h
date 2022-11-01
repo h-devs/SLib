@@ -31,7 +31,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_FLAGS(FileSystemLogFlags, {
-		
+
 		Create = 0x01,
 		Open = 0x02,
 		Flush = 0x04,
@@ -76,7 +76,7 @@ namespace slib
 	class FileSystemLogger : public FileSystemWrapper
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		FileSystemLogger(const Ref<FileSystemProvider>& base);
 

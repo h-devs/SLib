@@ -63,7 +63,7 @@ public class UiSelectView extends Spinner implements IView {
 		}
 		return null;
 	}
-	
+
 	public static void _applyList(final View view, final String[] items) {
 		try {
 			if (view instanceof UiSelectView) {
@@ -75,7 +75,7 @@ public class UiSelectView extends Spinner implements IView {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static int _getSelectedIndex(View view) {
 		try {
 			if (view instanceof UiSelectView) {
@@ -91,7 +91,7 @@ public class UiSelectView extends Spinner implements IView {
 		}
 		return 0;
 	}
-	
+
 	public static void _select(final View view, final int n) {
 		try {
 			if (view instanceof UiSelectView) {
@@ -195,7 +195,7 @@ public class UiSelectView extends Spinner implements IView {
 	UiFont font;
 
 	public UiSelectView(Context context) {
-		
+
 		super(context);
 		this.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
 			@Override
@@ -206,7 +206,7 @@ public class UiSelectView extends Spinner implements IView {
 				}
 				onEventSelect(UiSelectView.this, position);
 			}
-			
+
 			@Override
 			public void onNothingSelected(AdapterView<?> parent) {
 			}
@@ -214,9 +214,9 @@ public class UiSelectView extends Spinner implements IView {
 		setBackgroundColor(0);
 		setPadding(2, 0,  2, 0);
 	}
-	
+
 	class MyAdapter extends ArrayAdapter<String> {
-		
+
 		MyAdapter(String[] items) {
 			super(UiSelectView.this.getContext(), android.R.layout.simple_spinner_item, items);
 			setDropDownViewResource(R.layout.slib_spinner_default_dropdown_item);

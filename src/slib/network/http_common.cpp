@@ -56,7 +56,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_setCookie_secure, "Secure")
 			SLIB_STATIC_STRING(g_setCookie_http_only, "HttpOnly")
 			SLIB_STATIC_STRING(g_setCookie_same_site, "SameSite")
-			
+
 			SLIB_STATIC_STRING(g_cacheControl_max_age, "max-age")
 			SLIB_STATIC_STRING(g_cacheControl_max_stale, "max-stale")
 			SLIB_STATIC_STRING(g_cacheControl_min_fresh, "min-fresh")
@@ -77,7 +77,7 @@ namespace slib
 			{
 			public:
 				CHashMap<String, HttpMethod> maps;
-				
+
 			public:
 				HttpMethodMapping()
 				{
@@ -105,12 +105,12 @@ namespace slib
 	String HttpStatusHelper::toString(HttpStatus status)
 	{
 		switch (status) {
-			
+
 			HTTP_STATUS_CASE(Unknown, "Unknown");
-			
+
 			HTTP_STATUS_CASE(Continue, "Continue");
 			HTTP_STATUS_CASE(SwitchingProtocols, "Switching Protocols");
-			
+
 			HTTP_STATUS_CASE(OK, "OK");
 			HTTP_STATUS_CASE(Created, "Created");
 			HTTP_STATUS_CASE(Accepted, "Accepted");
@@ -148,14 +148,14 @@ namespace slib
 			HTTP_STATUS_CASE(UnsupportedMediaType, "Unsupported Media Type");
 			HTTP_STATUS_CASE(RequestRangeNotSatisfiable, "Requested range not satisfiable");
 			HTTP_STATUS_CASE(ExpectationFailed, "Expectation Failed");
-			
+
 			HTTP_STATUS_CASE(InternalServerError, "Internal Server Error");
 			HTTP_STATUS_CASE(NotImplemented, "Not Implemented");
 			HTTP_STATUS_CASE(BadGateway, "Bad Gateway");
 			HTTP_STATUS_CASE(ServiceUnavailable, "Service Unavailable");
 			HTTP_STATUS_CASE(GatewayTimeout, "Gateway Time-out");
 			HTTP_STATUS_CASE(HttpVersionNotSupported, "HTTP Version not supported");
-			
+
 		}
 		return sl_null;
 	}
@@ -440,14 +440,14 @@ namespace slib
 		splitValue(value, &list, sl_null, sl_null, delimiter);
 		return list;
 	}
-	
+
 	HttpHeaderValueMap HttpHeaderHelper::splitValueToMap(const String& value, sl_char8 delimiter)
 	{
 		HttpHeaderValueMap map;
 		splitValue(value, sl_null, &map, sl_null, delimiter);
 		return map;
 	}
-	
+
 	String HttpHeaderHelper::makeSafeValue(const String& value, sl_char8 delimiter)
 	{
 		sl_char8* sz = value.getData();
@@ -476,7 +476,7 @@ namespace slib
 		}
 		return s;
 	}
-	
+
 	String HttpHeaderHelper::mergeValues(const List<String>& list, sl_char8 delimiter)
 	{
 		StringBuffer sb;
@@ -492,13 +492,13 @@ namespace slib
 		}
 		return sb.merge();
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpCookie)
-	
+
 	HttpCookie::HttpCookie()
 	{
 	}
-	
+
 	String HttpCookie::toHeaderValue() const
 	{
 		HttpHeaderValueMap map;
@@ -526,7 +526,7 @@ namespace slib
 		}
 		return HttpHeaderHelper::mergeValueMap(map, ';');
 	}
-	
+
 	void HttpCookie::parseHeaderValue(const String& headerValue)
 	{
 		HttpHeaderValueMap map;
@@ -557,51 +557,51 @@ namespace slib
 		http_only = map.find_NoLock(g_setCookie_http_only);
 		same_site = map.getValue_NoLock(g_setCookie_same_site);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpUploadFile)
-	
+
 	SLIB_DEFINE_ROOT_OBJECT(HttpUploadFile)
-	
+
 	HttpUploadFile::HttpUploadFile() : m_data(sl_null), m_size(0)
 	{
 	}
-	
+
 	HttpUploadFile::HttpUploadFile(const String& fileName, const HttpHeaderMap& headers, void* data, sl_size size, const Ref<Referable>& ref)
 	 : m_fileName(fileName), m_headers(headers), m_data(data), m_size(size), m_ref(ref)
 	{
 	}
-	
+
 	String HttpUploadFile::getFileName()
 	{
 		return m_fileName;
 	}
-	
+
 	void HttpUploadFile::setFileName(const String& fileName)
 	{
 		m_fileName = fileName;
 	}
-	
+
 	const HttpHeaderMap& HttpUploadFile::getHeaders()
 	{
 		return m_headers;
 	}
-	
+
 	String HttpUploadFile::getHeader(const String& name)
 	{
 		return m_headers.getValue_NoLock(name);
 	}
-	
+
 	void HttpUploadFile::setHeader(const String& name, const String& value)
 	{
 		m_headers.put_NoLock(name, value);
 	}
-	
+
 	String HttpUploadFile::getContentType()
 	{
 		return getHeader(HttpHeader::ContentType);
 	}
-	
+
 	void HttpUploadFile::setContentType(const String& contentType)
 	{
 		setHeader(HttpHeader::ContentType, contentType);
@@ -611,39 +611,39 @@ namespace slib
 	{
 		return m_data;
 	}
-	
+
 	sl_size HttpUploadFile::getSize()
 	{
 		return m_size;
 	}
-	
+
 	Memory HttpUploadFile::getDataMemory()
 	{
 		return Memory::createStatic(m_data, m_size, this);
 	}
-	
+
 	void HttpUploadFile::setData(const void* data, sl_size size)
 	{
 		m_data = (void*)data;
 		m_size = size;
 		m_ref.setNull();
 	}
-	
+
 	void HttpUploadFile::setData(const Memory& data)
 	{
 		m_data = data.getData();
 		m_size = data.getSize();
 		m_ref = data.ref;
 	}
-	
+
 	sl_bool HttpUploadFile::saveToFile(const String& path)
 	{
 		return File::writeAllBytes(path, m_data, m_size);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpRequest)
-	
+
 	HttpRequest::HttpRequest()
 	{
 		SLIB_STATIC_STRING(s1, "HTTP/1.1");
@@ -727,7 +727,7 @@ namespace slib
 		}
 		return value;
 	}
-	
+
 	void HttpRequest::setRequestHeader(const String& name, const String& value)
 	{
 		m_requestHeaders.put_NoLock(name, value);
@@ -764,17 +764,17 @@ namespace slib
 		}
 		return list;
 	}
-	
+
 	void HttpRequest::setRequestHeaderValues(const String& name, const List<String>& list)
 	{
 		m_requestHeaders.put_NoLock(name, HttpHeaderHelper::mergeValues(list));
 	}
-	
+
 	void HttpRequest::addRequestHeaderValues(const String& name, const List<String>& list)
 	{
 		m_requestHeaders.add_NoLock(name, HttpHeaderHelper::mergeValues(list));
 	}
-	
+
 	HttpHeaderValueMap HttpRequest::getRequestHeaderValueMap(const String& name) const
 	{
 		HttpHeaderValueMap map;
@@ -796,12 +796,12 @@ namespace slib
 	{
 		m_requestHeaders.put_NoLock(name, HttpHeaderHelper::mergeValueMap(map));
 	}
-	
+
 	void HttpRequest::addRequestHeaderValueMap(const String& name, const HttpHeaderValueMap& map)
 	{
 		m_requestHeaders.add_NoLock(name, HttpHeaderHelper::mergeValueMap(map));
 	}
-	
+
 	void HttpRequest::clearRequestHeaders()
 	{
 		m_requestHeaders.removeAll_NoLock();
@@ -845,7 +845,7 @@ namespace slib
 	{
 		return getRequestContentTypeNoParams().trim().equalsIgnoreCase(ContentType::MultipartFormData);
 	}
-	
+
 	String HttpRequest::getRequestMultipartFormDataBoundary() const
 	{
 		String value = getRequestContentType();
@@ -856,7 +856,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String HttpRequest::getRequestContentEncoding() const
 	{
 		return getRequestHeader(HttpHeader::ContentEncoding);
@@ -907,7 +907,7 @@ namespace slib
 			return connection.equalsIgnoreCase(str);
 		}
 	}
-	
+
 	void HttpRequest::setRequestKeepAlive()
 	{
 		SLIB_STATIC_STRING(str, "Keep-Alive");
@@ -948,7 +948,7 @@ namespace slib
 	{
 		setRequestHeader(HttpHeader::Origin, origin);
 	}
-	
+
 	Time HttpRequest::getRequestIfModifiedSince() const
 	{
 		Time time;
@@ -957,7 +957,7 @@ namespace slib
 		}
 		return Time::zero();
 	}
-	
+
 	void HttpRequest::setRequestIfModifiedSince(const Time& time)
 	{
 		if (time.isNotZero()) {
@@ -966,7 +966,7 @@ namespace slib
 			removeRequestHeader(HttpHeader::IfModifiedSince);
 		}
 	}
-	
+
 	HttpCacheControlRequest HttpRequest::getRequestCacheControl() const
 	{
 		HttpCacheControlRequest cc;
@@ -995,7 +995,7 @@ namespace slib
 		}
 		return cc;
 	}
-	
+
 	void HttpRequest::setRequestCacheControl(const HttpCacheControlRequest& cc)
 	{
 		HttpHeaderValueMap map;
@@ -1026,7 +1026,7 @@ namespace slib
 			removeRequestHeader(HttpHeader::CacheControl);
 		}
 	}
-	
+
 	HashMap<String, String> HttpRequest::getRequestCookies() const
 	{
 		HashMap<String, String> map;
@@ -1043,12 +1043,12 @@ namespace slib
 		}
 		return map;
 	}
-	
+
 	String HttpRequest::getRequestCookie(const String& cookie) const
 	{
 		return getRequestCookies().getValue_NoLock(cookie);
 	}
-	
+
 	const HashMap<String, String>& HttpRequest::getParameters() const
 	{
 		return m_parameters;
@@ -1180,12 +1180,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	HashMap<String, String> HttpRequest::parseFormUrlEncoded(const String& str)
 	{
 		return parseFormUrlEncoded(str.getData(), str.getLength());
 	}
-	
+
 	HashMap<String, String> HttpRequest::parseFormUrlEncoded(const void* data, sl_size len)
 	{
 		if (!data) {
@@ -1228,22 +1228,22 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	const HashMap< String, Ref<HttpUploadFile> >& HttpRequest::getUploadFiles() const
 	{
 		return m_uploadFiles;
 	}
-	
+
 	Ref<HttpUploadFile> HttpRequest::getUploadFile(const String& name) const
 	{
 		return m_uploadFiles.getValue_NoLock(name);
 	}
-	
+
 	List< Ref<HttpUploadFile> > HttpRequest::getUploadFiles(const String& name) const
 	{
 		return m_uploadFiles.getValues_NoLock(name);
 	}
-	
+
 	sl_bool HttpRequest::containsUploadFile(const String& name) const
 	{
 		return m_uploadFiles.find_NoLock(name);
@@ -1318,7 +1318,7 @@ namespace slib
 			i += 2;
 		}
 	}
-	
+
 	Memory HttpRequest::makeRequestPacket() const
 	{
 		MemoryBuffer msg;
@@ -1427,16 +1427,16 @@ namespace slib
 			return iRet;
 		}
 	}
-	
+
 	sl_bool HttpRequest::buildMultipartFormData(MemoryBuffer& output, const String& _boundary, VariantMap& parameters)
 	{
 		Memory boundary = _boundary.toMemory();
-		
+
 		for (auto& item: parameters) {
-			
+
 			String& name = item.key;
 			Variant& value = item.value;
-			
+
 			String fileName;
 			HttpHeaderMap const* headers = sl_null;
 			Memory memData;
@@ -1472,7 +1472,7 @@ namespace slib
 					}
 				}
 			}
-			
+
 			output.addStatic("--");
 			output.add(boundary);
 			output.addStatic("\r\n");
@@ -1515,7 +1515,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpResponse)
-	
+
 	HttpResponse::HttpResponse()
 	{
 		SLIB_STATIC_STRING(s1, "HTTP/1.1");
@@ -1607,12 +1607,12 @@ namespace slib
 		}
 		return list;
 	}
-	
+
 	void HttpResponse::setResponseHeaderValues(const String& name, const List<String>& list)
 	{
 		m_responseHeaders.put_NoLock(name, HttpHeaderHelper::mergeValues(list));
 	}
-	
+
 	void HttpResponse::addResponseHeaderValues(const String& name, const List<String>& list)
 	{
 		m_responseHeaders.add_NoLock(name, HttpHeaderHelper::mergeValues(list));
@@ -1639,7 +1639,7 @@ namespace slib
 	{
 		m_responseHeaders.put_NoLock(name, HttpHeaderHelper::mergeValueMap(map));
 	}
-	
+
 	void HttpResponse::addResponseHeaderValueMap(const String& name, const HttpHeaderValueMap& map)
 	{
 		m_responseHeaders.add_NoLock(name, HttpHeaderHelper::mergeValueMap(map));
@@ -1753,7 +1753,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool HttpResponse::isAttachmentResponse() const
 	{
 		String value = getResponseHeader(HttpHeader::ContentDisposition);
@@ -1762,20 +1762,20 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	String HttpResponse::getResponseAttachmentFileName() const
 	{
 		HttpHeaderValueMap map = getResponseHeaderValueMap(HttpHeader::ContentDisposition);
 		SLIB_STATIC_STRING(s, "filename")
 		return map.getValue_NoLock(s);
 	}
-	
+
 	void HttpResponse::setResponseInline()
 	{
 		SLIB_STATIC_STRING(s, "inline")
 		setResponseHeader(HttpHeader::ContentDisposition, s);
 	}
-	
+
 	void HttpResponse::setResponseAttachment(const String& fileName)
 	{
 		if (fileName.isEmpty()) {
@@ -1785,7 +1785,7 @@ namespace slib
 			setResponseHeader(HttpHeader::ContentDisposition, String::format("attachment; filename=\"%s\"", fileName));
 		}
 	}
-	
+
 	String HttpResponse::getResponseContentRange() const
 	{
 		return getResponseHeader(HttpHeader::ContentRange);
@@ -1882,7 +1882,7 @@ namespace slib
 		}
 		return Time::zero();
 	}
-	
+
 	void HttpResponse::setResponseLastModified(const Time& time)
 	{
 		if (time.isNotZero()) {
@@ -1891,7 +1891,7 @@ namespace slib
 			removeResponseHeader(HttpHeader::LastModified);
 		}
 	}
-	
+
 	HttpCacheControlResponse HttpResponse::getResponseCacheControl() const
 	{
 		HttpCacheControlResponse cc;
@@ -1935,7 +1935,7 @@ namespace slib
 		}
 		return cc;
 	}
-	
+
 	void HttpResponse::setResponseCacheControl(const HttpCacheControlResponse& cc)
 	{
 		HttpHeaderValueMap map;
@@ -1993,7 +1993,7 @@ namespace slib
 		}
 		return list;
 	}
-	
+
 	void HttpResponse::setResponseCookies(const List<HttpCookie>& _cookies)
 	{
 		m_responseHeaders.removeItems_NoLock(HttpHeader::SetCookie);
@@ -2003,7 +2003,7 @@ namespace slib
 			m_responseHeaders.add_NoLock(HttpHeader::SetCookie, cookie.toHeaderValue());
 		}
 	}
-	
+
 	HashMap<String, HttpCookie> HttpResponse::getResponseCookieMap() const
 	{
 		HashMap<String, HttpCookie> map;
@@ -2015,7 +2015,7 @@ namespace slib
 		}
 		return map;
 	}
-	
+
 	void HttpResponse::setResponseCookieMap(const HashMap<String, HttpCookie>& map)
 	{
 		m_responseHeaders.removeItems_NoLock(HttpHeader::SetCookie);
@@ -2024,12 +2024,12 @@ namespace slib
 			m_responseHeaders.add_NoLock(HttpHeader::SetCookie, item.value.toHeaderValue());
 		}
 	}
-	
+
 	sl_bool HttpResponse::getResponseCookie(const String& name, HttpCookie* cookie)
 	{
 		return getResponseCookieMap().get_NoLock(name, cookie);
 	}
-	
+
 	String HttpResponse::getResponseCookie(const String& name)
 	{
 		HttpCookie cookie;
@@ -2038,14 +2038,14 @@ namespace slib
 		}
 		return String::null();
 	}
-	
+
 	void HttpResponse::setResponseCookie(const HttpCookie& cookie)
 	{
 		HashMap<String, HttpCookie> map = getResponseCookieMap();
 		map.put_NoLock(cookie.name, cookie);
 		setResponseCookieMap(map);
 	}
-	
+
 	void HttpResponse::addResponseCookie(const HttpCookie& cookie)
 	{
 		m_responseHeaders.add_NoLock(HttpHeader::SetCookie, cookie.toHeaderValue());
@@ -2066,7 +2066,7 @@ namespace slib
 		setResponseHeader(HttpHeader::Location, location);
 		setResponseCode(status);
 	}
-	
+
 	Memory HttpResponse::makeResponsePacket() const
 	{
 		MemoryBuffer msg;

@@ -31,35 +31,35 @@ namespace slib
 	class SLIB_EXPORT ViewAdapter : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ViewAdapter();
-		
+
 		~ViewAdapter();
-		
+
 	public:
 		virtual sl_uint64 getItemCount() = 0;
-		
+
 		virtual Ref<View> getView(sl_uint64 index, View* original, View* parent) = 0;
-		
+
 		virtual sl_object_type getViewType(sl_uint64 index, View* parent);
-		
+
 		virtual sl_ui_len getAverageItemHeight(View* parent);
-		
+
 		virtual sl_ui_len getItemHeight(sl_uint64 index, View* parent);
-		
+
 		virtual sl_uint32 getMaximumItemCountPerPage(View* parent);
-		
+
 		void populateInto(View* parent, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 	};
-	
+
 	template <class ViewType>
 	class SLIB_EXPORT ViewAdapterT : public ViewAdapter
 	{
 	public:
 		virtual void onBindView(sl_uint64 index, ViewType* view, View* parent) = 0;
-		
+
 	public:
 		Ref<View> getView(sl_uint64 index, View* original, View* parent) override
 		{
@@ -72,17 +72,17 @@ namespace slib
 			onBindView(index, view.get(), parent);
 			return view;
 		}
-		
+
 	};
-	
+
 	template <class DataType, class ViewType>
 	class SLIB_EXPORT ListViewAdapter : public ViewAdapterT<ViewType>
 	{
 	public:
 		ListViewAdapter() {}
-		
+
 		ListViewAdapter(const List<DataType>& list): m_list(list) {}
-		
+
 		ListViewAdapter(const List<DataType>& list, const Function<void(DataType& data, ViewType* view, View* parent)>& onBindView): m_list(list), m_onBindView(onBindView) {}
 
 	public:
@@ -90,32 +90,32 @@ namespace slib
 		{
 			return new ListViewAdapter(list, onBindView);
 		}
-		
+
 		List<DataType> getList()
 		{
 			return m_list;
 		}
-		
+
 		void setList(const List<DataType>& list)
 		{
 			m_list = list;
 		}
-		
+
 		Function<void(DataType& data, ViewType* view, View* parent)> getOnBindView()
 		{
 			return m_onBindView;
 		}
-		
+
 		void setOnBindView(const Function<void(DataType& data, ViewType* view, View* parent)>& onBindView)
 		{
 			m_onBindView = onBindView;
 		}
-		
+
 		sl_uint64 getItemCount() override
 		{
 			return List<DataType>(m_list).getCount();
 		}
-		
+
 	public:
 		virtual void onBindView(DataType& data, ViewType* view, View* parent)
 		{
@@ -129,82 +129,82 @@ namespace slib
 				onBindView(list[(sl_size)index], view, parent);
 			}
 		}
-		
+
 	protected:
 		AtomicList<DataType> m_list;
 		AtomicFunction<void(DataType& data, ViewType* view, View* parent)> m_onBindView;
-		
+
 	};
-	
+
 	class ViewListAdapter : public ViewAdapter
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ViewListAdapter();
-		
+
 		~ViewListAdapter();
-		
+
 		ViewListAdapter(const List< Ref<View> >& list);
-		
+
 	public:
 		static Ref<ViewListAdapter> create(const List< Ref<View> >& list);
-		
+
 		List< Ref<View> > getList();
-		
+
 		void setList(const List< Ref<View> >& list);
-		
+
 		void addView(const Ref<View>& view);
-		
+
 	public:
 		sl_uint64 getItemCount() override;
-		
+
 		Ref<View> getView(sl_uint64 index, View* original, View* parent) override;
-		
+
 	protected:
 		AtomicList< Ref<View> > m_list;
 
 	};
-	
-	
+
+
 	class ViewRowAdapter : public ViewAdapter
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ViewRowAdapter();
-		
+
 		~ViewRowAdapter();
-		
+
 	public:
 		static Ref<ViewRowAdapter> create(sl_uint32 nColumns, const Ref<ViewAdapter>& itemAdapter);
-		
+
 	public:
 		sl_uint32 getColumnCount();
-		
+
 		void setColumnCount(sl_uint32 nColumns);
-		
+
 		Ref<ViewAdapter> getItemAdapter();
-		
+
 		void setItemAdapter(const Ref<ViewAdapter>& adapter);
-		
+
 	public:
 		sl_uint64 getItemCount() override;
-		
+
 		Ref<View> getView(sl_uint64 index, View* original, View* parent) override;
-		
+
 		sl_ui_len getAverageItemHeight(View* parent) override;
-		
+
 		sl_ui_len getItemHeight(sl_uint64 index, View* parent) override;
-		
+
 		sl_uint32 getMaximumItemCountPerPage(View* parent) override;
-		
+
 	protected:
 		sl_uint32 m_nColumns;
 		AtomicRef<ViewAdapter> m_itemAdapter;
-		
+
 	};
-	
+
 }
 
 #endif

@@ -78,7 +78,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_bool _initialize(const Ref<EditView>& view)
 				{
 					Ref<Window> window = new Window;
@@ -244,13 +244,13 @@ namespace slib
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-		
+
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
-		
+
 		setBorder(sl_true, UIUpdateMode::Init);
 		setPadding((sl_ui_pos)(UI::dpToPixel(2)), UIUpdateMode::Init);
-		
+
 		m_flagInvalidateText = sl_false;
 		m_flagChangeEvent = sl_true;
 		m_gravity = Alignment::Default;
@@ -378,7 +378,7 @@ namespace slib
 	{
 		return m_textColor;
 	}
-	
+
 	void EditView::setTextColor(const Color& color, UIUpdateMode mode)
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
@@ -391,7 +391,7 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	String EditView::getHintText()
 	{
 		return m_hintText;
@@ -414,7 +414,7 @@ namespace slib
 	{
 		return m_hintGravity;
 	}
-	
+
 	void EditView::setHintGravity(const Alignment& gravity, UIUpdateMode mode)
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
@@ -432,7 +432,7 @@ namespace slib
 	{
 		return m_hintTextColor;
 	}
-	
+
 	void EditView::setHintTextColor(const Color& color, UIUpdateMode mode)
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
@@ -454,7 +454,7 @@ namespace slib
 		}
 		return getFont();
 	}
-	
+
 	void EditView::setHintFont(const Ref<Font>& font, UIUpdateMode mode)
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
@@ -490,7 +490,7 @@ namespace slib
 	{
 		return m_flagPassword;
 	}
-	
+
 	void EditView::setPassword(sl_bool flag, UIUpdateMode mode)
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
@@ -550,12 +550,12 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	MultiLineMode EditView::getMultiLine()
 	{
 		return m_multiLine;
 	}
-	
+
 	void EditView::setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode)
 	{
 		Ptr<IEditViewInstance> instance = getEditViewInstance();
@@ -602,7 +602,7 @@ namespace slib
 			m_keyboardType = type;
 		}
 	}
-	
+
 	UIAutoCapitalizationType EditView::getAutoCaptializationType()
 	{
 		return m_autoCapitalizationType;
@@ -629,7 +629,7 @@ namespace slib
 	{
 		m_flagAutoDismissKeyboard = flag;
 	}
-	
+
 	void EditView::setFocusNextOnReturnKey()
 	{
 		setOnReturnKey([](EditView* view) {
@@ -698,7 +698,7 @@ namespace slib
 	{
 		sl_bool flagHorizontalWrapping = isWidthWrapping();
 		sl_bool flagVerticalWrapping = isHeightWrapping();
-		
+
 		if (!flagHorizontalWrapping && !flagVerticalWrapping) {
 			return;
 		}
@@ -741,7 +741,7 @@ namespace slib
 			setLayoutHeight(height);
 		}
 	}
-	
+
 	void EditView::onDraw(Canvas* canvas)
 	{
 		Ref<Font> font;
@@ -806,7 +806,7 @@ namespace slib
 		}
 #endif
 	}
-	
+
 	void EditView::onClickEvent(UIEvent* ev)
 	{
 		if (m_flagReadOnly) {
@@ -882,7 +882,7 @@ namespace slib
 			UI::dismissKeyboard();
 		}
 	}
-	
+
 	void EditView::dispatchKeyEvent(UIEvent* ev)
 	{
 		if (m_multiLine == MultiLineMode::Single || ev->getKeycode() == Keycode::Escape) {
@@ -936,13 +936,13 @@ namespace slib
 #endif
 	}
 
-	
+
 	PasswordView::PasswordView()
 	{
 		m_flagPassword = sl_true;
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(TextArea, EditView)
 
 	TextArea::TextArea()
@@ -964,18 +964,18 @@ namespace slib
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
 	{
 		return sl_null;
 	}
-	
+
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
 	{
 		return sl_null;
@@ -998,11 +998,11 @@ namespace slib
 	void IEditViewInstance::setReturnKeyType(EditView* view, UIReturnKeyType type)
 	{
 	}
-	
+
 	void IEditViewInstance::setKeyboardType(EditView* view, UIKeyboardType type)
 	{
 	}
-	
+
 	void IEditViewInstance::setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type)
 	{
 	}
@@ -1010,5 +1010,5 @@ namespace slib
 	void IEditViewInstance::setSelection(EditView* view, sl_reg start, sl_reg end)
 	{
 	}
-	
+
 }

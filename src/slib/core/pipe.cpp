@@ -117,7 +117,7 @@ namespace slib
 		}
 		return SLIB_IO_ERROR;
 	}
-	
+
 	sl_bool Pipe::waitRead(sl_int32 timeout) const noexcept
 	{
 		if (!(isOpened())) {
@@ -288,7 +288,7 @@ namespace slib
 	{
 		return waitFd(fd, POLLIN | POLLPRI | POLLERR | POLLHUP, sl_null, timeout);
 	}
-	
+
 	sl_bool PipeEvent::waitWriteFd(int fd, sl_int32 timeout)
 	{
 		return waitFd(fd, POLLOUT | POLLERR | POLLHUP, sl_null, timeout);

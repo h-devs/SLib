@@ -34,12 +34,12 @@ namespace slib
 	{
 		m_flagStarted = sl_false;
 		m_nCountRun = 0;
-		
+
 		m_flagDispatched = sl_false;
-		
+
 		m_lastRunTime = 0;
 		m_maxConcurrentThread = 1;
-		
+
 	}
 
 	Timer::~Timer()
@@ -68,7 +68,7 @@ namespace slib
 	{
 		return Timer::_createWithLoop(DispatchLoop::getDefault(), task, interval_ms);
 	}
-	
+
 	Ref<Timer> Timer::start(const Function<void(Timer*)>& task, sl_uint64 interval_ms)
 	{
 		return Timer::startWithLoop(sl_null, task, interval_ms);
@@ -104,15 +104,15 @@ namespace slib
 		Ref<Timer> ret = new Timer();
 		if (ret.isNotNull()) {
 			ret->m_dispatcher = dispatcher;
-			
+
 			ret->m_task = task;
 			ret->m_interval = interval_ms;
-			
+
 			return ret;
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Timer> Timer::startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms)
 	{
 		Ref<Timer> timer = Timer::createWithDispatcher(dispatcher, task, interval_ms);

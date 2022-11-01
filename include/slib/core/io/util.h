@@ -39,7 +39,7 @@ namespace slib
 		static sl_int64 findBackward(const Pointer<IReader, ISeekable>& reader, const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_uint64 sizeFind = SLIB_UINT64_MAX);
 
 	};
-	
+
 }
 
 #endif

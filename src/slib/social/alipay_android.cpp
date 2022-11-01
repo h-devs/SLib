@@ -50,7 +50,7 @@ namespace slib
 			public:
 				Mutex lock;
 				Function<void(AlipayPaymentResult&)> callbackPay;
-				
+
 			public:
 				void setPayCallback(const Function<void(AlipayPaymentResult&)>& callback)
 				{
@@ -62,16 +62,16 @@ namespace slib
 					}
 					callbackPay = callback;
 				}
-				
+
 				void onPayResult(AlipayPaymentResult& result)
 				{
 					MutexLocker locker(&lock);
 					callbackPay(result);
 					callbackPay.setNull();
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
 			void OnPayResult(JNIEnv* env, jobject _this, jstring jresult)
@@ -83,9 +83,9 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::alipay_android;
-	
+
 	void AlipaySDK::initialize(const String& appScheme)
 	{
 	}

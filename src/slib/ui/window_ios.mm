@@ -46,7 +46,7 @@ namespace slib
 @interface SLIBWindowRootViewController : UIViewController
 {
 	@public slib::WeakRef<slib::priv::window::iOS_WindowInstance> m_window;
-	
+
 	@public slib::UISize m_sizeClient;
 	@public slib::UISize m_sizeClientResizedByKeyboard;
 }
@@ -57,21 +57,21 @@ namespace slib
 
 	namespace priv
 	{
-		
+
 		namespace platform
 		{
 			extern UIInterfaceOrientation g_screenOrientation;
 		}
-		
+
 		using namespace platform;
-		
+
 		namespace window
 		{
-			
+
 			__weak SLIBWindowRootViewController* g_currentRootController = nil;
 			sl_bool g_flagSetStatusBarStyle = sl_false;
 			StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
-			
+
 			__weak UIScrollView* g_keyboardCurrentScrollView = nil;
 			CGRect g_keyboardCurrentScrollViewOriginalFrame;
 
@@ -80,17 +80,17 @@ namespace slib
 			public:
 				UIView* m_window;
 				AtomicRef<ViewInstance> m_viewContent;
-				
+
 			public:
 				iOS_WindowInstance()
 				{
 				}
-				
+
 				~iOS_WindowInstance()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<iOS_WindowInstance> create(UIView* window)
 				{
@@ -120,7 +120,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				static Ref<WindowInstance> create(Window* window)
 				{
 					UIRect _rect = MakeWindowFrame(window);
@@ -130,7 +130,7 @@ namespace slib
 					rect.origin.y = (CGFloat)(_rect.top) / f;
 					rect.size.width = (CGFloat)(_rect.getWidth()) / f;
 					rect.size.height = (CGFloat)(_rect.getHeight()) / f;
-					
+
 					UIWindow* handle;
 					sl_bool flagMainWindow = sl_false;
 					static sl_bool flagFirstWindow = sl_true;
@@ -186,7 +186,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void release()
 				{
 					UIView* window = m_window;
@@ -199,7 +199,7 @@ namespace slib
 					m_viewContent.setNull();
 					m_window = nil;
 				}
-				
+
 				void close() override
 				{
 					UIView* view = m_window;
@@ -214,21 +214,21 @@ namespace slib
 					m_window = nil;
 					m_viewContent.setNull();
 				}
-				
+
 				sl_bool isClosed() override
 				{
 					return m_window == nil;
 				}
-				
+
 				void setParent(const Ref<WindowInstance>& window) override
 				{
 				}
-				
+
 				Ref<ViewInstance> getContentView() override
 				{
 					return m_viewContent;
 				}
-				
+
 				sl_bool getFrame(UIRect& _out) override
 				{
 					UIView* window = m_window;
@@ -243,7 +243,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setFrame(const UIRect& frame) override
 				{
 					UIView* window = m_window;
@@ -265,7 +265,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool isActive() override
 				{
 					UIView* view = m_window;
@@ -279,7 +279,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void activate() override
 				{
 					UIView* view = m_window;
@@ -292,7 +292,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setBackgroundColor(const Color& _color) override
 				{
 					UIView* window = m_window;
@@ -306,7 +306,7 @@ namespace slib
 						[window setBackgroundColor:color];
 					}
 				}
-				
+
 				void setVisible(sl_bool flag) override
 				{
 					UIView* window = m_window;
@@ -314,7 +314,7 @@ namespace slib
 						[window setHidden:(flag ? NO : YES)];
 					}
 				}
-				
+
 				void setAlwaysOnTop(sl_bool flag) override
 				{
 					UIView* view = m_window;
@@ -329,7 +329,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setAlpha(sl_real _alpha) override
 				{
 					UIView* window = m_window;
@@ -344,16 +344,16 @@ namespace slib
 						window.alpha = alpha;
 					}
 				}
-				
+
 			};
-			
+
 			void ResetOrientation()
 			{
 #ifndef SLIB_PLATFORM_IS_IOS_CATALYST
 				g_screenOrientation = [[UIApplication sharedApplication] statusBarOrientation];
 #endif
 			}
-			
+
 			ScreenOrientation ConvertScreenOrientation(UIInterfaceOrientation orientation)
 			{
 				switch (orientation) {
@@ -367,7 +367,7 @@ namespace slib
 						return ScreenOrientation::Portrait;
 				}
 			}
-			
+
 			UIInterfaceOrientation ConvertScreenOrientation(ScreenOrientation orientation)
 			{
 				switch (orientation) {
@@ -381,7 +381,7 @@ namespace slib
 						return UIInterfaceOrientationPortrait;
 				}
 			}
-			
+
 		}
 	}
 
@@ -392,7 +392,7 @@ namespace slib
 	{
 		return iOS_WindowInstance::create(this);
 	}
-	
+
 	Ref<Window> Window::getActiveWindow()
 	{
 		UIView* handle = UIPlatform::getKeyWindow();
@@ -404,7 +404,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<WindowInstance> UIPlatform::createWindowInstance(UIView* window)
 	{
 		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance((__bridge void*)window);
@@ -413,22 +413,22 @@ namespace slib
 		}
 		return iOS_WindowInstance::create(window);
 	}
-	
+
 	void UIPlatform::registerWindowInstance(UIView* window, WindowInstance* instance)
 	{
 		UIPlatform::_registerWindowInstance((__bridge void*)window, instance);
 	}
-	
+
 	Ref<WindowInstance> UIPlatform::getWindowInstance(UIView* window)
 	{
 		return UIPlatform::_getWindowInstance((__bridge void*)window);
 	}
-	
+
 	void UIPlatform::removeWindowInstance(UIView* window)
 	{
 		UIPlatform::_removeWindowInstance((__bridge void*)window);
 	}
-	
+
 	UIView* UIPlatform::getWindowHandle(WindowInstance* instance)
 	{
 		iOS_WindowInstance* window = (iOS_WindowInstance*)instance;
@@ -449,7 +449,7 @@ namespace slib
 #endif
 		return UIPlatform::getMainWindow();
 	}
-	
+
 	ScreenOrientation MobileApp::getScreenOrientation()
 	{
 		switch (g_screenOrientation) {
@@ -466,7 +466,7 @@ namespace slib
 		}
 		return ConvertScreenOrientation(g_screenOrientation);
 	}
-	
+
 	void MobileApp::attemptRotateScreenOrientation()
 	{
 		[UIViewController attemptRotationToDeviceOrientation];
@@ -497,7 +497,7 @@ namespace slib
 		}
 		UIResource::updateDefaultScreenSize();
 	}
-	
+
 }
 
 using namespace slib;
@@ -573,7 +573,7 @@ using namespace slib::priv::window;
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 {
 	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
-	
+
 	dispatch_async(dispatch_get_main_queue(), ^{
 		ResetOrientation();
 		UIWindow* handle = self.view.window;
@@ -621,7 +621,7 @@ using namespace slib::priv::window;
 		[self restoreKeyboardScrollView];
 		return;
 	}
-	
+
 	UIScrollView* scroll = nil;
 	UIView* parent = view;
 	while (parent != nil) {
@@ -635,7 +635,7 @@ using namespace slib::priv::window;
 	if (scroll != g_keyboardCurrentScrollView) {
 		[self restoreKeyboardScrollView];
 	}
-	
+
 	UIKeyboardAdjustMode adjustMode = MobileApp::getKeyboardAdjustMode();
 	Ref<iOS_WindowInstance> window = self->m_window;
 	if (window.isNotNull()) {
@@ -654,7 +654,7 @@ using namespace slib::priv::window;
 			}
 		}
 	}
-	
+
 	if (adjustMode == UIKeyboardAdjustMode::Pan || scroll != nil) {
 		NSDictionary* info = [aNotification userInfo];
 		CGSize kbSize = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
@@ -682,7 +682,7 @@ using namespace slib::priv::window;
 				g_keyboardCurrentScrollView = scroll;
 			}
 		}
-		
+
 		if (yText > yBottomLimit) {
 			CGFloat offset = yBottomLimit - yText;
 			if (scroll != nil) {
@@ -704,7 +704,7 @@ using namespace slib::priv::window;
 	} else {
 		self.view.transform = CGAffineTransformIdentity;
 	}
-	
+
 }
 
 -(void)keyboardWillHide {
@@ -714,7 +714,7 @@ using namespace slib::priv::window;
 		}];
 	}
 	[self restoreKeyboardScrollView];
-	
+
 	Ref<iOS_WindowInstance> window = self->m_window;
 	if (window.isNotNull()) {
 		if (self->m_sizeClient.y != self->m_sizeClientResizedByKeyboard.y) {
@@ -728,12 +728,12 @@ using namespace slib::priv::window;
 - (void)viewWillAppear:(BOOL)animated
 {
 	[super viewWillAppear:animated];
-	
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(keyboardWillShow:)
 												 name:UIKeyboardWillShowNotification
 											   object:nil];
-	
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(keyboardWillHide)
 												 name:UIKeyboardWillHideNotification
@@ -743,11 +743,11 @@ using namespace slib::priv::window;
 - (void)viewWillDisappear:(BOOL)animated
 {
 	[super viewWillDisappear:animated];
-	
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self
 													name:UIKeyboardWillShowNotification
 												  object:nil];
-	
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self
 													name:UIKeyboardWillHideNotification
 												  object:nil];

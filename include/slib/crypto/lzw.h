@@ -32,7 +32,7 @@ namespace slib
 
 	class IReader;
 	class IWriter;
-	
+
 	class SLIB_EXPORT LZW
 	{
 	public:

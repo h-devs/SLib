@@ -46,19 +46,19 @@ namespace slib
 				Gdiplus::Image* m_image;
 				sl_bool m_flagFreeOnRelease;
 				Ref<Referable> m_ref;
-				
+
 			public:
 				ImageDrawableImpl()
 				{
 				}
-				
+
 				~ImageDrawableImpl()
 				{
 					if (m_flagFreeOnRelease) {
 						delete m_image;
 					}
 				}
-				
+
 			public:
 				static Ref<ImageDrawableImpl> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
 				{
@@ -76,22 +76,22 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
 				{
 					GraphicsPlatform::drawImage(canvas, rectDst, m_image, rectSrc, param);
 				}
-				
+
 				sl_real getDrawableWidth() override
 				{
 					return (sl_real)(m_image->GetWidth());
 				}
-				
+
 				sl_real getDrawableHeight() override
 				{
 					return (sl_real)(m_image->GetHeight());
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)

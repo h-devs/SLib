@@ -41,7 +41,7 @@ namespace slib
 		AboveNormal = 1,
 		Highest = 2
 	};
-	
+
 	class SLIB_EXPORT Thread : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -50,7 +50,7 @@ namespace slib
 		Thread();
 
 		~Thread();
-	
+
 	public:
 		static Ref<Thread> create(const Function<void()>& callback);
 
@@ -70,23 +70,23 @@ namespace slib
 		sl_bool finishAndWait(sl_int32 timeout = -1);
 
 		sl_bool wait(sl_int32 timeout = -1);
-		
+
 		void wakeSelfEvent();
 
 		Event* getSelfEvent();
-		
+
 		void wake();
-		
+
 		Ref<Event> getWaitingEvent();
-	
+
 		void setWaitingEvent(Event* ev);
 
 		void clearWaitingEvent();
-	
+
 		ThreadPriority getPriority();
-	
+
 		void setPriority(ThreadPriority priority);
-	
+
 		sl_bool isRunning();
 
 		sl_bool isNotRunning();
@@ -110,7 +110,7 @@ namespace slib
 		static sl_bool isStoppingCurrent();
 
 		static sl_bool isNotStoppingCurrent();
-		
+
 		static sl_uint64 getCurrentThreadId();
 
 		static sl_uint64 getCurrentThreadUniqueId();
@@ -125,17 +125,17 @@ namespace slib
 	private:
 		void* m_handle;
 		ThreadPriority m_priority;
-	
+
 		sl_bool m_flagRequestStop;
 		sl_bool m_flagRunning;
 		Function<void()> m_callback;
-	
+
 		Ref<Event> m_eventWake;
 		Ref<Event> m_eventExit;
 		AtomicRef<Event> m_eventWaiting;
-	
+
 		HashMap< String, Ref<Referable> > m_attachedObjects;
-	
+
 	private:
 		static Thread* _nativeGetCurrentThread();
 		static void _nativeSetCurrentThread(Thread* thread);
@@ -145,10 +145,10 @@ namespace slib
 		void _nativeClose();
 		sl_bool _nativeCheckRunning();
 		void _nativeSetPriority();
-	
+
 	public:
 		void _run();
-	
+
 	};
 
 	class SLIB_EXPORT CurrentThread
@@ -177,7 +177,7 @@ namespace slib
 		sl_bool m_flagInit;
 
 	};
-	
+
 }
 
 #endif

@@ -35,12 +35,12 @@ namespace slib
 	class SLIB_EXPORT CDatabaseExpression : public Referable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		CDatabaseExpression();
-		
+
 		~CDatabaseExpression();
-		
+
 	public:
 		virtual void appendTo(SqlBuilder& buf, sl_bool flagParentheses) = 0;
 
@@ -54,7 +54,7 @@ namespace slib
 	public:
 		AtomicRef<CDatabaseExpression> ref;
 		SLIB_ATOMIC_REF_WRAPPER_NO_OP(CDatabaseExpression)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseExpression
@@ -62,7 +62,7 @@ namespace slib
 	public:
 		Ref<CDatabaseExpression> ref;
 		SLIB_REF_WRAPPER_NO_OP(DatabaseExpression, CDatabaseExpression)
-		
+
 	public:
 		DatabaseExpression(const Variant& value);
 
@@ -71,34 +71,34 @@ namespace slib
 
 	public:
 		static DatabaseExpression valueOf(const Variant& value);
-		
+
 		static DatabaseExpression column(const String& name);
-		
+
 		static DatabaseExpression column(const String& name1, const String& name2);
 
 		static DatabaseExpression raw(const String& expr, sl_bool flagParentheses = sl_true);
 
 		static const DatabaseExpression& parameter();
-		
+
 		static const DatabaseExpression& parameter(const String& name);
-		
+
 		static const DatabaseExpression& count();
-		
+
 		static DatabaseExpression function(const String& name);
-		
+
 		static DatabaseExpression function(const String& name, const ListParam<DatabaseExpression>& params);
-		
+
 		template <class... ARGS>
 		DatabaseExpression function(const String& name, const DatabaseExpression& param, ARGS&&... args)
 		{
 			DatabaseExpression params[] = { param, Forward<ARGS>(args)... };
 			return function(name, ListParam<DatabaseExpression>(params));
 		}
-		
+
 		static DatabaseExpression binaryOp(const String& op, DatabaseExpression& e1, DatabaseExpression& e2);
-		
+
 		static DatabaseExpression unaryOp(const String& op, DatabaseExpression& e);
-		
+
 		static DatabaseExpression unaryOpSuffix(const String& op, DatabaseExpression& e);
 
 	};

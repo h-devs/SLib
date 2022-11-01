@@ -32,17 +32,17 @@ namespace slib
 	{
 		namespace ui_notification
 		{
-		
+
 			class StaticContext
 			{
 			public:
 				Mutex lock;
-				
+
 				sl_bool flagStarted;
-				
+
 				AtomicFunction<void(UserNotificationMessage&)> onClickMessage;
 				AtomicFunction<void(UserNotificationMessage&)> onPresentMessage;
-				
+
 				List<UserNotificationMessage> messagesClicked;
 				List<UserNotificationMessage> messagesPresented;
 
@@ -51,7 +51,7 @@ namespace slib
 				{
 					flagStarted = sl_false;
 				}
-				
+
 			public:
 				void dispatchClickMessage(UserNotificationMessage& message)
 				{
@@ -64,7 +64,7 @@ namespace slib
 						message.flagRemove = sl_false;
 					}
 				}
-				
+
 				void dispatchPresentMessage(UserNotificationMessage& message)
 				{
 					MutexLocker locker(&lock);
@@ -76,7 +76,7 @@ namespace slib
 						message.flagRemove = sl_false;
 					}
 				}
-				
+
 				void dispatchQueuedMessages()
 				{
 					{
@@ -100,14 +100,14 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-		
+
 		}
 	}
-	
+
 	using namespace priv::ui_notification;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(UserNotificationAttachment)
@@ -121,9 +121,9 @@ namespace slib
 	UserNotificationMessage::UserNotificationMessage()
 	{
 		id = 0;
-		
+
 		flagGroupSummary = sl_false;
-		
+
 		flagSound = sl_true;
 
 		flagActionButton = sl_false;
@@ -180,7 +180,7 @@ namespace slib
 	void UserNotification::removePendingNotification(const String& identifier)
 	{
 	}
-	
+
 	void UserNotification::removePendingNotification(sl_uint32 _id)
 	{
 	}
@@ -188,11 +188,11 @@ namespace slib
 	void UserNotification::removeAllPendingNotifications()
 	{
 	}
-	
+
 	void UserNotification::removeDeliveredNotification(const String& identifier)
 	{
 	}
-	
+
 	void UserNotification::removeDeliveredNotification(sl_uint32 _id)
 	{
 	}
@@ -215,7 +215,7 @@ namespace slib
 
 	void UserNotification::openSystemPreferencesForNotification()
 	{
-		
+
 	}
 #endif
 
@@ -269,41 +269,41 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(PushNotificationClient, Object)
-	
+
 	PushNotificationClient::PushNotificationClient()
 	{
 		m_flagStarted = sl_false;
 	}
-	
+
 	PushNotificationClient::~PushNotificationClient()
 	{
 	}
-	
+
 	String PushNotificationClient::getDeviceToken()
 	{
 		return m_deviceToken;
 	}
-	
+
 	void PushNotificationClient::addOnRefreshToken(const Function<void(String)>& callback)
 	{
 		m_onRefreshToken.add(callback);
 	}
-	
+
 	void PushNotificationClient::removeOnRefreshToken(const Function<void(String)>& callback)
 	{
 		m_onRefreshToken.remove(callback);
 	}
-	
+
 	void PushNotificationClient::addOnReceiveMessage(const Function<void(PushNotificationMessage&)>& callback)
 	{
 		m_onReceiveMessage.add(callback);
 	}
-	
+
 	void PushNotificationClient::removeOnReceiveMessage(const Function<void(PushNotificationMessage&)>& callback)
 	{
 		m_onReceiveMessage.remove(callback);
 	}
-	
+
 	void PushNotificationClient::start()
 	{
 		{
@@ -315,33 +315,33 @@ namespace slib
 		}
 		onStart();
 	}
-	
+
 	void PushNotificationClient::dispatchRefreshToken(const String& token)
 	{
 		m_deviceToken = token;
 		m_onRefreshToken(token);
 	}
-	
+
 	void PushNotificationClient::dispatchReceiveMessage(PushNotificationMessage& message)
 	{
 		m_onReceiveMessage(message);
 	}
-	
+
 	void PushNotificationClient::onStart()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(APNs, PushNotificationClient)
-	
+
 	APNs::APNs()
 	{
 	}
-	
+
 	APNs::~APNs()
 	{
 	}
-	
+
 #if !defined(SLIB_UI_IS_IOS)
 	Ref<APNs> APNs::getInstance()
 	{
@@ -352,6 +352,6 @@ namespace slib
 	{
 	}
 #endif
-	
+
 }
 

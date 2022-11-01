@@ -37,35 +37,35 @@ namespace slib
 			{
 				friend class slib::Texture;
 			};
-			
+
 			class TextureBitmapCache : public BitmapCache
 			{
 			public:
 				Ref<Texture> texture;
-				
+
 			public:
 				void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) override
 				{
 					texture->update(x, y, width, height);
 				}
-				
+
 			};
-						
+
 		}
 	}
 
 	using namespace priv::texture;
 
 	SLIB_DEFINE_OBJECT(TextureInstance, RenderBaseObjectInstance)
-	
+
 	TextureInstance::TextureInstance()
 	{
 	}
-	
+
 	TextureInstance::~TextureInstance()
 	{
 	}
-	
+
 	void TextureInstance::notifyUpdated(Texture* texture, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height)
 	{
 		ObjectLocker lock(this);
@@ -79,20 +79,20 @@ namespace slib
 			m_flagUpdated = sl_true;
 		}
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(Texture, RenderBaseObject)
-	
+
 	Texture::Texture(sl_uint32 width, sl_uint32 height)
 	{
 		m_width = width;
 		m_height = height;
 	}
-	
+
 	Texture::~Texture()
 	{
 	}
-	
+
 	Ref<Texture> Texture::create(const Ref<Bitmap>& source)
 	{
 		if (source.isNotNull()) {
@@ -106,17 +106,17 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Texture> Texture::create(const BitmapData& bitmapData)
 	{
 		return create(Image::create(bitmapData));
 	}
-	
+
 	Ref<Texture> Texture::create(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_int32 stride)
 	{
 		return create(Image::create(width, height, pixels, stride));
 	}
-	
+
 	Ref<Texture> Texture::loadFromMemory(const void* mem, sl_size size)
 	{
 		if (!size) {
@@ -124,22 +124,22 @@ namespace slib
 		}
 		return create(Image::loadFromMemory(mem, size));
 	}
-	
+
 	Ref<Texture> Texture::loadFromMemory(const MemoryView& mem)
 	{
 		return loadFromMemory(mem.data, mem.size);
 	}
-	
+
 	Ref<Texture> Texture::loadFromFile(const String& filePath)
 	{
 		return create(Image::loadFromFile(filePath));
 	}
-	
+
 	Ref<Texture> Texture::loadFromAsset(const String& path)
 	{
 		return create(Image::loadFromAsset(path));
 	}
-	
+
 	Ref<Texture> Texture::getBitmapRenderingCache(const Ref<Bitmap>& source)
 	{
 		if (source.isNotNull()) {
@@ -166,7 +166,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_uint32 Texture::getWidth()
 	{
 		return m_width;
@@ -176,7 +176,7 @@ namespace slib
 	{
 		m_width = width;
 	}
-	
+
 	sl_uint32 Texture::getHeight()
 	{
 		return m_height;
@@ -206,17 +206,17 @@ namespace slib
 			((TextureInstance*)(instance.get()))->notifyUpdated(this, x, y, width, height);
 		}
 	}
-	
+
 	void Texture::update()
 	{
 		update(0, 0, m_width, m_height);
 	}
-	
+
 	Ref<TextureInstance> Texture::getInstance(RenderEngine* engine)
 	{
 		return Ref<TextureInstance>::from(RenderBaseObject::getInstance(engine));
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(BitmapTexture, Texture)
 
@@ -263,13 +263,13 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(EngineTexture, Texture)
-	
+
 	EngineTexture::EngineTexture() : Texture(0, 0)
 	{
 	}
-	
+
 	EngineTexture::~EngineTexture()
 	{
 	}
-	
+
 }

@@ -56,7 +56,7 @@ namespace slib
 	ReadWriteLock::ReadWriteLock(const ReadWriteLock& other) noexcept: ReadWriteLock()
 	{
 	}
-	
+
 	ReadWriteLock::ReadWriteLock(ReadWriteLock&& other) noexcept: ReadWriteLock()
 	{
 	}
@@ -84,7 +84,7 @@ namespace slib
 		return !(pthread_rwlock_tryrdlock((pthread_rwlock_t*)m_pObject));
 #endif
 	}
-	
+
 	void ReadWriteLock::lockRead() const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -149,12 +149,12 @@ namespace slib
 		pthread_rwlock_unlock((pthread_rwlock_t*)m_pObject);
 #endif
 	}
-	
+
 	ReadWriteLock& ReadWriteLock::operator=(const ReadWriteLock& other) noexcept
 	{
 		return *this;
 	}
-	
+
 	ReadWriteLock& ReadWriteLock::operator=(ReadWriteLock&& other) noexcept
 	{
 		return *this;
@@ -198,12 +198,12 @@ namespace slib
 		}
 	}
 
-	
+
 	WriteLocker::WriteLocker() noexcept
 	{
 		m_lock = sl_null;
 	}
-	
+
 	WriteLocker::WriteLocker(const ReadWriteLock* lock) noexcept
 	{
 		m_lock = lock;
@@ -211,12 +211,12 @@ namespace slib
 			lock->lockWrite();
 		}
 	}
-	
+
 	WriteLocker::~WriteLocker() noexcept
 	{
 		unlock();
 	}
-	
+
 	void WriteLocker::lock(const ReadWriteLock* lock) noexcept
 	{
 		if (m_lock) {
@@ -227,7 +227,7 @@ namespace slib
 			lock->lockWrite();
 		}
 	}
-	
+
 	void WriteLocker::unlock() noexcept
 	{
 		if (m_lock) {

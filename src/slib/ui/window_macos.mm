@@ -42,19 +42,19 @@ namespace slib
 }
 
 @interface SLIBWindowHandle : NSWindow<NSWindowDelegate> {
-	
+
 	@public slib::WeakRef<slib::priv::window::macOS_WindowInstance> m_window;
-	
+
 	@public sl_bool m_flagStateResizingWidth;
-	
+
 	@private NSView* m_handleLastHitMouse;
-	
+
 }
 @end
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace window
@@ -87,7 +87,7 @@ namespace slib
 					rect.size.height = 10000.0f;
 				}
 			}
-			
+
 			static void ToNSRect(NSRect& rectOut, const UIRect& rectIn, sl_ui_len heightScreen)
 			{
 				rectOut.origin.x = (int)(rectIn.left);
@@ -96,7 +96,7 @@ namespace slib
 				rectOut.size.height = (int)(rectIn.getHeight());
 				ApplyRectLimit(rectOut);
 			}
-			
+
 			static void ToUIRect(UIRect& rectOut, const NSRect& rectIn, sl_ui_len heightScreen)
 			{
 				rectOut.left = (sl_ui_pos)(rectIn.origin.x);
@@ -133,21 +133,21 @@ namespace slib
 				}
 				return styleMask;
 			}
-			
+
 			class macOS_WindowInstance : public WindowInstance
 			{
 			public:
 				NSWindow* m_window;
 				__weak NSWindow* m_parent;
-				
+
 				sl_ui_len m_heightScreen;
-				
+
 				AtomicRef<ViewInstance> m_viewContent;
-				
+
 				sl_bool m_flagClosing;
 				sl_bool m_flagSheet;
 				sl_bool m_flagDoModal;
-				
+
 			public:
 				macOS_WindowInstance()
 				{
@@ -155,12 +155,12 @@ namespace slib
 					m_flagSheet = sl_false;
 					m_flagDoModal = sl_false;
 				}
-				
+
 				~macOS_WindowInstance()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<macOS_WindowInstance> create(NSWindow* window)
 				{
@@ -197,13 +197,13 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				static Ref<WindowInstance> create(Window* window)
 				{
-					
+
 					Ref<Window> _parent = window->getParent();
 					NSWindow* parent = UIPlatform::getWindowHandle(_parent.get());
-					
+
 					UIRect frameScreen;
 					NSScreen* screen = nil;
 					Ref<Screen> _screen = window->getScreen();
@@ -219,7 +219,7 @@ namespace slib
 						flagSheet = sl_false;
 						window->setSheet(sl_false);
 					}
-					
+
 					NSRect rect;
 					int styleMask = MakeWindowStyleMask(window);
 					if (flagSheet) {
@@ -233,26 +233,26 @@ namespace slib
 						frameWindow = window->getClientFrameFromWindowFrame(frameWindow);
 						ToNSRect(rect, frameWindow, frameScreen.getHeight());
 					}
-					
+
 					SLIBWindowHandle* handle = [[SLIBWindowHandle alloc] initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:YES screen:screen];
-					
+
 					if (handle != nil) {
-						
+
 						[handle setDelegate: handle];
 						handle.animationBehavior = NSWindowAnimationBehaviorDocumentWindow;
 
 						handle->m_flagStateResizingWidth = sl_false;
 						[handle setReleasedWhenClosed:NO];
 						[handle setContentView:[[SLIBViewHandle alloc] init]];
-						
+
 						Ref<macOS_WindowInstance> ret = create(handle);
-						
+
 						if (ret.isNotNull()) {
-							
+
 							ret->m_parent = parent;
-							
+
 							handle->m_window = ret;
-							
+
 							{
 								NSString* title = Apple::getNSStringFromString(window->getTitle());
 								[handle setTitle: title];
@@ -283,7 +283,7 @@ namespace slib
 									[handle setLevel:NSFloatingWindowLevel];
 								}
 							}
-							
+
 							if (flagSheet) {
 								ret->m_flagSheet = sl_true;
 								WeakRef<macOS_WindowInstance> retWeak = ret;
@@ -307,12 +307,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void release()
 				{
 					close();
 				}
-				
+
 				void close() override
 				{
 					m_viewContent.setNull();
@@ -337,12 +337,12 @@ namespace slib
 						m_window = nil;
 					}
 				}
-				
+
 				sl_bool isClosed() override
 				{
 					return m_window == nil;
 				}
-				
+
 				void setParent(const Ref<WindowInstance>& windowInst) override
 				{
 					NSWindow* window = m_window;
@@ -363,12 +363,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				Ref<ViewInstance> getContentView() override
 				{
 					return m_viewContent;
 				}
-				
+
 				sl_bool getFrame(UIRect& _out) override
 				{
 					NSWindow* window = m_window;
@@ -379,7 +379,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setFrame(const UIRect& frame) override
 				{
 					NSWindow* window = m_window;
@@ -389,7 +389,7 @@ namespace slib
 						[window setFrame:rect display:TRUE];
 					}
 				}
-				
+
 				void setTitle(const String& title) override
 				{
 					NSWindow* window = m_window;
@@ -397,7 +397,7 @@ namespace slib
 						[window setTitle: Apple::getNSStringFromString(title)];
 					}
 				}
-				
+
 				sl_bool isActive() override
 				{
 					NSWindow* window = m_window;
@@ -406,7 +406,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void activate() override
 				{
 					NSWindow* window = m_window;
@@ -414,7 +414,7 @@ namespace slib
 						[window makeKeyAndOrderFront:NSApp];
 					}
 				}
-				
+
 				void setBackgroundColor(const Color& _color) override
 				{
 					NSWindow* window = m_window;
@@ -423,7 +423,7 @@ namespace slib
 						[window setBackgroundColor:color];
 					}
 				}
-				
+
 				void resetBackgroundColor() override
 				{
 					NSWindow* window = m_window;
@@ -431,7 +431,7 @@ namespace slib
 						[window setBackgroundColor:[NSColor windowBackgroundColor]];
 					}
 				}
-				
+
 				void isMinimized(sl_bool& _out) override
 				{
 					NSWindow* window = m_window;
@@ -439,7 +439,7 @@ namespace slib
 						_out = [window isMiniaturized] ? sl_true : sl_false;
 					}
 				}
-				
+
 				void setMinimized(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -455,7 +455,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void isMaximized(sl_bool& _out) override
 				{
 					NSWindow* window = m_window;
@@ -463,7 +463,7 @@ namespace slib
 						_out = [window isZoomed] ? sl_true : sl_false;
 					}
 				}
-				
+
 				void setMaximized(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -478,7 +478,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void isFullScreen(sl_bool& _out) override
 				{
 					NSWindow* window = m_window;
@@ -486,7 +486,7 @@ namespace slib
 						_out = (window.styleMask & NSWindowStyleMaskFullScreen) ? sl_true : sl_false;
 					}
 				}
-				
+
 				void setFullScreen(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -501,7 +501,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setVisible(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -520,7 +520,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setAlwaysOnTop(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -532,7 +532,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setCloseButtonEnabled(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -553,7 +553,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setMinimizeButtonEnabled(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -574,7 +574,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setFullScreenButtonEnabled(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -590,7 +590,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setResizable(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -608,7 +608,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setAlpha(sl_real _alpha) override
 				{
 					NSWindow* window = m_window;
@@ -623,7 +623,7 @@ namespace slib
 						[window setAlphaValue:alpha];
 					}
 				}
-				
+
 				void setTransparent(sl_bool flag) override
 				{
 					NSWindow* window = m_window;
@@ -631,7 +631,7 @@ namespace slib
 						[window setIgnoresMouseEvents:(flag?TRUE:FALSE)];
 					}
 				}
-				
+
 				sl_bool getClientInsets(UIEdgeInsets& _out) override
 				{
 					NSWindow* window = m_window;
@@ -665,14 +665,14 @@ namespace slib
 				{
 					onResize();
 				}
-				
+
 			};
 
 		}
 	}
-	
+
 	using namespace priv::window;
-	
+
 	Ref<WindowInstance> Window::createWindowInstance()
 	{
 		return macOS_WindowInstance::create(this);
@@ -689,7 +689,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
 	{
 		int styleMask = MakeWindowStyleMask(this);
@@ -702,7 +702,7 @@ namespace slib
 		return sl_true;
 	}
 
-	
+
 	Ref<WindowInstance> UIPlatform::createWindowInstance(NSWindow* window)
 	{
 		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance((__bridge void*)window);
@@ -711,22 +711,22 @@ namespace slib
 		}
 		return macOS_WindowInstance::create(window);
 	}
-	
+
 	void UIPlatform::registerWindowInstance(NSWindow* window, WindowInstance* instance)
 	{
 		UIPlatform::_registerWindowInstance((__bridge void*)window, instance);
 	}
-	
+
 	Ref<WindowInstance> UIPlatform::getWindowInstance(NSWindow* window)
 	{
 		return UIPlatform::_getWindowInstance((__bridge void*)window);
 	}
-	
+
 	void UIPlatform::removeWindowInstance(NSWindow* window)
 	{
 		UIPlatform::_removeWindowInstance((__bridge void*)window);
 	}
-	
+
 	NSWindow* UIPlatform::getWindowHandle(WindowInstance* instance)
 	{
 		macOS_WindowInstance* window = (macOS_WindowInstance*)instance;
@@ -736,7 +736,7 @@ namespace slib
 			return nil;
 		}
 	}
-	
+
 	NSWindow* UIPlatform::getWindowHandle(Window* window)
 	{
 		if (window) {
@@ -750,12 +750,12 @@ namespace slib
 		}
 		return nil;
 	}
-	
+
 	NSWindow* UIPlatform::getMainWindow()
 	{
 		return [NSApp mainWindow];
 	}
-	
+
 	NSWindow* UIPlatform::getKeyWindow()
 	{
 		NSWindow* window = [NSApp keyWindow];
@@ -764,7 +764,7 @@ namespace slib
 		}
 		return UIPlatform::getMainWindow();
 	}
-	
+
 }
 
 using namespace slib;

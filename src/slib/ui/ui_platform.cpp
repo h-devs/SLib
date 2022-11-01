@@ -38,10 +38,10 @@ namespace slib
 
 			typedef CHashMap<const void*, WeakRef<ViewInstance> > ViewInstanceMap;
 			SLIB_SAFE_STATIC_GETTER(ViewInstanceMap, GetViewInstanceMap)
-	
+
 			typedef CHashMap<const void*, WeakRef<WindowInstance> > WindowInstanceMap;
 			SLIB_SAFE_STATIC_GETTER(WindowInstanceMap, GetWindowInstanceMap)
-	
+
 		}
 	}
 
@@ -54,7 +54,7 @@ namespace slib
 			map->put(handle, instance);
 		}
 	}
-	
+
 	Ref<ViewInstance> UIPlatform::_getViewInstance(const void* handle)
 	{
 		ViewInstanceMap* map = GetViewInstanceMap();
@@ -63,7 +63,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void UIPlatform::_removeViewInstance(const void* handle)
 	{
 		ViewInstanceMap* map = GetViewInstanceMap();
@@ -71,7 +71,7 @@ namespace slib
 			map->remove(handle);
 		}
 	}
-	
+
 	void UIPlatform::_registerWindowInstance(const void* handle, WindowInstance* instance)
 	{
 		WindowInstanceMap* map = GetWindowInstanceMap();
@@ -79,7 +79,7 @@ namespace slib
 			map->put(handle, instance);
 		}
 	}
-	
+
 	Ref<WindowInstance> UIPlatform::_getWindowInstance(const void* handle)
 	{
 		WindowInstanceMap* map = GetWindowInstanceMap();
@@ -88,7 +88,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void UIPlatform::_removeWindowInstance(const void* handle)
 	{
 		WindowInstanceMap* map = GetWindowInstanceMap();

@@ -55,12 +55,12 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::paypal;
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCreateOrderResult)
-	
+
 	PayPalCreateOrderResult::PayPalCreateOrderResult(UrlRequest* request) : PayPalResult(request)
 	{
 		status = PayPalOrderStatus::None;
@@ -82,48 +82,48 @@ namespace slib
 			flagSuccess = sl_true;
 		}
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCreateOrderParam)
-	
+
 	PayPalCreateOrderParam::PayPalCreateOrderParam()
 	{
 		intent = PayPalOrderIntent::CAPTURE;
 		amount = 0;
 		currencyCode = "USD";
-		
+
 		landingPage = PayPalLandingPage::Default;
 		shippingPreference = PayPalShippingPreference::Default;
 		userAction = PayPalOrderUserAction::Default;
 		returnUrl = "https://localhost/return";
 		cancelUrl = "https://localhost/cancel";
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCheckoutResult)
-	
+
 	PayPalCheckoutResult::PayPalCheckoutResult()
 	{
 		flagSuccess = sl_false;
 		flagCancel = sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCheckoutParam)
-	
+
 	PayPalCheckoutParam::PayPalCheckoutParam()
 	{
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalParam)
-	
+
 	PayPalParam::PayPalParam(sl_bool flagSandbox)
 	{
 		setSandbox(flagSandbox);
 		flagUseBasicAuthorizationForAccessToken = sl_true;
 	}
-	
+
 	sl_bool PayPalParam::isSandbox() const
 	{
 		return m_flagSandbox;
@@ -138,23 +138,23 @@ namespace slib
 			accessTokenUrl = "https://api.paypal.com/v1/oauth2/token";
 		}
 	}
-	
+
 	SLIB_DEFINE_OBJECT(PayPal, OAuth2)
-	
+
 	PayPal::PayPal(const PayPalParam& param) : OAuth2(param)
 	{
 		m_flagSandbox = param.isSandbox();
 	}
-	
+
 	PayPal::~PayPal()
 	{
 	}
-	
+
 	Ref<PayPal> PayPal::create(const PayPalParam& param)
 	{
 		return new PayPal(param);
 	}
-		
+
 	void PayPal::initialize(const PayPalParam& param)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -162,19 +162,19 @@ namespace slib
 		}
 		g_instance = create(param);
 	}
-	
+
 	void PayPal::initialize()
 	{
 		PayPalParam param(sl_false);
 		initialize(param);
 	}
-	
+
 	void PayPal::initializeSandbox()
 	{
 		PayPalParam param(sl_true);
 		initialize(param);
 	}
-	
+
 	Ref<PayPal> PayPal::create(const String& clientId, const String& clientSecret)
 	{
 		PayPalParam param(sl_false);
@@ -198,7 +198,7 @@ namespace slib
 		param.clientSecret = clientSecret;
 		initialize(param);
 	}
-	
+
 	void PayPal::initializeSandbox(const String& clientId, const String& clientSecret)
 	{
 		PayPalParam param(sl_true);
@@ -206,14 +206,14 @@ namespace slib
 		param.clientSecret = clientSecret;
 		initialize(param);
 	}
-	
+
 	Ref<PayPal> PayPal::createWithAccessToken(const String& accessToken)
 	{
 		PayPalParam param(sl_false);
 		param.accessToken.token = accessToken;
 		return create(param);
 	}
-	
+
 	Ref<PayPal> PayPal::createSandboxWithAccessToken(const String& accessToken)
 	{
 		PayPalParam param(sl_true);
@@ -228,7 +228,7 @@ namespace slib
 		}
 		return g_instance;
 	}
-	
+
 	String PayPal::getRequestUrl(const String& path)
 	{
 		if (m_flagSandbox) {
@@ -237,12 +237,12 @@ namespace slib
 			return "https://api.paypal.com/" + path;
 		}
 	}
-	
+
 	String PayPal::getRequestUrl_v2(const String& path)
 	{
 		return getRequestUrl("v2/" + path);
 	}
-	
+
 	void PayPal::createOrder(const PayPalCreateOrderParam& param)
 	{
 		UrlRequestParam rp;
@@ -316,5 +316,5 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
+
 }

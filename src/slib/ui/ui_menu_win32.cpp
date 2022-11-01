@@ -204,7 +204,7 @@ namespace slib
 				{
 					return insertSeparator(SLIB_UINT32_MAX);
 				}
-				
+
 				Ref<MenuItem> insertSeparator(sl_uint32 index) override
 				{
 					ObjectLocker lock(this);

@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT TriangleT
 	{
@@ -39,7 +39,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(TriangleT)
-		
+
 		TriangleT() = default;
 
 		template <class O>
@@ -79,9 +79,9 @@ namespace slib
 			point3 = other.point3;
 			return *this;
 		}
-	
+
 	};
-	
+
 	typedef TriangleT<sl_real> Triangle;
 	typedef TriangleT<float> Trianglef;
 	typedef TriangleT<double> Trianglelf;

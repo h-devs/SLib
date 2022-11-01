@@ -50,7 +50,7 @@ public class UiBrush {
 
 	// Texture Brush
 	public UiBitmap pattern;
-	
+
 	public void applyPaint(Paint paint, int alpha) {
 		paint.setStyle(Paint.Style.FILL);
 		paint.setColor(Graphics.applyAlphaToColor(color, alpha));

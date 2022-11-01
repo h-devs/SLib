@@ -4,7 +4,7 @@
 		background='white'
 		fontSize='20dp'
 		>
-		
+
 		<linear
 			alignCenter='true'
 			width='fill'
@@ -12,7 +12,7 @@
 			marginTop='1safeT'
 			marginBottom='1safeB'
 			>
-			
+
 			<button
 				style='button'
 				text='Back'
@@ -63,14 +63,14 @@
 				margin='20dp'
 				fontSize='30dp'
 				/>
-			
+
 			<textArea
 				name='txtOrder'
 				width='fill'
 				height='*'
 				margin='5dp'
 				/>
-			
+
 			<button
 				name='btnPay'
 				style='button'
@@ -85,7 +85,7 @@
 		</linear>
 
  	</layout>
-	
+
 	<style
 		name='button'
 		background='#008050'

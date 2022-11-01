@@ -64,13 +64,13 @@ namespace slib
 		static sl_bool setCurrentDirectory(const StringParam& dir);
 
 		static List<String> getFontsDirectories();
-		
+
 #ifdef SLIB_PLATFORM_IS_APPLE
 		static String getMainBundlePath();
-		
+
 		static String getMainBundleInfo(const StringParam& key);
 #endif
-		
+
 #ifdef SLIB_PLATFORM_IS_WIN32
 		static String getWindowsDirectory();
 
@@ -116,38 +116,38 @@ namespace slib
 		static String getComputerName();
 
 		static String getUserId();
-		
+
 		static String getUserName();
-		
+
 		static String getFullUserName();
 
 		static String getActiveUserName(String* outActiveSessionName = sl_null);
 
 
 		static sl_uint32 getTickCount();
-		
+
 		static sl_uint64 getTickCount64();
-	
+
 		static sl_uint64 getHighResolutionTickCount();
-	
+
 		static void sleep(sl_uint32 millis);
 
 		static void yield();
 
 		static void yield(sl_uint32 elapsed);
 
-		
+
 		static sl_int32 execute(const StringParam& command);
 
 		static void assert(const StringParam& msg, const StringParam& file, sl_uint32 line);
 
 		static void setCrashHandler(SIGNAL_HANDLER handler);
-		
+
 		static void setDebugFlags();
 
 		static void setDebugAllocHook(DEBUG_ALLOC_HOOK hook);
 
-		
+
 		static sl_uint32 getLastError();
 
 		static void setLastError(sl_uint32 errorCode);
@@ -157,9 +157,9 @@ namespace slib
 		static String getLastErrorMessage();
 
 		static String formatErrorCode(sl_uint32 errorCode);
-		
+
 	};
-	
+
 }
 
 #endif

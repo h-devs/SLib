@@ -34,9 +34,9 @@ using namespace ZXing;
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ZXingGenerateParam)
-	
+
 	ZXingGenerateParam::ZXingGenerateParam()
 	{
 		format = ZXingFormat::QR_CODE;
@@ -44,9 +44,9 @@ namespace slib
 		width = 512;
 		height = 512;
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ZXingScanParam)
-	
+
 	ZXingScanParam::ZXingScanParam()
 	{
 		format = ZXingFormat::QR_CODE;
@@ -136,7 +136,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String ZXing::scan(const ZXingScanParam& param)
 	{
 		Ref<Image> image = param.image;

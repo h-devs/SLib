@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class TYPE>
 	class SLIB_EXPORT SingleLender
 	{
@@ -35,7 +35,7 @@ namespace slib
 		TYPE m_object;
 		sl_bool m_flagAbsence;
 		SpinLock m_lock;
-		
+
 	public:
 		SingleLender(): m_flagAbsence(sl_true) {}
 
@@ -65,7 +65,7 @@ namespace slib
 		}
 
 		virtual sl_bool create(TYPE& _out) = 0;
-		
+
 	};
 
 	template <class TYPE>

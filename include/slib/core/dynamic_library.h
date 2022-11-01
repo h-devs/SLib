@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT DynamicLibrary
 	{
 	public:
@@ -75,7 +75,7 @@ namespace slib
 		static void freeLibrary(void* library);
 
 		static void* getFunctionAddress(void* library, const char* name);
-		
+
 	private:
 		void* m_library;
 

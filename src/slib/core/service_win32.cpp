@@ -95,7 +95,7 @@ namespace slib
 				}
 				g_servicePlatform->_control(fdwControl);
 			}
-			
+
 			static void WINAPI ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv)
 			{
 				if (SLIB_SAFE_STATIC_CHECK_FREED(g_servicePlatform)) {
@@ -133,7 +133,7 @@ namespace slib
 					}
 					g_servicePlatform = (ServiceHelper*)this;
 				}
-				
+
 				SERVICE_TABLE_ENTRYW table[] = {
 					{ L"", &ServiceMain },
 					{ NULL, NULL }
@@ -168,7 +168,7 @@ namespace slib
 					return;
 				}
 				ReportServiceStatus(SERVICE_RUNNING, NO_ERROR, 0);
-				
+
 				while (!g_flagStopService) {
 					g_eventStop->wait(1000);
 				}

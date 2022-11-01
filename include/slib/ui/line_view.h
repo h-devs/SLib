@@ -31,60 +31,60 @@ namespace slib
 	class SLIB_EXPORT LineView : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		LineView();
-		
+
 		~LineView();
 
 	public:
 		LayoutOrientation getOrientation();
-		
+
 		void setOrientation(LayoutOrientation orientation, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_bool isHorizontal();
-		
+
 		void setHorizontal(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_bool isVertical();
-		
+
 		void setVertical(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		Color getLineColor();
-		
+
 		void setLineColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_real getLineThickness();
-		
+
 		void setLineThickness(sl_real thickness, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		PenStyle getLineStyle();
-		
+
 		void setLineStyle(PenStyle style, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Alignment getGravity();
-		
+
 		void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onUpdateLayout() override;
-		
+
 	private:
 		void _updatePen();
-		
+
 	private:
 		LayoutOrientation m_orientation;
 		Color m_color;
 		sl_real m_thickness;
 		PenStyle m_style;
 		Alignment m_gravity;
-		
+
 		AtomicRef<Pen> m_pen;
-		
+
 	};
-	
+
 	class SLIB_EXPORT VerticalLineView : public LineView
 	{
 	public:
@@ -93,7 +93,7 @@ namespace slib
 		~VerticalLineView();
 
 	};
-	
+
 	class SLIB_EXPORT HorizontalLineView : public LineView
 	{
 	public:

@@ -95,9 +95,9 @@ namespace slib
 				}
 				ca.removedOnCompletion = NO;
 				ca.fillMode = kCAFillModeForwards;
-				
+
 			}
-			
+
 			static void ApplyAnimation(NativeView handle, const Ref<Animation>& animation,
 													sl_bool flagTranslate, const Vector2& translateStart, const Vector2& translateEnd,
 													sl_bool flagScale, const Vector2& scaleStart, const Vector2& scaleEnd,
@@ -105,10 +105,10 @@ namespace slib
 													sl_bool flagAlpha, sl_real alphaStart, sl_real alphaEnd,
 													Function<void()> onStop)
 			{
-				
+
 				CAAnimationGroup* group = [CAAnimationGroup animation];
 				NSMutableArray* arr = [NSMutableArray array];
-				
+
 				if (flagTranslate) {
 					CABasicAnimation* ca = [CABasicAnimation animationWithKeyPath:@"transform.translation"];
 #ifdef SLIB_UI_IS_MACOS
@@ -149,18 +149,18 @@ namespace slib
 					SetAnimation(ca, animation, sl_false);
 					[arr addObject:ca];
 				}
-				
+
 				group.animations = arr;
-				
+
 				SetAnimation(group, animation, sl_true);
-				
+
 				SLIBUINativeAnimation* delegate = [[SLIBUINativeAnimation alloc] init];
 				delegate->layer = handle.layer;
 				delegate->onStop = onStop;
 				group.delegate = delegate;
-				
+
 				[handle.layer addAnimation:group forKey:@"_slib_native_animation"];
-				
+
 			}
 
 		}
@@ -230,20 +230,20 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (viewAnimate.isNull()) {
 			return sl_false;
 		}
-		
+
 		NativeView handle = UIPlatform::getViewHandle(viewAnimate.get());
-		
+
 		if (handle != nil) {
-			
+
 			CALayer* layer = handle.layer;
 			if (layer == nil) {
 				return sl_false;
 			}
-			
+
 			Ref<Animation> _animation = animation;
 			Function<void()> onStop = [=]() {
 				if (flagTranslate) {
@@ -267,14 +267,14 @@ namespace slib
 					ApplyAnimation(handle, _animation, flagTranslate, translateStart, translateEnd, flagScale, scaleStart, scaleEnd, flagRotate, rotateStart, rotateEnd, flagAlpha, alphaStart, alphaEnd, onStop);
 				});
 			}
-			
+
 			_setNativeInstance(animation, viewAnimate.get());
-			
+
 			return sl_true;
 		}
 		return sl_false;
 	}
-	
+
 	void UIAnimationLoop::_stopNativeAnimation(Animation* animation)
 	{
 		Ref<View> view = CastRef<View>(_getNativeInstance(animation));

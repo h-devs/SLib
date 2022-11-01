@@ -115,7 +115,7 @@ namespace slib
 				Base::zeroMemory(&args, sizeof(args));
 				args.flags = FT_OPEN_STREAM;
 				args.stream = stream;
-				
+
 				FT_Face face;
 				FT_Error err = FT_Open_Face(lib, &args, index, &face);
 				if (!err) {
@@ -307,7 +307,7 @@ namespace slib
 			};
 
 			SLIB_SAFE_STATIC_GETTER(SystemLoader, GetSystemLoader)
-			
+
 
 			static FT_CharMap SelectCharmap(FT_Face face, FreeTypeKind kind, sl_bool flagSymbolic)
 			{
@@ -718,7 +718,7 @@ namespace slib
 		const sl_char32* chars = text.getData();
 
 		ObjectLocker lock(this);
-		
+
 		FT_GlyphSlot slot = m_face->glyph;
 		sl_real x = (sl_real)_x;
 		sl_real y = (sl_real)_y;
@@ -752,7 +752,7 @@ namespace slib
 					if (dy + heightChar > heightImage) {
 						heightChar = heightImage - dy;
 					}
-					
+
 					sl_uint8* bitmapChar = (sl_uint8*)(slot->bitmap.buffer) + (sy * pitchChar + sx);
 					Color* colorsOutput = imageOutput->getColorsAt(dx, dy);
 					sl_reg strideImage = imageOutput->getStride();
@@ -802,7 +802,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void FreeType::strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& _text, const Color& color, sl_uint32 lineWidth)
 	{
 		StringData32 text(_text);
@@ -837,7 +837,7 @@ namespace slib
 		}
 
 		ObjectLocker lock(this);
-		
+
 		FT_Stroker stroker = sl_null;
 		FT_Stroker_New(LIBRARY, &stroker);
 		if (!stroker) {

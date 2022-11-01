@@ -47,12 +47,12 @@ namespace slib
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace url_request
 		{
-			
+
 			class SharedContext
 			{
 			public:
@@ -62,7 +62,7 @@ namespace slib
 				NSOperationQueue* operationQueue;
 				NSFileManager* fileManager;
 				CHashMap< NSUInteger, WeakRef<UrlRequestImpl> > requests;
-				
+
 			public:
 				SharedContext()
 				{
@@ -80,30 +80,30 @@ namespace slib
 					}
 					fileManager = [[NSFileManager alloc] init];
 				}
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
-			
+
 			class UrlRequestImpl : public UrlRequest
 			{
 			public:
 				NSURLSessionTask* m_task;
 				NSUInteger m_taskId;
 				using UrlRequest::m_flagAllowInsecureConnection;
-				
+
 			public:
 				UrlRequestImpl()
 				{
 					m_task = nil;
 					m_taskId = -1;
 				}
-				
+
 				~UrlRequestImpl()
 				{
 					clean();
 				}
-				
+
 				static Ref<UrlRequestImpl> create(const UrlRequestParam& param, const String& _url)
 				{
 					SharedContext* shared = GetSharedContext();
@@ -155,17 +155,17 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void _sendAsync() override
 				{
 					[m_task resume];
 				}
-				
+
 				void _cancel() override
 				{
 					clean();
 				}
-				
+
 				void clean()
 				{
 					if (m_task != nil) {
@@ -177,7 +177,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				static Ref<UrlRequestImpl> fromTask(NSURLSessionTask* task)
 				{
 					if (task != nil) {
@@ -189,13 +189,13 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void dispatchUploadBody(sl_uint64 bytesSent, sl_uint64 totalBytesSent)
 				{
 					m_sizeBodySent = totalBytesSent;
 					onUploadBody(bytesSent);
 				}
-				
+
 				sl_bool dispatchReceiveResponse(NSURLResponse* response)
 				{
 					if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
@@ -204,7 +204,7 @@ namespace slib
 						NSDictionary* dict = http.allHeaderFields;
 						if (dict != nil && [dict count] > 0) {
 							HttpHeaderMap map;
-							
+
 							map.initialize();
 							auto cmap = map.ref.get();
 							if (cmap) {
@@ -224,13 +224,13 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				void dispatchReceiveContent(NSData* data)
 				{
 					Memory mem = Apple::getMemoryFromNSData(data);
 					onReceiveContent(mem.getData(), mem.getSize(), mem);
 				}
-				
+
 				void dispatchDownloadContent(sl_uint64 bytesReceived, sl_uint64 totalBytesReceived, sl_uint64 total)
 				{
 					if (m_sizeContentTotal == 0) {
@@ -239,7 +239,7 @@ namespace slib
 					onDownloadContent(bytesReceived);
 					m_sizeContentReceived = totalBytesReceived;
 				}
-				
+
 				void dispatchFinishDownload(NSURL* pathTempFile)
 				{
 					SharedContext* shared = GetSharedContext();
@@ -261,7 +261,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void dispatchComplete(NSError* error)
 				{
 					if (error != nil) {
@@ -272,18 +272,18 @@ namespace slib
 						onComplete();
 					}
 				}
-				
+
 			};
 
-			
+
 		}
 	}
-	
+
 	Ref<UrlRequest> UrlRequest::_create(const UrlRequestParam& param, const String& url)
 	{
 		return Ref<UrlRequest>::from(priv::url_request::UrlRequestImpl::create(param, url));
 	}
-	
+
 }
 
 using namespace slib;

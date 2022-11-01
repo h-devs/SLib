@@ -28,21 +28,21 @@
 
 namespace slib
 {
-	
+
 	// MemoryIO is not thread-safe
 	class SLIB_EXPORT MemoryIO : public IOBase
 	{
 	public:
 		MemoryIO();
-		
+
 		MemoryIO(sl_size size);
 
 		MemoryIO(void* data, sl_size size);
 
 		MemoryIO(const Memory& mem);
-	
+
 		~MemoryIO();
-	
+
 	public:
 		void initialize();
 
@@ -53,9 +53,9 @@ namespace slib
 		void initialize(const Memory& mem);
 
 		void close() override;
-	
+
 		sl_reg read(void* buf, sl_size size) override;
-	
+
 		sl_reg write(const void* buf, sl_size size) override;
 
 		sl_bool getPosition(sl_uint64& outPos) override;
@@ -63,7 +63,7 @@ namespace slib
 		sl_bool getSize(sl_uint64& outSize) override;
 
 		sl_bool seek(sl_int64 offset, SeekPosition pos = SeekPosition::Current) override;
-	
+
 		sl_bool setSize(sl_uint64 size) override;
 
 		sl_size getPosition();
@@ -99,7 +99,7 @@ namespace slib
 		sl_size m_offset;
 		sl_bool m_flagResizable;
 		Memory m_data;
-	
+
 	};
 
 }

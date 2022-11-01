@@ -53,7 +53,7 @@ namespace slib
 			{
 				CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 			}
-			
+
 			class AudioRecorderImpl : public AudioRecorder
 			{
 			public:
@@ -73,16 +73,16 @@ namespace slib
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 				{
 					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
-					
+
 					InitCOM();
-					
+
 					String deviceID = param.deviceId;
 					GUID guid;
 					if (deviceID.isEmpty()) {
@@ -101,7 +101,7 @@ namespace slib
 							return sl_null;
 						}
 					}
-					
+
 					LPDIRECTSOUNDCAPTURE8 device = NULL;
 					HRESULT hr = DirectSoundCaptureCreate8(&guid, &device, NULL);
 					if (FAILED(hr)) {
@@ -112,7 +112,7 @@ namespace slib
 						}
 						return sl_null;
 					}
-					
+
 					WAVEFORMATEX wf;
 					wf.wFormatTag = WAVE_FORMAT_PCM;
 					wf.nChannels = param.channelCount;
@@ -121,7 +121,7 @@ namespace slib
 					wf.nBlockAlign = (wf.wBitsPerSample * wf.nChannels) >> 3;
 					wf.nAvgBytesPerSec = wf.nSamplesPerSec * wf.nBlockAlign;
 					wf.cbSize = 0;
-					
+
 					sl_uint32 samplesPerFrame = param.getSamplesPerFrame();
 					sl_uint32 sizeBuffer = samplesPerFrame * wf.nBlockAlign * 2;
 					samplesPerFrame *= param.channelCount;
@@ -152,10 +152,10 @@ namespace slib
 						desc.dwFXCount = 0;
 						desc.lpDSCFXDesc = NULL;
 					}
-					
+
 					HANDLE hEvent0 = CreateEventW(NULL, FALSE, FALSE, NULL);
 					HANDLE hEvent1 = CreateEventW(NULL, FALSE, FALSE, NULL);
-					
+
 					IDirectSoundCaptureBuffer* dsbuf;
 					IDirectSoundCaptureBuffer8* buffer = sl_null;
 					hr = device->CreateCaptureBuffer(&desc, &dsbuf, NULL);
@@ -189,9 +189,9 @@ namespace slib
 										ret->m_events[0] = hEvent0;
 										ret->m_events[1] = hEvent1;
 										ret->m_nSamplesFrame = samplesPerFrame;
-											
+
 										ret->_init(param);
-											
+
 										if (param.flagAutoStart) {
 											ret->start();
 										}
@@ -213,14 +213,14 @@ namespace slib
 					} else {
 						LOG_ERROR("Failed to create dsound buffer");
 					}
-					
+
 					device->Release();
 					CloseHandle(hEvent0);
 					CloseHandle(hEvent1);
-					
+
 					return sl_null;
 				}
-				
+
 				void _release() override
 				{
 					m_buffer->Release();
@@ -231,7 +231,7 @@ namespace slib
 						CloseHandle(m_events[i]);
 					}
 				}
-				
+
 				sl_bool _start() override
 				{
 					HRESULT hr = m_buffer->Start(DSCBSTART_LOOPING);
@@ -246,7 +246,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void _stop() override
 				{
 					m_thread->finish();
@@ -256,7 +256,7 @@ namespace slib
 
 					m_buffer->Stop();
 				}
-				
+
 				struct DeviceProperty {
 					GUID guid;
 					String szGuid;
@@ -273,7 +273,7 @@ namespace slib
 					}
 					return list;
 				}
-				
+
 				static BOOL CALLBACK DeviceEnumProc(LPGUID lpGUID, LPCWSTR lpszDesc, LPCWSTR lpszDrvName, LPVOID lpContext)
 				{
 					List<DeviceProperty>& list = *((List<DeviceProperty>*)lpContext);
@@ -287,7 +287,7 @@ namespace slib
 					}
 					return TRUE;
 				}
-				
+
 				void onFrame(int no)
 				{
 					sl_uint32 offset = 0;
@@ -309,7 +309,7 @@ namespace slib
 						m_buffer->Unlock(buf, dwSize, NULL, NULL);
 					}
 				}
-				
+
 				void run()
 				{
 					Thread* thread = Thread::getCurrent();

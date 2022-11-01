@@ -27,10 +27,10 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class LinkedObjectList;
-	
+
 	template <class T>
 	class SLIB_EXPORT LinkedObject : public Object
 	{
@@ -39,7 +39,7 @@ namespace slib
 		WeakRef<LinkedObject<T>> before;
 
 	};
-	
+
 	class SLIB_EXPORT LinkedObjectListBase : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
@@ -50,7 +50,7 @@ namespace slib
 		~LinkedObjectListBase();
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT LinkedObjectList : public LinkedObjectListBase
 	{
@@ -77,12 +77,12 @@ namespace slib
 		{
 			return m_front;
 		}
-	
+
 		const Ref<T>& getBack() const noexcept
 		{
 			return m_back;
 		}
-	
+
 		sl_size getCount() const noexcept
 		{
 			return m_count;
@@ -92,7 +92,7 @@ namespace slib
 		{
 			return m_front.isNull();
 		}
-	
+
 		sl_bool isNotEmpty() const noexcept
 		{
 			return m_front.isNotNull();
@@ -206,7 +206,7 @@ namespace slib
 				return pushBack_NoLock(objectNew);
 			}
 		}
-		
+
 		/* unsynchronized function */
 		sl_bool insertAfter(const Ref<T>& objectWhere, const Ref<T>& objectNew) noexcept
 		{
@@ -239,7 +239,7 @@ namespace slib
 			_init();
 			return count;
 		}
-		
+
 		sl_size removeAll() noexcept
 		{
 			Ref<T> front;
@@ -449,7 +449,7 @@ namespace slib
 			}
 			m_count++;
 		}
-	
+
 	};
 
 }

@@ -25,21 +25,21 @@
 #include "slib/ui/event.h"
 
 #define MOVEMENT_ZERO_MOVEMENT 5
-	
+
 #define MAX_TRACK_HORIZON 0.2f
 #define MOVEMENT_STOP_MILLIS 500
-	
-	
+
+
 #define MAX_DEGREE 4
 #define HISTORY_SIZE SLIB_MOTION_TRACKER_HISTORY_SIZE
-	
+
 namespace slib
 {
 
 	CMotionTracker::CMotionTracker() : CMotionTracker(1)
 	{
 	}
-	
+
 	CMotionTracker::CMotionTracker(sl_uint32 degree)
 	{
 		if (degree < 1) {
@@ -55,11 +55,11 @@ namespace slib
 		m_flagValidTrack = sl_false;
 		m_currentConfidence = 0;
 	}
-	
+
 	CMotionTracker::~CMotionTracker()
 	{
 	}
-	
+
 	void CMotionTracker::addMovement(sl_real x, sl_real y, const Time& time)
 	{
 		if (m_lastTime.isNotZero() && (time - m_lastTime).getMillisecondCount() > MOVEMENT_STOP_MILLIS) {
@@ -79,22 +79,22 @@ namespace slib
 		m_lastTime = time;
 		m_flagRefreshTrack = sl_true;
 	}
-	
+
 	void CMotionTracker::addMovement(sl_real x, sl_real y)
 	{
 		addMovement(x, y, Time::now());
 	}
-	
+
 	void CMotionTracker::addMovement(const Point& pt, const Time& time)
 	{
 		addMovement(pt.x, pt.y, time);
 	}
-	
+
 	void CMotionTracker::addMovement(const Point& pt)
 	{
 		addMovement(pt.x, pt.y, Time::now());
 	}
-	
+
 	sl_bool CMotionTracker::getLastPosition(Point* _out)
 	{
 		if (m_nHistory > 0) {
@@ -111,13 +111,13 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void CMotionTracker::clearMovements()
 	{
 		m_nHistory = 0;
 		m_flagRefreshTrack = sl_true;
 	}
-	
+
 	sl_bool CMotionTracker::getVelocity(sl_real* outX, sl_real* outY)
 	{
 		_computeVelocity();
@@ -135,7 +135,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool CMotionTracker::getVelocity(Point* _out)
 	{
 		_computeVelocity();
@@ -151,12 +151,12 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	namespace priv
 	{
 		namespace motion_tracker
 		{
-			
+
 			SLIB_INLINE static sl_real GetVectorDotProduct(const sl_real* v1, const sl_real* v2, sl_uint32 N)
 			{
 				sl_real dot = 0;
@@ -165,7 +165,7 @@ namespace slib
 				}
 				return dot;
 			}
-			
+
 			SLIB_INLINE static sl_real GetVectorLength(const sl_real* v, sl_uint32 N)
 			{
 				sl_real len = 0;
@@ -174,7 +174,7 @@ namespace slib
 				}
 				return Math::sqrt(len);
 			}
-			
+
 			static sl_bool SolveLeastSquares(const sl_real* x, const sl_real* y, const sl_real* w, sl_uint32 m, sl_uint32 n, sl_real* outB, sl_real* outDet) {
 				// Expand the X vector to a matrix A, pre-multiplied by the weights.
 				sl_real a[MAX_DEGREE + 1][HISTORY_SIZE]; // column-major order
@@ -211,7 +211,7 @@ namespace slib
 						r[j][i] = i < j ? 0 : GetVectorDotProduct(&q[j][0], &a[i][0], m);
 					}
 				}
-				
+
 				// Solve R B = Qt W Y to find B.  This is easy because R is upper triangular.
 				// We just work from bottom-right to top-left calculating B's coefficients.
 				sl_real wy[HISTORY_SIZE];
@@ -226,7 +226,7 @@ namespace slib
 					}
 					outB[i] /= r[i][i];
 				}
-				
+
 				// Calculate the coefficient of determination as 1 - (SSerr / SStot) where
 				// SSerr is the residual sum of squares (variance of the error),
 				// and SStot is the total sum of squares (variance of the data) where each
@@ -250,32 +250,32 @@ namespace slib
 					sstot += w[h] * w[h] * var * var;
 				}
 				*outDet = sstot > 0.000001f ? 1.0f - (sserr / sstot) : 1;
-				
+
 				return sl_true;
 			}
 
 		}
 	}
-		
+
 	void CMotionTracker::_computeVelocity()
 	{
 		if (!m_flagRefreshTrack) {
 			return;
 		}
-		
+
 		sl_uint32 nHistory = m_nHistory;
 		if (nHistory < 1) {
 			return;
 		}
-		
+
 		Time lastTime = m_lastTime;
-		
+
 		sl_real xCoeff[MAX_DEGREE + 1], yCoeff[MAX_DEGREE + 1];
 		sl_real x[HISTORY_SIZE];
 		sl_real y[HISTORY_SIZE];
 		sl_real w[HISTORY_SIZE];
 		sl_real time[HISTORY_SIZE];
-		
+
 		sl_uint32 index = m_topHistory;
 		for (sl_uint32 i = 0; i < nHistory; i++) {
 			if (index == 0) {
@@ -312,7 +312,7 @@ namespace slib
 		}
 		m_flagValidTrack = sl_false;
 		m_flagRefreshTrack = sl_false;
-		
+
 	}
 
 
@@ -344,7 +344,7 @@ namespace slib
 			t->addMovement(x, y, time);
 		}
 	}
-	
+
 	void MotionTracker::addMovement(sl_real x, sl_real y)
 	{
 		CMotionTracker* t = _create();
@@ -352,7 +352,7 @@ namespace slib
 			t->addMovement(x, y);
 		}
 	}
-	
+
 	void MotionTracker::addMovement(const Point& pt, const Time& time)
 	{
 		CMotionTracker* t = _create();
@@ -360,7 +360,7 @@ namespace slib
 			t->addMovement(pt, time);
 		}
 	}
-	
+
 	void MotionTracker::addMovement(const Point& pt)
 	{
 		CMotionTracker* t = _create();
@@ -368,7 +368,7 @@ namespace slib
 			t->addMovement(pt);
 		}
 	}
-	
+
 	sl_bool MotionTracker::getLastPosition(Point* _out)
 	{
 		CMotionTracker* t = _create();
@@ -377,12 +377,12 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void MotionTracker::clearMovements()
 	{
 		m_ref.setNull();
 	}
-	
+
 	sl_bool MotionTracker::getVelocity(sl_real* outX, sl_real* outY)
 	{
 		CMotionTracker* t = _create();
@@ -391,7 +391,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool MotionTracker::getVelocity(Point* _out)
 	{
 		CMotionTracker* t = _create();
@@ -400,5 +400,5 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }

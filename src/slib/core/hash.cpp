@@ -36,7 +36,7 @@ namespace slib
 	 http://www.isthe.com/chongo/tech/comp/fnv/index.html
 	 
 	****************************************************/
-	
+
 	sl_uint32 HashBytes32(const void* _buf, sl_size n) noexcept
 	{
 		sl_uint8* buf = (sl_uint8*)_buf;
@@ -48,7 +48,7 @@ namespace slib
 		}
 		return hash;
 	}
-	
+
 	sl_uint64 HashBytes64(const void* _buf, sl_size n) noexcept
 	{
 		sl_uint8* buf = (sl_uint8*)_buf;
@@ -60,7 +60,7 @@ namespace slib
 		}
 		return hash;
 	}
-	
+
 	sl_size HashBytes(const void* buf, sl_size n) noexcept
 	{
 #ifdef SLIB_ARCH_IS_64BIT
@@ -75,11 +75,11 @@ namespace slib
 	{
 		namespace hash_table
 		{
-			
+
 #define HASH_TABLE_MIN_CAPACITY 16
 #define HASH_TABLE_LOAD_FACTOR_UP 0.75f
 #define HASH_TABLE_LOAD_FACTOR_DOWN 0.25f
-			
+
 			void Helper::fixCapacityRange(HashTableStructBase* table) noexcept
 			{
 				sl_size _capacityMinimum = table->capacityMinimum;
@@ -98,7 +98,7 @@ namespace slib
 					}
 				}
 			}
-			
+
 			void Helper::updateThresholds(HashTableStructBase* table) noexcept
 			{
 				if (table->capacity == 0) {
@@ -113,7 +113,7 @@ namespace slib
 					table->thresholdUp = table->capacityMaximum;
 				}
 			}
-			
+
 			void Helper::initialize(HashTableStructBase* table, sl_size capacityMinimum, sl_size capacityMaximum) noexcept
 			{
 				table->nodes = sl_null;
@@ -125,13 +125,13 @@ namespace slib
 				table->thresholdDown = 0;
 				fixCapacityRange(table);
 			}
-			
+
 			void Helper::move(HashTableStructBase* dst, HashTableStructBase* src) noexcept
 			{
 				Base::copyMemory(dst, src, sizeof(HashTableStructBase));
 				clear(src);
 			}
-			
+
 			void Helper::clear(HashTableStructBase* table) noexcept
 			{
 				table->nodes = sl_null;
@@ -140,21 +140,21 @@ namespace slib
 				table->thresholdUp = 0;
 				table->thresholdDown = 0;
 			}
-			
+
 			void Helper::setMinimumCapacity(HashTableStructBase* table, sl_size capacity) noexcept
 			{
 				table->capacityMinimum = capacity;
 				fixCapacityRange(table);
 				updateThresholds(table);
 			}
-			
+
 			void Helper::setMaximumCapacity(HashTableStructBase* table, sl_size capacity) noexcept
 			{
 				table->capacityMaximum = capacity;
 				fixCapacityRange(table);
 				updateThresholds(table);
 			}
-			
+
 			sl_bool Helper::validateNodes(HashTableStructBase* table) noexcept
 			{
 				if (table->capacity == 0) {
@@ -172,7 +172,7 @@ namespace slib
 					return sl_true;
 				}
 			}
-			
+
 			sl_bool Helper::reallocNodes(HashTableStructBase* table, sl_size capacity) noexcept
 			{
 				if (capacity > table->capacityMaximum) {
@@ -187,7 +187,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-			
+
 			void Helper::expand(HashTableStructBase* table) noexcept
 			{
 				if (table->capacity < table->capacityMaximum && table->count >= table->thresholdUp) {
@@ -224,7 +224,7 @@ namespace slib
 					}
 				}
 			}
-			
+
 			void Helper::shrink(HashTableStructBase* table) noexcept
 			{
 				while (table->capacity > table->capacityMinimum && table->count <= table->thresholdDown) {

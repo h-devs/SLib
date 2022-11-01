@@ -26,7 +26,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(MobileGame, MobileApp)
-	
+
 	MobileGame::MobileGame()
 	{
 		m_gameView = new MobileGameView;
@@ -34,7 +34,7 @@ namespace slib
 		m_gameView->setHeightFilling(1, UIUpdateMode::Init);
 		m_gameView->setOpaque(sl_true, UIUpdateMode::Init);
 		m_gameView->addChild(m_navigationController, UIUpdateMode::Init);
-		
+
 		m_contentView->removeAllChildren(UIUpdateMode::Init);
 		m_contentView->addChild(m_gameView, UIUpdateMode::Init);
 		m_contentView = m_gameView;
@@ -48,15 +48,15 @@ namespace slib
 	{
 		return CastRef<MobileGame>(Application::getApp());
 	}
-	
+
 	Ref<MobileGameView> MobileGame::getGameView()
 	{
 		return m_gameView;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(MobileGameView, RenderView)
-	
+
 	MobileGameView::MobileGameView()
 	{
 		setRedrawMode(RedrawMode::WhenDirty);

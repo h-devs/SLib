@@ -42,12 +42,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace alert_dialog
 		{
-			
+
 			static void EnableLink(UIView* view)
 			{
 				for (UIView* subview in view.subviews) {
@@ -61,25 +61,25 @@ namespace slib
 					}
 				}
 			}
-			
+
 		}
 	}
-	
+
 	DialogResult AlertDialog::run()
 	{
 		return _runByShow();
 	}
-	
+
 	DialogResult AlertDialog::_run()
 	{
 		return DialogResult::Cancel;
 	}
-	
+
 	void AlertDialog::show()
 	{
 		_showOnUiThread();
 	}
-	
+
 	sl_bool AlertDialog::_show()
 	{
 		UIViewController* controller = UIPlatform::getCurrentViewController(parent);
@@ -113,11 +113,11 @@ namespace slib
 		Function<void()> onCancel = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Cancel);
 		Function<void()> onYes = SLIB_BIND_REF(void(), this, _onResult, DialogResult::Yes);
 		Function<void()> onNo = SLIB_BIND_REF(void(), this, _onResult, DialogResult::No);
-		
+
 		UIAlertController* alert = [UIAlertController alertControllerWithTitle:caption message:text preferredStyle:UIAlertControllerStyleAlert];
-		
+
 		if (alert != nil) {
-			
+
 			if (buttons == AlertButtons::OkCancel) {
 				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOK style:UIAlertActionStyleDefault handler:
 										   ^(UIAlertAction *) {
@@ -163,7 +163,7 @@ namespace slib
 										   }];
 				[alert addAction:actionOK];
 			}
-			
+
 			if (flagHyperText) {
 				@try {
 					NSMutableAttributedString* hyperCaption = [[NSMutableAttributedString alloc] initWithString:caption attributes:@{ NSFontAttributeName: [UIFont fontWithName:@"Helvetica Neue" size:20] }];
@@ -185,11 +185,11 @@ namespace slib
 			[controller presentViewController:alert animated:YES completion:nil];
 			return sl_true;
 		}
-		
+
 		return sl_false;
-		
+
 	}
-	
+
 }
 
 @implementation SLIBAlertDialogLabelHelper
@@ -203,17 +203,17 @@ namespace slib
 - (void)handleTapOnLabel:(UITapGestureRecognizer *)tapGesture
 {
 	UILabel* label = (UILabel*)(tapGesture.view);
-	
+
 	NSAttributedString* text = label.attributedText;
 	CGSize sizeLabel = label.bounds.size;
 
 	NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
 	NSTextContainer *textContainer = [[NSTextContainer alloc] initWithSize:CGSizeZero];
 	NSTextStorage *textStorage = [[NSTextStorage alloc] initWithAttributedString:text];
-	
+
 	[layoutManager addTextContainer:textContainer];
 	[textStorage addLayoutManager:layoutManager];
-	
+
 	textContainer.lineFragmentPadding = 0.0;
 	textContainer.lineBreakMode = label.lineBreakMode;
 	textContainer.maximumNumberOfLines = label.numberOfLines;
@@ -224,7 +224,7 @@ namespace slib
 	pos.x -= (sizeLabel.width - rcText.size.width) / 2;
 	pos.y -= (sizeLabel.height - rcText.size.height) / 2;
 	NSUInteger index = [layoutManager characterIndexForPoint:pos inTextContainer:textContainer fractionOfDistanceBetweenInsertionPoints:nil];
-	
+
 	NSDictionary* attrs = [text attributesAtIndex:index effectiveRange:nil];
 	NSURL* url = attrs[NSLinkAttributeName];
 	if (url != nil) {

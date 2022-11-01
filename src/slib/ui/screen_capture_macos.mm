@@ -35,12 +35,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace screen_capture
 		{
-		
+
 			class Helper
 			{
 			public:
@@ -70,19 +70,19 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			private:
 				Ref<Bitmap> m_bitmapCache;
 				Ref<Canvas> m_canvasCache;
 				CGContextRef m_contextCache;
-				
+
 			public:
 				Mutex m_lock;
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
-			
+
 			static Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
 			{
 				CGDirectDisplayID display = (CGDirectDisplayID)([[[screen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue]);
@@ -96,10 +96,10 @@ namespace slib
 				}
 				return sl_null;
 			}
-		
+
 		}
 	}
-	
+
 	using namespace priv::screen_capture;
 
 	Ref<Image> ScreenCapture::takeScreenshot()
@@ -111,7 +111,7 @@ namespace slib
 		MutexLocker lock(&(helper->m_lock));
 		return TakeScreenshot(helper, [[NSScreen screens] objectAtIndex:0]);
 	}
-	
+
 	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
 	{
 		Helper* helper = GetHelper();
@@ -144,7 +144,7 @@ namespace slib
 		sl_uint32 count = (sl_uint32)([[NSScreen screens] count]);
 		return count;
 	}
-	
+
 	// https://stackoverflow.com/a/58985069
 	sl_bool ScreenCapture::isScreenRecordingEnabled()
 	{

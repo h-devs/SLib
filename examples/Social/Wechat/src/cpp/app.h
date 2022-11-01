@@ -12,10 +12,10 @@ class ExampleWechatApp : public MobileApp
 	SLIB_APPLICATION(ExampleWechatApp)
 public:
 	ExampleWechatApp();
-	
+
 protected:
 	Ref<View> getStartupPage() override;
 
 	void onStart() override;
-	
+
 };

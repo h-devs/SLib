@@ -400,7 +400,7 @@ namespace slib
 		Variant operator[](const String& key) const noexcept;
 
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
-		
+
 	public:
 		static const Variant& undefined() noexcept
 		{
@@ -872,7 +872,7 @@ namespace slib
 		String toString() const;
 
 		sl_bool toJsonString(StringBuffer& buf) const;
-	
+
 		String toJsonString() const;
 
 		Memory serialize() const;
@@ -901,9 +901,9 @@ namespace slib
 
 
 		sl_compare_result compare(const Variant& other) const noexcept;
-		
+
 		sl_bool equals(const Variant& other) const noexcept;
-		
+
 		sl_size getHashCode() const noexcept;
 
 	public:

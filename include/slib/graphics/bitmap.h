@@ -30,10 +30,10 @@
 
 namespace slib
 {
-	
+
 	class ImageDesc;
 	class Image;
-	
+
 	class BitmapCache : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -47,11 +47,11 @@ namespace slib
 		virtual void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) = 0;
 
 	};
-	
+
 	class SLIB_EXPORT Bitmap : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
-	
+
 	protected:
 		Bitmap();
 
@@ -71,7 +71,7 @@ namespace slib
 		static Ref<Bitmap> loadFromFile(const StringParam& filePath);
 
 		static Ref<Bitmap> loadFromAsset(const StringParam& path);
-	
+
 	public:
 		virtual sl_uint32 getBitmapWidth() = 0;
 
@@ -96,9 +96,9 @@ namespace slib
 		sl_uint32 getWidth();
 
 		sl_uint32 getHeight();
-	
+
 		sl_bool isEmpty();
-	
+
 		sl_bool isNotEmpty();
 
 		void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
@@ -107,7 +107,7 @@ namespace slib
 
 	public:
 		sl_bool readPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, Color* colors, sl_reg stride = 0);
-	
+
 		sl_bool writePixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* colors, sl_reg stride = 0);
 
 		sl_bool resetPixels(const Color& color);

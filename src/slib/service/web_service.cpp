@@ -176,7 +176,7 @@ namespace slib
 		m_controller.setNull();
 		Service::dispatchStopService();
 	}
-	
+
 	sl_bool WebService::onHttpRequest(HttpServerContext* context)
 	{
 		if (m_controller.isNotNull()) {

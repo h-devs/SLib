@@ -33,51 +33,51 @@ namespace slib
 	Cursor::~Cursor()
 	{
 	}
-	
+
 #if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS)
 	Ref<Cursor> Cursor::getArrow()
 	{
 		return sl_null;
 	}
-	
+
 	Ref<Cursor> Cursor::getIBeam()
 	{
 		return sl_null;
 	}
-	
+
 	Ref<Cursor> Cursor::getCross()
 	{
 		return sl_null;
 	}
-	
+
 	Ref<Cursor> Cursor::getHand()
 	{
 		return sl_null;
 	}
-	
+
 	Ref<Cursor> Cursor::getResizeLeftRight()
 	{
 		return sl_null;
 	}
-	
+
 	Ref<Cursor> Cursor::getResizeUpDown()
 	{
 		return sl_null;
 	}
-	
+
 	void Cursor::setCurrent(const Ref<Cursor>& cursor)
 	{
 	}
-	
+
 	Ref<Cursor> Cursor::getCurrent()
 	{
 		return sl_null;
 	}
-	
+
 	void Cursor::show()
 	{
 	}
-	
+
 	void Cursor::hide()
 	{
 	}

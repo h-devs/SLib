@@ -93,7 +93,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-			
+
 			void CheckBoxInstance::onChanged(GtkToggleButton *, gpointer userinfo)
 			{
 				GtkCheckButton* handle = (GtkCheckButton*)userinfo;

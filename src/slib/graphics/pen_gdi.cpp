@@ -86,7 +86,7 @@ namespace slib
 							break;
 						}
 						pen->SetLineJoin(join);
-						
+
 						Gdiplus::DashStyle style;
 						switch (desc.style) {
 						case PenStyle::Dot:

@@ -490,7 +490,7 @@ namespace slib
 	}
 
 	void UIPlatform::initApp()
-	{		
+	{
 		GraphicsPlatform::startGdiplus();
 
 		OleInitialize(NULL);

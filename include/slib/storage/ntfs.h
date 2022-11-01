@@ -131,7 +131,7 @@ namespace slib
 			sectorsPerCluster = value;
 		}
 
-		
+
 		sl_uint16 getSectorsPerTrack() const
 		{
 			return MIO::readUint16LE(sectorsPerTrack);

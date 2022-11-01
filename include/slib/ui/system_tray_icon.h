@@ -41,12 +41,12 @@ namespace slib
 		String toolTip;
 		sl_bool flagHighlight;
 		Ref<Menu> menu;
-		
+
 		Function<void(SystemTrayIcon*, UIEvent*)> onClick;
 		Function<void(SystemTrayIcon*, UIEvent*)> onRightClick;
 		Function<void(SystemTrayIcon*, UIEvent*)> onKeySelect;
 		Function<void(SystemTrayIcon*, UIEvent*)> onEvent;
-		
+
 		Function<void(SystemTrayIcon*)> onShowBalloon;
 		Function<void(SystemTrayIcon*)> onHideBalloon;
 		Function<void(SystemTrayIcon*)> onClickBalloon;
@@ -54,9 +54,9 @@ namespace slib
 
 	public:
 		SystemTrayIconParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SystemTrayIconParam)
-		
+
 	};
 
 	class SystemTrayIconNotifyParam;
@@ -64,32 +64,32 @@ namespace slib
 	class SLIB_EXPORT SystemTrayIcon : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		SystemTrayIcon();
-		
+
 		~SystemTrayIcon();
-		
+
 	public:
 		static Ref<SystemTrayIcon> create(const SystemTrayIconParam& param);
-		
+
 	public:
 		Ref<Drawable> getIcon();
-		
+
 		void setIcon(const Ref<Drawable>& icon);
-		
+
 		String getIconName();
-		
+
 		void setIconName(const String& name);
-		
+
 		String getToolTip();
-		
+
 		void setToolTip(const String& toolTip);
-		
+
 		Ref<Menu> getMenu();
-		
+
 		void setMenu(const Ref<Menu>& menu);
-		
+
 		enum class NotifyIcon
 		{
 			None = 0,
@@ -99,22 +99,22 @@ namespace slib
 		};
 
 		void notify(const SystemTrayIconNotifyParam& param);
-		
+
 		void notify(const String& title, const String& message);
-		
+
 		void notify(const String& title, const String& message, const Ref<Drawable>& icon);
-		
+
 		void notify(const String& title, const String& message, const String& iconName);
-		
+
 		void notify(const String& title, const String& message, NotifyIcon icon);
 
 	public:
 		void dispatchClick(UIEvent* ev);
-		
+
 		void dispatchRightClick(UIEvent* ev);
-		
+
 		void dispatchKeySelect(UIEvent* ev);
-		
+
 		void dispatchEvent(UIEvent* ev);
 
 		void dispatchShowBalloon();
@@ -132,12 +132,12 @@ namespace slib
 		AtomicString m_toolTip;
 		sl_bool m_flagHighlight;
 		AtomicRef<Menu> m_menu;
-		
+
 		Function<void(SystemTrayIcon*, UIEvent*)> m_onClick;
 		Function<void(SystemTrayIcon*, UIEvent*)> m_onRightClick;
 		Function<void(SystemTrayIcon*, UIEvent*)> m_onKeySelect;
 		Function<void(SystemTrayIcon*, UIEvent*)> m_onEvent;
-		
+
 		Function<void(SystemTrayIcon*)> m_onShowBalloon;
 		Function<void(SystemTrayIcon*)> m_onHideBalloon;
 		Function<void(SystemTrayIcon*)> m_onClickBalloon;
@@ -145,16 +145,16 @@ namespace slib
 
 	protected:
 		void _init(const SystemTrayIconParam& param);
-		
+
 	protected:
 		virtual void setIcon_NI(const Ref<Drawable>& icon, const String& name) = 0;
-		
+
 		virtual void setToolTip_NI(const String& toolTip) = 0;
-				
+
 		virtual void setMenu_NI(const Ref<Menu>& menu) = 0;
-		
+
 		virtual void notify_NI(const SystemTrayIconNotifyParam& param);
-		
+
 	};
 
 	class SLIB_EXPORT SystemTrayIconNotifyParam
@@ -170,12 +170,12 @@ namespace slib
 		sl_uint32 timeout; // In milliseconds (not used on Windows Vista and later)
 		sl_bool flagSound;
 		sl_bool flagLargeIcon;
-		
+
 	public:
 		SystemTrayIconNotifyParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SystemTrayIconNotifyParam)
-		
+
 	};
 
 }

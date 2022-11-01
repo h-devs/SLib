@@ -37,22 +37,22 @@ namespace slib
 		String content;
 
 		Json data; // custom message
-		
+
 		// Sending Params
 		sl_int32 badge;
 		String sound;
-		
+
 		// Received Params
 		sl_bool flagClicked;
 		sl_bool flagBackground;
-		
+
 	public:
 		PushNotificationMessage();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PushNotificationMessage)
 
 	};
-	
+
 }
 
 #endif

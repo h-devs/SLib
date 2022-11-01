@@ -36,18 +36,18 @@ namespace slib
 	{
 		namespace url_request
 		{
-			
+
 			typedef HashMap< UrlRequest*, Ref<UrlRequest> > UrlRequestMap;
 
 			SLIB_SAFE_STATIC_GETTER(UrlRequestMap, GetUrlRequestMap)
 
 		}
 	}
-	
+
 	using namespace priv::url_request;
-	
+
 	SLIB_DEFINE_OBJECT(UrlRequest, Object)
-	
+
 	UrlRequest::UrlRequest()
 	{
 		m_sizeBodySent = 0;
@@ -55,92 +55,92 @@ namespace slib
 		m_sizeContentReceived = 0;
 		m_flagClosed = sl_false;
 		m_flagError = sl_false;
-		
+
 		m_responseStatus = HttpStatus::Unknown;
-		
+
 		m_method = HttpMethod::GET;
 		m_flagSelfAlive = sl_false;
 		m_flagStoreResponseContent = sl_true;
 		m_flagUseBackgroundSession = sl_false;
 
 	}
-	
+
 	UrlRequest::~UrlRequest()
 	{
 	}
-	
+
 #define URL_REQUEST UrlRequest
 #include "url_request_common.inc"
-	
+
 	const String& UrlRequest::getUrl()
 	{
 		return m_url;
 	}
-	
+
 	const String& UrlRequest::getDownloadingFilePath()
 	{
 		return m_downloadFilePath;
 	}
-	
+
 	HttpMethod UrlRequest::getMethod()
 	{
 		return m_method;
 	}
-	
+
 	const Memory& UrlRequest::getRequestBody()
 	{
 		return m_requestBody;
 	}
-	
+
 	sl_size UrlRequest::getRequestBodySize()
 	{
 		return m_requestBody.getSize();
 	}
-	
+
 	VariantMap UrlRequest::getParameters()
 	{
 		return m_parameters;
 	}
-	
+
 	HttpHeaderMap UrlRequest::getRequestHeaders()
 	{
 		return m_requestHeaders;
 	}
-	
+
 	Memory UrlRequest::getResponseContent()
 	{
 		return m_bufResponseContent.merge();
 	}
-	
+
 	String UrlRequest::getResponseContentAsString()
 	{
 		return String::fromUtf(m_bufResponseContent.merge());
 	}
-	
+
 	Json UrlRequest::getResponseContentAsJson()
 	{
 		Memory mem = m_bufResponseContent.merge();
 		String16 s = String16::fromUtf(mem);
 		return Json::parse(s);
 	}
-	
+
 	Ref<XmlDocument> UrlRequest::getResponseContentAsXml()
 	{
 		Memory mem = m_bufResponseContent.merge();
 		String16 s = String16::fromUtf(mem);
 		return Xml::parse(s);
 	}
-	
+
 	HttpStatus UrlRequest::getResponseStatus()
 	{
 		return m_responseStatus;
 	}
-	
+
 	String UrlRequest::getResponseMessage()
 	{
 		return m_responseMessage;
 	}
-	
+
 	HttpHeaderMap UrlRequest::getResponseHeaders()
 	{
 		return m_responseHeaders;
@@ -151,7 +151,7 @@ namespace slib
 		HttpHeaderMap map = m_responseHeaders;
 		return map.getValue_NoLock(name, String::null());
 	}
-	
+
 	List<String> UrlRequest::getResponseHeaderValues(const String& name)
 	{
 		HttpHeaderMap map = m_responseHeaders;
@@ -181,7 +181,7 @@ namespace slib
 		}
 		return list;
 	}
-	
+
 	HashMap<String, HttpCookie> UrlRequest::getResponseCookieMap()
 	{
 		HashMap<String, HttpCookie> map;
@@ -193,12 +193,12 @@ namespace slib
 		}
 		return map;
 	}
-	
+
 	sl_bool UrlRequest::getResponseCookie(const String& name, HttpCookie* cookie)
 	{
 		return getResponseCookieMap().get_NoLock(name, cookie);
 	}
-	
+
 	String UrlRequest::getResponseCookie(const String& name)
 	{
 		HttpCookie cookie;
@@ -207,37 +207,37 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_bool UrlRequest::isUsingBackgroundSession()
 	{
 		return m_flagUseBackgroundSession;
 	}
-	
+
 	sl_bool UrlRequest::isSelfAlive()
 	{
 		return m_flagSelfAlive;
 	}
-	
+
 	sl_bool UrlRequest::isStoringResponseContent()
 	{
 		return m_flagStoreResponseContent;
 	}
-	
+
 	sl_uint64 UrlRequest::getSentRequestBodySize()
 	{
 		return m_sizeBodySent;
 	}
-	
+
 	sl_uint64 UrlRequest::getResponseContentSize()
 	{
 		return m_sizeContentReceived;
 	}
-	
+
 	sl_uint64 UrlRequest::getExpectedResponseContentSize()
 	{
 		return m_sizeContentTotal;
 	}
-	
+
 	void UrlRequest::cancel()
 	{
 		if (m_flagClosed) {
@@ -251,7 +251,7 @@ namespace slib
 		_removeFromMap();
 		_cancel();
 	}
-	
+
 	sl_bool UrlRequest::isError()
 	{
 		if (m_responseStatus >= HttpStatus::BadRequest) {
@@ -264,12 +264,12 @@ namespace slib
 	{
 		return m_errorMessage;
 	}
-	
+
 	sl_bool UrlRequest::isClosed()
 	{
 		return m_flagClosed;
 	}
-	
+
 	void UrlRequest::_sendSync()
 	{
 		Ref<Event> ev = Event::create();
@@ -281,7 +281,7 @@ namespace slib
 		}
 		onError();
 	}
-	
+
 	void UrlRequest::_sendSync_call()
 	{
 		_sendSync();
@@ -291,17 +291,17 @@ namespace slib
 	{
 	public:
 		Ref<ThreadPool> threadPool;
-		
+
 	public:
 		UrlRequest_AsyncPool()
 		{
 			threadPool = ThreadPool::create();
 		}
-		
+
 	};
-	
+
 	SLIB_SAFE_STATIC_GETTER(UrlRequest_AsyncPool, Get_UrlRequestAsyncPool)
-	
+
 	void UrlRequest::_sendAsync()
 	{
 		UrlRequest_AsyncPool* pool = Get_UrlRequestAsyncPool();
@@ -312,12 +312,12 @@ namespace slib
 		}
 		onError();
 	}
-		
+
 	void UrlRequest::_init(const UrlRequestParam& param, const String& url)
 	{
 		m_url = url;
 		m_downloadFilePath = param.downloadFilePath;
-		
+
 		m_method = param.method;
 		m_requestBody = param.requestBody;
 		m_parameters = param.parameters;
@@ -329,14 +329,14 @@ namespace slib
 		m_onDownloadContent = param.onDownloadContent;
 		m_onUploadBody = param.onUploadBody;
 		m_dispatcher = param.dispatcher;
-		
+
 		m_flagUseBackgroundSession = param.flagUseBackgroundSession;
 		m_flagSelfAlive = param.flagSelfAlive && !(param.flagSynchronous);
 		m_flagStoreResponseContent = param.flagStoreResponseContent;
-		
+
 		m_timeout = param.timeout;
 		m_flagAllowInsecureConnection = param.flagAllowInsecureConnection;
-		
+
 		if (m_flagSelfAlive) {
 			UrlRequestMap* map = GetUrlRequestMap();
 			if (map) {
@@ -345,7 +345,7 @@ namespace slib
 		}
 
 	}
-	
+
 	void UrlRequest::_removeFromMap()
 	{
 		if (m_flagSelfAlive) {
@@ -355,11 +355,11 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void UrlRequest::_cancel()
 	{
 	}
-	
+
 	void UrlRequest::onComplete()
 	{
 		if (m_flagClosed) {
@@ -374,19 +374,19 @@ namespace slib
 			}
 		}
 		_removeFromMap();
-		
+
 		Ref<Event> event = m_eventSync;
 		if (event.isNotNull()) {
 			event->set();
 		}
 	}
-	
+
 	void UrlRequest::onError()
 	{
 		m_flagError = sl_true;
 		onComplete();
 	}
-	
+
 	void UrlRequest::onResponse()
 	{
 		if (m_flagClosed) {
@@ -396,7 +396,7 @@ namespace slib
 		m_bufResponseContent.clear();
 		m_onResponse(this, m_responseStatus);
 	}
-	
+
 	void UrlRequest::onReceiveContent(const void* data, sl_size len, const Memory& mem)
 	{
 		if (m_flagClosed) {
@@ -414,7 +414,7 @@ namespace slib
 		}
 		m_onReceiveContent(this, data, len);
 	}
-	
+
 	void UrlRequest::onDownloadContent(sl_uint64 size)
 	{
 		if (m_flagClosed) {
@@ -423,7 +423,7 @@ namespace slib
 		m_sizeContentReceived += size;
 		m_onDownloadContent(this, size);
 	}
-	
+
 	void UrlRequest::onUploadBody(sl_uint64 size)
 	{
 		if (m_flagClosed) {
@@ -431,10 +431,10 @@ namespace slib
 		}
 		m_onUploadBody(this, size);
 	}
-	
+
 	void UrlRequest::_runCallback(const Function<void(UrlRequest*)>& callback)
 	{
 		callback(this);
 	}
-	
+
 }

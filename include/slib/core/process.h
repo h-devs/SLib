@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	enum class ProcessStatus
 	{
 		Running = 0,
@@ -39,19 +39,19 @@ namespace slib
 	};
 
 	class IStream;
-	
+
 	class SLIB_EXPORT Process : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		Process();
-		
+
 		~Process();
-		
+
 	public:
 		static sl_uint32 getCurrentProcessId();
-		
+
 		static Ref<Process> open(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
 		template <class... ARGS>
@@ -71,19 +71,19 @@ namespace slib
 		}
 
 		static void runAsAdmin(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
-		
+
 		template <class... ARGS>
 		static void runAsAdmin(const StringParam& pathExecutable, const StringParam& arg, ARGS&&... args)
 		{
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
 			return runAsAdmin(pathExecutable, params, 1 + sizeof...(args));
 		}
-		
+
 		// check administrative privilege (effective root user on Unix)
 		static sl_bool isCurrentProcessAdmin();
 
 		static sl_bool isCurrentProcessInAdminGroup();
-		
+
 		// replace current process context
 		static void exec(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 
@@ -94,9 +94,9 @@ namespace slib
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
 			return exec(pathExecutable, params, 1 + sizeof...(args));
 		}
-		
+
 		static void exit(int code);
-		
+
 		static void abort();
 
 		static String getOutput(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
@@ -107,7 +107,7 @@ namespace slib
 			StringParam params[] = { arg, Forward<ARGS>(args)... };
 			return getOutput(pathExecutable, params, 1 + sizeof...(args));
 		}
-		
+
 		static void setAppNapEnabled(sl_bool flag);
 
 	public:
@@ -118,18 +118,18 @@ namespace slib
 		virtual void wait() = 0;
 
 		virtual sl_bool isAlive() = 0;
-		
+
 		virtual IStream* getStream() = 0;
-		
+
 	public:
 		ProcessStatus getStatus();
-		
+
 		int getExitStatus();
-		
+
 	protected:
 		ProcessStatus m_status;
 		int m_exitStatus;
-		
+
 	};
 
 }

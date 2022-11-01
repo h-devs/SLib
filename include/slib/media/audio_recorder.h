@@ -41,22 +41,22 @@ namespace slib
 		String id;
 		String name;
 		String description;
-		
+
 	public:
 		AudioRecorderInfo();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioRecorderInfo)
-		
+
 	};
-	
+
 	class AudioRecorder;
-	
+
 	class SLIB_EXPORT AudioRecorderParam
 	{
 	public:
 		String deviceId;
 		AudioRecordingPreset recordingPreset;
-		
+
 		sl_uint32 samplesPerSecond; // per channel
 		sl_uint32 channelCount;
 		sl_uint32 samplesPerFrame; // samples per frame (per channel)
@@ -65,45 +65,45 @@ namespace slib
 		sl_uint32 samplesPerCallback; // samples per callback (per channel)
 
 		sl_bool flagAutoStart;
-		
+
 		Function<void(AudioRecorder*, AudioData&)> onRecordAudio;
 		Ref<Event> event;
-		
+
 	public:
 		AudioRecorderParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioRecorderParam)
-		
+
 	public:
 		sl_uint32 getSamplesPerFrame() const;
 
 		sl_uint32 getFrameLengthInMilliseconds() const;
 
 	};
-	
+
 	class SLIB_EXPORT AudioRecorder : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		AudioRecorder();
-		
+
 		~AudioRecorder();
-		
+
 	public:
 		static Ref<AudioRecorder> create(const AudioRecorderParam& param);
-		
+
 		static List<AudioRecorderInfo> getRecordersList();
-		
+
 	public:
 		void release();
-		
+
 		sl_bool isOpened();
-		
+
 		sl_bool start();
-		
+
 		void stop();
-		
+
 		sl_bool isRunning();
 
 		float getVolume();
@@ -113,11 +113,11 @@ namespace slib
 		sl_bool isMute();
 
 		void setMute(sl_bool flag);
-		
+
 		const AudioRecorderParam& getParam();
-		
+
 		sl_bool read(const AudioData& audio);
-		
+
 	protected:
 		virtual void _release() = 0;
 
@@ -127,11 +127,11 @@ namespace slib
 
 	protected:
 		void _init(const AudioRecorderParam& param);
-		
+
 		Array<sl_int16> _getProcessData(sl_uint32 count);
-		
+
 		void _processFrame(sl_int16* s, sl_uint32 count);
-		
+
 	protected:
 		AudioRecorderParam m_param;
 
@@ -144,7 +144,7 @@ namespace slib
 		AtomicArray<sl_int16> m_processData;
 		AtomicArray<sl_int16> m_bufCallback;
 		sl_uint32 m_nSamplesInCallbackBuffer;
-		
+
 	};
 }
 

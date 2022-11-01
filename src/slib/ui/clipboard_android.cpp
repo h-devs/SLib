@@ -44,7 +44,7 @@ namespace slib
 	}
 
 	using namespace priv::clipboard;
-	
+
 	sl_bool Clipboard::hasText()
 	{
 		jobject context = Android::getCurrentContext();
@@ -53,7 +53,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	String Clipboard::getText()
 	{
 		jobject context = Android::getCurrentContext();
@@ -62,7 +62,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void Clipboard::setText(const StringParam& text)
 	{
 		jobject context = Android::getCurrentContext();

@@ -133,7 +133,7 @@ namespace slib
 	}
 
 	SLIB_DEFINE_OBJECT(OAuthServer, Object)
-	
+
 	OAuthServer::OAuthServer()
 	{
 		setSupportedImplicitGrant(sl_true);
@@ -166,7 +166,7 @@ namespace slib
 		request.clientId = context->getParameter("client_id");
 		request.scopes = context->getParameter("scope").split(" ");
 		request.state = context->getParameter("state");
-		
+
 		request.codeChallenge = context->getParameter("code_challenge");
 		String strCodeChallengeMethod = context->getParameter("code_challenge_method");
 		sl_bool flagCodeChallengeMethodError = sl_false;
@@ -177,7 +177,7 @@ namespace slib
 		} else {
 			flagCodeChallengeMethodError = sl_true;
 		}
-		
+
 		if (request.clientId.isEmpty()) {
 			completeAuthorizationRequestWithError(context, request, OAuthErrorCode::InvalidRequest, "client_id is not found");
 			return sl_false;
@@ -196,7 +196,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		if (request.responseType == OAuthResponseType::Code) {
 			if (!(isSupportedAuthorizationCodeGrant())) {
 				completeAuthorizationRequestWithError(context, request, OAuthErrorCode::UnsupportedGrantType);
@@ -208,14 +208,14 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		request.client = getClientEntity(request.clientId);
 		OAuthClientEntity* client = request.client.get();
 		if (!client) {
 			completeAuthorizationRequestWithError(context, request, OAuthErrorCode::InvalidClient, "Client entity is not found");
 			return sl_false;
 		}
-		
+
 		if (!(validateRedirectUri(client, request.redirectUri))) {
 			completeAuthorizationRequestWithError(context, request, OAuthErrorCode::InvalidClient, "redirect_uri is not authorized for the client entity");
 			return sl_false;
@@ -224,7 +224,7 @@ namespace slib
 			completeAuthorizationRequestWithError(context, request, OAuthErrorCode::InvalidScope);
 			return sl_false;
 		}
-		
+
 		return sl_true;
 	}
 
@@ -271,7 +271,7 @@ namespace slib
 
 			setExpirySeconds(payload);
 			issueAuthorizationCode(payload);
-			
+
 			if (payload.authorizationCode.isEmpty()) {
 				completeAuthorizationRequestWithError(context, request, OAuthErrorCode::ServerError, "Failed to generate authorization code");
 				return;
@@ -318,7 +318,7 @@ namespace slib
 		String clientId = getParameter(context, "client_id");
 		String clientSecret = getParameter(context, "client_secret");
 		List<String> scopes = context->getParameter("scope").split(" ");
-		
+
 		if (clientId.isEmpty()) {
 			respondError(context, OAuthErrorCode::InvalidRequest, "client_id is not found");
 			return;
@@ -365,7 +365,7 @@ namespace slib
 
 			payload.grantType = OAuthGrantType::AuthorizationCode;
 			payload.authorizationCode = code;
-			
+
 			if (!(getAuthorizationCodePayload(payload))) {
 				respondError(context, OAuthErrorCode::InvalidRequest, "Authorization code is invalid");
 				return;
@@ -391,7 +391,7 @@ namespace slib
 					return;
 				}
 			}
-			
+
 			String codeVerifier = context->getParameter("code_verifier");
 			if (payload.codeChallenge.isNotEmpty() || codeVerifier.isNotEmpty()) {
 				if (codeVerifier.isEmpty()) {
@@ -448,7 +448,7 @@ namespace slib
 			}
 
 		} else if (grantType == "refresh_token") {
-			
+
 			if (!(isSupportedRefreshToken())) {
 				respondError(context, OAuthErrorCode::UnsupportedGrantType);
 				return;
@@ -547,7 +547,7 @@ namespace slib
 		} else if (err == OAuthErrorCode::TemporarilyUnavailable) {
 			status = HttpStatus::ServiceUnavailable;
 		}
-		
+
 		context->setResponseCode(status);
 		context->setResponseContentType(ContentType::Json);
 

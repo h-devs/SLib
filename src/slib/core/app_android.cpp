@@ -97,7 +97,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void Application::grantPermissions(const AppPermissions& permissions, const Function<void()>& callback)
 	{
 		jobject context = Android::getCurrentContext();

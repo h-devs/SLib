@@ -26,7 +26,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(GeoRectangle)
 
 	GeoRectangle::GeoRectangle(const LatLon& pt1, const LatLon& pt2)

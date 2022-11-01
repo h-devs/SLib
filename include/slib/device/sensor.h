@@ -31,16 +31,16 @@
 
 namespace slib
 {
-	
+
 	class Sensor;
-	
+
 	enum class LocationProviderType
 	{
 		GPS = 0,
 		MobileNetwork = 1,
 		Passive = 2
 	};
-	
+
 	class SLIB_EXPORT SensorParam
 	{
 	public:
@@ -62,12 +62,12 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SensorParam)
 
 	};
-	
-	
+
+
 	class SLIB_EXPORT Sensor : public Object
 	{
 		SLIB_DECLARE_OBJECT
-	
+
 	protected:
 		Sensor();
 
@@ -88,7 +88,7 @@ namespace slib
 		void stop();
 
 		sl_bool isRunning();
-	
+
 		sl_bool isRunningLocation();
 
 		sl_bool isRunningCompass();
@@ -120,7 +120,7 @@ namespace slib
 		sl_bool m_flagRunningLocation;
 		sl_bool m_flagRunningCompass;
 		sl_bool m_flagRunningAccelerometer;
-	
+
 		GeoLocation m_lastLocation;
 		sl_bool m_flagValidLocation;
 
@@ -139,7 +139,7 @@ namespace slib
 		Function<void(Sensor*, float xAccel, float yAccel, float zAccel)> m_onAccelerometerChanged;
 
 	};
-	
+
 }
 
 #endif

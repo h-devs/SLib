@@ -39,14 +39,14 @@ int main(int argc, const char * argv[])
 	param.webRootPath = argv[2];
 	StringView flags(argc > 3 ? argv[3] : sl_null);
 	param.flagLogDebug = flags.contains('d');
-	
+
 	Ref<HttpServer> server = HttpServer::create(param);
 	if (server.isNull()) {
 		return -1;
 	}
-	
+
 	Console::println("Server is running on port: %d, Webroot: %s", param.port, param.webRootPath);
-	
+
 	for(;;) {
 		Console::println("\nPress x to exit!!!");
 		if (Console::readChar() == 'x') {

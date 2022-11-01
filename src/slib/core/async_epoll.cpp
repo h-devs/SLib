@@ -158,7 +158,7 @@ namespace slib
 		int hObject = (int)(instance->getHandle());
 		epoll_event ev;
 		ev.data.ptr = (void*)instance;
-		
+
 #if defined(EPOLL_LOW)
 		ev.events = EPOLLET;
 #else
@@ -177,7 +177,7 @@ namespace slib
 			default:
 				return sl_true;
 		}
-		
+
 		int ret = epoll_ctl(handle->fdEpoll, EPOLL_CTL_ADD, hObject, &ev);
 		if (ret) {
 			int err = errno;

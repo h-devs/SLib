@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace charset
@@ -74,7 +74,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			sl_size Decode16(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer)
 			{
 				JNIEnv* env = Jni::getCurrent();
@@ -106,10 +106,10 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 		}
 	}
-	
+
 }
 
 #endif

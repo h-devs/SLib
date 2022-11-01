@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	template <class CLASS>
 	class SLIB_EXPORT CryptoHash
 	{
@@ -42,40 +42,40 @@ namespace slib
 			h.update(input, n);
 			h.finish(output);
 		}
-		
+
 		static void hash(const StringView& s, void* output) noexcept
 		{
 			hash(s.getData(), s.getLength(), output);
 		}
-		
+
 		static void hash(const MemoryView& mem, void* output) noexcept
 		{
 			hash(mem.data, mem.size, output);
 		}
-		
+
 		static Memory hash(const void* input, sl_size n) noexcept
 		{
 			char v[CLASS::HashSize];
 			hash(input, n, v);
 			return Memory::create(v, CLASS::HashSize);
 		}
-		
+
 		static Memory hash(const StringView& s) noexcept
 		{
 			char v[CLASS::HashSize];
 			hash(s.getData(), s.getLength(), v);
 			return Memory::create(v, CLASS::HashSize);
 		}
-		
+
 		static Memory hash(const MemoryView& mem) noexcept
 		{
 			char v[CLASS::HashSize];
 			hash(mem.data, mem.size, v);
 			return Memory::create(v, CLASS::HashSize);
 		}
-		
+
 	};
-	
+
 }
 
 #endif

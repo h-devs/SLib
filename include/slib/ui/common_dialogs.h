@@ -34,12 +34,12 @@ namespace slib
 	{
 	public:
 		AlertDialog();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AlertDialog)
-		
+
 	public:
 		DialogResult run();
-		
+
 		void show();
 
 	public:
@@ -54,32 +54,32 @@ namespace slib
 		String titleCancel;
 		String titleYes;
 		String titleNo;
-		
+
 		Function<void()> onOK;
 		Function<void()> onCancel;
 		Function<void()> onYes;
 		Function<void()> onNo;
 		Function<void()> onError;
 		Function<void(DialogResult)> onComplete;
-		
+
 	public:
 		DialogResult _run();
-		
+
 		sl_bool _show();
-		
+
 		sl_bool _showMobilePopup();
-		
+
 		void _onResult(DialogResult result);
-		
+
 	protected:
 		DialogResult _runOnUiThread();
-		
+
 		DialogResult _runByShow();
-		
+
 		void _showOnUiThread();
-		
+
 		void _showByRun();
-		
+
 		AlertDialog* _getReferable();
 
 	};
@@ -91,22 +91,22 @@ namespace slib
 		OpenFiles = 3,
 		SelectDirectory = 4
 	};
-	
+
 	class FileDialogFilter
 	{
 	public:
 		String title;
-		
+
 		// To specify multiple filter patterns for a single display string, use a semicolon to separate the patterns (for example, "*.TXT;*.DOC;*.BAK").
 		String patterns;
-		
+
 	public:
 		FileDialogFilter();
-		
+
 		FileDialogFilter(const String& title, const String& patterns);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileDialogFilter)
-		
+
 	};
 
 	class SLIB_EXPORT FileDialog : public Referable
@@ -115,14 +115,14 @@ namespace slib
 		static List<String> openFiles(const Ref<Window>& parent);
 
 		static String openFile(const Ref<Window>& parent);
-		
+
 		static String saveFile(const Ref<Window>& parent);
-		
+
 		static String selectDirectory(const Ref<Window>& parent);
-		
+
 	public:
 		FileDialog();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileDialog)
 
 	public:
@@ -132,7 +132,7 @@ namespace slib
 
 		// To specify multiple filter patterns for a single display string, use a semicolon to separate the patterns (for example, "*.TXT;*.DOC;*.BAK").
 		void addFilter(const String& title, const String& patterns);
-		
+
 	public:
 		FileDialogType type;
 		Ref<Window> parent;
@@ -140,31 +140,31 @@ namespace slib
 		sl_bool flagShowHiddenFiles;
 
 		String defaultFileExt;
-		
+
 		List<FileDialogFilter> filters;
 
 		DialogResult result;
 		String selectedPath;
 		List<String> selectedPaths;
-		
+
 		Function<void(FileDialog&)> onComplete;
-		
+
 	public:
 		DialogResult _run();
-		
+
 		sl_bool _show();
-		
+
 		void _onResult(DialogResult result);
-		
+
 	protected:
 		DialogResult _runOnUiThread();
-		
+
 		DialogResult _runByShow();
-		
+
 		void _showOnUiThread();
-		
+
 		void _showByRun();
-		
+
 		FileDialog* _getReferable();
 
 	};
@@ -191,7 +191,7 @@ namespace slib
 		Function<void()> onCancel;
 
 	};
-	
+
 }
 
 #endif

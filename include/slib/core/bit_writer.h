@@ -146,7 +146,7 @@ namespace slib
 		}
 
 	};
-	
+
 }
 
 #endif

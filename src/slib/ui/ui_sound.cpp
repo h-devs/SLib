@@ -24,7 +24,7 @@
 
 namespace slib
 {
-	
+
 #if !defined(SLIB_UI_IS_WIN32)
 	void UISound::play(UISoundAlias sound)
 	{

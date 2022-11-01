@@ -235,13 +235,13 @@ namespace slib
 		{
 
 			/*
-			
+
 			Color names supported by all web-browsers
-			
+
 			http://www.w3schools.com/colors/colors_names.asp
-			
+
 			*/
-		
+
 #define PRIV_MAP_COLOR(NAME) \
 			{ \
 				SLIB_STATIC_STRING(_s, #NAME); \
@@ -253,7 +253,7 @@ namespace slib
 			public:
 				HashTable<String, Color> mapName;
 
-				
+
 				NameMap() noexcept
 				{
 					PRIV_MAP_COLOR(AliceBlue)
@@ -400,12 +400,12 @@ namespace slib
 					PRIV_MAP_COLOR(Zero)
 					PRIV_MAP_COLOR(None)
 				}
-				
+
 				sl_bool getColorFromName(const String& nameLower, Color& color) noexcept
 				{
 					return mapName.get(nameLower, &color);
 				}
-				
+
 			};
 
 			SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
@@ -416,23 +416,23 @@ namespace slib
 				if (pos >= len) {
 					return SLIB_PARSE_ERROR;
 				}
-				
+
 				sl_size start;
-				
+
 				if (sz[pos] == '#') {
-					
+
 					pos++;
-					
+
 					start = pos;
-					
+
 					for (; pos < len; pos++) {
 						if (!(SLIB_CHAR_IS_HEX(sz[pos]))) {
 							break;
 						}
 					}
-					
+
 					sl_size n = pos - start;
-					
+
 					if (n == 6 || n == 8) {
 						if (_out) {
 							sl_uint32 r, g, b, a;
@@ -451,29 +451,29 @@ namespace slib
 						}
 						return pos;
 					}
-					
+
 				} else {
-					
+
 					start = pos;
-					
+
 					for (; pos < len; pos++) {
 						if (!(SLIB_CHAR_IS_ALPHA(sz[pos]))) {
 							break;
 						}
 					}
-					
+
 					sl_size n = pos - start;
-					
+
 					if (n > 0) {
-						
+
 						if ((n == 3 || n ==4) && (sz[start] == 'r' || sz[start] == 'R') && (sz[start + 1] == 'g' || sz[start + 1] == 'G') && (sz[start + 2] == 'b' || sz[start + 2] == 'B')) {
-							
+
 							if (n == 4) {
 								if (sz[start + 3] != 'a' && sz[start + 3] != 'A') {
 									return SLIB_PARSE_ERROR;
 								}
 							}
-							
+
 							for (; pos < len; pos++) {
 								if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
 									break;
@@ -482,18 +482,18 @@ namespace slib
 							if (pos >= len) {
 								return SLIB_PARSE_ERROR;
 							}
-							
+
 							if (sz[pos] != '(') {
 								return SLIB_PARSE_ERROR;
 							}
 							pos++;
-							
+
 							sl_reg iRet;
 							sl_uint32 comp[3];
 							sl_real a = 1;
-							
+
 							for (sl_size i = 0; i < n; i++) {
-								
+
 								for (; pos < len; pos++) {
 									if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
 										break;
@@ -542,7 +542,7 @@ namespace slib
 								}
 								pos++;
 							}
-							
+
 							if (_out) {
 								if (n == 4) {
 									*_out = Color(comp[0], comp[1], comp[2], (sl_uint32)(a * 255));
@@ -550,17 +550,17 @@ namespace slib
 									*_out = Color(comp[0], comp[1], comp[2]);
 								}
 							}
-							
+
 							return pos;
-							
+
 						} else if (n < 64) {
-							
+
 							sl_char8 s[64];
 							for (sl_size i = 0; i < n; i++) {
 								sl_char8 ch = (sl_char8)(sz[start + i]);
 								s[i] = SLIB_CHAR_UPPER_TO_LOWER(ch);
 							}
-							
+
 							NameMap* nm = GetNameMap();
 							if (nm) {
 								Color color;
@@ -571,7 +571,7 @@ namespace slib
 									return pos;
 								}
 							}
-							
+
 						}
 					}
 				}
@@ -604,7 +604,7 @@ namespace slib
 	{
 		return transformColor(Color4f(src.x, src.y, src.z, 1));
 	}
-	
+
 	void ColorMatrix::setOverlay(const Color4f& c) noexcept
 	{
 		red = Color4f::zero();
@@ -618,12 +618,12 @@ namespace slib
 	{
 		setOverlay((Color4f)c);
 	}
-	
+
 	void ColorMatrix::setOverlay(const Color3f& c) noexcept
 	{
 		setOverlay(Color4f(c.x, c.y, c.z, 1));
 	}
-	
+
 
 #define YUV_YG 18997 /* round(1.164 * 64 * 256 * 256 / 257) */
 #define YUV_YGB 1160 /* 1.164 * 64 * 16 - adjusted for even error distribution */

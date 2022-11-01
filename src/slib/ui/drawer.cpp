@@ -27,12 +27,12 @@
 namespace slib
 {
 	SLIB_DEFINE_OBJECT(Drawer, ViewGroup)
-	
+
 	Drawer::Drawer()
 	{
 		setCreatingInstance(sl_true);
 		setSavingCanvasState(sl_false);
-		
+
 		setWidthWeight(1, UIUpdateMode::Init);
 		setHeightFilling(1, UIUpdateMode::Init);
 		setBackgroundColor(Color(0, 0, 0, 100), UIUpdateMode::Init);
@@ -57,12 +57,12 @@ namespace slib
 
 		m_callbackParentMouseEvent = SLIB_FUNCTION_WEAKREF(this, _onParentMouseEvent);
 	}
-	
+
 	sl_bool Drawer::isOpened()
 	{
 		return m_flagOpened;
 	}
-	
+
 	void Drawer::open()
 	{
 		if (!(isDrawingThread())) {
@@ -85,12 +85,12 @@ namespace slib
 		sl_real w = (sl_real)(getDrawerSize());
 		m_animation = content->startTranslateAnimationTo(_makeContentTranslation(w), (w - _getContentTranslation()) / w * 0.5f, SLIB_FUNCTION_WEAKREF(this, _onEndOpenAnimation), AnimationCurve::EaseOut, AnimationFlags::NotSelfAlive);
 	}
-	
+
 	void Drawer::_onEndOpenAnimation()
 	{
 		m_animation.setNull();
 	}
-	
+
 	void Drawer::close()
 	{
 		if (!(isDrawingThread())) {
@@ -112,18 +112,18 @@ namespace slib
 		sl_real w = (sl_real)(getDrawerSize());
 		m_animation = content->startTranslateAnimationTo(_makeContentTranslation(0), _getContentTranslation() / w * 0.5f, SLIB_FUNCTION_WEAKREF(this, _onEndCloseAnimation), AnimationCurve::EaseOut, AnimationFlags::NotSelfAlive);
 	}
-	
+
 	void Drawer::_onEndCloseAnimation()
 	{
 		m_animation.setNull();
 		setVisible(sl_false);
 	}
-	
+
 	Ref<View> Drawer::getContent()
 	{
 		return getChild(0);
 	}
-	
+
 	void Drawer::setContent(const Ref<View>& content)
 	{
 		removeAllChildren();
@@ -131,7 +131,7 @@ namespace slib
 			addChild(content);
 		}
 	}
-	
+
 	sl_ui_len Drawer::getDrawerSize()
 	{
 		sl_ui_len ret = m_drawerSize;
@@ -148,12 +148,12 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void Drawer::setDrawerSize(sl_ui_len size)
 	{
 		m_drawerSize = size;
 	}
-	
+
 	sl_ui_len Drawer::getDragEdgeSize()
 	{
 		sl_ui_len ret = m_dragEdgeSize;
@@ -162,17 +162,17 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void Drawer::setDragEdgeSize(sl_ui_len size)
 	{
 		m_dragEdgeSize = size;
 	}
-	
+
 	Alignment Drawer::getGravity()
 	{
 		return m_gravity;
 	}
-	
+
 	void Drawer::setGravity(const Alignment& align)
 	{
 		if ((align & Alignment::HorizontalMask) == Alignment::Left) {
@@ -197,13 +197,13 @@ namespace slib
 			newParent->addOnMouseEvent(m_callbackParentMouseEvent);
 		}
 	}
-	
+
 	void Drawer::dispatchMouseEvent(UIEvent *ev)
 	{
 		_onMouseEvent(ev);
 		ViewGroup::dispatchMouseEvent(ev);
 	}
-	
+
 	void Drawer::dispatchTouchEvent(UIEvent *ev)
 	{
 		_onMouseEvent(ev);
@@ -226,14 +226,14 @@ namespace slib
 			close();
 		}
 	}
-	
+
 	void Drawer::onCancel(UIEvent* ev)
 	{
 		close();
 		ev->preventDefault();
 		ev->stopPropagation();
 	}
-	
+
 	void Drawer::_onParentMouseEvent(View* parent, UIEvent* ev)
 	{
 		Ref<View> content = getContent();
@@ -294,9 +294,9 @@ namespace slib
 				m_motionTracker.clearMovements();
 			}
 		}
-		
+
 	}
-	
+
 	Vector2 Drawer::_makeContentTranslation(sl_real t)
 	{
 		if (t < 0) {
@@ -324,7 +324,7 @@ namespace slib
 		}
 		return Vector2::zero();
 	}
-	
+
 	sl_real Drawer::_getContentTranslation()
 	{
 		Ref<View> content = getContent();
@@ -363,7 +363,7 @@ namespace slib
 		}
 		return t;
 	}
-	
+
 	void Drawer::_setContentTranslation(sl_real t)
 	{
 		Ref<View> content = getContent();
@@ -372,5 +372,5 @@ namespace slib
 		}
 		content->setTranslation(_makeContentTranslation(t));
 	}
-	
+
 }

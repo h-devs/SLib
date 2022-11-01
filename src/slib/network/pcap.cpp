@@ -140,18 +140,18 @@ namespace slib
 				pcap_t* m_handle;
 				Ref<Thread> m_thread;
 				sl_bool m_flagInit;
-				
+
 			public:
 				PcapImpl()
 				{
 					m_flagInit = sl_false;
 				}
-				
+
 				~PcapImpl()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<PcapImpl> create(const PcapParam& param)
 				{
@@ -259,7 +259,7 @@ namespace slib
 					}
 					return PCAP_ERROR;
 				}
-				
+
 				void release() override
 				{
 					ObjectLocker lock(this);
@@ -272,7 +272,7 @@ namespace slib
 						m_thread->finishAndWait();
 						m_thread.setNull();
 					}
-					
+
 					pcap_close(m_handle);
 				}
 
@@ -287,7 +287,7 @@ namespace slib
 						m_thread->start();
 					}
 				}
-				
+
 				sl_bool isRunning() override
 				{
 					if (m_thread.isNotNull()) {
@@ -315,7 +315,7 @@ namespace slib
 						pcap->decreaseReferenceNoFree();
 					}
 				}
-				
+
 				void _run()
 				{
 					Thread* thread = Thread::getCurrent();
@@ -393,7 +393,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				String getErrorMessage() override
 				{
 					if (m_flagInit) {
@@ -798,7 +798,7 @@ namespace slib
 		return sl_false;
 #endif
 	}
-	
+
 #ifndef SLIB_PLATFORM_IS_WIN32
 	sl_bool Npcap::install()
 	{

@@ -43,7 +43,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 
@@ -56,9 +56,9 @@ namespace slib
 
 		namespace ui_core
 		{
-			
+
 			CGFloat g_fGlobalScaleFactor = 0;
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidFinishLaunching);
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSData*, NSError*)>, g_callbackDidRegisterForRemoteNotifications);
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidReceiveRemoteNotification);
@@ -68,7 +68,7 @@ namespace slib
 			{
 			public:
 				UIScreen* m_screen;
-				
+
 			public:
 				static Ref<ScreenImpl> create(UIScreen* screen)
 				{
@@ -81,7 +81,7 @@ namespace slib
 					}
 					return ret;
 				}
-				
+
 				static UIScreen* getPrimaryScreen()
 				{
 					NSArray* arr = [UIScreen screens];
@@ -92,7 +92,7 @@ namespace slib
 					UIScreen* primary = [arr objectAtIndex:0];
 					return primary;
 				}
-				
+
 				UIRect getRegion() override
 				{
 					CGRect rect = [m_screen bounds];
@@ -104,9 +104,9 @@ namespace slib
 					region.setHeight((sl_ui_pos)(rect.size.height * f));
 					return region;
 				}
-				
+
 			};
-			
+
 			static BOOL UIPlatform_onOpenUrl(NSURL* url, NSDictionary* options)
 			{
                 List< Function<BOOL(NSURL*, NSDictionary*)> > callbacks(g_callbackOpenURL);
@@ -117,12 +117,12 @@ namespace slib
 				}
 				return MobileApp::dispatchOpenUrlToApp(Apple::getStringFromNSString(url.absoluteString));
 			}
-			
+
 		}
 	}
-	
+
 	using namespace priv::ui_core;
-	
+
 	List< Ref<Screen> > UI::getScreens()
 	{
 		List< Ref<Screen> > ret;
@@ -137,23 +137,23 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	Ref<Screen> UI::getPrimaryScreen()
 	{
 		UIScreen* screen = ScreenImpl::getPrimaryScreen();
 		return UIPlatform::createScreen(screen);
 	}
-	
+
 	Ref<Screen> UI::getFocusedScreen()
 	{
 		return getPrimaryScreen();
 	}
-	
+
 	sl_bool UI::isUiThread()
 	{
 		return [NSThread isMainThread];
 	}
-	
+
 	void UI::dispatchToUiThread(const Function<void()>& _callback, sl_uint32 delayMillis)
 	{
 		Function<void()> callback = _callback;
@@ -170,7 +170,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void UI::openUrl(const StringParam& _url)
 	{
 		if (_url.isNotEmpty()) {
@@ -204,12 +204,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	Ref<Screen> UIPlatform::createScreen(UIScreen* screen)
 	{
 		return ScreenImpl::create(screen);
 	}
-	
+
 	UIScreen* UIPlatform::getScreenHandle(Screen* _screen)
 	{
 		ScreenImpl* screen = (ScreenImpl*)_screen;
@@ -218,21 +218,21 @@ namespace slib
 		}
 		return nil;
 	}
-	
+
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
 		CFRunLoopRun();
 	}
-	
+
 	void UIPlatform::quitLoop()
 	{
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
-	
+
 	void UIPlatform::initApp()
 	{
 	}
-	
+
 	void UIPlatform::runApp()
 	{
 		char* args[] = {sl_null};
@@ -240,11 +240,11 @@ namespace slib
 			UIApplicationMain(0, args, nil, NSStringFromClass([SLIBAppDelegate class]));
 		}
 	}
-	
+
 	void UIPlatform::quitApp()
 	{
 	}
-	
+
 	UIWindow* UIPlatform::getMainWindow()
 	{
 		SLIBAppDelegate* app = (SLIBAppDelegate*)([[UIApplication sharedApplication] delegate]);
@@ -253,12 +253,12 @@ namespace slib
 		}
 		return nil;
 	}
-	
+
 	UIViewController* UIPlatform::getCurrentViewController()
 	{
 		return getCurrentViewController(Ref<Window>::null());
 	}
-	
+
 	UIViewController* UIPlatform::getCurrentViewController(const Ref<Window>& _parentWindow)
 	{
 		Ref<Window> parentWindow = _parentWindow;
@@ -284,7 +284,7 @@ namespace slib
 		}
 		return nil;
 	}
-	
+
 	UIView* UIPlatform::findFirstResponder(UIView* root)
 	{
 		if (root.isFirstResponder) {
@@ -298,8 +298,8 @@ namespace slib
 		}
 		return nil;
 	}
-	
-	
+
+
 	CGFloat UIPlatform::getGlobalScaleFactor()
 	{
 		if (g_fGlobalScaleFactor == 0) {
@@ -314,12 +314,12 @@ namespace slib
 		}
 		return g_fGlobalScaleFactor;
 	}
-	
+
 	void UIPlatform::setGlobalScaleFactor(CGFloat factor)
 	{
 		g_fGlobalScaleFactor = factor;
 	}
-	
+
 	void UIPlatform::registerDidFinishLaunchingCallback(const Function<void(NSDictionary*)>& callback)
 	{
 		g_callbackDidFinishLaunching.add(callback);
@@ -329,17 +329,17 @@ namespace slib
 	{
 		g_callbackDidRegisterForRemoteNotifications.add(callback);
 	}
-	
+
 	void UIPlatform::registerDidReceiveRemoteNotificationCallback(const Function<void(NSDictionary*)>& callback)
 	{
 		g_callbackDidReceiveRemoteNotification.add(callback);
 	}
-	
+
 	void UIPlatform::registerOpenUrlCallback(const Function<BOOL(NSURL*, NSDictionary*)>& callback)
 	{
 		g_callbackOpenURL.add(callback);
 	}
-	
+
 	sl_ui_len MobileApp::getStatusBarHeight()
 	{
 #ifndef SLIB_PLATFORM_IS_IOS_CATALYST
@@ -349,7 +349,7 @@ namespace slib
 		return 0;
 #endif
 	}
-	
+
 	UIEdgeInsets MobileApp::getSafeAreaInsets()
 	{
 		if (@available(iOS 12.0, *)) {
@@ -380,24 +380,24 @@ using namespace slib::priv::window;
 @implementation SLIBAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-	
+
 	slib::Log("App", "Finished Launching");
-	
+
 	ResetOrientation();
-	
+
 	slib::UIApp::dispatchStartToApp();
-	
+
 	g_callbackDidFinishLaunching(launchOptions);
-	
+
 	slib::MobileApp::dispatchCreateActivityToApp();
-	
+
 	return YES;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
 	// Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
 	// Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
-	
+
 	slib::Log("App", "Resign Active");
 
 	slib::MobileApp::dispatchPauseToApp();
@@ -413,7 +413,7 @@ using namespace slib::priv::window;
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
 	// Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-	
+
 	slib::Log("App", "Enter Foreground");
 
 	ResetOrientation();
@@ -426,7 +426,7 @@ using namespace slib::priv::window;
 	slib::Log("App", "Become Active");
 
 	ResetOrientation();
-	
+
 	slib::MobileApp::dispatchResumeToApp();
 }
 
@@ -434,7 +434,7 @@ using namespace slib::priv::window;
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 
 	slib::Log("App", "Terminate");
-	
+
 	slib::MobileApp::dispatchDestroyActivityToApp();
 
 	slib::UIApp::dispatchExitToApp();
@@ -477,7 +477,7 @@ using namespace slib::priv::window;
 }
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHandler {
-	
+
 	g_callbackDidReceiveRemoteNotification(userInfo);
 	completionHandler(UIBackgroundFetchResultNewData);
 }

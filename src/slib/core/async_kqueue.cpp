@@ -46,9 +46,9 @@ namespace slib
 			};
 		}
 	}
-	
+
 	using namespace priv::async_kqueue;
-	
+
 	void* AsyncIoLoop::_native_createHandle()
 	{
 		int kq;
@@ -142,7 +142,7 @@ namespace slib
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
 		int hObject = (int)(instance->getHandle());
-		
+
 		struct kevent ke[2];
 		int ret = -1;
 
@@ -174,11 +174,11 @@ namespace slib
 	{
 		AsyncIoLoopHandle* handle = (AsyncIoLoopHandle*)m_handle;
 		int hObject = (int)(instance->getHandle());
-		
+
 		AsyncIoMode mode = instance->getMode();
 		struct kevent ke[2];
 		int ret = -1;
-		
+
 		switch (mode) {
 			case AsyncIoMode::InOut:
 				EV_SET(ke, hObject, EVFILT_READ, EV_DELETE, 0, 0, sl_null);
@@ -196,7 +196,7 @@ namespace slib
 			default:
 				break;
 		}
-		
+
 		if (ret == -1) {
 			SLIB_UNUSED(ret);
 		}

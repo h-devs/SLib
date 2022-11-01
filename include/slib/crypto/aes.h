@@ -53,11 +53,11 @@ namespace slib
 		sl_bool setKey(const void* key, sl_size lenKey /* 16, 24, 32 bytes */);
 
 		void setKey_SHA256(const StringView& key);
-		
+
 		void encrypt(sl_uint32& d0, sl_uint32& d1, sl_uint32& d2, sl_uint32& d3) const;
-	
+
 		void decrypt(sl_uint32& d0, sl_uint32& d1, sl_uint32& d2, sl_uint32& d3) const;
-		
+
 		// 128 bits (16 bytes) block
 		void encryptBlock(const void* src, void* dst) const;
 
@@ -70,7 +70,7 @@ namespace slib
 		sl_uint32 m_nCountRounds;
 
 	};
-	
+
 	class SLIB_EXPORT AES_GCM : public GCM<AES>
 	{
 	public:
@@ -80,7 +80,7 @@ namespace slib
 
 	public:
 		void setKey(const void* key, sl_size lenKey /* 16, 24, 32 bytes */);
-	
+
 		void setKey_SHA256(const StringView& key);
 
 		using GCM<AES>::encrypt;

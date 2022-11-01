@@ -12,8 +12,8 @@ class SLIB_TEMPLATE_APP_NAMEApp : public UIApp
 	SLIB_APPLICATION(SLIB_TEMPLATE_APP_NAMEApp)
 public:
 	SLIB_TEMPLATE_APP_NAMEApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 };

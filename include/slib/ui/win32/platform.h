@@ -36,7 +36,7 @@ namespace slib
 	class Cursor;
 	class Menu;
 	class UIEvent;
-	
+
 	class SLIB_EXPORT UIPlatform
 	{
 		PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS
@@ -48,17 +48,17 @@ namespace slib
 		static void removeViewInstance(HWND hWnd);
 		static HWND getViewHandle(ViewInstance* instance);
 		static HWND getViewHandle(View* view);
-		
+
 		static Ref<WindowInstance> createWindowInstance(HWND hWnd, sl_bool flagDestroyOnRelease = sl_true);
 		static void registerWindowInstance(HWND hWnd, WindowInstance* instance);
 		static Ref<WindowInstance> getWindowInstance(HWND hWnd);
 		static void removeWindowInstance(HWND hWnd);
 		static HWND getWindowHandle(WindowInstance* instance);
 		static HWND getWindowHandle(Window* window);
-		
+
 		static Ref<Cursor> createCursor(HCURSOR hCursor, sl_bool flagDestroyOnRelease = sl_true);
 		static HCURSOR getCursorHandle(Cursor* cursor);
-		
+
 		static HMENU getMenuHandle(Menu* menu);
 		static Ref<Menu> getMenu(HMENU hMenu);
 

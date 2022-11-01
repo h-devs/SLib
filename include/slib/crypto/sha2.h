@@ -52,38 +52,38 @@ namespace slib
 
 			public:
 				void update(const void* input, sl_size n) noexcept;
-			
+
 			protected:
 				void _start() noexcept;
 
 				void _finish() noexcept;
 
 				void _updateSection(const sl_uint8* input) noexcept;
-			
+
 			protected:
 				sl_size sizeTotalInput;
 				sl_uint32 rdata_len;
 				sl_uint8 rdata[64];
 				sl_uint32 h[8];
 			};
-			
+
 			class SLIB_EXPORT SHA512Base
 			{
 			public:
 				SHA512Base() noexcept;
 
 				~SHA512Base();
-			
+
 			public:
 				void update(const void* input, sl_size n) noexcept;
-			
+
 			protected:
 				void _start() noexcept;
 
 				void _finish() noexcept;
 
 				void _updateSection(const sl_uint8* input) noexcept;
-			
+
 			protected:
 				sl_size sizeTotalInput;
 				sl_uint32 rdata_len;
@@ -91,10 +91,10 @@ namespace slib
 				sl_uint64 h[8];
 
 			};
-			
+
 		}
 	}
-	
+
 	class SLIB_EXPORT SHA224 : public priv::sha2::SHA256Base, public CryptoHash<SHA224>
 	{
 	public:
@@ -102,7 +102,7 @@ namespace slib
 			HashSize = 28,
 			BlockSize = 64
 		};
-		
+
 	public:
 		SHA224() noexcept;
 
@@ -114,7 +114,7 @@ namespace slib
 		void finish(void* output) noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT SHA256 : public priv::sha2::SHA256Base, public CryptoHash<SHA256>
 	{
 	public:
@@ -122,7 +122,7 @@ namespace slib
 			HashSize = 32,
 			BlockSize = 64
 		};
-		
+
 	public:
 		SHA256() noexcept;
 
@@ -137,7 +137,7 @@ namespace slib
 		static sl_uint32 make32bitChecksum(const void* input, sl_size n) noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT SHA384 : public priv::sha2::SHA512Base, public CryptoHash<SHA384>
 	{
 	public:
@@ -145,7 +145,7 @@ namespace slib
 			HashSize = 48,
 			BlockSize = 128
 		};
-		
+
 	public:
 		SHA384() noexcept;
 
@@ -157,7 +157,7 @@ namespace slib
 		void finish(void* output) noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT SHA512 : public priv::sha2::SHA512Base, public CryptoHash<SHA512>
 	{
 	public:
@@ -165,7 +165,7 @@ namespace slib
 			HashSize = 64,
 			BlockSize = 128
 		};
-		
+
 	public:
 		SHA512() noexcept;
 

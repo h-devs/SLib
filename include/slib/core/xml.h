@@ -40,7 +40,7 @@
 
 namespace slib
 {
-	
+
 	class XmlNodeGroup;
 	class XmlDocument;
 	class XmlElement;
@@ -59,14 +59,14 @@ namespace slib
 		Comment = 5,
 		WhiteSpace = 6
 	};
-	
+
 	class SLIB_EXPORT XmlNode : public Referable
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlNode(XmlNodeType type);
-		
+
 		~XmlNode();
 
 	public:
@@ -127,7 +127,7 @@ namespace slib
 		sl_size getColumnNumberInSource() const;
 
 		void setColumnNumberInSource(sl_size line);
-	
+
 	protected:
 		XmlNodeType m_type;
 		WeakRef<XmlNodeGroup> m_parent;
@@ -137,21 +137,21 @@ namespace slib
 		sl_size m_positionEndInSource;
 		sl_size m_lineInSource;
 		sl_size m_columnInSource;
-	
+
 	protected:
 		void _setDocument(const Ref<XmlDocument>& documentNew);
 
 		friend class XmlNodeGroup;
 
 	};
-	
+
 	class SLIB_EXPORT XmlNodeGroup : public XmlNode
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlNodeGroup(XmlNodeType type);
-		
+
 		~XmlNodeGroup();
 
 	public:
@@ -160,13 +160,13 @@ namespace slib
 		sl_bool buildInnerXml(StringBuffer& output) const;
 
 		String getInnerXml() const;
-	
+
 		sl_size getChildCount() const;
 
 		Ref<XmlNode> getChild(sl_size index) const;
 
 		sl_bool addChild(const Ref<XmlNode>& node);
-	
+
 		sl_bool removeChild(const Ref<XmlNode>& node, sl_bool flagUnregisterDocument = sl_true);
 
 		void removeAllChildren(sl_bool flagUnregisterDocument = sl_true);
@@ -214,14 +214,14 @@ namespace slib
 		Ref<XmlElement> findChildElementByAttribute(const StringView& name, const StringView& value) const;
 
 		Ref<XmlElement> findChildElementById(const StringView& _id) const;
-	
+
 	protected:
 		CList< Ref<XmlNode> > m_children;
-	
+
 		friend class XmlDocument;
 
 	};
-	
+
 	class SLIB_EXPORT XmlAttribute
 	{
 	public:
@@ -230,21 +230,21 @@ namespace slib
 		String localName;
 		String value;
 		String whiteSpacesBeforeName;
-		
+
 	public:
 		XmlAttribute() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(XmlAttribute)
-		
+
 	};
-	
+
 	class SLIB_EXPORT XmlElement : public XmlNodeGroup
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlElement();
-		
+
 		~XmlElement();
 
 	public:
@@ -253,13 +253,13 @@ namespace slib
 		static Ref<XmlElement> create(const String& name, const String& uri, const String& localName);
 
 		sl_bool buildXml(StringBuffer& output) const override;
-	
+
 		String getName() const;
 
 		String getUri() const;
 
 		String getLocalName() const;
-	
+
 		sl_bool setName(const String& name);
 
 		sl_bool setName(const String& name, const String& uri, const String& localName);
@@ -295,13 +295,13 @@ namespace slib
 		sl_bool removeAttribute(const String& name);
 
 		void removeAllAttributes();
-		
+
 		sl_size getStartContentPositionInSource() const;
-		
+
 		void setStartContentPositionInSource(sl_size pos);
 
 		sl_size getEndContentPositionInSource() const;
-		
+
 		void setEndContentPositionInSource(sl_size pos);
 
 	protected:
@@ -319,21 +319,21 @@ namespace slib
 		friend class XmlNodeGroup;
 
 	};
-	
+
 	class SLIB_EXPORT XmlDocument : public XmlNodeGroup
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlDocument();
-		
+
 		~XmlDocument();
 
 	public:
 		static Ref<XmlDocument> create();
 
 		sl_bool buildXml(StringBuffer& output) const override;
-	
+
 		Ref<XmlElement> getElementById(const StringView& _id) const;
 
 		void registerElementsById(const StringView& idAttributeName);
@@ -346,25 +346,25 @@ namespace slib
 		HashMap< String, WeakRef<XmlElement> > m_elementsById;
 
 	};
-	
+
 	class SLIB_EXPORT XmlText : public XmlNode
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlText();
-		
+
 		~XmlText();
 
 	public:
 		static Ref<XmlText> create(const String& text, sl_bool flagCDATA = sl_false);
-	
+
 		static Ref<XmlText> createCDATA(const String& text);
 
 		sl_bool buildText(StringBuffer& output) const override;
 
 		sl_bool buildXml(StringBuffer& output) const override;
-	
+
 		String getText() const override;
 
 		void setText(const String& text);
@@ -376,16 +376,16 @@ namespace slib
 	protected:
 		Atomic<String> m_text;
 		sl_bool m_flagCDATA;
-	
+
 	};
-	
+
 	class SLIB_EXPORT XmlProcessingInstruction : public XmlNode
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlProcessingInstruction();
-		
+
 		~XmlProcessingInstruction();
 
 	public:
@@ -402,20 +402,20 @@ namespace slib
 		String getContent() const;
 
 		void setContent(const String& content);
-	
+
 	protected:
 		Atomic<String> m_target;
 		Atomic<String> m_content;
-	
+
 	};
-	
+
 	class SLIB_EXPORT XmlComment : public XmlNode
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlComment();
-		
+
 		~XmlComment();
 
 	public:
@@ -433,14 +433,14 @@ namespace slib
 		Atomic<String> m_comment;
 
 	};
-	
+
 	class SLIB_EXPORT XmlWhiteSpace : public XmlNode
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		XmlWhiteSpace();
-		
+
 		~XmlWhiteSpace();
 
 	public:
@@ -458,7 +458,7 @@ namespace slib
 		Atomic<String> m_content;
 
 	};
-	
+
 	class SLIB_EXPORT XmlParseControl
 	{
 	public:
@@ -469,7 +469,7 @@ namespace slib
 
 		// write only
 		sl_bool flagChangeSource;
-	
+
 		// read & write
 		sl_size parsingPosition;
 
@@ -481,11 +481,11 @@ namespace slib
 
 	public:
 		XmlParseControl();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(XmlParseControl)
 
 	};
-	
+
 	class SLIB_EXPORT XmlParseParam
 	{
 	public:
@@ -550,7 +550,7 @@ namespace slib
 		void setCreatingOnlyElementsAndTexts();
 
 	};
-	
+
 	/**
 	 * @class Xml
 	 * @brief provides utilities for parsing and build XML.
@@ -632,7 +632,7 @@ namespace slib
 		 * @return `true` on success
 		 */
 		static sl_bool encodeTextToEntities(const String& text, StringBuffer& output);
-		
+
 		/**
 		 * Decodes XML entities (&amp;lt; &amp;gt; &amp;amp; ...) contained in `text`.
 		 *

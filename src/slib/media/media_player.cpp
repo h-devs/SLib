@@ -42,20 +42,20 @@ namespace slib
 
 	using namespace priv::media_player;
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MediaPlayerParam)
 
 	MediaPlayerParam::MediaPlayerParam()
 	{
 		flagVideo = sl_false;
-		
+
 		flagAutoStart = sl_true;
 		flagAutoRepeat = sl_false;
 		flagAutoRelease = sl_true;
-		
+
 		flagSelfAlive = sl_false;
 	}
-	
+
 	void MediaPlayerParam::applyFlags(const MediaPlayerFlags& flags)
 	{
 		flagAutoStart = (flags & MediaPlayerFlags::NotStart) == 0;
@@ -65,20 +65,20 @@ namespace slib
 		flagSelfAlive = (flags & MediaPlayerFlags::NotSelfAlive) == 0;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MediaPlayerRenderVideoParam)
-	
+
 	MediaPlayerRenderVideoParam::MediaPlayerRenderVideoParam()
 	{
 		flagUpdated = sl_false;
-		
+
 		glTextureTransformOES = Matrix3::identity();
-		
+
 		_glEngineIdLast = 0;
 		_glTextureNameOES = 0;
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(MediaPlayer, Object)
 
 	MediaPlayer::MediaPlayer()
@@ -155,7 +155,7 @@ namespace slib
 	{
 		getOnReadyToPlay()(this);
 	}
-	
+
 	void MediaPlayer::_onComplete()
 	{
 		getOnComplete()(this);

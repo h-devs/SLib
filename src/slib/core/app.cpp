@@ -40,13 +40,13 @@ namespace slib
 	{
 		namespace app
 		{
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_weakref_app)
 
 			SLIB_SAFE_STATIC_GETTER(String, GetAppPath, System::getApplicationPath())
-		
+
 			SLIB_SAFE_STATIC_GETTER(String, GetAppDir, System::getApplicationDirectory())
-			
+
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 			static void CrashHandler(int)
 			{
@@ -295,18 +295,18 @@ Microsoft Specific
 				return onExistingInstance();
 			}
 		}
-		
+
 		if (isCrashRecoverySupport()) {
 			System::setCrashHandler(CrashHandler);
 		}
 #endif
-		
+
 		sl_int32 iRet = onRunApp();
-		
+
 		dispatchQuitApp();
 
 		return iRet;
-		
+
 	}
 
 	void Application::dispatchQuitApp()
@@ -347,7 +347,7 @@ Microsoft Specific
 	{
 		m_flagCrashRecoverySupport = flagSupport;
 	}
-	
+
 	String Application::getApplicationPath()
 	{
 		String* s = GetAppPath();
@@ -390,7 +390,7 @@ Microsoft Specific
 	{
 		return sl_true;
 	}
-	
+
 	void Application::grantPermissions(const AppPermissions& permissions, const Function<void()>& callback)
 	{
 		callback();
@@ -455,20 +455,20 @@ Microsoft Specific
 		registerRunAtStartup(path);
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS) && !defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 	void Application::registerRunAtStartup(const StringParam& path)
 	{
 	}
-	
+
 	void Application::registerRunAtStartup()
 	{
 	}
-	
+
 	void Application::unregisterRunAtStartup(const StringParam& path)
 	{
 	}
-	
+
 	void Application::unregisterRunAtStartup()
 	{
 	}

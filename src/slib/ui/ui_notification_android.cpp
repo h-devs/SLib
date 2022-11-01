@@ -32,15 +32,15 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ui_notification_android
 		{
-			
+
 			SLIB_JNI_BEGIN_CLASS(JUserNotificationMessage, "slib/android/ui/notification/UserNotificationMessage")
 				SLIB_JNI_NEW(init, "()V");
-				
+
 				SLIB_JNI_INT_FIELD(id)
 				SLIB_JNI_STRING_FIELD(title)
 				SLIB_JNI_STRING_FIELD(content)
@@ -80,7 +80,7 @@ namespace slib
 				SLIB_JNI_STATIC_METHOD(cancelAll, "cancelAll", "(Landroid/app/Activity;)V");
 				SLIB_JNI_NATIVE(onClickMessage, "nativeOnClickMessage", "(Lslib/android/ui/notification/UserNotificationMessage;)V", OnClickMessage);
 			SLIB_JNI_END_CLASS
-			
+
 			class UserNotificationImpl : public UserNotification
 			{
 			public:
@@ -177,7 +177,7 @@ namespace slib
 				{
 					removeDeliveredNotification(m_id);
 				}
-				
+
 			};
 
 			void OnClickMessage(JNIEnv* env, jobject _this, jobject jmsg)
@@ -215,11 +215,11 @@ namespace slib
 	void UserNotification::removePendingNotification(const String& identifier)
 	{
 	}
-	
+
 	void UserNotification::removePendingNotification(sl_uint32 id)
 	{
 	}
-	
+
 	void UserNotification::removeAllPendingNotifications()
 	{
 	}
@@ -231,7 +231,7 @@ namespace slib
 			removeDeliveredNotification(id);
 		}
 	}
-	
+
 	void UserNotification::removeDeliveredNotification(sl_uint32 id)
 	{
 		jobject context = Android::getCurrentContext();
@@ -239,7 +239,7 @@ namespace slib
 			JUserNotification::cancel.call(sl_null, context, (jint)id);
 		}
 	}
-	
+
 	void UserNotification::removeAllDeliveredNotifications()
 	{
 		jobject context = Android::getCurrentContext();

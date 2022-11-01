@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(UrlRequestParam)
 
 	UrlRequestParam::UrlRequestParam()
@@ -41,27 +41,27 @@ namespace slib
 		flagAllowInsecureConnection = UrlRequest::isDefaultAllowInsecureConnection();
 		dispatcher = UrlRequest::getDefaultDispatcher();
 	}
-	
+
 	void UrlRequestParam::setContentType(const String& contentType)
 	{
 		requestHeaders.put_NoLock(HttpHeader::ContentType, contentType);
 	}
-	
+
 	void UrlRequestParam::setRequestBodyAsMemory(const Memory &mem)
 	{
 		requestBody = mem;
 	}
-	
+
 	void UrlRequestParam::setRequestBodyAsString(const String& str)
 	{
 		requestBody = str.toMemory();
 	}
-	
+
 	void UrlRequestParam::setRequestBodyAsJson(const Json& json)
 	{
 		requestBody = json.toJsonString().toMemory();
 	}
-	
+
 	void UrlRequestParam::setRequestBodyAsXml(const Ref<XmlDocument>& xml)
 	{
 		if (xml.isNotNull()) {
@@ -70,7 +70,7 @@ namespace slib
 			requestBody.setNull();
 		}
 	}
-	
+
 	void UrlRequestParam::setRequestBody(const Variant& varBody)
 	{
 		if (varBody.isNotNull()) {
@@ -105,7 +105,7 @@ namespace slib
 	{
 		requestHeaders.put_NoLock(header, value);
 	}
-	
+
 	void UrlRequestParam::addRequestHeader(const String& header, const String& value)
 	{
 		requestHeaders.add_NoLock(header, value);
@@ -125,48 +125,48 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void UrlRequestParam::setJsonData(const Json& json)
 	{
 		setContentType(ContentType::Json);
 		setRequestBodyAsJson(json);
 	}
-	
+
 	namespace priv
 	{
 		namespace url_request
 		{
-			
+
 			sl_uint32 g_default_timeout = 60000;
 			sl_bool g_default_allowInsecureConnection = sl_false;
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
-			
+
 		}
 	}
-	
+
 	using namespace priv::url_request;
-	
+
 	sl_uint32 UrlRequest::getDefaultTimeout()
 	{
 		return g_default_timeout;
 	}
-	
+
 	void UrlRequest::setDefaultTimeout(sl_uint32 ms)
 	{
 		g_default_timeout = ms;
 	}
-	
+
 	sl_bool UrlRequest::isDefaultAllowInsecureConnection()
 	{
 		return g_default_allowInsecureConnection;
 	}
-	
+
 	void UrlRequest::setDefaultAllowInsecureConnection(sl_bool flag)
 	{
 		g_default_allowInsecureConnection = flag;
 	}
-	
+
 	Ref<Dispatcher> UrlRequest::getDefaultDispatcher()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_default_dispatcher)) {
@@ -174,7 +174,7 @@ namespace slib
 		}
 		return g_default_dispatcher;
 	}
-	
+
 	void UrlRequest::setDefaultDispatcher(const Ref<Dispatcher>& dispatcher)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_default_dispatcher)) {
@@ -182,5 +182,5 @@ namespace slib
 		}
 		g_default_dispatcher = dispatcher;
 	}
-	
+
 }

@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TouchPoint)
 
 	TouchPoint::TouchPoint(): pressure(0), phase(TouchPhase::Move), pointerId(0)
@@ -299,19 +299,19 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		namespace ui_event
 		{
-			
+
 			class KeyboardEvent : public UIEvent
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				sl_uint32 m_systemKeycode;
-				
+
 			public:
 				KeyboardEvent(UIAction action, const Time& time, sl_uint32 systemKeyboard): UIEvent(action, time), m_systemKeycode(systemKeyboard)
 				{
 				}
-				
+
 			public:
 				Ref<UIEvent> duplicate() const override
 				{
@@ -324,17 +324,17 @@ sl_bool UIEvent::is##NAME##Key() const \
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(KeyboardEvent, UIEvent)
-			
-			
+
+
 			class MouseEvent : public UIEvent
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				TouchPoint m_pt;
-				
+
 			public:
 				MouseEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y): UIEvent(action, time), m_pt(x, y)
 				{
@@ -343,7 +343,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 				MouseEvent(UIAction action, const Time& time, const TouchPoint& pt): UIEvent(action, time), m_pt(pt)
 				{
 				}
-				
+
 			public:
 				Ref<UIEvent> duplicate() const override
 				{
@@ -356,23 +356,23 @@ sl_bool UIEvent::is##NAME##Key() const \
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(MouseEvent, UIEvent)
-			
-			
+
+
 			class MouseWheelEvent : public MouseEvent
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				sl_real m_deltaX;
 				sl_real m_deltaY;
-				
+
 			public:
 				MouseWheelEvent(const Time& time, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY): MouseEvent(UIAction::MouseWheel, time, x, y), m_deltaX(deltaX), m_deltaY(deltaY)
 				{
 				}
-				
+
 			public:
 				Ref<UIEvent> duplicate() const override
 				{
@@ -385,17 +385,17 @@ sl_bool UIEvent::is##NAME##Key() const \
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(MouseWheelEvent, MouseEvent)
-			
+
 
 			class TouchEvent : public MouseEvent
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				Array<TouchPoint> m_points;
-				
+
 			public:
 				TouchEvent(UIAction action, const Time& time, const TouchPoint& pt) : MouseEvent(action, time, pt)
 				{
@@ -429,9 +429,9 @@ sl_bool UIEvent::is##NAME##Key() const \
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(TouchEvent, MouseEvent)
-			
+
 
 			class SetCursorEvent : public MouseEvent
 			{
@@ -466,10 +466,10 @@ sl_bool UIEvent::is##NAME##Key() const \
 			class DragEvent : public MouseEvent
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				DragContext m_context;
-				
+
 			public:
 				DragEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y, const DragContext& context) : MouseEvent(action, time, x, y), m_context(context)
 				{
@@ -487,11 +487,11 @@ sl_bool UIEvent::is##NAME##Key() const \
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(DragEvent, MouseEvent)
-			
+
 			DragContext g_currentDragContext;
-			
+
 		}
 	}
 
@@ -547,7 +547,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		return new TouchEvent(action, time, points);
 	}
-	
+
 	Ref<UIEvent> UIEvent::createTouchEvent(UIAction action, const TouchPoint& point, const Time& time)
 	{
 		return new TouchEvent(action, time, Array<TouchPoint>::create(&point, 1));
@@ -960,22 +960,22 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		return m_flags;
 	}
-	
+
 	void UIEvent::resetFlags()
 	{
 		m_flags = 0;
 	}
-	
+
 	void UIEvent::addFlag(UIEventFlags flags)
 	{
 		SLIB_SET_FLAG(m_flags, flags);
 	}
-	
+
 	void UIEvent::removeFlag(UIEventFlags flags)
 	{
 		SLIB_RESET_FLAG(m_flags, flags);
 	}
-	
+
 	void UIEvent::preventDefault()
 	{
 		SLIB_SET_FLAG(m_flags, UIEventFlags::PreventDefault);
@@ -1075,7 +1075,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 				HashTable<sl_uint32, String> mapShort;
 				HashTable<String, sl_uint32> mapName;
 				String nameInvalid;
-				
+
 			public:
 
 #define PRIV_MAP_KEY(NAME) \
@@ -1100,12 +1100,12 @@ sl_bool UIEvent::is##NAME##Key() const \
 					SLIB_STATIC_STRING(_invalid, "Invalid")
 					nameInvalid = _invalid;
 					PRIV_MAP_KEY(Unknown);
-					
+
 					PRIV_MAP_KEY2(Backspace, "Back")
 					PRIV_MAP_KEY(Tab)
 					PRIV_MAP_KEY(Enter)
 					PRIV_MAP_KEY2(Escape, "Esc")
-					
+
 					PRIV_MAP_KEY(Space)
 					PRIV_MAP_KEY2(Grave, "`")
 					PRIV_MAP_KEY2(Equal, "=")
@@ -1118,7 +1118,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY2(Minus, "-")
 					PRIV_MAP_KEY2(Period, ".")
 					PRIV_MAP_KEY2(Divide, "/")
-					
+
 					PRIV_MAP_KEY2(Num0, "0")
 					PRIV_MAP_KEY2(Num1, "1")
 					PRIV_MAP_KEY2(Num2, "2")
@@ -1129,7 +1129,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY2(Num7, "7")
 					PRIV_MAP_KEY2(Num8, "8")
 					PRIV_MAP_KEY2(Num9, "9")
-					
+
 					PRIV_MAP_KEY(A)
 					PRIV_MAP_KEY(B)
 					PRIV_MAP_KEY(C)
@@ -1156,7 +1156,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY(X)
 					PRIV_MAP_KEY(Y)
 					PRIV_MAP_KEY(Z)
-					
+
 					PRIV_MAP_KEY(Numpad0)
 					PRIV_MAP_KEY(Numpad1)
 					PRIV_MAP_KEY(Numpad2)
@@ -1167,14 +1167,14 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY(Numpad7)
 					PRIV_MAP_KEY(Numpad8)
 					PRIV_MAP_KEY(Numpad9)
-					
+
 					PRIV_MAP_KEY2(NumpadDivide, "Numpad/")
 					PRIV_MAP_KEY2(NumpadMultiply, "Numpad*")
 					PRIV_MAP_KEY2(NumpadMinus, "Numpad-")
 					PRIV_MAP_KEY2(NumpadPlus, "Numpad+")
 					PRIV_MAP_KEY2(NumpadEnter, "NumpadEnter")
 					PRIV_MAP_KEY2(NumpadDecimal, "Numpad.")
-					
+
 					PRIV_MAP_KEY(F1)
 					PRIV_MAP_KEY(F2)
 					PRIV_MAP_KEY(F3)
@@ -1187,7 +1187,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY(F10)
 					PRIV_MAP_KEY(F11)
 					PRIV_MAP_KEY(F12)
-					
+
 					PRIV_MAP_KEY2(PageUp, "PgUp")
 					PRIV_MAP_KEY2(PageDown, "PgDn")
 					PRIV_MAP_KEY(Home)
@@ -1201,7 +1201,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY2(Delete, "Del")
 					PRIV_MAP_KEY(Sleep)
 					PRIV_MAP_KEY(Pause)
-					
+
 					PRIV_MAP_KEY(GoHome)
 					PRIV_MAP_KEY(GoMenu)
 					PRIV_MAP_KEY(GoBack)
@@ -1247,7 +1247,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					PRIV_MAP_KEY(Chinese)
 					PRIV_MAP_KEY(Korean)
 				}
-				
+
 				String get(Keycode code, sl_bool flagShort)
 				{
 					String ret;
@@ -1262,7 +1262,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					}
 					return nameInvalid;
 				}
-				
+
 				Keycode getCode(const String& keyName)
 				{
 					sl_uint32 keycode;
@@ -1271,7 +1271,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 					}
 					return Keycode::Unknown;
 				}
-				
+
 			};
 
 			SLIB_SAFE_STATIC_GETTER(KeyNameMapper, GetKeyNameMapper)

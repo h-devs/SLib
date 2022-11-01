@@ -26,7 +26,7 @@
 
 namespace slib
 {
-	
+
 	EthernetMacTable::EthernetMacTable()
 	{
 	}

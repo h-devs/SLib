@@ -59,7 +59,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void copyTabs(GtkNotebook* handle)
 				{
 					ListLocker<TabViewItem> items(m_items);
@@ -76,7 +76,7 @@ namespace slib
 						gtk_notebook_set_current_page(handle, m_indexSelected);
 					}
 				}
-				
+
 				void setTabContentView(GtkNotebook* handle, sl_uint32 index, const Ref<View>& view)
 				{
 					GtkWidget *page = gtk_notebook_get_nth_page(handle, index);
@@ -102,7 +102,7 @@ namespace slib
 						gtk_container_add((GtkContainer*)page, content);
 					}
 				}
-				
+
 				void updateContentViewSize(GtkNotebook* handle)
 				{
 					int width = 0, height = 0;
@@ -125,13 +125,13 @@ namespace slib
 			class TabViewInstance : public GTK_ViewInstance, public ITabViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				GtkNotebook* getHandle()
 				{
 					return (GtkNotebook*)m_handle;
 				}
-				
+
 				Ref<TabViewHelper> getHelper()
 				{
 					return CastRef<TabViewHelper>(getView());
@@ -144,7 +144,7 @@ namespace slib
 					view->copyTabs(handle);
 					g_signal_connect((GtkNotebook*)handle, "switch-page", G_CALLBACK(onSelectTab), handle);
 				}
-				
+
 				void refreshTabCount(TabView* view) override
 				{
 					GtkNotebook* handle = getHandle();
@@ -152,11 +152,11 @@ namespace slib
 						static_cast<TabViewHelper*>(view)->applyTabCount(handle);
 					}
 				}
-				
+
 				void refreshSize(TabView* view) override
 				{
 				}
-				
+
 				void setTabLabel(TabView* view, sl_uint32 index, const String& _text) override
 				{
 					GtkNotebook* handle = getHandle();
@@ -168,7 +168,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setTabContentView(TabView* view, sl_uint32 index, const Ref<View>& content) override
 				{
 					GtkNotebook* handle = getHandle();
@@ -176,7 +176,7 @@ namespace slib
 						(static_cast<TabViewHelper*>(view))->setTabContentView(handle, index, content);
 					}
 				}
-				
+
 				void selectTab(TabView* view, sl_uint32 index) override
 				{
 					GtkNotebook* handle = getHandle();
@@ -184,7 +184,7 @@ namespace slib
 						gtk_notebook_set_current_page(handle, index);
 					}
 				}
-				
+
 				sl_bool getContentViewSize(TabView* view, UISize& _out) override
 				{
 					GtkNotebook* handle = getHandle();
@@ -205,11 +205,11 @@ namespace slib
 						helper->dispatchSelectTab((sl_uint32)(page_num));
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(TabViewInstance, GTK_ViewInstance)
-			
+
 		}
 	}
 
@@ -220,12 +220,12 @@ namespace slib
 		GtkWidget* handle = gtk_notebook_new();
 		return GTK_ViewInstance::create<TabViewInstance>(this, parent, handle);
 	}
-	
+
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()
 	{
 		return CastRef<TabViewInstance>(getViewInstance());
 	}
-	
+
 }
 
 #endif

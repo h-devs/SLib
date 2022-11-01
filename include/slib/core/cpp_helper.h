@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T> struct RemoveReference { typedef T Type; };
 	template <class T> struct RemoveReference<T&> { typedef T Type; };
 	template <class T> struct RemoveReference<T&&> { typedef T Type; };
@@ -79,7 +79,7 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	constexpr T&& Forward(typename RemoveReference<T>::Type& v)
 	{
@@ -98,8 +98,8 @@ namespace slib
 	{
 		return N;
 	}
-	
-	
+
+
 	template <class IT>
 	struct UnsignedType;
 	template <>

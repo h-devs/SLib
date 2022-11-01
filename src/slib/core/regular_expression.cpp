@@ -35,7 +35,7 @@ namespace slib
 	{
 		namespace regex
 		{
-			
+
 			static constexpr int ToInt(int n)
 			{
 				return n;
@@ -118,12 +118,12 @@ namespace slib
 	{
 		m_handle = reinterpret_cast<HRegEx>(Create(pattern, 0));
 	}
-	
+
 	RegularExpression::RegularExpression(const StringParam& pattern, const RegularExpressionFlags& flags) noexcept
 	{
 		m_handle = reinterpret_cast<HRegEx>(Create(pattern, flags));
 	}
-	
+
 	sl_bool RegularExpression::match(const StringParam& _str, const RegularExpressionMatchFlags& _flags) noexcept
 	{
 		std::regex* handle = reinterpret_cast<std::regex*>(m_handle);
@@ -172,7 +172,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool RegularExpression::matchEmail(const StringParam& str) noexcept
 	{
 		SLIB_SAFE_LOCAL_STATIC(RegularExpression, regex, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
@@ -181,5 +181,5 @@ namespace slib
 		}
 		return regex.match(str);
 	}
-	
+
 }

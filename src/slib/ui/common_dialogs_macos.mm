@@ -59,7 +59,7 @@ namespace slib
 		if ([titleNo length] == 0) {
 			titleNo = Apple::getNSStringFromString(string::no::get());
 		}
-		
+
 		DialogResult result1 = DialogResult::Cancel;
 		DialogResult result2 = DialogResult::Cancel;
 		DialogResult result3 = DialogResult::Cancel;
@@ -105,7 +105,7 @@ namespace slib
 			[alert addButtonWithTitle:titleOK];
 			result1 = DialogResult::OK;
 		}
-		
+
 		NSWindow* hParent = UIPlatform::getWindowHandle(parent.get());
 		__block NSInteger result;
 		if (hParent != nil) {
@@ -146,7 +146,7 @@ namespace slib
 	DialogResult FileDialog::_run()
 	{
 		NSSavePanel* panel;
-		
+
 		if (type == FileDialogType::SelectDirectory) {
 			NSOpenPanel* openPanel = [NSOpenPanel openPanel];
 			if (openPanel != nil) {
@@ -174,9 +174,9 @@ namespace slib
 		} else if (type == FileDialogType::SaveFile) {
 			panel = [NSSavePanel savePanel];
 		}
-		
+
 		if (panel != nil) {
-			
+
 			[panel setCanCreateDirectories:YES];
 			if (title.isNotEmpty()) {
 				[panel setTitle:Apple::getNSStringFromString(title)];
@@ -185,7 +185,7 @@ namespace slib
 			[panel setAllowsOtherFileTypes:YES];
 			[panel setTreatsFilePackagesAsDirectories:YES];
 			[panel setExtensionHidden:NO];
-			
+
 			String initialDir;
 			String fileName;
 			if (File::isDirectory(selectedPath)) {
@@ -205,7 +205,7 @@ namespace slib
 			if (fileName.isNotEmpty()) {
 				[panel setNameFieldStringValue:(Apple::getNSStringFromString(fileName))];
 			}
-			
+
 			NSWindow* hParent = UIPlatform::getWindowHandle(parent.get());
 			__block NSInteger result;
 			if (hParent != nil) {
@@ -253,7 +253,7 @@ namespace slib
 	{
 		_showByRun();
 	}
-	
+
 	sl_bool FileDialog::_show()
 	{
 		return sl_false;

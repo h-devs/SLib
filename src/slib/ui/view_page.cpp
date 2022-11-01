@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace view_page
@@ -55,16 +55,16 @@ namespace slib
 	SLIB_DEFINE_OBJECT(ViewPage, ViewGroup)
 
 	using namespace priv::view_page;
-	
+
 	ViewPage::ViewPage()
 	{
 		setCreatingInstance(sl_true);
-		
+
 		m_popupState = PopupState::None;
 		m_popupBackgroundColor = Color::zero();
-		
+
 		m_countActiveTransitionAnimations = 0;
-		
+
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 	}
 
@@ -81,7 +81,7 @@ namespace slib
 	{
 		m_navigationController = controller;
 	}
-	
+
 	void ViewPage::setTransition(const Transition& opening, const Transition& closing)
 	{
 		m_openingTransition = opening;
@@ -210,12 +210,12 @@ namespace slib
 	void ViewPage::_openPopup(const Ref<View>& parent, Transition transition, sl_bool flagFillParentBackground)
 	{
 		ObjectLocker lock(this);
-		
+
 		if (m_countActiveTransitionAnimations) {
 			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _openPopup, parent, transition, flagFillParentBackground), 100);
 			return;
 		}
-		
+
 		Ref<View> viewAdd;
 		if (flagFillParentBackground) {
 			Ref<PopupBackground> back = new PopupBackground;
@@ -245,33 +245,33 @@ namespace slib
 		} else {
 			viewAdd = this;
 		}
-		
+
 		setVisibility(Visibility::Hidden, UIUpdateMode::None);
 		setTranslation(0, 0, UIUpdateMode::Init);
 		setScale(1, 1, UIUpdateMode::Init);
 		setRotation(0, UIUpdateMode::None);
 		setAlpha(1, UIUpdateMode::None);
-		
+
 		_applyDefaultOpeningPopupTransition(transition);
-		
+
 		setEnabled(sl_false, UIUpdateMode::None);
-		
+
 		Ref<Animation> animation = Transition::createPopupAnimation(this, transition, UIPageAction::Push, SLIB_BIND_WEAKREF(void(), this, _finishPopupAnimation, UIPageAction::Push));
-		
+
 		parent->addChild(viewAdd);
-		
+
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
-		
+
 		dispatchOpen();
-		
+
 		dispatchResume();
-		
+
 		if (animation.isNotNull()) {
 			animation->dispatchStartFrame();
 		}
-		
+
 		setVisibility(Visibility::Visible);
-		
+
 		if (animation.isNull()) {
 			_finishPopupAnimation(UIPageAction::Push);
 		} else {
@@ -285,7 +285,7 @@ namespace slib
 	{
 
 		ObjectLocker lock(this);
-		
+
 		if (m_countActiveTransitionAnimations) {
 			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _closePopup, transition), 100);
 			return;
@@ -296,42 +296,42 @@ namespace slib
 #endif
 
 		_applyDefaultClosingPopupTransition(transition);
-		
+
 		setEnabled(sl_false, UIUpdateMode::None);
-		
+
 		Ref<View> parent = getParent();
 		if (parent.isNotNull()) {
 			if (IsInstanceOf<PopupBackground>(parent)) {
 				parent->setBackgroundColor(Color::zero());
 			}
 		}
-		
+
 		Ref<Animation> animation = Transition::createPopupAnimation(this, transition, UIPageAction::Pop, SLIB_BIND_WEAKREF(void(), this, _finishPopupAnimation, UIPageAction::Pop));
-		
+
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
-		
+
 		dispatchPause();
 
 		dispatchClose();
-		
+
 		if (animation.isNotNull()) {
 			animation->start();
 		}
-		
+
 		if (animation.isNull()) {
 			_finishPopupAnimation(UIPageAction::Pop);
 		}
-		
+
 	}
 
 	void ViewPage::_finishPopupAnimation(UIPageAction action)
 	{
 		ObjectLocker lock(this);
-		
+
 		dispatchEndPageAnimation(sl_null, action);
-		
+
 		if (action == UIPageAction::Pop) {
-			
+
 			Ref<View> parent = getParent();
 			if (parent.isNotNull()) {
 				if (IsInstanceOf<PopupBackground>(parent)) {
@@ -343,13 +343,13 @@ namespace slib
 					parent->removeChild(this);
 				}
 			}
-			
+
 			m_popupState = PopupState::None;
-			
+
 		} else {
 			setEnabled(sl_true, UIUpdateMode::None);
 		}
-		
+
 		Base::interlockedDecrement(&m_countActiveTransitionAnimations);
 	}
 
@@ -362,7 +362,7 @@ namespace slib
 		if (m_popupState != PopupState::None) {
 			return;
 		}
-		
+
 		Ref<MobileApp> mobile = MobileApp::getApp();
 		if (mobile.isNotNull()) {
 			mobile->m_popupPages.add(this);
@@ -384,13 +384,13 @@ namespace slib
 	Ref<Window> ViewPage::popupWindow(const Ref<Window>& parent, sl_ui_len width, sl_ui_len height)
 	{
 		ObjectLocker lock(this);
-		
+
 		if (m_popupState != PopupState::None) {
 			return sl_null;
 		}
-		
+
 		Ref<Window> window = new Window;
-		
+
 		if (window.isNotNull()) {
 			if (isWidthWrapping()) {
 				window->setWidthWrapping(sl_true, UIUpdateMode::Init);
@@ -431,21 +431,21 @@ namespace slib
 			}
 			window->setModal(sl_true);
 			window->setOnClose(SLIB_FUNCTION_WEAKREF(this, _onClosePopupWindow));
-			
+
 			window->create();
-			
+
 			m_popupState = PopupState::ShowWindow;
-			
+
 			lock.unlock();
-			
+
 			dispatchOpen();
-			
+
 			dispatchResume();
-			
+
 			return window;
-			
+
 		}
-		
+
 		return sl_null;
 	}
 
@@ -489,7 +489,7 @@ namespace slib
 			page->close();
 		});
 	}
-	
+
 	void ViewPage::setDefaultPopupTransition(const Transition& opening, const Transition& closing)
 	{
 		if (opening.type != TransitionType::Default) {
@@ -569,36 +569,36 @@ namespace slib
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Open)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Close)
-	
+
 	void ViewPage::dispatchClose()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Close)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Resume)
-	
+
 	void ViewPage::dispatchResume()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Resume)
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Pause)
-	
+
 	void ViewPage::dispatchPause()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Pause)
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, PageAction, ViewPageNavigationController* controller, UIPageAction action)
-	
+
 	void ViewPage::dispatchPageAction(ViewPageNavigationController* controller, UIPageAction action)
 	{
 		m_navigationController = controller;
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(PageAction, controller, action)
-		
+
 		switch (action) {
 			case UIPageAction::Push:
 				dispatchOpen();
@@ -627,7 +627,7 @@ namespace slib
 				focus->setFocus();
 			}
 		}
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(EndPageAnimation, controller, action)
 	}
 
@@ -636,7 +636,7 @@ namespace slib
 	void ViewPage::dispatchBackPressed(UIEvent* ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(BackPressed, ev)
-		
+
 		dispatchBack(ev);
 	}
 
@@ -648,7 +648,7 @@ namespace slib
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, ClickBackground, UIEvent* ev)
-	
+
 	void ViewPage::dispatchClickBackground(UIEvent* ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ClickBackground, ev)

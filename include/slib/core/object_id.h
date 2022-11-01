@@ -44,7 +44,7 @@ namespace slib
 
 	public:
 		sl_size getHashCode() const noexcept;
-		
+
 		SLIB_DECLARE_CLASS_JSON_MEMBERS
 
 	};

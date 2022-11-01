@@ -29,7 +29,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Transition)
-	
+
 	Transition::Transition():
 		type(TransitionType::Default),
 		direction(TransitionDirection::Default),
@@ -37,7 +37,7 @@ namespace slib
 		curve(AnimationCurve::Default)
 	{
 	}
-	
+
 	Transition::Transition(TransitionType _type):
 		type(_type),
 		direction(TransitionDirection::Default),
@@ -45,7 +45,7 @@ namespace slib
 		curve(AnimationCurve::Default)
 	{
 	}
-	
+
 	Transition::Transition(TransitionType _type, TransitionDirection _direction, float _duration, AnimationCurve _curve):
 		type(_type),
 		direction(_direction),
@@ -68,26 +68,26 @@ namespace slib
 			return sl_null;
 		}
 	}
-	
+
 	Ref<Animation> Transition::createAnimation(const Ref<View>& view, const Transition& transition, UIPageAction pageAction, const Function<void()>& onStop)
 	{
 		if (view.isNull()) {
 			return sl_null;
 		}
-		
+
 		TransitionType type = transition.type;
 		if (type == TransitionType::Default || type == TransitionType::None) {
 			return sl_null;
 		}
-		
+
 		float duration = transition.duration;
 		if (duration < SLIB_EPSILON) {
 			return sl_null;
 		}
-		
+
 		TransitionDirection direction = transition.direction;
 		AnimationCurve curve = transition.curve;
-		
+
 		Ref<Animation> animation;
 		switch (type) {
 			case TransitionType::None:
@@ -178,7 +178,7 @@ namespace slib
 		}
 		return animation;
 	}
-	
+
 	Ref<Animation> Transition::startPopup(const Ref<View>& view, const Transition& transition, UIPageAction pageAction, const Function<void()>& onStop)
 	{
 		if (view.isNull()) {
@@ -193,30 +193,30 @@ namespace slib
 			return sl_null;
 		}
 	}
-	
+
 	Ref<Animation> Transition::createPopupAnimation(const Ref<View>& view, const Transition& transition, UIPageAction pageAction, const Function<void()>& onStop)
 	{
 		if (view.isNull()) {
 			return sl_null;
 		}
-		
+
 		TransitionType type = transition.type;
 		if (type == TransitionType::Default || type == TransitionType::None) {
 			return sl_null;
 		}
-		
+
 		float duration = transition.duration;
 		if (duration < SLIB_EPSILON) {
 			return sl_null;
 		}
-		
+
 		if (pageAction != UIPageAction::Push && pageAction != UIPageAction::Pop) {
 			return sl_null;
 		}
-		
+
 		TransitionDirection direction = transition.direction;
 		AnimationCurve curve = transition.curve;
-		
+
 		Ref<Animation> animation;
 		switch (type) {
 			case TransitionType::None:

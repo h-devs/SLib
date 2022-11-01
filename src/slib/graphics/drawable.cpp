@@ -32,7 +32,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DrawParam)
-	
+
 	DrawParam::DrawParam()
 	 : useAlpha(sl_false), alpha(1), useColorMatrix(sl_false), useBlur(sl_false), blurRadius(10), time(0)
 	{
@@ -96,14 +96,14 @@ namespace slib
 		}
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DrawableAnimationInfo)
-	
+
 	DrawableAnimationInfo::DrawableAnimationInfo()
 	 : duration(0), framesPerSecond(0)
 	{
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(Drawable, Object)
 
@@ -145,7 +145,7 @@ namespace slib
 	{
 		onDraw(canvas, rectDst, Rectangle(0, 0, getDrawableWidth(), getDrawableHeight()), param);
 	}
-	
+
 	sl_bool Drawable::getAnimationInfo(DrawableAnimationInfo* info)
 	{
 		return sl_false;
@@ -155,12 +155,12 @@ namespace slib
 	{
 		return IsInstanceOf<Bitmap>(this);
 	}
-	
+
 	sl_bool Drawable::isImage()
 	{
 		return IsInstanceOf<Image>(this);
 	}
-	
+
 	sl_bool Drawable::isColor()
 	{
 		return ColorDrawable::check(this, sl_null);
@@ -179,7 +179,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	float Drawable::getAnimationFramesPerSecond()
 	{
 		DrawableAnimationInfo info;
@@ -203,7 +203,7 @@ namespace slib
 	{
 		return RotateFlipDrawable::apply(this, rotate, flip);
 	}
-	
+
 	Ref<Drawable> Drawable::flip(FlipMode flip)
 	{
 		return RotateFlipDrawable::apply(this, RotationMode::Rotate0, flip);
@@ -285,7 +285,7 @@ namespace slib
 	{
 		return RotateFlipDrawable::apply(src, rotate, flip);
 	}
-	
+
 	Ref<Drawable> Drawable::flip(const Ref<Drawable>& src, FlipMode flip)
 	{
 		return RotateFlipDrawable::apply(src, RotationMode::Rotate0, flip);
@@ -334,13 +334,13 @@ namespace slib
 			return src;
 		}
 	}
-	
+
 	Ref<Drawable> Drawable::clipSquare(const Ref<Drawable>& src)
 	{
 		return clipSquare(src, Alignment::MiddleCenter);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(ColorDrawable, Drawable)
 
 	ColorDrawable::ColorDrawable()
@@ -493,7 +493,7 @@ namespace slib
 	{
 		return m_src->getAnimationInfo(info);
 	}
-	
+
 	SLIB_DEFINE_OBJECT(ScaledDrawable, Drawable)
 
 	ScaledDrawable::ScaledDrawable()
@@ -563,7 +563,7 @@ namespace slib
 	{
 		return m_src->getAnimationInfo(info);
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(ScaledSubDrawable, Drawable)
 
@@ -640,20 +640,20 @@ namespace slib
 	{
 		return m_src->getAnimationInfo(info);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(RotateFlipDrawable, Drawable)
-	
+
 	RotateFlipDrawable::RotateFlipDrawable()
 	{
 		m_rotate = RotationMode::Rotate0;
 		m_flip = FlipMode::None;
 	}
-	
+
 	RotateFlipDrawable::~RotateFlipDrawable()
 	{
 	}
-	
+
 	Ref<Drawable> RotateFlipDrawable::apply(const Ref<Drawable>& src, RotationMode rotate, FlipMode flip)
 	{
 		if (src.isNull()) {
@@ -704,12 +704,12 @@ namespace slib
 	{
 		return m_rotate;
 	}
-	
+
 	FlipMode RotateFlipDrawable::getFlip()
 	{
 		return m_flip;
 	}
-	
+
 	sl_real RotateFlipDrawable::getDrawableWidth()
 	{
 		if (m_rotate != RotationMode::Rotate90 && m_rotate != RotationMode::Rotate270) {
@@ -718,7 +718,7 @@ namespace slib
 			return m_src->getDrawableHeight();
 		}
 	}
-	
+
 	sl_real RotateFlipDrawable::getDrawableHeight()
 	{
 		if (m_rotate != RotationMode::Rotate90 && m_rotate != RotationMode::Rotate270) {
@@ -727,7 +727,7 @@ namespace slib
 			return m_src->getDrawableWidth();
 		}
 	}
-	
+
 	void RotateFlipDrawable::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
 		CanvasStateScope scope(canvas);
@@ -746,23 +746,23 @@ namespace slib
 		}
 		canvas->draw(Rectangle(-width_half, -height_half, width_half, height_half), m_src, param);
 	}
-	
+
 	sl_bool RotateFlipDrawable::getAnimationInfo(DrawableAnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(ClipEllipseDrawable, Drawable)
-	
+
 	ClipEllipseDrawable::ClipEllipseDrawable()
 	{
 	}
-	
+
 	ClipEllipseDrawable::~ClipEllipseDrawable()
 	{
 	}
-	
+
 	Ref<Drawable> ClipEllipseDrawable::create(const Ref<Drawable>& src)
 	{
 		if (src.isNull()) {
@@ -775,40 +775,40 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_real ClipEllipseDrawable::getDrawableWidth()
 	{
 		return m_src->getDrawableWidth();
 	}
-	
+
 	sl_real ClipEllipseDrawable::getDrawableHeight()
 	{
 		return m_src->getDrawableHeight();
 	}
-	
+
 	void ClipEllipseDrawable::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
 		CanvasStateScope scope(canvas);
 		canvas->clipToEllipse(rectDst);
 		canvas->draw(rectDst, m_src, param);
 	}
-	
+
 	sl_bool ClipEllipseDrawable::getAnimationInfo(DrawableAnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(ClipRoundRectDrawable, Drawable)
-	
+
 	ClipRoundRectDrawable::ClipRoundRectDrawable()
 	{
 	}
-	
+
 	ClipRoundRectDrawable::~ClipRoundRectDrawable()
 	{
 	}
-	
+
 	Ref<Drawable> ClipRoundRectDrawable::create(const Ref<Drawable>& src, const Size& radius)
 	{
 		if (src.isNull()) {
@@ -822,24 +822,24 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_real ClipRoundRectDrawable::getDrawableWidth()
 	{
 		return m_src->getDrawableWidth();
 	}
-	
+
 	sl_real ClipRoundRectDrawable::getDrawableHeight()
 	{
 		return m_src->getDrawableHeight();
 	}
-	
+
 	void ClipRoundRectDrawable::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
 		CanvasStateScope scope(canvas);
 		canvas->clipToRoundRect(rectDst, m_radius);
 		canvas->draw(rectDst, m_src, param);
 	}
-	
+
 	sl_bool ClipRoundRectDrawable::getAnimationInfo(DrawableAnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
@@ -944,7 +944,7 @@ namespace slib
 	{
 		return m_src->getAnimationInfo(info);
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(NinePiecesDrawable, Drawable)
 
@@ -1077,16 +1077,16 @@ namespace slib
 		if (src.isNull()) {
 			return sl_null;
 		}
-		
+
 		if (leftWidthSrc + rightWidthSrc + SLIB_EPSILON > src->getDrawableWidth()) {
 			return sl_null;
 		}
 		if (topHeightSrc + bottomHeightSrc + SLIB_EPSILON > src->getDrawableWidth()) {
 			return sl_null;
 		}
-		
+
 		Ref<NinePatchDrawable> ret = new NinePatchDrawable;
-		
+
 		if (ret.isNotNull()) {
 			if (leftWidthDst < 0) {
 				leftWidthDst = 0;
@@ -1122,9 +1122,9 @@ namespace slib
 			ret->m_widthRightSrc = rightWidthSrc;
 			ret->m_heightTopSrc = topHeightSrc;
 			ret->m_heightBottomSrc = bottomHeightSrc;
-			
+
 			return ret;
-			
+
 		}
 		return sl_null;
 	}
@@ -1230,13 +1230,13 @@ namespace slib
 		if (src.isNull()) {
 			return sl_null;
 		}
-		
+
 		if (leftWidthSrc + rightWidthSrc + SLIB_EPSILON > src->getDrawableWidth()) {
 			return sl_null;
 		}
 
 		Ref<HorizontalThreePatchDrawable> ret = new HorizontalThreePatchDrawable;
-		
+
 		if (ret.isNotNull()) {
 			if (leftWidthDst < 0) {
 				leftWidthDst = 0;
@@ -1250,7 +1250,7 @@ namespace slib
 			if (rightWidthSrc < 0) {
 				rightWidthSrc = 0;
 			}
-			
+
 			ret->m_widthLeftDst = leftWidthDst;
 			ret->m_widthRightDst = rightWidthDst;
 			ret->m_src = src;
@@ -1258,7 +1258,7 @@ namespace slib
 			ret->m_widthRightSrc = rightWidthSrc;
 
 			return ret;
-			
+
 		}
 		return sl_null;
 	}
@@ -1328,13 +1328,13 @@ namespace slib
 		if (src.isNull()) {
 			return sl_null;
 		}
-		
+
 		if (topHeightSrc + bottomHeightSrc + SLIB_EPSILON > src->getDrawableHeight()) {
 			return sl_null;
 		}
-		
+
 		Ref<VerticalThreePatchDrawable> ret = new VerticalThreePatchDrawable;
-		
+
 		if (ret.isNotNull()) {
 			if (topHeightDst < 0) {
 				topHeightDst = 0;
@@ -1348,15 +1348,15 @@ namespace slib
 			if (bottomHeightSrc < 0) {
 				bottomHeightSrc = 0;
 			}
-			
+
 			ret->m_heightTopDst = topHeightDst;
 			ret->m_heightBottomDst = bottomHeightDst;
 			ret->m_src = src;
 			ret->m_heightTopSrc = topHeightSrc;
 			ret->m_heightBottomSrc = bottomHeightSrc;
-			
+
 			return ret;
-			
+
 		}
 		return sl_null;
 	}
@@ -1479,7 +1479,7 @@ namespace slib
 		if (requiredWidth == 0 && requiredHeight == 0) {
 			return getSource(0);
 		}
-		
+
 		ListLocker<Source> sources(m_sources);
 		if (sources.count == 0) {
 			return sl_null;
@@ -1487,7 +1487,7 @@ namespace slib
 		if (sources.count == 1) {
 			return sources[0].drawable;
 		}
-		
+
 		sl_size i;
 		sl_real minSize = 0;
 		Ref<Drawable> minSrc;
@@ -1506,7 +1506,7 @@ namespace slib
 		if (minSrc.isNotNull()) {
 			return minSrc;
 		}
-		
+
 		sl_real maxSize = 0;
 		Ref<Drawable> maxSrc;
 		for (i = 0; i < sources.count; i++) {
@@ -1567,10 +1567,10 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(AnimationDrawable, Drawable)
-	
+
 	AnimationDrawable::AnimationDrawable()
 	{
 		m_width = 0;
@@ -1578,7 +1578,7 @@ namespace slib
 		m_drawables = List< Ref<Drawable> >::create();
 		m_duration = 1;
 	}
-	
+
 	AnimationDrawable::~AnimationDrawable()
 	{
 	}
@@ -1591,12 +1591,12 @@ namespace slib
 		}
 		return 1;
 	}
-	
+
 	void AnimationDrawable::setDrawableWidth(sl_real width)
 	{
 		m_width = width;
 	}
-	
+
 	sl_real AnimationDrawable::getDrawableHeight()
 	{
 		sl_real height = m_height;
@@ -1610,7 +1610,7 @@ namespace slib
 	{
 		m_height = height;
 	}
-	
+
 	void AnimationDrawable::onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		Ref<Drawable> drawable = getDrawableAtTime(param.time);
@@ -1618,7 +1618,7 @@ namespace slib
 			drawable->onDraw(canvas, rectDst, rectSrc, param);
 		}
 	}
-	
+
 	void AnimationDrawable::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
 		Ref<Drawable> drawable = getDrawableAtTime(param.time);
@@ -1626,7 +1626,7 @@ namespace slib
 			drawable->onDrawAll(canvas, rectDst, param);
 		}
 	}
-	
+
 	sl_bool AnimationDrawable::getAnimationInfo(DrawableAnimationInfo* info)
 	{
 		if (info) {
@@ -1636,17 +1636,17 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	void AnimationDrawable::setAnimationDuration(float duration)
 	{
 		m_duration = duration;
 	}
-	
+
 	List< Ref<Drawable> > AnimationDrawable::getDrawables()
 	{
 		return m_drawables;
 	}
-	
+
 	void AnimationDrawable::addDrawable(const Ref<Drawable>& drawable)
 	{
 		m_drawables.add(drawable);
@@ -1659,7 +1659,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	Ref<Drawable> AnimationDrawable::getDrawableAtTime(float time)
 	{
 		if (time < 0.001f) {
@@ -1678,5 +1678,5 @@ namespace slib
 		}
 		return m_drawables.getValueAt(index);
 	}
-	
+
 }

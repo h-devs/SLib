@@ -35,7 +35,7 @@
 
 namespace slib
 {
-	
+
 	template <class HASH>
 	class SLIB_EXPORT HKDF
 	{

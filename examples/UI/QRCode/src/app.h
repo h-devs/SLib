@@ -9,10 +9,10 @@ class QRCodeExampleApp : public MobileApp
 	SLIB_APPLICATION(QRCodeExampleApp)
 public:
 	QRCodeExampleApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 private:
 	Ref<ImageView> m_imgEncoded;
 	Ref<EditView> m_editEncoding;

@@ -37,14 +37,14 @@ namespace slib
 
 		static String32 applyBackslashEscapes(const StringView32& str, sl_bool flagDoubleQuote = sl_true, sl_bool flagAddQuote = sl_true, sl_bool flagEscapeNonAscii = sl_false) noexcept;
 
-		
+
 		static String parseBackslashEscapes(const StringView& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
 
 		static String16 parseBackslashEscapes(const StringView16& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
 
 		static String32 parseBackslashEscapes(const StringView32& input, sl_size* lengthParsed = sl_null, sl_bool* flagError = sl_null) noexcept;
 
-		
+
 		static sl_size countLineNumber(const StringView& input, sl_size* column = sl_null) noexcept;
 
 		static sl_size countLineNumber(const StringView16& input, sl_size* column = sl_null) noexcept;
@@ -64,7 +64,7 @@ namespace slib
 
 		static List<StringView32> splitLines(const StringView32& input) noexcept;
 
-		
+
 		static sl_reg indexOfLine(const StringView& input, sl_reg start = 0) noexcept;
 
 		static sl_reg indexOfLine(const StringView16& input, sl_reg start = 0) noexcept;
@@ -78,7 +78,7 @@ namespace slib
 
 		static sl_reg indexOfNotLine(const StringView32& input, sl_reg start = 0) noexcept;
 
-		
+
 		static sl_reg indexOfWhitespace(const StringView& input, sl_reg start = 0) noexcept;
 
 		static sl_reg indexOfWhitespace(const StringView16& input, sl_reg start = 0) noexcept;

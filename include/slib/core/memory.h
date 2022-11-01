@@ -226,7 +226,7 @@ namespace slib
 		Memory duplicate() const noexcept;
 
 		sl_bool getData(MemoryData& data) const noexcept;
-		
+
 	public:
 		Memory operator+(const Memory& other) const noexcept;
 
@@ -246,9 +246,9 @@ namespace slib
 		static Memory _createStaticMove(const void* buf, sl_size size, void* pRef) noexcept;
 
 	};
-	
+
 	typedef Atomic<Memory> AtomicMemory;
-	
+
 }
 
 #endif

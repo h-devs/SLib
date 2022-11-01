@@ -35,45 +35,45 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthWebRedirectDialogOptions)
-	
+
 	OAuthWebRedirectDialogOptions::OAuthWebRedirectDialogOptions():
 		width(800),
 		height(600)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthWebRedirectDialogParam)
-	
+
 	OAuthWebRedirectDialogParam::OAuthWebRedirectDialogParam()
 	{
 	}
-	
+
 	OAuthWebRedirectDialog::OAuthWebRedirectDialog()
 	{
 	}
-	
+
 	OAuthWebRedirectDialog::~OAuthWebRedirectDialog()
 	{
 	}
-	
+
 	namespace priv
 	{
 		namespace oauth
 		{
-			
+
 			class DefaultOAuthWebRedirectDialogImpl : public ViewPage, public OAuthWebRedirectDialog
 			{
 			public:
 				Ref<WebView> m_webView;
 				WeakRef<Window> m_window;
-				
+
 			public:
 				void init() override
 				{
 					ViewPage::init();
-					
+
 #ifdef SLIB_PLATFORM_IS_MOBILE
 					sl_real fontSize = (sl_real)(UIResource::getScreenMinimum() / 20);
 					Ref<Button> btnCancel = new Button;
@@ -88,7 +88,7 @@ namespace slib
 					btnCancel->setPadding((sl_ui_pos)(fontSize / 3), UIUpdateMode::Init);
 					addChild(btnCancel, UIUpdateMode::Init);
 #endif
-					
+
 					m_webView = new WebView;
 					m_webView->setAlignParentLeft(UIUpdateMode::Init);
 #ifdef SLIB_PLATFORM_IS_MOBILE
@@ -99,30 +99,30 @@ namespace slib
 					m_webView->setWidthFilling(1, UIUpdateMode::Init);
 					m_webView->setHeightFilling(1, UIUpdateMode::Init);
 					addChild(m_webView, UIUpdateMode::Init);
-					
+
 					setWidthFilling(1, UIUpdateMode::Init);
 					setHeightFilling(1, UIUpdateMode::Init);
 				}
-				
+
 			public:
 				Ref<WebView> getWebView() override
 				{
 					return m_webView;
 				}
-				
+
 				void show(const OAuthWebRedirectDialogParam& param) override
 				{
 					auto onRedirect = param.onRedirect;
-					
+
 					m_webView->setOnStartLoad([onRedirect](WebView*, const String& url) {
 						onRedirect(url);
 					});
 					setOnBack([onRedirect](View* view, UIEvent* ev) {
 						onRedirect(sl_null);
 					});
-					
+
 					m_webView->loadURL(param.url);
-					
+
 #ifdef SLIB_PLATFORM_IS_MOBILE
 					Ref<MobileApp> app = MobileApp::getApp();
 					if (app.isNotNull()) {
@@ -144,7 +144,7 @@ namespace slib
 					m_window = window;
 #endif
 				}
-				
+
 				void close() override
 				{
 					ViewPage::close();
@@ -153,12 +153,12 @@ namespace slib
 						window->decreaseReference();
 					}
 				}
-				
+
 			};
 
 		}
 	}
-	
+
 	Ptr<OAuthWebRedirectDialog> OAuthWebRedirectDialog::getDefault()
 	{
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicPtr<OAuthWebRedirectDialog>, dlg);
@@ -170,7 +170,7 @@ namespace slib
 		}
 		return dlg;
 	}
-	
+
 	void OAuthWebRedirectDialog::showDefault(const OAuthWebRedirectDialogParam& param)
 	{
 		auto dialog = OAuthWebRedirectDialog::getDefault();
@@ -178,10 +178,10 @@ namespace slib
 			dialog->show(param);
 		}
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuth1_LoginParam)
-	
+
 	OAuth1_LoginParam::OAuth1_LoginParam()
 	{
 		flagIgnoreExistingAccessToken = sl_false;
@@ -193,22 +193,22 @@ namespace slib
 		if (callbackUrl.isEmpty()) {
 			callbackUrl = m_callbackUrl;
 		}
-		
+
 		if (param.url.isNotEmpty()) {
 
 			auto dialog = param.dialog;
 			if (dialog.isNull()) {
 				dialog = OAuthWebRedirectDialog::getDefault();
 			}
-			
+
 			OAuthWebRedirectDialogParam dialogParam;
 			dialogParam.url = param.url;
 			dialogParam.options = param.dialogOptions;
-			
+
 			auto thiz = ToRef(this);
 			auto onComplete = param.onComplete;
 			auto weakDialog = dialog.toWeak();
-			
+
 			dialogParam.onRedirect = [thiz, weakDialog, callbackUrl, onComplete](const String& url) {
 				if (url.isEmpty()) {
 					OAuth1_LoginResult result;
@@ -227,11 +227,11 @@ namespace slib
 					onComplete(result);
 				}
 			};
-			
+
 			dialog->show(dialogParam);
 			return;
 		}
-		
+
 		if (!(param.flagIgnoreExistingAccessToken)) {
 			Shared<OAuth1_AccessToken> accessToken = m_accessToken;
 			if (accessToken.isNotNull()) {
@@ -273,23 +273,23 @@ namespace slib
 			thiz->login(_param);
 		});
 	}
-	
+
 	void OAuth1::login(const Function<void(OAuth1_LoginResult& result)>& onComplete)
 	{
 		OAuth1_LoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthLoginParam)
-	
+
 	OAuthLoginParam::OAuthLoginParam()
 	{
 		flagIgnoreExistingAccessToken = sl_false;
 		flagAlwaysRequireAccessToken = sl_false;
 	}
-	
+
 	void OAuth2::login(const OAuthLoginParam& param)
 	{
 		String redirectUri = param.authorization.redirectUri;
@@ -301,14 +301,14 @@ namespace slib
 			scopes = m_defaultScopes;
 		}
 		String state = param.authorization.state;
-		
+
 		if (param.url.isNotEmpty()) {
-			
+
 			auto dialog = param.dialog;
 			if (dialog.isNull()) {
 				dialog = OAuthWebRedirectDialog::getDefault();
 			}
-			
+
 			OAuthWebRedirectDialogParam dialogParam;
 			dialogParam.url = param.url;
 			dialogParam.options = param.dialogOptions;
@@ -326,14 +326,14 @@ namespace slib
 			auto weakDialog = dialog.toWeak();
 
 			dialogParam.onRedirect = [thiz, weakDialog, loginRedirectUri, scopes, state, onComplete](const String& url) {
-				
+
 				if (url.isEmpty()) {
 					OAuthLoginResult result;
 					result.flagCancel = sl_true;
 					onComplete(result);
 					return;
 				}
-				
+
 				sl_bool flagRedirected = sl_false;
 				ListElements<String> urls(loginRedirectUri.split(","));
 				for (sl_size i = 0; i < urls.count; i++) {
@@ -363,11 +363,11 @@ namespace slib
 				}
 
 			};
-			
+
 			dialog->show(dialogParam);
 			return;
 		}
-		
+
 		if (!(param.flagIgnoreExistingAccessToken)) {
 			Shared<OAuthAccessToken> accessToken = m_accessToken;
 			if (accessToken.isNotNull()) {
@@ -381,7 +381,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		OAuthLoginParam _param = param;
 		if (!m_flagSupportImplicitGrantType && _param.authorization.responseType == OAuthResponseType::Token) {
 			_param.authorization.responseType = OAuthResponseType::Code;
@@ -394,7 +394,7 @@ namespace slib
 		}
 		_param.authorization.state = state;
 		_param.url = getLoginUrl(_param.authorization);
-		
+
 		if (_param.authorization.responseType == OAuthResponseType::Code) {
 			if (_param.flagAlwaysRequireAccessToken) {
 				auto onComplete = _param.onComplete;
@@ -427,5 +427,5 @@ namespace slib
 		param.onComplete = onComplete;
 		login(param);
 	}
-	
+
 }

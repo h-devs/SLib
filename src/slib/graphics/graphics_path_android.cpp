@@ -36,7 +36,7 @@ namespace slib
 	{
 		namespace graphics_path
 		{
-			
+
 			SLIB_JNI_BEGIN_CLASS(JRectF, "android/graphics/RectF")
 				SLIB_JNI_FLOAT_FIELD(left);
 				SLIB_JNI_FLOAT_FIELD(top);

@@ -38,7 +38,7 @@ namespace slib
 		class SLIB_EXPORT File
 		{
 		public:
-			static String getAbsolutePath(jobject thiz) noexcept;			
+			static String getAbsolutePath(jobject thiz) noexcept;
 
 		};
 

@@ -43,7 +43,7 @@ namespace slib
 	{
 		namespace audio_device
 		{
-			
+
 			struct AudioDeviceInfo
 			{
 				AudioDeviceID id;
@@ -51,14 +51,14 @@ namespace slib
 				String name;
 				String manufacturer;
 			};
-			
+
 			static sl_bool GetDeviceInfo(AudioDeviceInfo& outInfo, AudioDeviceID deviceID, sl_bool flagInput)
 			{
 				AudioObjectPropertyAddress propDeviceConfig;
 				propDeviceConfig.mScope = flagInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
 				propDeviceConfig.mElement = kAudioObjectPropertyElementMaster;
 				UInt32 sizeValue;
-				
+
 				// Check for input channels
 				propDeviceConfig.mSelector = kAudioDevicePropertyStreamConfiguration;
 				sizeValue = 0;
@@ -80,9 +80,9 @@ namespace slib
 					LOG_ERROR("Failed to get size of stream configuration - Dev%d", deviceID);
 					return sl_false;
 				}
-				
+
 				outInfo.id = deviceID;
-				
+
 				// Device UID
 				CFStringRef deviceUID = NULL;
 				propDeviceConfig.mSelector = kAudioDevicePropertyDeviceUID;
@@ -92,7 +92,7 @@ namespace slib
 					outInfo.uid = Apple::getStringFromNSString(s);
 					CFRelease(deviceUID);
 				}
-				
+
 				// Device Name
 				CFStringRef deviceName;
 				propDeviceConfig.mSelector = kAudioDevicePropertyDeviceNameCFString;
@@ -102,7 +102,7 @@ namespace slib
 					outInfo.name = Apple::getStringFromNSString(s);
 					CFRelease(deviceName);
 				}
-				
+
 				// Device Manufacturer
 				CFStringRef deviceManufacturer;
 				propDeviceConfig.mSelector = kAudioDevicePropertyDeviceManufacturerCFString;
@@ -112,14 +112,14 @@ namespace slib
 					outInfo.manufacturer = Apple::getStringFromNSString(s);
 					CFRelease(deviceManufacturer);
 				}
-				
+
 				return sl_true;
 			}
-			
+
 			static List<AudioDeviceInfo> GetAllDevices(sl_bool flagInput)
 			{
 				List<AudioDeviceInfo> ret;
-				
+
 				AudioObjectPropertyAddress propDeviceListing;
 				propDeviceListing.mSelector = kAudioHardwarePropertyDevices;
 				propDeviceListing.mScope = kAudioObjectPropertyScopeGlobal;
@@ -138,7 +138,7 @@ namespace slib
 					LOG_ERROR("No devices");
 					return ret;
 				}
-				
+
 				SLIB_SCOPED_BUFFER(AudioDeviceID, 16, deviceIds, nCountDevices);
 				if (!deviceIds) {
 					return ret;
@@ -147,7 +147,7 @@ namespace slib
 					LOG_ERROR("Failed to list audio device ids");
 					return ret;
 				}
-				
+
 				for (sl_uint32 i = 0; i < nCountDevices; i++) {
 					AudioDeviceInfo info;
 					if (GetDeviceInfo(info, deviceIds[i], flagInput)) {
@@ -156,14 +156,14 @@ namespace slib
 				}
 				return ret;
 			}
-			
+
 			static sl_bool GetDefaultDeviceInfo(AudioDeviceInfo& outInfo, sl_bool flagInput)
 			{
 				AudioObjectPropertyAddress propDeviceConfig;
 				propDeviceConfig.mSelector = flagInput ? kAudioHardwarePropertyDefaultInputDevice : kAudioHardwarePropertyDefaultOutputDevice;
 				propDeviceConfig.mScope = kAudioObjectPropertyScopeGlobal;
 				propDeviceConfig.mElement = kAudioObjectPropertyElementMaster;
-				
+
 				AudioDeviceID dev;
 				UInt32 size = sizeof(dev);
 				if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &propDeviceConfig, 0, NULL, &size, &dev) != kAudioHardwareNoError) {
@@ -176,7 +176,7 @@ namespace slib
 				}
 				return GetDeviceInfo(outInfo, dev, flagInput);
 			}
-			
+
 			static sl_bool SelectDevice(AudioDeviceInfo& outInfo, sl_bool flagInput, String uid)
 			{
 				if (uid.isEmpty()) {
@@ -193,26 +193,26 @@ namespace slib
 					return sl_false;
 				}
 			}
-			
-			
+
+
 			class AudioRecorderImpl : public AudioRecorder
 			{
 			public:
 				sl_bool m_flagInitialized;
-				
+
 				AudioDeviceID m_deviceID;
 				AudioConverterRef m_converter;
 				AudioDeviceIOProcID m_callback;
-				
+
 				AudioStreamBasicDescription m_formatSrc;
 				AudioStreamBasicDescription m_formatDst;
-				
+
 			public:
 				AudioRecorderImpl()
 				{
 					m_flagInitialized = sl_false;
 				}
-				
+
 				~AudioRecorderImpl()
 				{
 					if (m_flagInitialized) {
@@ -220,28 +220,28 @@ namespace slib
 						m_flagInitialized = sl_false;
 					}
 				}
-				
+
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 				{
 					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
-					
+
 					AudioDeviceInfo deviceInfo;
 					if (!(SelectDevice(deviceInfo, sl_true, param.deviceId))) {
 						LOG_ERROR("Failed to find audio input device: %s", param.deviceId);
 						return sl_null;
 					}
-					
+
 					AudioDeviceID deviceID = deviceInfo.id;
-					
+
 					// Get current stream description
 					AudioObjectPropertyAddress prop;
 					prop.mSelector = kAudioDevicePropertyStreamFormat;
 					prop.mScope = kAudioDevicePropertyScopeInput;
 					prop.mElement = kAudioObjectPropertyElementMaster;
-					
+
 					UInt32 sizeValue;
 					AudioStreamBasicDescription formatSrc;
 					Base::zeroMemory(&formatSrc, sizeof(formatSrc));
@@ -250,7 +250,7 @@ namespace slib
 						LOG_ERROR("Failed to get source input format");
 						return sl_null;
 					}
-					
+
 					prop.mSelector = kAudioDevicePropertyBufferSizeRange;
 					AudioValueRange rangeBufferSize;
 					sizeValue = sizeof(rangeBufferSize);
@@ -258,7 +258,7 @@ namespace slib
 						LOG_ERROR("Failed to get buffer size range");
 						return sl_null;
 					}
-					
+
 					UInt32 sizeFrame = param.getFrameLengthInMilliseconds() * formatSrc.mSampleRate * formatSrc.mBytesPerFrame / 1000;
 					if (sizeFrame < rangeBufferSize.mMinimum) {
 						LOG_ERROR("Required frame size(%d) is smaller than minimum %d", sizeFrame, rangeBufferSize.mMinimum);
@@ -268,7 +268,7 @@ namespace slib
 						LOG_ERROR("Required frame size(%d) is bigger than minimum %d", sizeFrame, rangeBufferSize.mMaximum);
 						return sl_null;
 					}
-					
+
 					// Create Audio Converter
 					AudioStreamBasicDescription formatDst;
 					formatDst.mFormatID = kAudioFormatLinearPCM;
@@ -279,19 +279,19 @@ namespace slib
 					formatDst.mBytesPerFrame = formatDst.mChannelsPerFrame * formatDst.mBitsPerChannel / 8;
 					formatDst.mFramesPerPacket = 1;
 					formatDst.mBytesPerPacket = formatDst.mBytesPerFrame * formatDst.mFramesPerPacket;
-					
+
 					AudioConverterRef converter;
 					if (AudioConverterNew(&formatSrc, &formatDst, &converter) == kAudioHardwareNoError) {
-						
+
 						prop.mSelector = kAudioDevicePropertyBufferSize;
 						sizeValue = sizeof(sizeFrame);
-						
+
 						if (AudioObjectSetPropertyData(deviceID, &prop, 0, NULL, sizeValue, &sizeFrame) == kAudioHardwareNoError) {
-							
+
 							Ref<AudioRecorderImpl> ret = new AudioRecorderImpl();
-							
+
 							if (ret.isNotNull()) {
-								
+
 								AudioDeviceIOProcID callback;
 
 								if (AudioDeviceCreateIOProcID(deviceID, DeviceIOProc, ret.get(), &callback) == kAudioHardwareNoError) {
@@ -301,42 +301,42 @@ namespace slib
 									ret->m_formatSrc = formatSrc;
 									ret->m_formatDst = formatDst;
 									ret->m_callback = callback;
-									
+
 									ret->_init(param);
-									
+
 									ret->m_flagInitialized = sl_true;
-									
+
 									if (param.flagAutoStart) {
 										ret->start();
 									}
-									
+
 									return ret;
-									
+
 								} else {
 									LOG_ERROR("Failed to create io proc");
 								}
 							}
-							
+
 						} else {
 							LOG_ERROR("Failed to get set buffer size");
 						}
-						
+
 						AudioConverterDispose(converter);
-						
+
 					} else {
 						LOG_ERROR("Failed to create audio converter");
 					}
-					
+
 					return sl_null;
-					
+
 				}
-				
+
 				void _release() override
 				{
 					AudioDeviceDestroyIOProcID(m_deviceID, m_callback);
 					AudioConverterDispose(m_converter);
 				}
-				
+
 				sl_bool _start() override
 				{
 					if (AudioDeviceStart(m_deviceID, m_callback) != kAudioHardwareNoError) {
@@ -345,21 +345,21 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				void _stop() override
 				{
 					if (AudioDeviceStop(m_deviceID, m_callback) != kAudioHardwareNoError) {
 						LOG_ERROR("Failed to stop play device");
 					}
 				}
-				
+
 				struct ConverterContext
 				{
 					sl_uint32 nBytesPerPacket;
 					const AudioBufferList* data;
 					sl_bool flagUsed;
 				};
-				
+
 				static OSStatus ConverterProc(AudioConverterRef               inAudioConverter,
 											  UInt32*                         ioNumberDataPackets,
 											  AudioBufferList*                ioData,
@@ -384,27 +384,27 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void onFrame(const AudioBufferList* data)
 				{
 					const AudioBuffer& buffer = data->mBuffers[0];
 					sl_uint32 nFrames = buffer.mDataByteSize / m_formatSrc.mBytesPerPacket * m_formatDst.mSampleRate / m_formatSrc.mSampleRate * 2; // double buffer to be enough to convert all source packets
-					
+
 					sl_uint32 nChannels = m_param.channelCount;
 					sl_uint32 nSamples = nFrames * nChannels;
-					
+
 					Array<sl_int16> arrData = _getProcessData(nSamples);
 					if (arrData.isNull()) {
 						return;
 					}
 					sl_int16* output = arrData.getData();
-					
+
 					AudioBufferList bufferOutput;
 					bufferOutput.mNumberBuffers = 1;
 					bufferOutput.mBuffers[0].mData = output;
 					bufferOutput.mBuffers[0].mDataByteSize = (UInt32)nSamples * 2;
 					bufferOutput.mBuffers[0].mNumberChannels = nChannels;
-					
+
 					UInt32 sizeFrame = (UInt32)nFrames;
 					ConverterContext context;
 					context.flagUsed = sl_false;
@@ -415,7 +415,7 @@ namespace slib
 						_processFrame(output, sizeFrame * nChannels);
 					}
 				}
-				
+
 				static OSStatus DeviceIOProc(AudioObjectID           inDevice,
 											 const AudioTimeStamp*   inNow,
 											 const AudioBufferList*  inInputData,
@@ -430,22 +430,22 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 			};
 
-			
+
 			class AudioPlayerImpl : public AudioPlayer
 			{
 			public:
 				sl_bool m_flagInitialized;
-				
+
 				AudioDeviceID m_deviceID;
 				AudioConverterRef m_converter;
 				AudioDeviceIOProcID m_callback;
-				
+
 				AudioStreamBasicDescription m_formatSrc;
 				AudioStreamBasicDescription m_formatDst;
-				
+
 			public:
 				AudioPlayerImpl()
 				{
@@ -466,12 +466,12 @@ namespace slib
 					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
-					
+
 					AudioObjectPropertyAddress prop;
 					prop.mSelector = kAudioDevicePropertyStreamFormat;
 					prop.mScope = kAudioDevicePropertyScopeOutput;
 					prop.mElement = kAudioObjectPropertyElementMaster;
-					
+
 					UInt32 sizeValue;
 					AudioStreamBasicDescription formatDst;
 					Base::zeroMemory(&formatDst, sizeof(formatDst));
@@ -480,7 +480,7 @@ namespace slib
 						LOG_ERROR("Failed to get source input format");
 						return sl_null;
 					}
-					
+
 					prop.mSelector = kAudioDevicePropertyBufferSizeRange;
 					AudioValueRange rangeBufferSize;
 					sizeValue = sizeof(rangeBufferSize);
@@ -488,7 +488,7 @@ namespace slib
 						LOG_ERROR("Failed to get buffer size range");
 						return sl_null;
 					}
-					
+
 					UInt32 sizeFrame = param.frameLengthInMilliseconds * formatDst.mSampleRate * formatDst.mBytesPerFrame / 1000;
 					if (sizeFrame < rangeBufferSize.mMinimum) {
 						LOG_ERROR("Required frame size(%d) is smaller than minimum %d", sizeFrame, rangeBufferSize.mMinimum);
@@ -509,23 +509,23 @@ namespace slib
 					formatSrc.mBytesPerFrame = formatSrc.mChannelsPerFrame * formatSrc.mBitsPerChannel / 8;
 					formatSrc.mFramesPerPacket = 1;
 					formatSrc.mBytesPerPacket = formatSrc.mBytesPerFrame * formatSrc.mFramesPerPacket;
-					
+
 					AudioConverterRef converter;
 					if (AudioConverterNew(&formatSrc, &formatDst, &converter) == kAudioHardwareNoError) {
-						
+
 						prop.mSelector = kAudioDevicePropertyBufferSize;
 						sizeValue = sizeof(sizeFrame);
-						
+
 						if (AudioObjectSetPropertyData(deviceID, &prop, 0, NULL, sizeValue, &sizeFrame) == kAudioHardwareNoError) {
-							
+
 							Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
-							
+
 							if (ret.isNotNull()) {
-								
+
 								AudioDeviceIOProcID callback;
-								
+
 								if (AudioDeviceCreateIOProcID(deviceID, DeviceIOProc, ret.get(), &callback) == kAudioHardwareNoError) {
-									
+
 									ret->m_deviceID = deviceID;
 									ret->m_converter = converter;
 									ret->m_formatSrc = formatSrc;
@@ -533,39 +533,39 @@ namespace slib
 									ret->m_callback = callback;
 
 									ret->_init(param);
-									
+
 									ret->m_flagInitialized = sl_true;
-									
+
 									if (param.flagAutoStart) {
 										ret->start();
 									}
-									
+
 									return ret;
-									
+
 								} else {
 									LOG_ERROR("Failed to create io proc");
 								}
 							}
-							
+
 						} else {
 							LOG_ERROR("Failed to get set buffer size");
 						}
 
 						AudioConverterDispose(converter);
-						
+
 					} else {
 						LOG_ERROR("Failed to create audio converter");
 					}
-					
+
 					return sl_null;
 				}
-				
+
 				void _release() override
 				{
 					AudioDeviceDestroyIOProcID(m_deviceID, m_callback);
 					AudioConverterDispose(m_converter);
 				}
-				
+
 				sl_bool _start() override
 				{
 					if (AudioDeviceStart(m_deviceID, m_callback) != kAudioHardwareNoError) {
@@ -574,14 +574,14 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				void _stop() override
 				{
 					if (AudioDeviceStop(m_deviceID, m_callback) != kAudioHardwareNoError) {
 						LOG_ERROR("Failed to stop play device");
 					}
 				}
-				
+
 				AtomicArray<sl_int16> m_dataConvert;
 				void onConvert(sl_uint32 nFrames, AudioBufferList* data)
 				{
@@ -595,12 +595,12 @@ namespace slib
 					}
 					sl_int16* s = dataConvert.getData();
 					_processFrame(s, nSamples);
-					
+
 					data->mBuffers[0].mDataByteSize = (UInt32)nSamples * 2;
 					data->mBuffers[0].mData = s;
 					data->mBuffers[0].mNumberChannels = (UInt32)nChannels;
 				}
-				
+
 				static OSStatus ConverterProc(AudioConverterRef               inAudioConverter,
 											UInt32*                         ioNumberDataPackets,
 											AudioBufferList*                ioData,
@@ -611,14 +611,14 @@ namespace slib
 					object->onConvert(*ioNumberDataPackets, ioData);
 					return noErr;
 				}
-				
+
 				OSStatus onFrame(AudioBufferList *outputData)
 				{
 					UInt32 size = outputData->mBuffers->mDataByteSize / m_formatDst.mBytesPerFrame;
 					AudioConverterFillComplexBuffer(m_converter, ConverterProc, this, &size, outputData, NULL);
 					return 0;
 				}
-				
+
 				static OSStatus DeviceIOProc(AudioDeviceID, const AudioTimeStamp*,
 													const AudioBufferList* inputData,
 													const AudioTimeStamp* inputTime,
@@ -638,7 +638,7 @@ namespace slib
 			{
 			public:
 				AudioDeviceID m_deviceID;
-				
+
 			public:
 				AudioPlayerDeviceImpl()
 				{
@@ -648,7 +648,7 @@ namespace slib
 				~AudioPlayerDeviceImpl()
 				{
 				}
-				
+
 			public:
 				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
@@ -665,24 +665,24 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) override
 				{
 					return AudioPlayerImpl::create(m_deviceID, param);
 				}
-				
+
 			};
 
 		}
 	}
-	
+
 	using namespace priv::audio_device;
 
 	Ref<AudioRecorder> AudioRecorder::create(const AudioRecorderParam& param)
 	{
 		return AudioRecorderImpl::create(param);
 	}
-	
+
 	List<AudioRecorderInfo> AudioRecorder::getRecordersList()
 	{
 		ListElements<AudioDeviceInfo> list(GetAllDevices(sl_true));

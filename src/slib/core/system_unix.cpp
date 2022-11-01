@@ -143,7 +143,7 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	String System::getHomeDirectory()
 	{
 		passwd* pwd = getpwuid(getuid());
@@ -215,14 +215,14 @@ namespace slib
 		InitSystemNameAndVersion();
 		return g_strSystemVersion;
 	}
-	
+
 	String System::getSystemName()
 	{
 		InitSystemNameAndVersion();
 		return g_strSystemName;
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_ANDROID)
 	String System::getMachineName()
 	{
@@ -231,7 +231,7 @@ namespace slib
 		return systemInfo.machine;
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_APPLE) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	String System::getComputerName()
 	{
@@ -251,7 +251,7 @@ namespace slib
 	{
 		return getlogin();
 	}
-	
+
 	String System::getFullUserName()
 	{
 		return getUserName();
@@ -288,7 +288,7 @@ namespace slib
 	{
 		return (sl_uint32)(getTickCount64());
 	}
-	
+
 #if !defined(SLIB_PLATFORM_IS_APPLE)
 	sl_uint64 System::getTickCount64()
 	{
@@ -338,7 +338,7 @@ namespace slib
 	{
 		sched_yield();
 	}
-	
+
 	sl_int32 System::execute(const StringParam& _command)
 	{
 #if defined(SLIB_PLATFORM_IS_IOS)
@@ -391,7 +391,7 @@ namespace slib
 	{
 		errno = (int)errorCode;
 	}
-	
+
 	String System::formatErrorCode(sl_uint32 errorCode)
 	{
 		String ret = strerror(errorCode);

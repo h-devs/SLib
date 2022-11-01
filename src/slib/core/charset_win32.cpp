@@ -30,12 +30,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace charset
 		{
-			
+
 			sl_size Encode16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
 			{
 				if (lenUtf16 && lenUtf16 <= 0x40000000 && sizeOutputBuffer) {
@@ -59,7 +59,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			sl_size Decode16(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer)
 			{
 				if (sizeInput && sizeInput <= 0x40000000 && lenUtf16Buffer != 0) {
@@ -81,10 +81,10 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 		}
 	}
-	
+
 }
 
 #endif

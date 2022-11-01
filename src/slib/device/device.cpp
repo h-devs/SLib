@@ -34,7 +34,7 @@ namespace slib
 	{
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_ANDROID)
 	DeviceAudioMode Device::getAudioMode()
 	{

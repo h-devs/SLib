@@ -55,6 +55,6 @@ int main(int argc, const char * argv[])
 	}, 200);
 
 	UI::runApp();
-	
+
 	return 0;
 }

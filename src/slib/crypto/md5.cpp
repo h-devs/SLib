@@ -141,7 +141,7 @@ namespace slib
 		for (sl_uint32 i = 0; i < 16; i++) {
 			M[i] = MIO::readUint32LE(input + (i << 2));
 		}
-			
+
 		sl_uint32 a = A[0];
 		sl_uint32 b = A[1];
 		sl_uint32 c = A[2];

@@ -583,7 +583,7 @@ namespace slib
 		if (iEnd >= countItems) {
 			iEnd = countItems - 1;
 		}
-		
+
 		sl_reg n = (sl_reg)(iEnd - iStart);
 		UIRect rcItem;
 		rcItem.top = (sl_ui_pos)(iStart * heightItem - pos);
@@ -688,7 +688,7 @@ namespace slib
 				} else {
 					index = nTotal - 1;
 				}
-				
+
 				m_indexFocused = index;
 
 				// check focused item is visible

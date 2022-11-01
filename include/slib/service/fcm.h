@@ -27,21 +27,21 @@
 
 namespace slib
 {
-	
+
 	class FCM_ServiceSendResult
 	{
 	public:
 		String message_id;
 		String registration_id;
 		String error;
-		
+
 	public:
 		FCM_ServiceSendResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FCM_ServiceSendResult)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	};
 
 	class UrlRequest;
@@ -51,19 +51,19 @@ namespace slib
 	public:
 		sl_bool flagSuccess;
 		UrlRequest* request;
-		
+
 		String multicast_id;
 		sl_uint32 success;
 		sl_uint32 failure;
 		List<FCM_ServiceSendResult> results;
-		
+
 	public:
 		FCM_ServiceSendResponse();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FCM_ServiceSendResponse)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	};
 
 	class FCM_SendParam
@@ -74,25 +74,25 @@ namespace slib
 		List<String> receiverDeviceTokens;
 		String receiverDeviceToken;
 		PushNotificationMessage message;
-		
+
 		Json customMessage;
-		
+
 		Function<void(FCM_ServiceSendResponse&)> callback;
-		
+
 	public:
 		FCM_SendParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FCM_SendParam)
-		
+
 	};
 
 	class FCM_Service
 	{
 	public:
 		static void sendNotification(const FCM_SendParam& param);
-		
+
 	};
-	
+
 }
 
 #endif

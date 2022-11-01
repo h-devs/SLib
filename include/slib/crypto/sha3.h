@@ -58,13 +58,13 @@ namespace slib
 
 			public:
 				void start() noexcept;
-				
+
 				void update(const void* input, sl_size n) noexcept;
-				
+
 				void finish(void* output) noexcept;
 
 			protected:
-				
+
 				void _updateBlock(const sl_uint8* input) noexcept;
 
 			protected:
@@ -73,10 +73,10 @@ namespace slib
 				sl_uint32 rdata_len;
 				sl_uint32 rate, nhash; // in bytes
 			};
-			
+
 		}
 	}
-	
+
 	class SLIB_EXPORT SHA3_224 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_224>
 	{
 	public:
@@ -84,14 +84,14 @@ namespace slib
 			HashSize = 28,
 			BlockSize = 144
 		};
-		
+
 	public:
 		SHA3_224() noexcept;
 
 		~SHA3_224();
 
 	};
-	
+
 	class SLIB_EXPORT SHA3_256 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_256>
 	{
 	public:
@@ -99,14 +99,14 @@ namespace slib
 			HashSize = 32,
 			BlockSize = 136
 		};
-		
+
 	public:
 		SHA3_256() noexcept;
 
 		~SHA3_256();
 
 	};
-	
+
 	class SLIB_EXPORT SHA3_384 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_384>
 	{
 	public:
@@ -114,14 +114,14 @@ namespace slib
 			HashSize = 48,
 			BlockSize = 104
 		};
-		
+
 	public:
 		SHA3_384() noexcept;
 
 		~SHA3_384();
 
 	};
-	
+
 	class SLIB_EXPORT SHA3_512 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_512>
 	{
 	public:
@@ -129,7 +129,7 @@ namespace slib
 			HashSize = 64,
 			BlockSize = 72
 		};
-		
+
 	public:
 		SHA3_512() noexcept;
 

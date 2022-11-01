@@ -89,5 +89,5 @@ public class Network {
 		}
 		return devices.toArray(new NetworkDevice[0]);
 	}
-	
+
 }

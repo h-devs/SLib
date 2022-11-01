@@ -27,27 +27,27 @@
 
 namespace slib
 {
-	
+
 	enum class EndianType
 	{
 		Little = 0,
 		Big = 1
 	};
-	
+
 	class SLIB_EXPORT Endian
 	{
 	public:
 		constexpr static EndianType Little = EndianType::Little;
 		constexpr static EndianType Big = EndianType::Big;
-		
+
 	public:
 		sl_bool checkLittleEndianRuntime() noexcept;
-		
+
 		sl_bool checkBigEndianRuntime() noexcept
 		{
 			return !(checkLittleEndianRuntime());
 		}
-		
+
 		static EndianType get() noexcept
 		{
 #if defined(SLIB_ARCH_IS_LITTLE_ENDIAN)

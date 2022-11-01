@@ -48,7 +48,7 @@ namespace slib
 		public:
 			static void apply(jobject thiz) noexcept;
 			static sl_bool commit(jobject thiz) noexcept;
-						
+
 			static void putString(jobject thiz, const StringParam& key, const StringParam& value) noexcept;
 
 			static void remove(jobject thiz, const StringParam& key) noexcept;

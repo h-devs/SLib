@@ -285,19 +285,19 @@ namespace slib
 				{
 					GetNodeId(key, m_id.data);
 				}
-				
+
 			};
-			
+
 			class DirectConnection : public Connection
 			{
 			public:
 				IPv4Address m_ip;
-				
+
 			public:
 				DirectConnection(const IPv4Address& ip): Connection(P2PConnectionType::Direct), m_ip(ip) {}
 
 			};
-			
+
 			class TcpCommandContentReceiver
 			{
 			public:
@@ -1612,7 +1612,7 @@ namespace slib
 						m_serverTcp->close();
 					}
 				}
-				
+
 				sl_bool start() override
 				{
 					if (m_flagClosed) {
@@ -1904,7 +1904,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(P2PResponse)
-	
+
 	P2PResponse::P2PResponse()
 	{
 	}

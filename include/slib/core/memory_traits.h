@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <typename T, sl_size ElementSize>
 	class MemoryTraitsBase;
 

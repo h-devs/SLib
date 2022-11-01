@@ -41,15 +41,15 @@ namespace slib
 
 @interface SLIBScrollViewHandle : UIScrollView<UIScrollViewDelegate>
 {
-	
+
 	@public slib::WeakRef<slib::priv::scroll_view::ScrollViewInstance> m_viewInstance;
-	
+
 	@public UIView* m_contentView;
 
 	sl_bool m_flagPaging;
 	sl_ui_len m_pageWidth;
 	sl_ui_len m_pageHeight;
-	
+
 }
 
 - (void)setContentOffsetFromAPI:(CGPoint)contentOffset animated:(BOOL)animated;
@@ -71,7 +71,7 @@ namespace slib
 	{
 		namespace scroll_view
 		{
-		
+
 			class ScrollViewHelper : public ScrollView
 			{
 			public:
@@ -87,7 +87,7 @@ namespace slib
 					CGFloat f = UIPlatform::getGlobalScaleFactor();
 					[sv setContentSize:CGSizeMake((CGFloat)(size.x) / f, (CGFloat)(size.y) / f)];
 				}
-				
+
 				void applyContent(SLIBScrollViewHandle* sv)
 				{
 					if (sv->m_contentView != nil) {
@@ -108,26 +108,26 @@ namespace slib
 					}
 					applyContentSize(sv);
 				}
-				
+
 				using ScrollView::_onScroll_NW;
-				
+
 			};
-			
+
 			class ScrollViewInstance : public iOS_ViewInstance, public IScrollViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBScrollViewHandle* getHandle()
 				{
 					return (SLIBScrollViewHandle*)m_handle;
 				}
-				
+
 				Ref<ScrollViewHelper> getHelper()
 				{
 					return CastRef<ScrollViewHelper>(getView());
 				}
-				
+
 				void initialize(View* _view) override
 				{
 					ScrollViewHelper* view = (ScrollViewHelper*)_view;
@@ -139,17 +139,17 @@ namespace slib
 					}
 					handle.showsHorizontalScrollIndicator = view->isHorizontalScrollBarVisible() ? YES : NO;
 					handle.showsVerticalScrollIndicator = view->isVerticalScrollBarVisible() ? YES : NO;
-					
+
 					CGFloat f = UIPlatform::getGlobalScaleFactor();
 					[handle setContentOffsetFromAPI:CGPointMake((CGFloat)(view->getScrollX()) / f, (CGFloat)(view->getScrollY()) / f) animated:NO];
-					
+
 					view->applyContent(handle);
-					
+
 					SLIBScrollViewHandle_GestureRecognizer* gesture = [[SLIBScrollViewHandle_GestureRecognizer alloc] init];
 					gesture->m_viewInstance = this;
 					[handle addGestureRecognizer:gesture];
 				}
-				
+
 				void refreshContentSize(ScrollView* view) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -157,7 +157,7 @@ namespace slib
 						static_cast<ScrollViewHelper*>(view)->applyContentSize(handle);
 					}
 				}
-				
+
 				void setContentView(ScrollView* view, const Ref<View>& content) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -165,7 +165,7 @@ namespace slib
 						static_cast<ScrollViewHelper*>(view)->applyContent(handle);
 					}
 				}
-				
+
 				sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -178,7 +178,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_bool getScrollRange(View* view, ScrollPoint& _out) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -198,7 +198,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -207,7 +207,7 @@ namespace slib
 						[handle setContentOffsetFromAPI:CGPointMake((CGFloat)(x) / f, (CGFloat)(y) / f) animated:flagAnimate];
 					}
 				}
-				
+
 				void setPaging(View* view, sl_bool flagPaging, sl_ui_len pageWidth, sl_ui_len pageHeight) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -215,7 +215,7 @@ namespace slib
 						[handle setPaging:flagPaging :pageWidth :pageHeight];
 					}
 				}
-				
+
 				void setLockScroll(View* view, sl_bool flagLock) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -227,7 +227,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -235,7 +235,7 @@ namespace slib
 						handle.backgroundColor = GraphicsPlatform::getUIColorFromColor(color);
 					}
 				}
-				
+
 				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
 				{
 					SLIBScrollViewHandle* handle = getHandle();
@@ -244,7 +244,7 @@ namespace slib
 						handle.showsVerticalScrollIndicator = flagVertical ? YES : NO;
 					}
 				}
-				
+
 				void onScroll(UIScrollView* sv)
 				{
 					CGPoint pt= sv.contentOffset;
@@ -254,26 +254,26 @@ namespace slib
 						helper->_onScroll_NW((sl_scroll_pos)(pt.x * f), (sl_scroll_pos)(pt.y * f));
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(ScrollViewInstance, iOS_ViewInstance)
 
 		}
 	}
 
 	using namespace priv::scroll_view;
-	
+
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
 		return iOS_ViewInstance::create<ScrollViewInstance, SLIBScrollViewHandle>(this, parent);
 	}
-	
+
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()
 	{
 		return CastRef<ScrollViewInstance>(getViewInstance());
 	}
-	
+
 }
 
 using namespace slib;

@@ -41,7 +41,7 @@ namespace slib
 			public:
 				Color textColorOff;
 				Color textColorOn;
-				
+
 				Ref<Drawable> thumbOff;
 				Ref<Drawable> trackOff;
 				Ref<Drawable> pressedThumbOff;
@@ -90,7 +90,7 @@ namespace slib
 					}
 				}
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext, sl_false)
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticLabelContext, sl_true)
 
@@ -98,7 +98,7 @@ namespace slib
 	}
 
 	using namespace priv::switch_view;
-	
+
 	SLIB_DEFINE_OBJECT(SwitchView, View)
 
 	SwitchView::SwitchView():
@@ -126,11 +126,11 @@ namespace slib
 	{
 		setCursor(Cursor::getHand());
 	}
-	
+
 	SwitchView::~SwitchView()
 	{
 	}
-	
+
 	sl_bool SwitchView::getValue()
 	{
 		return m_value;
@@ -150,7 +150,7 @@ namespace slib
 	{
 		return m_value;
 	}
-	
+
 	void SwitchView::switchToRight(UIUpdateMode mode)
 	{
 		setValue(sl_true, mode);
@@ -249,7 +249,7 @@ namespace slib
 	SWITCH_VIEW_GET_SET_DRAWABLE(PressedTrack, pressedTrack)
 	SWITCH_VIEW_GET_SET_DRAWABLE(HoverThumb, hoverThumb)
 	SWITCH_VIEW_GET_SET_DRAWABLE(HoverTrack, hoverTrack)
-	
+
 	String SwitchView::getLeftText()
 	{
 		return m_textOff;
@@ -269,7 +269,7 @@ namespace slib
 	{
 		setTextOn(text, mode);
 	}
-	
+
 	void SwitchView::setPressedState(sl_bool flagState, UIUpdateMode mode)
 	{
 		View::setPressedState(flagState, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
@@ -287,12 +287,12 @@ namespace slib
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(SwitchView, Change, sl_bool newValue)
-	
+
 	void SwitchView::dispatchChange(sl_bool newValue)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Change, newValue)
 	}
-	
+
 	void SwitchView::onDraw(Canvas* canvas)
 	{
 		StaticContext* s;
@@ -415,15 +415,15 @@ namespace slib
 				}
 			}
 		}
-		
+
 		sl_ui_len widthTrack = rect.getWidth();
 		sl_ui_len widthThumb = widthTrack / 2;
 
 		sl_bool flagAntialias = canvas->isAntiAlias();
 		canvas->setAntiAlias(sl_true);
-		
+
 		drawTrack(canvas, track, rect);
-		
+
 		if (thumb.isNotNull()) {
 			sl_real f = m_posThumb;
 			if (f < 0) {
@@ -486,20 +486,20 @@ namespace slib
 		canvas->setAntiAlias(flagAntialias);
 
 	}
-	
+
 	void SwitchView::onUpdateLayout()
 	{
 		sl_bool flagHorizontal = isWidthWrapping();
 		sl_bool flagVertical = isHeightWrapping();
-		
+
 		sl_ui_len paddingWidth = getPaddingLeft() + getPaddingRight();
 		sl_ui_len paddingHeight = getPaddingTop() + getPaddingBottom();
-		
+
 		if (flagVertical) {
 			sl_ui_len h = (sl_ui_len)(getFontSize() * 1.5f);
 			setLayoutHeight(h + paddingHeight);
 		}
-		
+
 		if (flagHorizontal) {
 			sl_ui_len heightSwitch = getLayoutHeight() - paddingHeight;
 			if (heightSwitch < 0) {
@@ -529,7 +529,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void SwitchView::onMouseEvent(UIEvent* ev)
 	{
 		sl_real dimUnit = Math::ceil(UI::dpToPixel(1));
@@ -553,7 +553,7 @@ namespace slib
 					m_flagTapping = sl_true;
 					m_tracker.clearMovements();
 					View::setPressedState(sl_true);
-					
+
 					ObjectLocker lock(this);
 					m_timer.setNull();
 				}
@@ -656,7 +656,7 @@ namespace slib
 			canvas->draw(rectDst, track);
 		}
 	}
-	
+
 	void SwitchView::drawThumb(Canvas* canvas, const Ref<Drawable>& thumb, const Rectangle& rectDst)
 	{
 		if (thumb.isNull()) {
@@ -691,7 +691,7 @@ namespace slib
 			canvas->draw(rectDst, thumb);
 		}
 	}
-		
+
 	void SwitchView::_changeValue(sl_bool value)
 	{
 		if (value != m_value) {
@@ -701,7 +701,7 @@ namespace slib
 			setValue(value);
 		}
 	}
-	
+
 	void SwitchView::_onTimerAnimation(Timer* timer)
 	{
 		do {

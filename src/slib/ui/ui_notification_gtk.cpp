@@ -32,7 +32,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ui_notification_gtk
@@ -98,7 +98,7 @@ namespace slib
 				void cancelPending() override
 				{
 				}
-		
+
 				void removeFromDeliveredList() override
 				{
 					removeDeliveredNotification(m_id);
@@ -124,7 +124,7 @@ namespace slib
 	void UserNotification::removePendingNotification(const String& identifier)
 	{
 	}
-	
+
 	void UserNotification::removePendingNotification(sl_uint32 _id)
 	{
 	}
@@ -141,7 +141,7 @@ namespace slib
 			gio::getApi_g_application_withdraw_notification()((GApplication*)app, id.getData());
 		}
 	}
-	
+
 	void UserNotification::removeDeliveredNotification(sl_uint32 _id)
 	{
 		removeDeliveredNotification(String::fromUint32(_id));

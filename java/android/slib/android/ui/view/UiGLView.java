@@ -58,7 +58,7 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 
 	private static final Object sync = new Object();
 	private static Vector<UiGLView> glViewList = new Vector<UiGLView>();
-	
+
 	public static UiGLView _create(Context context) {
 		try {
 			initialize();
@@ -68,7 +68,7 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 		}
 		return null;
 	}
-	
+
 	public static boolean _setRenderMode(final View view, final int mode) {
 		try {
 			if (view instanceof GLSurfaceView) {
@@ -94,7 +94,7 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 			Logger.exception(e);
 		}
 	}
-	
+
 
 	private static native void nativeOnCreate(long instance);
 	public static void onEventCreate(IView view) {
@@ -103,7 +103,7 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 			nativeOnCreate(instance);
 		}
 	}
-	
+
 	private static native void nativeOnFrame(long instance, int width, int height);
 	public static void onEventFrame(IView view, int width, int height) {
 		long instance = view.getInstance();
@@ -111,13 +111,13 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 			nativeOnFrame(instance, width, height);
 		}
 	}
-	
+
 	public UiGLView(Context context) {
 		super(context);
 
 		setEGLContextClientVersion(2);
 		setEGLConfigChooser(new ConfigChooser(true, false));
-		
+
 		setRenderer(this);
 		setRenderMode(RENDERMODE_WHEN_DIRTY);
 
@@ -139,7 +139,7 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent event) {
 		if (gestureDetector != null) {
@@ -182,7 +182,7 @@ public class UiGLView extends GLSurfaceView implements IView, GLSurfaceView.Rend
 	public void onDrawFrame(GL10 gl) {
 		onEventFrame(this, widthViewport, heightViewport);
 	}
-	
+
 	public static void removeView(final View view) {
 		if (!(Util.isUiThread())) {
 			view.post(new Runnable() {

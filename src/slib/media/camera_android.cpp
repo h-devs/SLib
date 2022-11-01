@@ -67,7 +67,7 @@ namespace slib
 			class CameraImpl;
 
 			typedef CHashMap<jlong, WeakRef<CameraImpl> > CameraMap;
-			
+
 			SLIB_SAFE_STATIC_GETTER(CameraMap, GetCameraMap)
 
 			class CameraImpl : public Camera
@@ -293,7 +293,7 @@ namespace slib
 					frame.image.sampleStride2 = pixelStrideUV;
 					frame.rotation = _getRotation(orientation);
 					frame.flip = _getFlip(flip);
-					
+
 					frame.image.data = data;
 					frame.image.ref = mem.ref;
 					frame.image.data1 = data + nY;
@@ -416,7 +416,7 @@ namespace slib
 
 
 			SLIB_JNI_BEGIN_CLASS_SECTION(JCamera)
-			
+
 				SLIB_JNI_NATIVE_IMPL(nativeOnFrame, "nativeOnFrame", "(J[BIIII)V", void, jlong instance, jbyteArray data, jint width, jint height, jint orientation, jint flip)
 				{
 					Ref<CameraImpl> camera = CameraImpl::get(instance);
@@ -440,7 +440,7 @@ namespace slib
 						camera->_onPicture(data, orientation, flip);
 					}
 				}
-				
+
 				SLIB_JNI_NATIVE_IMPL(nativeOnPicture2, "nativeOnPicture2", "(JLjava/nio/ByteBuffer;II)V", void, jlong instance, jobject data, jint orientation, jint flip)
 				{
 					Ref<CameraImpl> camera = CameraImpl::get(instance);
@@ -448,7 +448,7 @@ namespace slib
 						camera->_onPicture2(data, orientation, flip);
 					}
 				}
-				
+
 			SLIB_JNI_END_CLASS_SECTION
 
 		}

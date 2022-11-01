@@ -43,7 +43,7 @@ namespace slib
 
 		setUsingFont(sl_true);
 		setFocusable(sl_true);
-		
+
 		m_date = Time::now();
 	}
 
@@ -59,7 +59,7 @@ namespace slib
 		}
 		return m_date;
 	}
-	
+
 	void DatePicker::setDate(const Time& date, UIUpdateMode mode)
 	{
 		Ptr<IDatePickerInstance> instance = getDatePickerInstance();
@@ -72,24 +72,24 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(DatePicker, Change, Time&)
-	
+
 	void DatePicker::dispatchChange(Time& date)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Change, date)
 		m_date = date;
 	}
-	
+
 	void DatePicker::onUpdateLayout()
 	{
 		sl_bool flagHorizontal = isWidthWrapping();
 		sl_bool flagVertical = isHeightWrapping();
-		
+
 		if (!flagVertical && !flagHorizontal) {
 			return;
 		}
-		
+
 		Ptr<IDatePickerInstance> instance = getDatePickerInstance();
 		if (instance.isNotNull()) {
 			UISize size;
@@ -103,7 +103,7 @@ namespace slib
 				return;
 			}
 		}
-		
+
 		Ref<Font> font = getFont();
 		if (flagHorizontal) {
 			sl_ui_pos width = getPaddingLeft() + getPaddingRight();
@@ -133,7 +133,7 @@ namespace slib
 			setLayoutHeight(height);
 		}
 	}
-	
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{

@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	void Instagram::openInstagramAppSharingFile(const Memory& data)
 	{
 		PhotoKit::saveImageWithFileContent(data, [](const String& localIdentifier) {

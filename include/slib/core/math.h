@@ -80,10 +80,10 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class MathContants;
-	
+
 	template <>
 	class MathContants<float>
 	{
@@ -94,7 +94,7 @@ namespace slib
 		constexpr static float PI_QUARTER = SLIB_PI_QUARTER;
 		constexpr static float EPSILON = SLIB_EPSILON;
 	};
-	
+
 	template <>
 	class MathContants<double>
 	{
@@ -105,7 +105,7 @@ namespace slib
 		constexpr static double PI_QUARTER = SLIB_PI_QUARTER_LONG;
 		constexpr static double EPSILON = SLIB_EPSILON_LONG;
 	};
-	
+
 	class Math
 	{
 	public:
@@ -178,7 +178,7 @@ namespace slib
 		static float cbrt(float f) noexcept;
 
 		static double cbrt(double f) noexcept;
-	
+
 
 		static float sin(float f) noexcept;
 
@@ -195,7 +195,7 @@ namespace slib
 		static float cot(float f) noexcept;
 
 		static double cot(double f) noexcept;
-	
+
 		static float arcsin(float f) noexcept;
 
 		static double arcsin(double f) noexcept;
@@ -245,16 +245,16 @@ namespace slib
 			}
 			return n + log10iT(v / p);
 		}
-	
+
 		static float exp(float f) noexcept;
 
 		static double exp(double f) noexcept;
-	
+
 
 		static float ceil(float f) noexcept;
 
 		static double ceil(double f) noexcept;
-	
+
 		static float floor(float f) noexcept;
 
 		static double floor(double f) noexcept;
@@ -262,7 +262,7 @@ namespace slib
 		static float round(float f) noexcept;
 
 		static double round(double f) noexcept;
-	
+
 
 		// check "Not a Number"  such as (sqrt(-1.0))
 		static sl_bool isNaN(float f) noexcept;
@@ -324,7 +324,7 @@ namespace slib
 			// ((-v) >> 31) & v <=> arithmetic sign shift, clamp to >=0
 			return (((0xFFFF - (((-v) >> 31) & v)) >> 31) | (((-v) >> 31) & v)) & 0xFFFF; // clamp to < 65536
 		}
-	
+
 		constexpr static sl_bool isAlmostZero(float f)
 		{
 			return (f > -SLIB_EPSILON && f < SLIB_EPSILON);
@@ -413,20 +413,20 @@ namespace slib
 
 		// normalize degree to [-180, 180]
 		static double normalizeDegreeDistance(double f) noexcept;
-	
+
 
 		static float convertAngleFromEllipseToCircle(float f, float radiusX, float radiusY) noexcept;
 
 		static double convertAngleFromEllipseToCircle(double f, double radiusX, double radiusY) noexcept;
-	
+
 
 		// random value between 0~1
 		static double random() noexcept;
 
 		static sl_uint32 randomInt() noexcept;
-		
+
 		static double randomByTime() noexcept;
-		
+
 		static sl_uint32 randomIntByTime() noexcept;
         
         static void srand(sl_uint32 seed) noexcept;
@@ -438,17 +438,17 @@ namespace slib
 		static sl_uint64 roundUpToPowerOfTwo(sl_uint64 num) noexcept;
 		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS(SLIB_INLINE sl_uint32, roundUpToPowerOfTwo, noexcept)
 
-		
+
 		constexpr static sl_uint32 rotateLeft(sl_uint32 x, sl_uint32 n)
 		{
 			return (x << n) | (x >> (32 - n));
 		}
-		
+
 		constexpr static sl_uint64 rotateLeft(sl_uint64 x, sl_uint32 n)
 		{
 			return (x << n) | (x >> (64 - n));
 		}
-		
+
 		PRIV_SLIB_MATH_DEFINE_FUNCTION_UINT_PARAMS2(constexpr sl_uint32, rotateLeft, sl_uint32,)
 
 
@@ -514,7 +514,7 @@ namespace slib
 		static void mul32(sl_uint32 a, sl_uint32 b, sl_uint32& o_high, sl_uint32& o_low) noexcept;
 
 		static void mul64(sl_uint64 a, sl_uint64 b, sl_uint64& o_high, sl_uint64& o_low) noexcept;
-		
+
 		static sl_bool div128_64(sl_uint64& high, sl_uint64& low, sl_uint64 divisor, sl_uint64& remainder) noexcept;
 
 		static sl_bool div128_32(sl_uint64& high, sl_uint64& low, sl_uint32 divisor, sl_uint32& remainder) noexcept;

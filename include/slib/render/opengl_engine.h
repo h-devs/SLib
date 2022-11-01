@@ -31,15 +31,15 @@ namespace slib
 	class SLIB_EXPORT GLRenderEngine : public RenderEngine
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		GLRenderEngine();
-		
+
 		~GLRenderEngine();
-		
+
 	public:
 		virtual Ref<Texture> createTextureFromName(sl_uint32 target, sl_uint32 name, sl_bool flagDeleteOnRelease = sl_true) = 0;
-		
+
 	};
 
 }

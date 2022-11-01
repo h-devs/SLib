@@ -231,7 +231,7 @@ namespace slib
 		void _onRunListen();
 
 		void _onRunClient(const Socket& socket);
-		
+
 	public:
 		class Connection
 		{
@@ -302,7 +302,7 @@ namespace slib
 		Socket m_socketListen;
 		AtomicRef<Thread> m_threadListen;
 		AtomicRef<ThreadPool> m_threadPool;
-		
+
 		SmbServerParam m_param;
 
 		sl_uint8 m_serverGuid[16];

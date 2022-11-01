@@ -47,16 +47,16 @@ namespace slib
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace date_picker
 		{
-			
+
 			class DatePickerInstance : public macOS_ViewInstance, public IDatePickerInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				NSDatePicker* getHandle()
 				{
@@ -71,7 +71,7 @@ namespace slib
 					handle.dateValue = Apple::getNSDateFromTime(view->getDate());
 					handle.datePickerElements = NSDatePickerElementFlagYearMonthDay;
 				}
-				
+
 				sl_bool getDate(DatePicker* view, Time& _out) override
 				{
 					NSDatePicker* handle = getHandle();
@@ -81,7 +81,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setDate(DatePicker* view, const Time& date) override
 				{
 					NSDatePicker* handle = getHandle();
@@ -89,12 +89,12 @@ namespace slib
 						handle.dateValue = Apple::getNSDateFromTime(date);
 					}
 				}
-				
+
 				sl_bool measureSize(DatePicker* view, UISize& _out) override
 				{
 					return UIPlatform::measureNativeWidgetFittingSize(this, _out);
 				}
-				
+
 				void onChange(SLIBDatePickerHandle* handle, NSDate** pValue)
 				{
 					Ref<DatePicker> view = CastRef<DatePicker>(getView());
@@ -108,26 +108,26 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(DatePickerInstance, macOS_ViewInstance)
-			
+
 		}
 	}
-	
+
 	using namespace priv::date_picker;
 
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{
 		return macOS_ViewInstance::create<DatePickerInstance, SLIBDatePickerHandle>(this, parent);
 	}
-	
+
 	Ptr<IDatePickerInstance> DatePicker::getDatePickerInstance()
 	{
 		return CastRef<DatePickerInstance>(getViewInstance());
 	}
-	
+
 }
 
 using namespace slib;

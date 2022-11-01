@@ -44,7 +44,7 @@ namespace slib
 		FadeFrontAndBack = 6,
 		Default = 100
 	};
-	
+
 	enum class TransitionDirection
 	{
 		FromRightToLeft = 0,
@@ -53,7 +53,7 @@ namespace slib
 		FromTopToBottom = 3,
 		Default = 100
 	};
-	
+
 	class SLIB_EXPORT Transition
 	{
 	public:
@@ -61,25 +61,25 @@ namespace slib
 		TransitionDirection direction;
 		float duration; // seconds
 		AnimationCurve curve; // curve
-		
+
 	public:
 		Transition();
-		
+
 		Transition(TransitionType type);
-		
+
 		Transition(TransitionType type, TransitionDirection direction, float duration = 0, AnimationCurve curve = AnimationCurve::Default);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Transition)
 
 	public:
 		static Ref<Animation> start(const Ref<View>& view, const Transition& transition, UIPageAction pageAction, const Function<void()>& onStop);
-		
+
 		static Ref<Animation> createAnimation(const Ref<View>& view, const Transition& transition, UIPageAction pageAction, const Function<void()>& onStop);
-		
+
 		static Ref<Animation> startPopup(const Ref<View>& view, const Transition& transition, UIPageAction pageAction, const Function<void()>& onStop);
-		
+
 		static Ref<Animation> createPopupAnimation(const Ref<View>& view, const Transition& transition, UIPageAction pageAction, const Function<void()>& onStop);
-		
+
 	};
 
 }

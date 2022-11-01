@@ -28,31 +28,31 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT TextView : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		TextView();
-		
+
 		~TextView();
 
 	public:
 		sl_bool isEditable();
-		
+
 		void setEditable(sl_bool flagEditable);
-		
+
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onMouseEvent(UIEvent* ev) override;
-		
+
 		void onKeyEvent(UIEvent* event) override;
-		
+
 	protected:
 		sl_bool m_flagEditable;
-		
+
 	};
 
 }

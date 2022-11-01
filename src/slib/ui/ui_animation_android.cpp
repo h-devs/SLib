@@ -37,7 +37,7 @@ namespace slib
 	{
 		namespace ui_animation
 		{
-			
+
 			void OnStop(JNIEnv* env, jobject _this, jlong ptr);
 
 			SLIB_JNI_BEGIN_CLASS(JAnimation, "slib/android/ui/UiAnimation")

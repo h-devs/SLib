@@ -40,12 +40,12 @@ namespace slib
 	public:
 		String identifier;
 		String url;
-		
+
 	public:
 		UserNotificationAttachment();
-		
+
 		UserNotificationAttachment(const String& _id, const String& _url) : identifier(_id), url(_url) {}
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(UserNotificationAttachment)
 
 	};
@@ -81,7 +81,7 @@ namespace slib
 		sl_bool flagSound; // macOS, iOS
 		String soundName; // macOS, iOS
 		Color color; // Android
-		
+
 		sl_bool flagOngoing; // Android
 		sl_bool flagOnlyAlertOnce; // Android
 		sl_int32 priority; // Android(from -2 to 2)
@@ -92,26 +92,26 @@ namespace slib
 		HashMap<String, String> additionalActions; // macOS(old SDK), [action, title] pairs
 		sl_bool flagReplyButton;
 		String responsePlaceholder; // macOS(old SDK)
-		
+
 		// Trigger
 		Time deliveryTime;
 		// In Seconds
 		double deliveryInterval;
 		sl_bool flagRepeat;
-		
+
 		// Receiving
 		String action;
 		String response;
 		Time actualDeliveryTime; // iOS, macOS
-		
+
 		// Remove after the action is processed
 		sl_bool flagRemove;
-		
+
 	public:
 		UserNotificationMessage();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(UserNotificationMessage)
-		
+
 	};
 
 	// same as UNAuthorizationOptions
@@ -129,87 +129,87 @@ namespace slib
 	class SLIB_EXPORT UserNotification : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		UserNotification();
-		
+
 		~UserNotification();
-		
+
 	public:
 		static void start();
-		
+
 		static Ref<UserNotification> add(const UserNotificationMessage& message);
-		
+
 		static void removePendingNotification(const String& identifier);
-		
+
 		static void removePendingNotification(sl_uint32 _id);
-		
+
 		static void removeAllPendingNotifications();
-		
+
 		static void removeDeliveredNotification(const String& identifier);
-		
+
 		static void removeDeliveredNotification(sl_uint32 _id);
-		
+
 		static void removeAllDeliveredNotifications();
-		
+
 		static void checkAuthorizationStatus(const Function<void(sl_bool flagGranted)>& callback);
-		
+
 		static void requestAuthorization(const UserNotificationAuthorizationOptions& options, const Function<void(sl_bool flagGranted)>& callback);
-		
+
 		static void openSystemPreferencesForNotification();
 
 		static void addOnClickMessage(const Function<void(UserNotificationMessage&)>& callback);
-		
+
 		static void removeOnClickMessage(const Function<void(UserNotificationMessage&)>& callback);
-		
+
 		static void dispatchClickMessage(UserNotificationMessage& message);
-		
+
 		static void addOnPresentMessage(const Function<void(UserNotificationMessage&)>& callback);
-		
+
 		static void removeOnPresentMessage(const Function<void(UserNotificationMessage&)>& callback);
-		
+
 		static void dispatchPresentMessage(UserNotificationMessage& message);
 
 	public:
 		virtual void cancelPending() = 0;
-		
+
 		virtual void removeFromDeliveredList() = 0;
-		
+
 	private:
 		static void startInternal();
-		
+
 	};
 
 	class SLIB_EXPORT PushNotificationClient : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		PushNotificationClient();
-		
+
 		~PushNotificationClient();
-		
+
 	public:
 		String getDeviceToken();
-		
+
 		void addOnRefreshToken(const Function<void(String)>& callback);
-		
+
 		void removeOnRefreshToken(const Function<void(String)>& callback);
 
 		void addOnReceiveMessage(const Function<void(PushNotificationMessage&)>& callback);
-		
+
 		void removeOnReceiveMessage(const Function<void(PushNotificationMessage&)>& callback);
-		
+
 		void start();
-		
+
 	public:
 		void dispatchRefreshToken(const String& deviceToken);
-		
+
 		void dispatchReceiveMessage(PushNotificationMessage& message);
-		
+
 	protected:
 		virtual void onStart();
-		
+
 	protected:
 		sl_bool m_flagStarted;
 		AtomicString m_deviceToken;
@@ -217,43 +217,43 @@ namespace slib
 		AtomicFunction<void(PushNotificationMessage&)> m_onReceiveMessage;
 
 	};
-	
+
 	// Apple Push Notification service
 	class SLIB_EXPORT APNs : public PushNotificationClient
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		APNs();
-		
+
 		~APNs();
-		
+
 	protected:
 		void onStart() override;
-		
+
 	public:
 		static Ref<APNs> getInstance();
-		
+
 	};
 
 	// Firebase Cloud Messaging
 	class SLIB_EXPORT FCM : public PushNotificationClient
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		FCM();
-		
+
 		~FCM();
-		
+
 	public:
 		void onStart() override;
-		
-	public:		
+
+	public:
 		static Ref<FCM> getInstance();
-		
+
 	};
-	
+
 }
 
 #endif

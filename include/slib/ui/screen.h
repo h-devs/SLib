@@ -34,7 +34,7 @@ namespace slib
 	class SLIB_EXPORT Screen : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		Screen();
 
@@ -42,7 +42,7 @@ namespace slib
 
 	public:
 		virtual UIRect getRegion() = 0;
-		
+
 	};
 
 }

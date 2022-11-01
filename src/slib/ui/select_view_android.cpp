@@ -94,7 +94,7 @@ namespace slib
 					setFont(view, view->getFont());
 					refreshItems(view);
 				}
-				
+
 				void selectItem(SelectView* view, sl_uint32 index) override
 				{
 					jobject handle = m_handle.get();

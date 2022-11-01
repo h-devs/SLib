@@ -44,37 +44,37 @@ namespace slib
 		static void setAudioCategory(DeviceAudioCategory category);
 
 		static DeviceAudioMode getAudioMode();
-		
+
 		static void setAudioMode(DeviceAudioMode mode);
-		
+
 		static DeviceRingerMode getRingerMode();
-		
+
 		static void setRingerMode(DeviceRingerMode mode);
-		
+
 		static float getVolume(AudioStreamType stream = AudioStreamType::Default);
-		
+
 		static void setVolume(float volume, AudioStreamType stream, const DeviceSetVolumeFlags& flags);
-		
+
 		static void setVolume(float volume, AudioStreamType stream = AudioStreamType::Default);
-		
+
 		static sl_bool isMicrophoneMute();
-		
+
 		static void setMicrophoneMute(sl_bool flag = sl_true);
-		
+
 		static sl_bool isSpeakerOn();
-		
+
 		static void setSpeakerOn(sl_bool flag = sl_true);
-		
+
 		static sl_bool isBluetoothScoOn();
-		
+
 		static void setBluetoothScoOn(sl_bool flag = sl_true);
-		
+
 		static void vibrate(sl_uint32 durationMillis = 500);
 
-	
+
 		// Works on Android
 		static sl_uint32 getSimSlotCount();
-		
+
 		// Works on Android
 		static List<String> getIMEIs();
 
@@ -83,49 +83,49 @@ namespace slib
 
 		// Works on Android
 		static List<String> getPhoneNumbers();
-		
+
 		// Works on Android
 		static String getPhoneNumber(sl_uint32 indexSlot = 0);
 
 
 		static String getDeviceId();
-				
+
 		static double getScreenPPI();
-		
+
 		static Sizei getScreenSize();
-		
+
 		static sl_uint32 getScreenWidth();
-		
+
 		static sl_uint32 getScreenHeight();
-		
-		
+
+
 		static void openDial(const String& phoneNumber);
 
 		static void callPhone(const String& phoneNumber);
-		
+
 		static void callPhone(const String& phoneNumber, sl_uint32 indexSIM);
-		
-		
+
+
 		static void answerCall(const String& callId);
 
 		static void endCall(const String& callId);
 
-		
+
 		static void addOnIncomingCall(const PhoneCallCallback& callback);
-		
+
 		static void removeOnIncomingCall(const PhoneCallCallback& callback);
 
 		static void addOnOutgoingCall(const PhoneCallCallback& callback);
-		
+
 		static void removeOnOutgoingCall(const PhoneCallCallback& callback);
-		
+
 		static void addOnEndCall(const PhoneCallCallback& callback);
-		
+
 		static void removeOnEndCall(const PhoneCallCallback& callback);
-		
-		
+
+
 		static List<Contact> getAllContacts();
-		
+
 	};
 
 }

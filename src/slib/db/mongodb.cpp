@@ -533,7 +533,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			class DatabaseImpl : public DocumentDatabase
 			{
 			public:
@@ -640,7 +640,7 @@ namespace slib
 
 			public:
 				Ref<DocumentCollection> getCollection(mongoc_collection_t* collection);
-				
+
 				Mutex* getClientLocker()
 				{
 					return m_client->getClientLocker();

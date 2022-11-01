@@ -64,7 +64,7 @@ namespace slib
 		{
 			list.clear();
 		}
-		
+
 		static sl_bool create(std::vector<T, ALLOC>& list, sl_size n)
 		{
 			list.resize(n);

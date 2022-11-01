@@ -327,7 +327,7 @@ namespace slib
 			_setupPlayVideoTimer();
 		}
 	}
-	
+
 	void VideoView::onDraw(Canvas* _canvas)
 	{
 		_updateControls(UIUpdateMode::None);
@@ -433,7 +433,7 @@ namespace slib
 		}
 		canvas->draw(rectDraw, bitmap);
 	}
-	
+
 	Ref<VertexBuffer> VideoView::_applyFrameRotationAndFlip(FlipMode frameFlip, RotationMode frameRotation, FlipMode userFlip, RotationMode userRotation)
 	{
 		if (m_vbFrame.isNotNull() && m_flipFrameApplied == frameFlip && m_rotationFrameApplied == frameRotation && m_flipApplied == userFlip && m_rotationApplied == userRotation) {
@@ -530,7 +530,7 @@ namespace slib
 		m_rotationApplied = userRotation;
 		return vb;
 	}
-	
+
 	void VideoView::_updateControls(UIUpdateMode mode)
 	{
 		Ref<MediaPlayer> player = m_mediaPlayer;

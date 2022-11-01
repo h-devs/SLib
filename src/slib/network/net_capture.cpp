@@ -38,16 +38,16 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetCapturePacket)
-	
+
 	NetCapturePacket::NetCapturePacket(): data(sl_null), length(0)
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetCaptureParam)
-	
+
 	NetCaptureParam::NetCaptureParam()
 	{
 		preferedLinkDeviceType = NetworkLinkDeviceType::Ethernet;
@@ -55,24 +55,24 @@ namespace slib
 
 		flagAutoStart = sl_true;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(NetCapture, Object)
-	
+
 	NetCapture::NetCapture()
 	{
 		m_timeDeviceAddress = 0;
 	}
-	
+
 	NetCapture::~NetCapture()
 	{
 	}
-	
+
 	sl_bool NetCapture::setLinkType(sl_uint32 type)
 	{
 		return sl_false;
 	}
-	
+
 	String NetCapture::getErrorMessage()
 	{
 		return sl_null;
@@ -106,14 +106,14 @@ namespace slib
 		m_timeDeviceAddress = now;
 		return m_deviceAddress;
 	}
-	
+
 	void NetCapture::_initWithParam(const NetCaptureParam& param)
 	{
 		m_deviceName = param.deviceName.toString();
 		m_onCapturePacket = param.onCapturePacket;
 		m_onError = param.onError;
 	}
-	
+
 	void NetCapture::_onCapturePacket(NetCapturePacket& packet)
 	{
 		m_onCapturePacket(this, packet);
@@ -133,15 +133,15 @@ namespace slib
 			{
 			public:
 				Socket m_socket;
-				
+
 				NetworkLinkDeviceType m_deviceType;
 				sl_uint32 m_ifaceIndex;
 				Memory m_bufPacket;
 				Ref<Thread> m_thread;
-				
+
 				sl_bool m_flagInit;
 				sl_bool m_flagRunning;
-				
+
 			public:
 				RawPacketCapture()
 				{
@@ -151,16 +151,16 @@ namespace slib
 					m_flagInit = sl_false;
 					m_flagRunning = sl_false;
 				}
-				
+
 				~RawPacketCapture()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<RawPacketCapture> create(const NetCaptureParam& param)
 				{
-					
+
 					sl_uint32 iface = 0;
 					StringCstr deviceName = param.deviceName;
 					if (deviceName.isNotEmpty()) {
@@ -215,7 +215,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void release()
 				{
 					ObjectLocker lock(this);
@@ -223,7 +223,7 @@ namespace slib
 						return;
 					}
 					m_flagInit = sl_false;
-					
+
 					m_flagRunning = sl_false;
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
@@ -231,14 +231,14 @@ namespace slib
 					}
 					m_socket.setNone();
 				}
-				
+
 				void start()
 				{
 					ObjectLocker lock(this);
 					if (!m_flagInit) {
 						return;
 					}
-					
+
 					if (m_flagRunning) {
 						return;
 					}
@@ -248,12 +248,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool isRunning()
 				{
 					return m_flagRunning;
 				}
-				
+
 				void _run()
 				{
 					Thread* thread = Thread::getCurrent();
@@ -262,7 +262,7 @@ namespace slib
 					}
 
 					NetCapturePacket packet;
-					
+
 					Socket& socket = m_socket;
 
 					socket.setNonBlockingMode();
@@ -270,10 +270,10 @@ namespace slib
 					if (event.isNull()) {
 						return;
 					}
-					
+
 					sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
 					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
-					
+
 					while (thread->isNotStopping()) {
 						L2PacketInfo info;
 						sl_int32 n = socket.receivePacket(buf, sizeBuf, info);
@@ -289,12 +289,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				NetworkLinkDeviceType getLinkType()
 				{
 					return m_deviceType;
 				}
-				
+
 				sl_bool sendPacket(const void* buf, sl_uint32 size)
 				{
 					if (m_ifaceIndex == 0) {
@@ -322,7 +322,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 			};
 
 
@@ -332,25 +332,25 @@ namespace slib
 				Socket m_socketTCP;
 				Socket m_socketUDP;
 				Socket m_socketICMP;
-				
+
 				Memory m_bufPacket;
 				Ref<Thread> m_thread;
-				
+
 				sl_bool m_flagInit;
 				sl_bool m_flagRunning;
-				
+
 			public:
 				RawIPv4Capture()
 				{
 					m_flagInit = sl_false;
 					m_flagRunning = sl_false;
 				}
-				
+
 				~RawIPv4Capture()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<RawIPv4Capture> create(const NetCaptureParam& param)
 				{
@@ -385,7 +385,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void release()
 				{
 					ObjectLocker lock(this);
@@ -393,7 +393,7 @@ namespace slib
 						return;
 					}
 					m_flagInit = sl_false;
-					
+
 					m_flagRunning = sl_false;
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
@@ -403,30 +403,30 @@ namespace slib
 					m_socketUDP.setNone();
 					m_socketICMP.setNone();
 				}
-				
+
 				void start()
 				{
 					ObjectLocker lock(this);
 					if (!m_flagInit) {
 						return;
 					}
-					
+
 					if (m_flagRunning) {
 						return;
 					}
-					
+
 					if (m_thread.isNotNull()) {
 						if (m_thread->start()) {
 							m_flagRunning = sl_true;
 						}
 					}
 				}
-				
+
 				sl_bool isRunning()
 				{
 					return m_flagRunning;
 				}
-				
+
 				void _run()
 				{
 					Thread* thread = Thread::getCurrent();
@@ -435,7 +435,7 @@ namespace slib
 					}
 
 					NetCapturePacket packet;
-					
+
 					Socket& socketTCP = m_socketTCP;
 					if (socketTCP.isNone()) {
 						return;
@@ -445,7 +445,7 @@ namespace slib
 					if (eventTCP.isNull()) {
 						return;
 					}
-					
+
 					Socket& socketUDP = m_socketUDP;
 					if (socketUDP.isNone()) {
 						return;
@@ -455,7 +455,7 @@ namespace slib
 					if (eventUDP.isNull()) {
 						return;
 					}
-					
+
 					Socket& socketICMP = m_socketICMP;
 					if (socketICMP.isNone()) {
 						return;
@@ -465,12 +465,12 @@ namespace slib
 					if (eventICMP.isNull()) {
 						return;
 					}
-					
+
 					SocketEvent* events[3];
 					events[0] = eventTCP.get();
 					events[1] = eventUDP.get();
 					events[2] = eventICMP.get();
-					
+
 					sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
 					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
 
@@ -509,12 +509,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				NetworkLinkDeviceType getLinkType()
 				{
 					return NetworkLinkDeviceType::Raw;
 				}
-				
+
 				sl_bool sendPacket(const void* buf, sl_uint32 size)
 				{
 					if (m_flagInit) {
@@ -542,7 +542,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 			};
 
 		}
@@ -560,66 +560,66 @@ namespace slib
 	{
 		return RawIPv4Capture::create(param);
 	}
-	
-	
+
+
 	LinuxCookedPacketType LinuxCookedFrame::getPacketType() const
 	{
 		return (LinuxCookedPacketType)(MIO::readUint16BE(m_packetType));
 	}
-	
+
 	void LinuxCookedFrame::setPacketType(LinuxCookedPacketType type)
 	{
 		MIO::writeUint16BE(m_packetType, (sl_uint32)type);
 	}
-	
+
 	NetworkLinkDeviceType LinuxCookedFrame::getDeviceType() const
 	{
 		return (NetworkLinkDeviceType)(MIO::readUint16BE(m_deviceType));
 	}
-	
+
 	void LinuxCookedFrame::setDeviceType(NetworkLinkDeviceType type)
 	{
 		MIO::writeUint16BE(m_deviceType, (sl_uint32)type);
 	}
-	
+
 	sl_uint16 LinuxCookedFrame::getAddressLength() const
 	{
 		return MIO::readUint16BE(m_lenAddress);
 	}
-	
+
 	void LinuxCookedFrame::setAddressLength(sl_uint16 len)
 	{
 		MIO::writeUint16BE(m_lenAddress, len);
 	}
-	
+
 	const sl_uint8* LinuxCookedFrame::getAddress() const
 	{
 		return m_address;
 	}
-	
+
 	sl_uint8* LinuxCookedFrame::getAddress()
 	{
 		return m_address;
 	}
-	
+
 	NetworkLinkProtocol LinuxCookedFrame::getProtocolType() const
 	{
 		return (NetworkLinkProtocol)(MIO::readUint16BE(m_protocol));
 	}
-	
+
 	void LinuxCookedFrame::setProtocolType(NetworkLinkProtocol type)
 	{
 		MIO::writeUint16BE(m_protocol, (sl_uint32)type);
 	}
-	
+
 	const sl_uint8* LinuxCookedFrame::getContent() const
 	{
 		return ((const sl_uint8*)this) + HeaderSize;
 	}
-	
+
 	sl_uint8* LinuxCookedFrame::getContent()
 	{
 		return ((sl_uint8*)this) + HeaderSize;
 	}
-	
+
 }

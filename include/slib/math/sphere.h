@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT SphereT
 	{
@@ -37,7 +37,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(SphereT)
-		
+
 		SphereT() = default;
 
 		template <class O>
@@ -97,9 +97,9 @@ namespace slib
 			radius = (T)(other.radius);
 			return *this;
 		}
-	
+
 	};
-	
+
 	typedef SphereT<sl_real> Sphere;
 	typedef SphereT<float> Spheref;
 	typedef SphereT<double> Spherelf;

@@ -397,7 +397,7 @@ namespace slib
 		return "UWP";
 #endif
 	}
-	
+
 	String System::getSystemName()
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -603,7 +603,7 @@ namespace slib
 		return "uwp";
 #endif
 	}
-	
+
 	String System::getFullUserName()
 	{
 		return getUserName();

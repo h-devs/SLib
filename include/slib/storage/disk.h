@@ -40,7 +40,7 @@ namespace slib
 		static sl_uint64 getTotalSize(const StringParam& path);
 
 		static sl_uint64 getFreeSize(const StringParam& path);
-		
+
 	};
 
 }

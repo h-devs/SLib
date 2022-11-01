@@ -27,21 +27,21 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT GeoLocation
 	{
 	public:
 		double latitude;
 		double longitude;
 		double altitude; // Unit: m
-	
+
 	public:
 		SLIB_CONSTEXPR GeoLocation(): latitude(0), longitude(0), altitude(0) {}
 
 		SLIB_CONSTEXPR GeoLocation(double _latitude, double _longitude, double _altitude): latitude(_latitude), longitude(_longitude), altitude(_altitude) {}
 
 		SLIB_CONSTEXPR GeoLocation(const LatLon& latlon, double _altitude): latitude(latlon.latitude), longitude(latlon.longitude), altitude(_altitude) {}
-		
+
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(GeoLocation)
 
 	public:
@@ -56,7 +56,7 @@ namespace slib
 		sl_bool equals(const GeoLocation& other) const noexcept;
 
 		sl_bool isAlmostEqual(const GeoLocation& other) const noexcept;
-	
+
 	public:
 		LatLon& getLatLon() noexcept;
 
@@ -65,13 +65,13 @@ namespace slib
 		void setLatLon(const LatLon& v) noexcept;
 
 		void setLatLon(double latitude, double longitude) noexcept;
-	
+
 		void normalize() noexcept;
-	
+
 		GeoLocation lerp(const GeoLocation& target, float factor) const noexcept;
 
 	};
-	
+
 }
 
 #endif

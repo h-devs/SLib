@@ -62,7 +62,7 @@ namespace slib
 		SLIB_CONSTEXPR Decimal128(): high(0), low(0) {}
 
 		SLIB_CONSTEXPR Decimal128(const Decimal128& other): high(other.high), low(other.low) {}
-		
+
 		SLIB_CONSTEXPR Decimal128(sl_uint64 _high, sl_uint64 _low): high(_high), low(_low) {}
 
 	private:

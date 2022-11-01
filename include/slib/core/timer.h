@@ -28,10 +28,10 @@
 
 namespace slib
 {
-	
+
 	class DispatchLoop;
 	class Dispatcher;
-	
+
 	class SLIB_EXPORT Timer : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -43,15 +43,15 @@ namespace slib
 
 	public:
 		static Ref<Timer> create(const Function<void(Timer*)>& task, sl_uint64 interval_ms);
-		
+
 		static Ref<Timer> start(const Function<void(Timer*)>& task, sl_uint64 interval_ms);
-		
+
 		static Ref<Timer> createWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
 		static Ref<Timer> startWithLoop(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
-		
+
 		static Ref<Timer> createWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
-		
+
 		static Ref<Timer> startWithDispatcher(const Ref<Dispatcher>& dispatcher, const Function<void(Timer*)>& task, sl_uint64 interval_ms);
 
 	public:

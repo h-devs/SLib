@@ -63,7 +63,7 @@ namespace slib
 		static Ref<LevelDB> open(LevelDB_Param& param);
 
 		static Ref<LevelDB> open(const StringParam& path);
-		
+
 		static void freeDefaultEnvironment();
 
 	};

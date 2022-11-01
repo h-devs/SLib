@@ -36,7 +36,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(VpxEncoderParam)
-	
+
 	VpxEncoderParam::VpxEncoderParam()
 	{
 		codec = VpxCodecName::VP8;
@@ -49,7 +49,7 @@ namespace slib
 		threadCount = 1;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(VpxDecoderParam)
 
 	VpxDecoderParam::VpxDecoderParam()
@@ -109,7 +109,7 @@ namespace slib
 				{
 					LogError("VideoVpxEncoder", str);
 				}
-				
+
 				static vpx_rc_mode _getBitrateControlMode(VpxBitrateMode mode)
 				{
 					switch (mode) {
@@ -153,7 +153,7 @@ namespace slib
 										codec_config.g_usage = param.cpuUsage;
 										codec_config.g_timebase.den = param.framesPerSecond;
 										codec_config.g_timebase.num = 1;
-										
+
 										if (!vpx_codec_enc_init(codec, codec_interface, &codec_config, 0)) {
 											Ref<EncoderImpl> ret = new EncoderImpl();
 											if (ret.isNotNull()) {
@@ -184,14 +184,14 @@ namespace slib
 					} else {
 						logError("Video codec is not supported");
 					}
-					
+
 					return sl_null;
 				}
 
 				Memory encode(const VideoFrame& input) override
 				{
 					if (m_nWidth == input.image.width && m_nHeight == input.image.height) {
-						
+
 						BitmapData dst;
 						dst.width = m_codec_image->d_w;
 						dst.height = m_codec_image->d_h;
@@ -202,9 +202,9 @@ namespace slib
 						dst.pitch1 = m_codec_image->stride[1];
 						dst.data2 = m_codec_image->planes[2];
 						dst.pitch2 = m_codec_image->stride[2];
-						
+
 						dst.copyPixelsFrom(input.image);
-						
+
 						sl_int32 flags = 0;
 						if (m_nProcessFrameCount > 0 && m_nProcessFrameCount % m_nKeyFrameInterval == 0) {
 							flags |= VPX_EFLAG_FORCE_KF;
@@ -225,7 +225,7 @@ namespace slib
 							}
 
 							return encodeWriter.getData();
-							
+
 						} else {
 							logError("Failed to encode bitmap data.");
 						}
@@ -278,7 +278,7 @@ namespace slib
 				{
 					m_codec = sl_null;
 				}
-				
+
 				~DecoderImpl()
 				{
 					if (m_codec != sl_null) {
@@ -347,7 +347,7 @@ namespace slib
 						if (offset + size > inputSize) {
 							break;
 						}
-						
+
 						vpx_codec_err_t res = vpx_codec_decode(m_codec, (sl_uint8*)input + offset, (unsigned int)size, sl_null, 0);
 
 						if (res == VPX_CODEC_OK) {

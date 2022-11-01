@@ -29,14 +29,14 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ZlibCompressor : public ICompressor
 	{
 	public:
 		ZlibCompressor();
 
 		~ZlibCompressor();
-	
+
 	public:
 		sl_bool isStarted();
 
@@ -52,7 +52,7 @@ namespace slib
 		sl_uint8 m_stream[128]; // bigger than sizeof(z_stream)
 		sl_bool m_flagStarted;
 	};
-	
+
 	class SLIB_EXPORT ZlibDecompressor : public IDecompressor
 	{
 	public:
@@ -147,10 +147,10 @@ namespace slib
 		static Memory compressGzip(const GzipParam& param, const void* data, sl_size size);
 
 		static Memory compressGzip(const void* data, sl_size size, sl_uint32 level = 6);
-	
+
 
 		static Memory decompress(const void* data, sl_size size);
-	
+
 		static Memory decompressRaw(const void* data, sl_size size);
 
 		static Memory decompressGzip(const void* data, sl_size size);

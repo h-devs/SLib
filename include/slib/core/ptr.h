@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ptr
@@ -37,7 +37,7 @@ namespace slib
 
 			struct ConstStruct;
 			extern const ConstStruct g_null;
-			
+
 			template <class... TYPES>
 			static const Ref<Referable>& GetRef(const Ref<TYPES...>& ref) noexcept
 			{
@@ -79,10 +79,10 @@ namespace slib
 			{
 			public:
 				T* ptr;
-				
+
 			public:
 				ManagedPtrContainer(T* _ptr): ptr(_ptr) {}
-				
+
 				~ManagedPtrContainer()
 				{
 					delete ptr;
@@ -96,7 +96,7 @@ namespace slib
 			public:
 				T* ptr;
 				Deleter deleter;
-				
+
 			public:
 				template <class DELETER>
 				ManagedPtrContainerWithDeleter(T* _ptr, const DELETER& _deleter): ptr(_ptr), deleter(Forward<DELETER>(_deleter)) {}
@@ -105,25 +105,25 @@ namespace slib
 				{
 					deleter(ptr);
 				}
-				
+
 			};
-			
+
 		}
 	}
 
 	template <class... TYPES>
 	class Ptr;
-	
+
 	template <class T>
 	using AtomicPtr = Atomic< Ptr<T> >;
-		
+
 	template <class T>
 	class SLIB_EXPORT Ptr<T>
 	{
 	public:
 		T* ptr;
 		Ref<Referable> ref;
-	
+
 	public:
 		SLIB_CONSTEXPR Ptr(): ptr(sl_null) {}
 
@@ -132,7 +132,7 @@ namespace slib
 			ptr = other.ptr;
 			_move_init(&other);
 		}
-	
+
 		Ptr(const Ptr& other) noexcept: ptr(other.ptr), ref(other.ref) {}
 
 		template <class OTHER>
@@ -142,7 +142,7 @@ namespace slib
 			ptr = other.ptr;
 			_move_init(&other);
 		}
-	
+
 		template <class OTHER>
 		Ptr(const Ptr<OTHER>& other) noexcept : ptr(other.ptr), ref(other.ref)
 		{
@@ -260,7 +260,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<Ptr const*>(&(priv::ptr::g_null)));
 		}
-	
+
 		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !ptr;
@@ -294,7 +294,7 @@ namespace slib
 		{
 			return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other)));
 		}
-	
+
 		sl_bool isWeak() const noexcept
 		{
 			Referable* obj = ref.ptr;
@@ -320,7 +320,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		Ptr lock() const noexcept
 		{
 			Referable* obj = ref.ptr;
@@ -336,7 +336,7 @@ namespace slib
 				return *this;
 			}
 		}
-		
+
 		Ptr toWeak() const noexcept
 		{
 			Referable* obj = ref.ptr;
@@ -352,7 +352,7 @@ namespace slib
 		{
 			return ptr;
 		}
-		
+
 		void set(T* pointer) noexcept
 		{
 			ptr = pointer;
@@ -372,7 +372,7 @@ namespace slib
 			ptr = other.ptr;
 			_move_assign(&other);
 		}
-	
+
 		template <class OTHER>
 		void set(const Ptr<OTHER>& other) noexcept
 		{
@@ -515,7 +515,7 @@ namespace slib
 		{
 			return ptr == other.ptr;
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_bool equals(const AtomicPtr<OTHER>& other) const
 		{
@@ -526,7 +526,7 @@ namespace slib
 		{
 			return ptr != sl_null;
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_compare_result compare(const OTHER* other) const
 		{
@@ -564,15 +564,15 @@ namespace slib
 		}
 
 	};
-	
-	
+
+
 	template <class T>
 	class SLIB_EXPORT Atomic< Ptr<T> >
 	{
 	public:
 		T* _ptr;
 		Ref<Referable> _ref;
-	
+
 	public:
 		SLIB_CONSTEXPR Atomic(): _ptr(sl_null) {}
 
@@ -595,7 +595,7 @@ namespace slib
 			_ptr = other.ptr;
 			_move_init(&other);
 		}
-	
+
 		template <class OTHER>
 		Atomic(const Ptr<OTHER>& other) noexcept: _ptr(other.ptr), _ref(other.ref)
 		{
@@ -722,7 +722,7 @@ namespace slib
 			_ptr = other.ptr;
 			_move_assign(&other);
 		}
-	
+
 		template <class OTHER>
 		void set(const Ptr<OTHER>& other) noexcept
 		{
@@ -821,7 +821,7 @@ namespace slib
 		{
 			return _ptr == other.ptr;
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_bool equals(const AtomicPtr<OTHER>& other) const
 		{
@@ -832,7 +832,7 @@ namespace slib
 		{
 			return _ptr != sl_null;
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_compare_result compare(const OTHER* other) const
 		{
@@ -912,12 +912,12 @@ namespace slib
 				}
 			}
 		}
-	
+
 	private:
 		SpinLock m_lock;
-	
+
 	};
-	
+
 
 	template <class T>
 	constexpr sl_bool operator==(sl_null_t, const Ptr<T>& o)
@@ -942,7 +942,7 @@ namespace slib
 	{
 		return o.ptr != other;
 	}
-	
+
 	template <class T>
 	constexpr sl_bool operator==(sl_null_t, const Atomic< Ptr<T> >& p)
 	{

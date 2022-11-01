@@ -85,7 +85,7 @@ namespace slib
 
 	public:
 		void encrypt(sl_uint64 offset, const void* src, void* dst, sl_size size) const noexcept;
-		
+
 		SLIB_INLINE void decrypt(sl_uint64 offset, const void* src, void* dst, sl_size size) const noexcept
 		{
 			encrypt(offset, src, dst, size);
@@ -97,14 +97,14 @@ namespace slib
 		void setIV(const void* _in) noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT ChaCha20 : public ChaCha20_Core
 	{
 	public:
 		ChaCha20() noexcept;
-		
+
 		~ChaCha20();
-		
+
 	public:
 		void start(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3) noexcept;
 
@@ -112,7 +112,7 @@ namespace slib
 		void start(const void* IV, sl_uint32 counter = 0) noexcept;
 
 		void encrypt(const void* src, void* dst, sl_size len) noexcept;
-		
+
 		SLIB_INLINE void decrypt(const void* src, void* dst, sl_size len) noexcept
 		{
 			encrypt(src, dst, len);
@@ -122,13 +122,13 @@ namespace slib
 		sl_uint32 m_nonce[4];
 		sl_uint8 m_output[64];
 		sl_uint32 m_pos;
-		
+
 	};
-	
+
 	/*
 	 	https://tools.ietf.org/html/rfc8439
 	*/
-	
+
 	class Memory;
 	class MemoryView;
 
@@ -136,9 +136,9 @@ namespace slib
 	{
 	public:
 		ChaCha20_Poly1305() noexcept;
-		
+
 		~ChaCha20_Poly1305();
-		
+
 	public:
 		// key: 32 bytes (256 bits)
 		void setKey(const void* key) noexcept;
@@ -151,22 +151,22 @@ namespace slib
 
 		// put on AAD (additional authenticated data)
 		void putAAD(const void* data, sl_size len) noexcept;
-		
+
 		void finishAAD() noexcept;
-		
+
 		void encrypt(const void* src, void* dst, sl_size len) noexcept;
-		
+
 		void decrypt(const void* src, void* dst, sl_size len) noexcept;
-		
+
 #ifdef check
 #undef check
 #endif
 		// src: cipher text
 		void check(const void* src, sl_size len) noexcept;
-		
+
 		// outputTag: 16 bytes (128 bits)
 		void finish(void* outputTag) noexcept;
-		
+
 		// tag: 16 bytes (128 bits)
 		sl_bool finishAndCheckTag(const void* tag) noexcept;
 
@@ -175,23 +175,23 @@ namespace slib
 		void encrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, void* outputTag) noexcept;
 
 		Memory encrypt(const MemoryView& content) noexcept;
-		
+
 		// IV: 8 bytes (64 bits)
 		// tag: 16 bytes (128 bits)
 		sl_bool decrypt(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, const void* tag) noexcept;
-		
+
 		Memory decrypt(const MemoryView& encryptedContent) noexcept;
 
 		// IV: 8 bytes (64 bits)
 		// tag: 16 bytes (128 bits)
 		sl_bool check(sl_uint32 senderId, const void* IV, const void* AAD, sl_size lenAAD, const void* src, sl_size len, const void* tag) noexcept;
-		
+
 	private:
 		ChaCha20 m_cipher;
 		Poly1305 m_auth;
 		sl_size m_lenAAD;
 		sl_size m_lenInput;
-		
+
 	};
 
 	class SLIB_EXPORT ChaCha20_FileEncryptor : public ChaCha20_IO

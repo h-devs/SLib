@@ -32,7 +32,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextStyle)
 
 	TextStyle::TextStyle() noexcept:
@@ -42,15 +42,15 @@ namespace slib
 		lineHeight(-1), yOffset(0)
 	{
 	}
-	
+
 	Ref<TextStyle> TextStyle::duplicate() const noexcept
 	{
 		return new TextStyle(*this);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextItemDrawParam)
-	
+
 	TextItemDrawParam::TextItemDrawParam() noexcept:
 		textColor(Color::Black),
 		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0),
@@ -90,18 +90,18 @@ namespace slib
 	{
 		return m_type;
 	}
-	
+
 	Ref<TextStyle> TextItem::getStyle() noexcept
 	{
 		return m_style;
 	}
-	
+
 	void TextItem::setStyle(const Ref<TextStyle>& style) noexcept
 	{
 		m_style = style;
 		m_emojiFont.setNull();
 	}
-	
+
 	Ref<Font> TextItem::getFont() noexcept
 	{
 		Ref<TextStyle> style = m_style;
@@ -147,7 +147,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Point TextItem::getLayoutPosition() noexcept
 	{
 		return m_layoutPosition;
@@ -264,7 +264,7 @@ namespace slib
 	Size TextWordItem::getSize() noexcept
 	{
 		ObjectLocker lock(this);
-		
+
 		String16 text = m_text;
 		Ref<Font> font = getFont();
 		if (m_textCached == text && m_fontCached == font) {
@@ -285,14 +285,14 @@ namespace slib
 		m_heightCached = 0;
 		return Size::zero();
 	}
-	
+
 	void TextWordItem::draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param)
 	{
 		Ref<Font> font = getFont();
 		if (font.isNull()) {
 			return;
 		}
-		
+
 		DrawTextParam dp;
 		dp.font = font;
 		dp.color = param.textColor;
@@ -312,7 +312,7 @@ namespace slib
 			canvas->drawText(dp);
 			return;
 		}
-		
+
 		Ref<FontAtlas> atlas = font->getSharedAtlas();
 		if (atlas.isNull()) {
 			return;
@@ -355,19 +355,19 @@ namespace slib
 		canvas->drawText(dp);
 #endif
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(TextEmojiItem, TextItem)
-	
+
 	TextEmojiItem::TextEmojiItem() noexcept
 	: TextItem(TextItemType::Emoji)
 	{
 	}
-	
+
 	TextEmojiItem::~TextEmojiItem() noexcept
 	{
 	}
-	
+
 	Ref<TextEmojiItem> TextEmojiItem::create(const String16& text, const Ref<TextStyle>& style) noexcept
 	{
 		if (style.isNotNull()) {
@@ -380,11 +380,11 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Size TextEmojiItem::getSize() noexcept
 	{
 		ObjectLocker lock(this);
-		
+
 		Ref<Font> font = getEmojiFont();
 		if (m_fontCached == font) {
 			return Size(m_widthCached, m_heightCached);
@@ -400,7 +400,7 @@ namespace slib
 		m_heightCached = 0;
 		return Size::zero();
 	}
-	
+
 	void TextEmojiItem::draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param)
 	{
 		Ref<Font> font = getEmojiFont();
@@ -420,8 +420,8 @@ namespace slib
 			canvas->drawText(dp);
 		}
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(TextSpaceItem, TextItem)
 
 	TextSpaceItem::TextSpaceItem() noexcept
@@ -566,7 +566,7 @@ namespace slib
 	{
 		m_contentWidth = 0;
 		m_contentHeight = 0;
-		
+
 		m_positionLength = 0;
 
 		m_align = Alignment::Left;
@@ -587,7 +587,7 @@ namespace slib
 		}
 
 		ObjectLocker lock(this);
-		
+
 		sl_char16* sz = text.getData();
 		sl_size len = text.getLength();
 		sl_size startWord = 0;
@@ -725,7 +725,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TextParagraph::addHyperTextNodeGroup(const Ref<XmlNodeGroup>& group, const Ref<TextStyle>& style) noexcept
 	{
 		if (group.isNull()) {
@@ -748,7 +748,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	namespace priv
 	{
 		namespace text_paragraph
@@ -848,15 +848,15 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TextParagraph::addHyperTextElement(const Ref<XmlElement>& element, const Ref<TextStyle>& style) noexcept
 	{
 		if (element.isNull()) {
 			return;
 		}
-		
+
 		Ref<Font> font = style->font;
-		
+
 		sl_bool flagDefineTextColor = sl_false;
 		Color attrTextColor;
 		sl_bool flagDefineBackColor = sl_false;
@@ -959,7 +959,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		String attrStyle = element->getAttributeIgnoreCase("style");
 		if (attrStyle.isNotEmpty()) {
 			attrStyle = attrStyle.toLower();
@@ -1055,7 +1055,7 @@ namespace slib
 				pos = end + 1;
 			}
 		}
-		
+
 		if (flagDefineFontSize) {
 			if (attrFontSize.isNotNull()) {
 				if (!(priv::text_paragraph::ParseSize(attrFontSize, font, &attrFontSizeParsed))) {
@@ -1070,7 +1070,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		Ref<TextStyle> styleNew = style;
 		FontDesc fontDesc;
 		sl_bool flagNewFont = sl_false;
@@ -1105,7 +1105,7 @@ namespace slib
 				}
 			}
 		} while (0);
-		
+
 		sl_bool flagNewStyle = flagNewFont;
 		if (!flagNewStyle) {
 			do {
@@ -1171,7 +1171,7 @@ namespace slib
 				}
 			} while (0);
 		}
-		
+
 		if (flagNewStyle) {
 			styleNew = style->duplicate();
 			if (styleNew.isNull()) {
@@ -1225,14 +1225,14 @@ namespace slib
 				styleNew->lineHeight = attrLineHeightParsed;
 			}
 		}
-		
+
 		if (name == "br") {
 			SLIB_STATIC_STRING16(line, "\n");
 			addText(line, styleNew);
 		}
 		addHyperTextNodeGroup(Ref<XmlNodeGroup>::from(element), styleNew);
 	}
-	
+
 	void TextParagraph::addHyperText(const StringParam& text, const Ref<TextStyle>& style) noexcept
 	{
 		XmlParseParam param;
@@ -1261,18 +1261,18 @@ namespace slib
 				sl_uint32 m_lineCount;
 				sl_real m_tabMargin;
 				sl_real m_tabWidth;
-				
+
 				sl_bool m_flagEnd;
 				sl_real m_x;
 				sl_real m_y;
-				
+
 				CList< Ref<TextItem> > m_lineItems;
 				sl_real m_lineWidth;
 				sl_real m_lineHeight;
 				sl_uint32 m_lineNo;
-				
+
 				sl_real m_maxWidth;
-				
+
 			public:
 				Layouter(CList< Ref<TextItem> >* layoutItems, const TextParagraphLayoutParam& param) noexcept
 				{
@@ -1284,7 +1284,7 @@ namespace slib
 					m_lineCount = param.lineCount;
 					m_tabWidth = param.tabWidth;
 					m_tabMargin = param.tabMargin;
-					
+
 					m_flagEnd = sl_false;
 					m_x = 0;
 					m_y = 0;
@@ -1294,7 +1294,7 @@ namespace slib
 					m_lineNo = 0;
 					m_maxWidth = 0;
 				}
-				
+
 				void endLine() noexcept
 				{
 					sl_size n = m_lineItems.getCount();
@@ -1312,7 +1312,7 @@ namespace slib
 					}
 
 					sl_real bottom = m_y + m_lineHeight;
-					
+
 					Ref<TextItem>* p = m_lineItems.getData();
 					for (sl_size i = 0; i < n; i++) {
 						TextItem* item = p[i].get();
@@ -1332,7 +1332,7 @@ namespace slib
 							endEllipsize();
 						}
 					}
-					
+
 					p = m_lineItems.getData();
 					n = m_lineItems.getCount();
 					for (sl_size i = 0; i < n; i++) {
@@ -1342,7 +1342,7 @@ namespace slib
 							m_layoutItems->add_NoLock(item);
 						}
 					}
-					
+
 					m_lineItems.removeAll_NoLock();
 					if (m_lineWidth > m_maxWidth) {
 						m_maxWidth = m_lineWidth;
@@ -1351,7 +1351,7 @@ namespace slib
 					m_lineWidth = 0;
 					m_y = bottom;
 					m_lineHeight = 0;
-					
+
 					if (m_multiLineMode == MultiLineMode::Single) {
 						m_flagEnd = sl_true;
 					} else {
@@ -1362,7 +1362,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void endEllipsize() noexcept
 				{
 					SLIB_STATIC_STRING16(strEllipsis, "...")
@@ -1524,42 +1524,42 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void breakWord(TextWordItem* breakItem) noexcept
 				{
 					Ref<TextStyle> style = breakItem->getStyle();
 					if (style.isNull()) {
 						return;
 					}
-					
+
 					Ref<Font> font = style->font;
 					if (font.isNull()) {
 						return;
 					}
-					
+
 					String16 text = breakItem->getText();
 					if (text.isEmpty()) {
 						return;
 					}
-					
+
 					Ref<FontAtlas> atlas = font->getSharedAtlas();
 					if (atlas.isNull()) {
 						return;
 					}
-					
+
 					ObjectLocker lockAtlas(atlas.get());
-					
+
 					sl_char16* sz = text.getData();
 					sl_size len = text.getLength();
-					
+
 					sl_real widthRemaining = m_layoutWidth - m_x;
-					
+
 					Size size = atlas->getFontSize_NoLock(sz[0]);
 					sl_real x = size.x;
 					sl_real height = size.y;
 					sl_size startLine = 0;
 					sl_size pos = 1;
-					
+
 					if (size.x > widthRemaining && m_x > 0) {
 						endLine();
 						widthRemaining = m_layoutWidth;
@@ -1597,12 +1597,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_size processWords(Ref<TextItem>* items, sl_size nItems) noexcept
 				{
 					sl_real x = 0;
 					TextWordItem* lastWord = sl_null;
-					
+
 					sl_size nWords = 0;
 					while (nWords < nItems) {
 						TextItem* item = items[nWords].get();
@@ -1620,7 +1620,7 @@ namespace slib
 					if (nWords == 0) {
 						return 0;
 					}
-					
+
 					sl_bool flagBreakWord = sl_false;
 					if (m_x + x > m_layoutWidth) {
 						if (m_multiLineMode == MultiLineMode::WordWrap) {
@@ -1642,7 +1642,7 @@ namespace slib
 							flagBreakWord = sl_true;
 						}
 					}
-					
+
 					if (flagBreakWord) {
 						for (sl_size i = 0; i < nWords; i++) {
 							TextWordItem* item = static_cast<TextWordItem*>(items[i].get());
@@ -1663,17 +1663,17 @@ namespace slib
 					}
 					return nWords - 1;
 				}
-				
+
 				void processEmoji(TextEmojiItem* item) noexcept
 				{
 					addLineItem(item, item->getSize());
 				}
-				
+
 				void processSpace(TextSpaceItem* item) noexcept
 				{
 					addLineItem(item, item->getSize());
 				}
-				
+
 				void processTab(TextTabItem* item) noexcept
 				{
 					sl_real tabX = m_x + m_tabMargin;
@@ -1681,7 +1681,7 @@ namespace slib
 					sl_real h = item->getHeight();
 					addLineItem(item, Size(tabX - m_x, h));
 				}
-				
+
 				void processLineBreak(TextLineBreakItem* item) noexcept
 				{
 					sl_real h = item->getHeight();
@@ -1689,7 +1689,7 @@ namespace slib
 					endLine();
 					item->setLayoutPosition(Point(m_x, m_y));
 				}
-				
+
 				void processAttach(TextAttachItem* item) noexcept
 				{
 					addLineItem(item, item->getSize());
@@ -1724,50 +1724,50 @@ namespace slib
 				{
 					sl_size n = list->getCount();
 					Ref<TextItem>* items = list->getData();
-					
+
 					for (sl_size i = 0; i < n; i++) {
-						
+
 						TextItem* item = items[i].get();
-						
+
 						TextItemType type = item->getType();
-						
+
 						switch (type) {
-								
+
 							case TextItemType::Word:
 								i += processWords(items + i, n - i);
 								break;
-								
+
 							case TextItemType::Emoji:
 								processEmoji(static_cast<TextEmojiItem*>(item));
 								break;
-								
+
 							case TextItemType::Space:
 								processSpace(static_cast<TextSpaceItem*>(item));
 								break;
-								
+
 							case TextItemType::Tab:
 								processTab(static_cast<TextTabItem*>(item));
 								break;
-								
+
 							case TextItemType::LineBreak:
 								processLineBreak(static_cast<TextLineBreakItem*>(item));
 								break;
-								
+
 							case TextItemType::Attach:
 								processAttach(static_cast<TextAttachItem*>(item));
 								break;
 						}
-						
+
 						if (m_flagEnd) {
 							break;
 						}
 					}
-					
+
 					m_lineWidth = m_x;
 					endLine();
 
 				}
-				
+
 			};
 		}
 	}
@@ -1777,21 +1777,21 @@ namespace slib
 		ObjectLocker lock(this);
 
 		m_layoutItems.removeAll_NoLock();
-		
+
 		if (param.multiLineMode == MultiLineMode::WordWrap || param.multiLineMode == MultiLineMode::BreakWord) {
 			if (param.width < SLIB_EPSILON) {
 				return;
 			}
 		}
-		
+
 		priv::text_paragraph::Layouter layouter(&m_layoutItems, param);
-		
+
 		layouter.layout(&m_items);
 
 		m_align = param.align;
 		m_contentWidth = layouter.m_maxWidth;
 		m_contentHeight = layouter.m_y;
-		
+
 	}
 
 	void TextParagraph::draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const TextParagraphDrawParam& _param) noexcept
@@ -1812,9 +1812,9 @@ namespace slib
 		rc.right -= x;
 		rc.top -= y;
 		rc.bottom -= y;
-		
+
 		ObjectLocker lock(this);
-		
+
 		ListElements< Ref<TextItem> > items(m_layoutItems);
 		for (sl_size i = 0; i < items.count; i++) {
 			TextItem* item = items[i].get();
@@ -1901,7 +1901,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	Ref<TextItem> TextParagraph::getTextItemAtPosition(sl_real x, sl_real y, sl_real left, sl_real right) noexcept
 	{
 		sl_real startX;
@@ -1972,15 +1972,15 @@ namespace slib
 	{
 		return priv::text_paragraph::g_defaultLinkUnderline;
 	}
-	
+
 	void TextParagraph::setDefaultLinkUnderline(sl_bool flag)
 	{
 		priv::text_paragraph::g_defaultLinkUnderline = flag;
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxParam)
-	
+
 	SimpleTextBoxParam::SimpleTextBoxParam() noexcept:
 		flagHyperText(sl_false),
 		flagMnemonic(sl_false),
@@ -1992,10 +1992,10 @@ namespace slib
 		flagEnabledHyperlinksInPlainText(sl_false)
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxDrawParam)
-	
+
 	SimpleTextBoxDrawParam::SimpleTextBoxDrawParam() noexcept
 	{
 	}
@@ -2010,10 +2010,10 @@ namespace slib
 		m_multiLineMode = MultiLineMode::Single;
 		m_alignHorizontal = Alignment::Left;
 		m_alignVertical = Alignment::Top;
-		
+
 		m_contentWidth = 0;
 		m_contentHeight = 0;
-		
+
 		m_style = new TextStyle;
 	}
 
@@ -2024,7 +2024,7 @@ namespace slib
 	void SimpleTextBox::update(const SimpleTextBoxParam& param) noexcept
 	{
 		ObjectLocker lock(this);
-		
+
 		Ref<Font> font = param.font;
 		if (font.isNull()) {
 			return;
@@ -2064,7 +2064,7 @@ namespace slib
 		MultiLineMode multiLineMode = param.multiLineMode;
 		EllipsizeMode ellipsizeMode = param.ellipsizeMode;
 		sl_uint32 lineCount = param.lineCount;
-		
+
 		if (multiLineMode != MultiLineMode::Single) {
 			if (lineCount == 0) {
 				ellipsizeMode = EllipsizeMode::None;
@@ -2074,7 +2074,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		m_alignVertical = param.align & Alignment::VerticalMask;
 		Alignment alignHorizontal = param.align & Alignment::HorizontalMask;
 		if (width < SLIB_EPSILON) {
@@ -2124,14 +2124,14 @@ namespace slib
 				paramParagraph.lineCount = lineCount;
 				paramParagraph.align = alignHorizontal;
 				m_paragraph->layout(paramParagraph);
-				
+
 				m_font = font;
 				m_width = width;
 				m_multiLineMode = multiLineMode;
 				m_ellipsisMode = ellipsizeMode;
 				m_alignHorizontal = alignHorizontal;
 				m_lineCount = lineCount;
-				
+
 				m_contentWidth = m_paragraph->getContentWidth();
 				m_contentHeight = m_paragraph->getContentHeight();
 			}
@@ -2183,7 +2183,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_real SimpleTextBox::getContentWidth() const noexcept
 	{
 		return m_contentWidth;
@@ -2199,23 +2199,23 @@ namespace slib
 		ObjectLocker lock(this);
 		return m_font;
 	}
-	
+
 	String SimpleTextBox::getText() const noexcept
 	{
 		ObjectLocker lock(this);
 		return m_text;
 	}
-	
+
 	MultiLineMode SimpleTextBox::getMultiLineMode() const noexcept
 	{
 		return m_multiLineMode;
 	}
-	
+
 	EllipsizeMode SimpleTextBox::getEllipsizeMode() const noexcept
 	{
 		return m_ellipsisMode;
 	}
-	
+
 	Alignment SimpleTextBox::getAlignment() const noexcept
 	{
 		return m_alignVertical | m_alignHorizontal;

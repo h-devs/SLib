@@ -29,20 +29,20 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Emoji
 	{
 	public:
 		static sl_bool isEmoji(const String16& str);
-		
+
 		static sl_bool isEmoji(sl_char32 ch);
 
 		static sl_size getEmojiLength(const sl_char16* sz, sl_size len = SLIB_SIZE_MAX);
-		
+
 		static Memory getPng(const String16& str);
 
 		static HashMap<String16, Memory> getAllPngs();
-		
+
 		static Ref<Image> getImage(const String16& str);
 
 	};

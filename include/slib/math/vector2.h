@@ -39,15 +39,15 @@ namespace slib
 			};
 			T m[2];
 		};
-	
+
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(VectorT)
-		
+
 		VectorT() = default;
-	
+
 		template <class O, class FO>
 		SLIB_CONSTEXPR VectorT(const VectorT<2, O, FO>& other): x((T)(other.x)), y((T)(other.y)) {}
-	
+
 		SLIB_CONSTEXPR VectorT(T _x, T _y): x(_x), y(_y) {}
 
 		template <class O>
@@ -56,7 +56,7 @@ namespace slib
 			x = (T)(arr[0]);
 			y = (T)(arr[1]);
 		}
-	
+
 	public:
 		static const VectorT& zero() noexcept
 		{
@@ -151,7 +151,7 @@ namespace slib
 		{
 			return {(T)SLIB_LERP(x, target.x, factor), (T)SLIB_LERP(y, target.y, factor)};
 		}
-	
+
 		SLIB_CONSTEXPR VectorT divideReverse(T f) const
 		{
 			return {f / x, f / y};
@@ -254,16 +254,16 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T, class FT = T>
 	using Vector2T = VectorT<2, T, FT>;
-	
+
 	typedef Vector2T<sl_real> Vector2;
 	typedef Vector2T<float> Vector2f;
 	typedef Vector2T<double> Vector2lf;
 	typedef Vector2T<sl_int32, float> Vector2i;
 	typedef Vector2T<sl_int64, double> Vector2li;
-	
+
 }
 
 #endif

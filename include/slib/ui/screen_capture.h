@@ -32,19 +32,19 @@ namespace slib
 	{
 	public:
 		static Ref<Image> takeScreenshot();
-		
+
 		static Ref<Image> takeScreenshotFromCurrentMonitor();
 
 		static List< Ref<Image> > takeScreenshotsFromAllMonitors();
 
 		static sl_uint32 getScreenCount();
-		
+
 		static sl_bool isScreenRecordingEnabled();
-		
+
 		static void openSystemPreferencesForScreenRecording();
-		
+
 		static void requestScreenRecordingAccess();
-		
+
 	};
 
 }

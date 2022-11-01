@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	template <class HASH>
 	class SLIB_EXPORT HMAC
 	{
@@ -102,7 +102,7 @@ namespace slib
 		sl_uint8 m_keyPad[HASH::BlockSize];
 
 	};
-	
+
 	typedef HMAC<SHA256> HMAC_SHA256;
 
 }

@@ -332,7 +332,7 @@ namespace slib
 						params.getValueAt_NoLock(7).getInt32()
 						);
 				}
-				
+
 			public:
 				BuiltIn()
 				{
@@ -1253,7 +1253,7 @@ namespace slib
 	}
 
 	using namespace priv::ginger;
-	
+
 	String Ginger::render(const StringView& _template, const Variant& data)
 	{
 		return Render(_template, data);

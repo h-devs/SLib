@@ -51,19 +51,19 @@ namespace slib
 	using namespace priv::view;
 
 	SLIB_DEFINE_OBJECT(EFL_ViewInstance, ViewInstance)
-	
+
 	EFL_ViewInstance::EFL_ViewInstance()
 	{
 		m_type = EFL_ViewType::Generic;
 		m_handle = sl_null;
 		m_flagFreeOnRelease = sl_true;
 	}
-	
+
 	EFL_ViewInstance::~EFL_ViewInstance()
 	{
 		_release();
 	}
-	
+
 	sl_bool EFL_ViewInstance::initialize(EFL_ViewType type, Evas_Object* handle)
 	{
 		if (handle) {
@@ -140,7 +140,7 @@ namespace slib
 	{
 		return sl_true;
 	}
-	
+
 	void EFL_ViewInstance::setFocus(View* view, sl_bool flag)
 	{
 		Evas_Object* handle = m_handle;
@@ -150,15 +150,15 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void EFL_ViewInstance::invalidate(View* view)
 	{
 	}
-	
+
 	void EFL_ViewInstance::invalidate(View* view, const UIRect& _rect)
 	{
 	}
-	
+
 	void EFL_ViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		if (m_type != EFL_ViewType::Window) {
@@ -174,11 +174,11 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void EFL_ViewInstance::setTransform(View* view, const Matrix3& m)
 	{
 	}
-	
+
 	void EFL_ViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		Evas_Object* handle = m_handle;
@@ -190,15 +190,15 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void EFL_ViewInstance::setEnabled(sl_bool flag)
 	{
 	}
-	
+
 	void EFL_ViewInstance::setOpaque(sl_bool flag)
 	{
 	}
-	
+
 	void EFL_ViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 		Evas_Object* handle = m_handle;
@@ -220,7 +220,7 @@ namespace slib
 	void EFL_ViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 	}
-	
+
 	UIPointf EFL_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
 	{
 		Evas_Object* handle = m_handle;
@@ -231,7 +231,7 @@ namespace slib
 		}
 		return ptScreen;
 	}
-	
+
 	UIPointf EFL_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
 	{
 		Evas_Object* handle = m_handle;
@@ -242,7 +242,7 @@ namespace slib
 		}
 		return ptView;
 	}
-	
+
 	void EFL_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		EFL_ViewInstance* child = static_cast<EFL_ViewInstance*>(_child.get());
@@ -265,7 +265,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void EFL_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		EFL_ViewInstance* child = static_cast<EFL_ViewInstance*>(_child.get());
@@ -281,7 +281,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void EFL_ViewInstance::bringToFront(View* view)
 	{
 		Evas_Object* handle = m_handle;
@@ -441,7 +441,7 @@ namespace slib
 			instance->onTouch((const void*)data, event_info);
 		}
 	}
-	
+
 	void EFL_ViewInstance::installTouchEvents()
 	{
 		Evas_Object* handle = m_handle;
@@ -484,17 +484,17 @@ namespace slib
 		}
 		return EFL_ViewInstance::create<EFL_ViewInstance>(type, handle, flagFreeOnRelease);
 	}
-	
+
 	void UIPlatform::registerViewInstance(Evas_Object* handle, ViewInstance* instance)
 	{
 		UIPlatform::_registerViewInstance(handle, instance);
 	}
-	
+
 	Ref<ViewInstance> UIPlatform::getViewInstance(Evas_Object* handle)
 	{
 		return UIPlatform::_getViewInstance(handle);
 	}
-	
+
 	Ref<View> UIPlatform::getView(Evas_Object* handle)
 	{
 		Ref<ViewInstance> instance = UIPlatform::_getViewInstance(handle);
@@ -508,7 +508,7 @@ namespace slib
 	{
 		UIPlatform::_removeViewInstance(handle);
 	}
-	
+
 	Evas_Object* UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
 		EFL_ViewInstance* instance = static_cast<EFL_ViewInstance*>(_instance);
@@ -517,7 +517,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Evas_Object* UIPlatform::getViewHandle(View* view)
 	{
 		if (view) {

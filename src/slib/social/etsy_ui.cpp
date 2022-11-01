@@ -24,13 +24,13 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyLoginParam)
-	
+
 	EtsyLoginParam::EtsyLoginParam()
 	{
 	}
-	
+
 	void Etsy::login(const EtsyLoginParam& _param)
 	{
 		OAuth1_LoginParam param = _param;
@@ -42,17 +42,17 @@ namespace slib
 			requestTokenParams.put_NoLock("scope", "listings_r");
 		}
 		param.authorization.customParameters = requestTokenParams;
-		
+
 		OAuth1::login(param);
 	}
-	
+
 	void Etsy::login(const Function<void(EtsyLoginResult& result)>& onComplete)
 	{
 		EtsyLoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}
-	
+
 	void Etsy::login(const List<String>& scopes, const Function<void(EtsyLoginResult& result)>& onComplete)
 	{
 		EtsyLoginParam param;
@@ -60,5 +60,5 @@ namespace slib
 		param.onComplete = onComplete;
 		login(param);
 	}
-	
+
 }

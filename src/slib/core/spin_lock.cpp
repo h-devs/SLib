@@ -35,7 +35,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace spinlock
@@ -96,7 +96,7 @@ namespace slib
 			lock->lock();
 		}
 	}
-	
+
 	SpinLocker::~SpinLocker()
 	{
 		unlock();
@@ -134,12 +134,12 @@ namespace slib
 			lock2->lock();
 		}
 	}
-	
+
 	DualSpinLocker::~DualSpinLocker()
 	{
 		unlock();
 	}
-	
+
 	void DualSpinLocker::unlock() noexcept
 	{
 		if (m_lock1) {

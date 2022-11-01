@@ -38,7 +38,7 @@ namespace slib
 		{
 		public:
 			static jclass getClass() noexcept;
-			
+
 		};
 
 	}

@@ -4,14 +4,14 @@
 		background='white'
 		fontSize='20dp'
 		>
-		
+
 		<linear
 			alignCenter='true'
 			width='fill'
 			marginTop='1safeT'
 			marginBottom='1safeB'
 			>
-			
+
 			<table
 				width='*'
 				>
@@ -47,7 +47,7 @@
 		</linear>
 
  	</layout>
-	
+
 	<style
 		name='button'
 		background='#008050'

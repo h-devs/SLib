@@ -27,30 +27,30 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT XgPush : public PushNotificationClient
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		XgPush();
-		
+
 		~XgPush();
-		
+
 	public:
 		// used on iOS
 		static void initialize(sl_uint32 accessId, const String& accessKey);
-		
+
 		static void setEnableDebug(sl_bool flag);
 
 	public:
 		void onStart() override;
-		
+
 	public:
 		static Ref<XgPush> getInstance();
-		
+
 	};
-	
+
 }
 
 #endif

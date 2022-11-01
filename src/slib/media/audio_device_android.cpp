@@ -42,7 +42,7 @@ namespace slib
 	{
 		namespace opensl_es
 		{
-			
+
 			class AudioRecorderImpl : public AudioRecorder
 			{
 			public:
@@ -59,7 +59,7 @@ namespace slib
 				sl_int16* m_bufFrame;
 				sl_uint32 m_indexBuffer;
 				sl_uint32 m_nSamplesFrame;
-				
+
 			public:
 				AudioRecorderImpl()
 				{
@@ -81,7 +81,7 @@ namespace slib
 					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
-					
+
 					SLObjectItf engineObject = sl_null;
 					SLEngineItf engineInterface = sl_null;
 
@@ -135,7 +135,7 @@ namespace slib
 					SLAndroidSimpleBufferQueueItf bufferQueue;
 
 					if ((*engineInterface)->CreateAudioRecorder(engineInterface, &recorderObject, &slDataSource, &slDataSink, 2, id, req) == SL_RESULT_SUCCESS) {
-						
+
 						if (param.recordingPreset != AudioRecordingPreset::None) {
 							SLAndroidConfigurationItf confAndroid;
 							if ((*recorderObject)->GetInterface(recorderObject, SL_IID_ANDROIDCONFIGURATION, &confAndroid) == SL_RESULT_SUCCESS) {
@@ -147,9 +147,9 @@ namespace slib
 						if ((*recorderObject)->Realize(recorderObject, SL_BOOLEAN_FALSE) == SL_RESULT_SUCCESS) {
 
 							if ((*recorderObject)->GetInterface(recorderObject, SL_IID_RECORD, &recordInterface) == SL_RESULT_SUCCESS) {
-								
+
 								if ((*recorderObject)->GetInterface(recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &bufferQueue) == SL_RESULT_SUCCESS) {
-									
+
 									sl_uint32 nSamplesPerFrame = param.getSamplesPerFrame() * param.channelCount;
 									Memory memFrame = Memory::create(nSamplesPerFrame << 2);
 
@@ -160,7 +160,7 @@ namespace slib
 										if (ret.isNotNull()) {
 
 											if ((*bufferQueue)->RegisterCallback(bufferQueue, AudioRecorderImpl::callback, ret.get()) == SL_RESULT_SUCCESS) {
-												
+
 												ret->m_engineInterface = engineInterface;
 												ret->m_engineObject = engineObject;
 												ret->m_recorderObject = recorderObject;
@@ -172,7 +172,7 @@ namespace slib
 												Base::zeroMemory(memFrame.getData(), memFrame.getSize());
 
 												ret->_init(param);
-												
+
 												ret->m_flagInitialized = sl_true;
 
 												if (param.flagAutoStart) {
@@ -184,7 +184,7 @@ namespace slib
 											} else {
 												LOG_ERROR("Failed to register callback");
 											}
-											
+
 										}
 									}
 								} else {
@@ -202,7 +202,7 @@ namespace slib
 					}
 
 					(*engineObject)->Destroy(engineObject);
-					
+
 					return sl_null;
 				}
 
@@ -324,7 +324,7 @@ namespace slib
 			{
 			public:
 				sl_bool m_flagInitialized;
-			
+
 				Ref<AudioPlayerDeviceImpl> m_engine;
 				SLObjectItf m_playerObject;
 				SLPlayItf m_playerInterface;
@@ -341,7 +341,7 @@ namespace slib
 					m_flagInitialized = sl_false;
 					m_indexBuffer = 0;
 				}
-				
+
 				~AudioPlayerImpl()
 				{
 					if (m_flagInitialized) {
@@ -352,11 +352,11 @@ namespace slib
 
 			public:
 				static Ref<AudioPlayerImpl> create(Ref<AudioPlayerDeviceImpl> engine, const AudioPlayerParam& param)
-				{					
+				{
 					if (param.channelCount != 1 && param.channelCount != 2) {
 						return sl_null;
 					}
-					
+
 					SLEngineItf engineInterface = engine->m_engineInterface;
 
 					SLDataLocator_AndroidSimpleBufferQueue androidSBQ = {
@@ -391,7 +391,7 @@ namespace slib
 					SLboolean req[3] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
 
 					if ((*engineInterface)->CreateAudioPlayer(engineInterface, &playerObject, &slDataSource, &slDataSink, 3, ids, req) == SL_RESULT_SUCCESS) {
-						
+
 						if (param.streamType != AudioStreamType::Default) {
 							SLAndroidConfigurationItf confAndroid;
 							if ((*playerObject)->GetInterface(playerObject, SL_IID_ANDROIDCONFIGURATION, &confAndroid) == SL_RESULT_SUCCESS) {
@@ -401,20 +401,20 @@ namespace slib
 						}
 
 						if ((*playerObject)->Realize(playerObject, SL_BOOLEAN_FALSE) == SL_RESULT_SUCCESS) {
-							
+
 							if ((*playerObject)->GetInterface(playerObject, SL_IID_PLAY, &playerInterface) == SL_RESULT_SUCCESS) {
-								
+
 								if ((*playerObject)->GetInterface(playerObject, SL_IID_BUFFERQUEUE, &bufferQueue) == SL_RESULT_SUCCESS) {
-									
+
 									sl_uint32 nSamplesPerFrame = param.samplesPerSecond * param.frameLengthInMilliseconds / 1000 * param.channelCount;
 									Memory memFrame = Memory::create(nSamplesPerFrame << 2);
 
 									if (memFrame.isNotNull()) {
 
 										Ref<AudioPlayerImpl> ret = new AudioPlayerImpl();
-										
+
 										if (ret.isNotNull()) {
-											
+
 											if ((*bufferQueue)->RegisterCallback(bufferQueue, AudioPlayerImpl::callback, ret.get()) == SL_RESULT_SUCCESS) {
 
 												ret->m_engine = engine;
@@ -426,7 +426,7 @@ namespace slib
 												Base::zeroMemory(memFrame.getData(), memFrame.getSize());
 
 												ret->_init(param);
-											
+
 												ret->m_flagInitialized = sl_true;
 
 												if (param.flagAutoStart) {

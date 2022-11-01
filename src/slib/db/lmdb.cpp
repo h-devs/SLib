@@ -57,7 +57,7 @@ namespace slib
 					if (path.isEmpty()) {
 						return sl_null;
 					}
-					
+
 					if (param.flagCreateIfMissing) {
 						if (!(File::exists(path))) {
 							if (!(File::createDirectory(path))) {

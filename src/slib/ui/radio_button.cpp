@@ -45,7 +45,7 @@ namespace slib
 				Ref<Pen> m_penBorder;
 				Ref<Brush> m_brushBack;
 				Ref<Brush> m_brushCheck;
-				
+
 			public:
 				Icon(const Ref<Pen>& penBorder, const Color& backColor, const Color& checkColor)
 				{
@@ -57,7 +57,7 @@ namespace slib
 						m_brushCheck = Brush::createSolidBrush(checkColor);
 					}
 				}
-				
+
 			public:
 				void onDrawAll(Canvas* canvas, const Rectangle& rect, const DrawParam& param) override
 				{
@@ -74,7 +74,7 @@ namespace slib
 						canvas->fillEllipse(rcCheck, m_brushCheck);
 					}
 				}
-				
+
 			};
 
 			class Categories
@@ -106,7 +106,7 @@ namespace slib
 						categories[0].properties[(int)ButtonState::Hover].icon =
 							new Icon(penHover, colorBackHover, Color::zero());
 					categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Color::zero());
-					
+
 					categories[1] = categories[0];
 					categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, colorCheckNormal);
 					categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
@@ -118,7 +118,7 @@ namespace slib
 
 					arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
 				}
-				
+
 				static Array<ButtonCategory> getInitialCategories()
 				{
 					SLIB_SAFE_LOCAL_STATIC(Categories, s)
@@ -143,22 +143,22 @@ namespace slib
 	RadioButton::~RadioButton()
 	{
 	}
-	
+
 	Ref<RadioGroup> RadioButton::getGroup()
 	{
 		return m_group;
 	}
-	
+
 	String RadioButton::getValue()
 	{
 		return m_value;
 	}
-	
+
 	void RadioButton::setValue(const String& value)
 	{
 		m_value = value;
 	}
-	
+
 	void RadioButton::setChecked(sl_bool flag, UIUpdateMode mode)
 	{
 		Ref<RadioGroup> group = m_group;
@@ -205,7 +205,7 @@ namespace slib
 	{
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(RadioGroup, Object)
 
 	RadioGroup::RadioGroup()
@@ -215,7 +215,7 @@ namespace slib
 	RadioGroup::~RadioGroup()
 	{
 	}
-	
+
 	List< Ref<RadioButton> > RadioGroup::getButtons()
 	{
 		ObjectLocker lock(this);
@@ -287,7 +287,7 @@ namespace slib
 		}
 		select(selected);
 	}
-	
+
 	String RadioGroup::getSelectedValue()
 	{
 		ObjectLocker lock(this);
@@ -296,7 +296,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void RadioGroup::_setChecked(RadioButton* button, sl_bool flag, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -315,14 +315,14 @@ namespace slib
 			button->CheckBox::setChecked(sl_false, mode);
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(RadioGroup, Select, RadioButton*)
-	
+
 	void RadioGroup::dispatchSelect(RadioButton* button)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Select, button)
 	}
-	
+
 
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)

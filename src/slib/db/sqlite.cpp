@@ -59,9 +59,9 @@ namespace slib
 	{
 		namespace sqlite
 		{
-		
+
 			class DatabaseImpl;
-		
+
 			class CursorImpl : public DatabaseCursor
 			{
 			public:
@@ -338,7 +338,7 @@ namespace slib
 				{
 					sqlite3_finalize(m_statement);
 				}
-				
+
 			public:
 				sl_bool isLoggingErrors()
 				{
@@ -347,13 +347,13 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_bool _execute(const Variant* _params, sl_uint32 nParams)
 				{
 					sqlite3_reset(m_statement);
 					sqlite3_clear_bindings(m_statement);
 					m_boundParams.setNull();
-					
+
 					if (nParams == 0) {
 						return sl_true;
 					}
@@ -444,13 +444,13 @@ namespace slib
 				}
 			};
 
-		
+
 			class EncryptionVfs : public sqlite3_vfs
 			{
 			public:
 				DatabaseImpl* db;
 			};
-		
+
 			class EncryptionIo : public sqlite3_io_methods
 			{
 			public:
@@ -458,17 +458,17 @@ namespace slib
 				const sqlite3_io_methods* ioOriginal;
 				ChaCha20_FileEncryptor encryptor;
 			};
-		
+
 			struct EncryptionCustomFile
 			{
 				EncryptionIo io;
 			};
-		
+
 			class DatabaseImpl : public SQLite
 			{
 			public:
 				sqlite3* m_db;
-				
+
 				EncryptionVfs m_vfs;
 				sqlite3_vfs* m_vfsOriginal;
 				int m_vfsFileCustomOffset;
@@ -497,7 +497,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_bool initialize(const SQLiteParam& param)
 				{
 					sqlite3* db = sl_null;
@@ -509,7 +509,7 @@ namespace slib
 					}
 
 					StringCstr path(param.path);
-					
+
 					int iResult;
 					if (param.encryptionKey.isNotEmpty()) {
 						m_encryptionKey = param.encryptionKey.toString();
@@ -535,12 +535,12 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				static int xOpenEncryption(sqlite3_vfs* vfs, const char *zName, sqlite3_file* file, int flags, int *pOutFlags)
 				{
 					return ((EncryptionVfs*)vfs)->db->onOpenEncryption(vfs, zName, file, flags, pOutFlags);
 				}
-				
+
 				int onOpenEncryption(sqlite3_vfs* vfs, const char *zName, sqlite3_file* file, int flags, int *pOutFlags)
 				{
 					int iRet = (m_vfsOriginal->xOpen)(vfs, zName, file, flags, pOutFlags);
@@ -579,7 +579,7 @@ namespace slib
 					}
 					return iRet;
 				}
-				
+
 				static int xReadEncryption(sqlite3_file* file, void* buf, int iAmt, sqlite3_int64 iOfst)
 				{
 					EncryptionIo* io = (EncryptionIo*)(file->pMethods);
@@ -589,7 +589,7 @@ namespace slib
 					}
 					return iRet;
 				}
-				
+
 				static int xWriteEncryption(sqlite3_file* file, const void* buf, int iAmt, sqlite3_int64 iOfst)
 				{
 					EncryptionIo* io = (EncryptionIo*)(file->pMethods);
@@ -619,13 +619,13 @@ namespace slib
 					}
 					return SQLITE_OK;
 				}
-				
+
 				static int xTruncateEncryption(sqlite3_file* file, sqlite3_int64 size)
 				{
 					EncryptionIo* io = (EncryptionIo*)(file->pMethods);
 					return (io->ioOriginal->xTruncate)(file, size + ChaCha20_FileEncryptor::HeaderSize);
 				}
-				
+
 				static int xFileSizeEncryption(sqlite3_file* file, sqlite3_int64 *pSize)
 				{
 					EncryptionIo* io = (EncryptionIo*)(file->pMethods);
@@ -639,7 +639,7 @@ namespace slib
 					}
 					return iResult;
 				}
-				
+
 				sl_int64 _execute(const StringParam& _sql) override
 				{
 					StringCstr sql(_sql);
@@ -681,7 +681,7 @@ namespace slib
 				{
 					return sl_false;
 				}
-				
+
 				List<String> getDatabases() override
 				{
 					return sl_null;
@@ -696,7 +696,7 @@ namespace slib
 					builder.appendIdentifier(name.getData(), name.getLength());
 					return getValue(builder.toString()).getUint32() > 0;
 				}
-				
+
 				List<String> getTables() override
 				{
 					List<String> ret;
@@ -713,7 +713,7 @@ namespace slib
 				{
 					return (sl_uint64)(sqlite3_last_insert_rowid(m_db));
 				}
-				
+
 			};
 
 		}

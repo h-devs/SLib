@@ -57,8 +57,8 @@ namespace slib
 			{
 			public:
 				JniGlobal<jobject> m_font;
-				
-			public:	
+
+			public:
 				FontPlatformObject(const FontDesc& desc)
 				{
 					int style = 0;

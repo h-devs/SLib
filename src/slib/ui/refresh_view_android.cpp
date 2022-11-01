@@ -62,7 +62,7 @@ namespace slib
 					helper->_onRefresh_NW();
 				}
 			}
-			
+
 		}
 	}
 

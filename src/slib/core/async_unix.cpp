@@ -56,7 +56,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void processRead(sl_bool flagError)
 				{
 					HandlePtr<File> file = getHandle();
@@ -162,13 +162,13 @@ namespace slib
 						request.setNull();
 					}
 				}
-				
+
 				void onOrder() override
 				{
 					processRead(sl_false);
 					processWrite(sl_false);
 				}
-				
+
 				void onEvent(EventDesc* pev) override
 				{
 					sl_bool flagProcessed = sl_false;
@@ -193,7 +193,7 @@ namespace slib
 
 		}
 	}
-	
+
 	Ref<AsyncFileStream> AsyncFileStream::create(const AsyncFileStreamParam& param)
 	{
 		Ref<priv::async::FileInstance> ret = priv::async::FileInstance::create(param);

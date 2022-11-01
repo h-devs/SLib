@@ -130,7 +130,7 @@ namespace slib
 						2 - TextArea
 				*/
 				Ref<ViewInstance> createInstance(ViewInstance* _parent, int type);
-				
+
 				void applyProperties(Evas_Object* handle, int type)
 				{
 					if (type == 2) {
@@ -317,7 +317,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setText(EditView* view, const String& value) override
 				{
 					Evas_Object* handle = m_handle;
@@ -325,7 +325,7 @@ namespace slib
 						(static_cast<EditViewHelper*>(view))->applyText(handle);
 					}
 				}
-				
+
 				void setGravity(EditView* view, const Alignment& align) override
 				{
 					Evas_Object* handle = m_handle;
@@ -333,7 +333,7 @@ namespace slib
 						(static_cast<EditViewHelper*>(view))->setStyle(handle);
 					}
 				}
-				
+
 				void setTextColor(EditView* view, const Color& color) override
 				{
 					Evas_Object* handle = m_handle;
@@ -349,7 +349,7 @@ namespace slib
 						(static_cast<EditViewHelper*>(view))->applyPlaceholder(handle);
 					}
 				}
-				
+
 				void setHintGravity(EditView* view, const Alignment& align) override
 				{
 					Evas_Object* handle = m_handle;
@@ -357,7 +357,7 @@ namespace slib
 						(static_cast<EditViewHelper*>(view))->applyPlaceholder(handle);
 					}
 				}
-				
+
 				void setHintTextColor(EditView* view, const Color& value) override
 				{
 					Evas_Object* handle = m_handle;
@@ -381,7 +381,7 @@ namespace slib
 						elm_entry_editable_set(handle, flag ? EINA_FALSE : EINA_TRUE);
 					}
 				}
-				
+
 				void setPassword(EditView* view, sl_bool flag) override
 				{
 					Evas_Object* handle = m_handle;
@@ -397,7 +397,7 @@ namespace slib
 						elm_entry_single_line_set(handle, m_flagMultiLine ? EINA_FALSE : EINA_TRUE);
 					}
 				}
-				
+
 				void setReturnKeyType(EditView* view, UIReturnKeyType type) override
 				{
 					Evas_Object* handle = m_handle;
@@ -405,7 +405,7 @@ namespace slib
 						elm_entry_input_panel_return_key_type_set(handle, ConvertReturnKeyType(type));
 					}
 				}
-				
+
 				void setKeyboardType(EditView* view, UIKeyboardType type) override
 				{
 					Evas_Object* handle = m_handle;
@@ -413,7 +413,7 @@ namespace slib
 						elm_entry_input_panel_layout_set(handle, ConvertKeyboardType(type, IsInstanceOf<PasswordView>(this)));
 					}
 				}
-				
+
 				void setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type) override
 				{
 					Evas_Object* handle = m_handle;
@@ -429,19 +429,19 @@ namespace slib
 						(static_cast<EditViewHelper*>(view))->setStyle(handle);
 					}
 				}
-				
+
 				void setBorder(View* view, sl_bool flag) override
 				{
 				}
-				
+
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 				}
-				
+
 				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
 				{
 				}
-				
+
 				static void onChange(void* data, Evas_Object* obj, void* event_info)
 				{
 					Ref<EditViewHelper> helper = CastRef<EditViewHelper>(UIPlatform::getView(obj));
@@ -489,7 +489,7 @@ namespace slib
 			};
 
 			SLIB_DEFINE_OBJECT(EditViewInstance, EFL_ViewInstance)
-			
+
 			Ref<ViewInstance> EditViewHelper::createInstance(ViewInstance* _parent, int type)
 			{
 				EFL_ViewInstance* parent = static_cast<EFL_ViewInstance*>(_parent);
@@ -503,7 +503,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 		}
 	}
 
@@ -513,7 +513,7 @@ namespace slib
 	{
 		return (static_cast<EditViewHelper*>(this))->createInstance(parent, 0);
 	}
-	
+
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
 	{
 		return CastRef<EditViewInstance>(getViewInstance());
@@ -523,7 +523,7 @@ namespace slib
 	{
 		return (static_cast<EditViewHelper*>(this))->createInstance(parent, 2);
 	}
-	
+
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
 	{
 		return CastRef<EditViewInstance>(getViewInstance());

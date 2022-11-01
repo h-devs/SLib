@@ -38,7 +38,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(SelectView, View)
 	SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(SelectView, sl_uint32, ISelectViewInstance, getSelectViewInstance)
-	
+
 	SelectView::SelectView()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
@@ -55,7 +55,7 @@ namespace slib
 		m_gravity = Alignment::Left;
 		m_textColor = Color::Black;
 	}
-	
+
 	SelectView::~SelectView()
 	{
 	}
@@ -64,7 +64,7 @@ namespace slib
 	{
 		return m_gravity;
 	}
-	
+
 	void SelectView::setGravity(const Alignment& gravity, UIUpdateMode mode)
 	{
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
@@ -81,12 +81,12 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	Color SelectView::getTextColor()
 	{
 		return m_textColor;
 	}
-	
+
 	void SelectView::setTextColor(const Color& color, UIUpdateMode mode)
 	{
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
@@ -126,23 +126,23 @@ namespace slib
 			m_cell->onDraw(canvas);
 		}
 	}
-	
+
 	void SelectView::onMouseEvent(UIEvent* ev)
 	{
 		if (m_cell.isNotNull()) {
 			m_cell->onMouseEvent(ev);
 		}
 	}
-	
+
 	void SelectView::onUpdateLayout()
 	{
 		sl_bool flagHorizontalWrapping = isWidthWrapping();
 		sl_bool flagVerticalWrapping = isHeightWrapping();
-		
+
 		if (!flagVerticalWrapping && !flagHorizontalWrapping) {
 			return;
 		}
-		
+
 		Ptr<ISelectViewInstance> instance = getSelectViewInstance();
 		if (instance.isNotNull()) {
 			UISize size;
@@ -172,7 +172,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)
 
 	void SelectView::dispatchSelectItem(sl_uint32 index)
@@ -183,35 +183,35 @@ namespace slib
 		}
 		m_indexSelected = index;
 		lock.unlock();
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
 	}
-	
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()
 	{
 		return sl_null;
 	}
 #endif
-	
+
 	void ISelectViewInstance::setGravity(SelectView* view, const Alignment& gravity)
 	{
 	}
-	
+
 	void ISelectViewInstance::setTextColor(SelectView* view, const Color& color)
 	{
 	}
-	
+
 	sl_bool ISelectViewInstance::measureSize(SelectView* view, UISize& _out)
 	{
 		return sl_false;
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(SelectSwitch, View)
 	SLIB_DEFINE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectSwitch, sl_uint32)
@@ -225,7 +225,7 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		setFocusable(sl_true);
 #endif
-		
+
 		m_cell = new SelectSwitchCell;
 	}
 
@@ -567,7 +567,7 @@ namespace slib
 		frame.fixSizeError();
 		return frame;
 	}
-	
+
 	UIRect SelectSwitchCell::getRightIconRegion()
 	{
 		UIRect frame = getFrame();

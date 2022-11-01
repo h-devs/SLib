@@ -88,7 +88,7 @@ namespace slib
 		static Ref<AsyncFileStream> create(AsyncFileStreamInstance* instance, AsyncIoMode mode, const Ref<AsyncIoLoop>& loop);
 
 		static Ref<AsyncFileStream> create(AsyncFileStreamInstance* instance, AsyncIoMode mode);
-		
+
 		static Ref<AsyncFileStream> create(const AsyncFileStreamParam& param);
 
 	public:

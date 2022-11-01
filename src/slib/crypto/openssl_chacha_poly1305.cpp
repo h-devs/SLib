@@ -27,10 +27,10 @@
 extern "C"
 {
 	void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp, size_t len, const unsigned int key[8], const unsigned int counter[4]);
-	
+
 	struct poly1305_context;
 	typedef struct poly1305_context POLY1305;
-	
+
 	size_t Poly1305_ctx_size(void);
 	void Poly1305_Init(POLY1305 *ctx, const unsigned char key[32]);
 	void Poly1305_Update(POLY1305 *ctx, const unsigned char *inp, size_t len);
@@ -43,11 +43,11 @@ namespace slib
 	OpenSSL_ChaCha20::OpenSSL_ChaCha20(): m_pos(0)
 	{
 	}
-	
+
 	OpenSSL_ChaCha20::~OpenSSL_ChaCha20()
 	{
 	}
-	
+
 	void OpenSSL_ChaCha20::setKey(const void* _key)
 	{
 		const sl_uint8* key = (const sl_uint8*)_key;
@@ -57,14 +57,14 @@ namespace slib
 			key += 4;
 		}
 	}
-	
+
 	void OpenSSL_ChaCha20::generateBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, void* output)
 	{
 		sl_uint32 nonces[] = {nonce0, nonce1, nonce2, nonce3};
 		Base::zeroMemory(output, 64);
 		ChaCha20_ctr32((unsigned char*)output, (const unsigned char*)output, 64, (const unsigned int*)m_key, (const unsigned int*)nonces);
 	}
-	
+
 	void OpenSSL_ChaCha20::start(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3)
 	{
 		m_nonce[0] = nonce0;
@@ -73,7 +73,7 @@ namespace slib
 		m_nonce[3] = nonce3;
 		m_pos = 0;
 	}
-	
+
 	void OpenSSL_ChaCha20::start(const void* _iv, sl_uint32 counter)
 	{
 		const sl_uint8* iv = (const sl_uint8*)_iv;
@@ -83,7 +83,7 @@ namespace slib
 		m_nonce[3] = SLIB_MAKE_DWORD(iv[11], iv[10], iv[9], iv[8]);
 		m_pos = 0;
 	}
-	
+
 	void OpenSSL_ChaCha20::encrypt(const void* _src, void* _dst, sl_size len)
 	{
 		if (!len) {
@@ -131,24 +131,24 @@ namespace slib
 			m_pos = pos;
 		}
 	}
-	
+
 	void OpenSSL_ChaCha20::decrypt(const void* src, void* dst, sl_size len)
 	{
 		encrypt(src, dst, len);
 	}
-	
-	
+
+
 	OpenSSL_Poly1305::OpenSSL_Poly1305(): m_context(sl_null)
 	{
 	}
-	
+
 	OpenSSL_Poly1305::~OpenSSL_Poly1305()
 	{
 		if (m_context) {
 			Base::freeMemory(m_context);
 		}
 	}
-	
+
 	void OpenSSL_Poly1305::start(const void* key)
 	{
 		if (!m_context) {
@@ -156,17 +156,17 @@ namespace slib
 		}
 		Poly1305_Init((POLY1305*)m_context, (const unsigned char*)key);
 	}
-	
+
 	void OpenSSL_Poly1305::update(const void* input, sl_size n)
 	{
 		Poly1305_Update((POLY1305*)m_context, (const unsigned char*)input, (size_t)n);
 	}
-	
+
 	void OpenSSL_Poly1305::finish(void* output)
 	{
 		Poly1305_Final((POLY1305*)m_context, (unsigned char*)output);
 	}
-	
+
 	void OpenSSL_Poly1305::execute(const void* key, const void* message, sl_size lenMessage, void* output)
 	{
 		OpenSSL_Poly1305 p;
@@ -174,21 +174,21 @@ namespace slib
 		p.update(message, lenMessage);
 		p.finish(output);
 	}
-	
-	
+
+
 	OpenSSL_ChaCha20_Poly1305::OpenSSL_ChaCha20_Poly1305()
 	{
 	}
-	
+
 	OpenSSL_ChaCha20_Poly1305::~OpenSSL_ChaCha20_Poly1305()
 	{
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::setKey(const void* key)
 	{
 		m_cipher.setKey(key);
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::start(sl_uint32 senderId, const void* _iv)
 	{
 		const sl_uint8* iv = (const sl_uint8*)_iv;
@@ -201,13 +201,13 @@ namespace slib
 		m_lenAAD = 0;
 		m_lenInput = 0;
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::putAAD(const void* data, sl_size len)
 	{
 		m_auth.update(data, len);
 		m_lenAAD += len;
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::finishAAD()
 	{
 		sl_uint32 n = (sl_uint32)(m_lenAAD & 15);
@@ -216,7 +216,7 @@ namespace slib
 			m_auth.update(zeros, 16 - n);
 		}
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::encrypt(const void* src, void* dst, sl_size len)
 	{
 		if (!len) {
@@ -226,7 +226,7 @@ namespace slib
 		m_auth.update(dst, len);
 		m_lenInput += len;
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::decrypt(const void* src, void* dst, sl_size len)
 	{
 		if (!len) {
@@ -236,13 +236,13 @@ namespace slib
 		m_cipher.encrypt(src, dst, len);
 		m_lenInput += len;
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::check(const void* src, sl_size len)
 	{
 		m_auth.update(src, len);
 		m_lenInput += len;
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::finish(void* outputTag)
 	{
 		sl_uint32 n = (sl_uint32)(m_lenInput & 15);
@@ -256,7 +256,7 @@ namespace slib
 		m_auth.update(len, 16);
 		m_auth.finish(outputTag);
 	}
-	
+
 	sl_bool OpenSSL_ChaCha20_Poly1305::finishAndCheckTag(const void* _tag)
 	{
 		const sl_uint8* tag = (const sl_uint8*)_tag;
@@ -268,7 +268,7 @@ namespace slib
 		}
 		return n == 0;
 	}
-	
+
 	void OpenSSL_ChaCha20_Poly1305::encrypt(sl_uint32 senderId, const void* iv, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, void* outputTag)
 	{
 		start(senderId, iv);
@@ -281,7 +281,7 @@ namespace slib
 		}
 		finish(outputTag);
 	}
-	
+
 	sl_bool OpenSSL_ChaCha20_Poly1305::decrypt(sl_uint32 senderId, const void* iv, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, const void* tag)
 	{
 		start(senderId, iv);
@@ -294,7 +294,7 @@ namespace slib
 		}
 		return finishAndCheckTag(tag);
 	}
-	
+
 	sl_bool OpenSSL_ChaCha20_Poly1305::check(sl_uint32 senderId, const void* iv, const void* AAD, sl_size lenAAD, const void* src, sl_size len, const void* tag)
 	{
 		start(senderId, iv);
@@ -307,5 +307,5 @@ namespace slib
 		}
 		return finishAndCheckTag(tag);
 	}
-	
+
 }

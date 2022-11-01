@@ -33,68 +33,68 @@ namespace slib
 	class SLIB_EXPORT ViewPager : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ViewPager();
-		
+
 		~ViewPager();
-		
+
 	public:
 		void setAdapter(const Ref<ViewAdapter>& adapter, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void addPage(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_uint64 getPageCount();
-		
+
 		sl_uint64 getCurrentIndex();
-		
+
 		void selectPage(sl_uint64 index, UIUpdateMode mode = UIUpdateMode::Animate);
 
 		void goToPrevious(UIUpdateMode mode = UIUpdateMode::Animate);
-		
+
 		void goToNext(UIUpdateMode mode = UIUpdateMode::Animate);
-		
+
 		sl_bool isLoop();
-		
+
 		void setLoop(sl_bool flag);
-		
+
 	public:
 		void setLockScroll(sl_bool flag) override;
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ViewPager, SelectPage, sl_uint64 index)
-		
+
 	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 		void onChangePadding(UIUpdateMode mode) override;
-		
+
 		void onMouseEvent(UIEvent* ev) override;
 
 	private:
 		void _selectPage(sl_bool flagEvent, sl_uint64 index, UIUpdateMode mode = UIUpdateMode::Animate);
-		
+
 		Ref<View> _loadPage(sl_uint64 index);
-		
+
 		sl_ui_pos _getPagePosition(sl_uint64 index);
-		
+
 		void _relocatePages();
-		
+
 		void _resizePages();
-		
+
 		void _reloadPages();
 
 		void _cleanCache();
-		
+
 		void _onAnimation(Timer* timer);
-		
+
 	protected:
 		AtomicRef<ViewAdapter> m_adapter;
 		CHashMap< sl_uint64, Ref<View> > m_cache;
 		sl_uint64 m_indexCurrent;
-		
+
 		sl_bool m_flagLoop;
-		
+
 		MotionTracker m_motionTracker;
 		sl_bool m_flagMouseDown;
 		Point m_posMouseDown;

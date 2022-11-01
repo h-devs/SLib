@@ -24,12 +24,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace rb_tree
 		{
-			
+
 			SLIB_INLINE static RedBlackTreeNode* GetFirst(RedBlackTreeNode* node) noexcept
 			{
 				typedef RedBlackTreeNode Node;
@@ -42,7 +42,7 @@ namespace slib
 				}
 				return node;
 			}
-			
+
 			SLIB_INLINE static RedBlackTreeNode* GetLast(RedBlackTreeNode* node) noexcept
 			{
 				typedef RedBlackTreeNode Node;
@@ -55,7 +55,7 @@ namespace slib
 				}
 				return node;
 			}
-			
+
 			SLIB_INLINE static RedBlackTreeNode* GetPrevious(RedBlackTreeNode* node) noexcept
 			{
 				typedef RedBlackTreeNode Node;
@@ -75,7 +75,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			SLIB_INLINE static RedBlackTreeNode* GetNext(RedBlackTreeNode* node) noexcept
 			{
 				typedef RedBlackTreeNode Node;
@@ -95,7 +95,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			SLIB_INLINE static void SetLeft(RedBlackTreeNode* node, RedBlackTreeNode* left) noexcept
 			{
 				node->left = left;
@@ -103,7 +103,7 @@ namespace slib
 					left->parent = node;
 				}
 			}
-			
+
 			SLIB_INLINE static void SetRight(RedBlackTreeNode* node, RedBlackTreeNode* right) noexcept
 			{
 				node->right = right;
@@ -111,7 +111,7 @@ namespace slib
 					right->parent = node;
 				}
 			}
-			
+
 			SLIB_INLINE static void ReplaceChild(RedBlackTreeNode* parent, RedBlackTreeNode* oldChild, RedBlackTreeNode* newChild, RedBlackTreeNode** pRoot) noexcept
 			{
 				newChild->parent = parent;
@@ -125,7 +125,7 @@ namespace slib
 					*pRoot = newChild;
 				}
 			}
-			
+
 			SLIB_INLINE static void RotateLeft(RedBlackTreeNode* node, RedBlackTreeNode* right, RedBlackTreeNode* parent, RedBlackTreeNode** pRoot) noexcept
 			{
 				SetRight(node, right->left);
@@ -133,7 +133,7 @@ namespace slib
 				node->parent = right;
 				ReplaceChild(parent, node, right, pRoot);
 			}
-			
+
 			SLIB_INLINE static void RotateRight(RedBlackTreeNode* node, RedBlackTreeNode* left, RedBlackTreeNode* parent, RedBlackTreeNode** pRoot) noexcept
 			{
 				SetLeft(node, left->right);
@@ -141,28 +141,28 @@ namespace slib
 				node->parent = left;
 				ReplaceChild(parent, node, left, pRoot);
 			}
-			
+
 			RedBlackTreeNode* Helper::getPrevious(RedBlackTreeNode* node) noexcept
 			{
 				return GetPrevious(node);
 			}
-			
+
 			RedBlackTreeNode* Helper::getNext(RedBlackTreeNode* node) noexcept
 			{
 				return GetNext(node);
 			}
-			
+
 			RedBlackTreeNode* Helper::getFirst(RedBlackTreeNode* node) noexcept
 			{
 				return GetFirst(node);
 			}
-			
+
 			RedBlackTreeNode* Helper::getLast(RedBlackTreeNode* node) noexcept
 			{
 				return GetLast(node);
 			}
-			
-			
+
+
 			/*
 			 Properties of Red-Black Tree
 			 
@@ -175,43 +175,43 @@ namespace slib
 			 5. Every path from a given node to any of its descendant NIL nodes contains the same number of black nodes.
 			 
 			 */
-			
+
 			void Helper::rebalanceAfterInsert(RedBlackTreeNode* newNode, RedBlackTreeNode** pRoot) noexcept
 			{
 				typedef RedBlackTreeNode Node;
-				
+
 				newNode->flagRed = sl_true;
-				
+
 				Node* current = newNode;
-				
+
 				for (;;) {
-					
+
 					Node* parent = current->parent;
-					
+
 					if (parent) {
-						
+
 						if (parent->flagRed) {
-							
+
 							Node* grand_parent = parent->parent;
-							
+
 							if (grand_parent) {
-								
+
 								grand_parent->flagRed = sl_true;
-								
+
 								Node* uncle = grand_parent->left;
 								if (uncle == parent) {
 									uncle = grand_parent->right;
 								}
-								
+
 								if (uncle && uncle->flagRed) {
-									
+
 									// the parent and the uncle are red
 									parent->flagRed = sl_false;
 									uncle->flagRed = sl_false;
 									current = grand_parent;
-									
+
 								} else {
-									
+
 									if (parent == grand_parent->left) {
 										if (current == parent->right) {
 											// rotate left
@@ -235,12 +235,12 @@ namespace slib
 										// parent is always right child of the grand_parent
 										RotateLeft(grand_parent, parent, grand_parent->parent, pRoot);
 									}
-									
+
 									parent->flagRed = sl_false;
-									
+
 									break;
 								}
-								
+
 							} else {
 								// The root is always black. This is the error situation.
 								SLIB_ASSERT(true);
@@ -257,18 +257,18 @@ namespace slib
 						break;
 					}
 				}
-				
+
 			}
-			
+
 			void Helper::removeNode(RedBlackTreeNode* node, RedBlackTreeNode** pRoot) noexcept
 			{
 				typedef RedBlackTreeNode Node;
-				
+
 				sl_bool flagRed = node->flagRed;
 				Node* parent = node->parent;
 				Node* left = node->left;
 				Node* right = node->right;
-				
+
 				if (right) {
 					if (left) {
 						// in this case, we replace deleting node with the successor (the minimum element in its right subtree)
@@ -278,12 +278,12 @@ namespace slib
 						SLIB_ASSERT(!(successor->left));
 						Node* successor_right = successor->right;
 						sl_bool successor_flagRed = successor->flagRed;
-						
+
 						// copy node values to the successor
 						successor->flagRed = flagRed;
 						ReplaceChild(parent, node, successor, pRoot);
 						SetLeft(successor, left);
-						
+
 						if (right != successor) {
 							// so that, successor->parent != node
 							SetRight(successor, right);
@@ -293,11 +293,11 @@ namespace slib
 						} else {
 							parent = successor;
 						}
-						
+
 						if (successor_flagRed) {
 							return;
 						}
-						
+
 						if (successor_right) {
 							// In this case, successor_right is 'RED', because successor's left is always NIL
 							SLIB_ASSERT(successor_right->flagRed);
@@ -336,13 +336,13 @@ namespace slib
 						}
 					}
 				}
-				
+
 				// rebalance red-black tree.
 				// `node` is always NIL, here
 				node = sl_null;
-				
+
 				for (;;) {
-					
+
 					Node* sibling;
 					sl_bool flagLeft;
 					if (parent->left == node) {
@@ -352,7 +352,7 @@ namespace slib
 						flagLeft = sl_false;
 						sibling = parent->left;
 					}
-					
+
 					// `sibling` is not null, because `node` was BLACK
 					SLIB_ASSERT(sibling);
 					if (sibling->flagRed) {
@@ -422,12 +422,12 @@ namespace slib
 						parent->flagRed = sl_false;
 						break;
 					}
-					
+
 				}
-				
+
 			}
-			
+
 		}
 	}
-	
+
 }

@@ -27,88 +27,88 @@
 
 namespace slib
 {
-	
+
 	class CTimeZone: public Referable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		CTimeZone() noexcept;
-		
+
 		~CTimeZone() noexcept;
-		
+
 	public:
 		// In seconds
 		sl_int64 getOffset();
-		
+
 		// In seconds
 		virtual sl_int64 getOffset(const Time& time) = 0;
-		
+
 	};
-	
+
 	class GenericTimeZone : public CTimeZone
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		GenericTimeZone(sl_int64 offsetSeconds = 0);
-		
+
 		~GenericTimeZone();
-		
+
 	public:
 		using CTimeZone::getOffset;
-		
+
 		sl_int64 getOffset(const Time& time) override;
-		
+
 	protected:
 		sl_int64 m_offset;
-		
+
 	};
-	
-	
+
+
 	template <>
 	class SLIB_EXPORT Atomic<TimeZone>
 	{
 	public:
 		AtomicRef<CTimeZone> ref;
 		SLIB_ATOMIC_REF_WRAPPER(CTimeZone)
-		
+
 	public:
 		sl_bool isLocal() const noexcept;
-		
+
 		sl_bool isUTC() const noexcept;
-		
+
 	};
-	
+
 	typedef Atomic<TimeZone> AtomicTimeZone;
-	
+
 	class TimeZone
 	{
 		SLIB_REF_WRAPPER(TimeZone, CTimeZone)
-		
+
 	public:
 		static const TimeZone& Local;
-		
+
 		static const TimeZone& UTC() noexcept;
-		
+
 		static TimeZone create(sl_int64 offset) noexcept;
-		
+
 	public:
 		sl_bool isLocal() const noexcept;
-		
+
 		sl_bool isUTC() const noexcept;
 
 		// In seconds
 		sl_int64 getOffset() const;
-		
+
 		// In seconds
 		sl_int64 getOffset(const Time& time) const;
 
 	public:
 		Ref<CTimeZone> ref;
-		
+
 	};
-	
+
 }
 
 #endif

@@ -83,12 +83,12 @@ namespace slib
 
 					m_flagFirstResize = sl_true;
 				}
-				
+
 				~GTK_WindowInstance()
 				{
 					_release();
 				}
-				
+
 			public:
 				static Ref<GTK_WindowInstance> create(GtkWindow* window)
 				{
@@ -101,7 +101,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void _init(GtkWindow* window)
 				{
 					g_object_ref_sink(window);
@@ -159,7 +159,7 @@ namespace slib
 							gtk_window_set_transient_for(handle, hParent);
 						}
 					}
-					
+
 					if (window->isBorderless() || window->isFullScreen() || !(window->isTitleBarVisible())) {
 						gtk_window_set_decorated(handle, sl_false);
 					}
@@ -182,7 +182,7 @@ namespace slib
 						}
 						gtk_window_set_opacity(handle, alpha);
 					}
-					
+
 					StringCstr title = window->getTitle();
 					gtk_window_set_title(handle, title.getData());
 
@@ -290,12 +290,12 @@ namespace slib
 					}
 					m_viewContent.setNull();
 				}
-				
+
 				sl_bool isClosed() override
 				{
 					return m_flagClosed;
 				}
-				
+
 				void setParent(const Ref<WindowInstance>& windowParent) override
 				{
 					GtkWindow* window = m_window;
@@ -417,7 +417,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void activate() override
 				{
 					if (!m_flagClosed) {
@@ -444,12 +444,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void isMinimized(sl_bool& _out) override
 				{
 					_out = m_flagMinimized;
 				}
-				
+
 				void setMinimized(sl_bool flag) override
 				{
 					if (!m_flagClosed) {
@@ -469,12 +469,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void isMaximized(sl_bool& _out) override
 				{
 					_out = m_flagMaximized;
 				}
-				
+
 				void setMaximized(sl_bool flag) override
 				{
 					if (!m_flagClosed) {
@@ -494,7 +494,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setVisible(sl_bool flag) override
 				{
 					if (!m_flagClosed) {
@@ -509,7 +509,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setAlwaysOnTop(sl_bool flag) override
 				{
 					if (!m_flagClosed) {
@@ -523,7 +523,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setCloseButtonEnabled(sl_bool flag) override
 				{
 					if (!m_flagClosed) {
@@ -782,12 +782,12 @@ namespace slib
 	}
 
 	using namespace priv::window;
-	
+
 	Ref<WindowInstance> Window::createWindowInstance()
 	{
 		return GTK_WindowInstance::create(this);
 	}
-	
+
 	Ref<Window> Window::getActiveWindow()
 	{
 		Ref<WindowInstance> instance = UIPlatform::getActiveWindowInstance();
@@ -814,7 +814,7 @@ namespace slib
 		gtk_window_set_default_icon(sl_null);
 	}
 
-	
+
 	Ref<WindowInstance> UIPlatform::createWindowInstance(GtkWindow* window)
 	{
 		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance(window);
@@ -823,22 +823,22 @@ namespace slib
 		}
 		return GTK_WindowInstance::create(window);
 	}
-	
+
 	void UIPlatform::registerWindowInstance(GtkWindow* window, WindowInstance* instance)
 	{
 		UIPlatform::_registerWindowInstance(window, instance);
 	}
-	
+
 	Ref<WindowInstance> UIPlatform::getWindowInstance(GtkWindow* window)
 	{
 		return UIPlatform::_getWindowInstance(window);
 	}
-	
+
 	void UIPlatform::removeWindowInstance(GtkWindow* window)
 	{
 		UIPlatform::_removeWindowInstance(window);
 	}
-	
+
 	GtkWindow* UIPlatform::getWindowHandle(WindowInstance* instance)
 	{
 		GTK_WindowInstance* window = static_cast<GTK_WindowInstance*>(instance);
@@ -848,7 +848,7 @@ namespace slib
 			return sl_null;
 		}
 	}
-	
+
 	GtkWindow* UIPlatform::getWindowHandle(Window* window)
 	{
 		if (window) {
@@ -860,7 +860,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<WindowInstance> UIPlatform::getActiveWindowInstance()
 	{
 		ListElements< Ref<WindowInstance> > instances(UIPlatform::_getAllWindowInstances());

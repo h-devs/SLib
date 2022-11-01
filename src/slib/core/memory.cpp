@@ -167,7 +167,7 @@ namespace slib
 				{
 					return sl_null;
 				}
-				
+
 			};
 
 			static CMemory* CreateStatic(const void* data, sl_size size) noexcept
@@ -476,7 +476,7 @@ namespace slib
 			sl_size limit = sizeParent - offset;
 			if (sizeSub > limit) {
 				sizeSub = limit;
-			}			
+			}
 			if (sizeSub) {
 				if (sizeParent == sizeSub) {
 					return this;
@@ -846,7 +846,7 @@ namespace slib
 			return result;
 		}
 	}
-	
+
 	sl_bool Memory::equals(const Memory& other) const noexcept
 	{
 		sl_size size1 = getSize();
@@ -860,7 +860,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_size Memory::getHashCode() const noexcept
 	{
 		sl_size size = getSize();
@@ -925,7 +925,7 @@ namespace slib
 		}
 	}
 
-	
+
 	sl_bool Serialize(MemoryBuffer* output, const String& _in)
 	{
 		return _in.toMemory().serialize(output);
@@ -1074,7 +1074,7 @@ namespace slib
 		buf.m_size = 0;
 		m_queue.merge_NoLock(&(buf.m_queue));
 	}
-	
+
 	void MemoryBuffer::clear()
 	{
 		if (!m_size) {
@@ -1131,12 +1131,12 @@ namespace slib
 	MemoryQueue::~MemoryQueue()
 	{
 	}
-	
+
 	sl_size MemoryQueue::getSize() const
 	{
 		return m_size;
 	}
-	
+
 	sl_bool MemoryQueue::add_NoLock(const MemoryData& mem)
 	{
 		if (!(mem.size)) {
@@ -1164,7 +1164,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool MemoryQueue::add(const MemoryData& mem)
 	{
 		if (!(mem.size)) {
@@ -1228,7 +1228,7 @@ namespace slib
 					return sl_true;
 				}
 			}
-			
+
 		}
 		return sl_false;
 	}
@@ -1265,7 +1265,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool MemoryQueue::addStatic(const void* buf, sl_size size)
 	{
 		if (!size) {
@@ -1279,14 +1279,14 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void MemoryQueue::link_NoLock(MemoryQueue& buf)
 	{
 		m_size += buf.m_size;
 		buf.m_size = 0;
 		m_queue.merge_NoLock(&(buf.m_queue));
 	}
-	
+
 	void MemoryQueue::link(MemoryQueue& buf)
 	{
 		MultipleObjectsLocker lock(this, &buf);
@@ -1294,7 +1294,7 @@ namespace slib
 		buf.m_size = 0;
 		m_queue.merge_NoLock(&(buf.m_queue));
 	}
-	
+
 	void MemoryQueue::clear_NoLock()
 	{
 		m_queue.removeAll_NoLock();
@@ -1303,13 +1303,13 @@ namespace slib
 		m_memCurrent.size = 0;
 		m_posCurrent = 0;
 	}
-	
+
 	void MemoryQueue::clear()
 	{
 		ObjectLocker lock(this);
 		clear_NoLock();
 	}
-	
+
 	sl_bool MemoryQueue::pop_NoLock(MemoryData& data)
 	{
 		MemoryData mem = Move(m_memCurrent);
@@ -1340,7 +1340,7 @@ namespace slib
 		ObjectLocker lock(this);
 		return pop_NoLock(data);
 	}
-	
+
 	sl_size MemoryQueue::pop_NoLock(void* _buf, sl_size size)
 	{
 		char* buf = (char*)_buf;
@@ -1382,7 +1382,7 @@ namespace slib
 		ObjectLocker lock(this);
 		return pop_NoLock(buf, size);
 	}
-	
+
 	Memory MemoryQueue::merge_NoLock() const
 	{
 		if (m_queue.getCount() == 0) {

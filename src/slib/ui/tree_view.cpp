@@ -31,12 +31,12 @@ namespace slib
 	{
 		namespace tree_view
 		{
-			
+
 			class TreeContentViewImpl : public View
 			{
 			public:
 				AtomicWeakRef<TreeView> m_tree;
-				
+
 			public:
 				TreeContentViewImpl()
 				{
@@ -44,7 +44,7 @@ namespace slib
 					setFocusable(sl_true);
 #endif
 				}
-				
+
 			public:
 				void onDraw(Canvas* canvas) override
 				{
@@ -53,7 +53,7 @@ namespace slib
 						tree->_drawContent(canvas);
 					}
 				}
-				
+
 				void onMouseEvent(UIEvent* ev) override
 				{
 					Ref<TreeView> tree = m_tree;
@@ -61,7 +61,7 @@ namespace slib
 						tree->_processMouseEvent(ev);
 					}
 				}
-				
+
 			};
 
 			class DefaultIndentIcon : public Drawable
@@ -69,7 +69,7 @@ namespace slib
 			public:
 				Ref<Brush> m_brush;
 				Point m_pts[3];
-				
+
 			public:
 				DefaultIndentIcon(sl_bool flagCollapse)
 				{
@@ -84,18 +84,18 @@ namespace slib
 						m_pts[2] = Point(0.7f, 0.35f);
 					}
 				}
-				
+
 			public:
 				sl_real getDrawableWidth() override
 				{
 					return 16;
 				}
-				
+
 				sl_real getDrawableHeight() override
 				{
 					return 16;
 				}
-				
+
 				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
 				{
 					if (m_brush.isNotNull()) {
@@ -107,7 +107,7 @@ namespace slib
 						canvas->fillPolygon(pts, 3, m_brush);
 					}
 				}
-				
+
 			};
 
 		}
@@ -116,7 +116,7 @@ namespace slib
 	using namespace priv::tree_view;
 
 	SLIB_DEFINE_OBJECT(TreeViewItem, Object)
-	
+
 	TreeViewItem::TreeViewItem()
 	{
 		m_level = 0;
@@ -125,7 +125,7 @@ namespace slib
 		m_hoverTextColor = Color::zero();
 		m_selectedTextColor = Color::zero();
 		m_height = 0;
-		
+
 		m_frame.setZero();
 
 		m_bottomChildren = 0;
@@ -134,32 +134,32 @@ namespace slib
 	TreeViewItem::~TreeViewItem()
 	{
 	}
-	
+
 	String TreeViewItem::getId()
 	{
 		return m_id;
 	}
-	
+
 	void TreeViewItem::setId(const String& _id)
 	{
 		m_id = _id;
 	}
-	
+
 	Ref<TreeView> TreeViewItem::getTreeView()
 	{
 		return m_tree;
 	}
-	
+
 	Ref<TreeViewItem> TreeViewItem::getParent()
 	{
 		return m_parent;
 	}
-	
+
 	sl_uint32 TreeViewItem::getLevel()
 	{
 		return m_level;
 	}
-	
+
 	Ref<TreeViewItem> TreeViewItem::getItemById(const String& _id)
 	{
 		if (String(m_id) == _id) {
@@ -177,22 +177,22 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	List< Ref<TreeViewItem> > TreeViewItem::getChildren()
 	{
 		return m_children.duplicate();
 	}
-	
+
 	sl_size TreeViewItem::getChildCount()
 	{
 		return m_children.getCount();
 	}
-	
+
 	Ref<TreeViewItem> TreeViewItem::getChild(sl_size index)
 	{
 		return m_children.getValueAt(index);
 	}
-	
+
 	void TreeViewItem::addChild(const Ref<TreeViewItem>& item, UIUpdateMode mode)
 	{
 		if (item.isNull()) {
@@ -202,7 +202,7 @@ namespace slib
 			_addChild(item.get(), mode);
 		}
 	}
-	
+
 	Ref<TreeViewItem> TreeViewItem::addChild(const String& text, const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> item = new TreeViewItem;
@@ -214,12 +214,12 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<TreeViewItem> TreeViewItem::addChild(const String& text, UIUpdateMode mode)
 	{
 		return addChild(text, Ref<Drawable>::null(), mode);
 	}
-	
+
 	void TreeViewItem::insertChild(sl_size index, const Ref<TreeViewItem>& item, UIUpdateMode mode)
 	{
 		if (item.isNull()) {
@@ -229,7 +229,7 @@ namespace slib
 			_addChild(item.get(), mode);
 		}
 	}
-	
+
 	Ref<TreeViewItem> TreeViewItem::insertChild(sl_size index, const String& text, const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> item = new TreeViewItem;
@@ -241,12 +241,12 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<TreeViewItem> TreeViewItem::insertChild(sl_size index, const String& text, UIUpdateMode mode)
 	{
 		return insertChild(index, text, Ref<Drawable>::null(), mode);
 	}
-	
+
 	void TreeViewItem::removeChild(sl_size index, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> item = m_children.getValueAt(index);
@@ -259,7 +259,7 @@ namespace slib
 			_relayoutTree(mode);
 		}
 	}
-	
+
 	void TreeViewItem::removeChild(const Ref<TreeViewItem>& item, UIUpdateMode mode)
 	{
 		if (item.isNull()) {
@@ -271,7 +271,7 @@ namespace slib
 			_relayoutTree(mode);
 		}
 	}
-	
+
 	void TreeViewItem::removeAllChildren(UIUpdateMode mode)
 	{
 		ListLocker< Ref<TreeViewItem> > children(m_children);
@@ -283,22 +283,22 @@ namespace slib
 			_relayoutTree(mode);
 		}
 	}
-	
+
 	sl_bool TreeViewItem::isRoot()
 	{
 		return m_parent.isNull();
 	}
-	
+
 	sl_bool TreeViewItem::isLeaf()
 	{
 		return m_children.getCount() == 0;
 	}
-	
+
 	sl_bool TreeViewItem::isOpened()
 	{
 		return m_flagOpened;
 	}
-	
+
 	sl_bool TreeViewItem::isVisible()
 	{
 		Ref<TreeView> tree = m_tree;
@@ -315,7 +315,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	void TreeViewItem::open(UIUpdateMode mode)
 	{
 		m_flagOpened = sl_true;
@@ -323,7 +323,7 @@ namespace slib
 			_relayoutTree(mode);
 		}
 	}
-	
+
 	void TreeViewItem::close(UIUpdateMode mode)
 	{
 		m_flagOpened = sl_false;
@@ -331,56 +331,56 @@ namespace slib
 			_relayoutTree(mode);
 		}
 	}
-	
+
 	String TreeViewItem::getText()
 	{
 		return m_text;
 	}
-	
+
 	void TreeViewItem::setText(const String& text, UIUpdateMode mode)
 	{
 		m_text = text;
 		_redrawTree(mode);
 	}
-	
+
 	Ref<Drawable> TreeViewItem::getIcon()
 	{
 		return m_icon;
 	}
-	
+
 	void TreeViewItem::setIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_icon = icon;
 		_relayoutTree(mode);
 	}
-	
+
 	Ref<Drawable> TreeViewItem::getOpenedIcon()
 	{
 		return m_iconOpened;
 	}
-	
+
 	void TreeViewItem::setOpenedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_iconOpened = icon;
 		_relayoutTree(mode);
 	}
-	
+
 	Ref<Drawable> TreeViewItem::getClosedIcon()
 	{
 		return m_iconClosed;
 	}
-	
+
 	void TreeViewItem::setClosedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_iconClosed = icon;
 		_relayoutTree(mode);
 	}
-	
+
 	Ref<View> TreeViewItem::getCustomView()
 	{
 		return m_customView;
 	}
-	
+
 	void TreeViewItem::setCustomView(const Ref<View>& view, UIUpdateMode mode)
 	{
 		Ref<View> old = m_customView;
@@ -396,51 +396,51 @@ namespace slib
 		}
 		_relayoutTree(mode);
 	}
-	
+
 	Color TreeViewItem::getTextColor()
 	{
 		return m_textColor;
 	}
-	
+
 	void TreeViewItem::setTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_textColor = color;
 		_redrawTree(mode);
 	}
-	
+
 	Color TreeViewItem::getHoverTextColor()
 	{
 		return m_hoverTextColor;
 	}
-	
+
 	void TreeViewItem::setHoverTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_hoverTextColor = color;
 		_redrawTree(mode);
 	}
-	
+
 	Color TreeViewItem::getSelectedTextColor()
 	{
 		return m_selectedTextColor;
 	}
-	
+
 	void TreeViewItem::setSelectedTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_selectedTextColor = color;
 		_redrawTree(mode);
 	}
-	
+
 	sl_ui_len TreeViewItem::getHeight()
 	{
 		return m_height;
 	}
-	
+
 	void TreeViewItem::setHeight(sl_ui_len height, UIUpdateMode mode)
 	{
 		m_height = height;
 		_relayoutTree(mode);
 	}
-	
+
 	void TreeViewItem::_addChild(TreeViewItem* item, UIUpdateMode mode)
 	{
 		item->m_parent = this;
@@ -452,13 +452,13 @@ namespace slib
 			_relayoutTree(mode);
 		}
 	}
-	
+
 	void TreeViewItem::_removeChild(TreeViewItem* item)
 	{
 		item->m_parent.setNull();
 		item->m_tree.setNull();
 	}
-	
+
 	void TreeViewItem::_setTreeViewHierarchy(TreeView* view, sl_uint32 level)
 	{
 		m_level = level;
@@ -471,7 +471,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TreeViewItem::_relayoutTree(UIUpdateMode mode)
 	{
 		Ref<TreeView> tree = m_tree;
@@ -479,7 +479,7 @@ namespace slib
 			tree->_relayoutContent(mode);
 		}
 	}
-	
+
 	void TreeViewItem::_redrawTree(UIUpdateMode mode)
 	{
 		Ref<TreeView> tree = m_tree;
@@ -487,7 +487,7 @@ namespace slib
 			tree->_redrawContent(mode);
 		}
 	}
-	
+
 	Ref<TreeContentViewImpl> TreeViewItem::_getContentView()
 	{
 		Ref<TreeView> tree = getTreeView();
@@ -496,36 +496,36 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(TreeView, ScrollView)
-	
+
 	TreeView::TreeView()
 	{
 		setCreatingInstance(sl_false);
 		setCreatingNativeWidget(sl_false);
 		setUsingFont(sl_true);
 		setSavingCanvasState(sl_false);
-		
+
 		m_flagInvalidTreeLayout = sl_true;
 
 		m_selectedItemBackgroundColor = Color(0, 0, 0, 50);
 		m_itemTextColor = Color::Black;
 		m_hoverItemTextColor = Color(0, 0, 200);
 		m_selectedItemTextColor = Color(0, 0, 200);
-		
+
 		m_itemHeight = 0;
-		
+
 		setAntiAlias(sl_true, UIUpdateMode::Init);
 		ScrollView::setPadding(6, 6, 6, 6, UIUpdateMode::Init);
 		m_itemPadding = 8;
 		m_itemIndent = 16;
 		m_textIndent = 4;
-		
+
 		m_iconCollapsed = new DefaultIndentIcon(sl_true);
 		m_iconExpanded = new DefaultIndentIcon(sl_false);
 	}
-	
+
 	TreeView::~TreeView()
 	{
 	}
@@ -533,7 +533,7 @@ namespace slib
 	void TreeView::init()
 	{
 		ScrollView::init();
-		
+
 		_createRootItem();
 		_createContentView();
 	}
@@ -542,7 +542,7 @@ namespace slib
 	{
 		return m_root;
 	}
-	
+
 	Ref<TreeViewItem> TreeView::getItemById(const String& _id)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -551,7 +551,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	List< Ref<TreeViewItem> > TreeView::getItems()
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -560,7 +560,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_size TreeView::getItemCount()
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -569,7 +569,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	Ref<TreeViewItem> TreeView::getItem(sl_size index)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -578,7 +578,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void TreeView::addItem(const Ref<TreeViewItem>& item, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -586,7 +586,7 @@ namespace slib
 			root->addChild(item, mode);
 		}
 	}
-	
+
 	Ref<TreeViewItem> TreeView::addItem(const String& text, const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -595,7 +595,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<TreeViewItem> TreeView::addItem(const String& text, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -604,7 +604,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void TreeView::insertItem(sl_size index, const Ref<TreeViewItem>& item, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -612,7 +612,7 @@ namespace slib
 			root->insertChild(index, item, mode);
 		}
 	}
-	
+
 	Ref<TreeViewItem> TreeView::insertItem(sl_size index, const String& text, const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -621,7 +621,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<TreeViewItem> TreeView::insertItem(sl_size index, const String& text, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -630,7 +630,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void TreeView::removeItem(sl_size index, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -638,7 +638,7 @@ namespace slib
 			root->removeChild(index, mode);
 		}
 	}
-	
+
 	void TreeView::removeItem(const Ref<TreeViewItem>& item, UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -646,7 +646,7 @@ namespace slib
 			root->removeChild(item, mode);
 		}
 	}
-	
+
 	void TreeView::removeAllItems(UIUpdateMode mode)
 	{
 		Ref<TreeViewItem> root = m_root;
@@ -654,150 +654,150 @@ namespace slib
 			root->removeAllChildren(mode);
 		}
 	}
-	
+
 	Ref<Drawable> TreeView::getItemIcon()
 	{
 		return m_itemIcon;
 	}
-	
+
 	void TreeView::setItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_itemIcon = icon;
 		_relayoutContent(mode);
 	}
-	
+
 	Ref<Drawable> TreeView::getOpenedItemIcon()
 	{
 		return m_itemIconOpened;
 	}
-	
+
 	void TreeView::setOpenedItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_itemIconOpened = icon;
 		_relayoutContent(mode);
 	}
-	
+
 	Ref<Drawable> TreeView::getClosedItemIcon()
 	{
 		return m_itemIconClosed;
 	}
-	
+
 	void TreeView::setClosedItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_itemIconClosed = icon;
 		_relayoutContent(mode);
 	}
-	
+
 	Ref<Drawable> TreeView::getCollapsedIcon()
 	{
 		return m_iconCollapsed;
 	}
-	
+
 	void TreeView::setCollapsedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_iconCollapsed = icon;
 		_relayoutContent(mode);
 	}
-	
+
 	Ref<Drawable> TreeView::getExpandedIcon()
 	{
 		return m_iconExpanded;
 	}
-	
+
 	void TreeView::setExpandedIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
 	{
 		m_iconExpanded = icon;
 		_relayoutContent(mode);
 	}
-	
+
 	Color TreeView::getSelectedItemBackgroundColor()
 	{
 		return m_selectedItemBackgroundColor;
 	}
-	
+
 	void TreeView::setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
 		m_selectedItemBackgroundColor = color;
 		_redrawContent(mode);
 	}
-	
+
 	Color TreeView::getItemTextColor()
 	{
 		return m_itemTextColor;
 	}
-	
+
 	void TreeView::setItemTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_itemTextColor = color;
 		_redrawContent(mode);
 	}
-	
+
 	Color TreeView::getHoverItemTextColor()
 	{
 		return m_hoverItemTextColor;
 	}
-	
+
 	void TreeView::setHoverItemTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_hoverItemTextColor = color;
 		_redrawContent(mode);
 	}
-	
+
 	Color TreeView::getSelectedItemTextColor()
 	{
 		return m_selectedItemTextColor;
 	}
-	
+
 	void TreeView::setSelectedItemTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_selectedItemTextColor = color;
 		_redrawContent(mode);
 	}
-	
+
 	sl_ui_len TreeView::getItemHeight()
 	{
 		return m_itemHeight;
 	}
-	
+
 	void TreeView::setItemHeight(sl_ui_len height, UIUpdateMode mode)
 	{
 		m_itemHeight = height;
 		_relayoutContent(mode);
 	}
-	
+
 	sl_ui_pos TreeView::getItemPadding()
 	{
 		return m_itemPadding;
 	}
-	
+
 	void TreeView::setItemPadding(sl_ui_pos padding, UIUpdateMode mode)
 	{
 		m_itemPadding = padding;
 		_relayoutContent(mode);
 	}
-	
+
 	sl_ui_pos TreeView::getItemIndent()
 	{
 		return m_itemIndent;
 	}
-	
+
 	void TreeView::setItemIndent(sl_ui_pos indent, UIUpdateMode mode)
 	{
 		m_itemIndent = indent;
 		_relayoutContent(mode);
 	}
-	
+
 	sl_ui_pos TreeView::getTextIndent()
 	{
 		return m_textIndent;
 	}
-	
+
 	void TreeView::setTextIndent(sl_ui_pos indent, UIUpdateMode mode)
 	{
 		m_textIndent = indent;
 		_redrawContent(mode);
 	}
-	
+
 	void TreeView::setFont(const Ref<Font>& font, UIUpdateMode mode)
 	{
 		ScrollView::setFont(font, mode);
@@ -805,7 +805,7 @@ namespace slib
 			_relayoutContent(UIUpdateMode::None);
 		}
 	}
-	
+
 	void TreeView::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		ScrollView::onResize(width, height);
@@ -815,22 +815,22 @@ namespace slib
 			_relayoutContent(UIUpdateMode::None);
 		}
 	}
-	
+
 	void TreeView::onChangePadding(UIUpdateMode mode)
 	{
 		mode = SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None;
 		_relayoutContent(mode);
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item)
-	
+
 	void TreeView::dispatchSelectItem(TreeViewItem* item)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(SelectItem, item)
-		
+
 		(item->getOnSelect())(item);
 	}
-	
+
 	void TreeView::_createRootItem()
 	{
 		Ref<TreeViewItem> item = new TreeViewItem;
@@ -840,7 +840,7 @@ namespace slib
 			m_root = item;
 		}
 	}
-	
+
 	void TreeView::_createContentView()
 	{
 		Ref<TreeContentViewImpl> view = new TreeContentViewImpl;
@@ -850,7 +850,7 @@ namespace slib
 			setContentView(view);
 		}
 	}
-	
+
 	void TreeView::_relayoutContent(UIUpdateMode mode)
 	{
 		Ref<TreeContentViewImpl> content = m_content;
@@ -861,7 +861,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TreeView::_redrawContent(UIUpdateMode mode)
 	{
 		Ref<TreeContentViewImpl> view = m_content;
@@ -869,7 +869,7 @@ namespace slib
 			view->invalidate(mode);
 		}
 	}
-	
+
 	void TreeView::_drawContent(Canvas* canvas)
 	{
 		if (m_flagInvalidTreeLayout) {
@@ -880,14 +880,14 @@ namespace slib
 			_drawItem(canvas, root.get(), sl_true);
 		}
 	}
-	
+
 	void TreeView::_makeLayoutContent()
 	{
 		if (!m_flagInvalidTreeLayout) {
 			return;
 		}
 		m_flagInvalidTreeLayout = sl_false;
-		
+
 		Ref<Font> font = getFont();
 		sl_ui_pos height;
 		if (font.isNotNull()) {
@@ -899,7 +899,7 @@ namespace slib
 			height = 0;
 		}
 		m_layoutTextHeight = height;
-		
+
 		Ref<TreeViewItem> root = m_root;
 		if (root.isNotNull()) {
 			sl_ui_pos top = getPaddingTop();
@@ -920,9 +920,9 @@ namespace slib
 				}
 			}
 		}
-		
+
 	}
-	
+
 	void TreeView::_makeLayoutItem(TreeViewItem* item, sl_ui_pos& top, sl_ui_pos left, sl_ui_pos right, sl_bool flagRoot)
 	{
 		if (!flagRoot) {
@@ -989,7 +989,7 @@ namespace slib
 		}
 		item->m_bottomChildren = top;
 	}
-	
+
 	void TreeView::_drawItem(Canvas* canvas, TreeViewItem* item, sl_bool flagRoot)
 	{
 		if (!flagRoot) {
@@ -1061,7 +1061,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TreeView::_processMouseEvent(UIEvent* ev)
 	{
 		UIAction action = ev->getAction();
@@ -1103,7 +1103,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TreeView::_processMouseEventItem(UIEvent* ev, sl_bool flagClick, TreeViewItem* item, sl_bool flagRoot)
 	{
 		sl_ui_pos y = (sl_ui_pos)(ev->getY());
@@ -1138,7 +1138,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void TreeView::_processClickItem(TreeViewItem *item)
 	{
 		if (item->isOpened()) {

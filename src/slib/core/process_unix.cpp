@@ -42,14 +42,14 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace process
 		{
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-			
+
 			static void Exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
 			{
 				StringCstr pathExecutable(_pathExecutable);
@@ -65,11 +65,11 @@ namespace slib
 					args[i+1] = _args[i].getData();
 				}
 				args[nArguments+1] = 0;
-				
+
 				execvp(exe, args);
 				::abort();
 			}
-			
+
 			class ProcessStream : public IStream
 			{
 			public:
@@ -82,18 +82,18 @@ namespace slib
 					m_hRead = -1;
 					m_hWrite = -1;
 				}
-				
+
 				~ProcessStream()
 				{
 					_close();
 				}
-				
+
 			public:
 				void close() override
 				{
 					_close();
 				}
-				
+
 				sl_int32 read32(void* buf, sl_uint32 size) override
 				{
 					int handle = m_hRead;
@@ -109,7 +109,7 @@ namespace slib
 					}
 					return SLIB_IO_ERROR;
 				}
-				
+
 				sl_int32 write32(const void* buf, sl_uint32 size) override
 				{
 					int handle = m_hWrite;
@@ -122,7 +122,7 @@ namespace slib
 					}
 					return SLIB_IO_ERROR;
 				}
-				
+
 				void _close()
 				{
 					if (m_hRead >= 0) {
@@ -134,21 +134,21 @@ namespace slib
 						m_hWrite = -1;
 					}
 				}
-				
+
 			};
-			
+
 			class ProcessImpl : public Process
 			{
 			public:
 				pid_t m_pid;
 				ProcessStream m_stream;
-				
+
 			public:
 				ProcessImpl()
 				{
 					m_pid = -1;
 				}
-				
+
 				~ProcessImpl()
 				{
 					if (m_pid != -1) {
@@ -156,7 +156,7 @@ namespace slib
 						waitpid(m_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
 					}
 				}
-				
+
 			public:
 				static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 				{
@@ -194,7 +194,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			public:
 				void terminate() override
 				{
@@ -208,7 +208,7 @@ namespace slib
 						m_status = ProcessStatus::Terminated;
 					}
 				}
-				
+
 				void kill() override
 				{
 					ObjectLocker lock(this);
@@ -221,7 +221,7 @@ namespace slib
 						m_status = ProcessStatus::Killed;
 					}
 				}
-				
+
 				void wait() override
 				{
 					ObjectLocker lock(this);
@@ -271,28 +271,28 @@ namespace slib
 				{
 					return &m_stream;
 				}
-				
+
 			};
-			
+
 #endif
-			
+
 		}
 	}
-	
+
 	using namespace priv::process;
 
 	sl_uint32 Process::getCurrentProcessId()
 	{
 		return getpid();
 	}
-	
+
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		return Ref<Process>::from(ProcessImpl::create(pathExecutable, arguments, nArguments));
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_MOBILE) && !defined(SLIB_PLATFORM_IS_MACOS)
 	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
@@ -359,13 +359,13 @@ namespace slib
 		return !(geteuid());
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 	void Process::exec(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 		Exec(pathExecutable, arguments, nArguments);
 	}
-	
+
 	void Process::abort()
 	{
 		::abort();
@@ -376,7 +376,7 @@ namespace slib
 		::exit(code);
 	}
 #endif
-	
+
 }
 
 #endif

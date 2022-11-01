@@ -59,7 +59,7 @@ namespace slib
 
 	public:
 		static Ref<GraphicsPath> create();
-	
+
 	public:
 		sl_size getPointCount();
 
@@ -93,7 +93,7 @@ namespace slib
 		void conicTo(const Point& ptControl, const Point& ptEnd);
 
 		void cubicTo(sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye);
-	
+
 		void cubicTo(const Point& ptControl1, const Point& ptControl2, const Point& ptEnd);
 
 		void closeSubpath();
@@ -103,7 +103,7 @@ namespace slib
 		void addArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, sl_bool flagMoveTo = sl_true);
 
 		void addRectangle(sl_real x, sl_real y, sl_real width, sl_real height);
-	
+
 		void addRectangle(const Rectangle& rect);
 
 		void addRoundRect(sl_real x, sl_real y, sl_real width, sl_real height, sl_real rx, sl_real ry);

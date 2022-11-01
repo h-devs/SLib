@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	double Device::getScreenPPI()
 	{
 		NSScreen *screen = [NSScreen mainScreen];
@@ -49,7 +49,7 @@ namespace slib
 		}
 		return Sizei::zero();
 	}
-	
+
 }
 
 #endif

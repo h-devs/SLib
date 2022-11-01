@@ -37,40 +37,40 @@ namespace slib
 
 	public:
 		StringView() noexcept: data(sl_null), length(0) {}
-		
+
 		StringView(sl_null_t) noexcept: data(sl_null), length(0) {}
-		
+
 		StringView(const StringView& other) noexcept: data(other.data), length(other.length) {}
-		
+
 	public:
 		StringView(const String& value) noexcept;
-		
+
 		StringView(const sl_char8* sz) noexcept;
-		
+
 		StringView(const sl_char8* str, sl_reg length) noexcept;
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		StringView(const std::string& str) noexcept;
 #endif
-		
+
 	public:
 		StringView& operator=(sl_null_t) noexcept;
-		
+
 		StringView& operator=(const StringView& other) noexcept;
-		
+
 		StringView& operator=(const String& value) noexcept;
-				
+
 		StringView& operator=(const sl_char8* sz) noexcept;
-				
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		StringView& operator=(const std::string& str) noexcept;
 #endif
-		
+
 		sl_char8 operator[](sl_size index) const noexcept
 		{
 			return data[index];
 		}
-		
+
 		sl_char8& operator[](sl_size index) noexcept
 		{
 			return data[index];
@@ -87,7 +87,7 @@ namespace slib
 		{
 			return StringView(s, N - 1);
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !data;
@@ -118,12 +118,12 @@ namespace slib
 		{
 			return data;
 		}
-		
+
 		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
 		{
 			return length;
 		}
-		
+
 		sl_char8* getData() const noexcept
 		{
 			if (data) {
@@ -136,9 +136,9 @@ namespace slib
 		sl_char8* getData(sl_size& outLength) const noexcept;
 
 		sl_size getLength() const noexcept;
-		
+
 		sl_size getHashCode() const noexcept;
-		
+
 		sl_size getHashCodeIgnoreCase() const noexcept;
 
 		static const StringView& null() noexcept;
@@ -173,65 +173,65 @@ namespace slib
 		 * @return true if this string is equal to the specified string ignoring the case.
 		 */
 		sl_bool equalsIgnoreCase(const StringView& other) const noexcept;
-		
+
 		/**
 		 * Compares this string to the specified string ignoring the case.
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compareIgnoreCase(const StringView& other) const noexcept;
-		
+
 		/**
 		 * @return a view of the substring
 		 */
 		StringView substring(sl_reg start, sl_reg end = -1) const noexcept;
-		
+
 		/**
 		 * @return a view of the left substring
 		 */
 		StringView left(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a view of the right substring
 		 */
 		StringView right(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a view of the substring
 		 */
 		StringView mid(sl_reg start, sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg indexOf(const StringView& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char8 ch, sl_reg start = 0) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg lastIndexOf(const StringView& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char8 ch, sl_reg start = -1) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
 		sl_bool startsWith(const StringView& str) const noexcept;
 		sl_bool startsWith(sl_char8 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
 		sl_bool endsWith(const StringView& str) const noexcept;
 		sl_bool endsWith(sl_char8 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
 		sl_bool contains(const StringView& str) const noexcept;
 		sl_bool contains(sl_char8 ch) const noexcept;
-		
+
 		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
@@ -242,28 +242,28 @@ namespace slib
 		 * Converts the characters of this string to uppercase.
 		 */
 		void makeUpper() noexcept;
-		
+
 		/**
 		 * Converts the characters of this string to lowercase.
 		 */
 		void makeLower() noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to uppercase.
 		 */
 		String toUpper() const noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to lowercase.
 		 */
 		String toLower() const noexcept;
-		
+
 		/**
 		 * Replaces each character of this string that matches the given `pattern` with the given `replacement`. if `replacement` is given as zero, then the matched chracters will be removed.
 		 */
 		String replaceAll(const StringView& pattern, const StringView& replacement) const noexcept;
 		String replaceAll(sl_char8 pattern, sl_char8 replacement) const noexcept;
-		
+
 		/**
 		* Removes all characters that matches the given `pattern`
 		*/
@@ -274,12 +274,12 @@ namespace slib
 		 * a view of the substring that removed whitespaces from both ends of the new string.
 		 */
 		StringView trim() const noexcept;
-		
+
 		/**
 		 * a view of the substring that removed whitespaces from the left of the new string.
 		 */
 		StringView trimLeft() const noexcept;
-		
+
 		/**
 		 * a view of the substring that removed whitespaces from the right of the new string.
 		 */
@@ -341,7 +341,7 @@ namespace slib
 		sl_uint64 parseUint64(sl_int32 radix = 10, sl_uint64 def = 0) const noexcept;
 		sl_reg parseInt(sl_int32 radix = 10, sl_reg def = 0) const noexcept;
 		sl_size parseSize(sl_int32 radix = 10, sl_size def = 0) const noexcept;
-		
+
 		/**
 		 * Convert this string to a float number value.
 		 *
@@ -361,7 +361,7 @@ namespace slib
 		 */
 		float parseFloat(float def = 0) const noexcept;
 		double parseDouble(double def = 0) const noexcept;
-		
+
 		/**
 		 * Convert this string to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -372,7 +372,7 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseBoolean(sl_bool* value) const noexcept;
-		
+
 		/**
 		 * Convert this string to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -383,7 +383,7 @@ namespace slib
 		 * @return Result value if the conversion is successful, otherwise returns `def`
 		 */
 		sl_bool parseBoolean(sl_bool def = sl_false) const noexcept;
-		
+
 		/**
 		 * Parses this hex string and writes the bytes to `output`. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
@@ -392,7 +392,7 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseHexString(void* output) const noexcept;
-		
+
 		/**
 		 * Parses this hex string and returns hex data. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
@@ -418,40 +418,40 @@ namespace slib
 
 	public:
 		StringView16() noexcept: data(sl_null), length(0) {}
-		
+
 		StringView16(sl_null_t) noexcept: data(sl_null), length(0) {}
-		
+
 		StringView16(const StringView16& other) noexcept: data(other.data), length(other.length) {}
-		
+
 	public:
 		StringView16(const String16& value) noexcept;
-		
+
 		StringView16(const sl_char16* sz) noexcept;
-		
+
 		StringView16(const sl_char16* str, sl_reg length) noexcept;
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		StringView16(const std::u16string& str) noexcept;
 #endif
-		
+
 	public:
 		StringView16& operator=(sl_null_t) noexcept;
-		
+
 		StringView16& operator=(const StringView16& other) noexcept;
-		
+
 		StringView16& operator=(const String16& value) noexcept;
-		
+
 		StringView16& operator=(const sl_char16* sz) noexcept;
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		StringView16& operator=(const std::u16string& str) noexcept;
 #endif
-		
+
 		sl_char16 operator[](sl_size index) const noexcept
 		{
 			return data[index];
 		}
-		
+
 		sl_char16& operator[](sl_size index) noexcept
 		{
 			return data[index];
@@ -468,7 +468,7 @@ namespace slib
 		{
 			return StringView16(s, N - 1);
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !data;
@@ -499,12 +499,12 @@ namespace slib
 		{
 			return data;
 		}
-		
+
 		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
 		{
 			return length;
 		}
-		
+
 		sl_char16* getData() const noexcept
 		{
 			if (data) {
@@ -515,11 +515,11 @@ namespace slib
 		}
 
 		sl_char16* getData(sl_size& outLength) const noexcept;
-		
+
 		sl_size getLength() const noexcept;
-		
+
 		sl_size getHashCode() const noexcept;
-		
+
 		sl_size getHashCodeIgnoreCase() const noexcept;
 
 		static const StringView16& null() noexcept;
@@ -554,47 +554,47 @@ namespace slib
 		 * @return true if this string is equal to the specified string ignoring the case.
 		 */
 		sl_bool equalsIgnoreCase(const StringView16& other) const noexcept;
-		
+
 		/**
 		 * Compares this string to the specified string ignoring the case.
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compareIgnoreCase(const StringView16& other) const noexcept;
-		
+
 		/**
 		 * @return a view of the substring
 		 */
 		StringView16 substring(sl_reg start, sl_reg end = -1) const noexcept;
-		
+
 		/**
 		 * @return a view of the left substring
 		 */
 		StringView16 left(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a view of the right substring
 		 */
 		StringView16 right(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a view of the substring
 		 */
 		StringView16 mid(sl_reg start, sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg indexOf(const StringView16& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char16 ch, sl_reg start = 0) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg lastIndexOf(const StringView16& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char16 ch, sl_reg start = -1) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
@@ -606,7 +606,7 @@ namespace slib
 		 */
 		sl_bool endsWith(const StringView16& str) const noexcept;
 		sl_bool endsWith(sl_char16 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
@@ -623,17 +623,17 @@ namespace slib
 		 * Converts the characters of this string to uppercase.
 		 */
 		void makeUpper() noexcept;
-		
+
 		/**
 		 * Converts the characters of this string to lowercase.
 		 */
 		void makeLower() noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to uppercase.
 		 */
 		String16 toUpper() const noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to lowercase.
 		 */
@@ -655,12 +655,12 @@ namespace slib
 		 * a view of the substring that removed whitespaces from both ends of the new string.
 		 */
 		StringView16 trim() const noexcept;
-		
+
 		/**
 		 * a view of the substring that removed whitespaces from the left of the new string.
 		 */
 		StringView16 trimLeft() const noexcept;
-		
+
 		/**
 		 * a view of the substring that removed whitespaces from the right of the new string.
 		 */
@@ -742,7 +742,7 @@ namespace slib
 		*/
 		float parseFloat(float def = 0) const noexcept;
 		double parseDouble(double def = 0) const noexcept;
-		
+
 		/**
 		 * Convert this string to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -753,7 +753,7 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseBoolean(sl_bool* value) const noexcept;
-		
+
 		/**
 		 * Convert this string to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -764,7 +764,7 @@ namespace slib
 		 * @return Result value if the conversion is successful, otherwise returns `def`
 		 */
 		sl_bool parseBoolean(sl_bool def = sl_false) const noexcept;
-		
+
 		/**
 		 * Parses this hex string and writes the bytes to `output`. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
@@ -773,7 +773,7 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseHexString(void* output) const noexcept;
-		
+
 		/**
 		 * Parses this hex string and returns hex data. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
@@ -787,7 +787,7 @@ namespace slib
 
 	};
 
-	
+
 	class SLIB_EXPORT StringView32
 	{
 	public:
@@ -799,41 +799,41 @@ namespace slib
 
 	public:
 		StringView32() noexcept: data(sl_null), length(0) {}
-		
+
 		StringView32(sl_null_t) noexcept: data(sl_null), length(0) {}
-		
+
 		StringView32(const StringView32& other) noexcept: data(other.data), length(other.length) {}
-		
+
 	public:
 		StringView32(const String32& value) noexcept;
-		
+
 		StringView32(const sl_char32* sz) noexcept;
-		
+
 		StringView32(const sl_char32* str, sl_reg length) noexcept;
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		StringView32(const std::u32string& str) noexcept;
-		
+
 #endif
-		
+
 	public:
 		StringView32& operator=(sl_null_t) noexcept;
-		
+
 		StringView32& operator=(const StringView32& other) noexcept;
-		
+
 		StringView32& operator=(const String32& value) noexcept;
-		
+
 		StringView32& operator=(const sl_char32* sz) noexcept;
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		StringView32& operator=(const std::u32string& str) noexcept;
 #endif
-		
+
 		sl_char32 operator[](sl_size index) const noexcept
 		{
 			return data[index];
 		}
-		
+
 		sl_char32& operator[](sl_size index) noexcept
 		{
 			return data[index];
@@ -850,7 +850,7 @@ namespace slib
 		{
 			return StringView32(s, N - 1);
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return !data;
@@ -881,12 +881,12 @@ namespace slib
 		{
 			return data;
 		}
-		
+
 		SLIB_CONSTEXPR sl_reg getUnsafeLength() const
 		{
 			return length;
 		}
-		
+
 		sl_char32* getData() const noexcept
 		{
 			if (data) {
@@ -899,9 +899,9 @@ namespace slib
 		sl_char32* getData(sl_size& outLength) const noexcept;
 
 		sl_size getLength() const noexcept;
-		
+
 		sl_size getHashCode() const noexcept;
-		
+
 		sl_size getHashCodeIgnoreCase() const noexcept;
 
 		static const StringView32& null() noexcept;
@@ -936,59 +936,59 @@ namespace slib
 		 * @return true if this string is equal to the specified string ignoring the case.
 		 */
 		sl_bool equalsIgnoreCase(const StringView32& other) const noexcept;
-		
+
 		/**
 		 * Compares this string to the specified string ignoring the case.
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compareIgnoreCase(const StringView32& other) const noexcept;
-		
+
 		/**
 		 * @return a view of the substring
 		 */
 		StringView32 substring(sl_reg start, sl_reg end = -1) const noexcept;
-		
+
 		/**
 		 * @return a view of the left substring
 		 */
 		StringView32 left(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a view of the right substring
 		 */
 		StringView32 right(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a view of the substring
 		 */
 		StringView32 mid(sl_reg start, sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg indexOf(const StringView32& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char32 ch, sl_reg start = 0) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg lastIndexOf(const StringView32& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char32 ch, sl_reg start = -1) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
 		sl_bool startsWith(const StringView32& str) const noexcept;
 		sl_bool startsWith(sl_char32 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
 		sl_bool endsWith(const StringView32& str) const noexcept;
 		sl_bool endsWith(sl_char32 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
@@ -1005,17 +1005,17 @@ namespace slib
 		 * Converts the characters of this string to uppercase.
 		 */
 		void makeUpper() noexcept;
-		
+
 		/**
 		 * Converts the characters of this string to lowercase.
 		 */
 		void makeLower() noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to uppercase.
 		 */
 		String32 toUpper() const noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to lowercase.
 		 */
@@ -1037,12 +1037,12 @@ namespace slib
 		 * a view of the substring that removed whitespaces from both ends of the new string.
 		 */
 		StringView32 trim() const noexcept;
-		
+
 		/**
 		 * a view of the substring that removed whitespaces from the left of the new string.
 		 */
 		StringView32 trimLeft() const noexcept;
-		
+
 		/**
 		 * a view of the substring that removed whitespaces from the right of the new string.
 		 */
@@ -1135,7 +1135,7 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseBoolean(sl_bool* value) const noexcept;
-		
+
 		/**
 		 * Convert this string to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -1146,7 +1146,7 @@ namespace slib
 		 * @return Result value if the conversion is successful, otherwise returns `def`
 		 */
 		sl_bool parseBoolean(sl_bool def = sl_false) const noexcept;
-		
+
 		/**
 		 * Parses this hex string and writes the bytes to `output`. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
@@ -1155,7 +1155,7 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseHexString(void* output) const noexcept;
-		
+
 		/**
 		 * Parses this hex string and returns hex data. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *

@@ -29,7 +29,7 @@
 					<button name='btnLightStatusBar' text='Light Status Bar' style='menu_button'/>
 
 					<button name='btnHideStatusBar' text='Hide Status Bar' style='menu_button'/>
-					
+
 				</linear>
 
 			</group>

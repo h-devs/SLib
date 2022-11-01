@@ -5,7 +5,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Hook
 	{
 	public:
@@ -14,7 +14,7 @@ namespace slib
 
 		// returns old function address
 		static void* replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress);
-		
+
 		// returns generated code that can jump to old function
 		static void* hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup);
 

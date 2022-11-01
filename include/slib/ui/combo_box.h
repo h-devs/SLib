@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class IComboBoxInstance;
 
 	class ComboBoxCell;
@@ -37,10 +37,10 @@ namespace slib
 	class SLIB_EXPORT ComboBox : public View, public SingleSelectionViewBase<ComboBox, sl_int32>
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ComboBox();
-		
+
 		~ComboBox();
 
 	public:
@@ -52,32 +52,32 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index)
-		
+
 		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Change, String& value)
 
 		SLIB_DECLARE_EVENT_HANDLER(ComboBox, ReturnKey)
 
 	protected:
 		void onUpdateLayout() override;
-		
+
 	public:
 		void dispatchKeyEvent(UIEvent* ev) override;
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		virtual Ptr<IComboBoxInstance> getComboBoxInstance();
-	
+
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(ComboBox, sl_int32)
-	
+
 	protected:
 		AtomicString m_text;
 
 		Ref<ComboBoxCell> m_cell;
 
 	};
-	
+
 	class SLIB_EXPORT IComboBoxInstance
 	{
 	public:

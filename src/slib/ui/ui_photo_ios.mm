@@ -44,7 +44,7 @@ namespace slib
 	{
 		namespace ui_photo
 		{
-		
+
 			class TakePhotoResultEx : public TakePhotoResult
 			{
 			public:
@@ -89,12 +89,12 @@ namespace slib
 					}
 				}
 			};
-			
+
 			static void RunTakePhoto(TakePhoto& takePhoto, SLIBTakePhotoController* controller)
 			{
 				controller->takePhoto = takePhoto;
 				[controller setDelegate:controller];
-				
+
 				UIViewController* rootController = UIPlatform::getCurrentViewController(takePhoto.parent);
 				if (rootController != nil) {
 					if (![rootController isBeingPresented]) {
@@ -110,7 +110,7 @@ namespace slib
 	}
 
 	using namespace priv::ui_photo;
-	
+
 	void TakePhoto::takeFromCamera()
 	{
 		SLIBTakePhotoController* controller = [[SLIBTakePhotoController alloc] init];
@@ -122,7 +122,7 @@ namespace slib
 			onComplete(result);
 		}
 	}
-	
+
 	void TakePhoto::chooseFromLibrary()
 	{
 		SLIBTakePhotoController* controller = [[SLIBTakePhotoController alloc] init];
@@ -161,12 +161,12 @@ using namespace slib::priv::ui_photo;
 
 namespace slib
 {
-	
+
 	void PhotoKit::saveImage(const PhotoKit::SaveImageParam& param)
 	{
 		Function<void(const String&)> onComplete = param.onComplete;
 		UIImage* image = nil;
-		
+
 		if (param.image.isNotNull()) {
 			CGImageRef cgImage = GraphicsPlatform::getImageDrawableHandle(param.image.get());
 			if (cgImage) {
@@ -187,12 +187,12 @@ namespace slib
 			NSData* data = Apple::getNSDataFromMemory(param.content);
 			image = [UIImage imageWithData:data];
 		}
-		
+
 		if (image == nil) {
 			onComplete(String::null());
 			return;
 		}
-		
+
 		__block PHAssetChangeRequest* changeRequest = nil;
 		__block PHObjectPlaceholder* placeholder;
 		[[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
@@ -208,7 +208,7 @@ namespace slib
 			});
 		}];
 	}
-	
+
 }
 
 #endif

@@ -36,22 +36,22 @@ namespace slib
 	{
 	public:
 		sl_uint8 m[6];
-		
+
 	public:
 		MacAddress() noexcept;
-		
+
 		MacAddress(const MacAddress& other) = default;
 
 		MacAddress(sl_null_t) noexcept;
-		
+
 		MacAddress(const sl_uint8* m) noexcept;
-		
+
 		MacAddress(sl_uint8 m0, sl_uint8 m1, sl_uint8 m2, sl_uint8 m3, sl_uint8 m4, sl_uint8 m5) noexcept;
 
 		MacAddress(sl_uint64 v) noexcept;
 
 		MacAddress(const StringParam& address) noexcept;
-		
+
 	public:
 		static const MacAddress& zero() noexcept
 		{
@@ -67,55 +67,55 @@ namespace slib
 		{
 			return !(getInt());
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNotZero() const
 		{
 			return getInt() != 0;
 		}
-		
+
 		void setZero() noexcept;
-		
+
 		static const MacAddress& getBroadcast() noexcept
 		{
 			return *(reinterpret_cast<MacAddress const*>(&_broadcast));
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isBroadcast() const
 		{
 			return m[0] == 255 && m[1] == 255 && m[2] == 255 && m[3] == 255 && m[4] == 255 && m[5] == 255;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNotBroadcast() const
 		{
 			return m[0] != 255 || m[1] != 255 || m[2] != 255 || m[3] != 255 || m[4] != 255 || m[5] != 255;
 		}
-		
+
 		void setBroadcast() noexcept;
-		
+
 		SLIB_CONSTEXPR sl_bool isMulticast() const
 		{
 			return (m[0] & 1);
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNotMulticast() const
 		{
 			return (m[0] & 1) == 0;
 		}
-		
+
 		void makeMulticast(const IPv4Address& addrMulticast) noexcept;
-		
+
 		void makeMulticast(const IPv6Address& addrMulticast) noexcept;
-		
+
 		void getBytes(sl_uint8* _m) const noexcept;
-		
+
 		void setBytes(const sl_uint8* _m) noexcept;
-		
+
 	public:
 		SLIB_CONSTEXPR sl_compare_result compare(const MacAddress& other) const
 		{
 			return ComparePrimitiveValues(getInt(), other.getInt());
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool equals(const MacAddress& other) const
 		{
 			return getInt() == other.getInt();
@@ -137,11 +137,11 @@ namespace slib
 		MacAddress& operator=(const MacAddress& other) = default;
 		MacAddress& operator=(sl_null_t) noexcept;
 		MacAddress& operator=(const StringParam& address) noexcept;
-		
+
 	private:
 		static const sl_uint8 _zero[6];
 		static const sl_uint8 _broadcast[6];
-		
+
 	};
 
 	template <>

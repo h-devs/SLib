@@ -39,7 +39,7 @@ namespace slib
 		NSString* currentDeviceId = [[device identifierForVendor] UUIDString];
 		return Apple::getStringFromNSString(currentDeviceId);
 	}
-	
+
 	Sizei Device::getScreenSize()
 	{
 		UIScreen* screen = [UIScreen mainScreen];
@@ -53,7 +53,7 @@ namespace slib
 		}
 		return Sizei::zero();
 	}
-	
+
 	double Device::getScreenPPI()
 	{
 		return [[UIScreen mainScreen] scale] * 160;

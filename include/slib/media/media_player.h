@@ -53,103 +53,103 @@ namespace slib
 		String url;
 		String filePath;
 		String assetFileName;
-		
+
 		sl_bool flagVideo;
-		
+
 		sl_bool flagAutoStart;
 		sl_bool flagAutoRepeat;
 		sl_bool flagAutoRelease;
-		
+
 		sl_bool flagSelfAlive;
-		
+
 		Function<void(MediaPlayer*)> onReadyToPlay;
 		Function<void(MediaPlayer*)> onComplete;
-		
+
 	public:
 		MediaPlayerParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MediaPlayerParam)
-		
+
 	public:
 		void applyFlags(const MediaPlayerFlags& flags);
 
 	};
-	
+
 	// save this structure after rendering and reuse for next frame
 	class MediaPlayerRenderVideoParam
 	{
 	public:
 		// in
 		Function<void(VideoFrame&)> onUpdateFrame;
-		
+
 		// in
 		Ref<GLRenderEngine> glEngine;
-		
+
 		// out
 		Ref<Texture> glTextureOES;
 		// out
 		Matrix3 glTextureTransformOES;
-		
+
 		// out
 		sl_bool flagUpdated;
-		
+
 	public:
 		// used interally by MediaPlayer
 		sl_uint64 _glEngineIdLast;
 		sl_uint32 _glTextureNameOES;
-		
+
 	public:
 		MediaPlayerRenderVideoParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MediaPlayerRenderVideoParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT MediaPlayer : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		MediaPlayer();
-		
+
 		~MediaPlayer();
-		
+
 	public:
 		static Ref<MediaPlayer> create(const MediaPlayerParam& param);
-		
+
 		static Ref<MediaPlayer> openUrl(const String& url, const MediaPlayerFlags& flags = MediaPlayerFlags::Default);
-		
+
 		static Ref<MediaPlayer> openFile(const String& filePath, const MediaPlayerFlags& flags = MediaPlayerFlags::Default);
-		
+
 		static Ref<MediaPlayer> openAsset(const String& fileName, const MediaPlayerFlags& flags = MediaPlayerFlags::Default);
-		
+
 	public:
 		virtual void release() = 0;
-		
+
 		virtual void resume() = 0;
-		
+
 		virtual void pause() = 0;
-		
+
 		virtual sl_bool isPlaying() = 0;
-		
+
 		virtual sl_real getVolume() = 0;
-		
+
 		virtual void setVolume(sl_real) = 0;
-		
+
 		// Seconds, negative means the infinite duration
 		virtual double getDuration() = 0;
-		
+
 		// Seconds
 		virtual double getCurrentTime() = 0;
-		
+
 		// Seconds
 		virtual void seekTo(double seconds) = 0;
 
 		virtual void renderVideo(MediaPlayerRenderVideoParam& param) = 0;
-		
+
 	public:
 		sl_bool isAutoRepeat();
-		
+
 		virtual void setAutoRepeat(sl_bool flagRepeat);
 
 		sl_bool isAutoRelease();
@@ -158,23 +158,23 @@ namespace slib
 
 	public:
 		SLIB_PROPERTY_FUNCTION(void(MediaPlayer*), OnReadyToPlay)
-		
+
 		SLIB_PROPERTY_FUNCTION(void(MediaPlayer*), OnComplete)
-		
+
 	protected:
 		void _onReadyToPlay();
-		
+
 		void _onComplete();
-		
+
 	protected:
 		static Ref<MediaPlayer> _createNative(const MediaPlayerParam& param);
-		
+
 		void _init(const MediaPlayerParam& param);
-		
+
 		void _addToMap();
-		
+
 		void _removeFromMap();
-		
+
 	protected:
 		sl_bool m_flagSelfAlive;
 		sl_bool m_flagAutoRepeat;

@@ -32,14 +32,14 @@ namespace slib
 	{
 		Int8 = 1,
 		Uint8 = 2,
-		
+
 		Int16 = 8,
 		Uint16 = 9,
 		Int16LE = 12,
 		Uint16LE = 13,
 		Int16BE = 14,
 		Uint16BE = 15,
-		
+
 		Float = 32,
 		FloatLE = 33,
 		FloatBE = 34

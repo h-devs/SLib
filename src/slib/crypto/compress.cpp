@@ -463,5 +463,5 @@ namespace slib
 		m_sizeOutput = 0;
 		return sl_true;
 	}
-	
+
 }

@@ -45,7 +45,7 @@ namespace slib
 		}
 		return Apple::getStringFromNSString(ret);
 	}
-	
+
 }
 
 #endif

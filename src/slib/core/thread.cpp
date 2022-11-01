@@ -223,7 +223,7 @@ namespace slib
 	{
 		m_eventWake->set();
 	}
-	
+
 	Event* Thread::getSelfEvent()
 	{
 		return m_eventWake.get();
@@ -236,7 +236,7 @@ namespace slib
 			ev->set();
 		}
 	}
-	
+
 	Ref<Event> Thread::getWaitingEvent()
 	{
 		return m_eventWaiting;

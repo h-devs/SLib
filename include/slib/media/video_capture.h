@@ -31,58 +31,58 @@
 namespace slib
 {
 	class VideoCapture;
-	
+
 	class VideoCaptureFrame : public VideoFrame
 	{
 	public:
 		VideoCaptureFrame();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(VideoCaptureFrame)
-		
+
 	};
-	
+
 	class SLIB_EXPORT VideoCaptureParam
 	{
 	public:
 		sl_bool flagAutoStart;
-		
+
 		Function<void(VideoCapture*, VideoCaptureFrame&)> onCaptureVideoFrame;
-		
+
 	public:
 		VideoCaptureParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(VideoCaptureParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT VideoCapture : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		VideoCapture();
-		
+
 		~VideoCapture();
-		
+
 	public:
 		virtual void release() = 0;
-		
+
 		virtual sl_bool isOpened() = 0;
-		
+
 		virtual void start() = 0;
-		
+
 		virtual void stop() = 0;
-		
+
 		virtual sl_bool isRunning() = 0;
-		
+
 	public:
 		SLIB_PROPERTY_FUNCTION(void(VideoCapture*, VideoCaptureFrame&), OnCaptureVideoFrame)
-		
+
 	protected:
 		void _init(const VideoCaptureParam& param);
-		
+
 		virtual void onCaptureVideoFrame(VideoCaptureFrame& frame);
-		
+
 	};
 }
 

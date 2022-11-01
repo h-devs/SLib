@@ -40,7 +40,7 @@ namespace slib
 			static sl_bool isActivity(jobject object) noexcept;
 
 			static void finish(jobject thiz) noexcept;
-			
+
 			static JniLocal<jobject> getWindowManager(jobject thiz) noexcept;
 
 			static JniLocal<jobject> getWindow(jobject thiz) noexcept;

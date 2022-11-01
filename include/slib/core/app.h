@@ -37,29 +37,29 @@ namespace slib
 		UI = 0,
 		Service = 1
 	};
-	
+
 	SLIB_DEFINE_FLAGS(AppPermissions, {
 
 		Camera = 1,
-			
+
 		RecordAudio = (1<<1),
-			
+
 		WriteExternalStorage = (1<<2),
 		ReadExternalStorage = (1<<3),
-			
+
 		ReadPhoneState = (1<<4),
 		ReadPhoneNumbers = (1<<5),
 		CallPhone = (1<<6),
 		AnswerPhoneCalls = (1<<7),
 		AddVoiceMail = (1<<8),
 		UseSip = (1<<9),
-			
+
 		SendSMS = (1<<10),
 		ReceiveSMS = (1<<11),
 		ReadSMS = (1<<12),
 		ReceiveWapPush = (1<<13),
 		ReceiveMMS = (1<<14),
-			
+
 		ReadContacts = (1<<15),
 		WriteContacts = (1<<16),
 		GetAccounts = (1<<17),
@@ -69,13 +69,13 @@ namespace slib
 
 		ReadCalendar = (1<<20),
 		WriteCalendar = (1<<21),
-			
+
 		ReadCallLog = (1<<22),
 		WriteCallLog = (1<<23),
 		ProcessOutgoingCalls = (1<<24),
-			
+
 		BodySensors = (1<<25)
-		
+
 	})
 
 	enum class AppRole
@@ -123,7 +123,7 @@ namespace slib
 		void setApplicationId(const StringParam& _id);
 
 		String getExecutablePath();
-	
+
 		String getCommandLine();
 
 		List<String> getArguments();
@@ -157,21 +157,21 @@ namespace slib
 		virtual sl_bool isCrashRecoverySupport();
 
 		void setCrashRecoverySupport(sl_bool flagSupport);
-	
+
 	protected:
 		// returns exit code
 		virtual sl_int32 doRun();
-	
+
 		virtual void onInitApp();
 
 		// returns exit code
 		virtual sl_int32 onRunApp() = 0;
 
 		virtual void onQuitApp();
-		
+
 		// returns exit code
 		virtual sl_int32 onExistingInstance();
-	
+
 	public:
 		static Ref<Application> getApp();
 
@@ -207,18 +207,18 @@ namespace slib
 
 		// Android only
 		static void openSystemOverlaySetting();
-		
-		
+
+
 		// macOS only
 		static sl_bool isAccessibilityEnabled();
-		
+
 		// macOS only
 		static void authenticateAccessibility();
-		
+
 		// macOS only
 		static void openSystemPreferencesForAccessibility();
-		
-	public:	
+
+	public:
 		static void registerRunAtStartup(const StringParam& appName, const StringParam& path);
 
 		static void registerRunAtStartup(const StringParam& path);
@@ -247,7 +247,7 @@ namespace slib
 		sl_bool m_flagCrashRecoverySupport;
 
 	};
-	
+
 }
 
 #define SLIB_APPLICATION(CLASS) \

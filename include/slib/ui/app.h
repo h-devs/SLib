@@ -33,63 +33,63 @@ namespace slib
 
 	class Window;
 	class Menu;
-	
+
 	class SLIB_EXPORT UIApp : public Application
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		UIApp();
-		
+
 		~UIApp();
 
 	public:
-	
+
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
 		static void enableXlibThreadsSupport();
 #endif
 
 		static Ref<UIApp> getApp();
-		
+
 	public:
 		AppType getAppType() override;
-		
+
 		static void quit();
-		
-		
+
+
 		Ref<Window> getMainWindow();
-		
+
 		void setMainWindow(const Ref<Window>& window);
-		
+
 		Ref<Menu> getMenu();
-		
+
 		void setMenu(const Ref<Menu>& menu);
-		
-		
+
+
 		virtual sl_bool shouldOpenUntitledFile();
-		
-		
+
+
 		static sl_bool isMenuBarVisible();
-		
+
 		static void setMenuBarVisible(sl_bool flagVisible);
-				
+
 		static void setVisibleOnDock(sl_bool flagVisible);
-		
+
 		static void activate(sl_bool flagIgnoreOtherApps = sl_true);
-		
+
 		static void setBadgeNumber(sl_uint32 number);
 
 	protected:
 		void onInitApp() override;
 
 		sl_int32 onRunApp() override;
-		
+
 		sl_int32 onExistingInstance() override;
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, Start)
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, Exit)
-		
+
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenUrl, const String& url, sl_bool& outFlagOpened)
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenUrls, const List<String>& urls, sl_bool& outFlagOpened)
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenFile, const String& filePath, sl_bool& outFlagOpened)
@@ -102,7 +102,7 @@ namespace slib
 	public:
 		static void dispatchStartToApp();
 		static void dispatchExitToApp();
-		
+
 		static sl_bool dispatchOpenUrlToApp(const String& url);
 		static sl_bool dispatchOpenUrlsToApp(const List<String>& urls);
 		static sl_bool dispatchOpenFileToApp(const String& filePath);
@@ -115,7 +115,7 @@ namespace slib
 	private:
 		AtomicRef<Window> m_mainWindow;
 		AtomicRef<Menu> m_mainMenu;
-		
+
 	};
 
 }

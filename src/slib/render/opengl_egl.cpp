@@ -71,7 +71,7 @@ namespace slib
 				}
 
 			public:
-				
+
 #	if defined(SLIB_PLATFORM_IS_WIN32)
 				static EGLNativeDisplayType createDisplay(EGLNativeWindowType window)
 				{
@@ -120,7 +120,7 @@ namespace slib
 					EGLint _platform = 0;
 					EGLint _renderer = 0;
 					EGLint _clientVersion = 0;
-			
+
 #	if defined(SLIB_PLATFORM_IS_WIN32)
 					_platform = EGL_PLATFORM_ANGLE_ANGLE;
 					_renderer = EGL_PLATFORM_ANGLE_TYPE_D3D9_ANGLE;
@@ -378,7 +378,7 @@ namespace slib
 		FARPROC proc;
 #define ENTRIES g_entries
 		PRIV_SLIB_RENDER_EGL_ENTRIES
-		
+
 		g_flagLoadedEntryPoints = sl_true;
 	}
 
@@ -411,7 +411,7 @@ namespace slib
 	{
 		return sl_true;
 	}
-	
+
 }
 
 #	endif
@@ -438,7 +438,7 @@ namespace slib
 	{
 		return sl_false;
 	}
-	
+
 }
 
 #endif

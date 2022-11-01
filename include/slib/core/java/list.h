@@ -40,7 +40,7 @@ namespace slib
 			static sl_int32 size(jobject list) noexcept;
 
    			static sl_bool contains(jobject list, jobject element) noexcept;
-			
+
 			static JniLocal<jobject> iterator(jobject list) noexcept;
 
 			static JniLocal<jobject> get(jobject list, sl_int32 index) noexcept;

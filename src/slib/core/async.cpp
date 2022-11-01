@@ -129,13 +129,13 @@ namespace slib
 			lock.unlock();
 			m_thread->finishAndWait();
 		}
-		
+
 		_native_closeHandle(m_handle);
-		
+
 		m_queueInstancesOrder.removeAll();
 		m_queueInstancesClosing.removeAll();
 		m_queueInstancesClosed.removeAll();
-		
+
 	}
 
 	void AsyncIoLoop::start()
@@ -232,7 +232,7 @@ namespace slib
 				task();
 			}
 		}
-		
+
 		// Request Orders
 		{
 			LinkedQueue< Ref<AsyncIoInstance> > instances;
@@ -414,7 +414,7 @@ namespace slib
 	 : flagRead(_flagRead), data((void*)_data), size(_size), userObject(_userObject), callback(_callback), sizeWritten(0)
 	{
 	}
-	
+
 	AsyncStreamRequest::~AsyncStreamRequest()
 	{
 	}
@@ -1304,7 +1304,7 @@ namespace slib
 
 		enqueue();
 	}
-	
+
 	void AsyncCopy::enqueue()
 	{
 		if (!m_flagRunning) {
@@ -1380,7 +1380,7 @@ namespace slib
 		m_flagEnqueue = sl_false;
 
 	}
-	
+
 	Memory AsyncCopy::dispatchRead(const Memory& input)
 	{
 		if (m_onRead.isNotNull()) {
@@ -1389,12 +1389,12 @@ namespace slib
 			return input;
 		}
 	}
-	
+
 	void AsyncCopy::dispatchWrite()
 	{
 		m_onWrite(this);
 	}
-	
+
 	void AsyncCopy::dispatchEnd()
 	{
 		m_onEnd(this, isErrorOccured());
@@ -1417,7 +1417,7 @@ namespace slib
 		m_body = stream;
 		m_sizeBody = size;
 	}
-	
+
 	AsyncOutputBufferElement::~AsyncOutputBufferElement()
 	{
 	}
@@ -1466,7 +1466,7 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(AsyncOutputBuffer, Object)
-	
+
 	AsyncOutputBuffer::AsyncOutputBuffer()
 	{
 		m_lengthOutput = 0;
@@ -1570,7 +1570,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AsyncOutputParam)
-	
+
 	AsyncOutputParam::AsyncOutputParam()
 	{
 		bufferSize = 0x10000;

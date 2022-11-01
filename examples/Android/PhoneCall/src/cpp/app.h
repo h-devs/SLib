@@ -12,10 +12,10 @@ class PhoneCallApp : public MobileApp
 	SLIB_APPLICATION(PhoneCallApp)
 public:
 	PhoneCallApp();
-	
+
 protected:
 	Ref<View> getStartupPage() override;
 
 	void onStart() override;
-	
+
 };

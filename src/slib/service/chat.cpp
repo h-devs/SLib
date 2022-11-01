@@ -29,7 +29,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ChatMessageBody)
-	
+
 	ChatMessageBody::ChatMessageBody():
 		contentType(ChatContentType::Text),
 		flagEncrypted(sl_false),

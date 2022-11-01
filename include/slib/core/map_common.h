@@ -27,28 +27,28 @@
 
 namespace slib
 {
-	
+
 	template <class NODE>
 	class SLIB_EXPORT MapEmplaceReturn
 	{
 	public:
 		sl_bool isSuccess;
 		NODE* node;
-		
+
 	public:
 		SLIB_CONSTEXPR MapEmplaceReturn(sl_bool _isSuccess, NODE* _node): isSuccess(_isSuccess), node(_node) {}
-		
+
 		SLIB_CONSTEXPR MapEmplaceReturn(sl_null_t) noexcept: isSuccess(sl_false), node(sl_null) {}
 
 		SLIB_CONSTEXPR MapEmplaceReturn(const MapEmplaceReturn& other) = default;
-		
+
 		MapEmplaceReturn& operator=(const MapEmplaceReturn& other) = default;
-		
+
 		SLIB_CONSTEXPR operator sl_bool() const
 		{
 			return isSuccess;
 		}
-		
+
 	};
 
 }

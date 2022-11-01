@@ -27,13 +27,13 @@
 
 namespace slib
 {
-	
+
 	template <class... MEMBERS>
 	class Tuple;
-	
+
 	template <>
 	class Tuple<> {};
-	
+
 	template <class T1>
 	class Tuple<T1>
 	{
@@ -49,7 +49,7 @@ namespace slib
 		Tuple(O1&& _m1): m1(Forward<O1>(_m1)) {}
 
 	};
-	
+
 	template <class T1, class T2>
 	class Tuple<T1, T2>
 	{
@@ -66,7 +66,7 @@ namespace slib
 		Tuple(O1&& _m1, O2&& _m2): m1(Forward<O1>(_m1)), m2(Forward<O2>(_m2)) {}
 
 	};
-	
+
 	template <class T1, class T2, class T3>
 	class Tuple<T1, T2, T3>
 	{
@@ -87,7 +87,7 @@ namespace slib
 		 m3(Forward<O3>(_m3)) {}
 
 	};
-	
+
 	template <class T1, class T2, class T3, class T4>
 	class Tuple<T1, T2, T3, T4>
 	{
@@ -110,7 +110,7 @@ namespace slib
 		 m4(Forward<O4>(_m4)) {}
 
 	};
-	
+
 	template <class T1, class T2, class T3, class T4, class T5>
 	class Tuple<T1, T2, T3, T4, T5>
 	{
@@ -133,9 +133,9 @@ namespace slib
 		 m3(Forward<O3>(_m3)),
 		 m4(Forward<O4>(_m4)),
 		 m5(Forward<O5>(_m5)) {}
-	
+
 	};
-	
+
 	template <class T1, class T2, class T3, class T4, class T5, class T6>
 	class Tuple<T1, T2, T3, T4, T5, T6>
 	{
@@ -160,9 +160,9 @@ namespace slib
 		 m4(Forward<O4>(_m4)),
 		 m5(Forward<O5>(_m5)),
 		 m6(Forward<O6>(_m6)) {}
-	
+
 	};
-	
+
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7>
 	class Tuple<T1, T2, T3, T4, T5, T6, T7>
 	{
@@ -191,7 +191,7 @@ namespace slib
 		 m7(Forward<O7>(_m7)) {}
 
 	};
-	
+
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8>
 	class Tuple<T1, T2, T3, T4, T5, T6, T7, T8>
 	{
@@ -222,7 +222,7 @@ namespace slib
 		 m8(Forward<O8>(_m8)) {}
 
 	};
-	
+
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9>
 	class Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>
 	{
@@ -255,7 +255,7 @@ namespace slib
 		 m9(Forward<O9>(_m9)) {}
 
 	};
-	
+
 	template <class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10>
 	class Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
 	{

@@ -41,15 +41,15 @@ namespace slib
 	{
 		namespace alipay_ios
 		{
-		
+
 			String g_appScheme;
-		
+
 			class StaticContext
 			{
 			public:
 				Mutex lock;
 				Function<void(AlipayPaymentResult&)> callbackPay;
-				
+
 			public:
 				void setPayCallback(const Function<void(AlipayPaymentResult&)>& callback)
 				{
@@ -61,23 +61,23 @@ namespace slib
 					}
 					callbackPay = callback;
 				}
-				
+
 				void onPayResult(AlipayPaymentResult& result)
 				{
 					MutexLocker locker(&lock);
 					callbackPay(result);
 					callbackPay.setNull();
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-		
+
 		}
 	}
-	
+
 	using namespace priv::alipay_ios;
-	
+
 	void AlipaySDK::initialize(const String& appScheme)
 	{
 		g_appScheme = appScheme;
@@ -95,12 +95,12 @@ namespace slib
 			UI::dispatchToUiThread(Function<void()>::bind(func, param));
 			return;
 		}
-		
+
 		GetStaticContext()->setPayCallback(param.onComplete);
-		
+
 		NSString* order = Apple::getNSStringFromString(param.order);
 		NSString* scheme = Apple::getNSStringFromString(g_appScheme);
-		
+
 		static auto callback = ^(NSDictionary *resultDic) {
 			AlipayPaymentResult result;
 			NSString* s = resultDic[@"result"];
@@ -109,11 +109,11 @@ namespace slib
 			}
 			GetStaticContext()->onPayResult(result);
 		};
-		
+
 		[[SDK defaultService] payOrder:order fromScheme:scheme callback:callback];
-		
+
 	}
-	
+
 }
 
 #endif

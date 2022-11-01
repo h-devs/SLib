@@ -43,7 +43,7 @@ public class UiGenericView extends View implements IView {
 	public boolean dispatchSuperTouchEvent(MotionEvent ev) { return super.dispatchTouchEvent(ev); }
 
 	UiGestureDetector gestureDetector;
-	
+
 	public UiGenericView(Context context) {
 		super(context);
 		setClickable(true);

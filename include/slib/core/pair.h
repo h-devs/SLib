@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	template <class FIRST_T, class SECOND_T>
 	class SLIB_EXPORT Pair
 	{
@@ -45,7 +45,7 @@ namespace slib
 		Pair(FIRST&& _first, SECOND&& _second) noexcept: first(Forward<FIRST>(_first)), second(Forward<SECOND>(_second)) {}
 
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Pair)
-		
+
 	public:
 		sl_compare_result compare(const Pair& other) const
 		{
@@ -74,7 +74,7 @@ namespace slib
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
 
 	};
-	
+
 }
 
 #endif

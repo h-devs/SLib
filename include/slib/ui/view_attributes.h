@@ -57,7 +57,7 @@ namespace slib
 		sl_bool flagMarginRightWeight : 1;
 		sl_bool flagMarginBottomWeight : 1;
 		sl_bool flagCustomLayout : 1;
-		
+
 		sl_bool flagInvalidLayoutInParent : 1;
 		sl_bool flagRequestedFrame : 1;
 
@@ -68,7 +68,7 @@ namespace slib
 		SizeMode heightMode;
 		sl_real widthWeight;
 		sl_real heightWeight;
-		
+
 		PositionMode leftMode;
 		PositionMode topMode;
 		PositionMode rightMode;
@@ -77,14 +77,14 @@ namespace slib
 		AtomicWeakRef<View> topReferingView;
 		AtomicWeakRef<View> rightReferingView;
 		AtomicWeakRef<View> bottomReferingView;
-		
+
 		sl_ui_len minWidth;
 		sl_ui_len maxWidth;
 		sl_ui_len minHeight;
 		sl_ui_len maxHeight;
 		AspectRatioMode aspectRatioMode;
 		sl_real aspectRatio;
-		
+
 		sl_ui_pos marginLeft;
 		sl_ui_pos marginTop;
 		sl_ui_pos marginRight;
@@ -93,21 +93,21 @@ namespace slib
 		sl_real marginTopWeight;
 		sl_real marginRightWeight;
 		sl_real marginBottomWeight;
-		
+
 	public:
 		ViewLayoutAttributes();
-		
+
 		~ViewLayoutAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewLayoutAttributes)
-		
+
 	public:
 		void applyMarginWeightsX(sl_ui_pos parentWidth);
 		void applyMarginWeightsY(sl_ui_pos parentHeight);
 		void applyMarginWeights(sl_ui_pos parentWidth, sl_ui_pos parentHeight);
 
 	};
-		
+
 	class ViewPaddingAttributes : public Referable
 	{
 	public:
@@ -124,21 +124,21 @@ namespace slib
 		sl_real paddingTopWeight;
 		sl_real paddingRightWeight;
 		sl_real paddingBottomWeight;
-		
+
 	public:
 		ViewPaddingAttributes();
-		
+
 		~ViewPaddingAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewPaddingAttributes)
 
 	public:
 		void applyPaddingWeightsX(sl_ui_pos width);
 		void applyPaddingWeightsY(sl_ui_pos height);
 		void applyPaddingWeights(sl_ui_pos width, sl_ui_pos height);
-		
+
 	};
-	
+
 	class ViewTransformAttributes : public Referable
 	{
 	public:
@@ -158,7 +158,7 @@ namespace slib
 		Vector2 scale;
 		sl_real rotationAngle;
 		Vector2 anchorOffset;
-		
+
 		AtomicWeakRef<Animation> m_animationTransform;
 		AtomicWeakRef<Animation> m_animationTranslate;
 		AtomicWeakRef<Animation> m_animationScale;
@@ -169,13 +169,13 @@ namespace slib
 
 	public:
 		ViewTransformAttributes();
-		
+
 		~ViewTransformAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewTransformAttributes)
 
 	};
-	
+
 	class ViewDrawAttributes : public Referable
 	{
 	public:
@@ -183,7 +183,7 @@ namespace slib
 		sl_bool flagOpaque : 1;
 		sl_bool flagAntiAlias : 1;
 		sl_bool flagLayer : 1;
-		
+
 		sl_bool flagForcedDraw : 1;
 		sl_bool flagInvalidatedLayer : 1;
 		sl_bool flagInvalidatedWholeLayer : 1;
@@ -193,39 +193,39 @@ namespace slib
 		AtomicRef<Drawable> backgroundHover;
 		ScaleMode backgroundScaleMode;
 		Alignment backgroundAlignment;
-		
+
 		AtomicRef<Pen> penBorder;
 		PenStyle borderStyle;
 		sl_real borderWidth;
 		Color borderColor;
-		
+
 		BoundShape boundShape;
 		Size boundRadius;
 		AtomicRef<GraphicsPath> boundPath;
-		
+
 		BoundShape contentShape;
 		Size contentRadius;
 		AtomicRef<GraphicsPath> contentBoundPath;
 
 		AtomicRef<Font> font;
 		sl_real alpha;
-		
+
 		AtomicRef<Bitmap> bitmapLayer;
 		AtomicRef<Canvas> canvasLayer;
 		UIRect rectInvalidatedLayer;
-		
+
 		float shadowOpacity;
 		sl_ui_posf shadowRadius;
 		UIPointf shadowOffset;
 		Color shadowColor;
-		
+
 		LinkedList< Function<void()> > runAfterDrawCallbacks;
-		
+
 	public:
 		ViewDrawAttributes();
-		
+
 		~ViewDrawAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewDrawAttributes)
 
 	};
@@ -245,7 +245,7 @@ namespace slib
 		sl_bool flagSmoothContentScrolling : 1;
 		sl_bool flagAutoHideScrollBar : 1;
 		sl_bool flagScrollCanvas : 1;
-		
+
 		sl_bool flagValidHorz : 1;
 		sl_bool flagValidVert : 1;
 		sl_bool flagInitHorzScrollBar : 1;
@@ -273,12 +273,12 @@ namespace slib
 		sl_scroll_pos xSmoothTarget;
 		sl_scroll_pos ySmoothTarget;
 		Time timeLastInside;
-		
+
 	public:
 		ViewScrollAttributes();
-		
+
 		~ViewScrollAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewScrollAttributes)
 
 	};
@@ -288,12 +288,12 @@ namespace slib
 	public:
 		sl_bool flagTouchMultipleChildren : 1;
 		sl_bool flagPassEventToChildren : 1;
-		
+
 		sl_bool flagHasInstances : 1;
-		
+
 		AtomicList< Ref<View> > children;
 		AtomicList< Ref<View> > childrenCache;
-		
+
 		List< Ref<View> > childrenMultiTouch;
 		AtomicRef<View> childMouseMove;
 		AtomicRef<View> childMouseDown;
@@ -301,12 +301,12 @@ namespace slib
 		AtomicRef<View> childFocal;
 
 		AtomicFunction<sl_bool(const UIPoint& pt)> hitTestCapturingChildInstanceEvents;
-		
+
 	public:
 		ViewChildAttributes();
-		
+
 		~ViewChildAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewChildAttributes)
 
 	};
@@ -326,9 +326,9 @@ namespace slib
 
 	public:
 		ViewOtherAttributes();
-		
+
 		~ViewOtherAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewOtherAttributes)
 
 	};
@@ -362,9 +362,9 @@ namespace slib
 
 	public:
 		ViewEventAttributes();
-		
+
 		~ViewEventAttributes();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewEventAttributes)
 
 	};

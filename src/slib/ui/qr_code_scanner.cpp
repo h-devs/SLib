@@ -69,45 +69,45 @@ namespace slib
 					return source;
 				}
 			};
-			
+
 		}
 	}
 
 	using namespace priv::qr_code_scanner;
 
 	SLIB_DEFINE_OBJECT(QRCodeScanner, CameraView)
-	
+
 	QRCodeScanner::QRCodeScanner()
 	{
 		m_flagUpdateCameraFrame = sl_false;
 		m_programScanBar = new Program_ScanBar;
-		
+
 		setScaleMode(ScaleMode::Cover, UIUpdateMode::Init);
 	}
-	
+
 	QRCodeScanner::~QRCodeScanner()
 	{
 	}
-	
+
 	void QRCodeScanner::start(const CameraParam& param)
 	{
 		CameraView::start(param);
 		m_timerScanner = Timer::start(SLIB_FUNCTION_WEAKREF(this, onRunScanner), 500);
 	}
-	
+
 	void QRCodeScanner::stop()
 	{
 		m_timerScanner.setNull();
 		CameraView::stop();
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(QRCodeScanner, Detect, const String& code)
 
 	void QRCodeScanner::dispatchDetect(const String& code)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Detect, code)
 	}
-	
+
 	void QRCodeScanner::onDraw(Canvas* _canvas)
 	{
 		CameraView::onDraw(_canvas);
@@ -138,7 +138,7 @@ namespace slib
 		}
 		box_size = (sl_real)((int)(box_size * 0.65f) >> 1 << 1);
 		sl_real box_half = Math::floor(box_size / 2);
-		
+
 		sl_real scanner_height = Math::floor(box_size / 20);
 		if (scanner_height < 5) {
 			scanner_height = 5;
@@ -160,7 +160,7 @@ namespace slib
 		mat.m02 = 0; mat.m12 = 0; mat.m22 = 1;
 		mat *= Matrix3(2/width, 0, 0, 0, -2/height, 0, -1, 1, 1);
 		engine->drawRectangle2D(m_programScanBar, mat, Color4f(0, 1, 0, 0.5f));
-		
+
 		Color colorFillDark(0, 0, 0, 150);
 		canvas->fillRectangle(0, 0, width, height_half - box_half, colorFillDark);
 		canvas->fillRectangle(0, height_half - box_half, width_half - box_half, box_size, colorFillDark);
@@ -189,7 +189,7 @@ namespace slib
 	{
 		m_flagUpdateCameraFrame = sl_true;
 	}
-	
+
 	void QRCodeScanner::onRunScanner(Timer* timer)
 	{
 		if (!m_flagUpdateCameraFrame) {
@@ -237,5 +237,5 @@ namespace slib
 			dispatchDetect(text);
 		}
 	}
-	
+
 }

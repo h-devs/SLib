@@ -34,30 +34,30 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace button
 		{
-			
+
 			class ButtonInstance : public Win32_ViewInstance, public IButtonInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				ButtonInstance();
-				
+
 				~ButtonInstance();
-				
+
 			public:
 				void initialize(View* view) override;
 
 				void setPadding(View* view, const UIEdgeInsets& padding) override;
 
 				void setText(Button* view, const String& text) override;
-				
+
 				void setDefaultButton(Button* view, sl_bool flag) override;
-				
+
 				sl_bool measureSize(Button* view, UISize& _out) override;
 
 				sl_bool processCommand(SHORT code, LRESULT& result) override;
@@ -83,10 +83,10 @@ namespace slib
 				sl_bool measureSize(Button* view, UISize& _out) override;
 
 			};
-			
+
 		}
 	}
-	
+
 }
 
 #endif

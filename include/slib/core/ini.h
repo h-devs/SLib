@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Ini
 	{
 	public:
@@ -49,7 +49,7 @@ namespace slib
 		CHashMap<String, String> m_mapValues;
 
 	};
-	
+
 }
 
 #endif

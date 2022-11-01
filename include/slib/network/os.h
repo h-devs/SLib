@@ -41,46 +41,46 @@ namespace slib
 		MacAddress macAddress;
 		List<IPv4AddressInfo> addresses_IPv4;
 		List<IPv6Address> addresses_IPv6;
-		
+
 	public:
 		NetworkInterfaceInfo();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NetworkInterfaceInfo)
-		
+
 	};
-	
+
 	class SLIB_EXPORT Network
 	{
 	public:
 		static sl_bool findInterface(const StringParam& nameOrDisplayName, NetworkInterfaceInfo* pInfo);
-		
+
 		static List<NetworkInterfaceInfo> findAllInterfaces();
-		
-		
+
+
 		// used in L2PacketInfo::iface, and 0 is returned on error (wrapper of if_nametoindex call)
 		static sl_uint32 getInterfaceIndexFromName(const StringParam& name);
-		
+
 		// wrapper of if_indextoname
 		static String getInterfaceNameFromIndex(sl_uint32 index);
-		
-		
+
+
 		static List<IPv4Address> findAllIPv4Addresses();
-		
+
 		static List<IPv4AddressInfo> findAllIPv4AddressInfos();
-		
+
 		static List<IPv6Address> findAllIPv6Addresses();
-		
+
 		static List<MacAddress> findAllMacAddresses();
-		
-		
+
+
 		static List<IPAddress> getIPAddressesFromHostName(const StringParam& hostName);
-		
+
 		static IPAddress getIPAddressFromHostName(const StringParam& hostName);
-		
+
 		static IPv4Address getIPv4AddressFromHostName(const StringParam& hostName);
-		
+
 		static IPv6Address getIPv6AddressFromHostName(const StringParam& hostName);
-		
+
 
 		static IPv4Address getDefaultGateway(const StringParam& interfaceName);
 

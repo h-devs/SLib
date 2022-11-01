@@ -35,7 +35,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(ScrollView, ViewGroup)
-	
+
 	ScrollView::ScrollView()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
@@ -46,7 +46,7 @@ namespace slib
 		setClipping(sl_true, UIUpdateMode::Init);
 		setScrolling(sl_true, sl_true, UIUpdateMode::Init);
 	}
-	
+
 	ScrollView::~ScrollView()
 	{
 	}
@@ -55,7 +55,7 @@ namespace slib
 	{
 		return m_viewContent;
 	}
-	
+
 	void ScrollView::setContentView(const Ref<slib::View>& view, UIUpdateMode mode)
 	{
 		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
@@ -95,7 +95,7 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	void ScrollView::setContentSize(sl_scroll_pos _width, sl_scroll_pos _height, UIUpdateMode mode)
 	{
 		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
@@ -131,7 +131,7 @@ namespace slib
 			instance->refreshContentSize(this);
 		}
 	}
-	
+
 	void ScrollView::dispatchScroll(sl_scroll_pos x, sl_scroll_pos y)
 	{
 		ViewGroup::dispatchScroll(x, y);
@@ -142,12 +142,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void ScrollView::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		_refreshSize();
 	}
-	
+
 	void ScrollView::onResizeChild(View* child, sl_ui_len width, sl_ui_len height)
 	{
 		if (child == m_viewContent) {
@@ -155,7 +155,7 @@ namespace slib
 			_refreshSize();
 		}
 	}
-	
+
 	void ScrollView::_refreshSize()
 	{
 		Ptr<IScrollViewInstance> instance = getScrollViewInstance();
@@ -164,34 +164,34 @@ namespace slib
 			instance->refreshContentSize(this);
 		}
 	}
-	
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()
 	{
 		return sl_null;
 	}
 #endif
-	
+
 	HorizontalScrollView::HorizontalScrollView()
 	{
 		setScrolling(sl_true, sl_false, UIUpdateMode::Init);
 	}
-	
+
 	HorizontalScrollView::~HorizontalScrollView()
 	{
 	}
-	
-	
+
+
 	VerticalScrollView::VerticalScrollView()
 	{
 		setScrolling(sl_false, sl_true, UIUpdateMode::Init);
 	}
-	
+
 	VerticalScrollView::~VerticalScrollView()
 	{
 	}

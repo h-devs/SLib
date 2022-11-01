@@ -32,11 +32,11 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(Dispatcher, Object)
-	
+
 	Dispatcher::Dispatcher()
 	{
 	}
-	
+
 	Dispatcher::~Dispatcher()
 	{
 	}
@@ -194,7 +194,7 @@ namespace slib
 		}
 
 		m_queueTasks.removeAll();
-		
+
 		MutexLocker lockTime(&m_lockTimeTasks);
 		m_timeTasks.removeAll();
 	}
@@ -392,7 +392,7 @@ namespace slib
 					task();
 				}
 			}
-			
+
 			sl_int32 t = _getTimeout();
 			if (t != 0) {
 				if (t < 0 || t > 10000) {

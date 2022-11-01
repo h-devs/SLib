@@ -49,7 +49,7 @@ namespace slib
 			MYSQL_STMT *stmt, const char *query, unsigned long length
 		)
 		#define mysql_stmt_prepare slib::libmysql::getApi_mysql_stmt_prepare()
-	
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			mysql_stmt_execute,
 			int, STDCALL,
@@ -196,7 +196,7 @@ namespace slib
 			MYSQL *mysql
 		)
 		#define mysql_affected_rows slib::libmysql::getApi_mysql_affected_rows()
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			mysql_autocommit,
 			my_bool, STDCALL,

@@ -66,7 +66,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	using namespace priv::thread;
 
 	Thread* Thread::_nativeGetCurrentThread() {

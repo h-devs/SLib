@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Dokany
 	{
 	public:

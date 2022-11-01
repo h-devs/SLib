@@ -51,7 +51,7 @@ namespace slib
 	{
 		GL_ENTRY(glViewport)(x, y, width, height);
 	}
-	
+
 	void GL_BASE::clear(const RenderClearParam& param)
 	{
 		GLbitfield mask = 0;
@@ -75,7 +75,7 @@ namespace slib
 			GL_ENTRY(glClear)(mask);
 		}
 	}
-	
+
 	void GL_BASE::clearColor(const Color& color)
 	{
 		RenderClearParam param;
@@ -84,7 +84,7 @@ namespace slib
 		param.flagDepth = sl_false;
 		clear(param);
 	}
-	
+
 	void GL_BASE::clearColorDepth(const Color& color, float depth)
 	{
 		RenderClearParam param;
@@ -94,7 +94,7 @@ namespace slib
 		param.depth = depth;
 		clear(param);
 	}
-	
+
 	void GL_BASE::clearDepth(float depth)
 	{
 		RenderClearParam param;
@@ -103,7 +103,7 @@ namespace slib
 		param.depth = depth;
 		clear(param);
 	}
-	
+
 	void GL_BASE::setDepthTest(sl_bool flag)
 	{
 		if (flag) {
@@ -112,12 +112,12 @@ namespace slib
 			GL_ENTRY(glDisable)(GL_DEPTH_TEST);
 		}
 	}
-	
+
 	void GL_BASE::setDepthWriteEnabled(sl_bool flagEnableDepthWrite)
 	{
 		GL_ENTRY(glDepthMask)(flagEnableDepthWrite ? GL_TRUE : GL_FALSE);
 	}
-	
+
 	namespace priv
 	{
 		namespace gl
@@ -146,12 +146,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GL_BASE::setDepthFunction(RenderFunctionOperation op)
 	{
 		GL_ENTRY(glDepthFunc)(priv::gl::GetFunctionOp(op));
 	}
-	
+
 	void GL_BASE::setCullFace(sl_bool flagEnableCull, sl_bool flagCullCCW)
 	{
 		if (flagEnableCull) {
@@ -166,7 +166,7 @@ namespace slib
 			GL_ENTRY(glDisable)(GL_CULL_FACE);
 		}
 	}
-	
+
 	namespace priv
 	{
 		namespace gl
@@ -184,7 +184,7 @@ namespace slib
 				}
 				return GL_FUNC_ADD;
 			}
-			
+
 			static GLenum GetBlendingFactor(RenderBlendingFactor factor)
 			{
 				switch (factor) {
@@ -256,7 +256,7 @@ namespace slib
 			GL_ENTRY(glDisable)(GL_BLEND);
 		}
 	}
-	
+
 	namespace priv
 	{
 		namespace gl
@@ -302,32 +302,32 @@ namespace slib
 	{
 		return priv::gl::CreateShader(GL_VERTEX_SHADER, source);
 	}
-	
+
 	sl_uint32 GL_BASE::createFragmentShader(const String& source)
 	{
 		return priv::gl::CreateShader(GL_FRAGMENT_SHADER, source);
 	}
-	
+
 	void GL_BASE::deleteShader(sl_uint32 shader)
 	{
 		if (shader) {
 			GL_ENTRY(glDeleteShader)(shader);
 		}
 	}
-	
+
 	sl_uint32 GL_BASE::createProgram()
 	{
 		GLuint program = GL_ENTRY(glCreateProgram)();
 		return program;
 	}
-	
+
 	void GL_BASE::attachShader(sl_uint32 program, sl_uint32 shader)
 	{
 		if (program && shader) {
 			GL_ENTRY(glAttachShader)(program, shader);
 		}
 	}
-	
+
 	sl_bool GL_BASE::linkProgram(sl_uint32 program)
 	{
 		if (program) {
@@ -345,7 +345,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_uint32 GL_BASE::createProgram(sl_uint32 vertexShader, sl_uint32 fragmentShader)
 	{
 		sl_uint32 program = GL_ENTRY(glCreateProgram)();
@@ -359,14 +359,14 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	void GL_BASE::useProgram(sl_uint32 program)
 	{
 		if (program) {
 			GL_ENTRY(glUseProgram)(program);
 		}
 	}
-	
+
 	void GL_BASE::deleteProgram(sl_uint32 program)
 	{
 		if (program) {
@@ -390,7 +390,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			static void UpdateBuffer(GLenum target, sl_uint32 buffer, sl_size offset, const void* data, sl_size size)
 			{
 				if (buffer) {
@@ -406,52 +406,52 @@ namespace slib
 	{
 		return priv::gl::CreateBuffer(GL_ARRAY_BUFFER, data, size, flagStatic);
 	}
-	
+
 	sl_uint32 GL_BASE::createVertexBuffer(sl_size size, sl_bool flagStatic)
 	{
 		return priv::gl::CreateBuffer(GL_ARRAY_BUFFER, sl_null, size, flagStatic);
 	}
-	
+
 	void GL_BASE::updateVertexBuffer(sl_uint32 buffer, sl_size offset, const void* data, sl_size size)
 	{
 		priv::gl::UpdateBuffer(GL_ARRAY_BUFFER, buffer, offset, data, size);
 	}
-	
+
 	void GL_BASE::bindVertexBuffer(sl_uint32 buffer)
 	{
 		GL_ENTRY(glBindBuffer)(GL_ARRAY_BUFFER, buffer);
 	}
-	
+
 	void GL_BASE::unbindVertexBuffer()
 	{
 		GL_ENTRY(glBindBuffer)(GL_ARRAY_BUFFER, 0);
 	}
-	
+
 	sl_uint32 GL_BASE::createIndexBuffer(const void* data, sl_size size, sl_bool flagStatic)
 	{
 		return priv::gl::CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, data, size, flagStatic);
 	}
-	
+
 	sl_uint32 GL_BASE::createIndexBuffer(sl_size size, sl_bool flagStatic)
 	{
 		return priv::gl::CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, sl_null, size, flagStatic);
 	}
-	
+
 	void GL_BASE::updateIndexBuffer(sl_uint32 buffer, sl_size offset, const void* data, sl_size size)
 	{
 		priv::gl::UpdateBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer, offset, data, size);
 	}
-	
+
 	void GL_BASE::bindIndexBuffer(sl_uint32 buffer)
 	{
 		GL_ENTRY(glBindBuffer)(GL_ELEMENT_ARRAY_BUFFER, buffer);
 	}
-	
+
 	void GL_BASE::unbindIndexBuffer()
 	{
 		GL_ENTRY(glBindBuffer)(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
-	
+
 	void GL_BASE::deleteBuffer(sl_uint32 buffer)
 	{
 		if (buffer) {
@@ -459,7 +459,7 @@ namespace slib
 			GL_ENTRY(glDeleteBuffers)(1, &b);
 		}
 	}
-	
+
 	sl_int32 GL_BASE::getAttributeLocation(sl_uint32 program, const char* name)
 	{
 		if (program) {
@@ -468,7 +468,7 @@ namespace slib
 		}
 		return -1;
 	}
-	
+
 	namespace priv
 	{
 		namespace gl
@@ -482,7 +482,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 #define PRIV_DEFINE_SETVERTEXARRAY(t, TYPE) \
 	void GL_BASE::setVertex##t##ArrayAttributePtr(sl_int32 attributeLocation, const void* data, sl_uint32 countComponents, sl_uint32 strideBytes, sl_bool flagDoNormalize) \
 	{ \
@@ -492,7 +492,7 @@ namespace slib
 	{ \
 		priv::gl::SetVertexArrayAttribute(attributeLocation, TYPE, (void*)offsetValuesOnBuffer, countComponents, strideBytes, flagDoNormalize); \
 	}
-	
+
 	PRIV_DEFINE_SETVERTEXARRAY(Float, GL_FLOAT)
 	PRIV_DEFINE_SETVERTEXARRAY(Int8, GL_BYTE)
 	PRIV_DEFINE_SETVERTEXARRAY(Uint8, GL_UNSIGNED_BYTE)
@@ -500,14 +500,14 @@ namespace slib
 	PRIV_DEFINE_SETVERTEXARRAY(Uint16, GL_UNSIGNED_SHORT)
 	PRIV_DEFINE_SETVERTEXARRAY(Int32, GL_INT)
 	PRIV_DEFINE_SETVERTEXARRAY(Uint32, GL_UNSIGNED_INT)
-	
+
 	void GL_BASE::disableVertexArrayAttribute(sl_int32 attributeLocation)
 	{
 		if (attributeLocation != -1) {
 			GL_ENTRY(glDisableVertexAttribArray)(attributeLocation);
 		}
 	}
-	
+
 	sl_int32 GL_BASE::getUniformLocation(sl_uint32 program, const char* name)
 	{
 		if (program) {
@@ -516,140 +516,140 @@ namespace slib
 		}
 		return -1;
 	}
-	
+
 	void GL_BASE::setUniformFloatValue(sl_int32 uniformLocation, float value)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform1f)(uniformLocation, value);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloatArray(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform1fv)(uniformLocation, count, (float*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformIntValue(sl_int32 uniformLocation, sl_int32 value)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform1i)(uniformLocation, value);
 		}
 	}
-	
+
 	void GL_BASE::setUniformIntArray(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform1iv)(uniformLocation, count, (GLint*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat2Value(sl_int32 uniformLocation, float v1, float v2)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform2f)(uniformLocation, v1, v2);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat2Value(sl_int32 uniformLocation, const Vector2& v)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform2f)(uniformLocation, v.x, v.y);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat2Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform2fv)(uniformLocation, count, (float*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformInt2Value(sl_int32 uniformLocation, sl_int32 v1, sl_int32 v2)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform2i)(uniformLocation, v1, v2);
 		}
 	}
-	
+
 	void GL_BASE::setUniformInt2Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform2iv)(uniformLocation, count, (GLint*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat3Value(sl_int32 uniformLocation, float v1, float v2, float v3)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform3f)(uniformLocation, v1, v2, v3);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat3Value(sl_int32 uniformLocation, const Vector3& v)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform3f)(uniformLocation, v.x, v.y, v.z);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat3Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform3fv)(uniformLocation, count, (float*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformInt3Value(sl_int32 uniformLocation, sl_int32 v1, sl_int32 v2, sl_int32 v3)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform3i)(uniformLocation, v1, v2, v3);
 		}
 	}
-	
+
 	void GL_BASE::setUniformInt3Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform3iv)(uniformLocation, count, (GLint*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat4Value(sl_int32 uniformLocation, float v1, float v2, float v3, float v4)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform4f)(uniformLocation, v1, v2, v3, v4);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat4Value(sl_int32 uniformLocation, const Vector4& v)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform4f)(uniformLocation, v.x, v.y, v.z, v.w);
 		}
 	}
-	
+
 	void GL_BASE::setUniformFloat4Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform4fv)(uniformLocation, count, (float*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformInt4Value(sl_int32 uniformLocation, sl_int32 v1, sl_int32 v2, sl_int32 v3, sl_int32 v4)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform4i)(uniformLocation, v1, v2, v3, v4);
 		}
 	}
-	
+
 	void GL_BASE::setUniformInt4Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform4iv)(uniformLocation, count, (GLint*)values);
 		}
 	}
-	
+
 	void GL_BASE::setUniformMatrix2Value(sl_int32 uniformLocation, const Matrix2& value)
 	{
 		if (uniformLocation != -1) {
@@ -661,7 +661,7 @@ namespace slib
 			GL_ENTRY(glUniformMatrix2fv)(uniformLocation, 1, GL_FALSE, v);
 		}
 	}
-	
+
 	void GL_BASE::setUniformMatrix2Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
@@ -680,7 +680,7 @@ namespace slib
 			GL_ENTRY(glUniformMatrix2fv)(uniformLocation, count, GL_FALSE, mats);
 		}
 	}
-	
+
 	void GL_BASE::setUniformMatrix3Value(sl_int32 uniformLocation, const Matrix3& value)
 	{
 		if (uniformLocation != -1) {
@@ -697,7 +697,7 @@ namespace slib
 			GL_ENTRY(glUniformMatrix3fv)(uniformLocation, 1, GL_FALSE, v);
 		}
 	}
-	
+
 	void GL_BASE::setUniformMatrix3Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
@@ -721,7 +721,7 @@ namespace slib
 			GL_ENTRY(glUniformMatrix3fv)(uniformLocation, count, GL_FALSE, mats);
 		}
 	}
-	
+
 	void GL_BASE::setUniformMatrix4Value(sl_int32 uniformLocation, const Matrix4& value)
 	{
 		if (uniformLocation != -1) {
@@ -745,7 +745,7 @@ namespace slib
 			GL_ENTRY(glUniformMatrix4fv)(uniformLocation, 1, GL_FALSE, v);
 		}
 	}
-	
+
 	void GL_BASE::setUniformMatrix4Array(sl_int32 uniformLocation, const void* values, sl_uint32 count)
 	{
 		if (uniformLocation != -1) {
@@ -776,14 +776,14 @@ namespace slib
 			GL_ENTRY(glUniformMatrix4fv)(uniformLocation, count, GL_FALSE, mats);
 		}
 	}
-	
+
 	void GL_BASE::setUniformTextureSampler(sl_int32 uniformLocation, sl_uint32 textureNo)
 	{
 		if (uniformLocation != -1) {
 			GL_ENTRY(glUniform1i)(uniformLocation, textureNo);
 		}
 	}
-	
+
 	namespace priv
 	{
 		namespace gl
@@ -810,27 +810,27 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GL_BASE::drawPrimitives(PrimitiveType type, sl_uint32 countVertices, sl_uint32 startIndex)
 	{
 		GL_ENTRY(glDrawArrays)(priv::gl::GetPrimitiveType(type), startIndex, countVertices);
 	}
-	
+
 	void GL_BASE::drawElements(PrimitiveType type, sl_uint32 countIndices, sl_size offsetBytes)
 	{
 		GL_ENTRY(glDrawElements)(priv::gl::GetPrimitiveType(type), countIndices, GL_UNSIGNED_SHORT, (void*)offsetBytes);
 	}
-	
+
 	void GL_BASE::setLineWidth(float width)
 	{
 		GL_ENTRY(glLineWidth)(width);
 	}
-	
+
 	void GL_BASE::flush()
 	{
 		GL_ENTRY(glFlush)();
 	}
-	
+
 	sl_uint32 GL_BASE::createTexture2D(const BitmapData& bitmapData)
 	{
 		GLuint texture = 0;
@@ -860,7 +860,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	sl_uint32 GL_BASE::createTexture2D(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride)
 	{
 		if (width > 0 && height > 0) {
@@ -880,7 +880,7 @@ namespace slib
 			return 0;
 		}
 	}
-	
+
 	sl_uint32 GL_BASE::createTexture2D(const Ref<Bitmap>& bitmap, sl_uint32 x, sl_uint32 y, sl_uint32 w, sl_uint32 h)
 	{
 		if (bitmap.isNull()) {
@@ -926,7 +926,7 @@ namespace slib
 			return 0;
 		}
 	}
-	
+
 	sl_uint32 GL_BASE::createTexture2D(const Ref<Bitmap>& bitmap)
 	{
 		if (bitmap.isNull()) {
@@ -960,13 +960,13 @@ namespace slib
 			return 0;
 		}
 	}
-	
+
 	sl_uint32 GL_BASE::createTexture2DFromMemory(const void* mem, sl_size size)
 	{
 		Ref<Image> image = Image::loadFromMemory(mem, size);
 		return createTexture2D(image);
 	}
-	
+
 	void GL_BASE::updateTexture2D(sl_uint32 x, sl_uint32 y, const BitmapData& bitmapData)
 	{
 		sl_uint32 width = bitmapData.width;
@@ -989,13 +989,13 @@ namespace slib
 			GL_ENTRY(glTexSubImage2D)(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, glImage);
 		}
 	}
-	
+
 	void GL_BASE::updateTexture2D(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride)
 	{
 		BitmapData bitmapData(width, height, pixels, stride);
 		updateTexture2D(x, y, bitmapData);
 	}
-	
+
 	void GL_BASE::updateTexture2D(sl_uint32 x, sl_uint32 y, sl_uint32 w, sl_uint32 h, const Ref<Bitmap>& bitmap, sl_uint32 bx, sl_uint32 by)
 	{
 		if (bitmap.isNull()) {
@@ -1040,7 +1040,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GL_BASE::setActiveSampler(sl_uint32 textureNo)
 	{
 #ifdef NEED_CHECK_ENTRY
@@ -1050,27 +1050,27 @@ namespace slib
 #endif
 		GL_ENTRY(glActiveTexture)(GL_TEXTURE0 + textureNo);
 	}
-	
+
 	void GL_BASE::bindTexture(sl_uint32 target, sl_uint32 texture)
 	{
 		GL_ENTRY(glBindTexture)(target, texture);
 	}
-	
+
 	void GL_BASE::unbindTexture(sl_uint32 target)
 	{
 		GL_ENTRY(glBindTexture)(target, 0);
 	}
-	
+
 	void GL_BASE::bindTexture2D(sl_uint32 texture)
 	{
 		GL_ENTRY(glBindTexture)(GL_TEXTURE_2D, texture);
 	}
-	
+
 	void GL_BASE::unbindTexture2D()
 	{
 		GL_ENTRY(glBindTexture)(GL_TEXTURE_2D, 0);
 	}
-	
+
 	namespace priv
 	{
 		namespace gl
@@ -1087,7 +1087,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GL_BASE::setTextureFilterMode(sl_uint32 target, TextureFilterMode minFilter, TextureFilterMode magFilter)
 	{
 		GLenum f;
@@ -1100,12 +1100,12 @@ namespace slib
 			GL_ENTRY(glTexParameteri)(target, GL_TEXTURE_MAG_FILTER, f);
 		}
 	}
-	
+
 	void GL_BASE::setTexture2DFilterMode(TextureFilterMode minFilter, TextureFilterMode magFilter)
 	{
 		setTextureFilterMode(GL_TEXTURE_2D, minFilter, magFilter);
 	}
-	
+
 	namespace priv
 	{
 		namespace gl
@@ -1124,7 +1124,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GL_BASE::setTextureWrapMode(sl_uint32 target, TextureWrapMode wrapX, TextureWrapMode wrapY)
 	{
 		GLenum f;
@@ -1137,12 +1137,12 @@ namespace slib
 			GL_ENTRY(glTexParameteri)(target, GL_TEXTURE_WRAP_T, f);
 		}
 	}
-	
+
 	void GL_BASE::setTexture2DWrapMode(TextureWrapMode wrapX, TextureWrapMode wrapY)
 	{
 		setTextureWrapMode(GL_TEXTURE_2D, wrapX, wrapY);
 	}
-	
+
 	void GL_BASE::deleteTexture(sl_uint32 texture)
 	{
 		if (texture) {
@@ -1297,27 +1297,27 @@ namespace slib
 		};
 		CList<GLProgramHandle> m_listDirtyProgramHandles;
 		CList< Ref<Referable> > m_listDirtyObjects;
-		
+
 		class GLRenderProgramInstance;
 		Ref<RenderProgram> m_currentProgram;
 		Ref<GLRenderProgramInstance> m_currentProgramInstance;
 
 		class GLRenderInputLayout;
 		Ref<GLRenderInputLayout> m_currentInputLayout;
-		
+
 		class GLVertexBufferInstance;
 		Ref<GLVertexBufferInstance> m_currentVertexBufferInstance;
-		
+
 		class GLIndexBufferInstance;
 		Ref<GLIndexBufferInstance> m_currentIndexBufferInstance;
-		
+
 		Ref<RenderProgram> m_currentProgramRendering;
 		Ref<GLRenderProgramInstance> m_currentProgramInstanceRendering;
 
 		Ref<RenderSamplerState> m_currentSamplerStates[8];
-		
+
 		class GLTextureInstance;
-		
+
 		class GLSamplerState {
 		public:
 			Ref<Texture> texture;
@@ -1333,16 +1333,16 @@ namespace slib
 				instance.setNull();
 			}
 		};
-		
+
 	public:
 		GL_ENGINE()
 		{
 		}
-		
+
 		~GL_ENGINE()
 		{
 		}
-		
+
 	public:
 		void freeDirtyHandles()
 		{
@@ -1373,7 +1373,7 @@ namespace slib
 				m_listDirtyObjects.removeAll();
 			}
 		}
-		
+
 		RenderEngineType getEngineType() override
 		{
 #if defined(PRIV_OPENGL_ES_IMPL)
@@ -1492,7 +1492,7 @@ namespace slib
 			}
 
 		};
-		
+
 		class GLRenderProgramInstance : public RenderProgramInstance
 		{
 		public:
@@ -1500,7 +1500,7 @@ namespace slib
 			sl_uint32 fragmentShader;
 			sl_uint32 program;
 			Ref<RenderProgramState> state;
-			
+
 		public:
 			GLRenderProgramInstance()
 			{
@@ -1508,7 +1508,7 @@ namespace slib
 				fragmentShader = -1;
 				program = -1;
 			}
-			
+
 			~GLRenderProgramInstance()
 			{
 				Ref<RenderEngine> engine = getEngine();
@@ -1520,7 +1520,7 @@ namespace slib
 					((GL_ENGINE*)(engine.get()))->m_listDirtyProgramHandles.add(handle);
 				}
 			}
-			
+
 		public:
 			static Ref<GLRenderProgramInstance> create(GL_ENGINE* engine, RenderProgram* program)
 			{
@@ -1559,7 +1559,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			static String convertShader(String glsl)
 			{
 #if defined(PRIV_OPENGL_IMPL)
@@ -1570,7 +1570,7 @@ namespace slib
 #endif
 				return glsl;
 			}
-			
+
 		public:
 			Ref<RenderInputLayout> createInputLayout(const RenderInputLayoutParam& param) override
 			{
@@ -1664,23 +1664,23 @@ namespace slib
 			}
 
 		};
-		
+
 		Ref<RenderProgramInstance> _createProgramInstance(RenderProgram* program) override
 		{
 			return GLRenderProgramInstance::create(this, program);
 		}
-		
+
 		class GLVertexBufferInstance : public VertexBufferInstance
 		{
 		public:
 			sl_uint32 handle;
-			
+
 		public:
 			GLVertexBufferInstance()
 			{
 				handle = -1;
 			}
-			
+
 			~GLVertexBufferInstance()
 			{
 				Ref<RenderEngine> engine = getEngine();
@@ -1688,7 +1688,7 @@ namespace slib
 					((GL_ENGINE*)(engine.get()))->m_listDirtyBufferHandles.add(handle);
 				}
 			}
-			
+
 		public:
 			static Ref<GLVertexBufferInstance> create(GL_ENGINE* engine, VertexBuffer* buffer)
 			{
@@ -1712,7 +1712,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			void onUpdate(RenderBaseObject* object) override
 			{
 				VertexBuffer* buffer = (VertexBuffer*)object;
@@ -1722,25 +1722,25 @@ namespace slib
 				}
 				GL_BASE::updateVertexBuffer(handle, m_updatedOffset, (sl_uint8*)(content.getData()) + m_updatedOffset, m_updatedSize);
 			}
-			
+
 		};
-		
+
 		Ref<VertexBufferInstance> _createVertexBufferInstance(VertexBuffer* buffer) override
 		{
 			return GLVertexBufferInstance::create(this, buffer);
 		}
-		
+
 		class GLIndexBufferInstance : public IndexBufferInstance
 		{
 		public:
 			sl_uint32 handle;
-			
+
 		public:
 			GLIndexBufferInstance()
 			{
 				handle = -1;
 			}
-			
+
 			~GLIndexBufferInstance()
 			{
 				Ref<RenderEngine> engine = getEngine();
@@ -1748,7 +1748,7 @@ namespace slib
 					((GL_ENGINE*)(engine.get()))->m_listDirtyBufferHandles.add(handle);
 				}
 			}
-			
+
 		public:
 			static Ref<GLIndexBufferInstance> create(GL_ENGINE* engine, IndexBuffer* buffer)
 			{
@@ -1772,7 +1772,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			void onUpdate(RenderBaseObject* object) override
 			{
 				IndexBuffer* buffer = (IndexBuffer*)object;
@@ -1782,25 +1782,25 @@ namespace slib
 				}
 				GL_BASE::updateIndexBuffer(handle, m_updatedOffset, (sl_uint8*)(content.getData()) + m_updatedOffset, m_updatedSize);
 			}
-			
+
 		};
-		
+
 		Ref<IndexBufferInstance> _createIndexBufferInstance(IndexBuffer* buffer) override
 		{
 			return GLIndexBufferInstance::create(this, buffer);
 		}
-		
+
 		class GLTextureInstance : public TextureInstance
 		{
 		public:
 			sl_uint32 handle;
-			
+
 		public:
 			GLTextureInstance()
 			{
 				handle = -1;
 			}
-			
+
 			~GLTextureInstance()
 			{
 				Ref<RenderEngine> engine = getEngine();
@@ -1808,7 +1808,7 @@ namespace slib
 					((GL_ENGINE*)(engine.get()))->m_listDirtyTextureHandles.add(handle);
 				}
 			}
-			
+
 		public:
 			static Ref<GLTextureInstance> create(GL_ENGINE* engine, Texture* texture)
 			{
@@ -1828,7 +1828,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			void onUpdate(RenderBaseObject* object) override
 			{
 				Texture* texture = (Texture*)object;
@@ -1839,9 +1839,9 @@ namespace slib
 				GL_BASE::bindTexture2D(handle);
 				GL_BASE::updateTexture2D(m_updatedRegion.left, m_updatedRegion.top, m_updatedRegion.getWidth(), m_updatedRegion.getHeight(), content, m_updatedRegion.left, m_updatedRegion.top);
 			}
-			
+
 		};
-		
+
 		class GLNamedTexture : public EngineTexture
 		{
 		public:
@@ -1849,13 +1849,13 @@ namespace slib
 			sl_uint32 m_target;
 			sl_uint32 m_name;
 			sl_bool m_flagDeleteOnRelease;
-			
+
 		public:
 			GLNamedTexture(GL_ENGINE* engine, sl_uint32 target, sl_uint32 name, sl_bool flagDeleteOnRelease):
 		 m_engine(engine), m_target(target), m_name(name), m_flagDeleteOnRelease(flagDeleteOnRelease)
 			{
 			}
-			
+
 			~GLNamedTexture()
 			{
 				Ref<GL_ENGINE> engine = m_engine;
@@ -1865,7 +1865,7 @@ namespace slib
 					}
 				}
 			}
-			
+
 		public:
 			Ref<Bitmap> getSource() override
 			{
@@ -1873,32 +1873,32 @@ namespace slib
 			}
 
 		};
-		
+
 		Ref<TextureInstance> _createTextureInstance(Texture* texture) override
 		{
 			return GLTextureInstance::create(this, texture);
 		}
-		
+
 		sl_bool _beginScene() override
 		{
 			freeDirtyHandles();
 			return sl_true;
 		}
-		
+
 		void _endScene() override
 		{
 		}
-		
+
 		void _setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) override
 		{
 			GL_BASE::setViewport(x, y, width, height);
 		}
-		
+
 		void _clear(const RenderClearParam& param) override
 		{
 			GL_BASE::clear(param);
 		}
-		
+
 		void _setDepthStencilState(RenderDepthStencilState* state) override
 		{
 			const RenderDepthStencilParam& param = state->getParam();
@@ -1912,7 +1912,7 @@ namespace slib
 			const RenderRasterizerParam& param = state->getParam();
 			GL_BASE::setCullFace(param.flagCull, param.flagCullCCW);
 		}
-		
+
 		void _setBlendState(RenderBlendState* state) override
 		{
 			GL_BASE::setBlending(state->getParam());
@@ -1925,7 +1925,7 @@ namespace slib
 			}
 			m_currentSamplerStates[samplerNo] = state;
 		}
-		
+
 		sl_bool _beginProgram(RenderProgram* program, RenderProgramInstance* _instance, RenderProgramState** ppState) override
 		{
 			GLRenderProgramInstance* instance = (GLRenderProgramInstance*)_instance;
@@ -1939,11 +1939,11 @@ namespace slib
 			m_currentProgram = program;
 			return sl_true;
 		}
-		
+
 		void _endProgram() override
 		{
 		}
-		
+
 		void _resetCurrentBuffers() override
 		{
 			m_currentProgram.setNull();
@@ -1953,7 +1953,7 @@ namespace slib
 			m_currentVertexBufferInstance.setNull();
 			m_currentIndexBufferInstance.setNull();
 		}
-		
+
 		void _drawPrimitive(EnginePrimitive* primitive) override
 		{
 			if (m_currentProgram.isNull()) {
@@ -1962,7 +1962,7 @@ namespace slib
 			if (m_currentProgramInstance.isNull()) {
 				return;
 			}
-			
+
 			GLVertexBufferInstance* vb = static_cast<GLVertexBufferInstance*>(primitive->vertexBufferInstance.get());
 			if (!vb) {
 				return;
@@ -1973,7 +1973,7 @@ namespace slib
 				ib = (GLIndexBufferInstance*)(primitive->indexBufferInstance.get());
 				ib->doUpdate(primitive->indexBuffer.get());
 			}
-			
+
 			sl_bool flagResetProgramState = sl_false;
 			if (m_currentProgramInstanceRendering != m_currentProgramInstance) {
 				flagResetProgramState = sl_true;
@@ -1987,7 +1987,7 @@ namespace slib
 					GL_BASE::bindIndexBuffer(ib->handle);
 				}
 			}
-			
+
 			if (flagResetProgramState) {
 				if (m_currentProgramInstanceRendering.isNotNull()) {
 					m_currentProgramRendering->onPostRender(this, m_currentProgramInstanceRendering.get(), m_currentProgramInstanceRendering->state.get());
@@ -1996,14 +1996,14 @@ namespace slib
 				m_currentProgramRendering = m_currentProgram;
 				m_currentProgram->onPreRender(this, m_currentProgramInstance.get(), m_currentProgramInstance->state.get());
 			}
-			
+
 			if (ib) {
 				GL_BASE::drawElements(primitive->type, primitive->countElements);
 			} else {
 				GL_BASE::drawPrimitives(primitive->type, primitive->countElements);
 			}
 		}
-		
+
 		void _applyTexture(Texture* texture, TextureInstance* _instance, sl_int32 samplerNo) override
 		{
 			GL_BASE::setActiveSampler(samplerNo);
@@ -2049,24 +2049,24 @@ namespace slib
 			}
 			m_currentInputLayout = layout;
 		}
-		
+
 		void _setLineWidth(sl_real width) override
 		{
 			GL_BASE::setLineWidth(width);
 		}
-		
+
 		Ref<Texture> createTextureFromName(sl_uint32 target, sl_uint32 name, sl_bool flagDeleteOnRelease) override
 		{
 			return new GLNamedTexture(this, target, name, flagDeleteOnRelease);
 		}
-		
+
 	};
-	
+
 	Ref<GLRenderEngine> GL_BASE::createEngine()
 	{
 		return new GL_ENGINE();
 	}
-	
+
 }
 
 #endif

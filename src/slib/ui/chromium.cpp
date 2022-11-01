@@ -66,22 +66,22 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(ChromiumView, WebView)
-	
+
 	ChromiumView::ChromiumView()
 	{
 	}
-	
+
 	ChromiumView::~ChromiumView()
 	{
 	}
-	
+
 #ifdef SUPPORT_CHROMIUM
-	
+
 	namespace priv
 	{
-		
+
 #ifdef SLIB_UI_IS_MACOS
 		namespace ui_core
 		{
@@ -89,21 +89,21 @@ namespace slib
 			void SetCustomQuitApp(const Function<void()>& func);
 		}
 #endif
-		
+
 		namespace chromium
 		{
-			
+
 #ifdef SLIB_UI_IS_WIN32
 			typedef Win32_ViewInstance BaseViewInstance;
 #endif
 #ifdef SLIB_UI_IS_MACOS
 			typedef macOS_ViewInstance BaseViewInstance;
 #endif
-			
+
 			class ChromiumApp;
 			class ChromiumHandler;
 			class ChromiumViewInstance;
-			
+
 			class StaticContext
 			{
 			public:
@@ -113,56 +113,56 @@ namespace slib
 #ifdef SLIB_UI_IS_MACOS
 				HashMap< void*, WeakRef<ChromiumViewInstance> > instances;
 #endif
-				
+
 			public:
 				StaticContext();
-				
+
 				~StaticContext();
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 			class ChromiumSendMessageHandler : public CefV8Handler
 			{
 			public:
 				ChromiumApp* app;
 				CefRefPtr<CefBrowser> browser;
 				CefRefPtr<CefFrame> frame;
-				
+
 			public:
 				bool Execute(const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception) override;
-				
+
 			private:
 				IMPLEMENT_REFCOUNTING(ChromiumSendMessageHandler);
 			};
-			
+
 			class ChromiumApp : public CefApp, public CefBrowserProcessHandler, public CefRenderProcessHandler
 			{
 			public:
 				StaticContext* m_context;
-				
+
 			public:
 				ChromiumApp()
 				{
 				}
-				
+
 			public:
 				CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override
 				{
 					return this;
 				}
-				
+
 				CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override
 				{
 					return this;
 				}
-				
+
 				// CefBrowserProcessHandler
 				void OnContextInitialized() override
 				{
 				}
-				
+
 				// CefRenderProcessHandler
 				void OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) override
 				{
@@ -176,11 +176,11 @@ namespace slib
 					slib->SetValue("send", send, V8_PROPERTY_ATTRIBUTE_NONE);
 					global->SetValue("slib", slib, V8_PROPERTY_ATTRIBUTE_NONE);
 				}
-				
+
 			private:
 				IMPLEMENT_REFCOUNTING(ChromiumApp);
 			};
-			
+
 			class SLIB_EXPORT EqualsCefBrowser
 			{
 			public:
@@ -188,9 +188,9 @@ namespace slib
 				{
 					return a->IsSame(b);
 				}
-				
+
 			};
-			
+
 			static String GetString(const CefString& str)
 			{
 				if (str.length()) {
@@ -198,13 +198,13 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			static CefString GetCefString(const StringParam& _str)
 			{
 				StringData16 str(_str);
 				return CefString((typename CefString::char_type*)(str.getData()), str.getLength(), true);
 			}
-			
+
 			static String GetStringValue(CefRefPtr<CefV8Value> value)
 			{
 				if (value.get()) {
@@ -222,7 +222,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			bool ChromiumSendMessageHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception)
 			{
 				if (name == "send" && arguments.size() == 2) {
@@ -233,36 +233,36 @@ namespace slib
 				}
 				return false;
 			}
-			
+
 			class ChromiumViewHelper : public ChromiumView
 			{
 			public:
 				void apply(ChromiumViewInstance* instance, CefWindowInfo& windowInfo);
-				
+
 				friend class ChromiumViewInstance;
 			};
-			
+
 			class OfflineContentHandler : public CefResourceRequestHandler
 			{
 			public:
 				String m_content;
-				
+
 			public:
 				OfflineContentHandler(const String& content): m_content(content)
 				{
 				}
-				
+
 			public:
 				CefRefPtr<CefResourceHandler> GetResourceHandler(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request) override
 				{
 					CefRefPtr<CefStreamReader> stream = CefStreamReader::CreateForData(m_content.getData(), m_content.getLength());
 					return new CefStreamResourceHandler("text/html", stream);
 				}
-				
+
 			private:
 				IMPLEMENT_REFCOUNTING(OfflineContentHandler);
 			};
-			
+
 			class ChromiumViewInstance : public BaseViewInstance, public IWebViewInstance
 			{
 				SLIB_DECLARE_OBJECT
@@ -406,7 +406,7 @@ namespace slib
 						host->StopFinding(true);
 					}
 				}
-				
+
 #ifdef SLIB_UI_IS_WIN32
 				LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
 				{
@@ -428,7 +428,7 @@ namespace slib
 					return Win32_ViewInstance::processWindowMessage(msg, wParam, lParam);
 				}
 #endif
-				
+
 				void closeBrowsers()
 				{
 					CefBrowserHost* host = m_host.get();
@@ -441,7 +441,7 @@ namespace slib
 						m_browser = sl_null;
 					}
 				}
-				
+
 				void onCreatedBrowser(CefRefPtr<CefBrowser> browser)
 				{
 					m_browser = browser;
@@ -456,7 +456,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				CefRefPtr<CefResourceRequestHandler> onInterceptNavigationRequest(CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request)
 				{
 					Ref<ChromiumViewHelper> helper = getHelper();
@@ -471,7 +471,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void onLoadEnd(const CefString& url)
 				{
 					Ref<ChromiumViewHelper> helper = getHelper();
@@ -479,7 +479,7 @@ namespace slib
 						helper->dispatchFinishLoad(GetString(url), sl_false);
 					}
 				}
-				
+
 				void onLoadError(const CefString& url, const CefString& errorText)
 				{
 					Ref<ChromiumViewHelper> helper = getHelper();
@@ -487,7 +487,7 @@ namespace slib
 						helper->dispatchFinishLoad(GetString(url), sl_true);
 					}
 				}
-				
+
 				void onReceivedMessage(const String& name, const String& param)
 				{
 					Ref<ChromiumViewHelper> helper = getHelper();
@@ -495,11 +495,11 @@ namespace slib
 						helper->dispatchMessageFromJavaScript(name, param);
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(ChromiumViewInstance, BaseViewInstance)
-			
+
 			class ChromiumHandler : public CefClient, public CefDisplayHandler, public CefLifeSpanHandler, public CefLoadHandler, public CefRequestHandler, public CefKeyboardHandler
 			{
 			public:
@@ -549,17 +549,17 @@ namespace slib
 				{
 					return this;
 				}
-				
+
 				CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override
 				{
 					return this;
 				}
-				
+
 				CefRefPtr<CefLoadHandler> GetLoadHandler() override
 				{
 					return this;
 				}
-				
+
 				CefRefPtr<CefRequestHandler> GetRequestHandler() override
 				{
 					return this;
@@ -569,7 +569,7 @@ namespace slib
 				{
 					return this;
 				}
-				
+
 				// CefDisplayHandler
 				void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) override
 				{
@@ -578,7 +578,7 @@ namespace slib
 						instance->m_title = GetString(title);
 					}
 				}
-				
+
 				// CefLifeSpanHandler
 				bool OnBeforePopup(
 					CefRefPtr<CefBrowser> browser,
@@ -597,7 +597,7 @@ namespace slib
 				{
 					return false;
 				}
-				
+
 				void OnAfterCreated(CefRefPtr<CefBrowser> browser) override
 				{
 					Ref<ChromiumViewInstance> instance = getInstance(browser);
@@ -609,7 +609,7 @@ namespace slib
 						context->browsers.addIfNotExist(browser);
 					}
 				}
-				
+
 				void OnBeforeClose(CefRefPtr<CefBrowser> browser) override
 				{
 					StaticContext* context = GetStaticContext();
@@ -623,7 +623,7 @@ namespace slib
 #endif
 					}
 				}
-				
+
 				// CefLoadHandler
 				void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) override
 				{
@@ -632,7 +632,7 @@ namespace slib
 						instance->onLoadEnd(frame->GetURL());
 					}
 				}
-				
+
 				void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) override
 				{
 					Ref<ChromiumViewInstance> instance = getInstance(browser);
@@ -640,7 +640,7 @@ namespace slib
 						instance->onLoadError(failedUrl, errorText);
 					}
 				}
-				
+
 				// CefRequestHandler
 				CefRefPtr<CefResourceRequestHandler> GetResourceRequestHandler(
 					CefRefPtr<CefBrowser> browser,
@@ -660,7 +660,7 @@ namespace slib
 					}
 					return NULL;
 				}
-				
+
 				bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefProcessId source_process, CefRefPtr<CefProcessMessage> message) override
 				{
 					String name = GetString(message->GetName());
@@ -746,7 +746,7 @@ namespace slib
 			private:
 				IMPLEMENT_REFCOUNTING(ChromiumHandler);
 			};
-			
+
 			ChromiumViewInstance::ChromiumViewInstance()
 			{
 				m_flagLoadOffline = sl_false;
@@ -754,13 +754,13 @@ namespace slib
 				m_flagResizeAfterCreate = sl_false;
 				m_flagReloadAfterCreate = sl_false;
 			}
-			
+
 			ChromiumViewInstance::~ChromiumViewInstance()
 			{
 				closeBrowsers();
 			}
-			
-			
+
+
 			void ChromiumViewHelper::apply(ChromiumViewInstance* instance, CefWindowInfo& windowInfo)
 			{
 				StaticContext* context = GetStaticContext();
@@ -771,18 +771,18 @@ namespace slib
 				CefBrowserSettings browser_settings;
 				CefBrowserHost::CreateBrowser(windowInfo, context->handler, GetCefString(m_urlOrigin), browser_settings, NULL, NULL);
 			}
-			
-			
+
+
 			StaticContext::StaticContext(): app(new ChromiumApp), handler(new ChromiumHandler)
 			{
 				app->m_context = this;
 				handler->m_context = this;
 			}
-			
+
 			StaticContext::~StaticContext()
 			{
 			}
-			
+
 			static void CloseBrowsers()
 			{
 #ifndef SLIB_UI_IS_MACOS
@@ -808,13 +808,13 @@ namespace slib
 					}
 				}
 			}
-			
+
 #ifdef SLIB_UI_IS_MACOS
 			static void ChromiumRunLoop()
 			{
 				CefRunMessageLoop();
 			}
-			
+
 			static void QuitApp()
 			{
 				StaticContext* context = GetStaticContext();
@@ -834,17 +834,17 @@ namespace slib
 				}
 			}
 #endif
-			
+
 			static void Startup(CefMainArgs& args, const ChromiumSettings& _settings)
 			{
-				
+
 				printf("Starting Chromium Embeded Framework\n");
-				
+
 #ifdef SLIB_UI_IS_MACOS
 				[SLIBChromiumApplication sharedApplication];
 				ui_core::SetCustomMessageLoop(&ChromiumRunLoop);
 				ui_core::SetCustomQuitApp(&QuitApp);
-				
+
 				CefScopedLibraryLoader library_loader;
 				if (File::exists(System::getMainBundlePath() + "/Contents/Frameworks/Chromium Embedded Framework.framework")) {
 					if (!(library_loader.LoadInMain())) {
@@ -858,12 +858,12 @@ namespace slib
 					}
 				}
 #endif
-				
+
 				StaticContext* context = GetStaticContext();
 				if (!context) {
 					return;
 				}
-				
+
 				// try to execute sub-processes (render, plugin, GPU, etc)
 				int exit_code = CefExecuteProcess(args, context->app, NULL);
 				if (exit_code >= 0) {
@@ -871,15 +871,15 @@ namespace slib
 					exit(exit_code);
 					return;
 				}
-				
+
 				CefEnableHighDPISupport();
-				
+
 				CefSettings settings;
 				settings.no_sandbox = 1;
 				if (_settings.userAgent.isNotEmpty()) {
 					CefString(&(settings.user_agent)) = GetCefString(_settings.userAgent);
 				}
-				
+
 #ifdef SLIB_UI_IS_MACOS
 				{
 					String exe = File::getFileNameOnly(Apple::getStringFromNSString([[NSBundle mainBundle] executablePath]));
@@ -905,11 +905,11 @@ namespace slib
 #else
 				settings.multi_threaded_message_loop = 1;
 #endif
-				
+
 				CefInitialize(args, settings, context->app, NULL);
-				
+
 			}
-			
+
 			static void Shutdown()
 			{
 #ifndef SLIB_UI_IS_MACOS
@@ -927,13 +927,13 @@ namespace slib
 #endif
 				CefShutdown();
 			}
-			
+
 			class CookieVisitor : public CefCookieVisitor
 			{
 			public:
 				List<HttpCookie> cookies;
 				Function<void(const List<HttpCookie>& cookies)> callback;
-				
+
 			public:
 				bool Visit(const CefCookie& cookie, int count, int total, bool& deleteCookie) override
 				{
@@ -954,46 +954,46 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 			private:
 				IMPLEMENT_REFCOUNTING(CookieVisitor);
 			};
-			
+
 			class SetCookieCallback : public CefSetCookieCallback
 			{
 			public:
 				Function<void(sl_bool)> callback;
-				
+
 			public:
 				void OnComplete(bool success) override
 				{
 					callback(success);
 				}
-				
+
 			private:
 				IMPLEMENT_REFCOUNTING(SetCookieCallback);
 			};
-			
+
 			class DeleteCookiesCallback : public CefDeleteCookiesCallback
 			{
 			public:
 				Function<void(sl_uint32)> callback;
-				
+
 			public:
 				void OnComplete(int num_deleted) override
 				{
 					callback(num_deleted);
 				}
-				
+
 			private:
 				IMPLEMENT_REFCOUNTING(DeleteCookiesCallback);
 			};
-			
+
 		}
 	}
-	
+
 	using namespace priv::chromium;
-	
+
 	Ref<ViewInstance> ChromiumView::createNativeWidget(ViewInstance* parent)
 	{
 		StaticContext* context = GetStaticContext();
@@ -1012,19 +1012,19 @@ namespace slib
 		return sl_null;
 #endif
 	}
-	
+
 	Ptr<IWebViewInstance> ChromiumView::getWebViewInstance()
 	{
 		return CastRef<ChromiumViewInstance>(getViewInstance());
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ChromiumSettings)
-	
+
 	ChromiumSettings::ChromiumSettings()
 	{
 	}
-	
+
 #ifdef SLIB_PLATFORM_IS_WIN32
 	void Chromium::startup(void* hInstance)
 	{
@@ -1036,7 +1036,7 @@ namespace slib
 		startup(argc, argv, ChromiumSettings());
 	}
 #endif
-	
+
 #ifdef SLIB_PLATFORM_IS_WIN32
 	void Chromium::startup(void* hInstance, const ChromiumSettings& settings)
 #else
@@ -1050,16 +1050,16 @@ namespace slib
 #endif
 		Startup(args, settings);
 	}
-	
+
 	void Chromium::shutdown()
 	{
 		Shutdown();
 	}
-	
+
 	void Chromium::clearCache()
 	{
 	}
-	
+
 	void Chromium::getAllCookies(const Function<void(const List<HttpCookie>& cookies)>& callback)
 	{
 		CefRefPtr<CefCookieManager> refManager = CefCookieManager::GetGlobalManager(nullptr);
@@ -1075,7 +1075,7 @@ namespace slib
 		}
 		callback(sl_null);
 	}
-	
+
 	void Chromium::getAllCookies(const String& url, const Function<void(const List<HttpCookie>& cookies)>& callback)
 	{
 		CefRefPtr<CefCookieManager> refManager = CefCookieManager::GetGlobalManager(nullptr);
@@ -1091,7 +1091,7 @@ namespace slib
 		}
 		callback(sl_null);
 	}
-	
+
 	void Chromium::setCookie(const String& url, const HttpCookie& h, const Function<void(sl_bool flagSuccess)>& callback)
 	{
 		CefRefPtr<CefCookieManager> refManager = CefCookieManager::GetGlobalManager(nullptr);
@@ -1128,7 +1128,7 @@ namespace slib
 		}
 		callback(sl_false);
 	}
-	
+
 	void Chromium::deleteCookies(const String& url, const String& name, const Function<void(sl_uint32 countDeleted)>& callback)
 	{
 		CefRefPtr<CefCookieManager> refManager = CefCookieManager::GetGlobalManager(nullptr);
@@ -1144,7 +1144,7 @@ namespace slib
 		}
 		callback(0);
 	}
-	
+
 	void Chromium::clearCookies()
 	{
 		CefRefPtr<CefCookieManager> refManager = CefCookieManager::GetGlobalManager(nullptr);
@@ -1153,61 +1153,61 @@ namespace slib
 			manager->FlushStore(nullptr);
 		}
 	}
-	
+
 #else
-	
+
 	Ref<ViewInstance> ChromiumView::createNativeWidget(ViewInstance* parent)
 	{
 		return WebView::createNativeWidget(parent);
 	}
-	
+
 	Ptr<IWebViewInstance> ChromiumView::getWebViewInstance()
 	{
 		return WebView::getWebViewInstance();
 	}
-	
+
 	void Chromium::startup(int argc, const void* argv)
 	{
 	}
-	
+
 	void Chromium::startup(int argc, const void* argv, const ChromiumSettings& settings)
 	{
 	}
-	
+
 	void Chromium::shutdown()
 	{
 	}
-	
+
 	void Chromium::clearCache()
 	{
 	}
-	
+
 	void Chromium::getAllCookies(const Function<void(const List<HttpCookie>& cookies)>& callback)
 	{
 		callback(sl_null);
 	}
-	
+
 	void Chromium::getAllCookies(const String& url, const Function<void(const List<HttpCookie>& cookies)>& callback)
 	{
 		callback(sl_null);
 	}
-	
+
 	void Chromium::setCookie(const String& url, const HttpCookie& cookie, const Function<void(sl_bool flagSuccess)>& callback)
 	{
 		callback(sl_false);
 	}
-	
+
 	void Chromium::deleteCookies(const String& url, const String& name, const Function<void(sl_uint32 countDeleted)>& callback)
 	{
 		callback(0);
 	}
-	
+
 	void Chromium::clearCookies()
 	{
 	}
-	
+
 #endif
-	
+
 }
 
 #ifdef SLIB_UI_IS_MACOS

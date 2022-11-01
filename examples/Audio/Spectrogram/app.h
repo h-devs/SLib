@@ -9,7 +9,7 @@ class SpectrogramApp : public UIApp
 	SLIB_APPLICATION(SpectrogramApp)
 public:
 	SpectrogramApp();
-	
+
 protected:
 	void onStart() override;
 
@@ -24,7 +24,7 @@ private:
 	Ref<AudioRecorder> m_recorder;
 	Ref<View> m_view;
 	Ref<Thread> m_threadProcess;
-	
+
 	FFT m_fft;
 	Ref<Bitmap> m_bitmapAudio;
 	sl_uint32 m_xBitmap;

@@ -267,7 +267,7 @@ namespace slib
 #ifdef IN
 #undef IN
 #endif
-	
+
 	enum class Country
 	{
 		Unknown = 0,
@@ -530,13 +530,13 @@ namespace slib
 /*
 	 Script Code by ISO 15924 (4 letter)
 */
-	
+
 #define SLIB_LANGUAGE_SCRIPT(CODE) (slib::LanguageScript)(SLIB_MAKE_DWORD((#CODE)[3], (#CODE)[2], (#CODE)[1], (#CODE)[0]))
-	
+
 #define SLIB_DEFINE_LANGUAGE_SCRIPT_CODE(CODE, NAME) \
 	CODE = (int)(SLIB_LANGUAGE_SCRIPT(CODE)), \
 	NAME = CODE
-	
+
 #define SLIB_DEFINE_LANGUAGE_SCRIPT_CODE1(CODE) \
 	CODE = (int)(SLIB_LANGUAGE_SCRIPT(CODE))
 
@@ -741,17 +741,17 @@ namespace slib
 		SLIB_DEFINE_LANGUAGE_SCRIPT_CODE(Zxxx, UnwrittenDocuments),
 		SLIB_DEFINE_LANGUAGE_SCRIPT_CODE(Zyyy, UndeterminedScript),
 		SLIB_DEFINE_LANGUAGE_SCRIPT_CODE(Zzzz, UncodedScript)
-		
+
 	};
 
-	
+
 #define SLIB_LOCALE(LANG, SCRIPT, COUNTRY) SLIB_MAKE_QWORD4(SCRIPT, SLIB_MAKE_DWORD2(COUNTRY, LANG))
 
 	class Locale
 	{
 	public:
 		SLIB_DEFINE_PRIMITIVE_WRAPPER_MEMBERS(Locale, sl_uint64, value)
-	
+
 		enum : sl_uint64 {
 			ar = SLIB_LOCALE(Language::Arabic, LanguageScript::Unknown, Country::Unknown),
 			Arabic = ar,
@@ -814,38 +814,38 @@ namespace slib
 		Locale(Language language, Country country);
 
 		Locale(Language language, LanguageScript script, Country country);
-		
+
 		// [ISO 639-1]-[ISO 3166-1 alpha-2]  or  [ISO 639-1]-[ISO 15924]-[ISO 3166-1 alpha-2])
 		Locale(const StringParam& name);
-		
+
 	public:
 		static const Locale& Unknown;
-		
+
 		sl_bool isValid() const;
-		
+
 		sl_bool isInvalid() const;
-		
-		
+
+
 		Language getLanguage() const;
-		
+
 		void setLanguage(const Language& language);
-		
+
 		// ISO 639-1
 		String getLanguageCode() const;
 
 		String getLanguageName() const;
 
-		
+
 		LanguageScript getScript() const;
-		
+
 		void setScript(const LanguageScript& script);
-		
+
 		// ISO 15924
 		String getScriptCode() const;
-		
-		
+
+
 		Country getCountry() const;
-	
+
 		void setCountry(const Country& country);
 
 		// ISO 3166-1 alpha-2
@@ -855,7 +855,7 @@ namespace slib
 
 		String getCountryLongName() const;
 
-		
+
 		String toString(sl_char8 delimiter='-') const;
 
 		SLIB_DECLARE_CLASS_PARSE_MEMBERS(Locale)
@@ -871,26 +871,26 @@ namespace slib
 
 		// ISO 639-1
 		static void getLanguageCode(Language language, sl_char8* _output);
-		
+
 		// ISO 639-1
 		static String getLanguageCode(Language language);
 
 		static sl_bool isValidLanguageCode(Language language);
-		
+
 
 		// ISO 15924
 		static LanguageScript getScriptFromCode(const sl_char8* code);
 		static LanguageScript getScriptFromCode(const sl_char16* code);
 		static LanguageScript getScriptFromCode(const sl_char32* code);
 		static LanguageScript getScriptFromCode(const StringParam& code);
-		
+
 		// ISO 15924
 		static void getScriptCode(LanguageScript language, sl_char8* _output);
-		
+
 		// ISO 15924
 		static String getScriptCode(LanguageScript language);
-		
-		
+
+
 		static String getCountryName(Country country);
 
 		static String getCountryLongName(Country country);
@@ -903,30 +903,30 @@ namespace slib
 
 		// ISO 3166-1 alpha-2
 		static void getCountryCode(Country country, sl_char8* _output);
-		
+
 		// ISO 3166-1 alpha-2
 		static String getCountryCode(Country country);
 
 		static sl_bool isValidCountryCode(Country country);
-		
+
 	public:
 		static Locale getCurrent();
-		
+
 		static void setCurrent(const Locale& locale);
-		
+
 		static Function<void()> addOnChangeCurrentLocale(const Function<void()>& callback);
-		
+
 		static void removeOnChangeCurrentLocale(const Function<void()>& callback);
 
 		static void dispatchChangeCurrentLocale();
-		
+
 	private:
 		static Locale _getCurrent();
-		
+
 		static void _setupOnChangeCurrentLocale();
-		
+
 	};
-	
+
 }
 
 #endif

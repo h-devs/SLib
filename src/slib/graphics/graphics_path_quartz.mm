@@ -40,10 +40,10 @@ namespace slib
 			{
 			public:
 				CGMutablePathRef path;
-				
+
 			protected:
 				PlatformObject(CGMutablePathRef _path): path(_path) {}
-				
+
 				~PlatformObject()
 				{
 					CGPathRelease(path);
@@ -62,7 +62,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			};
 
 			class GraphicsPathHelper : public GraphicsPath

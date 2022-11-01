@@ -180,7 +180,7 @@ namespace slib
 	{
 		return CastRef<RenderViewInstance>(getViewInstance());
 	}
-	
+
 }
 
 #endif

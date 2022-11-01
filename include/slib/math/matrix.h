@@ -27,16 +27,16 @@
 
 namespace slib
 {
-	
+
 	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
 	class SLIB_EXPORT MatrixT
 	{
 	public:
 		T m[ROWS][COLS];
-	
+
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(MatrixT)
-		
+
 		MatrixT() = default;
 
 		template <class O>
@@ -48,7 +48,7 @@ namespace slib
 				}
 			}
 		}
-	
+
 		template <class O>
 		MatrixT(const O* arr) noexcept
 		{
@@ -102,7 +102,7 @@ namespace slib
 		{
 			(reinterpret_cast<VectorT<COLS, T>*>(this))[index] = v;
 		}
-	
+
 		VectorT<ROWS, T> getColumn(sl_uint32 index) const noexcept
 		{
 			VectorT<ROWS, T> ret;
@@ -118,7 +118,7 @@ namespace slib
 				m[row][index] = v.m[row];
 			}
 		}
-	
+
 		void add(const MatrixT& other) noexcept
 		{
 			for (sl_uint32 row = 0; row < ROWS; row++) {
@@ -192,7 +192,7 @@ namespace slib
 
 		template <sl_uint32 ROWS2>
 		void multiply(const MatrixT<ROWS, ROWS2, T>& m1, const MatrixT<ROWS2, COLS, T>& m2) noexcept;
-		
+
 		MatrixT lerp(const MatrixT& target, float factor) const noexcept
 		{
 			MatrixT ret;
@@ -203,7 +203,7 @@ namespace slib
 			}
 			return ret;
 		}
-	
+
 		sl_bool equals(const MatrixT& other) const noexcept
 		{
 			for (sl_uint32 row = 0; row < ROWS; row++) {
@@ -315,7 +315,7 @@ namespace slib
 		ret.multiply(value);
 		return ret;
 	}
-	
+
 	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
 	SLIB_INLINE MatrixT<ROWS, COLS, T> operator*(T value, const MatrixT<ROWS, COLS, T>& m) noexcept
 	{
@@ -323,7 +323,7 @@ namespace slib
 		ret.multiply(value);
 		return ret;
 	}
-	
+
 	template <sl_uint32 ROWS, sl_uint32 COLS, class T, class O>
 	SLIB_INLINE MatrixT<ROWS, COLS, T>& operator*=(MatrixT<ROWS, COLS, T>& m, const O& value) noexcept
 	{
@@ -336,13 +336,13 @@ namespace slib
 	{
 		return m.multiplyRight(v);
 	}
-	
+
 	template <sl_uint32 ROWS, sl_uint32 COLS, class T>
 	SLIB_INLINE VectorT<COLS, T> operator*(const VectorT<ROWS, T>& v, const MatrixT<ROWS, COLS, T>& m) noexcept
 	{
 		return m.multiplyLeft(v);
 	}
-	
+
 	template <sl_uint32 ROWS, sl_uint32 COLS, sl_uint32 ROWS2, class T>
 	SLIB_INLINE MatrixT<ROWS, COLS, T> operator*(const MatrixT<ROWS, ROWS2, T>& m1, const MatrixT<ROWS2, COLS, T>& m2) noexcept
 	{

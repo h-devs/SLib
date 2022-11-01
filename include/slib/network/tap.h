@@ -47,7 +47,7 @@ namespace slib
 
 	public:
 		sl_bool isOpened();
-		
+
 		void close();
 
 		String getDeviceName();

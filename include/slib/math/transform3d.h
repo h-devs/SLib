@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT Transform3T
 	{
@@ -79,7 +79,7 @@ namespace slib
 			mat.m31 += v.y;
 			mat.m32 += v.z;
 		}
-	
+
 
 		static void setScaling(Matrix4T<T>& _out, T sx, T sy, T sz) noexcept
 		{
@@ -398,7 +398,7 @@ namespace slib
 				0, 0, 1 / (zFar - zNear), 0,
 				0, 0, zNear / (zFar - zNear), 1 };
 		}
-	
+
 		static void lookAt(Matrix4T<T>& _out, const Vector3T<T>& eye, const Vector3T<T>& at, const Vector3T<T>& up) noexcept
 		{
 			Vector3T<T> xAxis, yAxis, zAxis;
@@ -428,7 +428,7 @@ namespace slib
 			lookAt(ret, eye, at, up);
 			return ret;
 		}
-	
+
 		static void makeTransform(Matrix4T<T>& _out, const Vector3T<T>& position, const Vector3T<T>& scaling, const QuaternionT<T>& rotation) noexcept
 		{
 			setRotation(_out, rotation);
@@ -444,7 +444,7 @@ namespace slib
 			makeTransform(ret, position, scaling, rotation);
 			return ret;
 		}
-	
+
 		static void getRotationFromDirToDir(Vector3T<T>& outAxis, T& outAngle, const Vector3T<T>& from, const Vector3T<T>& to) noexcept
 		{
 			Vector3T<T> dirBefore = from;
@@ -454,7 +454,7 @@ namespace slib
 			outAxis = dirBefore.cross(dirNext);
 			outAngle = -Math::arccos(dirBefore.dot(dirNext));
 		}
-	
+
 		static void setQuaternionFromDirToDir(QuaternionT<T>& _out, const Vector3T<T>& from, const Vector3T<T>& to) noexcept
 		{
 			Vector3T<T> dirAxisRotation;
@@ -469,7 +469,7 @@ namespace slib
 			setQuaternionFromDirToDir(ret, from, to);
 			return ret;
 		}
-	
+
 		static void setTransformFromDirToDir(Matrix4T<T>& _out, const Vector3T<T>& from, const Vector3T<T>& to) noexcept
 		{
 			QuaternionT<T> q;
@@ -483,27 +483,27 @@ namespace slib
 			setTransformFromDirToDir(ret, from, to);
 			return ret;
 		}
-	
+
 		static Vector3T<T> getTransformedOrigin(const Matrix4T<T>& transform) noexcept
 		{
 			return { transform.m30, transform.m31, transform.m32 };
 		}
-	
+
 		static Vector3T<T> getTransformedAxisX(const Matrix4T<T>& transform) noexcept
 		{
 			return { transform.m00, transform.m01, transform.m02 };
 		}
-	
+
 		static Vector3T<T> getTransformedAxisY(const Matrix4T<T>& transform) noexcept
 		{
 			return { transform.m10, transform.m11, transform.m12 };
 		}
-	
+
 		static Vector3T<T> getTransformedAxisZ(const Matrix4T<T>& transform) noexcept
 		{
 			return { transform.m20, transform.m21, transform.m22 };
 		}
-	
+
 		static Vector3T<T> projectToViewport(const Matrix4T<T>& matViewProjection, const Vector3T<T>& point) noexcept
 		{
 			Vector4T<T> v = Vector4T<T>(point, 1) * matViewProjection;
@@ -515,7 +515,7 @@ namespace slib
 			}
 			return { v.x / v.w, v.y / v.w, v.z / v.w };
 		}
-	
+
 		static Line3T<T> unprojectViewportPoint(const Matrix4T<T>& matProjection, const Vector2T<T>& pt) noexcept
 		{
 			Vector4T<T> vTest1(1, 1, 1, 1);
@@ -539,7 +539,7 @@ namespace slib
 		{
 			return unprojectScreenPoint(matProjection, Vector2T<T>(pt.x - viewport.left, pt.y - viewport.top), viewport.getWidth(), viewport.getHeight());
 		}
-	
+
 		static Vector2T<T> convertViewportToScreen(const Vector2T<T>& ptViewport, const RectangleT<T>& viewport) noexcept
 		{
 			return {
@@ -567,7 +567,7 @@ namespace slib
 				ptScreen.x * 2 / viewportWidth - 1,
 				1 - ptScreen.y * 2 / viewportHeight };
 		}
-	
+
 		static RectangleT<T> convertViewportToScreen(const RectangleT<T>& rcInViewport, const RectangleT<T>& viewport) noexcept
 		{
 			return {
@@ -605,7 +605,7 @@ namespace slib
 		}
 
 	};
-	
+
 	typedef Transform3T<sl_real> Transform3;
 	typedef Transform3T<float> Transform3f;
 	typedef Transform3T<double> Transform3lf;

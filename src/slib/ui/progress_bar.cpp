@@ -39,7 +39,7 @@ namespace slib
 				Ref<Drawable> defaultTrack;
 				Ref<Drawable> defaultProgress;
 				Ref<Drawable> defaultProgress2;
-				
+
 				StaticContext()
 				{
 					defaultTrack = ColorDrawable::create(Color(220, 220, 220));
@@ -47,20 +47,20 @@ namespace slib
 					defaultProgress2 = ColorDrawable::create(Color(200, 200, 200));
 				}
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 		}
 	}
 
 	using namespace priv::progress_bar;
 
 	SLIB_DEFINE_OBJECT(ProgressBar, View)
-	
+
 	ProgressBar::ProgressBar(LayoutOrientation orientation)
 	{
 		setSavingCanvasState(sl_false);
-		
+
 		m_orientation = orientation;
 		m_value_min = 0;
 		m_value_max = 1;
@@ -70,7 +70,7 @@ namespace slib
 		m_flagDiscrete = sl_false;
 		m_step = 0;
 		m_flagReversed = sl_false;
-		
+
 		StaticContext* s = GetStaticContext();
 		if (s) {
 			m_track = s->defaultTrack;
@@ -78,7 +78,7 @@ namespace slib
 			m_progress2 = s->defaultProgress2;
 		}
 	}
-	
+
 	ProgressBar::~ProgressBar()
 	{
 	}
@@ -87,62 +87,62 @@ namespace slib
 	{
 		return m_orientation;
 	}
-	
+
 	void ProgressBar::setOrientation(LayoutOrientation orientation, UIUpdateMode mode)
 	{
 		m_orientation = orientation;
 		invalidate(mode);
 	}
-	
+
 	sl_bool ProgressBar::isVertical()
 	{
 		return m_orientation == LayoutOrientation::Vertical;
 	}
-	
+
 	void ProgressBar::setVertical(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Vertical, mode);
 	}
-	
+
 	sl_bool ProgressBar::isHorizontal()
 	{
 		return m_orientation == LayoutOrientation::Horizontal;
 	}
-	
+
 	void ProgressBar::setHorizontal(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Horizontal, mode);
 	}
-	
+
 	float ProgressBar::getMinimumValue()
 	{
 		return m_value_min;
 	}
-	
+
 	void ProgressBar::setMinimumValue(float value, UIUpdateMode mode)
 	{
 		m_value_min = value;
 		setValue(m_value, UIUpdateMode::None);
 		invalidate(mode);
 	}
-	
+
 	float ProgressBar::getMaximumValue()
 	{
 		return m_value_max;
 	}
-	
+
 	void ProgressBar::setMaximumValue(float value, UIUpdateMode mode)
 	{
 		m_value_max = value;
 		setValue(m_value, UIUpdateMode::None);
 		invalidate(mode);
 	}
-	
+
 	float ProgressBar::getValue()
 	{
 		return m_value;
 	}
-	
+
 	void ProgressBar::setValue(float value, UIUpdateMode mode)
 	{
 		if (tryChangeValue(value, m_value2, sl_false)) {
@@ -150,12 +150,12 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	float ProgressBar::getSecondaryValue()
 	{
 		return m_value2;
 	}
-	
+
 	void ProgressBar::setSecondaryValue(float value, UIUpdateMode mode)
 	{
 		if (tryChangeValue(m_value, value, sl_true)) {
@@ -163,102 +163,102 @@ namespace slib
 			invalidate(mode);
 		}
 	}
-	
+
 	sl_bool ProgressBar::isDualValues()
 	{
 		return m_flagDualValues;
 	}
-	
+
 	void ProgressBar::setDualValues(sl_bool flagDualValues, UIUpdateMode mode)
 	{
 		m_flagDualValues = flagDualValues;
 		tryChangeValue(m_value, m_value2, sl_false);
 		invalidate(mode);
 	}
-	
+
 	sl_bool ProgressBar::isDiscrete()
 	{
 		return m_flagDiscrete;
 	}
-	
+
 	void ProgressBar::setDiscrete(sl_bool flagDiscrete, UIUpdateMode mode)
 	{
 		m_flagDiscrete = flagDiscrete;
 		setSecondaryValue(m_value2, UIUpdateMode::None);
 		setValue(m_value, mode);
 	}
-	
+
 	float ProgressBar::getStep()
 	{
 		return m_step;
 	}
-	
+
 	void ProgressBar::setStep(float step, UIUpdateMode mode)
 	{
 		m_step = step;
 		setSecondaryValue(m_value2, UIUpdateMode::None);
 		setValue(m_value, mode);
 	}
-	
+
 	sl_bool ProgressBar::isReversed()
 	{
 		return m_flagReversed;
 	}
-	
+
 	void ProgressBar::setReversed(sl_bool flagReversed, UIUpdateMode mode)
 	{
 		m_flagReversed = flagReversed;
 		invalidate(mode);
 	}
-	
+
 	Ref<Drawable> ProgressBar::getTrackDrawable()
 	{
 		return m_track;
 	}
-	
+
 	void ProgressBar::setTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_track = drawable;
 		invalidate(mode);
 	}
-	
+
 	void ProgressBar::setTrackColor(const Color& color, UIUpdateMode mode)
 	{
 		setTrackDrawable(ColorDrawable::create(color), mode);
 	}
-	
+
 	Ref<Drawable> ProgressBar::getProgressDrawable()
 	{
 		return m_progress;
 	}
-	
+
 	void ProgressBar::setProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_progress = drawable;
 		invalidate(mode);
 	}
-	
+
 	void ProgressBar::setProgressColor(const Color &color, UIUpdateMode mode)
 	{
 		setProgressDrawable(ColorDrawable::create(color), mode);
 	}
-	
+
 	Ref<Drawable> ProgressBar::getSecondaryProgressDrawable()
 	{
 		return m_progress2;
 	}
-	
+
 	void ProgressBar::setSecondaryProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_progress2 = drawable;
 		invalidate(mode);
 	}
-	
+
 	void ProgressBar::setSecondaryProgressColor(const Color &color, UIUpdateMode mode)
 	{
 		setSecondaryProgressDrawable(ColorDrawable::create(color), mode);
 	}
-	
+
 	void ProgressBar::onDraw(Canvas* canvas)
 	{
 		Ref<Drawable> track = m_track;
@@ -281,16 +281,16 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void ProgressBar::onUpdateLayout()
 	{
 		sl_bool flagHorizontal = isWidthWrapping();
 		sl_bool flagVertical = isHeightWrapping();
-		
+
 		if (!flagVertical && !flagHorizontal) {
 			return;
 		}
-		
+
 		Ref<Font> font = getFont();
 
 		if (flagHorizontal) {
@@ -320,7 +320,7 @@ namespace slib
 			setLayoutHeight(height);
 		}
 	}
-	
+
 	float ProgressBar::refineValue(float value)
 	{
 		if (m_flagDiscrete) {
@@ -337,7 +337,7 @@ namespace slib
 		}
 		return value;
 	}
-	
+
 	int ProgressBar::tryChangeValue(float& value, float& value2, sl_bool flagChange2)
 	{
 		int ret = 0;
@@ -364,7 +364,7 @@ namespace slib
 		value = newValue;
 		return ret;
 	}
-	
+
 	float ProgressBar::refineStep()
 	{
 		sl_real step = m_step;
@@ -379,7 +379,7 @@ namespace slib
 		}
 		return step;
 	}
-	
+
 	sl_ui_pos ProgressBar::getPositionFromValue(float value)
 	{
 		sl_ui_pos paddingLeft = getPaddingLeft();
@@ -408,7 +408,7 @@ namespace slib
 			return pos + padding;
 		}
 	}
-	
+
 	void ProgressBar::getProgressRegions(UIRect& outProgress, UIRect& outSecondaryProgress)
 	{
 		sl_ui_pos pos1 = getPositionFromValue(m_value);
@@ -450,5 +450,5 @@ namespace slib
 			outSecondaryProgress.right = outProgress.right;
 		}
 	}
-	
+
 }

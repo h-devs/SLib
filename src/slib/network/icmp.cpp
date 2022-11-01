@@ -147,17 +147,17 @@ namespace slib
 	{
 		return MIO::readUint16BE(_rest);
 	}
-	
+
 	void IcmpHeaderFormat::setAddressMaskIdentifier(sl_uint16 id)
 	{
 		MIO::writeUint16BE(_rest, id);
 	}
-	
+
 	sl_uint16 IcmpHeaderFormat::getAddressMaskSequenceNumber() const
 	{
 		return MIO::readUint16BE(_rest + 2);
 	}
-	
+
 	void IcmpHeaderFormat::setAddressMaskSequenceNumber(sl_uint16 sn)
 	{
 		MIO::writeUint16BE(_rest + 2, sn);
@@ -167,7 +167,7 @@ namespace slib
 	{
 		return MIO::readUint16BE(_rest + 2);
 	}
-	
+
 	void IcmpHeaderFormat::setNextHopMTU(sl_uint16 mtu)
 	{
 		MIO::writeUint16BE(_rest + 2, mtu);

@@ -31,97 +31,97 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT BTreeNode
 	{
 	public:
 		sl_uint64 position;
-		
+
 	public:
 		BTreeNode() noexcept
 		: position(0)
 		{}
-		
+
 		BTreeNode(sl_null_t) noexcept
 		: position(0)
 		{}
-		
+
 		BTreeNode(sl_uint64 _position) noexcept
 		: position(_position)
 		{}
-		
+
 		BTreeNode(const BTreeNode& other) noexcept
 		: position(other.position)
 		{}
-	
+
 	public:
 		BTreeNode& operator=(const BTreeNode& other) noexcept
 		{
 			position = other.position;
 			return *this;
 		}
-		
+
 		BTreeNode& operator=(sl_null_t) noexcept
 		{
 			position = 0;
 			return *this;
 		}
-		
+
 		sl_bool operator==(const BTreeNode& other) const noexcept
 		{
 			return position == other.position;
 		}
-	
+
 		sl_bool operator!=(const BTreeNode& other) const noexcept
 		{
 			return position != other.position;
 		}
-	
+
 		sl_bool isNull() const noexcept
 		{
 			return position == 0;
 		}
-	
+
 		sl_bool isNotNull() const noexcept
 		{
 			return position != 0;
 		}
-	
+
 		void setNull() noexcept
 		{
 			position = 0;
 		}
-		
+
 		explicit operator sl_bool() const noexcept
 		{
 			return position != 0;
 		}
 
 	};
-	
+
 	class SLIB_EXPORT BTreePosition
 	{
 	public:
 		BTreeNode node;
 		sl_uint32 item;
-		
+
 	public:
 		BTreePosition() noexcept
 		: item(0)
 		{}
-		
+
 		BTreePosition(sl_null_t) noexcept
 		: item(0)
 		{}
-		
+
 		BTreePosition(const BTreeNode& _node, sl_uint32 _item) noexcept
 		: node(_node), item(_item)
 		{}
-		
+
 		BTreePosition(const BTreePosition& other) noexcept
 		: node(other.node), item(other.item)
 		{}
-	
+
 	public:
 		BTreePosition& operator=(const BTreePosition& other) noexcept
 		{
@@ -129,14 +129,14 @@ namespace slib
 			item = other.item;
 			return *this;
 		}
-		
+
 		BTreePosition& operator=(sl_null_t) noexcept
 		{
 			node.setNull();
 			item = 0;
 			return *this;
 		}
-		
+
 		sl_bool operator==(const BTreePosition& other) const noexcept
 		{
 			return node == other.node && item == other.item;
@@ -151,24 +151,24 @@ namespace slib
 		{
 			return node.isNull();
 		}
-	
+
 		sl_bool isNotNull() const noexcept
 		{
 			return node.isNotNull();
 		}
-	
+
 		void setNull() noexcept
 		{
 			node.setNull();
 		}
-		
+
 		explicit operator sl_bool() const noexcept
 		{
 			return node.isNotNull();
 		}
 
 	};
-	
+
 	template < class KT, class VT, class KEY_COMPARE = Compare<KT> >
 	class SLIB_EXPORT BTree
 	{
@@ -199,23 +199,23 @@ namespace slib
 		{
 			free();
 		}
-			
+
 	public:
 		sl_bool isValid() const noexcept
 		{
 			return m_rootNode != sl_null;
 		}
-	
+
 		sl_uint32 getOrder() const noexcept
 		{
 			return m_order;
 		}
-	
+
 		sl_uint32 getMaxLength() const noexcept
 		{
 			return m_maxLength;
 		}
-		
+
 		sl_uint64 getCountInNode(const BTreeNode& node) const
 		{
 			if (node.isNull()) {
@@ -229,22 +229,22 @@ namespace slib
 				return 0;
 			}
 		}
-		
+
 		sl_uint64 getCount() const
 		{
 			return getCountInNode(getRootNode());
 		}
-		
+
 		sl_bool isEmpty() const
 		{
 			return getCountInNode(getRootNode()) == 0;
 		}
-		
+
 		sl_bool isNotEmpty() const
 		{
 			return getCountInNode(getRootNode()) > 0;
 		}
-		
+
 		sl_bool getAt(const BTreePosition& pos, KT* key = sl_null, VT* value = sl_null) const
 		{
 			NodeDataScope data(this, pos.node);
@@ -261,7 +261,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-						
+
 		sl_bool moveToFirstInNode(const BTreeNode& _node, BTreePosition& pos, KT* key = sl_null, VT* value = sl_null) const
 		{
 			BTreeNode node(_node);
@@ -291,7 +291,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool moveToFirst(BTreePosition& pos, KT* key = sl_null, VT* value = sl_null) const
 		{
 			BTreeNode root = getRootNode();
@@ -300,7 +300,7 @@ namespace slib
 			}
 			return moveToFirstInNode(root, pos, key, value);
 		}
-		
+
 		sl_bool moveToLastInNode(const BTreeNode& _node, BTreePosition& pos, KT* key = sl_null, VT* value = sl_null) const
 		{
 			BTreeNode node(_node);
@@ -336,7 +336,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool moveToLast(BTreePosition& pos, KT* key = sl_null, VT* value = sl_null) const
 		{
 			BTreeNode root = getRootNode();
@@ -492,7 +492,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool findItemInNode(const BTreeNode& node, const KT& key, sl_uint32& pos, BTreeNode& link, VT* outValue = sl_null, sl_uint32* pCountItemsInNode = sl_null) const
 		{
 			pos = 0;
@@ -562,7 +562,7 @@ namespace slib
 			}
 			return findInNode(root, key, pos, outValue);
 		}
-		
+
 		BTreePosition findInsertPositionInNode(const BTreeNode& node, const KT& key) const
 		{
 			BTreeNode link;
@@ -640,7 +640,7 @@ namespace slib
 			}
 			return getNearestInNode(root, key, pLessEqual, pGreaterEqual);
 		}
-		
+
 		sl_bool getEqualRangeInNode(const BTreeNode& node, const KT& key, BTreePosition* pLowerBound = sl_null, BTreePosition* pUpperBound = sl_null) const
 		{
 			NodeDataScope data(this, node);
@@ -757,7 +757,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-	
+
 		sl_bool get(const KT& key, VT* value = sl_null) const
 		{
 			return find(key, sl_null, value);
@@ -841,7 +841,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool replace(const KT& key, const VT& value, BTreePosition* pPos = sl_null) noexcept
 		{
 			BTreeNode root = getRootNode();
@@ -863,7 +863,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool add(const KT& key, const VT& value, BTreePosition* pPos = sl_null) noexcept
 		{
 			BTreeNode root = getRootNode();
@@ -880,7 +880,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool emplace(const KT& key, const VT& value, BTreePosition* pPos = sl_null) noexcept
 		{
 			BTreeNode root = getRootNode();
@@ -897,7 +897,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool removeNode(const BTreeNode& node)
 		{
 			if (node.isNull()) {
@@ -987,7 +987,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_size removeItems(const KT& key)
 		{
 			BTreePosition pos;
@@ -1144,7 +1144,7 @@ namespace slib
 		sl_uint32 m_maxLength;
 		sl_uint64 m_totalCount;
 		KEY_COMPARE m_compare;
-	
+
 	private:
 		NodeData* _createNodeData()
 		{
@@ -1456,7 +1456,7 @@ namespace slib
 		// container-specific implementation
 	private:
 		NodeData* m_rootNode;
-	
+
 	protected:
 		virtual void initialize()
 		{
@@ -1467,12 +1467,12 @@ namespace slib
 		{
 			_removeNode(getRootNode(), sl_false);
 		}
-		
+
 		virtual BTreeNode getRootNode() const
 		{
 			return (sl_size)(m_rootNode);
 		}
-		
+
 		virtual sl_bool setRootNode(BTreeNode node)
 		{
 			if (node.isNull()) {
@@ -1481,7 +1481,7 @@ namespace slib
 			m_rootNode = (NodeData*)(void*)(sl_size)(node.position);
 			return sl_true;
 		}
-		
+
 		// here, "data" must be newly created node data. this function should manage the memory of "data" parameter
 		virtual BTreeNode createNode(NodeData* data)
 		{
@@ -1497,7 +1497,7 @@ namespace slib
 			}
 			return position;
 		}
-		
+
 		virtual sl_bool deleteNode(BTreeNode node)
 		{
 			if (node.isNull()) {
@@ -1507,13 +1507,13 @@ namespace slib
 			_freeNodeData(data);
 			return sl_true;
 		}
-		
+
 		virtual NodeData* readNodeData(const BTreeNode& node) const
 		{
 			NodeData* data = (NodeData*)(void*)(sl_size)(node.position);
 			return data;
 		}
-		
+
 		virtual sl_bool writeNodeData(const BTreeNode& node, NodeData* data)
 		{
 			if (node.isNull()) {
@@ -1536,11 +1536,11 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		virtual void releaseNodeData(NodeData* data)
 		{
 		}
-		
+
 	};
 
 }

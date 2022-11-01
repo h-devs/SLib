@@ -32,15 +32,15 @@ namespace slib
 	{
 	public:
 		static Ref<MediaPlayer> createMediaPlayer(const MediaPlayerParam& param);
-		
+
 		static Ref<MediaPlayer> openUrl(const String& url, const MediaPlayerFlags& flags = MediaPlayerFlags::Default);
-		
+
 		static Ref<MediaPlayer> openFile(const String& filePath, const MediaPlayerFlags& flags = MediaPlayerFlags::Default);
-		
+
 		static Ref<MediaPlayer> openAsset(const String& fileName, const MediaPlayerFlags& flags = MediaPlayerFlags::Default);
-		
+
 	};
-	
+
 }
 
 #endif

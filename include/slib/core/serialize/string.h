@@ -165,7 +165,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	template <class OUTPUT>
 	static sl_bool Serialize(OUTPUT* output, const std::u16string& _in)
 	{

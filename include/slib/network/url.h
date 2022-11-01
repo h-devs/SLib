@@ -45,41 +45,41 @@ namespace slib
 		String path;
 		String query;
 		String fragment;
-		
+
 	public:
 		Url();
-		
+
 		Url(const StringParam& url);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Url)
-		
+
 	public:
 		void parse(const StringParam& url);
-		
+
 		String toString() const;
-		
+
 		HashMap<String, String> getQueryParameters() const;
-		
+
 		void setQueryParameters(const HashMap<String, String>& params);
 
 	public:
 		static String encodePercent(const StringParam& value);
-		
+
 		static String decodePercent(const StringParam& value);
-		
-		
+
+
 		static String encodeUriComponent(const StringParam& value);
-		
+
 		static String decodeUriComponent(const StringParam& value);
-		
-		
+
+
 		static String encodeUri(const StringParam& value);
-		
+
 		static String decodeUri(const StringParam& value);
-		
-		
+
+
 		static String encodeForm(const StringParam& value);
-		
+
 		static String decodeForm(const StringParam& value);
 
 

@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT MIO
 	{
 	public:
@@ -39,7 +39,7 @@ namespace slib
 			char* b = (char*)(&value);
 			a[0] = b[0];
 		}
-	
+
 		static void write16(void* dst, sl_uint16 value) noexcept
 		{
 			char* a = (char*)dst;
@@ -47,7 +47,7 @@ namespace slib
 			a[0] = b[0];
 			a[1] = b[1];
 		}
-	
+
 		static void write32(void* dst, sl_uint32 value) noexcept
 		{
 			char* a = (char*)dst;
@@ -57,7 +57,7 @@ namespace slib
 			a[2] = b[2];
 			a[3] = b[3];
 		}
-	
+
 		static void write64(void* dst, sl_uint64 value) noexcept
 		{
 			char* a = (char*)dst;
@@ -71,12 +71,12 @@ namespace slib
 			a[6] = b[6];
 			a[7] = b[7];
 		}
-	
+
 		static sl_uint8 read8(const void* src) noexcept
 		{
 			return *((char*)src);
 		}
-	
+
 		static sl_uint16 read16(const void* src) noexcept
 		{
 			sl_uint16 value;
@@ -86,7 +86,7 @@ namespace slib
 			a[1] = b[1];
 			return value;
 		}
-	
+
 		static sl_uint32 read32(const void* src) noexcept
 		{
 			sl_uint32 value;
@@ -98,7 +98,7 @@ namespace slib
 			a[3] = b[3];
 			return value;
 		}
-	
+
 		static sl_uint64 read64(const void* src) noexcept
 		{
 			sl_uint64 value;
@@ -114,7 +114,7 @@ namespace slib
 			a[7] = b[7];
 			return value;
 		}
-	
+
 
 		static sl_int8 readInt8(const void* src) noexcept
 		{
@@ -135,7 +135,7 @@ namespace slib
 		{
 			write8(dst, v);
 		}
-	
+
 
 		static sl_int16 readInt16LE(const void* src) noexcept
 		{
@@ -192,7 +192,7 @@ namespace slib
 				writeInt16LE(dst, v);
 			}
 		}
-	
+
 
 		static sl_uint16 readUint16LE(const void* src) noexcept
 		{
@@ -247,7 +247,7 @@ namespace slib
 				writeUint16LE(dst, v);
 			}
 		}
-	
+
 
 		static sl_int32 readInt24LE(const void* src) noexcept
 		{
@@ -432,7 +432,7 @@ namespace slib
 				writeInt32LE(dst, v);
 			}
 		}
-	
+
 
 		static sl_uint32 readUint32LE(const void* src) noexcept
 		{
@@ -491,7 +491,7 @@ namespace slib
 				writeUint32LE(dst, v);
 			}
 		}
-	
+
 
 		static sl_int64 readInt64LE(const void* src) noexcept
 		{
@@ -563,7 +563,7 @@ namespace slib
 				writeInt64LE(dst, v);
 			}
 		}
-	
+
 
 		static sl_uint64 readUint64LE(const void* src) noexcept
 		{
@@ -632,7 +632,7 @@ namespace slib
 				writeUint64LE(dst, v);
 			}
 		}
-	
+
 
 		static float readFloatLE(const void* src) noexcept
 		{
@@ -683,7 +683,7 @@ namespace slib
 				writeFloatLE(dst, v);
 			}
 		}
-	
+
 
 		static double readDoubleLE(const void* src) noexcept
 		{
@@ -734,7 +734,7 @@ namespace slib
 				writeDoubleLE(dst, v);
 			}
 		}
-	
+
 
 		static void increaseBE(void* _p, sl_size n) noexcept
 		{
@@ -759,7 +759,7 @@ namespace slib
 				n--;
 			}
 		}
-		
+
 	};
 
 }

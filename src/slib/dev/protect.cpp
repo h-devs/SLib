@@ -60,7 +60,7 @@ namespace slib
 		return sl_false;
 	}
 
-	
+
 	sl_bool MemoryProtection::setNoAccess(const void* address, sl_size size)
 	{
 		return setProtection(address, size, sl_false, sl_false, sl_false);
@@ -70,7 +70,7 @@ namespace slib
 	{
 		return setProtection(address, size, sl_false, sl_false, sl_true);
 	}
-	
+
 	sl_bool MemoryProtection::setReadWrite(const void* address, sl_size size)
 	{
 		return setProtection(address, size, sl_false, sl_true, sl_true);
@@ -80,7 +80,7 @@ namespace slib
 	{
 		return setProtection(address, size, sl_false, sl_true, sl_true, sl_true);
 	}
-	
+
 	sl_bool MemoryProtection::setExecute(const void* address, sl_size size)
 	{
 		return setProtection(address, size, sl_true, sl_false, sl_false);
@@ -90,7 +90,7 @@ namespace slib
 	{
 		return setProtection(address, size, sl_true, sl_false, sl_true);
 	}
-	
+
 	sl_bool MemoryProtection::setExecuteReadWrite(const void* address, sl_size size)
 	{
 		return setProtection(address, size, sl_true, sl_true, sl_true);

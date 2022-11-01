@@ -489,7 +489,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	float Math::normalizeDegree(float v) noexcept
 	{
 		return priv::math::normalizeDegree(v);
@@ -544,29 +544,29 @@ namespace slib
 	{
 		return (randomInt() % 10000) / 10000.0;
 	}
-	
+
 	sl_uint32 Math::randomInt() noexcept
 	{
 		return ::rand();
 	}
-	
+
 	double Math::randomByTime() noexcept
 	{
 		return (randomIntByTime() % 10000) / 10000.0;
 	}
-	
+
 	sl_uint32 Math::randomIntByTime() noexcept
 	{
 		sl_uint32 dw = System::getTickCount();
 		::srand(dw);
 		return ::rand();
 	}
-	
+
 	void Math::srand(sl_uint32 seed) noexcept
 	{
 		::srand(seed);
 	}
-	
+
 	void Math::randomMemory(void* _mem, sl_size size) noexcept
 	{
 		if (!size) {
@@ -741,7 +741,7 @@ namespace slib
 		num |= (num >> 16);
 		return num + 1;
 	}
-	
+
 
 	sl_uint64 Math::roundUpToPowerOfTwo(sl_uint64 num) noexcept
 	{
@@ -754,7 +754,7 @@ namespace slib
 		num |= (num >> 32);
 		return num + 1;
 	}
-	
+
 	sl_uint32 Math::getMostSignificantBits(sl_uint32 n) noexcept
 	{
 		sl_uint32 ret = 0;
@@ -857,7 +857,7 @@ namespace slib
 			return getLeastSignificantBits(SLIB_GET_DWORD1(n)) + 32;
 		}
 	}
-	
+
 	void Math::mul32(sl_uint32 a, sl_uint32 b, sl_uint32& o_high, sl_uint32& o_low) noexcept
 	{
 #if defined(SLIB_COMPILER_IS_VC)

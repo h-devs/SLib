@@ -34,7 +34,7 @@
 
 namespace slib
 {
-	
+
 	template <class HASH>
 	class SLIB_EXPORT MGF1
 	{
@@ -77,7 +77,7 @@ namespace slib
 		}
 
 	};
-	
+
 }
 
 #endif

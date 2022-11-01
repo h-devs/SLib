@@ -34,94 +34,94 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuth1_AccessToken)
-	
+
 	SLIB_DEFINE_JSON_MEMBERS(OAuth1_AccessToken, token, secret)
-	
+
 	OAuth1_AccessToken::OAuth1_AccessToken()
 	{
 	}
-	
+
 	OAuth1_AccessToken::OAuth1_AccessToken(const String& _token, const String& _tokenSecret)
 	 : token(_token), secret(_tokenSecret)
 	{
 	}
-	
+
 	sl_bool OAuth1_AccessToken::isValid() const
 	{
 		return token.isNotEmpty() && secret.isNotEmpty();
 	}
-	
+
 	void OAuth1_AccessToken::setResponse(const HashMap<String, String>& params)
 	{
 		token = params["oauth_token"];
 		secret = params["oauth_token_secret"];
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuth1_AuthorizationRequestParam)
-	
+
 	OAuth1_AuthorizationRequestParam::OAuth1_AuthorizationRequestParam()
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuth1_AccessTokenResult)
-	
+
 	OAuth1_AccessTokenResult::OAuth1_AccessTokenResult()
 	{
 		flagSuccess = sl_false;
 	}
-	
+
 	void OAuth1_AccessTokenResult::setResponse(const HashMap<String, String>& params)
 	{
 		response = params;
 		accessToken.setResponse(params);
 		flagSuccess = accessToken.isValid();
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuth1_LoginResult)
-	
+
 	OAuth1_LoginResult::OAuth1_LoginResult()
 	{
 		flagCancel = sl_false;
 		flagCache = sl_false;
 	}
-	
+
 	void OAuth1_LoginResult::parseRedirectUrl(const String& _url)
 	{
 		Url url(_url);
-		
+
 		HashMap<String, String> params = HttpRequest::parseQueryParameters(url.query);
-		
+
 		requestToken = params.getValue_NoLock("oauth_token");
 		verifier  = params.getValue_NoLock("oauth_verifier");
-		
+
 		response = params;
-		
+
 		flagSuccess = requestToken.isNotEmpty() && verifier.isNotEmpty();
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuth1_Param)
-	
+
 	OAuth1_Param::OAuth1_Param()
 	{
 		requestTokenMethod = HttpMethod::POST;
 		accessTokenMethod = HttpMethod::POST;
 	}
-	
+
 	SLIB_DEFINE_OBJECT(OAuth1, Object)
-	
+
 	OAuth1::OAuth1(const OAuth1_Param& param)
 	{
 		m_preferenceName = param.preferenceName;
 		restore();
-		
+
 		m_consumerKey = param.consumerKey;
 		m_consumerSecret = param.consumerSecret;
 		if (param.accessToken.isValid()) {
 			m_accessToken = param.accessToken;
 		}
-		
+
 		m_requestTokenMethod = param.requestTokenMethod;
 		m_requestTokenUrl = param.requestTokenUrl;
 		m_authenticateUrl = param.authenticateUrl;
@@ -130,16 +130,16 @@ namespace slib
 		m_callbackUrl = param.callbackUrl;
 		m_flagLogErrors = sl_true;
 	}
-	
+
 	OAuth1::~OAuth1()
 	{
 	}
-	
+
 	Shared<OAuth1_AccessToken> OAuth1::getAccessToken()
 	{
 		return m_accessToken;
 	}
-	
+
 	void OAuth1::setAccessToken(const OAuth1_AccessToken& accessToken)
 	{
 		if (accessToken.isValid()) {
@@ -149,7 +149,7 @@ namespace slib
 		}
 		save();
 	}
-	
+
 	void OAuth1::setAccessToken(const String& token, const String& secret)
 	{
 		if (token.isNotEmpty() && secret.isNotEmpty()) {
@@ -159,13 +159,13 @@ namespace slib
 		}
 		save();
 	}
-	
+
 	void OAuth1::clearAccessToken()
 	{
 		m_accessToken.setNull();
 		save();
 	}
-	
+
 	String OAuth1::getAccessTokenKey()
 	{
 		Shared<OAuth1_AccessToken> accessToken = m_accessToken;
@@ -174,7 +174,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String OAuth1::getAccessTokenSecret()
 	{
 		Shared<OAuth1_AccessToken> accessToken = m_accessToken;
@@ -188,17 +188,17 @@ namespace slib
 	{
 		return m_callbackUrl;
 	}
-	
+
 	void OAuth1::setCallbackUrl(const String& url)
 	{
 		m_callbackUrl = url;
 	}
-	
+
 	void OAuth1::setLoggingErrors(sl_bool flag)
 	{
 		m_flagLogErrors = flag;
 	}
-	
+
 	String OAuth1::generateAuthorization(HttpMethod _method, const String& _url, HashMap<String, String>& parameters, const String& nonce, sl_int64 _timestamp, const String& token, const String& tokenSecret, const String& callbackUrl)
 	{
 		String consumerKey = Url::encodePercent(m_consumerKey);
@@ -228,7 +228,7 @@ namespace slib
 		if (callbackUrl.isNotEmpty()) {
 			mapParams.add_NoLock(Pair<String, String>("oauth_callback", Url::encodePercent(callbackUrl)), sl_true);
 		}
-		
+
 		StringBuffer sbParams;
 		{
 			sl_bool flagFirstParam = sl_true;
@@ -243,7 +243,7 @@ namespace slib
 				sbParams.add(item.key.second);
 			}
 		}
-		
+
 		StringBuffer sbSignature;
 		sbSignature.add(method);
 		sbSignature.addStatic("&");
@@ -280,7 +280,7 @@ namespace slib
 		}
 		return sbAuthorization.merge();
 	}
-	
+
 	void OAuth1::authorizeRequest(UrlRequestParam& param, const String& token, const String& tokenSecret, const String& callbackUrl)
 	{
 		char bufNonce[32];
@@ -292,7 +292,7 @@ namespace slib
 		for (auto& item : param.parameters) {
 			parameters.add_NoLock(item.key, item.value.getString());
 		}
-		
+
 		if (param.method == HttpMethod::POST) {
 			String type = param.requestHeaders.getValue(HttpHeader::ContentType);
 			sl_reg index = type.indexOf(';');
@@ -307,11 +307,11 @@ namespace slib
 				}
 			}
 		}
-		
+
 		String authorization = generateAuthorization(param.method, param.url, parameters, nonce, timestamp, token, tokenSecret, callbackUrl);
 		param.requestHeaders.add_NoLock(HttpHeader::Authorization, authorization);
 	}
-	
+
 	void OAuth1::authorizeRequest(UrlRequestParam& param)
 	{
 		Shared<OAuth1_AccessToken> token = m_accessToken;
@@ -319,7 +319,7 @@ namespace slib
 			authorizeRequest(param, token->token, token->secret, sl_null);
 		}
 	}
-	
+
 	void OAuth1::getLoginUrl(const OAuth1_AuthorizationRequestParam& param, const Function<void(const String& url, const String& requestToken, const String& requestTokenSecret)>& onComplete)
 	{
 		String callbackUrl = param.callbackUrl;
@@ -354,13 +354,13 @@ namespace slib
 		authorizeRequest(rp, sl_null, sl_null, callbackUrl);
 		UrlRequest::send(rp);
 	}
-	
+
 	void OAuth1::getLoginUrl(const Function<void(const String& url, const String& requestToken, const String& requestTokenSecret)>& onComplete)
 	{
 		OAuth1_AuthorizationRequestParam param;
 		getLoginUrl(param, onComplete);
 	}
-	
+
 	void OAuth1::requestAccessToken(const String& verifier, const String& requestToken, const String& requestTokenSecret, const Function<void(OAuth1_AccessTokenResult&)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -384,18 +384,18 @@ namespace slib
 			}
 			onComplete(result);
 		};
-		
+
 		authorizeRequest(rp, requestToken, requestTokenSecret, sl_null);
 		UrlRequest::send(rp);
 	}
-	
+
 	void OAuth1::logUrlRequestError(UrlRequest* request)
 	{
 		if (m_flagLogErrors) {
 			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
 		}
 	}
-	
+
 	void OAuth1::save()
 	{
 		if (m_preferenceName.isEmpty()) {
@@ -409,7 +409,7 @@ namespace slib
 		}
 		Preference::setValue(key, value);
 	}
-	
+
 	void OAuth1::restore()
 	{
 		if (m_preferenceName.isEmpty()) {
@@ -423,24 +423,24 @@ namespace slib
 			m_accessToken = accessToken;
 		}
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthAccessToken)
-	
+
 	SLIB_DEFINE_JSON_MEMBERS(OAuthAccessToken, token, refreshToken, tokenType, scopes, expirationTime, refreshTime)
-	
+
 	OAuthAccessToken::OAuthAccessToken()
 	 : expirationTime(0), refreshTime(0)
 	{}
-	
+
 	OAuthAccessToken::OAuthAccessToken(const String& _token)
 	 : token(_token), expirationTime(0), refreshTime(Time::now())
 	{}
-	
+
 	sl_bool OAuthAccessToken::isValid() const
 	{
 		return token.isNotEmpty() && (expirationTime.isZero() || Time::now() <= expirationTime);
 	}
-	
+
 	sl_bool OAuthAccessToken::isValid(const List<String>& _requiredScopes) const
 	{
 		if (!(isValid())) {
@@ -454,7 +454,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	void OAuthAccessToken::setResponse(const Json& json)
 	{
 		token = json.getItem("access_token").getString();
@@ -476,21 +476,21 @@ namespace slib
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthAuthorizationRequestParam)
-	
+
 	OAuthAuthorizationRequestParam::OAuthAuthorizationRequestParam()
 	{
 		responseType = OAuthResponseType::Token;
 		codeChallengeMethod = OAuthCodeChallengeMethod::S256;
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthResult)
-	
+
 	OAuthResult::OAuthResult()
 	{
 		flagSuccess = sl_false;
 		errorCode = OAuthErrorCode::None;
 	}
-	
+
 	void OAuthResult::setResponse(const Json& json)
 	{
 		flagSuccess = sl_false;
@@ -531,13 +531,13 @@ namespace slib
 	{
 		setResponse(req->getResponseContentAsJson());
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthAccessTokenResult)
-	
+
 	OAuthAccessTokenResult::OAuthAccessTokenResult()
 	{
 	}
-	
+
 	void OAuthAccessTokenResult::setResult(UrlRequest* req)
 	{
 		OAuthResult::setResult(req);
@@ -546,41 +546,41 @@ namespace slib
 			flagSuccess = sl_false;
 		}
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthLoginResult)
-	
+
 	OAuthLoginResult::OAuthLoginResult()
 	{
 		flagCancel = sl_false;
 		flagCache = sl_false;
 		errorCode = OAuthErrorCode::None;
 	}
-	
+
 	void OAuthLoginResult::parseRedirectUrl(const String& _url)
 	{
 		Url url(_url);
-		
+
 		HashMap<String, String> params;
 		params.addAll_NoLock(HttpRequest::parseQueryParameters(url.query));
 		params.addAll_NoLock(HttpRequest::parseQueryParameters(url.fragment));
-		
+
 		OAuthResult::setResponse(params);
 		flagCancel = errorCode == OAuthErrorCode::AccessDenied;
 
 		accessToken.setResponse(params);
-		
+
 		state = params.getValue_NoLock("state");
 		code = params.getValue_NoLock("code");
-		
+
 		response = params;
-		
+
 		if (code.isEmpty() && !(accessToken.isValid())) {
 			flagSuccess = sl_false;
 		}
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthParam)
-	
+
 	OAuthParam::OAuthParam()
 	{
 		accessTokenMethod = HttpMethod::POST;
@@ -592,20 +592,20 @@ namespace slib
 		clientSecretFieldName = strClientSecret;
 		flagLoggingErrors = sl_true;
 	}
-	
+
 	SLIB_DEFINE_OBJECT(OAuth2, Object)
-	
+
 	OAuth2::OAuth2(const OAuthParam& param)
 	{
 		m_preferenceName = param.preferenceName;
 		restore();
-		
+
 		m_clientId = param.clientId;
 		m_clientSecret = param.clientSecret;
 		if (param.accessToken.isValid()) {
 			m_accessToken = param.accessToken;
 		}
-		
+
 		m_authorizeUrl = param.authorizeUrl;
 		m_accessTokenUrl = param.accessTokenUrl;
 		m_accessTokenMethod = param.accessTokenMethod;
@@ -616,19 +616,19 @@ namespace slib
 		m_flagSupportImplicitGrantType = param.flagSupportImplicitGrantType;
 		m_clientIdFieldName = param.clientIdFieldName;
 		m_clientSecretFieldName = param.clientSecretFieldName;
-		
+
 		m_flagLogErrors = param.flagLoggingErrors;
 	}
-	
+
 	OAuth2::~OAuth2()
 	{
 	}
-	
+
 	Shared<OAuthAccessToken> OAuth2::getAccessToken()
 	{
 		return m_accessToken;
 	}
-	
+
 	void OAuth2::setAccessToken(const OAuthAccessToken& accessToken)
 	{
 		if (accessToken.isValid()) {
@@ -638,7 +638,7 @@ namespace slib
 		}
 		save();
 	}
-	
+
 	void OAuth2::setAccessToken(const String& accessToken)
 	{
 		if (accessToken.isNotEmpty()) {
@@ -648,13 +648,13 @@ namespace slib
 		}
 		save();
 	}
-	
+
 	void OAuth2::clearAccessToken()
 	{
 		m_accessToken.setNull();
 		save();
 	}
-	
+
 	String OAuth2::getAccessTokenKey()
 	{
 		Shared<OAuthAccessToken> accessToken = m_accessToken;
@@ -663,7 +663,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	List<String> OAuth2::getAccessTokenScopes()
 	{
 		Shared<OAuthAccessToken> accessToken = m_accessToken;
@@ -672,19 +672,19 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void OAuth2::setLoggingErrors(sl_bool flag)
 	{
 		m_flagLogErrors = flag;
 	}
-	
+
 	void OAuth2::authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token)
 	{
 		if (token.tokenType.isEmpty() || token.tokenType.equalsIgnoreCase("bearer")) {
 			param.requestHeaders.put_NoLock(HttpHeader::Authorization, "Bearer " + token.token);
 		}
 	}
-	
+
 	void OAuth2::authorizeRequest(UrlRequestParam& param)
 	{
 		Shared<OAuthAccessToken> token = m_accessToken;
@@ -692,7 +692,7 @@ namespace slib
 			authorizeRequest(param, *token);
 		}
 	}
-	
+
 	String OAuth2::getLoginUrl(const OAuthAuthorizationRequestParam& param)
 	{
 		Url url(m_authorizeUrl);
@@ -752,7 +752,7 @@ namespace slib
 		url.setQueryParameters(params);
 		return url.toString();
 	}
-	
+
 	String OAuth2::getLoginUrl(OAuthResponseType type, const List<String>& scopes, const String& state)
 	{
 		OAuthAuthorizationRequestParam param;
@@ -761,7 +761,7 @@ namespace slib
 		param.state = state;
 		return getLoginUrl(param);
 	}
-	
+
 	String OAuth2::getLoginUrl(const List<String>& scopes, const String& state)
 	{
 		OAuthAuthorizationRequestParam param;
@@ -769,7 +769,7 @@ namespace slib
 		param.state = state;
 		return getLoginUrl(param);
 	}
-	
+
 	void OAuth2::requestAccessToken(VariantMap& params, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		if (m_clientId.isEmpty() || m_clientSecret.isEmpty()) {
@@ -807,7 +807,7 @@ namespace slib
 		};
 		UrlRequest::send(rp);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
@@ -829,22 +829,22 @@ namespace slib
 		}
 		requestAccessToken(params, onComplete);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromCode(code, redirectUri, sl_null, sl_null, onComplete);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromCode(code, redirectUri, sl_null, sl_null, onComplete);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromCode(const String& code, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromCode(code, sl_null, sl_null, sl_null, onComplete);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromClientCredentials(const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
@@ -857,12 +857,12 @@ namespace slib
 		}
 		requestAccessToken(params, onComplete);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromClientCredentials(const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromClientCredentials(sl_null, onComplete);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
@@ -877,12 +877,12 @@ namespace slib
 		}
 		requestAccessToken(params, onComplete);
 	}
-	
+
 	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromUserPassword(username, password, sl_null, onComplete);
 	}
-	
+
 	void OAuth2::refreshAccessToken(const String& refreshToken, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
@@ -896,7 +896,7 @@ namespace slib
 		}
 		requestAccessToken(params, onComplete);
 	}
-	
+
 	void OAuth2::refreshAccessToken(const String& refreshToken, const Function<void(OAuthAccessTokenResult&)>& onComplete)
 	{
 		refreshAccessToken(refreshToken, sl_null, onComplete);
@@ -930,14 +930,14 @@ namespace slib
 			return verifier;
 		}
 	}
-	
+
 	void OAuth2::logUrlRequestError(UrlRequest* request)
 	{
 		if (m_flagLogErrors) {
 			LogError(TAG, "Error: %s, Status: %s, Response: %s", request->getErrorMessage(), HttpStatusHelper::toString(request->getResponseStatus()), request->getResponseContentAsString());
 		}
 	}
-	
+
 	void OAuth2::save()
 	{
 		if (m_preferenceName.isEmpty()) {
@@ -951,7 +951,7 @@ namespace slib
 		}
 		Preference::setValue(key, value);
 	}
-	
+
 	void OAuth2::restore()
 	{
 		if (m_preferenceName.isEmpty()) {
@@ -969,9 +969,9 @@ namespace slib
 	void OAuth2::onCompleteRequestAccessToken(OAuthAccessTokenResult& result)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthApiResult)
-	
+
 	OAuthApiResult::OAuthApiResult(UrlRequest* _request)
 	{
 		flagSuccess = sl_false;
@@ -980,5 +980,5 @@ namespace slib
 			response = _request->getResponseContentAsJson();
 		}
 	}
-	
+
 }

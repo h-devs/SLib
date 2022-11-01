@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	sl_bool Clipboard::hasText()
 	{
 		GtkClipboard* clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
@@ -37,7 +37,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	String Clipboard::getText()
 	{
 		GtkClipboard* clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
@@ -51,7 +51,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void Clipboard::setText(const StringParam& _text)
 	{
 		GtkClipboard* clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);

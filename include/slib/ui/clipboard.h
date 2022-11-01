@@ -34,11 +34,11 @@ namespace slib
 	{
 	public:
 		static sl_bool hasText();
-		
+
 		static String getText();
-		
+
 		static void setText(const StringParam& text);
-		
+
 	};
 
 }

@@ -28,29 +28,29 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(Process, Object)
-	
+
 	Process::Process():
 		m_status(ProcessStatus::Running),
 		m_exitStatus(-1)
 	{
 	}
-	
+
 	Process::~Process()
 	{
 	}
-	
+
 	ProcessStatus Process::getStatus()
 	{
 		return m_status;
 	}
-	
+
 	int Process::getExitStatus()
 	{
 		return m_exitStatus;
 	}
-	
+
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 
 	Ref<Process> Process::open(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
@@ -62,16 +62,16 @@ namespace slib
 	{
 		return sl_null;
 	}
-	
+
 	void Process::runAsAdmin(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 	}
-	
+
 	sl_bool Process::isCurrentProcessAdmin()
 	{
 		return sl_false;
 	}
-	
+
 	void Process::exec(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 	{
 	}

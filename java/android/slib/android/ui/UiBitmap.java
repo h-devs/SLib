@@ -45,9 +45,9 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 
 public class UiBitmap {
-	
+
 	public Bitmap bitmap;
-	
+
 	private UiBitmap() {}
 
 	public static UiBitmap create(int width, int height) {
@@ -124,7 +124,7 @@ public class UiBitmap {
 		returnTempStorage(buf);
 		return null;
 	}
-	
+
 	public int getWidth() {
 		try {
 			return bitmap.getWidth();
@@ -133,7 +133,7 @@ public class UiBitmap {
 			return 0;
 		}
 	}
-	
+
 	public int getHeight() {
 		try {
 			return bitmap.getHeight();
@@ -142,7 +142,7 @@ public class UiBitmap {
 			return 0;
 		}
 	}
-	
+
 	public void recycle() {
 		try {
 			bitmap.recycle();
@@ -151,7 +151,7 @@ public class UiBitmap {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void read(int x, int y, int width, int height, int[] out, int stride) {
 		try {
 			bitmap.getPixels(out, 0, stride, x, y, width, height);
@@ -159,7 +159,7 @@ public class UiBitmap {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void write(int x, int y, int width, int height, int[] in, int stride) {
 		try {
 			bitmap.setPixels(in, 0, stride, x, y, width, height);
@@ -167,7 +167,7 @@ public class UiBitmap {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public Graphics getCanvas() {
 		try {
 			Canvas canvas = new Canvas(bitmap);
@@ -177,7 +177,7 @@ public class UiBitmap {
 			return null;
 		}
 	}
-	
+
 	void draw(Graphics graphics,
 			float dx1, float dy1, float dx2, float dy2,
 			int sx1, int sy1, int sx2, int sy2, 
@@ -224,7 +224,7 @@ public class UiBitmap {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void draw(Graphics graphics,
 			float dx1, float dy1, float dx2, float dy2,
 			int sx1, int sy1, int sx2, int sy2,
@@ -251,7 +251,7 @@ public class UiBitmap {
 		};
 		draw(graphics, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, alpha, blur, f);
 	}
-	
+
 	static void drawPixels(Graphics graphics,
 			float dx1, float dy1, float dx2, float dy2,
 			int[] pixels, int stride, int sw, int sh,
@@ -290,7 +290,7 @@ public class UiBitmap {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static void drawPixels(Graphics graphics,
 			float dx1, float dy1, float dx2, float dy2,
 			int[] pixels, int stride, int sw, int sh,
@@ -298,7 +298,7 @@ public class UiBitmap {
 	{
 		drawPixels(graphics, dx1, dy1, dx2, dy2, pixels, stride, sw, sh, alpha, blur, null);
 	}
-	
+
 	public static void drawPixels(Graphics graphics,
 			float dx1, float dy1, float dx2, float dy2,
 			int[] pixels, int stride, int sw, int sh,
@@ -317,7 +317,7 @@ public class UiBitmap {
 		};
 		drawPixels(graphics, dx1, dy1, dx2, dy2, pixels, stride, sw, sh, alpha, blur, f);
 	}
-	
+
 	static int[] arrayBufferForUi;
 	static Vector<int[]> arrayBufferForNonUi = new Vector<int[]>();
 	public static int[] getArrayBuffer() {
@@ -342,7 +342,7 @@ public class UiBitmap {
 			return null;
 		}
 	}
-	
+
 	public static void returnArrayBuffer(int[] buffer) {
 		if (buffer != arrayBufferForUi) {
 			if (arrayBufferForNonUi.size() < 5) {

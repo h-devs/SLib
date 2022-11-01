@@ -111,7 +111,7 @@ namespace slib
 		sl_bool writeInt64LE(sl_int64 value) noexcept;
 
 		Memory releaseToMemory() noexcept;
-		
+
 	protected:
 		sl_bool _growSmallSize(sl_size addSize) noexcept;
 

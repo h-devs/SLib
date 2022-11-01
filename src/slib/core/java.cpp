@@ -64,7 +64,7 @@ namespace slib
 			class SharedContext
 			{
 			public:
-				CHashMap< String, JniGlobal<jclass> > classes;				
+				CHashMap< String, JniGlobal<jclass> > classes;
 				CList< Function<void()> > callbacksInit;
 			};
 
@@ -176,7 +176,7 @@ namespace slib
 			}
 
 			JniLocal<jobject> JMethod::newObject(jobject _null, ...) noexcept
-			{				
+			{
 				va_list args;
 				va_start(args, _null);
 				JniLocal<jobject> ret;
@@ -665,7 +665,7 @@ namespace slib
 
 
 			JObjectField::JObjectField(JClass* cls, const char* name, const char* sig) noexcept: JField(cls, name, sig)
-			{				
+			{
 			}
 
 			JniLocal<jobject> JObjectField::get(jobject _this) noexcept
@@ -680,7 +680,7 @@ namespace slib
 
 
 			JStringField::JStringField(JClass* cls, const char* name) noexcept: JField(cls, name, "Ljava/lang/String;")
-			{				
+			{
 			}
 
 			String JStringField::get(jobject _this) noexcept
@@ -859,9 +859,9 @@ namespace slib
 	void Jni::initialize(JavaVM* jvm) noexcept
 	{
 		static sl_bool flagInit = sl_false;
-		
+
 		if (! flagInit) {
-			
+
 			flagInit = sl_true;
 			Jni::setSharedJVM(jvm);
 
@@ -1159,7 +1159,7 @@ namespace slib
 		va_end(args); \
 		return ret; \
 	}
-	
+
 	DEFINE_JNI_CALL_METHOD(jboolean, Boolean)
 	DEFINE_JNI_CALL_METHOD(jbyte, Byte)
 	DEFINE_JNI_CALL_METHOD(jchar, Char)
@@ -2108,7 +2108,7 @@ namespace slib
 			env->ExceptionDescribe();
 		}
 	}
-	
+
 	sl_bool Jni::checkExceptionAndClear() noexcept
 	{
 		JNIEnv* env = Jni::getCurrent();
@@ -2120,7 +2120,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool Jni::checkExceptionAndPrintClear() noexcept
 	{
 		JNIEnv* env = Jni::getCurrent();
@@ -2138,17 +2138,17 @@ namespace slib
 	{
 		return g_flagAutoClearException;
 	}
-	
+
 	void Jni::setAutoClearException(sl_bool flag) noexcept
 	{
 		g_flagAutoClearException = flag;
 	}
-	
+
 	sl_bool Jni::isAutoPrintException() noexcept
 	{
 		return g_flagAutoPrintException;
 	}
-	
+
 	void Jni::setAutoPrintException(sl_bool flag) noexcept
 	{
 		g_flagAutoPrintException = flag;
@@ -2163,7 +2163,7 @@ namespace slib
 	{
 		m_object.setNull();
 	}
-	
+
 	jstring JniStringConstant::get() noexcept
 	{
 		if (m_flagLoaded) {

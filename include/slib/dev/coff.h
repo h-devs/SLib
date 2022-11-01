@@ -71,7 +71,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT CoffHeader
 	{
 	public:
@@ -83,7 +83,7 @@ namespace slib
 		sl_uint16 sizeOfOptionalHeader; // The size of the optional header. This value should be 0 for object files.
 		sl_uint16 characteristics; // SLIB_COFF_CHARACTERISTICS_*
 	};
-	
+
 	class SLIB_EXPORT CoffSectionDesc
 	{
 	public:
@@ -184,7 +184,7 @@ namespace slib
 
 	public:
 		virtual sl_bool load(const void* baseAddress, const Ptr<IReader, ISeekable>& reader);
-		
+
 		sl_bool load(const void* baseAddress, sl_size size = 0x7fffffff);
 
 		sl_bool isLoaded();

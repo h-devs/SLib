@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	enum class DecimalValueType
 	{
 		Normal = 0,
@@ -48,7 +48,7 @@ namespace slib
 
 	public:
 		Decimal() noexcept: flagNegative(sl_false), type(DecimalValueType::Normal) {}
-		
+
 	public:
 		SLIB_CONSTEXPR sl_bool isZero() const
 		{
@@ -371,7 +371,7 @@ namespace slib
 		{
 			_addAbs(sl_false, a, b, log10OfMax);
 		}
-	
+
 		void _subtractAbs(const Decimal& a, const Decimal& b, sl_int32 log10OfMax) noexcept
 		{
 			_addAbs(sl_true, a, b, log10OfMax);

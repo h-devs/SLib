@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT Atomic
 	{
@@ -129,8 +129,8 @@ namespace slib
 		SpinLock m_lock;
 
 	};
-	
-	
+
+
 	template <>
 	class SLIB_EXPORT Atomic<sl_int32>
 	{
@@ -157,10 +157,10 @@ namespace slib
 		volatile sl_int32 m_value;
 
 	};
-	
+
 	typedef Atomic<sl_int32> AtomicInt32;
-	
-	
+
+
 	template <class T>
 	struct RemoveAtomic { typedef T Type; };
 
@@ -169,11 +169,11 @@ namespace slib
 
 	template <class T>
 	struct AddAtomic { typedef Atomic<T> Type; };
-	
+
 	template <class T>
 	struct AddAtomic< Atomic<T> > { typedef Atomic<T> Type; };
-	
-	
+
+
 	template <class T>
 	class Compare< Atomic<T>, Atomic<T> >
 	{
@@ -183,7 +183,7 @@ namespace slib
 			return Compare<T>()(a, b);
 		}
 	};
-	
+
 	template <class T>
 	class Equals< Atomic<T>, Atomic<T> >
 	{
@@ -193,7 +193,7 @@ namespace slib
 			return Equals<T>()(a, b);
 		}
 	};
-	
+
 	template <class T>
 	class Hash< Atomic<T> >
 	{
@@ -203,7 +203,7 @@ namespace slib
 			return Hash<T>()(a);
 		}
 	};
-	
+
 }
 
 #define SLIB_GET_ATOMIC(ATOMIC_VAR) (typename slib::RemoveAtomic<decltype(ATOMIC_VAR)>::Type(ATOMIC_VAR))

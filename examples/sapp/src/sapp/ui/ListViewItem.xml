@@ -10,7 +10,7 @@
 			<label name='text' text='Text' width='fill' fontSize='6%smin' marginLeft='2%smin' centerVertical='true' />
 			<button name='btnDetail' style='button_normal' text='Detail' centerVertical='true' padding='3%smin' />
 		</hlinear>
-		
+
  	</layout>
 
 </sapp>

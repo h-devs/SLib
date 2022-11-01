@@ -35,17 +35,17 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TakePhotoResult)
-	
+
 	TakePhotoResult::TakePhotoResult()
 	 : flagSuccess(sl_false), flagCancel(sl_false)
 	{
 	}
-	
+
 	String TakePhotoResult::getFilePath()
 	{
 		return filePath;
 	}
-	
+
 	Memory TakePhotoResult::getFileContent()
 	{
 		if (fileContent.isNotNull()) {
@@ -56,7 +56,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Drawable> TakePhotoResult::getDrawable()
 	{
 		if (drawable.isNotNull()) {
@@ -64,7 +64,7 @@ namespace slib
 		}
 		return PlatformDrawable::loadFromMemory(getFileContent());
 	}
-	
+
 	Ref<Bitmap> TakePhotoResult::getBitmap()
 	{
 		if (drawable.isNotNull()) {
@@ -80,14 +80,14 @@ namespace slib
 		}
 		return Image::loadFromMemory(getFileContent());
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TakePhoto)
-	
+
 	TakePhoto::TakePhoto()
 	{
 		flagFlipHorizontal = sl_false;
 	}
-	
+
 	void TakePhoto::takeFromCamera(const Function<void(TakePhotoResult&)>& onComplete)
 	{
 		TakePhoto takePhoto;
@@ -101,7 +101,7 @@ namespace slib
 		takePhoto.onComplete = onComplete;
 		takePhoto.chooseFromLibrary();
 	}
-	
+
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
 	namespace priv
 	{
@@ -120,7 +120,7 @@ namespace slib
 			};
 		}
 	}
-	
+
 	void TakePhoto::takeFromCamera()
 	{
 		auto thiz = *this;
@@ -158,7 +158,7 @@ namespace slib
 		});
 		dlg->showModal();
 	}
-	
+
 	void TakePhoto::chooseFromLibrary()
 	{
 		FileDialog dlg;
@@ -179,9 +179,9 @@ namespace slib
 		onComplete(result);
 	}
 #endif
-	
+
 	SLIB_DEFINE_MEMBER_CLASS_DEFAULT_MEMBERS(PhotoKit, SaveImageParam)
-	
+
 	PhotoKit::SaveImageParam::SaveImageParam()
 	{
 	}
@@ -192,7 +192,7 @@ namespace slib
 		param.onComplete(String::null());
 	}
 #endif
-	
+
 	void PhotoKit::saveImage(const Ref<Drawable>& image, const Function<void(const String& localIdentifier)>& onComplete)
 	{
 		PhotoKit::SaveImageParam param;
@@ -200,7 +200,7 @@ namespace slib
 		param.onComplete = onComplete;
 		saveImage(param);
 	}
-	
+
 	void PhotoKit::saveImageWithFileContent(const Memory& content, const Function<void(const String& localIdentifier)>& onComplete)
 	{
 		PhotoKit::SaveImageParam param;

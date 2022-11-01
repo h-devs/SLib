@@ -42,7 +42,7 @@ namespace slib
 		Android_ViewInstance();
 
 		~Android_ViewInstance();
-		
+
 	public:
 		template <class T>
 		static Ref<T> create(jobject jhandle)
@@ -83,7 +83,7 @@ namespace slib
 		jobject getHandle();
 
 		jobject getContext();
-		
+
 	public:
 		sl_bool isValid(View* view) override;
 
@@ -104,11 +104,11 @@ namespace slib
 		void setOpaque(View* view, sl_bool flag) override;
 
 		void setAlpha(View* view, sl_real alpha) override;
-		
+
 		void setClipping(View* view, sl_bool flag) override;
-		
+
 		void setDrawing(View* view, sl_bool flag) override;
-		
+
 		UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) override;
 
 		UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) override;
@@ -118,15 +118,15 @@ namespace slib
 		void removeChildInstance(View* view, const Ref<ViewInstance>& instance) override;
 
 		void bringToFront(View* view) override;
-	
+
 		void setShadowOpacity(View* view, float opacity) override;
-		
+
 		void setShadowRadius(View* view, sl_ui_posf radius) override;
-		
+
 	protected:
 		JniGlobal<jobject> m_handle;
 		JniGlobal<jobject> m_context;
-		
+
 	};
 
 }

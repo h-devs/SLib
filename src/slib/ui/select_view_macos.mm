@@ -72,13 +72,13 @@ namespace slib
 						[v selectItemAtIndex:indexSelected];
 					}
 				}
-				
+
 			};
-			
+
 			class SelectViewInstance : public macOS_ViewInstance, public ISelectViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				NSPopUpButton* getHandle()
 				{
@@ -93,7 +93,7 @@ namespace slib
 					[handle setPullsDown:NO];
 					view->refreshItems(handle);
 				}
-				
+
 				void selectItem(SelectView* view, sl_uint32 index) override
 				{
 					NSPopUpButton* handle = getHandle();
@@ -101,7 +101,7 @@ namespace slib
 						[handle selectItemAtIndex:index];
 					}
 				}
-				
+
 				void refreshItems(SelectView* view) override
 				{
 					NSPopUpButton* handle = getHandle();
@@ -109,7 +109,7 @@ namespace slib
 						static_cast<SelectViewHelper*>(view)->refreshItems(handle);
 					}
 				}
-				
+
 				void insertItem(SelectView* view, sl_uint32 index, const String& title) override
 				{
 					NSPopUpButton* handle = getHandle();
@@ -121,7 +121,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void removeItem(SelectView* view, sl_uint32 index) override
 				{
 					NSPopUpButton* handle = getHandle();
@@ -129,7 +129,7 @@ namespace slib
 						[handle removeItemAtIndex:index];
 					}
 				}
-				
+
 				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
 				{
 					NSPopUpButton* handle = getHandle();
@@ -140,12 +140,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool measureSize(SelectView* view, UISize& _out) override
 				{
 					return UIPlatform::measureNativeWidgetFittingSize(this, _out);
 				}
-				
+
 				void onSelectItem(NSPopUpButton* handle)
 				{
 					Ref<SelectView> view = CastRef<SelectView>(getView());
@@ -156,7 +156,7 @@ namespace slib
 			};
 
 			SLIB_DEFINE_OBJECT(SelectViewInstance, macOS_ViewInstance)
-			
+
 		}
 	}
 
@@ -166,7 +166,7 @@ namespace slib
 	{
 		return macOS_ViewInstance::create<SelectViewInstance, SLIBSelectViewHandle>(this, parent);
 	}
-	
+
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()
 	{
 		return CastRef<SelectViewInstance>(getViewInstance());

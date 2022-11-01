@@ -32,5 +32,5 @@ class MainWindow : public example::ui::MainWindow
 {
 public:
 	void onCreate() override;
-	
+
 };

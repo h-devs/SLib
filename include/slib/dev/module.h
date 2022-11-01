@@ -5,7 +5,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Module
 	{
 	public:

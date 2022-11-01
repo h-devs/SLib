@@ -31,7 +31,7 @@ namespace slib
 {
 
 	class Button;
-	
+
 	namespace priv
 	{
 		namespace camera
@@ -43,45 +43,45 @@ namespace slib
 	class SLIB_EXPORT CameraView : public VideoView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		CameraView();
-		
+
 		~CameraView();
 
 	public:
 		void start();
-		
+
 		virtual void start(const CameraParam& param);
-		
+
 		virtual void stop();
-		
+
 		sl_bool isAutoStart();
-		
+
 		void setAutoStart(sl_bool flagAutoStart);
-		
+
 		String getDeviceId();
-		
+
 		void setDeviceId(const String& deviceId);
-		
+
 		Ref<Camera> getCamera();
-		
-		
+
+
 		void setControlsVisible(sl_bool flagVisible, UIUpdateMode mode) override;
-		
+
 		Ref<Button> getShutterButton();
-		
+
 		Ref<Button> getSwitchCameraButton();
 
 		Ref<Button> getChangeFlashModeButton();
-		
-		
+
+
 		CameraFlashMode getFlashMode();
-		
+
 		void setFlashMode(CameraFlashMode flashMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isTouchFocusEnabled();
-		
+
 		void setTouchFocusEnabled(sl_bool flag);
 
 	public:
@@ -91,34 +91,34 @@ namespace slib
 
 	protected:
 		void onAttach() override;
-		
+
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onClickEvent(UIEvent* ev) override;
-		
+
 		void onClickShutter();
-		
+
 	private:
 		void _onCaptureCameraFrame(VideoCapture* capture, VideoCaptureFrame& frame);
-		
+
 		void _onTakePicture(CameraTakePictureResult& result);
 
 	protected:
 		Ref<Camera> m_camera;
 		sl_bool m_flagAutoStart;
 		String m_deviceId;
-		
+
 		CameraFlashMode m_flashMode;
-		
+
 		Ref<View> m_controls;
-		
+
 		sl_bool m_flagTouchFocus;
 		sl_bool m_flagDuringTouchFocusEffect;
 		Time m_timeTouchFocusBegan;
 		UIPoint m_pointTouchFocus;
-		
+
 		friend class priv::camera::Controls;
-		
+
 	};
 
 }

@@ -24,7 +24,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(VideoCaptureFrame)
 
 	VideoCaptureFrame::VideoCaptureFrame()
@@ -33,7 +33,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(VideoCaptureParam)
-	
+
 	VideoCaptureParam::VideoCaptureParam()
 	{
 		flagAutoStart = sl_true;

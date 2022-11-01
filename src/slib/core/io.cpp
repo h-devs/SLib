@@ -37,21 +37,21 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace endian
 		{
-			
+
 			SLIB_INLINE static sl_bool checkLittleEndianRuntime() noexcept
 			{
 				sl_uint32 n = 0x12345678;
 				return *(sl_uint8*)(&n) == 0x78;
 			}
-			
+
 		}
 	}
-	
+
 	sl_bool Endian::checkLittleEndianRuntime() noexcept
 	{
 		static volatile sl_bool flagInit = sl_true;
@@ -62,10 +62,10 @@ namespace slib
 		}
 		return value;
 	}
-	
+
 
 	SLIB_DEFINE_IREADER_MEMBERS(IReader,)
-	
+
 	sl_int32 IReader::read32(void* buf, sl_uint32 size)
 	{
 		return (sl_int32)(read(buf, size));
@@ -193,7 +193,7 @@ namespace slib
 	{
 		_initialize(size);
 	}
-	
+
 	MemoryIO::MemoryIO(void* data, sl_size size)
 	{
 		_initialize(data, size);
@@ -532,7 +532,7 @@ namespace slib
 	MemoryReader::~MemoryReader()
 	{
 	}
-	
+
 	void MemoryReader::initialize(const Memory& mem)
 	{
 		m_mem = mem;
@@ -540,7 +540,7 @@ namespace slib
 		m_size = mem.getSize();
 		m_offset = 0;
 	}
-	
+
 	void MemoryReader::initialize(const void* buf, sl_size size)
 	{
 		if (buf && size) {
@@ -951,7 +951,7 @@ namespace slib
 		return def;
 	}
 
-	
+
 	SLIB_DEFINE_SEEKABLE_WRITER_MEMBERS(MemoryWriter,)
 
 	MemoryWriter::MemoryWriter(const Memory& mem)
@@ -967,7 +967,7 @@ namespace slib
 	MemoryWriter::~MemoryWriter()
 	{
 	}
-	
+
 	void MemoryWriter::initialize(const Memory& mem)
 	{
 		m_mem = mem;
@@ -975,7 +975,7 @@ namespace slib
 		m_size = mem.getSize();
 		m_offset = 0;
 	}
-	
+
 	void MemoryWriter::initialize(void* buf, sl_size size)
 	{
 		if (buf && size) {
@@ -987,7 +987,7 @@ namespace slib
 		}
 		m_offset = 0;
 	}
-	
+
 	sl_reg MemoryWriter::write(const void* buf, sl_size size)
 	{
 		if (!size) {
@@ -1183,7 +1183,7 @@ namespace slib
 		return sl_false;
 	}
 
-	
+
 	MemoryOutput::MemoryOutput()
 	{
 	}
@@ -1685,7 +1685,7 @@ namespace slib
 		m_sizeBuf = buf.getSize();
 	}
 
-	
+
 	BufferedWriter::BufferedWriter(): m_writer(sl_null), m_closable(sl_null), m_dataBuf(sl_null), m_sizeBuf(0), m_sizeWritten(0)
 	{
 	}

@@ -50,7 +50,7 @@ namespace slib
 						UIPlatform::setWindowText(handle, textNew);
 					}
 				}
-				
+
 			};
 
 			LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
@@ -84,7 +84,7 @@ namespace slib
 				void initialize(View* _view) override
 				{
 					ComboBox* view = (ComboBox*)_view;
-					
+
 					EnumChildWindows(getHandle(), SubclassEditChild, 0);
 					String text = view->getText();
 					if (text.isNotEmpty()) {

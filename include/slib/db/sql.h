@@ -31,33 +31,33 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT DatabaseColumn
 	{
 	public:
 		String name;
 		DatabaseExpression expression;
-		
+
 	public:
 		DatabaseColumn();
-		
+
 		DatabaseColumn(const char* name);
-		
+
 		DatabaseColumn(const String& name);
-		
+
 		DatabaseColumn(const DatabaseExpression& expression);
-		
+
 		DatabaseColumn(const String& name, const DatabaseExpression& expression);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseColumn)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseColumnExpression : public DatabaseColumn
 	{
 	public:
 		DatabaseColumnExpression(const DatabaseExpression& expression);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseColumnExpression)
 
 	};
@@ -66,11 +66,11 @@ namespace slib
 	{
 	public:
 		DatabaseColumnIdentifier(const char* name);
-		
+
 		DatabaseColumnIdentifier(const String& name);
-		
+
 		DatabaseColumnIdentifier(const String& name1, const String& name2);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseColumnIdentifier)
 
 	};
@@ -82,16 +82,16 @@ namespace slib
 		sl_uint32 length;
 		sl_uint32 scale;
 		String rawType;
-		
+
 	public:
 		DatabaseColumnTypeDefinition(const String& rawType);
-		
+
 		DatabaseColumnTypeDefinition(DatabaseColumnType type);
-		
+
 		DatabaseColumnTypeDefinition(DatabaseColumnType type, sl_uint32 length, sl_uint32 scale = 0);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseColumnTypeDefinition)
-		
+
 	};
 
 #define SLIB_DATABASE_COLUMN_TYPE(type, ...) slib::DatabaseColumnTypeDefinition(slib::DatabaseColumnType::type, ##__VA_ARGS__)
@@ -104,14 +104,14 @@ namespace slib
 		DatabaseReferenceMatch match;
 		DatabaseReferentialAction onDelete;
 		DatabaseReferentialAction onUpdate;
-		
+
 	public:
 		DatabaseReferenceDefinition();
-		
+
 		DatabaseReferenceDefinition(const String& tableName, const ListParam<String>& columns, DatabaseReferentialAction onDelete = DatabaseReferentialAction::Default, DatabaseReferentialAction onUpdate = DatabaseReferentialAction::Default, DatabaseReferenceMatch match = DatabaseReferenceMatch::Default);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseReferenceDefinition)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseColumnDefinition
@@ -123,16 +123,16 @@ namespace slib
 		DatabaseExpression defaultValue;
 		String collate;
 		DatabaseReferenceDefinition reference;
-		
+
 	public:
 		DatabaseColumnDefinition();
-		
+
 		DatabaseColumnDefinition(const String& name, const DatabaseColumnTypeDefinition& type, DatabaseColumnFlags flags = 0, const DatabaseExpression& defaultValue = sl_null, const String& collate = sl_null);
-		
+
 		DatabaseColumnDefinition(const String& name, const DatabaseColumnTypeDefinition& type, const DatabaseReferenceDefinition& reference, DatabaseColumnFlags flags = 0, const DatabaseExpression& defaultValue = sl_null, const String& collate = sl_null);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseColumnDefinition)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseTableConstraint
@@ -142,39 +142,39 @@ namespace slib
 		DatabaseConstaintType type;
 		ListParam<String> columns;
 		DatabaseReferenceDefinition reference;
-		
+
 	public:
 		DatabaseTableConstraint();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseTableConstraint)
-		
+
 	};
 
 	class SLIB_EXPORT DatabasePrimaryKey : public DatabaseTableConstraint
 	{
 	public:
 		DatabasePrimaryKey(const String& name, const ListParam<String>& columns);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabasePrimaryKey)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseUniqueKey : public DatabaseTableConstraint
 	{
 	public:
 		DatabaseUniqueKey(const String& name, const ListParam<String>& columns);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseUniqueKey)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseForeignKey : public DatabaseTableConstraint
 	{
 	public:
 		DatabaseForeignKey(const String& name, const ListParam<String>& columns, const String& referTableName, const ListParam<String>& referColumns, DatabaseReferentialAction onDelete = DatabaseReferentialAction::Default, DatabaseReferentialAction onUpdate = DatabaseReferentialAction::Default, DatabaseReferenceMatch match = DatabaseReferenceMatch::Default);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseForeignKey)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseIndexColumn
@@ -183,14 +183,14 @@ namespace slib
 		DatabaseColumn column;
 		DatabaseOrderType order;
 		String collate;
-		
+
 	public:
 		DatabaseIndexColumn();
-		
+
 		DatabaseIndexColumn(const DatabaseColumn& column, DatabaseOrderType order = DatabaseOrderType::Default, const String& collate = sl_null);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseIndexColumn)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseIdentifier
@@ -198,18 +198,18 @@ namespace slib
 	public:
 		String schema;
 		String name;
-		
+
 	public:
 		DatabaseIdentifier();
-		
+
 		DatabaseIdentifier(const char* name);
-		
+
 		DatabaseIdentifier(const String& name);
-		
+
 		DatabaseIdentifier(const String& schema, const String& name);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseIdentifier)
-		
+
 	public:
 		DatabaseIdentifier& operator=(const char* name);
 
@@ -226,20 +226,20 @@ namespace slib
 		DatabaseIdentifier table;
 		Shared<DatabaseQuery> query;
 		DatabaseExpression expression;
-		
+
 	public:
 		DatabaseQuerySource();
-		
+
 		DatabaseQuerySource(const DatabaseIdentifier& table);
-		
+
 		DatabaseQuerySource(const String& name, const DatabaseIdentifier& table);
-		
+
 		DatabaseQuerySource(const String& name, const DatabaseQuery& query);
-		
+
 		DatabaseQuerySource(const String& name, const DatabaseExpression& expression);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseQuerySource)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseQueryJoin : public DatabaseQuerySource
@@ -247,24 +247,24 @@ namespace slib
 	public:
 		DatabaseJoinType type;
 		DatabaseExpression on;
-		
+
 	public:
 		DatabaseQueryJoin();
-		
+
 		DatabaseQueryJoin(const String& name, const DatabaseExpression& on);
-		
+
 		DatabaseQueryJoin(const DatabaseIdentifier& table, const DatabaseExpression& on);
-		
+
 		DatabaseQueryJoin(const String& name, const DatabaseIdentifier& table, const DatabaseExpression& on);
-		
+
 		DatabaseQueryJoin(DatabaseJoinType type, const String& name, const DatabaseExpression& on);
-		
+
 		DatabaseQueryJoin(DatabaseJoinType type, const DatabaseIdentifier& table, const DatabaseExpression& on);
-		
+
 		DatabaseQueryJoin(DatabaseJoinType type, const String& name, const DatabaseIdentifier& table, const DatabaseExpression& on);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseQueryJoin)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseQueryGroupBy
@@ -272,10 +272,10 @@ namespace slib
 	public:
 		ListParam<DatabaseColumn> columns;
 		DatabaseExpression having;
-		
+
 	public:
 		DatabaseQueryGroupBy();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseQueryGroupBy)
 
 	};
@@ -287,20 +287,20 @@ namespace slib
 		DatabaseOrderType type;
 		String collate;
 		DatabaseFlags flags; // NullsFirst, NullsLast
-		
+
 	public:
 		DatabaseQueryOrder();
-		
+
 		DatabaseQueryOrder(const char* columnName);
-		
+
 		DatabaseQueryOrder(const char* columnName, DatabaseOrderType type);
-		
+
 		DatabaseQueryOrder(const String& columnName);
-		
+
 		DatabaseQueryOrder(const String& columnName, DatabaseOrderType type);
-		
+
 		DatabaseQueryOrder(const DatabaseExpression& expression);
-		
+
 		DatabaseQueryOrder(const DatabaseExpression& expression, DatabaseOrderType type);
 
 		DatabaseQueryOrder(const DatabaseColumn& column);
@@ -308,7 +308,7 @@ namespace slib
 		DatabaseQueryOrder(const DatabaseColumn& column, DatabaseOrderType type);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseQueryOrder)
-		
+
 	};
 
 	class DatabaseQueryCombine;
@@ -332,40 +332,40 @@ namespace slib
 
 	public:
 		DatabaseQuery();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseQuery)
-		
+
 	public:
 		template <class... ARGS>
 		void addColumn(ARGS&&... args)
 		{
 			columns.add(Forward<ARGS>(args)...);
 		}
-		
+
 		template <class... ARGS>
 		void addJoin(ARGS&&... args)
 		{
 			joins.add(Forward<ARGS>(args)...);
 		}
-		
+
 		template <class... ARGS>
 		void addCombine(ARGS&&... args)
 		{
 			combines.add(Forward<ARGS>(args)...);
 		}
-		
+
 		template <class... ARGS>
 		void addOrder(ARGS&&... args)
 		{
 			orders.add(Forward<ARGS>(args)...);
 		}
-		
+
 		template <class... ARGS>
 		void addOrderOfCombined(ARGS&&... args)
 		{
 			ordersOfCombined.add(Forward<ARGS>(args)...);
 		}
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseQueryCombine
@@ -373,16 +373,16 @@ namespace slib
 	public:
 		DatabaseCombineType type;
 		DatabaseQuery query;
-		
+
 	public:
 		DatabaseQueryCombine();
-		
+
 		DatabaseQueryCombine(const DatabaseQuery& query);
-		
+
 		DatabaseQueryCombine(DatabaseCombineType type, const DatabaseQuery& query);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseQueryCombine)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseQueryWith
@@ -391,16 +391,16 @@ namespace slib
 		String name;
 		ListParam<String> columns;
 		DatabaseQuery query;
-		
+
 	public:
 		DatabaseQueryWith();
-		
+
 		DatabaseQueryWith(const String& name, const DatabaseQuery& query);
-		
+
 		DatabaseQueryWith(const String& name, const ListParam<String>& columns, const DatabaseQuery& query);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseQueryWith)
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseCreateTableParam
@@ -413,22 +413,22 @@ namespace slib
 
 	public:
 		DatabaseCreateTableParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseCreateTableParam)
-		
+
 	public:
 		template <class... ARGS>
 		void addColumn(ARGS&&... args)
 		{
 			columns.add(Forward<ARGS>(args)...);
 		}
-		
+
 		template <class... ARGS>
 		void addConstraint(ARGS&&... args)
 		{
 			constraints.add(Forward<ARGS>(args)...);
 		}
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseCreateIndexParam
@@ -441,16 +441,16 @@ namespace slib
 
 	public:
 		DatabaseCreateIndexParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseCreateIndexParam)
-		
+
 	public:
 		template <class... ARGS>
 		void addColumn(ARGS&&... args)
 		{
 			columns.add(Forward<ARGS>(args)...);
 		}
-		
+
 	};
 
 	class SLIB_EXPORT DatabaseSelectParam : public DatabaseQuery
@@ -458,10 +458,10 @@ namespace slib
 	public:
 		ListParam<DatabaseQueryWith> withs;
 		sl_bool withRecursive;
-		
+
 	public:
 		DatabaseSelectParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseSelectParam)
 
 	public:
@@ -470,7 +470,7 @@ namespace slib
 		{
 			withs.add(Forward<ARGS>(args)...);
 		}
-		
+
 	};
 
 	class SLIB_EXPORT SqlBuilder
@@ -479,49 +479,49 @@ namespace slib
 		DatabaseDialect dialect;
 		StringBuffer buf;
 		List<String> parameters;
-		
+
 	public:
 		SqlBuilder(DatabaseDialect dialect);
-		
+
 		~SqlBuilder();
-		
+
 		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(SqlBuilder)
-		
+
 	public:
 		void append(const String& str);
-		
+
 		void appendStatic(const char* sz, sl_size len);
-		
+
 		template <sl_size N>
 		void appendStatic(const char (&str)[N])
 		{
 			appendStatic(str, N - 1);
 		}
-		
+
 		void appendParameter(const String& name);
-		
+
 		void appendParameter();
-		
+
 		String toString() const;
-		
+
 	public:
 		void appendIdentifierPrefix();
-		
+
 		void appendIdentifierSuffix();
-		
+
 		void appendIdentifier(const String& name);
-		
+
 		void appendIdentifier(const char* name, sl_size length);
-		
+
 		template <sl_size N>
 		void appendIdentifier(const char (&name)[N])
 		{
 			appendIdentifier(name, N - 1);
 		}
-		
+
 		void appendIdentifier(const DatabaseIdentifier& name);
-		
-		
+
+
 		void generateCreateTable(const DatabaseCreateTableParam& param);
 
 		// flags: Temp, IfNotExists, WithoutRowId (SQLite)
@@ -530,7 +530,7 @@ namespace slib
 		// flags: Temp, IfExists, Cascade, Restrict
 		void generateDropTable(const DatabaseIdentifier& table, DatabaseFlags flags = 0);
 
-		
+
 		void generateCreateIndex(const DatabaseCreateIndexParam& param);
 
 		// flags: Unique, IfNotExists
@@ -538,49 +538,49 @@ namespace slib
 
 		// flags: IfExists, Cascade, Restrict
 		void generateDropIndex(const DatabaseIdentifier& index, const String& table, DatabaseFlags flags = 0);
-		
-		
+
+
 		void generateInsert(const DatabaseIdentifier& table, const ListParam<DatabaseColumn>& columns);
-		
+
 		void generateInsert(const DatabaseIdentifier& table, const ListParam<String>& columns);
-		
+
 		void generateUpdate(const DatabaseIdentifier& table, const ListParam<DatabaseColumn>& columns, const DatabaseExpression& where);
-		
+
 		void generateUpdate(const DatabaseIdentifier& table, const ListParam<String>& columns, const DatabaseExpression& where);
-		
+
 		void generateDelete(const DatabaseIdentifier& table, const DatabaseExpression& where);
-		
+
 		void generateSelect(const DatabaseSelectParam& param);
-		
+
 		void generateSelect(const DatabaseIdentifier& table, const DatabaseExpression& where);
-		
+
 
 		void appendColumnTypeName(const DatabaseColumnTypeDefinition& type, const DatabaseColumnFlags& flags);
-		
+
 		void appendReferentialActionString(DatabaseReferentialAction action);
-		
+
 		void appendColumn(const DatabaseColumn& column);
-		
+
 		void appendColumnNoAs(const DatabaseColumn& column);
 
 		void appendReferenceDefinition(const DatabaseReferenceDefinition& reference);
-		
+
 		void appendColumnDefinition(const DatabaseColumnDefinition& column);
-		
+
 		void appendTableConstraint(const DatabaseTableConstraint& constraint);
-		
+
 		void appendIndexColumn(const DatabaseIndexColumn& column);
-		
+
 		void appendSelectWithClause(const DatabaseQueryWith& with);
-		
+
 		void appendQuerySource(const DatabaseQuerySource& source);
-		
+
 		void appendQueryJoin(const DatabaseQueryJoin& join);
-		
+
 		void appendQueryOrder(const DatabaseQueryOrder& order);
-		
+
 		void appendQuery(const DatabaseQuery& query);
-		
+
 	};
 
 }

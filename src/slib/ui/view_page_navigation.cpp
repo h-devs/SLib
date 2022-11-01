@@ -35,9 +35,9 @@ namespace slib
 	ViewPageNavigationController::ViewPageNavigationController()
 	{
 		setCreatingInstance(sl_true);
-		
+
 		m_flagSwipeNavigation = sl_false;
-		
+
 		m_pushTransition.type = TransitionType::Slide;
 		m_pushTransition.direction = TransitionDirection::FromRightToLeft;
 		m_pushTransition.curve = AnimationCurve::EaseInOut;
@@ -46,7 +46,7 @@ namespace slib
 		m_popTransition.direction = TransitionDirection::FromLeftToRight;
 		m_popTransition.curve = AnimationCurve::EaseInOut;
 		m_popTransition.duration = 0.2f;
-		
+
 		m_countActiveTransitionAnimations = 0;
 	}
 
@@ -65,7 +65,7 @@ namespace slib
 	{
 		return m_pages.getCount();
 	}
-	
+
 	List< Ref<View> > ViewPageNavigationController::getPages()
 	{
 		return m_pages.duplicate();
@@ -111,9 +111,9 @@ namespace slib
 		}
 
 		viewIn->setParent(this);
-		
+
 		ObjectLocker lock(this);
-		
+
 		if (m_countActiveTransitionAnimations) {
 			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _push, viewIn, countRemoveTop, _transition), 100);
 			return;
@@ -128,9 +128,9 @@ namespace slib
 			}
 		}
 		Transition transition(*_transition);
-		
+
 		sl_size n = m_pages.getCount();
-		
+
 		if (n == 0) {
 
 #if defined(SLIB_UI_IS_ANDROID)
@@ -149,7 +149,7 @@ namespace slib
 			viewIn->bringToFront();
 			return;
 		}
-		
+
 		Ref<View>* pages = m_pages.getData();
 		Ref<View> viewBack = pages[n - 1];
 		if (viewBack == viewIn) {
@@ -161,28 +161,28 @@ namespace slib
 #endif
 
 		viewIn->setFrame(getBoundsInnerPadding(), UIUpdateMode::None);
-		
+
 		setEnabled(sl_false);
 		viewBack->setEnabled(sl_false, UIUpdateMode::None);
 		viewIn->setEnabled(sl_false, UIUpdateMode::None);
-		
+
 		_applyDefaultPushTransition(transition);
 		Ref<Animation> animationPause = Transition::createAnimation(viewBack, transition, UIPageAction::Pause, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewBack, UIPageAction::Pause));
-		
+
 		Ref<Animation> animationPush = Transition::createAnimation(viewIn, transition, UIPageAction::Push, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewIn, UIPageAction::Push));
-		
+
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
-		
+
 		_resetAnimationStatus(viewIn);
 		if (animationPush.isNotNull()) {
 			animationPush->dispatchStartFrame();
 		}
 
 		addChild(viewIn);
-		
+
 		dispatchPageAction(viewBack.get(), UIPageAction::Pause);
-		
+
 		if (countRemoveTop > 0) {
 			sl_size n = m_pages.getCount();
 			if (countRemoveTop > n) {
@@ -193,25 +193,25 @@ namespace slib
 			}
 			m_pages.setCount_NoLock(n - countRemoveTop);
 		}
-		
+
 		m_pages.add_NoLock(viewIn);
 		dispatchPageAction(viewIn.get(), UIPageAction::Push);
 		dispatchPageAction(viewIn.get(), UIPageAction::Resume);
-		
+
 		if (animationPause.isNotNull()) {
 			animationPause->dispatchStartFrame();
 		}
 
 		viewIn->bringToFront(UIUpdateMode::None);
 		viewIn->setVisibility(Visibility::Visible);
-		
+
 		if (animationPause.isNull()) {
 			_onFinishAnimation(viewBack, UIPageAction::Pause);
 		}
 		if (animationPush.isNull()) {
 			_onFinishAnimation(viewIn, UIPageAction::Push);
 		}
-		
+
 		_runAnimationProc(viewIn, [animationPause, animationPush]() {
 			if (animationPause.isNotNull()) {
 				animationPause->start();
@@ -220,14 +220,14 @@ namespace slib
 				animationPush->start();
 			}
 		});
-		
+
 	}
 
 	void ViewPageNavigationController::push(const Ref<View>& page, const Transition& transition)
 	{
 		pushPageAfterPopPages(page, 0, transition);
 	}
-	
+
 	void ViewPageNavigationController::push(const Ref<View>& page)
 	{
 		pushPageAfterPopPages(page, 0);
@@ -250,7 +250,7 @@ namespace slib
 			dispatchToDrawingThread(Function<void()>::bindWeakRef(this, func, page, countPop, transition));
 		}
 	}
-	
+
 	void ViewPageNavigationController::pushPageAfterPopPages(const Ref<View>& page, sl_size countPop)
 	{
 		if (isDrawingThread()) {
@@ -268,33 +268,33 @@ namespace slib
 			dispatchToDrawingThread(Function<void()>::bindWeakRef(this, func, page, countPop));
 		}
 	}
-	
+
 	void ViewPageNavigationController::pushPageAfterPopAllPages(const Ref<View>& page, const Transition& transition)
 	{
 		pushPageAfterPopPages(page, SLIB_SIZE_MAX, transition);
 	}
-	
+
 	void ViewPageNavigationController::pushPageAfterPopAllPages(const Ref<View>& page)
 	{
 		pushPageAfterPopPages(page, SLIB_SIZE_MAX);
 	}
-	
+
 	void ViewPageNavigationController::_pop(const Ref<View>& _viewOut, const Transition* _transition)
 	{
 
 		ObjectLocker lock(this);
-		
+
 		if (m_countActiveTransitionAnimations) {
 			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _pop, _viewOut, _transition), 100);
 			return;
 		}
-		
+
 		sl_size n = m_pages.getCount();
-		
+
 		if (n <= 1) {
 			return;
 		}
-		
+
 		Ref<View> viewOut = *(m_pages.getPointerAt(n - 1));
 		if (_viewOut.isNotNull() && _viewOut != viewOut) {
 			return;
@@ -309,7 +309,7 @@ namespace slib
 			}
 		}
 		Transition transition(*_transition);
-		
+
 #if defined(SLIB_UI_IS_ANDROID)
 		UI::dismissKeyboard();
 #endif
@@ -319,15 +319,15 @@ namespace slib
 		setEnabled(sl_false);
 		viewBack->setEnabled(sl_false, UIUpdateMode::None);
 		viewOut->setEnabled(sl_false, UIUpdateMode::None);
-		
+
 		_applyDefaultPopTransition(transition);
 		Ref<Animation> animationPop = Transition::createAnimation(viewOut, transition, UIPageAction::Pop, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewOut, UIPageAction::Pop));
-		
+
 		Ref<Animation> animationResume = Transition::createAnimation(viewBack, transition, UIPageAction::Resume, SLIB_BIND_REF(void(), this, _onFinishAnimation, viewBack, UIPageAction::Resume));
-		
+
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
-		
+
 		_resetAnimationStatus(viewBack);
 		if (animationResume.isNotNull()) {
 			animationResume->dispatchStartFrame();
@@ -338,28 +338,28 @@ namespace slib
 		dispatchPageAction(viewOut.get(), UIPageAction::Pause);
 		dispatchPageAction(viewOut.get(), UIPageAction::Pop);
 		dispatchPageAction(viewBack.get(), UIPageAction::Resume);
-		
+
 		if (animationPop.isNotNull()) {
 			animationPop->start();
 		}
 		if (animationResume.isNotNull()) {
 			animationResume->start();
 		}
-		
+
 		viewBack->bringToFront(UIUpdateMode::None);
 		viewOut->bringToFront(UIUpdateMode::None);
-		
+
 		viewBack->setVisibility(Visibility::Visible);
-		
+
 		m_pages.popBack_NoLock();
-		
+
 		if (animationPop.isNull()) {
 			_onFinishAnimation(viewOut, UIPageAction::Pop);
 		}
 		if (animationResume.isNull()) {
 			_onFinishAnimation(viewBack, UIPageAction::Resume);
 		}
-		
+
 	}
 
 	void ViewPageNavigationController::pop(const Ref<View>& viewOut, const Transition& transition)
@@ -431,7 +431,7 @@ namespace slib
 			m_popTransition.curve = closing.curve;
 		}
 	}
-	
+
 	void ViewPageNavigationController::_applyDefaultPushTransition(Transition& transition)
 	{
 		if (transition.type == TransitionType::Default) {
@@ -463,7 +463,7 @@ namespace slib
 			transition.curve = m_popTransition.curve;
 		}
 	}
-	
+
 	void ViewPageNavigationController::_runAnimationProc(const Ref<View>& view, const Function<void()>& callback)
 	{
 		sl_bool flagRender = sl_false;
@@ -484,7 +484,7 @@ namespace slib
 			view->dispatchToDrawingThread(callback, 10);
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ViewPageNavigationController, PageAction, View* page, UIPageAction action)
 
 	void ViewPageNavigationController::dispatchPageAction(View* page, UIPageAction action)
@@ -498,7 +498,7 @@ namespace slib
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ViewPageNavigationController, EndPageAnimation, View* page, UIPageAction action)
-	
+
 	void ViewPageNavigationController::dispatchEndPageAnimation(View* page, UIPageAction action)
 	{
 		if (page) {

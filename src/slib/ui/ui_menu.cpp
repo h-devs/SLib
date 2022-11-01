@@ -25,13 +25,13 @@
 namespace slib
 {
 	SLIB_DEFINE_OBJECT(MenuItem, Object)
-	
+
 	MenuItem::MenuItem()
 	{
 		m_flagEnabled = sl_true;
 		m_flagChecked = sl_false;
 	}
-	
+
 	MenuItem::~MenuItem()
 	{
 	}
@@ -40,92 +40,92 @@ namespace slib
 	{
 		return m_parent;
 	}
-	
+
 	String MenuItem::getText() const
 	{
 		return m_text;
 	}
-	
+
 	void MenuItem::setText(const String& text)
 	{
 		m_text = text;
 	}
-	
+
 	const KeycodeAndModifiers& MenuItem::getShortcutKey() const
 	{
 		return m_shortcutKey;
 	}
-	
+
 	void MenuItem::setShortcutKey(const KeycodeAndModifiers& km)
 	{
 		m_shortcutKey = km;
 	}
-	
+
 	const KeycodeAndModifiers& MenuItem::getSecondShortcutKey() const
 	{
 		return m_secondShortcutKey;
 	}
-	
+
 	void MenuItem::setSecondShortcutKey(const KeycodeAndModifiers& km)
 	{
 		m_secondShortcutKey = km;
 	}
-	
+
 	sl_bool MenuItem::isEnabled() const
 	{
 		return m_flagEnabled;
 	}
-	
+
 	void MenuItem::setEnabled(sl_bool flag)
 	{
 		m_flagEnabled = flag;
 	}
-	
+
 	sl_bool MenuItem::isChecked() const
 	{
 		return m_flagChecked;
 	}
-	
+
 	void MenuItem::setChecked(sl_bool flag)
 	{
 		m_flagChecked = flag;
 	}
-	
+
 	Ref<Drawable> MenuItem::getIcon() const
 	{
 		return m_icon;
 	}
-	
+
 	void MenuItem::setIcon(const Ref<Drawable>& icon)
 	{
 		m_icon = icon;
 	}
-	
+
 	Ref<Drawable> MenuItem::getCheckedIcon() const
 	{
 		return m_checkedIcon;
 	}
-	
+
 	void MenuItem::setCheckedIcon(const Ref<Drawable>& icon)
 	{
 		m_checkedIcon = icon;
 	}
-	
+
 	Ref<Menu> MenuItem::getSubmenu() const
 	{
 		return m_submenu;
 	}
-	
+
 	void MenuItem::setSubmenu(const Ref<Menu>& menu)
 	{
 		m_submenu = menu;
 	}
-	
+
 	sl_bool MenuItem::isSeparator() const
 	{
 		return sl_false;
 	}
-	
+
 	namespace priv
 	{
 		namespace menu
@@ -145,7 +145,7 @@ namespace slib
 	{
 		return new priv::menu::Separator;
 	}
-	
+
 	sl_bool MenuItem::processShortcutKey(const KeycodeAndModifiers& km)
 	{
 		if (km != 0) {
@@ -160,24 +160,24 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MenuItemParam)
-	
+
 	MenuItemParam::MenuItemParam()
 	{
 		flagCheckable = sl_false;
 		flagEnabled = sl_true;
 		flagChecked = sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(Menu, Object)
-	
+
 	Menu::Menu()
 	{
 	}
-	
+
 	Menu::~Menu()
 	{
 	}
@@ -191,24 +191,24 @@ namespace slib
 	{
 		return (sl_uint32)(m_items.getCount());
 	}
-	
+
 	Ref<MenuItem> Menu::getMenuItem(sl_uint32 index) const
 	{
 		return m_items.getValueAt(index);
 	}
-	
+
 	void Menu::show(const UIPoint& pt)
 	{
 		show(pt.x, pt.y);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title)
 	{
 		MenuItemParam param;
 		param.text = title;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title, sl_bool flagChecked)
 	{
 		MenuItemParam param;
@@ -217,7 +217,7 @@ namespace slib
 		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon)
 	{
 		MenuItemParam param;
@@ -225,7 +225,7 @@ namespace slib
 		param.icon = icon;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
@@ -236,7 +236,7 @@ namespace slib
 		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey)
 	{
 		MenuItemParam param;
@@ -244,7 +244,7 @@ namespace slib
 		param.shortcutKey = shortcutKey;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, sl_bool flagChecked)
 	{
 		MenuItemParam param;
@@ -254,7 +254,7 @@ namespace slib
 		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon)
 	{
 		MenuItemParam param;
@@ -263,7 +263,7 @@ namespace slib
 		param.icon = icon;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
@@ -275,7 +275,7 @@ namespace slib
 		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title)
 	{
 		MenuItemParam param;
@@ -283,7 +283,7 @@ namespace slib
 		param.submenu = submenu;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, sl_bool flagChecked)
 	{
 		MenuItemParam param;
@@ -293,7 +293,7 @@ namespace slib
 		param.flagChecked = flagChecked;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon)
 	{
 		MenuItemParam param;
@@ -302,7 +302,7 @@ namespace slib
 		param.submenu = submenu;
 		return addMenuItem(param);
 	}
-	
+
 	Ref<MenuItem> Menu::addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked)
 	{
 		MenuItemParam param;
@@ -314,7 +314,7 @@ namespace slib
 		param.submenu = submenu;
 		return addMenuItem(param);
 	}
-	
+
 	sl_bool Menu::processShortcutKey(const KeycodeAndModifiers& km)
 	{
 		if (km != 0) {
@@ -348,47 +348,47 @@ namespace slib
 	{
 		namespace menu
 		{
-			
+
 			class DrawnMenu;
-			
+
 			class DrawnMenuItem : public MenuItem
 			{
 			public:
 				Ref<Button> m_button;
-				
+
 			public:
 				void setText(const String& text) override
 				{
 					m_button->setText(text);
 				}
-				
+
 				void setEnabled(sl_bool flag) override
 				{
 					m_button->setEnabled(flag);
 				}
-				
+
 				void setChecked(sl_bool flag) override
 				{
 					m_button->setCurrentCategory(flag ? 1 : 0);
 				}
-				
+
 				void setIcon(const Ref<Drawable>& icon) override
 				{
 					m_button->setIcon(icon);
 				}
-				
+
 				void setCheckedIcon(const Ref<Drawable>& icon) override
 				{
 					m_button->setIcon(icon, ButtonState::Default, 1);
 				}
-				
+
 			};
-				
+
 			class DrawnMenu : public Menu
 			{
 			public:
 				Ref<ui::MenuPopup> m_view;
-				
+
 			public:
 				static Ref<DrawnMenu> create()
 				{
@@ -405,7 +405,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				Ref<MenuItem> addMenuItem(const MenuItemParam& param) override
 				{
 					Ref<Button> button = new Button;
@@ -443,12 +443,12 @@ namespace slib
 					m_items.add(item);
 					return item;
 				}
-				
+
 				Ref<MenuItem> insertMenuItem(sl_uint32 index, const MenuItemParam& param) override
 				{
 					return sl_null;
 				}
-				
+
 				Ref<MenuItem> addSeparator() override
 				{
 					Ref<MenuItem> item = MenuItem::createSeparator();
@@ -461,20 +461,20 @@ namespace slib
 					m_items.add(item);
 					return item;
 				}
-				
+
 				Ref<MenuItem> insertSeparator(sl_uint32 index) override
 				{
 					return sl_null;
 				}
-				
+
 				void removeMenuItem(sl_uint32 index) override
 				{
 				}
-				
+
 				void removeMenuItem(const Ref<MenuItem>& item) override
 				{
 				}
-				
+
 				void show(sl_ui_pos x, sl_ui_pos y) override
 				{
 					if (!(UI::isUiThread())) {
@@ -506,7 +506,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
 
 		}

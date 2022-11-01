@@ -57,7 +57,7 @@ namespace slib
 		sl_bool load(const MemoryView& input, const StringParam& password);
 
 		sl_bool load(const StringParam& filePath, const StringParam& password);
-		
+
 		Memory save(const StringParam& password) const;
 
 		sl_bool save(const StringParam& filePath, const StringParam& password) const;

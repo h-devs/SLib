@@ -29,7 +29,7 @@ namespace slib
 {
 
 	class DispatchLoop;
-	
+
 	class SLIB_EXPORT AsyncStreamSimulator : public AsyncStream
 	{
 		SLIB_DECLARE_OBJECT
@@ -38,7 +38,7 @@ namespace slib
 		AsyncStreamSimulator();
 
 		~AsyncStreamSimulator();
-	
+
 	public:
 		sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override;
 
@@ -46,7 +46,7 @@ namespace slib
 
 	protected:
 		virtual void processRequest(AsyncStreamRequest* request) = 0;
-	
+
 	protected:
 		void initialize();
 
@@ -63,9 +63,9 @@ namespace slib
 
 		Ref<DispatchLoop> m_dispatchLoop;
 		WeakRef<Dispatcher> m_dispatcher;
-	
+
 	};
-	
+
 }
 
 #endif

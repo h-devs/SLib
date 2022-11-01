@@ -26,15 +26,15 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(GLRenderEngine, RenderEngine)
-	
+
 	GLRenderEngine::GLRenderEngine()
 	{
 	}
-	
+
 	GLRenderEngine::~GLRenderEngine()
 	{
 	}
-	
+
 }
 
 #if defined(SLIB_RENDER_SUPPORT_OPENGL_GL)
@@ -87,7 +87,7 @@ namespace slib
 	}
 
 	using namespace priv::gl;
-	
+
 #undef PRIV_SLIB_RENDER_GL_ENTRY
 #define PRIV_SLIB_RENDER_GL_ENTRY(TYPE, name, ...) \
 	if (dl) { \
@@ -104,12 +104,12 @@ namespace slib
 		flagSupport = sl_false; \
 	} \
 	*((void**)(&(g_entries.name))) = proc;
-	
+
 #undef PRIV_SLIB_RENDER_GL_SUPPORT
 #define PRIV_SLIB_RENDER_GL_SUPPORT(name) \
 	g_entries.flagSupports##name = flagSupport; \
 	flagSupport = sl_true;
-	
+
 	void GL::loadEntries(const StringParam& pathDll, sl_bool flagReload)
 	{
 		if (!flagReload) {
@@ -136,12 +136,12 @@ namespace slib
 		PRIV_SLIB_RENDER_GL_ENTRIES
 		g_flagLoadedEntryPoints = sl_true;
 	}
-	
+
 	void GL::loadEntries(sl_bool flagReload)
 	{
 		loadEntries(String::null(), flagReload);
 	}
-	
+
 	sl_bool GL::isAvailable()
 	{
 		return g_flagLoadedEntryPoints;
@@ -160,11 +160,11 @@ namespace slib
 	void GL::loadEntries(const StringParam& pathDll, sl_bool flagReload)
 	{
 	}
-	
+
 	void GL::loadEntries(sl_bool flagReload)
 	{
 	}
-	
+
 	sl_bool GL::isAvailable()
 	{
 		return sl_true;
@@ -186,15 +186,15 @@ namespace slib
 	{
 		return sl_null;
 	}
-	
+
 	void GL::loadEntries(const StringParam& pathDll, sl_bool flagReload)
 	{
 	}
-	
+
 	void GL::loadEntries(sl_bool flagReload)
 	{
 	}
-	
+
 	sl_bool GL::isAvailable()
 	{
 		return sl_false;

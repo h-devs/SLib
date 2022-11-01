@@ -12,8 +12,8 @@ class OAuthClientApp : public UIApp
 	SLIB_APPLICATION(OAuthClientApp)
 public:
 	OAuthClientApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 };

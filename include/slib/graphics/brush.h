@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT GradientBrushDetail : public Referable
 	{
 	public:
@@ -40,28 +40,28 @@ namespace slib
 		sl_real radius;
 		List<Color> colors;
 		List<sl_real> locations;
-		
+
 	public:
 		GradientBrushDetail();
-		
+
 		~GradientBrushDetail();
 
 	};
-	
+
 	class Bitmap;
-	
+
 	class SLIB_EXPORT TextureBrushDetail : public Referable
 	{
 	public:
 		Ref<Bitmap> pattern;
-		
+
 	public:
 		TextureBrushDetail();
-		
+
 		~TextureBrushDetail();
-		
+
 	};
-	
+
 	class SLIB_EXPORT BrushDesc
 	{
 	public:
@@ -71,11 +71,11 @@ namespace slib
 
 	public:
 		BrushDesc();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(BrushDesc)
 
 	};
-	
+
 	class SLIB_EXPORT Brush : public Referable
 	{
 		SLIB_DECLARE_OBJECT
@@ -97,14 +97,14 @@ namespace slib
 		static Ref<Brush> createLinearGradientBrush(const Point& pt1, const Point& pt2, sl_uint32 nColors, const Color* colors, const sl_real* locations);
 
 		static Ref<Brush> createRadialGradientBrush(const Point& ptCenter, sl_real radius, const Color& colorCenter, const Color& colorEdge);
-		
+
 		static Ref<Brush> createRadialGradientBrush(const Point& ptCenter, sl_real radius, sl_uint32 nColors, const Color* colors, const sl_real* locations);
-		
+
 		static Ref<Brush> createTextureBrush(const Ref<Bitmap>& bitmap);
 
 	public:
 		void getDesc(BrushDesc& desc);
-		
+
 		BrushDesc& getDesc();
 
 		BrushStyle getStyle();

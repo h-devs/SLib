@@ -70,7 +70,7 @@ public class UiScrollView extends ScrollView implements IView {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static void _scrollTo(final View view, final int x, final int y, final boolean flagAnimate) {
 		try {
 			if (view instanceof UiScrollView) {
@@ -92,7 +92,7 @@ public class UiScrollView extends ScrollView implements IView {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static int _getScrollX(View view) {
 		return view.getScrollX();
 	}

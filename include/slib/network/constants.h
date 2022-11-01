@@ -37,7 +37,7 @@ namespace slib
 		RARP = 0x8035,
 		IPv6 = 0x86DD
 	};
-	
+
 	enum class NetworkLinkDeviceType
 	{
 		Null = 0, //  BSD loopback encapsulation; the link layer header is a 4-byte field, in host byte order, containing a PF_ value from socket.h for the network-layer protocol of the packet.
@@ -47,9 +47,9 @@ namespace slib
 		Linux = 113, //  Linux "cooked" capture encapsulation. (for "any" or PPP devices)
 
 		Raw = 0x8001 // Raw IP; the packet begins with an IPv4 or IPv6 header, with the "version" field of the header indicating whether it's an IPv4 or IPv6 header.
-		
+
 	};
-	
+
 	enum class NetworkInternetProtocol
 	{
 		Unknown = -1,

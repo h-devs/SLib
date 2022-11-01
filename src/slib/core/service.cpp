@@ -100,7 +100,7 @@ namespace slib
 	{
 		return onStartService();
 	}
-	
+
 	void Service::dispatchStopService()
 	{
 		onStopService();
@@ -116,12 +116,12 @@ namespace slib
 			LogError(TAG, "SERVICE NAME IS EMPTY");
 			return sl_false;
 		}
-		
+
 		if (NamedInstance::exists(appName + STOP_ID)) {
 			LogError(TAG, "OTHER PROCESS IS STOPPING %s", appName);
 			return sl_false;
 		}
-	
+
 		if (!(isUniqueInstanceRunning())) {
 
 			Log(TAG, "STARING %s", appName);
@@ -190,11 +190,11 @@ namespace slib
 	{
 		return sl_true;
 	}
-	
+
 	void Service::onStopService()
 	{
 	}
-	
+
 	sl_int32 Service::doRun()
 	{
 		if (_tryPlatformService()) {
@@ -360,25 +360,25 @@ namespace slib
 #endif
 		return -1;
 	}
-	
+
 	sl_int32 Service::onRunApp()
 	{
 		if (m_flagPlatformService) {
 			_runPlatformService();
 			return 0;
 		}
-		
+
 		if (m_eventQuit.isNull()) {
 			return -1;
 		}
-		
+
 #ifndef SLIB_PLATFORM_IS_WINDOWS
 		struct sigaction sa;
 		Base::zeroMemory(&sa, sizeof(sa));
 		sa.sa_handler = &TermHandler;
 		sigaction(SIGTERM, &sa, sl_null);
 #endif
-		
+
 		String appName = getServiceId();
 
 		if (!(dispatchStartService())) {
@@ -389,7 +389,7 @@ namespace slib
 		NamedInstance startInstance(appName + START_ID);
 
 		String stopId = appName + STOP_ID;
-		
+
 		while (!m_flagRequestQuit) {
 			if (NamedInstance::exists(stopId)) {
 				break;
@@ -402,7 +402,7 @@ namespace slib
 		return 0;
 
 	}
-	
+
 	String Service::getApplicationId()
 	{
 		return getServiceId();

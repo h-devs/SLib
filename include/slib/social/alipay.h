@@ -39,7 +39,7 @@ namespace slib
 
 	public:
 		AlipayResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AlipayResult)
 
 	};
@@ -50,7 +50,7 @@ namespace slib
 		String tradeId; // required
 		sl_uint64 amount; // required, unit: yuan/100
 		String subject; // required
-		
+
 		String body;
 		String timeout;
 		String sellerId;
@@ -58,9 +58,9 @@ namespace slib
 
 	public:
 		AlipayBusinessContent();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AlipayBusinessContent)
-		
+
 	public:
 		String toString() const;
 
@@ -72,62 +72,62 @@ namespace slib
 		String appId;
 		Time timeStamp;
 		AlipayBusinessContent content;
-		
+
 		String signature;
-		
+
 	public:
 		AlipayOrder();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AlipayOrder)
-		
+
 	public:
 		sl_bool sign(const StringParam& privateKey_PEM);
-		
+
 		String toString() const;
-		
+
 	private:
 		String generateString(sl_bool flagEncode) const;
-		
+
 	};
 
 	class SLIB_EXPORT AlipayPaymentResult : public AlipayResult
 	{
 	public:
 		AlipayPaymentResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AlipayPaymentResult)
 
 	public:
 		void applyAppResponse(const String& result);
-		
+
 	};
 
 	class SLIB_EXPORT AlipayPaymentRequest
 	{
 	public:
 		String order;
-		
+
 		Function<void(AlipayPaymentResult&)> onComplete;
-		
+
 	public:
 		AlipayPaymentRequest();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AlipayPaymentRequest)
-		
+
 	};
 
 	class SLIB_EXPORT AlipaySDK
 	{
 	public:
 		static void initialize(const String& appScheme);
-		
+
 	public:
 		static void pay(const AlipayPaymentRequest& req);
-		
+
 		static void pay(const String& order, const Function<void(AlipayPaymentResult&)>& onComplete);
 
 	};
-	
+
 }
 
 #endif

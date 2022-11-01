@@ -270,7 +270,7 @@ namespace slib
 		}
 		return Ref<Bitmap>::from(BitmapImpl::create(bitmap, flagFreeOnRelease, ref));
 	}
-	
+
 	cairo_surface_t* GraphicsPlatform::getBitmapHandle(Bitmap* _bitmap)
 	{
 		if (BitmapImpl* bitmap = CastInstance<BitmapImpl>(_bitmap)) {

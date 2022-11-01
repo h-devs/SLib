@@ -30,7 +30,7 @@ namespace slib
 	{
 		return sl_null;
 	}
-	
+
 	Ref<Image> ScreenCapture::takeScreenshotFromCurrentMonitor()
 	{
 		return sl_null;

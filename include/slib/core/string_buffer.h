@@ -45,7 +45,7 @@ namespace slib
 
 	public:
 		StringBuffer() noexcept;
-		
+
 		~StringBuffer() noexcept;
 
 	public:
@@ -58,12 +58,12 @@ namespace slib
 		 * Add string object to the queue.
 		 */
 		sl_bool add(const String& str) noexcept;
-		
+
 		/**
 		 * Add string represented by StringStorage struct to the queue.
 		 */
 		sl_bool add(const StringStorage& str) noexcept;
-		
+
 		/**
 		 * Add string pointed by buf to the queue.
 		 */
@@ -74,17 +74,17 @@ namespace slib
 		{
 			return addStatic(s, N - 1);
 		}
-		
+
 		/**
 		 * Add all string items in buf to the current object and then clear buf.
 		 */
 		void link(StringBuffer& buf) noexcept;
-		
+
 		/**
 		 * Clears all items.
 		 */
 		void clear() noexcept;
-		
+
 		/**
 		 * Merge all items and returns the merged string.
 		 */
@@ -98,7 +98,7 @@ namespace slib
 	private:
 		LinkedQueue<StringStorage> m_queue;
 		sl_size m_len;
-		
+
 	};
 
 
@@ -113,7 +113,7 @@ namespace slib
 
 	public:
 		StringBuffer16() noexcept;
-		
+
 		~StringBuffer16() noexcept;
 
 	public:
@@ -121,33 +121,33 @@ namespace slib
 		 * Returns total length of all string items.
 		 */
 		sl_size getLength() const noexcept;
-		
+
 		/**
 		 * Add string object to the queue.
 		 */
 		sl_bool add(const String16& str) noexcept;
-		
+
 		/**
 		 * Add string represented by StringStorage struct to the queue.
 		 */
 		sl_bool add(const StringStorage& str) noexcept;
-		
+
 		/**
 		 * Add string pointed by buf to the queue.
 		 */
 		sl_bool addStatic(const sl_char16* buf, sl_size length) noexcept;
-		
+
 		template <sl_size N>
 		sl_bool addStatic(const sl_char16 (&s)[N]) noexcept
 		{
 			return addStatic(s, N - 1);
 		}
-		
+
 		/**
 		 * Add all string items in buf to the current object and then clear buf.
 		 */
 		void link(StringBuffer16& buf) noexcept;
-		
+
 		/**
 		 * Clears all items.
 		 */
@@ -162,11 +162,11 @@ namespace slib
 		 * Merge all items and returns it as memory.
 		 */
 		Memory mergeToMemory() const noexcept;
-				
+
 	private:
 		LinkedQueue<StringStorage> m_queue;
 		sl_size m_len;
-		
+
 	};
 
 
@@ -239,10 +239,10 @@ namespace slib
 
 	template <class CharType>
 	struct StringBufferTypeFromCharType;
-	
+
 	template <>
 	struct StringBufferTypeFromCharType<sl_char8> { typedef StringBuffer Type; };
-	
+
 	template <>
 	struct StringBufferTypeFromCharType<sl_char16> { typedef StringBuffer16 Type; };
 

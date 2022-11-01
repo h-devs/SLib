@@ -820,7 +820,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Window> Window::getActiveWindow()
 	{
 		HWND hWnd = GetActiveWindow();

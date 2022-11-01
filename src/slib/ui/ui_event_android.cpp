@@ -45,14 +45,14 @@ namespace slib
 			private:
 				HashTable<sl_uint32, sl_uint32> mapKeyToVK;
 				HashTable<sl_uint32, sl_uint32> mapVKToKey;
-				
+
 			public:
 				KeyMapper()
 				{
 					map(Keycode::Tab, 61);
 					map(Keycode::Enter, 66);
 					map(Keycode::Escape, 111);
-					
+
 					map(Keycode::Space, 62);
 					map(Keycode::Grave, 68);
 					map(Keycode::Equal, 70);
@@ -65,7 +65,7 @@ namespace slib
 					map(Keycode::Minus, 69);
 					map(Keycode::Period, 56);
 					map(Keycode::Divide, 76);
-					
+
 					map(Keycode::Num0, 7);
 					map(Keycode::Num1, 8);
 					map(Keycode::Num2, 9);
@@ -76,7 +76,7 @@ namespace slib
 					map(Keycode::Num7, 14);
 					map(Keycode::Num8, 15);
 					map(Keycode::Num9, 16);
-					
+
 					map(Keycode::A, 29);
 					map(Keycode::B, 30);
 					map(Keycode::C, 31);
@@ -103,7 +103,7 @@ namespace slib
 					map(Keycode::X, 52);
 					map(Keycode::Y, 53);
 					map(Keycode::Z, 54);
-					
+
 					map(Keycode::Numpad0, 144);
 					map(Keycode::Numpad1, 145);
 					map(Keycode::Numpad2, 146);
@@ -114,14 +114,14 @@ namespace slib
 					map(Keycode::Numpad7, 151);
 					map(Keycode::Numpad8, 152);
 					map(Keycode::Numpad9, 153);
-					
+
 					map(Keycode::NumpadDivide, 154);
 					map(Keycode::NumpadMultiply, 155);
 					map(Keycode::NumpadMinus, 156);
 					map(Keycode::NumpadPlus, 157);
 					map(Keycode::NumpadEnter, 160);
 					map(Keycode::NumpadDecimal, 158);
-					
+
 					map(Keycode::F1, 131);
 					map(Keycode::F2, 132);
 					map(Keycode::F3, 133);
@@ -134,7 +134,7 @@ namespace slib
 					map(Keycode::F10, 140);
 					map(Keycode::F11, 141);
 					map(Keycode::F12, 142);
-					
+
 					map(Keycode::Backspace, 67);
 					map(Keycode::PageUp, 92);
 					map(Keycode::PageDown, 93);
@@ -149,7 +149,7 @@ namespace slib
 					map(Keycode::Delete, 112);
 					map(Keycode::Sleep, -1);
 					map(Keycode::Pause, 121);
-					
+
 					map(Keycode::GoHome, -1);
 					map(Keycode::GoMenu, 82);
 					map(Keycode::GoBack, 4);
@@ -177,7 +177,7 @@ namespace slib
 					map(Keycode::NumLock, 143);
 					map(Keycode::ContextMenu, -1);
 				}
-				
+
 			public:
 				void map(Keycode key, sl_uint32 vk)
 				{
@@ -187,7 +187,7 @@ namespace slib
 					mapKeyToVK.put((int)key, vk);
 					mapVKToKey.put(vk, (int)key);
 				}
-				
+
 				Keycode vkToKey(sl_uint32 vk)
 				{
 					sl_uint32 ret;
@@ -197,7 +197,7 @@ namespace slib
 						return Keycode::Unknown;
 					}
 				}
-				
+
 				sl_uint32 keyToVk(Keycode code)
 				{
 					sl_uint32 ret;
@@ -207,7 +207,7 @@ namespace slib
 						return -1;
 					}
 				}
-				
+
 			};
 
 			SLIB_SAFE_STATIC_GETTER(KeyMapper, GetKeyMapper)

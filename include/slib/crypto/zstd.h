@@ -37,14 +37,14 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ZstdCompressor : public ICompressor
 	{
 	public:
 		ZstdCompressor();
 
 		~ZstdCompressor();
-	
+
 	public:
 		sl_bool isStarted();
 
@@ -62,7 +62,7 @@ namespace slib
 	protected:
 		void* m_stream;
 	};
-	
+
 	class SLIB_EXPORT ZstdDecompressor : public IDecompressor
 	{
 	public:
@@ -98,7 +98,7 @@ namespace slib
 		static Memory compress(const void* data, sl_size size, sl_int32 level = 3);
 
 		static Memory decompress(const void* data, sl_size size);
-	
+
 	};
 
 }

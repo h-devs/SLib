@@ -45,7 +45,7 @@ namespace slib
 	{
 		namespace url
 		{
-			
+
 			const sl_bool g_patternUnreserved[128] = {
 				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
 				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
@@ -177,23 +177,23 @@ namespace slib
 					return sl_null;
 				}
 			}
-	
+
 		}
 	}
 
 	using namespace priv::url;
-		
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Url)
-	
+
 	Url::Url()
 	{
 	}
-	
+
 	Url::Url(const StringParam& url)
 	{
 		parse(url);
 	}
-	
+
 	void Url::parse(const StringParam& _url)
 	{
 		StringData url(_url);
@@ -255,7 +255,7 @@ namespace slib
 			host = String(str, n);
 		}
 	}
-	
+
 	String Url::toString() const
 	{
 		StringBuffer buf;
@@ -282,22 +282,22 @@ namespace slib
 		}
 		return buf.merge();
 	}
-	
+
 	HashMap<String, String> Url::getQueryParameters() const
 	{
 		return HttpRequest::parseQueryParameters(query);
 	}
-	
+
 	void Url::setQueryParameters(const HashMap<String, String>& params)
 	{
 		query = HttpRequest::buildQuery(params);
 	}
-	
+
 	String Url::encodePercent(const StringParam& value)
 	{
 		return EncodePercent(value, g_patternUnreserved);
 	}
-	
+
 	String Url::decodePercent(const StringParam& _value)
 	{
 		StringData value(_value);
@@ -335,27 +335,27 @@ namespace slib
 			return sl_null;
 		}
 	}
-	
+
 	String Url::encodeUriComponent(const StringParam& value)
 	{
 		return EncodePercent(value, g_patternUnreserved_UriComponents);
 	}
-	
+
 	String Url::decodeUriComponent(const StringParam& value)
 	{
 		return decodePercent(value);
 	}
-	
+
 	String Url::encodeUri(const StringParam& value)
 	{
 		return EncodePercent(value, g_patternUnreserved_Uri);
 	}
-	
+
 	String Url::decodeUri(const StringParam& value)
 	{
 		return decodePercent(value);
 	}
-	
+
 	String Url::encodeForm(const StringParam& _value)
 	{
 		StringData value(_value);
@@ -384,7 +384,7 @@ namespace slib
 			return sl_null;
 		}
 	}
-	
+
 	String Url::decodeForm(const StringParam& _value)
 	{
 		StringData value(_value);

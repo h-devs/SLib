@@ -1465,7 +1465,7 @@ namespace slib
 					D3D_(MAPPED_SUBRESOURCE) res = { 0 };
 					context->Map(handle, 0, D3D_(MAP_WRITE), 0, &res);
 					data = res.pData;
-#else					
+#else
 					handle->Map(D3D_(MAP_WRITE), 0, &data);
 #endif
 #else

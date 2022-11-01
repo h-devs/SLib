@@ -37,14 +37,14 @@ int main(int argc, const char * argv[])
 		}
 		param.parseJsonFile("/etc/slib_http.conf");
 	} while (0);
-	
+
 	param.onPreRequest = [](HttpServerContext* context) {
 		if (context->getPath() == "/test") {
 			context->write("Intercepted!<br>");
 		}
 		return sl_false;
 	};
-	
+
 	param.router.GET("/", [](HttpServerContext* context) {
 		Console::println("Method: %s, Path: %s", context->getMethodText(), context->getPath());
 		Console::println("Headers:");
@@ -55,7 +55,7 @@ int main(int argc, const char * argv[])
 		Console::println("Body:");
 		Console::println("%s", String::fromMemory(context->getRequestBody()));
 		Console::println("");
-		
+
 		HttpCookie cookie;
 		cookie.name = "Cookie1";
 		cookie.value = Time::now().toHttpDate();
@@ -64,7 +64,7 @@ int main(int argc, const char * argv[])
 		cookie.name = "Cookie2";
 		cookie.value = "This Cookie will be expired after 10 seconds";
 		context->addResponseCookie(cookie);
-		
+
 		Json data = {
 			{"remote", context->getRemoteAddress().toString()},
 			{"http", {
@@ -133,7 +133,7 @@ int main(int argc, const char * argv[])
 		return sl_true;
 	});
 	param.router.add("/search", router);
-	
+
 	param.router.before(HttpMethod::GET, "/test/**", [](HttpServerContext* context) {
 		context->write("Intercepted Router<br><br>");
 		return sl_false;
@@ -151,21 +151,21 @@ int main(int argc, const char * argv[])
 		}
 		return sl_false;
 	};
-	
+
 	param.onPostRequest = [](HttpServerContext* context) {
 		if (!(context->isProcessed())) {
 			context->setResponseCode(HttpStatus::NotFound);
 			context->write("Not found the specified file!");
 		}
 	};
-	
+
 	Ref<HttpServer> server = HttpServer::create(param);
 	if (server.isNull()) {
 		return -1;
 	}
-	
+
 	Console::println("Server is running on port: %d, Webroot: %s", param.port, param.webRootPath);
-	
+
 	for(;;) {
 		Console::println("\nPress x to exit!!!");
 		if (Console::readChar() == 'x') {

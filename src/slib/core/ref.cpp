@@ -36,7 +36,7 @@ namespace slib
 		{
 
 			void* const g_null = sl_null;
-			
+
 		}
 	}
 
@@ -47,7 +47,7 @@ namespace slib
 	Referable::Referable(const Referable& other) noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
-	
+
 	Referable::Referable(Referable&& other) noexcept: m_nRefCount(0), m_weak(sl_null)
 	{
 	}
@@ -74,7 +74,7 @@ namespace slib
 		}
 		return nRef;
 	}
-	
+
 	sl_reg Referable::getReferenceCount() noexcept
 	{
 		return m_nRefCount;
@@ -91,12 +91,12 @@ namespace slib
 	void Referable::init()
 	{
 	}
-	
+
 	sl_object_type Referable::ObjectType() noexcept
 	{
 		return 0;
 	}
-	
+
 	sl_bool Referable::isDerivedFrom(sl_object_type type) noexcept
 	{
 		return sl_false;
@@ -164,18 +164,18 @@ namespace slib
 		_clearWeak();
 		delete this;
 	}
-	
+
 	Referable& Referable::operator=(const Referable& other) noexcept
 	{
 		return *this;
 	}
-	
+
 	Referable& Referable::operator=(Referable&& other) noexcept
 	{
 		return *this;
 	}
 
-	
+
 	SLIB_DEFINE_ROOT_OBJECT(CWeakRef)
 
 	CWeakRef::CWeakRef() noexcept

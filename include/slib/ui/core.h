@@ -47,79 +47,79 @@ namespace slib
 		static Ref<Font> getDefaultFont();
 
 		static void setDefaultFont(const Ref<Font>& font);
-		
+
 		static sl_real getDefaultFontSize();
-		
+
 		static void setDefaultFontSize(sl_real fontSize);
-		
+
 		static String getDefaultFontFamily();
-		
+
 		static void setDefaultFontFamily(const String& fontFamily);
 
 		static void setDefaultFontFamilyForLocale(const Locale& locale);
-		
+
 
 		static sl_ui_len getDefaultScrollBarWidth();
-		
+
 		static void setDefaultScrollBarWidth(sl_ui_len width);
-		
+
 		// Screens
 		static List< Ref<Screen> > getScreens();
-		
+
 		static Ref<Screen> getPrimaryScreen();
-		
+
 		static Ref<Screen> getFocusedScreen();
-		
+
 		static UIRect getScreenRegion();
-		
+
 		static UIRect getScreenRegion(const Ref<Screen>& screen);
-		
+
 		static UIRect getScreenBounds();
-		
+
 		static UIRect getScreenBounds(const Ref<Screen>& screen);
-		
+
 		static UISize getScreenSize();
-		
+
 		static UISize getScreenSize(const Ref<Screen>& screen);
-		
+
 		static sl_ui_len getScreenWidth();
-		
+
 		static sl_ui_len getScreenHeight();
 
 		static Ref<Canvas> getScreenCanvas();
-		
-		
+
+
 		static double getScreenPPI();
-		
+
 		static sl_real pixelToInch(sl_real px);
-		
+
 		static sl_real inchToPixel(sl_real inch);
-		
+
 		static sl_real pixelToMeter(sl_real px);
 
 		static sl_real meterToPixel(sl_real meters);
-		
+
 		static sl_real pixelToCentimeter(sl_real px);
-		
+
 		static sl_real centimeterToPixel(sl_real cm);
-		
+
 		static sl_real pixelToMillimeter(sl_real px);
-		
+
 		static sl_real millimeterToPixel(sl_real mm);
-		
+
 		static sl_real pixelToPoint(sl_real px);
-		
+
 		static sl_real pointToPixel(sl_real dp);
-		
+
 		static sl_real pixelToDp(sl_real px);
-		
+
 		static sl_real dpToPixel(sl_real dp);
-		
+
 		// Message Box
 		static void alert(const StringParam& text);
 
 		static void alert(const StringParam& caption, const StringParam& text);
-		
+
 		static void alert(AlertIcon icon, const StringParam& text);
 
 		static void alert(AlertIcon icon, const StringParam& caption, const StringParam& text);
@@ -133,7 +133,7 @@ namespace slib
 		static void alert(const Ref<Window>& parent, AlertIcon icon, const StringParam& caption, const StringParam& text);
 
 		static void showAlert(const StringParam& text, const Function<void()>& onOK = sl_null);
-		
+
 		static void showAlert(const StringParam& caption, const StringParam& text, const Function<void()>& onOK = sl_null);
 
 		static void showAlert(AlertIcon icon, const StringParam& text, const Function<void()>& onOK = sl_null);
@@ -141,7 +141,7 @@ namespace slib
 		static void showAlert(AlertIcon icon, const StringParam& caption, const StringParam& text, const Function<void()>& onOK = sl_null);
 
 		static void showAlert(const Ref<Window>& parent, const StringParam& text, const Function<void()>& onOK = sl_null);
-		
+
 		static void showAlert(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void()>& onOK = sl_null);
 
 		static void showAlert(const Ref<Window>& parent, AlertIcon icon, const StringParam& text, const Function<void()>& onOK = sl_null);
@@ -155,13 +155,13 @@ namespace slib
 		static sl_bool confirm(const Ref<Window>& parent, const StringParam& text);
 
 		static sl_bool confirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text);
-		
+
 		static void showConfirm(const StringParam& text, const Function<void(sl_bool)>& onResult = sl_null);
-		
+
 		static void showConfirm(const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult = sl_null);
-		
+
 		static void showConfirm(const Ref<Window>& parent, const StringParam& text, const Function<void(sl_bool)>& onResult = sl_null);
-		
+
 		static void showConfirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult = sl_null);
 
 		static String prompt(const StringParam& message);
@@ -185,17 +185,17 @@ namespace slib
 		static sl_bool checkKeyPressed(Keycode key);
 
 		static sl_bool checkScrollLockOn();
-		
+
 		static sl_bool checkNumLockOn();
-		
+
 		static sl_bool checkLeftButtonPressed();
-		
+
 		static sl_bool checkRightButtonPressed();
 
 		static sl_bool checkMiddleButtonPressed();
-		
+
 		static sl_bool checkCapsLockOn();
-		
+
 		static UIPoint getCursorPos();
 
 		static void sendKeyEvent(UIAction action, Keycode key);
@@ -204,22 +204,22 @@ namespace slib
 
 		// UI Thread
 		static sl_bool isUiThread();
-		
+
 		static void dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis = 0);
-		
+
 		static void dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis = 0);
-		
+
 		static void runOnUiThread(const Function<void()>& callback);
-		
+
 		static Function<void()> getCallbackOnUiThread(const Function<void()>& callback);
 
 		static Ref<Dispatcher> getDispatcher();
-		
+
 		// Run Loop
 		static void runLoop();
-		
+
 		static void quitLoop();
-		
+
 		static void initApp();
 
 		static void runApp();
@@ -229,8 +229,8 @@ namespace slib
 		static sl_bool isRunningApp();
 
 		static sl_bool isQuitingApp();
-		
-		
+
+
 		static void openUrl(const StringParam& url);
 
 		static void openFile(const StringParam& path);
@@ -239,21 +239,21 @@ namespace slib
 
 		static void openDirectoryAndSelectFile(const StringParam& path);
 
-		
+
 		static void showKeyboard();
 
 		static void dismissKeyboard();
-		
+
 
 		static void getActiveApplicationAndWindow(String& appName, String& windowTitle);
 
 		static String getActiveApplicationName();
-		
+
 		// [macOS] Accessibility authentication is required. See `Application::isAccessibilityEnabled()`.
 		static String getActiveWindowTitle();
-		
+
 	};
-	
+
 }
 
 #define SLIB_UI_CALLBACK(...) slib::UI::getCallbackOnUiThread(Function<void()>::bind(__VA_ARGS__))

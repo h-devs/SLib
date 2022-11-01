@@ -29,7 +29,7 @@ namespace slib
 {
 
 	class Memory;
-	
+
 	class SLIB_EXPORT MemoryView
 	{
 	public:
@@ -61,7 +61,7 @@ namespace slib
 		}
 
 	};
-	
+
 }
 
 #endif

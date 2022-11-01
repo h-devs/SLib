@@ -157,7 +157,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_bool Uint128::div32(const Uint128& a, sl_uint32 b, Uint128* quotient, sl_uint32* remainder) noexcept
 	{
 		sl_uint64 high = a.high;

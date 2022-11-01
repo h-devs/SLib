@@ -109,7 +109,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShellOpenFolderAndSelectItemsParam)
 
 	};
-	
+
 	class SLIB_EXPORT Win32
 	{
 	public:
@@ -120,12 +120,12 @@ namespace slib
 
 		static HGLOBAL createGlobalData(const void* data, sl_size size);
 
-	
+
 		static Ref<Event> createEvent(HANDLE hEvent, sl_bool flagCloseOnRelease = sl_true);
 
 		static HANDLE getEventHandle(Event* event);
-	
-	
+
+
 		static void setApplicationRunAtStartup(const StringParam& name, const StringParam& path, sl_bool flagRegister);
 
 
@@ -154,7 +154,7 @@ namespace slib
 		static sl_bool isWindowVisible(HWND hWnd);
 
 	};
-	
+
 }
 
 #endif

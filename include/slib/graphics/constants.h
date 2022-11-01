@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	enum class PenStyle
 	{
 		Solid = 0,
@@ -106,7 +106,7 @@ namespace slib
 		Nearest = 0,
 		Linear = 1,
 		Box = 2,
-		
+
 		Default = Box
 	};
 
@@ -123,7 +123,7 @@ namespace slib
 		Rotate180 = 180,
 		Rotate270 = 270
 	};
-	
+
 	constexpr RotationMode operator+(RotationMode a, RotationMode b)
 	{
 		return (RotationMode)(((int)a + (int)b) % 360);
@@ -133,12 +133,12 @@ namespace slib
 	{
 		return (RotationMode)(((int)a + 360 - (int)b) % 360);
 	}
-	
+
 	constexpr RotationMode operator-(RotationMode a)
 	{
 		return (RotationMode)((360 - (int)a) % 360);
 	}
-	
+
 	enum class FlipMode
 	{
 		None = 0,
@@ -146,12 +146,12 @@ namespace slib
 		Vertical = 2,
 		Both = 3 // Same effect with `RotationMode::Rotate180`
 	};
-	
+
 	constexpr FlipMode operator*(FlipMode a, FlipMode b)
 	{
 		return (FlipMode)((int)a ^ (int)b);
 	};
-	
+
 	// Convert Flip::Both to 180 rotation, and then Convert 180 rotation to flip, and then Convert Flip::Vertical to Flip::Horizontal on 90/270 rotation
 	SLIB_INLINE void NormalizeRotateAndFlip(RotationMode& rotation, FlipMode& flip)
 	{
@@ -180,7 +180,7 @@ namespace slib
 			flip = FlipMode::Horizontal;
 		}
 	}
-	
+
 	template <class T>
 	SLIB_INLINE void RotatePoint(T& x, T& y, T w, T h, RotationMode rotation)
 	{
@@ -237,7 +237,7 @@ namespace slib
 		Mirror,
 		Clamp
 	};
-	
+
 	enum class ColorSpace
 	{
 		None = 0,
@@ -247,7 +247,7 @@ namespace slib
 		HLS = 4,
 		HSV = 5
 	};
-	
+
 	enum class MultiLineMode
 	{
 		Single, // Single line
@@ -255,7 +255,7 @@ namespace slib
 		WordWrap, // Break at TAB, Spaces, CR/LF
 		BreakWord // Break at any position
 	};
-	
+
 	enum class EllipsizeMode
 	{
 		None = 0,
@@ -263,7 +263,7 @@ namespace slib
 		Start = 2,
 		Middle = 3
 	};
-	
+
 	enum class BoundShape
 	{
 		None = 0,
@@ -272,7 +272,7 @@ namespace slib
 		RoundRect = 3,
 		Path = 10
 	};
-	
+
 }
 
 #endif

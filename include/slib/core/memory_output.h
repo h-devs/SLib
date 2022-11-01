@@ -82,7 +82,7 @@ namespace slib
 		List<sl_uint8> m_buffer;
 
 	};
-	
+
 }
 
 #endif

@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class ListModel : public Object
 	{
@@ -46,7 +46,7 @@ namespace slib
 		{
 			return sl_false;
 		}
-		
+
 		virtual sl_bool insert(sl_uint64 index, const T& value)
 		{
 			return sl_false;
@@ -61,12 +61,12 @@ namespace slib
 		{
 			return 0;
 		}
-		
+
 		virtual sl_bool add(const T& value)
 		{
 			return insert(getCount(), vlaue);
 		}
-	
+
 		virtual sl_uint64 removeAll(sl_uint64 index, sl_uint64 count)
 		{
 			sl_uint64 n = getCount();
@@ -76,7 +76,7 @@ namespace slib
 				return 0;
 			}
 		}
-		
+
 		virtual sl_bool popBack(T* _out = sl_null)
 		{
 			sl_uint64 n = getCount();
@@ -142,7 +142,7 @@ namespace slib
 		{
 			return m_list.setCount((sl_size)count);
 		}
-		
+
 		sl_bool insert(sl_uint64 index, const T& value) override
 		{
 			return m_list.insert((sl_size)index, value);
@@ -157,17 +157,17 @@ namespace slib
 		{
 			return m_list.removeRange((sl_size)index, (sl_size)count);
 		}
-		
+
 		sl_bool add(const T& value) override
 		{
 			return m_list.add(value);
 		}
-	
+
 		sl_uint64 removeAll(sl_uint64 index, sl_uint64 count) override
 		{
 			return m_list.removeAll();
 		}
-		
+
 		sl_bool popBack(T* _out = sl_null) override
 		{
 			return m_list.popBack(_out);
@@ -187,7 +187,7 @@ namespace slib
 		List<T> m_list;
 
 	};
-	
+
 }
 
 #endif

@@ -52,7 +52,7 @@ namespace slib
 				saAttr.lpSecurityDescriptor = NULL;
 				return ::CreatePipe(pRead, pWrite, &saAttr, 0) != 0;
 			}
-			
+
 			static sl_bool Execute(const StringParam& _pathExecutable, const StringParam* cmds, sl_size nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, DWORD flags, sl_bool flagInheritHandles)
 			{
 				StringCstr16 pathExecutable(_pathExecutable);

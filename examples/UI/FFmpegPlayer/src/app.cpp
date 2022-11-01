@@ -30,7 +30,7 @@ void FFmpegPlayerApp::onStart()
 {
 	getMainWindow()->setResizable(sl_true);
 	getMainWindow()->setTitle("Example - FFmpegPlayer");
-	
+
 	Ref<VideoView> videoView = new VideoView;
 	videoView->setWidthFilling();
 	videoView->setHeightFilling();

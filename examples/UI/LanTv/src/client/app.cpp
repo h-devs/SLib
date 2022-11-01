@@ -43,7 +43,7 @@ void LanTvClientApp::onStart()
 				return;
 			}
 		}
-		
+
 		Ref<OpusDecoder> decoderAudio;
 		{
 			OpusDecoderParam param;

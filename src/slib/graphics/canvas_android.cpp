@@ -94,7 +94,7 @@ namespace slib
 				{
 					JGraphics::save.call(m_canvas);
 				}
-				
+
 				void restore() override
 				{
 					JGraphics::restore.call(m_canvas);
@@ -230,7 +230,7 @@ namespace slib
 							hPen, hBrush);
 					}
 				}
-				
+
 				void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					jobject hPath = GraphicsPlatform::getGraphicsPath(path.get());

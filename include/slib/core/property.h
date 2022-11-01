@@ -28,20 +28,20 @@
 
 namespace slib
 {
-	
+
 	template <class T> struct PropertyTypeHelper { typedef T const& ArgType; typedef T const& RetType; };
-	
+
 
 	template <class T>
 	class Atomic;
-	
+
 	template <class T>
 	struct PropertyTypeHelper< Atomic<T> >
 	{
 		typedef typename PropertyTypeHelper<T>::ArgType ArgType;
 		typedef typename RemoveConstReference< typename PropertyTypeHelper<T>::RetType >::Type RetType;
 	};
-	
+
 
 	template <class... TYPES>
 	class Ref;

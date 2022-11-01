@@ -27,20 +27,20 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
-		
+
 		namespace noto_emoji
 		{
 			extern const char32_t* emojis[];
 		}
-		
+
 		using namespace noto_emoji;
-		
+
 		namespace emoji
 		{
-			
+
 			class StaticContext
 			{
 			public:
@@ -66,7 +66,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 			public:
 				sl_size getEmojiLength(const sl_char16* sz, sl_size len)
 				{
@@ -96,17 +96,17 @@ namespace slib
 					}
 					return ret;
 				}
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 		}
-		
+
 	}
-	
+
 	using namespace priv::emoji;
-	
+
 	sl_bool Emoji::isEmoji(const String16& str)
 	{
 		StaticContext* context = GetStaticContext();
@@ -115,7 +115,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool Emoji::isEmoji(sl_char32 ch)
 	{
 		StaticContext* context = GetStaticContext();

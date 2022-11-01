@@ -32,17 +32,17 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace collection_view
 		{
-			
+
 			class ContentView : public ViewGroup
 			{
 			private:
 				WeakRef<CollectionView> m_collectionView;
-				
+
 			public:
 				ContentView()
 				{
@@ -50,18 +50,18 @@ namespace slib
 					setSavingCanvasState(sl_false);
 					setUsingChildLayouts(sl_false);
 				}
-				
+
 			public:
 				Ref<CollectionView> getCollectionView()
 				{
 					return m_collectionView;
 				}
-				
+
 				void setCollectionView(CollectionView* view)
 				{
 					m_collectionView = view;
 				}
-				
+
 			protected:
 				void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override
 				{
@@ -70,16 +70,16 @@ namespace slib
 						view->_requestLayout();
 					}
 				}
-				
+
 			};
-			
+
 			class FreeViewSet
 			{
 			public:
 				sl_object_type type;
 				CLinkedList< Ref<View> > queue;
 			};
-			
+
 			class Column
 			{
 			public:
@@ -89,23 +89,23 @@ namespace slib
 				CList<sl_ui_len> heights;
 				HashMap< sl_uint32, Ref<View> > viewsVisible;
 				CList<FreeViewSet> viewsFreed;
-				
+
 			public:
 				Column(const Ref<ViewAdapter>& _adapter, sl_ui_len _width): adapter(_adapter), width(_width)
 				{
 					width = 0;
 					contentHeight = 0;
 				}
-				
+
 			};
-			
+
 			class ColumnAdapter : public ViewAdapter
 			{
 			public:
 				Ref<ViewAdapter> adapterTotal;
 				sl_uint32 indexColumn;
 				sl_uint32 nColumns;
-				
+
 			public:
 				sl_uint64 getItemCount() override
 				{
@@ -116,58 +116,58 @@ namespace slib
 					}
 					return n;
 				}
-				
+
 				Ref<View> getView(sl_uint64 index, View* original, View* parent) override
 				{
 					return adapterTotal->getView(index * nColumns + indexColumn, original, parent);
 				}
-				
+
 				sl_object_type getViewType(sl_uint64 index, View* parent) override
 				{
 					return adapterTotal->getViewType(index * nColumns + indexColumn, parent);
 				}
-				
+
 				sl_ui_len getAverageItemHeight(View* parent) override
 				{
 					return adapterTotal->getAverageItemHeight(parent);
 				}
-				
+
 				sl_ui_len getItemHeight(sl_uint64 index, View* parent) override
 				{
 					return adapterTotal->getItemHeight(index * nColumns + indexColumn, parent);
 				}
-				
+
 				sl_uint32 getMaximumItemCountPerPage(View* parent) override
 				{
 					return adapterTotal->getMaximumItemCountPerPage(parent);
 				}
-				
+
 			};
-			
+
 		}
 	}
-	
+
 	using namespace priv::collection_view;
 
 	SLIB_DEFINE_OBJECT(CollectionView, VerticalScrollView)
-	
+
 	CollectionView::CollectionView()
 	{
 		m_flagCuttingOverflowItems = sl_false;
-		
+
 		m_flagRefreshItems = sl_true;
 		m_lastScrollY = 0;
 
 		m_idLayoutRequest = 0;
 		m_idLayoutComplete = -1;
-		
+
 		m_contentView = new ContentView;
 	}
 
 	CollectionView::~CollectionView()
 	{
 	}
-	
+
 	void CollectionView::init()
 	{
 		VerticalScrollView::init();
@@ -175,12 +175,12 @@ namespace slib
 		m_contentView->setCollectionView(this);
 		setContentView(m_contentView, UIUpdateMode::Init);
 	}
-	
+
 	sl_uint32 CollectionView::getColumnCount()
 	{
 		return (sl_uint32)(List<Column>(m_columns).getCount());
 	}
-	
+
 	Ref<ViewAdapter> CollectionView::getAdapter()
 	{
 		List<Column> columns(m_columns);
@@ -189,7 +189,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<ViewAdapter> CollectionView::getAdapter(sl_uint32 index)
 	{
 		List<Column> columns(m_columns);
@@ -201,7 +201,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void CollectionView::setAdapters(const List< Ref<ViewAdapter> >& _adapters, const List<sl_uint32>& _listWidth)
 	{
 		ListElements< Ref<ViewAdapter> > adapters(_adapters);
@@ -226,7 +226,7 @@ namespace slib
 			_requestLayout();
 		}
 	}
-	
+
 	void CollectionView::setAdapter(const Ref<ViewAdapter>& adapter)
 	{
 		if (adapter.isNull()) {
@@ -235,7 +235,7 @@ namespace slib
 		}
 		setAdapters(List< Ref<ViewAdapter> >::createFromElement(adapter), sl_null);
 	}
-	
+
 	void CollectionView::setAdapter(const Ref<ViewAdapter>& adapterTotal, sl_uint32 nColumns)
 	{
 		if (adapterTotal.isNull() || !nColumns) {
@@ -283,7 +283,7 @@ namespace slib
 	{
 		m_flagCuttingOverflowItems = flag;
 	}
-	
+
 	void CollectionView::onScroll(sl_scroll_pos x, sl_scroll_pos y)
 	{
 		if (Math::isAlmostZero(y - (sl_scroll_pos)m_lastScrollY)) {
@@ -291,16 +291,16 @@ namespace slib
 		}
 		_requestLayout();
 	}
-	
+
 	void CollectionView::onResize(sl_ui_len x, sl_ui_len y)
 	{
 		_requestLayout();
 	}
-	
+
 	void CollectionView::onAttach()
 	{
 	}
-	
+
 	Ref<View> CollectionView::_getView(ViewAdapter* adapter, sl_uint64 index, View* original)
 	{
 		Ref<View> view = adapter->getView(index, original, this);
@@ -340,7 +340,7 @@ namespace slib
 		List<Column> columnsNew = m_columns;
 		Column* columns;
 		sl_uint32 nColumns;
-		
+
 		if (columnsNew != m_columnsCurrent) {
 			m_columnsCurrent = columnsNew;
 			columns = columnsNew.getData();
@@ -350,31 +350,31 @@ namespace slib
 			columns = m_columnsCurrent.getData();
 			nColumns = (sl_uint32)(m_columnsCurrent.getCount());
 		}
-		
+
 		sl_ui_pos widthCollectionView = getBounds().getWidth();
 		sl_ui_pos heightCollectionView = getHeight();
-		
+
 		if (widthCollectionView <= 0 || heightCollectionView <= 0) {
 			return;
 		}
-		
+
 		sl_bool flagRefresh = sl_false;
 		if (m_flagRefreshItems) {
 			flagRefresh = sl_true;
 			m_flagRefreshItems = sl_false;
 		}
-				
+
 		if (!nColumns) {
 			setContentHeight(0, UIUpdateMode::Redraw);
 			return;
 		}
-		
+
 		sl_ui_pos scrollY = (sl_ui_pos)(getScrollY());
 
 		sl_ui_len maxHeight = 0;
 		sl_ui_len minHeight = 0;
 		sl_ui_pos x = 0;
-		
+
 		{
 			for (sl_uint32 i = 0; i < nColumns; i++) {
 				sl_ui_len width = columns[i].width;
@@ -393,7 +393,7 @@ namespace slib
 				x += width;
 			}
 		}
-		
+
 		if (m_flagCuttingOverflowItems) {
 			View* contentView = m_contentView.get();
 			for (sl_uint32 i = 0; i < nColumns; i++) {
@@ -415,27 +415,27 @@ namespace slib
 		} else {
 			setContentSize(x, maxHeight, UIUpdateMode::Redraw);
 		}
-		
+
 		m_lastScrollY = scrollY;
-	
+
 	}
 
 	void CollectionView::_layoutColumn(Column* column, sl_bool flagRefresh, sl_ui_len x, sl_ui_len width)
 	{
 		View* contentView = m_contentView.get();
 		sl_ui_pos heightCollectionView = getHeight();
-		
+
 		sl_ui_len heightMinimum = heightCollectionView / 100;
 		if (heightMinimum < 1) {
 			heightMinimum = 1;
 		}
-		
+
 		ViewAdapter* adapter = column->adapter.get();
 		if (!adapter) {
 			column->contentHeight = 0;
 			return;
 		}
-		
+
 		sl_uint32 nTotalCount = (sl_uint32)(adapter->getItemCount());
 		sl_uint32 nOrigTotalCount = (sl_uint32)(column->heights.getCount());
 		if (nTotalCount != nOrigTotalCount) {
@@ -452,13 +452,13 @@ namespace slib
 			column->contentHeight = 0;
 			return;
 		}
-		
+
 		sl_ui_len heightAverage = adapter->getAverageItemHeight(this);
 		sl_uint32 maxItemCountPerPage = adapter->getMaximumItemCountPerPage(this);
 		if (maxItemCountPerPage > MAX_ITEMS_PER_PAGE) {
 			maxItemCountPerPage = MAX_ITEMS_PER_PAGE;
 		}
-		
+
 		{
 			sl_uint64 heightTotal = 0;
 			sl_uint32 countNotZero = 0;
@@ -482,11 +482,11 @@ namespace slib
 				}
 			}
 		}
-		
+
 		sl_ui_pos scrollY = (sl_ui_pos)(getScrollY());
 		sl_ui_len y = 0;
 		HashMap< sl_uint32, Ref<View> > viewsVisible = Move(column->viewsVisible);
-		
+
 		for (sl_uint32 indexItem = 0; indexItem < nTotalCount; indexItem++) {
 			sl_ui_len h = heights[indexItem];
 			if (!h) {
@@ -496,7 +496,7 @@ namespace slib
 				h = heightMinimum;
 			}
 			if (y < scrollY + heightCollectionView && y + h > scrollY && column->viewsVisible.getCount() < maxItemCountPerPage) {
-				
+
 				h = adapter->getItemHeight(indexItem, this);
 
 				Ref<View> view;
@@ -548,7 +548,7 @@ namespace slib
 				if (h < heightMinimum) {
 					h = heightMinimum;
 				}
-				
+
 				UIRect rect = view->getLayoutFrame();
 				rect.top = y + view->getMarginTop();
 				y += h;
@@ -590,7 +590,7 @@ namespace slib
 				node = node->next;
 			}
 		}
-		
+
 		column->contentHeight = y;
 
 	}
@@ -623,5 +623,5 @@ namespace slib
 			itemView->setLayoutHeight(minItemHeight);
 		}
 	}
-	
+
 }

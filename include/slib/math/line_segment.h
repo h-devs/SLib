@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT LineSegmentT
 	{
@@ -38,7 +38,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(LineSegmentT)
-		
+
 		LineSegmentT() = default;
 
 		template <class O>
@@ -114,7 +114,7 @@ namespace slib
 		}
 
 	};
-	
+
 	typedef LineSegmentT<sl_real> LineSegment;
 	typedef LineSegmentT<float> LineSegmentf;
 	typedef LineSegmentT<double> LineSegmentlf;

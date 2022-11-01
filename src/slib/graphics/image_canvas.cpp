@@ -26,7 +26,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace image

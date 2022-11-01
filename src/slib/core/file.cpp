@@ -116,7 +116,7 @@ namespace slib
 	{
 		return open(path, mode | FileMode::Device | FileMode::NotCreate | FileMode::NotTruncate | FileMode::HintRandomAccess);
 	}
-	
+
 	File File::openDeviceForRead(const StringParam& path) noexcept
 	{
 		return openDevice(path, FileMode::Read | FileMode::ShareRead | FileMode::ShareWrite);
@@ -514,7 +514,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String File::readAllTextUTF8(const StringParam& path, sl_size maxSize) noexcept
 	{
 		File file = File::openForRead(path);
@@ -523,7 +523,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String16 File::readAllTextUTF16(const StringParam& path, EndianType endian, sl_size maxSize) noexcept
 	{
 		File file = File::openForRead(path);
@@ -532,7 +532,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	StringParam File::readAllText(const StringParam& path, sl_size maxSize) noexcept
 	{
 		File file = File::openForRead(path);
@@ -541,7 +541,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_reg File::writeAllBytes(const StringParam& path, const void* buf, sl_size size) noexcept
 	{
 		File file = File::openForWrite(path);
@@ -1069,7 +1069,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FilePathSegments)
-	
+
 	FilePathSegments::FilePathSegments() noexcept
 	{
 		flagStartsWithSlash = sl_false;

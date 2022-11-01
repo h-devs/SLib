@@ -29,15 +29,15 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(CanvasExt, Canvas)
-	
+
 	CanvasExt::CanvasExt()
 	{
 	}
-	
+
 	CanvasExt::~CanvasExt()
 	{
 	}
-	
+
 	void CanvasExt::clipToRoundRect(const Rectangle& rect, const Size& radius)
 	{
 		Ref<GraphicsPath> path = GraphicsPath::create();
@@ -46,7 +46,7 @@ namespace slib
 			clipToPath(path);
 		}
 	}
-	
+
 	void CanvasExt::clipToEllipse(const Rectangle& rect)
 	{
 		Ref<GraphicsPath> path = GraphicsPath::create();
@@ -55,7 +55,7 @@ namespace slib
 			clipToPath(path);
 		}
 	}
-	
+
 	Size CanvasExt::measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
 	{
 		if (text.isEmpty()) {
@@ -66,7 +66,7 @@ namespace slib
 		}
 		return Size::zero();
 	}
-	
+
 	void CanvasExt::drawText(const DrawTextParam& param)
 	{
 		if (param.text.isEmpty()) {
@@ -144,37 +144,37 @@ namespace slib
 			pos++;
 		}
 	}
-	
+
 	void CanvasExt::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor)
 	{
 		((Canvas*)this)->drawRectangle(rect, pen, Brush::createSolidBrush(fillColor));
 	}
-	
+
 	void CanvasExt::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor)
 	{
 		((Canvas*)this)->drawRoundRect(rect, radius, pen, Brush::createSolidBrush(fillColor));
 	}
-	
+
 	void CanvasExt::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor)
 	{
 		((Canvas*)this)->drawEllipse(rect, pen, Brush::createSolidBrush(fillColor));
 	}
-	
+
 	void CanvasExt::drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode)
 	{
 		((Canvas*)this)->drawPolygon(points, countPoints, pen, Brush::createSolidBrush(fillColor), fillMode);
 	}
-	
+
 	void CanvasExt::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor)
 	{
 		((Canvas*)this)->drawPie(rect, startDegrees, sweepDegrees, pen, Brush::createSolidBrush(fillColor));
 	}
-	
+
 	void CanvasExt::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor)
 	{
 		((Canvas*)this)->drawPath(path, pen, Brush::createSolidBrush(fillColor));
 	}
-	
+
 	void CanvasExt::draw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		if (src.isNull()) {
@@ -197,7 +197,7 @@ namespace slib
 		}
 		onDraw(rectDst, src, rectSrc, param);
 	}
-	
+
 	void CanvasExt::draw(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param)
 	{
 		if (src.isNull()) {
@@ -222,7 +222,7 @@ namespace slib
 		}
 		onDrawAll(rectDst, src, param);
 	}
-	
+
 	void CanvasExt::draw(sl_real xDst, sl_real yDst, const Ref<Drawable>& src, const DrawParam& param)
 	{
 		if (src.isNull()) {
@@ -242,7 +242,7 @@ namespace slib
 		Rectangle rectDst(xDst, yDst, xDst + sw, yDst + sh);
 		onDrawAll(rectDst, src, param);
 	}
-	
+
 	void CanvasExt::draw(const Rectangle& rectDst, const Ref<Drawable>& source, ScaleMode scaleMode, const Alignment& alignment, const DrawParam& param)
 	{
 		if (source.isNull()) {
@@ -296,22 +296,22 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void CanvasExt::onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		src->onDraw(this, rectDst, rectSrc, param);
 	}
-	
+
 	void CanvasExt::onDrawAll(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param)
 	{
 		src->onDrawAll(this, rectDst, param);
 	}
-	
+
 	sl_bool CanvasExt::isSupportedDrawable(const Ref<Drawable>& drawable)
 	{
 		return sl_true;
 	}
-	
+
 	Ref<Drawable> CanvasExt::createDrawableCacheForImage(const Ref<Image>& image)
 	{
 		return PlatformDrawable::create(image);

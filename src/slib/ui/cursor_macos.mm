@@ -39,7 +39,7 @@ namespace slib
 			{
 			public:
 				NSCursor* m_cursor;
-				
+
 			public:
 				static Ref<NativeCursorImpl> create(NSCursor* cursor)
 				{
@@ -56,7 +56,7 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::cursor;
 
 	Ref<Cursor> UIPlatform::createCursor(NSCursor* cursor)

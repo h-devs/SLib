@@ -34,28 +34,28 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace button
 		{
-			
+
 			class ButtonInstance : public GTK_ViewInstance, public IButtonInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				ButtonInstance();
-				
+
 				~ButtonInstance();
-				
+
 			public:
 				void initialize(View* view) override;
 
 				void setText(Button* view, const String& text) override;
-				
+
 				void setDefaultButton(Button* view, sl_bool flag) override;
-				
+
 				sl_bool measureSize(Button* view, UISize& _out) override;
 
 				static void onClicked(GtkButton*, gpointer userinfo);
@@ -83,10 +83,10 @@ namespace slib
 				static void onChanged(GtkToggleButton *, gpointer userinfo);
 
 			};
-			
+
 		}
 	}
-	
+
 }
 
 #endif

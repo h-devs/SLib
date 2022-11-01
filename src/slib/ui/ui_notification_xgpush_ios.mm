@@ -59,12 +59,12 @@ namespace slib
 		g_accessId = accessId;
 		g_accessKey = key;
 	}
-	
+
 	Ref<XgPush> XgPush::getInstance()
 	{
 		SLIB_SAFE_LOCAL_STATIC(Mutex, lock)
 		MutexLocker locker(&lock);
-		
+
 		SLIB_LOCAL_STATIC_ZERO_INITIALIZED(Ref<XgPush>, instance);
 		if (instance.isNotNull()) {
 			return instance;
@@ -72,7 +72,7 @@ namespace slib
 
 		instance = new XgPush;
 		g_instance = [SLIBXGPush new];
-		
+
 		UIPlatform::registerDidReceiveRemoteNotificationCallback([](NSDictionary* userInfo) {
 			[[XGPush defaultManager] reportXGNotificationInfo:userInfo];
 		});
@@ -88,12 +88,12 @@ namespace slib
 		NSString* accessKey = Apple::getNSStringFromString(g_accessKey);
 		[[XGPush defaultManager] startXGWithAppID:accessId appKey:accessKey delegate:g_instance];
 	}
-	
+
 	void XgPush::setEnableDebug(sl_bool flag)
 	{
 		[[XGPush defaultManager] setEnableDebug:(flag ? YES : NO)];
 	}
-	
+
 }
 
 using namespace slib;

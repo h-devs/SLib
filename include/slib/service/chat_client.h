@@ -38,46 +38,46 @@ namespace slib
 		Ref<ChatView> chatView;
 		Ref<ChatClientDatabase> database;
 		Ref<ChatClientService> service;
-		
+
 	public:
 		ChatClientParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ChatClientParam)
-		
+
 	};
 
 	class SLIB_EXPORT ChatClient : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		ChatClient();
-		
+
 		~ChatClient();
 
 	public:
 		static Ref<ChatClient> create(const ChatClientParam& param);
-		
+
 	public:
 		void selectRoom(const String& roomId);
-		
+
 		void sendMessage(const String& receiverId, const String& message);
-		
+
 	public:
 		void dispatchReceiveMessage(const String& roomId, ChatMessage& message);
-		
+
 	protected:
 		sl_bool initialize(const ChatClientParam& param);
-		
+
 	protected:
 		String m_myId;
 		Ref<ListView> m_roomsView;
 		Ref<ChatView> m_chatView;
 		Ref<ChatClientDatabase> m_database;
 		Ref<ChatClientService> m_service;
-		
+
 		String m_currentRoomId;
-		
+
 	};
 
 }

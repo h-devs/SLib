@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT QuaternionT
 	{
@@ -39,16 +39,16 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(QuaternionT)
-		
+
 		QuaternionT() = default;
 
 		template <class O>
 		SLIB_CONSTEXPR QuaternionT(const QuaternionT<O>& other): x((T)(other.x)), y((T)(other.y)), z((T)(other.z)), w((T)(other.w)) {}
-	
+
 		SLIB_CONSTEXPR QuaternionT(T _x, T _y, T _z, T _w): x(_x), y(_y), z(_z), w(_w) {}
 
 		SLIB_CONSTEXPR QuaternionT(const Vector4T<T>& other): x(other.x), y(other.y), z(other.z), w(other.w) {}
-	
+
 	public:
 		static const QuaternionT<T>& identity() noexcept
 		{
@@ -65,7 +65,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<QuaternionT<T>*>(arr));
 		}
-	
+
 		const Vector4T<T>& toVector4() const noexcept
 		{
 			return *((Vector4T<T>*)((void*)this));
@@ -201,9 +201,9 @@ namespace slib
 			ret.divide(other);
 			return ret;
 		}
-		
+
 	};
-	
+
 	typedef QuaternionT<sl_real> Quaternion;
 	typedef QuaternionT<float> Quaternionf;
 	typedef QuaternionT<double> Quaternionlf;

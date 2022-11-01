@@ -538,7 +538,7 @@ namespace slib
 		GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
 		return GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
 	}
-	
+
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
 	{
 		return CastRef<TextAreaInstance>(getViewInstance());

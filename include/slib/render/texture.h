@@ -31,50 +31,50 @@ namespace slib
 {
 
 	class Texture;
-	
+
 	class SLIB_EXPORT TextureInstance : public RenderBaseObjectInstance
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		TextureInstance();
-		
+
 		~TextureInstance();
-		
+
 	public:
 		virtual void notifyUpdated(Texture* texture, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
-		
+
 	protected:
 		Rectanglei m_updatedRegion;
-		
+
 	};
-	
+
 	class SLIB_EXPORT Texture : public RenderBaseObject
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		Texture(sl_uint32 width, sl_uint32 height);
 
 		~Texture();
-		
+
 	public:
 		static Ref<Texture> create(const Ref<Bitmap>& source);
-		
+
 		static Ref<Texture> create(const BitmapData& bitmapData);
-		
+
 		static Ref<Texture> create(sl_uint32 width, sl_uint32 height, const Color* colors = sl_null, sl_int32 stride = 0);
-		
+
 		static Ref<Texture> loadFromMemory(const void* mem, sl_size size);
-		
+
 		static Ref<Texture> loadFromMemory(const MemoryView& mem);
-		
+
 		static Ref<Texture> loadFromFile(const String& filePath);
-		
+
 		static Ref<Texture> loadFromAsset(const String& path);
-		
+
 		static Ref<Texture> getBitmapRenderingCache(const Ref<Bitmap>& source);
-		
+
 	public:
 		sl_uint32 getWidth();
 
@@ -85,11 +85,11 @@ namespace slib
 		void setHeight(sl_uint32 height);
 
 		void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
-		
+
 		void update();
-		
+
 		Ref<TextureInstance> getInstance(RenderEngine* engine);
-		
+
 	public:
 		virtual Ref<Bitmap> getSource() = 0;
 
@@ -140,12 +140,12 @@ namespace slib
 	class SLIB_EXPORT EngineTexture : public Texture
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		EngineTexture();
-		
+
 		~EngineTexture();
-		
+
 	};
 
 }

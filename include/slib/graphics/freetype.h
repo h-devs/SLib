@@ -42,7 +42,7 @@ namespace slib
 		Type1 = 1,
 		TrueType = 2
 	};
-	
+
 	class IBlockReader;
 	class Image;
 	class GraphicsPath;
@@ -56,7 +56,7 @@ namespace slib
 		sl_int32 bitmapLeft;
 		sl_int32 bitmapTop;
 		sl_bool flagGrayBitmap;
-		
+
 		sl_real advance;
 		sl_real height;
 
@@ -158,11 +158,11 @@ namespace slib
 
 		// draw starting at left-bottom corner
 		void drawString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color);
-	
+
 		void strokeString(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth);
-	
+
 		void strokeStringInside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth);
-	
+
 		void strokeStringOutside(const Ref<Image>& imageOutput, sl_int32 x, sl_int32 y, const StringParam& text, const Color& color, sl_uint32 lineWidth);
 
 		Ref<FreeTypeGlyph> getCharGlyph(sl_uint32 charcode);

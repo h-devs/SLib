@@ -36,12 +36,12 @@ namespace slib
 		BitmapData image;
 		RotationMode rotation;
 		FlipMode flip;
-		
+
 	public:
 		VideoFrame();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(VideoFrame)
-		
+
 	};
 }
 

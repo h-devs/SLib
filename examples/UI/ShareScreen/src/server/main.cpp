@@ -24,7 +24,7 @@ int main(int argc, const char * argv[])
 	HttpServerParam param;
 
 	param.port = port;
-	
+
 	param.router.GET("/screen/:userId", [](HttpServerContext* context) {
 		auto userId = context->getParameter("userId");
 		auto user = g_mapUsers.getValue(userId);

@@ -360,14 +360,14 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_set(other.ptr);
 	}
-	
+
 	template <class T>
 	template <class... TYPES>
 	SLIB_INLINE WeakRef<T>::WeakRef(const Pointer<TYPES...>& other) noexcept
 	{
 		_set(other);
 	}
-	
+
 	template <class T>
 	template <class T1, class T2, class... TYPES>
 	SLIB_INLINE WeakRef<T>& WeakRef<T>::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
@@ -376,7 +376,7 @@ namespace slib
 		_set(other.ptr);
 		return *this;
 	}
-	
+
 	template <class T>
 	template <class... TYPES>
 	SLIB_INLINE WeakRef<T>& WeakRef<T>::operator=(const Pointer<TYPES...>& other) noexcept
@@ -393,14 +393,14 @@ namespace slib
 		SLIB_TRY_CONVERT_TYPE(T1*, T*)
 		_set(other.ptr);
 	}
-	
+
 	template <class T>
 	template <class... TYPES>
 	SLIB_INLINE Atomic< WeakRef<T> >::Atomic(const Pointer<TYPES...>& other) noexcept
 	{
 		_set(other);
 	}
-	
+
 	template <class T>
 	template <class T1, class T2, class... TYPES>
 	SLIB_INLINE AtomicWeakRef<T>& Atomic< WeakRef<T> >::operator=(const Ref<T1, T2, TYPES...>& other) noexcept
@@ -409,7 +409,7 @@ namespace slib
 		_set(other.ptr);
 		return *this;
 	}
-	
+
 	template <class T>
 	template <class... TYPES>
 	SLIB_INLINE AtomicWeakRef<T>& Atomic< WeakRef<T> >::operator=(const Pointer<TYPES...>& other) noexcept

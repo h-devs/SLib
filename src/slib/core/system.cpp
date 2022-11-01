@@ -108,7 +108,7 @@ namespace slib
 	{
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_WIN32)
 	void System::setDebugFlags()
 	{

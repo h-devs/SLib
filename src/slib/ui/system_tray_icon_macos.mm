@@ -60,18 +60,18 @@ namespace slib
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace system_tray_icon
 		{
-		
+
 			class StaticContext
 			{
 			public:
 				CHashMap< String, WeakRef<SystemTrayIcon> > icons;
 				Function<void(UserNotificationMessage&)> callbackClick;
-				
+
 			public:
 				StaticContext()
 				{
@@ -88,16 +88,16 @@ namespace slib
 					};
 					UserNotification::addOnClickMessage(callbackClick);
 				}
-				
+
 				~StaticContext()
 				{
 					UserNotification::removeOnClickMessage(callbackClick);
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 			class SystemTrayIconImpl : public SystemTrayIcon
 			{
 			public:
@@ -110,7 +110,7 @@ namespace slib
 					m_item = nil;
 					m_listener = nil;
 				}
-				
+
 				~SystemTrayIconImpl()
 				{
 					StaticContext* context = GetStaticContext();
@@ -124,7 +124,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 			public:
 				static Ref<SystemTrayIconImpl> create(const SystemTrayIconParam& param)
 				{
@@ -181,7 +181,7 @@ namespace slib
 						m_item.action = @selector(onAction);
 					}
 				}
-				
+
 				void setIcon_NI(const Ref<Drawable>& icon, const String& name) override
 				{
 					NSImage* image = nil;
@@ -205,7 +205,7 @@ namespace slib
 						m_item.alternateImage = image;
 					}
 				}
-				
+
 				void setToolTip_NI(const String& toolTip) override
 				{
 					NSString* str = Apple::getNSStringFromString(toolTip);
@@ -215,12 +215,12 @@ namespace slib
 						m_item.toolTip = str;
 					}
 				}
-				
+
 				void setMenu_NI(const Ref<Menu>& menu) override
 				{
 					m_item.menu = UIPlatform::getMenuHandle(menu.get());
 				}
-				
+
 				void notify_NI(const SystemTrayIconNotifyParam& param) override
 				{
 					UserNotificationMessage msg;
@@ -230,7 +230,7 @@ namespace slib
 					msg.flagSound = param.flagSound;
 					UserNotification::add(msg);
 				}
-				
+
 				UIEventFlags _onEvent(UIAction action, NSEvent* event)
 				{
 					if (event == nil) {
@@ -301,7 +301,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void tryHighlight()
 				{
 					if (@available(macos 10.10, *)) {
@@ -314,12 +314,12 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 		}
 	}
-	
+
 	using namespace priv::system_tray_icon;
 
 	Ref<SystemTrayIcon> SystemTrayIcon::create(const SystemTrayIconParam& param)

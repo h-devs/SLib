@@ -160,7 +160,7 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(HttpContentReader, AsyncStreamFilter)
-	
+
 	HttpContentReader::HttpContentReader()
 	{
 		m_flagDecompressing = sl_false;
@@ -278,7 +278,7 @@ namespace slib
 
 					sl_uint8* output = data;
 					sl_size sizeOutput = 0;
-					
+
 					sl_uint32 v;
 
 					while (pos < size) {

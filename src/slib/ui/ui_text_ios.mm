@@ -37,7 +37,7 @@
 
 namespace slib
 {
-		
+
 	namespace priv
 	{
 		namespace ui_text
@@ -53,7 +53,7 @@ namespace slib
 				}
 				return nil;
 			}
-			
+
 			SLIB_INLINE static TextRange FromNative(UITextRange* _range)
 			{
 				if (!_range) {
@@ -62,7 +62,7 @@ namespace slib
 				SLIBTextRange* range = (SLIBTextRange*)_range;
 				return TextRange(range->location, range->length);
 			}
-			
+
 		}
 	}
 

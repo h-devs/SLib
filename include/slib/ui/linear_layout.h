@@ -31,35 +31,35 @@ namespace slib
 	class SLIB_EXPORT LinearLayout : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		LinearLayout();
-		
+
 		~LinearLayout();
 
 	public:
 		LayoutOrientation getOrientation();
-		
+
 		void setOrientation(LayoutOrientation orientation, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_bool isHorizontal();
-		
+
 		void setHorizontal(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_bool isVertical();
-		
+
 		void setVertical(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 	protected:
 		void onAddChild(View* child) override;
-		
+
 		void onUpdateLayout() override;
-		
+
 	private:
 		LayoutOrientation m_orientation;
-		
+
 	};
-	
+
 	class SLIB_EXPORT VerticalLinearLayout : public LinearLayout
 	{
 	public:
@@ -68,7 +68,7 @@ namespace slib
 		~VerticalLinearLayout();
 
 	};
-	
+
 	class SLIB_EXPORT HorizontalLinearLayout : public LinearLayout
 	{
 	public:

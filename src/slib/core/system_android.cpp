@@ -66,7 +66,7 @@ namespace slib
 		File::createDirectory(dir);
 		return dir;
 	}
-	
+
 	// From Java code: slib.android.System.getDeviceNameOnSettings
 	String System::getComputerName()
 	{
@@ -88,7 +88,7 @@ namespace slib
 		}
 		return getMachineName();
 	}
-	
+
 	String System::getSystemName()
 	{
 		return "Android " + getSystemVersion();

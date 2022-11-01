@@ -50,7 +50,7 @@ namespace slib
 			public:
 				String m_url;
 				sl_bool m_flagVideo;
-				
+
 				AVFormatContext* m_format;
 				AVPacket* m_packet;
 				AVPacket* m_packetToSend;
@@ -78,7 +78,7 @@ namespace slib
 				double m_timeCurrent;
 				double m_timeSeek;
 				double m_duration;
-				
+
 			public:
 				FFmpegPlayer()
 				{
@@ -91,7 +91,7 @@ namespace slib
 					m_codecVideo = sl_null;
 					m_frameAudio = sl_null;
 					m_swrAudio = sl_null;
-					
+
 					m_flagReleased = sl_false;
 					m_flagOpened = sl_false;
 					m_flagPlaying = sl_false;
@@ -101,12 +101,12 @@ namespace slib
 					m_timeSeek = -1;
 					m_duration = 0;
 				}
-				
+
 				~FFmpegPlayer()
 				{
 					_release();
 				}
-				
+
 			public:
 				static Ref<FFmpegPlayer> create(const MediaPlayerParam& param)
 				{
@@ -128,14 +128,14 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			public:
 				void release() override
 				{
 					ObjectLocker lock(this);
 					_release();
 				}
-				
+
 				void resume() override
 				{
 					ObjectLocker lock(this);
@@ -155,7 +155,7 @@ namespace slib
 					m_threadPlay = Thread::start(Function<void()>::bind(&onRunPlay, ToWeakRef(this)));
 					_addToMap();
 				}
-				
+
 				void pause() override
 				{
 					ObjectLocker lock(this);
@@ -176,17 +176,17 @@ namespace slib
 					}
 					_removeFromMap();
 				}
-				
+
 				sl_bool isPlaying() override
 				{
 					return m_flagPlaying;
 				}
-				
+
 				sl_real getVolume() override
 				{
 					return m_volume;
 				}
-				
+
 				void setVolume(sl_real volume) override
 				{
 					ObjectLocker lock(this);
@@ -195,17 +195,17 @@ namespace slib
 					}
 					m_volume = volume;
 				}
-				
+
 				double getDuration() override
 				{
 					return m_duration;
 				}
-				
+
 				double getCurrentTime() override
 				{
 					return m_timeCurrent;
 				}
-				
+
 				void seekTo(double time) override
 				{
 					if (time < 0) {
@@ -213,7 +213,7 @@ namespace slib
 					}
 					m_timeSeek = time;
 				}
-				
+
 				void renderVideo(MediaPlayerRenderVideoParam& param) override
 				{
 					param.flagUpdated = sl_false;
@@ -245,13 +245,13 @@ namespace slib
 					}
 					player->_initialize();
 				}
-				
+
 				void _initialize()
 				{
 					if (m_flagReleased) {
 						return;
 					}
-					
+
 					m_packet = av_packet_alloc();
 					if (!m_packet) {
 						return;
@@ -265,7 +265,7 @@ namespace slib
 						LOG_ERROR("Failed to open url: %s", m_url);
 						return;
 					}
-					
+
 					if (avformat_find_stream_info(m_format, NULL) < 0) {
 						LOG_ERROR("Failed to open find stream info: %s", m_url);
 						return;
@@ -339,7 +339,7 @@ namespace slib
 							}
 						}
 					}
-					
+
 					m_duration = (double)(m_format->duration) / (double)(AV_TIME_BASE);
 					{
 						ObjectLocker lock(this);
@@ -350,7 +350,7 @@ namespace slib
 					}
 					_onReadyToPlay();
 				}
-				
+
 				void _release()
 				{
 					m_flagReleased = sl_true;
@@ -400,11 +400,11 @@ namespace slib
 						av_packet_free(&m_packet);
 					}
 				}
-				
+
 				void onPlayAudio(AudioPlayer* buffer, sl_uint32 requestedSampleCount)
 				{
 				}
-				
+
 				static void onRunPlay(WeakRef<FFmpegPlayer> weak)
 				{
 					Thread* thread = Thread::getCurrent();
@@ -431,7 +431,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void _playSeek()
 				{
 					double time = m_timeSeek;
@@ -464,7 +464,7 @@ namespace slib
 					}
 					m_packetToSend = sl_null;
 				}
-				
+
 				sl_bool _playStep()
 				{
 					int ret;
@@ -606,7 +606,7 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				static void _getVideoFrame(AVFrame* af, VideoFrame& vf)
 				{
 					switch (af->format) {
@@ -672,21 +672,21 @@ namespace slib
 						vf.image.pitch3 = af->linesize[3];
 					}
 				}
-				
+
 				double _getAudioFrameTimestamp(AVFrame* frame)
 				{
 					double startTime = (double)(m_format->start_time) / (double)AV_TIME_BASE;
 					AVRational& timeBase = m_format->streams[m_streamAudio]->time_base;
 					return (double)(frame->best_effort_timestamp) * (double)(timeBase.num) / (double)(timeBase.den) - startTime;
 				}
-				
+
 				double _getVideoFrameTimestamp(AVFrame* frame)
 				{
 					double startTime = (double)(m_format->start_time) / (double)AV_TIME_BASE;
 					AVRational& timeBase = m_format->streams[m_streamVideo]->time_base;
 					return (double)(frame->best_effort_timestamp) * (double)(timeBase.num) / (double)(timeBase.den) - startTime;
 				}
-				
+
 				double _getVideoFrameDuration(AVFrame* frame)
 				{
 					AVRational& timeBase = m_format->streams[m_streamVideo]->time_base;
@@ -696,7 +696,7 @@ namespace slib
 
 		}
 	}
-	
+
 	Ref<MediaPlayer> FFmpeg::createMediaPlayer(const MediaPlayerParam& param)
 	{
 		if (param.url.isEmpty() && param.filePath.isEmpty() && param.assetFileName.isEmpty()) {
@@ -711,7 +711,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<MediaPlayer> FFmpeg::openUrl(const String& url, const MediaPlayerFlags& flags)
 	{
 		MediaPlayerParam param;
@@ -719,7 +719,7 @@ namespace slib
 		param.applyFlags(flags);
 		return createMediaPlayer(param);
 	}
-	
+
 	Ref<MediaPlayer> FFmpeg::openFile(const String& filePath, const MediaPlayerFlags& flags)
 	{
 		MediaPlayerParam param;
@@ -727,7 +727,7 @@ namespace slib
 		param.applyFlags(flags);
 		return createMediaPlayer(param);
 	}
-	
+
 	Ref<MediaPlayer> FFmpeg::openAsset(const String& fileName, const MediaPlayerFlags& flags)
 	{
 		MediaPlayerParam param;

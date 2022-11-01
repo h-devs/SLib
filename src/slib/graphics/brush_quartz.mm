@@ -37,12 +37,12 @@ namespace slib
 	{
 		namespace quartz
 		{
-			
+
 			class GradientBrushPlatformObject : public Referable
 			{
 			public:
 				CGGradientRef hGradient;
-				
+
 			public:
 				GradientBrushPlatformObject(BrushDesc& desc)
 				{
@@ -85,23 +85,23 @@ namespace slib
 						}
 					}
 				}
-				
+
 				~GradientBrushPlatformObject()
 				{
 					if (hGradient) {
 						CFRelease(hGradient);
 					}
 				}
-				
+
 			};
-			
+
 			class TextureBrushPlatformObject : public Referable
 			{
 			public:
 				CGImageRef hImage;
 				CGContextRef hBitmap;
 				Ref<Drawable> drawableCache;
-				
+
 			public:
 				TextureBrushPlatformObject(BrushDesc& desc)
 				{
@@ -122,7 +122,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
 
 			class BrushHelper : public Brush
@@ -184,7 +184,7 @@ namespace slib
 		}
 		return NULL;
 	}
-	
+
 	CGImageRef GraphicsPlatform::getTextureBrushRetainedHandle(Brush* brush)
 	{
 		if (brush) {
@@ -192,7 +192,7 @@ namespace slib
 		}
 		return NULL;
 	}
-	
+
 }
 
 #endif

@@ -47,12 +47,12 @@ namespace slib
 	HttpServerContext::HttpServerContext()
 	{
 		m_requestContentLength = 0;
-		
+
 		m_flagProcessed = sl_false;
 		m_flagClosingConnection = sl_false;
 		m_flagProcessingByThread = sl_true;
 		m_flagKeepAlive = sl_true;
-		
+
 		m_flagBeganProcessing = sl_false;
 	}
 
@@ -201,7 +201,7 @@ namespace slib
 
 #define SIZE_READ_BUF 0x10000
 #define SIZE_COPY_BUF 0x10000
-	
+
 	SLIB_DEFINE_OBJECT(HttpServerConnection, Object)
 
 	HttpServerConnection::HttpServerConnection()
@@ -328,13 +328,13 @@ namespace slib
 		if (server->isReleased()) {
 			return;
 		}
-		
+
 		ObjectLocker lock(this);
-		
+
 		if (m_flagClosed) {
 			return;
 		}
-		
+
 		char* data;
 		sl_size size;
 		if (result) {
@@ -355,12 +355,12 @@ namespace slib
 			data = m_bufReadUnprocessed.getData();
 			size = m_bufReadUnprocessed.getCount();
 		}
-		
+
 		if (!size) {
 			_read(result);
 			return;
 		}
-		
+
 		const HttpServerParam& param = server->getParam();
 		sl_uint64 maxRequestHeadersSize = param.maxRequestHeadersSize;
 		sl_uint64 maxRequestBodySize = param.maxRequestBodySize;
@@ -459,14 +459,14 @@ namespace slib
 		}
 
 		if (!(context->m_flagBeganProcessing)) {
-			
+
 			if (context->m_requestHeader.isNotNull()) {
-				
+
 				sl_size sizeBody = (sl_size)(context->m_requestContentLength);
 				sl_size sizeCurrent = context->m_requestBodyBuffer.getSize();
 
 				if (sizeCurrent >= sizeBody) {
-					
+
 					context->m_flagBeganProcessing = sl_true;
 
 					if (sizeBody) {
@@ -504,7 +504,7 @@ namespace slib
 					return;
 				}
 			}
-			
+
 		}
 
 		if (server->isReleased()) {
@@ -619,7 +619,7 @@ namespace slib
 		static char s[] = "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n";
 		sendResponseAndClose(Memory::createStatic(s, sizeof(s) - 1));
 	}
-	
+
 	void HttpServerConnection::sendResponseAndClose_ServerError()
 	{
 		static char s[] = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n";
@@ -708,7 +708,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void release() override
 				{
 					ObjectLocker lock(this);
@@ -741,14 +741,14 @@ namespace slib
 
 		}
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpServerRoute)
 
 	HttpServerRoute::HttpServerRoute()
 	{
 	}
-	
+
 	HttpServerRoute* HttpServerRoute::createRoute(const String& path)
 	{
 		sl_reg indexStart = 0;
@@ -809,7 +809,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	HttpServerRoute* HttpServerRoute::getRoute(const String& path, HashMap<String, String>& parameters)
 	{
 		sl_reg indexStart = 0;
@@ -883,19 +883,19 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void HttpServerRoute::add(const String& path, const HttpServerRoute& _route)
 	{
 		HttpServerRoute* route = createRoute(path);
 		*route = _route;
 	}
-	
+
 	void HttpServerRoute::add(const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		HttpServerRoute* route = createRoute(path);
 		route->onRequest = onRequest;
 	}
-	
+
 	Variant HttpServerRoute::processRequest(const String& path, HttpServerContext* context)
 	{
 		HashMap<String, String> params;
@@ -910,14 +910,14 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpServerRouter)
-	
+
 	HttpServerRouter::HttpServerRouter()
 	{
 	}
-	
+
 	Variant HttpServerRouter::processRequest(const String& path, HttpServerContext* context)
 	{
 		if (routes.isNull()) {
@@ -940,7 +940,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	Variant HttpServerRouter::preProcessRequest(const String& path, HttpServerContext* context)
 	{
 		if (preRoutes.isNull()) {
@@ -963,7 +963,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	Variant HttpServerRouter::postProcessRequest(const String& path, HttpServerContext* context)
 	{
 		if (postRoutes.isNull()) {
@@ -986,7 +986,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void HttpServerRouter::add(HttpMethod method, const String& path, const HttpServerRoute& _route)
 	{
 		HttpServerRoute* route = routes.getItemPointer(method);
@@ -995,7 +995,7 @@ namespace slib
 		}
 		route->add(path, _route);
 	}
-	
+
 	void HttpServerRouter::add(HttpMethod method, const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		HttpServerRoute* route = routes.getItemPointer(method);
@@ -1004,7 +1004,7 @@ namespace slib
 		}
 		route->add(path, onRequest);
 	}
-	
+
 	void HttpServerRouter::before(HttpMethod method, const String& path, const HttpServerRoute& _route)
 	{
 		HttpServerRoute* route = preRoutes.getItemPointer(method);
@@ -1013,7 +1013,7 @@ namespace slib
 		}
 		route->add(path, _route);
 	}
-	
+
 	void HttpServerRouter::before(HttpMethod method, const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		HttpServerRoute* route = preRoutes.getItemPointer(method);
@@ -1022,7 +1022,7 @@ namespace slib
 		}
 		route->add(path, onRequest);
 	}
-	
+
 	void HttpServerRouter::after(HttpMethod method, const String& path, const HttpServerRoute& _route)
 	{
 		HttpServerRoute* route = postRoutes.getItemPointer(method);
@@ -1031,7 +1031,7 @@ namespace slib
 		}
 		route->add(path, _route);
 	}
-	
+
 	void HttpServerRouter::after(HttpMethod method, const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		HttpServerRoute* route = postRoutes.getItemPointer(method);
@@ -1040,7 +1040,7 @@ namespace slib
 		}
 		route->add(path, onRequest);
 	}
-	
+
 	void HttpServerRouter::add(const String& path, const HttpServerRouter& router)
 	{
 		for (auto& item : router.routes) {
@@ -1053,57 +1053,57 @@ namespace slib
 			after(item.key, path, item.value);
 		}
 	}
-	
+
 	void HttpServerRouter::GET(const String& path, const HttpServerRoute& route)
 	{
 		add(HttpMethod::GET, path, route);
 	}
-	
+
 	void HttpServerRouter::GET(const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		add(HttpMethod::GET, path, onRequest);
 	}
-	
+
 	void HttpServerRouter::POST(const String& path, const HttpServerRoute& route)
 	{
 		add(HttpMethod::POST, path, route);
 	}
-	
+
 	void HttpServerRouter::POST(const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		add(HttpMethod::POST, path, onRequest);
 	}
-	
+
 	void HttpServerRouter::PUT(const String& path, const HttpServerRoute& route)
 	{
 		add(HttpMethod::PUT, path, route);
 	}
-	
+
 	void HttpServerRouter::PUT(const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		add(HttpMethod::PUT, path, onRequest);
 	}
-	
+
 	void HttpServerRouter::DELETE(const String& path, const HttpServerRoute& route)
 	{
 		add(HttpMethod::DELETE, path, route);
 	}
-	
+
 	void HttpServerRouter::DELETE(const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		add(HttpMethod::DELETE, path, onRequest);
 	}
-	
+
 	void HttpServerRouter::ALL(const String& path, const HttpServerRoute& route)
 	{
 		add(HttpMethod::Unknown, path, route);
 	}
-	
+
 	void HttpServerRouter::ALL(const String& path, const Function<Variant(HttpServerContext*)>& onRequest)
 	{
 		add(HttpMethod::Unknown, path, onRequest);
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WebDavItemProperty)
 
@@ -1149,28 +1149,28 @@ namespace slib
 		return ret;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(HttpServerParam)
 
 	HttpServerParam::HttpServerParam()
 	{
 		port = 8080;
-		
+
 		maximumThreadCount = Cpu::getCoreCount();
 		if (!maximumThreadCount) {
 			maximumThreadCount = 1;
 		}
 		minimumThreadCount = maximumThreadCount / 2;
 		flagProcessByThreads = sl_true;
-		
+
 		flagUseWebRoot = sl_false;
 		flagUseAsset = sl_false;
-		
+
 		maxRequestHeadersSize = 0x10000; // 64KB
 		maxRequestBodySize = 0x2000000; // 32MB
-		
+
 		flagAllowCrossOrigin = sl_false;
-		
+
 		flagUseCacheControl = sl_true;
 		flagCacheControlNoCache = sl_false;
 		cacheControlMaxAge = 600;
@@ -1178,9 +1178,9 @@ namespace slib
 		flagSupportWebDAV = sl_false;
 
 		connectionExpiringDuration = 43200000; // 12 hours
-		
+
 		flagLogDebug = sl_false;
-		
+
 		flagAutoStart = sl_true;
 	}
 
@@ -1208,14 +1208,14 @@ namespace slib
 				blockedFileExtensions = s;
 			}
 		}
-		
+
 		Json cacheControl = conf["cache_control"];
 		if (cacheControl.isNotNull()) {
 			flagUseCacheControl = sl_true;
 			flagCacheControlNoCache = cacheControl["no_cache"].getBoolean(flagCacheControlNoCache);
 			cacheControlMaxAge = cacheControl["max_age"].getUint32(cacheControlMaxAge);
 		}
-		
+
 		{
 			sl_uint32 n;
 			if (conf["max_request_body"].getString().parseUint32(10, &n)) {
@@ -1223,7 +1223,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool HttpServerParam::parseJsonFile(const String& filePath)
 	{
 		JsonParseParam param;
@@ -1362,14 +1362,14 @@ namespace slib
 	void HttpServer::release()
 	{
 		ObjectLocker lock(this);
-		
+
 		if (m_flagReleased) {
 			return;
 		}
-		
+
 		m_flagReleased = sl_true;
 		m_flagRunning = sl_false;
-		
+
 		Ref<ThreadPool> threadPool = m_threadPool;
 		if (threadPool.isNotNull()) {
 			threadPool->release();
@@ -1441,7 +1441,7 @@ namespace slib
 				context->getQuery(),
 				context->getHost());
 		}
-		
+
 		Variant result = dispatchRequest(context);
 		if (result.isVariantPromise()) {
 			Promise<Variant> promise = result.getVariantPromise();
@@ -1604,7 +1604,7 @@ namespace slib
 
 			context->setResponseContentTypeFromFilePath(path, ContentType::OctetStream);
 			context->setResponseAcceptRanges(sl_true);
-			
+
 			_processCacheControl(context);
 
 			Time lastModifiedTime = File::getModifiedTime(path);
@@ -1614,7 +1614,7 @@ namespace slib
 				context->setResponseCode(HttpStatus::NotModified);
 				return sl_true;
 			}
-			
+
 			String rangeHeader = context->getRequestRange();
 			if (rangeHeader.isNotEmpty()) {
 				sl_uint64 start;
@@ -1644,7 +1644,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void HttpServer::_processCacheControl(HttpServerContext* context)
 	{
 		if (m_param.flagUseCacheControl) {
@@ -1826,7 +1826,7 @@ namespace slib
 	{
 		return sl_false;
 	}
-	
+
 	Variant HttpServer::dispatchRequest(HttpServerContext* context)
 	{
 		if (m_param.onPreRequest.isNotNull()) {
@@ -1855,11 +1855,11 @@ namespace slib
 		}
 		return onRequest(context);
 	}
-	
+
 	void HttpServer::onPostRequest(HttpServerContext* context)
 	{
 	}
-	
+
 	void HttpServer::dispatchPostRequest(HttpServerContext* context)
 	{
 		if (m_param.flagAllowCrossOrigin) {
@@ -1872,7 +1872,7 @@ namespace slib
 		m_param.router.postProcessRequest(context->getPath(), context);
 		m_param.onPostRequest(context);
 		onPostRequest(context);
-		
+
 		if (!(context->isProcessed())) {
 			context->write(StringView("Not Found"));
 			context->setResponseCode(HttpStatus::NotFound);

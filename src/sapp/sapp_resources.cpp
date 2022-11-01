@@ -93,17 +93,17 @@ namespace slib
 		topMode = PositionMode::Free;
 		rightMode = PositionMode::Free;
 		bottomMode = PositionMode::Free;
-		
+
 		left.flagDefined = sl_false;
 		top.flagDefined = sl_false;
-		
+
 		minWidth.flagDefined = sl_false;
 		maxWidth.flagDefined = sl_false;
 		minHeight.flagDefined = sl_false;
 		maxHeight.flagDefined = sl_false;
-		
+
 		aspectRatio.flagDefined = sl_false;
-		
+
 		marginLeft.flagDefined = sl_false;
 		marginTop.flagDefined = sl_false;
 		marginRight.flagDefined = sl_false;
@@ -618,8 +618,8 @@ namespace slib
 		}
 		return type;
 	}
-	
-	
+
+
 	SAppLayoutSimulationParams::SAppLayoutSimulationParams()
 	{
 		screenWidth = 0;
@@ -727,7 +727,7 @@ namespace slib
 		WindowLayout::dispatchResize(width, height);
 		layoutViews(width, height);
 	}
-	
+
 	void SAppLayoutSimulationWindow::layoutViews(sl_ui_len width, sl_ui_len height)
 	{
 		Ref<SAppDocument> doc = m_document;

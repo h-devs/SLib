@@ -41,28 +41,28 @@ such as the Advanced Encryption Standard (AES) algorithm
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT GCM_Table
 	{
 	public:
 		Uint128 M[16]; // Shoup's, 4-bit table
-	
+
 	public:
 		void generateTable(const void* H /* 16 bytes */);
 
 		void multiplyH(const void* X /* 16 bytes */, void* O /* 16 bytes */) const;
 
 		void multiplyData(void* X /* 16 bytes, inout */, const void* D, sl_size lenD) const;
-	
+
 		void multiplyLength(void* X /* 16 bytes, inout */, sl_size len1, sl_size len2) const;
-	
+
 		void calculateGHash(const void* A, sl_size lenA, const void* C, sl_size lenC, void* O /* 16 bytes */) const;
-	
+
 		// lenIV shoud be at least 12
 		void calculateCIV(const void* IV, sl_size lenIV, void* CIV /* 16 bytes */) const;
 
 	};
-	
+
 	class SLIB_EXPORT GCM_Base : public GCM_Table
 	{
 	public:
@@ -82,7 +82,7 @@ namespace slib
 		sl_bool finishAndCheckTag(sl_size lenA, sl_size lenC, const void* tag, sl_size lenTag = 16 /* 4 <= lenTag <= 16 */);
 
 	};
-	
+
 	template <class CLASS>
 	class SLIB_EXPORT GCM : public GCM_Base
 	{
@@ -152,7 +152,7 @@ namespace slib
 			sl_size i, k, n;
 			const sl_uint8* P = (const sl_uint8*)src;
 			sl_uint8* C = (sl_uint8*)dst;
-			
+
 			for (i = 0; i < len; i += 16) {
 				increaseCIV();
 				m_cipher->encryptBlock(CIV, GCTR);
@@ -193,7 +193,7 @@ namespace slib
 			sl_size i, k, n;
 			const sl_uint8* C = (const sl_uint8*)src;
 			sl_uint8* P = (sl_uint8*)dst;
-			
+
 			for (i = 0; i < len; i += 16) {
 				increaseCIV();
 				m_cipher->encryptBlock(CIV, GCTR);
@@ -240,7 +240,7 @@ namespace slib
 			decrypt(input, output, len);
 			return finishAndCheckTag(lenA, len, tag, lenTag);
 		}
-	
+
 
 #ifdef check
 #undef check
@@ -264,7 +264,7 @@ namespace slib
 		const CLASS* m_cipher;
 
 	};
-	
+
 }
 
 #endif

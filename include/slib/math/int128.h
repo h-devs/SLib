@@ -32,7 +32,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Uint128
 	{
 	public:
@@ -43,7 +43,7 @@ namespace slib
 		sl_uint64 high;
 		sl_uint64 low;
 #endif
-	
+
 	public:
 		SLIB_CONSTEXPR Uint128(): high(0), low(0) {}
 
@@ -55,7 +55,7 @@ namespace slib
 
 	private:
 		static const sl_uint64 _zero[2];
-	
+
 	public:
 		static const Uint128& zero() noexcept
 		{
@@ -77,7 +77,7 @@ namespace slib
 			high = 0;
 			low = 0;
 		}
-	
+
 		sl_uint32 getMostSignificantBits() const noexcept;
 
 		sl_uint32 getLeastSignificantBits() const noexcept;
@@ -128,7 +128,7 @@ namespace slib
 		static Uint128 pow10(sl_uint32 exponent) noexcept;
 
 		sl_uint32 log10() const noexcept;
-	
+
 	public:
 		Uint128& operator=(const Uint128& other) noexcept
 		{
@@ -159,7 +159,7 @@ namespace slib
 		Uint128& operator+=(const Uint128& other) noexcept;
 
 		Uint128& operator+=(sl_uint32 num) noexcept;
-	
+
 		Uint128& operator++() noexcept;
 
 		Uint128 operator++(int) noexcept;
@@ -170,7 +170,7 @@ namespace slib
 		Uint128 operator-(sl_uint64 num) const noexcept;
 
 		friend Uint128 operator-(sl_uint64 num, const Uint128& v) noexcept;
-	
+
 		Uint128& operator-=(const Uint128& other) noexcept;
 
 		Uint128& operator-=(sl_uint64 num) noexcept;
@@ -198,7 +198,7 @@ namespace slib
 		Uint128 operator/(sl_uint32 num) const noexcept;
 
 		friend Uint128 operator/(sl_uint64 num, const Uint128& v) noexcept;
-	
+
 		Uint128& operator/=(const Uint128& other) noexcept;
 
 		Uint128& operator/=(sl_uint64 num) noexcept;
@@ -213,7 +213,7 @@ namespace slib
 		Uint128 operator%(sl_uint32 num) const noexcept;
 
 		friend Uint128 operator%(sl_uint64 num, const Uint128& v) noexcept;
-	
+
 		Uint128& operator%=(const Uint128& other) noexcept;
 
 		Uint128& operator%=(sl_uint64 num) noexcept;
@@ -230,7 +230,7 @@ namespace slib
 		Uint128& operator&=(const Uint128& other) noexcept;
 
 		Uint128& operator&=(sl_uint32 num) noexcept;
-	
+
 
 		Uint128 operator|(const Uint128& other) const noexcept;
 
@@ -241,38 +241,38 @@ namespace slib
 		Uint128& operator|=(const Uint128& other) noexcept;
 
 		Uint128& operator|=(sl_uint32 num) noexcept;
-	
+
 
 		Uint128 operator^(const Uint128& other) const noexcept;
 
 		Uint128 operator^(sl_uint64 num) const noexcept;
 
 		friend Uint128 operator^(sl_uint64 num, const Uint128& v) noexcept;
-	
+
 		Uint128& operator^=(const Uint128& other) noexcept;
 
 		Uint128& operator^=(sl_uint32 num) noexcept;
-	
+
 
 		Uint128 operator>>(sl_uint32 n) const noexcept;
 
 		Uint128& operator>>=(sl_uint32 n) noexcept;
-	
+
 
 		Uint128 operator<<(sl_uint32 n) const noexcept;
 
 		Uint128& operator<<=(sl_uint32 n) noexcept;
-	
+
 
 		Uint128 operator-() const noexcept;
-	
+
 		Uint128 operator~() const noexcept;
-	
+
 	public:
 		static Uint128 fromString(const StringParam& str, sl_uint32 radix = 10) noexcept;
 
 		String toString(sl_uint32 radix = 10) const noexcept;
-	
+
 		static Uint128 fromHexString(const StringParam& str) noexcept;
 
 		String toHexString() const noexcept;
@@ -293,10 +293,10 @@ namespace slib
 		friend sl_bool operator<(sl_uint64 num, const Uint128& v) noexcept;
 
 	};
-	
+
 	template <>
 	void Math::pow10iT<Uint128>(Uint128& _out, sl_uint32 exponent) noexcept;
-	
+
 	template <>
 	sl_uint32 Math::log10iT<Uint128>(const Uint128& v) noexcept;
 

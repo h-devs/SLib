@@ -26,9 +26,9 @@ namespace slib
 	sl_bool SAppDocument::_generateDrawablesCpp(const String& targetPath)
 	{
 		_log(g_str_log_generate_cpp_drawables_begin);
-		
+
 		StringBuffer sbHeader, sbCpp, sbMap;
-		
+
 		sbHeader.add(String::format(
 									"#pragma once%n%n"
 									"#include <slib/graphics/resource.h>%n%n"
@@ -41,9 +41,9 @@ namespace slib
 								 "namespace %s%n"
 								 "{%n\tnamespace drawable%n\t{%n%n"
 								 , m_conf.generate_cpp_namespace));
-		
+
 		sbMap.add("\t\tSLIB_DEFINE_DRAWABLE_RESOURCE_MAP_BEGIN\r\n");
-		
+
 		// iterate image resources
 		{
 			for (auto& pair : m_drawables) {
@@ -55,7 +55,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		// iterate other resources
 		{
 			for (auto& pair : m_drawables) {
@@ -69,15 +69,15 @@ namespace slib
 				}
 			}
 		}
-		
+
 		sbMap.add("\t\tSLIB_DEFINE_DRAWABLE_RESOURCE_MAP_END\r\n");
-		
+
 		sbHeader.add("\r\n\t\tSLIB_DECLARE_DRAWABLE_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
-		
+
 		sbCpp.link(sbMap);
 		sbCpp.add("\r\n\t}\r\n}\r\n");
-		
-		
+
+
 		String pathHeader = targetPath + "/drawables.h";
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
@@ -86,7 +86,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		String pathCpp = targetPath + "/drawables.cpp";
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
@@ -95,10 +95,10 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		return sl_true;
 	}
-	
+
 	sl_bool SAppDocument::_getDrawableAccessString(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, String& result)
 	{
 		if (!(value.flagDefined)) {
@@ -124,12 +124,12 @@ namespace slib
 				return sl_true;
 			}
 		}
-		
+
 		String name;
 		if (!(_checkDrawableName(localNamespace, value.resourceName, element, &name))) {
 			return sl_false;
 		}
-		
+
 		String str;
 		if (value.flagWhole) {
 			str = String::format("drawable::%s::get()", name);
@@ -145,11 +145,11 @@ namespace slib
 		}
 
 		result = str;
-		
+
 		return sl_true;
 
 	}
-	
+
 	sl_bool SAppDocument::_getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, Ref<Drawable>& result)
 	{
 		if (!(value.flagDefined)) {
@@ -174,7 +174,7 @@ namespace slib
 				return sl_true;
 			}
 		}
-		
+
 		Ref<SAppDrawableResource> res;
 		if (!(_checkDrawableName(localNamespace, value.resourceName, element, sl_null, &res))) {
 			return sl_false;
@@ -207,7 +207,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_checkDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element)
 	{
 		if (!(value.flagDefined)) {
@@ -225,7 +225,7 @@ namespace slib
 		}
 		return _checkDrawableName(localNamespace, value.resourceName, element);
 	}
-	
+
 	sl_bool SAppDocument::_checkDrawableName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppDrawableResource>* outResource)
 	{
 		if (getItemFromMap(m_drawables, localNamespace, name, outName, outResource)) {
@@ -235,7 +235,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_getImageAccessString(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, String& result)
 	{
 		if (!(value.flagDefined)) {
@@ -250,7 +250,7 @@ namespace slib
 			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
 			return sl_false;
 		}
-		
+
 		String name;
 		Ref<SAppDrawableResource> res;
 		if (!(_checkDrawableName(localNamespace, value.resourceName, element, &name, &res))) {
@@ -260,11 +260,11 @@ namespace slib
 			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
 			return sl_false;
 		}
-		
+
 		result = String::format("drawable::%s::getImage()", name);
 		return sl_true;
 	}
-	
+
 	sl_bool SAppDocument::_getImageValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, Ref<Image>& result)
 	{
 		if (!(value.flagDefined)) {
@@ -279,7 +279,7 @@ namespace slib
 			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
 			return sl_false;
 		}
-		
+
 		Ref<SAppDrawableResource> res;
 		if (!(_checkDrawableName(localNamespace, value.resourceName, element, sl_null, &res))) {
 			return sl_false;
@@ -288,7 +288,7 @@ namespace slib
 			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
 			return sl_false;
 		}
-		
+
 		Ref<Drawable> drawable = _getDrawableValue_Image(res.get());
 		if (IsInstanceOf<Image>(drawable)) {
 			result = Ref<Image>::from(drawable);
@@ -300,7 +300,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_checkImageValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element)
 	{
 		if (!(value.flagDefined)) {
@@ -313,7 +313,7 @@ namespace slib
 			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
 			return sl_false;
 		}
-		
+
 		Ref<SAppDrawableResource> res;
 		if (!(_checkDrawableName(localNamespace, value.resourceName, element, sl_null, &res))) {
 			return sl_false;
@@ -375,9 +375,9 @@ namespace slib
 						_logError(g_str_error_resource_drawable_type_duplicated, File::concatPath(resourcePath, fileName));
 						return sl_false;
 					}
-					
+
 					SAppDrawableResourceImageAttributes* imageAttr = res->imageAttrs.get();
-					
+
 					List< Ref<SAppDrawableResourceImageItem> > list;
 					if (locale == Locale::Unknown) {
 						list = imageAttr->defaultImages;
@@ -399,7 +399,7 @@ namespace slib
 							}
 						}
 					}
-					
+
 					Ref<SAppDrawableResourceImageItem> item = new SAppDrawableResourceImageItem;
 					if (item.isNull()) {
 						_logError(g_str_error_out_of_memory);
@@ -430,42 +430,42 @@ namespace slib
 	sl_bool SAppDocument::_generateDrawablesCpp_Image(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap)
 	{
 		SAppDrawableResourceImageAttributes* imageAttr = res->imageAttrs.get();
-		
+
 		Ref<SAppDrawableResourceImageItem> item;
-		
+
 		sl_bool flagSuccess = sl_false;
-		
+
 		sl_uint32 defaultWidth = 0;
 		sl_uint32 defaultHeight = 0;
-		
+
 		if (imageAttr->defaultImages.getAt(0, &item)) {
-			
+
 			Ref<Image> image = item->loadImage();
-			
+
 			if (image.isNotNull()) {
 				defaultWidth = image->getWidth();
 				defaultHeight = image->getHeight();
 				flagSuccess = sl_true;
 			}
-			
+
 		}
-		
+
 		if (!flagSuccess) {
 			_logError(g_str_error_load_image_failed, res->name);
 			return sl_false;
 		}
-		
-		
+
+
 		sbHeader.add(String::format("\t\tSLIB_DECLARE_IMAGE_RESOURCE(%s)%n", res->name));
-		
+
 		if (imageAttr->images.isEmpty() && imageAttr->defaultImages.getCount() == 1 && item.isNotNull()) {
-			
+
 			sbCpp.add(String::format("\t\tSLIB_DEFINE_IMAGE_RESOURCE_SIMPLE(%s, %d, %d, raw::%s::size, raw::%s::bytes)%n%n", res->name, defaultWidth, defaultHeight, item->rawName));
-			
+
 		} else {
-			
+
 			sbCpp.add(String::format("\t\tSLIB_DEFINE_IMAGE_RESOURCE_BEGIN(%s, %d, %d)%n", res->name, defaultWidth, defaultHeight));
-			
+
 			CList< Pair<Locale, List< Ref<SAppDrawableResourceImageItem> > > > listPairs;
 			{
 				for (auto& pairItems : imageAttr->images) {
@@ -517,25 +517,25 @@ namespace slib
 					return sl_false;
 				}
 			}
-			
+
 			ListElements< Pair<Locale, List< Ref<SAppDrawableResourceImageItem> > > > pairs(listPairs);
 			for (sl_size iPair = 0; iPair < pairs.count; iPair++) {
-				
+
 				String strLocale = pairs[iPair].first.toString();
-				
+
 				ListLocker< Ref<SAppDrawableResourceImageItem> > items(pairs[iPair].second);
-				
+
 				if (pairs[iPair].first == Locale::Unknown) {
 					static sl_char8 str[] = "\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_DEFAULT_LIST_BEGIN\r\n";
 					sbCpp.addStatic(str, sizeof(str)-1);
 				} else {
 					sbCpp.add(String::format("\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_LIST_BEGIN(%s)%n", strLocale));
 				}
-				
+
 				for (sl_size i = 0; i < items.count; i++) {
-					
+
 					item = items[i];
-					
+
 					Ref<Image> image = item->loadImage();
 					if (image.isNull()) {
 						_logError(g_str_error_resource_drawable_load_image_failed, item->filePath);
@@ -543,27 +543,27 @@ namespace slib
 					}
 					sbCpp.add(String::format("\t\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_ITEM(%d, %d, raw::%s::size, raw::%s::bytes)%n", image->getWidth(), image->getHeight(), item->rawName));
 				}
-				
+
 				static sl_char8 strEnd[] = "\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_LIST_END\r\n";
 				sbCpp.addStatic(strEnd, sizeof(strEnd)-1);
-				
-				
+
+
 			}
-			
+
 			static sl_char8 strEnd[] = "\t\tSLIB_DEFINE_IMAGE_RESOURCE_END\r\n\r\n";
 			sbCpp.addStatic(strEnd, sizeof(strEnd)-1);
-			
+
 		}
-		
+
 		sbMap.add(String::format("\t\t\tSLIB_DEFINE_DRAWABLE_RESOURCE_MAP_ITEM(%s)%n", res->name));
-		
+
 		return sl_true;
 	}
 
 	Ref<Drawable> SAppDocument::_getDrawableValue_Image(SAppDrawableResource* res)
 	{
 		SAppDrawableResourceImageAttributes* imageAttr = res->imageAttrs.get();
-		
+
 
 		List< Ref<SAppDrawableResourceImageItem> > listItems;
 		do {
@@ -613,11 +613,11 @@ namespace slib
 				}
 			}
 		} while (0);
-		
+
 		if (listItems.isNull()) {
 			listItems = imageAttr->defaultImages;
 		}
-		
+
 		Ref<SAppDrawableResourceImageItem> item;
 		sl_size n = listItems.getCount();
 		if (n == 1) {
@@ -679,7 +679,7 @@ namespace slib
 		if (element.isNull()) {
 			return sl_false;
 		}
-		
+
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
 			_logError(element, g_str_error_resource_ninepieces_name_is_empty);
@@ -689,14 +689,14 @@ namespace slib
 			_logError(element, g_str_error_resource_ninepieces_name_invalid, name);
 			return sl_false;
 		}
-		
+
 		name = getNameInLocalNamespace(localNamespace, name);
-		
+
 		if (m_drawables.find(name)) {
 			_logError(element, g_str_error_resource_ninepieces_name_redefined, name);
 			return sl_false;
 		}
-		
+
 		Ref<SAppDrawableResource> res = new SAppDrawableResource;
 		if (res.isNull()) {
 			_logError(g_str_error_out_of_memory);
@@ -709,12 +709,12 @@ namespace slib
 			_logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
-		
+
 		SAppDrawableResourceNinePiecesAttributes* attr = res->ninePiecesAttrs.get();
 
 		attr->element = element;
 		attr->localNamespace = localNamespace;
-		
+
 		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, leftWidth)
 		if (!(attr->leftWidth.checkGlobal())) {
 			LOG_ERROR_NINEPIECES_ATTR(leftWidth)
@@ -735,7 +735,7 @@ namespace slib
 			LOG_ERROR_NINEPIECES_ATTR(bottomHeight)
 			return sl_false;
 		}
-		
+
 		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, topLeft)
 		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, top)
 		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, topRight)
@@ -750,14 +750,14 @@ namespace slib
 			_logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
-		
+
 		return sl_true;
 	}
 
 	sl_bool SAppDocument::_generateDrawablesCpp_NinePieces(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap)
 	{
 		SAppDrawableResourceNinePiecesAttributes* attr = res->ninePiecesAttrs.get();
-		
+
 		sbHeader.add(String::format("\t\tSLIB_DECLARE_NINEPIECES_RESOURCE(%s)%n", res->name));
 
 		String strTopLeft;
@@ -796,18 +796,18 @@ namespace slib
 		if (!(_getDrawableAccessString(attr->localNamespace, attr->bottomRight, attr->element, strBottomRight))) {
 			return sl_false;
 		}
-		
+
 		sbCpp.add(String::format("\t\tSLIB_DEFINE_NINEPIECES_RESOURCE(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)%n%n", res->name, attr->leftWidth.getAccessString(), attr->rightWidth.getAccessString(), attr->topHeight.getAccessString(), attr->bottomHeight.getAccessString(), strTopLeft, strTop, strTopRight, strLeft, strCenter, strRight, strBottomLeft, strBottom, strBottomRight));
-		
+
 		sbMap.add(String::format("\t\t\tSLIB_DEFINE_DRAWABLE_RESOURCE_MAP_ITEM(%s)%n", res->name));
-		
+
 		return sl_true;
 	}
 
 	Ref<Drawable> SAppDocument::_getDrawableValue_NinePieces(SAppDrawableResource* res)
 	{
 		SAppDrawableResourceNinePiecesAttributes* attr = res->ninePiecesAttrs.get();
-		
+
 		do {
 			Ref<Drawable> topLeft;
 			if (!(_getDrawableValue(attr->localNamespace, attr->topLeft, attr->element, topLeft))) {
@@ -845,11 +845,11 @@ namespace slib
 			if (!(_getDrawableValue(attr->localNamespace, attr->bottomRight, attr->element, bottomRight))) {
 				break;
 			}
-			
+
 			return NinePiecesDrawable::create(_getDimensionIntValue(attr->leftWidth), _getDimensionIntValue(attr->rightWidth), _getDimensionIntValue(attr->topHeight), _getDimensionIntValue(attr->bottomHeight), topLeft, top, topRight, left, center, right, bottomLeft, bottom, bottomRight);
-			
+
 		} while (0);
-		
+
 		return Ref<Drawable>::null();
 	}
 
@@ -868,7 +868,7 @@ namespace slib
 		LOG_ERROR_NINEPATCH_ATTR(NAME) \
 		return sl_false; \
 	}
-	
+
 #define PARSE_AND_CHECK_NINEPATCH_ATTR(ATTR, NAME) \
 	String str_##NAME = element->getAttribute(#NAME); \
 	if (!(ATTR NAME.parse(str_##NAME))) { \
@@ -881,7 +881,7 @@ namespace slib
 		if (element.isNull()) {
 			return sl_false;
 		}
-		
+
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
 			_logError(element, g_str_error_resource_ninepatch_name_is_empty);
@@ -891,14 +891,14 @@ namespace slib
 			_logError(element, g_str_error_resource_ninepatch_name_invalid, name);
 			return sl_false;
 		}
-		
+
 		name = getNameInLocalNamespace(localNamespace, name);
-		
+
 		if (m_drawables.find(name)) {
 			_logError(element, g_str_error_resource_ninepatch_name_redefined, name);
 			return sl_false;
 		}
-		
+
 		Ref<SAppDrawableResource> res = new SAppDrawableResource;
 		if (res.isNull()) {
 			_logError(g_str_error_out_of_memory);
@@ -911,12 +911,12 @@ namespace slib
 			_logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
-		
+
 		SAppDrawableResourceNinePatchAttributes* attr = res->ninePatchAttrs.get();
-		
+
 		attr->element = element;
 		attr->localNamespace = localNamespace;
-		
+
 		PARSE_AND_CHECK_NINEPATCH_DIMENSION_ATTR(attr->, dstLeftWidth)
 		if (!(attr->dstLeftWidth.checkGlobal())) {
 			LOG_ERROR_NINEPATCH_ATTR(dstLeftWidth)
@@ -937,13 +937,13 @@ namespace slib
 			LOG_ERROR_NINEPATCH_ATTR(dstBottomHeight)
 			return sl_false;
 		}
-		
+
 		PARSE_AND_CHECK_NINEPATCH_DRAWABLE_ATTR(attr->, src)
 		if (!(attr->src.flagDefined)) {
 			LOG_ERROR_NINEPATCH_ATTR(src)
 			return sl_false;
 		}
-		
+
 		SAppFloatValue leftWidth;
 		PARSE_AND_CHECK_NINEPATCH_ATTR(, leftWidth)
 		attr->leftWidth = leftWidth.value;
@@ -952,7 +952,7 @@ namespace slib
 			attr->dstLeftWidth.unit = SAppDimensionValue::PX;
 			attr->dstLeftWidth.flagDefined = sl_true;
 		}
-		
+
 		SAppFloatValue rightWidth;
 		PARSE_AND_CHECK_NINEPATCH_ATTR(, rightWidth)
 		attr->rightWidth = rightWidth.value;
@@ -970,7 +970,7 @@ namespace slib
 			attr->dstTopHeight.unit = SAppDimensionValue::PX;
 			attr->dstTopHeight.flagDefined = sl_true;
 		}
-		
+
 		SAppFloatValue bottomHeight;
 		PARSE_AND_CHECK_NINEPATCH_ATTR(, bottomHeight)
 		attr->bottomHeight = bottomHeight.value;
@@ -979,37 +979,37 @@ namespace slib
 			attr->dstBottomHeight.unit = SAppDimensionValue::PX;
 			attr->dstBottomHeight.flagDefined = sl_true;
 		}
-		
+
 		if (!(m_drawables.put(name, res))) {
 			_logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
-		
+
 		return sl_true;
 	}
 
 	sl_bool SAppDocument::_generateDrawablesCpp_NinePatch(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap)
 	{
 		SAppDrawableResourceNinePatchAttributes* attr = res->ninePatchAttrs.get();
-		
+
 		sbHeader.add(String::format("\t\tSLIB_DECLARE_NINEPATCH_RESOURCE(%s)%n", res->name));
-		
+
 		String strSrc;
 		if (!(_getDrawableAccessString(attr->localNamespace, attr->src, attr->element, strSrc))) {
 			return sl_false;
 		}
-		
+
 		sbCpp.add(String::format("\t\tSLIB_DEFINE_NINEPATCH_RESOURCE(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)%n%n", res->name, attr->dstLeftWidth.getAccessString(), attr->dstRightWidth.getAccessString(), attr->dstTopHeight.getAccessString(), attr->dstBottomHeight.getAccessString(), strSrc, attr->leftWidth, attr->rightWidth, attr->topHeight, attr->bottomHeight));
-		
+
 		sbMap.add(String::format("\t\t\tSLIB_DEFINE_DRAWABLE_RESOURCE_MAP_ITEM(%s)%n", res->name));
-		
+
 		return sl_true;
 	}
 
 	Ref<Drawable> SAppDocument::_getDrawableValue_NinePatch(SAppDrawableResource* res)
 	{
 		SAppDrawableResourceNinePatchAttributes* attr = res->ninePatchAttrs.get();
-		
+
 		Ref<Drawable> src;
 		if (!(_getDrawableValue(attr->localNamespace, attr->src, attr->element, src))) {
 			return Ref<Drawable>::null();

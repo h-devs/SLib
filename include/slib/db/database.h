@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Database : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -41,11 +41,11 @@ namespace slib
 
 	public:
 		Ref<DatabaseStatement> prepareStatement(const StringParam& sql);
-		
+
 		Ref<DatabaseStatement> prepareStatement(const SqlBuilder& builder);
-		
+
 		sl_int64 executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		template <class T>
 		sl_int64 executeBy(const SqlBuilder& builder, const T& _params)
 		{
@@ -54,16 +54,16 @@ namespace slib
 		}
 
 		sl_int64 execute(const StringParam& sql);
-		
+
 		template <class... ARGS>
 		sl_int64 execute(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return executeBy(sql, params, sizeof...(args));
 		}
-		
+
 		Ref<DatabaseCursor> queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		template <class T>
 		Ref<DatabaseCursor> queryBy(const SqlBuilder& builder, const T& _params)
 		{
@@ -72,16 +72,16 @@ namespace slib
 		}
 
 		Ref<DatabaseCursor> query(const StringParam& sql);
-		
+
 		template <class... ARGS>
 		Ref<DatabaseCursor> query(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return queryBy(sql, params, sizeof...(args));
 		}
-		
+
 		List<VariantMap> getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		template <class T>
 		List<VariantMap> getRecordsBy(const SqlBuilder& builder, const T& _params)
 		{
@@ -90,16 +90,16 @@ namespace slib
 		}
 
 		List<VariantMap> getRecords(const StringParam& sql);
-		
+
 		template <class... ARGS>
 		List<VariantMap> getRecords(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordsBy(sql, params, sizeof...(args));
 		}
-		
+
 		VariantMap getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		template <class T>
 		VariantMap getRecordBy(const SqlBuilder& builder, const T& _params)
 		{
@@ -108,25 +108,25 @@ namespace slib
 		}
 
 		VariantMap getRecord(const StringParam& sql);
-		
+
 		template <class... ARGS>
 		VariantMap getRecord(const StringParam& sql, ARGS&&... args)
 		{
 			VariantEx params[] = {Forward<ARGS>(args)...};
 			return getRecordBy(sql, params, sizeof...(args));
 		}
-		
+
 		Variant getValueBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		template <class T>
 		Variant getValueBy(const SqlBuilder& builder, const T& _params)
 		{
 			DatabaseParametersLocker<T> params(_params, builder.parameters);
 			return getValueBy(builder.toString(), params.data, params.count);
 		}
-		
+
 		Variant getValue(const StringParam& sql);
-		
+
 		template <class... ARGS>
 		Variant getValue(const StringParam& sql, ARGS&&... args)
 		{
@@ -135,30 +135,30 @@ namespace slib
 		}
 
 		sl_bool isLoggingSQL();
-		
+
 		void setLoggingSQL(sl_bool flag);
-		
+
 		sl_bool isLoggingErrors();
-		
+
 		void setLoggingErrors(sl_bool flag);
-		
-		
+
+
 		DatabaseDialect getDialect();
-		
-		
+
+
 		virtual String getErrorMessage() = 0;
-		
+
 		virtual sl_bool isDatabaseExisting(const StringParam& name) = 0;
-		
+
 		virtual List<String> getDatabases() = 0;
 
 		virtual sl_bool isTableExisting(const StringParam& name) = 0;
-		
+
 		virtual List<String> getTables() = 0;
-		
+
 		virtual sl_uint64 getLastInsertRowId() = 0;
-		
-		
+
+
 		sl_bool createTable(const DatabaseCreateTableParam& param);
 
 		sl_bool createTable(const DatabaseIdentifier& table, const ListParam<DatabaseColumnDefinition>& columns, DatabaseFlags flags = 0);
@@ -168,12 +168,12 @@ namespace slib
 		sl_bool createIndex(const DatabaseCreateIndexParam& param);
 
 		sl_bool createIndex(const DatabaseIdentifier& index, const String& table, const ListParam<DatabaseIndexColumn>& columns, DatabaseFlags flags = 0);
-		
+
 		sl_bool dropIndex(const DatabaseIdentifier& index, const String& table, DatabaseFlags flags = 0);
-		
-		
+
+
 		Ref<DatabaseStatement> prepareInsert(const DatabaseIdentifier& table, const ListParam<String>& columns);
-		
+
 		template <class MAP>
 		sl_int64 insert(const DatabaseIdentifier& table, const MAP& map)
 		{
@@ -191,7 +191,7 @@ namespace slib
 		}
 
 		Ref<DatabaseStatement> prepareUpdate(const DatabaseIdentifier& table, const ListParam<String>& columns, const DatabaseExpression& where);
-		
+
 		template <class MAP, class... ARGS>
 		sl_int64 update(const DatabaseIdentifier& table, const MAP& map, const DatabaseExpression& where, ARGS&&... args)
 		{
@@ -212,9 +212,9 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		Ref<DatabaseStatement> prepareDelete(const DatabaseIdentifier& table, const DatabaseExpression& where);
-		
+
 		template <class... ARGS>
 		sl_int64 deleteRecords(const DatabaseIdentifier& table, const DatabaseExpression& where, ARGS&&... args)
 		{
@@ -265,7 +265,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class T>
 		VariantMap findRecordBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
 		{
@@ -288,7 +288,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class T>
 		Variant findValueBy(const DatabaseIdentifier& table, const DatabaseExpression& where, const T& params)
 		{
@@ -298,38 +298,38 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		sl_bool startTransaction();
-		
+
 		sl_bool commitTransaction();
-		
+
 		sl_bool rollbackTransaction();
 
 	protected:
 		virtual Ref<DatabaseStatement> _prepareStatement(const StringParam& sql) = 0;
-		
+
 		virtual sl_int64 _executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		virtual sl_int64 _execute(const StringParam& sql);
-		
+
 		virtual Ref<DatabaseCursor> _queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		virtual Ref<DatabaseCursor> _query(const StringParam& sql);
-		
+
 		void _logSQL(const StringParam& sql);
-		
+
 		void _logSQL(const StringParam& sql, const Variant* params, sl_uint32 nParams);
-		
+
 		void _logError(const StringParam& sql);
-		
+
 		void _logError(const StringParam& sql, const Variant* params, sl_uint32 nParams);
 
 	protected:
 		sl_bool m_flagLogSQL;
 		sl_bool m_flagLogErrors;
-		
+
 		DatabaseDialect m_dialect;
-		
+
 	};
 
 }

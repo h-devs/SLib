@@ -33,16 +33,16 @@
 
 namespace slib
 {
-	
+
 	class macOS_ViewInstance : public ViewInstance
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		macOS_ViewInstance();
-		
+
 		~macOS_ViewInstance();
-		
+
 	public:
 		template <class T>
 		static Ref<T> create(NSView* handle)
@@ -69,7 +69,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class INSTANCE, class HANDLE>
 		static Ref<INSTANCE> create(View* view, ViewInstance* _parent)
 		{
@@ -93,61 +93,61 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 	public:
 		void initWithHandle(NSView* handle);
-		
+
 		void initWithHandle(NSView* handle, NSView* parent, View* view);
-		
+
 		NSView* getHandle();
-		
+
 		sl_bool isValid(View* view) override;
-		
+
 		void setFocus(View* view, sl_bool flagFocus) override;
-		
+
 		void invalidate(View* view) override;
-		
+
 		void invalidate(View* view, const UIRect& rect) override;
-		
+
 		void setFrame(View* view, const UIRect& frame) override;
-		
+
 		void setTransform(View* view, const Matrix3& transform) override;
 
 		void setVisible(View* view, sl_bool flag) override;
-		
+
 		void setEnabled(View* view, sl_bool flag) override;
-		
+
 		void setOpaque(View* view, sl_bool flag) override;
-		
+
 		void setAlpha(View* view, sl_real alpha) override;
-		
+
 		void setClipping(View* view, sl_bool flag) override;
-		
+
 		void setDrawing(View* view, sl_bool flag) override;
-		
+
 		UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) override;
-		
+
 		UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) override;
-		
+
 		void addChildInstance(View* view, const Ref<ViewInstance>& instance) override;
-		
+
 		void removeChildInstance(View* view, const Ref<ViewInstance>& instance) override;
-		
+
 		void bringToFront(View* view) override;
-		
+
 		void setShadowOpacity(View* view, float opacity) override;
 
 		void setShadowRadius(View* view, sl_ui_posf radius) override;
-		
+
 		void setShadowOffset(View* view, sl_ui_posf x, sl_ui_posf y) override;
-		
+
 		void setShadowColor(View* view, const Color& color) override;
-		
+
 		void setDropTarget(View* view, sl_bool flag) override;
-		
+
 	public:
 		static NSRect getViewFrameAndTransform(const UIRect& frame, const Matrix3& transform, sl_real& rotation);
-		
+
 		template <class HANDLE>
 		static void setHandleFont(HANDLE* handle, const Ref<Font>& font)
 		{
@@ -158,34 +158,34 @@ namespace slib
 				}
 			}
 		}
-		
+
 	public:
 		void onDraw(NSRect rectDirty);
-		
+
 		UIEventFlags onEventKey(sl_bool flagDown, NSEvent* event);
-		
+
 		UIEventFlags onEventMouse(UIAction action, NSEvent* event);
-		
+
 		UIEventFlags onEventMouse(UIAction action, const NSPoint& point);
 
 		UIEventFlags onEventMouseWheel(NSEvent* event);
-		
+
 		UIEventFlags onEventUpdateCursor(NSEvent* event);
-		
+
 		Ref<UIEvent> onEventDrop(UIAction action, id<NSDraggingInfo> info);
-		
+
 		void updateFrameAndTransform();
-		
+
 	private:
 		void _release();
-		
+
 	protected:
 		NSView* m_handle;
-		
+
 	public:
 		UIRect m_frame;
 		Matrix3 m_transform;
-		
+
 	};
 
 }

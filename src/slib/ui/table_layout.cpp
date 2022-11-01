@@ -252,7 +252,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool TableLayout::isColumnWidthFilling(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -262,7 +262,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void TableLayout::setColumnWidthFilling(sl_uint32 iCol, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -276,7 +276,7 @@ namespace slib
 			invalidateLayout(mode);
 		}
 	}
-	
+
 	sl_bool TableLayout::isColumnWidthWrapping(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -286,7 +286,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void TableLayout::setColumnWidthWrapping(sl_uint32 iCol, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -296,7 +296,7 @@ namespace slib
 			invalidateLayout(mode);
 		}
 	}
-	
+
 	sl_bool TableLayout::isColumnWidthWeight(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -306,7 +306,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void TableLayout::setColumnWidthWeight(sl_uint32 iCol, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -320,7 +320,7 @@ namespace slib
 			invalidateLayout(mode);
 		}
 	}
-	
+
 	sl_ui_len TableLayout::getColumnMinimumWidth(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -330,7 +330,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	void TableLayout::setColumnMinimumWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -343,7 +343,7 @@ namespace slib
 			invalidateLayout(mode);
 		}
 	}
-	
+
 	sl_bool TableLayout::isColumnMaximumWidthDefined(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -363,7 +363,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	void TableLayout::setColumnMaximumWidth(sl_uint32 iCol, sl_ui_len width, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -542,7 +542,7 @@ namespace slib
 		ObjectLocker lock(this);
 		return (sl_uint32)(m_rows.getCount());
 	}
-	
+
 	void TableLayout::setRowCount(sl_uint32 nRows, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -621,7 +621,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_real TableLayout::getRowHeightWeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
@@ -631,7 +631,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	sl_bool TableLayout::isRowHeightFilling(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
@@ -641,7 +641,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void TableLayout::setRowHeightFilling(sl_uint32 iRow, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -665,7 +665,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void TableLayout::setRowHeightWrapping(sl_uint32 iRow, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -675,7 +675,7 @@ namespace slib
 			invalidateLayout(mode);
 		}
 	}
-	
+
 	sl_bool TableLayout::isRowHeightWeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
@@ -685,7 +685,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	void TableLayout::setRowHeightWeight(sl_uint32 iRow, sl_real weight, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -699,7 +699,7 @@ namespace slib
 			invalidateLayout(mode);
 		}
 	}
-	
+
 	sl_ui_len TableLayout::getRowMinimumHeight(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
@@ -709,7 +709,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	void TableLayout::setRowMinimumHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -742,7 +742,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	void TableLayout::setRowMaximumHeight(sl_uint32 iRow, sl_ui_len height, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
@@ -1204,7 +1204,7 @@ namespace slib
 		sl_real sumColFillWeights = 0;
 		sl_bool flagWrappingRows = sl_false;
 		sl_bool flagWrappingCols = sl_false;
-		
+
 		SLIB_SCOPED_BUFFER(SizeMode, 64, colWidthModes, nCols)
 		SLIB_SCOPED_BUFFER(SizeMode, 64, rowHeightModes, nRows)
 		if (!(colWidthModes && rowHeightModes)) {
@@ -1470,11 +1470,11 @@ namespace slib
 	void TableLayout::onDraw(Canvas* canvas)
 	{
 		ObjectLocker lock(this);
-		
+
 		UIRect layoutFrameContainer = getLayoutFrame();
 		sl_ui_len paddingContainerLeft = getPaddingLeft();
 		sl_ui_len paddingContainerTop = getPaddingTop();
-		
+
 		{
 			UIRect rc;
 			rc.left = paddingContainerLeft;
@@ -1510,5 +1510,5 @@ namespace slib
 			}
 		}
 	}
-	
+
 }

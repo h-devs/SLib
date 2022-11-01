@@ -36,7 +36,7 @@
 
 namespace slib
 {
-	
+
 	enum class JwtAlgorithm
 	{
 		None = 0, // No digital signature or MAC performed
@@ -53,72 +53,72 @@ namespace slib
 		PS384 = 41, // RSASSA-PSS using SHA-384 and MGF1 with SHA-384
 		PS512 = 42  // RSASSA-PSS using SHA-512 and MGF1 with SHA-512
 	};
-	
+
 	class SLIB_EXPORT Jwt
 	{
 	public:
 		Json header;
 		Json payload;
-		
+
 	public:
 		Jwt() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Jwt)
-		
+
 	public:
 		String encode(const MemoryView& secret) const noexcept;
-		
+
 		sl_bool decode(const MemoryView& secret, const StringView& token) noexcept;
-		
+
 		String generateSignature(const MemoryView& secret, const void* data, sl_size size) const noexcept;
 
 		String generateSignature(const MemoryView& secret, const MemoryView& mem) const noexcept;
 
 		String encode_OpenSSL(const Ref<OpenSSL_Key>& key) const noexcept;
-		
+
 		sl_bool decode_OpenSSL(const Ref<OpenSSL_Key>& key, const StringView& token) noexcept;
-		
+
 		String generateSignature_OpenSSL(const Ref<OpenSSL_Key>& key, const void* data, sl_size size) const noexcept;
-		
+
 		sl_bool verifySignature_OpenSSL(const Ref<OpenSSL_Key>& key, const StringParam& signature, const void* data, sl_size size) const noexcept;
-		
+
 		// header
 	public:
 		String getType() const noexcept;
 		void setType(const String& value) noexcept;
-		
+
 		String getContentType() const noexcept;
 		void setContentType(const String& value) noexcept;
-		
+
 		JwtAlgorithm getAlgorithm() const noexcept;
 		void setAlgorithm(const JwtAlgorithm& value) noexcept;
-		
+
 		// payload
 	public:
 		String getIssuer() const noexcept;
 		void setIssuer(const String& value) noexcept;
-		
+
 		String getSubject() const noexcept;
 		void setSubject(const String& value) noexcept;
-		
+
 		String getAudience() const noexcept;
 		void setAudience(const String& value) noexcept;
-		
+
 		Time getExpirationTime() const noexcept;
 		void setExpirationTime(const Time& value) noexcept;
-		
+
 		Time getNotBefore() const noexcept;
 		void setNotBefore(const Time& value) noexcept;
-		
+
 		String getIssuedAt() const noexcept;
 		void setIssuedAt(const String& value) noexcept;
 
 		String getId() const noexcept;
 		void setId(const String& value) noexcept;
 
-	private:		
+	private:
 		sl_size _decode(const StringView& token, String& signature) noexcept;
-		
+
 	};
 
 }

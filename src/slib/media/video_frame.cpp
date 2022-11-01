@@ -24,7 +24,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(VideoFrame)
 
 	VideoFrame::VideoFrame()

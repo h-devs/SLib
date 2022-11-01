@@ -43,7 +43,7 @@ namespace slib
 				Ref<Drawable> defaultThumb;
 				Ref<Drawable> defaultPressedThumb;
 				Ref<Drawable> defaultHoverThumb;
-				
+
 				StaticContext()
 				{
 					defaultTrack = ColorDrawable::create(Color(0, 0, 0));
@@ -54,9 +54,9 @@ namespace slib
 					defaultHoverThumb = ColorDrawable::create(Color(0, 200, 150, 255));
 				}
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 			static Ref<Drawable> const& ResolveDrawable(const Ref<Drawable>& drawableOriginal, const Ref<Drawable>& drawableCommon, const Ref<Drawable>& drawableShared)
 			{
 				if (drawableOriginal.isNotNull()) {
@@ -77,7 +77,7 @@ namespace slib
 	using namespace priv::slider;
 
 	SLIB_DEFINE_OBJECT(Slider, ProgressBar)
-	
+
 	Slider::Slider(LayoutOrientation orientation) : ProgressBar(orientation)
 	{
 		StaticContext* s = GetStaticContext();
@@ -87,20 +87,20 @@ namespace slib
 			m_progress2 = s->defaultProgress2;
 			m_thumb = s->defaultThumb;
 		}
-		
+
 		m_thumbSize.x = 0;
 		m_thumbSize.y = 0;
-		
+
 		m_indexHoverThumb = -1;
 		m_indexPressedThumb = -1;
-		
+
 		setCursor(Cursor::getHand());
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 		setFocusable(sl_true);
 #endif
 		setPadding(1, UIUpdateMode::Init);
 	}
-	
+
 	Slider::~Slider()
 	{
 	}
@@ -109,100 +109,100 @@ namespace slib
 	{
 		return m_thumb;
 	}
-	
+
 	void Slider::setThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_thumb = drawable;
 		invalidate(mode);
 	}
-	
+
 	void Slider::setThumbColor(const Color& color, UIUpdateMode mode)
 	{
 		setThumbDrawable(ColorDrawable::create(color), mode);
 	}
-	
+
 	Ref<Drawable> Slider::getPressedThumbDrawable()
 	{
 		return m_pressedThumb;
 	}
-	
+
 	void Slider::setPressedThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_pressedThumb = drawable;
 		invalidate(mode);
 	}
-	
+
 	void Slider::setPressedThumbColor(const Color& color, UIUpdateMode mode)
 	{
 		setPressedThumbDrawable(ColorDrawable::create(color), mode);
 	}
-	
+
 	Ref<Drawable> Slider::getHoverThumbDrawable()
 	{
 		return m_hoverThumb;
 	}
-	
+
 	void Slider::setHoverThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_hoverThumb = drawable;
 		invalidate(mode);
 	}
-	
+
 	void Slider::setHoverThumbColor(const Color& color, UIUpdateMode mode)
 	{
 		setHoverThumbDrawable(ColorDrawable::create(color), mode);
 	}
-	
+
 	const UISize& Slider::getThumbSize()
 	{
 		return m_thumbSize;
 	}
-	
+
 	void Slider::setThumbSize(const UISize& size, UIUpdateMode mode)
 	{
 		m_thumbSize = size;
 		invalidate(mode);
 	}
-	
+
 	void Slider::setThumbSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode)
 	{
 		setThumbSize(UISize(width, height), mode);
 	}
-	
+
 	void Slider::setThumbSize(sl_ui_len size, UIUpdateMode mode)
 	{
 		setThumbSize(UISize(size, size), mode);
 	}
-	
+
 	sl_ui_len Slider::getThumbWidth()
 	{
 		return m_thumbSize.x;
 	}
-	
+
 	void Slider::setThumbWidth(sl_ui_len width, UIUpdateMode mode)
 	{
 		setThumbSize(UISize(width, m_thumbSize.y), mode);
 	}
-	
+
 	sl_ui_len Slider::getThumbHeight()
 	{
 		return m_thumbSize.y;
 	}
-	
+
 	void Slider::setThumbHeight(sl_ui_len height, UIUpdateMode mode)
 	{
 		setThumbSize(UISize(m_thumbSize.x, height), mode);
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Slider, Change, float value)
-	
+
 	void Slider::dispatchChange(float value)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Change, value)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangeSecondary, float value)
-	
+
 	void Slider::dispatchChangeSecondary(float value)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ChangeSecondary, value)
@@ -225,7 +225,7 @@ namespace slib
 		if (thumb.isNull()) {
 			thumb = m_thumb;
 		}
-		
+
 		UIRect rcTrack, rcProgress, rcProgress2, rcThumb, rcThumb2;
 		getRegions(rcTrack, rcProgress, rcProgress2, rcThumb, rcThumb2);
 		if (rcTrack.isValidSize()) {
@@ -253,7 +253,7 @@ namespace slib
 			drawThumb(canvas, thumb2, rcThumb2);
 		}
 	}
-	
+
 	void Slider::onMouseEvent(UIEvent* ev)
 	{
 		UIAction action = ev->getAction();
@@ -263,7 +263,7 @@ namespace slib
 		} else {
 			pos = (sl_ui_pos)(ev->getX());
 		}
-		
+
 		switch (action) {
 			case UIAction::MouseMove:
 			case UIAction::MouseEnter:
@@ -327,11 +327,11 @@ namespace slib
 			default:
 				return;
 		}
-		
+
 		ev->stopPropagation();
-		
+
 	}
-	
+
 	void Slider::onMouseWheelEvent(UIEvent* ev)
 	{
 		float step = refineStep();
@@ -346,10 +346,10 @@ namespace slib
 		} else if (delta < -SLIB_EPSILON) {
 			changeValue(m_value + step, sl_false);
 		}
-		
+
 		ev->stopPropagation();
 	}
-	
+
 	void Slider::onKeyEvent(UIEvent* ev)
 	{
 		float step = refineStep();
@@ -369,7 +369,7 @@ namespace slib
 			ev->stopPropagation();
 		}
 	}
-	
+
 	void Slider::drawTrack(Canvas* canvas, const Ref<Drawable>& track, const Rectangle& rectDst)
 	{
 		if (track.isNull()) {
@@ -389,7 +389,7 @@ namespace slib
 			canvas->draw(rectDst, track);
 		}
 	}
-	
+
 	void Slider::drawThumb(Canvas* canvas, const Ref<Drawable>& thumb, const Rectangle& rectDst)
 	{
 		if (thumb.isNull()) {
@@ -410,7 +410,7 @@ namespace slib
 			canvas->draw(rectDst, thumb);
 		}
 	}
-	
+
 	sl_ui_pos Slider::getStartPadding()
 	{
 		sl_ui_pos padding;
@@ -421,7 +421,7 @@ namespace slib
 		}
 		return padding + getMinimumPadding();
 	}
-	
+
 	sl_ui_pos Slider::getEndPadding()
 	{
 		sl_ui_pos padding;
@@ -432,7 +432,7 @@ namespace slib
 		}
 		return padding + getMinimumPadding();
 	}
-	
+
 	sl_ui_pos Slider::getMinimumPadding()
 	{
 		sl_ui_pos padding;
@@ -455,7 +455,7 @@ namespace slib
 			return 0;
 		}
 	}
-	
+
 	sl_ui_pos Slider::getPositionFromValue(float value)
 	{
 		float range = m_value_max - m_value_min;
@@ -477,7 +477,7 @@ namespace slib
 			return pos + paddingStart;
 		}
 	}
-	
+
 	float Slider::getValueFromPosition(sl_ui_pos pos)
 	{
 		float range = m_value_max - m_value_min;
@@ -502,7 +502,7 @@ namespace slib
 		}
 		return ((float)pos * range / (float)len) + getMinimumValue();
 	}
-	
+
 	void Slider::getRegions(UIRect& outTrack, UIRect& outProgress, UIRect& outSecondaryProgress, UIRect& outThumb, UIRect& outSecondaryThumb)
 	{
 		sl_ui_pos pos1 = getPositionFromValue(m_value);
@@ -584,7 +584,7 @@ namespace slib
 			outProgress.bottom = outTrack.bottom;
 			outSecondaryProgress.top = outTrack.top;
 			outSecondaryProgress.bottom = outTrack.bottom;
-			
+
 			outThumb.left = pos1 - thumbWidth / 2;
 			outThumb.top = (outTrack.top + outTrack.bottom) / 2 - thumbHeight / 2;
 			outThumb.right = outThumb.left + thumbWidth;
@@ -599,7 +599,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void Slider::setHoverThumb(int index)
 	{
 		if (m_indexHoverThumb != index) {
@@ -607,7 +607,7 @@ namespace slib
 			invalidate();
 		}
 	}
-	
+
 	void Slider::changeValue(float v, sl_bool flagChange2)
 	{
 		float value, value2;
@@ -631,5 +631,5 @@ namespace slib
 		}
 		invalidate();
 	}
-	
+
 }

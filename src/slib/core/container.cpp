@@ -107,7 +107,7 @@ namespace slib
 				}
 				return sl_true;
 			}
-			
+
 			sl_bool growCapacity(void* _pData, sl_size elementSize, sl_size* pCapacity, sl_size count) noexcept
 			{
 				if (*pCapacity < count) {
@@ -134,7 +134,7 @@ namespace slib
 				}
 				return sl_true;
 			}
-			
+
 			sl_bool shrinkCapacity(void* _pData, sl_size elementSize, sl_size* pCapacity, sl_size count) noexcept
 			{
 				if (*pCapacity > PRIV_SLIB_LIST_CAPACITY_MIN && count < *pCapacity / 2) {
@@ -153,7 +153,7 @@ namespace slib
 				}
 				return sl_true;
 			}
-			
+
 		}
 
 		namespace ptr
@@ -206,7 +206,7 @@ namespace slib
 
 
 	SLIB_DEFINE_ROOT_OBJECT(CListBase)
-	
+
 	CListBase::CListBase()
 	{
 	}

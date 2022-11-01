@@ -40,19 +40,19 @@ namespace slib
 
 	class RenderEngine;
 	class RenderBaseObject;
-	
+
 	class SLIB_EXPORT RenderBaseObjectInstance : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		RenderBaseObjectInstance();
-		
+
 		~RenderBaseObjectInstance();
-		
+
 	public:
 		void link(RenderEngine* engine, RenderBaseObject* object);
-		
+
 		Ref<RenderEngine> getEngine();
 
 	protected:
@@ -62,23 +62,23 @@ namespace slib
 		void doUpdate(RenderBaseObject* object);
 
 		sl_bool isUpdated();
-		
+
 	protected:
 		WeakRef<RenderEngine> m_engine;
 		sl_bool m_flagUpdated;
-		
+
 		friend class RenderBaseObject;
 	};
 
 	class SLIB_EXPORT RenderBaseObject : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		RenderBaseObject();
-		
+
 		~RenderBaseObject();
-		
+
 	public:
 		Ref<RenderBaseObjectInstance> getInstance(RenderEngine* engine);
 

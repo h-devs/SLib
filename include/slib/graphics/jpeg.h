@@ -343,7 +343,7 @@ namespace slib
 	{
 	public:
 		List<JpegMarker> markers;
-		
+
 		// JFIF Marker
 		sl_bool flagJFIF;
 
@@ -457,9 +457,9 @@ namespace slib
 		static Ref<Image> loadFromFile(const StringParam& path);
 
 		static sl_uint32 getBlockCount(const Ptrx<IReader, ISeekable>& reader, sl_uint32 colorIndex);
-		
+
 		static sl_bool loadHuffmanBlocks(const Ptrx<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64], sl_bool& outFlagFinish)>& onLoadBlock);
-		
+
 		static Memory modifyHuffmanBlocks(const Ptr<IReader, ISeekable>& reader, const Function<void(sl_uint32 colorIndex, sl_int16 data[64])>& onLoadBlock);
 
 	};

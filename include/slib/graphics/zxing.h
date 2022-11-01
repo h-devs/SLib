@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	enum class ZXingFormat
 	{
 		AZTEC, // Aztec 2D barcode
@@ -48,24 +48,24 @@ namespace slib
 		UPC_E, // UPC-E 1D
 		UPC_EAN_EXTENSION // UPC/EAN extension, Not a stand-alone format
 	};
-	
+
 	class ZXingGenerateParam
 	{
 	public:
 		ZXingFormat format;
 		String text;
-		
+
 		sl_uint32 margin;
 		sl_uint32 width;
 		sl_uint32 height;
-		
+
 	public:
 		ZXingGenerateParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ZXingGenerateParam)
-		
+
 	};
-	
+
 	class ZXingScanParam
 	{
 	public:
@@ -74,26 +74,26 @@ namespace slib
 
 		sl_bool flagTryHarder;
 		sl_bool flagTryRotate;
-		
+
 		sl_bool flagSubRegion;
 		Rectanglei subRegion;
-		
+
 	public:
 		ZXingScanParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ZXingScanParam)
-		
+
 	};
-	
+
 	class ZXing
 	{
 	public:
 		static Ref<Image> generate(const ZXingGenerateParam& param);
-		
+
 		static String scan(const ZXingScanParam& param);
-		
+
 	};
-	
+
 }
 
 #endif

@@ -39,7 +39,7 @@ namespace slib
 
 	template <class... TYPES>
 	class Pointer;
-	
+
 	template <class T>
 	class PointerxT {};
 
@@ -66,7 +66,7 @@ namespace slib
 		{
 			return ptr;
 		}
-		
+
 		SLIB_CONSTEXPR T& operator*() const
 		{
 			return *ptr;
@@ -141,7 +141,7 @@ namespace slib
 			to = PointerxCastHelper<TO, IsConvertible<FROM, TO*>::value>::cast(from);
 		}
 	};
-	
+
 	template <class T, class T2>
 	class Pointer<T, T2>
 	{
@@ -226,7 +226,7 @@ namespace slib
 			Helper::init(ptr2, p);
 			Helper::init(ptr3, p);
 		}
-		
+
 	};
 
 	template <class T, class T2, class T3, class T4>

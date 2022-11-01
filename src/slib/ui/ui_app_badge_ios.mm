@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	void UIApp::setBadgeNumber(sl_uint32 number)
 	{
 		[[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:UNAuthorizationOptionBadge completionHandler:^(BOOL granted, NSError* error) {
@@ -42,7 +42,7 @@ namespace slib
 			}
 		}];
 	}
-	
+
 }
 
 #endif

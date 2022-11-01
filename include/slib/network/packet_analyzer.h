@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	class NetCapture;
 
 	enum class TcpConnectionType
@@ -60,7 +60,7 @@ namespace slib
 		void putCapturedPacket(NetCapture* capture, NetworkLinkDeviceType type, const void* frame, sl_size size, void* userData);
 
 		void putCapturedPacket(NetCapture* capture, const void* frame, sl_size size, void* userData);
-		
+
 		void putEthernet(NetCapture* capture, const void* frame, sl_size size, void* userData);
 
 		void putEthernet(const void* frame, sl_size size, void* userData);

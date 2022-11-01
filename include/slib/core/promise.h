@@ -31,23 +31,23 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class CPromise;
-	
+
 	template <class T>
 	class Promise;
-	
+
 	template <class T>
 	using AtomicPromise = Atomic< Promise<T> >;
-	
+
 	enum class PromiseState
 	{
 		Pending = 0,
 		Resolved = 1,
 		Completed = 2
 	};
-	
+
 	namespace priv
 	{
 		namespace promise
@@ -71,7 +71,7 @@ namespace slib
 		~CPromiseBase();
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT CPromise : public CPromiseBase
 	{
@@ -83,26 +83,26 @@ namespace slib
 
 	public:
 		CPromise(): m_state(PromiseState::Pending) {}
-		
+
 		template <class... ARGS>
 		CPromise(PromiseState state, ARGS&&... args): m_state(state)
 		{
 			new ((T*)((void*)m_result)) T(Forward<ARGS>(args)...);
 		}
-		
+
 		~CPromise()
 		{
 			if (m_state != PromiseState::Pending) {
 				(*((T*)((void*)m_result))).T::~T();
 			}
 		}
-		
+
 	public:
 		PromiseState getState()
 		{
 			return m_state;
 		}
-		
+
 		template <class... ARGS>
 		void resolve(ARGS&&... args)
 		{
@@ -120,7 +120,7 @@ namespace slib
 				m_state = PromiseState::Resolved;
 			}
 		}
-		
+
 		template <class CALLBACK_TYPE>
 		void then(CALLBACK_TYPE&& callback)
 		{
@@ -133,9 +133,9 @@ namespace slib
 				m_callback = Forward<CALLBACK_TYPE>(callback);
 			}
 		}
-		
+
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Promise
 	{
@@ -148,18 +148,18 @@ namespace slib
 		{
 			return new CPromise<T>();
 		}
-		
+
 		template <class... ARGS>
 		static Promise<T> fromValue(ARGS&&... args)
 		{
 			return new CPromise<T>(PromiseState::Resolved, Forward<ARGS>(args)...);
 		}
-		
+
 		static const Promise<T>& from(const Promise<T>& other)
 		{
 			return other;
 		}
-		
+
 		template <class OTHER>
 		static Promise<T> from(const Promise<OTHER>& other)
 		{
@@ -170,12 +170,12 @@ namespace slib
 			});
 			return ret;
 		}
-		
+
 		void initialize()
 		{
 			ref = new CPromise<T>();
 		}
-		
+
 		PromiseState getState() const
 		{
 			CPromise<T>* object = ref.ptr;
@@ -185,7 +185,7 @@ namespace slib
 				return PromiseState::Resolved;
 			}
 		}
-		
+
 		template <class... ARGS>
 		void resolve(ARGS&&... args) const
 		{
@@ -194,7 +194,7 @@ namespace slib
 				object->resolve(Forward<ARGS>(args)...);
 			}
 		}
-		
+
 		template <class CALLBACK_TYPE>
 		void then(CALLBACK_TYPE&& callback) const
 		{
@@ -206,7 +206,7 @@ namespace slib
 				callback(result);
 			}
 		}
-		
+
 		template <class RET>
 		Promise<RET> thenReturn(const Function<RET(T& result)>& callback) const
 		{
@@ -217,7 +217,7 @@ namespace slib
 			});
 			return promise;
 		}
-		
+
 		template <class RET>
 		Promise<RET> thenPromise(const Function<Promise<RET>(T& result)>& callback) const
 		{
@@ -230,7 +230,7 @@ namespace slib
 			});
 			return promise;
 		}
-		
+
 		// don't use mixed with `then()`, timeoutMilliseconds: negative means infinite timeout
 		sl_bool wait(sl_int32 timeoutMilliseconds = -1) const
 		{
@@ -243,7 +243,7 @@ namespace slib
 			});
 			return event->wait(timeoutMilliseconds);
 		}
-		
+
 		// don't use mixed with `then()`, timeoutMilliseconds: negative means infinite timeout
 		sl_bool wait(T* _output, sl_int32 timeoutMilliseconds = -1) const
 		{
@@ -259,7 +259,7 @@ namespace slib
 			});
 			return event->wait(timeoutMilliseconds);
 		}
-		
+
 		template <class... PROMISES>
 		static Promise< List<T> > all(PROMISES&&... _promises)
 		{
@@ -289,7 +289,7 @@ namespace slib
 			}
 			return ret;
 		}
-		
+
 		static Promise< List<T> > allList(const List< Promise<T> >& _promises)
 		{
 			sl_size n = _promises.getCount();
@@ -321,7 +321,7 @@ namespace slib
 			}
 			return ret;
 		}
-		
+
 		template <class... PROMISES>
 		static Promise<T> race(PROMISES&&... _promises)
 		{
@@ -340,7 +340,7 @@ namespace slib
 			}
 			return ret;
 		}
-		
+
 		static Promise<T> raceList(const List< Promise<T> >& _promises)
 		{
 			sl_size n = _promises.getCount();
@@ -375,7 +375,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		static Promise<T> dispatch(const Function<T()>& task)
 		{
 			Promise<T> ret;
@@ -387,7 +387,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		static Promise<T> setTimeout(const Ref<Dispatcher>& dispatcher, const Function<T()>& task, sl_uint64 delayMillis)
 		{
 			if (dispatcher.isNotNull()) {
@@ -401,7 +401,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		static Promise<T> setTimeout(const Function<T()>& task, sl_uint64 delayMillis)
 		{
 			Promise<T> ret;
@@ -429,7 +429,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		static Promise<T> dispatchPromise(const Function<Promise<T>()>& task)
 		{
 			Promise<T> ret;
@@ -443,7 +443,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		static Promise<T> setTimeoutPromise(const Ref<Dispatcher>& dispatcher, const Function<Promise<T>()>& task, sl_uint64 delayMillis)
 		{
 			if (dispatcher.isNotNull()) {
@@ -459,7 +459,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		static Promise<T> setTimeoutPromise(const Function<Promise<T>()>& task, sl_uint64 delayMillis)
 		{
 			Promise<T> ret;
@@ -475,7 +475,7 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Atomic< Promise<T> >
 	{
@@ -483,7 +483,7 @@ namespace slib
 		AtomicRef< CPromise<T> > ref;
 		SLIB_ATOMIC_REF_WRAPPER(CPromise<T>)
 	};
-	
+
 }
 
 #endif

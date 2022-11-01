@@ -30,22 +30,22 @@ public class Android {
 	{
 		nativeOnCreateActivity(activity);
 	}
-	
+
 	public static void onResumeActivity(Activity activity)
 	{
 		nativeOnResumeActivity(activity);
 	}
-	
+
 	public static void onPauseActivity(Activity activity)
 	{
 		nativeOnPauseActivity(activity);
 	}
-	
+
 	public static void onDestroyActivity(Activity activity)
 	{
 		nativeOnDestroyActivity(activity);
 	}
-	
+
 	public static boolean onBack(Activity activity)
 	{
 		return nativeOnBack(activity);

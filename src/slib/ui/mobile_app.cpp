@@ -33,7 +33,7 @@ namespace slib
 	{
 		namespace mobile_app
 		{
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
 
 			UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
@@ -53,9 +53,9 @@ namespace slib
 	{
 		Ref<MobileMainWindow> window = new MobileMainWindow;
 		setMainWindow(window);
-		
+
 		m_contentView = window->getContentView();
-		
+
 		m_navigationController = new ViewPageNavigationController;
 		m_navigationController->setWidthFilling(1, UIUpdateMode::Init);
 		m_navigationController->setHeightFilling(1, UIUpdateMode::Init);
@@ -73,28 +73,28 @@ namespace slib
 	void MobileApp::init()
 	{
 		UIApp::init();
-		
+
 		m_callbackOnChangeLocale = SLIB_FUNCTION_MEMBER(this, dispatchChangeCurrentLocale);
 		Locale::addOnChangeCurrentLocale(m_callbackOnChangeLocale);
 	}
-	
+
 	Ref<MobileApp> MobileApp::getApp()
 	{
 		return CastRef<MobileApp>(Application::getApp());
 	}
-	
+
 	Ref<MobileMainWindow> MobileApp::getMainWindow()
 	{
 		return CastRef<MobileMainWindow>(UIApp::getMainWindow());
 	}
-	
+
 	sl_bool MobileApp::m_flagPaused = sl_false;
-	
+
 	sl_bool MobileApp::isPaused()
 	{
 		return m_flagPaused;
 	}
-	
+
 	Ref<View> MobileApp::getRootView()
 	{
 		Ref<Window> window = UIApp::getMainWindow();
@@ -103,17 +103,17 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<View> MobileApp::getContentView()
 	{
 		return m_contentView;
 	}
-	
+
 	Ref<ViewPageNavigationController> MobileApp::getNavigationController()
 	{
 		return m_navigationController;
 	}
-	
+
 	Ref<View> MobileApp::getLoadingPage()
 	{
 		return getStartupPage();
@@ -123,7 +123,7 @@ namespace slib
 	{
 		return sl_null;
 	}
-	
+
 	void MobileApp::addViewToRoot(const Ref<View>& view)
 	{
 		Ref<MobileMainWindow> window = getMainWindow();
@@ -131,7 +131,7 @@ namespace slib
 			window->addView(view);
 		}
 	}
-	
+
 	void MobileApp::addViewToContent(const Ref<View>& view)
 	{
 		Ref<View> content = m_contentView;
@@ -139,47 +139,47 @@ namespace slib
 			content->addChild(view);
 		}
 	}
-	
+
 	void MobileApp::openPage(const Ref<View>& page, const Transition& transition)
 	{
 		m_navigationController->push(page, transition);
 	}
-	
+
 	void MobileApp::openPage(const Ref<View>& page)
 	{
 		m_navigationController->push(page);
 	}
-	
+
 	void MobileApp::openHomePage(const Ref<View>& page, const Transition& transition)
 	{
 		m_navigationController->pushPageAfterPopAllPages(page, transition);
 	}
-	
+
 	void MobileApp::openHomePage(const Ref<View>& page)
 	{
 		m_navigationController->pushPageAfterPopAllPages(page);
 	}
-	
+
 	void MobileApp::closePage(const Ref<View>& page, const Transition& transition)
 	{
 		m_navigationController->pop(page, transition);
 	}
-	
+
 	void MobileApp::closePage(const Ref<View>& page)
 	{
 		m_navigationController->pop(page);
 	}
-	
+
 	void MobileApp::closePage(const Transition& transition)
 	{
 		m_navigationController->pop(transition);
 	}
-	
+
 	void MobileApp::closePage()
 	{
 		m_navigationController->pop();
 	}
-	
+
 	void MobileApp::popupPage(const Ref<ViewPage>& page, const Transition& transition, sl_bool flagFillParentBackground)
 	{
 		if (page.isNull()) {
@@ -190,7 +190,7 @@ namespace slib
 			page->popup(content, transition, flagFillParentBackground);
 		}
 	}
-	
+
 	void MobileApp::popupPage(const Ref<ViewPage>& page, sl_bool flagFillParentBackground)
 	{
 		if (page.isNull()) {
@@ -201,7 +201,7 @@ namespace slib
 			page->popup(content, flagFillParentBackground);
 		}
 	}
-	
+
 	void MobileApp::closePopup(const Ref<ViewPage>& page, const Transition& transition)
 	{
 		if (page.isNull()) {
@@ -214,7 +214,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void MobileApp::closePopup(const Ref<ViewPage>& page)
 	{
 		if (page.isNull()) {
@@ -227,7 +227,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void MobileApp::closePopup(const Transition& transition)
 	{
 		ListLocker< Ref<ViewPage> > popups(m_popupPages);
@@ -238,7 +238,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void MobileApp::closePopup()
 	{
 		ListLocker< Ref<ViewPage> > popups(m_popupPages);
@@ -249,7 +249,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void MobileApp::openStartupPage()
 	{
 		Ref<View> page = getStartupPage();
@@ -257,7 +257,7 @@ namespace slib
 			openHomePage(page, TransitionType::None);
 		}
 	}
-	
+
 	void MobileApp::dispatchStart()
 	{
 		UIApp::dispatchStart();
@@ -274,7 +274,7 @@ namespace slib
 	void MobileApp::dispatchPause()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Pause)
-		
+
 		Ref<ViewPageNavigationController> controller = m_navigationController;
 		if (controller.isNotNull()) {
 			Ref<View> page = controller->getCurrentPage();
@@ -290,7 +290,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void MobileApp::dispatchPauseToApp()
 	{
 		m_flagPaused = sl_true;
@@ -311,13 +311,13 @@ namespace slib
 			}
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, Resume)
 
 	void MobileApp::dispatchResume()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Resume)
-		
+
 		Ref<ViewPageNavigationController> controller = m_navigationController;
 		if (controller.isNotNull()) {
 			Ref<View> page = controller->getCurrentPage();
@@ -333,7 +333,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void MobileApp::dispatchResumeToApp()
 	{
 		m_flagPaused = sl_false;
@@ -354,13 +354,13 @@ namespace slib
 			}
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, BackPressed, UIEvent* ev)
 
 	void MobileApp::dispatchBackPressed(UIEvent* ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(BackPressed, ev)
-		
+
 		if (ev->isPreventedDefault()) {
 			return;
 		}
@@ -392,7 +392,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool MobileApp::dispatchBackPressedToApp()
 	{
 		Ref<MobileApp> app = getApp();
@@ -407,7 +407,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, CreateActivity)
 
 	void MobileApp::dispatchCreateActivity()
@@ -416,10 +416,10 @@ namespace slib
 		if (window.isNotNull()) {
 			window->forceCreate();
 		}
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(CreateActivity)
 	}
-	
+
 	void MobileApp::dispatchCreateActivityToApp()
 	{
 		Ref<MobileApp> app = getApp();
@@ -427,14 +427,14 @@ namespace slib
 			app->dispatchCreateActivity();
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, DestroyActivity)
-	
+
 	void MobileApp::dispatchDestroyActivity()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(DestroyActivity)
 	}
-	
+
 	void MobileApp::dispatchDestroyActivityToApp()
 	{
 		Ref<MobileApp> app = getApp();
@@ -442,13 +442,13 @@ namespace slib
 			app->dispatchDestroyActivity();
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, Resize, sl_ui_len width, sl_ui_len height)
 
 	void MobileApp::dispatchResize(sl_ui_len width, sl_ui_len height)
 	{
 		UIResource::updateDefaultScreenSize();
-		
+
 		if (m_navigationController->getPageCount() == 0) {
 			Ref<View> page = getLoadingPage();
 			if (page.isNotNull()) {
@@ -456,10 +456,10 @@ namespace slib
 				openHomePage(page, TransitionType::None);
 			}
 		}
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(Resize, width, height);
 	}
-	
+
 	void MobileApp::dispatchResizeToApp(sl_ui_len width, sl_ui_len height)
 	{
 		Ref<MobileApp> app = getApp();
@@ -467,7 +467,7 @@ namespace slib
 			app->dispatchResize(width, height);
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(MobileApp, ChangeCurrentLocale)
 
 	void MobileApp::dispatchChangeCurrentLocale()
@@ -475,17 +475,17 @@ namespace slib
 		if (m_navigationController->getPageCount() > 0) {
 			openStartupPage();
 		}
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(ChangeCurrentLocale)
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(MobileMainWindow, Window)
-	
+
 	MobileMainWindow::MobileMainWindow()
 	{
 	}
-	
+
 	MobileMainWindow::~MobileMainWindow()
 	{
 	}

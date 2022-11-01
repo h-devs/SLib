@@ -131,7 +131,7 @@ public: \
 		INDEX_TYPE getSelectedIndex();
 
 		void selectItem(INDEX_TYPE index, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 	protected:
 		INDEX_TYPE m_countItems;
 		INDEX_TYPE m_indexSelected;
@@ -161,12 +161,12 @@ public: \
 	class SLIB_EXPORT LabelList : public ListBox, public LabelListViewBase<LabelList, sl_int64>
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		LabelList();
-		
+
 		~LabelList();
-		
+
 	public:
 		void setItemHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw) override;
 
@@ -212,7 +212,7 @@ public: \
 
 	public:
 		SLIB_DECLARE_LABEL_LIST_NOTIFY_FUNCTIONS(LabelList, sl_int64)
-	
+
 	protected:
 		sl_ui_len _getFontHeight();
 
@@ -220,10 +220,10 @@ public: \
 		sl_bool m_flagUseFontHeight;
 		sl_ui_len m_heightFont;
 		float m_lineHeightWeight;
-		
+
 		Alignment m_gravity;
 		EllipsizeMode m_ellipsizeMode;
-		
+
 		Color m_textColor;
 		Color m_textColorSelected;
 		Color m_textColorHover;

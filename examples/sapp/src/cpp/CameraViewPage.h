@@ -32,5 +32,5 @@ class CameraViewPage : public example::ui::CameraViewPage
 {
 public:
 	void onOpen() override;
-	
+
 };

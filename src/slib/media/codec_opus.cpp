@@ -32,7 +32,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OpusEncoderParam)
 
 	OpusEncoderParam::OpusEncoderParam()
@@ -77,14 +77,14 @@ namespace slib
 			public:
 				sl_size m_sizeEncoder;
 				::OpusEncoder* m_encoder;
-			
+
 #ifdef OPUS_RESET_INTERVAL
 				OpusEncoder* m_encoderBackup;
 				TimeCounter m_timeStartReset;
 #endif
-	
+
 				sl_bool m_flagResetBitrate;
-				
+
 			public:
 				EncoderImpl()
 				{
@@ -117,12 +117,12 @@ namespace slib
 						logError("Encoding channel must be 1 or 2");
 						return sl_null;
 					}
-					
+
 					int sizeEncoder = opus_encoder_get_size((opus_int32)(param.channelCount));
 					if (sizeEncoder <= 0) {
 						return sl_null;
 					}
-					
+
 					::OpusEncoder* encoder = (::OpusEncoder*)(Base::createMemory(sizeEncoder));
 					if (encoder) {
 #ifdef OPUS_RESET_INTERVAL
@@ -135,7 +135,7 @@ namespace slib
 							}
 							int error = opus_encoder_init(encoder, (opus_int32)(param.samplesPerSecond), (opus_int32)(param.channelCount), app);
 							if (error == OPUS_OK) {
-								
+
 								if (param.type == OpusEncoderType::Voice) {
 									opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
 								} else if (param.type == OpusEncoderType::Music) {
@@ -143,25 +143,25 @@ namespace slib
 								} else {
 									opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_AUTO));
 								}
-								
+
 								Ref<EncoderImpl> ret = new EncoderImpl();
 
 								if (ret.isNotNull()) {
-									
+
 									ret->m_sizeEncoder = sizeEncoder;
 									ret->m_encoder = encoder;
-							
+
 #ifdef OPUS_RESET_INTERVAL
 									ret->m_encoderBackup = encoderBackup;
 									Base::copyMemory(encoderBackup, encoder, sizeEncoder);
 									ret->m_timeStartReset.reset();
 #endif
-							
+
 									ret->m_nSamplesPerSecond = param.samplesPerSecond;
 									ret->m_nChannels = param.channelCount;
-									
+
 									ret->setBitrate(param.bitsPerSecond);
-									
+
 									return ret;
 								}
 							}
@@ -173,7 +173,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				Memory encode(const AudioData& input) override
 				{
 					sl_uint32 lenMinFrame = m_nSamplesPerSecond / 400; // 2.5 ms
@@ -181,12 +181,12 @@ namespace slib
 						sl_uint32 nMinFrame = (sl_uint32)(input.count / lenMinFrame);
 						// one frame is (2.5, 5, 10, 20, 40 or 60 ms) of audio data
 						if (nMinFrame == 1 || nMinFrame == 2 || nMinFrame == 4 || nMinFrame == 8 || nMinFrame == 16 || nMinFrame == 24) {
-							
+
 							AudioData audio;
 							audio.count = input.count;
-							
+
 							sl_bool flagFloat = AudioFormatHelper::isFloat(input.format);
-							
+
 							if (flagFloat) {
 								if (m_nChannels == 2) {
 									audio.format = AudioFormat::Float_Stereo;
@@ -200,7 +200,7 @@ namespace slib
 									audio.format = AudioFormat::Int16_Mono;
 								}
 							}
-							
+
 							if (audio.format == input.format) {
 								if (flagFloat) {
 									if (((sl_size)(input.data) & 3) == 0) {
@@ -212,7 +212,7 @@ namespace slib
 									}
 								}
 							}
-							
+
 							/*
 								maximum sampling rate is 48000
 								maximum frame length is 48000/400*24=2880 bytes
@@ -223,7 +223,7 @@ namespace slib
 								audio.data = _samples;
 								audio.copySamplesFrom(input);
 							}
-							
+
 							ObjectLocker lock(this);
 							if (m_flagResetBitrate) {
 								sl_uint32 bitrate = getBitrate();
@@ -264,7 +264,7 @@ namespace slib
 					m_flagResetBitrate = sl_true;
 					AudioEncoder::setBitrate(bitrate);
 				}
-		
+
 			};
 
 		}
@@ -275,7 +275,7 @@ namespace slib
 		return priv::opus::EncoderImpl::create(param);
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OpusDecoderParam)
 
 	OpusDecoderParam::OpusDecoderParam()
@@ -315,7 +315,7 @@ namespace slib
 				{
 					m_decoder = sl_null;
 				}
-				
+
 				~DecoderImpl()
 				{
 					opus_decoder_destroy(m_decoder);
@@ -357,9 +357,9 @@ namespace slib
 				{
 					AudioData audio;
 					audio.count = output.count;
-					
+
 					sl_bool flagFloat = AudioFormatHelper::isFloat(output.format);
-					
+
 					if (flagFloat) {
 						if (m_nChannels == 2) {
 							audio.format = AudioFormat::Float_Stereo;
@@ -373,7 +373,7 @@ namespace slib
 							audio.format = AudioFormat::Int16_Mono;
 						}
 					}
-					
+
 					if (audio.format == output.format) {
 						if (flagFloat) {
 							if (((sl_size)(output.data) & 3) == 0) {
@@ -385,7 +385,7 @@ namespace slib
 							}
 						}
 					}
-					
+
 					SLIB_SCOPED_BUFFER(sl_uint8, 23040, _samples, audio.data ? 0 : audio.count);
 					if (!(audio.data)) {
 						audio.data = _samples;

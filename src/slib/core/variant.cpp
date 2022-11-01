@@ -533,13 +533,13 @@ namespace slib
 	{
 		Free(_type, _value);
 	}
-	
+
 	Variant::Variant(signed char value) noexcept
 	{
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = value;
 	}
-	
+
 	Variant::Variant(unsigned char value) noexcept
 	{
 		Init(*this, VariantType::Uint32);
@@ -557,19 +557,19 @@ namespace slib
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = value;
 	}
-	
+
 	Variant::Variant(int value) noexcept
 	{
 		Init(*this, VariantType::Int32);
 		REF_VAR(sl_int32, _value) = (sl_int32)value;
 	}
-	
+
 	Variant::Variant(unsigned int value) noexcept
 	{
 		Init(*this, VariantType::Uint32);
 		REF_VAR(sl_uint32, _value) = (sl_uint32)value;
 	}
-	
+
 	Variant::Variant(long value) noexcept
 	{
 #if SLIB_LONG_SIZE == 8
@@ -580,7 +580,7 @@ namespace slib
 		REF_VAR(sl_int32, _value) = (sl_int32)value;
 #endif
 	}
-	
+
 	Variant::Variant(unsigned long value) noexcept
 	{
 #if SLIB_LONG_SIZE == 8
@@ -811,11 +811,11 @@ namespace slib
 	Variant::Variant(const StringParam& str) noexcept: Variant(str.toVariant())
 	{
 	}
-	
+
 	Variant::Variant(const std::string& value) noexcept: Variant(String::create(value))
 	{
 	}
-	
+
 	Variant::Variant(const std::u16string& value) noexcept: Variant(String16::create(value))
 	{
 	}
@@ -1352,7 +1352,7 @@ namespace slib
 	{
 		return !((sl_bool)*this);
 	}
-	
+
 	Variant Variant::operator~() const noexcept
 	{
 		switch (_type) {
@@ -1398,7 +1398,7 @@ namespace slib
 		}
 		return *this;
 	}
-	
+
 	Variant Variant::operator|(const Variant& other) const noexcept
 	{
 		if (_type == other._type) {
@@ -1494,7 +1494,7 @@ namespace slib
 		VARIANT_OPERATOR_CALL_REF(BitwiseAnd)
 		return Variant();
 	}
-	
+
 	Variant Variant::operator^(const Variant& other) const noexcept
 	{
 		if (_type == other._type) {
@@ -1542,7 +1542,7 @@ namespace slib
 		VARIANT_OPERATOR_CALL_REF(BitwiseXor)
 		return Variant();
 	}
-	
+
 	Variant Variant::operator>>(const Variant& other) const noexcept
 	{
 		switch (_type) {
@@ -2121,7 +2121,7 @@ namespace slib
 		}
 		return def;
 	}
-	
+
 	StringParam Variant::getStringParam() const noexcept
 	{
 		return getStringParam(StringParam::null());
@@ -2372,7 +2372,7 @@ namespace slib
 	{
 		return getString().toStd();
 	}
-	
+
 	std::u16string Variant::getStdString16() const noexcept
 	{
 		return getString16().toStd();
@@ -2387,7 +2387,7 @@ namespace slib
 	{
 		setString(String::create(value));
 	}
-	
+
 	void Variant::setString(const std::u16string& value) noexcept
 	{
 		setString(String16::create(value));
@@ -4048,7 +4048,7 @@ namespace slib
 	{
 		_out._assign(*this);
 	}
-	
+
 	void Variant::get(Atomic<Variant>& _out) const noexcept
 	{
 		_out._assign_copy(this);
@@ -4063,167 +4063,167 @@ namespace slib
 	{
 		_out = (signed char)(getInt32());
 	}
-	
+
 	void Variant::get(signed char& _out, signed char def) const noexcept
 	{
 		_out = (signed char)(getInt32((sl_int32)def));
 	}
-	
+
 	void Variant::get(unsigned char& _out) const noexcept
 	{
 		_out = (unsigned char)(getUint32());
 	}
-	
+
 	void Variant::get(unsigned char& _out, unsigned char def) const noexcept
 	{
 		_out = (unsigned char)(getUint32((sl_uint32)def));
 	}
-	
+
 	void Variant::get(short& _out) const noexcept
 	{
 		_out = (short)(getInt32());
 	}
-	
+
 	void Variant::get(short& _out, short def) const noexcept
 	{
 		_out = (short)(getInt32((sl_int32)def));
 	}
-	
+
 	void Variant::get(unsigned short& _out) const noexcept
 	{
 		_out = (unsigned short)(getUint32());
 	}
-	
+
 	void Variant::get(unsigned short& _out, unsigned short def) const noexcept
 	{
 		_out = (unsigned short)(getUint32((sl_uint32)def));
 	}
-	
+
 	void Variant::get(int& _out) const noexcept
 	{
 		_out = (int)(getInt32());
 	}
-	
+
 	void Variant::get(int& _out, int def) const noexcept
 	{
 		_out = (int)(getInt32((sl_int32)def));
 	}
-	
+
 	void Variant::get(unsigned int& _out) const noexcept
 	{
 		_out = (unsigned int)(getUint32());
 	}
-	
+
 	void Variant::get(unsigned int& _out, unsigned int def) const noexcept
 	{
 		_out = (unsigned int)(getUint32((sl_uint32)def));
 	}
-	
+
 	void Variant::get(long& _out) const noexcept
 	{
 		_out = (long)(getInt32());
 	}
-	
+
 	void Variant::get(long& _out, long def) const noexcept
 	{
 		_out = (long)(getInt32((sl_int32)def));
 	}
-	
+
 	void Variant::get(unsigned long& _out) const noexcept
 	{
 		_out = (unsigned long)(getUint32());
 	}
-	
+
 	void Variant::get(unsigned long& _out, unsigned long def) const noexcept
 	{
 		_out = (unsigned long)(getUint32((sl_uint32)def));
 	}
-	
+
 	void Variant::get(sl_int64& _out) const noexcept
 	{
 		_out = getInt64();
 	}
-	
+
 	void Variant::get(sl_int64& _out, sl_int64 def) const noexcept
 	{
 		_out = getInt64(def);
 	}
-	
+
 	void Variant::get(sl_uint64& _out) const noexcept
 	{
 		_out = getUint64();
 	}
-	
+
 	void Variant::get(sl_uint64& _out, sl_uint64 def) const noexcept
 	{
 		_out = getUint64(def);
 	}
-	
+
 	void Variant::get(float& _out) const noexcept
 	{
 		_out = getFloat();
 	}
-	
+
 	void Variant::get(float& _out, float def) const noexcept
 	{
 		_out = getFloat(def);
 	}
-	
+
 	void Variant::get(double& _out) const noexcept
 	{
 		_out = getDouble();
 	}
-	
+
 	void Variant::get(double& _out, double def) const noexcept
 	{
 		_out = getDouble(def);
 	}
-	
+
 	void Variant::get(bool& _out) const noexcept
 	{
 		_out = getBoolean();
 	}
-	
+
 	void Variant::get(bool& _out, bool def) const noexcept
 	{
 		_out = getBoolean(def);
 	}
-	
+
 	void Variant::get(String& _out) const noexcept
 	{
 		_out = getString();
 	}
-	
+
 	void Variant::get(String& _out, const String& def) const noexcept
 	{
 		_out = getString(def);
 	}
-	
+
 	void Variant::get(AtomicString& _out) const noexcept
 	{
 		_out = getString();
 	}
-	
+
 	void Variant::get(AtomicString& _out, const String& def) const noexcept
 	{
 		_out = getString(def);
 	}
-	
+
 	void Variant::get(String16& _out) const noexcept
 	{
 		_out = getString16();
 	}
-	
+
 	void Variant::get(String16& _out, const String16& def) const noexcept
 	{
 		_out = getString16(def);
 	}
-	
+
 	void Variant::get(AtomicString16& _out) const noexcept
 	{
 		_out = getString16();
 	}
-	
+
 	void Variant::get(AtomicString16& _out, const String16& def) const noexcept
 	{
 		_out = getString16(def);
@@ -4253,7 +4253,7 @@ namespace slib
 	{
 		_out = getString().toStd();
 	}
-	
+
 	void Variant::get(std::u16string& _out) const noexcept
 	{
 		_out = getString16().toStd();
@@ -4268,7 +4268,7 @@ namespace slib
 	{
 		_out = getTime();
 	}
-	
+
 	void Variant::get(Time& _out, const Time& def) const noexcept
 	{
 		_out = getTime(def);
@@ -4303,7 +4303,7 @@ namespace slib
 	{
 		_out = getVariantPromise();
 	}
-	
+
 
 	const Variant& Cast<Variant, Variant>::operator()(const Variant& var) const noexcept
 	{

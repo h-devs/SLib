@@ -31,36 +31,36 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(iOS_ViewInstance, ViewInstance)
-	
+
 	iOS_ViewInstance::iOS_ViewInstance()
 	{
 		m_handle = nil;
 		m_flagDrawing = sl_true;
 	}
-	
+
 	iOS_ViewInstance::~iOS_ViewInstance()
 	{
 		_release();
 	}
-	
+
 	void iOS_ViewInstance::_release()
 	{
 		UIPlatform::removeViewInstance(m_handle);
 		m_handle = nil;
 	}
-	
+
 	void iOS_ViewInstance::initWithHandle(UIView* handle)
 	{
 		m_handle = handle;
 		UIPlatform::registerViewInstance(handle, this);
 	}
-	
+
 	void iOS_ViewInstance::initWithHandle(UIView* handle, UIView* parent, View* view)
 	{
 		initWithHandle(handle);
-		
+
 		m_flagDrawing = view->isDrawing();
 
 		[handle setMultipleTouchEnabled:YES];
@@ -87,7 +87,7 @@ namespace slib
 		if (parent != nil) {
 			[parent addSubview:handle];
 		}
-		
+
 		CALayer* layer = handle.layer;
 		if (layer != nil) {
 			float shadowOpacity = view->getShadowOpacity();
@@ -104,17 +104,17 @@ namespace slib
 			}
 		}
 	}
-	
+
 	UIView* iOS_ViewInstance::getHandle()
 	{
 		return m_handle;
 	}
-	
+
 	sl_bool iOS_ViewInstance::isValid(View* view)
 	{
 		return sl_true;
 	}
-	
+
 	void iOS_ViewInstance::setFocus(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
@@ -128,7 +128,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::invalidate(View* view)
 	{
 		UIView* handle = m_handle;
@@ -142,7 +142,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::invalidate(View* view, const UIRect& _rect)
 	{
 		UIView* handle = m_handle;
@@ -162,7 +162,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		UIView* handle = m_handle;
@@ -184,7 +184,7 @@ namespace slib
 			[handle setNeedsDisplay];
 		}
 	}
-	
+
 	void iOS_ViewInstance::setTransform(View* view, const Matrix3& m)
 	{
 		UIView* handle = m_handle;
@@ -194,7 +194,7 @@ namespace slib
 			[handle setTransform: t];
 		}
 	}
-	
+
 	void iOS_ViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
@@ -202,7 +202,7 @@ namespace slib
 			[handle setHidden:(flag ? NO : YES)];
 		}
 	}
-	
+
 	void iOS_ViewInstance::setEnabled(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
@@ -213,7 +213,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::setOpaque(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
@@ -221,7 +221,7 @@ namespace slib
 			[handle setOpaque:(flag ? YES : NO)];
 		}
 	}
-	
+
 	void iOS_ViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 		UIView* handle = m_handle;
@@ -229,7 +229,7 @@ namespace slib
 			[handle setAlpha:alpha];
 		}
 	}
-	
+
 	void iOS_ViewInstance::setClipping(View* view, sl_bool flag)
 	{
 		UIView* handle = m_handle;
@@ -237,13 +237,13 @@ namespace slib
 			[handle setClipsToBounds:(flag ? YES : NO)];
 		}
 	}
-	
-	
+
+
 	void iOS_ViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 		m_flagDrawing = flag;
 	}
-	
+
 	UIPointf iOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
 	{
 		UIView* handle = m_handle;
@@ -265,7 +265,7 @@ namespace slib
 		}
 		return ptScreen;
 	}
-	
+
 	UIPointf iOS_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
 	{
 		UIView* handle = m_handle;
@@ -287,7 +287,7 @@ namespace slib
 		}
 		return ptView;
 	}
-	
+
 	void iOS_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		iOS_ViewInstance* child = (iOS_ViewInstance*)(_child.get());
@@ -301,7 +301,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		iOS_ViewInstance* child = (iOS_ViewInstance*)(_child.get());
@@ -312,7 +312,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::bringToFront(View* view)
 	{
 		UIView* handle = m_handle;
@@ -331,7 +331,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::setShadowOpacity(View* view, float opacity)
 	{
 		UIView* handle = m_handle;
@@ -342,7 +342,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
 	{
 		UIView* handle = m_handle;
@@ -353,7 +353,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::setShadowOffset(View* view, sl_ui_posf x, sl_ui_posf y)
 	{
 		UIView* handle = m_handle;
@@ -364,7 +364,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::setShadowColor(View* view, const Color& _color)
 	{
 		UIView* handle = m_handle;
@@ -379,13 +379,13 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void iOS_ViewInstance::onDraw(CGRect rectDirty)
 	{
 		if (!m_flagDrawing) {
 			return;
 		}
-		
+
 		Ref<View> view = m_view;
 		if (view.isNull()) {
 			return;
@@ -402,10 +402,10 @@ namespace slib
 		if (canvas.isNull()) {
 			return;
 		}
-		
+
 		CGFloat f = UIPlatform::getGlobalScaleFactor();
 		CGContextScaleCTM(context, 1/f, 1/f);
-		
+
 		Rectangle rectInvalidate((sl_real)(rectDirty.origin.x * f), (sl_real)(rectDirty.origin.y * f), (sl_real)((rectDirty.origin.x + rectDirty.size.width) * f), (sl_real)((rectDirty.origin.y + rectDirty.size.height) * f));
 		if ([handle isKindOfClass:[UIScrollView class]]) {
 			CGPoint pt = ((UIScrollView*)handle).contentOffset;
@@ -418,16 +418,16 @@ namespace slib
 			canvas->translate(-sx, -sy);
 		}
 		canvas->setInvalidatedRect(rectInvalidate);
-		
+
 		view->dispatchDraw(canvas.get());
 	}
-	
+
 	UIEventFlags iOS_ViewInstance::onEventTouch(UIAction action, NSSet* touches, ::UIEvent* event, sl_bool flagDispatchToChildren, sl_bool flagDispatchToParent)
 	{
 		UIView* handle = m_handle;
-		
+
 		if (handle != nil) {
-			
+
 			if (touches != nil && touches.count > 0) {
 
 				if (action == UIAction::TouchBegin) {
@@ -447,7 +447,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				Array<TouchPoint> points;
 				{
 					ListLocker<UITouch*> current(m_touchesCurrent);
@@ -481,7 +481,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				if (action == UIAction::TouchCancel) {
 					m_touchesCurrent.removeAll();
 				} else if (action == UIAction::TouchEnd) {
@@ -525,7 +525,7 @@ namespace slib
 						}
 						onTouchEvent(ev.get());
 						UIEventFlags flags = ev->getFlags();
-						
+
 						if (flags & UIEventFlags::KeepKeyboard) {
 							flags |= UIEventFlags::StopPropagation;
 						} else {
@@ -538,16 +538,16 @@ namespace slib
 						return flags;
 					}
 				}
-				
+
 			}
-			
+
 		}
-		
+
 		return 0;
-		
+
 	}
-	
-	
+
+
 	Ref<ViewInstance> View::createGenericInstance(ViewInstance* parent)
 	{
 		if (m_flagCreatingEmptyContent) {
@@ -558,8 +558,8 @@ namespace slib
 		}
 		return iOS_ViewInstance::create<iOS_ViewInstance, SLIBViewHandle>(this, parent);
 	}
-	
-	
+
+
 	Ref<ViewInstance> UIPlatform::createViewInstance(UIView* handle)
 	{
 		Ref<ViewInstance> ret = UIPlatform::_getViewInstance((__bridge void*)handle);
@@ -568,22 +568,22 @@ namespace slib
 		}
 		return iOS_ViewInstance::create<iOS_ViewInstance>(handle);
 	}
-	
+
 	void UIPlatform::registerViewInstance(UIView* handle, ViewInstance* instance)
 	{
 		UIPlatform::_registerViewInstance((__bridge void*)handle, instance);
 	}
-	
+
 	Ref<ViewInstance> UIPlatform::getViewInstance(UIView* handle)
 	{
 		return UIPlatform::_getViewInstance((__bridge void*)handle);
 	}
-	
+
 	void UIPlatform::removeViewInstance(UIView* handle)
 	{
 		UIPlatform::_removeViewInstance((__bridge void*)handle);
 	}
-	
+
 	UIView* UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
 		iOS_ViewInstance* instance = static_cast<iOS_ViewInstance*>(_instance);
@@ -593,7 +593,7 @@ namespace slib
 			return nil;
 		}
 	}
-	
+
 	UIView* UIPlatform::getViewHandle(View* view)
 	{
 		if (view) {
@@ -605,7 +605,7 @@ namespace slib
 		}
 		return nil;
 	}
-	
+
 	sl_bool GestureDetector::_enableNative(const Ref<View>& view, GestureType type)
 	{
 		Ref<ViewInstance> _instance = view->getViewInstance();
@@ -650,7 +650,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }
 
 using namespace slib;

@@ -24,17 +24,17 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestLoginParam)
-	
+
 	PinterestLoginParam::PinterestLoginParam()
 	{
 		authorization.scopes.add_NoLock("read_public");
 	}
-	
+
 	void PinterestLoginParam::addScopeForWritingPublic()
 	{
 		authorization.scopes.addIfNotExist_NoLock("write_public");
 	}
-	
+
 }

@@ -111,7 +111,7 @@
 
 namespace slib
 {
-	
+
 	enum class StunMessageClass
 	{
 		Request = 0,
@@ -124,7 +124,7 @@ namespace slib
 	{
 		Binding = 1,
 	};
-	
+
 	enum class StunAttributeType
 	{
 		MappedAddress = 0x0001,
@@ -135,12 +135,12 @@ namespace slib
 		Realm = 0x0014,
 		Nonce = 0x0015,
 		XorMappedAddress = 0x0020,
-		
+
 		Software = 0x8022,
 		AlternateServer = 0x8023,
 		Fingerprint = 0x8028
 	};
-	
+
 	enum class StunErrorCode
 	{
 		Success = 0,
@@ -151,46 +151,46 @@ namespace slib
 		StaleNonce = 438, // The NONCE used by the client was no longer valid. The client should retry, using the NONCE provided in the response.
 		ServerError = 500 // The server has suffered a temporary error.  The client should try again.
 	};
-	
+
 	class SLIB_EXPORT StunAttributes
 	{
 	public:
 		SocketAddress mappedAddress;
 
 		SocketAddress xorMappedAddress;
-		
+
 		String userName; // less than 513 bytes
 		String password;
-		
+
 		String realm; // less than 763 characters, Presence of the REALM attribute in a request indicates that long-term credentials are being used for authentication.
-		
+
 		String nonce; // less than 763 characters
-		
+
 		StunErrorCode errorCode;
 		String errorReasonPhase; // less than 763 characters
-		
+
 		List<sl_uint16> unknownAttributes;
 		List<sl_uint16> unknownAttributesDuringParsing;
 
 		String software; // less than 763 characters
-		
+
 		List<SocketAddress> alternateServers;
-		
+
 		sl_bool flagHaveMessageIntegrity;
 		sl_size offsetMessageIntegrityAttribute;
-		
+
 		sl_bool flagHaveFingerprint;
-		
+
 	public:
 		StunAttributes();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StunAttributes)
-		
+
 	public:
 		void initialize();
-		
+
 	};
-	
+
 	class SLIB_EXPORT StunPacket
 	{
 	public:
@@ -201,61 +201,61 @@ namespace slib
 
 	public:
 		StunMessageClass getMessageClass() const;
-		
+
 		void setMessageClass(StunMessageClass _class);
-		
+
 		StunMethod getMethod() const;
-		
+
 		void setMethod(StunMethod method);
-		
+
 		sl_uint16 getMessageLength() const;
-		
+
 		void setMessageLength(sl_uint16 length);
-		
+
 		sl_uint32 getMagicCookie() const;
-		
+
 		void setMagicCookie(sl_uint32 cookie = SLIB_NETWORK_STUN_MAGIC_COOKIE);
-		
+
 		const sl_uint8* getTransactionID() const;
-		
+
 		sl_uint8* getTransactionID();
 
 		const void* getAttributes() const;
 
 		void* getAttributes();
 
-		
+
 		static sl_bool checkHeader(const void* packet, sl_size size);
-		
+
 		sl_bool parseAttributes(sl_size packetSize, StunAttributes& attributes) const;
-		
+
 		sl_bool checkMessageIntegrity(const StunAttributes& attributes) const;
-		
+
 		static Memory buildPacket(StunMessageClass _class, StunMethod method, const void* transactionID /* 12 bytes */, const StunAttributes& attributes);
-		
-		
+
+
 		static void writeAttributeHeader(StunAttributeType type, sl_size len, void* data);
-		
+
 		static sl_size writeStringAttribute(StunAttributeType type, const String& str, void* data);
-		
+
 		static sl_bool readMappedAddressAttributeValue(const void* data, sl_size size, SocketAddress& mappedAddress);
-		
+
 		static sl_size writeMappedAddressAttribute(StunAttributeType type, const SocketAddress& mappedAddress, void* data);
 
 		sl_bool readXorMappedAddressAttributeValue(const void* data, sl_size size, SocketAddress& mappedAddress) const;
-		
+
 		sl_size writeXorMappedAddressAttribute(const SocketAddress& mappedAddress, void* data) const;
-		
+
 		static sl_bool readErrorCodeAttributeValue(const void* data, sl_size size, StunErrorCode& errorCode, String& errorReasonPhase);
-		
+
 		static sl_size writeErrorCodeAttribute(StunErrorCode errorCode, const String& errorReasonPhase, void* data);
-		
+
 		static sl_bool readUnknownAttributesAttributeValue(const void* data, sl_size size, List<sl_uint16>& unknownAttributes);
-		
+
 		static sl_size writeUnknownAttributesAttribute(const List<sl_uint16>& unknownAttributes, void* data);
-		
+
 		static void calculateMessageIntegrity(void* output /* 20 bytes */, const void* packet, sl_size size, const String& userName, const String& realm, const String& password);
-		
+
 		static void calculateFingerprint(void* output /* 4 bytes */, const void* packet, sl_size size);
 
 	public:
@@ -263,57 +263,57 @@ namespace slib
 		sl_uint8 _messageLength[2];
 		sl_uint8 _magicCookie[4];
 		sl_uint8 _transactionID[12];
-		
+
 	};
-	
-	
+
+
 	class SLIB_EXPORT StunServerParam
 	{
 	public:
 		sl_uint16 port;
 		sl_bool flagAutoStart;
 		sl_bool flagLogging;
-		
+
 		Ref<AsyncIoLoop> ioLoop;
-		
+
 	public:
 		StunServerParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(StunServerParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT StunServer : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		StunServer();
-		
+
 		~StunServer();
-		
+
 	public:
 		static Ref<StunServer> create(const StunServerParam& param);
-		
+
 	public:
 		void release();
-		
+
 		void start();
-		
+
 		sl_bool isRunning();
-		
+
 	protected:
 		void _onReceiveFrom(AsyncUdpSocket* socket, const SocketAddress& address, void* data, sl_uint32 sizeReceive);
-		
+
 	private:
 		sl_bool m_flagInit;
 		sl_bool m_flagRunning;
 		sl_bool m_flagLogging;
-		
+
 		Ref<AsyncUdpSocket> m_udp;
-		
+
 	};
-	
+
 }
 
 #endif

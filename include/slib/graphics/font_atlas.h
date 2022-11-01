@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT FontAtlasParam
 	{
 	public:
@@ -46,7 +46,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FontAtlasParam)
 
 	};
-	
+
 	class SLIB_EXPORT FontAtlasChar
 	{
 	public:
@@ -94,7 +94,7 @@ namespace slib
 
 	public:
 		sl_bool getChar(sl_char32 ch, FontAtlasChar& _out);
-		
+
 		sl_bool getCharImage(sl_char32 ch, FontAtlasCharImage& _out);
 
 		Size getFontSize(sl_char32 ch);
@@ -102,7 +102,7 @@ namespace slib
 		Size getFontSize_NoLock(sl_char32 ch);
 
 		Size measureText(const StringParam& text, sl_bool flagMultiLine = sl_false);
-	
+
 		void removeAll();
 
 	protected:

@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace twitter
@@ -47,11 +47,11 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::twitter;
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterUser)
-	
+
 	SLIB_DEFINE_JSON(TwitterUser)
 	{
 		if (isFromJson) {
@@ -60,12 +60,12 @@ namespace slib
 		SLIB_JSON_ADD_MEMBERS(id, screen_name, name, location, url, description, followers_count, friends_count, listed_count, favourites_count, statuses_count, created_at, lang, profile_image_url, profile_image_url_https)
 
 	}
-	
+
 	TwitterUser::TwitterUser()
 	 : id(0), followers_count(0), friends_count(0), listed_count(0), favourites_count(0), statuses_count(0)
 	{
 	}
-	
+
 	String TwitterUser::getPublicProfileURL(const String& screenName)
 	{
 		if (screenName.isNotEmpty()) {
@@ -73,37 +73,37 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String TwitterUser::getPublicProfileURL() const
 	{
 		return getPublicProfileURL(screen_name);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterParam)
-	
+
 	TwitterParam::TwitterParam()
 	{
 		requestTokenUrl = "https://api.twitter.com/oauth/request_token";
 		authenticateUrl = "https://api.twitter.com/oauth/authenticate?oauth_token=%s";
 		accessTokenUrl = "https://api.twitter.com/oauth/access_token";
 	}
-	
+
 	SLIB_DEFINE_OBJECT(Twitter, OAuth1)
-	
+
 	Twitter::Twitter(const TwitterParam& param) : OAuth1(param)
 	{
 	}
-	
+
 	Twitter::~Twitter()
 	{
 	}
-	
+
 	Ref<Twitter> Twitter::create(const TwitterParam& param)
 	{
 		return new Twitter(param);
 	}
-	
+
 	void Twitter::initialize(const TwitterParam& param)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -111,14 +111,14 @@ namespace slib
 		}
 		g_instance = create(param);
 	}
-	
+
 	void Twitter::initialize()
 	{
 		TwitterParam param;
 		param.preferenceName = "twitter";
 		initialize(param);
 	}
-	
+
 	Ref<Twitter> Twitter::create(const String& consumerKey, const String& consumerSecret, const String& callbackUrl)
 	{
 		TwitterParam param;
@@ -127,7 +127,7 @@ namespace slib
 		param.callbackUrl = callbackUrl;
 		return create(param);
 	}
-	
+
 	void Twitter::initialize(const String& consumerKey, const String& consumerSecret, const String& callbackUrl)
 	{
 		TwitterParam param;
@@ -137,7 +137,7 @@ namespace slib
 		param.callbackUrl = callbackUrl;
 		initialize(param);
 	}
-	
+
 	Ref<Twitter> Twitter::createWithAccessToken(const String& token, const String tokenSecret)
 	{
 		TwitterParam param;
@@ -145,7 +145,7 @@ namespace slib
 		param.accessToken.secret = tokenSecret;
 		return create(param);
 	}
-	
+
 	Ref<Twitter> Twitter::getInstance()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -158,7 +158,7 @@ namespace slib
 	{
 		return "https://api.twitter.com/1.1/" + path;
 	}
-	
+
 	void Twitter::getUser(const String& userId, const String& screenName, const Function<void(TwitterResult&, TwitterUser&)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -184,19 +184,19 @@ namespace slib
 		UrlRequest::send(rp);
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterShareResult)
-	
+
 	TwitterShareResult::TwitterShareResult(UrlRequest* request): TwitterResult(request)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterShareParam)
-	
+
 	TwitterShareParam::TwitterShareParam()
 	{
 	}
-	
+
 	void Twitter::share(const TwitterShareParam& _param)
 	{
 		static Function<void(ShareLocalParams param, UrlRequest*)> callback;
@@ -256,12 +256,12 @@ namespace slib
 				UrlRequest::send(rp);
 			};
 		}
-		
+
 		ShareLocalParams param(_param);
 		param.indexMedia = 0;
 		param.mediaIds = List<String>::create();
 		param.twitter = this;
 		callback(param, sl_null);
 	}
-	
+
 }

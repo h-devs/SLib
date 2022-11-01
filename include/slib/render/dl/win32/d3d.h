@@ -107,7 +107,7 @@ namespace slib
 			int DriverType, // D3D10_DRIVER_TYPE
 			HMODULE Software,
 			UINT Flags,
-			int HardwareLevel, // D3D10_FEATURE_LEVEL1	
+			int HardwareLevel, // D3D10_FEATURE_LEVEL1
 			UINT SDKVersion,
 			ID3D10Device1 **ppDevice
 		)
@@ -188,7 +188,7 @@ namespace slib
 
 		void* getLibrary();
 		void* getApi(const char* name);
-	
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			D3DX10CompileFromMemory,
 			HRESULT, WINAPI,
@@ -214,7 +214,7 @@ namespace slib
 
 		void* getLibrary();
 		void* getApi(const char* name);
-	
+
 	}
 
 	namespace d3d_compiler

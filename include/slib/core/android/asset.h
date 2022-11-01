@@ -33,7 +33,7 @@ namespace slib
 {
 
 	class Memory;
-	
+
 	namespace android
 	{
 

@@ -389,7 +389,7 @@ namespace slib
 		)
 		#define pango_cairo_show_layout slib::pangocairo::getApi_pango_cairo_show_layout()
 	SLIB_IMPORT_LIBRARY_END
-	
+
 	SLIB_IMPORT_LIBRARY_BEGIN(pango, "libpango-1.0.so.0")
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			pango_context_get_metrics,

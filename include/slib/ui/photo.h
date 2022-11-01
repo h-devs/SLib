@@ -42,27 +42,27 @@ namespace slib
 
 	public:
 		TakePhotoResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TakePhotoResult)
-		
+
 	public:
 		String getFilePath();
-		
+
 		Memory getFileContent();
-		
+
 		Ref<Drawable> getDrawable();
-		
+
 		Ref<Bitmap> getBitmap();
-		
+
 		Ref<Image> getImage();
-		
+
 	protected:
 		String filePath;
 		Memory fileContent;
 		Ref<Drawable> drawable;
-		
+
 	};
-	
+
 	class SLIB_EXPORT TakePhoto
 	{
 	public:
@@ -70,23 +70,23 @@ namespace slib
 		String outputFilePath;
 		sl_bool flagFlipHorizontal;
 		Function<void(TakePhotoResult&)> onComplete;
-		
+
 	public:
 		TakePhoto();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TakePhoto)
-		
+
 	public:
 		void takeFromCamera();
-		
+
 		static void takeFromCamera(const Function<void(TakePhotoResult&)>& onComplete);
-		
+
 		void chooseFromLibrary();
 
 		static void chooseFromLibrary(const Function<void(TakePhotoResult&)>& onComplete);
-		
+
 	};
-	
+
 	class SLIB_EXPORT PhotoKit
 	{
 	public:
@@ -95,24 +95,24 @@ namespace slib
 		public:
 			Memory content;
 			Ref<Drawable> image;
-			
+
 			Function<void(const String& localIdentifier)> onComplete;
-			
+
 		public:
 			SaveImageParam();
-			
+
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SaveImageParam)
-			
+
 		};
-		
+
 		static void saveImage(const SaveImageParam& param);
 
 		static void saveImage(const Ref<Drawable>& image, const Function<void(const String& localIdentifier)>& onComplete);
-		
+
 		static void saveImageWithFileContent(const Memory& content, const Function<void(const String& localIdentifier)>& onComplete);
-		
+
 	};
-	
+
 }
 
 #endif

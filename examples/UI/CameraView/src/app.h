@@ -31,9 +31,9 @@ class ExampleCameraViewApp : public MobileApp
 	SLIB_APPLICATION(ExampleCameraViewApp)
 public:
 	ExampleCameraViewApp();
-	
+
 	void onStart() override;
-	
+
 private:
 	Ref<CameraView> m_cameraView;
 };

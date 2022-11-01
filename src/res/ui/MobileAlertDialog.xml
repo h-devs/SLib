@@ -39,7 +39,7 @@
 					multiLine='word-wrap'
 					/>
 			</scroll>
-			
+
 			<view
 				width='fill'
 				height='1dp'

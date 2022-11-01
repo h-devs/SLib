@@ -7,7 +7,7 @@ ExampleSensorApp::ExampleSensorApp()
 void ExampleSensorApp::onStart()
 {
 	getContentView()->setBackgroundColor(Color::White);
-	
+
 	auto label = New<LabelView>();
 	label->setWidthWrapping(UIUpdateMode::Init);
 	label->setHeightWrapping(UIUpdateMode::Init);
@@ -15,7 +15,7 @@ void ExampleSensorApp::onStart()
 	label->setFont(Font::create("Arial", UI::dpToPixel(20)), UIUpdateMode::Init);
 	label->setMultiLine(MultiLineMode::Multiple);
 	addViewToContent(label);
-	
+
 	Application::grantPermissions(AppPermissions::AccessFineLocation, [this, label]() {
 		SensorParam param;
 		param.flagUseLocation = sl_true;
@@ -24,5 +24,5 @@ void ExampleSensorApp::onStart()
 		};
 		m_sensor = Sensor::create(param);
 	});
-	
+
 }

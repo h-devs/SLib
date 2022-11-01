@@ -33,7 +33,7 @@ namespace slib
 	DatabaseColumn::DatabaseColumn()
 	{
 	}
-	
+
 	DatabaseColumn::DatabaseColumn(const char* _name): name(_name)
 	{
 	}
@@ -49,7 +49,7 @@ namespace slib
 	DatabaseColumn::DatabaseColumn(const String& _name, const DatabaseExpression& _expression): name(_name), expression(_expression)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DatabaseColumnExpression)
 
 	DatabaseColumnExpression::DatabaseColumnExpression(const DatabaseExpression& expression): DatabaseColumn(expression)
@@ -335,7 +335,7 @@ namespace slib
 
 	DatabaseQueryCombine::DatabaseQueryCombine(const DatabaseQuery& _query): type(DatabaseCombineType::UnionAll), query(_query)
 	{
-		
+
 	}
 
 	DatabaseQueryCombine::DatabaseQueryCombine(DatabaseCombineType _type, const DatabaseQuery& _query): type(_type), query(_query)
@@ -430,7 +430,7 @@ namespace slib
 				break;
 		}
 	}
-	
+
 	void SqlBuilder::appendIdentifier(const String& name)
 	{
 		appendIdentifierPrefix();
@@ -735,7 +735,7 @@ namespace slib
 		}
 		appendQuery(param);
 	}
-	
+
 	void SqlBuilder::generateSelect(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		appendStatic("SELECT * FROM ");

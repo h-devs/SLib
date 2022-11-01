@@ -542,7 +542,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(JpegComponent)
-		
+
 	JpegComponent::JpegComponent():
 		id(0),
 		horizontal_sample_factor(0),
@@ -555,7 +555,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(JpegFrameHeader)
-		
+
 	JpegFrameHeader::JpegFrameHeader():
 		flagBaseline(sl_false),
 		flagProgressive(sl_false),

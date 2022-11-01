@@ -96,7 +96,7 @@ namespace slib
 			{
 				LOG_ERROR("%s (Result=%d)", error, (sl_int32)hr);
 			}
-			
+
 			class CameraImpl : public Camera, public ISampleGrabberCB
 			{
 			public:
@@ -360,7 +360,7 @@ namespace slib
 						hr = pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pClassEnum, 0);
 
 						if (pClassEnum) {
-							
+
 							IMoniker* pMoniker = NULL;
 							ULONG cFetched = 0;
 
@@ -415,7 +415,7 @@ namespace slib
 											ret.add_NoLock(dev);
 										}
 									}
-									
+
 									pMoniker->Release();
 									pMoniker = NULL;
 								}

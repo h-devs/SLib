@@ -36,13 +36,13 @@ namespace slib
 
 	public:
 		EtsyUserFeedbackInfo();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EtsyUserFeedbackInfo)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	};
-	
+
 	class SLIB_EXPORT EtsyUser
 	{
 	public:
@@ -55,84 +55,84 @@ namespace slib
 		EtsyUserFeedbackInfo feedback_info;
 		int awaiting_feedback_count;
 		sl_bool use_new_inventory_endpoints;
-		
+
 	public:
 		EtsyUser();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EtsyUser)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	public:
 		static String getPublicProfileURL(const String& userId);
-		
+
 		String getPublicProfileURL() const;
-		
+
 	};
-	
+
 	typedef OAuthApiResult EtsyResult;
-	
+
 	typedef OAuth1_LoginResult EtsyLoginResult;
-	
+
 	class SLIB_EXPORT EtsyLoginParam : public OAuth1_LoginParam
 	{
 	public:
 		List<String> scopes;
-		
+
 	public:
 		EtsyLoginParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EtsyLoginParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT EtsyParam : public OAuth1_Param
 	{
 	public:
 		EtsyParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EtsyParam)
-		
+
 	};
-	
+
 	class Etsy : public OAuth1
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		Etsy(const EtsyParam& param);
-		
+
 		~Etsy();
-		
+
 	public:
 		static Ref<Etsy> create(const EtsyParam& param);
-		
+
 		static void initialize(const EtsyParam& param);
-		
+
 		static void initialize();
-		
+
 		static Ref<Etsy> create(const String& consumerKey, const String& consumerSecret, const String& callbackUrl);
-		
+
 		static void initialize(const String& consumerKey, const String& consumerSecret, const String& callbackUrl);
-		
+
 		static Ref<Etsy> createWithAccessToken(const String& token, const String tokenSecret);
-		
+
 		static Ref<Etsy> getInstance();
 
 	public:
 		void login(const EtsyLoginParam& param);
-		
+
 		void login(const Function<void(EtsyLoginResult& result)>& onComplete);
-		
+
 		void login(const List<String>& scopes, const Function<void(EtsyLoginResult& result)>& onComplete);
-		
+
 	public:
 		String getRequestUrl(const String& path);
-		
+
 		void getUser(const String& userId, const Function<void(EtsyResult&, EtsyUser&)>& onComplete);
-		
+
 	};
-	
+
 }
 
 #endif

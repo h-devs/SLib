@@ -41,26 +41,26 @@ namespace slib
 	{
 	public:
 		Poly1305();
-		
+
 		~Poly1305();
-		
+
 	public:
 		// key: 32 bytes (256 bits)
 		void start(const void* key);
-		
+
 		void update(const void* input, sl_size n);
-		
+
 		// output: 16 bytes (128 bits)
 		void finish(void* output);
-		
+
 		// key: 32 bytes (256 bits)
 		// output: 16 bytes (128 bits)
 		static void execute(const void* key, const void* message, sl_size lenMessage, void* output);
-		
+
 	private:
 		// input: 16 * nBlocks bytes
 		void updateBlocks(const void* input, sl_size nBlocks);
-		
+
 	private:
 		sl_uint32 m_r[5];
 		sl_uint32 m_h[5];
@@ -68,7 +68,7 @@ namespace slib
 		sl_uint32 m_leftOver;
 		sl_uint8 m_buffer[16];
 		sl_bool m_flagFinal;
-		
+
 	};
 
 }

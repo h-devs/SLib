@@ -27,114 +27,114 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT EbayUser
 	{
 	public:
 		String userId;
 		String email;
-		
+
 	public:
 		EbayUser();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EbayUser)
 
 	public:
 		static String getPublicProfileURL(const String& userId);
-		
+
 		String getPublicProfileURL() const;
 
 	};
-	
+
 	class SLIB_EXPORT EbayResult
 	{
 	public:
 		sl_bool flagSuccess;
 		UrlRequest* request;
 		String response;
-		
+
 	public:
 		EbayResult(UrlRequest*);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EbayResult)
-		
+
 	};
-	
+
 	typedef OAuthLoginResult EbayLoginResult;
-	
+
 	typedef OAuthLoginParam EbayLoginParam;
-	
+
 	class SLIB_EXPORT EbayParam : public OAuthParam
 	{
 	public:
 		EbayParam(sl_bool flagSandbox = sl_false);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EbayParam)
-		
+
 	public:
 		sl_bool isSandbox() const;
-		
+
 		void setSandbox(sl_bool flag);
-		
+
 		void setRedirectUrl(const String& ruName, const String& loginRedirectUri);
-		
+
 	private:
 		sl_bool m_flagSandbox;
-		
+
 	};
-	
+
 	class Ebay : public OAuth2
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		Ebay(const EbayParam& param);
-		
+
 		~Ebay();
-		
+
 	public:
 		static Ref<Ebay> create(const EbayParam& param);
-		
+
 		static void initialize(const EbayParam& param);
-		
+
 		static void initialize();
-		
+
 		static void initializeSandbox();
 
 		static Ref<Ebay> create(const String& appId, const String& appSecret, const String& ruName, const String& loginRedirectUri);
-		
+
 		static Ref<Ebay> createSandbox(const String& appId, const String& appSecret, const String& ruName, const String& loginRedirectUri);
 
 		static void initialize(const String& appId, const String& appSecret, const String& ruName, const String& loginRedirectUri);
-		
+
 		static void initializeSandbox(const String& appId, const String& appSecret, const String& ruName, const String& loginRedirectUri);
-		
+
 		static Ref<Ebay> create(const String& appId, const String& ruName, const String& loginRedirectUri);
-		
+
 		static Ref<Ebay> createSandbox(const String& appId, const String& ruName, const String& loginRedirectUri);
-		
+
 		static void initialize(const String& appId, const String& ruName, const String& loginRedirectUri);
-		
+
 		static void initializeSandbox(const String& appId, const String& ruName, const String& loginRedirectUri);
-		
+
 		static Ref<Ebay> createWithAccessToken(const String& accessToken);
-		
+
 		static Ref<Ebay> createSandboxWithAccessToken(const String& accessToken);
-		
+
 		static Ref<Ebay> getInstance();
-		
+
 	public:
 		String getRequestUrl(const String& path);
-		
+
 		void callTraditionalApi(const String& callName, const String& request, const Function<void(UrlRequest*)>& onComplete);
-		
+
 		void getUser(const Function<void(EbayResult&, EbayUser&)>& onComplete);
-		
+
 	protected:
 		sl_bool m_flagSandbox;
-		
+
 	};
-	
+
 }
 
 #endif

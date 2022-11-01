@@ -12,10 +12,10 @@ class ExampleContactApp : public MobileApp
 	SLIB_APPLICATION(ExampleContactApp)
 public:
 	ExampleContactApp();
-	
+
 protected:
 	Ref<View> getStartupPage() override;
 
 	void onStart() override;
-	
+
 };

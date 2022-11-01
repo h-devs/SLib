@@ -398,7 +398,7 @@ namespace slib
 	PseudoTcp::~PseudoTcp()
 	{
 	}
-	
+
 	sl_uint32 PseudoTcp::now()
 	{
 		return (sl_uint32)(System::getHighResolutionTickCount());
@@ -684,7 +684,7 @@ namespace slib
 		if (!buffer) {
 			return PseudoTcpWriteResult::Fail;
 		}
-		
+
 		sl_uint32 now = PseudoTcp::now();
 
 		LongToBytes(m_conv, buffer);
@@ -710,7 +710,7 @@ namespace slib
 		LOG_VERBOSE("buildPacket: conv=%s, flg=%s, seq=%s:%s, ack=%s, wnd=%s, ts=%s, tsr=%s, len=%s", m_conv, flags, seq, seq + len, m_rcv_nxt, m_rcv_wnd, (now % 10000), (m_ts_recent % 10000), len);
 
 		PseudoTcpWriteResult wres = m_notify->writeTcpPacket(this, reinterpret_cast<char*>(buffer), len + HEADER_SIZE);
-		
+
 		// Note: When len is 0, this is an ACK packet.  We don't read the return value for those, and thus we won't retry.  So go ahead and treat the packet as a success (basically simulate as if it were dropped), which will prevent our timers from being messed up.
 		if ((wres != PseudoTcpWriteResult::Success) && (0 != len)) {
 			return wres;
@@ -1158,7 +1158,7 @@ namespace slib
 
 	void PseudoTcp::attemptSend(PseudoTcpSendFlags sflags)
 	{
-	
+
 		sl_uint32 now = PseudoTcp::now();
 
 		if (TimeDiff32(now, m_lastsend) > static_cast<long>(m_rx_rto)) {

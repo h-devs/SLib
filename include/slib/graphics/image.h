@@ -32,7 +32,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ImageDesc
 	{
 	public:
@@ -45,11 +45,11 @@ namespace slib
 
 	public:
 		ImageDesc();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ImageDesc)
 
 	};
-	
+
 	class SLIB_EXPORT Image : public Bitmap
 	{
 		SLIB_DECLARE_OBJECT
@@ -71,7 +71,7 @@ namespace slib
 		static Ref<Image> create(const ImageDesc& desc);
 
 		static Ref<Image> create(const ImageDesc& desc, RotationMode rotate, FlipMode flip = FlipMode::None);
-		
+
 		static Ref<Image> create(const BitmapData& bitmapData);
 
 		static Ref<Image> createFromRGB(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
@@ -85,7 +85,7 @@ namespace slib
 		static Ref<Image> createFromCMYK(sl_uint32 width, sl_uint32 height, const void* data, sl_uint32 bitsPerComponent = 8, sl_reg pitch = 0);
 
 		static Ref<Image> createCopy(const Ref<Image>& image);
-		
+
 		static Ref<Image> createCopy(const Ref<Image>& image, RotationMode rotate, FlipMode flip = FlipMode::None);
 
 		static Ref<Image> createCopyBitmap(const Ref<Bitmap>& bitmap);
@@ -96,9 +96,9 @@ namespace slib
 		sl_uint32 getWidth() const;
 
 		sl_uint32 getHeight() const;
-	
+
 		sl_bool isEmpty() const;
-	
+
 		sl_bool isNotEmpty() const;
 
 		sl_reg getStride() const;
@@ -110,12 +110,12 @@ namespace slib
 		Color& getPixel(sl_int32 x, sl_int32 y) const;
 
 		void getDesc(ImageDesc& desc) const;
-	
+
 
 		sl_uint32 getBitmapWidth() override;
 
 		sl_uint32 getBitmapHeight() override;
-	
+
 		sl_bool readPixels(sl_uint32 x, sl_uint32 y, BitmapData& desc) override;
 
 		sl_bool writePixels(sl_uint32 x, sl_uint32 y, const BitmapData& desc) override;
@@ -176,7 +176,7 @@ namespace slib
 
 		void copyBitmap(const Ref<Bitmap>& bitmap, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
-		
+
 		Ref<Drawable> subDrawable(sl_real x, sl_real y, sl_real width, sl_real height) override;
 
 		Ref<Image> sub(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) const;
@@ -188,17 +188,17 @@ namespace slib
 		Ref<Image> stretchToSmall(sl_uint32 sampleSize) const;
 
 		Ref<Image> rotateImage(RotationMode rotate, FlipMode flip = FlipMode::None) const;
-		
+
 		Ref<Image> flipImage(FlipMode flip) const;
 
 		Ref<Image> duplicate() const;
 
 		Ref<Image> duplicate(RotationMode rotate, FlipMode flip = FlipMode::None) const;
-		
+
 		Ref<Image> duplicate(FlipMode flip) const;
-		
+
 		Ref<Image> duplicate(sl_uint32 newWidth, sl_uint32 newHeight, StretchMode stretch = StretchMode::Default) const;
-		
+
 
 		static ImageFileType getFileType(const void* mem, sl_size size);
 
@@ -211,21 +211,21 @@ namespace slib
 		static Ref<Image> loadFromFile(const StringParam& filePath);
 
 		static Ref<Image> loadFromAsset(const StringParam& path);
-		
+
 		static Ref<AnimationDrawable> loadAnimationFromMemory(const void* mem, sl_size size);
-		
+
 		static Ref<AnimationDrawable> loadAnimationFromMemory(const MemoryView& mem);
-		
+
 		static Ref<AnimationDrawable> loadAnimationFromFile(const StringParam& filePath);
-		
+
 		static Ref<AnimationDrawable> loadAnimationFromAsset(const StringParam& path);
-		
-		
+
+
 		static Ref<Image> loadStb(const void* content, sl_size size);
-		
+
 		static Ref<AnimationDrawable> loadStbGif(const void* content, sl_size size);
-	
-		
+
+
 		static Ref<Image> loadPng(const void* content, sl_size size);
 
 		static Memory savePng(const Ref<Image>& image);
@@ -235,7 +235,7 @@ namespace slib
 		static sl_bool savePng(const StringParam& filePath, const Ref<Image>& image);
 
 		sl_bool savePng(const StringParam& filePath);
-		
+
 
 		static Ref<Image> loadJpeg(const void* content, sl_size size);
 
@@ -251,20 +251,20 @@ namespace slib
 
 		sl_bool saveJpeg(const StringParam& filePath, float quality = 0.5f);
 
-		
+
 		Ref<Drawable> getCustomDrawable();
-		
+
 		void setCustomDrawable(const Ref<Drawable>& drawable);
-		
+
 		sl_real getDrawableWidth() override;
-		
+
 		sl_real getDrawableHeight() override;
-		
+
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
 
-		
+
 		void drawLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
-		
+
 		void drawSmoothLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
 
 		void drawSmoothLineF(sl_real x1, sl_real y1, sl_real x2, sl_real y2, const Color& color, BlendMode blend = BlendMode::Over);
@@ -274,11 +274,11 @@ namespace slib
 		void fillRectangle(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
 
 		void drawEllipse(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
-		
+
 		void drawSmoothEllipse(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
-		
+
 		void drawImage(const Ref<Image>& src, const Matrix3& transform, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
-		
+
 		void drawImage(const Ref<Image>& src, const Color4f& srcMul, const Color4f& srcAdd, const Matrix3& transform, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
 		void drawImage(const Ref<Image>& src, const ColorMatrix& cm, const Matrix3& transform, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
@@ -287,15 +287,15 @@ namespace slib
 
 	protected:
 		Ref<Drawable> getDrawableCache(Canvas* canvas);
-	
+
 		void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override;
 
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 	protected:
 		ImageDesc m_desc;
 		AtomicRef<Drawable> m_customDrawable;
-		
+
 	};
 
 }

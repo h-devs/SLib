@@ -50,7 +50,7 @@ namespace slib
 		GTK_ViewInstance();
 
 		~GTK_ViewInstance();
-		
+
 	public:
 		template <class T>
 		static Ref<T> create(GtkWidget* handle, sl_bool flagFreeOnFailure = sl_true)
@@ -84,7 +84,7 @@ namespace slib
 		void applyProperties(View* view, ViewInstance* parent);
 
 		GtkWidget* getHandle();
-		
+
 		sl_bool isValid(View* view) override;
 
 		void setFocus(View* view, sl_bool flag) override;
@@ -108,7 +108,7 @@ namespace slib
 		void setClipping(View* view, sl_bool flag) override;
 
 		void setDrawing(View* view, sl_bool flag) override;
-		
+
 		UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) override;
 
 		UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) override;
@@ -120,7 +120,7 @@ namespace slib
 		void bringToFront(View* view) override;
 
 		void setFont(View* view, const Ref<Font>& font) override;
-		
+
 	public:
 		void installEventsWithDrawing();
 
@@ -139,15 +139,15 @@ namespace slib
 		virtual void onDrawEvent(cairo_t* cr);
 
 		virtual gboolean onMotionNotifyEvent(GdkEventMotion* event);
-		
+
 		virtual gboolean onButtonEvent(GdkEventButton* event);
-		
+
 		virtual gboolean onCrossingEvent(GdkEventCrossing* event);
 
 		virtual gboolean onKeyEvent(GdkEventKey* event);
 
 		virtual gboolean onScrollEvent(GdkEventScroll* event);
-		
+
 		virtual gboolean onFocusEvent(GdkEventFocus* event);
 
 		virtual gint getEventMask();

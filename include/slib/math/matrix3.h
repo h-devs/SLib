@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT MatrixT<3, 3, T>
 	{
@@ -43,12 +43,12 @@ namespace slib
 			};
 			T m[3][3];
 		};
-	
+
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(MatrixT)
-		
+
 		MatrixT() = default;
-	
+
 		template <class O>
 		SLIB_CONSTEXPR MatrixT(const MatrixT<3, 3, O>& other):
 			m00((T)(other.m00)), m01((T)(other.m01)), m02((T)(other.m02)),
@@ -62,7 +62,7 @@ namespace slib
 			m00(_m00), m01(_m01), m02(_m02),
 			m10(_m10), m11(_m11), m12(_m12),
 			m20(_m20), m21(_m21), m22(_m22) {}
-	
+
 		SLIB_CONSTEXPR MatrixT(const VectorT<3, T>& row0, const VectorT<3, T>& row1, const VectorT<3, T>& row2):
 			m00(row0.x), m01(row0.y), m02(row0.z),
 			m10(row1.x), m11(row1.y), m12(row1.z),
@@ -216,7 +216,7 @@ namespace slib
 			m12 = v.y;
 			m22 = v.z;
 		}
-	
+
 		VectorT<3, T> getColumn(sl_uint32 index) const noexcept
 		{
 			const T* t = &m00 + index;
@@ -397,7 +397,7 @@ namespace slib
 			ret.makeTranspose();
 			return ret;
 		}
-	
+
 		MatrixT lerp(const MatrixT& target, float factor) const noexcept
 		{
 			return {
@@ -406,7 +406,7 @@ namespace slib
 				SLIB_LERP(m20, target.m20, factor), SLIB_LERP(m21, target.m21, factor), SLIB_LERP(m22, target.m22, factor)
 			};
 		}
-	
+
 		SLIB_CONSTEXPR sl_bool equals(const MatrixT& other) const
 		{
 			return m00 == other.m00 && m01 == other.m01 && m02 == other.m02 &&
@@ -432,14 +432,14 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	using Matrix3T = MatrixT<3, 3, T>;
-	
+
 	typedef Matrix3T<sl_real> Matrix3;
 	typedef Matrix3T<float> Matrix3f;
 	typedef Matrix3T<double> Matrix3lf;
-	
+
 }
 
 #endif

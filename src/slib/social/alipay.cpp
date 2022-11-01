@@ -36,7 +36,7 @@ namespace slib
 		flagCancel = sl_false;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AlipayBusinessContent)
 
 	AlipayBusinessContent::AlipayBusinessContent()
@@ -87,7 +87,7 @@ namespace slib
 		}
 		info.put_NoLock("timestamp", time.toString());
 		info.put_NoLock("biz_content", content.toString());
-		
+
 		StringBuffer buf;
 		sl_bool flagFirst = sl_true;
 		for (auto& item : info) {

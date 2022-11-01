@@ -107,7 +107,7 @@ namespace slib
 		dataProcess.format = AudioFormat::Int16_Mono;
 		dataProcess.data = m_bufProcess.getData();
 		dataProcess.count = data.count;
-		
+
 		dataProcess.copySamplesFrom(data);
 
 		sl_int16* samples = (sl_int16*)(dataProcess.data);

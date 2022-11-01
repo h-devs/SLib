@@ -94,7 +94,7 @@ public class UiEditView extends EditText implements IView {
 		}
 		return "";
 	}
-	
+
 	public static boolean _setText(final View view, String text) {
 		try {
 			if (view instanceof TextView) {
@@ -482,11 +482,11 @@ public class UiEditView extends EditText implements IView {
 		this.addTextChangedListener(new TextWatcher() {
 			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 			}
-			
+
 			public void afterTextChanged(Editable s) {
 				onEventChange(UiEditView.this);
 			}
-			
+
 			public void onTextChanged(CharSequence s, int start, int before, int count) {
 			}
 		});

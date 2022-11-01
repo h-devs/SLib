@@ -28,27 +28,27 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(RenderBaseObjectInstance, Object)
-	
+
 	RenderBaseObjectInstance::RenderBaseObjectInstance()
 	{
 		m_flagUpdated = sl_false;
 	}
-	
+
 	RenderBaseObjectInstance::~RenderBaseObjectInstance()
 	{
 	}
-	
+
 	void RenderBaseObjectInstance::link(RenderEngine* engine, RenderBaseObject* object)
 	{
 		m_engine = engine;
 		object->m_instance = this;
 	}
-	
+
 	Ref<RenderEngine> RenderBaseObjectInstance::getEngine()
 	{
 		return m_engine;
 	}
-	
+
 	void RenderBaseObjectInstance::onUpdate(RenderBaseObject* object)
 	{
 	}
@@ -60,23 +60,23 @@ namespace slib
 			onUpdate(object);
 		}
 	}
-	
+
 	sl_bool RenderBaseObjectInstance::isUpdated()
 	{
 		return m_flagUpdated;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(RenderBaseObject, Object)
-	
+
 	RenderBaseObject::RenderBaseObject()
 	{
 	}
-	
+
 	RenderBaseObject::~RenderBaseObject()
 	{
 	}
-	
+
 	Ref<RenderBaseObjectInstance> RenderBaseObject::getInstance(RenderEngine* engine)
 	{
 		if (engine) {

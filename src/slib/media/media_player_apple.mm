@@ -66,12 +66,12 @@ namespace slib
 				AVPlayerItem* m_playerItem;
 				AVPlayerItemVideoOutput* m_videoOutput;
 				SLIBMediaPlayerObserver* m_observer;
-				
+
 				AVPlayerStatus m_status;
 				sl_bool m_flagInited;
 				sl_bool m_flagPlaying;
 				sl_real m_volume;
-				
+
 			public:
 				MediaPlayerImpl()
 				{
@@ -80,12 +80,12 @@ namespace slib
 					m_flagPlaying = sl_false;
 					m_volume = 1;
 				}
-				
+
 				~MediaPlayerImpl()
 				{
 					_release(sl_true, sl_false);
 				}
-				
+
 			public:
 				static Ref<MediaPlayerImpl> create(const MediaPlayerParam& param)
 				{
@@ -103,20 +103,20 @@ namespace slib
 					if (playerItem == nil) {
 						return sl_null;
 					}
-					
+
 					AVPlayer* player = [AVPlayer playerWithPlayerItem:playerItem];
-					
+
 					if (player != nil) {
-						
+
 						[player setAutomaticallyWaitsToMinimizeStalling:NO];
 						[player setActionAtItemEnd:AVPlayerActionAtItemEndNone];
-						
+
 						AVPlayerItemVideoOutput* videoOutput = nil;
 						if (param.flagVideo) {
 							NSDictionary *pixBuffAttributes = @{(id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)};
 							videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:pixBuffAttributes];
 						}
-						
+
 						Ref<MediaPlayerImpl> ret = new MediaPlayerImpl;
 						if (ret.isNotNull()) {
 							SLIBMediaPlayerObserver* observer = [[SLIBMediaPlayerObserver alloc] init];
@@ -139,17 +139,17 @@ namespace slib
 								return ret;
 							}
 						}
-						
+
 					}
 					return sl_null;
 				}
-				
+
 			public:
 				void release() override
 				{
 					_release(sl_false, sl_false);
 				}
-				
+
 				void resume() override
 				{
 					ObjectLocker lock(this);
@@ -168,7 +168,7 @@ namespace slib
 					m_flagPlaying = sl_true;
 					_addToMap();
 				}
-				
+
 				void pause() override
 				{
 					ObjectLocker lock(this);
@@ -187,17 +187,17 @@ namespace slib
 					m_flagPlaying = sl_false;
 					_removeFromMap();
 				}
-			
+
 				sl_bool isPlaying() override
 				{
 					return m_flagPlaying;
 				}
-				
+
 				sl_real getVolume() override
 				{
 					return m_volume;
 				}
-				
+
 				void setVolume(sl_real volume) override
 				{
 					ObjectLocker lock(this);
@@ -209,7 +209,7 @@ namespace slib
 					}
 					m_volume = volume;
 				}
-				
+
 				double convertCMTime(const CMTime& time)
 				{
 					if (CMTIME_IS_NUMERIC(time)) {
@@ -217,7 +217,7 @@ namespace slib
 					}
 					return -1;
 				}
-				
+
 				double getDuration() override
 				{
 					ObjectLocker lock(this);
@@ -226,7 +226,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				double getCurrentTime() override
 				{
 					ObjectLocker lock(this);
@@ -235,7 +235,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void seekTo(double time) override
 				{
 					ObjectLocker lock(this);
@@ -243,36 +243,36 @@ namespace slib
 						[m_player seekToTime:CMTimeMakeWithSeconds(time, 1000)];
 					}
 				}
-				
+
 				void renderVideo(MediaPlayerRenderVideoParam& param) override
 				{
 					param.flagUpdated = sl_false;
 					if (param.onUpdateFrame.isNull()) {
 						return;
 					}
-					
+
 					ObjectLocker lock(this);
-					
+
 					if (m_flagInited) {
-						
+
 						if (m_status == AVPlayerStatusReadyToPlay) {
-							
+
 							CMTime time = [m_playerItem currentTime];
-							
+
 							if ([m_videoOutput hasNewPixelBufferForItemTime:time]) {
-								
+
 								CVPixelBufferRef pixelBuffer = [m_videoOutput copyPixelBufferForItemTime:time itemTimeForDisplay:nil];
-								
+
 								if (pixelBuffer != NULL) {
-									
+
 									lock.unlock();
-									
+
 									if (CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly) == kCVReturnSuccess) {
-																	
+
 										sl_uint32 frameWidth = (sl_uint32)(CVPixelBufferGetWidth(pixelBuffer));
 										sl_uint32 frameHeight = (sl_uint32)(CVPixelBufferGetHeight(pixelBuffer));
 										sl_uint8* baseAddress = (sl_uint8*)(CVPixelBufferGetBaseAddress(pixelBuffer));
-										
+
 										if (baseAddress && (frameWidth & 1) == 0 && (frameHeight & 1) == 0) {
 											VideoFrame frame;
 											frame.image.width = frameWidth;
@@ -291,21 +291,21 @@ namespace slib
 													frame.image.pitch1 = Endian::swap32LE(p->componentInfoCbCr.rowBytes);
 												}
 												param.onUpdateFrame(frame);
-												
+
 												param.flagUpdated = sl_true;
 											}
 										}
-										
+
 										CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
 									}
-									
+
 									CFRelease(pixelBuffer);
 								}
 							}
 						}
 					}
 				}
-				
+
 				void _release(sl_bool flagFromDestructor, sl_bool flagFromObserver)
 				{
 					ObjectLocker lock(this);
@@ -329,7 +329,7 @@ namespace slib
 					m_videoOutput = nil;
 					m_observer = nil;
 				}
-				
+
 				void _onReachEnd()
 				{
 					_onComplete();
@@ -364,7 +364,7 @@ namespace slib
 						_onReadyToPlay();
 					}
 				}
-				
+
 			};
 
 		}

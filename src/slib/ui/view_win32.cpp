@@ -50,7 +50,7 @@ namespace slib
 		{
 
 			sl_bool g_flagDuringPaint = sl_false;
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Bitmap>, g_bitmapDoubleBuffer)
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Canvas>, g_canvasDoubleBuffer)
 
@@ -498,7 +498,7 @@ namespace slib
 	using namespace priv::view;
 
 	SLIB_DEFINE_OBJECT(Win32_ViewInstance, ViewInstance)
-	
+
 	Win32_ViewInstance::Win32_ViewInstance()
 	{
 		m_handle = NULL;
@@ -1043,7 +1043,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (!(view->isDoubleBuffer())) {
 			if (!flagOpaque) {
 				if (colorBack.isNotZero()) {
@@ -1863,7 +1863,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	Ref<ViewInstance> UIPlatform::createViewInstance(HWND hWnd, sl_bool flagDestroyOnRelease)
 	{
 		Ref<ViewInstance> ret = UIPlatform::_getViewInstance((void*)hWnd);

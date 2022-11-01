@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT GeoRectangle
 	{
 	public:
@@ -40,10 +40,10 @@ namespace slib
 		GeoRectangle(const LatLon& pt1, const LatLon& pt2);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(GeoRectangle)
-		
+
 	public:
 		sl_bool contains(const LatLon& pt) const;
-	
+
 		sl_bool isValid() const;
 
 	};

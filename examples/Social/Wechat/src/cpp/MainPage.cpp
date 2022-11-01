@@ -33,7 +33,7 @@ void MainPage::onOpen()
 			}
 		});
 	});
-	
+
 	btnPay->setOnClick([this](View*) {
 		goToPage(new PayPage);
 	});

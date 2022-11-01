@@ -200,7 +200,7 @@ namespace slib
 		Referable() noexcept;
 
 		Referable(const Referable& other) noexcept;
-		
+
 		Referable(Referable&& other) noexcept;
 
 		virtual ~Referable();
@@ -211,17 +211,17 @@ namespace slib
 		sl_reg decreaseReference() noexcept;
 
 		sl_reg decreaseReferenceNoFree() noexcept;
-		
+
 		sl_reg getReferenceCount() noexcept;
-		
+
 	protected:
 		virtual void init();
 
 	public:
 		static sl_object_type ObjectType() noexcept;
-		
+
 		static sl_bool isDerivedFrom(sl_object_type type) noexcept;
-		
+
 		virtual sl_object_type getObjectType() const noexcept;
 
 		virtual sl_bool isInstanceOf(sl_object_type type) const noexcept;
@@ -244,10 +244,10 @@ namespace slib
 		CWeakRef* _getWeakObject() noexcept;
 
 		void _free() noexcept;
-		
+
 	public:
 		Referable& operator=(const Referable& other) noexcept;
-		
+
 		Referable& operator=(Referable&& other) noexcept;
 
 	private:
@@ -255,7 +255,7 @@ namespace slib
 		CWeakRef* m_weak;
 
 		friend class CWeakRef;
-		
+
 	};
 
 
@@ -357,7 +357,7 @@ namespace slib
 				ptr = sl_null;
 			}
 		}
-	
+
 	public:
 		static const Ref& null() noexcept
 		{
@@ -368,12 +368,12 @@ namespace slib
 		{
 			return !ptr;
 		}
-	
+
 		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return ptr != sl_null;
 		}
-	
+
 		void setNull() noexcept
 		{
 			_replaceObject(sl_null);
@@ -424,7 +424,7 @@ namespace slib
 			}
 			return *this;
 		}
-	
+
 		Ref& operator=(Ref&& other) noexcept
 		{
 			_move_assign(&other);
@@ -505,7 +505,7 @@ namespace slib
 			}
 			return *this;
 		}
-	
+
 		template <class T1, class T2, class... TYPES>
 		Ref& operator=(const Ref<T1, T2, TYPES...>& other) noexcept;
 
@@ -579,12 +579,12 @@ namespace slib
 		{
 			return ptr;
 		}
-	
+
 		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return ptr != sl_null;
 		}
-	
+
 	public:
 		void _replaceObject(T* other) noexcept
 		{
@@ -607,7 +607,7 @@ namespace slib
 		T* ptr;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Atomic< Ref<T> >
 	{
@@ -644,7 +644,7 @@ namespace slib
 			_ptr = other.ptr;
 			other.ptr = sl_null;
 		}
-	
+
 		template <class OTHER>
 		Atomic(const Ref<OTHER>& other) noexcept
 		{
@@ -679,7 +679,7 @@ namespace slib
 			}
 			_ptr = o;
 		}
-	
+
 		template <class T1, class T2, class... TYPES>
 		Atomic(const Ref<T1, T2, TYPES...>& other) noexcept;
 
@@ -698,23 +698,23 @@ namespace slib
 				_ptr = sl_null;
 			}
 		}
-	
+
 	public:
 		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return _ptr == sl_null;
 		}
-	
+
 		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return _ptr != sl_null;
 		}
-	
+
 		void setNull() noexcept
 		{
 			_replaceObject(sl_null);
 		}
-	
+
 		template <class OTHER>
 		static const Atomic& from(const AtomicRef<OTHER>& other) noexcept
 		{
@@ -772,7 +772,7 @@ namespace slib
 			_move_assign(&other);
 			return *this;
 		}
-	
+
 		template <class OTHER>
 		Atomic& operator=(const Ref<OTHER>& other) noexcept
 		{
@@ -816,7 +816,7 @@ namespace slib
 			}
 			return *this;
 		}
-	
+
 		template <class T1, class T2, class... TYPES>
 		Atomic& operator=(const Ref<T1, T2, TYPES...>& other) noexcept;
 
@@ -880,12 +880,12 @@ namespace slib
 		{
 			return *this;
 		}
-		
+
 		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return _ptr != sl_null;
 		}
-	
+
 	public:
 		T* _retainObject() const noexcept
 		{
@@ -923,36 +923,36 @@ namespace slib
 
 	public:
 		T* _ptr;
-		
+
 	private:
 		SpinLock m_lock;
-	
+
 	};
 
-	
+
 	class SLIB_EXPORT CWeakRef : public Referable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		CWeakRef() noexcept;
-		
+
 		~CWeakRef();
-		
+
 	public:
 		Referable* m_object;
 		SpinLock m_lock;
-		
+
 	public:
 		static CWeakRef* create(Referable* object) noexcept;
-		
+
 	public:
 		Ref<Referable> lock() noexcept;
-		
+
 		void release() noexcept;
-		
+
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT WeakRef
 	{
@@ -965,7 +965,7 @@ namespace slib
 		{
 			_set(_other);
 		}
-	
+
 		WeakRef(WeakRef&& other) noexcept: _weak(Move(other._weak)) {}
 
 		WeakRef(const WeakRef& other) noexcept: _weak(other._weak) {}
@@ -975,7 +975,7 @@ namespace slib
 		{
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 		}
-	
+
 		template <class OTHER>
 		WeakRef(const WeakRef<OTHER>& other) noexcept: _weak(other._weak)
 		{
@@ -994,7 +994,7 @@ namespace slib
 			SLIB_TRY_CONVERT_TYPE(OTHER*, T*)
 			_set(other.ptr);
 		}
-	
+
 		template <class OTHER>
 		WeakRef(const AtomicRef<OTHER>& _other) noexcept
 		{
@@ -1088,7 +1088,7 @@ namespace slib
 			_set(_other);
 			return *this;
 		}
-	
+
 		WeakRef& operator=(WeakRef&& other) noexcept
 		{
 			_weak._move_assign(&other);
@@ -1108,7 +1108,7 @@ namespace slib
 			_weak._move_assign(&other);
 			return *this;
 		}
-	
+
 		template <class OTHER>
 		WeakRef& operator=(const WeakRef<OTHER>& other) noexcept
 		{
@@ -1124,7 +1124,7 @@ namespace slib
 			_weak = other._weak;
 			return *this;
 		}
-	
+
 		template <class OTHER>
 		WeakRef& operator=(const Ref<OTHER>& other) noexcept
 		{
@@ -1132,7 +1132,7 @@ namespace slib
 			_set(other.ptr);
 			return *this;
 		}
-	
+
 		template <class OTHER>
 		WeakRef& operator=(const AtomicRef<OTHER>& _other) noexcept
 		{
@@ -1154,7 +1154,7 @@ namespace slib
 		{
 			return _weak.equals(other._weak);
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_bool equals(const AtomicWeakRef<OTHER>& other) const
 		{
@@ -1166,7 +1166,7 @@ namespace slib
 		{
 			return _weak.compare(other._weak);
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_compare_result compare(const AtomicWeakRef<OTHER>& other) const
 		{
@@ -1174,13 +1174,13 @@ namespace slib
 		}
 
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS_CONSTEXPR
-		
+
 	public:
 		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return _weak.isNotNull();
 		}
-	
+
 	private:
 		void _set(T* object) noexcept
 		{
@@ -1195,7 +1195,7 @@ namespace slib
 		Ref<CWeakRef> _weak;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Atomic< WeakRef<T> >
 	{
@@ -1291,7 +1291,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-	
+
 	public:
 		AtomicWeakRef<T>& operator=(sl_null_t) noexcept
 		{
@@ -1304,7 +1304,7 @@ namespace slib
 			_set(_other);
 			return *this;
 		}
-	
+
 		AtomicWeakRef<T>& operator=(const AtomicWeakRef<T>& other) noexcept
 		{
 			_weak = other._weak;
@@ -1364,7 +1364,7 @@ namespace slib
 		{
 			return _weak.equals(other._weak);
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_bool equals(const AtomicWeakRef<OTHER>& other) const
 		{
@@ -1376,7 +1376,7 @@ namespace slib
 		{
 			return _weak.compare(other._weak);
 		}
-	
+
 		template <class OTHER>
 		SLIB_CONSTEXPR sl_compare_result compare(const AtomicWeakRef<OTHER>& other) const
 		{
@@ -1390,12 +1390,12 @@ namespace slib
 		{
 			return *this;
 		}
-		
+
 		SLIB_CONSTEXPR explicit operator sl_bool() const
 		{
 			return _weak.isNotNull();
 		}
-	
+
 	private:
 		void _set(T* object) noexcept
 		{
@@ -1408,15 +1408,15 @@ namespace slib
 
 	public:
 		AtomicRef<CWeakRef> _weak;
-	
+
 	};
-	
+
 	template <class T>
 	constexpr sl_bool operator==(sl_null_t, const Ref<T>& b)
 	{
 		return !(b.ptr);
 	}
-	
+
 	template <class T>
 	constexpr sl_bool operator==(T* a, const Ref<T>& b)
 	{
@@ -1428,7 +1428,7 @@ namespace slib
 	{
 		return b.ptr != sl_null;
 	}
-	
+
 	template <class T>
 	constexpr sl_bool operator!=(T* a, const Ref<T>& b)
 	{
@@ -1440,7 +1440,7 @@ namespace slib
 	{
 		return !(b._ptr);
 	}
-	
+
 	template <class T>
 	constexpr sl_bool operator==(T* a, const AtomicRef<T>& b)
 	{
@@ -1452,7 +1452,7 @@ namespace slib
 	{
 		return b._ptr != sl_null;
 	}
-	
+
 	template <class T>
 	constexpr sl_bool operator!=(T* a, const AtomicRef<T>& b)
 	{
@@ -1496,7 +1496,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	template <class T, class OTHER>
 	SLIB_INLINE static T* CastInstance(OTHER* object) noexcept
 	{
@@ -1618,12 +1618,12 @@ namespace slib
 	public:
 		template <class... ARGS>
 		CRefT(ARGS&&... args): T(Forward<ARGS>(args)...) {}
-		
+
 	};
-	
+
 	template <class T>
 	using RefT = Ref< CRefT<T> >;
-	
+
 	template <class T>
 	SLIB_INLINE static RefT<typename RemoveConstReference<T>::Type> ToRefT(T&& t)
 	{

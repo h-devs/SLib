@@ -37,7 +37,7 @@
 
 namespace slib
 {
-	
+
 	enum class AnimationCurve
 	{
 		Linear = 0,
@@ -51,11 +51,11 @@ namespace slib
 		Custom = 50,
 		Default = 100
 	};
-	
+
 	class AnimationTarget;
-	
+
 	class AnimationLoop;
-	
+
 	SLIB_DEFINE_FLAGS(AnimationFlags, {
 		Default = 0,
 		AutoStart = 1,
@@ -65,7 +65,7 @@ namespace slib
 		NotUpdateWhenStart = 16,
 		NotSelfAlive = 32
 	})
-	
+
 	class SLIB_EXPORT Animation : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -79,13 +79,13 @@ namespace slib
 		static Ref<Animation> create(float duration);
 
 		static Ref<Animation> create(const Ref<AnimationTarget>& target, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
-		
+
 		static Ref<Animation> start(const Ref<AnimationTarget>& target, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
 		static Ref<Animation> createWithLoop(const Ref<AnimationLoop>& loop, float duration);
 
 		static Ref<Animation> createWithLoop(const Ref<AnimationLoop>& loop, const Ref<AnimationTarget>& target, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
-		
+
 		static Ref<Animation> startWithLoop(const Ref<AnimationLoop>& loop, const Ref<AnimationTarget>& target, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
 	public:
@@ -120,13 +120,13 @@ namespace slib
 		sl_bool isUpdateWhenStart();
 
 		void setUpdateWhenStart(sl_bool flagUpdate);
-	
+
 
 		// seconds
 		float getTime();
 
 		void setTime(float seconds, sl_bool flagUpdateFrame = sl_false);
-	
+
 		// seconds
 		float getDuration();
 
@@ -186,7 +186,7 @@ namespace slib
 		void start();
 
 		void startAt(float seconds);
-	
+
 		void restart();
 
 		void restartAt(float seconds);
@@ -206,7 +206,7 @@ namespace slib
 		sl_bool isNotRunning();
 
 		sl_bool isPaused();
-	
+
 		void update(float elapsedSeconds);
 
 	public:
@@ -265,10 +265,10 @@ namespace slib
 		sl_bool m_flagStartedNative;
 
 		AtomicRef<Referable> m_nativeInstance;
-	
+
 		friend class AnimationLoop;
 	};
-	
+
 	class SLIB_EXPORT AnimationLoop : public Object
 	{
 	public:
@@ -278,7 +278,7 @@ namespace slib
 
 	public:
 		static Ref<AnimationLoop> getDefault();
-	
+
 	public:
 		void addAnimation(Animation* animation);
 
@@ -289,13 +289,13 @@ namespace slib
 		void resume();
 
 		sl_bool isPaused();
-	
+
 		void wake();
 
 		virtual sl_bool startNativeAnimation(Animation* animation);
 
 		virtual void stopNativeAnimation(Animation* animation);
-	
+
 	protected:
 		void _stopAnimationFromNative(Animation* animation);
 
@@ -320,7 +320,7 @@ namespace slib
 		sl_int64 m_lastTime; // milliseconds
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT AnimationFrame
 	{
@@ -336,7 +336,7 @@ namespace slib
 		AnimationFrame(float _fraction, const T& _value) : fraction(_fraction), value(_value) {}
 
 	};
-	
+
 	template < class T, class INTERPOLATION = Interpolation<T> >
 	class SLIB_EXPORT AnimationFrames
 	{
@@ -392,8 +392,8 @@ namespace slib
 		List< AnimationFrame<T> > frames;
 
 	};
-	
-	
+
+
 	template < class T, class INTERPOLATION = Interpolation<T> >
 	class SLIB_EXPORT AnimationFramesSeeker : public Object
 	{
@@ -485,11 +485,11 @@ namespace slib
 		{
 			return m_frames[index];
 		}
-	
+
 	public:
 		T startValue;
 		T endValue;
-	
+
 	protected:
 		Array< AnimationFrame<T> > m_arrFrames;
 		AnimationFrame<T>* m_frames;
@@ -502,8 +502,8 @@ namespace slib
 		T* m_currentEndValue;
 
 	};
-	
-	
+
+
 	class SLIB_EXPORT AnimationTarget : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -527,7 +527,7 @@ namespace slib
 		AtomicWeakRef<Animation> m_animation;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT AnimationTargetT : public AnimationTarget
 	{
@@ -544,7 +544,7 @@ namespace slib
 		{
 			return m_seeker.endValue;
 		}
-	
+
 		sl_size getFrameCount()
 		{
 			return m_seeker.getFrameCount();
@@ -561,10 +561,10 @@ namespace slib
 		}
 
 		virtual void update(float fraction, const T& value) = 0;
-		
+
 	protected:
 		AnimationFramesSeeker<T> m_seeker;
-		
+
 	};
 
 }

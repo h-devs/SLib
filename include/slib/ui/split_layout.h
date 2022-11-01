@@ -31,114 +31,114 @@ namespace slib
 	class SLIB_EXPORT SplitLayout : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		SplitLayout();
-		
+
 		~SplitLayout();
 
 	protected:
 		void init() override;
-		
+
 	public:
 		LayoutOrientation getOrientation();
-		
+
 		void setOrientation(LayoutOrientation orientation, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_bool isHorizontal();
-		
+
 		void setHorizontal(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_bool isVertical();
-		
+
 		void setVertical(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_size getItemCount();
-		
+
 		void setItemCount(sl_size count, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		Ref<View> getItemView(sl_size index);
-		
+
 		void setItemView(sl_size index, const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_ui_len getItemSize(sl_size index);
-		
+
 		void setItemSize(sl_size index, sl_ui_len size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_real getItemWeight(sl_size index);
-		
+
 		void setItemWeight(sl_size index, sl_real weight, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_real getItemMinimumWeight(sl_size index);
-		
+
 		void setItemMinimumWeight(sl_size index, sl_real weight, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_real getItemMaximumWeight(sl_size index);
-		
+
 		void setItemMaximumWeight(sl_size index, sl_real weight, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_ui_len getItemMinimumSize(sl_size index);
-		
+
 		void setItemMinimumSize(sl_size index, sl_ui_len size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_ui_len getItemMaximumSize(sl_size index);
-		
+
 		void setItemMaximumSize(sl_size index, sl_ui_len size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_ui_len getItemDividerWidth(sl_size index);
-		
+
 		void setItemDividerWidth(sl_size index, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		Ref<Drawable> getItemDividerBackground(sl_size index);
-		
+
 		void setItemDividerBackground(sl_size index, const Ref<Drawable>& background, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getItemDividerColor(sl_size index);
-		
+
 		void setItemDividerColor(sl_size index, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_len getDividerWidth();
-		
+
 		void setDividerWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		Ref<Drawable> getDividerBackground();
-		
+
 		void setDividerBackground(const Ref<Drawable>& background, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getDividerColor();
-		
+
 		void setDividerColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_len getCursorMargin();
-		
+
 		void setCursorMargin(sl_ui_len margin);
-		
+
 		void relayout(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 		void onDraw(Canvas* canvas) override;
-		
+
 	public:
 		void dispatchMouseEvent(UIEvent* ev) override;
-		
+
 		void dispatchSetCursor(UIEvent* ev) override;
-		
+
 	private:
 		sl_ui_len _getTotalSize();
-		
+
 		void _refreshItemFrames(UIUpdateMode mode);
-		
+
 		void _resetWeights(UIUpdateMode mode);
-		
+
 		sl_int32 _getDividerIndexAtPoint(const UIPoint& pt);
-		
+
 		sl_bool _hitTestForCapturingChildInstanceEvents(const UIPoint& pt);
-		
+
 	private:
 		LayoutOrientation m_orientation;
-		
+
 		class Item
 		{
 		public:
@@ -151,29 +151,29 @@ namespace slib
 			sl_ui_len dividerWidth;
 			Ref<Drawable> dividerBackground;
 			Color dividerColor;
-			
+
 			sl_ui_pos pos;
 			sl_ui_len width;
-			
+
 		public:
 			Item();
-			
+
 		};
 		CList<Item> m_items;
-		
+
 		sl_ui_len m_dividerWidth;
 		Ref<Drawable> m_dividerBackground;
 		Color m_dividerColor;
 		sl_ui_len m_cursorMargin;
-		
+
 		sl_int32 m_indexDividerDown;
 		sl_ui_pos m_posDown;
 		sl_real m_weightDown;
-		
+
 		Ref<Cursor> m_cursor;
-		
+
 	};
-	
+
 	class SLIB_EXPORT VerticalSplitLayout : public SplitLayout
 	{
 	public:
@@ -182,7 +182,7 @@ namespace slib
 		~VerticalSplitLayout();
 
 	};
-	
+
 	class SLIB_EXPORT HorizontalSplitLayout : public SplitLayout
 	{
 	public:

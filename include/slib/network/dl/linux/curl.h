@@ -65,7 +65,7 @@ namespace slib
 			CURL *curl
 		)
 		#define curl_easy_cleanup slib::curl::getApi_curl_easy_cleanup()
-		
+
 		#ifdef curl_easy_getinfo
 		#undef curl_easy_getinfo
 		#endif
@@ -75,7 +75,7 @@ namespace slib
 			CURL *curl, CURLINFO info, ...
 		)
 		#define curl_easy_getinfo slib::curl::getApi_curl_easy_getinfo()
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			curl_easy_strerror,
 			const char *, ,

@@ -63,7 +63,7 @@ namespace slib
 	{
 		namespace edit_view
 		{
-			
+
 			static NSTextAlignment TranslateAlignment(Alignment _align)
 			{
 				Alignment align = _align & Alignment::HorizontalMask;
@@ -75,7 +75,7 @@ namespace slib
 					return NSTextAlignmentCenter;
 				}
 			}
-			
+
 			static ::UIReturnKeyType ConvertReturnKeyType(UIReturnKeyType type)
 			{
 				switch (type) {
@@ -107,7 +107,7 @@ namespace slib
 						return UIReturnKeyDone;
 				}
 			}
-			
+
 			static ::UIKeyboardType ConvertKeyboardType(UIKeyboardType type)
 			{
 				switch (type) {
@@ -139,7 +139,7 @@ namespace slib
 						return UIKeyboardTypeDefault;
 				}
 			}
-			
+
 			static ::UITextAutocapitalizationType ConvertAutoCapitalizationType(UIAutoCapitalizationType type)
 			{
 				switch (type) {
@@ -155,7 +155,7 @@ namespace slib
 						return UITextAutocapitalizationTypeSentences;
 				}
 			}
-			
+
 			sl_ui_len MeasureHeight(UIView* handle, EditView* view)
 			{
 				if (handle != nil) {
@@ -164,22 +164,22 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			class EditViewInstance : public iOS_ViewInstance, public IEditViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				UITextField* getHandle()
 				{
 					return (UITextField*)m_handle;
 				}
-				
+
 				void initialize(View* _view) override
 				{
 					UITextField* handle = getHandle();
 					EditView* view = (EditView*)_view;
-					
+
 					setHandleFont(handle, view->getFont());
 					[handle setText:(Apple::getNSStringFromString(view->getText()))];
 					[handle setTextAlignment:TranslateAlignment(view->getGravity())];
@@ -194,7 +194,7 @@ namespace slib
 
 					applyHint(handle, view);
 				}
-				
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					UITextField* handle = getHandle();
@@ -204,7 +204,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setText(EditView* view, const String& text) override
 				{
 					UITextField* handle = getHandle();
@@ -213,7 +213,7 @@ namespace slib
 						[handle setText:value];
 					}
 				}
-				
+
 				void setGravity(EditView* view, const Alignment& gravity) override
 				{
 					UITextField* handle = getHandle();
@@ -221,7 +221,7 @@ namespace slib
 						[handle setTextAlignment:TranslateAlignment(gravity)];
 					}
 				}
-				
+
 				void setTextColor(EditView* view, const Color& color) override
 				{
 					UITextField* handle = getHandle();
@@ -229,27 +229,27 @@ namespace slib
 						[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(color))];
 					}
 				}
-				
+
 				void setHintText(EditView* view, const String& text) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintGravity(EditView* view, const Alignment& gravity) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintTextColor(EditView* view, const Color& color) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintFont(EditView* view, const Ref<Font>& font) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setReadOnly(EditView* view, sl_bool flag) override
 				{
 					UITextField* handle = getHandle();
@@ -257,7 +257,7 @@ namespace slib
 						[handle setEnabled:(flag ? FALSE : TRUE)];
 					}
 				}
-				
+
 				void setPassword(EditView* view, sl_bool flag) override
 				{
 					UITextField* handle = getHandle();
@@ -265,11 +265,11 @@ namespace slib
 						[handle setSecureTextEntry:(flag ? YES : NO)];
 					}
 				}
-				
+
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
 				}
-				
+
 				void setReturnKeyType(EditView* view, UIReturnKeyType type) override
 				{
 					UITextField* handle = getHandle();
@@ -277,7 +277,7 @@ namespace slib
 						[handle setReturnKeyType:ConvertReturnKeyType(type)];
 					}
 				}
-				
+
 				void setKeyboardType(EditView* view, UIKeyboardType type) override
 				{
 					UITextField* handle = getHandle();
@@ -285,7 +285,7 @@ namespace slib
 						[handle setKeyboardType:ConvertKeyboardType(type)];
 					}
 				}
-				
+
 				void setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type) override
 				{
 					UITextField* handle = getHandle();
@@ -293,12 +293,12 @@ namespace slib
 						[handle setAutocapitalizationType:ConvertAutoCapitalizationType(type)];
 					}
 				}
-				
+
 				sl_ui_len measureHeight(EditView* view) override
 				{
 					return MeasureHeight(getHandle(), view);
 				}
-				
+
 				void setFont(View* view, const Ref<Font>& font) override
 				{
 					UITextField* handle = getHandle();
@@ -309,7 +309,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setBorder(View* view, sl_bool flag) override
 				{
 					UITextField* handle = getHandle();
@@ -317,7 +317,7 @@ namespace slib
 						[handle setBorderStyle:(flag ? UITextBorderStyleRoundedRect : UITextBorderStyleNone)];
 					}
 				}
-				
+
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 					UITextField* handle = getHandle();
@@ -325,7 +325,7 @@ namespace slib
 						[handle setBackgroundColor:(GraphicsPlatform::getUIColorFromColor(color))];
 					}
 				}
-				
+
 				void updateHint(EditView* view)
 				{
 					UITextField* handle = getHandle();
@@ -333,7 +333,7 @@ namespace slib
 						applyHint(handle, view);
 					}
 				}
-				
+
 				static void applyHint(UITextField* handle, EditView* view)
 				{
 					NSAttributedString* attr;
@@ -358,7 +358,7 @@ namespace slib
 					}
 					[handle setAttributedPlaceholder: attr];
 				}
-				
+
 				void onChange(UITextField* control)
 				{
 					Ref<EditView> view = CastRef<EditView>(getView());
@@ -377,7 +377,7 @@ namespace slib
 						view->dispatchPostChange();
 					}
 				}
-				
+
 				void onEnterAction(UITextField* control)
 				{
 					Ref<EditView> view = CastRef<EditView>(getView());
@@ -387,24 +387,24 @@ namespace slib
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(EditViewInstance, iOS_ViewInstance)
 
 			class TextAreaInstance : public iOS_ViewInstance, public IEditViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBTextAreaHandle* getHandle()
 				{
 					return (SLIBTextAreaHandle*)m_handle;
 				}
-				
+
 				void initialize(View* _view) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
 					TextArea* view = (TextArea*)_view;
-					
+
 					setHandleFont(handle, view->getFont());
 					[handle setScrollEnabled:YES];
 					[handle setShowsHorizontalScrollIndicator:view->isHorizontalScrollBarVisible() ? YES : NO];
@@ -424,10 +424,10 @@ namespace slib
 					[handle setReturnKeyType:ConvertReturnKeyType(view->getReturnKeyType())];
 					[handle setKeyboardType:ConvertKeyboardType(view->getKeyboardType())];
 					[handle setAutocapitalizationType:ConvertAutoCapitalizationType(view->getAutoCaptializationType())];
-					
+
 					applyHint(handle, view);
 				}
-				
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -437,7 +437,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setText(EditView* view, const String& text) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -448,7 +448,7 @@ namespace slib
 						handle.clipsToBounds = YES;
 					}
 				}
-				
+
 				void setGravity(EditView* view, const Alignment& gravity) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -456,7 +456,7 @@ namespace slib
 						[handle setTextAlignment:TranslateAlignment(gravity)];
 					}
 				}
-				
+
 				void setTextColor(EditView* view, const Color& color) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -464,27 +464,27 @@ namespace slib
 						[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(color))];
 					}
 				}
-				
+
 				void setHintText(EditView* view, const String& text) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintGravity(EditView* view, const Alignment& gravity) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintTextColor(EditView* view, const Color& color) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintFont(EditView* view, const Ref<Font>& font) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setReadOnly(EditView* view, sl_bool flag) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -492,15 +492,15 @@ namespace slib
 						[handle setEditable:(flag ? FALSE : TRUE)];
 					}
 				}
-				
+
 				void setPassword(EditView* view, sl_bool flag) override
 				{
 				}
-				
+
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
 				}
-				
+
 				void setReturnKeyType(EditView* view, UIReturnKeyType type) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -508,7 +508,7 @@ namespace slib
 						[handle setReturnKeyType:ConvertReturnKeyType(type)];
 					}
 				}
-				
+
 				void setKeyboardType(EditView* view, UIKeyboardType type) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -516,7 +516,7 @@ namespace slib
 						[handle setKeyboardType:ConvertKeyboardType(type)];
 					}
 				}
-				
+
 				void setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -524,12 +524,12 @@ namespace slib
 						[handle setAutocapitalizationType:ConvertAutoCapitalizationType(type)];
 					}
 				}
-				
+
 				sl_ui_len measureHeight(EditView* view) override
 				{
 					return MeasureHeight(getHandle(), view);
 				}
-				
+
 				void setFont(View* view, const Ref<Font>& font) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -540,7 +540,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setBorder(View* view, sl_bool flag) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -553,7 +553,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -561,7 +561,7 @@ namespace slib
 						[handle setBackgroundColor:(GraphicsPlatform::getUIColorFromColor(color))];
 					}
 				}
-				
+
 				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -570,7 +570,7 @@ namespace slib
 						[handle setShowsVerticalScrollIndicator:(flagVertical ? YES : NO)];
 					}
 				}
-				
+
 				void updateHint(EditView* view)
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -578,7 +578,7 @@ namespace slib
 						applyHint(handle, view);
 					}
 				}
-				
+
 				static void applyHint(SLIBTextAreaHandle* handle, EditView* view)
 				{
 					String text = view->getHintText();
@@ -606,7 +606,7 @@ namespace slib
 						[handle sendSubviewToBack:label];
 					}
 				}
-				
+
 				static void setHintLabelFrame(SLIBTextAreaHandle* handle, UILabel* label)
 				{
 					if (label == nil) {
@@ -621,7 +621,7 @@ namespace slib
 						[label setFrame:CGRectMake(8, handle.frame.size.height - 8 - label.bounds.size.height, handle.bounds.size.width - 16, label.bounds.size.height)];
 					}
 				}
-				
+
 				void onChange(SLIBTextAreaHandle* control)
 				{
 					Ref<TextArea> view = CastRef<TextArea>(getView());
@@ -640,7 +640,7 @@ namespace slib
 						view->dispatchPostChange();
 					}
 				}
-				
+
 				void onEnterAction(SLIBTextAreaHandle* control)
 				{
 					Ref<TextArea> view = CastRef<TextArea>(getView());
@@ -653,34 +653,34 @@ namespace slib
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(TextAreaInstance, iOS_ViewInstance)
-			
+
 		}
 	}
 
 	using namespace priv::edit_view;
-	
+
 	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* parent)
 	{
 		return iOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
 	}
-	
+
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
 	{
 		return CastRef<EditViewInstance>(getViewInstance());
 	}
-	
+
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
 	{
 		return iOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
 	}
-	
+
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
 	{
 		return CastRef<TextAreaInstance>(getViewInstance());
 	}
-	
+
 }
 
 using namespace slib;

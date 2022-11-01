@@ -27,62 +27,62 @@
 
 namespace slib
 {
-	
+
 	class IScrollViewInstance;
 
 	class SLIB_EXPORT ScrollView : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ScrollView();
 
 		~ScrollView();
-		
+
 	public:
 		Ref<View> getContentView();
-		
+
 		virtual void setContentView(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		using ViewGroup::setContentSize;
-		
+
 		void setContentSize(sl_scroll_pos width, sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		virtual Ptr<IScrollViewInstance> getScrollViewInstance();
-		
+
 	public:
 		void dispatchScroll(sl_scroll_pos x, sl_scroll_pos y) override;
-		
+
 	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 		void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override;
-		
+
 	protected:
 		void _refreshSize();
-		
+
 	protected:
 		AtomicRef<View> m_viewContent;
-		
+
 	};
-	
+
 	class SLIB_EXPORT HorizontalScrollView : public ScrollView
 	{
 	public:
 		HorizontalScrollView();
-		
+
 		~HorizontalScrollView();
 
 	};
-	
+
 	class SLIB_EXPORT VerticalScrollView : public ScrollView
 	{
 	public:
 		VerticalScrollView();
-		
+
 		~VerticalScrollView();
 
 	};
@@ -91,11 +91,11 @@ namespace slib
 	{
 	public:
 		virtual void refreshContentSize(ScrollView* view) = 0;
-		
+
 		virtual void setContentView(ScrollView* view, const Ref<View>& content) = 0;
-		
+
 	};
-	
+
 }
 
 #endif

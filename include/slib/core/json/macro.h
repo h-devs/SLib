@@ -182,7 +182,7 @@ public: \
 	{ \
 		SLIB_JSON_ADD_MEMBERS(__VA_ARGS__) \
 	}
-	
+
 
 namespace slib
 {

@@ -42,7 +42,7 @@ namespace slib
 	DialogResult AlertDialog::_run()
 	{
 		GtkWindow* hParent = UIPlatform::getWindowHandle(parent.get());
-		
+
 		GtkMessageType messgeType;
 		switch (icon) {
 			case AlertIcon::Error:
@@ -61,7 +61,7 @@ namespace slib
 				messgeType = GTK_MESSAGE_OTHER;
 				break;
 		}
-		
+
 		StringCstr _text(text);
 		GtkDialog* dialog = (GtkDialog*)(
 			gtk_message_dialog_new(hParent,
@@ -73,10 +73,10 @@ namespace slib
 		if (!dialog) {
 			return DialogResult::Error;
 		}
-		
+
 		StringCstr _caption(caption);
 		gtk_window_set_title((GtkWindow*)dialog, _caption.getData());
-		
+
 		sl_bool flagUseStock = !(UIPlatform::isSupportedGtk(3, 10));
 		sl_bool flagGtk3 = UIPlatform::isSupportedGtk(3);
 
@@ -112,7 +112,7 @@ namespace slib
 				szTitleNo = "No";
 			}
 		}
-		
+
 		if (buttons == AlertButtons::OkCancel) {
 			gtk_dialog_add_button(dialog, szTitleOK.getData(), GTK_RESPONSE_OK);
 			gtk_dialog_add_button(dialog, szTitleCancel.getData(), GTK_RESPONSE_CANCEL);
@@ -135,11 +135,11 @@ namespace slib
 		} else {
 			gtk_dialog_add_button(dialog, szTitleOK.getData(), GTK_RESPONSE_OK);
 		}
-		
+
 		gint response = gtk_dialog_run(dialog);
-		
+
 		gtk_widget_destroy((GtkWidget*)dialog);
-		
+
 		switch (response) {
 			case GTK_RESPONSE_OK:
 				return DialogResult::OK;
@@ -172,7 +172,7 @@ namespace slib
 	DialogResult FileDialog::_run()
 	{
 		StringCstr szTitle = title;
-		
+
 		GtkWindow* hParent = UIPlatform::getWindowHandle(parent.get());
 		sl_bool flagUseStock = !(UIPlatform::isSupportedGtk(3, 10));
 
@@ -190,7 +190,7 @@ namespace slib
 		} else {
 			return DialogResult::Error;
 		}
-		
+
 		GtkFileChooserDialog* dialog = (GtkFileChooserDialog*)(
 			gtk_file_chooser_dialog_new(szTitle.getData(),
 										hParent,
@@ -204,21 +204,21 @@ namespace slib
 		if (!dialog) {
 			return DialogResult::Error;
 		}
-		
+
 		GtkFileChooser* chooser = GTK_FILE_CHOOSER(dialog);
-		
+
 		gtk_window_set_title((GtkWindow*)dialog, szTitle.getData());
-		
+
 		if (type == FileDialogType::OpenFiles) {
 			gtk_file_chooser_set_select_multiple(chooser, sl_true);
 		} else {
 			gtk_file_chooser_set_select_multiple(chooser, sl_false);
 		}
-		
+
 		gtk_file_chooser_set_create_folders(chooser, sl_true);
-		
+
 		gtk_file_chooser_set_show_hidden(chooser, flagShowHiddenFiles?sl_true:sl_false);
-		
+
 		if (selectedPath.isNotEmpty()) {
 			if (type != FileDialogType::SaveFile || File::isDirectory(selectedPath)) {
 				StringCstr uri = Url::toFileUri(Url::encodeUri(selectedPath));
@@ -236,7 +236,7 @@ namespace slib
 				gtk_file_chooser_set_current_name(chooser, selectedFile.getData());
 			}
 		}
-		
+
 		if (filters.isNotEmpty()) {
 			ListElements<FileDialogFilter> list(filters);
 			for (sl_size i = 0; i < list.count; i++) {
@@ -254,11 +254,11 @@ namespace slib
 				}
 			}
 		}
-		
+
 		gint response = gtk_dialog_run((GtkDialog*)dialog);
-		
+
 		selectedPaths.removeAll();
-		
+
 		DialogResult ret = DialogResult::Error;
 		if (response == GTK_RESPONSE_ACCEPT) {
 			gchar* path = gtk_file_chooser_get_uri(chooser);
@@ -289,9 +289,9 @@ namespace slib
 		} else {
 			ret = DialogResult::Cancel;
 		}
-		
+
 		gtk_widget_destroy((GtkWidget*)dialog);
-		
+
 		return ret;
 	}
 
@@ -299,7 +299,7 @@ namespace slib
 	{
 		_showByRun();
 	}
-	
+
 	sl_bool FileDialog::_show()
 	{
 		return sl_false;

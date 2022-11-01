@@ -85,7 +85,7 @@ namespace slib
 
 		Ref<Bitmap> bitmap = drawable->toBitmap();
 		if (bitmap.isNotNull() && bitmap->isNotEmpty()) {
-		
+
 			BITMAPINFOHEADER bi;
 			bi.biSize = sizeof(bi);
 			bi.biWidth = bitmap->getWidth();

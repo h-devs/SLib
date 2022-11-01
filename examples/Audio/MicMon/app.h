@@ -9,7 +9,7 @@ class MicMonApp : public UIApp
 	SLIB_APPLICATION(MicMonApp)
 public:
 	MicMonApp();
-	
+
 protected:
 	void onStart() override;
 

@@ -152,7 +152,7 @@ namespace slib
 					Gdiplus::GraphicsState state = m_graphics->Save();
 					m_stackState.push(state);
 				}
-				
+
 				void restore() override
 				{
 					Gdiplus::GraphicsState state;
@@ -284,7 +284,7 @@ namespace slib
 				{
 					sl_real width = rect.getWidth();
 					sl_real height = rect.getHeight();
-					
+
 					DRAW_PEN_BRUSH_BEGIN
 					if (hBrush) {
 						graphics->FillEllipse(hBrush, rect.left, rect.top, width, height);

@@ -4,14 +4,14 @@
 		background='@drawable/background'
 		backgroundScale='cover'
 		>
-		
+
 		<linear alignCenter='true'>
 
 			<image
 				src='@drawable/lion'
 				width='35%sw'
 				centerHorizontal='true'/>
-			
+
 			<label
 				text='@string/hello_world'
 				marginTop='2%sh'

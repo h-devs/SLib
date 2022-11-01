@@ -28,21 +28,21 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioChannelBuffer)
-	
+
 	AudioChannelBuffer::AudioChannelBuffer() : data(0), count(0), stride(0)
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioData)
 
 	AudioData::AudioData()
 	{
 		count = 0;
 		format = AudioFormat::None;
-		
+
 		data = sl_null;
 		data1 = sl_null;
 	}
@@ -101,7 +101,7 @@ namespace slib
 					buffers[0].stride = AudioFormatHelper::getBytesPerSample(format) * 2;
 					buffers[0].data = data;
 					buffers[0].ref = ref;
-					
+
 					buffers[1].count = count;
 					buffers[1].stride = AudioFormatHelper::getBytesPerSample(format) * 2;
 					buffers[1].data = (sl_uint8*)data + AudioFormatHelper::getBytesPerSample(format);
@@ -112,7 +112,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	namespace priv
 	{
 		namespace audio_data
@@ -127,7 +127,7 @@ namespace slib
 					p++;
 					return v;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8*& p, sl_uint8 v)
 				{
 					*p = v;
@@ -144,7 +144,7 @@ namespace slib
 					p += 2;
 					return v;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8*& p, sl_uint16 v)
 				{
 					p[0] = (sl_uint8)(v);
@@ -162,7 +162,7 @@ namespace slib
 					p += 2;
 					return v;
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8*& p, sl_uint16 v)
 				{
 					p[1] = (sl_uint8)(v);
@@ -180,7 +180,7 @@ namespace slib
 					p += 4;
 					return *((float*)((void*)(&n)));
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8*& p, float v)
 				{
 					sl_uint32& n = *((sl_uint32*)((void*)(&v)));
@@ -201,7 +201,7 @@ namespace slib
 					p += 4;
 					return *((float*)((void*)(&n)));
 				}
-				
+
 				SLIB_INLINE static void writeSample(sl_uint8*& p, float v)
 				{
 					sl_uint32& n = *((sl_uint32*)((void*)(&v)));
@@ -415,7 +415,7 @@ namespace slib
 						break;
 				}
 			}
-			
+
 		}
 	}
 
@@ -436,19 +436,19 @@ namespace slib
 		if (countSamples == 0) {
 			return;
 		}
-		
+
 		sl_uint8* data_out = (sl_uint8*)data;
 		sl_uint8* data_out1 = (sl_uint8*)data1;
 		if (AudioFormatHelper::isNonInterleaved(format) && !data_out1) {
 			data_out1 = data_out + getSizeForChannel();
 		}
-		
+
 		sl_uint8* data_in = (sl_uint8*)(other.data);
 		sl_uint8* data_in1 = (sl_uint8*)(other.data1);
 		if (AudioFormatHelper::isNonInterleaved(other.format) && !data_in1) {
 			data_in1 = data_in + other.getSizeForChannel();
 		}
-		
+
 		if (format == other.format) {
 			if (AudioFormatHelper::isNonInterleaved(format)) {
 				sl_size n = (countSamples * AudioFormatHelper::getBitsPerSample(format) + 7) >> 3;
@@ -460,7 +460,7 @@ namespace slib
 			}
 			return;
 		}
-		
+
 		priv::audio_data::CopySamples(countSamples, other.format, data_in, data_in1, format, data_out, data_out1);
 	}
 

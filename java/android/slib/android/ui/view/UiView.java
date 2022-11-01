@@ -41,7 +41,7 @@ import android.widget.AbsoluteLayout;
 import android.widget.FrameLayout;
 
 public class UiView {
-	
+
 	private UiView() {
 	}
 
@@ -49,13 +49,13 @@ public class UiView {
 	{
 		return view.getContext();
 	}
-	
+
 	public static void setInstance(View view, long instance) {
 		if (view instanceof IView) {
 			((IView)view).setInstance(instance);
 		}
 	}
-	
+
 	public static void freeView(View view) {
 		try {
 			setInstance(view, 0);
@@ -75,7 +75,7 @@ public class UiView {
 		}
 		return null;
 	}
-	
+
 	public static View createGroup(Context context) {
 		try {
 			return new UiGroupView(context);
@@ -115,7 +115,7 @@ public class UiView {
 			view.postInvalidate();
 		}
 	}
-	
+
 	public static void invalidateRect(View view, int left, int top, int right, int bottom) {
 		if (Build.VERSION.SDK_INT >= 28 && !(view instanceof UiScrollContentView)) {
 			if (Util.isUiThread()) {
@@ -208,11 +208,11 @@ public class UiView {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static boolean isVisible(View view) {
 		return view.getVisibility() == View.VISIBLE;
 	}
-	
+
 	public static void setVisible(final View view, final boolean flag) {
 		try {
 			if (flag) {
@@ -224,11 +224,11 @@ public class UiView {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static boolean isEnabled(View view) {
 		return view.isEnabled();
 	}
-	
+
 	public static void setEnabled(final View view, final boolean flag) {
 		try {
 			view.setEnabled(flag);
@@ -255,7 +255,7 @@ public class UiView {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static void setLayered(final View view) {
 		try {
 			if (view.getLayerType() == View.LAYER_TYPE_NONE) {
@@ -288,7 +288,7 @@ public class UiView {
 		ret.y = y - location[1];
 		return ret;
 	}
-	
+
 	public static Point convertCoordinateFromViewToScreen(View view, int x, int y) {
 		Point ret = new Point();
 		int[] location = new int[2];
@@ -297,7 +297,7 @@ public class UiView {
 		ret.y = location[1] + y;
 		return ret;
 	}
-	
+
 	public static void addChild(View _group, View view) {
 		try {
 			if (_group instanceof ViewGroup) {
@@ -350,7 +350,7 @@ public class UiView {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public static void bringToFront(final View view) {
 		try {
 			ViewParent parent = view.getParent();
@@ -424,7 +424,7 @@ public class UiView {
 			}
 		}
 	}
-	
+
 	// events
 	private static native void nativeOnDraw(long instance, Graphics graphics, int left, int top, int right, int bottom);
 

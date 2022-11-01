@@ -31,92 +31,92 @@ namespace slib
 	class SLIB_EXPORT ProgressBar : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ProgressBar(LayoutOrientation orientation = LayoutOrientation::Horizontal);
 
 		~ProgressBar();
-		
+
 	public:
 		LayoutOrientation getOrientation();
-		
+
 		void setOrientation(LayoutOrientation orientation, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isVertical();
-		
+
 		void setVertical(UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isHorizontal();
-		
+
 		void setHorizontal(UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		float getMinimumValue();
-		
+
 		void setMinimumValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		float getMaximumValue();
-		
+
 		void setMaximumValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		float getValue();
-		
+
 		virtual void setValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		float getSecondaryValue();
-		
+
 		virtual void setSecondaryValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isDualValues();
-		
+
 		void setDualValues(sl_bool flagDualValues, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isDiscrete();
-		
+
 		void setDiscrete(sl_bool flagDiscrete, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		float getStep();
-		
+
 		void setStep(float step, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isReversed();
-		
+
 		void setReversed(sl_bool flagReversed, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
+
+
 		Ref<Drawable> getTrackDrawable();
-		
+
 		void setTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setTrackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getProgressDrawable();
-		
+
 		void setProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setProgressColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getSecondaryProgressDrawable();
-		
+
 		void setSecondaryProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setSecondaryProgressColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onUpdateLayout() override;
 
 	protected:
 		float refineValue(float value);
-		
+
 		int tryChangeValue(float& value, float& value2, sl_bool flagChange2);
 
 		float refineStep();
-		
+
 		sl_ui_pos getPositionFromValue(float value);
-		
+
 		void getProgressRegions(UIRect& outProgress, UIRect& outSecondaryProgress);
-		
+
 	protected:
 		LayoutOrientation m_orientation;
 		float m_value_min;
@@ -127,11 +127,11 @@ namespace slib
 		sl_bool m_flagDiscrete;
 		float m_step;
 		sl_bool m_flagReversed;
-		
+
 		AtomicRef<Drawable> m_track;
 		AtomicRef<Drawable> m_progress;
 		AtomicRef<Drawable> m_progress2;
-		
+
 	};
 
 }

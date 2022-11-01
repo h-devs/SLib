@@ -72,7 +72,7 @@ public class UiWebView extends WebView implements IView {
 		}
 		return null;
 	}
-	
+
 	public static void _load(final View view, final String url) {
 		if (url == null || url.length() == 0) {
 			return;
@@ -86,7 +86,7 @@ public class UiWebView extends WebView implements IView {
 			}
 		}
 	}
-	
+
 	public static void _loadHTML(final View view, final String html, final String url) {
 		if (view instanceof WebView) {
 			final WebView wv = (WebView)view;
@@ -113,7 +113,7 @@ public class UiWebView extends WebView implements IView {
 		}
 		return null;
 	}
-	
+
 	public static String _getTitle(View view) {
 		try {
 			if (view instanceof WebView) {
@@ -125,7 +125,7 @@ public class UiWebView extends WebView implements IView {
 		}
 		return null;
 	}
-	
+
 	public static void _goBack(final View view) {
 		if (view instanceof WebView) {
 			final WebView wv = (WebView)view;
@@ -226,7 +226,7 @@ public class UiWebView extends WebView implements IView {
 			nativeOnStartLoad(instance, url);
 		}
 	}
-	
+
 	private static native void nativeOnFinishLoad(long instance, String url);
 	public static void onFinishLoad(IView view, String url) {
 		long instance = view.getInstance();
@@ -250,10 +250,10 @@ public class UiWebView extends WebView implements IView {
 			nativeOnMessage(instance, msg, param);
 		}
 	}
-	
+
 	public UiWebView(Context context) {
 		super(context);
-		
+
 		WebSettings webSettings = this.getSettings();
 		webSettings.setJavaScriptEnabled(true);
 
@@ -273,12 +273,12 @@ public class UiWebView extends WebView implements IView {
 		webSettings.setDatabasePath(cacheDirPath);
 		webSettings.setAppCachePath(cacheDirPath);
 		webSettings.setAppCacheEnabled(true);
-		
+
 		setWebViewClient(new MyWebViewClient());
 		setWebChromeClient(new MyWebChromeClient());
-		
+
 		requestFocusFromTouch();
-		
+
 		addJavascriptInterface(new MyJavaScriptObject(), "slib");
 	}
 
@@ -297,25 +297,25 @@ public class UiWebView extends WebView implements IView {
 	}
 
 	class MyWebViewClient extends WebViewClient {
-		
+
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
 			return false;
 		}
-		
+
 		public void onPageStarted(WebView view, String url, Bitmap favicon) {
 			onStartLoad(UiWebView.this, url);
 		}
-		
+
 		public void onPageFinished(WebView view, String url) {
 			onFinishLoad(UiWebView.this, url);
 		}
-		
+
 		public void onReceivedError (WebView view, int errorCode, String description, String failingUrl) {
 			onErrorLoad(UiWebView.this, failingUrl, description);
 		}
-		
+
 	}
-	
+
 	class MyWebChromeClient extends WebChromeClient {
 
 		@Override
@@ -432,9 +432,9 @@ public class UiWebView extends WebView implements IView {
 		}
 
 	}
-	
+
 	class MyJavaScriptObject {
-		
+
 		@JavascriptInterface
 		public void send(String msg, String param) {
 			onMessage(UiWebView.this, msg, param);

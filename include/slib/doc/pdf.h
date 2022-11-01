@@ -581,7 +581,7 @@ namespace slib
 		sl_uint32 countOutput;
 		Array< Pair<float, float> > domain; // input range
 		Array< Pair<float, float> > range; // output range. used for Sampled/PostScript types
-		
+
 		// Sampled Function type
 		sl_uint32 bitsPerSample;
 		Array< Pair<sl_uint32, sl_uint32> > encodeSampled;
@@ -672,7 +672,7 @@ namespace slib
 	public:
 		PdfColorSpaceType type;
 		Array<Color> indices;
-		
+
 	public:
 		PdfColorSpace();
 
@@ -855,7 +855,7 @@ namespace slib
 		sl_bool load(PdfStream* stream, PdfResourceProvider* resources = sl_null) noexcept;
 
 		void applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept;
-		
+
 		void applyDecode(Image* image) noexcept;
 
 	protected:

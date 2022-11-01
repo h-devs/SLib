@@ -27,19 +27,19 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ChromiumView : public WebView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ChromiumView();
-		
+
 		~ChromiumView();
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		Ptr<IWebViewInstance> getWebViewInstance() override;
 
 	};
@@ -55,9 +55,9 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ChromiumSettings)
 
 	};
-	
+
 	class HttpCookie;
-	
+
 	class SLIB_EXPORT Chromium
 	{
 	public:
@@ -68,17 +68,17 @@ namespace slib
 #else
 		static void startup(int argc, const void* argv);
 		static void startup(int argc, const void* argv, const ChromiumSettings& settings);
-#endif		
+#endif
 		static void shutdown();
 
 		static void clearCache();
-		
+
 		static void getAllCookies(const Function<void(const List<HttpCookie>& cookies)>& callback);
 		static void getAllCookies(const String& url, const Function<void(const List<HttpCookie>& cookies)>& callback);
 		static void setCookie(const String& url, const HttpCookie& cookie, const Function<void(sl_bool flagSuccess)>& callback);
 		static void deleteCookies(const String& url, const String& name, const Function<void(sl_uint32 countDeleted)>& callback);
 		static void clearCookies();
-		
+
 	};
 
 }

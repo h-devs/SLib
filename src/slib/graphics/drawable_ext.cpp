@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	Ref<Bitmap> Drawable::toBitmap()
 	{
 		if (isBitmap()) {
@@ -51,7 +51,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Image> Drawable::toImage()
 	{
 		if (isImage()) {
@@ -79,7 +79,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Drawable> PlatformDrawable::loadFromMemory(const MemoryView& mem)
 	{
 		if (mem.size) {
@@ -87,8 +87,8 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
-	
+
+
 	Ref<Drawable> PlatformDrawable::loadFromFile(const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
@@ -97,7 +97,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Drawable> PlatformDrawable::loadFromAsset(const StringParam& path)
 	{
 		Memory mem = Assets::readAllBytes(path);

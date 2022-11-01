@@ -33,12 +33,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace charset
 		{
-			
+
 			sl_size Encode8(const sl_char8* utf8, sl_size lenUtf8, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
 			{
 				if (lenUtf8) {
@@ -69,7 +69,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			Memory EncodeString8(const sl_char8* utf8, sl_size lenUtf8, sl_uint32 codepage)
 			{
 				NSString* nstr = [[NSString alloc] initWithBytesNoCopy:(void*)utf8 length:lenUtf8 encoding:NSUTF8StringEncoding freeWhenDone:NO];
@@ -85,7 +85,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			sl_size Decode8(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer)
 			{
 				if (sizeInput) {
@@ -110,7 +110,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			String DecodeString8(sl_uint32 codepage, const void* data, sl_size size)
 			{
 				CFStringEncoding cf_encoding = CFStringConvertWindowsCodepageToEncoding(codepage);
@@ -123,7 +123,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			sl_size Encode16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
 			{
 				if (lenUtf16) {
@@ -154,7 +154,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			Memory EncodeString16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage)
 			{
 				NSString* nstr = [[NSString alloc] initWithCharactersNoCopy:(unichar*)utf16 length:lenUtf16 freeWhenDone:NO];
@@ -170,7 +170,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			sl_size Decode16(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer)
 			{
 				if (sizeInput) {
@@ -194,7 +194,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			String16 DecodeString16(sl_uint32 codepage, const void* data, sl_size size)
 			{
 				CFStringEncoding cf_encoding = CFStringConvertWindowsCodepageToEncoding(codepage);
@@ -214,10 +214,10 @@ namespace slib
 				}
 				return sl_null;
 			}
-		
+
 		}
 	}
-	
+
 }
 
 #endif

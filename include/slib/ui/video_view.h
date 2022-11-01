@@ -38,89 +38,89 @@ namespace slib
 	class SLIB_EXPORT VideoView : public RenderView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		VideoView();
-		
+
 		~VideoView();
 
 	protected:
 		void init() override;
-		
+
 	public:
 		Ref<MediaPlayer> getMediaPlayer();
-		
+
 		void setMediaPlayer(const Ref<MediaPlayer>& player);
-		
-		
+
+
 		void openUrl(const String& url, const MediaPlayerFlags& flags = MediaPlayerFlags::Video);
-		
+
 		void openFile(const String& filePath, const MediaPlayerFlags& flags = MediaPlayerFlags::Video);
-		
+
 		void openAsset(const String& fileName, const MediaPlayerFlags& flags = MediaPlayerFlags::Video);
-		
+
 		void setSource(const String& source, const MediaPlayerFlags& flags = MediaPlayerFlags::Video);
-		
-		
+
+
 		sl_bool isRepeat();
-		
+
 		void setRepeat(sl_bool flagRepeat);
-		
-		
+
+
 		RotationMode getRotation();
-		
+
 		void setRotation(const RotationMode& rotation, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
+
+
 		FlipMode getFlip();
-		
+
 		void setFlip(const FlipMode& flip, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		
+
 		ScaleMode getScaleMode();
-		
+
 		void setScaleMode(ScaleMode scaleMode, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
+
+
 		Alignment getGravity();
-		
+
 		virtual void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
+
+
 		sl_bool isControlsVisible();
-		
+
 		virtual void setControlsVisible(sl_bool flag, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
-		
+
+
 		void updateCurrentFrame(VideoFrame& frame);
-		
+
 		Sizei getLastFrameSize();
-		
+
 		// texture coordinate: [0, 0] - left top, [1, 1] - right bottom
 		sl_bool convertCoordinateToTexture(Point& pt);
-		
+
 	protected:
 		void dispatchFrame(RenderEngine* engine) override;
 
 		void onDraw(Canvas* canvas) override;
 
 		void onAttach() override;
-		
+
 	protected:
 		void _renderFrame(RenderCanvas* canvas);
 
 		void _drawFrame(Canvas* canvas);
 
 		Ref<VertexBuffer> _applyFrameRotationAndFlip(FlipMode frameFlip, RotationMode frameRotation, FlipMode userFlip, RotationMode userRotation);
-		
+
 		void _updateControls(UIUpdateMode mode);
 
 		void _setupPlayVideoTimer();
 
 		void _onTimerPlayVideo(Timer* timer);
-		
+
 		void _onSeek(Slider* slider, float value);
-				
+
 	protected:
 		AtomicRef<MediaPlayer> m_mediaPlayer;
 		sl_bool m_flagRepeat;
@@ -136,7 +136,7 @@ namespace slib
 		Ref<RenderProgram2D_PositionTexture> m_programRGB;
 		Ref<RenderProgram2D_PositionTextureYUV> m_programYUV;
 		Ref<RenderProgram2D_PositionTextureOES> m_programOES;
-		
+
 		AtomicRef<VertexBuffer> m_vbFrame;
 		FlipMode m_flipFrameApplied;
 		RotationMode m_rotationFrameApplied;
@@ -146,13 +146,13 @@ namespace slib
 
 		MediaPlayerRenderVideoParam m_renderVideoParam;
 		Ref<Timer> m_timerPlayVideo;
-		
+
 		ScaleMode m_scaleMode;
 		Alignment m_gravity;
-		
+
 		sl_bool m_flagControlsVisible;
 		Ref<Slider> m_sliderSeek;
-		
+
 	};
 
 }

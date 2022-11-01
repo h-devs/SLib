@@ -47,7 +47,7 @@
 
 namespace slib
 {
-	
+
 #if SLIB_WCHAR_SIZE == 2
 	typedef wchar_t sl_base_char16;
 #else

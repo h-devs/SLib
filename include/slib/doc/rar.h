@@ -255,7 +255,7 @@ namespace slib
 	public:
 		RarArchiveFlags5 flags;
 		sl_uint64 volumeNumber;
-		
+
 	public:
 		RarMainBlock5();
 
@@ -396,7 +396,7 @@ namespace slib
 		RarFile();
 
 		~RarFile();
-		
+
 	public:
 		sl_bool setReader(const Ptrx<IReader, ISeekable>& reader);
 
@@ -440,7 +440,7 @@ namespace slib
 		// maxCheckFileCount: negative value means no-limit
 		static sl_bool isEncrypted(const Ptrx<IReader, ISeekable>& reader, sl_int32 maxCheckFileCount = 1);
 		static sl_bool isEncryptedFile(const StringParam& path, sl_int32 maxCheckFileCount = 1);
-	
+
 	private:
 		SkippableReader m_reader;
 

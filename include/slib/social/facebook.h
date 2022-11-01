@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT FacebookUser
 	{
 	public:
@@ -43,39 +43,39 @@ namespace slib
 		String birthday;
 		String quotes;
 		String profile_pic;
-		
+
 		Json json;
-		
+
 	public:
 		FacebookUser();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookUser)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	};
-	
+
 	typedef OAuthApiResult FacebookResult;
-	
+
 	typedef OAuthLoginResult FacebookLoginResult;
-	
+
 	typedef OAuthLoginParam FacebookLoginParam;
-	
+
 	class SLIB_EXPORT FacebookResolveUserUrlParam
 	{
 	public:
 		OAuthWebRedirectDialogOptions dialogOptions;
 		Ptr<OAuthWebRedirectDialog> dialog;
-		
+
 		Function<void(const String& url)> onComplete;
-		
+
 	public:
 		FacebookResolveUserUrlParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookResolveUserUrlParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT FacebookShareResult
 	{
 	public:
@@ -84,23 +84,23 @@ namespace slib
 
 	public:
 		FacebookShareResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookShareResult)
-		
+
 	};
-	
+
 	class SLIB_EXPORT FacebookShareParam
 	{
 	public:
 		String url;
 		String quote;
 		String hashTag;
-		
+
 		Function<void(FacebookShareResult&)> onComplete;
-		
+
 	public:
 		FacebookShareParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookShareParam)
 
 	};
@@ -109,76 +109,76 @@ namespace slib
 	{
 	public:
 		String version;
-		
+
 	public:
 		FacebookParam();
-		
+
 		FacebookParam(const String& version);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookParam)
-		
+
 	};
-	
+
 	class Facebook : public OAuth2
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		Facebook(const FacebookParam& param);
-		
+
 		~Facebook();
-		
+
 	public:
 		static Ref<Facebook> create(const FacebookParam& param);
-		
+
 		static void initialize(const FacebookParam& param);
-		
+
 		static void initialize();
-		
+
 		static Ref<Facebook> create(const String& appId, const String& appSecret, const String& redirectUrl);
 
 		static void initialize(const String& appId, const String& appSecret, const String& redirectUrl);
-		
+
 		static Ref<Facebook> create(const String& appId, const String& redirectUrl);
-		
+
 		static void initialize(const String& appId, const String& redirectUrl);
-		
+
 		static Ref<Facebook> createWithAccessToken(const String& accessToken);
-		
+
 		static Ref<Facebook> getInstance();
-		
+
 	public:
 		static void resolveUserUrl(const FacebookResolveUserUrlParam& param);
-		
+
 		static void resolveUserUrl(const Function<void(const String& url)>& onComplete);
-		
+
 	public:
 		String getRequestUrl(const String& path);
-		
+
 		void getUser(const String& personId, const String& fields, const Function<void(FacebookResult&, FacebookUser&)>& onComplete);
-		
+
 		void getUser(const String& personId, const List<String>& fields, const Function<void(FacebookResult&, FacebookUser&)>& onComplete);
 
 		void getUser(const String& personId, const Function<void(FacebookResult&, FacebookUser&)>& onComplete);
 
 	protected:
 		String m_version;
-		
+
 		friend class FacebookSDK;
 	};
-	
+
 	class FacebookSDK
 	{
 	public:
 		static void initialize(); // Must be called in `Application::onStart()` override
-		
+
 	public:
 		static void login(const FacebookLoginParam& param);
-		
+
 		static void login(const Function<void(FacebookLoginResult& result)>& onComplete);
-		
+
 		static void share(const FacebookShareParam& param);
-		
+
 	public:
 		static void clearAccessToken();
 
@@ -186,9 +186,9 @@ namespace slib
 
 	protected:
 		static void _updateCurrentToken(Facebook* instance);
-		
+
 	};
-	
+
 }
 
 #endif

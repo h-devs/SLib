@@ -42,7 +42,7 @@ namespace slib
 		EFL_ViewInstance();
 
 		~EFL_ViewInstance();
-		
+
 	public:
 		template <class T>
 		static Ref<T> create(EFL_ViewType type, Evas_Object* handle, sl_bool flagFreeOnRelease)
@@ -111,7 +111,7 @@ namespace slib
 		void setClipping(View* view, sl_bool flag) override;
 
 		void setDrawing(View* view, sl_bool flag) override;
-		
+
 		UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) override;
 
 		UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) override;
@@ -134,7 +134,7 @@ namespace slib
 		EFL_ViewType m_type;
 		Evas_Object* m_handle;
 		sl_bool m_flagFreeOnRelease;
-		
+
 #define SLIB_EFL_MULTI_TOUCH_COUNT_MAX 10
 
 		class TouchEventInfo : public Referable

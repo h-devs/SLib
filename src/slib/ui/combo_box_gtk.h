@@ -52,7 +52,7 @@ namespace slib
 					}
 				}
 			}
-			
+
 			static void InsertItem(GtkComboBox* handle, sl_int32 index, const String& _title)
 			{
 				StringCstr title(_title);

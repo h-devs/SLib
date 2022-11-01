@@ -101,7 +101,7 @@ namespace slib
 	}
 
 	using namespace priv::dokany;
-	
+
 	sl_bool Dokany::install()
 	{
 		return InstallDriver();

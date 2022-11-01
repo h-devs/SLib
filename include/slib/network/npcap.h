@@ -34,7 +34,7 @@ namespace slib
 	{
 	public:
 		static ServiceState getDriverState();
-		
+
 		static sl_bool startDriver();
 
 		static sl_bool install();
@@ -42,7 +42,7 @@ namespace slib
 		static sl_bool uninstall();
 
 	};
-	
+
 }
 
 #endif

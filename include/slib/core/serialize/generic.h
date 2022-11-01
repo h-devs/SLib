@@ -65,7 +65,7 @@ namespace slib
 				{
 					return CVLI::serialize(output, (sl_int64)_in);
 				}
-				
+
 				template <class INPUT>
 				static sl_bool deserialize(INPUT* input, T& _out)
 				{

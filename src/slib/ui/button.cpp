@@ -848,7 +848,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void Button::setColorFilter(ColorMatrix* filter, ButtonState state, sl_uint32 category, UIUpdateMode mode)
 	{
 		_initCell();
@@ -868,17 +868,17 @@ namespace slib
 			}
 		}
 	}
-	
+
 	ColorMatrix* Button::getColorFilter()
 	{
 		return getColorFilter(ButtonState::Default);
 	}
-	
+
 	void Button::setColorFilter(ColorMatrix* filter, UIUpdateMode mode)
 	{
 		setColorFilter(filter, ButtonState::Default, 0, mode);
 	}
-	
+
 	void Button::setColorOverlay(const Color& color, ButtonState state, sl_uint32 category, UIUpdateMode mode)
 	{
 		if (color.isZero()) {
@@ -889,12 +889,12 @@ namespace slib
 			setColorFilter(&cm, state, category, mode);
 		}
 	}
-	
+
 	void Button::setColorOverlay(const Color& color, UIUpdateMode mode)
 	{
 		setColorOverlay(color, ButtonState::Normal, 0, mode);
 	}
-	
+
 	sl_bool Button::isUsingDefaultColorFilter()
 	{
 		if (m_cell.isNotNull()) {
@@ -1056,7 +1056,7 @@ namespace slib
 			drawBorder(canvas, border);
 		}
 	}
-	
+
 	void Button::onDrawShadow(Canvas* canvas)
 	{
 		if (drawLayerShadow(canvas)) {
@@ -1195,7 +1195,7 @@ namespace slib
 	{
 		return sl_null;
 	}
-	
+
 	Ptr<IButtonInstance> Button::getButtonInstance()
 	{
 		return sl_null;
@@ -1241,7 +1241,7 @@ namespace slib
 		flagUseDefaultColorFilter = sl_true;
 
 	}
-	
+
 	ButtonCell::~ButtonCell()
 	{
 	}

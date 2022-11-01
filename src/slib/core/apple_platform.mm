@@ -97,12 +97,12 @@ namespace slib
 		time.setSecondCountf([date timeIntervalSince1970]);
 		return time;
 	}
-	
+
 	NSDate* Apple::getNSDateFromTime(const Time& time)
 	{
 		return [NSDate dateWithTimeIntervalSince1970:(time.getSecondCountf())];
 	}
-	
+
 	String Apple::getFilePathFromNSURL(NSURL* url)
 	{
 		if (url != nil) {
@@ -140,7 +140,7 @@ namespace slib
 		}
 		return nil;
 	}
-	
+
 	NSString* Apple::getSystemLocalizedNSString(NSString* str)
 	{
 #if defined(SLIB_PLATFORM_IS_IOS)

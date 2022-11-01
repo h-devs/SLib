@@ -35,9 +35,9 @@ namespace slib
 	{
 		setSavingCanvasState(sl_false);
 		setUsingFont(sl_true);
-		
+
 		setPadding(1, 1, 1, 1, UIUpdateMode::Init);
-		
+
 		m_cell = new LabelViewCell;
 	}
 
@@ -50,7 +50,7 @@ namespace slib
 		View::init();
 
 		setAntiAlias(sl_true, UIUpdateMode::Init);
-		
+
 		m_cell->setView(this);
 		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, dispatchClickLink);
 	}
@@ -205,12 +205,12 @@ namespace slib
 		prepareLabelViewCellLayout(m_cell.get());
 		m_cell->onDraw(canvas);
 	}
-	
+
 	void LabelView::onClickEvent(UIEvent* ev)
 	{
 		m_cell->onClickEvent(ev);
 	}
-	
+
 	void LabelView::onSetCursor(UIEvent* ev)
 	{
 		m_cell->onSetCursor(ev);

@@ -497,7 +497,7 @@ namespace slib
 
 								g_object_unref(layout);
 							}
-							
+
 							if (_font->isStrikeout() || _font->isUnderline()) {
 								sl_real width = _font->measureText(StringParam(text.getData(), len)).x;
 								if (_font->isUnderline()) {

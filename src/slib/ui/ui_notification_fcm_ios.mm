@@ -46,9 +46,9 @@ namespace slib
 	{
 		namespace fcm
 		{
-		
+
 			SLIBFirebaseMessagingDelegate* g_delegate;
-		
+
 			class FCMImpl : public FCM
 			{
 			public:
@@ -63,7 +63,7 @@ namespace slib
 				}
 
 			};
-		
+
 		}
 	}
 
@@ -73,12 +73,12 @@ namespace slib
 	{
 		SLIB_SAFE_LOCAL_STATIC(Mutex, lock)
 		MutexLocker locker(&lock);
-		
+
 		SLIB_LOCAL_STATIC_ZERO_INITIALIZED(Ref<FCM>, instance);
 		if (instance.isNotNull()) {
 			return instance;
 		}
-		
+
 		instance = new FCMImpl;
 
 		UIPlatform::registerDidReceiveRemoteNotificationCallback([&instance](NSDictionary* _userInfo) {
@@ -87,7 +87,7 @@ namespace slib
 				instance->dispatchReceiveMessage(message);
 			}
 		});
-		
+
 		return instance;
 	}
 

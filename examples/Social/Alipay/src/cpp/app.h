@@ -12,10 +12,10 @@ class ExampleAlipayApp : public MobileApp
 	SLIB_APPLICATION(ExampleAlipayApp)
 public:
 	ExampleAlipayApp();
-	
+
 protected:
 	Ref<View> getStartupPage() override;
 
 	void onStart() override;
-	
+
 };

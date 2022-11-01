@@ -29,14 +29,14 @@
 
 namespace slib
 {
-	
+
 	template <class TYPE>
 	class SLIB_EXPORT DatabaseParametersLocker
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const TYPE& map, const List<String>& _names)
 		{
@@ -55,19 +55,19 @@ namespace slib
 				}
 			}
 		}
-		
+
 	private:
 		List<Variant> m_list;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT DatabaseParametersLocker< List<T> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const List<T>& _src, const List<String>& names)
 		{
@@ -86,19 +86,19 @@ namespace slib
 				}
 			}
 		}
-		
+
 	private:
 		List<Variant> m_list;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT DatabaseParametersLocker< Atomic< List<T> > >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const Atomic< List<T> >& _src, const List<String>& names)
 		{
@@ -117,19 +117,19 @@ namespace slib
 				}
 			}
 		}
-		
+
 	private:
 		List<Variant> m_list;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT DatabaseParametersLocker< ListParam<T> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const ListParam<T>& _src, const List<String>& names)
 		{
@@ -148,19 +148,19 @@ namespace slib
 				}
 			}
 		}
-		
+
 	private:
 		List<Variant> m_list;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT DatabaseParametersLocker< ListElements<T> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const ListElements<T>& src, const List<String>& names)
 		{
@@ -178,19 +178,19 @@ namespace slib
 				}
 			}
 		}
-		
+
 	private:
 		List<Variant> m_list;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT DatabaseParametersLocker< ListLocker<T> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const ListLocker<T>& src, const List<String>& names)
 		{
@@ -208,76 +208,76 @@ namespace slib
 				}
 			}
 		}
-		
+
 	private:
 		List<Variant> m_list;
 
 	};
-	
+
 	template <>
 	class SLIB_EXPORT DatabaseParametersLocker< List<Variant> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const List<Variant>& src, const List<String>& names): m_locker(src)
 		{
 			data = m_locker.data;
 			count = m_locker.count;
 		}
-		
+
 	private:
 		ListLocker<Variant> m_locker;
 
 	};
-	
+
 	template <>
 	class SLIB_EXPORT DatabaseParametersLocker< Atomic< List<Variant> > >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const Atomic< List<Variant> >& src, const List<String>& names): m_locker(src)
 		{
 			data = m_locker.data;
 			count = m_locker.count;
 		}
-		
+
 	private:
 		ListLocker<Variant> m_locker;
 
 	};
-	
+
 	template <>
 	class SLIB_EXPORT DatabaseParametersLocker< ListParam<Variant> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const ListParam<Variant>& src, const List<String>& names): m_locker(src)
 		{
 			data = m_locker.data;
 			count = m_locker.count;
 		}
-		
+
 	public:
 		ListLocker<Variant> m_locker;
 
 	};
-	
+
 	template <>
 	class SLIB_EXPORT DatabaseParametersLocker< ListElements<Variant> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const ListElements<Variant>& src, const List<String>& names)
 		{
@@ -286,14 +286,14 @@ namespace slib
 		}
 
 	};
-	
+
 	template <>
 	class SLIB_EXPORT DatabaseParametersLocker< ListLocker<Variant> >
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(const ListLocker<Variant>& src, const List<String>& names)
 		{
@@ -302,14 +302,14 @@ namespace slib
 		}
 
 	};
-	
+
 	template <>
 	class SLIB_EXPORT DatabaseParametersLocker<sl_null_t>
 	{
 	public:
 		Variant* data;
 		sl_size count;
-		
+
 	public:
 		DatabaseParametersLocker(sl_null_t, const List<String>& names)
 		{
@@ -318,7 +318,7 @@ namespace slib
 		}
 
 	};
-	
+
 }
 
 #endif

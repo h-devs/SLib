@@ -40,12 +40,12 @@ namespace slib
 		m_handle = sl_null;
 		m_actionDrag = UIAction::MouseMove;
 	}
-	
+
 	GTK_ViewInstance::~GTK_ViewInstance()
 	{
 		_release();
 	}
-	
+
 	void GTK_ViewInstance::_init(GtkWidget* handle)
 	{
 		g_object_ref_sink(handle);
@@ -59,7 +59,7 @@ namespace slib
 		if (!handle) {
 			return;
 		}
-		
+
 		if (!(view->isEnabled())) {
 			gtk_widget_set_sensitive(handle, sl_false);
 		}
@@ -76,7 +76,7 @@ namespace slib
 		} else {
 			installEvents();
 		}
-		
+
 		GtkWidget* parent = sl_null;
 		if (_parent) {
 			parent = ((GTK_ViewInstance*)_parent)->m_handle;
@@ -114,12 +114,12 @@ namespace slib
 	{
 		return m_handle;
 	}
-	
+
 	sl_bool GTK_ViewInstance::isValid(View* view)
 	{
 		return sl_true;
 	}
-	
+
 	void GTK_ViewInstance::setFocus(View* view, sl_bool flag)
 	{
 		GtkWidget* handle = m_handle;
@@ -136,7 +136,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GTK_ViewInstance::invalidate(View* view)
 	{
 		GtkWidget* handle = m_handle;
@@ -149,7 +149,7 @@ namespace slib
 			gtk_widget_queue_draw(handle);
 		}
 	}
-	
+
 	void GTK_ViewInstance::invalidate(View* view, const UIRect& rect)
 	{
 		GtkWidget* handle = m_handle;
@@ -162,7 +162,7 @@ namespace slib
 			gtk_widget_queue_draw_area(handle, rect.left, rect.top, rect.getWidth(), rect.getHeight());
 		}
 	}
-	
+
 	void GTK_ViewInstance::setFrame(View* view, const UIRect& frame)
 	{
 		GtkWidget* handle = m_handle;
@@ -171,7 +171,7 @@ namespace slib
 			_updateFrameAndTransform();
 		}
 	}
-	
+
 	void GTK_ViewInstance::setTransform(View* view, const Matrix3& m)
 	{
 		GtkWidget* handle = m_handle;
@@ -192,7 +192,7 @@ namespace slib
 			gtk_widget_set_size_request(handle, m_frame.getWidth(), m_frame.getHeight());
 		}
 	}
-	
+
 	void GTK_ViewInstance::setVisible(View* view, sl_bool flag)
 	{
 		GtkWidget* handle = m_handle;
@@ -204,7 +204,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GTK_ViewInstance::setEnabled(View* view, sl_bool flag)
 	{
 		GtkWidget* handle = m_handle;
@@ -216,11 +216,11 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GTK_ViewInstance::setOpaque(View* view, sl_bool flag)
 	{
 	}
-	
+
 	void GTK_ViewInstance::setAlpha(View* view, sl_real alpha)
 	{
 	}
@@ -242,7 +242,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	UIPointf GTK_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
 	{
 		GtkWidget* handle = m_handle;
@@ -253,7 +253,7 @@ namespace slib
 		}
 		return ptScreen;
 	}
-	
+
 	UIPointf GTK_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
 	{
 		GtkWidget* handle = m_handle;
@@ -264,7 +264,7 @@ namespace slib
 		}
 		return ptView;
 	}
-	
+
 	void GTK_ViewInstance::addChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		GTK_ViewInstance* child = static_cast<GTK_ViewInstance*>(_child.get());
@@ -290,7 +290,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GTK_ViewInstance::removeChildInstance(View* view, const Ref<ViewInstance>& _child)
 	{
 		GTK_ViewInstance* child = static_cast<GTK_ViewInstance*>(_child.get());
@@ -306,7 +306,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GTK_ViewInstance::bringToFront(View* view)
 	{
 		GtkWidget* handle = m_handle;
@@ -371,7 +371,7 @@ namespace slib
 			gtk_widget_set_events(handleConnect, mask);
 		}
 	}
-	
+
 	gboolean GTK_ViewInstance::eventCallback(GtkWidget*, GdkEvent* event, gpointer user_data)
 	{
 		Ref<GTK_ViewInstance> instance = Ref<GTK_ViewInstance>::from(UIPlatform::getViewInstance((GtkWidget*)user_data));
@@ -476,7 +476,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	gboolean GTK_ViewInstance::onButtonEvent(GdkEventButton* gevent)
 	{
 		GtkWidget* handle = m_handle;
@@ -537,7 +537,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	gboolean GTK_ViewInstance::onCrossingEvent(GdkEventCrossing* gevent)
 	{
 		GtkWidget* handle = m_handle;
@@ -570,7 +570,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	gboolean GTK_ViewInstance::onKeyEvent(GdkEventKey* gevent)
 	{
 		GtkWidget* handle = m_handle;
@@ -612,7 +612,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	gboolean GTK_ViewInstance::onScrollEvent(GdkEventScroll* gevent)
 	{
 		GtkWidget* handle = m_handle;
@@ -658,7 +658,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	gboolean GTK_ViewInstance::onFocusEvent(GdkEventFocus* gevent)
 	{
 		GtkWidget* handle = m_handle;
@@ -671,7 +671,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	gint GTK_ViewInstance::getEventMask()
 	{
 		return SLIB_GTK_EVENT_MASK_DEFAULT;
@@ -680,14 +680,14 @@ namespace slib
 	Ref<ViewInstance> View::createGenericInstance(ViewInstance* _parent)
 	{
 		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
-		
+
 		GtkWidget* handle;
 		if (m_flagCreatingChildInstances) {
 			handle = gtk_fixed_new();
 		} else {
 			handle = gtk_drawing_area_new();
 		}
-		
+
 		if (handle) {
 			gtk_widget_set_has_window(handle, 1);
 			gtk_widget_set_can_focus(handle, 1);
@@ -710,17 +710,17 @@ namespace slib
 		}
 		return GTK_ViewInstance::create<GTK_ViewInstance>(handle);
 	}
-	
+
 	void UIPlatform::registerViewInstance(GtkWidget* handle, ViewInstance* instance)
 	{
 		UIPlatform::_registerViewInstance(handle, instance);
 	}
-	
+
 	Ref<ViewInstance> UIPlatform::getViewInstance(GtkWidget* handle)
 	{
 		return UIPlatform::_getViewInstance(handle);
 	}
-	
+
 	Ref<View> UIPlatform::getView(GtkWidget* handle)
 	{
 		Ref<ViewInstance> instance = UIPlatform::_getViewInstance(handle);
@@ -734,7 +734,7 @@ namespace slib
 	{
 		UIPlatform::_removeViewInstance(handle);
 	}
-	
+
 	GtkWidget* UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
 		GTK_ViewInstance* instance = static_cast<GTK_ViewInstance*>(_instance);
@@ -743,7 +743,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	GtkWidget* UIPlatform::getViewHandle(View* view)
 	{
 		if (view) {

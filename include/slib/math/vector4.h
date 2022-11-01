@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T, class FT>
 	class SLIB_EXPORT VectorT<4, T, FT>
 	{
@@ -44,12 +44,12 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(VectorT)
-		
+
 		VectorT() = default;
-	
+
 		template <class O, class FO>
 		SLIB_CONSTEXPR VectorT(const VectorT<4, O, FO>& other): x((T)(other.x)), y((T)(other.y)), z((T)(other.z)), w((T)(other.w)) {}
-	
+
 		SLIB_CONSTEXPR VectorT(T _x, T _y, T _z, T _w): x(_x), y(_y), z(_z), w(_w) {}
 
 		SLIB_CONSTEXPR VectorT(const VectorT<3, T, FT>& xyz, T _w): x(xyz.x), y(xyz.y), z(xyz.z), w(_w) {}
@@ -62,7 +62,7 @@ namespace slib
 			z = (T)(arr[2]);
 			w = (T)(arr[3]);
 		}
-		
+
 	public:
 		static const VectorT& zero() noexcept
 		{
@@ -74,12 +74,12 @@ namespace slib
 		{
 			return *(reinterpret_cast<VectorT const*>(arr));
 		}
-	
+
 		static VectorT& fromArray(T arr[4]) noexcept
 		{
 			return *(reinterpret_cast<VectorT*>(arr));
 		}
-	
+
 	public:
 		const VectorT<3, T, FT>& xyz() const noexcept
 		{
@@ -174,7 +174,7 @@ namespace slib
 		{
 			return {(T)SLIB_LERP(x, target.x, factor), (T)SLIB_LERP(y, target.y, factor), (T)SLIB_LERP(z, target.z, factor), (T)SLIB_LERP(w, target.w, factor)};
 		}
-	
+
 		SLIB_CONSTEXPR VectorT divideReverse(T f) const
 		{
 			return {f / x, f / y, f / z, f / w};
@@ -184,7 +184,7 @@ namespace slib
 		{
 			return x == other.x && y == other.y && z == other.z && w == other.w;
 		}
-	
+
 		SLIB_CONSTEXPR sl_bool isAlmostEqual(const VectorT& other) const
 		{
 			return Math::isAlmostZero(x - other.x) &&
@@ -297,7 +297,7 @@ namespace slib
 
 	template <class T, class FT = T>
 	using Vector4T = VectorT<4, T, FT>;
-	
+
 	typedef Vector4T<sl_real> Vector4;
 	typedef Vector4T<float> Vector4f;
 	typedef Vector4T<double> Vector4lf;

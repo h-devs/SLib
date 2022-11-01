@@ -42,7 +42,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WinspdParam)
 
 	};
-	
+
 	class SLIB_EXPORT Winspd
 	{
 	public:

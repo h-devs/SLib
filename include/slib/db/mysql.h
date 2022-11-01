@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT MySQL_Param
 	{
 	public:
@@ -45,7 +45,7 @@ namespace slib
 
 		sl_bool flagAutoReconnect;
 		sl_bool flagMultipleStatements;
-		
+
 		// Output
 		String error;
 
@@ -64,14 +64,14 @@ namespace slib
 		MySQL();
 
 		~MySQL();
-	
+
 	public:
 		typedef MySQL_Param Param;
 		static Ref<MySQL> connect(Param& param);
-	
+
 	public:
 		virtual sl_bool ping() = 0;
-	
+
 	public:
 		static void initThread();
 

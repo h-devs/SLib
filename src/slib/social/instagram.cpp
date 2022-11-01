@@ -24,13 +24,13 @@
 
 namespace slib
 {
-	
+
 #if !defined(SLIB_PLATFORM_IS_IOS) && !defined(SLIB_PLATFORM_IS_ANDROID)
-	
+
 	void Instagram::openInstagramAppSharingFile(const Memory& data)
 	{
 	}
-	
+
 #endif
-	
+
 }

@@ -204,7 +204,7 @@ public class Time {
 	public long getTimeInMilliseconds() {
 		return calendar.getTimeInMillis();
 	}
-	
+
 	public static long getCurrentTimeInMilliseconds() {
 		return (new Time()).getTimeInMilliseconds();
 	}
@@ -300,7 +300,7 @@ public class Time {
 		String ret = NumberFormator.formatInt(getYear(), 4) + "/" + getMonth() + "/" + getDate();
 		return ret;
 	}
-	
+
 	static String arrMonth[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 	public String getDateString2() {
 		String ret = arrMonth[getMonth()-1] + " " + getDate() + " " + getYear();

@@ -100,7 +100,7 @@ namespace slib
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-		
+
 		setCreatingChildInstances(sl_false);
 		setRendering(sl_true);
 

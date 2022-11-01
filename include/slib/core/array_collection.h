@@ -63,7 +63,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool toJsonString(StringBuffer& buf) override
 		{
 			sl_size n = m_array->getCount();

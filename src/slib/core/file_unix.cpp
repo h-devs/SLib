@@ -74,7 +74,7 @@ namespace slib
 	{
 		namespace file
 		{
-			
+
 			static FileAttributes GetAttributes(struct stat& st)
 			{
 				int ret = 0;
@@ -146,7 +146,7 @@ namespace slib
 #endif
 				return t;
 			}
-			
+
 			static sl_int64 GetAccessedTime(struct stat& st) noexcept
 			{
 #if defined(SLIB_PLATFORM_IS_APPLE)
@@ -164,7 +164,7 @@ namespace slib
 #endif
 				return t;
 			}
-			
+
 			static sl_int64 GetCreatedTime(struct stat& st) noexcept
 			{
 #if defined(SLIB_PLATFORM_IS_APPLE)
@@ -196,7 +196,7 @@ namespace slib
 				t[1].tv_usec = (int)(timeModify.toInt() % 1000000);
 				return !(utimes(filePath.getData(), t));
 			}
-		
+
 			static int GetFilePermissions(const FileAttributes& attrs)
 			{
 				int perm = 0;
@@ -234,14 +234,14 @@ namespace slib
 	}
 
 	using namespace priv::file;
-	
+
 	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs) noexcept
 	{
 		StringCstr filePath(_filePath);
 		if (filePath.isEmpty()) {
 			return SLIB_FILE_INVALID_HANDLE;
 		}
-		
+
 		int flags = 0;
 		if (mode & FileMode::Write) {
 			if (mode & FileMode::Read) {
@@ -261,12 +261,12 @@ namespace slib
 		} else {
 			flags = O_RDONLY;
 		}
-		
+
 		int perm = 0;
 		if (flags & O_CREAT) {
 			perm = GetFilePermissions(attrs);
 		}
-		
+
 		int fd = ::open(filePath.getData(), flags, perm);
 		return fd;
 	}
@@ -432,7 +432,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool File::getSize(const StringParam& _filePath, sl_uint64& outSize) noexcept
 	{
 		StringCstr filePath(_filePath);
@@ -468,7 +468,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool File::unlock(sl_uint64 offset, sl_uint64 length) const noexcept
 	{
 		int fd = m_file;
@@ -484,7 +484,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool File::flush() const noexcept
 	{
 		int fd = m_file;
@@ -613,7 +613,7 @@ namespace slib
 			return Time::zero();
 		}
 	}
-	
+
 	sl_bool File::setModifiedTime(const Time& time) const noexcept
 	{
 		// not supported

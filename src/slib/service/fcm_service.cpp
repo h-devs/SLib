@@ -33,7 +33,7 @@ namespace slib
 	{
 		namespace fcm_service
 		{
-		
+
 			SLIB_STATIC_STRING(g_str_to, "to")
 			SLIB_STATIC_STRING(g_str_registration_ids, "registration_ids")
 			SLIB_STATIC_STRING(g_str_data, "data")
@@ -69,11 +69,11 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FCM_SendParam)
-	
+
 	FCM_SendParam::FCM_SendParam()
 	{
 	}
-	
+
 
 	void FCM_Service::sendNotification(const FCM_SendParam& param)
 	{
@@ -102,7 +102,7 @@ namespace slib
 				body.putItem(item.key, item.value);
 			}
 		}
-		
+
 		Function<void(FCM_ServiceSendResponse&)> callback = param.callback;
 		SLIB_STATIC_STRING(url, "https://fcm.googleapis.com/fcm/send")
 		UrlRequest::post(url, headers, body, [callback](UrlRequest* request) {
@@ -123,5 +123,5 @@ namespace slib
 			callback(response);
 		});
 	}
-	
+
 }

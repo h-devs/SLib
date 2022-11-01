@@ -20,7 +20,7 @@
 				/>
 
 			<row>
-				<hlinear					
+				<hlinear
 					centerHorizontal='true'
 					colspan='2'
 					>
@@ -37,7 +37,7 @@
 						/>
 				</hlinear>
 			</row>
-			
+
 			<row>
 				<label
 					text='Authorize URL'
@@ -180,7 +180,7 @@
 						text='Verifier'
 						style='label'
 						marginLeft='10sp'
-						marginRight='5sp'						
+						marginRight='5sp'
 						/>
 					<edit
 						name='txtVerifier'
@@ -260,12 +260,12 @@
 					/>
 			</row>
 			<row>
-				<hlinear					
+				<hlinear
 					centerHorizontal='true'
 					colspan='2'
 					>
-					
-					
+
+
 				</hlinear>
 			</row>
 		</table>
@@ -283,7 +283,7 @@
 		gravity='left'
 		margin='5dp'
 		/>
-	
+
 	<style
 		name='button'
 		width='200dp'

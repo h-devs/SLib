@@ -36,71 +36,71 @@ namespace slib
 	{
 	public:
 		Captcha();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Captcha)
-		
+
 	public:
 		sl_uint32 getCodeLength() const;
-		
+
 		void setCodeLength(sl_uint32 length);
-		
+
 		String16 getCodeElements() const;
-		
+
 		void setCodeElements(const StringParam& codeset);
-		
+
 		String16 getInterferingElements() const;
-		
+
 		void setInterferingElements(const StringParam& elements);
-		
+
 		sl_uint32 getInterferingCount() const;
-		
+
 		void setInterferingCount(sl_uint32 count);
-		
+
 		sl_uint32 getWidth() const;
-		
+
 		void setWidth(sl_uint32 width);
-		
+
 		sl_uint32 getHeight() const;
-		
+
 		void setHeight(sl_uint32 height);
-		
+
 		Ref<Font> getFont() const;
-		
+
 		void setFont(const Ref<Font>& font);
-		
+
 		Ref<Font> getInterferingFont() const;
-		
+
 		void setInterferingFont(const Ref<Font>& font);
-		
+
 		Color getBackgroundColor() const;
-		
+
 		void setBackgroundColor(const Color& color);
-		
+
 		sl_bool prepare();
 
 	public:
 		Ref<Image> generate(String& code);
-		
+
 	protected:
 		Mutex m_lock;
-		
+
 		sl_uint32 m_length;
 		sl_uint32 m_width;
 		sl_uint32 m_height;
-		
+
 		Ref<Font> m_font;
 		Ref<Font> m_fontInterfering;
 		String16 m_codeset;
 		String16 m_interferingElements;
 		sl_uint32 m_interferingCount;
 		Color m_backgroundColor;
-		
+
 		sl_bool m_flagPrepared;
 		List< Ref<Image> > m_imagesCodeset;
 		List< Ref<Image> > m_imagesInterferingElements;
-		
+
 	};
-	
+
 }
 
 #endif

@@ -41,7 +41,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace openssl
@@ -110,7 +110,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-		
+
 			static sl_bool Verify_RSA_Signature(EVP_PKEY* key, const EVP_MD* md, const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 			{
 				EVP_MD_CTX_Handle ctx(EVP_MD_CTX_new());
@@ -125,7 +125,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-		
+
 			static Memory Generate_ECDSA_Signature(EVP_PKEY* key, const void* hash, sl_uint32 sizeHash)
 			{
 				EC_KEY* ekey = EVP_PKEY_get0_EC_KEY(key);
@@ -152,7 +152,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-		
+
 			static sl_bool Verify_ECDSA_Signature(EVP_PKEY* key, const void* hash, sl_uint32 sizeHash, const void* signature, sl_size sizeSignature)
 			{
 				if (sizeSignature & 1) {
@@ -195,7 +195,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-		
+
 			static sl_bool Verify_RSA_PSS_Signature(EVP_PKEY* key, const EVP_MD* md, const void* hash, sl_size sizeHash, const void* signature, sl_size sizeSignature)
 			{
 				::RSA* rsa = EVP_PKEY_get0_RSA(key);
@@ -214,7 +214,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-		
+
 			static BigInt Get_BigInt_from_BIGNUM(const BIGNUM* bn)
 			{
 				if (bn) {
@@ -229,7 +229,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			static BIGNUM* Get_BIGNUM_from_BigInt(const BigInt& n)
 			{
 				if (n.isNotNull()) {
@@ -289,7 +289,7 @@ namespace slib
 				}
 				return ECPoint();
 			}
-			
+
 			static EC_POINT* Get_EC_POINT_from_ECPoint(const EC_GROUP* group, const ECPoint& pt)
 			{
 				EC_POINT_Handle ret(EC_POINT_new(group));
@@ -309,7 +309,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			static EC_KEY* Get_EC_KEY_from_ECPublicKey(const EC_GROUP* group, const ECPublicKey& key)
 			{
 				if (key.Q.isO()) {
@@ -328,7 +328,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			static EC_KEY* Get_EC_KEY_from_ECPrivateKey(const EC_GROUP* group, const ECPrivateKey& key)
 			{
 				EC_KEY_Handle ekey(Get_EC_KEY_from_ECPublicKey(group, key));
@@ -344,7 +344,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			static ECDSA_SIG* get_ECDSA_SIG_from_ECDSA_Signature(const ECDSA_Signature& _sig)
 			{
 				BIGNUM_Handle r(Get_BIGNUM_from_BigInt(_sig.r));
@@ -393,7 +393,7 @@ namespace slib
 				}
 				return ret;
 			}
-			
+
 			static sl_bool Do_verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& _sig)
 			{
 				InitThread();
@@ -801,7 +801,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 			static ::X509* Load_X509(const void* content, sl_size size)
 			{
 				if (content && size) {
@@ -1149,16 +1149,16 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::openssl;
-	
-	
+
+
 	OpenSSL_AES::OpenSSL_AES()
 	{
 		m_keyEnc = sl_null;
 		m_keyDec = sl_null;
 	}
-	
+
 	OpenSSL_AES::~OpenSSL_AES()
 	{
 		if (m_keyEnc) {
@@ -1168,7 +1168,7 @@ namespace slib
 			Base::freeMemory(m_keyDec);
 		}
 	}
-	
+
 	sl_bool OpenSSL_AES::setKey(const void* key, sl_uint32 lenKey)
 	{
 		if (!m_keyEnc) {
@@ -1185,19 +1185,19 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	void OpenSSL_AES::setKey_SHA256(const StringView& key)
 	{
 		char sig[32];
 		SHA256::hash(key, sig);
 		setKey(sig, 32);
 	}
-	
+
 	void OpenSSL_AES::encryptBlock(const void* src, void* dst) const
 	{
 		AES_encrypt((unsigned char*)src, (unsigned char*)dst, (AES_KEY*)m_keyEnc);
 	}
-	
+
 	void OpenSSL_AES::decryptBlock(const void* src, void* dst) const
 	{
 		AES_decrypt((unsigned char*)src, (unsigned char*)dst, (AES_KEY*)m_keyDec);
@@ -1205,7 +1205,7 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(OpenSSL_Key, Object)
-	
+
 	OpenSSL_Key::OpenSSL_Key()
 	{
 		m_key = sl_null;
@@ -1262,7 +1262,7 @@ namespace slib
 	{
 		return Generate_RSA_Signature(m_key, EVP_sha256(), data, sizeData);
 	}
-	
+
 	sl_bool OpenSSL_Key::verify_RSA_SHA256(const void* data, sl_size sizeData, const void* signature, sl_size sizeSignature)
 	{
 		return Verify_RSA_Signature(m_key, EVP_sha256(), data, sizeData, signature, sizeSignature);
@@ -1343,7 +1343,7 @@ namespace slib
 		SHA256::hash(data, sizeData, h);
 		return Verify_ECDSA_Signature(m_key, h, 32, signature, sizeSignature);
 	}
-	
+
 	Memory OpenSSL_Key::sign_ECDSA_SHA384(const void* data, sl_size sizeData)
 	{
 		unsigned char h[48];
@@ -1399,7 +1399,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	Memory OpenSSL::generatePrime(sl_uint32 nBits)
 	{
 		InitThread();
@@ -1419,7 +1419,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_bool OpenSSL::randomBytes(void* bytes, sl_uint32 nBytes, sl_bool flagPrivate)
 	{
 		InitThread();
@@ -1475,7 +1475,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool OpenSSL::check_ECKey(const EllipticCurve& curve, const ECPublicKey& key)
 	{
 		InitThread();
@@ -1498,7 +1498,7 @@ namespace slib
 		}
 		return ECDSA_Signature();
 	}
-	
+
 	ECDSA_Signature OpenSSL::sign_ECDSA(const EllipticCurve& curve, const ECPrivateKey& key, const void* hash, sl_size size)
 	{
 		return Do_sign_ECDSA(curve, key, hash, size);
@@ -1533,12 +1533,12 @@ namespace slib
 		}
 		return Do_verify_ECDSA(curve, key, mem.getData(), mem.getSize(), signature);
 	}
-	
+
 	sl_bool OpenSSL::verify_ECDSA(const EllipticCurve& curve, const ECPublicKey& key, const void* hash, sl_size size, const ECDSA_Signature& signature)
 	{
 		return Do_verify_ECDSA(curve, key, hash, size, signature);
 	}
-	
+
 	sl_bool OpenSSL::verify_ECDSA_SHA256(const EllipticCurve& curve, const ECPublicKey& key, const void* data, sl_size size, const ECDSA_Signature& signature)
 	{
 		sl_uint8 hash[SHA256::HashSize];

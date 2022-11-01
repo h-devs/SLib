@@ -28,22 +28,22 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class Nullable
 	{
 	public:
 		Nullable(): flagNull(sl_true) {}
-		
+
 		Nullable(const Nullable& other): flagNull(other.flagNull), value(other.value) {}
-		
+
 		Nullable(Nullable&& other): flagNull(Move(other.flagNull)), value(Move(other.value)) {}
-		
+
 		Nullable(sl_null_t): flagNull(sl_true) {}
-		
+
 		template <class OTHER>
 		Nullable(const Nullable<OTHER>& other): flagNull(other.flagNull), value(other.value) {}
-		
+
 		template <class... ARGS>
 		Nullable(ARGS... args): flagNull(sl_false), value(Forward<ARGS...>(args...)) {}
 
@@ -57,28 +57,28 @@ namespace slib
 		{
 			return value;
 		}
-		
+
 		Nullable& operator=(const Nullable& other)
 		{
 			flagNull = other.flagNull;
 			value = other.value;
 			return *this;
 		}
-		
+
 		Nullable& operator=(Nullable&& other)
 		{
 			flagNull = other.flagNull;
 			value = Move(other.value);
 			return *this;
 		}
-		
+
 		Nullable& operator=(sl_null_t)
 		{
 			flagNull = sl_true;
 			value = T();
 			return *this;
 		}
-		
+
 		template <class OTHER>
 		Nullable& operator=(const Nullable<OTHER>& other)
 		{
@@ -86,7 +86,7 @@ namespace slib
 			value = other.value;
 			return *this;
 		}
-		
+
 		template <class ARG>
 		Nullable& operator=(ARG&& arg)
 		{
@@ -99,18 +99,18 @@ namespace slib
 		{
 			return !flagNull;
 		}
-		
+
 	public:
 		SLIB_CONSTEXPR sl_bool isNull() const
 		{
 			return flagNull;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNotNull() const
 		{
 			return !flagNull;
 		}
-		
+
 		void setNull()
 		{
 			flagNull = sl_true;
@@ -121,12 +121,12 @@ namespace slib
 		{
 			return value;
 		}
-		
+
 		T& get() noexcept
 		{
 			return value;
 		}
-		
+
 	public:
 		sl_compare_result compare(const Nullable& other) const noexcept
 		{
@@ -194,16 +194,16 @@ namespace slib
 				return Hash<T>()(value);
 			}
 		}
-	
-	public:		
+
+	public:
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
-		
+
 	public:
 		T value;
 		sl_bool flagNull;
-		
+
 	};
-	
+
 }
 
 #endif

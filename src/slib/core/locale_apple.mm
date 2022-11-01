@@ -71,7 +71,7 @@ namespace slib
 		[[NSNotificationCenter defaultCenter] addObserver:observer selector:@selector(onChangeLocale:) name:NSCurrentLocaleDidChangeNotification object:nil];
 	}
 #endif
-	
+
 }
 
 #endif

@@ -42,7 +42,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(ViewFrustumT)
-		
+
 		ViewFrustumT() = default;
 
 		template <class O>

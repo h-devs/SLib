@@ -42,7 +42,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace named_instance
@@ -96,7 +96,7 @@ namespace slib
 				if (!names) {
 					return SLIB_NAMED_INSTANCE_INVALID_HANDLE;
 				}
-				
+
 				String name = _name.toString();
 				MutexLocker lock(names->getLocker());
 				if (names->getValue_NoLock(name)) {

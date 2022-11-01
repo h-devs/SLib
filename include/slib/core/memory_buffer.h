@@ -36,7 +36,7 @@ namespace slib
 		MemoryBuffer();
 
 		~MemoryBuffer();
-	
+
 	public:
 		sl_size getSize() const;
 
@@ -61,7 +61,7 @@ namespace slib
 		sl_bool addStatic(const void* buf, sl_size size);
 
 		sl_bool addStatic(const MemoryView& mem);
-	
+
 		template <sl_size N>
 		sl_bool addStatic(const char (&buf)[N])
 		{
@@ -71,11 +71,11 @@ namespace slib
 		sl_bool pop(MemoryData& data);
 
 		sl_bool pushFront(const MemoryData& data);
-	
+
 		void link(MemoryBuffer& buf);
-	
+
 		void clear();
-	
+
 		Memory merge() const;
 
 		MemoryData* getLastData() const;

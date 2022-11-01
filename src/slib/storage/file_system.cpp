@@ -380,7 +380,7 @@ namespace slib
 		sl_uint32 serialNumber) : m_base(base)
 	{
 		base->getInformation(m_fsInfo);
-		
+
 		if (fileSystemName.isNotNull()) {
 			m_fsInfo.fileSystemName = fileSystemName;
 		}

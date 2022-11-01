@@ -35,22 +35,22 @@ namespace slib
 	class SLIB_EXPORT LabelView : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		LabelView();
-		
+
 		~LabelView();
 
 	protected:
 		void init() override;
-		
+
 	public:
 		String getText();
-		
+
 		sl_bool isHyperText();
-		
+
 		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		void setHyperText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		MultiLineMode getMultiLine();
@@ -92,22 +92,22 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
-		
+
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onClickEvent(UIEvent* ev) override;
-		
+
 		void onSetCursor(UIEvent* ev) override;
 
 		void onUpdateLayout() override;
-		
+
 	protected:
 		void prepareLabelViewCellLayout(LabelViewCell* cell);
 
 	protected:
 		Ref<LabelViewCell> m_cell;
-		
+
 	};
 
 	class LabelViewCell : public ViewCell

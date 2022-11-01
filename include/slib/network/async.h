@@ -33,7 +33,7 @@ namespace slib
 
 	class AsyncTcpSocket;
 	class AsyncTcpSocketInstance;
-	
+
 	class SLIB_EXPORT AsyncTcpSocketParam
 	{
 	public:
@@ -42,125 +42,125 @@ namespace slib
 		sl_bool flagIPv6; // default: false
 		sl_bool flagLogError; // default: true
 		Ref<AsyncIoLoop> ioLoop;
-		
+
 	public:
 		AsyncTcpSocketParam();
-		
+
 		SLIB_DECLARE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncTcpSocketParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT AsyncTcpSocket : public AsyncStreamBase
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		AsyncTcpSocket();
-		
+
 		~AsyncTcpSocket();
-		
+
 	public:
 		static Ref<AsyncTcpSocket> create(AsyncTcpSocketParam& param);
-		
+
 		static Ref<AsyncTcpSocket> create();
 
 		static Ref<AsyncTcpSocket> create(Socket&& socket);
 
 	public:
 		sl_socket getSocket();
-		
+
 		sl_bool connect(const SocketAddress& address, const Function<void(AsyncTcpSocket*, sl_bool flagError)>& callback);
-		
+
 		sl_bool receive(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
-		
+
 		sl_bool receive(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
-		
+
 		sl_bool send(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
-		
+
 		sl_bool send(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
-		
+
 	protected:
 		Ref<AsyncTcpSocketInstance> _getIoInstance();
-		
+
 		void _onConnect(sl_bool flagError);
 
 	private:
 		static Ref<AsyncTcpSocketInstance> _createInstance(Socket&& socket, sl_bool flagIPv6);
-		
+
 	protected:
 		AtomicFunction<void(AsyncTcpSocket*, sl_bool flagError)> m_onConnect;
-		
+
 		friend class AsyncTcpSocketInstance;
-		
+
 	};
-	
-	
+
+
 	class AsyncTcpServer;
 	class AsyncTcpServerInstance;
-	
+
 	class SLIB_EXPORT AsyncTcpServerParam
 	{
 	public:
 		Socket socket; // optional
 		SocketAddress bindAddress;
-		
+
 		sl_bool flagIPv6; // default: false
 		sl_bool flagAutoStart; // default: true
 		sl_bool flagLogError; // default: true
 		Ref<AsyncIoLoop> ioLoop;
-		
+
 		Function<void(AsyncTcpServer*, Socket&, SocketAddress&)> onAccept;
 		Function<void(AsyncTcpServer*)> onError;
-		
+
 	public:
 		AsyncTcpServerParam();
-		
+
 		SLIB_DECLARE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncTcpServerParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT AsyncTcpServer : public AsyncIoObject
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		AsyncTcpServer();
-		
+
 		~AsyncTcpServer();
-		
+
 	public:
 		static Ref<AsyncTcpServer> create(AsyncTcpServerParam& param);
-		
+
 	public:
 		void close();
-		
+
 		sl_bool isOpened();
-		
+
 		void start();
-		
+
 		sl_bool isRunning();
-		
+
 		sl_socket getSocket();
-		
+
 	protected:
 		Ref<AsyncTcpServerInstance> _getIoInstance();
-		
+
 		void _onAccept(Socket&, SocketAddress& address);
-		
+
 		void _onError();
-		
+
 	protected:
 		static Ref<AsyncTcpServerInstance> _createInstance(Socket&&, sl_bool flagIPv6);
-		
+
 	protected:
 		Function<void(AsyncTcpServer*, Socket&, SocketAddress&)> m_onAccept;
 		Function<void(AsyncTcpServer*)> m_onError;
-		
+
 		friend class AsyncTcpServerInstance;
-		
+
 	};
-	
-	
+
+
 	class AsyncUdpSocket;
 	class AsyncUdpSocketInstance;
 
@@ -175,67 +175,67 @@ namespace slib
 		sl_bool flagLogError; // default: true
 		sl_uint32 packetSize; // default: 65536
 		Ref<AsyncIoLoop> ioLoop;
-		
+
 		Function<void(AsyncUdpSocket*, SocketAddress&, void* data, sl_uint32 sizeReceived)> onReceiveFrom;
 		Function<void(AsyncUdpSocket*)> onError;
-		
+
 	public:
 		AsyncUdpSocketParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AsyncUdpSocketParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT AsyncUdpSocket : public AsyncIoObject
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		AsyncUdpSocket();
-		
+
 		~AsyncUdpSocket();
-		
+
 	public:
 		static Ref<AsyncUdpSocket> create(AsyncUdpSocketParam& param);
-		
+
 	public:
 		void close();
-		
+
 		sl_bool isOpened();
-		
+
 		void start();
-		
+
 		sl_bool isRunning();
-		
+
 	public:
 		sl_socket getSocket();
-		
+
 		void setBroadcast(sl_bool flag);
-		
+
 		void setSendBufferSize(sl_uint32 size);
-		
+
 		void setReceiveBufferSize(sl_uint32 size);
-		
+
 		sl_bool sendTo(const SocketAddress& addressTo, const void* data, sl_size size);
-		
+
 		sl_bool sendTo(const SocketAddress& addressTo, const MemoryView& mem);
-		
+
 	protected:
 		Ref<AsyncUdpSocketInstance> _getIoInstance();
-		
+
 		void _onReceive(SocketAddress& address, void* data, sl_uint32 sizeReceived);
-		
+
 		void _onError();
-		
+
 	protected:
 		static Ref<AsyncUdpSocketInstance> _createInstance(Socket&& socket, sl_uint32 packetSize);
-		
+
 	protected:
 		Function<void(AsyncUdpSocket*, SocketAddress&, void* data, sl_uint32 sizeReceived)> m_onReceiveFrom;
 		Function<void(AsyncUdpSocket*)> m_onError;
 
 		friend class AsyncUdpSocketInstance;
-		
+
 	};
 
 }

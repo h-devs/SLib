@@ -185,7 +185,7 @@ namespace slib
 	{
 		namespace gles
 		{
-			
+
 			struct EntryPoints
 			{
 				PRIV_SLIB_RENDER_GLES_ENTRIES

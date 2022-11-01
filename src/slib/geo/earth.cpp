@@ -29,18 +29,18 @@ namespace slib
 	{
 		namespace earth
 		{
-			
+
 			struct EarthGlobe
 			{
 				double radiusEquatorial;
 				double radiusPolar;
-				
+
 				double inverseFlattening;
 				double eccentricitySquared;
 			};
 
 			static EarthGlobe g_earthGlobe = {SLIB_GEO_EARTH_RADIUS_EQUATORIAL_WGS84, SLIB_GEO_EARTH_RADIUS_POLAR_WGS84, SLIB_GEO_EARTH_INVERSE_FLATTENING_WGS84, SLIB_GEO_EARTH_ECCENTRICITY_SQUARED_WGS84};
-			
+
 			static const Globe& g_globe = *((Globe*)((void*)&g_earthGlobe));
 
 
@@ -50,7 +50,7 @@ namespace slib
 			};
 
 			static EarthSphericalGlobe g_earthSphericalGlobe = {SLIB_GEO_EARTH_RADIUS_EQUATORIAL_WGS84};
-			
+
 			static const SphericalGlobe& g_sphericalGlobe = *((SphericalGlobe*)((void*)&g_earthSphericalGlobe));
 
 		}

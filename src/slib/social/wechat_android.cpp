@@ -40,7 +40,7 @@ namespace slib
 
 			void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr);
 			void OnPayResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring errStr);
-			
+
 			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/android/wechat/WeChat")
 				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;Ljava/lang/String;)V");
 				SLIB_JNI_STATIC_METHOD(login, "login", "()V");
@@ -55,7 +55,7 @@ namespace slib
 				Mutex lock;
 				Function<void(WeChatLoginResult&)> callbackLogin;
 				Function<void(WeChatPaymentResult&)> callbackPay;
-				
+
 			public:
 				void setLoginCallback(const Function<void(WeChatLoginResult&)>& callback)
 				{
@@ -67,14 +67,14 @@ namespace slib
 					}
 					callbackLogin = callback;
 				}
-				
+
 				void onLoginResult(WeChatLoginResult& result)
 				{
 					MutexLocker locker(&lock);
 					callbackLogin(result);
 					callbackLogin.setNull();
 				}
-				
+
 				void setPayCallback(const Function<void(WeChatPaymentResult&)>& callback)
 				{
 					MutexLocker locker(&lock);
@@ -85,16 +85,16 @@ namespace slib
 					}
 					callbackPay = callback;
 				}
-				
+
 				void onPayResult(WeChatPaymentResult& result)
 				{
 					MutexLocker locker(&lock);
 					callbackPay(result);
 					callbackPay.setNull();
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
 			void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr)
@@ -118,9 +118,9 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::wechat_android;
-	
+
 	void WeChatSDK::initialize(const String& appId, const String& universalLink)
 	{
 		jobject context = Android::getCurrentContext();
@@ -137,9 +137,9 @@ namespace slib
 			UI::dispatchToUiThread(Function<void()>::bind(f, param));
 			return;
 		}
-		
+
 		GetStaticContext()->setLoginCallback(param.onComplete);
-		
+
 		JWeChat::login.call(sl_null);
 	}
 
@@ -149,9 +149,9 @@ namespace slib
 			UI::dispatchToUiThread(Function<void()>::bind(&WeChatSDK::pay, param));
 			return;
 		}
-		
+
 		GetStaticContext()->setPayCallback(param.onComplete);
-		
+
 		JniLocal<jstring> partnerId = Jni::getJniString(param.order.partnerId);
 		JniLocal<jstring> prepayId = Jni::getJniString(param.order.prepayId);
 		JniLocal<jstring> package = Jni::getJniString(param.order.package);
@@ -161,7 +161,7 @@ namespace slib
 
 		JWeChat::pay.call(sl_null, partnerId.get(), prepayId.get(), package.get(), nonce.get(), timeStamp, sign.get());
 	}
-	
+
 }
 
 #endif

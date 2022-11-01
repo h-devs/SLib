@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	template <class TYPE, sl_bool isClass = __is_class(TYPE)>
 	class DefaultInterpolation
 	{

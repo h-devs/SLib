@@ -118,7 +118,7 @@ namespace slib
 		ClipboardScope scope;
 		return IsClipboardFormatAvailable(CF_UNICODETEXT) ? sl_true : sl_false;
 	}
-	
+
 	String Clipboard::getText()
 	{
 		ClipboardScope scope;
@@ -133,7 +133,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void Clipboard::setText(const StringParam& _text)
 	{
 		ClipboardScope scope;

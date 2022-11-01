@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT PenDesc
 	{
 	public:
@@ -43,11 +43,11 @@ namespace slib
 
 	public:
 		PenDesc();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PenDesc)
-		
+
 	};
-	
+
 	class SLIB_EXPORT Pen : public Referable
 	{
 		SLIB_DECLARE_OBJECT
@@ -68,19 +68,19 @@ namespace slib
 
 	public:
 		void getDesc(PenDesc& desc);
-	
+
 		PenStyle getStyle();
-	
+
 		sl_real getWidth();
-	
+
 		Color getColor();
-	
+
 		LineCap getCap();
-	
+
 		LineJoin getJoin();
-	
+
 		sl_real getMiterLimit();
-	
+
 	protected:
 		PenDesc m_desc;
 

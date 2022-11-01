@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	class Resources
 	{
 	public:
@@ -40,7 +40,7 @@ namespace slib
 		static void setCurrentLocale(const Locale& locale);
 
 		static String makeResourceName(const String& path);
-	
+
 	};
 
 }

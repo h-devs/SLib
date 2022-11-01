@@ -22,13 +22,13 @@
 
 namespace slib
 {
-	
+
 	sl_bool SAppDocument::_parseStringResources(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source)
 	{
 		if (element.isNull()) {
 			return sl_false;
 		}
-		
+
 		String strLocale = element->getAttribute("locale");
 		Locale locale = Locale::Unknown;
 		if (strLocale.isNotEmpty()) {
@@ -64,7 +64,7 @@ namespace slib
 		if (element.isNull()) {
 			return sl_false;
 		}
-		
+
 		String strLocale = element->getAttribute("locale");
 		Locale locale = Locale::Unknown;
 		if (strLocale.isNotEmpty()) {
@@ -77,7 +77,7 @@ namespace slib
 		if (locale == Locale::Unknown) {
 			locale = localeDefault;
 		}
-		
+
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
 			_logError(element, g_str_error_resource_string_name_is_empty);
@@ -87,7 +87,7 @@ namespace slib
 			_logError(element, g_str_error_resource_string_name_invalid, name);
 			return sl_false;
 		}
-		
+
 		name = getNameInLocalNamespace(localNamespace, name);
 		String value;
 		if (element->getChildElementCount() > 0 || element->getAttribute("raw") == "true") {
@@ -95,7 +95,7 @@ namespace slib
 		} else {
 			value = element->getText();
 		}
-		
+
 		Ref<SAppStringResource> res = m_strings.getValue(name, Ref<SAppStringResource>::null());
 		if (res.isNull()) {
 			res = new SAppStringResource;
@@ -130,16 +130,16 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		return sl_true;
 	}
 
 	sl_bool SAppDocument::_generateStringsCpp(const String& targetPath)
 	{
 		_log(g_str_log_generate_cpp_strings_begin);
-		
+
 		StringBuffer sbHeader, sbCpp, sbMap;
-		
+
 		sbHeader.add(String::format(
 									"#pragma once%n%n"
 									"#include <slib/core/resource.h>%n%n"
@@ -151,23 +151,23 @@ namespace slib
 								 "namespace %s%n"
 								 "{%n\tnamespace string%n\t{%n%n"
 								 , m_conf.generate_cpp_namespace));
-		
+
 		sbMap.add("\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_BEGIN\r\n");
-		
+
 		for (auto& pair : m_strings) {
-			
+
 			if (pair.value.isNotNull()) {
-				
+
 				sbHeader.add(String::format("\t\tSLIB_DECLARE_STRING_RESOURCE(%s)%n", pair.key));
-				
+
 				String defValue = pair.value->defaultValue;
-				
+
 				if (pair.value->values.isEmpty()) {
 					sbCpp.add(String::format("\t\tSLIB_DEFINE_STRING_RESOURCE_SIMPLE(%s, \"%s\")%n%n", pair.key, ParseUtil::applyBackslashEscapes(defValue, sl_true, sl_false, sl_true)));
 				} else {
-					
+
 					sbCpp.add(String::format("\t\tSLIB_DEFINE_STRING_RESOURCE_BEGIN(%s, \"%s\")%n", pair.key, ParseUtil::applyBackslashEscapes(defValue, sl_true, sl_false, sl_true)));
-					
+
 					{
 						for (auto& pairValues : pair.value->values) {
 							if (pairValues.key.getCountry() != Country::Unknown && pairValues.key.getScript() != LanguageScript::Unknown) {
@@ -196,23 +196,23 @@ namespace slib
 							}
 						}
 					}
-					
+
 					static sl_char8 strEnd[] = "\t\tSLIB_DEFINE_STRING_RESOURCE_END\r\n\r\n";
 					sbCpp.addStatic(strEnd, sizeof(strEnd)-1);
 				}
-				
+
 				sbMap.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(%s)%n", pair.key));
-				
+
 			}
 		}
-		
+
 		sbMap.add("\t\tSLIB_DEFINE_STRING_RESOURCE_MAP_END\r\n");
-		
+
 		sbHeader.add("\r\n\t\tSLIB_DECLARE_STRING_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
-		
+
 		sbCpp.link(sbMap);
 		sbCpp.add("\r\n\t}\r\n}\r\n");
-		
+
 		String pathHeader = targetPath + "/strings.h";
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
@@ -221,7 +221,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		String pathCpp = targetPath + "/strings.cpp";
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
@@ -230,7 +230,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		return sl_true;
 	}
 
@@ -322,7 +322,7 @@ namespace slib
 			return sl_true;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_checkStringName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppStringResource>* outResource)
 	{
 		if (getItemFromMap(m_strings, localNamespace, name, outName, outResource)) {

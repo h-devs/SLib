@@ -502,7 +502,7 @@ namespace slib
 
 		setScrollY(0, UIUpdateMode::None);
 		_invalidateChanges(mode);
-		
+
 		return sl_true;
 	}
 

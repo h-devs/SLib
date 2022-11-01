@@ -34,14 +34,14 @@ namespace slib
 	{
 	public:
 		static Ref<Renderer> createRenderer(void* windowHandle, const RendererParam& param);
-		
+
 	public:
 		static sl_bool isAvailable();
-		
+
 		static void loadEntries(const StringParam& pathDll, sl_bool flagReload = sl_true);
-		
+
 		static void loadEntries(sl_bool flagReload = sl_false);
-		
+
 	};
 
 }

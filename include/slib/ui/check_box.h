@@ -27,50 +27,50 @@
 
 namespace slib
 {
-	
+
 	class ICheckBoxInstance;
-	
+
 	class SLIB_EXPORT CheckBox : public Button
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		CheckBox();
-				
+
 		~CheckBox();
 
 	public:
 		sl_bool isChecked();
-		
+
 		sl_bool isCheckedInstance();
 
 		virtual void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(CheckBox, Change, sl_bool flagChecked)
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		virtual Ptr<ICheckBoxInstance> getCheckBoxInstance();
 
 		Ref<ButtonCell> createButtonCell() override;
-		
+
 	public:
 		void dispatchClickEvent(UIEvent* ev) override;
-		
+
 	protected:
 		sl_bool m_flagChecked;
-		
+
 	};
 
 	class SLIB_EXPORT ICheckBoxInstance
 	{
 	public:
 		virtual sl_bool getChecked(CheckBox* view, sl_bool& flag) = 0;
-		
+
 		virtual void setChecked(CheckBox* view, sl_bool flag) = 0;
-		
+
 	};
 
 	class SLIB_EXPORT CheckBoxCell : public ButtonCell

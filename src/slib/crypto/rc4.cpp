@@ -26,15 +26,15 @@
 
 namespace slib
 {
-	
+
 	RC4::RC4() : m_i(0), m_j(0)
 	{
 	}
-	
+
 	RC4::~RC4()
 	{
 	}
-	
+
 	sl_bool RC4::setKey(const void* _key, sl_uint32 lenKey)
 	{
 		if (lenKey < 5 || lenKey > 256) {
@@ -55,7 +55,7 @@ namespace slib
 		m_j = 0;
 		return sl_true;
 	}
-	
+
 	void RC4::encrypt(const void* _src, void* _dst, sl_size len)
 	{
 		const sl_uint8* src = (const sl_uint8*)_src;
@@ -71,10 +71,10 @@ namespace slib
 			dst[k] = src[k] ^ K;
 		}
 	}
-	
+
 	void RC4::decrypt(const void* src, void* dst, sl_size len)
 	{
 		encrypt(src, dst, len);
 	}
-	
+
 }

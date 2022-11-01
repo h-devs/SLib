@@ -26,16 +26,16 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DrawTextParam)
-	
+
 	DrawTextParam::DrawTextParam():
 		color(Color::Black), alignment(Alignment::TopLeft), flagMultiLine(sl_false),
 		x(0), y(0), width(0), height(0),
 		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0)
 	{
 	}
-	
+
 	SLIB_DEFINE_OBJECT(Canvas, Object)
 
 	Canvas::Canvas()
@@ -175,7 +175,7 @@ namespace slib
 		param.y = y;
 		drawText(param);
 	}
-	
+
 	void Canvas::drawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const Color& color, const Alignment& alignment, sl_bool flagMultiLine)
 	{
 		DrawTextParam param;
@@ -188,7 +188,7 @@ namespace slib
 		param.flagMultiLine = flagMultiLine;
 		drawText(param);
 	}
-	
+
 	void Canvas::drawText(const StringParam& text, const Rectangle& rcDst, const Ref<Font>& font, const Color& color, const Alignment& alignment, sl_bool flagMultiLine)
 	{
 		DrawTextParam param;
@@ -351,7 +351,7 @@ namespace slib
 		ListLocker<Point> points(_points);
 		drawPolygon(points.data, (sl_uint32)(points.count), pen,fillColor, fillMode);
 	}
-	
+
 	void Canvas::drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen)
 	{
 		drawPolygon(points, countPoints, pen, Ref<Brush>::null());
@@ -434,7 +434,7 @@ namespace slib
 	{
 		drawPath(path, Ref<Pen>::null(), color);
 	}
-	
+
 	void Canvas::drawShadowRectangle(sl_real x, sl_real y, sl_real width, sl_real height, const Color& color, sl_real shadowRadius)
 	{
 		if (shadowRadius < SLIB_EPSILON) {
@@ -459,7 +459,7 @@ namespace slib
 			setAntiAlias(sl_true);
 		}
 	}
-	
+
 	void Canvas::drawShadowRoundRect(sl_real x, sl_real y, sl_real width, sl_real height, sl_real roundRadius, const Color& color, sl_real shadowRadius)
 	{
 		if (shadowRadius < SLIB_EPSILON) {
@@ -503,7 +503,7 @@ namespace slib
 			setAntiAlias(sl_true);
 		}
 	}
-	
+
 	void Canvas::drawShadowCircle(sl_real centerX, sl_real centerY, sl_real circleRadius, const Color& color, sl_real shadowRadius)
 	{
 		if (circleRadius < SLIB_EPSILON) {
@@ -531,14 +531,14 @@ namespace slib
 			setAntiAlias(sl_true);
 		}
 	}
-	
+
 	namespace priv
 	{
 		namespace canvas
 		{
 
 			SLIB_ALIGN(8) const char g_defaultDrawParamBuf[sizeof(DrawParam)] = {0};
-			
+
 			const DrawParam& g_defaultDrawParam = *((const DrawParam*)((void*)g_defaultDrawParamBuf));
 
 		}
@@ -548,7 +548,7 @@ namespace slib
 	{
 		draw(rectDst, src, rectSrc, priv::canvas::g_defaultDrawParam);
 	}
-	
+
 	void Canvas::draw(const Rectangle& rectDst, const Ref<Drawable>& src)
 	{
 		draw(rectDst, src, priv::canvas::g_defaultDrawParam);
@@ -591,8 +591,8 @@ namespace slib
 	void Canvas::_setAntiAlias(sl_bool flag)
 	{
 	}
-	
-	
+
+
 	CanvasStateScope::CanvasStateScope()
 	{
 	}

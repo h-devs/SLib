@@ -43,8 +43,8 @@ namespace slib
 #endif
 
 	};
-	
-	
+
+
 }
 
 #endif

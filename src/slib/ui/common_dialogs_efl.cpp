@@ -74,7 +74,7 @@ namespace slib
 				container->result = DialogResult::No;
 				elm_popup_dismiss(container->popup);
 			}
-			
+
 			static void alert_dialog_dismissed_cb(void *data, Evas_Object *obj, void *event_info)
 			{
 				AlertDialogContainer* container = reinterpret_cast<AlertDialogContainer*>(data);
@@ -105,12 +105,12 @@ namespace slib
 	{
 		return _runByShow();
 	}
-	
+
 	DialogResult AlertDialog::_run()
 	{
 		return DialogResult::Cancel;
 	}
-	
+
 	void AlertDialog::show()
 	{
 		_showOnUiThread();
@@ -174,7 +174,7 @@ namespace slib
 		if (titleNo.isEmpty()) {
 			titleNo = "No";
 		}
-		
+
 		if (buttons == AlertButtons::OkCancel) {
 			Evas_Object* button1 = elm_button_add(popup);
 			elm_object_text_set(button1, titleOK.getData());
@@ -218,14 +218,14 @@ namespace slib
 			eext_object_event_callback_add(popup, EEXT_CALLBACK_BACK, alert_dialog_ok_cb, container);
 			evas_object_smart_callback_add(popup, "block,clicked", alert_dialog_ok_cb, container);
 		}
-		
+
 		evas_object_smart_callback_add(popup, "dismissed", alert_dialog_dismissed_cb, &container);
 		evas_object_show(popup);
 
 		return sl_true;
 
 	}
-	
+
 }
 
 #endif

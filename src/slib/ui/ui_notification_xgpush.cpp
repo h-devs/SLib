@@ -26,11 +26,11 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(XgPush, PushNotificationClient)
-	
+
 	XgPush::XgPush()
 	{
 	}
-	
+
 	XgPush::~XgPush()
 	{
 	}
@@ -40,7 +40,7 @@ namespace slib
 	{
 	}
 #endif
-	
+
 #if !defined(SLIB_PLATFORM_IS_IOS) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	void XgPush::setEnableDebug(sl_bool flag)
 	{
@@ -49,11 +49,11 @@ namespace slib
 	void XgPush::onStart()
 	{
 	}
-	
+
 	Ref<XgPush> XgPush::getInstance()
 	{
 		return sl_null;
 	}
 #endif
-	
+
 }

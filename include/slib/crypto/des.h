@@ -41,7 +41,7 @@ namespace slib
 		enum {
 			BlockSize = 8
 		};
-		
+
 	public:
 		DES();
 
@@ -56,7 +56,7 @@ namespace slib
 		sl_bool setKey(const void* key, sl_size lenKey);
 
 		sl_uint64 encrypt(sl_uint64 data) const;
-		
+
 		sl_uint64 decrypt(sl_uint64 data) const;
 
 		// 64 bits (8 bytes) block
@@ -67,22 +67,22 @@ namespace slib
 
 	private:
 		sl_uint64 m_K[16];
-		
+
 	};
-	
+
 	class SLIB_EXPORT TripleDES : public BlockCipher<TripleDES>
 	{
 	public:
 		enum {
 			BlockSize = 8
 		};
-		
+
 	public:
 		TripleDES();
-		
+
 		~TripleDES();
-		
-	public:		
+
+	public:
 		// 3 x 64 bit (8 bytes), note that most significant bit of each byte is not used
 		void setKey(const void* key1, const void* key2, const void* key3);
 		void setKey(sl_uint64 key1, sl_uint64 key2, sl_uint64 key3);
@@ -95,22 +95,22 @@ namespace slib
 		sl_bool setKey(const void* key, sl_size lenKey);
 
 		sl_uint64 encrypt(sl_uint64 data) const;
-		
+
 		sl_uint64 decrypt(sl_uint64 data) const;
-		
+
 		// 64 bits (8 bytes) block
 		void encryptBlock(const void* src, void* dst) const;
-		
+
 		// 64 bits (8 bytes) block
 		void decryptBlock(const void* src, void* dst) const;
-		
+
 	private:
 		DES m_des1;
 		DES m_des2;
 		DES m_des3;
 
 	};
-	
+
 }
 
 #endif

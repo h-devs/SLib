@@ -39,7 +39,7 @@ namespace slib
 	{
 		namespace android_asset
 		{
-			
+
 			SLIB_JNI_BEGIN_CLASS(JAssetManager, "android/content/res/AssetManager")
 				SLIB_JNI_METHOD(open, "open", "(Ljava/lang/String;)Ljava/io/InputStream;")
 			SLIB_JNI_END_CLASS

@@ -44,14 +44,14 @@ namespace slib
 		String unionid;
 
 		Json json;
-		
+
 	public:
 		WeChatUser();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatUser)
-		
+
 		SLIB_DECLARE_JSON
-		
+
 	};
 
 	class SLIB_EXPORT WeChatAppResult
@@ -63,7 +63,7 @@ namespace slib
 
 	public:
 		WeChatAppResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatAppResult)
 
 	};
@@ -83,19 +83,19 @@ namespace slib
 		String nonce;
 		sl_uint64 timeStamp;
 		String sign;
-		
+
 	public:
 		WeChatPaymentOrder();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatPaymentOrder)
-		
+
 	};
 
 	class SLIB_EXPORT WeChatPaymentResult : public WeChatAppResult
 	{
 	public:
 		WeChatPaymentResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatPaymentResult)
 
 	};
@@ -104,36 +104,36 @@ namespace slib
 	{
 	public:
 		WeChatPaymentOrder order;
-		
+
 		Function<void(WeChatPaymentResult&)> onComplete;
-		
+
 	public:
 		WeChatPaymentRequest();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatPaymentRequest)
-		
+
 	};
 
 	class SLIB_EXPORT WeChatCreateOrderResult
 	{
 	public:
 		sl_bool flagSuccess;
-		
+
 		UrlRequest* request;
 		Ref<XmlDocument> response;
 		String responseText;
-		
+
 		String returnCode;
 		String returnMessage;
 		String resultCode;
 		String errorCode;
 		String errorDescription;
-		
+
 		WeChatPaymentOrder order;
-		
+
 	public:
 		WeChatCreateOrderResult();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatCreateOrderResult)
 
 	};
@@ -141,7 +141,7 @@ namespace slib
 	class SLIB_EXPORT WeChatCreateOrderParam
 	{
 	public:
-		String apiKey; // required		
+		String apiKey; // required
 		String appId; // required
 		String businessId; // required
 		String orderId; // required
@@ -156,12 +156,12 @@ namespace slib
 		String nonce;
 		Time timeStart;
 		Time timeExpire;
-		
+
 		Function<void(WeChatCreateOrderResult&)> onComplete;
 
 	public:
 		WeChatCreateOrderParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatCreateOrderParam)
 
 	};
@@ -170,75 +170,75 @@ namespace slib
 	{
 	public:
 		WeChatParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(WeChatParam)
-		
+
 	};
 
 	class WeChat : public OAuth2
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		WeChat(const WeChatParam& param);
-		
+
 		~WeChat();
-		
+
 	public:
 		static Ref<WeChat> create(const WeChatParam& param);
-		
+
 		static void initialize(const WeChatParam& param);
-		
+
 		static void initialize();
-		
+
 		static Ref<WeChat> create(const String& appId, const String& appSecret, const String& redirectUrl);
 
 		static void initialize(const String& appId, const String& appSecret, const String& redirectUrl);
-		
+
 		static Ref<WeChat> create(const String& appId, const String& redirectUrl);
-		
+
 		static void initialize(const String& appId, const String& redirectUrl);
-		
+
 		static Ref<WeChat> createWithAccessToken(const String& accessToken);
-		
+
 		static Ref<WeChat> getInstance();
 
 	public:
 		String getOpenId();
-		
+
 		void authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token) override;
 		using OAuth2::authorizeRequest;
 
 		String getRequestUrl(const String& path);
-		
+
 		void getUser(const String& openId, const Function<void(WeChatResult&, WeChatUser&)>& onComplete);
-		
+
 		void getUser(const Function<void(WeChatResult&, WeChatUser&)>& onComplete);
 
 		static void createOrder(const WeChatCreateOrderParam& param);
 
 	protected:
 		void onCompleteRequestAccessToken(OAuthAccessTokenResult& result) override;
-		
+
 	protected:
 		String m_currentOpenId;
-		
+
 	};
 
 	class SLIB_EXPORT WeChatSDK
 	{
 	public:
 		static void initialize(const String& appId, const String& universalURL);
-		
+
 	public:
 		static void login(const WeChatLoginParam& param);
-		
+
 		static void login(const Function<void(WeChatLoginResult& result)>& onComplete);
 
 		static void pay(const WeChatPaymentRequest& req);
-		
+
 	};
-	
+
 }
 
 #endif

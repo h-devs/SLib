@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace charset
@@ -98,7 +98,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			static sl_size Decode8(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer)
 			{
 				if (sizeInput) {
@@ -113,13 +113,13 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			static Memory EncodeString8(const sl_char8* utf8, sl_size lenUtf8, sl_uint32 codepage)
 			{
 				String16 str = String16::create(utf8, lenUtf8);
 				return EncodeString16(str.getData(), str.getLength(), codepage);
 			}
-			
+
 			static String DecodeString8(sl_uint32 codepage, const void* data, sl_size size)
 			{
 				SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, size)
@@ -131,7 +131,7 @@ namespace slib
 				}
 				return sl_null;
 			}
-			
+
 #endif
 
 			sl_size Encode32(const sl_char32* utf32, sl_size lenUtf32, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
@@ -237,12 +237,12 @@ namespace slib
 			{
 				return ((sl_uint32)charset) & 0xffff;
 			}
-			
+
 		}
 	}
-	
+
 	using namespace priv::charset;
-	
+
 	sl_size Charsets::encode8(const sl_char8* utf8, sl_size lenUtf8, Charset charset, void* output, sl_reg sizeOutputBuffer)
 	{
 		switch (charset) {
@@ -262,7 +262,7 @@ namespace slib
 				return Encode8(utf8, lenUtf8, ToWindowsCodepage(charset), output, sizeOutputBuffer);
 		}
 	}
-	
+
 	sl_size Charsets::decode8(Charset charset, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer)
 	{
 		switch (charset) {
@@ -282,7 +282,7 @@ namespace slib
 				return Decode8(ToWindowsCodepage(charset), input, sizeInput, utf8, lenUtf8Buffer);
 		}
 	}
-	
+
 	sl_size Charsets::encode16(const sl_char16* utf16, sl_size lenUtf16, Charset charset, void* output, sl_reg sizeOutputBuffer)
 	{
 		switch (charset) {
@@ -302,7 +302,7 @@ namespace slib
 				return Encode16(utf16, lenUtf16, ToWindowsCodepage(charset), output, sizeOutputBuffer);
 		}
 	}
-	
+
 	sl_size Charsets::decode16(Charset charset, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer)
 	{
 		switch (charset) {
@@ -568,17 +568,17 @@ namespace slib
 	{
 		return Charsets::decode8(charset, text, size);
 	}
-	
+
 	String String::decode(Charset charset, const MemoryView& mem)
 	{
 		return Charsets::decode8(charset, mem.data, mem.size);
 	}
-	
+
 	String16 String16::decode(Charset charset, const void* text, sl_size size)
 	{
 		return Charsets::decode16(charset, text, size);
 	}
-	
+
 	String16 String16::decode(Charset charset, const MemoryView& mem)
 	{
 		return Charsets::decode16(charset, mem.data, mem.size);
@@ -600,14 +600,14 @@ namespace slib
 		sl_size len = getLength();
 		return Charsets::encode8(src, len, charset);
 	}
-	
+
 	Memory String16::encode(Charset charset) const
 	{
 		sl_char16* src = getData();
 		sl_size len = getLength();
 		return Charsets::encode16(src, len, charset);
 	}
-	
+
 	Memory String32::encode(Charset charset) const
 	{
 		sl_char32* src = getData();

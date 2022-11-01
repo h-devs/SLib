@@ -176,7 +176,7 @@ namespace slib
 	{
 		return ServiceStartType::Unknown;
 	}
-	
+
 }
 
 #endif

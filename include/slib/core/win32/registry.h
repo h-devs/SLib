@@ -47,12 +47,12 @@ namespace slib
 
 		public:
 			static Registry open(HKEY hKeyParent, const StringParam& subPath, REGSAM sam = KEY_ALL_ACCESS, sl_bool flagCreate = sl_false);
-			
+
 			static Registry create(HKEY hKeyParent, const StringParam& subPath, REGSAM sam = KEY_ALL_ACCESS);
 
 		public:
 			VariantMap getValues();
-			
+
 			static VariantMap getValues(HKEY hKeyParent, const StringParam& subPath);
 
 			static VariantMap getValues(const StringParam& path);
@@ -78,7 +78,7 @@ namespace slib
 		};
 
 	}
-	
+
 }
 
 #endif

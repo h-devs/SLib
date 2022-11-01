@@ -77,7 +77,7 @@ namespace slib
 		static String buildForUnix(const StringParam& pathExecutable, const StringParam* argv = sl_null, sl_size argc = 0);
 
 	};
-	
+
 }
 
 #endif

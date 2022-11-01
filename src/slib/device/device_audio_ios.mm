@@ -75,7 +75,7 @@ namespace slib
 			NSLog(@"[Exception][Device][setAudioCategory] %@", e.localizedDescription);
 		}
 	}
-	
+
 	void Device::vibrate(sl_uint32 durationMillis)
 	{
 		if (durationMillis) {

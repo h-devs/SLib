@@ -88,7 +88,7 @@ namespace slib
 
 				return 0;
 			}
-			
+
 #if defined(SLIB_PLATFORM_IS_APPLE)
 #	define TO_UNIX_TIME1(NAME, T) { sl_uint64 t = T.getMicrosecondCount(); NAME##timespec.tv_sec = (time_t)(t / 1000000); NAME##timespec.tv_nsec = (long)((t % 1000000) * 1000); }
 #else

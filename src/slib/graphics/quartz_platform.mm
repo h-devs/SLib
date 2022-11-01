@@ -46,7 +46,7 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	CGImageRef GraphicsPlatform::loadCGImageFromApp(const StringParam& name)
 	{
 		CGImageRef ret;
@@ -175,7 +175,7 @@ namespace slib
 	}
 
 #endif
-	
+
 	CGColorRef GraphicsPlatform::getCGColorFromColor(const Color& color)
 	{
 		CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();

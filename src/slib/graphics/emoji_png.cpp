@@ -27,19 +27,19 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
-		
+
 		namespace noto_emoji
 		{
 			extern const char32_t* emojis[];
 			extern const void* png[];
 			extern unsigned int png_size[];
 		}
-		
+
 		using namespace noto_emoji;
-		
+
 		namespace emoji
 		{
 
@@ -49,7 +49,7 @@ namespace slib
 				CHashMap<String16, Memory> mapPNG;
 				CHashMap< String16, Ref<Image> > mapImage;
 				Mutex lockImage;
-				
+
 			public:
 				StaticPngContext()
 				{
@@ -73,7 +73,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 			public:
 				Ref<Image> getImage(const String16& str)
 				{
@@ -92,16 +92,16 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticPngContext, GetStaticPngContext)
-			
+
 		}
 	}
-	
+
 	using namespace priv::emoji;
-	
+
 	Memory Emoji::getPng(const String16& str)
 	{
 		StaticPngContext* context = GetStaticPngContext();
@@ -128,5 +128,5 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 }

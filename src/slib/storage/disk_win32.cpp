@@ -99,14 +99,14 @@ namespace slib
 		if (hDevice == INVALID_HANDLE_VALUE) {
 			return sl_null;
 		}
-		
+
 		String ret;
 
 		STORAGE_PROPERTY_QUERY query;
 		Base::zeroMemory(&query, sizeof(query));
 		query.PropertyId = StorageDeviceProperty;
 		query.QueryType = PropertyStandardQuery;
-			
+
 		STORAGE_DESCRIPTOR_HEADER header;
 		Base::zeroMemory(&header, sizeof(header));
 

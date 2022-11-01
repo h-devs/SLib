@@ -68,7 +68,7 @@ namespace slib
 	{
 		namespace edit_view
 		{
-			
+
 			static NSTextAlignment TranslateAlignment(Alignment _align)
 			{
 				Alignment align = _align & Alignment::HorizontalMask;
@@ -80,7 +80,7 @@ namespace slib
 					return NSCenterTextAlignment;
 				}
 			}
-			
+
 			static NSAttributedString* GenerateHintString(EditView* view)
 			{
 				Ref<Font> font = view->getHintFont();
@@ -98,27 +98,27 @@ namespace slib
 				}
 				return nil;
 			}
-			
+
 			class EditViewInstance : public macOS_ViewInstance, public IEditViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				NSTextField* getHandle()
 				{
 					return (NSTextField*)m_handle;
 				}
-				
+
 				Ref<EditView> getView()
 				{
 					return CastRef<EditView>(macOS_ViewInstance::getView());
 				}
-				
+
 				void initialize(View* _view) override
 				{
 					NSTextField* handle = getHandle();
 					EditView* view = (EditView*)_view;
-					
+
 					if (view->isPassword()) {
 						handle.cell = [[NSSecureTextFieldCell alloc] init];
 					} else {
@@ -127,7 +127,7 @@ namespace slib
 					if (!(view->isEnabled())) {
 						handle.enabled = NO;
 					}
-					
+
 					setHandleFont(handle, view->getFont());
 					setText(view, view->getText());
 					setGravity(view, view->getGravity());
@@ -139,7 +139,7 @@ namespace slib
 
 					applyHint(handle, view);
 				}
-				
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					NSTextField* handle = getHandle();
@@ -149,7 +149,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setText(EditView* view, const String& text) override
 				{
 					NSTextField* handle = getHandle();
@@ -158,7 +158,7 @@ namespace slib
 						[handle setStringValue:value];
 					}
 				}
-				
+
 				void setGravity(EditView* view, const Alignment& gravity) override
 				{
 					NSTextField* handle = getHandle();
@@ -166,7 +166,7 @@ namespace slib
 						[handle setAlignment:TranslateAlignment(gravity)];
 					}
 				}
-				
+
 				void setTextColor(EditView* view, const Color& color) override
 				{
 					NSTextField* handle = getHandle();
@@ -174,27 +174,27 @@ namespace slib
 						[handle setTextColor:(GraphicsPlatform::getNSColorFromColor(color))];
 					}
 				}
-				
+
 				void setHintText(EditView* view, const String& text) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintGravity(EditView* view, const Alignment& gravity) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintTextColor(EditView* view, const Color& color) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintFont(EditView* view, const Ref<Font>& font) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setReadOnly(EditView* view, sl_bool flag) override
 				{
 					NSTextField* handle = getHandle();
@@ -202,7 +202,7 @@ namespace slib
 						[handle setEditable:(flag ? FALSE : TRUE)];
 					}
 				}
-				
+
 				void setPassword(EditView* view, sl_bool flag) override
 				{
 					NSTextField* handle = getHandle();
@@ -219,11 +219,11 @@ namespace slib
 						initialize(view);
 					}
 				}
-				
+
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
 				}
-				
+
 				sl_ui_len measureHeight(EditView* view) override
 				{
 					NSTextField* handle = getHandle();
@@ -232,7 +232,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void setFont(View* view, const Ref<Font>& font) override
 				{
 					NSTextField* handle = getHandle();
@@ -243,7 +243,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setBorder(View* view, sl_bool flag) override
 				{
 					NSTextField* handle = getHandle();
@@ -253,7 +253,7 @@ namespace slib
 						[handle setFocusRingType:(flag ? NSFocusRingTypeDefault : NSFocusRingTypeNone)];
 					}
 				}
-				
+
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 					NSTextField* handle = getHandle();
@@ -261,7 +261,7 @@ namespace slib
 						[handle setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(color))];
 					}
 				}
-				
+
 				void updateHint(EditView* view)
 				{
 					NSTextField* handle = getHandle();
@@ -269,13 +269,13 @@ namespace slib
 						applyHint(handle, view);
 					}
 				}
-				
+
 				static void applyHint(NSTextField* handle, EditView* view)
 				{
 					NSAttributedString* str = GenerateHintString(view);
 					[[handle cell] setPlaceholderAttributedString:str];
 				}
-				
+
 				void onChange(NSTextField* control)
 				{
 					Ref<EditView> view = getView();
@@ -294,26 +294,26 @@ namespace slib
 						view->dispatchPostChange();
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(EditViewInstance, macOS_ViewInstance)
-			
+
 			class TextAreaInstance : public macOS_ViewInstance, public IEditViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBTextAreaHandle* getHandle()
 				{
 					return (SLIBTextAreaHandle*)m_handle;
 				}
-				
+
 				Ref<TextArea> getView()
 				{
 					return CastRef<TextArea>(macOS_ViewInstance::getView());
 				}
-				
+
 				void initialize(View* _view) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -321,14 +321,14 @@ namespace slib
 
 					[handle setHasHorizontalScroller:(view->isHorizontalScrollBarVisible()?YES:NO)];
 					[handle setHasVerticalScroller:(view->isVerticalScrollBarVisible()?YES:NO)];
-					
+
 					SLIBTextAreaHandle_TextView* tv = handle->m_textView;
-					
+
 					[[tv textContainer] setWidthTracksTextView:(view->getMultiLine() == MultiLineMode::WordWrap || view->getMultiLine() == MultiLineMode::BreakWord) ? YES : NO];
 					[[tv textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
-					
+
 					updateFont(tv, view->getFont(), sl_false);
-					
+
 					[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
 					[tv setString:Apple::getNSStringFromString(view->getText(), @"")];
 					[tv setAlignment:TranslateAlignment(view->getGravity())];
@@ -336,12 +336,12 @@ namespace slib
 					[tv setEditable:(view->isReadOnly() ? NO : YES)];
 					[tv setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(view->getBackgroundColor()))];
 					[tv setSelectable:YES];
-					
+
 					tv->m_viewInstance = this;
 
 					applyHint(handle, view);
 				}
-			
+
 				sl_bool getText(EditView* view, String& _out) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -351,7 +351,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setText(EditView* view, const String& text) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -360,7 +360,7 @@ namespace slib
 						[handle->m_textView setString:value];
 					}
 				}
-				
+
 				void setGravity(EditView* view, const Alignment& gravity) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -368,7 +368,7 @@ namespace slib
 						[handle->m_textView setAlignment:TranslateAlignment(gravity)];
 					}
 				}
-				
+
 				void setTextColor(EditView* view, const Color& color) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -376,27 +376,27 @@ namespace slib
 						[handle->m_textView setTextColor:(GraphicsPlatform::getNSColorFromColor(color))];
 					}
 				}
-				
+
 				void setHintText(EditView* view, const String& text) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintGravity(EditView* view, const Alignment& gravity) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintTextColor(EditView* view, const Color& color) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setHintFont(EditView* view, const Ref<Font>& font) override
 				{
 					updateHint(view);
 				}
-				
+
 				void setReadOnly(EditView* view, sl_bool flag) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -404,11 +404,11 @@ namespace slib
 						[handle->m_textView setEditable:(flag ? FALSE : TRUE)];
 					}
 				}
-				
+
 				void setPassword(EditView* view, sl_bool flag) override
 				{
 				}
-				
+
 				void setMultiLine(EditView* view, MultiLineMode mode) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -417,7 +417,7 @@ namespace slib
 						[[handle->m_textView textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
 					}
 				}
-				
+
 				sl_ui_len measureHeight(EditView* view) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -432,7 +432,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void setFont(View* view, const Ref<Font>& font) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -443,7 +443,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setBorder(View* view, sl_bool flag) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -451,7 +451,7 @@ namespace slib
 						[handle setBorderType:(flag ? NSBezelBorder : NSNoBorder)];
 					}
 				}
-				
+
 				void setBackgroundColor(View* view, const Color& color) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -459,7 +459,7 @@ namespace slib
 						[handle->m_textView setBackgroundColor:(GraphicsPlatform::getNSColorFromColor(color))];
 					}
 				}
-				
+
 				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
 				{
 					SLIBTextAreaHandle* handle = getHandle();
@@ -476,7 +476,7 @@ namespace slib
 						applyHint(handle, view);
 					}
 				}
-				
+
 				static void applyHint(SLIBTextAreaHandle* handle, EditView* view)
 				{
 					NSAttributedString* str = GenerateHintString(view);
@@ -486,7 +486,7 @@ namespace slib
 						[handle setNeedsDisplay:YES];
 					}
 				}
-				
+
 				static void updateFont(NSTextView* tv, const Ref<Font>& font, sl_bool flagSet)
 				{
 					if (font.isNull()) {
@@ -508,7 +508,7 @@ namespace slib
 						[text addAttribute:NSParagraphStyleAttributeName value:paragraph range:NSMakeRange(0, text.length)];
 					}
 				}
-				
+
 				void onChange(SLIBTextAreaHandle* control)
 				{
 					Ref<TextArea> view = getView();
@@ -529,9 +529,9 @@ namespace slib
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(TextAreaInstance, macOS_ViewInstance)
-			
+
 		}
 	}
 
@@ -541,17 +541,17 @@ namespace slib
 	{
 		return macOS_ViewInstance::create<EditViewInstance, SLIBEditViewHandle>(this, parent);
 	}
-	
+
 	Ptr<IEditViewInstance> EditView::getEditViewInstance()
 	{
 		return CastRef<EditViewInstance>(getViewInstance());
 	}
-	
+
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* parent)
 	{
 		return macOS_ViewInstance::create<TextAreaInstance, SLIBTextAreaHandle>(this, parent);
 	}
-	
+
 	Ptr<IEditViewInstance> TextArea::getEditViewInstance()
 	{
 		return CastRef<TextAreaInstance>(getViewInstance());
@@ -607,9 +607,9 @@ MACOS_VIEW_DEFINE_ON_CHILD_VIEW
 		[m_textView setHorizontallyResizable:YES];
 		[m_textView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
 		[m_textView setAllowsUndo:YES];
-		
+
 		[self setDocumentView:m_textView];
-		
+
 		[m_textView setDelegate:self];
 	}
 	return self;

@@ -140,7 +140,7 @@ namespace slib
 				INNER_BLOCK(state)
 				SERIALIZE_OUTPUT(output, state, constants, key, nonce)
 			}
-			
+
 			static void Salsa20WordToByte(
 				const sl_uint8* data, // 64
 				sl_uint8* output, // 64
@@ -154,12 +154,12 @@ namespace slib
 				INNER_BLOCK(state)
 				SERIALIZE_OUTPUT(output, state, constants, key, nonce, ^ *(data++))
 			}
-			
+
 		}
 	}
 
 	using namespace priv::chacha;
-	
+
 
 	ChaCha20_Core::ChaCha20_Core(): m_indexConstants(0)
 	{
@@ -198,12 +198,12 @@ namespace slib
 	{
 		Salsa20WordToByte((sl_uint8*)output, key, m_indexConstants, nonce0, nonce1, nonce2, nonce3);
 	}
-	
+
 	void ChaCha20_Core::encryptBlock(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3, const void* input, void* output) const noexcept
 	{
 		Salsa20WordToByte((const sl_uint8*)input, (sl_uint8*)output, key, m_indexConstants, nonce0, nonce1, nonce2, nonce3);
 	}
-	
+
 
 	void ChaCha20_IO::encrypt(sl_uint64 offset, const void* _src, void* _dst, sl_size size) const noexcept
 	{
@@ -263,15 +263,15 @@ namespace slib
 		iv[3] = MIO::readUint32LE(bytes + 12);
 	}
 
-	
+
 	ChaCha20::ChaCha20() noexcept : m_pos(0)
 	{
 	}
-	
+
 	ChaCha20::~ChaCha20()
 	{
 	}
-	
+
 	void ChaCha20::start(sl_uint32 nonce0, sl_uint32 nonce1, sl_uint32 nonce2, sl_uint32 nonce3) noexcept
 	{
 		m_nonce[0] = nonce0;
@@ -280,7 +280,7 @@ namespace slib
 		m_nonce[3] = nonce3;
 		m_pos = 0;
 	}
-	
+
 	void ChaCha20::start(const void* _iv, sl_uint32 counter) noexcept
 	{
 		const sl_uint8* iv = (const sl_uint8*)_iv;
@@ -290,7 +290,7 @@ namespace slib
 		m_nonce[3] = U8TO32_LITTLE(iv[8], iv[9], iv[10], iv[11]);
 		m_pos = 0;
 	}
-	
+
 	void ChaCha20::encrypt(const void* _src, void* _dst, sl_size len) noexcept
 	{
 		if (!len) {
@@ -310,21 +310,21 @@ namespace slib
 		}
 		m_pos = pos;
 	}
-	
-	
+
+
 	ChaCha20_Poly1305::ChaCha20_Poly1305() noexcept
 	{
 	}
-	
+
 	ChaCha20_Poly1305::~ChaCha20_Poly1305()
 	{
 	}
-	
+
 	void ChaCha20_Poly1305::setKey(const void* key) noexcept
 	{
 		m_cipher.setKey(key);
 	}
-	
+
 	void ChaCha20_Poly1305::start(sl_uint32 senderId, const void* _iv) noexcept
 	{
 		const sl_uint8* iv = (const sl_uint8*)_iv;
@@ -343,13 +343,13 @@ namespace slib
 		const sl_uint8* iv = (const sl_uint8*)_iv;
 		start(U8TO32_LITTLE(iv[0], iv[1], iv[2], iv[3]), iv + 4);
 	}
-	
+
 	void ChaCha20_Poly1305::putAAD(const void* data, sl_size len) noexcept
 	{
 		m_auth.update(data, len);
 		m_lenAAD += len;
 	}
-	
+
 	void ChaCha20_Poly1305::finishAAD() noexcept
 	{
 		sl_uint32 n = (sl_uint32)(m_lenAAD & 15);
@@ -368,7 +368,7 @@ namespace slib
 		m_auth.update(dst, len);
 		m_lenInput += len;
 	}
-	
+
 	void ChaCha20_Poly1305::decrypt(const void* src, void* dst, sl_size len) noexcept
 	{
 		if (!len) {
@@ -378,13 +378,13 @@ namespace slib
 		m_cipher.encrypt(src, dst, len);
 		m_lenInput += len;
 	}
-	
+
 	void ChaCha20_Poly1305::check(const void* src, sl_size len) noexcept
 	{
 		m_auth.update(src, len);
 		m_lenInput += len;
 	}
-	
+
 	void ChaCha20_Poly1305::finish(void* outputTag) noexcept
 	{
 		sl_uint32 n = (sl_uint32)(m_lenInput & 15);
@@ -398,7 +398,7 @@ namespace slib
 		m_auth.update(len, 16);
 		m_auth.finish(outputTag);
 	}
-	
+
 	sl_bool ChaCha20_Poly1305::finishAndCheckTag(const void* _tag) noexcept
 	{
 		const sl_uint8* tag = (const sl_uint8*)_tag;
@@ -410,7 +410,7 @@ namespace slib
 		}
 		return n == 0;
 	}
-	
+
 	void ChaCha20_Poly1305::encrypt(sl_uint32 senderId, const void* iv, const void* AAD, sl_size lenAAD, const void* src, void* dst, sl_size len, void* outputTag) noexcept
 	{
 		start(senderId, iv);
@@ -486,7 +486,7 @@ namespace slib
 		}
 		return finishAndCheckTag(tag);
 	}
-	
+
 
 /*
 	ChaCha20_FileEncryptor Header Format

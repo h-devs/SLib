@@ -29,46 +29,46 @@
 
 namespace slib
 {
-	
+
 	// ellipsoid globe structure
 	class SLIB_EXPORT Globe
 	{
 	public:
 		double radiusEquatorial;
 		double radiusPolar;
-	
+
 		double inverseFlattening;
 		double eccentricitySquared;
-	
+
 	public:
 		Globe();
 
 		Globe(double radiusEquatorial, double radiusPolar);
-	
+
 		Globe(double radiusEquatorial, double radiusPolar, double inverseFlattening, double eccentricitySquared);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Globe)
-		
+
 	public:
 		double getEquatorialRadius() const;
 
 		void setEquatorialRadius(double radius);
-	
+
 		double getPolarRadius() const;
-	
+
 		void setPolarRadius(double radius);
-	
+
 		double getInverseFlattening() const;
-	
+
 		double getEccentricitySquared() const;
-	
+
 
 		Vector3lf getSurfaceNormal(double latitude, double longitude) const;
 
 		Vector3lf getSurfaceNormal(const LatLon& latlon) const;
 
 		Vector3lf getSurfaceNormal(const GeoLocation& location) const;
-	
+
 		Vector3lf getNorthPointingTangent(double latitude, double longitude) const;
 
 		Vector3lf getNorthPointingTangent(const LatLon& latlon) const;
@@ -91,7 +91,7 @@ namespace slib
 		Vector3lf getCartesianPosition(const LatLon& latlon) const;
 
 		Vector3lf getCartesianPosition(const GeoLocation& location) const;
-	
+
 		GeoLocation getGeoLocation(double x, double y, double z) const;
 
 		GeoLocation getGeoLocation(const Vector3lf& position) const;
@@ -100,40 +100,40 @@ namespace slib
 		void _initializeParameters();
 
 	};
-	
+
 	// spherical globe structure
 	class SLIB_EXPORT SphericalGlobe
 	{
 	public:
 		double radius;
-	
+
 	public:
 		SphericalGlobe();
 
 		SphericalGlobe(const SphericalGlobe& other);
-	
+
 		SphericalGlobe(double radius);
 
 	public:
 		SphericalGlobe& operator=(const SphericalGlobe& other);
-	
+
 	public:
 		double getRadius() const;
-	
+
 		void setRadius(double radius);
-	
+
 		Vector3lf getSurfaceNormal(double latitude, double longitude) const;
 
 		Vector3lf getSurfaceNormal(const LatLon& latlon) const;
 
 		Vector3lf getSurfaceNormal(const GeoLocation& location) const;
-	
+
 		Vector3lf getNorthPointingTangent(double latitude, double longitude) const;
 
 		Vector3lf getNorthPointingTangent(const LatLon& latlon) const;
 
 		Vector3lf getNorthPointingTangent(const GeoLocation& location) const;
-	
+
 		/*
 			unit: m
 			(0, 0, 0): center
@@ -146,7 +146,7 @@ namespace slib
 		Vector3lf getCartesianPosition(const LatLon& latlon) const;
 
 		Vector3lf getCartesianPosition(const GeoLocation& location) const;
-	
+
 		GeoLocation getGeoLocation(double x, double y, double z) const;
 
 		GeoLocation getGeoLocation(const Vector3lf& position) const;

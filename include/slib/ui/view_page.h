@@ -31,61 +31,61 @@ namespace slib
 	class SLIB_EXPORT ViewPage : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ViewPage();
-		
+
 		~ViewPage();
 
 	public:
 		Ref<ViewPageNavigationController> getNavigationController();
-		
+
 		void setNavigationController(const Ref<ViewPageNavigationController>& controller);
-		
+
 		void setTransition(const Transition& opening, const Transition& closing);
-		
-		
+
+
 		void open(const Ref<ViewPageNavigationController>& controller, const Transition& transition);
-		
+
 		void open(const Ref<ViewPageNavigationController>& controller);
-		
+
 		void openHome(const Ref<ViewPageNavigationController>& controller, const Transition& transition);
-		
+
 		void openHome(const Ref<ViewPageNavigationController>& controller);
-		
+
 		void close(const Transition& transition);
-		
+
 		void close();
-		
+
 		void goToPage(const Ref<View>& pageOther, const Transition& transition);
-		
+
 		void goToPage(const Ref<View>& pageOther);
-		
+
 		void goToHomePage(const Ref<View>& pageOther, const Transition& transition);
-		
+
 		void goToHomePage(const Ref<View>& pageOther);
 
 		Ref<Window> createNavigationWindow();
-		
-		
+
+
 		void popup(const Ref<View>& parent, const Transition& transition, sl_bool flagFillParentBackground = sl_true);
-		
+
 		void popup(const Ref<View>& parent, sl_bool flagFillParentBackground = sl_true);
 
 		Ref<Window> popupWindow(const Ref<Window>& parent, sl_ui_len width = 0, sl_ui_len height = 0);
 
 		sl_bool isPopup();
-		
+
 		Color getPopupBackgroundColor();
-		
+
 		void setPopupBackgroundColor(const Color& color);
-		
+
 		void setCloseOnClickBackground();
-		
+
 		static void setDefaultPopupTransition(const Transition& opening, const Transition& closing);
-		
+
 		static Color getDefaultPopupBackgroundColor();
-		
+
 		static void setDefaultPopupBackgroundColor(const Color& color);
 
 	public:
@@ -107,38 +107,38 @@ namespace slib
 
 		using View::dispatchCancel;
 		void dispatchCancel(UIEvent* ev) override;
-		
+
 	protected:
 		void _openPopup(const Ref<View>& parent, Transition transition, sl_bool flagFillParentBackground);
-		
+
 		void _closePopup(Transition transition);
-		
+
 		void _finishPopupAnimation(UIPageAction action);
-				
+
 		void _applyDefaultOpeningPopupTransition(Transition& transition);
-		
+
 		void _applyDefaultClosingPopupTransition(Transition& transition);
-		
+
 		void _onClosePopupWindow(Window* window, UIEvent* ev);
 
 	protected:
 		AtomicWeakRef<ViewPageNavigationController> m_navigationController;
-		
+
 		enum class PopupState
 		{
 			None, Popup, ClosingPopup, ShowWindow
 		};
 		PopupState m_popupState;
-		
+
 		Transition m_openingTransition;
 		Transition m_closingTransition;
-		
+
 		Color m_popupBackgroundColor;
 
 		volatile sl_reg m_countActiveTransitionAnimations;
 
 		friend class ViewPageNavigationController;
-		
+
 	};
 
 }

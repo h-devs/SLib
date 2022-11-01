@@ -31,17 +31,17 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace sapp
 		{
-			
+
 			static sl_reg parseFloat(float* _out, const sl_char8* sz, sl_size start, sl_size end)
 			{
 				return Calculator::calculate(_out, sl_null, sz, start, end);
 			}
-			
+
 			static sl_bool parseFloat(float* _out, const String& str)
 			{
 				return Calculator::calculate(str, _out);
@@ -97,7 +97,7 @@ namespace slib
 		flagDefined = sl_true;
 		return sl_true;
 	}
-	
+
 	/************************************************
 					Dimension
 	************************************************/
@@ -368,10 +368,10 @@ namespace slib
 				unit = WRAP;
 				break;
 			}
-			
+
 			const sl_char8* sz = str.getData();
 			sl_size len = str.getLength();
-			
+
 			float f;
 			sl_reg ret = priv::sapp::parseFloat(&f, sz, 0, str.endsWith('*') ? len - 1 : len);
 			if (ret == SLIB_PARSE_ERROR) {
@@ -403,7 +403,7 @@ namespace slib
 					break;
 				}
 			}
-			
+
 			if (pos >= len) {
 				amount = f;
 				if (flagPercent) {
@@ -413,9 +413,9 @@ namespace slib
 				}
 				break;
 			}
-			
+
 			String strUnit(sz + pos, len - pos);
-			
+
 			if (doc) {
 				SAppDimensionValue refer;
 				String strUnitLocal = SAppDocument::getNameInLocalNamespace(doc->m_currentLocalNamespace, strUnit);
@@ -430,7 +430,7 @@ namespace slib
 					break;
 				}
 			}
-			
+
 			typedef HashMap<String, int> UnitMap;
 			SLIB_SAFE_LOCAL_STATIC(UnitMap, units);
 			if (units.isNull()) {
@@ -461,16 +461,16 @@ namespace slib
 				units.put("safew", SAFE_W);
 				units.put("safeh", SAFE_H);
 			}
-			
+
 			if (units.get(strUnit, &unit)) {
 				amount = f;
 				break;
 			}
 
 			return sl_false;
-			
+
 		} while (0);
-		
+
 		if (Math::isAlmostZero(amount)) {
 			amount = 0;
 			unit = PX;
@@ -1245,16 +1245,16 @@ namespace slib
 		flagDefined = sl_true;
 		return sl_true;
 	}
-	
+
 	/************************************************
 						Color
 	************************************************/
-	
+
 	SAppColorValue::SAppColorValue()
 	: flagDefined(sl_false)
 	{
 	}
-	
+
 	sl_bool SAppColorValue::parse(const String& _str)
 	{
 		String str = _str.trim();
@@ -1285,18 +1285,18 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 	}
-	
+
 	/************************************************
 	 				Time
 	************************************************/
-	
+
 	SAppTimeValue::SAppTimeValue()
 	: flagDefined(sl_false), value(Time::zero())
 	{
 	}
-	
+
 	String SAppTimeValue::getAccessString()
 	{
 		if (!flagDefined) {
@@ -1304,7 +1304,7 @@ namespace slib
 		}
 		return String::format("slib::Time::fromInt(%s)", value.toInt());
 	}
-	
+
 	sl_bool SAppTimeValue::parse(const String& _str)
 	{
 		String str = _str.trim();
@@ -1314,7 +1314,7 @@ namespace slib
 		}
 		return value.parse(str);
 	}
-	
+
 	/************************************************
 					Drawable
 	************************************************/
@@ -1336,7 +1336,7 @@ namespace slib
 			flagNull = sl_true;
 			return sl_true;
 		}
-		
+
 		if (SAppColorValue::parse(str)) {
 			if (flagDefined) {
 				flagNull = sl_false;
@@ -1344,16 +1344,16 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		if (str.startsWith("@drawable/")) {
 			str = str.substring(10);
 		}
 		str = str.trim();
-		
+
 		sl_char8* sz = str.getData();
 		sl_size len = str.getLength();
 		sl_size pos = 0;
-		
+
 		while (pos < len) {
 			if (SLIB_CHAR_IS_C_NAME(sz[pos])) {
 				pos++;
@@ -1364,24 +1364,24 @@ namespace slib
 		if (!(SAppUtil::checkName(sz, pos))) {
 			return sl_false;
 		}
-		
+
 		resourceName = String(sz, pos);
 		flagNull = sl_false;
 		flagWhole = sl_true;
 		func = FUNC_NONE;
-		
+
 		for (; pos < len; pos++) {
 			if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
 				break;
 			}
 		}
-		
+
 		if (pos < len) {
-			
+
 			if (sz[pos] == '[') {
-				
+
 				pos++;
-				
+
 				float f[4];
 				for (sl_size i = 0; i < 4; i++) {
 					for (; pos < len; pos++) {
@@ -1441,20 +1441,20 @@ namespace slib
 					}
 					pos++;
 				}
-				
+
 				flagWhole = sl_false;
 				x = f[0];
 				y = f[1];
 				width = f[2];
 				height = f[3];
 			}
-			
+
 			for (; pos < len; pos++) {
 				if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
 					break;
 				}
 			}
-			
+
 			if (sz[pos] == ',') {
 				pos++;
 				for (; pos < len; pos++) {
@@ -1465,7 +1465,7 @@ namespace slib
 				if (pos >= len) {
 					return sl_false;
 				}
-				
+
 				sl_uint32 nFuncParams = 0;
 				if (pos + 10 < len && Base::equalsMemory(sz + pos, "nine-patch", 10)) {
 					func = FUNC_NINEPATCH;
@@ -1495,7 +1495,7 @@ namespace slib
 						return sl_false;
 					}
 					pos++;
-					
+
 					SAppDimensionValue f[8];
 					sl_size i = 0;
 					for (; i < nFuncParams; i++) {
@@ -1620,23 +1620,23 @@ namespace slib
 					}
 				}
 			}
-			
+
 			for (; pos < len; pos++) {
 				if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
 					return sl_false;
 				}
 			}
-			
+
 			if (pos < len) {
 				return sl_false;
 			}
-			
+
 		}
-		
+
 		flagDefined = sl_true;
-		
+
 		return sl_true;
-		
+
 	}
 
 	sl_bool SAppDrawableValue::parseWhole(const String& _str)
@@ -1651,7 +1651,7 @@ namespace slib
 			flagNull = sl_true;
 			return sl_true;
 		}
-		
+
 		if (SAppColorValue::parse(str)) {
 			if (flagDefined) {
 				flagNull = sl_false;
@@ -1659,7 +1659,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		if (str.startsWith("@drawable/")) {
 			str = str.substring(10);
 		}
@@ -1675,21 +1675,21 @@ namespace slib
 		flagDefined = sl_true;
 		return sl_true;
 	}
-	
-	
+
+
 	/************************************************
 	 				Font
 	************************************************/
-	
+
 	SAppFontValue::SAppFontValue()
 	{
 	}
-	
+
 	sl_bool SAppFontValue::isDefined()
 	{
 		return family.flagDefined || size.flagDefined || bold.flagDefined || italic.flagDefined || underline.flagDefined;
 	}
-	
+
 	void SAppFontValue::inheritFrom(const SAppFontValue& parent)
 	{
 		if (!(family.flagDefined)) {
@@ -1730,7 +1730,7 @@ namespace slib
 			flagNull = sl_true;
 			return sl_true;
 		}
-		
+
 		if (str.startsWith("@menu/")) {
 			str = str.substring(6);
 		}
@@ -2437,12 +2437,12 @@ namespace slib
 	/************************************************
 	 				RotationMode
 	************************************************/
-	
+
 	SAppRotationModeValue::SAppRotationModeValue()
 	: flagDefined(sl_false), value(RotationMode::Rotate0)
 	{
 	}
-	
+
 	String SAppRotationModeValue::getAccessString()
 	{
 		if (!flagDefined) {
@@ -2462,7 +2462,7 @@ namespace slib
 		}
 		return "slib::RotationMode::Rotate0";
 	}
-	
+
 	sl_bool SAppRotationModeValue::parse(const String& _str)
 	{
 		String str = _str.trim();
@@ -2490,16 +2490,16 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	/************************************************
 	 				FlipMode
 	************************************************/
-	
+
 	SAppFlipModeValue::SAppFlipModeValue()
 	: flagDefined(sl_false), value(FlipMode::None)
 	{
 	}
-	
+
 	String SAppFlipModeValue::getAccessString()
 	{
 		if (!flagDefined) {
@@ -2519,7 +2519,7 @@ namespace slib
 		}
 		return "slib::FlipMode::None";
 	}
-	
+
 	sl_bool SAppFlipModeValue::parse(const String& _str)
 	{
 		String str = _str.trim();
@@ -2547,17 +2547,17 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 
 	/************************************************
 	 				EllipsizeMode
 	************************************************/
-	
+
 	SAppEllipsizeModeValue::SAppEllipsizeModeValue()
 	: flagDefined(sl_false), value(EllipsizeMode::None)
 	{
 	}
-	
+
 	String SAppEllipsizeModeValue::getAccessString()
 	{
 		if (!flagDefined) {
@@ -2577,7 +2577,7 @@ namespace slib
 		}
 		return "slib::EllipsizeMode::None";
 	}
-	
+
 	sl_bool SAppEllipsizeModeValue::parse(const String& _str)
 	{
 		String str = _str.trim();
@@ -2605,18 +2605,18 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 
 	/************************************************
 	 				Cursor
 	************************************************/
-	
+
 	SAppCursorValue::SAppCursorValue()
 	: flagDefined(sl_false)
 	{
 		type = Type::Arrow;
 	}
-	
+
 	String SAppCursorValue::getAccessString()
 	{
 		if (!flagDefined) {
@@ -2640,7 +2640,7 @@ namespace slib
 		}
 		return "sl_null";
 	}
-	
+
 	sl_bool SAppCursorValue::parse(const String& _str)
 	{
 		String str = _str.trim();
@@ -2682,5 +2682,5 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }

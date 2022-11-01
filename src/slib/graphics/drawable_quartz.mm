@@ -46,23 +46,23 @@ namespace slib
 			class ImageDrawableImpl : public Drawable
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				CGImageRef m_image;
 				sl_uint32 m_width;
 				sl_uint32 m_height;
 				sl_bool m_flagFlipped;
-				
+
 			public:
 				ImageDrawableImpl()
 				{
 				}
-				
+
 				~ImageDrawableImpl()
 				{
 					CGImageRelease(m_image);
 				}
-				
+
 			public:
 				static Ref<ImageDrawableImpl> create(CGImageRef image, sl_bool flagFlipped)
 				{
@@ -86,7 +86,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& _rectSrc, const DrawParam& param) override
 				{
 					CGRect rectSrc;
@@ -100,7 +100,7 @@ namespace slib
 						CGImageRelease(subImage);
 					}
 				}
-				
+
 				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
 				{
 					GraphicsPlatform::drawCGImage(canvas, rectDst, m_image, m_flagFlipped, param);
@@ -110,12 +110,12 @@ namespace slib
 				{
 					return (sl_real)m_width;
 				}
-				
+
 				sl_real getDrawableHeight() override
 				{
 					return (sl_real)m_height;
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)

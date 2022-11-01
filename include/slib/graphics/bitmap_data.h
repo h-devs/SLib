@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ColorComponentBuffer
 	{
 	public:
@@ -43,11 +43,11 @@ namespace slib
 
 	public:
 		ColorComponentBuffer();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ColorComponentBuffer)
-		
+
 	};
-	
+
 	class SLIB_EXPORT BitmapData
 	{
 	public:
@@ -66,7 +66,7 @@ namespace slib
 		sl_reg pitch1; // number of bytes of a row
 		sl_reg sampleStride1; // The distance between adjacent pixel samples, in bytes
 		Ref<Referable> ref1; // reference for samples
-	
+
 		// plane2
 		void* data2; // samples
 		sl_reg pitch2; // number of bytes of a row
@@ -78,7 +78,7 @@ namespace slib
 		sl_reg pitch3; // number of bytes of a row
 		sl_reg sampleStride3; // The distance between adjacent pixel samples, in bytes
 		Ref<Referable> ref3; // reference for samples
-	
+
 	public:
 		BitmapData();
 
@@ -90,7 +90,7 @@ namespace slib
 		void*& planeData(sl_uint32 plane);
 
 		void* planeData(sl_uint32 plane) const;
-	
+
 		sl_reg& planePitch(sl_uint32 plane);
 
 		sl_reg planePitch(sl_uint32 plane) const;
@@ -108,7 +108,7 @@ namespace slib
 		static sl_int32 calculatePitchAlign8(sl_uint32 width, sl_uint32 bitsPerSample);
 
 		static sl_int32 calculatePitchAlign16(sl_uint32 width, sl_uint32 bitsPerSample);
-	
+
 		void fillDefaultValues();
 
 		sl_size getTotalSize() const;

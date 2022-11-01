@@ -29,12 +29,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace sapp
 		{
-			
+
 			SLIB_STATIC_STRING(g_str_log_appconf_begin, "Opening app configuration file: %s")
 			SLIB_STATIC_STRING(g_str_log_appconf_end, "Finished app configuration")
 			SLIB_STATIC_STRING(g_str_log_open_drawables_begin, "Opening drwable resources: %s")
@@ -46,10 +46,10 @@ namespace slib
 			SLIB_STATIC_STRING(g_str_error_generate_cpp_namespace_is_empty, "App configuration: <generate-cpp>/<namespace> is empty")
 			SLIB_STATIC_STRING(g_str_error_generate_cpp_namespace_invalid, "App configuration: Invalid <generate-cpp>/<namespace>: %s")
 			SLIB_STATIC_STRING(g_str_log_generate_cpp_resources_h_begin, "Generating: resources.h")
-			
+
 			SLIB_STATIC_STRING(g_str_error_configuration_value_empty, "App configuration: <%s> tag is empty")
 			SLIB_STATIC_STRING(g_str_error_configuration_value_invalid, "App configuration: value of <%s> tag is invalid: %s")
-			
+
 			SLIB_STATIC_STRING(g_str_error_out_of_memory, "Out of memory")
 			SLIB_STATIC_STRING(g_str_error_directory_not_found, "Directory not found: %s")
 			SLIB_STATIC_STRING(g_str_error_directory_create_failed, "Creating directory is failed: %s")
@@ -69,11 +69,11 @@ namespace slib
 			SLIB_STATIC_STRING(g_str_error_layout_include_not_found, "include is not found: %s")
 			SLIB_STATIC_STRING(g_str_error_layout_not_found, "layout is not found: %s")
 			SLIB_STATIC_STRING(g_str_error_layout_is_not_view, "layout is not a view: %s")
-			
+
 			SLIB_STATIC_STRING(g_str_error_resource_raw_name_duplicated, "Raw Resource: Generated name %s is duplicated: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_raw_size_big, "Raw Resource: Size is larger than 16MB: %s")
 			SLIB_STATIC_STRING(g_str_log_generate_cpp_raws_begin, "Generating: raws, raws.cpp")
-			
+
 			SLIB_STATIC_STRING(g_str_error_resource_drawable_locale_invalid, "Drawable Resource: Invalid locale is found in the drawable directory name: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_drawable_filename_invalid, "Drawable Resource: Invalid image filename: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_drawable_not_defined_default, "Drawable Resource: default resource is not defined for this name: %s")
@@ -88,20 +88,20 @@ namespace slib
 			SLIB_STATIC_STRING(g_str_error_resource_ninepatch_name_redefined, "Nine-Patch Resource: name is redefined: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_ninepatch_attribute_invalid, "Nine-Patch Resource: Invalid %s attribute value: %s")
 			SLIB_STATIC_STRING(g_str_log_generate_cpp_drawables_begin, "Generating: drawables.h, drawables.cpp")
-			
+
 			SLIB_STATIC_STRING(g_str_error_resource_string_locale_invalid, "String Resource: Invalid locale attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_string_name_is_empty, "String Resource: name attribute is empty")
 			SLIB_STATIC_STRING(g_str_error_resource_string_name_invalid, "String Resource: Invalid name attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_string_redefine_default, "String Resource: default value is redefined")
 			SLIB_STATIC_STRING(g_str_error_resource_string_redefine_locale, "String Resource: value is redefined for %s locale")
 			SLIB_STATIC_STRING(g_str_log_generate_cpp_strings_begin, "Generating: strings.h, strings.cpp")
-			
+
 			SLIB_STATIC_STRING(g_str_error_resource_color_name_is_empty, "Color Resource: name attribute is empty")
 			SLIB_STATIC_STRING(g_str_error_resource_color_name_invalid, "Color Resource: Invalid name attribute value: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_color_name_redefined, "Color Resource: name is redefined: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_color_value_invalid, "Color Resource: Invalid color value: %s")
 			SLIB_STATIC_STRING(g_str_log_generate_cpp_colors_begin, "Generating: colors.h, colors.cpp")
-			
+
 			SLIB_STATIC_STRING(g_str_error_resource_menu_name_is_empty, "Menu Resource: name attribute is empty")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_name_is_root, "Menu Resource: 'root' is not allowed for item name")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_name_invalid, "Menu Resource: Invalid name attribute value: %s")
@@ -115,7 +115,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_str_error_resource_menu_children_tag_invalid, "Menu Resource: Invalid tag: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_menu_item_name_redefined, "Menu Resource: item name is redefined: %s")
 			SLIB_STATIC_STRING(g_str_log_generate_cpp_menus_begin, "Generating: menus.h, menus.cpp")
-			
+
 			SLIB_STATIC_STRING(g_str_error_resource_layout_type_invalid, "Layout Resource: Invalid layout type: %s")
 			SLIB_STATIC_STRING(g_str_error_resource_layout_name_is_empty, "Layout Resource: name attribute is empty")
 			SLIB_STATIC_STRING(g_str_error_resource_layout_name_invalid, "Layout Resource: Invalid name attribute value: %s")
@@ -130,7 +130,7 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::sapp;
 
 #define RAW_MAX_SIZE 0x1000000 // 16MB
@@ -139,22 +139,22 @@ namespace slib
 	{
 		simulator_locale = Locale::Unknown;
 	}
-	
+
 	SAppConfiguration::SAppConfiguration(SAppConfiguration&& other) = default;
-	
+
 	SAppConfiguration::~SAppConfiguration()
 	{
 	}
-		
+
 	SAppConfiguration& SAppConfiguration::operator=(SAppConfiguration&& other) = default;
-	
+
 	SAppSimulateLayoutParam::SAppSimulateLayoutParam()
 	{
 		pageSize.x = 450;
 		pageSize.y = 800;
 	}
-	
-	
+
+
 	SAppDocument::SAppDocument()
 	{
 		m_flagOpened = sl_false;
@@ -167,21 +167,21 @@ namespace slib
 	sl_bool SAppDocument::open(const String& filePath)
 	{
 		ObjectLocker lock(this);
-		
+
 		SAppConfiguration conf;
 		if (!_parseConfiguration(filePath, conf)) {
 			return sl_false;
 		}
-		
+
 		close();
-		
+
 		m_pathConf = filePath;
 		m_pathApp = conf.app_path;
 
 		m_conf = Move(conf);
-		
+
 		m_flagOpened = sl_true;
-		
+
 		return sl_true;
 	}
 
@@ -198,7 +198,7 @@ namespace slib
 	{
 		return m_flagOpened;
 	}
-	
+
 	void SAppDocument::clearAllResources()
 	{
 		m_drawables.removeAll();
@@ -214,13 +214,13 @@ namespace slib
 	sl_bool SAppDocument::openResources()
 	{
 		ObjectLocker lock(this);
-		
+
 		if (!m_flagOpened) {
 			return sl_false;
 		}
-		
+
 		_freeResources();
-		
+
 		if (!(_openResourcesExceptUi())) {
 			return sl_false;
 		}
@@ -229,17 +229,17 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool SAppDocument::openUiResource(const String& filePath)
 	{
 		ObjectLocker lock(this);
-		
+
 		if (!m_flagOpened) {
 			return sl_false;
 		}
-		
+
 		_freeResources();
-		
+
 		if (!(_openResourcesExceptUi())) {
 			return sl_false;
 		}
@@ -314,7 +314,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool SAppDocument::_openRawResources(const String& pathApp)
 	{
 		String path = pathApp + "/raw";
@@ -375,7 +375,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool SAppDocument::_openUiResource(const String& path)
 	{
 		if (File::exists(path)) {
@@ -426,7 +426,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool SAppDocument::generateCpp()
 	{
 		ObjectLocker lock(this);
@@ -434,7 +434,7 @@ namespace slib
 		if (!m_flagOpened) {
 			return sl_false;
 		}
-		
+
 		String path = m_conf.generate_cpp_target_path;
 		if (path.isEmpty()) {
 			_logError(g_str_error_generate_cpp_target_path_is_empty);
@@ -447,7 +447,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		if (m_conf.generate_cpp_namespace.isEmpty()) {
 			_logError(g_str_error_generate_cpp_namespace_is_empty);
 			return sl_false;
@@ -456,9 +456,9 @@ namespace slib
 			_logError(g_str_error_generate_cpp_namespace_invalid, m_conf.generate_cpp_namespace);
 			return sl_false;
 		}
-		
+
 		_log(g_str_log_generate_cpp_begin, path);
-		
+
 		if (!_generateResourcesH(path)) {
 			return sl_false;
 		}
@@ -498,19 +498,19 @@ namespace slib
 	List< Ref<SAppLayoutResource> > SAppDocument::getLayouts()
 	{
 		ObjectLocker lock(this);
-		
+
 		if (!m_flagOpened) {
 			return List< Ref<SAppLayoutResource> >::null();
 		}
-		
+
 		return m_layouts.getAllValues();
-		
+
 	}
 
 	sl_bool SAppDocument::simulateLayoutInWindow(const String& layoutName, SAppSimulateLayoutParam& param)
 	{
 		ObjectLocker lock(this);
-		
+
 		if (!m_flagOpened) {
 			return sl_false;
 		}
@@ -521,10 +521,10 @@ namespace slib
 				return sl_true;
 			}
 		}
-		
+
 		return sl_false;
 	}
-	
+
 	Locale SAppDocument::getCurrentSimulatorLocale()
 	{
 		Locale locale = m_conf.simulator_locale;
@@ -537,7 +537,7 @@ namespace slib
 	/***************************************************
 	 					Utilities
 	***************************************************/
-	
+
 	String SAppDocument::getShortcutKeyDefinitionString(const KeycodeAndModifiers& km, sl_bool flagMac)
 	{
 		if (km.getKeycode() == Keycode::Unknown) {
@@ -590,7 +590,7 @@ namespace slib
 		ret += UIEvent::getKeyName(km.getKeycode(), sl_false);
 		return ret;
 	}
-	
+
 	String SAppDocument::getNameInLocalNamespace(const String& localNamespace, const String& name)
 	{
 		if (localNamespace.isNotEmpty()) {
@@ -636,12 +636,12 @@ namespace slib
 	sl_bool SAppDocument::_parseConfiguration(const String& filePath, SAppConfiguration& conf)
 	{
 		_log(g_str_log_appconf_begin, filePath);
-		
+
 		if (!(File::exists(filePath))) {
 			_logError(g_str_error_file_not_found, filePath);
 			return sl_false;
 		}
-		
+
 		XmlParseParam param;
 		param.flagLogError = sl_false;
 		param.setCreatingOnlyElementsAndTexts();
@@ -650,7 +650,7 @@ namespace slib
 			_logError(filePath, param.errorLine, param.errorColumn, param.errorMessage);
 			return sl_false;
 		}
-		
+
 		if (xml.isNull()) {
 			return sl_false;
 		}
@@ -662,13 +662,13 @@ namespace slib
 			_logError(root, g_str_error_invalid_root_tag);
 			return sl_false;
 		}
-		
+
 		root = root->getFirstChildElement("configuration");
 		if (root.isNull()) {
 			_logError(root, g_str_error_configuration_tag_not_found);
 			return sl_false;
 		}
-		
+
 		// app-path
 		{
 			Ref<XmlElement> el_app_path = root->getFirstChildElement("app-path");
@@ -705,7 +705,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		// generate-cpp
 		Ref<XmlElement> el_generate_cpp = root->getFirstChildElement("generate-cpp");
 		if (el_generate_cpp.isNotNull()) {
@@ -750,7 +750,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		// simulator
 		Ref<XmlElement> el_simulator = root->getFirstChildElement("simulator");
 		if (el_simulator.isNotNull()) {
@@ -768,16 +768,16 @@ namespace slib
 				}
 			}
 		}
-		
+
 		_log(g_str_log_appconf_end);
-		
+
 		return sl_true;
 	}
 
 	void SAppDocument::_freeResources()
 	{
 		clearAllResources();
-		
+
 		{
 			ListLocker< Ref<SAppLayoutSimulationWindow> > windows(m_layoutSimulationWindows);
 			for (sl_size i = 0; i < windows.count; i++) {
@@ -793,7 +793,7 @@ namespace slib
 	sl_bool SAppDocument::_parseResourcesXml(const String& localNamespace, const String& filePath)
 	{
 		_log(g_str_log_open_resource_begin, filePath);
-		
+
 		XmlParseParam param;
 		param.flagLogError = sl_false;
 		param.flagSupportCpp11String = sl_true;
@@ -816,7 +816,7 @@ namespace slib
 			_logError(root, g_str_error_invalid_root_tag);
 			return sl_false;
 		}
-		
+
 		String fileName = File::getFileNameOnly(filePath);
 		Locale locale = Locale::Unknown;
 		if (fileName.startsWith("strings_")) {
@@ -893,7 +893,7 @@ namespace slib
 	sl_bool SAppDocument::_generateResourcesH(const String& targetPath)
 	{
 		_log(g_str_log_generate_cpp_resources_h_begin);
-		
+
 		String content =
 			"#pragma once\r\n\r\n"
 			"#include \"raws.h\"\r\n"
@@ -902,7 +902,7 @@ namespace slib
 			"#include \"drawables.h\"\r\n"
 			"#include \"menus.h\"\r\n"
 			"#include \"layouts.h\"\r\n";
-		
+
 		String pathHeader = targetPath + "/resources.h";
 		if (File::readAllTextUTF8(pathHeader) != content) {
 			if (!(File::writeAllTextUTF8(pathHeader, content))) {
@@ -912,7 +912,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	template <class MAP, class ITEM>
 	sl_bool SAppDocument::getItemFromMap(const MAP& map, const String& localNamespace, const String& name, String* outName, ITEM* _out)
 	{
@@ -933,7 +933,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }
 
 #include "sapp_document_raw.inc"

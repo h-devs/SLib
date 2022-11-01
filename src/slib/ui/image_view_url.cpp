@@ -35,7 +35,7 @@ namespace slib
 		param.url = url;
 		loadUrl(param);
 	}
-	
+
 	void ImageView::loadUrl(const UrlRequestParam& _param)
 	{
 		if (_param.url.isEmpty()) {

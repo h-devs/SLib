@@ -11,10 +11,10 @@ int main(int argc, const char * argv[])
 		Println("Cannot connect to database file.");
 		return 1;
 	}
-	
+
 	Println("book table existing: %s", db->isTableExisting("book"));
 	Println("Tables=%s", Json(db->getTables()));
-	
+
 	db->dropTable("book", DatabaseFlags::IfExists);
 	{
 		DatabaseColumnDefinition columns[] = {
@@ -23,7 +23,7 @@ int main(int argc, const char * argv[])
 		};
 		db->createTable("book", columns, DatabaseFlags::IfExists);
 	}
-	
+
 	for (int i = 0; i < 1000; i++) {
 		String title = String::format("Book %d", i);
 		String abstract = String::format("Abstract %d", i);
@@ -38,6 +38,6 @@ int main(int argc, const char * argv[])
 		String abstract = row["abstract"].getString();
 		Println("Title: %s, Abstract: %s", title, abstract);
 	}
-	
+
 	return 0;
 }

@@ -41,7 +41,7 @@ namespace slib
 			class SensorImpl;
 
 			typedef CHashMap<jlong, WeakRef<SensorImpl> > SensorMap;
-			
+
 			SLIB_SAFE_STATIC_GETTER(SensorMap, GetSensorMap)
 
 			SLIB_JNI_BEGIN_CLASS(JSensor, "slib/android/device/Sensor")
@@ -58,7 +58,7 @@ namespace slib
 			{
 			public:
 				JniGlobal<jobject> m_sensor;
-				
+
 			public:
 				SensorImpl()
 				{
@@ -154,7 +154,7 @@ namespace slib
 				{
 					JSensor::stop.call(m_sensor);
 				}
-				
+
 				void onChangeLocation(double latitude, double longitude, double altitude)
 				{
 					_onLocationChanged(GeoLocation(latitude, longitude, altitude));

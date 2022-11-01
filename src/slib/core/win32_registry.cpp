@@ -265,7 +265,7 @@ namespace slib
 			Registry key(open(hRootKey, subPath, KEY_QUERY_VALUE));
 			return key.getValues();
 		}
-		
+
 		sl_bool Registry::getValue(const StringParam& _name, Variant* out)
 		{
 			HKEY hKey = get();

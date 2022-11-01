@@ -352,7 +352,7 @@ namespace slib
 	public:
 		SLIB_DEFINE_NULLABLE_HANDLE_CONTAINER_TEMPLATE_MEMBERS(JniGlobal, T, value, Jni::deleteGlobalRef)
 
-	public:		
+	public:
 		static JniGlobal create(T _value) noexcept
 		{
 			return (T)(Jni::newGlobalRef(_value));
@@ -396,7 +396,7 @@ namespace slib
 		JniStringConstant(const sl_char16* sz) noexcept;
 
 		~JniStringConstant();
-	
+
 	public:
 		jstring get() noexcept;
 
@@ -610,7 +610,7 @@ namespace slib
 				JniLocal<jobject> get() noexcept;
 				void set(jobject value) noexcept;
 			};
-			
+
 			class JStaticStringField : protected JStaticField
 			{
 			public:

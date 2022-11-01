@@ -32,12 +32,12 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NetworkInterfaceInfo)
-	
+
 	NetworkInterfaceInfo::NetworkInterfaceInfo()
 	{
 	}
 
-	
+
 	List<IPv4Address> Network::findAllIPv4Addresses()
 	{
 		List<IPv4Address> list;
@@ -82,7 +82,7 @@ namespace slib
 		}
 		return list;
 	}
-	
+
 	List<MacAddress> Network::findAllMacAddresses()
 	{
 		List<MacAddress> list;
@@ -356,13 +356,13 @@ namespace slib
 		getifaddrs(&adapters);
 
 		if (adapters) {
-			
+
 			struct ifaddrs* adapter = adapters;
-			
+
 			while (adapter) {
-				
+
 				String name = adapter->ifa_name;
-				
+
 				NetworkInterfaceInfo* pdev = ret.getItemPointer(name);
 				if (!pdev) {
 					NetworkInterfaceInfo dev;

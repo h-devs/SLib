@@ -128,7 +128,7 @@ namespace slib
 
 	public:
 		virtual sl_bool getInformation(FileSystemInfo& outInfo);
-		
+
 		virtual sl_bool getSize(sl_uint64* pTotalSize, sl_uint64* pFreeSize = sl_null);
 
 		virtual Ref<FileContext> createContext(const StringParam& path) = 0;

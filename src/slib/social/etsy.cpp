@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace etsy
@@ -35,21 +35,21 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Etsy>, g_instance)
 		}
 	}
-	
+
 	using namespace priv::etsy;
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyUserFeedbackInfo)
-	
+
 	SLIB_DEFINE_JSON_MEMBERS(EtsyUserFeedbackInfo, count, score)
-	
+
 	EtsyUserFeedbackInfo::EtsyUserFeedbackInfo()
 	{
 		count = 0;
 		score = 0;
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyUser)
-	
+
 	SLIB_DEFINE_JSON_MEMBERS(EtsyUser, user_id, login_name, primary_email, creation_tsz, user_pub_key, referred_by_user_id, feedback_info, awaiting_feedback_count, use_new_inventory_endpoints)
 
 	EtsyUser::EtsyUser()
@@ -59,7 +59,7 @@ namespace slib
 		awaiting_feedback_count = 0;
 		use_new_inventory_endpoints = sl_false;
 	}
-	
+
 	String EtsyUser::getPublicProfileURL(const String& loginName)
 	{
 		if (loginName.isNotEmpty()) {
@@ -72,26 +72,26 @@ namespace slib
 	{
 		return getPublicProfileURL(login_name);
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyParam)
-	
+
 	EtsyParam::EtsyParam()
 	{
 		requestTokenUrl = "https://openapi.etsy.com/v2/oauth/request_token";
 		authenticateUrl = "https://www.etsy.com/oauth/signin";
 		accessTokenUrl = "https://openapi.etsy.com/v2/oauth/access_token";
 	}
-	
+
 	SLIB_DEFINE_OBJECT(Etsy, OAuth1)
-	
+
 	Etsy::Etsy(const EtsyParam& param) : OAuth1(param)
 	{
 	}
-	
+
 	Etsy::~Etsy()
 	{
 	}
-	
+
 	Ref<Etsy> Etsy::create(const EtsyParam& param)
 	{
 		return new Etsy(param);
@@ -104,14 +104,14 @@ namespace slib
 		}
 		g_instance = create(param);
 	}
-	
+
 	void Etsy::initialize()
 	{
 		EtsyParam param;
 		param.preferenceName = "etsy";
 		initialize(param);
 	}
-	
+
 	Ref<Etsy> Etsy::create(const String& consumerKey, const String& consumerSecret, const String& callbackUrl)
 	{
 		EtsyParam param;
@@ -120,7 +120,7 @@ namespace slib
 		param.callbackUrl = callbackUrl;
 		return create(param);
 	}
-	
+
 	void Etsy::initialize(const String& consumerKey, const String& consumerSecret, const String& callbackUrl)
 	{
 		EtsyParam param;
@@ -130,7 +130,7 @@ namespace slib
 		param.callbackUrl = callbackUrl;
 		initialize(param);
 	}
-	
+
 	Ref<Etsy> Etsy::createWithAccessToken(const String& token, const String tokenSecret)
 	{
 		EtsyParam param;
@@ -138,7 +138,7 @@ namespace slib
 		param.accessToken.secret = tokenSecret;
 		return create(param);
 	}
-	
+
 	Ref<Etsy> Etsy::getInstance()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -146,12 +146,12 @@ namespace slib
 		}
 		return g_instance;
 	}
-	
+
 	String Etsy::getRequestUrl(const String& path)
 	{
 		return "https://openapi.etsy.com/v2/" + path;
 	}
-	
+
 	void Etsy::getUser(const String& userId, const Function<void(EtsyResult&, EtsyUser&)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -173,5 +173,5 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
+
 }

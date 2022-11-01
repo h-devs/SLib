@@ -78,7 +78,7 @@ namespace slib
 			ret.latitude /= (6 * signedArea);
 			ret.longitude /= (6 * signedArea);
 		}
-		
+
 		return ret;
 	}
 

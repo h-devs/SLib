@@ -48,7 +48,7 @@ namespace slib
 			}
 #endif
 		}
-		
+
 		template <class READER>
 		static sl_reg readFully(READER* reader, void* _buf, sl_size size)
 		{
@@ -79,7 +79,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		template <class READER>
 		static Memory readFully(READER* reader)
 		{
@@ -527,7 +527,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class READER>
 		static String _readText8(READER* reader, sl_size size, const sl_char8* prefix, sl_size nPrefix)
 		{

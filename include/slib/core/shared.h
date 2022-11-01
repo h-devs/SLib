@@ -380,7 +380,7 @@ namespace slib
 				sl_reg decreaseReference();
 
 			};
-			
+
 			template <class T>
 			class GenericContainer : public PtrContainer
 			{
@@ -443,7 +443,7 @@ namespace slib
 			{
 				typedef T Type;
 			};
-			
+
 			template <>
 			struct ValueType<void>
 			{
@@ -539,7 +539,7 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Shared<T*>
 	{
@@ -550,7 +550,7 @@ namespace slib
 
 	public:
 		Shared(const AtomicShared<T*>& other) noexcept;
-		
+
 		template <class OTHER>
 		Shared(OTHER* ptr) noexcept
 		{

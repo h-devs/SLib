@@ -238,7 +238,7 @@ namespace slib
 	{
 	public:
 		void addItem(NtlmTargetInfoItemType type, const void* data, sl_size size) noexcept;
-		
+
 		void addItem(NtlmTargetInfoItemType type, const StringParam& str) noexcept;
 
 		void addTimestamp() noexcept;

@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace android_context
@@ -58,9 +58,9 @@ namespace slib
 			SLIB_JNI_BEGIN_CLASS(JEnvironment, "android/os/Environment")
 				SLIB_JNI_FINAL_STRING_OBJECT_FIELD(DIRECTORY_PICTURES)
 			SLIB_JNI_END_CLASS
-			
+
 			SLIB_JNI_BEGIN_CLASS(JSharedPreferences, "android/content/SharedPreferences")
-				SLIB_JNI_METHOD(edit, "edit", "()Landroid/content/SharedPreferences$Editor;")				
+				SLIB_JNI_METHOD(edit, "edit", "()Landroid/content/SharedPreferences$Editor;")
 				SLIB_JNI_METHOD(getString, "getString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;")
 			SLIB_JNI_END_CLASS
 
@@ -124,12 +124,12 @@ namespace slib
 		{
 			return JContext::getPackageName.callString(thiz);
 		}
-		
+
 		JniLocal<jobject> Context::getAssets(jobject thiz) noexcept
 		{
 			return JContext::getAssets.callObject(thiz);
 		}
-		
+
 		JniLocal<jobject> Context::getSharedPreferences(jobject thiz, const StringParam& _name, sl_uint32 mode) noexcept
 		{
 			if (thiz) {
@@ -144,7 +144,7 @@ namespace slib
 
 		sl_bool Activity::isActivity(jobject object) noexcept
 		{
-			return Jni::isInstanceOf(object, JActivity::get());			
+			return Jni::isInstanceOf(object, JActivity::get());
 		}
 
 		void Activity::finish(jobject thiz) noexcept

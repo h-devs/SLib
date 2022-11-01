@@ -38,18 +38,18 @@ namespace slib
 	SLIB_DEFINE_OBJECT(ComboBox, View)
 	SLIB_DEFINE_LABEL_LIST_INSTANCE_NOTIFY_FUNCTIONS(ComboBox, sl_int32, IComboBoxInstance, getComboBoxInstance)
 	template class SingleSelectionViewBase<ComboBox, sl_int32>;
-	
+
 	ComboBox::ComboBox()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
 		setCreatingNativeWidget(HAS_NATIVE_WIDGET_IMPL);
-		
+
 		setUsingFont(sl_true);
 		setBorder(sl_true, UIUpdateMode::Init);
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		setSavingCanvasState(sl_false);
 		setFocusable(sl_true);
-		
+
 		m_indexSelected = -1;
 	}
 

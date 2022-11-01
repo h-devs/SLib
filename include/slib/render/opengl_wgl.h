@@ -36,7 +36,7 @@ namespace slib
 	{
 	public:
 		static Ref<Renderer> createRenderer(void* windowHandle, const RendererParam& param);
-		
+
 	};
 
 }

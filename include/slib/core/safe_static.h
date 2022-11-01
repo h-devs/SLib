@@ -96,12 +96,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace safe_static
 		{
-			
+
 			template <class T>
 			class FreeGlobal
 			{
@@ -148,7 +148,7 @@ namespace slib
 			};
 
 			void FreeObjectOnExitImpl(IFreeable* obj);
-			
+
 			template <typename T>
 			void FreeObjectOnExit(T* obj, sl_bool* outFreedStatus)
 			{
@@ -160,7 +160,7 @@ namespace slib
 
 		}
 	}
-	
+
 }
 
 #endif

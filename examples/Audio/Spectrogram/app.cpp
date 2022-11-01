@@ -19,7 +19,7 @@ void SpectrogramApp::onStart()
 	rp.frameLengthInMilliseconds = 32;
 	rp.bufferLengthInMilliseconds = 1600;
 	m_recorder = AudioRecorder::create(rp);
-	
+
 	auto window = New<Window>();
 	window->setTitle("Spectrogram");
 	window->setCenterScreen();

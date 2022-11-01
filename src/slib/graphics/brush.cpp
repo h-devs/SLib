@@ -27,23 +27,23 @@
 
 namespace slib
 {
-	
+
 	GradientBrushDetail::GradientBrushDetail()
 	{
 	}
-	
+
 	GradientBrushDetail::~GradientBrushDetail()
 	{
 	}
-	
+
 	TextureBrushDetail::TextureBrushDetail()
 	{
 	}
-	
+
 	TextureBrushDetail::~TextureBrushDetail()
 	{
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(BrushDesc)
 
@@ -99,7 +99,7 @@ namespace slib
 		sl_real locations[] = {0, 1};
 		return createLinearGradientBrush(pt1, pt2, 2, colors, locations);
 	}
-	
+
 	Ref<Brush> Brush::createLinearGradientBrush(const Point& pt1, const Point& pt2, sl_uint32 nColors, const Color* colors, const sl_real* locations)
 	{
 		if (nColors >= 2) {
@@ -121,14 +121,14 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Brush> Brush::createRadialGradientBrush(const Point& ptCenter, sl_real radius, const Color& colorCenter, const Color& colorEdge)
 	{
 		Color colors[2] = {colorCenter, colorEdge};
 		sl_real locations[] = {0, 1};
 		return createRadialGradientBrush(ptCenter, radius, 2, colors, locations);
 	}
-	
+
 	Ref<Brush> Brush::createRadialGradientBrush(const Point& ptCenter, sl_real radius, sl_uint32 nColors, const Color* colors, const sl_real* locations)
 	{
 		if (nColors >= 2) {
@@ -150,7 +150,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Brush> Brush::createTextureBrush(const Ref<Bitmap>& bitmap)
 	{
 		if (bitmap.isNotNull()) {
@@ -172,7 +172,7 @@ namespace slib
 	{
 		desc = m_desc;
 	}
-	
+
 	BrushDesc& Brush::getDesc()
 	{
 		return m_desc;

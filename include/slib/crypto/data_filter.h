@@ -38,7 +38,7 @@ namespace slib
 		Error = 2,
 		WouldBlock = 3
 	};
-	
+
 	// always fill the output sizes
 	class SLIB_EXPORT IDataFilter
 	{
@@ -53,7 +53,7 @@ namespace slib
 			void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed);
 
 		virtual DataFilterResult finish32(void* output, sl_uint32 sizeOutputAvailable, sl_uint32& sizeOutputUsed);
-		
+
 		virtual sl_size getRecommendedInputSize();
 
 		virtual sl_size getRecommendedOutputSize();

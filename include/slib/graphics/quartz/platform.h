@@ -58,7 +58,7 @@ namespace slib
 
 		static Ref<Drawable> createImageDrawable(CGImageRef image, sl_bool flagFlipped = sl_false);
 		static CGImageRef getImageDrawableHandle(Drawable* drawable);
-		
+
 		static CGContextRef getBitmapHandle(Bitmap* bitmap);
 
 		static Ref<Bitmap> createBitmapFromCGImage(CGImageRef image);

@@ -141,7 +141,7 @@ namespace slib
 				ServiceStartType type = ServiceManager::getStartType(L"usbstor");
 				return type != ServiceStartType::Disabled && type != ServiceStartType::Unknown;
 			}
-			
+
 		}
 	}
 
@@ -219,7 +219,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_bool Storage::isCdromVolume(const StringParam& path)
 	{
 		HANDLE hDevice = Win32::createDeviceHandle(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE);

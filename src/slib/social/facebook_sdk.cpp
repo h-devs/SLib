@@ -26,13 +26,13 @@
 
 namespace slib
 {
-	
+
 #if !defined(SLIB_PLATFORM_IS_IOS) && !defined(SLIB_PLATFORM_IS_ANDROID)
-	
+
 	void FacebookSDK::initialize()
 	{
 	}
-	
+
 	void FacebookSDK::login(const FacebookLoginParam& param)
 	{
 		Ref<Facebook> instance = Facebook::getInstance();
@@ -43,7 +43,7 @@ namespace slib
 			param.onComplete(result);
 		}
 	}
-	
+
 	void FacebookSDK::clearAccessToken()
 	{
 		Ref<Facebook> instance = Facebook::getInstance();
@@ -87,12 +87,12 @@ namespace slib
 	}
 
 #endif
-	
+
 	void FacebookSDK::login(const Function<void(FacebookLoginResult& result)>& onComplete)
 	{
 		FacebookLoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}
-	
+
 }

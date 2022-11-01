@@ -27,27 +27,27 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(ViewAdapter, Object)
-	
+
 	ViewAdapter::ViewAdapter()
 	{
 	}
-	
+
 	ViewAdapter::~ViewAdapter()
 	{
 	}
-	
+
 	sl_object_type ViewAdapter::getViewType(sl_uint64 index, View* parent)
 	{
 		return sl_null;
 	}
-	
+
 	sl_ui_len ViewAdapter::getAverageItemHeight(View* parent)
 	{
 		return 0;
 	}
-	
+
 	sl_ui_len ViewAdapter::getItemHeight(sl_uint64 index, View* parent)
 	{
 		return 0;
@@ -57,7 +57,7 @@ namespace slib
 	{
 		return 50;
 	}
-	
+
 	void ViewAdapter::populateInto(View* parent, UIUpdateMode mode)
 	{
 		if (!parent) {
@@ -76,15 +76,15 @@ namespace slib
     
     
 	SLIB_DEFINE_OBJECT(ViewListAdapter, ViewAdapter)
-	
+
 	ViewListAdapter::ViewListAdapter()
 	{
 	}
-	
+
 	ViewListAdapter::~ViewListAdapter()
 	{
 	}
-	
+
 	ViewListAdapter::ViewListAdapter(const List< Ref<View> >& list): m_list(list)
 	{
 	}
@@ -93,44 +93,44 @@ namespace slib
 	{
 		return new ViewListAdapter(list);
 	}
-	
+
 	List< Ref<View> > ViewListAdapter::getList()
 	{
 		return m_list;
 	}
-	
+
 	void ViewListAdapter::setList(const List< Ref<View> >& list)
 	{
 		m_list = list;
 	}
-	
+
 	void ViewListAdapter::addView(const Ref<View>& view)
 	{
 		m_list.add(view);
 	}
-	
+
 	sl_uint64 ViewListAdapter::getItemCount()
 	{
 		return List< Ref<View> >(m_list).getCount();
 	}
-	
+
 	Ref<View> ViewListAdapter::getView(sl_uint64 index, View* original, View* parent)
 	{
 		return List< Ref<View> >(m_list).getValueAt((sl_size)index);
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(ViewRowAdapter, ViewAdapter)
-	
+
 	ViewRowAdapter::ViewRowAdapter()
 	 : m_nColumns(1)
 	{
 	}
-	
+
 	ViewRowAdapter::~ViewRowAdapter()
 	{
 	}
-	
+
 	Ref<ViewRowAdapter> ViewRowAdapter::create(sl_uint32 nColumns, const Ref<ViewAdapter>& itemAdapter)
 	{
 		if (itemAdapter.isNull()) {
@@ -147,27 +147,27 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_uint32 ViewRowAdapter::getColumnCount()
 	{
 		return m_nColumns;
 	}
-	
+
 	void ViewRowAdapter::setColumnCount(sl_uint32 nColumns)
 	{
 		m_nColumns = nColumns;
 	}
-	
+
 	Ref<ViewAdapter> ViewRowAdapter::getItemAdapter()
 	{
 		return m_itemAdapter;
 	}
-	
+
 	void ViewRowAdapter::setItemAdapter(const Ref<ViewAdapter>& adapter)
 	{
 		m_itemAdapter = adapter;
 	}
-	
+
 	sl_uint64 ViewRowAdapter::getItemCount()
 	{
 		Ref<ViewAdapter> adapter = m_itemAdapter;
@@ -184,7 +184,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	Ref<View> ViewRowAdapter::getView(sl_uint64 index, View* original, View* parent)
 	{
 		Ref<ViewAdapter> adapter = m_itemAdapter;
@@ -238,7 +238,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_ui_len ViewRowAdapter::getAverageItemHeight(View* parent)
 	{
 		Ref<ViewAdapter> adapter = m_itemAdapter;
@@ -247,7 +247,7 @@ namespace slib
 		}
 		return ViewAdapter::getAverageItemHeight(parent);
 	}
-	
+
 	sl_ui_len ViewRowAdapter::getItemHeight(sl_uint64 index, View* parent)
 	{
 		Ref<ViewAdapter> adapter = m_itemAdapter;
@@ -272,7 +272,7 @@ namespace slib
 		}
 		return ViewAdapter::getItemHeight(index, parent);
 	}
-	
+
 	sl_uint32 ViewRowAdapter::getMaximumItemCountPerPage(View* parent)
 	{
 		Ref<ViewAdapter> adapter = m_itemAdapter;

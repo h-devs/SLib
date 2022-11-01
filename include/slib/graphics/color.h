@@ -30,10 +30,10 @@
 
 namespace slib
 {
-	
+
 	typedef Vector3f Color3f;
 	typedef Vector4f Color4f;
-	
+
 	class SLIB_EXPORT Color
 	{
 	public:
@@ -189,7 +189,7 @@ namespace slib
 			Zero = 0,
 			None = 0
 		};
-	
+
 	public:
 		SLIB_CONSTEXPR Color(): r(0), g(0), b(0), a(0) {}
 
@@ -214,7 +214,7 @@ namespace slib
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
 		 a((sl_uint8)(Math::clamp0_255((sl_int32)(v.w * 255)))) {}
-	
+
 	public:
 		static const Color& zero() noexcept
 		{
@@ -238,7 +238,7 @@ namespace slib
 			b = 0;
 			a = 0;
 		}
-	
+
 		SLIB_CONSTEXPR float getBlueF() const
 		{
 			return (float)(b) / 255.0f;
@@ -274,12 +274,12 @@ namespace slib
 			b = _b;
 			a = _a;
 		}
-	
+
 		SLIB_CONSTEXPR sl_uint32 getARGB() const
 		{
 			return ((sl_uint32)(a) << 24) | ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
-	
+
 		void setARGB(sl_uint32 v) noexcept
 		{
 			b = (sl_uint8)(v & 0xFF);
@@ -305,7 +305,7 @@ namespace slib
 		{
 			return ((sl_uint32)(r) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(b));
 		}
-	
+
 		void setRGB(sl_uint8 _r, sl_uint8 _g, sl_uint8 _b) noexcept
 		{
 			r = _r;
@@ -319,12 +319,12 @@ namespace slib
 			g = (sl_uint8)((v >> 8) & 0xFF);
 			r = (sl_uint8)((v >> 16) & 0xFF);
 		}
-	
+
 		SLIB_CONSTEXPR sl_uint32 getBGR() const
 		{
 			return ((sl_uint32)(b) << 16) | ((sl_uint32)(g) << 8) | ((sl_uint32)(r));
 		}
-	
+
 		void setBGR(sl_uint32 v) noexcept
 		{
 			r = (sl_uint8)(v & 0xFF);
@@ -335,42 +335,42 @@ namespace slib
 
 		// assume that dst is premultiplied alpha, and src is non-premultiplied alpha
 		void blend_PA_NPA(sl_uint32 r, sl_uint32 g, sl_uint32 b, sl_uint32 a) noexcept;
-	
+
 		// assume that dst is premultiplied alpha, and src is non-premultiplied alpha
 		void blend_PA_NPA(const Color& src) noexcept;
-	
+
 		// assume that dst is premultiplied alpha, and src is premultiplied alpha
 		void blend_PA_PA(sl_uint32 r, sl_uint32 g, sl_uint32 b, sl_uint32 a) noexcept;
-	
+
 		// assume that dst is premultiplied alpha, and src is premultiplied alpha
 		void blend_PA_PA(const Color& src) noexcept;
-	
+
 		// assume that dst is non-premultiplied alpha, and src is non-premultiplied alpha
 		void blend_NPA_NPA(sl_uint32 r, sl_uint32 g, sl_uint32 b, sl_uint32 a) noexcept;
 
 		// assume that dst is non-premultiplied alpha, and src is non-premultiplied alpha
 		void blend_NPA_NPA(const Color& src) noexcept;
-	
+
 		// assume that dst is non-premultiplied alpha, and src is premultiplied alpha
 		void blend_NPA_PA(sl_uint32 r, sl_uint32 g, sl_uint32 b, sl_uint32 a) noexcept;
-	
+
 		// assume that dst is non-premultiplied alpha, and src is premultiplied alpha
 		void blend_NPA_PA(const Color& src) noexcept;
-	
-	
+
+
 		void convertNPAtoPA() noexcept;
-	
+
 		void convertPAtoNPA() noexcept;
-		
-		
+
+
 		void multiplyAlpha(float f) noexcept;
-		
+
 		void multiplyRed(float f) noexcept;
-		
+
 		void multiplyGreen(float f) noexcept;
-		
+
 		void multiplyBlue(float f) noexcept;
-	
+
 	public:
 		SLIB_DECLARE_CLASS_COMMON_MEMBERS(Color)
 
@@ -398,7 +398,7 @@ namespace slib
 		static sl_uint8 _zero[4];
 
 	};
-	
+
 	class SLIB_EXPORT ColorMatrix
 	{
 	public:
@@ -419,7 +419,7 @@ namespace slib
 		Color4f transformColor(const Color4f& s) const noexcept;
 		Color4f transformColor(const Color& s) const noexcept;
 		Color4f transformColor(const Color3f& s) const noexcept;
-		
+
 		void setOverlay(const Color4f& c) noexcept;
 		void setOverlay(const Color& c) noexcept;
 		void setOverlay(const Color3f& c) noexcept;

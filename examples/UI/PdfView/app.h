@@ -9,8 +9,8 @@ class PdfViewerApp : public UIApp
 	SLIB_APPLICATION(PdfViewerApp)
 public:
 	PdfViewerApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 };

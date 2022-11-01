@@ -42,7 +42,7 @@ namespace slib
 	{
 		namespace render_canvas
 		{
-			
+
 			SLIB_RENDER_PROGRAM_STATE_BEGIN(RenderCanvasProgramState, RenderVertex2D_Position)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3(Transform, u_Transform, RenderShaderType::Vertex, 0)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(Color, u_Color, RenderShaderType::Pixel, 0)
@@ -56,10 +56,10 @@ namespace slib
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4(RectSrc, u_RectSrc, RenderShaderType::Vertex, 3)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_MATRIX3_ARRAY(ClipTransform, u_ClipTransform, RenderShaderType::Vertex, 32)
 				SLIB_RENDER_PROGRAM_STATE_UNIFORM_VECTOR4_ARRAY(ClipRect, u_ClipRect, RenderShaderType::Vertex | RenderShaderType::Pixel, 16)
-			
+
 				SLIB_RENDER_PROGRAM_STATE_INPUT_FLOAT2(position, a_Position, RenderInputSemanticName::Position, 0)
 			SLIB_RENDER_PROGRAM_STATE_END
-			
+
 			class RenderCanvasProgramParam
 			{
 			public:
@@ -68,7 +68,7 @@ namespace slib
 				sl_bool flagUseColorFilter;
 				RenderCanvasClip* clips[MAX_SHADER_CLIP + 1];
 				sl_uint32 countClips;
-				
+
 			public:
 				RenderCanvasProgramParam()
 				{
@@ -77,7 +77,7 @@ namespace slib
 					flagUseColorFilter = sl_false;
 					countClips = 0;
 				}
-				
+
 				void prepare(RenderCanvasState* state, sl_bool flagIgnoreRectClip)
 				{
 					if (SLIB_RENDER_CHECK_ENGINE_TYPE(state->engineType, D3D)) {
@@ -105,13 +105,13 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void addFinalClip(RenderCanvasClip* clip)
 				{
 					clips[countClips] = clip;
 					countClips++;
 				}
-				
+
 				void applyToProgramState(RenderCanvasProgramState* state, const Matrix3& transform)
 				{
 					Matrix3 clipTransforms[MAX_SHADER_CLIP + 1];
@@ -129,24 +129,24 @@ namespace slib
 					state->setClipRect(clipRects, countClips);
 					state->setClipTransform(clipTransforms, countClips);
 				}
-				
+
 			private:
 				RenderCanvasClip storageRectClip;
-				
+
 			};
-			
+
 			class RenderCanvasProgram : public RenderProgramT<RenderCanvasProgramState>
 			{
 			public:
 				String m_vertexShader;
 				String m_fragmentShader;
-				
+
 			public:
 				String getGLSLVertexShader(RenderEngine* engine) override
 				{
 					return m_vertexShader;
 				}
-				
+
 				String getGLSLFragmentShader(RenderEngine* engine) override
 				{
 					return m_fragmentShader;
@@ -195,11 +195,11 @@ namespace slib
 					StringBuffer bufVSInput;
 					StringBuffer bufVSOutput;
 					StringBuffer bufPSInput;
-					
+
 					if (signatures) {
 						*(signatures++) = 'S';
 					}
-					
+
 					if (bufVertexShader) {
 						switch (lang) {
 						case RenderShaderLanguage::HLSL:
@@ -396,7 +396,7 @@ namespace slib
 							}
 						}
 					}
-					
+
 					if (param.flagUseTexture) {
 						if (signatures) {
 							*(signatures++) = 'T';
@@ -439,7 +439,7 @@ namespace slib
 								break;
 							}
 						}
-						
+
 						if (param.flagUseColorFilter) {
 							if (signatures) {
 								*(signatures++) = 'F';
@@ -562,9 +562,9 @@ namespace slib
 						bufFragmentShader->link(bufFBHeader);
 						bufFragmentShader->link(bufFBContent);
 					}
-					
+
 				}
-				
+
 				static Ref<RenderCanvasProgram> create(const RenderCanvasProgramParam& param)
 				{
 					StringBuffer sbVB;
@@ -582,7 +582,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			};
 
 			class EngineContext : public Referable
@@ -590,7 +590,7 @@ namespace slib
 			public:
 				CHashMap< String, Ref<RenderCanvasProgram> > programs;
 				Ref<VertexBuffer> vbRectangle;
-				
+
 			public:
 				EngineContext()
 				{
@@ -602,7 +602,7 @@ namespace slib
 					};
 					vbRectangle = VertexBuffer::create(v, sizeof(v));
 				}
-				
+
 				Ref<RenderCanvasProgram> getProgram(const RenderCanvasProgramParam& param)
 				{
 					char sig[64] = {0};
@@ -620,7 +620,7 @@ namespace slib
 					}
 					return program;
 				}
-				
+
 			};
 
 			class EngineHelper : public RenderEngine
@@ -655,75 +655,75 @@ namespace slib
 	}
 
 	using namespace priv::render_canvas;
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderCanvasClip)
-	
+
 	RenderCanvasClip::RenderCanvasClip(): type(RenderCanvasClipType::Rectangle), rx(0), ry(0), flagTransform(sl_false)
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderCanvasState)
-	
+
 	RenderCanvasState::RenderCanvasState()
 	 : engineType(RenderEngineType::Any), matrix(Matrix3::identity()), flagClipRect(sl_false)
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(RenderCanvas, Canvas)
-	
+
 	RenderCanvas::RenderCanvas()
 	{
 		m_width = 0;
 		m_height = 0;
 	}
-	
+
 	RenderCanvas::~RenderCanvas()
 	{
 	}
-	
+
 	Ref<RenderCanvas> RenderCanvas::create(const Ref<RenderEngine>& engine, sl_real width, sl_real height)
 	{
 		if (engine.isNotNull()) {
-			
+
 			Ref<RenderCanvasState> state = new RenderCanvasState;
-			
+
 			if (state.isNotNull()) {
-				
+
 				Ref<RenderCanvas> ret = new RenderCanvas;
 				if (ret.isNotNull()) {
 					ret->m_engine = engine;
 					ret->m_width = width;
 					ret->m_height = height;
 					ret->m_matViewport = Matrix3(2/width, 0, 0, 0, -2/height, 0, -1, 1, 1);
-					
+
 					ret->m_state = state;
 					state->engineType = engine->getEngineType();
-					
+
 					ret->setType(CanvasType::Render);
 					ret->setSize(Size(width, height));
-					
+
 					return ret;
 				}
-				
+
 			}
-			
+
 		}
 		return sl_null;
 	}
-	
+
 	const Ref<RenderEngine>& RenderCanvas::getEngine()
 	{
 		return m_engine;
 	}
-	
+
 	RenderCanvasState* RenderCanvas::getCurrentState()
 	{
 		return m_state.get();
 	}
-		
+
 	void RenderCanvas::save()
 	{
 		RenderCanvasState* stateOld = m_state.get();
@@ -733,7 +733,7 @@ namespace slib
 			m_state = stateNew;
 		}
 	}
-	
+
 	void RenderCanvas::restore()
 	{
 		Ref<RenderCanvasState> stateBack;
@@ -741,7 +741,7 @@ namespace slib
 			m_state = stateBack;
 		}
 	}
-	
+
 	Rectangle RenderCanvas::getClipBounds()
 	{
 		Ref<RenderCanvasState>& state = m_state;
@@ -764,7 +764,7 @@ namespace slib
 		}
 		return rect;
 	}
-	
+
 	void RenderCanvas::clipToRectangle(const Rectangle& rect)
 	{
 		RenderCanvasState* state = m_state.get();
@@ -775,11 +775,11 @@ namespace slib
 			state->clipRect = rect;
 		}
 	}
-	
+
 	void RenderCanvas::clipToPath(const Ref<GraphicsPath>& path)
 	{
 	}
-	
+
 	void RenderCanvas::clipToRoundRect(const Rectangle& rect, const Size& radius)
 	{
 		RenderCanvasState* state = m_state.get();
@@ -790,7 +790,7 @@ namespace slib
 		clip.ry = radius.y;
 		state->clips.add_NoLock(clip);
 	}
-	
+
 	void RenderCanvas::clipToEllipse(const Rectangle& rect)
 	{
 		RenderCanvasState* state = m_state.get();
@@ -799,7 +799,7 @@ namespace slib
 		clip.region = rect;
 		state->clips.add_NoLock(clip);
 	}
-	
+
 	void RenderCanvas::concatMatrix(const Matrix3& matrix)
 	{
 		RenderCanvasState* state = m_state.get();
@@ -824,7 +824,7 @@ namespace slib
 			state->flagClipRect = sl_false;
 		}
 	}
-	
+
 	void RenderCanvas::translate(sl_real tx, sl_real ty)
 	{
 		RenderCanvasState* state = m_state.get();
@@ -848,7 +848,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void RenderCanvas::translateFromSavedState(RenderCanvasState* savedState, sl_real tx, sl_real ty)
 	{
 		RenderCanvasState* state = m_state.get();
@@ -882,7 +882,7 @@ namespace slib
 	{
 		return measureRenderingText(font, text, flagMultiLine);
 	}
-	
+
 	Size RenderCanvas::measureRenderingText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine)
 	{
 		if (text.isEmpty()) {
@@ -897,16 +897,16 @@ namespace slib
 		}
 		return fa->measureText(text, flagMultiLine);
 	}
-	
+
 	void RenderCanvas::drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen)
 	{
 		if (pen.isNull()) {
 			return;
 		}
-		
+
 		sl_real penWidth = pen->getWidth();
 		sl_real penWidthHalf = penWidth / 2;
-		
+
 		RenderCanvasState* state = m_state.get();
 		if (penWidth < 1.0000001f && Vector2(state->matrix.m00, state->matrix.m10).getLength2p() <= 1.000001f && Vector2(state->matrix.m01, state->matrix.m11).getLength2p() <= 1.000001f) {
 			if (Math::abs(pt1.x - pt2.x) < 0.0000001f) {
@@ -923,38 +923,38 @@ namespace slib
 				return;
 			}
 		}
-				
+
 		sl_real angle = Math::arctan((pt1.y - pt2.y) / (pt1.x - pt2.x));
 		sl_real c = Math::cos(-angle);
 		sl_real s = Math::sin(-angle);
-		
+
 		sl_real centerX = (pt1.x + pt2.x) / 2;
 		sl_real centerY = (pt1.y + pt2.y) / 2;
-		
+
 		sl_real newX1 = centerX + (pt1.x - centerX) * c - (pt1.y - centerY) * s;
 		sl_real newY1 = centerY + (pt1.x - centerX) * s + (pt1.y - centerY) * c;
-		
+
 		sl_real newX2 = centerX + (pt2.x - centerX) * c - (pt2.y - centerY) * s;
 		sl_real newY2 = centerY + (pt2.x - centerX) * s + (pt2.y - centerY) * c;
-		
+
 		CanvasStateScope scope(this);
 		rotate(centerX, centerY, angle);
 		_fillRectangle(Rectangle(newX1 - penWidthHalf, newY1 - penWidthHalf, newX2 + penWidthHalf, newY2 + penWidthHalf), pen->getColor());
-		
+
 	}
-	
+
 	void RenderCanvas::drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen)
 	{
 		for (sl_uint32 i = 1; i < countPoints; i++) {
 			drawLine(points[i - 1], points[i], pen);
 		}
 	}
-	
+
 	void RenderCanvas::drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen)
 	{
 	}
-	
-	
+
+
 	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		if (brush.isNotNull()) {
@@ -963,7 +963,7 @@ namespace slib
 			drawRectangle(rect, pen, Color::zero());
 		}
 	}
-	
+
 	void RenderCanvas::drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor)
 	{
 		if (fillColor.a > 0) {
@@ -987,26 +987,26 @@ namespace slib
 			_fillRectangle(Rectangle(rect.right - penWidth, rect.top + penWidth, rect.right, rect.bottom - penWidth), color);
 		}
 	}
-	
+
 	void RenderCanvas::_fillRectangle(const Rectangle& _rect, const Color& _color)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-		
+
 		RenderCanvasState* state = m_state.get();
-		
+
 		Rectangle rect = _rect;
 		if (state->flagClipRect) {
 			if (!(state->clipRect.intersectRectangle(rect, &rect))) {
 				return;
 			}
 		}
-		
+
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_true);
-		
+
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			Matrix3 mat;
@@ -1022,37 +1022,37 @@ namespace slib
 			scope->setColor(color);
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
-		
+
 	}
-	
+
 	void RenderCanvas::drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		drawRectangle(rect, pen, brush);
 	}
-	
+
 	void RenderCanvas::drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-		
+
 		RenderCanvasState* state = m_state.get();
-		
+
 		if (brush.isNotNull()) {
 			if (state->flagClipRect) {
 				if (!(state->clipRect.intersectRectangle(rect, sl_null))) {
 					return;
 				}
 			}
-			
+
 			RenderCanvasProgramParam pp;
 			pp.prepare(state, state->flagClipRect && state->clipRect.containsRectangle(rect));
 			RenderCanvasClip clip;
 			clip.type = RenderCanvasClipType::Ellipse;
 			clip.region = rect;
 			pp.addFinalClip(&clip);
-			
+
 			RenderProgramScope<RenderCanvasProgramState> scope;
 			if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 				Matrix3 mat;
@@ -1070,29 +1070,29 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void RenderCanvas::drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
 	{
 	}
-	
+
 	void RenderCanvas::drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 	}
-	
+
 	void RenderCanvas::drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush)
 	{
 	}
-	
+
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4f& color)
 	{
-		
+
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-		
+
 		RenderCanvasState* state = m_state.get();
-		
+
 		Rectangle rectSrc = _rectSrc;
 		sl_real sw = (sl_real)(texture->getWidth());
 		sl_real sh = (sl_real)(texture->getHeight());
@@ -1100,14 +1100,14 @@ namespace slib
 		rectSrc.top /= sh;
 		rectSrc.right /= sw;
 		rectSrc.bottom /= sh;
-		
+
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_false);
 		pp.flagUseTexture = sl_true;
 		if (param.useColorMatrix) {
 			pp.flagUseColorFilter = sl_true;
 		}
-		
+
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			pp.applyToProgramState(scope.getState(), transform);
@@ -1129,46 +1129,46 @@ namespace slib
 			}
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
-		
+
 	}
-	
+
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		drawTexture(transform, texture, rectSrc, param, Color4f(1, 1, 1, 1));
 	}
-	
+
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
 	{
 		drawTexture(transform, texture, rectSrc, DrawParam(), Color4f(1, 1, 1, alpha));
 	}
-	
+
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param, const Color4f& color)
 	{
 		if (texture.isNotNull()) {
 			drawTexture(transform, texture, Rectangle(0, 0, (sl_real)(texture->getWidth()), (sl_real)(texture->getHeight())), param, color);
 		}
 	}
-	
+
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, const DrawParam& param)
 	{
 		drawTexture(transform, texture, param, Color4f(1, 1, 1, 1));
 	}
-	
+
 	void RenderCanvas::drawTexture(const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha)
 	{
 		drawTexture(transform, texture, DrawParam(), Color4f(1, 1, 1, alpha));
 	}
-	
+
 	void RenderCanvas::drawTexture(const Rectangle& _rectDst, const Ref<Texture>& texture, const Rectangle& _rectSrc, const DrawParam& param, const Color4f& color)
 	{
-		
+
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-		
+
 		RenderCanvasState* state = m_state.get();
-		
+
 		Rectangle rectDst = _rectDst;
 		Rectangle rectSrc = _rectSrc;
 		sl_real sw = (sl_real)(texture->getWidth());
@@ -1188,14 +1188,14 @@ namespace slib
 		rectSrc.top /= sh;
 		rectSrc.right /= sw;
 		rectSrc.bottom /= sh;
-		
+
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, sl_true);
 		pp.flagUseTexture = sl_true;
 		if (param.useColorMatrix) {
 			pp.flagUseColorFilter = sl_true;
 		}
-		
+
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		if (scope.begin(m_engine.get(), context->getProgram(pp))) {
 			scope->setTexture(texture);
@@ -1223,36 +1223,36 @@ namespace slib
 			}
 			m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
 		}
-		
+
 	}
-	
+
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		drawTexture(rectDst, texture, rectSrc, param, Color4f(1, 1, 1, 1));
 	}
-	
+
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha)
 	{
 		drawTexture(rectDst, texture, rectSrc, DrawParam(), Color4f(1, 1, 1, alpha));
 	}
-	
+
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param, const Color4f& color)
 	{
 		if (texture.isNotNull()) {
 			drawTexture(rectDst, texture, Rectangle(0, 0, (sl_real)(texture->getWidth()), (sl_real)(texture->getHeight())), param, color);
 		}
 	}
-	
+
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, const DrawParam& param)
 	{
 		drawTexture(rectDst, texture, param, Color4f(1, 1, 1, 1));
 	}
-	
+
 	void RenderCanvas::drawTexture(const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha)
 	{
 		drawTexture(rectDst, texture, DrawParam(), Color4f(1, 1, 1, alpha));
 	}
-	
+
 	Matrix3 RenderCanvas::getTransformMatrixForRectangle(const Rectangle& rect)
 	{
 		RenderCanvasState* canvasState = m_state.get();
@@ -1264,16 +1264,16 @@ namespace slib
 		mat *= m_matViewport;
 		return mat;
 	}
-	
+
 	void RenderCanvas::drawRectangle(const Rectangle& rect, RenderProgramState2D_Position* programState, const DrawParam& param)
 	{
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-		
+
 		RenderCanvasState* canvasState = m_state.get();
-		
+
 		Matrix3 mat;
 		mat.m00 = rect.getWidth(); mat.m10 = 0; mat.m20 = rect.left;
 		mat.m01 = 0; mat.m11 = rect.getHeight(); mat.m21 = rect.top;
@@ -1281,14 +1281,14 @@ namespace slib
 		mat *= canvasState->matrix;
 		mat *= m_matViewport;
 		programState->setTransform(mat);
-		
+
 		Color4f color(1, 1, 1, param.alpha * getAlpha());
 		programState->setColor(color);
-		
+
 		m_engine->drawPrimitive(4, context->vbRectangle, PrimitiveType::TriangleStrip);
-		
+
 	}
-	
+
 	void RenderCanvas::_drawBitmap(const Rectangle& rectDst, Bitmap* src, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		Ref<Texture> texture = Texture::getBitmapRenderingCache(src);
@@ -1297,50 +1297,50 @@ namespace slib
 		}
 		drawTexture(rectDst, texture, rectSrc, param, Color4f(1, 1, 1, 1));
 	}
-	
+
 	void RenderCanvas::onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param)
 	{
 		StringData16 text(_text);
 		if (text.isEmpty()) {
 			return;
 		}
-		
+
 		sl_char16* arrChar = text.getData();
 		sl_size len = text.getLength();
 		sl_real fontHeight = font->getFontHeight();
 		sl_bool fontItalic = font->isItalic();
-		
+
 		Ref<FontAtlas> fa = font->getSharedAtlas();
 		if (fa.isNull()) {
 			return;
 		}
-		
+
 		EngineContext* context = GetEngineContext(this);
 		if (!context) {
 			return;
 		}
-		
+
 		RenderCanvasState* state = m_state.get();
 		if (state->flagClipRect) {
 			if (state->clipRect.top >= y + fontHeight || state->clipRect.bottom <= y || state->clipRect.right <= x) {
 				return;
 			}
 		}
-		
+
 		RenderCanvasProgramParam pp;
 		pp.prepare(state, !fontItalic);
 		pp.flagUseTexture = sl_true;
-		
+
 		RenderProgramScope<RenderCanvasProgramState> scope;
 		sl_bool flagBeginScope = sl_false;
 		Ref<Texture> textureBefore;
-		
+
 		FontAtlasChar fac;
 		Color4f color = param.color;
 		sl_real fx = x;
-		
+
 		for (sl_size i = 0; i < len; i++) {
-			
+
 			sl_char32 ch = arrChar[i];
 			if (ch >= 0xD800 && ch < 0xE000) {
 				if (i + 1 < len) {
@@ -1354,26 +1354,26 @@ namespace slib
 					ch = 0;
 				}
 			}
-			
+
 			if (ch && fa->getChar(ch, fac)) {
-				
+
 				sl_real fw = fac.fontWidth;
 				sl_real fh = fac.fontHeight;
 				sl_real fxn = fx + fw;
-				
+
 				if (fac.bitmap.isNotNull()) {
-					
+
 					Rectangle rcDst;
 					rcDst.left = fx;
 					rcDst.right = fxn;
 					rcDst.top = y + (fontHeight - fh);
 					rcDst.bottom  = rcDst.top + fh;
-					
+
 					Rectangle rcClip;
-					
+
 					sl_bool flagIgnore = sl_false;
 					sl_bool flagClip = sl_false;
-					
+
 					if (state->flagClipRect) {
 						if (state->clipRect.right <= fx) {
 							return;
@@ -1402,7 +1402,7 @@ namespace slib
 									scope->setColor(Color4f(color.x, color.y, color.z, color.w * getAlpha()));
 									flagBeginScope = sl_true;
 								}
-								
+
 								Rectangle rcSrc;
 								rcSrc.left = (sl_real)(fac.region.left) / sw;
 								rcSrc.top = (sl_real)(fac.region.top) / sh;
@@ -1441,7 +1441,7 @@ namespace slib
 				fx = fxn;
 			}
 		}
-		
+
 		if (font->isStrikeout() || font->isUnderline()) {
 			Ref<Pen> pen = Pen::createSolidPen(1, param.color);
 			FontMetrics fm;
@@ -1455,9 +1455,9 @@ namespace slib
 				drawLine(Point(x, yLine), Point(fx, yLine), pen);
 			}
 		}
-		
+
 	}
-	
+
 	void RenderCanvas::onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param)
 	{
 		if (src->isBitmap()) {
@@ -1466,7 +1466,7 @@ namespace slib
 			CanvasExt::onDraw(rectDst, src, rectSrc, param);
 		}
 	}
-	
+
 	void RenderCanvas::onDrawAll(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param)
 	{
 		if (src->isBitmap()) {
@@ -1475,13 +1475,13 @@ namespace slib
 			CanvasExt::onDrawAll(rectDst, src, param);
 		}
 	}
-	
+
 	void RenderCanvas::_setAlpha(sl_real alpha)
 	{
 	}
-	
+
 	void RenderCanvas::_setAntiAlias(sl_bool flag)
 	{
 	}
-	
+
 }

@@ -32,7 +32,7 @@
 namespace slib
 {
 
-	
+
 	struct SLIB_EXPORT RedBlackTreeNode
 	{
 		RedBlackTreeNode* parent;
@@ -49,21 +49,21 @@ namespace slib
 			{
 			public:
 				static RedBlackTreeNode* getPrevious(RedBlackTreeNode* node) noexcept;
-				
+
 				static RedBlackTreeNode* getNext(RedBlackTreeNode* node) noexcept;
-				
+
 				static RedBlackTreeNode* getFirst(RedBlackTreeNode* node) noexcept;
-				
+
 				static RedBlackTreeNode* getLast(RedBlackTreeNode* node) noexcept;
-				
+
 				static void rebalanceAfterInsert(RedBlackTreeNode* node, RedBlackTreeNode** pRoot) noexcept;
-				
+
 				static void removeNode(RedBlackTreeNode* node, RedBlackTreeNode** pRoot) noexcept;
-				
+
 			};
 		}
 	}
-	
+
 	class SLIB_EXPORT RedBlackTree
 	{
 	public:
@@ -72,13 +72,13 @@ namespace slib
 		{
 			return reinterpret_cast<NODE*>(priv::rb_tree::Helper::getPrevious(reinterpret_cast<RedBlackTreeNode*>(node)));
 		}
-		
+
 		template <class NODE>
 		static NODE* getNextNode(NODE* node) noexcept
 		{
 			return reinterpret_cast<NODE*>(priv::rb_tree::Helper::getNext(reinterpret_cast<RedBlackTreeNode*>(node)));
 		}
-		
+
 		template <class NODE>
 		static NODE* getFirstNode(NODE* root) noexcept
 		{
@@ -88,7 +88,7 @@ namespace slib
 				return sl_null;
 			}
 		}
-		
+
 		template <class NODE>
 		static NODE* getLastNode(NODE* root) noexcept
 		{
@@ -98,7 +98,7 @@ namespace slib
 				return sl_null;
 			}
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* tryFind(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, sl_compare_result& compare_result) noexcept
 		{
@@ -126,7 +126,7 @@ namespace slib
 			compare_result = comp;
 			return look;
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static sl_bool getEqualRange(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, NODE** pStart = sl_null, NODE** pEnd = sl_null) noexcept
 		{
@@ -192,7 +192,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static void getNearest(NODE* look, const KEY& key, const KEY_COMPARE& key_compare, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) noexcept
 		{
@@ -230,7 +230,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* getLowerBound(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
 		{
@@ -258,7 +258,7 @@ namespace slib
 			}
 			return last_greater_equal;
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* getUpperBound(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
 		{
@@ -286,7 +286,7 @@ namespace slib
 			}
 			return last_greater;
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE>
 		static NODE* find(NODE* look, const KEY& key, const KEY_COMPARE& key_compare) noexcept
 		{
@@ -350,7 +350,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		template <class NODE>
 		static void insertNode(NODE** pRoot, NODE* node, NODE* where, sl_compare_result compare_result) noexcept
 		{
@@ -362,7 +362,7 @@ namespace slib
 			node->parent = where;
 			priv::rb_tree::Helper::rebalanceAfterInsert(reinterpret_cast<RedBlackTreeNode*>(node), reinterpret_cast<RedBlackTreeNode**>(pRoot));
 		}
-		
+
 		template <class NODE, class KEY_COMPARE>
 		static void addNode(NODE** pRoot, NODE* node, const KEY_COMPARE& key_compare) noexcept
 		{
@@ -392,9 +392,9 @@ namespace slib
 			} else {
 				*pRoot = node;
 			}
-			
+
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
 		static NODE* put(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE&& value, sl_bool* isInsertion) noexcept
 		{
@@ -434,7 +434,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE>
 		static NODE* replace(NODE* root, const KEY& key, const KEY_COMPARE& key_compare, VALUE&& value) noexcept
 		{
@@ -450,7 +450,7 @@ namespace slib
 				return sl_null;
 			}
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE, class... VALUE_ARGS>
 		static NODE* add(NODE** pRoot, sl_size& count, KEY&& key, const KEY_COMPARE& key_compare, VALUE_ARGS&&... value_args) noexcept
 		{
@@ -489,7 +489,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class NODE>
 		static void removeNode(NODE** pRoot, sl_size& count, NODE* node) noexcept
 		{
@@ -588,7 +588,7 @@ namespace slib
 				return 0;
 			}
 		}
-		
+
 		template <class VT, class NODE, class KEY, class KEY_COMPARE>
 		static sl_size removeItemsAndReturnValues(List<VT>& list, NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare) noexcept
 		{
@@ -633,7 +633,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class NODE, class KEY, class KEY_COMPARE, class VALUE, class VALUE_EQUALS>
 		static sl_size removeItemsByKeyAndValue(NODE** pRoot, sl_size& count, const KEY& key, const KEY_COMPARE& key_compare, const VALUE& value, const VALUE_EQUALS& value_equals) noexcept
 		{
@@ -664,7 +664,7 @@ namespace slib
 				return 0;
 			}
 		}
-		
+
 		template <class NODE>
 		static void freeNodes(NODE* node) noexcept
 		{
@@ -697,24 +697,24 @@ namespace slib
 				}
 			}
 		}
-		
+
 		template <class NODE>
 		static NODE* duplicateNode(NODE* nodeSource) noexcept
 		{
 			if (!nodeSource) {
 				return sl_null;
 			}
-			
+
 			NODE* nodeTarget = new NODE(nodeSource->key, nodeSource->value);
 			if (!nodeTarget) {
 				return sl_null;
 			}
-			
+
 			NODE* nodeTargetRoot = nodeTarget;
 			NODE* stackSource[PRIV_SLIB_RED_BLACK_TREE_MAX_DISTANCE];
 			NODE* stackTarget[PRIV_SLIB_RED_BLACK_TREE_MAX_DISTANCE];
 			sl_size nStack = 0;
-			
+
 			for(;;) {
 				NODE* leftSource = nodeSource->left;
 				NODE* leftTarget;
@@ -730,7 +730,7 @@ namespace slib
 				} else {
 					leftTarget = sl_null;
 				}
-				
+
 				NODE* rightSource = nodeSource->right;
 				NODE* rightTarget;
 				if (rightSource) {
@@ -745,7 +745,7 @@ namespace slib
 				} else {
 					rightTarget = sl_null;
 				}
-				
+
 				if (leftSource) {
 					if (rightSource) {
 						nodeSource = leftSource;
@@ -773,12 +773,12 @@ namespace slib
 					}
 				}
 			}
-			
+
 			return nodeTargetRoot;
 		}
-		
+
 	};
-	
+
 }
 
 #endif

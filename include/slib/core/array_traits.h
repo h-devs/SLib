@@ -30,10 +30,10 @@
 
 namespace slib
 {
-	
+
 	struct SLIB_EXPORT ArrayTraits_Memory
 	{
-		
+
 		template <class T>
 		static void construct(T* dst, sl_reg count) noexcept
 		{
@@ -41,7 +41,7 @@ namespace slib
 				new (dst++) T();
 			}
 		}
-		
+
 		template <class T, class TYPE>
 		static void copy_construct(T* dst, const TYPE* src, sl_reg count) noexcept
 		{
@@ -49,7 +49,7 @@ namespace slib
 				new (dst++) T(*(src++));
 			}
 		}
-		
+
 		template <class T, class TYPE>
 		static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
 		{
@@ -57,7 +57,7 @@ namespace slib
 				*(dst++) = *(src++);
 			}
 		}
-		
+
 		template <class T>
 		static void free(T* dst, sl_reg count) noexcept
 		{
@@ -67,8 +67,8 @@ namespace slib
 		}
 
 	};
-	
-	
+
+
 	struct ArrayTraits_IndexOf_Base
 	{
 
@@ -185,11 +185,11 @@ namespace slib
 		}
 
 	};
-	
-	
+
+
 	struct SLIB_EXPORT ArrayTraits_Reverse
 	{
-		
+
 		template <class T>
 		static void reverse(T* data, sl_size count) noexcept
 		{
@@ -203,21 +203,21 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class ELEMENT_TYPE>
 	struct SLIB_EXPORT ArrayTraits : public ArrayTraits_Memory, public ArrayTraits_IndexOf, public ArrayTraits_Reverse
 	{
 	};
-	
-	
+
+
 	struct SLIB_EXPORT ArrayTraits_Primitive : public ArrayTraits_IndexOf
 	{
-		
+
 		template <class T>
 		static void construct(T* dst, sl_reg count) noexcept
 		{
 		}
-		
+
 		template <class T>
 		static void copy_construct(T* dst, const T* src, sl_reg count) noexcept
 		{
@@ -231,13 +231,13 @@ namespace slib
 				*(dst++) = *(src++);
 			}
 		}
-		
+
 		template <class T>
 		static void copy(T* dst, const T* src, sl_reg count) noexcept
 		{
 			Base::copyMemory(dst, src, ((sl_size)count)*sizeof(T));
 		}
-		
+
 		template <class T, class TYPE>
 		static void copy(T* dst, const TYPE* src, sl_reg count) noexcept
 		{
@@ -245,12 +245,12 @@ namespace slib
 				*(dst++) = *(src++);
 			}
 		}
-		
+
 		template <class T>
 		static void free(T* dst, sl_reg count) noexcept
 		{
 		}
-		
+
 		template <class T>
 		static void reverse(T* data, sl_size count) noexcept
 		{
@@ -265,7 +265,7 @@ namespace slib
 		}
 
 	};
-	
+
 	template <> struct ArrayTraits<char> : public ArrayTraits_Primitive {};
 	template <> struct ArrayTraits<signed char> : public ArrayTraits_Primitive {};
 	template <> struct ArrayTraits<unsigned char> : public ArrayTraits_Primitive {};
@@ -283,10 +283,10 @@ namespace slib
 	template <> struct ArrayTraits<sl_char32> : public ArrayTraits_Primitive {};
 	template <> struct ArrayTraits<sl_bool> : public ArrayTraits_Primitive {};
 
-	
+
 	struct SLIB_EXPORT ArrayTraits_ZeroInit : public ArrayTraits_Memory, public ArrayTraits_IndexOf, public ArrayTraits_Reverse
 	{
-		
+
 		template <class T>
 		static void construct(T* dst, sl_reg count) noexcept
 		{
@@ -294,34 +294,34 @@ namespace slib
 		}
 
 	};
-	
+
 	class String;
 	template <> struct ArrayTraits<String> : public ArrayTraits_ZeroInit {};
-	
+
 	class String16;
 	template <> struct ArrayTraits<String16> : public ArrayTraits_ZeroInit {};
-	
+
 	template <class... TYPES> class Ref;
 	template <class T> struct ArrayTraits< Ref<T> > : public ArrayTraits_ZeroInit {};
-	
+
 	template <class T> class WeakRef;
 	template <class T> struct ArrayTraits< WeakRef<T> > : public ArrayTraits_ZeroInit {};
-	
+
 	template <class T> class Array;
 	template <class T> struct ArrayTraits< Array<T> > : public ArrayTraits_ZeroInit {};
-	
+
 	template <class T> class List;
 	template <class T> struct ArrayTraits< List<T> > : public ArrayTraits_ZeroInit {};
-	
+
 	template <class KT, class VT, class KEY_COMPARE> class Map;
 	template <class KT, class VT, class KEY_COMPARE> struct ArrayTraits< Map<KT, VT, KEY_COMPARE> > : public ArrayTraits_ZeroInit {};
-	
+
 	template <class KT, class VT, class HASH, class KEY_COMPARE> class HashMap;
 	template <class KT, class VT, class HASH, class KEY_COMPARE> struct ArrayTraits< HashMap<KT, VT, HASH, KEY_COMPARE> > : public ArrayTraits_ZeroInit {};
 
 	class Variant;
 	template <> struct ArrayTraits<Variant> : public ArrayTraits_ZeroInit {};
-	
+
 }
 
 #endif

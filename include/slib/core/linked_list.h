@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	struct SLIB_EXPORT Link
 	{
@@ -35,7 +35,7 @@ namespace slib
 		Link<T>* next;
 		T value;
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT LinkPosition
 	{
@@ -43,23 +43,23 @@ namespace slib
 		LinkPosition() noexcept : link(sl_null) {}
 
 		LinkPosition(Link<T>* _link) noexcept : link(_link) {}
-		
+
 		LinkPosition(Link<T>* _link, Referable* _ref) noexcept : link(_link), ref(_ref) {}
 
 		LinkPosition(const LinkPosition& other) = default;
-		
+
 		LinkPosition(LinkPosition&& other) = default;
-		
+
 	public:
 		LinkPosition& operator=(const LinkPosition& other) = default;
-		
+
 		LinkPosition& operator=(LinkPosition&& other) = default;
 
 		T& operator*() const noexcept
 		{
 			return link->value;
 		}
-		
+
 		sl_bool operator==(const LinkPosition<T>& p) const noexcept
 		{
 			return link == p.link;
@@ -69,7 +69,7 @@ namespace slib
 		{
 			return link != p.link;
 		}
-		
+
 		operator Link<T>*() const noexcept
 		{
 			return link;
@@ -86,7 +86,7 @@ namespace slib
 		Ref<Referable> ref;
 
 	};
-	
+
 	class SLIB_EXPORT CLinkedListBase : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
@@ -97,7 +97,7 @@ namespace slib
 		~CLinkedListBase();
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT CLinkedList : public CLinkedListBase
 	{
@@ -113,7 +113,7 @@ namespace slib
 			m_back = sl_null;
 			m_count = 0;
 		}
-		
+
 		~CLinkedList() noexcept
 		{
 			removeAll_NoLock();
@@ -140,7 +140,7 @@ namespace slib
 			other.m_count = 0;
 			return *this;
 		}
-		
+
 	public:
 		// not-free existing links
 		void initialize() noexcept
@@ -149,7 +149,7 @@ namespace slib
 			m_back = sl_null;
 			m_count = 0;
 		}
-	
+
 		// not-free existing links
 		void initialize(Link<T>* front, Link<T>* back, sl_size count) noexcept
 		{
@@ -176,7 +176,7 @@ namespace slib
 		{
 			return m_back;
 		}
-	
+
 		sl_size getCount() const noexcept
 		{
 			return m_count;
@@ -186,7 +186,7 @@ namespace slib
 		{
 			return m_front == sl_null;
 		}
-	
+
 		sl_bool isNotEmpty() const noexcept
 		{
 			return m_front != sl_null;
@@ -270,7 +270,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class VALUE>
 		sl_bool pushBackAll_NoLock(const CLinkedList<VALUE>* other) noexcept
 		{
@@ -346,7 +346,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		template <class VALUE>
 		sl_bool pushFrontAll_NoLock(const CLinkedList<VALUE>* other) noexcept
 		{
@@ -366,7 +366,7 @@ namespace slib
 			MultipleObjectsLocker lock(this, other);
 			return pushFrontAll_NoLock(other);
 		}
-	
+
 		sl_bool popFront_NoLock(T* _out = sl_null) noexcept
 		{
 			Link<T>* old = _popFrontItem();
@@ -466,7 +466,7 @@ namespace slib
 			freeLink(front);
 			return count;
 		}
-	
+
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_bool remove_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
 		{
@@ -481,14 +481,14 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
 			return remove_NoLock(value, equals);
 		}
-		
+
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_size removeValues_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
 		{
@@ -504,14 +504,14 @@ namespace slib
 			}
 			return n;
 		}
-		
+
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
 			return removeValues_NoLock(value, equals);
 		}
-		
+
 		void merge_NoLock(CLinkedList<T>* other) noexcept
 		{
 			if (!other) {
@@ -630,7 +630,7 @@ namespace slib
 		{
 			return LinkPosition<T>();
 		}
-	
+
 		static void freeLink(Link<T>* link) noexcept
 		{
 			while (link) {
@@ -767,7 +767,7 @@ namespace slib
 
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT LinkedList
 	{
@@ -780,7 +780,7 @@ namespace slib
 		{
 			return new CLinkedList<T>;
 		}
-	
+
 	public:
 		Link<T>* getFront() const noexcept
 		{
@@ -938,7 +938,7 @@ namespace slib
 				return ref.isNotNull();
 			}
 		}
-		
+
 		template <class VALUE>
 		sl_bool pushBackAll(const LinkedList<VALUE>& _other) noexcept
 		{
@@ -1023,7 +1023,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class VALUE>
 		sl_bool pushFrontAll_NoLock(const LinkedList<VALUE>& _other) noexcept
 		{
@@ -1095,7 +1095,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		/* unsynchronized function */
 		template <class... ARGS>
 		Link<T>* insertAfter(Link<T>* itemWhere, ARGS&&... args) const noexcept
@@ -1107,7 +1107,7 @@ namespace slib
 			return sl_null;
 		}
 
-		
+
 		/* unsynchronized function */
 		void removeAt(Link<T>* item) const noexcept
 		{
@@ -1147,7 +1147,7 @@ namespace slib
 			return sl_false;
 		}
 
-		
+
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
 		{
@@ -1157,7 +1157,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_size removeValues_NoLock(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
 		{
@@ -1167,7 +1167,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_size removeValues(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
 		{
@@ -1178,7 +1178,7 @@ namespace slib
 			return 0;
 		}
 
-		
+
 		void merge_NoLock(LinkedList<T>& _other) noexcept
 		{
 			CLinkedList<T>* other = _other.ref.ptr;
@@ -1298,7 +1298,7 @@ namespace slib
 
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Atomic< LinkedList<T> >
 	{
@@ -1435,7 +1435,7 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	using AtomicLinkedList = Atomic< LinkedList<T> >;
 

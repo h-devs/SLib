@@ -38,7 +38,7 @@ public:
 		Println("Constructor called");
 		// Not safe to access `this` reference
 	}
-	
+
 	~ExampleNode()
 	{
 		Println("Destructor called: %s", name);
@@ -47,11 +47,11 @@ public:
 	void init() override
 	{
 		Object::init();
-		
+
 		Println("Initializer called");
 		// Safe to access `this` reference
 	}
-	
+
 	void init(const String& name, Ref<ExampleNode> parent = nullptr)
 	{
 		this->name = name;
@@ -82,7 +82,7 @@ public:
 };
 
 int main(int argc, const char * argv[]) {
-	
+
 	Ref<ExampleNode> node0 = New<ExampleNode>();
 	Ref<ExampleNode> node = New<ExampleNode>("Root");
 	Ref<ExampleNode> node1 = New<ExampleNode>("Node1", node);
@@ -91,8 +91,8 @@ int main(int argc, const char * argv[]) {
 	Ref<ExampleNode> node2 = New<ExampleNode>("Node2", node);
 	Ref<ExampleNode> node21 = New<ExampleNode>("Node2-1", node2);
 	Ref<ExampleNode> node22 = New<ExampleNode>("Node2-2", node2);
-	
+
 	node->print();
-	
+
 	return 0;
 }

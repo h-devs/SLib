@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT MD5 : public CryptoHash<MD5>
 	{
 	public:
@@ -41,22 +41,22 @@ namespace slib
 			HashSize = 16,
 			BlockSize = 64
 		};
-		
+
 	public:
 		MD5();
 
 		~MD5();
-	
+
 	public:
 		void start();
 
 		void update(const void* input, sl_size n);
 
 		void finish(void* output);
-	
+
 	private:
 		void _updateSection(const sl_uint8* input);
-	
+
 	private:
 		sl_size sizeTotalInput;
 		sl_uint32 rdata_len;

@@ -41,52 +41,52 @@ namespace slib
 
 	public:
 		static Ref<Redis> connect(const StringParam& ip, sl_uint16 port);
-		
+
 	public:
 		using KeyValueStore::get;
 		sl_bool get(const void* key, sl_size sizeKey, MemoryData* pOutValue = sl_null) override;
-		
+
 		virtual Variant execute(const StringParam& command) = 0;
 
 		virtual sl_bool incr(const StringParam& key, sl_int64* pValue) = 0;
-		
+
 		sl_int64 incr(const StringParam& key, sl_int64 def = 0);
 
 		virtual sl_bool decr(const StringParam& key, sl_int64* pValue) = 0;
-		
+
 		sl_int64 decr(const StringParam& key, sl_int64 def = 0);
 
 		virtual sl_bool incrby(const StringParam& key, sl_int64 n, sl_int64* pValue) = 0;
-		
+
 		sl_int64 incrby(const StringParam& key, sl_int64 n, sl_int64 def = 0);
-		
+
 		virtual sl_bool decrby(const StringParam& key, sl_int64 n, sl_int64* pValue) = 0;
-		
+
 		sl_int64 decrby(const StringParam& key, sl_int64 n, sl_int64 def = 0);
-		
+
 		virtual sl_bool llen(const StringParam& key, sl_int64* pValue) = 0;
-		
+
 		sl_int64 llen(const StringParam& key);
-		
+
 		virtual sl_int64 lpush(const StringParam& key, const Variant& value) = 0;
 
 		virtual sl_int64 rpush(const StringParam& key, const Variant& value) = 0;
 
 		virtual Variant lindex(const StringParam& key, sl_int64 index) = 0;
-		
+
 		virtual sl_bool lset(const StringParam& key, sl_int64 index, const Variant& value) = 0;
 
 		virtual sl_bool ltrm(const StringParam& key, sl_int64 start, sl_int64 stop) = 0;
-		
+
 		virtual Variant lpop(const StringParam& key) = 0;
-		
+
 		virtual Variant rpop(const StringParam& key) = 0;
-		
+
 		virtual List<Variant> lrange(const StringParam& key, sl_int64 start = 0, sl_int64 stop = -1);
-		
+
 	public:
 		sl_bool isLoggingErrors();
-		
+
 		void setLoggingErrors(sl_bool flag);
 
 		String getErrorMessage();

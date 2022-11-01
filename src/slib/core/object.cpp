@@ -63,7 +63,7 @@ namespace slib
 
 
 	SLIB_DEFINE_ROOT_OBJECT(Object)
-	
+
 	Object::Object() noexcept: m_properties(sl_null)
 	{
 	}
@@ -84,7 +84,7 @@ namespace slib
 		}
 		return Variant();
 	}
-	
+
 	sl_bool Object::setProperty(const String& name, const Variant& value)
 	{
 		ObjectLocker lock(this);
@@ -101,7 +101,7 @@ namespace slib
 		}
 		return map->put_NoLock(name, value) != sl_null;
 	}
-	
+
 	sl_bool Object::clearProperty(const String& name)
 	{
 		ObjectLocker lock(this);
@@ -111,7 +111,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	PropertyIterator Object::getPropertyIterator()
 	{
 		ObjectLocker lock(this);
@@ -227,7 +227,7 @@ namespace slib
 		}
 	}
 
-	
+
 	ObjectLocker::ObjectLocker() noexcept
 	{
 	}
@@ -247,30 +247,30 @@ namespace slib
 		}
 	}
 
-	
+
 	MultipleObjectsLocker::MultipleObjectsLocker() noexcept
 	{
 	}
-	
+
 	MultipleObjectsLocker::MultipleObjectsLocker(const Lockable* object) noexcept: MultipleMutexLocker(object ? object->getLocker(): sl_null)
 	{
 	}
-	
+
 	MultipleObjectsLocker::MultipleObjectsLocker(const Lockable* object1, const Lockable* object2) noexcept: MultipleMutexLocker(object1 ? object1->getLocker() : sl_null, object2 ? object2->getLocker() : sl_null)
 	{
 	}
-	
+
 	MultipleObjectsLocker::~MultipleObjectsLocker() noexcept
 	{
 	}
-	
+
 	void MultipleObjectsLocker::lock(const Lockable* object) noexcept
 	{
 		if (object) {
 			MultipleMutexLocker::lock(object->getLocker());
 		}
 	}
-	
+
 	void MultipleObjectsLocker::lock(const Lockable* object1, const Lockable* object2) noexcept
 	{
 		if (object1) {

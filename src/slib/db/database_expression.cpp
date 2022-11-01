@@ -35,7 +35,7 @@ namespace slib
 	{
 		namespace db_expr
 		{
-		
+
 			enum class BinaryOp
 			{
 				NONE,
@@ -60,7 +60,7 @@ namespace slib
 				NOT_IN,
 				GROUP_CONCAT
 			};
-		
+
 			enum class UnaryOp
 			{
 				MINUS,
@@ -74,19 +74,19 @@ namespace slib
 				SUM,
 				AVG
 			};
-		
+
 			class ValueExpression : public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				Variant value;
-				
+
 			public:
 				ValueExpression(const Variant& _value): value(_value)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -121,46 +121,46 @@ namespace slib
 							break;
 					}
 				}
-				
+
 			};
-		
+
 			SLIB_DEFINE_OBJECT(ValueExpression, CDatabaseExpression)
-			
+
 			class IdentifierExpression : public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				String name;
-				
+
 			public:
 				IdentifierExpression(const String& _name): name(_name)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
 					builder.appendIdentifier(name);
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(IdentifierExpression, CDatabaseExpression)
-			
+
 			class IdentifierExpression2 : public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				String name1;
 				String name2;
-				
+
 			public:
 				IdentifierExpression2(const String& _name1, const String& _name2): name1(_name1), name2(_name2)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -170,24 +170,24 @@ namespace slib
 					}
 					builder.appendIdentifier(name2);
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(IdentifierExpression2, CDatabaseExpression)
-			
+
 			class RawExpression : public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				String expr;
 				sl_bool flagSupportParentheses;
-				
+
 			public:
 				RawExpression(const String& _expr, sl_bool _flagParentheses): expr(_expr), flagSupportParentheses(_flagParentheses)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -199,65 +199,65 @@ namespace slib
 						builder.append(expr);
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(RawExpression, CDatabaseExpression)
-			
+
 			class ParameterExpression : public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				String name;
-				
+
 			public:
 				ParameterExpression()
 				{
 				}
-				
+
 				ParameterExpression(const String& _name): name(_name)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
 					builder.appendParameter(name);
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(ParameterExpression, CDatabaseExpression)
-			
+
 			class CountAllExpression : public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
 					builder.appendStatic("COUNT(*)");
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(CountAllExpression, CDatabaseExpression)
-		
+
 			class BinaryOpExpression: public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				BinaryOp op;
 				DatabaseExpression expr1;
 				DatabaseExpression expr2;
-				
+
 			public:
 				BinaryOpExpression(BinaryOp _op, const DatabaseExpression& _expr1, const DatabaseExpression& _expr2): op(_op), expr1(_expr1), expr2(_expr2)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -430,25 +430,25 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-	
+
 			SLIB_DEFINE_OBJECT(BinaryOpExpression, CDatabaseExpression)
 
 			class CustomBinaryOpExpression: public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				String op;
 				DatabaseExpression expr1;
 				DatabaseExpression expr2;
-				
+
 			public:
 				CustomBinaryOpExpression(const String& _op, const DatabaseExpression& _expr1, const DatabaseExpression& _expr2): op(_op), expr1(_expr1), expr2(_expr2)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -464,24 +464,24 @@ namespace slib
 						builder.appendStatic(")");
 					}
 				}
-				
+
 			};
-	
+
 			SLIB_DEFINE_OBJECT(CustomBinaryOpExpression, CDatabaseExpression)
-		
+
 			class UnaryOpExpression: public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				UnaryOp op;
 				DatabaseExpression expr;
-				
+
 			public:
 				UnaryOpExpression(UnaryOp _op, const DatabaseExpression& _expr): op(_op), expr(_expr)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -563,25 +563,25 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-	
+
 			SLIB_DEFINE_OBJECT(UnaryOpExpression, CDatabaseExpression)
 
 			class CustomUnaryOpExpression: public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				String op;
 				sl_bool flagSuffix;
 				DatabaseExpression expr;
-				
+
 			public:
 				CustomUnaryOpExpression(const String& _op, sl_bool _flagSuffix, const DatabaseExpression& _expr): op(_op), flagSuffix(_flagSuffix), expr(_expr)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -601,24 +601,24 @@ namespace slib
 						builder.appendStatic(")");
 					}
 				}
-				
+
 			};
-	
+
 			SLIB_DEFINE_OBJECT(CustomUnaryOpExpression, CDatabaseExpression)
 
 			class FunctionExpression: public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				String name;
 				List<DatabaseExpression> params;
-				
+
 			public:
 				FunctionExpression(const String& _name, const List<DatabaseExpression> _params): name(_name), params(_params)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -633,23 +633,23 @@ namespace slib
 					}
 					builder.appendStatic(")");
 				}
-				
+
 			};
-	
+
 			SLIB_DEFINE_OBJECT(FunctionExpression, CDatabaseExpression)
 
 			class SetExpression: public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				List<DatabaseExpression> elements;
-				
+
 			public:
 				SetExpression(const List<DatabaseExpression> _elements): elements(_elements)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -663,23 +663,23 @@ namespace slib
 					}
 					builder.appendStatic(")");
 				}
-				
+
 			};
-	
+
 			SLIB_DEFINE_OBJECT(SetExpression, CDatabaseExpression)
 
 			class ConcatExpression: public CDatabaseExpression
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				List<DatabaseExpression> elements;
-				
+
 			public:
 				ConcatExpression(const List<DatabaseExpression> _elements): elements(_elements)
 				{
 				}
-				
+
 			public:
 				void appendTo(SqlBuilder& builder, sl_bool flagParentheses) override
 				{
@@ -715,9 +715,9 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-	
+
 			SLIB_DEFINE_OBJECT(ConcatExpression, CDatabaseExpression)
 
 		}
@@ -737,7 +737,7 @@ namespace slib
 	DatabaseExpression::DatabaseExpression(const Variant& value): ref(new ValueExpression(value))
 	{
 	}
-	
+
 	void DatabaseExpression::appendTo(SqlBuilder& builder, sl_bool flagParentheses) const
 	{
 		CDatabaseExpression* obj = ref.get();

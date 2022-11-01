@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T, sl_size CountStack>
 	class SLIB_EXPORT ScopedBuffer
 	{
@@ -112,7 +112,7 @@ namespace slib
 #define SLIB_SCOPED_BUFFER(TYPE, STACK, NAME, COUNT) \
 	ScopedBuffer<TYPE, STACK> _scoped_buf__##NAME(COUNT); \
 	TYPE* NAME = _scoped_buf__##NAME.data;
-	
+
 }
 
 #endif

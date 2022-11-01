@@ -9,10 +9,10 @@ class LanTvServerApp : public UIApp
 	SLIB_APPLICATION(LanTvServerApp)
 public:
 	LanTvServerApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 private:
 	void doRunServer();
 

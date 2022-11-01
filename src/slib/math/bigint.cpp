@@ -72,12 +72,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace bigint
 		{
-			
+
 			SLIB_INLINE static sl_compare_result Compare(const sl_uint32* a, const sl_uint32* b, sl_size n) noexcept
 			{
 				for (sl_size i = n; i > 0; i--) {
@@ -90,7 +90,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			// returns 0, 1 (overflow)
 			SLIB_INLINE static sl_uint32 Add(sl_uint32* c, const sl_uint32* a, const sl_uint32* b, sl_size n, sl_uint32 _of) noexcept
 			{
@@ -105,7 +105,7 @@ namespace slib
 				}
 				return of;
 			}
-			
+
 			// returns 0, 1 (overflow)
 			SLIB_INLINE static sl_uint32 Add_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b) noexcept
 			{
@@ -125,7 +125,7 @@ namespace slib
 				}
 				return of;
 			}
-			
+
 			// returns 0, 1 (overflow)
 			SLIB_INLINE static sl_uint32 Sub(sl_uint32* c, const sl_uint32* a, const sl_uint32* b, sl_size n, sl_uint32 _of) noexcept
 			{
@@ -141,7 +141,7 @@ namespace slib
 				}
 				return of;
 			}
-			
+
 			// returns 0, 1 (overflow)
 			SLIB_INLINE static sl_uint32 Sub_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b) noexcept
 			{
@@ -165,7 +165,7 @@ namespace slib
 				}
 				return of;
 			}
-			
+
 			// returns overflow
 			SLIB_INLINE static sl_uint32 Mul_uint32(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
 			{
@@ -179,8 +179,8 @@ namespace slib
 				}
 				return of;
 			}
-			
-			
+
+
 			// c = c + a * b
 			SLIB_INLINE static sl_uint32 MulAdd_uint32(sl_uint32* c, const sl_uint32* s, sl_size m, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
 			{
@@ -210,8 +210,8 @@ namespace slib
 				}
 				return of;
 			}
-			
-			
+
+
 			// returns remainder
 			SLIB_INLINE static sl_uint32 Div_uint32(sl_uint32* q, const sl_uint32* a, sl_size n, sl_uint32 b, sl_uint32 o) noexcept
 			{
@@ -236,7 +236,7 @@ namespace slib
 				}
 				return o;
 			}
-			
+
 			// shift 0~31 bits
 			// returns overflow
 			SLIB_INLINE static sl_uint32 ShiftLeft(sl_uint32* c, const sl_uint32* a, sl_size n, sl_uint32 shift, sl_uint32 valueRight) noexcept
@@ -275,7 +275,7 @@ namespace slib
 				}
 				return of;
 			}
-			
+
 			SLIB_INLINE static sl_size Mse(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = n; ni > 0; ni--) {
@@ -285,7 +285,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			SLIB_INLINE static sl_size Lse(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = 0; ni < n; ni++) {
@@ -295,7 +295,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			SLIB_INLINE static sl_size MsBytes(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = n; ni > 0; ni--) {
@@ -311,7 +311,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			SLIB_INLINE static sl_size LsBytes(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = 0; ni < n; ni++) {
@@ -327,7 +327,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			SLIB_INLINE static sl_size MsBits(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = n; ni > 0; ni--) {
@@ -343,7 +343,7 @@ namespace slib
 				}
 				return 0;
 			}
-			
+
 			SLIB_INLINE static sl_size LsBits(const sl_uint32* a, sl_size n) noexcept
 			{
 				for (sl_size ni = 0; ni < n; ni++) {
@@ -1120,7 +1120,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_int32 CBigInt::getInt32() const noexcept
 	{
 		if (length) {
@@ -1133,7 +1133,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	sl_uint32 CBigInt::getUint32() const noexcept
 	{
 		if (length) {
@@ -1141,7 +1141,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	sl_int64 CBigInt::getInt64() const noexcept
 	{
 		if (length) {
@@ -1157,7 +1157,7 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 	sl_uint64 CBigInt::getUint64() const noexcept
 	{
 		if (length) {
@@ -1312,7 +1312,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool CBigInt::equals(sl_int32 v) const noexcept
 	{
 		if (!v) {
@@ -1344,7 +1344,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool CBigInt::equals(sl_uint32 v) const noexcept
 	{
 		if (!v) {
@@ -1369,7 +1369,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool CBigInt::equals(sl_int64 v) const noexcept
 	{
 		if (!v) {
@@ -1420,7 +1420,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool CBigInt::equals(sl_uint64 v) const noexcept
 	{
 		if (!v) {
@@ -1464,7 +1464,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_compare_result CBigInt::compareAbs(const CBigInt& other) const noexcept
 	{
 		const CBigInt& a = *this;
@@ -2660,13 +2660,13 @@ namespace slib
 	{
 		namespace bigint
 		{
-			
+
 			// Montgomery multiplication: A = A * B * R^-1 mod M
 			static sl_bool mont_mul(CBigInt& A, const CBigInt& B, const CBigInt& M, sl_uint32 MI) noexcept
 			{
 				sl_size nM = M.length;
 				sl_size nB = Math::min(nM, B.length);
-				
+
 				sl_size nOut = nM * 2 + 1;
 				SLIB_SCOPED_BUFFER(sl_uint32, STACK_BUFFER_SIZE, out, nOut);
 				if (!out) {
@@ -2693,25 +2693,25 @@ namespace slib
 				}
 				return sl_true;
 			}
-			
+
 			// Montgomery reduction: A = A * R^-1 mod M
 			SLIB_INLINE static sl_bool mont_reduction(CBigInt& A, const CBigInt& M, sl_uint32 MI) noexcept
 			{
 				CBIGINT_UINT32(o, 1);
 				return priv::bigint::mont_mul(A, o, M, MI);
 			}
-			
+
 			struct PowMontgomeryContext
 			{
 				CBigInt M;
 				CBigInt T;
 			};
-			
+
 			static sl_bool pow_montgomery(priv::bigint::PowMontgomeryContext& context, CBigInt& ret, const CBigInt& A, const CBigInt& inE, const CBigInt& inM) noexcept
 			{
 				CBigInt& M = context.M;
 				CBigInt& T = context.T;
-				
+
 				M.copyFrom(inM);
 				if (!(M.compact())) {
 					return sl_false;
@@ -2750,7 +2750,7 @@ namespace slib
 					ret.setZero();
 					return sl_true;
 				}
-				
+
 				// MI = -(M0^-1) mod (2^32)
 				sl_uint32 MI;
 				// initialize montgomery
@@ -2763,7 +2763,7 @@ namespace slib
 					}
 					MI = 0 - K;
 				}
-				
+
 				// pre-compute R^2 mod M
 				// R = 2^(nM*32)
 				CBigInt R2;
@@ -2775,7 +2775,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-				
+
 				sl_bool flagNegative = A.sign < 0;
 				// T = A * R^2 * R^-1 mod M = A * R mod M
 				if (!(T.mod(A, M, sl_true))) {
@@ -2784,13 +2784,13 @@ namespace slib
 				if (!(mont_mul(T, R2, M, MI))) {
 					return sl_false;
 				}
-				
+
 				// C = R^2 * R^-1 mod M = R mod M
 				ret.moveFrom(R2);
 				if (!(mont_reduction(ret, M, MI))) {
 					return sl_false;
 				}
-				
+
 				sl_size nbE = E.getMostSignificantBits();
 				for (sl_size ib = 0; ib < nbE; ib++) {
 					sl_size ke = ib >> 5;
@@ -2819,17 +2819,17 @@ namespace slib
 				}
 				return sl_true;
 			}
-			
+
 		}
 	}
 
-	
+
 	sl_bool CBigInt::pow_montgomery(const CBigInt& A, const CBigInt& inE, const CBigInt& inM) noexcept
 	{
 		priv::bigint::PowMontgomeryContext context;
 		return priv::bigint::pow_montgomery(context, *this, A, inE, inM);
 	}
-	
+
 	sl_bool CBigInt::pow_montgomery(const CBigInt& E, const CBigInt& M) noexcept
 	{
 		return pow_montgomery(*this, E, M);
@@ -2969,7 +2969,7 @@ namespace slib
 	{
 		namespace bigint
 		{
-			
+
 			/*
 				Euler's Criterion
 					P is Prime number
@@ -3002,7 +3002,7 @@ namespace slib
 				}
 				return 1;
 			}
-		
+
 			// x^x = y (mod M)
 			static sl_bool CheckSqrtResult(const CBigInt& x, const CBigInt& y, const CBigInt& M)
 			{
@@ -3171,7 +3171,7 @@ namespace slib
 
 		if (!(q.shiftRight(e))) {
 			return sl_false;
-		}		
+		}
 		if (!(y.pow_montgomery(y, q, M))) {
 			return sl_false;
 		}
@@ -3339,7 +3339,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool CBigInt::lcm(const CBigInt& B) noexcept
 	{
 		return lcm(*this, B);
@@ -3356,7 +3356,7 @@ namespace slib
 	{
 		namespace bigint
 		{
-			
+
 			struct ProbablePrimeCheckContext
 			{
 				CBigInt n1;
@@ -3365,10 +3365,10 @@ namespace slib
 				CBigInt n3;
 				CBigInt x;
 				CBigInt y;
-				
+
 				priv::bigint::PowMontgomeryContext contextPowMontgomery;
 			};
-			
+
 			static sl_bool isProbablePrime(priv::bigint::ProbablePrimeCheckContext& context, const CBigInt& n, sl_uint32 nChecks, sl_bool* pFlagError) noexcept
 			{
 				if (pFlagError) {
@@ -3381,7 +3381,7 @@ namespace slib
 				CBigInt& n3 = context.n3;
 				CBigInt& x = context.x;
 				CBigInt& y = context.y;
-				
+
 				// n = (2^r) * d + 1
 				if (!(n1.sub(n, 1))) {
 					RETURN_ERROR;
@@ -3394,10 +3394,10 @@ namespace slib
 				if (!(d.shiftRight(n1, r))) {
 					RETURN_ERROR;
 				}
-				
+
 				sl_size nBits = n.getMostSignificantBits();
 				n3.sub(n, 3); // n-3
-				
+
 				for (sl_uint32 i = 0; i < nChecks; i++) {
 					// find random a in range [2, n-2]   =>   (random % (n-3)) + 2
 					if (!(a.random(nBits))) {
@@ -3442,7 +3442,7 @@ namespace slib
 				return sl_true;
 #undef RETURN_ERROR
 			}
-			
+
 			// referenced from OpenSSL - https://github.com/openssl/openssl/blob/master/include/openssl/bn.h
 			static sl_uint32 getDefaultCheckPrimeCounts(sl_size nBits) noexcept
 			{
@@ -3466,7 +3466,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool CBigInt::isProbablePrime(sl_uint32 nChecks, sl_bool* pFlagError) const noexcept
 	{
 		if (pFlagError) {
@@ -3495,7 +3495,7 @@ namespace slib
 		priv::bigint::ProbablePrimeCheckContext context;
 		return priv::bigint::isProbablePrime(context, *this, nChecks, pFlagError);
 	}
-	
+
 	sl_bool CBigInt::generatePrime(sl_size nBits) noexcept
 	{
 		if (nBits < 3) {
@@ -3545,7 +3545,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	sl_size CBigInt::getHashCode() const noexcept
 	{
 		if (length) {
@@ -3687,7 +3687,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	BigInt BigInt::fromHexString(const StringParam& str) noexcept
 	{
 		return fromString(str, 16);
@@ -3967,7 +3967,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool BigInt::equals(sl_int32 v) const noexcept
 	{
 		CBigInt* a = ref.ptr;
@@ -3977,7 +3977,7 @@ namespace slib
 			return !v;
 		}
 	}
-	
+
 	sl_bool BigInt::equals(sl_uint32 v) const noexcept
 	{
 		CBigInt* a = ref.ptr;
@@ -3987,7 +3987,7 @@ namespace slib
 			return !v;
 		}
 	}
-	
+
 	sl_bool BigInt::equals(sl_int64 v) const noexcept
 	{
 		CBigInt* a = ref.ptr;
@@ -3997,7 +3997,7 @@ namespace slib
 			return !v;
 		}
 	}
-	
+
 	sl_bool BigInt::equals(sl_uint64 v) const noexcept
 	{
 		CBigInt* a = ref.ptr;
@@ -4927,7 +4927,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_bool BigInt::mod(const BigInt& other, sl_bool flagNonNegativeRemainder) noexcept
 	{
 		CBigInt* a = ref.ptr;
@@ -5023,7 +5023,7 @@ namespace slib
 			return sl_true;
 		}
 	}
-	
+
 	BigInt BigInt::bitwiseAnd(const BigInt& A, sl_uint32 v) noexcept
 	{
 		CBigInt* a = A.ref.ptr;
@@ -5399,7 +5399,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	BigInt BigInt::abs() const noexcept
 	{
 		CBigInt* a = ref.ptr;
@@ -5679,7 +5679,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	BigInt BigInt::generatePrime(sl_size nBits) noexcept
 	{
 		CBigInt* ret = new CBigInt;
@@ -5691,7 +5691,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	BigInt BigInt::random(sl_size nBits) noexcept
 	{
 		CBigInt* ret = new CBigInt;
@@ -5703,7 +5703,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_size BigInt::getHashCode() const noexcept
 	{
 		CBigInt* a = ref.ptr;
@@ -5809,7 +5809,7 @@ namespace slib
 	}
 
 	SLIB_DEFINE_CLASS_PARSE_INT_MEMBERS(BigInt, priv::bigint::Parse)
-	
+
 	BigInt& BigInt::operator=(sl_int32 n) noexcept
 	{
 		ref = CBigInt::fromInt32(n);
@@ -6003,7 +6003,7 @@ namespace slib
 		shiftRight(n);
 		return *this;
 	}
-	
+
 	BigInt BigInt::operator-() const noexcept
 	{
 		return negative();

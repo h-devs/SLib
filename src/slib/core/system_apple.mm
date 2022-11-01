@@ -50,7 +50,7 @@ namespace slib
 			sl_uint32 g_systemVersionMinor = 0;
 			sl_uint32 g_systemVersionPatch = 0;
 			sl_bool g_flagInitSystemVersion = sl_true;
-			
+
 			void InitSystemVersion()
 			{
 				if (g_flagInitSystemVersion) {
@@ -115,7 +115,7 @@ namespace slib
 		}
 		return pathResolved;
 	}
-	
+
 	String System::getApplicationVersion()
 	{
 		NSDictionary* dict = [[NSBundle mainBundle] infoDictionary];
@@ -158,7 +158,7 @@ namespace slib
 			return ret;
 		}
 	}
-	
+
 	String System::getMainBundlePath()
 	{
 		NSString* path = [[NSBundle mainBundle] bundlePath];
@@ -183,7 +183,7 @@ namespace slib
 		return sl_null;
 #endif
 	}
-	
+
 	String System::getSystemVersion()
 	{
 #define SYSTEM_VERSION_PLIST 
@@ -231,7 +231,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String System::getComputerName()
 	{
 #if defined(SLIB_PLATFORM_IS_MACOS)
@@ -245,7 +245,7 @@ namespace slib
 	{
 		return Apple::getStringFromNSString(NSUserName());
 	}
-	
+
 	String System::getFullUserName()
 	{
 		return Apple::getStringFromNSString(NSFullUserName());

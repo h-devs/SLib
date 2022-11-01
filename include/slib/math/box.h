@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT BoxT
 	{
@@ -39,7 +39,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(BoxT)
-		
+
 		BoxT() = default;
 
 		template <class O>
@@ -270,7 +270,7 @@ namespace slib
 		} 
 
 	};
-	
+
 	typedef BoxT<sl_real> Box;
 	typedef BoxT<float> Boxf;
 	typedef BoxT<double> Boxlf;

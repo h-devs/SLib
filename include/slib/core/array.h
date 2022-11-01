@@ -34,7 +34,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT ArrayData
 	{
@@ -50,10 +50,10 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	class Array;
-	
+
 	template <class T>
 	using AtomicArray = Atomic< Array<T> >;
 
@@ -67,13 +67,13 @@ namespace slib
 		~CArrayBase();
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT CArray : public CArrayBase
 	{
 	public:
 		typedef T ELEMENT_TYPE;
-		
+
 	protected:
 		T* m_data;
 		sl_size m_count;
@@ -139,10 +139,10 @@ namespace slib
 				}
 			}
 		}
-		
+
 	public:
 		CArray(const CArray& other) = delete;
-		
+
 		CArray(CArray&& other) noexcept: m_ref(Move(other.m_ref))
 		{
 			m_flagStatic = other.m_flagStatic;
@@ -152,9 +152,9 @@ namespace slib
 			other.m_data = sl_null;
 			other.m_count = 0;
 		}
-		
+
 		CArray& operator=(const CArray& other) = delete;
-		
+
 		CArray& operator=(CArray&& other) noexcept
 		{
 			if (!m_flagStatic) {
@@ -174,7 +174,7 @@ namespace slib
 			return *this;
 		}
 
-	public:	
+	public:
 		static CArray<T>* create(sl_size count) noexcept
 		{
 			if (count) {
@@ -316,7 +316,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
@@ -424,7 +424,7 @@ namespace slib
 		{
 			QuickSort::sortDesc(m_data, m_count, compare);
 		}
-		
+
 		void reverse() const noexcept
 		{
 			ArrayTraits<T>::reverse(m_data, m_count);
@@ -453,7 +453,7 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT ArrayPosition
 	{
@@ -478,9 +478,9 @@ namespace slib
 
 	public:
 		ArrayPosition& operator=(const ArrayPosition& other) = default;
-		
+
 		ArrayPosition& operator=(ArrayPosition&& other) = default;
-		
+
 		T& operator*() const noexcept
 		{
 			return *pos;
@@ -517,20 +517,20 @@ namespace slib
 		Ref<Referable> ref;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Array
 	{
 	public:
 		typedef T ELEMENT_TYPE;
-		
+
 	public:
 		Ref< CArray<T> > ref;
 		SLIB_REF_WRAPPER(Array, CArray<T>)
-	
+
 	public:
 		Array(sl_size count) noexcept: ref(CArray<T>::create(count)) {}
-		
+
 		template <class VALUE>
 		Array(const VALUE* data, sl_size count) noexcept: ref(CArray<T>::create(data, count)) {}
 
@@ -539,7 +539,7 @@ namespace slib
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Array(const std::initializer_list<T>& l) noexcept: ref(CArray<T>::create(l.begin(), l.size())) {}
 #endif
-		
+
 	public:
 		static Array<T> create(sl_size count) noexcept
 		{
@@ -642,7 +642,7 @@ namespace slib
 		{
 			return (ref->getData())[index];
 		}
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Array<T>& operator=(const std::initializer_list<T>& l) noexcept
 		{
@@ -660,7 +660,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
@@ -670,7 +670,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
@@ -680,7 +680,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
@@ -827,30 +827,30 @@ namespace slib
 		}
 
 	};
-	
-	
+
+
 	template <class T>
 	class SLIB_EXPORT Atomic< Array<T> >
 	{
 	public:
 		typedef T ELEMENT_TYPE;
-		
+
 	public:
 		AtomicRef< CArray<T> > ref;
 		SLIB_ATOMIC_REF_WRAPPER(CArray<T>)
-		
-	public:	
+
+	public:
 		Atomic(const T* data, sl_size count, Referable* ref, sl_bool flagStatic = sl_true) noexcept: ref(CArray<T>::create(data, count, ref, flagStatic)) {}
-		
+
 		Atomic(sl_size count) noexcept: ref(CArray<T>::create(count)) {}
-		
+
 		template <class VALUE>
 		Atomic(const VALUE* data, sl_size count) noexcept: ref(CArray<T>::create(data, count)) {}
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic(const std::initializer_list<T>& l) noexcept: ref(CArray<T>::create(l.begin(), l.size())) {}
 #endif
-		
+
 	public:
 		template <class VALUE>
 		static Atomic< Array<T> >& from(const Atomic< Array<VALUE> >& other) noexcept
@@ -859,7 +859,7 @@ namespace slib
 		}
 
 	public:
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic& operator=(const std::initializer_list<T>& l) noexcept
 		{
@@ -869,7 +869,7 @@ namespace slib
 #endif
 
 	};
-	
+
 
 	template <class T>
 	class SLIB_EXPORT ArrayElements

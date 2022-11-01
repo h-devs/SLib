@@ -74,12 +74,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace crc32c
 		{
-			
+
 			const sl_uint32 kByteExtensionTable[256] = {
 				0x00000000, 0xf26b8303, 0xe13b70f7, 0x1350f3f4, 0xc79a971f, 0x35f1141c,
 				0x26a1e7e8, 0xd4ca64eb, 0x8ad958cf, 0x78b2dbcc, 0x6be22838, 0x9989ab3b,
@@ -124,7 +124,7 @@ namespace slib
 				0xf36e6f75, 0x0105ec76, 0x12551f82, 0xe03e9c81, 0x34f4f86a, 0xc69f7b69,
 				0xd5cf889d, 0x27a40b9e, 0x79b737ba, 0x8bdcb4b9, 0x988c474d, 0x6ae7c44e,
 				0xbe2da0a5, 0x4c4623a6, 0x5f16d052, 0xad7d5351};
-			
+
 			const sl_uint32 kStrideExtensionTable0[256] = {
 				0x00000000, 0x30d23865, 0x61a470ca, 0x517648af, 0xc348e194, 0xf39ad9f1,
 				0xa2ec915e, 0x923ea93b, 0x837db5d9, 0xb3af8dbc, 0xe2d9c513, 0xd20bfd76,
@@ -169,7 +169,7 @@ namespace slib
 				0x11ddb8d1, 0x210f80b4, 0x7079c81b, 0x40abf07e, 0xd2955945, 0xe2476120,
 				0xb331298f, 0x83e311ea, 0x92a00d08, 0xa272356d, 0xf3047dc2, 0xc3d645a7,
 				0x51e8ec9c, 0x613ad4f9, 0x304c9c56, 0x009ea433};
-			
+
 			const sl_uint32 kStrideExtensionTable1[256] = {
 				0x00000000, 0x54075546, 0xa80eaa8c, 0xfc09ffca, 0x55f123e9, 0x01f676af,
 				0xfdff8965, 0xa9f8dc23, 0xabe247d2, 0xffe51294, 0x03eced5e, 0x57ebb818,
@@ -214,7 +214,7 @@ namespace slib
 				0x21a9bf10, 0x75aeea56, 0x89a7159c, 0xdda040da, 0x74589cf9, 0x205fc9bf,
 				0xdc563675, 0x88516333, 0x8a4bf8c2, 0xde4cad84, 0x2245524e, 0x76420708,
 				0xdfbadb2b, 0x8bbd8e6d, 0x77b471a7, 0x23b324e1};
-			
+
 			const sl_uint32 kStrideExtensionTable2[256] = {
 				0x00000000, 0x678efd01, 0xcf1dfa02, 0xa8930703, 0x9bd782f5, 0xfc597ff4,
 				0x54ca78f7, 0x334485f6, 0x3243731b, 0x55cd8e1a, 0xfd5e8919, 0x9ad07418,
@@ -259,7 +259,7 @@ namespace slib
 				0x107f6ed0, 0x77f193d1, 0xdf6294d2, 0xb8ec69d3, 0x8ba8ec25, 0xec261124,
 				0x44b51627, 0x233beb26, 0x223c1dcb, 0x45b2e0ca, 0xed21e7c9, 0x8aaf1ac8,
 				0xb9eb9f3e, 0xde65623f, 0x76f6653c, 0x1178983d};
-			
+
 			const sl_uint32 kStrideExtensionTable3[256] = {
 				0x00000000, 0xf20c0dfe, 0xe1f46d0d, 0x13f860f3, 0xc604aceb, 0x3408a115,
 				0x27f0c1e6, 0xd5fccc18, 0x89e52f27, 0x7be922d9, 0x6811422a, 0x9a1d4fd4,
@@ -304,23 +304,23 @@ namespace slib
 				0xd3c39ec5, 0x21cf933b, 0x3237f3c8, 0xc03bfe36, 0x15c7322e, 0xe7cb3fd0,
 				0xf4335f23, 0x063f52dd, 0x5a26b1e2, 0xa82abc1c, 0xbbd2dcef, 0x49ded111,
 				0x9c221d09, 0x6e2e10f7, 0x7dd67004, 0x8fda7dfa};
-			
+
 			constexpr const sl_reg kPrefetchHorizon = 256;
-			
+
 			constexpr const sl_uint32 kCRC32Xor = 0xffffffff;
-			
+
 			template <sl_size N>
 			constexpr inline sl_size RoundUp(sl_size pointer) {
 				static_assert((N & (N - 1)) == 0, "N must be a power of two");
 				return (pointer + (N - 1)) & ~(N - 1);
 			}
-			
+
 			template <sl_size N>
 			constexpr inline const sl_uint8* RoundUp(const sl_uint8* pointer) {
 				static_assert((N & (N - 1)) == 0, "N must be a power of two");
 				return reinterpret_cast<sl_uint8*>(RoundUp<N>(reinterpret_cast<sl_size>(pointer)));
 			}
-			
+
 			// Ask the hardware to prefetch the data at the given address into the L1 cache.
 			inline void RequestPrefetch(const sl_uint8* address)
 			{
@@ -343,14 +343,14 @@ namespace slib
 				const sl_uint8* p = (const sl_uint8*)data;
 				const sl_uint8* e = p + size;
 				sl_uint32 l = crc ^ kCRC32Xor;
-				
+
 				// Process one byte at a time.
 				#define STEP1 \
 					do { \
 						int c = (l & 0xff) ^ *p++; \
 						l = kByteExtensionTable[c] ^ (l >> 8); \
 					} while (0)
-				
+
 				// Process one of the 4 strides of 4-byte data.
 				#define STEP4(s) \
 					do { \
@@ -393,7 +393,7 @@ namespace slib
 					sl_uint32 crc2 = MIO::readUint32LE(p + 2 * 4);
 					sl_uint32 crc3 = MIO::readUint32LE(p + 3 * 4);
 					p += 16;
-					
+
 					while ((e - p) > kPrefetchHorizon) {
 						RequestPrefetch(p + kPrefetchHorizon);
 						// Process 64 bytes at a time.
@@ -402,12 +402,12 @@ namespace slib
 						STEP16;
 						STEP16;
 					}
-					
+
 					// Process one 16-byte swath at a time.
 					while ((e - p) >= 16) {
 						STEP16;
 					}
-					
+
 					// Advance one word at a time as far as possible.
 					while ((e - p) >= 4) {
 						STEP4(0);
@@ -418,7 +418,7 @@ namespace slib
 						crc3 = tmp;
 						p += 4;
 					}
-					
+
 					// Combine the 4 partial stride results.
 					l = 0;
 					STEP4W(crc0);
@@ -426,7 +426,7 @@ namespace slib
 					STEP4W(crc2);
 					STEP4W(crc3);
 				}
-				
+
 				// Process the last few bytes.
 				while (p != e) {
 					STEP1;
@@ -437,16 +437,16 @@ namespace slib
 				#undef STEP1
 				return l ^ kCRC32Xor;
 			}
-			
+
 #if defined(SUPPORT_SSE42)
 			namespace sse42
 			{
-				
+
 				constexpr const sl_reg kGroups = 3;
 				constexpr const sl_reg kBlock0Size = 16 * 1024 / kGroups / 64 * 64;
 				constexpr const sl_reg kBlock1Size = 4 * 1024 / kGroups / 8 * 8;
 				constexpr const sl_reg kBlock2Size = 1024 / kGroups / 8 * 8;
-				
+
 				const sl_uint32 kBlock0SkipTable[8][16] = {
 					{0x00000000, 0xff770459, 0xfb027e43, 0x04757a1a, 0xf3e88a77, 0x0c9f8e2e,
 						0x08eaf434, 0xf79df06d, 0xe23d621f, 0x1d4a6646, 0x193f1c5c, 0xe6481805,
@@ -525,38 +525,38 @@ namespace slib
 						0xe20fa04b, 0x4ffb2b2f, 0x7df9f615, 0xd00d7d71, 0x23fc962c, 0x8e081d48,
 						0xc1f33667, 0x6c07bd03, 0x9ff6565e, 0x3202dd3a},
 				};
-				
+
 				constexpr const sl_reg kPrefetchHorizon = 256;
-				
+
 				sl_uint32 extendSse42(sl_uint32 crc, const sl_uint8* data, sl_size size) {
 					const sl_uint8* p = data;
 					const sl_uint8* e = data + size;
 					sl_uint32 l = crc ^ kCRC32Xor;
-					
+
 					#define STEP1 \
 						do { \
 							l = _mm_crc32_u8(l, *p++); \
 						} while (0)
-					
+
 					#define STEP4(crc) \
 						do { \
 							crc = _mm_crc32_u32(crc, MIO::readUint32LE(p)); \
 							p += 4; \
 						} while (0)
-					
+
 					#define STEP8(crc, data) \
 						do { \
 							crc = _mm_crc32_u64(crc, MIO::readUint64LE(data)); \
 							data += 8; \
 						} while (0)
-					
+
 					#define STEP8BY3(crc0, crc1, crc2, p0, p1, p2) \
 						do { \
 							STEP8(crc0, p0); \
 							STEP8(crc1, p1); \
 							STEP8(crc2, p2); \
 						} while (0)
-					
+
 					#define STEP8X3(crc0, crc1, crc2, bs) \
 						do { \
 							crc0 = _mm_crc32_u64(crc0, MIO::readUint64LE(p)); \
@@ -564,7 +564,7 @@ namespace slib
 							crc2 = _mm_crc32_u64(crc2, MIO::readUint64LE(p + 2 * bs)); \
 							p += 8; \
 						} while (0)
-					
+
 					#define SKIP_BLOCK(crc, tab) \
 						do { \
 							crc = tab[0][crc & 0xf] ^ tab[1][(crc >> 4) & 0xf] ^ \
@@ -572,7 +572,7 @@ namespace slib
 							tab[4][(crc >> 16) & 0xf] ^ tab[5][(crc >> 20) & 0xf] ^ \
 							tab[6][(crc >> 24) & 0xf] ^ tab[7][(crc >> 28) & 0xf]; \
 						} while (0)
-					
+
 					// Point x at first 8-byte aligned byte in the buffer. This might be past the
 					// end of the buffer.
 					const sl_uint8* x = RoundUp<8>(p);
@@ -582,7 +582,7 @@ namespace slib
 							STEP1;
 						}
 					}
-					
+
 					// Proccess the data in predetermined block sizes with tables for quickly
 					// combining the checksum. Experimentally it's better to use larger block
 					// sizes where possible so use a hierarchy of decreasing block sizes.
@@ -595,7 +595,7 @@ namespace slib
 							RequestPrefetch(p + kPrefetchHorizon);
 							RequestPrefetch(p + kBlock0Size + kPrefetchHorizon);
 							RequestPrefetch(p + 2 * kBlock0Size + kPrefetchHorizon);
-							
+
 							// Process 64 bytes at a time.
 							STEP8X3(l64, l641, l642, kBlock0Size);
 							STEP8X3(l64, l641, l642, kBlock0Size);
@@ -606,7 +606,7 @@ namespace slib
 							STEP8X3(l64, l641, l642, kBlock0Size);
 							STEP8X3(l64, l641, l642, kBlock0Size);
 						}
-						
+
 						// Combine results.
 						SKIP_BLOCK(l64, kBlock0SkipTable);
 						l64 ^= l641;
@@ -638,13 +638,13 @@ namespace slib
 						l64 ^= l642;
 						p += (kGroups - 1) * kBlock2Size;
 					}
-					
+
 					// Process bytes 16 at a time
 					while ((e - p) >= 16) {
 						STEP8(l64, p);
 						STEP8(l64, p);
 					}
-					
+
 					l = static_cast<sl_uint32>(l64);
 					// Process the last few bytes.
 					while (p != e) {
@@ -656,13 +656,13 @@ namespace slib
 #undef STEP8
 #undef STEP4
 #undef STEP1
-					
+
 					return l ^ kCRC32Xor;
 				}
 
 			}
 #endif
-			
+
 			static sl_uint32 extend(sl_uint32 crc, const void* _data, sl_size count)
 			{
 				const sl_uint8* data = (const sl_uint8*)_data;
@@ -673,7 +673,7 @@ namespace slib
 #endif
 				return extendPortable(crc, data, count);
 			}
-			
+
 		}
 	}
 
@@ -681,17 +681,17 @@ namespace slib
 	{
 		return priv::crc32c::extend(crc, data, size);
 	}
-	
+
 	sl_uint32 Crc32c::get(const void* data, sl_size size)
 	{
 		return priv::crc32c::extend(0, data, size);
 	}
-	
+
 	sl_uint32 Crc32c::extend(sl_uint32 crc, const MemoryView& mem)
 	{
 		return priv::crc32c::extend(crc, mem.data, mem.size);
 	}
-	
+
 	sl_uint32 Crc32c::get(const MemoryView& mem)
 	{
 		return priv::crc32c::extend(0, mem.data, mem.size);

@@ -13,7 +13,7 @@ void MainWindow::onCreate()
 			txtPassword->setEnabled(sl_false);
 		}
 	});
-	
+
 	btnFacebookAPI->setOnClick([this](View*) {
 		txtAuthUrl->setText("https://www.facebook.com/dialog/oauth");
 		txtAccessTokenUrl->setText("https://graph.facebook.com/oauth/access_token");
@@ -22,7 +22,7 @@ void MainWindow::onCreate()
 		txtScopes->setText("public_profile,email");
 		txtRequestURL->setText("https://graph.facebook.com/me?fields=id,name");
 	});
-	
+
 	btnExampleServer->setOnClick([this](View*) {
 		txtAuthUrl->setText("http://localhost:8080/login");
 		txtAccessTokenUrl->setText("http://localhost:8080/access_token");
@@ -32,10 +32,10 @@ void MainWindow::onCreate()
 		txtScopes->setText("public,email");
 		txtRequestURL->setText("http://localhost:8080/me");
 	});
-	
+
 	btnAuth->setOnClick([this](View*) {
 		String grantType = radioGrantType->getSelectedValue();
-		
+
 		OAuthParam param;
 		param.authorizeUrl = txtAuthUrl->getText();
 		param.accessTokenUrl = txtAccessTokenUrl->getText();
@@ -46,7 +46,7 @@ void MainWindow::onCreate()
 		param.redirectUri = txtRedirectUri->getText();
 		List<String> scopes = txtScopes->getText().split(",");
 		Ref<OAuth2> oauth = new OAuth2(param);
-		
+
 		if (grantType == "implicit" || grantType == "code") {
 			OAuthLoginParam loginParam;
 			loginParam.authorization.responseType = grantType == "code" ? OAuthResponseType::Code : OAuthResponseType::Token;
@@ -94,7 +94,7 @@ void MainWindow::onCreate()
 			});
 		}
 	});
-	
+
 	btnGetToken->setOnClick([this](View*) {
 		OAuthParam param;
 		param.accessTokenUrl = txtAccessTokenUrl->getText();
@@ -116,7 +116,7 @@ void MainWindow::onCreate()
 			txtResponse->setText(result.response.toJsonString());
 		});
 	});
-	
+
 	btnRefresh->setOnClick([this](View*) {
 		OAuthParam param;
 		param.accessTokenUrl = txtAccessTokenUrl->getText();
@@ -135,7 +135,7 @@ void MainWindow::onCreate()
 			txtResponse->setText(result.response.toJsonString());
 		});
 	});
-	
+
 	btnSendRequest->setOnClick([this](View*) {
 		OAuthParam param;
 		param.accessToken = txtAccessToken->getText();

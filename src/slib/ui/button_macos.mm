@@ -30,22 +30,22 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace button
 		{
-			
+
 			SLIB_DEFINE_OBJECT(ButtonInstance, macOS_ViewInstance)
 
 			ButtonInstance::ButtonInstance()
 			{
 			}
-			
+
 			ButtonInstance::~ButtonInstance()
 			{
 			}
-			
+
 			static NSString* getButtonText(Button* view, const String& s)
 			{
 				if (view->isMnemonic()) {
@@ -54,7 +54,7 @@ namespace slib
 					return Apple::getNSStringFromString(s);
 				}
 			}
-			
+
 			void ButtonInstance::initialize(View* _view)
 			{
 				NSButton* handle = getHandle();
@@ -66,7 +66,7 @@ namespace slib
 					[handle setKeyEquivalent:@"\r"];
 				}
 			}
-			
+
 			NSButton* ButtonInstance::getHandle()
 			{
 				return (NSButton*)m_handle;
@@ -79,7 +79,7 @@ namespace slib
 					handle.title = getButtonText(view, text);
 				}
 			}
-			
+
 			void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
 			{
 				NSButton* handle = getHandle();
@@ -91,12 +91,12 @@ namespace slib
 					}
 				}
 			}
-			
+
 			sl_bool ButtonInstance::measureSize(Button* view, UISize& _out)
 			{
 				return UIPlatform::measureNativeWidgetFittingSize(this, _out);
 			}
-			
+
 			sl_bool ButtonInstance::getChecked(CheckBox* view, sl_bool& _out)
 			{
 				NSButton* handle = getHandle();
@@ -106,7 +106,7 @@ namespace slib
 				}
 				return sl_false;
 			}
-			
+
 			void ButtonInstance::setChecked(CheckBox* view, sl_bool flag)
 			{
 				NSButton* handle = getHandle();
@@ -114,22 +114,22 @@ namespace slib
 					[handle setState: (flag ? NSOnState : NSOffState)];
 				}
 			}
-			
+
 		}
 	}
-	
+
 	using namespace priv::button;
 
 	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
 	{
 		return macOS_ViewInstance::create<ButtonInstance, SLIBButtonHandle>(this, parent);
 	}
-	
+
 	Ptr<IButtonInstance> Button::getButtonInstance()
 	{
 		return CastRef<ButtonInstance>(getViewInstance());
 	}
-	
+
 }
 
 using namespace slib;

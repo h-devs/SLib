@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	void* Vtable::getEntry(const void* object, sl_uint32 index)
 	{
 		return (*((void***)object))[index];

@@ -48,19 +48,19 @@ namespace slib
 		{
 
 			EntryPoints g_entries;
-	
+
 			static sl_bool g_flagLoadedEntryPoints = sl_false;
 
 		}
 	}
 
 	using namespace priv::gles;
-	
+
 #undef PRIV_SLIB_RENDER_GLES_ENTRY
 #define PRIV_SLIB_RENDER_GLES_ENTRY(TYPE, name, ...) \
 	proc = ::GetProcAddress(hDll, #name); \
 	*((FARPROC*)(&(g_entries.name))) = proc;
-	
+
 
 	void GLES::loadEntries(const StringParam& _pathDll, sl_bool flagReload)
 	{
@@ -82,13 +82,13 @@ namespace slib
 		PRIV_SLIB_RENDER_GLES_ENTRIES
 		g_flagLoadedEntryPoints = sl_true;
 	}
-	
+
 	void GLES::loadEntries(sl_bool flagReload)
 	{
 		SLIB_STATIC_STRING16(s, "libGLESv2.dll");
 		loadEntries(s, flagReload);
 	}
-	
+
 	sl_bool GLES::isAvailable()
 	{
 		return g_flagLoadedEntryPoints;
@@ -107,11 +107,11 @@ namespace slib
 	void GLES::loadEntries(const StringParam& pathDll, sl_bool flagReload)
 	{
 	}
-	
+
 	void GLES::loadEntries(sl_bool flagReload)
 	{
 	}
-	
+
 	sl_bool GLES::isAvailable()
 	{
 		return sl_true;
@@ -133,15 +133,15 @@ namespace slib
 	{
 		return sl_null;
 	}
-	
+
 	void GLES::loadEntries(const StringParam& pathDll, sl_bool flagReload)
 	{
 	}
-	
+
 	void GLES::loadEntries(sl_bool flagReload)
 	{
 	}
-	
+
 	sl_bool GLES::isAvailable()
 	{
 		return sl_false;

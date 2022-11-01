@@ -209,7 +209,7 @@ namespace slib
 	public:
 		// returns passed size (positive), 0: incomplete packet, <0: error
 		sl_int32 parse(const void* _data, sl_size size) noexcept;
-		
+
 	private:
 		sl_int32 _parseExtensions(const void* _data, sl_size size) noexcept;
 
@@ -235,110 +235,110 @@ namespace slib
 		HashMap<String, Memory> privateKeys;
 
 		sl_bool flagVerify;
-		
+
 		String serverName; // At Client, sets the server name indication ClientHello extension to contain the value name
 
 	public:
 		TlsContextParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TlsContextParam)
-		
+
 	public:
 		void setCertificate(const Memory& certificate);
-		
+
 		void setCertificate(const String& serverName, const Memory& certificate);
-		
+
 		void setPrivateKey(const Memory& privateKey);
-		
+
 		void setPrivateKey(const String& serverName, const Memory& privateKey);
-		
+
 		void setCertificateFile(const String& path_PEM);
-		
+
 		void setPrivateKeyFile(const String& path_PEM);
-		
+
 		void setCertificateFile(const String& serverName, const String& path_PEM);
-		
+
 		void setPrivateKeyFile(const String& serverName, const String& path_PEM);
-		
+
 	};
-	
+
 	class SLIB_EXPORT TlsStreamResult
 	{
 	public:
 		AsyncStream* stream;
 		sl_bool flagError;
-		
+
 	public:
 		TlsStreamResult(AsyncStream*);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TlsStreamResult)
-		
+
 	};
-	
+
 	class TlsContext;
-	
+
 	class SLIB_EXPORT TlsStreamParam : public TlsContextParam
 	{
 	public:
 		Ref<TlsContext> context;
-		
+
 		sl_uint32 readingBufferSize;
 		sl_uint32 writingBufferSize;
-		
+
 		sl_bool flagAutoStartHandshake;
 
 		Function<void(TlsStreamResult&)> onHandshake;
-		
+
 	public:
 		TlsStreamParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TlsStreamParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT TlsConnectStreamParam : public TlsStreamParam
 	{
 	public:
 		TlsConnectStreamParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TlsConnectStreamParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT TlsAcceptStreamParam : public TlsStreamParam
 	{
 	public:
 		TlsAcceptStreamParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TlsAcceptStreamParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT TlsContext : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		TlsContext();
-		
+
 		~TlsContext();
-		
+
 	};
-	
+
 	class SLIB_EXPORT TlsAsyncStream : public AsyncStream
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		TlsAsyncStream();
-		
+
 		~TlsAsyncStream();
-		
+
 	public:
 		virtual void handshake() = 0;
-		
+
 	};
-	
+
 }
 
 #endif

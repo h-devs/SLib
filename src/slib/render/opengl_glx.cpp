@@ -51,7 +51,7 @@ namespace slib
 				Display* m_xdisplay;
 				Window m_xwindow;
 				GLXContext m_context;
-				
+
 				sl_bool m_flagRequestRender;
 				AtomicRef<Thread> m_threadRender;
 
@@ -76,7 +76,7 @@ namespace slib
 					if (!xwindow) { // None
 						return sl_null;
 					}
-					
+
 					GLint attrs[] = {
 						GLX_RGBA,
 						GLX_RED_SIZE, param.nRedBits,
@@ -88,31 +88,31 @@ namespace slib
 						GLX_DOUBLEBUFFER,
 						0
 					};
-					
+
 					XVisualInfo* xvinfo = glXChooseVisual(xdisplay, 0, attrs);
 					if (!xvinfo) {
 						return sl_null;
 					}
-					
+
 					GLXContext context = glXCreateContext(xdisplay, xvinfo, NULL, GL_TRUE);
 					if (!context) {
 						return sl_null;
 					}
-					
+
 					Ref<RendererImpl> ret = new RendererImpl();
-					
+
 					if (ret.isNotNull()) {
 						ret->m_xdisplay = xdisplay;
 						ret->m_xwindow = xwindow;
 						ret->m_context = context;
-						
+
 						ret->initWithParam(param);
-						
+
 						ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
-						
+
 						return ret;
 					}
-					
+
 					glXDestroyContext(xdisplay, context);
 
 					return sl_null;
@@ -121,7 +121,7 @@ namespace slib
 				void release()
 				{
 					ObjectLocker lock(this);
-					
+
 					Ref<Thread> thread = m_threadRender;
 					if (thread.isNotNull()) {
 						thread->finishAndWait();
@@ -162,7 +162,7 @@ namespace slib
 							break;
 						}
 					}
-					
+
 					glXMakeCurrent(m_xdisplay, 0, NULL);
 				}
 

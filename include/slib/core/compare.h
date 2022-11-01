@@ -75,7 +75,7 @@ namespace slib
 			return DefaultComparator<T1>::compare(a, b);
 		}
 	};
-	
+
 	template <class T1, class T2 = T1>
 	class CompareDescending
 	{
@@ -95,7 +95,7 @@ namespace slib
 			return a.compareIgnoreCase(b);
 		}
 	};
-	
+
 	template <class T1, class T2 = T1>
 	class Equals
 	{
@@ -105,7 +105,7 @@ namespace slib
 			return a == b;
 		}
 	};
-	
+
 	template <class T1, class T2 = T1>
 	class EqualsIgnoreCase
 	{
@@ -115,7 +115,7 @@ namespace slib
 			return a.equalsIgnoreCase(b);
 		}
 	};
-	
+
 }
 
 #define PRIV_SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS(PREFIX, SUFFIX) \

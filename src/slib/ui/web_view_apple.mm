@@ -85,7 +85,7 @@ namespace slib
 						[mainFrame loadRequest:request];
 					}
 				}
-				
+
 				void apply(WKWebView* handle)
 				{
 #if defined(SLIB_UI_IS_IOS)
@@ -94,19 +94,19 @@ namespace slib
 					[handle setCustomUserAgent:(Apple::getNSStringFromString(m_customUserAgent, nil))];
 					load(handle);
 				}
-				
+
 			};
-			
+
 			class WebViewInstance : public BaseInstance, public IWebViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				WKWebView* getHandle()
 				{
 					return (WKWebView*)m_handle;
 				}
-				
+
 				Ref<WebViewHelper> getHelper()
 				{
 					return CastRef<WebViewHelper>(getView());
@@ -119,11 +119,11 @@ namespace slib
 
 					view->apply(handle);
 				}
-				
+
 				void refreshSize(WebView* view) override
 				{
 				}
-				
+
 				void load(WebView* view) override
 				{
 					WKWebView* handle = getHandle();
@@ -131,7 +131,7 @@ namespace slib
 						static_cast<WebViewHelper*>(view)->load(handle);
 					}
 				}
-				
+
 				sl_bool getURL(WebView* view, String& _out) override
 				{
 					WKWebView* handle = getHandle();
@@ -142,7 +142,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_bool getPageTitle(WebView* view, String& _out) override
 				{
 					WKWebView* handle = getHandle();
@@ -153,7 +153,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void goBack(WebView* view) override
 				{
 					WKWebView* handle = getHandle();
@@ -161,7 +161,7 @@ namespace slib
 						[handle goBack];
 					}
 				}
-				
+
 				void goForward(WebView* view) override
 				{
 					WKWebView* handle = getHandle();
@@ -169,7 +169,7 @@ namespace slib
 						[handle goForward];
 					}
 				}
-				
+
 				void reload(WebView* view) override
 				{
 					WKWebView* handle = getHandle();
@@ -177,7 +177,7 @@ namespace slib
 						[handle reload];
 					}
 				}
-				
+
 				void runJavaScript(WebView* view, const StringParam& script) override
 				{
 					WKWebView* handle = getHandle();
@@ -188,7 +188,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setCustomUserAgent(WebView* view, const String& agent) override
 				{
 					WKWebView* handle = getHandle();
@@ -196,7 +196,7 @@ namespace slib
 						[handle setCustomUserAgent:(Apple::getNSStringFromString(agent, nil))];
 					}
 				}
-				
+
 				void onStartLoad(WKWebView* handle, NSURL* url)
 				{
 					Ref<WebViewHelper> helper = getHelper();
@@ -204,7 +204,7 @@ namespace slib
 						helper->dispatchStartLoad(Apple::getStringFromNSString(url.absoluteString));
 					}
 				}
-				
+
 				void onFinishLoad(WKWebView* handle)
 				{
 					Ref<WebViewHelper> helper = getHelper();
@@ -213,7 +213,7 @@ namespace slib
 						helper->dispatchFinishLoad(url, sl_false);
 					}
 				}
-				
+
 				void onLoadError(WKWebView* handle, NSError* error)
 				{
 					Ref<WebViewHelper> helper = getHelper();
@@ -225,7 +225,7 @@ namespace slib
 						helper->dispatchFinishLoad(url, sl_true);
 					}
 				}
-				
+
 				void onInvokeMethod(WKWebView* handle, id body)
 				{
 					NSString* s = [NSString stringWithFormat:@"%@", body];
@@ -243,9 +243,9 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(WebViewInstance, BaseInstance)
 
 		}
@@ -257,13 +257,13 @@ namespace slib
 	{
 		return BaseInstance::create<WebViewInstance, SLIBWebViewHandle>(this, parent);
 	}
-	
+
 	Ptr<IWebViewInstance> WebView::getWebViewInstance()
 	{
 		return CastRef<WebViewInstance>(getViewInstance());
 	}
-	
-	
+
+
 	void DefaultWebViewProvider::clearCache()
 	{
 		NSSet* websiteDataTypes = [NSSet setWithArray:@[
@@ -278,19 +278,19 @@ namespace slib
 														//WKWebsiteDataTypeFetchCache, //(iOS 11.3, *)
 														//WKWebsiteDataTypeServiceWorkerRegistrations, //(iOS 11.3, *)
 														]];
-		
+
 		NSDate *dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
 
 		[[WKWebsiteDataStore defaultDataStore] removeDataOfTypes:websiteDataTypes modifiedSince:dateFrom completionHandler:^{}];
 	}
-	
+
 	void DefaultWebViewProvider::clearCookie()
 	{
 		NSSet* websiteDataTypes = [NSSet setWithArray:@[WKWebsiteDataTypeCookies]];
 		NSDate *dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
 		[[WKWebsiteDataStore defaultDataStore] removeDataOfTypes:websiteDataTypes modifiedSince:dateFrom completionHandler:^{}];
 	}
-	
+
 }
 
 using namespace slib;
@@ -304,7 +304,7 @@ using namespace slib::priv::web_view;
 	if (self != nil) {
 		[self setNavigationDelegate:self];
 		[self setUIDelegate:self];
-		
+
 		[self.configuration.userContentController addScriptMessageHandler:self name:@"slib_send"];
 		WKUserScript* script = [[WKUserScript alloc] initWithSource:@"window.slib = {send: function(msg,param){window.webkit.messageHandlers.slib_send.postMessage(msg+'::'+param);}}" injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
 		[self.configuration.userContentController addUserScript:script];

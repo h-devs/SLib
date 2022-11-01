@@ -33,26 +33,26 @@
 
 namespace slib
 {
-	
+
 	class GlobalEventMonitor
 	{
 	public:
 		static void addMonitor(const Function<void(UIEvent*)>& callback);
-		
+
 		static void removeMonitor(const Function<void(UIEvent*)>& callback);
-		
+
 		static void removeAllMonitors();
-		
+
 		static void addMouseMonitor(const Function<void(UIEvent*)>& callback);
-		
+
 		static void removeMouseMonitor(const Function<void(UIEvent*)>& callback);
-		
+
 		static void removeAllMouseMonitors();
-		
+
 		static void addKeyboardMonitor(const Function<void(UIEvent*)>& callback);
-		
+
 		static void removeKeyboardMonitor(const Function<void(UIEvent*)>& callback);
-		
+
 		static void removeAllKeyboardMonitors();
 
 	protected:
@@ -60,13 +60,13 @@ namespace slib
 			MASK_MOUSE = 0x0001,
 			MASK_KEYBOARD = 0x0002
 		};
-		
+
 		static sl_bool _updateMonitor(sl_uint32 mask);
-		
+
 		static void _onEvent(UIEvent*);
-		
+
 	};
-	
+
 }
 
 #endif

@@ -174,7 +174,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsRecord)
-	
+
 	DnsRecord::DnsRecord()
 	{
 		_type = DnsRecordType::None;
@@ -343,11 +343,11 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsQuestionRecord)
-	
+
 	DnsQuestionRecord::DnsQuestionRecord()
 	{
 	}
-	
+
 	sl_uint32 DnsQuestionRecord::parseRecord(const void* buf, sl_uint32 offset, sl_uint32 size)
 	{
 		return _parseHeader(buf, offset, size);
@@ -360,7 +360,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsResponseRecord)
-	
+
 	DnsResponseRecord::DnsResponseRecord()
 	{
 		_message = 0;
@@ -535,7 +535,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsPacket)
-	
+
 	DnsPacket::DnsPacket()
 	{
 		id = 0;
@@ -545,7 +545,7 @@ namespace slib
 	sl_bool DnsPacket::parsePacket(const void* packet, sl_uint32 size)
 	{
 		sl_uint8* buf = (sl_uint8*)packet;
-		
+
 		do {
 			if (size < sizeof(DnsHeader)) {
 				break;
@@ -557,10 +557,10 @@ namespace slib
 				flagQuestion = sl_false;
 			}
 			id = header->getId();
-			
+
 			sl_uint32 i, n;
 			sl_uint32 offset = sizeof(DnsHeader);
-			
+
 			n = header->getQuestionCount();
 			for (i = 0; i < n; i++) {
 				DnsQuestionRecord record;
@@ -623,11 +623,11 @@ namespace slib
 					}
 				}
 			}
-			
+
 			return sl_true;
-			
+
 		} while (0);
-		
+
 		return sl_false;
 	}
 
@@ -655,9 +655,9 @@ namespace slib
 	{
 		char buf[4096];
 		Base::zeroMemory(buf, sizeof(buf));
-		
+
 		if (hostAddress.isNotZero()) {
-			
+
 			DnsHeader* header = (DnsHeader*)(buf);
 			header->setId(id);
 			header->setQuestion(sl_false); // Response
@@ -668,7 +668,7 @@ namespace slib
 			header->setAnswerCount(1);
 			header->setAuthorityCount(0);
 			header->setAdditionalCount(0);
-			
+
 			sl_uint32 offset = sizeof(DnsHeader);
 			DnsQuestionRecord recordQuestion;
 			recordQuestion.setName(hostName);
@@ -682,9 +682,9 @@ namespace slib
 					return Memory::create(buf, offset);
 				}
 			}
-			
+
 		} else {
-			
+
 			DnsHeader* header = (DnsHeader*)(buf);
 			header->setId(id);
 			header->setQuestion(sl_false); // Response
@@ -695,7 +695,7 @@ namespace slib
 			header->setAnswerCount(0);
 			header->setAuthorityCount(0);
 			header->setAdditionalCount(0);
-			
+
 			sl_uint32 offset = sizeof(DnsHeader);
 			DnsQuestionRecord recordQuestion;
 			recordQuestion.setName(hostName);
@@ -705,19 +705,19 @@ namespace slib
 				return Memory::create(buf, offset);
 			}
 		}
-		
+
 		return sl_null;
-		
+
 	}
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsClientParam)
-	
+
 	DnsClientParam::DnsClientParam()
 	{
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(DnsClient, Object)
 
 	DnsClient::DnsClient()
@@ -775,7 +775,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsResolveHostParam)
-	
+
 	DnsResolveHostParam::DnsResolveHostParam()
 	{
 		clientAddress.setNone();
@@ -785,9 +785,9 @@ namespace slib
 		flagEncryptForward = sl_false;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsServerParam)
-	
+
 	DnsServerParam::DnsServerParam()
 	{
 		portDns = SLIB_NETWORK_DNS_PORT;
@@ -839,7 +839,7 @@ namespace slib
 	Ref<DnsServer> DnsServer::create(const DnsServerParam& param)
 	{
 		Ref<DnsServer> ret = new DnsServer;
-		
+
 		if (ret.isNotNull()) {
 
 			AsyncUdpSocketParam up;
@@ -847,14 +847,14 @@ namespace slib
 			up.packetSize = 4096;
 			up.ioLoop = param.ioLoop;
 			up.flagAutoStart = sl_false;
-			
+
 			up.bindAddress.port = param.portDns;
 			Ref<AsyncUdpSocket> socketDns = AsyncUdpSocket::create(up);
 			if (socketDns.isNull()) {
 				LogError(TAG_SERVER, "Failed to bind to port %d", param.portDns);
 				return sl_null;
 			}
-			
+
 			up.bindAddress.port = param.portEncryption;
 			Ref<AsyncUdpSocket> socketEncrypt = AsyncUdpSocket::create(up);
 			if (socketEncrypt.isNull()) {
@@ -884,7 +884,7 @@ namespace slib
 				return ret;
 
 			}
-			
+
 		}
 		return sl_null;
 	}
@@ -950,7 +950,7 @@ namespace slib
 		if (rp.hostAddress.isNotZero()) {
 			_sendPacket(flagEncryptedRequest, clientAddress, _buildHostAddressAnswerPacket(id, hostName, rp.hostAddress, flagEncryptedRequest));
 		}
-		
+
 		// forward DNS request
 		{
 			sl_uint16 idForward = m_lastForwardId++;

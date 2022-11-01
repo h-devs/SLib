@@ -80,7 +80,7 @@ namespace slib
 		PlotGraphParam param;
 
 	};
-	
+
 	class SLIB_EXPORT Plot : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -283,7 +283,7 @@ namespace slib
 		sl_bool m_flagDefinedMaxY;
 
 	};
-	
+
 }
 
 #endif

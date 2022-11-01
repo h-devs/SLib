@@ -91,7 +91,7 @@ namespace slib
 
 
 	SLIB_DEFINE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncTcpSocketParam)
-	
+
 	AsyncTcpSocketParam::AsyncTcpSocketParam()
 	{
 		flagIPv6 = sl_false;
@@ -234,7 +234,7 @@ namespace slib
 	{
 		return AsyncStreamBase::write(mem.getData(), mem.getSize(), callback, mem.ref.get());
 	}
-	
+
 	Ref<AsyncTcpSocketInstance> AsyncTcpSocket::_getIoInstance()
 	{
 		return Ref<AsyncTcpSocketInstance>::from(AsyncStreamBase::getIoInstance());
@@ -314,11 +314,11 @@ namespace slib
 
 
 	SLIB_DEFINE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncTcpServerParam)
-	
+
 	AsyncTcpServerParam::AsyncTcpServerParam()
 	{
 		flagIPv6 = sl_false;
-		
+
 		flagAutoStart = sl_true;
 		flagLogError = sl_true;
 	}
@@ -353,7 +353,7 @@ namespace slib
 			if (socket.isNone()) {
 				return sl_null;
 			}
-			
+
 #if defined(SLIB_PLATFORM_IS_UNIX)
 			/*
 			 * SO_REUSEADDR option allows the server applications to listen on the port that is still
@@ -371,7 +371,7 @@ namespace slib
 				return sl_null;
 			}
 		}
-		
+
 		if (socket.listen()) {
 			Ref<AsyncTcpServerInstance> instance = _createInstance(Move(socket), flagIPv6);
 			if (instance.isNotNull()) {
@@ -520,7 +520,7 @@ namespace slib
 			object->_onError();
 		}
 	}
-	
+
 	SLIB_DEFINE_MOVEONLY_CLASS_DEFAULT_MEMBERS(AsyncUdpSocketParam)
 
 	AsyncUdpSocketParam::AsyncUdpSocketParam()
@@ -548,7 +548,7 @@ namespace slib
 		if (param.packetSize < 1) {
 			return sl_null;
 		}
-		
+
 		Socket& socket = param.socket;
 		if (socket.isNone()) {
 			sl_bool flagIPv6 = param.flagIPv6;
@@ -584,7 +584,7 @@ namespace slib
 		if (param.flagBroadcast) {
 			socket.setOption_Broadcast(sl_true);
 		}
-		
+
 		Ref<AsyncUdpSocketInstance> instance = _createInstance(Move(socket), param.packetSize);
 		if (instance.isNotNull()) {
 			Ref<AsyncIoLoop> loop = param.ioLoop;
@@ -608,7 +608,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		return sl_null;
 	}
 
@@ -685,7 +685,7 @@ namespace slib
 	{
 		return sendTo(addressTo, mem.data, (sl_uint32)(mem.size));
 	}
-	
+
 	Ref<AsyncUdpSocketInstance> AsyncUdpSocket::_getIoInstance()
 	{
 		return Ref<AsyncUdpSocketInstance>::from(AsyncIoObject::getIoInstance());
@@ -700,5 +700,5 @@ namespace slib
 	{
 		m_onError(this);
 	}
-	
+
 }

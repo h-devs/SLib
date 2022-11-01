@@ -37,9 +37,9 @@ namespace slib
 	{
 	public:
 		static void play(UISoundAlias sound);
-		
+
 		static void stop();
-		
+
 	};
 
 }

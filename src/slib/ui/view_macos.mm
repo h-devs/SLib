@@ -38,7 +38,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(macOS_ViewInstance, ViewInstance)
 
 	namespace priv
@@ -93,7 +93,7 @@ namespace slib
 				}
 				return op;
 			}
-		
+
 			static void SetDropTarget(NSView* handle, sl_bool flag)
 			{
 				if (flag) {
@@ -110,12 +110,12 @@ namespace slib
 					}
 				}
 			}
-		
+
 		}
 	}
 
 	using namespace priv::view_macos;
-	
+
 	macOS_ViewInstance::macOS_ViewInstance()
 	{
 		m_handle = nil;
@@ -147,7 +147,7 @@ namespace slib
 		if (view->isCreatingNativeLayer()) {
 			[handle setWantsLayer:YES];
 		}
-		
+
 		[handle setHidden:(view->isVisibleInInstance() ? NO : YES)];
 		if (!(view->isEnabled())) {
 			if ([handle isKindOfClass:[NSControl class]]) {
@@ -163,7 +163,7 @@ namespace slib
 		if (parent != nil) {
 			[parent addSubview:handle];
 		}
-		
+
 		CALayer* layer = handle.layer;
 		if (layer != nil) {
 			float shadowOpacity = view->getShadowOpacity();
@@ -179,12 +179,12 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (view->isDropTarget()) {
 			SetDropTarget(handle, sl_true);
 		}
 	}
-	
+
 	NSView* macOS_ViewInstance::getHandle()
 	{
 		return m_handle;
@@ -302,7 +302,7 @@ namespace slib
 			[handle setNeedsDisplay: TRUE];
 		}
 	}
-	
+
 	void macOS_ViewInstance::setClipping(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
@@ -313,7 +313,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void macOS_ViewInstance::setDrawing(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
@@ -324,7 +324,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	UIPointf macOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
 	{
 		NSView* handle = m_handle;
@@ -413,7 +413,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void macOS_ViewInstance::setShadowOpacity(View* view, float opacity)
 	{
 		NSView* handle = m_handle;
@@ -424,7 +424,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void macOS_ViewInstance::setShadowRadius(View* view, sl_ui_posf radius)
 	{
 		NSView* handle = m_handle;
@@ -435,7 +435,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void macOS_ViewInstance::setShadowOffset(View* view, sl_ui_posf x, sl_ui_posf y)
 	{
 		NSView* handle = m_handle;
@@ -446,7 +446,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void macOS_ViewInstance::setShadowColor(View* view, const Color& _color)
 	{
 		NSView* handle = m_handle;
@@ -461,7 +461,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void macOS_ViewInstance::setDropTarget(View* view, sl_bool flag)
 	{
 		NSView* handle = m_handle;
@@ -489,7 +489,7 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	void macOS_ViewInstance::onDraw(NSRect rcDirty)
 	{
 		Ref<View> view = getView();
@@ -504,16 +504,16 @@ namespace slib
 		if (graphics == nil) {
 			return;
 		}
-		
+
 		CGContextRef context = (CGContextRef)([graphics graphicsPort]);
 		NSRect rectBound = [handle bounds];
 		Ref<Canvas> canvas = GraphicsPlatform::createCanvas(CanvasType::View, context, (sl_uint32)(rectBound.size.width), (sl_uint32)(rectBound.size.height));
 		if (canvas.isNull()) {
 			return;
 		}
-		
+
 		canvas->setInvalidatedRect(Rectangle((sl_real)(rcDirty.origin.x), (sl_real)(rcDirty.origin.y), (sl_real)(rcDirty.origin.x + rcDirty.size.width), (sl_real)(rcDirty.origin.y + rcDirty.size.height)));
-		
+
 		sl_real alpha = view->getAlpha();
 		Ref<View> parent = view->getParent();
 		while (parent.isNotNull()) {
@@ -526,7 +526,7 @@ namespace slib
 		if (alpha < 0.995f) {
 			canvas->setAlpha(alpha);
 		}
-		
+
 		view->dispatchDraw(canvas.get());
 	}
 
@@ -722,13 +722,13 @@ namespace slib
 		}
 	}
 
-	
+
 	Ref<ViewInstance> View::createGenericInstance(ViewInstance* parent)
 	{
 		return macOS_ViewInstance::create<macOS_ViewInstance, SLIBViewHandle>(this, parent);
 	}
-	
-	
+
+
 	Ref<ViewInstance> UIPlatform::createViewInstance(NSView* handle)
 	{
 		Ref<ViewInstance> ret = UIPlatform::_getViewInstance((__bridge void*)handle);
@@ -737,22 +737,22 @@ namespace slib
 		}
 		return macOS_ViewInstance::create<macOS_ViewInstance>(handle);
 	}
-	
+
 	void UIPlatform::registerViewInstance(NSView* handle, ViewInstance* instance)
 	{
 		UIPlatform::_registerViewInstance((__bridge void*)handle, instance);
 	}
-	
+
 	Ref<ViewInstance> UIPlatform::getViewInstance(NSView* handle)
 	{
 		return UIPlatform::_getViewInstance((__bridge void*)handle);
 	}
-	
+
 	void UIPlatform::removeViewInstance(NSView* handle)
 	{
 		UIPlatform::_removeViewInstance((__bridge void*)handle);
 	}
-	
+
 	NSView* UIPlatform::getViewHandle(ViewInstance* _instance)
 	{
 		macOS_ViewInstance* instance = (macOS_ViewInstance*)_instance;
@@ -762,7 +762,7 @@ namespace slib
 			return nil;
 		}
 	}
-	
+
 	NSView* UIPlatform::getViewHandle(View* view)
 	{
 		if (view) {
@@ -774,7 +774,7 @@ namespace slib
 		}
 		return nil;
 	}
-	
+
 	sl_bool UIPlatform::measureNativeWidgetFittingSize(View* view, UISize& _out)
 	{
 		NSView* handle = UIPlatform::getViewHandle(view);
@@ -798,7 +798,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }
 
 using namespace slib;

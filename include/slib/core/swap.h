@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	SLIB_INLINE void Swap(T& a, T& b) noexcept
 	{

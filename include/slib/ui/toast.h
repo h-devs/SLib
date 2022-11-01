@@ -39,39 +39,39 @@ namespace slib
 		Ref<Font> font;
 		Alignment gravity;
 		UIEdgeInsets margin;
-		
+
 	public:
 		Toast();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Toast)
-		
+
 	public:
 		void show();
-		
+
 	public:
 		static void show(const String& text);
-		
+
 		static void show(const String& text, sl_uint32 durationMillis);
-		
+
 		static void show(const String& text, sl_uint32 durationMillis, const Ref<Font>& font);
-		
+
 		static void show(const String& text, sl_uint32 durationMillis, const Ref<Font>& font, const Alignment& gravity);
-		
+
 		static void show(const String& text, sl_uint32 durationMillis, const Ref<Font>& font, const Alignment& gravity, const UIEdgeInsets& margin);
 
 	public:
 		// milliseconds
 		static sl_uint32 getDefaultDuration();
-		
+
 		// milliseconds
 		static void setDefaultDuration(sl_uint32 duration);
-		
+
 		static Ref<Font> getDefaultFont();
-		
+
 		static void setDefaultFont(const Ref<Font>& font);
-		
+
 	};
-	
+
 }
 
 #endif

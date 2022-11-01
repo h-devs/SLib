@@ -48,9 +48,9 @@ namespace slib
 
 		namespace ui_core
 		{
-			
+
 			Ref<UIApp> g_app;
-			
+
 			SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
 				SLIB_JNI_INT_FIELD(left);
 				SLIB_JNI_INT_FIELD(top);
@@ -210,7 +210,7 @@ namespace slib
 
 		namespace mobile_app
 		{
-			
+
 			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 			{
 				jobject context = Android::getCurrentContext();
@@ -353,7 +353,7 @@ namespace slib
 			JUtil::setBadgeNumber.call(sl_null, context, number);
 		}
 	}
-	
+
 	ScreenOrientation MobileApp::getScreenOrientation()
 	{
 		jobject context = Android::getCurrentContext();
@@ -362,7 +362,7 @@ namespace slib
 		}
 		return ScreenOrientation::Portrait;
 	}
-	
+
 	void MobileApp::attemptRotateScreenOrientation()
 	{
 		jobject context = Android::getCurrentContext();

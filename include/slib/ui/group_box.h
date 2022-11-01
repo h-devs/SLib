@@ -33,15 +33,15 @@ namespace slib
 	class SLIB_EXPORT GroupBox : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		GroupBox();
-		
+
 		~GroupBox();
 
 	public:
 		String getLabel();
-		
+
 		void setLabel(const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Color getLabelColor();
@@ -52,7 +52,7 @@ namespace slib
 		void onDrawBorder(Canvas* canvas) override;
 
 		void onUpdateFont(const Ref<Font>& font) override;
-		
+
 	protected:
 		void _updatePaddings(const Ref<Font>& font);
 
@@ -62,7 +62,7 @@ namespace slib
 
 		sl_ui_len m_paddingBorder;
 		sl_ui_len m_paddingTop;
-		
+
 	};
 
 }

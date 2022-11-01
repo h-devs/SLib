@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT SpinLock
 	{
 	public:
@@ -41,15 +41,15 @@ namespace slib
 		sl_bool tryLock() const noexcept;
 
 		void unlock() const noexcept;
-	
+
 	public:
 		SpinLock& operator=(const SpinLock& other) noexcept;
-	
+
 	private:
 		sl_int32 m_flagLock;
 
 	};
-	
+
 	class SLIB_EXPORT SpinLocker
 	{
 	public:
@@ -68,25 +68,25 @@ namespace slib
 		const SpinLock* m_lock;
 
 	};
-	
+
 	class SLIB_EXPORT DualSpinLocker
 	{
 	public:
 		DualSpinLocker(const SpinLock* lock1, const SpinLock* lock2) noexcept;
-		
+
 		~DualSpinLocker();
-		
+
 	public:
 		void unlock() noexcept;
-		
+
 	private:
 		const SpinLock* m_lock1;
 		const SpinLock* m_lock2;
-		
+
 	};
-	
+
 #define SLIB_SPINLOCK_POOL_SIZE 971
-	
+
 	template <int CATEGORY>
 	class SLIB_EXPORT SpinLockPool
 	{
@@ -113,7 +113,7 @@ namespace slib
 
 	extern template class SpinLockPool<-20>;
 	typedef SpinLockPool<-20> SpinLockPoolForList;
-	
+
 	extern template class SpinLockPool<-21>;
 	typedef SpinLockPool<-21> SpinLockPoolForMap;
 
@@ -122,7 +122,7 @@ namespace slib
 
 	template <int CATEGORY>
 	sl_int32 SpinLockPool<CATEGORY>::m_locks[SLIB_SPINLOCK_POOL_SIZE] = { 0 };
-	
+
 }
 
 #define SLIB_STATIC_SPINLOCK(NAME) \

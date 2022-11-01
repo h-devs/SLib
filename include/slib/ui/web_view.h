@@ -30,48 +30,48 @@
 
 namespace slib
 {
-	
+
 	class IWebViewInstance;
-	
+
 	class SLIB_EXPORT WebView : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		WebView();
-		
+
 		~WebView();
 
 	public:
 		void loadURL(const String& url);
-		
+
 		void loadHTML(const String& html, const String& baseURL);
-		
+
 		sl_bool isOfflineContent();
-		
+
 		String getOriginURL();
-		
+
 		String getURL();
-		
+
 		String getPageTitle();
-		
+
 		void goBack();
-		
+
 		void goForward();
 
 		void reload();
-		
+
 		void runJavaScript(const StringParam& script);
-		
-		
+
+
 		String getErrorMessage();
-		
+
 		String getCustomUserAgent();
-		
+
 		void setCustomUserAgent(const String& userAgent);
-		
+
 		void queryUserAgent(const Function<void(WebView*, String)>& callbackQueryCompletion);
-		
+
 
 		float getZoomLevel();
 
@@ -91,47 +91,47 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(WebView, StartLoad, const String& url)
 		SLIB_DECLARE_EVENT_HANDLER(WebView, FinishLoad, const String& url, sl_bool flagFailed)
 		SLIB_DECLARE_EVENT_HANDLER(WebView, MessageFromJavaScript, const String& msg, const String& param)
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 
 		virtual Ptr<IWebViewInstance> getWebViewInstance();
-		
+
 	public:
 		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 	protected:
 		AtomicString m_urlOrigin;
 		AtomicString m_offlineContentHTML;
 		sl_bool m_flagOfflineContent;
 		AtomicString m_errorMessage;
-		
+
 		AtomicString m_customUserAgent;
 		AtomicFunction<void(WebView*, String)> m_callbackQueryUserAgentCompletion;
 
 		float m_zoomLevel;
 
 	};
-	
+
 	class SLIB_EXPORT IWebViewInstance
 	{
 	public:
 		virtual void refreshSize(WebView* view) = 0;
-		
+
 		virtual void load(WebView* view) = 0;
-		
+
 		virtual sl_bool getURL(WebView* view, String& _out) = 0;
-		
+
 		virtual sl_bool getPageTitle(WebView* view, String& _out) = 0;
-		
+
 		virtual void goBack(WebView* view) = 0;
-		
+
 		virtual void goForward(WebView* view) = 0;
 
 		virtual void reload(WebView* view) = 0;
-		
+
 		virtual void runJavaScript(WebView* view, const StringParam& script) = 0;
-		
+
 
 		virtual void setCustomUserAgent(WebView* view, const String& agent);
 
@@ -142,12 +142,12 @@ namespace slib
 		virtual void stopFinding(WebView* view);
 
 	};
-	
+
 	class SLIB_EXPORT DefaultWebViewProvider
 	{
 	public:
 		static void clearCache();
-		
+
 		static void clearCookie();
 
 	};

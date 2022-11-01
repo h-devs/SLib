@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <sl_size N>
 	Json Bytes<N>::toJson() const noexcept
 	{

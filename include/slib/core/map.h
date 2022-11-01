@@ -35,17 +35,17 @@
 
 namespace slib
 {
-	
+
 	template <class KT, class VT, class KEY_COMPARE>
 	class CMap;
-	
+
 	template <class KT, class VT, class KEY_COMPARE>
 	class Map;
-	
+
 	template < class KT, class VT, class KEY_COMPARE = Compare<KT> >
 	using AtomicMap = Atomic< Map<KT, VT, KEY_COMPARE> >;
-	
-	
+
+
 	template <class KT, class VT>
 	class SLIB_EXPORT MapNode
 	{
@@ -57,33 +57,33 @@ namespace slib
 		MapNode* left;
 		MapNode* right;
 		sl_bool flagRed;
-		
+
 		KT key;
 		VT value;
-		
+
 	public:
 		MapNode(const MapNode& other) = delete;
-		
+
 #ifdef SLIB_COMPILER_IS_GCC
 		MapNode(MapNode& other) = delete;
 #endif
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		MapNode(KEY&& _key, VALUE_ARGS&&... value_args) noexcept: key(Forward<KEY>(_key)), value(Forward<VALUE_ARGS>(value_args)...), parent(sl_null), left(sl_null), right(sl_null), flagRed(sl_false) {}
-		
+
 	public:
 		MapNode* getNext() const noexcept
 		{
 			return reinterpret_cast<MapNode<KT, VT>*>(priv::rb_tree::Helper::getNext(const_cast<RedBlackTreeNode*>(reinterpret_cast<RedBlackTreeNode const*>(this))));
 		}
-		
+
 		MapNode* getPrevious() const noexcept
 		{
 			return reinterpret_cast<MapNode<KT, VT>*>(priv::rb_tree::Helper::getPrevious(const_cast<RedBlackTreeNode*>(reinterpret_cast<RedBlackTreeNode const*>(this))));
 		}
-		
+
 	};
-	
+
 	class SLIB_EXPORT CMapBase : public Referable, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
@@ -104,19 +104,19 @@ namespace slib
 		typedef Map<KT, VT, KEY_COMPARE> MAP_TYPE;
 		typedef MapNode<KT, VT> NODE;
 		typedef NodePosition<NODE> POSITION;
-		
+
 	protected:
 		NODE* m_root;
 		sl_size m_count;
 		KEY_COMPARE m_compare;
-		
+
 	public:
 		CMap() noexcept: m_root(sl_null), m_count(0) {}
 
 		CMap(const KEY_COMPARE& compare) noexcept: m_root(sl_null), m_count(0), m_compare(compare) {}
-		
+
 		CMap(KEY_COMPARE&& compare) noexcept: m_root(sl_null), m_count(0), m_compare(Move(compare)) {}
-		
+
 		~CMap() noexcept
 		{
 			NODE* root = m_root;
@@ -126,18 +126,18 @@ namespace slib
 				m_count = 0;
 			}
 		}
-		
+
 	public:
 		CMap(const CMap& other) = delete;
-		
+
 		CMap& operator=(const CMap& other) = delete;
-		
+
 		CMap(CMap&& other) noexcept: m_root(other.m_root), m_count(other.m_count), m_compare(Move(other.m_compare))
 		{
 			other.m_root = sl_null;
 			other.m_count = 0;
 		}
-		
+
 		CMap& operator=(CMap&& other) noexcept
 		{
 			NODE* root = m_root;
@@ -151,7 +151,7 @@ namespace slib
 			other.m_count = 0;
 			return *this;
 		}
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		template <class KEY_COMPARE_ARG>
 		CMap(const std::initializer_list< Pair<KT, VT> >& l, KEY_COMPARE_ARG&& compare) noexcept: m_root(sl_null), m_count(0), m_compare(Forward<KEY_COMPARE_ARG>(compare))
@@ -165,7 +165,7 @@ namespace slib
 
 		CMap(const std::initializer_list< Pair<KT, VT> >& l) noexcept: CMap(l, KEY_COMPARE()) {}
 #endif
-		
+
 	public:
 		sl_size getCount() const noexcept
 		{
@@ -176,70 +176,70 @@ namespace slib
 		{
 			return !(m_count);
 		}
-		
+
 		sl_bool isNotEmpty() const noexcept
 		{
 			return m_count != 0;
 		}
-		
+
 		NODE* getFirstNode() const noexcept
 		{
 			return RedBlackTree::getFirstNode(m_root);
 		}
-		
+
 		NODE* getLastNode() const noexcept
 		{
 			return RedBlackTree::getLastNode(m_root);
 		}
-		
+
 		NODE* find_NoLock(const KT& key) const noexcept
 		{
 			return RedBlackTree::find(m_root, key, m_compare);
 		}
-		
+
 		sl_bool find(const KT& key) const noexcept
 		{
 			ObjectLocker lock(this);
 			return RedBlackTree::find(m_root, key, m_compare) != sl_null;
 		}
-		
+
 		/* unsynchronized function */
 		sl_bool getEqualRange(const KT& key, NODE** pStart = sl_null, NODE** pEnd = sl_null) const noexcept
 		{
 			return RedBlackTree::getEqualRange(m_root, key, m_compare, pStart, pEnd);
 		}
-		
+
 		/* unsynchronized function */
 		void getNearest(const KT& key, NODE** pLessEqual = sl_null, NODE** pGreaterEqual = sl_null) const noexcept
 		{
 			RedBlackTree::getNearest(m_root, key, m_compare, pLessEqual, pGreaterEqual);
 		}
-		
+
 		/* unsynchronized function */
 		NODE* getLowerBound(const KT& key) const noexcept
 		{
 			return RedBlackTree::getLowerBound(m_root, key, m_compare);
 		}
-		
+
 		/* unsynchronized function */
 		NODE* getUpperBound(const KT& key) const noexcept
 		{
 			return RedBlackTree::getUpperBound(m_root, key, m_compare);
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		NODE* findKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			return RedBlackTree::findKeyAndValue(m_root, key, m_compare, value, value_equals);
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool findKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
 			ObjectLocker lock(this);
 			return RedBlackTree::findKeyAndValue(m_root, key, m_compare, value, value_equals) != sl_null;
 		}
-		
+
 		/* unsynchronized function */
 		VT* getItemPointer(const KT& key) const noexcept
 		{
@@ -249,7 +249,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		/* unsynchronized function */
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		VT* getItemPointerByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
@@ -260,7 +260,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		sl_bool get_NoLock(const KT& key, VT* _out = sl_null) const noexcept
 		{
 			NODE* node = RedBlackTree::find(m_root, key, m_compare);
@@ -272,7 +272,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get(const KT& key, VT* _out = sl_null) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -285,7 +285,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool get_NoLock(const KT& key, Nullable<VT>* _out) const noexcept
 		{
 			NODE* node = RedBlackTree::find(m_root, key, m_compare);
@@ -301,7 +301,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		sl_bool get(const KT& key, Nullable<VT>* _out) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -318,7 +318,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		VT getValue_NoLock(const KT& key) const noexcept
 		{
 			NODE* node = RedBlackTree::find(m_root, key, m_compare);
@@ -328,7 +328,7 @@ namespace slib
 				return VT();
 			}
 		}
-		
+
 		VT getValue(const KT& key) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -339,7 +339,7 @@ namespace slib
 				return VT();
 			}
 		}
-		
+
 		VT getValue_NoLock(const KT& key, const VT& def) const noexcept
 		{
 			NODE* node = RedBlackTree::find(m_root, key, m_compare);
@@ -349,7 +349,7 @@ namespace slib
 				return def;
 			}
 		}
-		
+
 		VT getValue(const KT& key, const VT& def) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -360,7 +360,7 @@ namespace slib
 				return def;
 			}
 		}
-		
+
 		List<VT> getValues_NoLock(const KT& key) const noexcept
 		{
 			List<VT> list;
@@ -375,7 +375,7 @@ namespace slib
 			RedBlackTree::getValues(list, m_root, key, m_compare);
 			return list;
 		}
-		
+
 		template <class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		List<VT> getValuesByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -383,7 +383,7 @@ namespace slib
 			RedBlackTree::getValuesByKeyAndValue(list, m_root, key, m_compare, value, value_equals);
 			return list;
 		}
-		
+
 		template <class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		List<VT> getValuesByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) const noexcept
 		{
@@ -405,46 +405,46 @@ namespace slib
 			ObjectLocker lock(this);
 			return RedBlackTree::put(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE>(value), isInsertion) != sl_null;
 		}
-		
+
 		template <class KEY, class VALUE>
 		NODE* replace_NoLock(const KEY& key, VALUE&& value) noexcept
 		{
 			return RedBlackTree::replace(m_root, key, m_compare, Forward<VALUE>(value));
 		}
-		
+
 		template <class KEY, class VALUE>
 		sl_bool replace(const KEY& key, VALUE&& value) noexcept
 		{
 			ObjectLocker lock(this);
 			return RedBlackTree::replace(m_root, key, m_compare, Forward<VALUE>(value)) != sl_null;
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		NODE* add_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
 			return RedBlackTree::add(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool add(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
 			ObjectLocker lock(this);
 			return RedBlackTree::add(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...) != sl_null;
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		MapEmplaceReturn<NODE> emplace_NoLock(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
 			return RedBlackTree::emplace(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class KEY, class... VALUE_ARGS>
 		sl_bool emplace(KEY&& key, VALUE_ARGS&&... value_args) noexcept
 		{
 			ObjectLocker lock(this);
 			return RedBlackTree::emplace(&m_root, m_count, Forward<KEY>(key), m_compare, Forward<VALUE_ARGS>(value_args)...);
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll_NoLock(const MAP& other) noexcept
 		{
@@ -464,7 +464,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		template <class MAP>
 		sl_bool putAll(const MAP& other) noexcept
 		{
@@ -485,7 +485,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		template <class MAP>
 		void replaceAll_NoLock(const MAP& other) noexcept
 		{
@@ -502,7 +502,7 @@ namespace slib
 				node = node->getNext();
 			}
 		}
-		
+
 		template <class MAP>
 		void replaceAll(const MAP& other) noexcept
 		{
@@ -520,7 +520,7 @@ namespace slib
 				node = node->getNext();
 			}
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll_NoLock(const MAP& other) noexcept
 		{
@@ -540,7 +540,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		template <class MAP>
 		sl_bool addAll(const MAP& other) noexcept
 		{
@@ -561,7 +561,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll_NoLock(const MAP& other) noexcept
 		{
@@ -582,7 +582,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll(const MAP& other) noexcept
 		{
@@ -604,19 +604,19 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		/* unsynchronized function */
 		void removeAt(NODE* node) noexcept
 		{
 			RedBlackTree::removeNode(&m_root, m_count, node);
 		}
-		
+
 		/* unsynchronized function */
 		sl_size removeAt(NODE* node, sl_size count) noexcept
 		{
 			return RedBlackTree::removeNodes(&m_root, m_count, node, count);
 		}
-		
+
 		/* unsynchronized function */
 		sl_size removeRange(NODE* first, NODE* last) noexcept
 		{
@@ -633,7 +633,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return RedBlackTree::remove(&m_root, m_count, key, m_compare, outValue);
 		}
-		
+
 		sl_size removeItems_NoLock(const KT& key) noexcept
 		{
 			return RedBlackTree::removeItems(&m_root, m_count, key, m_compare);
@@ -644,14 +644,14 @@ namespace slib
 			ObjectLocker lock(this);
 			return RedBlackTree::removeItems(&m_root, m_count, key, m_compare);
 		}
-		
+
 		List<VT> removeItemsAndReturnValues_NoLock(const KT& key) noexcept
 		{
 			List<VT> list;
 			RedBlackTree::removeItemsAndReturnValues(list, &m_root, m_count, key, m_compare);
 			return list;
 		}
-		
+
 		List<VT> removeItemsAndReturnValues(const KT& key) noexcept
 		{
 			ObjectLocker lock(this);
@@ -659,33 +659,33 @@ namespace slib
 			RedBlackTree::removeItemsAndReturnValues(list, &m_root, m_count, key, m_compare);
 			return list;
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool removeKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
 		{
 			return RedBlackTree::removeKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_bool removeKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
 			return RedBlackTree::removeKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_size removeItemsByKeyAndValue_NoLock(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
 		{
 			return RedBlackTree::removeItemsByKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
 		}
-		
+
 		template < class VALUE, class VALUE_EQUALS = Equals<VT, VALUE> >
 		sl_size removeItemsByKeyAndValue(const KT& key, const VALUE& value, const VALUE_EQUALS& value_equals = VALUE_EQUALS()) noexcept
 		{
 			ObjectLocker lock(this);
 			return RedBlackTree::removeItemsByKeyAndValue(&m_root, m_count, key, m_compare, value, value_equals);
 		}
-		
+
 		sl_size removeAll_NoLock() noexcept
 		{
 			NODE* root = m_root;
@@ -714,7 +714,7 @@ namespace slib
 			}
 			return count;
 		}
-		
+
 		sl_bool copyFrom_NoLock(const CMap& other) noexcept
 		{
 			if (this == &other) {
@@ -742,7 +742,7 @@ namespace slib
 				return sl_true;
 			}
 		}
-		
+
 		sl_bool copyFrom(const CMap& other) noexcept
 		{
 			if (this == &other) {
@@ -751,7 +751,7 @@ namespace slib
 			MultipleObjectsLocker lock(this, &other);
 			return copyFrom_NoLock(other);
 		}
-		
+
 		CMap* duplicate_NoLock() const noexcept
 		{
 			NODE* root = m_root;
@@ -776,7 +776,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return duplicate_NoLock();
 		}
-		
+
 		List<KT> getAllKeys_NoLock() const noexcept
 		{
 			List<KT> ret;
@@ -793,7 +793,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return getAllKeys_NoLock();
 		}
-		
+
 		List<VT> getAllValues_NoLock() const noexcept
 		{
 			List<VT> ret;
@@ -810,7 +810,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return getAllValues_NoLock();
 		}
-		
+
 		List< Pair<KT, VT> > toList_NoLock() const noexcept
 		{
 			List< Pair<KT, VT> > ret;
@@ -854,7 +854,7 @@ namespace slib
 			NODE* node;
 			Mutex* mutex;
 		};
-		
+
 		class EnumHelper
 		{
 		public:
@@ -865,7 +865,7 @@ namespace slib
 		public:
 			NODE* node;
 		};
-		
+
 	};
 
 
@@ -1148,7 +1148,7 @@ namespace slib
 			typename MAP_TYPE::NODE* node;
 			Mutex* mutex;
 		};
-		
+
 		template <class MAP_TYPE>
 		class EnumHelper
 		{
@@ -1161,9 +1161,9 @@ namespace slib
 		public:
 			typename MAP_TYPE::NODE* node;
 		};
-		
+
 	};
-	
+
 	template < class KT, class VT, class KEY_COMPARE = Compare<KT> >
 	class SLIB_EXPORT Map
 	{
@@ -1620,7 +1620,7 @@ namespace slib
 		{
 			return MapBaseHelper::addAll(this, other);
 		}
-		
+
 		template <class MAP>
 		sl_bool emplaceAll_NoLock(const MAP& other) noexcept
 		{

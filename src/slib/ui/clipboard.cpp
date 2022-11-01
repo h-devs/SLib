@@ -24,18 +24,18 @@
 
 namespace slib
 {
-	
+
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_ANDROID) && !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_GTK)
 	sl_bool Clipboard::hasText()
 	{
 		return sl_false;
 	}
-	
+
 	String Clipboard::getText()
 	{
 		return sl_null;
 	}
-	
+
 	void Clipboard::setText(const String& text)
 	{
 	}

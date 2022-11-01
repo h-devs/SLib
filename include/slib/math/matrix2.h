@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT MatrixT<2, 2, T>
 	{
@@ -42,17 +42,17 @@ namespace slib
 			};
 			T m[2][2];
 		};
-	
+
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(MatrixT)
-		
+
 		MatrixT() = default;
 
 		template <class O>
 		SLIB_CONSTEXPR MatrixT(const MatrixT<2, 2, O>& other): m00((T)(other.m00)), m01((T)(other.m01)), m10((T)(other.m10)), m11((T)(other.m11)) {}
-	
+
 		SLIB_CONSTEXPR MatrixT(T _m00, T _m01, T _m10, T _m11): m00(_m00), m01(_m01), m10(_m10), m11(_m11) {}
-		
+
 		template <class O>
 		MatrixT(const O* arr) noexcept
 		{
@@ -73,7 +73,7 @@ namespace slib
 			static SLIB_ALIGN(8) T _zero[4] = { 0 };
 			return *(reinterpret_cast<MatrixT const*>(&_zero));
 		}
-	
+
 		static const MatrixT& one() noexcept
 		{
 			static SLIB_ALIGN(8) T _one[4] = {
@@ -82,7 +82,7 @@ namespace slib
 			};
 			return *(reinterpret_cast<MatrixT const*>(&_one));
 		}
-	
+
 		static const MatrixT& identity() noexcept
 		{
 			static SLIB_ALIGN(8) T _identity[4] = {
@@ -101,7 +101,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<MatrixT<2, 2, T>*>(arr));
 		}
-	
+
 		const VectorT<2, T>& getRow0() const noexcept
 		{
 			return *(reinterpret_cast<VectorT<2, T> const*>(&m00));
@@ -148,7 +148,7 @@ namespace slib
 		{
 			(reinterpret_cast<VectorT<2, T>*>(this))[index] = v;
 		}
-	
+
 		VectorT<2, T> getColumn0() const noexcept
 		{
 			return {m00, m10};
@@ -170,7 +170,7 @@ namespace slib
 			m01 = v.x;
 			m11 = v.y;
 		}
-	
+
 		VectorT<2, T> getColumn(sl_uint32 index) const noexcept
 		{
 			const T* t = &m00 + index;
@@ -183,7 +183,7 @@ namespace slib
 			t[0] = v.x;
 			t[2] = v.y;
 		}
-	
+
 		void add(const MatrixT& other) noexcept
 		{
 			m00 += other.m00; m01 += other.m01;
@@ -300,7 +300,7 @@ namespace slib
 			ret.makeTranspose();
 			return ret;
 		}
-	
+
 		SLIB_CONSTEXPR MatrixT lerp(const MatrixT& target, float factor) const
 		{
 			return {
@@ -334,7 +334,7 @@ namespace slib
 
 	template <class T>
 	using Matrix2T = MatrixT<2, 2, T>;
-	
+
 	typedef Matrix2T<sl_real> Matrix2;
 	typedef Matrix2T<float> Matrix2f;
 	typedef Matrix2T<double> Matrix2lf;

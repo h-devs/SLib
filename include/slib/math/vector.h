@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	template <sl_uint32 N, class T, class FT = T>
 	class SLIB_EXPORT VectorT
 	{
@@ -40,9 +40,9 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(VectorT)
-		
+
 		VectorT() = default;
-	
+
 		template <class O, class FO>
 		VectorT(const VectorT<N, O, FO>& other) noexcept
 		{
@@ -50,7 +50,7 @@ namespace slib
 				m[i] = (T)(other.m[i]);
 			}
 		}
-	
+
 		template <class O>
 		VectorT(const O* arr) noexcept
 		{
@@ -58,7 +58,7 @@ namespace slib
 				m[i] = (T)(arr[i]);
 			}
 		}
-	
+
 	public:
 		static const VectorT& zero() noexcept
 		{
@@ -75,7 +75,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<VectorT*>(arr));
 		}
-	
+
 	public:
 		T dot(const VectorT& other) const noexcept
 		{
@@ -165,7 +165,7 @@ namespace slib
 			}
 			return ret;
 		}
-	
+
 		sl_bool equals(const VectorT& other) const noexcept
 		{
 			for (sl_uint32 i = 0; i < N; i++) {
@@ -175,7 +175,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-	
+
 		sl_bool isAlmostEqual(const VectorT& other) const noexcept
 		{
 			for (sl_uint32 i = 0; i < N; i++) {
@@ -306,7 +306,7 @@ namespace slib
 			}
 			return ret;
 		}
-		
+
 	};
 
 
@@ -315,14 +315,14 @@ namespace slib
 	{
 		return v * f;
 	}
-	
+
 	template <sl_uint32 N, class T, class FT>
 	SLIB_INLINE VectorT<N, T, FT> operator/(T f, const VectorT<N, T, FT>& v) noexcept
 	{
 		return v.devideReverse(f);
 	}
 
-	
+
 	template <sl_uint32 N>
 	using Vector = VectorT<N, sl_real>;
 
@@ -331,7 +331,7 @@ namespace slib
 
 	template <sl_uint32 N>
 	using Vectorlf = VectorT<N, double>;
-	
+
 	template <sl_uint32 N>
 	using Vectori = VectorT<N, sl_int32, float>;
 

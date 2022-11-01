@@ -29,21 +29,21 @@
 
 namespace slib
 {
-	
+
 	class IEditViewInstance;
 
 	class SLIB_EXPORT EditView : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		EditView();
 
 		~EditView();
-		
+
 	public:
 		String getText();
-		
+
 		String getInstanceText();
 
 		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -55,37 +55,37 @@ namespace slib
 		void setChangeEventEnabled(sl_bool flag = sl_true);
 
 		void invalidateText();
-		
+
 		Alignment getGravity();
-		
+
 		void setGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getTextColor();
-		
+
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		String getHintText();
-		
+
 		void setHintText(const String& str, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Alignment getHintGravity();
-		
+
 		void setHintGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getHintTextColor();
-		
+
 		void setHintTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Font> getHintFont();
-		
+
 		void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isReadOnly();
-		
+
 		void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isPassword();
-		
+
 		void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isNumber();
@@ -101,25 +101,25 @@ namespace slib
 		void setUppercase(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		MultiLineMode getMultiLine();
-		
+
 		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
 		UIReturnKeyType getReturnKeyType();
-		
+
 		void setReturnKeyType(UIReturnKeyType type);
-		
+
 		UIKeyboardType getKeyboardType();
-		
+
 		void setKeyboardType(UIKeyboardType type);
 
 		UIAutoCapitalizationType getAutoCaptializationType();
 
 		void setAutoCapitalizationType(UIAutoCapitalizationType type);
-		
+
 		sl_bool isAutoDismissKeyboard();
-		
+
 		void setAutoDismissKeyboard(sl_bool flag);
-		
+
 		void setFocusNextOnReturnKey();
 
 		// `start`: negative means non-selection, `end`: negative means `end of text`, In character unit
@@ -143,14 +143,14 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(EditView, Change, String& value)
-		
+
 		SLIB_DECLARE_EVENT_HANDLER(EditView, PostChange)
-		
+
 		SLIB_DECLARE_EVENT_HANDLER(EditView, ReturnKey)
-		
+
 	protected:
 		void onUpdateLayout() override;
-		
+
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
@@ -159,12 +159,12 @@ namespace slib
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		virtual Ptr<IEditViewInstance> getEditViewInstance();
-		
+
 	public:
 		void dispatchKeyEvent(UIEvent* ev) override;
-		
+
 	protected:
 		sl_bool m_flagInvalidateText : 1;
 		sl_bool m_flagChangeEvent : 1;
@@ -196,53 +196,53 @@ namespace slib
 		sl_uint32 m_nCountDrawCaret;
 
 	};
-	
+
 	class PasswordView : public EditView
 	{
 	public:
 		PasswordView();
-		
+
 	};
-	
+
 	class TextArea : public EditView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		TextArea();
-		
+
 		~TextArea();
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		Ptr<IEditViewInstance> getEditViewInstance() override;
-		
+
 	};
 
 	class SLIB_EXPORT IEditViewInstance
 	{
 	public:
 		virtual sl_bool getText(EditView* view, String& _out) = 0;
-		
+
 		virtual void setText(EditView* view, const String& text) = 0;
 
 		virtual sl_bool appendText(EditView* view, const StringParam& text);
-		
+
 		virtual void setGravity(EditView* view, const Alignment& gravity) = 0;
-		
+
 		virtual void setTextColor(EditView* view, const Color& color) = 0;
-		
+
 		virtual void setHintText(EditView* view, const String& text) = 0;
-		
+
 		virtual void setHintGravity(EditView* view, const Alignment& gravity) = 0;
-		
+
 		virtual void setHintTextColor(EditView* view, const Color& color) = 0;
-		
+
 		virtual void setHintFont(EditView* view, const Ref<Font>& font) = 0;
-		
+
 		virtual void setReadOnly(EditView* view, sl_bool flag) = 0;
-		
+
 		virtual void setPassword(EditView* view, sl_bool flag) = 0;
 
 		virtual void setLowercase(EditView* view, sl_bool flag);
@@ -250,11 +250,11 @@ namespace slib
 		virtual void setUppercase(EditView* view, sl_bool flag);
 
 		virtual void setMultiLine(EditView* view, MultiLineMode mode) = 0;
-		
+
 		virtual void setReturnKeyType(EditView* view, UIReturnKeyType type);
-		
+
 		virtual void setKeyboardType(EditView* view, UIKeyboardType type);
-		
+
 		virtual void setAutoCapitalizationType(EditView* view, UIAutoCapitalizationType type);
 
 		virtual void setSelection(EditView* view, sl_reg start, sl_reg end);

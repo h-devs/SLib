@@ -31,18 +31,18 @@ class ExampleChromiumViewApp : public MobileApp
 	SLIB_APPLICATION(ExampleChromiumViewApp)
 public:
 	ExampleChromiumViewApp();
-	
+
 	void onStart() override;
-	
+
 private:
 	void onClickTest1(View* button);
-	
+
 	void onClickTest2(View* button);
-	
+
 	void onClickTest3(View* button);
-	
+
 private:
 	Ref<ChromiumView> m_webView;
 	Ref<HttpServer> m_http;
-	
+
 };

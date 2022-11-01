@@ -34,10 +34,10 @@ namespace slib
 	{
 		namespace font
 		{
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(SpinLock, g_lockDefaultFont)
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_defaultFamily)
 			sl_real g_defaultSize = 12;
 
@@ -67,7 +67,7 @@ namespace slib
 	using namespace priv::font;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontDesc)
-	
+
 	FontDesc::FontDesc()
 	{
 		size = g_defaultSize;
@@ -305,7 +305,7 @@ namespace slib
 	{
 		return m_desc.flagUnderline;
 	}
-	
+
 	sl_bool Font::isStrikeout()
 	{
 		return m_desc.flagStrikeout;

@@ -33,7 +33,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT PostgreSQL_Param
 	{
 	public:
@@ -42,7 +42,7 @@ namespace slib
 		StringParam user;
 		StringParam password;
 		StringParam db;
-		
+
 		// Output
 		String error;
 
@@ -61,12 +61,12 @@ namespace slib
 		PostgreSQL();
 
 		~PostgreSQL();
-	
+
 	public:
 		typedef PostgreSQL_Param Param;
-		
+
 		static Ref<PostgreSQL> connect(PostgreSQL_Param& param);
-	
+
 	};
 
 }

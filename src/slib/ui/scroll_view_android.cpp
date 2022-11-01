@@ -35,7 +35,7 @@ namespace slib
 	{
 		namespace scroll_view
 		{
-			
+
 			void JNICALL OnScroll(JNIEnv* env, jobject _this, jlong instance, int x, int y);
 
 			SLIB_JNI_BEGIN_CLASS(JScrollView, "slib/android/ui/view/UiScrollView")
@@ -154,7 +154,7 @@ namespace slib
 						JScrollView::setLockScroll.call(sl_null, handle, flagLock);
 					}
 				}
-				
+
 				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
 				{
 					jobject handle = m_handle.get();

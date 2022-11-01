@@ -41,7 +41,7 @@ int main(int argc, const char * argv[])
 			}
 		}
 	}
-	
+
 	String copyrightNotice;
 	Println("Please input the copyright notice ending a line \"end\":");
 	while (1) {

@@ -65,7 +65,7 @@ namespace slib
 
 	namespace priv
 	{
-		
+
 #if defined(SLIB_PLATFORM_IS_IOS)
 		namespace platform
 		{
@@ -73,34 +73,34 @@ namespace slib
 		}
 		using namespace platform;
 #endif
-	
+
 		namespace camera
 		{
-			
+
 			static void LogNSError(const String& error, NSError* err)
 			{
 				LOG_ERROR("%s: [%s]", error, Apple::getStringFromNSString([err localizedDescription]));
 			}
-			
+
 			class GlobalContext
 			{
 			public:
 				dispatch_queue_t dispatch_queue;
-				
+
 			public:
 				GlobalContext()
 				{
 					dispatch_queue = dispatch_queue_create("SLIB_CAMERA", DISPATCH_QUEUE_SERIAL);
 				}
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(GlobalContext, getGlobalContext)
-			
+
 			class CameraImpl : public Camera
 			{
 			public:
 				SLIBCameraCallback* m_callback;
-				
+
 				AVCaptureDevice* m_device;
 				AVCaptureSession *m_session;
 				AVCaptureVideoDataOutput* m_outputVideo;
@@ -109,14 +109,14 @@ namespace slib
 				UIInterfaceOrientation m_orientation;
 				sl_bool m_flagFront;
 #endif
-				
+
 				sl_bool m_flagRunning;
-				
+
 			public:
 				CameraImpl()
 				{
 					m_callback = nil;
-					
+
 					m_device = nil;
 					m_session = nil;
 					m_outputVideo = nil;
@@ -125,20 +125,20 @@ namespace slib
 					m_orientation = UIInterfaceOrientationPortrait;
 					m_flagFront = sl_false;
 #endif
-					
+
 					m_flagRunning = sl_false;
 				}
-				
+
 				~CameraImpl()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<CameraImpl> _create(const CameraParam& param)
 				{
 					SLIBCameraCallback* callback = [[SLIBCameraCallback alloc] init];
-					
+
 					AVCaptureDevice* device = _selectDevice(param.deviceId);
 					if (device == nil) {
 						LOG_ERROR("Camera is not found: %s", param.deviceId);
@@ -157,14 +157,14 @@ namespace slib
 						LOG_NSERROR("Failed to create AVCaptureDeviceInput", error);
 						return sl_null;
 					}
-					
+
 					AVCaptureSession *session = [[AVCaptureSession alloc] init];
 					if (!([session canAddInput:input])) {
 						LOG_ERROR("Can not add input to session");
 						return sl_null;
 					}
 					[session addInput:input];
-					
+
 					AVCaptureVideoDataOutput* outputVideo = [[AVCaptureVideoDataOutput alloc] init];
 					{
 						[outputVideo setAlwaysDiscardsLateVideoFrames:YES];
@@ -177,13 +177,13 @@ namespace slib
 							[settings setObject:@(kCVPixelFormatType_32BGRA) forKey:(NSString*)kCVPixelBufferPixelFormatTypeKey];
 						}
 						[outputVideo setVideoSettings:settings];
-						
+
 						if ([session canAddOutput:outputVideo]) {
 							[session addOutput:outputVideo];
 						}
-						
+
 					}
-					
+
 #if defined(SLIB_PLATFORM_IS_IOS)
 					AVCapturePhotoOutput* outputPhoto = [[AVCapturePhotoOutput alloc] init];
 					{
@@ -193,18 +193,18 @@ namespace slib
 						}
 					}
 #endif
-					
+
 					AVCaptureSessionPreset preset = selectPresetForSession(session, param.preferedFrameWidth, param.preferedFrameHeight);
 					if (preset != nil && [session canSetSessionPreset:preset]) {
 						[session setSessionPreset:preset];
 					}
-					
+
 					Ref<CameraImpl> ret = new CameraImpl();
-					
+
 					if (ret.isNotNull()) {
-						
+
 						callback->m_camera = ret;
-						
+
 						ret->m_callback = callback;
 						ret->m_device = device;
 						ret->m_session = session;
@@ -214,26 +214,26 @@ namespace slib
 						ret->m_orientation = g_screenOrientation;
 						ret->m_flagFront = [device position] == AVCaptureDevicePositionFront;
 #endif
-						
+
 						ret->_init(param);
-						
+
 						if (param.flagAutoStart) {
 							ret->start();
 						}
-						
+
 						return ret;
 					}
-					
+
 					return sl_null;
 				}
-				
+
 				struct CameraPresetInfo
 				{
 					AVCaptureSessionPreset preset;
 					sl_int32 width;
 					sl_int32 height;
 				};
-				
+
 				static AVCaptureSessionPreset selectPresetForSession(AVCaptureSession* session, sl_int32 req_width, sl_int32 req_height)
 				{
 					CameraPresetInfo presets[] = {
@@ -270,7 +270,7 @@ namespace slib
 					}
 					return AVCaptureSessionPresetPhoto;
 				}
-				
+
 				static AVCaptureDevice* _selectDevice(String deviceId)
 				{
 #ifdef SLIB_PLATFORM_IS_IOS_CATALYST
@@ -304,7 +304,7 @@ namespace slib
 #endif
 					return nil;
 				}
-				
+
 				void release() override
 				{
 					ObjectLocker lock(this);
@@ -317,12 +317,12 @@ namespace slib
 					m_session = nil;
 					m_device = nil;
 				}
-				
+
 				sl_bool isOpened() override
 				{
 					return m_session != nil;
 				}
-				
+
 				void start() override
 				{
 					ObjectLocker lock(this);
@@ -333,7 +333,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void stop() override
 				{
 					ObjectLocker lock(this);
@@ -344,12 +344,12 @@ namespace slib
 					}
 					m_flagRunning = sl_false;
 				}
-				
+
 				sl_bool isRunning() override
 				{
 					return m_flagRunning;
 				}
-				
+
 				static void _getFrame(VideoCaptureFrame& frame, CVImageBufferRef imageBuffer)
 				{
 					sl_uint32 width = (sl_uint32)(CVPixelBufferGetWidth(imageBuffer));
@@ -371,7 +371,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 #if defined(SLIB_PLATFORM_IS_IOS)
 				static RotationMode _getScreenRotation()
 				{
@@ -393,7 +393,7 @@ namespace slib
 					return rotation;
 				}
 #endif
-				
+
 				void _onFrame(CMSampleBufferRef sampleBuffer)
 				{
 					CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
@@ -414,18 +414,18 @@ namespace slib
 						CVPixelBufferUnlockBaseAddress(imageBuffer, kCVPixelBufferLock_ReadOnly);
 					}
 				}
-				
+
 #if defined(SLIB_PLATFORM_IS_IOS)
 				void takePicture(const CameraTakePictureParam& param) override
 				{
 					ObjectLocker lock(this);
-					
+
 					if (!isRunning()) {
 						CameraTakePictureResult result;
 						param.onComplete(result);
 						return;
 					}
-					
+
 					AVCaptureSession* session = m_session;
 					AVCapturePhotoOutput* output = m_outputPhoto;
 					if (session == nil || output == nil) {
@@ -433,7 +433,7 @@ namespace slib
 						param.onComplete(result);
 						return;
 					}
-					
+
 					AVCapturePhotoSettings* settings = [[AVCapturePhotoSettings alloc] init];
 					AVCaptureFlashMode flashMode;
 					switch (param.flashMode) {
@@ -450,11 +450,11 @@ namespace slib
 					@try {
 						[settings setFlashMode:flashMode];
 					} @catch (NSException*) {}
-					
+
 					m_queueTakePictureRequests.push(param);
 					[output capturePhotoWithSettings:settings delegate:m_callback];
 				}
-				
+
 				void _onCapturePhoto(NSData* data)
 				{
 					CameraTakePictureParam param;
@@ -474,13 +474,13 @@ namespace slib
 						param.onComplete(result);
 					}
 				}
-				
+
 				void onCaptureVideoFrame(VideoCaptureFrame& frame) override
 				{
 					VideoCapture::onCaptureVideoFrame(frame);
 				}
 #endif
-				
+
 				void setFocusMode(CameraFocusMode mode) override
 				{
 					ObjectLocker lock(this);
@@ -519,7 +519,7 @@ namespace slib
 						[device unlockForConfiguration];
 					}
 				}
-				
+
 				void autoFocus() override
 				{
 					ObjectLocker lock(this);
@@ -533,7 +533,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void autoFocusOnPoint(sl_real x, sl_real y) override
 				{
 					ObjectLocker lock(this);
@@ -550,7 +550,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool isAdjustingFocus() override
 				{
 					ObjectLocker lock(this);
@@ -562,7 +562,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 #if defined(SLIB_PLATFORM_IS_IOS)
 				sl_bool isTorchActive() override
 				{
@@ -575,7 +575,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setTorchMode(CameraTorchMode mode, float level) override
 				{
 					ObjectLocker lock(this);
@@ -609,14 +609,14 @@ namespace slib
 					}
 				}
 #endif
-				
+
 			};
 		}
-		
+
 	}
-	
+
 	using namespace priv::camera;
-	
+
 	Ref<Camera> Camera::create(const CameraParam& param)
 	{
 		return CameraImpl::_create(param);
@@ -646,7 +646,7 @@ namespace slib
 #endif
 		return ret;
 	}
-	
+
 #if defined(SLIB_PLATFORM_IS_IOS)
 	sl_bool Camera::isMobileDeviceTorchActive()
 	{
@@ -664,7 +664,7 @@ namespace slib
 #endif
 		return sl_false;
 	}
-	
+
 	void Camera::setMobileDeviceTorchMode(CameraTorchMode mode, float level)
 	{
 #ifndef SLIB_PLATFORM_IS_IOS_CATALYST
@@ -702,7 +702,7 @@ namespace slib
 #endif
 	}
 #endif
-	
+
 }
 
 using namespace slib;

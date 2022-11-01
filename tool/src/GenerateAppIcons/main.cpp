@@ -20,7 +20,7 @@ int main(int argc, const char * argv[])
 		Println("Output directory is invalid: %s", pathDst);
 		return -1;
 	}
-	
+
 	for (sl_uint32 i = 4; i <= 10; i++) {
 		auto sub = image->stretch(1 << i, 1 << i);
 		if (sub.isNull()) {
@@ -33,7 +33,7 @@ int main(int argc, const char * argv[])
 			return -1;
 		}
 	}
-	
+
 	Println("Success");
 
 	return 0;

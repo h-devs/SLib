@@ -12,8 +12,8 @@ class DragAndDropApp : public UIApp
 	SLIB_APPLICATION(DragAndDropApp)
 public:
 	DragAndDropApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 };

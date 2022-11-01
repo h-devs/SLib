@@ -28,15 +28,15 @@ namespace slib
 		if (element.isNull()) {
 			return sl_false;
 		}
-		
+
 		Ref<SAppMenuResource> menu = new SAppMenuResource;
 		if (menu.isNull()) {
 			_logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
-		
+
 		menu->flagPopup = flagPopup;
-		
+
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
 			_logError(element, g_str_error_resource_menu_name_is_empty);
@@ -46,7 +46,7 @@ namespace slib
 			_logError(element, g_str_error_resource_menu_name_invalid, name);
 			return sl_false;
 		}
-		
+
 		name = getNameInLocalNamespace(localNamespace, name);
 
 		if (m_menus.find(name)) {
@@ -56,7 +56,7 @@ namespace slib
 
 		menu->name = name;
 		menu->localNamespace = localNamespace;
-		
+
 		ListLocker< Ref<XmlElement> > children(element->getChildElements());
 		for (sl_size i = 0; i < children.count; i++) {
 			Ref<XmlElement>& child = children[i];
@@ -71,12 +71,12 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (!(m_menus.put(name, menu))) {
 			_logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
-		
+
 		return sl_true;
 	}
 
@@ -85,13 +85,13 @@ namespace slib
 		if (element.isNull()) {
 			return Ref<SAppMenuResourceItem>::null();
 		}
-		
+
 		Ref<SAppMenuResourceItem> item = new SAppMenuResourceItem;
 		if (item.isNull()) {
 			_logError(element, g_str_error_out_of_memory);
 			return Ref<SAppMenuResourceItem>::null();
 		}
-		
+
 		if (element->getName() == "submenu") {
 			item->type = SAppMenuResourceItem::typeSubmenu;
 		} else if (element->getName() == "item") {
@@ -102,7 +102,7 @@ namespace slib
 			_logError(element, g_str_error_resource_menu_children_tag_invalid, element->getName());
 			return Ref<SAppMenuResourceItem>::null();
 		}
-		
+
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
 			if (item->type != SAppMenuResourceItem::typeSeparator) {
@@ -120,7 +120,7 @@ namespace slib
 			}
 		}
 		item->name = name;
-		
+
 		String strPlatform = element->getAttribute("platform");
 		if (strPlatform.isEmpty()) {
 			item->platformFlags = parentPlatforms;
@@ -149,7 +149,7 @@ namespace slib
 			_logError(element, g_str_error_resource_menu_platform_invalid, strPlatform);
 			return Ref<SAppMenuResourceItem>::null();
 		}
-		
+
 		if (name.isNotEmpty()) {
 			if (item->platformFlags & SAppMenuResourceItem::mac) {
 				if (menu->itemsMac.find(name)) {
@@ -195,7 +195,7 @@ namespace slib
 					return Ref<SAppMenuResourceItem>::null();
 				}
 			}
-			
+
 			String strChecked;
 			strChecked = element->getAttribute("checked");
 			if (!(item->checked.parse(strChecked))) {
@@ -215,7 +215,7 @@ namespace slib
 				return Ref<SAppMenuResourceItem>::null();
 			}
 		}
-		
+
 		if (item->type == SAppMenuResourceItem::typeItem) {
 			String strShortcutKey = element->getAttribute("shortcutKey");
 			if (strShortcutKey.isEmpty()) {
@@ -238,7 +238,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		if (item->type == SAppMenuResourceItem::typeSubmenu) {
 			ListLocker< Ref<XmlElement> > children(element->getChildElements());
 			for (sl_size i = 0; i < children.count; i++) {
@@ -255,14 +255,14 @@ namespace slib
 				}
 			}
 		}
-		
+
 		return item;
 	}
 
 	sl_bool SAppDocument::_generateMenusCpp(const String& targetPath)
 	{
 		_log(g_str_log_generate_cpp_menus_begin);
-		
+
 		StringBuffer sbHeader, sbCpp;
 		sbHeader.add(String::format(
 									"#pragma once%n%n"
@@ -270,7 +270,7 @@ namespace slib
 									"namespace %s%n"
 									"{%n\tnamespace menu%n\t{%n%n"
 									, m_conf.generate_cpp_namespace));
-		
+
 		sbCpp.add(String::format(
 								 "#include \"menus.h\"%n%n"
 								 "#include \"strings.h\"%n"
@@ -278,18 +278,18 @@ namespace slib
 								 "namespace %s%n"
 								 "{%n\tnamespace menu%n\t{%n%n"
 								 , m_conf.generate_cpp_namespace));
-		
-		
+
+
 		for (auto& pair : m_menus) {
 			if (pair.value.isNotNull()) {
-				
+
 				sbHeader.add(String::format("\t\tSLIB_DECLARE_MENU_BEGIN(%s)%n", pair.key));
 				if (pair.value->flagPopup) {
 					sbCpp.add(String::format("\t\tSLIB_DEFINE_MENU_BEGIN(%s, sl_true)%n", pair.key));
 				} else {
 					sbCpp.add(String::format("\t\tSLIB_DEFINE_MENU_BEGIN(%s)%n", pair.key));
 				}
-				
+
 				ListLocker< Ref<SAppMenuResourceItem> > items(pair.value->children);
 				for (sl_size i = 0; i < items.count; i++) {
 					Ref<SAppMenuResourceItem>& item = items[i];
@@ -299,18 +299,18 @@ namespace slib
 						}
 					}
 				}
-				
+
 				static sl_char8 strEndHeader[] = "\t\tSLIB_DECLARE_MENU_END\r\n\r\n";
 				sbHeader.addStatic(strEndHeader, sizeof(strEndHeader)-1);
 				static sl_char8 strEndCpp[] = "\t\tSLIB_DEFINE_MENU_END\r\n\r\n";
 				sbCpp.addStatic(strEndCpp, sizeof(strEndCpp)-1);
 			}
 		}
-		
-		
+
+
 		sbHeader.add("\t}\r\n}\r\n");
 		sbCpp.add("\t}\r\n}\r\n");
-		
+
 		String pathHeader = targetPath + "/menus.h";
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
@@ -319,7 +319,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		String pathCpp = targetPath + "/menus.cpp";
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
@@ -328,7 +328,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		return sl_true;
 	}
 
@@ -366,18 +366,18 @@ namespace slib
 				footer = "#endif\r\n";
 			}
 		}
-		
+
 		if (item->name.isNotEmpty()) {
 			sbHeader.add(header);
 		}
 		sbCpp.add(header);
 		String tab('\t', tabLevel);
-		
+
 		if (item->type == SAppMenuResourceItem::typeSubmenu) {
-			
+
 			sbHeader.add(tab);
 			sbHeader.add(String::format("SLIB_DECLARE_SUBMENU(%s)%n", item->name));
-			
+
 			sbCpp.add(tab);
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String strTitle;
@@ -409,7 +409,7 @@ namespace slib
 					return sl_false;
 				}
 			}
-			
+
 			ListLocker< Ref<SAppMenuResourceItem> > items(item->children);
 			for (sl_size i = 0; i < items.count; i++) {
 				Ref<SAppMenuResourceItem>& childItem = items[i];
@@ -417,9 +417,9 @@ namespace slib
 					_generateMenusCpp_Item(resource, item->name, item->platformFlags, childItem.get(), sbHeader, sbCpp, tabLevel + 1);
 				}
 			}
-			
+
 		} else if (item->type == SAppMenuResourceItem::typeSeparator) {
-			
+
 			if (item->name.isNotEmpty()) {
 				sbHeader.add(tab);
 				sbHeader.add(String::format("SLIB_DECLARE_MENU_SEPARATOR(%s)%n", item->name));
@@ -429,12 +429,12 @@ namespace slib
 				sbCpp.add(tab);
 				sbCpp.add(String::format("SLIB_DEFINE_MENU_SEPARATOR_NONAME(%s)%n", parentName));
 			}
-			
+
 		} else {
-			
+
 			sbHeader.add(tab);
 			sbHeader.add(String::format("SLIB_DECLARE_MENU_ITEM(%s)%n", item->name));
-			
+
 			sbCpp.add(tab);
 			String strShortcutKey = getShortcutKeyDefinitionString(item->shortcutKey, sl_false);
 			String strMacShortcutKey = getShortcutKeyDefinitionString(item->macShortcutKey, sl_true);
@@ -475,11 +475,11 @@ namespace slib
 			sbHeader.add(footer);
 		}
 		sbCpp.add(footer);
-		
+
 		return sl_true;
-		
+
 	}
-	
+
 	sl_bool SAppDocument::_getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element, String& result)
 	{
 		if (!(value.flagDefined)) {
@@ -498,7 +498,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_getMenuValue(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element, Ref<Menu>& result)
 	{
 		if (!(value.flagDefined) || value.flagNull) {
@@ -532,7 +532,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_checkMenuValue(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element)
 	{
 		if (!(value.flagDefined)) {
@@ -543,7 +543,7 @@ namespace slib
 		}
 		return _checkMenuName(localNamespace, value.resourceName, element);
 	}
-	
+
 	sl_bool SAppDocument::_checkMenuName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppMenuResource>* outResource)
 	{
 		if (getItemFromMap(m_menus, localNamespace, name, outName, outResource)) {
@@ -553,7 +553,7 @@ namespace slib
 			return sl_false;
 		}
 	}
-	
+
 	sl_bool SAppDocument::_getMenuValue_Item(SAppMenuResource* resource, const Ref<Menu>& parent, SAppMenuResourceItem* item)
 	{
 #if defined(SLIB_PLATFORM_IS_MACOS)
@@ -569,7 +569,7 @@ namespace slib
 			return sl_true;
 		}
 #endif
-		
+
 		if (item->type == SAppMenuResourceItem::typeSubmenu) {
 
 			Ref<Menu> submenu = Menu::create();
@@ -595,7 +595,7 @@ namespace slib
 					return sl_false;
 				}
 			}
-			
+
 			ListLocker< Ref<SAppMenuResourceItem> > items(item->children);
 			for (sl_size i = 0; i < items.count; i++) {
 				Ref<SAppMenuResourceItem>& childItem = items[i];
@@ -605,15 +605,15 @@ namespace slib
 					}
 				}
 			}
-			
+
 		} else if (item->type == SAppMenuResourceItem::typeSeparator) {
-			
+
 			parent->addSeparator();
-			
+
 		} else {
-			
+
 			KeycodeAndModifiers km = SLIB_IF_PLATFORM_IS_MACOS(item->macShortcutKey, item->shortcutKey);
-			
+
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String title;
 				if (_getStringValue(resource->localNamespace, item->title, item->element, title)) {
@@ -635,9 +635,9 @@ namespace slib
 			}
 
 		}
-		
+
 		return sl_true;
-		
+
 	}
-	
+
 }

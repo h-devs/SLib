@@ -24,23 +24,23 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(TextInput, Object)
-	
+
 	TextInput::TextInput()
 	{
 		m_selectedRange.location = 0;
 	}
-	
+
 	TextInput::~TextInput()
 	{
 	}
-	
+
 	TextRange TextInput::getSelectedRange()
 	{
 		return m_selectedRange;
 	}
-	
+
 	void TextInput::setSelectedRange(const TextRange& range)
 	{
 		if (m_selectedRange != range) {
@@ -48,12 +48,12 @@ namespace slib
 			onChangeSelectedRange();
 		}
 	}
-	
+
 	TextRange TextInput::getMarkedRange()
 	{
 		return m_markedRange;
 	}
-	
+
 	void TextInput::setMarkedRange(const TextRange& range)
 	{
 		if (m_markedRange != range) {
@@ -62,27 +62,27 @@ namespace slib
 			onRedraw();
 		}
 	}
-	
+
 	void TextInput::replaceText(const TextRange& range, const String& text)
 	{
-		
+
 	}
-	
+
 	void TextInput::onChangeMarkedRange()
 	{
 	}
-	
+
 	void TextInput::onChangeSelectedRange()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(UITextBox, TextInput)
-	
+
 	UITextBox::UITextBox()
 	{
 	}
-	
+
 	UITextBox::~UITextBox()
 	{
 	}

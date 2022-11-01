@@ -73,7 +73,7 @@ namespace slib
 					if (!jcanvas) {
 						return;
 					}
-					
+
 					ImageDesc& image = m_image;
 
 					sl_uint32 bw = image.width;

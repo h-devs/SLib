@@ -24,7 +24,7 @@
 #define CHECKHEADER_SLIB_NETWORK_HTTP_COMMON
 
 /****************************************************************************
-	
+
 				Hypertext Transfer Protocol -- HTTP/1.1
 
 	http://ietf.org/rfc/rfc2616.txt
@@ -59,18 +59,18 @@ namespace slib
 {
 
 	class MemoryBuffer;
-	
+
 	typedef HashMap< String, String, HashIgnoreCase<String>, CompareIgnoreCase<String> > HttpHeaderMap;
 	typedef HashMap< String, String, HashIgnoreCase<String>, CompareIgnoreCase<String> > HttpHeaderValueMap;
 
 	enum class HttpStatus
 	{
 		Unknown = 0,
-		
+
 		// Informational
 		Continue = 100,
 		SwitchingProtocols = 101,
-		
+
 		// Success
 		OK = 200,
 		Created = 201,
@@ -91,7 +91,7 @@ namespace slib
 		SwitchProxy = 306,
 		TemporaryRedirect = 307,
 		PermanentRedirect = 308,
-		
+
 		// Client Error
 		BadRequest = 400,
 		Unauthorized = 401,
@@ -111,7 +111,7 @@ namespace slib
 		UnsupportedMediaType = 415,
 		RequestRangeNotSatisfiable = 416,
 		ExpectationFailed = 417,
-		
+
 		// Server Error
 		InternalServerError = 500,
 		NotImplemented = 501,
@@ -119,17 +119,17 @@ namespace slib
 		ServiceUnavailable = 503,
 		GatewayTimeout = 504,
 		HttpVersionNotSupported = 505
-		
+
 	};
-	
+
 	class SLIB_EXPORT HttpStatusHelper
 	{
 	public:
 		static String toString(HttpStatus status);
-		
+
 	};
-	
-	
+
+
 #ifdef DELETE
 #undef DELETE
 #endif
@@ -151,16 +151,16 @@ namespace slib
 		PATCH, // https://tools.ietf.org/html/rfc5789
 		PROPFIND // WebDAV: https://tools.ietf.org/html/rfc4918
 	};
-	
+
 	class SLIB_EXPORT HttpMethodHelper
 	{
 	public:
 		static String toString(HttpMethod method);
-		
+
 		static HttpMethod fromString(const String& method);
-		
+
 	};
-	
+
 	class SLIB_EXPORT HttpHeader
 	{
 	public:
@@ -205,7 +205,7 @@ namespace slib
 	class SLIB_EXPORT HttpHeaderHelper
 	{
 	public:
-		
+
 		/*
 		 Returns
 		 <0: error
@@ -214,14 +214,14 @@ namespace slib
 		 not thread-safe
 		 */
 		static sl_reg parseHeaders(HttpHeaderMap& outMap, const void* headers, sl_size size);
-		
+
 		// not thread-safe
 		static void splitValue(const String& value, List<String>* values, HttpHeaderValueMap* map, HashMap<String, String>* mapCaseSensitive, sl_char8 delimiter=',');
-		
+
 		static List<String> splitValueToList(const String& value, sl_char8 delimiter=',');
-		
+
 		static HttpHeaderValueMap splitValueToMap(const String& value, sl_char8 delimiter=',');
-		
+
 		// value con't contain quots
 		static String makeSafeValue(const String& value, sl_char8 delimiter=',');
 
@@ -253,8 +253,8 @@ namespace slib
 		}
 
 	};
-	
-	
+
+
 	struct SLIB_EXPORT HttpCacheControlRequest
 	{
 		Nullable<sl_int32> max_age;
@@ -265,7 +265,7 @@ namespace slib
 		sl_bool no_transform = sl_false;
 		sl_bool only_if_cached = sl_false;
 	};
-	
+
 	struct SLIB_EXPORT HttpCacheControlResponse
 	{
 		sl_bool must_revalidate = sl_false;
@@ -282,13 +282,13 @@ namespace slib
 		Nullable<sl_int32> stale_while_revalidate;
 		Nullable<sl_int32> stale_if_error;
 	};
-	
+
 	class SLIB_EXPORT HttpCookie
 	{
 	public:
 		String name;
 		String value;
-		
+
 		Time expires;
 		Nullable<sl_int32> max_age;
 		String domain;
@@ -296,244 +296,244 @@ namespace slib
 		sl_bool secure = sl_false;
 		sl_bool http_only = sl_false;
 		String same_site;
-		
+
 	public:
 		HttpCookie();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(HttpCookie)
-		
+
 	public:
 		String toHeaderValue() const;
-		
+
 		void parseHeaderValue(const String& value);
-		
+
 	};
-	
+
 	// not thread-safe
 	class SLIB_EXPORT HttpUploadFile : public Referable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		HttpUploadFile();
-		
+
 		HttpUploadFile(const String& fileName, const HttpHeaderMap& headers, void* data, sl_size size, const Ref<Referable>& ref);
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(HttpUploadFile)
-		
+
 	public:
 		String getFileName();
-		
+
 		void setFileName(const String& fileName);
-		
+
 		const HttpHeaderMap& getHeaders();
-		
+
 		String getHeader(const String& name);
-		
+
 		void setHeader(const String& name, const String& value);
-		
+
 		String getContentType();
-		
+
 		void setContentType(const String& contentType);
-		
+
 		void* getData();
-		
+
 		sl_size getSize();
-		
+
 		Memory getDataMemory();
 
 		void setData(const void* data, sl_size size);
 
 		void setData(const Memory& data);
-		
+
 		sl_bool saveToFile(const String& path);
-		
+
 	public:
 		String m_fileName;
 		HttpHeaderMap m_headers;
 		void* m_data;
 		sl_size m_size;
 		Ref<Referable> m_ref;
-		
+
 	};
-	
-	
+
+
 	class SLIB_EXPORT HttpRequest
 	{
 	public:
 		HttpRequest();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(HttpRequest)
-		
+
 	public:
 		HttpMethod getMethod() const;
-		
+
 		const String& getMethodText() const;
-		
+
 		const String& getMethodTextUppercase() const;
-		
+
 		void setMethod(HttpMethod method);
-		
+
 		void setMethod(const String& method);
-		
+
 		const String& getPath() const;
-		
+
 		void setPath(const String& path);
-		
+
 		const String& getQuery() const;
-		
+
 		void setQuery(const String& query);
-		
+
 		const String& getRequestVersion() const;
-		
+
 		void setRequestVersion(const String& version);
-		
-		
+
+
 		const HttpHeaderMap& getRequestHeaders() const;
-		
+
 		String getRequestHeader(const String& name) const;
-		
+
 		void setRequestHeader(const String& name, const String& value);
-		
+
 		void addRequestHeader(const String& name, const String& value);
-		
+
 		sl_bool containsRequestHeader(const String& name) const;
-		
+
 		void removeRequestHeader(const String& name);
-		
+
 		List<String> getRequestHeaderValues(const String& name) const;
-		
+
 		void setRequestHeaderValues(const String& name, const List<String>& list);
-		
+
 		void addRequestHeaderValues(const String& name, const List<String>& list);
-		
+
 		HttpHeaderValueMap getRequestHeaderValueMap(const String& name) const;
-		
+
 		void setRequestHeaderValueMap(const String& name, const HttpHeaderValueMap& map);
-		
+
 		void addRequestHeaderValueMap(const String& name, const HttpHeaderValueMap& map);
-		
+
 		void clearRequestHeaders();
-		
-		
+
+
 		sl_uint64 getRequestContentLengthHeader() const;
-		
+
 		void setRequestContentLengthHeader(sl_uint64 size);
-		
+
 		String getRequestContentType() const;
-		
+
 		String getRequestContentTypeNoParams() const;
-		
+
 		void setRequestContentType(const String& type);
-				
+
 		sl_bool isRequestMultipartFormData() const;
-		
+
 		String getRequestMultipartFormDataBoundary() const;
-		
+
 		String getRequestContentEncoding() const;
-		
+
 		void setRequestContentEncoding(const String& type);
-		
+
 		String getRequestTransferEncoding() const;
-		
+
 		void setRequestTransferEncoding(const String& type);
-		
+
 		sl_bool isChunkedRequest() const;
-		
+
 		String getHost() const;
-		
+
 		void setHost(const String& type);
-		
+
 		sl_bool isRequestKeepAlive() const;
-		
+
 		void setRequestKeepAlive();
-		
+
 		String getRequestRange() const;
-		
+
 		void setRequestRange(const String& range);
-		
+
 		void setRequestRange(sl_uint64 start, sl_uint64 last);
-		
+
 		void setRequestRangeFrom(sl_uint64 start);
-		
+
 		void setRequestRangeSuffix(sl_uint64 length);
-		
+
 		String getRequestOrigin() const;
-		
+
 		void setRequestOrigin(const String& origin);
-		
+
 		Time getRequestIfModifiedSince() const;
-		
+
 		void setRequestIfModifiedSince(const Time& time);
-		
+
 		HttpCacheControlRequest getRequestCacheControl() const;
-		
+
 		void setRequestCacheControl(const HttpCacheControlRequest&);
-		
+
 		HashMap<String, String> getRequestCookies() const;
-		
+
 		template <class MAP>
 		void setRequestCookies(const MAP& cookies)
 		{
 			String value = HttpHeaderHelper::mergeValueMap(cookies, ';');
 			setRequestHeader(HttpHeader::Cookie, value);
 		}
-		
+
 		String getRequestCookie(const String& cookie) const;
 
 
 		const HashMap<String, String>& getParameters() const;
-		
+
 		HashMap<String, String>& getParameters();
 
 		String getParameter(const String& name) const;
-		
+
 		List<String> getParameterValues(const String& name) const;
-		
+
 		sl_bool containsParameter(const String& name) const;
-		
+
 		const HashMap<String, String>& getQueryParameters() const;
-		
+
 		String getQueryParameter(const String& name) const;
-		
+
 		List<String> getQueryParameterValues(const String& name) const;
-		
+
 		sl_bool containsQueryParameter(const String& name) const;
-		
+
 		const HashMap<String, String>& getPostParameters() const;
-		
+
 		String getPostParameter(const String& name) const;
-		
+
 		List<String> getPostParameterValues(const String& name) const;
-		
+
 		sl_bool containsPostParameter(const String& name) const;
-		
+
 		void applyFormUrlEncoded(const void* data, sl_size size);
-		
+
 		void applyFormUrlEncoded(const String& str);
-		
+
 		void applyQueryToParameters();
-		
+
 		static HashMap<String, String> parseQueryParameters(const void* data, sl_size size);
-		
+
 		static HashMap<String, String> parseQueryParameters(const String& str);
-		
+
 		static HashMap<String, String> parseFormUrlEncoded(const void* data, sl_size size);
-		
+
 		static HashMap<String, String> parseFormUrlEncoded(const String& str);
-		
+
 		const HashMap< String, Ref<HttpUploadFile> >& getUploadFiles() const;
-		
+
 		Ref<HttpUploadFile> getUploadFile(const String& name) const;
-		
+
 		List< Ref<HttpUploadFile> > getUploadFiles(const String& name) const;
-		
+
 		sl_bool containsUploadFile(const String& name) const;
-		
+
 		void applyMultipartFormData(const String& boundary, const Memory& body);
-		
+
 		Memory makeRequestPacket() const;
-		
+
 		/*
 		 Returns
 		 <0: error
@@ -541,7 +541,7 @@ namespace slib
 		 >0: size of the HTTP header section (ending with [CR][LF][CR][LF])
 		 */
 		sl_reg parseRequestPacket(const void* packet, sl_size size);
-		
+
 		template <class MAP>
 		static String buildQuery(const MAP& params)
 		{
@@ -558,7 +558,7 @@ namespace slib
 			}
 			return sb.merge();
 		}
-		
+
 		template <class MAP>
 		static String buildFormUrlEncoded(const MAP& params)
 		{
@@ -575,11 +575,11 @@ namespace slib
 			}
 			return sb.merge();
 		}
-		
+
 		static sl_bool buildMultipartFormData(MemoryBuffer& output, const String& boundary, VariantMap& parameters);
-		
+
 		static Memory buildMultipartFormData(const String& boundary, const VariantMap& parameters);
-		
+
 	protected:
 		HttpMethod m_method;
 		String m_methodText;
@@ -587,75 +587,75 @@ namespace slib
 		String m_path;
 		String m_query;
 		String m_requestVersion;
-		
+
 		HttpHeaderMap m_requestHeaders;
 		HashMap<String, String> m_parameters;
 		HashMap<String, String> m_queryParameters;
 		HashMap<String, String> m_postParameters;
 		HashMap< String, Ref<HttpUploadFile> > m_uploadFiles;
-		
+
 	};
-	
+
 	class SLIB_EXPORT HttpResponse
 	{
 	public:
 		HttpResponse();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(HttpResponse)
-		
+
 	public:
 		HttpStatus getResponseCode() const;
-		
+
 		void setResponseCode(HttpStatus code);
-		
+
 		String getResponseMessage() const;
-		
+
 		void setResponseMessage(const String& message);
-		
+
 		String getResponseVersion() const;
-		
+
 		void setResponseVersion(const String& version);
-		
-		
+
+
 		const HttpHeaderMap& getResponseHeaders() const;
-		
+
 		String getResponseHeader(const String& name) const;
-		
+
 		void setResponseHeader(const String& name, const String& value);
-		
+
 		void addResponseHeader(const String& name, const String& value);
-		
+
 		sl_bool containsResponseHeader(const String& name) const;
-		
+
 		void removeResponseHeader(const String& name);
-		
+
 		List<String> getResponseHeaderValues(const String& name) const;
-		
+
 		void setResponseHeaderValues(const String& name, const List<String>& list);
-		
+
 		void addResponseHeaderValues(const String& name, const List<String>& list);
-		
+
 		HttpHeaderValueMap getResponseHeaderValueMap(const String& name) const;
-		
+
 		void setResponseHeaderValueMap(const String& name, const HttpHeaderValueMap& map);
-		
+
 		void addResponseHeaderValueMap(const String& name, const HttpHeaderValueMap& map);
-		
+
 		void clearResponseHeaders();
-		
-		
+
+
 		sl_bool isResponseKeepAlive() const;
-		
+
 		sl_bool getResponseKeepAliveParameters(sl_uint32& timeout, sl_uint32& max) const;
-		
+
 		void setResponseKeepAlive(sl_uint32 timeout = 0, sl_uint32 max = 0);
-		
+
 		sl_uint64 getResponseContentLengthHeader() const;
-		
+
 		void setResponseContentLengthHeader(sl_uint64 size);
-		
+
 		String getResponseContentType() const;
-		
+
 		void setResponseContentType(const String& type);
 
 		void setResponseContentTypeIfEmpty(const String& type);
@@ -663,41 +663,41 @@ namespace slib
 		void setResponseContentTypeFromFilePath(const String& path, const String& defaultType);
 
 		String getResponseContentEncoding() const;
-		
+
 		void setResponseContentEncoding(const String& type);
-		
+
 		String getResponseTransferEncoding() const;
-		
+
 		void setResponseTransferEncoding(const String& type);
-		
+
 		sl_bool isChunkedResponse() const;
-		
+
 		sl_bool isAttachmentResponse() const;
-		
+
 		String getResponseAttachmentFileName() const;
-		
+
 		void setResponseInline();
-		
+
 		void setResponseAttachment(const String& fileName);
-		
+
 		String getResponseContentRange() const;
-		
+
 		void setResponseContentRange(const String& range);
-		
+
 		void setResponseContentRange(sl_uint64 start, sl_uint64 last, sl_uint64 total);
-		
+
 		void setResponseContentRangeUnknownTotal(sl_uint64 start, sl_uint64 last);
-		
+
 		void setResponseContentRangeUnsatisfied(sl_uint64 total);
-		
+
 		String getResponseAcceptRanges() const;
-		
+
 		void setResponseAcceptRanges(sl_bool flagAcceptRanges);
-		
+
 		void setResponseAcceptRangesIfNotDefined(sl_bool flagAcceptRanges);
-		
+
 		String getResponseAccessControlAllowOrigin() const;
-		
+
 		void setResponseAccessControlAllowOrigin(const String& origin);
 
 		String getResponseAccessControlAllowHeaders() const;
@@ -713,35 +713,35 @@ namespace slib
 		void setResponseAccessControlExposeHeaders(const String& headers);
 
 		Time getResponseLastModified() const;
-		
+
 		void setResponseLastModified(const Time& time);
-		
+
 		HttpCacheControlResponse getResponseCacheControl() const;
-		
+
 		void setResponseCacheControl(const HttpCacheControlResponse&);
 
 		List<HttpCookie> getResponseCookies() const;
-		
+
 		void setResponseCookies(const List<HttpCookie>&);
-		
+
 		HashMap<String, HttpCookie> getResponseCookieMap() const;
-		
+
 		void setResponseCookieMap(const HashMap<String, HttpCookie>&);
-		
+
 		sl_bool getResponseCookie(const String& name, HttpCookie* cookie);
-		
+
 		String getResponseCookie(const String& name);
-		
+
 		void setResponseCookie(const HttpCookie& cookie);
-		
+
 		void addResponseCookie(const HttpCookie& cookie);
-		
+
 		String getResponseRedirectLocation();
-		
+
 		void setResponseRedirectLocation(const String& location);
 
 		void setResponseRedirect(const String& location, HttpStatus status = HttpStatus::Found);
-		
+
 		template <class MAP>
 		void setResponseRedirect(const String& location, const MAP& queryParams, HttpStatus status = HttpStatus::Found)
 		{
@@ -758,9 +758,9 @@ namespace slib
 			setResponseRedirect(url, status);
 		}
 
-		
+
 		Memory makeResponsePacket() const;
-		
+
 		/*
 		 Returns
 		 <0: error
@@ -768,16 +768,16 @@ namespace slib
 		 >0: size of the HTTP header section (ending with [CR][LF][CR][LF])
 		 */
 		sl_reg parseResponsePacket(const void* packet, sl_size size);
-		
+
 	protected:
 		HttpStatus m_responseCode;
 		String m_responseMessage;
 		String m_responseVersion;
-		
+
 		HttpHeaderMap m_responseHeaders;
-		
+
 	};
-	
+
 }
 
 #endif

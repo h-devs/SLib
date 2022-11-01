@@ -35,7 +35,7 @@
 
 namespace slib
 {
-	
+
 	sl_bool Time::_get(TimeComponents& output, sl_bool flagUTC) const noexcept
 	{
 		time_t t = (time_t)(m_time / TIME_SECOND);
@@ -61,7 +61,7 @@ namespace slib
 		output.second = v.tm_sec;
 		return sl_true;
 	}
-	
+
 	sl_int64 Time::_set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_bool flagUTC) noexcept
 	{
 		tm v;
@@ -110,7 +110,7 @@ namespace slib
 		tv.tv_usec = m;
 		return 0 == settimeofday(&tv, sl_null);
 	}
-	
+
 }
 
 #endif

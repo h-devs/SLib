@@ -24,7 +24,7 @@
 
 namespace slib
 {
-	
+
 #if !defined(SLIB_PLATFORM_IS_IOS) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	void AlipaySDK::initialize(const String& appScheme)
 	{
@@ -36,7 +36,7 @@ namespace slib
 		req.onComplete(result);
 	}
 #endif
-	
+
 	void AlipaySDK::pay(const String& order, const Function<void(AlipayPaymentResult&)>& onComplete)
 	{
 		AlipayPaymentRequest req;

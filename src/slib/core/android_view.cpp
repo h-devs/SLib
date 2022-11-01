@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace android_context

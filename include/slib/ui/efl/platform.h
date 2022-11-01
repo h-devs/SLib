@@ -41,7 +41,7 @@ enum class EFL_ViewType
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT UIPlatform
 	{
 		PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS
@@ -63,7 +63,7 @@ namespace slib
 		static Evas_Object* getWindowHandle(Window* window);
 
 		static Evas_Object* getMainWindow();
-		
+
 	};
 
 }

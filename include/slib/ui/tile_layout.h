@@ -31,10 +31,10 @@ namespace slib
 	class SLIB_EXPORT TileLayout : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		TileLayout();
-		
+
 		~TileLayout();
 
 	public:
@@ -49,7 +49,7 @@ namespace slib
 		sl_ui_len getColumnWidth();
 
 		void setColumnWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_ui_len getRowHeight();
 
 		void setRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -58,18 +58,18 @@ namespace slib
 
 		void setCellRatio(float ratio, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-	protected:		
+	protected:
 		void onUpdateLayout() override;
-		
+
 	private:
 		sl_uint32 m_countColumns;
 		sl_uint32 m_countRows;
 		sl_ui_len m_widthColumn;
 		sl_ui_len m_heightRow;
 		float m_ratioCell;
-		
+
 	};
-	
+
 }
 
 #endif

@@ -37,23 +37,23 @@ public class UiPen {
 	public static final int STYLE_DASH = 2;
 	public static final int STYLE_DASHDOT = 3;
 	public static final int STYLE_DASHDOTDOT = 4;
-	
+
 	public int cap;
 	public static final int CAP_FLAT = 0;
 	public static final int CAP_ROUND = 1;
 	public static final int CAP_SQUARE = 2;
-	
+
 	public int join;
 	public static final int JOIN_MITER = 0;
 	public static final int JOIN_ROUND = 1;
 	public static final int JOIN_BEVEL = 2;
-	
+
 	public float width;
 	public int color;
 	public float miterLimit;
-	
+
 	public PathEffect pathEffect;
-	
+
 	public void setStyle(int style)
 	{
 		this.style = style;
@@ -75,11 +75,11 @@ public class UiPen {
 			break;
 		}
 	}
-	
+
 	public void applyPaint(Paint paint, int alpha) {
-		
+
 		paint.setPathEffect(pathEffect);
-		
+
 		switch (cap) {
 		case UiPen.CAP_FLAT:
 			paint.setStrokeCap(Cap.BUTT);
@@ -91,7 +91,7 @@ public class UiPen {
 			paint.setStrokeCap(Cap.SQUARE);
 			break;
 		}
-		
+
 		switch (join) {
 		case UiPen.JOIN_MITER:
 			paint.setStrokeJoin(Join.MITER);
@@ -104,10 +104,10 @@ public class UiPen {
 			paint.setStrokeJoin(Join.BEVEL);
 			break;
 		}
-		
+
 		paint.setStrokeWidth(width);
 		paint.setColor(Graphics.applyAlphaToColor(color, alpha));
 		paint.setStyle(Style.STROKE);
-	
+
 	}
 }

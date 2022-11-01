@@ -34,51 +34,51 @@ namespace slib
 	class RenderDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		RenderDrawable();
-		
+
 		~RenderDrawable();
 
 	public:
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(RenderDrawable, Render, RenderCanvas*, Rectangle const&, DrawParam const&)
-		
+
 	};
-	
+
 	class ShaderDrawable : public RenderDrawable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ShaderDrawable();
-		
+
 		~ShaderDrawable();
-		
+
 	public:
 		static Ref<ShaderDrawable> create(const String& vertexShader, const String& fragmentShader);
-		
+
 		static Ref<ShaderDrawable> createWithFragmentShader(const String& fragmentShader);
-		
+
 	public:
 		String getVertexShader();
-		
+
 		void setVertexShader(const String& shader);
-		
+
 		String getFragmentShader();
-		
+
 		void setFragmentShader(const String& shader);
-		
+
 	protected:
 		void onRender(RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 	public:
 		AtomicString m_vertexShader;
 		AtomicString m_fragmentShader;
 		AtomicRef<RenderProgram2D_Position> m_program;
-		
+
 	};
 
 }

@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	enum class DatabaseDialect
 	{
 		Generic = 0,

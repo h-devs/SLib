@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace db
@@ -69,7 +69,7 @@ namespace slib
 	Database::~Database()
 	{
 	}
-	
+
 	sl_int64 Database::_executeBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		Ref<DatabaseStatement> statement = prepareStatement(sql);
@@ -138,7 +138,7 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	Ref<DatabaseCursor> Database::queryBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		Ref<DatabaseCursor> ret = _queryBy(sql, params, nParams);
@@ -160,7 +160,7 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	List<VariantMap> Database::getRecordsBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
@@ -186,7 +186,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	VariantMap Database::getRecordBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
@@ -208,7 +208,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Variant Database::getValueBy(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		Ref<DatabaseCursor> cursor = queryBy(sql, params, nParams);
@@ -230,22 +230,22 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_bool Database::isLoggingSQL()
 	{
 		return m_flagLogSQL;
 	}
-	
+
 	void Database::setLoggingSQL(sl_bool flag)
 	{
 		m_flagLogSQL = flag;
 	}
-	
+
 	sl_bool Database::isLoggingErrors()
 	{
 		return m_flagLogErrors;
 	}
-	
+
 	void Database::setLoggingErrors(sl_bool flag)
 	{
 		m_flagLogErrors = flag;
@@ -340,7 +340,7 @@ namespace slib
 		}
 		return prepareStatement(sql);
 	}
-	
+
 	Ref<DatabaseStatement> Database::prepareDelete(const DatabaseIdentifier& table, const DatabaseExpression& where)
 	{
 		SqlBuilder builder(m_dialect);
@@ -425,14 +425,14 @@ namespace slib
 			Log(GetDatabaseDialectText(getDialect()), "SQL: %s", sql);
 		}
 	}
-	
+
 	void Database::_logSQL(const StringParam& sql, const Variant* params, sl_uint32 nParams)
 	{
 		if (m_flagLogSQL) {
 			Log(GetDatabaseDialectText(getDialect()), "SQL: %s Params=%s", sql, Variant(List<Variant>(params, nParams)).toJsonString());
 		}
 	}
-	
+
 	void Database::_logError(const StringParam& sql)
 	{
 		if (m_flagLogErrors) {

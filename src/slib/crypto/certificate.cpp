@@ -240,7 +240,7 @@ namespace slib
 			public:
 				Asn1ObjectIdentifier type;
 				Asn1MemoryReader content;
-				
+
 			public:
 				sl_bool load(Asn1MemoryReader& reader)
 				{
@@ -773,7 +773,7 @@ namespace slib
 			public:
 				X509Algorithm algorithm;
 				Asn1String key;
-				
+
 			public:
 				sl_bool load(Asn1MemoryReader& reader)
 				{
@@ -1424,7 +1424,7 @@ namespace slib
 		ecc.set(curve, Move(key));
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PrivateKey)
 
 	PrivateKey::PrivateKey()

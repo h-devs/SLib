@@ -143,7 +143,7 @@ namespace slib
 		virtual sl_bool seek(const void* key, sl_size sizeKey) = 0;
 
 		sl_bool seek(const String& key) override;
-		
+
 		sl_bool seek(const StringParam& key);
 
 		template <class T>

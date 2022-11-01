@@ -28,31 +28,31 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ListViewRefreshParam
 	{
 	public:
 		sl_bool flagScrollToLastItem;
-		
+
 	public:
 		ListViewRefreshParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListViewRefreshParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT ListViewSetAdapterParam : public ListViewRefreshParam
 	{
 	public:
 		Ref<ViewAdapter> adapter;
-		
+
 	public:
 		ListViewSetAdapterParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListViewSetAdapterParam)
-		
+
 	};
-	
+
 	namespace priv
 	{
 		namespace list_view
@@ -60,44 +60,44 @@ namespace slib
 			class ContentView;
 		}
 	}
-	
+
 	class SLIB_EXPORT ListView : public VerticalScrollView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ListView();
-		
+
 		~ListView();
 
 	protected:
 		void init() override;
-		
+
 	public:
 		Ref<ViewAdapter> getAdapter();
-		
+
 		void setAdapter(const Ref<ViewAdapter>& adapter);
-		
+
 		void setAdapter(const ListViewSetAdapterParam& param);
-		
+
 		void refreshItems();
-		
+
 		void refreshItems(const ListViewRefreshParam& param);
 
 	protected:
 		void onScroll(sl_scroll_pos x, sl_scroll_pos y) override;
-		
+
 		void onResize(sl_ui_len x, sl_ui_len y) override;
-		
+
 	protected:
 		void _checkUpdateContent();
-		
+
 		void _initStatus();
-				
+
 		void _initHeights(ViewAdapter* adapter);
-		
+
 		Ref<View> _getView(ViewAdapter* adapter, sl_uint64 index, View* original);
-		
+
 		enum class LayoutCaller
 		{
 			None = 0,
@@ -106,13 +106,13 @@ namespace slib
 			Resize = 3
 		};
 		void _layoutItemViews(LayoutCaller caller, sl_bool flagRefresh);
-		
+
 		sl_ui_len _updateItemLayout(const Ref<View>& itemView, sl_ui_len widthList, sl_ui_len heightList);
-		
+
 	protected:
 		AtomicRef<ViewAdapter> m_adapter;
 		Ref<ViewAdapter> m_adapterCurrent;
-		
+
 		Ref<priv::list_view::ContentView> m_contentView;
 		sl_bool m_flagResetAdapter;
 		sl_bool m_flagResetingAdapter;
@@ -136,11 +136,11 @@ namespace slib
 		double m_averageMidItemHeight;
 		sl_ui_len m_heightTotalItems;
 		sl_ui_pos m_lastScrollY;
-		
+
 		volatile sl_int32 m_lockCountLayouting;
-		
+
 		friend class priv::list_view::ContentView;
-		
+
 	};
 
 }

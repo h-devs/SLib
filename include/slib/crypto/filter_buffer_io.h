@@ -38,7 +38,7 @@ namespace slib
 		FilterBufferIO();
 
 		~FilterBufferIO();
-		
+
 	public:
 		DataFilterResult pass(IDataFilter* filter, const void* input, sl_size size, sl_size& sizeInputPassed, IWriter* writer);
 

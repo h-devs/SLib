@@ -44,14 +44,14 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TimeComponents)
-	
+
 	TimeComponents::TimeComponents() noexcept
 	{
 		Base::zeroMemory(this, sizeof(TimeComponents));
 	}
-	
+
 	void TimeComponents::clearTime() noexcept
 	{
 		hour = 0;
@@ -83,97 +83,97 @@ namespace slib
 		ret.setNow();
 		return ret;
 	}
-	
+
 	Time Time::withMicroseconds(sl_int64 s) noexcept
 	{
 		return s;
 	}
-	
+
 	Time Time::withMicrosecondsf(double s) noexcept
 	{
 		return (sl_int64)(s);
 	}
-	
+
 	Time Time::withMilliseconds(sl_int64 s) noexcept
 	{
 		return s * TIME_MILLIS;
 	}
-	
+
 	Time Time::withMillisecondsf(double s) noexcept
 	{
 		return (sl_int64)(s * TIME_MILLISF);
 	}
-	
+
 	Time Time::withSeconds(sl_int64 s) noexcept
 	{
 		return s * TIME_SECOND;
 	}
-	
+
 	Time Time::withSecondsf(double s) noexcept
 	{
 		return (sl_int64)(s * TIME_SECONDF);
 	}
-	
+
 	Time Time::withMinutes(sl_int64 minutes) noexcept
 	{
 		return minutes * TIME_MINUTE;
 	}
-	
+
 	Time Time::withMinutesf(double minutes) noexcept
 	{
 		return (sl_int64)(minutes * TIME_MINUTEF);
 	}
-	
+
 	Time Time::withHours(sl_int64 hours) noexcept
 	{
 		return hours * TIME_HOUR;
 	}
-	
+
 	Time Time::withHoursf(double hours) noexcept
 	{
 		return (sl_int64)(hours * TIME_HOURF);
 	}
-	
+
 	Time Time::withDays(sl_int64 days) noexcept
 	{
 		return days * TIME_DAY;
 	}
-	
+
 	Time Time::withDaysf(double days) noexcept
 	{
 		return (sl_int64)(days * TIME_DAYF);
 	}
-	
+
 	Time Time::withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds) noexcept
 	{
 		return hours * TIME_HOUR + minutes * TIME_MINUTE + seconds * TIME_SECOND;
 	}
-	
+
 	Time Time::withTimef(double hours, double minutes, double seconds) noexcept
 	{
 		return (sl_int64)(hours * TIME_HOURF + minutes * TIME_MINUTEF + seconds * TIME_SECONDF);
 	}
-	
+
 	Time Time::withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds, sl_int64 milliseconds) noexcept
 	{
 		return hours * TIME_HOUR + minutes * TIME_MINUTE + seconds * TIME_SECOND + milliseconds * TIME_MILLIS;
 	}
-	
+
 	Time Time::withTimef(double hours, double minutes, double seconds, double milliseconds) noexcept
 	{
 		return (sl_int64)(hours * TIME_HOURF + minutes * TIME_MINUTEF + seconds * TIME_SECONDF + milliseconds * TIME_MILLISF);
 	}
-	
+
 	Time Time::withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds, sl_int64 milliseconds, sl_int64 microseconds) noexcept
 	{
 		return hours * TIME_HOUR + minutes * TIME_MINUTE + seconds * TIME_SECOND + milliseconds * TIME_MILLIS + microseconds;
 	}
-	
+
 	Time Time::withTimef(double hours, double minutes, double seconds, double milliseconds, double microseconds) noexcept
 	{
 		return (sl_int64)(hours * TIME_HOURF + minutes * TIME_MINUTEF + seconds * TIME_SECONDF + milliseconds * TIME_MILLISF + microseconds);
 	}
-	
+
 	Time& Time::setInt(sl_int64 time) noexcept
 	{
 		m_time = time;
@@ -193,13 +193,13 @@ namespace slib
 		}
 		return n;
 	}
-	
+
 	Time& Time::setUnixTime(sl_int64 time) noexcept
 	{
 		m_time = time * TIME_SECOND;
 		return *this;
 	}
-	
+
 	Time Time::fromUnixTime(sl_int64 time) noexcept
 	{
 		return time * TIME_SECOND;
@@ -215,7 +215,7 @@ namespace slib
 		m_time = (sl_int64)(time * TIME_SECOND);
 		return *this;
 	}
-	
+
 	Time Time::fromUnixTimef(double time) noexcept
 	{
 		return (sl_int64)(time * TIME_SECOND);
@@ -266,7 +266,7 @@ namespace slib
 		_setNow();
 		return *this;
 	}
-	
+
 	sl_bool Time::setSystemTime(const Time& time) noexcept
 	{
 		return time._setToSystem();
@@ -296,12 +296,12 @@ namespace slib
 		output.milliseconds = (sl_uint16)(t / TIME_MILLIS);
 		output.microseconds = (sl_uint16)(t % TIME_MILLIS);
 	}
-	
+
 	void Time::getUTC(TimeComponents& output) const noexcept
 	{
 		get(output, TimeZone::UTC());
 	}
-	
+
 	Time& Time::set(const TimeComponents& comps, const TimeZone& zone) noexcept
 	{
 		set(comps.year, comps.month, comps.day, comps.hour, comps.minute, comps.second, comps.milliseconds, comps.microseconds, zone);
@@ -313,7 +313,7 @@ namespace slib
 		set(comps, TimeZone::UTC());
 		return *this;
 	}
-	
+
 	Time& Time::set(sl_int32 year, sl_int32 month, sl_int32 day, sl_int32 hour, sl_int32 minute, sl_int32 second, sl_int32 milliseconds, sl_int32 microseconds, const TimeZone& zone) noexcept
 	{
 		if (year == 0 && month == 0 && day == 0) {
@@ -344,7 +344,7 @@ namespace slib
 		set(year, month, day, hour, minute, second, milliseconds, microseconds, TimeZone::UTC());
 		return *this;
 	}
-	
+
 	Time& Time::setDate(sl_int32 year, sl_int32 month, sl_int32 day, const TimeZone& zone) noexcept
 	{
 		TimeComponents comps;
@@ -514,21 +514,21 @@ namespace slib
 		get(comps, zone);
 		return priv::time::GetHour12(comps.hour);
 	}
-	
+
 	sl_bool Time::isAM(const TimeZone& zone) const noexcept
 	{
 		TimeComponents comps;
 		get(comps, zone);
 		return comps.hour < 12;
 	}
-	
+
 	sl_bool Time::isPM(const TimeZone& zone) const noexcept
 	{
 		TimeComponents comps;
 		get(comps, zone);
 		return comps.hour >= 12;
 	}
-	
+
 	String Time::getAM_PM(const TimeZone& zone, const Locale& locale) const noexcept
 	{
 		return format(TimeFormat::AM_PM, zone, locale);
@@ -860,7 +860,7 @@ namespace slib
 		m_time = (sl_int64)(micros);
 		return *this;
 	}
-	
+
 	sl_int64 Time::getLocalTimeOffset() const noexcept
 	{
 		Time o = m_time / TIME_SECOND * TIME_SECOND;
@@ -893,19 +893,19 @@ namespace slib
 	{
 		return ((getMonth(zone) - 1) / 3) + 1;
 	}
-	
+
 	Time Time::getDateOnly(const TimeZone& zone) const noexcept
 	{
 		return *this - getTimeOnly(zone);
 	}
-	
+
 	Time Time::getTimeOnly(const TimeZone& zone) const noexcept
 	{
 		TimeComponents comps;
 		get(comps, zone);
 		return comps.hour * TIME_HOUR + comps.minute * TIME_MINUTE + comps.second * TIME_SECOND + comps.milliseconds * TIME_MILLIS + comps.microseconds;
 	}
-	
+
 	String Time::getWeekdayText(sl_int32 weekday, TimeTextType type, const Locale& _locale) noexcept
 	{
 		Locale locale = _locale;
@@ -1141,7 +1141,7 @@ namespace slib
 				SLIB_RETURN_STRING("AM");
 		}
 	}
-	
+
 	String Time::getPM_Text(const Locale& _locale) noexcept
 	{
 		Locale locale = _locale;
@@ -1159,7 +1159,7 @@ namespace slib
 				SLIB_RETURN_STRING("PM");
 		}
 	}
-	
+
 	String Time::getMonthText(sl_int32 month, TimeTextType type) noexcept
 	{
 		switch (type) {
@@ -1199,26 +1199,26 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String Time::getMonthShort(const TimeZone& zone) const noexcept
 	{
 		sl_int32 month = getMonth(zone);
 		return getMonthText(month, TimeTextType::Short);
 	}
-	
+
 	String Time::getMonthLong(const TimeZone& zone) const noexcept
 	{
 		sl_int32 month = getMonth(zone);
 		return getMonthText(month, TimeTextType::Long);
 	}
-	
+
 	String Time::toHttpDate() const noexcept
 	{
 		TimeComponents d;
 		getUTC(d);
 		return String::format("%s, %02d %s %04d %02d:%02d:%02d GMT", getWeekdayText(d.dayOfWeek, TimeTextType::Short, Locale::en), d.day, getMonthText(d.month, TimeTextType::Short), d.year, d.hour, d.minute, d.second);
 	}
-	
+
 	sl_reg Time::parseHttpDate(Time* _output, const sl_char8* buf, sl_size posBegin, sl_size posEnd) noexcept
 	{
 		static char const* weekdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -1324,7 +1324,7 @@ namespace slib
 		}
 		return posBegin + 29;
 	}
-	
+
 	sl_bool Time::parseHttpDate(const StringParam& _date) noexcept
 	{
 		StringData date(_date);
@@ -1393,12 +1393,12 @@ namespace slib
 		s[23] = 'Z';
 		return String(s, 24);
 	}
-	
+
 	String Time::getDateString(const TimeZone& zone) const noexcept
 	{
 		return getDateString('-', zone);
 	}
-	
+
 	String Time::getDateString(sl_char8 delimiter, const TimeZone& zone) const noexcept
 	{
 		TimeComponents d;
@@ -1416,7 +1416,7 @@ namespace slib
 		s[9] = (char)('0' + (d.day % 10));
 		return String(s, 10);
 	}
-	
+
 	String Time::getTimeString(const TimeZone& zone) const noexcept
 	{
 		TimeComponents d;
@@ -1432,7 +1432,7 @@ namespace slib
 		s[7] = (char)('0' + (d.second % 10));
 		return String(s, 8);
 	}
-	
+
 	String Time::getPeriodString(const Time& minUnit, const Time& maxUnit, const Locale& _locale) const noexcept
 	{
 		Locale locale = _locale;
@@ -2217,7 +2217,7 @@ namespace slib
 	SLIB_DEFINE_CLASS_PARSE2_MEMBERS(Time, const TimeZone&, zone, priv::time::Parse)
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TimeCounter)
-	
+
 	TimeCounter::TimeCounter() noexcept
 	{
 		reset();
@@ -2248,7 +2248,7 @@ namespace slib
 		m_timeStart = current;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TimeKeeper)
 
 	TimeKeeper::TimeKeeper() noexcept: m_flagStarted(sl_false), m_flagRunning(sl_false), m_timeLast(0), m_timeElapsed(0)

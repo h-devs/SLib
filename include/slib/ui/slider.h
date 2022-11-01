@@ -27,98 +27,98 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Slider : public ProgressBar
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		Slider(LayoutOrientation orientation = LayoutOrientation::Horizontal);
-		
+
 		~Slider();
 
 	public:
 		Ref<Drawable> getThumbDrawable();
-		
+
 		void setThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getPressedThumbDrawable();
-		
+
 		void setPressedThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setPressedThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getHoverThumbDrawable();
-		
+
 		void setHoverThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setHoverThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
-		
+
+
 		const UISize& getThumbSize();
-		
+
 		virtual void setThumbSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setThumbSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setThumbSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_len getThumbWidth();
-		
+
 		void setThumbWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_len getThumbHeight();
-		
+
 		void setThumbHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(Slider, Change, float value)
 		SLIB_DECLARE_EVENT_HANDLER(Slider, ChangeSecondary, float value)
-		
+
 	protected:
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onMouseEvent(UIEvent* ev) override;
-		
+
 		void onMouseWheelEvent(UIEvent* ev) override;
-		
+
 		void onKeyEvent(UIEvent* event) override;
-		
+
 	protected:
 		void drawTrack(Canvas* canvas, const Ref<Drawable>& track, const Rectangle& rectDst);
-		
+
 		void drawThumb(Canvas* canvas, const Ref<Drawable>& thumb, const Rectangle& rectDst);
-		
+
 		sl_ui_pos getThumbLength();
-		
+
 		sl_ui_pos getStartPadding();
-		
+
 		sl_ui_pos getEndPadding();
-		
+
 		sl_ui_pos getMinimumPadding();
-		
+
 		sl_ui_pos getPositionFromValue(float value);
-		
+
 		float getValueFromPosition(sl_ui_pos pos);
-		
+
 		void getRegions(UIRect& outTrack, UIRect& outProgress, UIRect& outSecondaryProgress, UIRect& outThumb, UIRect& outSecondaryThumb);
-		
+
 		void setHoverThumb(int index);
-		
+
 		void changeValue(float value, sl_bool flagChange2);
-		
+
 	protected:
 		AtomicRef<Drawable> m_thumb;
 		AtomicRef<Drawable> m_pressedThumb;
 		AtomicRef<Drawable> m_hoverThumb;
-		
+
 		UISize m_thumbSize;
-		
+
 		int m_indexHoverThumb;
 		int m_indexPressedThumb;
-		
+
 	};
 
 }

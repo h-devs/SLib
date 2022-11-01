@@ -39,7 +39,7 @@ namespace slib
 		Closed = 2,
 		Unknown = 100
 	};
-	
+
 	class SLIB_EXPORT AsyncStreamResult
 	{
 	public:
@@ -69,7 +69,7 @@ namespace slib
 		}
 
 	};
-	
+
 	class SLIB_EXPORT AsyncStreamRequest : public Referable
 	{
 		SLIB_DECLARE_OBJECT
@@ -85,9 +85,9 @@ namespace slib
 
 	public:
 		AsyncStreamRequest(sl_bool flagRead, const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
-		
+
 		~AsyncStreamRequest();
-	
+
 	public:
 		static Ref<AsyncStreamRequest> createRead(void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
@@ -97,7 +97,7 @@ namespace slib
 		void runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode resultCode);
 
 	};
-	
+
 	class SLIB_EXPORT AsyncStreamInstance : public AsyncIoInstance
 	{
 		SLIB_DECLARE_OBJECT
@@ -114,7 +114,7 @@ namespace slib
 		sl_bool popReadRequest(Ref<AsyncStreamRequest>& request);
 
 		sl_size getReadRequestCount();
-	
+
 		sl_bool popWriteRequest(Ref<AsyncStreamRequest>& request);
 
 		sl_size getWriteRequestCount();
@@ -140,7 +140,7 @@ namespace slib
 		LinkedQueue< Ref<AsyncStreamRequest> > m_requestsWrite;
 
 	};
-	
+
 	class SLIB_EXPORT AsyncStream : public AsyncIoObject
 	{
 		SLIB_DECLARE_OBJECT
@@ -154,7 +154,7 @@ namespace slib
 		static Ref<AsyncStream> create(AsyncStreamInstance* instance, AsyncIoMode mode, const Ref<AsyncIoLoop>& loop);
 
 		static Ref<AsyncStream> create(AsyncStreamInstance* instance, AsyncIoMode mode);
-	
+
 	public:
 		virtual void close() = 0;
 
@@ -181,11 +181,11 @@ namespace slib
 		virtual sl_uint64 getSize();
 
 	};
-	
+
 	class SLIB_EXPORT AsyncStreamBase : public AsyncStream
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		AsyncStreamBase();
 
@@ -195,7 +195,7 @@ namespace slib
 		void close() override;
 
 		sl_bool isOpened() override;
-	
+
 		sl_bool requestIo(const Ref<AsyncStreamRequest>& req) override;
 
 		sl_bool addTask(const Function<void()>& callback) override;
@@ -204,11 +204,11 @@ namespace slib
 		Ref<AsyncStreamInstance> getIoInstance();
 
 		sl_bool _initialize(AsyncStreamInstance* instance, AsyncIoMode mode, const Ref<AsyncIoLoop>& loop);
-	
+
 		friend class AsyncStream;
 
 	};
-	
+
 }
 
 #endif

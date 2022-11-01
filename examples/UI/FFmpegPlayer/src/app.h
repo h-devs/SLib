@@ -31,7 +31,7 @@ class FFmpegPlayerApp : public MobileApp
 	SLIB_APPLICATION(FFmpegPlayerApp)
 public:
 	FFmpegPlayerApp();
-	
+
 	void onStart() override;
-	
+
 };

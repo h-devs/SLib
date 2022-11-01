@@ -62,7 +62,7 @@ namespace slib
 	{
 		namespace list_control
 		{
-			
+
 			static NSTextAlignment TranslateAlignment(Alignment _align)
 			{
 				Alignment align = _align & Alignment::HorizontalMask;
@@ -74,7 +74,7 @@ namespace slib
 					return NSCenterTextAlignment;
 				}
 			}
-			
+
 			class ListControlHelper : public ListControl
 			{
 			public:
@@ -103,7 +103,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void copyColumns(SLIBListControlHandle* tv)
 				{
 					ObjectLocker lock(this);
@@ -122,7 +122,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void applyFont(SLIBListControlHandle* tv, const Ref<Font>& font)
 				{
 					if (font.isNull()) {
@@ -143,19 +143,19 @@ namespace slib
 					}
 					[tv->table setRowHeight:([hFont pointSize] - [hFont descender])];
 				}
-				
+
 			};
 
 			class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBListControlHandle* getHandle()
 				{
 					return (SLIBListControlHandle*)m_handle;
 				}
-				
+
 				Ref<ListControlHelper> getHelper()
 				{
 					return CastRef<ListControlHelper>(getView());
@@ -174,7 +174,7 @@ namespace slib
 					view->applyFont(handle, view->getFont());
 					[handle->table reloadData];
 				}
-				
+
 				void refreshColumnCount(ListControl* view) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -183,7 +183,7 @@ namespace slib
 						[handle->table reloadData];
 					}
 				}
-				
+
 				void refreshRowCount(ListControl* view) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -191,7 +191,7 @@ namespace slib
 						[handle->table reloadData];
 					}
 				}
-				
+
 				void setHeaderText(ListControl* view, sl_uint32 iCol, const String& text) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -202,7 +202,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setColumnWidth(ListControl* view, sl_uint32 iCol, sl_ui_len width) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -213,7 +213,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setHeaderAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -224,7 +224,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setColumnAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -235,7 +235,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool getSelectedRow(ListControl* view, sl_int32& _out) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -245,7 +245,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setFont(View* view, const Ref<Font>& font) override
 				{
 					SLIBListControlHandle* handle = getHandle();
@@ -254,7 +254,7 @@ namespace slib
 						[handle->table reloadData];
 					}
 				}
-				
+
 				void onMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
 				{
 					Ref<ListControlHelper> helper = getHelper();
@@ -279,7 +279,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void onRightMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
 				{
 					Ref<ListControlHelper> helper = getHelper();
@@ -294,11 +294,11 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(ListControlInstance, macOS_ViewInstance)
-			
+
 		}
 	}
 
@@ -308,7 +308,7 @@ namespace slib
 	{
 		return macOS_ViewInstance::create<ListControlInstance, SLIBListControlHandle>(this, parent);
 	}
-	
+
 	Ptr<IListControlInstance> ListControl::getListControlInstance()
 	{
 		return CastRef<ListControlInstance>(getViewInstance());

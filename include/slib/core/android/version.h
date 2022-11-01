@@ -25,7 +25,7 @@
 
 namespace slib
 {
-	
+
 	enum class AndroidSdkVersion
 	{
 		CUR_DEVELOPMENT = 0,
@@ -60,7 +60,7 @@ namespace slib
         P = 28,
         Q = 29
 	};
-	
+
 }
 
 #endif

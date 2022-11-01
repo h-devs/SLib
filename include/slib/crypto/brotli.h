@@ -29,14 +29,14 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT BrotliCompressor : public ICompressor
 	{
 	public:
 		BrotliCompressor();
 
 		~BrotliCompressor();
-	
+
 	public:
 		sl_bool isStarted();
 
@@ -51,7 +51,7 @@ namespace slib
 	protected:
 		void* m_stream;
 	};
-	
+
 	class SLIB_EXPORT BrotliDecompressor : public IDecompressor
 	{
 	public:
@@ -80,7 +80,7 @@ namespace slib
 		static Memory compress(const void* data, sl_size size, sl_int32 level = 11, sl_bool flagText = sl_false);
 
 		static Memory decompress(const void* data, sl_size size);
-	
+
 	};
 
 }

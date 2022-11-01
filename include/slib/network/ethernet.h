@@ -50,13 +50,13 @@ namespace slib
 		{
 			HeaderSize = 14
 		};
-		
+
 	public:
 		MacAddress getDestinationAddress()
 		{
 			return {_macDestination[0], _macDestination[1], _macDestination[2], _macDestination[3], _macDestination[4], _macDestination[5]};
 		}
-		
+
 		void setDestinationAddress(const MacAddress& address)
 		{
 			_macDestination[0] = address.m[0];
@@ -66,13 +66,13 @@ namespace slib
 			_macDestination[4] = address.m[4];
 			_macDestination[5] = address.m[5];
 		}
-		
-		
+
+
 		MacAddress getSourceAddress()
 		{
 			return {_macSource[0], _macSource[1], _macSource[2], _macSource[3], _macSource[4], _macSource[5]};
 		}
-		
+
 		void setSourceAddress(const MacAddress& address)
 		{
 			_macSource[0] = address.m[0];
@@ -82,58 +82,58 @@ namespace slib
 			_macSource[4] = address.m[4];
 			_macSource[5] = address.m[5];
 		}
-		
-		
+
+
 		NetworkLinkProtocol getProtocol() const
 		{
 			return (NetworkLinkProtocol)(((sl_uint16)(_etherType[0]) << 8) | ((sl_uint16)(_etherType[1])));
 		}
-		
+
 		void setProtocol(NetworkLinkProtocol _type)
 		{
 			sl_uint32 type = (sl_uint32)_type;
 			_etherType[0] = (sl_uint8)(type >> 8);
 			_etherType[1] = (sl_uint8)(type);
 		}
-		
-		
+
+
 		const sl_uint8* getContent() const
 		{
 			return ((const sl_uint8*)this) + HeaderSize;
 		}
-		
+
 		sl_uint8* getContent()
 		{
 			return ((sl_uint8*)this) + HeaderSize;
 		}
-		
+
 	private:
 		sl_uint8 _macDestination[6];
 		sl_uint8 _macSource[6];
 		sl_uint8 _etherType[2];
-		
+
 	};
-	
-	
+
+
 	class SLIB_EXPORT EthernetMacTable : public Object
 	{
 	public:
 		EthernetMacTable();
-		
+
 		~EthernetMacTable();
-		
+
 	public:
 		void add(const IPv4Address& ip, const MacAddress& mac);
-		
+
 		sl_bool getMacAddress(const IPv4Address& ip, MacAddress* _out = sl_null);
-		
+
 		void parseEthernetFrame(const void* frame, sl_uint32 sizeFrame, sl_bool flagUseSource, sl_bool flagUseDestination);
-		
+
 	protected:
 		CHashMap<IPv4Address, MacAddress> m_table;
-		
+
 	};
-	
+
 }
 
 #endif

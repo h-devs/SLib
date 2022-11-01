@@ -38,7 +38,7 @@ namespace slib
 
 	class Screen;
 	class PushNotificationMessage;
-	
+
 	class SLIB_EXPORT UIPlatform
 	{
 		PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS
@@ -51,7 +51,7 @@ namespace slib
 		static void removeViewInstance(UIView* handle);
 		static UIView* getViewHandle(ViewInstance* instance);
 		static UIView* getViewHandle(View* view);
-		
+
 		static Ref<WindowInstance> createWindowInstance(UIView* handle);
 		static void registerWindowInstance(UIView* handle, WindowInstance* instance);
 		static Ref<WindowInstance> getWindowInstance(UIView* handle);
@@ -62,14 +62,14 @@ namespace slib
 
 		static Ref<Screen> createScreen(UIScreen* handle);
 		static UIScreen* getScreenHandle(Screen* screen);
-		
+
 		static UIViewController* getCurrentViewController();
 		static UIViewController* getCurrentViewController(const Ref<Window>& parentWindow);
 		static UIView* findFirstResponder(UIView* rootView);
-		
+
 		static CGFloat getGlobalScaleFactor();
 		static void setGlobalScaleFactor(CGFloat factor);
-				
+
 		static void registerDidFinishLaunchingCallback(const Function<void(NSDictionary*)>& callback);
 		static void registerDidRegisterForRemoteNotifications(const Function<void(NSData*, NSError*)>& callback);
 		static void registerDidReceiveRemoteNotificationCallback(const Function<void(NSDictionary*)>& callback);

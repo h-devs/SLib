@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT LatLon
 	{
 	public:
@@ -40,14 +40,14 @@ namespace slib
 		SLIB_CONSTEXPR LatLon(): latitude(0), longitude(0) {}
 
 		SLIB_CONSTEXPR LatLon(double _latitude, double _longitude): latitude(_latitude), longitude(_longitude) {}
-		
+
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(LatLon)
 
 	public:
 		sl_bool equals(const LatLon& other) const noexcept;
 
 		sl_bool isAlmostEqual(const LatLon& other) const noexcept;
-	
+
 	public:
 		static LatLon getCenter(const LatLon* list, sl_size count) noexcept;
 
@@ -60,7 +60,7 @@ namespace slib
 		LatLon lerp(const LatLon& target, float factor) const noexcept;
 
 	};
-	
+
 }
 
 #endif

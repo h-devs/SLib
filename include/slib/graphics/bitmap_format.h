@@ -45,7 +45,7 @@
 
 namespace slib
 {
-	
+
 	enum class BitmapFormat
 	{
 
@@ -107,8 +107,8 @@ namespace slib
 		UYVY = SLIB_DEFINE_BITMAP_FORMAT(ColorSpace::YUV, 0, 0, 1, 16, 16, 0xC1)  // U8 Y8 V8 Y8
 
 	};
-	
-	
+
+
 	class SLIB_EXPORT BitmapFormats
 	{
 	public:

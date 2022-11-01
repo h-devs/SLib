@@ -46,17 +46,17 @@ namespace slib
 		{
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Logger>, g_globalLogger)
-			
+
 			static String GetLineString(const StringParam& tag, const StringParam& content)
 			{
 				return String::format("%s [%s] %s\n", Time::now(), tag, content);
 			}
-			
+
 			static String GetLineStringCRLF(const StringParam& tag, const StringParam& content)
 			{
 				return String::format("%s [%s] %s\r\n", Time::now(), tag, content);
 			}
-			
+
 #ifdef SLIB_PLATFORM_IS_WIN32
 			static String16 GetLineString16(const StringParam& tag, const StringParam& content)
 			{
@@ -72,13 +72,13 @@ namespace slib
 				}
 			}
 #endif
-			
+
 		}
 	}
-	
+
 	using namespace priv::log;
 
-	
+
 	SLIB_DEFINE_OBJECT(Logger, Object)
 
 	Logger::Logger()

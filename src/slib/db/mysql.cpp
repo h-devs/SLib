@@ -41,7 +41,7 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MySQL_Param)
 
 	MySQL_Param::MySQL_Param()
@@ -89,7 +89,7 @@ namespace slib
 					mysql_thread_end();
 				}
 			};
-		
+
 #define PRIV_FIELD_DESC_BUFFER_SIZE 64
 			struct FieldDesc
 			{
@@ -759,7 +759,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 			};
 
 			class StatementImpl : public DatabaseStatement
@@ -782,7 +782,7 @@ namespace slib
 				{
 					close();
 				}
-				
+
 			public:
 				sl_bool isLoggingErrors()
 				{
@@ -1208,7 +1208,7 @@ namespace slib
 					}
 					return error;
 				}
-				
+
 				sl_bool isDatabaseExisting(const StringParam& _name) override
 				{
 					initThread();
@@ -1224,7 +1224,7 @@ namespace slib
 					}
 					return bRet;
 				}
-				
+
 				List<String> getDatabases() override
 				{
 					initThread();
@@ -1258,7 +1258,7 @@ namespace slib
 					}
 					return bRet;
 				}
-				
+
 				List<String> getTables() override
 				{
 					initThread();
@@ -1276,12 +1276,12 @@ namespace slib
 					}
 					return ret;
 				}
-				
+
 				sl_uint64 getLastInsertRowId() override
 				{
 					return (sl_uint64)(mysql_insert_id(m_mysql));
 				}
-				
+
 			};
 
 		}

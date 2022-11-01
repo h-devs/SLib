@@ -8,7 +8,7 @@ using namespace slib;
 int main(int argc, const char * argv[])
 {
 	Console::close();
-	
+
 	Plot plot;
 
 #ifdef USE_DCT
@@ -48,7 +48,7 @@ int main(int argc, const char * argv[])
 	plot.add(COUNT, [c](sl_uint32 i) {
 		return c[i].real;
 	}, PlotGraphParam(PlotGraphType::Line, Color::Red, 5));
-	
+
 	FFT fft(COUNT);
 	fft.transform(c);
 
@@ -69,7 +69,7 @@ int main(int argc, const char * argv[])
 
 	auto window = plot.show(1000, 600);
 	window->setQuitOnDestroy();
-	
+
 	UI::runApp();
 
 	return 0;

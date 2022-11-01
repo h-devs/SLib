@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	sl_bool Time::_get(TimeComponents& output, sl_bool flagUTC) const noexcept
 	{
 		SYSTEMTIME st;
@@ -69,7 +69,7 @@ namespace slib
 		SystemTimeToFileTime(&st, (PFILETIME)&n);
 		setWindowsFileTime(n);
 	}
-	
+
 	sl_bool Time::_setToSystem() const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32)

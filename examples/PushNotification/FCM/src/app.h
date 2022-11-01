@@ -29,28 +29,28 @@ using namespace slib;
 class ExampleFCMApp : public MobileApp
 {
 	SLIB_APPLICATION(ExampleFCMApp)
-	
+
 public:
 	ExampleFCMApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 	void onResume() override;
-	
+
 	void initUI();
-	
+
 	void onClickSend(View*);
-	
+
 	void addDevice(const String& device);
-	
+
 	void startBroadcast();
-	
+
 private:
 	String deviceId;
 	Ref<Timer> timerSendBroadcast;
 	Ref<Thread> threadReceiveBroadcast;
-	
+
 	Ref<EditView> txtMyToken;
 	Ref<SelectView> selectReceiver;
 	Ref<EditView> txtSendingMessage;

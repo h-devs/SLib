@@ -42,7 +42,7 @@ namespace slib
 	class Menu;
 	class MenuItem;
 	class UIEvent;
-	
+
 	class SLIB_EXPORT UIPlatform
 	{
 		PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS
@@ -66,23 +66,23 @@ namespace slib
 		static NSWindow* getWindowHandle(Window* window);
 		static NSWindow* getMainWindow();
 		static NSWindow* getKeyWindow();
-		
+
 		static Ref<Screen> createScreen(NSScreen* handle);
 		static NSScreen* getScreenHandle(Screen* screen);
 		static float getDpiForScreen(NSScreen* handle);
-		
+
 		static Ref<Cursor> createCursor(NSCursor* handle);
 		static NSCursor* getCursorHandle(Cursor* cursor);
-		
+
 		static NSMenu* getMenuHandle(Menu* menu);
 		static NSMenuItem* getMenuItemHandle(MenuItem* menu);
-		
+
 		static NSString* getKeyEquivalent(const KeycodeAndModifiers& km, NSUInteger& outMask);
 		static void applyEventModifiers(UIEvent* ev, NSEvent* event);
-		
+
 		static void registerDidFinishLaunchingCallback(const Function<void(NSNotification*)>& callback);
 #   endif
-		
+
 	};
 
 }

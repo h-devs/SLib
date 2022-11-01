@@ -244,7 +244,7 @@ namespace slib
 	{
 		level = 6;
 	}
-	
+
 
 	GzipCompressor::GzipCompressor()
 	{

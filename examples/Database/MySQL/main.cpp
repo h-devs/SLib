@@ -9,19 +9,19 @@ int main(int argc, const char * argv[])
 	param.user = "test";
 	param.password = "test";
 	param.db = "test";
-	
+
 	Ref<Database> db = MySQL::connect(param);
 	if (db.isNull()) {
 		Println("Cannot connect to MySQL server");
 		return -1;
 	}
-	
+
 	Println("test database existing: %s", db->isDatabaseExisting("test"));
 	Println("Databases=%s", Json(db->getDatabases()));
 
 	Println("book table existing: %s", db->isTableExisting("book"));
 	Println("Tables=%s", Json(db->getTables()));
-	
+
 	db->dropTable("book", DatabaseFlags::IfExists);
 	{
 		DatabaseColumnDefinition columns[] = {
@@ -30,7 +30,7 @@ int main(int argc, const char * argv[])
 		};
 		db->createTable("book", columns, DatabaseFlags::IfExists);
 	}
-	
+
 	db->startTransaction();
 	for (int i = 0; i < 1000; i++) {
 		String title = String::format("Book %d", i);
@@ -41,12 +41,12 @@ int main(int argc, const char * argv[])
 		db->insert("book", map);
 	}
 	db->commitTransaction();
-	
+
 	for (auto& row : db->findRecords("book", DatabaseExpression::null())) {
 		String title = row["title"].getString();
 		String abstract = row["abstract"].getString();
 		Println("Title: %s, Abstract: %s", title, abstract);
 	}
-	
+
 	return 0;
 }

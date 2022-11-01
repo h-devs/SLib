@@ -23,7 +23,7 @@
 /*
 
 	Modified Lempel-Ziv method (LZW)
-	
+
 Basically finds common substrings and replaces them with a variable size code.
 This is deterministic, and can be done on the fly.
 Thus, the decompression procedure needs no input table, but tracks the way the table was built.
@@ -498,7 +498,7 @@ namespace slib
 
 						oldcode = incode;	/* Remember previous code.	*/
 					}
-					
+
 
 					bytes_in += rsize;
 
@@ -538,7 +538,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Memory LZW::decompress(const void* data, sl_size size)
 	{
 		if (size) {

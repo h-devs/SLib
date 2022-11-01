@@ -39,17 +39,17 @@ namespace slib
 	{
 		namespace device_contact
 		{
-			
+
 			class SharedContext
 			{
 			public:
 				NSMutableDictionary* dictLabel;
-				
+
 			public:
 				SharedContext()
 				{
 					dictLabel = [NSMutableDictionary new];
-					
+
 					addMapping(CNLabelHome, @"Home");
 					addMapping(CNLabelWork, @"Work");
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
@@ -72,20 +72,20 @@ namespace slib
 					addMapping(CNLabelEmailiCloud, @"iCloud");
 
 					addMapping(CNLabelURLAddressHomePage, @"HomePage");
-										
+
 					addMapping(CNLabelDateAnniversary, @"Anniversary");
 				}
-				
+
 			public:
 				void addMapping(NSString* s1, NSString* s2)
 				{
 					[dictLabel setObject:s2 forKey:s1];
 				}
-				
+
 			};
-		
+
 			SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
-			
+
 			static String GetLabel(NSString* label)
 			{
 				SharedContext* context = GetSharedContext();
@@ -118,7 +118,7 @@ namespace slib
 								c.familyName = Apple::getStringFromNSString(contact.familyName);
 								c.nameSuffix = Apple::getStringFromNSString(contact.nameSuffix);
 								c.nickname = Apple::getStringFromNSString(contact.nickname);
-								
+
 								NSArray* phoneNumbers = contact.phoneNumbers;
 								if (phoneNumbers != nil) {
 									for (CNLabeledValue<CNPhoneNumber*>* phoneNumber : phoneNumbers) {

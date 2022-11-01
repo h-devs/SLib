@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace collection_view
@@ -38,76 +38,76 @@ namespace slib
 			class FreeViewSet;
 		}
 	}
-	
+
 	class SLIB_EXPORT CollectionView : public VerticalScrollView
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		CollectionView();
-		
+
 		~CollectionView();
 
 	protected:
 		void init() override;
-		
-	public:		
+
+	public:
 		sl_uint32 getColumnCount();
-		
+
 		Ref<ViewAdapter> getAdapter();
-		
+
 		Ref<ViewAdapter> getAdapter(sl_uint32 columnIndex);
-		
+
 		void setAdapters(const List< Ref<ViewAdapter> >& adapters, const List<sl_uint32>& listWidth = List<sl_uint32>::null());
-		
+
 		void setAdapter(const Ref<ViewAdapter>& adapter);
-		
+
 		void setAdapter(const Ref<ViewAdapter>& adapter, sl_uint32 nColumns);
-		
+
 		void refreshItems();
-		
+
 		sl_ui_len getColumnHeight(sl_uint32 index);
-		
+
 		sl_bool isCuttingOverflowItems();
-		
+
 		void setCuttingOverflowItems(sl_bool flag);
-		
+
 	protected:
 		void onScroll(sl_scroll_pos x, sl_scroll_pos y) override;
-		
+
 		void onResize(sl_ui_len x, sl_ui_len y) override;
-		
+
 		void onAttach() override;
-		
+
 	protected:
 		Ref<View> _getView(ViewAdapter* adapter, sl_uint64 index, View* original);
-		
+
 		void _requestLayout();
-		
+
 		void _doLayout();
-		
+
 		void _layout();
-		
+
 		void _layoutColumn(priv::collection_view::Column* column, sl_bool flagRefresh, sl_ui_len x, sl_ui_len width);
-		
+
 		void _updateItemLayout(const Ref<View>& itemView, sl_ui_pos x, sl_ui_len widthList, sl_ui_len heightList);
-		
+
 	protected:
 		AtomicList<priv::collection_view::Column> m_columns;
 		List<priv::collection_view::Column> m_columnsCurrent;
 		sl_bool m_flagCuttingOverflowItems;
-		
+
 		Ref<priv::collection_view::ContentView> m_contentView;
 		sl_bool m_flagRefreshItems;
-		
+
 		Mutex m_lockLayout;
 		volatile sl_int32 m_idLayoutRequest;
 		volatile sl_int32 m_idLayoutComplete;
-		
+
 		sl_ui_pos m_lastScrollY;
 
 		friend class priv::collection_view::ContentView;
-		
+
 	};
 
 }

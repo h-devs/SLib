@@ -32,7 +32,7 @@
 /*
 
 			Data Package File Format
-	
+
 	---------------- Header -----------------------
 	Version (4 bytes)
 	Flags (4 bytes)
@@ -321,12 +321,12 @@ namespace slib
 				{
 					Base::copyMemory(outId, m_header.packageId, sizeof(m_header.packageId));
 				}
-				
+
 				Time getCreationTime() override
 				{
 					return m_header.creationTime;
 				}
-				
+
 				Time getModifiedTime() override
 				{
 					return m_header.modifiedTime;
@@ -620,7 +620,7 @@ namespace slib
 				CHashMap<ObjectId, PackageReaderLender> m_mapPackageReaders;
 				Ref<DataPackageWriter> m_writer;
 				Time m_timeCreationWriter;
-				
+
 				sl_bool m_flagEncrypted;
 				sl_uint8 m_encryptionKey[32];
 				sl_uint8 m_encryptionIV[16];
@@ -978,5 +978,5 @@ namespace slib
 	{
 		return Ref<DataStore>::from(DataStoreImpl::open(param));
 	}
-	
+
 }

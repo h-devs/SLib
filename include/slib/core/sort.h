@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT SelectionSort
 	{
 	public:
@@ -73,7 +73,7 @@ namespace slib
 		}
 
 	};
-	
+
 	class SLIB_EXPORT InsertionSort
 	{
 	public:
@@ -170,7 +170,7 @@ namespace slib
 		}
 
 	};
-	
+
 	class SLIB_EXPORT QuickSort
 	{
 	public:

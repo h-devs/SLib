@@ -295,7 +295,7 @@ namespace slib
 			default:
 				return SLIB_SOCKET_INVALID_HANDLE;
 		}
-		
+
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 		sl_socket handle = WSASocketW(af, st, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 #else
@@ -328,7 +328,7 @@ namespace slib
 	{
 		return open(SocketType::Datagram, (sl_uint32)internetProtocol);
 	}
-	
+
 	Socket Socket::openUdp() noexcept
 	{
 		return open(SocketType::Datagram);
@@ -540,7 +540,7 @@ namespace slib
 	{
 		return (SocketType)((int)type & (int)(SocketType::MASK_ADDRESS_FAMILY)) == SocketType::ADDRESS_FAMILY_IPv4;
 	}
-	
+
 	sl_bool Socket::isIPv6Type(SocketType type) noexcept
 	{
 		return (SocketType)((int)type & (int)(SocketType::MASK_ADDRESS_FAMILY)) == SocketType::ADDRESS_FAMILY_IPv6;
@@ -1347,7 +1347,7 @@ namespace slib
 #endif
 	}
 
-	
+
 	sl_bool Socket::setOption_ReuseAddress(sl_bool flagEnable) const noexcept
 	{
 		return setOption(SOL_SOCKET, SO_REUSEADDR, flagEnable ? 1 : 0);
@@ -1358,7 +1358,7 @@ namespace slib
 		return getOption(SOL_SOCKET, SO_REUSEADDR) != 0;
 	}
 
-	
+
 	sl_bool Socket::setOption_ReusePort(sl_bool flagEnable) const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_TIZEN)
@@ -1367,7 +1367,7 @@ namespace slib
 		return setOption(SOL_SOCKET, SO_REUSEPORT, flagEnable ? 1 : 0);
 #endif
 	}
-	
+
 	sl_bool Socket::getOption_ReusePort() const noexcept
 	{
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_ANDROID) || defined(SLIB_PLATFORM_IS_TIZEN)
@@ -1376,7 +1376,7 @@ namespace slib
 		return getOption(SOL_SOCKET, SO_REUSEPORT) != 0;
 #endif
 	}
-	
+
 
 	sl_bool Socket::setOption_SendBufferSize(sl_uint32 size) const noexcept
 	{
@@ -1800,7 +1800,7 @@ namespace slib
 #endif
 				ret = _setError(SocketError::Access);
 				break;
-				
+
 #if defined(SLIB_PLATFORM_IS_UNIX)
 			case EPERM:
 				ret = _setError(SocketError::NotPermitted);

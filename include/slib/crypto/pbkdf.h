@@ -35,7 +35,7 @@
 
 namespace slib
 {
-	
+
 	template <class HASH>
 	class SLIB_EXPORT PBKDF1
 	{
@@ -63,7 +63,7 @@ namespace slib
 			hash.update(password, lenPassword);
 			hash.update(salt, lenSalt);
 			hash.finish(t);
-			
+
 			sl_uint32 i;
 			for (i = 1; i < nIteration; i++) {
 				hash.start();

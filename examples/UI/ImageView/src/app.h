@@ -31,7 +31,7 @@ class ExampleImageViewApp : public MobileApp
 	SLIB_APPLICATION(ExampleImageViewApp)
 public:
 	ExampleImageViewApp();
-	
+
 	void onStart() override;
-	
+
 };

@@ -40,7 +40,7 @@ namespace slib
 	class Screen;
 	class Menu;
 	class UIEvent;
-	
+
 	class SLIB_EXPORT UIPlatform
 	{
 		PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS
@@ -53,7 +53,7 @@ namespace slib
 		static void removeViewInstance(GtkWidget* handle);
 		static GtkWidget* getViewHandle(ViewInstance* instance);
 		static GtkWidget* getViewHandle(View* view);
-		
+
 		static Ref<WindowInstance> createWindowInstance(GtkWindow* handle);
 		static void registerWindowInstance(GtkWindow* handle, WindowInstance* instance);
 		static Ref<WindowInstance> getWindowInstance(GtkWindow* handle);
@@ -62,7 +62,7 @@ namespace slib
 		static GtkWindow* getWindowHandle(Window* window);
 
 		static Ref<WindowInstance> getActiveWindowInstance();
-		
+
 		static sl_bool initializeGtk();
 		static sl_uint32 getGtkMajorVersion();
 		static sl_uint32 getGtkMinorVersion();

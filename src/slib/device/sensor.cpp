@@ -26,17 +26,17 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SensorParam)
 
 	SensorParam::SensorParam()
 	{
 		flagUseLocation = sl_true;
 		locationProviderType = LocationProviderType::GPS;
-		
+
 		flagUseCompass = sl_false;
 		flagUseAccelerometor = sl_false;
-		
+
 		flagAutoStart = sl_true;
 	}
 
@@ -48,7 +48,7 @@ namespace slib
 		m_flagValidLocation = sl_false;
 		m_flagValidCompassDeclination = sl_false;
 		m_flagValidAccerometer = sl_false;
-		
+
 		m_flagRunningLocation = sl_false;
 		m_flagRunningCompass = sl_false;
 		m_flagRunningAccelerometer = sl_false;
@@ -68,20 +68,20 @@ namespace slib
 		if (m_flagRunning) {
 			return sl_false;
 		}
-		
+
 		m_flagValidLocation = sl_false;
 		m_flagValidCompassDeclination = sl_false;
 		m_flagValidAccerometer = sl_false;
-		
+
 		m_flagRunningLocation = sl_false;
 		m_flagRunningCompass = sl_false;
 		m_flagRunningAccelerometer = sl_false;
-		
+
 		if (_start()) {
 			m_flagRunning = sl_true;
 			return sl_true;
 		}
-		
+
 		return sl_false;
 	}
 
@@ -91,19 +91,19 @@ namespace slib
 		if (!m_flagRunning) {
 			return;
 		}
-		
+
 		_stop();
-		
+
 		m_flagRunningLocation = sl_false;
 		m_flagRunningCompass = sl_false;
 		m_flagRunningAccelerometer = sl_false;
-		
+
 		m_flagValidLocation = sl_false;
 		m_flagValidCompassDeclination = sl_false;
 		m_flagValidAccerometer = sl_false;
-		
+
 		m_flagRunning = sl_false;
-		
+
 	}
 
 	sl_bool Sensor::isRunning()
@@ -174,7 +174,7 @@ namespace slib
 	{
 		m_lastCompassDeclination = declination;
 		m_flagValidCompassDeclination = sl_true;
-		
+
 		m_onCompassChanged(this, declination);
 	}
 

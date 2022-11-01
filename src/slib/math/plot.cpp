@@ -131,11 +131,11 @@ namespace slib
 	{
 		m_backgroundColor = Color::White;
 		m_gridColor = Color::Gray;
-		
+
 		m_labelColor = Color::Black;
 		m_labelFont = Font::create(sl_null, 15);
 		m_labelMargin = 5;
-		
+
 		m_marginLeft = 40;
 		m_marginRight = 20;
 		m_marginTop = 20;
@@ -364,7 +364,7 @@ namespace slib
 
 		sl_real stepX = GetStep(rectSrc.getWidth());
 		sl_real stepY = GetStep(rectSrc.getHeight());
-		
+
 		Rectanglei rectSrci;
 		rectSrci.left = (sl_int32)(Math::floor(rectSrc.left / stepX));
 		rectSrci.right = (sl_int32)(Math::ceil(rectSrc.right / stepX));

@@ -135,7 +135,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<Ptr const*>(&(priv::ptr::g_null)));
 		}
-		
+
 		template <class... OTHERS>
 		static const Ptr& from(const Ptr<OTHERS...>& other) noexcept
 		{
@@ -153,7 +153,7 @@ namespace slib
 		{
 			return static_cast<Ptr&&>(*(reinterpret_cast<Ptr*>(&other)));
 		}
-		
+
 	public:
 		template <class OTHER>
 		void set(OTHER* v) noexcept
@@ -497,7 +497,7 @@ namespace slib
 		ref = Move(other.ref);
 		ptr = other;
 	}
-	
+
 	template <class T>
 	template <class T1, class T2, class... TYPES>
 	void Ptr<T>::set(const Ref<T1, T2, TYPES...>& other) noexcept
@@ -537,7 +537,7 @@ namespace slib
 	{
 		_replace(other, other.ref);
 	}
-	
+
 	template <class T>
 	template <class T1, class T2, class... TYPES>
 	void Atomic< Ptr<T> >::set(Ptr<T1, T2, TYPES...>&& other) noexcept
@@ -545,14 +545,14 @@ namespace slib
 		_ptr = other;
 		_move_assign(&other);
 	}
-	
+
 	template <class T>
 	template <class T1, class T2, class... TYPES>
 	void Atomic< Ptr<T> >::set(const Ref<T1, T2, TYPES...>& other) noexcept
 	{
 		_replace(other, Ref<Referable>::from(other));
 	}
-	
+
 	template <class T>
 	template <class... TYPES>
 	void Atomic< Ptr<T> >::set(const Pointer<TYPES...>& other) noexcept

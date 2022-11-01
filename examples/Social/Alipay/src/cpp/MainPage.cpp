@@ -22,7 +22,7 @@ void MainPage::onOpen()
 			UI::showAlert("Sign Error!");
 			return;
 		}
-		
+
 		AlipaySDK::pay(order.toString(), [](AlipayPaymentResult& result) {
 			if (result.flagCancel) {
 				return;

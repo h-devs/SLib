@@ -33,7 +33,7 @@ namespace priv
 	{
 		namespace wrapped_symbols
 		{
-			
+
 			void* g_libc = 0;
 			void* g_libm = 0;
 

@@ -35,26 +35,26 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ui_event
 		{
-			
+
 			class KeyMapper
 			{
 			private:
 				HashTable<Keycode, sl_uint32> mapKeyToVK;
 				HashTable<sl_uint32, Keycode> mapVKToKey;
 				HashTable<Keycode, NSString*> mapKeyToEquivalent;
-				
+
 			public:
 				KeyMapper()
 				{
 					map(Keycode::Tab, 0x30, '\t');
 					map(Keycode::Enter, 0x24, '\r');
 					map(Keycode::Escape, 0x35, '\e');
-					
+
 					map(Keycode::Space, 0x31, ' ');
 					map(Keycode::Grave, 0x32, '`');
 					map(Keycode::Equal, 0x18, '=');
@@ -67,7 +67,7 @@ namespace slib
 					map(Keycode::Minus, 0x1B, '-');
 					map(Keycode::Period, 0x2F, '.');
 					map(Keycode::Divide, 0x2C, '/');
-					
+
 					map(Keycode::Num0, 0x1D, '0');
 					map(Keycode::Num1, 0x12, '1');
 					map(Keycode::Num2, 0x13, '2');
@@ -78,7 +78,7 @@ namespace slib
 					map(Keycode::Num7, 0x1A, '7');
 					map(Keycode::Num8, 0x1C, '8');
 					map(Keycode::Num9, 0x19, '9');
-					
+
 					map(Keycode::A, 0x00, 'a');
 					map(Keycode::B, 0x0B, 'b');
 					map(Keycode::C, 0x08, 'c');
@@ -105,7 +105,7 @@ namespace slib
 					map(Keycode::X, 0x07, 'x');
 					map(Keycode::Y, 0x10, 'y');
 					map(Keycode::Z, 0x06, 'z');
-					
+
 					map(Keycode::Numpad0, 0x52);
 					map(Keycode::Numpad1, 0x53);
 					map(Keycode::Numpad2, 0x54);
@@ -116,14 +116,14 @@ namespace slib
 					map(Keycode::Numpad7, 0x59);
 					map(Keycode::Numpad8, 0x5B);
 					map(Keycode::Numpad9, 0x5C);
-					
+
 					map(Keycode::NumpadDivide, 0x4B);
 					map(Keycode::NumpadMultiply, 0x43);
 					map(Keycode::NumpadMinus, 0x4E);
 					map(Keycode::NumpadPlus, 0x45);
 					map(Keycode::NumpadEnter, 0x4C);
 					map(Keycode::NumpadDecimal, 0x41);
-					
+
 					map(Keycode::F1, 0x7A, NSF1FunctionKey);
 					map(Keycode::F2, 0x78, NSF2FunctionKey);
 					map(Keycode::F3, 0x63, NSF3FunctionKey);
@@ -136,7 +136,7 @@ namespace slib
 					map(Keycode::F10, 0x6D, NSF10FunctionKey);
 					map(Keycode::F11, 0x67, NSF11FunctionKey);
 					map(Keycode::F12, 0x6F, NSF12FunctionKey);
-					
+
 					map(Keycode::Backspace, 0x33, '\b');
 					map(Keycode::PageUp, 0x74, NSPageUpFunctionKey);
 					map(Keycode::PageDown, 0x79, NSPageDownFunctionKey);
@@ -151,7 +151,7 @@ namespace slib
 					map(Keycode::Delete, 0x75, NSDeleteFunctionKey);
 					map(Keycode::Sleep, -1);
 					map(Keycode::Pause, 0x71, NSPauseFunctionKey);
-					
+
 					map(Keycode::GoHome, -1);
 					map(Keycode::GoMenu, -1);
 					map(Keycode::GoBack, -1);
@@ -165,7 +165,7 @@ namespace slib
 					map(Keycode::MediaStop, -1);
 					map(Keycode::PhoneStar, -1);
 					map(Keycode::PhonePound, -1);
-					
+
 					map(Keycode::LeftShift, 0x38);
 					map(Keycode::RightShift, 0x3C);
 					map(Keycode::LeftControl, 0x3B);
@@ -179,7 +179,7 @@ namespace slib
 					map(Keycode::NumLock, 0x47);
 					map(Keycode::ContextMenu, 0x6E);
 				}
-				
+
 			public:
 				void map(Keycode key, sl_uint32 vk, unichar code = 0)
 				{
@@ -192,7 +192,7 @@ namespace slib
 						mapKeyToEquivalent.put(key, [NSString stringWithCharacters:&code length:1]);
 					}
 				}
-				
+
 				Keycode vkToKey(sl_uint32 vk)
 				{
 					Keycode ret;
@@ -201,7 +201,7 @@ namespace slib
 					}
 					return Keycode::Unknown;
 				}
-				
+
 				sl_uint32 keyToVk(Keycode code)
 				{
 					sl_uint32 ret;
@@ -210,7 +210,7 @@ namespace slib
 					}
 					return -1;
 				}
-				
+
 				NSString* keyToEquivalent(Keycode code)
 				{
 					NSString* ret;
@@ -219,14 +219,14 @@ namespace slib
 					}
 					return @"";
 				}
-				
+
 			};
 
 			SLIB_SAFE_STATIC_GETTER(KeyMapper, GetKeyMapper)
 
 		}
 	}
-	
+
 	using namespace priv::ui_event;
 
 	sl_uint32 UIEvent::getSystemKeycode(Keycode key)

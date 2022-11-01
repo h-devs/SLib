@@ -35,37 +35,37 @@ namespace slib
 	public:
 		IPAddress ip;
 		sl_uint16 port;
-		
+
 	public:
 		SocketAddress() noexcept: port(0) {}
-		
+
 		SocketAddress(const SocketAddress& other) = default;
-		
+
 		SocketAddress(sl_uint16 _port) noexcept: port(_port) {}
-		
+
 		template <class IP>
 		SocketAddress(IP&& _ip, sl_uint16 _port) noexcept: ip(Forward<IP>(_ip)), port(_port) {}
-		
+
 		SocketAddress(const StringParam& str) noexcept;
-		
+
 	public:
 		static const SocketAddress& none() noexcept
 		{
 			return *(reinterpret_cast<SocketAddress const*>(&_none));
 		}
-		
+
 		void setNone() noexcept;
-		
+
 		sl_bool isValid() const noexcept;
-		
+
 		sl_bool isInvalid() const noexcept;
-		
+
 		sl_uint32 getSystemSocketAddress(void* addr) const noexcept;
-		
+
 		sl_bool setSystemSocketAddress(const void* addr, sl_uint32 size = 0) noexcept;
-		
+
 		// HostName:port
-		sl_bool setHostAddress(const StringParam& address) noexcept;		
+		sl_bool setHostAddress(const StringParam& address) noexcept;
 
 	public:
 		/*
@@ -76,14 +76,14 @@ namespace slib
 		SLIB_DECLARE_CLASS_COMMON_MEMBERS(SocketAddress)
 
 		static sl_bool parseIPv4Range(const StringParam& str, IPv4Address* from = sl_null, IPv4Address* to = sl_null) noexcept;
-		
+
 		static sl_bool parsePortRange(const StringParam& str, sl_uint16* from = sl_null, sl_uint16* to = sl_null) noexcept;
-		
+
 	public:
 		SocketAddress& operator=(const SocketAddress& other) = default;
-		
+
 		SocketAddress& operator=(const StringParam& str) noexcept;
-		
+
 	private:
 		struct _socket_address
 		{
@@ -93,9 +93,9 @@ namespace slib
 			} ip;
 			sl_uint16 port;
 		};
-		
+
 		static const _socket_address _none;
-		
+
 	};
 
 }

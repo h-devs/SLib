@@ -31,21 +31,21 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace global_event_monitor
 		{
-			
+
 			id g_monitorGlobal = nil;
 			id g_monitorLocal = nil;
-			
+
 			class GlobalEventMonitorHelper : public GlobalEventMonitor
 			{
 			public:
 				using GlobalEventMonitor::_onEvent;
 			};
-			
+
 			static void ProcessMouseEvent(UIAction action, NSEvent* event)
 			{
 				NSPoint pt = event.locationInWindow;
@@ -63,7 +63,7 @@ namespace slib
 					GlobalEventMonitorHelper::_onEvent(ev.get());
 				}
 			}
-			
+
 			static void ProcessMouseWheelEvent(NSEvent* event)
 			{
 				sl_real deltaX = (sl_real)([event deltaX]);
@@ -86,7 +86,7 @@ namespace slib
 					GlobalEventMonitorHelper::_onEvent(ev.get());
 				}
 			}
-			
+
 			static void ProcessKeyEvent(UIAction action, NSEvent* event)
 			{
 				sl_uint32 vkey = [event keyCode];
@@ -99,7 +99,7 @@ namespace slib
 					GlobalEventMonitorHelper::_onEvent(ev.get());
 				}
 			}
-			
+
 			static void ProcessEvent(NSEvent* ev)
 			{
 				NSEventType type = ev.type;
@@ -147,12 +147,12 @@ namespace slib
 						break;
 				}
 			}
-			
+
 		}
 	}
-	
+
 	using namespace priv::global_event_monitor;
-	
+
 	sl_bool GlobalEventMonitor::_updateMonitor(sl_uint32 _mask)
 	{
 		if (g_monitorGlobal != nil) {
@@ -202,7 +202,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }
 
 #endif

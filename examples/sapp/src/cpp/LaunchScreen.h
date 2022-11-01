@@ -32,5 +32,5 @@ class LaunchScreen : public example::ui::LaunchScreen
 {
 public:
 	void onOpen() override;
-	
+
 };

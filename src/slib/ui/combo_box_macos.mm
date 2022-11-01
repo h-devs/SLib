@@ -68,13 +68,13 @@ namespace slib
 						[v selectItemAtIndex:indexSelected];
 					}
 				}
-				
+
 			};
-			
+
 			class ComboBoxInstance : public macOS_ViewInstance, public IComboBoxInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				NSComboBox* getHandle()
 				{
@@ -89,7 +89,7 @@ namespace slib
 					view->refreshItems(handle);
 					[handle setStringValue:Apple::getNSStringFromString(view->getText())];
 				}
-				
+
 				void selectItem(ComboBox* view, sl_int32 index) override
 				{
 					NSComboBox* handle = getHandle();
@@ -99,7 +99,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void refreshItems(ComboBox* view) override
 				{
 					NSComboBox* handle = getHandle();
@@ -107,7 +107,7 @@ namespace slib
 						static_cast<ComboBoxHelper*>(view)->refreshItems(handle);
 					}
 				}
-				
+
 				void insertItem(ComboBox* view, sl_int32 index, const String& title) override
 				{
 					NSComboBox* handle = getHandle();
@@ -115,7 +115,7 @@ namespace slib
 						[handle insertItemWithObjectValue:Apple::getNSStringFromString(title, @"") atIndex:index];
 					}
 				}
-				
+
 				void removeItem(ComboBox* view, sl_int32 index) override
 				{
 					NSComboBox* handle = getHandle();
@@ -123,7 +123,7 @@ namespace slib
 						[handle removeItemAtIndex:index];
 					}
 				}
-				
+
 				void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
 				{
 					NSComboBox* handle = getHandle();
@@ -132,7 +132,7 @@ namespace slib
 						[handle insertItemWithObjectValue:Apple::getNSStringFromString(title, @"") atIndex:index];
 					}
 				}
-				
+
 				sl_bool getText(ComboBox* view, String& _out) override
 				{
 					NSComboBox* handle = getHandle();
@@ -142,7 +142,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setText(ComboBox* view, const String& text) override
 				{
 					NSComboBox* handle = getHandle();
@@ -159,7 +159,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void onSelectItem(NSComboBox* handle)
 				{
 					Ref<ComboBox> view = CastRef<ComboBox>(getView());
@@ -167,11 +167,11 @@ namespace slib
 						view->dispatchSelectItem((sl_uint32)([handle indexOfSelectedItem]));
 					}
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(ComboBoxInstance, macOS_ViewInstance)
-			
+
 		}
 	}
 
@@ -181,7 +181,7 @@ namespace slib
 	{
 		return macOS_ViewInstance::create<ComboBoxInstance, SLIBComboBoxHandle>(this, parent);
 	}
-	
+
 	Ptr<IComboBoxInstance> ComboBox::getComboBoxInstance()
 	{
 		return CastRef<ComboBoxInstance>(getViewInstance());

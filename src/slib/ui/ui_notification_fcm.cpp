@@ -26,15 +26,15 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(FCM, PushNotificationClient)
-	
+
 	FCM::FCM()
 	{
 	}
-	
+
 	FCM::~FCM()
 	{
 	}
-	
+
 #if !defined(SLIB_UI_IS_ANDROID) && !defined(SLIB_UI_IS_IOS)
 	Ref<FCM> FCM::getInstance()
 	{
@@ -47,6 +47,6 @@ namespace slib
 	{
 	}
 #endif
-	
+
 }
 

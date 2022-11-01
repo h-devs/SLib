@@ -85,7 +85,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void copyTabs(NSTabView* tv)
 				{
 					ListLocker<TabViewItem> items(m_items);
@@ -101,7 +101,7 @@ namespace slib
 						[tv selectTabViewItemAtIndex:m_indexSelected];
 					}
 				}
-				
+
 				void setTabContentView(NSTabView* tv, sl_uint32 index, const Ref<View>& view)
 				{
 					NSTabViewItem* item = [tv tabViewItemAtIndex:index];
@@ -124,7 +124,7 @@ namespace slib
 					[handle setHidden:NO];
 					[item setView:handle];
 				}
-				
+
 				void updateContentViewSize(SLIBTabViewHandle* tv)
 				{
 					NSRect rc = [tv contentRect];
@@ -143,19 +143,19 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
 
 			class TabViewInstance : public macOS_ViewInstance, public ITabViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				NSTabView* getHandle()
 				{
 					return (NSTabView*)m_handle;
 				}
-				
+
 				Ref<TabViewHelper> getHelper()
 				{
 					return CastRef<TabViewHelper>(getView());
@@ -169,7 +169,7 @@ namespace slib
 					setHandleFont(handle, view->getFont());
 					view->copyTabs(handle);
 				}
-				
+
 				void refreshTabCount(TabView* view) override
 				{
 					NSTabView* handle = getHandle();
@@ -177,11 +177,11 @@ namespace slib
 						static_cast<TabViewHelper*>(view)->applyTabCount(handle);
 					}
 				}
-				
+
 				void refreshSize(TabView* view) override
 				{
 				}
-				
+
 				void setTabLabel(TabView* view, sl_uint32 index, const String& text) override
 				{
 					NSTabView* handle = getHandle();
@@ -192,7 +192,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setTabContentView(TabView* view, sl_uint32 index, const Ref<View>& content) override
 				{
 					NSTabView* handle = getHandle();
@@ -200,7 +200,7 @@ namespace slib
 						static_cast<TabViewHelper*>(view)->setTabContentView(handle, index, content);
 					}
 				}
-				
+
 				void selectTab(TabView* view, sl_uint32 index) override
 				{
 					NSTabView* handle = getHandle();
@@ -208,7 +208,7 @@ namespace slib
 						[handle selectTabViewItemAtIndex:index];
 					}
 				}
-				
+
 				sl_bool getContentViewSize(TabView* view, UISize& _out) override
 				{
 					NSTabView* handle = getHandle();
@@ -221,7 +221,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void setFont(View* view, const Ref<Font>& font) override
 				{
 					NSTabView* handle = getHandle();
@@ -237,11 +237,11 @@ namespace slib
 						helper->dispatchSelectTab((sl_uint32)([tv indexOfTabViewItem:[tv selectedTabViewItem]]));
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(TabViewInstance, macOS_ViewInstance)
-			
+
 		}
 	}
 
@@ -251,12 +251,12 @@ namespace slib
 	{
 		return macOS_ViewInstance::create<TabViewInstance, SLIBTabViewHandle>(this, parent);
 	}
-	
+
 	Ptr<ITabViewInstance> TabView::getTabViewInstance()
 	{
 		return CastRef<TabViewInstance>(getViewInstance());
 	}
-	
+
 }
 
 using namespace slib;

@@ -30,7 +30,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace java_util
@@ -78,7 +78,7 @@ namespace slib
 		{
 			return JList::contains.callBoolean(list, element);
 		}
-	
+
 		JniLocal<jobject> List::iterator(jobject list) noexcept
 		{
 			return JList::iterator.callObject(list);
@@ -134,7 +134,7 @@ namespace slib
 		{
 			return JLocale::getDefault.callObject(sl_null);
 		}
-	
+
 		String Locale::getLanguage(jobject thiz) noexcept
 		{
 			return JLocale::getLanguage.callString(thiz);

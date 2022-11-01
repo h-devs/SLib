@@ -389,7 +389,7 @@ namespace slib
 			m_edit->setFocus(flagFocused, mode);
 		}
 	}
-	
+
 
 	SLIB_DEFINE_EVENT_HANDLER(XEditView, Change, String& value)
 
@@ -428,7 +428,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void XEditView::dispatchClickEvent(UIEvent* ev)
 	{
 		XControl::dispatchClickEvent(ev);

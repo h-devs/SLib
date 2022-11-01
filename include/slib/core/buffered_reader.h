@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	// Not thread-safe
 	class SLIB_EXPORT BufferedReader : public IReader, public IClosable
 	{

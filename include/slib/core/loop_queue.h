@@ -38,7 +38,7 @@ namespace slib
 		sl_size m_first;
 		sl_size m_count;
 		sl_size m_latency;
-	
+
 	public:
 		LoopQueue(sl_size size = 0, sl_size latency = 0) noexcept
 		{
@@ -65,7 +65,7 @@ namespace slib
 				NewHelper<T>::free(m_data, m_size);
 			}
 		}
-	
+
 	public:
 		sl_size getQueueSize() const noexcept
 		{
@@ -148,7 +148,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return push_NoLock(Forward<VALUE>(value), flagShift);
 		}
-		
+
 		template <class VALUE>
 		sl_bool push_NoLock(VALUE&& value, VALUE* _outShifted) noexcept
 		{
@@ -173,7 +173,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return push_NoLock(Forward<VALUE>(value), _outShifted);
 		}
-		
+
 		sl_bool pushAll_NoLock(const T* buffer, sl_size count, sl_bool flagShift = sl_true) noexcept
 		{
 			if (!m_size) {
@@ -280,7 +280,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return pop_NoLock(buffer, count);
 		}
-		
+
 		sl_size read_NoLock(sl_size offset, T* _out, sl_size count) const noexcept
 		{
 			if (offset > m_count) {
@@ -332,14 +332,14 @@ namespace slib
 		sl_size m_first;
 		sl_size m_count;
 		SpinLock m_lock;
-	
+
 	public:
 		StaticLoopQueue() noexcept
 		{
 			m_first = 0;
 			m_count = 0;
 		}
-		
+
 	public:
 		sl_size removeAll() noexcept
 		{
@@ -382,7 +382,7 @@ namespace slib
 			SpinLocker locker(&m_lock);
 			return push_NoLock(Forward<VALUE>(value), flagShift);
 		}
-		
+
 		template <class VALUE>
 		void push_NoLock(VALUE&& value, VALUE* _outShifted) noexcept
 		{
@@ -403,7 +403,7 @@ namespace slib
 			SpinLocker locker(&m_lock);
 			push_NoLock(Forward<VALUE>(value), _outShifted);
 		}
-		
+
 		sl_bool pop_NoLock(T& output) noexcept
 		{
 			if (m_count) {

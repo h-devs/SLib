@@ -31,11 +31,11 @@ namespace slib
 	GestureEvent::GestureEvent(): type(GestureType::SwipeLeft)
 	{
 	}
-	
+
 	GestureEvent::~GestureEvent()
 	{
 	}
-	
+
 	Ref<GestureEvent> GestureEvent::duplicate()
 	{
 		Ref<GestureEvent> ev = new GestureEvent;
@@ -45,33 +45,33 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(GestureDetector, Object)
-	
+
 	class GestureRecognizer : public Referable
 	{
 	public:
 		GestureDetector* m_detector;
-		
+
 	public:
 		GestureRecognizer(GestureDetector* detector) : m_detector(detector)
 		{
 		}
-		
+
 		virtual void processEvent(UIEvent* ev, const Ref<View>& view, MotionTracker* tracker)
 		{
 		}
-		
+
 	};
-	
+
 	class SwipeGestureRecognizer : public GestureRecognizer
 	{
 	public:
 		GestureType type;
 		sl_bool flagHorizontal;
 		sl_bool flagPositive;
-		
+
 	public:
 		SwipeGestureRecognizer(GestureDetector* detector, GestureType _type)
 		: GestureRecognizer(detector)
@@ -96,7 +96,7 @@ namespace slib
 					break;
 			}
 		}
-		
+
 		void processEvent(UIEvent* ev, const Ref<View>& view, MotionTracker* tracker) override
 		{
 			UIAction action = ev->getAction();
@@ -140,11 +140,11 @@ namespace slib
 			}
 		}
 	};
-	
+
 	GestureDetector::GestureDetector(const Ref<View>& view) : m_view(view)
 	{
 	}
-	
+
 	GestureDetector::~GestureDetector()
 	{
 	}
@@ -173,7 +173,7 @@ namespace slib
 		}
 		m_recognizers[(int)type] = recognizer;
 	}
-	
+
 	void GestureDetector::enableNative()
 	{
 		Ref<View> view = m_view;
@@ -187,7 +187,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void GestureDetector::processEvent(UIEvent* ev)
 	{
 		ObjectLocker lock(this);
@@ -238,7 +238,7 @@ namespace slib
 			m_tracker.clearMovements();
 		}
 	}
-	
+
 #if !(defined(SLIB_UI_IS_IOS)) && !(defined(SLIB_UI_IS_ANDROID))
 	sl_bool GestureDetector::_enableNative(const Ref<View>& view, GestureType type)
 	{

@@ -84,7 +84,7 @@ namespace slib
 			JXgPush::start.call(sl_null, context);
 		}
 	}
-	
+
 	void XgPush::setEnableDebug(sl_bool flag)
 	{
 		jobject context = Android::getCurrentContext();

@@ -35,12 +35,12 @@ namespace slib
 		sl_bool flagCreate;
 		sl_bool flagReadonly;
 		StringParam encryptionKey;
-		
+
 	public:
 		SQLiteParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SQLiteParam)
-		
+
 	};
 
 	class SLIB_EXPORT SQLite : public Database
@@ -58,7 +58,7 @@ namespace slib
 		static Ref<SQLite> open(const SQLiteParam& param);
 
 		static Ref<SQLite> open(const StringParam& filePath);
-		
+
 	};
 
 }

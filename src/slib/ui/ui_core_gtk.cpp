@@ -97,7 +97,7 @@ namespace slib
 			{
 			public:
 				UIRect m_region;
-				
+
 			public:
 				ScreenImpl()
 				{
@@ -117,7 +117,7 @@ namespace slib
 				{
 					return m_region;
 				}
-				
+
 			};
 
 			static gboolean DispatchUrgentlyCallback(gpointer user_data)

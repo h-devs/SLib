@@ -30,29 +30,29 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace scroll_view
 		{
-			
+
 			class ScrollViewHelper : public ScrollView
 			{
 			public:
 				using ScrollView::_onScroll_NW;
-				
+
 			};
-			
+
 			class ScrollViewInstance : public GTK_ViewInstance, public IScrollViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				GtkScrolledWindow* getHandle()
 				{
 					return (GtkScrolledWindow*)m_handle;
 				}
-				
+
 				void initialize(View* _view) override
 				{
 					ScrollView* view = (ScrollView*)_view;
@@ -70,11 +70,11 @@ namespace slib
 					GtkAdjustment* adjust_v = gtk_scrolled_window_get_vadjustment(handle);
 					g_signal_connect(adjust_v, "value-changed", G_CALLBACK(onScrollVert), handle);
 				}
-				
+
 				void refreshContentSize(ScrollView* view) override
 				{
 				}
-				
+
 				void setContentView(ScrollView* view, const Ref<View>& content) override
 				{
 					GtkScrolledWindow* handle = getHandle();
@@ -85,7 +85,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool getClientSize(View* view, UISize& _out) override
 				{
 					GtkWidget* handle = m_handle;
@@ -111,7 +111,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_bool getScrollRange(View* view, ScrollPoint& _out) override
 				{
 					GtkScrolledWindow* handle = getHandle();
@@ -130,7 +130,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
 				{
 					GtkScrolledWindow* handle = getHandle();
@@ -141,7 +141,7 @@ namespace slib
 						gtk_adjustment_set_value(adjust_v, y);
 					}
 				}
-				
+
 				void setBorder(View* view, sl_bool flag) override
 				{
 					GtkScrolledWindow* handle = getHandle();
@@ -153,7 +153,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
 				{
 					GtkScrolledWindow* handle = getHandle();
@@ -186,14 +186,14 @@ namespace slib
 						view->_onScroll_NW(x, y);
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(ScrollViewInstance, GTK_ViewInstance)
-			
+
 		}
 	}
-	
+
 	using namespace priv::scroll_view;
 
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* parent)
@@ -201,7 +201,7 @@ namespace slib
 		GtkWidget *handle = gtk_scrolled_window_new(sl_null, sl_null);
 		return GTK_ViewInstance::create<ScrollViewInstance>(this, parent, handle);
 	}
-	
+
 	Ptr<IScrollViewInstance> ScrollView::getScrollViewInstance()
 	{
 		return CastRef<ScrollViewInstance>(getViewInstance());

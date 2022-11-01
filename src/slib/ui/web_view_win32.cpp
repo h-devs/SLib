@@ -299,13 +299,13 @@ namespace slib
 			public:
 				void installExternal();
 
-			public:				
+			public:
 				sl_bool prepare(WebView* view);
 
 				void initialize(View* _view) override
 				{
 					WebView* view = (WebView*)_view;
-					
+
 					prepare(view);
 					load(view);
 				}

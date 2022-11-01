@@ -326,7 +326,7 @@ namespace slib
 		if (!(m_flags & FileSystemLogFlags::Delete) || !m_regex.match(path.toString())) {
 			return m_base->deleteFile(path);
 		}
-	
+
 		String desc = String::format("DeleteFile(%s)", PATH_LOG(path));
 		if (!(m_flags & FileSystemLogFlags::Ret)) {
 			LOG(desc);

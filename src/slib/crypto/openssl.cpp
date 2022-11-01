@@ -30,14 +30,14 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace openssl
 		{
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-			
+
 			class ThreadHandler : public Referable
 			{
 			public:
@@ -76,31 +76,31 @@ namespace slib
 			{
 			}
 #endif
-			
+
 			class KeyStore : public Referable
 			{
 			public:
 				::X509* certificate;
 				Queue<::X509*> certificateChain;
 				EVP_PKEY* privateKey;
-				
+
 			public:
 				KeyStore() : certificate(sl_null), privateKey(sl_null)
 				{
 				}
-				
+
 				~KeyStore()
 				{
 					close();
 				}
-				
+
 			public:
 				void close()
 				{
 					resetCertificate();
 					resetPrivateKey();
 				}
-				
+
 				void resetCertificate()
 				{
 					if (certificate) {
@@ -112,7 +112,7 @@ namespace slib
 						X509_free(x);
 					}
 				}
-				
+
 				void setCertificate(const Memory& certificate)
 				{
 					if (certificate.isNull()) {
@@ -136,7 +136,7 @@ namespace slib
 						BIO_free(bio);
 					}
 				}
-				
+
 				static void applyCertificate(SSL_CTX* ctx, const Memory& certificate)
 				{
 					if (certificate.isNull()) {
@@ -161,7 +161,7 @@ namespace slib
 						BIO_free(bio);
 					}
 				}
-				
+
 				void applyCertificate(SSL* ssl)
 				{
 					if (certificate) {
@@ -175,7 +175,7 @@ namespace slib
 						link = link->next;
 					}
 				}
-				
+
 				void resetPrivateKey()
 				{
 					if (privateKey) {
@@ -183,7 +183,7 @@ namespace slib
 						privateKey = sl_null;
 					}
 				}
-				
+
 				void setPrivateKey(const Memory& privateKey)
 				{
 					if (privateKey.isNull()) {
@@ -200,7 +200,7 @@ namespace slib
 						BIO_free(bio);
 					}
 				}
-				
+
 				static void applyPrivateKey(SSL_CTX* ctx, const Memory& privateKey)
 				{
 					if (privateKey.isNull()) {
@@ -217,38 +217,38 @@ namespace slib
 						BIO_free(bio);
 					}
 				}
-				
+
 				void applyPrivateKey(SSL* ssl)
 				{
 					if (privateKey) {
 						SSL_use_PrivateKey(ssl, privateKey);
 					}
 				}
-				
+
 				void apply(SSL* ssl) {
 					applyCertificate(ssl);
 					applyPrivateKey(ssl);
 				}
-				
+
 			};
-			
+
 			class ContextImpl : public OpenSSL_Context
 			{
 			public:
 				SSL_CTX* m_context;
 				HashMap< String, Ref<KeyStore> > m_keyStores;
 				String m_serverName;
-				
+
 			public:
 				ContextImpl()
 				{
 				}
-				
+
 				~ContextImpl()
 				{
 					SSL_CTX_free(m_context);
 				}
-				
+
 			public:
 				static Ref<ContextImpl> create(const TlsContextParam& param)
 				{
@@ -294,12 +294,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				static int verify_callback(int preverify, X509_STORE_CTX* x509_ctx)
 				{
 					return preverify;
 				}
-				
+
 				static int client_hello_callback(SSL* ssl, int* al, void* arg)
 				{
 					ContextImpl* context = (ContextImpl*)arg;
@@ -330,14 +330,14 @@ namespace slib
 					}
 					return SSL_CLIENT_HELLO_SUCCESS;
 				}
-				
+
 				SSL_CTX* getContext() override
 				{
 					return m_context;
 				}
-				
+
 			};
-			
+
 			class SLIB_EXPORT StreamImpl : public OpenSSL_AsyncStream
 			{
 			public:
@@ -346,7 +346,7 @@ namespace slib
 				SSL* m_ssl;
 				BIO* m_rbio;
 				BIO* m_wbio;
-				
+
 				sl_bool m_flagReadingBase;
 				sl_bool m_flagWritingBase;
 				sl_bool m_flagReadingError;
@@ -358,19 +358,19 @@ namespace slib
 				Function<void(AsyncStreamResult&)> m_callbackRead;
 				Function<void(AsyncStreamResult&)> m_callbackWrite;
 				Function<void()> m_doStartWritingBase;
-				
+
 				Ref<AsyncStreamRequest> m_requestRead;
 				Queue< Ref<AsyncStreamRequest> > m_queueRead;
-				
+
 				Ref<AsyncStreamRequest> m_requestWrite;
 				sl_uint32 m_sizeWritten;
 				Queue< Ref<AsyncStreamRequest> > m_queueWrite;
 				Function<void()> m_doStartWriting;
-				
+
 				sl_bool m_flagHandshaking;
 				sl_bool m_flagInitHandshake;
 				Function<void(TlsStreamResult&)> m_onHandshake;
-				
+
 			protected:
 				StreamImpl(const Ref<AsyncStream>& baseStream): m_baseStream(baseStream)
 				{
@@ -380,28 +380,28 @@ namespace slib
 					m_flagReadingEnded = sl_false;
 					m_flagWritingError = sl_false;
 					m_sizeWritingBase = 0;
-					
+
 					m_sizeWritten = 0;
-					
+
 					m_flagHandshaking = sl_true;
 					m_flagInitHandshake = sl_false;
 				}
-				
+
 				void init() override
 				{
 					OpenSSL_AsyncStream::init();
-					
+
 					m_callbackRead = SLIB_FUNCTION_WEAKREF(this, onRead);
 					m_callbackWrite = SLIB_FUNCTION_WEAKREF(this, onWrite);
 					m_doStartWritingBase = SLIB_FUNCTION_WEAKREF(this, startWritingBase);
 					m_doStartWriting = SLIB_FUNCTION_WEAKREF(this, startWriting);
 				}
-				
+
 				~StreamImpl()
 				{
 					close();
 				}
-				
+
 			public:
 				static Ref<StreamImpl> connectStream(const Ref<AsyncStream>& stream, const TlsConnectStreamParam& param)
 				{
@@ -416,7 +416,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				static Ref<StreamImpl> acceptStream(const Ref<AsyncStream>& stream, const TlsAcceptStreamParam& param)
 				{
 					Ref<StreamImpl> ret = create(stream, param);
@@ -430,7 +430,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			private:
 				static Ref<StreamImpl> create(const Ref<AsyncStream>& baseStream, const TlsStreamParam& param)
 				{
@@ -481,7 +481,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				static long read_callback(BIO *b, int oper, const char *argp, size_t len, int argi, long argl, int ret, size_t *processed)
 				{
 					StreamImpl* stream = (StreamImpl*)(BIO_get_callback_arg(b));
@@ -490,7 +490,7 @@ namespace slib
 					}
 					return ret;
 				}
-				
+
 				static long write_callback(BIO *b, int oper, const char *argp, size_t len, int argi, long argl, int ret, size_t *processed)
 				{
 					StreamImpl* stream = (StreamImpl*)(BIO_get_callback_arg(b));
@@ -499,13 +499,13 @@ namespace slib
 					}
 					return ret;
 				}
-				
+
 			private:
 				void onRequestRead()
 				{
 					startReadingBase();
 				}
-				
+
 				void onRequestWrite(sl_size len)
 				{
 					Base::interlockedAdd(&m_sizeWritingBase, len);
@@ -518,7 +518,7 @@ namespace slib
 					}
 					addTask(m_doStartWritingBase);
 				}
-				
+
 				void startReadingBase()
 				{
 					ObjectLocker lock(this);
@@ -534,7 +534,7 @@ namespace slib
 					m_flagReadingBase = sl_true;
 					m_baseStream->read(m_bufReadingBase, m_callbackRead);
 				}
-				
+
 				void startWritingBase()
 				{
 					ObjectLocker lock(this);
@@ -555,7 +555,7 @@ namespace slib
 						m_baseStream->write(data, len, m_callbackWrite);
 					}
 				}
-				
+
 				void startReading()
 				{
 					for (;;) {
@@ -599,7 +599,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void startWriting()
 				{
 					for (;;) {
@@ -651,7 +651,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void onRead(AsyncStreamResult& result)
 				{
 					ObjectLocker lock(this);
@@ -670,7 +670,7 @@ namespace slib
 					}
 					doIO(lock);
 				}
-				
+
 				void onWrite(AsyncStreamResult& result)
 				{
 					ObjectLocker lock(this);
@@ -681,7 +681,7 @@ namespace slib
 					doIO(lock);
 					startWritingBase();
 				}
-				
+
 				void doIO(ObjectLocker& lock)
 				{
 					InitThread();
@@ -696,7 +696,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void handshake() override
 				{
 					ObjectLocker lock(this);
@@ -706,7 +706,7 @@ namespace slib
 					m_flagInitHandshake = sl_true;
 					doHandshake(lock);
 				}
-				
+
 				void doHandshake(ObjectLocker& lock)
 				{
 					int err = 0;
@@ -734,13 +734,13 @@ namespace slib
 						m_onHandshake(result);
 					}
 				}
-				
+
 			public:
 				SSL* getSSL() override
 				{
 					return m_ssl;
 				}
-				
+
 				void close() override
 				{
 					ObjectLocker lock(this);
@@ -751,12 +751,12 @@ namespace slib
 					m_context.setNull();
 					m_baseStream.setNull();
 				}
-				
+
 				sl_bool isOpened() override
 				{
 					return m_baseStream.isNotNull();
 				}
-				
+
 				sl_bool requestIo(const Ref<AsyncStreamRequest>& request) override
 				{
 					ObjectLocker lock(this);
@@ -787,7 +787,7 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				sl_bool addTask(const Function<void()>& callback) override
 				{
 					ObjectLocker lock(this);
@@ -796,36 +796,36 @@ namespace slib
 					}
 					return m_baseStream->addTask(callback);
 				}
-				
+
 			};
 
 		}
 	}
-	
+
 	using namespace priv::openssl;
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(OpenSSL_Context, TlsContext)
-	
+
 	OpenSSL_Context::OpenSSL_Context()
 	{
 	}
-	
+
 	OpenSSL_Context::~OpenSSL_Context()
 	{
 	}
-	
+
 	SLIB_DEFINE_OBJECT(OpenSSL_AsyncStream, TlsAsyncStream)
-	
+
 	OpenSSL_AsyncStream::OpenSSL_AsyncStream()
 	{
 	}
-	
+
 	OpenSSL_AsyncStream::~OpenSSL_AsyncStream()
 	{
 	}
-	
-	
+
+
 	Ref<OpenSSL_Context> OpenSSL::createContext(const TlsContextParam& param)
 	{
 		return Ref<OpenSSL_Context>::from(ContextImpl::create(param));
@@ -835,10 +835,10 @@ namespace slib
 	{
 		return Ref<OpenSSL_AsyncStream>::from(StreamImpl::connectStream(baseStream, param));
 	}
-	
+
 	Ref<OpenSSL_AsyncStream> OpenSSL::acceptStream(const Ref<AsyncStream>& baseStream, const TlsAcceptStreamParam& param)
 	{
 		return Ref<OpenSSL_AsyncStream>::from(StreamImpl::acceptStream(baseStream, param));
 	}
-	
+
 }

@@ -24,7 +24,7 @@
 #define CHECKHEADER_SLIB_NETWORK_HTTP
 
 /****************************************
-	
+
 	http://ietf.org/rfc/rfc2616.txt
 
 	and replaced by

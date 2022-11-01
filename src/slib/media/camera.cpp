@@ -26,26 +26,26 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CameraInfo)
 
 	CameraInfo::CameraInfo()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CameraTakePictureResult)
-	
+
 	CameraTakePictureResult::CameraTakePictureResult()
 	{
 		flagSuccess = sl_false;
-		
+
 		rotation = RotationMode::Rotate0;
 		flip = FlipMode::None;
-		
+
 		frame = sl_null;
 	}
-	
+
 	Ref<Image> CameraTakePictureResult::getImage()
 	{
 		if (frame) {
@@ -56,7 +56,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Drawable> CameraTakePictureResult::getDrawable()
 	{
 		if (frame) {
@@ -67,7 +67,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Memory CameraTakePictureResult::getJpeg()
 	{
 		if (jpeg.isNotNull()) {
@@ -81,28 +81,28 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void CameraTakePictureResult::setFrame(const VideoCaptureFrame& _frame)
 	{
 		frame = &_frame;
 		rotation = frame->rotation;
 		flip = frame->flip;
 	}
-	
+
 	void CameraTakePictureResult::setJpeg(const Memory& _jpeg)
 	{
 		jpeg = _jpeg;
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CameraTakePictureParam)
-	
+
 	CameraTakePictureParam::CameraTakePictureParam()
 	{
 		flashMode = CameraFlashMode::Auto;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CameraParam)
 
 	CameraParam::CameraParam()
@@ -131,7 +131,7 @@ namespace slib
 	{
 		return deviceId == "BACK";
 	}
-	
+
 	SLIB_DEFINE_OBJECT(Camera, VideoCapture)
 
 	Camera::Camera()
@@ -146,7 +146,7 @@ namespace slib
 			param.onComplete(result);
 		}
 	}
-	
+
 	void Camera::takePicture(const CameraTakePictureParam& param)
 	{
 		if (!(isRunning()) || m_queueTakePictureRequests.getCount() > 100) {
@@ -156,33 +156,33 @@ namespace slib
 		}
 		m_queueTakePictureRequests.push(param);
 	}
-	
+
 	void Camera::setFocusMode(CameraFocusMode mode)
 	{
 	}
-	
+
 	void Camera::autoFocus()
 	{
 	}
-	
+
 	void Camera::autoFocusOnPoint(sl_real x, sl_real y)
 	{
 	}
-	
+
 	sl_bool Camera::isAdjustingFocus()
 	{
 		return sl_false;
 	}
-	
+
 	sl_bool Camera::isTorchActive()
 	{
 		return sl_false;
 	}
-	
+
 	void Camera::setTorchMode(CameraTorchMode mode, float level)
 	{
 	}
-	
+
 	void Camera::onCaptureVideoFrame(VideoCaptureFrame& frame)
 	{
 		VideoCapture::onCaptureVideoFrame(frame);
@@ -196,16 +196,16 @@ namespace slib
 			}
 		}
 	}
-	
+
 #if !defined(SLIB_PLATFORM_IS_IOS) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	sl_bool Camera::isMobileDeviceTorchActive()
 	{
 		return sl_false;
 	}
-	
+
 	void Camera::setMobileDeviceTorchMode(CameraTorchMode mode, float level)
 	{
 	}
 #endif
-	
+
 }

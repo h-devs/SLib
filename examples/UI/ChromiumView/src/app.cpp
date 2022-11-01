@@ -37,9 +37,9 @@ void ExampleChromiumViewApp::onStart()
 	String path = Application::findFileAndSetApplicationDirectory("asset/web/index.html");
 	Application::setApplicationDirectory(path + "/asset");
 #endif
-	
+
 	getMainWindow()->setResizable(sl_true);
-	
+
 	m_webView = new ChromiumView;
 	m_webView->setWidthFilling();
 	m_webView->setHeightFilling();
@@ -51,7 +51,7 @@ void ExampleChromiumViewApp::onStart()
 	linear->setWidthFilling();
 	linear->setHeightFilling();
 	linear->addChild(m_webView);
-	
+
 	Ref<LinearLayout> linear2 = new HorizontalLinearLayout;
 	linear2->setPadding((sl_ui_pos)fontSize/2);
 	linear2->setWidthWrapping();
@@ -68,7 +68,7 @@ void ExampleChromiumViewApp::onStart()
 	button1->setText("Start Test");
 	button1->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickTest1));
 	linear2->addChild(button1);
-	
+
 	Ref<Button> button2 = new Button;
 	button2->setMarginLeft((sl_ui_pos)fontSize);
 	button2->setWidthWrapping();
@@ -79,7 +79,7 @@ void ExampleChromiumViewApp::onStart()
 	button2->setText("Call Script");
 	button2->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickTest2));
 	linear2->addChild(button2);
-	
+
 	Ref<Button> button3 = new Button;
 	button3->setMarginLeft((sl_ui_pos)fontSize);
 	button3->setWidthWrapping();
@@ -90,9 +90,9 @@ void ExampleChromiumViewApp::onStart()
 	button3->setText("Local Server");
 	button3->setOnClick(SLIB_FUNCTION_WEAKREF(this, onClickTest3));
 	linear2->addChild(button3);
-	
+
 	addViewToContent(linear);
-	
+
 }
 
 void ExampleChromiumViewApp::onClickTest1(View* button)

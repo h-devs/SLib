@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	sl_bool Clipboard::hasText()
 	{
 		UIPasteboard* board = [UIPasteboard generalPasteboard];
@@ -37,7 +37,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	String Clipboard::getText()
 	{
 		UIPasteboard* board = [UIPasteboard generalPasteboard];
@@ -47,7 +47,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void Clipboard::setText(const StringParam& text)
 	{
 		UIPasteboard* board = [UIPasteboard generalPasteboard];
@@ -56,7 +56,7 @@ namespace slib
 			[board setString:str];
 		}
 	}
-	
+
 }
 
 #endif

@@ -27,7 +27,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RSAPublicKey)
-	
+
 	RSAPublicKey::RSAPublicKey()
 	{
 	}
@@ -44,7 +44,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RSAPrivateKey)
-	
+
 	RSAPrivateKey::RSAPrivateKey(): flagUseOnlyD(sl_false)
 	{
 	}
@@ -66,7 +66,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool RSAPrivateKey::generateFromPrimes(sl_uint32 nBits) noexcept
 	{
 		sl_uint32 h = nBits >> 1;
@@ -105,7 +105,7 @@ namespace slib
 		DP = BigInt::mod(D, P1);
 		DQ = BigInt::mod(D, Q1);
 		IQ = BigInt::inverseMod(Q, P);
-		
+
 		// Test
 		BigInt a = 3;
 		BigInt b = BigInt::pow_montgomery(a, E, N);
@@ -193,7 +193,7 @@ namespace slib
 			return sl_false;
 		}
 		char* p = (char*)output;
-		
+
 		Base::moveMemory(p + len - sizeInput, input, sizeInput);
 		*(p++) = 0;
 		sl_uint32 lenPadding = len - 3 - (sl_uint32)sizeInput;
@@ -239,7 +239,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_uint32 RSA::decrypt_pkcs1_v15(const RSAPublicKey* keyPublic, const RSAPrivateKey* keyPrivate, const void* input, sl_size sizeInput, void* _output, sl_bool* pFlagSign)
 	{
 		sl_uint32 len;
@@ -302,7 +302,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	sl_bool RSA::encryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* input, sl_size sizeInput, void* output)
 	{
 		return encrypt_pkcs1_v15(&key, sl_null, input, sizeInput, output);
@@ -322,7 +322,7 @@ namespace slib
 	{
 		return encrypt_pkcs1_v15(sl_null, &key, input, sizeInput);
 	}
-	
+
 	sl_uint32 RSA::decryptPublic_pkcs1_v15(const RSAPublicKey& key, const void* input, sl_size sizeInput, void* output, sl_bool* pFlagSign)
 	{
 		return decrypt_pkcs1_v15(&key, sl_null, input, sizeInput, output, pFlagSign);
@@ -342,10 +342,10 @@ namespace slib
 	{
 		return decrypt_pkcs1_v15(sl_null, &key, input, sizeInput, pFlagSign);
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DHCommonKey)
-		
+
 	DHCommonKey::DHCommonKey()
 	{
 	}
@@ -361,7 +361,7 @@ namespace slib
 	{
 		return BigInt::pow_montgomery(remotePublicKey, localPrivateKey, common.P);
 	}
-	
+
 	BigInt DH::getPublicKey(const DHCommonKey& common, const BigInt& privateKey)
 	{
 		return BigInt::pow_montgomery(common.G, privateKey, common.P);

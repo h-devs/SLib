@@ -30,7 +30,7 @@ namespace slib
 	ChatClientParam::ChatClientParam()
 	{
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(ChatClient, Object)
 
@@ -66,12 +66,12 @@ namespace slib
 
 	void ChatClient::sendMessage(const String& receiverId, const String& message)
 	{
-		
+
 	}
 
 	void ChatClient::dispatchReceiveMessage(const String& roomId, ChatMessage& message)
 	{
-		
+
 	}
 
 }

@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	template <class T, class FT = T>
 	class SLIB_EXPORT RectangleT
 	{
@@ -43,7 +43,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(RectangleT)
-		
+
 		RectangleT() = default;
 
 		template <class O, class FO>
@@ -121,14 +121,14 @@ namespace slib
 			right = location.x + w;
 			bottom = location.y + h;
 		}
-		
+
 		void setLocationLeft(T _x) noexcept
 		{
 			T w = right - left;
 			left = _x;
 			right = _x + w;
 		}
-		
+
 		void setLocationTop(T _y) noexcept
 		{
 			T h = bottom - top;
@@ -142,14 +142,14 @@ namespace slib
 			left = _x - w;
 			right = _x;
 		}
-		
+
 		void setLocationBottom(T _y) noexcept
 		{
 			T h = bottom - top;
 			top = _y - h;
 			bottom = _y;
 		}
-		
+
 		void translate(T tx, T ty) noexcept
 		{
 			left += tx;
@@ -474,7 +474,7 @@ namespace slib
 		{
 			return { (T)SLIB_LERP(left, target.left, factor), (T)SLIB_LERP(top, target.top, factor), (T)SLIB_LERP(right, target.right, factor), (T)SLIB_LERP(bottom, target.bottom, factor) };
 		}
-	
+
 	public:
 		template <class O, class FO>
 		RectangleT<T, FT>& operator=(const RectangleT<O, FO>& other) noexcept
@@ -487,13 +487,13 @@ namespace slib
 		}
 
 	};
-	
+
 	typedef RectangleT<sl_real> Rectangle;
 	typedef RectangleT<float> Rectanglef;
 	typedef RectangleT<double> Rectanglelf;
 	typedef RectangleT<sl_int32, float> Rectanglei;
 	typedef RectangleT<sl_int64, double> Rectangleli;
-	
+
 }
 
 #endif

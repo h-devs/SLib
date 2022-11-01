@@ -39,53 +39,53 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace menu
 		{
-			
+
 			class MenuImpl;
-			
+
 			class MenuItemImpl : public MenuItem
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBMenuItemHandle* m_handle;
-				
+
 			public:
 				static Ref<MenuItemImpl> create(MenuImpl* parent, const MenuItemParam& param);
-				
+
 				void setText(const String& text) override;
-				
+
 				void setShortcutKey(const KeycodeAndModifiers& km) override;
-				
+
 				void setSecondShortcutKey(const KeycodeAndModifiers& km) override;
-				
+
 				void setEnabled(sl_bool flag) override;
-				
+
 				void setChecked(sl_bool flag) override;
-				
+
 				void setIcon(const Ref<Drawable>& icon) override;
-				
+
 				void setCheckedIcon(const Ref<Drawable>& icon) override;
-				
+
 				void setSubmenu(const Ref<Menu>& menu) override;
-				
+
 				static NSImage* _createIcon(const Ref<Drawable>& iconSrc);
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(MenuItemImpl, MenuItem)
-			
+
 			class MenuImpl : public Menu
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				NSMenu* m_handle;
-				
+
 			public:
 				static Ref<MenuImpl> create()
 				{
@@ -100,12 +100,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				Ref<MenuItem> addMenuItem(const MenuItemParam& param) override
 				{
 					return insertMenuItem(SLIB_UINT32_MAX, param);
 				}
-				
+
 				Ref<MenuItem> insertMenuItem(sl_uint32 index, const MenuItemParam& param) override
 				{
 					ObjectLocker lock(this);
@@ -121,12 +121,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				Ref<MenuItem> addSeparator() override
 				{
 					return insertSeparator(SLIB_UINT32_MAX);
 				}
-				
+
 				Ref<MenuItem> insertSeparator(sl_uint32 index) override
 				{
 					ObjectLocker lock(this);
@@ -142,7 +142,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void removeMenuItem(sl_uint32 index) override
 				{
 					ObjectLocker lock(this);
@@ -151,7 +151,7 @@ namespace slib
 						m_items.removeAt(index);
 					}
 				}
-				
+
 				void removeMenuItem(const Ref<MenuItem>& item) override
 				{
 					ObjectLocker lock(this);
@@ -161,7 +161,7 @@ namespace slib
 						m_items.removeAt(index);
 					}
 				}
-				
+
 				void show(sl_ui_pos x, sl_ui_pos y) override
 				{
 					NSPoint pt;
@@ -169,10 +169,10 @@ namespace slib
 					pt.y = (CGFloat)(UI::getScreenSize().y - y);
 					[m_handle popUpMenuPositioningItem:nil atLocation:pt inView:nil];
 				}
-				
+
 				friend class MenuItemImpl;
 			};
-			
+
 			SLIB_DEFINE_OBJECT(MenuImpl, Menu)
 
 			Ref<MenuItemImpl> MenuItemImpl::create(MenuImpl* parent, const MenuItemParam& param)
@@ -212,11 +212,11 @@ namespace slib
 						ret->setAction(param.action);
 						return ret;
 					}
-					
+
 				}
 				return sl_null;
 			}
-			
+
 			void MenuItemImpl::setText(const String& text)
 			{
 				MenuItem::setText(text);
@@ -225,7 +225,7 @@ namespace slib
 					m_handle.submenu.title = m_handle.title;
 				}
 			}
-			
+
 			void MenuItemImpl::setShortcutKey(const slib::KeycodeAndModifiers &km)
 			{
 				MenuItem::setShortcutKey(km);
@@ -238,30 +238,30 @@ namespace slib
 					m_handle.keyEquivalentModifierMask = 0;
 				}
 			}
-			
+
 			void MenuItemImpl::setSecondShortcutKey(const slib::KeycodeAndModifiers &km)
 			{
 				MenuItem::setSecondShortcutKey(km);
 			}
-			
+
 			void MenuItemImpl::setEnabled(sl_bool flag)
 			{
 				MenuItem::setEnabled(flag);
 				m_handle.enabled = flag ? YES : NO;
 			}
-			
+
 			void MenuItemImpl::setChecked(sl_bool flag)
 			{
 				MenuItem::setChecked(flag);
 				m_handle.state = flag ? NSOnState : NSOffState;
 			}
-			
+
 			void MenuItemImpl::setIcon(const Ref<Drawable>& icon)
 			{
 				MenuItem::setIcon(icon);
 				m_handle.offStateImage = GraphicsPlatform::getNSImage(icon);
 			}
-			
+
 			void MenuItemImpl::setCheckedIcon(const Ref<Drawable>& icon)
 			{
 				MenuItem::setCheckedIcon(icon);
@@ -270,7 +270,7 @@ namespace slib
 					m_handle.onStateImage = m_handle->m_defaultCheckedImage;
 				}
 			}
-			
+
 			void MenuItemImpl::setSubmenu(const Ref<Menu>& menu)
 			{
 				MenuItem::setSubmenu(menu);
@@ -279,7 +279,7 @@ namespace slib
 					m_handle.submenu.title = m_handle.title;
 				}
 			}
-			
+
 			NSImage* MenuItemImpl::_createIcon(const Ref<Drawable>& iconSrc)
 			{
 				if (iconSrc.isNotNull()) {
@@ -300,7 +300,7 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::menu;
 
 	Ref<Menu> Menu::create(sl_bool flagPopup)

@@ -32,11 +32,11 @@
 
 namespace slib
 {
-	
+
 #define ALIGN4(n) ((((n) - 1) | 3) + 1)
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StunAttributes)
-	
+
 	StunAttributes::StunAttributes()
 	{
 		errorCode = StunErrorCode::Success;
@@ -44,7 +44,7 @@ namespace slib
 		offsetMessageIntegrityAttribute = 0;
 		flagHaveFingerprint = sl_false;
 	}
-	
+
 	void StunAttributes::initialize()
 	{
 		mappedAddress.setNone();
@@ -63,51 +63,51 @@ namespace slib
 		offsetMessageIntegrityAttribute = 0;
 		flagHaveFingerprint = sl_false;
 	}
-	
+
 	StunMessageClass StunPacket::getMessageClass() const
 	{
 		return (StunMessageClass)(((_messageType[0] & 1) << 1) | ((_messageType[1] >> 4) & 1));
 	}
-	
+
 	void StunPacket::setMessageClass(StunMessageClass _class)
 	{
 		sl_uint8 n = (sl_uint8)(_class);
 		_messageType[0] = (_messageType[0] & 0xFE) | ((n >> 1) & 1);
 		_messageType[1] = (_messageType[1] & 0xEF) | ((n & 1) << 4);
 	}
-	
+
 	StunMethod StunPacket::getMethod() const
 	{
 		return (StunMethod)(((_messageType[0] >> 1) << 7) | ((_messageType[1] >> 5) << 4) | (_messageType[1] & 0xF));
 	}
-	
+
 	void StunPacket::setMethod(StunMethod method)
 	{
 		sl_uint8 n = (sl_uint8)(method);
 		_messageType[0] = (_messageType[0] & 1) | ((n >> 7) << 1);
 		_messageType[1] = (_messageType[1] & 0x10) | (((n >> 4) & 7) << 5) | (n & 0xF);
 	}
-	
+
 	sl_uint16 StunPacket::getMessageLength() const
 	{
 		return MIO::readUint16BE(_messageLength);
 	}
-	
+
 	void StunPacket::setMessageLength(sl_uint16 length)
 	{
 		MIO::writeUint16BE(_messageLength, length);
 	}
-	
+
 	sl_uint32 StunPacket::getMagicCookie() const
 	{
 		return MIO::readUint32BE(_magicCookie);
 	}
-	
+
 	void StunPacket::setMagicCookie(sl_uint32 cookie)
 	{
 		MIO::writeUint32BE(_magicCookie, cookie);
 	}
-	
+
 	const sl_uint8* StunPacket::getTransactionID() const
 	{
 		return _transactionID;
@@ -117,7 +117,7 @@ namespace slib
 	{
 		return _transactionID;
 	}
-	
+
 	const void* StunPacket::getAttributes() const
 	{
 		return (const sl_uint8*)this + HeaderSize;
@@ -145,7 +145,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool StunPacket::parseAttributes(sl_size packetSize, StunAttributes& attributes) const
 	{
 		if (!(checkHeader(this, packetSize))) {
@@ -245,7 +245,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_bool StunPacket::checkMessageIntegrity(const StunAttributes& attributes) const
 	{
 		if (!(attributes.flagHaveMessageIntegrity)) {
@@ -256,7 +256,7 @@ namespace slib
 		calculateMessageIntegrity(messageIntegrity, packet, attributes.offsetMessageIntegrityAttribute, attributes.userName, attributes.realm, attributes.password);
 		return Base::compareMemory(messageIntegrity, packet + attributes.offsetMessageIntegrityAttribute + 4, 20) == 0;
 	}
-	
+
 	Memory StunPacket::buildPacket(StunMessageClass _class, StunMethod method, const void* transactionID, const StunAttributes& attributes)
 	{
 		sl_size sizeMessage = 0;
@@ -285,22 +285,22 @@ namespace slib
 		if (sizeMessage > 0xFFFF - HeaderSize) {
 			return sl_null;
 		}
-		
+
 		Memory memPacket = Memory::create(HeaderSize + sizeMessage);
 		if (memPacket.isNull()) {
 			return sl_null;
 		}
-		
+
 		StunPacket* packet = (StunPacket*)(memPacket.getData());
 		packet->setMessageClass(_class);
 		packet->setMethod(method);
 		packet->setMessageLength((sl_uint16)sizeMessage);
 		packet->setMagicCookie();
 		Base::copyMemory(packet->getTransactionID(), transactionID, 12);
-		
+
 		sl_uint8* pAttrs = (sl_uint8*)(memPacket.getData()) + HeaderSize;
 		sl_size pos = 0;
-		
+
 		pos += ALIGN4(writeMappedAddressAttribute(StunAttributeType::MappedAddress, attributes.mappedAddress, pAttrs + pos));
 		pos += ALIGN4(packet->writeXorMappedAddressAttribute(attributes.xorMappedAddress, pAttrs + pos));
 		pos += ALIGN4(writeStringAttribute(StunAttributeType::UserName, attributes.userName, pAttrs + pos));
@@ -323,14 +323,14 @@ namespace slib
 		}
 		return memPacket;
 	}
-	
+
 	void StunPacket::writeAttributeHeader(StunAttributeType type, sl_size len, void* _data)
 	{
 		sl_uint8* data = (sl_uint8*)_data;
 		MIO::writeUint16BE(data, (sl_uint16)type);
 		MIO::writeUint16BE(data + 2, (sl_uint16)len);
 	}
-	
+
 	sl_size StunPacket::writeStringAttribute(StunAttributeType type, const String& str, void* _data)
 	{
 		sl_uint8* data = (sl_uint8*)_data;
@@ -346,7 +346,7 @@ namespace slib
 			return 4 + str.getLength();
 		}
 	}
-	
+
 	sl_bool StunPacket::readMappedAddressAttributeValue(const void* _data, sl_size size, SocketAddress& mappedAddress)
 	{
 		const sl_uint8* data = (const sl_uint8*)_data;
@@ -373,7 +373,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_size StunPacket::writeMappedAddressAttribute(StunAttributeType type, const SocketAddress& mappedAddress, void* _data)
 	{
 		sl_uint8* header = (sl_uint8*)_data;
@@ -408,7 +408,7 @@ namespace slib
 			return 0;
 		}
 	}
-	
+
 	sl_bool StunPacket::readXorMappedAddressAttributeValue(const void* _data, sl_size size, SocketAddress& mappedAddress) const
 	{
 		const sl_uint8* data = (const sl_uint8*)_data;
@@ -443,7 +443,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_size StunPacket::writeXorMappedAddressAttribute(const SocketAddress& mappedAddress, void* _data) const
 	{
 		sl_uint8* header = (sl_uint8*)_data;
@@ -493,7 +493,7 @@ namespace slib
 			return 0;
 		}
 	}
-	
+
 	sl_bool StunPacket::readErrorCodeAttributeValue(const void* _data, sl_size size, StunErrorCode& errorCode, String& errorReasonPhase)
 	{
 		const sl_uint8* data = (const sl_uint8*)_data;
@@ -512,7 +512,7 @@ namespace slib
 		errorReasonPhase = String((sl_char8*)(data + 4), size - 4);
 		return sl_true;
 	}
-	
+
 	sl_size StunPacket::writeErrorCodeAttribute(StunErrorCode _errorCode, const String& errorReasonPhase, void* _data)
 	{
 		sl_uint8* header = (sl_uint8*)_data;
@@ -548,7 +548,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	sl_size StunPacket::writeUnknownAttributesAttribute(const List<sl_uint16>& unknownAttributes, void* _data)
 	{
 		sl_uint8* header = (sl_uint8*)_data;
@@ -574,7 +574,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void StunPacket::calculateMessageIntegrity(void* output, const void* packet, sl_size size, const String& userName, const String& realm, const String& password)
 	{
 		// HMAC-SHA1, long-term-credentials-key = MD5(username ":" realm ":" password), short-term-credentials-key=password
@@ -592,78 +592,78 @@ namespace slib
 		}
 		HMAC<SHA1>::execute(key, lenKey, packet, size, output);
 	}
-	
+
 	void StunPacket::calculateFingerprint(void* output /* 4 bytes */, const void* packet, sl_size size)
 	{
 		sl_uint32 crc = Crc32::get(packet, size);
 		crc ^= 0x5354554e;
 		MIO::writeUint32BE(output, crc);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(StunServerParam)
-	
+
 	StunServerParam::StunServerParam()
 	{
 		port = SLIB_NETWORK_STUN_PORT;
 		flagAutoStart = sl_true;
 		flagLogging = sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(StunServer, Object)
-	
+
 	StunServer::StunServer()
 	{
 		m_flagInit = sl_false;
 		m_flagRunning = sl_false;
 		m_flagLogging = sl_false;
 	}
-	
+
 	StunServer::~StunServer()
 	{
 		release();
 	}
-	
+
 #define TAG_SERVER "StunServer"
-	
+
 	Ref<StunServer> StunServer::create(const StunServerParam& param)
 	{
 		Ref<StunServer> ret = new StunServer;
-		
+
 		if (ret.isNotNull()) {
-			
+
 			AsyncUdpSocketParam up;
 			up.onReceiveFrom = SLIB_FUNCTION_WEAKREF(ret, _onReceiveFrom);
 			up.packetSize = 4096;
 			up.ioLoop = param.ioLoop;
 			up.flagAutoStart = sl_false;
-			
+
 			up.bindAddress.port = param.port;
 			Ref<AsyncUdpSocket> socket = AsyncUdpSocket::create(up);
 			if (socket.isNull()) {
 				LogError(TAG_SERVER, "Failed to bind to port %d", param.port);
 				return sl_null;
 			}
-			
+
 			if (socket.isNotNull()) {
-				
+
 				ret->m_flagLogging = param.flagLogging;
-				
+
 				ret->m_udp = socket;
-				
+
 				ret->m_flagInit = sl_true;
 				if (param.flagAutoStart) {
 					ret->start();
 				}
 				return ret;
-				
+
 			}
-			
+
 		}
 		return sl_null;
 	}
-	
+
 	void StunServer::release()
 	{
 		ObjectLocker lock(this);
@@ -671,13 +671,13 @@ namespace slib
 			return;
 		}
 		m_flagInit = sl_false;
-		
+
 		m_flagRunning = sl_false;
 		if (m_udp.isNotNull()) {
 			m_udp->close();
 		}
 	}
-	
+
 	void StunServer::start()
 	{
 		ObjectLocker lock(this);
@@ -692,12 +692,12 @@ namespace slib
 		}
 		m_flagRunning = sl_true;
 	}
-	
+
 	sl_bool StunServer::isRunning()
 	{
 		return m_flagRunning;
 	}
-	
+
 	void StunServer::_onReceiveFrom(AsyncUdpSocket* socket, const SocketAddress& addressFrom, void* data, sl_uint32 size)
 	{
 		StunPacket* packet = (StunPacket*)data;
@@ -716,5 +716,5 @@ namespace slib
 			}
 		}
 	}
-	
+
 }

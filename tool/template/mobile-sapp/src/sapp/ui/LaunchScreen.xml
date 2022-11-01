@@ -3,7 +3,7 @@
 		type='page'
 		background='white'
 		>
-		
+
 		<image
 			src='@drawable/slib_icon'
 			width='80%'

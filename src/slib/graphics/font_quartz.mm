@@ -46,9 +46,9 @@ namespace slib
 				UIFont* m_font;
 				sl_bool m_flagCreatedFont;
 				CGFloat m_lastUIScaleFactor;
-				
+
 				SpinLock m_lock;
-				
+
 			public:
 				FontPlatformObject()
 				{
@@ -56,23 +56,23 @@ namespace slib
 					m_flagCreatedFont = sl_false;
 					m_lastUIScaleFactor = 0;
 				}
-				
+
 				~FontPlatformObject()
 				{
 					m_font = nil;
 				}
-				
+
 			public:
 				UIFont* _createFont(const FontDesc& desc, CGFloat scaleFactor)
 				{
 					SpinLocker lock(&m_lock);
-					
+
 					if (m_flagCreatedFont && m_lastUIScaleFactor == scaleFactor) {
 						return m_font;
 					}
-					
+
 					m_flagCreatedFont = sl_true;
-					
+
 					float size = desc.size / scaleFactor;
 					NSString* familyName = Apple::getNSStringFromString(desc.familyName);
 					uint32_t traits = 0;
@@ -134,7 +134,7 @@ namespace slib
 					}
 					return (FontPlatformObject*)(m_platformObject.get());;
 				}
-								
+
 				UIFont* getFontObject(CGFloat scaleFactor)
 				{
 					FontPlatformObject* po = getPlatformObject();
@@ -143,12 +143,12 @@ namespace slib
 					}
 					return nil;
 				}
-				
+
 			};
 
 		}
 	}
-	
+
 	using namespace priv::quartz;
 
 	sl_bool Font::_getFontMetrics_PO(FontMetrics& _out)

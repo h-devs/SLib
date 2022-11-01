@@ -289,7 +289,7 @@ namespace slib
 				{
 					return (GtkTreeView*)m_handleTreeView;
 				}
-				
+
 				Ref<ListControlHelper> getHelper()
 				{
 					return CastRef<ListControlHelper>(getView());
@@ -336,7 +336,7 @@ namespace slib
 						(static_cast<ListControlHelper*>(view))->applyColumnCount(handle);
 					}
 				}
-				
+
 				void refreshRowCount(ListControl* view) override
 				{
 					GtkTreeView* handle = getHandle();
@@ -344,7 +344,7 @@ namespace slib
 						(static_cast<ListControlHelper*>(view))->applyRowCount(handle);
 					}
 				}
-				
+
 				void setHeaderText(ListControl* view, sl_uint32 iCol, const String& _text) override
 				{
 					GtkTreeView* handle = getHandle();
@@ -356,7 +356,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setColumnWidth(ListControl* view, sl_uint32 iCol, sl_ui_len width) override
 				{
 					GtkTreeView* handle = getHandle();
@@ -367,7 +367,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setHeaderAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
 					GtkTreeView* handle = getHandle();
@@ -378,7 +378,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void setColumnAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
 				{
 					GtkTreeView* handle = getHandle();
@@ -389,7 +389,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_bool getSelectedRow(ListControl* view, sl_int32& _out) override
 				{
 					GtkTreeView* handle = getHandle();
@@ -510,7 +510,7 @@ namespace slib
 				}
 
 			};
-			
+
 			SLIB_DEFINE_OBJECT(ListControlInstance, GTK_ViewInstance)
 
 		}
@@ -523,7 +523,7 @@ namespace slib
 		GtkWidget* handle = gtk_scrolled_window_new(sl_null, sl_null);
 		return GTK_ViewInstance::create<ListControlInstance>(this, parent, handle);
 	}
-	
+
 	Ptr<IListControlInstance> ListControl::getListControlInstance()
 	{
 		return CastRef<ListControlInstance>(getViewInstance());

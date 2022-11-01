@@ -31,10 +31,10 @@ namespace slib
 	class SLIB_EXPORT ListBox : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ListBox();
-		
+
 		~ListBox();
 
 	public:
@@ -83,7 +83,7 @@ namespace slib
 		Ref<Drawable> getItemBackground();
 
 		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-	
+
 		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getSelectedItemBackground();
@@ -128,7 +128,7 @@ namespace slib
 		sl_int64 m_countItems;
 		sl_ui_len m_heightItem;
 		sl_int64 m_indexHover;
-		
+
 		sl_bool m_flagMultipleSelection;
 		sl_int64 m_indexSelected;
 		sl_int64 m_indexFocused;

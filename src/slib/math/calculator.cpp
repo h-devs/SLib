@@ -27,30 +27,30 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace calculator
 		{
-			
+
 			template <class CHAR>
 			SLIB_INLINE static sl_reg ParseNumber(sl_int32& result, const CHAR* str, sl_size posBegin, sl_size posEnd) noexcept
 			{
 				return StringTypeFromCharType<CHAR>::Type::parseInt32(10, &result, str, posBegin, posEnd);
 			}
-			
+
 			template <class CHAR>
 			SLIB_INLINE static sl_reg ParseNumber(sl_int64& result, const CHAR* str, sl_size posBegin, sl_size posEnd) noexcept
 			{
 				return StringTypeFromCharType<CHAR>::Type::parseInt64(10, &result, str, posBegin, posEnd);
 			}
-			
+
 			template <class CHAR>
 			SLIB_INLINE static sl_reg ParseNumber(float& result, const CHAR* str, sl_size posBegin, sl_size posEnd) noexcept
 			{
 				return StringTypeFromCharType<CHAR>::Type::parseFloat(&result, str, posBegin, posEnd);
 			}
-			
+
 			template <class CHAR>
 			SLIB_INLINE static sl_reg ParseNumber(double& result, const CHAR* str, sl_size posBegin, sl_size posEnd) noexcept
 			{
@@ -242,12 +242,12 @@ namespace slib
 	{
 		return Calculate(str, result, isDivisionByZero);
 	}
-	
+
 	sl_reg Calculator::calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char8* str, sl_size posBegin, sl_size posEnd) noexcept
 	{
 		return Calculate(result, isDivisionByZero, str, posBegin, posEnd);
 	}
-	
+
 	sl_reg Calculator::calculate(sl_int64* result, sl_bool* isDivisionByZero, const sl_char16* str, sl_size posBegin, sl_size posEnd) noexcept
 	{
 		return Calculate(result, isDivisionByZero, str, posBegin, posEnd);
@@ -267,7 +267,7 @@ namespace slib
 	{
 		return Calculate(result, isDivisionByZero, str, posBegin, posEnd);
 	}
-	
+
 	sl_reg Calculator::calculate(float* result, sl_bool* isDivisionByZero, const sl_char16* str, sl_size posBegin, sl_size posEnd) noexcept
 	{
 		return Calculate(result, isDivisionByZero, str, posBegin, posEnd);
@@ -287,7 +287,7 @@ namespace slib
 	{
 		return Calculate(result, isDivisionByZero, str, posBegin, posEnd);
 	}
-	
+
 	sl_reg Calculator::calculate(double* result, sl_bool* isDivisionByZero, const sl_char16* str, sl_size posBegin, sl_size posEnd) noexcept
 	{
 		return Calculate(result, isDivisionByZero, str, posBegin, posEnd);
@@ -302,5 +302,5 @@ namespace slib
 	{
 		return Calculate(str, result, isDivisionByZero);
 	}
-	
+
 }

@@ -109,7 +109,7 @@ namespace slib
 			Queue< Function<void()> > m_tasks;
 
 		};
-	
+
 	}
 
 }

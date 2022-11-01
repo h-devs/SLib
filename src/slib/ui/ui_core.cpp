@@ -38,23 +38,23 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ui_core
 		{
-			
+
 			class DefaultContext
 			{
 			public:
 				sl_real fontSize;
 				AtomicString fontFamily;
-				
+
 				SpinLock lockFont;
 				Ref<Font> font;
 
 				sl_ui_len scrollBarWidth;
-				
+
 			public:
 				DefaultContext()
 				{
@@ -67,17 +67,17 @@ namespace slib
 #endif
 				}
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(DefaultContext, getDefaultContext)
 
 			class UICallback : public Callable<void()>
 			{
 			public:
 				Function<void()> m_callback;
-				
+
 			public:
 				UICallback(const Function<void()>& callback) noexcept: m_callback(callback) {}
-				
+
 			public:
 				void invoke() noexcept override
 				{
@@ -87,9 +87,9 @@ namespace slib
 						UI::dispatchToUiThread(m_callback);
 					}
 				}
-				
+
 			};
-			
+
 			class DispatcherImpl : public Dispatcher
 			{
 			public:
@@ -102,12 +102,12 @@ namespace slib
 					return sl_true;
 				}
 			};
-			
+
 			static sl_bool g_flagInitializedApp = sl_false;
 			static sl_bool g_flagRunningApp = sl_false;
 			static sl_int32 g_nLevelRunLoop = 0;
 			static sl_bool g_flagQuitApp = sl_false;
-			
+
 			static void QuitLoop()
 			{
 				if (g_nLevelRunLoop) {
@@ -116,7 +116,7 @@ namespace slib
 					UIPlatform::quitApp();
 				}
 			}
-			
+
 			static void QuitApp()
 			{
 				if (g_flagQuitApp) {
@@ -125,7 +125,7 @@ namespace slib
 				g_flagQuitApp = sl_true;
 				QuitLoop();
 			}
-			
+
 			static void TermHandler(int signum)
 			{
 				QuitApp();
@@ -133,10 +133,10 @@ namespace slib
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
 			DragOperations g_currentDraggingOperationMask;
-		
+
 		}
 	}
-	
+
 	using namespace priv::ui_core;
 
 	SLIB_DEFINE_OBJECT(Screen, Object)
@@ -353,22 +353,22 @@ namespace slib
 		return sl_null;
 	}
 #endif
-	
+
 	sl_real UI::pixelToInch(sl_real px)
 	{
 		return (sl_real)(px / getScreenPPI());
 	}
-	
+
 	sl_real UI::inchToPixel(sl_real inch)
 	{
 		return (sl_real)(inch * getScreenPPI());
 	}
-	
+
 	sl_real UI::pixelToMeter(sl_real px)
 	{
 		return (sl_real)(px / getScreenPPI() * 0.0254);
 	}
-	
+
 	sl_real UI::meterToPixel(sl_real meters)
 	{
 		return (sl_real)(meters * 39.3701 * getScreenPPI());
@@ -378,42 +378,42 @@ namespace slib
 	{
 		return (sl_real)(px * 2.54 / getScreenPPI());
 	}
-	
+
 	sl_real UI::centimeterToPixel(sl_real cm)
 	{
 		return (sl_real)(cm * getScreenPPI() * 0.393701);
 	}
-	
+
 	sl_real UI::pixelToMillimeter(sl_real px)
 	{
 		return (sl_real)(px * 25.4 / getScreenPPI());
 	}
-	
+
 	sl_real UI::millimeterToPixel(sl_real mm)
 	{
 		return (sl_real)(mm * getScreenPPI() * 0.0393701);
 	}
-	
+
 	sl_real UI::pixelToPoint(sl_real px)
 	{
 		return (sl_real)(px * 72 / getScreenPPI());
 	}
-	
+
 	sl_real UI::pointToPixel(sl_real pt)
 	{
 		return (sl_real)(pt * getScreenPPI() / 72);
 	}
-	
+
 	sl_real UI::pixelToDp(sl_real px)
 	{
 		return (sl_real)(px * 160 / getScreenPPI());
 	}
-	
+
 	sl_real UI::dpToPixel(sl_real dp)
 	{
 		return (sl_real)(dp * getScreenPPI() / 160);
 	}
-	
+
 	void UI::alert(const StringParam& text)
 	{
 		AlertDialog alert;
@@ -565,7 +565,7 @@ namespace slib
 		alert.text = text.toString();
 		return alert.run() == DialogResult::OK;
 	}
-	
+
 	sl_bool UI::confirm(const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
@@ -574,7 +574,7 @@ namespace slib
 		alert.text = text.toString();
 		return alert.run() == DialogResult::OK;
 	}
-	
+
 	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& text)
 	{
 		AlertDialog alert;
@@ -583,7 +583,7 @@ namespace slib
 		alert.text = text.toString();
 		return alert.run() == DialogResult::OK;
 	}
-	
+
 	sl_bool UI::confirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text)
 	{
 		AlertDialog alert;
@@ -593,7 +593,7 @@ namespace slib
 		alert.text = text.toString();
 		return alert.run() == DialogResult::OK;
 	}
-	
+
 	void UI::showConfirm(const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
@@ -608,7 +608,7 @@ namespace slib
 		};
 		alert.show();
 	}
-	
+
 	void UI::showConfirm(const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
@@ -624,7 +624,7 @@ namespace slib
 		};
 		alert.show();
 	}
-	
+
 	void UI::showConfirm(const Ref<Window>& parent, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
@@ -640,7 +640,7 @@ namespace slib
 		};
 		alert.show();
 	}
-	
+
 	void UI::showConfirm(const Ref<Window>& parent, const StringParam& caption, const StringParam& text, const Function<void(sl_bool)>& onResult)
 	{
 		AlertDialog alert;
@@ -657,14 +657,14 @@ namespace slib
 		};
 		alert.show();
 	}
-	
+
 #if !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
 	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		dispatchToUiThread(callback, delayMillis);
 	}
 #endif
-	
+
 	void UI::runOnUiThread(const Function<void()>& callback)
 	{
 		if (callback.isNotNull()) {
@@ -750,7 +750,7 @@ namespace slib
 			UI::dispatchToUiThread(&QuitApp);
 		}
 	}
-	
+
 	sl_bool UI::isRunningApp()
 	{
 		return g_flagRunningApp;
@@ -787,7 +787,7 @@ namespace slib
 	{
 	}
 #endif
-	
+
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
 	void UI::dismissKeyboard()
 	{

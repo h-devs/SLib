@@ -27,18 +27,18 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ReadWriteLock
 	{
 	public:
 		ReadWriteLock() noexcept;
 
 		ReadWriteLock(const ReadWriteLock& other) noexcept;
-		
+
 		ReadWriteLock(ReadWriteLock&& other) noexcept;
 
 		~ReadWriteLock() noexcept;
-	
+
 	public:
 		sl_bool tryLockRead() const noexcept;
 
@@ -47,16 +47,16 @@ namespace slib
 		void unlockRead() const noexcept;
 
 		sl_bool tryLockWrite() const noexcept;
-		
+
 		void lockWrite() const noexcept;
-		
+
 		void unlockWrite() const noexcept;
-		
+
 	public:
 		ReadWriteLock& operator=(const ReadWriteLock& other) noexcept;
-	
+
 		ReadWriteLock& operator=(ReadWriteLock&& other) noexcept;
-		
+
 	private:
 		mutable void* m_pObject;
 #if defined(SLIB_PLATFORM_IS_WIN32)
@@ -64,16 +64,16 @@ namespace slib
 #endif
 
 	};
-	
+
 	class SLIB_EXPORT ReadLocker
 	{
 	public:
 		ReadLocker() noexcept;
-	
+
 		ReadLocker(const ReadWriteLock* lock) noexcept;
-		
+
 		ReadLocker(const ReadLocker& other) = delete;
-		
+
 		ReadLocker(ReadLocker&& other) = delete;
 
 		~ReadLocker() noexcept;
@@ -82,43 +82,43 @@ namespace slib
 		void lock(const ReadWriteLock* rwLock) noexcept;
 
 		void unlock() noexcept;
-		
+
 	public:
 		ReadLocker& operator=(const ReadLocker& other) = delete;
-		
+
 		ReadLocker& operator=(ReadLocker&& other) = delete;
 
 	private:
 		const ReadWriteLock* m_lock;
 
 	};
-	
+
 	class SLIB_EXPORT WriteLocker
 	{
 	public:
 		WriteLocker() noexcept;
-		
+
 		WriteLocker(const ReadWriteLock* lock) noexcept;
-		
+
 		WriteLocker(const WriteLocker& other) = delete;
-		
+
 		WriteLocker(WriteLocker&& other) = delete;
-		
+
 		~WriteLocker() noexcept;
-		
+
 	public:
 		void lock(const ReadWriteLock* rwLock) noexcept;
-		
+
 		void unlock() noexcept;
-		
+
 	public:
 		WriteLocker& operator=(const WriteLocker& other) = delete;
-		
+
 		WriteLocker& operator=(WriteLocker&& other) = delete;
-		
+
 	private:
 		const ReadWriteLock* m_lock;
-		
+
 	};
 
 }

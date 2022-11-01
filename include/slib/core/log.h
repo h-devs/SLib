@@ -81,7 +81,7 @@ namespace slib
 		LogPriority m_priorityMinimum;
 
 	};
-	
+
 	class SLIB_EXPORT FileLogger : public Logger
 	{
 	public:
@@ -148,13 +148,13 @@ namespace slib
 	{
 		Log(LogPriority::Info, tag, fmt, Forward<ARGS>(args)...);
 	}
-	
+
 	template <class... ARGS>
 	SLIB_INLINE static void LogError(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 	{
 		Log(LogPriority::Error, tag, fmt, Forward<ARGS>(args)...);
 	}
-	
+
 	template <class... ARGS>
 	SLIB_INLINE static void LogDebug(const StringParam& tag, const StringView& fmt, ARGS&&... args)
 	{

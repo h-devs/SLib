@@ -35,7 +35,7 @@ namespace slib
 	{
 		namespace jwt
 		{
-			
+
 			SLIB_STATIC_STRING(g_field_iss, "iss")
 			SLIB_STATIC_STRING(g_field_sub, "sub")
 			SLIB_STATIC_STRING(g_field_aud, "aud")
@@ -43,7 +43,7 @@ namespace slib
 			SLIB_STATIC_STRING(g_field_nbf, "nbf")
 			SLIB_STATIC_STRING(g_field_iat, "iat")
 			SLIB_STATIC_STRING(g_field_jti, "jti")
-			
+
 			SLIB_STATIC_STRING(g_field_typ, "typ")
 			SLIB_STATIC_STRING(g_field_cty, "cty")
 			SLIB_STATIC_STRING(g_field_alg, "alg")
@@ -63,17 +63,17 @@ namespace slib
 
 		}
 	}
-	
+
 	using namespace priv::jwt;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Jwt)
-	
+
 	Jwt::Jwt() noexcept
 	{
 		setType("JWT");
 		setAlgorithm(JwtAlgorithm::HS256);
 	}
-	
+
 	String Jwt::encode(const MemoryView& secret) const noexcept
 	{
 		StringBuffer sb;
@@ -143,7 +143,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	String Jwt::generateSignature(const MemoryView& secret, const void* data, sl_size size) const noexcept
 	{
 		sl_uint8 signature[SHA512::HashSize];
@@ -167,27 +167,27 @@ namespace slib
 		}
 		return Base64::encodeUrl(signature, sizeSignature);
 	}
-	
+
 	String Jwt::getType() const noexcept
 	{
 		return header.getItem(g_field_typ).getString();
 	}
-	
+
 	void Jwt::setType(const String& value) noexcept
 	{
 		header.putItem(g_field_typ, value);
 	}
-	
+
 	String Jwt::getContentType() const noexcept
 	{
 		return header.getItem(g_field_cty).getString();
 	}
-	
+
 	void Jwt::setContentType(const String& value) noexcept
 	{
 		header.putItem(g_field_cty, value);
 	}
-	
+
 	JwtAlgorithm Jwt::getAlgorithm() const noexcept
 	{
 		String alg = header.getItem(g_field_alg).getString();
@@ -205,7 +205,7 @@ namespace slib
 		if (alg.equalsIgnoreCase(g_alg_PS512)) return JwtAlgorithm::PS512;
 		return JwtAlgorithm::None;
 	}
-	
+
 	void Jwt::setAlgorithm(const JwtAlgorithm& value) noexcept
 	{
 		switch (value) {
@@ -226,37 +226,37 @@ namespace slib
 				break;
 		}
 	}
-	
+
 	String Jwt::getIssuer() const noexcept
 	{
 		return payload.getItem(g_field_iss).getString();
 	}
-	
+
 	void Jwt::setIssuer(const String& value) noexcept
 	{
 		payload.putItem(g_field_iss, value);
 	}
-	
+
 	String Jwt::getSubject() const noexcept
 	{
 		return payload.getItem(g_field_sub).getString();
 	}
-	
+
 	void Jwt::setSubject(const String& value) noexcept
 	{
 		payload.putItem(g_field_sub, value);
 	}
-	
+
 	String Jwt::getAudience() const noexcept
 	{
 		return payload.getItem(g_field_aud).getString();
 	}
-	
+
 	void Jwt::setAudience(const String& value) noexcept
 	{
 		payload.putItem(g_field_aud, value);
 	}
-	
+
 	Time Jwt::getExpirationTime() const noexcept
 	{
 		Variant var = payload.getItem(g_field_exp);
@@ -266,14 +266,14 @@ namespace slib
 			return Time::zero();
 		}
 	}
-	
+
 	void Jwt::setExpirationTime(const Time& value) noexcept
 	{
 		if (value.isNotZero()) {
 			payload.putItem(g_field_exp, value.toUnixTime());
 		}
 	}
-	
+
 	Time Jwt::getNotBefore() const noexcept
 	{
 		Variant var = payload.getItem(g_field_nbf);
@@ -283,29 +283,29 @@ namespace slib
 			return Time::zero();
 		}
 	}
-	
+
 	void Jwt::setNotBefore(const Time& value) noexcept
 	{
 		if (value.isNotZero()) {
 			payload.putItem(g_field_nbf, value.toUnixTime());
 		}
 	}
-	
+
 	String Jwt::getIssuedAt() const noexcept
 	{
 		return payload.getItem(g_field_iat).getString();
 	}
-	
+
 	void Jwt::setIssuedAt(const String& value) noexcept
 	{
 		payload.putItem(g_field_iat, value);
 	}
-	
+
 	String Jwt::getId() const noexcept
 	{
 		return payload.getItem(g_field_jti).getString();
 	}
-	
+
 	void Jwt::setId(const String& value) noexcept
 	{
 		payload.putItem(g_field_jti, value);

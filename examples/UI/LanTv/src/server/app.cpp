@@ -189,7 +189,7 @@ void LanTvServerApp::doRunServer()
 		if (camera.isNull()) {
 			return;
 		}
-		
+
 	}
 
 	socketAudio->setNonBlockingMode(sl_true);

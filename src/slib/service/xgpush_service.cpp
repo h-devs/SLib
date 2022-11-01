@@ -34,7 +34,7 @@ namespace slib
 	{
 		namespace xgpush
 		{
-		
+
 			SLIB_STATIC_STRING(g_str_title, "title")
 			SLIB_STATIC_STRING(g_str_content, "content")
 			SLIB_STATIC_STRING(g_str_body, "body")
@@ -65,19 +65,19 @@ namespace slib
 	using namespace priv::xgpush;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XgPushSendParam)
-	
+
 	XgPushSendParam::XgPushSendParam()
 	{
 		platform = XgPushPlatform::All;
 		environment = XgPushEnvironment::Production;
 	}
-	
+
 	void XgPushService::sendNotification(const XgPushSendParam& param)
 	{
 		HttpHeaderMap headers;
 		headers.put_NoLock(HttpHeader::Authorization, String::format("Basic %s", Base64::encode(String::format("%s:%s", param.appId, param.secretKey))));
 		headers.put_NoLock(HttpHeader::ContentType, ContentType::Json);
-		
+
 		Json message;
 		message.putItem(g_str_title, param.message.title);
 		message.putItem(g_str_content, param.message.content);
@@ -149,7 +149,7 @@ namespace slib
 			}
 		});
 	}
-	
+
 	String XgPushService::getPlatformString(XgPushPlatform platform)
 	{
 		switch (platform) {
@@ -162,7 +162,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String XgPushService::getEnvironmentString(XgPushEnvironment environment)
 	{
 		switch (environment) {
@@ -173,5 +173,5 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 }

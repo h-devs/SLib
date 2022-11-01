@@ -328,7 +328,7 @@ namespace slib
 						dwFileAttributesAndFlags |= FILE_ATTRIBUTE_DIRECTORY;
 					}
 				}
-				
+
 				if (pDokanFileInfo->IsDirectory) {
 					if (dwCreationDisposition == CREATE_NEW) {
 						return Dokany_CreateDirectory(szFileName, pDokanFileInfo);
@@ -861,7 +861,7 @@ namespace slib
 						return String::format("Unknown error: %d", m_iRet);
 					}
 				}
-				
+
 			private:
 				int m_iRet;
 				String m_strError;

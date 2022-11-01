@@ -30,33 +30,33 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ChatViewItem)
-	
+
 	ChatViewItem::ChatViewItem()
 	{
 	}
-	
+
 	SLIB_DEFINE_OBJECT(ChatView, ListView)
-	
+
 	ChatView::ChatView()
 	{
 		m_chatWidth = 0;
 		m_chatWidthWeight = 0.6f;
 		m_userIconSize = 0;
 		m_userIconSizeWeight = 0.1f;
-		
+
 		m_backColorReceived = Color(220, 230, 240);
 		m_textColorReceived = Color::Black;
 		m_backColorSent = Color(200, 220, 250);
 		m_textColorSent = Color::Black;
 		m_textColorDate = Color(120, 120, 120);
 	}
-	
+
 	ChatView::~ChatView()
 	{
 	}
-	
+
 #define CHAT_MARGIN_WEIGHT 0.4f
 #define CHAT_ROUND_WEIGHT 0.3f
 #define CHAT_SPACE_WEIGHT 0.3f
@@ -69,12 +69,12 @@ namespace slib
 	{
 		namespace chat_view
 		{
-			
+
 			struct ChatItemViewParams
 			{
 				sl_ui_len userIconSize;
 				sl_ui_len chatWidth;
-				
+
 				String formatDate;
 				String formatTime;
 				Color backColorReceived;
@@ -83,7 +83,7 @@ namespace slib
 				Color textColorSent;
 				Color textColorDate;
 			};
-			
+
 			class ChatItemView : public ViewGroup
 			{
 			public:
@@ -96,23 +96,23 @@ namespace slib
 				String message;
 				Time time;
 				Ref<Font> font;
-				
+
 				ChatItemViewParams params;
-				
+
 			private:
 				Ref<LabelView> m_label;
 				sl_bool m_flagPressed;
-				
+
 			public:
 				void init() override
 				{
 					ViewGroup::init();
-					
+
 					m_flagPressed = sl_false;
 
 					setWidthFilling(1, UIUpdateMode::Init);
 					setHeightWrapping(UIUpdateMode::Init);
-					
+
 					m_label = new LabelView;
 					m_label->setAlignParentTop(UIUpdateMode::Init);
 					m_label->setWidthWrapping(UIUpdateMode::Init);
@@ -124,7 +124,7 @@ namespace slib
 
 					setOnTouchEvent(SLIB_FUNCTION_WEAKREF(this, onTouchMessage));
 				}
-				
+
 			public:
 				class Layout
 				{
@@ -138,7 +138,7 @@ namespace slib
 					sl_ui_len chatSpace;
 					sl_ui_len y;
 					sl_ui_len xLabel;
-					
+
 					Layout(const Ref<Font>& font, sl_bool flagShowDate, sl_ui_len chatWidth, sl_ui_len userIconSize)
 					{
 						fontSize = font->getFontHeight();
@@ -155,7 +155,7 @@ namespace slib
 						xLabel = marginIcon * 2 + userIconSize + chatSpace;
 					}
 				};
-				
+
 				void onDraw(Canvas* canvas) override
 				{
 					sl_ui_len width = getWidth();
@@ -168,7 +168,7 @@ namespace slib
 					if (font.isNull()) {
 						return;
 					}
-					
+
 					Layout layout(font, flagShowDate, params.chatWidth, params.userIconSize);
 					if (flagShowDate) {
 						sl_ui_pos h = layout.heightDate;
@@ -239,7 +239,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				static sl_ui_len measureHeight(const Ref<Font>& font, const String& message, sl_bool flagShowDate, sl_ui_len chatWidth, sl_ui_len userIconSize)
 				{
 					SimpleTextBoxParam tp;
@@ -253,7 +253,7 @@ namespace slib
 					sl_ui_len bottomChat = layout.y + layout.heightTime + (sl_ui_len)(box.getContentHeight()) + 2 * layout.marginChat + layout.marginBottom;
 					return Math::max(bottomUserIcon, bottomChat);
 				}
-				
+
 				void setData(const ChatViewItem& item)
 				{
 					itemId = item.itemId;
@@ -262,15 +262,15 @@ namespace slib
 					userName = item.userName;
 					time = item.message.time;
 					message = item.message.text;
-					
+
 					Layout layout(font, flagShowDate, params.chatWidth, params.userIconSize);
-					
+
 					m_label->setFont(font, UIUpdateMode::None);
 					m_label->setText(message, UIUpdateMode::None);
 					m_label->setPadding(layout.marginChat, UIUpdateMode::None);
 					m_label->setMaximumWidth(params.chatWidth + layout.marginChat * 2, UIUpdateMode::None);
 					m_label->setMarginTop(layout.y + layout.heightTime, UIUpdateMode::None);
-					
+
 					if (flagMe) {
 						m_label->setTextColor(params.textColorSent, UIUpdateMode::None);
 						m_label->setMarginLeft(0, UIUpdateMode::None);
@@ -289,7 +289,7 @@ namespace slib
 					sl_ui_len bottomChat = layout.y + layout.heightTime + sizeChat.y + layout.marginBottom;
 					setHeight(Math::max(bottomUserIcon, bottomChat), UIUpdateMode::None);
 				}
-				
+
 				String getDateText()
 				{
 					if (params.formatDate.isNotEmpty()) {
@@ -307,7 +307,7 @@ namespace slib
 						return time.format(TimeFormat::WeekdayDate);
 					}
 				}
-				
+
 				String getTimeText()
 				{
 					String s;
@@ -321,9 +321,9 @@ namespace slib
 					}
 					return s;
 				}
-				
+
 				sl_bool m_flagTrySelect = sl_false;
-				
+
 				void onTouchMessage(View*, UIEvent* ev)
 				{
 					UIAction action = ev->getAction();
@@ -356,7 +356,7 @@ namespace slib
 					}
 					ev->preventDefault();
 				}
-				
+
 				void popupMenu(const UIPoint& pt)
 				{
 					auto popup = menu::PopupMenuChatItem::get();
@@ -371,15 +371,15 @@ namespace slib
 					});
 					popup->root->show(pt);
 				}
-				
+
 			};
-			
+
 			class ChatAdapter : public ListViewAdapter<ChatViewItem, ChatItemView>
 			{
 			public:
 				ChatView* chatView;
 				ChatItemViewParams params;
-				
+
 			public:
 				void onBindView(sl_uint64 _index, ChatItemView* view, View* parent) override
 				{
@@ -398,7 +398,7 @@ namespace slib
 						view->setData(item);
 					}
 				}
-				
+
 				sl_ui_len getItemHeight(sl_uint64 _index, View* parent) override
 				{
 					Ref<Font> font = parent->getFont();
@@ -415,24 +415,24 @@ namespace slib
 					return 0;
 				}
 			};
-			
+
 		}
 	}
-	
+
 	using namespace priv::chat_view;
-	
+
 	void ChatView::setItems(const List<ChatViewItem>& items, UIUpdateMode mode)
 	{
 		m_items = items;
 		_updateListContent(mode);
 	}
-	
+
 	void ChatView::addItem(const ChatViewItem& item, UIUpdateMode mode)
 	{
 		m_items.add(item);
 		_addListContent(mode);
 	}
-	
+
 	void ChatView::addItems(const List<ChatViewItem>& items, UIUpdateMode mode)
 	{
 		m_items.addAll(items);
@@ -443,19 +443,19 @@ namespace slib
 	{
 		return m_chatWidth;
 	}
-	
+
 	void ChatView::setChatWidth(sl_ui_len width, UIUpdateMode mode)
 	{
 		m_chatWidth = width;
 		m_chatWidthWeight = 0;
 		_updateListContent(mode);
 	}
-	
+
 	sl_real ChatView::getChatWidthWeight()
 	{
 		return m_chatWidthWeight;
 	}
-	
+
 	void ChatView::setChatWidthWeight(sl_real weight, UIUpdateMode mode)
 	{
 		m_chatWidthWeight = weight;
@@ -464,24 +464,24 @@ namespace slib
 		}
 		_updateListContent(mode);
 	}
-	
+
 	sl_ui_len ChatView::getUserIconSize()
 	{
 		return m_userIconSize;
 	}
-	
+
 	void ChatView::setUserIconSize(sl_ui_len width, UIUpdateMode mode)
 	{
 		m_userIconSize = width;
 		m_userIconSizeWeight = 0;
 		_updateListContent(mode);
 	}
-	
+
 	sl_real ChatView::getUserIconSizeWeight()
 	{
 		return m_userIconSizeWeight;
 	}
-	
+
 	void ChatView::setUserIconSizeWeight(sl_real weight, UIUpdateMode mode)
 	{
 		m_userIconSizeWeight = weight;
@@ -490,12 +490,12 @@ namespace slib
 		}
 		_updateListContent(mode);
 	}
-	
+
 	String ChatView::getDateFormat()
 	{
 		return m_formatDate;
 	}
-	
+
 	void ChatView::setDateFormat(const String& format, UIUpdateMode mode)
 	{
 		m_formatDate = format;
@@ -507,12 +507,12 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 	String ChatView::getTimeFormat()
 	{
 		return m_formatTime;
 	}
-	
+
 	void ChatView::setTimeFormat(const String& format, UIUpdateMode mode)
 	{
 		m_formatTime = format;
@@ -524,12 +524,12 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 	Color ChatView::getReceivedChatBackColor()
 	{
 		return m_backColorReceived;
 	}
-	
+
 	void ChatView::setReceivedChatBackColor(const Color& color, UIUpdateMode mode)
 	{
 		m_backColorReceived = color;
@@ -541,12 +541,12 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 	Color ChatView::getReceivedChatTextColor()
 	{
 		return m_textColorReceived;
 	}
-	
+
 	void ChatView::setReceivedChatTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_textColorReceived = color;
@@ -558,12 +558,12 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 	Color ChatView::getSentChatBackColor()
 	{
 		return m_backColorSent;
 	}
-	
+
 	void ChatView::setSentChatBackColor(const Color& color, UIUpdateMode mode)
 	{
 		m_backColorSent = color;
@@ -575,12 +575,12 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 	Color ChatView::getSentChatTextColor()
 	{
 		return m_textColorSent;
 	}
-	
+
 	void ChatView::setSentChatTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_textColorSent = color;
@@ -592,12 +592,12 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 	Color ChatView::getDateTextColor()
 	{
 		return m_textColorDate;
 	}
-	
+
 	void ChatView::setDateTextColor(const Color& color, UIUpdateMode mode)
 	{
 		m_textColorDate = color;
@@ -609,7 +609,7 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 	void ChatView::setFrame(const UIRect& frame, UIUpdateMode mode)
 	{
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
@@ -625,20 +625,20 @@ namespace slib
 			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, smoothScrollToEndY, UIUpdateMode::Redraw));
 		}
 	}
-	
+
 	void ChatView::setFont(const Ref<Font>& font, UIUpdateMode mode)
 	{
 		ListView::setFont(font, UIUpdateMode::None);
 		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _updateListContent, UIUpdateMode::UpdateLayout));
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(ChatView, DeleteItem, const String& itemId)
-	
+
 	void ChatView::dispatchDeleteItem(const String& itemId)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(DeleteItem, itemId)
 	}
-	
+
 	void ChatView::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		ListView::onResize(width, height);
@@ -667,7 +667,7 @@ namespace slib
 			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _updateListContent, UIUpdateMode::UpdateLayout));
 		}
 	}
-	
+
 	void ChatView::_updateListContent(UIUpdateMode mode)
 	{
 		if (!SLIB_UI_UPDATE_MODE_IS_UPDATE_LAYOUT(mode)) {
@@ -676,7 +676,7 @@ namespace slib
 		if (getWidth() < 1 || getHeight() < 1) {
 			return;
 		}
-		
+
 		sl_bool flagInit = getAdapter().isNull();
 		List<ChatViewItem> items(m_items);
 		if (items.isEmpty()) {
@@ -685,7 +685,7 @@ namespace slib
 			}
 			return;
 		}
-		
+
 		Ref<ChatAdapter> adapter = new ChatAdapter;
 		adapter->chatView = this;
 		adapter->params.chatWidth = m_chatWidth;
@@ -703,7 +703,7 @@ namespace slib
 		param.flagScrollToLastItem = flagInit;
 		setAdapter(param);
 	}
-	
+
 	void ChatView::_addListContent(UIUpdateMode mode)
 	{
 		if (!SLIB_UI_UPDATE_MODE_IS_UPDATE_LAYOUT(mode)) {
@@ -712,7 +712,7 @@ namespace slib
 		if (getWidth() < 1 || getHeight() < 1) {
 			return;
 		}
-		
+
 		if (List<ChatViewItem>(m_items).isEmpty()) {
 			return;
 		}
@@ -725,7 +725,7 @@ namespace slib
 			_updateListContent(mode);
 		}
 	}
-	
+
 	void ChatView::_onRemoveItem(const String& itemId)
 	{
 		ChatViewItem item;
@@ -745,5 +745,5 @@ namespace slib
 			refreshItems();
 		}
 	}
-	
+
 }

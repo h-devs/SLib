@@ -31,18 +31,18 @@ class ExampleWebViewApp : public MobileApp
 	SLIB_APPLICATION(ExampleWebViewApp)
 public:
 	ExampleWebViewApp();
-	
+
 	void onStart() override;
-	
+
 private:
 	void onClickTest1(View* button);
-	
+
 	void onClickTest2(View* button);
-	
+
 	void onClickTest3(View* button);
-	
+
 private:
 	Ref<WebView> m_webView;
 	Ref<HttpServer> m_http;
-	
+
 };

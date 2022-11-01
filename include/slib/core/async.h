@@ -62,21 +62,21 @@ namespace slib
 
 	public:
 		static Ref<AsyncIoLoop> getDefault();
-	
+
 		static void releaseDefault();
 
 		static Ref<AsyncIoLoop> create(sl_bool flagAutoStart = sl_true);
-	
+
 	public:
 		void release();
-	
+
 		void start();
 
 		sl_bool isRunning();
 
 
 		sl_bool addTask(const Function<void()>& task);
-	
+
 		void wake();
 
 
@@ -96,7 +96,7 @@ namespace slib
 		Ref<Thread> m_thread;
 
 		LinkedQueue< Function<void()> > m_queueTasks;
-	
+
 		LinkedQueue< Ref<AsyncIoInstance> > m_queueInstancesOrder;
 		LinkedQueue< Ref<AsyncIoInstance> > m_queueInstancesClosing;
 		LinkedQueue< Ref<AsyncIoInstance> > m_queueInstancesClosed;
@@ -112,7 +112,7 @@ namespace slib
 	protected:
 		void _stepBegin();
 		void _stepEnd();
-	
+
 	};
 
 	class SLIB_EXPORT AsyncIoInstance : public Object
@@ -123,18 +123,18 @@ namespace slib
 		AsyncIoInstance();
 
 		~AsyncIoInstance();
-	
+
 	public:
 		Ref<AsyncIoObject> getObject();
 
 		void setObject(AsyncIoObject* object);
-	
+
 		Ref<AsyncIoLoop> getLoop();
 
 		sl_async_handle getHandle();
 
 		sl_bool isOpened();
-	
+
 		AsyncIoMode getMode();
 
 		sl_bool isClosing();
@@ -144,14 +144,14 @@ namespace slib
 		void addToQueue(LinkedQueue< Ref<AsyncIoInstance> >& queue);
 
 		void requestOrder();
-	
+
 		void processOrder();
 
 	protected:
 		void setMode(AsyncIoMode mode);
 
 		void setHandle(sl_async_handle handle);
-	
+
 	protected:
 		virtual void onOrder() = 0;
 
@@ -169,12 +169,12 @@ namespace slib
 #endif
 		};
 		virtual void onEvent(EventDesc* pev) = 0;
-	
+
 	private:
 		AtomicWeakRef<AsyncIoObject> m_object;
 		sl_async_handle m_handle;
 		AsyncIoMode m_mode;
-	
+
 		sl_bool m_flagClosing;
 
 		sl_bool m_flagOrdering;
@@ -182,7 +182,7 @@ namespace slib
 
 		friend class AsyncIoLoop;
 	};
-	
+
 	class SLIB_EXPORT AsyncIoObject : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -191,23 +191,23 @@ namespace slib
 		AsyncIoObject();
 
 		~AsyncIoObject();
-	
+
 	public:
 		Ref<AsyncIoLoop> getIoLoop();
 
 		Ref<AsyncIoInstance> getIoInstance();
 
 		void closeIoInstance();
-	
+
 	protected:
 		void setIoLoop(const Ref<AsyncIoLoop>& loop);
 
 		void setIoInstance(AsyncIoInstance* instance);
-	
+
 	protected:
 		AtomicWeakRef<AsyncIoLoop> m_ioLoop;
 		AtomicRef<AsyncIoInstance> m_ioInstance;
-	
+
 	};
 
 }

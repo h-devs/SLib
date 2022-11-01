@@ -42,44 +42,44 @@ namespace slib
 		Emoji = 50,
 		Attach = 100
 	};
-	
+
 	typedef sl_size sl_text_pos;
-	
+
 #define SLIB_TEXT_RANGE_NOT_FOUND SLIB_SIZE_MAX
-	
+
 	class SLIB_EXPORT TextRange
 	{
 	public:
 		sl_text_pos location;
 		sl_text_pos length;
-		
+
 	public:
 		SLIB_CONSTEXPR TextRange() noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
-		
+
 		SLIB_CONSTEXPR TextRange(sl_null_t) noexcept : location(SLIB_TEXT_RANGE_NOT_FOUND), length(0) {}
-		
+
 		SLIB_CONSTEXPR TextRange(sl_text_pos _location, sl_text_pos _length) noexcept : location(_location), length(_length) {}
-		
+
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(TextRange)
-		
+
 	public:
 		SLIB_CONSTEXPR sl_bool operator==(const TextRange& other) const noexcept
 		{
 			return location == other.location && length == other.length;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool operator!=(const TextRange& other) const noexcept
 		{
 			return location != other.location || length != other.length;
 		}
-		
+
 		SLIB_CONSTEXPR sl_bool isNotFound() const noexcept
 		{
 			return location == SLIB_TEXT_RANGE_NOT_FOUND;
 		}
-		
+
 	};
-	
+
 	class SLIB_EXPORT TextStyle : public Referable
 	{
 	public:
@@ -95,28 +95,28 @@ namespace slib
 		String href;
 		sl_real lineHeight;
 		sl_real yOffset;
-		
+
 	public:
 		TextStyle() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextStyle)
-		
+
 	public:
 		Ref<TextStyle> duplicate() const noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT TextItemDrawParam
 	{
 	public:
 		Color textColor;
 		Color backgroundColor;
-		
+
 		sl_real shadowOpacity;
 		sl_real shadowRadius;
 		Color shadowColor;
 		Point shadowOffset;
-		
+
 		sl_real lineThickness;
 
 		sl_bool flagDrawSelection;
@@ -124,18 +124,18 @@ namespace slib
 		sl_reg selectionEnd;
 		Color selectedTextColor;
 		Color selectedBackgroundColor;
-		
+
 	public:
 		TextItemDrawParam() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextItemDrawParam)
-		
+
 	public:
 		void fixSelectionRange() noexcept;
 
 	};
-	
-	
+
+
 	class SLIB_EXPORT TextItem : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -144,18 +144,18 @@ namespace slib
 		TextItem(TextItemType type) noexcept;
 
 		~TextItem() noexcept;
-	
+
 	public:
 		TextItemType getType() noexcept;
-		
+
 		Ref<TextStyle> getStyle() noexcept;
-		
+
 		void setStyle(const Ref<TextStyle>& style) noexcept;
-		
+
 		Ref<Font> getFont() noexcept;
-	
+
 		Ref<Font> getEmojiFont() noexcept;
-		
+
 		Point getLayoutPosition() noexcept;
 
 		void setLayoutPosition(const Point& pt) noexcept;
@@ -175,7 +175,7 @@ namespace slib
 		AtomicRef<Font> m_emojiFontBase;
 
 	};
-	
+
 	class SLIB_EXPORT TextWordItem : public TextItem
 	{
 		SLIB_DECLARE_OBJECT
@@ -194,9 +194,9 @@ namespace slib
 		void setText(const String16& text) noexcept;
 
 		Size getSize() noexcept;
-		
+
 		void draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param);
-		
+
 	private:
 		String16 m_text;
 
@@ -206,33 +206,33 @@ namespace slib
 		sl_real m_heightCached;
 
 	};
-	
+
 	class SLIB_EXPORT TextEmojiItem : public TextItem
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	private:
 		TextEmojiItem() noexcept;
-		
+
 		~TextEmojiItem() noexcept;
-		
+
 	public:
 		static Ref<TextEmojiItem> create(const String16& text, const Ref<TextStyle>& style) noexcept;
-		
+
 	public:
 		Size getSize() noexcept;
-		
+
 		void draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param);
-		
+
 	private:
 		String16 m_text;
-		
+
 		Ref<Font> m_fontCached;
 		sl_real m_widthCached;
 		sl_real m_heightCached;
 
 	};
-	
+
 	class SLIB_EXPORT TextSpaceItem : public TextItem
 	{
 		SLIB_DECLARE_OBJECT
@@ -249,7 +249,7 @@ namespace slib
 		Size getSize() noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT TextTabItem : public TextItem
 	{
 		SLIB_DECLARE_OBJECT
@@ -266,7 +266,7 @@ namespace slib
 		sl_real getHeight() noexcept;
 
 	};
-	
+
 	class SLIB_EXPORT TextLineBreakItem : public TextItem
 	{
 		SLIB_DECLARE_OBJECT
@@ -283,8 +283,8 @@ namespace slib
 		sl_real getHeight() noexcept;
 
 	};
-	
-	
+
+
 	class SLIB_EXPORT TextAttachItem : public TextItem
 	{
 		SLIB_DECLARE_OBJECT
@@ -300,7 +300,7 @@ namespace slib
 		virtual void setPosition(const Point& pos) noexcept = 0;
 
 	};
-	
+
 	class SLIB_EXPORT TextParagraphLayoutParam
 	{
 	public:
@@ -314,7 +314,7 @@ namespace slib
 
 	public:
 		TextParagraphLayoutParam() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextParagraphLayoutParam)
 
 	};
@@ -323,17 +323,17 @@ namespace slib
 	{
 	public:
 		Color linkColor;
-		
+
 	public:
 		TextParagraphDrawParam() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextParagraphDrawParam)
-		
+
 	};
-	
+
 	class XmlNodeGroup;
 	class XmlElement;
-	
+
 	class SLIB_EXPORT TextParagraph : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -345,23 +345,23 @@ namespace slib
 
 	public:
 		void addText(const StringParam& text, const Ref<TextStyle>& style, sl_bool flagEnabledHyperlinksInPlainText = sl_false, sl_bool flagMnemonic = sl_false) noexcept;
-		
+
 		void addHyperTextNodeGroup(const Ref<XmlNodeGroup>& group, const Ref<TextStyle>& style) noexcept;
-		
+
 		void addHyperTextElement(const Ref<XmlElement>& element, const Ref<TextStyle>& style) noexcept;
-		
+
 		void addHyperText(const StringParam& text, const Ref<TextStyle>& style) noexcept;
 
 		void layout(const TextParagraphLayoutParam& param) noexcept;
 
 		void draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const TextParagraphDrawParam& param) noexcept;
-		
+
 		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, sl_real left, sl_real right) noexcept;
 
 		sl_real getContentWidth() noexcept;
 
 		sl_real getContentHeight() noexcept;
-		
+
 		Alignment getAlignment() noexcept;
 
 		sl_real getPositionLength() noexcept;
@@ -370,11 +370,11 @@ namespace slib
 		static const Color& getDefaultLinkColor();
 
 		static void setDefaultLinkColor(const Color& color);
-		
+
 		static sl_bool isDefaultLinkUnderline();
-		
+
 		static void setDefaultLinkUnderline(sl_bool flag);
-		
+
 	protected:
 		CList< Ref<TextItem> > m_items;
 		CList< Ref<TextItem> > m_layoutItems;
@@ -384,7 +384,7 @@ namespace slib
 		Alignment m_align;
 
 	};
-	
+
 	class SLIB_EXPORT SimpleTextBoxParam
 	{
 	public:
@@ -398,26 +398,26 @@ namespace slib
 		sl_uint32 lineCount;
 		Alignment align;
 		sl_bool flagEnabledHyperlinksInPlainText;
-		
+
 	public:
 		SimpleTextBoxParam() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT SimpleTextBoxDrawParam : public TextParagraphDrawParam
 	{
 	public:
 		Rectangle frame;
-		
+
 	public:
 		SimpleTextBoxDrawParam() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxDrawParam)
 
 	};
-	
+
 	class SLIB_EXPORT SimpleTextBox : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -440,13 +440,13 @@ namespace slib
 
 	public:
 		Ref<Font> getFont() const noexcept;
-		
+
 		String getText() const noexcept;
-		
+
 		MultiLineMode getMultiLineMode() const noexcept;
-		
+
 		EllipsizeMode getEllipsizeMode() const noexcept;
-		
+
 		Alignment getAlignment() const noexcept;
 
 	protected:

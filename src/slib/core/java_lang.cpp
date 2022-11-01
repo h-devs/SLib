@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace java_lang
@@ -49,7 +49,7 @@ namespace slib
 
 	namespace java
 	{
-		
+
 		slib::String Object::toString(jobject thiz) noexcept
 		{
 			return JObject::toString.callString(thiz);

@@ -119,25 +119,25 @@ namespace slib
 	using namespace priv::socket_address;
 
 	const SocketAddress::_socket_address SocketAddress::_none = { { IPAddressType::None, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, 0 };
-	
+
 	SocketAddress::SocketAddress(const StringParam& str) noexcept
 	{
 		if (!(parse(str))) {
 			setNone();
 		}
 	}
-	
+
 	void SocketAddress::setNone() noexcept
 	{
 		ip.setNone();
 		port = 0;
 	}
-	
+
 	sl_bool SocketAddress::isValid() const noexcept
 	{
 		return ip.isNotNone() && port != 0;
 	}
-	
+
 	sl_bool SocketAddress::isInvalid() const noexcept
 	{
 		return ip.isNone() || !port;
@@ -216,7 +216,7 @@ namespace slib
 	{
 		return Rehash64ToSize((((sl_uint64)port) << 32) ^ ip.getHashCode());
 	}
-	
+
 	String SocketAddress::toString() const noexcept
 	{
 		if (ip.isIPv4()) {
@@ -239,14 +239,14 @@ namespace slib
 			}
 		}
 	}
-	
+
 	SLIB_DEFINE_CLASS_PARSE_MEMBERS(SocketAddress, ParseAddress)
-	
+
 	sl_bool SocketAddress::parseIPv4Range(const StringParam& str, IPv4Address* from, IPv4Address* to) noexcept
 	{
 		return IPv4Address::parseRange(str, from, to);
 	}
-	
+
 	sl_bool SocketAddress::parsePortRange(const StringParam& str, sl_uint16* from, sl_uint16* to) noexcept
 	{
 		sl_uint32 n1, n2;
@@ -267,7 +267,7 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 	SocketAddress& SocketAddress::operator=(const StringParam& str) noexcept
 	{
 		if (!(parse(str))) {
@@ -275,5 +275,5 @@ namespace slib
 		}
 		return *this;
 	}
-	
+
 }

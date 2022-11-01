@@ -77,12 +77,12 @@ namespace slib
 	class SLIB_EXPORT VertexBufferInstance : public RenderBufferInstance
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		VertexBufferInstance();
-		
+
 		~VertexBufferInstance();
-		
+
 	};
 
 	class SLIB_EXPORT VertexBuffer : public RenderBuffer
@@ -120,7 +120,7 @@ namespace slib
 		Memory m_mem;
 
 	};
-	
+
 	class SLIB_EXPORT IndexBufferInstance : public RenderBufferInstance
 	{
 		SLIB_DECLARE_OBJECT

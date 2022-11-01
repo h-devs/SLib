@@ -41,7 +41,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace refresh_view
@@ -51,9 +51,9 @@ namespace slib
 			{
 			public:
 				UIRefreshControl* m_refreshControl;
-				
+
 			};
-			
+
 			class RefreshViewHelper : public RefreshView
 			{
 			public:
@@ -76,7 +76,7 @@ namespace slib
 					}
 					return nil;
 				}
-				
+
 				UIRefreshControl* getControl()
 				{
 					PlatformContainer* container = (PlatformContainer*)(m_platformContainer.get());
@@ -85,12 +85,12 @@ namespace slib
 					}
 					return nil;
 				}
-				
+
 				void _onRefresh()
 				{
 					_onRefresh_NW();
 				}
-				
+
 				static void setRefreshing(UIRefreshControl* control, sl_bool flag)
 				{
 					if (flag) {
@@ -108,9 +108,9 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-		
+
 		}
 	}
 
@@ -134,7 +134,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void RefreshView::_setRefreshing_NW(sl_bool flag)
 	{
 		SLIB_VIEW_RUN_ON_UI_THREAD(_setRefreshing_NW, flag)
@@ -143,7 +143,7 @@ namespace slib
 			RefreshViewHelper::setRefreshing(control, flag);
 		}
 	}
-	
+
 }
 
 using namespace slib;

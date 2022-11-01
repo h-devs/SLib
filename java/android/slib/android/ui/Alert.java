@@ -40,29 +40,29 @@ public class Alert {
 	public static final int TYPE_OKCANCEL = 1;
 	public static final int TYPE_YESNO = 2;
 	public static final int TYPE_YESNOCANCEL = 3;
-	
+
 	public String text;
 	public boolean flagHyperText;
 	public String caption;
-	
+
 	public String titleOK;
 	public String titleCancel;
 	public String titleYes;
 	public String titleNo;
-	
+
 	public long nativeObject;
 	public static final int RESULT_OK = 0;
 	public static final int RESULT_CANCEL = 1;
 	public static final int RESULT_YES = 2;
 	public static final int RESULT_NO = 3;
-	
+
 	public Alert()
 	{
 	}
-	
+
 	private static native void nativeShowResult(long ptr, int result);
 	public boolean show(final SlibActivity activity) {
-		
+
 		if (!(Util.isUiThread())) {
 			activity.runOnUiThread(new Runnable() {
 				public void run() {
@@ -144,7 +144,7 @@ public class Alert {
 							}
 						});
 					}
-					alertDialogBuilder.setOnCancelListener(new AlertDialog.OnCancelListener() {						
+					alertDialogBuilder.setOnCancelListener(new AlertDialog.OnCancelListener() {
 						@Override
 						public void onCancel(DialogInterface dialog) {
 							nativeShowResult(nativeObject, RESULT_CANCEL);
@@ -231,7 +231,7 @@ public class Alert {
 							}
 						});
 					}
-					alertDialogBuilder.setOnCancelListener(new AlertDialog.OnCancelListener() {						
+					alertDialogBuilder.setOnCancelListener(new AlertDialog.OnCancelListener() {
 						@Override
 						public void onCancel(DialogInterface dialog) {
 							nativeShowResult(nativeObject, RESULT_CANCEL);
@@ -252,6 +252,6 @@ public class Alert {
 		}
 		return false;
 	}
-	
-	
+
+
 }

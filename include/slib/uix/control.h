@@ -53,11 +53,11 @@ namespace slib
 		Ref<Pen> m_focusedBorder;
 
 	};
-	
+
 	class SLIB_EXPORT XControl : public ViewGroup, public XControlProvider
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		XControl();
 
@@ -65,12 +65,12 @@ namespace slib
 
 	protected:
 		void init() override;
-		
+
 	protected:
 		void onDrawBorder(Canvas* canvas) override;
 
 	};
-	
+
 }
 
 #endif

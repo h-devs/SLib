@@ -29,11 +29,11 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT XEditView : public XControl
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		XEditView();
 
@@ -41,10 +41,10 @@ namespace slib
 
 	protected:
 		void init() override;
-		
+
 	public:
 		String getText();
-		
+
 		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void appendText(const StringParam& text, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -54,35 +54,35 @@ namespace slib
 		void setChangeEventEnabled(sl_bool flag = sl_true);
 
 		Alignment getGravity();
-		
+
 		void setGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getTextColor();
-		
+
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		String getHintText();
-		
+
 		void setHintText(const String& str, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Alignment getHintGravity();
-		
+
 		void setHintGravity(const Alignment& gravity, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getHintTextColor();
-		
+
 		void setHintTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Font> getHintFont();
-		
+
 		void setHintFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isReadOnly();
-		
+
 		void setReadOnly(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_bool isPassword();
-		
+
 		void setPassword(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isNumber();
@@ -98,25 +98,25 @@ namespace slib
 		void setUppercase(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		MultiLineMode getMultiLine();
-		
+
 		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
 		UIReturnKeyType getReturnKeyType();
-		
+
 		void setReturnKeyType(UIReturnKeyType type);
-		
+
 		UIKeyboardType getKeyboardType();
-		
+
 		void setKeyboardType(UIKeyboardType type);
 
 		UIAutoCapitalizationType getAutoCaptializationType();
 
 		void setAutoCapitalizationType(UIAutoCapitalizationType type);
-		
+
 		sl_bool isAutoDismissKeyboard();
-		
+
 		void setAutoDismissKeyboard(sl_bool flag);
-		
+
 		void setFocusNextOnReturnKey();
 
 		// `start`: negative means non-selection, `end`: negative means `end of text`, In character unit
@@ -138,9 +138,9 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(XEditView, Change, String& value)
-		
+
 		SLIB_DECLARE_EVENT_HANDLER(XEditView, PostChange)
-		
+
 		SLIB_DECLARE_EVENT_HANDLER(XEditView, ReturnKey)
 
 	protected:
@@ -148,12 +148,12 @@ namespace slib
 
 	public:
 		void dispatchClickEvent(UIEvent* ev) override;
-		
+
 	protected:
 		Ref<EditView> m_edit;
 
 	};
-	
+
 	class XPasswordView : public XEditView
 	{
 	public:
@@ -163,9 +163,9 @@ namespace slib
 
 	protected:
 		void init() override;
-		
+
 	};
-	
+
 }
 
 #endif

@@ -312,7 +312,7 @@ namespace slib
 								OVERLAPPED overlapped;
 								Base::zeroMemory(&overlapped, sizeof(overlapped));
 								overlapped.hEvent = hEvent;
-								
+
 								while (thread->isNotStopping()) {
 									sl_bool flagConnected = sl_false;
 									if (ConnectNamedPipe(hPipe, &overlapped)) {
@@ -351,7 +351,7 @@ namespace slib
 										break;
 									}
 								}
-								
+
 							} else {
 								break;
 							}

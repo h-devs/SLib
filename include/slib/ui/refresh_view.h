@@ -31,36 +31,36 @@ namespace slib
 	class SLIB_EXPORT RefreshView : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		RefreshView();
-		
+
 		~RefreshView();
 
 	public:
 		sl_bool isRefreshing();
-		
+
 		void setRefreshing(sl_bool flag);
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(RefreshView, Refresh)
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 	protected:
 		void onAttachChild(View* child) override;
-		
+
 	protected:
 		void _setRefreshing_NW(sl_bool flag);
-		
+
 		void _onRefresh_NW();
-		
+
 	protected:
 		sl_bool m_flagRefreshing;
-		
+
 		Ref<Referable> m_platformContainer;
-		
+
 	};
 
 }

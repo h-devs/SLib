@@ -42,14 +42,14 @@ namespace slib
 		String id;
 		String name;
 		String description;
-		
+
 	public:
 		AudioPlayerInfo();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerInfo)
-		
+
 	};
-	
+
 	class SLIB_EXPORT AudioPlayerDeviceParam
 	{
 	public:
@@ -68,48 +68,48 @@ namespace slib
 	{
 	public:
 		AudioStreamType streamType;
-		
+
 		sl_uint32 samplesPerSecond;
 		sl_uint32 channelCount;
 		sl_uint32 frameLengthInMilliseconds;
 		sl_uint32 maxBufferLengthInMilliseconds;
 
 		sl_bool flagAutoStart;
-		
+
 		// called before playing a frame
 		Function<void(AudioPlayer*, sl_uint32 sampleCount)> onPlayAudio;
 		Ref<Event> event;
-		
+
 	public:
 		AudioPlayerParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT AudioPlayer : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		AudioPlayer();
-		
+
 		~AudioPlayer();
-		
-	public:		
+
+	public:
 		static Ref<AudioPlayer> create(const AudioPlayerParam& param);
 
 		static List<AudioPlayerInfo> getPlayersList();
 
 	public:
 		void release();
-		
+
 		sl_bool isOpened();
-		
+
 		sl_bool start();
-		
+
 		void stop();
-		
+
 		sl_bool isRunning();
 
 		float getVolume();
@@ -137,11 +137,11 @@ namespace slib
 
 	protected:
 		void _init(const AudioPlayerParam& param);
-		
+
 		Array<sl_int16> _getProcessData(sl_uint32 count);
-		
+
 		void _processFrame(sl_int16* s, sl_uint32 count);
-		
+
 	protected:
 		AudioPlayerParam m_param;
 
@@ -149,33 +149,33 @@ namespace slib
 		sl_bool m_flagOpened;
 		sl_uint32 m_volume;
 		sl_bool m_flagMute;
-		
+
 		MemoryQueue m_buffer;
 		sl_size m_lenBufferMax;
-		
+
 		sl_int16 m_lastSample;
 		AtomicArray<sl_int16> m_processData;
 	};
-	
+
 	class SLIB_EXPORT AudioPlayerDevice : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		AudioPlayerDevice();
-		
+
 		~AudioPlayerDevice();
-		
+
 	public:
 		static Ref<AudioPlayerDevice> create(const AudioPlayerDeviceParam& param);
-		
+
 		static Ref<AudioPlayerDevice> create();
 
 		static List<AudioPlayerInfo> getPlayersList();
-		
+
 	public:
 		virtual Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) = 0;
-		
+
 	};
 }
 

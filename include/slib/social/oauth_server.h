@@ -35,20 +35,20 @@ namespace slib
 	class SLIB_EXPORT OAuthClientEntity : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		OAuthClientEntity();
-		
+
 		~OAuthClientEntity();
-		
+
 	public:
 		String clientId;
-		
+
 	public:
 		virtual sl_bool validateSecret(const String& clientSecret);
-		
+
 		virtual sl_bool validateRedirectUri(String& redirectUri);
-		
+
 		virtual sl_bool validateScopes(List<String>& scopes);
 
 	};
@@ -61,7 +61,7 @@ namespace slib
 		String clientId;
 
 		Json user;
-		
+
 		List<String> scopes;
 
 		String accessToken;
@@ -80,27 +80,27 @@ namespace slib
 
 	public:
 		OAuthTokenPayload();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthTokenPayload)
-		
+
 	};
 
 	class SLIB_EXPORT OAuthTokenRepository : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		OAuthTokenRepository();
-		
+
 		~OAuthTokenRepository();
-		
+
 	public:
 		virtual void registerToken(const String& token, const Json& data) = 0;
-		
+
 		virtual void revokeToken(const String& token) = 0;
-		
+
 		virtual sl_bool isValid(const String& token) = 0;
-		
+
 		virtual Json getTokenData(const String& token) = 0;
 
 	};
@@ -108,24 +108,24 @@ namespace slib
 	class SLIB_EXPORT OAuthTokenMemoryRepository : public OAuthTokenRepository
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		OAuthTokenMemoryRepository();
-		
+
 		~OAuthTokenMemoryRepository();
-		
+
 	public:
 		void registerToken(const String& token, const Json& data) override;
-		
+
 		void revokeToken(const String& token) override;
-		
+
 		sl_bool isValid(const String& token) override;
 
 		Json getTokenData(const String& token) override;
-		
+
 	protected:
 		HashMap<String, Json> m_repo;
-		
+
 	};
 
 	class SLIB_EXPORT OAuthServerAuthorizationRequest : public OAuthAuthorizationRequestParam
@@ -143,19 +143,19 @@ namespace slib
 	class SLIB_EXPORT OAuthServer : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		OAuthServer();
-		
+
 		~OAuthServer();
-		
+
 	public:
 		sl_bool validateAuthorizationRequest(HttpServerContext* context, OAuthServerAuthorizationRequest& _out);
-		
+
 		void completeAuthorizationRequest(HttpServerContext* context, const OAuthServerAuthorizationRequest& request, const Json& userEntity);
-		
+
 		void completeAuthorizationRequestWithError(HttpServerContext* context, const OAuthServerAuthorizationRequest& request, OAuthErrorCode err, const String& errorDescription = String::null(), const String& errorUri = String::null());
-		
+
 		void respondToAccessTokenRequest(HttpServerContext* context);
 
 		sl_bool validateAccessToken(HttpServerContext* context, OAuthTokenPayload& payload);
@@ -164,13 +164,13 @@ namespace slib
 
 	public:
 		virtual Ref<OAuthClientEntity> getClientEntity(const String& clientId);
-		
+
 		virtual sl_bool validateClientSecret(OAuthClientEntity* client, const String& clientSecret);
-		
+
 		virtual sl_bool validateRedirectUri(OAuthClientEntity* client, String& redirectUri);
-		
+
 		virtual sl_bool validateScopes(OAuthClientEntity* client, List<String>& scopes);
-		
+
 
 		virtual void issueAccessToken(OAuthTokenPayload& payload) = 0;
 
@@ -199,7 +199,7 @@ namespace slib
 		virtual sl_bool onClientCredentialsGrant(OAuthTokenPayload& payload);
 
 		virtual sl_bool onPasswordGrant(const String& username, const String& password, OAuthTokenPayload& payload);
-		
+
 	public:
 		String getRedirectUri(const OAuthServerAuthorizationRequest& request);
 
@@ -233,7 +233,7 @@ namespace slib
 		SLIB_PROPERTY(AtomicRef<OAuthTokenRepository>, RefreshTokenRepository)
 
 	};
-	
+
 	class SLIB_EXPORT OAuthServerWithJwt : public OAuthServer
 	{
 		SLIB_DECLARE_OBJECT
@@ -245,11 +245,11 @@ namespace slib
 
 	public:
 		Memory& getMasterKey();
-		
+
 		void setMasterKey(const Memory& key);
-		
+
 		void setMasterKey(const void* key, sl_size len);
-		
+
 		void issueAccessToken(OAuthTokenPayload& payload) override;
 
 		sl_bool getAccessTokenPayload(OAuthTokenPayload& payload) override;
@@ -275,7 +275,7 @@ namespace slib
 
 	public:
 		SLIB_PROPERTY(JwtAlgorithm, Algorithm)
-		
+
 	protected:
 		Memory m_masterKey;
 
@@ -289,25 +289,25 @@ namespace slib
 		OAuthServerWithJwtAndOpenSSL();
 
 		~OAuthServerWithJwtAndOpenSSL();
-		
+
 	public:
 		Ref<OpenSSL_Key>& getPrivateKey();
-		
+
 		void setPrivateKey(const Ref<OpenSSL_Key>& key);
-		
+
 		void setPrivateKey(const String& pem);
-		
+
 		Ref<OpenSSL_Key>& getPublicKey();
-		
+
 		void setPublicKey(const Ref<OpenSSL_Key>& key);
-		
+
 		void setPublicKey(const String& pem);
-		
+
 	protected:
 		String encrypt(const Jwt& jwt) override;
 
 		sl_bool decrypt(const String& str, Jwt& jwt) override;
-		
+
 	protected:
 		Ref<OpenSSL_Key> m_publicKey;
 		Ref<OpenSSL_Key> m_privateKey;

@@ -30,21 +30,21 @@
 
 namespace slib
 {
-	
+
 	class IRenderViewInstance;
 
 	class SLIB_EXPORT RenderView : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		RenderView();
-		
+
 		~RenderView();
 
 	protected:
 		void init() override;
-		
+
 	public:
 		RenderEngineType getPreferredEngineType();
 
@@ -52,81 +52,81 @@ namespace slib
 
 
 		RedrawMode getRedrawMode();
-		
+
 		void setRedrawMode(RedrawMode mode);
-		
+
 
 		sl_bool isDispatchingEventsToRenderingThread();
-		
+
 		void setDispatchingEventsToRenderingThread(sl_bool flag);
 
 
 		sl_bool isRenderEnabled();
 
 		void disableRendering();
-		
+
 		void requestRender();
-		
+
 
 		void invalidate(UIUpdateMode mode = UIUpdateMode::Redraw) override;
-		
+
 		void invalidate(const UIRect& rect, UIUpdateMode mode = UIUpdateMode::Redraw) override;
-		
+
 
 		void renderViewContent(RenderEngine* engine);
 
 
 		Size measureText(const String& text, const Ref<Font>& font, sl_bool flagMultiLine = sl_false) override;
-		
+
 
 		Ref<AnimationLoop> getAnimationLoop() override;
-		
+
 
 		sl_bool isDrawingThread() override;
-		
+
 		void dispatchToDrawingThread(const Function<void()>& callback, sl_uint32 delayMillis = 0) override;
-		
+
 		void runOnDrawingThread(const Function<void()>& callback) override;
-		
+
 		Ref<Dispatcher> getDispatcher() override;
 
 
 		sl_bool isDebugTextVisible();
-		
+
 		void setDebugTextVisible(sl_bool flagVisible);
-		
+
 		sl_bool isDebugTextVisibleOnRelease();
-		
+
 		void setDebugTextVisibleOnRelease(sl_bool flagVisible);
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(RenderView, CreateEngine, RenderEngine* engine)
-		
+
 		SLIB_DECLARE_EVENT_HANDLER(RenderView, Frame, RenderEngine* engine)
 
 	protected:
 		void onAttach() override;
-		
+
 		void onDrawBackground(Canvas* canvas) override;
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* _parent) override;
-		
+
 		virtual Ptr<IRenderViewInstance> getRenderViewInstance();
-		
+
 	public:
 		void dispatchDraw(Canvas* canvas) override;
-		
+
 		void dispatchMouseEvent(UIEvent* ev) override;
-		
+
 		void dispatchTouchEvent(UIEvent* ev) override;
-		
+
 		void dispatchMouseWheelEvent(UIEvent* ev) override;
-		
+
 		void dispatchKeyEvent(UIEvent* ev) override;
-		
+
 		void dispatchSetCursor(UIEvent* ev) override;
-		
+
 		void dispatchSwipe(GestureEvent* ev) override;
 
 	private:
@@ -135,29 +135,29 @@ namespace slib
 		void _processPostedCallbacksNoLock();
 
 		void _dispatchMouseEvent(const Ref<UIEvent>& ev);
-		
+
 		void _dispatchTouchEvent(const Ref<UIEvent>& ev);
-		
+
 		void _dispatchMouseWheelEvent(const Ref<UIEvent>& ev);
-		
+
 		void _dispatchKeyEvent(const Ref<UIEvent>& ev);
-		
+
 		void _dispatchSetCursor(const Ref<UIEvent>& ev);
-		
+
 		void _dispatchSwipe(const Ref<GestureEvent>& ev);
-		
+
 	protected:
 		RenderEngineType m_preferredEngineType;
 		RedrawMode m_redrawMode;
 		sl_bool m_flagDispatchEventsToRenderingThread;
-		
+
 		Ref<AnimationLoop> m_animationLoop;
 		sl_uint64 m_lastRenderingThreadId;
 		Queue< Function<void()> > m_queuePostedCallbacks;
 
 		sl_bool m_flagDebugTextVisible;
 		sl_bool m_flagDebugTextVisibleOnRelease;
-		
+
 		Mutex m_lockRender;
 
 		Ref<RenderDepthStencilState> m_stateCanvasDepthStencil;
@@ -166,14 +166,14 @@ namespace slib
 		Ref<RenderSamplerState> m_stateCanvasSampler;
 
 	};
-	
+
 	class SLIB_EXPORT IRenderViewInstance
 	{
 	public:
 		virtual void setRedrawMode(RenderView* view, RedrawMode mode) = 0;
-		
+
 		virtual void requestRender(RenderView* view) = 0;
-		
+
 		virtual sl_bool isRenderEnabled(RenderView* view);
 
 		virtual void disableRendering(RenderView* view);

@@ -369,10 +369,10 @@ namespace slib
 			static Memory GenerateFileIdBothDirectoryInfo(const String16& fileName, sl_uint32 index, sl_uint64 id, SmbFileInfo& info)
 			{
 				sl_uint32 lenFileName = (sl_uint32)(fileName.getLength());
-				
+
 				sl_size size = sizeof(Smb2FindFileIdBothDirectoryInfo) + (lenFileName << 1);
 				size = ((size - 1) | 7) + 1;
-				
+
 				Memory mem = Memory::create(size);
 				if (mem.isNull()) {
 					return sl_null;
@@ -391,7 +391,7 @@ namespace slib
 				header->setAllocationSize(GetAllocationSize(info.size));
 				header->setAttributes(ToNetworkAttrs(info.attributes));
 				header->setFileNameLength(lenFileName << 1);
-				
+
 				buf += sizeof(Smb2FindFileIdBothDirectoryInfo);
 				sl_char16* dataFileName = fileName.getData();
 				for (sl_uint32 i = 0; i < lenFileName; i++) {
@@ -469,7 +469,7 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(SmbServerShare, Object)
-	
+
 	SmbServerShare::SmbServerShare()
 	{
 		m_lastFileUniqueId = 0;
@@ -1162,7 +1162,7 @@ namespace slib
 	{
 		Smb2Header smb;
 		InitSmb2ResponseHeader(smb, *(param.smb));
-		
+
 		Smb2EmptyMessage response;
 		Base::zeroMemory(&response, sizeof(response));
 		response.setSize(sizeof(response), sl_false);
@@ -1186,7 +1186,7 @@ namespace slib
 		if ((sl_uint32)(fileNameOffset + fileNameLength) > param.size) {
 			return sl_false;
 		}
-		
+
 		Smb2CreateResponseMessage response;
 		Base::zeroMemory(&response, sizeof(response));
 		response.setSize(sizeof(response), sl_true);
@@ -1230,7 +1230,7 @@ namespace slib
 								response.setLastAccessTime(info.modifiedAt);
 								response.setLastChangeTime(info.modifiedAt);
 								response.setLastWriteTime(info.modifiedAt);
-								
+
 								MemoryBuffer bufTotal;
 								{
 									Smb2ExtraInfoItem_MxAcResponse item;
@@ -1308,7 +1308,7 @@ namespace slib
 			}
 			param.session->unregisterFile(fileId);
 		}
-		
+
 		Smb2Header smb;
 		InitSmb2ResponseHeader(smb, *(param.smb));
 
@@ -1381,7 +1381,7 @@ namespace slib
 		response.setSize(sizeof(response), sl_true);
 		response.setDataOffset(sizeof(smb) + sizeof(response));
 		response.setReadCount((sl_uint32)(data.size));
-		
+
 		return WriteResponse(param, smb, response, data.data, data.size);
 	}
 
@@ -1559,7 +1559,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		Smb2Header smb;
 		InitSmb2ResponseHeader(smb, *(param.smb));
 
@@ -1757,7 +1757,7 @@ namespace slib
 		if (data.isNull()) {
 			return WriteErrorResponse(param, SmbStatus::Unsuccessful);
 		}
-		
+
 		Smb2Header smb;
 		InitSmb2ResponseHeader(smb, *(param.smb));
 

@@ -59,7 +59,7 @@ namespace slib
 		}
 		return version;
 	}
-	
+
 	jobject Android::getCurrentContext() noexcept
 	{
 		return g_contextCurrent.get();

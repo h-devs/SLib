@@ -51,7 +51,7 @@ namespace slib
 	using namespace priv::font_atlas;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasParam)
-	
+
 	FontAtlasParam::FontAtlasParam()
 	: planeWidth(PLANE_WIDTH_DEFAULT), planeHeight(PLANE_HEIGHT_DEFAULT), maxPlanes(MAX_PLANES_DEFAULT)
 	{
@@ -59,7 +59,7 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasChar)
-	
+
 	FontAtlasChar::FontAtlasChar()
 	{
 		fontWidth = 0;
@@ -371,9 +371,9 @@ namespace slib
 				return m_map.put_NoLock(ch, _out);
 			}
 		}
-		
+
 		String s = String::create(&ch, 1);
-		
+
 		Sizei sizeDraw = m_fontDraw->measureText(s);
 
 		sl_uint32 widthChar = sizeDraw.x;
@@ -384,7 +384,7 @@ namespace slib
 			m_map.put_NoLock(ch, _out);
 			return sl_false;
 		}
-		
+
 		if (m_currentPlaneX > 0 && m_currentPlaneX + widthChar > m_planeWidth) {
 			m_currentPlaneX = 0;
 			m_currentPlaneY += m_currentPlaneRowHeight;
@@ -423,17 +423,17 @@ namespace slib
 		m_currentCanvas->drawText(s, (sl_real)x, (sl_real)y, m_fontDraw, Color::White);
 
 		m_currentPlane->update(x, y, widthChar, heightChar);
-		
+
 		m_currentPlaneX += widthChar;
-		
+
 		if (heightChar > m_currentPlaneRowHeight) {
 			m_currentPlaneRowHeight = heightChar;
 		}
-		
+
 		_out.bitmap = m_currentPlane;
-		
+
 		return m_map.put_NoLock(ch, _out);
-		
+
 	}
 
 	void FontAtlas::removeAll()

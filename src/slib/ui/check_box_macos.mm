@@ -49,7 +49,7 @@ namespace slib
 	{
 		return CastRef<ButtonInstance>(getViewInstance());
 	}
-	
+
 }
 
 #endif

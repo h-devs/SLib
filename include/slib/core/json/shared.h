@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	static void FromJson(const Json& json, Shared<T>& _out)
 	{

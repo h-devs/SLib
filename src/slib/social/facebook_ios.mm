@@ -44,25 +44,25 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace facebook
 		{
-			
+
 			class FacebookSDKContext : public Referable
 			{
 			public:
 				FBSDKLoginManager* loginManager;
 				SLIBFacebookDelegate* shareDelegate;
-				
+
 			public:
 				FacebookSDKContext()
 				{
 					loginManager = [[FBSDKLoginManager alloc] init];
 					shareDelegate = [[SLIBFacebookDelegate alloc] init];
 				}
-				
+
 				static FacebookSDKContext* get()
 				{
 					SLIB_SAFE_LOCAL_STATIC(Ref<FacebookSDKContext>, s, new FacebookSDKContext)
@@ -71,7 +71,7 @@ namespace slib
 					}
 					return s.get();
 				}
-				
+
 				static FBSDKLoginManager* getLoginManager()
 				{
 					FacebookSDKContext* sdk = get();
@@ -80,7 +80,7 @@ namespace slib
 					}
 					return nil;
 				}
-				
+
 				static SLIBFacebookDelegate* getShareDelegate()
 				{
 					FacebookSDKContext* sdk = get();
@@ -90,7 +90,7 @@ namespace slib
 					return nil;
 				}
 			};
-			
+
 			static void GetToken(OAuthAccessToken& _out, FBSDKAccessToken* _in)
 			{
 				_out.token = Apple::getStringFromNSString(_in.tokenString);
@@ -107,12 +107,12 @@ namespace slib
 					_out.scopes = permissions;
 				}
 			}
-			
+
 		}
 	}
-	
+
 	using namespace priv::facebook;
-	
+
 	void FacebookSDK::initialize()
 	{
 		UIPlatform::registerDidFinishLaunchingCallback([](NSDictionary* launchOptions) {
@@ -140,7 +140,7 @@ namespace slib
 			}
 		});
 	}
-	
+
 	void FacebookSDK::_updateCurrentToken(Facebook* instance)
 	{
 		FBSDKAccessToken* token = [FBSDKAccessToken currentAccessToken];
@@ -150,7 +150,7 @@ namespace slib
 			instance->setAccessToken(oauthToken);
 		}
 	}
-	
+
 	void FacebookSDK::login(const FacebookLoginParam& param)
 	{
 		FBSDKLoginManager* manager = FacebookSDKContext::getLoginManager();
@@ -165,7 +165,7 @@ namespace slib
 			});
 			return;
 		}
-		
+
 		NSMutableArray* array = [[NSMutableArray alloc] init];
 		{
 			List<String> permissions;
@@ -212,7 +212,7 @@ namespace slib
 			onComplete(login);
 		}];
 	}
-	
+
 	void FacebookSDK::share(const FacebookShareParam& param)
 	{
 		if (param.url.isEmpty()) {
@@ -232,7 +232,7 @@ namespace slib
 			});
 			return;
 		}
-		
+
 		FBSDKShareLinkContent *content = [FBSDKShareLinkContent new];
 		content.contentURL = [NSURL URLWithString:Apple::getNSStringFromString(param.url)];
 		if (param.quote.isNotEmpty()) {
@@ -245,17 +245,17 @@ namespace slib
 		dialog.fromViewController = UIPlatform::getCurrentViewController();
 		dialog.shareContent = content;
 		dialog.mode = FBSDKShareDialogModeAutomatic;
-		
+
 		dialog.delegate = delegate;
 		if (delegate->onComplete.isNotNull()) {
 			FacebookShareResult result;
 			delegate->onComplete(result);
 		}
 		delegate->onComplete = param.onComplete;
-		
+
 		[dialog show];
 	}
-	
+
 	void FacebookSDK::clearAccessToken()
 	{
 		FBSDKLoginManager* manager = FacebookSDKContext::getLoginManager();
@@ -263,7 +263,7 @@ namespace slib
 			[manager logOut];
 		}
 	}
-	
+
 }
 
 @implementation SLIBFacebookDelegate

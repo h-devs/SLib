@@ -34,10 +34,10 @@ namespace slib
 	class SLIB_EXPORT AudioView : public View
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		AudioView();
-		
+
 		~AudioView();
 
 	public:
@@ -68,7 +68,7 @@ namespace slib
 		Array<sl_uint16> m_bufProcess;
 		Array<sl_uint16> m_bufWindow;
 		Array<Point> m_ptsWindow;
-		
+
 	};
 
 }

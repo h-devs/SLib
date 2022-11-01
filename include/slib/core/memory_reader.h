@@ -28,20 +28,20 @@
 
 namespace slib
 {
-	
+
 	// MemoryReader is not thread-safe
 	class SLIB_EXPORT MemoryReader : public IReader, public IBlockReader, public ISeekable
 	{
 	public:
 		MemoryReader(const Memory& mem);
-	
+
 		MemoryReader(const void* buf, sl_size size);
 
 		~MemoryReader();
 
 	public:
 		SLIB_DECLARE_SEEKABLE_READER_MEMBERS(,override)
-	
+
 	public:
 		void initialize(const Memory& mem);
 
@@ -64,7 +64,7 @@ namespace slib
 		sl_reg skip(sl_size size);
 
 		sl_uint8* getBuffer();
-		
+
 		sl_int64 find(const void* pattern, sl_size nPattern, sl_int64 startPosition = 0, sl_int64 endPosition = -1);
 
 		sl_int64 findBackward(const void* pattern, sl_size nPattern, sl_int64 startPosition = -1, sl_int64 endPosition = -1);
@@ -117,7 +117,7 @@ namespace slib
 		sl_size m_size;
 		sl_size m_offset;
 		Memory m_mem;
-	
+
 	};
 
 }

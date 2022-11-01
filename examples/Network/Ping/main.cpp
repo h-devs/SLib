@@ -35,14 +35,14 @@ using namespace slib;
 int main(int argc, const char * argv[])
 {
 	Println("Please input host address:");
-	
+
 	String hostName = Console::readLine().trim();
 	IPv4Address hostAddress;
 	if (! hostAddress.setHostName(hostName)) {
 		Println("Can't resolve the host name: %s", hostName);
 		return -1;
 	}
-	
+
 #ifdef SLIB_PLATFORM_IS_MACOS
 	Shared<Socket> socket = Socket::openDatagram(NetworkInternetProtocol::ICMP);
 #else
@@ -52,13 +52,13 @@ int main(int argc, const char * argv[])
 		Println("Can't open socket.");
 		return -1;
 	}
-	
+
 	socket->setNonBlockingMode(sl_true);
-	
+
 	Ref<Thread> threadReceive = Thread::start([socket]() {
-		
+
 		auto event = SocketEvent::createRead(socket);
-		
+
 		while (Thread::isNotStoppingCurrent()) {
 			sl_uint8 buf[4096];
 			SocketAddress receivedHostAddress;
@@ -84,7 +84,7 @@ int main(int argc, const char * argv[])
 		Println("Can't start receiving thread.");
 		return -1;
 	}
-	
+
 	Ref<Thread> threadSend = Thread::start([socket, hostAddress]() {
 		sl_uint16 seq = 1;
 		while (Thread::isNotStoppingCurrent()) {
@@ -115,9 +115,9 @@ int main(int argc, const char * argv[])
 			break;
 		}
 	}
-	
+
 	threadReceive->finishAndWait();
 	threadSend->finishAndWait();
-	
+
 	return 0;
 }

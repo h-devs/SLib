@@ -1057,7 +1057,7 @@ namespace slib
 	XmlNode::XmlNode(XmlNodeType type): m_type(type), m_positionStartInSource(0), m_positionEndInSource(0), m_lineInSource(1), m_columnInSource(1)
 	{
 	}
-	
+
 	XmlNode::~XmlNode()
 	{
 	}
@@ -1258,7 +1258,7 @@ namespace slib
 	XmlNodeGroup::XmlNodeGroup(XmlNodeType type) : XmlNode(type)
 	{
 	}
-	
+
 	XmlNodeGroup::~XmlNodeGroup()
 	{
 	}
@@ -1615,13 +1615,13 @@ namespace slib
 		return findChildElementByAttribute(StringView::literal("id"), id);
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XmlAttribute)
-	
+
 	XmlAttribute::XmlAttribute() noexcept
 	{
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(XmlElement, XmlNodeGroup)
 
@@ -1630,7 +1630,7 @@ namespace slib
 		m_positionStartContentInSource = 0;
 		m_positionEndContentInSource = 0;
 	}
-	
+
 	XmlElement::~XmlElement()
 	{
 	}
@@ -1957,17 +1957,17 @@ namespace slib
 	{
 		return m_positionStartContentInSource;
 	}
-	
+
 	void XmlElement::setStartContentPositionInSource(sl_size pos)
 	{
 		m_positionStartContentInSource = pos;
 	}
-	
+
 	sl_size XmlElement::getEndContentPositionInSource() const
 	{
 		return m_positionEndContentInSource;
 	}
-	
+
 	void XmlElement::setEndContentPositionInSource(sl_size pos)
 	{
 		m_positionEndContentInSource = pos;
@@ -1978,7 +1978,7 @@ namespace slib
 	XmlDocument::XmlDocument() : XmlNodeGroup(XmlNodeType::Document)
 	{
 	}
-	
+
 	XmlDocument::~XmlDocument()
 	{
 	}
@@ -2044,13 +2044,13 @@ namespace slib
 		return flagFoundRoot;
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(XmlText, XmlNode)
 
 	XmlText::XmlText() : XmlNode(XmlNodeType::Text), m_flagCDATA(sl_false)
 	{
 	}
-	
+
 	XmlText::~XmlText()
 	{
 	}
@@ -2147,7 +2147,7 @@ namespace slib
 	XmlProcessingInstruction::XmlProcessingInstruction() : XmlNode(XmlNodeType::ProcessingInstruction)
 	{
 	}
-	
+
 	XmlProcessingInstruction::~XmlProcessingInstruction()
 	{
 	}
@@ -2249,7 +2249,7 @@ namespace slib
 	XmlComment::XmlComment() : XmlNode(XmlNodeType::Comment)
 	{
 	}
-	
+
 	XmlComment::~XmlComment()
 	{
 	}
@@ -2363,9 +2363,9 @@ namespace slib
 		m_content = content;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XmlParseParam)
-	
+
 	XmlParseParam::XmlParseParam()
 	{
 		flagCreateDocument = sl_true;
@@ -2373,19 +2373,19 @@ namespace slib
 		flagCreateProcessingInstructionNodes = sl_true;
 		flagCreateTextNodes = sl_true;
 		flagCreateWhiteSpaces = sl_false;
-		
+
 		flagProcessNamespaces = sl_true;
 		flagCheckWellFormed = sl_true;
 		flagSupportCpp11String = sl_false;
-		
+
 		flagLogError = sl_true;
-		
+
 		flagError = sl_false;
 		errorLine = 0;
 		errorColumn = 0;
 		errorPosition = 0;
 	}
-	
+
 	String XmlParseParam::getErrorText()
 	{
 		if (flagError) {
@@ -2421,9 +2421,9 @@ namespace slib
 		flagCreateWhiteSpaces = sl_false;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XmlParseControl)
-	
+
 	XmlParseControl::XmlParseControl()
 	{
 		characterSize = 0;
@@ -2504,7 +2504,7 @@ namespace slib
 		return parseTextFile(filePath, param);
 	}
 
-	
+
 	String Xml::encodeTextToEntities(const String& text)
 	{
 		StringBuffer buf;
@@ -2569,7 +2569,7 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 	String Xml::decodeTextFromEntities(const StringView& text)
 	{
 		String ret = String::allocate(text.getLength());
@@ -2581,9 +2581,9 @@ namespace slib
 		sl_char8* output = ret.getData();
 		sl_size len = text.getLength();
 		sl_size pos = 0;
-		
+
 		sl_size posOutput = 0;
-		
+
 		while (pos < len) {
 			if (buf[pos] == '&' && pos + 1 < len) {
 				pos++;
@@ -2647,10 +2647,10 @@ namespace slib
 				pos++;
 			}
 		}
-		
+
 		output[posOutput] = 0;
 		ret.setLength(posOutput);
-		
+
 		return ret;
 	}
 

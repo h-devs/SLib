@@ -32,5 +32,5 @@ class ControlScreenPage : public example::ui::ControlScreen
 {
 public:
 	void onOpen() override;
-	
+
 };

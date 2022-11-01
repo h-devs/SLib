@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT XButton : public Button
 	{
 	public:
@@ -39,9 +39,9 @@ namespace slib
 
 	protected:
 		void init() override;
-		
+
 	};
-	
+
 }
 
 #endif

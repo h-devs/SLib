@@ -28,7 +28,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT BufferedSeekableReader : public IReader, public IBlockReader, public ISeekable, public IClosable
 	{
 	public:

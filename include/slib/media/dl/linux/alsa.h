@@ -62,18 +62,18 @@ namespace slib
 			int, const char*, void*** hints
 		)
 
-		SLIB_IMPORT_LIBRARY_FUNCTION(			
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_device_name_get_hint,
 			char*, ,
 			void* hint, const char* prop
 		)
 
-		SLIB_IMPORT_LIBRARY_FUNCTION(			
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_device_name_free_hint,
 			void, ,
 			void** hints
 		)
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_card_get_name,
 			int, ,
@@ -128,14 +128,14 @@ namespace slib
 			snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val
 		)
 		#define snd_pcm_hw_params_set_channels slib::alsa::getApi_snd_pcm_hw_params_set_channels()
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_hw_params_set_rate,
 			int, ,
 			snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val, int dir
 		)
 		#define snd_pcm_hw_params_set_rate slib::alsa::getApi_snd_pcm_hw_params_set_rate()
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_hw_params_set_rate_near,
 			int, ,
@@ -225,14 +225,14 @@ namespace slib
 			snd_pcm_t *pcm, snd_pcm_sw_params_t *params
 		)
 		#define snd_pcm_sw_params slib::alsa::getApi_snd_pcm_sw_params()
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_frames_to_bytes,
 			ssize_t, ,
 			snd_pcm_t *pcm, snd_pcm_sframes_t frames
 		)
 		#define snd_pcm_frames_to_bytes slib::alsa::getApi_snd_pcm_frames_to_bytes()
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_prepare,
 			int, ,
@@ -253,7 +253,7 @@ namespace slib
 			snd_pcm_t *pcm
 		)
 		#define snd_pcm_drop slib::alsa::getApi_snd_pcm_drop()
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			snd_pcm_drain,
 			int, ,

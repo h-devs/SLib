@@ -31,19 +31,19 @@
 
 namespace slib
 {
-	
+
 #if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-	
+
 	namespace priv
 	{
 		namespace global_event_monitor
 		{
-			
+
 			class GlobalEventMonitorHelper : public GlobalEventMonitor
 			{
 				friend class StaticContext;
 			};
-			
+
 			class StaticContext
 			{
 			public:
@@ -53,13 +53,13 @@ namespace slib
 #ifndef RUN_ON_UI_THREAD
 				Mutex m_lock;
 #endif
-				
+
 			public:
 				StaticContext()
 				{
 					m_maskCurrent = 0;
 				}
-			
+
 			public:
 				void addMonitor(const Function<void(UIEvent*)>& callback)
 				{
@@ -70,7 +70,7 @@ namespace slib
 					m_callbackKeyboard.add(callback);
 					updateMonitor();
 				}
-				
+
 				void removeMonitor(const Function<void(UIEvent*)>& callback)
 				{
 #ifndef RUN_ON_UI_THREAD
@@ -80,7 +80,7 @@ namespace slib
 					m_callbackKeyboard.remove(callback);
 					updateMonitor();
 				}
-				
+
 				void removeAllMonitors()
 				{
 #ifndef RUN_ON_UI_THREAD
@@ -99,7 +99,7 @@ namespace slib
 					m_callbackMouse.add(callback);
 					updateMonitor();
 				}
-				
+
 				void removeMouseMonitor(const Function<void(UIEvent*)>& callback)
 				{
 #ifndef RUN_ON_UI_THREAD
@@ -108,7 +108,7 @@ namespace slib
 					m_callbackMouse.remove(callback);
 					updateMonitor();
 				}
-				
+
 				void removeAllMouseMonitors()
 				{
 #ifndef RUN_ON_UI_THREAD
@@ -126,7 +126,7 @@ namespace slib
 					m_callbackKeyboard.add(callback);
 					updateMonitor();
 				}
-				
+
 				void removeKeyboardMonitor(const Function<void(UIEvent*)>& callback)
 				{
 #ifndef RUN_ON_UI_THREAD
@@ -135,7 +135,7 @@ namespace slib
 					m_callbackKeyboard.remove(callback);
 					updateMonitor();
 				}
-				
+
 				void removeAllKeyboardMonitors()
 				{
 #ifndef RUN_ON_UI_THREAD
@@ -162,7 +162,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void processEvent(UIEvent* ev)
 				{
 					if (ev->isMouseEvent()) {
@@ -173,14 +173,14 @@ namespace slib
 				}
 
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 		}
 	}
-	
+
 	using namespace priv::global_event_monitor;
-	
+
 	void GlobalEventMonitor::addMonitor(const Function<void(UIEvent*)>& callback)
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -194,7 +194,7 @@ namespace slib
 			context->addMonitor(callback);
 		}
 	}
-	
+
 	void GlobalEventMonitor::removeMonitor(const Function<void(UIEvent*)>& callback)
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -208,7 +208,7 @@ namespace slib
 			context->removeMonitor(callback);
 		}
 	}
-	
+
 	void GlobalEventMonitor::removeAllMonitors()
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -222,7 +222,7 @@ namespace slib
 			context->removeAllMonitors();
 		}
 	}
-	
+
 	void GlobalEventMonitor::addMouseMonitor(const Function<void(UIEvent*)>& callback)
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -236,7 +236,7 @@ namespace slib
 			context->addMouseMonitor(callback);
 		}
 	}
-	
+
 	void GlobalEventMonitor::removeMouseMonitor(const Function<void(UIEvent*)>& callback)
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -250,7 +250,7 @@ namespace slib
 			context->removeMouseMonitor(callback);
 		}
 	}
-	
+
 	void GlobalEventMonitor::removeAllMouseMonitors()
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -264,7 +264,7 @@ namespace slib
 			context->removeAllMouseMonitors();
 		}
 	}
-	
+
 	void GlobalEventMonitor::addKeyboardMonitor(const Function<void(UIEvent*)>& callback)
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -278,7 +278,7 @@ namespace slib
 			context->addKeyboardMonitor(callback);
 		}
 	}
-	
+
 	void GlobalEventMonitor::removeKeyboardMonitor(const Function<void(UIEvent*)>& callback)
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -292,7 +292,7 @@ namespace slib
 			context->removeKeyboardMonitor(callback);
 		}
 	}
-	
+
 	void GlobalEventMonitor::removeAllKeyboardMonitors()
 	{
 #ifdef RUN_ON_UI_THREAD
@@ -306,7 +306,7 @@ namespace slib
 			context->removeAllKeyboardMonitors();
 		}
 	}
-	
+
 	void GlobalEventMonitor::_onEvent(UIEvent* ev)
 	{
 		StaticContext* context = GetStaticContext();
@@ -314,28 +314,28 @@ namespace slib
 			context->processEvent(ev);
 		}
 	}
-	
+
 #else
 	void GlobalEventMonitor::addMonitor(const Function<void(UIEvent*)>& callback)
 	{
 	}
-	
+
 	void GlobalEventMonitor::removeMonitor(const Function<void(UIEvent*)>& callback)
 	{
 	}
-	
+
 	void GlobalEventMonitor::removeAllMonitors()
 	{
 	}
-	
+
 	void GlobalEventMonitor::addMouseMonitor(const Function<void(UIEvent*)>& callback)
 	{
 	}
-	
+
 	void GlobalEventMonitor::removeMouseMonitor(const Function<void(UIEvent*)>& callback)
 	{
 	}
-	
+
 	void GlobalEventMonitor::removeAllMouseMonitors()
 	{
 	}
@@ -343,11 +343,11 @@ namespace slib
 	void GlobalEventMonitor::addKeyboardMonitor(const Function<void(UIEvent*)>& callback)
 	{
 	}
-	
+
 	void GlobalEventMonitor::removeKeyboardMonitor(const Function<void(UIEvent*)>& callback)
 	{
 	}
-	
+
 	void GlobalEventMonitor::removeAllKeyboardMonitors()
 	{
 	}

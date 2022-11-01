@@ -68,7 +68,7 @@ namespace slib
 		sl_bool insertJpegImagePage(sl_uint32 pageNo, sl_uint32 width, sl_uint32 height, const Memory& content, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool deletePage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 	protected:
 		void onDraw(Canvas* canvas) override;
 

@@ -40,7 +40,7 @@ namespace slib
 	Mutex::Mutex(const Mutex& other) noexcept: m_object(sl_null)
 	{
 	}
-	
+
 	Mutex::Mutex(Mutex&& other) noexcept: m_object(sl_null)
 	{
 	}
@@ -102,7 +102,7 @@ namespace slib
 		}
 		return _initObject();
 	}
-	
+
 	void Mutex::lock() const noexcept
 	{
 		void* object = _getObject();
@@ -141,7 +141,7 @@ namespace slib
 		pthread_mutex_unlock((pthread_mutex_t*)(object));
 #endif
 	}
-	
+
 	SpinLock* Mutex::getSpinLock() const noexcept
 	{
 		return const_cast<SpinLock*>(&m_lock);
@@ -151,18 +151,18 @@ namespace slib
 	{
 		return *this;
 	}
-	
+
 	Mutex& Mutex::operator=(Mutex&& other) noexcept
 	{
 		return *this;
 	}
 
-	
+
 	MutexLocker::MutexLocker() noexcept
 	{
 		m_mutex = sl_null;
 	}
-	
+
 	MutexLocker::MutexLocker(const Mutex* mutex) noexcept
 	{
 		m_mutex = mutex;
@@ -170,12 +170,12 @@ namespace slib
 			mutex->lock();
 		}
 	}
-	
+
 	MutexLocker::~MutexLocker() noexcept
 	{
 		unlock();
 	}
-	
+
 	void MutexLocker::lock(const Mutex* mutex) noexcept
 	{
 		if (m_mutex) {
@@ -186,7 +186,7 @@ namespace slib
 			mutex->lock();
 		}
 	}
-	
+
 	void MutexLocker::unlock() noexcept
 	{
 		const Mutex* mutex = m_mutex;

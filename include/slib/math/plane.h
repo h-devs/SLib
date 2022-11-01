@@ -43,7 +43,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(PlaneT)
-		
+
 		PlaneT() = default;
 
 		template <class O>
@@ -288,9 +288,9 @@ namespace slib
 			d = (T)(other.d);
 			return *this;
 		}
-	
+
 	};
-	
+
 	typedef PlaneT<sl_real> Plane;
 	typedef PlaneT<float> Planef;
 	typedef PlaneT<double> Planelf;

@@ -38,15 +38,15 @@ namespace slib
 		String fileExt = File::getFileExtension(path);
 		String fileName = File::getFileNameOnly(path);
 		String dirPath = File::getParentDirectoryPath(path);
-		
+
 		NSString* strFileName = Apple::getNSStringFromString(fileName);
 		NSString* strFolderPath = Apple::getNSStringFromString(dirPath);
 		NSString* strFileExtension = Apple::getNSStringFromString(fileExt);
-		
+
 		NSString *filePath = [[NSBundle mainBundle] pathForResource:strFileName ofType:strFileExtension inDirectory:strFolderPath];
 		return Apple::getStringFromNSString(filePath);
 	}
-	
+
 }
 
 #endif

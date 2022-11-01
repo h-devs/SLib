@@ -41,7 +41,7 @@ namespace slib
 			class SelectViewInstance : public GTK_ViewInstance, public ISelectViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				void initialize(View* _view) override
 				{
@@ -60,7 +60,7 @@ namespace slib
 						RefreshItems(handle, view, flagInit);
 					}
 				}
-				
+
 				void refreshItems(SelectView* view) override
 				{
 					refreshItems(view, sl_false);
@@ -73,7 +73,7 @@ namespace slib
 						InsertItem(handle, index, title);
 					}
 				}
-				
+
 				void removeItem(SelectView* view, sl_uint32 index) override
 				{
 					GtkComboBox* handle = (GtkComboBox*)m_handle;
@@ -81,7 +81,7 @@ namespace slib
 						RemoveItem(handle, index);
 					}
 				}
-				
+
 				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
 				{
 					GtkComboBox* handle = (GtkComboBox*)m_handle;
@@ -111,7 +111,7 @@ namespace slib
 			};
 
 			SLIB_DEFINE_OBJECT(SelectViewInstance, GTK_ViewInstance)
-			
+
 		}
 	}
 
@@ -122,7 +122,7 @@ namespace slib
 		GtkWidget* handle = gtk_combo_box_new_text();
 		return GTK_ViewInstance::create<SelectViewInstance>(this, parent, handle);
 	}
-	
+
 	Ptr<ISelectViewInstance> SelectView::getSelectViewInstance()
 	{
 		return CastRef<SelectViewInstance>(getViewInstance());

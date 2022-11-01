@@ -35,7 +35,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT IReader
 	{
 	public:
@@ -44,10 +44,10 @@ namespace slib
 		virtual sl_int32 read32(void* buf, sl_uint32 size);
 
 		virtual sl_bool waitRead(sl_int32 timeout = -1);
-	
+
 	public:
 		SLIB_DECLARE_IREADER_MEMBERS()
-		
+
 	};
 
 	class SLIB_EXPORT IWriter
@@ -61,7 +61,7 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_IWRITER_MEMBERS()
-		
+
 	};
 
 	class SLIB_EXPORT IBlockReader
@@ -266,7 +266,7 @@ namespace slib
 		sl_bool waitRead(sl_int32 timeout = -1) override;
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT SeekableReader : public SeekableReaderBase
 	{
@@ -376,7 +376,7 @@ namespace slib
 		}
 
 	};
-	
+
 }
 
 #endif

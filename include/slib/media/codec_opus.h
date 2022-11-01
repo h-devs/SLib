@@ -41,68 +41,68 @@ namespace slib
 		Music = 1,
 		Auto = 2
 	};
-	
+
 	class SLIB_EXPORT OpusEncoderParam
 	{
 	public:
 		sl_uint32 samplesPerSecond;
 		sl_uint32 channelCount;
 		sl_uint32 bitsPerSecond;
-		
+
 		OpusEncoderType type;
-		
+
 	public:
 		OpusEncoderParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpusEncoderParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT OpusEncoder : public AudioEncoder
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		OpusEncoder();
-		
+
 		~OpusEncoder();
-		
+
 	public:
 		static Ref<OpusEncoder> create(const OpusEncoderParam& param);
-		
+
 	public:
 		static sl_bool isValidSamplingRate(sl_uint32 nSamplesPerSecond);
-		
+
 	};
-	
+
 	class SLIB_EXPORT OpusDecoderParam
 	{
 	public:
 		sl_uint32 samplesPerSecond;
 		sl_uint32 channelCount;
-		
+
 	public:
 		OpusDecoderParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpusDecoderParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT OpusDecoder : public AudioDecoder
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		OpusDecoder();
-		
+
 		~OpusDecoder();
-		
+
 	public:
 		static Ref<OpusDecoder> create(const OpusDecoderParam& param);
-		
+
 	public:
 		static sl_bool isValidSamplingRate(sl_uint32 nSamplesPerSecond);
-		
+
 	};
 }
 

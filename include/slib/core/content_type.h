@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT ContentType
 	{
 	public:
@@ -105,19 +105,19 @@ namespace slib
 		static const String& Gzip;
 		// application/x-shockwave-flash
 		static const String& Flash;
-	
+
 		// application/x-www-form-urlencoded
 		static const String& WebForm;
 		// multipart/form-data
 		static const String& MultipartFormData;
-	
+
 	};
 
 	class SLIB_EXPORT ContentTypeHelper
 	{
 	public:
 		static String getFromFileExtension(const String& fileExt);
-		
+
 		static String getFromFileExtension(const String& fileExt, const String& def);
 
 		static String getFromFilePath(const StringParam& path);
@@ -125,7 +125,7 @@ namespace slib
 		static String getFromFilePath(const StringParam& path, const String& def);
 
 		static sl_bool equalsContentTypeExceptParams(const StringParam& type1, const StringParam& type2);
-		
+
 	};
 
 }

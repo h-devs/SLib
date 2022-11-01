@@ -39,13 +39,13 @@ import android.view.WindowManager;
 public class Sensor {
 
 	private long mInstance = 0;
-	
+
 	private Activity mContext = null;
 	private boolean mFlagUseLocation;
 	private int mLocationProviderType;
 	private boolean mFlagUseCompass;
 	private boolean mFlagUseAccelerometer;
-	
+
 	private SensorManager mSensorManager = null;
 	private LocationManager mLocationManager = null;
 
@@ -56,9 +56,9 @@ public class Sensor {
 	private static final float ALPHA = 0.15f;
 
 	private Sensor(Activity context) {
-		
+
 		mContext = context;
-		
+
 		mSensorManager = (SensorManager)(context.getSystemService(Context.SENSOR_SERVICE));
 		mLocationManager = (LocationManager)(context.getSystemService(Context.LOCATION_SERVICE));
 
@@ -111,11 +111,11 @@ public class Sensor {
 	}
 
 	public boolean start() {
-		
+
 		if (mContext == null) {
 			return false;
 		}
-		
+
 		stop();
 
 		try {
@@ -171,7 +171,7 @@ public class Sensor {
 		}
 		return 1;
 	}
-	
+
 	class Accelerometer {
 		boolean flagStarted = false;
 		SensorEventListener listener;

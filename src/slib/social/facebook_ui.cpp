@@ -24,13 +24,13 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookResolveUserUrlParam)
-	
+
 	FacebookResolveUserUrlParam::FacebookResolveUserUrlParam()
 	{
 	}
-	
+
 	void Facebook::resolveUserUrl(const FacebookResolveUserUrlParam& param)
 	{
 		auto onComplete = param.onComplete;
@@ -75,12 +75,12 @@ namespace slib
 		};
 		dialog->show(dialogParam);
 	}
-	
+
 	void Facebook::resolveUserUrl(const Function<void(const String& url)>& onComplete)
 	{
 		FacebookResolveUserUrlParam param;
 		param.onComplete = onComplete;
 		resolveUserUrl(param);
 	}
-	
+
 }

@@ -61,7 +61,7 @@ namespace slib
 			PangoFontMap *font_map
 		)
 		#define pango_context_set_font_map slib::pango::getApi_pango_context_set_font_map()
-		
+
 	}
 
 	namespace pangocairo

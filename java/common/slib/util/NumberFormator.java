@@ -105,7 +105,7 @@ public class NumberFormator {
 		}
 		return prefix + ret;
 	}
-	
+
 	public static String formatZipCode(int zipCode) {
 		if (zipCode == 0) {
 			return "";

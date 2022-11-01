@@ -28,7 +28,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NatTableParam)
-	
+
 	NatTableParam::NatTableParam()
 	{
 		targetAddress.setZero();
@@ -42,7 +42,7 @@ namespace slib
 		icmpEchoIdentifier = 30000;
 	}
 
-	
+
 	SLIB_DEFINE_OBJECT(NatTable, Object)
 
 	NatTable::NatTable()
@@ -224,14 +224,14 @@ namespace slib
 		return sn;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(NatTablePort)
-	
+
 	NatTablePort::NatTablePort()
 	{
 		flagActive = sl_false;
 	}
-	
+
 
 	NatTableMapping::NatTableMapping()
 	{
@@ -350,5 +350,5 @@ namespace slib
 		}
 		return sl_false;
 	}
-	
+
 }

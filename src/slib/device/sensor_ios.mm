@@ -48,16 +48,16 @@ namespace slib
 
 @interface SLIBSensor : NSObject <CLLocationManagerDelegate>
 {
-	
+
 	@public NSOperationQueue* operationQueue;
 	@public CMMotionManager* m_motionManager;
 	@public CLLocationManager* m_locationManager;
 	@public slib::WeakRef<slib::priv::sensor::SensorImpl> m_sensor;
-	
+
 	@public sl_bool flagUseCompass;
 	@public sl_bool flagUseAccelerometor;
 	@public sl_bool flagUseLocation;
-	
+
 }
 
 -(id) initWithParam:(const slib::SensorParam*) param;
@@ -78,13 +78,13 @@ namespace slib
 			{
 			public:
 				CMMotionManager* defaultMotion;
-				
+
 			public:
 				SharedContext()
 				{
 					defaultMotion = [[CMMotionManager alloc] init];
 				}
-				
+
 			};
 
 			SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
@@ -93,7 +93,7 @@ namespace slib
 			{
 			public:
 				SLIBSensor* m_sensor;
-				
+
 			public:
 				SensorImpl()
 				{
@@ -135,7 +135,7 @@ namespace slib
 				{
 					[m_sensor stop];
 				}
-				
+
 				void onChangeLocation(double latitude, double longitude, double altitude)
 				{
 					_onLocationChanged(GeoLocation(latitude, longitude, altitude));
@@ -150,17 +150,17 @@ namespace slib
 				{
 					_onAccelerometerChanged(xAccel, yAccel, zAccel);
 				}
-				
+
 				void setRunningLocation(sl_bool flag)
 				{
 					m_flagRunningLocation = flag;
 				}
-				
+
 				void setRunningCompass(sl_bool flag)
 				{
 					m_flagRunningCompass = flag;
 				}
-				
+
 				void setRunningAccelerometer(sl_bool flag)
 				{
 					m_flagRunningAccelerometer = flag;
@@ -246,14 +246,14 @@ using namespace slib::priv::sensor;
 	if (sensor.isNull()) {
 		return sl_false;
 	}
-	
+
 	if (flagUseLocation) {
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[self startLocationManager];
 		});
 		sensor->setRunningLocation(sl_true);
 	}
-	
+
 	if (flagUseCompass) {
 		if (m_motionManager.magnetometerAvailable) {
 			sensor->setRunningCompass(sl_true);
@@ -264,7 +264,7 @@ using namespace slib::priv::sensor;
 			NSLog(@"magnetometer is not available!");
 		}
 	}
-	
+
 	if (flagUseAccelerometor) {
 		if (m_motionManager.accelerometerAvailable) {
 			sensor->setRunningAccelerometer(sl_true);
@@ -275,23 +275,23 @@ using namespace slib::priv::sensor;
 			NSLog(@"accelerometer is not available!");
 		}
 	}
-	
+
 	if (sensor->isRunningLocation()) {
 		return sl_true;
 	}
-	
+
 	if (sensor->isRunningAccelerometer()) {
 		return sl_true;
 	}
-	
+
 	if (sensor->isRunningCompass()) {
 		return sl_true;
 	}
-	
+
 	if (sensor->isRunningLocation()) {
 		return sl_true;
 	}
-	
+
 	return sl_false;
 }
 
@@ -300,7 +300,7 @@ using namespace slib::priv::sensor;
 	if (m_locationManager == nil) {
 		m_locationManager = [[CLLocationManager alloc] init];
 		m_locationManager.delegate = self;
-		
+
 		if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 80000) {
 			[m_locationManager requestAlwaysAuthorization];
 		} else {
@@ -316,15 +316,15 @@ using namespace slib::priv::sensor;
 	if (sensor.isNull()) {
 		return;
 	}
-	
+
 	if (sensor->isRunningCompass()) {
 		[m_motionManager stopMagnetometerUpdates];
 	}
-	
+
 	if (sensor->isRunningAccelerometer()) {
 		[m_motionManager stopAccelerometerUpdates];
 	}
-	
+
 	if (sensor->isRunningLocation()) {
 		CLLocationManager* manager = m_locationManager;
 		if (manager != nil) {

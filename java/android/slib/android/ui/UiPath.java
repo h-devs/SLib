@@ -27,10 +27,10 @@ import android.graphics.RectF;
 import android.graphics.Region;
 
 public class UiPath {
-	
+
 	public final static int FILL_WINDING = 0;
 	public final static int FILL_ALTERNATE = 1;
-	
+
 	public static Path.FillType getFillType(int type) {
 		if (type == FILL_WINDING) {
 			return Path.FillType.WINDING;
@@ -43,20 +43,20 @@ public class UiPath {
 	float lastX = 0;
 	float lastY = 0;
 	boolean flagMoveAuto = false;
-	
+
 	public Region region;
 	public RectF bounds;
-	
+
 	public UiPath() {
 		path = new android.graphics.Path();
 		path.setFillType(Path.FillType.WINDING);
 	}
-	
+
 	public void setFillMode(int mode) {
 		path.setFillType(getFillType(mode));
 		invalidate();
 	}
-	
+
 	public void moveTo(float x, float y) {
 		path.moveTo(x, y);
 		lastX = x;
@@ -64,7 +64,7 @@ public class UiPath {
 		flagMoveAuto = false;
 		invalidate();
 	}
-	
+
 	public void lineTo(float x, float y) {
 		if (flagMoveAuto) {
 			path.moveTo(lastX, lastY);
@@ -75,7 +75,7 @@ public class UiPath {
 		lastY = y;
 		invalidate();
 	}
-	
+
 	public void cubicTo(float xc1, float yc1, float xc2, float yc2, float x, float y) {
 		if (flagMoveAuto) {
 			path.moveTo(lastX, lastY);
@@ -86,7 +86,7 @@ public class UiPath {
 		lastY = y;
 		invalidate();
 	}
-	
+
 	public void closeSubpath() {
 		path.close();
 		flagMoveAuto = true;
@@ -97,7 +97,7 @@ public class UiPath {
 		region = null;
 		bounds = null;
 	}
-	
+
 	public RectF getBounds() {
 		RectF ret = bounds;
 		if (ret != null) {
@@ -120,7 +120,7 @@ public class UiPath {
 		region = ret;
 		return ret;
 	}
-	
+
 	public boolean containsPoint(float x, float y) {
 		Region region = getRegion();
 		return region.contains((int)x, (int)y);

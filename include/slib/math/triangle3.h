@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT Triangle3T
 	{
@@ -38,9 +38,9 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Triangle3T)
-		
+
 		Triangle3T() = default;
-		
+
 		template <class O>
 		SLIB_CONSTEXPR Triangle3T(const Triangle3T<O>& other): point1(other.point1), point2(other.point2), point3(other.point3) {}
 
@@ -394,9 +394,9 @@ namespace slib
 			point3 = other.point3;
 			return *this;
 		}
-	
+
 	};
-	
+
 	typedef Triangle3T<sl_real> Triangle3;
 	typedef Triangle3T<float> Triangle3f;
 	typedef Triangle3T<double> Triangle3lf;

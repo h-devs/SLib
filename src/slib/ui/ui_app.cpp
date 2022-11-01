@@ -40,11 +40,11 @@
 namespace slib
 {
 	SLIB_DEFINE_OBJECT(UIApp, Application)
-	
+
 	UIApp::UIApp()
 	{
 	}
-	
+
 	UIApp::~UIApp()
 	{
 	}
@@ -60,22 +60,22 @@ namespace slib
 	{
 		return CastRef<UIApp>(Application::getApp());
 	}
-	
+
 	AppType UIApp::getAppType()
 	{
 		return AppType::UI;
 	}
-	
+
 	void UIApp::quit()
 	{
 		UI::quitApp();
 	}
-	
+
 	Ref<Window> UIApp::getMainWindow()
 	{
 		return m_mainWindow;
 	}
-	
+
 	void UIApp::setMainWindow(const Ref<Window>& window)
 	{
 		void* _thiz = this;
@@ -96,7 +96,7 @@ namespace slib
 #endif
 		}
 	}
-	
+
 	Ref<Menu> UIApp::getMenu()
 	{
 		return m_mainMenu;
@@ -106,7 +106,7 @@ namespace slib
 	{
 		return sl_false;
 	}
-	
+
 #if !defined(SLIB_UI_IS_MACOS)
 	void UIApp::setMenu(const Ref<Menu>& menu)
 	{
@@ -130,7 +130,7 @@ namespace slib
 	{
 	}
 #endif
-	
+
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_ANDROID) && !defined(SLIB_UI_IS_WIN32)
 	void UIApp::setBadgeNumber(sl_uint32 number)
 	{
@@ -157,13 +157,13 @@ namespace slib
 
 
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, Start)
-	
+
 	void UIApp::dispatchStart()
 	{
 		UrlRequest::setDefaultDispatcher(UI::getDispatcher());
 		SLIB_INVOKE_EVENT_HANDLER(Start)
 	}
-	
+
 	void UIApp::dispatchStartToApp()
 	{
 		Ref<UIApp> app = getApp();
@@ -171,14 +171,14 @@ namespace slib
 			app->dispatchStart();
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, Exit)
 
 	void UIApp::dispatchExit()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Exit)
 	}
-	
+
 	void UIApp::dispatchExitToApp()
 	{
 		Ref<UIApp> app = getApp();
@@ -190,14 +190,14 @@ namespace slib
 		AsyncIoLoop::releaseDefault();
 		Thread::finishAllThreads();
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUrl, const String& url, sl_bool& outFlagOpened)
-	
+
 	void UIApp::dispatchOpenUrl(const String& url, sl_bool& outFlagOpened)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(OpenUrl, url, outFlagOpened);
 	}
-	
+
 	sl_bool UIApp::dispatchOpenUrlToApp(const String& url)
 	{
 		sl_bool bRet = sl_false;
@@ -207,14 +207,14 @@ namespace slib
 		}
 		return bRet;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUrls, const List<String>& urls, sl_bool& outFlagOpened)
-	
+
 	void UIApp::dispatchOpenUrls(const List<String>& urls, sl_bool& outFlagOpened)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(OpenUrls, urls, outFlagOpened);
 	}
-	
+
 	sl_bool UIApp::dispatchOpenUrlsToApp(const List<String>& urls)
 	{
 		sl_bool bRet = sl_false;
@@ -224,14 +224,14 @@ namespace slib
 		}
 		return bRet;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenFile, const String& filePath, sl_bool& outFlagOpened)
-	
+
 	void UIApp::dispatchOpenFile(const String& filePath, sl_bool& outFlagOpened)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(OpenFile, filePath, outFlagOpened);
 	}
-	
+
 	sl_bool UIApp::dispatchOpenFileToApp(const String& filePath)
 	{
 		sl_bool bRet = sl_false;
@@ -241,14 +241,14 @@ namespace slib
 		}
 		return bRet;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenFiles, const List<String>& files, sl_bool& outFlagOpened)
-	
+
 	void UIApp::dispatchOpenFiles(const List<String>& files, sl_bool& outFlagOpened)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(OpenFiles, files, outFlagOpened);
 	}
-	
+
 	sl_bool UIApp::dispatchOpenFilesToApp(const List<String>& files)
 	{
 		sl_bool bRet = sl_false;
@@ -258,14 +258,14 @@ namespace slib
 		}
 		return bRet;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenTempFile, const String& filePath, sl_bool& outFlagOpened)
-	
+
 	void UIApp::dispatchOpenTempFile(const String& filePath, sl_bool& outFlagOpened)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(OpenTempFile, filePath, outFlagOpened);
 	}
-	
+
 	sl_bool UIApp::dispatchOpenTempFileToApp(const String& filePath)
 	{
 		sl_bool bRet = sl_false;
@@ -275,14 +275,14 @@ namespace slib
 		}
 		return bRet;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, OpenUntitledFile, sl_bool& outFlagOpened)
-	
+
 	void UIApp::dispatchOpenUntitledFile(sl_bool& outFlagOpened)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(OpenUntitledFile, outFlagOpened);
 	}
-	
+
 	sl_bool UIApp::dispatchOpenUntitledFileToApp()
 	{
 		sl_bool bRet = sl_false;
@@ -292,14 +292,14 @@ namespace slib
 		}
 		return bRet;
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(UIApp, Reopen, const String& commandLine, sl_bool flagHasVisibleWindows, sl_bool& outFlagPerformNormalTasks)
-	
+
 	void UIApp::dispatchReopen(const String& commandLine, sl_bool flagHasVisibleWindows, sl_bool& outFlagPerformNormalTasks)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Reopen, commandLine, flagHasVisibleWindows, outFlagPerformNormalTasks)
 	}
-	
+
 	sl_bool UIApp::dispatchReopenToApp(const String& commandLine, sl_bool flagHasVisibleWindows)
 	{
 		sl_bool bRet = sl_true;

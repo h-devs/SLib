@@ -92,7 +92,7 @@ namespace slib
 						if (iPixelFormat) {
 
 							if (SetPixelFormat(hDC, iPixelFormat, &pfd)) {
-								
+
 								HGLRC context = wglCreateContext(hDC);
 								if (context) {
 
@@ -106,7 +106,7 @@ namespace slib
 										ret->initWithParam(param);
 
 										ret->m_threadRender = Thread::start(SLIB_FUNCTION_MEMBER(ret.get(), run));
-										
+
 										return ret;
 									}
 
@@ -122,7 +122,7 @@ namespace slib
 				void release()
 				{
 					ObjectLocker lock(this);
-					
+
 					Ref<Thread> thread = m_threadRender;
 					if (thread.isNotNull()) {
 						thread->finishAndWait();

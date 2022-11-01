@@ -40,7 +40,7 @@ extern "C"
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PostgreSQL_Param)
 
 	PostgreSQL_Param::PostgreSQL_Param()
@@ -64,14 +64,14 @@ namespace slib
 	{
 		namespace postgresql
 		{
-		
+
 			class CursorImpl : public DatabaseCursor
 			{
 			public:
 				PGconn* m_connection;
 				PGresult* m_result;
 				sl_bool m_flagFirstRow;
-				
+
 				CList<String> m_listColumnNames;
 				sl_uint32 m_nColumnNames;
 				String* m_columnNames;
@@ -83,9 +83,9 @@ namespace slib
 					m_connection = connection;
 
 					db->lock();
-					
+
 					PQsetSingleRowMode(m_connection);
-					
+
 					m_flagFirstRow = sl_true;
 					for (;;) {
 						m_result = PQgetResult(m_connection);
@@ -96,7 +96,7 @@ namespace slib
 							break;
 						}
 					}
-					
+
 					if (m_result) {
 						int cols = PQnfields(m_result);
 						for (int i = 0; i < cols; i++) {
@@ -182,7 +182,7 @@ namespace slib
 						return Memory::create(v, len);
 					}
 				}
-				
+
 				Variant getValue(sl_uint32 index) override
 				{
 					if (index < m_nColumnNames) {
@@ -212,9 +212,9 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 			};
-		
+
 			static void BindParams(const Variant* params, sl_uint32 nParams, String* strings, const char** values, int* lengths, int* formats)
 			{
 				for (sl_uint32 i = 0; i < nParams; i++) {
@@ -241,14 +241,14 @@ namespace slib
 					}
 				}
 			}
-			
+
 			class StatementImpl : public DatabaseStatement
 			{
 			public:
 				PGconn* m_connection;
 				String m_sql;
 				String m_name;
-				
+
 			public:
 				StatementImpl(Database* db, PGconn* connection, const String& sql)
 				{
@@ -277,7 +277,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				sl_int64 executeBy(const Variant* params, sl_uint32 nParams) override
 				{
 					SLIB_SCOPED_BUFFER(String, 32, strings, nParams)
@@ -288,7 +288,7 @@ namespace slib
 						return -1;
 					}
 					BindParams(params, nParams, strings, values, lengths, formats);
-					
+
 					ObjectLocker lock(m_db.get());
 					PGresult* res = PQexecPrepared(m_connection, m_name.getData(), (int)nParams, values, lengths, formats, 0);
 					if (res) {
@@ -315,7 +315,7 @@ namespace slib
 						return sl_null;
 					}
 					BindParams(params, nParams, strings, values, lengths, formats);
-					
+
 					ObjectLocker lock(m_db.get());
 					if (PQsendQueryPrepared(m_connection, m_name.getData(), (int)nParams, values, lengths, formats, 0) == 1) {
 						return new CursorImpl(m_db.get(), m_connection);
@@ -330,20 +330,20 @@ namespace slib
 			public:
 				PGconn* m_connection;
 				Queue<String> m_queueRemovingStatements;
-				
+
 			public:
 				DatabaseImpl()
 				{
 					m_connection = sl_null;
 				}
-				
+
 				~DatabaseImpl()
 				{
 					if (m_connection) {
 						PQfinish(m_connection);
 					}
 				}
-				
+
 			public:
 				static Ref<DatabaseImpl> connect(PostgreSQL_Param& param)
 				{
@@ -366,7 +366,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_int64 _execute(const StringParam& _sql) override
 				{
 					StringCstr sql(_sql);
@@ -396,7 +396,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_int64 _executeBy(const StringParam& _sql, const Variant* params, sl_uint32 nParams) override
 				{
 					StringCstr sql(_sql);
@@ -409,7 +409,7 @@ namespace slib
 						return -1;
 					}
 					BindParams(params, nParams, strings, values, lengths, formats);
-					
+
 					ObjectLocker lock(this);
 					PGresult* res = PQexecParams(m_connection, sql.getData(), (int)nParams, sl_null, values, lengths, formats, 0);
 					sl_int64 ret = -1;
@@ -439,14 +439,14 @@ namespace slib
 						return sl_null;
 					}
 					BindParams(params, nParams, strings, values, lengths, formats);
-					
+
 					ObjectLocker lock(this);
 					if (PQsendQueryParams(m_connection, sql.getData(), (int)nParams, sl_null, values, lengths, formats, 0) == 1) {
 						return new CursorImpl(this, m_connection);
 					}
 					return sl_null;
 				}
-				
+
 				Ref<DatabaseStatement> _prepareStatement(const StringParam& sql) override
 				{
 					ObjectLocker lock(this);
@@ -479,12 +479,12 @@ namespace slib
 					}
 					return error;
 				}
-				
+
 				sl_bool isDatabaseExisting(const StringParam& name) override
 				{
 					return getDatabases().contains(StringData(name));
 				}
-				
+
 				List<String> getDatabases() override
 				{
 					PGresult* res = PQexec(m_connection, "SELECT datname FROM pg_database");
@@ -506,7 +506,7 @@ namespace slib
 				{
 					return getTables().contains(StringData(name));
 				}
-				
+
 				List<String> getTables() override
 				{
 					PGresult* res = PQexec(m_connection, "SELECT tablename FROM pg_tables WHERE schemaname='public'");
@@ -523,7 +523,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_uint64 getLastInsertRowId() override
 				{
 					PGresult* res = PQexec(m_connection, "SELECT lastval()");

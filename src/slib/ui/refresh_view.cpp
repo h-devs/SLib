@@ -34,7 +34,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(RefreshView, ViewGroup)
-	
+
 	RefreshView::RefreshView()
 	{
 		setSupportedNativeWidget(HAS_NATIVE_WIDGET_IMPL);
@@ -42,36 +42,36 @@ namespace slib
 
 		m_flagRefreshing = sl_false;
 	}
-	
+
 	RefreshView::~RefreshView()
 	{
 	}
-	
+
 	sl_bool RefreshView::isRefreshing()
 	{
 		return m_flagRefreshing;
 	}
-	
+
 	void RefreshView::setRefreshing(sl_bool flag)
 	{
 		m_flagRefreshing = flag;
 		_setRefreshing_NW(flag);
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(RefreshView, Refresh)
 
 	void RefreshView::dispatchRefresh()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Refresh)
 	}
-	
+
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RefreshView::createNativeWidget(ViewInstance* parent)
 	{
 		return sl_null;
 	}
 #endif
-	
+
 #if !defined(SLIB_UI_IS_IOS)
 	void RefreshView::onAttachChild(View* child)
 	{
@@ -89,5 +89,5 @@ namespace slib
 		m_flagRefreshing = sl_true;
 		dispatchRefresh();
 	}
-	
+
 }

@@ -26,13 +26,13 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PushNotificationMessage)
-	
+
 	PushNotificationMessage::PushNotificationMessage()
 	{
 		badge = -1;
 		flagClicked = sl_false;
 		flagBackground = sl_false;
 	}
-	
+
 }
 

@@ -41,7 +41,7 @@ namespace slib
 		Current = Unknown
 #endif
 	};
-	
+
 }
 
 #endif

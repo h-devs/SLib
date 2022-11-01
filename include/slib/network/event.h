@@ -56,10 +56,10 @@ namespace slib
 			Write = 2,	// send, sendTo, connect
 			Close = 4	// close, error
 		};
-		
+
 	public:
 		static Ref<SocketEvent> create(const Socket& socket, sl_uint32 events) noexcept;
-		
+
 		static Ref<SocketEvent> createRead(const Socket& socket) noexcept;
 
 		static Ref<SocketEvent> createWrite(const Socket& socket) noexcept;
@@ -76,7 +76,7 @@ namespace slib
 		sl_bool wait(sl_int32 timeout = -1) noexcept;
 
 		sl_bool wait(sl_uint32* pOutStatus, sl_int32 timeout = -1) noexcept;
-		
+
 		// returns event status
 		sl_uint32 waitEvents(sl_int32 timeout = -1) noexcept;
 
@@ -89,7 +89,7 @@ namespace slib
 		sl_bool doWait(sl_uint32* pOutStatus, sl_int32 timeout) noexcept;
 
 		static sl_bool doWaitMultipleEvents(SocketEvent** events, sl_uint32* status, sl_uint32 count, sl_int32 timeout) noexcept;
-		
+
 	protected:
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 		void* m_handle;

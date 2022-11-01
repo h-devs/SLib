@@ -40,7 +40,7 @@ C(n,m)	= Combinations of n things, taken m at a time
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT CubicBezierCurveT
 	{
@@ -52,7 +52,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(CubicBezierCurveT)
-		
+
 		CubicBezierCurveT() = default;
 
 		template <class O>
@@ -87,12 +87,12 @@ namespace slib
 			x = it3 * x0 + _3it2t * x1 + _3itt2 * x2 + t3 * x3;
 			y = it3 * y0 + _3it2t * y1 + _3itt2 * y2 + t3 * y3;
 		}
-	
+
 		void getPoint(T t, PointT<T>& pt) const noexcept
 		{
 			getPoint(t, pt.x, pt.y);
 		}
-	
+
 		PointT<T> getPoint(T t) const noexcept
 		{
 			PointT<T> ret;
@@ -175,7 +175,7 @@ namespace slib
 				return nPts + 1;
 			}
 		}
-	
+
 		void describeArc(T cx, T cy, T rx, T ry, T startRadian, T endRadian) noexcept
 		{
 			T cos1 = Math::cos(startRadian);
@@ -210,7 +210,7 @@ namespace slib
 		}
 
 	};
-	
+
 	typedef CubicBezierCurveT<sl_real> CubicBezierCurve;
 	typedef CubicBezierCurveT<float> CubicBezierCurvef;
 	typedef CubicBezierCurveT<double> CubicBezierCurvelf;

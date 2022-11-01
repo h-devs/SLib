@@ -30,19 +30,19 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace toast
 		{
-			
+
 			class ToastManager
 			{
 			public:
 				Mutex lock;
 				Ref<LabelView> currentToast;
 				Ref<Animation> animation;
-				
+
 			public:
 				void show(Toast* toast)
 				{
@@ -114,7 +114,7 @@ namespace slib
 					currentToast = view;
 					parent->addChild(view);
 					animation = view->startAlphaAnimation(0, 1, 0.3f, sl_null, AnimationCurve::Linear, AnimationFlags::NotSelfAlive);
-					
+
 					sl_uint32 duration = toast->duration;
 					if (!duration) {
 						duration = Toast::getDefaultDuration();
@@ -133,21 +133,21 @@ namespace slib
 						}
 					}), duration);
 				}
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(ToastManager, GetToastManager)
-			
+
 			// milliseconds
 			sl_uint32 g_defaultDuration = 2000;
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Font>, g_defaultFont)
-			
+
 		}
 	}
-	
+
 	using namespace priv::toast;
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Toast)
 
 	Toast::Toast()
@@ -156,7 +156,7 @@ namespace slib
 		gravity = Alignment::Default;
 		margin.left = margin.top = margin.right = margin.bottom = (sl_ui_len)(UI::dpToPixel(50));
 	}
-	
+
 	void Toast::show()
 	{
 		ToastManager* manager = GetToastManager();
@@ -164,14 +164,14 @@ namespace slib
 			manager->show(this);
 		}
 	}
-	
+
 	void Toast::show(const String& text)
 	{
 		Toast toast;
 		toast.text = text;
 		toast.show();
 	}
-	
+
 	void Toast::show(const String& text, sl_uint32 duration)
 	{
 		Toast toast;
@@ -179,7 +179,7 @@ namespace slib
 		toast.duration = duration;
 		toast.show();
 	}
-	
+
 	void Toast::show(const String& text, sl_uint32 duration, const Ref<Font>& font)
 	{
 		Toast toast;
@@ -188,7 +188,7 @@ namespace slib
 		toast.font = font;
 		toast.show();
 	}
-	
+
 	void Toast::show(const String& text, sl_uint32 duration, const Ref<Font>& font, const Alignment& gravity)
 	{
 		Toast toast;
@@ -198,7 +198,7 @@ namespace slib
 		toast.gravity = gravity;
 		toast.show();
 	}
-	
+
 	void Toast::show(const String& text, sl_uint32 duration, const Ref<Font>& font, const Alignment& gravity, const UIEdgeInsets& margin)
 	{
 		Toast toast;
@@ -209,17 +209,17 @@ namespace slib
 		toast.margin = margin;
 		toast.show();
 	}
-	
+
 	sl_uint32 Toast::getDefaultDuration()
 	{
 		return g_defaultDuration;
 	}
-	
+
 	void Toast::setDefaultDuration(sl_uint32 duration)
 	{
 		g_defaultDuration = duration;
 	}
-	
+
 	Ref<Font> Toast::getDefaultFont()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFont)) {
@@ -230,7 +230,7 @@ namespace slib
 		}
 		return g_defaultFont;
 	}
-	
+
 	void Toast::setDefaultFont(const Ref<Font>& font)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_defaultFont)) {
@@ -238,5 +238,5 @@ namespace slib
 		}
 		g_defaultFont = font;
 	}
-	
+
 }

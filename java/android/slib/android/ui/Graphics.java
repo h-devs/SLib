@@ -36,25 +36,25 @@ public class Graphics {
 	private Canvas canvas;
 	private boolean flagAntiAlias;
 	private int alpha;
-	
+
 	public Graphics(Canvas canvas) {
 		this.canvas = canvas;
 		this.flagAntiAlias = true;
 		this.alpha = 255;
 	}
-	
+
 	Canvas getCanvas() {
 		return canvas;
 	}
-	
+
 	public int getWidth() {
 		return canvas.getWidth();
 	}
-	
+
 	public int getHeight() {
 		return canvas.getHeight();
 	}
-	
+
 	public void save() {
 		try {
 			canvas.save();
@@ -62,7 +62,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void restore() {
 		try {
 			canvas.restore();
@@ -70,12 +70,12 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public Rect getClipBounds()
 	{
 		return canvas.getClipBounds();
 	}
-	
+
 	public void clipToRectangle(float left, float top, float right, float bottom) {
 		try {
 			canvas.clipRect(left, top, right, bottom);
@@ -83,7 +83,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void clipToPath(UiPath path) {
 		if (path == null) {
 			return;
@@ -105,7 +105,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void drawText(String text, float x, float y, UiFont font, int color) {
 		if (font == null || text == null) {
 			return;
@@ -147,7 +147,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void drawLines(float[] points, UiPen pen) {
 		if (points == null) {
 			return;
@@ -168,7 +168,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void drawArc(float x1, float y1, float x2, float y2, float startDegrees, float sweepDegrees, UiPen pen) {
 		if (pen == null) {
 			return;
@@ -185,7 +185,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void drawRectangle(float x1, float y1, float x2, float y2, UiPen pen, UiBrush brush) {
 		try {
 			Paint paint = createPaint();
@@ -233,7 +233,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void drawPolygon(float[] points, UiPen pen, UiBrush brush, int fillMode) {
 		if (points == null) {
 			return;
@@ -262,7 +262,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void drawPath(UiPath path, UiPen pen, UiBrush brush) {
 		if (path == null) {
 			return;
@@ -281,7 +281,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public void drawPie(float x1, float y1, float x2, float y2, float startDegrees, float sweepDegrees, UiPen pen, UiBrush brush) {
 		try {
 			Paint paint = createPaint();
@@ -305,7 +305,7 @@ public class Graphics {
 			Logger.exception(e);
 		}
 	}
-	
+
 	public int getAlpha() {
 		return alpha;
 	}
@@ -313,7 +313,7 @@ public class Graphics {
 	public void setAlpha(int alpha) {
 		this.alpha = alpha;
 	}
-	
+
 	public void setAlpha(float alpha) {
 		int a = (int)(alpha * 255);
 		if (a < 0) {
@@ -324,22 +324,22 @@ public class Graphics {
 		}
 		this.alpha = a;
 	}
-	
+
 	public boolean isAntiAlias() {
 		return flagAntiAlias;
 	}
-	
+
 	public void setAntiAlias(boolean flag) {
 		this.flagAntiAlias = flag;
 	}
-	
+
 	Paint createPaint()
 	{
 		Paint paint = new Paint();
 		paint.setAntiAlias(flagAntiAlias);
 		return paint;
 	}
-	
+
 	public static int applyAlphaToColor(int color, int alpha) {
 		if (alpha < 255) {
 			int a = (color >> 24) & 255;
@@ -348,5 +348,5 @@ public class Graphics {
 		}
 		return color;
 	}
-	
+
 }

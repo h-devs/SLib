@@ -104,7 +104,7 @@ namespace slib
 				{
 					m_flagContinuously = (mode == RedrawMode::Continuously);
 				}
-				
+
 				void requestRender(RenderView* view) override
 				{
 					m_flagRequestRender = sl_true;
@@ -145,7 +145,7 @@ namespace slib
 						elm_glview_changed_set(handle);
 					}
 				}
-				
+
 				static void glInit(Evas_Object* handle)
 				{
 					Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(UIPlatform::getViewInstance(handle));
@@ -208,7 +208,7 @@ namespace slib
 	{
 		return CastRef<RenderViewInstance>(getViewInstance());
 	}
-	
+
 }
 
 #endif

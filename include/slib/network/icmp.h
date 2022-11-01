@@ -24,12 +24,12 @@
 #define CHECKHEADER_SLIB_NETWORK_ICMP
 
 /********************************************************************
-				
+
 				INTERNET CONTROL MESSAGE PROTOCOL
 
 				https://tools.ietf.org/html/rfc792
 
-	
+
 	0                   1                   2                   3
 	0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 	+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -83,7 +83,7 @@
 			5 = source route failed.
 
  * Redirect Message
-		
+
 		0                   1                   2                   3
 		0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -103,7 +103,7 @@
 			3 = Redirect datagrams for the Type of Service and Host.
 
  * Time Exceeded Message
-		
+
 		0                   1                   2                   3
 		0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -139,7 +139,7 @@
 
 
  * Timestamp or Timestamp Reply Message
-		
+
 		0                   1                   2                   3
 		0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 		+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -181,52 +181,52 @@ namespace slib
 		AddressMaskRequest = 17,
 		AddressMaskReply = 18
 	};
-	
+
 	class SLIB_EXPORT IcmpHeaderFormat
 	{
 	public:
 		IcmpType getType() const;
-		
+
 		void setType(IcmpType type);
-		
+
 		sl_uint8 getCode() const;
-		
+
 		void setCode(sl_uint8 code);
-		
+
 		sl_uint16 getChecksum() const;
-		
+
 		void setChecksum(sl_uint16 checksum);
-		
+
 	public:
 		void updateChecksum(sl_uint32 sizeICMP);
-		
+
 		sl_bool checkChecksum(sl_uint32 sizeICMP) const;
-		
+
 		sl_bool check(sl_uint32 sizeICMP) const;
-		
+
 	public:
 		sl_uint16 getEchoIdentifier() const;
-		
+
 		void setEchoIdentifier(sl_uint16 id);
-		
+
 		sl_uint16 getEchoSequenceNumber() const;
-		
+
 		void setEchoSequenceNumber(sl_uint16 sn);
-		
+
 		IPv4Address getRedirectGatewayAddress() const;
-		
+
 		void setRedirectGatewayAddress(const IPv4Address& address);
-		
+
 		sl_uint8 getParameterProblemPointer() const;
-		
+
 		void setParameterProblemPointer(sl_uint8 pointer);
-		
+
 		sl_uint16 getTimestampIdentifier() const;
-		
+
 		void setTimestampIdentifier(sl_uint16 id);
-		
+
 		sl_uint16 getTimestampSequenceNumber() const;
-		
+
 		void setTimestampSequenceNumber(sl_uint16 sn);
 
 		sl_uint16 getAddressMaskIdentifier() const;
@@ -242,36 +242,36 @@ namespace slib
 		void setNextHopMTU(sl_uint16 mtu);
 
 		const sl_uint8* getContent() const;
-		
+
 		sl_uint8* getContent();
-		
+
 	private:
 		sl_uint8 _type;
 		sl_uint8 _code;
 		sl_uint8 _checksum[2];
 		sl_uint8 _rest[4];
-		
+
 	};
-	
+
 	class SLIB_EXPORT IcmpEchoAddress
 	{
 	public:
 		IPv4Address ip;
 		sl_uint16 identifier;
 		sl_uint16 sequenceNumber;
-		
+
 	public:
 		sl_compare_result compare(const IcmpEchoAddress& other) const noexcept;
 
 		sl_bool equals(const IcmpEchoAddress& other) const noexcept;
-		
+
 		sl_size getHashCode() const noexcept;
-		
+
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_COMPARE_OPERATORS
-		
+
 	};
-	
+
 }
 
 #endif

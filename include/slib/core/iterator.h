@@ -38,7 +38,7 @@ namespace slib
 		~CIteratorBase();
 
 	};
-	
+
 	template <class KT, class VT>
 	class SLIB_EXPORT CIterator : public CIteratorBase
 	{
@@ -64,7 +64,7 @@ namespace slib
 		typedef CIterator<KT, VT> CITERATOR;
 		typedef KT KEY_TYPE;
 		typedef VT VALUE_TYPE;
-	
+
 	public:
 		Ref<CITERATOR> ref;
 		SLIB_REF_WRAPPER_NO_ATOMIC(Iterator, CITERATOR)

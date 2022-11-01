@@ -41,16 +41,16 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_SEEKABLE_WRITER_MEMBERS(,override)
-	
+
 	public:
 		void initialize(const Memory& mem);
 
 		void initialize(void* buf, sl_size size);
-		
+
 		sl_reg write(const void* buf, sl_size size) override;
 
 		sl_reg write(const MemoryView& mem);
-	
+
 		sl_bool seek(sl_int64 offset, SeekPosition pos) override;
 
 		sl_bool getPosition(sl_uint64& outPos) override;
@@ -91,7 +91,7 @@ namespace slib
 		Memory m_mem;
 
 	};
-	
+
 }
 
 #endif

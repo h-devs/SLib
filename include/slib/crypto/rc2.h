@@ -47,9 +47,9 @@ namespace slib
 		sl_bool setKey(const void* key, sl_size lenKey, sl_int32 nBits = -1);
 
 		void encrypt(sl_uint32& d0, sl_uint32& d1) const;
-	
+
 		void decrypt(sl_uint32& d0, sl_uint32& d1) const;
-		
+
 		// 64 bits (8 bytes) block
 		void encryptBlock(const void* src, void* dst) const;
 
@@ -60,7 +60,7 @@ namespace slib
 		sl_uint16 m_key[64];
 
 	};
-	
+
 }
 
 #endif

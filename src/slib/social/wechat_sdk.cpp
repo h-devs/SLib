@@ -24,7 +24,7 @@
 
 namespace slib
 {
-	
+
 #if !defined(SLIB_PLATFORM_IS_IOS) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	void WeChatSDK::initialize(const String& appId, const String& universalLink)
 	{
@@ -42,7 +42,7 @@ namespace slib
 		req.onComplete(result);
 	}
 #endif
-	
+
 	void WeChatSDK::login(const Function<void(WeChatLoginResult& result)>& onComplete)
 	{
 		WeChatLoginParam param;

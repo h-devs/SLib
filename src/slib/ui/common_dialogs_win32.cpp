@@ -308,7 +308,7 @@ namespace slib
 			ofn.lpstrFile = szFile;
 			ofn.nMaxFile = sizeof(szFile) / sizeof(WCHAR);
 			szFile[0] = 0;
-			
+
 			StringCstr16 initialDir;
 			String16 fileName;
 			if (File::isDirectory(selectedPath)) {

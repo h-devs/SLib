@@ -164,71 +164,71 @@ namespace slib
 		}
 		return sl_true;
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsContextParam)
 
 	TlsContextParam::TlsContextParam(): flagVerify(sl_false)
 	{
 	}
-	
+
 	void TlsContextParam::setCertificate(const Memory& _certificate)
 	{
 		certificate = _certificate;
 	}
-	
+
 	void TlsContextParam::setCertificate(const String& serverName, const Memory& certificate)
 	{
 		certificates.put(serverName, certificate);
 	}
-	
+
 	void TlsContextParam::setPrivateKey(const Memory& _privateKey)
 	{
 		privateKey = _privateKey;
 	}
-		
+
 	void TlsContextParam::setPrivateKey(const String& serverName, const Memory& privateKey)
 	{
 		privateKeys.put(serverName, privateKey);
 	}
-	
+
 	void TlsContextParam::setCertificateFile(const String& path_PEM)
 	{
 		certificate = File::readAllBytes(path_PEM);
 	}
-	
+
 	void TlsContextParam::setCertificateFile(const String& serverName, const String& path_PEM)
 	{
 		setCertificate(serverName, File::readAllBytes(path_PEM));
 	}
-	
+
 	void TlsContextParam::setPrivateKeyFile(const String& path_PEM)
 	{
 		privateKey = File::readAllBytes(path_PEM);
 	}
-	
+
 	void TlsContextParam::setPrivateKeyFile(const String& serverName, const String& path_PEM)
 	{
 		setPrivateKey(serverName, File::readAllBytes(path_PEM));
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsStreamResult)
-	
+
 	TlsStreamResult::TlsStreamResult(AsyncStream* _stream): stream(_stream), flagError(sl_true)
 	{
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsStreamParam)
-	
+
 	TlsStreamParam::TlsStreamParam():
 		readingBufferSize(0x40000),
 		writingBufferSize(0x40000),
 		flagAutoStartHandshake(sl_true)
 	{
 	}
-	
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsConnectStreamParam)
 
@@ -240,27 +240,27 @@ namespace slib
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TlsAcceptStreamParam)
-	
+
 	TlsAcceptStreamParam::TlsAcceptStreamParam()
 	{
 		readingBufferSize = 0x10000;
 		writingBufferSize = 0x80000;
 	}
-	
+
 
 	SLIB_DEFINE_OBJECT(TlsContext, Object)
-	
+
 	TlsContext::TlsContext()
 	{
 	}
-	
+
 	TlsContext::~TlsContext()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(TlsAsyncStream, AsyncStream)
-	
+
 	TlsAsyncStream::TlsAsyncStream()
 	{
 	}

@@ -32,13 +32,13 @@ namespace slib
 	{
 	public:
 		static sl_bool checkName(const sl_char8* sz, sl_reg len = -1);
-		
+
 		static sl_bool checkName(const sl_char16* sz, sl_reg len = -1);
-		
+
 		static sl_bool checkNameOrArrayMember(const String& input, String* outName = sl_null, sl_int32* outIndex = sl_null);
-		
+
 		static String generateBytesArrayDefinition(const void* data, sl_size size, sl_size countPerLine = 0, sl_size tabCount = 0);
-		
+
 	};
 
 }

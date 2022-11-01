@@ -135,7 +135,7 @@ namespace slib
 		)
 
 	SLIB_IMPORT_LIBRARY_END
-	
+
 }
 
 #endif

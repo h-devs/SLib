@@ -28,7 +28,7 @@ namespace slib
 		if (element.isNull()) {
 			return sl_false;
 		}
-		
+
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
 			_logError(element, g_str_error_resource_color_name_is_empty);
@@ -38,21 +38,21 @@ namespace slib
 			_logError(element, String::format(g_str_error_resource_color_name_invalid, name));
 			return sl_false;
 		}
-		
+
 		name = getNameInLocalNamespace(localNamespace, name);
-		
+
 		if (m_colors.find(name)) {
 			_logError(element, String::format(g_str_error_resource_color_name_redefined, name));
 			return sl_false;
 		}
-		
+
 		String valueText = element->getText();
 		Color value;
 		if (!(value.parse(valueText))) {
 			_logError(element, String::format(g_str_error_resource_color_value_invalid, valueText));
 			return sl_false;
 		}
-		
+
 		Ref<SAppColorResource> res = new SAppColorResource;
 		if (res.isNull()) {
 			_logError(element, g_str_error_out_of_memory);
@@ -64,16 +64,16 @@ namespace slib
 			_logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
-		
+
 		return sl_true;
 	}
 
 	sl_bool SAppDocument::_generateColorsCpp(const String& targetPath)
 	{
 		_log(g_str_log_generate_cpp_colors_begin);
-		
+
 		StringBuffer sbHeader, sbCpp, sbMap;
-		
+
 		sbHeader.add(String::format(
 									"#pragma once%n%n"
 									"#include <slib/graphics/resource.h>%n%n"
@@ -85,30 +85,30 @@ namespace slib
 								 "namespace %s%n"
 								 "{%n\tnamespace color%n\t{%n%n"
 								 , m_conf.generate_cpp_namespace));
-		
+
 		sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_BEGIN\r\n");
-		
+
 		for (auto& pair : m_colors) {
-			
+
 			if (pair.value.isNotNull()) {
-				
+
 				sbHeader.add(String::format("\t\tSLIB_DECLARE_COLOR_RESOURCE(%s)%n", pair.key));
 
 				Color& color = pair.value->value;
 				sbCpp.add(String::format("\t\tSLIB_DEFINE_COLOR_RESOURCE(%s, %d, %d, %d, %d)%n", pair.key, color.r, color.g, color.b, color.a));
-				
+
 				sbMap.add(String::format("\t\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_ITEM(%s)%n", pair.key));
-				
+
 			}
 		}
-		
+
 		sbMap.add("\t\tSLIB_DEFINE_COLOR_RESOURCE_MAP_END\r\n");
-		
+
 		sbHeader.add("\r\n\t\tSLIB_DECLARE_COLOR_RESOURCE_MAP\r\n\r\n\t}\r\n}\r\n");
-		
+
 		sbCpp.link(sbMap);
 		sbCpp.add("\r\n\t}\r\n}\r\n");
-		
+
 		String pathHeader = targetPath + "/colors.h";
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
@@ -117,7 +117,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		String pathCpp = targetPath + "/colors.cpp";
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
@@ -126,10 +126,10 @@ namespace slib
 				return sl_false;
 			}
 		}
-		
+
 		return sl_true;
 	}
-	
+
 	sl_bool SAppDocument::_getColorAccessString(const String& localNamespace, const SAppColorValue& value, const Ref<XmlElement>& element, String& result)
 	{
 		if (!(value.flagDefined)) {
@@ -181,7 +181,7 @@ namespace slib
 			return _checkColorName(localNamespace, value.resourceName, element);
 		}
 	}
-	
+
 	sl_bool SAppDocument::_checkColorName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppColorResource>* outResource)
 	{
 		if (getItemFromMap(m_colors, localNamespace, name, outName, outResource)) {

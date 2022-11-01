@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace linkedin
@@ -35,11 +35,11 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<LinkedIn>, g_instance)
 		}
 	}
-	
+
 	using namespace priv::linkedin;
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInUser)
-	
+
 	SLIB_DEFINE_JSON(LinkedInUser)
 	{
 		if (isFromJson) {
@@ -57,11 +57,11 @@ namespace slib
 			}
 		}
 	}
-	
+
 	LinkedInUser::LinkedInUser()
 	{
 	}
-	
+
 	String LinkedInUser::getNameFromLocalized(const Json& localizedName)
 	{
 		Json name = localizedName["localized"];
@@ -76,9 +76,9 @@ namespace slib
 		return sl_null;
 	}
 
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInParam)
-	
+
 	LinkedInParam::LinkedInParam()
 	{
 		authorizeUrl = "https://www.linkedin.com/oauth/v2/authorization";
@@ -87,22 +87,22 @@ namespace slib
 		defaultScopes.add_NoLock("r_emailaddress");
 		flagSupportImplicitGrantType = sl_false;
 	}
-	
+
 	SLIB_DEFINE_OBJECT(LinkedIn, OAuth2)
-	
+
 	LinkedIn::LinkedIn(const LinkedInParam& param) : OAuth2(param)
 	{
 	}
-	
+
 	LinkedIn::~LinkedIn()
 	{
 	}
-	
+
 	Ref<LinkedIn> LinkedIn::create(const LinkedInParam& param)
 	{
 		return new LinkedIn(param);
 	}
-	
+
 	void LinkedIn::initialize(const LinkedInParam& param)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -110,14 +110,14 @@ namespace slib
 		}
 		g_instance = create(param);
 	}
-	
+
 	void LinkedIn::initialize()
 	{
 		LinkedInParam param;
 		param.preferenceName = "linkedin";
 		initialize(param);
 	}
-	
+
 	Ref<LinkedIn> LinkedIn::create(const String& clientId, const String& clientSecret, const String& redirectUri)
 	{
 		LinkedInParam param;
@@ -126,7 +126,7 @@ namespace slib
 		param.redirectUri = redirectUri;
 		return create(param);
 	}
-	
+
 	void LinkedIn::initialize(const String& clientId, const String& clientSecret, const String& redirectUri)
 	{
 		LinkedInParam param;
@@ -136,14 +136,14 @@ namespace slib
 		param.redirectUri = redirectUri;
 		initialize(param);
 	}
-	
+
 	Ref<LinkedIn> LinkedIn::createWithAccessToken(const String& accessKey)
 	{
 		LinkedInParam param;
 		param.accessToken.token = accessKey;
 		return create(param);
 	}
-	
+
 	Ref<LinkedIn> LinkedIn::getInstance()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -151,12 +151,12 @@ namespace slib
 		}
 		return g_instance;
 	}
-	
+
 	String LinkedIn::getRequestUrl(const String& path)
 	{
 		return "https://api.linkedin.com/v2/" + path;
 	}
-	
+
 	void LinkedIn::getUser(const String& userId, const String& fields, const Function<void(LinkedInResult&, LinkedInUser&)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -182,30 +182,30 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
+
 	void LinkedIn::getUser(const String& userId, const List<String>& fields, const Function<void(LinkedInResult&, LinkedInUser&)>& onComplete)
 	{
 		getUser(userId, String::join(fields, ","), onComplete);
 	}
-	
+
 	void LinkedIn::getUser(const String& userId, const Function<void(LinkedInResult&, LinkedInUser&)>& onComplete)
 	{
 		getUser(userId, String::null(), onComplete);
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInShareResult)
-	
+
 	LinkedInShareResult::LinkedInShareResult(UrlRequest* request): LinkedInResult(request)
 	{
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInShareParam)
-	
+
 	LinkedInShareParam::LinkedInShareParam()
 	{
 	}
-	
+
 	void LinkedIn::share(const LinkedInShareParam& param)
 	{
 		auto linkedin = ToRef(this);

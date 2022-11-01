@@ -495,7 +495,7 @@ namespace slib
 	{
 		return m[0] == 0xFE && (m[1] & 0xC0) == 0x80;
 	}
-	
+
 	IPv4Address IPv6Address::getIPv4Transition() const noexcept
 	{
 		if (isIPv4Transition()) {

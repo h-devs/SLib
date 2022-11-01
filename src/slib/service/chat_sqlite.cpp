@@ -26,12 +26,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace chat_sqlite
 		{
-		
+
 			class Room : public Referable
 			{
 			public:
@@ -40,23 +40,23 @@ namespace slib
 				Ref<DatabaseStatement> smtGetMessagesTo;
 
 				ChatRoom data;
-				
+
 			public:
 				Room()
 				{
 				}
 
 			};
-			
+
 			class DatabaseImpl : public ChatClientDatabase
 			{
 			public:
 				Ref<SQLite> m_db;
-				
+
 				HashMap< String, Ref<Room> > m_mapRooms;
 				HashMap<String, sl_uint64> m_mapSenderIdAndIndex;
 				HashMap<sl_uint64, String> m_mapSenderIndexAndId;
-				
+
 				Ref<DatabaseStatement> m_smtInsertSenderId;
 				Ref<DatabaseStatement> m_smtGetContacts;
 				Ref<DatabaseStatement> m_smtGetContact;
@@ -80,7 +80,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				sl_bool initialize()
 				{
 					if (m_db->isTableExisting("t_sender_index")) {
@@ -95,7 +95,7 @@ namespace slib
 						}
 					} else {
 						StringParam p;
-						
+
 						if (m_db->execute("CREATE TABLE IF NOT EXISTS t_sender_index (f_sender_id TEXT NOT NULL UNIQUE);") < 0) {
 							return sl_false;
 						}
@@ -106,62 +106,62 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				List<ChatContact> getContacts() override
 				{
 					return sl_null;
 				}
-				
+
 				sl_bool getContact(const String& userId, ChatContact& outContact) override
 				{
 					return sl_false;
 				}
-				
+
 				sl_bool addContact(const ChatContact& contact) override
 				{
 					return sl_false;
 				}
-				
+
 				void updateContact(const ChatContact& contact) override
 				{
-					
+
 				}
-				
+
 				void removeContact(const String& userId) override
 				{
-					
+
 				}
-				
+
 				List<ChatRoom> getRooms() override
 				{
 					return sl_null;
 				}
-				
+
 				sl_bool getRoom(const String& roomId, ChatRoom& outRoom) override
 				{
 					return sl_false;
 				}
-				
+
 				sl_bool addRoom(const ChatRoom& room) override
 				{
 					return sl_false;
 				}
-				
+
 				void updateRoom(const ChatRoom& room) override
 				{
-					
+
 				}
-				
+
 				void removeRoom(const String& roomId) override
 				{
-					
+
 				}
-				
+
 				static String getRoomTableName(const String& roomId)
 				{
 					return "t_room_" + roomId;
 				}
-				
+
 				Ref<Room> createRoom(const String& roomId)
 				{
 					String tableName = getRoomTableName(roomId);
@@ -194,7 +194,7 @@ namespace slib
 					}
 					return room;
 				}
-				
+
 				sl_bool addMessage(const String& roomId, const ChatMessage& message) override
 				{
 					if (roomId.isEmpty() || message.senderId.isEmpty()) {
@@ -219,7 +219,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				List<ChatMessage> getMessages(const String& roomId, sl_bool flagFrom, sl_uint64 base, sl_uint32 countLimit)
 				{
 					if (roomId.isEmpty()) {
@@ -257,22 +257,22 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				List<ChatMessage> getMessagesFrom(const String& roomId, sl_uint64 start, sl_uint32 countLimit) override
 				{
 					return getMessages(roomId, sl_true, start, countLimit);
 				}
-				
+
 				List<ChatMessage> getMessagesTo(const String& roomId, sl_uint64 end, sl_uint32 countLimit) override
 				{
 					return getMessages(roomId, sl_false, end, countLimit);
 				}
 
 			};
-		
+
 		}
 	}
-	
+
 	using namespace priv::chat_sqlite;
 
 	Ref<ChatClientDatabase> ChatClientDatabase::createSQLite(const String& dbPath, const String& encryptionKey)

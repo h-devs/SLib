@@ -50,14 +50,14 @@ namespace slib
 @interface SLIBGLViewHandle : GLKView
 {
 	@public slib::WeakRef<slib::priv::render_view::RenderViewInstance> m_viewInstance;
-	
+
 	@public sl_bool m_flagRenderingContinuously;
 	@public sl_bool m_flagRequestRender;
-	
+
 	SLIBGLViewRenderer* m_renderer;
 	slib::Ref<slib::RenderEngine> m_engine;
 	CADisplayLink* m_displayLink;
-	
+
 	CGFloat m_viewportWidth;
 	CGFloat m_viewportHeight;
 }
@@ -70,7 +70,7 @@ namespace slib
 {
 	@public __weak SLIBGLViewHandle* m_view;
 	@public __weak CADisplayLink* m_displayLink;
-	
+
 	BOOL m_flagRunning;
 	BOOL m_flagViewVisible;
 	int m_frameNumber;
@@ -90,11 +90,11 @@ namespace slib
 	{
 		namespace render_view
 		{
-			
+
 			class RenderViewInstance : public iOS_ViewInstance, public IRenderViewInstance
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				SLIBGLViewHandle* getHandle()
 				{
@@ -105,11 +105,11 @@ namespace slib
 				{
 					RenderView* view = (RenderView*)_view;
 					SLIBGLViewHandle* handle = getHandle();
-					
+
 					[handle initialize];
 					handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
 				}
-				
+
 				void setRedrawMode(RenderView* view, RedrawMode mode) override
 				{
 					SLIBGLViewHandle* handle = getHandle();
@@ -117,7 +117,7 @@ namespace slib
 						handle->m_flagRenderingContinuously = mode == RedrawMode::Continuously;
 					}
 				}
-				
+
 				void requestRender(RenderView* view) override
 				{
 					SLIBGLViewHandle* handle = getHandle();
@@ -125,11 +125,11 @@ namespace slib
 						handle->m_flagRequestRender = sl_true;
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_DEFINE_OBJECT(RenderViewInstance, iOS_ViewInstance)
-			
+
 		}
 	}
 
@@ -139,12 +139,12 @@ namespace slib
 	{
 		return iOS_ViewInstance::create<RenderViewInstance, SLIBGLViewHandle>(this, parent);
 	}
-	
+
 	Ptr<IRenderViewInstance> RenderView::getRenderViewInstance()
 	{
 		return CastRef<RenderViewInstance>(getViewInstance());
 	}
-	
+
 }
 
 using namespace slib;
@@ -158,7 +158,7 @@ using namespace slib::priv::render_view;
 	m_flagRequestRender = sl_true;
 	m_viewportWidth = 0;
 	m_viewportHeight = 0;
-	
+
 	EAGLContext* context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
 	if (context == nil) {
 		context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
@@ -166,10 +166,10 @@ using namespace slib::priv::render_view;
 	if (context != nil) {
 		self.context = context;
 	}
-	
+
 	self.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
 	self.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-	
+
 	SLIBGLViewRenderer* renderer = [[SLIBGLViewRenderer alloc] init];
 	renderer->m_view = self;
 	m_displayLink = [CADisplayLink displayLinkWithTarget:renderer selector:@selector(onRenderFrame)];
@@ -203,7 +203,7 @@ using namespace slib::priv::render_view;
 			view->dispatchFrame(m_engine.get());
 		}
 	}
-	
+
 }
 
 - (void)setNeedsDisplay

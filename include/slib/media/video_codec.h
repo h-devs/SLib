@@ -32,37 +32,37 @@ namespace slib
 	class SLIB_EXPORT VideoEncoder : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		VideoEncoder();
-		
+
 		~VideoEncoder();
-		
+
 	public:
 		virtual Memory encode(const VideoFrame& input) = 0;
-		
+
 	public:
 		sl_uint32 getBitrate();
-		
+
 		virtual void setBitrate(sl_uint32 bitrate);
-		
+
 	protected:
 		sl_uint32 m_nWidth;
 		sl_uint32 m_nHeight;
 		sl_uint32 m_nKeyFrameInterval;
 		sl_uint32 m_bitrate;
-		
+
 	};
-	
+
 	class SLIB_EXPORT VideoDecoder : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		VideoDecoder();
-		
+
 		~VideoDecoder();
-		
+
 	public:
 		virtual sl_bool decode(const void* input, sl_uint32 inputSize, VideoFrame* output, const Function<void(VideoFrame&)>& callback) = 0;
 
@@ -73,7 +73,7 @@ namespace slib
 	protected:
 		sl_uint32 m_nWidth;
 		sl_uint32 m_nHeight;
-		
+
 	};
 }
 

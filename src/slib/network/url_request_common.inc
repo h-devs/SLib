@@ -52,7 +52,7 @@
 		}
 		return sl_null;
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(const String& url, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -61,7 +61,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(const String& url, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -71,7 +71,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(const String& url, const HttpHeaderMap& headers, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -101,7 +101,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(HttpMethod method, const String& url, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -111,7 +111,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(HttpMethod method, const String& url, const Variant& body, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -121,7 +121,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(HttpMethod method, const String& url, const Variant& body, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -132,7 +132,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(HttpMethod method, const String& url, const HttpHeaderMap& headers, const Variant& body, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -143,7 +143,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::send(HttpMethod method, const String& url, const HttpHeaderMap& headers, const Variant& body, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -165,7 +165,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendJson(HttpMethod method, const String& url, const Json& json, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -176,7 +176,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendJson(HttpMethod method, const String& url, const HttpHeaderMap& headers, const Json& json, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -187,7 +187,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendJson(HttpMethod method, const String& url, const HttpHeaderMap& headers, const Json& json, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -209,7 +209,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::post(const String& url, const Variant& body, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -220,7 +220,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::post(const String& url, const HttpHeaderMap& headers, const Variant& body, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -231,7 +231,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::post(const String& url, const HttpHeaderMap& headers, const Variant& body, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -243,7 +243,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::postJson(const String& url, const Json& json, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -253,7 +253,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::postJson(const String& url, const Json& json, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -264,7 +264,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::postJson(const String& url, const HttpHeaderMap& headers, const Json& json, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -275,7 +275,7 @@
 		rp.onComplete = onComplete;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::postJson(const String& url, const HttpHeaderMap& headers, const Json& json, const Function<void(UrlRequest*)>& onComplete, const Ref<Dispatcher>& dispatcher)
 	{
 		UrlRequestParam rp;
@@ -287,7 +287,7 @@
 		rp.dispatcher = dispatcher;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendSynchronous(const String& url)
 	{
 		UrlRequestParam rp;
@@ -296,7 +296,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendSynchronous(const String& url, const HttpHeaderMap& headers)
 	{
 		UrlRequestParam rp;
@@ -306,7 +306,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendSynchronous(HttpMethod method, const String& url)
 	{
 		UrlRequestParam rp;
@@ -315,7 +315,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendSynchronous(HttpMethod method, const String& url, const Variant& body)
 	{
 		UrlRequestParam rp;
@@ -325,7 +325,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendSynchronous(HttpMethod method, const String& url, const HttpHeaderMap& headers, const Variant& body)
 	{
 		UrlRequestParam rp;
@@ -346,7 +346,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::sendJsonSynchronous(HttpMethod method, const String& url, const HttpHeaderMap& headers, const Json& json)
 	{
 		UrlRequestParam rp;
@@ -367,7 +367,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::postSynchronous(const String& url, const HttpHeaderMap& headers, const Variant& body)
 	{
 		UrlRequestParam rp;
@@ -378,7 +378,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::postJsonSynchronous(const String& url, const Json& json)
 	{
 		UrlRequestParam rp;
@@ -388,7 +388,7 @@
 		rp.flagSynchronous = sl_true;
 		return send(rp);
 	}
-	
+
 	Ref<UrlRequest> URL_REQUEST::postJsonSynchronous(const String& url, const HttpHeaderMap& headers, const Json& json)
 	{
 		UrlRequestParam rp;

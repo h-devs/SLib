@@ -32,7 +32,7 @@
 
 namespace slib
 {
-	
+
 	enum class CanvasType
 	{
 		View = 0,
@@ -40,7 +40,7 @@ namespace slib
 		Image = 2,
 		Render = 3
 	};
-	
+
 	class DrawTextParam
 	{
 	public:
@@ -49,30 +49,30 @@ namespace slib
 		Color color;
 		Alignment alignment;
 		sl_bool flagMultiLine;
-		
+
 		sl_real x;
 		sl_real y;
 		sl_real width;
 		sl_real height;
-		
+
 		sl_real shadowOpacity;
 		sl_real shadowRadius;
 		Color shadowColor;
 		Point shadowOffset;
-		
+
 	public:
 		DrawTextParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawTextParam)
-		
+
 	};
-	
+
 	class Image;
-	
+
 	class SLIB_EXPORT Canvas : public Object
 	{
 		SLIB_DECLARE_OBJECT
-	
+
 	public:
 		Canvas();
 
@@ -86,7 +86,7 @@ namespace slib
 		Time getTime();
 
 		void setTime(const Time& time);
-	
+
 		Size getSize();
 
 		void setSize(const Size& size);
@@ -107,7 +107,7 @@ namespace slib
 		virtual void save() = 0;
 
 		virtual void restore() = 0;
-	
+
 
 		virtual Rectangle getClipBounds() = 0;
 
@@ -138,9 +138,9 @@ namespace slib
 
 		virtual void scale(sl_real sx, sl_real sy);
 
-	
+
 		virtual Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false) = 0;
-		
+
 		virtual void drawText(const DrawTextParam& param) = 0;
 
 		void drawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const Color& color);
@@ -161,7 +161,7 @@ namespace slib
 
 
 		virtual void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen) = 0;
-	
+
 		void drawArc(sl_real x, sl_real y, sl_real width, sl_real height, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen);
 
 
@@ -252,7 +252,7 @@ namespace slib
 		virtual void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) = 0;
 
 		virtual void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor) = 0;
-		
+
 		void drawPie(sl_real x, sl_real y, sl_real width, sl_real height, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush);
 
 		void drawPie(sl_real x, sl_real y, sl_real width, sl_real height, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor);
@@ -271,22 +271,22 @@ namespace slib
 
 
 		virtual void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) = 0;
-	
+
 		virtual void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor) = 0;
-		
+
 		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen);
 
 		void fillPath(const Ref<GraphicsPath>& path, const Ref<Brush>& brush);
 
 		void fillPath(const Ref<GraphicsPath>& path, const Color& color);
-		
-		
+
+
 		void drawShadowRectangle(sl_real x, sl_real y, sl_real width, sl_real height, const Color& color, sl_real shadowRadius);
 
 		void drawShadowRoundRect(sl_real x, sl_real y, sl_real width, sl_real height, sl_real roundRadius, const Color& color, sl_real shadowRadius);
 
 		void drawShadowCircle(sl_real centerX, sl_real centerY, sl_real circleRadius, const Color& color, sl_real shadowRadius);
-		
+
 
 		virtual void draw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) = 0;
 
@@ -299,11 +299,11 @@ namespace slib
 		void draw(sl_real xDst, sl_real yDst, sl_real widthDst, sl_real heightDst, const Ref<Drawable>& src, sl_real xSrc, sl_real ySrc, sl_real widthSrc, sl_real heightSrc, const DrawParam& param);
 
 		void draw(sl_real xDst, sl_real yDst, sl_real widthDst, sl_real heightDst, const Ref<Drawable>& src, sl_real xSrc, sl_real ySrc, sl_real widthSrc, sl_real heightSrc);
-	
+
 		void draw(sl_real xDst, sl_real yDst, sl_real widthDst, sl_real heightDst, const Ref<Drawable>& drawable, const DrawParam& param);
 
 		void draw(sl_real xDst, sl_real yDst, sl_real widthDst, sl_real heightDst, const Ref<Drawable>& drawable);
-	
+
 		virtual void draw(sl_real xDst, sl_real yDst, const Ref<Drawable>& drawable, const DrawParam& param) = 0;
 
 		void draw(sl_real xDst, sl_real yDst, const Ref<Drawable>& drawable);
@@ -311,18 +311,18 @@ namespace slib
 		virtual void draw(const Rectangle& rectDst, const Ref<Drawable>& src, ScaleMode scaleMode, const Alignment& alignment, const DrawParam& param) = 0;
 
 		void draw(const Rectangle& rectDst, const Ref<Drawable>& src, ScaleMode scaleMode, const Alignment& alignment);
-		
-		
+
+
 		virtual sl_bool isSupportedDrawable(const Ref<Drawable>& drawable) = 0;
-		
+
 		virtual Ref<Drawable> createDrawableCacheForImage(const Ref<Image>& image) = 0;
 
 		virtual sl_bool updateDrawableCacheForImage(Drawable* drawable, Image* image) = 0;
-		
+
 	protected:
 		// ignores `text`, `font`, `flagMultiLine`, `alignment`, `x`, `y`, `width` and `height`
 		virtual void onDrawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) = 0;
-		
+
 		virtual void onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) = 0;
 
 		virtual void onDrawAll(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param) = 0;
@@ -341,70 +341,70 @@ namespace slib
 		sl_bool m_flagAntiAlias;
 
 	};
-	
-	
+
+
 	class SLIB_EXPORT CanvasExt : public Canvas
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		CanvasExt();
-		
+
 		~CanvasExt();
-		
+
 	public:
 		using Canvas::clipToRoundRect;
 		void clipToRoundRect(const Rectangle& rect, const Size& radius) override;
-		
+
 		using Canvas::clipToEllipse;
 		void clipToEllipse(const Rectangle& rect) override;
-		
+
 		using Canvas::measureText;
 		Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false) override;
-		
+
 		using Canvas::drawText;
 		void drawText(const DrawTextParam& param) override;
 
 		using Canvas::drawRectangle;
 		void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor) override;
-	
+
 		using Canvas::drawRoundRect;
 		void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Color& fillColor) override;
-		
+
 		using Canvas::drawEllipse;
 		void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Color& fillColor) override;
-		
+
 		using Canvas::drawPolygon;
 		void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Color& fillColor, FillMode fillMode = FillMode::Alternate) override;
-		
+
 		using Canvas::drawPie;
 		void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Color& fillColor) override;
-		
+
 		using Canvas::drawPath;
 		void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Color& fillColor) override;
-		
+
 		using Canvas::draw;
 		void draw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) override;
-		
+
 		void draw(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param) override;
 
 		void draw(sl_real xDst, sl_real yDst, const Ref<Drawable>& drawable, const DrawParam& param) override;
-		
+
 		void draw(const Rectangle& rectDst, const Ref<Drawable>& src, ScaleMode scaleMode, const Alignment& alignment, const DrawParam& param) override;
-		
+
 		sl_bool isSupportedDrawable(const Ref<Drawable>& drawable) override;
-		
+
 		Ref<Drawable> createDrawableCacheForImage(const Ref<Image>& image) override;
 
 		sl_bool updateDrawableCacheForImage(Drawable* drawable, Image* image) override;
-		
+
 	protected:
 		void onDraw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) override;
-		
+
 		void onDrawAll(const Rectangle& rectDst, const Ref<Drawable>& src, const DrawParam& param) override;
 
 	};
-	
+
 	class SLIB_EXPORT CanvasStateScope
 	{
 	public:

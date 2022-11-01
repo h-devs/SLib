@@ -42,12 +42,12 @@ namespace slib
 		sl_size hash;
 		sl_uint32 type;
 		volatile sl_reg ref;
-		
+
 	public:
 		sl_reg increaseReference() noexcept;
-		
+
 		sl_reg decreaseReference() noexcept;
-		
+
 	};
 
 	/** 
@@ -298,7 +298,7 @@ namespace slib
 		static String from(sl_bool value) noexcept;
 		static String from(const Time& value) noexcept;
 		static String from(const Variant& var) noexcept;
-		
+
 	public:
 		/**
 		 * @return null string.
@@ -315,7 +315,7 @@ namespace slib
 		{
 			return *(reinterpret_cast<String const*>(&(priv::string::g_empty)));
 		}
-		
+
 		/**
 		 * @return empty string if this string is null. otherwise returns this string.
 		 */
@@ -326,7 +326,7 @@ namespace slib
 			}
 			return *this;
 		}
-		
+
 		/**
 		 * @return `true` if this string is null.
 		 */
@@ -334,7 +334,7 @@ namespace slib
 		{
 			return !m_container;
 		}
-		
+
 		/**
 		 * @return `true` if this string is not null.
 		 */
@@ -342,7 +342,7 @@ namespace slib
 		{
 			return m_container != sl_null;
 		}
-		
+
 		/**
 		 * @return `true` if this string is empty.
 		 */
@@ -350,7 +350,7 @@ namespace slib
 		{
 			return !(m_container && m_container->len);
 		}
-		
+
 		/**
 		 * @return `true` if this string is not empty.
 		 */
@@ -358,17 +358,17 @@ namespace slib
 		{
 			return m_container && m_container->len;
 		}
-		
+
 		/**
 		 * Sets this string as a null.
 		 */
 		void setNull() noexcept;
-		
+
 		/**
 		 * Sets this string as an empty.
 		 */
 		void setEmpty() noexcept;
-		
+
 	public:
 		/**
 		 * @return string content.
@@ -408,7 +408,7 @@ namespace slib
 		{
 			return m_container ? m_container->len : 0;
 		}
-		
+
 		/**
 		 * @return the hash code.
 		 */
@@ -427,41 +427,41 @@ namespace slib
 		 * Don't use for null or empty string
 		 */
 		void setLength(sl_size len) noexcept;
-		
+
 		/**
 		 * Sets the hash code.
 		 *
 		 * Don't use for null or empty string
 		 */
 		void setHashCode(sl_size hash) noexcept;
-		
+
 		/**
 		 * @return the character at `index` in string.
 		 */
 		sl_char8 getAt(sl_reg index) const noexcept;
-		
+
 		/**
 		 * Sets the character at `index` in string.
 		 * @return `true` on success.
 		 */
 		sl_bool setAt(sl_reg index, sl_char8 ch) noexcept;
-		
+
 		sl_char8 operator[](sl_size index) const noexcept;
-		
+
 		sl_char8& operator[](sl_size index) noexcept;
 
 		explicit operator sl_bool() const noexcept
 		{
 			return isNotEmpty();
 		}
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		/**
 		 * Convert this string to std::string.
 		 */
 		std::string toStd() const noexcept;
 #endif
-		
+
 	public:
 		String& operator=(String&& other) noexcept;
 		String& operator=(const String& other) noexcept;
@@ -520,7 +520,7 @@ namespace slib
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compareIgnoreCase(const StringView& other) const noexcept;
-		
+
 	public:
 		/**
 		 * @return duplicated string.
@@ -536,17 +536,17 @@ namespace slib
 		 * @return memory containing string content.
 		 */
 		Memory toMemory() const noexcept;
-		
+
 		/**
 		 * Fills Utf16 characters to the provided buffer
 		 */
 		sl_size getUtf16(sl_char16* utf16, sl_size len) const noexcept;
-		
+
 		/**
 		 * Fills Utf16 characters to the provided buffer
 		 */
 		sl_bool getUtf16(StringStorage& output) const noexcept;
-		
+
 		/**
 		 * Converts to Utf16 and Returns a Memory containing the Utf16 characters and null at last
 		 */
@@ -556,74 +556,74 @@ namespace slib
 		 * Fills Utf32 characters to the provided buffer
 		 */
 		sl_size getUtf32(sl_char32* utf32, sl_size len) const noexcept;
-		
+
 		/**
 		 * Fills Utf32 characters to the provided buffer
 		 */
 		sl_bool getUtf32(StringStorage& output) const noexcept;
-		
+
 		/**
 		 * Converts to Utf32 and Returns Memory containing the Utf32 characters and null at last
 		 */
 		Memory toUtf32() const noexcept;
-		
+
 		/**
 		 * Encodes using `charset` and Returns Memory containing the encoded bytes
 		 */
 		Memory encode(Charset charset) const;
-		
+
 		/**
 		 * @return a substring of this string.
 		 */
 		String substring(sl_reg start, sl_reg end = -1) const noexcept;
-		
+
 		/**
 		 * @return a string containing a specified number of characters from the left side of this string.
 		 */
 		String left(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a string containing a specified number of characters from the right side of this string.
 		 */
 		String right(sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return a string that contains a specified number of characters starting from a specified position in this string.
 		 */
 		String mid(sl_reg start, sl_reg len) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg indexOf(const StringView& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char8 ch, sl_reg start = 0) const noexcept;
-		
+
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
 		sl_reg lastIndexOf(const StringView& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char8 ch, sl_reg start = -1) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
 		sl_bool startsWith(const StringView& str) const noexcept;
 		sl_bool startsWith(sl_char8 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
 		sl_bool endsWith(const StringView& str) const noexcept;
 		sl_bool endsWith(sl_char8 ch) const noexcept;
-		
+
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
 		sl_bool contains(const StringView& str) const noexcept;
 		sl_bool contains(sl_char8 ch) const noexcept;
-		
+
 		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
@@ -634,17 +634,17 @@ namespace slib
 		 * Converts the characters of this string to uppercase.
 		 */
 		void makeUpper() noexcept;
-		
+
 		/**
 		 * Converts the characters of this string to lowercase.
 		 */
 		void makeLower() noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to uppercase.
 		 */
 		String toUpper() const noexcept;
-		
+
 		/**
 		 * @return a copy of this string converted to lowercase.
 		 */
@@ -666,12 +666,12 @@ namespace slib
 		 * Copy this string and then removes whitespaces from both ends of the new string.
 		 */
 		String trim() const noexcept;
-		
+
 		/**
 		 * Copy this string and then removes whitespaces from the left of the new string.
 		 */
 		String trimLeft() const noexcept;
-		
+
 		/**
 		 * Copy this string and then removes whitespaces from the right of the new string.
 		 */
@@ -820,7 +820,7 @@ namespace slib
 		 * @return the position after the boolean keyword if a valid keyword is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
 		 */
 		static sl_reg parseBoolean(sl_bool* value, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+
 		/**
 		 * Convert this string to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -831,7 +831,7 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseBoolean(sl_bool* value) const noexcept;
-		
+
 		/**
 		 * Convert this string to a boolean value.
 		 * "yes", "YES", "Yes", "true", "TRUE" and "True" are converted to `true`.
@@ -842,7 +842,7 @@ namespace slib
 		 * @return Result value if the conversion is successful, otherwise returns `def`
 		 */
 		sl_bool parseBoolean(sl_bool def = sl_false) const noexcept;
-		
+
 		/**
 		 * Parses the hex string and writes the bytes to `output`. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
@@ -854,7 +854,7 @@ namespace slib
 		 * @return the position after the boolean keyword if a valid keyword is found at position of `posBegin`, otherwise returns `SLIB_PARSE_ERROR`.
 		 */
 		static sl_reg parseHexString(void* output, const sl_char8* str, sl_size posBegin = 0, sl_size posEnd = SLIB_SIZE_MAX) noexcept;
-		
+
 		/**
 		 * Parses this hex string and writes the bytes to `output`. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
@@ -863,14 +863,14 @@ namespace slib
 		 * @return `true` if the conversion is success
 		 */
 		sl_bool parseHexString(void* output) const noexcept;
-		
+
 		/**
 		 * Parses this hex string and returns hex data. Format example, "a1a1a1a1" is converted to 4 bytes of 0xA1.
 		 *
 		 * @return parsed hex data
 		 */
 		Memory parseHexString() const noexcept;
-		
+
 		/**
 		 * @return the string representation of integer argument.
 		 *
@@ -885,7 +885,7 @@ namespace slib
 		static String fromUint64(sl_uint64 value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
 		static String fromInt(sl_reg value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
 		static String fromSize(sl_size value, sl_uint32 radix = 10, sl_uint32 minWidth = 0, sl_bool flagUpperCase = sl_false) noexcept;
-		
+
 		/**
 		 * @return the string representation of the float argument.
 		 *
@@ -896,21 +896,21 @@ namespace slib
 		 */
 		static String fromFloat(float value, sl_int32 precision = -1, sl_bool flagZeroPadding = sl_false, sl_uint32 minWidthIntegral = 1) noexcept;
 		static String fromDouble(double value, sl_int32 precision = -1, sl_bool flagZeroPadding = sl_false, sl_uint32 minWidthIntegral = 1) noexcept;
-		
+
 		/**
 		 * @return the string representation of the memory address.
 		 *
 		 * @param pointer The memory address to be parsed.
 		 */
 		static String fromPointerValue(const void* pointer) noexcept;
-		
+
 		/**
 		 * @return the string representation of the boolean argument.
 		 *
 		 * @param value The boolean value to be parsed.
 		 */
 		static String fromBoolean(sl_bool value) noexcept;
-		
+
 		/**
 		 * @return the converted hex string from the buffer.
 		 *
@@ -919,7 +919,7 @@ namespace slib
 		 * @param flagUseLowerChar uses a-f (`true`) or A-F (`false`) for encoding
 		 */
 		static String makeHexString(const void* data, sl_size size, sl_bool flagUseLowerChar = sl_true) noexcept;
-		
+
 		/**
 		 * @return the converted hex string from the buffer.
 		 *
@@ -927,7 +927,7 @@ namespace slib
 		 * @param flagUseLowerChar uses a-f (`true`) or A-F (`false`) for encoding
 		 */
 		static String makeHexString(const MemoryView& mem, sl_bool flagUseLowerChar = sl_true) noexcept;
-		
+
 		/**
 		 * Returns the formatted string from the format string and arbitrary list of arguments.
 		 *
@@ -955,10 +955,10 @@ namespace slib
 
 	public:
 		friend class Atomic<String>;
-		
+
 	};
-	
-	
+
+
 	template <>
 	class SLIB_EXPORT Atomic<String>
 	{
@@ -973,14 +973,14 @@ namespace slib
 	private:
 		Container* m_container;
 		SpinLock m_lock;
-		
+
 	public:
 		/**
 		 * Initialize as a null string.
 		 */
 		SLIB_CONSTEXPR Atomic(): m_container(sl_null) {}
 		SLIB_CONSTEXPR Atomic(sl_null_t): m_container(sl_null) {}
-		
+
 		/**
 		 * Constructors
 		 */
@@ -996,15 +996,15 @@ namespace slib
 
 		/**
 		 * Destructor
-		 */		
+		 */
 		~Atomic();
-		
+
 	public:
 		/**
 		 * Fill the string with `nRepeatCount` consecutive copies of charactor `ch`
 		 */
 		Atomic(sl_char8 ch, sl_size nRepeatCount) noexcept;
-		
+
 		/**
 		 * Copies the null-terminated character sequence pointed by `str`.
 		 */
@@ -1032,7 +1032,7 @@ namespace slib
 		{
 			return !m_container;
 		}
-		
+
 		/**
 		 * @return `true` if this string is not null.
 		 */
@@ -1040,17 +1040,17 @@ namespace slib
 		{
 			return m_container != sl_null;
 		}
-		
+
 		/**
 		 * Sets this string as a null.
 		 */
 		void setNull() noexcept;
-		
+
 		/**
 		 * Sets this string as an empty.
 		 */
 		void setEmpty() noexcept;
-		
+
 	public:
 		/**
 		 * String assignment
@@ -1072,7 +1072,7 @@ namespace slib
 
 		friend class String;
 	};
-	
+
 }
 
 /// @}

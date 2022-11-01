@@ -3,7 +3,7 @@
 		type='page'
 		background='#f7f7f5'
 		>
-		
+
 		<linear
 			width='fill'
 			centerVertical='true'
@@ -22,7 +22,7 @@
 					gravity='center'
 					centerVertical='true'
 					/>
-				
+
 				<select
 					name='selectJob'
 					width='*'
@@ -45,7 +45,7 @@
 					gravity='center'
 					centerVertical='true'
 					/>
-				
+
 				<edit
 					name='txtEmail'
 					style='edit'
@@ -67,7 +67,7 @@
 					gravity='center'
 					centerVertical='true'
 					/>
-				
+
 				<password
 					name='txtPassword'
 					style='edit'

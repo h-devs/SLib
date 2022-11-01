@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class SLIB_EXPORT Line3T
 	{
@@ -37,7 +37,7 @@ namespace slib
 
 	public:
 		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(Line3T)
-		
+
 		Line3T() = default;
 
 		template <class O>
@@ -109,7 +109,7 @@ namespace slib
 		}
 
 	};
-	
+
 	typedef Line3T<sl_real> Line3;
 	typedef Line3T<float> Line3f;
 	typedef Line3T<double> Line3lf;

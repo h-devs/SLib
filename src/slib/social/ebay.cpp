@@ -27,12 +27,12 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace ebay
 		{
-			
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Ebay>, g_instance)
 
 			static String GetSimpleXMLValue(const String& xml, const String& tagName)
@@ -47,7 +47,7 @@ namespace slib
 				}
 				return xml.substring(index1 + tagName.getLength() + 2, index2);
 			}
-			
+
 			/*
 			static List<String> GetSimpleXMLValues(const String& xml, const String& tagName) {
 				List<String> ret;
@@ -67,18 +67,18 @@ namespace slib
 				return ret;
 			}
 			*/
-			
+
 		}
 	}
-	
+
 	using namespace priv::ebay;
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EbayUser)
-	
+
 	EbayUser::EbayUser()
 	{
 	}
-	
+
 	String EbayUser::getPublicProfileURL(const String& userId)
 	{
 		if (userId.isNotEmpty()) {
@@ -86,14 +86,14 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	String EbayUser::getPublicProfileURL() const
 	{
 		return getPublicProfileURL(userId);
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EbayResult)
-	
+
 	EbayResult::EbayResult(UrlRequest* _request)
 	{
 		flagSuccess = sl_false;
@@ -104,7 +104,7 @@ namespace slib
 	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EbayParam)
-	
+
 	EbayParam::EbayParam(sl_bool flagSandbox)
 	{
 		setSandbox(flagSandbox);
@@ -135,16 +135,16 @@ namespace slib
 	}
 
 	SLIB_DEFINE_OBJECT(Ebay, OAuth2)
-	
+
 	Ebay::Ebay(const EbayParam& param) : OAuth2(param)
 	{
 		m_flagSandbox = param.isSandbox();
 	}
-	
+
 	Ebay::~Ebay()
 	{
 	}
-	
+
 	Ref<Ebay> Ebay::create(const EbayParam& param)
 	{
 		return new Ebay(param);
@@ -251,7 +251,7 @@ namespace slib
 		}
 		return g_instance;
 	}
-	
+
 	String Ebay::getRequestUrl(const String& path)
 	{
 		if (m_flagSandbox) {
@@ -260,7 +260,7 @@ namespace slib
 			return "https://api.ebay.com/" + path;
 		}
 	}
-	
+
 	void Ebay::callTraditionalApi(const String& callName, const String& request, const Function<void(UrlRequest*)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -275,7 +275,7 @@ namespace slib
 		rp.onComplete = onComplete;
 		UrlRequest::send(rp);
 	}
-	
+
 	void Ebay::getUser(const Function<void(EbayResult&, EbayUser&)>& onComplete)
 	{
 		String request = SLIB_STRINGIFY(
@@ -293,5 +293,5 @@ namespace slib
 			onComplete(result, user);
 		});
 	}
-	
+
 }

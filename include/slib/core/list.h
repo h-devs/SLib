@@ -32,19 +32,19 @@
 
 namespace slib
 {
-	
+
 	template <class T>
 	class List;
-	
+
 	template <class T>
 	using AtomicList = Atomic< List<T> >;
-	
+
 	namespace priv
 	{
 		namespace list
 		{
 			sl_bool setCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size* pCount, sl_size newCapacity) noexcept;
-			
+
 			sl_bool adjustCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size* pCount, sl_size newCount) noexcept;
 
 			sl_bool growCapacity(void* pData, sl_size elementSize, sl_size* pCapacity, sl_size newCount) noexcept;
@@ -63,13 +63,13 @@ namespace slib
 		~CListBase();
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT CList : public CListBase
 	{
 	public:
 		typedef T ELEMENT_TYPE;
-		
+
 	protected:
 		T* m_data;
 		sl_size m_count;
@@ -114,7 +114,7 @@ namespace slib
 			m_count = 0;
 			m_capacity = 0;
 		}
-		
+
 		CList(sl_size count, sl_size capacity, const T& initialValue) noexcept
 		{
 			if (capacity < count) {
@@ -154,7 +154,7 @@ namespace slib
 			m_count = 0;
 			m_capacity = 0;
 		}
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		CList(const std::initializer_list<T>& l) noexcept: CList(l.begin(), l.size()) {}
 #endif
@@ -167,10 +167,10 @@ namespace slib
 				Base::freeMemory((void*)data);
 			}
 		}
-		
+
 	public:
 		CList(const CList& other) = delete;
-		
+
 		CList(CList&& other) noexcept
 		{
 			m_data = other.m_data;
@@ -180,9 +180,9 @@ namespace slib
 			other.m_count = 0;
 			other.m_capacity = 0;
 		}
-		
+
 		CList& operator=(const CList& other) = delete;
-		
+
 		CList& operator=(CList&& other) noexcept
 		{
 			T* data = m_data;
@@ -252,7 +252,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class VALUE>
 		static CList<T>* create(const VALUE* values, sl_size count) noexcept
 		{
@@ -269,7 +269,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template <class VALUE>
 		static CList<T>* create(const Array<VALUE>& array) noexcept
 		{
@@ -282,7 +282,7 @@ namespace slib
 			return create(l.begin(), l.size());
 		}
 #endif
-		
+
 		template <class VALUE>
 		static CList<T>* createFromElement(VALUE&& value) noexcept
 		{
@@ -300,12 +300,12 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		static CList<T>* createFromElement(const T& value, sl_size count) noexcept
 		{
 			return create(count, count, value);
 		}
-		
+
 		template <class... ARGS>
 		static CList<T>* createFromElements(ARGS&&... _values) noexcept
 		{
@@ -418,7 +418,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool getFirst(T* _out = sl_null) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -430,7 +430,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		T getFirstValue_NoLock() const noexcept
 		{
 			if (m_count) {
@@ -439,7 +439,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getFirstValue() const noexcept
 		{
 			ObjectLocker lock(this);
@@ -449,7 +449,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getFirstValue_NoLock(const T& def) const noexcept
 		{
 			if (m_count) {
@@ -457,7 +457,7 @@ namespace slib
 			}
 			return def;
 		}
-		
+
 		T getFirstValue(const T& def) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -478,7 +478,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool getLast(T* _out = sl_null) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -491,7 +491,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		T getLastValue_NoLock() const noexcept
 		{
 			sl_size count = m_count;
@@ -501,7 +501,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getLastValue() const noexcept
 		{
 			ObjectLocker lock(this);
@@ -512,7 +512,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getLastValue_NoLock(const T& def) const noexcept
 		{
 			sl_size count = m_count;
@@ -521,7 +521,7 @@ namespace slib
 			}
 			return def;
 		}
-		
+
 		T getLastValue(const T& def) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -597,51 +597,51 @@ namespace slib
 		{
 			return priv::list::setCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, &m_count, capacity);
 		}
-		
+
 		sl_bool setCapacity(sl_size capacity) noexcept
 		{
 			ObjectLocker lock(this);
 			return priv::list::setCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, &m_count, capacity);
 		}
-		
+
 		sl_bool adjustCapacity_NoLock(sl_size count) noexcept
 		{
 			return priv::list::adjustCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, &m_count, count);
 		}
-		
+
 		sl_bool adjustCapacity(sl_size count) noexcept
 		{
 			ObjectLocker lock(this);
 			return priv::list::adjustCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, &m_count, count);
 		}
-		
+
 		sl_bool growCapacity_NoLock(sl_size newCount) noexcept
 		{
 			return priv::list::growCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, newCount);
 		}
-		
+
 		sl_bool growCapacity(sl_size newCount) noexcept
 		{
 			ObjectLocker lock(this);
 			return priv::list::growCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, newCount);
 		}
-		
+
 		sl_bool shrinkCapacity_NoLock() noexcept
 		{
 			return priv::list::shrinkCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, m_count);
 		}
-		
+
 		sl_bool shrinkCapacity() noexcept
 		{
 			ObjectLocker lock(this);
 			return priv::list::shrinkCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, m_count);
 		}
-		
+
 		sl_bool shrinkToFit_NoLock() noexcept
 		{
 			return priv::list::setCapacity(reinterpret_cast<void*>(&m_data), sizeof(T), &m_capacity, &m_count, m_count);
 		}
-		
+
 		sl_bool shrinkToFit() noexcept
 		{
 			ObjectLocker lock(this);
@@ -667,7 +667,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class... ARGS>
 		sl_bool insert(sl_size index, ARGS&&... args) noexcept
 		{
@@ -707,7 +707,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return insertElements_NoLock(index, values, count);
 		}
-		
+
 		sl_bool insertElements_NoLock(sl_size index, sl_size nValues, const T& value) noexcept
 		{
 			if (!nValues) {
@@ -731,7 +731,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool insertElements(sl_size index, sl_size count, const T& value) noexcept
 		{
 			if (!count) {
@@ -746,13 +746,13 @@ namespace slib
 		{
 			return insertElements_NoLock(index, l.begin(), l.size());
 		}
-		
+
 		sl_bool insertElements(sl_size index, const std::initializer_list<T>& l) noexcept
 		{
 			return insertElements(index, l.begin(), l.size());
 		}
 #endif
-		
+
 		template <class VALUE>
 		sl_bool insertAll_NoLock(sl_size index, const CList<VALUE>* other) noexcept
 		{
@@ -764,7 +764,7 @@ namespace slib
 			}
 			return insertElements_NoLock(index, other->getData(), other->getCount());
 		}
-		
+
 		template <class VALUE>
 		sl_bool insertAll(sl_size index, const CList<VALUE>* other) noexcept
 		{
@@ -797,7 +797,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return add_NoLock(Forward<ARGS>(args)...);
 		}
-	
+
 		template <class VALUE>
 		sl_bool addElements_NoLock(const VALUE* values, sl_size nValues) noexcept
 		{
@@ -823,7 +823,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return addElements_NoLock(values, count);
 		}
-		
+
 		sl_bool addElements_NoLock(sl_size nValues, const T& value) noexcept
 		{
 			if (!nValues) {
@@ -841,7 +841,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool addElements(sl_size count, const T& value) noexcept
 		{
 			if (!count) {
@@ -856,13 +856,13 @@ namespace slib
 		{
 			return addElements_NoLock(l.begin(), l.size());
 		}
-		
+
 		sl_bool addElements(const std::initializer_list<T>& l) noexcept
 		{
 			return addElements(l.begin(), l.size());
 		}
 #endif
-		
+
 		template <class VALUE>
 		sl_bool addAll_NoLock(const CList<VALUE>* other) noexcept
 		{
@@ -874,7 +874,7 @@ namespace slib
 			}
 			return addElements_NoLock(other->getData(), other->getCount());
 		}
-	
+
 		template <class VALUE>
 		sl_bool addAll(const CList<VALUE>* other) noexcept
 		{
@@ -931,7 +931,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return removeAt_NoLock(index, outValue);
 		}
-	
+
 		sl_size removeRange_NoLock(sl_size index, sl_size nValues) noexcept
 		{
 			sl_size count = m_count;
@@ -1014,7 +1014,7 @@ namespace slib
 			ObjectLocker lock(this);
 			return removeValues_NoLock(value, equals);
 		}
-		
+
 		template <class PREDICATE>
 		sl_bool removeIf_NoLock(const PREDICATE& p) noexcept
 		{
@@ -1035,14 +1035,14 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class PREDICATE>
 		sl_bool removeIf(const PREDICATE& p) noexcept
 		{
 			ObjectLocker lock(this);
 			return removeIf_NoLock(p);
 		}
-		
+
 		template <class PREDICATE>
 		sl_size removeElementsIf_NoLock(const PREDICATE& p) noexcept
 		{
@@ -1065,7 +1065,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		template <class PREDICATE>
 		sl_size removeElementsIf(const PREDICATE& p) noexcept
 		{
@@ -1196,52 +1196,52 @@ namespace slib
 			ObjectLocker lock(this);
 			return popBackElements_NoLock(count);
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg indexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
 			return ArrayTraits<T>::indexOf(m_data, m_count, value, arg);
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
 			ObjectLocker lock(this);
 			return ArrayTraits<T>::indexOf(m_data, m_count, value, arg);
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg indexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
 			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals, startIndex);
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
 			ObjectLocker lock(this);
 			return ArrayTraits<T>::indexOf(m_data, m_count, value, equals, startIndex);
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg lastIndexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
 			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, arg);
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
 			ObjectLocker lock(this);
 			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, arg);
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg lastIndexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
 			return ArrayTraits<T>::lastIndexOf(m_data, m_count, value, equals, startIndex);
 		}
-			
+
 		template <class VALUE, class EQUALS>
 		sl_reg lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
@@ -1299,25 +1299,25 @@ namespace slib
 			ObjectLocker lock(this);
 			QuickSort::sortAsc(m_data, m_count, compare);
 		}
-		
+
 		template < class COMPARE = Compare<T> >
 		void sortDesc_NoLock(const COMPARE& compare = COMPARE()) const noexcept
 		{
 			QuickSort::sortDesc(m_data, m_count, compare);
 		}
-		
+
 		template < class COMPARE = Compare<T> >
 		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
 		{
 			ObjectLocker lock(this);
 			QuickSort::sortDesc(m_data, m_count, compare);
 		}
-		
+
 		void reverse_NoLock() const noexcept
 		{
 			ArrayTraits<T>::reverse(m_data, m_count);
 		}
-		
+
 		void reverse() const noexcept
 		{
 			ObjectLocker lock(this);
@@ -1335,7 +1335,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		CList<T>* slice(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			ObjectLocker lock(this);
@@ -1366,32 +1366,32 @@ namespace slib
 		}
 
 	};
-	
-	
+
+
 	template <class T>
 	class SLIB_EXPORT List
 	{
 	public:
 		typedef T ELEMENT_TYPE;
-		
+
 	public:
 		Ref< CList<T> > ref;
 		SLIB_REF_WRAPPER(List, CList<T>)
 
 	public:
 		List(sl_size count) noexcept: ref(CList<T>::create(count)) {}
-		
+
 		List(sl_size count, sl_size capacity) noexcept: ref(CList<T>::create(count, capacity)) {}
-		
+
 		List(sl_size count, sl_size capacity, const T& initialValue) noexcept: ref(CList<T>::create(count, capacity, initialValue)) {}
-		
+
 		template <class VALUE>
 		List(const VALUE* values, sl_size count) noexcept: ref(CList<T>::create(values, count)) {}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 		List(const std::initializer_list<T>& l) noexcept: ref(CList<T>::create(l.begin(), l.size())) {}
 #endif
-		
+
 	public:
 		static List<T> create() noexcept
 		{
@@ -1407,12 +1407,12 @@ namespace slib
 		{
 			return CList<T>::create(count, capacity);
 		}
-		
+
 		static List<T> create(sl_size count, sl_size capacity, const T& initialValue) noexcept
 		{
 			return CList<T>::create(count, capacity, initialValue);
 		}
-		
+
 		template <class VALUE>
 		static List<T> create(const VALUE* values, sl_size count) noexcept
 		{
@@ -1439,25 +1439,25 @@ namespace slib
 		{
 			return CList<T>::createFromElement(Forward<VALUE>(e));
 		}
-		
+
 		static List<T> createFromElement(const T& e, sl_size count) noexcept
 		{
 			return CList<T>::createFromElement(e, count);
 		}
-		
+
 		template <class... ARGS>
 		static List<T> createFromElements(ARGS&&... args) noexcept
 		{
 			T values[] = {Forward<ARGS>(args)...};
 			return CList<T>::create(values, sizeof...(args));
 		}
-		
+
 		template <class VALUE>
 		static List<T> createCopy(const List<VALUE>& other) noexcept
 		{
 			return CList<T>::createCopy(other.ref.ptr);
 		}
-		
+
 		template <class VALUE>
 		static List<T>& from(const List<VALUE>& other) noexcept
 		{
@@ -1509,7 +1509,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 	public:
 		/* unsynchronized function */
 		T* getPointerAt(sl_size index) const noexcept
@@ -1558,7 +1558,7 @@ namespace slib
 				return T();
 			}
 		}
-	
+
 		T getValueAt_NoLock(sl_size index, const T& def) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1585,7 +1585,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool getFirst(T* _out = sl_null) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1594,7 +1594,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		T getFirstValue_NoLock() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1604,7 +1604,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getFirstValue() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1614,7 +1614,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getFirstValue_NoLock(const T& def) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1623,7 +1623,7 @@ namespace slib
 			}
 			return def;
 		}
-		
+
 		T getFirstValue(const T& def) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1632,7 +1632,7 @@ namespace slib
 			}
 			return def;
 		}
-		
+
 		sl_bool getLast_NoLock(T* _out = sl_null) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1641,7 +1641,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool getLast(T* _out = sl_null) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1650,7 +1650,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		T getLastValue_NoLock() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1660,7 +1660,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getLastValue() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1670,7 +1670,7 @@ namespace slib
 				return T();
 			}
 		}
-		
+
 		T getLastValue_NoLock(const T& def) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1679,7 +1679,7 @@ namespace slib
 			}
 			return def;
 		}
-		
+
 		T getLastValue(const T& def) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1759,7 +1759,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool setCapacity_NoLock(sl_size capacity) noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1777,7 +1777,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool setCapacity(sl_size capacity) noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1795,7 +1795,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-				
+
 		sl_bool shrinkToFit_NoLock() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1804,7 +1804,7 @@ namespace slib
 			}
 			return sl_true;
 		}
-		
+
 		sl_bool shrinkToFit() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1852,7 +1852,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-	
+
 		template <class VALUE>
 		sl_bool insertElements_NoLock(sl_size index, const VALUE* values, sl_size count) noexcept
 		{
@@ -1891,7 +1891,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool insertElements_NoLock(sl_size index, sl_size count, const T& value) noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1906,7 +1906,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool insertElements(sl_size index, sl_size count, const T& value) noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1934,13 +1934,13 @@ namespace slib
 		{
 			return insertElements_NoLock(index, l.begin(), l.size());
 		}
-		
+
 		sl_bool insertElements(sl_size index, const std::initializer_list<T>& l) noexcept
 		{
 			return insertElements(index, l.begin(), l.size());
 		}
 #endif
-		
+
 		template <class VALUE>
 		sl_bool insertAll_NoLock(sl_size index, const List<VALUE>& _other) noexcept
 		{
@@ -1960,7 +1960,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class VALUE>
 		sl_bool insertAll(sl_size index, const List<VALUE>& _other) noexcept
 		{
@@ -2026,7 +2026,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-	
+
 		template <class VALUE>
 		sl_bool addElements_NoLock(const VALUE* values, sl_size count) noexcept
 		{
@@ -2071,7 +2071,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool addElements_NoLock(sl_size count, const T& value) noexcept
 		{
 			if (!count) {
@@ -2089,7 +2089,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool addElements(sl_size count, const T& value) noexcept
 		{
 			if (!count) {
@@ -2120,7 +2120,7 @@ namespace slib
 		{
 			return addElements_NoLock(l.begin(), l.size());
 		}
-		
+
 		sl_bool addElements(const std::initializer_list<T>& l) noexcept
 		{
 			return addElements(l.begin(), l.size());
@@ -2298,7 +2298,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class PREDICATE>
 		sl_bool removeIf(const PREDICATE& p) noexcept
 		{
@@ -2308,7 +2308,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class PREDICATE>
 		sl_size removeElementsIf_NoLock(const PREDICATE& p) noexcept
 		{
@@ -2318,7 +2318,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		template <class PREDICATE>
 		sl_size removeElementsIf(const PREDICATE& p) noexcept
 		{
@@ -2418,7 +2418,7 @@ namespace slib
 			}
 			return 0;
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg indexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
@@ -2428,7 +2428,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg indexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
@@ -2438,7 +2438,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg indexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
@@ -2448,7 +2448,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg indexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
@@ -2458,7 +2458,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg lastIndexOf_NoLock(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
@@ -2468,7 +2468,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template < class VALUE, class ARG = Equals<T, VALUE> >
 		sl_reg lastIndexOf(const VALUE& value, const ARG& arg = ARG()) const noexcept
 		{
@@ -2478,7 +2478,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg lastIndexOf_NoLock(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
@@ -2488,7 +2488,7 @@ namespace slib
 			}
 			return -1;
 		}
-		
+
 		template <class VALUE, class EQUALS>
 		sl_reg lastIndexOf(const VALUE& value, const EQUALS& equals, sl_reg startIndex) const noexcept
 		{
@@ -2554,7 +2554,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		template < class COMPARE = Compare<T> >
 		void sort_NoLock(const COMPARE& compare = COMPARE()) const noexcept
 		{
@@ -2563,7 +2563,7 @@ namespace slib
 				obj->sort_NoLock(compare);
 			}
 		}
-		
+
 		template < class COMPARE = Compare<T> >
 		void sort(const COMPARE& compare = COMPARE()) const noexcept
 		{
@@ -2572,7 +2572,7 @@ namespace slib
 				obj->sort(compare);
 			}
 		}
-		
+
 		template < class COMPARE = Compare<T> >
 		void sortDesc_NoLock(const COMPARE& compare = COMPARE()) const noexcept
 		{
@@ -2581,7 +2581,7 @@ namespace slib
 				obj->sortDesc_NoLock(compare);
 			}
 		}
-		
+
 		template < class COMPARE = Compare<T> >
 		void sortDesc(const COMPARE& compare = COMPARE()) const noexcept
 		{
@@ -2590,7 +2590,7 @@ namespace slib
 				obj->sortDesc(compare);
 			}
 		}
-		
+
 		void reverse_NoLock() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -2598,7 +2598,7 @@ namespace slib
 				obj->reverse_NoLock();
 			}
 		}
-		
+
 		void reverse() const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -2606,7 +2606,7 @@ namespace slib
 				obj->reverse();
 			}
 		}
-		
+
 		List<T> slice_NoLock(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -2615,7 +2615,7 @@ namespace slib
 			}
 			return sl_null;
 		}
-		
+
 		List<T> slice(sl_size index, sl_size count = SLIB_SIZE_MAX) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -2664,27 +2664,27 @@ namespace slib
 		}
 
 	};
-	
+
 	template <class T>
 	class SLIB_EXPORT Atomic< List<T> >
 	{
 	public:
 		typedef T ELEMENT_TYPE;
-		
+
 	public:
 		AtomicRef< CList<T> > ref;
 		SLIB_ATOMIC_REF_WRAPPER(CList<T>)
-		
+
 	public:
 		Atomic(sl_size count) noexcept: ref(CList<T>::create(count)) {}
-		
+
 		Atomic(sl_size count, sl_size capacity) noexcept: ref(CList<T>::create(count, capacity)) {}
-		
+
 		Atomic(sl_size count, sl_size capacity, const T& initialValue) noexcept: ref(CList<T>::create(count, capacity, initialValue)) {}
-		
+
 		template <class VALUE>
 		Atomic(const VALUE* values, sl_size count) noexcept: ref(CList<T>::create(values, count)) {}
-		
+
 #ifdef SLIB_SUPPORT_STD_TYPES
 		Atomic(const std::initializer_list<T>& l) noexcept: ref(CList<T>::create(l.begin(), l.size())) {}
 #endif
@@ -2727,7 +2727,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool setCapacity(sl_size capacity) noexcept
 		{
 			Ref< CList<T> > obj(ref);
@@ -2749,7 +2749,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		template <class... ARGS>
 		sl_bool insert(sl_size index, ARGS&&... args) noexcept
 		{
@@ -2795,7 +2795,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool insertElements(sl_size index, sl_size count, const T& value) noexcept
 		{
 			Ref< CList<T> > obj(ref);
@@ -2824,7 +2824,7 @@ namespace slib
 			return insertElements(index, l.begin(), l.size());
 		}
 #endif
-		
+
 		template <class VALUE>
 		sl_bool insertAll(sl_size index, const List<VALUE>& _other) noexcept
 		{
@@ -2900,7 +2900,7 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 		sl_bool addElements(sl_size count, const T& value) noexcept
 		{
 			if (!count) {
@@ -2982,9 +2982,9 @@ namespace slib
 			}
 			return sl_false;
 		}
-		
+
 	};
-	
+
 
 	template <class T>
 	class ListParam;
@@ -3076,7 +3076,7 @@ namespace slib
 		}
 
 	};
-	
+
 
 	template <class T>
 	class SLIB_EXPORT ListElements
@@ -3164,7 +3164,7 @@ namespace slib
 		}
 
 	};
-	
+
 	enum class ListType : sl_reg
 	{
 		List_Ref = (sl_reg)-1,
@@ -3177,7 +3177,7 @@ namespace slib
 	private:
 		union {
 			void* _value;
-			
+
 			const T* _data;
 			const CList<T>* _list;
 		};
@@ -3228,7 +3228,7 @@ namespace slib
 				_count = 0;
 			}
 		}
-		
+
 		ListParam(const AtomicList<T>& list) noexcept: ListParam(List<T>(list)) {}
 
 		ListParam(const CList<T>& list) noexcept
@@ -3257,7 +3257,7 @@ namespace slib
 				_value = sl_null;
 			}
 		}
-		
+
 		template <sl_size N>
 		ListParam(T(&data)[N]) noexcept
 		{
@@ -3310,7 +3310,7 @@ namespace slib
 			}
 			return *this;
 		}
-		
+
 		ListParam& operator=(List<T>&& list) noexcept
 		{
 			_free();
@@ -3335,7 +3335,7 @@ namespace slib
 			}
 			return *this;
 		}
-		
+
 		ListParam& operator=(AtomicList<T>&& list) noexcept
 		{
 			return *this = List<T>(Move(list));
@@ -3374,7 +3374,7 @@ namespace slib
 			_value = (void*)data;
 			return *this;
 		}
-		
+
 		ListParam& operator=(const ListLocker<T>& list) noexcept
 		{
 			_free();
@@ -3403,12 +3403,12 @@ namespace slib
 			_value = sl_null;
 			_count = 0;
 		}
-		
+
 		sl_bool isNull() const noexcept
 		{
 			return !_value;
 		}
-		
+
 		sl_bool isNotNull() const noexcept
 		{
 			return _value != sl_null;
@@ -3496,7 +3496,7 @@ namespace slib
 		friend class ListElements<T>;
 
 	};
-	
+
 }
 
 #endif

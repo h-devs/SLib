@@ -28,7 +28,7 @@ namespace slib
 {
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Globe)
-	
+
 	Globe::Globe() = default;
 
 	void Globe::_initializeParameters()
@@ -49,7 +49,7 @@ namespace slib
 	{
 		radiusEquatorial = _radiusEquatorial;
 		radiusPolar = _radiusPolar;
-		
+
 		inverseFlattening = _inverseFlattening;
 		eccentricitySquared = _eccentricitySquared;
 	}
@@ -113,7 +113,7 @@ namespace slib
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
-		
+
 		_latitude = -_latitude;
 		Vector3lf R;
 		R.y = Math::cos(_latitude);
@@ -155,7 +155,7 @@ namespace slib
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
-		
+
 		double sinLat = Math::sin(_latitude);
 		// get radius of vertical in prime meridian
 		double rv = radiusEquatorial / Math::sqrt(1 - eccentricitySquared * sinLat * sinLat);
@@ -191,30 +191,30 @@ namespace slib
 		double Z = y;
 		double XXpYY = X * X + Y * Y;
 		double sqrtXXpYY = Math::sqrt(XXpYY);
-		
+
 		double a = radiusEquatorial;
 		double ra2 = 1 / (a * a);
 		double e2 = eccentricitySquared;
 		double e4 = e2 * e2;
-		
+
 		// Step 1
 		double p = XXpYY * ra2;
 		double q = Z * Z * (1 - e2) * ra2;
 		double r = (p + q - e4) / 6;
-		
+
 		double h;
 		double phi;
-		
+
 		double evoluteBorderTest = 8 * r * r * r + e4 * p * q;
 		if (evoluteBorderTest > 0 || q != 0) {
-			
+
 			double u;
-			
+
 			if (evoluteBorderTest > 0) {
 				// Step 2: general case
 				double rad1 = Math::sqrt(evoluteBorderTest);
 				double rad2 = Math::sqrt(e4 * p * q);
-				
+
 				// 10*e2 is my arbitrary decision of what Vermeille means by "near... the cusps of the evolute".
 				if (evoluteBorderTest > 10 * e2)
 				{
@@ -229,29 +229,29 @@ namespace slib
 				double rad2 = Math::sqrt(-8 * r * r * r);
 				double rad3 = Math::sqrt(e4 * p * q);
 				double atan = 2 * Math::arctan2(rad3, rad1 + rad2) / 3;
-				
+
 				u = -4 * r * Math::sin(atan) * Math::cos(SLIB_PI_LONG / 6 + atan);
 			}
-			
+
 			double v = Math::sqrt(u * u + e4 * q);
 			double w = e2 * (u + v - q) / (2 * v);
 			double k = (u + v) / (Math::sqrt(w * w + u + v) + w);
 			double D = k * sqrtXXpYY / (k + e2);
 			double sqrtDDpZZ = Math::sqrt(D * D + Z * Z);
-			
+
 			h = (k + e2 - 1) * sqrtDDpZZ / k;
 			phi = 2 * Math::arctan2(Z, sqrtDDpZZ + D);
-			
+
 		} else {
 			// Step 4: singular disk
 			double rad1 = Math::sqrt(1 - e2);
 			double rad2 = Math::sqrt(e2 - p);
 			double e = Math::sqrt(e2);
-			
+
 			h = -a * rad1 * rad2 / e;
 			phi = rad2 / (e * rad2 + rad1 * Math::sqrt(p));
 		}
-		
+
 		// Compute lambda
 		double lambda;
 		double s2 = 1.4142135623730950488016887242097; // Math::sqrt(2.0);
@@ -266,7 +266,7 @@ namespace slib
 			// case 3: 45deg < lambda < 225deg(-135deg)
 			lambda = SLIB_PI_LONG * 0.5 - 2 * Math::arctan2(X, sqrtXXpYY + Y);
 		}
-		
+
 		return GeoLocation(Math::getDegreesFromRadian(phi), Math::getDegreesFromRadian(lambda), h);
 	}
 

@@ -29,7 +29,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Calculator
 	{
 	public:
@@ -69,7 +69,7 @@ namespace slib
 		static sl_bool calculate(const StringParam& str, double* result, sl_bool* isDivisionByZero = sl_null) noexcept;
 
 	};
-	
+
 }
 
 #endif

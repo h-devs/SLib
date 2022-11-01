@@ -29,20 +29,20 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ImageDesc)
 
 	ImageDesc::ImageDesc(): width(0), height(0), stride(0), colors(sl_null)
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(Image, Bitmap)
-	
+
 	Image::Image()
 	{
 	}
-	
+
 	Image::~Image()
 	{
 	}
@@ -125,7 +125,7 @@ namespace slib
 	{
 		return create(desc.width, desc.height, desc.colors, desc.stride);
 	}
-	
+
 	Ref<Image> Image::create(const ImageDesc& desc, RotationMode rotate, FlipMode flip)
 	{
 		NormalizeRotateAndFlip(rotate, flip);
@@ -374,7 +374,7 @@ namespace slib
 					dst += dst_stride;
 				}
 			}
-			
+
 			template <int BITS_PER_COMP>
 			static void CopyAlpha_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
 			{
@@ -410,7 +410,7 @@ namespace slib
 					dst += dst_stride;
 				}
 			}
-			
+
 			template <int BITS_PER_COMP>
 			static void CopyOnlyAlpha_Bits(sl_uint32 width, sl_uint32 height, Color* dst, sl_reg dst_stride, sl_uint8* src, sl_reg src_pitch) noexcept
 			{
@@ -608,7 +608,7 @@ namespace slib
 	{
 		DEFINE_CREATE_FROM_FUNC(CopyRGB)
 	}
-	
+
 	Ref<Image> Image::createFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
 	{
 		DEFINE_CREATE_FROM_FUNC(CopyGray)
@@ -654,7 +654,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Image> Image::createCopy(const Ref<Image>& image, RotationMode rotate, FlipMode flip)
 	{
 		if (image.isNotNull()) {
@@ -663,7 +663,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Image> Image::createCopyBitmap(const Ref<Bitmap>& bitmap)
 	{
 		if (bitmap.isNull()) {
@@ -873,7 +873,7 @@ namespace slib
 			colors += stride;
 		}
 	}
-	
+
 	void Image::tintColor(const Color& color)
 	{
 		sl_uint32 width = m_desc.width;
@@ -1015,7 +1015,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void Image::multiplyAlphaFromGray(sl_uint32 width, sl_uint32 height, const void* _data, sl_uint32 bitsPerComponent, sl_reg pitch)
 	{
 		sl_uint32 widthDst = m_desc.width;
@@ -1062,7 +1062,7 @@ namespace slib
 	{
 		namespace image
 		{
-			
+
 			class ColorOp_None
 			{
 			public:
@@ -1077,12 +1077,12 @@ namespace slib
 			public:
 				Color4f colorMul;
 				Color4f colorAdd;
-				
+
 			public:
 				SLIB_INLINE ColorOp_MulAddColor(const Color4f& _colorMul, const Color4f& _colorAdd): colorMul(_colorMul), colorAdd(_colorAdd)
 				{
 				}
-				
+
 			public:
 				SLIB_INLINE Color operator()(const Color& src) const
 				{
@@ -1116,25 +1116,25 @@ namespace slib
 			{
 			public:
 				ColorOp src_op;
-				
+
 			public:
 				Blend_Copy(const ColorOp& op): src_op(op)
 				{
 				}
-				
+
 			public:
 				SLIB_INLINE void operator()(Color& dst, const Color& src) const
 				{
 					dst = src_op(src);
 				}
 			};
-			
+
 			template <class ColorOp>
 			class Blend_Over
 			{
 			public:
 				ColorOp src_op;
-				
+
 			public:
 				Blend_Over(const ColorOp& op): src_op(op)
 				{
@@ -1163,7 +1163,7 @@ namespace slib
 					}
 				}
 			};
-			
+
 			class Stretch_Copy
 			{
 			public:
@@ -1189,7 +1189,7 @@ namespace slib
 				static void stretchX(const BLEND& blend, ImageDesc& dst, const ImageDesc& src)
 				{
 					sl_uint32 dx, dy;
-					
+
 					SLIB_SCOPED_BUFFER(sl_uint32, 1024, mapx, dst.width);
 					if (!mapx) {
 						return;
@@ -1199,7 +1199,7 @@ namespace slib
 						mapx[dx] = tx / dst.width;
 						tx += src.width;
 					}
-					
+
 					Color* colorsDst = dst.colors;
 					const Color* colorsSrc = src.colors;
 					for (dy = 0; dy < dst.height; dy++) {
@@ -1210,12 +1210,12 @@ namespace slib
 						colorsSrc += src.stride;
 					}
 				}
-				
+
 				template <class BLEND>
 				static void stretchY(const BLEND& blend, ImageDesc& dst, const ImageDesc& src)
 				{
 					sl_uint32 dx, dy;
-					
+
 					Color* colorsDst = dst.colors;
 					for (dy = 0; dy < dst.height; dy++) {
 						const Color* colorsSrc = src.colors + ((dy * src.height) / dst.height) * src.stride;
@@ -1225,7 +1225,7 @@ namespace slib
 						colorsDst += dst.stride;
 					}
 				}
-				
+
 				template <class BLEND>
 				static void stretch(const BLEND& blend, ImageDesc& dst, const ImageDesc& src)
 				{
@@ -1257,15 +1257,15 @@ namespace slib
 						colorsDst += dst.stride;
 					}
 				}
-				
+
 			};
-			
+
 			struct Stretch_FilterParam
 			{
 				sl_bool flagBox;
 				float filterSize;
 			};
-			
+
 			class Stretch_Smooth_LinearFilter
 			{
 			public:
@@ -1292,7 +1292,7 @@ namespace slib
 					_out.b = (sl_uint8)(b);
 					_out.a = (sl_uint8)(a);
 				}
-				
+
 				SLIB_INLINE static void getColorAtX(Color& _out, const Color* colors, float fx, const Stretch_FilterParam& px)
 				{
 					const Color& c0 = *colors;
@@ -1308,7 +1308,7 @@ namespace slib
 					_out.b = (sl_uint8)(b);
 					_out.a = (sl_uint8)(a);
 				}
-				
+
 				SLIB_INLINE static void getColorAtY(Color& _out, const Color* colors, float fy, sl_reg stride, const Stretch_FilterParam& py)
 				{
 					const Color& c0 = *colors;
@@ -1324,9 +1324,9 @@ namespace slib
 					_out.b = (sl_uint8)(b);
 					_out.a = (sl_uint8)(a);
 				}
-				
+
 			};
-			
+
 			class Stretch_Smooth_BoxFilter
 			{
 			public:
@@ -1346,7 +1346,7 @@ namespace slib
 						area = 1;
 					}
 				}
-				
+
 				SLIB_INLINE static void getColorAt(Color& _out, const Color* colors, float fx, float fy, sl_reg stride, const Stretch_FilterParam& px, const Stretch_FilterParam& py)
 				{
 					float sx, ex, ax; int nx;
@@ -1398,7 +1398,7 @@ namespace slib
 					_out.b = (sl_uint8)(b / area);
 					_out.a = (sl_uint8)(a / area);
 				}
-				
+
 				SLIB_INLINE static void getColorAtX(Color& _out, const Color* colors, float fx, const Stretch_FilterParam& px)
 				{
 					float sx, ex, ax; int nx;
@@ -1419,7 +1419,7 @@ namespace slib
 					_out.b = (sl_uint8)(b / ax);
 					_out.a = (sl_uint8)(a / ax);
 				}
-				
+
 				SLIB_INLINE static void getColorAtY(Color& _out, const Color* colors, float fy, sl_reg stride, const Stretch_FilterParam& py)
 				{
 					float sy, ey, ay; int ny;
@@ -1446,9 +1446,9 @@ namespace slib
 					_out.b = (sl_uint8)(b / ay);
 					_out.a = (sl_uint8)(a / ay);
 				}
-				
+
 			};
-			
+
 			SLIB_INLINE static void Stretch_Smooth_Prepare(sl_int32 sw, sl_int32 dw, sl_int32& step_num, sl_int32& step_denom, sl_int32& dx_start, sl_int32& dx_end, Stretch_FilterParam& param)
 			{
 				if (sw >= dw) {
@@ -1467,7 +1467,7 @@ namespace slib
 					dx_end = dw - 1;
 				}
 			}
-			
+
 			template <class FILTER>
 			class Stretch_Smooth
 			{
@@ -1482,15 +1482,15 @@ namespace slib
 					Stretch_FilterParam px;
 					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, dx_start, dx_end, px);
 					float f_sx_step_denom = (float)(sx_step_denom);
-					
+
 					sl_int32 dx, dy;
 					sl_int32 dh = dst.height;
 					float sx;
-					
+
 					Color* colorsDst;
 					const Color* colorsSrc;
 					Color color;
-					
+
 					if (dx_start) {
 						// left
 						colorsDst = dst.colors;
@@ -1509,7 +1509,7 @@ namespace slib
 							colorsSrc += src.stride;
 						}
 					}
-					
+
 					colorsDst = dst.colors;
 					colorsSrc = src.colors;
 					for (dy = 0; dy < dh; dy++) {
@@ -1523,7 +1523,7 @@ namespace slib
 						colorsSrc += src.stride;
 					}
 				}
-				
+
 				template <class BLEND>
 				static void stretchY(const BLEND& blend, ImageDesc& dst, const ImageDesc& src)
 				{
@@ -1534,15 +1534,15 @@ namespace slib
 					Stretch_FilterParam py;
 					Stretch_Smooth_Prepare(sh, dh, sy_step_num, sy_step_denom, dy_start, dy_end, py);
 					float f_sy_step_denom = (float)(sy_step_denom);
-					
+
 					sl_int32 dx, dy;
 					sl_int32 dw = dst.width;
 					float sy;
-					
+
 					Color* colorsDst;
 					const Color* colorsSrc;
 					Color color;
-					
+
 					if (dy_start) {
 						// top
 						colorsDst = dst.colors;
@@ -1557,7 +1557,7 @@ namespace slib
 							blend(colorsDst[dx], colorsSrc[dx]);
 						}
 					}
-					
+
 					colorsDst = dst.colors + dy_start * dst.stride;
 					colorsSrc = src.colors;
 					for (dy = dy_start; dy < dy_end; dy++) {
@@ -1572,7 +1572,7 @@ namespace slib
 						colorsDst += dst.stride;
 					}
 				}
-				
+
 				template <class BLEND>
 				static void stretchOneRowSrc(const BLEND& blend, ImageDesc& dst, const ImageDesc& src)
 				{
@@ -1583,14 +1583,14 @@ namespace slib
 					Stretch_FilterParam px;
 					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, dx_start, dx_end, px);
 					float f_sx_step_denom = (float)(sx_step_denom);
-					
+
 					sl_int32 dx, dy;
 					sl_int32 dh = dst.height;
 					float sx;
-					
+
 					Color* colorsDst;
 					Color color;
-					
+
 					if (dx_start) {
 						// left
 						colorsDst = dst.colors;
@@ -1607,7 +1607,7 @@ namespace slib
 							colorsDst += dst.stride;
 						}
 					}
-					
+
 					for (dx = dx_start; dx < dx_end; dx++) {
 						sx = (float)(dx * sx_step_num) / f_sx_step_denom;
 						isx = (sl_int32)sx;
@@ -1619,7 +1619,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				template <class BLEND>
 				static void stretchOneColSrc(const BLEND& blend, ImageDesc& dst, const ImageDesc& src)
 				{
@@ -1633,10 +1633,10 @@ namespace slib
 					sl_int32 dx, dy;
 					sl_int32 dw = dst.width;
 					float sy;
-					
+
 					Color* colorsDst;
 					Color color;
-					
+
 					if (dy_start) {
 						// top
 						colorsDst = dst.colors;
@@ -1651,7 +1651,7 @@ namespace slib
 							blend(colorsDst[dx], color);
 						}
 					}
-					
+
 					colorsDst = dst.colors + dy_start * dst.stride;
 					for (dy = dy_start; dy < dy_end; dy++) {
 						sy = (float)(dy * sy_step_num) / f_sy_step_denom;
@@ -1664,7 +1664,7 @@ namespace slib
 						colorsDst += dst.stride;
 					}
 				}
-				
+
 				template <class BLEND>
 				static void stretch(const BLEND& blend, ImageDesc& dst, const ImageDesc& src)
 				{
@@ -1684,7 +1684,7 @@ namespace slib
 						stretchOneRowSrc(blend, dst, src);
 						return;
 					}
-					
+
 					sl_int32 sw = src.width;
 					sl_int32 dw = dst.width;
 					sl_int32 sx_step_num, sx_step_denom;
@@ -1692,7 +1692,7 @@ namespace slib
 					Stretch_FilterParam px;
 					Stretch_Smooth_Prepare(sw, dw, sx_step_num, sx_step_denom, dx_start, dx_end, px);
 					float f_sx_step_denom = (float)sx_step_denom;
-					
+
 					sl_int32 sh = src.height;
 					sl_int32 dh = dst.height;
 					sl_int32 sy_step_num, sy_step_denom;
@@ -1703,11 +1703,11 @@ namespace slib
 
 					sl_int32 dx, dy;
 					float sx, sy;
-					
+
 					Color color;
 					Color* colorsDst;
 					const Color* colorsSrc;
-					
+
 					// 4-corners
 					if (dx_start && dy_start) {
 						colorsDst = dst.colors;
@@ -1717,7 +1717,7 @@ namespace slib
 						blend(colorsDst[(dh - 1) * dst.stride], colorsSrc[(sh - 1) * src.stride]);
 						blend(colorsDst[(dh - 1) * dst.stride + dw - 1], colorsSrc[(sh - 1) * src.stride + sw - 1]);
 					}
-					
+
 					if (dy_start) {
 						// top
 						colorsDst = dst.colors;
@@ -1760,7 +1760,7 @@ namespace slib
 							colorsDst += dst.stride;
 						}
 					}
-					
+
 					colorsDst = dst.colors + dy_start * dst.stride;
 					colorsSrc = src.colors;
 					for (dy = dy_start; dy < dy_end; dy++) {
@@ -1792,7 +1792,7 @@ namespace slib
 						return;
 					}
 					sl_uint32 dx, sx;
-					
+
 					sl_uint32 dh = dst.height;
 					sl_uint32 sh = src.height;
 					sl_uint32 fy = sh / dh;
@@ -1800,11 +1800,11 @@ namespace slib
 						return;
 					}
 					sl_uint32 dy, sy;
-					
+
 					Color* colorsDst = dst.colors;
 					const Color* colorsSrc = src.colors;
 					sl_reg ly = fy * src.stride;
-					
+
 					sl_uint32 area = fx * fy;
 					sl_uint32 n = Math::getMostSignificantBits(area) - 1;
 					if (area == (1U << n)) {
@@ -1857,9 +1857,9 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 			class Stretch
 			{
 			public:
@@ -1876,7 +1876,7 @@ namespace slib
 					}
 				}
 			};
-		
+
 			template <class COLOR_OP>
 			static void Draw(ImageDesc& dst, const ImageDesc& src, const COLOR_OP& src_op, BlendMode blend, StretchMode stretch)
 			{
@@ -1933,12 +1933,12 @@ namespace slib
 				if (swx <= 0 || shx <= 0) {
 					return;
 				}
-				
+
 				sl_int32 dx2 = dx + dw;
 				sl_int32 dy2 = dy + dh;
 				sl_int32 sx2 = sx + sw;
 				sl_int32 sy2 = sy + sh;
-				
+
 				if (dx < 0) {
 					sx -= dx * sw / dw;
 					dx = 0;
@@ -1955,7 +1955,7 @@ namespace slib
 					sy2 -= (dhx - dy2) * sh / dh;
 					dy2 = dhx;
 				}
-				
+
 				if (sx < 0) {
 					dx -= sx * dw / sw;
 					sx = 0;
@@ -1997,7 +1997,7 @@ namespace slib
 				if (dy2 <= dy) {
 					return;
 				}
-				
+
 				ImageDesc descDst, descSrc;
 				descDst.colors = dst.colors + (dy * dst.stride + dx);
 				descDst.width = dx2 - dx;
@@ -2044,7 +2044,7 @@ namespace slib
 
 		}
 	}
-	
+
 	void Image::draw(ImageDesc& dst, const ImageDesc& src, BlendMode blend, StretchMode stretch)
 	{
 		priv::image::Draw(dst, src, priv::image::ColorOp_None(), blend, stretch);
@@ -2234,7 +2234,7 @@ namespace slib
 		}
 		return stretch(width, height, stretchMode);
 	}
-	
+
 	Ref<Image> Image::stretchToSmall(sl_uint32 sampleSize) const
 	{
 		if (!sampleSize) {
@@ -2306,7 +2306,7 @@ namespace slib
 		}
 		return ret;
 	}
-	
+
 	Ref<Image> Image::rotateImage(RotationMode rotate, FlipMode flip) const
 	{
 		NormalizeRotateAndFlip(rotate, flip);
@@ -2315,7 +2315,7 @@ namespace slib
 		}
 		return create(m_desc, rotate, flip);
 	}
-	
+
 	Ref<Image> Image::flipImage(FlipMode flip) const
 	{
 		if (flip == FlipMode::None) {
@@ -2328,17 +2328,17 @@ namespace slib
 	{
 		return create(m_desc);
 	}
-	
+
 	Ref<Image> Image::duplicate(RotationMode rotate, FlipMode flip) const
 	{
 		return create(m_desc, rotate, flip);
 	}
-	
+
 	Ref<Image> Image::duplicate(FlipMode flip) const
 	{
 		return create(m_desc, RotationMode::Rotate0, flip);
 	}
-	
+
 	Ref<Image> Image::duplicate(sl_uint32 width, sl_uint32 height, StretchMode stretch) const
 	{
 		if (width > 0 && height > 0) {
@@ -2350,7 +2350,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	ImageFileType Image::getFileType(const void* _mem, sl_size size)
 	{
 		sl_uint8* mem = (sl_uint8*)_mem;
@@ -2411,12 +2411,12 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<AnimationDrawable> Image::loadAnimationFromMemory(const MemoryView& mem)
 	{
 		return loadAnimationFromMemory(mem.data, mem.size);
 	}
-	
+
 	Ref<AnimationDrawable> Image::loadAnimationFromFile(const StringParam& filePath)
 	{
 		Memory mem = File::readAllBytes(filePath);
@@ -2425,7 +2425,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<AnimationDrawable> Image::loadAnimationFromAsset(const StringParam& path)
 	{
 		Memory mem = Assets::readAllBytes(path);
@@ -2434,7 +2434,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	Ref<Drawable> Image::getDrawableCache(Canvas* canvas)
 	{
 		Ref<Drawable> drawableCached = m_drawableCached;
@@ -2493,12 +2493,12 @@ namespace slib
 	{
 		return m_customDrawable;
 	}
-	
+
 	void Image::setCustomDrawable(const Ref<Drawable>& drawable)
 	{
 		m_customDrawable = drawable;
 	}
-	
+
 	sl_real Image::getDrawableWidth()
 	{
 		if (m_customDrawable.isNotNull()) {
@@ -2509,7 +2509,7 @@ namespace slib
 		}
 		return Bitmap::getDrawableWidth();
 	}
-	
+
 	sl_real Image::getDrawableHeight()
 	{
 		if (m_customDrawable.isNotNull()) {
@@ -2520,7 +2520,7 @@ namespace slib
 		}
 		return Bitmap::getDrawableHeight();
 	}
-	
+
 	sl_bool Image::getAnimationInfo(DrawableAnimationInfo* info)
 	{
 		if (m_customDrawable.isNotNull()) {
@@ -2536,7 +2536,7 @@ namespace slib
 	{
 		namespace image
 		{
-			
+
 			template <class BLEND>
 			SLIB_INLINE static void SetPixel(const BLEND& blend, ImageDesc& dst, sl_int32 x, sl_int32 y, const Color& color)
 			{
@@ -2671,7 +2671,7 @@ namespace slib
 				}
 				return sl_true;
 			}
-		
+
 			template <class BLEND>
 			static void DrawHorizontalLine(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 x2, sl_int32 y, const Color& color)
 			{
@@ -2703,7 +2703,7 @@ namespace slib
 					d++;
 				}
 			}
-		
+
 			template <class BLEND>
 			static void DrawVerticalLine(const BLEND& blend, ImageDesc& dst, sl_int32 x, sl_int32 y1, sl_int32 y2, const Color& color)
 			{
@@ -2735,7 +2735,7 @@ namespace slib
 					d += stride;
 				}
 			}
-		
+
 			// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 			template <class BLEND>
 			static void DrawLine(const BLEND& blend, ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, sl_bool flagAntialias)
@@ -2875,7 +2875,7 @@ namespace slib
 					}
 				}
 			}
-		
+
 			static void DrawLine(ImageDesc& dst, sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend, sl_bool flagAntialias)
 			{
 				switch (blend) {
@@ -2912,7 +2912,7 @@ namespace slib
 					return;
 				}
 				ClipLine(x0, y0, x1, y1, (sl_real)0, (sl_real)0, (sl_real)(w - 1), (sl_real)(h - 1));
-				
+
 				sl_bool bSteep = Math::abs(y1 - y0) > Math::abs(x1 - x0);
 				if (bSteep) {
 					Swap(x0, y0);
@@ -3493,15 +3493,15 @@ namespace slib
 		if (!h) {
 			return sl_false;
 		}
-		
+
 		sl_reg stride = m_desc.stride;
 		Color* c = m_desc.colors;
-		
+
 		sl_uint32 top = 0;
 		sl_uint32 bottom = 0;
 		sl_uint32 left = 0;
 		sl_uint32 right = 0;
-		
+
 		// find top
 		{
 			Color* row = c;

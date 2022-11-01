@@ -33,63 +33,63 @@ namespace slib
 {
 
 	class Menu;
-	
+
 	class MenuItem : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		MenuItem();
-		
+
 		~MenuItem();
 
 	public:
 		Ref<Menu> getParent() const;
-		
+
 		String getText() const;
-		
+
 		virtual void setText(const String& text);
-		
+
 		const KeycodeAndModifiers& getShortcutKey() const;
-		
+
 		virtual void setShortcutKey(const KeycodeAndModifiers& km);
-		
+
 		const KeycodeAndModifiers& getSecondShortcutKey() const;
-		
+
 		virtual void setSecondShortcutKey(const KeycodeAndModifiers& km);
-		
+
 		sl_bool isEnabled() const;
-		
+
 		virtual void setEnabled(sl_bool flag = sl_true);
-		
+
 		sl_bool isChecked() const;
-		
+
 		virtual void setChecked(sl_bool flag = sl_true);
-		
+
 		Ref<Drawable> getIcon() const;
-		
+
 		virtual void setIcon(const Ref<Drawable>& icon);
-		
+
 		Ref<Drawable> getCheckedIcon() const;
-		
+
 		virtual void setCheckedIcon(const Ref<Drawable>& icon);
-		
+
 		Ref<Menu> getSubmenu() const;
-		
+
 		virtual void setSubmenu(const Ref<Menu>& menu);
-		
+
 		virtual sl_bool isSeparator() const;
-		
+
 		static Ref<MenuItem> createSeparator();
-		
+
 		sl_bool processShortcutKey(const KeycodeAndModifiers& km);
 
 	public:
 		SLIB_PROPERTY_FUNCTION(void(), Action)
-		
+
 	protected:
 		WeakRef<Menu> m_parent;
-		
+
 		AtomicString m_text;
 		KeycodeAndModifiers m_shortcutKey;
 		KeycodeAndModifiers m_secondShortcutKey;
@@ -98,9 +98,9 @@ namespace slib
 		AtomicRef<Drawable> m_icon;
 		AtomicRef<Drawable> m_checkedIcon;
 		AtomicRef<Menu> m_submenu;
-		
+
 	};
-	
+
 	class MenuItemParam
 	{
 	public:
@@ -114,77 +114,77 @@ namespace slib
 		Ref<Drawable> checkedIcon;
 		Ref<Menu> submenu;
 		Function<void()> action;
-		
+
 	public:
 		MenuItemParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MenuItemParam)
 
 	};
-	
+
 	class Menu : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		Menu();
-		
+
 		~Menu();
 
 	public:
 		static Ref<Menu> create(sl_bool flagPopup = sl_false);
-		
+
 		static Ref<Menu> createPopup();
-		
+
 		sl_uint32 getMenuItemCount() const;
-		
+
 		Ref<MenuItem> getMenuItem(sl_uint32 index) const;
-		
+
 		virtual Ref<MenuItem> addMenuItem(const MenuItemParam& param) = 0;
-		
+
 		virtual Ref<MenuItem> insertMenuItem(sl_uint32 index, const MenuItemParam& param) = 0;
-		
+
 		virtual Ref<MenuItem> addSeparator() = 0;
-		
+
 		virtual Ref<MenuItem> insertSeparator(sl_uint32 index) = 0;
-		
+
 		virtual void removeMenuItem(sl_uint32 index) = 0;
-		
+
 		virtual void removeMenuItem(const Ref<MenuItem>& item) = 0;
-		
+
 		virtual void show(sl_ui_pos x, sl_ui_pos y) = 0;
-		
+
 		void show(const UIPoint& pt);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title, sl_bool flagChecked);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title, const Ref<Drawable>& icon);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked = sl_false);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, sl_bool flagChecked);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon);
-		
+
 		Ref<MenuItem> addMenuItem(const String& title, const KeycodeAndModifiers& shortcutKey, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked = sl_false);
-		
+
 		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title);
-		
+
 		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title, sl_bool flagChecked);
-		
+
 		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon);
-		
+
 		Ref<MenuItem> addSubmenu(Ref<Menu>& submenu, const String& title, const Ref<Drawable>& icon, const Ref<Drawable>& checkedIcon, sl_bool flagChecked = sl_false);
-		
+
 		sl_bool processShortcutKey(const KeycodeAndModifiers& km);
-		
+
 	protected:
 		CList< Ref<MenuItem> > m_items;
-		
+
 	};
 
 }

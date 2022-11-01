@@ -28,19 +28,19 @@ namespace slib
 {
 
 	SLIB_DEFINE_OBJECT(TileLayout, ViewGroup)
-	
+
 	TileLayout::TileLayout()
 	{
 		setCustomLayout(sl_true);
 		setSavingCanvasState(sl_false);
-		
+
 		m_countColumns = 0;
 		m_countRows = 0;
 		m_widthColumn = 0;
 		m_heightRow = 0;
 		m_ratioCell = 1;
 	}
-	
+
 	TileLayout::~TileLayout()
 	{
 	}
@@ -213,5 +213,5 @@ namespace slib
 			}
 		}
 	}
-	
+
 }

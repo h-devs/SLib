@@ -33,7 +33,7 @@ namespace slib
 {
 
 	class MemoryView;
-	
+
 	class SLIB_EXPORT DrawParam
 	{
 	public:
@@ -45,7 +45,7 @@ namespace slib
 
 		sl_bool useBlur;
 		sl_real blurRadius;
-		
+
 		float time; // In seconds, used for animations
 
 	public:
@@ -63,29 +63,29 @@ namespace slib
 		Color transformColor(const Color& src) const;
 
 	};
-	
+
 	class DrawableAnimationInfo
 	{
 	public:
 		float duration; // In seconds
 		float framesPerSecond;
-		
+
 	public:
 		DrawableAnimationInfo();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawableAnimationInfo)
-		
+
 	};
-	
+
 	class ImageDesc;
 	class Bitmap;
 	class Image;
 	class Canvas;
-	
+
 	class SLIB_EXPORT Drawable : public Object
 	{
 		SLIB_DECLARE_OBJECT
-	
+
 	protected:
 		Drawable();
 
@@ -103,46 +103,46 @@ namespace slib
 		virtual void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param);
 
 		virtual void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param);
-		
+
 		// return sl_true for Animation
 		virtual sl_bool getAnimationInfo(DrawableAnimationInfo* info);
 
 	public:
 		sl_bool isBitmap();
-		
+
 		Ref<Bitmap> toBitmap();
 
 		sl_bool isImage();
-		
+
 		Ref<Image> toImage();
-		
+
 		sl_bool isColor();
-		
+
 		sl_bool getColor(Color* color = sl_null);
-		
+
 		// Seconds, 0 means no animation
 		float getAnimationDuration();
-		
+
 		float getAnimationFramesPerSecond();
 
 	public:
 		Ref<Drawable> filter(const ColorMatrix& colorMatrix, sl_real alpha = 1, sl_real blurRadius = 0);
 
 		Ref<Drawable> filter(sl_real alpha, sl_real blurRadius = 0);
-		
+
 		Ref<Drawable> rotate(RotationMode rotate, FlipMode flip = FlipMode::None);
-		
+
 		Ref<Drawable> flip(FlipMode flip);
 
 		Ref<Drawable> clipEllipse();
-		
+
 		Ref<Drawable> clipRoundRect(const Size& radius);
-		
+
 		Ref<Drawable> clipSquare(const Alignment& align);
-		
+
 		// Middle/Center
 		Ref<Drawable> clipSquare();
-		
+
 	public:
 		static Ref<Drawable> createColorDrawable(const Color& color);
 
@@ -161,20 +161,20 @@ namespace slib
 		static Ref<Drawable> filter(const Ref<Drawable>& src, sl_real alpha, sl_real blurRadius = 0);
 
 		static Ref<Drawable> rotate(const Ref<Drawable>& src, RotationMode rotate, FlipMode flip = FlipMode::None);
-		
+
 		static Ref<Drawable> flip(const Ref<Drawable>& src, FlipMode flip);
 
 		static Ref<Drawable> clipEllipse(const Ref<Drawable>& src);
 
 		static Ref<Drawable> clipRoundRect(const Ref<Drawable>& src, const Size& radius);
-		
+
 		static Ref<Drawable> clipSquare(const Ref<Drawable>& src, const Alignment& align);
-		
+
 		// Middle/Center
 		static Ref<Drawable> clipSquare(const Ref<Drawable>& src);
-		
+
 	};
-	
+
 	class SLIB_EXPORT PlatformDrawable
 	{
 	public:
@@ -191,7 +191,7 @@ namespace slib
 		static Ref<Drawable> loadFromAsset(const StringParam& path);
 
 	};
-	
+
 	class SLIB_EXPORT ColorDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -215,11 +215,11 @@ namespace slib
 		Color m_color;
 
 	};
-	
+
 	class SLIB_EXPORT EmptyDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
-	
+
 	protected:
 		EmptyDrawable();
 
@@ -232,10 +232,10 @@ namespace slib
 		void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override;
 
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-	
+
 	};
-	
-	
+
+
 	class SLIB_EXPORT SubDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -254,24 +254,24 @@ namespace slib
 		sl_real getDrawableHeight() override;
 
 		Ref<Drawable> subDrawable(sl_real x, sl_real y, sl_real width, sl_real height) override;
-	
+
 		Ref<Drawable> scaleDrawable(sl_real width, sl_real height) override;
 
 		void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override;
 
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 	protected:
 		Ref<Drawable> m_src;
 		sl_real m_x;
 		sl_real m_y;
 		sl_real m_width;
 		sl_real m_height;
-	
+
 	};
-	
+
 	class SLIB_EXPORT ScaledDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -296,7 +296,7 @@ namespace slib
 		void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override;
 
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
 
 	protected:
@@ -305,7 +305,7 @@ namespace slib
 		sl_real m_height;
 
 	};
-	
+
 	class SLIB_EXPORT ScaledSubDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -332,7 +332,7 @@ namespace slib
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 	protected:
 		Ref<Drawable> m_src;
 		Rectangle m_rectSrc;
@@ -340,95 +340,95 @@ namespace slib
 		sl_real m_height;
 
 	};
-	
+
 	class SLIB_EXPORT RotateFlipDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		RotateFlipDrawable();
-		
+
 		~RotateFlipDrawable();
-		
+
 	public:
 		static Ref<Drawable> apply(const Ref<Drawable>& src, RotationMode rotate, FlipMode flip);
-		
+
 	public:
 		const Ref<Drawable>& getSource();
-		
+
 		RotationMode getRotation();
-		
+
 		FlipMode getFlip();
-		
+
 	public:
 		sl_real getDrawableWidth() override;
-		
+
 		sl_real getDrawableHeight() override;
-		
+
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 	protected:
 		Ref<Drawable> m_src;
 		RotationMode m_rotate;
 		FlipMode m_flip;
-		
+
 	};
-	
+
 	class SLIB_EXPORT ClipEllipseDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		ClipEllipseDrawable();
-		
+
 		~ClipEllipseDrawable();
-		
+
 	public:
 		static Ref<Drawable> create(const Ref<Drawable>& src);
-		
+
 	public:
 		sl_real getDrawableWidth() override;
-		
+
 		sl_real getDrawableHeight() override;
-		
+
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 	protected:
 		Ref<Drawable> m_src;
 
 	};
-	
+
 	class SLIB_EXPORT ClipRoundRectDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	protected:
 		ClipRoundRectDrawable();
-		
+
 		~ClipRoundRectDrawable();
-		
+
 	public:
 		static Ref<Drawable> create(const Ref<Drawable>& src, const Size& radius);
-		
+
 	public:
 		sl_real getDrawableWidth() override;
-		
+
 		sl_real getDrawableHeight() override;
-		
+
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
-		
+
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 	protected:
 		Ref<Drawable> m_src;
 		Size m_radius;
-		
+
 	};
-	
+
 	class SLIB_EXPORT FilterDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -453,7 +453,7 @@ namespace slib
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 	protected:
 		void _prepareParam(DrawParam& dst, const DrawParam& src);
 
@@ -465,7 +465,7 @@ namespace slib
 		sl_real m_blurRadius;
 
 	};
-	
+
 	class SLIB_EXPORT NinePiecesDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -505,7 +505,7 @@ namespace slib
 		Ref<Drawable> m_partBottomRight;
 
 	};
-	
+
 	class SLIB_EXPORT NinePatchDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -539,7 +539,7 @@ namespace slib
 		sl_real m_heightBottomSrc;
 
 	};
-	
+
 	class SLIB_EXPORT HorizontalThreePatchDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -569,7 +569,7 @@ namespace slib
 		sl_real m_widthRightSrc;
 
 	};
-	
+
 	class SLIB_EXPORT VerticalThreePatchDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -599,7 +599,7 @@ namespace slib
 		sl_real m_heightBottomSrc;
 
 	};
-	
+
 	class MipmapDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
@@ -617,7 +617,7 @@ namespace slib
 		sl_real getDrawableHeight() override;
 
 		void setDrawableHeight(sl_real height);
-	
+
 		void addSource(const Ref<Drawable>& source, sl_real width, sl_real height);
 
 		void addSource(const Ref<Drawable>& source);
@@ -634,7 +634,7 @@ namespace slib
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 	protected:
 		struct Source
 		{
@@ -648,37 +648,37 @@ namespace slib
 		sl_real m_height;
 
 	};
-	
+
 	class AnimationDrawable : public Drawable
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		AnimationDrawable();
-		
+
 		~AnimationDrawable();
-		
+
 	public:
 		sl_real getDrawableWidth() override;
-		
+
 		void setDrawableWidth(sl_real width);
-		
+
 		sl_real getDrawableHeight() override;
-		
+
 		void setDrawableHeight(sl_real height);
 
 		void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override;
-		
+
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-		
+
 		void setAnimationDuration(float duration);
-				
+
 		List< Ref<Drawable> > getDrawables();
-		
+
 		void addDrawable(const Ref<Drawable>& drawable);
-		
+
 		// `time` in seconds
 		Ref<Drawable> getDrawableAtTime(float time);
 
@@ -687,7 +687,7 @@ namespace slib
 		sl_real m_height;
 		List< Ref<Drawable> > m_drawables;
 		float m_duration;
-		
+
 	};
 
 }

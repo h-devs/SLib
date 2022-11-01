@@ -31,31 +31,31 @@
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListViewRefreshParam)
-	
+
 	ListViewRefreshParam::ListViewRefreshParam()
 	{
 		flagScrollToLastItem = sl_false;
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListViewSetAdapterParam)
-	
+
 	ListViewSetAdapterParam::ListViewSetAdapterParam()
 	{
 	}
-	
+
 	namespace priv
 	{
 		namespace list_view
 		{
-			
+
 			class ContentView : public ViewGroup
 			{
 			private:
 				WeakRef<ListView> m_listView;
-				
+
 			public:
 				ContentView()
 				{
@@ -63,18 +63,18 @@ namespace slib
 					setSavingCanvasState(sl_false);
 					setUsingChildLayouts(sl_false);
 				}
-				
+
 			public:
 				Ref<ListView> getListView()
 				{
 					return m_listView;
 				}
-				
+
 				void setListView(ListView* view)
 				{
 					m_listView = view;
 				}
-				
+
 			protected:
 				void dispatchDraw(Canvas* canvas) override
 				{
@@ -86,7 +86,7 @@ namespace slib
 					}
 					ViewGroup::dispatchDraw(canvas);
 				}
-				
+
 				void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override
 				{
 					Ref<ListView> lv = m_listView;
@@ -96,35 +96,35 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 		}
 	}
 
 	SLIB_DEFINE_OBJECT(ListView, VerticalScrollView)
-	
+
 	ListView::ListView()
 	{
 		m_lockCountLayouting = 0;
-		
+
 		m_flagResetAdapter = sl_true;
 		m_flagResetingAdapter = sl_false;
 		m_flagRefreshItems = sl_true;
 		m_flagScrollToLastItem = sl_false;
 		m_flagSmoothScrollToLastItem = sl_false;
-		
+
 		m_viewsVisibleItems = (Ref<View>*)(Base::createZeroMemory(sizeof(Ref<View>)*MAX_ITEMS_PER_PAGE*4));
 		m_viewsGoDownItems = m_viewsVisibleItems + MAX_ITEMS_PER_PAGE;
 		m_viewsGoUpItems = m_viewsGoDownItems + MAX_ITEMS_PER_PAGE;
 		m_viewsFreeItems = m_viewsGoUpItems + MAX_ITEMS_PER_PAGE;
-		
+
 		m_heightsVisibleItems = (sl_ui_len*)(Base::createMemory(sizeof(sl_ui_len)*(MAX_ITEMS_PER_PAGE*3+MAX_ITEMS_SAVE_HEIGHTS*2)));
 		m_heightsTopItems = m_heightsVisibleItems + MAX_ITEMS_PER_PAGE;
 		m_heightsBottomItems = m_heightsTopItems + MAX_ITEMS_SAVE_HEIGHTS;
 		m_heightsGoDownItems = m_heightsBottomItems + MAX_ITEMS_SAVE_HEIGHTS;
 		m_heightsGoUpItems = m_heightsGoDownItems + MAX_ITEMS_PER_PAGE;
-		
+
 		_initStatus();
 
 		m_contentView = new priv::list_view::ContentView;
@@ -140,7 +140,7 @@ namespace slib
 		Base::freeMemory(m_viewsVisibleItems);
 		Base::freeMemory(m_heightsVisibleItems);
 	}
-	
+
 	void ListView::init()
 	{
 		VerticalScrollView::init();
@@ -148,19 +148,19 @@ namespace slib
 		m_contentView->setListView(this);
 		setContentView(m_contentView, UIUpdateMode::Init);
 	}
-	
+
 	Ref<ViewAdapter> ListView::getAdapter()
 	{
 		return m_adapter;
 	}
-	
+
 	void ListView::setAdapter(const Ref<ViewAdapter>& adapter)
 	{
 		ListViewSetAdapterParam param;
 		param.adapter = adapter;
 		setAdapter(param);
 	}
-	
+
 	void ListView::setAdapter(const ListViewSetAdapterParam& param)
 	{
 		m_adapter = param.adapter;
@@ -171,13 +171,13 @@ namespace slib
 		m_flagSmoothScrollToLastItem = sl_false;
 		runOnDrawingThread(SLIB_FUNCTION_WEAKREF(this, _checkUpdateContent));
 	}
-	
+
 	void ListView::refreshItems()
 	{
 		ListViewRefreshParam param;
 		refreshItems(param);
 	}
-	
+
 	void ListView::refreshItems(const ListViewRefreshParam& param)
 	{
 		m_flagRefreshItems = sl_true;
@@ -190,7 +190,7 @@ namespace slib
 			smoothScrollToEndY();
 		}
 	}
-	
+
 	void ListView::onScroll(sl_scroll_pos _x, sl_scroll_pos _y)
 	{
 		sl_ui_pos y = (sl_ui_pos)(_y);
@@ -199,13 +199,13 @@ namespace slib
 		}
 		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::Scroll, sl_false));
 	}
-	
+
 	void ListView::onResize(sl_ui_len x, sl_ui_len y)
 	{
 		VerticalScrollView::onResize(x, y);
 		dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::Resize, sl_true));
 	}
-	
+
 	void ListView::_checkUpdateContent()
 	{
 		if (m_flagResetAdapter) {
@@ -259,7 +259,7 @@ namespace slib
 			return;
 		}
 	}
-	
+
 	void ListView::_initStatus()
 	{
 		m_countTotalItems = 0;
@@ -270,7 +270,7 @@ namespace slib
 		m_heightTotalItems = 0;
 		m_lastScrollY = 0;
 	}
-	
+
 	void ListView::_initHeights(ViewAdapter* adapter)
 	{
 		if (adapter) {
@@ -314,12 +314,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	namespace priv
 	{
 		namespace list_view
 		{
-			
+
 			static sl_ui_len getTotalHeights(sl_uint64 count, sl_ui_len averageHeight, sl_ui_len* topHeights, sl_ui_len* bottomHeights, double& averageMidHeight)
 			{
 				averageMidHeight = (double)(averageHeight);
@@ -365,7 +365,7 @@ namespace slib
 				s += _mid;
 				return s;
 			}
-			
+
 			static sl_ui_len getAverageHeight(sl_uint64 count, sl_ui_len* topHeights, sl_ui_len* bottomHeights)
 			{
 				sl_uint32 i;
@@ -401,7 +401,7 @@ namespace slib
 				}
 				return s / n;
 			}
-			
+
 			static sl_ui_pos getYPositionOfItem(sl_uint64 index, sl_uint64 count, sl_ui_len averageHeight, double averageMidHeight, sl_ui_len totalHeight, sl_ui_len* topHeights, sl_ui_len* bottomHeights)
 			{
 				if (index > count) {
@@ -449,7 +449,7 @@ namespace slib
 
 		}
 	}
-	
+
 	Ref<View> ListView::_getView(ViewAdapter* adapter, sl_uint64 index, View* original)
 	{
 		Ref<View> view = adapter->getView(index, original, this);
@@ -468,7 +468,7 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
+
 	void ListView::_layoutItemViews(ListView::LayoutCaller caller, sl_bool flagRefresh)
 	{
 		if (!(isDrawingThread())) {
@@ -480,24 +480,24 @@ namespace slib
 		if (m_lockCountLayouting != 0) {
 			return;
 		}
-		
+
 		sl_ui_pos widthListView = getBounds().getWidth();
 		sl_ui_pos heightListView = getHeight();
-		
+
 		if (widthListView <= 0 || heightListView <= 0) {
 			return;
 		}
-		
+
 		Ref<ViewAdapter>& adapter = m_adapterCurrent;
-		
+
 		if (adapter.isNotNull()) {
-			
+
 			Base::interlockedIncrement32(&m_lockCountLayouting);
-			
+
 			do {
-				
+
 				View* contentView = m_contentView.get();
-				
+
 				Ref<View>* viewsVisibleItems = m_viewsVisibleItems;
 				sl_ui_len* heightsVisibleItems = m_heightsVisibleItems;
 				sl_ui_len* heightsTopItems = m_heightsTopItems;
@@ -507,26 +507,26 @@ namespace slib
 				Ref<View>* viewsGoUpItems = m_viewsGoUpItems;
 				sl_ui_len* heightsGoUpItems = m_heightsGoUpItems;
 				Ref<View>* viewsFreeItems = m_viewsFreeItems;
-				
+
 				sl_uint64 lastCountTotalItems = m_countTotalItems;
 				sl_ui_len lastHeightTotalItems = m_heightTotalItems;
 				sl_uint64 lastIndexFirstItem = m_indexFirstItem;
 				sl_ui_len lastAverageItemHeight = m_averageItemHeight;
 				double lastAverageMidItemHeight = m_averageMidItemHeight;
-				
+
 				sl_uint32 countFreeViews = 0;
 				sl_uint32 countGoDownViews = 0;
 				sl_uint32 countGoUpViews = 0;
-				
+
 				sl_uint64 countTotalItems = lastCountTotalItems;
 				sl_ui_len heightTotalItems = lastHeightTotalItems;
 				sl_bool flagClearAll = sl_false;
-				
+
 				sl_ui_pos yGoDown = 0;
 				sl_uint64 indexGoDown = 0;
 				sl_ui_pos yGoUp = 0;
 				sl_uint64 indexGoUp = 0;
-				
+
 				sl_ui_pos scrollY = (sl_ui_pos)(getScrollY());
 				if (caller == LayoutCaller::Scroll) {
 					if (Math::isAlmostZero(scrollY - m_lastScrollY)) {
@@ -539,18 +539,18 @@ namespace slib
 					windowStart = 0;
 				}
 				sl_ui_pos windowEnd = scrollY + heightListView + heightListView / 2;
-				
+
 				sl_uint32 nMaxItemsPerPage = adapter->getMaximumItemCountPerPage(this);
 				if (nMaxItemsPerPage > MAX_ITEMS_PER_PAGE) {
 					nMaxItemsPerPage = MAX_ITEMS_PER_PAGE;
 				}
 
 				if (flagRefresh) {
-					
+
 					countTotalItems = adapter->getItemCount();
-					
+
 					flagClearAll = sl_true;
-					
+
 					// shift bottom heights when count is changed
 					if (lastCountTotalItems != countTotalItems) {
 						if (countTotalItems > lastCountTotalItems) {
@@ -604,9 +604,9 @@ namespace slib
 							}
 						}
 					}
-					
+
 					heightTotalItems = priv::list_view::getTotalHeights(countTotalItems, lastAverageItemHeight, heightsTopItems, heightsBottomItems, lastAverageMidItemHeight);
-					
+
 					// free visible views
 					for (sl_uint32 iItem = 0; iItem < MAX_ITEMS_PER_PAGE; iItem++) {
 						Ref<View>& view = viewsVisibleItems[iItem];
@@ -616,9 +616,9 @@ namespace slib
 							viewsVisibleItems[iItem].setNull();
 						}
 					}
-					
+
 				} else {
-					
+
 					// removes scrolled-over items
 					sl_ui_pos yItem = m_yFirstItem;
 					sl_uint32 iItem;
@@ -637,10 +637,10 @@ namespace slib
 						countFreeViews++;
 						viewsVisibleItems[iItem].setNull();
 					}
-					
+
 					yGoUp = yItem;
 					indexGoUp = lastIndexFirstItem + iItem;
-					
+
 					// reuse visible items
 					for (; iItem < nMaxItemsPerPage && yItem < windowEnd; iItem++) {
 						Ref<View>& view = viewsVisibleItems[iItem];
@@ -654,15 +654,15 @@ namespace slib
 						countGoDownViews++;
 						viewsVisibleItems[iItem].setNull();
 					}
-					
-					
+
+
 					yGoDown = yItem;
 					indexGoDown = lastIndexFirstItem + iItem;
-					
+
 					if (yGoUp >= windowEnd) {
 						flagClearAll = sl_true;
 					}
-					
+
 					// free remaining visible views
 					for (; iItem < MAX_ITEMS_PER_PAGE; iItem++) {
 						Ref<View>& view = viewsVisibleItems[iItem];
@@ -673,30 +673,30 @@ namespace slib
 						}
 					}
 				}
-				
+
 				if (scrollY > (sl_ui_pos)heightTotalItems) {
 					scrollY = heightTotalItems;
 				}
-				
+
 				// all of former visible items is scrolled over, so have to find index and y position
 				if (flagClearAll) {
-					
+
 					sl_ui_pos yTop = 0;
 					sl_ui_pos yBottom = heightTotalItems;
-					
+
 					sl_ui_pos y = 0;
 					sl_uint64 index = 0;
 					sl_bool flagFound = sl_false;
-					
+
 					if (scrollY != 0) {
-						
+
 						if (lastAverageItemHeight <= 0) {
 							lastAverageItemHeight = adapter->getAverageItemHeight(this);
 							if (lastAverageItemHeight <= 0) {
 								lastAverageItemHeight = priv::list_view::getAverageHeight(countTotalItems, heightsTopItems, heightsBottomItems);
 							}
 						}
-						
+
 						if (lastAverageItemHeight > 0) {
 							sl_uint32 i;
 							for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
@@ -726,7 +726,7 @@ namespace slib
 								yTop += h;
 								yBottom -= h;
 							}
-							
+
 							if (!flagFound) {
 								y = windowStart;
 								if (i < nMaxItemsPerPage || Math::isAlmostZero(lastAverageMidItemHeight)) {
@@ -748,14 +748,14 @@ namespace slib
 							scrollY = 0;
 						}
 					}
-					
+
 					yGoDown = y;
 					indexGoDown = index;
 					yGoUp = y;
 					indexGoUp = index;
-					
+
 				}
-				
+
 				// Go Up
 				{
 					while (yGoUp > windowStart && indexGoUp > 0 && countGoUpViews < nMaxItemsPerPage) {
@@ -779,10 +779,10 @@ namespace slib
 						}
 					}
 				}
-				
+
 				sl_uint64 indexStart = indexGoUp;
 				sl_ui_pos yStart = yGoUp;
-				
+
 				// Go Down
 				{
 					while (yGoDown < windowEnd && indexGoDown < countTotalItems && countGoDownViews < nMaxItemsPerPage) {
@@ -806,7 +806,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				// Merge to visible items
 				sl_uint32 countVisibleItems = 0;
 				{
@@ -836,7 +836,7 @@ namespace slib
 						viewsGoDownItems[i].setNull();
 					}
 				}
-				
+
 				// Save top&bottom heights
 				{
 					for (sl_uint32 i = 0; i < countVisibleItems; i++) {
@@ -857,7 +857,7 @@ namespace slib
 				}
 				double averageMidItemHeight = averageItemHeight;
 				heightTotalItems = priv::list_view::getTotalHeights(countTotalItems, averageItemHeight, heightsTopItems, heightsBottomItems, averageMidItemHeight);
-				
+
 				// readjust scroll position
 				if (!flagClearAll) {
 					if (scrollY < heightListView || scrollY + 2 * heightListView >= (sl_ui_pos)heightTotalItems) {
@@ -869,7 +869,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				// remove free views
 				{
 					for (sl_size iItem = 0; iItem < countFreeViews; iItem++) {
@@ -877,7 +877,7 @@ namespace slib
 						viewsFreeItems[iItem].setNull();
 					}
 				}
-				
+
 				// layout views
 				{
 					sl_ui_pos y = yStart;
@@ -896,7 +896,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				m_countTotalItems = countTotalItems;
 				m_indexFirstItem = indexStart;
 				m_yFirstItem = yStart;
@@ -904,7 +904,7 @@ namespace slib
 				m_averageMidItemHeight = averageMidItemHeight;
 				m_heightTotalItems = heightTotalItems;
 				m_lastScrollY = scrollY;
-				
+
 				sl_bool flagRequireLayouting = sl_false;
 				sl_bool flagNoChangeHeight = Math::isAlmostZero(getContentHeight() - (sl_scroll_pos)heightTotalItems);
 				if (!flagNoChangeHeight || !(Math::isAlmostZero(getContentWidth() - (sl_scroll_pos)widthListView))) {
@@ -913,7 +913,7 @@ namespace slib
 					}
 					setContentSize((sl_scroll_pos)widthListView, (sl_scroll_pos)heightTotalItems, UIUpdateMode::None);
 				}
-				
+
 				if (m_flagScrollToLastItem) {
 					sl_scroll_pos y = heightTotalItems - heightListView;
 					if (y < 0) {
@@ -955,16 +955,16 @@ namespace slib
 				if (flagRequireLayouting) {
 					dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _layoutItemViews, LayoutCaller::None, sl_false));
 				}
-				
+
 			} while (0);
-			
+
 			Base::interlockedDecrement32(&m_lockCountLayouting);
-			
+
 		} else {
 			setContentHeight(0);
 		}
 	}
-	
+
 	sl_ui_len ListView::_updateItemLayout(const Ref<View>& itemView, sl_ui_len widthList, sl_ui_len heightList)
 	{
 		if (itemView.isNotNull()) {
@@ -997,5 +997,5 @@ namespace slib
 		}
 		return 0;
 	}
-	
+
 }

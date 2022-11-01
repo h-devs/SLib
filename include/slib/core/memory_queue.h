@@ -28,17 +28,17 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT MemoryQueue : public Lockable
 	{
 	public:
 		MemoryQueue();
 
 		~MemoryQueue();
-	
+
 	public:
 		sl_size getSize() const;
-		
+
 		sl_bool add_NoLock(const MemoryData& mem);
 
 		sl_bool add_NoLock(MemoryData&& mem);
@@ -68,7 +68,7 @@ namespace slib
 		}
 
 		sl_bool addStatic(const void* buf, sl_size size);
-		
+
 		template <sl_size N>
 		sl_bool addStatic(const char (&buf)[N])
 		{
@@ -76,25 +76,25 @@ namespace slib
 		}
 
 		void link_NoLock(MemoryQueue& buf);
-		
+
 		void link(MemoryQueue& buf);
-		
+
 		void clear_NoLock();
-		
+
 		void clear();
 
 		sl_bool pop_NoLock(MemoryData& data);
-		
+
 		sl_bool pop(MemoryData& data);
-		
+
 		sl_size pop_NoLock(void* buf, sl_size size);
-	
+
 		sl_size pop(void* buf, sl_size size);
-		
+
 		Memory merge_NoLock() const;
-	
+
 		Memory merge() const;
-	
+
 	private:
 		LinkedQueue<MemoryData> m_queue;
 		sl_size m_size;

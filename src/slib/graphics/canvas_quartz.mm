@@ -42,53 +42,53 @@ namespace slib
 			class CanvasImpl : public CanvasExt
 			{
 				SLIB_DECLARE_OBJECT
-				
+
 			public:
 				CGContextRef m_graphics;
-				
+
 			public:
 				CanvasImpl()
 				{
 				}
-				
+
 				~CanvasImpl()
 				{
 					CGContextRelease(m_graphics);
 				}
-				
+
 			public:
 				static Ref<CanvasImpl> _create(CanvasType type, CGContextRef graphics, sl_real width, sl_real height)
 				{
 					if (graphics) {
-						
+
 						Ref<CanvasImpl> ret = new CanvasImpl();
-						
+
 						if (ret.isNotNull()) {
-							
+
 							ret->m_graphics = graphics;
 							CGContextRetain(graphics);
-							
+
 							ret->setType(type);
 							ret->setSize(Size(width, height));
-							
+
 							ret->_setAntiAlias(sl_true);
-							
+
 							return ret;
 						}
 					}
 					return sl_null;
 				}
-				
+
 				void save() override
 				{
 					CGContextSaveGState(m_graphics);
 				}
-				
+
 				void restore() override
 				{
 					CGContextRestoreGState(m_graphics);
 				}
-				
+
 				Rectangle getClipBounds() override
 				{
 					CGRect rc = CGContextGetClipBoundingBox(m_graphics);
@@ -104,7 +104,7 @@ namespace slib
 					rc.size.height = rect.getHeight();
 					CGContextClipToRect(m_graphics, rc);
 				}
-				
+
 				void clipToPath(const Ref<GraphicsPath>& path) override
 				{
 					if (path.isNotNull()) {
@@ -114,7 +114,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void _clipToPath(CGPathRef path, FillMode fillMode)
 				{
 					CGContextBeginPath(m_graphics);
@@ -125,7 +125,7 @@ namespace slib
 						CGContextClip(m_graphics);
 					}
 				}
-				
+
 				Matrix3 getMatrix()
 				{
 					Matrix3 ret;
@@ -133,14 +133,14 @@ namespace slib
 					GraphicsPlatform::getMatrix3FromCGAffineTransform(ret, t);
 					return ret;
 				}
-				
+
 				void concatMatrix(const Matrix3& other) override
 				{
 					CGAffineTransform t;
 					GraphicsPlatform::getCGAffineTransform(t, other);
 					CGContextConcatCTM(m_graphics, t);
 				}
-				
+
 				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
 				{
 					if (pen.isNotNull()) {
@@ -151,7 +151,7 @@ namespace slib
 						CGContextStrokePath(m_graphics);
 					}
 				}
-				
+
 				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
 				{
 					if (countPoints < 2) {
@@ -167,7 +167,7 @@ namespace slib
 						CGContextStrokePath(m_graphics);
 					}
 				}
-				
+
 				void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen) override
 				{
 					Ref<GraphicsPath> path = GraphicsPath::create();
@@ -176,7 +176,7 @@ namespace slib
 						drawPath(path, pen, Ref<Brush>::null());
 					}
 				}
-				
+
 				void drawRectangle(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					CGRect rect;
@@ -199,7 +199,7 @@ namespace slib
 						CGContextStrokeRect(m_graphics, rect);
 					}
 				}
-				
+
 				void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					Ref<GraphicsPath> path = GraphicsPath::create();
@@ -208,7 +208,7 @@ namespace slib
 						drawPath(path, pen, brush);
 					}
 				}
-				
+
 				void drawEllipse(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					CGRect rect;
@@ -233,7 +233,7 @@ namespace slib
 						CGContextStrokeEllipseInRect(m_graphics, rect);
 					}
 				}
-				
+
 				void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
 				{
 					if (countPoints <= 2) {
@@ -250,7 +250,7 @@ namespace slib
 						drawPath(path, pen, brush);
 					}
 				}
-				
+
 				void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					Ref<GraphicsPath> path = GraphicsPath::create();
@@ -259,7 +259,7 @@ namespace slib
 						drawPath(path, pen, brush);
 					}
 				}
-				
+
 				void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
 				{
 					if (path.isNotNull()) {
@@ -269,7 +269,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void _drawPath(CGPathRef path, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
 				{
 					if (brush.isNotNull()) {
@@ -309,20 +309,20 @@ namespace slib
 						CGContextStrokePath(m_graphics);
 					}
 				}
-				
+
 				void _applyPen(Pen* pen)
 				{
 					CGContextRef graphics = m_graphics;
-					
+
 					CGFloat _width;
 					CGLineCap _cap;
 					CGLineJoin _join;
 					CGFloat _miterLimit;
 					CGFloat _dash[6];
 					sl_uint32 _dashLen;
-					
+
 					_width = pen->getWidth();
-					
+
 					switch (pen->getCap()) {
 						case LineCap::Square:
 							_cap = kCGLineCapSquare;
@@ -335,7 +335,7 @@ namespace slib
 							_cap = kCGLineCapButt;
 							break;
 					}
-					
+
 					switch (pen->getJoin()) {
 							break;
 						case LineJoin::Bevel:
@@ -349,9 +349,9 @@ namespace slib
 							_join = kCGLineJoinMiter;
 							break;
 					}
-					
+
 					_miterLimit = pen->getMiterLimit();
-					
+
 					switch (pen->getStyle()) {
 						case PenStyle::Dot:
 							_dash[0] = _width;
@@ -384,13 +384,13 @@ namespace slib
 							_dashLen = 0;
 							break;
 					}
-					
+
 					CGContextSetLineWidth(graphics, _width);
 					CGContextSetLineCap(graphics, _cap);
 					CGContextSetLineJoin(graphics, _join);
 					CGContextSetMiterLimit(graphics, _miterLimit);
 					CGContextSetLineDash(graphics, 0, _dash, _dashLen);
-					
+
 					Color _color = pen->getColor();
 					CGContextSetRGBStrokeColor(graphics, _color.getRedF(), _color.getGreenF(), _color.getBlueF(), _color.getAlphaF());
 				}
@@ -405,7 +405,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void _drawOtherBrush(Brush* brush)
 				{
 					BrushDesc& desc = brush->getDesc();
@@ -437,7 +437,7 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
 				{
 					NSString* text = Apple::getNSStringFromString(_text);
@@ -505,12 +505,12 @@ namespace slib
 						CGContextRestoreGState(m_graphics);
 					}
 				}
-				
+
 				void _setAlpha(sl_real alpha) override
 				{
 					CGContextSetAlpha(m_graphics, (CGFloat)alpha);
 				}
-				
+
 				void _setAntiAlias(sl_bool flag) override
 				{
 					if (flag) {
@@ -523,7 +523,7 @@ namespace slib
 						CGContextSetInterpolationQuality(m_graphics, kCGInterpolationNone);
 					}
 				}
-				
+
 			};
 
 			SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
@@ -559,18 +559,18 @@ namespace slib
 		if (!image) {
 			return;
 		}
-		
+
 		CGContextRef graphics = GraphicsPlatform::getCanvasHandle(canvas);
 		if (!graphics) {
 			return;
 		}
-		
+
 		sl_bool flagBlur = param.isBlur();
 		sl_bool flagOpaque = param.isOpaque();
-		
+
 		CIImage* ciImage = nil;
 		sl_bool flagFreeImage = sl_false;
-		
+
 		if (param.useColorMatrix || param.useBlur) {
 			ciImage = [CIImage imageWithCGImage:image];
 			if (ciImage != nil) {
@@ -613,12 +613,12 @@ namespace slib
 				}
 			}
 		}
-		
+
 		sl_real alpha = 1;
 		if (param.useAlpha && !flagOpaque) {
 			alpha = param.alpha;
 		}
-		
+
 		if (ciImage != nil) {
 #if defined(SLIB_PLATFORM_IS_MACOS)
 			NSGraphicsContext* oldContext = [NSGraphicsContext currentContext];
@@ -627,18 +627,18 @@ namespace slib
 #else
 			UIGraphicsPushContext(graphics);
 #endif
-			
+
 #if defined(SLIB_PLATFORM_IS_MACOS)
 			NSRect rectDst;
 #else
 			CGRect rectDst;
 #endif
-			
+
 			rectDst.origin.x = _rectDst.left;
 			rectDst.origin.y = _rectDst.top;
 			rectDst.size.width = _rectDst.getWidth();
 			rectDst.size.height = _rectDst.getHeight();
-					
+
 #if defined(SLIB_PLATFORM_IS_MACOS)
 			if (!flagFlipY) {
 				CGContextSaveGState(graphics);
@@ -646,7 +646,7 @@ namespace slib
 				CGContextScaleCTM(graphics, 1, -1);
 				CGContextTranslateCTM(graphics, 0, -rectDst.origin.y);
 			}
-			
+
 			NSRect rectSrc;
 			rectSrc.origin.x = 0;
 			rectSrc.origin.y = 0;
@@ -657,7 +657,7 @@ namespace slib
 			if (!flagFlipY) {
 				CGContextRestoreGState(graphics);
 			}
-			
+
 #else
 			if (flagFlipY) {
 				CGContextSaveGState(graphics);
@@ -674,7 +674,7 @@ namespace slib
 				CGContextRestoreGState(graphics);
 			}
 #endif
-			
+
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
 			[NSGraphicsContext setCurrentContext:oldContext];
@@ -689,7 +689,7 @@ namespace slib
 			if (!flagOpaque) {
 				CGContextSetAlpha(graphics, canvas->getAlpha() * alpha);
 			}
-			
+
 			CGRect rectDst;
 			rectDst.origin.x = _rectDst.left;
 			rectDst.origin.y = _rectDst.top;

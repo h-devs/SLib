@@ -33,32 +33,32 @@ namespace slib
 	class UIAnimationLoop : public AnimationLoop
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	private:
 		UIAnimationLoop();
-		
+
 		~UIAnimationLoop();
-		
+
 	public:
 		static Ref<UIAnimationLoop> getInstance();
-		
+
 	public:
 		sl_bool startNativeAnimation(Animation* animation) override;
-		
+
 		void stopNativeAnimation(Animation* animation) override;
-		
+
 	protected:
 		void _wake() override;
-		
+
 		void _run();
-		
+
 		sl_bool _applyNativeAnimation(Animation* animation);
-		
+
 		void _stopNativeAnimation(Animation* animation);
-		
+
 	private:
 		sl_bool m_flagRunning;
-		
+
 	};
 
 }

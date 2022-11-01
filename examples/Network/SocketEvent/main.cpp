@@ -38,7 +38,7 @@ int main(int argc, const char * argv[])
 		}
 		Println("Stopped Thread1");
 	});
-	
+
 	auto threadReceive2 = Thread::start([]() {
 		Println("Started Thread2");
 		auto sock1 = Socket::openUdp(10002);

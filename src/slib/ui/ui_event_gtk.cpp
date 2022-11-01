@@ -70,7 +70,7 @@ namespace slib
 			private:
 				HashTable<Keycode, sl_uint32> mapKeyToVK;
 				HashTable<sl_uint32, Keycode> mapVKToKey;
-				
+
 			public:
 				KeyMapper()
 				{
@@ -78,7 +78,7 @@ namespace slib
 					mapVKToKey.put(GDK_KEY_ISO_Left_Tab, Keycode::Tab);
 					map(Keycode::Enter, GDK_KEY_Return);
 					map(Keycode::Escape, GDK_KEY_Escape);
-					
+
 					map(Keycode::Space, GDK_KEY_space);
 					map(Keycode::Grave, GDK_KEY_grave);
 					mapVKToKey.put(GDK_KEY_asciitilde, Keycode::Grave);
@@ -128,7 +128,7 @@ namespace slib
 						map((Keycode)((int)(Keycode::A) + vk), GDK_KEY_a + vk);
 						mapVKToKey.put(GDK_KEY_A + vk, (Keycode)((int)(Keycode::A) + vk));
 					}
-					
+
 					map(Keycode::Numpad0, GDK_KEY_KP_0);
 					mapVKToKey.put(GDK_KEY_KP_Insert, Keycode::Numpad0);
 					map(Keycode::Numpad1, GDK_KEY_KP_1);
@@ -157,7 +157,7 @@ namespace slib
 					map(Keycode::NumpadEnter, GDK_KEY_KP_Enter);
 					map(Keycode::NumpadDecimal, GDK_KEY_KP_Decimal);
 					mapVKToKey.put(GDK_KEY_KP_Delete, Keycode::NumpadDecimal);
-					
+
 					map(Keycode::F1, GDK_KEY_F1);
 					map(Keycode::F2, GDK_KEY_F2);
 					map(Keycode::F3, GDK_KEY_F3);
@@ -170,7 +170,7 @@ namespace slib
 					map(Keycode::F10, GDK_KEY_F10);
 					map(Keycode::F11, GDK_KEY_F11);
 					map(Keycode::F12, GDK_KEY_F12);
-					
+
 					map(Keycode::Backspace, GDK_KEY_BackSpace);
 					map(Keycode::PageUp, GDK_KEY_Page_Up);
 					map(Keycode::PageDown, GDK_KEY_Page_Down);
@@ -185,7 +185,7 @@ namespace slib
 					map(Keycode::Delete, GDK_KEY_Delete);
 					map(Keycode::Sleep, GDK_KEY_Sleep);
 					map(Keycode::Pause, GDK_KEY_Pause);
-					
+
 					map(Keycode::GoHome, -1);
 					map(Keycode::GoMenu, -1);
 					map(Keycode::GoBack, -1);
@@ -199,7 +199,7 @@ namespace slib
 					map(Keycode::MediaStop, GDK_KEY_AudioStop);
 					map(Keycode::PhoneStar, -1);
 					map(Keycode::PhonePound, -1);
-					
+
 					map(Keycode::LeftShift, GDK_KEY_Shift_L);
 					map(Keycode::RightShift, GDK_KEY_Shift_R);
 					map(Keycode::LeftControl, GDK_KEY_Control_L);
@@ -213,7 +213,7 @@ namespace slib
 					map(Keycode::NumLock, GDK_KEY_Num_Lock);
 					map(Keycode::ContextMenu, GDK_KEY_Menu);
 				}
-				
+
 			public:
 				void map(Keycode key, sl_uint32 vk)
 				{
@@ -223,7 +223,7 @@ namespace slib
 					mapKeyToVK.put(key, vk);
 					mapVKToKey.put(vk, key);
 				}
-				
+
 				Keycode vkToKey(sl_uint32 vk)
 				{
 					Keycode ret;
@@ -232,7 +232,7 @@ namespace slib
 					}
 					return Keycode::Unknown;
 				}
-				
+
 				sl_uint32 keyToVk(Keycode code)
 				{
 					sl_uint32 ret;
@@ -241,7 +241,7 @@ namespace slib
 					}
 					return -1;
 				}
-				
+
 			};
 
 			SLIB_SAFE_STATIC_GETTER(KeyMapper, GetKeyMapper)
@@ -319,7 +319,7 @@ namespace slib
 		context->eventCursorPos->wait(100);
 		return context->cursorPos;
 	}
-	
+
 	void UIPlatform::applyEventModifiers(UIEvent* event, guint state)
 	{
 		if (state & GDK_SHIFT_MASK) {
@@ -335,7 +335,7 @@ namespace slib
 			event->setWindowsKey();
 		}
 	}
-	
+
 }
 
 #endif

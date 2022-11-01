@@ -35,12 +35,12 @@ namespace slib
 	{
 		return -1;
 	}
-	
+
 	Keycode UIEvent::getKeycodeFromSystemKeycode(sl_uint32 vkey)
 	{
 		return Keycode::Unknown;
 	}
-	
+
 }
 
 #endif

@@ -101,7 +101,7 @@ namespace slib
 
 	public:
 		String getCommandLine() const noexcept;
-		
+
 	};
 
 	class SLIB_EXPORT ServiceManager
@@ -140,7 +140,7 @@ namespace slib
 		static ServiceStartType getStartType(const StringParam& serviceName);
 
 	};
-	
+
 }
 
 #endif

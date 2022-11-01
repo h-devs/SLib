@@ -38,17 +38,17 @@ namespace slib
 		sl_bool flagEndsWithSlash;
 		sl_uint32 parentLevel;
 		List<StringView> segments;
-	
+
 	public:
 		FilePathSegments() noexcept;
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FilePathSegments)
 
 	public:
 		void parsePath(const String& path) noexcept;
 
 		String buildPath() const noexcept;
-	
+
 	private:
 		String m_path;
 

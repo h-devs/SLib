@@ -358,7 +358,7 @@ namespace slib
 		return sl_false;
 #endif
 	}
-	
+
 
 	sl_bool Socket::connectAndWait(const SocketAddress& address, sl_int32 timeout) const noexcept
 	{

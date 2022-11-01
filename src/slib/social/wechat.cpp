@@ -32,9 +32,9 @@ namespace slib
 	{
 		namespace wechat
 		{
-					
+
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<WeChat>, g_instance)
-		
+
 			static String GenerateSign(const Map<String, String>& map, const String& apiKey)
 			{
 				StringBuffer buf;
@@ -55,7 +55,7 @@ namespace slib
 				buf.add(apiKey);
 				return String::makeHexString(MD5::hash(buf.merge()), sl_false);
 			}
-		
+
 		}
 	}
 
@@ -127,20 +127,20 @@ namespace slib
 
 
 	SLIB_DEFINE_OBJECT(WeChat, OAuth2)
-	
+
 	WeChat::WeChat(const WeChatParam& param) : OAuth2(param)
 	{
 	}
-	
+
 	WeChat::~WeChat()
 	{
 	}
-	
+
 	Ref<WeChat> WeChat::create(const WeChatParam& param)
 	{
 		return new WeChat(param);
 	}
-	
+
 	void WeChat::initialize(const WeChatParam& param)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -148,14 +148,14 @@ namespace slib
 		}
 		g_instance = create(param);
 	}
-	
+
 	void WeChat::initialize()
 	{
 		WeChatParam param;
 		param.preferenceName = "wechat";
 		initialize(param);
 	}
-	
+
 	Ref<WeChat> WeChat::create(const String& appId, const String& appSecret, const String& redirectUri)
 	{
 		WeChatParam param;
@@ -164,7 +164,7 @@ namespace slib
 		param.redirectUri = redirectUri;
 		return create(param);
 	}
-	
+
 	void WeChat::initialize(const String& appId, const String& appSecret, const String& redirectUri)
 	{
 		WeChatParam param;
@@ -174,24 +174,24 @@ namespace slib
 		param.redirectUri = redirectUri;
 		initialize(param);
 	}
-	
+
 	Ref<WeChat> WeChat::create(const String& appId, const String& redirectUri)
 	{
 		return create(appId, String::null(), redirectUri);
 	}
-	
+
 	void WeChat::initialize(const String& appId, const String& redirectUri)
 	{
 		initialize(appId, String::null(), redirectUri);
 	}
-	
+
 	Ref<WeChat> WeChat::createWithAccessToken(const String& accessToken)
 	{
 		WeChatParam param;
 		param.accessToken.token = accessToken;
 		return create(param);
 	}
-	
+
 	Ref<WeChat> WeChat::getInstance()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -209,12 +209,12 @@ namespace slib
 	{
 		param.parameters.put_NoLock("access_token", token.token);
 	}
-	
+
 	String WeChat::getRequestUrl(const String& path)
 	{
 		return "https://api.weixin.qq.com/" + path;
 	}
-	
+
 	void WeChat::getUser(const String& openId, const Function<void(WeChatResult&, WeChatUser&)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -280,7 +280,7 @@ namespace slib
 		map.put_NoLock("notify_url", param.notifyUrl);
 		map.put_NoLock("trade_type", "APP");
 		String sign = GenerateSign(map, param.apiKey);
-		
+
 		UrlRequestParam rp;
 		rp.url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 		rp.method = HttpMethod::POST;

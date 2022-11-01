@@ -36,193 +36,193 @@ namespace slib
 		AtomicString label;
 		AtomicRef<Drawable> icon;
 		AtomicRef<View> contentView;
-		
+
 	public:
 		TabViewItem();
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TabViewItem)
-		
+
 	};
-	
+
 	class ITabViewInstance;
-	
+
 	class SLIB_EXPORT TabView : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		TabView();
-		
+
 		~TabView();
 
 	public:
 		sl_uint32 getTabCount();
-		
+
 		virtual void setTabCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		String getTabLabel(sl_uint32 index);
-		
+
 		virtual void setTabLabel(sl_uint32 index, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getTabIcon(sl_uint32 index);
-		
+
 		virtual void setTabIcon(sl_uint32 index, const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<View> getTabContentView(sl_uint32 index);
-		
+
 		virtual void setTabContentView(sl_uint32 index, const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_uint32 getSelectedTabIndex();
-		
+
 		virtual void selectTab(sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		UISize getContentViewSize();
-		
+
 		LayoutOrientation getOrientation();
-		
+
 		void setOrientation(LayoutOrientation orientation, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_real getTabWidth();
-		
+
 		virtual void setTabWidth(sl_real width, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_real getTabHeight();
-		
+
 		virtual void setTabHeight(sl_real height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getBarBackground();
-		
+
 		void setBarBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setBarBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getContentBackground();
-		
+
 		void setContentBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setContentBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getTabBackground();
-		
+
 		void setTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setTabBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getSelectedTabBackground();
-		
+
 		void setSelectedTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setSelectedTabBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Ref<Drawable> getHoverTabBackground();
-		
+
 		void setHoverTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setHoverTabBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getLabelColor();
-		
+
 		void setLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getSelectedLabelColor();
-		
+
 		void setSelectedLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Color getHoverLabelColor();
-		
+
 		void setHoverLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		Alignment getTabAlignment();
-		
+
 		virtual void setTabAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		virtual void setTabPadding(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setTabPadding(sl_ui_pos padding, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_pos getTabPaddingLeft();
-		
+
 		void setTabPaddingLeft(sl_ui_pos padding, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_pos getTabPaddingTop();
-		
+
 		void setTabPaddingTop(sl_ui_pos padding, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_pos getTabPaddingRight();
-		
+
 		void setTabPaddingRight(sl_ui_pos padding, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_pos getTabPaddingBottom();
-		
+
 		void setTabPaddingBottom(sl_ui_pos padding, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_pos getTabSpaceSize();
-		
+
 		virtual void setTabSpaceSize(sl_ui_pos size, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		UISize getIconSize();
 
 		virtual void setIconSize(const UISize& size, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setIconSize(sl_ui_len width, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		void setIconSize(sl_ui_len size, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_len getIconWidth();
-		
+
 		void setIconWidth(sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		sl_ui_len getIconHeight();
-		
+
 		void setIconHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		
+
 		virtual UIRect getTabBarRegion();
-		
+
 		virtual UIRect getTabRegion(sl_uint32 index);
-		
+
 		virtual UIRect getWholeContentRegion();
-		
+
 		virtual UIRect getTabContentRegion();
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index)
-		
+
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
-		
+
 		virtual Ptr<ITabViewInstance> getTabViewInstance();
-		
+
 	protected:
 		void onClickEvent(UIEvent* ev) override;
-		
+
 		void onMouseEvent(UIEvent* ev) override;
 
 		void onSetCursor(UIEvent* ev) override;
 
 		void onDraw(Canvas* canvas) override;
-		
+
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 		virtual void onDrawTab(Canvas* canvas, const UIRect& rect, sl_uint32 index, const Ref<Drawable>& icon, const String& label);
-		
+
 	private:
 		void _selectTab(sl_bool flagEvent, sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void _invalidateTabBar(UIUpdateMode mode);
-		
+
 		void _relayout(UIUpdateMode mode);
-		
+
 		void _refreshSize();
-		
+
 	protected:
 		CList<TabViewItem> m_items;
 		sl_uint32 m_indexSelected;
 		sl_int32 m_indexHover;
-		
+
 		LayoutOrientation m_orientation;
 		sl_real m_tabWidth;
 		sl_real m_tabHeight;
-		
+
 		AtomicRef<Drawable> m_barBackground;
 		AtomicRef<Drawable> m_contentBackground;
 		AtomicRef<Drawable> m_tabBackground;
@@ -239,24 +239,24 @@ namespace slib
 		sl_ui_pos m_tabSpaceSize;
 		sl_ui_len m_iconWidth;
 		sl_ui_len m_iconHeight;
-		
+
 	};
-	
+
 	class SLIB_EXPORT ITabViewInstance
 	{
 	public:
 		virtual void refreshTabCount(TabView* view) = 0;
-		
+
 		virtual void refreshSize(TabView* view) = 0;
-		
+
 		virtual void setTabLabel(TabView* view, sl_uint32 index, const String& text) = 0;
-		
+
 		virtual void setTabContentView(TabView* view, sl_uint32 index, const Ref<View>& content) = 0;
-		
+
 		virtual sl_bool getContentViewSize(TabView* view, UISize& _out) = 0;
-		
+
 		virtual void selectTab(TabView* view, sl_uint32 index) = 0;
-		
+
 	};
 
 }

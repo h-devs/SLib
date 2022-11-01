@@ -65,17 +65,17 @@ namespace slib
 	{
 		stop();
 	}
-	
+
 	Ref<Animation> Animation::create(float duration)
 	{
 		return createWithLoop(AnimationLoop::getDefault(), duration);
 	}
-	
+
 	Ref<Animation> Animation::create(const Ref<AnimationTarget>& target, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
 		return createWithLoop(AnimationLoop::getDefault(), target, duration, onStop, curve, flags);
 	}
-	
+
 	Ref<Animation> Animation::start(const Ref<AnimationTarget>& target, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
 		return createWithLoop(AnimationLoop::getDefault(), target, duration, onStop, curve, flags | AnimationFlags::AutoStart);
@@ -128,7 +128,7 @@ namespace slib
 	{
 		return Animation::createWithLoop(loop, target, duration, onStop, curve, flags | AnimationFlags::AutoStart);
 	}
-	
+
 	Ref<AnimationLoop> Animation::getLoop()
 	{
 		return m_loop;
@@ -256,7 +256,7 @@ namespace slib
 	{
 		return m_repeatCount;
 	}
-	
+
 	void Animation::setRepeatCount(sl_int32 count)
 	{
 		m_repeatCount = count;
@@ -266,7 +266,7 @@ namespace slib
 	{
 		return m_repeatCount < 0;
 	}
-	
+
 	void Animation::setRepeatForever(sl_bool flagRepeatForever)
 	{
 		if (flagRepeatForever) {
@@ -277,7 +277,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool Animation::isAutoReverse()
 	{
 		return m_flagAutoReverse;
@@ -323,18 +323,18 @@ namespace slib
 	{
 		return m_curveCycles;
 	}
-	
+
 	void Animation::setAnimationCurveCycles(float cycles)
 	{
 		m_curveCycles = cycles;
 		m_curveCycles2PI = cycles * SLIB_PI_DUAL;
 	}
-	
+
 	float Animation::getAnimationCurveTension()
 	{
 		return m_curveTension;
 	}
-	
+
 	void Animation::setAnimationCurveTension(float tension)
 	{
 		m_curveTension = tension;
@@ -349,7 +349,7 @@ namespace slib
 	{
 		m_customAnimationCurve = curve;
 	}
-	
+
 	float Animation::getCurrentTime(sl_uint32* outRepeatedCount)
 	{
 		ObjectLocker lock(this);
@@ -361,7 +361,7 @@ namespace slib
 		}
 		return time;
 	}
-	
+
 	float Animation::getTimeFraction()
 	{
 		float time = getCurrentTime();
@@ -372,8 +372,8 @@ namespace slib
 	{
 		return m_lastRepeatedCount;
 	}
-	
-	
+
+
 	void Animation::start()
 	{
 		startAt(0);
@@ -556,17 +556,17 @@ namespace slib
 	{
 		return m_flagStarted && m_flagRunning;
 	}
-	
+
 	sl_bool Animation::isNotRunning()
 	{
 		return !(m_flagStarted && m_flagRunning);
 	}
-	
+
 	sl_bool Animation::isPaused()
 	{
 		return m_flagStarted && !m_flagRunning;
 	}
-	
+
 	void Animation::update(float elapsedSeconds)
 	{
 		ObjectLocker lock(this);
@@ -580,7 +580,7 @@ namespace slib
 		sl_int32 repeat = m_repeatCount;
 		sl_uint32 lastRepeat = m_lastRepeatedCount;
 		m_lastRepeatedCount = 0;
-	
+
 		sl_uint32 iRepeat;
 		sl_bool flagStop;
 		float time = _getTime(iRepeat, flagStop);
@@ -611,9 +611,9 @@ namespace slib
 		}
 
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Animation, AnimationFrame, float seconds)
-	
+
 	void Animation::dispatchAnimationFrame(float time)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(AnimationFrame, time);
@@ -637,26 +637,26 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void Animation::dispatchStartFrame()
 	{
 		dispatchAnimationFrame(0);
 	}
-	
+
 	void Animation::dispatchEndFrame()
 	{
 		dispatchAnimationFrame(m_duration);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(Animation, RepeatAnimation, sl_int32 nRemainingRepeatCount)
-	
+
 	void Animation::dispatchRepeatAnimation(sl_int32 nRemainingRepeatCount)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(RepeatAnimation, nRemainingRepeatCount)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Animation, StopAnimation)
-	
+
 	void Animation::dispatchStopAnimation()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(StopAnimation)
@@ -676,7 +676,7 @@ namespace slib
 	{
 		iRepeat = 0;
 		flagStop = sl_false;
-		
+
 		if (m_flagStarted) {
 			sl_int64 duration = (sl_int64)(m_duration * 1000);
 			if (duration < 1) {
@@ -736,7 +736,7 @@ namespace slib
 		time = _applyCurve(time);
 		return time;
 	}
-	
+
 	namespace priv
 	{
 		namespace animation
@@ -989,36 +989,36 @@ namespace slib
 		}
 
 	}
-	
+
 	namespace priv
 	{
 		namespace animation
 		{
-			
+
 			class DefaultAnimationLoop : public AnimationLoop
 			{
 			public:
 				Ref<Thread> m_thread;
-				
+
 			public:
 				void init() override
 				{
 					AnimationLoop::init();
-					
+
 					if (m_thread.isNull()) {
 						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
 					} else {
 						m_thread->wake();
 					}
 				}
-				
+
 				~DefaultAnimationLoop()
 				{
 					if (m_thread.isNotNull()) {
 						m_thread->finishAndWait();
 					}
 				}
-				
+
 			public:
 				void _wake() override
 				{
@@ -1026,7 +1026,7 @@ namespace slib
 						m_thread->wake();
 					}
 				}
-				
+
 				void run()
 				{
 					Thread* thread = Thread::getCurrent();
@@ -1044,14 +1044,14 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(Ref<AnimationLoop>, getDefaultAnimationLoop, new DefaultAnimationLoop)
-			
+
 		}
 	}
-	
+
 	using namespace priv::animation;
 
 	Ref<AnimationLoop> AnimationLoop::getDefault()
@@ -1062,14 +1062,14 @@ namespace slib
 		}
 		return sl_null;
 	}
-	
-	
+
+
 	SLIB_DEFINE_OBJECT(AnimationTarget, Object)
 
 	AnimationTarget::AnimationTarget()
 	{
 	}
-	
+
 	AnimationTarget::~AnimationTarget()
 	{
 	}
@@ -1078,12 +1078,12 @@ namespace slib
 	{
 		return m_animation;
 	}
-	
+
 	void AnimationTarget::setAnimation(const Ref<Animation>& animation)
 	{
 		m_animation = animation;
 	}
-	
+
 	void AnimationTarget::forceUpdate()
 	{
 		Ref<Animation> animation(m_animation);

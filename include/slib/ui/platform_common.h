@@ -32,7 +32,7 @@ namespace slib
 	class View;
 	class WindowInstance;
 	class Window;
-	
+
 }
 
 #define PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS \

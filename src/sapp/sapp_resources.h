@@ -42,7 +42,7 @@ namespace slib
 		String defaultValue;
 		CHashMap<Locale, String> values;
 	};
-	
+
 	class SAppColorResource : public Referable
 	{
 	public:
@@ -67,10 +67,10 @@ namespace slib
 		String filePath;
 		String rawName;
 		AtomicRef<Image> image;
-		
+
 	public:
 		Ref<Image> loadImage();
-		
+
 	};
 
 	class SAppDrawableResourceImageAttributes : public Referable
@@ -81,21 +81,21 @@ namespace slib
 
 	public:
 		SAppDrawableResourceImageAttributes();
-		
+
 	};
 
 	class SAppDrawableResourceNinePiecesAttributes : public Referable
 	{
 	public:
 		Ref<XmlElement> element;
-		
+
 		String localNamespace;
-		
+
 		SAppDimensionValue leftWidth;
 		SAppDimensionValue rightWidth;
 		SAppDimensionValue topHeight;
 		SAppDimensionValue bottomHeight;
-		
+
 		SAppDrawableValue topLeft;
 		SAppDrawableValue top;
 		SAppDrawableValue topRight;
@@ -105,27 +105,27 @@ namespace slib
 		SAppDrawableValue bottomLeft;
 		SAppDrawableValue bottom;
 		SAppDrawableValue bottomRight;
-		
+
 	};
 
 	class SAppDrawableResourceNinePatchAttributes : public Referable
 	{
 	public:
 		Ref<XmlElement> element;
-		
+
 		String localNamespace;
-		
+
 		SAppDimensionValue dstLeftWidth;
 		SAppDimensionValue dstRightWidth;
 		SAppDimensionValue dstTopHeight;
 		SAppDimensionValue dstBottomHeight;
-		
+
 		SAppDrawableValue src;
 		sl_real leftWidth;
 		sl_real rightWidth;
 		sl_real topHeight;
 		sl_real bottomHeight;
-		
+
 	};
 
 	class SAppDrawableResource : public Referable
@@ -139,14 +139,14 @@ namespace slib
 			typeNinePieces = 2,
 			typeNinePatch = 3
 		};
-		
+
 		Ref<SAppDrawableResourceImageAttributes> imageAttrs;
 		Ref<SAppDrawableResourceNinePiecesAttributes> ninePiecesAttrs;
 		Ref<SAppDrawableResourceNinePatchAttributes> ninePatchAttrs;
-		
+
 	public:
 		SAppDrawableResource();
-		
+
 	};
 
 
@@ -200,12 +200,12 @@ namespace slib
 	public:
 		SAppMenuValue menu;
 		SAppStringValue title;
-		
+
 		SAppDimensionValue left;
 		SAppDimensionValue top;
 		SAppDimensionValue width;
 		SAppDimensionValue height;
-		
+
 		SAppDimensionValue minWidth;
 		SAppDimensionValue maxWidth;
 		SAppDimensionValue minHeight;
@@ -240,7 +240,7 @@ namespace slib
 	{
 	public:
 		SAppStringValue id;
-		
+
 		SAppDimensionValue width;
 		SAppDimensionValue height;
 
@@ -252,15 +252,15 @@ namespace slib
 		String topReferingView;
 		String rightReferingView;
 		String bottomReferingView;
-		
+
 		SAppDimensionValue left;
 		SAppDimensionValue top;
-		
+
 		SAppDimensionValue minWidth;
 		SAppDimensionValue maxWidth;
 		SAppDimensionValue minHeight;
 		SAppDimensionValue maxHeight;
-		
+
 		SAppFloatValue aspectRatio;
 
 		SAppDimensionValue marginLeft;
@@ -272,13 +272,13 @@ namespace slib
 		SAppDimensionValue paddingTop;
 		SAppDimensionValue paddingRight;
 		SAppDimensionValue paddingBottom;
-		
+
 		SAppVisibilityValue visibility;
 		SAppBooleanValue visible;
 		SAppBooleanValue enabled;
 		SAppBooleanValue clipping;
 		SAppBooleanValue drawing;
-		
+
 		SAppDrawableValue background;
 		SAppDrawableValue pressedBackground;
 		SAppDrawableValue hoverBackground;
@@ -296,7 +296,7 @@ namespace slib
 		SAppDimensionFloatValue contentRadiusX;
 		SAppDimensionFloatValue contentRadiusY;
 		SAppDimensionFloatValue contentRadius;
-		
+
 		SAppFontValue font;
 		SAppFontValue finalFont;
 
@@ -304,13 +304,13 @@ namespace slib
 		SAppFloatValue alpha;
 		SAppBooleanValue antiAlias;
 		SAppBooleanValue layer;
-		
+
 		SAppFloatValue shadowOpacity;
 		SAppDimensionFloatValue shadowRadius;
 		SAppDimensionFloatValue shadowOffsetX;
 		SAppDimensionFloatValue shadowOffsetY;
 		SAppColorValue shadowColor;
-		
+
 		SAppScrollingValue scrolling;
 		SAppScrollBarsValue scrollBars;
 		SAppBooleanValue paging;
@@ -338,7 +338,7 @@ namespace slib
 		SAppBooleanValue largeContent;
 		SAppBooleanValue emptyContent;
 		SAppBooleanValue nativeLayer;
-		
+
 		SAppBooleanValue okCancelEnabled;
 		SAppBooleanValue ok;
 		SAppBooleanValue cancel;
@@ -349,9 +349,9 @@ namespace slib
 
 	public:
 		SAppLayoutViewAttributes();
-		
+
 		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
-		
+
 		void resetLayout();
 
 	};
@@ -360,7 +360,7 @@ namespace slib
 	{
 	public:
 		String layout;
-		
+
 	};
 
 	class SAppLayoutButtonCategory
@@ -409,9 +409,9 @@ namespace slib
 		SAppDimensionValue textMarginBottom;
 		SAppBooleanValue defaultColorFilter;
 		SAppColorValue colorOverlay;
-		
+
 		SAppLayoutButtonCategory categories[SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX];
-		
+
 	public:
 		sl_bool isNotRequiredNative();
 
@@ -441,14 +441,14 @@ namespace slib
 		SAppColorValue lineColor;
 		SAppPenStyleValue lineStyle;
 		SAppAlignmentValue gravity;
-		
+
 	};
-	
+
 	class SAppLayoutCheckAttributes : public Referable
 	{
 	public:
 		SAppBooleanValue checked;
-		
+
 	};
 
 	class SAppLayoutRadioAttributes : public Referable
@@ -456,7 +456,7 @@ namespace slib
 	public:
 		String group;
 		SAppStringValue value;
-		
+
 	};
 
 	class SAppLayoutEditAttributes : public Referable
@@ -479,7 +479,7 @@ namespace slib
 		SAppUIKeyboardTypeValue keyboard;
 		SAppUIAutoCapitalizationTypeValue autoCap;
 		SAppBooleanValue focusNextOnReturnKey;
-		
+
 	};
 
 	class SAppLayoutImageAttributes : public Referable
@@ -491,7 +491,7 @@ namespace slib
 		SAppFloatValue minAspectRatio;
 		SAppFloatValue maxAspectRatio;
 		SAppStringValue url;
-		
+
 	};
 
 	class SAppLayoutSelectItem
@@ -500,7 +500,7 @@ namespace slib
 		SAppStringValue title;
 		SAppStringValue value;
 		SAppBooleanValue selected;
-		
+
 		Ref<XmlElement> element;
 	};
 
@@ -509,12 +509,12 @@ namespace slib
 	public:
 		SAppColorValue textColor;
 		SAppAlignmentValue gravity;
-		
+
 		CList<SAppLayoutSelectItem> items;
-		
+
 	public:
 		sl_bool isNotRequiredNative();
-		
+
 	};
 
 	class SAppLayoutSelectSwitchAttributes : public Referable
@@ -522,7 +522,7 @@ namespace slib
 	public:
 		SAppColorValue textColor;
 		SAppAlignmentValue gravity;
-		
+
 		CList<SAppLayoutSelectItem> items;
 
 		SAppDimensionValue iconWidth;
@@ -537,38 +537,38 @@ namespace slib
 	public:
 		SAppStringValue text;
 		CList<SAppLayoutSelectItem> items;
-		
+
 	public:
 		sl_bool isNotRequiredNative();
-		
+
 	};
 
 	class SAppLayoutScrollAttributes : public Referable
 	{
 	public:
 		Ref<SAppLayoutResourceItem> content;
-		
+
 	};
 
 	class SAppLayoutLinearAttributes : public Referable
 	{
 	public:
 		SAppLayoutOrientationValue orientation;
-		
+
 	};
 
 	class SAppLayoutListAttributes : public Referable
 	{
 	public:
 		String itemLayout;
-		
+
 	};
 
 	class SAppLayoutCollectionAttributes : public Referable
 	{
 	public:
 		String itemLayout;
-		
+
 	};
 
 	class SAppLayoutTableColumn
@@ -618,7 +618,7 @@ namespace slib
 	public:
 		CList<SAppLayoutTableColumn> columns;
 		CList<SAppLayoutTableRow> rows;
-		
+
 	};
 
 	struct SAppLayoutListControlColumn
@@ -633,14 +633,14 @@ namespace slib
 	{
 	public:
 		CList<SAppLayoutListControlColumn> columns;
-		
+
 	};
 
 	class SAppLayoutRenderAttributes : public Referable
 	{
 	public:
 		SAppRedrawModeValue redraw;
-		
+
 	};
 
 	struct SAppLayoutTabItem
@@ -649,9 +649,9 @@ namespace slib
 		SAppDrawableValue icon;
 		SAppBooleanValue selected;
 		Ref<SAppLayoutResourceItem> view;
-		
+
 		Ref<XmlElement> element;
-		
+
 	};
 
 	class SAppLayoutTabAttributes : public Referable
@@ -678,10 +678,10 @@ namespace slib
 		SAppDimensionValue iconHeight;
 
 		CList<SAppLayoutTabItem> items;
-		
+
 	public:
 		sl_bool isNotRequiredNative();
-		
+
 	};
 
 
@@ -697,7 +697,7 @@ namespace slib
 		SAppColorValue hoverTextColor;
 		SAppColorValue selectedTextColor;
 		SAppDimensionValue height;
-		
+
 		Ref<SAppLayoutResourceItem> customView;
 		Ref<XmlElement> element;
 	};
@@ -732,9 +732,9 @@ namespace slib
 		SAppDimensionValue dividerWidth;
 		SAppDrawableValue dividerBackground;
 		SAppColorValue dividerColor;
-		
+
 		Ref<XmlElement> element;
-		
+
 	};
 
 	class SAppLayoutSplitAttributes : public Referable
@@ -745,9 +745,9 @@ namespace slib
 		SAppDrawableValue dividerBackground;
 		SAppColorValue dividerColor;
 		SAppDimensionValue cursorMargin;
-		
+
 		CList<SAppLayoutSplitItem> items;
-		
+
 	};
 
 	class SAppLayoutWebAttributes : public Referable
@@ -755,7 +755,7 @@ namespace slib
 	public:
 		SAppStringValue url;
 		SAppStringValue html;
-		
+
 	};
 
 	class SAppLayoutProgressAttributes : public Referable
@@ -773,7 +773,7 @@ namespace slib
 		SAppDrawableValue track;
 		SAppDrawableValue progress;
 		SAppDrawableValue progress2;
-		
+
 	};
 
 	class SAppLayoutSliderAttributes : public Referable
@@ -784,7 +784,7 @@ namespace slib
 		SAppDrawableValue hoverThumb;
 		SAppDimensionValue thumbWidth;
 		SAppDimensionValue thumbHeight;
-		
+
 	};
 
 	class SAppLayoutSwitchAttributes : public Referable
@@ -792,7 +792,7 @@ namespace slib
 	public:
 		SAppBooleanValue value;
 		SAppBooleanValue textInButton;
-		
+
 		SAppStringValue text;
 		SAppStringValue textOn;
 		SAppStringValue textOff;
@@ -801,7 +801,7 @@ namespace slib
 		SAppColorValue textColor;
 		SAppColorValue textColorOn;
 		SAppColorValue textColorOff;
-		
+
 		SAppDrawableValue thumbOff;
 		SAppDrawableValue thumbOn;
 		SAppDrawableValue thumb;
@@ -831,38 +831,38 @@ namespace slib
 		SAppBooleanValue circular;
 
 		CList<SAppLayoutSelectItem> items;
-		
+
 	public:
 		sl_bool isNotRequiredNative();
-		
+
 	};
 
 	class SAppLayoutDatePickerAttributes : public Referable
 	{
 	public:
 		SAppTimeValue date;
-		
+
 	public:
 		sl_bool isNotRequiredNative();
-		
+
 	};
 
 	struct SAppLayoutPagerItem
 	{
 		SAppBooleanValue selected;
 		Ref<SAppLayoutResourceItem> view;
-		
+
 		Ref<XmlElement> element;
-		
+
 	};
 
 	class SAppLayoutPagerAttributes : public Referable
 	{
 	public:
 		CList<SAppLayoutPagerItem> items;
-		
+
 		SAppBooleanValue loop;
-		
+
 	};
 
 	class SAppLayoutNavigationAttributes : public Referable
@@ -892,16 +892,16 @@ namespace slib
 		SAppBooleanValue touchFocus;
 
 	};
-	
+
 	class SAppLayoutDrawerAttributes : public Referable
 	{
 	public:
 		SAppDimensionValue drawerSize;
 		SAppDimensionValue dragEdgeSize;
 		SAppAlignmentValue gravity;
-		
+
 	};
-	
+
 	class SAppLayoutChatAttributes : public Referable
 	{
 	public:
@@ -914,14 +914,14 @@ namespace slib
 		SAppColorValue sentChatBackColor;
 		SAppColorValue sentChatTextColor;
 		SAppColorValue dateTextColor;
-		
+
 	};
 
 	class SAppLayoutRefreshAttributes : public Referable
 	{
 	public:
 	};
-	
+
 	class SAppLayoutListBoxAttributes : public Referable
 	{
 	public:
@@ -934,7 +934,7 @@ namespace slib
 		SAppDrawableValue focusedItemBackground;
 
 	};
-	
+
 	class SAppLayoutLabelListAttributes : public Referable
 	{
 	public:
@@ -949,7 +949,7 @@ namespace slib
 
 		CList<SAppLayoutSelectItem> items;
 	};
-	
+
 	class SAppLayoutTileLayoutAttributes : public Referable
 	{
 	public:
@@ -986,10 +986,10 @@ namespace slib
 		Ref<XmlElement> element;
 		String name;
 		List< Ref<SAppLayoutStyle> > inherit;
-		
+
 	public:
 		String getXmlAttribute(const String& name);
-		
+
 	};
 
 	class SAppLayoutInclude : public Referable
@@ -1009,11 +1009,11 @@ namespace slib
 	enum class SAppLayoutItemType
 	{
 		Unknown = 0,
-		
+
 		View = 0x0200,
 		ViewGroup = 0x0201,
 		Import = 0x0202,
-		
+
 		Button = 0x0210,
 		Label = 0x0211,
 		Check = 0x0212,
@@ -1023,7 +1023,7 @@ namespace slib
 		TextArea = 0x0216,
 		Image = 0x0217,
 		Select = 0x0218,
-		
+
 		Scroll = 0x0230,
 		Linear = 0x0231,
 		List = 0x0232,
@@ -1067,7 +1067,7 @@ namespace slib
 	{
 	public:
 		Ref<XmlElement> element;
-		
+
 		SAppLayoutItemType itemType;
 		String itemTypeName;
 		String name;
@@ -1077,7 +1077,7 @@ namespace slib
 		sl_bool flagNoChildren;
 
 		String className;
-		
+
 		Ref<SAppLayoutWindowAttributes> attrsWindow;
 		Ref<SAppLayoutViewAttributes> attrsView;
 		Ref<SAppLayoutImportAttributes> attrsImport;
@@ -1123,13 +1123,13 @@ namespace slib
 
 		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;
-		
+
 	public:
 		SAppLayoutResourceItem();
-		
+
 	public:
 		String getXmlAttribute(const String& name);
-		
+
 	};
 
 	class SAppLayoutResource : public SAppLayoutResourceItem
@@ -1137,10 +1137,10 @@ namespace slib
 	public:
 		String filePath;
 		SAppLayoutType layoutType;
-		
+
 		String baseClassName;
 		SAppDimensionFloatValue sp;
-		
+
 		CHashMap< String, Ref<SAppLayoutResourceItem> > itemsByName;
 		CMap<String, sl_bool> customClasses;
 		CMap<String, sl_bool> radioGroups;
@@ -1197,15 +1197,15 @@ namespace slib
 
 	public:
 		SAppLayoutResource();
-		
+
 	public:
 		String getAutoIncreasingName(SAppLayoutItemType type);
-		
+
 		static SAppLayoutItemType getTypeFromName(const String& strType);
-		
+
 	};
-	
-	
+
+
 	class SAppLayoutSimulationParams
 	{
 	public:
@@ -1214,10 +1214,10 @@ namespace slib
 		sl_ui_len viewportWidth;
 		sl_ui_len viewportHeight;
 		sl_real sp;
-		
+
 	public:
 		SAppLayoutSimulationParams();
-		
+
 	};
 
 	class SAppDocument;
@@ -1227,21 +1227,21 @@ namespace slib
 	{
 	public:
 		Ref<Referable> getReferable();
-		
+
 		Ref<View> getViewByName(const String& name);
-		
+
 		void registerViewByName(const String& name, const Ref<View>& view);
-		
+
 		Ref<RadioGroup> getRadioGroup(const String& name);
-		
+
 		Ref<SAppDocument> getDocument();
-		
+
 		Ref<SAppLayoutResource> getLayoutResource();
-		
+
 		Ref<SAppLayoutSimulationWindow> getSimulationWindow();
-		
+
 		Ref<View> getSimulationContentView();
-		
+
 	protected:
 		AtomicWeakRef<Referable> m_refer;
 		AtomicWeakRef<SAppDocument> m_document;
@@ -1260,17 +1260,17 @@ namespace slib
 
 	protected:
 		void init() override;
-		
+
 	public:
 		sl_bool open(SAppDocument* doc, SAppLayoutResource* layout);
-		
+
 	protected:
 		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 		void layoutViews(sl_ui_len width, sl_ui_len height) override;
-		
+
 		void onClose(UIEvent* ev) override;
-		
+
 	public:
 		SLIB_BOOLEAN_PROPERTY(SavingPageSize)
 
@@ -1283,12 +1283,12 @@ namespace slib
 
 	protected:
 		void init() override;
-		
+
 	public:
 		void initialize(SAppLayoutSimulator* simulator, SAppLayoutResource* layout);
-		
+
 		void layoutViews(sl_ui_len width, sl_ui_len height) override;
-		
+
 	};
 
 }

@@ -31,7 +31,7 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT UIPlatform
 	{
 		PRIV_SLIB_DECLARE_UI_PLATFORM_COMMON_MEMBERS
@@ -43,7 +43,7 @@ namespace slib
 		static void removeViewInstance(jobject jhandle);
 		static jobject getViewHandle(ViewInstance* instance);
 		static jobject getViewHandle(View* view);
-		
+
 		static Ref<WindowInstance> createWindowInstance(jobject window);
 		static void registerWindowInstance(jobject window, WindowInstance* instance);
 		static Ref<WindowInstance> getWindowInstance(jobject window);

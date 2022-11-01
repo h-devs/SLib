@@ -50,17 +50,17 @@ namespace slib
 #endif
 			}
 #endif
-		
+
 			class DomainSocketIPC : public IPC
 			{
 			public:
 				CList< Ref<Thread> > m_threads;
-				
+
 			public:
 				DomainSocketIPC()
 				{
 				}
-				
+
 				~DomainSocketIPC()
 				{
 					List< Ref<Thread> > threads = m_threads.duplicate();
@@ -71,7 +71,7 @@ namespace slib
 						item->finishAndWait();
 					}
 				}
-				
+
 			public:
 				static Ref<DomainSocketIPC> create(const IPCParam& param)
 				{
@@ -82,7 +82,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 			public:
 				void sendMessage(const StringParam& _targetName, const Memory& data, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackResponse) override
 				{
@@ -249,13 +249,13 @@ namespace slib
 				}
 
 			};
-				
+
 			class DomainSocketServer : public DomainSocketIPC
 			{
 			public:
 				Socket m_socketServer;
 				Ref<Thread> m_threadListen;
-				
+
 			public:
 				DomainSocketServer()
 				{

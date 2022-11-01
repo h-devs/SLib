@@ -7,18 +7,18 @@
 		centerScreen='true'
 		fontSize='20'
 		>
-		
+
 		<hlinear
 			width='fill'
 			height='fill'
 			>
-			
+
 			<linear
 				width='*'
 				height='wrap'
 				centerVertical='true'
 				>
-				
+
 				<button
 					name='btnDrag'
 					text='Button'
@@ -30,7 +30,7 @@
 					/>
 
 			</linear>
-			
+
 			<linear
 				name='linearDrop'
 				width='*'
@@ -39,12 +39,12 @@
 				padding='5'
 				clipping='true'
 				>
-				
+
 				<label
 					text='Drop Here'
 					centerHorizontal='true'
 					/>
-				
+
 			</linear>
 
 		</hlinear>

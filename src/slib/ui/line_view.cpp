@@ -28,18 +28,18 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace line_view
 		{
-			
+
 			class StaticContext
 			{
 			public:
 				sl_real defaultThickness;
 				Ref<Pen> defaultPen;
-				
+
 			public:
 				StaticContext()
 				{
@@ -49,35 +49,35 @@ namespace slib
 					}
 					defaultPen = Pen::createSolidPen(defaultThickness, Color::Black);
 				}
-				
+
 			};
-			
+
 			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-			
+
 		}
 	}
-	
+
 	using namespace priv::line_view;
 
 	SLIB_DEFINE_OBJECT(LineView, View)
-	
+
 	LineView::LineView()
 	{
 		setSavingCanvasState(sl_false);
-		
+
 		m_orientation = LayoutOrientation::Horizontal;
 		m_style = PenStyle::Solid;
 		m_thickness = 1;
 		m_color = Color::Black;
 		m_gravity = Alignment::Center;
-		
+
 		StaticContext* context = GetStaticContext();
 		if (context) {
 			m_pen = context->defaultPen;
 			m_thickness = context->defaultThickness;
 		}
 	}
-	
+
 	LineView::~LineView()
 	{
 	}
@@ -86,7 +86,7 @@ namespace slib
 	{
 		return m_orientation;
 	}
-	
+
 	void LineView::setOrientation(LayoutOrientation orientation, UIUpdateMode mode)
 	{
 		if (m_orientation == orientation) {
@@ -95,32 +95,32 @@ namespace slib
 		m_orientation = orientation;
 		invalidateLayoutOfWrappingControl();
 	}
-	
+
 	sl_bool LineView::isHorizontal()
 	{
 		return m_orientation == LayoutOrientation::Horizontal;
 	}
-	
+
 	void LineView::setHorizontal(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Horizontal, mode);
 	}
-	
+
 	sl_bool LineView::isVertical()
 	{
 		return m_orientation == LayoutOrientation::Vertical;
 	}
-	
+
 	void LineView::setVertical(UIUpdateMode mode)
 	{
 		setOrientation(LayoutOrientation::Vertical, mode);
 	}
-	
+
 	Color LineView::getLineColor()
 	{
 		return m_color;
 	}
-	
+
 	void LineView::setLineColor(const Color& color, UIUpdateMode mode)
 	{
 		if (m_color == color) {
@@ -130,12 +130,12 @@ namespace slib
 		_updatePen();
 		invalidate(mode);
 	}
-	
+
 	sl_real LineView::getLineThickness()
 	{
 		return m_thickness;
 	}
-	
+
 	void LineView::setLineThickness(sl_real thickness, UIUpdateMode mode)
 	{
 		if (thickness < 1) {
@@ -148,12 +148,12 @@ namespace slib
 		_updatePen();
 		invalidateLayoutOfWrappingControl(mode);
 	}
-	
+
 	PenStyle LineView::getLineStyle()
 	{
 		return m_style;
 	}
-	
+
 	void LineView::setLineStyle(PenStyle style, UIUpdateMode mode)
 	{
 		if (m_style == style) {
@@ -163,12 +163,12 @@ namespace slib
 		_updatePen();
 		invalidate(mode);
 	}
-	
+
 	Alignment LineView::getGravity()
 	{
 		return m_gravity;
 	}
-	
+
 	void LineView::setGravity(const Alignment& gravity, UIUpdateMode mode)
 	{
 		if (m_gravity == gravity) {
@@ -177,7 +177,7 @@ namespace slib
 		m_gravity = gravity;
 		invalidate(mode);
 	}
-	
+
 	void LineView::onDraw(Canvas* canvas)
 	{
 		sl_bool flagAntiAliasOriginal = canvas->isAntiAlias();
@@ -240,7 +240,7 @@ namespace slib
 			canvas->setAntiAlias(sl_true);
 		}
 	}
-	
+
 	void LineView::onUpdateLayout()
 	{
 		if (isWidthWrapping()) {
@@ -258,17 +258,17 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void LineView::_updatePen()
 	{
 		m_pen = Pen::create(m_style, m_thickness, m_color);
 	}
-	
+
 	VerticalLineView::VerticalLineView()
 	{
 		setOrientation(LayoutOrientation::Vertical, UIUpdateMode::Init);
 	}
-	
+
 	VerticalLineView::~VerticalLineView()
 	{
 	}

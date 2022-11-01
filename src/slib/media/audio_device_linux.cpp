@@ -55,7 +55,7 @@ namespace slib
 				String name;
 				String description;
 			};
-			
+
 			static List<AudioDeviceInfo> GetAllDevices(sl_bool flagInput)
 			{
 				List<AudioDeviceInfo> ret;
@@ -236,19 +236,19 @@ namespace slib
 				sl_bool m_flagRunning;
 
 				Ref<Thread> m_thread;
-				
+
 			public:
 				AudioRecorderImpl()
 				{
 					m_handle = sl_null;
 					m_flagRunning = sl_false;
 				}
-				
+
 				~AudioRecorderImpl()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<AudioRecorderImpl> create(const AudioRecorderParam& param)
 				{
@@ -282,12 +282,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void _release() override
 				{
 					snd_pcm_close(m_handle);
 				}
-				
+
 				sl_bool _start() override
 				{
 					if (m_flagRunning) {
@@ -312,7 +312,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void _stop() override
 				{
 					if (m_thread.isNotNull()) {
@@ -341,10 +341,10 @@ namespace slib
 					if (!buf) {
 						return;
 					}
-					
+
 					TimeCounter t;
 					sl_uint32 st = m_param.getFrameLengthInMilliseconds() / 2;
-					
+
 					while (thread->isNotStopping()) {
 						sl_bool flagRead = sl_false;
 						int nAvail = (int)(snd_pcm_avail_update(handle));
@@ -370,9 +370,9 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 			class AudioPlayerImpl: public AudioPlayer
 			{
 			public:
@@ -382,19 +382,19 @@ namespace slib
 				sl_bool m_flagRunning;
 
 				Ref<Thread> m_thread;
-				
+
 			public:
 				AudioPlayerImpl()
 				{
 					m_handle = sl_null;
 					m_flagRunning = sl_false;
 				}
-				
+
 				~AudioPlayerImpl()
 				{
 					release();
 				}
-				
+
 			public:
 				static Ref<AudioPlayerImpl> create(const StringParam& _deviceId, const AudioPlayerParam& param)
 				{
@@ -428,12 +428,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void _release() override
 				{
 					snd_pcm_close(m_handle);
 				}
-				
+
 				sl_bool _start() override
 				{
 					if (m_flagRunning) {
@@ -458,7 +458,7 @@ namespace slib
 					}
 					return sl_false;
 				}
-				
+
 				void _stop() override
 				{
 					if (m_thread.isNotNull()) {
@@ -482,15 +482,15 @@ namespace slib
 					sl_uint32 nBytesPerFrame = (sl_uint32)(snd_pcm_frames_to_bytes(handle, 1));
 					sl_uint32 nSamplesPerFrame = nBytesPerFrame >> 1;
 					sl_uint32 nSamplesPerPeriod = nFramesPerPeriod * nSamplesPerFrame;
-					
+
 					SLIB_SCOPED_BUFFER(sl_int16, 4096, buf, nSamplesPerPeriod)
 					if (!buf) {
 						return;
 					}
-					
+
 					TimeCounter t;
 					sl_uint32 st = m_param.frameLengthInMilliseconds / 2;
-					
+
 					while (thread->isNotStopping()) {
 						sl_bool flagWritten = sl_false;
 						int nAvail = (int)(snd_pcm_avail_update(handle));
@@ -514,14 +514,14 @@ namespace slib
 						}
 					}
 				}
-				
+
 			};
-			
+
 			class AudioPlayerDeviceImpl : public AudioPlayerDevice
 			{
 			public:
 				String m_deviceId;
-				
+
 			public:
 				AudioPlayerDeviceImpl()
 				{
@@ -530,7 +530,7 @@ namespace slib
 				~AudioPlayerDeviceImpl()
 				{
 				}
-				
+
 			public:
 				static Ref<AudioPlayerDeviceImpl> create(const AudioPlayerDeviceParam& param)
 				{
@@ -555,12 +555,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) override
 				{
 					return AudioPlayerImpl::create(m_deviceId, param);
 				}
-				
+
 			};
 
 		}

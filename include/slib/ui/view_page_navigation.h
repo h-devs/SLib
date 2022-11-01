@@ -34,69 +34,69 @@ namespace slib
 	class SLIB_EXPORT ViewPageNavigationController : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		ViewPageNavigationController();
-		
+
 		~ViewPageNavigationController();
 
 	public:
 		sl_size getPageCount();
-		
+
 		List< Ref<View> > getPages();
-		
+
 		Ref<View> getCurrentPage();
-		
+
 		void push(const Ref<View>& page, const Transition& transition);
 
 		void push(const Ref<View>& page);
-		
+
 		void pushPageAfterPopPages(const Ref<View>& page, sl_size countPop, const Transition& transition);
-		
+
 		void pushPageAfterPopPages(const Ref<View>& page, sl_size countPop);
-		
+
 		void pushPageAfterPopAllPages(const Ref<View>& page, const Transition& transition);
-		
+
 		void pushPageAfterPopAllPages(const Ref<View>& page);
-		
+
 		void pop(const Ref<View>& page, const Transition& transition);
-		
+
 		void pop(const Ref<View>& page);
-		
+
 		void pop(const Transition& transition);
-		
+
 		void pop();
-		
+
 		void setSwipeNavigation(sl_bool flag);
-		
+
 		void setTransition(const Transition& transitionPush, const Transition& transitionPop);
-				
+
 	protected:
 		void _onFinishAnimation(const Ref<View>& page, UIPageAction action);
-		
+
 		void _resetAnimationStatus(const Ref<View>& page);
-		
+
 		void _push(const Ref<View>& page, sl_size countRemoveTop, const Transition* transition);
-		
+
 		void _pop(const Ref<View>& page, const Transition* transition);
-		
+
 		void _applyDefaultPushTransition(Transition& transition);
-		
+
 		void _applyDefaultPopTransition(Transition& transition);
-		
+
 		static void _runAnimationProc(const Ref<View>& page, const Function<void()>& callback);
-		
+
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ViewPageNavigationController, PageAction, View* page, UIPageAction action)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPageNavigationController, EndPageAnimation, View* page, UIPageAction action)
 
 	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
-		
+
 		void onChangePadding(UIUpdateMode mode) override;
-		
+
 		void onSwipe(GestureEvent* ev) override;
-		
+
 	protected:
 		CList< Ref<View> > m_pages;
 
@@ -106,9 +106,9 @@ namespace slib
 		Transition m_popTransition;
 
 		volatile sl_reg m_countActiveTransitionAnimations;
-		
+
 		friend class ViewPage;
-		
+
 	};
 
 }

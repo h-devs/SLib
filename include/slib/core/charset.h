@@ -32,12 +32,12 @@ namespace slib
 	enum class Charset
 	{
 		Unknown = 0,
-		
+
 		ANSI = 0x10000, // Windows Only
 		OEM = 1, // Windows Only
 		MAC = 2, // Windows Only
 		THREAD_ANSI = 3, // Windows Only
-		
+
 		SYMBOL = 42, // SYMBOL translations
 
 		CP_037 = 37, // IBM EBCDIC US-Canada
@@ -227,14 +227,14 @@ namespace slib
 	class String;
 	class String16;
 	class String32;
-	
+
 	class Charsets
 	{
 	public:
 		static sl_size utf8ToUtf16(const sl_char8* utf8, sl_reg lenUtf8, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
 
 		static sl_size utf8ToUtf16(const sl_char8* utf8, sl_reg lenUtf8, EndianType endianUtf16, void* utf16, sl_reg sizeUtf16Buffer) noexcept;
-		
+
 		static sl_size utf8ToUtf32(const sl_char8* utf8, sl_reg lenUtf8, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept;
 
 		static sl_size utf8ToUtf32(const sl_char8* utf8, sl_reg lenUtf8, EndianType endianUtf32, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
@@ -252,9 +252,9 @@ namespace slib
 		static sl_size utf16ToUtf32(EndianType endianUtf16, const void* utf16, sl_size sizeUtf16, EndianType endianUtf32, void* utf32, sl_reg sizeUtf32Buffer) noexcept;
 
 		static sl_size utf32ToUtf8(const sl_char32* utf32, sl_reg lenUtf32, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
-	
+
 		static sl_size utf32ToUtf8(EndianType endianUtf32, const void* utf32, sl_size sizeUtf32, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
-		
+
 		static sl_size utf32ToUtf16(const sl_char32* utf32, sl_reg lenUtf32, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
 
 		static sl_size utf32ToUtf16(EndianType endianUtf32, const void* utf32, sl_size sizeUtf32, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept;
@@ -278,11 +278,11 @@ namespace slib
 
 
 		static sl_size encode8(const sl_char8* utf8, sl_size lenUtf8, Charset charset, void* output, sl_reg sizeOutputBuffer);
-		
+
 		static sl_size decode8(Charset charset, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer);
-		
+
 		static sl_size encode16(const sl_char16* utf16, sl_size lenUtf16, Charset charset, void* output, sl_reg sizeOutputBuffer);
-		
+
 		static sl_size decode16(Charset charset, const void* input, sl_size sizeInput, sl_char16* utf16, sl_reg lenUtf16Buffer);
 
 		static sl_size encode32(const sl_char32* utf32, sl_size lenUtf32, Charset charset, void* output, sl_reg sizeOutputBuffer);
@@ -307,7 +307,7 @@ namespace slib
 
 		static String32 decode32(Charset charset, const MemoryView& input);
 
-		
+
 		static sl_bool checkUtf8(const void* utf8, sl_size size);
 
 	};

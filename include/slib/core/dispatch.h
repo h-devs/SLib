@@ -30,7 +30,7 @@ namespace slib
 {
 
 	class Timer;
-	
+
 	class SLIB_EXPORT Dispatcher : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -47,26 +47,26 @@ namespace slib
 		sl_bool setTimeoutByDefaultDispatchLoop(const Function<void()>& callback, sl_uint64 delayMillis);
 
 	};
-	
+
 	class DispatchLoop;
-	
+
 	class SLIB_EXPORT Dispatch
 	{
 	public:
 		static sl_bool dispatch(const Ref<Dispatcher>& dispatcher, const Function<void()>& task);
-		
+
 		static sl_bool dispatch(const Function<void()>& task);
-		
+
 		static sl_bool setTimeout(const Ref<Dispatcher>& dispatcher, const Function<void()>& task, sl_uint64 delayMillis);
-		
+
 		static sl_bool setTimeout(const Function<void()>& task, sl_uint64 delayMillis);
-		
+
 		static Ref<Timer> setInterval(const Ref<DispatchLoop>& loop, const Function<void(Timer*)>& task, sl_uint64 intervalMillis);
-		
+
 		static Ref<Timer> setInterval(const Function<void(Timer*)>& task, sl_uint64 intervalMillis);
-		
+
 	};
-	
+
 }
 
 #endif

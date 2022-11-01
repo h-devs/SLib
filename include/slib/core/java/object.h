@@ -38,7 +38,7 @@ namespace slib
 		{
 		public:
 			static slib::String toString(jobject thiz) noexcept;
-			
+
 		};
 
 	}

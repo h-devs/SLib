@@ -36,12 +36,12 @@ namespace slib
 
 	namespace win32
 	{
-		
+
 		class SLIB_EXPORT Setup
 		{
 		public:
 			static sl_bool installDriver(const StringParam& pathToInf, const StringParam& hardwareId, sl_bool* pOutRebootRequired = sl_null);
-			
+
 			static sl_bool uninstallDriver(const StringParam& hardwareIds, sl_bool* pOutRebootRequired = sl_null);
 
 		};

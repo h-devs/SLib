@@ -39,7 +39,7 @@ namespace slib
 			int, ,
 			int fd, int cmd, ...
 		)
-		
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			fcntl64,
 			int, ,

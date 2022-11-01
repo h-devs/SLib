@@ -9,11 +9,11 @@ class ExampleSensorApp : public MobileApp
 	SLIB_APPLICATION(ExampleSensorApp)
 public:
 	ExampleSensorApp();
-	
+
 protected:
 	void onStart() override;
-	
+
 private:
 	Ref<Sensor> m_sensor;
-	
+
 };

@@ -34,13 +34,13 @@ namespace slib
 		ConstrainedQuality,
 		ConstantQuality
 	};
-	
+
 	enum class VpxCodecName
 	{
 		VP8,
 		VP9
 	};
-	
+
 	class SLIB_EXPORT VpxEncoderParam
 	{
 	public:
@@ -53,54 +53,54 @@ namespace slib
 		sl_uint32 threadCount;
 		sl_uint32 cpuUsage;
 		VpxBitrateMode bitrateMode;
-		
+
 	public:
 		VpxEncoderParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(VpxEncoderParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT VpxDecoderParam
 	{
 	public:
 		VpxCodecName codec;
 		sl_uint32 width;
 		sl_uint32 height;
-		
+
 	public:
 		VpxDecoderParam();
-		
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(VpxDecoderParam)
-		
+
 	};
-	
+
 	class SLIB_EXPORT VpxEncoder : public VideoEncoder
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		VpxEncoder();
-		
+
 		~VpxEncoder();
-		
+
 	public:
 		static Ref<VpxEncoder> create(const VpxEncoderParam& param);
-		
+
 	};
-	
+
 	class SLIB_EXPORT VpxDecoder : public VideoDecoder
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		VpxDecoder();
-		
+
 		~VpxDecoder();
-		
+
 	public:
 		static Ref<VpxDecoder> create(const VpxDecoderParam& param);
-		
+
 	};
 }
 

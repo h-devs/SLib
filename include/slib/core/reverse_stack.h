@@ -27,7 +27,7 @@
 
 namespace slib
 {
-	
+
 	template <sl_size SIZE>
 	class SLIB_EXPORT ReverseStack
 	{

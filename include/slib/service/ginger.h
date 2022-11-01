@@ -29,16 +29,16 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Ginger
 	{
 	public:
 		static String render(const StringView& _template, const Variant& data);
-		
+
 		static String renderFile(const StringParam& filePath, const Variant& data);
 
 	};
-	
+
 }
 
 #endif

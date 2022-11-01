@@ -34,11 +34,11 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instance)
 		}
 	}
-	
+
 	using namespace priv::facebook;
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookUser)
-	
+
 	SLIB_DEFINE_JSON(FacebookUser)
 	{
 		if (isFromJson) {
@@ -46,33 +46,33 @@ namespace slib
 		}
 		SLIB_JSON_ADD_MEMBERS(id, email, name, name_format, first_name, middle_name, last_name, short_name, gender, birthday, quotes, profile_pic)
 	}
-	
+
 	FacebookUser::FacebookUser()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookShareResult)
-	
+
 	FacebookShareResult::FacebookShareResult()
 	{
 		flagSuccess = sl_false;
 		flagCancel = sl_false;
 	}
-	
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookShareParam)
-	
+
 	FacebookShareParam::FacebookShareParam()
 	{
 	}
-	
-	
+
+
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookParam)
-	
+
 	FacebookParam::FacebookParam() : FacebookParam(sl_null)
 	{
 	}
-	
+
 	FacebookParam::FacebookParam(const String& _version)
 	{
 		if (_version.isNotEmpty()) {
@@ -89,21 +89,21 @@ namespace slib
 	}
 
 	SLIB_DEFINE_OBJECT(Facebook, OAuth2)
-	
+
 	Facebook::Facebook(const FacebookParam& param) : OAuth2(param)
 	{
 		m_version = param.version;
 	}
-	
+
 	Facebook::~Facebook()
 	{
 	}
-	
+
 	Ref<Facebook> Facebook::create(const FacebookParam& param)
 	{
 		return new Facebook(param);
 	}
-	
+
 	void Facebook::initialize(const FacebookParam& param)
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -111,14 +111,14 @@ namespace slib
 		}
 		g_instance = create(param);
 	}
-	
+
 	void Facebook::initialize()
 	{
 		FacebookParam param;
 		param.preferenceName = "facebook";
 		initialize(param);
 	}
-	
+
 	Ref<Facebook> Facebook::create(const String& appId, const String& appSecret, const String& redirectUri)
 	{
 		FacebookParam param;
@@ -127,7 +127,7 @@ namespace slib
 		param.redirectUri = redirectUri;
 		return create(param);
 	}
-	
+
 	void Facebook::initialize(const String& appId, const String& appSecret, const String& redirectUri)
 	{
 		FacebookParam param;
@@ -137,24 +137,24 @@ namespace slib
 		param.redirectUri = redirectUri;
 		initialize(param);
 	}
-	
+
 	Ref<Facebook> Facebook::create(const String& appId, const String& redirectUri)
 	{
 		return create(appId, String::null(), redirectUri);
 	}
-	
+
 	void Facebook::initialize(const String& appId, const String& redirectUri)
 	{
 		initialize(appId, String::null(), redirectUri);
 	}
-	
+
 	Ref<Facebook> Facebook::createWithAccessToken(const String& accessToken)
 	{
 		FacebookParam param;
 		param.accessToken.token = accessToken;
 		return create(param);
 	}
-	
+
 	Ref<Facebook> Facebook::getInstance()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_instance)) {
@@ -162,7 +162,7 @@ namespace slib
 		}
 		return g_instance;
 	}
-	
+
 	String Facebook::getRequestUrl(const String& path)
 	{
 		if (m_version.isNotEmpty()) {
@@ -171,7 +171,7 @@ namespace slib
 			return "https://graph.facebook.com/" + path;
 		}
 	}
-	
+
 	void Facebook::getUser(const String& personId, const String& fields, const Function<void(FacebookResult&, FacebookUser&)>& onComplete)
 	{
 		UrlRequestParam rp;
@@ -196,12 +196,12 @@ namespace slib
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
-	
+
 	void Facebook::getUser(const String& personId, const List<String>& fields, const Function<void(FacebookResult&, FacebookUser&)>& onComplete)
 	{
 		getUser(personId, String::join(fields, ","), onComplete);
 	}
-	
+
 	void Facebook::getUser(const String& personId, const Function<void(FacebookResult&, FacebookUser&)>& onComplete)
 	{
 		SLIB_STATIC_STRING(defaultFields, "id,name,name_format,first_name,last_name,middle_name,email")

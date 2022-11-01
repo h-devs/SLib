@@ -29,11 +29,11 @@ public class Logger {
 	public static void exception(Throwable e) {
 		Log.e("EXCEPTION", e.getMessage(), e);
 	}
-	
+
 	public static void warning(String warning) {
 		Log.w("WARNING", warning);
 	}
-	
+
 	public static void info(String info) {
 		Log.i("INFO", info);
 	}
@@ -45,5 +45,5 @@ public class Logger {
 	public static void error(String error) {
 		Log.e("ERROR", error);
 	}
-	
+
 }

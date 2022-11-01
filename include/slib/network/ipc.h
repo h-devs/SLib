@@ -54,7 +54,7 @@ namespace slib
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(IPCParam)
 
 	};
-	
+
 	class SLIB_EXPORT IPC : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -66,7 +66,7 @@ namespace slib
 
 	public:
 		static Ref<IPC> create();
-		
+
 		static Ref<IPC> create(const IPCParam& param);
 
 		static Ref<IPC> createDomainSocket(const IPCParam& param);
@@ -76,7 +76,7 @@ namespace slib
 
 	protected:
 		void _init(const IPCParam& param) noexcept;
-		
+
 	protected:
 		sl_uint32 m_maxThreadCount;
 		sl_uint32 m_maxReceivingMessageSize;

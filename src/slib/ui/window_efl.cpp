@@ -54,18 +54,18 @@ namespace slib
 			public:
 				Evas_Object* m_window;
 				AtomicRef<ViewInstance> m_viewContent;
-				
+
 			public:
 				EFL_WindowInstance()
 				{
 					m_window = sl_null;
 				}
-				
+
 				~EFL_WindowInstance()
 				{
 					_release();
 				}
-				
+
 			public:
 				static Ref<EFL_WindowInstance> create(Evas_Object* window)
 				{
@@ -106,7 +106,7 @@ namespace slib
 					return sl_null;
 
 				}
-				
+
 				static void _ui_win_delete_request_cb(void* data, Evas_Object* win, void* event_info)
 				{
 					Ref<WindowInstance> instance = UIPlatform::getWindowInstance(win);
@@ -169,7 +169,7 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				static void _release_handle(Evas_Object* window)
 				{
 					elm_win_lower(window);
@@ -190,7 +190,7 @@ namespace slib
 					m_viewContent.setNull();
 					m_window = sl_null;
 				}
-				
+
 				void close() override
 				{
 					Evas_Object* window = m_window;
@@ -206,12 +206,12 @@ namespace slib
 					m_window = sl_null;
 					m_viewContent.setNull();
 				}
-				
+
 				sl_bool isClosed() override
 				{
 					return m_window == sl_null;
 				}
-				
+
 				void setParent(const Ref<WindowInstance>& window) override
 				{
 				}
@@ -220,17 +220,17 @@ namespace slib
 				{
 					return m_viewContent;
 				}
-				
+
 				sl_bool getFrame(UIRect& _out) override
 				{
 					_out = UI::getScreenBounds();
 					return sl_true;
 				}
-				
+
 				void setFrame(const UIRect& _frame) override
 				{
 				}
-				
+
 				void activate() override
 				{
 					Evas_Object* window = m_window;
@@ -238,7 +238,7 @@ namespace slib
 						elm_win_raise(window);
 					}
 				}
-				
+
 				void setVisible(sl_bool flag) override
 				{
 					Evas_Object* window = m_window;
@@ -250,20 +250,20 @@ namespace slib
 						}
 					}
 				}
-				
+
 				void doPostCreate() override
 				{
 					UISize sizeClient = getClientSize();
 					onResize(sizeClient.x, sizeClient.y);
 				}
-				
+
 			};
-			
+
 		}
 	}
 
 	using namespace priv::window;
-	
+
 	Ref<WindowInstance> Window::createWindowInstance()
 	{
 		return EFL_WindowInstance::create(this);
@@ -278,22 +278,22 @@ namespace slib
 		}
 		return EFL_WindowInstance::create(window);
 	}
-	
+
 	void UIPlatform::registerWindowInstance(Evas_Object* window, WindowInstance* instance)
 	{
 		UIPlatform::_registerWindowInstance(window, instance);
 	}
-	
+
 	Ref<WindowInstance> UIPlatform::getWindowInstance(Evas_Object* window)
 	{
 		return UIPlatform::_getWindowInstance(window);
 	}
-	
+
 	void UIPlatform::removeWindowInstance(Evas_Object* window)
 	{
 		UIPlatform::_removeWindowInstance(window);
 	}
-	
+
 	Evas_Object* UIPlatform::getWindowHandle(WindowInstance* instance)
 	{
 		EFL_WindowInstance* window = static_cast<EFL_WindowInstance*>(instance);

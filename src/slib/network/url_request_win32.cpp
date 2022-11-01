@@ -87,7 +87,7 @@ namespace slib
 				{
 					lastConnectionId = 0;
 					lastTaskId = 0;
-					
+
 					hInternet = WinHttpOpen(L"Windows Client", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, NULL, NULL, WINHTTP_FLAG_ASYNC);
 					WinHttpSetStatusCallback(hInternet, callback,
 						WINHTTP_CALLBACK_STATUS_REQUEST_ERROR |

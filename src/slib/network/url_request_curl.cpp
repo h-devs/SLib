@@ -43,21 +43,21 @@
 
 namespace slib
 {
-	
+
 	namespace priv
 	{
 		namespace url_request
 		{
-			
+
 			class CurlRequestImpl : public UrlRequest
 			{
 				friend class CurlRequest;
-				
+
 			public:
 				CURL* m_curl;
 				sl_bool m_flagClosed;
 				sl_bool m_flagProcessResponse;
-				
+
 			public:
 				CurlRequestImpl()
 				{
@@ -65,11 +65,11 @@ namespace slib
 					m_flagClosed = sl_false;
 					m_flagProcessResponse = sl_false;
 				}
-				
+
 				~CurlRequestImpl()
 				{
 				}
-				
+
 			public:
 				static Ref<CurlRequestImpl> create(const UrlRequestParam& param, const String& url) {
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
@@ -84,12 +84,12 @@ namespace slib
 					}
 					return sl_null;
 				}
-				
+
 				void _cancel() override
 				{
 					m_flagClosed = sl_true;
 				}
-				
+
 				void _sendSync() override
 				{
 #if defined(SLIB_PLATFORM_IS_TIZEN)
@@ -99,7 +99,7 @@ namespace slib
 						return;
 					}
 #endif
-					
+
 					CURL* curl = curl_easy_init();
 					if (!curl) {
 #if defined(SLIB_PLATFORM_IS_TIZEN)
@@ -108,9 +108,9 @@ namespace slib
 						onError();
 						return;
 					}
-					
+
 					m_curl = curl;
-					
+
 #if defined(SLIB_PLATFORM_IS_TIZEN)
 					char* proxy_address;
 					sl_bool flagSetProxy = sl_false;
@@ -133,21 +133,21 @@ namespace slib
 					}
 					connection_set_proxy_address_changed_cb(connection, UrlRequest_Impl::callbackProxyChanged, (void*)this);
 #endif
-					
+
 					StringCstr url = m_url;
 					curl_easy_setopt(curl, CURLOPT_URL, url.getData());
-					
+
 					curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 					curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 10L);
-					
+
 					curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, m_timeout);
 					curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, m_timeout);
-					
+
 					if (m_flagAllowInsecureConnection) {
 						curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 						curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
 					}
-					
+
 					// Set http method
 					switch(m_method) {
 						case HttpMethod::GET:
@@ -177,9 +177,9 @@ namespace slib
 						default:
 							break;
 					}
-					
+
 					curl_slist *headerChunk = sl_null;
-					
+
 					// HTTP headers and additional headers
 					if(m_requestHeaders.isNotEmpty())
 					{
@@ -191,7 +191,7 @@ namespace slib
 					if (headerChunk) {
 						curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerChunk);
 					}
-					
+
 					// post data
 					Memory requestBody = m_requestBody;
 					if (m_method == HttpMethod::POST) {
@@ -205,20 +205,20 @@ namespace slib
 							curl_easy_setopt(curl, CURLOPT_READDATA, (void*)this);
 						}
 					}
-					
+
 					// received header
 					curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, CurlRequestImpl::callbackHeader);
 					curl_easy_setopt(curl, CURLOPT_HEADERDATA, (void*)this);
-					
+
 					// received data
 					curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlRequestImpl::callbackWrite);
 					curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)this);
-					
+
 					/* getting data */
 					CURLcode err = curl_easy_perform(curl);
-					
+
 					processResponse();
-					
+
 					if (err == CURLE_OK) {
 						onComplete();
 					} else {
@@ -226,18 +226,18 @@ namespace slib
 						m_errorMessage = strError;
 						onError();
 					}
-					
+
 					if (headerChunk) {
 						curl_slist_free_all(headerChunk);
 					}
-					
+
 					curl_easy_cleanup(curl);
 #if defined(SLIB_PLATFORM_IS_TIZEN)
 					connection_destroy(connection);
 #endif
-					
+
 				}
-				
+
 				void processResponse()
 				{
 					if (m_flagClosed) {
@@ -247,19 +247,19 @@ namespace slib
 						return;
 					}
 					m_flagProcessResponse = sl_true;
-					
+
 					long response_code = 0;
 					curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &response_code);
 					m_responseStatus = (HttpStatus)((int)response_code);
-					
+
 					String strLength = HttpHeaderMap(m_responseHeaders).getValue("Content-Length", String::null());
 					if (strLength.isNotEmpty()) {
 						m_sizeContentTotal = strLength.parseUint64();
 					}
-					
+
 					onResponse();
 				}
-				
+
 				sl_size onRead(void* data, sl_size size)
 				{
 					if (m_flagClosed) {
@@ -281,7 +281,7 @@ namespace slib
 					}
 					return size;
 				}
-				
+
 				static size_t callbackRead(void *contents, size_t size, size_t nmemb, void *user_data)
 				{
 					CurlRequestImpl* req = (CurlRequestImpl*)user_data;
@@ -291,7 +291,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				sl_size onWrite(const void* data, sl_size size)
 				{
 					if (m_flagClosed) {
@@ -314,7 +314,7 @@ namespace slib
 					}
 					return size;
 				}
-				
+
 				static size_t callbackWrite(void *contents, size_t size, size_t nmemb, void *user_data)
 				{
 					CurlRequestImpl* req = (CurlRequestImpl*)user_data;
@@ -324,7 +324,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				sl_bool onHeader(char* header, sl_size size)
 				{
 					if (m_flagClosed) {
@@ -362,7 +362,7 @@ namespace slib
 					}
 					return sl_true;
 				}
-				
+
 				static size_t callbackHeader(char *buffer, size_t size, size_t nitems, void *user_data)
 				{
 					CurlRequestImpl* req = (CurlRequestImpl*)user_data;
@@ -374,7 +374,7 @@ namespace slib
 					}
 					return 0;
 				}
-				
+
 				void onProxyChanged(const char *ipv4_address, const char *ipv6_address)
 				{
 					if (m_flagClosed) {
@@ -386,13 +386,13 @@ namespace slib
 						curl_easy_setopt(m_curl, CURLOPT_PROXY, ipv6_address);
 					}
 				}
-				
+
 				static void callbackProxyChanged(const char *ipv4_address, const char *ipv6_address, void *user_data)
 				{
 					CurlRequestImpl* req = (CurlRequestImpl*)user_data;
 					req->onProxyChanged(ipv4_address, ipv6_address);
 				}
-				
+
 			};
 
 		}
@@ -401,7 +401,7 @@ namespace slib
 
 #define URL_REQUEST CurlRequest
 #include "url_request_common.inc"
-	
+
 	Ref<UrlRequest> CurlRequest::_create(const UrlRequestParam& param, const String& url)
 	{
 		return Ref<UrlRequest>::from(priv::url_request::CurlRequestImpl::create(param, url));
@@ -413,5 +413,5 @@ namespace slib
 		return Ref<UrlRequest>::from(priv::url_request::CurlRequestImpl::create(param, url));
 	}
 #endif
-	
+
 }

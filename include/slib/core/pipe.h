@@ -76,7 +76,7 @@ namespace slib
 		}
 
 	};
-	
+
 	class SLIB_EXPORT Pipe
 	{
 		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, sl_null)

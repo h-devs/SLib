@@ -36,7 +36,7 @@ namespace slib
 	{
 		namespace process
 		{
-		
+
 			static id g_activityDisableAppNap;
         
 			static String FixArgument(const StringParam& arg)
@@ -53,7 +53,7 @@ namespace slib
 				}
 				return s;
 			}
-			
+
 			static String BuildCommand(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
 			{
 				StringBuffer commandLine;
@@ -74,7 +74,7 @@ namespace slib
 			{
 			public:
 				NSTask* m_task;
-				
+
 			public:
 				void terminate() override
 				{
@@ -103,12 +103,12 @@ namespace slib
 				{
 					return [m_task isRunning];
 				}
-				
+
 				IStream* getStream() override
 				{
 					return sl_null;
 				}
-				
+
 			};
         
 		}
@@ -146,7 +146,7 @@ namespace slib
 		NSAppleScript* script = [[NSAppleScript alloc] initWithSource:(Apple::getNSStringFromString(source))];
 		[script executeAndReturnError:nil];
 	}
-	
+
 	void Process::setAppNapEnabled(sl_bool flag)
 	{
 		if (flag) {

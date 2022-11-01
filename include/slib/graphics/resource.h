@@ -32,25 +32,25 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT GraphicsResource
 	{
 	public:
 		static sl_uint32 getScreenWidth();
-		
+
 		static void setScreenWidth(sl_uint32 width);
-		
+
 		static sl_uint32 getScreenHeight();
-		
+
 		static void setScreenHeight(sl_uint32 height);
-		
+
 	};
-	
+
 	namespace priv
 	{
 		namespace graphics_resource
 		{
-			
+
 			class ImageEntry
 			{
 			public:
@@ -72,7 +72,7 @@ namespace slib
 				Ref<Image> getMatchingImage(sl_uint32 width, sl_uint32 height);
 
 			};
-			
+
 			class FreeImageContext
 			{
 			public:
@@ -84,13 +84,13 @@ namespace slib
 				ImageEntry* m_entries;
 
 			};
-			
+
 			Ref<Image> GetImage(ImageEntry* entries, sl_uint32 requiredWidth, sl_uint32 requiredHeight);
-			
+
 			List< Ref<Image> > GetImages(ImageEntry* entries);
-			
+
 			Ref<Drawable> GetDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height);
-			
+
 		}
 	}
 }

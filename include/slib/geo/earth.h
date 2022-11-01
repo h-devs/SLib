@@ -36,18 +36,18 @@
 
 namespace slib
 {
-	
+
 	class SLIB_EXPORT Earth
 	{
 	public:
 		static const Globe& getGlobe();
 
 		static double getAverageRadius();
-	
+
 		static double getEquatorialRadius();
-	
+
 		static double getPolarRadius();
-	
+
 		static Vector3lf getSurfaceNormal(double latitude, double longitude);
 
 		static Vector3lf getSurfaceNormal(const LatLon& latlon);
@@ -63,7 +63,7 @@ namespace slib
 		static Vector3lf getSurfaceNormalAtCartesianPosition(double x, double y, double z);
 
 		static Vector3lf getSurfaceNormalAtCartesianPosition(const Vector3lf& position);
-	
+
 		/*
 			unit: m
 			(0, 0, 0): center
@@ -80,15 +80,15 @@ namespace slib
 		static GeoLocation getGeoLocation(double x, double y, double z);
 
 		static GeoLocation getGeoLocation(const Vector3lf& position);
-	
+
 	};
-	
+
 	// spherical earth
 	class SLIB_EXPORT SphericalEarth
 	{
 	public:
 		static const SphericalGlobe& getGlobe();
-	
+
 		static double getRadius();
 
 		static Vector3lf getSurfaceNormal(double latitude, double longitude);
@@ -121,7 +121,7 @@ namespace slib
 		static GeoLocation getGeoLocation(const Vector3lf& position);
 
 	};
-	
+
 	typedef SphericalEarth RenderEarth;
 
 }
