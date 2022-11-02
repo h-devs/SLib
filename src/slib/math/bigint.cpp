@@ -3055,11 +3055,6 @@ namespace slib
 			return setValue((sl_uint32)1);
 		}
 
-		if (priv::bigint::CheckEulerCriterion(A, M) != 1) {
-			setZero();
-			return sl_false;
-		}
-
 		sl_size e = 1;
 		while (!(M.getBit(e))) {
 			e++;
@@ -3126,6 +3121,11 @@ namespace slib
 			}
 		}
 
+		if (priv::bigint::CheckEulerCriterion(A, M) != 1) {
+			setZero();
+			return sl_false;
+		}
+
 		// Tonelli/Shanks algorithm
 		CBigInt q;
 		if (!(q.copyAbsFrom(M))) {
@@ -3145,7 +3145,7 @@ namespace slib
 						return sl_false;
 					}
 					if (y.compareAbs(M) >= 0) {
-						if (!(!M.sign ? y.add(M) : y.sub(M))) {
+						if (!(M.sign > 0 ? y.sub(M) : y.add(M))) {
 							return sl_false;
 						}
 					}
@@ -3217,10 +3217,10 @@ namespace slib
 				moveFrom(x);
 				return priv::bigint::CheckSqrtResult(*this, A, M);
 			}
-			sl_size i = 1;
 			if (!(t.mulMod(b, b, M))) {
 				return sl_false;
 			}
+			sl_size i = 1;
 			while (!(t.equals((sl_uint32)1))) {
 				i++;
 				if (i == e) {
@@ -3249,7 +3249,7 @@ namespace slib
 			}
 			e = i;
 		}
-	}
+	} 
 
 	sl_bool CBigInt::sqrtMod(const CBigInt& M) noexcept
 	{
