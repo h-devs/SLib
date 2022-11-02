@@ -329,6 +329,16 @@ namespace slib
 			return m_count;
 		}
 
+		sl_bool isEmpty() const noexcept
+		{
+			return !m_count;
+		}
+
+		sl_bool isNotEmpty() const noexcept
+		{
+			return m_count != 0;
+		}
+
 		sl_size getCapacity() const noexcept
 		{
 			return m_capacity;
