@@ -57,9 +57,11 @@ namespace slib
 		Text = 3,
 		ProcessingInstruction = 4,
 		Comment = 5,
-		WhiteSpace = 6
+		WhiteSpace = 6,
+		DocumentTypeDefinition = 7
 	};
 
+	// Not thread-safe
 	class SLIB_EXPORT XmlNode : public Referable
 	{
 		SLIB_DECLARE_OBJECT
@@ -108,7 +110,7 @@ namespace slib
 
 		Ref<XmlElement> getParentElement() const;
 
-		String getSourceFilePath() const;
+		const String& getSourceFilePath() const;
 
 		void setSourceFilePath(const String& path);
 
@@ -132,7 +134,7 @@ namespace slib
 		XmlNodeType m_type;
 		WeakRef<XmlNodeGroup> m_parent;
 		WeakRef<XmlDocument> m_document;
-		AtomicString m_sourceFilePath;
+		String m_sourceFilePath;
 		sl_size m_positionStartInSource;
 		sl_size m_positionEndInSource;
 		sl_size m_lineInSource;
@@ -197,10 +199,12 @@ namespace slib
 
 		List< Ref<XmlElement> > getDescendantElements(const StringView& tagName) const;
 
+		// Not thread-safe
 		void getDescendantElements(const StringView& tagName, List< Ref<XmlElement> >& list) const;
 
 		List< Ref<XmlElement> > getDescendantElements(const StringView& uri, const StringView& localName) const;
 
+		// Not thread-safe
 		void getDescendantElements(const StringView& uri, const StringView& localName, List< Ref<XmlElement> >& list) const;
 
 		Ref<XmlElement> getFirstDescendantElement(const StringView& tagName) const;
@@ -254,11 +258,11 @@ namespace slib
 
 		sl_bool buildXml(StringBuffer& output) const override;
 
-		String getName() const;
+		const String& getName() const;
 
-		String getUri() const;
+		const String& getUri() const;
 
-		String getLocalName() const;
+		const String& getLocalName() const;
 
 		sl_bool setName(const String& name);
 
@@ -305,9 +309,9 @@ namespace slib
 		void setEndContentPositionInSource(sl_size pos);
 
 	protected:
-		Atomic<String> m_name;
-		Atomic<String> m_uri;
-		Atomic<String> m_localName;
+		String m_name;
+		String m_uri;
+		String m_localName;
 		List<XmlAttribute> m_attributes;
 		HashMap<String, String> m_mapAttributes;
 		Mutex m_lockAttributes;
@@ -374,7 +378,7 @@ namespace slib
 		void setCDATA(sl_bool flag);
 
 	protected:
-		Atomic<String> m_text;
+		String m_text;
 		sl_bool m_flagCDATA;
 
 	};
@@ -404,8 +408,8 @@ namespace slib
 		void setContent(const String& content);
 
 	protected:
-		Atomic<String> m_target;
-		Atomic<String> m_content;
+		String m_target;
+		String m_content;
 
 	};
 
@@ -425,12 +429,12 @@ namespace slib
 
 		sl_bool buildXml(StringBuffer& output) const override;
 
-		String getComment() const;
+		const String& getComment() const;
 
 		void setComment(const String& comment);
 
 	protected:
-		Atomic<String> m_comment;
+		String m_comment;
 
 	};
 
@@ -450,12 +454,66 @@ namespace slib
 
 		sl_bool buildXml(StringBuffer& output) const override;
 
-		String getContent() const;
+		const String& getContent() const;
 
 		void setContent(const String& comment);
 
 	protected:
-		Atomic<String> m_content;
+		String m_content;
+
+	};
+
+	enum class XmlDocumentTypeDefinitionKind
+	{
+		None = 0,
+		Public = 1,
+		System = 2
+	};
+
+	class SLIB_EXPORT XmlDocumentTypeDefinition : public XmlNode
+	{
+		SLIB_DECLARE_OBJECT
+
+	public:
+		XmlDocumentTypeDefinition();
+
+		~XmlDocumentTypeDefinition();
+
+	public:
+		static Ref<XmlDocumentTypeDefinition> create(const String& rootElement, XmlDocumentTypeDefinitionKind kind, const String& publicIndentifier, const String& uri, const String& subsets);
+
+		sl_bool buildText(StringBuffer& output) const override;
+
+		sl_bool buildXml(StringBuffer& output) const override;
+
+		const String& getRootElement() const;
+
+		void setRootElement(const String& value);
+
+		XmlDocumentTypeDefinitionKind getKind() const;
+
+		void setKind(XmlDocumentTypeDefinitionKind value);
+
+		// FPI: Formal Public Identifier
+		const String& getPublicIndentifier() const;
+
+		// FPI: Formal Public Identifier
+		void setPublicIdentifier(const String& value);
+
+		const String& getUri() const;
+
+		void setUri(const String& value);
+
+		const String& getSubsets() const;
+
+		void setSubsets(const String& value);
+
+	protected:
+		String m_rootElement;
+		XmlDocumentTypeDefinitionKind m_kind;
+		String m_publicIdentifier;
+		String m_uri;
+		String m_subsets;
 
 	};
 
@@ -514,6 +572,7 @@ namespace slib
 		Function<void(XmlParseControl*, XmlElement*)> onEndElement;
 		Function<void(XmlParseControl*, const String& text)> onText;
 		Function<void(XmlParseControl*, const String& text)> onCDATA;
+		Function<void(XmlParseControl*, XmlDocumentTypeDefinition*)> onDTD;
 		Function<void(XmlParseControl*, const String& target, const String& content)> onProcessingInstruction;
 		Function<void(XmlParseControl*, const String& content)> onComment;
 		Function<void(XmlParseControl*, const String& prefix, const String& uri)> onStartPrefixMapping;

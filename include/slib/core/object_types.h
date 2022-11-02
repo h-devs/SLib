@@ -84,7 +84,8 @@ namespace slib
 			XmlText,
 			XmlProcessingInstruction,
 			XmlComment,
-			XmlWhiteSpace
+			XmlWhiteSpace,
+			XmlDocumentTypeDefinition
 		};
 
 	}
