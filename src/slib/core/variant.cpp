@@ -2697,7 +2697,7 @@ namespace slib
 	Ref<Collection> Variant::getCollection() const noexcept
 	{
 		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).toCollection();
+			return REF_VAR(VariantList, _value).toCollection_NoLocking();
 		}
 		return GET_COLLECTION(*this);
 	}
@@ -2791,7 +2791,7 @@ namespace slib
 		return 0;
 	}
 
-	Variant Variant::getElement_NoLock(sl_uint64 index) const
+	Variant Variant::getElement(sl_uint64 index) const
 	{
 		switch (_type) {
 			case VariantType::List:
@@ -2823,16 +2823,7 @@ namespace slib
 		return Variant();
 	}
 
-	Variant Variant::getElement(sl_uint64 index) const
-	{
-		if (_type == VariantType::List) {
-			return REF_VAR(VariantList, _value).getValueAt((sl_size)index);
-		} else {
-			return getElement_NoLock(index);
-		}
-	}
-
-	sl_bool Variant::setElement_NoLock(sl_uint64 index, const Variant& value) const
+	sl_bool Variant::setElement(sl_uint64 index, const Variant& value) const
 	{
 		if (_type == VariantType::List) {
 			if (value.isNotUndefined()) {
@@ -2849,64 +2840,11 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::setElement(sl_uint64 index, const Variant& value) const
-	{
-		if (_type == VariantType::List) {
-			if (value.isNotUndefined()) {
-				return REF_VAR(VariantList, _value).setAt((sl_size)index, value);
-			} else {
-				return REF_VAR(VariantList, _value).removeAt((sl_size)index);
-			}
-		} else {
-			Ref<Collection> collection(GET_COLLECTION(*this));
-			if (collection.isNotNull()) {
-				return collection->setElement(index, value);
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool Variant::addElement_NoLock(const Variant& value) const
-	{
-		if (isNotNull()) {
-			if (_type == VariantType::List) {
-				return REF_VAR(VariantList, _value).add_NoLock(value);
-			} else {
-				Ref<Collection> collection(GET_COLLECTION(*this));
-				if (collection.isNotNull()) {
-					return collection->addElement(value);
-				}
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool Variant::addElement_NoLock(const Variant& value)
-	{
-		if (isNotNull()) {
-			if (_type == VariantType::List) {
-				return REF_VAR(VariantList, _value).add_NoLock(value);
-			} else {
-				Ref<Collection> collection(GET_COLLECTION(*this));
-				if (collection.isNotNull()) {
-					return collection->addElement(value);
-				}
-			}
-		} else {
-			auto list = VariantList::createFromElement(value);
-			if (list.isNotNull()) {
-				setVariantList(list);
-				return sl_true;
-			}
-		}
-		return sl_false;
-	}
-
 	sl_bool Variant::addElement(const Variant& value) const
 	{
 		if (isNotNull()) {
 			if (_type == VariantType::List) {
-				return REF_VAR(VariantList, _value).add(value);
+				return REF_VAR(VariantList, _value).add_NoLock(value);
 			} else {
 				Ref<Collection> collection(GET_COLLECTION(*this));
 				if (collection.isNotNull()) {
@@ -2921,7 +2859,7 @@ namespace slib
 	{
 		if (isNotNull()) {
 			if (_type == VariantType::List) {
-				return REF_VAR(VariantList, _value).add(value);
+				return REF_VAR(VariantList, _value).add_NoLock(value);
 			} else {
 				Ref<Collection> collection(GET_COLLECTION(*this));
 				if (collection.isNotNull()) {
@@ -2949,7 +2887,7 @@ namespace slib
 	Ref<Object> Variant::getObject() const noexcept
 	{
 		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).toObject();
+			return REF_VAR(VariantMap, _value).toObject_NoLocking();
 		} else {
 			return GET_OBJECT(*this);
 		}
@@ -3011,7 +2949,7 @@ namespace slib
 		_assignMoveRef(&map, VariantType::Map);
 	}
 
-	Variant Variant::getItem_NoLock(const String& key) const
+	Variant Variant::getItem(const String& key) const
 	{
 		if (_type == VariantType::Map) {
 			return REF_VAR(VariantMap, _value).getValue_NoLock(key);
@@ -3024,63 +2962,6 @@ namespace slib
 		return Variant();
 	}
 
-	Variant Variant::getItem(const String& key) const
-	{
-		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).getValue(key);
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->getProperty(key);
-			}
-		}
-		return Variant();
-	}
-
-	sl_bool Variant::putItem_NoLock(const String& key, const Variant& value) const
-	{
-		if (value.isUndefined()) {
-			return removeItem_NoLock(key);
-		}
-		if (isNotNull()) {
-			if (_type == VariantType::Map) {
-				return REF_VAR(VariantMap, _value).put_NoLock(key, value) != sl_null;
-			} else {
-				Ref<Object> object(GET_OBJECT(*this));
-				if (object.isNotNull()) {
-					return object->setProperty(key, value);
-				}
-			}
-		}
-		return sl_false;
-	}
-
-	sl_bool Variant::putItem_NoLock(const String& key, const Variant& value)
-	{
-		if (value.isUndefined()) {
-			return removeItem_NoLock(key);
-		}
-		if (isNotNull()) {
-			if (_type == VariantType::Map) {
-				return REF_VAR(VariantMap, _value).put_NoLock(key, value) != sl_null;
-			} else {
-				Ref<Object> object(GET_OBJECT(*this));
-				if (object.isNotNull()) {
-					return object->setProperty(key, value);
-				}
-			}
-		} else {
-			VariantMap map = VariantMap::create();
-			if (map.isNotNull()) {
-				if (map.put_NoLock(key, value)) {
-					setVariantMap(map);
-					return sl_true;
-				}
-			}
-		}
-		return sl_false;
-	}
-
 	sl_bool Variant::putItem(const String& key, const Variant& value) const
 	{
 		if (value.isUndefined()) {
@@ -3088,7 +2969,7 @@ namespace slib
 		}
 		if (isNotNull()) {
 			if (_type == VariantType::Map) {
-				return REF_VAR(VariantMap, _value).put(key, value);
+				return REF_VAR(VariantMap, _value).put_NoLock(key, value) != sl_null;
 			} else {
 				Ref<Object> object(GET_OBJECT(*this));
 				if (object.isNotNull()) {
@@ -3106,7 +2987,7 @@ namespace slib
 		}
 		if (isNotNull()) {
 			if (_type == VariantType::Map) {
-				return REF_VAR(VariantMap, _value).put(key, value);
+				return REF_VAR(VariantMap, _value).put_NoLock(key, value) != sl_null;
 			} else {
 				Ref<Object> object(GET_OBJECT(*this));
 				if (object.isNotNull()) {
@@ -3125,23 +3006,10 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Variant::removeItem_NoLock(const String& key) const
-	{
-		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).remove_NoLock(key);
-		} else {
-			Ref<Object> object(GET_OBJECT(*this));
-			if (object.isNotNull()) {
-				return object->clearProperty(key);
-			}
-		}
-		return sl_false;
-	}
-
 	sl_bool Variant::removeItem(const String& key) const
 	{
 		if (_type == VariantType::Map) {
-			return REF_VAR(VariantMap, _value).remove(key);
+			return REF_VAR(VariantMap, _value).remove_NoLock(key);
 		} else {
 			Ref<Object> object(GET_OBJECT(*this));
 			if (object.isNotNull()) {

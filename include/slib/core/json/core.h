@@ -67,6 +67,7 @@ namespace slib
 
 	};
 
+	// No thread-safe
 	class SLIB_EXPORT Json : public Variant
 	{
 	public:
@@ -260,14 +261,6 @@ namespace slib
 			new (this) Json(Forward<T>(t));
 		}
 
-		Json getElement_NoLock(sl_size index) const;
-
-		template <class T>
-		void getElement_NoLock(sl_size index, T& _out) const
-		{
-			FromJson(getElement_NoLock(index), _out);
-		}
-
 		Json getElement(sl_size index) const;
 
 		template <class T>
@@ -276,21 +269,9 @@ namespace slib
 			FromJson(getElement(index), _out);
 		}
 
-		sl_bool setElement_NoLock(sl_uint64 index, const Json& value);
-
 		sl_bool setElement(sl_uint64 index, const Json& value);
 
-		sl_bool addElement_NoLock(const Json& value);
-
 		sl_bool addElement(const Json& value);
-
-		Json getItem_NoLock(const String& key) const;
-
-		template <class T>
-		void getItem_NoLock(const String& key, T& _out) const
-		{
-			FromJson(getItem_NoLock(key), _out);
-		}
 
 		Json getItem(const String& key) const;
 
@@ -299,8 +280,6 @@ namespace slib
 		{
 			FromJson(getItem(key), _out);
 		}
-
-		sl_bool putItem_NoLock(const String& key, const Json& value);
 
 		sl_bool putItem(const String& key, const Json& value);
 

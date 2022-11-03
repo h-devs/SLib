@@ -753,7 +753,7 @@ namespace slib
 							bson_t reply;
 							if (mongoc_collection_update_many(m_collection, bsonSelector, bsonUpdate, sl_null, &reply, &error)) {
 								SLIB_STATIC_STRING(strModifiedCount, "modifiedCount")
-								n = GetJsonFromBson(&reply).getItem_NoLock(strModifiedCount).getUint64();
+								n = GetJsonFromBson(&reply).getItem(strModifiedCount).getUint64();
 							} else {
 								SLIB_LOG_ERROR("MongoDB", "Update: %s", String::from(error.message));
 							}
@@ -779,7 +779,7 @@ namespace slib
 					bson_error_t error;
 					if (mongoc_collection_delete_many(m_collection, bson, sl_null, &reply, &error)) {
 						SLIB_STATIC_STRING(strDeletedCount, "deletedCount")
-						n = GetJsonFromBson(&reply).getItem_NoLock(strDeletedCount).getUint64();
+						n = GetJsonFromBson(&reply).getItem(strDeletedCount).getUint64();
 					} else {
 						SLIB_LOG_ERROR("MongoDB", "Remove: %s", String::from(error.message));
 					}

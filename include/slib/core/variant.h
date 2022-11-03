@@ -103,6 +103,7 @@ namespace slib
 	class BigInt;
 	class CBigInt;
 
+	// No thread-safe
 	class SLIB_EXPORT Variant
 	{
 	public:
@@ -758,18 +759,12 @@ namespace slib
 
 		sl_uint64 getElementCount() const;
 
-		Variant getElement_NoLock(sl_uint64 index) const;
-
 		Variant getElement(sl_uint64 index) const;
-
-		sl_bool setElement_NoLock(sl_uint64 index, const Variant& value) const;
 
 		sl_bool setElement(sl_uint64 index, const Variant& value) const;
 
-		sl_bool addElement_NoLock(const Variant& value) const;
-		sl_bool addElement_NoLock(const Variant& value);
-
 		sl_bool addElement(const Variant& value) const;
+
 		sl_bool addElement(const Variant& value);
 
 
@@ -807,17 +802,11 @@ namespace slib
 
 		void setJsonMap(JsonMap&& map) noexcept;
 
-		Variant getItem_NoLock(const String& key) const;
-
 		Variant getItem(const String& key) const;
 
-		sl_bool putItem_NoLock(const String& key, const Variant& value) const;
-		sl_bool putItem_NoLock(const String& key, const Variant& value);
-
 		sl_bool putItem(const String& key, const Variant& value) const;
-		sl_bool putItem(const String& key, const Variant& value);
 
-		sl_bool removeItem_NoLock(const String& key) const;
+		sl_bool putItem(const String& key, const Variant& value);
 
 		sl_bool removeItem(const String& key) const;
 

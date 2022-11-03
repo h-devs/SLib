@@ -37,7 +37,7 @@ namespace slib
 	public:
 		ArrayCollection(const Array<T>& array): m_array(array.ref) {}
 
-		ArrayCollection(CArray<T>* array) : m_array(array) {}
+		ArrayCollection(CArray<T>* array): m_array(array) {}
 
 	public:
 		sl_uint64 getElementCount() override

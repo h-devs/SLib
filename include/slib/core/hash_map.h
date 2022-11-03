@@ -1109,6 +1109,8 @@ namespace slib
 
 		Ref<Object> toObject() noexcept;
 
+		Ref<Object> toObject_NoLocking() noexcept;
+
 		// range-based for loop
 		POSITION begin() const noexcept
 		{
@@ -2018,6 +2020,15 @@ namespace slib
 			CMAP* obj = ref.ptr;
 			if (obj) {
 				return obj->toObject();
+			}
+			return sl_null;
+		}
+
+		Ref<Object> toObject_NoLocking() const noexcept
+		{
+			CMAP* obj = ref.ptr;
+			if (obj) {
+				return obj->toObject_NoLocking();
 			}
 			return sl_null;
 		}

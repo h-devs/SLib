@@ -452,12 +452,12 @@ namespace slib
 	{
 		Json binary;
 		SLIB_STATIC_STRING(strBase64, "base64")
-		binary.putItem_NoLock(strBase64, Base64::encode(data, size));
+		binary.putItem(strBase64, Base64::encode(data, size));
 		SLIB_STATIC_STRING(strSubType, "subType")
-		binary.putItem_NoLock(strSubType, "00");
+		binary.putItem(strSubType, "00");
 		Json json;
 		SLIB_STATIC_STRING(strBinary, "$binary")
-		json.putItem_NoLock(strBinary, binary);
+		json.putItem(strBinary, binary);
 		return buf.add(json.toJsonString());
 	}
 

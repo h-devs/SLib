@@ -1354,6 +1354,8 @@ namespace slib
 
 		Ref<Collection> toCollection() noexcept;
 
+		Ref<Collection> toCollection_NoLocking() noexcept;
+
 		// range-based for loop
 		T* begin() noexcept
 		{
@@ -2640,6 +2642,15 @@ namespace slib
 			CList<T>* obj = ref.ptr;
 			if (obj) {
 				return obj->toCollection();
+			}
+			return sl_null;
+		}
+
+		Ref<Collection> toCollection_NoLocking() const noexcept
+		{
+			CList<T>* obj = ref.ptr;
+			if (obj) {
+				return obj->toCollection_NoLocking();
 			}
 			return sl_null;
 		}

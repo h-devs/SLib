@@ -82,7 +82,7 @@ namespace slib
 				}
 				sb.add(item.toString());
 			}
-			ret.putItem_NoLock("mac", sb.merge());
+			ret.putItem("mac", sb.merge());
 		}
 		if (ip.isNotNull()) {
 			StringBuffer sb;
@@ -102,7 +102,7 @@ namespace slib
 					sb.add(item.second.toString());
 				}
 			}
-			ret.putItem_NoLock("ip", sb.merge());
+			ret.putItem("ip", sb.merge());
 		}
 		if (port.isNotNull()) {
 			StringBuffer sb;
@@ -122,7 +122,7 @@ namespace slib
 					sb.add(String::fromUint32(item.second));
 				}
 			}
-			ret.putItem_NoLock("port", sb.merge());
+			ret.putItem("port", sb.merge());
 		}
 		return ret;
 	}
@@ -245,35 +245,35 @@ namespace slib
 		Json ret;
 		switch (action) {
 		case FirewallAction::Accept:
-			ret.putItem_NoLock("action", "accept");
+			ret.putItem("action", "accept");
 			break;
 		case FirewallAction::Drop:
-			ret.putItem_NoLock("action", "drop");
+			ret.putItem("action", "drop");
 			break;
 		default:
 			return sl_null;
 		}
 		switch (protocol) {
 		case NetworkInternetProtocol::TCP:
-			ret.putItem_NoLock("protocol", "tcp");
+			ret.putItem("protocol", "tcp");
 			break;
 		case NetworkInternetProtocol::UDP:
-			ret.putItem_NoLock("protocol", "udp");
+			ret.putItem("protocol", "udp");
 			break;
 		case NetworkInternetProtocol::RDP:
-			ret.putItem_NoLock("protocol", "rdp");
+			ret.putItem("protocol", "rdp");
 			break;
 		case NetworkInternetProtocol::ICMP:
-			ret.putItem_NoLock("protocol", "icmp");
+			ret.putItem("protocol", "icmp");
 			break;
 		case NetworkInternetProtocol::IGMP:
-			ret.putItem_NoLock("protocol", "igmp");
+			ret.putItem("protocol", "igmp");
 			break;
 		default:
 			return sl_null;
 		}
-		ret.putItem_NoLock("source", Json(source));
-		ret.putItem_NoLock("target", Json(target));
+		ret.putItem("source", Json(source));
+		ret.putItem("target", Json(target));
 		return ret;
 	}
 

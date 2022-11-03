@@ -54,7 +54,7 @@ public: \
 		if (isFromJson) { \
 			slib::FromJson(json.getItem(_strJsonField), MEMBER_NAME); \
 		} else { \
-			json.putItem_NoLock(_strJsonField, MEMBER_NAME); \
+			json.putItem(_strJsonField, MEMBER_NAME); \
 		} \
 	}
 
@@ -76,7 +76,7 @@ public: \
 			static slib::priv::json::JsonFieldContainer _strJsonField_container(_strJsonField_buf, sizeof(_strJsonField_buf)-1); \
 			static slib::StringContainer* _strJsonField_str = &_strJsonField_container; \
 			static const slib::String& _strJsonField = *(reinterpret_cast<slib::String*>(&_strJsonField_str)); \
-			json.putItem_NoLock(_strJsonField, MEMBER_NAME); \
+			json.putItem(_strJsonField, MEMBER_NAME); \
 		} \
 	}
 

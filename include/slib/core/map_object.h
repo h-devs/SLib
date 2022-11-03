@@ -35,27 +35,27 @@ namespace slib
 {
 
 	template <class CMAP>
-	class MapObject : public Object
+	class MapObject_NoLocking : public Object
 	{
 	public:
-		MapObject(CMAP* map) : m_map(map) {}
+		MapObject_NoLocking(CMAP* map): m_map(map) {}
 
 	public:
 		Variant getProperty(const String& name) override
 		{
-			return m_map->getValue(Cast<String, typename CMAP::KEY_TYPE>()(name));
+			return m_map->getValue_NoLock(Cast<String, typename CMAP::KEY_TYPE>()(name));
 		}
 
 		sl_bool setProperty(const String& name, const Variant& value) override
 		{
 			typename CMAP::VALUE_TYPE v;
 			value.get(v);
-			return m_map->put(Cast<String, typename CMAP::KEY_TYPE>()(name), Move(v));
+			return m_map->put_NoLock(Cast<String, typename CMAP::KEY_TYPE>()(name), Move(v));
 		}
 
 		sl_bool clearProperty(const String& name) override
 		{
-			return m_map->remove(Cast<String, typename CMAP::KEY_TYPE>()(name));
+			return m_map->remove_NoLock(Cast<String, typename CMAP::KEY_TYPE>()(name));
 		}
 
 		PropertyIterator getPropertyIterator() override
@@ -74,7 +74,6 @@ namespace slib
 
 		sl_bool toJsonString(StringBuffer& buf) override
 		{
-			ObjectLocker lock(m_map);
 			if (!(buf.addStatic("{"))) {
 				return sl_false;
 			}
@@ -109,7 +108,6 @@ namespace slib
 
 		sl_bool toJsonBinary(MemoryBuffer& buf) override
 		{
-			ObjectLocker lock(m_map);
 			if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Object)))) {
 				return sl_false;
 			}
@@ -138,16 +136,66 @@ namespace slib
 
 	};
 
+	template <class CMAP>
+	class MapObject : public MapObject_NoLocking<CMAP>
+	{
+	public:
+		MapObject(CMAP* map): MapObject_NoLocking(map) {}
+
+	public:
+		Variant getProperty(const String& name) override
+		{
+			return m_map->getValue(Cast<String, typename CMAP::KEY_TYPE>()(name));
+		}
+
+		sl_bool setProperty(const String& name, const Variant& value) override
+		{
+			typename CMAP::VALUE_TYPE v;
+			value.get(v);
+			return m_map->put(Cast<String, typename CMAP::KEY_TYPE>()(name), Move(v));
+		}
+
+		sl_bool clearProperty(const String& name) override
+		{
+			return m_map->remove(Cast<String, typename CMAP::KEY_TYPE>()(name));
+		}
+
+		sl_bool toJsonString(StringBuffer& buf) override
+		{
+			ObjectLocker lock(m_map);
+			return MapObject_NoLocking::toJsonString(buf);
+		}
+
+		sl_bool toJsonBinary(MemoryBuffer& buf) override
+		{
+			ObjectLocker lock(m_map);
+			return MapObject_NoLocking::toJsonBinary(buf);
+		}
+
+	};
+
 	template <class KT, class VT, class KEY_COMPARE>
 	Ref<Object> CMap<KT, VT, KEY_COMPARE>::toObject() noexcept
 	{
 		return new MapObject< CMap<KT, VT, KEY_COMPARE> >(this);
 	}
 
+	template <class KT, class VT, class KEY_COMPARE>
+	Ref<Object> CMap<KT, VT, KEY_COMPARE>::toObject_NoLocking() noexcept
+	{
+		return new MapObject_NoLocking< CMap<KT, VT, KEY_COMPARE> >(this);
+	}
+
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
 	Ref<Object> CHashMap<KT, VT, HASH, KEY_COMPARE>::toObject() noexcept
 	{
 		return new MapObject< CHashMap<KT, VT, HASH, KEY_COMPARE> >(this);
+	}
+
+	template <class KT, class VT, class HASH, class KEY_COMPARE>
+	Ref<Object> CHashMap<KT, VT, HASH, KEY_COMPARE>::toObject_NoLocking() noexcept
+	{
+		return new MapObject_NoLocking< CHashMap<KT, VT, HASH, KEY_COMPARE> >(this);
 	}
 
 
@@ -171,14 +219,14 @@ namespace slib
 	template <class KT, class VT, class KEY_COMPARE>
 	Variant::Variant(const Map<KT, VT, KEY_COMPARE>& map)
 	{
-		Ref<Object> object(map.toObject());
+		Ref<Object> object(map.toObject_NoLocking());
 		_constructorMoveRef(&object, VariantType::Object);
 	}
 
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
 	Variant::Variant(const HashMap<KT, VT, HASH, KEY_COMPARE>& map)
 	{
-		Ref<Object> object(map.toObject());
+		Ref<Object> object(map.toObject_NoLocking());
 		_constructorMoveRef(&object, VariantType::Object);
 	}
 

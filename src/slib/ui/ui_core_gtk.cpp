@@ -493,8 +493,8 @@ namespace slib
 		Ref<IPC> ipc = IPC::create();
 		if (ipc.isNotNull()) {
 			Json json;
-			json.putItem_NoLock("command", "open");
-			json.putItem_NoLock("args", getCommandLine());
+			json.putItem("command", "open");
+			json.putItem("args", getCommandLine());
 			Ref<Event> ev = Event::create();
 			ipc->sendMessage(GetOpenIpcName(appId), json.serialize(), [ev](sl_uint8*, sl_uint32) {
 				ev->set();

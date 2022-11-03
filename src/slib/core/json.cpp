@@ -777,19 +777,9 @@ namespace slib
 		return getItem(key);
 	}
 
-	Json Json::getElement_NoLock(sl_size index) const
-	{
-		return Variant::getElement_NoLock(index);
-	}
-
 	Json Json::getElement(sl_size index) const
 	{
 		return Variant::getElement(index);
-	}
-
-	sl_bool Json::setElement_NoLock(sl_uint64 index, const Json& value)
-	{
-		return Variant::setElement_NoLock(index, value);
 	}
 
 	sl_bool Json::setElement(sl_uint64 index, const Json& value)
@@ -797,29 +787,14 @@ namespace slib
 		return Variant::setElement(index, value);
 	}
 
-	sl_bool Json::addElement_NoLock(const Json& value)
-	{
-		return Variant::addElement_NoLock(value);
-	}
-
 	sl_bool Json::addElement(const Json& value)
 	{
 		return Variant::addElement(value);
 	}
 
-	Json Json::getItem_NoLock(const String& key) const
-	{
-		return Variant::getItem_NoLock(key);
-	}
-
 	Json Json::getItem(const String& key) const
 	{
 		return Variant::getItem(key);
-	}
-
-	sl_bool Json::putItem_NoLock(const String& key, const Json& value)
-	{
-		return Variant::putItem_NoLock(key, value);
 	}
 
 	sl_bool Json::putItem(const String& key, const Json& value)

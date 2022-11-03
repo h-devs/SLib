@@ -32,12 +32,12 @@ namespace slib
 {
 
 	template <class T>
-	class ListCollection : public Collection
+	class ListCollection_NoLocking : public Collection
 	{
 	public:
-		ListCollection(const List<T>& list): m_list(list.ref) {}
+		ListCollection_NoLocking(const List<T>& list): m_list(list.ref) {}
 
-		ListCollection(CList<T>* list): m_list(list) {}
+		ListCollection_NoLocking(CList<T>* list): m_list(list) {}
 
 	public:
 		sl_uint64 getElementCount() override
@@ -47,13 +47,12 @@ namespace slib
 
 		Variant getElement(sl_uint64 index) override
 		{
-			return m_list->getAt((sl_size)index);
+			return m_list->getAt_NoLock((sl_size)index);
 		}
 
 		sl_bool setElement(sl_uint64 index, const Variant& item) override
 		{
 			CList<T>* list = m_list.get();
-			ObjectLocker lock(list);
 			if (item.isNotUndefined()) {
 				T* p = list->getPointerAt((sl_size)index);
 				if (p) {
@@ -70,12 +69,12 @@ namespace slib
 		{
 			T v;
 			item.get(v);
-			return m_list->add(Move(v));
+			return m_list->add_NoLock(Move(v));
 		}
 
 		sl_bool toJsonString(StringBuffer& buf) override
 		{
-			ListLocker<T> list(*m_list);
+			ListElements<T> list(*m_list);
 			if (!(buf.addStatic("["))) {
 				return sl_false;
 			}
@@ -98,7 +97,7 @@ namespace slib
 
 		sl_bool toJsonBinary(MemoryBuffer& buf) override
 		{
-			ListLocker<T> list(*m_list);
+			ListElements<T> list(*m_list);
 			if (!(SerializeByte(&buf, (sl_uint8)(VariantType::Collection)))) {
 				return sl_false;
 			}
@@ -119,9 +118,57 @@ namespace slib
 	};
 
 	template <class T>
+	class ListCollection : public ListCollection_NoLocking<T>
+	{
+	public:
+		ListCollection(const List<T>& list): ListCollection_NoLocking(list) {}
+
+		ListCollection(CList<T>* list): ListCollection_NoLocking(list) {}
+
+	public:
+
+		Variant getElement(sl_uint64 index) override
+		{
+			return m_list->getAt((sl_size)index);
+		}
+
+		sl_bool setElement(sl_uint64 index, const Variant& item) override
+		{
+			ObjectLocker lock(m_list.get());
+			return ListCollection_NoLocking::setElement(index, item);
+		}
+
+		sl_bool addElement(const Variant& item) override
+		{
+			T v;
+			item.get(v);
+			return m_list->add(Move(v));
+		}
+
+		sl_bool toJsonString(StringBuffer& buf) override
+		{
+			ObjectLocker lock(m_list.get());
+			return ListCollection_NoLocking::toJsonString(buf);
+		}
+
+		sl_bool toJsonBinary(MemoryBuffer& buf) override
+		{
+			ObjectLocker lock(m_list.get());
+			return ListCollection_NoLocking::toJsonBinary(buf);
+		}
+
+	};
+
+	template <class T>
 	Ref<Collection> CList<T>::toCollection() noexcept
 	{
 		return new ListCollection<T>(this);
+	}
+
+	template <class T>
+	Ref<Collection> CList<T>::toCollection_NoLocking() noexcept
+	{
+		return new ListCollection_NoLocking<T>(this);
 	}
 
 	template <class T>
@@ -133,7 +180,7 @@ namespace slib
 	template <class T>
 	Variant::Variant(const List<T>& list)
 	{
-		Ref<Collection> collection(list.toCollection());
+		Ref<Collection> collection(list.toCollection_NoLocking());
 		_constructorMoveRef(&collection, VariantType::Collection);
 	}
 
