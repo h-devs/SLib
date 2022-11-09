@@ -180,7 +180,7 @@ namespace slib
 		{
 			PointT<T> p1(x0, y0), p2(x2, y2), center;
 			T pi = Math::PI<T>();
-			T epsilon = Math::Epsilon<T>();
+			T epsilon = T(0.000001);
 
 			PointT<T> q2 = p2 - p1;
 			T radius_check = (q2.x / 2 * q2.x / 2) / (rx * rx) + (q2.y / 2 * q2.y / 2) / (ry * ry);
