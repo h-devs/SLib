@@ -593,6 +593,20 @@ namespace slib
 		}
 	}
 
+	void GraphicsPath::addArc(sl_real x0, sl_real y0, sl_real rx, sl_real ry, sl_real rotation, sl_bool large_arc_flag, sl_bool sweep_flag, sl_real x2, sl_real y2, sl_bool flagMoveTo)
+	{
+		Pointf pts[13];
+		sl_uint32 n = CubicBezierCurve::convertArcToBezier(pts, x0, y0, rx, ry, rotation, large_arc_flag, sweep_flag, x2, y2);
+		if (flagMoveTo) {
+			moveTo(pts[0]);
+		} else {
+			lineTo(pts[0]);
+		}
+		for (sl_uint32 i = 1; i + 2 < n; i += 3) {
+			cubicTo(pts[i], pts[i + 1], pts[i + 2]);
+		}
+	}
+
 	void GraphicsPath::addRectangle(sl_real x, sl_real y, sl_real width, sl_real height)
 	{
 		Rectangle rect(x, y, x + width, y + height);
