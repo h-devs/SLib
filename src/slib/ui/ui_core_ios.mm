@@ -144,11 +144,6 @@ namespace slib
 		return UIPlatform::createScreen(screen);
 	}
 
-	Ref<Screen> UI::getFocusedScreen()
-	{
-		return getPrimaryScreen();
-	}
-
 	sl_bool UI::isUiThread()
 	{
 		return [NSThread isMainThread];

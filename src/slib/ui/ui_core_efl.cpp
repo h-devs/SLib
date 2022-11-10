@@ -172,11 +172,6 @@ namespace slib
 		return ret;
 	}
 
-	Ref<Screen> UI::getFocusedScreen()
-	{
-		return UI::getPrimaryScreen();
-	}
-
 	List< Ref<Screen> > UI::getScreens()
 	{
 		List< Ref<Screen> > ret;

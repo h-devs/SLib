@@ -43,6 +43,8 @@ namespace slib
 	public:
 		virtual UIRect getRegion() = 0;
 
+		virtual UIRect getWorkingRegion();
+
 	};
 
 }

@@ -111,19 +111,84 @@ namespace slib
 
 			SLIB_SAFE_STATIC_GETTER(MainContext, GetMainContext)
 
-			class ScreenImpl : public Screen
+			class PrimaryScreenImpl : public Screen
 			{
 			public:
-				UIRect getRegion()
+				UIRect getRegion() override
 				{
-					UIRect ret;
-					ret.left = 0;
-					ret.top = 0;
-					ret.right = (sl_ui_pos)(GetSystemMetrics(SM_CXSCREEN));
-					ret.bottom = (sl_ui_pos)(GetSystemMetrics(SM_CYSCREEN));
-					return ret;
+					return UI::getScreenRegion();
 				}
+
+				UIRect getWorkingRegion() override
+				{
+					return UI::getScreenWorkingRegion();
+				}
+
 			};
+
+			class MonitorScreenImpl : public Screen
+			{
+			public:
+				HMONITOR m_hMonitor;
+
+			public:
+				MonitorScreenImpl(HMONITOR handle): m_hMonitor(handle)
+				{
+				}
+
+			public:
+				UIRect getRegion() override
+				{
+					MONITORINFOEXW info;
+					Base::zeroMemory(&info, sizeof(info));
+					info.cbSize = sizeof(info);
+					if (GetMonitorInfoW(m_hMonitor, &info)) {
+						RECT& rc = info.rcMonitor;
+						return UIRect(
+							(sl_ui_pos)(rc.left),
+							(sl_ui_pos)(rc.top),
+							(sl_ui_pos)(rc.right),
+							(sl_ui_pos)(rc.bottom)
+						);
+					}
+					return UIRect::zero();
+				}
+
+				UIRect getWorkingRegion() override
+				{
+					MONITORINFOEXW info;
+					Base::zeroMemory(&info, sizeof(info));
+					info.cbSize = sizeof(info);
+					if (GetMonitorInfoW(m_hMonitor, &info)) {
+						RECT& rc = info.rcWork;
+						return UIRect(
+							(sl_ui_pos)(rc.left),
+							(sl_ui_pos)(rc.top),
+							(sl_ui_pos)(rc.right),
+							(sl_ui_pos)(rc.bottom)
+						);
+					}
+					return UIRect::zero();
+				}
+
+			};
+
+			static BOOL CALLBACK EnumAllDisplayMonitorsCallback(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+			{
+				List< Ref<Screen> >& list = *((List< Ref<Screen> >*)lParam);
+				Ref<MonitorScreenImpl> screen = new MonitorScreenImpl(hMonitor);
+				if (screen.isNotNull()) {
+					list.add_NoLock(Move(screen));
+				}
+				return TRUE;
+			}
+
+			static List< Ref<Screen> > GetAllScreens()
+			{
+				List< Ref<Screen> > ret;
+				EnumDisplayMonitors(NULL, NULL, EnumAllDisplayMonitorsCallback, (LPARAM)&ret);
+				return ret;
+			}
 
 			static void ApplyBadgeNumber()
 			{
@@ -301,7 +366,7 @@ namespace slib
 
 			MainContext::MainContext()
 			{
-				m_screenPrimary = new ScreenImpl();
+				m_screenPrimary = new PrimaryScreenImpl();
 			}
 
 			sl_bool g_flagInitializedSharedUIContext = sl_false;
@@ -338,13 +403,7 @@ namespace slib
 
 	List< Ref<Screen> > UI::getScreens()
 	{
-		MainContext* ui = GetMainContext();
-		if (!ui) {
-			return sl_null;
-		}
-		List< Ref<Screen> > ret;
-		ret.add_NoLock(ui->m_screenPrimary);
-		return ret;
+		return GetAllScreens();
 	}
 
 	Ref<Screen> UI::getPrimaryScreen()
@@ -356,13 +415,33 @@ namespace slib
 		return ui->m_screenPrimary;
 	}
 
-	Ref<Screen> UI::getFocusedScreen()
+	UIRect UI::getScreenRegion()
 	{
-		MainContext* ui = GetMainContext();
-		if (!ui) {
-			return sl_null;
+		sl_ui_pos width = (sl_ui_pos)(GetSystemMetrics(SM_CXSCREEN));
+		sl_ui_pos height = (sl_ui_pos)(GetSystemMetrics(SM_CYSCREEN));
+		return UIRect(0, 0, width, height);
+	}
+
+	UIRect UI::getScreenWorkingRegion()
+	{
+		RECT rc;
+		if (SystemParametersInfoW(SPI_GETWORKAREA, 0, &rc, 0)) {
+			return UIRect(
+				(sl_ui_pos)(rc.left),
+				(sl_ui_pos)(rc.top),
+				(sl_ui_pos)(rc.right),
+				(sl_ui_pos)(rc.bottom)
+			);
+		} else {
+			return getScreenRegion();
 		}
-		return ui->m_screenPrimary;
+	}
+
+	UISize UI::getScreenSize()
+	{
+		sl_ui_pos width = (sl_ui_pos)(GetSystemMetrics(SM_CXSCREEN));
+		sl_ui_pos height = (sl_ui_pos)(GetSystemMetrics(SM_CYSCREEN));
+		return UISize(width, height);
 	}
 
 	Ref<Canvas> UI::getScreenCanvas()

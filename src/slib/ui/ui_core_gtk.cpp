@@ -208,11 +208,6 @@ namespace slib
 		return new ScreenImpl;
 	}
 
-	Ref<Screen> UI::getFocusedScreen()
-	{
-		return UI::getPrimaryScreen();
-	}
-
 	List< Ref<Screen> > UI::getScreens()
 	{
 		return List< Ref<Screen> >::createFromElement(getPrimaryScreen());

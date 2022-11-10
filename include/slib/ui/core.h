@@ -68,11 +68,13 @@ namespace slib
 
 		static Ref<Screen> getPrimaryScreen();
 
-		static Ref<Screen> getFocusedScreen();
-
 		static UIRect getScreenRegion();
 
 		static UIRect getScreenRegion(const Ref<Screen>& screen);
+
+		static UIRect getScreenWorkingRegion();
+
+		static UIRect getScreenWorkingRegion(const Ref<Screen>& screen);
 
 		static UIRect getScreenBounds();
 

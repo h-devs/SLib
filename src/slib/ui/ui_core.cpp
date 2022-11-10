@@ -149,6 +149,11 @@ namespace slib
 	{
 	}
 
+	UIRect Screen::getWorkingRegion()
+	{
+		return getRegion();
+	}
+
 
 	Ref<Font> UI::getDefaultFont()
 	{
@@ -274,7 +279,6 @@ namespace slib
 		UI::setDefaultFontFamily(Font::getDefaultFontFamilyForLocale(locale));
 	}
 
-
 	sl_ui_len UI::getDefaultScrollBarWidth()
 	{
 		DefaultContext* def = getDefaultContext();
@@ -293,38 +297,71 @@ namespace slib
 		def->scrollBarWidth = len;
 	}
 
+#if !defined(SLIB_PLATFORM_IS_WIN32)
 	UIRect UI::getScreenRegion()
 	{
 		UISize size = Device::getScreenSize();
 		return UIRect(0, 0, size.x, size.y);
 	}
+#endif
 
-	UIRect UI::getScreenRegion(const Ref<Screen>& _screen)
+	UIRect UI::getScreenRegion(const Ref<Screen>& screen)
+	{
+		if (screen.isNotNull()) {
+			return screen->getRegion();
+		} else {
+			return getScreenRegion();
+		}
+	}
+
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_MACOS)
+	UIRect UI::getScreenWorkingRegion()
 	{
 		UISize size = Device::getScreenSize();
 		return UIRect(0, 0, size.x, size.y);
+	}
+#endif
+
+	UIRect UI::getScreenWorkingRegion(const Ref<Screen>& screen)
+	{
+		if (screen.isNotNull()) {
+			return screen->getWorkingRegion();
+		} else {
+			return getScreenWorkingRegion();
+		}
 	}
 
 	UIRect UI::getScreenBounds()
 	{
-		UISize size = Device::getScreenSize();
+		UISize size = getScreenSize();
 		return UIRect(0, 0, size.x, size.y);
 	}
 
-	UIRect UI::getScreenBounds(const Ref<Screen>& _screen)
+	UIRect UI::getScreenBounds(const Ref<Screen>& screen)
 	{
-		UISize size = Device::getScreenSize();
-		return UIRect(0, 0, size.x, size.y);
+		if (screen.isNotNull()) {
+			UIRect region = screen->getRegion();
+			return UIRect(0, 0, region.getWidth(), region.getHeight());
+		} else {
+			return getScreenBounds();
+		}
 	}
 
+#if !defined(SLIB_PLATFORM_IS_WIN32)
 	UISize UI::getScreenSize()
 	{
 		return Device::getScreenSize();
 	}
+#endif
 
-	UISize UI::getScreenSize(const Ref<Screen>& _screen)
+	UISize UI::getScreenSize(const Ref<Screen>& screen)
 	{
-		return Device::getScreenSize();
+		if (screen.isNotNull()) {
+			UIRect region = screen->getRegion();
+			return region.getSize();
+		} else {
+			return getScreenSize();
+		}
 	}
 
 	sl_ui_len UI::getScreenWidth()

@@ -53,51 +53,46 @@ namespace slib
 			{
 			public:
 				NSScreen* m_screen;
-				UIRect m_region;
 
 			public:
-				static Ref<ScreenImpl> create(NSScreen* screen, NSScreen* primary)
+				static Ref<ScreenImpl> create(NSScreen* screen)
 				{
-					Ref<ScreenImpl> ret;
 					if (screen != nil) {
-						ret = new ScreenImpl();
+						Ref<ScreenImpl> ret = new ScreenImpl();
 						if (ret.isNotNull()) {
 							ret->m_screen = screen;
-							UIRect region;
-							sl_ui_pos leftBottom = 0;
-							if (primary == nil) {
-								primary = getPrimaryScreen();
-							}
-							if (primary != nil) {
-								NSRect rect = [primary frame];
-								leftBottom = (sl_ui_pos)(rect.origin.y + rect.size.height);
-							}
-							NSRect rect = [screen frame];
-							region.left = (sl_ui_pos)(rect.origin.x);
-							region.top = leftBottom - (sl_ui_pos)(rect.origin.y + rect.size.height);
-							region.setWidth((sl_ui_pos)(rect.size.width));
-							region.setHeight((sl_ui_pos)(rect.size.height));
-							ret->m_region = region;
+							return ret;
 						}
 					}
-					return ret;
+					return sl_null;
 				}
 
-				static NSScreen* getPrimaryScreen()
-				{
-					NSArray* arr = [NSScreen screens];
-					sl_size n = [arr count];
-					if (n == 0) {
-						return nil;
-					}
-					NSScreen* primary = [arr objectAtIndex:0];
-					return primary;
-				}
-
-			public:
 				UIRect getRegion() override
 				{
-					return m_region;
+					NSRect rect = [m_screen frame];
+					return convertRect(rect);
+				}
+
+				UIRect getWorkingRegion() override
+				{
+					NSRect rect = [m_screen visibleFrame];
+					return convertRect(rect);
+				}
+
+				static UIRect convertRect(const NSRect& rect)
+				{
+					sl_ui_pos leftBottom = 0;
+					NSScreen* primary = [NSScreen mainScreen];
+					if (primary != nil) {
+						NSRect rect = [primary frame];
+						leftBottom = (sl_ui_pos)(rect.origin.y + rect.size.height);
+					}
+					UIRect region;
+					region.left = (sl_ui_pos)(rect.origin.x);
+					region.top = leftBottom - (sl_ui_pos)(rect.origin.y + rect.size.height);
+					region.setWidth((sl_ui_pos)(rect.size.width));
+					region.setHeight((sl_ui_pos)(rect.size.height));
+					return region;
 				}
 
 			};
@@ -182,30 +177,32 @@ namespace slib
 
 	List< Ref<Screen> > UI::getScreens()
 	{
-		List< Ref<Screen> > ret;
 		NSArray* arr = [NSScreen screens];
 		sl_size n = [arr count];
-		if (n == 0) {
-			return ret;
+		if (!n) {
+			return sl_null;
 		}
-		NSScreen* primary = [arr objectAtIndex:0];
+		List< Ref<Screen> > ret;
 		for (sl_size i = 0; i < n; i++) {
-			NSScreen* _screen = [arr objectAtIndex:i];
-			ret.add_NoLock(ScreenImpl::create(_screen, primary));
+			NSScreen* screen = [arr objectAtIndex:i];
+			ret.add_NoLock(ScreenImpl::create(screen));
 		}
 		return ret;
 	}
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
-		NSScreen* screen = ScreenImpl::getPrimaryScreen();
+		NSScreen* screen = [NSScreen mainScreen];
 		return UIPlatform::createScreen(screen);
 	}
 
-	Ref<Screen> UI::getFocusedScreen()
+	UIRect UI::getScreenWorkingRegion()
 	{
 		NSScreen* screen = [NSScreen mainScreen];
-		return UIPlatform::createScreen(screen);
+		if (screen != nil) {
+			return ScreenImpl::convertRect(screen.visibleFrame);
+		}
+		return UIRect::zero();
 	}
 
 	sl_bool UI::isUiThread()
