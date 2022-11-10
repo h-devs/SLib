@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,11 @@
 #include "slib/ui/core.h"
 #include "slib/ui/screen.h"
 #include "slib/core/variant.h"
+#include "slib/core/timer.h"
 
 namespace slib
 {
-	
+
 	SLIB_DEFINE_OBJECT(Window, Object)
 
 	Window::Window()
@@ -37,18 +38,20 @@ namespace slib
 		m_frame.top = 100;
 		m_frame.right = 500;
 		m_frame.bottom = 400;
-		
+
 		m_backgroundColor = Color::zero();
 		m_flagDefaultBackgroundColor = sl_true;
-		
+
 		m_alpha = 1.0;
-		
+
 		m_sizeMin.x = 0;
 		m_sizeMin.y = 0;
 		m_sizeMax.x = 0;
 		m_sizeMax.y = 0;
 		m_aspectRatioMinimum = 0;
 		m_aspectRatioMaximum = 0;
+		m_gravity = Alignment::Default;
+		m_flagGravityFixed = sl_false;
 
 		m_flagVisible = sl_true;
 		m_flagMinimized = sl_false;
@@ -68,13 +71,12 @@ namespace slib
 		m_flagResizable = sl_false;
 		m_flagLayered = sl_false;
 		m_flagTransparent = sl_false;
-		
+
 		m_flagModal = sl_false;
 		m_flagSheet = sl_false;
 		m_flagDialog = sl_false;
 		m_flagBorderless = sl_false;
 		m_flagShowTitleBar = sl_true;
-		m_flagCenterScreen = sl_false;
 		m_flagWidthWrapping = sl_false;
 		m_flagHeightWrapping = sl_false;
 		m_flagCloseOnOK = sl_false;
@@ -82,7 +84,7 @@ namespace slib
 		m_flagStateResizingWidth = sl_false;
 		m_flagStateDoModal = sl_false;
 		m_flagDispatchedDestroy = sl_false;
-		
+
 		m_viewContent = new WindowContentView;
 
 		m_result = sl_null;
@@ -98,11 +100,11 @@ namespace slib
 			delete m_result;
 		}
 	}
-	
+
 	void Window::init()
 	{
 		Object::init();
-		
+
 		m_viewContent->setWindow(this);
 	}
 
@@ -112,10 +114,10 @@ namespace slib
 		if (instance.isNull()) {
 			return;
 		}
-		
+
 		void (Window::*func)() = &Window::close;
 		SLIB_VIEW_RUN_ON_UI_THREAD2(func)
-		
+
 		Ref<Window> window = this;
 		instance->close();
 		detach();
@@ -329,12 +331,12 @@ namespace slib
 		frame.setHeight(height);
 		setFrame(frame);
 	}
-	
+
 	sl_bool Window::isWidthWrapping()
 	{
 		return m_flagWidthWrapping;
 	}
-	
+
 	void Window::setWidthWrapping(sl_bool flag, UIUpdateMode mode)
 	{
 		m_flagWidthWrapping = flag;
@@ -344,12 +346,12 @@ namespace slib
 			}
 		}
 	}
-	
+
 	sl_bool Window::isHeightWrapping()
 	{
 		return m_flagHeightWrapping;
 	}
-	
+
 	void Window::setHeightWrapping(sl_bool flag, UIUpdateMode mode)
 	{
 		m_flagHeightWrapping = flag;
@@ -400,19 +402,19 @@ namespace slib
 	{
 		return getClientFrame().getWidth();
 	}
-	
+
 	void Window::setClientWidth(sl_ui_len width)
 	{
 		UIRect frame = getClientFrame();
 		frame.setWidth(width);
 		setClientFrame(frame);
 	}
-	
+
 	sl_ui_len Window::getClientHeight()
 	{
 		return getClientFrame().getHeight();
 	}
-	
+
 	void Window::setClientHeight(sl_ui_len height)
 	{
 		UIRect frame = getClientFrame();
@@ -785,11 +787,11 @@ namespace slib
 			aspectRatioMaximum = 0;
 		}
 		m_aspectRatioMaximum = aspectRatioMaximum;
-		
+
 		if (instance.isNotNull()) {
 			instance->setSizeRange(sizeMinimum, sizeMaximum, aspectRatioMinimum, m_aspectRatioMaximum);
 		}
-		
+
 		UISize size = getClientSize();
 		UISize sizeOld = size;
 		_constrainClientSize(size, size.x > 0);
@@ -921,67 +923,67 @@ namespace slib
 	{
 		return m_sizeMin;
 	}
-	
+
 	void Window::setMinimumSize(const UISize& sizeMinimum)
 	{
 		setSizeRange(sizeMinimum, m_sizeMax, m_aspectRatioMinimum, m_aspectRatioMaximum);
 	}
-	
+
 	void Window::setMinimumSize(sl_ui_len width, sl_ui_len height)
 	{
 		setSizeRange(UISize(width, height), m_sizeMax, m_aspectRatioMinimum, m_aspectRatioMaximum);
 	}
-	
+
 	sl_ui_len Window::getMinimumWidth()
 	{
 		return m_sizeMin.x;
 	}
-	
+
 	void Window::setMinimumWidth(sl_ui_len width)
 	{
 		setSizeRange(UISize(width, m_sizeMin.y), m_sizeMax, m_aspectRatioMinimum, m_aspectRatioMaximum);
 	}
-	
+
 	sl_ui_len Window::getMinimumHeight()
 	{
 		return m_sizeMin.y;
 	}
-	
+
 	void Window::setMinimumHeight(sl_ui_len height)
 	{
 		setSizeRange(UISize(m_sizeMin.x, height), m_sizeMax, m_aspectRatioMinimum, m_aspectRatioMaximum);
 	}
-	
+
 	UISize Window::getMaximumSize()
 	{
 		return m_sizeMax;
 	}
-	
+
 	void Window::setMaximumSize(const UISize& sizeMaximum)
 	{
 		setSizeRange(m_sizeMin, sizeMaximum, m_aspectRatioMinimum, m_aspectRatioMaximum);
 	}
-	
+
 	void Window::setMaximumSize(sl_ui_len width, sl_ui_len height)
 	{
 		setSizeRange(m_sizeMin, UISize(width, height), m_aspectRatioMinimum, m_aspectRatioMaximum);
 	}
-	
+
 	sl_ui_len Window::getMaximumWidth()
 	{
 		return m_sizeMax.x;
 	}
-	
+
 	void Window::setMaximumWidth(sl_ui_len width)
 	{
 		setSizeRange(m_sizeMin, UISize(width, m_sizeMax.y), m_aspectRatioMinimum, m_aspectRatioMaximum);
 	}
-	
+
 	sl_ui_len Window::getMaximumHeight()
 	{
 		return m_sizeMax.y;
 	}
-	
+
 	void Window::setMaximumHeight(sl_ui_len height)
 	{
 		setSizeRange(m_sizeMin, UISize(m_sizeMax.x, height), m_aspectRatioMinimum, m_aspectRatioMaximum);
@@ -991,27 +993,27 @@ namespace slib
 	{
 		return m_aspectRatioMinimum;
 	}
-	
+
 	void Window::setMinimumAspectRatio(float ratio)
 	{
 		setSizeRange(m_sizeMin, m_sizeMax, ratio, m_aspectRatioMaximum);
 	}
-	
+
 	float Window::getMaximumAspectRatio()
 	{
 		return m_aspectRatioMaximum;
 	}
-	
+
 	void Window::setMaximumAspectRatio(float ratio)
 	{
 		setSizeRange(m_sizeMin, m_sizeMax, m_aspectRatioMinimum, ratio);
 	}
-	
+
 	void Window::setAspectRatio(float ratio)
 	{
 		setSizeRange(m_sizeMin, m_sizeMax, ratio, ratio);
 	}
-	
+
 	sl_bool Window::isModal()
 	{
 		return m_flagModal;
@@ -1026,7 +1028,7 @@ namespace slib
 	{
 		return m_flagSheet;
 	}
-	
+
 	void Window::setSheet(sl_bool flag)
 	{
 		m_flagSheet = flag;
@@ -1062,26 +1064,134 @@ namespace slib
 		m_flagShowTitleBar = flag;
 	}
 
-	sl_bool Window::isCenterScreen()
+	const Alignment& Window::getGravity()
 	{
-		return m_flagCenterScreen;
+		return m_gravity;
 	}
 
-	void Window::setCenterScreen(sl_bool flag)
+	void Window::setGravity(const Alignment& align, sl_bool flagFixed)
 	{
-		m_flagCenterScreen = flag;
+		m_gravity = align;
+		m_flagGravityFixed = flagFixed;
+		_updatePosition();
+		if (flagFixed) {
+			if (m_timerUpdatePosition.isNull()) {
+				m_timerUpdatePosition = Timer::startWithDispatcher(UI::getDispatcher(), SLIB_FUNCTION_WEAKREF(this, _updatePosition), 1000);
+			}
+		} else {
+			m_timerUpdatePosition.setNull();
+		}
 	}
-	
+
+	void Window::setFixedGravity(const Alignment& align)
+	{
+		setGravity(align, sl_true);
+	}
+
+	sl_bool Window::isFixedGravity()
+	{
+		return m_flagGravityFixed;
+	}
+
+	sl_bool Window::isCenterScreen()
+	{
+		return m_gravity == Alignment::MiddleCenter;
+	}
+
+	void Window::setCenterScreen(sl_bool flag, sl_bool flagFixed)
+	{
+		if (flag) {
+			setGravity(Alignment::MiddleCenter, flagFixed);
+		} else {
+			if (m_gravity == Alignment::MiddleCenter) {
+				setGravity(Alignment::Default, flagFixed);
+			}
+		}
+	}
+
+	sl_ui_pos Window::getMarginLeft()
+	{
+		return m_margin.left;
+	}
+
+	void Window::setMarginLeft(sl_ui_pos margin)
+	{
+		m_margin.left = margin;
+		_updatePosition();
+	}
+
+	sl_ui_pos Window::getMarginTop()
+	{
+		return m_margin.top;
+	}
+
+	void Window::setMarginTop(sl_ui_pos margin)
+	{
+		m_margin.top = margin;
+		_updatePosition();
+	}
+
+	sl_ui_pos Window::getMarginRight()
+	{
+		return m_margin.right;
+	}
+
+	void Window::setMarginRight(sl_ui_pos margin)
+	{
+		m_margin.right = margin;
+		_updatePosition();
+	}
+
+	sl_ui_pos Window::getMarginBottom()
+	{
+		return m_margin.bottom;
+	}
+
+	void Window::setMarginBottom(sl_ui_pos margin)
+	{
+		m_margin.bottom = margin;
+		_updatePosition();
+	}
+
+	void Window::setMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom)
+	{
+		m_margin.left = left;
+		m_margin.top = top;
+		m_margin.right = right;
+		m_margin.bottom = bottom;
+		_updatePosition();
+	}
+
+	void Window::setMargin(sl_ui_pos margin)
+	{
+		m_margin.left = margin;
+		m_margin.top = margin;
+		m_margin.right = margin;
+		m_margin.bottom = margin;
+		_updatePosition();
+	}
+
+	const UIEdgeInsets& Window::getMargin()
+	{
+		return m_margin;
+	}
+
+	void Window::setMargin(const UIEdgeInsets& margin)
+	{
+		m_margin = margin;
+		_updatePosition();
+	}
+
 	sl_bool Window::isCloseOnOK()
 	{
 		return m_flagCloseOnOK;
 	}
-	
+
 	void Window::setCloseOnOK(sl_bool flag)
 	{
 		m_flagCloseOnOK = flag;
 	}
-	
+
 	Variant Window::getResult()
 	{
 		SpinLocker lock(&m_lockResult);
@@ -1091,7 +1201,7 @@ namespace slib
 			return sl_null;
 		}
 	}
-	
+
 	void Window::setResult(const Variant& result)
 	{
 		SpinLocker lock(&m_lockResult);
@@ -1101,7 +1211,7 @@ namespace slib
 			m_result = new Variant(result);
 		}
 	}
-	
+
 	void Window::close(const Variant& result)
 	{
 		setResult(result);
@@ -1172,7 +1282,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void Window::detach()
 	{
 		// save current window's properties
@@ -1203,7 +1313,7 @@ namespace slib
 		if (m_instance.isNotNull()) {
 			return;
 		}
-		
+
 		if (m_flagWidthWrapping || m_flagHeightWrapping) {
 			UISize sizeOld = getClientSize();
 			UISize sizeMeasured = m_viewContent->measureLayoutWrappingSize(m_flagWidthWrapping, m_flagHeightWrapping);
@@ -1223,13 +1333,13 @@ namespace slib
 			}
 			setClientSize(sizeMeasured);
 		}
-		
+
 		Ref<WindowInstance> window = createWindowInstance();
-		
+
 		if (window.isNotNull()) {
 
 			m_timeCreation = Time::now();
-			
+
 			if (flagKeepReference) {
 				increaseReference();
 				window->setKeepWindow(sl_true);
@@ -1245,13 +1355,13 @@ namespace slib
 				window->setMaximized(sl_true);
 #endif
 			}
-			
+
 			attach(window, sl_false);
 
 			dispatchCreate();
 
 			window->doPostCreate();
-			
+
 			if (m_flagVisible) {
 				window->setVisible(sl_true);
 				window->activate();
@@ -1260,9 +1370,9 @@ namespace slib
 		} else {
 			dispatchCreateFailed();
 		}
-		
+
 	}
-	
+
 	void Window::_attachContent()
 	{
 		SLIB_VIEW_RUN_ON_UI_THREAD(_attachContent)
@@ -1284,7 +1394,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	Variant Window::doModal()
 	{
 		if (!(UI::isUiThread())) {
@@ -1367,7 +1477,7 @@ namespace slib
 			view->removeAllChildren(mode);
 		}
 	}
-	
+
 #if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_GTK)
 	Ref<Window> Window::getActiveWindow()
 	{
@@ -1376,7 +1486,7 @@ namespace slib
 #endif
 
 	SLIB_DEFINE_EVENT_HANDLER(Window, Create)
-	
+
 	void Window::dispatchCreate()
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Create)
@@ -1410,15 +1520,15 @@ namespace slib
 			return;
 		}
 		m_flagDispatchedDestroy = sl_true;
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(Destroy)
-		
+
 		if (m_flagStateDoModal) {
 			m_flagStateDoModal = sl_false;
 			UI::quitLoop();
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Window, Activate)
 
 	void Window::dispatchActivate()
@@ -1439,7 +1549,7 @@ namespace slib
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Move)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Window, Resizing, UISize& clientSize)
 
 	void Window::dispatchResizing(UISize& clientSize)
@@ -1455,12 +1565,12 @@ namespace slib
 				clientSize.y = sizeOld.y;
 			}
 		}
-				
+
 		_constrainClientSize(clientSize, m_flagStateResizingWidth);
 
 		SLIB_INVOKE_EVENT_HANDLER(Resizing, clientSize)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Window, Resize, sl_ui_len clientWidth, sl_ui_len clientHeight)
 
 	void Window::dispatchResize(sl_ui_len clientWidth, sl_ui_len clientHeight)
@@ -1474,7 +1584,7 @@ namespace slib
 				}
 			}
 		}
-		
+
 		SLIB_INVOKE_EVENT_HANDLER(Resize, clientWidth, clientHeight)
 	}
 
@@ -1508,7 +1618,7 @@ namespace slib
 		_refreshClientSize(getClientSize());
 		SLIB_INVOKE_EVENT_HANDLER(Maximize)
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER(Window, Demaximize)
 
 	void Window::dispatchDemaximize()
@@ -1655,7 +1765,7 @@ namespace slib
 			}
 		}
 	}
-	
+
 	void Window::_constrainClientSize(UIRect& frame, sl_bool flagAdjustHeight)
 	{
 		UISize size = frame.getSize();
@@ -1681,7 +1791,50 @@ namespace slib
 	{
 		m_viewContent->applyWrappingContentSize();
 	}
-	
+
+	void Window::_updatePosition(Timer*)
+	{
+		if (!m_flagGravityFixed) {
+			return;
+		}
+		if (m_instance.isNull()) {
+			return;
+		}
+		UIRect rect = getFrame();
+		UIPoint pt = rect.getLocation();
+		_adjustPosition(pt, m_screen, rect.getWidth(), rect.getHeight(), m_gravity, m_margin);
+		rect.setLocation(pt);
+		setFrame(rect);
+	}
+
+	void Window::_adjustPosition(UIPoint& pt, const Ref<Screen>& screen, sl_ui_len windowWidth, sl_ui_len windowHeight, const Alignment& gravity, const UIEdgeInsets& margin)
+	{
+		UIRect rectScreen = UI::getScreenWorkingRegion(screen);
+		Alignment horz = gravity & Alignment::HorizontalMask;
+		if (horz == Alignment::Left) {
+			pt.x = rectScreen.left + margin.left;
+		} else if (horz == Alignment::Right) {
+			pt.x = rectScreen.right - margin.right - windowWidth;
+		} else if (horz == Alignment::Center) {
+			pt.x = (rectScreen.right - margin.right + rectScreen.left + margin.left - windowWidth) / 2;
+		}
+		Alignment vert = gravity & Alignment::VerticalMask;
+		if (vert == Alignment::Top) {
+			pt.y = rectScreen.top + margin.top;
+		} else if (vert == Alignment::Bottom) {
+			pt.y = rectScreen.bottom - margin.bottom - windowHeight;
+		} else if (vert == Alignment::Middle) {
+			pt.y = (rectScreen.bottom - margin.bottom + rectScreen.top + margin.top - windowHeight) / 2;
+		}
+	}
+
+#if !(defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_GTK))
+	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
+	{
+		return sl_false;
+	}
+#endif
+
 
 	SLIB_DEFINE_OBJECT(WindowInstance, Object)
 
@@ -1708,7 +1861,7 @@ namespace slib
 	{
 		m_window = window;
 	}
-	
+
 	void WindowInstance::setKeepWindow(sl_bool flag)
 	{
 		m_flagKeepWindow = flag;
@@ -2005,13 +2158,5 @@ namespace slib
 	{
 		applyWrappingContentSize();
 	}
-
-
-#if !(defined(SLIB_UI_IS_WIN32) || defined(SLIB_UI_IS_MACOS) || defined(SLIB_UI_IS_GTK))
-	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
-	{
-		return sl_false;
-	}
-#endif
 
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -43,84 +43,84 @@ namespace slib
 	class SLIB_EXPORT Window : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		Window();
-		
+
 		~Window();
-		
+
 	protected:
 		void init() override;
-		
+
 	public:
 		void close();
-		
+
 		sl_bool isClosed();
-		
+
 		sl_bool isOpened();
-		
-		
+
+
 		Ref<Window> getParent();
-		
+
 		void setParent(const Ref<Window>& parent);
-		
+
 		Ref<Screen> getScreen();
-		
+
 		void setScreen(const Ref<Screen>& screen);
 
 		const Ref<WindowContentView>& getContentView();
-		
+
 		Ref<Menu> getMenu();
-		
+
 		void setMenu(const Ref<Menu>& menu);
 
 
 		sl_bool isActive();
-		
+
 		void activate();
 
 		UIRect getFrame();
-		
+
 		void setFrame(const UIRect& frame);
-		
+
 		void setFrame(sl_ui_pos left, sl_ui_pos top, sl_ui_len width, sl_ui_len height);
-		
+
 		UIPoint getLocation();
-		
+
 		void setLocation(const UIPoint& location);
-		
+
 		void setLocation(sl_ui_pos x, sl_ui_pos y);
-		
+
 		sl_ui_pos getLeft();
-		
+
 		void setLeft(sl_ui_pos x);
-		
+
 		sl_ui_pos getTop();
-		
+
 		void setTop(sl_ui_pos y);
-		
+
 		UISize getSize();
 
 		void setSize(sl_ui_len width, sl_ui_len height);
 
 		void setSize(const UISize& size);
-		
+
 		sl_ui_len getWidth();
-		
+
 		void setWidth(sl_ui_len width);
-		
+
 		sl_ui_len getHeight();
-		
+
 		void setHeight(sl_ui_len height);
 
 		sl_bool isWidthWrapping();
-		
+
 		void setWidthWrapping(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 		sl_bool isHeightWrapping();
-		
+
 		void setHeightWrapping(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 
 		UIRect getClientFrame();
 
@@ -129,94 +129,94 @@ namespace slib
 		void setClientFrame(sl_ui_pos left, sl_ui_pos top, sl_ui_len width, sl_ui_len height);
 
 		UISize getClientSize();
-		
+
 		void setClientSize(sl_ui_len width, sl_ui_len height);
-		
+
 		void setClientSize(const UISize& size);
-		
+
 		sl_ui_len getClientWidth();
-		
+
 		void setClientWidth(sl_ui_len width);
-		
+
 		sl_ui_len getClientHeight();
-		
+
 		void setClientHeight(sl_ui_len height);
 
-		
+
 		String getTitle();
-		
+
 		void setTitle(const String& title);
 
 		Ref<Drawable> getIcon();
 
 		void setIcon(const Ref<Drawable>& icon);
-		
+
 		Color getBackgroundColor();
-		
+
 		void setBackgroundColor(const Color& color);
-		
+
 		// set to default
 		void resetBackgroundColor();
 
 		sl_bool isDefaultBackgroundColor();
-		
-		
+
+
 		sl_bool isMinimized();
-		
+
 		void setMinimized(sl_bool flag = sl_true);
-		
+
 		sl_bool isMaximized();
-		
+
 		void setMaximized(sl_bool flag = sl_true);
-		
+
 		sl_bool isFullScreen();
-		
+
 		void setFullScreen(sl_bool flag = sl_true);
-		
+
 		sl_bool isVisible();
-		
+
 		void setVisible(sl_bool flag = sl_true);
-		
+
 		sl_bool isAlwaysOnTop();
-		
+
 		void setAlwaysOnTop(sl_bool flag = sl_true);
-		
-		
+
+
 		sl_bool isCloseButtonEnabled();
-		
+
 		void setCloseButtonEnabled(sl_bool flag = sl_true);
-		
+
 		sl_bool isMinimizeButtonEnabled();
-		
+
 		void setMinimizeButtonEnabled(sl_bool flag = sl_true);
-		
+
 		sl_bool isMaximizeButtonEnabled();
-		
+
 		void setMaximizeButtonEnabled(sl_bool flag = sl_true);
-		
+
 		sl_bool isFullScreenButtonEnabled();
-		
+
 		void setFullScreenButtonEnabled(sl_bool flag = sl_true);
-		
+
 		sl_bool isResizable();
-		
+
 		void setResizable(sl_bool flag = sl_true);
-		
+
 
 		sl_bool isLayered();
-		
+
 		void setLayered(sl_bool flag = sl_true);
-		
+
 		sl_real getAlpha();
-		
+
 		void setAlpha(sl_real alpha);
-		
+
 		Color getColorKey();
 
 		void setColorKey(const Color& color);
-		
+
 		sl_bool isTransparent();
-		
+
 		void setTransparent(sl_bool flag = sl_true);
 
 
@@ -260,114 +260,143 @@ namespace slib
 
 		// For client size
 		UISize getMinimumSize();
-		
+
 		// For client size
 		void setMinimumSize(const UISize& sizeMinimum);
-		
+
 		// For client size
 		void setMinimumSize(sl_ui_len width, sl_ui_len height);
-		
+
 		// For client size
 		sl_ui_len getMinimumWidth();
-		
+
 		// For client size
 		void setMinimumWidth(sl_ui_len width);
-		
+
 		// For client size
 		sl_ui_len getMinimumHeight();
-		
+
 		// For client size
 		void setMinimumHeight(sl_ui_len height);
 
 		// For client size
 		UISize getMaximumSize();
-		
+
 		// For client size
 		void setMaximumSize(const UISize& sizeMaximum);
-		
+
 		// For client size
 		void setMaximumSize(sl_ui_len width, sl_ui_len height);
 
 		// For client size
 		sl_ui_len getMaximumWidth();
-		
+
 		// For client size
 		void setMaximumWidth(sl_ui_len width);
-		
+
 		// For client size
 		sl_ui_len getMaximumHeight();
-		
+
 		// For client size
 		void setMaximumHeight(sl_ui_len height);
-		
+
 		// For client size
 		float getMinimumAspectRatio();
-		
+
 		// For client size
 		void setMinimumAspectRatio(float ratio);
-		
+
 		// For client size
 		float getMaximumAspectRatio();
-		
+
 		// For client size
 		void setMaximumAspectRatio(float ratio);
-		
+
 		// For client size
 		void setAspectRatio(float ratio);
 
-		
+
+		const Alignment& getGravity();
+
+		void setGravity(const Alignment& align, sl_bool flagFixed = sl_false);
+
+		void setFixedGravity(const Alignment& align);
+
+		sl_bool isFixedGravity();
+
+		sl_bool isCenterScreen();
+
+		void setCenterScreen(sl_bool flag = sl_true, sl_bool flagFixed = sl_false);
+
+		sl_ui_pos getMarginLeft();
+
+		void setMarginLeft(sl_ui_pos margin);
+
+		sl_ui_pos getMarginTop();
+
+		void setMarginTop(sl_ui_pos margin);
+
+		sl_ui_pos getMarginRight();
+
+		void setMarginRight(sl_ui_pos margin);
+
+		sl_ui_pos getMarginBottom();
+
+		void setMarginBottom(sl_ui_pos margin);
+
+		void setMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom);
+
+		void setMargin(sl_ui_pos margin);
+
+		const UIEdgeInsets& getMargin();
+
+		void setMargin(const UIEdgeInsets& margin);
+
+
 		sl_bool isModal();
-		
+
 		// Call before creating window
 		void setModal(sl_bool flag);
-		
+
 		sl_bool isSheet();
-		
+
 		// Call before creating window
 		void setSheet(sl_bool flag = sl_true);
-		
+
 		sl_bool isDialog();
-		
+
 		// Call before creating window
 		void setDialog(sl_bool flag = sl_true);
-		
+
 		sl_bool isBorderless();
-		
+
 		// Call before creating window
 		void setBorderless(sl_bool flag = sl_true);
-		
+
 		sl_bool isTitleBarVisible();
-		
+
 		// Call before creating window
 		void setTitleBarVisible(sl_bool flag = sl_true);
 
-		sl_bool isCenterScreen();
-		
-		// Call before creating window
-		void setCenterScreen(sl_bool flag = sl_true);
-		
-		
+
 		sl_bool isCloseOnOK();
-		
+
 		void setCloseOnOK(sl_bool flag = sl_true);
 
-
 		Variant getResult();
-		
+
 		void setResult(const Variant& result);
-		
+
 		void close(const Variant& result);
 
-
 		Time getCreationTime();
-
 
 		void setQuitOnDestroy();
 
 
 #if defined(SLIB_UI_IS_ANDROID)
 		void* getActivity();
-		
+
 		void setActivity(void* activity);
 #endif
 
@@ -377,17 +406,17 @@ namespace slib
 
 	public:
 		Ref<WindowInstance> getWindowInstance();
-		
+
 		void create();
-		
+
 		void createAndKeep();
-		
+
 		void forceCreate();
-		
+
 		void forceCreateAndKeep();
-		
+
 		Variant doModal();
-		
+
 		void showModal();
 
 		void show();
@@ -396,15 +425,15 @@ namespace slib
 
 		void hide();
 
-		
+
 		void addView(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void removeView(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		List< Ref<View> > getViews();
-		
+
 		void removeAllViews(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
-		
+
 	public:
 		static Ref<Window> getActiveWindow();
 
@@ -429,27 +458,27 @@ namespace slib
 
 	public:
 		void dispatchOK();
-		
+
 		void dispatchCancel();
 
 		void dispatchResize();
 
 	protected:
 		Ref<WindowInstance> createWindowInstance();
-		
+
 		void attach(const Ref<WindowInstance>& instance, sl_bool flagAttachContent = sl_true);
-		
+
 		void detach();
 
 	protected:
 		void _create(sl_bool flagKeepReference);
-		
+
 		void _attachContent();
-		
+
 		void _refreshClientSize(const UISize& size);
-		
+
 		void _constrainClientSize(UISize& size, sl_bool flagAdjustHeight);
-		
+
 		void _constrainClientSize(UIRect& frame, sl_bool flagAdjustHeight);
 
 		void _constrainWindowSize(UISize& size, sl_bool flagAdjustHeight);
@@ -457,6 +486,10 @@ namespace slib
 		void _constrainWindowSize(UIRect& frame, sl_bool flagAdjustHeight);
 
 		void _applyContentWrappingSize();
+
+		void _updatePosition(Timer* timer = sl_null);
+
+		static void _adjustPosition(UIPoint& pt, const Ref<Screen>& screen, sl_ui_len windowWidth, sl_ui_len windowHeight, const Alignment& gravity, const UIEdgeInsets& margin);
 
 		sl_bool _getClientInsets(UIEdgeInsets& _out);
 
@@ -466,21 +499,25 @@ namespace slib
 		Ref<WindowContentView> m_viewContent;
 		AtomicRef<Screen> m_screen;
 		AtomicRef<Menu> m_menu;
-		
+
 		AtomicString m_title;
 		AtomicRef<Drawable> m_icon;
 		Color m_backgroundColor;
 		sl_bool m_flagDefaultBackgroundColor;
-		
+
 		sl_real m_alpha;
 		Color m_colorKey;
-		
+
 		UIRect m_frame;
 		UISize m_sizeMin;
 		UISize m_sizeMax;
 		float m_aspectRatioMinimum;
 		float m_aspectRatioMaximum;
-		
+		Alignment m_gravity;
+		sl_bool m_flagGravityFixed;
+		UIEdgeInsets m_margin;
+		Atomic< Ref<Timer> > m_timerUpdatePosition;
+
 		sl_bool m_flagVisible : 1;
 		sl_bool m_flagMinimized : 1;
 		sl_bool m_flagMaximized : 1;
@@ -494,13 +531,12 @@ namespace slib
 		sl_bool m_flagResizable : 1;
 		sl_bool m_flagLayered: 1;
 		sl_bool m_flagTransparent : 1;
-		
+
 		sl_bool m_flagModal : 1;
 		sl_bool m_flagSheet : 1;
 		sl_bool m_flagDialog : 1;
 		sl_bool m_flagBorderless: 1;
 		sl_bool m_flagShowTitleBar : 1;
-		sl_bool m_flagCenterScreen : 1;
 		sl_bool m_flagWidthWrapping : 1;
 		sl_bool m_flagHeightWrapping : 1;
 		sl_bool m_flagCloseOnOK : 1;
@@ -508,7 +544,7 @@ namespace slib
 		sl_bool m_flagStateResizingWidth : 1;
 		sl_bool m_flagStateDoModal : 1;
 		sl_bool m_flagDispatchedDestroy : 1;
-		
+
 		Variant* m_result;
 		SpinLock m_lockResult;
 
@@ -527,7 +563,7 @@ namespace slib
 	class SLIB_EXPORT WindowInstance : public Object
 	{
 		SLIB_DECLARE_OBJECT
-		
+
 	public:
 		WindowInstance();
 
@@ -535,26 +571,26 @@ namespace slib
 
 	public:
 		Ref<Window> getWindow();
-		
+
 		void setWindow(const Ref<Window>& window);
-		
+
 		void setKeepWindow(sl_bool flag);
-		
+
 	public:
 		virtual void close() = 0;
-		
+
 		virtual sl_bool isClosed() = 0;
-		
+
 
 		virtual void setParent(const Ref<WindowInstance>& parent) = 0;
-		
+
 		virtual Ref<ViewInstance> getContentView() = 0;
-		
-		
+
+
 		virtual sl_bool getFrame(UIRect& _out) = 0;
-		
+
 		virtual void setFrame(const UIRect& frame) = 0;
-		
+
 
 		virtual void setTitle(const String& title);
 
@@ -569,86 +605,86 @@ namespace slib
 		virtual void setBackgroundColor(const Color& color);
 
 		virtual void resetBackgroundColor();
-		
+
 		virtual void isMinimized(sl_bool& _out);
-		
+
 		virtual void setMinimized(sl_bool flag);
-		
+
 		virtual void isMaximized(sl_bool& _out);
-		
+
 		virtual void setMaximized(sl_bool flag);
-		
+
 		virtual void isFullScreen(sl_bool& _out);
-		
+
 		virtual void setFullScreen(sl_bool flag);
-		
+
 		virtual void setVisible(sl_bool flag);
 
 		virtual void setAlwaysOnTop(sl_bool flag);
-		
+
 		virtual void setCloseButtonEnabled(sl_bool flag);
-		
+
 		virtual void setMinimizeButtonEnabled(sl_bool flag);
-		
+
 		virtual void setMaximizeButtonEnabled(sl_bool flag);
-		
+
 		virtual void setFullScreenButtonEnabled(sl_bool flag);
-		
+
 		virtual void setResizable(sl_bool flag);
-		
+
 		virtual void setLayered(sl_bool flag);
-		
+
 		virtual void setAlpha(sl_real alpha);
 
 		virtual void setColorKey(const Color& color);
-		
+
 		virtual void setTransparent(sl_bool flag);
 
 
 		virtual sl_bool getClientInsets(UIEdgeInsets& _out);
-		
+
 		virtual void setSizeRange(const UISize& sizeMinimum, const UISize& sizeMaximum, float aspectRatioMinimum, float aspectRatioMaximum);
-		
+
 
 		virtual sl_bool doModal();
 
 
 		virtual void doPostCreate();
-		
+
 	public:
 		sl_bool onClose();
-		
+
 		void onActivate();
-		
+
 		void onDeactivate();
-		
+
 		void onMove();
-		
+
 		void onResizing(UISize& clientSize, sl_bool flagResizingWidth);
-		
+
 		void onResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
 
 		void onResize();
 
 		void onMinimize();
-		
+
 		void onDeminimize();
-		
+
 		void onMaximize();
-		
+
 		void onDemaximize();
-		
+
 		void onEnterFullScreen();
-		
+
 		void onExitFullScreen();
-		
+
 	public:
 		virtual void onAttachedContentView();
-		
+
 	protected:
 		AtomicWeakRef<Window> m_window;
 		sl_bool m_flagKeepWindow;
-		
+
 	};
 
 	class SLIB_EXPORT WindowContentView : public ViewGroup

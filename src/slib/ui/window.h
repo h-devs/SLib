@@ -32,7 +32,7 @@ namespace slib
 						frame.setSize(frameScreen.getSize());
 					} else {
 						frame = getFrame();
-						if (m_flagCenterScreen) {
+						if (isCenterScreen()) {
 							frame.setLocation(frameScreen.getWidth() / 2 - frame.getWidth() / 2, frameScreen.getHeight() / 2 - frame.getHeight() / 2);
 						}
 					}
