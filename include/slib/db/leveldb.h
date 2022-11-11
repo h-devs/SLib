@@ -36,7 +36,12 @@ namespace slib
 		StringParam path;
 		StringParam encryptionKey;
 
-		sl_bool flagCreateIfMissing;
+		sl_uint64 writeBufferSize = 4 * 1024 * 1024;
+		sl_uint64 blockSize = 4096;
+		sl_uint64 maxOpenFile = 1000;
+		sl_uint64 maxFileSize = 2 * 1024 * 1024;
+
+		sl_bool flagCreateIfMissing = sl_false;
 
 		// output
 		String errorText;

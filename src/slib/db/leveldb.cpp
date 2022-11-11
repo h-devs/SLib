@@ -412,6 +412,10 @@ namespace slib
 
 					leveldb::Options options;
 					options.create_if_missing = (bool)(param.flagCreateIfMissing);
+					options.write_buffer_size = (size_t)(param.writeBufferSize);
+					options.block_size = (size_t)(param.blockSize);
+					options.max_open_files = (size_t)(param.maxOpenFile);
+					options.max_file_size = (size_t)(param.maxFileSize);
 
 					EncryptionEnv* encryptionEnv = sl_null;
 					if (param.encryptionKey.isNotNull()) {
