@@ -414,9 +414,9 @@ namespace slib
 					options.create_if_missing = (bool)(param.flagCreateIfMissing);
 					options.write_buffer_size = (size_t)(param.writeBufferSize);
 					options.block_size = (size_t)(param.blockSize);
-					options.max_open_files = (size_t)(param.maxOpenFile);
+					options.max_open_files = (int)(param.maxOpenFile);
 					options.max_file_size = (size_t)(param.maxFileSize);
-					options.compression = (leveldb::CompressionType)param.compressType;
+					options.compression = (leveldb::CompressionType)(param.compression);
 
 					EncryptionEnv* encryptionEnv = sl_null;
 					if (param.encryptionKey.isNotNull()) {
@@ -772,6 +772,13 @@ namespace slib
 	LevelDB_Param::LevelDB_Param()
 	{
 		flagCreateIfMissing = sl_true;
+
+		writeBufferSize = 4 * 1024 * 1024;
+		blockSize = 4096;
+		maxOpenFile = 1000;
+		maxFileSize = 2 * 1024 * 1024;
+
+		compression = LevelDB_CompressionType::None;
 	}
 
 
