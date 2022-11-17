@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -1568,7 +1568,34 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR(borderless, setBorderless)
 		LAYOUT_CONTROL_GENERIC_ATTR(titleBar, setTitleBarVisible)
 		LAYOUT_CONTROL_GENERIC_ATTR(fullScreen, setFullScreen)
-		LAYOUT_CONTROL_GENERIC_ATTR(centerScreen, setCenterScreen)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(centerScreen, setCenterScreen)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginLeft, setMarginLeft, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginTop, setMarginTop, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginRight, setMarginRight, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginBottom, setMarginBottom, checkForWindow)
+		if (op == OP_PARSE) {
+			SAppDimensionValue margin;
+			LAYOUT_CONTROL_PARSE_DIMENSION_ATTR(, margin)
+			if (!(margin.checkForWindow())) {
+				LOG_ERROR_LAYOUT_CONTROL_ATTR(margin)
+				return sl_false;
+			}
+			if (margin.flagDefined) {
+				if (!(attr->marginLeft.flagDefined)) {
+					attr->marginLeft = margin;
+				}
+				if (!(attr->marginTop.flagDefined)) {
+					attr->marginTop = margin;
+				}
+				if (!(attr->marginRight.flagDefined)) {
+					attr->marginRight = margin;
+				}
+				if (!(attr->marginBottom.flagDefined)) {
+					attr->marginBottom = margin;
+				}
+			}
+		}
 
 		LAYOUT_CONTROL_MENU_ATTR(menu, setMenu)
 		LAYOUT_CONTROL_STRING_ATTR(title, setTitle)
@@ -1582,14 +1609,18 @@ namespace slib
 			LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
 			if (attr->width.flagDefined) {
 				if (attr->width.unit == SAppDimensionValue::WRAP) {
-					params->sbDefineInit->add(String::format("%s%s->setWidthWrapping();%n", strTab, name));
+					params->sbDefineInit->add(String::format("%s%s->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
+				} else if (attr->width.unit == SAppDimensionValue::FILL) {
+					params->sbDefineInit->add(String::format("%s%s->setWidthFilling(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
 				} else {
 					LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
 				}
 			}
 			if (attr->height.flagDefined) {
 				if (attr->height.unit == SAppDimensionValue::WRAP) {
-					params->sbDefineInit->add(String::format("%s%s->setHeightWrapping();%n", strTab, name));
+					params->sbDefineInit->add(String::format("%s%s->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
+				} else if (attr->height.unit == SAppDimensionValue::FILL) {
+					params->sbDefineInit->add(String::format("%s%s->setHeightFilling(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
 				} else {
 					LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
 				}
@@ -1601,14 +1632,18 @@ namespace slib
 				LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
 				if (attr->width.flagDefined) {
 					if (attr->width.unit == SAppDimensionValue::WRAP) {
-						view->setWidthWrapping();
+						view->setWidthWrapping(sl_true, UIUpdateMode::Init);
+					} else if (attr->width.unit == SAppDimensionValue::FILL) {
+						view->setWidthFilling(sl_true, UIUpdateMode::Init);
 					} else {
 						LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
 					}
 				}
 				if (attr->height.flagDefined) {
 					if (attr->height.unit == SAppDimensionValue::WRAP) {
-						view->setHeightWrapping();
+						view->setHeightWrapping(sl_true, UIUpdateMode::Init);
+					} else if (attr->height.unit == SAppDimensionValue::FILL) {
+						view->setHeightFilling(sl_true, UIUpdateMode::Init);
 					} else {
 						LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
 					}

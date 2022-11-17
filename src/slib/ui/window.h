@@ -17,34 +17,12 @@ namespace slib
 			class WindowHelper : public Window
 			{
 			public:
-				UIRect makeFrame()
-				{
-					UIRect frameScreen;
-					Ref<Screen> screen = m_screen;
-					if (screen.isNotNull()) {
-						frameScreen = screen->getRegion();
-					} else {
-						frameScreen = UI::getScreenRegion();
-					}
-					UIRect frame;
-					if (m_flagFullScreen) {
-						frame.setLeftTop(0, 0);
-						frame.setSize(frameScreen.getSize());
-					} else {
-						frame = getFrame();
-						if (isCenterScreen()) {
-							frame.setLocation(frameScreen.getWidth() / 2 - frame.getWidth() / 2, frameScreen.getHeight() / 2 - frame.getHeight() / 2);
-						}
-					}
-					frame.fixSizeError();
-					return frame;
-				}
-
+				using Window::_makeFrame;
 			};
 
 			SLIB_INLINE static UIRect MakeWindowFrame(Window* window)
 			{
-				return ((WindowHelper*)window)->makeFrame();
+				return ((WindowHelper*)window)->_makeFrame();
 			}
 
 		}

@@ -234,6 +234,11 @@ namespace slib
 		SAppBooleanValue titleBar;
 		SAppBooleanValue fullScreen;
 		SAppBooleanValue centerScreen;
+		SAppAlignmentValue gravity;
+		SAppDimensionValue marginLeft;
+		SAppDimensionValue marginTop;
+		SAppDimensionValue marginRight;
+		SAppDimensionValue marginBottom;
 	};
 
 	class SAppLayoutViewAttributes : public Referable

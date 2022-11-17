@@ -121,6 +121,14 @@ namespace slib
 
 		void setHeightWrapping(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		sl_bool isWidthFilling();
+
+		void setWidthFilling(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		sl_bool isHeightFilling();
+
+		void setHeightFilling(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 
 		UIRect getClientFrame();
 
@@ -318,39 +326,37 @@ namespace slib
 
 		const Alignment& getGravity();
 
-		void setGravity(const Alignment& align, sl_bool flagFixed = sl_false);
-
-		void setFixedGravity(const Alignment& align);
-
-		sl_bool isFixedGravity();
+		void setGravity(const Alignment& align, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isCenterScreen();
 
-		void setCenterScreen(sl_bool flag = sl_true, sl_bool flagFixed = sl_false);
+		void setCenterScreen(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_ui_pos getMarginLeft();
 
-		void setMarginLeft(sl_ui_pos margin);
+		void setMarginLeft(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_ui_pos getMarginTop();
 
-		void setMarginTop(sl_ui_pos margin);
+		void setMarginTop(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_ui_pos getMarginRight();
 
-		void setMarginRight(sl_ui_pos margin);
+		void setMarginRight(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_ui_pos getMarginBottom();
 
-		void setMarginBottom(sl_ui_pos margin);
+		void setMarginBottom(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		void setMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom);
+		void setMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		void setMargin(sl_ui_pos margin);
+		void setMargin(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		const UIEdgeInsets& getMargin();
 
-		void setMargin(const UIEdgeInsets& margin);
+		void setMargin(const UIEdgeInsets& margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void updateFrame(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 
 		sl_bool isModal();
@@ -487,9 +493,7 @@ namespace slib
 
 		void _applyContentWrappingSize();
 
-		void _updatePosition(Timer* timer = sl_null);
-
-		static void _adjustPosition(UIPoint& pt, const Ref<Screen>& screen, sl_ui_len windowWidth, sl_ui_len windowHeight, const Alignment& gravity, const UIEdgeInsets& margin);
+		UIRect _makeFrame();
 
 		sl_bool _getClientInsets(UIEdgeInsets& _out);
 
@@ -514,9 +518,7 @@ namespace slib
 		float m_aspectRatioMinimum;
 		float m_aspectRatioMaximum;
 		Alignment m_gravity;
-		sl_bool m_flagGravityFixed;
 		UIEdgeInsets m_margin;
-		Atomic< Ref<Timer> > m_timerUpdatePosition;
 
 		sl_bool m_flagVisible : 1;
 		sl_bool m_flagMinimized : 1;
@@ -539,6 +541,8 @@ namespace slib
 		sl_bool m_flagShowTitleBar : 1;
 		sl_bool m_flagWidthWrapping : 1;
 		sl_bool m_flagHeightWrapping : 1;
+		sl_bool m_flagWidthFilling : 1;
+		sl_bool m_flagHeightFilling : 1;
 		sl_bool m_flagCloseOnOK : 1;
 
 		sl_bool m_flagStateResizingWidth : 1;

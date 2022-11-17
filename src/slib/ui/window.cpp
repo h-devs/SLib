@@ -51,7 +51,6 @@ namespace slib
 		m_aspectRatioMinimum = 0;
 		m_aspectRatioMaximum = 0;
 		m_gravity = Alignment::Default;
-		m_flagGravityFixed = sl_false;
 
 		m_flagVisible = sl_true;
 		m_flagMinimized = sl_false;
@@ -79,6 +78,8 @@ namespace slib
 		m_flagShowTitleBar = sl_true;
 		m_flagWidthWrapping = sl_false;
 		m_flagHeightWrapping = sl_false;
+		m_flagWidthFilling = sl_false;
+		m_flagHeightFilling = sl_false;
 		m_flagCloseOnOK = sl_false;
 
 		m_flagStateResizingWidth = sl_false;
@@ -359,6 +360,32 @@ namespace slib
 			if (SLIB_UI_UPDATE_MODE_IS_UPDATE_LAYOUT(mode)) {
 				_applyContentWrappingSize();
 			}
+		}
+	}
+
+	sl_bool Window::isWidthFilling()
+	{
+		return m_flagWidthFilling;
+	}
+
+	void Window::setWidthFilling(sl_bool flag, UIUpdateMode mode)
+	{
+		m_flagWidthFilling = flag;
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
+	}
+
+	sl_bool Window::isHeightFilling()
+	{
+		return m_flagHeightFilling;
+	}
+
+	void Window::setHeightFilling(sl_bool flag, UIUpdateMode mode)
+	{
+		m_flagHeightFilling = flag;
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
 		}
 	}
 
@@ -1069,28 +1096,12 @@ namespace slib
 		return m_gravity;
 	}
 
-	void Window::setGravity(const Alignment& align, sl_bool flagFixed)
+	void Window::setGravity(const Alignment& align, UIUpdateMode mode)
 	{
 		m_gravity = align;
-		m_flagGravityFixed = flagFixed;
-		_updatePosition();
-		if (flagFixed) {
-			if (m_timerUpdatePosition.isNull()) {
-				m_timerUpdatePosition = Timer::startWithDispatcher(UI::getDispatcher(), SLIB_FUNCTION_WEAKREF(this, _updatePosition), 1000);
-			}
-		} else {
-			m_timerUpdatePosition.setNull();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
 		}
-	}
-
-	void Window::setFixedGravity(const Alignment& align)
-	{
-		setGravity(align, sl_true);
-	}
-
-	sl_bool Window::isFixedGravity()
-	{
-		return m_flagGravityFixed;
 	}
 
 	sl_bool Window::isCenterScreen()
@@ -1098,13 +1109,13 @@ namespace slib
 		return m_gravity == Alignment::MiddleCenter;
 	}
 
-	void Window::setCenterScreen(sl_bool flag, sl_bool flagFixed)
+	void Window::setCenterScreen(sl_bool flag, UIUpdateMode mode)
 	{
 		if (flag) {
-			setGravity(Alignment::MiddleCenter, flagFixed);
+			setGravity(Alignment::MiddleCenter, mode);
 		} else {
 			if (m_gravity == Alignment::MiddleCenter) {
-				setGravity(Alignment::Default, flagFixed);
+				setGravity(Alignment::Default, mode);
 			}
 		}
 	}
@@ -1114,10 +1125,12 @@ namespace slib
 		return m_margin.left;
 	}
 
-	void Window::setMarginLeft(sl_ui_pos margin)
+	void Window::setMarginLeft(sl_ui_pos margin, UIUpdateMode mode)
 	{
 		m_margin.left = margin;
-		_updatePosition();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
 	}
 
 	sl_ui_pos Window::getMarginTop()
@@ -1125,10 +1138,12 @@ namespace slib
 		return m_margin.top;
 	}
 
-	void Window::setMarginTop(sl_ui_pos margin)
+	void Window::setMarginTop(sl_ui_pos margin, UIUpdateMode mode)
 	{
 		m_margin.top = margin;
-		_updatePosition();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
 	}
 
 	sl_ui_pos Window::getMarginRight()
@@ -1136,10 +1151,12 @@ namespace slib
 		return m_margin.right;
 	}
 
-	void Window::setMarginRight(sl_ui_pos margin)
+	void Window::setMarginRight(sl_ui_pos margin, UIUpdateMode mode)
 	{
 		m_margin.right = margin;
-		_updatePosition();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
 	}
 
 	sl_ui_pos Window::getMarginBottom()
@@ -1147,28 +1164,34 @@ namespace slib
 		return m_margin.bottom;
 	}
 
-	void Window::setMarginBottom(sl_ui_pos margin)
+	void Window::setMarginBottom(sl_ui_pos margin, UIUpdateMode mode)
 	{
 		m_margin.bottom = margin;
-		_updatePosition();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
 	}
 
-	void Window::setMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom)
+	void Window::setMargin(sl_ui_pos left, sl_ui_pos top, sl_ui_pos right, sl_ui_pos bottom, UIUpdateMode mode)
 	{
 		m_margin.left = left;
 		m_margin.top = top;
 		m_margin.right = right;
 		m_margin.bottom = bottom;
-		_updatePosition();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
 	}
 
-	void Window::setMargin(sl_ui_pos margin)
+	void Window::setMargin(sl_ui_pos margin, UIUpdateMode mode)
 	{
 		m_margin.left = margin;
 		m_margin.top = margin;
 		m_margin.right = margin;
 		m_margin.bottom = margin;
-		_updatePosition();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
 	}
 
 	const UIEdgeInsets& Window::getMargin()
@@ -1176,10 +1199,24 @@ namespace slib
 		return m_margin;
 	}
 
-	void Window::setMargin(const UIEdgeInsets& margin)
+	void Window::setMargin(const UIEdgeInsets& margin, UIUpdateMode mode)
 	{
 		m_margin = margin;
-		_updatePosition();
+		if (m_instance.isNotNull()) {
+			updateFrame(mode);
+		}
+	}
+
+	void Window::updateFrame(UIUpdateMode mode)
+	{
+		if (SLIB_UI_UPDATE_MODE_IS_UPDATE_LAYOUT(mode)) {
+			if (m_flagFullScreen || m_flagWidthFilling || m_flagHeightFilling || m_gravity != Alignment::Default) {
+				UIRect frame = _makeFrame();
+				if (!(m_frame.isAlmostEqual(frame))) {
+					setFrame(frame);
+				}
+			}
+		}
 	}
 
 	sl_bool Window::isCloseOnOK()
@@ -1792,39 +1829,45 @@ namespace slib
 		m_viewContent->applyWrappingContentSize();
 	}
 
-	void Window::_updatePosition(Timer*)
+	UIRect Window::_makeFrame()
 	{
-		if (!m_flagGravityFixed) {
-			return;
-		}
-		if (m_instance.isNull()) {
-			return;
-		}
-		UIRect rect = getFrame();
-		UIPoint pt = rect.getLocation();
-		_adjustPosition(pt, m_screen, rect.getWidth(), rect.getHeight(), m_gravity, m_margin);
-		rect.setLocation(pt);
-		setFrame(rect);
-	}
-
-	void Window::_adjustPosition(UIPoint& pt, const Ref<Screen>& screen, sl_ui_len windowWidth, sl_ui_len windowHeight, const Alignment& gravity, const UIEdgeInsets& margin)
-	{
-		UIRect rectScreen = UI::getScreenWorkingRegion(screen);
-		Alignment horz = gravity & Alignment::HorizontalMask;
-		if (horz == Alignment::Left) {
-			pt.x = rectScreen.left + margin.left;
-		} else if (horz == Alignment::Right) {
-			pt.x = rectScreen.right - margin.right - windowWidth;
-		} else if (horz == Alignment::Center) {
-			pt.x = (rectScreen.right - margin.right + rectScreen.left + margin.left - windowWidth) / 2;
-		}
-		Alignment vert = gravity & Alignment::VerticalMask;
-		if (vert == Alignment::Top) {
-			pt.y = rectScreen.top + margin.top;
-		} else if (vert == Alignment::Bottom) {
-			pt.y = rectScreen.bottom - margin.bottom - windowHeight;
-		} else if (vert == Alignment::Middle) {
-			pt.y = (rectScreen.bottom - margin.bottom + rectScreen.top + margin.top - windowHeight) / 2;
+		if (m_flagFullScreen) {
+			return UI::getScreenRegion(m_screen);
+		} else {
+			UIRect frame = getFrame();
+			Alignment gravity = m_gravity;
+			Alignment horz = gravity & Alignment::HorizontalMask;
+			Alignment vert = gravity & Alignment::VerticalMask;
+			UIRect rectScreen = UI::getScreenWorkingRegion(m_screen);
+			UIEdgeInsets& margin = m_margin;
+			if (m_flagWidthFilling) {
+				horz = 0;
+				frame.left = rectScreen.left + margin.left;
+				frame.right = rectScreen.right - margin.right;
+			}
+			if (m_flagHeightFilling) {
+				vert = 0;
+				frame.top = rectScreen.top + margin.top;
+				frame.bottom = rectScreen.bottom - margin.bottom;
+			}
+			if (gravity != Alignment::Default) {
+				if (horz == Alignment::Left) {
+					frame.setLocationLeft(rectScreen.left + margin.left);
+				} else if (horz == Alignment::Right) {
+					frame.setLocationRight(rectScreen.right - margin.right);
+				} else if (horz == Alignment::Center) {
+					frame.setLocationLeft((rectScreen.right - margin.right + rectScreen.left + margin.left - frame.getWidth()) / 2);
+				}
+				if (vert == Alignment::Top) {
+					frame.setLocationTop(rectScreen.top + margin.top);
+				} else if (vert == Alignment::Bottom) {
+					frame.setLocationBottom(rectScreen.bottom - margin.bottom);
+				} else if (vert == Alignment::Middle) {
+					frame.setLocationTop((rectScreen.bottom - margin.bottom + rectScreen.top + margin.top - frame.getHeight()) / 2);
+				}
+			}
+			frame.fixSizeError();
+			return frame;
 		}
 	}
 

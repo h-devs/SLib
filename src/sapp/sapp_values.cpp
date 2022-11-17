@@ -551,7 +551,7 @@ namespace slib
 		if (!flagDefined) {
 			return sl_true;
 		}
-		if (unit == WRAP) {
+		if (unit == WRAP || unit == FILL) {
 			return sl_true;
 		}
 		return amount >= 0 && isGlobalUnit(unit);
@@ -1929,11 +1929,13 @@ namespace slib
 			if (item == "top") {
 				v |= Alignment::Top;
 			} else if (item == "middle") {
+				v |= Alignment::Middle;
 			} else if (item == "bottom") {
 				v |= Alignment::Bottom;
 			} else if (item == "left") {
 				v |= Alignment::Left;
 			} else if (item == "center") {
+				v |= Alignment::Center;
 			} else if (item == "right") {
 				v |= Alignment::Right;
 			} else {
