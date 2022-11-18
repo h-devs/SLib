@@ -33,6 +33,13 @@ namespace slib
 	class LevelDB_Param
 	{
 	public:
+		enum CompressionType {
+			// NOTE: do not change the values of existing entries, as these are
+			// part of the persistent format on disk.
+			kNoCompression = 0x0,
+			kSnappyCompression = 0x1
+		};
+
 		StringParam path;
 		StringParam encryptionKey;
 
@@ -40,6 +47,7 @@ namespace slib
 		sl_uint64 blockSize = 4096;
 		sl_uint64 maxOpenFile = 1000;
 		sl_uint64 maxFileSize = 2 * 1024 * 1024;
+		CompressionType compressType = CompressionType::kNoCompression;
 
 		sl_bool flagCreateIfMissing = sl_false;
 
