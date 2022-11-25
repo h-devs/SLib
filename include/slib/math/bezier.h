@@ -261,19 +261,129 @@ namespace slib
 
 		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x0, T y0, T rx, T ry, T rotation, sl_bool large_arc_flag, sl_bool sweep_flag, T x2, T y2)
 		{
-			sl_uint32 n = convertArcToBezier(pts, x0, y0, rx, ry, large_arc_flag, sweep_flag, x2, y2);
+			T pi = Math::PI<T>();
 
-			// Apply Rotation
+			// Calculate the middle point between the current and the final points
+			T dx2 = (x0 - x2) / 2;
+			T dy2 = (y0 - y2) / 2;
 			T cos_r = Math::cos(rotation);
 			T sin_r = Math::sin(rotation);
-			for (sl_uint32 i = 0; i < n; i++) {
-				auto x = pts[i].x;
-				auto y = pts[i].y;
-				pts[i].x = cos_r * x - sin_r * y;
-				pts[i].y = sin_r * x + cos_r * y;
+
+			// Calculate (x1, y1)
+			T x1 =  cos_r * dx2 + sin_r * dy2;
+			T y1 = -sin_r * dx2 + cos_r * dy2;
+
+			// Ensure radii are large enough
+			T prx = rx * rx;
+			T pry = ry * ry;
+			T px1 = x1 * x1;
+			T py1 = y1 * y1;
+
+			// Check that radii are large enough
+			T radius_check = px1 / prx + py1 / pry;
+			if (radius_check > 1.0) {
+				rx *= Math::sqrt(radius_check);
+				ry *= Math::sqrt(radius_check);
 			}
 
-			return n;
+			// Calculate (cx1, cy1)
+			T sign = (large_arc_flag == sweep_flag) ? (T)-1.0 : (T)1.0;
+			T sq = (prx * pry - prx * py1 - pry * px1) / (prx * py1 + pry * px1);
+			T coef = sign * Math::sqrt((sq < 0) ? 0 : sq);
+			T cx1 = coef *  ((rx * y1) / ry);
+			T cy1 = coef * -((ry * x1) / rx);
+
+			// Calculate (cx, cy) from (cx1, cy1)
+			T sx2 = (x0 + x2) / 2;
+			T sy2 = (y0 + y2) / 2;
+			T cx = sx2 + (cos_r * cx1 - sin_r * cy1);
+			T cy = sy2 + (sin_r * cx1 + cos_r * cy1);
+
+			// Calculate the start_angle (angle1) and the sweep_angle (dangle)
+			T ux = (x1 - cx1) / rx;
+			T uy = (y1 - cy1) / ry;
+			T vx = (-x1 - cx1) / rx;
+			T vy = (-y1 - cy1) / ry;
+			T p, n;
+
+			// Calculate the angle start
+			n = Math::sqrt(ux * ux + uy * uy);
+			p = ux; // (1 * ux) + (0 * uy)
+			sign = (uy < 0) ? (T)-1.0 : (T)1.0;
+			T v = p / n;
+			if (v < -1) v = -1;
+			if (v > 1) v = 1;
+			T start_angle = sign * Math::arccos(v);
+
+			// Calculate the sweep angle
+			n = Math::sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+			p = ux * vx + uy * vy;
+			sign = (ux * vy - uy * vx < 0) ? (T)-1.0 : (T)1.0;
+			v = p / n;
+			if (v < -1) v = -1;
+			if (v > 1) v = 1;
+			T sweep_angle = sign * Math::arccos(v);
+			if (!sweep_flag && sweep_angle > 0)
+			{
+				sweep_angle -= pi * 2;
+			}
+			else if (sweep_flag && sweep_angle < 0)
+			{
+				sweep_angle += pi * 2;
+			}
+			T end_angle = start_angle + sweep_angle;
+
+			sl_bool flagNegative;
+			if (sweep_angle < 0) {
+				flagNegative = sl_true;
+				if (end_angle > start_angle) {
+					end_angle -= 2 * pi;
+				}
+			} else {
+				flagNegative = sl_false;
+				if (end_angle < start_angle) {
+					end_angle += 2 * pi;
+				}
+			}
+			sl_int32 nPts = (sl_int32)(Math::ceil(Math::abs(sweep_angle) / (pi / 2)));
+			if (nPts > 4) {
+				nPts = 4;
+			}
+			nPts *= 3;
+			T s = start_angle;
+			T e = start_angle;
+			CubicBezierCurveT<T> c;
+			for (sl_int32 i = 0; i < nPts; i += 3) {
+				if (flagNegative) {
+					e -= pi / 2;
+				} else {
+					e += pi / 2;
+				}
+				if (i == nPts - 3) {
+					e = end_angle;
+				}
+				c.describeArc(cx, cy, rx, ry, s, e, rotation);
+				if (i == 0) {
+					pts[i].x = c.x0;
+					pts[i].y = c.y0;
+				}
+				pts[i + 1].x = c.x1;
+				pts[i + 1].y = c.y1;
+				pts[i + 2].x = c.x2;
+				pts[i + 2].y = c.y2;
+				pts[i + 3].x = c.x3;
+				pts[i + 3].y = c.y3;
+				if (flagNegative) {
+					s -= pi / 2;
+				} else {
+					s += pi / 2;
+				}
+			}
+			if (nPts == 0) {
+				return 0;
+			} else {
+				return nPts + 1;
+			}
 		}
 
 		void describeArc(T cx, T cy, T rx, T ry, T startRadian, T endRadian) noexcept
@@ -292,6 +402,26 @@ namespace slib
 			y3 = cy + ry * sin2;
 			x2 = x3 + f * sin2 * rx;
 			y2 = y3 - f * cos2 * ry;
+		}
+
+		void describeArc(T cx, T cy, T rx, T ry, T startRadian, T endRadian, T rotation) noexcept
+		{
+			T cos1 = Math::cos(startRadian);
+			T sin1 = Math::sin(startRadian);
+			T cos2 = Math::cos(endRadian);
+			T sin2 = Math::sin(endRadian);
+			T cos_r = Math::cos(rotation);
+			T sin_r = Math::sin(rotation);
+			T m = (endRadian - startRadian) / 2;
+			T f = (1 - Math::cos(m)) / Math::sin(m) * 4 / 3;
+			x0 = cx + rx * cos1 * cos_r - ry * sin1 * sin_r;
+			y0 = cy + ry * sin1 * cos_r + rx * cos1 * sin_r;
+			x1 = x0 - f * sin1 * rx * cos_r - f * cos1 * ry * sin_r;
+			y1 = y0 + f * cos1 * ry * cos_r - f * sin1 * rx * sin_r;
+			x3 = cx + rx * cos2 * cos_r - ry * sin2 * sin_r;
+			y3 = cy + ry * sin2 * cos_r + rx * cos2 * sin_r;
+			x2 = x3 + f * sin2 * rx * cos_r + f * cos2 * ry * sin_r;
+			y2 = y3 - f * cos2 * ry * cos_r + f * sin2 * rx * sin_r;
 		}
 
 	public:
