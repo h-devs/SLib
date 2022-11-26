@@ -1454,5 +1454,8 @@
     <ClCompile Include="..\..\src\slib\graphics\svg.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\css.cpp">
+      <Filter>src\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

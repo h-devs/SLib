@@ -253,6 +253,7 @@
     <ClCompile Include="..\..\src\slib\graphics\canvas_ext.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\canvas_gdi.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\color.cpp" />
+    <ClCompile Include="..\..\src\slib\graphics\css.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\dl_windows_gdiplus.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\dl_windows_t2embed.cpp" />
     <ClCompile Include="..\..\src\slib\graphics\drawable.cpp" />

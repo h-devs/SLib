@@ -26,8 +26,16 @@
 #include "color.h"
 #include "drawable.h"
 
+/*
+	SVG - Scalable Vector Graphics
+*/
+
+typedef float sl_svg_scalar;
+
 namespace slib
 {
+
+	class XmlElement;
 
 	class SLIB_EXPORT Svg : public Drawable
 	{
@@ -46,6 +54,24 @@ namespace slib
 		static Ref<Svg> loadFromFile(const StringParam& filePath);
 
 		static Ref<Svg> loadFromAsset(const StringParam& path);
+
+	public:
+		sl_svg_scalar getMinimumX();
+
+		sl_svg_scalar getMinimumY();
+
+		sl_svg_scalar getWidth();
+
+		sl_svg_scalar getHeight();
+
+	protected:
+		sl_bool _load(XmlElement* root);
+
+	protected:
+		sl_svg_scalar m_minX;
+		sl_svg_scalar m_minY;
+		sl_svg_scalar m_width;
+		sl_svg_scalar m_height;
 
 	};
 

@@ -36,12 +36,11 @@
 #include "graphics/font.h"
 #include "graphics/path.h"
 
+#include "graphics/canvas.h"
 #include "graphics/drawable.h"
 #include "graphics/bitmap.h"
 #include "graphics/image.h"
 #include "graphics/svg.h"
-
-#include "graphics/canvas.h"
 
 #include "graphics/freetype.h"
 
