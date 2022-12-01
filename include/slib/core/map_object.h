@@ -139,8 +139,10 @@ namespace slib
 	template <class CMAP>
 	class MapObject : public MapObject_NoLocking<CMAP>
 	{
+		typedef MapObject_NoLocking<CMAP> Base;
+
 	public:
-		MapObject(CMAP* map): MapObject_NoLocking(map) {}
+		MapObject(CMAP* map): Base(map) {}
 
 	public:
 		Variant getProperty(const String& name) override
@@ -163,15 +165,17 @@ namespace slib
 		sl_bool toJsonString(StringBuffer& buf) override
 		{
 			ObjectLocker lock(m_map);
-			return MapObject_NoLocking::toJsonString(buf);
+			return Base::toJsonString(buf);
 		}
 
 		sl_bool toJsonBinary(MemoryBuffer& buf) override
 		{
 			ObjectLocker lock(m_map);
-			return MapObject_NoLocking::toJsonBinary(buf);
+			return Base::toJsonBinary(buf);
 		}
 
+	protected:
+		using Base::m_map;
 	};
 
 	template <class KT, class VT, class KEY_COMPARE>
