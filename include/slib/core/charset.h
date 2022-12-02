@@ -25,6 +25,22 @@
 
 #include "endian.h"
 
+#define SLIB_CHAR_IS_ALPHA(c) (((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
+#define SLIB_CHAR_IS_ALPHA_UPPER(c) ((c) >= 'A' && (c) <= 'Z')
+#define SLIB_CHAR_IS_ALPHA_LOWER(c) ((c) >= 'a' && (c) <= 'z')
+#define SLIB_CHAR_IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
+#define SLIB_CHAR_IS_ALNUM(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
+#define SLIB_CHAR_IS_HEX(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'F') || ((c) >= 'a' && (c) <= 'f'))
+#define SLIB_CHAR_IS_WHITE_SPACE(c) (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+#define SLIB_CHAR_IS_SPACE_TAB(c) (c == ' ' || c == '\t')
+#define SLIB_CHAR_IS_C_NAME(c) (((c) >= '0' && (c) <= '9') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || c == '_')
+#define SLIB_CHAR_IS_SURROGATE(c) ((c) >= 0xD800 && (c) < 0xE000)
+
+#define SLIB_CHAR_DIGIT_TO_INT(c) (((c) >= '0' && (c) <= '9') ? ((c) - '0') : 10)
+#define SLIB_CHAR_HEX_TO_INT(c) (((c) >= '0' && (c) <= '9') ? ((c) - '0') : (((c) >= 'A' && (c) <= 'F') ? ((c) -  55) : ((c) >= 'a' && (c) <= 'f') ? ((c) -  87) : 16))
+#define SLIB_CHAR_UPPER_TO_LOWER(c) (((c) >= 'A' && (c) <= 'Z')?((c) + ('a' - 'A')):(c))
+#define SLIB_CHAR_LOWER_TO_UPPER(c) (((c) >= 'a' && (c) <= 'z')?((c) - ('a' - 'A')):(c))
+
 namespace slib
 {
 
@@ -309,6 +325,14 @@ namespace slib
 
 
 		static sl_bool checkUtf8(const void* utf8, sl_size size);
+
+		static sl_size getUtf8(sl_char32 code, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
+
+		static sl_size getUtf16(sl_char32 code, sl_char16* utf16, sl_reg lenUtf8Buffer) noexcept;
+
+		static sl_bool getUnicode(sl_char32& outCode, const sl_char8* utf8, sl_size lenUtf8, sl_size& posUtf8);
+
+		static sl_bool getUnicode(sl_char32& outCode, const sl_char16* utf16, sl_size lenUtf16, sl_size& posUtf16);
 
 	};
 
