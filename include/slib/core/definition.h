@@ -58,7 +58,7 @@ typedef size_t				sl_size_t;
 
 #	define SLIB_STDCALL		__attribute__((stdcall))
 #	define SLIB_INLINE		inline __attribute__((always_inline))
-#	if __GNUC__ >= 5
+#	if __GNUC__ >= 6
 #	    define SLIB_CONSTEXPR	constexpr
 #   else
 #	    define SLIB_CONSTEXPR

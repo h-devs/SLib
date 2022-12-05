@@ -120,13 +120,14 @@ namespace slib
 	template <class T>
 	class ListCollection : public ListCollection_NoLocking<T>
 	{
-	public:
-		ListCollection(const List<T>& list): ListCollection_NoLocking(list) {}
-
-		ListCollection(CList<T>* list): ListCollection_NoLocking(list) {}
+		typedef ListCollection_NoLocking<T> Base;
 
 	public:
+		ListCollection(const List<T>& list): Base(list) {}
 
+		ListCollection(CList<T>* list): Base(list) {}
+
+	public:
 		Variant getElement(sl_uint64 index) override
 		{
 			return m_list->getAt((sl_size)index);
@@ -135,7 +136,7 @@ namespace slib
 		sl_bool setElement(sl_uint64 index, const Variant& item) override
 		{
 			ObjectLocker lock(m_list.get());
-			return ListCollection_NoLocking::setElement(index, item);
+			return Base::setElement(index, item);
 		}
 
 		sl_bool addElement(const Variant& item) override
@@ -148,14 +149,17 @@ namespace slib
 		sl_bool toJsonString(StringBuffer& buf) override
 		{
 			ObjectLocker lock(m_list.get());
-			return ListCollection_NoLocking::toJsonString(buf);
+			return Base::toJsonString(buf);
 		}
 
 		sl_bool toJsonBinary(MemoryBuffer& buf) override
 		{
 			ObjectLocker lock(m_list.get());
-			return ListCollection_NoLocking::toJsonBinary(buf);
+			return Base::toJsonBinary(buf);
 		}
+
+	protected:
+		using Base::m_list;
 
 	};
 
