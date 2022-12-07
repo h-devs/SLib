@@ -95,7 +95,10 @@ namespace slib
 	class SLIB_EXPORT CascadingStyleSelector : public Referable
 	{
 	public:
+		String namespaceName;
+		sl_bool flagNamespace;
 		String elementName;
+		sl_bool flagUniversal;
 		String className;
 		String id;
 		List<CascadingStyleAttributeMatch> attributes;

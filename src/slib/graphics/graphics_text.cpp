@@ -318,32 +318,31 @@ namespace slib
 			return;
 		}
 		String16 str = m_text;
-		sl_char16* sz = str.getData();
+		sl_char16* data = str.getData();
 		sl_size len = str.getLength();
 		if (!len) {
 			return;
 		}
-		String16 s = String16::allocate(1);
-		sl_char16* t = s.getData();
 		for (sl_size i = 0; i < len; i++) {
-			sl_char16 ch = sz[i];
-			if (ch >= 0xD800 && ch < 0xE000) {
+			sl_char16 ch = data[i];
+			if (SLIB_CHAR_IS_SURROGATE(ch)) {
 				if (i + 1 < len) {
-					sl_uint32 ch1 = (sl_uint32)((sl_uint16)sz[++i]);
-					if (ch < 0xDC00 && ch1 >= 0xDC00 && ch1 < 0xE000) {
-						sl_char32 c32 = (sl_char32)(((ch - 0xD800) << 10) | (ch1 - 0xDC00)) + 0x10000;
-						Size size = atlas->getFontSize(c32);
-						String16 s32 = String16::create(&c32, 1);
-						dp.text = s32;
-						dp.x = x;
-						canvas->drawText(dp);
-						x += size.x;
+					sl_uint16 ch1 = data[++i];
+					if (SLIB_CHAR_IS_SURROGATE(ch1)) {
+						sl_char32 ch32 = Charsets::getUnicodeFromSurrogateCharacters(ch, ch1);
+						if (ch32) {
+							Size size = atlas->getFontSize(ch32);
+							sl_char16 s[2] = {ch, ch1};
+							dp.text = StringView16(s, 2);
+							dp.x = x;
+							canvas->drawText(dp);
+							x += size.x;
+						}
 					}
 				}
 			} else {
 				Size size = atlas->getFontSize(ch);
-				t[0] = ch;
-				dp.text = s;
+				dp.text = StringView16(&ch, 1);
 				dp.x = x;
 				canvas->drawText(dp);
 				x += size.x;
@@ -588,128 +587,114 @@ namespace slib
 
 		ObjectLocker lock(this);
 
-		sl_char16* sz = text.getData();
+		sl_char16* data = text.getData();
 		sl_size len = text.getLength();
 		sl_size startWord = 0;
 		sl_size pos = 0;
 		while (pos < len) {
-			sl_char32 ch = sz[pos];
-			sl_bool flagUtf32 = sl_false;
-			if (ch >= 0xD800 && ch < 0xE000) {
-				flagUtf32 = sl_true;
-				if (pos + 1 < len) {
-					sl_uint32 ch1 = (sl_uint32)((sl_uint16)sz[pos + 1]);
-					if (ch < 0xDC00 && ch1 >= 0xDC00 && ch1 < 0xE000) {
-						ch = (sl_char32)(((ch - 0xD800) << 10) | (ch1 - 0xDC00)) + 0x10000;
-					} else {
-						ch = '?';
-					}
-				} else {
-					ch = '?';
-				}
+			sl_size oldPos = pos;
+			sl_uint32 ch;
+			if (!(Charsets::getUnicode(*((sl_char32*)&ch), data, len, pos))) {
+				ch = '?';
+				pos++;
 			}
 			sl_bool flagEmoji = sl_false;
 			if (ch >= 0x80 && Emoji::isEmoji(ch)) {
 				flagEmoji = sl_true;
 			}
 #define BEGIN_ADD_TEXT_CASE \
-				if (startWord < pos) { \
-					Ref<TextWordItem> item = TextWordItem::create(String16(sz + startWord, pos - startWord), style, flagEnabledHyperlinksInPlainText); \
+				if (startWord < oldPos) { \
+					Ref<TextWordItem> item = TextWordItem::create(String16(data + startWord, oldPos - startWord), style, flagEnabledHyperlinksInPlainText); \
 					if (item.isNotNull()) { \
 						m_items.add_NoLock(item); \
-						m_positionLength += pos - startWord; \
+						m_positionLength += oldPos - startWord; \
 					} \
 				}
 #define END_ADD_TEXT_CASE \
-				startWord = pos + 1; \
-				flagUtf32 = sl_false; \
+				startWord = pos; \
 				break
 			switch (ch) {
-			case ' ':
-			case 0xA0: /*nbsp*/
-				BEGIN_ADD_TEXT_CASE {
-					Ref<TextSpaceItem> item = TextSpaceItem::create(style);
-					if (item.isNotNull()) {
-						m_items.add_NoLock(item);
-						m_positionLength++;
-					}
-				} END_ADD_TEXT_CASE;
-			case '\t':
-				BEGIN_ADD_TEXT_CASE {
-					Ref<TextTabItem> item = TextTabItem::create(style);
-					if (item.isNotNull()) {
-						m_items.add_NoLock(item);
-						m_positionLength++;
-					}
-				} END_ADD_TEXT_CASE;
-			case '\r':
-			case '\n':
-				BEGIN_ADD_TEXT_CASE {
-					Ref<TextLineBreakItem> item = TextLineBreakItem::create(style);
-					if (item.isNotNull()) {
-						m_items.add_NoLock(item);
-						m_positionLength++;
-					}
-					if (ch == '\r' && pos + 1 < len) {
-						if (sz[pos + 1] == '\n') {
-							pos++;
-						}
-					}
-				} END_ADD_TEXT_CASE;
-			default:
-				if (flagEmoji) {
+				case ' ':
+				case 0xA0: /*nbsp*/
 					BEGIN_ADD_TEXT_CASE {
-						sl_size lenEmoji = Emoji::getEmojiLength(sz + pos, len - pos);
-						if (lenEmoji) {
-							Ref<TextEmojiItem> item = TextEmojiItem::create(String16(sz + pos, lenEmoji), style);
-							if (item.isNotNull()) {
-								m_items.add_NoLock(item);
-								m_positionLength++;
-							}
-							pos = pos + lenEmoji - 1;
+						Ref<TextSpaceItem> item = TextSpaceItem::create(style);
+						if (item.isNotNull()) {
+							m_items.add_NoLock(item);
+							m_positionLength++;
 						}
 					} END_ADD_TEXT_CASE;
-				} else if (flagMnemonic && ch == '&') {
-					if (pos + 1 < len) {
-						ch = sz[pos + 1];
-						if (SLIB_CHAR_IS_ALNUM(ch)) {
-							BEGIN_ADD_TEXT_CASE {
-								Ref<TextStyle> _style = style;
-								if (!(style->flagUnderline)) {
-									_style = style->duplicate();
-									if (_style.isNotNull()) {
-										_style->flagUnderline = sl_true;
-									} else {
-										_style = style;
+				case '\t':
+					BEGIN_ADD_TEXT_CASE {
+						Ref<TextTabItem> item = TextTabItem::create(style);
+						if (item.isNotNull()) {
+							m_items.add_NoLock(item);
+							m_positionLength++;
+						}
+					} END_ADD_TEXT_CASE;
+				case '\r':
+				case '\n':
+					BEGIN_ADD_TEXT_CASE {
+						Ref<TextLineBreakItem> item = TextLineBreakItem::create(style);
+						if (item.isNotNull()) {
+							m_items.add_NoLock(item);
+							m_positionLength++;
+						}
+						if (ch == '\r' && pos < len) {
+							if (data[pos] == '\n') {
+								pos++;
+							}
+						}
+					} END_ADD_TEXT_CASE;
+				default:
+					if (flagEmoji) {
+						BEGIN_ADD_TEXT_CASE {
+							sl_size lenEmoji = Emoji::getEmojiLength(data + oldPos, len - oldPos);
+							if (lenEmoji) {
+								Ref<TextEmojiItem> item = TextEmojiItem::create(String16(data + oldPos, lenEmoji), style);
+								if (item.isNotNull()) {
+									m_items.add_NoLock(item);
+									m_positionLength++;
+								}
+								pos = oldPos + lenEmoji;
+							}
+						} END_ADD_TEXT_CASE;
+					} else if (flagMnemonic && ch == '&') {
+						if (pos < len) {
+							ch = data[pos];
+							if (SLIB_CHAR_IS_ALNUM(ch)) {
+								BEGIN_ADD_TEXT_CASE {
+									Ref<TextStyle> _style = style;
+									if (!(style->flagUnderline)) {
+										_style = style->duplicate();
+										if (_style.isNotNull()) {
+											_style->flagUnderline = sl_true;
+										} else {
+											_style = style;
+										}
 									}
-								}
-								Ref<TextWordItem> item = TextWordItem::create(String16((sl_char16)ch, 1), _style);
-								if (item.isNotNull()) {
-									m_items.add_NoLock(item);
-									m_positionLength++;
-								}
-								pos++;
-								flagMnemonic = sl_false;
-							} END_ADD_TEXT_CASE;
-						} else if (ch == '&') {
-							BEGIN_ADD_TEXT_CASE {
-								SLIB_STATIC_STRING16(s, "&")
-								Ref<TextWordItem> item = TextWordItem::create(s, style);
-								if (item.isNotNull()) {
-									m_items.add_NoLock(item);
-									m_positionLength++;
-								}
-								pos++;
-							} END_ADD_TEXT_CASE;
+									Ref<TextWordItem> item = TextWordItem::create(String16((sl_char16)ch, 1), _style);
+									if (item.isNotNull()) {
+										m_items.add_NoLock(item);
+										m_positionLength++;
+									}
+									pos++;
+									flagMnemonic = sl_false;
+								} END_ADD_TEXT_CASE;
+							} else if (ch == '&') {
+								BEGIN_ADD_TEXT_CASE {
+									SLIB_STATIC_STRING16(s, "&")
+									Ref<TextWordItem> item = TextWordItem::create(s, style);
+									if (item.isNotNull()) {
+										m_items.add_NoLock(item);
+										m_positionLength++;
+									}
+									pos++;
+								} END_ADD_TEXT_CASE;
+							}
 						}
 					}
-				}
-				break;
+					break;
 			}
-			if (flagUtf32) {
-				pos++;
-			}
-			pos++;
 		}
 		if (startWord == 0) {
 			Ref<TextWordItem> item = TextWordItem::create(text, style, flagEnabledHyperlinksInPlainText);
@@ -718,7 +703,7 @@ namespace slib
 				m_positionLength += len;
 			}
 		} else if (startWord < len) {
-			Ref<TextWordItem> item = TextWordItem::create(String16(sz + startWord, len - startWord), style, flagEnabledHyperlinksInPlainText);
+			Ref<TextWordItem> item = TextWordItem::create(String16(data + startWord, len - startWord), style, flagEnabledHyperlinksInPlainText);
 			if (item.isNotNull()) {
 				m_items.add_NoLock(item);
 				m_positionLength += len - startWord;

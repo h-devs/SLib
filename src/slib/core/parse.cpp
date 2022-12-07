@@ -190,6 +190,86 @@ namespace slib
 			}
 
 			template <class CHAR>
+			static sl_bool ParseHexValue(const CHAR* src, sl_size len, sl_size& pos, sl_uint32& value)
+			{
+				sl_uint32 h = SLIB_CHAR_HEX_TO_INT(src[pos]);
+				if (h < 16) {
+					value = h;
+					pos++;
+					while (pos < len) {
+						h = SLIB_CHAR_HEX_TO_INT(src[pos]);
+						if (h < 16) {
+							value = (value << 4) | h;
+							pos++;
+						} else {
+							break;
+						}
+					}
+					return sl_true;
+				} else {
+					return sl_false;
+				}
+			}
+
+			template <class CHAR>
+			static sl_bool ParseHexValue_FixedLength(const CHAR* src, sl_size countDigits, sl_size& pos, sl_uint32& value)
+			{
+				for (sl_size i = 0; i < countDigits; i++) {
+					sl_uint32 h = SLIB_CHAR_HEX_TO_INT(src[pos]);
+					if (h < 16) {
+						value = (value << 4) | h;
+						i++;
+					} else {
+						return sl_false;
+					}
+					pos++;
+				}
+				return sl_true;
+			}
+
+			template <class CHAR>
+			static void ParseOctetValue(const CHAR* src, sl_size len, sl_size& pos, sl_uint32& value)
+			{
+				while (pos < len) {
+					CHAR ch = src[pos];
+					if (ch >= '0' && ch < '8') {
+						value = (value << 3) | (ch - '0');
+						pos++;
+					} else {
+						break;
+					}
+				}
+			}
+
+			SLIB_INLINE static sl_size GetUtf(sl_char32 code, sl_char8* buf)
+			{
+				return Charsets::getUtf8(code, buf, 6);
+			}
+
+			SLIB_INLINE static sl_size GetUtf(sl_char32 code, sl_char16* buf)
+			{
+				return Charsets::getUtf16(code, buf, 2);
+			}
+
+			SLIB_INLINE static sl_size GetUtf(sl_char32 code, sl_char32* buf)
+			{
+				if (buf) {
+					*buf = code;
+				}
+				return 1;
+			}
+
+			template <class CHAR>
+			SLIB_INLINE static void PutChar(CHAR* buf, sl_size& pos, CHAR ch)
+			{
+				if (buf) {
+					buf[pos++] = ch;
+				} else {
+					pos++;
+				}
+			}
+
+			template <class CHAR>
 			static sl_size ParseBackslashEscapes(const CHAR* src, sl_size lengthSrc, sl_size* lengthParsed, sl_bool* outFlagError, CHAR* buf) noexcept
 			{
 				if (lengthParsed) {
@@ -210,251 +290,135 @@ namespace slib
 				sl_size lengthOutput = 0;
 				sl_bool flagSuccess = sl_false;
 				sl_size i = 1;
-				for (; i < lengthSrc; i++) {
-					ch = src[i];
-					sl_bool flagError = sl_false;
-					sl_bool flagBackslash = sl_false;
-					switch (ch) {
-						case 0:
+				while (i < lengthSrc) {
+					ch = src[i++];
+					if (!ch) {
+						break;
+					}
+					if (ch == '\\') {
+						if (i >= lengthSrc) {
 							break;
-						case '\\':
-							flagBackslash = sl_true;
-							i++;
-							if (i < lengthSrc) {
-								ch = src[i];
-								switch (ch) {
-									case '\\':
-									case '"':
-									case '\'':
-									case '/':
-										break;
-									case 'n':
-										ch = '\n';
-										break;
-									case 'r':
-										ch = '\r';
-										break;
-									case 't':
-										ch = '\t';
-										break;
-									case 'b':
-										ch = '\b';
-										break;
-									case 'f':
-										ch = '\f';
-										break;
-									case 'a':
-										ch = '\a';
-										break;
-									case '0': case '1': case '2': case '3':
-									case '4': case '5': case '6': case '7':
-										{
-											i++;
-											sl_uint32 t = ch - '0';
-											while (i < lengthSrc) {
-												ch = src[i];
-												if (ch >= '0' && ch < '8') {
-													t = (t << 3) | (ch - '0');
-													i++;
-												} else {
-													break;
-												}
-											}
-											i--;
-											ch = (CHAR)t;
-											break;
-										}
-									case 'x':
-										{
-											if (i + 1 < lengthSrc) {
-												i++;
-												sl_uint32 h = SLIB_CHAR_HEX_TO_INT(src[i]);
-												if (h < 16) {
-													sl_uint32 t = h;
-													i++;
-													while (i < lengthSrc) {
-														ch = src[i];
-														h = SLIB_CHAR_HEX_TO_INT(ch);
-														if (h < 16) {
-															t = (t << 4) | h;
-															i++;
+						}
+						sl_bool flagError = sl_false;
+						ch = src[i++];
+						switch (ch) {
+							case '\\':
+							case '"':
+							case '\'':
+							case '/':
+								PutChar(buf, lengthOutput, ch);
+								break;
+							case 'n':
+								PutChar(buf, lengthOutput, (CHAR)'\n');
+								break;
+							case 'r':
+								PutChar(buf, lengthOutput, (CHAR)'\r');
+								break;
+							case 't':
+								PutChar(buf, lengthOutput, (CHAR)'\t');
+								break;
+							case 'b':
+								PutChar(buf, lengthOutput, (CHAR)'\b');
+								break;
+							case 'f':
+								PutChar(buf, lengthOutput, (CHAR)'\f');
+								break;
+							case 'a':
+								PutChar(buf, lengthOutput, (CHAR)'\a');
+								break;
+							case '0': case '1': case '2': case '3':
+							case '4': case '5': case '6': case '7':
+								{
+									sl_uint32 t = ch - '0';
+									ParseOctetValue<CHAR>(src, lengthSrc, i, t);
+									PutChar(buf, lengthOutput, (CHAR)t);
+									break;
+								}
+							case 'x':
+								if (i < lengthSrc) {
+									sl_uint32 t;
+									if (ParseHexValue<CHAR>(src, lengthSrc, i, t)) {
+										PutChar(buf, lengthOutput, (CHAR)t);
+									} else {
+										flagError = sl_true;
+									}
+								} else {
+									flagError = sl_true;
+								}
+								break;
+							case 'u':
+								if (i + 4 <= lengthSrc) {
+									sl_uint32 code = 0;
+									if (ParseHexValue_FixedLength(src, 4, i, code)) {
+										if (sizeof(CHAR) == 2) {
+											PutChar(buf, lengthOutput, (CHAR)code);
+										} else {
+											sl_bool flagValid = sl_false;
+											if (SLIB_CHAR_IS_SURROGATE(code) && i + 6 <= lengthSrc) {
+												if (src[i] == '\\' && src[i + 1] == 'u') {
+													i += 2;
+													sl_uint32 code2 = 0;
+													if (ParseHexValue_FixedLength(src, 4, i, code2)) {
+														if (SLIB_CHAR_IS_SURROGATE(code2)) {
+															code = Charsets::getUnicodeFromSurrogateCharacters(code, code2);
+															if (code) {
+																flagValid = sl_true;
+															}
 														} else {
-															break;
+															code = code2;
+															flagValid = sl_true;
 														}
 													}
-													ch = (CHAR)t;
+												}
+											}
+											if (flagValid) {
+												sl_size n = GetUtf(code, buf);
+												if (n) {
+													lengthOutput += n;
 												} else {
 													flagError = sl_true;
 												}
-												i--;
 											} else {
 												flagError = sl_true;
 											}
-											break;
 										}
-									case 'u':
-										{
-											if (i + 4 < lengthSrc) {
-												i++;
-												sl_uint16 t = 0;
-												{
-													for (int k = 0; k < 4; k++) {
-														ch = src[i];
-														sl_uint16 h = (sl_uint16)(SLIB_CHAR_HEX_TO_INT(ch));
-														if (h < 16) {
-															t = (t << 4) | h;
-															i++;
-														} else {
-															flagError = sl_true;
-															break;
-														}
-													}
-												}
-												if (!flagError) {
-													if (sizeof(CHAR) == 1) {
-														if (t >= 0xD800 && t < 0xDC00) {
-															if (i + 5 < lengthSrc) {
-																if (src[i] == '\\' && src[i + 1] == 'u') {
-																	i += 2;
-																	sl_uint16 t2 = 0;
-																	for (int k = 0; k < 4; k++) {
-																		ch = src[i];
-																		sl_uint16 h = (sl_uint16)(SLIB_CHAR_HEX_TO_INT(ch));
-																		if (h < 16) {
-																			t2 = (t2 << 4) | h;
-																			i++;
-																		} else {
-																			flagError = sl_true;
-																			break;
-																		}
-																	}
-																	if (!flagError) {
-																		sl_char8 u[6];
-																		sl_char16 a[] = { t, t2 };
-																		sl_size nu = Charsets::utf16ToUtf8(a, 2, u, 6);
-																		if (nu > 0) {
-																			for (sl_size iu = 0; iu < nu - 1; iu++) {
-																				if (buf) {
-																					buf[lengthOutput++] = (CHAR)(u[iu]);
-																				} else {
-																					lengthOutput++;
-																				}
-																			}
-																			ch = (CHAR)(u[nu - 1]);
-																		}
-																	}
-																}
-															}
-														} else {
-															sl_char8 u[3];
-															sl_size nu = Charsets::utf16ToUtf8((sl_char16*)&t, 1, u, 3);
-															if (nu > 0) {
-																for (sl_size iu = 0; iu < nu - 1; iu++) {
-																	if (buf) {
-																		buf[lengthOutput++] = (CHAR)(u[iu]);
-																	} else {
-																		lengthOutput++;
-																	}
-																}
-																ch = (CHAR)(u[nu - 1]);
-															}
-														}
-													} else {
-														ch = (CHAR)t;
-													}
-												}
-												i--;
-											} else {
-												flagError = sl_true;
-											}
-											break;
-										}
-									case 'U':
-										{
-											if (i + 8 < lengthSrc) {
-												i++;
-												sl_uint32 t = 0;
-												for (int k = 0; k < 8; k++) {
-													ch = src[i];
-													sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
-													if (h < 16) {
-														t = (t << 4) | h;
-														i++;
-													} else {
-														flagError = sl_true;
-														break;
-													}
-												}
-												if (!flagError) {
-													if (sizeof(CHAR) == 1) {
-														sl_char8 u[6];
-														sl_char32 _t = t;
-														sl_size nu = Charsets::utf32ToUtf8(&_t, 1, u, 6);
-														if (nu > 0) {
-															for (sl_size iu = 0; iu < nu - 1; iu++) {
-																if (buf) {
-																	buf[lengthOutput++] = (CHAR)(u[iu]);
-																} else {
-																	lengthOutput++;
-																}
-															}
-															ch = (CHAR)(u[nu - 1]);
-														} else {
-															flagError = sl_true;
-														}
-													} else if (sizeof(CHAR) == 2) {
-														sl_char16 u[2];
-														sl_char32 _t = t;
-														sl_size nu = Charsets::utf32ToUtf16(&_t, 1, u, 2);
-														if (nu > 0) {
-															for (sl_size iu = 0; iu < nu - 1; iu++) {
-																if (buf) {
-																	buf[lengthOutput++] = (CHAR)(u[iu]);
-																} else {
-																	lengthOutput++;
-																}
-															}
-															ch = (CHAR)(u[nu - 1]);
-														} else {
-															flagError = sl_true;
-														}
-													} else {
-														ch = (CHAR)t;
-													}
-												}
-												i--;
-											} else {
-												flagError = sl_true;
-											}
-											break;
-										}
-									default:
+									} else {
 										flagError = sl_true;
-										break;
+									}
+								} else {
+									flagError = sl_true;
 								}
-							} else {
+								break;
+							case 'U':
+								if (i + 8 <= lengthSrc) {
+									sl_uint32 code = 0;
+									if (ParseHexValue_FixedLength(src, 8, i, code)) {
+										sl_size n = GetUtf(code, buf);
+										if (n) {
+											lengthOutput += n;
+										} else {
+											flagError = sl_true;
+										}
+									} else {
+										flagError = sl_true;
+									}
+								} else {
+									flagError = sl_true;
+								}
+								break;
+							default:
 								flagError = sl_true;
-							}
+								break;
+						}
+						if (flagError) {
 							break;
-						case '\r':
-						case '\n':
-						case '\v':
-							flagError = sl_true;
-							break;
-					}
-					if (flagError) {
-						break;
+						}
 					} else {
-						if (ch == chEnd && !flagBackslash) {
+						if (ch == chEnd) {
 							flagSuccess = sl_true;
-							i++;
 							break;
 						} else {
-							if (buf) {
-								buf[lengthOutput++] = ch;
-							} else {
-								lengthOutput++;
-							}
+							PutChar(buf, lengthOutput, ch);
 						}
 					}
 				}

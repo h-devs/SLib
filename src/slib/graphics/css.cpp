@@ -22,8 +22,6 @@
 
 #include "slib/graphics/css.h"
 
-#include "slib/core/string_buffer.h"
-
 namespace slib
 {
 
@@ -87,36 +85,92 @@ namespace slib
 						return sl_null;
 					}
 					for (;;) {
-						CHAR ch = *current;
-						if (ch == '.') {
-							if (ret->className.isNotNull()) {
-								return sl_null;
-							}
-							current++;
-							String name = parseIdentifier();
-							if (name.isNull()) {
-								return sl_null;
-							}
-							ret->className = Move(name);
-						} else if (ch == '#') {
-							if (ret->id.isNotNull()) {
-								return sl_null;
-							}
-							current++;
-							String name = parseIdentifier();
-							if (name.isNull()) {
-								return sl_null;
-							}
-							ret->id = Move(name);
-						} else {
-							if (ret->elementName.isNotNull()) {
-								return sl_null;
-							}
-							String name = parseIdentifier();
-							if (name.isNull()) {
-								return sl_null;
-							}
-							ret->elementName = Move(name);
+						switch (*current) {
+							case '.':
+								{
+									if (ret->className.isNotNull()) {
+										return sl_null;
+									}
+									current++;
+									String name = parseIdentifier();
+									if (name.isNull()) {
+										return sl_null;
+									}
+									ret->className = Move(name);
+									break;
+								}
+							case '#':
+								{
+									if (ret->id.isNotNull()) {
+										return sl_null;
+									}
+									current++;
+									String name = parseIdentifier();
+									if (name.isNull()) {
+										return sl_null;
+									}
+									ret->id = Move(name);
+									break;
+								}
+							case '[':
+								{
+									current++;
+									if (!(parseSelectorAttributeMatch(ret.get()))) {
+										return sl_null;
+									}
+									break;
+								}
+							case '*':
+								{
+									if (ret->elementName.isNotNull() || ret->flagUniversal) {
+										return sl_null;
+									}
+									current++;
+									ret->flagUniversal = sl_true;
+									break;
+								}
+							case '|':
+								{
+									if (ret->flagNamespace) {
+										return sl_null;
+									}
+									current++;
+									if (ret->flagUniversal) {
+										ret->flagUniversal = sl_false;
+									} else {
+										ret->namespaceName = Move(ret->elementName);
+										if (ret->namespaceName.isNull()) {
+											ret->namespaceName.setEmpty();
+										}
+									}
+									ret->flagNamespace = sl_true;
+									if (current >= end) {
+										return sl_null;
+									}
+									if (*current == '*') {
+										current++;
+										ret->flagUniversal = sl_true;
+									} else {
+										String name = parseIdentifier();
+										if (name.isNull()) {
+											return sl_null;
+										}
+										ret->elementName = Move(name);
+									}
+									break;
+								}
+							default:
+								{
+									if (ret->elementName.isNotNull() || ret->flagUniversal) {
+										return sl_null;
+									}
+									String name = parseIdentifier();
+									if (name.isNull()) {
+										return sl_null;
+									}
+									ret->elementName = Move(name);
+									break;
+								}
 						}
 						if (current >= end) {
 							break;
@@ -127,25 +181,42 @@ namespace slib
 
 				String parseIdentifier()
 				{
+					if (current >= end) {
+						return sl_null;
+					}
+					List<CHAR> buf;
 					CHAR* start = current;
 					while (current < end) {
 						CHAR ch = *current;
 						if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
 							current++;
 						} else if (ch == '\\') {
-							return parseEscapedIdentifier(start, current - start);
+							if (start < current) {
+								if (!(buf.addElements_NoLock(start, current - start))) {
+									return sl_null;
+								}
+							}
+							current++;
+							if (current >= end) {
+								return sl_null;
+							}
+
+							start = current;
 						} else {
 							break;
 						}
 					}
 					if (start < current) {
-						return String::from(start, current - start);
-					} else {
-						return sl_null;
+						if (buf.isNull()) {
+							return String::from(start, current - start);
+						} else {
+							if (!(buf.addElements_NoLock(start, current - start))) {
+								return sl_null;
+							}
+						}
 					}
+					return String::from(buf.getData(), buf.getCount());
 				}
-
-				sl_bool processEscapedIdentifierPrefix(StringBuffer& buf, CHAR* prefix, sl_size lenPrefix);
 
 				String parseEscapedIdentifier(CHAR* prefix, sl_size lenPrefix)
 				{
@@ -202,36 +273,95 @@ namespace slib
 					return buf.merge();
 				}
 
+				sl_bool parseSelectorAttributeMatch(CascadingStyleSelector* selector)
+				{
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_false;
+					}
+					String name = parseIdentifier();
+					if (name.isNull()) {
+						return sl_false;
+					}
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_false;
+					}
+					CascadingStyleMatchType op = CascadingStyleMatchType::Exist;
+					switch (*current) {
+						case '~':
+							op = CascadingStyleMatchType::Contains_Word;
+							current++;
+							break;
+						case '|':
+							op = CascadingStyleMatchType::Contains_WordHyphen;
+							current++;
+							break;
+						case '^':
+							op = CascadingStyleMatchType::Start;
+							current++;
+							break;
+						case '$':
+							op = CascadingStyleMatchType::End;
+							current++;
+							break;
+						case '*':
+							op = CascadingStyleMatchType::Contain;
+							current++;
+							break;
+						case '=':
+							op = CascadingStyleMatchType::Equal;
+							current++;
+							break;
+					}
+					if (op > CascadingStyleMatchType::Equal) {
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+						if (*current != '=') {
+							return sl_false;
+						}
+						current++;
+					}
+					if (op != CascadingStyleMatchType::Exist) {
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+						String value = parseStringValue();
+						if (value.isNull()) {
+							return sl_false;
+						}
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+					}
+					if (*current == 'i') {
+
+					}
+					return sl_true;
+				}
+
+				String parseStringValue()
+				{
+					CHAR chOpen = *current;
+					if (chOpen != '"' && chOpen != '\'') {
+						return sl_null;
+					}
+					current++;
+
+				}
+
 			};
-
-			template <class CHAR>
-			sl_bool StylesParser<CHAR>::processEscapedIdentifierPrefix(StringBuffer& buf, CHAR* prefix, sl_size lenPrefix)
-			{
-				if (!lenPrefix) {
-					return sl_true;
-				}
-				String str = String::from(prefix, lenPrefix);
-				if (str.isNull()) {
-					return sl_false;
-				}
-				return buf.add(Move(str));
-			}
-
-			template <>
-			sl_bool StylesParser<sl_char8>::processEscapedIdentifierPrefix(StringBuffer& buf, sl_char8* prefix, sl_size lenPrefix)
-			{
-				if (!lenPrefix) {
-					return sl_true;
-				}
-				return buf.addStatic(prefix, lenPrefix);
-			}
 
 		}
 	}
 
 	using namespace priv::css;
 
-	CascadingStyleSelector::CascadingStyleSelector()
+	CascadingStyleSelector::CascadingStyleSelector(): flagNamespace(sl_false), flagUniversal(sl_false)
 	{
 	}
 

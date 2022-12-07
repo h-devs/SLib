@@ -326,13 +326,19 @@ namespace slib
 
 		static sl_bool checkUtf8(const void* utf8, sl_size size);
 
-		static sl_size getUtf8(sl_char32 code, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept;
+		// 0 < `lenUtf8Buffer`
+		static sl_size getUtf8(sl_char32 code, sl_char8* utf8, sl_size lenUtf8Buffer) noexcept;
 
-		static sl_size getUtf16(sl_char32 code, sl_char16* utf16, sl_reg lenUtf8Buffer) noexcept;
+		// 0 < `lenUtf16Buffer`
+		static sl_size getUtf16(sl_char32 code, sl_char16* utf16, sl_size lenUtf16Buffer) noexcept;
 
+		// `posUtf8` < `lenUtf8`
 		static sl_bool getUnicode(sl_char32& outCode, const sl_char8* utf8, sl_size lenUtf8, sl_size& posUtf8);
 
+		// `posUtf16` < `lenUtf16`
 		static sl_bool getUnicode(sl_char32& outCode, const sl_char16* utf16, sl_size lenUtf16, sl_size& posUtf16);
+
+		static sl_char32 getUnicodeFromSurrogateCharacters(sl_char16 ch0, sl_char16 ch1);
 
 	};
 

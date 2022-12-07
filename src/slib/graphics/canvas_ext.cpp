@@ -104,7 +104,7 @@ namespace slib
 		Point pt = GraphicsUtil::calculateAlignPosition(Rectangle(param.x, param.y, param.x + param.width, param.y + param.height), size.x, size.y, param.alignment);
 		Alignment hAlign = param.alignment & Alignment::HorizontalMask;
 		StringData16 text(param.text);
-		sl_char16* sz = text.getData();
+		sl_char16* data = text.getData();
 		sl_size len = text.getLength();
 		if (!len) {
 			return;
@@ -115,13 +115,13 @@ namespace slib
 		while (pos <= len) {
 			sl_char16 ch;
 			if (pos < len) {
-				ch = sz[pos];
+				ch = data[pos];
 			} else {
 				ch = '\n';
 			}
 			if (ch == '\r' || ch == '\n') {
 				if (pos > startLine) {
-					StringView16 line(sz + startLine, pos - startLine);
+					StringView16 line(data + startLine, pos - startLine);
 					Size s = measureText(font, line);
 					sl_real x;
 					if (hAlign == Alignment::Left) {
@@ -135,7 +135,7 @@ namespace slib
 					y += s.y;
 				}
 				if (ch == '\r' && pos + 1 < len) {
-					if (sz[pos + 1] == '\n') {
+					if (data[pos + 1] == '\n') {
 						pos++;
 					}
 				}

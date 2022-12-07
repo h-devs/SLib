@@ -52,12 +52,12 @@ namespace slib
 				StaticContext()
 				{
 					for (sl_uint32 index = 0; ; index++) {
-						const sl_char32* sz = emojis[index];
-						if (sz) {
-							mapEmojiFirstChars.add_NoLock(sz[0], sl_true);
-							String16 str = String16::create(sz);
+						const sl_char32* s = emojis[index];
+						if (s) {
+							mapEmojiFirstChars.add_NoLock(s[0], sl_true);
+							String16 str = String16::create(s);
 							mapEmojis.add_NoLock(str, sl_true);
-							auto ret = mapEmojiList.emplace_NoLock(sz[0], sl_null);
+							auto ret = mapEmojiList.emplace_NoLock(s[0], sl_null);
 							if (ret.node) {
 								ret.node->value.add_NoLock(str);
 							}
@@ -68,20 +68,12 @@ namespace slib
 				}
 
 			public:
-				sl_size getEmojiLength(const sl_char16* sz, sl_size len)
+				sl_size getEmojiLength(const sl_char16* s, sl_size len)
 				{
-					sl_char32 ch = sz[0];
-					if (ch >= 0xD800 && ch < 0xE000) {
-						if (len >= 2) {
-							sl_uint32 ch1 = (sl_uint32)((sl_uint16)sz[1]);
-							if (ch < 0xDC00 && ch1 >= 0xDC00 && ch1 < 0xE000) {
-								ch = (sl_char32)(((ch - 0xD800) << 10) | (ch1 - 0xDC00)) + 0x10000;
-							} else {
-								return 0;
-							}
-						} else {
-							return 0;
-						}
+					sl_char32 ch;
+					sl_size pos = 0;
+					if (!(Charsets::getUnicode(ch, s, len, pos))) {
+						return 0;
 					}
 					sl_size ret = 0;
 					ListElements<String16> list(mapEmojiList.getValue_NoLock(ch));
@@ -89,7 +81,7 @@ namespace slib
 						String16& str = list[i];
 						sl_size lenStr = str.getLength();
 						if (lenStr <= len && lenStr > ret) {
-							if (Base::equalsMemory(str.getData(), sz, lenStr << 1)) {
+							if (Base::equalsMemory(str.getData(), s, lenStr << 1)) {
 								ret = lenStr;
 							}
 						}
@@ -125,11 +117,11 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_size Emoji::getEmojiLength(const sl_char16* sz, sl_size len)
+	sl_size Emoji::getEmojiLength(const sl_char16* s, sl_size len)
 	{
 		StaticContext* context = GetStaticContext();
 		if (context) {
-			return context->getEmojiLength(sz, len);
+			return context->getEmojiLength(s, len);
 		}
 		return sl_false;
 	}

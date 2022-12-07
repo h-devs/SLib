@@ -348,7 +348,7 @@ namespace slib
 					if (SLIB_CHAR_IS_SURROGATE(ch)) {
 						if (pos + 1 < len) {
 							sl_char16 ch1 = EndianHelper::read16(utf16, pos + 1);
-							if (GetUnicode16_2(code, ch, ch1)) {
+							if (getUnicode2(code, ch, ch1)) {
 								pos += 2;
 								return sl_true;
 							}
@@ -433,7 +433,7 @@ namespace slib
 			class Utf32Helper
 			{
 			public:
-				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, sconst void* utf32, sl_size len, sl_size& pos)
+				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf32, sl_size len, sl_size& pos)
 				{
 					code = EndianHelper::read32(utf32, pos);
 					pos++;
@@ -643,12 +643,31 @@ namespace slib
 
 	sl_size Charsets::utf32ToUtf16(const sl_char32* utf32, sl_reg lenUtf32, EndianType endian16, void* utf16, sl_reg sizeUtf16Buffer) noexcept
 	{
-		return Utf32ToUtf16(Endian::get(), utf32, lenUtf32, endian16, utf16, sizeUtf16Buffer < 0 ? -1 : (sizeUtf16Buffer >> 1)) << 1;
+		sl_size lenUtf16Buffer = sizeUtf16Buffer < 0 ? -1 : (sizeUtf16Buffer >> 1);
+		if (endian16 == EndianType::Big) {
+			return ConvertUtf< Utf32Helper<NoEndianHelper>, Utf16Helper<BigEndianHelper> >(utf32, lenUtf32, utf16, lenUtf16Buffer) << 1;
+		} else {
+			return ConvertUtf< Utf32Helper<NoEndianHelper>, Utf16Helper<LittleEndianHelper> >(utf32, lenUtf32, utf16, lenUtf16Buffer) << 1;
+		}
 	}
 
 	sl_size Charsets::utf32ToUtf16(EndianType endian32, const void* utf32, sl_size sizeUtf32, EndianType endian16, void* utf16, sl_reg sizeUtf16Buffer) noexcept
 	{
-		return Utf32ToUtf16(endianUtf32, utf32, sizeUtf32 >> 2, endianUtf16, utf16, sizeUtf16Buffer < 0 ? -1 : (sizeUtf16Buffer >> 1)) << 1;
+		sl_size lenUtf32 = sizeUtf32 >> 2;
+		sl_size lenUtf16Buffer = sizeUtf16Buffer < 0 ? -1 : (sizeUtf16Buffer >> 1);
+		if (endian32 == EndianType::Big) {
+			if (endian16 == EndianType::Big) {
+				return ConvertUtf< Utf32Helper<BigEndianHelper>, Utf16Helper<BigEndianHelper> >(utf32, lenUtf32, utf16, lenUtf16Buffer) << 1;
+			} else {
+				return ConvertUtf< Utf32Helper<BigEndianHelper>, Utf16Helper<LittleEndianHelper> >(utf32, lenUtf32, utf16, lenUtf16Buffer) << 1;
+			}
+		} else {
+			if (endian16 == EndianType::Big) {
+				return ConvertUtf< Utf32Helper<LittleEndianHelper>, Utf16Helper<BigEndianHelper> >(utf32, lenUtf32, utf16, lenUtf16Buffer) << 1;
+			} else {
+				return ConvertUtf< Utf32Helper<LittleEndianHelper>, Utf16Helper<LittleEndianHelper> >(utf32, lenUtf32, utf16, lenUtf16Buffer) << 1;
+			}
+		}
 	}
 
 	void Charsets::utf16ToUtf16(const sl_char16* src, EndianType endianDst, void* dst, sl_size len)
@@ -769,42 +788,37 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_size Charsets::getUtf8(sl_char32 code, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept
+	sl_size Charsets::getUtf8(sl_char32 code, sl_char8* utf8, sl_size lenUtf8Buffer) noexcept
 	{
-		if (!lenUtf8Buffer) {
-			return 0;
-		}
 		sl_size n = 0;
-		PutUnicode8(code, utf8, lenUtf8Buffer, n);
+		Utf8Helper::putUnicode(code, utf8, lenUtf8Buffer, n);
 		return n;
 	}
 
-	sl_size Charsets::getUtf16(sl_char32 code, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept
+	sl_size Charsets::getUtf16(sl_char32 code, sl_char16* utf16, sl_size lenUtf16Buffer) noexcept
 	{
-		if (!lenUtf16Buffer) {
-			return 0;
-		}
 		sl_size n = 0;
-		PutUnicode16u(code, utf16, lenUtf16Buffer, n);
+		Utf16Helper<NoEndianHelper>::putUnicode(code, utf16, lenUtf16Buffer, n);
 		return n;
 	}
 
 	sl_bool Charsets::getUnicode(sl_char32& outCode, const sl_char8* utf8, sl_size lenUtf8, sl_size& posUtf8)
 	{
-		if (posUtf8 < lenUtf8) {
-			return GetUnicode8(*((sl_uint32*)&outCode), utf8, lenUtf8, posUtf8);
-		} else {
-			return sl_false;
-		}
+		return Utf8Helper::getUnicode(*((sl_uint32*)&outCode), utf8, lenUtf8, posUtf8);
 	}
 
 	sl_bool Charsets::getUnicode(sl_char32& outCode, const sl_char16* utf16, sl_size lenUtf16, sl_size& posUtf16)
 	{
-		if (posUtf16 < lenUtf16) {
-			return GetUnicode16(*((sl_uint32*)&outCode), utf16, lenUtf16, posUtf16);
-		} else {
-			return sl_false;
+		return Utf16Helper<NoEndianHelper>::getUnicode(*((sl_uint32*)&outCode), utf16, lenUtf16, posUtf16);
+	}
+
+	sl_char32 Charsets::getUnicodeFromSurrogateCharacters(sl_char16 ch0, sl_char16 ch1)
+	{
+		sl_uint32 ch;
+		if (Utf16Helper<NoEndianHelper>::getUnicode2(ch, ch0, ch1)) {
+			return ch;
 		}
+		return 0;
 	}
 
 }
