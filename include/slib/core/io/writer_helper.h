@@ -198,7 +198,7 @@ namespace slib
 		static sl_bool writeTextUTF16LE(WRITER* writer, const StringParam& _text, sl_bool flagWriteByteOrderMark)
 		{
 			if (flagWriteByteOrderMark) {
-				static sl_char8 sbuf[2] = { (sl_char8)0xFE, (sl_char8)0xFF };
+				static sl_char8 sbuf[2] = { (sl_char8)0xFF, (sl_char8)0xFE };
 				if (writeFully(writer, sbuf, 2) != 2) {
 					return sl_false;
 				}
@@ -241,7 +241,7 @@ namespace slib
 		static sl_bool writeTextUTF16BE(WRITER* writer, const StringParam& _text, sl_bool flagWriteByteOrderMark)
 		{
 			if (flagWriteByteOrderMark) {
-				static sl_char8 sbuf[2] = { (sl_char8)0xFF, (sl_char8)0xFE };
+				static sl_char8 sbuf[2] = { (sl_char8)0xFE, (sl_char8)0xFF };
 				if (writeFully(writer, sbuf, 2) != 2) {
 					return sl_false;
 				}

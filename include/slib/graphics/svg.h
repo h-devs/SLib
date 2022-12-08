@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +20,58 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_GRAPHICS_EMOJI
-#define CHECKHEADER_SLIB_GRAPHICS_EMOJI
+#ifndef CHECKHEADER_SLIB_GRAPHICS_SVG
+#define CHECKHEADER_SLIB_GRAPHICS_SVG
 
-#include "image.h"
+#include "color.h"
+#include "drawable.h"
 
-#include "../core/hash_map.h"
+/*
+	SVG - Scalable Vector Graphics
+*/
+
+typedef float sl_svg_scalar;
 
 namespace slib
 {
 
-	class SLIB_EXPORT Emoji
+	class XmlElement;
+
+	class SLIB_EXPORT Svg : public Drawable
 	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		Svg();
+
+		~Svg();
+
 	public:
-		static sl_bool isEmoji(const String16& str);
+		static Ref<Svg> loadFromMemory(const void* mem, sl_size size);
 
-		static sl_bool isEmoji(sl_char32 ch);
+		static Ref<Svg> loadFromMemory(const MemoryView& mem);
 
-		static sl_size getEmojiLength(const sl_char16* str, sl_size len = SLIB_SIZE_MAX);
+		static Ref<Svg> loadFromFile(const StringParam& filePath);
 
-		static Memory getPng(const String16& str);
+		static Ref<Svg> loadFromAsset(const StringParam& path);
 
-		static HashMap<String16, Memory> getAllPngs();
+	public:
+		sl_svg_scalar getMinimumX();
 
-		static Ref<Image> getImage(const String16& str);
+		sl_svg_scalar getMinimumY();
+
+		sl_svg_scalar getWidth();
+
+		sl_svg_scalar getHeight();
+
+	protected:
+		sl_bool _load(XmlElement* root);
+
+	protected:
+		sl_svg_scalar m_minX;
+		sl_svg_scalar m_minY;
+		sl_svg_scalar m_width;
+		sl_svg_scalar m_height;
 
 	};
 

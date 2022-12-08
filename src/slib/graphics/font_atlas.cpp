@@ -270,47 +270,35 @@ namespace slib
 			return Size::zero();
 		}
 		ObjectLocker lock(this);
-		sl_char16* sz = str.getData();
+		sl_char16* data = str.getData();
 		sl_size len = str.getLength();
 		sl_real lineWidth = 0;
 		sl_real lineHeight = 0;
 		sl_real maxWidth = 0;
 		sl_real totalHeight = 0;
 		FontAtlasChar fac;
-		for (sl_size i = 0; i < len; i++) {
-			sl_uint32 ch = (sl_uint32)(sz[i]);
-			if (ch == '\r' || ch == '\n') {
-				if (!flagMultiLine) {
-					return Size(lineWidth, lineHeight);
-				}
-				if (lineHeight < m_fontSourceHeight) {
-					lineHeight = m_fontSourceHeight;
-				}
-				if (lineWidth > maxWidth) {
-					maxWidth = lineWidth;
-				}
-				totalHeight += lineHeight;
-				lineWidth = 0;
-				lineHeight = 0;
-				if (ch == '\r' && i + 1 < len) {
-					if (sz[i + 1] == '\n') {
-						i++;
+		for (sl_size i = 0; i < len;) {
+			sl_char32 ch;
+			if (Charsets::getUnicode(ch, data, len, i)) {
+				if (ch == '\r' || ch == '\n') {
+					if (!flagMultiLine) {
+						return Size(lineWidth, lineHeight);
 					}
-				}
-			} else {
-				if (ch >= 0xD800 && ch < 0xE000) {
-					if (i + 1 < len) {
-						sl_uint32 ch1 = (sl_uint32)((sl_uint16)sz[++i]);
-						if (ch < 0xDC00 && ch1 >= 0xDC00 && ch1 < 0xE000) {
-							ch = (sl_char32)(((ch - 0xD800) << 10) | (ch1 - 0xDC00)) + 0x10000;
-						} else {
-							ch = 0;
+					if (lineHeight < m_fontSourceHeight) {
+						lineHeight = m_fontSourceHeight;
+					}
+					if (lineWidth > maxWidth) {
+						maxWidth = lineWidth;
+					}
+					totalHeight += lineHeight;
+					lineWidth = 0;
+					lineHeight = 0;
+					if (ch == '\r' && i < len) {
+						if (data[i] == '\n') {
+							i++;
 						}
-					} else {
-						ch = 0;
 					}
-				}
-				if (ch) {
+				} else {
 					if (_getChar((sl_char32)ch, sl_true, fac)) {
 						lineWidth += fac.fontWidth;
 						if (lineHeight < fac.fontHeight) {
@@ -318,6 +306,8 @@ namespace slib
 						}
 					}
 				}
+			} else {
+				i++;
 			}
 		}
 		if (lineWidth > maxWidth) {
