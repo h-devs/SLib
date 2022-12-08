@@ -176,9 +176,9 @@ namespace slib
 			}
 		}
 
-		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x0, T y0, T rx, T ry, sl_bool large_arc_flag, sl_bool sweep_flag, T x2, T y2)
+		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, sl_bool large_arc_flag, sl_bool sweep_flag)
 		{
-			PointT<T> p1(x0, y0), p2(x2, y2), center;
+			PointT<T> p1(x1, y1), p2(x2, y2), center;
 			T pi = Math::PI<T>();
 			T epsilon = T(0.000001);
 
@@ -198,8 +198,7 @@ namespace slib
 				center = q2 / 2 + n * (d / h / 2);
 				center.x = p1.x + center.x * rx;
 				center.y = p1.y + center.y * ry;
-			}
-			else {
+			} else {
 				PointT<T> n(q2.y, -q2.x);
 				center = q2 / 2 + n * (d / h / 2);
 				center.x = p1.x + center.x * rx;
@@ -216,8 +215,7 @@ namespace slib
 				if (end_angle < start_angle && !(end_angle < 0 && start_angle < 0)) {
 					end_angle += 2 * pi;
 				}
-			}
-			else {
+			} else {
 				sign = T(-1.0);
 				if (end_angle > start_angle) {
 					end_angle -= 2 * pi;
@@ -238,7 +236,7 @@ namespace slib
 					e = end_angle;
 				}
 				c.describeArc(center.x, center.y, rx, ry, s, e);
-				if (i == 0) {
+				if (!i) {
 					pts[i].x = c.x0;
 					pts[i].y = c.y0;
 				}
@@ -251,36 +249,35 @@ namespace slib
 				s += sign * (pi / 2);
 			}
 
-			if (nPts == 0) {
+			if (!nPts) {
 				return 0;
-			}
-			else {
+			} else {
 				return nPts + 1;
 			}
 		}
 
-		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x0, T y0, T rx, T ry, T rotation, sl_bool large_arc_flag, sl_bool sweep_flag, T x2, T y2)
+		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, T rotation, sl_bool large_arc_flag, sl_bool sweep_flag)
 		{
 			T pi = Math::PI<T>();
 
 			// Calculate the middle point between the current and the final points
-			T dx2 = (x0 - x2) / 2;
-			T dy2 = (y0 - y2) / 2;
+			T dx2 = (x1 - x2) / 2;
+			T dy2 = (y1 - y2) / 2;
 			T cos_r = Math::cos(rotation);
 			T sin_r = Math::sin(rotation);
 
-			// Calculate (x1, y1)
-			T x1 =  cos_r * dx2 + sin_r * dy2;
-			T y1 = -sin_r * dx2 + cos_r * dy2;
+			// Calculate (x3, y3)
+			T x3 =  cos_r * dx2 + sin_r * dy2;
+			T y3 = -sin_r * dx2 + cos_r * dy2;
 
 			// Ensure radii are large enough
 			T prx = rx * rx;
 			T pry = ry * ry;
-			T px1 = x1 * x1;
-			T py1 = y1 * y1;
+			T px = x3 * x3;
+			T py = y3 * y3;
 
 			// Check that radii are large enough
-			T radius_check = px1 / prx + py1 / pry;
+			T radius_check = px / prx + py / pry;
 			if (radius_check > 1.0) {
 				rx *= Math::sqrt(radius_check);
 				ry *= Math::sqrt(radius_check);
@@ -288,14 +285,14 @@ namespace slib
 
 			// Calculate (cx1, cy1)
 			T sign = (large_arc_flag == sweep_flag) ? (T)-1.0 : (T)1.0;
-			T sq = (prx * pry - prx * py1 - pry * px1) / (prx * py1 + pry * px1);
+			T sq = (prx * pry - prx * py - pry * px) / (prx * py + pry * px);
 			T coef = sign * Math::sqrt((sq < 0) ? 0 : sq);
-			T cx1 = coef *  ((rx * y1) / ry);
-			T cy1 = coef * -((ry * x1) / rx);
+			T cx1 = coef *  ((rx * y3) / ry);
+			T cy1 = coef * -((ry * x3) / rx);
 
 			// Calculate (cx, cy) from (cx1, cy1)
-			T sx2 = (x0 + x2) / 2;
-			T sy2 = (y0 + y2) / 2;
+			T sx2 = (x1 + x2) / 2;
+			T sy2 = (y1 + y2) / 2;
 			T cx = sx2 + (cos_r * cx1 - sin_r * cy1);
 			T cy = sy2 + (sin_r * cx1 + cos_r * cy1);
 
@@ -311,8 +308,11 @@ namespace slib
 			p = ux; // (1 * ux) + (0 * uy)
 			sign = (uy < 0) ? (T)-1.0 : (T)1.0;
 			T v = p / n;
-			if (v < -1) v = -1;
-			if (v > 1) v = 1;
+			if (v < -1) {
+				v = -1;
+			} else if (v > 1) {
+				v = 1;
+			}
 			T start_angle = sign * Math::arccos(v);
 
 			// Calculate the sweep angle
@@ -320,14 +320,15 @@ namespace slib
 			p = ux * vx + uy * vy;
 			sign = (ux * vy - uy * vx < 0) ? (T)-1.0 : (T)1.0;
 			v = p / n;
-			if (v < -1) v = -1;
-			if (v > 1) v = 1;
-			T sweep_angle = sign * Math::arccos(v);
-			if (!sweep_flag && sweep_angle > 0)
-			{
-				sweep_angle -= pi * 2;
+			if (v < -1) {
+				v = -1;
+			} else	if (v > 1) {
+				v = 1;
 			}
-			else if (sweep_flag && sweep_angle < 0)
+			T sweep_angle = sign * Math::arccos(v);
+			if (!sweep_flag && sweep_angle > 0) {
+				sweep_angle -= pi * 2;
+			} else if (sweep_flag && sweep_angle < 0)
 			{
 				sweep_angle += pi * 2;
 			}
@@ -363,7 +364,7 @@ namespace slib
 					e = end_angle;
 				}
 				c.describeArc(cx, cy, rx, ry, s, e, rotation);
-				if (i == 0) {
+				if (!i) {
 					pts[i].x = c.x0;
 					pts[i].y = c.y0;
 				}
@@ -379,7 +380,7 @@ namespace slib
 					s += pi / 2;
 				}
 			}
-			if (nPts == 0) {
+			if (!nPts) {
 				return 0;
 			} else {
 				return nPts + 1;
