@@ -59,6 +59,7 @@
 #include "ui/text_view.h"
 
 #include "ui/tree_view.h"
+#include "ui/table_view.h"
 #include "ui/list_box.h"
 #include "ui/list_control.h"
 #include "ui/label_list.h"
