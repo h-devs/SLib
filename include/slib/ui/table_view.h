@@ -38,47 +38,53 @@ namespace slib
 		~TableView();
 
 	public:
-		sl_uint64 getItemCount();
+		sl_uint64 getRowCount();
+		sl_uint64 getColumnCount();
 
-		virtual void setItemCount(sl_uint64 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setRowCount(sl_int64 rowCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setColumnCount(sl_int64 colCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_ui_len getItemHeight();
+		sl_ui_len getRowHeight();
+		//sl_ui_len getRowWidth(sl_int32 colCount);
+		sl_ui_len getColumnWidth(sl_int64 colStart, sl_int64 colEnd);
 
-		virtual void setItemHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isMultipleSelection();
+		sl_bool isRowSelected(sl_int64 rowIndex);
+		sl_bool isColumnSelected(sl_int64 colIndex);
+		sl_bool isItemSelected(sl_int64 rowIndex, sl_int64 colIndex);
 
 		void setMultipleSelection(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		sl_int64 getSelectedRow();
+		sl_int64 getSelectedColumn();
+		List<sl_uint64> getSelectedRows();
+		List<sl_uint64> getSelectedColumns();
 
-		sl_bool isSelectedIndex(sl_int64 index);
+		void setRowSelected(sl_int64 rowIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnSelected(sl_int64 colIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_int64 getSelectedIndex();
 
-		void setSelectedIndex(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void selectItem(sl_int64 rowIndex, sl_uint64 colIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		List<sl_uint64> getSelectedIndices();
+		void unselectItem(sl_int64 rowIndex, sl_uint64 colIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setSelectedIndices(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void selectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void unselectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void toggleItemSelection(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		/*void toggleItemSelection(sl_int64 rowIndex, sl_uint64 colIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void selectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setSelectedRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSelectedRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);*/
 
-		void selectRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+		//void selectRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectAll(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_int64 getHoverIndex();
 
-		sl_int64 getItemIndexAt(const UIPoint& pt);
+		sl_int64 getRowIndexAt(const UIPoint& pt);
+		sl_int64 getColumnIndexAt(const UIPoint& pt);
 
 		Ref<Drawable> getItemBackground();
 
@@ -105,13 +111,13 @@ namespace slib
 		void setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(TableView, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+		SLIB_DECLARE_EVENT_HANDLER(TableView, DrawItem, sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem)
 
-		SLIB_DECLARE_EVENT_HANDLER(TableView, ClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(TableView, ClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(TableView, RightButtonClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(TableView, RightButtonClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(TableView, DoubleClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(TableView, DoubleClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 
 		SLIB_DECLARE_EVENT_HANDLER(TableView, ChangedSelection, UIEvent* ev)
 
@@ -125,15 +131,27 @@ namespace slib
 		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
-		sl_int64 m_countItems;
-		sl_ui_len m_heightItem;
+		sl_int64 m_rowCount;
+		sl_int64 m_columnCount;
+		sl_ui_len m_rowHeight;
+		List<sl_ui_len> m_columnWidth;
+
+		sl_ui_len m_heightTopHeader;
+		sl_ui_len m_heightBottomHeader;
+		sl_ui_len m_widthLeftHeader;
+		sl_ui_len m_widthRightHeader;
+
 		sl_int64 m_indexHover;
 
 		sl_bool m_flagMultipleSelection;
-		sl_int64 m_indexSelected;
-		sl_int64 m_indexFocused;
-		sl_int64 m_indexLastSelected;
-		CHashMap<sl_uint64, sl_bool> m_mapSelection;
+		sl_int64 m_selectedRow;
+		sl_int64 m_selectedColumn;
+		
+		//sl_int64 m_indexFocused;
+		sl_int64 m_lastSelectedRow;
+		sl_int64 m_lastSelectedColumn;
+		CHashMap<sl_uint64, sl_bool> m_mapRowSelection;
+		CHashMap<sl_uint64, sl_bool> m_mapColumnSelection;
 
 		AtomicRef<Drawable> m_backgroundItem;
 		AtomicRef<Drawable> m_backgroundSelectedItem;

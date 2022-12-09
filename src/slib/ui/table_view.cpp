@@ -20,6 +20,7 @@
  *   THE SOFTWARE.
  */
 
+#include "slib/ui/text.h"
 #include "slib/ui/table_view.h"
 
 #include "slib/graphics/canvas.h"
@@ -33,55 +34,92 @@ namespace slib
 	{
 		setCanvasScrolling(sl_false);
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
+		setHorizontalScrolling(sl_true, UIUpdateMode::Init);
 		setFocusable(sl_true);
 
-		m_countItems = 0;
-		m_heightItem = 100;
+		m_rowCount = m_columnCount = 0;
+		m_rowHeight = 100;
+		m_columnWidth.removeAll();
 		m_indexHover = -1;
 
+		m_heightBottomHeader = m_heightTopHeader = 50;
+		m_widthLeftHeader = m_widthRightHeader = 100;
+
 		m_flagMultipleSelection = sl_false;
-		m_indexSelected = -1;
+		/*m_indexSelected = -1;
 		m_indexFocused = -1;
-		m_indexLastSelected = -1;
+		m_indexLastSelected = -1;*/
 	}
 
 	TableView::~TableView()
 	{
 	}
 
-	sl_uint64 TableView::getItemCount()
+	sl_uint64 TableView::getRowCount()
 	{
-		return m_countItems;
+		return m_rowCount;
 	}
 
-	void TableView::setItemCount(sl_uint64 _count, UIUpdateMode mode)
+	sl_uint64 TableView::getColumnCount()
 	{
-		sl_int64 count = _count;
-		if (count < 0) {
-			count = 0;
+		return m_columnCount;
+	}
+
+	void TableView::setRowCount(sl_int64 rowCount, UIUpdateMode mode)
+	{
+		if (rowCount < 0) {
+			rowCount = 0;
 		}
-		if (m_countItems == count) {
+		if (m_rowCount == rowCount) {
 			return;
 		}
-		m_countItems = count;
-		setContentHeight((sl_scroll_pos)(count * m_heightItem), mode);
+		m_rowCount = rowCount;
+		setContentHeight((sl_scroll_pos)(m_rowCount * m_rowHeight) + m_heightTopHeader + m_heightBottomHeader, mode);
 	}
 
-	sl_ui_len TableView::getItemHeight()
+	void TableView::setColumnCount(sl_int64 colCount, UIUpdateMode mode)
 	{
-		return m_heightItem;
+		if (colCount < 0) {
+			colCount = 0;
+		}
+		if (m_columnCount == colCount) {
+			return;
+		}
+		m_columnCount = colCount;
+		for (auto index = 0; index < m_columnCount; index++) {
+			m_columnWidth.add(100 + index * 50);
+		}
+
+		sl_ui_len width = getColumnWidth(0, colCount) + m_widthLeftHeader + m_widthRightHeader;
+		setContentWidth(width, mode);
+	}
+	sl_ui_len TableView::getRowHeight()
+	{
+		return m_rowHeight;
+	}
+	
+	sl_ui_len TableView::getColumnWidth(sl_int64 colStart, sl_int64 colEnd) {
+		sl_ui_len ret = 0;
+		if (colStart < 0 || colEnd > m_columnCount) {
+			return ret;
+		}
+
+		for (sl_int64 i = colStart; i < colEnd; i++) {
+			ret += m_columnWidth.getValueAt_NoLock(i);
+		}
+		return ret;
 	}
 
-	void TableView::setItemHeight(sl_ui_len height, UIUpdateMode mode)
+	void TableView::setRowHeight(sl_ui_len height, UIUpdateMode mode)
 	{
 		if (height < 1) {
 			return;
 		}
-		if (m_heightItem == height) {
+		if (m_rowHeight == height) {
 			return;
 		}
-		m_heightItem = height;
-		setContentHeight((sl_scroll_pos)(height * m_countItems), mode);
+		m_rowHeight = height;
+		setContentHeight((sl_scroll_pos)(height * m_rowHeight) + m_heightTopHeader + m_heightBottomHeader, mode);
 	}
 
 	sl_bool TableView::isMultipleSelection()
@@ -94,41 +132,59 @@ namespace slib
 		if (m_flagMultipleSelection != flag) {
 			m_flagMultipleSelection = flag;
 			if (flag) {
-				m_indexSelected = -1;
+				m_selectedColumn = -1;
+				m_selectedRow = -1;
 			} else {
-				m_mapSelection.removeAll();
+				m_mapColumnSelection.removeAll();
+				m_mapRowSelection.removeAll();
 			}
 			invalidate(mode);
 		}
 	}
 
-	sl_bool TableView::isSelectedIndex(sl_int64 index)
+	sl_bool TableView::isRowSelected(sl_int64 rowIndex)
 	{
-		if (index < 0) {
+		if (rowIndex < 0) {
 			return sl_false;
 		}
-		if (index >= m_countItems) {
+		if (rowIndex >= m_rowCount) {
 			return sl_false;
 		}
 		if (m_flagMultipleSelection) {
-			return m_mapSelection.find(index);
+			return m_mapRowSelection.find(rowIndex);
 		} else {
-			return m_indexSelected == index;
+			return m_selectedRow == rowIndex;
 		}
 	}
 
-	sl_int64 TableView::getSelectedIndex()
+	sl_bool TableView::isColumnSelected(sl_int64 colIndex)
+	{
+		if (colIndex < 0) {
+			return sl_false;
+		}
+		if (colIndex >= m_columnCount) {
+			return sl_false;
+		}
+		if (m_flagMultipleSelection) {
+			return m_mapColumnSelection.find(colIndex);
+		}
+		else {
+			return m_selectedColumn == colIndex;
+		}
+	}
+
+	sl_int64 TableView::getSelectedRow()
 	{
 		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapSelection);
-			auto node = m_mapSelection.getLastNode();
+			ObjectLocker lock(&m_mapRowSelection);
+			auto node = m_mapRowSelection.getLastNode();
 			if (node) {
 				return node->key;
 			}
 		} else {
-			sl_int64 index = m_indexSelected;
+			sl_int64 index = m_selectedRow;
 			if (index >= 0) {
-				if (index < m_countItems) {
+				if (index < m_rowCount) {
 					return index;
 				}
 			}
@@ -136,36 +192,79 @@ namespace slib
 		return -1;
 	}
 
-	void TableView::setSelectedIndex(sl_int64 index, UIUpdateMode mode)
+	sl_int64 TableView::getSelectedColumn()
 	{
-		if (index < 0) {
+		if (m_flagMultipleSelection) {
+			ObjectLocker lock(&m_mapColumnSelection);
+			auto node = m_mapColumnSelection.getLastNode();
+			if (node) {
+				return node->key;
+			}
+		}
+		else {
+			sl_int64 index = m_selectedColumn;
+			if (index >= 0) {
+				if (index < m_columnCount) {
+					return index;
+				}
+			}
+		}
+		return -1;
+	}
+
+	void TableView::setRowSelected(sl_int64 rowIndex, UIUpdateMode mode)
+	{
+		if (rowIndex < 0) {
 			unselectAll(mode);
 			return;
 		}
-		if (index >= m_countItems) {
+		if (rowIndex >= m_rowCount) {
 			return;
 		}
 		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapSelection);
-			m_mapSelection.removeAll_NoLock();
-			m_mapSelection.put_NoLock(index, sl_true);
+			ObjectLocker lock(&m_mapRowSelection);
+			m_mapRowSelection.removeAll_NoLock();
+			m_mapRowSelection.put_NoLock(rowIndex, sl_true);
 			invalidate(mode);
 		} else {
-			if (m_indexSelected != index) {
-				m_indexSelected = index;
+			if (m_selectedRow != rowIndex) {
+				m_selectedRow = rowIndex;
 				invalidate(mode);
 			}
 		}
 	}
 
-	List<sl_uint64> TableView::getSelectedIndices()
+	void TableView::setColumnSelected(sl_int64 colIndex, UIUpdateMode mode)
+	{
+		if (colIndex < 0) {
+			unselectAll(mode);
+			return;
+		}
+		if (colIndex >= m_columnCount) {
+			return;
+		}
+		if (m_flagMultipleSelection) {
+			ObjectLocker lock(&m_mapColumnSelection);
+			m_mapColumnSelection.removeAll_NoLock();
+			m_mapColumnSelection.put_NoLock(colIndex, sl_true);
+			invalidate(mode);
+		}
+		else {
+			if (m_selectedColumn != colIndex) {
+				m_selectedColumn = colIndex;
+				invalidate(mode);
+			}
+		}
+	}
+
+	/*List<sl_uint64> TableView::getSelectedIndices()
 	{
 		if (m_flagMultipleSelection) {
 			return m_mapSelection.getAllKeys();
 		} else {
 			sl_int64 index = m_indexSelected;
 			if (index >= 0) {
-				if (index < m_countItems) {
+				if (index < m_rowCount) {
 					return List<sl_uint64>::createFromElement(index);
 				}
 			}
@@ -180,7 +279,7 @@ namespace slib
 			unselectAll(mode);
 			return;
 		}
-		sl_uint64 nTotal = m_countItems;
+		sl_uint64 nTotal = m_rowCount;
 		if (!nTotal) {
 			return;
 		}
@@ -202,216 +301,29 @@ namespace slib
 				}
 			}
 		}
-	}
+	}*/
 
-	void TableView::selectItem(sl_int64 index, UIUpdateMode mode)
-	{
-		if (index < 0) {
-			return;
-		}
-		if (index >= m_countItems) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			sl_bool flagInsert = sl_false;
-			m_mapSelection.put_NoLock(index, sl_true, &flagInsert);
-			if (flagInsert) {
-				invalidate(mode);
-			}
-		} else {
-			if (m_indexSelected != index) {
-				m_indexSelected = index;
-				invalidate(mode);
-			}
-		}
-	}
+	
 
-	void TableView::unselectItem(sl_int64 index, UIUpdateMode mode)
-	{
-		if (index < 0) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			if (m_mapSelection.remove(index)) {
-				invalidate(mode);
-			}
-		} else {
-			if (m_indexSelected == index) {
-				m_indexSelected = -1;
-				invalidate(mode);
-			}
-		}
-	}
-
-	void TableView::toggleItemSelection(sl_int64 index, UIUpdateMode mode)
-	{
-		if (index < 0) {
-			return;
-		}
-		if (index >= m_countItems) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapSelection);
-			auto node = m_mapSelection.find_NoLock(index);
-			if (node) {
-				m_mapSelection.removeAt(node);
-				invalidate(mode);
-			} else {
-				sl_bool flagInsert = sl_false;
-				m_mapSelection.put_NoLock(index, sl_true, &flagInsert);
-				if (flagInsert) {
-					invalidate(mode);
-				}
-			}
-		} else {
-			if (m_indexSelected != index) {
-				m_indexSelected = index;
-				invalidate(mode);
-			} else {
-				m_indexSelected = -1;
-				invalidate(mode);
-			}
-		}
-	}
-
-	void TableView::selectItems(const ListParam<sl_uint64>& _indices, UIUpdateMode mode)
-	{
-		ListLocker<sl_uint64> indices(_indices);
-		if (!(indices.count)) {
-			return;
-		}
-		sl_uint64 nTotal = m_countItems;
-		if (!nTotal) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
-			sl_bool flagChanged = sl_false;
-			for (sl_size i = 0; i < indices.count; i++) {
-				if (indices[i] < nTotal) {
-					sl_bool flagInsert = sl_false;
-					m_mapSelection.put_NoLock(indices[i], sl_true, &flagInsert);
-					if (flagInsert) {
-						flagChanged = sl_true;
-					}
-				}
-			}
-			if (flagChanged) {
-				invalidate(mode);
-			}
-		} else {
-			sl_int64 index = indices[indices.count - 1];
-			if ((sl_uint64)index < nTotal) {
-				if (m_indexSelected != index) {
-					m_indexSelected = index;
-					invalidate(mode);
-				}
-			}
-		}
-	}
-
-	void TableView::unselectItems(const ListParam<sl_uint64>& _indices, UIUpdateMode mode)
-	{
-		ListLocker<sl_uint64> indices(_indices);
-		if (!(indices.count)) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
-			sl_bool flagChanged = sl_false;
-			for (sl_size i = 0; i < indices.count; i++) {
-				if (m_mapSelection.remove_NoLock(indices[i])) {
-					flagChanged = sl_true;
-				}
-			}
-			if (flagChanged) {
-				invalidate(mode);
-			}
-		} else {
-			for (sl_size i = 0; i < indices.count; i++) {
-				if (indices[i] == m_indexSelected) {
-					m_indexSelected = -1;
-					invalidate(mode);
-					return;
-				}
-			}
-		}
-	}
-
-	void TableView::setSelectedRange(sl_int64 from, sl_int64 to, UIUpdateMode mode)
-	{
-		if (m_flagMultipleSelection) {
-			if (from > to) {
-				Swap(from, to);
-			}
-			if (from < 0) {
-				return;
-			}
-			sl_int64 nTotal = m_countItems;
-			if (!nTotal) {
-				return;
-			}
-			if (to >= nTotal) {
-				to = nTotal - 1;
-			}
-			ObjectLocker locker(&m_mapSelection);
-			m_mapSelection.removeAll_NoLock();
-			for (sl_int64 i = from; i <= to; i++) {
-				m_mapSelection.put_NoLock(i, sl_true);
-			}
-			invalidate(mode);
-		} else {
-			setSelectedIndex(to, mode);
-		}
-	}
-
-	void TableView::selectRange(sl_int64 from, sl_int64 to, UIUpdateMode mode)
-	{
-		if (m_flagMultipleSelection) {
-			if (from > to) {
-				Swap(from, to);
-			}
-			if (from < 0) {
-				return;
-			}
-			sl_int64 nTotal = m_countItems;
-			if (!nTotal) {
-				return;
-			}
-			if (to >= nTotal) {
-				to = nTotal - 1;
-			}
-			ObjectLocker locker(&m_mapSelection);
-			sl_bool flagChanged = sl_false;
-			for (sl_int64 i = from; i <= to; i++) {
-				sl_bool flagInsert = sl_false;
-				m_mapSelection.put_NoLock(i, sl_true, &flagInsert);
-				if (flagInsert) {
-					flagChanged = sl_true;
-				}
-			}
-			if (flagChanged) {
-				invalidate(mode);
-			}
-		} else {
-			setSelectedIndex(to, mode);
-		}
-	}
+	
 
 	void TableView::unselectAll(UIUpdateMode mode)
 	{
 		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
-			if (m_mapSelection.isEmpty()) {
+			ObjectLocker locker(&m_mapColumnSelection);
+			ObjectLocker locker1(&m_mapRowSelection);
+			if (m_mapColumnSelection.isEmpty() && m_mapRowSelection.isEmpty()) {
 				return;
 			}
-			m_mapSelection.removeAll_NoLock();
+			m_mapColumnSelection.removeAll_NoLock();
+			m_mapRowSelection.removeAll_NoLock();
+			
 		} else {
-			if (m_indexSelected < 0) {
+			if (m_selectedColumn < 0 && m_selectedRow < 0) {
 				return;
 			}
-			m_indexSelected = -1;
+			m_selectedColumn = -1;
+			m_selectedRow = -1;
 		}
 		invalidate(mode);
 	}
@@ -420,21 +332,43 @@ namespace slib
 	{
 		sl_int64 index = m_indexHover;
 		if (index >= 0) {
-			if (index < m_countItems) {
+			if (index < m_rowCount) {
 				return index;
 			}
 		}
 		return -1;
 	}
 
-	sl_int64 TableView::getItemIndexAt(const UIPoint& pt)
+	sl_int64 TableView::getRowIndexAt(const UIPoint& pt)
 	{
-		sl_int64 index = (pt.y + (sl_int64)(getScrollY())) / m_heightItem;
-		if (index < m_countItems) {
+		sl_int64 pos = pt.y + (sl_int64)(getScrollY()) - m_heightTopHeader;
+		if (pos < 0) {
+			return -1;
+		}
+		sl_int64 index = pos / m_rowHeight;
+		if (index < m_rowCount) {
 			return index;
 		}
 		return -1;
 	}
+	sl_int64 TableView::getColumnIndexAt(const UIPoint& pt)
+	{
+		sl_int64 pos = (pt.x + (sl_int64)(getScrollX())) - m_widthLeftHeader;
+		sl_ui_len startPosition = 0;
+		sl_int32 index = -1;
+		for (auto width : m_columnWidth) {
+			if (startPosition >= pos && pos <= startPosition + width) {
+				break;
+			}
+			startPosition += width;
+			index++;
+		}
+		if (index < m_columnCount) {
+			return index;
+		}
+		return -1;
+	}
+
 
 	Ref<Drawable> TableView::getItemBackground()
 	{
@@ -500,67 +434,87 @@ namespace slib
 		setFocusedItemBackground(Drawable::createColorDrawable(color), mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TableView, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+	SLIB_DEFINE_EVENT_HANDLER(TableView, DrawItem, sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem)
 
-	void TableView::dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+	void TableView::dispatchDrawItem(sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem)
 	{
 		Ref<Drawable> background = m_backgroundItem;
-		if (m_backgroundSelectedItem.isNotNull() && isSelectedIndex(itemIndex)) {
+		if (m_backgroundSelectedItem.isNotNull() && isRowSelected(rowIndex)) {
 			background = m_backgroundSelectedItem;
-		} else if (m_backgroundHoverItem.isNotNull() && itemIndex == getHoverIndex()) {
+		} else if (m_backgroundHoverItem.isNotNull() && rowIndex == getHoverIndex()) {
 			background = m_backgroundHoverItem;
-		} else if (m_backgroundFocusedItem.isNotNull() && isFocused() && itemIndex == m_indexFocused) {
+		} else if (m_backgroundFocusedItem.isNotNull() && isFocused() && rowIndex == m_selectedRow) {
 			background = m_backgroundFocusedItem;
 		}
 		if (background.isNotNull()) {
-			canvas->draw(rcItem, background);
+			canvas->draw(rcItem, Drawable::createColorDrawable(Color((rowIndex * 20) % 255, (colIndex * 30) % 255, (rowIndex * 40) % 255)));
 		}
-		SLIB_INVOKE_EVENT_HANDLER(DrawItem, itemIndex, canvas, rcItem)
+		SLIB_INVOKE_EVENT_HANDLER(DrawItem, rowIndex, colIndex, canvas, rcItem)
+
+		SimpleTextBoxParam param;
+		param.text = "Test" + String::from(rowIndex) + "-" + String::from(colIndex);
+		if (param.text.isEmpty()) {
+			return;
+		}
+		SimpleTextBoxDrawParam drawParam;
+		drawParam.frame = rcItem;
+		drawParam.frame.left += getPaddingLeft();
+		drawParam.frame.right -= getPaddingRight();
+		drawParam.frame.top += getPaddingTop();
+		drawParam.frame.bottom -= getPaddingBottom();
+		drawParam.textColor = Color::Yellow;
+		SimpleTextBox box;
+		param.font = getFont();
+		param.width = drawParam.frame.getWidth();
+		param.ellipsizeMode = EllipsizeMode::None;
+		param.align = Alignment::Left;
+		box.update(param);
+		box.draw(canvas, drawParam);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TableView, ClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TableView, ClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 
-	void TableView::dispatchClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	void TableView::dispatchClickItem(sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickItem, itemIndex, pos, ev)
+		SLIB_INVOKE_EVENT_HANDLER(ClickItem, rowIndex, colIndex, pos, ev)
 		if (ev->isPreventedDefault()) {
 			return;
 		}
-		m_indexFocused = itemIndex;
+		m_selectedRow = rowIndex;
 		if (ev->isShiftKey()) {
-			if (m_indexLastSelected >= 0) {
+			if (m_lastSelectedRow >= 0) {
 				if (ev->isControlKey() || ev->isCommandKey()) {
-					selectRange(m_indexLastSelected, itemIndex);
+					//selectRange(m_lastSelectedRow, rowIndex);
 				} else {
-					setSelectedRange(m_indexLastSelected, itemIndex);
+					//setSelectedRange(m_lastSelectedRow, rowIndex);
 				}
 			} else {
-				setSelectedIndex(itemIndex);
+				setRowSelected(rowIndex);
 			}
 			dispatchChangedSelection(ev);
 		} else {
 			if (ev->isControlKey() || ev->isCommandKey()) {
-				toggleItemSelection(itemIndex);
+				//toggleItemSelection(rowIndex);
 			} else {
-				setSelectedIndex(itemIndex);
+				setRowSelected(rowIndex);
 			}
 			dispatchChangedSelection(ev);
-			m_indexLastSelected = itemIndex;
+			m_lastSelectedRow = rowIndex;
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TableView, RightButtonClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TableView, RightButtonClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 
-	void TableView::dispatchRightButtonClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	void TableView::dispatchRightButtonClickItem(sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(RightButtonClickItem, itemIndex, pos, ev)
+		SLIB_INVOKE_EVENT_HANDLER(RightButtonClickItem, rowIndex, colIndex, pos, ev)
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TableView, DoubleClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TableView, DoubleClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 
-	void TableView::dispatchDoubleClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	void TableView::dispatchDoubleClickItem(sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(DoubleClickItem, itemIndex, pos, ev)
+		SLIB_INVOKE_EVENT_HANDLER(DoubleClickItem, rowIndex, colIndex, pos, ev)
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(TableView, ChangedSelection, UIEvent* ev)
@@ -572,40 +526,74 @@ namespace slib
 
 	void TableView::onDraw(Canvas* canvas)
 	{
-		sl_int64 countItems = m_countItems;
-		if (countItems <= 0) {
+		if (m_rowCount <= 0) {
 			return;
 		}
-		sl_int64 pos = (sl_int64)(getScrollY());
-		sl_int32 heightItem = m_heightItem;
-		sl_int64 iStart = pos / heightItem;
-		sl_int64 iEnd = (pos + getHeight()) / heightItem;
-		if (iEnd >= countItems) {
-			iEnd = countItems - 1;
+		sl_int32 posY = (sl_int32)(getScrollY());
+		sl_int32 posX = (sl_int32)(getScrollX());
+		sl_int64 iRowStart = posY / m_rowHeight;
+		sl_int64 iRowEnd = (posY + getHeight()) / m_rowHeight;
+		if (iRowEnd >= m_rowCount) {
+			iRowEnd = m_rowCount - 1;
+		}
+		sl_reg rowCount = (sl_reg)(iRowEnd - iRowStart);
+
+		sl_int64 widthLength = 0;
+		sl_int64 iColumnStart = 0;
+		sl_int64 iColumnEnd = m_columnCount;
+		sl_int64 index = 0;
+		for (auto width : m_columnWidth) {
+			widthLength += width;
+			if (widthLength <= posX) {
+				iColumnStart = index;
+			}
+			else if (widthLength > posX + getWidth()) {
+				iColumnEnd = index;
+				break;
+			}
+			index++;
 		}
 
-		sl_reg n = (sl_reg)(iEnd - iStart);
-		UIRect rcItem;
-		rcItem.top = (sl_ui_pos)(iStart * heightItem - pos);
-		rcItem.bottom = rcItem.top + (sl_ui_len)heightItem;
-		rcItem.left = 0;
-		rcItem.right = getWidth();
-		for (sl_reg i = 0; i <= n; i++) {
-			dispatchDrawItem(iStart + i, canvas, rcItem);
-			rcItem.top = rcItem.bottom;
-			rcItem.bottom += heightItem;
+		if (iColumnEnd >= m_columnCount) {
+			iColumnEnd = m_columnCount - 1;
 		}
+		sl_int64 colCount = iColumnEnd - iColumnStart;
+
+		{
+			CanvasStateScope scope(canvas);
+			Rectanglei rt(m_widthLeftHeader, m_heightTopHeader, getWidth() - m_widthRightHeader, getHeight() - m_heightBottomHeader);
+			canvas->clipToRectangle(rt);
+			UIRect rcItem;
+			rcItem.top = m_heightTopHeader + (sl_ui_pos)(iRowStart * m_rowHeight - posY);
+			rcItem.bottom = rcItem.top + (sl_ui_len)m_rowHeight;
+			
+			for (sl_reg i = 0; i <= rowCount; i++) {
+				rcItem.left = m_widthLeftHeader + getColumnWidth(0, iColumnStart) - posX;
+				for (sl_reg j = 0; j <= colCount; j++) {
+					rcItem.right = rcItem.left + getColumnWidth(iColumnStart + j, iColumnStart + j + 1);
+					dispatchDrawItem(iRowStart + i, iColumnStart + j, canvas, rcItem);
+					rcItem.left = rcItem.right;
+				}
+				rcItem.top = rcItem.bottom;
+				rcItem.bottom += m_rowHeight;
+			}
+		}
+		
+		
 	}
 
 	void TableView::onClickEvent(UIEvent* ev)
 	{
 		if (ev->isMouseEvent()) {
-			sl_int64 index = getItemIndexAt(ev->getPoint());
-			if (index >= 0) {
+			sl_int64 rowIndex = getRowIndexAt(ev->getPoint());
+			sl_int64 colIndex = getColumnIndexAt(ev->getPoint());
+			if (rowIndex >= 0 && colIndex >= 0) {
 				UIPoint pt = ev->getPoint();
-				sl_int64 pos = (sl_int64)(getScrollY()) + pt.y;
-				pt.y = (sl_ui_pos)(pos - index * m_heightItem);
-				dispatchClickItem(index, pt, ev);
+				sl_int64 posY = (sl_int64)(getScrollY()) + pt.y - m_heightTopHeader;
+				pt.y = (sl_ui_pos)(posY - rowIndex * m_rowHeight);
+				sl_int64 posX = (sl_int64)(getScrollX()) + pt.x - m_widthLeftHeader;
+				pt.x = (sl_ui_pos)(posX - getColumnWidth(0, colIndex));
+				dispatchClickItem(rowIndex, colIndex, pt, ev);
 			}
 		}
 	}
@@ -614,18 +602,19 @@ namespace slib
 	{
 		UIAction action = ev->getAction();
 		if (action == UIAction::RightButtonDown || action == UIAction::LeftButtonDoubleClick || action == UIAction::MouseMove || action == UIAction::MouseEnter) {
-			sl_int64 index = getItemIndexAt(ev->getPoint());
-			if (index >= 0) {
+			sl_int64 rowIndex = getRowIndexAt(ev->getPoint());
+			sl_int64 colIndex = getColumnIndexAt(ev->getPoint());
+			if (rowIndex >= 0) {
 				UIPoint pt = ev->getPoint();
 				sl_int64 pos = (sl_int64)(getScrollY()) + pt.y;
-				pt.y = (sl_ui_pos)(pos - index * m_heightItem);
+				pt.y = (sl_ui_pos)(pos - rowIndex * m_rowHeight);
 				if (action == UIAction::RightButtonDown) {
-					dispatchRightButtonClickItem(index, pt, ev);
+					dispatchRightButtonClickItem(rowIndex, colIndex, pt, ev);
 				} else if (action == UIAction::LeftButtonDoubleClick) {
-					dispatchDoubleClickItem(index, pt, ev);
+					dispatchDoubleClickItem(rowIndex,colIndex, pt, ev);
 				}
-				if (m_indexHover != index) {
-					m_indexHover = index;
+				if (m_indexHover != rowIndex) {
+					m_indexHover = rowIndex;
 					invalidate();
 				}
 			} else {
@@ -644,7 +633,7 @@ namespace slib
 
 	void TableView::onKeyEvent(UIEvent* ev)
 	{
-		sl_int64 nTotal = m_countItems;
+		sl_int64 nTotal = m_rowCount;
 		if (nTotal <= 0) {
 			return;
 		}
@@ -655,76 +644,76 @@ namespace slib
 
 			if (key == Keycode::Space || key == Keycode::Enter) {
 
-				sl_int64 index = m_indexFocused;
-				if (index >= 0) {
+				/*sl_int64 rowIndex = m_indexFocused;
+				if (rowIndex >= 0) {
 					UIPoint pt(0, 0);
-					dispatchClickItem(index, pt, ev);
-				}
+					dispatchClickItem(rowIndex, pt, ev);
+				}*/
 
 			} else if (key == Keycode::Up || key == Keycode::Down || key == Keycode::Home || key == Keycode::End) {
 
-				sl_int64 index = m_indexFocused;
+				//sl_int64 index = m_indexFocused;
 
-				if (key == Keycode::Up) {
-					if (index > 0) {
-						index--;
-					} else if (index < 0) {
-						index = nTotal - 1;
-					} else {
-						return;
-					}
-				} else if (key == Keycode::Down) {
-					if (index >= 0) {
-						if (index < nTotal - 1) {
-							index++;
-						} else {
-							return;
-						}
-					} else {
-						index = 0;
-					}
-				} else if (key == Keycode::Home) {
-					index = 0;
-				} else {
-					index = nTotal - 1;
-				}
+				//if (key == Keycode::Up) {
+				//	if (index > 0) {
+				//		index--;
+				//	} else if (index < 0) {
+				//		index = nTotal - 1;
+				//	} else {
+				//		return;
+				//	}
+				//} else if (key == Keycode::Down) {
+				//	if (index >= 0) {
+				//		if (index < nTotal - 1) {
+				//			index++;
+				//		} else {
+				//			return;
+				//		}
+				//	} else {
+				//		index = 0;
+				//	}
+				//} else if (key == Keycode::Home) {
+				//	index = 0;
+				//} else {
+				//	index = nTotal - 1;
+				//}
 
-				m_indexFocused = index;
+				//m_indexFocused = index;
 
-				// check focused item is visible
-				{
-					sl_int64 sy = (sl_int64)(getScrollY());
-					sl_ui_len height = m_heightItem;
-					sl_int64 y1 = index * height;
-					sl_int64 y2 = y1 + height;
-					if (y1 < sy || y2 > sy + getHeight()) {
-						if (key == Keycode::Up || key == Keycode::Home) {
-							scrollTo(0, (sl_scroll_pos)y1, UIUpdateMode::None);
-						} else {
-							scrollTo(0, (sl_scroll_pos)(y2 - getHeight()), UIUpdateMode::None);
-						}
-					}
-				}
+				//// check focused item is visible
+				//{
+				//	sl_int64 sy = (sl_int64)(getScrollY());
+				//	sl_ui_len height = m_heightItem;
+				//	sl_int64 y1 = index * height;
+				//	sl_int64 y2 = y1 + height;
+				//	if (y1 < sy || y2 > sy + getHeight()) {
+				//		if (key == Keycode::Up || key == Keycode::Home) {
+				//			scrollTo(0, (sl_scroll_pos)y1, UIUpdateMode::None);
+				//		} else {
+				//			scrollTo(0, (sl_scroll_pos)(y2 - getHeight()), UIUpdateMode::None);
+				//		}
+				//	}
+				//}
 
-				if (ev->isShiftKey()) {
-					UIPoint pt(0, 0);
-					dispatchClickItem(index, pt, ev);
-				} else {
-					if (ev->isControlKey() || ev->isCommandKey()) {
-						invalidate();
-					} else {
-						UIPoint pt(0, 0);
-						dispatchClickItem(index, pt, ev);
-					}
-				}
+				//if (ev->isShiftKey()) {
+				//	UIPoint pt(0, 0);
+				//	dispatchClickItem(index, pt, ev);
+				//} else {
+				//	if (ev->isControlKey() || ev->isCommandKey()) {
+				//		invalidate();
+				//	} else {
+				//		UIPoint pt(0, 0);
+				//		dispatchClickItem(index, pt, ev);
+				//	}
+				//}
 
 				ev->preventDefault();
 
 			} else if (key == Keycode::Escape) {
 
-				if (getSelectedIndex() < 0) {
+				/*if (getSelectedIndex() < 0) {
 					m_indexFocused = -1;
-				}
+				}*/
 				invalidate();
 
 			}
