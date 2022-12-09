@@ -33,14 +33,10 @@ namespace slib
 	public:
 		static void setValue(const StringParam& key, const Json& value);
 		
-		static void setValue(const StringParam& key, const Memory& value);
-
 		static void removeValue(const StringParam& key);
 
 		static Json getValue(const StringParam& key);
 		
-		static Variant getVariantValue(const StringParam& key);
-
 		template <class T>
 		static void getValue(const StringParam& key, T& _out)
 		{
