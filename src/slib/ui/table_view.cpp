@@ -447,7 +447,7 @@ namespace slib
 			background = m_backgroundFocusedItem;
 		}
 		if (background.isNotNull()) {
-			canvas->draw(rcItem, Drawable::createColorDrawable(Color((rowIndex * 20) % 255, (colIndex * 30) % 255, (rowIndex * 40) % 255)));
+			canvas->draw(rcItem, background);
 		}
 		SLIB_INVOKE_EVENT_HANDLER(DrawItem, rowIndex, colIndex, canvas, rcItem)
 
@@ -467,7 +467,7 @@ namespace slib
 		param.font = getFont();
 		param.width = drawParam.frame.getWidth();
 		param.ellipsizeMode = EllipsizeMode::None;
-		param.align = Alignment::Left;
+		param.align = Alignment::Center;
 		box.update(param);
 		box.draw(canvas, drawParam);
 	}
@@ -536,7 +536,7 @@ namespace slib
 		if (iRowEnd >= m_rowCount) {
 			iRowEnd = m_rowCount - 1;
 		}
-		sl_reg rowCount = (sl_reg)(iRowEnd - iRowStart);
+		sl_int32 rowCount = (sl_int32)(iRowEnd - iRowStart);
 
 		sl_int64 widthLength = 0;
 		sl_int64 iColumnStart = 0;
@@ -561,7 +561,7 @@ namespace slib
 
 		{
 			CanvasStateScope scope(canvas);
-			Rectanglei rt(m_widthLeftHeader, m_heightTopHeader, getWidth() - m_widthRightHeader, getHeight() - m_heightBottomHeader);
+			Rectanglei rt(m_widthLeftHeader, m_heightTopHeader, getWidth() - m_widthRightHeader + 1, getHeight() - m_heightBottomHeader + 1);
 			canvas->clipToRectangle(rt);
 			UIRect rcItem;
 			rcItem.top = m_heightTopHeader + (sl_ui_pos)(iRowStart * m_rowHeight - posY);
@@ -577,6 +577,27 @@ namespace slib
 				rcItem.top = rcItem.bottom;
 				rcItem.bottom += m_rowHeight;
 			}
+
+			// draw line
+			rcItem.top = m_heightTopHeader + (sl_ui_pos)(iRowStart * m_rowHeight - posY);
+			rcItem.left = m_widthLeftHeader + getColumnWidth(0, iColumnStart) - posX;
+			rcItem.right = rcItem.left + getColumnWidth(iColumnStart, iColumnEnd + 1);
+			for (sl_reg i = 0; i <= rowCount; i++) {
+				rcItem.bottom = rcItem.top + m_rowHeight;
+				canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
+				rcItem.top = rcItem.bottom;
+			}
+			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
+
+			rcItem.top = m_heightTopHeader + (sl_ui_pos)(iRowStart * m_rowHeight - posY);
+			rcItem.bottom = rcItem.top + m_rowHeight * (rowCount + 1);
+			rcItem.left = m_widthLeftHeader + getColumnWidth(0, iColumnStart) - posX;
+			for (sl_reg j = 0; j <= colCount; j++) {
+				rcItem.right = rcItem.left + getColumnWidth(iColumnStart + j, iColumnStart + j + 1);
+				canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
+				rcItem.left = rcItem.right;
+			}
+			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
 		}
 		
 		
