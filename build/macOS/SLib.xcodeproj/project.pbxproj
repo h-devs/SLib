@@ -35,10 +35,6 @@
 		2628EED921C4259900D8CD00 /* zxing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2628EED821C4259900D8CD00 /* zxing.cpp */; };
 		262D59972324E3D000F85780 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
 		262D599D2324E44500F85780 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 262D59922324E3A900F85780 /* main.cpp */; };
-		262D599F2324E9A500F85780 /* emoji.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 262D599E2324E9A400F85780 /* emoji.cpp */; };
-		262D59A12324EB3D00F85780 /* emoji_png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 262D59A02324EB3D00F85780 /* emoji_png.cpp */; };
-		262D59A9232587AF00F85780 /* noto_emoji.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 262D59A7232587AF00F85780 /* noto_emoji.cpp */; };
-		262D59AA232587AF00F85780 /* noto_emoji_png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 262D59A8232587AF00F85780 /* noto_emoji_png.cpp */; };
 		262ED4DF228DD35B0029F409 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 262ED4DE228DD35B0029F409 /* main.cpp */; };
 		262ED4E2228DD6ED0029F409 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
 		263051D1225CA21700A6609E /* pinterest_ui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 263051D0225CA21700A6609E /* pinterest_ui.cpp */; };
@@ -527,11 +523,6 @@
 		2628EAE821C410ED00D8CD00 /* jwt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jwt.cpp; sourceTree = "<group>"; };
 		2628EED821C4259900D8CD00 /* zxing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zxing.cpp; sourceTree = "<group>"; };
 		262D59922324E3A900F85780 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		262D599C2324E3D000F85780 /* GenerateEmojiList */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateEmojiList; sourceTree = BUILT_PRODUCTS_DIR; };
-		262D599E2324E9A400F85780 /* emoji.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = emoji.cpp; sourceTree = "<group>"; };
-		262D59A02324EB3D00F85780 /* emoji_png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = emoji_png.cpp; sourceTree = "<group>"; };
-		262D59A7232587AF00F85780 /* noto_emoji.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = noto_emoji.cpp; path = ../../external/src/noto_emoji/noto_emoji.cpp; sourceTree = "<group>"; };
-		262D59A8232587AF00F85780 /* noto_emoji_png.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = noto_emoji_png.cpp; path = ../../external/src/noto_emoji/noto_emoji_png.cpp; sourceTree = "<group>"; };
 		262ED4D6228DD3340029F409 /* GenerateEllipticCurvePow2G */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateEllipticCurvePow2G; sourceTree = BUILT_PRODUCTS_DIR; };
 		262ED4DE228DD35B0029F409 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../tool/src/GenerateEllipticCurvePow2G/main.cpp; sourceTree = "<group>"; };
 		262ED4E0228DD6D70029F409 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -1061,19 +1052,8 @@
 				D7BF60C526311EBF00E0B3DD /* libjpeg_unity1.c */,
 				D7BF60C626311EBF00E0B3DD /* libjpeg_unity2.c */,
 				18FF0E0C28444F5900FC8F75 /* freetype_unity.c */,
-				262D59A8232587AF00F85780 /* noto_emoji_png.cpp */,
-				262D59A7232587AF00F85780 /* noto_emoji.cpp */,
 			);
 			name = external;
-			sourceTree = "<group>";
-		};
-		262D59912324E3A900F85780 /* GenerateEmojiList */ = {
-			isa = PBXGroup;
-			children = (
-				262D59922324E3A900F85780 /* main.cpp */,
-			);
-			name = GenerateEmojiList;
-			path = ../../tool/src/GenerateEmojiList;
 			sourceTree = "<group>";
 		};
 		262ED4DD228DD34C0029F409 /* GenerateEllipticCurvePow2 */ = {
@@ -1103,7 +1083,6 @@
 				264AF14621B05BC9004E58CB /* sapp */,
 				264AF10821AECFA4004E58CB /* AddCopyrightNotice */,
 				262ED4DD228DD34C0029F409 /* GenerateEllipticCurvePow2 */,
-				262D59912324E3A900F85780 /* GenerateEmojiList */,
 				D7C709812645A0A900FB3A32 /* GenerateAppIcons */,
 			);
 			name = tool;
@@ -1404,8 +1383,6 @@
 				266DD4821C1193C400D47AB0 /* drawable.cpp */,
 				26C1B63A20D5162100E36539 /* drawable_ext.cpp */,
 				26FBDE541DA2B3F700FF1B55 /* drawable_quartz.mm */,
-				262D599E2324E9A400F85780 /* emoji.cpp */,
-				262D59A02324EB3D00F85780 /* emoji_png.cpp */,
 				266DD4841C1193C400D47AB0 /* font.cpp */,
 				26FBDE591DA2B40700FF1B55 /* font_quartz.mm */,
 				26B89A6B1DC3467B00ABE895 /* font_atlas.cpp */,
@@ -1462,7 +1439,6 @@
 				264AF12121B0590C004E58CB /* libsapp.a */,
 				263918D921CBA047008B335B /* sapp.app */,
 				262ED4D6228DD3340029F409 /* GenerateEllipticCurvePow2G */,
-				262D599C2324E3D000F85780 /* GenerateEmojiList */,
 				D7B1C87E26453EC200E60145 /* GenerateAppIcons */,
 			);
 			name = Products;
@@ -1708,23 +1684,6 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		262D59932324E3D000F85780 /* GenerateEmojiList */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 262D59992324E3D000F85780 /* Build configuration list for PBXNativeTarget "GenerateEmojiList" */;
-			buildPhases = (
-				262D59942324E3D000F85780 /* Sources */,
-				262D59962324E3D000F85780 /* Frameworks */,
-				262D59982324E3D000F85780 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = GenerateEmojiList;
-			productName = GenerateEllipticCurvePow2G;
-			productReference = 262D599C2324E3D000F85780 /* GenerateEmojiList */;
-			productType = "com.apple.product-type.tool";
-		};
 		262ED4D5228DD3340029F409 /* GenerateEllipticCurvePow2G */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 262ED4DC228DD3340029F409 /* Build configuration list for PBXNativeTarget "GenerateEllipticCurvePow2G" */;
@@ -1883,7 +1842,6 @@
 				263918D821CBA047008B335B /* sapp */,
 				264AF10F21AED095004E58CB /* AddCopyrightNotice */,
 				262ED4D5228DD3340029F409 /* GenerateEllipticCurvePow2G */,
-				262D59932324E3D000F85780 /* GenerateEmojiList */,
 				D7B1C87526453EC200E60145 /* GenerateAppIcons */,
 			);
 		};
@@ -2068,7 +2026,6 @@
 				26D9D9741E96466A005F7BD3 /* graphics_util.cpp in Sources */,
 				26D9D90F1E9645CE005F7BD3 /* mutex.cpp in Sources */,
 				26EA207223A2BF75008218D7 /* database_expression.cpp in Sources */,
-				262D59AA232587AF00F85780 /* noto_emoji_png.cpp in Sources */,
 				26FD9030235DE31600574068 /* charset_ext.cpp in Sources */,
 				26D9D9E41E96468D005F7BD3 /* ui_event_macos.mm in Sources */,
 				D7BF60B826311EA200E0B3DD /* libpng_unity.c in Sources */,
@@ -2190,7 +2147,6 @@
 				D7BF60AA26311E8B00E0B3DD /* zlib_unity.c in Sources */,
 				26D9D9681E96466A005F7BD3 /* color.cpp in Sources */,
 				26D9D9981E96467B005F7BD3 /* ip_address.cpp in Sources */,
-				262D59A12324EB3D00F85780 /* emoji_png.cpp in Sources */,
 				26805B6723533D4300D8817C /* string_param.cpp in Sources */,
 				265A937523051C1B00B155A2 /* bitmap_quartz.mm in Sources */,
 				26D9D9761E96466A005F7BD3 /* image_png.cpp in Sources */,
@@ -2296,7 +2252,6 @@
 				26D9D95C1E964662005F7BD3 /* geo_line.cpp in Sources */,
 				D7BF609C26311E1700E0B3DD /* decimal128.cpp in Sources */,
 				26D9D9C61E96468D005F7BD3 /* list_view.cpp in Sources */,
-				262D59A9232587AF00F85780 /* noto_emoji.cpp in Sources */,
 				26C1B63520D4FF5200E36539 /* canvas.cpp in Sources */,
 				26FE7D8D25A2F1B900B787F0 /* plot_ui.cpp in Sources */,
 				26D9D98E1E964675005F7BD3 /* media_player_apple.mm in Sources */,
@@ -2316,7 +2271,6 @@
 				D7BF60F126311F7600E0B3DD /* lmdb_unity.c in Sources */,
 				26D9D94A1E9645CE005F7BD3 /* system.cpp in Sources */,
 				261180E62563BCA10082AA0A /* render_buffer.cpp in Sources */,
-				262D599F2324E9A500F85780 /* emoji.cpp in Sources */,
 				26D9D9CB1E96468D005F7BD3 /* progress_bar.cpp in Sources */,
 				267206282497433C006E6347 /* label_list.cpp in Sources */,
 				26805B6923533D6B00D8817C /* string_buffer.cpp in Sources */,
@@ -2819,15 +2773,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		262D59992324E3D000F85780 /* Build configuration list for PBXNativeTarget "GenerateEmojiList" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				262D599A2324E3D000F85780 /* Debug */,
-				262D599B2324E3D000F85780 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		262ED4DC228DD3340029F409 /* Build configuration list for PBXNativeTarget "GenerateEllipticCurvePow2G" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

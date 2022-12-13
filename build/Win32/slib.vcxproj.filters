@@ -938,12 +938,6 @@
     <ClCompile Include="..\..\src\slib\ui\collection_view.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\emoji.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\emoji_png.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\string_buffer.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -1347,12 +1341,6 @@
       <Filter>external</Filter>
     </ClCompile>
     <ClCompile Include="..\..\external\src\lz4\lz4_unity.c">
-      <Filter>external</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp">
-      <Filter>external</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp">
       <Filter>external</Filter>
     </ClCompile>
     <ClCompile Include="..\..\external\src\snappy\snappy_unity.cc">

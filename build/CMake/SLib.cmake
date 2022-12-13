@@ -205,8 +205,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/color.cpp"
  "${SLIB_PATH}/src/slib/graphics/drawable.cpp"
  "${SLIB_PATH}/src/slib/graphics/drawable_ext.cpp"
- "${SLIB_PATH}/src/slib/graphics/emoji.cpp"
- "${SLIB_PATH}/src/slib/graphics/emoji_png.cpp"
  "${SLIB_PATH}/src/slib/graphics/font.cpp"
  "${SLIB_PATH}/src/slib/graphics/font_atlas.cpp"
  "${SLIB_PATH}/src/slib/graphics/freetype.cpp"
@@ -546,8 +544,6 @@ set (
  "${EXTERNAL_SRC_DIR}/lz4/lz4_unity.c"
  "${EXTERNAL_SRC_DIR}/lmdb/lmdb_unity.c"
  "${EXTERNAL_SRC_DIR}/leveldb/leveldb_unity.cc"
- "${EXTERNAL_SRC_DIR}/noto_emoji/noto_emoji.cpp"
- "${EXTERNAL_SRC_DIR}/noto_emoji/noto_emoji_png.cpp"
 )
 
 add_library (

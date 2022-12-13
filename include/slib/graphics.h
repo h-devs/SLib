@@ -23,12 +23,7 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_HEADER
 #define CHECKHEADER_SLIB_GRAPHICS_HEADER
 
-#include "graphics/constants.h"
-
 #include "graphics/color.h"
-#include "graphics/yuv.h"
-#include "graphics/cmyk.h"
-#include "graphics/bitmap_format.h"
 #include "graphics/bitmap_data.h"
 
 #include "graphics/pen.h"
@@ -41,15 +36,6 @@
 #include "graphics/bitmap.h"
 #include "graphics/image.h"
 #include "graphics/svg.h"
-
-#include "graphics/freetype.h"
-
-#include "graphics/font_atlas.h"
-#include "graphics/text.h"
-#include "graphics/emoji.h"
-#include "graphics/util.h"
-
-#include "graphics/zxing.h"
 
 #include "graphics/json.h"
 #include "graphics/serialize.h"
