@@ -517,6 +517,76 @@ namespace slib
 				return posDst;
 			}
 
+			SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char8* data, sl_size len, sl_size& pos)
+			{
+				if (pos >= len) {
+					return sl_false;
+				}
+				return Utf8Helper::getUnicode(outCode, data, len, pos);
+			}
+
+			SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char16* data, sl_size len, sl_size& pos)
+			{
+				if (pos >= len) {
+					return sl_false;
+				}
+				return Utf16Helper<NoEndianHelper>::getUnicode(outCode, data, len, pos);
+			}
+
+			SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char32* data, sl_size len, sl_size& pos)
+			{
+				if (pos >= len) {
+					return sl_false;
+				}
+				outCode = data[pos++];
+				return sl_true;
+			}
+
+			template <class CHAR>
+			static sl_size GetJoinedCharLength(sl_uint32 firstChar, const CHAR* dataNext, sl_size lenNext)
+			{
+				if (firstChar >= 0x100) {
+					sl_uint32 next;
+					sl_size n = 0;
+					for (;;) {
+						sl_size m = n;
+						if (!(GetUnicode(next, dataNext, lenNext, n))) {
+							return m;
+						}
+						if (next >= 0x1f3fb && next <= 0x1f3ff) {
+							// EMOJI MODIFIER FITZPATRICK TYPE
+							m = n;
+							if (!(GetUnicode(next, dataNext, lenNext, n))) {
+								return m;
+							}
+						}
+						if (next != 0x200d) {
+							// Not ZERO-WIDTH JOINER
+							return m;
+						}
+						if (!(GetUnicode(next, dataNext, lenNext, n))) {
+							return m;
+						}
+					}
+				} else {
+					switch (firstChar) {
+						case '*': case '#':
+						case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+							break;
+						default:
+							return 0;
+					}
+					sl_uint32 next;
+					sl_size n = 0;
+					if (GetUnicode(next, dataNext, lenNext, n)) {
+						if (next == 0x20e3) {
+							return n;
+						}
+					}
+				}
+				return 0;
+			}
+
 		}
 	}
 
@@ -819,6 +889,80 @@ namespace slib
 			return ch;
 		}
 		return 0;
+	}
+
+	sl_bool Charsets::isEmoji(sl_char32 code)
+	{
+		if (code < 0x100) {
+			switch (code) {
+				case '*': case '#':
+				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+				case 0xA9: case 0xAE:
+					return sl_true;
+			}
+		} else if (code < 0x10000) {
+			switch (code) {
+				case 0x203c: case 0x2049: case 0x20e3: case 0x2122: case 0x2139: case 0x2194: case 0x2195: case 0x2196: case 0x2197: case 0x2198:
+				case 0x2199: case 0x21a9: case 0x21aa: case 0x231a: case 0x231b: case 0x2328: case 0x23cf: case 0x23e9: case 0x23ea: case 0x23eb:
+				case 0x23ec: case 0x23ed: case 0x23ee: case 0x23ef: case 0x23f0: case 0x23f1: case 0x23f2: case 0x23f3: case 0x23f8: case 0x23f9:
+				case 0x23fa: case 0x24c2: case 0x25aa: case 0x25ab: case 0x25b6: case 0x25c0: case 0x25fb: case 0x25fc: case 0x25fd: case 0x25fe:
+				case 0x2600: case 0x2601: case 0x2602: case 0x2603: case 0x2604: case 0x260e: case 0x2611: case 0x2614: case 0x2615: case 0x2618:
+				case 0x261d: case 0x2620: case 0x2622: case 0x2623: case 0x2626: case 0x262a: case 0x262e: case 0x262f: case 0x2638: case 0x2639:
+				case 0x263a: case 0x2640: case 0x2642: case 0x2648: case 0x2649: case 0x264a: case 0x264b: case 0x264c: case 0x264d: case 0x264e:
+				case 0x264f: case 0x2650: case 0x2651: case 0x2652: case 0x2653: case 0x265f: case 0x2660: case 0x2663: case 0x2665: case 0x2666:
+				case 0x2668: case 0x267b: case 0x267e: case 0x267f: case 0x2692: case 0x2693: case 0x2694: case 0x2695: case 0x2696: case 0x2697:
+				case 0x2699: case 0x269b: case 0x269c: case 0x26a0: case 0x26a1: case 0x26aa: case 0x26ab: case 0x26b0: case 0x26b1: case 0x26bd:
+				case 0x26be: case 0x26c4: case 0x26c5: case 0x26c8: case 0x26ce: case 0x26cf: case 0x26d1: case 0x26d3: case 0x26d4: case 0x26e9:
+				case 0x26ea: case 0x26f0: case 0x26f1: case 0x26f2: case 0x26f3: case 0x26f4: case 0x26f5: case 0x26f7: case 0x26f8: case 0x26f9:
+				case 0x26fa: case 0x26fd: case 0x2702: case 0x2705: case 0x2708: case 0x2709: case 0x270a: case 0x270b: case 0x270c: case 0x270d:
+				case 0x270f: case 0x2712: case 0x2714: case 0x2716: case 0x271d: case 0x2721: case 0x2728: case 0x2733: case 0x2734: case 0x2744:
+				case 0x2747: case 0x274c: case 0x274e: case 0x2753: case 0x2754: case 0x2755: case 0x2757: case 0x2763: case 0x2764: case 0x2795:
+				case 0x2796: case 0x2797: case 0x27a1: case 0x27b0: case 0x27bf: case 0x2934: case 0x2935: case 0x2b05: case 0x2b06: case 0x2b07:
+				case 0x2b1b: case 0x2b1c: case 0x2b50: case 0x2b55: case 0x3030: case 0x303d: case 0x3297: case 0x3299:
+					return sl_true;
+			}
+		} else {
+			if (code >= 0x1f191 && code <= 0x1f19a) {
+				return sl_true;
+			}
+			if (code >= 0x1f1e6 && code <= 0x1f1ff) {
+				return sl_true;
+			}
+			if (code >= 0x1f232 && code <= 0x1f23a) {
+				return sl_true;
+			}
+			if (code >= 0x1f300 && code <= 0x1f64f) {
+				return sl_true;
+			}
+			if (code >= 0x1f680 && code <= 0x1f6ff) {
+				return sl_true;
+			}
+			if (code >= 0x1f900 && code <= 0x1f9ff) {
+				return sl_true;
+			}
+			switch (code) {
+				case 0x1f004: case 0x1f0cf: case 0x1f170: case 0x1f171: case 0x1f17e: case 0x1f17f: case 0x1f18e:
+				case 0x1f201: case 0x1f202: case 0x1f21a: case 0x1f22f:
+				case 0x1f250: case 0x1f251:
+					return sl_true;
+			}
+		}
+		return sl_false;
+	}
+
+	sl_size Charsets::getJoinedCharLength(sl_char32 firstChar, const sl_char8* dataNext, sl_size lenNext)
+	{
+		return GetJoinedCharLength(firstChar, dataNext, lenNext);
+	}
+
+	sl_size Charsets::getJoinedCharLength(sl_char32 firstChar, const sl_char16* dataNext, sl_size lenNext)
+	{
+		return GetJoinedCharLength(firstChar, dataNext, lenNext);
+	}
+
+	sl_size Charsets::getJoinedCharLength(sl_char32 firstChar, const sl_char32* dataNext, sl_size lenNext)
+	{
+		return GetJoinedCharLength(firstChar, dataNext, lenNext);
 	}
 
 }
