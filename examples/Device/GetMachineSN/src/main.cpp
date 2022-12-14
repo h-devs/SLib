@@ -1,5 +1,4 @@
 #include <slib.h>
-#include <windows.h>
 
 using namespace slib;
 using namespace std;

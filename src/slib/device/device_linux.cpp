@@ -29,9 +29,7 @@
 #include "slib/ui/dl/linux/gtk.h"
 
 #include <stdio.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <linux/hdreg.h>
+#include <string.h>
 
 using namespace std;
 
@@ -79,7 +77,7 @@ namespace slib
 		}
 		else
 		{
-			printf("Cannot read this board serial number.\n");
+			return sl_null;
 		}
 		return serial;
 	}

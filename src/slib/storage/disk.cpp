@@ -27,6 +27,11 @@ namespace slib
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)
 
+#include <stdio.h>
+#include <string.h>
+
+using namespace std;
+
 #define UDEVADM "udevadm info --query=all --name=/dev/sd%c | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"
 
 	String Disk::getSerialNumber(sl_uint32 diskNo)
@@ -52,7 +57,6 @@ namespace slib
 						if (pszFind = strstr(out_line, "ID_SERIAL_SHORT"))
 						{
 							ret = String::from(pszFind + 16);
-							break;
 						}
 					}
 				}
@@ -60,7 +64,7 @@ namespace slib
 			pclose(cmd);
 		}
 
-		return serial;
+		return ret;
 	}
 
 	sl_bool Disk::getSize(const StringParam& path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
