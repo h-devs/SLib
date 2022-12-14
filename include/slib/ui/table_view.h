@@ -41,8 +41,8 @@ namespace slib
 		sl_uint64 getRowCount();
 		sl_uint64 getColumnCount();
 
-		virtual void setRowCount(sl_int64 rowCount, UIUpdateMode mode = UIUpdateMode::Redraw);
-		virtual void setColumnCount(sl_int64 colCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setRowCount(sl_int32 rowCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		virtual void setColumnCount(sl_int32 colCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getRowHeight();
 		//sl_ui_len getRowWidth(sl_int32 colCount);
@@ -83,8 +83,11 @@ namespace slib
 
 		sl_int64 getHoverIndex();
 
-		sl_int64 getRowIndexAt(const UIPoint& pt);
-		sl_int64 getColumnIndexAt(const UIPoint& pt);
+		sl_int64 getRowIndexAt(sl_int32 y);
+
+		sl_int64 getColumnIndexAt(sl_int32 x);
+
+		void getViewportGridIndex(sl_int32& rowStart, sl_int32& rowEnd, sl_int32& colStart, sl_int32& colEnd);
 
 		Ref<Drawable> getItemBackground();
 
@@ -122,6 +125,10 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(TableView, ChangedSelection, UIEvent* ev)
 
 	protected:
+		void drawGridLine(Canvas* canvas);
+		void drawGridVerticalHeader(Canvas* canvas, sl_bool	flagTop = sl_true);
+		void drawGridHorizontalHeader(Canvas* canvas, sl_bool flagLeft = sl_true);
+		void drawGridItemText(Canvas* canvas, const String& str, const UIRect& rt);
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
@@ -131,8 +138,8 @@ namespace slib
 		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
-		sl_int64 m_rowCount;
-		sl_int64 m_columnCount;
+		sl_int32 m_rowCount;
+		sl_int32 m_columnCount;
 		sl_ui_len m_rowHeight;
 		List<sl_ui_len> m_columnWidth;
 

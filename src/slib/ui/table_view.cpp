@@ -65,7 +65,7 @@ namespace slib
 		return m_columnCount;
 	}
 
-	void TableView::setRowCount(sl_int64 rowCount, UIUpdateMode mode)
+	void TableView::setRowCount(sl_int32 rowCount, UIUpdateMode mode)
 	{
 		if (rowCount < 0) {
 			rowCount = 0;
@@ -77,7 +77,7 @@ namespace slib
 		setContentHeight((sl_scroll_pos)(m_rowCount * m_rowHeight) + m_heightTopHeader + m_heightBottomHeader, mode);
 	}
 
-	void TableView::setColumnCount(sl_int64 colCount, UIUpdateMode mode)
+	void TableView::setColumnCount(sl_int32 colCount, UIUpdateMode mode)
 	{
 		if (colCount < 0) {
 			colCount = 0;
@@ -86,6 +86,7 @@ namespace slib
 			return;
 		}
 		m_columnCount = colCount;
+		m_columnWidth.removeAll();
 		for (auto index = 0; index < m_columnCount; index++) {
 			m_columnWidth.add(100 + index * 50);
 		}
@@ -339,9 +340,9 @@ namespace slib
 		return -1;
 	}
 
-	sl_int64 TableView::getRowIndexAt(const UIPoint& pt)
+	sl_int64 TableView::getRowIndexAt(sl_int32 y)
 	{
-		sl_int64 pos = pt.y + (sl_int64)(getScrollY()) - m_heightTopHeader;
+		sl_int64 pos = y + (sl_int64)(getScrollY()) - m_heightTopHeader;
 		if (pos < 0) {
 			return -1;
 		}
@@ -351,9 +352,10 @@ namespace slib
 		}
 		return -1;
 	}
-	sl_int64 TableView::getColumnIndexAt(const UIPoint& pt)
+
+	sl_int64 TableView::getColumnIndexAt(sl_int32 x)
 	{
-		sl_int64 pos = (pt.x + (sl_int64)(getScrollX())) - m_widthLeftHeader;
+		sl_int64 pos = (x + (sl_int64)(getScrollX())) - m_widthLeftHeader;
 		sl_ui_len startPosition = 0;
 		sl_int32 index = -1;
 		for (auto width : m_columnWidth) {
@@ -451,25 +453,9 @@ namespace slib
 		}
 		SLIB_INVOKE_EVENT_HANDLER(DrawItem, rowIndex, colIndex, canvas, rcItem)
 
-		SimpleTextBoxParam param;
-		param.text = "Test" + String::from(rowIndex) + "-" + String::from(colIndex);
-		if (param.text.isEmpty()) {
-			return;
-		}
-		SimpleTextBoxDrawParam drawParam;
-		drawParam.frame = rcItem;
-		drawParam.frame.left += getPaddingLeft();
-		drawParam.frame.right -= getPaddingRight();
-		drawParam.frame.top += getPaddingTop();
-		drawParam.frame.bottom -= getPaddingBottom();
-		drawParam.textColor = Color::Yellow;
-		SimpleTextBox box;
-		param.font = getFont();
-		param.width = drawParam.frame.getWidth();
-		param.ellipsizeMode = EllipsizeMode::None;
-		param.align = Alignment::Center;
-		box.update(param);
-		box.draw(canvas, drawParam);
+		String str = "Test" + String::from(rowIndex) + "-" + String::from(colIndex);
+		drawGridItemText(canvas, str, rcItem);
+		
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(TableView, ClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
@@ -523,91 +509,206 @@ namespace slib
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ChangedSelection, ev)
 	}
-
-	void TableView::onDraw(Canvas* canvas)
+	
+	void TableView::drawGridItemText(Canvas* canvas, const String& str, const UIRect& rt)
 	{
-		if (m_rowCount <= 0) {
+		SimpleTextBoxParam param;
+		param.text = str;
+		if (param.text.isEmpty()) {
 			return;
 		}
+		SimpleTextBoxDrawParam drawParam;
+		drawParam.frame = rt;
+		drawParam.frame.left += getPaddingLeft();
+		drawParam.frame.right -= getPaddingRight();
+		drawParam.frame.top += getPaddingTop();
+		drawParam.frame.bottom -= getPaddingBottom();
+		drawParam.textColor = Color::Yellow;
+		SimpleTextBox box;
+		param.font = getFont();
+		param.width = drawParam.frame.getWidth();
+		param.ellipsizeMode = EllipsizeMode::None;
+		param.align = Alignment::Center;
+		box.update(param);
+		box.draw(canvas, drawParam);
+	}
+
+	void TableView::drawGridVerticalHeader(Canvas* canvas, sl_bool flagTop)
+	{
 		sl_int32 posY = (sl_int32)(getScrollY());
 		sl_int32 posX = (sl_int32)(getScrollX());
-		sl_int64 iRowStart = posY / m_rowHeight;
-		sl_int64 iRowEnd = (posY + getHeight()) / m_rowHeight;
-		if (iRowEnd >= m_rowCount) {
-			iRowEnd = m_rowCount - 1;
+
+		sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
+		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
+
+		UIRect rcItem;
+		if (flagTop) {
+			rcItem.top = 0;
+			rcItem.bottom = m_heightTopHeader;
 		}
-		sl_int32 rowCount = (sl_int32)(iRowEnd - iRowStart);
+		else {
+			rcItem.top = getHeight() - m_heightBottomHeader + 1;
+			rcItem.bottom = getHeight() - 1;
+		}
+		rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
+		for (sl_reg j = colStart; j <= colEnd; j++) {
+			rcItem.right = rcItem.left + getColumnWidth(j, j + 1);
+			canvas->draw(rcItem, Drawable::createColorDrawable(Color::Gray));
+			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom - 1), Pen::createSolidPen(1, Color::Black));
+			drawGridItemText(canvas, "Header" + String::fromInt32(j), rcItem);
+			rcItem.left = rcItem.right;
+		}
+		canvas->draw(rcItem, Drawable::createColorDrawable(Color::Gray));
+		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
+	}
+
+	void TableView::drawGridHorizontalHeader(Canvas* canvas, sl_bool flagLeft)
+	{
+		sl_int32 posY = (sl_int32)(getScrollY());
+		sl_int32 posX = (sl_int32)(getScrollX());
+
+		sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
+		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
+
+		UIRect rcItem;
+		if (flagLeft) {
+			rcItem.left = 0;
+			rcItem.right = m_widthLeftHeader;
+		}
+		else {
+			rcItem.left = getWidth() - m_widthRightHeader + 1;
+			rcItem.right = getWidth() - 1;
+		}
+		rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
+		
+		for (sl_reg i = rowStart; i <= rowEnd; i++) {
+			rcItem.bottom = rcItem.top + m_rowHeight;
+			canvas->draw(rcItem, Drawable::createColorDrawable(Color::Gray));
+			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
+			drawGridItemText(canvas, "Header" + String::fromInt32(i), rcItem);
+			rcItem.top = rcItem.bottom;
+		}
+		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
+	}
+
+	void TableView::drawGridLine(Canvas* canvas)
+	{
+		UIRect rcItem;
+		sl_int32 posY = (sl_int32)(getScrollY());
+		sl_int32 posX = (sl_int32)(getScrollX());
+
+		sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
+		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
+
+		// draw horizontal line
+		rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
+		rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
+		rcItem.right = rcItem.left + getColumnWidth(colStart, colEnd + 1);
+		for (sl_reg i = rowStart; i <= rowEnd; i++) {
+			rcItem.bottom = rcItem.top + m_rowHeight;
+			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
+			rcItem.top = rcItem.bottom;
+		}
+		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
+
+		// draw vertical line
+		rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
+		rcItem.bottom = rcItem.top + m_rowHeight * ((rowEnd - rowStart) + 1);
+		rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
+		for (sl_reg j = colStart; j <= colEnd; j++) {
+			rcItem.right = rcItem.left + getColumnWidth(j, j + 1);
+			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
+			rcItem.left = rcItem.right;
+		}
+		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
+	}
+
+	void TableView::getViewportGridIndex(sl_int32& rowStart, sl_int32& rowEnd, sl_int32& columnStart, sl_int32& columnEnd)
+	{
+		sl_int32 posY = (sl_int32)(getScrollY());
+		sl_int32 posX = (sl_int32)(getScrollX());
+		rowStart = posY / m_rowHeight;
+		rowEnd = (posY + getHeight()) / m_rowHeight;
+		if (rowEnd >= m_rowCount) {
+			rowEnd = m_rowCount - 1;
+		}
 
 		sl_int64 widthLength = 0;
-		sl_int64 iColumnStart = 0;
-		sl_int64 iColumnEnd = m_columnCount;
-		sl_int64 index = 0;
+		columnStart = 0;
+		columnEnd = m_columnCount;
+		sl_int32 index = 0;
 		for (auto width : m_columnWidth) {
 			widthLength += width;
 			if (widthLength <= posX) {
-				iColumnStart = index;
+				columnStart = index;
 			}
-			else if (widthLength > posX + getWidth()) {
-				iColumnEnd = index;
+			else if (widthLength >= posX + getWidth()) {
+				columnEnd = index;
 				break;
 			}
 			index++;
 		}
 
-		if (iColumnEnd >= m_columnCount) {
-			iColumnEnd = m_columnCount - 1;
+		if (columnEnd >= m_columnCount) {
+			columnEnd = m_columnCount - 1;
 		}
-		sl_int64 colCount = iColumnEnd - iColumnStart;
+	}
+	
+	void TableView::onDraw(Canvas* canvas)
+	{
+		if (m_rowCount <= 0 || m_columnCount == 0) {
+			return;
+		}
+		
+		sl_int32 posY = (sl_int32)(getScrollY());
+		sl_int32 posX = (sl_int32)(getScrollX());
 
+		sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
+		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
 		{
 			CanvasStateScope scope(canvas);
 			Rectanglei rt(m_widthLeftHeader, m_heightTopHeader, getWidth() - m_widthRightHeader + 1, getHeight() - m_heightBottomHeader + 1);
 			canvas->clipToRectangle(rt);
 			UIRect rcItem;
-			rcItem.top = m_heightTopHeader + (sl_ui_pos)(iRowStart * m_rowHeight - posY);
+			rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
 			rcItem.bottom = rcItem.top + (sl_ui_len)m_rowHeight;
 			
-			for (sl_reg i = 0; i <= rowCount; i++) {
-				rcItem.left = m_widthLeftHeader + getColumnWidth(0, iColumnStart) - posX;
-				for (sl_reg j = 0; j <= colCount; j++) {
-					rcItem.right = rcItem.left + getColumnWidth(iColumnStart + j, iColumnStart + j + 1);
-					dispatchDrawItem(iRowStart + i, iColumnStart + j, canvas, rcItem);
+			for (sl_reg i = rowStart; i <= rowEnd; i++) {
+				rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
+				for (sl_reg j = colStart; j <= colEnd; j++) {
+					rcItem.right = rcItem.left + getColumnWidth(j, j + 1);
+					dispatchDrawItem(rowStart + i, j, canvas, rcItem);
 					rcItem.left = rcItem.right;
 				}
 				rcItem.top = rcItem.bottom;
 				rcItem.bottom += m_rowHeight;
 			}
 
-			// draw line
-			rcItem.top = m_heightTopHeader + (sl_ui_pos)(iRowStart * m_rowHeight - posY);
-			rcItem.left = m_widthLeftHeader + getColumnWidth(0, iColumnStart) - posX;
-			rcItem.right = rcItem.left + getColumnWidth(iColumnStart, iColumnEnd + 1);
-			for (sl_reg i = 0; i <= rowCount; i++) {
-				rcItem.bottom = rcItem.top + m_rowHeight;
-				canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
-				rcItem.top = rcItem.bottom;
-			}
-			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
-
-			rcItem.top = m_heightTopHeader + (sl_ui_pos)(iRowStart * m_rowHeight - posY);
-			rcItem.bottom = rcItem.top + m_rowHeight * (rowCount + 1);
-			rcItem.left = m_widthLeftHeader + getColumnWidth(0, iColumnStart) - posX;
-			for (sl_reg j = 0; j <= colCount; j++) {
-				rcItem.right = rcItem.left + getColumnWidth(iColumnStart + j, iColumnStart + j + 1);
-				canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
-				rcItem.left = rcItem.right;
-			}
-			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
+			drawGridLine(canvas);
 		}
-		
-		
+		{
+			CanvasStateScope scope(canvas);
+			Rectanglei rt(m_widthLeftHeader, 0, getWidth() - m_widthRightHeader + 1, getHeight());
+			canvas->clipToRectangle(rt);
+			drawGridVerticalHeader(canvas, sl_true);
+			drawGridVerticalHeader(canvas, sl_false);
+		}
+
+		{
+			CanvasStateScope scope(canvas);
+			Rectanglei rt(0, m_heightTopHeader, getWidth(), getHeight() - m_heightBottomHeader + 1);
+			canvas->clipToRectangle(rt);
+			drawGridHorizontalHeader(canvas, sl_true);
+			drawGridHorizontalHeader(canvas, sl_false);
+		}
+
 	}
 
 	void TableView::onClickEvent(UIEvent* ev)
 	{
 		if (ev->isMouseEvent()) {
-			sl_int64 rowIndex = getRowIndexAt(ev->getPoint());
-			sl_int64 colIndex = getColumnIndexAt(ev->getPoint());
+			sl_int64 rowIndex = getRowIndexAt((sl_int32)ev->getPoint().y);
+			sl_int64 colIndex = getColumnIndexAt((sl_int32)ev->getPoint().x);
 			if (rowIndex >= 0 && colIndex >= 0) {
 				UIPoint pt = ev->getPoint();
 				sl_int64 posY = (sl_int64)(getScrollY()) + pt.y - m_heightTopHeader;
@@ -623,8 +724,8 @@ namespace slib
 	{
 		UIAction action = ev->getAction();
 		if (action == UIAction::RightButtonDown || action == UIAction::LeftButtonDoubleClick || action == UIAction::MouseMove || action == UIAction::MouseEnter) {
-			sl_int64 rowIndex = getRowIndexAt(ev->getPoint());
-			sl_int64 colIndex = getColumnIndexAt(ev->getPoint());
+			sl_int64 rowIndex = getRowIndexAt((sl_int32)ev->getPoint().y);
+			sl_int64 colIndex = getColumnIndexAt((sl_int32)ev->getPoint().x);
 			if (rowIndex >= 0) {
 				UIPoint pt = ev->getPoint();
 				sl_int64 pos = (sl_int64)(getScrollY()) + pt.y;
