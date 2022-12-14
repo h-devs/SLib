@@ -154,6 +154,7 @@
     <ClCompile Include="..\..\src\slib\core\win32_com.cpp" />
     <ClCompile Include="..\..\src\slib\core\service_manager.cpp" />
     <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp" />
+    <ClCompile Include="..\..\src\slib\core\win32_wmi.cpp" />
     <ClCompile Include="..\..\src\slib\core\xml.cpp" />
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>

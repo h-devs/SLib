@@ -1457,5 +1457,8 @@
     <ClCompile Include="..\..\src\slib\graphics\css.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\win32_wmi.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

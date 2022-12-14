@@ -28,7 +28,7 @@
 
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/platform.h"
-
+#include "slib/core/win32/wmi.h"
 #include <winioctl.h>
 
 namespace slib
@@ -89,60 +89,15 @@ namespace slib
 	}
 
 	using namespace priv::disk;
-
+	using namespace win32;
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
-		SLIB_STATIC_STRING16(pathTemplate, "\\\\.\\PhysicalDrive")
-		String16 path = pathTemplate + String16::fromUint32(diskNo);
-
-		HANDLE hDevice = CreateFileW((LPCWSTR)(path.getData()), 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-		if (hDevice == INVALID_HANDLE_VALUE) {
+		String16 ret;
+		ret = Wmi::execQuery("SELECT * FROM Win32_DiskDrive");
+		if (ret.isNull())
 			return sl_null;
-		}
 
-		String ret;
-
-		STORAGE_PROPERTY_QUERY query;
-		Base::zeroMemory(&query, sizeof(query));
-		query.PropertyId = StorageDeviceProperty;
-		query.QueryType = PropertyStandardQuery;
-
-		STORAGE_DESCRIPTOR_HEADER header;
-		Base::zeroMemory(&header, sizeof(header));
-
-		DWORD dwBytes = 0;
-
-		if (DeviceIoControl(
-			hDevice,
-			IOCTL_STORAGE_QUERY_PROPERTY,
-			&query, sizeof(query),
-			&header, sizeof(header),
-			&dwBytes, NULL)
-		) {
-			sl_size nOutput = (sl_size)(header.Size);
-			SLIB_SCOPED_BUFFER(sl_uint8, 256, output, nOutput)
-			if (output) {
-				Base::zeroMemory(output, nOutput);
-				if (DeviceIoControl(
-					hDevice,
-					IOCTL_STORAGE_QUERY_PROPERTY,
-					&query, sizeof(query),
-					output, (DWORD)nOutput,
-					&dwBytes, NULL)
-				) {
-					STORAGE_DEVICE_DESCRIPTOR* descriptor = (STORAGE_DEVICE_DESCRIPTOR*)output;
-					if (descriptor->SerialNumberOffset) {
-						char* sn = (char*)(output + descriptor->SerialNumberOffset);
-						sl_size n = nOutput - (sl_size)(descriptor->SerialNumberOffset);
-						ret = ProcessSerialNumber(sn, n);
-					}
-				}
-			}
-		}
-
-		CloseHandle(hDevice);
-
-		return ret;
+		return String::from(ret);
 	}
 
 	sl_bool Disk::getSize(const StringParam& _path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)

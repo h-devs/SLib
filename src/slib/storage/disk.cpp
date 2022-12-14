@@ -26,9 +26,41 @@ namespace slib
 {
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)
+
+#define UDEVADM "udevadm info --query=all --name=%s | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"
+
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
-		return sl_null;
+		String ret;
+		FILE *cmd;
+
+		char cmd_line[100] = { 0 };
+		sprintf(cmd_line, UDEVADM, "/dev/sda");
+		if (cmd = popen(cmd_line, "r"))
+		{
+			char out_line[300] = { 0 };
+			int nRead = 0;
+			if (nRead = fread(out_line, 1, sizeof(out_line), cmd))
+			{
+				out_line[nRead] = 0;
+
+				char* pszFind = NULL;
+				if (pszFind = strstr(out_line, "ID_BUS"))
+				{
+					if (strncasecmp(pszFind, "ID_BUS=USB", 10))
+					{
+						if (pszFind = strstr(out_line, "ID_SERIAL_SHORT"))
+						{
+							ret = String::from(pszFind + 16);
+							break;
+						}
+					}
+				}
+			}
+			pclose(cmd);
+		}
+
+		return serial;
 	}
 
 	sl_bool Disk::getSize(const StringParam& path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)

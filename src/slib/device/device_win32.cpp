@@ -27,9 +27,12 @@
 #include "slib/device/device.h"
 
 #include "slib/core/win32/windows.h"
+#include "slib/core/win32/wmi.h"
+
 
 namespace slib
 {
+	using namespace win32;
 
 	double Device::getScreenPPI()
 	{
@@ -42,6 +45,16 @@ namespace slib
 		ret.x = (int)(GetSystemMetrics(SM_CXSCREEN));
 		ret.y = (int)(GetSystemMetrics(SM_CYSCREEN));
 		return ret;
+	}
+
+	String Device::getBoardSerialNumber()
+	{
+		String16 ret;
+		ret = Wmi::execQuery("SELECT * FROM Win32_BIOS");
+		if (ret.isNull())
+			return sl_null;
+		
+		return String::from(ret);
 	}
 
 }

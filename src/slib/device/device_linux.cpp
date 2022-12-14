@@ -21,7 +21,6 @@
  */
 
 #include "slib/device/definition.h"
-
 #if defined(SLIB_UI_IS_GTK)
 
 #include "slib/device/device.h"
@@ -29,6 +28,14 @@
 #include "slib/ui/dl/linux/gdk.h"
 #include "slib/ui/dl/linux/gtk.h"
 
+#include <stdio.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <linux/hdreg.h>
+
+using namespace std;
+#define CHASSIS_SERIAL "/sys/devices/virtual/dmi/id/chassis_serial"
+#define BOARD_SERIAL "/sys/devices/virtual/dmi/id/board_serial"
 namespace slib
 {
 
@@ -55,6 +62,26 @@ namespace slib
 		return Sizei::zero();
 	}
 
+	String Device::getBoardSerialNumber() 
+	{
+		String serial;
+		FILE *fChassis;
+		char line[100] = { 0 };
+
+		if (fChassis = fopen(CHASSIS_SERIAL, "r"))
+		{
+			if (fgets(line, sizeof(line), fChassis) && strlen(line) > 0)
+			{
+				serial = String::from(line);
+			}
+			fclose(fChassis);
+		}
+		else
+		{
+			printf("Cannot read this board serial number.\n");
+		}
+		return serial;
+	}
 }
 
 #endif
