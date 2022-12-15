@@ -27,7 +27,7 @@ namespace slib
 
 #if !defined(SLIB_PLATFORM_IS_WIN32)
 
-#define UDEVADM "udevadm info --query=all --name=%s | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"
+#define UDEVADM "udevadm info --query=all --name=/dev/sd%c | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"
 
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
@@ -35,7 +35,7 @@ namespace slib
 		FILE *cmd;
 
 		char cmd_line[100] = { 0 };
-		sprintf(cmd_line, UDEVADM, "/dev/sda");
+		sprintf(cmd_line, UDEVADM, 0x61 + diskNo);
 		if (cmd = popen(cmd_line, "r"))
 		{
 			char out_line[300] = { 0 };

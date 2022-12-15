@@ -34,8 +34,9 @@
 #include <linux/hdreg.h>
 
 using namespace std;
+
 #define CHASSIS_SERIAL "/sys/devices/virtual/dmi/id/chassis_serial"
-#define BOARD_SERIAL "/sys/devices/virtual/dmi/id/board_serial"
+
 namespace slib
 {
 
