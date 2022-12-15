@@ -324,7 +324,6 @@ namespace slib
 
 		static Memory signX509_SHA512(const X509& cert, const PrivateKey& issuerKey);
 
-
 		static sl_bool loadPKCS12(PKCS12& _out, const MemoryView& mem, const StringParam& password);
 
 		static sl_bool loadPKCS12(PKCS12& _out, const StringParam& filePath, const StringParam& password);

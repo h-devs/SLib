@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,40 +20,58 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_CORE_PREFERENCE
-#define CHECKHEADER_SLIB_CORE_PREFERENCE
+#ifndef CHECKHEADER_SLIB_GRAPHICS_SVG
+#define CHECKHEADER_SLIB_GRAPHICS_SVG
 
-#include "json.h"
+#include "color.h"
+#include "drawable.h"
+
+/*
+	SVG - Scalable Vector Graphics
+*/
+
+typedef float sl_svg_scalar;
 
 namespace slib
 {
 
-	class SLIB_EXPORT Preference
+	class XmlElement;
+
+	class SLIB_EXPORT Svg : public Drawable
 	{
+		SLIB_DECLARE_OBJECT
+
+	protected:
+		Svg();
+
+		~Svg();
+
 	public:
-		static void setValue(const StringParam& key, const Json& value);
-		
-		static void removeValue(const StringParam& key);
+		static Ref<Svg> loadFromMemory(const void* mem, sl_size size);
 
-		static Json getValue(const StringParam& key);
-		
-		template <class T>
-		static void getValue(const StringParam& key, T& _out)
-		{
-			getValue(key).get(_out);
-		}
+		static Ref<Svg> loadFromMemory(const MemoryView& mem);
 
-		template <class T>
-		static void getValue(const StringParam& key, T& _out, const T& _def)
-		{
-			getValue(key).get(_out, _def);
-		}
+		static Ref<Svg> loadFromFile(const StringParam& filePath);
 
+		static Ref<Svg> loadFromAsset(const StringParam& path);
 
-		// used for Win32 applications
-		static String getApplicationKeyName();
+	public:
+		sl_svg_scalar getMinimumX();
 
-		static void setApplicationKeyName(const String& name);
+		sl_svg_scalar getMinimumY();
+
+		sl_svg_scalar getWidth();
+
+		sl_svg_scalar getHeight();
+
+	protected:
+		sl_bool _load(XmlElement* root);
+
+	protected:
+		sl_svg_scalar m_minX;
+		sl_svg_scalar m_minY;
+		sl_svg_scalar m_width;
+		sl_svg_scalar m_height;
 
 	};
 

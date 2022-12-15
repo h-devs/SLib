@@ -25,8 +25,43 @@
 
 #include "view.h"
 
+#include "../core/variant.h"
+#include "../core/property.h"
+
 namespace slib
 {
+
+	class SLIB_EXPORT GridViewCellDrawParam
+	{
+	public:
+		Canvas* canvas;
+		UIRect region;
+		sl_uint64 row;
+		sl_uint32 col;
+		Variant data;
+	};
+
+	class SLIB_EXPORT GridViewCellEvent
+	{
+	public:
+		UIEvent* event;
+		UIRect region;
+		Variant data;
+	};
+
+	class SLIB_EXPORT GridViewCell : public Referable
+	{
+	public:
+		virtual void onDrawCell(GridViewCellDrawParam& param) = 0;
+
+		virtual void onMouseEvent(GridViewCellEvent& ev);
+
+	};
+
+	class SLIB_EXPORT GridViewStringCell : public GridViewCell
+	{
+
+	};
 
 	class SLIB_EXPORT TableView : public View
 	{
@@ -136,6 +171,15 @@ namespace slib
 		void onMouseEvent(UIEvent* ev) override;
 
 		void onKeyEvent(UIEvent* ev) override;
+
+	protected:
+		virtual Ref<GridViewCell> getCell(sl_uint64 row, sl_uint32 col);
+
+		virtual Variant getCellData(sl_uint64 row, sl_uint32 col);
+
+	public:
+		SLIB_PROPERTY_FUNCTION(Ref<GridViewCell>(sl_uint64, sl_uint32), CellCallback)
+		SLIB_PROPERTY_FUNCTION(Variant(sl_uint64, sl_uint32), DataCallback)
 
 	protected:
 		sl_int32 m_rowCount;

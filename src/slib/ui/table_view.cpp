@@ -35,6 +35,7 @@ namespace slib
 		setCanvasScrolling(sl_false);
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 		setHorizontalScrolling(sl_true, UIUpdateMode::Init);
+		setContentScrollingByMouse(sl_false);
 		setFocusable(sl_true);
 
 		m_rowCount = m_columnCount = 0;
@@ -542,11 +543,10 @@ namespace slib
 		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
 
 		UIRect rcItem;
-		if (flagTop) {
+		if (flagTop && m_heightTopHeader > 0) {
 			rcItem.top = 0;
 			rcItem.bottom = m_heightTopHeader;
-		}
-		else {
+		} else if (!flagTop && m_heightBottomHeader > 0) {
 			rcItem.top = getHeight() - m_heightBottomHeader + 1;
 			rcItem.bottom = getHeight() - 1;
 		}
@@ -571,11 +571,10 @@ namespace slib
 		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
 
 		UIRect rcItem;
-		if (flagLeft) {
+		if (flagLeft && m_widthLeftHeader > 0) {
 			rcItem.left = 0;
 			rcItem.right = m_widthLeftHeader;
-		}
-		else {
+		} else if (!flagLeft && m_widthRightHeader > 0) {
 			rcItem.left = getWidth() - m_widthRightHeader + 1;
 			rcItem.right = getWidth() - 1;
 		}

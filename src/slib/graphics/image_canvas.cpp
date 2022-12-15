@@ -198,7 +198,7 @@ namespace slib
 						return;
 					}
 
-					sl_char16* arrChar = text.getData();
+					sl_char16* data = text.getData();
 					sl_size len = text.getLength();
 					sl_real fontHeight = font->getFontHeight();
 
@@ -211,26 +211,10 @@ namespace slib
 					Color color = param.color;
 					sl_real fx = x;
 
-					for (sl_size i = 0; i < len; i++) {
-
-						sl_char32 ch = arrChar[i];
-						if (ch >= 0xD800 && ch < 0xE000) {
-							if (i + 1 < len) {
-								sl_uint32 ch1 = (sl_uint32)((sl_uint16)arrChar[++i]);
-								if (ch < 0xDC00 && ch1 >= 0xDC00 && ch1 < 0xE000) {
-									ch = (sl_char32)(((ch - 0xD800) << 10) | (ch1 - 0xDC00)) + 0x10000;
-								} else {
-									ch = 0;
-								}
-							} else {
-								ch = 0;
-							}
-						}
-
-						if (ch) {
-
+					for (sl_size i = 0; i < len;) {
+						sl_char32 ch;
+						if (Charsets::getUnicode(ch, data, len, i)) {
 							if (fa->getCharImage(ch, fac)) {
-
 								if (fac.image.isNotNull()) {
 									image->drawImage(
 										(sl_int32)fx, (sl_int32)(y + (fontHeight - fac.fontHeight)),
@@ -238,9 +222,10 @@ namespace slib
 										fac.image, color, Color4f::zero(),
 										0, 0, fac.image->getWidth(), fac.image->getHeight());
 								}
-
 								fx += fac.fontWidth;
 							}
+						} else {
+							i++;
 						}
 					}
 

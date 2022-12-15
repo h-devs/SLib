@@ -37,7 +37,7 @@ namespace slib
 
 		static sl_bool isEmoji(sl_char32 ch);
 
-		static sl_size getEmojiLength(const sl_char16* sz, sl_size len = SLIB_SIZE_MAX);
+		static sl_size getEmojiLength(const sl_char16* str, sl_size len = SLIB_SIZE_MAX);
 
 		static Memory getPng(const String16& str);
 
