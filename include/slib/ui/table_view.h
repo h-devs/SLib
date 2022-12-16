@@ -30,7 +30,6 @@
 
 namespace slib
 {
-
 	class SLIB_EXPORT GridViewCellDrawParam
 	{
 	public:
@@ -39,6 +38,8 @@ namespace slib
 		sl_uint64 row;
 		sl_uint32 col;
 		Variant data;
+		Ref<View> parent;
+		sl_bool flagFixedCell;
 	};
 
 	class SLIB_EXPORT GridViewCellEvent
@@ -54,13 +55,15 @@ namespace slib
 	public:
 		virtual void onDrawCell(GridViewCellDrawParam& param) = 0;
 
-		virtual void onMouseEvent(GridViewCellEvent& ev);
+		virtual void onMouseEvent(GridViewCellEvent& ev) {};
 
 	};
 
 	class SLIB_EXPORT GridViewStringCell : public GridViewCell
 	{
-
+	public:
+		void onDrawCell(GridViewCellDrawParam& param);
+		void onMouseEvent(GridViewCellEvent& ev);
 	};
 
 	class SLIB_EXPORT TableView : public View
@@ -76,30 +79,27 @@ namespace slib
 		sl_uint64 getRowCount();
 		sl_uint64 getColumnCount();
 
-		virtual void setRowCount(sl_int32 rowCount, UIUpdateMode mode = UIUpdateMode::Redraw);
-		virtual void setColumnCount(sl_int32 colCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setRowCount(sl_int32 rowCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnCount(sl_int32 colCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTopHeaderText(sl_int32 colIndex, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBottomHeaderText(sl_int32 colIndex, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTopHeaderSize(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBottomHeaderSize(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getRowHeight();
-		//sl_ui_len getRowWidth(sl_int32 colCount);
 		sl_ui_len getColumnWidth(sl_int64 colStart, sl_int64 colEnd);
 
-		virtual void setRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnWidth(sl_int32 colIndex, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isMultipleSelection();
 		sl_bool isRowSelected(sl_int64 rowIndex);
-		sl_bool isColumnSelected(sl_int64 colIndex);
-		sl_bool isItemSelected(sl_int64 rowIndex, sl_int64 colIndex);
 
 		void setMultipleSelection(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 		sl_int64 getSelectedRow();
-		sl_int64 getSelectedColumn();
 		List<sl_uint64> getSelectedRows();
-		List<sl_uint64> getSelectedColumns();
 
 		void setRowSelected(sl_int64 rowIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnSelected(sl_int64 colIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-
 		void selectItem(sl_int64 rowIndex, sl_uint64 colIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectItem(sl_int64 rowIndex, sl_uint64 colIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -128,7 +128,11 @@ namespace slib
 
 		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setFixedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode);
+
 		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setFixedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getSelectedItemBackground();
 
@@ -149,7 +153,7 @@ namespace slib
 		void setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(TableView, DrawItem, sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem)
+		SLIB_DECLARE_EVENT_HANDLER(TableView, DrawItem, sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagFixedCell = sl_false)
 
 		SLIB_DECLARE_EVENT_HANDLER(TableView, ClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
 
@@ -160,10 +164,6 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(TableView, ChangedSelection, UIEvent* ev)
 
 	protected:
-		void drawGridLine(Canvas* canvas);
-		void drawGridVerticalHeader(Canvas* canvas, sl_bool	flagTop = sl_true);
-		void drawGridHorizontalHeader(Canvas* canvas, sl_bool flagLeft = sl_true);
-		void drawGridItemText(Canvas* canvas, const String& str, const UIRect& rt);
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
@@ -173,6 +173,10 @@ namespace slib
 		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
+		UIRect getGridCellPosition(sl_int64 rowIndex, sl_int32 colIndex);
+		UIRect getGridHeaderCellPosition(sl_int32 colIndex, sl_bool flagTop = sl_true);
+		void drawGridVerticalHeader(Canvas* canvas, sl_bool	flagTop = sl_true);
+		void drawGridHorizontalHeader(Canvas* canvas, sl_bool flagLeft = sl_true);
 		virtual Ref<GridViewCell> getCell(sl_uint64 row, sl_uint32 col);
 
 		virtual Variant getCellData(sl_uint64 row, sl_uint32 col);
@@ -185,30 +189,30 @@ namespace slib
 		sl_int32 m_rowCount;
 		sl_int32 m_columnCount;
 		sl_ui_len m_rowHeight;
-		List<sl_ui_len> m_columnWidth;
+		List<sl_ui_len> m_listColumnWidth;
+		List<String> m_listTopHeaderText;
+		List<String> m_listBottomHeaderText;
 
 		sl_ui_len m_heightTopHeader;
 		sl_ui_len m_heightBottomHeader;
-		sl_ui_len m_widthLeftHeader;
-		sl_ui_len m_widthRightHeader;
+		sl_int32 m_fixedLeftColumnCount;
+		sl_int32 m_fixedRightColumnCount;
 
 		sl_int64 m_indexHover;
 
 		sl_bool m_flagMultipleSelection;
 		sl_int64 m_selectedRow;
-		sl_int64 m_selectedColumn;
-		
-		//sl_int64 m_indexFocused;
 		sl_int64 m_lastSelectedRow;
-		sl_int64 m_lastSelectedColumn;
 		CHashMap<sl_uint64, sl_bool> m_mapRowSelection;
-		CHashMap<sl_uint64, sl_bool> m_mapColumnSelection;
 
 		AtomicRef<Drawable> m_backgroundItem;
 		AtomicRef<Drawable> m_backgroundSelectedItem;
 		AtomicRef<Drawable> m_backgroundHoverItem;
 		AtomicRef<Drawable> m_backgroundFocusedItem;
+		AtomicRef<Drawable> m_backgroundFixedItem;
 
+
+		Ref<GridViewStringCell> m_gridViewStringCell;
 	};
 
 }

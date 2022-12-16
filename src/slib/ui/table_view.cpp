@@ -40,16 +40,17 @@ namespace slib
 
 		m_rowCount = m_columnCount = 0;
 		m_rowHeight = 100;
-		m_columnWidth.removeAll();
 		m_indexHover = -1;
 
 		m_heightBottomHeader = m_heightTopHeader = 50;
-		m_widthLeftHeader = m_widthRightHeader = 100;
+		m_fixedLeftColumnCount = 2;
+		m_fixedRightColumnCount = 1;
 
 		m_flagMultipleSelection = sl_false;
-		/*m_indexSelected = -1;
-		m_indexFocused = -1;
-		m_indexLastSelected = -1;*/
+		m_gridViewStringCell = New<GridViewStringCell>();
+		this->setCellCallback([this](sl_int64 row, sl_int32 column) {
+			return m_gridViewStringCell;
+		});
 	}
 
 	TableView::~TableView()
@@ -87,14 +88,50 @@ namespace slib
 			return;
 		}
 		m_columnCount = colCount;
-		m_columnWidth.removeAll();
+		m_listColumnWidth.removeAll();
+		m_listTopHeaderText.removeAll();
+		m_listBottomHeaderText.removeAll();
 		for (auto index = 0; index < m_columnCount; index++) {
-			m_columnWidth.add(100 + index * 50);
+			m_listColumnWidth.add(100 + 10 * index);
+			m_listTopHeaderText.add_NoLock("");
+			m_listBottomHeaderText.add_NoLock("");
 		}
 
-		sl_ui_len width = getColumnWidth(0, colCount) + m_widthLeftHeader + m_widthRightHeader;
+		sl_ui_len width = getColumnWidth(0, colCount);
 		setContentWidth(width, mode);
 	}
+
+	void TableView::setTopHeaderText(sl_int32 colIndex, const String& text, UIUpdateMode mode)
+	{
+		if (colIndex >= m_columnCount || colIndex < 0) {
+			return;
+		}
+		m_listTopHeaderText.setAt_NoLock(colIndex, text);
+		invalidate(mode);
+	}
+
+	void TableView::setBottomHeaderText(sl_int32 colIndex, const String& text, UIUpdateMode mode)
+	{
+		if (colIndex >= m_columnCount || colIndex < 0) {
+			return;
+		}
+		m_listBottomHeaderText.setAt_NoLock(colIndex, text);
+		invalidate(mode);
+	}
+
+	void TableView::setTopHeaderSize(sl_ui_len height, UIUpdateMode mode)
+	{
+		m_heightTopHeader = height;
+		invalidate(mode);
+	}
+
+	void TableView::setBottomHeaderSize(sl_ui_len height, UIUpdateMode mode)
+	{
+		m_heightBottomHeader = height;
+		invalidate(mode);
+	}
+
+
 	sl_ui_len TableView::getRowHeight()
 	{
 		return m_rowHeight;
@@ -102,14 +139,23 @@ namespace slib
 	
 	sl_ui_len TableView::getColumnWidth(sl_int64 colStart, sl_int64 colEnd) {
 		sl_ui_len ret = 0;
-		if (colStart < 0 || colEnd > m_columnCount) {
+		if (colStart < 0 || colEnd < 0 || colEnd > m_columnCount) {
 			return ret;
 		}
 
 		for (sl_int64 i = colStart; i < colEnd; i++) {
-			ret += m_columnWidth.getValueAt_NoLock(i);
+			ret += m_listColumnWidth.getValueAt_NoLock(i);
 		}
 		return ret;
+	}
+
+	void TableView::setColumnWidth(sl_int32 colIndex, sl_ui_len width, UIUpdateMode mode)
+	{
+		if (colIndex < 0 || colIndex >= m_columnCount) {
+			return;
+		}
+		m_listColumnWidth.setAt_NoLock(colIndex, width);
+		invalidate(mode);
 	}
 
 	void TableView::setRowHeight(sl_ui_len height, UIUpdateMode mode)
@@ -134,10 +180,8 @@ namespace slib
 		if (m_flagMultipleSelection != flag) {
 			m_flagMultipleSelection = flag;
 			if (flag) {
-				m_selectedColumn = -1;
 				m_selectedRow = -1;
 			} else {
-				m_mapColumnSelection.removeAll();
 				m_mapRowSelection.removeAll();
 			}
 			invalidate(mode);
@@ -156,22 +200,6 @@ namespace slib
 			return m_mapRowSelection.find(rowIndex);
 		} else {
 			return m_selectedRow == rowIndex;
-		}
-	}
-
-	sl_bool TableView::isColumnSelected(sl_int64 colIndex)
-	{
-		if (colIndex < 0) {
-			return sl_false;
-		}
-		if (colIndex >= m_columnCount) {
-			return sl_false;
-		}
-		if (m_flagMultipleSelection) {
-			return m_mapColumnSelection.find(colIndex);
-		}
-		else {
-			return m_selectedColumn == colIndex;
 		}
 	}
 
@@ -194,25 +222,6 @@ namespace slib
 		return -1;
 	}
 
-	sl_int64 TableView::getSelectedColumn()
-	{
-		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapColumnSelection);
-			auto node = m_mapColumnSelection.getLastNode();
-			if (node) {
-				return node->key;
-			}
-		}
-		else {
-			sl_int64 index = m_selectedColumn;
-			if (index >= 0) {
-				if (index < m_columnCount) {
-					return index;
-				}
-			}
-		}
-		return -1;
-	}
 
 	void TableView::setRowSelected(sl_int64 rowIndex, UIUpdateMode mode)
 	{
@@ -236,95 +245,19 @@ namespace slib
 		}
 	}
 
-	void TableView::setColumnSelected(sl_int64 colIndex, UIUpdateMode mode)
-	{
-		if (colIndex < 0) {
-			unselectAll(mode);
-			return;
-		}
-		if (colIndex >= m_columnCount) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapColumnSelection);
-			m_mapColumnSelection.removeAll_NoLock();
-			m_mapColumnSelection.put_NoLock(colIndex, sl_true);
-			invalidate(mode);
-		}
-		else {
-			if (m_selectedColumn != colIndex) {
-				m_selectedColumn = colIndex;
-				invalidate(mode);
-			}
-		}
-	}
-
-	/*List<sl_uint64> TableView::getSelectedIndices()
-	{
-		if (m_flagMultipleSelection) {
-			return m_mapSelection.getAllKeys();
-		} else {
-			sl_int64 index = m_indexSelected;
-			if (index >= 0) {
-				if (index < m_rowCount) {
-					return List<sl_uint64>::createFromElement(index);
-				}
-			}
-			return sl_null;
-		}
-	}
-
-	void TableView::setSelectedIndices(const ListParam<sl_uint64>& _indices, UIUpdateMode mode)
-	{
-		ListLocker<sl_uint64> indices(_indices);
-		if (!(indices.count)) {
-			unselectAll(mode);
-			return;
-		}
-		sl_uint64 nTotal = m_rowCount;
-		if (!nTotal) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
-			m_mapSelection.removeAll_NoLock();
-			for (sl_size i = 0; i < indices.count; i++) {
-				if (indices[i] < nTotal) {
-					m_mapSelection.put_NoLock(indices[i], sl_true);
-				}
-			}
-			invalidate(mode);
-		} else {
-			sl_int64 index = indices[indices.count - 1];
-			if ((sl_uint64)index < nTotal) {
-				if (m_indexSelected != index) {
-					m_indexSelected = index;
-					invalidate(mode);
-				}
-			}
-		}
-	}*/
-
-	
-
-	
-
 	void TableView::unselectAll(UIUpdateMode mode)
 	{
 		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapColumnSelection);
 			ObjectLocker locker1(&m_mapRowSelection);
-			if (m_mapColumnSelection.isEmpty() && m_mapRowSelection.isEmpty()) {
+			if (m_mapRowSelection.isEmpty()) {
 				return;
 			}
-			m_mapColumnSelection.removeAll_NoLock();
 			m_mapRowSelection.removeAll_NoLock();
 			
 		} else {
-			if (m_selectedColumn < 0 && m_selectedRow < 0) {
+			if (m_selectedRow < 0) {
 				return;
 			}
-			m_selectedColumn = -1;
 			m_selectedRow = -1;
 		}
 		invalidate(mode);
@@ -356,10 +289,11 @@ namespace slib
 
 	sl_int64 TableView::getColumnIndexAt(sl_int32 x)
 	{
-		sl_int64 pos = (x + (sl_int64)(getScrollX())) - m_widthLeftHeader;
+		sl_int64 pos = (x + (sl_int64)(getScrollX())) - getColumnWidth(0, m_fixedLeftColumnCount);
 		sl_ui_len startPosition = 0;
 		sl_int32 index = -1;
-		for (auto width : m_columnWidth) {
+		for (sl_int32 i = m_fixedLeftColumnCount; i < m_columnCount - m_fixedRightColumnCount; i++) {
+			sl_ui_len width = m_listColumnWidth.getValueAt_NoLock(i);
 			if (startPosition >= pos && pos <= startPosition + width) {
 				break;
 			}
@@ -384,9 +318,21 @@ namespace slib
 		invalidate(mode);
 	}
 
+	void TableView::setFixedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	{
+		m_backgroundFixedItem = drawable;
+		invalidate(mode);
+	}
+
+
 	void TableView::setItemBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
 		setItemBackground(Drawable::createColorDrawable(color), mode);
+	}
+
+	void TableView::setFixedItemBackgroundColor(const Color& color, UIUpdateMode mode)
+	{
+		setFixedItemBackground(Drawable::createColorDrawable(color), mode);
 	}
 
 	Ref<Drawable> TableView::getSelectedItemBackground()
@@ -437,9 +383,9 @@ namespace slib
 		setFocusedItemBackground(Drawable::createColorDrawable(color), mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TableView, DrawItem, sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem)
+	SLIB_DEFINE_EVENT_HANDLER(TableView, DrawItem, sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagFixedCell)
 
-	void TableView::dispatchDrawItem(sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem)
+	void TableView::dispatchDrawItem(sl_int64 rowIndex, sl_int64 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagFixedCell)
 	{
 		Ref<Drawable> background = m_backgroundItem;
 		if (m_backgroundSelectedItem.isNotNull() && isRowSelected(rowIndex)) {
@@ -449,14 +395,30 @@ namespace slib
 		} else if (m_backgroundFocusedItem.isNotNull() && isFocused() && rowIndex == m_selectedRow) {
 			background = m_backgroundFocusedItem;
 		}
+		if (flagFixedCell) {
+			background = m_backgroundFixedItem;
+		}
 		if (background.isNotNull()) {
 			canvas->draw(rcItem, background);
 		}
-		SLIB_INVOKE_EVENT_HANDLER(DrawItem, rowIndex, colIndex, canvas, rcItem)
+		canvas->drawRectangle(rcItem, Pen::createSolidPen(1, Color::Black));
+		SLIB_INVOKE_EVENT_HANDLER(DrawItem, rowIndex, colIndex, canvas, rcItem, flagFixedCell)
 
-		String str = "Test" + String::from(rowIndex) + "-" + String::from(colIndex);
-		drawGridItemText(canvas, str, rcItem);
-		
+		Variant str = this->getDataCallback()(rowIndex, colIndex);
+
+		GridViewCellDrawParam param;
+		param.canvas = canvas;
+		param.data = str;
+		param.row = rowIndex;
+		param.col = colIndex;
+		param.region = rcItem;
+		param.parent = this;
+		param.flagFixedCell = flagFixedCell;
+
+		Ref<GridViewCell> cell = this->getCellCallback()(rowIndex, colIndex);
+		if (cell.isNotNull()) {
+			cell->onDrawCell(param);
+		}
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(TableView, ClickItem, sl_int64 rowIndex, sl_int64 colIndex, UIPoint& pos, UIEvent* ev)
@@ -511,27 +473,14 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(ChangedSelection, ev)
 	}
 	
-	void TableView::drawGridItemText(Canvas* canvas, const String& str, const UIRect& rt)
+	Ref<GridViewCell> TableView::getCell(sl_uint64 row, sl_uint32 col)
 	{
-		SimpleTextBoxParam param;
-		param.text = str;
-		if (param.text.isEmpty()) {
-			return;
-		}
-		SimpleTextBoxDrawParam drawParam;
-		drawParam.frame = rt;
-		drawParam.frame.left += getPaddingLeft();
-		drawParam.frame.right -= getPaddingRight();
-		drawParam.frame.top += getPaddingTop();
-		drawParam.frame.bottom -= getPaddingBottom();
-		drawParam.textColor = Color::Yellow;
-		SimpleTextBox box;
-		param.font = getFont();
-		param.width = drawParam.frame.getWidth();
-		param.ellipsizeMode = EllipsizeMode::None;
-		param.align = Alignment::Center;
-		box.update(param);
-		box.draw(canvas, drawParam);
+		return sl_null;
+	}
+
+	Variant TableView::getCellData(sl_uint64 row, sl_uint32 col)
+	{
+		return sl_null;
 	}
 
 	void TableView::drawGridVerticalHeader(Canvas* canvas, sl_bool flagTop)
@@ -542,24 +491,9 @@ namespace slib
 		sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
 		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
 
-		UIRect rcItem;
-		if (flagTop && m_heightTopHeader > 0) {
-			rcItem.top = 0;
-			rcItem.bottom = m_heightTopHeader;
-		} else if (!flagTop && m_heightBottomHeader > 0) {
-			rcItem.top = getHeight() - m_heightBottomHeader + 1;
-			rcItem.bottom = getHeight() - 1;
-		}
-		rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
 		for (sl_reg j = colStart; j <= colEnd; j++) {
-			rcItem.right = rcItem.left + getColumnWidth(j, j + 1);
-			canvas->draw(rcItem, Drawable::createColorDrawable(Color::Gray));
-			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom - 1), Pen::createSolidPen(1, Color::Black));
-			drawGridItemText(canvas, "Header" + String::fromInt32(j), rcItem);
-			rcItem.left = rcItem.right;
+			dispatchDrawItem(0, j, canvas, getGridHeaderCellPosition(j, flagTop), sl_true);
 		}
-		canvas->draw(rcItem, Drawable::createColorDrawable(Color::Gray));
-		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
 	}
 
 	void TableView::drawGridHorizontalHeader(Canvas* canvas, sl_bool flagLeft)
@@ -571,55 +505,23 @@ namespace slib
 		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
 
 		UIRect rcItem;
-		if (flagLeft && m_widthLeftHeader > 0) {
-			rcItem.left = 0;
-			rcItem.right = m_widthLeftHeader;
-		} else if (!flagLeft && m_widthRightHeader > 0) {
-			rcItem.left = getWidth() - m_widthRightHeader + 1;
-			rcItem.right = getWidth() - 1;
+		if (flagLeft && m_fixedLeftColumnCount > 0) {
+			colStart = 0;
+			colEnd = m_fixedLeftColumnCount;
 		}
-		rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
-		
-		for (sl_reg i = rowStart; i <= rowEnd; i++) {
-			rcItem.bottom = rcItem.top + m_rowHeight;
-			canvas->draw(rcItem, Drawable::createColorDrawable(Color::Gray));
-			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
-			drawGridItemText(canvas, "Header" + String::fromInt32(i), rcItem);
-			rcItem.top = rcItem.bottom;
+		else if (!flagLeft && m_fixedRightColumnCount > 0) {
+			colStart = m_columnCount - m_fixedRightColumnCount;
+			colEnd = m_columnCount;
 		}
-		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
-	}
-
-	void TableView::drawGridLine(Canvas* canvas)
-	{
-		UIRect rcItem;
-		sl_int32 posY = (sl_int32)(getScrollY());
-		sl_int32 posX = (sl_int32)(getScrollX());
-
-		sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
-		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
-
-		// draw horizontal line
-		rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
-		rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
-		rcItem.right = rcItem.left + getColumnWidth(colStart, colEnd + 1);
-		for (sl_reg i = rowStart; i <= rowEnd; i++) {
-			rcItem.bottom = rcItem.top + m_rowHeight;
-			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
-			rcItem.top = rcItem.bottom;
+		for (sl_reg j = colStart; j < colEnd; j++) {
+			for (sl_reg i = rowStart; i <= rowEnd; i++) {
+				rcItem.bottom = rcItem.top + m_rowHeight;
+				canvas->draw(rcItem, Drawable::createColorDrawable(Color::Gray));
+				canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
+				drawGridItemText(canvas, "Header" + String::fromInt32(i), rcItem);
+				rcItem.top = rcItem.bottom;
+			}
 		}
-		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.right, rcItem.top), Pen::createSolidPen(1, Color::Black));
-
-		// draw vertical line
-		rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
-		rcItem.bottom = rcItem.top + m_rowHeight * ((rowEnd - rowStart) + 1);
-		rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
-		for (sl_reg j = colStart; j <= colEnd; j++) {
-			rcItem.right = rcItem.left + getColumnWidth(j, j + 1);
-			canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
-			rcItem.left = rcItem.right;
-		}
-		canvas->drawLine(Pointi(rcItem.left, rcItem.top), Pointi(rcItem.left, rcItem.bottom), Pen::createSolidPen(1, Color::Black));
 	}
 
 	void TableView::getViewportGridIndex(sl_int32& rowStart, sl_int32& rowEnd, sl_int32& columnStart, sl_int32& columnEnd)
@@ -633,24 +535,48 @@ namespace slib
 		}
 
 		sl_int64 widthLength = 0;
-		columnStart = 0;
-		columnEnd = m_columnCount;
-		sl_int32 index = 0;
-		for (auto width : m_columnWidth) {
-			widthLength += width;
+		columnStart = m_fixedLeftColumnCount;
+		columnEnd = m_columnCount - m_fixedRightColumnCount;
+		for (sl_int32 i = m_fixedLeftColumnCount; i < m_columnCount - m_fixedRightColumnCount; i++) {
+			widthLength += m_listColumnWidth.getValueAt_NoLock(i);
 			if (widthLength <= posX) {
-				columnStart = index;
+				columnStart = i;
 			}
 			else if (widthLength >= posX + getWidth()) {
-				columnEnd = index;
+				columnEnd = i;
 				break;
 			}
-			index++;
 		}
+		if (columnEnd >= m_columnCount - m_fixedRightColumnCount) {
+			columnEnd = m_columnCount - m_fixedRightColumnCount - 1;
+		}
+	}
+	
+	UIRect TableView::getGridCellPosition(sl_int64 rowIndex, sl_int32 colIndex)
+	{
+		UIRect ret;
+		sl_int32 posY = (sl_int32)(getScrollY());
+		sl_int32 posX = (sl_int32)(getScrollX());
+		ret.top = m_heightTopHeader + (sl_ui_pos)(rowIndex * m_rowHeight - posY);
+		ret.bottom = ret.top + m_rowHeight;
+		ret.left = getColumnWidth(0, colIndex) - posX;
+		ret.right = ret.left + getColumnWidth(colIndex, colIndex + 1);
+		return ret;
+	}
 
-		if (columnEnd >= m_columnCount) {
-			columnEnd = m_columnCount - 1;
+	UIRect TableView::getGridHeaderCellPosition(sl_int32 colIndex, sl_bool flagTop)
+	{
+		UIRect ret; 
+		ret = getGridCellPosition(0, colIndex);
+		if (flagTop && m_heightTopHeader > 0) {
+			ret.top = 0;
+			ret.bottom = m_heightTopHeader;
 		}
+		else if (!flagTop && m_heightBottomHeader > 0) {
+			ret.top = getHeight() - m_heightBottomHeader + 1;
+			ret.bottom = getHeight() - 1;
+		}
+		return ret;
 	}
 	
 	void TableView::onDraw(Canvas* canvas)
@@ -658,39 +584,32 @@ namespace slib
 		if (m_rowCount <= 0 || m_columnCount == 0) {
 			return;
 		}
-		
-		sl_int32 posY = (sl_int32)(getScrollY());
-		sl_int32 posX = (sl_int32)(getScrollX());
 
-		sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
-		getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
+		sl_int32 widthLeftHeader = getColumnWidth(0, m_fixedLeftColumnCount);
+		sl_int32 widthRightHeader = getColumnWidth(m_columnCount - m_fixedRightColumnCount, m_columnCount);
+
 		{
 			CanvasStateScope scope(canvas);
-			Rectanglei rt(m_widthLeftHeader, m_heightTopHeader, getWidth() - m_widthRightHeader + 1, getHeight() - m_heightBottomHeader + 1);
+			Rectanglei rt(widthLeftHeader, m_heightTopHeader, getWidth() - widthRightHeader + 1, getHeight() - m_heightBottomHeader + 1);
 			canvas->clipToRectangle(rt);
-			UIRect rcItem;
-			rcItem.top = m_heightTopHeader + (sl_ui_pos)(rowStart * m_rowHeight - posY);
-			rcItem.bottom = rcItem.top + (sl_ui_len)m_rowHeight;
-			
+			sl_int32 rowStart = 0, rowEnd = 0, colStart = 0, colEnd = 0;
+			getViewportGridIndex(rowStart, rowEnd, colStart, colEnd);
 			for (sl_reg i = rowStart; i <= rowEnd; i++) {
-				rcItem.left = m_widthLeftHeader + getColumnWidth(0, colStart) - posX;
 				for (sl_reg j = colStart; j <= colEnd; j++) {
-					rcItem.right = rcItem.left + getColumnWidth(j, j + 1);
-					dispatchDrawItem(rowStart + i, j, canvas, rcItem);
-					rcItem.left = rcItem.right;
+					dispatchDrawItem(rowStart + i, j, canvas, getGridCellPosition(i, j));
 				}
-				rcItem.top = rcItem.bottom;
-				rcItem.bottom += m_rowHeight;
 			}
-
-			drawGridLine(canvas);
 		}
 		{
 			CanvasStateScope scope(canvas);
-			Rectanglei rt(m_widthLeftHeader, 0, getWidth() - m_widthRightHeader + 1, getHeight());
+			Rectanglei rt(widthLeftHeader, 0, getWidth() - widthRightHeader + 1, getHeight());
 			canvas->clipToRectangle(rt);
-			drawGridVerticalHeader(canvas, sl_true);
-			drawGridVerticalHeader(canvas, sl_false);
+			if (m_heightTopHeader) {
+				drawGridVerticalHeader(canvas, sl_true);
+			}
+			if (m_heightBottomHeader) {
+				drawGridVerticalHeader(canvas, sl_false);
+			}
 		}
 
 		{
@@ -700,12 +619,11 @@ namespace slib
 			drawGridHorizontalHeader(canvas, sl_true);
 			drawGridHorizontalHeader(canvas, sl_false);
 		}
-
 	}
 
 	void TableView::onClickEvent(UIEvent* ev)
 	{
-		if (ev->isMouseEvent()) {
+		/*if (ev->isMouseEvent()) {
 			sl_int64 rowIndex = getRowIndexAt((sl_int32)ev->getPoint().y);
 			sl_int64 colIndex = getColumnIndexAt((sl_int32)ev->getPoint().x);
 			if (rowIndex >= 0 && colIndex >= 0) {
@@ -716,7 +634,7 @@ namespace slib
 				pt.x = (sl_ui_pos)(posX - getColumnWidth(0, colIndex));
 				dispatchClickItem(rowIndex, colIndex, pt, ev);
 			}
-		}
+		}*/
 	}
 
 	void TableView::onMouseEvent(UIEvent* ev)
@@ -841,4 +759,27 @@ namespace slib
 		}
 	}
 
+	void GridViewStringCell::onDrawCell(GridViewCellDrawParam& cellParam)
+	{
+		SimpleTextBoxParam param;
+		param.text = cellParam.data.toString();
+		if (param.text.isEmpty()) {
+			return;
+		}
+		SimpleTextBoxDrawParam drawParam;
+		drawParam.frame = cellParam.region;
+		drawParam.textColor = Color::Black;
+		SimpleTextBox box;
+		param.font = cellParam.parent->getFont();
+		param.width = drawParam.frame.getWidth();
+		param.ellipsizeMode = EllipsizeMode::None;
+		param.align = Alignment::Center;
+		box.update(param);
+		box.draw(cellParam.canvas, drawParam);
+	}
+
+	void GridViewStringCell::onMouseEvent(GridViewCellEvent& ev)
+	{
+		
+	}
 }
