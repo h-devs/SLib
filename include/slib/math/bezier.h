@@ -176,7 +176,7 @@ namespace slib
 			}
 		}
 
-		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, sl_bool large_arc_flag, sl_bool sweep_flag)
+		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, sl_bool flagLargeArc, sl_bool flagSweep)
 		{
 			PointT<T> p1(x1, y1), p2(x2, y2), center;
 			T pi = Math::PI<T>();
@@ -193,7 +193,7 @@ namespace slib
 			T h = q2.getLength() / 2;
 			
 			T d = Math::sqrt(1 - h * h);
-			if (large_arc_flag != sweep_flag) {
+			if (!flagLargeArc != !flagSweep) {
 				PointT<T> n(-q2.y, q2.x);
 				center = q2 / 2 + n * (d / h / 2);
 				center.x = p1.x + center.x * rx;
@@ -210,7 +210,7 @@ namespace slib
 			T start_angle = sign1 * Math::arccos(((p1.x - center.x) / rx) > 0 ? ((p1.x - center.x) / rx) - epsilon : ((p1.x - center.x) / rx) + epsilon);			//  -pi ~ pi
 			T end_angle = sign2 * Math::arccos(((p2.x - center.x) / rx) > 0 ? ((p2.x - center.x) / rx) - epsilon : ((p2.x - center.x) / rx) + epsilon);				//	-pi ~ pi
 			T sign;
-			if (sweep_flag) {
+			if (flagSweep) {
 				sign = T(1.0);
 				if (end_angle < start_angle && !(end_angle < 0 && start_angle < 0)) {
 					end_angle += 2 * pi;
@@ -256,7 +256,7 @@ namespace slib
 			}
 		}
 
-		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, T rotation, sl_bool large_arc_flag, sl_bool sweep_flag)
+		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, T rotation, sl_bool flagLargeArc, sl_bool flagSweep)
 		{
 			T pi = Math::PI<T>();
 
@@ -284,7 +284,7 @@ namespace slib
 			}
 
 			// Calculate (cx1, cy1)
-			T sign = (large_arc_flag == sweep_flag) ? (T)-1.0 : (T)1.0;
+			T sign = (!flagLargeArc == !flagSweep) ? (T)-1.0 : (T)1.0;
 			T sq = (prx * pry - prx * py - pry * px) / (prx * py + pry * px);
 			T coef = sign * Math::sqrt((sq < 0) ? 0 : sq);
 			T cx1 = coef *  ((rx * y3) / ry);

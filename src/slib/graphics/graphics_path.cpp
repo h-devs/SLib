@@ -593,20 +593,20 @@ namespace slib
 		}
 	}
 
-	void GraphicsPath::addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_bool large_arc_flag, sl_bool sweep_flag)
+	void GraphicsPath::addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_bool flagLargeArc, sl_bool flagSweep)
 	{
 		Pointf pts[13];
-		sl_uint32 n = CubicBezierCurve::convertArcToBezier(pts, x1, y1, x2, y2, rx, ry, large_arc_flag, sweep_flag);
+		sl_uint32 n = CubicBezierCurve::convertArcToBezier(pts, x1, y1, x2, y2, rx, ry, flagLargeArc, flagSweep);
 
 		for (sl_uint32 i = 1; i + 2 < n; i += 3) {
 			cubicTo(pts[i], pts[i + 1], pts[i + 2]);
 		}
 	}
 
-	void GraphicsPath::addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_real rotation, sl_bool large_arc_flag, sl_bool sweep_flag)
+	void GraphicsPath::addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_real rotation, sl_bool flagLargeArc, sl_bool flagSweep)
 	{
 		Pointf pts[13];
-		sl_uint32 n = CubicBezierCurve::convertArcToBezier(pts, x1, y1, x2, y2, rx, ry, rotation, large_arc_flag, sweep_flag);
+		sl_uint32 n = CubicBezierCurve::convertArcToBezier(pts, x1, y1, x2, y2, rx, ry, rotation, flagLargeArc, flagSweep);
 		
 		for (sl_uint32 i = 1; i + 2 < n; i += 3) {
 			cubicTo(pts[i], pts[i + 1], pts[i + 2]);

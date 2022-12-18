@@ -20,41 +20,55 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/device/disk.h"
+#include "slib/device/definition.h"
+
+#if defined(SLIB_PLATFORM_IS_LINUX)
+
+#include "slib/device/device.h"
+
+#include <stdio.h>
+#include <string.h>
+
+using namespace std;
 
 namespace slib
 {
 
-#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX)
+#define UDEVADM "udevadm info --query=all --name=/dev/sd%c | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"
+
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
-		return sl_null;
-	}
-#endif
+		String ret;
+		FILE *cmd;
 
-#if !defined(SLIB_PLATFORM_IS_WIN32)
-	sl_bool Disk::getSize(const StringParam& path, sl_uint64* pTotalSize, sl_uint64* pFreeSize)
-	{
-		return sl_false;
-	}
-#endif
+		char cmd_line[100] = { 0 };
+		sprintf(cmd_line, UDEVADM, 0x61 + diskNo);
+		if (cmd = popen(cmd_line, "r"))
+		{
+			char out_line[300] = { 0 };
+			int nRead = 0;
+			if (nRead = fread(out_line, 1, sizeof(out_line), cmd))
+			{
+				out_line[nRead] = 0;
 
-	sl_uint64 Disk::getTotalSize(const StringParam& path)
-	{
-		sl_uint64 size;
-		if (getSize(path, &size)) {
-			return size;
+				char* pszFind = NULL;
+				if (pszFind = strstr(out_line, "ID_BUS"))
+				{
+					if (strncasecmp(pszFind, "ID_BUS=USB", 10))
+					{
+						if (pszFind = strstr(out_line, "ID_SERIAL_SHORT"))
+						{
+							ret = String::from(pszFind + 16);
+						}
+					}
+				}
+			}
+			pclose(cmd);
 		}
-		return 0;
-	}
 
-	sl_uint64 Disk::getFreeSize(const StringParam& path)
-	{
-		sl_uint64 size;
-		if (getSize(path, sl_null, &size)) {
-			return size;
-		}
-		return 0;
+		return ret;
 	}
 
 }
+
+#endif

@@ -24,7 +24,6 @@
 #define CHECKHEADER_SLIB_DEVICE_DEVICE
 
 #include "constants.h"
-
 #include "../core/string.h"
 #include "../core/function.h"
 #include "../math/size.h"
@@ -97,6 +96,9 @@ namespace slib
 		static sl_uint32 getScreenWidth();
 
 		static sl_uint32 getScreenHeight();
+
+
+		static String getBoardSerialNumber();
 
 
 		static void openDial(const String& phoneNumber);

@@ -150,6 +150,13 @@ namespace slib
 		return (sl_uint32)(getScreenSize().y);
 	}
 
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX)
+	String Device::getBoardSerialNumber()
+	{
+		return sl_null;
+	}
+#endif
+
 #if !defined(SLIB_PLATFORM_IS_ANDROID)
 	void Device::openDial(const String& phoneNumber)
 	{

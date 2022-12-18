@@ -1352,5 +1352,8 @@
     <ClCompile Include="..\..\src\slib\script\ginger.cpp">
       <Filter>src\script</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\wmi.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

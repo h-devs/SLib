@@ -102,9 +102,9 @@ namespace slib
 
 		void addArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, sl_bool flagMoveTo = sl_true);
 
-		void addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_bool large_arc_flag, sl_bool sweep_flag);
+		void addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_bool flagLargeArc, sl_bool flagSweep);
 
-		void addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_real rotation, sl_bool large_arc_flag, sl_bool sweep_flag);
+		void addArc(sl_real x1, sl_real y1, sl_real x2, sl_real y2, sl_real rx, sl_real ry, sl_real rotation, sl_bool flagLargeArc, sl_bool flagSweep);
 
 		void addRectangle(sl_real x, sl_real y, sl_real width, sl_real height);
 
