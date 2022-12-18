@@ -22,15 +22,15 @@
 
 #define SLIB_SUPPORT_STD_TYPES
 
-#include "slib/core/json.h"
+#include "slib/data/json.h"
 
 #include "slib/core/string_buffer.h"
-#include "slib/core/parse_util.h"
-#include "slib/core/math.h"
-#include "slib/core/list_collection.h"
-#include "slib/core/map_object.h"
-#include "slib/core/serialize.h"
+#include "slib/core/stringx.h"
 #include "slib/core/object_op.h"
+#include "slib/core/priv/list_collection.h"
+#include "slib/core/priv/map_object.h"
+#include "slib/data/serialize.h"
+#include "slib/math/math.h"
 #include "slib/math/bigint.h"
 
 #define PTR_VAR(TYPE, x) ((TYPE*)((void*)(&(x))))
@@ -3316,7 +3316,7 @@ namespace slib
 									return sl_false;
 								}
 							}
-							if (!(buf.add(ParseUtil::applyBackslashEscapes(node->key)))) {
+							if (!(buf.add(Stringx::applyBackslashEscapes(node->key)))) {
 								return sl_false;
 							}
 							if (!(buf.addStatic(": "))) {
@@ -3375,7 +3375,7 @@ namespace slib
 			case VariantType::StringData8:
 			case VariantType::StringData16:
 			case VariantType::StringData32:
-				return ParseUtil::applyBackslashEscapes(getString());
+				return Stringx::applyBackslashEscapes(getString());
 			case VariantType::ObjectId:
 				return REF_VAR(ObjectId, _value).toJson().toJsonString();
 			default:

@@ -24,7 +24,7 @@
 
 #if defined(SLIB_UI_IS_MACOS)
 
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

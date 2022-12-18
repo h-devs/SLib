@@ -23,7 +23,7 @@
 #include "slib/device/device.h"
 
 #include "slib/network/url.h"
-#include "slib/social/contact.h"
+#include "slib/data/contact.h"
 #include "slib/ui/core.h"
 
 namespace slib

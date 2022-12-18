@@ -22,7 +22,7 @@
 
 #include "sapp_util.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 
 namespace slib
 {

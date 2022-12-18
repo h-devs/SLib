@@ -59,10 +59,10 @@ typedef size_t				sl_size_t;
 #	define SLIB_STDCALL		__attribute__((stdcall))
 #	define SLIB_INLINE		inline __attribute__((always_inline))
 #	if __GNUC__ >= 6
-#	    define SLIB_CONSTEXPR	constexpr
-#   else
-#	    define SLIB_CONSTEXPR
-#   endif
+#		define SLIB_CONSTEXPR	constexpr
+#	else
+#		define SLIB_CONSTEXPR
+#	endif
 #	define SLIB_INT64(v)	v##LL
 #	define SLIB_UINT64(v)	v##ULL
 #	define SLIB_THREAD_OLD	__thread
@@ -153,19 +153,19 @@ typedef char32_t			sl_char32;
 #define SLIB_INT64_MIN		SLIB_INT64(-0x8000000000000000)
 
 #ifdef SLIB_ARCH_IS_64BIT
-#   define SLIB_SIZE_MAX	SLIB_UINT64_MAX
-#   define SLIB_SIZE_TEST_SIGN_BIT SLIB_UINT64(0x8000000000000000)
-#   define SLIB_SIZE_MASK_NO_SIGN_BITS SLIB_UINT64(0x7FFFFFFFFFFFFFFF)
-#   define SLIB_REG_MAX		SLIB_INT64_MAX
-#   define SLIB_REG_MIN		SLIB_INT64_MIN
+#	define SLIB_SIZE_MAX	SLIB_UINT64_MAX
+#	define SLIB_SIZE_TEST_SIGN_BIT SLIB_UINT64(0x8000000000000000)
+#	define SLIB_SIZE_MASK_NO_SIGN_BITS SLIB_UINT64(0x7FFFFFFFFFFFFFFF)
+#	define SLIB_REG_MAX		SLIB_INT64_MAX
+#	define SLIB_REG_MIN		SLIB_INT64_MIN
 #	define SLIB_SIZE_FROM_UINT64(x)		(sl_size)(x)
 #	define SLIB_UINT32_FROM_SIZE(x)		((x) >> 32 ? 0xFFFFFFFF : (sl_uint32)(x))
 #else
-#   define SLIB_SIZE_MAX	SLIB_UINT32_MAX
-#   define SLIB_SIZE_TEST_SIGN_BIT 0x80000000
-#   define SLIB_SIZE_MASK_NO_SIGN_BITS 0x7FFFFFFF
-#   define SLIB_REG_MAX		SLIB_INT32_MAX
-#   define SLIB_REG_MIN		SLIB_INT32_MIN
+#	define SLIB_SIZE_MAX	SLIB_UINT32_MAX
+#	define SLIB_SIZE_TEST_SIGN_BIT 0x80000000
+#	define SLIB_SIZE_MASK_NO_SIGN_BITS 0x7FFFFFFF
+#	define SLIB_REG_MAX		SLIB_INT32_MAX
+#	define SLIB_REG_MIN		SLIB_INT32_MIN
 #	define SLIB_SIZE_FROM_UINT64(x)		((x) >> 32 ? 0xFFFFFFFF : (sl_size)(x))
 #	define SLIB_UINT32_FROM_SIZE(x)		(sl_uint32)(x)
 #endif
@@ -229,31 +229,29 @@ typedef char32_t			sl_char32;
 #define SLIB_MAKE_QWORD4(A,B)				((((sl_uint64)(sl_uint32)(A)) << 32) | (sl_uint32)(B))
 
 #if defined(__GNUC__)
-#   define SLIB_EXPECT(x, c) __builtin_expect(x, c)
-#   define SLIB_LIKELY(x) __builtin_expect(!!(x), 1)
-#   define SLIB_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#	define SLIB_EXPECT(x, c) __builtin_expect(x, c)
+#	define SLIB_LIKELY(x) __builtin_expect(!!(x), 1)
+#	define SLIB_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #else
-#   define SLIB_EXPECT(x, c) (x)
-#   define SLIB_LIKELY(v) (v)
-#   define SLIB_UNLIKELY(v) (v)
+#	define SLIB_EXPECT(x, c) (x)
+#	define SLIB_LIKELY(v) (v)
+#	define SLIB_UNLIKELY(v) (v)
 #endif
 
 #if defined(SLIB_COMPILE_LIB)
-#   ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
-#       define PRIV_SLIB_INCLUDED_OBJECT_TYPES
-#       include "object_types.h"
-#   endif
+#	ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#		define PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#		include "object_types.h"
+#	endif
 #else
-#   if !defined(SLIB_NOT_SUPPORT_STD_TYPES)
-#	    ifndef SLIB_SUPPORT_STD_TYPES
-#		    define SLIB_SUPPORT_STD_TYPES
-#	    endif
-#   endif
+#	if !defined(SLIB_NOT_SUPPORT_STD_TYPES)
+#		ifndef SLIB_SUPPORT_STD_TYPES
+#			define SLIB_SUPPORT_STD_TYPES
+#		endif
+#	endif
 #endif
 
-/************************************************************************/
-/* Operating System Related Difinitions                                 */
-/************************************************************************/
+// Operating System Related Difinitions
 #if (SLIB_PLATFORM==SLIB_PLATFORM_WIN32)
 #	ifndef _WIN32_WINNT
 #		define _WIN32_WINNT 0x0501

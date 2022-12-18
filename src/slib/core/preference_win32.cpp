@@ -26,8 +26,7 @@
 
 #include "slib/core/preference.h"
 
-#include "slib/core/json.h"
-#include "slib/core/win32/registry.h"
+#include "slib/platform/win32/registry.h"
 
 namespace slib
 {

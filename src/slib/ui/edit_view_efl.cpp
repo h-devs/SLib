@@ -26,10 +26,10 @@
 
 #include "slib/ui/edit_view.h"
 
-#include "view_efl.h"
-
 #include "slib/core/variant.h"
-#include "slib/core/xml.h"
+#include "slib/data/xml.h"
+
+#include "view_efl.h"
 
 #include <Elementary.h>
 

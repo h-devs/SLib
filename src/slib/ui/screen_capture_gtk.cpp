@@ -26,9 +26,8 @@
 
 #include "slib/ui/screen_capture.h"
 
-#include "slib/core/file.h"
-#include "slib/ui/core.h"
-#include "slib/ui/gtk/gdbus.h"
+#include "slib/io/file.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {
@@ -44,7 +43,7 @@ namespace slib
 				if (!funcCallSync) {
 					return sl_null;
 				}
-				GDBusConnection* connection = gtk::GDBus::getDefaultConnection();
+				GDBusConnection* connection = UIPlatform::getDefaultDBusConnection();
 				if (!connection) {
 					return sl_null;
 				}

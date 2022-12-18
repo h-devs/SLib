@@ -20,7 +20,7 @@
  *   THE SOFTWARE.
  */
 
-#include <slib/core/platform.h>
+#include <slib/platform.h>
 
 #include "../src/cpp/app.h"
 

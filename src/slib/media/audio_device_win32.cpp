@@ -28,7 +28,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/log.h"
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 #include <initguid.h>
 #include <mmsystem.h>
@@ -443,7 +443,7 @@ namespace slib
 				Ref<AudioPlayerDeviceImpl> m_device;
 				LPDIRECTSOUNDBUFFER m_dsBuffer;
 				LPDIRECTSOUNDNOTIFY m_dsNotify;
-				HANDLE              m_hNotificationEvents[2];
+				HANDLE m_hNotificationEvents[2];
 
 				sl_uint32 m_nBufferSize;
 				sl_uint32 m_nOffsetNextWrite;

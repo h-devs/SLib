@@ -10,7 +10,7 @@ android {
         versionName rootProject.ext.VERSION_NAME
         externalNativeBuild {
             cmake {
-                targets 'freetype', 'sqlite3', 'opus', 'vpx', 'zxing', 'hiredis'
+                targets 'sqlite3', 'opus', 'vpx', 'hiredis'
                 arguments '-DANDROID_ARM_MODE=arm', '-DANDROID_ARM_NEON=TRUE'
             }
         }

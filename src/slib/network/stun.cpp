@@ -24,11 +24,10 @@
 
 #include "slib/core/mio.h"
 #include "slib/core/log.h"
-
+#include "slib/data/crc32.h"
 #include "slib/crypto/hmac.h"
 #include "slib/crypto/sha1.h"
 #include "slib/crypto/md5.h"
-#include "slib/crypto/crc32.h"
 
 namespace slib
 {

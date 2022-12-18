@@ -26,13 +26,13 @@
 #include "definition.h"
 
 #if defined(SLIB_GRAPHICS_IS_GDI)
-#include "gdi/platform.h"
+#include "platform/gdi.h"
 #elif defined(SLIB_GRAPHICS_IS_QUARTZ)
-#include "quartz/platform.h"
+#include "platform/quartz.h"
 #elif defined(SLIB_GRAPHICS_IS_ANDROID)
-#include "android/platform.h"
+#include "platform/android.h"
 #elif defined(SLIB_GRAPHICS_IS_CAIRO)
-#include "cairo/platform.h"
+#include "platform/cairo.h"
 #endif
 
 #endif

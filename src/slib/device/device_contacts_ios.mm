@@ -26,9 +26,9 @@
 
 #include "slib/device/device.h"
 
-#include "slib/social/contact.h"
-#include "slib/core/platform.h"
+#include "slib/data/contact.h"
 #include "slib/core/safe_static.h"
+#include "slib/platform.h"
 
 #import <Contacts/Contacts.h>
 

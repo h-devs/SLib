@@ -121,8 +121,8 @@ namespace slib
 #include <ws2tcpip.h>
 #include <netioapi.h>
 
-#include "slib/core/platform.h"
-#include "slib/network/dl/win32/iphlpapi.h"
+#include "slib/platform.h"
+#include "slib/dl/win32/iphlpapi.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -250,7 +250,7 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {
@@ -540,7 +540,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_FREEBSD)
 #include <stdio.h>
 #elif defined(SLIB_PLATFORM_IS_LINUX)
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #endif
 
 namespace slib

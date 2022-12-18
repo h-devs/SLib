@@ -22,12 +22,12 @@
 
 #include "slib/doc/zip.h"
 
-#include "slib/core/file.h"
-#include "slib/core/memory_output.h"
 #include "slib/core/mio.h"
-#include "slib/crypto/crc32.h"
-#include "slib/crypto/zlib.h"
-#include "slib/crypto/zstd.h"
+#include "slib/io/file.h"
+#include "slib/io/memory_output.h"
+#include "slib/data/crc32.h"
+#include "slib/data/zlib.h"
+#include "slib/data/zstd.h"
 
 #define ZIP_VERSION 64 //6.4
 

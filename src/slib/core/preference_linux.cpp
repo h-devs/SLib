@@ -26,9 +26,8 @@
 
 #include "slib/core/preference.h"
 
-#include "slib/core/json.h"
-#include "slib/core/file.h"
 #include "slib/core/system.h"
+#include "slib/io/file.h"
 
 namespace slib
 {

@@ -29,9 +29,7 @@
 #include "slib/ui/screen.h"
 #include "slib/ui/window.h"
 #include "slib/ui/app.h"
-
 #include "slib/core/safe_static.h"
-
 #include "slib/ui/platform.h"
 
 #include "ui_core_common.h"

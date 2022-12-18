@@ -26,9 +26,9 @@
 
 #include "slib/ui/screen_capture.h"
 
-#include "slib/ui/dl/win32/shcore.h"
-#include "slib/graphics/platform.h"
 #include "slib/core/safe_static.h"
+#include "slib/graphics/platform.h"
+#include "slib/dl/win32/shcore.h"
 
 namespace slib
 {

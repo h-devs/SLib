@@ -26,8 +26,8 @@
 #include "sapp_values.h"
 
 #include "slib/core/locale.h"
-#include "slib/core/xml.h"
 #include "slib/core/property.h"
+#include "slib/data/xml.h"
 #include "slib/graphics/image.h"
 #include "slib/ui/event.h"
 #include "slib/ui/resource.h"
@@ -907,21 +907,6 @@ namespace slib
 
 	};
 
-	class SAppLayoutChatAttributes : public Referable
-	{
-	public:
-		SAppDimensionValue chatWidth;
-		SAppDimensionValue userIconSize;
-		SAppStringValue dateFormat;
-		SAppStringValue timeFormat;
-		SAppColorValue receivedChatBackColor;
-		SAppColorValue receivedChatTextColor;
-		SAppColorValue sentChatBackColor;
-		SAppColorValue sentChatTextColor;
-		SAppColorValue dateTextColor;
-
-	};
-
 	class SAppLayoutRefreshAttributes : public Referable
 	{
 	public:
@@ -1054,7 +1039,6 @@ namespace slib
 		Video = 0x0267,
 		Camera = 0x0268,
 		Drawer = 0x026a,
-		Chat = 0x026b,
 		Refresh = 0x026c,
 		DatePicker = 0x026d,
 		Line = 0x026e,
@@ -1117,7 +1101,6 @@ namespace slib
 		Ref<SAppLayoutVideoAttributes> attrsVideo;
 		Ref<SAppLayoutCameraAttributes> attrsCamera;
 		Ref<SAppLayoutDrawerAttributes> attrsDrawer;
-		Ref<SAppLayoutChatAttributes> attrsChat;
 		Ref<SAppLayoutRefreshAttributes> attrsRefresh;
 		Ref<SAppLayoutListBoxAttributes> attrsListBox;
 		Ref<SAppLayoutLabelListAttributes> attrsLabelList;
@@ -1192,7 +1175,6 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameVideo = 0;
 		sl_uint32 nAutoIncreaseNameCamera = 0;
 		sl_uint32 nAutoIncreaseNameDrawer = 0;
-		sl_uint32 nAutoIncreaseNameChat = 0;
 		sl_uint32 nAutoIncreaseNameRefresh = 0;
 		sl_uint32 nAutoIncreaseNameListBox = 0;
 		sl_uint32 nAutoIncreaseNameLabelList = 0;

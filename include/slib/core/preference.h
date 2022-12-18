@@ -23,7 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_PREFERENCE
 #define CHECKHEADER_SLIB_CORE_PREFERENCE
 
-#include "json.h"
+#include "definition.h"
+
+#include "../data/json.h"
 
 namespace slib
 {

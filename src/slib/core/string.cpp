@@ -28,9 +28,10 @@
 #include "slib/core/mio.h"
 #include "slib/core/memory_traits.h"
 #include "slib/core/string_traits.h"
-#include "slib/core/json.h"
 #include "slib/core/locale.h"
 #include "slib/core/time_zone.h"
+#include "slib/core/variant.h"
+#include "slib/core/string_buffer.h"
 #include "slib/math/bigint.h"
 
 #define EMPTY_SZ(CHAR_TYPE) ((CHAR_TYPE*)"\0\0\0\0")

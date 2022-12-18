@@ -71,9 +71,9 @@ namespace slib
 
 #include "slib/network/socket_address.h"
 
+#include "slib/io/file.h"
 #include "slib/core/timer.h"
 #include "slib/core/process.h"
-#include "slib/core/file.h"
 #include "slib/core/system.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
@@ -81,13 +81,13 @@ namespace slib
 #define TAG "Pcap"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-#	include "slib/core/win32/platform.h"
+#	include "slib/platform.h"
 #	define USE_STATIC_NPCAP
 #	include "pcap/pcap.h"
 #else
-#	include "slib/core/pipe_event.h"
+#	include "slib/io/pipe_event.h"
 #	if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-#		include "slib/network/dl/linux/pcap.h"
+#		include "slib/dl/linux/pcap.h"
 #	else
 #		include "pcap/pcap.h"
 #	endif

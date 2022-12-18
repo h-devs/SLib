@@ -23,9 +23,10 @@
 #ifndef CHECKHEADER_SLIB_CORE_HASH_TABLE
 #define CHECKHEADER_SLIB_CORE_HASH_TABLE
 
-#include "map_common.h"
 #include "hash.h"
 #include "list.h"
+
+#include "priv/map_common.h"
 
 namespace slib
 {

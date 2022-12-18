@@ -26,17 +26,17 @@
 #include "definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
-#include "win32/platform.h"
+#include "platform/win32.h"
 #elif defined(SLIB_UI_IS_MACOS)
-#include "macos/platform.h"
+#include "platform/macos.h"
 #elif defined(SLIB_UI_IS_IOS)
-#include "ios/platform.h"
+#include "platform/ios.h"
 #elif defined(SLIB_UI_IS_ANDROID)
-#include "android/platform.h"
+#include "platform/android.h"
 #elif defined(SLIB_UI_IS_GTK)
-#include "gtk/platform.h"
+#include "platform/gtk.h"
 #elif defined(SLIB_UI_IS_EFL)
-#include "efl/platform.h"
+#include "platform/efl.h"
 #endif
 
 #endif

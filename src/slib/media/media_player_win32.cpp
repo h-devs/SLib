@@ -26,7 +26,7 @@
 
 #include "slib/media/media_player.h"
 
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

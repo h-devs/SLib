@@ -26,9 +26,9 @@
 
 #include "slib/ui/system_tray_icon.h"
 
-#include "slib/ui/platform.h"
-#include "slib/ui/notification.h"
 #include "slib/core/safe_static.h"
+#include "slib/ui/notification.h"
+#include "slib/ui/platform.h"
 
 #define NOTIFICATION_ID_PREFIX "system_tray_icon.notify."
 

@@ -52,8 +52,8 @@
 #include "../core/content_type.h"
 #include "../core/hash_map.h"
 #include "../core/string_buffer.h"
-#include "../core/string_cast.h"
-#include "../core/variant_def.h"
+#include "../core/priv/string_cast.h"
+#include "../core/priv/variant_def.h"
 
 namespace slib
 {

@@ -26,7 +26,7 @@
 #include "view.h"
 
 #include "../media/audio_data.h"
-#include "../core/loop_queue.h"
+#include "../data/loop_queue.h"
 
 namespace slib
 {

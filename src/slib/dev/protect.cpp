@@ -22,7 +22,9 @@
 
 #include "slib/dev/protect.h"
 
-#include "slib/core/win32/windows.h"
+#ifdef SLIB_PLATFORM_IS_WIN32
+#include "slib/platform/win32/windows.h"
+#endif
 
 namespace slib
 {

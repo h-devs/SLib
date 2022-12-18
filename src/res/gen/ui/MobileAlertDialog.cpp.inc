@@ -29,7 +29,7 @@ namespace slib
 			txtTitle->setMarginTop(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(10.0f)), slib::UIUpdateMode::Init);
 			txtTitle->setFont(slib::Font::create(slib::UI::getDefaultFontFamily(), slib::UIResource::dpToPixel(25.0f), sl_true, sl_false, sl_false), slib::UIUpdateMode::Init);
 			txtTitle->setText("Title", slib::UIUpdateMode::Init);
-			txtTitle->setGravity(slib::Alignment::MiddleCenter, slib::UIUpdateMode::Init);
+			txtTitle->setGravity(slib::Alignment::Center, slib::UIUpdateMode::Init);
 			txtTitle->setMultiLine(slib::MultiLineMode::WordWrap, slib::UIUpdateMode::Init);
 			_linear1->addChild(txtTitle, slib::UIUpdateMode::Init);
 
@@ -50,7 +50,7 @@ namespace slib
 			txtContent->setPaddingBottom(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(10.0f)), slib::UIUpdateMode::Init);
 			txtContent->setFont(slib::Font::create(slib::UI::getDefaultFontFamily(), slib::UIResource::dpToPixel(20.0f), sl_false, sl_false, sl_false), slib::UIUpdateMode::Init);
 			txtContent->setText("Content", slib::UIUpdateMode::Init);
-			txtContent->setGravity(slib::Alignment::MiddleCenter, slib::UIUpdateMode::Init);
+			txtContent->setGravity(slib::Alignment::Center, slib::UIUpdateMode::Init);
 			txtContent->setMultiLine(slib::MultiLineMode::WordWrap, slib::UIUpdateMode::Init);
 			_scroll1->setContentView(txtContent, slib::UIUpdateMode::Init);
 

@@ -140,12 +140,6 @@ namespace slib
 
 	};
 
-	struct PhysicalMemoryStatus
-	{
-		sl_uint64 total; // in bytes
-		sl_uint64 available; // in bytes
-	};
-
 	class SLIB_EXPORT Memory
 	{
 	public:
@@ -197,9 +191,6 @@ namespace slib
 		static Memory createFromString(String32&& str) noexcept;
 
 		static Memory createFromExtendedJson(const Json& json, sl_uint32* pOutSubType = sl_null);
-
-	public:
-		static sl_bool getPhysicalMemoryStatus(PhysicalMemoryStatus& _out);
 
 	public:
 		void* getData() const noexcept;

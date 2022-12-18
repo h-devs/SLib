@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{f395d58b-0599-4928-ad41-e655bda5a667}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\qrcode">
+      <UniqueIdentifier>{84871635-dc4a-4d00-a58e-ef2496f0ee6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\capcha">
+      <UniqueIdentifier>{a55186fe-e100-4ec3-b43a-362445cdad08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\chat">
+      <UniqueIdentifier>{ccb34cee-d24a-4afa-be61-45cdc55eb292}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\social">
+      <UniqueIdentifier>{bf767bcf-a3cf-4af3-a71f-92e37bf30b53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\keygen">
+      <UniqueIdentifier>{c9c8c9d7-4b41-4078-860f-f6fe2e358efc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h">
+      <Filter>src\qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\qrcode\zxing.h">
+      <Filter>src\qrcode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\captcha\captcha.h">
+      <Filter>src\capcha</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\chat\chat_client.h">
+      <Filter>src\chat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\chat\chat_view.h">
+      <Filter>src\chat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\chat\chat.h">
+      <Filter>src\chat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\keygen\keygen.h">
+      <Filter>src\keygen</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\alipay.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\ebay.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\etsy.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\facebook.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\instagram.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\linkedin.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\paypal.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\pinterest.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\social\wechat.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\extra\qrcode\zxing.cpp">
+      <Filter>src\qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\qrcode\zxing_scanner.cpp">
+      <Filter>src\qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\captcha\captcha.cpp">
+      <Filter>src\capcha</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\chat\chat_sqlite.cpp">
+      <Filter>src\chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\chat\chat_view.cpp">
+      <Filter>src\chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\chat\chat.cpp">
+      <Filter>src\chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\chat\chat_client.cpp">
+      <Filter>src\chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\chat\chat_resource.cpp">
+      <Filter>src\chat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\keygen\keygen.cpp">
+      <Filter>src\keygen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\alipay.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\alipay_openssl.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\ebay.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\etsy_ui.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\etsy.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\facebook_ui.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\facebook.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\facebook_sdk.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\alipay_sdk.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\instagram.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\linkedin_ui.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\linkedin.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\paypal_ui.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\paypal.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\pinterest_ui.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\pinterest.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\wechat_sdk.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\wechat.cpp">
+      <Filter>src\social</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -22,8 +22,7 @@
 
 #include "slib/db/key_value_store.h"
 
-#include "slib/core/variant.h"
-#include "slib/core/serialize.h"
+#include "slib/data/serialize.h"
 
 #define VALUE_BUFFER_SIZE 1024
 
@@ -180,7 +179,7 @@ namespace slib
 				if (mem.isNotNull()) {
 					p = mem.getData();
 				}
-				//return put(key.getUnsafeData(), key.getLength(), temp.getData(), nWrite); // nWrite°¡ ¼ö»óÇÔ.
+				//return put(key.getUnsafeData(), key.getLength(), temp.getData(), nWrite); // nWriteï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 				return put(key.getUnsafeData(), key.getLength(), temp.getData(), temp.getSize());
 			}
 		}

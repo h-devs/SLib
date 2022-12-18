@@ -27,9 +27,9 @@
 
 #include "../core/function.h"
 #include "../core/dispatch.h"
-#include "../core/json.h"
-#include "../core/xml.h"
 #include "../core/memory_queue.h"
+#include "../data/json.h"
+#include "../data/xml.h"
 
 namespace slib
 {

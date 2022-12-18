@@ -27,9 +27,9 @@
 
 #include "slib/network/event.h"
 #include "slib/network/netbios.h"
-#include "slib/crypto/asn1.h"
-#include "slib/core/memory_reader.h"
-#include "slib/core/memory_output.h"
+#include "slib/data/asn1.h"
+#include "slib/io/memory_reader.h"
+#include "slib/io/memory_output.h"
 #include "slib/core/process.h"
 #include "slib/core/service_manager.h"
 

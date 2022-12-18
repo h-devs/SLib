@@ -26,11 +26,10 @@
 
 #include "slib/ui/screen_capture.h"
 
-#include "slib/graphics/platform.h"
 #include "slib/core/safe_static.h"
+#include "slib/graphics/platform.h"
 
 #include <AppKit/AppKit.h>
-
 #include <libproc.h>
 
 namespace slib

@@ -23,7 +23,7 @@
 #include "slib/db/expression.h"
 
 #include "slib/db/sql.h"
-#include "slib/core/parse_util.h"
+#include "slib/core/stringx.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -107,15 +107,15 @@ namespace slib
 						case VariantType::String8:
 						case VariantType::Sz8:
 						case VariantType::StringData8:
-							builder.append(ParseUtil::applyBackslashEscapes(value.getStringView(), sl_false));
+							builder.append(Stringx::applyBackslashEscapes(value.getStringView(), sl_false));
 						case VariantType::String16:
 						case VariantType::Sz16:
 						case VariantType::StringData16:
-							builder.append(String::create(ParseUtil::applyBackslashEscapes(value.getStringView16(), sl_false)));
+							builder.append(String::create(Stringx::applyBackslashEscapes(value.getStringView16(), sl_false)));
 						case VariantType::String32:
 						case VariantType::Sz32:
 						case VariantType::StringData32:
-							builder.append(String::create(ParseUtil::applyBackslashEscapes(value.getStringView32(), sl_false)));
+							builder.append(String::create(Stringx::applyBackslashEscapes(value.getStringView32(), sl_false)));
 						default:
 							builder.appendStatic("null");
 							break;

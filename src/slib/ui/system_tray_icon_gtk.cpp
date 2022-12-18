@@ -27,12 +27,11 @@
 #include "slib/ui/system_tray_icon.h"
 
 #include "slib/graphics/image.h"
-#include "slib/core/file.h"
-#include "slib/ui/platform.h"
+#include "slib/io/file.h"
 #include "slib/ui/menu.h"
 #include "slib/ui/notification.h"
-
-#include "slib/ui/dl/linux/app-indicator.h"
+#include "slib/ui/platform.h"
+#include "slib/dl/linux/app-indicator.h"
 
 namespace slib
 {

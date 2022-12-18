@@ -23,10 +23,9 @@
 #ifndef CHECKHEADER_SLIB_MATH_INT128
 #define CHECKHEADER_SLIB_MATH_INT128
 
-#include "definition.h"
+#include "math.h"
 
 #include "../core/common_members.h"
-#include "../core/math.h"
 
 #define SLIB_UINT128_MAX_LOG10I 38
 

@@ -73,8 +73,8 @@ namespace slib
 		}
 		parent->invalidateLayout(mode);
 	}
-    
-    
+
+
 	SLIB_DEFINE_OBJECT(ViewListAdapter, ViewAdapter)
 
 	ViewListAdapter::ViewListAdapter()

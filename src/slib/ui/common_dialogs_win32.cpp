@@ -25,10 +25,10 @@
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "slib/ui/common_dialogs.h"
-#include "slib/ui/window.h"
-#include "slib/core/scoped_buffer.h"
-#include "slib/core/file.h"
 
+#include "slib/core/scoped_buffer.h"
+#include "slib/io/file.h"
+#include "slib/ui/window.h"
 #include "slib/ui/platform.h"
 
 #include "ui_core_win32.h"

@@ -27,7 +27,7 @@
 #include "slib/network/url_request.h"
 
 #include "slib/core/safe_static.h"
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

@@ -27,7 +27,7 @@
 #include "slib/media/audio_device.h"
 
 #include "slib/core/log.h"
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 #import <Foundation/Foundation.h>
 #import <AudioUnit/AudioUnit.h>

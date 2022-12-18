@@ -25,7 +25,7 @@
 
 #include "../decimal128.h"
 
-#include "../../core/json/core.h"
+#include "../../data/json/core.h"
 
 namespace slib
 {

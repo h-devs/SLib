@@ -34,11 +34,10 @@ namespace slib
 		Uniform Resource Identifier (URI): Generic Syntax
 			https://tools.ietf.org/html/rfc3986
 
-   unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-   reserved      = gen-delims / sub-delims
-   gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
-   sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-                 / "*" / "+" / "," / ";" / "="
+   unreserved	= ALPHA / DIGIT / "-" / "." / "_" / "~"
+   reserved		= gen-delims / sub-delims
+   gen-delims	= ":" / "/" / "?" / "#" / "[" / "]" / "@"
+   sub-delims	= "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
 */
 
 	namespace priv

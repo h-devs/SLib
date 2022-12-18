@@ -23,9 +23,8 @@
 #ifndef CHECKHEADER_SLIB_MATH_COMPLEX
 #define CHECKHEADER_SLIB_MATH_COMPLEX
 
-#include "definition.h"
+#include "math.h"
 
-#include "../core/math.h"
 #include "../core/default_members.h"
 
 namespace slib

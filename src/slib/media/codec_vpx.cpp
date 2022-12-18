@@ -22,8 +22,8 @@
 
 #include "slib/media/codec_vpx.h"
 
-#include "slib/core/memory_reader.h"
-#include "slib/core/memory_output.h"
+#include "slib/io/memory_reader.h"
+#include "slib/io/memory_output.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
 

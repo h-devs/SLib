@@ -7,9 +7,9 @@ namespace slib
 		void PromptDialog::initialize()
 		{
 			this->setDialog(sl_true);
-			this->setCenterScreen(sl_true);
-			this->setWidthWrapping();
-			this->setHeightWrapping();
+			this->setCenterScreen(sl_true, slib::UIUpdateMode::Init);
+			this->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);
+			this->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);
 			m_contentView->setFont(slib::Font::create(slib::UI::getDefaultFontFamily(), 18.0f, sl_false, sl_false, sl_false), slib::UIUpdateMode::Init);
 
 			_linear1 = new slib::LinearLayout;
@@ -69,6 +69,7 @@ namespace slib
 			cancel->setCancelOnClick();
 			cancel->setText(string::cancel::get(), slib::UIUpdateMode::Init);
 			_linear2->addChild(cancel, slib::UIUpdateMode::Init);
+
 		}
 
 		void PromptDialog::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)

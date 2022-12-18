@@ -15,11 +15,12 @@ namespace slib
 		SLIB_DEFINE_STRING_RESOURCE_END
 
 		SLIB_DEFINE_STRING_RESOURCE_BEGIN(file_dialog_filter_all, "All Files")
+			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko-KP, "\xeb\xaa\xa8\xeb\x93\xa0 \xed\x99\x94\xec\x9d\xbc")
 			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko, "\xeb\xaa\xa8\xeb\x93\xa0 \xed\x8c\x8c\xec\x9d\xbc")
 		SLIB_DEFINE_STRING_RESOURCE_END
 
 		SLIB_DEFINE_STRING_RESOURCE_BEGIN(file_dialog_filter_image, "Image Files")
-			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko-KP, "\xea\xb7\xb8\xeb\xa6\xbc\xed\x8c\x8c\xec\x9d\xbc")
+			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko-KP, "\xea\xb7\xb8\xeb\xa6\xbc\xed\x99\x94\xec\x9d\xbc")
 			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko, "\xec\x9d\xb4\xeb\xaf\xb8\xec\xa7\x80 \xed\x8c\x8c\xec\x9d\xbc")
 		SLIB_DEFINE_STRING_RESOURCE_END
 
@@ -38,7 +39,7 @@ namespace slib
 		SLIB_DEFINE_STRING_RESOURCE_END
 
 		SLIB_DEFINE_STRING_RESOURCE_BEGIN(open_image, "Open Image")
-			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko-KP, "\xea\xb7\xb8\xeb\xa6\xbc\xed\x8c\x8c\xec\x9d\xbc\xec\x84\xa0\xed\x83\x9d")
+			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko-KP, "\xea\xb7\xb8\xeb\xa6\xbc\xed\x99\x94\xec\x9d\xbc\xec\x84\xa0\xed\x83\x9d")
 			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko, "\xec\x9d\xb4\xeb\xaf\xb8\xec\xa7\x80 \xed\x8c\x8c\xec\x9d\xbc \xec\x97\xb4\xea\xb8\xb0")
 		SLIB_DEFINE_STRING_RESOURCE_END
 
@@ -51,19 +52,9 @@ namespace slib
 			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko, "\xec\x82\xac\xec\xa7\x84 \xec\xb4\xac\xec\x98\x81")
 		SLIB_DEFINE_STRING_RESOURCE_END
 
-		SLIB_DEFINE_STRING_RESOURCE_BEGIN(today, "Today")
-			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko, "\xec\x98\xa4\xeb\x8a\x98")
-			SLIB_DEFINE_STRING_RESOURCE_VALUE(zh, "\xe4\xbb\x8a\xe5\xa4\xa9")
-		SLIB_DEFINE_STRING_RESOURCE_END
-
 		SLIB_DEFINE_STRING_RESOURCE_BEGIN(yes, "Yes")
 			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko, "\xec\x98\x88")
 			SLIB_DEFINE_STRING_RESOURCE_VALUE(zh, "\xe6\x98\xaf")
-		SLIB_DEFINE_STRING_RESOURCE_END
-
-		SLIB_DEFINE_STRING_RESOURCE_BEGIN(yesterday, "Yesterday")
-			SLIB_DEFINE_STRING_RESOURCE_VALUE(ko, "\xec\x96\xb4\xec\xa0\x9c")
-			SLIB_DEFINE_STRING_RESOURCE_VALUE(zh, "\xe6\x98\xa8\xe5\xa4\xa9")
 		SLIB_DEFINE_STRING_RESOURCE_END
 
 		SLIB_DEFINE_STRING_RESOURCE_MAP_BEGIN
@@ -77,9 +68,7 @@ namespace slib
 			SLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(open_image)
 			SLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(reply)
 			SLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(take_photo)
-			SLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(today)
 			SLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(yes)
-			SLIB_DEFINE_STRING_RESOURCE_MAP_ITEM(yesterday)
 		SLIB_DEFINE_STRING_RESOURCE_MAP_END
 
 	}

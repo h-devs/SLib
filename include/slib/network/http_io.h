@@ -25,11 +25,11 @@
 
 #include "async.h"
 
-#include "../core/async_output.h"
-#include "../core/async_stream_filter.h"
+#include "../io/async_output.h"
+#include "../io/async_stream_filter.h"
 #include "../core/string.h"
 #include "../core/memory_queue.h"
-#include "../crypto/zlib.h"
+#include "../data/zlib.h"
 
 namespace slib
 {

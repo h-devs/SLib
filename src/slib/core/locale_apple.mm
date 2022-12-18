@@ -26,7 +26,7 @@
 
 #include "slib/core/locale.h"
 
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
 @interface SLIBLocaleChangedNotificationObserver : NSObject

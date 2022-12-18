@@ -22,8 +22,8 @@
 
 #include "slib/graphics/image.h"
 
-#include "slib/core/file.h"
-#include "slib/core/memory_output.h"
+#include "slib/io/file.h"
+#include "slib/io/memory_output.h"
 
 #include "libpng/png.h"
 #include "libpng/pngstruct.h"

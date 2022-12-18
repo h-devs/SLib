@@ -26,8 +26,8 @@
 
 #include "slib/ui/web_view.h"
 
-#include "slib/core/win32/com.h"
-#include "slib/core/dl/win32/shlwapi.h"
+#include "slib/platform/win32/com.h"
+#include "slib/dl/win32/shlwapi.h"
 
 #include "view_win32.h"
 
@@ -35,7 +35,6 @@
 #include <exdispid.h>
 #include <mshtml.h>
 #include <mshtmhst.h>
-
 #include <wininet.h>
 #pragma comment(lib, "wininet.lib")
 

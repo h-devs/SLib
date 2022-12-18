@@ -7,8 +7,6 @@
 		<string name='open'>Open</string>
 		<string name='close'>Close</string>
 		<string name='reply'>Reply</string>
-		<string name='today'>Today</string>
-		<string name='yesterday'>Yesterday</string>
 		<string name='open_image'>Open Image</string>
 		<string name='file_dialog_filter_image'>Image Files</string>
 		<string name='file_dialog_filter_all'>All Files</string>

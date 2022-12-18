@@ -36,9 +36,9 @@ namespace slib
 
 /*
 	  In 4-bit table
-	    M[8]=H, M[4]=H*P, M[2]=H*P*P, M[1]=H*P*P*P, M[0]=0
+		M[8]=H, M[4]=H*P, M[2]=H*P*P, M[1]=H*P*P*P, M[0]=0
 	 And, in GF(2^128)
-	    f = 1 + P + P^2 + P^7 + P^128 => (P^128 + x) mod f = x - (1 + P + P^2 + P^7) = x + (1 + P + P^2 + P^7)
+		f = 1 + P + P^2 + P^7 + P^128 => (P^128 + x) mod f = x - (1 + P + P^2 + P^7) = x + (1 + P + P^2 + P^7)
 		  H*P = (H&1) ? ((H>>1)|0xE1000000000000000000000000000000) : (H>>1)
 */
 

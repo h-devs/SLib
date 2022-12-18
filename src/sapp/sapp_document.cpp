@@ -21,6 +21,7 @@
  */
 
 #include "slib/ui.h"
+#include "slib/io/file.h"
 
 #include "sapp_document.h"
 #include "sapp_util.h"

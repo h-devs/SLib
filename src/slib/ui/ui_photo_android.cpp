@@ -26,14 +26,13 @@
 
 #include "slib/ui/photo.h"
 
+#include "slib/io/file.h"
+#include "slib/core/app.h"
+#include "slib/core/safe_static.h"
 #include "slib/ui/core.h"
 #include "slib/ui/platform.h"
-
-#include "slib/core/app.h"
-#include "slib/core/file.h"
-#include "slib/core/safe_static.h"
-#include "slib/core/android/context.h"
-#include "slib/core/java/file.h"
+#include "slib/platform/android/context.h"
+#include "slib/platform/java/file.h"
 
 namespace slib
 {

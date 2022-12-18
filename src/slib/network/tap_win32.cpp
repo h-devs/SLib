@@ -28,8 +28,8 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/system.h"
-#include "slib/core/io/def.h"
-#include "slib/core/win32/windows.h"
+#include "slib/io/priv/def.h"
+#include "slib/platform/win32/windows.h"
 
 #include "tap/tap-windows.h"
 

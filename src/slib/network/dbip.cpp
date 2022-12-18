@@ -22,7 +22,7 @@
 
 #include "slib/network/dbip.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/memory.h"
 #include "slib/core/compare.h"
 #include "slib/core/search.h"

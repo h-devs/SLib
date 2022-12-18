@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/xml.h"
+#include "../data/xml.h"
 
 /*
 	CSS - Cascading Style Sheets

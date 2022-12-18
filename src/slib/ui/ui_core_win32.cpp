@@ -32,11 +32,11 @@
 #include "slib/ui/screen.h"
 #include "slib/ui/app.h"
 #include "slib/ui/window.h"
+#include "slib/io/file.h"
 #include "slib/core/queue.h"
-#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
-#include "slib/core/dl/win32/psapi.h"
+#include "slib/dl/win32/psapi.h"
 
 #include <commctrl.h>
 #include <shobjidl.h>

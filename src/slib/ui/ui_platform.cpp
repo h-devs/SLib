@@ -22,11 +22,10 @@
 
 #include "slib/ui/core.h"
 
-#include "slib/ui/platform.h"
+#include "slib/core/safe_static.h"
 #include "slib/ui/view.h"
 #include "slib/ui/window.h"
-
-#include "slib/core/safe_static.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {

@@ -32,22 +32,23 @@ namespace slib
 		{
 			enum {
 				Core = 0xff010000,
-				Math = 0xff020000,
-				Crypto = 0xff030000,
-				Network = 0xff040000,
-				Graphics = 0xff050000,
-				Render = 0xff060000,
-				Device = 0xff070000,
-				Ui = 0xff080000,
-				Db = 0xff090000,
-				Media = 0xff0a0000,
-				Social = 0xff0b0000,
-				Service = 0xff0c0000,
+				Data = 0xff020000,
+				Math = 0xff030000,
+				IO = 0xff040000,
+				Crypto = 0xff050000,
+				Network = 0xff060000,
+				Graphics = 0xff070000,
+				Render = 0xff080000,
+				Device = 0xff090000,
+				Ui = 0xff0a0000,
+				Db = 0xff0b0000,
+				Media = 0xff0c0000,
 				Geo = 0xff0d0000,
 				Doc = 0xff0e0000,
 				Storage = 0xff0f0000,
-				Dev = 0xff100000,
-				Uix = 0xff110000
+				Script = 0xff100000,
+				Dev = 0xff110000,
+				Uix = 0xff120000
 			};
 		}
 

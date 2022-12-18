@@ -23,21 +23,17 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_HEADER
 #define CHECKHEADER_SLIB_CRYPTO_HEADER
 
-// Hash, Checksum
-#include "crypto/hash.h"
+// Hash
 #include "crypto/md5.h"
 #include "crypto/sha1.h"
 #include "crypto/sha2.h"
 #include "crypto/sha3.h"
-#include "crypto/crc32.h"
 
 // Block Cipher
-#include "crypto/block_cipher.h"
 #include "crypto/aes.h"
 #include "crypto/blowfish.h"
 #include "crypto/des.h"
 #include "crypto/rc2.h"
-#include "crypto/gcm.h"
 
 // Stream Cipher
 #include "crypto/rc4.h"
@@ -52,29 +48,16 @@
 #include "crypto/ecc.h"
 #include "crypto/dh.h"
 
-#include "crypto/certificate.h"
+// Certification
 #include "crypto/x509.h"
 #include "crypto/pkcs12.h"
 #include "crypto/pkcs8.h"
 #include "crypto/pem.h"
+#include "crypto/jwt.h"
 
 // Key Derivation Function
 #include "crypto/pbkdf.h"
 #include "crypto/hkdf.h"
-
-// Transport Protocol
-#include "crypto/tls.h"
-
-// Compression
-#include "crypto/compress.h"
-#include "crypto/zlib.h"
-#include "crypto/lzw.h"
-#include "crypto/zstd.h"
-#include "crypto/brotli.h"
-
-// Other
-#include "crypto/base64.h"
-#include "crypto/jwt.h"
 
 // Third-party
 #include "crypto/openssl.h"

@@ -23,15 +23,14 @@
 #include "slib/core/app.h"
 #include "slib/core/command_line.h"
 
+#include "slib/io/file.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/system.h"
 #include "slib/core/process.h"
-#include "slib/core/file.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/log.h"
-
-#include "slib/core/win32/windows.h"
+#include "slib/platform/win32/windows.h"
 
 namespace slib
 {

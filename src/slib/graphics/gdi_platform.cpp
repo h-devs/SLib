@@ -24,10 +24,9 @@
 
 #if defined(SLIB_GRAPHICS_IS_GDI)
 
-#include "slib/graphics/platform.h"
-
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
+#include "slib/graphics/platform.h"
 
 #pragma comment(lib, "gdiplus.lib")
 

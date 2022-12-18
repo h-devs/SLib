@@ -25,11 +25,11 @@
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
 #include "slib/media/media_player.h"
-#include "slib/render/opengl.h"
 
+#include "slib/render/opengl.h"
 #include "slib/core/hash_map.h"
-#include "slib/core/platform.h"
 #include "slib/core/safe_static.h"
+#include "slib/platform.h"
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>

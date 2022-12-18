@@ -24,7 +24,6 @@
 
 #if defined(SLIB_RENDER_SUPPORT_OPENGL_EGL)
 
-#include "slib/core/platform.h"
 #include "opengl_egl_entries.h"
 
 #include "slib/render/engine.h"
@@ -32,6 +31,7 @@
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
 #include "slib/core/log.h"
+#include "slib/platform.h"
 
 namespace slib
 {

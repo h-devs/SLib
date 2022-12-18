@@ -26,8 +26,6 @@
 #include "slib/core/hash_map.h"
 #include "slib/core/linked_list.h"
 #include "slib/core/queue.h"
-#include "slib/core/queue_channel.h"
-#include "slib/core/linked_object.h"
 #include "slib/core/ptr.h"
 #include "slib/core/shared.h"
 #include "slib/core/function.h"
@@ -267,17 +265,6 @@ namespace slib
 	}
 
 	CLinkedListBase::~CLinkedListBase()
-	{
-	}
-
-
-	SLIB_DEFINE_ROOT_OBJECT(LinkedObjectListBase)
-
-	LinkedObjectListBase::LinkedObjectListBase()
-	{
-	}
-
-	LinkedObjectListBase::~LinkedObjectListBase()
 	{
 	}
 

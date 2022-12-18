@@ -31,8 +31,8 @@
 
 
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-#	include "slib/render/dl/linux/gl.h"
-#	include "slib/ui/dl/linux/x11.h"
+#	include "slib/dl/linux/gl.h"
+#	include "slib/dl/linux/x11.h"
 #else
 #	include "gl/GLX/glx.h"
 #endif

@@ -152,11 +152,11 @@ namespace slib
 #define PRIV_SLIB_DECLARE_STRING_VIEW_OPS(CLASS) \
 	PRIV_SLIB_DECLARE_STRING_OPS_SUB(CLASS, StringType, CLASS)
 
-#include "string8.h"
-#include "string16.h"
-#include "string32.h"
-#include "string_view.h"
-#include "string_param.h"
+#include "priv/string8.h"
+#include "priv/string16.h"
+#include "priv/string32.h"
+#include "priv/string_view.h"
+#include "priv/string_param.h"
 
 namespace slib
 {

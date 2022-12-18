@@ -28,7 +28,7 @@
 #include "slib/render/opengl.h"
 #include "slib/core/time_counter.h"
 #include "slib/core/thread.h"
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 #pragma comment(lib, "opengl32.lib")
 

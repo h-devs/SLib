@@ -26,11 +26,11 @@
 
 #include "slib/storage/dokany.h"
 
-#include "slib/core/file_util.h"
 #include "slib/core/process.h"
 #include "slib/core/system.h"
 #include "slib/core/memory.h"
-#include "slib/crypto/zstd.h"
+#include "slib/io/file_util.h"
+#include "slib/data/zstd.h"
 
 #include "dokany/dokany_files.h"
 

@@ -24,6 +24,5 @@
 #define CHECKHEADER_SLIB_STORAGE_HEADER
 
 #include "storage/storage.h"
-#include "storage/disk.h"
 
 #endif

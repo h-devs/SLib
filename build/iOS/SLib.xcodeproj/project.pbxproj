@@ -1731,7 +1731,6 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../../include",
 					"$(PROJECT_DIR)/../../external/include",
-					"$(PROJECT_DIR)/../../external/include/FacebookSDK/iOS",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1752,7 +1751,6 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../../include",
 					"$(PROJECT_DIR)/../../external/include",
-					"$(PROJECT_DIR)/../../external/include/FacebookSDK/iOS",
 				);
 				LLVM_LTO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

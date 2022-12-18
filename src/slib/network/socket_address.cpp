@@ -22,7 +22,7 @@
 
 #include "slib/network/socket_address.h"
 
-#include "slib/core/setting.h"
+#include "slib/core/stringx.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 #	include <winsock2.h>
@@ -250,7 +250,7 @@ namespace slib
 	sl_bool SocketAddress::parsePortRange(const StringParam& str, sl_uint16* from, sl_uint16* to) noexcept
 	{
 		sl_uint32 n1, n2;
-		if (SettingUtil::parseUint32Range(str, &n1, &n2)) {
+		if (Stringx::parseUint32Range(str, &n1, &n2)) {
 			if (n1 >> 16) {
 				return sl_false;
 			}

@@ -25,7 +25,7 @@
 
 #include "socket.h"
 
-#include "../core/async_stream.h"
+#include "../io/async_stream.h"
 #include "../core/default_members.h"
 
 namespace slib

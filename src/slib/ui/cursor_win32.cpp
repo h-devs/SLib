@@ -25,6 +25,7 @@
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "slib/ui/cursor.h"
+
 #include "slib/ui/platform.h"
 
 namespace slib

@@ -25,10 +25,10 @@
 
 #include "definition.h"
 
-#include "../core/file.h"
+#include "../io/file.h"
 #include "../core/string.h"
 #include "../core/hash_map.h"
-#include "../core/platform_type.h"
+#include "../core/system.h"
 
 namespace slib
 {

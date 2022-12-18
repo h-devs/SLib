@@ -24,8 +24,8 @@
 
 #include "slib/crypto/sha2.h"
 
+#include "slib/math/math.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/math.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

@@ -22,9 +22,9 @@
 
 #include "slib/geo/geo_location.h"
 
-#include "slib/core/math.h"
-#include "slib/core/interpolation.h"
-#include <type_traits>
+#include "slib/math/math.h"
+#include "slib/data/interpolation.h"
+
 namespace slib
 {
 

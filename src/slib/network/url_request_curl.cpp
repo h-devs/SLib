@@ -22,11 +22,11 @@
 
 #include "slib/network/curl.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/system.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-#	include "slib/network/dl/linux/curl.h"
+#	include "slib/dl/linux/curl.h"
 #else
 #	include "curl/curl.h"
 #endif

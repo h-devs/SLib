@@ -26,7 +26,7 @@
 
 #include "slib/device/device.h"
 
-#include "slib/core/apple/platform.h"
+#include "slib/platform.h"
 
 #import <UIKit/UIKit.h>
 

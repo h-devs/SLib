@@ -24,7 +24,7 @@
 
 #include "slib/core/variant.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/serialize.h"
+#include "slib/data/serialize.h"
 
 namespace slib
 {

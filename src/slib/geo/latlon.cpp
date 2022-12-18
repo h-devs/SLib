@@ -22,7 +22,7 @@
 
 #include "slib/geo/latlon.h"
 
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 
 namespace slib
 {

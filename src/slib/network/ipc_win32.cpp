@@ -29,9 +29,8 @@
 #include "slib/core/thread.h"
 #include "slib/core/process.h"
 #include "slib/core/event.h"
-#include "slib/core/memory_output.h"
 #include "slib/core/time_counter.h"
-#include "slib/core/win32/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

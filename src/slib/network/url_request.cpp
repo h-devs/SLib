@@ -26,8 +26,8 @@
 #include "slib/core/event.h"
 #include "slib/core/system.h"
 #include "slib/core/thread_pool.h"
-#include "slib/core/json.h"
 #include "slib/core/safe_static.h"
+#include "slib/data/json.h"
 
 namespace slib
 {

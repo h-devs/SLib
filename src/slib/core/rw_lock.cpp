@@ -22,12 +22,11 @@
 
 #include "slib/core/rw_lock.h"
 #include "slib/core/rw_spin_lock.h"
-#include "slib/core/rw_lockable.h"
 
 #include "slib/core/base.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-#include "slib/core/dl/win32/kernel32.h"
+#include "slib/dl/win32/kernel32.h"
 #else
 #include <pthread.h>
 #endif
@@ -374,91 +373,6 @@ namespace slib
 		if (m_lock) {
 			m_lock->unlockWrite();
 			m_lock = sl_null;
-		}
-	}
-
-
-	RWLockable::RWLockable() noexcept : m_nReading(0)
-	{
-	}
-
-	RWLockable::~RWLockable() noexcept
-	{
-	}
-
-	sl_bool RWLockable::tryLockRead() const noexcept
-	{
-		if (m_lockReading.tryLock()) {
-			m_nReading++;
-			if (m_nReading == 1) {
-				if (m_locker.tryLock()) {
-					m_lockReading.unlock();
-					return sl_true;
-				} else {
-					m_nReading = 0;
-					m_lockReading.unlock();
-					return sl_false;
-				}
-			} else {
-				m_lockReading.unlock();
-				return sl_true;
-			}
-		} else {
-			return sl_false;
-		}
-	}
-
-	void RWLockable::lockRead() const noexcept
-	{
-		SpinLocker lock(&m_lockReading);
-		m_nReading++;
-		if (m_nReading == 1) {
-			m_locker.lock();
-		}
-	}
-
-	void RWLockable::unlockRead() const noexcept
-	{
-		SpinLocker lock(&m_lockReading);
-		m_nReading--;
-		if (!m_nReading) {
-			m_locker.unlock();
-		}
-	}
-
-
-	ReadObjectLocker::ReadObjectLocker() noexcept : m_object(sl_null)
-	{
-	}
-
-	ReadObjectLocker::ReadObjectLocker(const RWLockable* object) noexcept : m_object(object)
-	{
-		if (object) {
-			object->lockRead();
-		}
-	}
-
-	ReadObjectLocker::~ReadObjectLocker() noexcept
-	{
-		unlock();
-	}
-
-	void ReadObjectLocker::lock(const RWLockable* object) noexcept
-	{
-		if (m_object) {
-			return;
-		}
-		if (object) {
-			m_object = object;
-			object->lockRead();
-		}
-	}
-
-	void ReadObjectLocker::unlock() noexcept
-	{
-		if (m_object) {
-			m_object->unlockRead();
-			m_object = sl_null;
 		}
 	}
 

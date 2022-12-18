@@ -25,8 +25,7 @@
 #ifdef SLIB_PLATFORM_IS_ANDROID
 
 #include "slib/core/charset.h"
-
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

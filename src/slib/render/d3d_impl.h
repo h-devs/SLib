@@ -28,9 +28,8 @@
 #include "slib/core/thread.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/log.h"
-#include "slib/core/platform.h"
-
-#include "slib/render/dl/win32/d3d.h"
+#include "slib/platform.h"
+#include "slib/dl/win32/d3d.h"
 
 #if D3D_VERSION_MAJOR < 11
 #define m_context m_device

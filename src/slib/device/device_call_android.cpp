@@ -27,7 +27,7 @@
 #include "slib/device/device.h"
 
 #include "slib/core/safe_static.h"
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

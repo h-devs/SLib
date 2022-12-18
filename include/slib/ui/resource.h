@@ -346,12 +346,10 @@ namespace slib
 	class ViewPageNavigationController;
 	class VideoView;
 	class CameraView;
-	class QRCodeScanner;
 	class Drawer;
 	class RefreshView;
 	class CollectionView;
 	class TableLayout;
-	class ChatView;
 	class ListBox;
 	class LabelList;
 	class TileLayout;

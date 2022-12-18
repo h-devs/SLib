@@ -217,8 +217,8 @@ namespace slib
 				}
 
 				// Output format options:
-				//		Scientific - [-]d.dddE(+/-)dd or [-]dE(+/-)dd
-				//		Regular    - ddd.ddd
+				//		Scientific	- [-]d.dddE(+/-)dd or [-]dE(+/-)dd
+				//		Regular		- ddd.ddd
 
 				sl_uint32 nSignificandDigits = 0; // the number of significand digits
 				sl_uint32* significandRead = significand; // read pointer into significand

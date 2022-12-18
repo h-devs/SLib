@@ -26,9 +26,9 @@
 
 #include "window.h"
 
-#include "slib/ui/platform.h"
-#include "slib/ui/resource.h"
 #include "slib/ui/mobile_app.h"
+#include "slib/ui/resource.h"
+#include "slib/ui/platform.h"
 
 #include "view_ios.h"
 

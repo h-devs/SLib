@@ -30,7 +30,7 @@
 #include "../core/queue.h"
 #include "../core/function.h"
 #include "../core/promise.h"
-#include "../core/memory_output.h"
+#include "../io/memory_output.h"
 
 namespace slib
 {

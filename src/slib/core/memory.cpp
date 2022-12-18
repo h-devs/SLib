@@ -24,14 +24,12 @@
 #include "slib/core/memory_buffer.h"
 #include "slib/core/memory_queue.h"
 
-#include "slib/core/string.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/parse_util.h"
-#include "slib/core/json.h"
-#include "slib/core/serialize/memory.h"
-#include "slib/core/serialize/string.h"
-
-#include "slib/crypto/base64.h"
+#include "slib/core/stringx.h"
+#include "slib/data/base64.h"
+#include "slib/data/json.h"
+#include "slib/data/serialize/memory.h"
+#include "slib/data/serialize/string.h"
 
 namespace slib
 {

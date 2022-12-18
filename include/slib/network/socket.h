@@ -28,7 +28,7 @@
 #include "mac_address.h"
 
 #include "../core/handle_container.h"
-#include "../core/io/def.h"
+#include "../io/priv/def.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 typedef sl_size sl_socket;

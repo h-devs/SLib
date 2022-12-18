@@ -26,8 +26,8 @@
 
 #include "slib/device/device.h"
 
-#include "slib/ui/dl/linux/gdk.h"
-#include "slib/ui/dl/linux/gtk.h"
+#include "slib/dl/linux/gdk.h"
+#include "slib/dl/linux/gtk.h"
 
 namespace slib
 {

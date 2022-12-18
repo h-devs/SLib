@@ -31,7 +31,7 @@
 #include "view_win32.h"
 #include "view_macos.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/system.h"
 #include "slib/core/thread.h"
 #include "slib/core/safe_static.h"

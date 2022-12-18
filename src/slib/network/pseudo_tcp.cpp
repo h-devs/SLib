@@ -22,11 +22,11 @@
 
 #include "slib/network/pseudo_tcp.h"
 
+#include "slib/math/math.h"
+#include "slib/io/memory_reader.h"
+#include "slib/io/memory_writer.h"
 #include "slib/core/mio.h"
 #include "slib/core/system.h"
-#include "slib/core/math.h"
-#include "slib/core/memory_reader.h"
-#include "slib/core/memory_writer.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/assert.h"
 #include "slib/core/scoped_buffer.h"

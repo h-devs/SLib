@@ -26,7 +26,7 @@
 
 #include "slib/ui/common_dialogs.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/network/url.h"
 #include "slib/ui/core.h"
 #include "slib/ui/platform.h"

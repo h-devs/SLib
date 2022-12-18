@@ -27,10 +27,10 @@
 #include "slib/storage/storage.h"
 
 #include "slib/core/service_manager.h"
-#include "slib/core/platform.h"
-#include "slib/core/win32/message_loop.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
+#include "slib/platform.h"
+#include "slib/platform/win32/message_loop.h"
 
 #include <dbt.h>
 #include <winioctl.h>

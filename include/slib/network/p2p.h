@@ -25,8 +25,8 @@
 
 #include "socket_address.h"
 
-#include "../core/json.h"
-#include "../core/async.h"
+#include "../data/json.h"
+#include "../io/async.h"
 #include "../crypto/ecc.h"
 
 #define SLIB_P2P_DEFAULT_PORT 39000

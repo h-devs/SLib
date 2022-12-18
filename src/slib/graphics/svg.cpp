@@ -23,9 +23,9 @@
 #include "slib/graphics/svg.h"
 
 #include "slib/core/memory.h"
-#include "slib/core/file.h"
 #include "slib/core/asset.h"
-#include "slib/core/xml.h"
+#include "slib/io/file.h"
+#include "slib/data/xml.h"
 
 #define DEFAULT_WIDTH 800
 #define DEFAULT_HEIGHT 600

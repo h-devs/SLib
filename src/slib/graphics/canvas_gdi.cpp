@@ -26,8 +26,8 @@
 
 #include "slib/graphics/canvas.h"
 
-#include "slib/graphics/platform.h"
 #include "slib/core/queue.h"
+#include "slib/graphics/platform.h"
 
 namespace slib
 {

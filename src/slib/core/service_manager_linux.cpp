@@ -28,8 +28,8 @@
 
 #include "slib/core/process.h"
 #include "slib/core/system.h"
-#include "slib/core/file.h"
 #include "slib/core/string_buffer.h"
+#include "slib/io/file.h"
 
 namespace slib
 {

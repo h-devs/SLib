@@ -28,7 +28,7 @@
 #include "slib/ui/button.h"
 
 #include "slib/core/timer.h"
-#include "slib/core/parse_util.h"
+#include "slib/core/stringx.h"
 
 #if defined(SLIB_UI)
 #	define HAS_NATIVE_WIDGET_IMPL 1
@@ -187,7 +187,7 @@ namespace slib
 					}
 					view->dispatchChange(text);
 					if (m_edit->getMultiLine() == MultiLineMode::Single) {
-						sl_reg index = ParseUtil::indexOfLine(text);
+						sl_reg index = Stringx::indexOfLine(text);
 						if (index >= 0) {
 							text = text.mid(0, index);
 						}

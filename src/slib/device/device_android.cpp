@@ -26,15 +26,15 @@
 
 #include "slib/device/device.h"
 
-#include "slib/core/android/platform.h"
-#include "slib/core/android/context.h"
-#include "slib/core/android/activity.h"
-#include "slib/core/android/preference.h"
-#include "slib/core/android/window_manager.h"
-#include "slib/core/android/display.h"
-#include "slib/core/java/object.h"
-#include "slib/core/java/list.h"
-#include "slib/core/java/uuid.h"
+#include "slib/platform.h"
+#include "slib/platform/android/context.h"
+#include "slib/platform/android/activity.h"
+#include "slib/platform/android/preference.h"
+#include "slib/platform/android/window_manager.h"
+#include "slib/platform/android/display.h"
+#include "slib/platform/java/object.h"
+#include "slib/platform/java/list.h"
+#include "slib/platform/java/uuid.h"
 
 #define MAX_SIM_SLOT_COUNT 8
 

@@ -23,7 +23,9 @@
 #ifndef CHECKHEADER_SLIB_CORE_SYSTEM
 #define CHECKHEADER_SLIB_CORE_SYSTEM
 
-#include "platform_type.h"
+#include "definition.h"
+
+#include "priv/platform_type.h"
 
 namespace slib
 {

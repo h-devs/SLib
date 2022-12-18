@@ -22,15 +22,15 @@
 
 #include "slib/ui/core.h"
 
-#include "slib/ui/platform.h"
 #include "slib/ui/window.h"
 #include "slib/ui/screen.h"
 #include "slib/ui/common_dialogs.h"
 #include "slib/graphics/font.h"
 #include "slib/network/url.h"
 #include "slib/device/device.h"
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/safe_static.h"
+#include "slib/ui/platform.h"
 
 #ifndef SLIB_PLATFORM_IS_WINDOWS
 #include <signal.h>

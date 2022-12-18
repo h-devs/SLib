@@ -26,8 +26,8 @@
 
 #include "slib/core/asset.h"
 
-#include "slib/core/file.h"
-#include "slib/core/apple/platform.h"
+#include "slib/io/file.h"
+#include "slib/platform.h"
 
 namespace slib
 {

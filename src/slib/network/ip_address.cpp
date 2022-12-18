@@ -23,7 +23,7 @@
 #include "slib/network/ip_address.h"
 
 #include "slib/network/os.h"
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 
 namespace slib
 {

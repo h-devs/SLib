@@ -22,7 +22,7 @@
 
 #include "slib/graphics/util.h"
 
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 #include "slib/graphics/canvas.h"
 #include "slib/graphics/drawable.h"
 #include "slib/device/device.h"

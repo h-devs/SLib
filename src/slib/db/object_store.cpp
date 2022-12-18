@@ -23,9 +23,8 @@
 #include "slib/db/object_store.h"
 
 #include "slib/db/leveldb.h"
-
-#include "slib/core/json.h"
-#include "slib/core/serialize.h"
+#include "slib/data/json.h"
+#include "slib/data/serialize.h"
 
 #define KEY_LENGTH_MAX 1024
 #define KEY_BUFFER_SIZE (KEY_LENGTH_MAX + 16)

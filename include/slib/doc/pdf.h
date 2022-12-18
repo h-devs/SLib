@@ -26,8 +26,8 @@
 #include "definition.h"
 
 #include "../core/variant.h"
-#include "../core/expiring_map.h"
 #include "../core/flags.h"
+#include "../data/expiring_map.h"
 #include "../math/rectangle.h"
 #include "../graphics/color.h"
 

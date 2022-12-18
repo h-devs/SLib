@@ -22,7 +22,7 @@
 
 #include "slib/network/url_request.h"
 
-#include "slib/core/json.h"
+#include "slib/data/json.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

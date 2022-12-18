@@ -26,10 +26,10 @@
 
 #include "slib/graphics/bitmap.h"
 
-#include "slib/graphics/platform.h"
 #include "slib/core/memory.h"
 #include "slib/core/endian.h"
 #include "slib/core/scoped_buffer.h"
+#include "slib/graphics/platform.h"
 
 namespace slib
 {

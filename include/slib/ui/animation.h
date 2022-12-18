@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/animation.h"
+#include "../graphics/animation.h"
 
 namespace slib
 {

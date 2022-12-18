@@ -22,8 +22,8 @@
 
 #include "slib/core/content_type.h"
 
+#include "slib/io/file.h"
 #include "slib/core/hash_map.h"
-#include "slib/core/file.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

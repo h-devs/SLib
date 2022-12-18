@@ -26,7 +26,7 @@
 
 #include "slib/core/time.h"
 
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

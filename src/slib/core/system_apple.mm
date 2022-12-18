@@ -26,11 +26,10 @@
 
 #include "slib/core/system.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/list.h"
 #include "slib/core/safe_static.h"
-
-#include "slib/core/apple/platform.h"
+#include "slib/platform.h"
 
 #include <mach-o/dyld.h>
 #include <time.h>

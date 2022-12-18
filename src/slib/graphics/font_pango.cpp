@@ -26,8 +26,8 @@
 
 #include "slib/graphics/font.h"
 
-#include "slib/graphics/platform.h"
 #include "slib/core/safe_static.h"
+#include "slib/graphics/platform.h"
 
 namespace slib
 {

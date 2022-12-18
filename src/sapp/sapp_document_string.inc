@@ -163,36 +163,36 @@ namespace slib
 				String defValue = pair.value->defaultValue;
 
 				if (pair.value->values.isEmpty()) {
-					sbCpp.add(String::format("\t\tSLIB_DEFINE_STRING_RESOURCE_SIMPLE(%s, \"%s\")%n%n", pair.key, ParseUtil::applyBackslashEscapes(defValue, sl_true, sl_false, sl_true)));
+					sbCpp.add(String::format("\t\tSLIB_DEFINE_STRING_RESOURCE_SIMPLE(%s, \"%s\")%n%n", pair.key, Stringx::applyBackslashEscapes(defValue, sl_true, sl_false, sl_true)));
 				} else {
 
-					sbCpp.add(String::format("\t\tSLIB_DEFINE_STRING_RESOURCE_BEGIN(%s, \"%s\")%n", pair.key, ParseUtil::applyBackslashEscapes(defValue, sl_true, sl_false, sl_true)));
+					sbCpp.add(String::format("\t\tSLIB_DEFINE_STRING_RESOURCE_BEGIN(%s, \"%s\")%n", pair.key, Stringx::applyBackslashEscapes(defValue, sl_true, sl_false, sl_true)));
 
 					{
 						for (auto& pairValues : pair.value->values) {
 							if (pairValues.key.getCountry() != Country::Unknown && pairValues.key.getScript() != LanguageScript::Unknown) {
-								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), ParseUtil::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
+								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 							}
 						}
 					}
 					{
 						for (auto& pairValues : pair.value->values) {
 							if (pairValues.key.getCountry() != Country::Unknown && pairValues.key.getScript() == LanguageScript::Unknown) {
-								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), ParseUtil::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
+								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 							}
 						}
 					}
 					{
 						for (auto& pairValues : pair.value->values) {
 							if (pairValues.key.getCountry() == Country::Unknown && pairValues.key.getScript() != LanguageScript::Unknown) {
-								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), ParseUtil::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
+								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 							}
 						}
 					}
 					{
 						for (auto& pairValues : pair.value->values) {
 							if (pairValues.key.getCountry() == Country::Unknown && pairValues.key.getScript() == LanguageScript::Unknown) {
-								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), ParseUtil::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
+								sbCpp.add(String::format("\t\t\tSLIB_DEFINE_STRING_RESOURCE_VALUE(%s, \"%s\")%n", pairValues.key.toString(), Stringx::applyBackslashEscapes(pairValues.value, sl_true, sl_false, sl_true)));
 							}
 						}
 					}
@@ -252,7 +252,7 @@ namespace slib
 			if (value.valueOrName.isNull()) {
 				result = "slib::String::null()";
 			} else {
-				result = String::format("\"%s\"", ParseUtil::applyBackslashEscapes(value.valueOrName, sl_true, sl_false, sl_true));
+				result = String::format("\"%s\"", Stringx::applyBackslashEscapes(value.valueOrName, sl_true, sl_false, sl_true));
 			}
 			return sl_true;
 		}

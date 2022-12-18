@@ -7,7 +7,7 @@ namespace slib
 		void TakePhotoFromCameraDialog::initialize()
 		{
 			this->setBackgroundColor(slib::Color(0, 0, 0, 255));
-			this->setCenterScreen(sl_true);
+			this->setCenterScreen(sl_true, slib::UIUpdateMode::Init);
 			this->setTitle(string::take_photo::get());
 			this->setClientWidth(500);
 			this->setClientHeight(500);

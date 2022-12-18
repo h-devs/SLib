@@ -27,10 +27,9 @@
 #include "slib/ui/event.h"
 
 #include "slib/ui/core.h"
-#include "slib/ui/platform.h"
 #include "slib/core/hash_table.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/platform.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {

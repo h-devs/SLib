@@ -22,15 +22,15 @@
 
 #include "slib/core/log.h"
 
-#include "slib/core/file.h"
 #include "slib/core/console.h"
 #include "slib/core/safe_static.h"
+#include "slib/io/file.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
-#include "slib/core/win32/windows.h"
+#include "slib/platform/win32/windows.h"
 #include <stdio.h>
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
-#include "slib/core/android/log.h"
+#include "slib/platform/android/log.h"
 #elif defined(SLIB_PLATFORM_IS_TIZEN)
 #include <dlog.h>
 #else

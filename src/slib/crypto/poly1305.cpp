@@ -227,7 +227,7 @@ namespace slib
 		h4 = (h4 & mask) | g4;
 
 		// h = h % (2^128)
-		h0 = ((h0      ) | (h1 << 26)) & 0xffffffff;
+		h0 = (h0 | (h1 << 26)) & 0xffffffff;
 		h1 = ((h1 >>  6) | (h2 << 20)) & 0xffffffff;
 		h2 = ((h2 >> 12) | (h3 << 14)) & 0xffffffff;
 		h3 = ((h3 >> 18) | (h4 <<  8)) & 0xffffffff;

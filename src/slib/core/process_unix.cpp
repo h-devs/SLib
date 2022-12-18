@@ -26,10 +26,10 @@
 
 #include "slib/core/process.h"
 
-#include "slib/core/file.h"
 #include "slib/core/list.h"
 #include "slib/core/system.h"
 #include "slib/core/handle_ptr.h"
+#include "slib/io/file.h"
 
 #include <stdlib.h>
 #include <stdio.h>
