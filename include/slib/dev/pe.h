@@ -236,9 +236,15 @@ namespace slib
 
 		PE_DirectoryEntry* getExportTableDirectory();
 
-		PE_ImportDescriptor* findImportTable(const StringParam& dllName);
+		PE_ImportDescriptor* findImportTable(const StringView& dllName);
 
-		void* findExportFunction(const StringParam& functionName);
+		void* findExportFunction(const StringView& functionName);
+
+		// returns old offset
+		sl_uint32 updateExportFunctionOffset(const StringView& functionName, sl_uint32 offset);
+
+	private:
+		sl_uint32* _findExportFunctionOffsetEntry(const StringView& functionName);
 
 	};
 

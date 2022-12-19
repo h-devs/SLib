@@ -22,6 +22,7 @@
 
 #include "slib/dev/pe.h"
 
+#include "slib/dev/protect.h"
 #include "slib/io/memory_reader.h"
 #include "slib/io/priv/seekable_reader_helper.h"
 
@@ -135,7 +136,7 @@ namespace slib
 		}
 	}
 
-	PE_ImportDescriptor* PE::findImportTable(const StringParam& _dllName)
+	PE_ImportDescriptor* PE::findImportTable(const StringView& dllName)
 	{
 		PE_DirectoryEntry* pImportEntry = getImportTableDirectory();
 		if (!pImportEntry) {
@@ -144,7 +145,6 @@ namespace slib
 		sl_uint8* base = (sl_uint8*)baseAddress;
 		sl_uint32 n = pImportEntry->size / sizeof(PE_ImportDescriptor);
 		PE_ImportDescriptor* import = (PE_ImportDescriptor*)(base + pImportEntry->address);
-		StringData dllName(_dllName);
 		for (sl_uint32 i = 0; i < n; i++) {
 			if (dllName.equalsIgnoreCase((char*)(base + import->name))) {
 				return import;
@@ -154,7 +154,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void* PE::findExportFunction(const StringParam& _functionName)
+	sl_uint32* PE::_findExportFunctionOffsetEntry(const StringView& functionName)
 	{
 		PE_DirectoryEntry* pExportEntry = getExportTableDirectory();
 		if (!pExportEntry) {
@@ -165,15 +165,36 @@ namespace slib
 		sl_uint32 nameRVA = pExportDirectory->addressOfNames;
 		sl_uint32 funcRVA = pExportDirectory->addressOfFunctions;
 		sl_uint32 nameOrdinalRVA = pExportDirectory->addressOfNameOrdinals;
-		StringData functionName(_functionName);
 		for (sl_uint32 i = 0; i < pExportDirectory->numberOfNames; i++) {
 			sl_uint32 nameBase = *(sl_uint32*)(base + nameRVA + i * 4);
 			sl_uint16 funcIndex = *(sl_uint16*)(base + nameOrdinalRVA + i * 2);
 			if (functionName.equalsIgnoreCase((char*)(base + nameBase))) {
-				return (base + *(sl_uint32*)(base + funcRVA + funcIndex * 4));
+				return (sl_uint32*)(base + funcRVA + funcIndex * 4);
 			}
 		}
 		return sl_null;
+	}
+
+	void* PE::findExportFunction(const StringView& functionName)
+	{
+		sl_uint32* entry = _findExportFunctionOffsetEntry(functionName);
+		if (entry) {
+			return (sl_uint8*)baseAddress + *entry;
+		}
+		return sl_null;
+	}
+
+	sl_uint32 PE::updateExportFunctionOffset(const StringView& functionName, sl_uint32 offset)
+	{
+		sl_uint32* entry = _findExportFunctionOffsetEntry(functionName);
+		if (entry) {
+			if (MemoryProtection::setReadWrite(entry, 4)) {
+				sl_uint32 ret = *entry;
+				*entry = offset;
+				return ret;
+			}
+		}
+		return 0;
 	}
 
 
