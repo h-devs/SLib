@@ -387,7 +387,7 @@ if (ANDROID)
   "${SLIB_PATH}/external/src/android/cpu-features.c"
  )
 else()
- set (SLIB_EXTRA_PLATFORM_FILES
+ set (SLIB_PLATFORM_FILES
   "${SLIB_PATH}/src/slib/core/app_linux.cpp"
   "${SLIB_PATH}/src/slib/core/asset.cpp"
   "${SLIB_PATH}/src/slib/core/charset_icu.cpp"
@@ -417,6 +417,7 @@ else()
   "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
+  "${SLIB_PATH}/src/slib/device/disk_linux.cpp"
 
   "${SLIB_PATH}/src/slib/storage/storage_volume_linux.cpp"
 
@@ -454,6 +455,7 @@ else()
   "${SLIB_PATH}/src/slib/platform/linux/dl_pcap.cpp"
   "${SLIB_PATH}/src/slib/platform/linux/dl_rt.cpp"
   "${SLIB_PATH}/src/slib/platform/linux/dl_x11.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_cairo.cpp"
  )
 endif()
 

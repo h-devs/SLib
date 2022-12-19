@@ -34,6 +34,7 @@
 #include "slib/io/memory_output.h"
 #include "slib/core/stringify.h"
 #include "slib/core/safe_static.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {
