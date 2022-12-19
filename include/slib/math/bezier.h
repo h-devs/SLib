@@ -100,6 +100,44 @@ namespace slib
 			return ret;
 		}
 
+		void describeArc(T cx, T cy, T rx, T ry, T startRadian, T endRadian) noexcept
+		{
+			T cos1 = Math::cos(startRadian);
+			T sin1 = Math::sin(startRadian);
+			T cos2 = Math::cos(endRadian);
+			T sin2 = Math::sin(endRadian);
+			T m = (endRadian - startRadian) / 2;
+			T f = (1 - Math::cos(m)) / Math::sin(m) * 4 / 3;
+			x0 = cx + rx * cos1;
+			y0 = cy + ry * sin1;
+			x1 = x0 - f * sin1 * rx;
+			y1 = y0 + f * cos1 * ry;
+			x3 = cx + rx * cos2;
+			y3 = cy + ry * sin2;
+			x2 = x3 + f * sin2 * rx;
+			y2 = y3 - f * cos2 * ry;
+		}
+
+		void describeArc(T cx, T cy, T rx, T ry, T startRadian, T endRadian, T rotation) noexcept
+		{
+			T cos1 = Math::cos(startRadian);
+			T sin1 = Math::sin(startRadian);
+			T cos2 = Math::cos(endRadian);
+			T sin2 = Math::sin(endRadian);
+			T cos_r = Math::cos(rotation);
+			T sin_r = Math::sin(rotation);
+			T m = (endRadian - startRadian) / 2;
+			T f = (1 - Math::cos(m)) / Math::sin(m) * 4 / 3;
+			x0 = cx + rx * cos1 * cos_r - ry * sin1 * sin_r;
+			y0 = cy + ry * sin1 * cos_r + rx * cos1 * sin_r;
+			x1 = x0 - f * sin1 * rx * cos_r - f * cos1 * ry * sin_r;
+			y1 = y0 + f * cos1 * ry * cos_r - f * sin1 * rx * sin_r;
+			x3 = cx + rx * cos2 * cos_r - ry * sin2 * sin_r;
+			y3 = cy + ry * sin2 * cos_r + rx * cos2 * sin_r;
+			x2 = x3 + f * sin2 * rx * cos_r + f * cos2 * ry * sin_r;
+			y2 = y3 - f * cos2 * ry * cos_r + f * sin2 * rx * sin_r;
+		}
+
 		// returns 1 + 3 * NumberOfArcSections points
 		static sl_uint32 convertArcToBezier(PointT<T> pts[13], const RectangleT<T>& rc, T startDegrees, T sweepDegrees) noexcept
 		{
@@ -178,62 +216,56 @@ namespace slib
 
 		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, sl_bool flagLargeArc, sl_bool flagSweep)
 		{
-			PointT<T> p1(x1, y1), p2(x2, y2), center;
-			T pi = Math::PI<T>();
-			T epsilon = T(0.000001);
+			T PI2 = Math::HalfPI<T>();
+			T _2PI = Math::DualPI<T>();
+			T EPSILON = Math::Epsilon<T>();
 
+			PointT<T> p1(x1, y1), p2(x2, y2);
 			PointT<T> q2 = p2 - p1;
-			T radius_check = (q2.x / 2 * q2.x / 2) / (rx * rx) + (q2.y / 2 * q2.y / 2) / (ry * ry);
-			if (radius_check > 1.0) {
-				rx *= Math::sqrt(radius_check);
-				ry *= Math::sqrt(radius_check);
+			T radiusCheck = (q2.x * q2.x) / (rx * rx) + (q2.y * q2.y) / (ry * ry);
+			if (radiusCheck > T(4)) {
+				rx *= Math::sqrt(radiusCheck);
+				ry *= Math::sqrt(radiusCheck);
 			}
 			q2.x /= rx;
 			q2.y /= ry;
-			T h = q2.getLength() / 2;
-			
-			T d = Math::sqrt(1 - h * h);
+			T h = q2.getLength() / T(2);
+			T d = Math::sqrt(T(1) - h * h);
+			PointT<T> center;
 			if (!flagLargeArc != !flagSweep) {
-				PointT<T> n(-q2.y, q2.x);
-				center = q2 / 2 + n * (d / h / 2);
-				center.x = p1.x + center.x * rx;
-				center.y = p1.y + center.y * ry;
+				center = (q2 + PointT<T>(-q2.y, q2.x) * (d / h)) / T(2);
 			} else {
-				PointT<T> n(q2.y, -q2.x);
-				center = q2 / 2 + n * (d / h / 2);
-				center.x = p1.x + center.x * rx;
-				center.y = p1.y + center.y * ry;
+				center = (q2 + PointT<T>(q2.y, -q2.x) * (d / h)) / T(2);
 			}
-
-			T sign1 = T((p1.y < center.y) ? -1.0 : 1.0);
-			T sign2 = T((p2.y < center.y) ? -1.0 : 1.0);
-			T start_angle = sign1 * Math::arccos(((p1.x - center.x) / rx) > 0 ? ((p1.x - center.x) / rx) - epsilon : ((p1.x - center.x) / rx) + epsilon);			//  -pi ~ pi
-			T end_angle = sign2 * Math::arccos(((p2.x - center.x) / rx) > 0 ? ((p2.x - center.x) / rx) - epsilon : ((p2.x - center.x) / rx) + epsilon);				//	-pi ~ pi
+			center.x = p1.x + center.x * rx;
+			center.y = p1.y + center.y * ry;
+			T sign1 = (p1.y < center.y) ? T(-1) : T(1);
+			T sign2 = (p2.y < center.y) ? T(-1) : T(1);
+			T startAngle = sign1 * Math::arccos(((p1.x - center.x) / rx) > 0 ? ((p1.x - center.x) / rx) - EPSILON : ((p1.x - center.x) / rx) + EPSILON);			//  -pi ~ pi
+			T endAngle = sign2 * Math::arccos(((p2.x - center.x) / rx) > 0 ? ((p2.x - center.x) / rx) - EPSILON : ((p2.x - center.x) / rx) + EPSILON);				//	-pi ~ pi
 			T sign;
 			if (flagSweep) {
-				sign = T(1.0);
-				if (end_angle < start_angle && !(end_angle < 0 && start_angle < 0)) {
-					end_angle += 2 * pi;
+				sign = T(1);
+				if (endAngle < startAngle && !(endAngle < 0 && startAngle < 0)) {
+					endAngle += _2PI;
 				}
 			} else {
-				sign = T(-1.0);
-				if (end_angle > start_angle) {
-					end_angle -= 2 * pi;
+				sign = T(-1);
+				if (endAngle > startAngle) {
+					endAngle -= _2PI;
 				}
 			}
-
-			sl_int32 nPts = (sl_int32)(Math::ceil(Math::abs(end_angle - start_angle) / (pi / 2)));
+			sl_int32 nPts = (sl_int32)(Math::ceil(Math::abs(endAngle - startAngle) / PI2));
 			if (nPts > 4) {
 				nPts = 4;
 			}
 			nPts *= 3;
-
-			T s = start_angle, e = start_angle;
+			T s = startAngle, e = startAngle;
 			CubicBezierCurveT<T> c;
 			for (sl_int32 i = 0; i < nPts; i += 3) {
-				e += sign * (pi / 2);
+				e += sign * PI2;
 				if (i == nPts - 3) {
-					e = end_angle;
+					e = endAngle;
 				}
 				c.describeArc(center.x, center.y, rx, ry, s, e);
 				if (!i) {
@@ -246,9 +278,8 @@ namespace slib
 				pts[i + 2].y = c.y2;
 				pts[i + 3].x = c.x3;
 				pts[i + 3].y = c.y3;
-				s += sign * (pi / 2);
+				s += sign * PI2;
 			}
-
 			if (!nPts) {
 				return 0;
 			} else {
@@ -258,7 +289,8 @@ namespace slib
 
 		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, T rotation, sl_bool flagLargeArc, sl_bool flagSweep)
 		{
-			T pi = Math::PI<T>();
+			T PI2 = Math::HalfPI<T>();
+			T _2PI = Math::DualPI<T>();
 
 			// Calculate the middle point between the current and the final points
 			T dx2 = (x1 - x2) / 2;
@@ -277,10 +309,10 @@ namespace slib
 			T py = y3 * y3;
 
 			// Check that radii are large enough
-			T radius_check = px / prx + py / pry;
-			if (radius_check > 1.0) {
-				rx *= Math::sqrt(radius_check);
-				ry *= Math::sqrt(radius_check);
+			T radiusCheck = px / prx + py / pry;
+			if (radiusCheck > 1.0) {
+				rx *= Math::sqrt(radiusCheck);
+				ry *= Math::sqrt(radiusCheck);
 			}
 
 			// Calculate (cx1, cy1)
@@ -296,7 +328,7 @@ namespace slib
 			T cx = sx2 + (cos_r * cx1 - sin_r * cy1);
 			T cy = sy2 + (sin_r * cx1 + cos_r * cy1);
 
-			// Calculate the start_angle (angle1) and the sweep_angle (dangle)
+			// Calculate the startAngle (angle1) and the sweep_angle (dangle)
 			T ux = (x1 - cx1) / rx;
 			T uy = (y1 - cy1) / ry;
 			T vx = (-x1 - cx1) / rx;
@@ -313,55 +345,55 @@ namespace slib
 			} else if (v > 1) {
 				v = 1;
 			}
-			T start_angle = sign * Math::arccos(v);
+			T startAngle = sign * Math::arccos(v);
 
 			// Calculate the sweep angle
 			n = Math::sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
 			p = ux * vx + uy * vy;
-			sign = (ux * vy - uy * vx < 0) ? (T)-1.0 : (T)1.0;
+			sign = (ux * vy - uy * vx < 0) ? T(-1) : T(1);
 			v = p / n;
-			if (v < -1) {
-				v = -1;
-			} else	if (v > 1) {
-				v = 1;
+			if (v < T(-1)) {
+				v = T(-1);
+			} else	if (v > T(1)) {
+				v = T(1);
 			}
-			T sweep_angle = sign * Math::arccos(v);
-			if (!sweep_flag && sweep_angle > 0) {
-				sweep_angle -= pi * 2;
-			} else if (sweep_flag && sweep_angle < 0)
+			T sweepAngle = sign * Math::arccos(v);
+			if (!flagSweep && sweepAngle > 0) {
+				sweepAngle -= _2PI;
+			} else if (flagSweep && sweepAngle < 0)
 			{
-				sweep_angle += pi * 2;
+				sweepAngle += _2PI;
 			}
-			T end_angle = start_angle + sweep_angle;
+			T endAngle = startAngle + sweepAngle;
 
 			sl_bool flagNegative;
-			if (sweep_angle < 0) {
+			if (sweepAngle < 0) {
 				flagNegative = sl_true;
-				if (end_angle > start_angle) {
-					end_angle -= 2 * pi;
+				if (endAngle > startAngle) {
+					endAngle -= PI2;
 				}
 			} else {
 				flagNegative = sl_false;
-				if (end_angle < start_angle) {
-					end_angle += 2 * pi;
+				if (endAngle < startAngle) {
+					endAngle += PI2;
 				}
 			}
-			sl_int32 nPts = (sl_int32)(Math::ceil(Math::abs(sweep_angle) / (pi / 2)));
+			sl_int32 nPts = (sl_int32)(Math::ceil(Math::abs(sweepAngle) / PI2));
 			if (nPts > 4) {
 				nPts = 4;
 			}
 			nPts *= 3;
-			T s = start_angle;
-			T e = start_angle;
+			T s = startAngle;
+			T e = startAngle;
 			CubicBezierCurveT<T> c;
 			for (sl_int32 i = 0; i < nPts; i += 3) {
 				if (flagNegative) {
-					e -= pi / 2;
+					e -= PI2;
 				} else {
-					e += pi / 2;
+					e += PI2;
 				}
 				if (i == nPts - 3) {
-					e = end_angle;
+					e = endAngle;
 				}
 				c.describeArc(cx, cy, rx, ry, s, e, rotation);
 				if (!i) {
@@ -375,9 +407,9 @@ namespace slib
 				pts[i + 3].x = c.x3;
 				pts[i + 3].y = c.y3;
 				if (flagNegative) {
-					s -= pi / 2;
+					s -= PI2;
 				} else {
-					s += pi / 2;
+					s += PI2;
 				}
 			}
 			if (!nPts) {
@@ -385,44 +417,6 @@ namespace slib
 			} else {
 				return nPts + 1;
 			}
-		}
-
-		void describeArc(T cx, T cy, T rx, T ry, T startRadian, T endRadian) noexcept
-		{
-			T cos1 = Math::cos(startRadian);
-			T sin1 = Math::sin(startRadian);
-			T cos2 = Math::cos(endRadian);
-			T sin2 = Math::sin(endRadian);
-			T m = (endRadian - startRadian) / 2;
-			T f = (1 - Math::cos(m)) / Math::sin(m) * 4 / 3;
-			x0 = cx + rx * cos1;
-			y0 = cy + ry * sin1;
-			x1 = x0 - f * sin1 * rx;
-			y1 = y0 + f * cos1 * ry;
-			x3 = cx + rx * cos2;
-			y3 = cy + ry * sin2;
-			x2 = x3 + f * sin2 * rx;
-			y2 = y3 - f * cos2 * ry;
-		}
-
-		void describeArc(T cx, T cy, T rx, T ry, T startRadian, T endRadian, T rotation) noexcept
-		{
-			T cos1 = Math::cos(startRadian);
-			T sin1 = Math::sin(startRadian);
-			T cos2 = Math::cos(endRadian);
-			T sin2 = Math::sin(endRadian);
-			T cos_r = Math::cos(rotation);
-			T sin_r = Math::sin(rotation);
-			T m = (endRadian - startRadian) / 2;
-			T f = (1 - Math::cos(m)) / Math::sin(m) * 4 / 3;
-			x0 = cx + rx * cos1 * cos_r - ry * sin1 * sin_r;
-			y0 = cy + ry * sin1 * cos_r + rx * cos1 * sin_r;
-			x1 = x0 - f * sin1 * rx * cos_r - f * cos1 * ry * sin_r;
-			y1 = y0 + f * cos1 * ry * cos_r - f * sin1 * rx * sin_r;
-			x3 = cx + rx * cos2 * cos_r - ry * sin2 * sin_r;
-			y3 = cy + ry * sin2 * cos_r + rx * cos2 * sin_r;
-			x2 = x3 + f * sin2 * rx * cos_r + f * cos2 * ry * sin_r;
-			y2 = y3 - f * cos2 * ry * cos_r + f * sin2 * rx * sin_r;
 		}
 
 	public:

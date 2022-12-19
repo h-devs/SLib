@@ -276,16 +276,16 @@ namespace slib
 					hasCurPoint = sl_true;
 				}
 
-				void processSpline(const CubicBezierCurve& curve, const Point& P1, sl_real t1, const Point& P2, sl_real t2)
+				void processSpline(const CubicBezierCurve& curve, const Point& p1, sl_real t1, const Point& p2, sl_real t2)
 				{
-					if (P2.getLength2p(P1) <= tolerance2) {
-						lineTo(P2);
+					if (p2.getLength2p(p1) <= tolerance2) {
+						lineTo(p2);
 						return;
 					}
 					sl_real tc = (t1 + t2) / 2.0f;
-					Point Pc = curve.getPoint(tc);
-					processSpline(curve, P1, t1, Pc, tc);
-					processSpline(curve, Pc, tc, P2, t2);
+					Point pc = curve.getPoint(tc);
+					processSpline(curve, p1, t1, pc, tc);
+					processSpline(curve, pc, tc, p2, t2);
 				}
 
 				void curveTo(const Point& b, const Point& c, const Point& d)
@@ -597,7 +597,6 @@ namespace slib
 	{
 		Pointf pts[13];
 		sl_uint32 n = CubicBezierCurve::convertArcToBezier(pts, x1, y1, x2, y2, rx, ry, flagLargeArc, flagSweep);
-
 		for (sl_uint32 i = 1; i + 2 < n; i += 3) {
 			cubicTo(pts[i], pts[i + 1], pts[i + 2]);
 		}
@@ -607,7 +606,6 @@ namespace slib
 	{
 		Pointf pts[13];
 		sl_uint32 n = CubicBezierCurve::convertArcToBezier(pts, x1, y1, x2, y2, rx, ry, rotation, flagLargeArc, flagSweep);
-		
 		for (sl_uint32 i = 1; i + 2 < n; i += 3) {
 			cubicTo(pts[i], pts[i + 1], pts[i + 2]);
 		}

@@ -27,46 +27,34 @@
 #include "slib/device/device.h"
 
 #include <stdio.h>
-#include <string.h>
-
-using namespace std;
 
 namespace slib
 {
 
-#define UDEVADM "udevadm info --query=all --name=/dev/sd%c | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"
-
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{
-		String ret;
-		FILE *cmd;
-
-		char cmd_line[100] = { 0 };
-		sprintf(cmd_line, UDEVADM, 0x61 + diskNo);
-		if (cmd = popen(cmd_line, "r"))
-		{
-			char out_line[300] = { 0 };
-			int nRead = 0;
-			if (nRead = fread(out_line, 1, sizeof(out_line), cmd))
-			{
-				out_line[nRead] = 0;
-
-				char* pszFind = NULL;
-				if (pszFind = strstr(out_line, "ID_BUS"))
-				{
-					if (strncasecmp(pszFind, "ID_BUS=USB", 10))
-					{
-						if (pszFind = strstr(out_line, "ID_SERIAL_SHORT"))
-						{
-							ret = String::from(pszFind + 16);
+		sl_char8 chDrive = (sl_char8)('a' + diskNo);
+		String cmd = String::concat(StringView::literal("udevadm info --query=all --name=/dev/sd"), StringView(&chDrive, 1), StringView::literal(" | grep -E 'ID_BUS|ID_SERIAL_SHORT' | awk '{print $2}'"));
+		FILE* fp = popen(cmd.getData(), "r");
+		if (fp) {
+			char buf[1024];
+			size_t n = fread(buf, 1, sizeof(buf), fp);
+			pclose(fp);
+			if (n) {
+				StringView output(buf, (sl_size)n);
+				sl_reg index = output.indexOf(StringView::literal("ID_BUS="));
+				if (index >= 0) {
+					index += 7;
+					if (!(output.substring(index, index + 3).equalsIgnoreCase(StringView::literal("USB")))) {
+						index = output.indexOf(StringView::literal("ID_SERIAL_SHORT="), index);
+						if (index >= 0) {
+							return output.substring(index + 16);
 						}
 					}
 				}
 			}
-			pclose(cmd);
 		}
-
-		return ret;
+		return sl_null;
 	}
 
 }
