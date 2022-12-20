@@ -329,10 +329,10 @@ namespace slib
 			T cy = sy2 + (sin_r * cx1 + cos_r * cy1);
 
 			// Calculate the startAngle (angle1) and the sweep_angle (dangle)
-			T ux = (x1 - cx1) / rx;
-			T uy = (y1 - cy1) / ry;
-			T vx = (-x1 - cx1) / rx;
-			T vy = (-y1 - cy1) / ry;
+			T ux = (x3 - cx1) / rx;
+			T uy = (y3 - cy1) / ry;
+			T vx = (-x3 - cx1) / rx;
+			T vy = (-y3 - cy1) / ry;
 			T p, n;
 
 			// Calculate the angle start
@@ -354,14 +354,13 @@ namespace slib
 			v = p / n;
 			if (v < T(-1)) {
 				v = T(-1);
-			} else	if (v > T(1)) {
+			} else if (v > T(1)) {
 				v = T(1);
 			}
 			T sweepAngle = sign * Math::arccos(v);
 			if (!flagSweep && sweepAngle > 0) {
 				sweepAngle -= _2PI;
-			} else if (flagSweep && sweepAngle < 0)
-			{
+			} else if (flagSweep && sweepAngle < 0) {
 				sweepAngle += _2PI;
 			}
 			T endAngle = startAngle + sweepAngle;
