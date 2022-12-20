@@ -269,7 +269,7 @@ namespace slib
 		return Keycode::Unknown;
 	}
 
-	sl_bool UI::checkCapsLockOn()
+	sl_bool UI::isCapsLockOn()
 	{
 		if (UI::isUiThread()) {
 			GdkKeymap* keymap = gdk_keymap_get_default();
@@ -286,7 +286,7 @@ namespace slib
 			return sl_false;
 		}
 		UI::dispatchToUiThreadUrgently([context]() {
-			context->flagCapslockOn = UI::checkCapsLockOn();
+			context->flagCapslockOn = UI::isCapsLockOn();
 			context->eventCapslock->set();
 		});
 		context->eventCapslock->wait(100);
