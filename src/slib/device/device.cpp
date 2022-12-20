@@ -23,7 +23,7 @@
 #include "slib/device/device.h"
 
 #include "slib/network/url.h"
-#include "slib/social/contact.h"
+#include "slib/data/contact.h"
 #include "slib/ui/core.h"
 
 namespace slib
@@ -149,6 +149,13 @@ namespace slib
 	{
 		return (sl_uint32)(getScreenSize().y);
 	}
+
+#if !defined(SLIB_PLATFORM_IS_WIN32) && !defined(SLIB_PLATFORM_IS_LINUX)
+	String Device::getBoardSerialNumber()
+	{
+		return sl_null;
+	}
+#endif
 
 #if !defined(SLIB_PLATFORM_IS_ANDROID)
 	void Device::openDial(const String& phoneNumber)

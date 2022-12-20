@@ -29,11 +29,10 @@
 #include "../core/function.h"
 #include "../core/string.h"
 #include "../core/default_members.h"
+#include "../io/memory_output.h"
 
 namespace slib
 {
-
-	class MemoryOutput;
 
 	class SLIB_EXPORT IPCParam
 	{

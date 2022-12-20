@@ -22,10 +22,9 @@
 
 #include "slib/crypto/jwt.h"
 
-#include "slib/crypto/base64.h"
+#include "slib/data/base64.h"
 #include "slib/crypto/hmac.h"
 #include "slib/crypto/sha2.h"
-
 #include "slib/core/string_buffer.h"
 
 namespace slib

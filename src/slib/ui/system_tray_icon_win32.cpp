@@ -28,8 +28,8 @@
 
 #include "slib/ui/system_tray_icon.h"
 
-#include "slib/core/safe_static.h"
 #include "slib/graphics/image.h"
+#include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
 
 #include "ui_core_win32.h"

@@ -26,10 +26,9 @@
 
 #include "slib/ui/notification.h"
 
+#include "slib/core/safe_static.h"
 #include "slib/ui/core.h"
 #include "slib/ui/platform.h"
-
-#include "slib/core/safe_static.h"
 
 #import <UserNotifications/UserNotifications.h>
 

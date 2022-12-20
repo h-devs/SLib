@@ -27,14 +27,13 @@
 #include "slib/network/url_request.h"
 
 #include "slib/network/url.h"
+#include "slib/io/async_file.h"
 #include "slib/core/string_buffer.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/async_file.h"
 #include "slib/core/system.h"
 
-#include "slib/core/win32/windows.h"
-
+#include "slib/platform/win32/windows.h"
 #include <winhttp.h>
 #pragma comment(lib, "winhttp.lib")
 

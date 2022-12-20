@@ -28,7 +28,7 @@
 #include "../core/memory.h"
 #include "../core/base.h"
 #include "../core/mio.h"
-#include "../core/math.h"
+#include "../math/math.h"
 
 namespace slib
 {

@@ -23,11 +23,10 @@
 #include "slib/graphics/text.h"
 
 #include "slib/graphics/font_atlas.h"
-#include "slib/graphics/emoji.h"
 #include "slib/graphics/util.h"
 #include "slib/math/calculator.h"
 #include "slib/device/device.h"
-#include "slib/core/xml.h"
+#include "slib/data/xml.h"
 #include "slib/core/charset.h"
 
 namespace slib
@@ -99,7 +98,7 @@ namespace slib
 	void TextItem::setStyle(const Ref<TextStyle>& style) noexcept
 	{
 		m_style = style;
-		m_emojiFont.setNull();
+		m_joinedCharFont.setNull();
 	}
 
 	Ref<Font> TextItem::getFont() noexcept
@@ -111,19 +110,19 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Font> TextItem::getEmojiFont() noexcept
+	Ref<Font> TextItem::getJoinedCharFont() noexcept
 	{
 		Ref<TextStyle> style = m_style;
 		if (style.isNotNull()) {
-			Ref<Font> font = m_emojiFont;
+			Ref<Font> font = m_joinedCharFont;
 			if (font.isNotNull()) {
-				if (m_emojiFontBase == style->font) {
+				if (m_joinedCharFontBase == style->font) {
 					return font;
 				}
 			}
 			font = style->font;
 			if (font.isNotNull()) {
-				String name = style->emojiFamilyName;
+				String name = style->joinedCharFamilyName;
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 				if (name.isEmpty()) {
 					name = "Segoe UI Emoji";
@@ -135,13 +134,13 @@ namespace slib
 					if (desc.familyName != name) {
 						desc.familyName = name;
 						Ref<Font> fontNew = Font::create(desc);
-						m_emojiFont = fontNew;
-						m_emojiFontBase = font;
+						m_joinedCharFont = fontNew;
+						m_joinedCharFontBase = font;
 						return fontNew;
 					}
 				}
-				m_emojiFont = font;
-				m_emojiFontBase = font;
+				m_joinedCharFont = font;
+				m_joinedCharFontBase = font;
 				return font;
 			}
 		}
@@ -356,21 +355,21 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(TextEmojiItem, TextItem)
+	SLIB_DEFINE_OBJECT(TextJoinedCharItem, TextItem)
 
-	TextEmojiItem::TextEmojiItem() noexcept
-	: TextItem(TextItemType::Emoji)
+	TextJoinedCharItem::TextJoinedCharItem() noexcept
+	: TextItem(TextItemType::JoinedChar)
 	{
 	}
 
-	TextEmojiItem::~TextEmojiItem() noexcept
+	TextJoinedCharItem::~TextJoinedCharItem() noexcept
 	{
 	}
 
-	Ref<TextEmojiItem> TextEmojiItem::create(const String16& text, const Ref<TextStyle>& style) noexcept
+	Ref<TextJoinedCharItem> TextJoinedCharItem::create(const String16& text, const Ref<TextStyle>& style) noexcept
 	{
 		if (style.isNotNull()) {
-			Ref<TextEmojiItem> ret = new TextEmojiItem;
+			Ref<TextJoinedCharItem> ret = new TextJoinedCharItem;
 			if (ret.isNotNull()) {
 				ret->m_text = text;
 				ret->m_style = style;
@@ -380,11 +379,11 @@ namespace slib
 		return sl_null;
 	}
 
-	Size TextEmojiItem::getSize() noexcept
+	Size TextJoinedCharItem::getSize() noexcept
 	{
 		ObjectLocker lock(this);
 
-		Ref<Font> font = getEmojiFont();
+		Ref<Font> font = getJoinedCharFont();
 		if (m_fontCached == font) {
 			return Size(m_widthCached, m_heightCached);
 		}
@@ -400,9 +399,9 @@ namespace slib
 		return Size::zero();
 	}
 
-	void TextEmojiItem::draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param)
+	void TextJoinedCharItem::draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param)
 	{
-		Ref<Font> font = getEmojiFont();
+		Ref<Font> font = getJoinedCharFont();
 		if (font.isNotNull()) {
 			DrawTextParam dp;
 			dp.font = font;
@@ -598,10 +597,6 @@ namespace slib
 				ch = '?';
 				pos++;
 			}
-			sl_bool flagEmoji = sl_false;
-			if (ch >= 0x80 && Emoji::isEmoji(ch)) {
-				flagEmoji = sl_true;
-			}
 #define BEGIN_ADD_TEXT_CASE \
 				if (startWord < oldPos) { \
 					Ref<TextWordItem> item = TextWordItem::create(String16(data + startWord, oldPos - startWord), style, flagEnabledHyperlinksInPlainText); \
@@ -646,20 +641,18 @@ namespace slib
 						}
 					} END_ADD_TEXT_CASE;
 				default:
-					if (flagEmoji) {
-						BEGIN_ADD_TEXT_CASE {
-							sl_size lenEmoji = Emoji::getEmojiLength(data + oldPos, len - oldPos);
-							if (lenEmoji) {
-								Ref<TextEmojiItem> item = TextEmojiItem::create(String16(data + oldPos, lenEmoji), style);
+					{
+						sl_size lenJoinedChar = Charsets::getJoinedCharLength(ch, data + pos, len - pos);
+						if (lenJoinedChar + pos > oldPos + 1) {
+							BEGIN_ADD_TEXT_CASE{
+								pos += lenJoinedChar;
+								Ref<TextJoinedCharItem> item = TextJoinedCharItem::create(String16(data + oldPos, pos - oldPos), style);
 								if (item.isNotNull()) {
 									m_items.add_NoLock(item);
 									m_positionLength++;
 								}
-								pos = oldPos + lenEmoji;
-							}
-						} END_ADD_TEXT_CASE;
-					} else if (flagMnemonic && ch == '&') {
-						if (pos < len) {
+							} END_ADD_TEXT_CASE;
+						} else if (flagMnemonic && ch == '&' && pos < len) {
 							ch = data[pos];
 							if (SLIB_CHAR_IS_ALNUM(ch)) {
 								BEGIN_ADD_TEXT_CASE {
@@ -692,21 +685,23 @@ namespace slib
 								} END_ADD_TEXT_CASE;
 							}
 						}
+						break;
 					}
-					break;
 			}
 		}
-		if (startWord == 0) {
+		if (startWord) {
+			if (startWord < len) {
+				Ref<TextWordItem> item = TextWordItem::create(String16(data + startWord, len - startWord), style, flagEnabledHyperlinksInPlainText);
+				if (item.isNotNull()) {
+					m_items.add_NoLock(item);
+					m_positionLength += len - startWord;
+				}
+			}
+		} else {
 			Ref<TextWordItem> item = TextWordItem::create(text, style, flagEnabledHyperlinksInPlainText);
 			if (item.isNotNull()) {
 				m_items.add_NoLock(item);
 				m_positionLength += len;
-			}
-		} else if (startWord < len) {
-			Ref<TextWordItem> item = TextWordItem::create(String16(data + startWord, len - startWord), style, flagEnabledHyperlinksInPlainText);
-			if (item.isNotNull()) {
-				m_items.add_NoLock(item);
-				m_positionLength += len - startWord;
 			}
 		}
 	}
@@ -848,8 +843,8 @@ namespace slib
 		Color attrBackColor;
 		sl_bool flagDefineFamilyName = sl_false;
 		String attrFamilyName;
-		sl_bool flagDefineEmojiFamilyName = sl_false;
-		String attrEmojiFamilyName;
+		sl_bool flagDefineJoinedCharFamilyName = sl_false;
+		String attrJoinedCharFamilyName;
 		sl_bool flagDefineFontSize = sl_false;
 		String attrFontSize;
 		sl_real attrFontSizeParsed = 0;
@@ -915,10 +910,10 @@ namespace slib
 			}
 		}
 		{
-			String value = element->getAttribute("emojiFace");
+			String value = element->getAttribute("joinedCharFace");
 			if (value.isNotNull()) {
-				flagDefineEmojiFamilyName = sl_true;
-				attrEmojiFamilyName = value;
+				flagDefineJoinedCharFamilyName = sl_true;
+				attrJoinedCharFamilyName = value;
 			}
 		}
 		{
@@ -980,8 +975,8 @@ namespace slib
 						flagDefineFamilyName = sl_true;
 						attrFamilyName = value;
 					} else if (name == "emoji-family") {
-						flagDefineEmojiFamilyName = sl_true;
-						attrEmojiFamilyName = value;
+						flagDefineJoinedCharFamilyName = sl_true;
+						attrJoinedCharFamilyName = value;
 					} else if (name == "font-size") {
 						flagDefineFontSize = sl_true;
 						attrFontSize = value;
@@ -1094,8 +1089,8 @@ namespace slib
 		sl_bool flagNewStyle = flagNewFont;
 		if (!flagNewStyle) {
 			do {
-				if (flagDefineEmojiFamilyName) {
-					if (style->emojiFamilyName != attrEmojiFamilyName) {
+				if (flagDefineJoinedCharFamilyName) {
+					if (style->joinedCharFamilyName != attrJoinedCharFamilyName) {
 						flagNewStyle = sl_true;
 						break;
 					}
@@ -1178,8 +1173,8 @@ namespace slib
 				font = Font::create(fontDesc);
 				styleNew->font = font;
 			}
-			if (flagDefineEmojiFamilyName) {
-				styleNew->emojiFamilyName = attrEmojiFamilyName;
+			if (flagDefineJoinedCharFamilyName) {
+				styleNew->joinedCharFamilyName = attrJoinedCharFamilyName;
 			}
 			if (flagDefineUnderline) {
 				styleNew->flagDefinedUnderline = sl_true;
@@ -1323,7 +1318,7 @@ namespace slib
 					for (sl_size i = 0; i < n; i++) {
 						TextItem* item = p[i].get();
 						TextItemType type = item->getType();
-						if (type == TextItemType::Word || type == TextItemType::Emoji || type == TextItemType::Space || type == TextItemType::Tab) {
+						if (type == TextItemType::Word || type == TextItemType::JoinedChar || type == TextItemType::Space || type == TextItemType::Tab) {
 							m_layoutItems->add_NoLock(item);
 						}
 					}
@@ -1649,7 +1644,7 @@ namespace slib
 					return nWords - 1;
 				}
 
-				void processEmoji(TextEmojiItem* item) noexcept
+				void processJoinedChar(TextJoinedCharItem* item) noexcept
 				{
 					addLineItem(item, item->getSize());
 				}
@@ -1722,8 +1717,8 @@ namespace slib
 								i += processWords(items + i, n - i);
 								break;
 
-							case TextItemType::Emoji:
-								processEmoji(static_cast<TextEmojiItem*>(item));
+							case TextItemType::JoinedChar:
+								processJoinedChar(static_cast<TextJoinedCharItem*>(item));
 								break;
 
 							case TextItemType::Space:
@@ -1833,9 +1828,9 @@ namespace slib
 							wordItem->draw(canvas, x + frame.left, y + frame.top, param);
 						}
 					}
-				} else if (type == TextItemType::Emoji) {
-					TextEmojiItem* emojiItem = static_cast<TextEmojiItem*>(item);
-					Rectangle frame = emojiItem->getLayoutFrame();
+				} else if (type == TextItemType::JoinedChar) {
+					TextJoinedCharItem* joinedCharItem = static_cast<TextJoinedCharItem*>(item);
+					Rectangle frame = joinedCharItem->getLayoutFrame();
 					frame.top += style->yOffset;
 					frame.bottom += style->yOffset;
 					if (rc.intersectRectangle(frame)) {
@@ -1845,7 +1840,7 @@ namespace slib
 							if (backColor.a > 0) {
 								canvas->fillRectangle(Rectangle(x + frame.left, y + frame.top, x + frame.right, y + frame.bottom), backColor);
 							}
-							emojiItem->draw(canvas, x + frame.left, y + frame.top, param);
+							joinedCharItem->draw(canvas, x + frame.left, y + frame.top, param);
 						}
 					}
 				}

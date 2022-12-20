@@ -29,12 +29,8 @@
 #include "slib/ui/screen.h"
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/notification.h"
-
 #include "slib/core/log.h"
-#include "slib/core/json.h"
-#include "slib/core/variant.h"
 #include "slib/core/safe_static.h"
-
 #include "slib/ui/platform.h"
 
 @interface SLIBAppDelegate : UIResponder <UIApplicationDelegate>

@@ -25,7 +25,7 @@
 
 #include "audio_data.h"
 
-#include "../core/loop_queue.h"
+#include "../data/loop_queue.h"
 #include "../core/string.h"
 #include "../core/event.h"
 #include "../core/function.h"

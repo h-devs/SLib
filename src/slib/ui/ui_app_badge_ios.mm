@@ -20,11 +20,12 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/ui/notification.h"
+#include "slib/core/definition.h"
 
 #if defined(SLIB_PLATFORM_IS_IOS)
 
 #include "slib/ui/app.h"
+
 #include "slib/ui/platform.h"
 
 #include <UserNotifications/UserNotifications.h>

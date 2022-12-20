@@ -26,8 +26,8 @@
 #include "slib/db/leveldb.h"
 #include "slib/crypto/chacha.h"
 #include "slib/crypto/sha3.h"
-#include "slib/core/file.h"
-#include "slib/core/lender.h"
+#include "slib/io/file.h"
+#include "slib/data/lender.h"
 
 /*
 

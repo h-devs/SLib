@@ -26,7 +26,7 @@
 
 #include "slib/core/thread.h"
 
-#include "slib/core/win32/windows.h"
+#include "slib/platform/win32/windows.h"
 
 namespace slib
 {

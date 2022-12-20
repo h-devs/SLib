@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/skippable_reader.h"
+#include "../io/skippable_reader.h"
 #include "../core/memory.h"
 #include "../core/function.h"
 

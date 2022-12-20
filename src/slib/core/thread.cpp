@@ -28,7 +28,7 @@
 #include "slib/core/safe_static.h"
 
 #if defined(SLIB_PLATFORM_IS_ANDROID)
-#	include "slib/core/platform.h"
+#	include "slib/platform.h"
 #endif
 
 namespace slib

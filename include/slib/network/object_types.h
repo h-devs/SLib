@@ -45,6 +45,8 @@ namespace slib
 			HttpServerConnectionProvider,
 			HttpUploadFile,
 			HttpContentReader,
+			WebController,
+			WebService,
 			DnsClient,
 			DnsServer,
 			StunServer,

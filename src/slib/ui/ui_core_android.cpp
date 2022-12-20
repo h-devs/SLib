@@ -27,16 +27,15 @@
 #include "slib/ui/core.h"
 
 #include "slib/ui/screen.h"
-#include "slib/ui/platform.h"
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/resource.h"
 #include "slib/device/device.h"
 #include "slib/core/locale.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
-
-#include "slib/core/android/activity.h"
-#include "slib/core/android/window.h"
+#include "slib/ui/platform.h"
+#include "slib/platform/android/activity.h"
+#include "slib/platform/android/window.h"
 
 #include "ui_core_common.h"
 

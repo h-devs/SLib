@@ -25,7 +25,7 @@
 
 #include "map.h"
 #include "hash_table.h"
-#include "math.h"
+#include "../math/math.h"
 
 namespace slib
 {

@@ -956,7 +956,6 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Video)
 			PROCESS_CONTROL_SWITCH(Camera)
 			PROCESS_CONTROL_SWITCH(Drawer)
-			PROCESS_CONTROL_SWITCH(Chat)
 			PROCESS_CONTROL_SWITCH(Refresh)
 			PROCESS_CONTROL_SWITCH(ListBox)
 			PROCESS_CONTROL_SWITCH(LabelList)
@@ -5071,66 +5070,6 @@ namespace slib
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR(drawerSize, setDrawerSize, checkScalarSize)
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR(dragEdgeSize, setDragEdgeSize, checkScalarSize)
 		LAYOUT_CONTROL_GENERIC_ATTR(gravity, setGravity)
-
-		LAYOUT_CONTROL_ADD_STATEMENT
-	}
-	END_PROCESS_LAYOUT_CONTROL
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(Chat, ChatView)
-	{
-		LAYOUT_CONTROL_PROCESS_SUPER(View)
-
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(chatWidth, setChatWidth, checkScalarSizeOrWeight)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(userIconSize, setUserIconSize, checkScalarSizeOrWeight)
-		if (op == OP_GENERATE_CPP) {
-			if (attr->chatWidth.flagDefined && attr->chatWidth.unit == SAppDimensionValue::WEIGHT) {
-				params->sbDefineInit->add(String::format("%s%s->setChatWidthWeight(%ff, slib::UIUpdateMode::Init);%n", strTab, name, attr->chatWidth.amount));
-			}
-			if (attr->userIconSize.flagDefined && attr->userIconSize.unit == SAppDimensionValue::WEIGHT) {
-				params->sbDefineInit->add(String::format("%s%s->setUserIconSizeWeight(%ff, slib::UIUpdateMode::Init);%n", strTab, name, attr->userIconSize.amount));
-			}
-		} else if (op == OP_SIMULATE) {
-			if (flagOnLayout) {
-				if (attr->chatWidth.flagDefined && attr->chatWidth.unit == SAppDimensionValue::WEIGHT) {
-					view->setChatWidthWeight(attr->chatWidth.amount);
-				}
-				if (attr->userIconSize.flagDefined && attr->userIconSize.unit == SAppDimensionValue::WEIGHT) {
-					view->setUserIconSizeWeight(attr->userIconSize.amount);
-				}
-			}
-		}
-
-		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(dateFormat, setDateFormat)
-		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(timeFormat, setTimeFormat)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(receivedChatBackColor, setReceivedChatBackColor)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(receivedChatTextColor, setReceivedChatTextColor)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(sentChatBackColor, setSentChatBackColor)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(sentChatTextColor, setSentChatTextColor)
-		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(dateTextColor, setDateTextColor)
-
-		if (op == OP_SIMULATE) {
-			if (!flagOnLayout) {
-				List<ChatViewItem> items;
-				Ref<Drawable> iconCustomer = Drawable::createColorDrawable(Color::Red)->clipEllipse();
-				Ref<Drawable> iconMe = Drawable::createColorDrawable(Color::Blue)->clipEllipse();
-				for (sl_size i = 0; i < 1000; i++) {
-					ChatViewItem item;
-					if (i % 2) {
-						item.userName = "Customer";
-						item.userIcon = iconCustomer;
-						item.flagMe = sl_false;
-						item.message.text = String::format("Chat Message %d", i);
-					} else {
-						item.userIcon = iconMe;
-						item.flagMe = sl_true;
-						item.message.text = String::format("Welcome to this message %d. This is the test message for multi-line wrapping.", i);
-					}
-					item.message.time = Time::now() - Time::withMinutes((1000 - i) * 30);
-					items.add_NoLock(item);
-				}
-				view->setItems(items);
-			}
-		}
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 	}

@@ -25,7 +25,7 @@
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "slib/core/safe_static.h"
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

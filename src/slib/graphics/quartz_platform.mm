@@ -24,9 +24,8 @@
 
 #if defined(SLIB_PLATFORM_IS_APPLE)
 
-#include "slib/graphics/platform.h"
-
 #include "slib/graphics/bitmap.h"
+#include "slib/graphics/platform.h"
 
 namespace slib
 {

@@ -20,14 +20,15 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UI_CORE_WIN32
-#define CHECKHEADER_SLIB_UI_CORE_WIN32
+#ifndef CHECKHEADER_SLIB_UI_PLATFORM_WIN32
+#define CHECKHEADER_SLIB_UI_PLATFORM_WIN32
 
 #include "slib/ui/definition.h"
 
 #if defined(SLIB_UI_IS_WIN32)
 
 #include "slib/ui/core.h"
+
 #include "slib/ui/platform.h"
 
 namespace slib

@@ -28,7 +28,7 @@
 
 #include "slib/core/asset.h"
 #include "slib/core/endian.h"
-#include "slib/core/apple/platform.h"
+#include "slib/platform.h"
 
 #import <AVFoundation/AVFoundation.h>
 

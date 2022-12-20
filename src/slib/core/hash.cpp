@@ -23,7 +23,7 @@
 #include "slib/core/hash.h"
 #include "slib/core/hash_table.h"
 
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 
 namespace slib
 {

@@ -22,7 +22,7 @@
 
 #include "slib/math/calculator.h"
 
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 #include "slib/core/parse.h"
 
 namespace slib

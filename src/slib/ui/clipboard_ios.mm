@@ -24,7 +24,7 @@
 
 #if defined(SLIB_UI_IS_IOS)
 
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

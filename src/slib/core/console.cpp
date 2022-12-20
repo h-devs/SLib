@@ -22,13 +22,12 @@
 
 #include "slib/core/console.h"
 
-#include <stdio.h>
+#include "slib/core/base.h"
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
+#	include "slib/core/memory.h"
+#	include "slib/platform/win32/windows.h"
 #	include <conio.h>
-#   include "slib/core/memory.h"
-#	include "slib/core/win32/windows.h"
-#	define scanf scanf_s
 #else
 #	include <stdlib.h>
 #	if !defined(SLIB_PLATFORM_IS_MOBILE)
@@ -36,7 +35,10 @@
 #	endif
 #endif
 
-#include "slib/core/base.h"
+#include <stdio.h>
+#if defined(SLIB_PLATFORM_IS_WIN32)
+#	define scanf scanf_s
+#endif
 
 namespace slib
 {

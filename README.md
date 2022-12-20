@@ -2,59 +2,7 @@
 
 SLib is a universal cross-platform library, specially designed for the various UI components, OpenGL rendering and networking solutions.
 
-SLib enables software developers to build multi-platform(Android/iOS/MacOS/Tizen/Win32) applications and games under the most effective workflows and the coding conventions of C++, while providing easy-to-use toolkits to develop HTTP/Socket servers on the Linux/MacOS/Win32 platforms.
-
-
-## Modules
-
-* core
-
-    Auto Reference Counting, String, List, Map, File, Thread, Synchronizing, Time, Variant, Json, Xml, ...
-
-* crypto
-   
-    AES, RSA, GZIP, SHA1/2, GCM, MD5, Blowfish, DES, TripleDES, ...
-
-* db
-
-    SQLite, MySQL, Redis
-
-* device
-    
-    Sensor, Vibrator
-
-* graphics
-
-    Bitmap, Image, Canvas, Font, ...
-
-* math
-
-    BigInt, Uint128, Matrix, Vector, Transform, ...
-
-* media
-
-    MediaPlayer, AudioRecorder, AudioPlayer, Camera, ...
-
-* network
-
-    UrlRequest, Socket, Asynchronous I/O, HttpServer, ...
-
-* render
-
-    RenderEngine, RenderProgram, VertexBuffer, IndexBuffer, Texture, ...
-
-* ui
-
-    Window, View, ViewGroup, LinearLayout, ScrollView, Animation, Button, EditView, TabView, WebView, ...
-
-* web
-
-    WebController, WebService
-
-* geo
-
-    LatLon, GeoLocation, GeoLine, GeoRectangle, Globe, Earth
-
+SLib enables software developers to build multi-platform(Android/iOS/MacOS/Win32/Tizen) applications and games under the most effective workflows and the coding conventions of C++, while providing easy-to-use toolkits to develop HTTP/Socket servers on the Linux/MacOS/Win32 platforms.
 
 ## Getting Started
 
@@ -262,7 +210,7 @@ Edit `CMakeLists.txt` in your app module as following.
 Edit the main cpp file (for example, `native-lib.cpp`), and insert the following code snippet.
 
 ```
-#include <slib/core/platform.h>
+#include <slib/platform.h>
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* jvm, void* reserved)
 {

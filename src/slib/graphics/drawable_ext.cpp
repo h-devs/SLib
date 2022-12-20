@@ -23,10 +23,9 @@
 #include "slib/graphics/drawable.h"
 
 #include "slib/graphics/image.h"
-#include "slib/graphics/platform.h"
-
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/asset.h"
+#include "slib/graphics/platform.h"
 
 namespace slib
 {

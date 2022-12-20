@@ -26,8 +26,6 @@
 
 #include "slib/ui/notification.h"
 
-#include "slib/core/json.h"
-
 #include "slib/ui/platform.h"
 
 namespace slib

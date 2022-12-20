@@ -26,8 +26,6 @@
 
 #include "slib/core/preference.h"
 
-#include "slib/core/json.h"
-
 #include <app_preference.h>
 #include <stdlib.h>
 

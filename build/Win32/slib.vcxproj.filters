@@ -37,17 +37,11 @@
     <Filter Include="src\ui">
       <UniqueIdentifier>{7d146328-ad7f-4cfb-845c-4eff68e1c639}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\social">
-      <UniqueIdentifier>{1237d79f-474e-4bde-823e-5ebaea64f22c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="res">
       <UniqueIdentifier>{572efd35-6590-4275-b55f-ca4f6a47928f}</UniqueIdentifier>
     </Filter>
     <Filter Include="external">
       <UniqueIdentifier>{00282b1a-ca51-4d8f-9fd1-265ce8cb1975}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\service">
-      <UniqueIdentifier>{f8d3e2b1-d55d-440d-b9b8-01fe4590e459}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\storage">
       <UniqueIdentifier>{f83a293e-1e90-4a25-8b4c-104dbf1be2b5}</UniqueIdentifier>
@@ -64,11 +58,20 @@
     <Filter Include="src\uix">
       <UniqueIdentifier>{72aba02e-46df-4579-9d83-af88c7933bb3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\io">
+      <UniqueIdentifier>{b9a7e5c0-c117-4f04-9b44-7da634672363}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\data">
+      <UniqueIdentifier>{148cab20-a9c6-47c4-a43f-ed773024698d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\platform">
+      <UniqueIdentifier>{55c81fb0-71dc-46ed-9179-59559df1fae6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\script">
+      <UniqueIdentifier>{91a5c757-289c-49ff-b0c7-82aca3e41059}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\slib\core\async_config.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\slib\network\network_async.h">
       <Filter>src\network</Filter>
     </ClInclude>
@@ -156,14 +159,11 @@
     <ClInclude Include="..\..\include\slib\serialize.h">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\slib\io\async_config.h">
+      <Filter>src\io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\slib\core\io.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\json.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\log.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -174,9 +174,6 @@
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\service.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\setting.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\string.cpp">
@@ -203,37 +200,10 @@
     <ClCompile Include="..\..\src\slib\core\event.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\file.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\file_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\async.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\async_iocp.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\async_win32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\pipe.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\content_type.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\math.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\win32_com.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\aes.cpp">
-      <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\zlib.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\gcm.cpp">
@@ -275,13 +245,7 @@
     <ClCompile Include="..\..\src\slib\crypto\block_cipher.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\xml.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\charset.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\animation.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\hash.cpp">
@@ -294,9 +258,6 @@
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\collection.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\parse.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\dispatch.cpp">
@@ -349,6 +310,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\geo\latlon.cpp">
       <Filter>src\geo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\graphics\animation.cpp">
+      <Filter>src\graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\bitmap.cpp">
       <Filter>src\graphics</Filter>
@@ -755,20 +719,11 @@
     <ClCompile Include="..\..\src\slib\core\regular_expression.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\base64.cpp">
-      <Filter>src\crypto</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\jwt.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\des.cpp">
       <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\zxing.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\qr_code_scanner.cpp">
-      <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\device\device.cpp">
       <Filter>src\device</Filter>
@@ -793,18 +748,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\switch_view.cpp">
       <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\facebook.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\oauth.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\twitter.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\oauth_ui.cpp">
-      <Filter>src\social</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\clipboard.cpp">
       <Filter>src\ui</Filter>
@@ -836,21 +779,6 @@
     <ClCompile Include="..\..\src\res\gen\strings.cpp">
       <Filter>res</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\etsy.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\etsy_ui.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\facebook_ui.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\facebook_sdk.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\linkedin.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\openssl.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
@@ -860,29 +788,8 @@
     <ClCompile Include="..\..\src\slib\crypto\tls.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\pinterest.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\ebay.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\media\media_player_ffmpeg.cpp">
       <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\paypal.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\paypal_ui.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\linkedin_ui.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\pinterest_ui.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\instagram.cpp">
-      <Filter>src\social</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\ui_photo.cpp">
       <Filter>src\ui</Filter>
@@ -938,12 +845,6 @@
     <ClCompile Include="..\..\src\slib\ui\collection_view.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\emoji.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\emoji_png.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\string_buffer.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -959,14 +860,8 @@
     <ClCompile Include="..\..\src\slib\ui\tile_layout.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\oauth_server.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\jwt_openssl.cpp">
       <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\oauth_server_openssl.cpp">
-      <Filter>src\social</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\openssl_crypto.cpp">
       <Filter>src\crypto</Filter>
@@ -974,56 +869,14 @@
     <ClCompile Include="..\..\src\slib\crypto\openssl_chacha_poly1305.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\ginger.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\web_service.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\xgpush_service.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\ui_notification.cpp">
       <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\ui_notification_xgpush.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\push_notification.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\contact.cpp">
-      <Filter>src\social</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\system_tray_icon.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\system_tray_icon_win32.cpp">
       <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\chat.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\chat_view.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\chat_client.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\chat_sqlite.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\fcm_service.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\ui_notification_fcm.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\wechat.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\wechat_sdk.cpp">
-      <Filter>src\social</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\db\database_sql.cpp">
       <Filter>src\db</Filter>
@@ -1034,29 +887,11 @@
     <ClCompile Include="..\..\src\slib\db\postgresql.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\alipay.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\alipay_openssl.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\social\alipay_sdk.cpp">
-      <Filter>src\social</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\captcha.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\list_box.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\label_list.cpp">
       <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\disk.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\disk_win32.cpp">
-      <Filter>src\storage</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\ui_sound.cpp">
       <Filter>src\ui</Filter>
@@ -1067,17 +902,11 @@
     <ClCompile Include="..\..\src\slib\core\dynamic_library.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\dl_windows_gdiplus.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\doc\rar.cpp">
       <Filter>src\doc</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\doc\pdf.cpp">
       <Filter>src\doc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\dl_windows_iphlpapi.cpp">
-      <Filter>src\network</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\safe_static.cpp">
       <Filter>src\core</Filter>
@@ -1152,9 +981,6 @@
       <Filter>src\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\render\d3d11.cpp">
-      <Filter>src\render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\render\dl_windows_d3d.cpp">
       <Filter>src\render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\fuse.cpp">
@@ -1238,9 +1064,6 @@
     <ClCompile Include="..\..\src\slib\network\ipc_win32.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\win32_message_loop.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\storage_volume_win32.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
@@ -1249,30 +1072,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\network\p2p.cpp">
       <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\media\dl_win32_winmm.cpp">
-      <Filter>src\media</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_win32_bcrypt.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_win32_kernel32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_win32_wininet.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\db\dl_win32_libmysql.cpp">
-      <Filter>src\db</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\service\keygen.cpp">
-      <Filter>src\service</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\win32_platform.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\win32_setup.cpp">
-      <Filter>src\core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\gdi_platform.cpp">
       <Filter>src\graphics</Filter>
@@ -1301,26 +1100,8 @@
     <ClCompile Include="..\..\src\slib\core\named_instance.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\win32_registry.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_win32_psapi.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\core\app_win32.cpp">
       <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_win32_shlwapi.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\crc32c.cpp">
-      <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\compress.cpp">
-      <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\zstd.cpp">
-      <Filter>src\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\doc\zip.cpp">
       <Filter>src\doc</Filter>
@@ -1349,12 +1130,6 @@
     <ClCompile Include="..\..\external\src\lz4\lz4_unity.c">
       <Filter>external</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji.cpp">
-      <Filter>external</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\external\src\noto_emoji\noto_emoji_png.cpp">
-      <Filter>external</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\external\src\snappy\snappy_unity.cc">
       <Filter>external</Filter>
     </ClCompile>
@@ -1364,32 +1139,11 @@
     <ClCompile Include="..\..\external\src\zstd\zstd_unity.c">
       <Filter>external</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\brotli.cpp">
-      <Filter>src\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\dl_win32_shcore.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\dl_win32_user32.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\storage\block_device.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\winspd.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\storage\winspd_install.cpp">
-      <Filter>src\storage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\win32_portable_device.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\network\smb.cpp">
       <Filter>src\network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\asn1.cpp">
-      <Filter>src\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\db\object_store.cpp">
       <Filter>src\db</Filter>
@@ -1400,9 +1154,6 @@
     <ClCompile Include="..\..\src\slib\crypto\sha3.cpp">
       <Filter>src\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\performance.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\common_dialogs_prompt.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
@@ -1412,9 +1163,6 @@
     <ClCompile Include="..\..\src\slib\ui\pdf_view.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\graphics\dl_windows_t2embed.cpp">
-      <Filter>src\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\external\src\freetype\freetype_unity.c">
       <Filter>external</Filter>
     </ClCompile>
@@ -1423,9 +1171,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\sfnt.cpp">
       <Filter>src\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\crypto\lzw.cpp">
-      <Filter>src\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\crypto\certificate.cpp">
       <Filter>src\crypto</Filter>
@@ -1445,9 +1190,6 @@
     <ClCompile Include="..\..\src\slib\uix\x_button.cpp">
       <Filter>src\uix</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\core\dl_win32_wtsapi32.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\db\log_package.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
@@ -1458,6 +1200,162 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\graphics\css.cpp">
       <Filter>src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\json.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\asn1.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\base64.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\crc32c.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\lzw.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\zlib.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\zstd.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\brotli.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\compress.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\contact.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\core\stringx.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\ini.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\data\xml.cpp">
+      <Filter>src\data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\oauth_server.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\oauth_server_openssl.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\oauth_ui.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\crypto\oauth.cpp">
+      <Filter>src\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\device\performance.cpp">
+      <Filter>src\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_wininet.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_winmm.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_wtsapi32.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\message_loop.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\platform.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\portable_device.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\registry.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\setup.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\com.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_bcrypt.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_d3d.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_gdiplus.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_iphlpapi.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_kernel32.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_libmysql.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_psapi.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_shcore.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_shlwapi.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_t2embed.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\dl_user32.cpp">
+      <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\file.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\file_unix.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\file_win32.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\io.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\pipe.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\async.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\async_iocp.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\io\async_win32.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\device\disk.cpp">
+      <Filter>src\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\device\disk_win32.cpp">
+      <Filter>src\device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\math\math.cpp">
+      <Filter>src\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\network\web_service.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\script\ginger.cpp">
+      <Filter>src\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\platform\win32\wmi.cpp">
+      <Filter>src\platform</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

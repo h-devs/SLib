@@ -29,10 +29,10 @@
 #include "slib/core/process.h"
 #include "slib/core/system.h"
 #include "slib/core/memory.h"
-#include "slib/core/file_util.h"
-#include "slib/core/win32/platform.h"
-#include "slib/core/win32/setup.h"
-#include "slib/crypto/zstd.h"
+#include "slib/io/file_util.h"
+#include "slib/data/zstd.h"
+#include "slib/platform.h"
+#include "slib/platform/win32/setup.h"
 
 #include "tap/tap_files.h"
 

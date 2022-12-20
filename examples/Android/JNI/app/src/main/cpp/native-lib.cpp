@@ -1,7 +1,7 @@
 #include <jni.h>
 
 #include <slib/core.h>
-#include <slib/core/platform.h>
+#include <slib/platform.h>
 
 using namespace slib;
 

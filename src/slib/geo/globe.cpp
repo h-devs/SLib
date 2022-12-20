@@ -22,7 +22,7 @@
 
 #include "slib/geo/globe.h"
 
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 
 namespace slib
 {

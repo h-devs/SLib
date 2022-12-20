@@ -29,8 +29,8 @@
 #include "../core/list.h"
 #include "../core/memory.h"
 #include "../core/time.h"
-#include "../core/io.h"
 #include "../core/nullable.h"
+#include "../io/io.h"
 
 namespace slib
 {

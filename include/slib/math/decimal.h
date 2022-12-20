@@ -23,9 +23,7 @@
 #ifndef CHECKHEADER_SLIB_MATH_DECIMAL
 #define CHECKHEADER_SLIB_MATH_DECIMAL
 
-#include "definition.h"
-
-#include "../core/math.h"
+#include "math.h"
 
 namespace slib
 {

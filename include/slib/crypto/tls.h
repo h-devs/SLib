@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/async_stream.h"
+#include "../io/async_stream.h"
 #include "../core/memory.h"
 #include "../core/hash_map.h"
 #include "../core/string.h"

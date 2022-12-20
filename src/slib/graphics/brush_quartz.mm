@@ -27,8 +27,8 @@
 #include "slib/graphics/brush.h"
 
 #include "slib/graphics/image.h"
-#include "slib/graphics/platform.h"
 #include "slib/core/scoped_buffer.h"
+#include "slib/graphics/platform.h"
 
 namespace slib
 {

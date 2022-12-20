@@ -26,7 +26,7 @@
 #include "hash.h"
 
 #include "../math/bigint.h"
-#include "../core/math.h"
+#include "../math/math.h"
 #include "../crypto/mgf.h"
 
 namespace slib

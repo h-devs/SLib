@@ -29,8 +29,7 @@
 #include "slib/core/endian.h"
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
-
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <CoreMedia/CoreMedia.h>

@@ -22,8 +22,8 @@
 
 #include "slib/crypto/tls.h"
 
-#include "slib/core/file.h"
-#include "slib/core/serialize.h"
+#include "slib/io/file.h"
+#include "slib/data/serialize.h"
 
 namespace slib
 {

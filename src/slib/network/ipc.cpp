@@ -24,13 +24,12 @@
 
 #include "slib/network/socket.h"
 #include "slib/network/event.h"
-#include "slib/core/memory_output.h"
 #include "slib/core/system.h"
-#include "slib/core/file.h"
 #include "slib/core/thread.h"
 #include "slib/core/time_counter.h"
-#include "slib/core/serialize/variable_length_integer.h"
-#include "slib/core/serialize/buffer.h"
+#include "slib/io/file.h"
+#include "slib/data/serialize/variable_length_integer.h"
+#include "slib/data/serialize/buffer.h"
 
 namespace slib
 {

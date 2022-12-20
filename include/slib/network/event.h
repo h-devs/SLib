@@ -28,7 +28,7 @@
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 #include "../core/event.h"
 #else
-#include "../core/pipe_event.h"
+#include "../io/pipe_event.h"
 #endif
 
 namespace slib

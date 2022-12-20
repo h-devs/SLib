@@ -8,8 +8,6 @@ namespace slib
 		{
 			this->setWidthWeight(1.0f, slib::UIUpdateMode::Init);
 			this->setHeightWeight(1.0f, slib::UIUpdateMode::Init);
-			this->setAlignParentLeft(slib::UIUpdateMode::Init);
-			this->setAlignParentTop(slib::UIUpdateMode::Init);
 
 			btnShutter = new slib::Button;
 			btnShutter->setWidth(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(100.0f)), slib::UIUpdateMode::Init);

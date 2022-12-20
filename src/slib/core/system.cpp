@@ -22,9 +22,9 @@
 
 #include "slib/core/system.h"
 
-#include "slib/core/file.h"
 #include "slib/core/string.h"
 #include "slib/core/list.h"
+#include "slib/io/file.h"
 
 #include <errno.h>
 

@@ -27,8 +27,8 @@
 
 #include "../core/string.h"
 #include "../core/list.h"
-#include "../core/io.h"
 #include "../core/ptrx.h"
+#include "../io/io.h"
 
 /*
 	SFNT: Font file container for TrueType and OpenType font formats

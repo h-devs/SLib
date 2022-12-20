@@ -22,12 +22,11 @@
 
 #include "slib/graphics/jpeg.h"
 
-#include "slib/core/memory_reader.h"
-#include "slib/core/memory_output.h"
+#include "slib/io/memory_reader.h"
+#include "slib/io/memory_output.h"
+#include "slib/io/file.h"
 #include "slib/core/mio.h"
-#include "slib/core/math.h"
-#include "slib/core/file.h"
-
+#include "slib/math/math.h"
 #include "slib/graphics/image.h"
 #include "slib/graphics/yuv.h"
 

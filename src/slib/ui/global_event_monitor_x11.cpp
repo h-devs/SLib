@@ -28,7 +28,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/safe_static.h"
-#include "slib/ui/dl/linux/x11.h"
+#include "slib/dl/linux/x11.h"
 
 namespace slib
 {

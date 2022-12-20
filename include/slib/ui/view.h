@@ -26,7 +26,7 @@
 #include "event.h"
 
 #include "../graphics/color.h"
-#include "../core/animation.h"
+#include "../graphics/animation.h"
 #include "../core/sort.h"
 
 namespace slib

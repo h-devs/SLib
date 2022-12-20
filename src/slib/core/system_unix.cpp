@@ -26,13 +26,13 @@
 
 #include "slib/core/system.h"
 
-#include "slib/core/file.h"
 #include "slib/core/process.h"
 #include "slib/core/string.h"
 #include "slib/core/list.h"
-#include "slib/core/ini.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/dl/linux/rt.h"
+#include "slib/io/file.h"
+#include "slib/data/ini.h"
+#include "slib/dl/linux/rt.h"
 
 #include <string.h>
 #include <time.h>
@@ -52,7 +52,7 @@
 #endif
 
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-#	include "slib/core/dl/linux/rt.h"
+#	include "slib/dl/linux/rt.h"
 #endif
 
 #define PRIV_PATH_MAX 1024
@@ -369,16 +369,16 @@ namespace slib
 		sa.sa_flags = SA_NODEFER;
 		sa.sa_handler = handler;
 		sigemptyset(&(sa.sa_mask));
-        sigaction(SIGFPE, &sa, sl_null);
-        sigaction(SIGSEGV, &sa, sl_null);
-        sigaction(SIGBUS, &sa, sl_null);
-        sigaction(SIGILL, &sa, sl_null);
-        sigaction(SIGABRT, &sa, sl_null);
-        sigaction(SIGIOT, &sa, sl_null);
+		sigaction(SIGFPE, &sa, sl_null);
+		sigaction(SIGSEGV, &sa, sl_null);
+		sigaction(SIGBUS, &sa, sl_null);
+		sigaction(SIGILL, &sa, sl_null);
+		sigaction(SIGABRT, &sa, sl_null);
+		sigaction(SIGIOT, &sa, sl_null);
 #	if defined(SLIB_PLATFORM_IS_MACOS)
-        sigaction(SIGEMT, &sa, sl_null);
+		sigaction(SIGEMT, &sa, sl_null);
 #	endif
-        sigaction(SIGSYS, &sa, sl_null);
+		sigaction(SIGSYS, &sa, sl_null);
 	}
 #endif
 

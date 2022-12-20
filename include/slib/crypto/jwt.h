@@ -23,9 +23,7 @@
 #ifndef CHECKHEADER_SLIB_CRYPTO_JWT
 #define CHECKHEADER_SLIB_CRYPTO_JWT
 
-#include "openssl.h"
-
-#include "../core/json.h"
+#include "json.h"
 
 /*
 	JSON Web Token: JSON-based open standard for creating access tokens that assert some number of claims (RFC 7519)
@@ -53,6 +51,8 @@ namespace slib
 		PS384 = 41, // RSASSA-PSS using SHA-384 and MGF1 with SHA-384
 		PS512 = 42  // RSASSA-PSS using SHA-512 and MGF1 with SHA-512
 	};
+
+	class OpenSSL_Key;
 
 	class SLIB_EXPORT Jwt
 	{

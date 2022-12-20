@@ -25,11 +25,11 @@
 
 #include "slib/storage/file_system_mirror.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/variant.h"
-#include "slib/storage/disk.h"
+#include "slib/device/disk.h"
 
-#include "slib/core/win32/windows.h"
+#include "slib/platform/win32/windows.h"
 
 #define FILE_FROM_CONTEXT(context) (context ? ((MirrorFileContext*)(context))->file : sl_null)
 

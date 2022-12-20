@@ -22,8 +22,8 @@
 
 #include "slib/dev/pe.h"
 
-#include "slib/core/memory_reader.h"
-#include "slib/core/io/seekable_reader_helper.h"
+#include "slib/io/memory_reader.h"
+#include "slib/io/priv/seekable_reader_helper.h"
 
 namespace slib
 {

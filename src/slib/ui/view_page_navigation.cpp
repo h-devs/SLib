@@ -25,7 +25,7 @@
 #include "slib/ui/view_page.h"
 #include "slib/ui/gesture.h"
 #include "slib/ui/core.h"
-#include "slib/core/scoped_counter.h"
+#include "slib/data/scoped_counter.h"
 
 namespace slib
 {

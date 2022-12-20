@@ -26,7 +26,7 @@
 #include "smb_constant.h"
 
 #include "../core/mio.h"
-#include "../core/file.h"
+#include "../io/file.h"
 
 namespace slib
 {

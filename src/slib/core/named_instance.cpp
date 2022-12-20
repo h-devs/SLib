@@ -24,11 +24,11 @@
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include "slib/core/win32/windows.h"
+#include "slib/platform/win32/windows.h"
 
 #else
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/system.h"
 #include "slib/core/hash_map.h"
 #include "slib/core/safe_static.h"

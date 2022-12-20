@@ -25,7 +25,7 @@
 
 #include "definition.h"
 
-#include "../core/json.h"
+#include "../data/json.h"
 
 namespace slib
 {

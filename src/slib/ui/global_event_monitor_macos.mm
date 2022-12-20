@@ -26,8 +26,8 @@
 
 #include "slib/ui/global_event_monitor.h"
 
-#include "slib/ui/platform.h"
 #include "slib/ui/core.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {

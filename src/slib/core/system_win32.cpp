@@ -26,12 +26,12 @@
 
 #include "slib/core/system.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/unique_ptr.h"
-#include "slib/core/win32/platform.h"
-#include "slib/core/dl/win32/kernel32.h"
-#include "slib/core/dl/win32/wininet.h"
-#include "slib/core/dl/win32/wtsapi32.h"
+#include "slib/platform.h"
+#include "slib/dl/win32/kernel32.h"
+#include "slib/dl/win32/wininet.h"
+#include "slib/dl/win32/wtsapi32.h"
 
 #include <assert.h>
 #include <signal.h>

@@ -29,13 +29,10 @@
 #include "slib/ui/mobile_app.h"
 #include "slib/ui/screen.h"
 #include "slib/ui/window.h"
-#include "slib/ui/platform.h"
-
 #include "slib/core/log.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
-
-#include "slib/core/platform.h"
+#include "slib/ui/platform.h"
 
 #include <app.h>
 #include <Ecore.h>

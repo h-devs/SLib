@@ -25,7 +25,7 @@
 
 #include "../ip_address.h"
 
-#include "../../core/json/core.h"
+#include "../../data/json/core.h"
 
 namespace slib
 {

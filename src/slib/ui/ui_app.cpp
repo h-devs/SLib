@@ -24,7 +24,7 @@
 
 #include "slib/core/thread.h"
 #include "slib/core/dispatch_loop.h"
-#include "slib/core/async.h"
+#include "slib/io/async.h"
 #include "slib/network/url_request.h"
 #include "slib/ui/core.h"
 #include "slib/ui/window.h"
@@ -32,7 +32,7 @@
 #include "slib/ui/platform.h"
 
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-#include "slib/ui/dl/linux/x11.h"
+#include "slib/dl/linux/x11.h"
 #endif
 
 #include "ui_core_common.h"

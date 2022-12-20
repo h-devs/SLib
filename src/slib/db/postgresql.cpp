@@ -24,8 +24,8 @@
 
 #if defined(SLIB_DATABASE_SUPPORT_POSTGRESQL)
 
+#include "slib/math/math.h"
 #include "slib/core/mio.h"
-#include "slib/core/math.h"
 #include "slib/core/parse.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/safe_static.h"

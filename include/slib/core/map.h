@@ -24,10 +24,10 @@
 #define CHECKHEADER_SLIB_CORE_MAP
 
 #include "object.h"
-#include "node_position.h"
 #include "pair.h"
 #include "red_black_tree.h"
 #include "nullable.h"
+#include "priv/node_position.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <initializer_list>

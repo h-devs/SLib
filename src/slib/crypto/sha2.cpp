@@ -23,7 +23,7 @@
 #include "slib/crypto/sha2.h"
 
 #include "slib/core/mio.h"
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 
 namespace slib
 {

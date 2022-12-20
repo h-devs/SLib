@@ -26,10 +26,10 @@
 
 #include "slib/core/charset.h"
 
-#include "slib/core/file.h"
 #include "slib/core/string.h"
 #include "slib/core/list.h"
 #include "slib/core/scoped_buffer.h"
+#include "slib/io/file.h"
 
 #include "unicode/ucnv.h"
 

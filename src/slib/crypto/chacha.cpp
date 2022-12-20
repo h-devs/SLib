@@ -32,7 +32,7 @@
 
 #include "slib/core/base.h"
 #include "slib/core/mio.h"
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 #include "slib/crypto/pbkdf.h"
 
 namespace slib

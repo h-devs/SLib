@@ -23,9 +23,9 @@
 #include "slib/network/firewall.h"
 
 #include "slib/core/system.h"
-#include "slib/core/file.h"
 #include "slib/core/process.h"
-#include "slib/core/json.h"
+#include "slib/io/file.h"
+#include "slib/data/json.h"
 #include "slib/network/socket_address.h"
 #include "slib/network/tcpip.h"
 

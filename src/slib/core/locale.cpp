@@ -977,7 +977,7 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 
-#include "slib/core/dl/win32/kernel32.h"
+#include "slib/dl/win32/kernel32.h"
 
 namespace slib
 {
@@ -1004,8 +1004,8 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/java/locale.h"
-#include "slib/core/android/platform.h"
+#include "slib/platform.h"
+#include "slib/platform/java/locale.h"
 
 namespace slib
 {

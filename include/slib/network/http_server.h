@@ -27,9 +27,9 @@
 #include "http_io.h"
 #include "socket_address.h"
 
-#include "../core/io.h"
 #include "../core/property.h"
 #include "../core/shared.h"
+#include "../io/io.h"
 #include "../crypto/tls.h"
 
 namespace slib

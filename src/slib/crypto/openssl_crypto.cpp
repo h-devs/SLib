@@ -23,7 +23,7 @@
 #include "slib/crypto/openssl.h"
 
 #include "slib/crypto/sha2.h"
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/time_zone.h"
 #include "slib/core/handle_container.h"
 #include "slib/core/scoped_buffer.h"

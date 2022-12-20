@@ -24,14 +24,14 @@
 #define CHECKHEADER_SLIB_CORE_RED_BLACK_TREE
 
 #include "list.h"
-#include "map_common.h"
 #include "assert.h"
+
+#include "priv/map_common.h"
 
 #define PRIV_SLIB_RED_BLACK_TREE_MAX_DISTANCE 128
 
 namespace slib
 {
-
 
 	struct SLIB_EXPORT RedBlackTreeNode
 	{

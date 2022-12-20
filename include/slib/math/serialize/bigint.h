@@ -25,9 +25,9 @@
 
 #include "../bigint.h"
 
-#include "../../core/serialize/primitive.h"
-#include "../../core/serialize/variable_length_integer.h"
-#include "../../core/serialize/generic.h"
+#include "../../data/serialize/primitive.h"
+#include "../../data/serialize/variable_length_integer.h"
+#include "../../data/serialize/generic.h"
 
 namespace slib
 {

@@ -65,6 +65,7 @@ namespace slib
 
 	};
 
+	class TimeZone;
 
 	template <>
 	class SLIB_EXPORT Atomic<TimeZone>

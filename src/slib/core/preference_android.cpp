@@ -26,9 +26,9 @@
 
 #include "slib/core/preference.h"
 
-#include "slib/core/android/platform.h"
-#include "slib/core/android/context.h"
-#include "slib/core/android/preference.h"
+#include "slib/platform.h"
+#include "slib/platform/android/context.h"
+#include "slib/platform/android/preference.h"
 
 namespace slib
 {

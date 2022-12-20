@@ -27,8 +27,8 @@
 #include "slib/media/camera.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/platform.h"
 #include "slib/core/safe_static.h"
+#include "slib/platform.h"
 
 namespace slib
 {

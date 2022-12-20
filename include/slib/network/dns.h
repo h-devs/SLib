@@ -26,7 +26,7 @@
 #include "socket_address.h"
 #include "async.h"
 
-#include "../core/json.h"
+#include "../data/json.h"
 #include "../crypto/aes.h"
 
 /********************************************************************
@@ -624,5 +624,5 @@ namespace slib
 	};
 
 }
-    
+
 #endif

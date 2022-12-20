@@ -27,9 +27,9 @@
 #include "slib/graphics/font.h"
 
 #include "slib/core/hash_map.h"
-#include "slib/core/memory_reader.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/shared.h"
+#include "slib/io/memory_reader.h"
 #include "slib/graphics/platform.h"
 
 namespace slib

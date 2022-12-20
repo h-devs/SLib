@@ -22,6 +22,7 @@
 
 #include <slib/core.h>
 #include <slib/ui.h>
+#include <slib/io/file.h>
 
 #include "sapp.h"
 

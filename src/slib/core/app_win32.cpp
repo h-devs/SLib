@@ -26,9 +26,9 @@
 
 #include "slib/core/app.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/system.h"
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {

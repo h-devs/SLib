@@ -28,7 +28,7 @@
 
 #include "../core/thread_pool.h"
 #include "../core/hash_map.h"
-#include "../core/file.h"
+#include "../io/file.h"
 
 namespace slib
 {

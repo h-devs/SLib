@@ -28,7 +28,7 @@
 
 #include "slib/core/event.h"
 #include "slib/core/safe_static.h"
-#include "slib/core/win32/windows.h"
+#include "slib/platform/win32/windows.h"
 
 #pragma comment(lib, "advapi32.lib")
 

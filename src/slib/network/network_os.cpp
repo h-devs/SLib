@@ -121,8 +121,8 @@ namespace slib
 #include <ws2tcpip.h>
 #include <netioapi.h>
 
-#include "slib/core/platform.h"
-#include "slib/network/dl/win32/iphlpapi.h"
+#include "slib/platform.h"
+#include "slib/dl/win32/iphlpapi.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -250,7 +250,7 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_ANDROID)
 
-#include "slib/core/platform.h"
+#include "slib/platform.h"
 
 namespace slib
 {
@@ -540,7 +540,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_APPLE) || defined(SLIB_PLATFORM_IS_FREEBSD)
 #include <stdio.h>
 #elif defined(SLIB_PLATFORM_IS_LINUX)
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #endif
 
 namespace slib
@@ -581,28 +581,26 @@ namespace slib
 
 #elif defined(SLIB_PLATFORM_IS_MACOS) || defined(SLIB_PLATFORM_IS_FREEBSD)
 
-		String command = String::concat("netstat -nr | grep default | grep ", _interfaceName);
+		String command = String::concat(StringView::literal("netstat -nr | grep default | grep "), _interfaceName);
 		FILE* fp = popen(command.getData(), "r");
-		char buf[1024];
-		*buf = 0;
 		if (fp) {
+			char buf[1024];
+			*buf = 0;
 			fgets(buf, sizeof(buf), fp);
 			pclose(fp);
-		}
-		if (!(*buf)) {
-			return IPv4Address::zero();
-		}
-		buf[sizeof(buf) - 1] = 0;
-		if (!(Base::equalsMemory(buf, "default ", 8))) {
-			return IPv4Address::zero();
-		}
-		char* p = buf + 8;
-		while (*p == ' ') {
-			p++;
-		}
-		char* e = (char*)(Base::findMemory(p, buf + sizeof(buf) - 1 - p, ' '));
-		if (e) {
-			return IPv4Address(StringView(p, e - p));
+			if (*buf) {
+				if (Base::equalsMemory(buf, "default ", 8)) {
+					char* p = buf + 8;
+					while (*p == ' ') {
+						p++;
+					}
+					IPv4Address ret;
+					sl_reg iRet = IPv4Address::parse(&ret, buf, p - buf, sizeof(buf) - 1);
+					if (iRet > 0 && buf[iRet] == ' ') {
+						return ret;
+					}
+				}
+			}
 		}
 
 #elif defined(SLIB_PLATFORM_IS_LINUX)

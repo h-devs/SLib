@@ -22,9 +22,8 @@
 
 #include "slib/ui/photo.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/variant.h"
-
 #include "slib/ui/core.h"
 #include "slib/ui/camera_view.h"
 #include "slib/ui/common_dialogs.h"

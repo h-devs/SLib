@@ -25,10 +25,10 @@
 #include "slib/network/event.h"
 #include "slib/core/log.h"
 #include "slib/core/event.h"
-#include "slib/core/file.h"
 #include "slib/core/system.h"
 #include "slib/core/handle_ptr.h"
-#include "slib/core/io/impl.h"
+#include "slib/io/file.h"
+#include "slib/io/priv/impl.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 

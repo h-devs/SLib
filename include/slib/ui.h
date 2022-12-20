@@ -28,12 +28,9 @@
 #include "ui/core.h"
 #include "ui/cursor.h"
 #include "ui/event.h"
-#include "ui/drag.h"
-#include "ui/text.h"
 #include "ui/screen.h"
 #include "ui/window.h"
 #include "ui/menu.h"
-#include "ui/adapter.h"
 #include "ui/common_dialogs.h"
 #include "ui/toast.h"
 
@@ -83,7 +80,6 @@
 #include "ui/video_view.h"
 #include "ui/audio_view.h"
 #include "ui/camera_view.h"
-#include "ui/qr_code_scanner.h"
 
 #include "ui/transition.h"
 #include "ui/motion_tracker.h"
@@ -94,16 +90,13 @@
 #include "ui/mobile_game.h"
 
 #include "ui/clipboard.h"
-#include "ui/sound.h"
 #include "ui/system_tray_icon.h"
 #include "ui/photo.h"
 #include "ui/screen_capture.h"
 #include "ui/global_event_monitor.h"
 
 #include "ui/notification.h"
-#include "ui/xgpush.h"
 
-#include "ui/chat_view.h"
 #include "ui/pdf_view.h"
 #include "ui/chromium.h"
 

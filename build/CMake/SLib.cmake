@@ -33,12 +33,8 @@ link_directories(
  "${SLIB_LIB_PATH}"
 )
 
-set (SLIB_CORE_FILES
- "${SLIB_PATH}/src/slib/core/animation.cpp"
+set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/core/app.cpp"
- "${SLIB_PATH}/src/slib/core/async.cpp"
- "${SLIB_PATH}/src/slib/core/async_epoll.cpp"
- "${SLIB_PATH}/src/slib/core/async_unix.cpp"
  "${SLIB_PATH}/src/slib/core/atomic.cpp"
  "${SLIB_PATH}/src/slib/core/base.cpp"
  "${SLIB_PATH}/src/slib/core/charset.cpp"
@@ -51,21 +47,13 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/dynamic_library.cpp"
  "${SLIB_PATH}/src/slib/core/dynamic_library_unix.cpp"
  "${SLIB_PATH}/src/slib/core/event.cpp"
- "${SLIB_PATH}/src/slib/core/file.cpp"
- "${SLIB_PATH}/src/slib/core/file_unix.cpp"
  "${SLIB_PATH}/src/slib/core/hash.cpp"
- "${SLIB_PATH}/src/slib/core/io.cpp"
- "${SLIB_PATH}/src/slib/core/json.cpp"
  "${SLIB_PATH}/src/slib/core/locale.cpp"
  "${SLIB_PATH}/src/slib/core/log.cpp"
- "${SLIB_PATH}/src/slib/core/math.cpp"
  "${SLIB_PATH}/src/slib/core/memory.cpp"
  "${SLIB_PATH}/src/slib/core/mutex.cpp"
  "${SLIB_PATH}/src/slib/core/named_instance.cpp"
  "${SLIB_PATH}/src/slib/core/object.cpp"
- "${SLIB_PATH}/src/slib/core/parse.cpp"
- "${SLIB_PATH}/src/slib/core/pipe.cpp"
- "${SLIB_PATH}/src/slib/core/performance.cpp"
  "${SLIB_PATH}/src/slib/core/preference.cpp"
  "${SLIB_PATH}/src/slib/core/process.cpp"
  "${SLIB_PATH}/src/slib/core/process_unix.cpp"
@@ -77,11 +65,11 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/safe_static.cpp"
  "${SLIB_PATH}/src/slib/core/service.cpp"
  "${SLIB_PATH}/src/slib/core/service_manager.cpp"
- "${SLIB_PATH}/src/slib/core/setting.cpp"
  "${SLIB_PATH}/src/slib/core/spin_lock.cpp"
  "${SLIB_PATH}/src/slib/core/string.cpp"
  "${SLIB_PATH}/src/slib/core/string_buffer.cpp"
  "${SLIB_PATH}/src/slib/core/string_param.cpp"
+ "${SLIB_PATH}/src/slib/core/stringx.cpp"
  "${SLIB_PATH}/src/slib/core/system.cpp"
  "${SLIB_PATH}/src/slib/core/system_unix.cpp"
  "${SLIB_PATH}/src/slib/core/thread.cpp"
@@ -90,24 +78,52 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/core/time_unix.cpp"
  "${SLIB_PATH}/src/slib/core/timer.cpp"
  "${SLIB_PATH}/src/slib/core/variant.cpp"
- "${SLIB_PATH}/src/slib/core/xml.cpp"
+
+ "${SLIB_PATH}/src/slib/data/asn1.cpp"
+ "${SLIB_PATH}/src/slib/data/base64.cpp"
+ "${SLIB_PATH}/src/slib/data/brotli.cpp"
+ "${SLIB_PATH}/src/slib/data/compress.cpp"
+ "${SLIB_PATH}/src/slib/data/contact.cpp"
+ "${SLIB_PATH}/src/slib/data/crc32c.cpp"
+ "${SLIB_PATH}/src/slib/data/ini.cpp"
+ "${SLIB_PATH}/src/slib/data/json.cpp"
+ "${SLIB_PATH}/src/slib/data/lzw.cpp"
+ "${SLIB_PATH}/src/slib/data/xml.cpp"
+ "${SLIB_PATH}/src/slib/data/zlib.cpp"
+ "${SLIB_PATH}/src/slib/data/zstd.cpp"
+
+ "${SLIB_PATH}/src/slib/math/bigint.cpp"
+ "${SLIB_PATH}/src/slib/math/calculator.cpp"
+ "${SLIB_PATH}/src/slib/math/decimal128.cpp"
+ "${SLIB_PATH}/src/slib/math/fft.cpp"
+ "${SLIB_PATH}/src/slib/math/int128.cpp"
+ "${SLIB_PATH}/src/slib/math/math.cpp"
+ "${SLIB_PATH}/src/slib/math/plot.cpp"
+ "${SLIB_PATH}/src/slib/math/plot_ui.cpp"
+
+ "${SLIB_PATH}/src/slib/io/async.cpp"
+ "${SLIB_PATH}/src/slib/io/async_epoll.cpp"
+ "${SLIB_PATH}/src/slib/io/async_unix.cpp"
+ "${SLIB_PATH}/src/slib/io/file.cpp"
+ "${SLIB_PATH}/src/slib/io/file_unix.cpp"
+ "${SLIB_PATH}/src/slib/io/io.cpp"
+ "${SLIB_PATH}/src/slib/io/pipe.cpp"
 
  "${SLIB_PATH}/src/slib/crypto/aes.cpp"
- "${SLIB_PATH}/src/slib/crypto/asn1.cpp"
- "${SLIB_PATH}/src/slib/crypto/base64.cpp"
  "${SLIB_PATH}/src/slib/crypto/block_cipher.cpp"
  "${SLIB_PATH}/src/slib/crypto/blowfish.cpp"
  "${SLIB_PATH}/src/slib/crypto/certificate.cpp"
  "${SLIB_PATH}/src/slib/crypto/chacha.cpp"
- "${SLIB_PATH}/src/slib/crypto/compress.cpp"
- "${SLIB_PATH}/src/slib/crypto/crc32c.cpp"
  "${SLIB_PATH}/src/slib/crypto/des.cpp"
  "${SLIB_PATH}/src/slib/crypto/ecc.cpp"
  "${SLIB_PATH}/src/slib/crypto/gcm.cpp"
  "${SLIB_PATH}/src/slib/crypto/jwt.cpp"
  "${SLIB_PATH}/src/slib/crypto/jwt_openssl.cpp"
- "${SLIB_PATH}/src/slib/crypto/lzw.cpp"
  "${SLIB_PATH}/src/slib/crypto/md5.cpp"
+ "${SLIB_PATH}/src/slib/crypto/oauth.cpp"
+ "${SLIB_PATH}/src/slib/crypto/oauth_server.cpp"
+ "${SLIB_PATH}/src/slib/crypto/oauth_server_openssl.cpp"
+ "${SLIB_PATH}/src/slib/crypto/oauth_ui.cpp"
  "${SLIB_PATH}/src/slib/crypto/openssl.cpp"
  "${SLIB_PATH}/src/slib/crypto/openssl_crypto.cpp"
  "${SLIB_PATH}/src/slib/crypto/openssl_chacha_poly1305.cpp"
@@ -119,16 +135,6 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/crypto/sha2.cpp"
  "${SLIB_PATH}/src/slib/crypto/sha3.cpp"
  "${SLIB_PATH}/src/slib/crypto/tls.cpp"
- "${SLIB_PATH}/src/slib/crypto/zlib.cpp"
- "${SLIB_PATH}/src/slib/crypto/zstd.cpp"
-
- "${SLIB_PATH}/src/slib/math/bigint.cpp"
- "${SLIB_PATH}/src/slib/math/calculator.cpp"
- "${SLIB_PATH}/src/slib/math/decimal128.cpp"
- "${SLIB_PATH}/src/slib/math/fft.cpp"
- "${SLIB_PATH}/src/slib/math/int128.cpp"
- "${SLIB_PATH}/src/slib/math/plot.cpp"
- "${SLIB_PATH}/src/slib/math/plot_ui.cpp"
 
  "${SLIB_PATH}/src/slib/network/arp.cpp"
  "${SLIB_PATH}/src/slib/network/dbip.cpp"
@@ -163,38 +169,9 @@ set (SLIB_CORE_FILES
  "${SLIB_PATH}/src/slib/network/url_request.cpp"
  "${SLIB_PATH}/src/slib/network/url_request_param.cpp"
  "${SLIB_PATH}/src/slib/network/url_request_curl.cpp"
-)
-if (ANDROID)
- set (SLIB_CORE_PLATFORM_FILES
-  "${SLIB_PATH}/src/slib/core/app_android.cpp"
-  "${SLIB_PATH}/src/slib/core/asset_android.cpp"
-  "${SLIB_PATH}/src/slib/core/charset_android.cpp"
-  "${SLIB_PATH}/src/slib/core/preference_android.cpp"
-  "${SLIB_PATH}/src/slib/core/system_android.cpp"
-  "${SLIB_PATH}/src/slib/network/url_request_android.cpp"
- )
-else()
- set (SLIB_CORE_PLATFORM_FILES
-  "${SLIB_PATH}/src/slib/core/dl_linux_cap.cpp"
-  "${SLIB_PATH}/src/slib/core/dl_linux_glib.cpp"
-  "${SLIB_PATH}/src/slib/core/dl_linux_libc.cpp"
-  "${SLIB_PATH}/src/slib/core/dl_linux_rt.cpp"
-  "${SLIB_PATH}/src/slib/network/dl_linux_curl.cpp"
-  "${SLIB_PATH}/src/slib/network/dl_linux_pcap.cpp"
-
-  "${SLIB_PATH}/src/slib/core/app_linux.cpp"
-  "${SLIB_PATH}/src/slib/core/asset.cpp"
-  "${SLIB_PATH}/src/slib/core/charset_icu.cpp"
-  "${SLIB_PATH}/src/slib/core/preference_linux.cpp"
-  "${SLIB_PATH}/src/slib/core/service_manager_linux.cpp"
-  "${SLIB_PATH}/src/slib/core/wrapped_symbols.cpp"
-  "${SLIB_PATH}/src/slib/network/packet_analyzer.cpp"
-  "${SLIB_PATH}/src/slib/network/pcap.cpp"
-  "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
- )
-endif()
-
-set (SLIB_EXTRA_FILES
+ "${SLIB_PATH}/src/slib/network/web_service.cpp"
+ 
+ "${SLIB_PATH}/src/slib/graphics/animation.cpp"
  "${SLIB_PATH}/src/slib/graphics/bitmap.cpp"
  "${SLIB_PATH}/src/slib/graphics/bitmap_data.cpp"
  "${SLIB_PATH}/src/slib/graphics/bitmap_ext.cpp"
@@ -205,8 +182,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/color.cpp"
  "${SLIB_PATH}/src/slib/graphics/drawable.cpp"
  "${SLIB_PATH}/src/slib/graphics/drawable_ext.cpp"
- "${SLIB_PATH}/src/slib/graphics/emoji.cpp"
- "${SLIB_PATH}/src/slib/graphics/emoji_png.cpp"
  "${SLIB_PATH}/src/slib/graphics/font.cpp"
  "${SLIB_PATH}/src/slib/graphics/font_atlas.cpp"
  "${SLIB_PATH}/src/slib/graphics/freetype.cpp"
@@ -222,7 +197,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/graphics/jpeg.cpp"
  "${SLIB_PATH}/src/slib/graphics/pen.cpp"
  "${SLIB_PATH}/src/slib/graphics/sfnt.cpp"
- "${SLIB_PATH}/src/slib/graphics/zxing.cpp"
 
  "${SLIB_PATH}/src/slib/render/opengl_gl.cpp"
  "${SLIB_PATH}/src/slib/render/opengl_gles.cpp"
@@ -250,6 +224,8 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/media/video_frame.cpp"
  
  "${SLIB_PATH}/src/slib/device/device.cpp"
+ "${SLIB_PATH}/src/slib/device/disk.cpp"
+ "${SLIB_PATH}/src/slib/device/performance.cpp"
  "${SLIB_PATH}/src/slib/device/sensor.cpp"
 
  "${SLIB_PATH}/src/slib/storage/fuse.cpp"
@@ -283,48 +259,9 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/geo/globe.cpp"
  "${SLIB_PATH}/src/slib/geo/latlon.cpp"
  
- "${SLIB_PATH}/src/slib/service/captcha.cpp"
- "${SLIB_PATH}/src/slib/service/chat.cpp"
- "${SLIB_PATH}/src/slib/service/chat_client.cpp"
- "${SLIB_PATH}/src/slib/service/chat_sqlite.cpp"
- "${SLIB_PATH}/src/slib/service/fcm_service.cpp"
- "${SLIB_PATH}/src/slib/service/ginger.cpp"
- "${SLIB_PATH}/src/slib/service/keygen.cpp"
- "${SLIB_PATH}/src/slib/service/push_notification.cpp"
- "${SLIB_PATH}/src/slib/service/web_service.cpp"
- "${SLIB_PATH}/src/slib/service/xgpush_service.cpp"
-
- "${SLIB_PATH}/src/slib/social/alipay.cpp"
- "${SLIB_PATH}/src/slib/social/alipay_openssl.cpp"
- "${SLIB_PATH}/src/slib/social/alipay_sdk.cpp"
- "${SLIB_PATH}/src/slib/social/contact.cpp"
- "${SLIB_PATH}/src/slib/social/ebay.cpp"
- "${SLIB_PATH}/src/slib/social/etsy.cpp"
- "${SLIB_PATH}/src/slib/social/etsy_ui.cpp"
- "${SLIB_PATH}/src/slib/social/facebook.cpp"
- "${SLIB_PATH}/src/slib/social/facebook_ui.cpp"
- "${SLIB_PATH}/src/slib/social/facebook_sdk.cpp"
- "${SLIB_PATH}/src/slib/social/instagram.cpp"
- "${SLIB_PATH}/src/slib/social/linkedin.cpp"
- "${SLIB_PATH}/src/slib/social/linkedin_ui.cpp"
- "${SLIB_PATH}/src/slib/social/oauth.cpp"
- "${SLIB_PATH}/src/slib/social/oauth_ui.cpp"
- "${SLIB_PATH}/src/slib/social/oauth_server.cpp"
- "${SLIB_PATH}/src/slib/social/oauth_server_openssl.cpp"
- "${SLIB_PATH}/src/slib/social/paypal.cpp"
- "${SLIB_PATH}/src/slib/social/paypal_ui.cpp"
- "${SLIB_PATH}/src/slib/social/pinterest.cpp"
- "${SLIB_PATH}/src/slib/social/pinterest_ui.cpp"
- "${SLIB_PATH}/src/slib/social/twitter.cpp"
- "${SLIB_PATH}/src/slib/social/wechat.cpp"
- "${SLIB_PATH}/src/slib/social/wechat_sdk.cpp"
-
- "${SLIB_PATH}/src/slib/storage/disk.cpp"
-
  "${SLIB_PATH}/src/slib/ui/button.cpp"
  "${SLIB_PATH}/src/slib/ui/camera_view.cpp"
  "${SLIB_PATH}/src/slib/ui/clipboard.cpp"
- "${SLIB_PATH}/src/slib/ui/chat_view.cpp"
  "${SLIB_PATH}/src/slib/ui/check_box.cpp"
  "${SLIB_PATH}/src/slib/ui/chromium.cpp"
  "${SLIB_PATH}/src/slib/ui/collection_view.cpp"
@@ -353,7 +290,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/pdf_view.cpp"
  "${SLIB_PATH}/src/slib/ui/picker_view.cpp"
  "${SLIB_PATH}/src/slib/ui/progress_bar.cpp"
- "${SLIB_PATH}/src/slib/ui/qr_code_scanner.cpp"
  "${SLIB_PATH}/src/slib/ui/radio_button.cpp"
  "${SLIB_PATH}/src/slib/ui/refresh_view.cpp"
  "${SLIB_PATH}/src/slib/ui/render_view.cpp"
@@ -381,8 +317,6 @@ set (SLIB_EXTRA_FILES
  "${SLIB_PATH}/src/slib/ui/ui_menu.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_notification.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_notification_gtk.cpp"
- "${SLIB_PATH}/src/slib/ui/ui_notification_fcm.cpp"
- "${SLIB_PATH}/src/slib/ui/ui_notification_xgpush.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_photo.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_platform.cpp"
  "${SLIB_PATH}/src/slib/ui/ui_resource.cpp"
@@ -410,7 +344,15 @@ set (SLIB_EXTRA_FILES
 )
 
 if (ANDROID)
- set (SLIB_EXTRA_PLATFORM_FILES
+ set (SLIB_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/app_android.cpp"
+  "${SLIB_PATH}/src/slib/core/asset_android.cpp"
+  "${SLIB_PATH}/src/slib/core/charset_android.cpp"
+  "${SLIB_PATH}/src/slib/core/preference_android.cpp"
+  "${SLIB_PATH}/src/slib/core/system_android.cpp"
+
+  "${SLIB_PATH}/src/slib/network/url_request_android.cpp"
+
   "${SLIB_PATH}/src/slib/graphics/bitmap_android.cpp"
   "${SLIB_PATH}/src/slib/graphics/brush_android.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_android.cpp"
@@ -426,11 +368,6 @@ if (ANDROID)
   "${SLIB_PATH}/src/slib/device/device_android.cpp"
   "${SLIB_PATH}/src/slib/device/sensor_android.cpp"
 
-  "${SLIB_PATH}/src/slib/social/alipay_android.cpp"
-  "${SLIB_PATH}/src/slib/social/facebook_android.cpp"
-  "${SLIB_PATH}/src/slib/social/instagram_android.cpp"
-  "${SLIB_PATH}/src/slib/social/wechat_android.cpp"
-
   "${SLIB_PATH}/src/slib/ui/clipboard_android.cpp"
   "${SLIB_PATH}/src/slib/ui/common_dialogs_android.cpp"
   "${SLIB_PATH}/src/slib/ui/edit_view_android.cpp"
@@ -442,8 +379,6 @@ if (ANDROID)
   "${SLIB_PATH}/src/slib/ui/ui_core_android.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_event_android.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_notification_android.cpp"
-  "${SLIB_PATH}/src/slib/ui/ui_notification_fcm_android.cpp"
-  "${SLIB_PATH}/src/slib/ui/ui_notification_xgpush_android.cpp"
   "${SLIB_PATH}/src/slib/ui/ui_photo_android.cpp"
   "${SLIB_PATH}/src/slib/ui/view_android.cpp"
   "${SLIB_PATH}/src/slib/ui/web_view_android.cpp"
@@ -452,14 +387,17 @@ if (ANDROID)
   "${SLIB_PATH}/external/src/android/cpu-features.c"
  )
 else()
- set (SLIB_EXTRA_PLATFORM_FILES
-  "${SLIB_PATH}/src/slib/graphics/dl_linux_cairo.cpp"
-  "${SLIB_PATH}/src/slib/render/dl_linux_gl.cpp"
-  "${SLIB_PATH}/src/slib/media/dl_linux_alsa.cpp"
-  "${SLIB_PATH}/src/slib/ui/dl_linux_gtk.cpp"
-  "${SLIB_PATH}/src/slib/ui/dl_linux_gdk.cpp"
-  "${SLIB_PATH}/src/slib/ui/dl_linux_x11.cpp"
-  "${SLIB_PATH}/src/slib/ui/dl_linux_app_indicator.cpp"
+ set (SLIB_PLATFORM_FILES
+  "${SLIB_PATH}/src/slib/core/app_linux.cpp"
+  "${SLIB_PATH}/src/slib/core/asset.cpp"
+  "${SLIB_PATH}/src/slib/core/charset_icu.cpp"
+  "${SLIB_PATH}/src/slib/core/preference_linux.cpp"
+  "${SLIB_PATH}/src/slib/core/service_manager_linux.cpp"
+  "${SLIB_PATH}/src/slib/core/wrapped_symbols.cpp"
+
+  "${SLIB_PATH}/src/slib/network/packet_analyzer.cpp"
+  "${SLIB_PATH}/src/slib/network/pcap.cpp"
+  "${SLIB_PATH}/src/slib/network/tap_unix.cpp"
 
   "${SLIB_PATH}/src/slib/db/mongodb.cpp"
   "${SLIB_PATH}/src/slib/db/mysql.cpp"
@@ -479,6 +417,7 @@ else()
   "${SLIB_PATH}/src/slib/media/media_player_linux.cpp"
 
   "${SLIB_PATH}/src/slib/device/device_linux.cpp"
+  "${SLIB_PATH}/src/slib/device/disk_linux.cpp"
 
   "${SLIB_PATH}/src/slib/storage/storage_volume_linux.cpp"
 
@@ -503,15 +442,29 @@ else()
   "${SLIB_PATH}/src/slib/ui/view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/web_view_gtk.cpp"
   "${SLIB_PATH}/src/slib/ui/window_gtk.cpp"
+
+  "${SLIB_PATH}/src/slib/platform/linux/dl_alsa.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_app_indicator.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_cap.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_curl.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_gdk.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_gl.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_glib.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_gtk.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_libc.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_pcap.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_rt.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_x11.cpp"
+  "${SLIB_PATH}/src/slib/platform/linux/dl_cairo.cpp"
  )
 endif()
 
 if (ANDROID)
  set (SLIB_JAVA_FILES
-  "${SLIB_PATH}/src/slib/core/java.cpp"
-  "${SLIB_PATH}/src/slib/core/java_lang.cpp"
-  "${SLIB_PATH}/src/slib/core/java_io.cpp"
-  "${SLIB_PATH}/src/slib/core/java_util.cpp"
+  "${SLIB_PATH}/src/slib/platform/java/io.cpp"
+  "${SLIB_PATH}/src/slib/platform/java/java.cpp"
+  "${SLIB_PATH}/src/slib/platform/java/lang.cpp"
+  "${SLIB_PATH}/src/slib/platform/java/util.cpp"
  )
 else()
  set (SLIB_JAVA_FILES "")
@@ -519,17 +472,17 @@ endif()
 
 if (ANDROID)
  set (SLIB_ANDROID_FILES
-  "${SLIB_PATH}/src/slib/core/android_context.cpp"
-  "${SLIB_PATH}/src/slib/core/android_log.cpp"
-  "${SLIB_PATH}/src/slib/core/android_platform.cpp"
-  "${SLIB_PATH}/src/slib/core/android_view.cpp"
+  "${SLIB_PATH}/src/slib/platform/android/context.cpp"
+  "${SLIB_PATH}/src/slib/platform/android/log.cpp"
+  "${SLIB_PATH}/src/slib/platform/android/platform.cpp"
+  "${SLIB_PATH}/src/slib/platform/android/view.cpp"
  )
 else()
  set (SLIB_JAVA_FILES "")
 endif()
 
 if (SLIB_X86_64)
- SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/crypto/crc32c.cpp PROPERTY COMPILE_FLAGS -msse4.2 )
+ SET_PROPERTY( SOURCE ${SLIB_PATH}/src/slib/data/crc32c.cpp PROPERTY COMPILE_FLAGS -msse4.2 )
 endif()
 
 set (EXTERNAL_SRC_DIR "${SLIB_PATH}/external/src")
@@ -546,16 +499,12 @@ set (
  "${EXTERNAL_SRC_DIR}/lz4/lz4_unity.c"
  "${EXTERNAL_SRC_DIR}/lmdb/lmdb_unity.c"
  "${EXTERNAL_SRC_DIR}/leveldb/leveldb_unity.cc"
- "${EXTERNAL_SRC_DIR}/noto_emoji/noto_emoji.cpp"
- "${EXTERNAL_SRC_DIR}/noto_emoji/noto_emoji_png.cpp"
 )
 
 add_library (
  slib STATIC
- ${SLIB_CORE_FILES}
- ${SLIB_CORE_PLATFORM_FILES}
- ${SLIB_EXTRA_FILES}
- ${SLIB_EXTRA_PLATFORM_FILES}
+ ${SLIB_SOURCE_FILES}
+ ${SLIB_PLATFORM_FILES}
  ${SLIB_JAVA_FILES}
  ${SLIB_ANDROID_FILES}
  ${SLIB_EXTERNAL_FILES}

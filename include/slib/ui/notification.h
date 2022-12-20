@@ -25,15 +25,15 @@
 
 #include "definition.h"
 
-#include "../core/function.h"
+#include "../data/json.h"
 #include "../core/flags.h"
-#include "../service/push_notification.h"
-#include "../graphics/image.h"
+#include "../graphics/color.h"
 
 namespace slib
 {
 
 	class UserNotification;
+	class Drawable;
 
 	class SLIB_EXPORT UserNotificationAttachment
 	{
@@ -180,6 +180,29 @@ namespace slib
 
 	};
 
+	class SLIB_EXPORT PushNotificationMessage
+	{
+	public:
+		String title;
+		String content;
+
+		Json data; // custom message
+
+		// Sending Params
+		sl_int32 badge;
+		String sound;
+
+		// Received Params
+		sl_bool flagClicked;
+		sl_bool flagBackground;
+
+	public:
+		PushNotificationMessage();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PushNotificationMessage)
+
+	};
+
 	class SLIB_EXPORT PushNotificationClient : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -233,24 +256,6 @@ namespace slib
 
 	public:
 		static Ref<APNs> getInstance();
-
-	};
-
-	// Firebase Cloud Messaging
-	class SLIB_EXPORT FCM : public PushNotificationClient
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		FCM();
-
-		~FCM();
-
-	public:
-		void onStart() override;
-
-	public:
-		static Ref<FCM> getInstance();
 
 	};
 

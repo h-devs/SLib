@@ -28,13 +28,13 @@
 
 #include "slib/ui/app.h"
 #include "slib/ui/screen.h"
-#include "slib/ui/gtk/gdbus.h"
 #include "slib/graphics/image.h"
 #include "slib/network/ipc.h"
-#include "slib/core/json.h"
-#include "slib/core/memory_output.h"
+#include "slib/data/json.h"
+#include "slib/io/memory_output.h"
 #include "slib/core/stringify.h"
 #include "slib/core/safe_static.h"
+#include "slib/ui/platform.h"
 
 namespace slib
 {
@@ -153,7 +153,7 @@ namespace slib
 				if (!funcCallSync) {
 					return sl_false;
 				}
-				GDBusConnection* connection = gtk::GDBus::getDefaultConnection();
+				GDBusConnection* connection = UIPlatform::getDefaultDBusConnection();
 				if (!connection) {
 					return sl_false;
 				}
@@ -451,6 +451,26 @@ namespace slib
 			}
 		}
 		return g_app;
+	}
+
+	GDBusConnection* UIPlatform::getDefaultDBusConnection()
+	{
+		GtkApplication* app = getApp();
+		if (app) {
+			auto funcGetDBusConnection = gio::getApi_g_application_get_dbus_connection();
+			if (funcGetDBusConnection) {
+				GDBusConnection* connection = funcGetDBusConnection((GApplication*)app);
+				if (connection) {
+					g_object_ref(connection);
+					return connection;
+				}
+			}
+		}
+		auto funcGetSync = gio::getApi_g_bus_get_sync();
+		if (funcGetSync) {
+			return funcGetSync(G_BUS_TYPE_SESSION, sl_null, sl_null);
+		}
+		return sl_null;
 	}
 
 	void UIPlatform::getGdkColor(const Color& color, GdkColor* _out)

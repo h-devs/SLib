@@ -1,4 +1,4 @@
-#include <slib/core/platform.h>
+#include <slib/platform.h>
 
 #include "app.h"
 

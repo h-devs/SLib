@@ -27,13 +27,13 @@
 #include "slib/network/async.h"
 #include "slib/network/os.h"
 #include "slib/core/thread.h"
-#include "slib/core/serialize.h"
 #include "slib/core/dispatch_loop.h"
-#include "slib/core/expiring_map.h"
 #include "slib/core/system.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/crypto/chacha.h"
 #include "slib/crypto/serialize/ecc.h"
+#include "slib/data/expiring_map.h"
+#include "slib/data/serialize.h"
 
 #define NODE_ID_SIZE SLIB_P2P_NODE_ID_SIZE
 

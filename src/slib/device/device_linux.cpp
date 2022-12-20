@@ -26,8 +26,9 @@
 
 #include "slib/device/device.h"
 
-#include "slib/ui/dl/linux/gdk.h"
-#include "slib/ui/dl/linux/gtk.h"
+#include "slib/io/file.h"
+#include "slib/dl/linux/gdk.h"
+#include "slib/dl/linux/gtk.h"
 
 namespace slib
 {
@@ -53,6 +54,12 @@ namespace slib
 			return ret;
 		}
 		return Sizei::zero();
+	}
+
+	// Requires root privilege
+	String Device::getBoardSerialNumber() 
+	{
+		return File::readAllTextUTF8("/sys/devices/virtual/dmi/id/chassis_serial");
 	}
 
 }

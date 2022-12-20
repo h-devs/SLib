@@ -23,15 +23,14 @@
 #ifndef CHECKHEADER_SLIB_CORE_VARIANT
 #define CHECKHEADER_SLIB_CORE_VARIANT
 
-#include "string.h"
 #include "time.h"
 #include "memory.h"
 #include "hash_map.h"
 #include "promise.h"
-#include "string_cast.h"
-#include "object_id.h"
-#include "variant_def.h"
-#include "variant_type.h"
+#include "priv/string_cast.h"
+#include "priv/variant_def.h"
+#include "priv/variant_type.h"
+#include "../data/object_id.h"
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 #include <string>

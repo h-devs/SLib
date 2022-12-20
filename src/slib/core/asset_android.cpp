@@ -25,12 +25,10 @@
 #if defined(SLIB_PLATFORM_IS_ANDROID)
 
 #include "slib/core/asset.h"
-#include "slib/core/android/asset.h"
-
-#include "slib/core/java.h"
-#include "slib/core/java/input_stream.h"
-#include "slib/core/android/platform.h"
-#include "slib/core/android/context.h"
+#include "slib/platform.h"
+#include "slib/platform/java/input_stream.h"
+#include "slib/platform/android/context.h"
+#include "slib/platform/android/asset.h"
 
 namespace slib
 {

@@ -478,10 +478,6 @@ namespace slib
 				prefix = "drawer";
 				pN = &nAutoIncreaseNameDrawer;
 				break;
-			case SAppLayoutItemType::Chat:
-				prefix = "chat";
-				pN = &nAutoIncreaseNameChat;
-				break;
 			case SAppLayoutItemType::Refresh:
 				prefix = "refresh";
 				pN = &nAutoIncreaseNameRefresh;
@@ -601,8 +597,6 @@ namespace slib
 			type = SAppLayoutItemType::Camera;
 		} else if (strType == "drawer") {
 			type = SAppLayoutItemType::Drawer;
-		} else if (strType == "chat") {
-			type = SAppLayoutItemType::Chat;
 		} else if (strType == "refresh") {
 			type = SAppLayoutItemType::Refresh;
 		} else if (strType == "listbox" || strType == "list-box") {

@@ -26,11 +26,11 @@
 
 #include "slib/ui/event.h"
 
-#include "slib/ui/core.h"
-#include "slib/ui/platform.h"
 #include "slib/core/event.h"
 #include "slib/core/hash_table.h"
 #include "slib/core/safe_static.h"
+#include "slib/ui/core.h"
+#include "slib/ui/platform.h"
 
 #include "gdk/gdkkeysyms.h"
 
@@ -269,7 +269,7 @@ namespace slib
 		return Keycode::Unknown;
 	}
 
-	sl_bool UI::checkCapsLockOn()
+	sl_bool UI::isCapsLockOn()
 	{
 		if (UI::isUiThread()) {
 			GdkKeymap* keymap = gdk_keymap_get_default();
@@ -286,7 +286,7 @@ namespace slib
 			return sl_false;
 		}
 		UI::dispatchToUiThreadUrgently([context]() {
-			context->flagCapslockOn = UI::checkCapsLockOn();
+			context->flagCapslockOn = UI::isCapsLockOn();
 			context->eventCapslock->set();
 		});
 		context->eventCapslock->wait(100);

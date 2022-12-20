@@ -24,6 +24,9 @@
 #define CHECKHEADER_SLIB_DEVICE_HEADER
 
 #include "device/device.h"
+#include "device/cpu.h"
+#include "device/physical_memory.h"
+#include "device/disk.h"
 #include "device/sensor.h"
 
 #endif

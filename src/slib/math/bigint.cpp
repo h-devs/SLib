@@ -22,7 +22,7 @@
 
 #include "slib/math/bigint.h"
 
-#include "slib/core/math.h"
+#include "slib/math/math.h"
 #include "slib/core/variant.h"
 #include "slib/core/scoped_buffer.h"
 #include "slib/core/object_op.h"

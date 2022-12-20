@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,10 @@
 #define CHECKHEADER_SLIB_CRYPTO_DEFINITION
 
 #ifdef SLIB_COMPILE_LIB
-#   ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
-#       define PRIV_SLIB_INCLUDED_OBJECT_TYPES
-#       include "object_types.h"
-#   endif
+#	ifndef PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#		define PRIV_SLIB_INCLUDED_OBJECT_TYPES
+#		include "object_types.h"
+#	endif
 #endif
 
 #include "../core/definition.h"

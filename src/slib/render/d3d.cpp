@@ -25,7 +25,7 @@
 #if defined(SLIB_RENDER_SUPPORT_D3D)
 
 #include "slib/render/d3d.h"
-#include "slib/render/dl/win32/d3d.h"
+#include "slib/dl/win32/d3d.h"
 
 namespace slib
 {

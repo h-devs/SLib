@@ -22,13 +22,11 @@
 
 #include "slib/core/object.h"
 
-#include "slib/core/string.h"
-#include "slib/core/hash_map.h"
 #include "slib/core/variant.h"
-#include "slib/core/map_iterator.h"
 #include "slib/core/string_buffer.h"
-#include "slib/core/parse_util.h"
-#include "slib/core/serialize.h"
+#include "slib/core/stringx.h"
+#include "slib/core/priv/map_iterator.h"
+#include "slib/data/serialize.h"
 
 namespace slib
 {
@@ -142,7 +140,7 @@ namespace slib
 							return sl_false;
 						}
 					}
-					if (!(buf.add(ParseUtil::applyBackslashEscapes(node->key)))) {
+					if (!(buf.add(Stringx::applyBackslashEscapes(node->key)))) {
 						return sl_false;
 					}
 					if (!(buf.addStatic(": "))) {
@@ -175,7 +173,7 @@ namespace slib
 						}
 					}
 					String name = iterator.getKey();
-					if (!(buf.add(ParseUtil::applyBackslashEscapes(name)))) {
+					if (!(buf.add(Stringx::applyBackslashEscapes(name)))) {
 						return sl_false;
 					}
 					if (!(buf.addStatic(": "))) {

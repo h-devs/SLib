@@ -7,11 +7,9 @@
 		<string name='open'>열기</string>
 		<string name='close'>닫기</string>
 		<string name='reply'>응답</string>
-		<string name='today'>오늘</string>
-		<string name='yesterday'>어제</string>
-		<string name='open_image'>이미지 파일 열기</string>
-		<string name='file_dialog_filter_image'>이미지 파일</string>
-		<string name='file_dialog_filter_all'>모든 파일</string>
+		<string name='open_image'>&#xC774;&#xBBF8;&#xC9C0; &#xD30C;&#xC77C; &#xC5F4;&#xAE30;</string>
+		<string name='file_dialog_filter_image'>&#xC774;&#xBBF8;&#xC9C0; &#xD30C;&#xC77C;</string>
+		<string name='file_dialog_filter_all'>&#xBAA8;&#xB4E0; &#xD30C;&#xC77C;</string>
 		<string name='take_photo'>사진 촬영</string>
 	</strings>
 </sapp>

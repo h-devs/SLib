@@ -22,6 +22,7 @@
 
 #include "slib/core/preference.h"
 
+#include "slib/data/json.h"
 #include "slib/core/safe_static.h"
 
 namespace slib

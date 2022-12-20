@@ -22,7 +22,7 @@
 
 #include "slib/ui/notification.h"
 
-#include "slib/core/json.h"
+#include "slib/graphics/drawable.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -265,6 +265,16 @@ namespace slib
 		if (context) {
 			context->dispatchPresentMessage(message);
 		}
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PushNotificationMessage)
+
+	PushNotificationMessage::PushNotificationMessage()
+	{
+		badge = -1;
+		flagClicked = sl_false;
+		flagBackground = sl_false;
 	}
 
 

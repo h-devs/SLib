@@ -29,9 +29,9 @@
 #include "slib/core/process.h"
 #include "slib/core/system.h"
 #include "slib/core/memory.h"
-#include "slib/core/file_util.h"
-#include "slib/core/platform.h"
-#include "slib/crypto/zlib.h"
+#include "slib/io/file_util.h"
+#include "slib/data/zlib.h"
+#include "slib/platform.h"
 
 #include "npcap/npcap_files.h"
 

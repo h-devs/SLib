@@ -340,6 +340,15 @@ namespace slib
 
 		static sl_char32 getUnicodeFromSurrogateCharacters(sl_char16 ch0, sl_char16 ch1);
 
+
+		static sl_bool isEmoji(sl_char32 code);
+
+		static sl_size getJoinedCharLength(sl_char32 firstChar, const sl_char8* dataNext, sl_size lenNext);
+
+		static sl_size getJoinedCharLength(sl_char32 firstChar, const sl_char16* dataNext, sl_size lenNext);
+
+		static sl_size getJoinedCharLength(sl_char32 firstChar, const sl_char32* dataNext, sl_size lenNext);
+
 	};
 
 }

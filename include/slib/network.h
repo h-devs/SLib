@@ -23,46 +23,15 @@
 #ifndef CHECKHEADER_SLIB_NETWORK_HEADER
 #define CHECKHEADER_SLIB_NETWORK_HEADER
 
-#include "network/constants.h"
-
-#include "network/mac_address.h"
-#include "network/ip_address.h"
-#include "network/socket_address.h"
-
 #include "network/socket.h"
 #include "network/async.h"
 #include "network/event.h"
 #include "network/os.h"
-#include "network/firewall.h"
 
-#include "network/tcpip.h"
-#include "network/tcpip_fragment.h"
-#include "network/dns.h"
-#include "network/icmp.h"
-#include "network/nat.h"
-#include "network/ethernet.h"
-#include "network/arp.h"
-#include "network/netbios.h"
-#include "network/packet_analyzer.h"
-
-#include "network/url.h"
 #include "network/url_request.h"
 #include "network/curl.h"
 #include "network/http.h"
-#include "network/stun.h"
-#include "network/smb.h"
-
-#include "network/capture.h"
-#include "network/pcap.h"
-#include "network/npcap.h"
-#include "network/tap.h"
-
-#include "network/p2p.h"
-#include "network/pseudo_tcp.h"
-#include "network/pseudo_tcp_message.h"
 #include "network/ipc.h"
-
-#include "network/dbip.h"
 
 #include "network/json.h"
 #include "network/serialize.h"

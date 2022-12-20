@@ -27,9 +27,9 @@
 #include "slib/ui/global_event_monitor.h"
 
 #include "slib/core/thread.h"
-#include "slib/core/win32/message_loop.h"
 #include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
+#include "slib/platform/win32/message_loop.h"
 
 namespace slib
 {

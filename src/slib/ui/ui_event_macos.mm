@@ -26,10 +26,10 @@
 
 #include "slib/ui/event.h"
 
-#include "slib/ui/core.h"
-#include "slib/ui/platform.h"
 #include "slib/core/hash_table.h"
 #include "slib/core/safe_static.h"
+#include "slib/ui/core.h"
+#include "slib/ui/platform.h"
 
 #import <Carbon/Carbon.h>
 
@@ -247,7 +247,7 @@ namespace slib
 		return Keycode::Unknown;
 	}
 
-	sl_bool UI::checkKeyPressed(Keycode key)
+	sl_bool UI::isKeyPressed(Keycode key)
 	{
 		sl_uint32 vk = UIEvent::getSystemKeycode(key);
 		if (vk != -1) {
@@ -257,19 +257,19 @@ namespace slib
 		}
 	}
 
-	sl_bool UI::checkCapsLockOn()
+	sl_bool UI::isCapsLockOn()
 	{
 		NSUInteger flags = [NSEvent modifierFlags];
 		return (flags & NSAlphaShiftKeyMask) != 0;
 	}
 
-	sl_bool UI::checkNumLockOn()
+	sl_bool UI::isNumLockOn()
 	{
 		NSUInteger flags = [NSEvent modifierFlags];
 		return (flags & NSNumericPadKeyMask) != 0;
 	}
 
-	sl_bool UI::checkScrollLockOn()
+	sl_bool UI::isScrollLockOn()
 	{
 		return sl_false;
 	}
@@ -283,19 +283,19 @@ namespace slib
 		return UIPoint((sl_ui_pos)(pt.x), (sl_ui_pos)(rect.size.height - pt.y));
 	}
 
-	sl_bool UI::checkLeftButtonPressed()
+	sl_bool UI::isLeftButtonPressed()
 	{
 		NSUInteger flags = [NSEvent pressedMouseButtons];
 		return (flags & 1) != 0;
 	}
 
-	sl_bool UI::checkRightButtonPressed()
+	sl_bool UI::isRightButtonPressed()
 	{
 		NSUInteger flags = [NSEvent pressedMouseButtons];
 		return (flags & 2) != 0;
 	}
 
-	sl_bool UI::checkMiddleButtonPressed()
+	sl_bool UI::isMiddleButtonPressed()
 	{
 		NSUInteger flags = [NSEvent pressedMouseButtons];
 		return (flags & 4) != 0;

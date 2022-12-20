@@ -26,9 +26,7 @@
 
 #include "slib/ui/notification.h"
 
-#include "slib/core/json.h"
 #include "slib/core/safe_static.h"
-
 #include "slib/ui/platform.h"
 
 #include "../resources.h"
@@ -540,13 +538,13 @@ namespace slib
 	}
 
 	void UserNotification::openSystemPreferencesForNotification()
-		{
-	#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-			if (CHECK_UN_API) {
-				[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.notifications"]];
-			}
-	#endif
+	{
+#if defined(SLIB_PLATFORM_IS_MACOS) && defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
+		if (CHECK_UN_API) {
+			[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.notifications"]];
 		}
+#endif
+	}
 
 	void UserNotification::removePendingNotification(const String& identifier)
 	{

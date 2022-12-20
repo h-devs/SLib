@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_MATH_VECTOR
 #define CHECKHEADER_SLIB_MATH_VECTOR
 
-#include "definition.h"
+#include "math.h"
 
-#include "../core/math.h"
 #include "../core/default_members.h"
-#include "../core/interpolation.h"
+#include "../data/interpolation.h"
 
 namespace slib
 {

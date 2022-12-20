@@ -25,9 +25,9 @@
 #include "slib/core/thread.h"
 
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-#include "slib/core/win32/platform.h"
+#include "slib/platform.h"
 #else
-#include "slib/core/posix/event.h"
+#include "slib/platform/posix/event.h"
 #include <time.h>
 #include <sys/time.h>
 #endif

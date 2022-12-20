@@ -24,7 +24,7 @@
 
 #if defined(SLIB_UI_IS_WIN32)
 
-#include "slib/media/dl/win32/winmm.h"
+#include "slib/dl/win32/winmm.h"
 
 namespace slib
 {

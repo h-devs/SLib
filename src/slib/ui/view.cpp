@@ -8998,10 +8998,10 @@ namespace slib
 		if (m_flagDragSource) {
 			DragContext& context = UIEvent::getCurrentDragContext();
 			if (!(context.isAlive())) {
-                DragItem drag;
-                if (getDragItem(drag)) {
-                    beginDragging(drag, getDragOperationMask());
-                }
+				DragItem drag;
+				if (getDragItem(drag)) {
+					beginDragging(drag, getDragOperationMask());
+				}
 			}
 		}
 	}

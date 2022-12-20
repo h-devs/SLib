@@ -25,7 +25,7 @@
 
 #include "constants.h"
 
-#include "../core/animation.h"
+#include "../graphics/animation.h"
 #include "../core/default_members.h"
 
 namespace slib

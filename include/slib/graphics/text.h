@@ -39,7 +39,7 @@ namespace slib
 		Space = 10,
 		Tab = 11,
 		LineBreak = 20,
-		Emoji = 50,
+		JoinedChar = 50,
 		Attach = 100
 	};
 
@@ -84,7 +84,7 @@ namespace slib
 	{
 	public:
 		Ref<Font> font;
-		String emojiFamilyName;
+		String joinedCharFamilyName;
 		sl_bool flagDefinedUnderline : 1;
 		sl_bool flagUnderline : 1;
 		sl_bool flagOverline : 1;
@@ -154,7 +154,7 @@ namespace slib
 
 		Ref<Font> getFont() noexcept;
 
-		Ref<Font> getEmojiFont() noexcept;
+		Ref<Font> getJoinedCharFont() noexcept;
 
 		Point getLayoutPosition() noexcept;
 
@@ -171,8 +171,8 @@ namespace slib
 		AtomicRef<TextStyle> m_style;
 		Point m_layoutPosition;
 		Size m_layoutSize;
-		AtomicRef<Font> m_emojiFont;
-		AtomicRef<Font> m_emojiFontBase;
+		AtomicRef<Font> m_joinedCharFont;
+		AtomicRef<Font> m_joinedCharFontBase;
 
 	};
 
@@ -207,17 +207,17 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT TextEmojiItem : public TextItem
+	class SLIB_EXPORT TextJoinedCharItem : public TextItem
 	{
 		SLIB_DECLARE_OBJECT
 
 	private:
-		TextEmojiItem() noexcept;
+		TextJoinedCharItem() noexcept;
 
-		~TextEmojiItem() noexcept;
+		~TextJoinedCharItem() noexcept;
 
 	public:
-		static Ref<TextEmojiItem> create(const String16& text, const Ref<TextStyle>& style) noexcept;
+		static Ref<TextJoinedCharItem> create(const String16& text, const Ref<TextStyle>& style) noexcept;
 
 	public:
 		Size getSize() noexcept;

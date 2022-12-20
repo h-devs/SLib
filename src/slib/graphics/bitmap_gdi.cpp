@@ -26,9 +26,9 @@
 
 #include "slib/graphics/bitmap.h"
 
-#include "slib/graphics/platform.h"
 #include "slib/core/scoped_buffer.h"
-#include "slib/core/dl/win32/shlwapi.h"
+#include "slib/graphics/platform.h"
+#include "slib/dl/win32/shlwapi.h"
 
 namespace slib
 {

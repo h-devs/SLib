@@ -31,7 +31,7 @@
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-#	include "slib/core/win32/windows.h"
+#	include "slib/platform/win32/windows.h"
 #	include <gl/gl.h>
 #	include "gl/GL/glext.h"
 
@@ -40,7 +40,7 @@
 
 #else
 
-#	include "slib/render/dl/linux/gl.h"
+#	include "slib/dl/linux/gl.h"
 
 #	define PRIV_SLIB_RENDER_GL_ENTRY(TYPE, name, ...) \
 		TYPE(*name)(__VA_ARGS__);

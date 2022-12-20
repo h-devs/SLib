@@ -29,10 +29,10 @@
 #include "slib/ui/window.h"
 #include "slib/ui/core.h"
 #include "slib/ui/drag.h"
-#include "slib/ui/dl/win32/user32.h"
 #include "slib/math/transform2d.h"
-#include "slib/core/win32/com.h"
 #include "slib/core/safe_static.h"
+#include "slib/platform/win32/com.h"
+#include "slib/dl/win32/user32.h"
 
 #include <commctrl.h>
 #include <shellapi.h>

@@ -29,9 +29,7 @@
 #include "slib/ui/screen.h"
 #include "slib/ui/window.h"
 #include "slib/ui/app.h"
-
 #include "slib/core/safe_static.h"
-
 #include "slib/ui/platform.h"
 
 #include "ui_core_common.h"
@@ -82,7 +80,7 @@ namespace slib
 				static UIRect convertRect(const NSRect& rect)
 				{
 					sl_ui_pos leftBottom = 0;
-					NSScreen* primary = [NSScreen mainScreen];
+					NSScreen* primary = getPrimaryScreen();
 					if (primary != nil) {
 						NSRect rect = [primary frame];
 						leftBottom = (sl_ui_pos)(rect.origin.y + rect.size.height);
@@ -93,6 +91,16 @@ namespace slib
 					region.setWidth((sl_ui_pos)(rect.size.width));
 					region.setHeight((sl_ui_pos)(rect.size.height));
 					return region;
+				}
+				
+				static NSScreen* getPrimaryScreen()
+				{
+					NSArray* arr = [NSScreen screens];
+					NSUInteger n = [arr count];
+					if (!n) {
+						return nil;
+					}
+					return [arr objectAtIndex:0];
 				}
 
 			};
@@ -155,7 +163,7 @@ namespace slib
 
 	Ref<Screen> UIPlatform::createScreen(NSScreen* screen)
 	{
-		return ScreenImpl::create(screen, nil);
+		return ScreenImpl::create(screen);
 	}
 
 	NSScreen* UIPlatform::getScreenHandle(Screen* _screen)
@@ -192,7 +200,7 @@ namespace slib
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
-		NSScreen* screen = [NSScreen mainScreen];
+		NSScreen* screen = ScreenImpl::getPrimaryScreen();
 		return UIPlatform::createScreen(screen);
 	}
 

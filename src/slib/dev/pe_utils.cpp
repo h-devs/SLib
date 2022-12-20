@@ -22,9 +22,9 @@
 
 #include "slib/dev/pe_utils.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
+#include "slib/io/memory_output.h"
 #include "slib/core/mio.h"
-#include "slib/core/memory_output.h"
 
 namespace slib
 {

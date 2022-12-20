@@ -55,11 +55,6 @@
 #include "math/view_frustum.h"
 #include "math/transform3d.h"
 
-#include "math/bezier.h"
-#include "math/fft.h"
-
-#include "math/calculator.h"
-
 #include "math/plot.h"
 
 #include "math/json.h"

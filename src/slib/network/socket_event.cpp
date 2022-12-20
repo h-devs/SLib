@@ -29,7 +29,7 @@
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 #else
-#include "slib/core/pipe_event.h"
+#include "slib/io/pipe_event.h"
 #include <unistd.h>
 #include <poll.h>
 #endif

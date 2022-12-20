@@ -22,7 +22,7 @@
 
 #include "slib/graphics/image.h"
 
-#include "slib/core/file.h"
+#include "slib/io/file.h"
 #include "slib/core/scoped_buffer.h"
 
 #include <stdio.h>

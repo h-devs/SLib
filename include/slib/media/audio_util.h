@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_MEDIA_AUDIO_UTIL
 #define CHECKHEADER_SLIB_MEDIA_AUDIO_UTIL
 
-#include "../core/math.h"
+#include "../math/math.h"
 
 namespace slib
 {

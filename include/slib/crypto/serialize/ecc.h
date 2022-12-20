@@ -25,8 +25,8 @@
 
 #include "../ecc.h"
 
-#include "../../core/serialize/primitive.h"
-#include "../../core/serialize/generic.h"
+#include "../../data/serialize/primitive.h"
+#include "../../data/serialize/generic.h"
 #include "../../math/serialize/bigint.h"
 
 namespace slib
