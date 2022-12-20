@@ -25,7 +25,7 @@
 #if defined(SLIB_PLATFORM_IS_LINUX)
 
 #include "slib/device/device.h"
-
+#include "slib/device/disk.h"
 #include <stdio.h>
 
 namespace slib

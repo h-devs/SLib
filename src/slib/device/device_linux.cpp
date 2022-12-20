@@ -59,7 +59,7 @@ namespace slib
 	// Requires root privilege
 	String Device::getBoardSerialNumber() 
 	{
-		return File::readAllTextUTF8("/sys/devices/virtual/dmi/id/chassis_serial")
+		return File::readAllTextUTF8("/sys/devices/virtual/dmi/id/chassis_serial");
 	}
 
 }

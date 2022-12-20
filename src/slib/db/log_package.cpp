@@ -130,7 +130,7 @@ namespace slib
 	{
 		Index& index = m_indices[n];
 		if (index.size <= maxSize) {
-			return { index.id, _readRecord(index.position, index.size) };
+			return { index.id, _readRecord(index.position, (sl_size)(index.size)) };
 		}
 		return { 0, sl_null };
 	}
@@ -141,7 +141,7 @@ namespace slib
 			Index& index = m_indices[i];
 			if (index.id == id) {
 				if (index.size <= maxSize) {
-					return _readRecord(index.position, index.size);
+					return _readRecord(index.position, (sl_size)(index.size));
 				} else {
 					return sl_null;
 				}
@@ -159,7 +159,7 @@ namespace slib
 		for (sl_size i = 0; i < m_nIndices; i++) {
 			Index& index = m_indices[i];
 			if (index.id >= start && index.id < end && index.size <= maxSize) {
-				Memory mem = _readRecord(index.position, index.size);
+				Memory mem = _readRecord(index.position, (sl_size)(index.size));
 				if (mem.isNotNull()) {
 					if (!(ret.add_NoLock(Pair<sl_uint64, Memory>(index.id, Move(mem))))) {
 						return sl_null;
