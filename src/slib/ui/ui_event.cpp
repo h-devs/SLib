@@ -1511,39 +1511,39 @@ sl_bool UIEvent::is##NAME##Key() const \
 	}
 
 #if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS)
-	sl_bool UI::checkKeyPressed(Keycode key)
+	sl_bool UI::isKeyPressed(Keycode key)
 	{
 		return sl_false;
 	}
 
-	sl_bool UI::checkScrollLockOn()
+	sl_bool UI::isScrollLockOn()
 	{
 		return sl_false;
 	}
 
-	sl_bool UI::checkNumLockOn()
+	sl_bool UI::isNumLockOn()
 	{
 		return sl_false;
 	}
 
-	sl_bool UI::checkLeftButtonPressed()
+	sl_bool UI::isLeftButtonPressed()
 	{
 		return sl_false;
 	}
 
-	sl_bool UI::checkRightButtonPressed()
+	sl_bool UI::isRightButtonPressed()
 	{
 		return sl_false;
 	}
 
-	sl_bool UI::checkMiddleButtonPressed()
+	sl_bool UI::isMiddleButtonPressed()
 	{
 		return sl_false;
 	}
 #endif
 
 #if !defined(SLIB_UI_IS_WIN32) && !defined(SLIB_UI_IS_MACOS) && !defined(SLIB_UI_IS_GTK)
-	sl_bool UI::checkCapsLockOn()
+	sl_bool UI::isCapsLockOn()
 	{
 		return sl_false;
 	}

@@ -184,19 +184,19 @@ namespace slib
 
 
 		// HID related functions (Platform Specific)
-		static sl_bool checkKeyPressed(Keycode key);
+		static sl_bool isKeyPressed(Keycode key);
 
-		static sl_bool checkScrollLockOn();
+		static sl_bool isScrollLockOn();
 
-		static sl_bool checkNumLockOn();
+		static sl_bool isNumLockOn();
 
-		static sl_bool checkLeftButtonPressed();
+		static sl_bool isLeftButtonPressed();
 
-		static sl_bool checkRightButtonPressed();
+		static sl_bool isRightButtonPressed();
 
-		static sl_bool checkMiddleButtonPressed();
+		static sl_bool isMiddleButtonPressed();
 
-		static sl_bool checkCapsLockOn();
+		static sl_bool isCapsLockOn();
 
 		static UIPoint getCursorPos();
 

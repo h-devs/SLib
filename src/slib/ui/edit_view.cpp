@@ -922,7 +922,7 @@ namespace slib
 			} else {
 				sl_bool flagUpper = ev->isShiftKey();
 				if (key >= Keycode::A && key <= Keycode::Z) {
-					if (UI::checkCapsLockOn()) {
+					if (UI::isCapsLockOn()) {
 						flagUpper = !flagUpper;
 					}
 				}

@@ -14,6 +14,7 @@ echo Tool path is already registered in Path
 goto register_path_end
 
 :register_path
+if "%newPath%"=="" goto register_path_do
 if "%newPath:~-1%"==";" goto register_path_do
 set newPath=%newPath%;
 

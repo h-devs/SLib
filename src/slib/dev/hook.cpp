@@ -75,6 +75,20 @@ namespace slib
 		return sl_null;
 	}
 
+#if defined(SLIB_ARCH_IS_32BIT)
+	void* Hook::replaceExportEntry(const void* dllBaseAddress, const char* procName, const void* newFunctionAddress)
+	{
+		PE pe;
+		if (pe.load(dllBaseAddress)) {
+			sl_uint32 offset = pe.updateExportFunctionOffset(procName, (sl_uint32)newFunctionAddress - (sl_uint32)dllBaseAddress);
+			if (offset) {
+				return (sl_uint8*)dllBaseAddress + offset;
+			}
+		}
+		return sl_null;
+	}
+#endif
+
 #ifdef SLIB_ARCH_IS_64BIT
 	namespace priv
 	{

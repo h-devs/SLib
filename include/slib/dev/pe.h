@@ -138,7 +138,7 @@ namespace slib
 		sl_uint32 win32VersionValue; // Reserved, 0
 		sl_uint32 sizeOfImage; // The size of the image, including all headers. Must be a multiple of `sectionAlignment`.
 		sl_uint32 sizeOfHeaders; // The combined size of the MS-DOS stub, the PE header, and the section headers, rounded to a multiple of the value specified in the FileAlignment member.
-		sl_uint32 checkSum; // Image file checksum
+		sl_uint32 checksum; // Image file checksum
 		sl_uint16 subsystem; // SLIB_PE_SUBSYSTEM_*
 		sl_uint16 dllCharacteristics; // SLIB_PE_DLL_CHARACTERISTICS_*
 		sl_uint32 sizeOfStackReserve; // The number of bytes to reserve for the stack. Only the memory specified by the `sizeOfStackCommit` member is committed at load time; the rest is made available one page at a time until this reserve size is reached.
@@ -173,7 +173,7 @@ namespace slib
 		sl_uint32 win32VersionValue; // Reserved, 0
 		sl_uint32 sizeOfImage; // The size of the image, including all headers. Must be a multiple of `sectionAlignment`.
 		sl_uint32 sizeOfHeaders; // The combined size of the MS-DOS stub, the PE header, and the section headers, rounded to a multiple of the value specified in the FileAlignment member.
-		sl_uint32 checkSum; // Image file checksum
+		sl_uint32 checksum; // Image file checksum
 		sl_uint16 subsystem; // SLIB_PE_SUBSYSTEM_*
 		sl_uint16 dllCharacteristics; // SLIB_PE_DLL_CHARACTERISTICS_*
 		sl_uint64 sizeOfStackReserve; // The number of bytes to reserve for the stack. Only the memory specified by the `sizeOfStackCommit` member is committed at load time; the rest is made available one page at a time until this reserve size is reached.
@@ -236,9 +236,15 @@ namespace slib
 
 		PE_DirectoryEntry* getExportTableDirectory();
 
-		PE_ImportDescriptor* findImportTable(const StringParam& dllName);
+		PE_ImportDescriptor* findImportTable(const StringView& dllName);
 
-		void* findExportFunction(const StringParam& functionName);
+		void* findExportFunction(const StringView& functionName);
+
+		// returns old offset
+		sl_uint32 updateExportFunctionOffset(const StringView& functionName, sl_uint32 offset);
+
+	private:
+		sl_uint32* _findExportFunctionOffsetEntry(const StringView& functionName);
 
 	};
 

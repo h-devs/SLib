@@ -237,7 +237,7 @@ namespace slib
 		return Keycode::Unknown;
 	}
 
-	sl_bool UI::checkKeyPressed(Keycode key)
+	sl_bool UI::isKeyPressed(Keycode key)
 	{
 		sl_uint32 vk = UIEvent::getSystemKeycode(key);
 		if (vk != -1) {
@@ -247,17 +247,17 @@ namespace slib
 		}
 	}
 
-	sl_bool UI::checkCapsLockOn()
+	sl_bool UI::isCapsLockOn()
 	{
 		return (GetKeyState(VK_CAPITAL) & 1) != 0;
 	}
 
-	sl_bool UI::checkNumLockOn()
+	sl_bool UI::isNumLockOn()
 	{
 		return (GetKeyState(VK_NUMLOCK) & 1) != 0;
 	}
 
-	sl_bool UI::checkScrollLockOn()
+	sl_bool UI::isScrollLockOn()
 	{
 		return (GetKeyState(VK_SCROLL) & 1) != 0;
 	}
@@ -269,17 +269,17 @@ namespace slib
 		return UIPoint((sl_ui_pos)(pt.x), (sl_ui_pos)(pt.y));
 	}
 
-	sl_bool UI::checkLeftButtonPressed()
+	sl_bool UI::isLeftButtonPressed()
 	{
 		return (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
 	}
 
-	sl_bool UI::checkRightButtonPressed()
+	sl_bool UI::isRightButtonPressed()
 	{
 		return (GetKeyState(VK_RBUTTON) & 0x8000) != 0;
 	}
 
-	sl_bool UI::checkMiddleButtonPressed()
+	sl_bool UI::isMiddleButtonPressed()
 	{
 		return (GetKeyState(VK_MBUTTON) & 0x8000) != 0;
 	}

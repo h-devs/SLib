@@ -66,6 +66,7 @@
 #include "core/dispatch.h"
 #include "core/dispatch_loop.h"
 #include "core/timer.h"
+#include "core/dynamic_library.h"
 #include "core/console.h"
 #include "core/log.h"
 

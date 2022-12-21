@@ -15,6 +15,11 @@ namespace slib
 		// returns old function address
 		static void* replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress);
 
+#if defined(SLIB_ARCH_IS_32BIT)
+		// returns old function address
+		static void* replaceExportEntry(const void* dllBaseAddress, const char* procName, const void* newFunctionAddress);
+#endif
+
 		// returns generated code that can jump to old function
 		static void* hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup);
 
