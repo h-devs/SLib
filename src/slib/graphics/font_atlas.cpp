@@ -238,6 +238,7 @@ namespace slib
 					return sl_true;
 				}
 			} else {
+				_out.image.setNull();
 				return sl_true;
 			}
 		}
