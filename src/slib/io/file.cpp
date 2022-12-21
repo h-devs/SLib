@@ -561,7 +561,7 @@ namespace slib
 		return File::writeAllBytes(path, mem.data, mem.size);
 	}
 
-	sl_bool File::writeAllTextUTF8(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark) noexcept
+	sl_bool File::writeAllTextUTF8(const StringParam& path, const StringView& text, sl_bool flagWriteByteOrderMark) noexcept
 	{
 		File file = File::openForWrite(path);
 		if (file.isNotNone()) {
@@ -570,7 +570,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::writeAllTextUTF16LE(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark) noexcept
+	sl_bool File::writeAllTextUTF16LE(const StringParam& path, const StringView16& text, sl_bool flagWriteByteOrderMark) noexcept
 	{
 		File file = File::openForWrite(path);
 		if (file.isNotNone()) {
@@ -579,7 +579,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::writeAllTextUTF16BE(const StringParam& path, const StringParam& text, sl_bool flagWriteByteOrderMark) noexcept
+	sl_bool File::writeAllTextUTF16BE(const StringParam& path, const StringView16& text, sl_bool flagWriteByteOrderMark) noexcept
 	{
 		File file = File::openForWrite(path);
 		if (file.isNotNone()) {
@@ -607,7 +607,7 @@ namespace slib
 		return File::appendAllBytes(path, mem.data, mem.size);
 	}
 
-	sl_bool File::appendAllTextUTF8(const StringParam& path, const StringParam& text) noexcept
+	sl_bool File::appendAllTextUTF8(const StringParam& path, const StringView& text) noexcept
 	{
 		File file = File::openForAppend(path);
 		if (file.isNotNone()) {
@@ -616,7 +616,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::appendAllTextUTF16LE(const StringParam& path, const StringParam& text) noexcept
+	sl_bool File::appendAllTextUTF16LE(const StringParam& path, const StringView16& text) noexcept
 	{
 		File file = File::openForAppend(path);
 		if (file.isNotNone()) {
@@ -625,7 +625,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool File::appendAllTextUTF16BE(const StringParam& path, const StringParam& text) noexcept
+	sl_bool File::appendAllTextUTF16BE(const StringParam& path, const StringView16& text) noexcept
 	{
 		File file = File::openForAppend(path);
 		if (file.isNotNone()) {

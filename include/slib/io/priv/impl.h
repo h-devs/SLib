@@ -78,9 +78,9 @@
 	sl_bool CLASS::writeCVLI32(sl_uint32 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
 	sl_bool CLASS::writeCVLI64(sl_uint64 value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
 	sl_bool CLASS::writeCVLI(sl_size value, EndianType endian) ATTR { return WriterHelper::writeCVLI(this, value, endian); } \
-	sl_bool CLASS::writeTextUTF8(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF8(this, text, flagWriteByteOrderMark); } \
-	sl_bool CLASS::writeTextUTF16LE(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16LE(this, text, flagWriteByteOrderMark); } \
-	sl_bool CLASS::writeTextUTF16BE(const StringParam& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16BE(this, text, flagWriteByteOrderMark); }
+	sl_bool CLASS::writeTextUTF8(const StringView& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF8(this, text, flagWriteByteOrderMark); } \
+	sl_bool CLASS::writeTextUTF16LE(const StringView16& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16LE(this, text, flagWriteByteOrderMark); } \
+	sl_bool CLASS::writeTextUTF16BE(const StringView16& text, sl_bool flagWriteByteOrderMark) ATTR { return WriterHelper::writeTextUTF16BE(this, text, flagWriteByteOrderMark); }
 
 #define SLIB_DEFINE_ISTREAM_MEMBERS(CLASS, ATTR) \
 	SLIB_DEFINE_IREADER_MEMBERS(CLASS, ATTR) \

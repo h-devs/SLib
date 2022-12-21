@@ -175,7 +175,7 @@ namespace slib
 		}
 
 		template <class WRITER>
-		static sl_bool writeTextUTF8(WRITER* writer, const StringParam& _text, sl_bool flagWriteByteOrderMark)
+		static sl_bool writeTextUTF8(WRITER* writer, const StringView& text, sl_bool flagWriteByteOrderMark)
 		{
 			if (flagWriteByteOrderMark) {
 				static sl_char8 sbuf[3] = { (sl_char8)0xEF, (sl_char8)0xBB, (sl_char8)0xBF };
@@ -183,9 +183,8 @@ namespace slib
 					return sl_false;
 				}
 			}
-			StringData text(_text);
 			sl_size n = text.getLength();
-			if (n == 0) {
+			if (!n) {
 				return sl_true;
 			}
 			if (writeFully(writer, text.getData(), n) == (sl_reg)n) {
@@ -195,7 +194,7 @@ namespace slib
 		}
 
 		template <class WRITER>
-		static sl_bool writeTextUTF16LE(WRITER* writer, const StringParam& _text, sl_bool flagWriteByteOrderMark)
+		static sl_bool writeTextUTF16LE(WRITER* writer, const StringView16& text, sl_bool flagWriteByteOrderMark)
 		{
 			if (flagWriteByteOrderMark) {
 				static sl_char8 sbuf[2] = { (sl_char8)0xFF, (sl_char8)0xFE };
@@ -203,9 +202,8 @@ namespace slib
 					return sl_false;
 				}
 			}
-			StringData16 text(_text);
 			sl_size n = text.getLength();
-			if (n == 0) {
+			if (!n) {
 				return sl_true;
 			}
 			if (Endian::isLE()) {
@@ -238,7 +236,7 @@ namespace slib
 		}
 
 		template <class WRITER>
-		static sl_bool writeTextUTF16BE(WRITER* writer, const StringParam& _text, sl_bool flagWriteByteOrderMark)
+		static sl_bool writeTextUTF16BE(WRITER* writer, const StringView16& text, sl_bool flagWriteByteOrderMark)
 		{
 			if (flagWriteByteOrderMark) {
 				static sl_char8 sbuf[2] = { (sl_char8)0xFE, (sl_char8)0xFF };
@@ -246,9 +244,8 @@ namespace slib
 					return sl_false;
 				}
 			}
-			StringData16 text(_text);
 			sl_size n = text.getLength();
-			if (n == 0) {
+			if (!n) {
 				return sl_true;
 			}
 			if (Endian::isBE()) {
