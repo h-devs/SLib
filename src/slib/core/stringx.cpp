@@ -217,7 +217,6 @@ namespace slib
 					sl_uint32 h = SLIB_CHAR_HEX_TO_INT(src[pos]);
 					if (h < 16) {
 						value = (value << 4) | h;
-						i++;
 					} else {
 						return sl_false;
 					}
@@ -352,8 +351,9 @@ namespace slib
 										if (sizeof(CHAR) == 2) {
 											PutChar(buf, lengthOutput, (CHAR)code);
 										} else {
-											sl_bool flagValid = sl_false;
+											sl_bool flagValid;
 											if (SLIB_CHAR_IS_SURROGATE(code) && i + 6 <= lengthSrc) {
+												flagValid = sl_false;
 												if (src[i] == '\\' && src[i + 1] == 'u') {
 													i += 2;
 													sl_uint32 code2 = 0;
@@ -369,9 +369,11 @@ namespace slib
 														}
 													}
 												}
+											} else {
+												flagValid = sl_true;
 											}
 											if (flagValid) {
-												sl_size n = GetUtf(code, buf);
+												sl_size n = GetUtf(code, buf ? buf + lengthOutput : sl_null);
 												if (n) {
 													lengthOutput += n;
 												} else {
@@ -392,7 +394,7 @@ namespace slib
 								if (i + 8 <= lengthSrc) {
 									sl_uint32 code = 0;
 									if (ParseHexValue_FixedLength(src, 8, i, code)) {
-										sl_size n = GetUtf(code, buf);
+										sl_size n = GetUtf(code, buf ? buf + lengthOutput : sl_null);
 										if (n) {
 											lengthOutput += n;
 										} else {
