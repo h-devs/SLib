@@ -42,11 +42,7 @@ namespace slib
 
 		String16 Wmi::executeQuery(const StringParam& _query)
 		{
-			HRESULT hres = CoInitializeEx(0, COINIT_MULTITHREADED);
-			if (FAILED(hres) && hres != 0x80010106) {
-				return sl_null;
-			}
-
+			CoInitializeEx(0, COINIT_MULTITHREADED);
 			HRESULT hr = CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
 			if (FAILED(hr)) {
 				return sl_null;
@@ -102,9 +98,6 @@ namespace slib
 				pSvc->Release();
 			}
 			pLoc->Release();
-			if (hres != 0x80010106) {
-				CoUninitialize();
-			}
 			return ret;
 		}
 
