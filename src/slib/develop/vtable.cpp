@@ -20,9 +20,9 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/dev/vtable.h"
+#include "slib/develop/vtable.h"
 
-#include "slib/dev/protect.h"
+#include "slib/develop/protect.h"
 #include "slib/core/base.h"
 
 namespace slib

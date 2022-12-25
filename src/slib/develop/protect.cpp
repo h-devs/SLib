@@ -20,7 +20,7 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/dev/protect.h"
+#include "slib/develop/protect.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 #include "slib/platform/win32/windows.h"

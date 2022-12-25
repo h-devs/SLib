@@ -20,9 +20,9 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/dev/pe.h"
+#include "slib/develop/pe.h"
 
-#include "slib/dev/protect.h"
+#include "slib/develop/protect.h"
 #include "slib/io/memory_reader.h"
 #include "slib/io/priv/seekable_reader_helper.h"
 

@@ -20,7 +20,7 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/dev/module.h"
+#include "slib/develop/module.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 

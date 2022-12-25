@@ -49,9 +49,6 @@
     <Filter Include="src\doc">
       <UniqueIdentifier>{7958e742-6b8f-4898-9cee-27aeb54c9a8c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\dev">
-      <UniqueIdentifier>{d9e0e024-e389-4c28-a77b-711d7e4e6df3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="inc">
       <UniqueIdentifier>{ee59f2d4-03fa-45eb-9fd2-80029c13eb53}</UniqueIdentifier>
     </Filter>
@@ -69,6 +66,9 @@
     </Filter>
     <Filter Include="src\script">
       <UniqueIdentifier>{91a5c757-289c-49ff-b0c7-82aca3e41059}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\develop">
+      <UniqueIdentifier>{d9e0e024-e389-4c28-a77b-711d7e4e6df3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -917,20 +917,20 @@
     <ClCompile Include="..\..\src\slib\ui\combo_box_win32.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\dev\pe.cpp">
-      <Filter>src\dev</Filter>
+    <ClCompile Include="..\..\src\slib\develop\pe.cpp">
+      <Filter>src\develop</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\dev\protect.cpp">
-      <Filter>src\dev</Filter>
+    <ClCompile Include="..\..\src\slib\develop\protect.cpp">
+      <Filter>src\develop</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\dev\hook.cpp">
-      <Filter>src\dev</Filter>
+    <ClCompile Include="..\..\src\slib\develop\hook.cpp">
+      <Filter>src\develop</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\dev\module.cpp">
-      <Filter>src\dev</Filter>
+    <ClCompile Include="..\..\src\slib\develop\module.cpp">
+      <Filter>src\develop</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\dev\vtable.cpp">
-      <Filter>src\dev</Filter>
+    <ClCompile Include="..\..\src\slib\develop\vtable.cpp">
+      <Filter>src\develop</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\core\service_manager.cpp">
       <Filter>src\core</Filter>
@@ -994,9 +994,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\db\mysql_data.cpp">
       <Filter>src\db</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\slib\dev\pe_utils.cpp">
-      <Filter>src\dev</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\slib\ui\audio_view.cpp">
       <Filter>src\ui</Filter>
@@ -1354,6 +1351,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\platform\win32\wmi.cpp">
       <Filter>src\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\develop\shell_code.cpp">
+      <Filter>src\develop</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

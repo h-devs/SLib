@@ -23,13 +23,13 @@
 #ifndef CHECKHEADER_SLIB_DEV_HEADER
 #define CHECKHEADER_SLIB_DEV_HEADER
 
-#include "dev/module.h"
-#include "dev/protect.h"
+#include "develop/module.h"
+#include "develop/protect.h"
 
-#include "dev/coff.h"
-#include "dev/pe.h"
-#include "dev/vtable.h"
+#include "develop/coff.h"
+#include "develop/pe.h"
+#include "develop/vtable.h"
 
-#include "dev/hook.h"
+#include "develop/hook.h"
 
 #endif

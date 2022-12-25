@@ -20,8 +20,9 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/dev/pe_utils.h"
+#include "slib/develop/shell_code.h"
 
+#include "slib/develop/pe.h"
 #include "slib/io/file.h"
 #include "slib/io/memory_output.h"
 #include "slib/core/mio.h"
@@ -31,7 +32,7 @@ namespace slib
 
 	namespace priv
 	{
-		namespace pe_utils
+		namespace shell_code
 		{
 
 			static Memory GetLinkedCodeSectionContent(Coff& coff, CoffCodeSectionSet& set, const CoffCodeSection& section)
@@ -65,9 +66,9 @@ namespace slib
 		}
 	}
 
-	using namespace priv::pe_utils;
+	using namespace priv::shell_code;
 
-	Memory PE_Utils::generateShellCode(const void* obj, sl_size size, const StringParam& entryFuntionName)
+	Memory ShellCode::generate(const void* obj, sl_size size, const StringParam& entryFuntionName)
 	{
 		Coff coff;
 		if (!(coff.load(obj, size))) {
@@ -122,13 +123,13 @@ namespace slib
 		return writer.getData();
 	}
 
-	Memory PE_Utils::generateShellCodeFromFile(const StringParam& filePath, const StringParam& entryFuntionName)
+	Memory ShellCode::generateFromFile(const StringParam& filePath, const StringParam& entryFuntionName)
 	{
 		Memory fileContent = File::readAllBytes(filePath);
 		if (fileContent.isNull()) {
 			return sl_null;
 		}
-		return generateShellCode(fileContent.getData(), fileContent.getSize(), entryFuntionName);
+		return generate(fileContent.getData(), fileContent.getSize(), entryFuntionName);
 	}
 
 }

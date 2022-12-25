@@ -20,13 +20,13 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/dev/hook.h"
+#include "slib/develop/hook.h"
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
-#include "slib/dev/pe.h"
-#include "slib/dev/protect.h"
-#include "slib/dev/module.h"
+#include "slib/develop/pe.h"
+#include "slib/develop/protect.h"
+#include "slib/develop/module.h"
 #include "slib/core/base.h"
 
 namespace slib
