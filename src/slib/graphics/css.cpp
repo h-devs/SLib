@@ -279,42 +279,43 @@ namespace slib
 					if (current >= end) {
 						return sl_false;
 					}
-					String name = parseIdentifier();
-					if (name.isNull()) {
+					CascadingStyleAttributeMatch match;
+					match.name = parseIdentifier();
+					if (match.name.isNull()) {
 						return sl_false;
 					}
 					skipWhitespaces();
 					if (current >= end) {
 						return sl_false;
 					}
-					CascadingStyleMatchType op = CascadingStyleMatchType::Exist;
+					match.type = CascadingStyleMatchType::Exist;
 					switch (*current) {
 						case '~':
-							op = CascadingStyleMatchType::Contains_Word;
+							match.type = CascadingStyleMatchType::Contains_Word;
 							current++;
 							break;
 						case '|':
-							op = CascadingStyleMatchType::Contains_WordHyphen;
+							match.type = CascadingStyleMatchType::Contains_WordHyphen;
 							current++;
 							break;
 						case '^':
-							op = CascadingStyleMatchType::Start;
+							match.type = CascadingStyleMatchType::Start;
 							current++;
 							break;
 						case '$':
-							op = CascadingStyleMatchType::End;
+							match.type = CascadingStyleMatchType::End;
 							current++;
 							break;
 						case '*':
-							op = CascadingStyleMatchType::Contain;
+							match.type = CascadingStyleMatchType::Contain;
 							current++;
 							break;
 						case '=':
-							op = CascadingStyleMatchType::Equal;
+							match.type = CascadingStyleMatchType::Equal;
 							current++;
 							break;
 					}
-					if (op > CascadingStyleMatchType::Equal) {
+					if (match.type > CascadingStyleMatchType::Equal) {
 						skipWhitespaces();
 						if (current >= end) {
 							return sl_false;
@@ -324,24 +325,56 @@ namespace slib
 						}
 						current++;
 					}
-					if (op != CascadingStyleMatchType::Exist) {
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-						String value = parseStringValue();
-						if (value.isNull()) {
-							return sl_false;
-						}
+					if (match.type != CascadingStyleMatchType::Exist) {
 						skipWhitespaces();
 						if (current >= end) {
 							return sl_false;
 						}
 					}
-					if (*current == 'i') {
+					if (match.type != CascadingStyleMatchType::Exist) {
+						match.value = parseStringValue();
+						if (match.value.isNull()) {
+							return sl_false;
+						}
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+						if (*current == 'i' || *current == 'I') {
+							match.flagIgnoreCase = sl_true;
+							current++;
+							skipWhitespaces();
+							if (current >= end) {
+								return sl_false;
+							}
+						}
+					}
+					if (*current != ']') {
+						return sl_false;
+					}
+					current++;
+					return selector->attributes.add_NoLock(Move(match));
+				}
 
+				sl_bool parseStringValue(CHAR*& input, CHAR chOpen, CHAR* _out, sl_size& lenOutput)
+				{
+					lenOutput = 0;
+					while (input < end) {
+						CHAR ch = *(input++);
+						if (ch == chOpen) {
+							return sl_true;
+						} else if (ch == '\\') {
+							if (input >= end) {
+								return sl_false;
+							}
+							ch = *(input++);
+						}
+						if (_out) {
+							_out[lenOutput] = ch;
+						}
+						lenOutput++;
 					}
-					return sl_true;
+					return sl_false;
 				}
 
 				String parseStringValue()
@@ -351,7 +384,19 @@ namespace slib
 						return sl_null;
 					}
 					current++;
-
+					CHAR* s = current;
+					sl_size len;
+					if (!(parseStringValue(s, chOpen, sl_null, len))) {
+						return sl_null;
+					}
+					typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
+					if (ret.isNull()) {
+						return sl_null;
+					}
+					if (!(parseStringValue(current, chOpen, ret.getData(), len))) {
+						return sl_null;
+					}
+					return String::from(ret);
 				}
 
 			};
