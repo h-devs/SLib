@@ -50,6 +50,14 @@ namespace slib
 		Variant data;
 	};
 
+	class GridViewCellRegion {
+	public:
+		sl_int64 rowStart;
+		sl_int64 rowEnd;
+		sl_int32 columnStart;
+		sl_int32 columnEnd;
+	};
+
 	class SLIB_EXPORT GridViewCell : public Referable
 	{
 	public:
@@ -66,14 +74,14 @@ namespace slib
 		void onMouseEvent(GridViewCellEvent& ev);
 	};
 
-	class SLIB_EXPORT TableView : public View
+	class SLIB_EXPORT GridView : public View
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		TableView();
+		GridView();
 
-		~TableView();
+		~GridView();
 
 	public:
 		sl_int64 getRowCount();
@@ -83,9 +91,10 @@ namespace slib
 		void setColumnCount(sl_int32 colCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFixedColumnCount(sl_int32 leftCount, sl_int32 rightCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setTopHeaderText(sl_int32 colIndex, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setBottomHeaderText(sl_int32 colIndex, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setTopHeaderSize(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setBottomHeaderSize(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		sl_bool addHeaderColSpan(sl_int32 colIndex, sl_int32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void resetHeaderColSpan(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getRowHeight();
 		sl_ui_len getColumnWidth(sl_int32 colStart, sl_int32 colEnd);
@@ -109,12 +118,14 @@ namespace slib
 
 		sl_int32 getColumnIndexAt(sl_int32 x);
 
-		void getViewportGridIndex(sl_int64& rowStart, sl_int64& rowEnd, sl_int32& colStart, sl_int32& colEnd);
+		GridViewCellRegion getVisibleGridViewCellRegion();
 
 		Ref<Drawable> getItemBackground();
 
 		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<Drawable> getFixedItemBackground(); 
+		
 		void setFixedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode);
 
 		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -140,13 +151,13 @@ namespace slib
 		void setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(TableView, ClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(TableView, RightButtonClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(TableView, DoubleClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(TableView, ChangedSelection, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ChangedSelection, UIEvent* ev)
 
 	protected:
 		void onDraw(Canvas* canvas) override;
@@ -164,7 +175,7 @@ namespace slib
 		UIPoint getPositionInGridCell(const UIPoint& pt, sl_int64 rowIndex, sl_int32 colIndex);
 		void drawGridCellItem(sl_int64 rowIndex, sl_int32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagFixedCell = sl_false);
 		void drawHeaderItem(sl_int64 rowIndex, sl_int32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagTop = sl_true);
-		void drawGridVerticalHeader(Canvas* canvas, sl_bool	flagTop = sl_true);
+		void drawGridHeader(Canvas* canvas, sl_bool	flagTop = sl_true);
 		void drawGridFrozenArea(Canvas* canvas, sl_bool flagLeft = sl_true);
 		virtual Ref<GridViewCell> getCell(sl_int64 row, sl_uint32 col);
 
@@ -179,8 +190,9 @@ namespace slib
 		sl_int32 m_columnCount;
 		sl_ui_len m_rowHeight;
 		List<sl_ui_len> m_listColumnWidth;
-		List<String> m_listTopHeaderText;
-		List<String> m_listBottomHeaderText;
+
+		List<String> m_listHeaderText;
+		Map<sl_int32, GridViewCellRegion> m_listHeaderSpan;
 
 		sl_ui_len m_heightTopHeader;
 		sl_ui_len m_heightBottomHeader;
@@ -188,11 +200,9 @@ namespace slib
 		sl_int32 m_fixedRightColumnCount;
 
 		sl_int64 m_indexHover;
-
-		sl_bool m_flagMultipleSelection;
+		sl_int64 m_focusedRow;
+		sl_int64 m_focusedColumn;
 		sl_int64 m_selectedRow;
-		sl_int64 m_lastSelectedRow;
-		CHashMap<sl_uint64, sl_bool> m_mapRowSelection;
 
 		AtomicRef<Drawable> m_backgroundItem;
 		AtomicRef<Drawable> m_backgroundSelectedItem;

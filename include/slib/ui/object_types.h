@@ -95,7 +95,7 @@ namespace slib
 			TabView,
 			TabViewInstance,
 			TableLayout,
-			TableView,
+			GridView,
 			TextView,
 			TileLayout,
 			TreeView,
