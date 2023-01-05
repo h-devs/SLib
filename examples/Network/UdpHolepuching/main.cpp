@@ -21,6 +21,7 @@
  */
 
 #include <slib.h>
+#include <slib/network/stun.h>
 
 using namespace slib;
 
@@ -84,7 +85,7 @@ int main(int argc, const char * argv[])
 	if (strAddressBind.parseUint32(10, &bindPort)) {
 		param.bindAddress.port = (sl_uint16)bindPort;
 	} else {
-		param.bindAddress.setString(strAddressBind);
+		param.bindAddress.setHostAddress(strAddressBind);
 	}
 
 	for (;;) {

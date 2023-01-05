@@ -17,4 +17,5 @@ target_link_libraries (
   slib
   hiredis
   pthread
+  dl
 )

@@ -12,4 +12,5 @@ target_link_libraries (
   ExamplePing
   slib
   pthread
+  dl
 )

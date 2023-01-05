@@ -13,7 +13,9 @@ int main(int argc, const char * argv[])
 		return 0;
 	}
 
+#if defined(SLIB_PLATFORM_IS_WIN32)
 	Dokany::install();
+#endif
 
 	String rootPath = StringCstr(argv[1]);
 	String mountPoint = StringCstr(argv[2]);
