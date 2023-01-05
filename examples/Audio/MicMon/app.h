@@ -2,6 +2,8 @@
 
 #include <slib.h>
 
+#include <slib/media/audio_recorder.h>
+
 using namespace slib;
 
 class MicMonApp : public UIApp

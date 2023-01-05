@@ -1,6 +1,7 @@
 #pragma once
 
 #include <slib.h>
+#include <slib/network/p2p.h>
 
 using namespace slib;
 

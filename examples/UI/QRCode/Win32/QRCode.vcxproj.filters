@@ -29,5 +29,11 @@
     <ClInclude Include="..\src\app.h">
       <Filter>Source Files\src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\extra\qrcode\zxing.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\extra\qrcode\zxing_scanner.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

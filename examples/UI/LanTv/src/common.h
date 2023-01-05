@@ -1,5 +1,6 @@
 #pragma once
-
+#include <slib/media/audio_player.h>
+#include <slib/media/audio_recorder.h>
 #define MULTICAST_ADDR 230, 23, 29, 59
 #define UDP_PORT_VIDEO 14235
 #define UDP_PORT_AUDIO 14236

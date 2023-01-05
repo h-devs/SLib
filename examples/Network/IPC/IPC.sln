@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPC", "IPC.vcxproj", "{D1153F23-72DA-4CFF-B753-6FA6C5F95292}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPC", "IPC.vcxproj", "{9625E34E-5D18-4212-9605-AE59CC8043E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,16 +13,19 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x64.ActiveCfg = Debug|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x64.Build.0 = Debug|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x86.ActiveCfg = Debug|Win32
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x86.Build.0 = Debug|Win32
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x64.ActiveCfg = Release|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x64.Build.0 = Release|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x86.ActiveCfg = Release|Win32
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x86.Build.0 = Release|Win32
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Debug|x64.ActiveCfg = Debug|x64
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Debug|x64.Build.0 = Debug|x64
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Debug|x86.ActiveCfg = Debug|Win32
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Debug|x86.Build.0 = Debug|Win32
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Release|x64.ActiveCfg = Release|x64
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Release|x64.Build.0 = Release|x64
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Release|x86.ActiveCfg = Release|Win32
+		{9625E34E-5D18-4212-9605-AE59CC8043E6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FE8682A3-BBB6-4470-9367-BBA085773E7F}
 	EndGlobalSection
 EndGlobal

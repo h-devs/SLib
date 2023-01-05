@@ -22,6 +22,8 @@
 
 #include <slib.h>
 
+#include <slib/script/ginger.h>
+
 using namespace slib;
 
 int main(int argc, const char * argv[])

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <slib.h>
+#include "external/zxing_unity.h"
+#include "zxing_scanner.h"
 
 using namespace slib;
 
@@ -16,7 +18,7 @@ protected:
 private:
 	Ref<ImageView> m_imgEncoded;
 	Ref<EditView> m_editEncoding;
-	Ref<QRCodeScanner> m_QRCodeScanner;
+	Ref<ZxingScanner> m_QRCodeScanner;
 	Ref<EditView> m_editDecoded;
 
 };

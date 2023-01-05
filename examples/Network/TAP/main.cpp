@@ -22,6 +22,12 @@
 
 #include <slib.h>
 
+#include <slib/network/tap.h>
+#include <slib/network/ethernet.h>
+#include <slib/network/tcpip.h>
+#include <slib/network/icmp.h>
+#include <slib/network/arp.h>
+
 using namespace slib;
 
 #define TAP_IP "10.0.0.10"

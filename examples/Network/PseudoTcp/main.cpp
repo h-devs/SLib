@@ -1,5 +1,7 @@
 #include <slib.h>
 
+#include <slib/network/pseudo_tcp_message.h>
+
 using namespace slib;
 
 int main(int argc, const char * argv[])

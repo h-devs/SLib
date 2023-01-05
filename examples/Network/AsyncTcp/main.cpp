@@ -1,5 +1,7 @@
 #include <slib.h>
 
+#include <slib/data/expiring_map.h>
+
 using namespace slib;
 
 #define PORT 30001

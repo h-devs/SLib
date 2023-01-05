@@ -20,6 +20,8 @@
  *   THE SOFTWARE.
  */
 
+#include <slib/platform.h>
+
 #include "../src/app.h"
 
 #pragma comment(lib, "libcef.lib")

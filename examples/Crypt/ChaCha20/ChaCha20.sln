@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChaCha20", "ChaCha20.vcxproj", "{D1153F23-72DA-4CFF-B753-6FA6C5F95292}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChaCha20", "ChaCha20.vcxproj", "{7E067732-62BA-448D-91BD-7B4ECF83CB5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,16 +13,19 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x64.ActiveCfg = Debug|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x64.Build.0 = Debug|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x86.ActiveCfg = Debug|Win32
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Debug|x86.Build.0 = Debug|Win32
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x64.ActiveCfg = Release|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x64.Build.0 = Release|x64
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x86.ActiveCfg = Release|Win32
-		{D1153F23-72DA-4CFF-B753-6FA6C5F95292}.Release|x86.Build.0 = Release|Win32
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Debug|x64.ActiveCfg = Debug|x64
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Debug|x64.Build.0 = Debug|x64
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Debug|x86.ActiveCfg = Debug|Win32
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Debug|x86.Build.0 = Debug|Win32
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Release|x64.ActiveCfg = Release|x64
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Release|x64.Build.0 = Release|x64
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Release|x86.ActiveCfg = Release|Win32
+		{7E067732-62BA-448D-91BD-7B4ECF83CB5E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3E4800E9-F917-4BB0-B203-D074381E1D58}
 	EndGlobalSection
 EndGlobal

@@ -1,4 +1,8 @@
 #include <slib.h>
+#include <slib/platform.h>
+#include <slib/storage/dokany.h>
+#include <slib/storage/file_system_mirror.h>
+#include <slib/storage/file_system_logger.h>
 
 using namespace slib;
 

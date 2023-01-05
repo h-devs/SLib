@@ -1,5 +1,7 @@
 #include <slib.h>
 
+#include <slib/math/fft.h>
+
 using namespace slib;
 
 #define COUNT 256

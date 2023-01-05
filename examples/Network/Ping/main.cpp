@@ -22,6 +22,9 @@
 
 #include <slib.h>
 
+#include <slib/network/tcpip.h>
+#include <slib/network/icmp.h>
+
 using namespace slib;
 
 /*

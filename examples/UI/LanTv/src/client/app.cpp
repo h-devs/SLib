@@ -30,6 +30,7 @@ void LanTvClientApp::onStart()
 
 	Ref<Thread> threadAudio = Thread::start([]() {
 
+		
 		Ref<AudioPlayer> audioPlayer;
 		{
 			AudioPlayerParam param;
