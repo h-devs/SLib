@@ -252,6 +252,8 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/doc/rar.cpp"
  "${SLIB_PATH}/src/slib/doc/zip.cpp"
 
+ "${SLIB_PATH}/src/slib/script/ginger.cpp"
+
  "${SLIB_PATH}/src/slib/geo/earth.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_line.cpp"
  "${SLIB_PATH}/src/slib/geo/geo_location.cpp"
@@ -404,6 +406,8 @@ else()
   "${SLIB_PATH}/src/slib/db/mysql_data.cpp"
   "${SLIB_PATH}/src/slib/db/postgresql.cpp"
   "${SLIB_PATH}/src/slib/db/rocksdb.cpp"
+  "${SLIB_PATH}/src/slib/db/redis.cpp"
+  "${SLIB_PATH}/src/slib/db/leveldb.cpp"
 
   "${SLIB_PATH}/src/slib/graphics/bitmap_cairo.cpp"
   "${SLIB_PATH}/src/slib/graphics/canvas_cairo.cpp"
