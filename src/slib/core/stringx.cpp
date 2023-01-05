@@ -239,24 +239,6 @@ namespace slib
 				}
 			}
 
-			SLIB_INLINE static sl_size GetUtf(sl_char32 code, sl_char8* buf)
-			{
-				return Charsets::getUtf8(code, buf, 6);
-			}
-
-			SLIB_INLINE static sl_size GetUtf(sl_char32 code, sl_char16* buf)
-			{
-				return Charsets::getUtf16(code, buf, 2);
-			}
-
-			SLIB_INLINE static sl_size GetUtf(sl_char32 code, sl_char32* buf)
-			{
-				if (buf) {
-					*buf = code;
-				}
-				return 1;
-			}
-
 			template <class CHAR>
 			SLIB_INLINE static void PutChar(CHAR* buf, sl_size& pos, CHAR ch)
 			{
@@ -373,7 +355,7 @@ namespace slib
 												flagValid = sl_true;
 											}
 											if (flagValid) {
-												sl_size n = GetUtf(code, buf ? buf + lengthOutput : sl_null);
+												sl_size n = Charsets::getUtfn(code, buf ? buf + lengthOutput : sl_null);
 												if (n) {
 													lengthOutput += n;
 												} else {
@@ -394,7 +376,7 @@ namespace slib
 								if (i + 8 <= lengthSrc) {
 									sl_uint32 code = 0;
 									if (ParseHexValue_FixedLength(src, 8, i, code)) {
-										sl_size n = GetUtf(code, buf ? buf + lengthOutput : sl_null);
+										sl_size n = Charsets::getUtfn(code, buf ? buf + lengthOutput : sl_null);
 										if (n) {
 											lengthOutput += n;
 										} else {

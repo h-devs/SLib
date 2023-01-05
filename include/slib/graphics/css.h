@@ -99,13 +99,13 @@ namespace slib
 		sl_bool flagNamespace;
 		String elementName;
 		sl_bool flagUniversal;
-		String className;
 		String id;
+		List<String> classNames;
 		List<CascadingStyleAttributeMatch> attributes;
 		List<String> pseudoClasses;
-		List<String> pseudoElements;
-		Ref<CascadingStyleSelector> parent;
-		CascadingStyleCombinator combinator; // for parent
+		String pseudoElement;
+		Ref<CascadingStyleSelector> next;
+		CascadingStyleCombinator combinator; // for next
 
 	public:
 		CascadingStyleSelector();

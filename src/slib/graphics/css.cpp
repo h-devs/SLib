@@ -75,35 +75,57 @@ namespace slib
 					if (selector.isNull()) {
 						return sl_false;
 					}
+
 					return sl_true;
 				}
 
-				Ref<CascadingStyleSelector> parseSelector()
+				Ref<CascadingStyleSelector> parseCombindSelector()
+				{
+					Ref<CascadingStyleSelector> root = parseBasicSelector();
+					if (root.isNull()) {
+						return sl_null;
+					}
+					CascadingStyleSelector* parent = root.get();
+					for (;;) {
+						skipWhitespaces();
+						if (current >= end) {
+							break;
+						}
+						CHAR ch = *current;
+						if (ch == '>') {
+							root->combinator = CascadingStyleCombinator::Child;
+						} else if (ch == '~') {
+							root->combinator = CascadingStyleCombinator::Sibling;
+						} else if (ch == '+') {
+							root->combinator = CascadingStyleCombinator::Adjacent;
+						}
+					}
+					return root;
+				}
+
+				Ref<CascadingStyleSelector> parseBasicSelector()
 				{
 					Ref<CascadingStyleSelector> ret = new CascadingStyleSelector;
 					if (ret.isNull()) {
 						return sl_null;
 					}
+					CHAR* start = current;
 					for (;;) {
 						switch (*current) {
 							case '.':
 								{
-									if (ret->className.isNotNull()) {
-										return sl_null;
-									}
 									current++;
 									String name = parseIdentifier();
 									if (name.isNull()) {
 										return sl_null;
 									}
-									ret->className = Move(name);
+									if (!(ret->classNames.add_NoLock(Move(name)))) {
+										return sl_null;
+									}
 									break;
 								}
 							case '#':
 								{
-									if (ret->id.isNotNull()) {
-										return sl_null;
-									}
 									current++;
 									String name = parseIdentifier();
 									if (name.isNull()) {
@@ -115,7 +137,7 @@ namespace slib
 							case '[':
 								{
 									current++;
-									if (!(parseSelectorAttributeMatch(ret.get()))) {
+									if (!(parseSelector_AttributeMatch(ret.get()))) {
 										return sl_null;
 									}
 									break;
@@ -159,6 +181,33 @@ namespace slib
 									}
 									break;
 								}
+							case ':':
+								{
+									current++;
+									if (current >= end) {
+										return sl_null;
+									}
+									if (*current == ':') {
+										current++;
+										if (ret->pseudoElement.isNotNull()) {
+											return sl_null;
+										}
+										String name = parsePseudoClass();
+										if (name.isNull()) {
+											return sl_null;
+										}
+										ret->pseudoElement = Move(name);
+									} else {
+										String name = parsePseudoClass();
+										if (name.isNull()) {
+											return sl_null;
+										}
+										if (!(ret->pseudoClasses.add_NoLock(Move(name)))) {
+											return sl_null;
+										}
+									}
+									break;
+								}
 							default:
 								{
 									if (ret->elementName.isNotNull() || ret->flagUniversal) {
@@ -166,7 +215,10 @@ namespace slib
 									}
 									String name = parseIdentifier();
 									if (name.isNull()) {
-										return sl_null;
+										if (current == start) {
+											return sl_null;
+										}
+										return ret;
 									}
 									ret->elementName = Move(name);
 									break;
@@ -179,101 +231,106 @@ namespace slib
 					return ret;
 				}
 
+				sl_bool parseHexValue(CHAR*& input, sl_uint32& value)
+				{
+					sl_uint32 h = SLIB_CHAR_HEX_TO_INT(*input);
+					if (h < 16) {
+						value = h;
+						input++;
+						sl_uint32 n = 1;
+						while (input < end && n < 6) {
+							h = SLIB_CHAR_HEX_TO_INT(*input);
+							if (h < 16) {
+								value = (value << 4) | h;
+								input++;
+								n++;
+							} else {
+								break;
+							}
+						}
+						if (input < end) {
+							CHAR ch = *input;
+							if (ch == ' ' || ch == '\t' || ch == '\n') {
+								input++;
+							} else if (ch == '\r') {
+								input++;
+								if (input < end) {
+									ch = *input;
+									if (ch == '\n') {
+										input++;
+									}
+								}
+							}
+						}
+						return sl_true;
+					} else {
+						return sl_false;
+					}
+				}
+
+				sl_bool parseIdentifier(CHAR*& input, CHAR* _out, sl_size& lenOutput)
+				{
+					lenOutput = 0;
+					CHAR* start = input;
+					while (input < end) {
+						CHAR ch = *input;
+						if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
+							if (start == input) {
+								if (SLIB_CHAR_IS_DIGIT(ch)) {
+									return sl_false;
+								}
+								if (ch == '-' && input + 1 < end) {
+									CHAR next = *(input + 1);
+									if (SLIB_CHAR_IS_DIGIT(next) || next == '-') {
+										return sl_false;
+									}
+								}
+							}
+							input++;
+						} else if (ch == '\\') {
+							input++;
+							if (input >= end) {
+								return sl_false;
+							}
+							sl_uint32 code;
+							if (parseHexValue(input, code)) {
+								lenOutput += Charsets::getUtfn(code, _out);
+								continue;
+							} else {
+								ch = *(input++);
+							}
+						} else {
+							break;
+						}
+						if (_out) {
+							_out[lenOutput] = ch;
+						}
+						lenOutput++;
+					}
+					return lenOutput > 0;
+				}
+
 				String parseIdentifier()
 				{
 					if (current >= end) {
 						return sl_null;
 					}
-					List<CHAR> buf;
-					CHAR* start = current;
-					while (current < end) {
-						CHAR ch = *current;
-						if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
-							current++;
-						} else if (ch == '\\') {
-							if (start < current) {
-								if (!(buf.addElements_NoLock(start, current - start))) {
-									return sl_null;
-								}
-							}
-							current++;
-							if (current >= end) {
-								return sl_null;
-							}
-
-							start = current;
-						} else {
-							break;
-						}
+					CHAR* s = current;
+					sl_size len;
+					if (!(parseIdentifier(s, sl_null, len))) {
+						return sl_null;
 					}
-					if (start < current) {
-						if (buf.isNull()) {
-							return String::from(start, current - start);
-						} else {
-							if (!(buf.addElements_NoLock(start, current - start))) {
-								return sl_null;
-							}
-						}
+					typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
+					if (ret.isNull()) {
+						return sl_null;
 					}
-					return String::from(buf.getData(), buf.getCount());
+					if (!(parseIdentifier(current, ret.getData(), len))) {
+						return sl_null;
+					}
+					return String::from(ret);
 				}
 
-				String parseEscapedIdentifier(CHAR* prefix, sl_size lenPrefix)
-				{
-					if (current >= end) {
-						return sl_null;
-					}
-					StringBuffer buf;
-					if (!(processEscapedIdentifierPrefix(buf, prefix, lenPrefix))) {
-						return sl_null;
-					}
-					CHAR* start = current;
-					while (current < end) {
-						CHAR ch = *current;
-						if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
-							current++;
-						} else if (ch == '\\') {
-							if (!(processEscapedIdentifierPrefix(buf, start, current - start))) {
-								return sl_null;
-							}
-							if (current >= end) {
-								return sl_null;
-							}
-							CHAR ch = *current;
-							if (!SLIB_CHAR_IS_HEX(ch)) {
-								return sl_null;
-							}
-							sl_char32 code = SLIB_CHAR_HEX_TO_INT(ch);
-							current++;
-							sl_uint32 n = 1;
-							while (current < end && n < 6) {
-								CHAR ch = *current;
-								if (SLIB_CHAR_IS_HEX(ch)) {
-									code = (code << 4) | SLIB_CHAR_HEX_TO_INT(ch);
-									current++;
-									n++;
-								} else {
-									break;
-								}
-							}
-							String str = String::from(&code, 1);
-							if (str.isNull()) {
-								return sl_null;
-							}
-							if (!(buf.add(Move(str)))) {
-								return sl_null;
-							}
-						} else {
-							break;
-						}
-					}
-					if (!(processEscapedIdentifierPrefix(buf, start, current - start))) {
-						return sl_null;
-					}
-					return buf.merge();
-				}
-
-				sl_bool parseSelectorAttributeMatch(CascadingStyleSelector* selector)
+				sl_bool parseSelector_AttributeMatch(CascadingStyleSelector* selector)
 				{
 					skipWhitespaces();
 					if (current >= end) {
@@ -367,7 +424,13 @@ namespace slib
 							if (input >= end) {
 								return sl_false;
 							}
-							ch = *(input++);
+							sl_uint32 code;
+							if (parseHexValue(input, code)) {
+								lenOutput += Charsets::getUtfn(code, _out);
+								continue;
+							} else {
+								ch = *(input++);
+							}
 						}
 						if (_out) {
 							_out[lenOutput] = ch;
@@ -381,7 +444,7 @@ namespace slib
 				{
 					CHAR chOpen = *current;
 					if (chOpen != '"' && chOpen != '\'') {
-						return sl_null;
+						return parseIdentifier();
 					}
 					current++;
 					CHAR* s = current;
@@ -397,6 +460,78 @@ namespace slib
 						return sl_null;
 					}
 					return String::from(ret);
+				}
+
+				sl_bool skipValueRegion(CHAR chEnd)
+				{
+					while (current < end) {
+						CHAR ch = *current;
+						if (ch == '(') {
+							current++;
+							if (!(skipValueRegion(')'))) {
+								return sl_false;
+							}
+							current++;
+						} else if (ch == '\\') {
+							current++;
+							if (current >= end) {
+								return sl_false;
+							}
+							current++;
+						} else if (ch == '"' || ch == '\'') {
+							current++;
+							sl_size n;
+							if (!(parseStringValue(current, ch, sl_null, n))) {
+								return sl_false;
+							}
+						} else if (ch == chEnd) {
+							return sl_true;
+						} else {
+							current++;
+						}
+					}
+					return sl_false;
+				}
+
+				String parseValueRegion(CHAR chEnd)
+				{
+					skipWhitespaces();
+					CHAR* start = current;
+					if (!(skipValueRegion(chEnd))) {
+						return sl_null;
+					}
+					if (current == start) {
+						return String::getEmpty();
+					}
+					CHAR* last = current - 1;
+					while (last > start) {
+						if (SLIB_CHAR_IS_WHITE_SPACE(*last)) {
+							last--;
+						} else {
+							break;
+						}
+					}
+					current++;
+					return String::from(start, last - start + 1);
+				}
+
+				String parsePseudoClass()
+				{
+					CHAR* start = current;
+					sl_size n;
+					if (!(parseIdentifier(current, sl_null, n))) {
+						return sl_null;
+					}
+					if (current < end) {
+						if (*current == '(') {
+							current++;
+							if (!(skipValueRegion(')'))) {
+								return sl_null;
+							}
+							current++;
+						}
+					}
+					return String::from(start, current - start);
 				}
 
 			};

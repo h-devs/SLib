@@ -865,11 +865,73 @@ namespace slib
 		return n;
 	}
 
+	sl_size Charsets::getUtf8(sl_char32 code, sl_char8* utf8) noexcept
+	{
+		sl_size n = 0;
+		Utf8Helper::putUnicode(code, utf8, n);
+		return n;
+	}
+
 	sl_size Charsets::getUtf16(sl_char32 code, sl_char16* utf16, sl_size lenUtf16Buffer) noexcept
 	{
 		sl_size n = 0;
 		Utf16Helper<NoEndianHelper>::putUnicode(code, utf16, lenUtf16Buffer, n);
 		return n;
+	}
+
+	sl_size Charsets::getUtf16(sl_char32 code, sl_char16* utf16) noexcept
+	{
+		sl_size n = 0;
+		Utf16Helper<NoEndianHelper>::putUnicode(code, utf16, n);
+		return n;
+	}
+
+	sl_size Charsets::getUtfn(sl_char32 code, sl_char8* buf, sl_size lenBuf) noexcept
+	{
+		sl_size n = 0;
+		Utf8Helper::putUnicode(code, buf, lenBuf, n);
+		return n;
+	}
+
+	sl_size Charsets::getUtfn(sl_char32 code, sl_char8* buf) noexcept
+	{
+		sl_size n = 0;
+		Utf8Helper::putUnicode(code, buf, n);
+		return n;
+	}
+
+	sl_size Charsets::getUtfn(sl_char32 code, sl_char16* buf, sl_size lenBuf) noexcept
+	{
+		sl_size n = 0;
+		Utf16Helper<NoEndianHelper>::putUnicode(code, buf, lenBuf, n);
+		return n;
+	}
+
+	sl_size Charsets::getUtfn(sl_char32 code, sl_char16* buf) noexcept
+	{
+		sl_size n = 0;
+		Utf16Helper<NoEndianHelper>::putUnicode(code, buf, n);
+		return n;
+	}
+
+	sl_size Charsets::getUtfn(sl_char32 code, sl_char32* buf, sl_size lenBuf) noexcept
+	{
+		if (lenBuf) {
+			if (buf) {
+				*buf = code;
+			}
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+
+	sl_size Charsets::getUtfn(sl_char32 code, sl_char32* buf) noexcept
+	{
+		if (buf) {
+			*buf = code;
+		}
+		return 1;
 	}
 
 	sl_bool Charsets::getUnicode(sl_char32& outCode, const sl_char8* utf8, sl_size lenUtf8, sl_size& posUtf8)
