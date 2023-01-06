@@ -54,20 +54,77 @@ namespace slib
 		Contain = 6, // [attr*="value"]: elements with an attribute name of `attr` whose value contains at least one occurrence of `value` within the string
 	};
 
-	class SLIB_EXPORT CascadingStyleValue
+	enum class CascadingStyleValueType
+	{
+		Normal = 0,
+		Variable = 1, // var(--name[, default])
+	};
+
+	class SLIB_EXPORT CascadingStyleValue : public Referable
 	{
 	public:
-		String value;
-		sl_bool flagVariable : 1;
-		sl_bool flagImportant : 1;
+		CascadingStyleValue(CascadingStyleValueType type);
+
+		~CascadingStyleValue();
 
 	public:
-		CascadingStyleValue(): flagVariable(sl_false), flagImportant(sl_false) {}
+		sl_bool isImportant()
+		{
+			return m_flagImportant;
+		}
 
-		template <class VALUE>
-		CascadingStyleValue(VALUE&& _value, sl_bool _flagVariable = sl_false, sl_bool _flagImportant = sl_false): value(Forward<VALUE>(_value)), flagVariable(_flagVariable), flagImportant(_flagImportant) {}
+		void setImportant(sl_bool flag = sl_true)
+		{
+			m_flagImportant = flag;
+		}
 
-		SLIB_DEFINE_CLASS_DEFAULT_MEMBERS_INLINE(CascadingStyleValue)
+	protected:
+		CascadingStyleValueType m_type;
+		sl_bool m_flagImportant : 1; // !important
+
+	};
+
+	class SLIB_EXPORT CascadingStyleNormalValue : public CascadingStyleValue
+	{
+	public:
+		CascadingStyleNormalValue(String&& value);
+
+		~CascadingStyleNormalValue();
+
+	public:
+		const String& getValue()
+		{
+			return m_value;
+		}
+
+	protected:
+		String m_value;
+
+	};
+
+	class SLIB_EXPORT CascadingStyleVariableValue : public CascadingStyleValue
+	{
+	public:
+		CascadingStyleVariableValue(String&& name, String&& defaultValue);
+
+		CascadingStyleVariableValue(String&& name);
+
+		~CascadingStyleVariableValue();
+
+	public:
+		const String& getName()
+		{
+			return m_name;
+		}
+
+		const String& getDefaultValue()
+		{
+			return m_defaultValue;
+		}
+
+	protected:
+		String m_name;
+		String m_defaultValue;
 
 	};
 
@@ -118,7 +175,7 @@ namespace slib
 	{
 	public:
 		Ref<CascadingStyleSelector> selector;
-		HashMap<String, CascadingStyleValue> properties;
+		HashMap< String, Ref<CascadingStyleValue> > properties;
 	};
 
 	class SLIB_EXPORT CascadingStyleSheet
@@ -132,10 +189,7 @@ namespace slib
 		sl_bool addStyles(const StringParam& styles);
 
 	protected:
-		CHashMap< String, List<CascadingStyleRule> > m_rulesById;
-		CHashMap< String, List<CascadingStyleRule> > m_rulesByClass;
-		CHashMap< String, List<CascadingStyleRule> > m_rulesByElement;
-		CHashMap< String, List<CascadingStyleRule> > m_rulesByOther;
+		CList<CascadingStyleRule> m_rules;
 
 	};
 

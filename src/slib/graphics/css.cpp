@@ -30,11 +30,17 @@ namespace slib
 		namespace css
 		{
 
+			class CascadingStyleSheetHelper : public CascadingStyleSheet
+			{
+			public:
+				using CascadingStyleSheet::m_rules;
+			};
+
 			template <class CHAR>
 			class StylesParser
 			{
 			public:
-				CascadingStyleSheet* sheet;
+				CascadingStyleSheetHelper * sheet;
 				CHAR* current;
 				CHAR* end;
 
@@ -42,7 +48,7 @@ namespace slib
 				static sl_bool run(CascadingStyleSheet* sheet, CHAR* data, sl_size len)
 				{
 					StylesParser parser;
-					parser.sheet = sheet;
+					parser.sheet = (CascadingStyleSheetHelper*)sheet;
 					parser.current = data;
 					parser.end = data + len;
 					return parser.run();
@@ -59,48 +65,253 @@ namespace slib
 					return sl_true;
 				}
 
+				void skipCommentInner()
+				{
+					current += 2;
+					for (;;) {
+						if (current + 2 > end) {
+							current = end;
+							return;
+						}
+						if (*current == '*' && *(current + 1) == '/') {
+							current += 2;
+							break;
+						} else {
+							current++;
+						}
+					}
+				}
+
+				void skipComment()
+				{
+					if (current + 2 > end) {
+						return;
+					}
+					if (*current == '/' && *(current + 1) == '*') {
+						skipCommentInner();
+					}
+				}
+
 				void skipWhitespaces()
 				{
 					while (current < end) {
-						if (!SLIB_CHAR_IS_WHITE_SPACE(*current)) {
+						CHAR ch = *current;
+						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							current++;
+						} else if (ch == '/') {
+							if (current + 1 < end && *(current + 1) == '*') {
+								skipCommentInner();
+							} else {
+								return;
+							}
+						} else {
 							return;
 						}
-						current++;
 					}
 				}
 
 				sl_bool parseRule()
 				{
-					Ref<CascadingStyleSelector> selector = parseSelector();
+					Ref<CascadingStyleSelector> selector = parseCombindSelector();
 					if (selector.isNull()) {
 						return sl_false;
 					}
-
+					if (current >= end) {
+						return sl_false;
+					}
+					List< Ref<CascadingStyleSelector> > group;
+					while (*current == ',') {
+						current++;
+						Ref<CascadingStyleSelector> item = parseCombindSelector();
+						if (item.isNull()) {
+							return sl_false;
+						}
+						if (!(group.add_NoLock(Move(item)))) {
+							return sl_false;
+						}
+						if (current >= end) {
+							return sl_false;
+						}
+					}
+					if (*current != '{') {
+						return sl_false;
+					}
+					current++;
+					HashMap< String, Ref<CascadingStyleValue> > props;
+					for (;;) {
+						skipWhitespaces();
+						String name = parseIdentifier();
+						if (name.isNull()) {
+							break;
+						}
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+						if (*current != ':') {
+							break;
+						}
+						skipWhitespaces();
+						Ref<CascadingStyleValue> value = parseValue();
+						if (value.isNull()) {
+							break;
+						}
+						if (current >= end) {
+							return sl_false;
+						}
+						if (*current == '!') {
+							current++;
+							skipComment();
+							String label = parseIdentifier();
+							if (label == StringView::literal("important")) {
+								value->setImportant();
+							}
+							skipWhitespaces();
+							if (current >= end) {
+								return sl_false;
+							}
+						}
+						if (!(props.add_NoLock(Move(name), Move(value)))) {
+							return sl_false;
+						}
+						if (*current == ';') {
+							current++;
+						} else {
+							break;
+						}
+					}
+					if (current >= end) {
+						return sl_false;
+					}
+					if (*current != ';') {
+						return sl_false;
+					}
+					current++;
+					CascadingStyleRule rule;
+					rule.selector = Move(selector);
+					rule.properties = props;
+					if (!(addRule(Move(rule)))) {
+						return sl_false;
+					}
+					{
+						ListElements< Ref<CascadingStyleSelector> > items(group);
+						for (sl_size i = 0; i < items.count; i++) {
+							rule.selector = Move(items[i]);
+							rule.properties = props;
+							if (!(addRule(Move(rule)))) {
+								return sl_false;
+							}
+						}
+					}
 					return sl_true;
+				}
+
+				sl_bool addRule(CascadingStyleRule&& rule)
+				{
+					return sheet->m_rules.add_NoLock(Move(rule));
+				}
+
+				Ref<CascadingStyleValue> parseValue()
+				{
+					CHAR* start = current;
+					Ref<CascadingStyleValue> value = parseVariableValue();
+					if (value.isNotNull()) {
+						return value;
+					}
+					current = start;
+					return parseNormalValue();
+				}
+
+				Ref<CascadingStyleValue> parseVariableValue()
+				{
+					if (current + 3 > end) {
+						return sl_null;
+					}
+					if (!(*current == 'v' && *(current + 1) == 'a' && *(current + 2) == 'r')) {
+						return sl_null;
+					}
+					current += 3;
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_null;
+					}
+					if (*current != '(') {
+						return sl_null;
+					}
+					current++;
+					skipWhitespaces();
+					String name = parseIdentifier();
+					if (name.isNull()) {
+						return sl_null;
+					}
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_null;
+					}
+					String defaultValue;
+					CHAR ch = *current;
+					if (ch == ',') {
+						current++;
+						skipWhitespaces();
+						String defaultValue = parseValueRegion(')');
+						if (defaultValue.isNull()) {
+							return sl_null;
+						}
+						current++;
+						return new CascadingStyleVariableValue(Move(name), Move(defaultValue));
+					} else if (ch == ')') {
+						current++;
+						return new CascadingStyleVariableValue(Move(name));
+					} else {
+						return sl_null;
+					}
+				}
+
+				Ref<CascadingStyleValue> parseNormalValue()
+				{
+					String value = parseValueRegion(0);
+					if (value.isNull()) {
+						return sl_null;
+					}
+					return new CascadingStyleNormalValue(Move(value));
 				}
 
 				Ref<CascadingStyleSelector> parseCombindSelector()
 				{
-					Ref<CascadingStyleSelector> root = parseBasicSelector();
-					if (root.isNull()) {
+					Ref<CascadingStyleSelector> ret = parseBasicSelector();
+					if (ret.isNull()) {
 						return sl_null;
 					}
-					CascadingStyleSelector* parent = root.get();
-					for (;;) {
+					skipWhitespaces();
+					if (current >= end) {
+						return ret;
+					}
+					CascadingStyleCombinator combinator = CascadingStyleCombinator::Descendant;
+					CHAR ch = *current;
+					if (ch == '>') {
+						combinator = CascadingStyleCombinator::Child;
+					} else if (ch == '~') {
+						combinator = CascadingStyleCombinator::Sibling;
+					} else if (ch == '+') {
+						combinator = CascadingStyleCombinator::Adjacent;
+					}
+					if (combinator != CascadingStyleCombinator::Descendant) {
+						current++;
 						skipWhitespaces();
 						if (current >= end) {
-							break;
-						}
-						CHAR ch = *current;
-						if (ch == '>') {
-							root->combinator = CascadingStyleCombinator::Child;
-						} else if (ch == '~') {
-							root->combinator = CascadingStyleCombinator::Sibling;
-						} else if (ch == '+') {
-							root->combinator = CascadingStyleCombinator::Adjacent;
+							return sl_null;
 						}
 					}
-					return root;
+					Ref<CascadingStyleSelector> next = parseCombindSelector();
+					if (next.isNotNull()) {
+						ret->combinator = combinator;
+						ret->next = Move(next);
+					} else {
+						if (combinator != CascadingStyleCombinator::Descendant) {
+							return sl_null;
+						}
+					}
+					return ret;
 				}
 
 				Ref<CascadingStyleSelector> parseBasicSelector()
@@ -227,6 +438,7 @@ namespace slib
 						if (current >= end) {
 							break;
 						}
+						skipComment();
 					}
 					return ret;
 				}
@@ -281,7 +493,7 @@ namespace slib
 								}
 								if (ch == '-' && input + 1 < end) {
 									CHAR next = *(input + 1);
-									if (SLIB_CHAR_IS_DIGIT(next) || next == '-') {
+									if (SLIB_CHAR_IS_DIGIT(next)) {
 										return sl_false;
 									}
 								}
@@ -484,10 +696,26 @@ namespace slib
 							if (!(parseStringValue(current, ch, sl_null, n))) {
 								return sl_false;
 							}
-						} else if (ch == chEnd) {
-							return sl_true;
+						} else if (ch == '/') {
+							if (current + 1 < end && *(current + 1) == '*') {
+								skipComment();
+							} else {
+								current++;
+							}
 						} else {
-							current++;
+							if (chEnd) {
+								if (ch == chEnd) {
+									return sl_true;
+								} else {
+									current++;
+								}
+							} else {
+								if (ch == ';' || ch == '}' || ch == '!') {
+									return sl_true;
+								} else {
+									current++;
+								}
+							}
 						}
 					}
 					return sl_false;
