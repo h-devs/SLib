@@ -1,4 +1,8 @@
 #include <slib.h>
+#include <slib/platform.h>
+#include <slib/storage/dokany.h>
+#include <slib/storage/file_system_mirror.h>
+#include <slib/storage/file_system_logger.h>
 
 using namespace slib;
 
@@ -9,7 +13,9 @@ int main(int argc, const char * argv[])
 		return 0;
 	}
 
+#if defined(SLIB_PLATFORM_IS_WIN32)
 	Dokany::install();
+#endif
 
 	String rootPath = StringCstr(argv[1]);
 	String mountPoint = StringCstr(argv[2]);

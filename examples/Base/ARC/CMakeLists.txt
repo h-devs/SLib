@@ -9,4 +9,5 @@ target_link_libraries (
   ExampleARC
   slib
   pthread
+  dl
 )

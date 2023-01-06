@@ -82,7 +82,7 @@ namespace slib
 
 		virtual Variant rpop(const StringParam& key) = 0;
 
-		virtual List<Variant> lrange(const StringParam& key, sl_int64 start = 0, sl_int64 stop = -1);
+		virtual List<Variant> lrange(const StringParam& key, sl_int64 start = 0, sl_int64 stop = -1) = 0;
 
 	public:
 		sl_bool isLoggingErrors();

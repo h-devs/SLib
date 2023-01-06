@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SLIB_PATH)/external/include;$(SLIB_PATH)/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SLIB_PATH)/lib/Win32/$(Configuration)-$(Platform);$(SLIB_PATH)/external/lib/Win32/$(Configuration)-$(Platform);$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\intermediate\$(ProjectName)\$(Platform)-$(Configuration)\</IntDir>

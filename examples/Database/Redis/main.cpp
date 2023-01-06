@@ -1,4 +1,5 @@
 #include <slib.h>
+#include <slib/db/redis.h>
 
 using namespace slib;
 

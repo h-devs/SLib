@@ -1,5 +1,8 @@
 #include <slib.h>
 
+#include <slib/network/packet_analyzer.h>
+#include <slib/network/pcap.h>
+
 using namespace slib;
 
 PacketAnalyzer analyzer;

@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include <slib/crypto/oauth.h>
 
 void MainWindow::onCreate()
 {
