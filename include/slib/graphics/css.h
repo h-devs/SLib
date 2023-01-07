@@ -68,6 +68,11 @@ namespace slib
 		~CascadingStyleValue();
 
 	public:
+		CascadingStyleValueType getType()
+		{
+			return m_type;
+		}
+
 		sl_bool isImportant()
 		{
 			return m_flagImportant;
@@ -171,11 +176,35 @@ namespace slib
 
 	};
 
+	class CascadingStyleRule;
+	class CascadingStyleAtRule;
+
+	class SLIB_EXPORT CascadingStyleStatements
+	{
+	public:
+		List< Ref<CascadingStyleRule> > rules;
+		List< Ref<CascadingStyleAtRule> > atRules;
+
+	public:
+		CascadingStyleStatements();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CascadingStyleStatements)
+
+	};
+
 	class SLIB_EXPORT CascadingStyleRule
 	{
 	public:
 		Ref<CascadingStyleSelector> selector;
 		HashMap< String, Ref<CascadingStyleValue> > properties;
+	};
+
+	class SLIB_EXPORT CascadingStyleAtRule
+	{
+	public:
+		String identifier;
+		String rule;
+		CascadingStyleStatements statements;
 	};
 
 	class SLIB_EXPORT CascadingStyleSheet
@@ -189,7 +218,7 @@ namespace slib
 		sl_bool addStyles(const StringParam& styles);
 
 	protected:
-		CList<CascadingStyleRule> m_rules;
+		CascadingStyleStatements m_statements;
 
 	};
 

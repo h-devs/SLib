@@ -33,7 +33,7 @@ namespace slib
 			class CascadingStyleSheetHelper : public CascadingStyleSheet
 			{
 			public:
-				using CascadingStyleSheet::m_rules;
+				using CascadingStyleSheet::m_statements;
 			};
 
 			template <class CHAR>
@@ -769,11 +769,49 @@ namespace slib
 
 	using namespace priv::css;
 
+	CascadingStyleValue::CascadingStyleValue(CascadingStyleValueType type): m_type(type), m_flagImportant(sl_false)
+	{
+	}
+
+	CascadingStyleValue::~CascadingStyleValue()
+	{
+	}
+
+
+	CascadingStyleNormalValue::CascadingStyleNormalValue(String&& value): CascadingStyleValue(CascadingStyleValueType::Normal), m_value(Move(value))
+	{
+	}
+
+	CascadingStyleNormalValue::~CascadingStyleNormalValue()
+	{
+	}
+
+
+	CascadingStyleVariableValue::CascadingStyleVariableValue(String&& name, String&& defaultValue): CascadingStyleValue(CascadingStyleValueType::Variable), m_name(Move(name)), m_defaultValue(Move(defaultValue))
+	{
+	}
+
+	CascadingStyleVariableValue::CascadingStyleVariableValue(String&& name): CascadingStyleValue(CascadingStyleValueType::Variable), m_name(Move(name))
+	{
+	}
+
+	CascadingStyleVariableValue::~CascadingStyleVariableValue()
+	{
+	}
+
+
 	CascadingStyleSelector::CascadingStyleSelector(): flagNamespace(sl_false), flagUniversal(sl_false)
 	{
 	}
 
 	CascadingStyleSelector::~CascadingStyleSelector()
+	{
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CascadingStyleStatements)
+
+	CascadingStyleStatements::CascadingStyleStatements()
 	{
 	}
 
