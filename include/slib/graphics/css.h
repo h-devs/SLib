@@ -60,6 +60,8 @@ namespace slib
 		Variable = 1, // var(--name[, default])
 	};
 
+	class StringBuffer;
+
 	class SLIB_EXPORT CascadingStyleValue : public Referable
 	{
 	public:
@@ -83,6 +85,11 @@ namespace slib
 			m_flagImportant = flag;
 		}
 
+		virtual sl_bool toString(StringBuffer& output) = 0;
+
+	protected:
+		sl_bool toString_Suffix(StringBuffer& output);
+
 	protected:
 		CascadingStyleValueType m_type;
 		sl_bool m_flagImportant : 1; // !important
@@ -101,6 +108,8 @@ namespace slib
 		{
 			return m_value;
 		}
+
+		sl_bool toString(StringBuffer& output) override;
 
 	protected:
 		String m_value;
@@ -126,6 +135,8 @@ namespace slib
 		{
 			return m_defaultValue;
 		}
+
+		sl_bool toString(StringBuffer& output) override;
 
 	protected:
 		String m_name;
@@ -174,6 +185,9 @@ namespace slib
 
 		~CascadingStyleSelector();
 
+	public:
+		sl_bool toString(StringBuffer& output);
+
 	};
 
 	class CascadingStyleRule;
@@ -182,8 +196,8 @@ namespace slib
 	class SLIB_EXPORT CascadingStyleStatements
 	{
 	public:
-		List< Ref<CascadingStyleRule> > rules;
-		List< Ref<CascadingStyleAtRule> > atRules;
+		List<CascadingStyleRule> rules;
+		List<CascadingStyleAtRule> atRules;
 
 	public:
 		CascadingStyleStatements();
@@ -216,6 +230,8 @@ namespace slib
 
 	public:
 		sl_bool addStyles(const StringParam& styles);
+
+		String toString();
 
 	protected:
 		CascadingStyleStatements m_statements;

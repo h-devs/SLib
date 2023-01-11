@@ -22,6 +22,8 @@
 
 #include "slib/graphics/css.h"
 
+#include "slib/core/string_buffer.h"
+
 namespace slib
 {
 
@@ -57,10 +59,27 @@ namespace slib
 				sl_bool run()
 				{
 					skipWhitespaces();
+					return parseStatements(sheet->m_statements);
+				}
+
+				sl_bool parseStatements(CascadingStyleStatements& statements)
+				{
 					while (current < end) {
-						if (!(parseRule())) {
-							return sl_false;
+						CHAR ch = *current;
+						if (ch == '}') {
+							break;
 						}
+						if (ch == '@') {
+							current++;
+							if (!(parseAtRule(statements))) {
+								return sl_false;
+							}
+						} else {
+							if (!(parseRule(statements))) {
+								return sl_false;
+							}
+						}
+						skipWhitespaces();
 					}
 					return sl_true;
 				}
@@ -110,7 +129,44 @@ namespace slib
 					}
 				}
 
-				sl_bool parseRule()
+				sl_bool parseAtRule(CascadingStyleStatements& statements)
+				{
+					CascadingStyleAtRule at;
+					at.identifier = parseIdentifier();
+					if (at.identifier.isNull()) {
+						return sl_false;
+					}
+					at.rule = parseValueRegion(0);
+					if (at.rule.isNull()) {
+						return sl_false;
+					}
+					if (*current == '{') {
+						current++;
+						skipWhitespaces();
+						if (!(parseStatements(at.statements))) {
+							return sl_false;
+						}
+						if (current >= end) {
+							return sl_false;
+						}
+						if (*current != '}') {
+							return sl_false;
+						}
+						current++;
+					} else if (*current == ';') {
+						current++;
+					} else {
+						return sl_false;
+					}
+					return addAtRule(statements, Move(at));
+				}
+
+				sl_bool addAtRule(CascadingStyleStatements& statements, CascadingStyleAtRule&& rule)
+				{
+					return statements.atRules.add_NoLock(Move(rule));
+				}
+
+				sl_bool parseRule(CascadingStyleStatements& statements)
 				{
 					Ref<CascadingStyleSelector> selector = parseCombindSelector();
 					if (selector.isNull()) {
@@ -183,14 +239,14 @@ namespace slib
 					if (current >= end) {
 						return sl_false;
 					}
-					if (*current != ';') {
+					if (*current != '}') {
 						return sl_false;
 					}
 					current++;
 					CascadingStyleRule rule;
 					rule.selector = Move(selector);
 					rule.properties = props;
-					if (!(addRule(Move(rule)))) {
+					if (!(addRule(statements, Move(rule)))) {
 						return sl_false;
 					}
 					{
@@ -198,7 +254,7 @@ namespace slib
 						for (sl_size i = 0; i < items.count; i++) {
 							rule.selector = Move(items[i]);
 							rule.properties = props;
-							if (!(addRule(Move(rule)))) {
+							if (!(addRule(statements, Move(rule)))) {
 								return sl_false;
 							}
 						}
@@ -206,9 +262,9 @@ namespace slib
 					return sl_true;
 				}
 
-				sl_bool addRule(CascadingStyleRule&& rule)
+				sl_bool addRule(CascadingStyleStatements& statements, CascadingStyleRule&& rule)
 				{
-					return sheet->m_rules.add_NoLock(Move(rule));
+					return statements.rules.add_NoLock(Move(rule));
 				}
 
 				Ref<CascadingStyleValue> parseValue()
@@ -710,7 +766,7 @@ namespace slib
 									current++;
 								}
 							} else {
-								if (ch == ';' || ch == '}' || ch == '!') {
+								if (ch == ';' || ch == '{' || ch == '}' || ch == '!') {
 									return sl_true;
 								} else {
 									current++;
@@ -739,7 +795,6 @@ namespace slib
 							break;
 						}
 					}
-					current++;
 					return String::from(start, last - start + 1);
 				}
 
@@ -777,6 +832,15 @@ namespace slib
 	{
 	}
 
+	sl_bool CascadingStyleValue::toString_Suffix(StringBuffer& output)
+	{
+		if (m_flagImportant) {
+			return output.addStatic(" !important;");
+		} else {
+			return output.addStatic(";");
+		}
+	}
+
 
 	CascadingStyleNormalValue::CascadingStyleNormalValue(String&& value): CascadingStyleValue(CascadingStyleValueType::Normal), m_value(Move(value))
 	{
@@ -784,6 +848,14 @@ namespace slib
 
 	CascadingStyleNormalValue::~CascadingStyleNormalValue()
 	{
+	}
+
+	sl_bool CascadingStyleNormalValue::toString(StringBuffer& output)
+	{
+		if (!(output.add(m_value))) {
+			return sl_false;
+		}
+		return toString_Suffix(output);
 	}
 
 
@@ -799,6 +871,28 @@ namespace slib
 	{
 	}
 
+	sl_bool CascadingStyleVariableValue::toString(StringBuffer& output)
+	{
+		if (!(output.addStatic("var("))) {
+			return sl_false;
+		}
+		if (!(output.add(m_name))) {
+			return sl_false;
+		}
+		if (m_defaultValue.isNotNull()) {
+			if (!(output.addStatic(", "))) {
+				return sl_false;
+			}
+			if (!(output.add(m_defaultValue))) {
+				return sl_false;
+			}
+		}
+		if (!(output.addStatic(")"))) {
+			return sl_false;
+		}
+		return toString_Suffix(output);
+	}
+
 
 	CascadingStyleSelector::CascadingStyleSelector(): flagNamespace(sl_false), flagUniversal(sl_false)
 	{
@@ -806,6 +900,40 @@ namespace slib
 
 	CascadingStyleSelector::~CascadingStyleSelector()
 	{
+	}
+
+	sl_bool CascadingStyleSelector::toString(StringBuffer& output)
+	{
+		if (flagNamespace) {
+			if (namespaceName.isNotNull()) {
+				if (!(output.add(namespaceName))) {
+					return sl_false;
+				}
+				if (!(output.addStatic("|"))) {
+					return sl_false;
+				}
+			} else {
+				if (!(output.addStatic("*|"))) {
+					return sl_false;
+				}
+			}
+		}
+		if (flagUniversal) {
+			if (!(output.addStatic("*"))) {
+				return sl_false;
+			}
+		} else if (elementName.isNotNull()) {
+			if (!(output.add(elementName))) {
+				return sl_false;
+			}
+		}
+		if (id.isNotNull()) {
+
+			if (!(output.add(id))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
 	}
 
 
