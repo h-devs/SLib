@@ -1842,6 +1842,27 @@ namespace slib
 				attr->rightMode = PositionMode::Free;
 				attr->bottomMode = PositionMode::Free;
 
+				SAppAlignmentValue align;
+				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , align)
+				if (align.flagDefined) {
+					Alignment h = align.value & Alignment::HorizontalMask;
+					if (h == Alignment::Right) {
+						attr->rightMode = PositionMode::ParentEdge;
+					} else if (h == Alignment::Center) {
+						attr->leftMode = PositionMode::CenterInParent;
+					} else if (h == Alignment::Left) {
+						attr->leftMode = PositionMode::ParentEdge;
+					}
+					Alignment v = align.value & Alignment::VerticalMask;
+					if (v == Alignment::Bottom) {
+						attr->bottomMode = PositionMode::ParentEdge;
+					} else if (v == Alignment::Middle) {
+						attr->topMode = PositionMode::CenterInParent;
+					} else if (v == Alignment::Top) {
+						attr->topMode = PositionMode::ParentEdge;
+					}
+				}
+
 #define LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(NAME, PREFIX, PARENT_POS, OTHER_POS) \
 				SAppAlignLayoutValue NAME; \
 				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , NAME) \
