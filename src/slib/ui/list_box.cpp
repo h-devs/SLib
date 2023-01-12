@@ -35,11 +35,13 @@ namespace slib
 		setCanvasScrolling(sl_false);
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 		setFocusable(sl_true);
+		setClipping(sl_true, UIUpdateMode::Init);
 
 		m_nItems = 0;
 		m_heightItem = 100;
 		m_indexHover = -1;
 
+		m_flagItemClipping = sl_true;
 		m_flagMultipleSelection = sl_false;
 		m_indexSelected = -1;
 		m_indexFocused = -1;
@@ -66,7 +68,7 @@ namespace slib
 			return;
 		}
 		m_nItems = count;
-		setContentHeight((sl_scroll_pos)(count * m_heightItem), mode);
+		refreshContentHeight(mode);
 	}
 
 	sl_ui_len ListBox::getItemHeight()
@@ -84,7 +86,24 @@ namespace slib
 			return;
 		}
 		m_heightItem = height;
-		setContentHeight((sl_scroll_pos)(height * m_nItems), mode);
+		refreshContentHeight(mode);
+	}
+
+	void ListBox::refreshContentHeight(UIUpdateMode mode)
+	{
+		setContentHeight((sl_scroll_pos)(m_nItems * m_heightItem + getPaddingTop() + getPaddingBottom()), SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
+		invalidate(mode);
+	}
+
+	sl_bool ListBox::isItemClipping()
+	{
+		return m_flagItemClipping;
+	}
+
+	void ListBox::setItemClipping(sl_bool flag, UIUpdateMode mode)
+	{
+		m_flagItemClipping = flag;
+		invalidate(mode);
 	}
 
 	sl_bool ListBox::isMultipleSelection()
@@ -456,7 +475,7 @@ namespace slib
 
 	sl_int64 ListBox::getItemIndexAt(const UIPoint& pt)
 	{
-		sl_int64 index = (pt.y + (sl_int64)(getScrollY())) / m_heightItem;
+		sl_int64 index = (pt.y + (sl_int64)(getScrollY() - getPaddingTop())) / m_heightItem;
 		if (index >= 0 && index < (sl_int64)m_nItems) {
 			return index;
 		}
@@ -496,6 +515,7 @@ namespace slib
 	{
 		Ref<Drawable> background = m_itemBackgrounds.evaluate(getItemState(index));
 		if (background.isNotNull()) {
+			canvas->clipToRectangle(rcItem);
 			canvas->draw(rcItem, background);
 		}
 	}
@@ -548,14 +568,20 @@ namespace slib
 
 		sl_reg n = (sl_reg)(iEnd - iStart);
 		UIRect rcItem;
-		rcItem.top = (sl_ui_pos)(iStart * heightItem - pos);
+		rcItem.top = (sl_ui_pos)(getPaddingTop() + iStart * heightItem - pos);
 		rcItem.bottom = rcItem.top + (sl_ui_len)heightItem;
-		rcItem.left = 0;
-		rcItem.right = getWidth();
+		rcItem.left = getPaddingLeft();
+		rcItem.right = getWidth() - getPaddingRight();
 		for (sl_reg i = 0; i <= n; i++) {
 			sl_int64 index = iStart + i;
 			if (index >= 0) {
-				invokeDrawItem(index, canvas, rcItem);
+				if (m_flagItemClipping) {
+					CanvasStateScope scope(canvas);
+					canvas->clipToRectangle(rcItem);
+					invokeDrawItem(index, canvas, rcItem);
+				} else {
+					invokeDrawItem(index, canvas, rcItem);
+				}
 			}
 			rcItem.top = rcItem.bottom;
 			rcItem.bottom += heightItem;
@@ -690,6 +716,11 @@ namespace slib
 			}
 
 		}
+	}
+
+	void ListBox::onChangePadding(UIUpdateMode mode)
+	{
+		refreshContentHeight(mode);
 	}
 
 }

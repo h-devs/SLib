@@ -183,6 +183,10 @@ public: \
 
 		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
+		MultiLineMode getMultiLine();
+
+		void setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
+
 
 		Color getTextColor(ViewState state = ViewState::Default);
 
@@ -214,6 +218,7 @@ public: \
 
 		Alignment m_gravity;
 		EllipsizeMode m_ellipsizeMode;
+		MultiLineMode m_multiLineMode;
 
 		ViewStateMap<Color> m_textColors;
 

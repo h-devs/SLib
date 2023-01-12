@@ -878,6 +878,7 @@ namespace slib
 		SAppStateMap<SAppColorValue> textColor;
 		SAppAlignmentValue gravity;
 		SAppEllipsizeModeValue ellipsize;
+		SAppMultiLineModeValue multiLine;
 
 		CList<SAppLayoutSelectItem> items;
 	};

@@ -47,6 +47,12 @@ namespace slib
 
 		virtual void setItemHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void refreshContentHeight(UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool isItemClipping();
+
+		void setItemClipping(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		sl_bool isMultipleSelection();
 
 		void setMultipleSelection(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -129,11 +135,14 @@ namespace slib
 
 		void onKeyEvent(UIEvent* ev) override;
 
+		void onChangePadding(UIUpdateMode mode) override;
+
 	protected:
 		sl_uint64 m_nItems;
 		sl_ui_len m_heightItem;
 		sl_int64 m_indexHover;
 
+		sl_bool m_flagItemClipping;
 		sl_bool m_flagMultipleSelection;
 		sl_int64 m_indexSelected;
 		sl_int64 m_indexFocused;

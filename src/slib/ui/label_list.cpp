@@ -48,6 +48,7 @@ namespace slib
 		m_lineHeightWeight = 1.6f;
 
 		m_gravity = Alignment::Left;
+		m_multiLineMode = MultiLineMode::Single;
 		m_ellipsizeMode = EllipsizeMode::None;
 
 		m_textColors.set(ViewState::Selected, Color::White);
@@ -101,6 +102,17 @@ namespace slib
 		invalidate(updateMode);
 	}
 
+	MultiLineMode LabelList::getMultiLine()
+	{
+		return m_multiLineMode;
+	}
+
+	void LabelList::setMultiLine(MultiLineMode multiLineMode, UIUpdateMode updateMode)
+	{
+		m_multiLineMode = multiLineMode;
+		invalidate(updateMode);
+	}
+
 	EllipsizeMode LabelList::getEllipsize()
 	{
 		return m_ellipsizeMode;
@@ -142,7 +154,7 @@ namespace slib
 	void LabelList::notifyInsertItem(sl_int64 index, const String& title, UIUpdateMode mode)
 	{
 		m_nItems++;
-		invalidate(mode);
+		refreshContentHeight(mode);
 	}
 
 	void LabelList::notifyRemoveItem(sl_int64 index, UIUpdateMode mode)
@@ -151,7 +163,7 @@ namespace slib
 		if (n > 0) {
 			n--;
 			m_nItems = n;
-			invalidate(mode);
+			refreshContentHeight(mode);
 		}
 	}
 
@@ -180,6 +192,7 @@ namespace slib
 		param.font = getFont();
 		param.width = drawParam.frame.getWidth();
 		param.ellipsizeMode = m_ellipsizeMode;
+		param.multiLineMode = m_multiLineMode;
 		param.align = m_gravity;
 		box.update(param);
 		box.draw(canvas, drawParam);
