@@ -313,7 +313,7 @@ namespace slib
 		if (view->isUsingFont()) {
 			setFont(view, view->getFont());
 		}
-		if (view->isUsingTouchEvent()) {
+		if (m_flagGenericView && view->isUsingTouchEvent()) {
 			m_flagRegisteredTouch = Win32::registerTouchWindow(hWnd);
 		}
 	}
