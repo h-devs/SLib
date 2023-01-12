@@ -579,9 +579,6 @@ namespace slib
 				HWND hWnd = m_handle;
 				if (hWnd) {
 					applyRegion(hWnd);
-					if (content->isUsingTouchEvent()) {
-						Win32::registerTouchWindow(hWnd);
-					}
 				}
 			}
 

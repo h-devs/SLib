@@ -3543,6 +3543,7 @@ namespace slib
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::LeftButtonDown:
+			case UIAction::TouchBegin:
 				attr.index = _getColumnForResizing(ev, attr.flagRight, attr.flagDual);
 				if (attr.index >= 0) {
 					attr.formerWidth = getColumnWidth(attr.index);
@@ -3552,6 +3553,7 @@ namespace slib
 				}
 				break;
 			case UIAction::LeftButtonDrag:
+			case UIAction::TouchMove:
 				if (attr.index >= 0) {
 					sl_ui_len dx = (sl_ui_pos)(ev->getX()) - attr.formerEventX;
 					if (attr.flagDual) {
@@ -3566,6 +3568,7 @@ namespace slib
 				}
 				break;
 			case UIAction::LeftButtonUp:
+			case UIAction::TouchEnd:
 				if (attr.index >= 0) {
 					attr.index = -1;
 					return sl_true;

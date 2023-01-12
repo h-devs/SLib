@@ -128,7 +128,7 @@ namespace slib
 		m_flagUsingChildLayouts(sl_true),
 		m_flagEnabled(sl_true),
 		m_flagHitTestable(sl_true),
-		m_flagUsingTouch(sl_false),
+		m_flagUsingTouch(sl_true),
 		m_flagFocusable(sl_false),
 		m_flagClipping(sl_false),
 		m_flagDrawing(sl_true),
@@ -156,7 +156,7 @@ namespace slib
 		m_flagCaptureEvents(sl_false),
 		m_flagClicking(sl_false),
 
-		m_attachMode(UIAttachMode::AttachAlways),
+		m_attachMode(UIAttachMode::Attach),
 		m_visibility(Visibility::Visible),
 
 		m_frame(0, 0, 0, 0),
@@ -836,7 +836,7 @@ namespace slib
 						switch(child->m_attachMode) {
 							case UIAttachMode::NotAttach:
 								break;
-							case UIAttachMode::AttachAlways:
+							case UIAttachMode::Attach:
 								viewCreatingChildInstances->_attachChild(child);
 								break;
 							case UIAttachMode::NotAttachInNativeWidget:
@@ -846,11 +846,6 @@ namespace slib
 								break;
 							case UIAttachMode::AttachInNativeWidget:
 								if (flagNativeWidget) {
-									viewCreatingChildInstances->_attachChild(child);
-								}
-								break;
-							case UIAttachMode::AttachInInstance:
-								if (isInstance()) {
 									viewCreatingChildInstances->_attachChild(child);
 								}
 								break;
@@ -1306,7 +1301,7 @@ namespace slib
 				switch(child->getAttachMode()) {
 					case UIAttachMode::NotAttach:
 						break;
-					case UIAttachMode::AttachAlways:
+					case UIAttachMode::Attach:
 						viewCreatingChildInstances->_attachChild(child);
 						break;
 					case UIAttachMode::NotAttachInNativeWidget:
@@ -1316,11 +1311,6 @@ namespace slib
 						break;
 					case UIAttachMode::AttachInNativeWidget:
 						if (viewCreatingChildInstances->isNativeWidget()) {
-							viewCreatingChildInstances->_attachChild(child);
-						}
-						break;
-					case UIAttachMode::AttachInInstance:
-						if (viewCreatingChildInstances == this) {
 							viewCreatingChildInstances->_attachChild(child);
 						}
 						break;
@@ -2122,28 +2112,21 @@ namespace slib
 
 	sl_bool View::isUsingTouchEvent()
 	{
-#ifdef SLIB_PLATFORM_IS_MOBILE
-		return sl_true;
-#else
-		if (m_flagUsingTouch) {
-			return sl_true;
-		}
-		ListElements< Ref<View> > children(getChildren());
-		for (sl_size i = 0; i < children.count; i++) {
-			View* child = children[i].get();
-			if (child->isVisible() && !(child->isInstance())) {
-				if (child->isUsingTouchEvent()) {
-					return sl_true;
-				}
-			}
-		}
-		return sl_false;
-#endif
+		return m_flagUsingTouch;
 	}
 
 	void View::setUsingTouchEvent(sl_bool flag)
 	{
-		m_flagUsingTouch = flag;
+#ifndef SLIB_PLATFORM_IS_MOBILE
+		Ref<ViewInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setUsingTouchEvent, flag)
+			m_flagUsingTouch = flag;
+			instance->setUsingTouchEvent(this, flag);
+		} else {
+			m_flagUsingTouch = flag;
+		}
+#endif
 	}
 
 	ViewState View::getState()
@@ -9191,94 +9174,89 @@ namespace slib
 		_processEnterState(ev);
 
 		if (isNativeWidget() && !(getChildCount())) {
+
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
 			}
 			invokeMouseEvent(ev);
-			_processLeaveState(ev);
-			if (m_flagCaptureEvents) {
-				ev->addFlag(UIEventFlags::Captured);
-			}
-			return;
-		}
 
-		_processAutoHideScrollBar(ev);
+		} else {
 
-		UIAction action = ev->getAction();
+			_processAutoHideScrollBar(ev);
 
-		// pass event to children
-		if (!m_flagCaptureEvents && !(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
-			Ref<View> scrollBars[2];
-			_getScrollBars(scrollBars);
-			Ref<ChildAttributes>& childAttrs = m_childAttrs;
-			if (childAttrs.isNotNull()) {
-				Ref<View> oldChildMouseMove;
-				if (action == UIAction::MouseMove || action == UIAction::MouseEnter) {
-					oldChildMouseMove = childAttrs->childMouseMove;
-				}
-				if (!(dispatchMouseEventToChildren(ev, scrollBars, 2))) {
-					if (childAttrs->flagPassEventToChildren) {
-						ListElements< Ref<View> > children(getChildren());
-						if (children.count > 0) {
-							if (dispatchMouseEventToChildren(ev, children.data, children.count)) {
-								oldChildMouseMove.setNull();
+			UIAction action = ev->getAction();
+
+			// pass event to children
+			if (!m_flagCaptureEvents && !(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
+				Ref<View> scrollBars[2];
+				_getScrollBars(scrollBars);
+				Ref<ChildAttributes>& childAttrs = m_childAttrs;
+				if (childAttrs.isNotNull()) {
+					Ref<View> oldChildMouseMove;
+					if (action == UIAction::MouseMove || action == UIAction::MouseEnter) {
+						oldChildMouseMove = childAttrs->childMouseMove;
+					}
+					if (!(dispatchMouseEventToChildren(ev, scrollBars, 2))) {
+						if (childAttrs->flagPassEventToChildren) {
+							ListElements< Ref<View> > children(getChildren());
+							if (children.count > 0) {
+								if (dispatchMouseEventToChildren(ev, children.data, children.count)) {
+									oldChildMouseMove.setNull();
+								}
 							}
 						}
+					} else {
+						oldChildMouseMove.setNull();
 					}
-				} else {
-					oldChildMouseMove.setNull();
+					if (action == UIAction::MouseMove || action == UIAction::MouseEnter) {
+						if (oldChildMouseMove.isNotNull()) {
+							sl_bool flagAccepted = ev->isAccepted();
+							UIAction action = ev->getAction();
+							ev->setAction(UIAction::MouseLeave);
+							dispatchMouseEventToChild(ev, oldChildMouseMove.get());
+							ev->setAction(action);
+							ev->setAccepted(flagAccepted);
+							childAttrs->childMouseMove.setNull();
+						}
+					}
 				}
-				if (action == UIAction::MouseMove || action == UIAction::MouseEnter) {
-					if (oldChildMouseMove.isNotNull()) {
-						sl_bool flagAccepted = ev->isAccepted();
-						UIAction action = ev->getAction();
-						ev->setAction(UIAction::MouseLeave);
-						dispatchMouseEventToChild(ev, oldChildMouseMove.get());
-						ev->setAction(action);
-						ev->setAccepted(flagAccepted);
-						childAttrs->childMouseMove.setNull();
+			}
+
+			Ref<GestureDetector> gesture = getGestureDetector();
+			if (gesture.isNotNull()) {
+				gesture->processEvent(ev);
+			}
+
+			if (!(ev->isAccepted())) {
+
+				if (m_flagFocusable) {
+					if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::MiddleButtonDown) {
+						setFocus();
+					}
+				}
+
+				invokeMouseEvent(ev);
+
+				if (m_flagDragSource) {
+					DragContext& context = UIEvent::getCurrentDragContext();
+					if (!(context.isAlive())) {
+						DragItem drag;
+						if (getDragItem(drag)) {
+							beginDragging(drag, getDragOperationMask());
+						}
 					}
 				}
 			}
 		}
-
-		Ref<GestureDetector> gesture = getGestureDetector();
-		if (gesture.isNotNull()) {
-			gesture->processEvent(ev);
-		}
-
-		if (ev->isAccepted()) {
-			if (m_flagCaptureEvents) {
-				ev->addFlag(UIEventFlags::Captured);
-			}
-			_processLeaveState(ev);
-			return;
-		}
-
-		if (m_flagFocusable) {
-			if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::MiddleButtonDown) {
-				setFocus();
-			}
-		}
-
-		invokeMouseEvent(ev);
-		_processLeaveState(ev);
 
 		if (m_flagCaptureEvents) {
 			ev->addFlag(UIEventFlags::Captured);
 			ev->accept();
 		}
 
-		if (m_flagDragSource) {
-			DragContext& context = UIEvent::getCurrentDragContext();
-			if (!(context.isAlive())) {
-				DragItem drag;
-				if (getDragItem(drag)) {
-					beginDragging(drag, getDragOperationMask());
-				}
-			}
-		}
+		_processLeaveState(ev);
+
 	}
 
 	sl_bool View::dispatchMouseEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count)
@@ -9437,73 +9415,65 @@ namespace slib
 		_processEnterState(ev);
 
 		if (isNativeWidget() && !(getChildCount())) {
+
 			Ref<GestureDetector> gesture = getGestureDetector();
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
 			}
 			invokeTouchEvent(ev);
-			_processLeaveState(ev);
-			if (m_flagCaptureEvents) {
-				ev->addFlag(UIEventFlags::Captured);
-			}
-			return;
-		}
 
-		_processAutoHideScrollBar(ev);
+		} else {
 
-		UIAction action = ev->getAction();
+			_processAutoHideScrollBar(ev);
 
-		// pass event to children
-		if (!m_flagCaptureEvents && !(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
-			Ref<View> scrollBars[2];
-			_getScrollBars(scrollBars);
-			Ref<ChildAttributes>& childAttrs = m_childAttrs;
-			if (childAttrs.isNotNull()) {
-				if (!(dispatchTouchEventToChildren(ev, scrollBars, 2))) {
-					if (childAttrs->flagPassEventToChildren) {
-						ListElements< Ref<View> > children(getChildren());
-						if (children.count > 0) {
-							if (childAttrs->flagTouchMultipleChildren) {
-								dispatchTouchEventToMultipleChildren(ev, children.data, children.count);
-							} else {
-								dispatchTouchEventToChildren(ev, children.data, children.count);
+			UIAction action = ev->getAction();
+
+			// pass event to children
+			if (!m_flagCaptureEvents && !(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
+				Ref<View> scrollBars[2];
+				_getScrollBars(scrollBars);
+				Ref<ChildAttributes>& childAttrs = m_childAttrs;
+				if (childAttrs.isNotNull()) {
+					if (!(dispatchTouchEventToChildren(ev, scrollBars, 2))) {
+						if (childAttrs->flagPassEventToChildren) {
+							ListElements< Ref<View> > children(getChildren());
+							if (children.count > 0) {
+								if (childAttrs->flagTouchMultipleChildren) {
+									dispatchTouchEventToMultipleChildren(ev, children.data, children.count);
+								} else {
+									dispatchTouchEventToChildren(ev, children.data, children.count);
+								}
 							}
 						}
 					}
 				}
 			}
-		}
 
-		Ref<GestureDetector> gesture = getGestureDetector();
-		if (gesture.isNotNull()) {
-			gesture->processEvent(ev);
-		}
-
-		if (ev->isAccepted()) {
-			if (m_flagCaptureEvents) {
-				ev->addFlag(UIEventFlags::Captured);
+			Ref<GestureDetector> gesture = getGestureDetector();
+			if (gesture.isNotNull()) {
+				gesture->processEvent(ev);
 			}
-			_processLeaveState(ev);
-			return;
-		}
 
-		if (m_flagFocusable) {
-			if (action == UIAction::TouchBegin) {
-				setFocus();
+			if (!(ev->isAccepted())) {
+				if (m_flagFocusable) {
+					if (action == UIAction::TouchBegin) {
+						setFocus();
+					}
+				}
+				if (m_flagKeepKeyboard) {
+					ev->addFlag(UIEventFlags::KeepKeyboard);
+				}
+				invokeTouchEvent(ev);
 			}
 		}
-
-		if (m_flagKeepKeyboard) {
-			ev->addFlag(UIEventFlags::KeepKeyboard);
-		}
-
-		invokeTouchEvent(ev);
-		_processLeaveState(ev);
 
 		if (m_flagCaptureEvents) {
 			ev->addFlag(UIEventFlags::Captured);
 			ev->accept();
 		}
+
+		_processLeaveState(ev);
+
 	}
 
 	sl_bool View::dispatchTouchEventToChildren(UIEvent *ev, const Ref<View>* children, sl_size count)
@@ -11065,6 +11035,10 @@ namespace slib
 	}
 
 	void ViewInstance::setDropTarget(View* view, sl_bool flag)
+	{
+	}
+
+	void ViewInstance::setUsingTouchEvent(View* view, sl_bool flag)
 	{
 	}
 

@@ -372,10 +372,9 @@ namespace slib
 	enum class UIAttachMode
 	{
 		NotAttach = 0,
-		AttachAlways = 1,
+		Attach = 1,
 		NotAttachInNativeWidget = 2,
-		AttachInNativeWidget = 3,
-		AttachInInstance = 4
+		AttachInNativeWidget = 3
 	};
 
 	enum class GestureType

@@ -381,12 +381,28 @@ namespace slib
 		return sl_true;
 	}
 
-	void Win32::registerTouchWindow(HWND hWnd)
+	sl_bool Win32::registerTouchWindow(HWND hWnd)
 	{
 		auto func = user32::getApi_RegisterTouchWindow();
 		if (func) {
-			func(hWnd, TWF_WANTPALM | TWF_FINETOUCH);
+			return func(hWnd, TWF_WANTPALM | TWF_FINETOUCH) != 0;
 		}
+		return sl_false;
+	}
+
+	void Win32::unregisterTouchWindow(HWND hWnd)
+	{
+		auto func = user32::getApi_UnregisterTouchWindow();
+		if (func) {
+			func(hWnd);
+		}
+	}
+
+#define MOUSEEVENTF_FROMTOUCH 0xFF515700
+
+	sl_bool Win32::isCurrentMessageFromTouch()
+	{
+		return (GetMessageExtraInfo() & MOUSEEVENTF_FROMTOUCH) == MOUSEEVENTF_FROMTOUCH;
 	}
 
 }

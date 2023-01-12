@@ -194,6 +194,7 @@ namespace slib
 
 		m_flagGenericView = sl_false;
 		m_flagDestroyOnRelease = sl_false;
+		m_flagRegisteredTouch = sl_false;
 
 		m_actionMouseCapture = UIAction::MouseMove;
 
@@ -290,9 +291,6 @@ namespace slib
 						SetWindowSubclass(hWnd, ViewInstanceSubclassProc, 0, 0);
 					}
 				}
-				if (view->isUsingTouchEvent()) {
-					Win32::registerTouchWindow(hWnd);
-				}
 				return hWnd;
 			}
 		}
@@ -314,6 +312,9 @@ namespace slib
 		m_translation = Transform2::getTranslationFromMatrix(transform);
 		if (view->isUsingFont()) {
 			setFont(view, view->getFont());
+		}
+		if (view->isUsingTouchEvent()) {
+			m_flagRegisteredTouch = Win32::registerTouchWindow(hWnd);
 		}
 	}
 
@@ -980,6 +981,23 @@ namespace slib
 		}
 	}
 
+	void Win32_ViewInstance::setUsingTouchEvent(View* view, sl_bool flag)
+	{
+		HWND handle = m_handle;
+		if (handle) {
+			if (flag) {
+				if (!m_flagRegisteredTouch) {
+					m_flagRegisteredTouch = Win32::registerTouchWindow(handle);
+				}
+			} else {
+				if (m_flagRegisteredTouch) {
+					m_flagRegisteredTouch = sl_false;
+					Win32::unregisterTouchWindow(handle);
+				}
+			}
+		}
+	}
+
 	void Win32_ViewInstance::enableIME()
 	{
 		HWND handle = m_handle;
@@ -1296,6 +1314,11 @@ namespace slib
 
 	sl_bool Win32_ViewInstance::onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool* pFlagUseDrag)
 	{
+		if (m_flagRegisteredTouch) {
+			if (Win32::isCurrentMessageFromTouch()) {
+				return sl_false;
+			}
+		}
 		HWND hWnd = m_handle;
 		if (hWnd) {
 			int _x = (short)(lParam & 0xffff);
@@ -1357,19 +1380,15 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::onEventTouch(WPARAM wParam, LPARAM lParam)
+	sl_bool Win32_ViewInstance::onEventTouch(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	{
-		auto apiGet = user32::getApi_GetTouchInputInfo();
-		if (!apiGet) {
-			return sl_false;
-		}
-		sl_uint32 nTouch = (sl_uint32)wParam;
+		sl_uint32 nTouch = (sl_uint32)(LOWORD(wParam));
 		if (!nTouch) {
 			return sl_false;
 		}
 		HTOUCHINPUT hTouch = (HTOUCHINPUT)lParam;
 		SLIB_SCOPED_BUFFER(TOUCHINPUT, 128, touches, nTouch)
-		if (!(apiGet(hTouch, nTouch, touches, sizeof(TOUCHINPUT)))) {
+		if (!((user32::getApi_GetTouchInputInfo())(hTouch, nTouch, touches, sizeof(TOUCHINPUT)))) {
 			return sl_false;
 		}
 		Array<TouchPoint> arrPts = Array<TouchPoint>::create(nTouch);
@@ -1383,8 +1402,12 @@ namespace slib
 		for (sl_uint32 i = 0; i < nTouch; i++) {
 			TouchPoint& pt = pts[i];
 			TOUCHINPUT& input = touches[i];
-			pt.point.x = (sl_real)(TOUCH_COORD_TO_PIXEL(input.x));
-			pt.point.y = (sl_real)(TOUCH_COORD_TO_PIXEL(input.y));
+			POINT point;
+			point.x = TOUCH_COORD_TO_PIXEL(input.x);
+			point.y = TOUCH_COORD_TO_PIXEL(input.y);
+			ScreenToClient(hWnd, &point);
+			pt.point.x = (sl_real)(point.x);
+			pt.point.y = (sl_real)(point.y);
 			pt.pointerId = (sl_uint64)(input.dwID);
 			if (input.dwFlags & TOUCHEVENTF_UP) {
 				pt.phase = TouchPhase::End;
@@ -1668,10 +1691,10 @@ namespace slib
 				}
 				break;
 			case WM_TOUCH:
-				if (onEventTouch(wParam, lParam)) {
-					return 0;
+				if (!(onEventTouch(hWnd, wParam, lParam))) {
+					(user32::getApi_CloseTouchInputHandle())((HTOUCHINPUT)lParam);
 				}
-				break;
+				return 0;
 			case WM_KEYDOWN:
 			case WM_SYSKEYDOWN:
 				if (onEventKey(UIAction::KeyDown, wParam, lParam)) {
@@ -1780,8 +1803,13 @@ namespace slib
 				return 0;
 			}
 			break;
-		case 0x020E: // WM_MOUSEHWHEEL
+		case WM_MOUSEHWHEEL:
 			if (onEventMouseWheel(sl_false, wParam, lParam)) {
+				return 0;
+			}
+			break;
+		case WM_TOUCH:
+			if (onEventTouch(hWnd, wParam, lParam)) {
 				return 0;
 			}
 			break;
@@ -1790,20 +1818,10 @@ namespace slib
 			if (onEventKey(UIAction::KeyDown, wParam, lParam)) {
 				return 0;
 			}
-			if (wParam == VK_TAB) {
-				DefSubclassProc(hWnd, WM_CHAR, '\t', lParam);
-			} else if (wParam == VK_RETURN) {
-				DefSubclassProc(hWnd, WM_CHAR, '\r', lParam);
-			}
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 			if (onEventKey(UIAction::KeyUp, wParam, lParam)) {
-				return 0;
-			}
-			break;
-		case WM_CHAR:
-			if (wParam == '\t' || wParam == '\r' || wParam == '\n') {
 				return 0;
 			}
 			break;

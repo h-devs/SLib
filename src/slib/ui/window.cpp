@@ -1432,10 +1432,17 @@ namespace slib
 				if (view.isNotNull()) {
 					view->_removeParent();
 					view->_removeAllViewInstances();
-					contentViewInstance->setEnabled(view.get(), view->isEnabled());
+					if (!(view->isEnabled())) {
+						contentViewInstance->setEnabled(view.get(), sl_false);
+					}
 					contentViewInstance->setOpaque(view.get(), view->isOpaque());
 					contentViewInstance->setDrawing(view.get(), view->isDrawing());
-					contentViewInstance->setDropTarget(view.get(), view->isDropTarget());
+					if (view->isDropTarget()) {
+						contentViewInstance->setDropTarget(view.get(), sl_true);
+					}
+					if (view->isUsingTouchEvent()) {
+						contentViewInstance->setUsingTouchEvent(view.get(), sl_true);
+					}
 					view->_attach(contentViewInstance);
 					instance->onAttachedContentView(view.get());
 				}

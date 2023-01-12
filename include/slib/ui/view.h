@@ -322,7 +322,6 @@ namespace slib
 
 		sl_bool isUsingTouchEvent();
 
-		// set before attaching
 		void setUsingTouchEvent(sl_bool flag = sl_true);
 
 
@@ -1840,6 +1839,8 @@ namespace slib
 		virtual void setLockScroll(View* view, sl_bool flagLock);
 
 		virtual void setDropTarget(View* view, sl_bool flag);
+
+		virtual void setUsingTouchEvent(View* view, sl_bool flag);
 
 	public:
 		void onDraw(Canvas* canvas);

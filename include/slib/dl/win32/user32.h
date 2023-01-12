@@ -50,6 +50,12 @@ namespace slib
 		)
 
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			UnregisterTouchWindow,
+			BOOL, WINAPI,
+			HWND hWnd
+		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetTouchInputInfo,
 			BOOL, WINAPI,
 			HTOUCHINPUT hTouchInput,
