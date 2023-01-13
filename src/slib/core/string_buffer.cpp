@@ -96,6 +96,19 @@ namespace slib
 		return sl_false; \
 	} \
 	\
+	sl_bool BUFFER::add(typename BUFFER::StringType&& str) noexcept \
+	{ \
+		sl_size len = str.getLength(); \
+		if (!len) { \
+			return sl_true; \
+		} \
+		if (m_queue.push_NoLock(Move(str))) { \
+			m_len += len; \
+			return sl_true; \
+		} \
+		return sl_false; \
+	} \
+	\
 	sl_bool BUFFER::add(const StringStorage& data) noexcept \
 	{ \
 		sl_size len = data.length; \

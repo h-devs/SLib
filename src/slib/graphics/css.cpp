@@ -84,51 +84,6 @@ namespace slib
 					return sl_true;
 				}
 
-				void skipCommentInner()
-				{
-					current += 2;
-					for (;;) {
-						if (current + 2 > end) {
-							current = end;
-							return;
-						}
-						if (*current == '*' && *(current + 1) == '/') {
-							current += 2;
-							break;
-						} else {
-							current++;
-						}
-					}
-				}
-
-				void skipComment()
-				{
-					if (current + 2 > end) {
-						return;
-					}
-					if (*current == '/' && *(current + 1) == '*') {
-						skipCommentInner();
-					}
-				}
-
-				void skipWhitespaces()
-				{
-					while (current < end) {
-						CHAR ch = *current;
-						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
-							current++;
-						} else if (ch == '/') {
-							if (current + 1 < end && *(current + 1) == '*') {
-								skipCommentInner();
-							} else {
-								return;
-							}
-						} else {
-							return;
-						}
-					}
-				}
-
 				sl_bool parseAtRule(CascadingStyleStatements& statements)
 				{
 					CascadingStyleAtRule at;
@@ -499,6 +454,134 @@ namespace slib
 					return ret;
 				}
 
+				sl_bool parseSelector_AttributeMatch(CascadingStyleSelector* selector)
+				{
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_false;
+					}
+					CascadingStyleAttributeMatch match;
+					match.name = parseIdentifier();
+					if (match.name.isNull()) {
+						return sl_false;
+					}
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_false;
+					}
+					match.type = CascadingStyleMatchType::Exist;
+					switch (*current) {
+						case '~':
+							match.type = CascadingStyleMatchType::Contains_Word;
+							current++;
+							break;
+						case '|':
+							match.type = CascadingStyleMatchType::Contains_WordHyphen;
+							current++;
+							break;
+						case '^':
+							match.type = CascadingStyleMatchType::Start;
+							current++;
+							break;
+						case '$':
+							match.type = CascadingStyleMatchType::End;
+							current++;
+							break;
+						case '*':
+							match.type = CascadingStyleMatchType::Contain;
+							current++;
+							break;
+						case '=':
+							match.type = CascadingStyleMatchType::Equal;
+							current++;
+							break;
+					}
+					if (match.type > CascadingStyleMatchType::Equal) {
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+						if (*current != '=') {
+							return sl_false;
+						}
+						current++;
+					}
+					if (match.type != CascadingStyleMatchType::Exist) {
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+					}
+					if (match.type != CascadingStyleMatchType::Exist) {
+						match.value = parseStringValue();
+						if (match.value.isNull()) {
+							return sl_false;
+						}
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+						if (*current == 'i' || *current == 'I') {
+							match.flagIgnoreCase = sl_true;
+							current++;
+							skipWhitespaces();
+							if (current >= end) {
+								return sl_false;
+							}
+						}
+					}
+					if (*current != ']') {
+						return sl_false;
+					}
+					current++;
+					return selector->attributes.add_NoLock(Move(match));
+				}
+
+				void skipCommentInner()
+				{
+					current += 2;
+					for (;;) {
+						if (current + 2 > end) {
+							current = end;
+							return;
+						}
+						if (*current == '*' && *(current + 1) == '/') {
+							current += 2;
+							break;
+						} else {
+							current++;
+						}
+					}
+				}
+
+				void skipComment()
+				{
+					if (current + 2 > end) {
+						return;
+					}
+					if (*current == '/' && *(current + 1) == '*') {
+						skipCommentInner();
+					}
+				}
+
+				void skipWhitespaces()
+				{
+					while (current < end) {
+						CHAR ch = *current;
+						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							current++;
+						} else if (ch == '/') {
+							if (current + 1 < end && *(current + 1) == '*') {
+								skipCommentInner();
+							} else {
+								return;
+							}
+						} else {
+							return;
+						}
+					}
+				}
+
 				sl_bool parseHexValue(CHAR*& input, sl_uint32& value)
 				{
 					sl_uint32 h = SLIB_CHAR_HEX_TO_INT(*input);
@@ -596,89 +679,6 @@ namespace slib
 						return sl_null;
 					}
 					return String::from(ret);
-				}
-
-				sl_bool parseSelector_AttributeMatch(CascadingStyleSelector* selector)
-				{
-					skipWhitespaces();
-					if (current >= end) {
-						return sl_false;
-					}
-					CascadingStyleAttributeMatch match;
-					match.name = parseIdentifier();
-					if (match.name.isNull()) {
-						return sl_false;
-					}
-					skipWhitespaces();
-					if (current >= end) {
-						return sl_false;
-					}
-					match.type = CascadingStyleMatchType::Exist;
-					switch (*current) {
-						case '~':
-							match.type = CascadingStyleMatchType::Contains_Word;
-							current++;
-							break;
-						case '|':
-							match.type = CascadingStyleMatchType::Contains_WordHyphen;
-							current++;
-							break;
-						case '^':
-							match.type = CascadingStyleMatchType::Start;
-							current++;
-							break;
-						case '$':
-							match.type = CascadingStyleMatchType::End;
-							current++;
-							break;
-						case '*':
-							match.type = CascadingStyleMatchType::Contain;
-							current++;
-							break;
-						case '=':
-							match.type = CascadingStyleMatchType::Equal;
-							current++;
-							break;
-					}
-					if (match.type > CascadingStyleMatchType::Equal) {
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-						if (*current != '=') {
-							return sl_false;
-						}
-						current++;
-					}
-					if (match.type != CascadingStyleMatchType::Exist) {
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-					}
-					if (match.type != CascadingStyleMatchType::Exist) {
-						match.value = parseStringValue();
-						if (match.value.isNull()) {
-							return sl_false;
-						}
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-						if (*current == 'i' || *current == 'I') {
-							match.flagIgnoreCase = sl_true;
-							current++;
-							skipWhitespaces();
-							if (current >= end) {
-								return sl_false;
-							}
-						}
-					}
-					if (*current != ']') {
-						return sl_false;
-					}
-					current++;
-					return selector->attributes.add_NoLock(Move(match));
 				}
 
 				sl_bool parseStringValue(CHAR*& input, CHAR chOpen, CHAR* _out, sl_size& lenOutput)
@@ -819,6 +819,167 @@ namespace slib
 
 			};
 
+			SLIB_INLINE static void WriteChar(char* output, sl_size& lenOutput, char ch)
+			{
+				if (output) {
+					output[lenOutput] = ch;
+				}
+				lenOutput++;
+			}
+
+			// Returns output length
+			static sl_size MakeIdentifier(char* input, sl_size lenInput, char* output, sl_bool& outFlagDiffOriginal)
+			{
+				char* start = input;
+				sl_size lenOutput = 0;
+				sl_size posInput = 0;
+				sl_bool flagDiffOriginal = sl_false;
+				while (posInput < lenInput) {
+					char ch = input[posInput];
+					if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
+						if (input == start) {
+							if (SLIB_CHAR_IS_DIGIT(ch)) {
+								WriteChar(output, lenOutput, '\\');
+								flagDiffOriginal = sl_true;
+							} else if (ch == '-' && lenInput >= 2) {
+								char next = input[1];
+								if (SLIB_CHAR_IS_DIGIT(next)) {
+									WriteChar(output, lenOutput, '\\');
+									flagDiffOriginal = sl_true;
+								}
+							}
+						}
+						WriteChar(output, lenOutput, ch);
+						posInput++;
+					} else if (ch == '\\') {
+						flagDiffOriginal = sl_true;
+						if (output) {
+							output[lenOutput++] = '\\';
+							output[lenOutput++] = '\\';
+						} else {
+							lenOutput += 2;
+						}
+						posInput++;
+					} else {
+						flagDiffOriginal = sl_true;
+						sl_char32 code;
+						if (!(Charsets::getUnicode(code, input, lenInput, posInput))) {
+							code = ch;
+							posInput++;
+						}
+						if (output) {
+							output[lenOutput++] = '\\';
+							const char* hex = "0123456789abcdef";
+							output[lenOutput++] = hex[(code >> 20) & 15];
+							output[lenOutput++] = hex[(code >> 16) & 15];
+							output[lenOutput++] = hex[(code >> 12) & 15];
+							output[lenOutput++] = hex[(code >> 8) & 15];
+							output[lenOutput++] = hex[(code >> 4) & 15];
+							output[lenOutput++] = hex[code & 15];
+						} else {
+							lenOutput += 7;
+						}
+					}
+				}
+				outFlagDiffOriginal = flagDiffOriginal;
+				return lenOutput;
+			}
+
+			static String MakeIdentifier(const String& value)
+			{
+				sl_bool flagDiff;
+				sl_size n = MakeIdentifier(value.getData(), value.getLength(), sl_null, flagDiff);
+				if (!flagDiff) {
+					return value;
+				}
+				String ret = String::allocate(n);
+				if (ret.isNotNull()) {
+					MakeIdentifier(value.getData(), value.getLength(), ret.getData(), flagDiff);
+				}
+				return ret;
+			}
+
+			static sl_bool WriteIdentifier(StringBuffer& buf, const String& value)
+			{
+				String s = MakeIdentifier(value);
+				if (s.isNull()) {
+					return sl_false;
+				}
+				return buf.add(Move(s));
+			}
+
+			// Returns output length
+			static sl_size MakeStringValue(char* input, sl_size lenInput, char* output, sl_bool& outFlagDiffOriginal)
+			{
+				sl_size lenOutput = 0;
+				sl_size posInput = 0;
+				sl_bool flagDiffOriginal = sl_false;
+				while (posInput < lenInput) {
+					char ch = input[posInput];
+					if (SLIB_CHAR_IS_PRINTABLE_ASCII(ch)) {
+						if (ch == '\\' || ch == '"') {
+							WriteChar(output, lenOutput, '\\');
+							flagDiffOriginal = sl_true;
+						}
+						WriteChar(output, lenOutput, ch);
+						posInput++;
+					} else if (ch == '\t') {
+						WriteChar(output, lenOutput, ch);
+						posInput++;
+					} else {
+						flagDiffOriginal = sl_true;
+						sl_char32 code;
+						if (!(Charsets::getUnicode(code, input, lenInput, posInput))) {
+							code = ch;
+							posInput++;
+						}
+						if (output) {
+							output[lenOutput++] = '\\';
+							const char* hex = "0123456789abcdef";
+							output[lenOutput++] = hex[(code >> 20) & 15];
+							output[lenOutput++] = hex[(code >> 16) & 15];
+							output[lenOutput++] = hex[(code >> 12) & 15];
+							output[lenOutput++] = hex[(code >> 8) & 15];
+							output[lenOutput++] = hex[(code >> 4) & 15];
+							output[lenOutput++] = hex[code & 15];
+						} else {
+							lenOutput += 7;
+						}
+					}
+				}
+				outFlagDiffOriginal = flagDiffOriginal;
+				return lenOutput;
+			}
+
+			static String MakeStringValue(const String& value)
+			{
+				sl_bool flagDiff;
+				sl_size n = MakeStringValue(value.getData(), value.getLength(), sl_null, flagDiff);
+				if (!flagDiff) {
+					return value;
+				}
+				String ret = String::allocate(n);
+				if (ret.isNotNull()) {
+					MakeStringValue(value.getData(), value.getLength(), ret.getData(), flagDiff);
+				}
+				return ret;
+			}
+
+			static sl_bool WriteStringValue(StringBuffer& buf, const String& value)
+			{
+				String s = MakeStringValue(value);
+				if (s.isNull()) {
+					return sl_false;
+				}
+				if (!(buf.addStatic("\""))) {
+					return sl_false;
+				}
+				if (!(buf.add(Move(s)))) {
+					return sl_false;
+				}
+				return buf.addStatic("\"");
+			}
+
 		}
 	}
 
@@ -876,7 +1037,7 @@ namespace slib
 		if (!(output.addStatic("var("))) {
 			return sl_false;
 		}
-		if (!(output.add(m_name))) {
+		if (!(WriteIdentifier(output, m_name))) {
 			return sl_false;
 		}
 		if (m_defaultValue.isNotNull()) {
@@ -906,7 +1067,7 @@ namespace slib
 	{
 		if (flagNamespace) {
 			if (namespaceName.isNotNull()) {
-				if (!(output.add(namespaceName))) {
+				if (!(WriteIdentifier(output, namespaceName))) {
 					return sl_false;
 				}
 				if (!(output.addStatic("|"))) {
@@ -923,14 +1084,84 @@ namespace slib
 				return sl_false;
 			}
 		} else if (elementName.isNotNull()) {
-			if (!(output.add(elementName))) {
+			if (!(WriteIdentifier(output, elementName))) {
 				return sl_false;
 			}
 		}
 		if (id.isNotNull()) {
-
-			if (!(output.add(id))) {
+			if (!(output.addStatic("#"))) {
 				return sl_false;
+			}
+			if (!(WriteIdentifier(output, id))) {
+				return sl_false;
+			}
+		}
+		{
+			ListElements<String> items(classNames);
+			for (sl_size i = 0; i < items.count; i++) {
+				String& name = items[i];
+				if (!(output.addStatic("."))) {
+					return sl_false;
+				}
+				if (!(WriteIdentifier(output, name))) {
+					return sl_false;
+				}
+			}
+		}
+		{
+			ListElements<CascadingStyleAttributeMatch> items(attributes);
+			for (sl_size i = 0; i < items.count; i++) {
+				CascadingStyleAttributeMatch& match = items[i];
+				if (!(output.addStatic("["))) {
+					return sl_false;
+				}
+				if (!(WriteIdentifier(output, match.name))) {
+					return sl_false;
+				}
+				switch (match.type) {
+					case CascadingStyleMatchType::Equal:
+						if (!(output.addStatic("="))) {
+							return sl_false;
+						}
+						break;
+					case CascadingStyleMatchType::Contains_Word:
+						if (!(output.addStatic("~="))) {
+							return sl_false;
+						}
+						break;
+					case CascadingStyleMatchType::Contains_WordHyphen:
+						if (!(output.addStatic("|="))) {
+							return sl_false;
+						}
+						break;
+					case CascadingStyleMatchType::Start:
+						if (!(output.addStatic("^="))) {
+							return sl_false;
+						}
+						break;
+					case CascadingStyleMatchType::End:
+						if (!(output.addStatic("$="))) {
+							return sl_false;
+						}
+						break;
+					case CascadingStyleMatchType::Contain:
+						if (!(output.addStatic("*="))) {
+							return sl_false;
+						}
+						break;
+					case CascadingStyleMatchType::Exist:
+						break;
+					default:
+						return sl_false;
+				}
+				if (match.type != CascadingStyleMatchType::Exist) {
+					if (!(WriteStringValue(output, match.value))) {
+						return sl_false;
+					}
+				}
+				if (!(output.addStatic("]"))) {
+					return sl_false;
+				}
 			}
 		}
 		return sl_true;

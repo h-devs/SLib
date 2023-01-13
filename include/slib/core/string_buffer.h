@@ -58,6 +58,7 @@ namespace slib
 		 * Add string object to the queue.
 		 */
 		sl_bool add(const String& str) noexcept;
+		sl_bool add(String&& str) noexcept;
 
 		/**
 		 * Add string represented by StringStorage struct to the queue.
@@ -126,6 +127,7 @@ namespace slib
 		 * Add string object to the queue.
 		 */
 		sl_bool add(const String16& str) noexcept;
+		sl_bool add(String16&& str) noexcept;
 
 		/**
 		 * Add string represented by StringStorage struct to the queue.
@@ -194,6 +196,7 @@ namespace slib
 		* Add string object to the queue.
 		*/
 		sl_bool add(const String32& str) noexcept;
+		sl_bool add(String32&& str) noexcept;
 
 		/**
 		* Add string represented by StringStorage struct to the queue.
