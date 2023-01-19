@@ -45,7 +45,7 @@ namespace slib
 
 	enum class CascadingStyleMatchType
 	{
-		Exist = 0, // [attr]: E` elements with an attribute name of `attr`
+		Exist = 0, // [attr]: elements with an attribute name of `attr`
 		Equal = 1, // [attr="value"]: elements with an attribute name of `attr` whose value is exactly `value`
 		Contains_Word = 2, // [attr~="value"]: elements with an attribute name of `attr` whose value is a whitespace-separated list of words, one of which is exactly `value`
 		Contains_WordHyphen = 3, // [attr|="value"]: elements with an attribute name of `attr` whose value can be exactly `value` or can begin with `value` immediately followed by a hyphen(-). It is often used for language subcode matches
@@ -204,13 +204,27 @@ namespace slib
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CascadingStyleStatements)
 
+	public:
+		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
+
+	};
+
+	class SLIB_EXPORT CascadingStyleDeclarations : public HashMap< String, Ref<CascadingStyleValue> >
+	{
+	public:
+		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
+
 	};
 
 	class SLIB_EXPORT CascadingStyleRule
 	{
 	public:
 		Ref<CascadingStyleSelector> selector;
-		HashMap< String, Ref<CascadingStyleValue> > properties;
+		CascadingStyleDeclarations declarations;
+
+	public:
+		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
+
 	};
 
 	class SLIB_EXPORT CascadingStyleAtRule
@@ -218,7 +232,28 @@ namespace slib
 	public:
 		String identifier;
 		String rule;
+		CascadingStyleDeclarations declarations;
 		CascadingStyleStatements statements;
+
+	public:
+		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
+
+	};
+
+	class CascadingStylesParam
+	{
+	public:
+		// Input
+		sl_bool flagIgnoreErrors;
+
+		// Output
+		sl_bool flagError;
+
+	public:
+		CascadingStylesParam();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CascadingStylesParam)
+
 	};
 
 	class SLIB_EXPORT CascadingStyleSheet
@@ -229,7 +264,11 @@ namespace slib
 		~CascadingStyleSheet();
 
 	public:
+		void addStyles(const StringParam& styles, CascadingStylesParam& param);
+
 		sl_bool addStyles(const StringParam& styles);
+
+		sl_bool toString(StringBuffer& output);
 
 		String toString();
 
