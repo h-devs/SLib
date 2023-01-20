@@ -87,6 +87,8 @@ namespace slib
 
 		virtual sl_bool toString(StringBuffer& output) = 0;
 
+		String toString();
+
 	protected:
 		sl_bool toString_Suffix(StringBuffer& output);
 
@@ -177,8 +179,8 @@ namespace slib
 		List<CascadingStyleAttributeMatch> attributes;
 		List<String> pseudoClasses;
 		String pseudoElement;
-		Ref<CascadingStyleSelector> next;
-		CascadingStyleCombinator combinator; // for next
+		CascadingStyleCombinator combinator; // for before
+		Ref<CascadingStyleSelector> before;
 
 	public:
 		CascadingStyleSelector();
@@ -186,6 +188,8 @@ namespace slib
 		~CascadingStyleSelector();
 
 	public:
+		sl_bool matchElement(const Ref<XmlElement>& element);
+
 		sl_bool toString(StringBuffer& output);
 
 	};
@@ -209,12 +213,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT CascadingStyleDeclarations : public HashMap< String, Ref<CascadingStyleValue> >
-	{
-	public:
-		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
-
-	};
+	typedef HashMap< String, Ref<CascadingStyleValue> > CascadingStyleDeclarations;
 
 	class SLIB_EXPORT CascadingStyleRule
 	{
@@ -271,6 +270,14 @@ namespace slib
 		sl_bool toString(StringBuffer& output);
 
 		String toString();
+
+		CascadingStyleDeclarations getElementDeclarations(const Ref<XmlElement>& element);
+
+		static CascadingStyleDeclarations parseDeclarations(const StringParam& input);
+
+		static void mergeDeclarations(CascadingStyleDeclarations& to, const CascadingStyleDeclarations& from);
+
+		static sl_bool writeDeclarationsString(StringBuffer& _out, const CascadingStyleDeclarations& decls, sl_uint32 tabLevel);
 
 	protected:
 		CascadingStyleStatements m_statements;

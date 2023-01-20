@@ -807,8 +807,7 @@ namespace slib
 						if (element->containsAttribute(attr.name)) {
 							REPORT_ERROR(g_strError_element_attr_duplicate)
 						}
-						String prefix;
-						processPrefix(attr.name, defNamespace, namespaces, prefix, attr.uri, attr.localName);
+						processPrefix(attr.name, defNamespace, namespaces, attr.prefix, attr.uri, attr.localName);
 						if (param.flagCreateWhiteSpaces) {
 							if (endWhiteSpace > startWhiteSpace) {
 								String ws = String::create(buf + startWhiteSpace, endWhiteSpace - startWhiteSpace);
@@ -828,7 +827,7 @@ namespace slib
 									REPORT_ERROR(g_strError_memory_lack)
 								}
 								CALL_CALLBACK(onStartPrefixMapping, element.get(), String::null(), defNamespace);
-							} else if (prefix == "xmlns" && attr.localName.isNotEmpty() && attr.value.isNotEmpty()) {
+							} else if (attr.prefix == "xmlns" && attr.localName.isNotEmpty() && attr.value.isNotEmpty()) {
 								if (namespaces == _namespaces) {
 									namespaces = _namespaces.duplicate_NoLock();
 								}
@@ -872,7 +871,7 @@ namespace slib
 
 				String prefix, uri, localName;
 				processPrefix(name, defNamespace, namespaces, prefix, uri, localName);
-				if (!(element->setName(name, uri, localName))) {
+				if (!(element->setName(name, uri, prefix, localName))) {
 					REPORT_ERROR(g_strError_unknown)
 				}
 
@@ -1841,6 +1840,11 @@ namespace slib
 		return m_uri;
 	}
 
+	const String& XmlElement::getNamespace() const
+	{
+		return m_namespace;
+	}
+
 	const String& XmlElement::getLocalName() const
 	{
 		return m_localName;
@@ -1855,11 +1859,12 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool XmlElement::setName(const String& name, const String& uri, const String& localName)
+	sl_bool XmlElement::setName(const String& name, const String& uri, const String& prefix, const String& localName)
 	{
 		if (Xml::checkName(name)) {
 			m_name = name;
 			m_uri = uri;
+			m_namespace = prefix;
 			m_localName = localName;
 			return sl_true;
 		}

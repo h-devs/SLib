@@ -233,6 +233,7 @@ namespace slib
 	public:
 		String name;
 		String uri;
+		String prefix;
 		String localName;
 		String value;
 		String whiteSpacesBeforeName;
@@ -264,11 +265,13 @@ namespace slib
 
 		const String& getUri() const;
 
+		const String& getNamespace() const;
+
 		const String& getLocalName() const;
 
 		sl_bool setName(const String& name);
 
-		sl_bool setName(const String& name, const String& uri, const String& localName);
+		sl_bool setName(const String& name, const String& uri, const String& prefix, const String& localName);
 
 		sl_size getAttributeCount() const;
 
@@ -313,6 +316,7 @@ namespace slib
 	protected:
 		String m_name;
 		String m_uri;
+		String m_namespace;
 		String m_localName;
 		List<XmlAttribute> m_attributes;
 		HashMap<String, String> m_mapAttributes;
