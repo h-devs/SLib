@@ -671,13 +671,15 @@ namespace slib
 
 				sl_bool parseHexValue(CHAR*& input, sl_uint32& value)
 				{
-					sl_uint32 h = SLIB_CHAR_HEX_TO_INT(*input);
+					sl_uint32 h = (sl_uint32)(*input);
+					h = SLIB_CHAR_HEX_TO_INT(h);
 					if (h < 16) {
 						value = h;
 						input++;
 						sl_uint32 n = 1;
 						while (input < end && n < 6) {
-							h = SLIB_CHAR_HEX_TO_INT(*input);
+							h = (sl_uint32)(*input);
+							h = SLIB_CHAR_HEX_TO_INT(h);
 							if (h < 16) {
 								value = (value << 4) | h;
 								input++;
@@ -936,7 +938,8 @@ namespace slib
 					}
 					CHAR* last = current - 1;
 					while (last > start) {
-						if (SLIB_CHAR_IS_WHITE_SPACE(*last)) {
+						CHAR ch = *last;
+						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 							last--;
 						} else {
 							break;

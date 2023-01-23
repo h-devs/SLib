@@ -77,7 +77,7 @@ namespace slib
 	};
 
 	template <class T1, class T2 = T1>
-	class CompareDescending
+	class Compare_Descending
 	{
 	public:
 		sl_compare_result operator()(const T1& a, const T2& b) const noexcept
@@ -87,12 +87,12 @@ namespace slib
 	};
 
 	template <class T1, class T2 = T1>
-	class CompareIgnoreCase
+	class Compare_IgnoreCase
 	{
 	public:
 		sl_compare_result operator()(const T1& a, const T2& b) const noexcept
 		{
-			return a.compareIgnoreCase(b);
+			return a.compare_IgnoreCase(b);
 		}
 	};
 
@@ -107,12 +107,12 @@ namespace slib
 	};
 
 	template <class T1, class T2 = T1>
-	class EqualsIgnoreCase
+	class Equals_IgnoreCase
 	{
 	public:
 		sl_bool operator()(const T1& a, const T2& b) const noexcept
 		{
-			return a.equalsIgnoreCase(b);
+			return a.equals_IgnoreCase(b);
 		}
 	};
 

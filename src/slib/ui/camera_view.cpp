@@ -65,9 +65,9 @@ namespace slib
 		CameraParam param;
 		String deviceId = m_deviceId;
 		if (deviceId.isNotEmpty()) {
-			if (deviceId.equalsIgnoreCase("FRONT")) {
+			if (deviceId.equals_IgnoreCase("FRONT")) {
 				param.setFrontCamera();
-			} else if (deviceId.equalsIgnoreCase("BACK")) {
+			} else if (deviceId.equals_IgnoreCase("BACK")) {
 				param.setBackCamera();
 			} else {
 				param.deviceId = deviceId;
@@ -173,7 +173,7 @@ namespace slib
 					});
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 					btnSwitch->setOnClick([this](View* view) {
-						if (cameraView->getDeviceId().equalsIgnoreCase("FRONT")) {
+						if (cameraView->getDeviceId().equals_IgnoreCase("FRONT")) {
 							cameraView->setDeviceId("BACK");
 						} else {
 							cameraView->setDeviceId("FRONT");

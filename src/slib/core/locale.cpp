@@ -42,58 +42,58 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
 
 			template <class T>
-			static sl_reg Parse(Locale* _out, const T* sz, sl_size i, sl_size n)
+			static sl_reg Parse(Locale* _out, const T* str, sl_size i, sl_size n)
 			{
 				if (i + 1 >= n) {
 					return SLIB_PARSE_ERROR;
 				}
 
-				if (SLIB_CHAR_IS_ALPHA_UPPER(sz[i]) && SLIB_CHAR_IS_ALPHA_UPPER(sz[i + 1])) {
+				if (SLIB_CHAR_IS_ALPHA_UPPER(str[i]) && SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1])) {
 					if (_out) {
-						*_out = Locale(Language::Unknown, LanguageScript::Unknown, Locale::getCountryFromCode(sz));
+						*_out = Locale(Language::Unknown, LanguageScript::Unknown, Locale::getCountryFromCode(str));
 					}
 					return i + 2;
 				}
 
-				if (!(SLIB_CHAR_IS_ALPHA_LOWER(sz[i]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 1]))) {
+				if (!(SLIB_CHAR_IS_ALPHA_LOWER(str[i]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 1]))) {
 					return SLIB_PARSE_ERROR;
 				}
 
-				Language language = Locale::getLanguageFromCode(sz + i);
+				Language language = Locale::getLanguageFromCode(str + i);
 				LanguageScript script = LanguageScript::Unknown;
 				Country country = Country::Unknown;
 
 				i += 2;
 				if (i < n) {
-					if ((sz[i] == '-' || sz[i] == '_')) {
+					if (str[i] == '-' || str[i] == '_') {
 						i++;
 						if (i + 1 >= n) {
 							return SLIB_PARSE_ERROR;
 						}
-						if (!(SLIB_CHAR_IS_ALPHA_UPPER(sz[i]))) {
+						if (!SLIB_CHAR_IS_ALPHA_UPPER(str[i])) {
 							return SLIB_PARSE_ERROR;
 						}
-						if (SLIB_CHAR_IS_ALPHA_UPPER(sz[i + 1])) {
-							country = Locale::getCountryFromCode(sz + i);
+						if (SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1])) {
+							country = Locale::getCountryFromCode(str + i);
 							i += 2;
 						} else {
 							if (i + 3 >= n) {
 								return SLIB_PARSE_ERROR;
 							}
-							if (!(SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 1]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 2]) && SLIB_CHAR_IS_ALPHA_LOWER(sz[i + 3]))) {
+							if (!(SLIB_CHAR_IS_ALPHA_LOWER(str[i + 1]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 2]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 3]))) {
 								return SLIB_PARSE_ERROR;
 							}
-							script = Locale::getScriptFromCode(sz + i);
+							script = Locale::getScriptFromCode(str + i);
 							i += 4;
-							if (i < n && (sz[i] == '-' || sz[i] == '_')) {
+							if (i < n && (str[i] == '-' || str[i] == '_')) {
 								i++;
 								if (i + 1 >= n) {
 									return SLIB_PARSE_ERROR;
 								}
-								if (!(SLIB_CHAR_IS_ALPHA_UPPER(sz[i]) && SLIB_CHAR_IS_ALPHA_UPPER(sz[i + 1]))) {
+								if (!(SLIB_CHAR_IS_ALPHA_UPPER(str[i]) && SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1]))) {
 									return SLIB_PARSE_ERROR;
 								}
-								country = Locale::getCountryFromCode(sz + i);
+								country = Locale::getCountryFromCode(str + i);
 								i += 2;
 							}
 						}
@@ -225,46 +225,42 @@ namespace slib
 
 	String Locale::toString(sl_char8 delimiter) const
 	{
-		sl_char8 sz[11];
+		sl_char8 s[11];
 		Language lang = getLanguage();
 		if (lang != Language::Unknown) {
-			getLanguageCode(lang, sz);
+			getLanguageCode(lang, s);
 			LanguageScript script = getScript();
 			if (script != LanguageScript::Unknown) {
-				sz[2] = delimiter;
-				getScriptCode(script, sz + 3);
+				s[2] = delimiter;
+				getScriptCode(script, s + 3);
 				Country country = getCountry();
 				if (country != Country::Unknown) {
-					sz[7] = delimiter;
-					getCountryCode(country, sz + 8);
-					sz[10] = 0;
-					return sz;
+					s[7] = delimiter;
+					getCountryCode(country, s + 8);
+					s[10] = 0;
 				} else {
-					sz[7] = 0;
-					return sz;
+					s[7] = 0;
 				}
 			} else {
 				Country country = getCountry();
 				if (country != Country::Unknown) {
-					sz[2] = delimiter;
-					getCountryCode(country, sz + 3);
-					sz[5] = 0;
-					return sz;
+					s[2] = delimiter;
+					getCountryCode(country, s + 3);
+					s[5] = 0;
 				} else {
-					sz[2] = 0;
-					return sz;
+					s[2] = 0;
 				}
-				return sz;
 			}
+			return s;
 		} else {
 			Country country = getCountry();
 			if (country != Country::Unknown) {
-				sz[0] = 'e';
-				sz[1] = 'n';
-				sz[2] = delimiter;
-				getCountryCode(country, sz + 3);
-				sz[5] = 0;
-				return sz;
+				s[0] = 'e';
+				s[1] = 'n';
+				s[2] = delimiter;
+				getCountryCode(country, s + 3);
+				s[5] = 0;
+				return s;
 			}
 		}
 		return sl_null;
@@ -501,18 +497,18 @@ namespace slib
 		return Language::Unknown;
 	}
 
-	void Locale::getLanguageCode(Language language, sl_char8* sz)
+	void Locale::getLanguageCode(Language language, sl_char8* str)
 	{
-		sz[0] = SLIB_GET_BYTE0((int)language);
-		sz[1] = SLIB_GET_BYTE1((int)language);
+		str[0] = SLIB_GET_BYTE0((int)language);
+		str[1] = SLIB_GET_BYTE1((int)language);
 	}
 
 	String Locale::getLanguageCode(Language language)
 	{
-		char sz[3];
-		getLanguageCode(language, sz);
-		sz[2] = 0;
-		return sz;
+		char s[3];
+		getLanguageCode(language, s);
+		s[2] = 0;
+		return s;
 	}
 
 	sl_bool Locale::isValidLanguageCode(Language language)
@@ -554,20 +550,20 @@ namespace slib
 		return LanguageScript::Unknown;
 	}
 
-	void Locale::getScriptCode(LanguageScript script, sl_char8* sz)
+	void Locale::getScriptCode(LanguageScript script, sl_char8* str)
 	{
-		sz[0] = SLIB_GET_BYTE0((sl_uint32)script);
-		sz[1] = SLIB_GET_BYTE1((sl_uint32)script);
-		sz[2] = SLIB_GET_BYTE2((sl_uint32)script);
-		sz[3] = SLIB_GET_BYTE3((sl_uint32)script);
+		str[0] = SLIB_GET_BYTE0((sl_uint32)script);
+		str[1] = SLIB_GET_BYTE1((sl_uint32)script);
+		str[2] = SLIB_GET_BYTE2((sl_uint32)script);
+		str[3] = SLIB_GET_BYTE3((sl_uint32)script);
 	}
 
 	String Locale::getScriptCode(LanguageScript script)
 	{
-		char sz[5];
-		getScriptCode(script, sz);
-		sz[4] = 0;
-		return sz;
+		char s[5];
+		getScriptCode(script, s);
+		s[4] = 0;
+		return s;
 	}
 
 
@@ -896,18 +892,18 @@ namespace slib
 		return Country::Unknown;
 	}
 
-	void Locale::getCountryCode(Country country, sl_char8* sz)
+	void Locale::getCountryCode(Country country, sl_char8* str)
 	{
-		sz[0] = SLIB_GET_BYTE0((int)country);
-		sz[1] = SLIB_GET_BYTE1((int)country);
+		str[0] = SLIB_GET_BYTE0((int)country);
+		str[1] = SLIB_GET_BYTE1((int)country);
 	}
 
 	String Locale::getCountryCode(Country country)
 	{
-		char sz[3];
-		getCountryCode(country, sz);
-		sz[2] = 0;
-		return sz;
+		char s[3];
+		getCountryCode(country, s);
+		s[2] = 0;
+		return s;
 	}
 
 	sl_bool Locale::isValidCountryCode(Country country)

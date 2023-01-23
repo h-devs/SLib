@@ -69,7 +69,7 @@ namespace slib
 				WCHAR sz[16];
 				int n = GetClassNameW(hWnd, sz, 16);
 				if (n) {
-					if (String16::from(sz, (sl_size)n).equalsIgnoreCase(SLIB_UNICODE("EDIT"))) {
+					if (String16::from(sz, (sl_size)n).equals_IgnoreCase(SLIB_UNICODE("EDIT"))) {
 						SetWindowSubclass(hWnd, EditChildSubclassProc, 0, 0);
 					}
 				}

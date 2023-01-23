@@ -302,14 +302,15 @@ namespace slib
 
 	void HttpHeaderHelper::splitValue(const String& value, List<String>* list, HttpHeaderValueMap* map, HashMap<String, String>* mapCaseSensitive, sl_char8 delimiter)
 	{
-		sl_char8* sz = value.getData();
+		sl_char8* data = value.getData();
 		sl_size len = value.getLength();
 		if (!len) {
 			return;
 		}
 		sl_size i = 0;
 		for (;;) {
-			while (i < len && SLIB_CHAR_IS_WHITE_SPACE(sz[i])) {
+			sl_char8 ch = data[i];
+			while (i < len && SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 				i++;
 			}
 			if (i >= len) {
@@ -320,7 +321,7 @@ namespace slib
 			sl_size indexEndValue = i;
 			sl_size indexValue = i;
 			sl_bool flagQuot = sl_false;
-			if (sz[i] == '\"') {
+			if (data[i] == '\"') {
 				i++;
 				if (i >= len) {
 					return;
@@ -330,16 +331,17 @@ namespace slib
 				flagQuot = sl_true;
 			} else {
 				for (;;) {
-					if (sz[i] == delimiter) {
+					if (data[i] == delimiter) {
 						break;
-					} else if (sz[i] == '=') {
+					} else if (data[i] == '=') {
 						indexEndName = indexEndValue;
 						i++;
-						while (i < len && SLIB_CHAR_IS_WHITE_SPACE(sz[i])) {
+						ch = data[i];
+						while (i < len && SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 							i++;
 						}
 						if (i < len) {
-							if (sz[i] == '\"') {
+							if (data[i] == '\"') {
 								i++;
 								if (i < len) {
 									flagQuot = sl_true;
@@ -349,7 +351,8 @@ namespace slib
 						indexValue = i;
 						break;
 					} else {
-						if (!SLIB_CHAR_IS_WHITE_SPACE(sz[i])) {
+						ch = data[i];
+						if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 							indexEndValue = i + 1;
 						}
 						i++;
@@ -361,34 +364,39 @@ namespace slib
 			}
 			if (flagQuot) {
 				for (;;) {
-					if (i >= len || sz[i] == '\"') {
+					if (i >= len || data[i] == '\"') {
 						if (i > indexName) {
 							if (list) {
-								list->add_NoLock(String(sz + indexName, i - indexName));
+								list->add_NoLock(String(data + indexName, i - indexName));
 							}
 							if (map) {
 								if (indexEndName > indexName) {
-									map->add_NoLock(String(sz + indexName, indexEndName - indexName), String(sz + indexValue, i - indexValue));
+									map->add_NoLock(String(data + indexName, indexEndName - indexName), String(data + indexValue, i - indexValue));
 								} else {
-									map->add_NoLock(String(sz + indexName, i - indexName), sl_null);
+									map->add_NoLock(String(data + indexName, i - indexName), sl_null);
 								}
 							}
 							if (mapCaseSensitive) {
 								if (indexEndName > indexName) {
-									mapCaseSensitive->add_NoLock(String(sz + indexName, indexEndName - indexName), String(sz + indexValue, i - indexValue));
+									mapCaseSensitive->add_NoLock(String(data + indexName, indexEndName - indexName), String(data + indexValue, i - indexValue));
 								} else {
-									mapCaseSensitive->add_NoLock(String(sz + indexName, i - indexName), sl_null);
+									mapCaseSensitive->add_NoLock(String(data + indexName, i - indexName), sl_null);
 								}
 							}
 						}
 						i++;
-						while (i < len && SLIB_CHAR_IS_WHITE_SPACE(sz[i])) {
-							i++;
+						while (i < len) {
+							sl_char8 ch = data[i];
+							if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+								i++;
+							} else {
+								break;
+							}
 						}
 						if (i >= len) {
 							return;
 						}
-						if (sz[i] == delimiter) {
+						if (data[i] == delimiter) {
 							i++;
 						}
 						break;
@@ -398,23 +406,23 @@ namespace slib
 				}
 			} else {
 				for (;;) {
-					if (i >= len || (sz[i] == delimiter && !(i >= 3 && Time::parseHttpDate(sl_null, sz, i - 3, len) != SLIB_PARSE_ERROR))) {
+					if (i >= len || (data[i] == delimiter && !(i >= 3 && Time::parseHttpDate(sl_null, data, i - 3, len) != SLIB_PARSE_ERROR))) {
 						if (indexEndValue > indexName) {
 							if (list) {
-								list->add_NoLock(String(sz + indexName, indexEndValue - indexName));
+								list->add_NoLock(String(data + indexName, indexEndValue - indexName));
 							}
 							if (map) {
 								if (indexEndName > indexName) {
-									map->add_NoLock(String(sz + indexName, indexEndName - indexName), String(sz + indexValue, indexEndValue - indexValue));
+									map->add_NoLock(String(data + indexName, indexEndName - indexName), String(data + indexValue, indexEndValue - indexValue));
 								} else {
-									map->add_NoLock(String(sz + indexName, indexEndValue - indexName), sl_null);
+									map->add_NoLock(String(data + indexName, indexEndValue - indexName), sl_null);
 								}
 							}
 							if (mapCaseSensitive) {
 								if (indexEndName > indexName) {
-									mapCaseSensitive->add_NoLock(String(sz + indexName, indexEndName - indexName), String(sz + indexValue, indexEndValue - indexValue));
+									mapCaseSensitive->add_NoLock(String(data + indexName, indexEndName - indexName), String(data + indexValue, indexEndValue - indexValue));
 								} else {
-									mapCaseSensitive->add_NoLock(String(sz + indexName, indexEndValue - indexName), sl_null);
+									mapCaseSensitive->add_NoLock(String(data + indexName, indexEndValue - indexName), sl_null);
 								}
 							}
 						}
@@ -424,7 +432,8 @@ namespace slib
 						}
 						break;
 					} else {
-						if (!SLIB_CHAR_IS_WHITE_SPACE(sz[i])) {
+						ch = data[i];
+						if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 							indexEndValue = i + 1;
 						}
 						i++;
@@ -450,15 +459,15 @@ namespace slib
 
 	String HttpHeaderHelper::makeSafeValue(const String& value, sl_char8 delimiter)
 	{
-		sl_char8* sz = value.getData();
+		sl_char8* data = value.getData();
 		sl_size len = value.getLength();
 		sl_bool flagNeedRemoveQuot = sl_false;
 		sl_bool flagNeedQuot = sl_false;
 		for (sl_size i = 0; i < len; i++) {
-			if (sz[i] == '\"') {
+			if (data[i] == '\"') {
 				flagNeedRemoveQuot = sl_true;
-			} else if (sz[i] == delimiter && !flagNeedQuot) {
-				if (!(i >= 3 && Time::parseHttpDate(sl_null, sz, i - 3, len) != SLIB_PARSE_ERROR)) {
+			} else if (data[i] == delimiter && !flagNeedQuot) {
+				if (!(i >= 3 && Time::parseHttpDate(sl_null, data, i - 3, len) != SLIB_PARSE_ERROR)) {
 					flagNeedQuot = sl_true;
 				}
 			}
@@ -843,7 +852,7 @@ namespace slib
 
 	sl_bool HttpRequest::isRequestMultipartFormData() const
 	{
-		return getRequestContentTypeNoParams().trim().equalsIgnoreCase(ContentType::MultipartFormData);
+		return getRequestContentTypeNoParams().trim().equals_IgnoreCase(ContentType::MultipartFormData);
 	}
 
 	String HttpRequest::getRequestMultipartFormDataBoundary() const
@@ -904,7 +913,7 @@ namespace slib
 			return m_requestVersion != str;
 		} else {
 			SLIB_STATIC_STRING(str, "Keep-Alive");
-			return connection.equalsIgnoreCase(str);
+			return connection.equals_IgnoreCase(str);
 		}
 	}
 
@@ -1485,7 +1494,7 @@ namespace slib
 			output.addStatic("\"\r\n");
 			if (headers) {
 				for (auto& header: *headers) {
-					if (header.key.equalsIgnoreCase(HttpHeader::ContentDisposition)) {
+					if (header.key.equals_IgnoreCase(HttpHeader::ContentDisposition)) {
 						continue;
 					}
 					output.addStatic(header.key.getData(), header.key.getLength());
@@ -1657,7 +1666,7 @@ namespace slib
 			return sl_true;
 		}
 		SLIB_STATIC_STRING(str, "Keep-Alive");
-		return connection.equalsIgnoreCase(str);
+		return connection.equals_IgnoreCase(str);
 	}
 
 	sl_bool HttpResponse::getResponseKeepAliveParameters(sl_uint32& timeout, sl_uint32& max) const

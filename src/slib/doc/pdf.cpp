@@ -3315,15 +3315,18 @@ namespace slib
 					if (version[0] != '%' || version[1] != 'P' || version[2] != 'D' || version[3] != 'F' || version[4] != '-' || version[6] != '.') {
 						return sl_false;
 					}
-					if (!SLIB_CHAR_IS_DIGIT(version[5])) {
+
+					sl_char8 c5 = version[5];
+					if (!SLIB_CHAR_IS_DIGIT(c5)) {
 						return sl_false;
 					}
-					if (!SLIB_CHAR_IS_DIGIT(version[7])) {
+					sl_char8 c7 = version[7];
+					if (!SLIB_CHAR_IS_DIGIT(c7)) {
 						return sl_false;
 					}
 
-					majorVersion = SLIB_CHAR_DIGIT_TO_INT(version[5]);
-					minorVersion = SLIB_CHAR_DIGIT_TO_INT(version[7]);
+					majorVersion = SLIB_CHAR_DIGIT_TO_INT(c5);
+					minorVersion = SLIB_CHAR_DIGIT_TO_INT(c7);
 
 					// read last trailer and read reference table
 					{
@@ -3511,7 +3514,7 @@ namespace slib
 			class BaseFonts
 			{
 			private:
-				CHashMap< String, sl_uint32, HashIgnoreCase<String>, CompareIgnoreCase<String> > names;
+				CHashMap< String, sl_uint32, Hash_IgnoreCase<String>, Compare_IgnoreCase<String> > names;
 
 			public:
 				BaseFonts()

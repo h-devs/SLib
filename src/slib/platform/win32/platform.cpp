@@ -363,8 +363,9 @@ namespace slib
 		sl_char16 tmpDosName[] = SLIB_UNICODE("\\\\.\\A:");
 		if (!(path.startsWith(SLIB_UNICODE("\\\\.\\")))) {
 			sl_char16* s = path.getData();
-			if (path.getLength() >= 2 && SLIB_CHAR_IS_ALPHA(s[0]) && s[1] == ':') {
-				tmpDosName[4] = SLIB_CHAR_LOWER_TO_UPPER(s[0]);
+			sl_char16 c = *s;
+			if (path.getLength() >= 2 && SLIB_CHAR_IS_ALPHA(c) && s[1] == ':') {
+				tmpDosName[4] = SLIB_CHAR_LOWER_TO_UPPER(c);
 				path = tmpDosName;
 			} else {
 				if (path.startsWith(SLIB_UNICODE("\\\\?\\Volume{")) && path.endsWith('\\')) {

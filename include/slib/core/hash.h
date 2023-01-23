@@ -210,12 +210,12 @@ namespace slib
 	};
 
 	template <class T>
-	class HashIgnoreCase
+	class Hash_IgnoreCase
 	{
 	public:
 		sl_size operator()(const T& v) const noexcept
 		{
-			return v.getHashCodeIgnoreCase();
+			return v.getHashCode_IgnoreCase();
 		}
 	};
 

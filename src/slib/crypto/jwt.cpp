@@ -190,18 +190,18 @@ namespace slib
 	JwtAlgorithm Jwt::getAlgorithm() const noexcept
 	{
 		String alg = header.getItem(g_field_alg).getString();
-		if (alg.equalsIgnoreCase(g_alg_HS256)) return JwtAlgorithm::HS256;
-		if (alg.equalsIgnoreCase(g_alg_HS384)) return JwtAlgorithm::HS384;
-		if (alg.equalsIgnoreCase(g_alg_HS512)) return JwtAlgorithm::HS512;
-		if (alg.equalsIgnoreCase(g_alg_RS256)) return JwtAlgorithm::RS256;
-		if (alg.equalsIgnoreCase(g_alg_RS384)) return JwtAlgorithm::RS384;
-		if (alg.equalsIgnoreCase(g_alg_RS512)) return JwtAlgorithm::RS512;
-		if (alg.equalsIgnoreCase(g_alg_ES256)) return JwtAlgorithm::ES256;
-		if (alg.equalsIgnoreCase(g_alg_ES384)) return JwtAlgorithm::ES384;
-		if (alg.equalsIgnoreCase(g_alg_ES512)) return JwtAlgorithm::ES512;
-		if (alg.equalsIgnoreCase(g_alg_PS256)) return JwtAlgorithm::PS256;
-		if (alg.equalsIgnoreCase(g_alg_PS384)) return JwtAlgorithm::PS384;
-		if (alg.equalsIgnoreCase(g_alg_PS512)) return JwtAlgorithm::PS512;
+		if (alg.equals_IgnoreCase(g_alg_HS256)) return JwtAlgorithm::HS256;
+		if (alg.equals_IgnoreCase(g_alg_HS384)) return JwtAlgorithm::HS384;
+		if (alg.equals_IgnoreCase(g_alg_HS512)) return JwtAlgorithm::HS512;
+		if (alg.equals_IgnoreCase(g_alg_RS256)) return JwtAlgorithm::RS256;
+		if (alg.equals_IgnoreCase(g_alg_RS384)) return JwtAlgorithm::RS384;
+		if (alg.equals_IgnoreCase(g_alg_RS512)) return JwtAlgorithm::RS512;
+		if (alg.equals_IgnoreCase(g_alg_ES256)) return JwtAlgorithm::ES256;
+		if (alg.equals_IgnoreCase(g_alg_ES384)) return JwtAlgorithm::ES384;
+		if (alg.equals_IgnoreCase(g_alg_ES512)) return JwtAlgorithm::ES512;
+		if (alg.equals_IgnoreCase(g_alg_PS256)) return JwtAlgorithm::PS256;
+		if (alg.equals_IgnoreCase(g_alg_PS384)) return JwtAlgorithm::PS384;
+		if (alg.equals_IgnoreCase(g_alg_PS512)) return JwtAlgorithm::PS512;
 		return JwtAlgorithm::None;
 	}
 

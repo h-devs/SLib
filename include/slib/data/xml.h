@@ -279,15 +279,15 @@ namespace slib
 
 		String getAttribute(const String& name) const;
 
-		String getAttributeIgnoreCase(const StringView& name) const;
+		String getAttribute_IgnoreCase(const StringView& name) const;
 
 		String getAttribute(const StringView& uri, const StringView& localName) const;
 
-		String getAttributeIgnoreCase(const StringView& uri, const StringView& localName) const;
+		String getAttribute_IgnoreCase(const StringView& uri, const StringView& localName) const;
 
 		sl_bool containsAttribute(const String& name) const;
 
-		sl_bool containsAttributeIgnoreCase(const StringView& name) const;
+		sl_bool containsAttribute_IgnoreCase(const StringView& name) const;
 
 		sl_bool setAttribute(sl_size index, const String& value);
 

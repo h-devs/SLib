@@ -38,11 +38,12 @@ namespace slib
 	String Resources::makeResourceName(const String& path)
 	{
 		String name = path.duplicate();
-		sl_char8* szName = name.getData();
-		sl_size lenName = name.getLength();
-		for (sl_size i = 0; i < lenName; i++) {
-			if (!(SLIB_CHAR_IS_C_NAME(szName[i]))) {
-				szName[i] = '_';
+		sl_char8* data = name.getData();
+		sl_size len = name.getLength();
+		for (sl_size i = 0; i < len; i++) {
+			sl_char8 c = data[i];
+			if (!SLIB_CHAR_IS_C_NAME(c)) {
+				data[i] = '_';
 			}
 		}
 		return name;

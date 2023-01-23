@@ -146,7 +146,7 @@ namespace slib
 					sl_bool flagItalic;
 				};
 
-				typedef CMap< String, RegistryItem, CompareIgnoreCase<String> > Registry;
+				typedef CMap< String, RegistryItem, Compare_IgnoreCase<String> > Registry;
 				typedef typename Registry::NODE RegistryNode;
 				Registry registry;
 

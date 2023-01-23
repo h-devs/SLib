@@ -907,6 +907,95 @@ namespace slib
 			}
 
 			template <class CHAR>
+			static sl_bool EqualsStringSub_IgnoreCase(const CHAR* str1, const CHAR* str2, sl_size len) noexcept
+			{
+				for (sl_size i = 0; i < len; i++) {
+					CHAR c1 = str1[i];
+					CHAR c2 = str2[i];
+					if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
+						return sl_false;
+					}
+				}
+				return sl_true;
+			}
+
+			template <class CHAR>
+			SLIB_INLINE static sl_bool EqualsString_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
+			{
+				if (len1 == len2) {
+					if (!len1) {
+						return sl_true;
+					}
+					if (str1 == str2) {
+						return sl_true;
+					}
+					return EqualsStringSub_IgnoreCase(str1, str2, len1);
+				} else {
+					return sl_false;
+				}
+			}
+
+			template <class CHAR>
+			static sl_bool EqualsStringSzSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
+			{
+				for (sl_size i = 0; i < len1; i++) {
+					CHAR c1 = str1[i];
+					CHAR c2 = str2[i];
+					if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
+						return sl_false;
+					}
+					if (!c2) {
+						return sl_false;
+					}
+				}
+				return !(str2[len1]);
+			}
+
+			template <class CHAR>
+			SLIB_INLINE static sl_bool EqualsStringSz_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
+			{
+				if (len2 < 0) {
+					if (!str2) {
+						str2 = EMPTY_SZ(CHAR);
+					}
+					return EqualsStringSzSub_IgnoreCase(str1, len1, str2);
+				} else {
+					return EqualsString_IgnoreCase(str1, len1, str2, len2);
+				}
+			}
+
+			template <class STRING>
+			static sl_bool EqualsStringSz_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
+			{
+				sl_size len1;
+				typename STRING::Char const* data1 = str1.getData(len1);
+				return EqualsStringSz_IgnoreCase(data1, len1, str2, len2);
+			}
+
+			template <class CHAR>
+			static sl_bool EqualsSz_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
+			{
+				if (len1 < 0) {
+					if (!str1) {
+						str1 = EMPTY_SZ(CHAR);
+					}
+					if (len2 < 0) {
+						if (!str2) {
+							str2 = EMPTY_SZ(CHAR);
+						}
+						if (str1 == str2) {
+							return sl_true;
+						}
+						return StringTraits<CHAR>::equals_IgnoreCase(str1, str2);
+					} else {
+						return EqualsStringSzSub_IgnoreCase(str2, len2, str1);
+					}
+				} else {
+					return EqualsStringSz_IgnoreCase(str1, len1, str2, len2);
+				}
+			}
+
+			template <class CHAR>
 			static sl_compare_result CompareString(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
 			{
 				if (len1 < len2) {
@@ -1012,6 +1101,98 @@ namespace slib
 			}
 
 			template <class CHAR>
+			static sl_compare_result CompareString_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
+			{
+				sl_size len = SLIB_MIN(len1, len2);
+				if (str1 != str2) {
+					for (sl_size i = 0; i < len; i++) {
+						typename UnsignedType<CHAR>::Type c1 = str1[i];
+						typename UnsignedType<CHAR>::Type c2 = str2[i];
+						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+						if (c1 < c2) {
+							return -1;
+						} else if (c1 > c2) {
+							return 1;
+						}
+					}
+				}
+				if (len1 < len2) {
+					return -1;
+				} else if (len1 > len2) {
+					return 1;
+				}
+				return 0;
+			}
+
+			template <class CHAR>
+			static sl_compare_result CompareStringSzSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
+			{
+				for (sl_size i = 0; i < len1; i++) {
+					typename UnsignedType<CHAR>::Type c1 = str1[i];
+					typename UnsignedType<CHAR>::Type c2 = str2[i];
+					if (!c2) {
+						return 1;
+					}
+					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+					if (c1 < c2) {
+						return -1;
+					} else if (c1 > c2) {
+						return 1;
+					}
+				}
+				if (str2[len1]) {
+					return -1;
+				}
+				return 0;
+			}
+
+			template <class CHAR>
+			SLIB_INLINE static sl_compare_result CompareStringSz_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
+			{
+				if (len2 < 0) {
+					if (!str2) {
+						str2 = EMPTY_SZ(CHAR);
+					}
+					return CompareStringSzSub_IgnoreCase(str1, len1, str2);
+				} else {
+					return CompareString_IgnoreCase(str1, len1, str2, len2);
+				}
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_compare_result CompareStringSz_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
+			{
+				sl_size len1;
+				typename STRING::Char const* data1 = str1.getData(len1);
+				return CompareStringSz_IgnoreCase(data1, len1, str2, len2);
+			}
+
+			template <class CHAR>
+			static sl_compare_result CompareSz_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
+			{
+				if (len1 < 0) {
+					if (!str1) {
+						str1 = EMPTY_SZ(CHAR);
+					}
+					if (len2 < 0) {
+						if (!str2) {
+							str2 = EMPTY_SZ(CHAR);
+						}
+						if (str1 == str2) {
+							return 0;
+						}
+						return StringTraits<CHAR>::compare_IgnoreCase(str1, str2);
+					} else {
+						return -(CompareStringSzSub_IgnoreCase(str2, len2, str1));
+					}
+				} else {
+					return CompareStringSz_IgnoreCase(str1, len1, str2, len2);
+				}
+			}
+
+			template <class CHAR>
 			SLIB_INLINE static sl_compare_result CompareStringLimited(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2, sl_size nLimit) noexcept
 			{
 				if (len1 > nLimit) {
@@ -1089,156 +1270,63 @@ namespace slib
 			}
 
 			template <class CHAR>
-			static sl_bool EqualsIgnoreCaseString(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
+			SLIB_INLINE static sl_compare_result CompareStringLimited_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2, sl_size nLimit) noexcept
 			{
-				if (len1 == len2) {
-					if (!len1) {
-						return sl_true;
-					}
-					if (str1 == str2) {
-						return sl_true;
-					}
-					for (sl_size i = 0; i < len1; i++) {
-						if (SLIB_CHAR_LOWER_TO_UPPER(str1[i]) != SLIB_CHAR_LOWER_TO_UPPER(str2[i])) {
-							return sl_false;
-						}
-					}
-					return sl_true;
-				} else {
-					return sl_false;
+				if (len1 > nLimit) {
+					len1 = nLimit;
 				}
+				if (len2 > nLimit) {
+					len2 = nLimit;
+				}
+				return CompareString_IgnoreCase(str1, len1, str2, len2);
 			}
 
 			template <class CHAR>
-			static sl_bool EqualsIgnoreCaseStringSzSub(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
+			static sl_compare_result CompareStringSzLimitedSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size nLimit) noexcept
 			{
-				for (sl_size i = 0; i < len1; i++) {
-					CHAR c = SLIB_CHAR_LOWER_TO_UPPER(str2[i]);
-					if (SLIB_CHAR_LOWER_TO_UPPER(str1[i]) != c) {
-						return sl_false;
-					}
-					if (!c) {
-						return sl_false;
-					}
+				if (len1 < nLimit) {
+					return CompareStringSzSub_IgnoreCase(str1, len1, str2);
 				}
-				return !(str2[len1]);
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool EqualsIgnoreCaseStringSz(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len2 < 0) {
-					if (!str2) {
-						str2 = EMPTY_SZ(CHAR);
-					}
-					return EqualsIgnoreCaseStringSzSub(str1, len1, str2);
-				} else {
-					return EqualsIgnoreCaseString(str1, len1, str2, len2);
-				}
-			}
-
-			template <class STRING>
-			static sl_bool EqualsIgnoreCaseStringSz(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return EqualsIgnoreCaseStringSz(data1, len1, str2, len2);
-			}
-
-			template <class CHAR>
-			static sl_bool EqualsIgnoreCaseSz(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len1 < 0) {
-					if (!str1) {
-						str1 = EMPTY_SZ(CHAR);
-					}
-					if (len2 < 0) {
-						if (!str2) {
-							str2 = EMPTY_SZ(CHAR);
-						}
-						if (str1 == str2) {
-							return sl_true;
-						}
-						return StringTraits<CHAR>::equalsIgnoreCase(str1, str2);
-					} else {
-						return EqualsIgnoreCaseStringSzSub(str2, len2, str1);
-					}
-				} else {
-					return EqualsIgnoreCaseStringSz(str1, len1, str2, len2);
-				}
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareIgnoreCaseString(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
-			{
-				sl_size len = SLIB_MIN(len1, len2);
-				if (str1 != str2) {
-					for (sl_size i = 0; i < len; i++) {
-						typename UnsignedType<CHAR>::Type c1 = str1[i];
-						typename UnsignedType<CHAR>::Type c2 = str2[i];
-						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-						if (c1 < c2) {
-							return -1;
-						} else if (c1 > c2) {
-							return 1;
-						}
-					}
-				}
-				if (len1 < len2) {
-					return -1;
-				} else if (len1 > len2) {
-					return 1;
-				}
-				return 0;
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareIgnoreCaseStringSzSub(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
-			{
-				for (sl_size i = 0; i < len1; i++) {
+				for (sl_size i = 0; i < nLimit; i++) {
 					typename UnsignedType<CHAR>::Type c1 = str1[i];
 					typename UnsignedType<CHAR>::Type c2 = str2[i];
-					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
 					if (!c2) {
 						return 1;
 					}
+					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
 					if (c1 < c2) {
 						return -1;
 					} else if (c1 > c2) {
 						return 1;
 					}
 				}
-				if (str2[len1]) {
-					return -1;
-				}
 				return 0;
 			}
 
 			template <class CHAR>
-			SLIB_INLINE static sl_compare_result CompareIgnoreCaseStringSz(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
+			SLIB_INLINE static sl_compare_result CompareStringSzLimited_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
 			{
 				if (len2 < 0) {
 					if (!str2) {
 						str2 = EMPTY_SZ(CHAR);
 					}
-					return CompareIgnoreCaseStringSzSub(str1, len1, str2);
+					return CompareStringSzLimitedSub_IgnoreCase(str1, len1, str2, nLimit);
 				} else {
-					return CompareIgnoreCaseString(str1, len1, str2, len2);
+					return CompareStringLimited_IgnoreCase(str1, len1, str2, len2, nLimit);
 				}
 			}
 
 			template <class STRING>
-			SLIB_INLINE static sl_compare_result CompareIgnoreCaseStringSz(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
+			SLIB_INLINE static sl_compare_result CompareStringSzLimited_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2, sl_size nLimit) noexcept
 			{
 				sl_size len1;
 				typename STRING::Char const* data1 = str1.getData(len1);
-				return CompareIgnoreCaseStringSz(data1, len1, str2, len2);
+				return CompareStringSzLimited_IgnoreCase(data1, len1, str2, len2, nLimit);
 			}
 
 			template <class CHAR>
-			static sl_compare_result CompareIgnoreCaseSz(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
+			static sl_compare_result CompareSzLimited_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
 			{
 				if (len1 < 0) {
 					if (!str1) {
@@ -1251,12 +1339,12 @@ namespace slib
 						if (str1 == str2) {
 							return 0;
 						}
-						return StringTraits<CHAR>::compareIgnoreCase(str1, str2);
+						return StringTraits<CHAR>::compare_IgnoreCase(str1, str2, nLimit);
 					} else {
-						return -(CompareIgnoreCaseStringSzSub(str2, len2, str1));
+						return -(CompareStringSzLimitedSub_IgnoreCase(str2, len2, str1, nLimit));
 					}
 				} else {
-					return CompareIgnoreCaseStringSz(str1, len1, str2, len2);
+					return CompareStringSzLimited_IgnoreCase(str1, len1, str2, len2, nLimit);
 				}
 			}
 
@@ -1279,7 +1367,7 @@ namespace slib
 			}
 
 			template <class CHAR>
-			static sl_size GetHashCodeIgnoreCase(const CHAR* buf, sl_size len) noexcept
+			static sl_size GetHashCode_IgnoreCase(const CHAR* buf, sl_size len) noexcept
 			{
 				sl_size hash = 0;
 				for (sl_size i = 0; i < len; i++) {
@@ -1363,12 +1451,12 @@ namespace slib
 			}
 
 			template <class CHAR>
-			static sl_reg IndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size countPat, sl_reg _start) noexcept
+			static sl_reg IndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg _start) noexcept
 			{
-				if (count < countPat) {
+				if (count < nPattern) {
 					return -1;
 				}
-				if (!countPat) {
+				if (!nPattern) {
 					return 0;
 				}
 				sl_size start;
@@ -1376,11 +1464,11 @@ namespace slib
 					start = 0;
 				} else {
 					start = _start;
-					if (start > count - countPat) {
+					if (start > count - nPattern) {
 						return -1;
 					}
 				}
-				CHAR* pt = MemoryTraits<CHAR>::find(str + start, count - start, pattern, countPat);
+				CHAR* pt = MemoryTraits<CHAR>::find(str + start, count - start, pattern, nPattern);
 				if (pt) {
 					return pt - str;
 				}
@@ -1388,11 +1476,84 @@ namespace slib
 			}
 
 			template <class STRING>
-			SLIB_INLINE static sl_reg IndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size countPat, sl_reg start) noexcept
+			SLIB_INLINE static sl_reg IndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
 			{
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
-				return IndexOf(data, len, pattern, countPat, start);
+				return IndexOf(data, len, pattern, nPattern, start);
+			}
+
+			template <class CHAR>
+			static sl_reg IndexOfChar_IgnoreCase(const CHAR* str, sl_size count, CHAR pattern)
+			{
+				pattern = SLIB_CHAR_LOWER_TO_UPPER(pattern);
+				for (sl_size i = 0; i < count; i++) {
+					CHAR ch = str[i];
+					ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
+					if (ch == pattern) {
+						return i;
+					}
+				}
+				return -1;
+			}
+
+			template <class CHAR>
+			static sl_reg IndexOf_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg _start) noexcept
+			{
+				if (count < nPattern) {
+					return -1;
+				}
+				if (!nPattern) {
+					return 0;
+				}
+				sl_size start;
+				if (_start < 0) {
+					start = 0;
+				} else {
+					start = _start;
+					if (start > count - nPattern) {
+						return -1;
+					}
+				}
+				count -= start;
+				str += start;
+				CHAR pattern0 = *pattern;
+				if (nPattern == 1) {
+					sl_reg index = IndexOfChar_IgnoreCase(str, count, pattern0);
+					if (index >= 0) {
+						return index + start;
+					} else {
+						return -1;
+					}
+				}
+				if (nPattern > count) {
+					return -1;
+				}
+				nPattern--;
+				const CHAR* pattern1 = pattern + 1;
+				sl_size n = count - nPattern;
+				sl_size pos = 0;
+				do {
+					sl_reg index = IndexOfChar_IgnoreCase(str + pos, n - pos, pattern0);
+					if (index < 0) {
+						return -1;
+					}
+					pos += index;
+					if (EqualsStringSub_IgnoreCase(str + pos + 1, pattern1, nPattern)) {
+						return start + pos;
+					} else {
+						pos++;
+					}
+				} while (pos < n);
+				return -1;
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_reg IndexOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return IndexOf_IgnoreCase(data, len, pattern, nPattern, start);
 			}
 
 			template <class CHAR>
@@ -1421,18 +1582,18 @@ namespace slib
 			}
 
 			template <class CHAR>
-			static sl_reg LastIndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size countPat, sl_reg start) noexcept
+			static sl_reg LastIndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg start) noexcept
 			{
-				if (count < countPat) {
+				if (count < nPattern) {
 					return -1;
 				}
-				if (!countPat) {
+				if (!nPattern) {
 					return count;
 				}
-				if (start >= 0 && (sl_size)start < count - countPat) {
-					count = start + countPat;
+				if (start >= 0 && (sl_size)start < count - nPattern) {
+					count = start + nPattern;
 				}
-				CHAR* pt = MemoryTraits<CHAR>::findBackward(str, count, pattern, countPat);
+				CHAR* pt = MemoryTraits<CHAR>::findBackward(str, count, pattern, nPattern);
 				if (pt) {
 					return pt - str;
 				}
@@ -1440,11 +1601,70 @@ namespace slib
 			}
 
 			template <class STRING>
-			SLIB_INLINE static sl_reg LastIndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size countPat, sl_reg start) noexcept
+			SLIB_INLINE static sl_reg LastIndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
 			{
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
-				return LastIndexOf(data, len, pattern, countPat, start);
+				return LastIndexOf(data, len, pattern, nPattern, start);
+			}
+
+			template <class CHAR>
+			static sl_reg LastIndexOfChar_IgnoreCase(const CHAR* str, sl_size count, CHAR pattern) noexcept
+			{
+				pattern = SLIB_CHAR_LOWER_TO_UPPER(pattern);
+				while (count) {
+					count--;
+					CHAR ch = str[count];
+					ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
+					if (ch == pattern) {
+						return count;
+					}
+				}
+				return -1;
+			}
+
+			template <class CHAR>
+			static sl_reg LastIndexOf_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg start) noexcept
+			{
+				if (count < nPattern) {
+					return -1;
+				}
+				if (!nPattern) {
+					return count;
+				}
+				if (start >= 0 && (sl_size)start < count - nPattern) {
+					count = start + nPattern;
+				}
+				CHAR pattern0 = *pattern;
+				if (nPattern == 1) {
+					return LastIndexOfChar_IgnoreCase(str, count, pattern0);
+				}
+				if (nPattern > count) {
+					return -1;
+				}
+				nPattern--;
+				const CHAR* pattern1 = pattern + 1;
+				sl_size n = count - nPattern;
+				do {
+					sl_reg index = LastIndexOfChar_IgnoreCase(str, n, pattern0);
+					if (index < 0) {
+						return -1;
+					}
+					if (EqualsStringSub_IgnoreCase(str + index + 1, pattern1, nPattern)) {
+						return index;
+					} else {
+						n = index;
+					}
+				} while (n);
+				return -1;
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_reg LastIndexOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return LastIndexOf_IgnoreCase(data, len, pattern, nPattern, start);
 			}
 
 			template <class STRING>
@@ -1468,13 +1688,13 @@ namespace slib
 			}
 
 			template <class CHAR>
-			static sl_bool StartsWithStringSub(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg countPat) noexcept
+			static sl_bool StartsWithStringSub(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
 			{
-				if (countPat > 0) {
-					if (count < (sl_size)countPat) {
+				if (nPattern > 0) {
+					if (count < (sl_size)nPattern) {
 						return sl_false;
 					} else {
-						return MemoryTraits<CHAR>::equals(str, pattern, countPat);
+						return MemoryTraits<CHAR>::equals(str, pattern, nPattern);
 					}
 				} else {
 					for (sl_size i = 0; i < count; i++) {
@@ -1491,33 +1711,33 @@ namespace slib
 			}
 
 			template <class CHAR>
-			SLIB_INLINE static sl_bool StartsWithString(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg countPat) noexcept
+			SLIB_INLINE static sl_bool StartsWithString(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
 			{
-				if (!(pattern && countPat)) {
+				if (!(pattern && nPattern)) {
 					return sl_true;
 				}
-				return StartsWithStringSub(str, count, pattern, countPat);
+				return StartsWithStringSub(str, count, pattern, nPattern);
 			}
 
 			template <class STRING>
-			SLIB_INLINE static sl_bool StartsWithString(const STRING& str, typename STRING::Char const* pattern, sl_reg countPat) noexcept
+			SLIB_INLINE static sl_bool StartsWithString(const STRING& str, typename STRING::Char const* pattern, sl_reg nPattern) noexcept
 			{
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
-				return StartsWithString(data, len, pattern, countPat);
+				return StartsWithString(data, len, pattern, nPattern);
 			}
 
 			template <class CHAR>
-			static sl_bool StartsWithSz(const CHAR* str, sl_reg count, const CHAR* pattern, sl_reg countPat) noexcept
+			static sl_bool StartsWithSz(const CHAR* str, sl_reg count, const CHAR* pattern, sl_reg nPattern) noexcept
 			{
-				if (!(pattern && countPat)) {
+				if (!(pattern && nPattern)) {
 					return sl_true;
 				}
 				if (count >= 0) {
-					return StartsWithStringSub(str, count, pattern, countPat);
+					return StartsWithStringSub(str, count, pattern, nPattern);
 				}
-				if (countPat > 0) {
-					for (sl_reg i = 0; i < countPat; i++) {
+				if (nPattern > 0) {
+					for (sl_reg i = 0; i < nPattern; i++) {
 						CHAR ch = str[i];
 						if (!ch) {
 							return sl_false;
@@ -1534,6 +1754,91 @@ namespace slib
 							return sl_true;
 						}
 						if (*str != ch) {
+							return sl_false;
+						}
+						str++;
+						pattern++;
+					}
+					return sl_true;
+				}
+			}
+			
+			template <class CHAR>
+			static sl_bool StartsWithStringSub_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
+			{
+				if (nPattern > 0) {
+					if (count < (sl_size)nPattern) {
+						return sl_false;
+					} else {
+						return EqualsStringSub_IgnoreCase(str, pattern, nPattern);
+					}
+				} else {
+					for (sl_size i = 0; i < count; i++) {
+						CHAR c1 = pattern[i];
+						if (!c1) {
+							return sl_true;
+						}
+						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+						CHAR c2 = str[i];
+						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+						if (c1 != c2) {
+							return sl_false;
+						}
+					}
+					return !(pattern[count]);
+				}
+			}
+
+			template <class CHAR>
+			SLIB_INLINE static sl_bool StartsWithString_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
+			{
+				if (!(pattern && nPattern)) {
+					return sl_true;
+				}
+				return StartsWithStringSub_IgnoreCase(str, count, pattern, nPattern);
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_bool StartsWithString_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_reg nPattern) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return StartsWithString_IgnoreCase(data, len, pattern, nPattern);
+			}
+
+			template <class CHAR>
+			static sl_bool StartsWithSz_IgnoreCase(const CHAR* str, sl_reg count, const CHAR* pattern, sl_reg nPattern) noexcept
+			{
+				if (!(pattern && nPattern)) {
+					return sl_true;
+				}
+				if (count >= 0) {
+					return StartsWithStringSub_IgnoreCase(str, count, pattern, nPattern);
+				}
+				if (nPattern > 0) {
+					for (sl_reg i = 0; i < nPattern; i++) {
+						CHAR c1 = str[i];
+						if (!c1) {
+							return sl_false;
+						}
+						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+						CHAR c2 = pattern[i];
+						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+						if (c1 != c2) {
+							return sl_false;
+						}
+					}
+					return sl_true;
+				} else {
+					for (;;) {
+						CHAR c1 = *pattern;
+						if (!c1) {
+							return sl_true;
+						}
+						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+						CHAR c2 = *str;
+						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+						if (c1 != c2) {
 							return sl_false;
 						}
 						str++;
@@ -1577,24 +1882,45 @@ namespace slib
 			}
 
 			template <class CHAR>
-			SLIB_INLINE static sl_bool EndsWith(const CHAR* str, sl_size count, const CHAR* pattern, sl_size countPat) noexcept
+			SLIB_INLINE static sl_bool EndsWith(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern) noexcept
 			{
-				if (!countPat) {
+				if (!nPattern) {
 					return sl_true;
 				}
-				if (count < countPat) {
+				if (count < nPattern) {
 					return sl_false;
 				} else {
-					return MemoryTraits<CHAR>::equals(str + count - countPat, pattern, countPat);
+					return MemoryTraits<CHAR>::equals(str + count - nPattern, pattern, nPattern);
 				}
 			}
 
 			template <class STRING>
-			SLIB_INLINE static sl_bool EndsWith(const STRING& str, typename STRING::Char const* pattern, sl_size countPat) noexcept
+			SLIB_INLINE static sl_bool EndsWith(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern) noexcept
 			{
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
-				return EndsWith(data, len, pattern, countPat);
+				return EndsWith(data, len, pattern, nPattern);
+			}
+
+			template <class CHAR>
+			SLIB_INLINE static sl_bool EndsWith_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern) noexcept
+			{
+				if (!nPattern) {
+					return sl_true;
+				}
+				if (count < nPattern) {
+					return sl_false;
+				} else {
+					return EqualsStringSub_IgnoreCase(str + count - nPattern, pattern, nPattern);
+				}
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_bool EndsWith_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return EndsWith_IgnoreCase(data, len, pattern, nPattern);
 			}
 
 			template <class CHAR>
@@ -1666,6 +1992,34 @@ namespace slib
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
 				return CountOf(data, len, pattern, lenPattern);
+			}
+
+			template <class CHAR>
+			static sl_size CountOf_IgnoreCase(const CHAR* str, sl_size len, const CHAR* pattern, sl_size lenPattern) noexcept
+			{
+				if (!lenPattern) {
+					return 0;
+				}
+				sl_size count = 0;
+				sl_reg start = 0;
+				for (;;) {
+					start = IndexOf_IgnoreCase(str, len, pattern, lenPattern, start);
+					if (start >= 0) {
+						count++;
+						start += lenPattern;
+					} else {
+						break;
+					}
+				}
+				return count;
+			}
+
+			template <class STRING>
+			SLIB_INLINE static sl_size CountOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size lenPattern) noexcept
+			{
+				sl_size len;
+				typename STRING::Char const* data = str.getData(len);
+				return CountOf_IgnoreCase(data, len, pattern, lenPattern);
 			}
 
 			template <class CHAR>
@@ -1943,9 +2297,9 @@ namespace slib
 			};
 
 			template <class STRING>
-			static STRING ReplaceAllSub(typename STRING::Char const* src, sl_size countSrc, typename STRING::Char const* pattern, sl_size countPat, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
+			static STRING ReplaceAllSub(typename STRING::Char const* src, sl_size countSrc, typename STRING::Char const* pattern, sl_size nPattern, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
 			{
-				if (!countPat) {
+				if (!nPattern) {
 					return sl_null;
 				}
 				if (!countSrc) {
@@ -1955,8 +2309,8 @@ namespace slib
 				STRING_REPLACE_SUBSET subset;
 				sl_size countNew = 0;
 				sl_size start = 0;
-				while (start <= countSrc + countPat - 1) {
-					sl_reg index = IndexOf(src, countSrc, pattern, countPat, start);
+				while (start <= countSrc + nPattern - 1) {
+					sl_reg index = IndexOf(src, countSrc, pattern, nPattern, start);
 					if (index < 0) {
 						index = countSrc;
 					} else {
@@ -1966,7 +2320,7 @@ namespace slib
 					subset.len = index - start;
 					queue.push_NoLock(subset);
 					countNew += subset.len;
-					start = index + countPat;
+					start = index + nPattern;
 				}
 				if (!countNew) {
 					return STRING::getEmpty();
@@ -1989,14 +2343,14 @@ namespace slib
 			}
 
 			template <class STRING>
-			SLIB_INLINE static typename StringTypeFromCharType<typename STRING::Char>::Type ReplaceAll(const STRING& str, typename STRING::Char const* pattern, sl_size countPat, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
+			SLIB_INLINE static typename StringTypeFromCharType<typename STRING::Char>::Type ReplaceAll(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
 			{
 				if (str.isNull()) {
 					return sl_null;
 				}
 				sl_size len;
 				typename STRING::Char const* data = str.getData(len);
-				return ReplaceAllSub<typename StringTypeFromCharType<typename STRING::Char>::Type>(data, len, pattern, countPat, strReplace, countReplace);
+				return ReplaceAllSub<typename StringTypeFromCharType<typename STRING::Char>::Type>(data, len, pattern, nPattern, strReplace, countReplace);
 			}
 
 			template <class STRING>
@@ -2600,26 +2954,6 @@ namespace slib
 				return sl_false;
 			}
 
-			template <class T>
-			static sl_compare_result EqualsStringIgnoreCase(const T* s1, sl_size limit, const char* s2) noexcept
-			{
-				if (limit > 512) {
-					limit = 512;
-				}
-				const char* end = s2 + limit;
-				while (s2 < end) {
-					T c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-					char c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
-					if (c1 != c2) {
-						return sl_false;
-					}
-					if (!c1) {
-						break;
-					}
-				}
-				return sl_false;
-			}
-
 			template <class FLOAT, class CHAR>
 			static sl_reg ParseFloat(const CHAR* str, sl_size i, sl_size n, FLOAT* _out) noexcept
 			{
@@ -2664,21 +2998,22 @@ namespace slib
 				}
 				if (bEmpty) {
 					if (i + 3 <= n) {
-						if (EqualsStringIgnoreCase(str + i, 3, "nan")) {
+						sl_uint32 c = (sl_uint32)(str[i]);
+						if ((c == 'n' || c == 'N') || (str[i + 1] == 'a' || str[i + 1] == 'A') || (str[i + 2] == 'n' || str[i + 2] == 'N')) {
 							i += 3;
-							if (i >= n || ((sl_uint32)(str[i]) < 128 && !SLIB_CHAR_IS_ALNUM(str[i]))) {
+							if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
 								if (_out) {
 									Math::getNaN(*_out);
 								}
 								return i;
 							}
-						}
-						if (EqualsStringIgnoreCase(str + i, 3, "inf")) {
+						} else if ((c == 'i' || c == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'f' || str[i + 2] == 'F')) {
 							i += 3;
-							if (EqualsStringIgnoreCase(str + i, 5, "inity")) {
+							if (i + 5 <= n && (str[i] == 'i' || str[i] == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'i' || str[i + 2] == 'I') || (str[i + 3] == 't' || str[i + 3] == 'T') || (str[i + 4] == 'y' || str[i + 4] == 'Y')) {
 								i += 5;
 							}
-							if (i >= n || ((sl_uint32)(str[i]) < 128 && !SLIB_CHAR_IS_ALNUM(str[i]))) {
+							c = (sl_uint32)(str[i]);
+							if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
 								if (_out) {
 									if (bMinus) {
 										Math::getNegativeInfinite(*_out);
@@ -2850,8 +3185,11 @@ namespace slib
 					default:
 						break;
 				}
-				if (i < n && str[i] && SLIB_CHAR_IS_C_NAME(str[i])) {
-					return SLIB_PARSE_ERROR;
+				if (i < n) {
+					CHAR c = str[i];
+					if (SLIB_CHAR_IS_C_NAME(c)) {
+						return SLIB_PARSE_ERROR;
+					}
 				}
 				if (_out) {
 					*_out = f;
@@ -4440,9 +4778,19 @@ namespace slib
 		return EqualsString(*this, other.data(), other.length()); \
 	} \
 	\
+	sl_bool STRING::equals_IgnoreCase(typename STRING::StringViewType const& other) const noexcept \
+	{ \
+		return EqualsStringSz_IgnoreCase(*this, other.getUnsafeData(), other.getUnsafeLength()); \
+	} \
+	\
 	sl_compare_result STRING::compare(typename STRING::StringViewType const& other) const noexcept \
 	{ \
 		return CompareStringSz(*this, other.getUnsafeData(), other.getUnsafeLength()); \
+	} \
+	\
+	sl_compare_result STRING::compare_IgnoreCase(typename STRING::StringViewType const& other) const noexcept \
+	{ \
+		return CompareStringSz_IgnoreCase(*this, other.getUnsafeData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result STRING::compare(typename STRING::StringViewType const& other, sl_size len) const noexcept \
@@ -4450,14 +4798,9 @@ namespace slib
 		return CompareStringSzLimited(*this, other.getUnsafeData(), other.getUnsafeLength(), len); \
 	} \
 	\
-	sl_bool STRING::equalsIgnoreCase(typename STRING::StringViewType const& other) const noexcept \
+	sl_compare_result STRING::compare_IgnoreCase(typename STRING::StringViewType const& other, sl_size len) const noexcept \
 	{ \
-		return EqualsIgnoreCaseStringSz(*this, other.getUnsafeData(), other.getUnsafeLength()); \
-	} \
-	\
-	sl_compare_result STRING::compareIgnoreCase(typename STRING::StringViewType const& other) const noexcept \
-	{ \
-		return CompareIgnoreCaseStringSz(*this, other.getUnsafeData(), other.getUnsafeLength()); \
+		return CompareStringSzLimited_IgnoreCase(*this, other.getUnsafeData(), other.getUnsafeLength(), len); \
 	} \
 	\
 	sl_size STRING::getHashCode() const noexcept \
@@ -4481,17 +4824,17 @@ namespace slib
 		return GetHashCode(str, len); \
 	} \
 	\
-	sl_size STRING::getHashCodeIgnoreCase() const noexcept \
+	sl_size STRING::getHashCode_IgnoreCase() const noexcept \
 	{ \
 		if (m_container) { \
-			return GetHashCodeIgnoreCase(m_container->sz, m_container->len); \
+			return GetHashCode_IgnoreCase(m_container->sz, m_container->len); \
 		} \
 		return 0; \
 	} \
 	\
-	sl_size STRING::getHashCodeIgnoreCase(typename STRING::Char const* str, sl_reg len) noexcept \
+	sl_size STRING::getHashCode_IgnoreCase(typename STRING::Char const* str, sl_reg len) noexcept \
 	{ \
-		return GetHashCodeIgnoreCase(str, len); \
+		return GetHashCode_IgnoreCase(str, len); \
 	} \
 	\
 	STRING STRING::left(sl_reg len) const noexcept \
@@ -4519,6 +4862,11 @@ namespace slib
 		return IndexOf(*this, pattern.getData(), pattern.getLength(), start); \
 	} \
 	\
+	sl_reg STRING::indexOf_IgnoreCase(typename STRING::StringViewType const& pattern, sl_reg start) const noexcept \
+	{ \
+		return IndexOf_IgnoreCase(*this, pattern.getData(), pattern.getLength(), start); \
+	} \
+	\
 	sl_reg STRING::lastIndexOf(typename STRING::Char ch, sl_reg start) const noexcept \
 	{ \
 		return LastIndexOfChar(*this, ch, start); \
@@ -4527,6 +4875,11 @@ namespace slib
 	sl_reg STRING::lastIndexOf(typename STRING::StringViewType const& pattern, sl_reg start) const noexcept \
 	{ \
 		return LastIndexOf(*this, pattern.getData(), pattern.getLength(), start); \
+	} \
+	\
+	sl_reg STRING::lastIndexOf_IgnoreCase(typename STRING::StringViewType const& pattern, sl_reg start) const noexcept \
+	{ \
+		return LastIndexOf_IgnoreCase(*this, pattern.getData(), pattern.getLength(), start); \
 	} \
 	\
 	sl_bool STRING::startsWith(typename STRING::Char ch) const noexcept \
@@ -4539,6 +4892,11 @@ namespace slib
 		return StartsWithString(*this, pattern.getUnsafeData(), pattern.getUnsafeLength()); \
 	} \
 	\
+	sl_bool STRING::startsWith_IgnoreCase(typename STRING::StringViewType const& pattern) const noexcept \
+	{ \
+		return StartsWithString_IgnoreCase(*this, pattern.getUnsafeData(), pattern.getUnsafeLength()); \
+	} \
+	\
 	sl_bool STRING::endsWith(typename STRING::Char ch) const noexcept \
 	{ \
 		return EndsWithChar(*this, ch); \
@@ -4547,6 +4905,11 @@ namespace slib
 	sl_bool STRING::endsWith(typename STRING::StringViewType const& pattern) const noexcept \
 	{ \
 		return EndsWith(*this, pattern.getData(), pattern.getLength()); \
+	} \
+	\
+	sl_bool STRING::endsWith_IgnoreCase(typename STRING::StringViewType const& pattern) const noexcept \
+	{ \
+		return EndsWith_IgnoreCase(*this, pattern.getData(), pattern.getLength()); \
 	} \
 	\
 	sl_bool STRING::contains(typename STRING::Char ch) const noexcept \
@@ -4559,6 +4922,11 @@ namespace slib
 		return indexOf(pattern) >= 0; \
 	} \
 	\
+	sl_bool STRING::contains_IgnoreCase(typename STRING::StringViewType const& pattern) const noexcept \
+	{ \
+		return indexOf_IgnoreCase(pattern) >= 0; \
+	} \
+	\
 	sl_size STRING::countOf(typename STRING::Char ch) const noexcept \
 	{ \
 		return CountOfChar(*this, ch); \
@@ -4567,6 +4935,11 @@ namespace slib
 	sl_size STRING::countOf(typename STRING::StringViewType const& pattern) const noexcept \
 	{ \
 		return CountOf(*this, pattern.getData(), pattern.getLength()); \
+	} \
+	\
+	sl_size STRING::countOf_IgnoreCase(typename STRING::StringViewType const& pattern) const noexcept \
+	{ \
+		return CountOf_IgnoreCase(*this, pattern.getData(), pattern.getLength()); \
 	} \
 	\
 	void STRING::makeUpper() noexcept \
@@ -5449,9 +5822,19 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return EqualsSz(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
 	} \
 	\
+	sl_bool VIEW::equals_IgnoreCase(const VIEW& other) const noexcept \
+	{ \
+		return EqualsSz_IgnoreCase(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+	} \
+	\
 	sl_compare_result VIEW::compare(const VIEW& other) const noexcept \
 	{ \
 		return CompareSz(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+	} \
+	\
+	sl_compare_result VIEW::compare_IgnoreCase(const VIEW& other) const noexcept \
+	{ \
+		return CompareSz_IgnoreCase(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
 	} \
 	\
 	sl_compare_result VIEW::compare(const VIEW& other, sl_size len) const noexcept \
@@ -5459,14 +5842,9 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return CompareSzLimited(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength(), len); \
 	} \
 	\
-	sl_bool VIEW::equalsIgnoreCase(const VIEW& other) const noexcept \
+	sl_compare_result VIEW::compare_IgnoreCase(const VIEW& other, sl_size len) const noexcept \
 	{ \
-		return EqualsIgnoreCaseSz(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
-	} \
-	\
-	sl_compare_result VIEW::compareIgnoreCase(const VIEW& other) const noexcept \
-	{ \
-		return CompareIgnoreCaseSz(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength()); \
+		return CompareSzLimited_IgnoreCase(getUnsafeData(), getUnsafeLength(), other.getUnsafeData(), other.getUnsafeLength(), len); \
 	} \
 	\
 	sl_size VIEW::getHashCode() const noexcept \
@@ -5474,9 +5852,9 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return GetHashCode(data, length); \
 	} \
 	\
-	sl_size VIEW::getHashCodeIgnoreCase() const noexcept \
+	sl_size VIEW::getHashCode_IgnoreCase() const noexcept \
 	{ \
-		return GetHashCodeIgnoreCase(data, length); \
+		return GetHashCode_IgnoreCase(data, length); \
 	} \
 	\
 	VIEW VIEW::substring(sl_reg start, sl_reg end) const noexcept\
@@ -5509,6 +5887,11 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return IndexOf(getData(), getLength(), pattern.getData(), pattern.getLength(), start); \
 	} \
 	\
+	sl_reg VIEW::indexOf_IgnoreCase(const VIEW& pattern, sl_reg start) const noexcept \
+	{ \
+		return IndexOf_IgnoreCase(getData(), getLength(), pattern.getData(), pattern.getLength(), start); \
+	} \
+	\
 	sl_reg VIEW::lastIndexOf(typename VIEW::Char ch, sl_reg start) const noexcept \
 	{ \
 		return LastIndexOfChar(getData(), getLength(), ch, start); \
@@ -5517,6 +5900,11 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	sl_reg VIEW::lastIndexOf(const VIEW& pattern, sl_reg start) const noexcept \
 	{ \
 		return LastIndexOf(getData(), getLength(), pattern.getData(), pattern.getLength(), start); \
+	} \
+	\
+	sl_reg VIEW::lastIndexOf_IgnoreCase(const VIEW& pattern, sl_reg start) const noexcept \
+	{ \
+		return LastIndexOf_IgnoreCase(getData(), getLength(), pattern.getData(), pattern.getLength(), start); \
 	} \
 	\
 	sl_bool VIEW::startsWith(typename VIEW::Char ch) const noexcept \
@@ -5529,6 +5917,11 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return StartsWithSz(getUnsafeData(), getUnsafeLength(), pattern.getUnsafeData(), pattern.getUnsafeLength()); \
 	} \
 	\
+	sl_bool VIEW::startsWith_IgnoreCase(const VIEW& pattern) const noexcept \
+	{ \
+		return StartsWithSz_IgnoreCase(getUnsafeData(), getUnsafeLength(), pattern.getUnsafeData(), pattern.getUnsafeLength()); \
+	} \
+	\
 	sl_bool VIEW::endsWith(typename VIEW::Char ch) const noexcept \
 	{ \
 		return EndsWithCharSz(getUnsafeData(), getUnsafeLength(), ch); \
@@ -5537,6 +5930,11 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	sl_bool VIEW::endsWith(const VIEW& pattern) const noexcept \
 	{ \
 		return EndsWith(getData(), getLength(), pattern.getData(), pattern.getLength()); \
+	} \
+	\
+	sl_bool VIEW::endsWith_IgnoreCase(const VIEW& pattern) const noexcept \
+	{ \
+		return EndsWith_IgnoreCase(getData(), getLength(), pattern.getData(), pattern.getLength()); \
 	} \
 	\
 	sl_bool VIEW::contains(typename VIEW::Char ch) const noexcept \
@@ -5549,6 +5947,11 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 		return indexOf(pattern) >= 0; \
 	} \
 	\
+	sl_bool VIEW::contains_IgnoreCase(const VIEW& pattern) const noexcept \
+	{ \
+		return indexOf_IgnoreCase(pattern) >= 0; \
+	} \
+	\
 	sl_size VIEW::countOf(typename VIEW::Char ch) const noexcept \
 	{ \
 		return CountOfCharSz(getUnsafeData(), getUnsafeLength(), ch); \
@@ -5557,6 +5960,11 @@ DEFINE_COMMON_STRING_FUNC_IMPL(Atomic<String32>)
 	sl_size VIEW::countOf(const VIEW& pattern) const noexcept \
 	{ \
 		return CountOf(getData(), getLength(), pattern.getData(), pattern.getLength()); \
+	} \
+	\
+	sl_size VIEW::countOf_IgnoreCase(const VIEW& pattern) const noexcept \
+	{ \
+		return CountOf_IgnoreCase(getData(), getLength(), pattern.getData(), pattern.getLength()); \
 	} \
 	\
 	void VIEW::makeUpper() noexcept \

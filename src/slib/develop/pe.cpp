@@ -146,7 +146,7 @@ namespace slib
 		sl_uint32 n = pImportEntry->size / sizeof(PE_ImportDescriptor);
 		PE_ImportDescriptor* import = (PE_ImportDescriptor*)(base + pImportEntry->address);
 		for (sl_uint32 i = 0; i < n; i++) {
-			if (dllName.equalsIgnoreCase((char*)(base + import->name))) {
+			if (dllName.equals_IgnoreCase((char*)(base + import->name))) {
 				return import;
 			}
 			import++;
@@ -168,7 +168,7 @@ namespace slib
 		for (sl_uint32 i = 0; i < pExportDirectory->numberOfNames; i++) {
 			sl_uint32 nameBase = *(sl_uint32*)(base + nameRVA + i * 4);
 			sl_uint16 funcIndex = *(sl_uint16*)(base + nameOrdinalRVA + i * 2);
-			if (functionName.equalsIgnoreCase((char*)(base + nameBase))) {
+			if (functionName.equals_IgnoreCase((char*)(base + nameBase))) {
 				return (sl_uint32*)(base + funcRVA + funcIndex * 4);
 			}
 		}

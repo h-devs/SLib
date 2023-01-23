@@ -62,7 +62,11 @@ namespace slib
 						n >>= 1;
 						sl_size k = 0;
 						for (i = 0; i < n; i++) {
-							sn[i] = (char)((SLIB_CHAR_HEX_TO_INT(sn[k]) << 4) | SLIB_CHAR_HEX_TO_INT(sn[k + 1]));
+							char c1 = sn[k];
+							c1 = SLIB_CHAR_HEX_TO_INT(c1);
+							char c2 = sn[k + 1];
+							c2 = SLIB_CHAR_HEX_TO_INT(c2);
+							sn[i] = (char)((c1 << 4) | c2);
 							k += 2;
 						}
 						String ret = String::fromUtf8(sn, n).trim();

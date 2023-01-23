@@ -1777,7 +1777,8 @@ namespace slib
 		}
 		for (;;) {
 			while (s < end) {
-				if (!SLIB_CHAR_IS_WHITE_SPACE(*s)) {
+				sl_uint8 c = *s;
+				if (!SLIB_CHAR_IS_WHITE_SPACE(c)) {
 					break;
 				}
 				s++;

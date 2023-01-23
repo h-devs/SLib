@@ -134,26 +134,6 @@ namespace slib
 				return (sl_uint32)(src - begin);
 			}
 
-			template <class T>
-			static sl_compare_result EqualsStringIgnoreCase(const T* s1, sl_size limit, const char* s2) noexcept
-			{
-				if (limit > 512) {
-					limit = 512;
-				}
-				const char* end = s2 + limit;
-				while (s2 < end) {
-					T c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-					char c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
-					if (c1 != c2) {
-						return sl_false;
-					}
-					if (!c1) {
-						break;
-					}
-				}
-				return sl_false;
-			}
-
 			// Referenced from Mongodb's BSON implementation
 			template <class CHAR>
 			static sl_uint32 ToString(const Decimal128* dec, CHAR* out)
@@ -315,20 +295,26 @@ namespace slib
 				// Check for Infinity or NaN
 				if (!SLIB_CHAR_IS_DIGIT(ch) && ch != '.') {
 					sl_uint32 n = 0;
-					if (EqualsStringIgnoreCase(str, strEnd - str, "infinity")) {
-						n = 8;
-						dec->setInfinity(!bNegative);
-					} else if (EqualsStringIgnoreCase(str, strEnd - str, "inf")) {
-						n = 3;
-						dec->setInfinity(!bNegative);
-					} else if (EqualsStringIgnoreCase(str, strEnd - str, "nan")) {
-						n = 3;
-						dec->setNaN();
+					sl_size m = strEnd - str;
+					if (m >= 3) {
+						ch = *str;
+						if ((ch == 'i' || ch == 'I') && (str[1] == 'n' || str[1] == 'N') && (str[2] == 'f' || str[2] == 'F')) {
+							if (m >= 8 && (str[3] == 'i' || str[3] == 'I') && (str[4] == 'n' || str[4] == 'N') && (str[5] == 'i' || str[5] == 'I') && (str[6] == 't' || str[6] == 'T') && (str[7] == 'y' || str[7] == 'Y')) {
+								n = 8;
+							} else {
+								n = 3;
+							}
+							dec->setInfinity(!bNegative);
+						} else if ((ch == 'n' || ch == 'N') && (str[1] == 'a' || str[1] == 'A') && (str[2] == 'n' || str[2] == 'N')) {
+							n = 3;
+							dec->setNaN();
+						}
 					}
 					if (n) {
 						len = str + n - input;
 						if (str + n < strEnd) {
-							if (!(str[n]) || SLIB_CHAR_IS_WHITE_SPACE(str[n])) {
+							ch = str[n];
+							if (!ch || SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 								return sl_true;
 							}
 						} else {

@@ -45,7 +45,7 @@ namespace slib
 				sl_reg index = output.indexOf(StringView::literal("ID_BUS="));
 				if (index >= 0) {
 					index += 7;
-					if (!(output.substring(index, index + 3).equalsIgnoreCase(StringView::literal("USB")))) {
+					if (!(output.substring(index, index + 3).equals_IgnoreCase(StringView::literal("USB")))) {
 						index = output.indexOf(StringView::literal("ID_SERIAL_SHORT="), index);
 						if (index >= 0) {
 							return output.substring(index + 16);

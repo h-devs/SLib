@@ -442,7 +442,8 @@ namespace slib
 			sl_char8* data = uri.getData();
 			sl_size len = uri.getLength();
 			if (len > 10 && data[7] == '/') {
-				if (SLIB_CHAR_IS_ALPHA(data[8]) && data[9] == ':' && data[10] == '/') {
+				sl_char8 c8 = data[8];
+				if (SLIB_CHAR_IS_ALPHA(c8) && data[9] == ':' && data[10] == '/') {
 					String ret = String::allocate(len - 8);
 					if (ret.isNotNull()) {
 						sl_char8* dst = ret.getData();
@@ -452,7 +453,8 @@ namespace slib
 					}
 				}
 			} else if (len > 9) {
-				if (SLIB_CHAR_IS_ALPHA(data[7]) && data[8] == ':' && data[9] == '/') {
+				sl_char8 c7 = data[7];
+				if (SLIB_CHAR_IS_ALPHA(c7) && data[8] == ':' && data[9] == '/') {
 					String ret = String::allocate(len - 7);
 					if (ret.isNotNull()) {
 						sl_char8* dst = ret.getData();

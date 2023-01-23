@@ -418,8 +418,8 @@ namespace slib
 		/**
 		 * @return the hash code ignoring the case.
 		 */
-		sl_size getHashCodeIgnoreCase() const noexcept;
-		static sl_size getHashCodeIgnoreCase(const sl_char8* str, sl_reg len = -1) noexcept;
+		sl_size getHashCode_IgnoreCase() const noexcept;
+		static sl_size getHashCode_IgnoreCase(const sl_char8* str, sl_reg len = -1) noexcept;
 
 		/**
 		 * Sets the string length.
@@ -496,12 +496,14 @@ namespace slib
 #ifdef SLIB_SUPPORT_STD_TYPES
 		sl_bool equals(const std::string& other) const noexcept;
 #endif
+		sl_bool equals_IgnoreCase(const StringView& other) const noexcept;
 
 		/**
 		 * Compares this string to the specified string.
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compare(const StringView& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView& other) const noexcept;
 
 		/**
 		* Compares this string to the specified string.
@@ -509,17 +511,7 @@ namespace slib
 		* @return signed integral indicating the relation between the strings.
 		*/
 		sl_compare_result compare(const StringView& other, sl_size len) const noexcept;
-
-		/**
-		 * @return true if this string is equal to the specified string ignoring the case.
-		 */
-		sl_bool equalsIgnoreCase(const StringView& other) const noexcept;
-
-		/**
-		 * Compares this string to the specified string ignoring the case.
-		 * @return signed integral indicating the relation between the strings.
-		 */
-		sl_compare_result compareIgnoreCase(const StringView& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView& other, sl_size len) const noexcept;
 
 	public:
 		/**
@@ -596,39 +588,45 @@ namespace slib
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg indexOf(const StringView& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char8 ch, sl_reg start = 0) const noexcept;
+		sl_reg indexOf(const StringView& str, sl_reg start = 0) const noexcept;
+		sl_reg indexOf_IgnoreCase(const StringView& str, sl_reg start = 0) const noexcept;
 
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg lastIndexOf(const StringView& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char8 ch, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf(const StringView& str, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf_IgnoreCase(const StringView& str, sl_reg start = -1) const noexcept;
 
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
-		sl_bool startsWith(const StringView& str) const noexcept;
 		sl_bool startsWith(sl_char8 ch) const noexcept;
+		sl_bool startsWith(const StringView& str) const noexcept;
+		sl_bool startsWith_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
-		sl_bool endsWith(const StringView& str) const noexcept;
 		sl_bool endsWith(sl_char8 ch) const noexcept;
+		sl_bool endsWith(const StringView& str) const noexcept;
+		sl_bool endsWith_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
-		sl_bool contains(const StringView& str) const noexcept;
 		sl_bool contains(sl_char8 ch) const noexcept;
+		sl_bool contains(const StringView& str) const noexcept;
+		sl_bool contains_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
-		sl_size countOf(const StringView& str) const noexcept;
 		sl_size countOf(sl_char8 ch) const noexcept;
+		sl_size countOf(const StringView& str) const noexcept;
+		sl_size countOf_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		 * Converts the characters of this string to uppercase.

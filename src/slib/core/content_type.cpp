@@ -188,7 +188,7 @@ namespace slib
 				type2 = type2.substring(0, index).trim();
 			}
 		}
-		return type1.equalsIgnoreCase(type2);
+		return type1.equals_IgnoreCase(type2);
 	}
 
 }

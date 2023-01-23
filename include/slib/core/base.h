@@ -104,12 +104,12 @@ namespace slib
 		static sl_bool equalsString4(const sl_char32* s1, const sl_char32* s2) noexcept;
 		static sl_bool equalsString4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
 
-		static sl_bool equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept;
-		static sl_bool equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
-		static sl_bool equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept;
-		static sl_bool equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
-		static sl_bool equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept;
-		static sl_bool equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
+		static sl_bool equalsString_IgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept;
+		static sl_bool equalsString_IgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
+		static sl_bool equalsString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept;
+		static sl_bool equalsString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
+		static sl_bool equalsString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept;
+		static sl_bool equalsString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
 
 		static sl_compare_result compareString(const sl_char8* s1, const sl_char8* s2) noexcept;
 		static sl_compare_result compareString(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
@@ -118,12 +118,12 @@ namespace slib
 		static sl_compare_result compareString4(const sl_char32* s1, const sl_char32* s2) noexcept;
 		static sl_compare_result compareString4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
 
-		static sl_compare_result compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept;
-		static sl_compare_result compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
-		static sl_compare_result compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept;
-		static sl_compare_result compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
-		static sl_compare_result compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept;
-		static sl_compare_result compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
+		static sl_compare_result compareString_IgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept;
+		static sl_compare_result compareString_IgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept;
+		static sl_compare_result compareString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept;
+		static sl_compare_result compareString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept;
+		static sl_compare_result compareString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept;
+		static sl_compare_result compareString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept;
 
 		// Interlocked Functions (Synchronization of Atom Operations)
 		static sl_int32 interlockedIncrement32(volatile sl_int32* pValue) noexcept;
