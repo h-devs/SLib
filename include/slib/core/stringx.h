@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -119,6 +119,19 @@ namespace slib
 		static List<String16> getWords(const StringView16& input, sl_reg start = 0) noexcept;
 
 		static List<String32> getWords(const StringView32& input, sl_reg start = 0) noexcept;
+
+
+		static sl_reg indexOfWholeWord(const StringView& input, const StringView& word, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfWholeWord(const StringView16& input, const StringView16& word, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfWholeWord(const StringView32& input, const StringView32& word, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfWholeWord_IgnoreCase(const StringView& input, const StringView& word, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfWholeWord_IgnoreCase(const StringView16& input, const StringView16& word, sl_reg start = 0) noexcept;
+
+		static sl_reg indexOfWholeWord_IgnoreCase(const StringView32& input, const StringView32& word, sl_reg start = 0) noexcept;
 
 
 		static sl_bool parseUint32Range(const StringParam& str, sl_uint32* from = sl_null, sl_uint32* to = sl_null);
