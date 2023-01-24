@@ -16,9 +16,9 @@
 * limitations under the License.
 */
 
-#include "pdf417/PDFBoundingBox.h"
-#include "pdf417/PDFCodeword.h"
-#include "ZXNullable.h"
+#include "../pdf417/PDFBoundingBox.h"
+#include "../pdf417/PDFCodeword.h"
+#include "../ZXNullable.h"
 #include <vector>
 #include <memory>
 

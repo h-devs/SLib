@@ -15,12 +15,12 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRWriter.h"
-#include "qrcode/QRErrorCorrectionLevel.h"
-#include "qrcode/QREncoder.h"
-#include "qrcode/QREncodeResult.h"
-#include "BitMatrix.h"
-#include "CharacterSet.h"
+#include "../qrcode/QRWriter.h"
+#include "../qrcode/QRErrorCorrectionLevel.h"
+#include "../qrcode/QREncoder.h"
+#include "../qrcode/QREncodeResult.h"
+#include "../BitMatrix.h"
+#include "../CharacterSet.h"
 
 namespace ZXing {
 namespace QRCode {

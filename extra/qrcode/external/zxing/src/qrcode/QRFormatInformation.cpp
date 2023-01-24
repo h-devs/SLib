@@ -15,8 +15,8 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRFormatInformation.h"
-#include "BitHacks.h"
+#include "../qrcode/QRFormatInformation.h"
+#include "../BitHacks.h"
 
 #include <array>
 #include <limits>

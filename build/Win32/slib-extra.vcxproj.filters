@@ -152,5 +152,8 @@
     <ClCompile Include="..\..\extra\social\wechat.cpp">
       <Filter>src\social</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\extra\qrcode\external\zxing\zxing_unity.cpp">
+      <Filter>src\qrcode</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -15,22 +15,22 @@
 * limitations under the License.
 */
 
-#include "pdf417/PDFScanningDecoder.h"
-#include "pdf417/PDFBoundingBox.h"
-#include "pdf417/PDFDetectionResultColumn.h"
-#include "pdf417/PDFCodewordDecoder.h"
-#include "pdf417/PDFBarcodeMetadata.h"
-#include "pdf417/PDFDetectionResult.h"
-#include "pdf417/PDFBarcodeValue.h"
-#include "pdf417/PDFDecodedBitStreamParser.h"
-#include "pdf417/PDFModulusGF.h"
-#include "ResultPoint.h"
-#include "ZXNullable.h"
-#include "BitMatrix.h"
-#include "DecoderResult.h"
-#include "DecodeStatus.h"
-#include "DecoderResult.h"
-#include "ZXTestSupport.h"
+#include "../pdf417/PDFScanningDecoder.h"
+#include "../pdf417/PDFBoundingBox.h"
+#include "../pdf417/PDFDetectionResultColumn.h"
+#include "../pdf417/PDFCodewordDecoder.h"
+#include "../pdf417/PDFBarcodeMetadata.h"
+#include "../pdf417/PDFDetectionResult.h"
+#include "../pdf417/PDFBarcodeValue.h"
+#include "../pdf417/PDFDecodedBitStreamParser.h"
+#include "../pdf417/PDFModulusGF.h"
+#include "../ResultPoint.h"
+#include "../ZXNullable.h"
+#include "../BitMatrix.h"
+#include "../DecoderResult.h"
+#include "../DecodeStatus.h"
+#include "../DecoderResult.h"
+#include "../ZXTestSupport.h"
 
 #include <cstdlib>
 #include <numeric>

@@ -15,19 +15,19 @@
 * limitations under the License.
 */
 
-#include "datamatrix/DMDecoder.h"
-#include "datamatrix/DMBitMatrixParser.h"
-#include "datamatrix/DMDataBlock.h"
-#include "DecoderResult.h"
-#include "BitMatrix.h"
-#include "ReedSolomonDecoder.h"
-#include "GenericGF.h"
-#include "BitSource.h"
-#include "DecodeStatus.h"
-#include "TextDecoder.h"
-#include "ZXContainerAlgorithms.h"
-#include "ZXStrConvWorkaround.h"
-#include "ZXTestSupport.h"
+#include "../datamatrix/DMDecoder.h"
+#include "../datamatrix/DMBitMatrixParser.h"
+#include "../datamatrix/DMDataBlock.h"
+#include "../DecoderResult.h"
+#include "../BitMatrix.h"
+#include "../ReedSolomonDecoder.h"
+#include "../GenericGF.h"
+#include "../BitSource.h"
+#include "../DecodeStatus.h"
+#include "../TextDecoder.h"
+#include "../ZXContainerAlgorithms.h"
+#include "../ZXStrConvWorkaround.h"
+#include "../ZXTestSupport.h"
 
 #include <array>
 

@@ -16,8 +16,8 @@
 * limitations under the License.
 */
 
-#include "BitArray.h"
-#include "DecodeStatus.h"
+#include "../BitArray.h"
+#include "../DecodeStatus.h"
 
 #include <cstddef>
 #include <memory>

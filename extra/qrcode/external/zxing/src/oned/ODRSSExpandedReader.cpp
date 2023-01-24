@@ -15,14 +15,14 @@
 * limitations under the License.
 */
 
-#include "oned/ODRSSExpandedReader.h"
-#include "oned/rss/ODRSSReaderHelper.h"
-#include "oned/rss/ODRSSExpandedBinaryDecoder.h"
-#include "oned/rss/ODRSSExpandedRow.h"
-#include "Result.h"
-#include "BitArray.h"
-#include "TextDecoder.h"
-#include "ZXConfig.h"
+#include "../oned/ODRSSExpandedReader.h"
+#include "../oned/rss/ODRSSReaderHelper.h"
+#include "../oned/rss/ODRSSExpandedBinaryDecoder.h"
+#include "../oned/rss/ODRSSExpandedRow.h"
+#include "../Result.h"
+#include "../BitArray.h"
+#include "../TextDecoder.h"
+#include "../ZXConfig.h"
 
 #include <cmath>
 #include <list>
@@ -649,7 +649,7 @@ DecodeRow2Pairs(int rowNumber, const BitArray& row, bool startFromEven, std::lis
 }
 
 /**
-* @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+* @author Pablo Orduï¿½a, University of Deusto (pablo.orduna@deusto.es)
 * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
 */
 static BitArray

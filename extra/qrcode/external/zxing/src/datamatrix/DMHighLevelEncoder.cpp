@@ -15,12 +15,12 @@
 * limitations under the License.
 */
 
-#include "datamatrix/DMHighLevelEncoder.h"
-#include "datamatrix/DMEncoderContext.h"
-#include "TextEncoder.h"
-#include "CharacterSet.h"
-#include "ByteArray.h"
-#include "ZXStrConvWorkaround.h"
+#include "../datamatrix/DMHighLevelEncoder.h"
+#include "../datamatrix/DMEncoderContext.h"
+#include "../TextEncoder.h"
+#include "../CharacterSet.h"
+#include "../ByteArray.h"
+#include "../ZXStrConvWorkaround.h"
 
 #include <string>
 #include <algorithm>

@@ -15,17 +15,17 @@
 * limitations under the License.
 */
 
-#include "pdf417/PDFDecodedBitStreamParser.h"
-#include "pdf417/PDFDecoderResultExtra.h"
-#include "CharacterSetECI.h"
-#include "CharacterSet.h"
-#include "TextDecoder.h"
-#include "ZXBigInteger.h"
-#include "ByteArray.h"
-#include "DecodeStatus.h"
-#include "DecoderResult.h"
-#include "ZXStrConvWorkaround.h"
-#include "ZXTestSupport.h"
+#include "../pdf417/PDFDecodedBitStreamParser.h"
+#include "../pdf417/PDFDecoderResultExtra.h"
+#include "../CharacterSetECI.h"
+#include "../CharacterSet.h"
+#include "../TextDecoder.h"
+#include "../ZXBigInteger.h"
+#include "../ByteArray.h"
+#include "../DecodeStatus.h"
+#include "../DecoderResult.h"
+#include "../ZXStrConvWorkaround.h"
+#include "../ZXTestSupport.h"
 
 #include <array>
 #include <cassert>

@@ -15,19 +15,19 @@
 * limitations under the License.
 */
 
-#include "oned/ODReader.h"
-#include "oned/ODMultiUPCEANReader.h"
-#include "oned/ODCode39Reader.h"
-#include "oned/ODCode93Reader.h"
-#include "oned/ODCode128Reader.h"
-#include "oned/ODITFReader.h"
-#include "oned/ODCodabarReader.h"
-#include "oned/ODRSS14Reader.h"
-#include "oned/ODRSSExpandedReader.h"
-#include "Result.h"
-#include "BitArray.h"
-#include "BinaryBitmap.h"
-#include "DecodeHints.h"
+#include "../oned/ODReader.h"
+#include "../oned/ODMultiUPCEANReader.h"
+#include "../oned/ODCode39Reader.h"
+#include "../oned/ODCode93Reader.h"
+#include "../oned/ODCode128Reader.h"
+#include "../oned/ODITFReader.h"
+#include "../oned/ODCodabarReader.h"
+#include "../oned/ODRSS14Reader.h"
+#include "../oned/ODRSSExpandedReader.h"
+#include "../Result.h"
+#include "../BitArray.h"
+#include "../BinaryBitmap.h"
+#include "../DecodeHints.h"
 
 #include <unordered_set>
 #include <algorithm>

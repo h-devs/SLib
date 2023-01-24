@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRDataMask.h"
-#include "BitMatrix.h"
-#include "ZXContainerAlgorithms.h"
+#include "../qrcode/QRDataMask.h"
+#include "../BitMatrix.h"
+#include "../ZXContainerAlgorithms.h"
 
 #include <stdexcept>
 

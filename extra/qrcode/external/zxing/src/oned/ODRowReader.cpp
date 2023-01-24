@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-#include "oned/ODRowReader.h"
-#include "Result.h"
-#include "BitArray.h"
+#include "../oned/ODRowReader.h"
+#include "../Result.h"
+#include "../BitArray.h"
 
 #include <cmath>
 #include <algorithm>

@@ -15,11 +15,11 @@
 * limitations under the License.
 */
 
-#include "oned/rss/ODRSSGenericAppIdDecoder.h"
-#include "oned/rss/ODRSSFieldParser.h"
-#include "BitArray.h"
-#include "DecodeStatus.h"
-#include "ZXStrConvWorkaround.h"
+#include "../../oned/rss/ODRSSGenericAppIdDecoder.h"
+#include "../../oned/rss/ODRSSFieldParser.h"
+#include "../../BitArray.h"
+#include "../../DecodeStatus.h"
+#include "../../ZXStrConvWorkaround.h"
 
 #include <algorithm>
 #include <stdexcept>

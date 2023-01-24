@@ -15,12 +15,12 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRFinderPatternFinder.h"
-#include "qrcode/QRFinderPatternInfo.h"
-#include "BitMatrix.h"
-#include "DecodeHints.h"
-#include "DecodeStatus.h"
-#include "ZXContainerAlgorithms.h"
+#include "../qrcode/QRFinderPatternFinder.h"
+#include "../qrcode/QRFinderPatternInfo.h"
+#include "../BitMatrix.h"
+#include "../DecodeHints.h"
+#include "../DecodeStatus.h"
+#include "../ZXContainerAlgorithms.h"
 
 #include <cassert>
 #include <cmath>

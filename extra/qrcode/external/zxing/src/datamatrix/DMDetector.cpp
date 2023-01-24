@@ -20,15 +20,15 @@
 //#define PRINT_DEBUG
 //#endif
 
-#include "datamatrix/DMDetector.h"
-#include "BitMatrix.h"
-#include "DecodeStatus.h"
-#include "DetectorResult.h"
-#include "GridSampler.h"
-#include "WhiteRectDetector.h"
+#include "../datamatrix/DMDetector.h"
+#include "../BitMatrix.h"
+#include "../DecodeStatus.h"
+#include "../DetectorResult.h"
+#include "../GridSampler.h"
+#include "../WhiteRectDetector.h"
 
 #ifdef PRINT_DEBUG
-#include "ByteMatrix.h"
+#include "../ByteMatrix.h"
 #endif
 
 #include <algorithm>

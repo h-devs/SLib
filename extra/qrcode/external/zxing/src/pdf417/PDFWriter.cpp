@@ -15,10 +15,10 @@
 * limitations under the License.
 */
 
-#include "pdf417/PDFWriter.h"
-#include "pdf417/PDFEncoder.h"
-#include "BitMatrix.h"
-#include "CharacterSetECI.h"
+#include "../pdf417/PDFWriter.h"
+#include "../pdf417/PDFEncoder.h"
+#include "../BitMatrix.h"
+#include "../CharacterSetECI.h"
 
 namespace ZXing {
 namespace Pdf417 {

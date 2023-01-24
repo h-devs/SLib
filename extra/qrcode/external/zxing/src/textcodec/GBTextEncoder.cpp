@@ -31,8 +31,8 @@
 **
 ****************************************************************************/
 
-#include "textcodec/GBTextEncoder.h"
-#include "TextUtfEncoding.h"
+#include "../textcodec/GBTextEncoder.h"
+#include "../TextUtfEncoding.h"
 
 struct indexTbl_t
 {

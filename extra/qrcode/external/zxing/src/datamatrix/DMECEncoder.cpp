@@ -15,10 +15,10 @@
 * limitations under the License.
 */
 
-#include "datamatrix/DMECEncoder.h"
-#include "datamatrix/DMSymbolInfo.h"
-#include "ByteArray.h"
-#include "ZXStrConvWorkaround.h"
+#include "../datamatrix/DMECEncoder.h"
+#include "../datamatrix/DMSymbolInfo.h"
+#include "../ByteArray.h"
+#include "../ZXStrConvWorkaround.h"
 
 #include <stdexcept>
 #include <string>

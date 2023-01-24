@@ -25,11 +25,11 @@
 *   http://www.piramidepse.com/
 */
 
-#include "oned/rss/ODRSSExpandedBinaryDecoder.h"
-#include "oned/rss/ODRSSGenericAppIdDecoder.h"
-#include "BitArray.h"
-#include "DecodeStatus.h"
-#include "ZXStrConvWorkaround.h"
+#include "../../oned/rss/ODRSSExpandedBinaryDecoder.h"
+#include "../../oned/rss/ODRSSGenericAppIdDecoder.h"
+#include "../../BitArray.h"
+#include "../../DecodeStatus.h"
+#include "../../ZXStrConvWorkaround.h"
 
 #include <functional>
 

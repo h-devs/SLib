@@ -15,14 +15,14 @@
 * limitations under the License.
 */
 
-#include "maxicode/MCReader.h"
-#include "maxicode/MCDecoder.h"
-#include "maxicode/MCBitMatrixParser.h"
-#include "DecodeHints.h"
-#include "Result.h"
-#include "DecoderResult.h"
-#include "BinaryBitmap.h"
-#include "BitMatrix.h"
+#include "../maxicode/MCReader.h"
+#include "../maxicode/MCDecoder.h"
+#include "../maxicode/MCBitMatrixParser.h"
+#include "../DecodeHints.h"
+#include "../Result.h"
+#include "../DecoderResult.h"
+#include "../BinaryBitmap.h"
+#include "../BitMatrix.h"
 
 namespace ZXing {
 namespace MaxiCode {

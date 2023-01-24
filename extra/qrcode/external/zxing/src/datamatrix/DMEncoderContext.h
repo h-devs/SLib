@@ -18,10 +18,10 @@
 #include <string>
 #include <utility>
 #include <stdexcept>
-#include "ByteArray.h"
-#include "datamatrix/DMSymbolShape.h"
-#include "datamatrix/DMSymbolInfo.h"
-#include "ZXStrConvWorkaround.h"
+#include "../ByteArray.h"
+#include "../datamatrix/DMSymbolShape.h"
+#include "../datamatrix/DMSymbolInfo.h"
+#include "../ZXStrConvWorkaround.h"
 
 namespace ZXing {
 namespace DataMatrix {

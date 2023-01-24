@@ -16,12 +16,12 @@
 * limitations under the License.
 */
 
-#include "pdf417/PDFHighLevelEncoder.h"
-#include "pdf417/PDFCompaction.h"
-#include "CharacterSet.h"
-#include "CharacterSetECI.h"
-#include "TextEncoder.h"
-#include "ZXBigInteger.h"
+#include "../pdf417/PDFHighLevelEncoder.h"
+#include "../pdf417/PDFCompaction.h"
+#include "../CharacterSet.h"
+#include "../CharacterSetECI.h"
+#include "../TextEncoder.h"
+#include "../ZXBigInteger.h"
 
 #include <cstdint>
 #include <array>

@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-#include "datamatrix/DMECB.h"
+#include "../datamatrix/DMECB.h"
 
 namespace ZXing {
 namespace DataMatrix {

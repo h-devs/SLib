@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-#include "oned/ODUPCEWriter.h"
-#include "oned/ODUPCEANCommon.h"
-#include "oned/ODWriterHelper.h"
+#include "../oned/ODUPCEWriter.h"
+#include "../oned/ODUPCEANCommon.h"
+#include "../oned/ODWriterHelper.h"
 
 #include <vector>
 

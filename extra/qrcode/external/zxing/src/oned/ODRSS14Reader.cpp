@@ -15,13 +15,13 @@
 * limitations under the License.
 */
 
-#include "oned/ODRSS14Reader.h"
-#include "oned/rss/ODRSSReaderHelper.h"
-#include "oned/rss/ODRSSPair.h"
-#include "BitArray.h"
-#include "Result.h"
-#include "DecodeHints.h"
-#include "ZXConfig.h"
+#include "../oned/ODRSS14Reader.h"
+#include "../oned/rss/ODRSSReaderHelper.h"
+#include "../oned/rss/ODRSSPair.h"
+#include "../BitArray.h"
+#include "../Result.h"
+#include "../DecodeHints.h"
+#include "../ZXConfig.h"
 
 #include <list>
 #include <array>

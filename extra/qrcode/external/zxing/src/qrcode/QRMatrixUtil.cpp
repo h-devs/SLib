@@ -15,13 +15,13 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRMatrixUtil.h"
-#include "qrcode/QRErrorCorrectionLevel.h"
-#include "qrcode/QRVersion.h"
-#include "BitArray.h"
-#include "ByteMatrix.h"
-#include "BitHacks.h"
-#include "ZXStrConvWorkaround.h"
+#include "../qrcode/QRMatrixUtil.h"
+#include "../qrcode/QRErrorCorrectionLevel.h"
+#include "../qrcode/QRVersion.h"
+#include "../BitArray.h"
+#include "../ByteMatrix.h"
+#include "../BitHacks.h"
+#include "../ZXStrConvWorkaround.h"
 
 #include <array>
 #include <string>

@@ -1,5 +1,7 @@
 #include "app.h"
 
+#include <zxing.h>
+
 QRCodeExampleApp::QRCodeExampleApp()
 {
 }
@@ -32,6 +34,7 @@ void QRCodeExampleApp::onStart()
 	linear2->addChild(m_imgEncoded);
 
 	m_editEncoding = new TextArea;
+	m_editEncoding->setChangeEventEnabled();
 	m_editEncoding->setHintText("Input any text here to encode into QR Code");
 	m_editEncoding->setOnChange([this](EditView*, String& text) {
 		ZXingGenerateParam param;
@@ -52,8 +55,8 @@ void QRCodeExampleApp::onStart()
 	linear3->setHeightFilling();
 	linear1->addChild(linear3);
 
-	m_QRCodeScanner = new QRCodeScanner;
-	m_QRCodeScanner->setOnDetect([this](QRCodeScanner* scanner, String code) {
+	m_QRCodeScanner = new ZXingScanner;
+	m_QRCodeScanner->setOnDetect([this](ZXingScanner* scanner, String code) {
 		m_editDecoded->setText(String::format("[%s] %s", Time::now(), code));
 	});
 	m_QRCodeScanner->setWidthFilling();

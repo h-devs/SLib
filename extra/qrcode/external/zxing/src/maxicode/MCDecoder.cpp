@@ -15,15 +15,15 @@
 * limitations under the License.
 */
 
-#include "maxicode/MCDecoder.h"
-#include "maxicode/MCBitMatrixParser.h"
-#include "ByteArray.h"
-#include "DecoderResult.h"
-#include "ReedSolomonDecoder.h"
-#include "GenericGF.h"
-#include "DecodeStatus.h"
-#include "TextDecoder.h"
-#include "ZXStrConvWorkaround.h"
+#include "../maxicode/MCDecoder.h"
+#include "../maxicode/MCBitMatrixParser.h"
+#include "../ByteArray.h"
+#include "../DecoderResult.h"
+#include "../ReedSolomonDecoder.h"
+#include "../GenericGF.h"
+#include "../DecodeStatus.h"
+#include "../TextDecoder.h"
+#include "../ZXStrConvWorkaround.h"
 
 #include <array>
 #include <sstream>

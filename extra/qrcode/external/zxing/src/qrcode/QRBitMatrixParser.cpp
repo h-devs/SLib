@@ -15,12 +15,12 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRBitMatrixParser.h"
-#include "qrcode/QRVersion.h"
-#include "qrcode/QRFormatInformation.h"
-#include "BitMatrix.h"
-#include "ByteArray.h"
-#include "DecodeStatus.h"
+#include "../qrcode/QRBitMatrixParser.h"
+#include "../qrcode/QRVersion.h"
+#include "../qrcode/QRFormatInformation.h"
+#include "../BitMatrix.h"
+#include "../ByteArray.h"
+#include "../DecodeStatus.h"
 
 namespace ZXing {
 namespace QRCode {

@@ -24,7 +24,6 @@
 #define CHECKHEADER_SLIB_EXTRA_QRCODE_ZXING
 
 #include <slib/graphics/image.h>
-#include "external/zxing_unity.h"
 
 namespace slib
 {

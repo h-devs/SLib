@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-#include "pdf417/PDFBoundingBox.h"
+#include "../pdf417/PDFBoundingBox.h"
 
 #include <algorithm>
 

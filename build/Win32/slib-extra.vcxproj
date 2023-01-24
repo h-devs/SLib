@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\extra\chat\chat_sqlite.cpp" />
     <ClCompile Include="..\..\extra\chat\chat_view.cpp" />
     <ClCompile Include="..\..\extra\keygen\keygen.cpp" />
+    <ClCompile Include="..\..\extra\qrcode\external\zxing\zxing_unity.cpp" />
     <ClCompile Include="..\..\extra\qrcode\zxing.cpp" />
     <ClCompile Include="..\..\extra\qrcode\zxing_scanner.cpp" />
     <ClCompile Include="..\..\extra\social\alipay.cpp" />

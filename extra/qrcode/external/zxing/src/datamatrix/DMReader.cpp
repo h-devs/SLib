@@ -15,15 +15,15 @@
 * limitations under the License.
 */
 
-#include "datamatrix/DMReader.h"
-#include "datamatrix/DMDecoder.h"
-#include "datamatrix/DMDetector.h"
-#include "Result.h"
-#include "BitMatrix.h"
-#include "BinaryBitmap.h"
-#include "DecodeHints.h"
-#include "DecoderResult.h"
-#include "DetectorResult.h"
+#include "../datamatrix/DMReader.h"
+#include "../datamatrix/DMDecoder.h"
+#include "../datamatrix/DMDetector.h"
+#include "../Result.h"
+#include "../BitMatrix.h"
+#include "../BinaryBitmap.h"
+#include "../DecodeHints.h"
+#include "../DecoderResult.h"
+#include "../DetectorResult.h"
 
 namespace ZXing {
 namespace DataMatrix {

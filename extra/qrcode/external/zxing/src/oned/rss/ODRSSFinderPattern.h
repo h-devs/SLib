@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-#include "ResultPoint.h"
+#include "../ResultPoint.h"
 
 #include <array>
 

@@ -15,8 +15,8 @@
 * limitations under the License.
 */
 
-#include "oned/ODWriterHelper.h"
-#include "BitMatrix.h"
+#include "../oned/ODWriterHelper.h"
+#include "../BitMatrix.h"
 #include <algorithm>
 
 namespace ZXing {

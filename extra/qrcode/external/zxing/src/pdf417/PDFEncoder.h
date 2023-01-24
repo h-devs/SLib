@@ -15,8 +15,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include "CharacterSet.h"
-#include "pdf417/PDFCompaction.h"
+#include "../CharacterSet.h"
+#include "../pdf417/PDFCompaction.h"
 #include <string>
 #include <vector>
 

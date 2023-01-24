@@ -15,12 +15,12 @@
 * limitations under the License.
 */
 
-#include "oned/ODCode39Reader.h"
-#include "Result.h"
-#include "BitArray.h"
-#include "DecodeHints.h"
-#include "TextDecoder.h"
-#include "ZXContainerAlgorithms.h"
+#include "../oned/ODCode39Reader.h"
+#include "../Result.h"
+#include "../BitArray.h"
+#include "../DecodeHints.h"
+#include "../TextDecoder.h"
+#include "../ZXContainerAlgorithms.h"
 
 #include <algorithm>
 #include <array>

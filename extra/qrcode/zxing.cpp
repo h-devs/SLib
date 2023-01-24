@@ -22,13 +22,13 @@
 
 #include "zxing.h"
 
-#include "external/zxing/MultiFormatWriter.h"
-#include "external/zxing/MultiFormatReader.h"
-#include "external/zxing/Result.h"
-#include "external/zxing/BitMatrix.h"
-#include "external/zxing/DecodeHints.h"
-#include "external/zxing/HybridBinarizer.h"
-#include "external/zxing/GenericLuminanceSource.h"
+#include "external/zxing/src/MultiFormatWriter.h"
+#include "external/zxing/src/MultiFormatReader.h"
+#include "external/zxing/src/Result.h"
+#include "external/zxing/src/BitMatrix.h"
+#include "external/zxing/src/DecodeHints.h"
+#include "external/zxing/src/HybridBinarizer.h"
+#include "external/zxing/src/GenericLuminanceSource.h"
 
 using namespace ZXing;
 

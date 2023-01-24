@@ -15,15 +15,15 @@
 * limitations under the License.
 */
 
-#include "aztec/AZReader.h"
-#include "aztec/AZDetector.h"
-#include "aztec/AZDetectorResult.h"
-#include "aztec/AZDecoder.h"
-#include "Result.h"
-#include "BitMatrix.h"
-#include "BinaryBitmap.h"
-#include "DecoderResult.h"
-#include "DecodeHints.h"
+#include "../aztec/AZReader.h"
+#include "../aztec/AZDetector.h"
+#include "../aztec/AZDetectorResult.h"
+#include "../aztec/AZDecoder.h"
+#include "../Result.h"
+#include "../BitMatrix.h"
+#include "../BinaryBitmap.h"
+#include "../DecoderResult.h"
+#include "../DecodeHints.h"
 
 namespace ZXing {
 namespace Aztec {

@@ -15,14 +15,14 @@
 * limitations under the License.
 */
 
-#include "oned/ODCode128Reader.h"
-#include "oned/ODCode128Patterns.h"
-#include "Result.h"
-#include "BitArray.h"
-#include "DecodeHints.h"
-#include "TextDecoder.h"
-#include "ZXContainerAlgorithms.h"
-#include "ZXStrConvWorkaround.h"
+#include "../oned/ODCode128Reader.h"
+#include "../oned/ODCode128Patterns.h"
+#include "../Result.h"
+#include "../BitArray.h"
+#include "../DecodeHints.h"
+#include "../TextDecoder.h"
+#include "../ZXContainerAlgorithms.h"
+#include "../ZXStrConvWorkaround.h"
 
 #include <algorithm>
 #include <string>

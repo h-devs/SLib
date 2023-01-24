@@ -76,7 +76,7 @@ namespace slib
 
 	using namespace priv::zxing_scanner;
 
-	ZxingScanner::ZxingScanner()
+	ZXingScanner::ZXingScanner()
 	{
 		m_flagUpdateCameraFrame = sl_false;
 		m_programScanBar = new Program_ScanBar;
@@ -84,30 +84,30 @@ namespace slib
 		setScaleMode(ScaleMode::Cover, UIUpdateMode::Init);
 	}
 
-	ZxingScanner::~ZxingScanner()
+	ZXingScanner::~ZXingScanner()
 	{
 	}
 
-	void ZxingScanner::start(const CameraParam& param)
+	void ZXingScanner::start(const CameraParam& param)
 	{
 		CameraView::start(param);
 		m_timerScanner = Timer::start(SLIB_FUNCTION_WEAKREF(this, onRunScanner), 500);
 	}
 
-	void ZxingScanner::stop()
+	void ZXingScanner::stop()
 	{
 		m_timerScanner.setNull();
 		CameraView::stop();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ZxingScanner, Detect, const String& code)
+	SLIB_DEFINE_EVENT_HANDLER(ZXingScanner, Detect, const String& code)
 
-	void ZxingScanner::dispatchDetect(const String& code)
+	void ZXingScanner::dispatchDetect(const String& code)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(Detect, code)
 	}
 
-	void ZxingScanner::onDraw(Canvas* _canvas)
+	void ZXingScanner::onDraw(Canvas* _canvas)
 	{
 		CameraView::onDraw(_canvas);
 		RenderCanvas* canvas = CastInstance<RenderCanvas>(_canvas);
@@ -184,12 +184,12 @@ namespace slib
 		canvas->fillRectangle(width_half + box_half - corner_depth, height_half + box_half - corner_length, corner_depth, corner_length, colorFillCorner);
 	}
 
-	void ZxingScanner::onCapture(VideoCaptureFrame& frame)
+	void ZXingScanner::onCapture(VideoCaptureFrame& frame)
 	{
 		m_flagUpdateCameraFrame = sl_true;
 	}
 
-	void ZxingScanner::onRunScanner(Timer* timer)
+	void ZXingScanner::onRunScanner(Timer* timer)
 	{
 		if (!m_flagUpdateCameraFrame) {
 			return;

@@ -15,10 +15,10 @@
 * limitations under the License.
 */
 
-#include "oned/ODCode93Writer.h"
-#include "oned/ODWriterHelper.h"
-#include "ZXContainerAlgorithms.h"
-#include "ZXTestSupport.h"
+#include "../oned/ODCode93Writer.h"
+#include "../oned/ODWriterHelper.h"
+#include "../ZXContainerAlgorithms.h"
+#include "../ZXTestSupport.h"
 
 #include <array>
 

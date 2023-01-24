@@ -16,8 +16,8 @@
 * limitations under the License.
 */
 
-#include "ZXNullable.h"
-#include "ResultPoint.h"
+#include "../ZXNullable.h"
+#include "../ResultPoint.h"
 
 namespace ZXing {
 namespace Pdf417 {

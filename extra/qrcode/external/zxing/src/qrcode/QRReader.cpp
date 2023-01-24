@@ -15,19 +15,19 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRReader.h"
-#include "qrcode/QRDecoder.h"
-#include "qrcode/QRDetector.h"
-#include "qrcode/QRDecoderMetadata.h"
-#include "Result.h"
-#include "DecoderResult.h"
-#include "DetectorResult.h"
-#include "ResultPoint.h"
-#include "DecodeHints.h"
-#include "BinaryBitmap.h"
-#include "BitMatrix.h"
-#include "ZXNumeric.h"
-#include "ZXConfig.h"
+#include "../qrcode/QRReader.h"
+#include "../qrcode/QRDecoder.h"
+#include "../qrcode/QRDetector.h"
+#include "../qrcode/QRDecoderMetadata.h"
+#include "../Result.h"
+#include "../DecoderResult.h"
+#include "../DetectorResult.h"
+#include "../ResultPoint.h"
+#include "../DecodeHints.h"
+#include "../BinaryBitmap.h"
+#include "../BitMatrix.h"
+#include "../ZXNumeric.h"
+#include "../ZXConfig.h"
 
 namespace ZXing {
 namespace QRCode {

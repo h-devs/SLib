@@ -15,10 +15,10 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRVersion.h"
-#include "qrcode/QRECB.h"
-#include "BitHacks.h"
-#include "BitMatrix.h"
+#include "../qrcode/QRVersion.h"
+#include "../qrcode/QRECB.h"
+#include "../BitHacks.h"
+#include "../BitMatrix.h"
 
 #include <limits>
 

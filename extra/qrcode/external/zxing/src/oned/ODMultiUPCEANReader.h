@@ -16,8 +16,8 @@
 * limitations under the License.
 */
 
-#include "oned/ODRowReader.h"
-#include "BarcodeFormat.h"
+#include "../oned/ODRowReader.h"
+#include "../BarcodeFormat.h"
 
 #include <vector>
 #include <memory>

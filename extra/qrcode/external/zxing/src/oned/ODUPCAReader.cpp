@@ -15,8 +15,8 @@
 * limitations under the License.
 */
 
-#include "oned/ODUPCAReader.h"
-#include "Result.h"
+#include "../oned/ODUPCAReader.h"
+#include "../Result.h"
 
 namespace ZXing {
 namespace OneD {

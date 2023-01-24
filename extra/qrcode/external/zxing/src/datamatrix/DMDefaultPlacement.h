@@ -16,9 +16,9 @@
 * limitations under the License.
 */
 
-#include "BitMatrix.h"
-#include "ByteMatrix.h"
-#include "ByteArray.h"
+#include "../BitMatrix.h"
+#include "../ByteMatrix.h"
+#include "../ByteArray.h"
 
 #include <array>
 

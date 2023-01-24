@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-#include "maxicode/MCBitMatrixParser.h"
-#include "ByteArray.h"
-#include "BitMatrix.h"
+#include "../maxicode/MCBitMatrixParser.h"
+#include "../ByteArray.h"
+#include "../BitMatrix.h"
 
 #include <array>
 

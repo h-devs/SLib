@@ -15,15 +15,15 @@
 * limitations under the License.
 */
 
-#include "aztec/AZDecoder.h"
-#include "aztec/AZDetectorResult.h"
-#include "DecoderResult.h"
-#include "ReedSolomonDecoder.h"
-#include "GenericGF.h"
-#include "DecodeStatus.h"
-#include "BitMatrix.h"
-#include "TextDecoder.h"
-#include "ZXTestSupport.h"
+#include "../aztec/AZDecoder.h"
+#include "../aztec/AZDetectorResult.h"
+#include "../DecoderResult.h"
+#include "../ReedSolomonDecoder.h"
+#include "../GenericGF.h"
+#include "../DecodeStatus.h"
+#include "../BitMatrix.h"
+#include "../TextDecoder.h"
+#include "../ZXTestSupport.h"
 
 #include <numeric>
 #include <cstring>

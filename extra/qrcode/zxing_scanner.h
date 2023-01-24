@@ -28,12 +28,12 @@
 namespace slib
 {
 
-	class SLIB_EXPORT ZxingScanner : public CameraView
+	class SLIB_EXPORT ZXingScanner : public CameraView
 	{
 	public:
-		ZxingScanner();
+		ZXingScanner();
 
-		~ZxingScanner();
+		~ZXingScanner();
 
 	public:
 		using CameraView::start;
@@ -43,7 +43,7 @@ namespace slib
 		void stop() override;
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ZxingScanner, Detect, const String& code)
+		SLIB_DECLARE_EVENT_HANDLER(ZXingScanner, Detect, const String& code)
 
 	protected:
 		void onDraw(Canvas* canvas) override;

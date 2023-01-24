@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-#include "pdf417/PDFModulusGF.h"
+#include "../pdf417/PDFModulusGF.h"
 
 namespace ZXing {
 namespace Pdf417 {

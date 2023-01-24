@@ -16,15 +16,15 @@
 * limitations under the License.
 */
 
-#include "oned/rss/ODRSSDataCharacter.h"
-#include "oned/rss/ODRSSFinderPattern.h"
+#include "../oned/rss/ODRSSDataCharacter.h"
+#include "../oned/rss/ODRSSFinderPattern.h"
 
 namespace ZXing {
 namespace OneD {
 namespace RSS {
 
 /**
-* @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
+* @author Pablo Orduï¿½a, University of Deusto (pablo.orduna@deusto.es)
 */
 class ExpandedPair
 {

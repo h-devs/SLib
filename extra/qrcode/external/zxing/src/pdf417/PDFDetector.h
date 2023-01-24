@@ -16,8 +16,8 @@
 * limitations under the License.
 */
 
-#include "ResultPoint.h"
-#include "ZXNullable.h"
+#include "../ResultPoint.h"
+#include "../ZXNullable.h"
 
 #include <list>
 #include <array>

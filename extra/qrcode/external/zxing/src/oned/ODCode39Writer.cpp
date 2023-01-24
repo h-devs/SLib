@@ -15,10 +15,10 @@
 * limitations under the License.
 */
 
-#include "oned/ODCode39Writer.h"
-#include "oned/ODWriterHelper.h"
-#include "ZXContainerAlgorithms.h"
-#include "ZXStrConvWorkaround.h"
+#include "../oned/ODCode39Writer.h"
+#include "../oned/ODWriterHelper.h"
+#include "../ZXContainerAlgorithms.h"
+#include "../ZXStrConvWorkaround.h"
 
 #include <array>
 

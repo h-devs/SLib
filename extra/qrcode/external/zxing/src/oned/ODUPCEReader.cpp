@@ -15,12 +15,12 @@
 * limitations under the License.
 */
 
-#include "oned/ODUPCEReader.h"
-#include "oned/ODUPCEANCommon.h"
-#include "BarcodeFormat.h"
-#include "BitArray.h"
-#include "DecodeStatus.h"
-#include "ZXContainerAlgorithms.h"
+#include "../oned/ODUPCEReader.h"
+#include "../oned/ODUPCEANCommon.h"
+#include "../BarcodeFormat.h"
+#include "../BitArray.h"
+#include "../DecodeStatus.h"
+#include "../ZXContainerAlgorithms.h"
 
 #include <array>
 

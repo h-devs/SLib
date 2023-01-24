@@ -16,13 +16,13 @@
 * limitations under the License.
 */
 
-#include "oned/ODRowReader.h"
+#include "../oned/ODRowReader.h"
 
 namespace ZXing {
 namespace OneD {
 
 /**
-* @author Pablo Orduña, University of Deusto(pablo.orduna@deusto.es)
+* @author Pablo Orduï¿½a, University of Deusto(pablo.orduna@deusto.es)
 * @author Eduardo Castillejo, University of Deusto(eduardo.castillejo@deusto.es)
 */
 class RSSExpandedReader : public RowReader

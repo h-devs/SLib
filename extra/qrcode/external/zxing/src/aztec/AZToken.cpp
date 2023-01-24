@@ -15,8 +15,8 @@
 * limitations under the License.
 */
 
-#include "aztec/AZToken.h"
-#include "BitArray.h"
+#include "../aztec/AZToken.h"
+#include "../BitArray.h"
 #include <algorithm>
 
 namespace ZXing {

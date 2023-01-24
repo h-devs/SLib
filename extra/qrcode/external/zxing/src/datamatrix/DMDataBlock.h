@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-#include "ByteArray.h"
+#include "../ByteArray.h"
 
 namespace ZXing {
 namespace DataMatrix {

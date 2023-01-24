@@ -14,31 +14,39 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#if defined(__ANDROID__) && defined(__GNUC__)
+
+#ifdef ANDROID
 
 #include <sstream>
 #include <cstdlib>
 
-namespace std
-{
-	template <typename T>
-	inline std::string to_string(T x) {
-		std::stringstream buf;
-		buf << x;
-		return buf.str();
-	}
-	
-	template <typename T>
-	inline std::wstring to_wstring(T x) {
-		std::wstringstream buf;
-		buf << x;
-		return buf.str();
-	}
-	
-	inline int stoi(const std::string& s) {
-		return atoi(s.c_str());
-	}
+template <typename T>
+inline std::string std_to_string(T x) {
+	std::stringstream buf;
+	buf << x;
+	return buf.str();
 }
 
+template <typename T>
+inline std::wstring std_to_wstring(T x) {
+	std::wstringstream buf;
+	buf << x;
+	return buf.str();
+}
+
+inline int std_stoi(const std::string& s) {
+	return atoi(s.c_str());
+}
+
+inline int std_stoll(const std::string& s) {
+	return atoll(s.c_str());
+}
+
+#else
+
+#define std_to_string std::to_string
+#define std_to_wstring std::to_wstring
+#define std_stoi std::stoi
+#define std_stoll std::stoll
 
 #endif

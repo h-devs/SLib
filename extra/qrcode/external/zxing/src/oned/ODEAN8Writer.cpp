@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-#include "oned/ODEAN8Writer.h"
-#include "oned/ODUPCEANCommon.h"
-#include "oned/ODWriterHelper.h"
+#include "../oned/ODEAN8Writer.h"
+#include "../oned/ODUPCEANCommon.h"
+#include "../oned/ODWriterHelper.h"
 
 #include <vector>
 

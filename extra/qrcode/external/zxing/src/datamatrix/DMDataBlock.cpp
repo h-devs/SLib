@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-#include "datamatrix/DMDataBlock.h"
-#include "datamatrix/DMVersion.h"
-#include "DecodeStatus.h"
+#include "../datamatrix/DMDataBlock.h"
+#include "../datamatrix/DMVersion.h"
+#include "../DecodeStatus.h"
 
 namespace ZXing {
 namespace DataMatrix {

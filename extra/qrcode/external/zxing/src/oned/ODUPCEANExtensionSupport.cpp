@@ -15,14 +15,14 @@
 * limitations under the License.
 */
 
-#include "oned/ODUPCEANExtensionSupport.h"
-#include "oned/ODUPCEANReader.h"
-#include "oned/ODUPCEANCommon.h"
-#include "Result.h"
-#include "BitArray.h"
-#include "TextDecoder.h"
-#include "ZXContainerAlgorithms.h"
-#include "ZXStrConvWorkaround.h"
+#include "../oned/ODUPCEANExtensionSupport.h"
+#include "../oned/ODUPCEANReader.h"
+#include "../oned/ODUPCEANCommon.h"
+#include "../Result.h"
+#include "../BitArray.h"
+#include "../TextDecoder.h"
+#include "../ZXContainerAlgorithms.h"
+#include "../ZXStrConvWorkaround.h"
 
 #include <array>
 #include <sstream>

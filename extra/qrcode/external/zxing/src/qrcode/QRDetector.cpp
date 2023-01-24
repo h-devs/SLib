@@ -15,19 +15,19 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRDetector.h"
-#include "qrcode/QRFinderPatternFinder.h"
-#include "qrcode/QRFinderPatternInfo.h"
-#include "qrcode/QRAlignmentPattern.h"
-#include "qrcode/QRAlignmentPatternFinder.h"
-#include "qrcode/QRVersion.h"
-#include "BitMatrix.h"
-#include "DecodeHints.h"
-#include "DetectorResult.h"
-#include "PerspectiveTransform.h"
-#include "GridSampler.h"
-#include "ZXNumeric.h"
-#include "DecodeStatus.h"
+#include "../qrcode/QRDetector.h"
+#include "../qrcode/QRFinderPatternFinder.h"
+#include "../qrcode/QRFinderPatternInfo.h"
+#include "../qrcode/QRAlignmentPattern.h"
+#include "../qrcode/QRAlignmentPatternFinder.h"
+#include "../qrcode/QRVersion.h"
+#include "../BitMatrix.h"
+#include "../DecodeHints.h"
+#include "../DetectorResult.h"
+#include "../PerspectiveTransform.h"
+#include "../GridSampler.h"
+#include "../ZXNumeric.h"
+#include "../DecodeStatus.h"
 
 #include <cstdlib>
 

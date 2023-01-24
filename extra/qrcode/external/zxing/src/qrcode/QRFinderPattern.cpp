@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRFinderPattern.h"
+#include "../qrcode/QRFinderPattern.h"
 
 #include <cmath>
 

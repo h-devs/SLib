@@ -15,16 +15,16 @@
 * limitations under the License.
 */
 
-#include "aztec/AZDetector.h"
-#include "aztec/AZDetectorResult.h"
-#include "BitHacks.h"
-#include "ZXNumeric.h"
-#include "ReedSolomonDecoder.h"
-#include "GenericGF.h"
-#include "WhiteRectDetector.h"
-#include "GridSampler.h"
-#include "DecodeStatus.h"
-#include "BitMatrix.h"
+#include "../aztec/AZDetector.h"
+#include "../aztec/AZDetectorResult.h"
+#include "../BitHacks.h"
+#include "../ZXNumeric.h"
+#include "../ReedSolomonDecoder.h"
+#include "../GenericGF.h"
+#include "../WhiteRectDetector.h"
+#include "../GridSampler.h"
+#include "../DecodeStatus.h"
+#include "../BitMatrix.h"
 
 #include <array>
 

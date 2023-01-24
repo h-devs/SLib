@@ -16,8 +16,8 @@
 * limitations under the License.
 */
 
-#include "oned/rss/ODRSSDataCharacter.h"
-#include "oned/rss/ODRSSFinderPattern.h"
+#include "../oned/rss/ODRSSDataCharacter.h"
+#include "../oned/rss/ODRSSFinderPattern.h"
 
 namespace ZXing {
 namespace OneD {

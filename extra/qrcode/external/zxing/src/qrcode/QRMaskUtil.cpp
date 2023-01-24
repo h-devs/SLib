@@ -15,8 +15,8 @@
 * limitations under the License.
 */
 
-#include "qrcode/QRMaskUtil.h"
-#include "ByteMatrix.h"
+#include "../qrcode/QRMaskUtil.h"
+#include "../ByteMatrix.h"
 
 #include <algorithm>
 #include <array>

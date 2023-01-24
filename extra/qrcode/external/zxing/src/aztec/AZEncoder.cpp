@@ -15,13 +15,13 @@
 * limitations under the License.
 */
 
-#include "aztec/AZEncoder.h"
-#include "aztec/AZHighLevelEncoder.h"
-#include "BitArray.h"
-#include "ReedSolomonEncoder.h"
-#include "GenericGF.h"
-#include "ZXStrConvWorkaround.h"
-#include "ZXTestSupport.h"
+#include "../aztec/AZEncoder.h"
+#include "../aztec/AZHighLevelEncoder.h"
+#include "../BitArray.h"
+#include "../ReedSolomonEncoder.h"
+#include "../GenericGF.h"
+#include "../ZXStrConvWorkaround.h"
+#include "../ZXTestSupport.h"
 
 #include <cstdlib>
 
