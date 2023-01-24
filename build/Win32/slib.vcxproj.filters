@@ -1190,8 +1190,6 @@
     <ClCompile Include="..\..\src\slib\db\log_package.cpp">
       <Filter>src\db</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\ui\table_view.cpp">
-      <Filter>src\ui</Filter>
     <ClCompile Include="..\..\src\slib\graphics\svg.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
@@ -1356,6 +1354,9 @@
     </ClCompile>
     <ClCompile Include="..\..\src\slib\develop\shell_code.cpp">
       <Filter>src\develop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\slib\ui\grid_view.cpp">
+      <Filter>src\ui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

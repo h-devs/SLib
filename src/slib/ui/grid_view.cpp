@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
  *   THE SOFTWARE.
  */
 
-#include "slib/ui/text.h"
-#include "slib/ui/table_view.h"
+#include "slib/ui/grid_view.h"
 
+#include "slib/ui/text.h"
 #include "slib/graphics/canvas.h"
 
 namespace slib

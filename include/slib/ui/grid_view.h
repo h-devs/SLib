@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
  *   THE SOFTWARE.
  */
 
-#ifndef CHECKHEADER_SLIB_UI_TABLE_VIEW
-#define CHECKHEADER_SLIB_UI_TABLE_VIEW
+#ifndef CHECKHEADER_SLIB_UI_GRID_VIEW
+#define CHECKHEADER_SLIB_UI_GRID_VIEW
 
 #include "view.h"
 
