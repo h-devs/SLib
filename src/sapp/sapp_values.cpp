@@ -37,9 +37,9 @@ namespace slib
 		namespace sapp
 		{
 
-			static sl_reg parseFloat(float* _out, const sl_char8* sz, sl_size start, sl_size end)
+			static sl_reg parseFloat(float* _out, const sl_char8* str, sl_size start, sl_size end)
 			{
-				return Calculator::calculate(_out, sl_null, sz, start, end);
+				return Calculator::calculate(_out, sl_null, str, start, end);
 			}
 
 			static sl_bool parseFloat(float* _out, const String& str)
@@ -369,17 +369,18 @@ namespace slib
 				break;
 			}
 
-			const sl_char8* sz = str.getData();
+			const sl_char8* data = str.getData();
 			sl_size len = str.getLength();
 
 			float f;
-			sl_reg ret = priv::sapp::parseFloat(&f, sz, 0, str.endsWith('*') ? len - 1 : len);
+			sl_reg ret = priv::sapp::parseFloat(&f, data, 0, str.endsWith('*') ? len - 1 : len);
 			if (ret == SLIB_PARSE_ERROR) {
 				return sl_false;
 			}
 			sl_size pos = ret;
 			while (pos < len) {
-				if (SLIB_CHAR_IS_SPACE_TAB(sz[pos])) {
+				sl_char8 c = data[pos];
+				if (SLIB_CHAR_IS_SPACE_TAB(c)) {
 					pos++;
 				} else {
 					break;
@@ -391,13 +392,14 @@ namespace slib
 				break;
 			}
 			sl_bool flagPercent = sl_false;
-			if (sz[pos] == '%') {
+			if (data[pos] == '%') {
 				flagPercent = sl_true;
 				f /= 100;
 				pos++;
 			}
 			while (pos < len) {
-				if (SLIB_CHAR_IS_SPACE_TAB(sz[pos])) {
+				sl_char8 c = data[pos];
+				if (SLIB_CHAR_IS_SPACE_TAB(c)) {
 					pos++;
 				} else {
 					break;
@@ -414,8 +416,7 @@ namespace slib
 				break;
 			}
 
-			String strUnit(sz + pos, len - pos);
-
+			String strUnit(data + pos, len - pos);
 			if (doc) {
 				SAppDimensionValue refer;
 				String strUnitLocal = SAppDocument::getNameInLocalNamespace(doc->m_currentLocalNamespace, strUnit);
@@ -876,16 +877,17 @@ namespace slib
 		}
 		sl_size pos = 0;
 		sl_size len = str.getLength();
-		const sl_char8* sz = str.getData();
+		const sl_char8* data = str.getData();
 		float f[2];
 		for (sl_size i = 0; i < 2; i++) {
-			sl_reg iRet = priv::sapp::parseFloat(f+i, sz, pos, len);
+			sl_reg iRet = priv::sapp::parseFloat(f + i, data, pos, len);
 			if (iRet == SLIB_PARSE_ERROR) {
 				return sl_false;
 			}
 			pos = iRet;
 			for (; pos < len; pos++) {
-				if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+				sl_char8 c = data[pos];
+				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 					break;
 				}
 			}
@@ -902,12 +904,13 @@ namespace slib
 				if (pos >= len) {
 					return sl_false;
 				}
-				if (sz[pos] != ',') {
+				if (data[pos] != ',') {
 					return sl_false;
 				}
 				pos++;
 				for (; pos < len; pos++) {
-					if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+					sl_char8 c = data[pos];
+					if (!(SLIB_CHAR_IS_SPACE_TAB(c))) {
 						break;
 					}
 				}
@@ -946,16 +949,17 @@ namespace slib
 		}
 		sl_size pos = 0;
 		sl_size len = str.getLength();
-		const sl_char8* sz = str.getData();
+		const sl_char8* data = str.getData();
 		float f[3];
 		for (sl_size i = 0; i < 3; i++) {
-			sl_reg iRet = priv::sapp::parseFloat(f+i, sz, pos, len);
+			sl_reg iRet = priv::sapp::parseFloat(f + i, data, pos, len);
 			if (iRet == SLIB_PARSE_ERROR) {
 				return sl_false;
 			}
 			pos = iRet;
 			for (; pos < len; pos++) {
-				if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+				sl_char8 c = data[pos];
+				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 					break;
 				}
 			}
@@ -973,12 +977,13 @@ namespace slib
 				if (pos >= len) {
 					return sl_false;
 				}
-				if (sz[pos] != ',') {
+				if (data[pos] != ',') {
 					return sl_false;
 				}
 				pos++;
 				for (; pos < len; pos++) {
-					if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+					sl_char8 c = data[pos];
+					if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 						break;
 					}
 				}
@@ -1017,16 +1022,17 @@ namespace slib
 		}
 		sl_size pos = 0;
 		sl_size len = str.getLength();
-		const sl_char8* sz = str.getData();
+		const sl_char8* data = str.getData();
 		float f[4];
 		for (sl_size i = 0; i < 4; i++) {
-			sl_reg iRet = priv::sapp::parseFloat(f+i, sz, pos, len);
+			sl_reg iRet = priv::sapp::parseFloat(f + i, data, pos, len);
 			if (iRet == SLIB_PARSE_ERROR) {
 				return sl_false;
 			}
 			pos = iRet;
 			for (; pos < len; pos++) {
-				if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+				sl_char8 c = data[pos];
+				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 					break;
 				}
 			}
@@ -1045,12 +1051,13 @@ namespace slib
 				if (pos >= len) {
 					return sl_false;
 				}
-				if (sz[pos] != ',') {
+				if (data[pos] != ',') {
 					return sl_false;
 				}
 				pos++;
 				for (; pos < len; pos++) {
-					if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+					sl_char8 c = data[pos];
+					if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 						break;
 					}
 				}
@@ -1350,42 +1357,45 @@ namespace slib
 		}
 		str = str.trim();
 
-		sl_char8* sz = str.getData();
+		sl_char8* data = str.getData();
 		sl_size len = str.getLength();
 		sl_size pos = 0;
 
 		while (pos < len) {
-			if (SLIB_CHAR_IS_C_NAME(sz[pos])) {
+			sl_char8 c = data[pos];
+			if (SLIB_CHAR_IS_C_NAME(c)) {
 				pos++;
 			} else {
 				break;
 			}
 		}
-		if (!(SAppUtil::checkName(sz, pos))) {
+		if (!(SAppUtil::checkName(data, pos))) {
 			return sl_false;
 		}
 
-		resourceName = String(sz, pos);
+		resourceName = String(data, pos);
 		flagNull = sl_false;
 		flagWhole = sl_true;
 		func = FUNC_NONE;
 
 		for (; pos < len; pos++) {
-			if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+			sl_char8 c = data[pos];
+			if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 				break;
 			}
 		}
 
 		if (pos < len) {
 
-			if (sz[pos] == '[') {
+			if (data[pos] == '[') {
 
 				pos++;
 
 				float f[4];
 				for (sl_size i = 0; i < 4; i++) {
 					for (; pos < len; pos++) {
-						if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+						sl_char8 c = data[pos];
+						if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 							break;
 						}
 					}
@@ -1393,12 +1403,13 @@ namespace slib
 						return sl_false;
 					}
 					sl_bool flagPlus = sl_false;
-					if (sz[pos] == '+') {
+					if (data[pos] == '+') {
 						if (i >= 2) {
 							flagPlus = sl_true;
 							pos++;
 							for (; pos < len; pos++) {
-								if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+								sl_char8 c = data[pos];
+								if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 									break;
 								}
 							}
@@ -1409,7 +1420,7 @@ namespace slib
 							return sl_false;
 						}
 					}
-					sl_reg iRet = priv::sapp::parseFloat(f+i, sz, pos, len);
+					sl_reg iRet = priv::sapp::parseFloat(f + i, data, pos, len);
 					if (iRet == SLIB_PARSE_ERROR) {
 						return sl_false;
 					}
@@ -1423,7 +1434,8 @@ namespace slib
 					}
 					pos = iRet;
 					for (; pos < len; pos++) {
-						if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+						sl_char8 c = data[pos];
+						if (!(SLIB_CHAR_IS_SPACE_TAB(c))) {
 							break;
 						}
 					}
@@ -1431,11 +1443,11 @@ namespace slib
 						return sl_false;
 					}
 					if (i == 3) {
-						if (sz[pos] != ']') {
+						if (data[pos] != ']') {
 							return sl_false;
 						}
 					} else {
-						if (sz[pos] != ',') {
+						if (data[pos] != ',') {
 							return sl_false;
 						}
 					}
@@ -1450,15 +1462,17 @@ namespace slib
 			}
 
 			for (; pos < len; pos++) {
-				if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+				sl_char8 c = data[pos];
+				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 					break;
 				}
 			}
 
-			if (sz[pos] == ',') {
+			if (data[pos] == ',') {
 				pos++;
 				for (; pos < len; pos++) {
-					if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+					sl_char8 c = data[pos];
+					if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 						break;
 					}
 				}
@@ -1467,15 +1481,15 @@ namespace slib
 				}
 
 				sl_uint32 nFuncParams = 0;
-				if (pos + 10 < len && Base::equalsMemory(sz + pos, "nine-patch", 10)) {
+				if (pos + 10 < len && Base::equalsMemory(data + pos, "nine-patch", 10)) {
 					func = FUNC_NINEPATCH;
 					nFuncParams = 8;
 					pos += 10;
-				} else if (pos + 22 < len && Base::equalsMemory(sz + pos, "horizontal-three-patch", 22)) {
+				} else if (pos + 22 < len && Base::equalsMemory(data + pos, "horizontal-three-patch", 22)) {
 					func = FUNC_THREEPATCH_HORIZONTAL;
 					nFuncParams = 4;
 					pos += 22;
-				} else if (pos + 20 < len && Base::equalsMemory(sz + pos, "vertical-three-patch", 20)) {
+				} else if (pos + 20 < len && Base::equalsMemory(data + pos, "vertical-three-patch", 20)) {
 					func = FUNC_THREEPATCH_VERTICAL;
 					nFuncParams = 4;
 					pos += 20;
@@ -1484,14 +1498,15 @@ namespace slib
 				}
 				if (func == FUNC_NINEPATCH || func == FUNC_THREEPATCH_HORIZONTAL || func == FUNC_THREEPATCH_VERTICAL) {
 					for (; pos < len; pos++) {
-						if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+						sl_char8 c = data[pos];
+						if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 							break;
 						}
 					}
 					if (pos >= len) {
 						return sl_false;
 					}
-					if (sz[pos] != '(') {
+					if (data[pos] != '(') {
 						return sl_false;
 					}
 					pos++;
@@ -1500,7 +1515,8 @@ namespace slib
 					sl_size i = 0;
 					for (; i < nFuncParams; i++) {
 						for (; pos < len; pos++) {
-							if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+							sl_char8 c = data[pos];
+							if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 								break;
 							}
 						}
@@ -1509,11 +1525,12 @@ namespace slib
 						}
 						sl_size posStart = pos;
 						for (; pos < len; pos++) {
-							if (!(SLIB_CHAR_IS_ALNUM(sz[pos]) || sz[pos] == '.' || sz[pos] == '%' || sz[pos] == '\t' || sz[pos] == ' ')) {
+							sl_char8 c = data[pos];
+							if (!(SLIB_CHAR_IS_ALNUM(c) || c == '.' || c == '%' || c == '\t' || c == ' ')) {
 								break;
 							}
 						}
-						String s = String(sz + posStart, pos - posStart);
+						String s = String(data + posStart, pos - posStart);
 						if (s.isEmpty()) {
 							return sl_false;
 						}
@@ -1524,14 +1541,15 @@ namespace slib
 							return sl_false;
 						}
 						for (; pos < len; pos++) {
-							if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+							sl_char8 c = data[pos];
+							if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 								break;
 							}
 						}
 						if (pos >= len) {
 							return sl_false;
 						}
-						if (sz[pos] != ',') {
+						if (data[pos] != ',') {
 							i++;
 							break;
 						}
@@ -1540,7 +1558,7 @@ namespace slib
 					if (pos >= len) {
 						return sl_false;
 					}
-					if (sz[pos] != ')') {
+					if (data[pos] != ')') {
 						return sl_false;
 					}
 					pos++;
@@ -1622,7 +1640,8 @@ namespace slib
 			}
 
 			for (; pos < len; pos++) {
-				if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+				sl_char8 c = data[pos];
+				if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 					return sl_false;
 				}
 			}

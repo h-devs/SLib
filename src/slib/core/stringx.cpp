@@ -1,5 +1,5 @@
 /*
- *	Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *	Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *	Permission is hereby granted, free of charge, to any person obtaining a copy
  *	of this software and associated documentation files (the "Software"), to deal
@@ -191,12 +191,14 @@ namespace slib
 			template <class CHAR>
 			static sl_bool ParseHexValue(const CHAR* src, sl_size len, sl_size& pos, sl_uint32& value)
 			{
-				sl_uint32 h = SLIB_CHAR_HEX_TO_INT(src[pos]);
+				sl_uint32 h = src[pos];
+				h = SLIB_CHAR_HEX_TO_INT(h);
 				if (h < 16) {
 					value = h;
 					pos++;
 					while (pos < len) {
-						h = SLIB_CHAR_HEX_TO_INT(src[pos]);
+						h = src[pos];
+						h = SLIB_CHAR_HEX_TO_INT(h);
 						if (h < 16) {
 							value = (value << 4) | h;
 							pos++;
@@ -214,7 +216,8 @@ namespace slib
 			static sl_bool ParseHexValue_FixedLength(const CHAR* src, sl_size countDigits, sl_size& pos, sl_uint32& value)
 			{
 				for (sl_size i = 0; i < countDigits; i++) {
-					sl_uint32 h = SLIB_CHAR_HEX_TO_INT(src[pos]);
+					sl_uint32 h = src[pos];
+					h = SLIB_CHAR_HEX_TO_INT(h);
 					if (h < 16) {
 						value = (value << 4) | h;
 					} else {
@@ -524,24 +527,41 @@ namespace slib
 				if (str.isNull()) {
 					return -1;
 				}
-				sl_size count = str.getUnsafeLength();
-				sl_size start;
-				if (_start < 0) {
-					start = 0;
+				sl_reg _count = str.getUnsafeLength();
+				if (_count < 0) {
+					sl_size start;
+					if (_start < 0) {
+						start = 0;
+					} else {
+						start = _start;
+					}
+					typename VIEW::Char* data = str.getUnsafeData();
+					for (sl_size i = start; ; i++) {
+						typename VIEW::Char ch = data[i];
+						if (!ch) {
+							break;
+						}
+						if (checker(ch)) {
+							return i;
+						}
+					}
 				} else {
-					start = _start;
-					if (start >= count) {
-						return -1;
+					sl_size count = _count;
+					sl_size start;
+					if (_start < 0) {
+						start = 0;
+					} else {
+						start = _start;
+						if (start >= count) {
+							return -1;
+						}
 					}
-				}
-				typename VIEW::Char* data = str.getUnsafeData();
-				for (sl_size i = start; i < count; i++) {
-					typename VIEW::Char ch = data[i];
-					if (!ch) {
-						break;
-					}
-					if (checker(ch)) {
-						return i;
+					typename VIEW::Char* data = str.getUnsafeData();
+					for (sl_size i = start; i < count; i++) {
+						typename VIEW::Char ch = data[i];
+						if (checker(ch)) {
+							return i;
+						}
 					}
 				}
 				return -1;
@@ -661,6 +681,100 @@ namespace slib
 			}
 
 			template <class VIEW>
+			static sl_reg IndexOfWholeWord(const VIEW& str, const VIEW& word, sl_reg _start) noexcept
+			{
+				if (str.isNull()) {
+					return -1;
+				}
+				sl_size nSrc = str.getLength();
+				sl_size nWhat = word.getLength();
+				sl_size start;
+				if (_start < 0) {
+					start = 0;
+				} else {
+					start = _start;
+					if (start + nWhat > nSrc) {
+						return -1;
+					}
+				}
+				if (!nWhat) {
+					return start;
+				}
+				typename VIEW::Char* what = word.getUnsafeData();
+				typename VIEW::Char* src = str.getUnsafeData();
+				for (sl_size i = start; i < nSrc; i++) {
+					typename VIEW::Char ch = src[i];
+					if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						if (VIEW(src + start, i - start) == what) {
+							return start;
+						}
+						i++;
+						while (i < nSrc) {
+							ch = src[i];
+							if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+								break;
+							}
+							i++;
+						}
+						start = i;
+					}
+				}
+				if (start < nSrc) {
+					if (VIEW(src + start, nSrc - start) == what) {
+						return start;
+					}
+				}
+				return -1;
+			}
+
+			template <class VIEW>
+			static sl_reg IndexOfWholeWord_IgnoreCase(const VIEW& str, const VIEW& word, sl_reg _start) noexcept
+			{
+				if (str.isNull()) {
+					return -1;
+				}
+				sl_size nSrc = str.getLength();
+				sl_size nWhat = word.getLength();
+				sl_size start;
+				if (_start < 0) {
+					start = 0;
+				} else {
+					start = _start;
+					if (start + nWhat > nSrc) {
+						return -1;
+					}
+				}
+				if (!nWhat) {
+					return start;
+				}
+				typename VIEW::Char* what = word.getUnsafeData();
+				typename VIEW::Char* src = str.getUnsafeData();
+				for (sl_size i = start; i < nSrc; i++) {
+					typename VIEW::Char ch = src[i];
+					if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						if (VIEW(src + start, i - start).equals_IgnoreCase(what)) {
+							return start;
+						}
+						i++;
+						while (i < nSrc) {
+							ch = src[i];
+							if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+								break;
+							}
+							i++;
+						}
+						start = i;
+					}
+				}
+				if (start < nSrc) {
+					if (VIEW(src + start, nSrc - start).equals_IgnoreCase(what)) {
+						return start;
+					}
+				}
+				return -1;
+			}
+
+			template <class VIEW>
 			sl_bool ParseUint32Range(const VIEW& str, sl_uint32* _from, sl_uint32* _to)
 			{
 				sl_uint32 from;
@@ -771,6 +885,16 @@ namespace slib
 	List<typename VIEW::StringType> Stringx::getWords(const VIEW& str, sl_reg start) noexcept \
 	{ \
 		return GetWords(str, start); \
+	} \
+	\
+	sl_reg Stringx::indexOfWholeWord(const VIEW& str, const VIEW& word, sl_reg start) noexcept \
+	{ \
+		return IndexOfWholeWord(str, word, start); \
+	} \
+	\
+	sl_reg Stringx::indexOfWholeWord_IgnoreCase(const VIEW& str, const VIEW& word, sl_reg start) noexcept \
+	{ \
+		return IndexOfWholeWord_IgnoreCase(str, word, start); \
 	}
 
 	PRIV_STRINGX_MEMBERS(StringView)

@@ -917,14 +917,14 @@ namespace slib
 			}
 		}
 		{
-			String value = element->getAttributeIgnoreCase("size");
+			String value = element->getAttribute_IgnoreCase("size");
 			if (value.isNotNull()) {
 				flagDefineFontSize = sl_true;
 				attrFontSize = value.trim().toLower();
 			}
 		}
 		{
-			String value = element->getAttributeIgnoreCase("color");
+			String value = element->getAttribute_IgnoreCase("color");
 			if (value.isNotNull()) {
 				if (attrTextColor.parse(value)) {
 					flagDefineTextColor = sl_true;
@@ -932,7 +932,7 @@ namespace slib
 			}
 		}
 		{
-			String value = element->getAttributeIgnoreCase("bgcolor");
+			String value = element->getAttribute_IgnoreCase("bgcolor");
 			if (value.isNotNull()) {
 				if (attrBackColor.parse(value)) {
 					flagDefineBackColor = sl_true;
@@ -940,7 +940,7 @@ namespace slib
 			}
 		}
 
-		String attrStyle = element->getAttributeIgnoreCase("style");
+		String attrStyle = element->getAttribute_IgnoreCase("style");
 		if (attrStyle.isNotEmpty()) {
 			attrStyle = attrStyle.toLower();
 			sl_char8* buf = attrStyle.getData();

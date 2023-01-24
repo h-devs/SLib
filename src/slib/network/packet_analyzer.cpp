@@ -312,7 +312,7 @@ namespace slib
 					if (size < 4) {
 						return ContentResult::InProgress;
 					}
-					if (!(Base::equalsStringIgnoreCase(content, "GET ", 4))) {
+					if (!(Base::equalsString_IgnoreCase(content, "GET ", 4))) {
 						return ContentResult::Error;
 					}
 					char* uri = content + 4;
@@ -327,7 +327,7 @@ namespace slib
 					if (strFirstLine < uri + 9) {
 						return ContentResult::Error;
 					}
-					if (!(Base::equalsStringIgnoreCase(strFirstLine - 9, " HTTP/1.", 8))) {
+					if (!(Base::equalsString_IgnoreCase(strFirstLine - 9, " HTTP/1.", 8))) {
 						return ContentResult::Error;
 					}
 					if (*(strFirstLine - 1) != '1' && *(strFirstLine - 1) != '0') {
@@ -364,7 +364,7 @@ namespace slib
 						}
 						char* sep = (char*)(Base::findMemory(s, m, ':'));
 						if (sep) {
-							if (sep == s + 4 && Base::equalsStringIgnoreCase(s, "Host", 4)) {
+							if (sep == s + 4 && Base::equalsString_IgnoreCase(s, "Host", 4)) {
 								char* host = sep + 1;
 								if (host < line && *host == ' ') {
 									host++;

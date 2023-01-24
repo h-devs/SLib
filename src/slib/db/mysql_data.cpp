@@ -53,7 +53,7 @@ namespace slib
 		}
 		for (sl_size i = 0; i < n; i++) {
 			sl_uint8 ch = buf[i];
-			if (ch < 0x20 && !(SLIB_CHAR_IS_WHITE_SPACE(ch))) {
+			if (ch < 0x20 && !SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 				return sl_null;
 			}
 		}

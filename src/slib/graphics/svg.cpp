@@ -55,7 +55,8 @@ namespace slib
 				sl_char8* start = data;
 				for (sl_uint32 i = 0; i < 4; i++) {
 					while (data < end) {
-						if (!SLIB_CHAR_IS_SPACE_TAB(*data)) {
+						sl_char8 c = *data;
+						if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 							break;
 						}
 						data++;
@@ -67,7 +68,8 @@ namespace slib
 						if (*data == ',') {
 							data++;
 							while (data < end) {
-								if (!SLIB_CHAR_IS_SPACE_TAB(*data)) {
+								sl_char8 c = *data;
+								if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 									break;
 								}
 								data++;

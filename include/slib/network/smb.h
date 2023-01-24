@@ -116,7 +116,7 @@ namespace slib
 
 	protected:
 		String m_comment;
-		CHashMap< String16, sl_uint64, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > m_fileUniqueIds;
+		CHashMap< String16, sl_uint64, Hash_IgnoreCase<String16>, Compare_IgnoreCase<String16> > m_fileUniqueIds;
 		sl_uint64 m_lastFileUniqueId;
 
 	};
@@ -177,7 +177,7 @@ namespace slib
 		String computerName_DNS;
 		String domainName_DNS;
 
-		HashMap< String16, Ref<SmbServerShare>, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > shares;
+		HashMap< String16, Ref<SmbServerShare>, Hash_IgnoreCase<String16>, Compare_IgnoreCase<String16> > shares;
 
 		sl_uint32 maxThreadCount;
 		sl_bool flagStopWindowsService;
@@ -323,7 +323,7 @@ namespace slib
 	public:
 		SmbServer * server;
 		CHashMap< sl_uint32, Ref<SmbServerShare> > trees;
-		CHashMap< String16, sl_uint32, HashIgnoreCase<String16>, CompareIgnoreCase<String16> > treeIds;
+		CHashMap< String16, sl_uint32, Hash_IgnoreCase<String16>, Compare_IgnoreCase<String16> > treeIds;
 		CHashMap< sl_uint64, Ref<SmbServerFileContext> > files;
 
 	public:

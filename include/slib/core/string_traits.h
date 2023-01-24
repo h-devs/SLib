@@ -70,24 +70,24 @@ namespace slib
 			return Base::compareString(s1, s2, count);
 		}
 
-		static sl_bool equalsIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
+		static sl_bool equals_IgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
 		{
-			return Base::equalsStringIgnoreCase(s1, s2);
+			return Base::equalsString_IgnoreCase(s1, s2);
 		}
 
-		static sl_bool equalsIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+		static sl_bool equals_IgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
 		{
-			return Base::equalsStringIgnoreCase(s1, s2, count);
+			return Base::equalsString_IgnoreCase(s1, s2, count);
 		}
 
-		static sl_compare_result compareIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
+		static sl_compare_result compare_IgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
 		{
-			return Base::compareStringIgnoreCase(s1, s2);
+			return Base::compareString_IgnoreCase(s1, s2);
 		}
 
-		static sl_compare_result compareIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+		static sl_compare_result compare_IgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
 		{
-			return Base::compareStringIgnoreCase(s1, s2, count);
+			return Base::compareString_IgnoreCase(s1, s2, count);
 		}
 
 	};
@@ -131,24 +131,24 @@ namespace slib
 			return Base::compareString2(s1, s2, count);
 		}
 
-		static sl_bool equalsIgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept
+		static sl_bool equals_IgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept
 		{
-			return Base::equalsStringIgnoreCase2(s1, s2);
+			return Base::equalsString2_IgnoreCase(s1, s2);
 		}
 
-		static sl_bool equalsIgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
+		static sl_bool equals_IgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
 		{
-			return Base::equalsStringIgnoreCase2(s1, s2, count);
+			return Base::equalsString2_IgnoreCase(s1, s2, count);
 		}
 
-		static sl_compare_result compareIgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept
+		static sl_compare_result compare_IgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept
 		{
-			return Base::compareStringIgnoreCase2(s1, s2);
+			return Base::compareString2_IgnoreCase(s1, s2);
 		}
 
-		static sl_compare_result compareIgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
+		static sl_compare_result compare_IgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
 		{
-			return Base::compareStringIgnoreCase2(s1, s2, count);
+			return Base::compareString2_IgnoreCase(s1, s2, count);
 		}
 
 	};
@@ -192,24 +192,24 @@ namespace slib
 			return Base::compareString4(s1, s2, count);
 		}
 
-		static sl_bool equalsIgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept
+		static sl_bool equals_IgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept
 		{
-			return Base::equalsStringIgnoreCase4(s1, s2);
+			return Base::equalsString4_IgnoreCase(s1, s2);
 		}
 
-		static sl_bool equalsIgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
+		static sl_bool equals_IgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
 		{
-			return Base::equalsStringIgnoreCase4(s1, s2, count);
+			return Base::equalsString4_IgnoreCase(s1, s2, count);
 		}
 
-		static sl_compare_result compareIgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept
+		static sl_compare_result compare_IgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept
 		{
-			return Base::compareStringIgnoreCase4(s1, s2);
+			return Base::compareString4_IgnoreCase(s1, s2);
 		}
 
-		static sl_compare_result compareIgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
+		static sl_compare_result compare_IgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
 		{
-			return Base::compareStringIgnoreCase4(s1, s2, count);
+			return Base::compareString4_IgnoreCase(s1, s2, count);
 		}
 
 	};

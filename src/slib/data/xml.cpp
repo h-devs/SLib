@@ -476,7 +476,8 @@ namespace slib
 				XmlDocumentTypeDefinitionKind kind = XmlDocumentTypeDefinitionKind::None;
 				String fpi, uri;
 				if (pos + 6 < len) {
-					if (buf[pos] == 'P' && buf[pos + 1] == 'U' && buf[pos + 2] == 'B' && buf[pos + 3] == 'L' && buf[pos + 4] == 'I' && buf[pos + 5] == 'C' && SLIB_CHAR_IS_WHITE_SPACE(buf[pos + 6])) {
+					CHAR c6 = buf[pos + 6];
+					if (buf[pos] == 'P' && buf[pos + 1] == 'U' && buf[pos + 2] == 'B' && buf[pos + 3] == 'L' && buf[pos + 4] == 'I' && buf[pos + 5] == 'C' && SLIB_CHAR_IS_WHITE_SPACE(c6)) {
 						kind = XmlDocumentTypeDefinitionKind::Public;
 						pos += 6;
 						escapeWhiteSpaces();
@@ -495,7 +496,7 @@ namespace slib
 							}
 							escapeWhiteSpaces();
 						}
-					} else if (buf[pos] == 'S' && buf[pos + 1] == 'Y' && buf[pos + 2] == 'S' && buf[pos + 3] == 'T' && buf[pos + 4] == 'E' && buf[pos + 5] == 'M' && SLIB_CHAR_IS_WHITE_SPACE(buf[pos + 6])) {
+					} else if (buf[pos] == 'S' && buf[pos + 1] == 'Y' && buf[pos + 2] == 'S' && buf[pos + 3] == 'T' && buf[pos + 4] == 'E' && buf[pos + 5] == 'M' && SLIB_CHAR_IS_WHITE_SPACE(c6)) {
 						kind = XmlDocumentTypeDefinitionKind::System;
 						pos += 6;
 						escapeWhiteSpaces();
@@ -807,8 +808,7 @@ namespace slib
 						if (element->containsAttribute(attr.name)) {
 							REPORT_ERROR(g_strError_element_attr_duplicate)
 						}
-						String prefix;
-						processPrefix(attr.name, defNamespace, namespaces, prefix, attr.uri, attr.localName);
+						processPrefix(attr.name, defNamespace, namespaces, attr.prefix, attr.uri, attr.localName);
 						if (param.flagCreateWhiteSpaces) {
 							if (endWhiteSpace > startWhiteSpace) {
 								String ws = String::create(buf + startWhiteSpace, endWhiteSpace - startWhiteSpace);
@@ -828,7 +828,7 @@ namespace slib
 									REPORT_ERROR(g_strError_memory_lack)
 								}
 								CALL_CALLBACK(onStartPrefixMapping, element.get(), String::null(), defNamespace);
-							} else if (prefix == "xmlns" && attr.localName.isNotEmpty() && attr.value.isNotEmpty()) {
+							} else if (attr.prefix == "xmlns" && attr.localName.isNotEmpty() && attr.value.isNotEmpty()) {
 								if (namespaces == _namespaces) {
 									namespaces = _namespaces.duplicate_NoLock();
 								}
@@ -872,7 +872,7 @@ namespace slib
 
 				String prefix, uri, localName;
 				processPrefix(name, defNamespace, namespaces, prefix, uri, localName);
-				if (!(element->setName(name, uri, localName))) {
+				if (!(element->setName(name, uri, prefix, localName))) {
 					REPORT_ERROR(g_strError_unknown)
 				}
 
@@ -1841,6 +1841,11 @@ namespace slib
 		return m_uri;
 	}
 
+	const String& XmlElement::getNamespace() const
+	{
+		return m_namespace;
+	}
+
 	const String& XmlElement::getLocalName() const
 	{
 		return m_localName;
@@ -1855,11 +1860,12 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool XmlElement::setName(const String& name, const String& uri, const String& localName)
+	sl_bool XmlElement::setName(const String& name, const String& uri, const String& prefix, const String& localName)
 	{
 		if (Xml::checkName(name)) {
 			m_name = name;
 			m_uri = uri;
+			m_namespace = prefix;
 			m_localName = localName;
 			return sl_true;
 		}
@@ -1881,11 +1887,11 @@ namespace slib
 		return m_mapAttributes.getValue_NoLock(name, String::null());
 	}
 
-	String XmlElement::getAttributeIgnoreCase(const StringView& name) const
+	String XmlElement::getAttribute_IgnoreCase(const StringView& name) const
 	{
 		ListElements<XmlAttribute> attrs(m_attributes);
 		for (sl_size i = 0; i < attrs.count; i++) {
-			if (attrs[i].name.equalsIgnoreCase(name)) {
+			if (attrs[i].name.equals_IgnoreCase(name)) {
 				return attrs[i].value;
 			}
 		}
@@ -1903,11 +1909,11 @@ namespace slib
 		return sl_null;
 	}
 
-	String XmlElement::getAttributeIgnoreCase(const StringView& uri, const StringView& localName) const
+	String XmlElement::getAttribute_IgnoreCase(const StringView& uri, const StringView& localName) const
 	{
 		ListElements<XmlAttribute> attrs(m_attributes);
 		for (sl_size i = 0; i < attrs.count; i++) {
-			if (attrs[i].uri == uri && attrs[i].localName.equalsIgnoreCase(localName)) {
+			if (attrs[i].uri == uri && attrs[i].localName.equals_IgnoreCase(localName)) {
 				return attrs[i].value;
 			}
 		}
@@ -1919,11 +1925,11 @@ namespace slib
 		return m_mapAttributes.find_NoLock(name) != sl_null;
 	}
 
-	sl_bool XmlElement::containsAttributeIgnoreCase(const StringView& name) const
+	sl_bool XmlElement::containsAttribute_IgnoreCase(const StringView& name) const
 	{
 		ListElements<XmlAttribute> attrs(m_attributes);
 		for (sl_size i = 0; i < attrs.count; i++) {
-			if (attrs[i].name.equalsIgnoreCase(name)) {
+			if (attrs[i].name.equals_IgnoreCase(name)) {
 				return sl_true;
 			}
 		}

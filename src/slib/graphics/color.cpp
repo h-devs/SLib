@@ -411,41 +411,46 @@ namespace slib
 			SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
 
 			template <class CT>
-			static sl_reg Parse(Color* _out, const CT* sz, sl_size pos, sl_size len) noexcept
+			static sl_reg Parse(Color* _out, const CT* str, sl_size pos, sl_size len) noexcept
 			{
 				if (pos >= len) {
 					return SLIB_PARSE_ERROR;
 				}
 
-				sl_size start;
-
-				if (sz[pos] == '#') {
+				if (str[pos] == '#') {
 
 					pos++;
-
-					start = pos;
+					sl_size start = pos;
 
 					for (; pos < len; pos++) {
-						if (!(SLIB_CHAR_IS_HEX(sz[pos]))) {
+						CT c = str[pos];
+						if (!SLIB_CHAR_IS_HEX(c)) {
 							break;
 						}
 					}
 
 					sl_size n = pos - start;
-
 					if (n == 6 || n == 8) {
 						if (_out) {
 							sl_uint32 r, g, b, a;
+							sl_uint32 c0 = str[start];
+							sl_uint32 c1 = str[start + 1];
+							sl_uint32 c2 = str[start + 2];
+							sl_uint32 c3 = str[start + 3];
+							sl_uint32 c4 = str[start + 4];
+							sl_uint32 c5 = str[start + 5];
 							if (n == 6) {
 								a = 255;
-								r = (SLIB_CHAR_HEX_TO_INT(sz[start]) << 4) | SLIB_CHAR_HEX_TO_INT(sz[start + 1]);
-								g = (SLIB_CHAR_HEX_TO_INT(sz[start + 2]) << 4) | SLIB_CHAR_HEX_TO_INT(sz[start + 3]);
-								b = (SLIB_CHAR_HEX_TO_INT(sz[start + 4]) << 4) | SLIB_CHAR_HEX_TO_INT(sz[start + 5]);
+								r = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
+								g = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
+								b = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
 							} else {
-								a = (SLIB_CHAR_HEX_TO_INT(sz[start]) << 4) | SLIB_CHAR_HEX_TO_INT(sz[start + 1]);
-								r = (SLIB_CHAR_HEX_TO_INT(sz[start + 2]) << 4) | SLIB_CHAR_HEX_TO_INT(sz[start + 3]);
-								g = (SLIB_CHAR_HEX_TO_INT(sz[start + 4]) << 4) | SLIB_CHAR_HEX_TO_INT(sz[start + 5]);
-								b = (SLIB_CHAR_HEX_TO_INT(sz[start + 6]) << 4) | SLIB_CHAR_HEX_TO_INT(sz[start + 7]);
+								sl_uint32 c6 = str[start + 6];
+								sl_uint32 c7 = str[start + 7];
+								a = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
+								r = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
+								g = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
+								b = (SLIB_CHAR_HEX_TO_INT(c6) << 4) | SLIB_CHAR_HEX_TO_INT(c7);
 							}
 							*_out = Color(r, g, b, a);
 						}
@@ -454,10 +459,11 @@ namespace slib
 
 				} else {
 
-					start = pos;
+					sl_size start = pos;
 
 					for (; pos < len; pos++) {
-						if (!(SLIB_CHAR_IS_ALPHA(sz[pos]))) {
+						CT c = str[pos];
+						if (!SLIB_CHAR_IS_ALPHA(c)) {
 							break;
 						}
 					}
@@ -466,16 +472,17 @@ namespace slib
 
 					if (n > 0) {
 
-						if ((n == 3 || n ==4) && (sz[start] == 'r' || sz[start] == 'R') && (sz[start + 1] == 'g' || sz[start + 1] == 'G') && (sz[start + 2] == 'b' || sz[start + 2] == 'B')) {
+						if ((n == 3 || n == 4) && (str[start] == 'r' || str[start] == 'R') && (str[start + 1] == 'g' || str[start + 1] == 'G') && (str[start + 2] == 'b' || str[start + 2] == 'B')) {
 
 							if (n == 4) {
-								if (sz[start + 3] != 'a' && sz[start + 3] != 'A') {
+								if (str[start + 3] != 'a' && str[start + 3] != 'A') {
 									return SLIB_PARSE_ERROR;
 								}
 							}
 
 							for (; pos < len; pos++) {
-								if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+								CT c = str[pos];
+								if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 									break;
 								}
 							}
@@ -483,7 +490,7 @@ namespace slib
 								return SLIB_PARSE_ERROR;
 							}
 
-							if (sz[pos] != '(') {
+							if (str[pos] != '(') {
 								return SLIB_PARSE_ERROR;
 							}
 							pos++;
@@ -495,7 +502,8 @@ namespace slib
 							for (sl_size i = 0; i < n; i++) {
 
 								for (; pos < len; pos++) {
-									if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+									CT c = str[pos];
+									if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 										break;
 									}
 								}
@@ -503,7 +511,7 @@ namespace slib
 									return SLIB_PARSE_ERROR;
 								}
 								if (i == 3) {
-									iRet = StringTypeFromCharType<CT>::Type::parseFloat(&a, sz, pos, len);
+									iRet = StringTypeFromCharType<CT>::Type::parseFloat(&a, str, pos, len);
 									if (iRet == SLIB_PARSE_ERROR) {
 										return SLIB_PARSE_ERROR;
 									}
@@ -514,7 +522,7 @@ namespace slib
 										return SLIB_PARSE_ERROR;
 									}
 								} else {
-									iRet = StringTypeFromCharType<CT>::Type::parseUint32(10, comp + i, sz, pos, len);
+									iRet = StringTypeFromCharType<CT>::Type::parseUint32(10, comp + i, str, pos, len);
 									if (iRet == SLIB_PARSE_ERROR) {
 										return SLIB_PARSE_ERROR;
 									}
@@ -524,7 +532,8 @@ namespace slib
 								}
 								pos = iRet;
 								for (; pos < len; pos++) {
-									if (!(SLIB_CHAR_IS_SPACE_TAB(sz[pos]))) {
+									CT c = str[pos];
+									if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
 										break;
 									}
 								}
@@ -532,11 +541,11 @@ namespace slib
 									return SLIB_PARSE_ERROR;
 								}
 								if (i < n - 1) {
-									if (sz[pos] != ',') {
+									if (str[pos] != ',') {
 										return SLIB_PARSE_ERROR;
 									}
 								} else {
-									if (sz[pos] != ')') {
+									if (str[pos] != ')') {
 										return SLIB_PARSE_ERROR;
 									}
 								}
@@ -557,7 +566,7 @@ namespace slib
 
 							sl_char8 s[64];
 							for (sl_size i = 0; i < n; i++) {
-								sl_char8 ch = (sl_char8)(sz[start + i]);
+								sl_char8 ch = (sl_char8)(str[start + i]);
 								s[i] = SLIB_CHAR_UPPER_TO_LOWER(ch);
 							}
 

@@ -71,7 +71,11 @@ namespace slib
 					return SLIB_PARSE_ERROR;
 				}
 				for (;;) {
-					while (SLIB_CHAR_IS_WHITE_SPACE(str[pos])) {
+					for (;;) {
+						CHAR ch = str[pos];
+						if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							break;
+						}
 						pos++;
 						if (pos >= posEnd) {
 							return SLIB_PARSE_ERROR;
@@ -83,7 +87,11 @@ namespace slib
 						if (pos2 >= posEnd) {
 							return SLIB_PARSE_ERROR;
 						}
-						while (SLIB_CHAR_IS_WHITE_SPACE(str[pos2])) {
+						for (;;) {
+							CHAR ch = str[pos2];
+							if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+								break;
+							}
 							pos2++;
 							if (pos2 >= posEnd) {
 								return SLIB_PARSE_ERROR;
@@ -108,7 +116,11 @@ namespace slib
 						if (pos >= posEnd) {
 							return SLIB_PARSE_ERROR;
 						}
-						while (SLIB_CHAR_IS_WHITE_SPACE(str[pos])) {
+						for (;;) {
+							CHAR ch = str[pos];
+							if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+								break;
+							}
 							pos++;
 							if (pos >= posEnd) {
 								return SLIB_PARSE_ERROR;
@@ -143,13 +155,12 @@ namespace slib
 					} else {
 						accum2 = value;
 					}
-					if (pos < posEnd) {
-						while (SLIB_CHAR_IS_WHITE_SPACE(str[pos])) {
-							pos++;
-							if (pos >= posEnd) {
-								break;
-							}
+					while (pos < posEnd) {
+						CHAR ch = str[pos];
+						if (!SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+							break;
 						}
+						pos++;
 					}
 					if (pos < posEnd && (str[pos] == '*' || str[pos] == '/')) {
 						opAccum2 = str[pos];

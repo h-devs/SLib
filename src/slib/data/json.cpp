@@ -190,7 +190,7 @@ namespace slib
 							}
 						}
 					}
-					if (!flagEscape && !(SLIB_CHAR_IS_WHITE_SPACE(ch))) {
+					if (!flagEscape && !SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 						break;
 					}
 					pos++;

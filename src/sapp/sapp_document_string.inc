@@ -109,7 +109,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		sl_bool flagOverride = element->getAttribute("override").equalsIgnoreCase(StringView::literal("true"));
+		sl_bool flagOverride = element->getAttribute("override").equals_IgnoreCase(StringView::literal("true"));
 		if (locale == Locale::Unknown) {
 			if (!flagOverride) {
 				if (res->defaultValue.isNotNull()) {

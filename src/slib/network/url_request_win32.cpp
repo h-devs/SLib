@@ -547,7 +547,7 @@ namespace slib
 					m_step = STEP_COMPLETE;
 					onComplete();
 
-					if (m_sizeContentTotal == m_sizeContentReceived || HttpHeaderMap(m_responseHeaders).getValue("Transfer-Encoding").compareIgnoreCase("chunked") == 0) {
+					if (m_sizeContentTotal == m_sizeContentReceived || HttpHeaderMap(m_responseHeaders).getValue("Transfer-Encoding").compare_IgnoreCase("chunked") == 0) {
 						Ref<Session> session = getSession();
 						if (session.isNotNull()) {
 							if (session->connectionPool.getCount() > MAX_CONNECTION_POOL_SIZE) {

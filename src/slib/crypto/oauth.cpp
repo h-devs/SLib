@@ -298,7 +298,7 @@ namespace slib
 			if (index >= 0) {
 				type = type.substring(0, index);
 			}
-			if (!(type.trim().equalsIgnoreCase(ContentType::MultipartFormData))) {
+			if (!(type.trim().equals_IgnoreCase(ContentType::MultipartFormData))) {
 				if (param.requestBody.isNotNull()) {
 					for (auto& item : HttpRequest::parseFormUrlEncoded(param.requestBody.getData(), param.requestBody.getSize())) {
 						parameters.add_NoLock(item.key, item.value);
@@ -679,7 +679,7 @@ namespace slib
 
 	void OAuth2::authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token)
 	{
-		if (token.tokenType.isEmpty() || token.tokenType.equalsIgnoreCase("bearer")) {
+		if (token.tokenType.isEmpty() || token.tokenType.equals_IgnoreCase("bearer")) {
 			param.requestHeaders.put_NoLock(HttpHeader::Authorization, "Bearer " + token.token);
 		}
 	}

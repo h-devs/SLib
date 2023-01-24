@@ -139,7 +139,7 @@ namespace slib
 
 		sl_size getHashCode() const noexcept;
 
-		sl_size getHashCodeIgnoreCase() const noexcept;
+		sl_size getHashCode_IgnoreCase() const noexcept;
 
 		static const StringView& null() noexcept;
 
@@ -155,6 +155,14 @@ namespace slib
 		 * @return true if this string is equal to the specified string.
 		 */
 		sl_bool equals(const StringView& other) const noexcept;
+		sl_bool equals_IgnoreCase(const StringView& other) const noexcept;
+
+		/**
+		 * Compares this string to the specified string.
+		 * @return signed integral indicating the relation between the strings.
+		 */
+		sl_compare_result compare(const StringView& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView& other) const noexcept;
 
 		/**
 		 * Compares this string to the specified string.
@@ -162,23 +170,7 @@ namespace slib
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compare(const StringView& other, sl_size len) const noexcept;
-
-		/**
-		 * Compares this string to the specified string.
-		 * @return signed integral indicating the relation between the strings.
-		 */
-		sl_compare_result compare(const StringView& other) const noexcept;
-
-		/**
-		 * @return true if this string is equal to the specified string ignoring the case.
-		 */
-		sl_bool equalsIgnoreCase(const StringView& other) const noexcept;
-
-		/**
-		 * Compares this string to the specified string ignoring the case.
-		 * @return signed integral indicating the relation between the strings.
-		 */
-		sl_compare_result compareIgnoreCase(const StringView& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView& other, sl_size len) const noexcept;
 
 		/**
 		 * @return a view of the substring
@@ -204,39 +196,45 @@ namespace slib
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg indexOf(const StringView& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char8 ch, sl_reg start = 0) const noexcept;
+		sl_reg indexOf(const StringView& str, sl_reg start = 0) const noexcept;
+		sl_reg indexOf_IgnoreCase(const StringView& str, sl_reg start = 0) const noexcept;
 
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg lastIndexOf(const StringView& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char8 ch, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf(const StringView& str, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf_IgnoreCase(const StringView& str, sl_reg start = -1) const noexcept;
 
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
-		sl_bool startsWith(const StringView& str) const noexcept;
 		sl_bool startsWith(sl_char8 ch) const noexcept;
+		sl_bool startsWith(const StringView& str) const noexcept;
+		sl_bool startsWith_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
-		sl_bool endsWith(const StringView& str) const noexcept;
 		sl_bool endsWith(sl_char8 ch) const noexcept;
+		sl_bool endsWith(const StringView& str) const noexcept;
+		sl_bool endsWith_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
-		sl_bool contains(const StringView& str) const noexcept;
 		sl_bool contains(sl_char8 ch) const noexcept;
+		sl_bool contains(const StringView& str) const noexcept;
+		sl_bool contains_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
-		sl_size countOf(const StringView& str) const noexcept;
 		sl_size countOf(sl_char8 ch) const noexcept;
+		sl_size countOf(const StringView& str) const noexcept;
+		sl_size countOf_IgnoreCase(const StringView& str) const noexcept;
 
 		/**
 		 * Converts the characters of this string to uppercase.
@@ -520,7 +518,7 @@ namespace slib
 
 		sl_size getHashCode() const noexcept;
 
-		sl_size getHashCodeIgnoreCase() const noexcept;
+		sl_size getHashCode_IgnoreCase() const noexcept;
 
 		static const StringView16& null() noexcept;
 
@@ -536,6 +534,14 @@ namespace slib
 		 * @return true if this string is equal to the specified string.
 		 */
 		sl_bool equals(const StringView16& other) const noexcept;
+		sl_bool equals_IgnoreCase(const StringView16& other) const noexcept;
+
+		/**
+		 * Compares this string to the specified string.
+		 * @return signed integral indicating the relation between the strings.
+		 */
+		sl_compare_result compare(const StringView16& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView16& other) const noexcept;
 
 		/**
 		 * Compares this string to the specified string.
@@ -543,23 +549,7 @@ namespace slib
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compare(const StringView16& other, sl_size len) const noexcept;
-
-		/**
-		 * Compares this string to the specified string.
-		 * @return signed integral indicating the relation between the strings.
-		 */
-		sl_compare_result compare(const StringView16& other) const noexcept;
-
-		/**
-		 * @return true if this string is equal to the specified string ignoring the case.
-		 */
-		sl_bool equalsIgnoreCase(const StringView16& other) const noexcept;
-
-		/**
-		 * Compares this string to the specified string ignoring the case.
-		 * @return signed integral indicating the relation between the strings.
-		 */
-		sl_compare_result compareIgnoreCase(const StringView16& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView16& other, sl_size len) const noexcept;
 
 		/**
 		 * @return a view of the substring
@@ -585,39 +575,45 @@ namespace slib
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg indexOf(const StringView16& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char16 ch, sl_reg start = 0) const noexcept;
+		sl_reg indexOf(const StringView16& str, sl_reg start = 0) const noexcept;
+		sl_reg indexOf_IgnoreCase(const StringView16& str, sl_reg start = 0) const noexcept;
 
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg lastIndexOf(const StringView16& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char16 ch, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf(const StringView16& str, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf_IgnoreCase(const StringView16& str, sl_reg start = -1) const noexcept;
 
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
-		sl_bool startsWith(const StringView16& str) const noexcept;
 		sl_bool startsWith(sl_char16 ch) const noexcept;
+		sl_bool startsWith(const StringView16& str) const noexcept;
+		sl_bool startsWith_IgnoreCase(const StringView16& str) const noexcept;
 
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
-		sl_bool endsWith(const StringView16& str) const noexcept;
 		sl_bool endsWith(sl_char16 ch) const noexcept;
+		sl_bool endsWith(const StringView16& str) const noexcept;
+		sl_bool endsWith_IgnoreCase(const StringView16& str) const noexcept;
 
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
-		sl_bool contains(const StringView16& str) const noexcept;
 		sl_bool contains(sl_char16 ch) const noexcept;
+		sl_bool contains(const StringView16& str) const noexcept;
+		sl_bool contains_IgnoreCase(const StringView16& str) const noexcept;
 
 		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
-		sl_size countOf(const StringView16& str) const noexcept;
 		sl_size countOf(sl_char16 ch) const noexcept;
+		sl_size countOf(const StringView16& str) const noexcept;
+		sl_size countOf_IgnoreCase(const StringView16& str) const noexcept;
 
 		/**
 		 * Converts the characters of this string to uppercase.
@@ -902,7 +898,7 @@ namespace slib
 
 		sl_size getHashCode() const noexcept;
 
-		sl_size getHashCodeIgnoreCase() const noexcept;
+		sl_size getHashCode_IgnoreCase() const noexcept;
 
 		static const StringView32& null() noexcept;
 
@@ -918,6 +914,14 @@ namespace slib
 		 * @return true if this string is equal to the specified string.
 		 */
 		sl_bool equals(const StringView32& other) const noexcept;
+		sl_bool equals_IgnoreCase(const StringView32& other) const noexcept;
+
+		/**
+		 * Compares this string to the specified string.
+		 * @return signed integral indicating the relation between the strings.
+		 */
+		sl_compare_result compare(const StringView32& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView32& other) const noexcept;
 
 		/**
 		 * Compares this string to the specified string.
@@ -925,23 +929,7 @@ namespace slib
 		 * @return signed integral indicating the relation between the strings.
 		 */
 		sl_compare_result compare(const StringView32& other, sl_size len) const noexcept;
-
-		/**
-		 * Compares this string to the specified string.
-		 * @return signed integral indicating the relation between the strings.
-		 */
-		sl_compare_result compare(const StringView32& other) const noexcept;
-
-		/**
-		 * @return true if this string is equal to the specified string ignoring the case.
-		 */
-		sl_bool equalsIgnoreCase(const StringView32& other) const noexcept;
-
-		/**
-		 * Compares this string to the specified string ignoring the case.
-		 * @return signed integral indicating the relation between the strings.
-		 */
-		sl_compare_result compareIgnoreCase(const StringView32& other) const noexcept;
+		sl_compare_result compare_IgnoreCase(const StringView32& other, sl_size len) const noexcept;
 
 		/**
 		 * @return a view of the substring
@@ -967,39 +955,45 @@ namespace slib
 		 * @return the index within this string of the first occurrence of the specified character, starting the search at `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg indexOf(const StringView32& str, sl_reg start = 0) const noexcept;
 		sl_reg indexOf(sl_char32 ch, sl_reg start = 0) const noexcept;
+		sl_reg indexOf(const StringView32& str, sl_reg start = 0) const noexcept;
+		sl_reg indexOf_IgnoreCase(const StringView32& str, sl_reg start = 0) const noexcept;
 
 		/**
 		 * @return the index within this string of the last occurrence of the specified character, searching backwards from `start` index.
 		 * @return -1 if no occurrence is found.
 		 */
-		sl_reg lastIndexOf(const StringView32& str, sl_reg start = -1) const noexcept;
 		sl_reg lastIndexOf(sl_char32 ch, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf(const StringView32& str, sl_reg start = -1) const noexcept;
+		sl_reg lastIndexOf_IgnoreCase(const StringView32& str, sl_reg start = -1) const noexcept;
 
 		/**
 		 * @return `true` if this string starts with the specified character.
 		 */
-		sl_bool startsWith(const StringView32& str) const noexcept;
 		sl_bool startsWith(sl_char32 ch) const noexcept;
+		sl_bool startsWith(const StringView32& str) const noexcept;
+		sl_bool startsWith_IgnoreCase(const StringView32& str) const noexcept;
 
 		/**
 		 * @return `true` if this string ends with the specified character.
 		 */
-		sl_bool endsWith(const StringView32& str) const noexcept;
 		sl_bool endsWith(sl_char32 ch) const noexcept;
+		sl_bool endsWith(const StringView32& str) const noexcept;
+		sl_bool endsWith_IgnoreCase(const StringView32& str) const noexcept;
 
 		/**
 		 * @return `true` if the specified character occurs within this string.
 		 */
-		sl_bool contains(const StringView32& str) const noexcept;
 		sl_bool contains(sl_char32 ch) const noexcept;
+		sl_bool contains(const StringView32& str) const noexcept;
+		sl_bool contains_IgnoreCase(const StringView32& str) const noexcept;
 
 		/**
 		* @return the total count of the specified character occurs within this string.
 		*/
-		sl_size countOf(const StringView32& str) const noexcept;
 		sl_size countOf(sl_char32 ch) const noexcept;
+		sl_size countOf(const StringView32& str) const noexcept;
+		sl_size countOf_IgnoreCase(const StringView32& str) const noexcept;
 
 		/**
 		 * Converts the characters of this string to uppercase.

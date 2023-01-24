@@ -608,7 +608,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
+	sl_bool Base::equalsString_IgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
 	{
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_stricmp(s1, s2));
@@ -617,7 +617,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+	sl_bool Base::equalsString_IgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
 	{
 #ifdef SLIB_COMPILER_IS_VC
 		return !(_strnicmp(s1, s2, count));
@@ -626,7 +626,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept
+	sl_bool Base::equalsString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 2
 #ifdef SLIB_COMPILER_IS_VC
@@ -636,11 +636,12 @@ namespace slib
 #endif
 #else
 		for (;;) {
-			sl_char16 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-			if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
+			sl_char16 c1 = *(s1++);
+			sl_char16 c2 = *(s2++);
+			if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
 				return sl_false;
 			}
-			if (!c) {
+			if (!c1) {
 				break;
 			}
 		}
@@ -648,7 +649,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
+	sl_bool Base::equalsString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 2
 #ifdef SLIB_COMPILER_IS_VC
@@ -663,22 +664,23 @@ namespace slib
 		const sl_char16* end = s1 + count;
 		if (s1 < end) {
 			do {
-				sl_char16 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-				if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
+				sl_char16 c1 = *(s1++);
+				sl_char16 c2 = *(s2++);
+				if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
 					return sl_false;
 				}
-				if (!c) {
+				if (!c1) {
 					break;
 				}
 			} while (s1 < end);
 			return sl_true;
 		} else {
-			return equalsStringIgnoreCase2(s1, s2);
+			return equalsString2_IgnoreCase(s1, s2);
 		}
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept
+	sl_bool Base::equalsString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 4
 #ifdef SLIB_COMPILER_IS_VC
@@ -688,11 +690,12 @@ namespace slib
 #endif
 #else
 		for (;;) {
-			sl_char32 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-			if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
+			sl_char32 c1 = *(s1++);
+			sl_char32 c2 = *(s2++);
+			if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
 				return sl_false;
 			}
-			if (!c) {
+			if (!c1) {
 				break;
 			}
 		}
@@ -700,7 +703,7 @@ namespace slib
 #endif
 	}
 
-	sl_bool Base::equalsStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
+	sl_bool Base::equalsString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 4
 #ifdef SLIB_COMPILER_IS_VC
@@ -715,17 +718,18 @@ namespace slib
 		const sl_char32* end = s1 + count;
 		if (s1 < end) {
 			do {
-				sl_char32 c = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-				if (c != SLIB_CHAR_LOWER_TO_UPPER(*(s2++))) {
+				sl_char32 c1 = *(s1++);
+				sl_char32 c2 = *(s2++);
+				if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
 					return sl_false;
 				}
-				if (!c) {
+				if (!c1) {
 					break;
 				}
 			} while (s1 < end);
 			return sl_true;
 		} else {
-			return equalsStringIgnoreCase4(s1, s2);
+			return equalsString4_IgnoreCase(s1, s2);
 		}
 #endif
 	}
@@ -840,7 +844,7 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
+	sl_compare_result Base::compareString_IgnoreCase(const sl_char8* s1, const sl_char8* s2) noexcept
 	{
 #ifdef SLIB_COMPILER_IS_VC
 		return (sl_compare_result)(_stricmp(s1, s2));
@@ -849,7 +853,7 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
+	sl_compare_result Base::compareString_IgnoreCase(const sl_char8* s1, const sl_char8* s2, sl_size count) noexcept
 	{
 #ifdef SLIB_COMPILER_IS_VC
 		return (sl_compare_result)(_strnicmp(s1, s2, count));
@@ -858,7 +862,7 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2) noexcept
+	sl_compare_result Base::compareString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 2
 #ifdef SLIB_COMPILER_IS_VC
@@ -868,8 +872,10 @@ namespace slib
 #endif
 #else
 		for (;;) {
-			sl_char16 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-			sl_char16 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+			sl_char16 c1 = *(s1++);
+			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+			sl_char16 c2 = *(s2++);
+			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
 			if (c1 < c2) {
 				return -1;
 			} else if (c1 > c2) {
@@ -883,7 +889,7 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase2(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
+	sl_compare_result Base::compareString2_IgnoreCase(const sl_char16* s1, const sl_char16* s2, sl_size count) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 2
 #ifdef SLIB_COMPILER_IS_VC
@@ -894,12 +900,14 @@ namespace slib
 #else
 		if (!count) {
 			return 0;
-	}
+		}
 		const sl_char16* end = s1 + count;
 		if (s1 < end) {
 			do {
-				sl_char16 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-				sl_char16 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+				sl_char16 c1 = *(s1++);
+				c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+				sl_char16 c2 = *(s2++);
+				c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
 				if (c1 < c2) {
 					return -1;
 				} else if (c1 > c2) {
@@ -911,12 +919,12 @@ namespace slib
 			} while (s1 < end);
 			return 0;
 		} else {
-			return compareStringIgnoreCase2(s1, s2);
+			return compareString2_IgnoreCase(s1, s2);
 		}
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2) noexcept
+	sl_compare_result Base::compareString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 4
 #ifdef SLIB_COMPILER_IS_VC
@@ -926,8 +934,10 @@ namespace slib
 #endif
 #else
 		for (;;) {
-			sl_char32 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-			sl_char32 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+			sl_char32 c1 = *(s1++);
+			c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+			sl_char32 c2 = *(s2++);
+			c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
 			if (c1 < c2) {
 				return -1;
 			} else if (c1 > c2) {
@@ -941,7 +951,7 @@ namespace slib
 #endif
 	}
 
-	sl_compare_result Base::compareStringIgnoreCase4(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
+	sl_compare_result Base::compareString4_IgnoreCase(const sl_char32* s1, const sl_char32* s2, sl_size count) noexcept
 	{
 #if SLIB_WCHAR_SIZE == 4
 #ifdef SLIB_COMPILER_IS_VC
@@ -956,8 +966,10 @@ namespace slib
 		const sl_char32* end = s1 + count;
 		if (s1 < end) {
 			do {
-				sl_char32 c1 = SLIB_CHAR_LOWER_TO_UPPER(*(s1++));
-				sl_char32 c2 = SLIB_CHAR_LOWER_TO_UPPER(*(s2++));
+				sl_char32 c1 = *(s1++);
+				c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+				sl_char32 c2 = *(s2++);
+				c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
 				if (c1 < c2) {
 					return -1;
 				} else if (c1 > c2) {
@@ -969,7 +981,7 @@ namespace slib
 			} while (s1 < end);
 			return 0;
 		} else {
-			return compareStringIgnoreCase4(s1, s2);
+			return compareString4_IgnoreCase(s1, s2);
 		}
 #endif
 	}

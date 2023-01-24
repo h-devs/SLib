@@ -23,6 +23,7 @@
 #include "slib/graphics/css.h"
 
 #include "slib/core/string_buffer.h"
+#include "slib/core/stringx.h"
 
 namespace slib
 {
@@ -42,41 +43,55 @@ namespace slib
 			class StylesParser
 			{
 			public:
-				CascadingStyleSheetHelper * sheet;
+				CascadingStyleSheetHelper* sheet;
 				CHAR* current;
 				CHAR* end;
-
+				sl_bool flagIgnoreErrors;
+				
 			public:
-				static sl_bool run(CascadingStyleSheet* sheet, CHAR* data, sl_size len)
+				static void run(CascadingStyleSheet* sheet, CHAR* data, sl_size len, CascadingStylesParam& param)
 				{
 					StylesParser parser;
 					parser.sheet = (CascadingStyleSheetHelper*)sheet;
 					parser.current = data;
 					parser.end = data + len;
-					return parser.run();
+					parser.flagIgnoreErrors = param.flagIgnoreErrors;
+					param.flagError = !(parser.run());
 				}
 
 				sl_bool run()
 				{
 					skipWhitespaces();
-					return parseStatements(sheet->m_statements);
+					return parseStatements(sheet->m_statements, 0);
 				}
 
-				sl_bool parseStatements(CascadingStyleStatements& statements)
+				// Passes ending character
+				sl_bool parseStatements(CascadingStyleStatements& statements, CHAR chEnd)
 				{
 					while (current < end) {
 						CHAR ch = *current;
-						if (ch == '}') {
-							break;
+						if (chEnd) {
+							if (ch == chEnd) {
+								current++;
+								break;
+							}
 						}
 						if (ch == '@') {
 							current++;
 							if (!(parseAtRule(statements))) {
-								return sl_false;
+								if (flagIgnoreErrors) {
+									skipLine();
+								} else {
+									return sl_false;
+								}
 							}
 						} else {
 							if (!(parseRule(statements))) {
-								return sl_false;
+								if (flagIgnoreErrors) {
+									skipLine();
+								} else {
+									return sl_false;
+								}
 							}
 						}
 						skipWhitespaces();
@@ -98,16 +113,28 @@ namespace slib
 					if (*current == '{') {
 						current++;
 						skipWhitespaces();
-						if (!(parseStatements(at.statements))) {
-							return sl_false;
+						CHAR* start = current;
+						if (flagIgnoreErrors) {
+							sl_bool flagDecl = sl_false;
+							if (parseStatements(at.statements, '}')) {
+								flagDecl = at.statements.rules.isNull() && at.statements.atRules.isNull();
+							} else {
+								flagDecl = sl_true;
+							}
+							if (flagDecl) {
+								current = start;
+								if (!(parseDeclarations(at.declarations, '}'))) {
+									return sl_false;
+								}
+							}
+						} else {
+							if (!(parseStatements(at.statements, '}'))) {
+								current = start;
+								if (!(parseDeclarations(at.declarations, '}'))) {
+									return sl_false;
+								}
+							}
 						}
-						if (current >= end) {
-							return sl_false;
-						}
-						if (*current != '}') {
-							return sl_false;
-						}
-						current++;
 					} else if (*current == ';') {
 						current++;
 					} else {
@@ -123,7 +150,7 @@ namespace slib
 
 				sl_bool parseRule(CascadingStyleStatements& statements)
 				{
-					Ref<CascadingStyleSelector> selector = parseCombindSelector();
+					Ref<CascadingStyleSelector> selector = parseCombindSelector(sl_null, CascadingStyleCombinator::None);
 					if (selector.isNull()) {
 						return sl_false;
 					}
@@ -133,7 +160,8 @@ namespace slib
 					List< Ref<CascadingStyleSelector> > group;
 					while (*current == ',') {
 						current++;
-						Ref<CascadingStyleSelector> item = parseCombindSelector();
+						skipWhitespaces();
+						Ref<CascadingStyleSelector> item = parseCombindSelector(sl_null, CascadingStyleCombinator::None);
 						if (item.isNull()) {
 							return sl_false;
 						}
@@ -148,59 +176,14 @@ namespace slib
 						return sl_false;
 					}
 					current++;
-					HashMap< String, Ref<CascadingStyleValue> > props;
-					for (;;) {
-						skipWhitespaces();
-						String name = parseIdentifier();
-						if (name.isNull()) {
-							break;
-						}
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-						if (*current != ':') {
-							break;
-						}
-						skipWhitespaces();
-						Ref<CascadingStyleValue> value = parseValue();
-						if (value.isNull()) {
-							break;
-						}
-						if (current >= end) {
-							return sl_false;
-						}
-						if (*current == '!') {
-							current++;
-							skipComment();
-							String label = parseIdentifier();
-							if (label == StringView::literal("important")) {
-								value->setImportant();
-							}
-							skipWhitespaces();
-							if (current >= end) {
-								return sl_false;
-							}
-						}
-						if (!(props.add_NoLock(Move(name), Move(value)))) {
-							return sl_false;
-						}
-						if (*current == ';') {
-							current++;
-						} else {
-							break;
-						}
-					}
-					if (current >= end) {
+					skipWhitespaces();
+					CascadingStyleDeclarations declarations;
+					if (!(parseDeclarations(declarations, '}'))) {
 						return sl_false;
 					}
-					if (*current != '}') {
-						return sl_false;
-					}
-					current++;
 					CascadingStyleRule rule;
 					rule.selector = Move(selector);
-					rule.properties = props;
+					rule.declarations = declarations;
 					if (!(addRule(statements, Move(rule)))) {
 						return sl_false;
 					}
@@ -208,7 +191,7 @@ namespace slib
 						ListElements< Ref<CascadingStyleSelector> > items(group);
 						for (sl_size i = 0; i < items.count; i++) {
 							rule.selector = Move(items[i]);
-							rule.properties = props;
+							rule.declarations = declarations;
 							if (!(addRule(statements, Move(rule)))) {
 								return sl_false;
 							}
@@ -220,6 +203,85 @@ namespace slib
 				sl_bool addRule(CascadingStyleStatements& statements, CascadingStyleRule&& rule)
 				{
 					return statements.rules.add_NoLock(Move(rule));
+				}
+
+				static CascadingStyleDeclarations parseDeclarations(CHAR* data, sl_size len)
+				{
+					StylesParser parser;
+					parser.sheet = sl_null;
+					parser.current = data;
+					parser.end = data + len;
+					parser.flagIgnoreErrors = sl_false;
+					CascadingStyleDeclarations decls;
+					parser.parseDeclarations(decls, 0);
+					return decls;
+				}
+
+				Ref<CascadingStyleValue> parseDeclaration(String& name)
+				{
+					name = parseIdentifier();
+					if (name.isNull()) {
+						return sl_null;
+					}
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_null;
+					}
+					if (*current != ':') {
+						return sl_null;
+					}
+					current++;
+					skipWhitespaces();
+					Ref<CascadingStyleValue> ret = parseValue();
+					if (ret.isNull()) {
+						return sl_null;
+					}
+					if (current < end) {
+						if (*current == '!') {
+							current++;
+							skipComment();
+							String label = parseIdentifier();
+							if (label == StringView::literal("important")) {
+								ret->setImportant();
+							}
+						}
+					}
+					return ret;
+				}
+
+				// Passes ending character
+				sl_bool parseDeclarations(CascadingStyleDeclarations& declarations, CHAR chEnd)
+				{
+					while (current < end) {
+						CHAR ch = *current;
+						if (ch == ';') {
+							current++;
+						} else if (ch == chEnd) {
+							current++;
+							return sl_true;
+						} else {
+							String name;
+							Ref<CascadingStyleValue> value = parseDeclaration(name);
+							if (value.isNotNull()) {
+								if (!(declarations.add_NoLock(Move(name), Move(value)))) {
+									declarations.setNull();
+									return sl_false;
+								}
+							} else {
+								if (flagIgnoreErrors) {
+									skipLine();
+								} else {
+									return sl_false;
+								}
+							}
+						}
+						skipWhitespaces();
+					}
+					if (!chEnd) {
+						return sl_true;
+					}
+					declarations.setNull();
+					return sl_false;
 				}
 
 				Ref<CascadingStyleValue> parseValue()
@@ -287,17 +349,17 @@ namespace slib
 					return new CascadingStyleNormalValue(Move(value));
 				}
 
-				Ref<CascadingStyleSelector> parseCombindSelector()
+				Ref<CascadingStyleSelector> parseCombindSelector(CascadingStyleSelector* before, CascadingStyleCombinator combinator)
 				{
-					Ref<CascadingStyleSelector> ret = parseBasicSelector();
-					if (ret.isNull()) {
+					Ref<CascadingStyleSelector> first = parseBasicSelector(before, combinator);
+					if (first.isNull()) {
 						return sl_null;
 					}
 					skipWhitespaces();
 					if (current >= end) {
-						return ret;
+						return first;
 					}
-					CascadingStyleCombinator combinator = CascadingStyleCombinator::Descendant;
+					combinator = CascadingStyleCombinator::Descendant;
 					CHAR ch = *current;
 					if (ch == '>') {
 						combinator = CascadingStyleCombinator::Child;
@@ -313,24 +375,28 @@ namespace slib
 							return sl_null;
 						}
 					}
-					Ref<CascadingStyleSelector> next = parseCombindSelector();
-					if (next.isNotNull()) {
-						ret->combinator = combinator;
-						ret->next = Move(next);
-					} else {
-						if (combinator != CascadingStyleCombinator::Descendant) {
-							return sl_null;
-						}
+					CHAR* start = current;
+					Ref<CascadingStyleSelector> last = parseCombindSelector(first.get(), combinator);
+					if (last.isNotNull()) {
+						return last;
 					}
-					return ret;
+					if (combinator != CascadingStyleCombinator::Descendant) {
+						return sl_null;
+					}
+					if (start != current) {
+						return sl_null;
+					}
+					return first;
 				}
 
-				Ref<CascadingStyleSelector> parseBasicSelector()
+				Ref<CascadingStyleSelector> parseBasicSelector(CascadingStyleSelector* before, CascadingStyleCombinator combinator)
 				{
 					Ref<CascadingStyleSelector> ret = new CascadingStyleSelector;
 					if (ret.isNull()) {
 						return sl_null;
 					}
+					ret->before = before;
+					ret->combinator = combinator;
 					CHAR* start = current;
 					for (;;) {
 						switch (*current) {
@@ -433,14 +499,17 @@ namespace slib
 							default:
 								{
 									if (ret->elementName.isNotNull() || ret->flagUniversal) {
-										return sl_null;
+										return ret;
 									}
 									String name = parseIdentifier();
 									if (name.isNull()) {
-										if (current == start) {
-											return sl_null;
+										name = parseUnquotedStringValue();
+										if (name.isNull()) {
+											if (current == start) {
+												return sl_null;
+											}
+											return ret;
 										}
-										return ret;
 									}
 									ret->elementName = Move(name);
 									break;
@@ -582,15 +651,35 @@ namespace slib
 					}
 				}
 
+				void skipLine()
+				{
+					while (current < end) {
+						CHAR ch = *(current++);
+						if (ch == '\r') {
+							if (current < end) {
+								ch = current[1];
+								if (ch == '\n') {
+									current++;
+								}
+							}
+							return;
+						} else if (ch == '\n') {
+							return;
+						}
+					}
+				}
+
 				sl_bool parseHexValue(CHAR*& input, sl_uint32& value)
 				{
-					sl_uint32 h = SLIB_CHAR_HEX_TO_INT(*input);
+					sl_uint32 h = (sl_uint32)(*input);
+					h = SLIB_CHAR_HEX_TO_INT(h);
 					if (h < 16) {
 						value = h;
 						input++;
 						sl_uint32 n = 1;
 						while (input < end && n < 6) {
-							h = SLIB_CHAR_HEX_TO_INT(*input);
+							h = (sl_uint32)(*input);
+							h = SLIB_CHAR_HEX_TO_INT(h);
 							if (h < 16) {
 								value = (value << 4) | h;
 								input++;
@@ -645,7 +734,7 @@ namespace slib
 							}
 							sl_uint32 code;
 							if (parseHexValue(input, code)) {
-								lenOutput += Charsets::getUtfn(code, _out);
+								lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
 								continue;
 							} else {
 								ch = *(input++);
@@ -675,9 +764,55 @@ namespace slib
 					if (ret.isNull()) {
 						return sl_null;
 					}
-					if (!(parseIdentifier(current, ret.getData(), len))) {
+					parseIdentifier(current, ret.getData(), len);
+					return String::from(ret);
+				}
+
+				sl_bool parseUnquotedStringValue(CHAR*& input, CHAR* _out, sl_size& lenOutput)
+				{
+					lenOutput = 0;
+					CHAR* start = input;
+					while (input < end) {
+						CHAR ch = *input;
+						if (SLIB_CHAR_IS_ALNUM(ch) || (ch & 0x80) || ch == '-' || ch == '_' || ch == '.' || ch == '%' || ch == '@') {
+							input++;
+						} else if (ch == '\\') {
+							if (input >= end) {
+								return sl_false;
+							}
+							sl_uint32 code;
+							if (parseHexValue(input, code)) {
+								lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
+								continue;
+							} else {
+								ch = *(input++);
+							}
+						} else {
+							break;
+						}
+						if (_out) {
+							_out[lenOutput] = ch;
+						}
+						lenOutput++;
+					}
+					return lenOutput > 0;
+				}
+
+				String parseUnquotedStringValue()
+				{
+					if (current >= end) {
 						return sl_null;
 					}
+					CHAR* s = current;
+					sl_size len;
+					if (!(parseUnquotedStringValue(s, sl_null, len))) {
+						return sl_null;
+					}
+					typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
+					if (ret.isNull()) {
+						return sl_null;
+					}
+					parseUnquotedStringValue(current, ret.getData(), len);
 					return String::from(ret);
 				}
 
@@ -694,7 +829,7 @@ namespace slib
 							}
 							sl_uint32 code;
 							if (parseHexValue(input, code)) {
-								lenOutput += Charsets::getUtfn(code, _out);
+								lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
 								continue;
 							} else {
 								ch = *(input++);
@@ -712,7 +847,7 @@ namespace slib
 				{
 					CHAR chOpen = *current;
 					if (chOpen != '"' && chOpen != '\'') {
-						return parseIdentifier();
+						return parseUnquotedStringValue();
 					}
 					current++;
 					CHAR* s = current;
@@ -734,47 +869,61 @@ namespace slib
 				{
 					while (current < end) {
 						CHAR ch = *current;
-						if (ch == '(') {
-							current++;
-							if (!(skipValueRegion(')'))) {
-								return sl_false;
-							}
-							current++;
-						} else if (ch == '\\') {
-							current++;
-							if (current >= end) {
-								return sl_false;
-							}
-							current++;
-						} else if (ch == '"' || ch == '\'') {
-							current++;
-							sl_size n;
-							if (!(parseStringValue(current, ch, sl_null, n))) {
-								return sl_false;
-							}
-						} else if (ch == '/') {
-							if (current + 1 < end && *(current + 1) == '*') {
-								skipComment();
-							} else {
+						switch (ch) {
+							case '(':
 								current++;
-							}
-						} else {
-							if (chEnd) {
-								if (ch == chEnd) {
-									return sl_true;
+								if (!(skipValueRegion(')'))) {
+									return sl_false;
+								}
+								current++;
+								break;
+							case '[':
+								current++;
+								if (!(skipValueRegion(']'))) {
+									return sl_false;
+								}
+								current++;
+								break;
+							case '\\':
+								current++;
+								if (current >= end) {
+									return sl_false;
+								}
+								current++;
+								break;
+							case '"':
+							case '\'':
+								current++;
+								sl_size n;
+								if (!(parseStringValue(current, ch, sl_null, n))) {
+									return sl_false;
+								}
+								break;
+							case '/':
+								if (current + 1 < end && *(current + 1) == '*') {
+									skipComment();
 								} else {
 									current++;
 								}
-							} else {
-								if (ch == ';' || ch == '{' || ch == '}' || ch == '!') {
-									return sl_true;
+								break;
+							default:
+								if (chEnd) {
+									if (ch == chEnd) {
+										return sl_true;
+									} else {
+										current++;
+									}
 								} else {
-									current++;
+									if (ch == ';' || ch == '{' || ch == '}' || ch == '!') {
+										return sl_true;
+									} else {
+										current++;
+									}
 								}
-							}
+								break;
 						}
 					}
-					return sl_false;
+					return !chEnd;
 				}
 
 				String parseValueRegion(CHAR chEnd)
@@ -789,7 +938,8 @@ namespace slib
 					}
 					CHAR* last = current - 1;
 					while (last > start) {
-						if (SLIB_CHAR_IS_WHITE_SPACE(*last)) {
+						CHAR ch = *last;
+						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 							last--;
 						} else {
 							break;
@@ -830,16 +980,26 @@ namespace slib
 			// Returns output length
 			static sl_size MakeIdentifier(char* input, sl_size lenInput, char* output, sl_bool& outFlagDiffOriginal)
 			{
-				char* start = input;
 				sl_size lenOutput = 0;
 				sl_size posInput = 0;
 				sl_bool flagDiffOriginal = sl_false;
+				const char* hex = "0123456789abcdef";
 				while (posInput < lenInput) {
 					char ch = input[posInput];
 					if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
-						if (input == start) {
+						if (!posInput) {
 							if (SLIB_CHAR_IS_DIGIT(ch)) {
-								WriteChar(output, lenOutput, '\\');
+								if (output) {
+									output[lenOutput++] = '\\';
+									output[lenOutput++] = '0';
+									output[lenOutput++] = '0';
+									output[lenOutput++] = '0';
+									output[lenOutput++] = '0';
+									output[lenOutput++] = hex[(ch >> 4) & 15];
+								} else {
+									lenOutput += 6;
+								}
+								ch = hex[ch & 15];
 								flagDiffOriginal = sl_true;
 							} else if (ch == '-' && lenInput >= 2) {
 								char next = input[1];
@@ -869,7 +1029,6 @@ namespace slib
 						}
 						if (output) {
 							output[lenOutput++] = '\\';
-							const char* hex = "0123456789abcdef";
 							output[lenOutput++] = hex[(code >> 20) & 15];
 							output[lenOutput++] = hex[(code >> 16) & 15];
 							output[lenOutput++] = hex[(code >> 12) & 15];
@@ -980,6 +1139,16 @@ namespace slib
 				return buf.addStatic("\"");
 			}
 
+			static sl_bool WriteTabs(StringBuffer& buf, sl_uint32 nTabs)
+			{
+				for (sl_uint32 i = 0; i < nTabs; i++) {
+					if (!(buf.addStatic("\t"))) {
+						return sl_false;
+					}
+				}
+				return sl_true;
+			}
+
 		}
 	}
 
@@ -996,9 +1165,19 @@ namespace slib
 	sl_bool CascadingStyleValue::toString_Suffix(StringBuffer& output)
 	{
 		if (m_flagImportant) {
-			return output.addStatic(" !important;");
+			return output.addStatic(" !important");
 		} else {
-			return output.addStatic(";");
+			return sl_true;
+		}
+	}
+
+	String CascadingStyleValue::toString()
+	{
+		StringBuffer buf;
+		if (toString(buf)) {
+			return buf.merge();
+		} else {
+			return sl_null;
 		}
 	}
 
@@ -1063,8 +1242,65 @@ namespace slib
 	{
 	}
 
+	sl_bool CascadingStyleSelector::matchElement(const Ref<XmlElement>& element)
+	{
+		if (flagNamespace) {
+			if (namespaceName.isNotNull()) {
+				if (element->getNamespace() != namespaceName) {
+					return sl_false;
+				}
+			}
+		}
+		if (!flagUniversal) {
+			if (elementName.isNotNull()) {
+				if (element->getLocalName() != elementName) {
+					return sl_false;
+				}
+			}
+		}
+		if (id.isNotNull()) {
+			SLIB_STATIC_STRING(_id, "id")
+			if (element->getAttribute(_id) != id) {
+				return sl_false;
+			}
+		}
+		if (classNames.isNotNull()) {
+			SLIB_STATIC_STRING(_class, "class")
+		}
+		return sl_false;
+	}
+
 	sl_bool CascadingStyleSelector::toString(StringBuffer& output)
 	{
+		if (before.isNotNull() && combinator != CascadingStyleCombinator::None) {
+			if (!(before->toString(output))) {
+				return sl_false;
+			}
+			switch (combinator) {
+				case CascadingStyleCombinator::Descendant:
+					if (!(output.addStatic(" "))) {
+						return sl_false;
+					}
+					break;
+				case CascadingStyleCombinator::Child:
+					if (!(output.addStatic(">"))) {
+						return sl_false;
+					}
+					break;
+				case CascadingStyleCombinator::Sibling:
+					if (!(output.addStatic("~"))) {
+						return sl_false;
+					}
+					break;
+				case CascadingStyleCombinator::Adjacent:
+					if (!(output.addStatic("+"))) {
+						return sl_false;
+					}
+					break;
+				default:
+					return sl_false;
+			}
+		}
 		if (flagNamespace) {
 			if (namespaceName.isNotNull()) {
 				if (!(WriteIdentifier(output, namespaceName))) {
@@ -1164,6 +1400,26 @@ namespace slib
 				}
 			}
 		}
+		{
+			ListElements<String> items(pseudoClasses);
+			for (sl_size i = 0; i < items.count; i++) {
+				String& name = items[i];
+				if (!(output.addStatic(":"))) {
+					return sl_false;
+				}
+				if (!(output.add(name))) {
+					return sl_false;
+				}
+			}
+		}
+		if (pseudoElement.isNotNull()) {
+			if (!(output.addStatic("::"))) {
+				return sl_false;
+			}
+			if (!(output.add(pseudoElement))) {
+				return sl_false;
+			}
+		}
 		return sl_true;
 	}
 
@@ -1171,6 +1427,127 @@ namespace slib
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CascadingStyleStatements)
 
 	CascadingStyleStatements::CascadingStyleStatements()
+	{
+	}
+
+	sl_bool CascadingStyleStatements::toString(StringBuffer& output, sl_uint32 tabLevel)
+	{
+		sl_bool flagFirst = sl_true;
+		{
+			ListElements<CascadingStyleAtRule> items(atRules);
+			for (sl_size i = 0; i < items.count; i++) {
+				CascadingStyleAtRule& item = items[i];
+				if (flagFirst) {
+					flagFirst = sl_false;
+				} else {
+					if (!(output.addStatic("\r\n"))) {
+						return sl_false;
+					}
+				}
+				if (!(item.toString(output, tabLevel))) {
+					return sl_false;
+				}
+			}
+		}
+		{
+			ListElements<CascadingStyleRule> items(rules);
+			for (sl_size i = 0; i < items.count; i++) {
+				CascadingStyleRule& item = items[i];
+				if (flagFirst) {
+					flagFirst = sl_false;
+				} else {
+					if (!(output.addStatic("\r\n"))) {
+						return sl_false;
+					}
+				}
+				if (!(item.toString(output, tabLevel))) {
+					return sl_false;
+				}
+			}
+		}
+		return sl_true;
+	}
+
+
+	sl_bool CascadingStyleRule::toString(StringBuffer& output, sl_uint32 tabLevel)
+	{
+		if (!(WriteTabs(output, tabLevel))) {
+			return sl_false;
+		}
+		if (!(selector->toString(output))) {
+			return sl_false;
+		}
+		if (!(output.addStatic(" {\r\n"))) {
+			return sl_false;
+		}
+		if (!(CascadingStyleSheet::writeDeclarationsString(output, declarations, tabLevel))) {
+			return sl_false;
+		}
+		if (!(WriteTabs(output, tabLevel))) {
+			return sl_false;
+		}
+		return output.addStatic("}");
+	}
+
+
+	sl_bool CascadingStyleAtRule::toString(StringBuffer& output, sl_uint32 tabLevel)
+	{
+		if (!(WriteTabs(output, tabLevel))) {
+			return sl_false;
+		}
+		if (!(output.addStatic("@"))) {
+			return sl_false;
+		}
+		if (!(WriteIdentifier(output, identifier))) {
+			return sl_false;
+		}
+		if (rule.isNotEmpty()) {
+			if (!(output.addStatic(" "))) {
+				return sl_false;
+			}
+			if (!(output.add(rule))) {
+				return sl_false;
+			}
+		}
+		if (declarations.isNotNull()) {
+			if (!(output.addStatic(" {\r\n"))) {
+				return sl_false;
+			}
+			if (!(CascadingStyleSheet::writeDeclarationsString(output, declarations, tabLevel))) {
+				return sl_false;
+			}
+			if (!(WriteTabs(output, tabLevel))) {
+				return sl_false;
+			}
+			if (!(output.addStatic("}"))) {
+				return sl_false;
+			}
+		} else if (statements.atRules.isNotNull() || statements.rules.isNotNull()) {
+			if (!(output.addStatic(" {\r\n"))) {
+				return sl_false;
+			}
+			if (!(statements.toString(output, tabLevel + 1))) {
+				return sl_false;
+			}
+			if (!(output.addStatic("\r\n"))) {
+				return sl_false;
+			}
+			if (!(WriteTabs(output, tabLevel))) {
+				return sl_false;
+			}
+			if (!(output.addStatic("}"))) {
+				return sl_false;
+			}
+		} else {
+			return output.addStatic(";");
+		}
+		return sl_true;
+	}
+
+
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CascadingStylesParam)
+
+	CascadingStylesParam::CascadingStylesParam(): flagIgnoreErrors(sl_true), flagError(sl_false)
 	{
 	}
 
@@ -1183,21 +1560,113 @@ namespace slib
 	{
 	}
 
-	sl_bool CascadingStyleSheet::addStyles(const StringParam& _styles)
+	void CascadingStyleSheet::addStyles(const StringParam& _styles, CascadingStylesParam& param)
 	{
 		if (_styles.isEmpty()) {
-			return sl_true;
+			return;
 		}
 		if (_styles.is8BitsStringType()) {
 			StringData styles(_styles);
-			return StylesParser<sl_char8>::run(this, styles.getData(), styles.getLength());
+			StylesParser<sl_char8>::run(this, styles.getData(), styles.getLength(), param);
 		} else if (_styles.is16BitsStringType()) {
 			StringData16 styles(_styles);
-			return StylesParser<sl_char16>::run(this, styles.getData(), styles.getLength());
+			StylesParser<sl_char16>::run(this, styles.getData(), styles.getLength(), param);
 		} else {
 			StringData32 styles(_styles);
-			return StylesParser<sl_char32>::run(this, styles.getData(), styles.getLength());
+			StylesParser<sl_char32>::run(this, styles.getData(), styles.getLength(), param);
 		}
+	}
+
+	sl_bool CascadingStyleSheet::addStyles(const StringParam& styles)
+	{
+		CascadingStylesParam param;
+		addStyles(styles, param);
+		return !(param.flagError);
+	}
+
+	sl_bool CascadingStyleSheet::toString(StringBuffer& output)
+	{
+		return m_statements.toString(output, 0);
+	}
+
+	String CascadingStyleSheet::toString()
+	{
+		StringBuffer buf;
+		if (toString(buf)) {
+			return buf.merge();
+		} else {
+			return sl_null;
+		}
+	}
+
+	CascadingStyleDeclarations CascadingStyleSheet::getElementDeclarations(const Ref<XmlElement>& element)
+	{
+		CascadingStyleDeclarations decls;
+		ListElements<CascadingStyleRule> rules(m_statements.rules);
+		for (sl_size i = 0; i < rules.count; i++) {
+			CascadingStyleRule& rule(rules[i]);
+			if (rule.selector->matchElement(element)) {
+				mergeDeclarations(decls, rule.declarations);
+			}
+		}
+		return decls;
+	}
+
+	CascadingStyleDeclarations CascadingStyleSheet::parseDeclarations(const StringParam& _input)
+	{
+		if (_input.isEmpty()) {
+			return sl_null;
+		}
+		if (_input.is8BitsStringType()) {
+			StringData input(_input);
+			return StylesParser<sl_char8>::parseDeclarations(input.getData(), input.getLength());
+		} else if (_input.is16BitsStringType()) {
+			StringData16 input(_input);
+			return StylesParser<sl_char16>::parseDeclarations(input.getData(), input.getLength());
+		} else {
+			StringData32 input(_input);
+			return StylesParser<sl_char32>::parseDeclarations(input.getData(), input.getLength());
+		}
+	}
+
+	void CascadingStyleSheet::mergeDeclarations(CascadingStyleDeclarations& to, const CascadingStyleDeclarations& from)
+	{
+		auto node = from.getFirstNode();
+		while (node) {
+			String& key = node->key;
+			Ref<CascadingStyleValue> orig = to.getValue_NoLock(key);
+			if (orig.isNotNull()) {
+				if (orig->isImportant()) {
+					continue;
+				}
+			}
+			to.put_NoLock(key, node->value);
+			node = node->getNext();
+		}
+	}
+
+	sl_bool CascadingStyleSheet::writeDeclarationsString(StringBuffer& output, const CascadingStyleDeclarations& decls, sl_uint32 tabLevel)
+	{
+		auto node = decls.getFirstNode();
+		while (node) {
+			if (!(WriteTabs(output, tabLevel + 1))) {
+				return sl_false;
+			}
+			if (!(WriteIdentifier(output, node->key))) {
+				return sl_false;
+			}
+			if (!(output.addStatic(": "))) {
+				return sl_false;
+			}
+			if (!(node->value->toString(output))) {
+				return sl_false;
+			}
+			if (!(output.addStatic(";\r\n"))) {
+				return sl_false;
+			}
+			node = node->next;
+		}
+		return sl_true;
 	}
 
 }
