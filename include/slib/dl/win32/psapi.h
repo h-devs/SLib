@@ -36,11 +36,43 @@ namespace slib
 
 	SLIB_IMPORT_LIBRARY_BEGIN(psapi, "psapi.dll")
 		SLIB_IMPORT_LIBRARY_FUNCTION(
+			EnumProcesses,
+			BOOL, WINAPI,
+			DWORD *pProcessIds,
+			DWORD cb,
+			DWORD *pBytesReturned
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			EnumProcessModules,
+			BOOL, WINAPI,
+			HANDLE hProcess,
+			HMODULE *lphModule,
+			DWORD cb,
+			LPDWORD lpcbNeeded
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			EnumProcessModulesEx,
+			BOOL, WINAPI,
+			HANDLE hProcess,
+			HMODULE *lphModule,
+			DWORD cb,
+			LPDWORD lpcbNeeded,
+			DWORD dwFilterFlag
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetModuleFileNameExW,
 			DWORD, WINAPI,
 			HANDLE hProcess,
 			HMODULE hModule,
 			LPWSTR lpFilename,
+			DWORD nSize
+		)
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			GetModuleBaseNameW,
+			DWORD, WINAPI,
+			HANDLE hProcess,
+			HMODULE hModule,
+			LPTSTR lpBaseName,
 			DWORD nSize
 		)
 	SLIB_IMPORT_LIBRARY_END

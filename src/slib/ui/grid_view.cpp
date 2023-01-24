@@ -185,7 +185,7 @@ namespace slib
 			return ret;
 		}
 
-		for (sl_int64 i = colStart; i < colEnd; i++) {
+		for (sl_int32 i = colStart; i < colEnd; i++) {
 			ret += m_listColumnWidth.getValueAt_NoLock(i);
 		}
 		return ret;

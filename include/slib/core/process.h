@@ -44,13 +44,18 @@ namespace slib
 	{
 		SLIB_DECLARE_OBJECT
 
-	public:
+	protected:
 		Process();
 
 		~Process();
 
 	public:
 		static sl_uint32 getCurrentProcessId();
+
+		static List<sl_uint32> getAllProcessIds();
+
+		static String getImagePath(sl_uint32 processId);
+
 
 		static Ref<Process> open(const StringParam& pathExecutable, const StringParam* args = sl_null, sl_size nArgs = 0);
 

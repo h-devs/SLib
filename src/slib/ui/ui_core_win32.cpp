@@ -33,10 +33,9 @@
 #include "slib/ui/app.h"
 #include "slib/ui/window.h"
 #include "slib/io/file.h"
-#include "slib/core/queue.h"
+#include "slib/core/process.h"
 #include "slib/core/safe_static.h"
 #include "slib/core/scoped_buffer.h"
-#include "slib/dl/win32/psapi.h"
 
 #include <commctrl.h>
 #include <shobjidl.h>
@@ -514,36 +513,13 @@ namespace slib
 
 	String UI::getActiveApplicationName()
 	{
-		auto funcGetModuleFileNameExW = psapi::getApi_GetModuleFileNameExW();
-		if (!funcGetModuleFileNameExW) {
-			return sl_null;
-		}
 		String ret;
 		HWND hWnd = GetForegroundWindow();
 		if (hWnd) {
 			DWORD dwProcessId = 0;
 			GetWindowThreadProcessId(hWnd, &dwProcessId);
 			if (dwProcessId) {
-				HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, dwProcessId);
-				if (hProcess) {
-					WCHAR filePath[MAX_PATH + 1];
-					DWORD dwLen = funcGetModuleFileNameExW(hProcess, NULL, filePath, MAX_PATH);
-					if (dwLen) {
-						DWORD i = dwLen - 1;
-						for (;;) {
-							if (filePath[i] == '\\' || filePath[i] == '/') {
-								ret = String::from(filePath + i + 1, dwLen - 1 - i);
-								break;
-							}
-							if (!i) {
-								ret = String::from(filePath, dwLen);
-								break;
-							}
-							i--;
-						}
-					}
-					CloseHandle(hProcess);
-				}
+				ret = File::getFileName(Process::getImagePath(dwProcessId));
 			}
 		}
 		return ret;

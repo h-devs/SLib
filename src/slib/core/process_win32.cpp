@@ -31,6 +31,8 @@
 #include "slib/core/string_buffer.h"
 #include "slib/core/handle_ptr.h"
 #include "slib/platform.h"
+#include "slib/dl/win32/psapi.h"
+#include "slib/dl/win32/kernel32.h"
 
 #include <process.h>
 
@@ -282,6 +284,73 @@ namespace slib
 	}
 
 	using namespace priv::process;
+
+	List<sl_uint32> Process::getAllProcessIds()
+	{
+#if defined(SLIB_PLATFORM_IS_MOBILE)
+		return sl_null;
+#else
+		auto funcEnumProcesses = psapi::getApi_EnumProcesses();
+		if (!funcEnumProcesses) {
+			return sl_null;
+		}
+		List<sl_uint32> ret;
+		for (sl_size i = 0; i < 8; i++) {
+			sl_uint32 n = 256 << i;
+			List<sl_uint32> listNew = List<sl_uint32>::create(n);
+			if (listNew.isNull()) {
+				break;
+			}
+			DWORD m = 0;
+			if (funcEnumProcesses((DWORD*)(listNew.getData()), n << 2, &m)) {
+				ret = Move(listNew);
+				if (m != (n << 2)) {
+					ret.setCount_NoLock(m >> 2);
+					break;
+				}
+			} else {
+				break;
+			}
+		}
+		return ret;
+#endif
+	}
+
+	String Process::getImagePath(sl_uint32 processId)
+	{
+#if defined(SLIB_PLATFORM_IS_MOBILE)
+		return sl_null;
+#else
+		auto funcQueryFullProcessImageNameW = kernel32::getApi_QueryFullProcessImageNameW();
+		auto funcGetModuleFileNameExW = psapi::getApi_GetModuleFileNameExW();
+		if (!(funcQueryFullProcessImageNameW || funcGetModuleFileNameExW)) {
+			return sl_null;
+		}
+		String ret;
+		if (funcQueryFullProcessImageNameW) {
+			HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, (DWORD)processId);
+			if (hProcess) {
+				WCHAR filePath[MAX_PATH + 1];
+				DWORD lenPath = MAX_PATH;
+				if (funcQueryFullProcessImageNameW(hProcess, NULL, filePath, &lenPath)) {
+					ret = String::from(filePath, lenPath);
+				}
+			}
+			CloseHandle(hProcess);
+		} else {
+			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, (DWORD)processId);
+			if (hProcess) {
+				WCHAR filePath[MAX_PATH + 1];
+				DWORD dwLen = funcGetModuleFileNameExW(hProcess, NULL, filePath, MAX_PATH);
+				if (dwLen) {
+					ret = String::from(filePath, dwLen);
+				}
+			}
+			CloseHandle(hProcess);
+		}
+		return ret;
+#endif
+	}
 
 	sl_uint32 Process::getCurrentProcessId()
 	{

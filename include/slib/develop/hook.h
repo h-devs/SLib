@@ -6,6 +6,8 @@
 namespace slib
 {
 
+	class StringParam;
+
 	class SLIB_EXPORT Hook
 	{
 	public:
@@ -35,6 +37,9 @@ namespace slib
 		static sl_bool replaceCode(const void* targetAddress, const void* pNewCode, sl_uint32 nCodeBytes);
 
 		static sl_bool replaceCode(sl_uint32 targetRVA, const void* pNewCode, sl_uint32 nCodeBytes);
+
+
+		static sl_bool injectDllIntoRemoteProcess(sl_uint32 processId, const StringParam& pathDll);
 
 	};
 

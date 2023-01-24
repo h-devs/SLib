@@ -28,6 +28,9 @@
 #include "slib/develop/protect.h"
 #include "slib/develop/module.h"
 #include "slib/core/base.h"
+#include "slib/core/string.h"
+#include "slib/platform/win32/windows.h"
+#include "slib/dl/win32/kernel32.h"
 
 namespace slib
 {
@@ -214,6 +217,38 @@ namespace slib
 			return replaceCode((sl_uint8*)base + targetRVA, pNewCode, nCodeBytes);
 		}
 		return sl_false;
+	}
+
+
+	sl_bool Hook::injectDllIntoRemoteProcess(sl_uint32 processId, const StringParam& _pathDll)
+	{
+		HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_WRITE, FALSE, (DWORD)processId);
+		if (!hProcess) {
+			return sl_false;
+		}
+		sl_bool bRet = sl_false;
+		StringCstr16 pathDll(_pathDll);
+		DWORD sizePathDll = (DWORD)((pathDll.getLength() + 1) << 1);
+		LPVOID pMemProcessDllPath = VirtualAllocEx(hProcess, NULL, sizePathDll, MEM_COMMIT, PAGE_READWRITE);
+		if (pMemProcessDllPath) {
+			if (WriteProcessMemory(hProcess, pMemProcessDllPath, pathDll.getData(), sizePathDll, NULL)) {
+				void* lib = kernel32::getLibrary();
+				if (lib) {
+					void* fnLoadDll = GetProcAddress((HMODULE)lib, "LoadLibraryW");
+					if (fnLoadDll) {
+						HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (PTHREAD_START_ROUTINE)fnLoadDll, pMemProcessDllPath, 0, NULL);
+						if (hThread) {
+							WaitForSingleObject(hThread, INFINITE);
+							CloseHandle(hThread);
+							bRet = sl_true;
+						}
+					}
+				}
+			}
+			VirtualFreeEx(hProcess, pMemProcessDllPath, 0, MEM_RELEASE);
+		}
+		CloseHandle(hProcess);
+		return bRet;
 	}
 
 }

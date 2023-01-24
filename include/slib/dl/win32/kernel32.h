@@ -132,6 +132,15 @@ namespace slib
 			DWORD dwFlags
 		)
 
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			QueryFullProcessImageNameW,
+			BOOL, WINAPI,
+			HANDLE hProcess,
+			DWORD dwFlags,
+			LPWSTR lpExeName,
+			PDWORD lpdwSize
+		)
+
 	SLIB_IMPORT_LIBRARY_END
 
 }
