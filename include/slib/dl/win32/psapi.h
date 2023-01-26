@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2021 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ namespace slib
 {
 
 	SLIB_IMPORT_LIBRARY_BEGIN(psapi, "psapi.dll")
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			EnumProcesses,
 			BOOL, WINAPI,
@@ -42,6 +43,7 @@ namespace slib
 			DWORD cb,
 			DWORD *pBytesReturned
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			EnumProcessModules,
 			BOOL, WINAPI,
@@ -50,6 +52,7 @@ namespace slib
 			DWORD cb,
 			LPDWORD lpcbNeeded
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			EnumProcessModulesEx,
 			BOOL, WINAPI,
@@ -59,6 +62,7 @@ namespace slib
 			LPDWORD lpcbNeeded,
 			DWORD dwFilterFlag
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetModuleFileNameExW,
 			DWORD, WINAPI,
@@ -67,6 +71,7 @@ namespace slib
 			LPWSTR lpFilename,
 			DWORD nSize
 		)
+
 		SLIB_IMPORT_LIBRARY_FUNCTION(
 			GetModuleBaseNameW,
 			DWORD, WINAPI,
@@ -75,6 +80,16 @@ namespace slib
 			LPTSTR lpBaseName,
 			DWORD nSize
 		)
+
+		SLIB_IMPORT_LIBRARY_FUNCTION(
+			GetModuleInformation,
+			BOOL, WINAPI,
+			HANDLE hProcess,
+			HMODULE hModule,
+			LPMODULEINFO lpmodinfo,
+			DWORD cb
+		)
+
 	SLIB_IMPORT_LIBRARY_END
 
 }

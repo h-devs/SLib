@@ -17,16 +17,17 @@ namespace slib
 		// returns old function address
 		static void* replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress);
 
+		// replaces import entries of all modules
+		static void replaceAllImportEntries(const char* dllName, const char* procName, const void* newFunctionAddress);
+
 #if defined(SLIB_ARCH_IS_32BIT)
 		// returns old function address
 		static void* replaceExportEntry(const void* dllBaseAddress, const char* procName, const void* newFunctionAddress);
 #endif
 
-		// returns generated code that can jump to old function
-		static void* hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup);
+		static sl_bool hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, void* outCallHookedFunction);
 
-		// returns generated code that can jump to old function
-		static void* hookFunction(sl_uint32 targetFunctionRVA, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup);
+		static sl_bool hookFunction(sl_uint32 targetFunctionRVA, const void* newFunctionAddress, void* outCallHookedFunction);
 
 		// returns old jump address
 		static void* hookJmpNear(const void* targetAddress, const void* newAddress);

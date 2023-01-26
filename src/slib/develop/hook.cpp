@@ -1,5 +1,5 @@
 /*
-*   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+*   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,211 @@
 #include "slib/develop/pe.h"
 #include "slib/develop/protect.h"
 #include "slib/develop/module.h"
-#include "slib/core/base.h"
-#include "slib/core/string.h"
+#include "slib/core/process.h"
 #include "slib/platform/win32/windows.h"
 #include "slib/dl/win32/kernel32.h"
 
+#ifdef SLIB_ARCH_IS_64BIT
+#define JMP_FAR_CODE_MAX_LENGTH 21
+#else
+#define JMP_FAR_CODE_MAX_LENGTH 5
+#endif
+
 namespace slib
 {
+
+	namespace priv
+	{
+		namespace hook
+		{
+
+			static sl_uint8 Generate_Jmp(void* _dst, const void* address, const void* callerAddress)
+			{
+				sl_uint8* dst = (sl_uint8*)_dst;
+				sl_reg offset = (sl_reg)((sl_uint8*)address - ((sl_uint8*)callerAddress + 5));
+#if defined(SLIB_ARCH_IS_64BIT)
+				if (offset != (sl_int32)offset) {
+					if (dst) {
+						dst[0] = 0xC7; // mov dword ptr [rsp-8], &address
+						dst[1] = 0x44;
+						dst[2] = 0x24;
+						dst[3] = 0xF8;
+						Base::copyMemory(dst + 4, &address, 4);
+						dst[8] = 0xC7; // mov dword ptr [rsp-4], &address+4
+						dst[9] = 0x44;
+						dst[10] = 0x24;
+						dst[11] = 0xFC;
+						Base::copyMemory(dst + 12, ((char*)&address) + 4, 4);
+						dst[16] = 0x48; // sub rsp, 8
+						dst[17] = 0x83;
+						dst[18] = 0xEC;
+						dst[19] = 0x08;
+						dst[20] = 0xC3; // ret
+					}
+					return 21;
+				}
+#endif
+				if (dst) {
+					*dst = 0xE9; // jmp offset
+					Base::copyMemory(dst + 1, &offset, 4);
+				}
+				return 5;
+			}
+
+			SLIB_INLINE static void WriteByte(sl_uint8* dst, sl_uint32& pos, sl_uint8 value)
+			{
+				if (dst) {
+					dst[pos++] = value;
+				} else {
+					pos++;
+				}
+			}
+
+			SLIB_INLINE static void WriteBytes(sl_uint8* dst, sl_uint32& pos, sl_uint8 value1, sl_uint8 value2)
+			{
+				if (dst) {
+					dst[pos++] = value1;
+					dst[pos++] = value2;
+				} else {
+					pos += 2;
+				}
+			}
+
+			SLIB_INLINE static void WriteBytes(sl_uint8* dst, sl_uint32& pos, sl_uint8 value1, sl_uint8 value2, sl_uint8 value3)
+			{
+				if (dst) {
+					dst[pos++] = value1;
+					dst[pos++] = value2;
+					dst[pos++] = value3;
+				} else {
+					pos += 3;
+				}
+			}
+
+			SLIB_INLINE static void WriteBytes(sl_uint8* dst, sl_uint32& pos, sl_uint8 value1, sl_uint8 value2, sl_uint8 value3, sl_uint8 value4)
+			{
+				if (dst) {
+					dst[pos++] = value1;
+					dst[pos++] = value2;
+					dst[pos++] = value3;
+					dst[pos++] = value4;
+				} else {
+					pos += 4;
+				}
+			}
+
+			SLIB_INLINE static void WriteBytes(sl_uint8* dst, sl_uint32& pos, sl_uint8 value1, sl_uint8 value2, sl_uint8 value3, sl_uint8 value4, sl_uint8 value5)
+			{
+				if (dst) {
+					dst[pos++] = value1;
+					dst[pos++] = value2;
+					dst[pos++] = value3;
+					dst[pos++] = value4;
+					dst[pos++] = value5;
+				} else {
+					pos += 5;
+				}
+			}
+
+			static sl_uint32 Generate_CopyBytes(void* _dst, const void* targetAddress, const void* _src, sl_uint8 size)
+			{
+				if (!size) {
+					return 0;
+				}
+				sl_uint8* dst = (sl_uint8*)_dst;
+				sl_uint8* src = (sl_uint8*)_src;
+#if defined(SLIB_ARCH_IS_64BIT)
+				if (dst) {
+					dst[0] = 0x48; // mov rax, targetAddress
+					dst[1] = 0xB8;
+					Base::copyMemory(dst + 2, &targetAddress, 8);
+				}
+				sl_uint32 pos = 10;
+#else
+				if (dst) {
+					dst[0] = 0xB8; // mov eax, targetAddress
+					Base::copyMemory(dst + 1, &targetAddress, 4);
+				}
+				sl_uint32 pos = 5;
+#endif
+				WriteBytes(dst, pos, 0xC6, 0x00, *(src++)); // mov byte ptr [eax], *src;
+				for (sl_uint8 i = 1; i < size; i++) {
+					WriteBytes(dst, pos, 0xC6, 0x40, i, *(src++)); // mov byte ptr [eax + i], src[i];
+				}
+				return pos;
+			}
+
+			static sl_uint32 Generate_CallHookedFunction(void* _dst, const void* targetFunctionAddress, const void* codesReplacing, sl_uint32 sizeReplacing)
+			{
+				sl_uint8* dst = (sl_uint8*)_dst;
+				sl_uint32 pos = 0;
+				pos += Generate_CopyBytes(dst, targetFunctionAddress, targetFunctionAddress, sizeReplacing);
+#if defined(SLIB_ARCH_IS_64BIT)
+				WriteBytes(dst, pos, 0x48, 0xB8); // mov rax, pBackupCaller
+#else
+				WriteByte(dst, pos, 0xB8); // mov eax, pBackupCaller
+#endif
+				sl_uint8* pBackupCaller = dst ? dst + pos : sl_null;
+				pos += sizeof(void*);
+				WriteByte(dst, pos, 0x51); // push rcx(ecx)
+#if defined(SLIB_ARCH_IS_64BIT)
+				WriteBytes(dst, pos, 0x48, 0x8B, 0x4C, 0x24, 0x08); // mov rcx, qword ptr [rsp+8]
+				WriteBytes(dst, pos, 0x48, 0x89, 0x08); // mov qword ptr [rax], rcx
+#else
+				WriteBytes(dst, pos, 0x8B, 0x4C, 0x24, 0x04); // mov ecx, dword ptr [esp+4]
+				WriteBytes(dst, pos, 0x89, 0x08); // mov dword ptr [eax], ecx
+#endif
+				WriteByte(dst, pos, 0x59); // pop rcx(ecx)
+#if defined(SLIB_ARCH_IS_64BIT)
+				WriteBytes(dst, pos, 0x48, 0xB8); // mov rax, pReturn
+#else
+				WriteByte(dst, pos, 0xB8); // mov eax, pReturn
+#endif
+				sl_uint8* pReturn = dst ? dst + pos : sl_null;
+				pos += sizeof(void*);
+#if defined(SLIB_ARCH_IS_64BIT)
+				WriteBytes(dst, pos, 0x48, 0x89, 0x04, 0x24); // mov qword ptr [rsp], rax
+#else
+				WriteBytes(dst, pos, 0x89, 0x04, 0x24); // mov dword ptr [esp], eax
+#endif
+				pos += Generate_Jmp(dst ? dst + pos : sl_null, targetFunctionAddress, dst ? dst + pos : sl_null);
+				if (dst) {
+					sl_uint8* p = dst + pos;
+					Base::copyMemory(pReturn, &p, sizeof(void*));
+				}
+				WriteByte(dst, pos, 0x50); // push rax(eax)
+				WriteByte(dst, pos, 0x50); // push rax(eax)
+				pos += Generate_CopyBytes(dst ? dst + pos : sl_null, targetFunctionAddress, codesReplacing, sizeReplacing);
+#if defined(SLIB_ARCH_IS_64BIT)
+				WriteBytes(dst, pos, 0x48, 0xB8); // mov rax, pBackupCaller
+#else
+				WriteByte(dst, pos, 0xB8); // mov eax, pBackupCaller
+#endif
+				sl_uint8* pBackupCaller2 = dst ? dst + pos : sl_null;
+				pos += sizeof(void*);
+#if defined(SLIB_ARCH_IS_64BIT)
+				WriteBytes(dst, pos, 0x48, 0x8B, 0x00); // mov rax, [rax]
+				WriteBytes(dst, pos, 0x48, 0x89, 0x44, 0x24, 0x08); // mov dword ptr [rsp+8], rax
+#else
+				WriteBytes(dst, pos, 0x8B, 0x00); // mov eax, [eax]
+				WriteBytes(dst, pos, 0x89, 0x44, 0x24, 0x04); // mov dword ptr [esp+4], eax
+#endif
+				WriteByte(dst, pos, 0x58); // pop rax(eax)
+				WriteByte(dst, pos, 0xC3); // ret
+				pos = ((pos + 15) >> 4) << 4;
+				if (dst) {
+					sl_uint8* p = dst + pos;
+					Base::copyMemory(pBackupCaller, &p, sizeof(void*));
+					Base::copyMemory(pBackupCaller2, &p, sizeof(void*));
+				}
+				pos += sizeof(void*);
+				return pos;
+			}
+
+		}
+	}
+
+	using namespace priv::hook;
 
 	void* Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, const void* newFunctionAddress)
 	{
@@ -78,6 +276,17 @@ namespace slib
 		return sl_null;
 	}
 
+	void Hook::replaceAllImportEntries(const char* dllName, const char* procName, const void* newFunctionAddress)
+	{
+		ListElements<ModuleDescription> modules(Module::getAllModules(Process::getCurrentProcessId(), sl_false));
+		for (sl_size i = 0; i < modules.count; i++) {
+			ModuleDescription& module = modules[i];
+			if (module.baseAddress) {
+				replaceImportEntry(module.baseAddress, dllName, procName, newFunctionAddress);
+			}
+		}
+	}
+
 #if defined(SLIB_ARCH_IS_32BIT)
 	void* Hook::replaceExportEntry(const void* dllBaseAddress, const char* procName, const void* newFunctionAddress)
 	{
@@ -92,82 +301,39 @@ namespace slib
 	}
 #endif
 
-#ifdef SLIB_ARCH_IS_64BIT
-	namespace priv
+	sl_bool Hook::hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, void* outCallHookedFunction)
 	{
-		namespace hook
-		{
-			void GenerateJmpFar(void* _dst, const void* address)
-			{
-				sl_uint8* dst = (sl_uint8*)_dst;
-				dst[0] = 0xC7; // mov dword ptr [esp-8], &address
-				dst[1] = 0x44;
-				dst[2] = 0x24;
-				dst[3] = 0xF8;
-				Base::copyMemory(dst + 4, &address, 4);
-				dst[8] = 0xC7; // mov dword ptr [esp-4], &address+4
-				dst[9] = 0x44;
-				dst[10] = 0x24;
-				dst[11] = 0xFC;
-				Base::copyMemory(dst + 12, ((char*)&address) + 4, 4);
-				dst[16] = 0x48; // sub rsp, 8
-				dst[17] = 0x83;
-				dst[18] = 0xEC;
-				dst[19] = 0x08;
-				dst[20] = 0xC3; // ret
-			}
+		sl_uint8 codesReplacing[JMP_FAR_CODE_MAX_LENGTH];
+		sl_uint8 sizeReplacing = Generate_Jmp(codesReplacing, newFunctionAddress, targetFunctionAddress);
+
+		sl_uint32 sizeCallHooked = Generate_CallHookedFunction(sl_null, targetFunctionAddress, codesReplacing, sizeReplacing);
+		sl_uint8* fnCallHooked = (sl_uint8*)(Base::createMemory(sizeCallHooked));
+		if (!fnCallHooked) {
+			return sl_false;
 		}
-	}
-#endif
+		Generate_CallHookedFunction(fnCallHooked, targetFunctionAddress, codesReplacing, sizeReplacing);
 
-	void* Hook::hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup)
-	{
-		sl_uint8* fnTarget = (sl_uint8*)targetFunctionAddress;
-#ifdef SLIB_ARCH_IS_64BIT
-		sl_uint32 sizeFnRestore = nCodeBytesToBackup + 21;
-#else
-		sl_uint32 sizeFnRestore = nCodeBytesToBackup + 6;
-#endif
-		sl_uint8* fnRestore = (sl_uint8*)(Base::createMemory(sizeFnRestore));
-		if (fnRestore) {
-			if (MemoryProtection::setExecuteReadWrite(fnRestore, sizeFnRestore)) {
-				Base::copyMemory(fnRestore, fnTarget, nCodeBytesToBackup);
-				sl_uint8* fnReturn = fnTarget + nCodeBytesToBackup;
-#ifdef SLIB_ARCH_IS_64BIT
-				priv::hook::GenerateJmpFar(fnRestore + nCodeBytesToBackup, fnReturn);
-#else
-				fnRestore[nCodeBytesToBackup] = 0x68; // push fnReturn
-				Base::copyMemory(fnRestore + nCodeBytesToBackup + 1, &fnReturn, 4);
-				fnRestore[sizeFnRestore - 1] = 0xC3; // ret
-#endif
-
-				sl_reg offset = (sl_reg)((sl_uint8*)(newFunctionAddress) - (fnTarget + 5));
-#ifdef SLIB_ARCH_IS_64BIT
-				if (offset != (sl_int32)offset) {
-					if (MemoryProtection::setExecuteReadWrite(fnTarget, 21)) {
-						priv::hook::GenerateJmpFar(fnTarget, newFunctionAddress);
-						return fnRestore;
-					}
-				} else
-#endif
-				if (MemoryProtection::setExecuteReadWrite(fnTarget, 5)) {
-					fnTarget[0] = 0xE9; // jmp near offset
-					Base::copyMemory(fnTarget + 1, &offset, 4);
-					return fnRestore;
+		if (MemoryProtection::setExecuteReadWrite(fnCallHooked, sizeCallHooked)) {
+			if (MemoryProtection::setExecuteReadWrite(targetFunctionAddress, sizeReplacing)) {
+				if (outCallHookedFunction) {
+					*((void* volatile*)outCallHookedFunction) = fnCallHooked;
 				}
-				Base::freeMemory(fnRestore);
+				Base::copyMemory((void*)targetFunctionAddress, codesReplacing, sizeReplacing);
+				return sl_true;
 			}
 		}
-		return sl_null;
+
+		Base::freeMemory(fnCallHooked);
+		return sl_false;
 	}
 
-	void* Hook::hookFunction(sl_uint32 targetFunctionRVA, const void* newFunctionAddress, sl_uint32 nCodeBytesToBackup)
+	sl_bool Hook::hookFunction(sl_uint32 targetFunctionRVA, const void* newFunctionAddress, void* outCallHookedFunction)
 	{
 		const void* base = Module::getBaseAddress();
 		if (base) {
-			return hookFunction((sl_uint8*)base + targetFunctionRVA, newFunctionAddress, nCodeBytesToBackup);
+			return hookFunction((sl_uint8*)base + targetFunctionRVA, newFunctionAddress, outCallHookedFunction);
 		}
-		return sl_null;
+		return sl_false;
 	}
 
 	void* Hook::hookJmpNear(const void* targetAddress, const void* newAddress)
@@ -218,7 +384,6 @@ namespace slib
 		}
 		return sl_false;
 	}
-
 
 	sl_bool Hook::injectDllIntoRemoteProcess(sl_uint32 processId, const StringParam& _pathDll)
 	{
