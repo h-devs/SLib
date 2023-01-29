@@ -332,7 +332,7 @@ namespace slib
 
 		virtual void _setAntiAlias(sl_bool flag);
 
-	private:
+	protected:
 		CanvasType m_type;
 		Time m_time;
 		Size m_size;

@@ -158,6 +158,7 @@ namespace slib
 					Gdiplus::GraphicsState state;
 					if (m_stackState.pop(&state)) {
 						m_graphics->Restore(state);
+						m_flagAntiAlias = m_graphics->GetSmoothingMode() != Gdiplus::SmoothingModeNone;
 					}
 				}
 
