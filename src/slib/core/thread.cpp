@@ -185,7 +185,7 @@ namespace slib
 		if (timeout >= 0) {
 			if (isRunning()) {
 				m_flagRequestStop = sl_true;
-				while (1) {
+				for (;;) {
 					wake();
 					sl_int32 t = timeout;
 					if (t > 100) {

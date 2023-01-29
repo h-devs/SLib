@@ -265,7 +265,7 @@ namespace slib
 		sl_bool moveToFirstInNode(const BTreeNode& _node, BTreePosition& pos, KT* key = sl_null, VT* value = sl_null) const
 		{
 			BTreeNode node(_node);
-			while (1) {
+			for (;;) {
 				NodeDataScope data(this, node);
 				if (data.isNull()) {
 					return sl_false;
@@ -304,7 +304,7 @@ namespace slib
 		sl_bool moveToLastInNode(const BTreeNode& _node, BTreePosition& pos, KT* key = sl_null, VT* value = sl_null) const
 		{
 			BTreeNode node(_node);
-			while (1) {
+			for (;;) {
 				NodeDataScope data(this, node);
 				if (data.isNull()) {
 					return sl_false;
@@ -372,7 +372,7 @@ namespace slib
 				if (itemStart == 0) {
 					node = nodeStart;
 					BTreeNode parent = dataStart->linkParent;
-					while (1) {
+					for (;;) {
 						if (parent.isNull()) {
 							return sl_false;
 						}
@@ -438,7 +438,7 @@ namespace slib
 				if (itemStart == dataStart->countItems - 1) {
 					node = nodeStart;
 					BTreeNode parent = dataStart->linkParent;
-					while (1) {
+					for (;;) {
 						if (parent.isNull()) {
 							return sl_false;
 						}

@@ -8076,10 +8076,13 @@ namespace slib
 			switch (getBoundShape()) {
 				case BoundShape::Rectangle:
 					{
-						sl_bool flagAntiAlias = canvas->isAntiAlias();
-						canvas->setAntiAlias(sl_false);
-						canvas->drawRectangle(getBounds(), pen);
-						canvas->setAntiAlias(flagAntiAlias);
+						if (canvas->isAntiAlias()) {
+							canvas->setAntiAlias(sl_false);
+							canvas->drawRectangle(getBounds(), pen);
+							canvas->setAntiAlias(sl_true);
+						} else {
+							canvas->drawRectangle(getBounds(), pen);
+						}
 						break;
 					}
 				case BoundShape::RoundRect:

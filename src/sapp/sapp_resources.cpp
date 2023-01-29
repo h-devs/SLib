@@ -505,7 +505,7 @@ namespace slib
 			default:
 				return String::null();
 		}
-		while (1) {
+		for (;;) {
 			(*pN)++;
 			String name = String::format("_%s%d", prefix, *pN);
 			if (!(itemsByName.find(name))) {

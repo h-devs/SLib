@@ -468,7 +468,7 @@ namespace slib
 	{
 		sl_bool flagRender = sl_false;
 		Ref<View> t = view;
-		while (1) {
+		for (;;) {
 			if (t->isRendering()) {
 				flagRender = sl_true;
 				break;

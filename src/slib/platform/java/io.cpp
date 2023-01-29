@@ -88,7 +88,7 @@ namespace slib
 				jbyte buf[512];
 				if (arr.isNotNull()) {
 					MemoryOutput writer;
-					while (1) {
+					for (;;) {
 						sl_int32 n = JInputStream::read.callInt(stream, arr.get());
 						if (Jni::checkExceptionAndPrintClear()) {
 							break;

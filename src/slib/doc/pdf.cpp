@@ -5217,7 +5217,7 @@ namespace slib
 								v_delta = bit2 ? 1 : -1;
 							} else if (bit2) {
 								sl_int32 run_len1 = 0;
-								while (1) {
+								for (;;) {
 									sl_int32 run = getRun(a0color ? g_faxWhiteRunIns : g_faxBlackRunIns);
 									run_len1 += run;
 									if (run < 64) {
@@ -5236,7 +5236,7 @@ namespace slib
 								}
 
 								sl_int32 run_len2 = 0;
-								while (1) {
+								for (;;) {
 									int run = getRun(a0color ? g_faxBlackRunIns : g_faxWhiteRunIns);
 									run_len2 += run;
 									if (run < 64) {

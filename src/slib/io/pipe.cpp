@@ -319,7 +319,7 @@ namespace slib
 			return;
 		}
 		m_flagSet = sl_false;
-		while (1) {
+		for (;;) {
 			static char t[200];
 			sl_reg n = m_pipe.read(t, 200);
 			if (n < 200) {

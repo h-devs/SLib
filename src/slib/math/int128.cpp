@@ -118,7 +118,7 @@ namespace slib
 		Uint128 t = b;
 		t <<= shift;
 		Uint128 q;
-		do {
+		for (;;) {
 			if (r >= t) {
 				q |= 1;
 				r -= t;
@@ -129,7 +129,7 @@ namespace slib
 			q.shiftLeft();
 			t.shiftRight();
 			shift--;
-		} while (1);
+		}
 		if (quotient) {
 			*quotient = q;
 		}

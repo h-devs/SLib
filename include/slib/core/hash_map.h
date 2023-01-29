@@ -775,7 +775,7 @@ namespace slib
 			}
 			NODE** nodes = m_table.nodes;
 			sl_size n = 0;
-			while (1) {
+			for (;;) {
 				n++;
 				NODE* next = node->next;
 				_unlinkNode(node);
@@ -822,7 +822,7 @@ namespace slib
 			NODE* end;
 			if (RedBlackTree::getEqualRange(*pEntry, key, m_compare, &node, &end)) {
 				sl_size n = 0;
-				while (1) {
+				for (;;) {
 					n++;
 					if (node == end) {
 						_unlinkNode(node);
@@ -857,7 +857,7 @@ namespace slib
 			NODE* node;
 			NODE* end;
 			if (RedBlackTree::getEqualRange(*pEntry, key, m_compare, &node, &end)) {
-				while (1) {
+				for (;;) {
 					ret.add_NoLock(node->value);
 					if (node == end) {
 						_unlinkNode(node);
@@ -890,7 +890,7 @@ namespace slib
 			NODE* node;
 			NODE* end;
 			if (RedBlackTree::getEqualRange(*pEntry, key, m_compare, &node, &end)) {
-				while (1) {
+				for (;;) {
 					if (value_equals(node->value, value)) {
 						_unlinkNode(node);
 						RedBlackTree::removeNode(pEntry, m_table.count, node);
@@ -923,7 +923,7 @@ namespace slib
 			NODE* end;
 			if (RedBlackTree::getEqualRange(*pEntry, key, m_compare, &node, &end)) {
 				sl_size n = 0;
-				while (1) {
+				for (;;) {
 					if (value_equals(node->value, value)) {
 						n++;
 						if (node == end) {

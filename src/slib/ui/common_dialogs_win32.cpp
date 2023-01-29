@@ -363,9 +363,9 @@ namespace slib
 								sz[len] = '/';
 								StringView16 dir((sl_char16*)sz, len + 1);
 								sz += (len + 1);
-								while (1) {
+								for (;;) {
 									len = Base::getStringLength2((sl_char16*)sz);
-									if (len == 0) {
+									if (!len) {
 										break;
 									}
 									files.add_NoLock(String::concat(dir, StringView16((sl_char16*)sz, len)));

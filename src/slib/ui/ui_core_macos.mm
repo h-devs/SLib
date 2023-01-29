@@ -311,7 +311,7 @@ namespace slib
 		if (!context) {
 			return;
 		}
-		while (1) {
+		for (;;) {
 			@autoreleasepool {
 				NSDate* date = [NSDate dateWithTimeIntervalSinceNow:1000];
 				NSEvent* ev = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES];

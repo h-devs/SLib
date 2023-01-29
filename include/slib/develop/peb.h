@@ -13,7 +13,7 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_WIN64)
 		sl_uint32* peb = (sl_uint32*)__readfsdword(0x30) + 3;
 		sl_uint32* pebLoaderDlls = (sl_uint32*)(*peb + 0x14);
-		while (1) {
+		for (;;) {
 			pebLoaderDlls = (sl_uint32*)*pebLoaderDlls;
 			sl_uint32* moduleInformation = (sl_uint32*)*(pebLoaderDlls + 10);
 			// 32bit PEB DLL name has kernel32.dll
@@ -24,7 +24,7 @@ namespace slib
 #elif defined(SLIB_PLATFORM_IS_WIN64)
 		sl_uint64* peb = (sl_uint64*)__readgsqword(0x60) + 3;
 		sl_uint64* pebLoaderDlls = (sl_uint64*)(*peb + 0x10);
-		while (1) {
+		for (;;) {
 			pebLoaderDlls = (sl_uint64*)*pebLoaderDlls;
 			sl_uint64* moduleInformation = (sl_uint64*)*(pebLoaderDlls + 10);
 			// 64bit PEB DLL name is c:\\windows\\system32\\kernel32.dll
@@ -41,7 +41,7 @@ namespace slib
 #if !defined(SLIB_PLATFORM_IS_WIN64)
 		sl_uint32* peb = (sl_uint32*)__readfsdword(0x30) + 3;
 		sl_uint32* pebLoaderDlls = (sl_uint32*)(*peb + 0x14);
-		while (1) {
+		for (;;) {
 			pebLoaderDlls = (sl_uint32*)*pebLoaderDlls;
 			sl_uint32* moduleInformation = (sl_uint32*)*(pebLoaderDlls + 10);
 			// 32bit PEB DLL name has nt.dll
@@ -52,7 +52,7 @@ namespace slib
 #elif defined(SLIB_PLATFORM_IS_WIN64)
 		sl_uint64* peb = (sl_uint64*)__readgsqword(0x60) + 3;
 		sl_uint64* pebLoaderDlls = (sl_uint64*)(*peb + 0x10);
-		while (1) {
+		for (;;) {
 			pebLoaderDlls = (sl_uint64*)*pebLoaderDlls;
 			sl_uint64* moduleInformation = (sl_uint64*)*(pebLoaderDlls + 10);
 			// 64bit PEB DLL name is c:\\windows\\system32\\ntdll.dll
@@ -91,11 +91,7 @@ namespace slib
 					sl_uint16 functionIndex = *(sl_uint16*)(dllBase + nameIndexRVA + i * 2);
 					sl_uint8* exportFunctionName = (sl_uint8*)(dllBase + nameBase);
 					sl_uint8* functionName = _functionName;
-
-					while (1) {
-						if (*exportFunctionName != *functionName) {
-							break;
-						}
+					while (*exportFunctionName == *functionName) {
 						if (*exportFunctionName == 0 && *functionName == 0) {
 							return (void*)(dllBase + *(sl_uint32*)(dllBase + functionRVA + functionIndex * 4));
 						}

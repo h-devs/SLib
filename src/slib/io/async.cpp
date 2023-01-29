@@ -1655,7 +1655,7 @@ namespace slib
 		if (m_flagWriting) {
 			return;
 		}
-		while (1) {
+		for (;;) {
 			if (m_elementWriting.isNotNull()) {
 				if (m_elementWriting->isEmpty()) {
 					m_elementWriting.setNull();

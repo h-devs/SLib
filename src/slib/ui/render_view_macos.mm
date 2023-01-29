@@ -147,7 +147,7 @@ namespace slib
 
 				int frameNumber = 0;
 
-				while (1) {
+				for (;;) {
 
 					sl_bool flagWorking = sl_false;
 

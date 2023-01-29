@@ -306,7 +306,7 @@ namespace slib
 		{
 			NODE *node, *end;
 			if (getEqualRange(look, key, key_compare, &node, &end)) {
-				while (1) {
+				for (;;) {
 					if (value_equals(node->value, value)) {
 						return node;
 					}
@@ -324,7 +324,7 @@ namespace slib
 		{
 			NODE *node, *end;
 			if (getEqualRange(look, key, key_compare, &node, &end)) {
-				while (1) {
+				for (;;) {
 					list.add_NoLock(node->value);
 					if (node == end) {
 						break;
@@ -339,7 +339,7 @@ namespace slib
 		{
 			NODE *node, *end;
 			if (getEqualRange(look, key, key_compare, &node, &end)) {
-				while (1) {
+				for (;;) {
 					if (value_equals(node->value, value)) {
 						list.add_NoLock(node->value);
 					}
@@ -530,7 +530,7 @@ namespace slib
 				}
 			}
 			sl_size n = 0;
-			while (1) {
+			for (;;) {
 				n++;
 				if (node == last) {
 					removeNode(pRoot, count, node);
@@ -572,7 +572,7 @@ namespace slib
 			NODE* end;
 			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
 				sl_size n = 0;
-				while (1) {
+				for (;;) {
 					n++;
 					if (node == end) {
 						removeNode(pRoot, count, node);
@@ -596,7 +596,7 @@ namespace slib
 			NODE* end;
 			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
 				sl_size n = 0;
-				while (1) {
+				for (;;) {
 					n++;
 					list.add_NoLock(node->value);
 					if (node == end) {
@@ -620,7 +620,7 @@ namespace slib
 			NODE* node;
 			NODE* end;
 			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
-				while (1) {
+				for (;;) {
 					if (value_equals(node->value, value)) {
 						removeNode(pRoot, count, node);
 						return sl_true;
@@ -641,7 +641,7 @@ namespace slib
 			NODE* node;
 			NODE* end;
 			if (getEqualRange(*pRoot, key, key_compare, &node, &end)) {
-				while (1) {
+				for (;;) {
 					if (value_equals(node->value, value)) {
 						n++;
 						if (node == end) {
