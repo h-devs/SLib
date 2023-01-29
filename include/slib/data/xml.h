@@ -636,22 +636,13 @@ namespace slib
 		static Ref<XmlDocument> parse(const sl_char8* xml, sl_size length, XmlParseParam& param);
 		static Ref<XmlDocument> parse(const sl_char16* xml, sl_size length, XmlParseParam& param);
 		static Ref<XmlDocument> parse(const sl_char32* xml, sl_size length, XmlParseParam& param);
-
-		/**
-		 * parses XML text contained in `xml`.
-		 * XML parser uses default option for parsing.
-		 *
-		 * @param[in] xml String value containing XML text
-		 * @param[in] length length of the XML text
-		 *
-		 * @return XmlDocument object on success
-		 * @return nullptr on failure
-		 */
 		static Ref<XmlDocument> parse(const sl_char8* xml, sl_size length);
 		static Ref<XmlDocument> parse(const sl_char16* xml, sl_size length);
 		static Ref<XmlDocument> parse(const sl_char32* xml, sl_size length);
 		static Ref<XmlDocument> parse(const StringParam& xml, XmlParseParam& param);
 		static Ref<XmlDocument> parse(const StringParam& xml);
+		static Ref<XmlDocument> parse(const MemoryView& utf, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const MemoryView& utf);
 
 		/**
 		 * parses XML text file located in `filePath`.
@@ -664,19 +655,7 @@ namespace slib
 		 * @return nullptr on failure
 		 */
 		static Ref<XmlDocument> parseTextFile(const StringParam& filePath, XmlParseParam& param);
-
-		/**
-		 * parses XML text file located in `filePath`.
-		 * The character positions are calculated by UTF-16 encoding.
-		 * XML parser uses default option for parsing.
-		 *
-		 * @param[in] filePath XML text file (UTF-8, UTF-16BE, UTF-16LE)
-		 *
-		 * @return XmlDocument object on success
-		 * @return nullptr on failure
-		 */
 		static Ref<XmlDocument> parseTextFile(const StringParam& filePath);
-
 
 		/**
 		 * Encodes speical characters (&lt; &gt; &amp; &quot; &apos;) to XML entities.

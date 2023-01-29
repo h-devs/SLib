@@ -478,15 +478,15 @@ namespace slib
 				}
 				if (size >= 2) {
 					if (buf[0] == (sl_char8)0xFF && buf[1] == (sl_char8)0xFE) {
-						return CreateFromUtf16<CONTAINER>(Endian::Little, buf, size - 2);
+						return CreateFromUtf16<CONTAINER>(Endian::Little, buf + 2, size - 2);
 					}
 					if (buf[0] == (sl_char8)0xFE && buf[1] == (sl_char8)0xFF) {
-						return CreateFromUtf16<CONTAINER>(Endian::Big, buf, size - 2);
+						return CreateFromUtf16<CONTAINER>(Endian::Big, buf + 2, size - 2);
 					}
 				}
 				if (size >= 3) {
 					if (buf[0] == (sl_char8)0xEF && buf[1] == (sl_char8)0xBB && buf[2] == (sl_char8)0xBF) {
-						return CreateFromSz<CONTAINER>(buf, size - 3);
+						return CreateFromSz<CONTAINER>(buf + 3, size - 3);
 					}
 				}
 				return CreateFromSz<CONTAINER>(buf, size);

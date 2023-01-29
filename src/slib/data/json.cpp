@@ -875,6 +875,23 @@ namespace slib
 		return parse(str, param);
 	}
 
+	Json Json::parse(const MemoryView& utf, JsonParseParam& param)
+	{
+		if (!(utf.size)) {
+			return Json();
+		}
+		return parse(StringParam::fromUtf(utf), param);
+	}
+
+	Json Json::parse(const MemoryView& utf)
+	{
+		if (!(utf.size)) {
+			return Json();
+		}
+		JsonParseParam param;
+		return parse(utf, param);
+	}
+
 	Json Json::parseTextFile(const StringParam& filePath, JsonParseParam& param)
 	{
 		return parse(File::readAllText(filePath), param);

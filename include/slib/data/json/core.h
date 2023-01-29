@@ -284,21 +284,25 @@ namespace slib
 		sl_bool putItem(const String& key, const Json& value);
 
 	public:
-		static Json parse(const sl_char8* sz, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char8* str, sl_size len, JsonParseParam& param);
 
-		static Json parse(const sl_char8* sz, sl_size len);
+		static Json parse(const sl_char8* str, sl_size len);
 
-		static Json parse(const sl_char16* sz, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char16* str, sl_size len, JsonParseParam& param);
 
-		static Json parse(const sl_char16* sz, sl_size len);
+		static Json parse(const sl_char16* str, sl_size len);
 
-		static Json parse(const sl_char32* sz, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char32* str, sl_size len, JsonParseParam& param);
 
-		static Json parse(const sl_char32* sz, sl_size len);
+		static Json parse(const sl_char32* str, sl_size len);
 
 		static Json parse(const StringParam& str, JsonParseParam& param);
 
 		static Json parse(const StringParam& str);
+
+		static Json parse(const MemoryView& utf, JsonParseParam& param);
+
+		static Json parse(const MemoryView& utf);
 
 		static Json parseTextFile(const StringParam& filePath, JsonParseParam& param);
 

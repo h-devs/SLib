@@ -944,14 +944,14 @@ namespace slib
 				sl_bool load(const void* mem, sl_size size)
 				{
 					XmlParseParam param;
-					//param.flagLogError = sl_false;
+					param.flagLogError = sl_false;
 					param.onEndElement = [this](XmlParseControl*, XmlElement* xml) {
 						String name = xml->getName();
 						if (name == StringView::literal("style")) {
 							loadStyle(xml->getText());
 						}
 					};
-					Ref<XmlDocument> xmlDocument = Xml::parse((sl_char8*)mem, size, param);
+					Ref<XmlDocument> xmlDocument = Xml::parse(MemoryView(mem, size), param);
 					if (xmlDocument.isNull()) {
 						return sl_false;
 					}

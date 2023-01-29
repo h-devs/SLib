@@ -638,6 +638,41 @@ namespace slib
 		return *this;
 	}
 
+	StringParam StringParam::fromUtf(const void* _data, sl_size size)
+	{
+		const sl_uint8* data = (const sl_uint8*)_data;
+		if (!data || !size) {
+			return sl_null;
+		}
+		if (size >= 2) {
+			if (*data == 0xFF && data[1] == 0xFE) {
+				if (Endian::isLE() && !(((sl_size)data) & 1)) {
+					return StringParam((sl_char16*)(data + 2), (size - 2) >> 1);
+				} else {
+					return String16::fromUtf16LE(data + 2, size - 2);
+				}
+			}
+			if (*data == 0xFE && data[1] == 0xFF) {
+				if (Endian::isBE() && !(((sl_size)data) & 1)) {
+					return StringParam((sl_char16*)(data + 2), (size - 2) >> 1);
+				} else {
+					return String16::fromUtf16BE(data + 2, size - 2);
+				}
+			}
+		}
+		if (size >= 3) {
+			if (*data == 0xEF && data[1] == 0xBB && data[2] == 0xBF) {
+				return StringParam((sl_char8*)data + 3, size - 3);
+			}
+		}
+		return StringParam((sl_char8*)data, size);
+	}
+
+	StringParam StringParam::fromUtf(const MemoryView& mem)
+	{
+		return fromUtf(mem.data, mem.size);
+	}
+
 	void StringParam::setUndefined() noexcept
 	{
 		if (_value) {

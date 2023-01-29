@@ -2720,6 +2720,23 @@ namespace slib
 		return parse(xml, param);
 	}
 
+	Ref<XmlDocument> Xml::parse(const MemoryView& utf, XmlParseParam& param)
+	{
+		if (!(utf.size)) {
+			return sl_null;
+		}
+		return parse(StringParam::fromUtf(utf), param);
+	}
+
+	Ref<XmlDocument> Xml::parse(const MemoryView& utf)
+	{
+		if (!(utf.size)) {
+			return sl_null;
+		}
+		XmlParseParam param;
+		return parse(utf, param);
+	}
+
 	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath, XmlParseParam& param)
 	{
 		if (param.sourceFilePath.isNull()) {

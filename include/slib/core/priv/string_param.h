@@ -154,6 +154,10 @@ namespace slib
 			return StringParam(s, N - 1);
 		}
 
+		static StringParam fromUtf(const void* data, sl_size size);
+
+		static StringParam fromUtf(const MemoryView& mem);
+
 	public:
 		StringParam& operator=(const StringParam& other) noexcept;
 		StringParam& operator=(StringParam&& other) noexcept;
