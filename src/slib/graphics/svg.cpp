@@ -726,6 +726,41 @@ namespace slib
 
 			};
 
+			class Ellipse : public Element
+			{
+			public:
+				Length cx;
+				Length cy;
+				Define<Length> rx;
+				Define<Length> ry;
+
+			public:
+				void load() override
+				{
+					PARSE_ATTRIBUTE(cx, "cx")
+					PARSE_ATTRIBUTE(cy, "cy")
+					PARSE_ATTRIBUTE(rx, "rx")
+					PARSE_ATTRIBUTE(ry, "ry")
+					if (rx.flagDefined) {
+						if (!(ry.flagDefined)) {
+							ry = rx;
+						}
+					} else {
+						rx = ry;
+					}
+				}
+
+				void render(Canvas* canvas, RenderParam& param) override
+				{
+					Scalar centerX = cx.getValue(param.containerWidth);
+					Scalar centerY = cy.getValue(param.containerHeight);
+					Scalar radiusX = rx.getValue(param.containerWidth);
+					Scalar radiusY = ry.getValue(param.containerWidth);
+					canvas->drawEllipse(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY, getPen(param), getBrush());
+				}
+
+			};
+
 			class Circle : public Element
 			{
 			public:
@@ -747,6 +782,30 @@ namespace slib
 					Scalar centerY = cy.getValue(param.containerHeight);
 					Scalar radius = r.getValue(param.containerWidth);
 					canvas->drawEllipse(centerX - radius, centerY - radius, centerX + radius, centerY + radius, getPen(param), getBrush());
+				}
+
+			};
+
+			class Line : public Element
+			{
+			public:
+				Length x1;
+				Length y1;
+				Length x2;
+				Length y2;
+
+			public:
+				void load() override
+				{
+					PARSE_ATTRIBUTE(x1, "x1")
+					PARSE_ATTRIBUTE(y1, "y1")
+					PARSE_ATTRIBUTE(x2, "x2")
+					PARSE_ATTRIBUTE(y2, "y2")
+				}
+
+				void render(Canvas* canvas, RenderParam& param) override
+				{
+					canvas->drawLine(x1.getValue(param.containerWidth), y1.getValue(param.containerHeight), x2.getValue(param.containerWidth), y2.getValue(param.containerHeight), getPen(param));
 				}
 
 			};
@@ -788,7 +847,7 @@ namespace slib
 				{
 					List<Scalar> pts;
 					PARSE_ATTRIBUTE(pts, "points")
-						ListElements<Scalar> items(pts);
+					ListElements<Scalar> items(pts);
 					if (items.count >= 4) {
 						for (sl_size i = 0; i < items.count; i += 2) {
 							points.add_NoLock(items[i], items[i + 1]);
@@ -931,6 +990,8 @@ namespace slib
 				ADD_LOADER(g, Group)
 				ADD_LOADER(rect, Rect)
 				ADD_LOADER(circle, Circle)
+				ADD_LOADER(ellipse, Ellipse)
+				ADD_LOADER(line, Line)
 				ADD_LOADER(polyline, Polyline)
 				ADD_LOADER(polygon, Polygon)
 			}
