@@ -50,7 +50,7 @@ namespace slib
 
 		static sl_bool calculateAlignRectangle(Rectangle& rectOutput, const Rectangle& rectDst, sl_real widthSrc, sl_real heightSrc, ScaleMode scaleMode, const Alignment& alignment);
 
-		static Rectangle transformRectangle(const Rectangle& rectTransform, const Rectangle& rectOtherFrom, const Rectangle& rectOtherTo);
+		static Rectangle transformRectangle(const Rectangle& rectTo, const Rectangle& rectFrom, const Rectangle& rectInput);
 
 
 		static void drawRepeat(Canvas* canvas, const Ref<Drawable>& source, sl_real _dx, sl_real _dy, sl_uint32 nRepeatX, sl_uint32 nRepeatY, const DrawParam& param);

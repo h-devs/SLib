@@ -201,7 +201,7 @@ namespace slib
 		return sl_false;
 	}
 
-	Rectangle GraphicsUtil::transformRectangle(const Rectangle& rectTransform, const Rectangle& rectFrom, const Rectangle& rectTo)
+	Rectangle GraphicsUtil::transformRectangle(const Rectangle& rectTo, const Rectangle& rectFrom, const Rectangle& rectInput)
 	{
 		sl_real w1 = rectFrom.getWidth();
 		sl_real h1 = rectFrom.getHeight();
@@ -210,18 +210,11 @@ namespace slib
 		}
 		sl_real w2 = rectTo.getWidth();
 		sl_real h2 = rectTo.getHeight();
-		if (Math::isAlmostZero(w2) || Math::isAlmostZero(h2)) {
-			return Rectangle::zero();
-		}
-		sl_real sw = rectTransform.getWidth();
-		sl_real sh = rectTransform.getHeight();
-		sl_real w = sw * w2 / w1;
-		sl_real h = sh * h2 / h1;
 		Rectangle ret;
-		ret.left = rectTransform.left + (rectTo.left - rectFrom.left) * sw / w1;
-		ret.top = rectTransform.top + (rectTo.top - rectFrom.top) * sh / h1;
-		ret.right = ret.left + w;
-		ret.bottom = ret.top + h;
+		ret.left = rectTo.left + (rectInput.left - rectFrom.left) * w2 / w1;
+		ret.top = rectTo.top + (rectInput.top - rectFrom.top) * h2 / h1;
+		ret.right = rectTo.left + (rectInput.right - rectFrom.left) * w2 / w1;
+		ret.bottom = rectTo.top + (rectInput.bottom - rectFrom.top) * h2 / h1;
 		return ret;
 	}
 

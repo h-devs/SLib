@@ -56,22 +56,20 @@ namespace slib
 		static Ref<Svg> loadFromAsset(const StringParam& path);
 
 	public:
-		sl_svg_scalar getMinimumX();
+		Size getSize(sl_svg_scalar containerWidth = 100, sl_svg_scalar containerHeight = 100);
 
-		sl_svg_scalar getMinimumY();
+		void render(Canvas* canvas, const Rectangle& rectDraw);
 
-		sl_svg_scalar getWidth();
+	public:
+		static sl_svg_scalar getGlobalFontSize();
 
-		sl_svg_scalar getHeight();
+		static void setGlobalFontSize(sl_svg_scalar size);
+
+	public:
+		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 	protected:
-		sl_bool _load(XmlElement* root);
-
-	protected:
-		sl_svg_scalar m_minX;
-		sl_svg_scalar m_minY;
-		sl_svg_scalar m_width;
-		sl_svg_scalar m_height;
+		Ref<Referable> m_document;
 
 	};
 

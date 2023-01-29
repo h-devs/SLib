@@ -26,6 +26,7 @@
 #include "definition.h"
 
 #include "../data/xml.h"
+#include "../core/shared.h"
 
 /*
 	CSS - Cascading Style Sheets
@@ -194,25 +195,6 @@ namespace slib
 
 	};
 
-	class CascadingStyleRule;
-	class CascadingStyleAtRule;
-
-	class SLIB_EXPORT CascadingStyleStatements
-	{
-	public:
-		List<CascadingStyleRule> rules;
-		List<CascadingStyleAtRule> atRules;
-
-	public:
-		CascadingStyleStatements();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CascadingStyleStatements)
-
-	public:
-		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
-
-	};
-
 	typedef HashMap< String, Ref<CascadingStyleValue> > CascadingStyleDeclarations;
 
 	class SLIB_EXPORT CascadingStyleRule
@@ -220,11 +202,19 @@ namespace slib
 	public:
 		Ref<CascadingStyleSelector> selector;
 		CascadingStyleDeclarations declarations;
+		sl_uint32 order = 0;
+
+	public:
+		CascadingStyleRule();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CascadingStyleRule);
 
 	public:
 		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
 
 	};
+
+	class CascadingStyleStatements;
 
 	class SLIB_EXPORT CascadingStyleAtRule
 	{
@@ -232,7 +222,33 @@ namespace slib
 		String identifier;
 		String rule;
 		CascadingStyleDeclarations declarations;
-		CascadingStyleStatements statements;
+		Shared<CascadingStyleStatements> statements;
+
+	public:
+		CascadingStyleAtRule();
+
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CascadingStyleAtRule)
+
+	public:
+		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
+
+	};
+
+	class SLIB_EXPORT CascadingStyleStatements
+	{
+	public:
+		CList<CascadingStyleRule> rules;
+		CList<CascadingStyleAtRule> atRules;
+
+		CHashMap<String, CascadingStyleRule> rulesById;
+		CHashMap<String, CascadingStyleRule> rulesByClass;
+		CHashMap<String, CascadingStyleRule> rulesByTag;
+		CList<CascadingStyleRule> rulesUniversal;
+
+	public:
+		CascadingStyleStatements();
+
+		~CascadingStyleStatements();
 
 	public:
 		sl_bool toString(StringBuffer& output, sl_uint32 tabLevel);
@@ -271,18 +287,25 @@ namespace slib
 
 		String toString();
 
-		CascadingStyleDeclarations getElementDeclarations(const Ref<XmlElement>& element);
+		List<CascadingStyleDeclarations> getElementDeclarations(const Ref<XmlElement>& element);
+
+		List<CascadingStyleDeclarations> getElementDeclarations(const Ref<XmlElement>& element, const StringParam& styles);
 
 		static CascadingStyleDeclarations parseDeclarations(const StringParam& input);
 
 		static void mergeDeclarations(CascadingStyleDeclarations& to, const CascadingStyleDeclarations& from);
 
+		static CascadingStyleDeclarations mergeDeclarations(const List<CascadingStyleDeclarations>& decls);
+
 		static String getDeclarationValue(const CascadingStyleDeclarations& decls, const String& key);
+
+		static String getDeclarationValue(const List<CascadingStyleDeclarations>& decls, const String& key);
 
 		static sl_bool writeDeclarationsString(StringBuffer& _out, const CascadingStyleDeclarations& decls, sl_uint32 tabLevel);
 
 	protected:
 		CascadingStyleStatements m_statements;
+		sl_uint32 m_lastRuleOrder;
 
 	};
 

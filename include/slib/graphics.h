@@ -32,7 +32,6 @@
 
 #include "graphics/canvas.h"
 #include "graphics/image.h"
-#include "graphics/svg.h"
 
 #include "graphics/json.h"
 #include "graphics/serialize.h"

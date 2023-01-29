@@ -37,6 +37,7 @@ namespace slib
 			{
 			public:
 				using CascadingStyleSheet::m_statements;
+				using CascadingStyleSheet::m_lastRuleOrder;
 			};
 
 			template <class CHAR>
@@ -111,13 +112,17 @@ namespace slib
 						return sl_false;
 					}
 					if (*current == '{') {
+						Shared<CascadingStyleStatements> statements = Shared<CascadingStyleStatements>::create();
+						if (statements.isNull()) {
+							return sl_false;
+						}
 						current++;
 						skipWhitespaces();
 						CHAR* start = current;
 						if (flagIgnoreErrors) {
 							sl_bool flagDecl = sl_false;
-							if (parseStatements(at.statements, '}')) {
-								flagDecl = at.statements.rules.isNull() && at.statements.atRules.isNull();
+							if (parseStatements(*statements, '}')) {
+								flagDecl = statements->rules.isEmpty() && at.statements->atRules.isEmpty();
 							} else {
 								flagDecl = sl_true;
 							}
@@ -126,9 +131,13 @@ namespace slib
 								if (!(parseDeclarations(at.declarations, '}'))) {
 									return sl_false;
 								}
+							} else {
+								at.statements = Move(statements);
 							}
 						} else {
-							if (!(parseStatements(at.statements, '}'))) {
+							if (parseStatements(*statements, '}')) {
+								at.statements = Move(statements);
+							} else {
 								current = start;
 								if (!(parseDeclarations(at.declarations, '}'))) {
 									return sl_false;
@@ -184,6 +193,7 @@ namespace slib
 					CascadingStyleRule rule;
 					rule.selector = Move(selector);
 					rule.declarations = declarations;
+					rule.order = ++(sheet->m_lastRuleOrder);
 					if (!(addRule(statements, Move(rule)))) {
 						return sl_false;
 					}
@@ -202,6 +212,22 @@ namespace slib
 
 				sl_bool addRule(CascadingStyleStatements& statements, CascadingStyleRule&& rule)
 				{
+					do {
+						CascadingStyleSelector* selector = rule.selector.get();
+						if (selector->id.isNotNull()) {
+							statements.rulesById.add_NoLock(selector->id, rule);
+							break;
+						}
+						if (selector->classNames.getCount() >= 1) {
+							statements.rulesByClass.add_NoLock(selector->classNames.getValueAt_NoLock(0), rule);
+							break;
+						}
+						if (selector->flagUniversal || selector->elementName.isNull()) {
+							statements.rulesUniversal.add_NoLock(rule);
+						} else {
+							statements.rulesByTag.add_NoLock(selector->elementName, rule);
+						}
+					} while (0);
 					return statements.rules.add_NoLock(Move(rule));
 				}
 
@@ -1149,6 +1175,27 @@ namespace slib
 				return sl_true;
 			}
 
+			static Ref<CascadingStyleValue> GetDeclarationValue(const List<CascadingStyleDeclarations>& decls, const String& key)
+			{
+				ListElements<CascadingStyleDeclarations> items(decls);
+				sl_bool flagImportant = sl_false;
+				Ref<CascadingStyleValue> ret;
+				for (sl_size i = 0; i < items.count; i++) {
+					Ref<CascadingStyleValue> value = items[i].getValue_NoLock(key);
+					if (value.isNotNull()) {
+						if (value->isImportant()) {
+							flagImportant = sl_true;
+							ret = Move(value);
+						} else {
+							if (!flagImportant) {
+								ret = Move(value);
+							}
+						}
+					}
+				}
+				return ret;
+			}
+
 		}
 	}
 
@@ -1595,11 +1642,28 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CascadingStyleStatements)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CascadingStyleRule)
+
+	CascadingStyleRule::CascadingStyleRule()
+	{
+	}
+
+	
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CascadingStyleAtRule)
+
+	CascadingStyleAtRule::CascadingStyleAtRule()
+	{
+	}
+
 
 	CascadingStyleStatements::CascadingStyleStatements()
 	{
 	}
+
+	CascadingStyleStatements::~CascadingStyleStatements()
+	{
+	}
+
 
 	sl_bool CascadingStyleStatements::toString(StringBuffer& output, sl_uint32 tabLevel)
 	{
@@ -1693,11 +1757,11 @@ namespace slib
 			if (!(output.addStatic("}"))) {
 				return sl_false;
 			}
-		} else if (statements.atRules.isNotNull() || statements.rules.isNotNull()) {
+		} else if (statements.isNotNull()) {
 			if (!(output.addStatic(" {\r\n"))) {
 				return sl_false;
 			}
-			if (!(statements.toString(output, tabLevel + 1))) {
+			if (!(statements->toString(output, tabLevel + 1))) {
 				return sl_false;
 			}
 			if (!(output.addStatic("\r\n"))) {
@@ -1723,7 +1787,7 @@ namespace slib
 	}
 
 
-	CascadingStyleSheet::CascadingStyleSheet()
+	CascadingStyleSheet::CascadingStyleSheet(): m_lastRuleOrder(0)
 	{
 	}
 
@@ -1770,15 +1834,109 @@ namespace slib
 		}
 	}
 
-	CascadingStyleDeclarations CascadingStyleSheet::getElementDeclarations(const Ref<XmlElement>& element)
+	List<CascadingStyleDeclarations> CascadingStyleSheet::getElementDeclarations(const Ref<XmlElement>& element)
 	{
-		CascadingStyleDeclarations decls;
-		ListElements<CascadingStyleRule> rules(m_statements.rules);
+		if (m_statements.rules.isEmpty()) {
+			return sl_null;
+		}
+		CMap<sl_uint32, CascadingStyleDeclarations> decls;
+		if (m_statements.rulesById.isNotEmpty()) {
+			SLIB_STATIC_STRING(_id, "id")
+			String id = element->getAttribute(_id);
+			if (id.isNotNull()) {
+				MapNode<String, CascadingStyleRule>* start;
+				MapNode<String, CascadingStyleRule>* end;
+				if (m_statements.rulesById.getEqualRange(id, &start, &end)) {
+					for (;;) {
+						CascadingStyleRule& rule = start->value;
+						if (rule.selector->matchElement(element)) {
+							decls.emplace_NoLock(rule.order, rule.declarations);
+						}
+						if (start == end) {
+							break;
+						} else {
+							start = start->getNext();
+						}
+					}
+				}
+			}
+		}
+		if (m_statements.rulesByClass.isNotEmpty()) {
+			SLIB_STATIC_STRING(_class, "class")
+			String classes = element->getAttribute(_class);
+			if (classes.isNotNull()) {
+				classes = classes.trim();
+				if (classes.isNotEmpty()) {
+					sl_reg index = 0;
+					for (;;) {
+						String name;
+						index = Stringx::indexOfWhitespace(classes, index);
+						if (index < 0) {
+							name = classes;
+						} else {
+							name = classes.substring(0, index);
+						}
+						MapNode<String, CascadingStyleRule>* start;
+						MapNode<String, CascadingStyleRule>* end;
+						if (m_statements.rulesByClass.getEqualRange(name, &start, &end)) {
+							for (;;) {
+								CascadingStyleRule& rule = start->value;
+								if (rule.selector->matchElement(element)) {
+									decls.emplace_NoLock(rule.order, rule.declarations);
+								}
+								if (start == end) {
+									break;
+								} else {
+									start = start->getNext();
+								}
+							}
+						}
+						if (index < 0) {
+							break;
+						}
+						index = Stringx::indexOfNotWhitespace(classes, index + 1);
+						if (index < 0) {
+							break;
+						}
+						classes = classes.substring(index);
+					}
+				}
+			}
+		}
+		if (m_statements.rulesByTag.isNotEmpty()) {
+			String tagName = element->getLocalName();
+			MapNode<String, CascadingStyleRule>* start;
+			MapNode<String, CascadingStyleRule>* end;
+			if (m_statements.rulesByTag.getEqualRange(tagName, &start, &end)) {
+				for (;;) {
+					CascadingStyleRule& rule = start->value;
+					if (rule.selector->matchElement(element)) {
+						decls.emplace_NoLock(rule.order, rule.declarations);
+					}
+					if (start == end) {
+						break;
+					} else {
+						start = start->getNext();
+					}
+				}
+			}
+		}
+		ListElements<CascadingStyleRule> rules(m_statements.rulesUniversal);
 		for (sl_size i = 0; i < rules.count; i++) {
 			CascadingStyleRule& rule(rules[i]);
 			if (rule.selector->matchElement(element)) {
-				mergeDeclarations(decls, rule.declarations);
+				decls.emplace_NoLock(rule.order, rule.declarations);
 			}
+		}
+		return decls.getAllValues_NoLock();
+	}
+
+	List<CascadingStyleDeclarations> CascadingStyleSheet::getElementDeclarations(const Ref<XmlElement>& element, const StringParam& styles)
+	{
+		List<CascadingStyleDeclarations> decls = getElementDeclarations(element);
+		CascadingStyleDeclarations add = parseDeclarations(styles);
+		if (add.isNotNull()) {
+			decls.add_NoLock(Move(add));
 		}
 		return decls;
 	}
@@ -1818,6 +1976,16 @@ namespace slib
 		}
 	}
 
+	CascadingStyleDeclarations CascadingStyleSheet::mergeDeclarations(const List<CascadingStyleDeclarations>& list)
+	{
+		CascadingStyleDeclarations decls;
+		ListElements<CascadingStyleDeclarations> items(list);
+		for (sl_size i = 0; i < items.count; i++) {
+			mergeDeclarations(decls, items[i]);
+		}
+		return decls;
+	}
+
 	String CascadingStyleSheet::getDeclarationValue(const CascadingStyleDeclarations& decls, const String& key)
 	{
 		Ref<CascadingStyleValue> value = decls.getValue_NoLock(key);
@@ -1829,6 +1997,31 @@ namespace slib
 				String name = ((CascadingStyleVariableValue*)(value.get()))->getName();
 				for (sl_uint32 i = 0; i < 64; i++) {
 					value = decls.getValue_NoLock(name);
+					CascadingStyleValueType type = value->getType();
+					if (type == CascadingStyleValueType::Normal) {
+						return ((CascadingStyleNormalValue*)(value.get()))->getValue();
+					} else if (type == CascadingStyleValueType::Variable) {
+						name = ((CascadingStyleVariableValue*)(value.get()))->getName();
+					} else {
+						return sl_null;
+					}
+				}
+			}
+		}
+		return sl_null;
+	}
+
+	String CascadingStyleSheet::getDeclarationValue(const List<CascadingStyleDeclarations>& decls, const String& key)
+	{
+		Ref<CascadingStyleValue> value = GetDeclarationValue(decls, key);
+		if (value.isNotNull()) {
+			CascadingStyleValueType type = value->getType();
+			if (type == CascadingStyleValueType::Normal) {
+				return ((CascadingStyleNormalValue*)(value.get()))->getValue();
+			} else if (type == CascadingStyleValueType::Variable) {
+				String name = ((CascadingStyleVariableValue*)(value.get()))->getName();
+				for (sl_uint32 i = 0; i < 64; i++) {
+					value = GetDeclarationValue(decls, name);
 					CascadingStyleValueType type = value->getType();
 					if (type == CascadingStyleValueType::Normal) {
 						return ((CascadingStyleNormalValue*)(value.get()))->getValue();
