@@ -20,8 +20,9 @@ namespace slib
 		// replaces import entries of all modules
 		static void replaceAllImportEntries(const char* dllName, const char* procName, const void* newFunctionAddress);
 
-#if defined(SLIB_ARCH_IS_32BIT)
 		// returns old function address
+		static void* replaceExportEntry(const void* dllBaseAddress, const char* procName, sl_uint32 newFunctionOffset);
+#if defined(SLIB_ARCH_IS_32BIT)
 		static void* replaceExportEntry(const void* dllBaseAddress, const char* procName, const void* newFunctionAddress);
 #endif
 

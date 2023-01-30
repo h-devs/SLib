@@ -287,17 +287,22 @@ namespace slib
 		}
 	}
 
-#if defined(SLIB_ARCH_IS_32BIT)
-	void* Hook::replaceExportEntry(const void* dllBaseAddress, const char* procName, const void* newFunctionAddress)
+	void* Hook::replaceExportEntry(const void* dllBaseAddress, const char* procName, sl_uint32 newFunctionOffset)
 	{
 		PE pe;
 		if (pe.load(dllBaseAddress)) {
-			sl_uint32 offset = pe.updateExportFunctionOffset(procName, (sl_uint32)newFunctionAddress - (sl_uint32)dllBaseAddress);
+			sl_uint32 offset = pe.updateExportFunctionOffset(procName, newFunctionOffset);
 			if (offset) {
 				return (sl_uint8*)dllBaseAddress + offset;
 			}
 		}
 		return sl_null;
+	}
+
+#if defined(SLIB_ARCH_IS_32BIT)
+	void* Hook::replaceExportEntry(const void* dllBaseAddress, const char* procName, const void* newFunctionAddress)
+	{
+		return replaceExportEntry(dllBaseAddress, procName, (sl_uint32)newFunctionAddress - (sl_uint32)dllBaseAddress);
 	}
 #endif
 
