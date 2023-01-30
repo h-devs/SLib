@@ -161,7 +161,7 @@ namespace slib
 				return pos;
 			}
 
-			static sl_uint32 Generate_CallHookedFunction(void* _dst, const void* targetFunctionAddress, const void* codesReplacing, sl_uint32 sizeReplacing)
+			static sl_uint32 Generate_CallHookedFunction(void* _dst, const void* targetFunctionAddress, const void* codesReplacing, sl_uint8 sizeReplacing)
 			{
 				sl_uint8* dst = (sl_uint8*)_dst;
 				sl_uint32 pos = 0;
