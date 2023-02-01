@@ -368,7 +368,7 @@ namespace slib
 				m_screenPrimary = new PrimaryScreenImpl();
 			}
 
-			sl_bool g_flagInitializedSharedUIContext = sl_false;
+			static sl_bool g_flagInitializedSharedUIContext = sl_false;
 
 			static Win32_UI_Shared* GetSharedUIContextInternal()
 			{

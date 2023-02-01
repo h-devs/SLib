@@ -39,7 +39,7 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_defaultFamily)
-			sl_real g_defaultSize = 12;
+			static sl_real g_defaultSize = 12;
 
 			static String GetSystemDefaultFontFamily()
 			{

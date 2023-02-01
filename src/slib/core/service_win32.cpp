@@ -56,10 +56,10 @@ namespace slib
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<ServiceHelper>, g_servicePlatform)
 			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Event>, g_eventStop)
 
-			sl_bool g_flagStopService = sl_false;
+			static sl_bool g_flagStopService = sl_false;
 
-			SERVICE_STATUS_HANDLE g_hServiceStatus = NULL;
-			SERVICE_STATUS g_statusService;
+			static SERVICE_STATUS_HANDLE g_hServiceStatus = NULL;
+			static SERVICE_STATUS g_statusService;
 
 			static void ReportServiceStatus(DWORD dwCurrentState, DWORD dwExitCode, DWORD dwWaitHint)
 			{

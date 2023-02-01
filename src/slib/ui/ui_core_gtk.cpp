@@ -44,10 +44,10 @@ namespace slib
 		namespace ui_core
 		{
 
-			GtkApplication* g_app = sl_null;
+			static GtkApplication* g_app = sl_null;
 
-			pthread_t g_threadMain = 0;
-			sl_bool g_flagRunningAppLoop = sl_false;
+			static pthread_t g_threadMain = 0;
+			static sl_bool g_flagRunningAppLoop = sl_false;
 
 
 			static String GetOpenIpcName(const StringParam& appId)

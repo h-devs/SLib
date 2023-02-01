@@ -94,20 +94,20 @@ namespace slib
 
 			StringContainer* const g_null = sl_null;
 
-			const sl_char8 g_empty_buf[] = {0, 0};
-			const StringContainer g_empty_container = {const_cast<sl_char8*>(g_empty_buf), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
+			static const sl_char8 g_empty_buf[] = {0, 0};
+			static const StringContainer g_empty_container = {const_cast<sl_char8*>(g_empty_buf), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
 			StringContainer* const g_empty = const_cast<StringContainer*>(&g_empty_container);
 
 			StringContainer16* const g_null16 = sl_null;
 
-			const sl_char16 g_empty_buf16[] = {0, 0};
-			const StringContainer16 g_empty_container16 = {const_cast<sl_char16*>(g_empty_buf16), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
+			static const sl_char16 g_empty_buf16[] = {0, 0};
+			static const StringContainer16 g_empty_container16 = {const_cast<sl_char16*>(g_empty_buf16), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
 			StringContainer16* const g_empty16 = const_cast<StringContainer16*>(&g_empty_container16);
 
 			StringContainer32* const g_null32 = sl_null;
 
-			const sl_char32 g_empty_buf32[] = { 0, 0 };
-			const StringContainer32 g_empty_container32 = { const_cast<sl_char32*>(g_empty_buf32), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1 };
+			static const sl_char32 g_empty_buf32[] = { 0, 0 };
+			static const StringContainer32 g_empty_container32 = { const_cast<sl_char32*>(g_empty_buf32), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1 };
 			StringContainer32* const g_empty32 = const_cast<StringContainer32*>(&g_empty_container32);
 
 			struct StringViewContainer
@@ -116,8 +116,8 @@ namespace slib
 				sl_reg length;
 			};
 
-			StringViewContainer g_stringView_null = { sl_null, 0 };
-			StringViewContainer g_stringView_empty = { "\0\0\0\0", 0 };
+			static StringViewContainer g_stringView_null = { sl_null, 0 };
+			static StringViewContainer g_stringView_empty = { "\0\0\0\0", 0 };
 
 			template <class CONTAINTER>
 			class ConstContainers;
@@ -2771,12 +2771,12 @@ namespace slib
 #define MAX_NUMBER_STR_LEN 256
 #define MAX_PRECISION 50
 
-			const char g_conv_radix_pattern_lower[65] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_";
+			static const char g_conv_radix_pattern_lower[65] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_";
 			const char* g_conv_radixPatternLower = g_conv_radix_pattern_lower;
-			const char g_conv_radix_pattern_upper[65] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@_";
+			static const char g_conv_radix_pattern_upper[65] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@_";
 			const char* g_conv_radixPatternUpper = g_conv_radix_pattern_upper;
 
-			const sl_uint8 g_conv_radix_inverse_pattern_big[128] = {
+			static const sl_uint8 g_conv_radix_inverse_pattern_big[128] = {
 				/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
 				/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
 				/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,
@@ -2796,7 +2796,7 @@ namespace slib
 			};
 			const sl_uint8* g_conv_radixInversePatternBig = g_conv_radix_inverse_pattern_big;
 
-			const sl_uint8 g_conv_radix_inverse_pattern_small[128] = {
+			static const sl_uint8 g_conv_radix_inverse_pattern_small[128] = {
 				/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
 				/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
 				/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,

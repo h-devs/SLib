@@ -53,7 +53,7 @@ namespace slib
 		namespace ui_core
 		{
 
-			CGFloat g_fGlobalScaleFactor = 0;
+			static CGFloat g_fGlobalScaleFactor = 0;
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidFinishLaunching);
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSData*, NSError*)>, g_callbackDidRegisterForRemoteNotifications);

@@ -33,8 +33,8 @@ namespace slib
 		namespace graphics_resource
 		{
 
-			sl_uint32 g_screenWidth = 0;
-			sl_uint32 g_screenHeight = 0;
+			static sl_uint32 g_screenWidth = 0;
+			static sl_uint32 g_screenHeight = 0;
 
 			Ref<Image> ImageEntry::getImage()
 			{

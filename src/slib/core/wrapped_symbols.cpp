@@ -34,8 +34,8 @@ namespace priv
 		namespace wrapped_symbols
 		{
 
-			void* g_libc = 0;
-			void* g_libm = 0;
+			static void* g_libc = 0;
+			static void* g_libm = 0;
 
 			static void LoadLibrary()
 			{

@@ -34,22 +34,22 @@ namespace slib
 		namespace ui_resource
 		{
 
-			sl_ui_len g_screenWidth = 0;
-			sl_ui_len g_screenHeight = 0;
-			sl_ui_len g_defaultScreenWidth = 0;
-			sl_ui_len g_defaultScreenHeight = 0;
-			double g_screenPPI = 0;
-			double g_defaultScreenPPI = 0;
-			sl_ui_len g_statusBarHeight = -1;
-			sl_ui_len g_defaultStatusBarHeight = -1;
-			sl_ui_len g_safeAreaLeft = -1;
-			sl_ui_len g_safeAreaTop = -1;
-			sl_ui_len g_safeAreaRight = -1;
-			sl_ui_len g_safeAreaBottom = -1;
-			sl_ui_len g_defaultSafeAreaLeft = -1;
-			sl_ui_len g_defaultSafeAreaTop = -1;
-			sl_ui_len g_defaultSafeAreaRight = -1;
-			sl_ui_len g_defaultSafeAreaBottom = -1;
+			static sl_ui_len g_screenWidth = 0;
+			static sl_ui_len g_screenHeight = 0;
+			static sl_ui_len g_defaultScreenWidth = 0;
+			static sl_ui_len g_defaultScreenHeight = 0;
+			static double g_screenPPI = 0;
+			static double g_defaultScreenPPI = 0;
+			static sl_ui_len g_statusBarHeight = -1;
+			static sl_ui_len g_defaultStatusBarHeight = -1;
+			static sl_ui_len g_safeAreaLeft = -1;
+			static sl_ui_len g_safeAreaTop = -1;
+			static sl_ui_len g_safeAreaRight = -1;
+			static sl_ui_len g_safeAreaBottom = -1;
+			static sl_ui_len g_defaultSafeAreaLeft = -1;
+			static sl_ui_len g_defaultSafeAreaTop = -1;
+			static sl_ui_len g_defaultSafeAreaRight = -1;
+			static sl_ui_len g_defaultSafeAreaBottom = -1;
 
 		}
 	}

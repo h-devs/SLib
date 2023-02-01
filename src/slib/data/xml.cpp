@@ -99,7 +99,7 @@ namespace slib
 			};
 
 			// 1: valid, 2: invalid for starting, 0: invalid
-			const sl_uint8 g_patternCheckName[128] = {
+			static const sl_uint8 g_patternCheckName[128] = {
 				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
 				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
 				/*		BS		HT		LF		VT		FF		CR		SO		SI		*/

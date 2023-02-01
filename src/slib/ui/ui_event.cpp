@@ -490,7 +490,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 			SLIB_DEFINE_OBJECT(DragEvent, MouseEvent)
 
-			DragContext g_currentDragContext;
+			static DragContext g_currentDragContext;
 
 		}
 	}

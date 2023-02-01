@@ -42,7 +42,7 @@ namespace slib
 		namespace alipay_ios
 		{
 
-			String g_appScheme;
+			static String g_appScheme;
 
 			class StaticContext
 			{

@@ -59,7 +59,8 @@ namespace slib
 			{
 				__u32 v4l_fmt;
 				BitmapFormat fmt;
-			} g_formatMappings[] = {
+			};
+			static FORMAT_MAPPING g_formatMappings[] = {
 				{ V4L2_PIX_FMT_BGR24, BitmapFormat::BGR },
 				{ V4L2_PIX_FMT_RGB24, BitmapFormat::RGB },
 				{ V4L2_PIX_FMT_YUV32, BitmapFormat::YUVA },

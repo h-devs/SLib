@@ -1933,8 +1933,8 @@ namespace slib
 	{
 		namespace text_paragraph
 		{
-			Color g_defaultLinkColor = Color::Blue;
-			sl_bool g_defaultLinkUnderline = sl_true;
+			static Color g_defaultLinkColor = Color::Blue;
+			static sl_bool g_defaultLinkUnderline = sl_true;
 		}
 	}
 

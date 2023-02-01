@@ -132,7 +132,7 @@ namespace slib
 			}
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
-			DragOperations g_currentDraggingOperationMask;
+			static DragOperations g_currentDraggingOperationMask;
 
 		}
 	}

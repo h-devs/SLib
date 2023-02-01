@@ -46,7 +46,7 @@ namespace slib
 		namespace fcm
 		{
 
-			SLIBFirebaseMessagingDelegate* g_delegate;
+			static SLIBFirebaseMessagingDelegate* g_delegate;
 
 			class FCMImpl : public FCM
 			{

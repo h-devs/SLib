@@ -44,10 +44,10 @@ namespace slib
 	{
 		namespace xgpush
 		{
-			sl_uint32 g_accessId = 0;
-			String g_accessKey;
-			SLIBXGPush* g_instance = nil;
-			sl_bool g_flagStarted = sl_false;
+			static sl_uint32 g_accessId = 0;
+			static String g_accessKey;
+			static SLIBXGPush* g_instance = nil;
+			static sl_bool g_flagStarted = sl_false;
 		}
 	}
 

@@ -55,7 +55,7 @@ namespace slib
 		namespace java
 		{
 
-			JavaVM* g_jvmShared = sl_null;
+			static JavaVM* g_jvmShared = sl_null;
 			SLIB_THREAD JNIEnv* g_envCurrent = sl_null;
 			SLIB_THREAD sl_bool g_flagAutoClearException = sl_true;
 			SLIB_THREAD sl_bool g_flagAutoPrintException = sl_true;

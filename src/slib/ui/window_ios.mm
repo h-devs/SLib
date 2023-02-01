@@ -68,12 +68,12 @@ namespace slib
 		namespace window
 		{
 
-			__weak SLIBWindowRootViewController* g_currentRootController = nil;
-			sl_bool g_flagSetStatusBarStyle = sl_false;
-			StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
+			static __weak SLIBWindowRootViewController* g_currentRootController = nil;
+			static sl_bool g_flagSetStatusBarStyle = sl_false;
+			static StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
 
-			__weak UIScrollView* g_keyboardCurrentScrollView = nil;
-			CGRect g_keyboardCurrentScrollViewOriginalFrame;
+			static __weak UIScrollView* g_keyboardCurrentScrollView = nil;
+			static CGRect g_keyboardCurrentScrollViewOriginalFrame;
 
 			class iOS_WindowInstance : public WindowInstance
 			{

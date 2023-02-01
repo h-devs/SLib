@@ -139,7 +139,7 @@ namespace slib
 			SLIB_SAFE_STATIC_GETTER(ToastManager, GetToastManager)
 
 			// milliseconds
-			sl_uint32 g_defaultDuration = 2000;
+			static sl_uint32 g_defaultDuration = 2000;
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Font>, g_defaultFont)
 

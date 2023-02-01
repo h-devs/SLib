@@ -48,7 +48,7 @@ namespace slib
 		namespace ui_core
 		{
 
-			Ref<UIApp> g_app;
+			static Ref<UIApp> g_app;
 
 			SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
 				SLIB_JNI_INT_FIELD(left);

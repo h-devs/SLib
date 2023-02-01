@@ -61,34 +61,34 @@ namespace slib
 		namespace button
 		{
 
-			const sl_real g_colorMatrix_hover_buf[20] = {
+			static const sl_real g_colorMatrix_hover_buf[20] = {
 				0.5f, 0, 0, 0,
 				0, 0.5f, 0, 0,
 				0, 0, 0.5f, 0,
 				0, 0, 0, 1,
 				0.2f, 0.3f, 0.4f, 0
 			};
-			const ColorMatrix& g_colorMatrix_hover = *((const ColorMatrix*)((void*)g_colorMatrix_hover_buf));
+			static const ColorMatrix& g_colorMatrix_hover = *((const ColorMatrix*)((void*)g_colorMatrix_hover_buf));
 
-			const sl_real g_colorMatrix_focused_buf[20] = {
+			static const sl_real g_colorMatrix_focused_buf[20] = {
 				0.5f, 0, 0, 0,
 				0, 0.5f, 0, 0,
 				0, 0, 0.5f, 0,
 				0, 0, 0, 1,
 				0.2f, 0.3f, 0.6f, 0
 			};
-			const ColorMatrix& g_colorMatrix_focused = *((const ColorMatrix*)((void*)g_colorMatrix_focused_buf));
+			static const ColorMatrix& g_colorMatrix_focused = *((const ColorMatrix*)((void*)g_colorMatrix_focused_buf));
 
-			const sl_real g_colorMatrix_focused_hover_buf[20] = {
+			static const sl_real g_colorMatrix_focused_hover_buf[20] = {
 				0.5f, 0, 0, 0,
 				0, 0.5f, 0, 0,
 				0, 0, 0.5f, 0,
 				0, 0, 0, 1,
 				0.2f, 0.4f, 0.6f, 0
 			};
-			const ColorMatrix& g_colorMatrix_focused_hover = *((const ColorMatrix*)((void*)g_colorMatrix_focused_hover_buf));
+			static const ColorMatrix& g_colorMatrix_focused_hover = *((const ColorMatrix*)((void*)g_colorMatrix_focused_hover_buf));
 
-			const sl_real g_colorMatrix_pressed_buf[20] = {
+			static const sl_real g_colorMatrix_pressed_buf[20] = {
 				0.5f, 0, 0, 0,
 				0, 0.5f, 0, 0,
 				0, 0, 0.5f, 0,
@@ -96,16 +96,16 @@ namespace slib
 				0.3f, 0.4f, 0.6f, 0
 
 			};
-			const ColorMatrix& g_colorMatrix_pressed = *((const ColorMatrix*)((void*)g_colorMatrix_pressed_buf));
+			static const ColorMatrix& g_colorMatrix_pressed = *((const ColorMatrix*)((void*)g_colorMatrix_pressed_buf));
 
-			const sl_real g_colorMatrix_disabled_buf[20] = {
+			static const sl_real g_colorMatrix_disabled_buf[20] = {
 				0.2f, 0.2f, 0.2f, 0,
 				0.2f, 0.2f, 0.2f, 0,
 				0.2f, 0.2f, 0.2f, 0,
 				0, 0, 0, 1,
 				0, 0, 0, 0
 			};
-			const ColorMatrix& g_colorMatrix_disabled = *((const ColorMatrix*)((void*)g_colorMatrix_disabled_buf));
+			static const ColorMatrix& g_colorMatrix_disabled = *((const ColorMatrix*)((void*)g_colorMatrix_disabled_buf));
 
 			class Categories
 			{

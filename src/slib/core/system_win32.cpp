@@ -73,9 +73,9 @@ namespace slib
 
 #ifdef SLIB_PLATFORM_IS_WIN32
 
-			volatile double g_signal_fpe_dummy = 0.0f;
-			SIGNAL_HANDLER g_handlerSignalCrash;
-			DEBUG_ALLOC_HOOK g_debugAllocHook;
+			static volatile double g_signal_fpe_dummy = 0.0f;
+			static SIGNAL_HANDLER g_handlerSignalCrash;
+			static DEBUG_ALLOC_HOOK g_debugAllocHook;
 
 			static void DoHandleSignalCrash(int sig)
 			{

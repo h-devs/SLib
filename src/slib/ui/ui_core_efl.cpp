@@ -51,8 +51,8 @@ namespace slib
 		namespace ui_core
 		{
 
-			pthread_t g_threadMain = 0;
-			volatile sl_int32 g_nLevelMainLoop = 0;
+			static pthread_t g_threadMain = 0;
+			static volatile sl_int32 g_nLevelMainLoop = 0;
 
 			class ScreenImpl : public Screen
 			{

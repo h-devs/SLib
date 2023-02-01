@@ -269,9 +269,9 @@ namespace slib
 		namespace uint128
 		{
 #ifdef SLIB_ARCH_IS_LITTLE_ENDIAN
-			SLIB_ALIGN(8) const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x85ACEF8100000000), SLIB_UINT64(0x4EE2D6D415B) };
+			SLIB_ALIGN(8) static const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x85ACEF8100000000), SLIB_UINT64(0x4EE2D6D415B) };
 #else
-			SLIB_ALIGN(8) const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x4EE2D6D415B), SLIB_UINT64(0x85ACEF8100000000) };
+			SLIB_ALIGN(8) static const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x4EE2D6D415B), SLIB_UINT64(0x85ACEF8100000000) };
 #endif
 		}
 	}

@@ -137,7 +137,8 @@ namespace slib
 					flagInit = sl_true;
 				}
 
-			} g_encodeContext = { 0 };
+			};
+			static EncodeContext g_encodeContext = { 0 };
 
 		}
 	}

@@ -537,9 +537,9 @@ namespace slib
 		namespace canvas
 		{
 
-			SLIB_ALIGN(8) const char g_defaultDrawParamBuf[sizeof(DrawParam)] = {0};
+			SLIB_ALIGN(8) static const char g_defaultDrawParamBuf[sizeof(DrawParam)] = {0};
 
-			const DrawParam& g_defaultDrawParam = *((const DrawParam*)((void*)g_defaultDrawParamBuf));
+			static const DrawParam& g_defaultDrawParam = *((const DrawParam*)((void*)g_defaultDrawParamBuf));
 
 		}
 	}

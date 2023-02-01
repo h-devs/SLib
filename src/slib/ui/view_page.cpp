@@ -33,14 +33,14 @@ namespace slib
 		namespace view_page
 		{
 
-			TransitionType g_defaultOpeningPopupTransitionType = TransitionType::Zoom;
-			TransitionDirection g_defaultOpeningPopupTransitionDirection = TransitionDirection::FromBottomToTop;
-			float g_defaultOpeningPopupTransitionDuration = 0.25f;
-			AnimationCurve g_defaultOpeningPopupTransitionCurve = AnimationCurve::EaseOut;
-			TransitionType g_defaultClosingPopupTransitionType = TransitionType::Fade;
-			TransitionDirection g_defaultClosingPopupTransitionDirection = TransitionDirection::FromTopToBottom;
-			float g_defaultClosingPopupTransitionDuration = 0.2f;
-			AnimationCurve g_defaultClosingPopupTransitionCurve = AnimationCurve::Linear;
+			static TransitionType g_defaultOpeningPopupTransitionType = TransitionType::Zoom;
+			static TransitionDirection g_defaultOpeningPopupTransitionDirection = TransitionDirection::FromBottomToTop;
+			static float g_defaultOpeningPopupTransitionDuration = 0.25f;
+			static AnimationCurve g_defaultOpeningPopupTransitionCurve = AnimationCurve::EaseOut;
+			static TransitionType g_defaultClosingPopupTransitionType = TransitionType::Fade;
+			static TransitionDirection g_defaultClosingPopupTransitionDirection = TransitionDirection::FromTopToBottom;
+			static float g_defaultClosingPopupTransitionDuration = 0.2f;
+			static AnimationCurve g_defaultClosingPopupTransitionCurve = AnimationCurve::Linear;
 
 			class PopupBackground : public ViewGroup
 			{

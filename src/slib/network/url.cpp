@@ -45,7 +45,7 @@ namespace slib
 		namespace url
 		{
 
-			const sl_bool g_patternUnreserved[128] = {
+			static const sl_bool g_patternUnreserved[128] = {
 				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
 				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
 				/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
@@ -80,7 +80,7 @@ namespace slib
 				/*78*/	1,		1,		1,		0,		0,		0,		1,		0
 			};
 
-			const sl_bool g_patternUnreserved_UriComponents[128] = {
+			static const sl_bool g_patternUnreserved_UriComponents[128] = {
 				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
 				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
 				/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
@@ -115,7 +115,7 @@ namespace slib
 				/*78*/	1,		1,		1,		0,		0,		0,		1,		0
 			};
 
-			const sl_bool g_patternUnreserved_Uri[128] = {
+			static const sl_bool g_patternUnreserved_Uri[128] = {
 				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
 				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
 				/*		BS		HT		LF		VT		FF		CR		SO		SI		*/

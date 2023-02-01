@@ -37,8 +37,8 @@ namespace slib
 		namespace global_event_monitor
 		{
 
-			id g_monitorGlobal = nil;
-			id g_monitorLocal = nil;
+			static id g_monitorGlobal = nil;
+			static id g_monitorLocal = nil;
 
 			class GlobalEventMonitorHelper : public GlobalEventMonitor
 			{

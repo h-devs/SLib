@@ -36,7 +36,7 @@ namespace slib
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
 
-			UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
+			static UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
 		   
 #if defined(SLIB_UI_IS_ANDROID)
 			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode);

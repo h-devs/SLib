@@ -34,10 +34,10 @@ namespace slib
 		namespace locale
 		{
 
-			sl_uint64 g_localeUnknown = 0;
+			static sl_uint64 g_localeUnknown = 0;
 
-			Locale g_localeCurrent = Locale::Unknown;
-			Locale g_localeLastCurrent = Locale::Unknown;
+			static Locale g_localeCurrent = Locale::Unknown;
+			static Locale g_localeLastCurrent = Locale::Unknown;
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
 

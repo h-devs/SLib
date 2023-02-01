@@ -37,7 +37,7 @@ namespace slib
 	{
 		namespace graphics_platform_win32
 		{
-			ULONG_PTR g_tokenGdiplus = 0;
+			static ULONG_PTR g_tokenGdiplus = 0;
 		}
 	}
 

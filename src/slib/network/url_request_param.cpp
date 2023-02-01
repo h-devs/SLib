@@ -137,8 +137,8 @@ namespace slib
 		namespace url_request
 		{
 
-			sl_uint32 g_default_timeout = 60000;
-			sl_bool g_default_allowInsecureConnection = sl_false;
+			static sl_uint32 g_default_timeout = 60000;
+			static sl_bool g_default_allowInsecureConnection = sl_false;
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
 

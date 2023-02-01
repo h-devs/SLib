@@ -45,12 +45,12 @@ namespace slib
 		{
 
 			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
-			sl_uint32 g_systemVersionMajor = 0;
-			sl_uint32 g_systemVersionMinor = 0;
-			sl_uint32 g_systemVersionPatch = 0;
-			sl_bool g_flagInitSystemVersion = sl_true;
+			static sl_uint32 g_systemVersionMajor = 0;
+			static sl_uint32 g_systemVersionMinor = 0;
+			static sl_uint32 g_systemVersionPatch = 0;
+			static sl_bool g_flagInitSystemVersion = sl_true;
 
-			void InitSystemVersion()
+			static void InitSystemVersion()
 			{
 				if (g_flagInitSystemVersion) {
 #if defined(SLIB_PLATFORM_IS_MACOS)

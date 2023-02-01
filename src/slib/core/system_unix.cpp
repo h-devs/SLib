@@ -78,7 +78,7 @@ namespace slib
 		{
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-			volatile double g_signal_fpe_dummy = 0.0f;
+			static volatile double g_signal_fpe_dummy = 0.0f;
 #endif
 
 #if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)

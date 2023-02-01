@@ -48,7 +48,9 @@ namespace slib
 	{
 		namespace fuse
 		{
-			void* g_libFuse;
+
+			static void* g_libFuse;
+
 			SLIB_IMPORT_FUNCTION_FROM_LIBRARY(g_libFuse, fuse_main_real, int, ,
 				int argc, char *argv[], const struct fuse_operations *op,
 				size_t op_size, void *user_data)
