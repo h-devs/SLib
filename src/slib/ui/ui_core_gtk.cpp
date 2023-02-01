@@ -36,6 +36,8 @@
 #include "slib/core/safe_static.h"
 #include "slib/ui/platform.h"
 
+#include <sys/syscall.h>
+
 namespace slib
 {
 
@@ -46,7 +48,6 @@ namespace slib
 
 			static GtkApplication* g_app = sl_null;
 
-			static pthread_t g_threadMain = 0;
 			static sl_bool g_flagRunningAppLoop = sl_false;
 
 
@@ -215,7 +216,7 @@ namespace slib
 
 	sl_bool UI::isUiThread()
 	{
-		return g_threadMain == pthread_self();
+		return getpid() == syscall(SYS_gettid);
 	}
 
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
@@ -374,7 +375,6 @@ namespace slib
 
 	void UIPlatform::initApp()
 	{
-		g_threadMain = pthread_self();
 		UIPlatform::initializeGtk();
 		GtkApplication* app = getApp();
 		if (app) {
