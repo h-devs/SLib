@@ -80,24 +80,24 @@ namespace slib
 		namespace ui_core
 		{
 
-			sl_bool g_bSetThreadMain = sl_false;
-			DWORD g_threadMain = 0;
-			sl_bool g_bFlagQuit = sl_false;
+			static sl_bool g_bSetThreadMain = sl_false;
+			static DWORD g_threadMain = 0;
+			static sl_bool g_bFlagQuit = sl_false;
 
-			sl_uint32 g_nBadgeNumber = 0;
+			static sl_uint32 g_nBadgeNumber = 0;
 
-			WNDPROC g_wndProc_SystemTrayIcon = NULL;
+			static WNDPROC g_wndProc_SystemTrayIcon = NULL;
 
-			class MainThreadSeter
+			class MainThreadSetter
 			{
 			public:
-				MainThreadSeter()
+				MainThreadSetter()
 				{
 					g_threadMain = GetCurrentThreadId();
 					g_bSetThreadMain = sl_true;
 				}
-
-			} g_seterMainThread;
+			};
+			static MainThreadSetter g_seterMainThread;
 
 			class MainContext
 			{
