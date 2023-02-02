@@ -20,6 +20,15 @@
  *   THE SOFTWARE.
  */
 
+namespace slib {
+	namespace {
+		namespace chat_view {
+			class ChatItemView;
+		}
+	}
+}
+#define PRIV_SLIB_CHAT_VIEW_FRIENDS friend class chat_view::ChatItemView;
+
 #include "chat_view.h"
 
 #include <slib/ui/core.h>
@@ -29,35 +38,6 @@
 #include "res/gen/menus.h"
 #include "res/gen/strings.h"
 
-namespace slib
-{
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ChatViewItem)
-
-	ChatViewItem::ChatViewItem()
-	{
-	}
-
-	SLIB_DEFINE_OBJECT(ChatView, ListView)
-
-	ChatView::ChatView()
-	{
-		m_chatWidth = 0;
-		m_chatWidthWeight = 0.6f;
-		m_userIconSize = 0;
-		m_userIconSizeWeight = 0.1f;
-
-		m_backColorReceived = Color(220, 230, 240);
-		m_textColorReceived = Color::Black;
-		m_backColorSent = Color(200, 220, 250);
-		m_textColorSent = Color::Black;
-		m_textColorDate = Color(120, 120, 120);
-	}
-
-	ChatView::~ChatView()
-	{
-	}
-
 #define CHAT_MARGIN_WEIGHT 0.4f
 #define CHAT_ROUND_WEIGHT 0.3f
 #define CHAT_SPACE_WEIGHT 0.3f
@@ -66,7 +46,10 @@ namespace slib
 #define CHAT_TIME_HEIGHT_WEIGHT 1.3f
 #define BOTTOM_MARGIN_WEIGHT 0.7f
 
-	namespace priv
+namespace slib
+{
+
+	namespace
 	{
 		namespace chat_view
 		{
@@ -176,8 +159,8 @@ namespace slib
 						String strDate = getDateText();
 						Size size = font->measureText(strDate);
 						Ref<Pen> pen = Pen::createSolidPen(1, params.textColorDate);
-						canvas->drawLine(0, (sl_real)(h/2), (sl_real)(width / 2 - size.x / 2 - layout.fontSize), (sl_real)(h/2), pen);
-						canvas->drawLine((sl_real)(width / 2 + size.x / 2 + layout.fontSize), (sl_real)(h/2), (sl_real)width, (sl_real)(h/2), pen);
+						canvas->drawLine(0, (sl_real)(h / 2), (sl_real)(width / 2 - size.x / 2 - layout.fontSize), (sl_real)(h / 2), pen);
+						canvas->drawLine((sl_real)(width / 2 + size.x / 2 + layout.fontSize), (sl_real)(h / 2), (sl_real)width, (sl_real)(h / 2), pen);
 						canvas->drawText(strDate, (sl_real)(width / 2 - size.x / 2), (sl_real)(h / 2 - size.y / 2), font, params.textColorDate);
 					}
 					if (userIcon.isNotNull()) {
@@ -420,7 +403,33 @@ namespace slib
 		}
 	}
 
-	using namespace priv::chat_view;
+	using namespace chat_view;
+	
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ChatViewItem)
+
+	ChatViewItem::ChatViewItem()
+	{
+	}
+
+	SLIB_DEFINE_OBJECT(ChatView, ListView)
+
+	ChatView::ChatView()
+	{
+		m_chatWidth = 0;
+		m_chatWidthWeight = 0.6f;
+		m_userIconSize = 0;
+		m_userIconSizeWeight = 0.1f;
+
+		m_backColorReceived = Color(220, 230, 240);
+		m_textColorReceived = Color::Black;
+		m_backColorSent = Color(200, 220, 250);
+		m_textColorSent = Color::Black;
+		m_textColorDate = Color(120, 120, 120);
+	}
+
+	ChatView::~ChatView()
+	{
+	}
 
 	void ChatView::setItems(const List<ChatViewItem>& items, UIUpdateMode mode)
 	{

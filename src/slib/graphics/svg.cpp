@@ -36,7 +36,7 @@
 namespace slib
 {
 
-	namespace priv
+	namespace
 	{
 		namespace svg
 		{
@@ -101,7 +101,7 @@ namespace slib
 				}
 
 			};
-			
+
 			template <class Base>
 			class Define<Base, sl_true> : public Base
 			{
@@ -358,7 +358,7 @@ namespace slib
 				Color color;
 			};
 
-			sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<Paint>& _out)
+			static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<Paint>& _out)
 			{
 				Color color;
 				if (ParseColor(s, end, color)) {
@@ -378,7 +378,7 @@ namespace slib
 				sl_bool flagContain = sl_true;
 			};
 
-			sl_bool ParseValue(sl_char8*& s, sl_char8* end, PreserveAspectRatio& _out)
+			static sl_bool ParseValue(sl_char8*& s, sl_char8* end, PreserveAspectRatio& _out)
 			{
 				sl_char8* t = s;
 				SkipNoWhitespaces(t, end);
@@ -425,7 +425,7 @@ namespace slib
 				return sl_true;
 			}
 
-			sl_bool ParseValue(sl_char8*& s, sl_char8* end, LineCap& _out)
+			static sl_bool ParseValue(sl_char8*& s, sl_char8* end, LineCap& _out)
 			{
 				sl_char8* t = s;
 				SkipNoWhitespaces(t, end);
@@ -443,7 +443,7 @@ namespace slib
 				return sl_true;
 			}
 
-			sl_bool ParseValue(sl_char8*& s, sl_char8* end, LineJoin& _out)
+			static sl_bool ParseValue(sl_char8*& s, sl_char8* end, LineJoin& _out)
 			{
 				sl_char8* t = s;
 				SkipNoWhitespaces(t, end);
@@ -465,7 +465,7 @@ namespace slib
 				return sl_true;
 			}
 
-			sl_bool ParseValue(sl_char8*& s, sl_char8* end, FillMode& _out)
+			static sl_bool ParseValue(sl_char8*& s, sl_char8* end, FillMode& _out)
 			{
 				sl_char8* t = s;
 				SkipNoWhitespaces(t, end);
@@ -481,10 +481,15 @@ namespace slib
 				return sl_true;
 			}
 
+			static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<GraphicsPath>& _out)
+			{
+				return sl_false;
+			}
+
 #define PARSE_ATTRIBUTE(NAME, ATTR) \
 			SLIB_STATIC_STRING(name_##NAME, ATTR) \
 			ParseValue(getAttribute(name_##NAME), NAME);
-			
+
 			struct RenderParam
 			{
 				Scalar containerWidth;
@@ -864,6 +869,28 @@ namespace slib
 
 			};
 
+			class Path : public Element
+			{
+			public:
+				Ref<GraphicsPath> shape;
+
+			public:
+				void load() override
+				{
+					PARSE_ATTRIBUTE(shape, "d")
+				}
+
+				void render(Canvas* canvas, RenderParam& param) override
+				{
+					if (shape.isNotNull()) {
+						shape->setFillMode(getFillRule());
+						canvas->drawPath(shape, getPen(param), getBrush());
+					}
+				}
+
+
+			};
+
 			class Viewport : public Group
 			{
 			public:
@@ -1060,7 +1087,8 @@ namespace slib
 		}
 	}
 
-	using namespace priv::svg;
+	using namespace svg;
+
 
 	SLIB_DEFINE_OBJECT(Svg, Drawable)
 

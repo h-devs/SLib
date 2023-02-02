@@ -46,14 +46,6 @@ namespace slib
 
 	};
 
-	namespace priv
-	{
-		namespace chat_view
-		{
-			class ChatItemView;
-		}
-	}
-
 	class SLIB_EXPORT ChatView : public ListView
 	{
 		SLIB_DECLARE_OBJECT
@@ -147,7 +139,9 @@ namespace slib
 		Color m_textColorSent;
 		Color m_textColorDate;
 
-		friend class priv::chat_view::ChatItemView;
+#ifdef PRIV_SLIB_CHAT_VIEW_FRIENDS
+		PRIV_SLIB_CHAT_VIEW_FRIENDS
+#endif
 
 	};
 
