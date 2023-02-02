@@ -32,9 +32,9 @@
 #include "slib/dl/win32/kernel32.h"
 
 #ifdef SLIB_ARCH_IS_64BIT
-#define JMP_FAR_CODE_MAX_LENGTH 21
+#define JMP_FAR_CODE_MAX_LENGTH 17
 #else
-#define JMP_FAR_CODE_MAX_LENGTH 5
+#define JMP_FAR_CODE_MAX_LENGTH 9
 #endif
 
 namespace slib
@@ -45,37 +45,73 @@ namespace slib
 		namespace hook
 		{
 
-			static sl_uint8 Generate_Jmp(void* _dst, const void* address, const void* callerAddress)
+			static sl_uint8 Generate_Jmp(void* _dst, const void* address, const void* callerAddress = sl_null, sl_bool flagUseAX = sl_true)
 			{
-				sl_uint8* dst = (sl_uint8*)_dst;
-				sl_reg offset = (sl_reg)((sl_uint8*)address - ((sl_uint8*)callerAddress + 5));
+				sl_reg offset = 0;
+				if (callerAddress) {
+					offset = (sl_reg)((sl_uint8*)address - ((sl_uint8*)callerAddress + 5));
 #if defined(SLIB_ARCH_IS_64BIT)
-				if (offset != (sl_int32)offset) {
-					if (dst) {
-						dst[0] = 0xC7; // mov dword ptr [rsp-8], &address
-						dst[1] = 0x44;
-						dst[2] = 0x24;
-						dst[3] = 0xF8;
-						Base::copyMemory(dst + 4, &address, 4);
-						dst[8] = 0xC7; // mov dword ptr [rsp-4], &address+4
-						dst[9] = 0x44;
-						dst[10] = 0x24;
-						dst[11] = 0xFC;
-						Base::copyMemory(dst + 12, ((char*)&address) + 4, 4);
-						dst[16] = 0x48; // sub rsp, 8
-						dst[17] = 0x83;
-						dst[18] = 0xEC;
-						dst[19] = 0x08;
-						dst[20] = 0xC3; // ret
+					if (offset != (sl_int32)offset) {
+						offset = 0;
 					}
-					return 21;
-				}
 #endif
-				if (dst) {
-					*dst = 0xE9; // jmp offset
-					Base::copyMemory(dst + 1, &offset, 4);
 				}
-				return 5;
+				sl_uint8* dst = (sl_uint8*)_dst;
+				if (offset) {
+					if (dst) {
+						*dst = 0xE9; // jmp offset
+						Base::copyMemory(dst + 1, &offset, 4);
+					}
+					return 5;
+				} else {
+					if (flagUseAX) {
+#if defined(SLIB_ARCH_IS_64BIT)
+						if (dst) {
+							dst[0] = 0x48; // mov rax, &address
+							dst[1] = 0xB8;
+							Base::copyMemory(dst + 2, &address, 8);
+							dst[10] = 0xFF; // jmp rax
+							dst[11] = 0xE0;
+						}
+						return 12;
+#else
+						if (dst) {
+							dst[0] = 0xB8; // mov eax, &address
+							Base::copyMemory(dst + 1, &address, 4);
+							dst[5] = 0xFF; // jmp eax
+							dst[6] = 0xE0;
+						}
+						return 7;
+#endif
+					} else {
+#if defined(SLIB_ARCH_IS_64BIT)
+						if (dst) {
+							dst[0] = 0x50; // push rax
+							dst[1] = 0xC7; // mov dword ptr [rsp], &address
+							dst[2] = 0x04;
+							dst[3] = 0x24;
+							Base::copyMemory(dst + 4, &address, 4);
+							dst[8] = 0xC7; // mov dword ptr [rsp+4], &address+4
+							dst[9] = 0x44;
+							dst[10] = 0x24;
+							dst[11] = 0x04;
+							Base::copyMemory(dst + 12, ((char*)&address) + 4, 4);
+							dst[16] = 0xC3; // ret
+						}
+						return 17;
+#else
+						if (dst) {
+							dst[0] = 0x50; // push eax
+							dst[1] = 0xC7; // mov dword ptr [esp], &address
+							dst[2] = 0x04;
+							dst[3] = 0x24;
+							Base::copyMemory(dst + 4, &address, 4);
+							dst[8] = 0xC3; // ret
+						}
+						return 9; 
+#endif
+					}
+				}
 			}
 
 			SLIB_INLINE static void WriteByte(sl_uint8* dst, sl_uint32& pos, sl_uint8 value)
@@ -211,7 +247,7 @@ namespace slib
 				pos += sizeof(void*);
 #if defined(SLIB_ARCH_IS_64BIT)
 				WriteBytes(dst, pos, 0x48, 0x8B, 0x00); // mov rax, [rax]
-				WriteBytes(dst, pos, 0x48, 0x89, 0x44, 0x24, 0x08); // mov dword ptr [rsp+8], rax
+				WriteBytes(dst, pos, 0x48, 0x89, 0x44, 0x24, 0x08); // mov qword ptr [rsp+8], rax
 #else
 				WriteBytes(dst, pos, 0x8B, 0x00); // mov eax, [eax]
 				WriteBytes(dst, pos, 0x89, 0x44, 0x24, 0x04); // mov dword ptr [esp+4], eax
