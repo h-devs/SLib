@@ -30,158 +30,6 @@
 namespace slib
 {
 
-/*
-		Uniform Resource Identifier (URI): Generic Syntax
-			https://tools.ietf.org/html/rfc3986
-
-   unreserved	= ALPHA / DIGIT / "-" / "." / "_" / "~"
-   reserved		= gen-delims / sub-delims
-   gen-delims	= ":" / "/" / "?" / "#" / "[" / "]" / "@"
-   sub-delims	= "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
-*/
-
-	namespace priv
-	{
-		namespace url
-		{
-
-			static const sl_bool g_patternUnreserved[128] = {
-				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
-				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
-				/*08*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		DLE		DC1		DC2		DC3		DC4		NAK		SYN		ETB		*/
-				/*10*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		CAN		EM		SUB		ESC		FS		GS		RS		US		*/
-				/*18*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		SP		!		"		#		$		%		&		'		*/
-				/*20*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		(		)		*		+		,		-		.		/		*/
-				/*28*/	0,		0,		0,		0,		0,		1,		1,		0,
-				/*		0		1		2		3		4		5		6		7		*/
-				/*30*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		8		9		:		;		<		=		>		?		*/
-				/*38*/	1,		1,		0,		0,		0,		0,		0,		0,
-				/*		@		A		B		C		D		E		F		G		*/
-				/*40*/	0,		1,		1,		1,		1,		1,		1,		1,
-				/*		H		I		J		K		L		M		N		O		*/
-				/*48*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		P		Q		R		S		T		U		V		W		*/
-				/*50*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		X		Y		Z		[		\		]		^		_		*/
-				/*58*/	1,		1,		1,		0,		0,		0,		0,		1,
-				/*		`		a		b		c		d		e		f		g		*/
-				/*60*/	0,		1,		1,		1,		1,		1,		1,		1,
-				/*		h		i		j		k		l		m		n		o		*/
-				/*68*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		p		q		r		s		t		u		v		w		*/
-				/*70*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		x		y		z		{		|		}		~		DEL		*/
-				/*78*/	1,		1,		1,		0,		0,		0,		1,		0
-			};
-
-			static const sl_bool g_patternUnreserved_UriComponents[128] = {
-				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
-				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
-				/*08*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		DLE		DC1		DC2		DC3		DC4		NAK		SYN		ETB		*/
-				/*10*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		CAN		EM		SUB		ESC		FS		GS		RS		US		*/
-				/*18*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		SP		!		"		#		$		%		&		'		*/
-				/*20*/	0,		1,		0,		0,		0,		0,		0,		1,
-				/*		(		)		*		+		,		-		.		/		*/
-				/*28*/	1,		1,		1,		0,		0,		1,		1,		0,
-				/*		0		1		2		3		4		5		6		7		*/
-				/*30*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		8		9		:		;		<		=		>		?		*/
-				/*38*/	1,		1,		0,		0,		0,		0,		0,		0,
-				/*		@		A		B		C		D		E		F		G		*/
-				/*40*/	0,		1,		1,		1,		1,		1,		1,		1,
-				/*		H		I		J		K		L		M		N		O		*/
-				/*48*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		P		Q		R		S		T		U		V		W		*/
-				/*50*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		X		Y		Z		[		\		]		^		_		*/
-				/*58*/	1,		1,		1,		0,		0,		0,		0,		1,
-				/*		`		a		b		c		d		e		f		g		*/
-				/*60*/	0,		1,		1,		1,		1,		1,		1,		1,
-				/*		h		i		j		k		l		m		n		o		*/
-				/*68*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		p		q		r		s		t		u		v		w		*/
-				/*70*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		x		y		z		{		|		}		~		DEL		*/
-				/*78*/	1,		1,		1,		0,		0,		0,		1,		0
-			};
-
-			static const sl_bool g_patternUnreserved_Uri[128] = {
-				/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
-				/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
-				/*08*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		DLE		DC1		DC2		DC3		DC4		NAK		SYN		ETB		*/
-				/*10*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		CAN		EM		SUB		ESC		FS		GS		RS		US		*/
-				/*18*/	0,		0,		0,		0,		0,		0,		0,		0,
-				/*		SP		!		"		#		$		%		&		'		*/
-				/*20*/	0,		1,		0,		1,		1,		0,		1,		1,
-				/*		(		)		*		+		,		-		.		/		*/
-				/*28*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		0		1		2		3		4		5		6		7		*/
-				/*30*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		8		9		:		;		<		=		>		?		*/
-				/*38*/	1,		1,		1,		1,		0,		1,		0,		1,
-				/*		@		A		B		C		D		E		F		G		*/
-				/*40*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		H		I		J		K		L		M		N		O		*/
-				/*48*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		P		Q		R		S		T		U		V		W		*/
-				/*50*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		X		Y		Z		[		\		]		^		_		*/
-				/*58*/	1,		1,		1,		0,		0,		0,		0,		1,
-				/*		`		a		b		c		d		e		f		g		*/
-				/*60*/	0,		1,		1,		1,		1,		1,		1,		1,
-				/*		h		i		j		k		l		m		n		o		*/
-				/*68*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		p		q		r		s		t		u		v		w		*/
-				/*70*/	1,		1,		1,		1,		1,		1,		1,		1,
-				/*		x		y		z		{		|		}		~		DEL		*/
-				/*78*/	1,		1,		1,		0,		0,		0,		1,		0
-			};
-
-			static String EncodePercent(const StringParam& _value, const sl_bool patternUnreserved[128])
-			{
-				StringData value(_value);
-				sl_size n = value.getLength();
-				if (n > 0) {
-					const sl_char8* src = value.getData();
-					SLIB_SCOPED_BUFFER(sl_char8, 1024, dst, n * 3);
-					if (!dst) {
-						return sl_null;
-					}
-					sl_size k = 0;
-					for (sl_size i = 0; i < n; i++) {
-						sl_uint32 v = (sl_uint32)(sl_uint8)(src[i]);
-						if (v < 128 && patternUnreserved[v]) {
-							dst[k++] = (sl_char8)(v);
-						} else {
-							dst[k++] = '%';
-							dst[k++] = priv::string::g_conv_radixPatternUpper[(v >> 4) & 15];
-							dst[k++] = priv::string::g_conv_radixPatternUpper[v & 15];
-						}
-					}
-					return String(dst, k);
-				} else {
-					return sl_null;
-				}
-			}
-
-		}
-	}
-
-	using namespace priv::url;
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Url)
 
 	Url::Url()
@@ -290,6 +138,151 @@ namespace slib
 	void Url::setQueryParameters(const HashMap<String, String>& params)
 	{
 		query = HttpRequest::buildQuery(params);
+	}
+
+/*
+		Uniform Resource Identifier (URI): Generic Syntax
+			https://tools.ietf.org/html/rfc3986
+
+   unreserved	= ALPHA / DIGIT / "-" / "." / "_" / "~"
+   reserved		= gen-delims / sub-delims
+   gen-delims	= ":" / "/" / "?" / "#" / "[" / "]" / "@"
+   sub-delims	= "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+*/
+	namespace {
+
+		static const sl_bool g_patternUnreserved[128] = {
+			/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
+			/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
+			/*08*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		DLE		DC1		DC2		DC3		DC4		NAK		SYN		ETB		*/
+			/*10*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		CAN		EM		SUB		ESC		FS		GS		RS		US		*/
+			/*18*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		SP		!		"		#		$		%		&		'		*/
+			/*20*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		(		)		*		+		,		-		.		/		*/
+			/*28*/	0,		0,		0,		0,		0,		1,		1,		0,
+			/*		0		1		2		3		4		5		6		7		*/
+			/*30*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		8		9		:		;		<		=		>		?		*/
+			/*38*/	1,		1,		0,		0,		0,		0,		0,		0,
+			/*		@		A		B		C		D		E		F		G		*/
+			/*40*/	0,		1,		1,		1,		1,		1,		1,		1,
+			/*		H		I		J		K		L		M		N		O		*/
+			/*48*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		P		Q		R		S		T		U		V		W		*/
+			/*50*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		X		Y		Z		[		\		]		^		_		*/
+			/*58*/	1,		1,		1,		0,		0,		0,		0,		1,
+			/*		`		a		b		c		d		e		f		g		*/
+			/*60*/	0,		1,		1,		1,		1,		1,		1,		1,
+			/*		h		i		j		k		l		m		n		o		*/
+			/*68*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		p		q		r		s		t		u		v		w		*/
+			/*70*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		x		y		z		{		|		}		~		DEL		*/
+			/*78*/	1,		1,		1,		0,		0,		0,		1,		0
+		};
+
+		static const sl_bool g_patternUnreserved_UriComponents[128] = {
+			/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
+			/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
+			/*08*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		DLE		DC1		DC2		DC3		DC4		NAK		SYN		ETB		*/
+			/*10*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		CAN		EM		SUB		ESC		FS		GS		RS		US		*/
+			/*18*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		SP		!		"		#		$		%		&		'		*/
+			/*20*/	0,		1,		0,		0,		0,		0,		0,		1,
+			/*		(		)		*		+		,		-		.		/		*/
+			/*28*/	1,		1,		1,		0,		0,		1,		1,		0,
+			/*		0		1		2		3		4		5		6		7		*/
+			/*30*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		8		9		:		;		<		=		>		?		*/
+			/*38*/	1,		1,		0,		0,		0,		0,		0,		0,
+			/*		@		A		B		C		D		E		F		G		*/
+			/*40*/	0,		1,		1,		1,		1,		1,		1,		1,
+			/*		H		I		J		K		L		M		N		O		*/
+			/*48*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		P		Q		R		S		T		U		V		W		*/
+			/*50*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		X		Y		Z		[		\		]		^		_		*/
+			/*58*/	1,		1,		1,		0,		0,		0,		0,		1,
+			/*		`		a		b		c		d		e		f		g		*/
+			/*60*/	0,		1,		1,		1,		1,		1,		1,		1,
+			/*		h		i		j		k		l		m		n		o		*/
+			/*68*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		p		q		r		s		t		u		v		w		*/
+			/*70*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		x		y		z		{		|		}		~		DEL		*/
+			/*78*/	1,		1,		1,		0,		0,		0,		1,		0
+		};
+
+		static const sl_bool g_patternUnreserved_Uri[128] = {
+			/*		NUL		SOH		STX		ETX		EOT		ENQ		ACK		BEL		*/
+			/*00*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		BS		HT		LF		VT		FF		CR		SO		SI		*/
+			/*08*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		DLE		DC1		DC2		DC3		DC4		NAK		SYN		ETB		*/
+			/*10*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		CAN		EM		SUB		ESC		FS		GS		RS		US		*/
+			/*18*/	0,		0,		0,		0,		0,		0,		0,		0,
+			/*		SP		!		"		#		$		%		&		'		*/
+			/*20*/	0,		1,		0,		1,		1,		0,		1,		1,
+			/*		(		)		*		+		,		-		.		/		*/
+			/*28*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		0		1		2		3		4		5		6		7		*/
+			/*30*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		8		9		:		;		<		=		>		?		*/
+			/*38*/	1,		1,		1,		1,		0,		1,		0,		1,
+			/*		@		A		B		C		D		E		F		G		*/
+			/*40*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		H		I		J		K		L		M		N		O		*/
+			/*48*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		P		Q		R		S		T		U		V		W		*/
+			/*50*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		X		Y		Z		[		\		]		^		_		*/
+			/*58*/	1,		1,		1,		0,		0,		0,		0,		1,
+			/*		`		a		b		c		d		e		f		g		*/
+			/*60*/	0,		1,		1,		1,		1,		1,		1,		1,
+			/*		h		i		j		k		l		m		n		o		*/
+			/*68*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		p		q		r		s		t		u		v		w		*/
+			/*70*/	1,		1,		1,		1,		1,		1,		1,		1,
+			/*		x		y		z		{		|		}		~		DEL		*/
+			/*78*/	1,		1,		1,		0,		0,		0,		1,		0
+		};
+
+		static String EncodePercent(const StringParam& _value, const sl_bool patternUnreserved[128])
+		{
+			StringData value(_value);
+			sl_size n = value.getLength();
+			if (n > 0) {
+				const sl_char8* src = value.getData();
+				SLIB_SCOPED_BUFFER(sl_char8, 1024, dst, n * 3);
+				if (!dst) {
+					return sl_null;
+				}
+				sl_size k = 0;
+				for (sl_size i = 0; i < n; i++) {
+					sl_uint32 v = (sl_uint32)(sl_uint8)(src[i]);
+					if (v < 128 && patternUnreserved[v]) {
+						dst[k++] = (sl_char8)(v);
+					} else {
+						dst[k++] = '%';
+						dst[k++] = priv::string::g_conv_radixPatternUpper[(v >> 4) & 15];
+						dst[k++] = priv::string::g_conv_radixPatternUpper[v & 15];
+					}
+				}
+				return String(dst, k);
+			} else {
+				return sl_null;
+			}
+		}
+
 	}
 
 	String Url::encodePercent(const StringParam& value)

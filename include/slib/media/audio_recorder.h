@@ -35,7 +35,7 @@ namespace slib
 
 	class Event;
 
-	class SLIB_EXPORT AudioRecorderInfo
+	class SLIB_EXPORT AudioRecorderDeviceInfo
 	{
 	public:
 		String id;
@@ -43,9 +43,9 @@ namespace slib
 		String description;
 
 	public:
-		AudioRecorderInfo();
+		AudioRecorderDeviceInfo();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioRecorderInfo)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioRecorderDeviceInfo)
 
 	};
 
@@ -93,7 +93,7 @@ namespace slib
 	public:
 		static Ref<AudioRecorder> create(const AudioRecorderParam& param);
 
-		static List<AudioRecorderInfo> getRecordersList();
+		static List<AudioRecorderDeviceInfo> getDevices();
 
 	public:
 		void release();

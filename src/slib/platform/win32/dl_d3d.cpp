@@ -28,38 +28,34 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace d3d
+	namespace {
+
+		static void* GetLibrary(const char* prefix)
 		{
-
-			static void* GetLibrary(const char* prefix)
-			{
-				for (sl_uint32 i = 99; i > 0; i--) {
-					void* lib = DynamicLibrary::loadLibrary(prefix + String::fromUint32(i));
-					if (lib) {
-						return lib;
-					}
+			for (sl_uint32 i = 99; i > 0; i--) {
+				void* lib = DynamicLibrary::loadLibrary(prefix + String::fromUint32(i));
+				if (lib) {
+					return lib;
 				}
-				return sl_null;
 			}
-
-			static void* GetLibrary(const char* prefix1, const char* prefix2)
-			{
-				for (sl_uint32 i = 99; i > 0; i--) {
-					void* lib = DynamicLibrary::loadLibrary(prefix1 + String::fromUint32(i));
-					if (lib) {
-						return lib;
-					}
-					lib = DynamicLibrary::loadLibrary(prefix2 + String::fromUint32(i));
-					if (lib) {
-						return lib;
-					}
-				}
-				return sl_null;
-			}
-
+			return sl_null;
 		}
+
+		static void* GetLibrary(const char* prefix1, const char* prefix2)
+		{
+			for (sl_uint32 i = 99; i > 0; i--) {
+				void* lib = DynamicLibrary::loadLibrary(prefix1 + String::fromUint32(i));
+				if (lib) {
+					return lib;
+				}
+				lib = DynamicLibrary::loadLibrary(prefix2 + String::fromUint32(i));
+				if (lib) {
+					return lib;
+				}
+			}
+			return sl_null;
+		}
+
 	}
 
 #define IMPLEMENT_GET_LIBRARY(...) \
@@ -70,7 +66,7 @@ namespace slib
 		if (flagLoaded) { \
 			return library; \
 		} \
-		library = priv::d3d::GetLibrary(__VA_ARGS__); \
+		library = GetLibrary(__VA_ARGS__); \
 		flagLoaded = sl_true; \
 		return library; \
 	} \

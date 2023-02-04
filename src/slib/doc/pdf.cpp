@@ -62,5416 +62,3411 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace pdf
+	namespace {
+
+		namespace name
 		{
+			DEFINE_PDF_NAME(Type)
+			DEFINE_PDF_NAME(Size)
+			DEFINE_PDF_NAME(Length)
+			DEFINE_PDF_NAME(Index)
+			DEFINE_PDF_NAME(First)
+			DEFINE_PDF_NAME(Extends)
+			DEFINE_PDF_NAME(Prev)
+			DEFINE_PDF_NAME(Filter)
+			DEFINE_PDF_NAME(FunctionType)
+			DEFINE_PDF_NAME(Range)
+			DEFINE_PDF_NAME(Encode)
+			DEFINE_PDF_NAME(BitsPerSample)
+			DEFINE_PDF_NAME(C0)
+			DEFINE_PDF_NAME(C1)
+			DEFINE_PDF_NAME(Functions)
+			DEFINE_PDF_NAME(Bounds)
+			DEFINE_PDF_NAME(Encrypt);
+			DEFINE_PDF_NAME(Root)
+			DEFINE_PDF_NAME(Catalog)
+			DEFINE_PDF_NAME(Pages)
+			DEFINE_PDF_NAME(Count)
+			DEFINE_PDF_NAME(Parent)
+			DEFINE_PDF_NAME(Kids)
+			DEFINE_PDF_NAME(Contents)
+			DEFINE_PDF_NAME(ID)
+			DEFINE_PDF_NAME(MediaBox)
+			DEFINE_PDF_NAME(CropBox)
+			DEFINE_PDF_NAME(Resources)
+			DEFINE_PDF_NAME(ProcSet)
+			DEFINE_PDF_NAME(PDF)
+			DEFINE_PDF_NAME(ImageC)
+			DEFINE_PDF_NAME(Page)
+			DEFINE_PDF_NAME(XObject)
+			DEFINE_PDF_NAME(Image)
+			DEFINE_PDF_NAME(Form)
+			DEFINE_PDF_NAME(Pattern)
+			DEFINE_PDF_NAME(Font)
+			DEFINE_PDF_NAME(Subtype)
+			DEFINE_PDF_NAME(BaseFont)
+			DEFINE_PDF_NAME(DescendantFonts)
+			DEFINE_PDF_NAME(Encoding)
+			DEFINE_PDF_NAME(BaseEncoding)
+			DEFINE_PDF_NAME(Differences)
+			DEFINE_PDF_NAME(FontDescriptor)
+			DEFINE_PDF_NAME(FontName)
+			DEFINE_PDF_NAME(FontFamily)
+			DEFINE_PDF_NAME(Ascent)
+			DEFINE_PDF_NAME(Descent)
+			DEFINE_PDF_NAME(Leading)
+			DEFINE_PDF_NAME(FontWeight)
+			DEFINE_PDF_NAME(ItalicAngle)
+			DEFINE_PDF_NAME(Flags)
+			DEFINE_PDF_NAME(FontFile)
+			DEFINE_PDF_NAME(FontFile2)
+			DEFINE_PDF_NAME(FontFile3)
+			DEFINE_PDF_NAME(FirstChar)
+			DEFINE_PDF_NAME(LastChar)
+			DEFINE_PDF_NAME(Widths)
+			DEFINE_PDF_NAME(DW)
+			DEFINE_PDF_NAME(CIDToGIDMap)
+			DEFINE_PDF_NAME(ToUnicode)
+			DEFINE_PDF_NAME(Identity)
+			DEFINE_PDF_NAME(FlateDecode)
+			DEFINE_PDF_NAME(Fl)
+			DEFINE_PDF_NAME(DCTDecode)
+			DEFINE_PDF_NAME(DCT)
+			DEFINE_PDF_NAME(LZWDecode)
+			DEFINE_PDF_NAME(LZW)
+			DEFINE_PDF_NAME(RunLengthDecode)
+			DEFINE_PDF_NAME(RL)
+			DEFINE_PDF_NAME(ASCIIHexDecode)
+			DEFINE_PDF_NAME(AHx)
+			DEFINE_PDF_NAME(ASCII85Decode)
+			DEFINE_PDF_NAME(A85)
+			DEFINE_PDF_NAME(CCITTFaxDecode)
+			DEFINE_PDF_NAME(CCF)
+			DEFINE_PDF_NAME(Standard)
+			DEFINE_PDF_NAME(Width)
+			DEFINE_PDF_NAME(Height)
+			DEFINE_PDF_NAME(ColorSpace)
+			DEFINE_PDF_NAME(CS)
+			DEFINE_PDF_NAME(DeviceRGB)
+			DEFINE_PDF_NAME(RGB)
+			DEFINE_PDF_NAME(DeviceGray)
+			DEFINE_PDF_NAME(DeviceCMYK)
+			DEFINE_PDF_NAME(CMYK)
+			DEFINE_PDF_NAME(CalRGB)
+			DEFINE_PDF_NAME(CalGray)
+			DEFINE_PDF_NAME(CalCMYK)
+			DEFINE_PDF_NAME(Lab)
+			DEFINE_PDF_NAME(Indexed)
+			DEFINE_PDF_NAME(ICCBased)
+			DEFINE_PDF_NAME(Separation)
+			DEFINE_PDF_NAME(DeviceN)
+			DEFINE_PDF_NAME(DecodeParms)
+			DEFINE_PDF_NAME(DP)
+			DEFINE_PDF_NAME(Predictor)
+			DEFINE_PDF_NAME(EarlyChange)
+			DEFINE_PDF_NAME(Columns)
+			DEFINE_PDF_NAME(BitsPerComponent)
+			DEFINE_PDF_NAME(BPC)
+			DEFINE_PDF_NAME(ImageMask)
+			DEFINE_PDF_NAME(IM)
+			DEFINE_PDF_NAME(Interpolate)
+			DEFINE_PDF_NAME(Decode)
+			DEFINE_PDF_NAME(Matte)
+			DEFINE_PDF_NAME(Colors)
+			DEFINE_PDF_NAME(Rows)
+			DEFINE_PDF_NAME(EndOfLine)
+			DEFINE_PDF_NAME(EncodedByteAlign)
+			DEFINE_PDF_NAME(BlackIs1)
+			DEFINE_PDF_NAME(SMask)
+			DEFINE_PDF_NAME(Mask)
+			DEFINE_PDF_NAME(Alternate)
+			DEFINE_PDF_NAME(BBox)
+			DEFINE_PDF_NAME(Matrix)
+			DEFINE_PDF_NAME(Function)
+			DEFINE_PDF_NAME(PatternType)
+			DEFINE_PDF_NAME(Shading)
+			DEFINE_PDF_NAME(ShadingType)
+			DEFINE_PDF_NAME(Domain)
+			DEFINE_PDF_NAME(Coords)
+			DEFINE_PDF_NAME(ObjStm)
+			DEFINE_PDF_NAME(XRefStm)
+			DEFINE_PDF_NAME(XRef)
+			DEFINE_PDF_NAME(D)
+			DEFINE_PDF_NAME(F)
+			DEFINE_PDF_NAME(G)
+			DEFINE_PDF_NAME(H)
+			DEFINE_PDF_NAME(I)
+			DEFINE_PDF_NAME(K)
+			DEFINE_PDF_NAME(N)
+			DEFINE_PDF_NAME(O)
+			DEFINE_PDF_NAME(P)
+			DEFINE_PDF_NAME(R)
+			DEFINE_PDF_NAME(U)
+			DEFINE_PDF_NAME(V)
+			DEFINE_PDF_NAME(W)
+		}
 
-			namespace name
-			{
-				DEFINE_PDF_NAME(Type)
-				DEFINE_PDF_NAME(Size)
-				DEFINE_PDF_NAME(Length)
-				DEFINE_PDF_NAME(Index)
-				DEFINE_PDF_NAME(First)
-				DEFINE_PDF_NAME(Extends)
-				DEFINE_PDF_NAME(Prev)
-				DEFINE_PDF_NAME(Filter)
-				DEFINE_PDF_NAME(FunctionType)
-				DEFINE_PDF_NAME(Range)
-				DEFINE_PDF_NAME(Encode)
-				DEFINE_PDF_NAME(BitsPerSample)
-				DEFINE_PDF_NAME(C0)
-				DEFINE_PDF_NAME(C1)
-				DEFINE_PDF_NAME(Functions)
-				DEFINE_PDF_NAME(Bounds)
-				DEFINE_PDF_NAME(Encrypt);
-				DEFINE_PDF_NAME(Root)
-				DEFINE_PDF_NAME(Catalog)
-				DEFINE_PDF_NAME(Pages)
-				DEFINE_PDF_NAME(Count)
-				DEFINE_PDF_NAME(Parent)
-				DEFINE_PDF_NAME(Kids)
-				DEFINE_PDF_NAME(Contents)
-				DEFINE_PDF_NAME(ID)
-				DEFINE_PDF_NAME(MediaBox)
-				DEFINE_PDF_NAME(CropBox)
-				DEFINE_PDF_NAME(Resources)
-				DEFINE_PDF_NAME(ProcSet)
-				DEFINE_PDF_NAME(PDF)
-				DEFINE_PDF_NAME(ImageC)
-				DEFINE_PDF_NAME(Page)
-				DEFINE_PDF_NAME(XObject)
-				DEFINE_PDF_NAME(Image)
-				DEFINE_PDF_NAME(Form)
-				DEFINE_PDF_NAME(Pattern)
-				DEFINE_PDF_NAME(Font)
-				DEFINE_PDF_NAME(Subtype)
-				DEFINE_PDF_NAME(BaseFont)
-				DEFINE_PDF_NAME(DescendantFonts)
-				DEFINE_PDF_NAME(Encoding)
-				DEFINE_PDF_NAME(BaseEncoding)
-				DEFINE_PDF_NAME(Differences)
-				DEFINE_PDF_NAME(FontDescriptor)
-				DEFINE_PDF_NAME(FontName)
-				DEFINE_PDF_NAME(FontFamily)
-				DEFINE_PDF_NAME(Ascent)
-				DEFINE_PDF_NAME(Descent)
-				DEFINE_PDF_NAME(Leading)
-				DEFINE_PDF_NAME(FontWeight)
-				DEFINE_PDF_NAME(ItalicAngle)
-				DEFINE_PDF_NAME(Flags)
-				DEFINE_PDF_NAME(FontFile)
-				DEFINE_PDF_NAME(FontFile2)
-				DEFINE_PDF_NAME(FontFile3)
-				DEFINE_PDF_NAME(FirstChar)
-				DEFINE_PDF_NAME(LastChar)
-				DEFINE_PDF_NAME(Widths)
-				DEFINE_PDF_NAME(DW)
-				DEFINE_PDF_NAME(CIDToGIDMap)
-				DEFINE_PDF_NAME(ToUnicode)
-				DEFINE_PDF_NAME(Identity)
-				DEFINE_PDF_NAME(FlateDecode)
-				DEFINE_PDF_NAME(Fl)
-				DEFINE_PDF_NAME(DCTDecode)
-				DEFINE_PDF_NAME(DCT)
-				DEFINE_PDF_NAME(LZWDecode)
-				DEFINE_PDF_NAME(LZW)
-				DEFINE_PDF_NAME(RunLengthDecode)
-				DEFINE_PDF_NAME(RL)
-				DEFINE_PDF_NAME(ASCIIHexDecode)
-				DEFINE_PDF_NAME(AHx)
-				DEFINE_PDF_NAME(ASCII85Decode)
-				DEFINE_PDF_NAME(A85)
-				DEFINE_PDF_NAME(CCITTFaxDecode)
-				DEFINE_PDF_NAME(CCF)
-				DEFINE_PDF_NAME(Standard)
-				DEFINE_PDF_NAME(Width)
-				DEFINE_PDF_NAME(Height)
-				DEFINE_PDF_NAME(ColorSpace)
-				DEFINE_PDF_NAME(CS)
-				DEFINE_PDF_NAME(DeviceRGB)
-				DEFINE_PDF_NAME(RGB)
-				DEFINE_PDF_NAME(DeviceGray)
-				DEFINE_PDF_NAME(DeviceCMYK)
-				DEFINE_PDF_NAME(CMYK)
-				DEFINE_PDF_NAME(CalRGB)
-				DEFINE_PDF_NAME(CalGray)
-				DEFINE_PDF_NAME(CalCMYK)
-				DEFINE_PDF_NAME(Lab)
-				DEFINE_PDF_NAME(Indexed)
-				DEFINE_PDF_NAME(ICCBased)
-				DEFINE_PDF_NAME(Separation)
-				DEFINE_PDF_NAME(DeviceN)
-				DEFINE_PDF_NAME(DecodeParms)
-				DEFINE_PDF_NAME(DP)
-				DEFINE_PDF_NAME(Predictor)
-				DEFINE_PDF_NAME(EarlyChange)
-				DEFINE_PDF_NAME(Columns)
-				DEFINE_PDF_NAME(BitsPerComponent)
-				DEFINE_PDF_NAME(BPC)
-				DEFINE_PDF_NAME(ImageMask)
-				DEFINE_PDF_NAME(IM)
-				DEFINE_PDF_NAME(Interpolate)
-				DEFINE_PDF_NAME(Decode)
-				DEFINE_PDF_NAME(Matte)
-				DEFINE_PDF_NAME(Colors)
-				DEFINE_PDF_NAME(Rows)
-				DEFINE_PDF_NAME(EndOfLine)
-				DEFINE_PDF_NAME(EncodedByteAlign)
-				DEFINE_PDF_NAME(BlackIs1)
-				DEFINE_PDF_NAME(SMask)
-				DEFINE_PDF_NAME(Mask)
-				DEFINE_PDF_NAME(Alternate)
-				DEFINE_PDF_NAME(BBox)
-				DEFINE_PDF_NAME(Matrix)
-				DEFINE_PDF_NAME(Function)
-				DEFINE_PDF_NAME(PatternType)
-				DEFINE_PDF_NAME(Shading)
-				DEFINE_PDF_NAME(ShadingType)
-				DEFINE_PDF_NAME(Domain)
-				DEFINE_PDF_NAME(Coords)
-				DEFINE_PDF_NAME(ObjStm)
-				DEFINE_PDF_NAME(XRefStm)
-				DEFINE_PDF_NAME(XRef)
-				DEFINE_PDF_NAME(D)
-				DEFINE_PDF_NAME(F)
-				DEFINE_PDF_NAME(G)
-				DEFINE_PDF_NAME(H)
-				DEFINE_PDF_NAME(I)
-				DEFINE_PDF_NAME(K)
-				DEFINE_PDF_NAME(N)
-				DEFINE_PDF_NAME(O)
-				DEFINE_PDF_NAME(P)
-				DEFINE_PDF_NAME(R)
-				DEFINE_PDF_NAME(U)
-				DEFINE_PDF_NAME(V)
-				DEFINE_PDF_NAME(W)
+		static const sl_uint8 g_encryptionPad[] = { 0x28, 0xbf, 0x4e, 0x5e, 0x4e, 0x75, 0x8a, 0x41, 0x64, 0x00, 0x4e, 0x56, 0xff, 0xfa, 0x01, 0x08, 0x2e, 0x2e, 0x00, 0xb6, 0xd0, 0x68, 0x3e, 0x80, 0x2f, 0x0c, 0xa9, 0xfe, 0x64, 0x53, 0x69, 0x7a };
+
+		/*
+			W - whitespace: NUL, TAB, CR, LF, FF, SPACE, 0x80, 0xff
+			N - numeric: 0123456789+-.
+			D - delimiter: %()/<>[]{}
+			R - otherwise.
+		*/
+		static const char g_charType[] = {
+			// NUL  SOH  STX  ETX  EOT  ENQ  ACK  BEL  BS   HT   LF   VT   FF   CR   SO   SI
+				'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'W', 'W', 'R', 'W', 'W', 'R', 'R',
+			// DLE  DC1  DC2  DC3  DC4  NAK  SYN  ETB  CAN   EM  SUB  ESC  FS   GS   RS   US
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+			// SP    !    "    #    $    %    &    ´    (    )    *    +    ,    -    .    /
+				'W', 'R', 'R', 'R', 'R', 'D', 'R', 'R', 'D', 'D', 'R', 'N', 'R', 'N', 'N', 'D',
+			//  0    1    2    3    4    5    6    7    8    9    :    ;    <    =    >    ?
+				'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'R', 'R', 'D', 'R', 'D', 'R',
+			//  @    A    B    C    D    E    F    G    H    I    J    K    L    M    N    O
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+			//  P    Q    R    S    T    U    V    W    X    Y    Z    [    \    ]    ^    _
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'D', 'R', 'D', 'R', 'R',
+			//  `    a    b    c    d    e    f    g    h    i    j    k    l    m    n    o
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+			//  p    q    r    s    t    u    v    w    x    y    z    {    |    }    ~   DEL
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'D', 'R', 'D', 'R', 'R',
+				'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
+				'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'W'
+		};
+
+
+		static const sl_char16 g_encodingStandard[256] = {
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x0022, 0x0023,
+			0x0024, 0x0025, 0x0026, 0x2019, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
+			0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
+			0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
+			0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+			0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
+			0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
+			0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x2018, 0x0061, 0x0062,
+			0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
+			0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
+			0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
+			0x007e, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00a1,
+			0x00a2, 0x00a3, 0x2044, 0x00a5, 0x0192, 0x00a7, 0x00a4, 0x0027, 0x201c,
+			0x00ab, 0x2039, 0x203a, 0xfb01, 0xfb02, 0x0000, 0x2013, 0x2020, 0x2021,
+			0x00b7, 0x0000, 0x00b6, 0x2022, 0x201a, 0x201e, 0x201d, 0x00bb, 0x2026,
+			0x2030, 0x0000, 0x00bf, 0x0000, 0x0060, 0x00b4, 0x02c6, 0x02dc, 0x00af,
+			0x02d8, 0x02d9, 0x00a8, 0x0000, 0x02da, 0x00b8, 0x0000, 0x02dd, 0x02db,
+			0x02c7, 0x2014, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x00c6, 0x0000, 0x00aa, 0x0000, 0x0000, 0x0000, 0x0000, 0x0141, 0x00d8,
+			0x0152, 0x00ba, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00e6, 0x0000,
+			0x0000, 0x0000, 0x0131, 0x0000, 0x0000, 0x0142, 0x00f8, 0x0153, 0x00df,
+			0x0000, 0x0000, 0x0000, 0x0000 };
+
+		static const char* const g_charNamesStandard[256] = {
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null,
+			"space", "exclam", "quotedbl", "numbersign", "dollar", "percent",
+			"ampersand", "quoteright", "parenleft", "parenright", "asterisk",
+			"plus", "comma", "hyphen", "period", "slash", "zero", "one", "two",
+			"three", "four", "five", "six", "seven", "eight", "nine", "colon",
+			"semicolon", "less", "equal", "greater", "question", "at", "A",
+			"B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+			"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+			"bracketleft", "backslash", "bracketright", "asciicircum", "underscore",
+			"quoteleft", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+			"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x",
+			"y", "z", "braceleft", "bar", "braceright", "asciitilde", sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, "exclamdown", "cent", "sterling",
+			"fraction", "yen", "florin", "section", "currency", "quotesingle",
+			"quotedblleft", "guillemotleft", "guilsinglleft", "guilsinglright",
+			"fi", "fl", sl_null, "endash", "dagger", "daggerdbl", "periodcentered",
+			sl_null, "paragraph", "bullet", "quotesinglbase", "quotedblbase",
+			"quotedblright", "guillemotright", "ellipsis", "perthousand",
+			sl_null, "questiondown", sl_null, "grave", "acute", "circumflex",
+			"tilde", "macron", "breve", "dotaccent", "dieresis", sl_null,
+			"ring", "cedilla", sl_null, "hungarumlaut", "ogonek", "caron",
+			"emdash", sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, "AE",
+			sl_null, "ordfeminine", sl_null, sl_null, sl_null, sl_null,
+			"Lslash", "Oslash", "OE", "ordmasculine", sl_null, sl_null,
+			sl_null, sl_null, sl_null, "ae", sl_null, sl_null,
+			sl_null, "dotlessi", sl_null, sl_null, "lslash", "oslash",
+			"oe", "germandbls", sl_null, sl_null, sl_null, sl_null
+		};
+
+		static const sl_char16 g_encodingMacRoman[256] = {
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x0022, 0x0023,
+			0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
+			0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
+			0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
+			0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+			0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
+			0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
+			0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x0060, 0x0061, 0x0062,
+			0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
+			0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
+			0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
+			0x007e, 0x0000, 0x00c4, 0x00c5, 0x00c7, 0x00c9, 0x00d1, 0x00d6, 0x00dc,
+			0x00e1, 0x00e0, 0x00e2, 0x00e4, 0x00e3, 0x00e5, 0x00e7, 0x00e9, 0x00e8,
+			0x00ea, 0x00eb, 0x00ed, 0x00ec, 0x00ee, 0x00ef, 0x00f1, 0x00f3, 0x00f2,
+			0x00f4, 0x00f6, 0x00f5, 0x00fa, 0x00f9, 0x00fb, 0x00fc, 0x2020, 0x00b0,
+			0x00a2, 0x00a3, 0x00a7, 0x2022, 0x00b6, 0x00df, 0x00ae, 0x00a9, 0x2122,
+			0x00b4, 0x00a8, 0x0000, 0x00c6, 0x00d8, 0x0000, 0x00b1, 0x0000, 0x0000,
+			0x00a5, 0x00b5, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00aa, 0x00ba,
+			0x0000, 0x00e6, 0x00f8, 0x00bf, 0x00a3, 0x00ac, 0x0000, 0x0192, 0x0000,
+			0x0000, 0x00ab, 0x00bb, 0x2026, 0x0020, 0x00c0, 0x00c3, 0x00d5, 0x0152,
+			0x0153, 0x2013, 0x2014, 0x201c, 0x201d, 0x2018, 0x2019, 0x00f7, 0x0000,
+			0x00ff, 0x0178, 0x2044, 0x00a4, 0x2039, 0x203a, 0xfb01, 0xfb02, 0x2021,
+			0x00b7, 0x201a, 0x201e, 0x2030, 0x00c2, 0x00ca, 0x00c1, 0x00cb, 0x00c8,
+			0x00cd, 0x00ce, 0x00cf, 0x00cc, 0x00d3, 0x00d4, 0x0000, 0x00d2, 0x00da,
+			0x00db, 0x00d9, 0x0131, 0x02c6, 0x02dc, 0x00af, 0x02d8, 0x02d9, 0x02da,
+			0x00b8, 0x02dd, 0x02db, 0x02c7 };
+
+		static const char* const g_charNamesMacRoman[256] = {
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null,
+			"space", "exclam", "quotedbl", "numbersign", "dollar", "percent",
+			"ampersand", "quotesingle", "parenleft", "parenright", "asterisk",
+			"plus", "comma", "hyphen", "period", "slash", "zero", "one", "two",
+			"three", "four", "five", "six", "seven", "eight", "nine", "colon",
+			"semicolon", "less", "equal", "greater", "question", "at", "A",
+			"B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+			"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+			"bracketleft", "backslash", "bracketright", "asciicircum", "underscore",
+			"grave", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+			"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x",
+			"y", "z", "braceleft", "bar", "braceright", "asciitilde", sl_null,
+			"Adieresis", "Aring", "Ccedilla", "Eacute", "Ntilde", "Odieresis",
+			"Udieresis", "aacute", "agrave", "acircumflex", "adieresis", "atilde",
+			"aring", "ccedilla", "eacute", "egrave", "ecircumflex", "edieresis",
+			"iacute", "igrave", "icircumflex", "idieresis", "ntilde", "oacute",
+			"ograve", "ocircumflex", "odieresis", "otilde", "uacute", "ugrave",
+			"ucircumflex", "udieresis", "dagger", "degree", "cent", "sterling",
+			"section", "bullet", "paragraph", "germandbls", "registered",
+			"copyright", "trademark", "acute", "dieresis", sl_null, "AE",
+			"Oslash", sl_null, "plusminus", sl_null, sl_null, "yen", "mu",
+			sl_null, sl_null, sl_null, sl_null, sl_null, "ordfeminine",
+			"ordmasculine", sl_null, "ae", "oslash", "questiondown", "exclamdown",
+			"logicalnot", sl_null, "florin", sl_null, sl_null, "guillemotleft",
+			"guillemotright", "ellipsis", "space", "Agrave", "Atilde", "Otilde",
+			"OE", "oe", "endash", "emdash", "quotedblleft", "quotedblright",
+			"quoteleft", "quoteright", "divide", sl_null, "ydieresis",
+			"Ydieresis", "fraction", "currency", "guilsinglleft", "guilsinglright",
+			"fi", "fl", "daggerdbl", "periodcentered", "quotesinglbase",
+			"quotedblbase", "perthousand", "Acircumflex", "Ecircumflex", "Aacute",
+			"Edieresis", "Egrave", "Iacute", "Icircumflex", "Idieresis", "Igrave",
+			"Oacute", "Ocircumflex", sl_null, "Ograve", "Uacute", "Ucircumflex",
+			"Ugrave", "dotlessi", "circumflex", "tilde", "macron", "breve",
+			"dotaccent", "ring", "cedilla", "hungarumlaut", "ogonek", "caron"
+		};
+
+		static const sl_char16 g_encodingWinAnsi[256] = {
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x0022, 0x0023,
+			0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
+			0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
+			0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
+			0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+			0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
+			0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
+			0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x0060, 0x0061, 0x0062,
+			0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
+			0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
+			0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
+			0x007e, 0x2022, 0x20ac, 0x2022, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020,
+			0x2021, 0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0x2022, 0x017d, 0x2022,
+			0x2022, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014, 0x02dc,
+			0x2122, 0x0161, 0x203a, 0x0153, 0x2022, 0x017e, 0x0178, 0x0020, 0x00a1,
+			0x00a2, 0x00a3, 0x00a4, 0x00a5, 0x00a6, 0x00a7, 0x00a8, 0x00a9, 0x00aa,
+			0x00ab, 0x00ac, 0x002d, 0x00ae, 0x00af, 0x00b0, 0x00b1, 0x00b2, 0x00b3,
+			0x00b4, 0x00b5, 0x00b6, 0x00b7, 0x00b8, 0x00b9, 0x00ba, 0x00bb, 0x00bc,
+			0x00bd, 0x00be, 0x00bf, 0x00c0, 0x00c1, 0x00c2, 0x00c3, 0x00c4, 0x00c5,
+			0x00c6, 0x00c7, 0x00c8, 0x00c9, 0x00ca, 0x00cb, 0x00cc, 0x00cd, 0x00ce,
+			0x00cf, 0x00d0, 0x00d1, 0x00d2, 0x00d3, 0x00d4, 0x00d5, 0x00d6, 0x00d7,
+			0x00d8, 0x00d9, 0x00da, 0x00db, 0x00dc, 0x00dd, 0x00de, 0x00df, 0x00e0,
+			0x00e1, 0x00e2, 0x00e3, 0x00e4, 0x00e5, 0x00e6, 0x00e7, 0x00e8, 0x00e9,
+			0x00ea, 0x00eb, 0x00ec, 0x00ed, 0x00ee, 0x00ef, 0x00f0, 0x00f1, 0x00f2,
+			0x00f3, 0x00f4, 0x00f5, 0x00f6, 0x00f7, 0x00f8, 0x00f9, 0x00fa, 0x00fb,
+			0x00fc, 0x00fd, 0x00fe, 0x00ff };
+
+		static const char* const g_charNamesWinAnsi[256] = {
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, "space",
+			sl_null, sl_null, sl_null,
+			"exclam", "quotedbl", "numbersign", "dollar", "percent", "ampersand",
+			"quotesingle", "parenleft", "parenright", "asterisk", "plus",
+			"comma", "hyphen", "period", "slash", "zero", "one", "two", "three",
+			"four", "five", "six", "seven", "eight", "nine", "colon", "semicolon",
+			"less", "equal", "greater", "question", "at", "A", "B", "C", "D",
+			"E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
+			"R", "S", "T", "U", "V", "W", "X", "Y", "Z", "bracketleft",
+			"backslash", "bracketright", "asciicircum", "underscore", "grave",
+			"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+			"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+			"braceleft", "bar", "braceright", "asciitilde", "bullet", "Euro",
+			"bullet", "quotesinglbase", "florin", "quotedblbase", "ellipsis",
+			"dagger", "daggerdbl", "circumflex", "perthousand", "Scaron",
+			"guilsinglleft", "OE", "bullet", "Zcaron", "bullet", "bullet",
+			"quoteleft", "quoteright", "quotedblleft", "quotedblright", "bullet",
+			"endash", "emdash", "tilde", "trademark", "scaron", "guilsinglright",
+			"oe", "bullet", "zcaron", "Ydieresis", "space", "exclamdown", "cent",
+			"sterling", "currency", "yen", "brokenbar", "section", "dieresis",
+			"copyright", "ordfeminine", "guillemotleft", "logicalnot", "hyphen",
+			"registered", "macron", "degree", "plusminus", "twosuperior",
+			"threesuperior", "acute", "mu", "paragraph", "periodcentered",
+			"cedilla", "onesuperior", "ordmasculine", "guillemotright",
+			"onequarter", "onehalf", "threequarters", "questiondown", "Agrave",
+			"Aacute", "Acircumflex", "Atilde", "Adieresis", "Aring", "AE",
+			"Ccedilla", "Egrave", "Eacute", "Ecircumflex", "Edieresis", "Igrave",
+			"Iacute", "Icircumflex", "Idieresis", "Eth", "Ntilde", "Ograve",
+			"Oacute", "Ocircumflex", "Otilde", "Odieresis", "multiply", "Oslash",
+			"Ugrave", "Uacute", "Ucircumflex", "Udieresis", "Yacute", "Thorn",
+			"germandbls", "agrave", "aacute", "acircumflex", "atilde", "adieresis",
+			"aring", "ae", "ccedilla", "egrave", "eacute", "ecircumflex",
+			"edieresis", "igrave", "iacute", "icircumflex", "idieresis", "eth",
+			"ntilde", "ograve", "oacute", "ocircumflex", "otilde", "odieresis",
+			"divide", "oslash", "ugrave", "uacute", "ucircumflex", "udieresis",
+			"yacute", "thorn", "ydieresis"
+		};
+
+		static const sl_char16 g_encodingPdfDoc[256] = {
+			0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008,
+			0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f, 0x0010, 0x0011,
+			0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017, 0x02d8, 0x02c7, 0x02c6,
+			0x02d9, 0x02dd, 0x02db, 0x02da, 0x02dc, 0x0020, 0x0021, 0x0022, 0x0023,
+			0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
+			0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
+			0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
+			0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+			0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
+			0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
+			0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x0060, 0x0061, 0x0062,
+			0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
+			0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
+			0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
+			0x007e, 0x0000, 0x2022, 0x2020, 0x2021, 0x2026, 0x2014, 0x2013, 0x0192,
+			0x2044, 0x2039, 0x203a, 0x2212, 0x2030, 0x201e, 0x201c, 0x201d, 0x2018,
+			0x2019, 0x201a, 0x2122, 0xfb01, 0xfb02, 0x0141, 0x0152, 0x0160, 0x0178,
+			0x017d, 0x0131, 0x0142, 0x0153, 0x0161, 0x017e, 0x0000, 0x20ac, 0x00a1,
+			0x00a2, 0x00a3, 0x00a4, 0x00a5, 0x00a6, 0x00a7, 0x00a8, 0x00a9, 0x00aa,
+			0x00ab, 0x00ac, 0x0000, 0x00ae, 0x00af, 0x00b0, 0x00b1, 0x00b2, 0x00b3,
+			0x00b4, 0x00b5, 0x00b6, 0x00b7, 0x00b8, 0x00b9, 0x00ba, 0x00bb, 0x00bc,
+			0x00bd, 0x00be, 0x00bf, 0x00c0, 0x00c1, 0x00c2, 0x00c3, 0x00c4, 0x00c5,
+			0x00c6, 0x00c7, 0x00c8, 0x00c9, 0x00ca, 0x00cb, 0x00cc, 0x00cd, 0x00ce,
+			0x00cf, 0x00d0, 0x00d1, 0x00d2, 0x00d3, 0x00d4, 0x00d5, 0x00d6, 0x00d7,
+			0x00d8, 0x00d9, 0x00da, 0x00db, 0x00dc, 0x00dd, 0x00de, 0x00df, 0x00e0,
+			0x00e1, 0x00e2, 0x00e3, 0x00e4, 0x00e5, 0x00e6, 0x00e7, 0x00e8, 0x00e9,
+			0x00ea, 0x00eb, 0x00ec, 0x00ed, 0x00ee, 0x00ef, 0x00f0, 0x00f1, 0x00f2,
+			0x00f3, 0x00f4, 0x00f5, 0x00f6, 0x00f7, 0x00f8, 0x00f9, 0x00fa, 0x00fb,
+			0x00fc, 0x00fd, 0x00fe, 0x00ff };
+
+		static const sl_char16 g_encodingMacExpert[256] = {
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0xf721, 0xf6f8, 0xf7a2,
+			0xf724, 0xf6e4, 0xf726, 0xf7b4, 0x207d, 0x207e, 0x2025, 0x2024, 0x002c,
+			0x002d, 0x002e, 0x2044, 0xf730, 0xf731, 0xf732, 0xf733, 0xf734, 0xf735,
+			0xf736, 0xf737, 0xf738, 0xf739, 0x003a, 0x003b, 0x0000, 0xf6de, 0x0000,
+			0xf73f, 0x0000, 0x0000, 0x0000, 0x0000, 0xf7f0, 0x0000, 0x0000, 0x00bc,
+			0x00bd, 0x00be, 0x215b, 0x215c, 0x215d, 0x215e, 0x2153, 0x2154, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xfb00, 0xfb01, 0xfb02, 0xfb03,
+			0xfb04, 0x208d, 0x0000, 0x208e, 0xf6f6, 0xf6e5, 0xf760, 0xf761, 0xf762,
+			0xf763, 0xf764, 0xf765, 0xf766, 0xf767, 0xf768, 0xf769, 0xf76a, 0xf76b,
+			0xf76c, 0xf76d, 0xf76e, 0xf76f, 0xf770, 0xf771, 0xf772, 0xf773, 0xf774,
+			0xf775, 0xf776, 0xf777, 0xf778, 0xf779, 0xf77a, 0x20a1, 0xf6dc, 0xf6dd,
+			0xf6fe, 0x0000, 0x0000, 0xf6e9, 0xf6e0, 0x0000, 0x0000, 0x0000, 0x0000,
+			0xf7e1, 0xf7e0, 0xf7e2, 0xf7e4, 0xf7e3, 0xf7e5, 0xf7e7, 0xf7e9, 0xf7e8,
+			0xf7ea, 0xf7eb, 0xf7ed, 0xf7ec, 0xf7ee, 0xf7ef, 0xf7f1, 0xf7f3, 0xf7f2,
+			0xf7f4, 0xf7f6, 0xf7f5, 0xf7fa, 0xf7f9, 0xf7fb, 0xf7fc, 0x0000, 0x2078,
+			0x2084, 0x2083, 0x2086, 0x2088, 0x2087, 0xf6fd, 0x0000, 0xf6df, 0x2082,
+			0x0000, 0xf7a8, 0x0000, 0xf6f5, 0xf6fd, 0x2085, 0x0000, 0xf6e1, 0xf6e7,
+			0xf7fd, 0x0000, 0xf6e3, 0x0000, 0x0000, 0xf7fe, 0x0000, 0x2089, 0x2080,
+			0xf6ff, 0xf7e6, 0xf7f8, 0xf7bf, 0x2081, 0xf6e9, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0xf7b8, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0xf6fa, 0x2012, 0xf6e6, 0x0000, 0x0000, 0x0000, 0x0000, 0xf7a1, 0x0000,
+			0xf7ff, 0x0000, 0x00b9, 0x00b2, 0x00b3, 0x2074, 0x2075, 0x2076, 0x2077,
+			0x2079, 0x2070, 0x0000, 0xf6ec, 0xf6f1, 0x0000, 0x0000, 0x0000, 0xf6ed,
+			0xf6f2, 0xf6eb, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xf6ee, 0xf6fb,
+			0xf6f4, 0xf7af, 0xf6ea, 0x207f, 0xf6ef, 0xf6e2, 0xf6e8, 0xf6f7, 0xf6fc,
+			0x0000, 0x0000, 0x0000, 0x0000 };
+
+		static const char* const g_charNamesMacExpert[256] = {
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
+			sl_null, sl_null,
+			"space", "exclamsmall", "Hungarumlautsmall", "centoldstyle",
+			"dollaroldstyle", "dollarsuperior", "ampersandsmall", "Acutesmall",
+			"parenleftsuperior", "parenrightsuperior", "twodotenleader",
+			"onedotenleader", "comma", "hyphen", "period", "fraction",
+			"zerooldstyle", "oneoldstyle", "twooldstyle", "threeoldstyle",
+			"fouroldstyle", "fiveoldstyle", "sixoldstyle", "sevenoldstyle",
+			"eightoldstyle", "nineoldstyle", "colon", "semicolon", sl_null,
+			"threequartersemdash", sl_null, "questionsmall", sl_null,
+			sl_null, sl_null, sl_null, "Ethsmall", sl_null, sl_null,
+			"onequarter", "onehalf", "threequarters", "oneeighth", "threeeighths",
+			"fiveeighths", "seveneighths", "onethird", "twothirds", sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, "ff", "fi",
+			"fl", "ffi", "ffl", "parenleftinferior", sl_null, "parenrightinferior",
+			"Circumflexsmall", "hypheninferior", "Gravesmall", "Asmall", "Bsmall",
+			"Csmall", "Dsmall", "Esmall", "Fsmall", "Gsmall", "Hsmall", "Ismall",
+			"Jsmall", "Ksmall", "Lsmall", "Msmall", "Nsmall", "Osmall", "Psmall",
+			"Qsmall", "Rsmall", "Ssmall", "Tsmall", "Usmall", "Vsmall", "Wsmall",
+			"Xsmall", "Ysmall", "Zsmall", "colonmonetary", "onefitted", "rupiah",
+			"Tildesmall", sl_null, sl_null, "asuperior", "centsuperior",
+			sl_null, sl_null, sl_null, sl_null, "Aacutesmall",
+			"Agravesmall", "Acircumflexsmall", "Adieresissmall", "Atildesmall",
+			"Aringsmall", "Ccedillasmall", "Eacutesmall", "Egravesmall",
+			"Ecircumflexsmall", "Edieresissmall", "Iacutesmall", "Igravesmall",
+			"Icircumflexsmall", "Idieresissmall", "Ntildesmall", "Oacutesmall",
+			"Ogravesmall", "Ocircumflexsmall", "Odieresissmall", "Otildesmall",
+			"Uacutesmall", "Ugravesmall", "Ucircumflexsmall", "Udieresissmall",
+			sl_null, "eightsuperior", "fourinferior", "threeinferior",
+			"sixinferior", "eightinferior", "seveninferior", "Scaronsmall",
+			sl_null, "centinferior", "twoinferior", sl_null, "Dieresissmall",
+			sl_null, "Caronsmall", "osuperior", "fiveinferior", sl_null,
+			"commainferior", "periodinferior", "Yacutesmall", sl_null,
+			"dollarinferior", sl_null, sl_null, "Thornsmall", sl_null,
+			"nineinferior", "zeroinferior", "Zcaronsmall", "AEsmall", "Oslashsmall",
+			"questiondownsmall", "oneinferior", "Lslashsmall", sl_null,
+			sl_null, sl_null, sl_null, sl_null, sl_null, "Cedillasmall",
+			sl_null, sl_null, sl_null, sl_null, sl_null, "OEsmall",
+			"figuredash", "hyphensuperior", sl_null, sl_null, sl_null,
+			sl_null, "exclamdownsmall", sl_null, "Ydieresissmall", sl_null,
+			"onesuperior", "twosuperior", "threesuperior", "foursuperior",
+			"fivesuperior", "sixsuperior", "sevensuperior", "ninesuperior",
+			"zerosuperior", sl_null, "esuperior", "rsuperior", "tsuperior",
+			sl_null, sl_null, "isuperior", "ssuperior", "dsuperior",
+			sl_null, sl_null, sl_null, sl_null, sl_null, "lsuperior",
+			"Ogoneksmall", "Brevesmall", "Macronsmall", "bsuperior", "nsuperior",
+			"msuperior", "commasuperior", "periodsuperior", "Dotaccentsmall",
+			"Ringsmall", sl_null, sl_null, sl_null, sl_null };
+
+		static const sl_char16 g_encodingAdobeSymbol[256] = {
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x2200, 0x0023,
+			0x2203, 0x0025, 0x0026, 0x220B, 0x0028, 0x0029, 0x2217, 0x002B, 0x002C,
+			0x2212, 0x002E, 0x002F, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
+			0x0036, 0x0037, 0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E,
+			0x003F, 0x2245, 0x0391, 0x0392, 0x03A7, 0x0394, 0x0395, 0x03A6, 0x0393,
+			0x0397, 0x0399, 0x03D1, 0x039A, 0x039B, 0x039C, 0x039D, 0x039F, 0x03A0,
+			0x0398, 0x03A1, 0x03A3, 0x03A4, 0x03A5, 0x03C2, 0x03A9, 0x039E, 0x03A8,
+			0x0396, 0x005B, 0x2234, 0x005D, 0x22A5, 0x005F, 0xF8E5, 0x03B1, 0x03B2,
+			0x03C7, 0x03B4, 0x03B5, 0x03C6, 0x03B3, 0x03B7, 0x03B9, 0x03D5, 0x03BA,
+			0x03BB, 0x03BC, 0x03BD, 0x03BF, 0x03C0, 0x03B8, 0x03C1, 0x03C3, 0x03C4,
+			0x03C5, 0x03D6, 0x03C9, 0x03BE, 0x03C8, 0x03B6, 0x007B, 0x007C, 0x007D,
+			0x223C, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x20AC, 0x03D2,
+			0x2032, 0x2264, 0x2044, 0x221E, 0x0192, 0x2663, 0x2666, 0x2665, 0x2660,
+			0x2194, 0x2190, 0x2191, 0x2192, 0x2193, 0x00B0, 0x00B1, 0x2033, 0x2265,
+			0x00D7, 0x221D, 0x2202, 0x2022, 0x00F7, 0x2260, 0x2261, 0x2248, 0x2026,
+			0xF8E6, 0xF8E7, 0x21B5, 0x2135, 0x2111, 0x211C, 0x2118, 0x2297, 0x2295,
+			0x2205, 0x2229, 0x222A, 0x2283, 0x2287, 0x2284, 0x2282, 0x2286, 0x2208,
+			0x2209, 0x2220, 0x2207, 0xF6DA, 0xF6D9, 0xF6DB, 0x220F, 0x221A, 0x22C5,
+			0x00AC, 0x2227, 0x2228, 0x21D4, 0x21D0, 0x21D1, 0x21D2, 0x21D3, 0x25CA,
+			0x2329, 0xF8E8, 0xF8E9, 0xF8EA, 0x2211, 0xF8EB, 0xF8EC, 0xF8ED, 0xF8EE,
+			0xF8EF, 0xF8F0, 0xF8F1, 0xF8F2, 0xF8F3, 0xF8F4, 0x0000, 0x232A, 0x222B,
+			0x2320, 0xF8F5, 0x2321, 0xF8F6, 0xF8F7, 0xF8F8, 0xF8F9, 0xF8FA, 0xF8FB,
+			0xF8FC, 0xF8FD, 0xF8FE, 0x0000,
+		};
+
+		static const sl_char16 g_encodingMSSymbol[256] = {
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 32,     33,     8704,   35,
+			8707,   37,     38,     8715,   40,     41,     8727,   43,     44,
+			8722,   46,     47,     48,     49,     50,     51,     52,     53,
+			54,     55,     56,     57,     58,     59,     60,     61,     62,
+			63,     8773,   913,    914,    935,    916,    917,    934,    915,
+			919,    921,    977,    922,    923,    924,    925,    927,    928,
+			920,    929,    931,    932,    933,    962,    937,    926,    936,
+			918,    91,     8756,   93,     8869,   95,     8254,   945,    946,
+			967,    948,    949,    966,    947,    951,    953,    981,    954,
+			955,    956,    957,    959,    960,    952,    961,    963,    964,
+			965,    982,    969,    958,    968,    950,    123,    124,    125,
+			8764,   0,      0,      0,      0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 978,
+			8242,   8804,   8725,   8734,   402,    9827,   9830,   9828,   9824,
+			8596,   8592,   8593,   8594,   8595,   176,    177,    8243,   8805,
+			215,    8733,   8706,   8729,   247,    8800,   8801,   8776,   8943,
+			0,      0,      8629,   0,      8465,   8476,   8472,   8855,   8853,
+			8709,   8745,   8746,   8835,   8839,   8836,   8834,   8838,   8712,
+			8713,   8736,   8711,   174,    169,    8482,   8719,   8730,   8901,
+			172,    8743,   8744,   8660,   8656,   8657,   8658,   8659,   9674,
+			9001,   0,      0,      0,      8721,   0,      0,      0,      0,
+			0,      0,      0,      0,      0,      0,      0x0000, 9002,   8747,
+			8992,   0,      8993,   0,      0,      0,      0,      0,      0,
+			0x0000, 0x0000, 0x0000, 0x0000 };
+
+		static const sl_char16 g_encodingZapf[256] = {
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x2701, 0x2702, 0x2703,
+			0x2704, 0x260E, 0x2706, 0x2707, 0x2708, 0x2709, 0x261B, 0x261E, 0x270C,
+			0x270D, 0x270E, 0x270F, 0x2710, 0x2711, 0x2712, 0x2713, 0x2714, 0x2715,
+			0x2716, 0x2717, 0x2718, 0x2719, 0x271A, 0x271B, 0x271C, 0x271D, 0x271E,
+			0x271F, 0x2720, 0x2721, 0x2722, 0x2723, 0x2724, 0x2725, 0x2726, 0x2727,
+			0x2605, 0x2729, 0x272A, 0x272B, 0x272C, 0x272D, 0x272E, 0x272F, 0x2730,
+			0x2731, 0x2732, 0x2733, 0x2734, 0x2735, 0x2736, 0x2737, 0x2738, 0x2739,
+			0x273A, 0x273B, 0x273C, 0x273D, 0x273E, 0x273F, 0x2740, 0x2741, 0x2742,
+			0x2743, 0x2744, 0x2745, 0x2746, 0x2747, 0x2748, 0x2749, 0x274A, 0x274B,
+			0x25CF, 0x274D, 0x25A0, 0x274F, 0x2750, 0x2751, 0x2752, 0x25B2, 0x25BC,
+			0x25C6, 0x2756, 0x25D7, 0x2758, 0x2759, 0x275A, 0x275B, 0x275C, 0x275D,
+			0x275E, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+			0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x2761,
+			0x2762, 0x2763, 0x2764, 0x2765, 0x2766, 0x2767, 0x2663, 0x2666, 0x2665,
+			0x2660, 0x2460, 0x2461, 0x2462, 0x2463, 0x2464, 0x2465, 0x2466, 0x2467,
+			0x2468, 0x2469, 0x2776, 0x2777, 0x2778, 0x2779, 0x277A, 0x277B, 0x277C,
+			0x277D, 0x277E, 0x277F, 0x2780, 0x2781, 0x2782, 0x2783, 0x2784, 0x2785,
+			0x2786, 0x2787, 0x2788, 0x2789, 0x278A, 0x278B, 0x278C, 0x278D, 0x278E,
+			0x278F, 0x2790, 0x2791, 0x2792, 0x2793, 0x2794, 0x2192, 0x2194, 0x2195,
+			0x2798, 0x2799, 0x279A, 0x279B, 0x279C, 0x279D, 0x279E, 0x279F, 0x27A0,
+			0x27A1, 0x27A2, 0x27A3, 0x27A4, 0x27A5, 0x27A6, 0x27A7, 0x27A8, 0x27A9,
+			0x27AA, 0x27AB, 0x27AC, 0x27AD, 0x27AE, 0x27AF, 0x0000, 0x27B1, 0x27B2,
+			0x27B3, 0x27B4, 0x27B5, 0x27B6, 0x27B7, 0x27B8, 0x27B9, 0x27BA, 0x27BB,
+			0x27BC, 0x27BD, 0x27BE, 0x0000,
+		};
+
+
+		SLIB_INLINE static sl_bool IsWhitespace(sl_uint8 c)
+		{
+			return g_charType[c] == 'W';
+		}
+
+		SLIB_INLINE static sl_bool IsDelimiter(sl_uint8 c)
+		{
+			return g_charType[c] == 'D';
+		}
+
+		SLIB_INLINE static sl_bool IsNumeric(sl_uint8 c)
+		{
+			return g_charType[c] == 'N';
+		}
+
+		SLIB_INLINE static sl_bool IsLineEnding(sl_uint8 c)
+		{
+			return c == '\r' || c == '\n';
+		}
+
+		SLIB_INLINE static sl_uint64 GetObjectId(const PdfReference& ref)
+		{
+			return MAKE_OBJECT_ID(ref.objectNumber, ref.generation);
+		}
+
+		SLIB_INLINE static sl_uint64 GetObjectId(sl_uint32 objectNumber, sl_uint32 generation)
+		{
+			return MAKE_OBJECT_ID(objectNumber, generation);
+		}
+
+		static sl_uint32 ReadUint(const void* _src, sl_uint32 size, sl_uint32 def)
+		{
+			if (!size) {
+				return def;
 			}
-
-			static const sl_uint8 g_encryptionPad[] = { 0x28, 0xbf, 0x4e, 0x5e, 0x4e, 0x75, 0x8a, 0x41, 0x64, 0x00, 0x4e, 0x56, 0xff, 0xfa, 0x01, 0x08, 0x2e, 0x2e, 0x00, 0xb6, 0xd0, 0x68, 0x3e, 0x80, 0x2f, 0x0c, 0xa9, 0xfe, 0x64, 0x53, 0x69, 0x7a };
-
-			/*
-				W - whitespace: NUL, TAB, CR, LF, FF, SPACE, 0x80, 0xff
-				N - numeric: 0123456789+-.
-				D - delimiter: %()/<>[]{}
-				R - otherwise.
-			*/
-			static const char g_charType[] = {
-				// NUL  SOH  STX  ETX  EOT  ENQ  ACK  BEL  BS   HT   LF   VT   FF   CR   SO   SI
-				   'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'W', 'W', 'R', 'W', 'W', 'R', 'R',
-				// DLE  DC1  DC2  DC3  DC4  NAK  SYN  ETB  CAN   EM  SUB  ESC  FS   GS   RS   US
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				// SP    !    "    #    $    %    &    ´    (    )    *    +    ,    -    .    /
-				   'W', 'R', 'R', 'R', 'R', 'D', 'R', 'R', 'D', 'D', 'R', 'N', 'R', 'N', 'N', 'D',
-				//  0    1    2    3    4    5    6    7    8    9    :    ;    <    =    >    ?
-				   'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'R', 'R', 'D', 'R', 'D', 'R',
-				//  @    A    B    C    D    E    F    G    H    I    J    K    L    M    N    O
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				//  P    Q    R    S    T    U    V    W    X    Y    Z    [    \    ]    ^    _
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'D', 'R', 'D', 'R', 'R',
-				//  `    a    b    c    d    e    f    g    h    i    j    k    l    m    n    o
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				//  p    q    r    s    t    u    v    w    x    y    z    {    |    }    ~   DEL
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'D', 'R', 'D', 'R', 'R',
-				   'W', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R',
-				   'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'W'
-			};
-
-
-			static const sl_char16 g_encodingStandard[256] = {
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x0022, 0x0023,
-				0x0024, 0x0025, 0x0026, 0x2019, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
-				0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
-				0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
-				0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
-				0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
-				0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
-				0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x2018, 0x0061, 0x0062,
-				0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
-				0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
-				0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
-				0x007e, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00a1,
-				0x00a2, 0x00a3, 0x2044, 0x00a5, 0x0192, 0x00a7, 0x00a4, 0x0027, 0x201c,
-				0x00ab, 0x2039, 0x203a, 0xfb01, 0xfb02, 0x0000, 0x2013, 0x2020, 0x2021,
-				0x00b7, 0x0000, 0x00b6, 0x2022, 0x201a, 0x201e, 0x201d, 0x00bb, 0x2026,
-				0x2030, 0x0000, 0x00bf, 0x0000, 0x0060, 0x00b4, 0x02c6, 0x02dc, 0x00af,
-				0x02d8, 0x02d9, 0x00a8, 0x0000, 0x02da, 0x00b8, 0x0000, 0x02dd, 0x02db,
-				0x02c7, 0x2014, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x00c6, 0x0000, 0x00aa, 0x0000, 0x0000, 0x0000, 0x0000, 0x0141, 0x00d8,
-				0x0152, 0x00ba, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00e6, 0x0000,
-				0x0000, 0x0000, 0x0131, 0x0000, 0x0000, 0x0142, 0x00f8, 0x0153, 0x00df,
-				0x0000, 0x0000, 0x0000, 0x0000 };
-
-			static const char* const g_charNamesStandard[256] = {
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null,
-				"space", "exclam", "quotedbl", "numbersign", "dollar", "percent",
-				"ampersand", "quoteright", "parenleft", "parenright", "asterisk",
-				"plus", "comma", "hyphen", "period", "slash", "zero", "one", "two",
-				"three", "four", "five", "six", "seven", "eight", "nine", "colon",
-				"semicolon", "less", "equal", "greater", "question", "at", "A",
-				"B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
-				"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
-				"bracketleft", "backslash", "bracketright", "asciicircum", "underscore",
-				"quoteleft", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
-				"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x",
-				"y", "z", "braceleft", "bar", "braceright", "asciitilde", sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, "exclamdown", "cent", "sterling",
-				"fraction", "yen", "florin", "section", "currency", "quotesingle",
-				"quotedblleft", "guillemotleft", "guilsinglleft", "guilsinglright",
-				"fi", "fl", sl_null, "endash", "dagger", "daggerdbl", "periodcentered",
-				sl_null, "paragraph", "bullet", "quotesinglbase", "quotedblbase",
-				"quotedblright", "guillemotright", "ellipsis", "perthousand",
-				sl_null, "questiondown", sl_null, "grave", "acute", "circumflex",
-				"tilde", "macron", "breve", "dotaccent", "dieresis", sl_null,
-				"ring", "cedilla", sl_null, "hungarumlaut", "ogonek", "caron",
-				"emdash", sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, "AE",
-				sl_null, "ordfeminine", sl_null, sl_null, sl_null, sl_null,
-				"Lslash", "Oslash", "OE", "ordmasculine", sl_null, sl_null,
-				sl_null, sl_null, sl_null, "ae", sl_null, sl_null,
-				sl_null, "dotlessi", sl_null, sl_null, "lslash", "oslash",
-				"oe", "germandbls", sl_null, sl_null, sl_null, sl_null
-			};
-
-			static const sl_char16 g_encodingMacRoman[256] = {
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x0022, 0x0023,
-				0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
-				0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
-				0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
-				0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
-				0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
-				0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
-				0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x0060, 0x0061, 0x0062,
-				0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
-				0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
-				0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
-				0x007e, 0x0000, 0x00c4, 0x00c5, 0x00c7, 0x00c9, 0x00d1, 0x00d6, 0x00dc,
-				0x00e1, 0x00e0, 0x00e2, 0x00e4, 0x00e3, 0x00e5, 0x00e7, 0x00e9, 0x00e8,
-				0x00ea, 0x00eb, 0x00ed, 0x00ec, 0x00ee, 0x00ef, 0x00f1, 0x00f3, 0x00f2,
-				0x00f4, 0x00f6, 0x00f5, 0x00fa, 0x00f9, 0x00fb, 0x00fc, 0x2020, 0x00b0,
-				0x00a2, 0x00a3, 0x00a7, 0x2022, 0x00b6, 0x00df, 0x00ae, 0x00a9, 0x2122,
-				0x00b4, 0x00a8, 0x0000, 0x00c6, 0x00d8, 0x0000, 0x00b1, 0x0000, 0x0000,
-				0x00a5, 0x00b5, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x00aa, 0x00ba,
-				0x0000, 0x00e6, 0x00f8, 0x00bf, 0x00a3, 0x00ac, 0x0000, 0x0192, 0x0000,
-				0x0000, 0x00ab, 0x00bb, 0x2026, 0x0020, 0x00c0, 0x00c3, 0x00d5, 0x0152,
-				0x0153, 0x2013, 0x2014, 0x201c, 0x201d, 0x2018, 0x2019, 0x00f7, 0x0000,
-				0x00ff, 0x0178, 0x2044, 0x00a4, 0x2039, 0x203a, 0xfb01, 0xfb02, 0x2021,
-				0x00b7, 0x201a, 0x201e, 0x2030, 0x00c2, 0x00ca, 0x00c1, 0x00cb, 0x00c8,
-				0x00cd, 0x00ce, 0x00cf, 0x00cc, 0x00d3, 0x00d4, 0x0000, 0x00d2, 0x00da,
-				0x00db, 0x00d9, 0x0131, 0x02c6, 0x02dc, 0x00af, 0x02d8, 0x02d9, 0x02da,
-				0x00b8, 0x02dd, 0x02db, 0x02c7 };
-
-			static const char* const g_charNamesMacRoman[256] = {
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null,
-				"space", "exclam", "quotedbl", "numbersign", "dollar", "percent",
-				"ampersand", "quotesingle", "parenleft", "parenright", "asterisk",
-				"plus", "comma", "hyphen", "period", "slash", "zero", "one", "two",
-				"three", "four", "five", "six", "seven", "eight", "nine", "colon",
-				"semicolon", "less", "equal", "greater", "question", "at", "A",
-				"B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
-				"O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
-				"bracketleft", "backslash", "bracketright", "asciicircum", "underscore",
-				"grave", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
-				"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x",
-				"y", "z", "braceleft", "bar", "braceright", "asciitilde", sl_null,
-				"Adieresis", "Aring", "Ccedilla", "Eacute", "Ntilde", "Odieresis",
-				"Udieresis", "aacute", "agrave", "acircumflex", "adieresis", "atilde",
-				"aring", "ccedilla", "eacute", "egrave", "ecircumflex", "edieresis",
-				"iacute", "igrave", "icircumflex", "idieresis", "ntilde", "oacute",
-				"ograve", "ocircumflex", "odieresis", "otilde", "uacute", "ugrave",
-				"ucircumflex", "udieresis", "dagger", "degree", "cent", "sterling",
-				"section", "bullet", "paragraph", "germandbls", "registered",
-				"copyright", "trademark", "acute", "dieresis", sl_null, "AE",
-				"Oslash", sl_null, "plusminus", sl_null, sl_null, "yen", "mu",
-				sl_null, sl_null, sl_null, sl_null, sl_null, "ordfeminine",
-				"ordmasculine", sl_null, "ae", "oslash", "questiondown", "exclamdown",
-				"logicalnot", sl_null, "florin", sl_null, sl_null, "guillemotleft",
-				"guillemotright", "ellipsis", "space", "Agrave", "Atilde", "Otilde",
-				"OE", "oe", "endash", "emdash", "quotedblleft", "quotedblright",
-				"quoteleft", "quoteright", "divide", sl_null, "ydieresis",
-				"Ydieresis", "fraction", "currency", "guilsinglleft", "guilsinglright",
-				"fi", "fl", "daggerdbl", "periodcentered", "quotesinglbase",
-				"quotedblbase", "perthousand", "Acircumflex", "Ecircumflex", "Aacute",
-				"Edieresis", "Egrave", "Iacute", "Icircumflex", "Idieresis", "Igrave",
-				"Oacute", "Ocircumflex", sl_null, "Ograve", "Uacute", "Ucircumflex",
-				"Ugrave", "dotlessi", "circumflex", "tilde", "macron", "breve",
-				"dotaccent", "ring", "cedilla", "hungarumlaut", "ogonek", "caron"
-			};
-
-			static const sl_char16 g_encodingWinAnsi[256] = {
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x0022, 0x0023,
-				0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
-				0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
-				0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
-				0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
-				0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
-				0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
-				0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x0060, 0x0061, 0x0062,
-				0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
-				0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
-				0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
-				0x007e, 0x2022, 0x20ac, 0x2022, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020,
-				0x2021, 0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, 0x2022, 0x017d, 0x2022,
-				0x2022, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014, 0x02dc,
-				0x2122, 0x0161, 0x203a, 0x0153, 0x2022, 0x017e, 0x0178, 0x0020, 0x00a1,
-				0x00a2, 0x00a3, 0x00a4, 0x00a5, 0x00a6, 0x00a7, 0x00a8, 0x00a9, 0x00aa,
-				0x00ab, 0x00ac, 0x002d, 0x00ae, 0x00af, 0x00b0, 0x00b1, 0x00b2, 0x00b3,
-				0x00b4, 0x00b5, 0x00b6, 0x00b7, 0x00b8, 0x00b9, 0x00ba, 0x00bb, 0x00bc,
-				0x00bd, 0x00be, 0x00bf, 0x00c0, 0x00c1, 0x00c2, 0x00c3, 0x00c4, 0x00c5,
-				0x00c6, 0x00c7, 0x00c8, 0x00c9, 0x00ca, 0x00cb, 0x00cc, 0x00cd, 0x00ce,
-				0x00cf, 0x00d0, 0x00d1, 0x00d2, 0x00d3, 0x00d4, 0x00d5, 0x00d6, 0x00d7,
-				0x00d8, 0x00d9, 0x00da, 0x00db, 0x00dc, 0x00dd, 0x00de, 0x00df, 0x00e0,
-				0x00e1, 0x00e2, 0x00e3, 0x00e4, 0x00e5, 0x00e6, 0x00e7, 0x00e8, 0x00e9,
-				0x00ea, 0x00eb, 0x00ec, 0x00ed, 0x00ee, 0x00ef, 0x00f0, 0x00f1, 0x00f2,
-				0x00f3, 0x00f4, 0x00f5, 0x00f6, 0x00f7, 0x00f8, 0x00f9, 0x00fa, 0x00fb,
-				0x00fc, 0x00fd, 0x00fe, 0x00ff };
-
-			static const char* const g_charNamesWinAnsi[256] = {
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, "space",
-				sl_null, sl_null, sl_null,
-				"exclam", "quotedbl", "numbersign", "dollar", "percent", "ampersand",
-				"quotesingle", "parenleft", "parenright", "asterisk", "plus",
-				"comma", "hyphen", "period", "slash", "zero", "one", "two", "three",
-				"four", "five", "six", "seven", "eight", "nine", "colon", "semicolon",
-				"less", "equal", "greater", "question", "at", "A", "B", "C", "D",
-				"E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
-				"R", "S", "T", "U", "V", "W", "X", "Y", "Z", "bracketleft",
-				"backslash", "bracketright", "asciicircum", "underscore", "grave",
-				"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
-				"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
-				"braceleft", "bar", "braceright", "asciitilde", "bullet", "Euro",
-				"bullet", "quotesinglbase", "florin", "quotedblbase", "ellipsis",
-				"dagger", "daggerdbl", "circumflex", "perthousand", "Scaron",
-				"guilsinglleft", "OE", "bullet", "Zcaron", "bullet", "bullet",
-				"quoteleft", "quoteright", "quotedblleft", "quotedblright", "bullet",
-				"endash", "emdash", "tilde", "trademark", "scaron", "guilsinglright",
-				"oe", "bullet", "zcaron", "Ydieresis", "space", "exclamdown", "cent",
-				"sterling", "currency", "yen", "brokenbar", "section", "dieresis",
-				"copyright", "ordfeminine", "guillemotleft", "logicalnot", "hyphen",
-				"registered", "macron", "degree", "plusminus", "twosuperior",
-				"threesuperior", "acute", "mu", "paragraph", "periodcentered",
-				"cedilla", "onesuperior", "ordmasculine", "guillemotright",
-				"onequarter", "onehalf", "threequarters", "questiondown", "Agrave",
-				"Aacute", "Acircumflex", "Atilde", "Adieresis", "Aring", "AE",
-				"Ccedilla", "Egrave", "Eacute", "Ecircumflex", "Edieresis", "Igrave",
-				"Iacute", "Icircumflex", "Idieresis", "Eth", "Ntilde", "Ograve",
-				"Oacute", "Ocircumflex", "Otilde", "Odieresis", "multiply", "Oslash",
-				"Ugrave", "Uacute", "Ucircumflex", "Udieresis", "Yacute", "Thorn",
-				"germandbls", "agrave", "aacute", "acircumflex", "atilde", "adieresis",
-				"aring", "ae", "ccedilla", "egrave", "eacute", "ecircumflex",
-				"edieresis", "igrave", "iacute", "icircumflex", "idieresis", "eth",
-				"ntilde", "ograve", "oacute", "ocircumflex", "otilde", "odieresis",
-				"divide", "oslash", "ugrave", "uacute", "ucircumflex", "udieresis",
-				"yacute", "thorn", "ydieresis"
-			};
-
-			static const sl_char16 g_encodingPdfDoc[256] = {
-				0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008,
-				0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x000e, 0x000f, 0x0010, 0x0011,
-				0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017, 0x02d8, 0x02c7, 0x02c6,
-				0x02d9, 0x02dd, 0x02db, 0x02da, 0x02dc, 0x0020, 0x0021, 0x0022, 0x0023,
-				0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c,
-				0x002d, 0x002e, 0x002f, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
-				0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e,
-				0x003f, 0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
-				0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x0050,
-				0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059,
-				0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f, 0x0060, 0x0061, 0x0062,
-				0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b,
-				0x006c, 0x006d, 0x006e, 0x006f, 0x0070, 0x0071, 0x0072, 0x0073, 0x0074,
-				0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d,
-				0x007e, 0x0000, 0x2022, 0x2020, 0x2021, 0x2026, 0x2014, 0x2013, 0x0192,
-				0x2044, 0x2039, 0x203a, 0x2212, 0x2030, 0x201e, 0x201c, 0x201d, 0x2018,
-				0x2019, 0x201a, 0x2122, 0xfb01, 0xfb02, 0x0141, 0x0152, 0x0160, 0x0178,
-				0x017d, 0x0131, 0x0142, 0x0153, 0x0161, 0x017e, 0x0000, 0x20ac, 0x00a1,
-				0x00a2, 0x00a3, 0x00a4, 0x00a5, 0x00a6, 0x00a7, 0x00a8, 0x00a9, 0x00aa,
-				0x00ab, 0x00ac, 0x0000, 0x00ae, 0x00af, 0x00b0, 0x00b1, 0x00b2, 0x00b3,
-				0x00b4, 0x00b5, 0x00b6, 0x00b7, 0x00b8, 0x00b9, 0x00ba, 0x00bb, 0x00bc,
-				0x00bd, 0x00be, 0x00bf, 0x00c0, 0x00c1, 0x00c2, 0x00c3, 0x00c4, 0x00c5,
-				0x00c6, 0x00c7, 0x00c8, 0x00c9, 0x00ca, 0x00cb, 0x00cc, 0x00cd, 0x00ce,
-				0x00cf, 0x00d0, 0x00d1, 0x00d2, 0x00d3, 0x00d4, 0x00d5, 0x00d6, 0x00d7,
-				0x00d8, 0x00d9, 0x00da, 0x00db, 0x00dc, 0x00dd, 0x00de, 0x00df, 0x00e0,
-				0x00e1, 0x00e2, 0x00e3, 0x00e4, 0x00e5, 0x00e6, 0x00e7, 0x00e8, 0x00e9,
-				0x00ea, 0x00eb, 0x00ec, 0x00ed, 0x00ee, 0x00ef, 0x00f0, 0x00f1, 0x00f2,
-				0x00f3, 0x00f4, 0x00f5, 0x00f6, 0x00f7, 0x00f8, 0x00f9, 0x00fa, 0x00fb,
-				0x00fc, 0x00fd, 0x00fe, 0x00ff };
-
-			static const sl_char16 g_encodingMacExpert[256] = {
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0xf721, 0xf6f8, 0xf7a2,
-				0xf724, 0xf6e4, 0xf726, 0xf7b4, 0x207d, 0x207e, 0x2025, 0x2024, 0x002c,
-				0x002d, 0x002e, 0x2044, 0xf730, 0xf731, 0xf732, 0xf733, 0xf734, 0xf735,
-				0xf736, 0xf737, 0xf738, 0xf739, 0x003a, 0x003b, 0x0000, 0xf6de, 0x0000,
-				0xf73f, 0x0000, 0x0000, 0x0000, 0x0000, 0xf7f0, 0x0000, 0x0000, 0x00bc,
-				0x00bd, 0x00be, 0x215b, 0x215c, 0x215d, 0x215e, 0x2153, 0x2154, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xfb00, 0xfb01, 0xfb02, 0xfb03,
-				0xfb04, 0x208d, 0x0000, 0x208e, 0xf6f6, 0xf6e5, 0xf760, 0xf761, 0xf762,
-				0xf763, 0xf764, 0xf765, 0xf766, 0xf767, 0xf768, 0xf769, 0xf76a, 0xf76b,
-				0xf76c, 0xf76d, 0xf76e, 0xf76f, 0xf770, 0xf771, 0xf772, 0xf773, 0xf774,
-				0xf775, 0xf776, 0xf777, 0xf778, 0xf779, 0xf77a, 0x20a1, 0xf6dc, 0xf6dd,
-				0xf6fe, 0x0000, 0x0000, 0xf6e9, 0xf6e0, 0x0000, 0x0000, 0x0000, 0x0000,
-				0xf7e1, 0xf7e0, 0xf7e2, 0xf7e4, 0xf7e3, 0xf7e5, 0xf7e7, 0xf7e9, 0xf7e8,
-				0xf7ea, 0xf7eb, 0xf7ed, 0xf7ec, 0xf7ee, 0xf7ef, 0xf7f1, 0xf7f3, 0xf7f2,
-				0xf7f4, 0xf7f6, 0xf7f5, 0xf7fa, 0xf7f9, 0xf7fb, 0xf7fc, 0x0000, 0x2078,
-				0x2084, 0x2083, 0x2086, 0x2088, 0x2087, 0xf6fd, 0x0000, 0xf6df, 0x2082,
-				0x0000, 0xf7a8, 0x0000, 0xf6f5, 0xf6fd, 0x2085, 0x0000, 0xf6e1, 0xf6e7,
-				0xf7fd, 0x0000, 0xf6e3, 0x0000, 0x0000, 0xf7fe, 0x0000, 0x2089, 0x2080,
-				0xf6ff, 0xf7e6, 0xf7f8, 0xf7bf, 0x2081, 0xf6e9, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0xf7b8, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0xf6fa, 0x2012, 0xf6e6, 0x0000, 0x0000, 0x0000, 0x0000, 0xf7a1, 0x0000,
-				0xf7ff, 0x0000, 0x00b9, 0x00b2, 0x00b3, 0x2074, 0x2075, 0x2076, 0x2077,
-				0x2079, 0x2070, 0x0000, 0xf6ec, 0xf6f1, 0x0000, 0x0000, 0x0000, 0xf6ed,
-				0xf6f2, 0xf6eb, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xf6ee, 0xf6fb,
-				0xf6f4, 0xf7af, 0xf6ea, 0x207f, 0xf6ef, 0xf6e2, 0xf6e8, 0xf6f7, 0xf6fc,
-				0x0000, 0x0000, 0x0000, 0x0000 };
-
-			static const char* const g_charNamesMacExpert[256] = {
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, sl_null,
-				sl_null, sl_null,
-				"space", "exclamsmall", "Hungarumlautsmall", "centoldstyle",
-				"dollaroldstyle", "dollarsuperior", "ampersandsmall", "Acutesmall",
-				"parenleftsuperior", "parenrightsuperior", "twodotenleader",
-				"onedotenleader", "comma", "hyphen", "period", "fraction",
-				"zerooldstyle", "oneoldstyle", "twooldstyle", "threeoldstyle",
-				"fouroldstyle", "fiveoldstyle", "sixoldstyle", "sevenoldstyle",
-				"eightoldstyle", "nineoldstyle", "colon", "semicolon", sl_null,
-				"threequartersemdash", sl_null, "questionsmall", sl_null,
-				sl_null, sl_null, sl_null, "Ethsmall", sl_null, sl_null,
-				"onequarter", "onehalf", "threequarters", "oneeighth", "threeeighths",
-				"fiveeighths", "seveneighths", "onethird", "twothirds", sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, "ff", "fi",
-				"fl", "ffi", "ffl", "parenleftinferior", sl_null, "parenrightinferior",
-				"Circumflexsmall", "hypheninferior", "Gravesmall", "Asmall", "Bsmall",
-				"Csmall", "Dsmall", "Esmall", "Fsmall", "Gsmall", "Hsmall", "Ismall",
-				"Jsmall", "Ksmall", "Lsmall", "Msmall", "Nsmall", "Osmall", "Psmall",
-				"Qsmall", "Rsmall", "Ssmall", "Tsmall", "Usmall", "Vsmall", "Wsmall",
-				"Xsmall", "Ysmall", "Zsmall", "colonmonetary", "onefitted", "rupiah",
-				"Tildesmall", sl_null, sl_null, "asuperior", "centsuperior",
-				sl_null, sl_null, sl_null, sl_null, "Aacutesmall",
-				"Agravesmall", "Acircumflexsmall", "Adieresissmall", "Atildesmall",
-				"Aringsmall", "Ccedillasmall", "Eacutesmall", "Egravesmall",
-				"Ecircumflexsmall", "Edieresissmall", "Iacutesmall", "Igravesmall",
-				"Icircumflexsmall", "Idieresissmall", "Ntildesmall", "Oacutesmall",
-				"Ogravesmall", "Ocircumflexsmall", "Odieresissmall", "Otildesmall",
-				"Uacutesmall", "Ugravesmall", "Ucircumflexsmall", "Udieresissmall",
-				sl_null, "eightsuperior", "fourinferior", "threeinferior",
-				"sixinferior", "eightinferior", "seveninferior", "Scaronsmall",
-				sl_null, "centinferior", "twoinferior", sl_null, "Dieresissmall",
-				sl_null, "Caronsmall", "osuperior", "fiveinferior", sl_null,
-				"commainferior", "periodinferior", "Yacutesmall", sl_null,
-				"dollarinferior", sl_null, sl_null, "Thornsmall", sl_null,
-				"nineinferior", "zeroinferior", "Zcaronsmall", "AEsmall", "Oslashsmall",
-				"questiondownsmall", "oneinferior", "Lslashsmall", sl_null,
-				sl_null, sl_null, sl_null, sl_null, sl_null, "Cedillasmall",
-				sl_null, sl_null, sl_null, sl_null, sl_null, "OEsmall",
-				"figuredash", "hyphensuperior", sl_null, sl_null, sl_null,
-				sl_null, "exclamdownsmall", sl_null, "Ydieresissmall", sl_null,
-				"onesuperior", "twosuperior", "threesuperior", "foursuperior",
-				"fivesuperior", "sixsuperior", "sevensuperior", "ninesuperior",
-				"zerosuperior", sl_null, "esuperior", "rsuperior", "tsuperior",
-				sl_null, sl_null, "isuperior", "ssuperior", "dsuperior",
-				sl_null, sl_null, sl_null, sl_null, sl_null, "lsuperior",
-				"Ogoneksmall", "Brevesmall", "Macronsmall", "bsuperior", "nsuperior",
-				"msuperior", "commasuperior", "periodsuperior", "Dotaccentsmall",
-				"Ringsmall", sl_null, sl_null, sl_null, sl_null };
-
-			static const sl_char16 g_encodingAdobeSymbol[256] = {
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x0021, 0x2200, 0x0023,
-				0x2203, 0x0025, 0x0026, 0x220B, 0x0028, 0x0029, 0x2217, 0x002B, 0x002C,
-				0x2212, 0x002E, 0x002F, 0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035,
-				0x0036, 0x0037, 0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E,
-				0x003F, 0x2245, 0x0391, 0x0392, 0x03A7, 0x0394, 0x0395, 0x03A6, 0x0393,
-				0x0397, 0x0399, 0x03D1, 0x039A, 0x039B, 0x039C, 0x039D, 0x039F, 0x03A0,
-				0x0398, 0x03A1, 0x03A3, 0x03A4, 0x03A5, 0x03C2, 0x03A9, 0x039E, 0x03A8,
-				0x0396, 0x005B, 0x2234, 0x005D, 0x22A5, 0x005F, 0xF8E5, 0x03B1, 0x03B2,
-				0x03C7, 0x03B4, 0x03B5, 0x03C6, 0x03B3, 0x03B7, 0x03B9, 0x03D5, 0x03BA,
-				0x03BB, 0x03BC, 0x03BD, 0x03BF, 0x03C0, 0x03B8, 0x03C1, 0x03C3, 0x03C4,
-				0x03C5, 0x03D6, 0x03C9, 0x03BE, 0x03C8, 0x03B6, 0x007B, 0x007C, 0x007D,
-				0x223C, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x20AC, 0x03D2,
-				0x2032, 0x2264, 0x2044, 0x221E, 0x0192, 0x2663, 0x2666, 0x2665, 0x2660,
-				0x2194, 0x2190, 0x2191, 0x2192, 0x2193, 0x00B0, 0x00B1, 0x2033, 0x2265,
-				0x00D7, 0x221D, 0x2202, 0x2022, 0x00F7, 0x2260, 0x2261, 0x2248, 0x2026,
-				0xF8E6, 0xF8E7, 0x21B5, 0x2135, 0x2111, 0x211C, 0x2118, 0x2297, 0x2295,
-				0x2205, 0x2229, 0x222A, 0x2283, 0x2287, 0x2284, 0x2282, 0x2286, 0x2208,
-				0x2209, 0x2220, 0x2207, 0xF6DA, 0xF6D9, 0xF6DB, 0x220F, 0x221A, 0x22C5,
-				0x00AC, 0x2227, 0x2228, 0x21D4, 0x21D0, 0x21D1, 0x21D2, 0x21D3, 0x25CA,
-				0x2329, 0xF8E8, 0xF8E9, 0xF8EA, 0x2211, 0xF8EB, 0xF8EC, 0xF8ED, 0xF8EE,
-				0xF8EF, 0xF8F0, 0xF8F1, 0xF8F2, 0xF8F3, 0xF8F4, 0x0000, 0x232A, 0x222B,
-				0x2320, 0xF8F5, 0x2321, 0xF8F6, 0xF8F7, 0xF8F8, 0xF8F9, 0xF8FA, 0xF8FB,
-				0xF8FC, 0xF8FD, 0xF8FE, 0x0000,
-			};
-
-			static const sl_char16 g_encodingMSSymbol[256] = {
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 32,     33,     8704,   35,
-				8707,   37,     38,     8715,   40,     41,     8727,   43,     44,
-				8722,   46,     47,     48,     49,     50,     51,     52,     53,
-				54,     55,     56,     57,     58,     59,     60,     61,     62,
-				63,     8773,   913,    914,    935,    916,    917,    934,    915,
-				919,    921,    977,    922,    923,    924,    925,    927,    928,
-				920,    929,    931,    932,    933,    962,    937,    926,    936,
-				918,    91,     8756,   93,     8869,   95,     8254,   945,    946,
-				967,    948,    949,    966,    947,    951,    953,    981,    954,
-				955,    956,    957,    959,    960,    952,    961,    963,    964,
-				965,    982,    969,    958,    968,    950,    123,    124,    125,
-				8764,   0,      0,      0,      0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 978,
-				8242,   8804,   8725,   8734,   402,    9827,   9830,   9828,   9824,
-				8596,   8592,   8593,   8594,   8595,   176,    177,    8243,   8805,
-				215,    8733,   8706,   8729,   247,    8800,   8801,   8776,   8943,
-				0,      0,      8629,   0,      8465,   8476,   8472,   8855,   8853,
-				8709,   8745,   8746,   8835,   8839,   8836,   8834,   8838,   8712,
-				8713,   8736,   8711,   174,    169,    8482,   8719,   8730,   8901,
-				172,    8743,   8744,   8660,   8656,   8657,   8658,   8659,   9674,
-				9001,   0,      0,      0,      8721,   0,      0,      0,      0,
-				0,      0,      0,      0,      0,      0,      0x0000, 9002,   8747,
-				8992,   0,      8993,   0,      0,      0,      0,      0,      0,
-				0x0000, 0x0000, 0x0000, 0x0000 };
-
-			static const sl_char16 g_encodingZapf[256] = {
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0020, 0x2701, 0x2702, 0x2703,
-				0x2704, 0x260E, 0x2706, 0x2707, 0x2708, 0x2709, 0x261B, 0x261E, 0x270C,
-				0x270D, 0x270E, 0x270F, 0x2710, 0x2711, 0x2712, 0x2713, 0x2714, 0x2715,
-				0x2716, 0x2717, 0x2718, 0x2719, 0x271A, 0x271B, 0x271C, 0x271D, 0x271E,
-				0x271F, 0x2720, 0x2721, 0x2722, 0x2723, 0x2724, 0x2725, 0x2726, 0x2727,
-				0x2605, 0x2729, 0x272A, 0x272B, 0x272C, 0x272D, 0x272E, 0x272F, 0x2730,
-				0x2731, 0x2732, 0x2733, 0x2734, 0x2735, 0x2736, 0x2737, 0x2738, 0x2739,
-				0x273A, 0x273B, 0x273C, 0x273D, 0x273E, 0x273F, 0x2740, 0x2741, 0x2742,
-				0x2743, 0x2744, 0x2745, 0x2746, 0x2747, 0x2748, 0x2749, 0x274A, 0x274B,
-				0x25CF, 0x274D, 0x25A0, 0x274F, 0x2750, 0x2751, 0x2752, 0x25B2, 0x25BC,
-				0x25C6, 0x2756, 0x25D7, 0x2758, 0x2759, 0x275A, 0x275B, 0x275C, 0x275D,
-				0x275E, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-				0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x2761,
-				0x2762, 0x2763, 0x2764, 0x2765, 0x2766, 0x2767, 0x2663, 0x2666, 0x2665,
-				0x2660, 0x2460, 0x2461, 0x2462, 0x2463, 0x2464, 0x2465, 0x2466, 0x2467,
-				0x2468, 0x2469, 0x2776, 0x2777, 0x2778, 0x2779, 0x277A, 0x277B, 0x277C,
-				0x277D, 0x277E, 0x277F, 0x2780, 0x2781, 0x2782, 0x2783, 0x2784, 0x2785,
-				0x2786, 0x2787, 0x2788, 0x2789, 0x278A, 0x278B, 0x278C, 0x278D, 0x278E,
-				0x278F, 0x2790, 0x2791, 0x2792, 0x2793, 0x2794, 0x2192, 0x2194, 0x2195,
-				0x2798, 0x2799, 0x279A, 0x279B, 0x279C, 0x279D, 0x279E, 0x279F, 0x27A0,
-				0x27A1, 0x27A2, 0x27A3, 0x27A4, 0x27A5, 0x27A6, 0x27A7, 0x27A8, 0x27A9,
-				0x27AA, 0x27AB, 0x27AC, 0x27AD, 0x27AE, 0x27AF, 0x0000, 0x27B1, 0x27B2,
-				0x27B3, 0x27B4, 0x27B5, 0x27B6, 0x27B7, 0x27B8, 0x27B9, 0x27BA, 0x27BB,
-				0x27BC, 0x27BD, 0x27BE, 0x0000,
-			};
-
-
-			SLIB_INLINE static sl_bool IsWhitespace(sl_uint8 c)
-			{
-				return g_charType[c] == 'W';
+			sl_uint32 ret = 0;
+			sl_uint8* src = (sl_uint8*)_src;
+			for (sl_uint32 i = 0; i < size; i++) {
+				ret = (ret << 8) | src[i];
 			}
+			return ret;
+		}
 
-			SLIB_INLINE static sl_bool IsDelimiter(sl_uint8 c)
-			{
-				return g_charType[c] == 'D';
+		static void ComputeEncryptionKey(sl_uint8* outKey, sl_uint32 lenKey, const StringView& password, sl_uint32 revision, const String& ownerHash, sl_uint32 permission, const String& fileId)
+		{
+			MD5 hash;
+			hash.start();
+			sl_size lenPassword = password.getLength();
+			if (lenPassword > 32) {
+				lenPassword = 32;
 			}
-
-			SLIB_INLINE static sl_bool IsNumeric(sl_uint8 c)
-			{
-				return g_charType[c] == 'N';
+			if (lenPassword) {
+				hash.update(password.getData(), lenPassword);
 			}
-
-			SLIB_INLINE static sl_bool IsLineEnding(sl_uint8 c)
-			{
-				return c == '\r' || c == '\n';
+			if (lenPassword < 32) {
+				hash.update(g_encryptionPad, 32 - lenPassword);
 			}
-
-			SLIB_INLINE static sl_uint64 GetObjectId(const PdfReference& ref)
-			{
-				return MAKE_OBJECT_ID(ref.objectNumber, ref.generation);
+			hash.update(ownerHash.getData(), ownerHash.getLength());
+			sl_uint8 bufPermission[4];
+			MIO::writeUint32LE(bufPermission, permission);
+			hash.update(bufPermission, 4);
+			if (fileId.isNotEmpty()) {
+				hash.update(fileId.getData(), fileId.getLength());
 			}
-
-			SLIB_INLINE static sl_uint64 GetObjectId(sl_uint32 objectNumber, sl_uint32 generation)
-			{
-				return MAKE_OBJECT_ID(objectNumber, generation);
+			if (revision >= 4) {
+				static sl_uint8 k[] = { 0xff, 0xff, 0xff, 0xff };
+				hash.update(k, 4);
 			}
-
-			static sl_uint32 ReadUint(const void* _src, sl_uint32 size, sl_uint32 def)
-			{
-				if (!size) {
-					return def;
+			sl_uint8 h[16];
+			hash.finish(h);
+			if (lenKey > 16) {
+				lenKey = 16;
+			}
+			if (revision >= 3) {
+				for (sl_uint32 i = 0; i < 50; i++) {
+					MD5::hash(h, lenKey, h);
 				}
-				sl_uint32 ret = 0;
-				sl_uint8* src = (sl_uint8*)_src;
-				for (sl_uint32 i = 0; i < size; i++) {
-					ret = (ret << 8) | src[i];
-				}
-				return ret;
 			}
+			Base::copyMemory(outKey, h, lenKey);
+		}
 
-			static void ComputeEncryptionKey(sl_uint8* outKey, sl_uint32 lenKey, const StringView& password, sl_uint32 revision, const String& ownerHash, sl_uint32 permission, const String& fileId)
-			{
+		static void ComputeUserPasswordHash(sl_uint8* outHash, const sl_uint8* encryptionKey, sl_uint32 lengthKey, sl_uint32 revision, const String& fileId)
+		{
+			if (revision >= 3) {
 				MD5 hash;
 				hash.start();
-				sl_size lenPassword = password.getLength();
-				if (lenPassword > 32) {
-					lenPassword = 32;
-				}
-				if (lenPassword) {
-					hash.update(password.getData(), lenPassword);
-				}
-				if (lenPassword < 32) {
-					hash.update(g_encryptionPad, 32 - lenPassword);
-				}
-				hash.update(ownerHash.getData(), ownerHash.getLength());
-				sl_uint8 bufPermission[4];
-				MIO::writeUint32LE(bufPermission, permission);
-				hash.update(bufPermission, 4);
+				hash.update(g_encryptionPad, 32);
 				if (fileId.isNotEmpty()) {
 					hash.update(fileId.getData(), fileId.getLength());
 				}
-				if (revision >= 4) {
-					static sl_uint8 k[] = { 0xff, 0xff, 0xff, 0xff };
-					hash.update(k, 4);
-				}
 				sl_uint8 h[16];
 				hash.finish(h);
-				if (lenKey > 16) {
-					lenKey = 16;
-				}
-				if (revision >= 3) {
-					for (sl_uint32 i = 0; i < 50; i++) {
-						MD5::hash(h, lenKey, h);
+				RC4 rc;
+				rc.setKey(encryptionKey, lengthKey);
+				rc.encrypt(h, outHash, 16);
+				for (sl_uint8 i = 1; i <= 19; i++) {
+					sl_uint8 k[16];
+					for (sl_uint32 j = 0; j < lengthKey; j++) {
+						k[j] = encryptionKey[j] ^ i;
 					}
+					rc.setKey(k, lengthKey);
+					rc.encrypt(outHash, outHash, 16);
 				}
-				Base::copyMemory(outKey, h, lenKey);
+			} else {
+				RC4 rc;
+				rc.setKey(encryptionKey, lengthKey);
+				rc.encrypt(g_encryptionPad, outHash, 32);
 			}
+		}
 
-			static void ComputeUserPasswordHash(sl_uint8* outHash, const sl_uint8* encryptionKey, sl_uint32 lengthKey, sl_uint32 revision, const String& fileId)
+		enum class CrossReferenceEntryType
+		{
+			Free = 0,
+			Normal = 1,
+			Compressed = 2
+		};
+
+		struct CrossReferenceEntry
+		{
+			union {
+				sl_uint32 nextFreeObject; // For free entry
+				sl_uint32 offset; // For normal entry: 10 digits in Cross-Reference-Table
+				sl_uint32 streamObject; // For compressed entry
+			};
+			sl_uint32 type : 2; // CrossReferenceEntryType
+			sl_uint32 generation : 30; // For free, normal entry: 5 digits in Cross-Reference-Table. For compressed entry, objectIndex
+		};
+
+		class ObjectStream : public Referable
+		{
+		public:
+			Ref<ObjectStream> extends;
+			CList< Pair<sl_uint32, PdfValue > > objects;
+
+		public:
+			PdfValue getItem(sl_uint32 index, sl_uint32& _id)
 			{
-				if (revision >= 3) {
-					MD5 hash;
-					hash.start();
-					hash.update(g_encryptionPad, 32);
-					if (fileId.isNotEmpty()) {
-						hash.update(fileId.getData(), fileId.getLength());
-					}
-					sl_uint8 h[16];
-					hash.finish(h);
-					RC4 rc;
-					rc.setKey(encryptionKey, lengthKey);
-					rc.encrypt(h, outHash, 16);
-					for (sl_uint8 i = 1; i <= 19; i++) {
-						sl_uint8 k[16];
-						for (sl_uint32 j = 0; j < lengthKey; j++) {
-							k[j] = encryptionKey[j] ^ i;
-						}
-						rc.setKey(k, lengthKey);
-						rc.encrypt(outHash, outHash, 16);
-					}
+				sl_uint32 n = (sl_uint32)(objects.getCount());
+				if (index < n) {
+					Pair<sl_uint32, PdfValue >& item = objects[index];
+					_id = item.first;
+					return item.second;
 				} else {
-					RC4 rc;
-					rc.setKey(encryptionKey, lengthKey);
-					rc.encrypt(g_encryptionPad, outHash, 32);
+					if (extends.isNotNull()) {
+						return extends->getItem(index - n, _id);
+					}
+					return PdfValue();
 				}
 			}
 
-			enum class CrossReferenceEntryType
+		};
+
+		class PageTreeParent : public PdfPageTreeItem
+		{
+		public:
+			List< Ref<PdfPageTreeItem> > kids;
+			sl_bool flagKids = sl_false;
+			sl_uint32 count = 0;
+			sl_bool flagCount = sl_false;
+
+		public:
+			sl_uint32 getPageCount()
 			{
-				Free = 0,
-				Normal = 1,
-				Compressed = 2
-			};
-
-			struct CrossReferenceEntry
-			{
-				union {
-					sl_uint32 nextFreeObject; // For free entry
-					sl_uint32 offset; // For normal entry: 10 digits in Cross-Reference-Table
-					sl_uint32 streamObject; // For compressed entry
-				};
-				sl_uint32 type : 2; // CrossReferenceEntryType
-				sl_uint32 generation : 30; // For free, normal entry: 5 digits in Cross-Reference-Table. For compressed entry, objectIndex
-			};
-
-			class ObjectStream : public Referable
-			{
-			public:
-				Ref<ObjectStream> extends;
-				CList< Pair<sl_uint32, PdfValue > > objects;
-
-			public:
-				PdfValue getItem(sl_uint32 index, sl_uint32& _id)
-				{
-					sl_uint32 n = (sl_uint32)(objects.getCount());
-					if (index < n) {
-						Pair<sl_uint32, PdfValue >& item = objects[index];
-						_id = item.first;
-						return item.second;
-					} else {
-						if (extends.isNotNull()) {
-							return extends->getItem(index - n, _id);
-						}
-						return PdfValue();
-					}
-				}
-
-			};
-
-			class PageTreeParent : public PdfPageTreeItem
-			{
-			public:
-				List< Ref<PdfPageTreeItem> > kids;
-				sl_bool flagKids = sl_false;
-				sl_uint32 count = 0;
-				sl_bool flagCount = sl_false;
-
-			public:
-				sl_uint32 getPageCount()
-				{
-					if (flagCount) {
-						return count;
-					}
-					count = attributes->get(name::Count).getUint();
-					flagCount = sl_true;
+				if (flagCount) {
 					return count;
 				}
+				count = attributes->get(name::Count).getUint();
+				flagCount = sl_true;
+				return count;
+			}
 
-				void increasePageCount()
-				{
-					sl_uint32 countNew = getPageCount();
-					countNew++;
+			void increasePageCount()
+			{
+				sl_uint32 countNew = getPageCount();
+				countNew++;
+				count = countNew;
+				attributes->put_NoLock(name::Count, countNew);
+			}
+
+			void decreasePageCount()
+			{
+				sl_uint32 countNew = getPageCount();
+				if (countNew) {
+					countNew--;
 					count = countNew;
 					attributes->put_NoLock(name::Count, countNew);
 				}
+			}
 
-				void decreasePageCount()
-				{
-					sl_uint32 countNew = getPageCount();
-					if (countNew) {
-						countNew--;
-						count = countNew;
-						attributes->put_NoLock(name::Count, countNew);
+			void insertKidAfter(Referable* context, PdfPageTreeItem* item, PdfPageTreeItem* after)
+			{
+				sl_size index = 0;
+				if (after) {
+					ListElements< Ref<PdfPageTreeItem> > items(kids);
+					for (sl_size i = 0; i < items.count; i++) {
+						if (items[i] == after) {
+							kids.insert_NoLock(i + 1, item);
+							index = i + 1;
+							break;
+						}
+					}
+				} else {
+					kids.insert_NoLock(0, item);
+				}
+				Ref<PdfArray> arrKids = attributes->get(name::Kids).getArray();
+				if (arrKids.isNull()) {
+					arrKids = new PdfArray(context);
+					if (arrKids.isNull()) {
+						return;
 					}
 				}
+				arrKids->insert_NoLock(index, item->reference);
+				attributes->put_NoLock(name::Kids, Move(arrKids));
+			}
 
-				void insertKidAfter(Referable* context, PdfPageTreeItem* item, PdfPageTreeItem* after)
-				{
-					sl_size index = 0;
-					if (after) {
-						ListElements< Ref<PdfPageTreeItem> > items(kids);
-						for (sl_size i = 0; i < items.count; i++) {
-							if (items[i] == after) {
-								kids.insert_NoLock(i + 1, item);
-								index = i + 1;
-								break;
-							}
-						}
-					} else {
-						kids.insert_NoLock(0, item);
-					}
-					Ref<PdfArray> arrKids = attributes->get(name::Kids).getArray();
-					if (arrKids.isNull()) {
-						arrKids = new PdfArray(context);
-						if (arrKids.isNull()) {
-							return;
-						}
-					}
-					arrKids->insert_NoLock(index, item->reference);
+			void deleteKidAt(sl_uint32 index)
+			{
+				kids.removeAt_NoLock(index);
+				Ref<PdfArray> arrKids = attributes->get(name::Kids).getArray();
+				if (arrKids.isNotNull()) {
+					arrKids->removeAt_NoLock(index);
 					attributes->put_NoLock(name::Kids, Move(arrKids));
 				}
+			}
 
-				void deleteKidAt(sl_uint32 index)
-				{
-					kids.removeAt_NoLock(index);
-					Ref<PdfArray> arrKids = attributes->get(name::Kids).getArray();
-					if (arrKids.isNotNull()) {
-						arrKids->removeAt_NoLock(index);
-						attributes->put_NoLock(name::Kids, Move(arrKids));
-					}
-				}
+		};
 
-			};
+		class Context : public Referable, public Lockable
+		{
+		public:
+			sl_uint8 majorVersion = 0;
+			sl_uint8 minorVersion = 0;
 
-			class Context : public Referable, public Lockable
+			Ref<PdfDictionary> lastTrailer; // NotNull
+			Ref<PdfDictionary> encrypt;
+			Ref<PdfDictionary> catalog; // NotNull
+
+			sl_bool flagDecryptContents = sl_false;
+			sl_uint8 encryptionKey[16];
+			sl_uint32 lenEncryptionKey = 0;
+
+		protected:
+			Context* m_baseContext;
+			sl_uint32 m_maxObjectNumber = 0;
+			Array<CrossReferenceEntry> m_references;
+			ExpiringMap<sl_uint64, PdfValue> m_objectsCache;
+			CHashMap< sl_uint32, Pair<PdfValue, sl_uint32> > m_objectsUpdate;
+			ExpiringMap< sl_uint64, Ref<ObjectStream> > m_objectStreams;
+			Ref<PageTreeParent> m_pageTree;
+
+		public:
+			Context(sl_bool flagReferableContext)
 			{
-			public:
-				sl_uint8 majorVersion = 0;
-				sl_uint8 minorVersion = 0;
+				m_baseContext = flagReferableContext ? this : sl_null;
+				_init();
+			}
 
-				Ref<PdfDictionary> lastTrailer; // NotNull
-				Ref<PdfDictionary> encrypt;
-				Ref<PdfDictionary> catalog; // NotNull
-
-				sl_bool flagDecryptContents = sl_false;
-				sl_uint8 encryptionKey[16];
-				sl_uint32 lenEncryptionKey = 0;
-
-			protected:
-				Context* m_baseContext;
-				sl_uint32 m_maxObjectNumber = 0;
-				Array<CrossReferenceEntry> m_references;
-				ExpiringMap<sl_uint64, PdfValue> m_objectsCache;
-				CHashMap< sl_uint32, Pair<PdfValue, sl_uint32> > m_objectsUpdate;
-				ExpiringMap< sl_uint64, Ref<ObjectStream> > m_objectStreams;
-				Ref<PageTreeParent> m_pageTree;
-
-			public:
-				Context(sl_bool flagReferableContext)
-				{
-					m_baseContext = flagReferableContext ? this : sl_null;
-					_init();
-				}
-
-				Context(Context* baseContext)
-				{
-					m_baseContext = baseContext;
-					_init();
-				}
-
-			public:
-				virtual PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef, sl_bool flagReadOnlyStream) = 0;
-				virtual Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) = 0;
-				virtual sl_bool readDocument(const PdfDocumentParam& param) = 0;
-
-			public:
-				void _init()
-				{
-					m_objectsCache.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT);
-					m_objectStreams.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT_STREAM);
-				}
-
-				sl_uint32 getMaximumObjectNumber()
-				{
-					return m_maxObjectNumber;
-				}
-
-				Ref<ObjectStream> getObjectStream(const PdfReference& ref);
-
-				sl_bool getReferenceEntry(sl_uint32 objectNumber, CrossReferenceEntry& entry)
-				{
-					return m_references.getAt(objectNumber, &entry);
-				}
-
-				void setReferenceEntry(sl_uint32 objectNumber, const CrossReferenceEntry& entry)
-				{
-					CrossReferenceEntry* pEntry = m_references.getPointerAt(objectNumber);
-					if (pEntry) {
-						if (pEntry->type == (sl_uint32)(CrossReferenceEntryType::Free) && entry.type != (sl_uint32)(CrossReferenceEntryType::Free)) {
-							*pEntry = entry;
-						}
-					}
-				}
-
-				PdfValue readObject(sl_uint32 objectNumber, sl_int32& generation, sl_bool flagReadOnlyStream = sl_false)
-				{
-					CrossReferenceEntry entry;
-					if (getReferenceEntry(objectNumber, entry)) {
-						if (entry.type == (sl_uint32)(CrossReferenceEntryType::Normal)) {
-							if (generation >= 0 && entry.generation != generation) {
-								return PdfValue();
-							}
-							PdfReference n;
-							sl_uint32 offsetEnd;
-							PdfValue ret = readObject(entry.offset, offsetEnd, n, flagReadOnlyStream);
-							if (ret.isNotUndefined() && n.objectNumber == objectNumber) {
-								if (generation >= 0) {
-									if (n.generation != generation) {
-										return PdfValue();
-									}
-								} else {
-									generation = n.generation;
-								}
-								return ret;
-							}
-						} else if (entry.type == (sl_uint32)(CrossReferenceEntryType::Compressed)) {
-							if (generation > 0) {
-								return PdfValue();
-							}
-							Ref<ObjectStream> stream = getObjectStream(entry.streamObject);
-							if (stream.isNotNull()) {
-								sl_uint32 n;
-								PdfValue ret = stream->getItem(entry.generation, n);
-								if (ret.isNotUndefined() && objectNumber == n) {
-									if (generation < 0) {
-										generation = 0;
-									}
-									return ret;
-								}
-							}
-						}
-					}
-					return PdfValue();
-				}
-
-				PdfValue getObject(sl_uint32 objectNumber, sl_int32& generation, sl_bool flagReadOnlyStream = sl_false)
-				{
-					if (!objectNumber) {
-						return PdfValue();
-					}
-					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(objectNumber);
-					if (pItem) {
-						if (generation >= 0) {
-							if (generation != pItem->second) {
-								return sl_false;
-							}
-						} else {
-							generation = pItem->second;
-						}
-						return pItem->first;
-					}
-					if (generation >= 0) {
-						sl_uint64 _id = GetObjectId(objectNumber, generation);
-						PdfValue ret;
-						if (m_objectsCache.get(_id, &ret)) {
-							return ret;
-						}
-					}
-					PdfValue ret = readObject(objectNumber, generation, flagReadOnlyStream);
-					if (ret.isNotUndefined()) {
-						m_objectsCache.put(GetObjectId(objectNumber, generation), ret);
-						return ret;
-					}
-					return PdfValue();
-				}
-
-				PdfValue getObject(const PdfReference& ref)
-				{
-					sl_int32 generation = ref.generation;
-					return getObject(ref.objectNumber, generation);
-				}
-
-				Ref<PdfStream> getStream(sl_uint32 objectNumber, sl_int32& generation)
-				{
-					return getObject(objectNumber, generation, sl_true).getStream();
-				}
-
-				sl_bool _setObject(const PdfReference& ref, const PdfValue& value)
-				{
-					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(ref.objectNumber);
-					if (pItem) {
-						pItem->first = value;
-						pItem->second = ref.generation;
-						return sl_true;
-					} else {
-						return m_objectsUpdate.add_NoLock(ref.objectNumber, value, ref.generation);
-					}
-				}
-
-				sl_bool setObject(const PdfReference& ref, const PdfValue& value)
-				{
-					if (!(ref.objectNumber)) {
-						return sl_false;
-					}
-					if (value.isUndefined()) {
-						return deleteObject(ref);
-					}
-					if (ref.objectNumber > m_maxObjectNumber) {
-						return sl_false;
-					}
-					return _setObject(ref, value);
-				}
-
-				sl_bool isFreeObject(sl_uint32 objectNumber, sl_uint32& outGeneration)
-				{
-					if (m_objectsUpdate.find_NoLock(objectNumber)) {
-						return sl_false;
-					}
-					CrossReferenceEntry* entry = m_references.getPointerAt(objectNumber);
-					if (!entry) {
-						outGeneration = 0;
-						return sl_true;
-					}
-					if (entry->type == (sl_uint32)(CrossReferenceEntryType::Free)) {
-						outGeneration = entry->generation;
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool addObject(const PdfValue& value, PdfReference& outRef)
-				{
-					if (value.isUndefined()) {
-						return sl_false;
-					}
-					ArrayElements<CrossReferenceEntry> ref(m_references);
-					sl_uint32 n = m_maxObjectNumber;
-					for (sl_uint32 i = 1; i <= n; i++) {
-						if (isFreeObject(i, outRef.generation)) {
-							outRef.objectNumber = i;
-							return _setObject(outRef, value);
-						}
-					}
-					n++;
-					m_maxObjectNumber = n;
-					outRef.objectNumber = n;
-					outRef.generation = 0;
-					return _setObject(outRef, value);
-				}
-
-				sl_bool deleteObject(const PdfReference& ref)
-				{
-					if (!(ref.objectNumber) || ref.objectNumber >= m_maxObjectNumber) {
-						return sl_false;
-					}
-					sl_uint64 _id = GetObjectId(ref);
-					m_objectsCache.remove(_id);
-					CrossReferenceEntry* entry = m_references.getPointerAt(ref.objectNumber);
-					if (entry) {
-						m_objectsUpdate.remove_NoLock(ref.objectNumber);
-						if (entry->type == (sl_uint32)(CrossReferenceEntryType::Normal)) {
-							if (entry->generation == ref.generation) {
-								entry->type = (sl_uint32)(CrossReferenceEntryType::Free);
-								entry->generation++;
-								entry->nextFreeObject = 0;
-								return sl_true;
-							}
-						} else if (entry->type == (sl_uint32)(CrossReferenceEntryType::Compressed)) {
-							entry->type = (sl_uint32)(CrossReferenceEntryType::Free);
-							entry->generation = 1;
-							entry->nextFreeObject = 0;
-							return sl_true;
-						}
-						return sl_false;
-					} else {
-						return m_objectsUpdate.remove_NoLock(ref.objectNumber);
-					}
-				}
-
-				void decrypt(const PdfReference& ref, void* buf, sl_size size)
-				{
-					RC4 rc;
-					sl_uint8 key[21];
-					sl_uint32 l = lenEncryptionKey;
-					Base::copyMemory(key, encryptionKey, l);
-					MIO::writeUint24LE(key + l, ref.objectNumber);
-					MIO::writeUint16LE(key + l + 3, (sl_uint16)(ref.generation));
-					l += 5;
-					sl_uint8 h[16];
-					MD5::hash(key, l, h);
-					if (l > 16) {
-						l = 16;
-					}
-					rc.setKey(h, l);
-					rc.encrypt(buf, buf, size);
-				}
-
-				PageTreeParent* getPageTree()
-				{
-					if (m_pageTree.isNotNull()) {
-						return m_pageTree.get();
-					}
-					PdfReference refPages;
-					if (!(catalog->get(name::Pages, sl_false).getReference(refPages))) {
-						return sl_null;
-					}
-					Ref<PdfDictionary> attrs = getObject(refPages).getDictionary();
-					if (attrs.isNull()) {
-						return sl_null;
-					}
-					Ref<PageTreeParent> tree = new PageTreeParent;
-					if (tree.isNull()) {
-						return sl_null;
-					}
-					tree->reference = refPages;
-					tree->attributes = Move(attrs);
-					m_pageTree = Move(tree);
-					return m_pageTree.get();
-				}
-
-				void preparePageKids(PageTreeParent* parent)
-				{
-					if (parent->flagKids) {
-						return;
-					}
-					parent->flagKids = sl_true;
-					ListElements<PdfValue> arrKids(parent->attributes->get(name::Kids).getElements());
-					List< Ref<PdfPageTreeItem> > kids;
-					for (sl_uint32 i = 0; i < arrKids.count; i++) {
-						PdfReference refKid;
-						if (!(arrKids[i].getReference(refKid))) {
-							return;
-						}
-						Ref<PdfDictionary> props = getObject(refKid).getDictionary();
-						if (props.isNull()) {
-							return;
-						}
-						Ref<PdfPageTreeItem> item;
-						if (props->get(name::Type).equalsName(name::Page)) {
-							item = new PdfPage(m_baseContext);
-						} else {
-							item = new PageTreeParent;
-						}
-						if (item.isNull()) {
-							return;
-						}
-						item->parent = parent;
-						item->reference = refKid;
-						item->attributes = Move(props);
-						if (!(kids.add_NoLock(Move(item)))) {
-							return;
-						}
-					}
-					parent->kids = Move(kids);
-				}
-
-				Ref<PdfPage> getPage(PageTreeParent* parent, sl_uint32 index)
-				{
-					if (index >= parent->getPageCount()) {
-						return sl_null;
-					}
-					preparePageKids(parent);
-					sl_uint32 n = 0;
-					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
-					for (sl_size i = 0; i < kids.count; i++) {
-						Ref<PdfPageTreeItem>& item = kids[i];
-						if (item->isPage()) {
-							if (index == n) {
-								return Ref<PdfPage>::from(item);
-							}
-							n++;
-						} else {
-							PageTreeParent* pItem = (PageTreeParent*)(item.get());
-							sl_uint32 m = pItem->getPageCount();
-							if (index < n + m) {
-								return getPage(pItem, index - n);
-							}
-							n += m;
-						}
-					}
-					return sl_null;
-				}
-
-				Ref<PdfPage> getPage(sl_uint32 index)
-				{
-					PageTreeParent* tree = getPageTree();
-					if (tree) {
-						return getPage(tree, index);
-					}
-					return sl_null;
-				}
-
-				Ref<PdfPage> createJpegImagePage(PageTreeParent* parent, sl_uint32 imageWidth, sl_uint32 imageHeight, const Memory& jpeg, sl_real pageWidth, sl_real pageHeight = 0.0f)
-				{
-					if (pageHeight < SLIB_EPSILON) {
-						pageHeight = pageWidth * (sl_real)imageHeight / (sl_real)imageWidth;
-					}
-					Ref<PdfStream> streamImage = PdfStream::createJpegImage(imageWidth, imageHeight, jpeg);
-					if (streamImage.isNull()) {
-						return sl_null;
-					}
-					Ref<PdfDictionary> resources = new PdfDictionary(this);
-					if (resources.isNull()) {
-						return sl_null;
-					}
-					Ref<PdfDictionary> xobjects = new PdfDictionary(this);
-					if (xobjects.isNull()) {
-						return sl_null;
-					}
-					resources->put_NoLock(name::XObject, xobjects);
-					String pageContent = String::format("q\n%s 0 0 %s 0 0 cm\n/BackImage Do\nQ", pageWidth, pageHeight);
-					Ref<PdfStream> streamContent = PdfStream::create(pageContent.toMemory());
-					if (streamContent.isNull()) {
-						return sl_null;
-					}
-					Ref<PdfDictionary> attrs = new PdfDictionary(this);
-					if (attrs.isNull()) {
-						return sl_null;
-					}
-					Ref<PdfArray> procs = new PdfArray(this);
-					if (procs.isNull()) {
-						return sl_null;
-					}
-					PdfReference refImage;
-					if (addObject(streamImage, refImage)) {
-						PdfReference refContent;
-						if (addObject(streamContent, refContent)) {
-							attrs->put_NoLock(name::Type, PdfName(name::Page));
-							attrs->put_NoLock(name::Parent, parent->reference);
-							xobjects->put_NoLock("BackImage", refImage);
-							attrs->put_NoLock(name::Resources, resources);
-							procs->add_NoLock(PdfName(name::PDF));
-							procs->add_NoLock(PdfName(name::ImageC)); // Color Image
-							attrs->put_NoLock(name::ProcSet, procs);
-							attrs->put_NoLock(name::MediaBox, Rectangle(0, 0, pageWidth, pageHeight));
-							attrs->put_NoLock(name::Contents, refContent);
-							Ref<PdfPage> page = new PdfPage(this);
-							if (page.isNotNull()) {
-								if (addObject(attrs, page->reference)) {
-									page->attributes = Move(attrs);
-									page->parent = parent;
-									return page;
-								}
-							}
-							deleteObject(refContent);
-						}
-						deleteObject(refImage);
-					}
-					return sl_null;
-				}
-
-				sl_bool insertJpegImagePage(sl_uint32 index, sl_uint32 imageWidth, sl_uint32 imageHeight, const Memory& jpeg)
-				{
-					if (jpeg.isNull() || !imageWidth || !imageHeight) {
-						return sl_false;
-					}
-					PageTreeParent* tree = getPageTree();
-					if (!tree) {
-						return sl_false;
-					}
-					if (index > tree->getPageCount()) {
-						return sl_false;
-					}
-					sl_real pageWidth;
-					Ref<PdfPage> pageNear = getPage(index ? index - 1 : 0);
-					if (pageNear.isNotNull()) {
-						pageWidth = pageNear->getMediaBox().getWidth();
-					} else {
-						pageWidth = 612.0f;
-					}
-					PageTreeParent* parent = tree;
-					if (pageNear.isNotNull()) {
-						Ref<PdfPageTreeItem> _parent(pageNear->parent);
-						if (_parent.isNotNull()) {
-							parent = (PageTreeParent*)(_parent.get());
-						}
-					}
-					Ref<PdfPage> page = createJpegImagePage(parent, imageWidth, imageHeight, jpeg, pageWidth);
-					if (page.isNull()) {
-						return sl_false;
-					}
-					parent->insertKidAfter(this, page.get(), index ? pageNear.get() : sl_null);
-					Ref<PdfPageTreeItem>_parent;
-					do {
-						parent->increasePageCount();
-						setObject(parent->reference, parent->attributes);
-						_parent = parent->parent;
-						parent = (PageTreeParent*)(_parent.get());
-					} while (parent);
-					return sl_true;
-				}
-
-				sl_bool isUsingPageResource(PdfPageTreeItem* item, const PdfReference& refMatch)
-				{
-					Ref<PdfDictionary> resources = item->attributes->get(name::Resources).getDictionary();
-					if (resources.isNotNull()) {
-						HashMapNode<String, PdfValue>* nodeCategory = resources->getFirstNode();
-						while (nodeCategory) {
-							PdfReference refCategory;
-							if (nodeCategory->value.getReference(refCategory)) {
-								nodeCategory->value = getObject(refCategory);
-							}
-							Ref<PdfDictionary> map = nodeCategory->value.getDictionary();
-							if (map.isNotNull()) {
-								HashMapNode<String, PdfValue>* nodeResource = map->getFirstNode();
-								while (nodeResource) {
-									PdfReference refResource;
-									if (nodeResource->value.getReference(refResource)) {
-										if (refResource == refMatch) {
-											return sl_true;
-										}
-									}
-									nodeResource = nodeResource->next;
-								}
-							}
-							nodeCategory = nodeCategory->next;
-						}
-					}
-					if (item->isPage()) {
-						return sl_false;
-					}
-					PageTreeParent* parent = (PageTreeParent*)item;
-					preparePageKids(parent);
-					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
-					for (sl_size i = 0; i < kids.count; i++) {
-						Ref<PdfPageTreeItem>& kid = kids[i];
-						if (isUsingPageResource(kid.get(), refMatch)) {
-							return sl_true;
-						}
-					}
-					return sl_false;
-				}
-
-				void deletePageContent(PdfPage* page)
-				{
-					PdfValue rContents = page->attributes->get(name::Contents, sl_false);
-					PdfValue vContents;
-					PdfReference refContents;
-					if (rContents.getReference(refContents)) {
-						vContents = getObject(refContents);
-					} else {
-						vContents = Move(refContents);
-						refContents.objectNumber = 0;
-					}
-					ListElements<PdfValue> arrContents(vContents.getElements());
-					if (arrContents.count) {
-						for (sl_uint32 i = 0; i < arrContents.count; i++) {
-							PdfReference ref;
-							if (arrContents[i].getReference(ref)) {
-								deleteObject(ref);
-							}
-						}
-					}
-					if (refContents.objectNumber) {
-						deleteObject(refContents);
-					}
-					PageTreeParent* root = getPageTree();
-					if (!root) {
-						return;
-					}
-					Ref<PdfDictionary> resources = page->attributes->get(name::Resources).getDictionary();
-					if (resources.isNotNull()) {
-						HashMapNode<String, PdfValue>* nodeCategory = resources->getFirstNode();
-						while (nodeCategory) {
-							PdfReference refCategory;
-							if (nodeCategory->value.getReference(refCategory)) {
-								nodeCategory->value = getObject(refCategory);
-							}
-							Ref<PdfDictionary> map = nodeCategory->value.getDictionary();
-							if (map.isNotNull()) {
-								HashMapNode<String, PdfValue>* nodeResource = map->getFirstNode();
-								while (nodeResource) {
-									PdfReference refResource;
-									if (nodeResource->value.getReference(refResource)) {
-										if (!(isUsingPageResource(root, refResource))) {
-											deleteObject(refResource);
-										}
-									}
-									nodeResource = nodeResource->next;
-								}
-							}
-							nodeCategory = nodeCategory->next;
-						}
-					}
-				}
-
-				sl_bool deletePage(PageTreeParent* parent, sl_uint32 pageNo)
-				{
-					if (pageNo >= parent->getPageCount()) {
-						return sl_false;
-					}
-					preparePageKids(parent);
-					sl_uint32 n = 0;
-					ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
-					for (sl_size i = 0; i < kids.count; i++) {
-						Ref<PdfPageTreeItem>& item = kids[i];
-						if (item->isPage()) {
-							if (pageNo == n) {
-								Ref<PdfPage> page = Ref<PdfPage>::from(Move(item));
-								deleteObject(page->reference);
-								parent->decreasePageCount();
-								parent->deleteKidAt((sl_uint32)i);
-								setObject(parent->reference, parent->attributes);
-								deletePageContent(page.get());
-								return sl_true;
-							}
-							n++;
-						} else {
-							PageTreeParent* pItem = (PageTreeParent*)(item.get());
-							sl_uint32 m = pItem->getPageCount();
-							if (pageNo < n + m) {
-								if (deletePage(pItem, pageNo - n)) {
-									parent->decreasePageCount();
-									if (pItem->kids.isEmpty()) {
-										deleteObject(pItem->reference);
-										parent->deleteKidAt((sl_uint32)i);
-									}
-									setObject(parent->reference, parent->attributes);
-									return sl_true;
-								}
-								return sl_false;
-							}
-							n += m;
-						}
-					}
-					return sl_false;
-				}
-
-				sl_bool deletePage(sl_uint32 index)
-				{
-					PageTreeParent* tree = getPageTree();
-					if (tree) {
-						return deletePage(tree, index);
-					}
-					return sl_false;
-				}
-
-				sl_bool writeChar(IWriter* writer, char c, sl_uint32& offset)
-				{
-					if (writer->writeFully(&c, 1) == 1) {
-						offset++;
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool writeText(IWriter* writer, const StringView& s, sl_uint32& offset)
-				{
-					sl_size n = s.getLength();
-					if (!n) {
-						return sl_true;
-					}
-					if (writer->writeFully(s.getData(), n) == n) {
-						offset += (sl_uint32)n;
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool writeFloat(IWriter* writer, float f, sl_uint32& offset)
-				{
-					String s;
-					sl_int32 n = (sl_int32)(Math::round(f));
-					if (Math::isAlmostZero(f - (float)n)) {
-						s = String::fromInt32(n);
-					} else {
-						s = String::fromFloat(f, 5);
-					}
-					return writeText(writer, s, offset);
-				}
-
-				sl_bool writeString(IWriter* writer, const StringView& str, sl_uint32& offset)
-				{
-					sl_size len = str.getLength();
-					if (!len) {
-						return writeText(writer, StringView::literal("()"), offset);
-					}
-					sl_char8* data = str.getData();
-					sl_bool flagHex = sl_false;
-					sl_uint32 nOpen = 0;
-					{
-						for (sl_size i = 0; i < len; i++) {
-							sl_char8 ch = data[i];
-							switch (ch) {
-								case '(':
-									nOpen++;
-									break;
-								case ')':
-									if (nOpen) {
-										nOpen--;
-									} else {
-										nOpen = SLIB_INT32_MAX;
-									}
-									break;
-								case '\r':
-								case '\n':
-								case '\t':
-								case '\b':
-								case '\f':
-									break;
-								default:
-									if (ch < ' ' || ch >= (sl_char8)0x7f) {
-										flagHex = sl_true;
-									}
-									break;
-							}
-							if (flagHex) {
-								break;
-							}
-						}
-					}
-					if (flagHex) {
-						if (!(writeChar(writer, '<', offset))) {
-							return sl_false;
-						}
-						char buf[1024];
-						const char* hex = "0123456789abcdef";
-						sl_uint32 m = sizeof(buf) >> 1;
-						do {
-							sl_size n = len;
-							if (n > m) {
-								n = m;
-							}
-							for (sl_size i = 0; i < n; i++) {
-								sl_uint8 h = data[i];
-								buf[i << 1] =  hex[h >> 4];
-								buf[(i << 1) | 1] = hex[h & 15];
-							}
-							if (!(writeText(writer, StringView(buf, n), offset))) {
-								return sl_false;
-							}
-							data += n;
-							len -= n;
-						} while (len);
-						return writeChar(writer, '>', offset);
-					} else {
-						if (!(writeChar(writer, '(', offset))) {
-							return sl_false;
-						}
-						sl_size start = 0;
-						for (sl_size i = 0; i < len; i++) {
-							sl_char8 c = data[i];
-							sl_char8 chEscape = 0;
-							switch (c) {
-								case '\\':
-									chEscape = '\\';
-									break;
-								case '\f':
-									chEscape = 'f';
-									break;
-								case '\b':
-									chEscape = 'b';
-									break;
-								case '(':
-								case ')':
-									if (nOpen) {
-										chEscape = c;
-									}
-									break;
-							}
-							if (chEscape) {
-								if (!(writeText(writer, StringView(data + start, i - start), offset))) {
-									return sl_false;
-								}
-								if (!(writeChar(writer, '\\', offset))) {
-									return sl_false;
-								}
-								if (!(writeChar(writer, chEscape, offset))) {
-									return sl_false;
-								}
-								start = i + 1;
-							}
-						}
-						if (start < len) {
-							if (!(writeText(writer, StringView(data + start, len - start), offset))) {
-								return sl_false;
-							}
-						}
-						return writeChar(writer, ')', offset);
-					}
-				}
-
-				sl_bool writeName(IWriter* writer, const StringView& str, sl_uint32& offset)
-				{
-					if (!(writeChar(writer, '/', offset))) {
-						return sl_false;
-					}
-					return writeText(writer, str, offset);
-				}
-
-				sl_bool writeArray(IWriter* writer, PdfArray* arr, sl_uint32& offset)
-				{
-					if (!(writeChar(writer, '[', offset))) {
-						return sl_false;
-					}
-					sl_size n = arr->getCount();
-					for (sl_size i = 0; i < n; i++) {
-						if (i) {
-							if (!(writeChar(writer, ' ', offset))) {
-								return sl_false;
-							}
-						}
-						if (!(writeValue(writer, arr->getValueAt_NoLock(i), offset))) {
-							return sl_false;
-						}
-					}
-					return writeChar(writer, ']', offset);
-				}
-
-				sl_bool writeDictionary(IWriter* writer, PdfDictionary* dict, sl_uint32& offset)
-				{
-					if (!(writeText(writer, StringView::literal("<<"), offset))) {
-						return sl_false;
-					}
-					auto node = dict->getFirstNode();
-					while (node) {
-						if (!(writeName(writer, node->key, offset))) {
-							return sl_false;
-						}
-						if (!(writeChar(writer, ' ', offset))) {
-							return sl_false;
-						}
-						if (!(writeValue(writer, node->value, offset))) {
-							return sl_false;
-						}
-						node = node->next;
-					}
-					return writeText(writer, StringView::literal(" >>"), offset);
-				}
-
-				sl_bool writeReference(IWriter* writer, const PdfReference& ref, sl_uint32& offset)
-				{
-					if (!(writeText(writer, String::fromUint32(ref.objectNumber), offset))) {
-						return sl_false;
-					}
-					if (!(writeChar(writer, ' ', offset))) {
-						return sl_false;
-					}
-					if (!(writeText(writer, String::fromUint32(ref.generation), offset))) {
-						return sl_false;
-					}
-					return writeText(writer, StringView::literal(" R"), offset);
-				}
-
-				sl_bool writeValue(IWriter* writer, const PdfValue& value, sl_uint32& offset)
-				{
-					const Variant& var = value.getVariant();
-					PdfValueType type = value.getType();
-					switch (type) {
-						case PdfValueType::Null:
-							return writeText(writer, StringView::literal("null"), offset);
-						case PdfValueType::Boolean:
-							if (var._m_boolean) {
-								return writeText(writer, StringView::literal("true"), offset);
-							} else {
-								return writeText(writer, StringView::literal("false"), offset);
-							}
-							break;
-						case PdfValueType::Uint:
-							return writeText(writer, String::fromUint32(var._m_uint32), offset);
-						case PdfValueType::Int:
-							return writeText(writer, String::fromInt32(var._m_int32), offset);
-						case PdfValueType::Float:
-							return writeFloat(writer, var._m_float, offset);
-						case PdfValueType::String:
-							return writeString(writer, CAST_VAR(String, var._value), offset);
-						case PdfValueType::Name:
-							return writeName(writer, CAST_VAR(String, var._value), offset);
-						case PdfValueType::Array:
-							return writeArray(writer, CAST_VAR(PdfArray*, var._value), offset);
-						case PdfValueType::Dictionary:
-							return writeDictionary(writer, CAST_VAR(PdfDictionary*, var._value), offset);
-						case PdfValueType::Reference:
-							return writeReference(writer, PdfReference(SLIB_GET_DWORD0(var._value), SLIB_GET_DWORD1(var._value)), offset);
-						default:
-							break;
-					}
-					return sl_false;
-				}
-
-				sl_bool writeStream(IWriter* writer, PdfStream* stream, sl_uint32& offset)
-				{
-					Memory content = stream->getEncodedContent();
-					sl_size size = content.getSize();
-					Ref<PdfDictionary> dict = stream->properties;
-					if (dict.isNull()) {
-						dict = new PdfDictionary(sl_null);
-						if (dict.isNull()) {
-							return sl_false;
-						}
-						dict->put_NoLock(name::Length, (sl_uint32)size);
-					}
-					if (!(writeDictionary(writer, dict.get(), offset))) {
-						return sl_false;
-					}
-					if (!(writeText(writer, StringView::literal("\nstream\n"), offset))) {
-						return sl_false;
-					}
-					if (size) {
-						if (writer->writeFully(content.getData(), size) != size) {
-							return sl_false;
-						}
-						offset += (sl_uint32)size;
-					}
-					return writeText(writer, StringView::literal("\nendstream"), offset);
-				}
-
-				sl_bool writeObject(IWriter* writer, const PdfReference& ref, const PdfValue& obj, sl_uint32& offset)
-				{
-					if (!(writeText(writer, String::fromUint32(ref.objectNumber), offset))) {
-						return sl_false;
-					}
-					if (!(writeChar(writer, ' ', offset))) {
-						return sl_false;
-					}
-					if (!(writeText(writer, String::fromUint32(ref.generation), offset))) {
-						return sl_false;
-					}
-					if (!(writeText(writer, StringView::literal(" obj\n"), offset))) {
-						return sl_false;
-					}
-					Ref<PdfStream> stream = obj.getStream();
-					if (stream.isNotNull()) {
-						if (!(writeStream(writer, stream.get(), offset))) {
-							return sl_false;
-						}
-					} else {
-						if (!(writeValue(writer, obj, offset))) {
-							return sl_false;
-						}
-					}
-					return writeText(writer, StringView::literal("\nendobj\n"), offset);
-				}
-
-				sl_bool save(IWriter* writer)
-				{
-					sl_uint32 nObjects = m_maxObjectNumber + 1;
-					Array<sl_uint32> arrObjectOffsets = Array<sl_uint32>::create(nObjects);
-					if (arrObjectOffsets.isNull()) {
-						return sl_false;
-					}
-					Array<sl_uint16> arrGenerations = Array<sl_uint16>::create(nObjects);
-					if (arrGenerations.isNull()) {
-						return sl_false;
-					}
-					sl_uint32* objectOffsets = arrObjectOffsets.getData();
-					Base::zeroMemory(objectOffsets, nObjects << 2);
-					sl_uint16* generations = arrGenerations.getData();
-					Base::zeroMemory(generations, nObjects << 1);
-
-					sl_uint32 offsetCurrent = 0;
-
-					if (!(writeText(writer, String::format("%%PDF-%d.%d\n%%\xB5\xB5\xB5\xB5\n", majorVersion, minorVersion), offsetCurrent))) {
-						return sl_false;
-					}
-
-					for (sl_uint32 iObj = 1; iObj < nObjects; iObj++) {
-						sl_int32 generation = -1;
-						PdfValue obj;
-						Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(iObj);
-						if (pItem) {
-							obj = pItem->first;
-							generation = pItem->second;
-						} else {
-							obj = readObject(iObj, generation);
-						}
-						sl_bool flagWriteObject;
-						if (obj.isNotUndefined()) {
-							flagWriteObject = sl_true;
-							const Ref<PdfStream>& stream = obj.getStream();
-							if (stream.isNotNull()) {
-								PdfValue type = stream->getProperty(name::Type);
-								if (type.equalsName(name::ObjStm) || type.equalsName(name::XRef)) {
-									flagWriteObject = sl_false;
-								}
-							}
-							if (flagWriteObject) {
-								objectOffsets[iObj] = offsetCurrent;
-								if (!(writeObject(writer, PdfReference(iObj, generation), obj, offsetCurrent))) {
-									return sl_false;
-								}
-							}
-						} else {
-							flagWriteObject = sl_false;
-						}
-						if (!flagWriteObject) {
-							if (generation < 0) {
-								CrossReferenceEntry* entry = m_references.getPointerAt(iObj);
-								if (entry) {
-									if (entry->generation) {
-										generations[iObj] = (sl_uint16)(entry->generation);
-									}
-								}
-							}
-						}
-					}
-
-					if (!(writeChar(writer, '\n', offsetCurrent))) {
-						return sl_false;
-					}
-					sl_uint32 offsetXref = offsetCurrent;
-					if (!(writeText(writer, StringView::literal("xref\n"), offsetCurrent))) {
-						return sl_false;
-					}
-					generations[0] = 65535;
-					sl_uint32 start = 0;
-					sl_uint32 end;
-					do {
-						end = nObjects;
-						{
-							for (sl_uint32 i = start; i < nObjects; i++) {
-								if (!(objectOffsets[i] || generations[i])) {
-									end = i;
-									break;
-								}
-							}
-						}
-						if (!(writeText(writer, String::format("%d %d\n", start, end - start), offsetCurrent))) {
-							return sl_false;
-						}
-						{
-							for (sl_uint32 i = start; i < end; i++) {
-								if (!(writeText(writer, String::format("%010d %05d %c\n", objectOffsets[i], generations[i], objectOffsets[i] ? 'n' : 'f'), offsetCurrent))) {
-									return sl_false;
-								}
-							}
-						}
-						start = nObjects;
-						{
-							for (sl_uint32 i = end; i < nObjects; i++) {
-								if (objectOffsets[i] || generations[i]) {
-									start = i;
-									break;
-								}
-							}
-						}
-					} while (start < nObjects);
-
-					if (!(writeText(writer, StringView::literal("trailer\n"), offsetCurrent))) {
-						return sl_false;
-					}
-					lastTrailer->remove_NoLock(name::Prev);
-					lastTrailer->remove_NoLock(name::XRefStm);
-					lastTrailer->remove_NoLock(name::Encrypt);
-					lastTrailer->put_NoLock(name::Size, end);
-					if (!(writeDictionary(writer, lastTrailer.get(), offsetCurrent))) {
-						return sl_false;
-					}
-
-					if (!(writeText(writer, String::format("\nstartxref\n%d\n", offsetXref), offsetCurrent))) {
-						return sl_false;
-					}
-					return writeText(writer, StringView::literal("%%EOF"), offsetCurrent);
-				}
-
-				Ref<PdfFont> getFont(const PdfReference& ref, PdfResourceCache& cache)
-				{
-					if (cache.flagUseFontsCache) {
-						Ref<PdfFont> ret;
-						if (cache.fonts.get(ref.objectNumber, &ret)) {
-							return ret;
-						}
-					}
-					Ref<PdfDictionary> dict = getObject(ref).getDictionary();
-					if (dict.isNotNull()) {
-						Ref<PdfFont> ret = PdfFont::load(dict);
-						if (cache.flagUseFontsCache) {
-							cache.fonts.put(ref.objectNumber, ret);
-						}
-						return ret;
-					}
-					return sl_null;
-				}
-
-				Ref<PdfExternalObject> getExternalObject(const PdfReference& ref, PdfResourceCache& cache)
-				{
-					if (cache.flagUseExternalObjectsCache) {
-						Ref<PdfExternalObject> ret;
-						if (cache.externalObjects.get(ref.objectNumber, &ret)) {
-							return ret;
-						}
-					}
-					Ref<PdfStream> stream = getObject(ref).getStream();
-					if (stream.isNotNull()) {
-						Ref<PdfExternalObject> ret = PdfExternalObject::load(stream.get());
-						if (cache.flagUseExternalObjectsCache) {
-							cache.externalObjects.put(ref.objectNumber, ret);
-						}
-						return ret;
-					}
-					return sl_null;
-				}
-
-				sl_bool createDocument()
-				{
-					majorVersion = 1;
-					minorVersion = 4;
-					lastTrailer = new PdfDictionary(this);
-					if (lastTrailer.isNull()) {
-						return sl_false;
-					}
-					catalog = new PdfDictionary(this);
-					if (catalog.isNull()) {
-						return sl_false;
-					}
-					PdfReference refCatalog;
-					if (!(addObject(catalog, refCatalog))) {
-						return sl_false;
-					}
-					catalog->add_NoLock(name::Type, PdfName(name::Catalog));
-					Ref<PdfDictionary> rootPageTree = new PdfDictionary(this);
-					if (rootPageTree.isNull()) {
-						return sl_false;
-					}
-					PdfReference refPages;
-					if (!(addObject(rootPageTree, refPages))) {
-						return sl_false;
-					}
-					rootPageTree->add_NoLock(name::Type, PdfName(name::Pages));
-					rootPageTree->add_NoLock(name::Kids, new PdfArray(this));
-					rootPageTree->add_NoLock(name::Count, (sl_uint32)0);
-					catalog->add_NoLock(name::Pages, refPages);
-					lastTrailer->add_NoLock(name::Root, refCatalog);
-					return sl_true;
-				}
-
-				sl_bool initDocument(const PdfDocumentParam& param)
-				{
-					catalog = lastTrailer->get(name::Root).getDictionary();
-					if (catalog.isNull()) {
-						return sl_false;
-					}
-					encrypt = lastTrailer->get(name::Encrypt).getDictionary();
-					if (encrypt.isNotNull()) {
-						StringData password(param.password);
-						return setUserPassword(password);
-					} else {
-						return sl_true;
-					}
-				}
-
-				sl_bool setUserPassword(const StringView& password)
-				{
-					if (encrypt.isNull()) {
-						return sl_false;
-					}
-					if (encrypt->get(name::Filter).equalsName(name::Standard)) {
-						sl_uint32 encryptionAlgorithm = encrypt->get(name::V).getUint();
-						if (encryptionAlgorithm == 1) {
-							sl_uint32 lengthKey = encrypt->get(name::Length).getUint();
-							if (!lengthKey) {
-								lengthKey = 40;
-							}
-							if (lengthKey & 7) {
-								return sl_false;
-							}
-							lengthKey >>= 3;
-							if (lengthKey > 16) {
-								return sl_false;
-							}
-							String userHash = encrypt->get(name::U).getString();
-							if (userHash.getLength() != 32) {
-								return sl_false;
-							}
-							sl_uint32 revision = encrypt->get(name::R).getUint();
-							sl_uint32 permission = encrypt->get(name::P).getInt();
-							String ownerHash = encrypt->get(name::O).getString();
-							String fileId = lastTrailer->get(name::ID)[0].getString();
-							sl_uint8 key[16];
-							ComputeEncryptionKey(key, lengthKey, password, revision, ownerHash, permission, fileId);
-							sl_uint8 userHashGen[32];
-							ComputeUserPasswordHash(userHashGen, key, lengthKey, revision, fileId);
-							if (Base::equalsMemory(userHashGen, userHash.getData(), 16)) {
-								flagDecryptContents = sl_true;
-								Base::copyMemory(encryptionKey, key, lengthKey);
-								lenEncryptionKey = lengthKey;
-								return sl_true;
-							}
-						}
-					}
-					return sl_false;
-				}
-
-			};
-
-			class BufferedReaderBase
+			Context(Context* baseContext)
 			{
-			public:
-				BufferedSeekableReader reader;
+				m_baseContext = baseContext;
+				_init();
+			}
 
-			public:
-				sl_bool readChar(sl_char8& ch)
-				{
-					return reader.readInt8((sl_int8*)((void*)&ch));
-				}
+		public:
+			virtual PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef, sl_bool flagReadOnlyStream) = 0;
+			virtual Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) = 0;
+			virtual sl_bool readDocument(const PdfDocumentParam& param) = 0;
 
-				sl_bool peekChar(sl_char8& ch)
-				{
-					return reader.peekInt8((sl_int8*)((void*)&ch));
-				}
-
-				sl_reg read(void* buf, sl_size size)
-				{
-					return reader.readFully(buf, size);
-				}
-
-				sl_reg peek(void* buf, sl_size size)
-				{
-					sl_reg n = reader.readFully(buf, size);
-					if (n > 0) {
-						if (!(reader.seek(-n, SeekPosition::Current))) {
-							return SLIB_IO_ERROR;
-						}
-					}
-					return n;
-				}
-
-				sl_uint32 getPosition()
-				{
-					return (sl_uint32)(reader.getPosition());
-				}
-
-				sl_bool setPosition(sl_size pos)
-				{
-					return reader.seek(pos, SeekPosition::Begin);
-				}
-
-				sl_bool movePosition(sl_reg offset)
-				{
-					return reader.seek(offset, SeekPosition::Current);
-				}
-
-				sl_reg readBuffer(sl_char8*& buf)
-				{
-					for (;;) {
-						sl_reg n = reader.read(*((void**)&buf));
-						if (n == SLIB_IO_WOULD_BLOCK) {
-							if (Thread::isStoppingCurrent()) {
-								break;
-							}
-							reader.waitRead();
-						}
-						return n;
-					}
-					return SLIB_IO_ERROR;
-				}
-
-				Memory readFully(sl_size size)
-				{
-					if (size) {
-						Memory mem = Memory::create(size);
-						if (mem.isNotNull()) {
-							if (reader.readFully(mem.getData(), size) == size) {
-								return mem;
-							}
-						}
-					}
-					return sl_null;
-				}
-
-				sl_reg findBackward(const StringView& str, sl_reg startFind, sl_size sizeFind)
-				{
-					return (sl_reg)(reader.findBackward(str.getData(), str.getLength(), startFind, sizeFind));
-				}
-
-			};
-
-			class MemoryReaderBase
+		public:
+			void _init()
 			{
-			public:
-				sl_char8* source;
-				sl_uint32 sizeSource;
-				Ref<Referable> refSource;
+				m_objectsCache.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT);
+				m_objectStreams.setExpiringMilliseconds(EXPIRE_DURATION_OBJECT_STREAM);
+			}
 
-			public:
-				sl_bool readChar(sl_char8& ch)
-				{
-					if (pos < sizeSource) {
-						ch = source[pos++];
-						return sl_true;
-					} else {
-						return sl_false;
-					}
-				}
-
-				sl_bool peekChar(sl_char8& ch)
-				{
-					if (pos < sizeSource) {
-						ch = source[pos];
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_reg read(void* _out, sl_size nOut)
-				{
-					if (pos < sizeSource) {
-						if (pos + nOut > sizeSource) {
-							nOut = sizeSource - pos;
-						}
-						if (nOut) {
-							Base::copyMemory(_out, source + pos, nOut);
-							pos += (sl_uint32)nOut;
-						}
-						return nOut;
-					}
-					return SLIB_IO_ENDED;
-				}
-
-				sl_reg peek(void* _out, sl_size nOut)
-				{
-					if (pos < sizeSource) {
-						if (pos + nOut > sizeSource) {
-							nOut = sizeSource - pos;
-						}
-						if (nOut) {
-							Base::copyMemory(_out, source + pos, nOut);
-						}
-						return nOut;
-					}
-					return SLIB_IO_ENDED;
-				}
-
-				sl_uint32 getPosition()
-				{
-					return pos;
-				}
-
-				sl_bool setPosition(sl_size _pos)
-				{
-					if (_pos <= sizeSource) {
-						pos = (sl_uint32)_pos;
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool movePosition(sl_reg offset)
-				{
-					return setPosition(pos + offset);
-				}
-
-				sl_reg readBuffer(sl_char8*& _out)
-				{
-					sl_uint32 _pos = pos;
-					if (_pos < sizeSource) {
-						_out = source + _pos;
-						pos = sizeSource;
-						return sizeSource - _pos;
-					}
-					return SLIB_IO_ERROR;
-				}
-
-				Memory readFully(sl_size size)
-				{
-					if (size) {
-						sl_uint32 _pos = pos;
-						if (_pos + size <= sizeSource) {
-							Memory ret = Memory::createStatic(source + _pos, size);
-							if (ret.isNotNull()) {
-								pos += (sl_uint32)size;
-								return ret;
-							}
-						}
-					}
-					return sl_null;
-				}
-
-				sl_reg findBackward(const StringView& str, sl_reg _startFind, sl_size sizeFind)
-				{
-					sl_char8* bufStart;
-					sl_size startFind;
-					if (_startFind >= 0) {
-						startFind = _startFind;
-						if (startFind > sizeSource) {
-							return -1;
-						}
-					} else {
-						startFind = sizeSource;
-					}
-					if (sizeFind >= startFind) {
-						bufStart = source;
-						sizeFind = startFind;
-					} else {
-						bufStart = source + startFind - sizeFind;
-					}
-					sl_char8* p = (sl_char8*)(Base::findMemoryBackward(bufStart, sizeFind, str.getData(), str.getLength()));
-					if (p) {
-						return p - source;
-					} else {
-						return -1;
-					}
-				}
-
-			private:
-				sl_uint32 pos = 0;
-
-			};
-
-			template <class READER_BASE>
-			class ContextT : public Context, public READER_BASE
+			sl_uint32 getMaximumObjectNumber()
 			{
-			public:
-				using READER_BASE::readChar;
-				using READER_BASE::peekChar;
-				using READER_BASE::read;
-				using READER_BASE::peek;
-				using READER_BASE::getPosition;
-				using READER_BASE::setPosition;
-				using READER_BASE::movePosition;
-				using READER_BASE::readBuffer;
-				using READER_BASE::readFully;
-				using READER_BASE::findBackward;
-				using Context::getObject;
+				return m_maxObjectNumber;
+			}
 
-			public:
-				ContextT(sl_bool flagReferableContext): Context(flagReferableContext) {}
-				ContextT(Context* baseContext): Context(baseContext) {}
+			Ref<ObjectStream> getObjectStream(const PdfReference& ref);
 
-			public:
-				sl_bool peekCharAndEquals(sl_char8 _ch)
-				{
-					sl_char8 ch;
-					if (peekChar(ch)) {
-						return ch == _ch;
+			sl_bool getReferenceEntry(sl_uint32 objectNumber, CrossReferenceEntry& entry)
+			{
+				return m_references.getAt(objectNumber, &entry);
+			}
+
+			void setReferenceEntry(sl_uint32 objectNumber, const CrossReferenceEntry& entry)
+			{
+				CrossReferenceEntry* pEntry = m_references.getPointerAt(objectNumber);
+				if (pEntry) {
+					if (pEntry->type == (sl_uint32)(CrossReferenceEntryType::Free) && entry.type != (sl_uint32)(CrossReferenceEntryType::Free)) {
+						*pEntry = entry;
 					}
-					return sl_false;
 				}
+			}
 
-				sl_bool readCharAndEquals(sl_char8 _ch)
-				{
-					sl_char8 ch;
-					if (readChar(ch)) {
-						return ch == _ch;
-					}
-					return sl_false;
-				}
-
-				sl_bool readCharAndIsWhitespace()
-				{
-					sl_char8 ch;
-					if (readChar(ch)) {
-						return IsWhitespace(ch);
-					}
-					return sl_false;
-				}
-
-				sl_bool readWordAndEquals(const StringView& _word)
-				{
-					sl_size lenWord = _word.getLength();
-					if (!lenWord) {
-						return sl_false;
-					}
-					const sl_char8* word = _word.getData();
-					sl_size posWord = 0;
-					for (;;) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (IsWhitespace(ch) || IsDelimiter(ch)) {
-									movePosition(i - n);
-									return posWord == lenWord;
-								} else {
-									if (posWord >= lenWord) {
-										return sl_false;
-									}
-									if (word[posWord++] != ch) {
-										return sl_false;
-									}
-								}
-							}
-						} else if (n == SLIB_IO_ENDED) {
-							return posWord == lenWord;
-						} else {
-							break;
-						}
-					}
-					return sl_false;
-				}
-
-				sl_bool tryReadWordAndEquals(const StringView& word)
-				{
-					sl_uint32 pos = getPosition();
-					if (readWordAndEquals(word)) {
-						return sl_true;
-					}
-					setPosition(pos);
-					return sl_false;
-				}
-
-				sl_bool skipWhitespaces()
-				{
-					sl_bool flagComment = sl_false;
-					for (;;) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (flagComment) {
-									if (IsLineEnding(ch)) {
-										flagComment = sl_false;
-									}
-								} else if (ch == '%') {
-									flagComment = sl_true;
-								} else if (!(IsWhitespace(ch))) {
-									movePosition(i - n);
-									return sl_true;
-								}
-							}
-						} else if (n == SLIB_IO_ENDED) {
-							return sl_true;
-						} else {
-							break;
-						}
-					}
-					return sl_false;
-				}
-
-				String readName()
-				{
-					sl_char8 name[MAX_WORD_LENGTH];
-					sl_size lenName = 0;
-					if (!(readCharAndEquals('/'))) {
-						return sl_null;
-					}
-					if (!(skipWhitespaces())) {
-						return sl_null;
-					}
-					sl_bool flagReadHex = sl_false;
-					sl_uint32 hex = 0;
-					sl_uint32 posHex = 0;
-					for (;;) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (flagReadHex) {
-									sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
-									if (h >= 16) {
-										return sl_null;
-									}
-									hex = (hex << 4) | h;
-									posHex++;
-									if (posHex >= 2) {
-										if (lenName >= sizeof(name)) {
-											return sl_null;
-										}
-										name[lenName++] = (sl_char8)hex;;
-										flagReadHex = sl_false;
-									}
-								} else {
-									if (IsWhitespace(ch) || IsDelimiter(ch)) {
-										movePosition(i - n);
-										return String(name, lenName);
-									} else if (ch == '#') {
-										flagReadHex = sl_true;
-										hex = 0;
-										posHex = 0;
-									} else {
-										if (lenName >= sizeof(name)) {
-											return sl_null;
-										}
-										name[lenName++] = ch;
-									}
-								}
-							}
-						} else if (n == SLIB_IO_ENDED) {
-							if (flagReadHex) {
-								return sl_null;
-							}
-							return String(name, lenName);
-						} else {
-							break;
-						}
-					}
-					return sl_null;
-				}
-
-				sl_bool readUint(sl_uint32& outValue, sl_bool flagAllowEmpty = sl_false)
-				{
-					outValue = 0;
-					sl_uint32 nDigits = 0;
-					for (;;) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (IsWhitespace(ch) || IsDelimiter(ch) || ch == '.') {
-									movePosition(i - n);
-									if (flagAllowEmpty) {
-										return sl_true;
-									} else {
-										return nDigits != 0;
-									}
-								} else if (ch >= '0' && ch <= '9') {
-									if (nDigits >= 20) {
-										return sl_false;
-									}
-									outValue = outValue * 10 + (ch - '0');
-									nDigits++;
-								} else {
-									return sl_false;
-								}
-							}
-						} else if (n == SLIB_IO_ENDED) {
-							if (flagAllowEmpty) {
-								return sl_true;
-							} else {
-								return nDigits != 0;
-							}
-						} else {
-							break;
-						}
-					}
-					return sl_false;
-				}
-
-				sl_bool readFraction(double& outValue, sl_bool flagAllowEmpty = sl_false)
-				{
-					outValue = 0;
-					sl_uint32 nDigits = 0;
-					double exp = 0.1;
-					for (;;) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (IsWhitespace(ch) || IsDelimiter(ch)) {
-									movePosition(i - n);
-									if (flagAllowEmpty) {
-										return sl_true;
-									} else {
-										return nDigits != 0;
-									}
-								} else if (ch >= '0' && ch <= '9') {
-									outValue += (double)(ch - '0') * exp;
-									exp /= 10.0;
-									nDigits++;
-								} else {
-									return sl_false;
-								}
-							}
-						} else if (n == SLIB_IO_ENDED) {
-							if (flagAllowEmpty) {
-								return sl_true;
-							} else {
-								return nDigits != 0;
-							}
-						} else {
-							break;
-						}
-					}
-					return sl_false;
-				}
-
-				String readString(const PdfReference& objectId)
-				{
-					if (!(readCharAndEquals('('))) {
-						return sl_null;
-					}
-					CList<sl_char8> list;
-					sl_uint32 nOpen = 0;
-					sl_bool flagEscape = sl_false;
-					sl_uint32 octal = 0;
-					sl_uint32 nOctal = 0;
-					while (list.getCount() < MAX_STRING_LENGTH) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (flagEscape) {
-									if (ch >= '0' && ch <= '7') {
-										octal = ch - '0';
-										nOctal = 1;
-									} else {
-										switch (ch) {
-											case 'n':
-												ch = '\n';
-												break;
-											case 'r':
-												ch = '\r';
-												break;
-											case 't':
-												ch = '\t';
-												break;
-											case 'b':
-												ch = '\b';
-												break;
-											case 'f':
-												ch = '\f';
-												break;
-											case '(':
-												ch = '(';
-												break;
-											case ')':
-												ch = ')';
-												break;
-											case '\\':
-												ch = '\\';
-												break;
-											case '\r':
-												if (i + 1 < n && buf[i + 1] == '\n') {
-													i++;
-												}
-												ch = 0;
-												break;
-											case '\n':
-												ch = 0;
-												break;
-											default:
-												return sl_null;
-										}
-										if (ch) {
-											list.add_NoLock(ch);
-										}
-									}
-									flagEscape = sl_false;
-								} else {
-									if (nOctal) {
-										if (nOctal < 3 && ch >= '0' && ch <= '7') {
-											octal = (octal << 3) | (ch - '0');
-											nOctal++;
-										} else {
-											list.add_NoLock(octal);
-											nOctal = 0;
-										}
-									}
-									if (!nOctal) {
-										if (ch == '\\') {
-											flagEscape = sl_true;
-										} else if (ch == '(') {
-											list.add_NoLock('(');
-											nOpen++;
-										} else if (ch == ')') {
-											if (nOpen) {
-												list.add_NoLock(')');
-												nOpen--;
-											} else {
-												movePosition(i + 1 - n);
-												String ret(list.getData(), list.getCount());
-												if (ret.isNotNull()) {
-													if (flagDecryptContents && objectId.objectNumber) {
-														decrypt(objectId, ret.getData(), ret.getLength());
-													}
-													return ret;
-												} else {
-													return String::getEmpty();
-												}
-											}
-										} else {
-											list.add_NoLock(ch);
-										}
-									}
-								}
-							}
-						} else {
-							break;
-						}
-					}
-					return sl_null;
-				}
-
-				String readHexString(const PdfReference& objectId)
-				{
-					if (!(readCharAndEquals('<'))) {
-						return sl_null;
-					}
-					sl_bool flagFirstHex = sl_true;
-					sl_uint32 firstHexValue = 0;
-					CList<sl_char8> list;
-					while (list.getCount() < MAX_STRING_LENGTH) {
-						sl_char8* buf;
-						sl_reg n = readBuffer(buf);
-						if (n > 0) {
-							for (sl_reg i = 0; i < n; i++) {
-								sl_char8 ch = buf[i];
-								if (ch == '>') {
-									if (!flagFirstHex) {
-										list.add_NoLock(firstHexValue << 4);
-									}
-									movePosition(i + 1 - n);
-									String ret(list.getData(), list.getCount());
-									if (ret.isNotNull()) {
-										if (flagDecryptContents && objectId.objectNumber) {
-											decrypt(objectId, ret.getData(), ret.getLength());
-										}
-										return ret;
-									} else {
-										return String::getEmpty();
-									}
-								} else {
-									sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
-									if (h < 16) {
-										if (flagFirstHex) {
-											firstHexValue = h;
-											flagFirstHex = sl_false;
-										} else {
-											list.add_NoLock((firstHexValue << 4) | h);
-											flagFirstHex = sl_true;
-										}
-									} else if (!(IsWhitespace(ch))) {
-										return sl_null;
-									}
-								}
-							}
-						} else {
-							break;
-						}
-					}
-					return sl_null;
-				}
-
-				sl_bool readReference(PdfReference& outRef)
-				{
-					if (readUint(outRef.objectNumber)) {
-						if (outRef.objectNumber) {
-							if (skipWhitespaces()) {
-								if (readUint(outRef.generation)) {
-									if (skipWhitespaces()) {
-										return readCharAndEquals('R');
-									}
-								}
-							}
-						}
-					}
-					return sl_false;
-				}
-
-				Ref<PdfDictionary> readDictionary(const PdfReference& objectId)
-				{
-					sl_char8 buf[2];
-					if (read(buf, 2) != 2) {
-						return sl_null;
-					}
-					if (buf[0] != '<' || buf[1] != '<') {
-						return sl_null;
-					}
-					Ref<PdfDictionary> ret = new PdfDictionary(m_baseContext);
-					if (ret.isNull()) {
-						return sl_null;
-					}
-					for (;;) {
-						if (!(skipWhitespaces())) {
-							break;
-						}
-						sl_char8 ch;
-						if (!(peekChar(ch))) {
-							return sl_null;
-						}
-						if (ch == '/') {
-							String name = readName();
-							if (name.isNull()) {
-								return sl_null;
-							}
-							if (!(skipWhitespaces())) {
-								return sl_null;
-							}
-							PdfValue value = readValue(objectId);
-							if (value.isUndefined()) {
-								return sl_null;
-							}
-							ret->add_NoLock(Move(name), Move(value));
-						} else if (ch == '>') {
-							movePosition(1);
-							if (!(readCharAndEquals('>'))) {
-								return sl_null;
-							}
-							return ret;
-						} else {
-							return sl_null;
-						}
-					}
-					return sl_null;
-				}
-
-				Ref<PdfArray> readArray(const PdfReference& objectId)
-				{
-					if (!(readCharAndEquals('['))) {
-						return sl_null;
-					}
-					Ref<PdfArray> ret = new PdfArray(m_baseContext);
-					if (ret.isNull()) {
-						return sl_null;
-					}
-					for (;;) {
-						if (!(skipWhitespaces())) {
-							break;
-						}
-						sl_char8 ch;
-						if (!(peekChar(ch))) {
-							return sl_null;
-						}
-						if (ch == ']') {
-							movePosition(1);
-							return ret;
-						}
-						PdfValue var = readValue(objectId);
-						if (var.isNotUndefined()) {
-							ret->add_NoLock(Move(var));
-						} else {
-							return sl_null;
-						}
-					}
-					return sl_null;
-				}
-
-				PdfValue readNumber()
-				{
-					sl_char8 ch;
-					if (peekChar(ch)) {
-						if (ch >= '0' && ch <= '9') {
-							sl_uint32 posBackup = getPosition();
-							PdfReference ref;
-							if (readReference(ref)) {
-								return ref;
-							}
-							setPosition(posBackup);
-						}
-						sl_bool flagNegative = sl_false;
-						if (ch == '-' || ch == '+') {
-							movePosition(1);
-							if (ch == '-') {
-								flagNegative = sl_true;
-							}
-							if (!(skipWhitespaces())) {
-								return PdfValue();
-							}
-							if (!(peekChar(ch))) {
-								return PdfValue();
-							}
-						}
-						if (ch == '.') {
-							movePosition(1);
-							double f;
-							if (readFraction(f)) {
-								if (flagNegative) {
-									f = -f;
-								}
-								return (float)f;
-							}
-						} else if (ch >= '0' && ch <= '9') {
-							sl_uint32 value;
-							if (readUint(value, sl_true)) {
-								if (peekCharAndEquals('.')) {
-									movePosition(1);
-									double f;
-									if (!(readFraction(f, sl_true))) {
-										return PdfValue();
-									}
-									f += (double)value;
-									if (flagNegative) {
-										f = -f;
-									}
-									return (float)f;
-								}
-								if (flagNegative) {
-									return -((sl_int32)value);
-								} else {
-									return value;
-								}
-							}
-						}
-					}
-					return PdfValue();
-				}
-
-				PdfOperator readOperator()
-				{
-					sl_char8 buf[4];
-					sl_reg len = peek(buf, sizeof(buf));
-					if (len > 0) {
-						for (sl_reg i = 0; i < len; i++) {
-							if (IsWhitespace(buf[i]) || IsDelimiter(buf[i])) {
-								len = i;
-								break;
-							}
-						}
-						if (len > 0 && len <= 3) {
-							PdfOperator op = PdfOperation::getOperator(StringView(buf, len));
-							if (op != PdfOperator::Unknown) {
-								movePosition(len);
-								return op;
-							}
-						}
-					}
-					return PdfOperator::Unknown;
-				}
-
-				PdfCMapOperator readCMapOperator()
-				{
-					sl_char8 buf[20];
-					sl_reg len = peek(buf, sizeof(buf));
-					if (len > 0) {
-						for (sl_reg i = 0; i < len; i++) {
-							if (IsWhitespace(buf[i]) || IsDelimiter(buf[i])) {
-								len = i;
-								break;
-							}
-						}
-						if (len > 0 && len <= 19) {
-							PdfCMapOperator op = PdfOperation::getCMapOperator(StringView(buf, len));
-							if (op != PdfCMapOperator::Unknown) {
-								movePosition(len);
-								return op;
-							}
-						}
-					}
-					return PdfCMapOperator::Unknown;
-				}
-
-				PdfValue readValue(const PdfReference& objectId, sl_bool flagReadOnlyStream = sl_false)
-				{
-					sl_char8 ch;
-					if (!(peekChar(ch))) {
-						return PdfValue();
-					}
-					if (flagReadOnlyStream) {
-						if (ch != '<') {
+			PdfValue readObject(sl_uint32 objectNumber, sl_int32& generation, sl_bool flagReadOnlyStream = sl_false)
+			{
+				CrossReferenceEntry entry;
+				if (getReferenceEntry(objectNumber, entry)) {
+					if (entry.type == (sl_uint32)(CrossReferenceEntryType::Normal)) {
+						if (generation >= 0 && entry.generation != generation) {
 							return PdfValue();
 						}
-					}
-					switch (ch) {
-						case 'n':
-							if (tryReadWordAndEquals(StringView::literal("null"))) {
-								return sl_null;
-							}
-							break;
-						case 't':
-							if (tryReadWordAndEquals(StringView::literal("true"))) {
-								return sl_true;
-							}
-							break;
-						case 'f':
-							if (tryReadWordAndEquals(StringView::literal("false"))) {
-								return sl_false;
-							}
-							break;
-						case '(':
-							{
-								String s = readString(objectId);
-								if (s.isNotNull()) {
-									return s;
+						PdfReference n;
+						sl_uint32 offsetEnd;
+						PdfValue ret = readObject(entry.offset, offsetEnd, n, flagReadOnlyStream);
+						if (ret.isNotUndefined() && n.objectNumber == objectNumber) {
+							if (generation >= 0) {
+								if (n.generation != generation) {
+									return PdfValue();
 								}
-							}
-							break;
-						case '<':
-							movePosition(1);
-							if (peekChar(ch)) {
-								movePosition(-1);
-								if (ch == '<') {
-									Ref<PdfDictionary> map = readDictionary(objectId);
-									if (map.isNotNull()) {
-										return map;
-									}
-								} else {
-									String s = readHexString(objectId);
-									if (s.isNotNull()) {
-										return s;
-									}
-								}
-							}
-							break;
-						case '/':
-							{
-								PdfName name = readName();
-								if (name.isNotNull()) {
-									return name;
-								}
-							}
-							break;
-						case '[':
-							{
-								Ref<PdfArray> list = readArray(objectId);
-								if (list.isNotNull()) {
-									return list;
-								}
-							}
-							break;
-						default:
-							if (IsNumeric(ch)) {
-								return readNumber();
-							}
-							break;
-					}
-					return PdfValue();
-				}
-
-				Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) override
-				{
-					if (setPosition(offset)) {
-						Memory ret = readFully(size);
-						if (ret.isNotNull()) {
-							if (flagDecryptContents) {
-								if (!(ret.getRef())) {
-									ret = Memory::create(ret.getData(), size);
-									if (ret.isNull()) {
-										return sl_null;
-									}
-								}
-								decrypt(ref, ret.getData(), size);
-							}
-							return ret;
-						}
-					}
-					return sl_null;
-				}
-
-				sl_uint32 getStreamOffset(sl_uint32 length, sl_uint32& outOffsetAfterEndStream)
-				{
-					if (readWordAndEquals(StringView::literal("stream"))) {
-						sl_char8 ch;
-						if (readChar(ch)) {
-							if (ch == '\r') {
-								if (!(readChar(ch))) {
-									return 0;
-								}
-								if (ch != '\n') {
-									return 0;
-								}
-							} else if (ch != '\n') {
-								return 0;
-							}
-							sl_uint32 offset = getPosition();
-							if (length) {
-								if (!(movePosition(length))) {
-									return 0;
-								}
-							}
-							if (skipWhitespaces()) {
-								if (readWordAndEquals(StringView::literal("endstream"))) {
-									outOffsetAfterEndStream = getPosition();
-									return offset;
-								}
-							}
-						}
-					}
-					return 0;
-				}
-
-				sl_bool readObjectHeader(PdfReference& outRef)
-				{
-					if (readUint(outRef.objectNumber)) {
-						if (skipWhitespaces()) {
-							if (readUint(outRef.generation)) {
-								if (skipWhitespaces()) {
-									if (readWordAndEquals(StringView::literal("obj"))) {
-										return skipWhitespaces();
-									}
-								}
-							}
-						}
-					}
-					return sl_false;
-				}
-
-				PdfValue readObject(PdfReference& outRef, sl_bool flagReadOnlyStream = sl_false)
-				{
-					if (readObjectHeader(outRef)) {
-						PdfValue value = readValue(outRef, flagReadOnlyStream);
-						if (value.isNotUndefined()) {
-							if (skipWhitespaces()) {
-								const Ref<PdfDictionary>& properties = value.getDictionary();
-								if (properties.isNotNull()) {
-									if (peekCharAndEquals('s')) {
-										sl_uint32 pos = getPosition();
-										sl_uint32 length;
-										if (!(properties->get(name::Length).getUint(length))) {
-											return PdfValue();
-										}
-										setPosition(pos); // Protect position while getting stream length
-										sl_uint32 offsetEndStream;
-										sl_uint32 offsetContent = getStreamOffset(length, offsetEndStream);
-										if (!offsetContent) {
-											return PdfValue();
-										}
-										if (!(skipWhitespaces())) {
-											return PdfValue();
-										}
-										Ref<PdfStream> stream = new PdfStream(m_baseContext);
-										if (stream.isNull()) {
-											return PdfValue();
-										}
-										stream->initialize(properties, outRef, offsetContent, length);
-										value = PdfValue(Move(stream));
-									}
-								}
-								if (readWordAndEquals(StringView::literal("endobj"))) {
-									return value;
-								}
-							}
-						}
-					}
-					return PdfValue();
-				}
-
-				PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef, sl_bool flagReadOnlyStream) override
-				{
-					if (setPosition(pos)) {
-						PdfValue ret = readObject(outRef, flagReadOnlyStream);
-						if (ret.isNotUndefined()) {
-							outOffsetAfterEndObj = getPosition();
-							return ret;
-						}
-					}
-					return PdfValue();
-				}
-
-				Ref<PdfDictionary> readTrailer()
-				{
-					if (readWordAndEquals(StringView::literal("trailer"))) {
-						if (skipWhitespaces()) {
-							return readDictionary(PdfReference(0, 0));
-						}
-					}
-					return sl_null;
-				}
-
-				sl_bool readCrossReferenceEntry(CrossReferenceEntry& entry)
-				{
-					if (readUint(entry.offset)) {
-						if (skipWhitespaces()) {
-							sl_uint32 gen;
-							if (readUint(gen)) {
-								entry.generation = gen;
-								if (skipWhitespaces()) {
-									sl_char8 ch;
-									if (readChar(ch)) {
-										if (ch == 'f') {
-											entry.type = (sl_uint32)(CrossReferenceEntryType::Free);
-										} else if (ch == 'n') {
-											entry.type = (sl_uint32)(CrossReferenceEntryType::Normal);
-										} else {
-											return sl_false;
-										}
-										if (peekChar(ch)) {
-											if (!(IsWhitespace(ch))) {
-												return sl_false;
-											}
-										}
-										return sl_true;
-									}
-								}
-							}
-						}
-					}
-					return sl_false;
-				}
-
-				sl_bool readCrossReferenceSection()
-				{
-					sl_uint32 firstObjectNumber;
-					if (readUint(firstObjectNumber)) {
-						if (skipWhitespaces()) {
-							sl_uint32 count;
-							if (readUint(count)) {
-								for (sl_uint32 i = 0; i < count; i++) {
-									if (!(skipWhitespaces())) {
-										return sl_false;
-									}
-									CrossReferenceEntry entry;
-									if (!(readCrossReferenceEntry(entry))) {
-										return sl_false;
-									}
-									setReferenceEntry(firstObjectNumber + i, entry);
-								}
-								return sl_true;
-							}
-						}
-					}
-					return sl_false;
-				}
-
-				sl_bool readCrossReferenceStream(Ref<PdfDictionary>& outTrailer)
-				{
-					PdfReference refStream;
-					PdfValue vStream = readObject(refStream);
-					if (refStream.generation) {
-						return sl_false;
-					}
-					const Ref<PdfStream>& stream = vStream.getStream();
-					if (stream.isNull()) {
-						return sl_false;
-					}
-					if (!(stream->getProperty(name::Type).equalsName(name::XRef))) {
-						return sl_false;
-					}
-					sl_uint32 size;
-					if (!(stream->getProperty(name::Size).getUint(size))) {
-						return sl_false;
-					}
-					Ref<PdfArray> entrySizes = stream->getProperty(name::W).getArray();
-					if (entrySizes.isNull()) {
-						return sl_false;
-					}
-					if (entrySizes->getCount() != 3) {
-						return sl_false;
-					}
-					if (!(entrySizes->get(0).getType() == PdfValueType::Uint && entrySizes->get(1).getType() == PdfValueType::Uint && entrySizes->get(2).getType() == PdfValueType::Uint)) {
-						return sl_false;
-					}
-					CList< Pair<sl_uint32, sl_uint32> > listSectionRanges;
-					sl_size nEntries = 0;
-					PdfValue vIndex = stream->getProperty(name::Index);
-					if (vIndex.isNotUndefined()) {
-						const Ref<PdfArray>& indices = vIndex.getArray();
-						if (indices.isNull()) {
-							return sl_false;
-						}
-						sl_uint32 n = indices->getCount();
-						if (n & 1) {
-							return sl_false;
-						}
-						for (sl_size i = 0; i < n; i += 2) {
-							sl_uint32 start, count;
-							if (!(indices->get(i).getUint(start))) {
-								return sl_false;
-							}
-							if (!(indices->get(i + 1).getUint(count))) {
-								return sl_false;
-							}
-							listSectionRanges.add_NoLock(start, count);
-							nEntries += count;
-						}
-					} else {
-						listSectionRanges.add_NoLock(0, size);
-						nEntries = size;
-					}
-					sl_uint32 sizeType = entrySizes->get(0).getUint();
-					sl_uint32 sizeOffset = entrySizes->get(1).getUint();
-					sl_uint32 sizeGeneration = entrySizes->get(2).getUint();
-					sl_uint32 sizeEntry = sizeType + sizeOffset + sizeGeneration;
-					Memory content = stream->getDecodedContent();
-					if (content.getSize() >= sizeEntry * nEntries) {
-						sl_uint8* p = (sl_uint8*)(content.getData());
-						ListElements< Pair<sl_uint32, sl_uint32> > sectionRanges(listSectionRanges);
-						for (sl_size iSection = 0; iSection < sectionRanges.count; iSection++) {
-							Pair<sl_uint32, sl_uint32>& range = sectionRanges[iSection];
-							for (sl_uint32 i = 0; i < range.second; i++) {
-								CrossReferenceEntry entry;
-								sl_uint32 type = ReadUint(p, sizeType, 1);
-								if (type > 2) {
-									return sl_false;
-								}
-								entry.type = type;
-								p += sizeType;
-								entry.offset = ReadUint(p, sizeOffset, 0);
-								p += sizeOffset;
-								entry.generation = ReadUint(p, sizeGeneration, 0);
-								p += sizeGeneration;
-								setReferenceEntry(range.first + i, entry);
-							}
-						}
-						outTrailer = stream->properties;
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool readCrossReferenceTable(Ref<PdfDictionary>& outTrailer)
-				{
-					if (!(readWordAndEquals(StringView::literal("xref")))) {
-						return sl_false;
-					}
-					sl_char8 ch;
-					for (;;) {
-						if (!(skipWhitespaces())) {
-							return sl_false;
-						}
-						if (!(peekChar(ch))) {
-							break;
-						}
-						if (ch == 't') {
-							outTrailer = readTrailer();
-							if (outTrailer.isNotNull()) {
-								sl_uint32 offsetXRefStream;
-								if (outTrailer->get(name::XRefStm).getUint(offsetXRefStream)) {
-									if (setPosition(offsetXRefStream)) {
-										readCrossReferenceStream(outTrailer);
-									}
-								}
-								return sl_true;
 							} else {
-								return sl_false;
+								generation = n.generation;
 							}
-						} else if (ch >= '0' && ch <= '9') {
-							if (!(readCrossReferenceSection())) {
-								return sl_false;
-							}
-						} else {
-							break;
+							return ret;
 						}
-					}
-					return sl_true;
-				}
-
-				sl_bool readCrossReferences(Ref<PdfDictionary>& outTrailer)
-				{
-					sl_char8 ch;
-					if (!(peekChar(ch))) {
-						return sl_false;
-					}
-					if (ch == 'x') {
-						return readCrossReferenceTable(outTrailer);
-					} else {
-						return readCrossReferenceStream(outTrailer);
-					}
-					return sl_false;
-				}
-
-				sl_bool readStartXref(sl_uint32& posStartXref, sl_uint32& posXref)
-				{
-					sl_reg pos = findBackward(StringView::literal("startxref"), -1, 4096);
-					if (pos > 0) {
-						if (setPosition(pos - 1)) {
-							if (readCharAndIsWhitespace()) {
-								if (readWordAndEquals(StringView::literal("startxref"))) {
-									posStartXref = (sl_uint32)pos;
-									if (skipWhitespaces()) {
-										if (readUint(posXref)) {
-											return sl_true;
-										}
-									}
+					} else if (entry.type == (sl_uint32)(CrossReferenceEntryType::Compressed)) {
+						if (generation > 0) {
+							return PdfValue();
+						}
+						Ref<ObjectStream> stream = getObjectStream(entry.streamObject);
+						if (stream.isNotNull()) {
+							sl_uint32 n;
+							PdfValue ret = stream->getItem(entry.generation, n);
+							if (ret.isNotUndefined() && objectNumber == n) {
+								if (generation < 0) {
+									generation = 0;
 								}
+								return ret;
 							}
 						}
 					}
-					return sl_false;
 				}
+				return PdfValue();
+			}
 
-				sl_bool readDocument(const PdfDocumentParam& param) override
-				{
-					sl_char8 version[8];
-					if (read(version, 8) != 8) {
-						return sl_false;
-					}
-					if (version[0] != '%' || version[1] != 'P' || version[2] != 'D' || version[3] != 'F' || version[4] != '-' || version[6] != '.') {
-						return sl_false;
-					}
-
-					sl_char8 c5 = version[5];
-					if (!SLIB_CHAR_IS_DIGIT(c5)) {
-						return sl_false;
-					}
-					sl_char8 c7 = version[7];
-					if (!SLIB_CHAR_IS_DIGIT(c7)) {
-						return sl_false;
-					}
-
-					majorVersion = SLIB_CHAR_DIGIT_TO_INT(c5);
-					minorVersion = SLIB_CHAR_DIGIT_TO_INT(c7);
-
-					// read last trailer and read reference table
-					{
-						sl_uint32 posStartXref, posXref;
-						if (!(readStartXref(posStartXref, posXref))) {
+			PdfValue getObject(sl_uint32 objectNumber, sl_int32& generation, sl_bool flagReadOnlyStream = sl_false)
+			{
+				if (!objectNumber) {
+					return PdfValue();
+				}
+				Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(objectNumber);
+				if (pItem) {
+					if (generation >= 0) {
+						if (generation != pItem->second) {
 							return sl_false;
 						}
-						// last trailer
-						{
-							if (!(setPosition(posXref))) {
-								return sl_false;
-							}
-							if (!(readCrossReferences(lastTrailer))) {
-								return sl_false;
-							}
-						}
-						// initialize reference table
-						{
-							sl_uint32 countTotalRef = 0;
-							lastTrailer->get(name::Size).getUint(countTotalRef);
-							if (!countTotalRef) {
-								return sl_false;
-							}
-							m_references = Array<CrossReferenceEntry>::create(countTotalRef);
-							if (m_references.isNull()) {
-								return sl_false;
-							}
-							Base::zeroMemory(m_references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
-							m_maxObjectNumber = countTotalRef - 1;
-						}
-						for (;;) {
-							if (!(setPosition(posXref))) {
-								return sl_false;
-							}
-							Ref<PdfDictionary> trailer;
-							if (!(readCrossReferences(trailer))) {
-								return sl_false;
-							}
-							PdfValue prev = trailer->get(name::Prev);
-							if (prev.isUndefined()) {
-								break;
-							}
-							if (!(prev.getUint(posXref))) {
-								return sl_false;
-							}
-						}
+					} else {
+						generation = pItem->second;
 					}
-					return initDocument(param);
+					return pItem->first;
 				}
-
-			};
-
-			typedef ContextT<BufferedReaderBase> BufferedContext;
-			typedef ContextT<MemoryReaderBase> MemoryContext;
-
-			Ref<ObjectStream> Context::getObjectStream(const PdfReference& ref)
-			{
-				sl_uint64 _id = GetObjectId(ref);
-				Ref<ObjectStream> ret;
-				if (m_objectStreams.get(_id, &ret)) {
+				if (generation >= 0) {
+					sl_uint64 _id = GetObjectId(objectNumber, generation);
+					PdfValue ret;
+					if (m_objectsCache.get(_id, &ret)) {
+						return ret;
+					}
+				}
+				PdfValue ret = readObject(objectNumber, generation, flagReadOnlyStream);
+				if (ret.isNotUndefined()) {
+					m_objectsCache.put(GetObjectId(objectNumber, generation), ret);
 					return ret;
 				}
-				Ref<PdfStream> stream = getObject(ref).getStream();
-				if (stream.isNull()) {
-					return sl_null;
-				}
-				if (!(stream->getProperty(name::Type).equalsName(name::ObjStm))) {
-					return sl_null;
-				}
-				sl_uint32 nObjects;
-				if (!(stream->getProperty(name::N).getUint(nObjects))) {
-					return sl_null;
-				}
-				sl_uint32 first;
-				if (!(stream->getProperty(name::First).getUint(first))) {
-					return sl_null;
-				}
-				Memory content = stream->getDecodedContent();
-				if (content.isNull()) {
-					return sl_null;
-				}
-				ret = new ObjectStream;
-				if (ret.isNull()) {
-					return sl_null;
-				}
-				PdfValue vExtends = stream->getProperty(name::Extends, sl_false);
-				if (vExtends.isNotUndefined()) {
-					PdfReference refExtends;
-					if (!(vExtends.getReference(refExtends))) {
-						return sl_null;
-					}
-					if (refExtends == ref) {
-						return sl_null;
-					}
-					ret->extends = getObjectStream(refExtends);
-					if (ret->extends.isNull()) {
-						return sl_null;
-					}
-				}
-				MemoryContext context(m_baseContext);
-				context.source = (sl_char8*)(content.getData());
-				context.sizeSource = (sl_uint32)(content.getSize());
-				for (sl_uint32 i = 0; i < nObjects; i++) {
-					if (!(context.skipWhitespaces())) {
-						return sl_null;
-					}
-					sl_uint32 innerId;
-					if (!(context.readUint(innerId))) {
-						return sl_null;
-					}
-					if (!(context.skipWhitespaces())) {
-						return sl_null;
-					}
-					sl_uint32 offset;
-					if (!(context.readUint(offset))) {
-						return sl_null;
-					}
-					sl_uint32 pos = context.getPosition();
-					if (!(context.setPosition(first + offset))) {
-						return sl_null;
-					}
-					PdfValue innerValue = context.readValue(PdfReference(0, 0));
-					if (innerValue.isUndefined()) {
-						return sl_null;
-					}
-					ret->objects.add_NoLock(innerId, Move(innerValue));
-					context.setPosition(pos);
-				}
-				m_objectStreams.put(_id, ret);
-				return ret;
+				return PdfValue();
 			}
 
-			SLIB_INLINE static Context* GetContext(const Ref<Referable>& ref)
+			PdfValue getObject(const PdfReference& ref)
 			{
-				return (Context*)(ref.get());
+				sl_int32 generation = ref.generation;
+				return getObject(ref.objectNumber, generation);
 			}
 
-			SLIB_INLINE static Ref<Context> GetContextRef(const Ref<Referable>& ref)
+			Ref<PdfStream> getStream(sl_uint32 objectNumber, sl_int32& generation)
 			{
-				return Ref<Context>::from(ref);
+				return getObject(objectNumber, generation, sl_true).getStream();
 			}
 
-
-			static const char* g_arrayBase14FontNames[14][10] = {
-				{ "Courier", "CourierNew", "CourierNewPSMT", sl_null },
-				{ "Courier-Bold", "CourierNew,Bold", "Courier,Bold", "CourierNewPS-BoldMT", "CourierNew-Bold", sl_null },
-				{ "Courier-Oblique", "CourierNew,Italic", "Courier,Italic", "CourierNewPS-ItalicMT", "CourierNew-Italic", sl_null },
-				{ "Courier-BoldOblique", "CourierNew,BoldItalic", "Courier,BoldItalic", "CourierNewPS-BoldItalicMT", "CourierNew-BoldItalic", sl_null },
-				{ "Helvetica", "ArialMT", "Arial", sl_null },
-				{ "Helvetica-Bold", "Arial-BoldMT", "Arial,Bold", "Arial-Bold", "Helvetica,Bold", sl_null },
-				{ "Helvetica-Oblique", "Arial-ItalicMT", "Arial,Italic", "Arial-Italic", "Helvetica,Italic", "Helvetica-Italic", sl_null },
-				{ "Helvetica-BoldOblique", "Arial-BoldItalicMT", "Arial,BoldItalic", "Arial-BoldItalic", "Helvetica,BoldItalic", "Helvetica-BoldItalic", sl_null },
-				{ "Times-Roman", "TimesNewRomanPSMT", "TimesNewRoman", "TimesNewRomanPS", sl_null },
-				{ "Times-Bold", "TimesNewRomanPS-BoldMT", "TimesNewRoman,Bold", "TimesNewRomanPS-Bold", "TimesNewRoman-Bold", sl_null },
-				{ "Times-Italic", "TimesNewRomanPS-ItalicMT", "TimesNewRoman,Italic", "TimesNewRomanPS-Italic", "TimesNewRoman-Italic", sl_null },
-				{ "Times-BoldItalic", "TimesNewRomanPS-BoldItalicMT", "TimesNewRoman,BoldItalic", "TimesNewRomanPS-BoldItalic", "TimesNewRoman-BoldItalic", sl_null },
-				{ "Symbol", "Symbol,Italic", "Symbol,Bold", "Symbol,BoldItalic", "SymbolMT", "SymbolMT,Italic", "SymbolMT,Bold", "SymbolMT,BoldItalic", sl_null },
-				{ "ZapfDingbats", sl_null }
-			};
-
-			struct FontMapping
+			sl_bool _setObject(const PdfReference& ref, const PdfValue& value)
 			{
-				const char* name;
-				sl_bool flagBold;
-				sl_bool flagItalic;
-			};
-
-			static FontMapping g_arrayBase14FontMappings[14][4] = {
-				{ { "Courier", 0, 0}, { "Courier New", 0, 0 }, {0, 0, 0} },
-				{ { "Courier-Bold", 0, 0 }, { "Courier New Bold", 0, 0 }, { "Courier New", 1, 0 }, { 0, 0, 0 } },
-				{ { "Courier-BoldOblique", 0, 0 }, { "Courier New Bold Italic", 0, 0 }, { "Courier New", 1, 1 }, { 0, 0, 0 } },
-				{ { "Courier-Oblique", 0, 0 }, { "Courier New Italic", 0, 0 }, { "Courier New", 0, 1 }, { 0, 0, 0 } },
-				{ { "Helvetica", 0, 0}, { "Arial", 0, 0 }, {0, 0, 0} },
-				{ { "Helvetica-Bold", 0, 0 }, { "Arial Bold", 0, 0 }, { "Arial", 1, 0 }, { 0, 0, 0 } },
-				{ { "Helvetica-BoldOblique", 0, 0 }, { "Arial Bold Italic", 0, 0 }, { "Arial", 1, 1 }, { 0, 0, 0 } },
-				{ { "Helvetica-Oblique", 0, 0 }, { "Arial Italic", 0, 0 }, { "Arial", 0, 1 }, { 0, 0, 0 } },
-				{ { "Times-Roman", 0, 0}, { "Times New Roman", 0, 0 }, {0, 0, 0} },
-				{ { "Times-Bold", 0, 0 }, { "Times New Roman Bold", 0, 0 }, { "Times New Roman", 1, 0 }, { 0, 0, 0 } },
-				{ { "Times-BoldItalic", 0, 0 }, { "Times New Roman Bold Italic", 0, 0 }, { "Times New Roman", 1, 1 }, { 0, 0, 0 } },
-				{ { "Times-Italic", 0, 0 }, { "Times New Roman Italic", 0, 0 }, { "Times New Roman", 0, 1 }, { 0, 0, 0 } },
-				{ { "Symbol", 0, 0}, {0, 0, 0} },
-				{ { "ZapfDingbats", 0, 0}, {0, 0, 0} }
-			};
-
-			class BaseFonts
-			{
-			private:
-				CHashMap< String, sl_uint32, Hash_IgnoreCase<String>, Compare_IgnoreCase<String> > names;
-
-			public:
-				BaseFonts()
-				{
-					for (sl_uint32 i = 0; i < 14; i++) {
-						const char** p = g_arrayBase14FontNames[i];
-						while (*p) {
-							names.put_NoLock(*p, i);
-							p++;
-						}
-					}
-				}
-
-			public:
-				Ref<FreeType> open(const String& name)
-				{
-					sl_uint32 index;
-					if (names.get_NoLock(name, &index)) {
-						FontMapping* mapping = g_arrayBase14FontMappings[index];
-						while (mapping->name) {
-							Ref<FreeType> font = FreeType::loadSystemFont(mapping->name, mapping->flagBold, mapping->flagItalic);
-							if (font.isNotNull()) {
-								return font;
-							}
-							mapping++;
-						}
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(BaseFonts, GetBaseFonts)
-
-			static Ref<FreeType> OpenBaseFont(const String& name)
-			{
-				BaseFonts* fonts = GetBaseFonts();
-				if (fonts) {
-					return fonts->open(name);
-				}
-				return sl_null;
-			}
-
-			class TextState
-			{
-			public:
-				float charSpace = 0;
-				float wordSpace = 0;
-				float widthScale = 1;
-				float leading = 0;
-				float rise = 0;
-				PdfTextRenderingMode renderingMode = PdfTextRenderingMode::Fill;
-				Ref<PdfFont> font;
-				float fontScale;
-				Matrix3 matrix = Matrix3::identity();
-				Matrix3 lineMatrix = Matrix3::identity();
-
-			};
-
-			class PenState : public PenDesc
-			{
-			public:
-				const Ref<Pen>& getHandle()
-				{
-					if (m_handle.isNull() || m_flagInvalidate) {
-						m_handle = Pen::create(*this);
-						m_flagInvalidate = sl_false;
-					}
-					return m_handle;
-				}
-
-				void invalidate()
-				{
-					m_flagInvalidate = sl_true;
-				}
-
-			private:
-				Ref<Pen> m_handle;
-				sl_bool m_flagInvalidate = sl_true;
-
-			};
-
-			class BrushState : public BrushDesc
-			{
-			public:
-				BrushState()
-				{
-					color = Color::Black;
-				}
-
-			public:
-				const Ref<Brush>& getHandle()
-				{
-					if (m_handle.isNull() || m_flagInvalidate) {
-						m_handle = Brush::create(*this);
-						m_flagInvalidate = sl_false;
-					}
-					return m_handle;
-				}
-
-				void invalidate()
-				{
-					m_flagInvalidate = sl_true;
-				}
-
-				void setHandle(const Ref<Brush>& handle)
-				{
-					m_handle = handle;
-					m_flagInvalidate = sl_false;
-				}
-
-			private:
-				Ref<Brush> m_handle;
-				sl_bool m_flagInvalidate = sl_true;
-
-			};
-
-			template <class HANDLE_STATE, class VALUE>
-			static void SetHandleState(HANDLE_STATE& state, VALUE& dst, const VALUE& src)
-			{
-				if (dst != src) {
-					dst = src;
-					state.invalidate();
-				}
-			}
-
-#define SET_HANDLE_STATE(STATE, NAME, VALUE) SetHandleState(STATE, STATE.NAME, VALUE)
-
-			class RenderState
-			{
-			public:
-				PdfColorSpace colorSpaceForStroking;
-				PdfColorSpace colorSpaceForNonStroking;
-				BrushState brush;
-				PenState pen;
-				TextState text;
-			};
-
-			class Renderer : public RenderState
-			{
-			public:
-				Context* context;
-				Canvas* canvas;
-				PdfResourceCache* cache;
-				PdfResourceProvider* resources;
-
-				Ref<GraphicsPath> path;
-
-				Stack<RenderState> states;
-
-			public:
-				sl_bool preparePath()
-				{
-					if (path.isNull()) {
-						path = GraphicsPath::create();
-						return path.isNotNull();
-					}
+				Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(ref.objectNumber);
+				if (pItem) {
+					pItem->first = value;
+					pItem->second = ref.generation;
 					return sl_true;
+				} else {
+					return m_objectsUpdate.add_NoLock(ref.objectNumber, value, ref.generation);
 				}
+			}
 
-				void moveTo(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 2) {
-						return;
-					}
-					if (!(preparePath())) {
-						return;
-					}
-					path->moveTo(operands[0].getFloat(), operands[1].getFloat());
-				}
-
-				void lineTo(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 2) {
-						return;
-					}
-					if (!(preparePath())) {
-						return;
-					}
-					path->lineTo(operands[0].getFloat(), operands[1].getFloat());
-				}
-
-				void curveTo(ListElements<PdfValue> operands, sl_bool flagReplicateInitialPoint, sl_bool flagReplicateFinalPoint)
-				{
-					if (!(preparePath())) {
-						return;
-					}
-					if (flagReplicateInitialPoint || flagReplicateFinalPoint) {
-						if (operands.count != 4) {
-							return;
-						}
-						if (flagReplicateInitialPoint) {
-							sl_size nPoints = path->getPointCount();
-							if (!nPoints) {
-								return;
-							}
-							GraphicsPathPoint& ptCurrent = (path->getPoints())[nPoints - 1];
-							path->cubicTo(
-								ptCurrent.x, ptCurrent.y,
-								operands[0].getFloat(), operands[1].getFloat(),
-								operands[2].getFloat(), operands[3].getFloat());
-						} else {
-							float lastX = operands[2].getFloat();
-							float lastY = operands[3].getFloat();
-							path->cubicTo(
-								operands[0].getFloat(), operands[1].getFloat(),
-								lastX, lastY, lastX, lastY);
-						}
-					} else {
-						if (operands.count != 6) {
-							return;
-						}
-						path->cubicTo(operands[0].getFloat(), operands[1].getFloat(),
-							operands[2].getFloat(), operands[3].getFloat(),
-							operands[4].getFloat(), operands[5].getFloat());
-					}
-				}
-
-				void appendRect(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 4) {
-						return;
-					}
-					if (!(preparePath())) {
-						return;
-					}
-					path->addRectangle(operands[0].getFloat(), operands[1].getFloat(),
-						operands[2].getFloat(), operands[3].getFloat());
-				}
-
-				void closePath()
-				{
-					if (path.isNotNull()) {
-						path->closeSubpath();
-					}
-				}
-
-				void clearPath()
-				{
-					path.setNull();
-				}
-
-				void setColor(const Color& color, sl_bool flagStroking)
-				{
-					if (flagStroking) {
-						SET_HANDLE_STATE(pen, color, color);
-					} else {
-						SET_HANDLE_STATE(brush, color, color);
-					}
-				}
-
-				void setColorSpace(ListElements<PdfValue> operands, sl_bool flagStroking)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					PdfColorSpace cs;
-					cs.load(operands[0], resources);
-					if (flagStroking) {
-						colorSpaceForStroking = cs;
-					} else {
-						colorSpaceForNonStroking = cs;
-					}
-					if (cs.type == PdfColorSpaceType::Indexed) {
-						Color c;
-						if (cs.getColorAt(c, 0)) {
-							setColor(c, flagStroking);
-						} else {
-							setColor(Color::Black, flagStroking);
-						}
-					} else {
-						setColor(Color::Black, flagStroking);
-					}
-				}
-
-				void setColor(ListElements<PdfValue> operands, sl_bool flagStroking)
-				{
-					if (!(operands.count)) {
-						return;
-					}
-					PdfColorSpace& cs = flagStroking ? colorSpaceForStroking : colorSpaceForNonStroking;
-					if (cs.type == PdfColorSpaceType::Pattern) {
-						const String& patternName = operands[0].getName();
-						if (patternName.isNotNull()) {
-							Ref<PdfDictionary> dictPattern = resources->getResource(name::Pattern, patternName).getDictionary();
-							if (dictPattern.isNotNull()) {
-								PdfPatternResource res;
-								if (res.load(dictPattern.get())) {
-									if (res.type == PdfPatternType::Shading) {
-										Ref<Brush> handle = res.shading.getBrush(res.matrix);
-										if (handle.isNotNull()) {
-											brush.setHandle(handle);
-										}
-									}
-								}
-							}
-						}
-					} else {
-						Color color;
-						if (cs.getColor(color, operands.data, operands.count)) {
-							setColor(color, flagStroking);
-						}
-					}
-				}
-
-				void setRGB(ListElements<PdfValue> operands, sl_bool flagStroking)
-				{
-					Color color;
-					if (PdfColorSpace::getColorFromRGB(color, operands.data, operands.count)) {
-						setColor(color, flagStroking);
-					}
-				}
-
-				void setGrayLevel(ListElements<PdfValue> operands, sl_bool flagStroking)
-				{
-					Color color;
-					if (PdfColorSpace::getColorFromGray(color, operands.data, operands.count)) {
-						setColor(color, flagStroking);
-					}
-				}
-
-				void setCMYK(ListElements<PdfValue> operands, sl_bool flagStroking)
-				{
-					Color color;
-					if (PdfColorSpace::getColorFromCMYK(color, operands.data, operands.count)) {
-						setColor(color, flagStroking);
-					}
-				}
-
-				void setLineWidth(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					SET_HANDLE_STATE(pen, width, operands[0].getFloat());
-				}
-
-				void setLineJoin(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					SET_HANDLE_STATE(pen, join, (LineJoin)(operands[0].getUint()));
-				}
-
-				void setLineCap(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					SET_HANDLE_STATE(pen, cap, (LineCap)(operands[0].getUint()));
-				}
-
-				void setLineDashPattern(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 2) {
-						return;
-					}
-					if (operands[0].getElementCount()) {
-						SET_HANDLE_STATE(pen, style, PenStyle::Dash);
-					} else {
-						SET_HANDLE_STATE(pen, style, PenStyle::Solid);
-					}
-				}
-
-				void setMiterLimit(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					SET_HANDLE_STATE(pen, miterLimit, operands[0].getFloat());
-				}
-
-				void setGraphicsState(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					SLIB_STATIC_STRING(idExtGState, "ExtGState")
-					Ref<PdfDictionary> states = resources->getResource(idExtGState, operands[0].getName()).getDictionary();
-					if (states.isNull()) {
-						return;
-					}
-					{
-						SLIB_STATIC_STRING(fieldId, "LW")
-						float value;
-						if (states->get(fieldId).getFloat(value)) {
-							SET_HANDLE_STATE(pen, width, value);
-						}
-					}
-					{
-						SLIB_STATIC_STRING(fieldId, "LC")
-						sl_uint32 value;
-						if (states->get(fieldId).getUint(value)) {
-							SET_HANDLE_STATE(pen, cap, (LineCap)value);
-						}
-					}
-					{
-						SLIB_STATIC_STRING(fieldId, "LJ")
-						sl_uint32 value;
-						if (states->get(fieldId).getUint(value)) {
-							SET_HANDLE_STATE(pen, join, (LineJoin)value);
-						}
-					}
-					{
-						SLIB_STATIC_STRING(fieldId, "ML")
-						float value;
-						if (states->get(fieldId).getFloat(value)) {
-							SET_HANDLE_STATE(pen, miterLimit, value);
-						}
-					}
-					{
-						SLIB_STATIC_STRING(fieldId, "D")
-						if (states->get(fieldId).getElementCount()) {
-							SET_HANDLE_STATE(pen, style, PenStyle::Dash);
-						}
-					}
-					{
-						SLIB_STATIC_STRING(fieldId, "Font")
-						ListElements<PdfValue> values(states->get(fieldId).getElements());
-						if (values.count == 2) {
-							setFont(values[0].getName(), values[1].getFloat());
-						}
-					}
-				}
-
-				void concatMatrix(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 6) {
-						return;
-					}
-					Matrix3 mat(operands[0].getFloat(), operands[1].getFloat(), 0,
-						operands[2].getFloat(), operands[3].getFloat(), 0,
-						operands[4].getFloat(), operands[5].getFloat(), 1);
-					canvas->concatMatrix(mat);
-				}
-
-				void fillAndStroke(sl_bool flagEvenOddRule, sl_bool flagStroke = sl_true)
-				{
-					if (path.isNotNull()) {
-						if (flagEvenOddRule) {
-							path->setFillMode(FillMode::Alternate);
-						} else {
-							path->setFillMode(FillMode::Winding);
-						}
-						canvas->fillPath(path, brush.getHandle());
-						if (flagStroke) {
-							canvas->drawPath(path, pen.getHandle());
-						}
-						path.setNull();
-					}
-				}
-
-				void fill(sl_bool flagEvenOddRule)
-				{
-					fillAndStroke(flagEvenOddRule, sl_false);
-				}
-
-				void stroke()
-				{
-					if (path.isNotNull()) {
-						canvas->drawPath(path, pen.getHandle());
-						path.setNull();
-					}
-				}
-
-				void setClipping(sl_bool flagEvenOddRule)
-				{
-					if (path.isNotNull()) {
-						if (flagEvenOddRule) {
-							path->setFillMode(FillMode::Alternate);
-						} else {
-							path->setFillMode(FillMode::Winding);
-						}
-						canvas->clipToPath(path);
-						path.setNull();
-					}
-				}
-
-				void beginText()
-				{
-					text.matrix = Matrix3::identity();
-					text.lineMatrix = Matrix3::identity();
-				}
-
-				void setTextCharSpace(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					text.charSpace = operands[0].getFloat();
-				}
-
-				void setTextWordSpace(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					text.wordSpace = operands[0].getFloat();
-				}
-
-				void setTextWidthScale(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					text.widthScale = operands[0].getFloat() / 100.0f;
-				}
-
-				void setTextLeading(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					text.leading = operands[0].getFloat();
-				}
-
-				void setTextRise(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					text.rise = operands[0].getFloat();
-				}
-
-				void setTextMatrix(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 6) {
-						return;
-					}
-					text.matrix = Matrix3(operands[0].getFloat(), operands[1].getFloat(), 0,
-						operands[2].getFloat(), operands[3].getFloat(), 0,
-						operands[4].getFloat(), operands[5].getFloat(), 1);
-					text.lineMatrix = text.matrix;
-				}
-
-				void moveTextMatrix(float tx, float ty)
-				{
-					Transform2::preTranslate(text.lineMatrix, tx, ty);
-					text.matrix = text.lineMatrix;
-				}
-
-				void moveTextMatrix(ListElements<PdfValue> operands, sl_bool flagSetLeading)
-				{
-					if (operands.count != 2) {
-						return;
-					}
-					float ty = operands[1].getFloat();
-					if (flagSetLeading) {
-						text.leading = -ty;
-					}
-					moveTextMatrix(operands[0].getFloat(), ty);
-				}
-
-				void moveToNextLine()
-				{
-					moveTextMatrix(0, -text.leading);
-				}
-
-				void setTextRenderingMode(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					text.renderingMode = (PdfTextRenderingMode)(operands[0].getUint());
-				}
-
-				void setFont(const String& name, float fontScale)
-				{
-					if (!context) {
-						return;
-					}
-					PdfReference ref;
-					if (resources->getFontResource(name, ref)) {
-						text.font = context->getFont(ref, *cache);
-						text.fontScale = fontScale;
-					}
-				}
-
-				void setTextFont(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 2) {
-						return;
-					}
-					setFont(operands[0].getName(), operands[1].getFloat());
-				}
-
-				void drawText(const String& str)
-				{
-					if (text.font.isNull()) {
-						return;
-					}
-					PdfFont& font = *(text.font);
-					if (Math::isAlmostZero(text.fontScale) || Math::isAlmostZero(text.widthScale)) {
-						return;
-					}
-					sl_real scale = text.fontScale * text.widthScale;
-
-					CanvasStateScope scope(canvas);
-					Matrix3 mat = text.matrix;
-					Transform2::preTranslate(mat, 0, text.rise);
-					Transform2::preScale(mat, scale, text.fontScale);
-					canvas->concatMatrix(mat);
-
-					sl_real x = 0;
-					sl_char8* codes = str.getData();
-					sl_size nCodes = str.getLength();
-					sl_uint32 lenCode = font.codeLength;
-					for (sl_size iCode = 0; iCode + lenCode <= nCodes; iCode += lenCode) {
-						sl_uint32 charcode = lenCode == 2 ? SLIB_MAKE_WORD(codes[iCode], codes[iCode + 1]) : (sl_uint8)(codes[iCode]);
-						sl_char32 unicode = font.getUnicode(charcode);
-						if (text.renderingMode != PdfTextRenderingMode::Invisible) {
-							Ref<FreeTypeGlyph> glyph = font.getGlyph(charcode, unicode);
-							if (glyph.isNotNull()) {
-								CanvasStateScope scope(canvas);
-								mat = Transform2::getScalingMatrix(font.scale, font.scale);
-								Transform2::translate(mat, x / scale, 0);
-								if (glyph->outline.isNotNull()) {
-									canvas->concatMatrix(mat);
-									canvas->fillPath(glyph->outline, brush.getHandle());
-									if (text.renderingMode == PdfTextRenderingMode::FillStroke || text.renderingMode == PdfTextRenderingMode::FillStrokeClip) {
-										canvas->drawPath(glyph->outline, pen.getHandle());
-									}
-								} else if (glyph->bitmap.isNotNull()) {
-									mat.m11 = -(mat.m11);
-									canvas->concatMatrix(mat);
-									DrawParam dp;
-									if (glyph->flagGrayBitmap) {
-										dp.useColorMatrix = sl_true;
-										dp.colorMatrix.setOverlay(brush.color);
-									}
-									canvas->draw((sl_real)(glyph->bitmapLeft), -(sl_real)(glyph->bitmapTop), glyph->bitmap, dp);
-								}
-							}
-						}
-						x += font.getCharWidth(charcode, unicode) * scale;
-						x += text.charSpace * text.widthScale;
-						if (unicode == ' ') {
-							x += text.wordSpace * text.widthScale;
-						}
-					}
-					Transform2::preTranslate(text.matrix, x, 0);
-				}
-
-				void adjustTextMatrix(float f)
-				{
-					Transform2::preTranslate(text.matrix, - f / 1000.0f * text.fontScale * text.widthScale, 0);
-				}
-
-				void showText(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					const String& text = operands[0].getString();
-					drawText(text);
-				}
-
-				void showTextWithPositions(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					ListElements<PdfValue> args(operands[0].getElements());
-					for (sl_size i = 0; i < args.count; i++) {
-						PdfValue& v = args[i];
-						const String& s = v.getString();
-						if (s.isNotNull()) {
-							drawText(s);
-						} else {
-							float f;
-							if (v.getFloat(f)) {
-								adjustTextMatrix(f);
-							}
-						}
-					}
-				}
-
-				void showTextWithSpacingParams(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 3) {
-						return;
-					}
-					text.wordSpace = operands[0].getFloat();
-					text.charSpace = operands[1].getFloat();
-					moveToNextLine();
-					const String& text = operands[2].getString();
-					drawText(text);
-				}
-
-				void drawImage(PdfImage* image)
-				{
-					if (image->flagImageMask) {
-						DrawParam dp;
-						dp.useColorMatrix = sl_true;
-						dp.colorMatrix.setOverlay(brush.color);
-						canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical), dp);
-					} else {
-						canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
-					}
-				}
-
-				void drawExternalObject(ListElements<PdfValue> operands)
-				{
-					if (!context) {
-						return;
-					}
-					if (operands.count != 1) {
-						return;
-					}
-					const String& name = operands[0].getName();
-					PdfReference ref;
-					if (resources->getExternalObjectResource(name, ref)) {
-						Ref<PdfExternalObject> xobj = context->getExternalObject(ref, *cache);
-						if (xobj.isNotNull()) {
-							if (xobj->type == PdfExternalObjectType::Image) {
-								PdfImage* image = (PdfImage*)(xobj.get());
-								drawImage(image);
-							} else {
-								PdfForm* form = (PdfForm*)(xobj.get());
-								PdfResourceProvider* oldResources = resources;
-								resources = form;
-								CanvasStateScope scope(canvas);
-								canvas->concatMatrix(form->matrix);
-								canvas->clipToRectangle(form->bounds);
-								ListElements<PdfOperation> ops(form->content);
-								for (sl_size i = 0; i < ops.count; i++) {
-									render(ops[i]);
-								}
-								resources = oldResources;
-							}
-						}
-					}
-				}
-
-				void drawInlineImage(ListElements<PdfValue> operands)
-				{
-					if (operands.count != 1) {
-						return;
-					}
-					const Ref<PdfImage>& image = operands[0].getImage();
-					if (image.isNotNull()) {
-						drawImage(image.get());
-					}
-				}
-
-				void saveGraphicsState()
-				{
-					canvas->save();
-					states.push(*this);
-				}
-
-				void restoreGraphicsState()
-				{
-					if (states.isEmpty()) {
-						return;
-					}
-					canvas->restore();
-					states.pop(this);
-				}
-
-				void render(PdfOperation& operation)
-				{
-					switch (operation.op) {
-						case PdfOperator::b:
-							closePath();
-							fillAndStroke(sl_false);
-							break;
-						case PdfOperator::B:
-							fillAndStroke(sl_false);
-							break;
-						case PdfOperator::b_:
-							closePath();
-							fillAndStroke(sl_true);
-							break;
-						case PdfOperator::B_:
-							fillAndStroke(sl_true);
-							break;
-						case PdfOperator::BDC:
-							// begin marked-content sequence with property list
-							break;
-						case PdfOperator::BMC:
-							// begin marked-content sequence
-							break;
-						case PdfOperator::BT:
-							beginText();
-							break;
-						case PdfOperator::BX:
-							// begin compatibility section
-							break;
-						case PdfOperator::c:
-							curveTo(operation.operands, sl_false, sl_false);
-							break;
-						case PdfOperator::cm:
-							concatMatrix(operation.operands);
-							break;
-						case PdfOperator::CS:
-							setColorSpace(operation.operands, sl_true);
-							break;
-						case PdfOperator::cs:
-							setColorSpace(operation.operands, sl_false);
-							break;
-						case PdfOperator::d:
-							setLineDashPattern(operation.operands);
-							break;
-						case PdfOperator::d0:
-							// set char width (glphy with in Type3 font)
-							break;
-						case PdfOperator::d1:
-							// set cache device (glphy with and bounding box in Type3 font)
-							break;
-						case PdfOperator::Do:
-							drawExternalObject(operation.operands);
-							break;
-						case PdfOperator::DP:
-							// define marked-content point with property list
-							break;
-						case PdfOperator::EI:
-							drawInlineImage(operation.operands);
-							break;
-						case PdfOperator::EMC:
-							// End marked-content sequence
-							break;
-						case PdfOperator::ET:
-							// end text object
-							break;
-						case PdfOperator::EX:
-							// end compatibility section
-							break;
-						case PdfOperator::f:
-							fill(sl_false);
-							break;
-						case PdfOperator::F:
-							fill(sl_false);
-							break;
-						case PdfOperator::f_:
-							fill(sl_true);
-							break;
-						case PdfOperator::G:
-							setGrayLevel(operation.operands, sl_true);
-							break;
-						case PdfOperator::g:
-							setGrayLevel(operation.operands, sl_false);
-							break;
-						case PdfOperator::gs:
-							setGraphicsState(operation.operands);
-							break;
-						case PdfOperator::h:
-							closePath();
-							break;
-						case PdfOperator::i:
-							// set flatness tolerance
-							break;
-						case PdfOperator::j:
-							setLineJoin(operation.operands);
-							break;
-						case PdfOperator::J:
-							setLineCap(operation.operands);
-							break;
-						case PdfOperator::K:
-							setCMYK(operation.operands, sl_true);
-							break;
-						case PdfOperator::k:
-							setCMYK(operation.operands, sl_false);
-							break;
-						case PdfOperator::l:
-							lineTo(operation.operands);
-							break;
-						case PdfOperator::m:
-							moveTo(operation.operands);
-							break;
-						case PdfOperator::M:
-							setMiterLimit(operation.operands);
-							break;
-						case PdfOperator::MP:
-							// define marked-content point
-							break;
-						case PdfOperator::n:
-							clearPath();
-							break;
-						case PdfOperator::q:
-							saveGraphicsState();
-							break;
-						case PdfOperator::Q:
-							restoreGraphicsState();
-							break;
-						case PdfOperator::re:
-							appendRect(operation.operands);
-							break;
-						case PdfOperator::RG:
-							setRGB(operation.operands, sl_true);
-							break;
-						case PdfOperator::rg:
-							setRGB(operation.operands, sl_false);
-							break;
-						case PdfOperator::ri:
-							// set color rendering intent
-							break;
-						case PdfOperator::s:
-							closePath();
-							stroke();
-							break;
-						case PdfOperator::S:
-							stroke();
-							break;
-						case PdfOperator::SC:
-							setColor(operation.operands, sl_true);
-							break;
-						case PdfOperator::sc:
-							setColor(operation.operands, sl_false);
-							break;
-						case PdfOperator::SCN:
-							setColor(operation.operands, sl_true);
-							break;
-						case PdfOperator::scn:
-							setColor(operation.operands, sl_false);
-							break;
-						case PdfOperator::sh:
-							// paint area defined by shading pattern
-							break;
-						case PdfOperator::T_:
-							moveToNextLine();
-							break;
-						case PdfOperator::Tc:
-							setTextCharSpace(operation.operands);
-							break;
-						case PdfOperator::Td:
-							moveTextMatrix(operation.operands, sl_false);
-							break;
-						case PdfOperator::TD:
-							moveTextMatrix(operation.operands, sl_true);
-							break;
-						case PdfOperator::Tf:
-							setTextFont(operation.operands);
-							break;
-						case PdfOperator::Tj:
-							showText(operation.operands);
-							break;
-						case PdfOperator::TJ:
-							showTextWithPositions(operation.operands);
-							break;
-						case PdfOperator::TL:
-							setTextLeading(operation.operands);
-							break;
-						case PdfOperator::Tm:
-							setTextMatrix(operation.operands);
-							break;
-						case PdfOperator::Tr:
-							setTextRenderingMode(operation.operands);
-							break;
-						case PdfOperator::Ts:
-							setTextRise(operation.operands);
-							break;
-						case PdfOperator::Tw:
-							setTextWordSpace(operation.operands);
-							break;
-						case PdfOperator::Tz:
-							setTextWidthScale(operation.operands);
-							break;
-						case PdfOperator::v:
-							curveTo(operation.operands, sl_true, sl_false);
-							break;
-						case PdfOperator::w:
-							setLineWidth(operation.operands);
-							break;
-						case PdfOperator::W:
-							setClipping(sl_false);
-							break;
-						case PdfOperator::W_:
-							setClipping(sl_true);
-							break;
-						case PdfOperator::y:
-							curveTo(operation.operands, sl_false, sl_true);
-							break;
-						case PdfOperator::apos:
-							moveToNextLine();
-							showText(operation.operands);
-							break;
-						case PdfOperator::quot:
-							showTextWithSpacingParams(operation.operands);
-							break;
-						default:
-							break;
-					}
-				}
-
-			};
-
-			static sl_bool DecodeCMapCode(const String& strCode, sl_uint16& outCode, sl_uint32& maxLenCode)
+			sl_bool setObject(const PdfReference& ref, const PdfValue& value)
 			{
-				sl_size n = strCode.getLength();
-				if (!n) {
+				if (!(ref.objectNumber)) {
 					return sl_false;
 				}
-				sl_uint8* s = (sl_uint8*)(strCode.getData());
-				if (n == 1) {
-					outCode = *s;
-					if (maxLenCode < 1) {
-						maxLenCode = 1;
-					}
+				if (value.isUndefined()) {
+					return deleteObject(ref);
+				}
+				if (ref.objectNumber > m_maxObjectNumber) {
+					return sl_false;
+				}
+				return _setObject(ref, value);
+			}
+
+			sl_bool isFreeObject(sl_uint32 objectNumber, sl_uint32& outGeneration)
+			{
+				if (m_objectsUpdate.find_NoLock(objectNumber)) {
+					return sl_false;
+				}
+				CrossReferenceEntry* entry = m_references.getPointerAt(objectNumber);
+				if (!entry) {
+					outGeneration = 0;
 					return sl_true;
 				}
-				if (n == 2) {
-					outCode = SLIB_MAKE_WORD(*s, s[1]);
-					if (maxLenCode < 2) {
-						maxLenCode = 2;
-					}
+				if (entry->type == (sl_uint32)(CrossReferenceEntryType::Free)) {
+					outGeneration = entry->generation;
 					return sl_true;
 				}
 				return sl_false;
 			}
 
-			static sl_bool DecodeCMapValue(const String& strValue, sl_uint32& outValue)
+			sl_bool addObject(const PdfValue& value, PdfReference& outRef)
 			{
-				sl_size n = strValue.getLength();
-				if (!n) {
+				if (value.isUndefined()) {
 					return sl_false;
 				}
-				sl_uint8* s = (sl_uint8*)(strValue.getData());
-				if (n == 1) {
-					outValue = *s;
-					return sl_true;
+				ArrayElements<CrossReferenceEntry> ref(m_references);
+				sl_uint32 n = m_maxObjectNumber;
+				for (sl_uint32 i = 1; i <= n; i++) {
+					if (isFreeObject(i, outRef.generation)) {
+						outRef.objectNumber = i;
+						return _setObject(outRef, value);
+					}
 				}
-				if (n >= 4) {
-					sl_char16 m[2] = { SLIB_MAKE_WORD(*s, s[1]), SLIB_MAKE_WORD(s[2], s[3]) };
-					return Charsets::utf16ToUtf32(m, 2, (sl_char32*)&outValue, 1) == 1;
+				n++;
+				m_maxObjectNumber = n;
+				outRef.objectNumber = n;
+				outRef.generation = 0;
+				return _setObject(outRef, value);
+			}
+
+			sl_bool deleteObject(const PdfReference& ref)
+			{
+				if (!(ref.objectNumber) || ref.objectNumber >= m_maxObjectNumber) {
+					return sl_false;
+				}
+				sl_uint64 _id = GetObjectId(ref);
+				m_objectsCache.remove(_id);
+				CrossReferenceEntry* entry = m_references.getPointerAt(ref.objectNumber);
+				if (entry) {
+					m_objectsUpdate.remove_NoLock(ref.objectNumber);
+					if (entry->type == (sl_uint32)(CrossReferenceEntryType::Normal)) {
+						if (entry->generation == ref.generation) {
+							entry->type = (sl_uint32)(CrossReferenceEntryType::Free);
+							entry->generation++;
+							entry->nextFreeObject = 0;
+							return sl_true;
+						}
+					} else if (entry->type == (sl_uint32)(CrossReferenceEntryType::Compressed)) {
+						entry->type = (sl_uint32)(CrossReferenceEntryType::Free);
+						entry->generation = 1;
+						entry->nextFreeObject = 0;
+						return sl_true;
+					}
+					return sl_false;
 				} else {
-					outValue = SLIB_MAKE_WORD(*s, s[1]);
+					return m_objectsUpdate.remove_NoLock(ref.objectNumber);
+				}
+			}
+
+			void decrypt(const PdfReference& ref, void* buf, sl_size size)
+			{
+				RC4 rc;
+				sl_uint8 key[21];
+				sl_uint32 l = lenEncryptionKey;
+				Base::copyMemory(key, encryptionKey, l);
+				MIO::writeUint24LE(key + l, ref.objectNumber);
+				MIO::writeUint16LE(key + l + 3, (sl_uint16)(ref.generation));
+				l += 5;
+				sl_uint8 h[16];
+				MD5::hash(key, l, h);
+				if (l > 16) {
+					l = 16;
+				}
+				rc.setKey(h, l);
+				rc.encrypt(buf, buf, size);
+			}
+
+			PageTreeParent* getPageTree()
+			{
+				if (m_pageTree.isNotNull()) {
+					return m_pageTree.get();
+				}
+				PdfReference refPages;
+				if (!(catalog->get(name::Pages, sl_false).getReference(refPages))) {
+					return sl_null;
+				}
+				Ref<PdfDictionary> attrs = getObject(refPages).getDictionary();
+				if (attrs.isNull()) {
+					return sl_null;
+				}
+				Ref<PageTreeParent> tree = new PageTreeParent;
+				if (tree.isNull()) {
+					return sl_null;
+				}
+				tree->reference = refPages;
+				tree->attributes = Move(attrs);
+				m_pageTree = Move(tree);
+				return m_pageTree.get();
+			}
+
+			void preparePageKids(PageTreeParent* parent)
+			{
+				if (parent->flagKids) {
+					return;
+				}
+				parent->flagKids = sl_true;
+				ListElements<PdfValue> arrKids(parent->attributes->get(name::Kids).getElements());
+				List< Ref<PdfPageTreeItem> > kids;
+				for (sl_uint32 i = 0; i < arrKids.count; i++) {
+					PdfReference refKid;
+					if (!(arrKids[i].getReference(refKid))) {
+						return;
+					}
+					Ref<PdfDictionary> props = getObject(refKid).getDictionary();
+					if (props.isNull()) {
+						return;
+					}
+					Ref<PdfPageTreeItem> item;
+					if (props->get(name::Type).equalsName(name::Page)) {
+						item = new PdfPage(m_baseContext);
+					} else {
+						item = new PageTreeParent;
+					}
+					if (item.isNull()) {
+						return;
+					}
+					item->parent = parent;
+					item->reference = refKid;
+					item->attributes = Move(props);
+					if (!(kids.add_NoLock(Move(item)))) {
+						return;
+					}
+				}
+				parent->kids = Move(kids);
+			}
+
+			Ref<PdfPage> getPage(PageTreeParent* parent, sl_uint32 index)
+			{
+				if (index >= parent->getPageCount()) {
+					return sl_null;
+				}
+				preparePageKids(parent);
+				sl_uint32 n = 0;
+				ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
+				for (sl_size i = 0; i < kids.count; i++) {
+					Ref<PdfPageTreeItem>& item = kids[i];
+					if (item->isPage()) {
+						if (index == n) {
+							return Ref<PdfPage>::from(item);
+						}
+						n++;
+					} else {
+						PageTreeParent* pItem = (PageTreeParent*)(item.get());
+						sl_uint32 m = pItem->getPageCount();
+						if (index < n + m) {
+							return getPage(pItem, index - n);
+						}
+						n += m;
+					}
+				}
+				return sl_null;
+			}
+
+			Ref<PdfPage> getPage(sl_uint32 index)
+			{
+				PageTreeParent* tree = getPageTree();
+				if (tree) {
+					return getPage(tree, index);
+				}
+				return sl_null;
+			}
+
+			Ref<PdfPage> createJpegImagePage(PageTreeParent* parent, sl_uint32 imageWidth, sl_uint32 imageHeight, const Memory& jpeg, sl_real pageWidth, sl_real pageHeight = 0.0f)
+			{
+				if (pageHeight < SLIB_EPSILON) {
+					pageHeight = pageWidth * (sl_real)imageHeight / (sl_real)imageWidth;
+				}
+				Ref<PdfStream> streamImage = PdfStream::createJpegImage(imageWidth, imageHeight, jpeg);
+				if (streamImage.isNull()) {
+					return sl_null;
+				}
+				Ref<PdfDictionary> resources = new PdfDictionary(this);
+				if (resources.isNull()) {
+					return sl_null;
+				}
+				Ref<PdfDictionary> xobjects = new PdfDictionary(this);
+				if (xobjects.isNull()) {
+					return sl_null;
+				}
+				resources->put_NoLock(name::XObject, xobjects);
+				String pageContent = String::format("q\n%s 0 0 %s 0 0 cm\n/BackImage Do\nQ", pageWidth, pageHeight);
+				Ref<PdfStream> streamContent = PdfStream::create(pageContent.toMemory());
+				if (streamContent.isNull()) {
+					return sl_null;
+				}
+				Ref<PdfDictionary> attrs = new PdfDictionary(this);
+				if (attrs.isNull()) {
+					return sl_null;
+				}
+				Ref<PdfArray> procs = new PdfArray(this);
+				if (procs.isNull()) {
+					return sl_null;
+				}
+				PdfReference refImage;
+				if (addObject(streamImage, refImage)) {
+					PdfReference refContent;
+					if (addObject(streamContent, refContent)) {
+						attrs->put_NoLock(name::Type, PdfName(name::Page));
+						attrs->put_NoLock(name::Parent, parent->reference);
+						xobjects->put_NoLock("BackImage", refImage);
+						attrs->put_NoLock(name::Resources, resources);
+						procs->add_NoLock(PdfName(name::PDF));
+						procs->add_NoLock(PdfName(name::ImageC)); // Color Image
+						attrs->put_NoLock(name::ProcSet, procs);
+						attrs->put_NoLock(name::MediaBox, Rectangle(0, 0, pageWidth, pageHeight));
+						attrs->put_NoLock(name::Contents, refContent);
+						Ref<PdfPage> page = new PdfPage(this);
+						if (page.isNotNull()) {
+							if (addObject(attrs, page->reference)) {
+								page->attributes = Move(attrs);
+								page->parent = parent;
+								return page;
+							}
+						}
+						deleteObject(refContent);
+					}
+					deleteObject(refImage);
+				}
+				return sl_null;
+			}
+
+			sl_bool insertJpegImagePage(sl_uint32 index, sl_uint32 imageWidth, sl_uint32 imageHeight, const Memory& jpeg)
+			{
+				if (jpeg.isNull() || !imageWidth || !imageHeight) {
+					return sl_false;
+				}
+				PageTreeParent* tree = getPageTree();
+				if (!tree) {
+					return sl_false;
+				}
+				if (index > tree->getPageCount()) {
+					return sl_false;
+				}
+				sl_real pageWidth;
+				Ref<PdfPage> pageNear = getPage(index ? index - 1 : 0);
+				if (pageNear.isNotNull()) {
+					pageWidth = pageNear->getMediaBox().getWidth();
+				} else {
+					pageWidth = 612.0f;
+				}
+				PageTreeParent* parent = tree;
+				if (pageNear.isNotNull()) {
+					Ref<PdfPageTreeItem> _parent(pageNear->parent);
+					if (_parent.isNotNull()) {
+						parent = (PageTreeParent*)(_parent.get());
+					}
+				}
+				Ref<PdfPage> page = createJpegImagePage(parent, imageWidth, imageHeight, jpeg, pageWidth);
+				if (page.isNull()) {
+					return sl_false;
+				}
+				parent->insertKidAfter(this, page.get(), index ? pageNear.get() : sl_null);
+				Ref<PdfPageTreeItem>_parent;
+				do {
+					parent->increasePageCount();
+					setObject(parent->reference, parent->attributes);
+					_parent = parent->parent;
+					parent = (PageTreeParent*)(_parent.get());
+				} while (parent);
+				return sl_true;
+			}
+
+			sl_bool isUsingPageResource(PdfPageTreeItem* item, const PdfReference& refMatch)
+			{
+				Ref<PdfDictionary> resources = item->attributes->get(name::Resources).getDictionary();
+				if (resources.isNotNull()) {
+					HashMapNode<String, PdfValue>* nodeCategory = resources->getFirstNode();
+					while (nodeCategory) {
+						PdfReference refCategory;
+						if (nodeCategory->value.getReference(refCategory)) {
+							nodeCategory->value = getObject(refCategory);
+						}
+						Ref<PdfDictionary> map = nodeCategory->value.getDictionary();
+						if (map.isNotNull()) {
+							HashMapNode<String, PdfValue>* nodeResource = map->getFirstNode();
+							while (nodeResource) {
+								PdfReference refResource;
+								if (nodeResource->value.getReference(refResource)) {
+									if (refResource == refMatch) {
+										return sl_true;
+									}
+								}
+								nodeResource = nodeResource->next;
+							}
+						}
+						nodeCategory = nodeCategory->next;
+					}
+				}
+				if (item->isPage()) {
+					return sl_false;
+				}
+				PageTreeParent* parent = (PageTreeParent*)item;
+				preparePageKids(parent);
+				ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
+				for (sl_size i = 0; i < kids.count; i++) {
+					Ref<PdfPageTreeItem>& kid = kids[i];
+					if (isUsingPageResource(kid.get(), refMatch)) {
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+
+			void deletePageContent(PdfPage* page)
+			{
+				PdfValue rContents = page->attributes->get(name::Contents, sl_false);
+				PdfValue vContents;
+				PdfReference refContents;
+				if (rContents.getReference(refContents)) {
+					vContents = getObject(refContents);
+				} else {
+					vContents = Move(refContents);
+					refContents.objectNumber = 0;
+				}
+				ListElements<PdfValue> arrContents(vContents.getElements());
+				if (arrContents.count) {
+					for (sl_uint32 i = 0; i < arrContents.count; i++) {
+						PdfReference ref;
+						if (arrContents[i].getReference(ref)) {
+							deleteObject(ref);
+						}
+					}
+				}
+				if (refContents.objectNumber) {
+					deleteObject(refContents);
+				}
+				PageTreeParent* root = getPageTree();
+				if (!root) {
+					return;
+				}
+				Ref<PdfDictionary> resources = page->attributes->get(name::Resources).getDictionary();
+				if (resources.isNotNull()) {
+					HashMapNode<String, PdfValue>* nodeCategory = resources->getFirstNode();
+					while (nodeCategory) {
+						PdfReference refCategory;
+						if (nodeCategory->value.getReference(refCategory)) {
+							nodeCategory->value = getObject(refCategory);
+						}
+						Ref<PdfDictionary> map = nodeCategory->value.getDictionary();
+						if (map.isNotNull()) {
+							HashMapNode<String, PdfValue>* nodeResource = map->getFirstNode();
+							while (nodeResource) {
+								PdfReference refResource;
+								if (nodeResource->value.getReference(refResource)) {
+									if (!(isUsingPageResource(root, refResource))) {
+										deleteObject(refResource);
+									}
+								}
+								nodeResource = nodeResource->next;
+							}
+						}
+						nodeCategory = nodeCategory->next;
+					}
+				}
+			}
+
+			sl_bool deletePage(PageTreeParent* parent, sl_uint32 pageNo)
+			{
+				if (pageNo >= parent->getPageCount()) {
+					return sl_false;
+				}
+				preparePageKids(parent);
+				sl_uint32 n = 0;
+				ListElements< Ref<PdfPageTreeItem> > kids(parent->kids);
+				for (sl_size i = 0; i < kids.count; i++) {
+					Ref<PdfPageTreeItem>& item = kids[i];
+					if (item->isPage()) {
+						if (pageNo == n) {
+							Ref<PdfPage> page = Ref<PdfPage>::from(Move(item));
+							deleteObject(page->reference);
+							parent->decreasePageCount();
+							parent->deleteKidAt((sl_uint32)i);
+							setObject(parent->reference, parent->attributes);
+							deletePageContent(page.get());
+							return sl_true;
+						}
+						n++;
+					} else {
+						PageTreeParent* pItem = (PageTreeParent*)(item.get());
+						sl_uint32 m = pItem->getPageCount();
+						if (pageNo < n + m) {
+							if (deletePage(pItem, pageNo - n)) {
+								parent->decreasePageCount();
+								if (pItem->kids.isEmpty()) {
+									deleteObject(pItem->reference);
+									parent->deleteKidAt((sl_uint32)i);
+								}
+								setObject(parent->reference, parent->attributes);
+								return sl_true;
+							}
+							return sl_false;
+						}
+						n += m;
+					}
+				}
+				return sl_false;
+			}
+
+			sl_bool deletePage(sl_uint32 index)
+			{
+				PageTreeParent* tree = getPageTree();
+				if (tree) {
+					return deletePage(tree, index);
+				}
+				return sl_false;
+			}
+
+			sl_bool writeChar(IWriter* writer, char c, sl_uint32& offset)
+			{
+				if (writer->writeFully(&c, 1) == 1) {
+					offset++;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool writeText(IWriter* writer, const StringView& s, sl_uint32& offset)
+			{
+				sl_size n = s.getLength();
+				if (!n) {
+					return sl_true;
+				}
+				if (writer->writeFully(s.getData(), n) == n) {
+					offset += (sl_uint32)n;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool writeFloat(IWriter* writer, float f, sl_uint32& offset)
+			{
+				String s;
+				sl_int32 n = (sl_int32)(Math::round(f));
+				if (Math::isAlmostZero(f - (float)n)) {
+					s = String::fromInt32(n);
+				} else {
+					s = String::fromFloat(f, 5);
+				}
+				return writeText(writer, s, offset);
+			}
+
+			sl_bool writeString(IWriter* writer, const StringView& str, sl_uint32& offset)
+			{
+				sl_size len = str.getLength();
+				if (!len) {
+					return writeText(writer, StringView::literal("()"), offset);
+				}
+				sl_char8* data = str.getData();
+				sl_bool flagHex = sl_false;
+				sl_uint32 nOpen = 0;
+				{
+					for (sl_size i = 0; i < len; i++) {
+						sl_char8 ch = data[i];
+						switch (ch) {
+							case '(':
+								nOpen++;
+								break;
+							case ')':
+								if (nOpen) {
+									nOpen--;
+								} else {
+									nOpen = SLIB_INT32_MAX;
+								}
+								break;
+							case '\r':
+							case '\n':
+							case '\t':
+							case '\b':
+							case '\f':
+								break;
+							default:
+								if (ch < ' ' || ch >= (sl_char8)0x7f) {
+									flagHex = sl_true;
+								}
+								break;
+						}
+						if (flagHex) {
+							break;
+						}
+					}
+				}
+				if (flagHex) {
+					if (!(writeChar(writer, '<', offset))) {
+						return sl_false;
+					}
+					char buf[1024];
+					const char* hex = "0123456789abcdef";
+					sl_uint32 m = sizeof(buf) >> 1;
+					do {
+						sl_size n = len;
+						if (n > m) {
+							n = m;
+						}
+						for (sl_size i = 0; i < n; i++) {
+							sl_uint8 h = data[i];
+							buf[i << 1] =  hex[h >> 4];
+							buf[(i << 1) | 1] = hex[h & 15];
+						}
+						if (!(writeText(writer, StringView(buf, n), offset))) {
+							return sl_false;
+						}
+						data += n;
+						len -= n;
+					} while (len);
+					return writeChar(writer, '>', offset);
+				} else {
+					if (!(writeChar(writer, '(', offset))) {
+						return sl_false;
+					}
+					sl_size start = 0;
+					for (sl_size i = 0; i < len; i++) {
+						sl_char8 c = data[i];
+						sl_char8 chEscape = 0;
+						switch (c) {
+							case '\\':
+								chEscape = '\\';
+								break;
+							case '\f':
+								chEscape = 'f';
+								break;
+							case '\b':
+								chEscape = 'b';
+								break;
+							case '(':
+							case ')':
+								if (nOpen) {
+									chEscape = c;
+								}
+								break;
+						}
+						if (chEscape) {
+							if (!(writeText(writer, StringView(data + start, i - start), offset))) {
+								return sl_false;
+							}
+							if (!(writeChar(writer, '\\', offset))) {
+								return sl_false;
+							}
+							if (!(writeChar(writer, chEscape, offset))) {
+								return sl_false;
+							}
+							start = i + 1;
+						}
+					}
+					if (start < len) {
+						if (!(writeText(writer, StringView(data + start, len - start), offset))) {
+							return sl_false;
+						}
+					}
+					return writeChar(writer, ')', offset);
+				}
+			}
+
+			sl_bool writeName(IWriter* writer, const StringView& str, sl_uint32& offset)
+			{
+				if (!(writeChar(writer, '/', offset))) {
+					return sl_false;
+				}
+				return writeText(writer, str, offset);
+			}
+
+			sl_bool writeArray(IWriter* writer, PdfArray* arr, sl_uint32& offset)
+			{
+				if (!(writeChar(writer, '[', offset))) {
+					return sl_false;
+				}
+				sl_size n = arr->getCount();
+				for (sl_size i = 0; i < n; i++) {
+					if (i) {
+						if (!(writeChar(writer, ' ', offset))) {
+							return sl_false;
+						}
+					}
+					if (!(writeValue(writer, arr->getValueAt_NoLock(i), offset))) {
+						return sl_false;
+					}
+				}
+				return writeChar(writer, ']', offset);
+			}
+
+			sl_bool writeDictionary(IWriter* writer, PdfDictionary* dict, sl_uint32& offset)
+			{
+				if (!(writeText(writer, StringView::literal("<<"), offset))) {
+					return sl_false;
+				}
+				auto node = dict->getFirstNode();
+				while (node) {
+					if (!(writeName(writer, node->key, offset))) {
+						return sl_false;
+					}
+					if (!(writeChar(writer, ' ', offset))) {
+						return sl_false;
+					}
+					if (!(writeValue(writer, node->value, offset))) {
+						return sl_false;
+					}
+					node = node->next;
+				}
+				return writeText(writer, StringView::literal(" >>"), offset);
+			}
+
+			sl_bool writeReference(IWriter* writer, const PdfReference& ref, sl_uint32& offset)
+			{
+				if (!(writeText(writer, String::fromUint32(ref.objectNumber), offset))) {
+					return sl_false;
+				}
+				if (!(writeChar(writer, ' ', offset))) {
+					return sl_false;
+				}
+				if (!(writeText(writer, String::fromUint32(ref.generation), offset))) {
+					return sl_false;
+				}
+				return writeText(writer, StringView::literal(" R"), offset);
+			}
+
+			sl_bool writeValue(IWriter* writer, const PdfValue& value, sl_uint32& offset)
+			{
+				const Variant& var = value.getVariant();
+				PdfValueType type = value.getType();
+				switch (type) {
+					case PdfValueType::Null:
+						return writeText(writer, StringView::literal("null"), offset);
+					case PdfValueType::Boolean:
+						if (var._m_boolean) {
+							return writeText(writer, StringView::literal("true"), offset);
+						} else {
+							return writeText(writer, StringView::literal("false"), offset);
+						}
+						break;
+					case PdfValueType::Uint:
+						return writeText(writer, String::fromUint32(var._m_uint32), offset);
+					case PdfValueType::Int:
+						return writeText(writer, String::fromInt32(var._m_int32), offset);
+					case PdfValueType::Float:
+						return writeFloat(writer, var._m_float, offset);
+					case PdfValueType::String:
+						return writeString(writer, CAST_VAR(String, var._value), offset);
+					case PdfValueType::Name:
+						return writeName(writer, CAST_VAR(String, var._value), offset);
+					case PdfValueType::Array:
+						return writeArray(writer, CAST_VAR(PdfArray*, var._value), offset);
+					case PdfValueType::Dictionary:
+						return writeDictionary(writer, CAST_VAR(PdfDictionary*, var._value), offset);
+					case PdfValueType::Reference:
+						return writeReference(writer, PdfReference(SLIB_GET_DWORD0(var._value), SLIB_GET_DWORD1(var._value)), offset);
+					default:
+						break;
+				}
+				return sl_false;
+			}
+
+			sl_bool writeStream(IWriter* writer, PdfStream* stream, sl_uint32& offset)
+			{
+				Memory content = stream->getEncodedContent();
+				sl_size size = content.getSize();
+				Ref<PdfDictionary> dict = stream->properties;
+				if (dict.isNull()) {
+					dict = new PdfDictionary(sl_null);
+					if (dict.isNull()) {
+						return sl_false;
+					}
+					dict->put_NoLock(name::Length, (sl_uint32)size);
+				}
+				if (!(writeDictionary(writer, dict.get(), offset))) {
+					return sl_false;
+				}
+				if (!(writeText(writer, StringView::literal("\nstream\n"), offset))) {
+					return sl_false;
+				}
+				if (size) {
+					if (writer->writeFully(content.getData(), size) != size) {
+						return sl_false;
+					}
+					offset += (sl_uint32)size;
+				}
+				return writeText(writer, StringView::literal("\nendstream"), offset);
+			}
+
+			sl_bool writeObject(IWriter* writer, const PdfReference& ref, const PdfValue& obj, sl_uint32& offset)
+			{
+				if (!(writeText(writer, String::fromUint32(ref.objectNumber), offset))) {
+					return sl_false;
+				}
+				if (!(writeChar(writer, ' ', offset))) {
+					return sl_false;
+				}
+				if (!(writeText(writer, String::fromUint32(ref.generation), offset))) {
+					return sl_false;
+				}
+				if (!(writeText(writer, StringView::literal(" obj\n"), offset))) {
+					return sl_false;
+				}
+				Ref<PdfStream> stream = obj.getStream();
+				if (stream.isNotNull()) {
+					if (!(writeStream(writer, stream.get(), offset))) {
+						return sl_false;
+					}
+				} else {
+					if (!(writeValue(writer, obj, offset))) {
+						return sl_false;
+					}
+				}
+				return writeText(writer, StringView::literal("\nendobj\n"), offset);
+			}
+
+			sl_bool save(IWriter* writer)
+			{
+				sl_uint32 nObjects = m_maxObjectNumber + 1;
+				Array<sl_uint32> arrObjectOffsets = Array<sl_uint32>::create(nObjects);
+				if (arrObjectOffsets.isNull()) {
+					return sl_false;
+				}
+				Array<sl_uint16> arrGenerations = Array<sl_uint16>::create(nObjects);
+				if (arrGenerations.isNull()) {
+					return sl_false;
+				}
+				sl_uint32* objectOffsets = arrObjectOffsets.getData();
+				Base::zeroMemory(objectOffsets, nObjects << 2);
+				sl_uint16* generations = arrGenerations.getData();
+				Base::zeroMemory(generations, nObjects << 1);
+
+				sl_uint32 offsetCurrent = 0;
+
+				if (!(writeText(writer, String::format("%%PDF-%d.%d\n%%\xB5\xB5\xB5\xB5\n", majorVersion, minorVersion), offsetCurrent))) {
+					return sl_false;
+				}
+
+				for (sl_uint32 iObj = 1; iObj < nObjects; iObj++) {
+					sl_int32 generation = -1;
+					PdfValue obj;
+					Pair<PdfValue, sl_uint32>* pItem = m_objectsUpdate.getItemPointer(iObj);
+					if (pItem) {
+						obj = pItem->first;
+						generation = pItem->second;
+					} else {
+						obj = readObject(iObj, generation);
+					}
+					sl_bool flagWriteObject;
+					if (obj.isNotUndefined()) {
+						flagWriteObject = sl_true;
+						const Ref<PdfStream>& stream = obj.getStream();
+						if (stream.isNotNull()) {
+							PdfValue type = stream->getProperty(name::Type);
+							if (type.equalsName(name::ObjStm) || type.equalsName(name::XRef)) {
+								flagWriteObject = sl_false;
+							}
+						}
+						if (flagWriteObject) {
+							objectOffsets[iObj] = offsetCurrent;
+							if (!(writeObject(writer, PdfReference(iObj, generation), obj, offsetCurrent))) {
+								return sl_false;
+							}
+						}
+					} else {
+						flagWriteObject = sl_false;
+					}
+					if (!flagWriteObject) {
+						if (generation < 0) {
+							CrossReferenceEntry* entry = m_references.getPointerAt(iObj);
+							if (entry) {
+								if (entry->generation) {
+									generations[iObj] = (sl_uint16)(entry->generation);
+								}
+							}
+						}
+					}
+				}
+
+				if (!(writeChar(writer, '\n', offsetCurrent))) {
+					return sl_false;
+				}
+				sl_uint32 offsetXref = offsetCurrent;
+				if (!(writeText(writer, StringView::literal("xref\n"), offsetCurrent))) {
+					return sl_false;
+				}
+				generations[0] = 65535;
+				sl_uint32 start = 0;
+				sl_uint32 end;
+				do {
+					end = nObjects;
+					{
+						for (sl_uint32 i = start; i < nObjects; i++) {
+							if (!(objectOffsets[i] || generations[i])) {
+								end = i;
+								break;
+							}
+						}
+					}
+					if (!(writeText(writer, String::format("%d %d\n", start, end - start), offsetCurrent))) {
+						return sl_false;
+					}
+					{
+						for (sl_uint32 i = start; i < end; i++) {
+							if (!(writeText(writer, String::format("%010d %05d %c\n", objectOffsets[i], generations[i], objectOffsets[i] ? 'n' : 'f'), offsetCurrent))) {
+								return sl_false;
+							}
+						}
+					}
+					start = nObjects;
+					{
+						for (sl_uint32 i = end; i < nObjects; i++) {
+							if (objectOffsets[i] || generations[i]) {
+								start = i;
+								break;
+							}
+						}
+					}
+				} while (start < nObjects);
+
+				if (!(writeText(writer, StringView::literal("trailer\n"), offsetCurrent))) {
+					return sl_false;
+				}
+				lastTrailer->remove_NoLock(name::Prev);
+				lastTrailer->remove_NoLock(name::XRefStm);
+				lastTrailer->remove_NoLock(name::Encrypt);
+				lastTrailer->put_NoLock(name::Size, end);
+				if (!(writeDictionary(writer, lastTrailer.get(), offsetCurrent))) {
+					return sl_false;
+				}
+
+				if (!(writeText(writer, String::format("\nstartxref\n%d\n", offsetXref), offsetCurrent))) {
+					return sl_false;
+				}
+				return writeText(writer, StringView::literal("%%EOF"), offsetCurrent);
+			}
+
+			Ref<PdfFont> getFont(const PdfReference& ref, PdfResourceCache& cache)
+			{
+				if (cache.flagUseFontsCache) {
+					Ref<PdfFont> ret;
+					if (cache.fonts.get(ref.objectNumber, &ret)) {
+						return ret;
+					}
+				}
+				Ref<PdfDictionary> dict = getObject(ref).getDictionary();
+				if (dict.isNotNull()) {
+					Ref<PdfFont> ret = PdfFont::load(dict);
+					if (cache.flagUseFontsCache) {
+						cache.fonts.put(ref.objectNumber, ret);
+					}
+					return ret;
+				}
+				return sl_null;
+			}
+
+			Ref<PdfExternalObject> getExternalObject(const PdfReference& ref, PdfResourceCache& cache)
+			{
+				if (cache.flagUseExternalObjectsCache) {
+					Ref<PdfExternalObject> ret;
+					if (cache.externalObjects.get(ref.objectNumber, &ret)) {
+						return ret;
+					}
+				}
+				Ref<PdfStream> stream = getObject(ref).getStream();
+				if (stream.isNotNull()) {
+					Ref<PdfExternalObject> ret = PdfExternalObject::load(stream.get());
+					if (cache.flagUseExternalObjectsCache) {
+						cache.externalObjects.put(ref.objectNumber, ret);
+					}
+					return ret;
+				}
+				return sl_null;
+			}
+
+			sl_bool createDocument()
+			{
+				majorVersion = 1;
+				minorVersion = 4;
+				lastTrailer = new PdfDictionary(this);
+				if (lastTrailer.isNull()) {
+					return sl_false;
+				}
+				catalog = new PdfDictionary(this);
+				if (catalog.isNull()) {
+					return sl_false;
+				}
+				PdfReference refCatalog;
+				if (!(addObject(catalog, refCatalog))) {
+					return sl_false;
+				}
+				catalog->add_NoLock(name::Type, PdfName(name::Catalog));
+				Ref<PdfDictionary> rootPageTree = new PdfDictionary(this);
+				if (rootPageTree.isNull()) {
+					return sl_false;
+				}
+				PdfReference refPages;
+				if (!(addObject(rootPageTree, refPages))) {
+					return sl_false;
+				}
+				rootPageTree->add_NoLock(name::Type, PdfName(name::Pages));
+				rootPageTree->add_NoLock(name::Kids, new PdfArray(this));
+				rootPageTree->add_NoLock(name::Count, (sl_uint32)0);
+				catalog->add_NoLock(name::Pages, refPages);
+				lastTrailer->add_NoLock(name::Root, refCatalog);
+				return sl_true;
+			}
+
+			sl_bool initDocument(const PdfDocumentParam& param)
+			{
+				catalog = lastTrailer->get(name::Root).getDictionary();
+				if (catalog.isNull()) {
+					return sl_false;
+				}
+				encrypt = lastTrailer->get(name::Encrypt).getDictionary();
+				if (encrypt.isNotNull()) {
+					StringData password(param.password);
+					return setUserPassword(password);
+				} else {
 					return sl_true;
 				}
 			}
 
-			// returns maximum code length
-			static sl_uint32 ParseCMap(const void* _content, sl_size size, HashMap<sl_uint16, sl_uint32>& map)
+			sl_bool setUserPassword(const StringView& password)
 			{
-				sl_uint8* content = Base::findMemory(_content, size, "begincmap", 9);
-				if (!content) {
-					return 0;
+				if (encrypt.isNull()) {
+					return sl_false;
 				}
-				content += 9;
-				size -= 9;
-				MemoryContext context(sl_null);
-				context.source = (sl_char8*)content;
-				context.sizeSource = (sl_uint32)size;
-				sl_uint32 maxLenCode = 0;
-				CList<PdfValue> args;
+				if (encrypt->get(name::Filter).equalsName(name::Standard)) {
+					sl_uint32 encryptionAlgorithm = encrypt->get(name::V).getUint();
+					if (encryptionAlgorithm == 1) {
+						sl_uint32 lengthKey = encrypt->get(name::Length).getUint();
+						if (!lengthKey) {
+							lengthKey = 40;
+						}
+						if (lengthKey & 7) {
+							return sl_false;
+						}
+						lengthKey >>= 3;
+						if (lengthKey > 16) {
+							return sl_false;
+						}
+						String userHash = encrypt->get(name::U).getString();
+						if (userHash.getLength() != 32) {
+							return sl_false;
+						}
+						sl_uint32 revision = encrypt->get(name::R).getUint();
+						sl_uint32 permission = encrypt->get(name::P).getInt();
+						String ownerHash = encrypt->get(name::O).getString();
+						String fileId = lastTrailer->get(name::ID)[0].getString();
+						sl_uint8 key[16];
+						ComputeEncryptionKey(key, lengthKey, password, revision, ownerHash, permission, fileId);
+						sl_uint8 userHashGen[32];
+						ComputeUserPasswordHash(userHashGen, key, lengthKey, revision, fileId);
+						if (Base::equalsMemory(userHashGen, userHash.getData(), 16)) {
+							flagDecryptContents = sl_true;
+							Base::copyMemory(encryptionKey, key, lengthKey);
+							lenEncryptionKey = lengthKey;
+							return sl_true;
+						}
+					}
+				}
+				return sl_false;
+			}
+
+		};
+
+		class BufferedReaderBase
+		{
+		public:
+			BufferedSeekableReader reader;
+
+		public:
+			sl_bool readChar(sl_char8& ch)
+			{
+				return reader.readInt8((sl_int8*)((void*)&ch));
+			}
+
+			sl_bool peekChar(sl_char8& ch)
+			{
+				return reader.peekInt8((sl_int8*)((void*)&ch));
+			}
+
+			sl_reg read(void* buf, sl_size size)
+			{
+				return reader.readFully(buf, size);
+			}
+
+			sl_reg peek(void* buf, sl_size size)
+			{
+				sl_reg n = reader.readFully(buf, size);
+				if (n > 0) {
+					if (!(reader.seek(-n, SeekPosition::Current))) {
+						return SLIB_IO_ERROR;
+					}
+				}
+				return n;
+			}
+
+			sl_uint32 getPosition()
+			{
+				return (sl_uint32)(reader.getPosition());
+			}
+
+			sl_bool setPosition(sl_size pos)
+			{
+				return reader.seek(pos, SeekPosition::Begin);
+			}
+
+			sl_bool movePosition(sl_reg offset)
+			{
+				return reader.seek(offset, SeekPosition::Current);
+			}
+
+			sl_reg readBuffer(sl_char8*& buf)
+			{
 				for (;;) {
-					if (!(context.skipWhitespaces())) {
-						break;
-					}
-					PdfCMapOperator op = context.readCMapOperator();
-					if (op != PdfCMapOperator::Unknown) {
-						switch (op) {
-						case PdfCMapOperator::endbfchar:
-							{
-								PdfValue* m = args.getData();
-								PdfValue* end = m + args.getCount();
-								while (m + 1 < end) {
-									sl_uint16 code;
-									if (DecodeCMapCode((m++)->getString(), code, maxLenCode)) {
-										sl_uint32 value;
-										if (DecodeCMapValue((m++)->getString(), value)) {
-											map.put_NoLock(code, value);
-										} else {
-											break;
-										}
-									} else {
-										break;
-									}
-								}
-							}
-							break;
-						case PdfCMapOperator::endbfrange:
-							{
-								PdfValue* m = args.getData();
-								PdfValue* end = m + args.getCount();
-								while (m + 2 < end) {
-									sl_uint16 code1;
-									if (DecodeCMapCode((m++)->getString(), code1, maxLenCode)) {
-										sl_uint16 code2;
-										if (DecodeCMapCode((m++)->getString(), code2, maxLenCode)) {
-											if (code2 >= code1) {
-												const String& strValue = m->getString();
-												if (strValue.isNotNull()) {
-													sl_uint32 value;
-													if (DecodeCMapValue(strValue, value)) {
-														for (sl_uint32 code = code1; code <= code2; code++) {
-															map.put_NoLock((sl_uint16)code, value);
-															value++;
-														}
-													} else {
-														break;
-													}
-												} else {
-													ListElements<PdfValue> arr(m->getElements());
-													if (arr.count == code2 - code1 + 1) {
-														for (sl_size i = 0; i < arr.count; i++) {
-															sl_uint32 value;
-															if (DecodeCMapValue(arr[i].getString(), value)) {
-
-																map.put_NoLock((sl_uint16)(code1 + i), value);
-
-															}
-														}
-													} else {
-														break;
-													}
-												}
-												m++;
-											} else {
-												break;
-											}
-										} else {
-											break;
-										}
-									} else {
-										break;
-									}
-								}
-							}
-							break;
-						default:
+					sl_reg n = reader.read(*((void**)&buf));
+					if (n == SLIB_IO_WOULD_BLOCK) {
+						if (Thread::isStoppingCurrent()) {
 							break;
 						}
-						args.removeAll_NoLock();
-					} else {
-						PdfValue value = context.readValue(PdfReference(0, 0));
-						if (value.isUndefined()) {
-							break;
-						}
-						args.add_NoLock(Move(value));
+						reader.waitRead();
 					}
+					return n;
 				}
-				return maxLenCode;
+				return SLIB_IO_ERROR;
 			}
 
-			static Memory DecodeASCIIHex(const void* _input, sl_size len)
+			Memory readFully(sl_size size)
 			{
-				Memory ret = Memory::create((len + 1) >> 1);
-				if (ret.isNull()) {
-					return sl_null;
-				}
-				sl_char8* str = (sl_char8*)_input;
-				sl_uint8* dst = (sl_uint8*)(ret.getData());
-				sl_uint8* cur = dst;
-				sl_bool flagFirstHex = sl_true;
-				sl_uint8 firstHex = 0;
-				for (sl_size i = 0; i < len; i++) {
-					sl_char8 ch = str[i];
-					sl_uint8 h = SLIB_CHAR_HEX_TO_INT(ch);
-					if (h < 16) {
-						if (flagFirstHex) {
-							firstHex = h;
-							flagFirstHex = sl_false;
-						} else {
-							*(cur++) = (firstHex << 4) | h;
-							flagFirstHex = sl_true;
-						}
-					} else if (!(IsWhitespace(ch)) && ch != '>') {
-						return sl_null;
-					}
-				}
-				if (!flagFirstHex) {
-					*(cur++) = firstHex << 4;
-				}
-				return ret.sub(0, cur - dst);
-			}
-
-			static Memory CreateMemoryFromList(CList<sl_uint8>* pList)
-			{
-				sl_size n = pList->getCount();
-				if (!n) {
-					return sl_null;
-				}
-				pList->setCapacity_NoLock(n);
-				return Memory::createStatic(pList->getData(), pList->getCount(), pList);
-			}
-
-			static Memory DecodeASCII85(const void* _input, sl_size len)
-			{
-				List<sl_uint8> list = List<sl_uint8>::create(0, ((len + 4) / 5) << 2);
-				CList<sl_uint8>* pList = list.ref.get();
-				if (!pList) {
-					return sl_null;
-				}
-				sl_char8* str = (sl_char8*)_input;
-				sl_uint32 indexElement = 0;
-				sl_uint32 dword = 0;
-				for (sl_size i = 0; i < len; i++) {
-					sl_uint8 v = str[i];
-					if (v == 'z') {
-						if (indexElement) {
-							return sl_null;
-						} else {
-							pList->addElements_NoLock(4, 0);
-						}
-					} else {
-						if (v >= '!' && v <= 'u') {
-							v -= '!';
-							dword = dword * 85 + v;
-							indexElement++;
-							if (indexElement >= 5) {
-								sl_uint8 bytes[4];
-								MIO::writeUint32BE(bytes, dword);
-								pList->addElements_NoLock(bytes, 4);
-								indexElement = 0;
-								dword = 0;
-							}
-						} else if (v == '~') {
-							if (i + 2 == len) {
-								if (str[i + 1] == '>') {
-									if (indexElement == 1) {
-										return sl_null;
-									}
-									if (indexElement) {
-										for (sl_uint32 i = 0; i < indexElement; i++) {
-											dword *= 85;
-										}
-										sl_uint8 bytes[4];
-										MIO::writeUint32BE(bytes, dword);
-										pList->addElements_NoLock(bytes, indexElement - 1);
-									}
-									return CreateMemoryFromList(pList);
-								}
-							}
-							return sl_null;
-						} else if (!(IsWhitespace(v)) && v != '>') {
-							return sl_null;
+				if (size) {
+					Memory mem = Memory::create(size);
+					if (mem.isNotNull()) {
+						if (reader.readFully(mem.getData(), size) == size) {
+							return mem;
 						}
 					}
 				}
 				return sl_null;
 			}
 
-			static Memory DecodeRunLength(const void* _input, sl_size size)
+			sl_reg findBackward(const StringView& str, sl_reg startFind, sl_size sizeFind)
 			{
-				if (!size) {
-					return sl_null;
+				return (sl_reg)(reader.findBackward(str.getData(), str.getLength(), startFind, sizeFind));
+			}
+
+		};
+
+		class MemoryReaderBase
+		{
+		public:
+			sl_char8* source;
+			sl_uint32 sizeSource;
+			Ref<Referable> refSource;
+
+		public:
+			sl_bool readChar(sl_char8& ch)
+			{
+				if (pos < sizeSource) {
+					ch = source[pos++];
+					return sl_true;
+				} else {
+					return sl_false;
 				}
-				List<sl_uint8> list = List<sl_uint8>::create();
-				CList<sl_uint8>* pList = list.ref.get();
-				if (!pList) {
-					return sl_null;
+			}
+
+			sl_bool peekChar(sl_char8& ch)
+			{
+				if (pos < sizeSource) {
+					ch = source[pos];
+					return sl_true;
 				}
-				sl_uint8* input = (sl_uint8*)_input;
-				sl_size pos = 0;
+				return sl_false;
+			}
+
+			sl_reg read(void* _out, sl_size nOut)
+			{
+				if (pos < sizeSource) {
+					if (pos + nOut > sizeSource) {
+						nOut = sizeSource - pos;
+					}
+					if (nOut) {
+						Base::copyMemory(_out, source + pos, nOut);
+						pos += (sl_uint32)nOut;
+					}
+					return nOut;
+				}
+				return SLIB_IO_ENDED;
+			}
+
+			sl_reg peek(void* _out, sl_size nOut)
+			{
+				if (pos < sizeSource) {
+					if (pos + nOut > sizeSource) {
+						nOut = sizeSource - pos;
+					}
+					if (nOut) {
+						Base::copyMemory(_out, source + pos, nOut);
+					}
+					return nOut;
+				}
+				return SLIB_IO_ENDED;
+			}
+
+			sl_uint32 getPosition()
+			{
+				return pos;
+			}
+
+			sl_bool setPosition(sl_size _pos)
+			{
+				if (_pos <= sizeSource) {
+					pos = (sl_uint32)_pos;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool movePosition(sl_reg offset)
+			{
+				return setPosition(pos + offset);
+			}
+
+			sl_reg readBuffer(sl_char8*& _out)
+			{
+				sl_uint32 _pos = pos;
+				if (_pos < sizeSource) {
+					_out = source + _pos;
+					pos = sizeSource;
+					return sizeSource - _pos;
+				}
+				return SLIB_IO_ERROR;
+			}
+
+			Memory readFully(sl_size size)
+			{
+				if (size) {
+					sl_uint32 _pos = pos;
+					if (_pos + size <= sizeSource) {
+						Memory ret = Memory::createStatic(source + _pos, size);
+						if (ret.isNotNull()) {
+							pos += (sl_uint32)size;
+							return ret;
+						}
+					}
+				}
+				return sl_null;
+			}
+
+			sl_reg findBackward(const StringView& str, sl_reg _startFind, sl_size sizeFind)
+			{
+				sl_char8* bufStart;
+				sl_size startFind;
+				if (_startFind >= 0) {
+					startFind = _startFind;
+					if (startFind > sizeSource) {
+						return -1;
+					}
+				} else {
+					startFind = sizeSource;
+				}
+				if (sizeFind >= startFind) {
+					bufStart = source;
+					sizeFind = startFind;
+				} else {
+					bufStart = source + startFind - sizeFind;
+				}
+				sl_char8* p = (sl_char8*)(Base::findMemoryBackward(bufStart, sizeFind, str.getData(), str.getLength()));
+				if (p) {
+					return p - source;
+				} else {
+					return -1;
+				}
+			}
+
+		private:
+			sl_uint32 pos = 0;
+
+		};
+
+		template <class READER_BASE>
+		class ContextT : public Context, public READER_BASE
+		{
+		public:
+			using READER_BASE::readChar;
+			using READER_BASE::peekChar;
+			using READER_BASE::read;
+			using READER_BASE::peek;
+			using READER_BASE::getPosition;
+			using READER_BASE::setPosition;
+			using READER_BASE::movePosition;
+			using READER_BASE::readBuffer;
+			using READER_BASE::readFully;
+			using READER_BASE::findBackward;
+			using Context::getObject;
+
+		public:
+			ContextT(sl_bool flagReferableContext): Context(flagReferableContext) {}
+			ContextT(Context* baseContext): Context(baseContext) {}
+
+		public:
+			sl_bool peekCharAndEquals(sl_char8 _ch)
+			{
+				sl_char8 ch;
+				if (peekChar(ch)) {
+					return ch == _ch;
+				}
+				return sl_false;
+			}
+
+			sl_bool readCharAndEquals(sl_char8 _ch)
+			{
+				sl_char8 ch;
+				if (readChar(ch)) {
+					return ch == _ch;
+				}
+				return sl_false;
+			}
+
+			sl_bool readCharAndIsWhitespace()
+			{
+				sl_char8 ch;
+				if (readChar(ch)) {
+					return IsWhitespace(ch);
+				}
+				return sl_false;
+			}
+
+			sl_bool readWordAndEquals(const StringView& _word)
+			{
+				sl_size lenWord = _word.getLength();
+				if (!lenWord) {
+					return sl_false;
+				}
+				const sl_char8* word = _word.getData();
+				sl_size posWord = 0;
 				for (;;) {
-					sl_uint8 len = input[pos];
-					if (len == 0x80) {
+					sl_char8* buf;
+					sl_reg n = readBuffer(buf);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							sl_char8 ch = buf[i];
+							if (IsWhitespace(ch) || IsDelimiter(ch)) {
+								movePosition(i - n);
+								return posWord == lenWord;
+							} else {
+								if (posWord >= lenWord) {
+									return sl_false;
+								}
+								if (word[posWord++] != ch) {
+									return sl_false;
+								}
+							}
+						}
+					} else if (n == SLIB_IO_ENDED) {
+						return posWord == lenWord;
+					} else {
 						break;
 					}
-					if (len & 0x80) {
-						pos++;
-						if (pos >= size) {
+				}
+				return sl_false;
+			}
+
+			sl_bool tryReadWordAndEquals(const StringView& word)
+			{
+				sl_uint32 pos = getPosition();
+				if (readWordAndEquals(word)) {
+					return sl_true;
+				}
+				setPosition(pos);
+				return sl_false;
+			}
+
+			sl_bool skipWhitespaces()
+			{
+				sl_bool flagComment = sl_false;
+				for (;;) {
+					sl_char8* buf;
+					sl_reg n = readBuffer(buf);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							sl_char8 ch = buf[i];
+							if (flagComment) {
+								if (IsLineEnding(ch)) {
+									flagComment = sl_false;
+								}
+							} else if (ch == '%') {
+								flagComment = sl_true;
+							} else if (!(IsWhitespace(ch))) {
+								movePosition(i - n);
+								return sl_true;
+							}
+						}
+					} else if (n == SLIB_IO_ENDED) {
+						return sl_true;
+					} else {
+						break;
+					}
+				}
+				return sl_false;
+			}
+
+			String readName()
+			{
+				sl_char8 name[MAX_WORD_LENGTH];
+				sl_size lenName = 0;
+				if (!(readCharAndEquals('/'))) {
+					return sl_null;
+				}
+				if (!(skipWhitespaces())) {
+					return sl_null;
+				}
+				sl_bool flagReadHex = sl_false;
+				sl_uint32 hex = 0;
+				sl_uint32 posHex = 0;
+				for (;;) {
+					sl_char8* buf;
+					sl_reg n = readBuffer(buf);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							sl_char8 ch = buf[i];
+							if (flagReadHex) {
+								sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
+								if (h >= 16) {
+									return sl_null;
+								}
+								hex = (hex << 4) | h;
+								posHex++;
+								if (posHex >= 2) {
+									if (lenName >= sizeof(name)) {
+										return sl_null;
+									}
+									name[lenName++] = (sl_char8)hex;;
+									flagReadHex = sl_false;
+								}
+							} else {
+								if (IsWhitespace(ch) || IsDelimiter(ch)) {
+									movePosition(i - n);
+									return String(name, lenName);
+								} else if (ch == '#') {
+									flagReadHex = sl_true;
+									hex = 0;
+									posHex = 0;
+								} else {
+									if (lenName >= sizeof(name)) {
+										return sl_null;
+									}
+									name[lenName++] = ch;
+								}
+							}
+						}
+					} else if (n == SLIB_IO_ENDED) {
+						if (flagReadHex) {
 							return sl_null;
 						}
-						sl_uint8 v = input[pos];
-						pos++;
-						if (!(pList->addElements_NoLock(257 - len, v))) {
-							return sl_null;
+						return String(name, lenName);
+					} else {
+						break;
+					}
+				}
+				return sl_null;
+			}
+
+			sl_bool readUint(sl_uint32& outValue, sl_bool flagAllowEmpty = sl_false)
+			{
+				outValue = 0;
+				sl_uint32 nDigits = 0;
+				for (;;) {
+					sl_char8* buf;
+					sl_reg n = readBuffer(buf);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							sl_char8 ch = buf[i];
+							if (IsWhitespace(ch) || IsDelimiter(ch) || ch == '.') {
+								movePosition(i - n);
+								if (flagAllowEmpty) {
+									return sl_true;
+								} else {
+									return nDigits != 0;
+								}
+							} else if (ch >= '0' && ch <= '9') {
+								if (nDigits >= 20) {
+									return sl_false;
+								}
+								outValue = outValue * 10 + (ch - '0');
+								nDigits++;
+							} else {
+								return sl_false;
+							}
+						}
+					} else if (n == SLIB_IO_ENDED) {
+						if (flagAllowEmpty) {
+							return sl_true;
+						} else {
+							return nDigits != 0;
 						}
 					} else {
-						pos++;
-						len++;
-						if (pos + len > size) {
-							return sl_null;
-						}
-						if (!(pList->addElements_NoLock(input + pos, len))) {
-							return sl_null;
-						}
-						pos += len;
-					}
-					if (pos >= size) {
 						break;
 					}
 				}
-				return CreateMemoryFromList(pList);
+				return sl_false;
 			}
 
-			static sl_uint8 PredictPath(sl_int32 a, sl_int32 b, sl_int32 c) {
-				sl_int32 p = a + b - c;
-				sl_int32 pa = Math::abs(p - a);
-				sl_int32 pb = Math::abs(p - b);
-				sl_int32 pc = Math::abs(p - c);
-				if (pa <= pb && pa <= pc) {
-					return (sl_uint8)a;
-				} else if (pb <= pc) {
-					return (sl_uint8)b;
-				} else {
-					return (sl_uint8)c;
+			sl_bool readFraction(double& outValue, sl_bool flagAllowEmpty = sl_false)
+			{
+				outValue = 0;
+				sl_uint32 nDigits = 0;
+				double exp = 0.1;
+				for (;;) {
+					sl_char8* buf;
+					sl_reg n = readBuffer(buf);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							sl_char8 ch = buf[i];
+							if (IsWhitespace(ch) || IsDelimiter(ch)) {
+								movePosition(i - n);
+								if (flagAllowEmpty) {
+									return sl_true;
+								} else {
+									return nDigits != 0;
+								}
+							} else if (ch >= '0' && ch <= '9') {
+								outValue += (double)(ch - '0') * exp;
+								exp /= 10.0;
+								nDigits++;
+							} else {
+								return sl_false;
+							}
+						}
+					} else if (n == SLIB_IO_ENDED) {
+						if (flagAllowEmpty) {
+							return sl_true;
+						} else {
+							return nDigits != 0;
+						}
+					} else {
+						break;
+					}
 				}
+				return sl_false;
 			}
 
-			static sl_bool PredictPNG(sl_uint8* bufData, sl_uint32& sizeData, sl_uint32 colors, sl_uint32 bitsPerComponent, sl_uint32 columns) {
-				sl_uint32 nBytesPerPixel = (colors * bitsPerComponent + 7) >> 3;
-				sl_uint32 sizeRow = (colors * bitsPerComponent * columns + 7) >> 3;
-				if (!sizeRow) {
-					return sl_false;
+			String readString(const PdfReference& objectId)
+			{
+				if (!(readCharAndEquals('('))) {
+					return sl_null;
 				}
-				sl_uint32 nFullRows = sizeData / (sizeRow + 1);
-				sl_uint32 sizeRemain = sizeData % (sizeRow + 1);
-				sl_uint32 nRows = sizeRemain ? nFullRows + 1 : nFullRows;
-				if (!nRows) {
-					return sl_false;
-				}
-				if (sizeRemain) {
-					sizeData = sizeRow * nFullRows + sizeRemain - 1;
-				} else {
-					sizeData = sizeRow * nRows;
-				}
-				sl_uint8* pRowDst = bufData;
-				sl_uint8* pRowSrc = bufData;
-				for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
-					sl_uint32 n = iRow < nFullRows ? sizeRow : sizeRemain - 1;
-					sl_uint8 tag = *pRowSrc;
-					if (tag) {
-						for (sl_uint32 i = 0; i < n; i++) {
-							sl_uint8 diff = pRowSrc[i + 1];
-							sl_uint8 base = 0;
-							switch (tag) {
-								case 1:
-									if (i >= nBytesPerPixel) {
-										base = pRowDst[(sl_int32)(i - nBytesPerPixel)];
+				CList<sl_char8> list;
+				sl_uint32 nOpen = 0;
+				sl_bool flagEscape = sl_false;
+				sl_uint32 octal = 0;
+				sl_uint32 nOctal = 0;
+				while (list.getCount() < MAX_STRING_LENGTH) {
+					sl_char8* buf;
+					sl_reg n = readBuffer(buf);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							sl_char8 ch = buf[i];
+							if (flagEscape) {
+								if (ch >= '0' && ch <= '7') {
+									octal = ch - '0';
+									nOctal = 1;
+								} else {
+									switch (ch) {
+										case 'n':
+											ch = '\n';
+											break;
+										case 'r':
+											ch = '\r';
+											break;
+										case 't':
+											ch = '\t';
+											break;
+										case 'b':
+											ch = '\b';
+											break;
+										case 'f':
+											ch = '\f';
+											break;
+										case '(':
+											ch = '(';
+											break;
+										case ')':
+											ch = ')';
+											break;
+										case '\\':
+											ch = '\\';
+											break;
+										case '\r':
+											if (i + 1 < n && buf[i + 1] == '\n') {
+												i++;
+											}
+											ch = 0;
+											break;
+										case '\n':
+											ch = 0;
+											break;
+										default:
+											return sl_null;
 									}
-									break;
-								case 2:
-									if (iRow) {
-										base = pRowDst[(sl_int32)(i - sizeRow)];
+									if (ch) {
+										list.add_NoLock(ch);
 									}
-									break;
-								case 3:
-									{
-										sl_uint8 left = 0;
-										if (i >= nBytesPerPixel) {
-											left = pRowDst[(sl_int32)(i - nBytesPerPixel)];
-										}
-										sl_uint8 up = 0;
-										if (iRow) {
-											up = pRowDst[(sl_int32)(i - sizeRow)];
-										}
-										base = (sl_uint8)(((sl_uint32)up + (sl_uint32)left) >> 1);
+								}
+								flagEscape = sl_false;
+							} else {
+								if (nOctal) {
+									if (nOctal < 3 && ch >= '0' && ch <= '7') {
+										octal = (octal << 3) | (ch - '0');
+										nOctal++;
+									} else {
+										list.add_NoLock(octal);
+										nOctal = 0;
 									}
-									break;
-								case 4:
-									{
-										sl_uint8 left = 0, upperLeft = 0;
-										if (i >= nBytesPerPixel) {
-											left = pRowDst[(sl_int32)(i - nBytesPerPixel)];
-											if (iRow) {
-												upperLeft = pRowDst[(sl_int32)(i - nBytesPerPixel - sizeRow)];
+								}
+								if (!nOctal) {
+									if (ch == '\\') {
+										flagEscape = sl_true;
+									} else if (ch == '(') {
+										list.add_NoLock('(');
+										nOpen++;
+									} else if (ch == ')') {
+										if (nOpen) {
+											list.add_NoLock(')');
+											nOpen--;
+										} else {
+											movePosition(i + 1 - n);
+											String ret(list.getData(), list.getCount());
+											if (ret.isNotNull()) {
+												if (flagDecryptContents && objectId.objectNumber) {
+													decrypt(objectId, ret.getData(), ret.getLength());
+												}
+												return ret;
+											} else {
+												return String::getEmpty();
 											}
 										}
-										sl_uint8 up = 0;
-										if (iRow) {
-											up = pRowDst[(sl_int32)(i - sizeRow)];
-										}
-										base = PredictPath(left, up, upperLeft);
+									} else {
+										list.add_NoLock(ch);
 									}
-									break;
+								}
 							}
-							pRowDst[i] = base + diff;
 						}
 					} else {
-						Base::moveMemory(pRowDst, pRowSrc + 1, n);
+						break;
 					}
-					pRowSrc += sizeRow + 1;
-					pRowDst += sizeRow;
+				}
+				return sl_null;
+			}
+
+			String readHexString(const PdfReference& objectId)
+			{
+				if (!(readCharAndEquals('<'))) {
+					return sl_null;
+				}
+				sl_bool flagFirstHex = sl_true;
+				sl_uint32 firstHexValue = 0;
+				CList<sl_char8> list;
+				while (list.getCount() < MAX_STRING_LENGTH) {
+					sl_char8* buf;
+					sl_reg n = readBuffer(buf);
+					if (n > 0) {
+						for (sl_reg i = 0; i < n; i++) {
+							sl_char8 ch = buf[i];
+							if (ch == '>') {
+								if (!flagFirstHex) {
+									list.add_NoLock(firstHexValue << 4);
+								}
+								movePosition(i + 1 - n);
+								String ret(list.getData(), list.getCount());
+								if (ret.isNotNull()) {
+									if (flagDecryptContents && objectId.objectNumber) {
+										decrypt(objectId, ret.getData(), ret.getLength());
+									}
+									return ret;
+								} else {
+									return String::getEmpty();
+								}
+							} else {
+								sl_uint32 h = SLIB_CHAR_HEX_TO_INT(ch);
+								if (h < 16) {
+									if (flagFirstHex) {
+										firstHexValue = h;
+										flagFirstHex = sl_false;
+									} else {
+										list.add_NoLock((firstHexValue << 4) | h);
+										flagFirstHex = sl_true;
+									}
+								} else if (!(IsWhitespace(ch))) {
+									return sl_null;
+								}
+							}
+						}
+					} else {
+						break;
+					}
+				}
+				return sl_null;
+			}
+
+			sl_bool readReference(PdfReference& outRef)
+			{
+				if (readUint(outRef.objectNumber)) {
+					if (outRef.objectNumber) {
+						if (skipWhitespaces()) {
+							if (readUint(outRef.generation)) {
+								if (skipWhitespaces()) {
+									return readCharAndEquals('R');
+								}
+							}
+						}
+					}
+				}
+				return sl_false;
+			}
+
+			Ref<PdfDictionary> readDictionary(const PdfReference& objectId)
+			{
+				sl_char8 buf[2];
+				if (read(buf, 2) != 2) {
+					return sl_null;
+				}
+				if (buf[0] != '<' || buf[1] != '<') {
+					return sl_null;
+				}
+				Ref<PdfDictionary> ret = new PdfDictionary(m_baseContext);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				for (;;) {
+					if (!(skipWhitespaces())) {
+						break;
+					}
+					sl_char8 ch;
+					if (!(peekChar(ch))) {
+						return sl_null;
+					}
+					if (ch == '/') {
+						String name = readName();
+						if (name.isNull()) {
+							return sl_null;
+						}
+						if (!(skipWhitespaces())) {
+							return sl_null;
+						}
+						PdfValue value = readValue(objectId);
+						if (value.isUndefined()) {
+							return sl_null;
+						}
+						ret->add_NoLock(Move(name), Move(value));
+					} else if (ch == '>') {
+						movePosition(1);
+						if (!(readCharAndEquals('>'))) {
+							return sl_null;
+						}
+						return ret;
+					} else {
+						return sl_null;
+					}
+				}
+				return sl_null;
+			}
+
+			Ref<PdfArray> readArray(const PdfReference& objectId)
+			{
+				if (!(readCharAndEquals('['))) {
+					return sl_null;
+				}
+				Ref<PdfArray> ret = new PdfArray(m_baseContext);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				for (;;) {
+					if (!(skipWhitespaces())) {
+						break;
+					}
+					sl_char8 ch;
+					if (!(peekChar(ch))) {
+						return sl_null;
+					}
+					if (ch == ']') {
+						movePosition(1);
+						return ret;
+					}
+					PdfValue var = readValue(objectId);
+					if (var.isNotUndefined()) {
+						ret->add_NoLock(Move(var));
+					} else {
+						return sl_null;
+					}
+				}
+				return sl_null;
+			}
+
+			PdfValue readNumber()
+			{
+				sl_char8 ch;
+				if (peekChar(ch)) {
+					if (ch >= '0' && ch <= '9') {
+						sl_uint32 posBackup = getPosition();
+						PdfReference ref;
+						if (readReference(ref)) {
+							return ref;
+						}
+						setPosition(posBackup);
+					}
+					sl_bool flagNegative = sl_false;
+					if (ch == '-' || ch == '+') {
+						movePosition(1);
+						if (ch == '-') {
+							flagNegative = sl_true;
+						}
+						if (!(skipWhitespaces())) {
+							return PdfValue();
+						}
+						if (!(peekChar(ch))) {
+							return PdfValue();
+						}
+					}
+					if (ch == '.') {
+						movePosition(1);
+						double f;
+						if (readFraction(f)) {
+							if (flagNegative) {
+								f = -f;
+							}
+							return (float)f;
+						}
+					} else if (ch >= '0' && ch <= '9') {
+						sl_uint32 value;
+						if (readUint(value, sl_true)) {
+							if (peekCharAndEquals('.')) {
+								movePosition(1);
+								double f;
+								if (!(readFraction(f, sl_true))) {
+									return PdfValue();
+								}
+								f += (double)value;
+								if (flagNegative) {
+									f = -f;
+								}
+								return (float)f;
+							}
+							if (flagNegative) {
+								return -((sl_int32)value);
+							} else {
+								return value;
+							}
+						}
+					}
+				}
+				return PdfValue();
+			}
+
+			PdfOperator readOperator()
+			{
+				sl_char8 buf[4];
+				sl_reg len = peek(buf, sizeof(buf));
+				if (len > 0) {
+					for (sl_reg i = 0; i < len; i++) {
+						if (IsWhitespace(buf[i]) || IsDelimiter(buf[i])) {
+							len = i;
+							break;
+						}
+					}
+					if (len > 0 && len <= 3) {
+						PdfOperator op = PdfOperation::getOperator(StringView(buf, len));
+						if (op != PdfOperator::Unknown) {
+							movePosition(len);
+							return op;
+						}
+					}
+				}
+				return PdfOperator::Unknown;
+			}
+
+			PdfCMapOperator readCMapOperator()
+			{
+				sl_char8 buf[20];
+				sl_reg len = peek(buf, sizeof(buf));
+				if (len > 0) {
+					for (sl_reg i = 0; i < len; i++) {
+						if (IsWhitespace(buf[i]) || IsDelimiter(buf[i])) {
+							len = i;
+							break;
+						}
+					}
+					if (len > 0 && len <= 19) {
+						PdfCMapOperator op = PdfOperation::getCMapOperator(StringView(buf, len));
+						if (op != PdfCMapOperator::Unknown) {
+							movePosition(len);
+							return op;
+						}
+					}
+				}
+				return PdfCMapOperator::Unknown;
+			}
+
+			PdfValue readValue(const PdfReference& objectId, sl_bool flagReadOnlyStream = sl_false)
+			{
+				sl_char8 ch;
+				if (!(peekChar(ch))) {
+					return PdfValue();
+				}
+				if (flagReadOnlyStream) {
+					if (ch != '<') {
+						return PdfValue();
+					}
+				}
+				switch (ch) {
+					case 'n':
+						if (tryReadWordAndEquals(StringView::literal("null"))) {
+							return sl_null;
+						}
+						break;
+					case 't':
+						if (tryReadWordAndEquals(StringView::literal("true"))) {
+							return sl_true;
+						}
+						break;
+					case 'f':
+						if (tryReadWordAndEquals(StringView::literal("false"))) {
+							return sl_false;
+						}
+						break;
+					case '(':
+						{
+							String s = readString(objectId);
+							if (s.isNotNull()) {
+								return s;
+							}
+						}
+						break;
+					case '<':
+						movePosition(1);
+						if (peekChar(ch)) {
+							movePosition(-1);
+							if (ch == '<') {
+								Ref<PdfDictionary> map = readDictionary(objectId);
+								if (map.isNotNull()) {
+									return map;
+								}
+							} else {
+								String s = readHexString(objectId);
+								if (s.isNotNull()) {
+									return s;
+								}
+							}
+						}
+						break;
+					case '/':
+						{
+							PdfName name = readName();
+							if (name.isNotNull()) {
+								return name;
+							}
+						}
+						break;
+					case '[':
+						{
+							Ref<PdfArray> list = readArray(objectId);
+							if (list.isNotNull()) {
+								return list;
+							}
+						}
+						break;
+					default:
+						if (IsNumeric(ch)) {
+							return readNumber();
+						}
+						break;
+				}
+				return PdfValue();
+			}
+
+			Memory readContent(sl_uint32 offset, sl_uint32 size, const PdfReference& ref) override
+			{
+				if (setPosition(offset)) {
+					Memory ret = readFully(size);
+					if (ret.isNotNull()) {
+						if (flagDecryptContents) {
+							if (!(ret.getRef())) {
+								ret = Memory::create(ret.getData(), size);
+								if (ret.isNull()) {
+									return sl_null;
+								}
+							}
+							decrypt(ref, ret.getData(), size);
+						}
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+			sl_uint32 getStreamOffset(sl_uint32 length, sl_uint32& outOffsetAfterEndStream)
+			{
+				if (readWordAndEquals(StringView::literal("stream"))) {
+					sl_char8 ch;
+					if (readChar(ch)) {
+						if (ch == '\r') {
+							if (!(readChar(ch))) {
+								return 0;
+							}
+							if (ch != '\n') {
+								return 0;
+							}
+						} else if (ch != '\n') {
+							return 0;
+						}
+						sl_uint32 offset = getPosition();
+						if (length) {
+							if (!(movePosition(length))) {
+								return 0;
+							}
+						}
+						if (skipWhitespaces()) {
+							if (readWordAndEquals(StringView::literal("endstream"))) {
+								outOffsetAfterEndStream = getPosition();
+								return offset;
+							}
+						}
+					}
+				}
+				return 0;
+			}
+
+			sl_bool readObjectHeader(PdfReference& outRef)
+			{
+				if (readUint(outRef.objectNumber)) {
+					if (skipWhitespaces()) {
+						if (readUint(outRef.generation)) {
+							if (skipWhitespaces()) {
+								if (readWordAndEquals(StringView::literal("obj"))) {
+									return skipWhitespaces();
+								}
+							}
+						}
+					}
+				}
+				return sl_false;
+			}
+
+			PdfValue readObject(PdfReference& outRef, sl_bool flagReadOnlyStream = sl_false)
+			{
+				if (readObjectHeader(outRef)) {
+					PdfValue value = readValue(outRef, flagReadOnlyStream);
+					if (value.isNotUndefined()) {
+						if (skipWhitespaces()) {
+							const Ref<PdfDictionary>& properties = value.getDictionary();
+							if (properties.isNotNull()) {
+								if (peekCharAndEquals('s')) {
+									sl_uint32 pos = getPosition();
+									sl_uint32 length;
+									if (!(properties->get(name::Length).getUint(length))) {
+										return PdfValue();
+									}
+									setPosition(pos); // Protect position while getting stream length
+									sl_uint32 offsetEndStream;
+									sl_uint32 offsetContent = getStreamOffset(length, offsetEndStream);
+									if (!offsetContent) {
+										return PdfValue();
+									}
+									if (!(skipWhitespaces())) {
+										return PdfValue();
+									}
+									Ref<PdfStream> stream = new PdfStream(m_baseContext);
+									if (stream.isNull()) {
+										return PdfValue();
+									}
+									stream->initialize(properties, outRef, offsetContent, length);
+									value = PdfValue(Move(stream));
+								}
+							}
+							if (readWordAndEquals(StringView::literal("endobj"))) {
+								return value;
+							}
+						}
+					}
+				}
+				return PdfValue();
+			}
+
+			PdfValue readObject(sl_uint32 pos, sl_uint32& outOffsetAfterEndObj, PdfReference& outRef, sl_bool flagReadOnlyStream) override
+			{
+				if (setPosition(pos)) {
+					PdfValue ret = readObject(outRef, flagReadOnlyStream);
+					if (ret.isNotUndefined()) {
+						outOffsetAfterEndObj = getPosition();
+						return ret;
+					}
+				}
+				return PdfValue();
+			}
+
+			Ref<PdfDictionary> readTrailer()
+			{
+				if (readWordAndEquals(StringView::literal("trailer"))) {
+					if (skipWhitespaces()) {
+						return readDictionary(PdfReference(0, 0));
+					}
+				}
+				return sl_null;
+			}
+
+			sl_bool readCrossReferenceEntry(CrossReferenceEntry& entry)
+			{
+				if (readUint(entry.offset)) {
+					if (skipWhitespaces()) {
+						sl_uint32 gen;
+						if (readUint(gen)) {
+							entry.generation = gen;
+							if (skipWhitespaces()) {
+								sl_char8 ch;
+								if (readChar(ch)) {
+									if (ch == 'f') {
+										entry.type = (sl_uint32)(CrossReferenceEntryType::Free);
+									} else if (ch == 'n') {
+										entry.type = (sl_uint32)(CrossReferenceEntryType::Normal);
+									} else {
+										return sl_false;
+									}
+									if (peekChar(ch)) {
+										if (!(IsWhitespace(ch))) {
+											return sl_false;
+										}
+									}
+									return sl_true;
+								}
+							}
+						}
+					}
+				}
+				return sl_false;
+			}
+
+			sl_bool readCrossReferenceSection()
+			{
+				sl_uint32 firstObjectNumber;
+				if (readUint(firstObjectNumber)) {
+					if (skipWhitespaces()) {
+						sl_uint32 count;
+						if (readUint(count)) {
+							for (sl_uint32 i = 0; i < count; i++) {
+								if (!(skipWhitespaces())) {
+									return sl_false;
+								}
+								CrossReferenceEntry entry;
+								if (!(readCrossReferenceEntry(entry))) {
+									return sl_false;
+								}
+								setReferenceEntry(firstObjectNumber + i, entry);
+							}
+							return sl_true;
+						}
+					}
+				}
+				return sl_false;
+			}
+
+			sl_bool readCrossReferenceStream(Ref<PdfDictionary>& outTrailer)
+			{
+				PdfReference refStream;
+				PdfValue vStream = readObject(refStream);
+				if (refStream.generation) {
+					return sl_false;
+				}
+				const Ref<PdfStream>& stream = vStream.getStream();
+				if (stream.isNull()) {
+					return sl_false;
+				}
+				if (!(stream->getProperty(name::Type).equalsName(name::XRef))) {
+					return sl_false;
+				}
+				sl_uint32 size;
+				if (!(stream->getProperty(name::Size).getUint(size))) {
+					return sl_false;
+				}
+				Ref<PdfArray> entrySizes = stream->getProperty(name::W).getArray();
+				if (entrySizes.isNull()) {
+					return sl_false;
+				}
+				if (entrySizes->getCount() != 3) {
+					return sl_false;
+				}
+				if (!(entrySizes->get(0).getType() == PdfValueType::Uint && entrySizes->get(1).getType() == PdfValueType::Uint && entrySizes->get(2).getType() == PdfValueType::Uint)) {
+					return sl_false;
+				}
+				CList< Pair<sl_uint32, sl_uint32> > listSectionRanges;
+				sl_size nEntries = 0;
+				PdfValue vIndex = stream->getProperty(name::Index);
+				if (vIndex.isNotUndefined()) {
+					const Ref<PdfArray>& indices = vIndex.getArray();
+					if (indices.isNull()) {
+						return sl_false;
+					}
+					sl_uint32 n = indices->getCount();
+					if (n & 1) {
+						return sl_false;
+					}
+					for (sl_size i = 0; i < n; i += 2) {
+						sl_uint32 start, count;
+						if (!(indices->get(i).getUint(start))) {
+							return sl_false;
+						}
+						if (!(indices->get(i + 1).getUint(count))) {
+							return sl_false;
+						}
+						listSectionRanges.add_NoLock(start, count);
+						nEntries += count;
+					}
+				} else {
+					listSectionRanges.add_NoLock(0, size);
+					nEntries = size;
+				}
+				sl_uint32 sizeType = entrySizes->get(0).getUint();
+				sl_uint32 sizeOffset = entrySizes->get(1).getUint();
+				sl_uint32 sizeGeneration = entrySizes->get(2).getUint();
+				sl_uint32 sizeEntry = sizeType + sizeOffset + sizeGeneration;
+				Memory content = stream->getDecodedContent();
+				if (content.getSize() >= sizeEntry * nEntries) {
+					sl_uint8* p = (sl_uint8*)(content.getData());
+					ListElements< Pair<sl_uint32, sl_uint32> > sectionRanges(listSectionRanges);
+					for (sl_size iSection = 0; iSection < sectionRanges.count; iSection++) {
+						Pair<sl_uint32, sl_uint32>& range = sectionRanges[iSection];
+						for (sl_uint32 i = 0; i < range.second; i++) {
+							CrossReferenceEntry entry;
+							sl_uint32 type = ReadUint(p, sizeType, 1);
+							if (type > 2) {
+								return sl_false;
+							}
+							entry.type = type;
+							p += sizeType;
+							entry.offset = ReadUint(p, sizeOffset, 0);
+							p += sizeOffset;
+							entry.generation = ReadUint(p, sizeGeneration, 0);
+							p += sizeGeneration;
+							setReferenceEntry(range.first + i, entry);
+						}
+					}
+					outTrailer = stream->properties;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool readCrossReferenceTable(Ref<PdfDictionary>& outTrailer)
+			{
+				if (!(readWordAndEquals(StringView::literal("xref")))) {
+					return sl_false;
+				}
+				sl_char8 ch;
+				for (;;) {
+					if (!(skipWhitespaces())) {
+						return sl_false;
+					}
+					if (!(peekChar(ch))) {
+						break;
+					}
+					if (ch == 't') {
+						outTrailer = readTrailer();
+						if (outTrailer.isNotNull()) {
+							sl_uint32 offsetXRefStream;
+							if (outTrailer->get(name::XRefStm).getUint(offsetXRefStream)) {
+								if (setPosition(offsetXRefStream)) {
+									readCrossReferenceStream(outTrailer);
+								}
+							}
+							return sl_true;
+						} else {
+							return sl_false;
+						}
+					} else if (ch >= '0' && ch <= '9') {
+						if (!(readCrossReferenceSection())) {
+							return sl_false;
+						}
+					} else {
+						break;
+					}
 				}
 				return sl_true;
 			}
 
-			static void PredictTIFF(sl_uint8* bufData, sl_uint32 sizeData, sl_uint32 colors, sl_uint32 bitsPerComponent, sl_uint32 columns) {
-				sl_uint32 sizeRow = (colors * bitsPerComponent * columns + 7) >> 3;
-				if (!sizeRow) {
-					return;
+			sl_bool readCrossReferences(Ref<PdfDictionary>& outTrailer)
+			{
+				sl_char8 ch;
+				if (!(peekChar(ch))) {
+					return sl_false;
 				}
-				sl_uint32 nFullRows = sizeData / sizeRow;
-				sl_uint32 sizeRemain = sizeData % sizeRow;
-				sl_uint32 nRows = sizeRemain ? nFullRows + 1 : nFullRows;
-				if (!nRows) {
-					return;
+				if (ch == 'x') {
+					return readCrossReferenceTable(outTrailer);
+				} else {
+					return readCrossReferenceStream(outTrailer);
 				}
-				sl_uint8* row = bufData;
-				for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
-					if (bitsPerComponent == 1) {
-						sl_uint32 n = (iRow == nFullRows ? sizeRemain : sizeRow) << 3;
-						sl_uint8 bit = (*row >> 7) & 1;
-						for (sl_uint32 i = 1; i < n; i++) {
-							sl_uint32 x = i >> 3;
-							sl_uint32 iBit = 7 - (i & 7);
-							bit ^= ((row[x] >> iBit) & 1);
-							if (bit) {
-								row[x] |= 1 << iBit;
-							} else {
-								row[x] &= ~(1 << iBit);
-							}
-						}
-					} else {
-						sl_uint32 nBytesPerPixel = (bitsPerComponent * colors) >> 3;
-						sl_uint32 n = iRow == nFullRows ? sizeRemain : sizeRow;
-						if (bitsPerComponent == 16) {
-							sl_uint16 pixel = MIO::readUint16BE(row);
-							for (sl_uint32 i = nBytesPerPixel; i + 1 < n; i += 2) {
-								pixel += MIO::readUint16BE(row + i);
-								MIO::writeUint16BE(row + i, pixel);
-							}
-						} else {
-							for (sl_uint32 i = nBytesPerPixel; i < n; i++) {
-								row[i] += row[i - 1];
-							}
-						}
-					}
-					row += sizeRow;
-				}
+				return sl_false;
 			}
 
-			static void InvertBlackWhite(Image* image)
+			sl_bool readStartXref(sl_uint32& posStartXref, sl_uint32& posXref)
 			{
-				Color* colors = image->getColors();
-				sl_uint32 w = image->getWidth();
-				sl_uint32 h = image->getHeight();
-				for (sl_uint32 i = 0; i < h; i++) {
-					for (sl_uint32 j = 0; j < w; j++) {
-						if (colors[j].r) {
-							colors[j] = Color::Black;
-						} else {
-							colors[j] = Color::White;
+				sl_reg pos = findBackward(StringView::literal("startxref"), -1, 4096);
+				if (pos > 0) {
+					if (setPosition(pos - 1)) {
+						if (readCharAndIsWhitespace()) {
+							if (readWordAndEquals(StringView::literal("startxref"))) {
+								posStartXref = (sl_uint32)pos;
+								if (skipWhitespaces()) {
+									if (readUint(posXref)) {
+										return sl_true;
+									}
+								}
+							}
 						}
 					}
-					colors += image->getStride();
 				}
+				return sl_false;
 			}
 
-			SLIB_INLINE static sl_uint8 ApplyDecode(sl_uint8 source, sl_uint8 min, sl_uint8 max)
+			sl_bool readDocument(const PdfDocumentParam& param) override
 			{
-				return (sl_uint8)(min + (((sl_int32)(max - min) * (sl_int32)source) >> 8));
-			}
+				sl_char8 version[8];
+				if (read(version, 8) != 8) {
+					return sl_false;
+				}
+				if (version[0] != '%' || version[1] != 'P' || version[2] != 'D' || version[3] != 'F' || version[4] != '-' || version[6] != '.') {
+					return sl_false;
+				}
 
-			const sl_uint8 g_faxBlackRunIns[] = {
-				0,          2,          0x02,       3,          0,          0x03,
-				2,          0,          2,          0x02,       1,          0,
-				0x03,       4,          0,          2,          0x02,       6,
-				0,          0x03,       5,          0,          1,          0x03,
-				7,          0,          2,          0x04,       9,          0,
-				0x05,       8,          0,          3,          0x04,       10,
-				0,          0x05,       11,         0,          0x07,       12,
-				0,          2,          0x04,       13,         0,          0x07,
-				14,         0,          1,          0x18,       15,         0,
-				5,          0x08,       18,         0,          0x0f,       64,
-				0,          0x17,       16,         0,          0x18,       17,
-				0,          0x37,       0,          0,          10,         0x08,
-				0x00,       0x07,       0x0c,       0x40,       0x07,       0x0d,
-				0x80,       0x07,       0x17,       24,         0,          0x18,
-				25,         0,          0x28,       23,         0,          0x37,
-				22,         0,          0x67,       19,         0,          0x68,
-				20,         0,          0x6c,       21,         0,          54,
-				0x12,       1984 % 256, 1984 / 256, 0x13,       2048 % 256, 2048 / 256,
-				0x14,       2112 % 256, 2112 / 256, 0x15,       2176 % 256, 2176 / 256,
-				0x16,       2240 % 256, 2240 / 256, 0x17,       2304 % 256, 2304 / 256,
-				0x1c,       2368 % 256, 2368 / 256, 0x1d,       2432 % 256, 2432 / 256,
-				0x1e,       2496 % 256, 2496 / 256, 0x1f,       2560 % 256, 2560 / 256,
-				0x24,       52,         0,          0x27,       55,         0,
-				0x28,       56,         0,          0x2b,       59,         0,
-				0x2c,       60,         0,          0x33,       320 % 256,  320 / 256,
-				0x34,       384 % 256,  384 / 256,  0x35,       448 % 256,  448 / 256,
-				0x37,       53,         0,          0x38,       54,         0,
-				0x52,       50,         0,          0x53,       51,         0,
-				0x54,       44,         0,          0x55,       45,         0,
-				0x56,       46,         0,          0x57,       47,         0,
-				0x58,       57,         0,          0x59,       58,         0,
-				0x5a,       61,         0,          0x5b,       256 % 256,  256 / 256,
-				0x64,       48,         0,          0x65,       49,         0,
-				0x66,       62,         0,          0x67,       63,         0,
-				0x68,       30,         0,          0x69,       31,         0,
-				0x6a,       32,         0,          0x6b,       33,         0,
-				0x6c,       40,         0,          0x6d,       41,         0,
-				0xc8,       128,        0,          0xc9,       192,        0,
-				0xca,       26,         0,          0xcb,       27,         0,
-				0xcc,       28,         0,          0xcd,       29,         0,
-				0xd2,       34,         0,          0xd3,       35,         0,
-				0xd4,       36,         0,          0xd5,       37,         0,
-				0xd6,       38,         0,          0xd7,       39,         0,
-				0xda,       42,         0,          0xdb,       43,         0,
-				20,         0x4a,       640 % 256,  640 / 256,  0x4b,       704 % 256,
-				704 / 256,  0x4c,       768 % 256,  768 / 256,  0x4d,       832 % 256,
-				832 / 256,  0x52,       1280 % 256, 1280 / 256, 0x53,       1344 % 256,
-				1344 / 256, 0x54,       1408 % 256, 1408 / 256, 0x55,       1472 % 256,
-				1472 / 256, 0x5a,       1536 % 256, 1536 / 256, 0x5b,       1600 % 256,
-				1600 / 256, 0x64,       1664 % 256, 1664 / 256, 0x65,       1728 % 256,
-				1728 / 256, 0x6c,       512 % 256,  512 / 256,  0x6d,       576 % 256,
-				576 / 256,  0x72,       896 % 256,  896 / 256,  0x73,       960 % 256,
-				960 / 256,  0x74,       1024 % 256, 1024 / 256, 0x75,       1088 % 256,
-				1088 / 256, 0x76,       1152 % 256, 1152 / 256, 0x77,       1216 % 256,
-				1216 / 256, 0xff };
+				sl_char8 c5 = version[5];
+				if (!SLIB_CHAR_IS_DIGIT(c5)) {
+					return sl_false;
+				}
+				sl_char8 c7 = version[7];
+				if (!SLIB_CHAR_IS_DIGIT(c7)) {
+					return sl_false;
+				}
 
-			const sl_uint8 g_faxWhiteRunIns[] = {
-				0,          0,          0,          6,          0x07,       2,
-				0,          0x08,       3,          0,          0x0B,       4,
-				0,          0x0C,       5,          0,          0x0E,       6,
-				0,          0x0F,       7,          0,          6,          0x07,
-				10,         0,          0x08,       11,         0,          0x12,
-				128,        0,          0x13,       8,          0,          0x14,
-				9,          0,          0x1b,       64,         0,          9,
-				0x03,       13,         0,          0x07,       1,          0,
-				0x08,       12,         0,          0x17,       192,        0,
-				0x18,       1664 % 256, 1664 / 256, 0x2a,       16,         0,
-				0x2B,       17,         0,          0x34,       14,         0,
-				0x35,       15,         0,          12,         0x03,       22,
-				0,          0x04,       23,         0,          0x08,       20,
-				0,          0x0c,       19,         0,          0x13,       26,
-				0,          0x17,       21,         0,          0x18,       28,
-				0,          0x24,       27,         0,          0x27,       18,
-				0,          0x28,       24,         0,          0x2B,       25,
-				0,          0x37,       256 % 256,  256 / 256,  42,         0x02,
-				29,         0,          0x03,       30,         0,          0x04,
-				45,         0,          0x05,       46,         0,          0x0a,
-				47,         0,          0x0b,       48,         0,          0x12,
-				33,         0,          0x13,       34,         0,          0x14,
-				35,         0,          0x15,       36,         0,          0x16,
-				37,         0,          0x17,       38,         0,          0x1a,
-				31,         0,          0x1b,       32,         0,          0x24,
-				53,         0,          0x25,       54,         0,          0x28,
-				39,         0,          0x29,       40,         0,          0x2a,
-				41,         0,          0x2b,       42,         0,          0x2c,
-				43,         0,          0x2d,       44,         0,          0x32,
-				61,         0,          0x33,       62,         0,          0x34,
-				63,         0,          0x35,       0,          0,          0x36,
-				320 % 256,  320 / 256,  0x37,       384 % 256,  384 / 256,  0x4a,
-				59,         0,          0x4b,       60,         0,          0x52,
-				49,         0,          0x53,       50,         0,          0x54,
-				51,         0,          0x55,       52,         0,          0x58,
-				55,         0,          0x59,       56,         0,          0x5a,
-				57,         0,          0x5b,       58,         0,          0x64,
-				448 % 256,  448 / 256,  0x65,       512 % 256,  512 / 256,  0x67,
-				640 % 256,  640 / 256,  0x68,       576 % 256,  576 / 256,  16,
-				0x98,       1472 % 256, 1472 / 256, 0x99,       1536 % 256, 1536 / 256,
-				0x9a,       1600 % 256, 1600 / 256, 0x9b,       1728 % 256, 1728 / 256,
-				0xcc,       704 % 256,  704 / 256,  0xcd,       768 % 256,  768 / 256,
-				0xd2,       832 % 256,  832 / 256,  0xd3,       896 % 256,  896 / 256,
-				0xd4,       960 % 256,  960 / 256,  0xd5,       1024 % 256, 1024 / 256,
-				0xd6,       1088 % 256, 1088 / 256, 0xd7,       1152 % 256, 1152 / 256,
-				0xd8,       1216 % 256, 1216 / 256, 0xd9,       1280 % 256, 1280 / 256,
-				0xda,       1344 % 256, 1344 / 256, 0xdb,       1408 % 256, 1408 / 256,
-				0,          3,          0x08,       1792 % 256, 1792 / 256, 0x0c,
-				1856 % 256, 1856 / 256, 0x0d,       1920 % 256, 1920 / 256, 10,
-				0x12,       1984 % 256, 1984 / 256, 0x13,       2048 % 256, 2048 / 256,
-				0x14,       2112 % 256, 2112 / 256, 0x15,       2176 % 256, 2176 / 256,
-				0x16,       2240 % 256, 2240 / 256, 0x17,       2304 % 256, 2304 / 256,
-				0x1c,       2368 % 256, 2368 / 256, 0x1d,       2432 % 256, 2432 / 256,
-				0x1e,       2496 % 256, 2496 / 256, 0x1f,       2560 % 256, 2560 / 256,
-				0xff,
-			};
+				majorVersion = SLIB_CHAR_DIGIT_TO_INT(c5);
+				minorVersion = SLIB_CHAR_DIGIT_TO_INT(c7);
 
-			class FaxImageDecoder
-			{
-			public:
-				Ref<Image> output;
-
-			private:
-				sl_uint32 columns;
-				sl_uint32 rows;
-
-				sl_int32 encoding;
-				sl_bool flagEndOfLine;
-				sl_bool flagByteAlign;
-
-				sl_uint8* content;
-				sl_uint32 bitPos = 0;
-				sl_uint32 bitSize;
-
-			private:
-				SLIB_INLINE sl_bool getNextBit()
+				// read last trailer and read reference table
 				{
-					sl_bool ret = (content[bitPos >> 3] >> (7 - (bitPos & 7))) & 1;
-					bitPos++;
-					return ret;
-				}
-
-				sl_int32 getRun(const sl_uint8* ins_array) {
-					sl_uint32 code = 0;
-					sl_int32 ins_off = 0;
-					for (;;) {
-						sl_uint8 ins = ins_array[ins_off++];
-						if (ins == 0xff) {
-							return -1;
-						}
-						if (bitPos >= bitSize) {
-							return -1;
-						}
-						code <<= 1;
-						if (getNextBit()) {
-							code++;
-						}
-						sl_int32 next_off = ins_off + ins * 3;
-						for (; ins_off < next_off; ins_off += 3) {
-							if (ins_array[ins_off] == code) {
-								return SLIB_MAKE_WORD(ins_array[ins_off + 2], ins_array[ins_off + 1]);
-							}
-						}
-					}
-				}
-
-				void skipEOL()
-				{
-					sl_uint32 start = bitPos;
-					while (bitPos < bitSize) {
-						if (getNextBit()) {
-							if (bitPos - start <= 11) {
-								bitPos = start;
-							}
-							return;
-						}
-					}
-				}
-
-				static sl_bool getBit(const Color* ref, sl_int32 index)
-				{
-					if (ref && index >= 0) {
-						return ref[index].r != 0;
-					} else {
-						return sl_true;
-					}
-				}
-
-				static sl_uint32 findBit(const Color* ref, sl_uint32 length, sl_uint32 start, sl_bool bit) {
-					if (ref) {
-						while (start < length) {
-							if (bit) {
-								if (ref[start].r) {
-									return start;
-								}
-							} else {
-								if (!(ref[start].r)) {
-									return start;
-								}
-							}
-							start++;
-						}
-						return length;
-					} else {
-						if (bit && start < length) {
-							return start;
-						} else {
-							return length;
-						}
-					}
-				}
-
-				static void fillBits(Color* dst, sl_int32 limit, sl_int32 start, sl_int32 end)
-				{
-					if (end > limit) {
-						end = limit;
-					}
-					while (start < end) {
-						dst[start] = Color::Black;
-						start++;
-					}
-				}
-
-				void G4_findB1B2(Color* ref, sl_int32 a0, sl_bool a0color, sl_uint32& b1, sl_uint32& b2)
-				{
-					sl_bool bitFirst = getBit(ref, a0);
-					b1 = findBit(ref, columns, a0 + 1, !bitFirst);
-					if (b1 >= columns) {
-						b1 = b2 = columns;
-						return;
-					}
-					if (bitFirst == !a0color) {
-						b1 = findBit(ref, columns, b1 + 1, bitFirst);
-						bitFirst = !bitFirst;
-					}
-					if (b1 >= columns) {
-						b1 = b2 = columns;
-						return;
-					}
-					b2 = findBit(ref, columns, b1 + 1, bitFirst);
-				}
-
-				void decodeScanline_G4(Color* colors, Color* ref)
-				{
-					sl_int32 a0 = -1;
-					sl_bool a0color = sl_true;
-					for (;;) {
-						if (bitPos >= bitSize) {
-							return;
-						}
-						sl_uint32 b1, b2;
-						G4_findB1B2(ref, a0, a0color, b1, b2);
-						sl_int32 v_delta = 0;
-						if (!(getNextBit())) {
-							if (bitPos >= bitSize) {
-								return;
-							}
-							bool bit1 = getNextBit();
-							if (bitPos >= bitSize) {
-								return;
-							}
-							bool bit2 = getNextBit();
-							if (bit1) {
-								v_delta = bit2 ? 1 : -1;
-							} else if (bit2) {
-								sl_int32 run_len1 = 0;
-								for (;;) {
-									sl_int32 run = getRun(a0color ? g_faxWhiteRunIns : g_faxBlackRunIns);
-									run_len1 += run;
-									if (run < 64) {
-										break;
-									}
-								}
-								if (a0 < 0) {
-									run_len1++;
-								}
-								if (run_len1 < 0) {
-									return;
-								}
-								sl_int32 a1 = a0 + run_len1;
-								if (!a0color) {
-									fillBits(colors, columns, a0, a1);
-								}
-
-								sl_int32 run_len2 = 0;
-								for (;;) {
-									int run = getRun(a0color ? g_faxBlackRunIns : g_faxWhiteRunIns);
-									run_len2 += run;
-									if (run < 64) {
-										break;
-									}
-								}
-								if (run_len2 < 0) {
-									return;
-								}
-								sl_int32 a2 = a1 + run_len2;
-								if (a0color) {
-									fillBits(colors, columns, a1, a2);
-								}
-
-								a0 = a2;
-								if (a0 < (sl_int32)columns) {
-									continue;
-								}
-								return;
-							} else {
-								if (bitPos >= bitSize) {
-									return;
-								}
-								if (getNextBit()) {
-									if (!a0color) {
-										fillBits(colors, columns, a0, b2);
-									}
-									if (b2 >= columns) {
-										return;
-									}
-									a0 = b2;
-									continue;
-								}
-
-								if (bitPos >= bitSize) {
-									return;
-								}
-
-								sl_bool next_bit1 = getNextBit();
-								if (bitPos >= bitSize) {
-									return;
-								}
-								sl_bool next_bit2 = getNextBit();
-								if (next_bit1) {
-									v_delta = next_bit2 ? 2 : -2;
-								} else if (next_bit2) {
-									if (bitPos >= bitSize) {
-										return;
-									}
-									v_delta = getNextBit() ? 3 : -3;
-								} else {
-									if (bitPos >= bitSize) {
-										return;
-									}
-									if (getNextBit()) {
-										bitPos += 3;
-										continue;
-									}
-									bitPos += 5;
-									return;
-								}
-							}
-						}
-
-						sl_int32 a1 = b1 + v_delta;
-						if (!a0color) {
-							fillBits(colors, columns, a0, a1);
-						}
-						if (a1 >= (sl_int32)columns) {
-							return;
-						}
-
-						// The position of picture element must be monotonic increasing.
-						if (a0 >= a1) {
-							return;
-						}
-
-						a0 = a1;
-						a0color = !a0color;
-					}
-				}
-
-				void decodeScanline_1D(Color* colors)
-				{
-					sl_bool color = sl_true;
-					sl_int32 start = 0;
-					for (;;) {
-						if (bitPos >= bitSize) {
-							return;
-						}
-						sl_int32 run_len = 0;
-						for (;;) {
-							sl_int32 run = getRun(color ? g_faxWhiteRunIns : g_faxBlackRunIns);
-							if (run < 0) {
-								while (bitPos < bitSize) {
-									if (getNextBit()) {
-										return;
-									}
-								}
-								return;
-							}
-							run_len += run;
-							if (run < 64) {
-								break;
-							}
-						}
-						if (!color) {
-							fillBits(colors, columns, start, start + run_len);
-						}
-						start += run_len;
-						if (start >= (sl_int32)columns) {
-							break;
-						}
-						color = !color;
-					}
-				}
-
-				void decodeScanline(Color* colors, Color* ref)
-				{
-					skipEOL();
-					if (bitPos >= bitSize) {
-						return;
-					}
-					Base::resetMemory(colors, columns << 2, 255);
-					if (encoding < 0) {
-						decodeScanline_G4(colors, ref);
-					} else if (!encoding) {
-						decodeScanline_1D(colors);
-					} else {
-						if (getNextBit()) {
-							decodeScanline_1D(colors);
-						} else {
-							decodeScanline_G4(colors, ref);
-						}
-					}
-					if (flagEndOfLine) {
-						skipEOL();
-					}
-					if (flagByteAlign && bitPos < bitSize) {
-						sl_uint32 bitPos0 = bitPos;
-						sl_uint32 bitPos1 = (bitPos + 7) & 0xFFFFFFF8;
-						while (flagByteAlign && bitPos0 < bitPos1) {
-							if ((content[bitPos0 >> 3] >> (7 - (bitPos0 & 3))) & 1) {
-								flagByteAlign = sl_false;
-							} else {
-								bitPos0++;
-							}
-						}
-						if (flagByteAlign) {
-							bitPos = bitPos1;
-						}
-					}
-				}
-
-			public:
-				sl_bool run(const void* _content, sl_size size, sl_uint32 width, sl_uint32 height, const PdfCCITTFaxDecodeParams& params)
-				{
-					columns = params.columns;
-					if (!columns) {
-						columns = 1728;
-					}
-					if (columns > width) {
-						columns = width;
-					}
-					rows = params.rows;
-					if (!rows || rows > height) {
-						rows = height;
-					}
-					output = Image::allocate(columns, rows);
-					if (output.isNull()) {
+					sl_uint32 posStartXref, posXref;
+					if (!(readStartXref(posStartXref, posXref))) {
 						return sl_false;
 					}
-					encoding = params.K;
-					flagEndOfLine = params.flagEndOfLine;
-					flagByteAlign = params.flagByteAlign;
-					content = (sl_uint8*)_content;
-					bitSize = (sl_uint32)size << 3;
-					Color* colors = output->getColors();
-					Color* top = sl_null;
-					for (sl_uint32 iRow = 0; iRow < rows; iRow++) {
-						decodeScanline(colors, top);
-						top = colors;
-						colors += columns;
+					// last trailer
+					{
+						if (!(setPosition(posXref))) {
+							return sl_false;
+						}
+						if (!(readCrossReferences(lastTrailer))) {
+							return sl_false;
+						}
 					}
-					if (params.flagBlackIs1) {
-						InvertBlackWhite(output.get());
+					// initialize reference table
+					{
+						sl_uint32 countTotalRef = 0;
+						lastTrailer->get(name::Size).getUint(countTotalRef);
+						if (!countTotalRef) {
+							return sl_false;
+						}
+						m_references = Array<CrossReferenceEntry>::create(countTotalRef);
+						if (m_references.isNull()) {
+							return sl_false;
+						}
+						Base::zeroMemory(m_references.getData(), countTotalRef * sizeof(CrossReferenceEntry));
+						m_maxObjectNumber = countTotalRef - 1;
 					}
-					return sl_true;
-				}
-
-			};
-
-			static Ref<Image> DecodeFaxImage(const void* content, sl_size size, sl_uint32 width, sl_uint32 height, const PdfCCITTFaxDecodeParams& params)
-			{
-				FaxImageDecoder decoder;
-				if (decoder.run(content, size, width, height, params)) {
-					return decoder.output;
-				}
-				return sl_null;
-			}
-
-			static Memory CreateImageMemory(const Ref<Image>& image)
-			{
-				if (image.isNotNull()) {
-					return Memory::createStatic(image->getColors(), (image->getStride() * image->getHeight()) << 2, image);
-				}
-				return sl_null;
-			}
-
-			static Ref<Image> CreateImageObject(sl_uint32 width, sl_uint32 height, sl_uint8* data, sl_reg pitch, PdfColorSpaceType colorSpace, sl_uint32 bitsPerComponent, Color* indices, sl_uint32 nIndices)
-			{
-				if (width && height && bitsPerComponent) {
-					switch (colorSpace) {
-						case PdfColorSpaceType::RGB:
-							return Image::createFromRGB(width, height, data, bitsPerComponent, pitch);
-						case PdfColorSpaceType::CMYK:
-							return Image::createFromCMYK(width, height, data, bitsPerComponent, pitch);
-						case PdfColorSpaceType::Gray:
-							return Image::createFromGray(width, height, data, bitsPerComponent, pitch);
-						case PdfColorSpaceType::Indexed:
-							if (indices) {
-								return Image::createFromIndexed(width, height, data, indices, nIndices, bitsPerComponent, pitch);
-							}
+					for (;;) {
+						if (!(setPosition(posXref))) {
+							return sl_false;
+						}
+						Ref<PdfDictionary> trailer;
+						if (!(readCrossReferences(trailer))) {
+							return sl_false;
+						}
+						PdfValue prev = trailer->get(name::Prev);
+						if (prev.isUndefined()) {
 							break;
-						default:
-							break;
+						}
+						if (!(prev.getUint(posXref))) {
+							return sl_false;
+						}
 					}
 				}
-				return sl_null;
+				return initDocument(param);
 			}
 
+		};
+
+		typedef ContextT<BufferedReaderBase> BufferedContext;
+		typedef ContextT<MemoryReaderBase> MemoryContext;
+
+		Ref<ObjectStream> Context::getObjectStream(const PdfReference& ref)
+		{
+			sl_uint64 _id = GetObjectId(ref);
+			Ref<ObjectStream> ret;
+			if (m_objectStreams.get(_id, &ret)) {
+				return ret;
+			}
+			Ref<PdfStream> stream = getObject(ref).getStream();
+			if (stream.isNull()) {
+				return sl_null;
+			}
+			if (!(stream->getProperty(name::Type).equalsName(name::ObjStm))) {
+				return sl_null;
+			}
+			sl_uint32 nObjects;
+			if (!(stream->getProperty(name::N).getUint(nObjects))) {
+				return sl_null;
+			}
+			sl_uint32 first;
+			if (!(stream->getProperty(name::First).getUint(first))) {
+				return sl_null;
+			}
+			Memory content = stream->getDecodedContent();
+			if (content.isNull()) {
+				return sl_null;
+			}
+			ret = new ObjectStream;
+			if (ret.isNull()) {
+				return sl_null;
+			}
+			PdfValue vExtends = stream->getProperty(name::Extends, sl_false);
+			if (vExtends.isNotUndefined()) {
+				PdfReference refExtends;
+				if (!(vExtends.getReference(refExtends))) {
+					return sl_null;
+				}
+				if (refExtends == ref) {
+					return sl_null;
+				}
+				ret->extends = getObjectStream(refExtends);
+				if (ret->extends.isNull()) {
+					return sl_null;
+				}
+			}
+			MemoryContext context(m_baseContext);
+			context.source = (sl_char8*)(content.getData());
+			context.sizeSource = (sl_uint32)(content.getSize());
+			for (sl_uint32 i = 0; i < nObjects; i++) {
+				if (!(context.skipWhitespaces())) {
+					return sl_null;
+				}
+				sl_uint32 innerId;
+				if (!(context.readUint(innerId))) {
+					return sl_null;
+				}
+				if (!(context.skipWhitespaces())) {
+					return sl_null;
+				}
+				sl_uint32 offset;
+				if (!(context.readUint(offset))) {
+					return sl_null;
+				}
+				sl_uint32 pos = context.getPosition();
+				if (!(context.setPosition(first + offset))) {
+					return sl_null;
+				}
+				PdfValue innerValue = context.readValue(PdfReference(0, 0));
+				if (innerValue.isUndefined()) {
+					return sl_null;
+				}
+				ret->objects.add_NoLock(innerId, Move(innerValue));
+				context.setPosition(pos);
+			}
+			m_objectStreams.put(_id, ret);
+			return ret;
 		}
-	}
 
-	using namespace priv::pdf;
+		SLIB_INLINE static Context* GetContext(const Ref<Referable>& ref)
+		{
+			return (Context*)(ref.get());
+		}
+
+		SLIB_INLINE static Ref<Context> GetContextRef(const Ref<Referable>& ref)
+		{
+			return Ref<Context>::from(ref);
+		}
+
+	}
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfName)
@@ -6103,6 +4098,663 @@ namespace slib
 		return sl_null;
 	}
 
+	namespace {
+
+		static Memory DecodeASCIIHex(const void* _input, sl_size len)
+		{
+			Memory ret = Memory::create((len + 1) >> 1);
+			if (ret.isNull()) {
+				return sl_null;
+			}
+			sl_char8* str = (sl_char8*)_input;
+			sl_uint8* dst = (sl_uint8*)(ret.getData());
+			sl_uint8* cur = dst;
+			sl_bool flagFirstHex = sl_true;
+			sl_uint8 firstHex = 0;
+			for (sl_size i = 0; i < len; i++) {
+				sl_char8 ch = str[i];
+				sl_uint8 h = SLIB_CHAR_HEX_TO_INT(ch);
+				if (h < 16) {
+					if (flagFirstHex) {
+						firstHex = h;
+						flagFirstHex = sl_false;
+					} else {
+						*(cur++) = (firstHex << 4) | h;
+						flagFirstHex = sl_true;
+					}
+				} else if (!(IsWhitespace(ch)) && ch != '>') {
+					return sl_null;
+				}
+			}
+			if (!flagFirstHex) {
+				*(cur++) = firstHex << 4;
+			}
+			return ret.sub(0, cur - dst);
+		}
+
+		static Memory CreateMemoryFromList(CList<sl_uint8>* pList)
+		{
+			sl_size n = pList->getCount();
+			if (!n) {
+				return sl_null;
+			}
+			pList->setCapacity_NoLock(n);
+			return Memory::createStatic(pList->getData(), pList->getCount(), pList);
+		}
+
+		static Memory DecodeASCII85(const void* _input, sl_size len)
+		{
+			List<sl_uint8> list = List<sl_uint8>::create(0, ((len + 4) / 5) << 2);
+			CList<sl_uint8>* pList = list.ref.get();
+			if (!pList) {
+				return sl_null;
+			}
+			sl_char8* str = (sl_char8*)_input;
+			sl_uint32 indexElement = 0;
+			sl_uint32 dword = 0;
+			for (sl_size i = 0; i < len; i++) {
+				sl_uint8 v = str[i];
+				if (v == 'z') {
+					if (indexElement) {
+						return sl_null;
+					} else {
+						pList->addElements_NoLock(4, 0);
+					}
+				} else {
+					if (v >= '!' && v <= 'u') {
+						v -= '!';
+						dword = dword * 85 + v;
+						indexElement++;
+						if (indexElement >= 5) {
+							sl_uint8 bytes[4];
+							MIO::writeUint32BE(bytes, dword);
+							pList->addElements_NoLock(bytes, 4);
+							indexElement = 0;
+							dword = 0;
+						}
+					} else if (v == '~') {
+						if (i + 2 == len) {
+							if (str[i + 1] == '>') {
+								if (indexElement == 1) {
+									return sl_null;
+								}
+								if (indexElement) {
+									for (sl_uint32 i = 0; i < indexElement; i++) {
+										dword *= 85;
+									}
+									sl_uint8 bytes[4];
+									MIO::writeUint32BE(bytes, dword);
+									pList->addElements_NoLock(bytes, indexElement - 1);
+								}
+								return CreateMemoryFromList(pList);
+							}
+						}
+						return sl_null;
+					} else if (!(IsWhitespace(v)) && v != '>') {
+						return sl_null;
+					}
+				}
+			}
+			return sl_null;
+		}
+
+		static Memory DecodeRunLength(const void* _input, sl_size size)
+		{
+			if (!size) {
+				return sl_null;
+			}
+			List<sl_uint8> list = List<sl_uint8>::create();
+			CList<sl_uint8>* pList = list.ref.get();
+			if (!pList) {
+				return sl_null;
+			}
+			sl_uint8* input = (sl_uint8*)_input;
+			sl_size pos = 0;
+			for (;;) {
+				sl_uint8 len = input[pos];
+				if (len == 0x80) {
+					break;
+				}
+				if (len & 0x80) {
+					pos++;
+					if (pos >= size) {
+						return sl_null;
+					}
+					sl_uint8 v = input[pos];
+					pos++;
+					if (!(pList->addElements_NoLock(257 - len, v))) {
+						return sl_null;
+					}
+				} else {
+					pos++;
+					len++;
+					if (pos + len > size) {
+						return sl_null;
+					}
+					if (!(pList->addElements_NoLock(input + pos, len))) {
+						return sl_null;
+					}
+					pos += len;
+				}
+				if (pos >= size) {
+					break;
+				}
+			}
+			return CreateMemoryFromList(pList);
+		}
+
+		static Memory CreateImageMemory(const Ref<Image>& image)
+		{
+			if (image.isNotNull()) {
+				return Memory::createStatic(image->getColors(), (image->getStride() * image->getHeight()) << 2, image);
+			}
+			return sl_null;
+		}
+
+		static void InvertBlackWhite(Image* image)
+		{
+			Color* colors = image->getColors();
+			sl_uint32 w = image->getWidth();
+			sl_uint32 h = image->getHeight();
+			for (sl_uint32 i = 0; i < h; i++) {
+				for (sl_uint32 j = 0; j < w; j++) {
+					if (colors[j].r) {
+						colors[j] = Color::Black;
+					} else {
+						colors[j] = Color::White;
+					}
+				}
+				colors += image->getStride();
+			}
+		}
+
+		static const sl_uint8 g_faxBlackRunIns[] = {
+			0,          2,          0x02,       3,          0,          0x03,
+			2,          0,          2,          0x02,       1,          0,
+			0x03,       4,          0,          2,          0x02,       6,
+			0,          0x03,       5,          0,          1,          0x03,
+			7,          0,          2,          0x04,       9,          0,
+			0x05,       8,          0,          3,          0x04,       10,
+			0,          0x05,       11,         0,          0x07,       12,
+			0,          2,          0x04,       13,         0,          0x07,
+			14,         0,          1,          0x18,       15,         0,
+			5,          0x08,       18,         0,          0x0f,       64,
+			0,          0x17,       16,         0,          0x18,       17,
+			0,          0x37,       0,          0,          10,         0x08,
+			0x00,       0x07,       0x0c,       0x40,       0x07,       0x0d,
+			0x80,       0x07,       0x17,       24,         0,          0x18,
+			25,         0,          0x28,       23,         0,          0x37,
+			22,         0,          0x67,       19,         0,          0x68,
+			20,         0,          0x6c,       21,         0,          54,
+			0x12,       1984 % 256, 1984 / 256, 0x13,       2048 % 256, 2048 / 256,
+			0x14,       2112 % 256, 2112 / 256, 0x15,       2176 % 256, 2176 / 256,
+			0x16,       2240 % 256, 2240 / 256, 0x17,       2304 % 256, 2304 / 256,
+			0x1c,       2368 % 256, 2368 / 256, 0x1d,       2432 % 256, 2432 / 256,
+			0x1e,       2496 % 256, 2496 / 256, 0x1f,       2560 % 256, 2560 / 256,
+			0x24,       52,         0,          0x27,       55,         0,
+			0x28,       56,         0,          0x2b,       59,         0,
+			0x2c,       60,         0,          0x33,       320 % 256,  320 / 256,
+			0x34,       384 % 256,  384 / 256,  0x35,       448 % 256,  448 / 256,
+			0x37,       53,         0,          0x38,       54,         0,
+			0x52,       50,         0,          0x53,       51,         0,
+			0x54,       44,         0,          0x55,       45,         0,
+			0x56,       46,         0,          0x57,       47,         0,
+			0x58,       57,         0,          0x59,       58,         0,
+			0x5a,       61,         0,          0x5b,       256 % 256,  256 / 256,
+			0x64,       48,         0,          0x65,       49,         0,
+			0x66,       62,         0,          0x67,       63,         0,
+			0x68,       30,         0,          0x69,       31,         0,
+			0x6a,       32,         0,          0x6b,       33,         0,
+			0x6c,       40,         0,          0x6d,       41,         0,
+			0xc8,       128,        0,          0xc9,       192,        0,
+			0xca,       26,         0,          0xcb,       27,         0,
+			0xcc,       28,         0,          0xcd,       29,         0,
+			0xd2,       34,         0,          0xd3,       35,         0,
+			0xd4,       36,         0,          0xd5,       37,         0,
+			0xd6,       38,         0,          0xd7,       39,         0,
+			0xda,       42,         0,          0xdb,       43,         0,
+			20,         0x4a,       640 % 256,  640 / 256,  0x4b,       704 % 256,
+			704 / 256,  0x4c,       768 % 256,  768 / 256,  0x4d,       832 % 256,
+			832 / 256,  0x52,       1280 % 256, 1280 / 256, 0x53,       1344 % 256,
+			1344 / 256, 0x54,       1408 % 256, 1408 / 256, 0x55,       1472 % 256,
+			1472 / 256, 0x5a,       1536 % 256, 1536 / 256, 0x5b,       1600 % 256,
+			1600 / 256, 0x64,       1664 % 256, 1664 / 256, 0x65,       1728 % 256,
+			1728 / 256, 0x6c,       512 % 256,  512 / 256,  0x6d,       576 % 256,
+			576 / 256,  0x72,       896 % 256,  896 / 256,  0x73,       960 % 256,
+			960 / 256,  0x74,       1024 % 256, 1024 / 256, 0x75,       1088 % 256,
+			1088 / 256, 0x76,       1152 % 256, 1152 / 256, 0x77,       1216 % 256,
+			1216 / 256, 0xff };
+
+		static const sl_uint8 g_faxWhiteRunIns[] = {
+			0,          0,          0,          6,          0x07,       2,
+			0,          0x08,       3,          0,          0x0B,       4,
+			0,          0x0C,       5,          0,          0x0E,       6,
+			0,          0x0F,       7,          0,          6,          0x07,
+			10,         0,          0x08,       11,         0,          0x12,
+			128,        0,          0x13,       8,          0,          0x14,
+			9,          0,          0x1b,       64,         0,          9,
+			0x03,       13,         0,          0x07,       1,          0,
+			0x08,       12,         0,          0x17,       192,        0,
+			0x18,       1664 % 256, 1664 / 256, 0x2a,       16,         0,
+			0x2B,       17,         0,          0x34,       14,         0,
+			0x35,       15,         0,          12,         0x03,       22,
+			0,          0x04,       23,         0,          0x08,       20,
+			0,          0x0c,       19,         0,          0x13,       26,
+			0,          0x17,       21,         0,          0x18,       28,
+			0,          0x24,       27,         0,          0x27,       18,
+			0,          0x28,       24,         0,          0x2B,       25,
+			0,          0x37,       256 % 256,  256 / 256,  42,         0x02,
+			29,         0,          0x03,       30,         0,          0x04,
+			45,         0,          0x05,       46,         0,          0x0a,
+			47,         0,          0x0b,       48,         0,          0x12,
+			33,         0,          0x13,       34,         0,          0x14,
+			35,         0,          0x15,       36,         0,          0x16,
+			37,         0,          0x17,       38,         0,          0x1a,
+			31,         0,          0x1b,       32,         0,          0x24,
+			53,         0,          0x25,       54,         0,          0x28,
+			39,         0,          0x29,       40,         0,          0x2a,
+			41,         0,          0x2b,       42,         0,          0x2c,
+			43,         0,          0x2d,       44,         0,          0x32,
+			61,         0,          0x33,       62,         0,          0x34,
+			63,         0,          0x35,       0,          0,          0x36,
+			320 % 256,  320 / 256,  0x37,       384 % 256,  384 / 256,  0x4a,
+			59,         0,          0x4b,       60,         0,          0x52,
+			49,         0,          0x53,       50,         0,          0x54,
+			51,         0,          0x55,       52,         0,          0x58,
+			55,         0,          0x59,       56,         0,          0x5a,
+			57,         0,          0x5b,       58,         0,          0x64,
+			448 % 256,  448 / 256,  0x65,       512 % 256,  512 / 256,  0x67,
+			640 % 256,  640 / 256,  0x68,       576 % 256,  576 / 256,  16,
+			0x98,       1472 % 256, 1472 / 256, 0x99,       1536 % 256, 1536 / 256,
+			0x9a,       1600 % 256, 1600 / 256, 0x9b,       1728 % 256, 1728 / 256,
+			0xcc,       704 % 256,  704 / 256,  0xcd,       768 % 256,  768 / 256,
+			0xd2,       832 % 256,  832 / 256,  0xd3,       896 % 256,  896 / 256,
+			0xd4,       960 % 256,  960 / 256,  0xd5,       1024 % 256, 1024 / 256,
+			0xd6,       1088 % 256, 1088 / 256, 0xd7,       1152 % 256, 1152 / 256,
+			0xd8,       1216 % 256, 1216 / 256, 0xd9,       1280 % 256, 1280 / 256,
+			0xda,       1344 % 256, 1344 / 256, 0xdb,       1408 % 256, 1408 / 256,
+			0,          3,          0x08,       1792 % 256, 1792 / 256, 0x0c,
+			1856 % 256, 1856 / 256, 0x0d,       1920 % 256, 1920 / 256, 10,
+			0x12,       1984 % 256, 1984 / 256, 0x13,       2048 % 256, 2048 / 256,
+			0x14,       2112 % 256, 2112 / 256, 0x15,       2176 % 256, 2176 / 256,
+			0x16,       2240 % 256, 2240 / 256, 0x17,       2304 % 256, 2304 / 256,
+			0x1c,       2368 % 256, 2368 / 256, 0x1d,       2432 % 256, 2432 / 256,
+			0x1e,       2496 % 256, 2496 / 256, 0x1f,       2560 % 256, 2560 / 256,
+			0xff,
+		};
+
+		class FaxImageDecoder
+		{
+		public:
+			Ref<Image> output;
+
+		private:
+			sl_uint32 columns;
+			sl_uint32 rows;
+
+			sl_int32 encoding;
+			sl_bool flagEndOfLine;
+			sl_bool flagByteAlign;
+
+			sl_uint8* content;
+			sl_uint32 bitPos = 0;
+			sl_uint32 bitSize;
+
+		private:
+			SLIB_INLINE sl_bool getNextBit()
+			{
+				sl_bool ret = (content[bitPos >> 3] >> (7 - (bitPos & 7))) & 1;
+				bitPos++;
+				return ret;
+			}
+
+			sl_int32 getRun(const sl_uint8* ins_array) {
+				sl_uint32 code = 0;
+				sl_int32 ins_off = 0;
+				for (;;) {
+					sl_uint8 ins = ins_array[ins_off++];
+					if (ins == 0xff) {
+						return -1;
+					}
+					if (bitPos >= bitSize) {
+						return -1;
+					}
+					code <<= 1;
+					if (getNextBit()) {
+						code++;
+					}
+					sl_int32 next_off = ins_off + ins * 3;
+					for (; ins_off < next_off; ins_off += 3) {
+						if (ins_array[ins_off] == code) {
+							return SLIB_MAKE_WORD(ins_array[ins_off + 2], ins_array[ins_off + 1]);
+						}
+					}
+				}
+			}
+
+			void skipEOL()
+			{
+				sl_uint32 start = bitPos;
+				while (bitPos < bitSize) {
+					if (getNextBit()) {
+						if (bitPos - start <= 11) {
+							bitPos = start;
+						}
+						return;
+					}
+				}
+			}
+
+			static sl_bool getBit(const Color* ref, sl_int32 index)
+			{
+				if (ref && index >= 0) {
+					return ref[index].r != 0;
+				} else {
+					return sl_true;
+				}
+			}
+
+			static sl_uint32 findBit(const Color* ref, sl_uint32 length, sl_uint32 start, sl_bool bit) {
+				if (ref) {
+					while (start < length) {
+						if (bit) {
+							if (ref[start].r) {
+								return start;
+							}
+						} else {
+							if (!(ref[start].r)) {
+								return start;
+							}
+						}
+						start++;
+					}
+					return length;
+				} else {
+					if (bit && start < length) {
+						return start;
+					} else {
+						return length;
+					}
+				}
+			}
+
+			static void fillBits(Color* dst, sl_int32 limit, sl_int32 start, sl_int32 end)
+			{
+				if (end > limit) {
+					end = limit;
+				}
+				while (start < end) {
+					dst[start] = Color::Black;
+					start++;
+				}
+			}
+
+			void G4_findB1B2(Color* ref, sl_int32 a0, sl_bool a0color, sl_uint32& b1, sl_uint32& b2)
+			{
+				sl_bool bitFirst = getBit(ref, a0);
+				b1 = findBit(ref, columns, a0 + 1, !bitFirst);
+				if (b1 >= columns) {
+					b1 = b2 = columns;
+					return;
+				}
+				if (bitFirst == !a0color) {
+					b1 = findBit(ref, columns, b1 + 1, bitFirst);
+					bitFirst = !bitFirst;
+				}
+				if (b1 >= columns) {
+					b1 = b2 = columns;
+					return;
+				}
+				b2 = findBit(ref, columns, b1 + 1, bitFirst);
+			}
+
+			void decodeScanline_G4(Color* colors, Color* ref)
+			{
+				sl_int32 a0 = -1;
+				sl_bool a0color = sl_true;
+				for (;;) {
+					if (bitPos >= bitSize) {
+						return;
+					}
+					sl_uint32 b1, b2;
+					G4_findB1B2(ref, a0, a0color, b1, b2);
+					sl_int32 v_delta = 0;
+					if (!(getNextBit())) {
+						if (bitPos >= bitSize) {
+							return;
+						}
+						bool bit1 = getNextBit();
+						if (bitPos >= bitSize) {
+							return;
+						}
+						bool bit2 = getNextBit();
+						if (bit1) {
+							v_delta = bit2 ? 1 : -1;
+						} else if (bit2) {
+							sl_int32 run_len1 = 0;
+							for (;;) {
+								sl_int32 run = getRun(a0color ? g_faxWhiteRunIns : g_faxBlackRunIns);
+								run_len1 += run;
+								if (run < 64) {
+									break;
+								}
+							}
+							if (a0 < 0) {
+								run_len1++;
+							}
+							if (run_len1 < 0) {
+								return;
+							}
+							sl_int32 a1 = a0 + run_len1;
+							if (!a0color) {
+								fillBits(colors, columns, a0, a1);
+							}
+
+							sl_int32 run_len2 = 0;
+							for (;;) {
+								int run = getRun(a0color ? g_faxBlackRunIns : g_faxWhiteRunIns);
+								run_len2 += run;
+								if (run < 64) {
+									break;
+								}
+							}
+							if (run_len2 < 0) {
+								return;
+							}
+							sl_int32 a2 = a1 + run_len2;
+							if (a0color) {
+								fillBits(colors, columns, a1, a2);
+							}
+
+							a0 = a2;
+							if (a0 < (sl_int32)columns) {
+								continue;
+							}
+							return;
+						} else {
+							if (bitPos >= bitSize) {
+								return;
+							}
+							if (getNextBit()) {
+								if (!a0color) {
+									fillBits(colors, columns, a0, b2);
+								}
+								if (b2 >= columns) {
+									return;
+								}
+								a0 = b2;
+								continue;
+							}
+
+							if (bitPos >= bitSize) {
+								return;
+							}
+
+							sl_bool next_bit1 = getNextBit();
+							if (bitPos >= bitSize) {
+								return;
+							}
+							sl_bool next_bit2 = getNextBit();
+							if (next_bit1) {
+								v_delta = next_bit2 ? 2 : -2;
+							} else if (next_bit2) {
+								if (bitPos >= bitSize) {
+									return;
+								}
+								v_delta = getNextBit() ? 3 : -3;
+							} else {
+								if (bitPos >= bitSize) {
+									return;
+								}
+								if (getNextBit()) {
+									bitPos += 3;
+									continue;
+								}
+								bitPos += 5;
+								return;
+							}
+						}
+					}
+
+					sl_int32 a1 = b1 + v_delta;
+					if (!a0color) {
+						fillBits(colors, columns, a0, a1);
+					}
+					if (a1 >= (sl_int32)columns) {
+						return;
+					}
+
+					// The position of picture element must be monotonic increasing.
+					if (a0 >= a1) {
+						return;
+					}
+
+					a0 = a1;
+					a0color = !a0color;
+				}
+			}
+
+			void decodeScanline_1D(Color* colors)
+			{
+				sl_bool color = sl_true;
+				sl_int32 start = 0;
+				for (;;) {
+					if (bitPos >= bitSize) {
+						return;
+					}
+					sl_int32 run_len = 0;
+					for (;;) {
+						sl_int32 run = getRun(color ? g_faxWhiteRunIns : g_faxBlackRunIns);
+						if (run < 0) {
+							while (bitPos < bitSize) {
+								if (getNextBit()) {
+									return;
+								}
+							}
+							return;
+						}
+						run_len += run;
+						if (run < 64) {
+							break;
+						}
+					}
+					if (!color) {
+						fillBits(colors, columns, start, start + run_len);
+					}
+					start += run_len;
+					if (start >= (sl_int32)columns) {
+						break;
+					}
+					color = !color;
+				}
+			}
+
+			void decodeScanline(Color* colors, Color* ref)
+			{
+				skipEOL();
+				if (bitPos >= bitSize) {
+					return;
+				}
+				Base::resetMemory(colors, columns << 2, 255);
+				if (encoding < 0) {
+					decodeScanline_G4(colors, ref);
+				} else if (!encoding) {
+					decodeScanline_1D(colors);
+				} else {
+					if (getNextBit()) {
+						decodeScanline_1D(colors);
+					} else {
+						decodeScanline_G4(colors, ref);
+					}
+				}
+				if (flagEndOfLine) {
+					skipEOL();
+				}
+				if (flagByteAlign && bitPos < bitSize) {
+					sl_uint32 bitPos0 = bitPos;
+					sl_uint32 bitPos1 = (bitPos + 7) & 0xFFFFFFF8;
+					while (flagByteAlign && bitPos0 < bitPos1) {
+						if ((content[bitPos0 >> 3] >> (7 - (bitPos0 & 3))) & 1) {
+							flagByteAlign = sl_false;
+						} else {
+							bitPos0++;
+						}
+					}
+					if (flagByteAlign) {
+						bitPos = bitPos1;
+					}
+				}
+			}
+
+		public:
+			sl_bool run(const void* _content, sl_size size, sl_uint32 width, sl_uint32 height, const PdfCCITTFaxDecodeParams& params)
+			{
+				columns = params.columns;
+				if (!columns) {
+					columns = 1728;
+				}
+				if (columns > width) {
+					columns = width;
+				}
+				rows = params.rows;
+				if (!rows || rows > height) {
+					rows = height;
+				}
+				output = Image::allocate(columns, rows);
+				if (output.isNull()) {
+					return sl_false;
+				}
+				encoding = params.K;
+				flagEndOfLine = params.flagEndOfLine;
+				flagByteAlign = params.flagByteAlign;
+				content = (sl_uint8*)_content;
+				bitSize = (sl_uint32)size << 3;
+				Color* colors = output->getColors();
+				Color* top = sl_null;
+				for (sl_uint32 iRow = 0; iRow < rows; iRow++) {
+					decodeScanline(colors, top);
+					top = colors;
+					colors += columns;
+				}
+				if (params.flagBlackIs1) {
+					InvertBlackWhite(output.get());
+				}
+				return sl_true;
+			}
+
+		};
+
+		static Ref<Image> DecodeFaxImage(const void* content, sl_size size, sl_uint32 width, sl_uint32 height, const PdfCCITTFaxDecodeParams& params)
+		{
+			FaxImageDecoder decoder;
+			if (decoder.run(content, size, width, height, params)) {
+				return decoder.output;
+			}
+			return sl_null;
+		}
+
+	}
+
 	Memory PdfStream::decodeContent(const MemoryView& input, PdfFilter filter, PdfDictionary* params)
 	{
 		switch (filter) {
@@ -6658,6 +5310,150 @@ namespace slib
 		dict->get(name::EarlyChange).getUint(earlyChange);
 	}
 
+	namespace {
+
+		static sl_uint8 PredictPath(sl_int32 a, sl_int32 b, sl_int32 c)
+		{
+			sl_int32 p = a + b - c;
+			sl_int32 pa = Math::abs(p - a);
+			sl_int32 pb = Math::abs(p - b);
+			sl_int32 pc = Math::abs(p - c);
+			if (pa <= pb && pa <= pc) {
+				return (sl_uint8)a;
+			} else if (pb <= pc) {
+				return (sl_uint8)b;
+			} else {
+				return (sl_uint8)c;
+			}
+		}
+
+		static sl_bool PredictPNG(sl_uint8* bufData, sl_uint32& sizeData, sl_uint32 colors, sl_uint32 bitsPerComponent, sl_uint32 columns)
+		{
+			sl_uint32 nBytesPerPixel = (colors * bitsPerComponent + 7) >> 3;
+			sl_uint32 sizeRow = (colors * bitsPerComponent * columns + 7) >> 3;
+			if (!sizeRow) {
+				return sl_false;
+			}
+			sl_uint32 nFullRows = sizeData / (sizeRow + 1);
+			sl_uint32 sizeRemain = sizeData % (sizeRow + 1);
+			sl_uint32 nRows = sizeRemain ? nFullRows + 1 : nFullRows;
+			if (!nRows) {
+				return sl_false;
+			}
+			if (sizeRemain) {
+				sizeData = sizeRow * nFullRows + sizeRemain - 1;
+			} else {
+				sizeData = sizeRow * nRows;
+			}
+			sl_uint8* pRowDst = bufData;
+			sl_uint8* pRowSrc = bufData;
+			for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
+				sl_uint32 n = iRow < nFullRows ? sizeRow : sizeRemain - 1;
+				sl_uint8 tag = *pRowSrc;
+				if (tag) {
+					for (sl_uint32 i = 0; i < n; i++) {
+						sl_uint8 diff = pRowSrc[i + 1];
+						sl_uint8 base = 0;
+						switch (tag) {
+							case 1:
+								if (i >= nBytesPerPixel) {
+									base = pRowDst[(sl_int32)(i - nBytesPerPixel)];
+								}
+								break;
+							case 2:
+								if (iRow) {
+									base = pRowDst[(sl_int32)(i - sizeRow)];
+								}
+								break;
+							case 3:
+								{
+									sl_uint8 left = 0;
+									if (i >= nBytesPerPixel) {
+										left = pRowDst[(sl_int32)(i - nBytesPerPixel)];
+									}
+									sl_uint8 up = 0;
+									if (iRow) {
+										up = pRowDst[(sl_int32)(i - sizeRow)];
+									}
+									base = (sl_uint8)(((sl_uint32)up + (sl_uint32)left) >> 1);
+								}
+								break;
+							case 4:
+								{
+									sl_uint8 left = 0, upperLeft = 0;
+									if (i >= nBytesPerPixel) {
+										left = pRowDst[(sl_int32)(i - nBytesPerPixel)];
+										if (iRow) {
+											upperLeft = pRowDst[(sl_int32)(i - nBytesPerPixel - sizeRow)];
+										}
+									}
+									sl_uint8 up = 0;
+									if (iRow) {
+										up = pRowDst[(sl_int32)(i - sizeRow)];
+									}
+									base = PredictPath(left, up, upperLeft);
+								}
+								break;
+						}
+						pRowDst[i] = base + diff;
+					}
+				} else {
+					Base::moveMemory(pRowDst, pRowSrc + 1, n);
+				}
+				pRowSrc += sizeRow + 1;
+				pRowDst += sizeRow;
+			}
+			return sl_true;
+		}
+
+		static void PredictTIFF(sl_uint8* bufData, sl_uint32 sizeData, sl_uint32 colors, sl_uint32 bitsPerComponent, sl_uint32 columns)
+		{
+			sl_uint32 sizeRow = (colors * bitsPerComponent * columns + 7) >> 3;
+			if (!sizeRow) {
+				return;
+			}
+			sl_uint32 nFullRows = sizeData / sizeRow;
+			sl_uint32 sizeRemain = sizeData % sizeRow;
+			sl_uint32 nRows = sizeRemain ? nFullRows + 1 : nFullRows;
+			if (!nRows) {
+				return;
+			}
+			sl_uint8* row = bufData;
+			for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
+				if (bitsPerComponent == 1) {
+					sl_uint32 n = (iRow == nFullRows ? sizeRemain : sizeRow) << 3;
+					sl_uint8 bit = (*row >> 7) & 1;
+					for (sl_uint32 i = 1; i < n; i++) {
+						sl_uint32 x = i >> 3;
+						sl_uint32 iBit = 7 - (i & 7);
+						bit ^= ((row[x] >> iBit) & 1);
+						if (bit) {
+							row[x] |= 1 << iBit;
+						} else {
+							row[x] &= ~(1 << iBit);
+						}
+					}
+				} else {
+					sl_uint32 nBytesPerPixel = (bitsPerComponent * colors) >> 3;
+					sl_uint32 n = iRow == nFullRows ? sizeRemain : sizeRow;
+					if (bitsPerComponent == 16) {
+						sl_uint16 pixel = MIO::readUint16BE(row);
+						for (sl_uint32 i = nBytesPerPixel; i + 1 < n; i += 2) {
+							pixel += MIO::readUint16BE(row + i);
+							MIO::writeUint16BE(row + i, pixel);
+						}
+					} else {
+						for (sl_uint32 i = nBytesPerPixel; i < n; i++) {
+							row[i] += row[i - 1];
+						}
+					}
+				}
+				row += sizeRow;
+			}
+		}
+
+	}
+
 	sl_uint32 PdfFlateOrLZWDecodeParams::predict(void* content, sl_uint32 size) noexcept
 	{
 		if (predictor >= 10) {
@@ -7026,6 +5822,158 @@ namespace slib
 	{
 	}
 
+	namespace {
+
+		static sl_bool DecodeCMapCode(const String& strCode, sl_uint16& outCode, sl_uint32& maxLenCode)
+		{
+			sl_size n = strCode.getLength();
+			if (!n) {
+				return sl_false;
+			}
+			sl_uint8* s = (sl_uint8*)(strCode.getData());
+			if (n == 1) {
+				outCode = *s;
+				if (maxLenCode < 1) {
+					maxLenCode = 1;
+				}
+				return sl_true;
+			}
+			if (n == 2) {
+				outCode = SLIB_MAKE_WORD(*s, s[1]);
+				if (maxLenCode < 2) {
+					maxLenCode = 2;
+				}
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		static sl_bool DecodeCMapValue(const String& strValue, sl_uint32& outValue)
+		{
+			sl_size n = strValue.getLength();
+			if (!n) {
+				return sl_false;
+			}
+			sl_uint8* s = (sl_uint8*)(strValue.getData());
+			if (n == 1) {
+				outValue = *s;
+				return sl_true;
+			}
+			if (n >= 4) {
+				sl_char16 m[2] = { SLIB_MAKE_WORD(*s, s[1]), SLIB_MAKE_WORD(s[2], s[3]) };
+				return Charsets::utf16ToUtf32(m, 2, (sl_char32*)&outValue, 1) == 1;
+			} else {
+				outValue = SLIB_MAKE_WORD(*s, s[1]);
+				return sl_true;
+			}
+		}
+
+		// returns maximum code length
+		static sl_uint32 ParseCMap(const void* _content, sl_size size, HashMap<sl_uint16, sl_uint32>& map)
+		{
+			sl_uint8* content = Base::findMemory(_content, size, "begincmap", 9);
+			if (!content) {
+				return 0;
+			}
+			content += 9;
+			size -= 9;
+			MemoryContext context(sl_null);
+			context.source = (sl_char8*)content;
+			context.sizeSource = (sl_uint32)size;
+			sl_uint32 maxLenCode = 0;
+			CList<PdfValue> args;
+			for (;;) {
+				if (!(context.skipWhitespaces())) {
+					break;
+				}
+				PdfCMapOperator op = context.readCMapOperator();
+				if (op != PdfCMapOperator::Unknown) {
+					switch (op) {
+					case PdfCMapOperator::endbfchar:
+						{
+							PdfValue* m = args.getData();
+							PdfValue* end = m + args.getCount();
+							while (m + 1 < end) {
+								sl_uint16 code;
+								if (DecodeCMapCode((m++)->getString(), code, maxLenCode)) {
+									sl_uint32 value;
+									if (DecodeCMapValue((m++)->getString(), value)) {
+										map.put_NoLock(code, value);
+									} else {
+										break;
+									}
+								} else {
+									break;
+								}
+							}
+						}
+						break;
+					case PdfCMapOperator::endbfrange:
+						{
+							PdfValue* m = args.getData();
+							PdfValue* end = m + args.getCount();
+							while (m + 2 < end) {
+								sl_uint16 code1;
+								if (DecodeCMapCode((m++)->getString(), code1, maxLenCode)) {
+									sl_uint16 code2;
+									if (DecodeCMapCode((m++)->getString(), code2, maxLenCode)) {
+										if (code2 >= code1) {
+											const String& strValue = m->getString();
+											if (strValue.isNotNull()) {
+												sl_uint32 value;
+												if (DecodeCMapValue(strValue, value)) {
+													for (sl_uint32 code = code1; code <= code2; code++) {
+														map.put_NoLock((sl_uint16)code, value);
+														value++;
+													}
+												} else {
+													break;
+												}
+											} else {
+												ListElements<PdfValue> arr(m->getElements());
+												if (arr.count == code2 - code1 + 1) {
+													for (sl_size i = 0; i < arr.count; i++) {
+														sl_uint32 value;
+														if (DecodeCMapValue(arr[i].getString(), value)) {
+
+															map.put_NoLock((sl_uint16)(code1 + i), value);
+
+														}
+													}
+												} else {
+													break;
+												}
+											}
+											m++;
+										} else {
+											break;
+										}
+									} else {
+										break;
+									}
+								} else {
+									break;
+								}
+							}
+						}
+						break;
+					default:
+						break;
+					}
+					args.removeAll_NoLock();
+				} else {
+					PdfValue value = context.readValue(PdfReference(0, 0));
+					if (value.isUndefined()) {
+						break;
+					}
+					args.add_NoLock(Move(value));
+				}
+			}
+			return maxLenCode;
+		}
+
+	}
+
 	sl_bool PdfFontResource::load(PdfDictionary* dict)
 	{
 		subtype = PdfFontResource::getSubtype(dict->get(name::Subtype).getName());
@@ -7167,6 +6115,98 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	namespace {
+
+		static const char* g_arrayBase14FontNames[14][10] = {
+			{ "Courier", "CourierNew", "CourierNewPSMT", sl_null },
+			{ "Courier-Bold", "CourierNew,Bold", "Courier,Bold", "CourierNewPS-BoldMT", "CourierNew-Bold", sl_null },
+			{ "Courier-Oblique", "CourierNew,Italic", "Courier,Italic", "CourierNewPS-ItalicMT", "CourierNew-Italic", sl_null },
+			{ "Courier-BoldOblique", "CourierNew,BoldItalic", "Courier,BoldItalic", "CourierNewPS-BoldItalicMT", "CourierNew-BoldItalic", sl_null },
+			{ "Helvetica", "ArialMT", "Arial", sl_null },
+			{ "Helvetica-Bold", "Arial-BoldMT", "Arial,Bold", "Arial-Bold", "Helvetica,Bold", sl_null },
+			{ "Helvetica-Oblique", "Arial-ItalicMT", "Arial,Italic", "Arial-Italic", "Helvetica,Italic", "Helvetica-Italic", sl_null },
+			{ "Helvetica-BoldOblique", "Arial-BoldItalicMT", "Arial,BoldItalic", "Arial-BoldItalic", "Helvetica,BoldItalic", "Helvetica-BoldItalic", sl_null },
+			{ "Times-Roman", "TimesNewRomanPSMT", "TimesNewRoman", "TimesNewRomanPS", sl_null },
+			{ "Times-Bold", "TimesNewRomanPS-BoldMT", "TimesNewRoman,Bold", "TimesNewRomanPS-Bold", "TimesNewRoman-Bold", sl_null },
+			{ "Times-Italic", "TimesNewRomanPS-ItalicMT", "TimesNewRoman,Italic", "TimesNewRomanPS-Italic", "TimesNewRoman-Italic", sl_null },
+			{ "Times-BoldItalic", "TimesNewRomanPS-BoldItalicMT", "TimesNewRoman,BoldItalic", "TimesNewRomanPS-BoldItalic", "TimesNewRoman-BoldItalic", sl_null },
+			{ "Symbol", "Symbol,Italic", "Symbol,Bold", "Symbol,BoldItalic", "SymbolMT", "SymbolMT,Italic", "SymbolMT,Bold", "SymbolMT,BoldItalic", sl_null },
+			{ "ZapfDingbats", sl_null }
+		};
+
+		struct FontMapping
+		{
+			const char* name;
+			sl_bool flagBold;
+			sl_bool flagItalic;
+		};
+
+		static FontMapping g_arrayBase14FontMappings[14][4] = {
+			{ { "Courier", 0, 0}, { "Courier New", 0, 0 }, {0, 0, 0} },
+			{ { "Courier-Bold", 0, 0 }, { "Courier New Bold", 0, 0 }, { "Courier New", 1, 0 }, { 0, 0, 0 } },
+			{ { "Courier-BoldOblique", 0, 0 }, { "Courier New Bold Italic", 0, 0 }, { "Courier New", 1, 1 }, { 0, 0, 0 } },
+			{ { "Courier-Oblique", 0, 0 }, { "Courier New Italic", 0, 0 }, { "Courier New", 0, 1 }, { 0, 0, 0 } },
+			{ { "Helvetica", 0, 0}, { "Arial", 0, 0 }, {0, 0, 0} },
+			{ { "Helvetica-Bold", 0, 0 }, { "Arial Bold", 0, 0 }, { "Arial", 1, 0 }, { 0, 0, 0 } },
+			{ { "Helvetica-BoldOblique", 0, 0 }, { "Arial Bold Italic", 0, 0 }, { "Arial", 1, 1 }, { 0, 0, 0 } },
+			{ { "Helvetica-Oblique", 0, 0 }, { "Arial Italic", 0, 0 }, { "Arial", 0, 1 }, { 0, 0, 0 } },
+			{ { "Times-Roman", 0, 0}, { "Times New Roman", 0, 0 }, {0, 0, 0} },
+			{ { "Times-Bold", 0, 0 }, { "Times New Roman Bold", 0, 0 }, { "Times New Roman", 1, 0 }, { 0, 0, 0 } },
+			{ { "Times-BoldItalic", 0, 0 }, { "Times New Roman Bold Italic", 0, 0 }, { "Times New Roman", 1, 1 }, { 0, 0, 0 } },
+			{ { "Times-Italic", 0, 0 }, { "Times New Roman Italic", 0, 0 }, { "Times New Roman", 0, 1 }, { 0, 0, 0 } },
+			{ { "Symbol", 0, 0}, {0, 0, 0} },
+			{ { "ZapfDingbats", 0, 0}, {0, 0, 0} }
+		};
+
+		class BaseFonts
+		{
+		private:
+			CHashMap< String, sl_uint32, Hash_IgnoreCase<String>, Compare_IgnoreCase<String> > names;
+
+		public:
+			BaseFonts()
+			{
+				for (sl_uint32 i = 0; i < 14; i++) {
+					const char** p = g_arrayBase14FontNames[i];
+					while (*p) {
+						names.put_NoLock(*p, i);
+						p++;
+					}
+				}
+			}
+
+		public:
+			Ref<FreeType> open(const String& name)
+			{
+				sl_uint32 index;
+				if (names.get_NoLock(name, &index)) {
+					FontMapping* mapping = g_arrayBase14FontMappings[index];
+					while (mapping->name) {
+						Ref<FreeType> font = FreeType::loadSystemFont(mapping->name, mapping->flagBold, mapping->flagItalic);
+						if (font.isNotNull()) {
+							return font;
+						}
+						mapping++;
+					}
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(BaseFonts, GetBaseFonts)
+
+		static Ref<FreeType> OpenBaseFont(const String& name)
+		{
+			BaseFonts* fonts = GetBaseFonts();
+			if (fonts) {
+				return fonts->open(name);
+			}
+			return sl_null;
+		}
+
 	}
 
 	sl_bool PdfFont::_load(PdfDictionary* dict)
@@ -7389,6 +6429,13 @@ namespace slib
 		smask = stream->getProperty(name::SMask).getStream();
 	}
 
+	namespace {
+		SLIB_INLINE static sl_uint8 ApplyDecode(sl_uint8 source, sl_uint8 min, sl_uint8 max)
+		{
+			return (sl_uint8)(min + (((sl_int32)(max - min) * (sl_int32)source) >> 8));
+		}
+	}
+
 	void PdfImageResource::applyDecode4(sl_uint8* colors, sl_uint32 cols, sl_uint32 rows, sl_reg pitch) noexcept
 	{
 		if (!flagUseDecodeArray) {
@@ -7552,6 +6599,30 @@ namespace slib
 	{
 		PdfImageResource::_load(stream, resources);
 		return _loadContent(content);
+	}
+
+	namespace {
+		static Ref<Image> CreateImageObject(sl_uint32 width, sl_uint32 height, sl_uint8* data, sl_reg pitch, PdfColorSpaceType colorSpace, sl_uint32 bitsPerComponent, Color* indices, sl_uint32 nIndices)
+		{
+			if (width && height && bitsPerComponent) {
+				switch (colorSpace) {
+					case PdfColorSpaceType::RGB:
+						return Image::createFromRGB(width, height, data, bitsPerComponent, pitch);
+					case PdfColorSpaceType::CMYK:
+						return Image::createFromCMYK(width, height, data, bitsPerComponent, pitch);
+					case PdfColorSpaceType::Gray:
+						return Image::createFromGray(width, height, data, bitsPerComponent, pitch);
+					case PdfColorSpaceType::Indexed:
+						if (indices) {
+							return Image::createFromIndexed(width, height, data, indices, nIndices, bitsPerComponent, pitch);
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			return sl_null;
+		}
 	}
 
 	sl_bool PdfImage::_loadContent(Memory& content)
@@ -8503,6 +7574,955 @@ namespace slib
 			}
 		}
 		return ret;
+	}
+
+	namespace {
+
+		class TextState
+		{
+		public:
+			float charSpace = 0;
+			float wordSpace = 0;
+			float widthScale = 1;
+			float leading = 0;
+			float rise = 0;
+			PdfTextRenderingMode renderingMode = PdfTextRenderingMode::Fill;
+			Ref<PdfFont> font;
+			float fontScale;
+			Matrix3 matrix = Matrix3::identity();
+			Matrix3 lineMatrix = Matrix3::identity();
+
+		};
+
+		class PenState : public PenDesc
+		{
+		public:
+			const Ref<Pen>& getHandle()
+			{
+				if (m_handle.isNull() || m_flagInvalidate) {
+					m_handle = Pen::create(*this);
+					m_flagInvalidate = sl_false;
+				}
+				return m_handle;
+			}
+
+			void invalidate()
+			{
+				m_flagInvalidate = sl_true;
+			}
+
+		private:
+			Ref<Pen> m_handle;
+			sl_bool m_flagInvalidate = sl_true;
+
+		};
+
+		class BrushState : public BrushDesc
+		{
+		public:
+			BrushState()
+			{
+				color = Color::Black;
+			}
+
+		public:
+			const Ref<Brush>& getHandle()
+			{
+				if (m_handle.isNull() || m_flagInvalidate) {
+					m_handle = Brush::create(*this);
+					m_flagInvalidate = sl_false;
+				}
+				return m_handle;
+			}
+
+			void invalidate()
+			{
+				m_flagInvalidate = sl_true;
+			}
+
+			void setHandle(const Ref<Brush>& handle)
+			{
+				m_handle = handle;
+				m_flagInvalidate = sl_false;
+			}
+
+		private:
+			Ref<Brush> m_handle;
+			sl_bool m_flagInvalidate = sl_true;
+
+		};
+
+		template <class HANDLE_STATE, class VALUE>
+		static void SetHandleState(HANDLE_STATE& state, VALUE& dst, const VALUE& src)
+		{
+			if (dst != src) {
+				dst = src;
+				state.invalidate();
+			}
+		}
+
+#define SET_HANDLE_STATE(STATE, NAME, VALUE) SetHandleState(STATE, STATE.NAME, VALUE)
+
+		class RenderState
+		{
+		public:
+			PdfColorSpace colorSpaceForStroking;
+			PdfColorSpace colorSpaceForNonStroking;
+			BrushState brush;
+			PenState pen;
+			TextState text;
+		};
+
+		class Renderer : public RenderState
+		{
+		public:
+			Context* context;
+			Canvas* canvas;
+			PdfResourceCache* cache;
+			PdfResourceProvider* resources;
+
+			Ref<GraphicsPath> path;
+
+			Stack<RenderState> states;
+
+		public:
+			sl_bool preparePath()
+			{
+				if (path.isNull()) {
+					path = GraphicsPath::create();
+					return path.isNotNull();
+				}
+				return sl_true;
+			}
+
+			void moveTo(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 2) {
+					return;
+				}
+				if (!(preparePath())) {
+					return;
+				}
+				path->moveTo(operands[0].getFloat(), operands[1].getFloat());
+			}
+
+			void lineTo(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 2) {
+					return;
+				}
+				if (!(preparePath())) {
+					return;
+				}
+				path->lineTo(operands[0].getFloat(), operands[1].getFloat());
+			}
+
+			void curveTo(ListElements<PdfValue> operands, sl_bool flagReplicateInitialPoint, sl_bool flagReplicateFinalPoint)
+			{
+				if (!(preparePath())) {
+					return;
+				}
+				if (flagReplicateInitialPoint || flagReplicateFinalPoint) {
+					if (operands.count != 4) {
+						return;
+					}
+					if (flagReplicateInitialPoint) {
+						sl_size nPoints = path->getPointCount();
+						if (!nPoints) {
+							return;
+						}
+						GraphicsPathPoint& ptCurrent = (path->getPoints())[nPoints - 1];
+						path->cubicTo(
+							ptCurrent.x, ptCurrent.y,
+							operands[0].getFloat(), operands[1].getFloat(),
+							operands[2].getFloat(), operands[3].getFloat());
+					} else {
+						float lastX = operands[2].getFloat();
+						float lastY = operands[3].getFloat();
+						path->cubicTo(
+							operands[0].getFloat(), operands[1].getFloat(),
+							lastX, lastY, lastX, lastY);
+					}
+				} else {
+					if (operands.count != 6) {
+						return;
+					}
+					path->cubicTo(operands[0].getFloat(), operands[1].getFloat(),
+						operands[2].getFloat(), operands[3].getFloat(),
+						operands[4].getFloat(), operands[5].getFloat());
+				}
+			}
+
+			void appendRect(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 4) {
+					return;
+				}
+				if (!(preparePath())) {
+					return;
+				}
+				path->addRectangle(operands[0].getFloat(), operands[1].getFloat(),
+					operands[2].getFloat(), operands[3].getFloat());
+			}
+
+			void closePath()
+			{
+				if (path.isNotNull()) {
+					path->closeSubpath();
+				}
+			}
+
+			void clearPath()
+			{
+				path.setNull();
+			}
+
+			void setColor(const Color& color, sl_bool flagStroking)
+			{
+				if (flagStroking) {
+					SET_HANDLE_STATE(pen, color, color);
+				} else {
+					SET_HANDLE_STATE(brush, color, color);
+				}
+			}
+
+			void setColorSpace(ListElements<PdfValue> operands, sl_bool flagStroking)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				PdfColorSpace cs;
+				cs.load(operands[0], resources);
+				if (flagStroking) {
+					colorSpaceForStroking = cs;
+				} else {
+					colorSpaceForNonStroking = cs;
+				}
+				if (cs.type == PdfColorSpaceType::Indexed) {
+					Color c;
+					if (cs.getColorAt(c, 0)) {
+						setColor(c, flagStroking);
+					} else {
+						setColor(Color::Black, flagStroking);
+					}
+				} else {
+					setColor(Color::Black, flagStroking);
+				}
+			}
+
+			void setColor(ListElements<PdfValue> operands, sl_bool flagStroking)
+			{
+				if (!(operands.count)) {
+					return;
+				}
+				PdfColorSpace& cs = flagStroking ? colorSpaceForStroking : colorSpaceForNonStroking;
+				if (cs.type == PdfColorSpaceType::Pattern) {
+					const String& patternName = operands[0].getName();
+					if (patternName.isNotNull()) {
+						Ref<PdfDictionary> dictPattern = resources->getResource(name::Pattern, patternName).getDictionary();
+						if (dictPattern.isNotNull()) {
+							PdfPatternResource res;
+							if (res.load(dictPattern.get())) {
+								if (res.type == PdfPatternType::Shading) {
+									Ref<Brush> handle = res.shading.getBrush(res.matrix);
+									if (handle.isNotNull()) {
+										brush.setHandle(handle);
+									}
+								}
+							}
+						}
+					}
+				} else {
+					Color color;
+					if (cs.getColor(color, operands.data, operands.count)) {
+						setColor(color, flagStroking);
+					}
+				}
+			}
+
+			void setRGB(ListElements<PdfValue> operands, sl_bool flagStroking)
+			{
+				Color color;
+				if (PdfColorSpace::getColorFromRGB(color, operands.data, operands.count)) {
+					setColor(color, flagStroking);
+				}
+			}
+
+			void setGrayLevel(ListElements<PdfValue> operands, sl_bool flagStroking)
+			{
+				Color color;
+				if (PdfColorSpace::getColorFromGray(color, operands.data, operands.count)) {
+					setColor(color, flagStroking);
+				}
+			}
+
+			void setCMYK(ListElements<PdfValue> operands, sl_bool flagStroking)
+			{
+				Color color;
+				if (PdfColorSpace::getColorFromCMYK(color, operands.data, operands.count)) {
+					setColor(color, flagStroking);
+				}
+			}
+
+			void setLineWidth(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				SET_HANDLE_STATE(pen, width, operands[0].getFloat());
+			}
+
+			void setLineJoin(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				SET_HANDLE_STATE(pen, join, (LineJoin)(operands[0].getUint()));
+			}
+
+			void setLineCap(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				SET_HANDLE_STATE(pen, cap, (LineCap)(operands[0].getUint()));
+			}
+
+			void setLineDashPattern(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 2) {
+					return;
+				}
+				if (operands[0].getElementCount()) {
+					SET_HANDLE_STATE(pen, style, PenStyle::Dash);
+				} else {
+					SET_HANDLE_STATE(pen, style, PenStyle::Solid);
+				}
+			}
+
+			void setMiterLimit(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				SET_HANDLE_STATE(pen, miterLimit, operands[0].getFloat());
+			}
+
+			void setGraphicsState(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				SLIB_STATIC_STRING(idExtGState, "ExtGState")
+				Ref<PdfDictionary> states = resources->getResource(idExtGState, operands[0].getName()).getDictionary();
+				if (states.isNull()) {
+					return;
+				}
+				{
+					SLIB_STATIC_STRING(fieldId, "LW")
+					float value;
+					if (states->get(fieldId).getFloat(value)) {
+						SET_HANDLE_STATE(pen, width, value);
+					}
+				}
+				{
+					SLIB_STATIC_STRING(fieldId, "LC")
+					sl_uint32 value;
+					if (states->get(fieldId).getUint(value)) {
+						SET_HANDLE_STATE(pen, cap, (LineCap)value);
+					}
+				}
+				{
+					SLIB_STATIC_STRING(fieldId, "LJ")
+					sl_uint32 value;
+					if (states->get(fieldId).getUint(value)) {
+						SET_HANDLE_STATE(pen, join, (LineJoin)value);
+					}
+				}
+				{
+					SLIB_STATIC_STRING(fieldId, "ML")
+					float value;
+					if (states->get(fieldId).getFloat(value)) {
+						SET_HANDLE_STATE(pen, miterLimit, value);
+					}
+				}
+				{
+					SLIB_STATIC_STRING(fieldId, "D")
+					if (states->get(fieldId).getElementCount()) {
+						SET_HANDLE_STATE(pen, style, PenStyle::Dash);
+					}
+				}
+				{
+					SLIB_STATIC_STRING(fieldId, "Font")
+					ListElements<PdfValue> values(states->get(fieldId).getElements());
+					if (values.count == 2) {
+						setFont(values[0].getName(), values[1].getFloat());
+					}
+				}
+			}
+
+			void concatMatrix(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 6) {
+					return;
+				}
+				Matrix3 mat(operands[0].getFloat(), operands[1].getFloat(), 0,
+					operands[2].getFloat(), operands[3].getFloat(), 0,
+					operands[4].getFloat(), operands[5].getFloat(), 1);
+				canvas->concatMatrix(mat);
+			}
+
+			void fillAndStroke(sl_bool flagEvenOddRule, sl_bool flagStroke = sl_true)
+			{
+				if (path.isNotNull()) {
+					if (flagEvenOddRule) {
+						path->setFillMode(FillMode::Alternate);
+					} else {
+						path->setFillMode(FillMode::Winding);
+					}
+					canvas->fillPath(path, brush.getHandle());
+					if (flagStroke) {
+						canvas->drawPath(path, pen.getHandle());
+					}
+					path.setNull();
+				}
+			}
+
+			void fill(sl_bool flagEvenOddRule)
+			{
+				fillAndStroke(flagEvenOddRule, sl_false);
+			}
+
+			void stroke()
+			{
+				if (path.isNotNull()) {
+					canvas->drawPath(path, pen.getHandle());
+					path.setNull();
+				}
+			}
+
+			void setClipping(sl_bool flagEvenOddRule)
+			{
+				if (path.isNotNull()) {
+					if (flagEvenOddRule) {
+						path->setFillMode(FillMode::Alternate);
+					} else {
+						path->setFillMode(FillMode::Winding);
+					}
+					canvas->clipToPath(path);
+					path.setNull();
+				}
+			}
+
+			void beginText()
+			{
+				text.matrix = Matrix3::identity();
+				text.lineMatrix = Matrix3::identity();
+			}
+
+			void setTextCharSpace(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				text.charSpace = operands[0].getFloat();
+			}
+
+			void setTextWordSpace(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				text.wordSpace = operands[0].getFloat();
+			}
+
+			void setTextWidthScale(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				text.widthScale = operands[0].getFloat() / 100.0f;
+			}
+
+			void setTextLeading(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				text.leading = operands[0].getFloat();
+			}
+
+			void setTextRise(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				text.rise = operands[0].getFloat();
+			}
+
+			void setTextMatrix(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 6) {
+					return;
+				}
+				text.matrix = Matrix3(operands[0].getFloat(), operands[1].getFloat(), 0,
+					operands[2].getFloat(), operands[3].getFloat(), 0,
+					operands[4].getFloat(), operands[5].getFloat(), 1);
+				text.lineMatrix = text.matrix;
+			}
+
+			void moveTextMatrix(float tx, float ty)
+			{
+				Transform2::preTranslate(text.lineMatrix, tx, ty);
+				text.matrix = text.lineMatrix;
+			}
+
+			void moveTextMatrix(ListElements<PdfValue> operands, sl_bool flagSetLeading)
+			{
+				if (operands.count != 2) {
+					return;
+				}
+				float ty = operands[1].getFloat();
+				if (flagSetLeading) {
+					text.leading = -ty;
+				}
+				moveTextMatrix(operands[0].getFloat(), ty);
+			}
+
+			void moveToNextLine()
+			{
+				moveTextMatrix(0, -text.leading);
+			}
+
+			void setTextRenderingMode(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				text.renderingMode = (PdfTextRenderingMode)(operands[0].getUint());
+			}
+
+			void setFont(const String& name, float fontScale)
+			{
+				if (!context) {
+					return;
+				}
+				PdfReference ref;
+				if (resources->getFontResource(name, ref)) {
+					text.font = context->getFont(ref, *cache);
+					text.fontScale = fontScale;
+				}
+			}
+
+			void setTextFont(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 2) {
+					return;
+				}
+				setFont(operands[0].getName(), operands[1].getFloat());
+			}
+
+			void drawText(const String& str)
+			{
+				if (text.font.isNull()) {
+					return;
+				}
+				PdfFont& font = *(text.font);
+				if (Math::isAlmostZero(text.fontScale) || Math::isAlmostZero(text.widthScale)) {
+					return;
+				}
+				sl_real scale = text.fontScale * text.widthScale;
+
+				CanvasStateScope scope(canvas);
+				Matrix3 mat = text.matrix;
+				Transform2::preTranslate(mat, 0, text.rise);
+				Transform2::preScale(mat, scale, text.fontScale);
+				canvas->concatMatrix(mat);
+
+				sl_real x = 0;
+				sl_char8* codes = str.getData();
+				sl_size nCodes = str.getLength();
+				sl_uint32 lenCode = font.codeLength;
+				for (sl_size iCode = 0; iCode + lenCode <= nCodes; iCode += lenCode) {
+					sl_uint32 charcode = lenCode == 2 ? SLIB_MAKE_WORD(codes[iCode], codes[iCode + 1]) : (sl_uint8)(codes[iCode]);
+					sl_char32 unicode = font.getUnicode(charcode);
+					if (text.renderingMode != PdfTextRenderingMode::Invisible) {
+						Ref<FreeTypeGlyph> glyph = font.getGlyph(charcode, unicode);
+						if (glyph.isNotNull()) {
+							CanvasStateScope scope(canvas);
+							mat = Transform2::getScalingMatrix(font.scale, font.scale);
+							Transform2::translate(mat, x / scale, 0);
+							if (glyph->outline.isNotNull()) {
+								canvas->concatMatrix(mat);
+								canvas->fillPath(glyph->outline, brush.getHandle());
+								if (text.renderingMode == PdfTextRenderingMode::FillStroke || text.renderingMode == PdfTextRenderingMode::FillStrokeClip) {
+									canvas->drawPath(glyph->outline, pen.getHandle());
+								}
+							} else if (glyph->bitmap.isNotNull()) {
+								mat.m11 = -(mat.m11);
+								canvas->concatMatrix(mat);
+								DrawParam dp;
+								if (glyph->flagGrayBitmap) {
+									dp.useColorMatrix = sl_true;
+									dp.colorMatrix.setOverlay(brush.color);
+								}
+								canvas->draw((sl_real)(glyph->bitmapLeft), -(sl_real)(glyph->bitmapTop), glyph->bitmap, dp);
+							}
+						}
+					}
+					x += font.getCharWidth(charcode, unicode) * scale;
+					x += text.charSpace * text.widthScale;
+					if (unicode == ' ') {
+						x += text.wordSpace * text.widthScale;
+					}
+				}
+				Transform2::preTranslate(text.matrix, x, 0);
+			}
+
+			void adjustTextMatrix(float f)
+			{
+				Transform2::preTranslate(text.matrix, - f / 1000.0f * text.fontScale * text.widthScale, 0);
+			}
+
+			void showText(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				const String& text = operands[0].getString();
+				drawText(text);
+			}
+
+			void showTextWithPositions(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				ListElements<PdfValue> args(operands[0].getElements());
+				for (sl_size i = 0; i < args.count; i++) {
+					PdfValue& v = args[i];
+					const String& s = v.getString();
+					if (s.isNotNull()) {
+						drawText(s);
+					} else {
+						float f;
+						if (v.getFloat(f)) {
+							adjustTextMatrix(f);
+						}
+					}
+				}
+			}
+
+			void showTextWithSpacingParams(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 3) {
+					return;
+				}
+				text.wordSpace = operands[0].getFloat();
+				text.charSpace = operands[1].getFloat();
+				moveToNextLine();
+				const String& text = operands[2].getString();
+				drawText(text);
+			}
+
+			void drawImage(PdfImage* image)
+			{
+				if (image->flagImageMask) {
+					DrawParam dp;
+					dp.useColorMatrix = sl_true;
+					dp.colorMatrix.setOverlay(brush.color);
+					canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical), dp);
+				} else {
+					canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical));
+				}
+			}
+
+			void drawExternalObject(ListElements<PdfValue> operands)
+			{
+				if (!context) {
+					return;
+				}
+				if (operands.count != 1) {
+					return;
+				}
+				const String& name = operands[0].getName();
+				PdfReference ref;
+				if (resources->getExternalObjectResource(name, ref)) {
+					Ref<PdfExternalObject> xobj = context->getExternalObject(ref, *cache);
+					if (xobj.isNotNull()) {
+						if (xobj->type == PdfExternalObjectType::Image) {
+							PdfImage* image = (PdfImage*)(xobj.get());
+							drawImage(image);
+						} else {
+							PdfForm* form = (PdfForm*)(xobj.get());
+							PdfResourceProvider* oldResources = resources;
+							resources = form;
+							CanvasStateScope scope(canvas);
+							canvas->concatMatrix(form->matrix);
+							canvas->clipToRectangle(form->bounds);
+							ListElements<PdfOperation> ops(form->content);
+							for (sl_size i = 0; i < ops.count; i++) {
+								render(ops[i]);
+							}
+							resources = oldResources;
+						}
+					}
+				}
+			}
+
+			void drawInlineImage(ListElements<PdfValue> operands)
+			{
+				if (operands.count != 1) {
+					return;
+				}
+				const Ref<PdfImage>& image = operands[0].getImage();
+				if (image.isNotNull()) {
+					drawImage(image.get());
+				}
+			}
+
+			void saveGraphicsState()
+			{
+				canvas->save();
+				states.push(*this);
+			}
+
+			void restoreGraphicsState()
+			{
+				if (states.isEmpty()) {
+					return;
+				}
+				canvas->restore();
+				states.pop(this);
+			}
+
+			void render(PdfOperation& operation)
+			{
+				switch (operation.op) {
+					case PdfOperator::b:
+						closePath();
+						fillAndStroke(sl_false);
+						break;
+					case PdfOperator::B:
+						fillAndStroke(sl_false);
+						break;
+					case PdfOperator::b_:
+						closePath();
+						fillAndStroke(sl_true);
+						break;
+					case PdfOperator::B_:
+						fillAndStroke(sl_true);
+						break;
+					case PdfOperator::BDC:
+						// begin marked-content sequence with property list
+						break;
+					case PdfOperator::BMC:
+						// begin marked-content sequence
+						break;
+					case PdfOperator::BT:
+						beginText();
+						break;
+					case PdfOperator::BX:
+						// begin compatibility section
+						break;
+					case PdfOperator::c:
+						curveTo(operation.operands, sl_false, sl_false);
+						break;
+					case PdfOperator::cm:
+						concatMatrix(operation.operands);
+						break;
+					case PdfOperator::CS:
+						setColorSpace(operation.operands, sl_true);
+						break;
+					case PdfOperator::cs:
+						setColorSpace(operation.operands, sl_false);
+						break;
+					case PdfOperator::d:
+						setLineDashPattern(operation.operands);
+						break;
+					case PdfOperator::d0:
+						// set char width (glphy with in Type3 font)
+						break;
+					case PdfOperator::d1:
+						// set cache device (glphy with and bounding box in Type3 font)
+						break;
+					case PdfOperator::Do:
+						drawExternalObject(operation.operands);
+						break;
+					case PdfOperator::DP:
+						// define marked-content point with property list
+						break;
+					case PdfOperator::EI:
+						drawInlineImage(operation.operands);
+						break;
+					case PdfOperator::EMC:
+						// End marked-content sequence
+						break;
+					case PdfOperator::ET:
+						// end text object
+						break;
+					case PdfOperator::EX:
+						// end compatibility section
+						break;
+					case PdfOperator::f:
+						fill(sl_false);
+						break;
+					case PdfOperator::F:
+						fill(sl_false);
+						break;
+					case PdfOperator::f_:
+						fill(sl_true);
+						break;
+					case PdfOperator::G:
+						setGrayLevel(operation.operands, sl_true);
+						break;
+					case PdfOperator::g:
+						setGrayLevel(operation.operands, sl_false);
+						break;
+					case PdfOperator::gs:
+						setGraphicsState(operation.operands);
+						break;
+					case PdfOperator::h:
+						closePath();
+						break;
+					case PdfOperator::i:
+						// set flatness tolerance
+						break;
+					case PdfOperator::j:
+						setLineJoin(operation.operands);
+						break;
+					case PdfOperator::J:
+						setLineCap(operation.operands);
+						break;
+					case PdfOperator::K:
+						setCMYK(operation.operands, sl_true);
+						break;
+					case PdfOperator::k:
+						setCMYK(operation.operands, sl_false);
+						break;
+					case PdfOperator::l:
+						lineTo(operation.operands);
+						break;
+					case PdfOperator::m:
+						moveTo(operation.operands);
+						break;
+					case PdfOperator::M:
+						setMiterLimit(operation.operands);
+						break;
+					case PdfOperator::MP:
+						// define marked-content point
+						break;
+					case PdfOperator::n:
+						clearPath();
+						break;
+					case PdfOperator::q:
+						saveGraphicsState();
+						break;
+					case PdfOperator::Q:
+						restoreGraphicsState();
+						break;
+					case PdfOperator::re:
+						appendRect(operation.operands);
+						break;
+					case PdfOperator::RG:
+						setRGB(operation.operands, sl_true);
+						break;
+					case PdfOperator::rg:
+						setRGB(operation.operands, sl_false);
+						break;
+					case PdfOperator::ri:
+						// set color rendering intent
+						break;
+					case PdfOperator::s:
+						closePath();
+						stroke();
+						break;
+					case PdfOperator::S:
+						stroke();
+						break;
+					case PdfOperator::SC:
+						setColor(operation.operands, sl_true);
+						break;
+					case PdfOperator::sc:
+						setColor(operation.operands, sl_false);
+						break;
+					case PdfOperator::SCN:
+						setColor(operation.operands, sl_true);
+						break;
+					case PdfOperator::scn:
+						setColor(operation.operands, sl_false);
+						break;
+					case PdfOperator::sh:
+						// paint area defined by shading pattern
+						break;
+					case PdfOperator::T_:
+						moveToNextLine();
+						break;
+					case PdfOperator::Tc:
+						setTextCharSpace(operation.operands);
+						break;
+					case PdfOperator::Td:
+						moveTextMatrix(operation.operands, sl_false);
+						break;
+					case PdfOperator::TD:
+						moveTextMatrix(operation.operands, sl_true);
+						break;
+					case PdfOperator::Tf:
+						setTextFont(operation.operands);
+						break;
+					case PdfOperator::Tj:
+						showText(operation.operands);
+						break;
+					case PdfOperator::TJ:
+						showTextWithPositions(operation.operands);
+						break;
+					case PdfOperator::TL:
+						setTextLeading(operation.operands);
+						break;
+					case PdfOperator::Tm:
+						setTextMatrix(operation.operands);
+						break;
+					case PdfOperator::Tr:
+						setTextRenderingMode(operation.operands);
+						break;
+					case PdfOperator::Ts:
+						setTextRise(operation.operands);
+						break;
+					case PdfOperator::Tw:
+						setTextWordSpace(operation.operands);
+						break;
+					case PdfOperator::Tz:
+						setTextWidthScale(operation.operands);
+						break;
+					case PdfOperator::v:
+						curveTo(operation.operands, sl_true, sl_false);
+						break;
+					case PdfOperator::w:
+						setLineWidth(operation.operands);
+						break;
+					case PdfOperator::W:
+						setClipping(sl_false);
+						break;
+					case PdfOperator::W_:
+						setClipping(sl_true);
+						break;
+					case PdfOperator::y:
+						curveTo(operation.operands, sl_false, sl_true);
+						break;
+					case PdfOperator::apos:
+						moveToNextLine();
+						showText(operation.operands);
+						break;
+					case PdfOperator::quot:
+						showTextWithSpacingParams(operation.operands);
+						break;
+					default:
+						break;
+				}
+			}
+
+		};
+
 	}
 
 	void PdfPage::render(PdfRenderParam& param)

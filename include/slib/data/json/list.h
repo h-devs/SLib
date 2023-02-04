@@ -32,49 +32,46 @@ namespace slib
 
 	namespace priv
 	{
-		namespace json
+
+		template <class LIST>
+		static void GetListFromJson(LIST& _out, const Json& json)
 		{
-
-			template <class LIST>
-			static void GetListFromJson(LIST& _out, const Json& json)
-			{
-				if (json.isUndefined()) {
-					return;
-				}
-				if (json.getType() == VariantType::List) {
-					JsonList list = json.getJsonList();
-					if (list.isNotNull()) {
-						ListLocker<Json> src(list);
-						if (src.count) {
-							if (ListHelper<LIST>::create(_out, src.count)) {
-								auto dst = ListHelper<LIST>::getData(_out);
-								for (sl_size i = 0; i < src.count; i++) {
-									FromJson(src[i], dst[i]);
-								}
-							}
-							return;
-						}
-					}
-				} else {
-					Ref<Collection> src = json.getCollection();
-					if (src.isNotNull()) {
-						sl_size n = (sl_size)(src->getElementCount());
-						if (n) {
-							if (ListHelper<LIST>::create(_out, n)) {
-								auto dst = ListHelper<LIST>::getData(_out);
-								for (sl_size i = 0; i < n; i++) {
-									Variant value = src->getElement(i);
-									FromJson(*(static_cast<const Json*>(&value)), dst[i]);
-								}
-							}
-							return;
-						}
-					}
-				}
-				ListHelper<LIST>::clear(_out);
+			if (json.isUndefined()) {
+				return;
 			}
-
+			if (json.getType() == VariantType::List) {
+				JsonList list = json.getJsonList();
+				if (list.isNotNull()) {
+					ListLocker<Json> src(list);
+					if (src.count) {
+						if (ListHelper<LIST>::create(_out, src.count)) {
+							auto dst = ListHelper<LIST>::getData(_out);
+							for (sl_size i = 0; i < src.count; i++) {
+								FromJson(src[i], dst[i]);
+							}
+						}
+						return;
+					}
+				}
+			} else {
+				Ref<Collection> src = json.getCollection();
+				if (src.isNotNull()) {
+					sl_size n = (sl_size)(src->getElementCount());
+					if (n) {
+						if (ListHelper<LIST>::create(_out, n)) {
+							auto dst = ListHelper<LIST>::getData(_out);
+							for (sl_size i = 0; i < n; i++) {
+								Variant value = src->getElement(i);
+								FromJson(*(static_cast<const Json*>(&value)), dst[i]);
+							}
+						}
+						return;
+					}
+				}
+			}
+			ListHelper<LIST>::clear(_out);
 		}
+
 	}
 
 	template <class T>
@@ -86,7 +83,7 @@ namespace slib
 	template <class T>
 	static void FromJson(const Json& json, Array<T>& _out)
 	{
-		priv::json::GetListFromJson(_out, json);
+		priv::GetListFromJson(_out, json);
 	}
 
 	template <class T>
@@ -98,7 +95,7 @@ namespace slib
 	template <class T>
 	static void FromJson(const Json& json, List<T>& _out)
 	{
-		priv::json::GetListFromJson(_out, json);
+		priv::GetListFromJson(_out, json);
 	}
 
 	template <class T>
@@ -116,7 +113,7 @@ namespace slib
 	template <class T, class ALLOC>
 	static void FromJson(const Json& json, std::vector<T, ALLOC>& _out)
 	{
-		priv::json::GetListFromJson(_out, json);
+		priv::GetListFromJson(_out, json);
 	}
 
 	template <class T, class ALLOC>

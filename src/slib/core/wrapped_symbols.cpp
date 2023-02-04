@@ -27,29 +27,20 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 
-namespace priv
-{
-	namespace slib
+namespace {
+
+	static void* g_libc = 0;
+	static void* g_libm = 0;
+
+	static void LoadLibrary()
 	{
-		namespace wrapped_symbols
-		{
-
-			static void* g_libc = 0;
-			static void* g_libm = 0;
-
-			static void LoadLibrary()
-			{
-				if (!g_libc) {
-					g_libc = (void*)(dlopen("libc.so.6", RTLD_LAZY));
-					g_libm = (void*)(dlopen("libm.so.6", RTLD_LAZY));
-				}
-			}
-
+		if (!g_libc) {
+			g_libc = (void*)(dlopen("libc.so.6", RTLD_LAZY));
+			g_libm = (void*)(dlopen("libm.so.6", RTLD_LAZY));
 		}
 	}
-}
 
-using namespace priv::slib::wrapped_symbols;
+}
 
 #define BEGIN_WRAPPER(LIB_SUFFIX, NAME, RET, ...) \
 	typedef RET(*FUNC_##NAME)(__VA_ARGS__); \

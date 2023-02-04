@@ -48,11 +48,11 @@ namespace slib
 
 #if defined(SLIB_ARCH_IS_64BIT)
 	typedef int (*FUNC_fcntl)(int fd, int cmd, ...);
-	FUNC_fcntl getApi_fcntl();
+	FUNC_fcntl GetApi_fcntl();
 #	ifdef fcntl
 #		undef fcntl
 #	endif
-#	define fcntl getApi_fcntl()
+#	define fcntl GetApi_fcntl()
 #endif
 
 }

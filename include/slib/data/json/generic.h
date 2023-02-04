@@ -30,60 +30,57 @@ namespace slib
 
 	namespace priv
 	{
-		namespace json
+
+		template <class T, sl_bool isClass = __is_class(T), sl_bool isEnum = __is_enum(T)>
+		class DoJsonHelper
 		{
+		};
 
-			template <class T, sl_bool isClass = __is_class(T), sl_bool isEnum = __is_enum(T)>
-			class DoJsonHelper
+		template <class T>
+		class DoJsonHelper<T, sl_true, sl_false>
+		{
+		public:
+			static void fromJson(const Json& json, T& _out)
 			{
-			};
+				if (json.isUndefined()) {
+					return;
+				}
+				_out.setJson(json);
+			}
 
-			template <class T>
-			class DoJsonHelper<T, sl_true, sl_false>
+			static void toJson(Json& json, const T& _in)
 			{
-			public:
-				static void fromJson(const Json& json, T& _out)
-				{
-					if (json.isUndefined()) {
-						return;
-					}
-					_out.setJson(json);
-				}
+				json = _in.toJson();
+			}
+		};
 
-				static void toJson(Json& json, const T& _in)
-				{
-					json = _in.toJson();
-				}
-			};
-
-			template <class T>
-			class DoJsonHelper<T, sl_false, sl_true>
+		template <class T>
+		class DoJsonHelper<T, sl_false, sl_true>
+		{
+		public:
+			static void fromJson(const Json& json, T& _out)
 			{
-			public:
-				static void fromJson(const Json& json, T& _out)
-				{
-					_out = (T)(json.getInt64((sl_int64)_out));
-				}
+				_out = (T)(json.getInt64((sl_int64)_out));
+			}
 
-				static void toJson(Json& json, const T& _in)
-				{
-					json.setInt64((sl_int64)_in);
-				}
-			};
+			static void toJson(Json& json, const T& _in)
+			{
+				json.setInt64((sl_int64)_in);
+			}
+		};
 
-		}
 	}
 
 	template <class T>
 	static void FromJson(const Json& json, T& _out)
 	{
-		priv::json::DoJsonHelper<T>::fromJson(json, _out);
+		priv::DoJsonHelper<T>::fromJson(json, _out);
 	}
 
 	template <class T>
 	static void ToJson(Json& json, const T& _in)
 	{
-		priv::json::DoJsonHelper<T>::toJson(json, _in);
+		priv::DoJsonHelper<T>::toJson(json, _in);
 	}
 
 }

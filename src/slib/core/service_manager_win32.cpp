@@ -36,166 +36,160 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace service_manager
+	namespace {
+
+		static DWORD FromServiceType(ServiceType type)
 		{
-
-			static DWORD FromServiceType(ServiceType type)
-			{
-				switch (type) {
-				case ServiceType::Driver:
-					return SERVICE_KERNEL_DRIVER;
-				case ServiceType::FileSystem:
-					return SERVICE_FILE_SYSTEM_DRIVER;
-				case ServiceType::Shared:
-					return SERVICE_WIN32_SHARE_PROCESS;
-				default:
-					break;
-				}
-				return SERVICE_WIN32_OWN_PROCESS;
+			switch (type) {
+			case ServiceType::Driver:
+				return SERVICE_KERNEL_DRIVER;
+			case ServiceType::FileSystem:
+				return SERVICE_FILE_SYSTEM_DRIVER;
+			case ServiceType::Shared:
+				return SERVICE_WIN32_SHARE_PROCESS;
+			default:
+				break;
 			}
-
-			static DWORD FromServiceStartType(ServiceStartType type)
-			{
-				switch (type) {
-				case ServiceStartType::Auto:
-					return SERVICE_AUTO_START;
-				case ServiceStartType::Boot:
-					return SERVICE_BOOT_START;
-				case ServiceStartType::Disabled:
-					return SERVICE_DISABLED;
-				case ServiceStartType::System:
-					return SERVICE_SYSTEM_START;
-				default:
-					break;
-				}
-				return SERVICE_DEMAND_START;
-			}
-
-			static ServiceStartType ToServiceStartType(DWORD type)
-			{
-				switch (type) {
-				case SERVICE_DEMAND_START:
-					return ServiceStartType::Manual;
-				case SERVICE_AUTO_START:
-					return ServiceStartType::Auto;
-				case SERVICE_BOOT_START:
-					return ServiceStartType::Boot;
-				case SERVICE_DISABLED:
-					return ServiceStartType::Disabled;
-				case SERVICE_SYSTEM_START:
-					return ServiceStartType::System;
-				default:
-					break;
-				}
-				return ServiceStartType::Unknown;
-			}
-
-			static DWORD FromServiceErrorControl(ServiceErrorControl control)
-			{
-				switch (control) {
-				case ServiceErrorControl::Ignore:
-					return SERVICE_ERROR_IGNORE;
-				case ServiceErrorControl::Critical:
-					return SERVICE_ERROR_CRITICAL;
-				case ServiceErrorControl::Severe:
-					return SERVICE_ERROR_SEVERE;
-				default:
-					break;
-				}
-				return SERVICE_ERROR_NORMAL;
-			}
-
-			static ServiceState ToServiceState(DWORD state)
-			{
-				switch (state) {
-				case SERVICE_RUNNING:
-					return ServiceState::Running;
-				case SERVICE_STOPPED:
-					return ServiceState::Stopped;
-				case SERVICE_PAUSED:
-					return ServiceState::Paused;
-				case SERVICE_START_PENDING:
-					return ServiceState::StartPending;
-				case SERVICE_STOP_PENDING:
-					return ServiceState::StopPending;
-				case SERVICE_PAUSE_PENDING:
-					return ServiceState::PausePending;
-				case SERVICE_CONTINUE_PENDING:
-					return ServiceState::ContinuePending;
-				}
-				return ServiceState::None;
-			}
-
-			class WSManager
-			{
-			public:
-				SC_HANDLE handle;
-
-			public:
-				WSManager(DWORD dwAccess)
-				{
-					handle = OpenSCManagerW(NULL, NULL, dwAccess);
-				}
-
-				~WSManager()
-				{
-					if (handle) {
-						CloseServiceHandle(handle);
-					}
-				}
-
-			public:
-				operator SC_HANDLE() const
-				{
-					return handle;
-				}
-
-			};
-
-			class WSService
-			{
-			public:
-				SC_HANDLE handle;
-
-			public:
-				WSService(const WSManager& manager, const StringParam& _name, DWORD dwAccess)
-				{
-					StringCstr16 name = _name;
-					handle = OpenServiceW(manager, (LPCWSTR)(name.getData()), dwAccess);
-				}
-
-				~WSService()
-				{
-					if (handle) {
-						CloseServiceHandle(handle);
-					}
-				}
-
-			public:
-				operator SC_HANDLE() const
-				{
-					return handle;
-				}
-
-			public:
-				DWORD getCurrentState()
-				{
-					SERVICE_STATUS_PROCESS status;
-					DWORD dwBytes = 0;
-					if (QueryServiceStatusEx(handle, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, sizeof(status), &dwBytes)) {
-						return status.dwCurrentState;
-					}
-					return 0;
-				}
-
-			};
-
+			return SERVICE_WIN32_OWN_PROCESS;
 		}
-	}
 
-	using namespace priv::service_manager;
+		static DWORD FromServiceStartType(ServiceStartType type)
+		{
+			switch (type) {
+			case ServiceStartType::Auto:
+				return SERVICE_AUTO_START;
+			case ServiceStartType::Boot:
+				return SERVICE_BOOT_START;
+			case ServiceStartType::Disabled:
+				return SERVICE_DISABLED;
+			case ServiceStartType::System:
+				return SERVICE_SYSTEM_START;
+			default:
+				break;
+			}
+			return SERVICE_DEMAND_START;
+		}
+
+		static ServiceStartType ToServiceStartType(DWORD type)
+		{
+			switch (type) {
+			case SERVICE_DEMAND_START:
+				return ServiceStartType::Manual;
+			case SERVICE_AUTO_START:
+				return ServiceStartType::Auto;
+			case SERVICE_BOOT_START:
+				return ServiceStartType::Boot;
+			case SERVICE_DISABLED:
+				return ServiceStartType::Disabled;
+			case SERVICE_SYSTEM_START:
+				return ServiceStartType::System;
+			default:
+				break;
+			}
+			return ServiceStartType::Unknown;
+		}
+
+		static DWORD FromServiceErrorControl(ServiceErrorControl control)
+		{
+			switch (control) {
+			case ServiceErrorControl::Ignore:
+				return SERVICE_ERROR_IGNORE;
+			case ServiceErrorControl::Critical:
+				return SERVICE_ERROR_CRITICAL;
+			case ServiceErrorControl::Severe:
+				return SERVICE_ERROR_SEVERE;
+			default:
+				break;
+			}
+			return SERVICE_ERROR_NORMAL;
+		}
+
+		static ServiceState ToServiceState(DWORD state)
+		{
+			switch (state) {
+			case SERVICE_RUNNING:
+				return ServiceState::Running;
+			case SERVICE_STOPPED:
+				return ServiceState::Stopped;
+			case SERVICE_PAUSED:
+				return ServiceState::Paused;
+			case SERVICE_START_PENDING:
+				return ServiceState::StartPending;
+			case SERVICE_STOP_PENDING:
+				return ServiceState::StopPending;
+			case SERVICE_PAUSE_PENDING:
+				return ServiceState::PausePending;
+			case SERVICE_CONTINUE_PENDING:
+				return ServiceState::ContinuePending;
+			}
+			return ServiceState::None;
+		}
+
+		class WSManager
+		{
+		public:
+			SC_HANDLE handle;
+
+		public:
+			WSManager(DWORD dwAccess)
+			{
+				handle = OpenSCManagerW(NULL, NULL, dwAccess);
+			}
+
+			~WSManager()
+			{
+				if (handle) {
+					CloseServiceHandle(handle);
+				}
+			}
+
+		public:
+			operator SC_HANDLE() const
+			{
+				return handle;
+			}
+
+		};
+
+		class WSService
+		{
+		public:
+			SC_HANDLE handle;
+
+		public:
+			WSService(const WSManager& manager, const StringParam& _name, DWORD dwAccess)
+			{
+				StringCstr16 name = _name;
+				handle = OpenServiceW(manager, (LPCWSTR)(name.getData()), dwAccess);
+			}
+
+			~WSService()
+			{
+				if (handle) {
+					CloseServiceHandle(handle);
+				}
+			}
+
+		public:
+			operator SC_HANDLE() const
+			{
+				return handle;
+			}
+
+		public:
+			DWORD getCurrentState()
+			{
+				SERVICE_STATUS_PROCESS status;
+				DWORD dwBytes = 0;
+				if (QueryServiceStatusEx(handle, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, sizeof(status), &dwBytes)) {
+					return status.dwCurrentState;
+				}
+				return 0;
+			}
+
+		};
+
+	}
 
 	sl_bool ServiceManager::isExisting(const StringParam& name)
 	{

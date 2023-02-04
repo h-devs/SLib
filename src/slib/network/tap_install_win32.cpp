@@ -41,114 +41,94 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace tap
-		{
-
-			static sl_bool InstallDriver()
-			{
-				if (ServiceManager::isRunning(DRIVER_NAME)) {
-					return sl_true;
-				}
-				if (!(Process::isCurrentProcessAdmin())) {
-					return sl_false;
-				}
-
-				String path = System::getTempDirectory() + "\\.tap";
-				File::createDirectory(path);
-				if (!(File::isDirectory(path))) {
-					return sl_false;
-				}
-
-#ifdef SLIB_PLATFORM_IS_WIN64
-				unsigned char* tap_inf_compressed_data = ::tap::files::tap_inf_compressed_data64;
-				unsigned long tap_inf_compressed_size = ::tap::files::tap_inf_compressed_size64;
-				unsigned char* tap_sys_compressed_data = ::tap::files::tap_sys_compressed_data64;
-				unsigned long tap_sys_compressed_size = ::tap::files::tap_sys_compressed_size64;
-				unsigned char* tap_cat_compressed_data = ::tap::files::tap_cat_compressed_data64;
-				unsigned long tap_cat_compressed_size = ::tap::files::tap_cat_compressed_size64;
-#else
-				sl_bool flag64Bit = System::is64BitSystem();
-				unsigned char* tap_inf_compressed_data = flag64Bit ? ::tap::files::tap_inf_compressed_data64 : ::tap::files::tap_inf_compressed_data86;
-				unsigned long tap_inf_compressed_size = flag64Bit ? ::tap::files::tap_inf_compressed_size64 : ::tap::files::tap_inf_compressed_size86;
-				unsigned char* tap_sys_compressed_data = flag64Bit ? ::tap::files::tap_sys_compressed_data64 : ::tap::files::tap_sys_compressed_data86;
-				unsigned long tap_sys_compressed_size = flag64Bit ? ::tap::files::tap_sys_compressed_size64 : ::tap::files::tap_sys_compressed_size86;
-				unsigned char* tap_cat_compressed_data = flag64Bit ? ::tap::files::tap_cat_compressed_data64 : ::tap::files::tap_cat_compressed_data86;
-				unsigned long tap_cat_compressed_size = flag64Bit ? ::tap::files::tap_cat_compressed_size64 : ::tap::files::tap_cat_compressed_size86;
-				if (flag64Bit) {
-					Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
-					if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
-						return sl_false;
-					}
-				}
-#endif
-				{
-					Memory data = Zstd::decompress(tap_inf_compressed_data, tap_inf_compressed_size);
-					if (File::writeAllBytes(path + "\\tap0901.inf", data) != data.getSize()) {
-						return sl_false;
-					}
-				}
-				{
-					Memory data = Zstd::decompress(tap_sys_compressed_data, tap_sys_compressed_size);
-					if (File::writeAllBytes(path + "\\tap0901.sys", data) != data.getSize()) {
-						return sl_false;
-					}
-				}
-				{
-					Memory data = Zstd::decompress(tap_cat_compressed_data, tap_cat_compressed_size);
-					if (File::writeAllBytes(path + "\\tap0901.cat", data) != data.getSize()) {
-						return sl_false;
-					}
-				}
-#ifndef SLIB_PLATFORM_IS_WIN64
-				if (flag64Bit) {
-					String output = Process::getOutput(path + "\\tapinstall.exe", "install", path + "\\tap0901.inf", "tap0901");
-					return output.startsWith("Device node created");
-				}
-#endif
-				return win32::Setup::installDriver(path + "\\tap0901.inf", DRIVER_NAME);
-			}
-
-			static sl_bool UninstallDriver()
-			{
-				if (!(ServiceManager::isExisting(DRIVER_NAME))) {
-					return sl_true;
-				}
-				if (!(Process::isCurrentProcessAdmin())) {
-					return sl_false;
-				}
-#ifndef SLIB_PLATFORM_IS_WIN64
-				if (System::is64BitSystem()) {
-					String path = System::getTempDirectory() + "\\.tap";
-					File::createDirectory(path);
-					if (!(File::isDirectory(path))) {
-						return sl_false;
-					}
-					Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
-					if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
-						return sl_false;
-					}
-					String output = Process::getOutput(path + "\\tapinstall.exe", "remove", "tap0901");
-					return output.contains(" device(s) were removed.");
-				}
-#endif
-				return win32::Setup::uninstallDriver(DRIVER_NAME);
-			}
-
-		}
-	}
-
-	using namespace priv::tap;
-
 	sl_bool Tap::install()
 	{
-		return InstallDriver();
+		if (ServiceManager::isRunning(DRIVER_NAME)) {
+			return sl_true;
+		}
+		if (!(Process::isCurrentProcessAdmin())) {
+			return sl_false;
+		}
+
+		String path = System::getTempDirectory() + "\\.tap";
+		File::createDirectory(path);
+		if (!(File::isDirectory(path))) {
+			return sl_false;
+		}
+
+#ifdef SLIB_PLATFORM_IS_WIN64
+		unsigned char* tap_inf_compressed_data = ::tap::files::tap_inf_compressed_data64;
+		unsigned long tap_inf_compressed_size = ::tap::files::tap_inf_compressed_size64;
+		unsigned char* tap_sys_compressed_data = ::tap::files::tap_sys_compressed_data64;
+		unsigned long tap_sys_compressed_size = ::tap::files::tap_sys_compressed_size64;
+		unsigned char* tap_cat_compressed_data = ::tap::files::tap_cat_compressed_data64;
+		unsigned long tap_cat_compressed_size = ::tap::files::tap_cat_compressed_size64;
+#else
+		sl_bool flag64Bit = System::is64BitSystem();
+		unsigned char* tap_inf_compressed_data = flag64Bit ? ::tap::files::tap_inf_compressed_data64 : ::tap::files::tap_inf_compressed_data86;
+		unsigned long tap_inf_compressed_size = flag64Bit ? ::tap::files::tap_inf_compressed_size64 : ::tap::files::tap_inf_compressed_size86;
+		unsigned char* tap_sys_compressed_data = flag64Bit ? ::tap::files::tap_sys_compressed_data64 : ::tap::files::tap_sys_compressed_data86;
+		unsigned long tap_sys_compressed_size = flag64Bit ? ::tap::files::tap_sys_compressed_size64 : ::tap::files::tap_sys_compressed_size86;
+		unsigned char* tap_cat_compressed_data = flag64Bit ? ::tap::files::tap_cat_compressed_data64 : ::tap::files::tap_cat_compressed_data86;
+		unsigned long tap_cat_compressed_size = flag64Bit ? ::tap::files::tap_cat_compressed_size64 : ::tap::files::tap_cat_compressed_size86;
+		if (flag64Bit) {
+			Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
+			if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
+				return sl_false;
+			}
+		}
+#endif
+		{
+			Memory data = Zstd::decompress(tap_inf_compressed_data, tap_inf_compressed_size);
+			if (File::writeAllBytes(path + "\\tap0901.inf", data) != data.getSize()) {
+				return sl_false;
+			}
+		}
+		{
+			Memory data = Zstd::decompress(tap_sys_compressed_data, tap_sys_compressed_size);
+			if (File::writeAllBytes(path + "\\tap0901.sys", data) != data.getSize()) {
+				return sl_false;
+			}
+		}
+		{
+			Memory data = Zstd::decompress(tap_cat_compressed_data, tap_cat_compressed_size);
+			if (File::writeAllBytes(path + "\\tap0901.cat", data) != data.getSize()) {
+				return sl_false;
+			}
+		}
+#ifndef SLIB_PLATFORM_IS_WIN64
+		if (flag64Bit) {
+			String output = Process::getOutput(path + "\\tapinstall.exe", "install", path + "\\tap0901.inf", "tap0901");
+			return output.startsWith("Device node created");
+		}
+#endif
+		return win32::Setup::installDriver(path + "\\tap0901.inf", DRIVER_NAME);
 	}
 
 	sl_bool Tap::uninstall()
 	{
-		return UninstallDriver();
+		if (!(ServiceManager::isExisting(DRIVER_NAME))) {
+			return sl_true;
+		}
+		if (!(Process::isCurrentProcessAdmin())) {
+			return sl_false;
+		}
+#ifndef SLIB_PLATFORM_IS_WIN64
+		if (System::is64BitSystem()) {
+			String path = System::getTempDirectory() + "\\.tap";
+			File::createDirectory(path);
+			if (!(File::isDirectory(path))) {
+				return sl_false;
+			}
+			Memory data = Zstd::decompress(::tap::files::tapinstall_exe_compressed_data, ::tap::files::tapinstall_exe_compressed_size);
+			if (File::writeAllBytes(path + "\\tapinstall.exe", data) != data.getSize()) {
+				return sl_false;
+			}
+			String output = Process::getOutput(path + "\\tapinstall.exe", "remove", "tap0901");
+			return output.contains(" device(s) were removed.");
+		}
+#endif
+		return win32::Setup::uninstallDriver(DRIVER_NAME);
 	}
 
 }

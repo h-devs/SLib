@@ -40,45 +40,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace log
-		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Logger>, g_globalLogger)
-
-			static String GetLineString(const StringParam& tag, const StringParam& content)
-			{
-				return String::format("%s [%s] %s\n", Time::now(), tag, content);
-			}
-
-			static String GetLineStringCRLF(const StringParam& tag, const StringParam& content)
-			{
-				return String::format("%s [%s] %s\r\n", Time::now(), tag, content);
-			}
-
-#ifdef SLIB_PLATFORM_IS_WIN32
-			static String16 GetLineString16(const StringParam& tag, const StringParam& content)
-			{
-				return String16::format(SLIB_UNICODE("%s [%s] %s\n"), Time::now(), tag, content);
-			}
-
-			void PrintError(const void* data, sl_size size)
-			{
-				HANDLE handle = GetStdHandle(STD_ERROR_HANDLE);
-				if (handle) {
-					DWORD dwWritten = 0;
-					WriteFile(handle, data, (DWORD)size, &dwWritten, NULL);
-				}
-			}
-#endif
-
-		}
-	}
-
-	using namespace priv::log;
-
-
 	SLIB_DEFINE_OBJECT(Logger, Object)
 
 	Logger::Logger()
@@ -119,6 +80,10 @@ namespace slib
 	void Logger::setMinimumPriority(LogPriority priority)
 	{
 		m_priorityMinimum = priority;
+	}
+
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Logger>, g_globalLogger)
 	}
 
 	Ref<Logger> Logger::global()
@@ -191,6 +156,13 @@ namespace slib
 	{
 	}
 
+	namespace {
+		static String GetLineStringCRLF(const StringParam& tag, const StringParam& content)
+		{
+			return String::format("%s [%s] %s\r\n", Time::now(), tag, content);
+		}
+	}
+
 	void FileLogger::log(LogPriority priority, const StringParam& tag, const StringParam& content)
 	{
 		String path;
@@ -213,6 +185,29 @@ namespace slib
 
 	ConsoleLogger::~ConsoleLogger()
 	{
+	}
+
+	namespace {
+		static String GetLineString(const StringParam& tag, const StringParam& content)
+		{
+			return String::format("%s [%s] %s\n", Time::now(), tag, content);
+		}
+
+#ifdef SLIB_PLATFORM_IS_WIN32
+		static String16 GetLineString16(const StringParam& tag, const StringParam& content)
+		{
+			return String16::format(SLIB_UNICODE("%s [%s] %s\n"), Time::now(), tag, content);
+		}
+
+		static void PrintError(const void* data, sl_size size)
+		{
+			HANDLE handle = GetStdHandle(STD_ERROR_HANDLE);
+			if (handle) {
+				DWORD dwWritten = 0;
+				WriteFile(handle, data, (DWORD)size, &dwWritten, NULL);
+			}
+		}
+#endif
 	}
 
 	void ConsoleLogger::log(LogPriority priority, const StringParam& _tag, const StringParam& _content)

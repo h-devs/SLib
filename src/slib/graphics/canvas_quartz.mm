@@ -34,504 +34,498 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace quartz
+	namespace {
+
+		class CanvasImpl : public CanvasExt
 		{
+			SLIB_DECLARE_OBJECT
 
-			class CanvasImpl : public CanvasExt
+		public:
+			CGContextRef m_graphics;
+
+		public:
+			CanvasImpl()
 			{
-				SLIB_DECLARE_OBJECT
+			}
 
-			public:
-				CGContextRef m_graphics;
+			~CanvasImpl()
+			{
+				CGContextRelease(m_graphics);
+			}
 
-			public:
-				CanvasImpl()
-				{
-				}
+		public:
+			static Ref<CanvasImpl> _create(CanvasType type, CGContextRef graphics, sl_real width, sl_real height)
+			{
+				if (graphics) {
 
-				~CanvasImpl()
-				{
-					CGContextRelease(m_graphics);
-				}
+					Ref<CanvasImpl> ret = new CanvasImpl();
 
-			public:
-				static Ref<CanvasImpl> _create(CanvasType type, CGContextRef graphics, sl_real width, sl_real height)
-				{
-					if (graphics) {
+					if (ret.isNotNull()) {
 
-						Ref<CanvasImpl> ret = new CanvasImpl();
+						ret->m_graphics = graphics;
+						CGContextRetain(graphics);
 
-						if (ret.isNotNull()) {
+						ret->setType(type);
+						ret->setSize(Size(width, height));
 
-							ret->m_graphics = graphics;
-							CGContextRetain(graphics);
+						ret->_setAntiAlias(sl_true);
 
-							ret->setType(type);
-							ret->setSize(Size(width, height));
-
-							ret->_setAntiAlias(sl_true);
-
-							return ret;
-						}
-					}
-					return sl_null;
-				}
-
-				void save() override
-				{
-					CGContextSaveGState(m_graphics);
-				}
-
-				void restore() override
-				{
-					CGContextRestoreGState(m_graphics);
-				}
-
-				Rectangle getClipBounds() override
-				{
-					CGRect rc = CGContextGetClipBoundingBox(m_graphics);
-					return Rectangle((sl_real)(rc.origin.x), (sl_real)(rc.origin.y), (sl_real)(rc.origin.x + rc.size.width), (sl_real)(rc.origin.y + rc.size.height));
-				}
-
-				void clipToRectangle(const Rectangle& rect) override
-				{
-					CGRect rc;
-					rc.origin.x = rect.left;
-					rc.origin.y = rect.top;
-					rc.size.width = rect.getWidth();
-					rc.size.height = rect.getHeight();
-					CGContextClipToRect(m_graphics, rc);
-				}
-
-				void clipToPath(const Ref<GraphicsPath>& path) override
-				{
-					if (path.isNotNull()) {
-						CGPathRef handle = GraphicsPlatform::getGraphicsPath(path.get());
-						if (handle) {
-							_clipToPath(handle, path->getFillMode());
-						}
+						return ret;
 					}
 				}
+				return sl_null;
+			}
 
-				void _clipToPath(CGPathRef path, FillMode fillMode)
-				{
+			void save() override
+			{
+				CGContextSaveGState(m_graphics);
+			}
+
+			void restore() override
+			{
+				CGContextRestoreGState(m_graphics);
+			}
+
+			Rectangle getClipBounds() override
+			{
+				CGRect rc = CGContextGetClipBoundingBox(m_graphics);
+				return Rectangle((sl_real)(rc.origin.x), (sl_real)(rc.origin.y), (sl_real)(rc.origin.x + rc.size.width), (sl_real)(rc.origin.y + rc.size.height));
+			}
+
+			void clipToRectangle(const Rectangle& rect) override
+			{
+				CGRect rc;
+				rc.origin.x = rect.left;
+				rc.origin.y = rect.top;
+				rc.size.width = rect.getWidth();
+				rc.size.height = rect.getHeight();
+				CGContextClipToRect(m_graphics, rc);
+			}
+
+			void clipToPath(const Ref<GraphicsPath>& path) override
+			{
+				if (path.isNotNull()) {
+					CGPathRef handle = GraphicsPlatform::getGraphicsPath(path.get());
+					if (handle) {
+						_clipToPath(handle, path->getFillMode());
+					}
+				}
+			}
+
+			void _clipToPath(CGPathRef path, FillMode fillMode)
+			{
+				CGContextBeginPath(m_graphics);
+				CGContextAddPath(m_graphics, path);
+				if (fillMode != FillMode::Winding) {
+					CGContextEOClip(m_graphics);
+				} else {
+					CGContextClip(m_graphics);
+				}
+			}
+
+			Matrix3 getMatrix()
+			{
+				Matrix3 ret;
+				CGAffineTransform t = CGContextGetCTM(m_graphics);
+				GraphicsPlatform::getMatrix3FromCGAffineTransform(ret, t);
+				return ret;
+			}
+
+			void concatMatrix(const Matrix3& other) override
+			{
+				CGAffineTransform t;
+				GraphicsPlatform::getCGAffineTransform(t, other);
+				CGContextConcatCTM(m_graphics, t);
+			}
+
+			void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
+			{
+				if (pen.isNotNull()) {
 					CGContextBeginPath(m_graphics);
-					CGContextAddPath(m_graphics, path);
-					if (fillMode != FillMode::Winding) {
-						CGContextEOClip(m_graphics);
+					CGContextMoveToPoint(m_graphics, pt1.x, pt1.y);
+					CGContextAddLineToPoint(m_graphics, pt2.x, pt2.y);
+					_applyPen(pen.get());
+					CGContextStrokePath(m_graphics);
+				}
+			}
+
+			void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
+			{
+				if (countPoints < 2) {
+					return;
+				}
+				if (pen.isNotNull()) {
+					CGContextBeginPath(m_graphics);
+					CGContextMoveToPoint(m_graphics, points[0].x, points[0].y);
+					for (sl_uint32 i = 1; i < countPoints; i++) {
+						CGContextAddLineToPoint(m_graphics, points[i].x, points[i].y);
+					}
+					_applyPen(pen.get());
+					CGContextStrokePath(m_graphics);
+				}
+			}
+
+			void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen) override
+			{
+				Ref<GraphicsPath> path = GraphicsPath::create();
+				if (path.isNotNull()) {
+					path->addArc(rect, startDegrees, sweepDegrees);
+					drawPath(path, pen, Ref<Brush>::null());
+				}
+			}
+
+			void drawRectangle(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				CGRect rect;
+				rect.origin.x = _rect.left;
+				rect.origin.y = _rect.top;
+				rect.size.width = _rect.getWidth();
+				rect.size.height = _rect.getHeight();
+				if (brush.isNotNull()) {
+					if (_applySolidBrush(brush.get())) {
+						CGContextFillRect(m_graphics, rect);
 					} else {
-						CGContextClip(m_graphics);
-					}
-				}
-
-				Matrix3 getMatrix()
-				{
-					Matrix3 ret;
-					CGAffineTransform t = CGContextGetCTM(m_graphics);
-					GraphicsPlatform::getMatrix3FromCGAffineTransform(ret, t);
-					return ret;
-				}
-
-				void concatMatrix(const Matrix3& other) override
-				{
-					CGAffineTransform t;
-					GraphicsPlatform::getCGAffineTransform(t, other);
-					CGContextConcatCTM(m_graphics, t);
-				}
-
-				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
-				{
-					if (pen.isNotNull()) {
-						CGContextBeginPath(m_graphics);
-						CGContextMoveToPoint(m_graphics, pt1.x, pt1.y);
-						CGContextAddLineToPoint(m_graphics, pt2.x, pt2.y);
-						_applyPen(pen.get());
-						CGContextStrokePath(m_graphics);
-					}
-				}
-
-				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
-				{
-					if (countPoints < 2) {
-						return;
-					}
-					if (pen.isNotNull()) {
-						CGContextBeginPath(m_graphics);
-						CGContextMoveToPoint(m_graphics, points[0].x, points[0].y);
-						for (sl_uint32 i = 1; i < countPoints; i++) {
-							CGContextAddLineToPoint(m_graphics, points[i].x, points[i].y);
-						}
-						_applyPen(pen.get());
-						CGContextStrokePath(m_graphics);
-					}
-				}
-
-				void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen) override
-				{
-					Ref<GraphicsPath> path = GraphicsPath::create();
-					if (path.isNotNull()) {
-						path->addArc(rect, startDegrees, sweepDegrees);
-						drawPath(path, pen, Ref<Brush>::null());
-					}
-				}
-
-				void drawRectangle(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					CGRect rect;
-					rect.origin.x = _rect.left;
-					rect.origin.y = _rect.top;
-					rect.size.width = _rect.getWidth();
-					rect.size.height = _rect.getHeight();
-					if (brush.isNotNull()) {
-						if (_applySolidBrush(brush.get())) {
-							CGContextFillRect(m_graphics, rect);
-						} else {
-							CGContextSaveGState(m_graphics);
-							CGContextClipToRect(m_graphics, rect);
-							_drawOtherBrush(brush.get());
-							CGContextRestoreGState(m_graphics);
-						}
-					}
-					if (pen.isNotNull()) {
-						_applyPen(pen.get());
-						CGContextStrokeRect(m_graphics, rect);
-					}
-				}
-
-				void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					Ref<GraphicsPath> path = GraphicsPath::create();
-					if (path.isNotNull()) {
-						path->addRoundRect(rect, radius);
-						drawPath(path, pen, brush);
-					}
-				}
-
-				void drawEllipse(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					CGRect rect;
-					rect.origin.x = _rect.left;
-					rect.origin.y = _rect.top;
-					rect.size.width = _rect.getWidth();
-					rect.size.height = _rect.getHeight();
-					if (brush.isNotNull()) {
-						if (_applySolidBrush(brush.get())) {
-							CGContextFillEllipseInRect(m_graphics, rect);
-						} else {
-							CGContextSaveGState(m_graphics);
-							CGContextBeginPath(m_graphics);
-							CGContextAddEllipseInRect(m_graphics, rect);
-							CGContextClip(m_graphics);
-							_drawOtherBrush(brush.get());
-							CGContextRestoreGState(m_graphics);
-						}
-					}
-					if (pen.isNotNull()) {
-						_applyPen(pen.get());
-						CGContextStrokeEllipseInRect(m_graphics, rect);
-					}
-				}
-
-				void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
-				{
-					if (countPoints <= 2) {
-						return;
-					}
-					Ref<GraphicsPath> path = GraphicsPath::create();
-					if (path.isNotNull()) {
-						path->moveTo(points[0]);
-						for (sl_uint32 i = 1; i < countPoints; i++) {
-							path->lineTo(points[i]);
-						}
-						path->closeSubpath();
-						path->setFillMode(fillMode);
-						drawPath(path, pen, brush);
-					}
-				}
-
-				void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					Ref<GraphicsPath> path = GraphicsPath::create();
-					if (path.isNotNull()) {
-						path->addPie(rect, startDegrees, sweepDegrees);
-						drawPath(path, pen, brush);
-					}
-				}
-
-				void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					if (path.isNotNull()) {
-						CGPathRef handle = GraphicsPlatform::getGraphicsPath(path.get());
-						if (handle) {
-							_drawPath(handle, pen, brush, path->getFillMode());
-						}
-					}
-				}
-
-				void _drawPath(CGPathRef path, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
-				{
-					if (brush.isNotNull()) {
-						if (_applySolidBrush(brush.get())) {
-							CGContextBeginPath(m_graphics);
-							CGContextAddPath(m_graphics, path);
-							switch (fillMode) {
-								case FillMode::Winding:
-									CGContextFillPath(m_graphics);
-									break;
-								case FillMode::Alternate:
-								default:
-									CGContextEOFillPath(m_graphics);
-									break;
-							}
-						} else {
-							CGContextSaveGState(m_graphics);
-							CGContextBeginPath(m_graphics);
-							CGContextAddPath(m_graphics, path);
-							switch (fillMode) {
-								case FillMode::Winding:
-									CGContextClip(m_graphics);
-									break;
-								case FillMode::Alternate:
-								default:
-									CGContextEOClip(m_graphics);
-									break;
-							}
-							_drawOtherBrush(brush.get());
-							CGContextRestoreGState(m_graphics);
-						}
-					}
-					if (pen.isNotNull()) {
-						_applyPen(pen.get());
-						CGContextBeginPath(m_graphics);
-						CGContextAddPath(m_graphics, path);
-						CGContextStrokePath(m_graphics);
-					}
-				}
-
-				void _applyPen(Pen* pen)
-				{
-					CGContextRef graphics = m_graphics;
-
-					CGFloat _width;
-					CGLineCap _cap;
-					CGLineJoin _join;
-					CGFloat _miterLimit;
-					CGFloat _dash[6];
-					sl_uint32 _dashLen;
-
-					_width = pen->getWidth();
-
-					switch (pen->getCap()) {
-						case LineCap::Square:
-							_cap = kCGLineCapSquare;
-							break;
-						case LineCap::Round:
-							_cap = kCGLineCapRound;
-							break;
-						case LineCap::Flat:
-						default:
-							_cap = kCGLineCapButt;
-							break;
-					}
-
-					switch (pen->getJoin()) {
-							break;
-						case LineJoin::Bevel:
-							_join = kCGLineJoinBevel;
-							break;
-						case LineJoin::Round:
-							_join = kCGLineJoinRound;
-							break;
-						case LineJoin::Miter:
-						default:
-							_join = kCGLineJoinMiter;
-							break;
-					}
-
-					_miterLimit = pen->getMiterLimit();
-
-					switch (pen->getStyle()) {
-						case PenStyle::Dot:
-							_dash[0] = _width;
-							_dash[1] = 2 * _width;
-							_dashLen = 2;
-							break;
-						case PenStyle::Dash:
-							_dash[0] = 3 * _width;
-							_dash[1] = _dash[0];
-							_dashLen = 2;
-							break;
-						case PenStyle::DashDot:
-							_dash[0] = 3 * _width;
-							_dash[1] = 2 * _width;
-							_dash[2] = _width;
-							_dash[3] = _dash[1];
-							_dashLen = 4;
-							break;
-						case PenStyle::DashDotDot:
-							_dash[0] = 3 * _width;
-							_dash[1] = 2 * _width;
-							_dash[2] = _width;
-							_dash[3] = _dash[1];
-							_dash[4] = _width;
-							_dash[5] = _dash[1];
-							_dashLen = 6;
-							break;
-						case PenStyle::Solid:
-						default:
-							_dashLen = 0;
-							break;
-					}
-
-					CGContextSetLineWidth(graphics, _width);
-					CGContextSetLineCap(graphics, _cap);
-					CGContextSetLineJoin(graphics, _join);
-					CGContextSetMiterLimit(graphics, _miterLimit);
-					CGContextSetLineDash(graphics, 0, _dash, _dashLen);
-
-					Color _color = pen->getColor();
-					CGContextSetRGBStrokeColor(graphics, _color.getRedF(), _color.getGreenF(), _color.getBlueF(), _color.getAlphaF());
-				}
-
-				sl_bool _applySolidBrush(Brush* brush)
-				{
-					BrushDesc& desc = brush->getDesc();
-					if (desc.style == BrushStyle::Solid) {
-						Color& color = desc.color;
-						CGContextSetRGBFillColor(m_graphics, color.getRedF(), color.getGreenF(), color.getBlueF(), color.getAlphaF());
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void _drawOtherBrush(Brush* brush)
-				{
-					BrushDesc& desc = brush->getDesc();
-					if (desc.style == BrushStyle::LinearGradient || desc.style == BrushStyle::RadialGradient) {
-						GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
-						if (detail) {
-							CGGradientRef gradient = GraphicsPlatform::getGradientBrushHandle(brush);
-							if (gradient) {
-								if (desc.style == BrushStyle::LinearGradient) {
-									CGContextDrawLinearGradient(m_graphics, gradient, CGPointMake(detail->point1.x, detail->point1.y), CGPointMake(detail->point2.x, detail->point2.y), kCGGradientDrawsBeforeStartLocation | kCGGradientDrawsAfterEndLocation);
-								} else {
-									CGContextDrawRadialGradient(m_graphics, gradient, CGPointMake(detail->point1.x, detail->point1.y), 0, CGPointMake(detail->point1.x, detail->point1.y), detail->radius, 0);
-								}
-							}
-						}
-					} else if (desc.style == BrushStyle::Texture) {
-						TextureBrushDetail* detail = (TextureBrushDetail*)(desc.detail.get());
-						if (detail) {
-							CGImageRef pattern = GraphicsPlatform::getTextureBrushRetainedHandle(brush);
-							if (pattern) {
-								CGFloat w = (CGFloat)(CGImageGetWidth(pattern));
-								CGFloat h = (CGFloat)(CGImageGetHeight(pattern));
-								CGContextTranslateCTM(m_graphics, 0, h);
-								CGContextScaleCTM(m_graphics, 1, -1);
-								CGContextTranslateCTM(m_graphics, 0, -h);
-								CGContextDrawTiledImage(m_graphics, CGRectMake(0, 0, w, h), pattern);
-								CFRelease(pattern);
-							}
-						}
-					}
-				}
-
-				void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
-				{
-					NSString* text = Apple::getNSStringFromString(_text);
-					if (text == nil) {
-						return;
-					}
-					if (!(text.length)) {
-						return;
-					}
-					UIFont* hFont = GraphicsPlatform::getNativeFont(font.get());
-					if (!hFont) {
-						return;
-					}
-					CGColorRef _color = GraphicsPlatform::getCGColorFromColor(param.color);
-#ifdef SLIB_PLATFORM_IS_MACOS
-					NSColor* color = [NSColor colorWithCGColor:_color];
-#else
-					UIColor* color = [UIColor colorWithCGColor:_color];
-#endif
-					if (_color) {
-						CFRelease(_color);
-					}
-					NSAttributedString* attrText = [[NSAttributedString alloc] initWithString:text attributes:@{
-						NSFontAttributeName: hFont,
-						NSUnderlineStyleAttributeName: @(font->isUnderline()? NSUnderlineStyleSingle : NSUnderlineStyleNone),
-						NSStrikethroughStyleAttributeName: @(font->isStrikeout()? NSUnderlineStyleSingle : NSUnderlineStyleNone),
-						NSForegroundColorAttributeName: color
-					}];
-					if (attrText == nil) {
-						return;
-					}
-					sl_bool flagSaveState = sl_false;
-					sl_real shadowOpacity = param.shadowOpacity;
-					if (shadowOpacity > 0.0001f) {
-						Color _shadowColor = param.shadowColor;
-						_shadowColor.multiplyAlpha((float)shadowOpacity);
-						CGColorRef shadowColor = GraphicsPlatform::getCGColorFromColor(_shadowColor);
-						if (shadowColor) {
-							flagSaveState = sl_true;
-							CGContextSaveGState(m_graphics);
-							CGSize offset;
-							offset.width = (CGFloat)(param.shadowOffset.x);
-							offset.height = (CGFloat)(param.shadowOffset.y);
-#ifdef SLIB_PLATFORM_IS_MACOS
-							if (getType() == CanvasType::View) {
-								offset.height = -offset.height;
-							}
-#endif
-							CGContextSetShadowWithColor(m_graphics, offset, (CGFloat)(param.shadowRadius), shadowColor);
-							CFRelease(shadowColor);
-						}
-					}
-#if defined(SLIB_PLATFORM_IS_MACOS)
-					NSGraphicsContext* oldContext = [NSGraphicsContext currentContext];
-					NSGraphicsContext* context = [NSGraphicsContext graphicsContextWithGraphicsPort:m_graphics flipped:YES];
-					[NSGraphicsContext setCurrentContext:context];
-					[attrText drawAtPoint:NSMakePoint(x, y)];
-					[NSGraphicsContext setCurrentContext:oldContext];
-#else
-					UIGraphicsPushContext(m_graphics);
-					[attrText drawAtPoint:CGPointMake(x, y)];
-					UIGraphicsPopContext();
-#endif
-					if (flagSaveState) {
+						CGContextSaveGState(m_graphics);
+						CGContextClipToRect(m_graphics, rect);
+						_drawOtherBrush(brush.get());
 						CGContextRestoreGState(m_graphics);
 					}
 				}
-
-				void _setAlpha(sl_real alpha) override
-				{
-					CGContextSetAlpha(m_graphics, (CGFloat)alpha);
+				if (pen.isNotNull()) {
+					_applyPen(pen.get());
+					CGContextStrokeRect(m_graphics, rect);
 				}
+			}
 
-				void _setAntiAlias(sl_bool flag) override
-				{
-					if (flag) {
-						CGContextSetAllowsAntialiasing(m_graphics, YES);
-						CGContextSetShouldAntialias(m_graphics, YES);
-						CGContextSetInterpolationQuality(m_graphics, kCGInterpolationMedium);
+			void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				Ref<GraphicsPath> path = GraphicsPath::create();
+				if (path.isNotNull()) {
+					path->addRoundRect(rect, radius);
+					drawPath(path, pen, brush);
+				}
+			}
+
+			void drawEllipse(const Rectangle& _rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				CGRect rect;
+				rect.origin.x = _rect.left;
+				rect.origin.y = _rect.top;
+				rect.size.width = _rect.getWidth();
+				rect.size.height = _rect.getHeight();
+				if (brush.isNotNull()) {
+					if (_applySolidBrush(brush.get())) {
+						CGContextFillEllipseInRect(m_graphics, rect);
 					} else {
-						CGContextSetAllowsAntialiasing(m_graphics, NO);
-						CGContextSetShouldAntialias(m_graphics, NO);
-						CGContextSetInterpolationQuality(m_graphics, kCGInterpolationNone);
+						CGContextSaveGState(m_graphics);
+						CGContextBeginPath(m_graphics);
+						CGContextAddEllipseInRect(m_graphics, rect);
+						CGContextClip(m_graphics);
+						_drawOtherBrush(brush.get());
+						CGContextRestoreGState(m_graphics);
 					}
 				}
+				if (pen.isNotNull()) {
+					_applyPen(pen.get());
+					CGContextStrokeEllipseInRect(m_graphics, rect);
+				}
+			}
 
-			};
+			void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
+			{
+				if (countPoints <= 2) {
+					return;
+				}
+				Ref<GraphicsPath> path = GraphicsPath::create();
+				if (path.isNotNull()) {
+					path->moveTo(points[0]);
+					for (sl_uint32 i = 1; i < countPoints; i++) {
+						path->lineTo(points[i]);
+					}
+					path->closeSubpath();
+					path->setFillMode(fillMode);
+					drawPath(path, pen, brush);
+				}
+			}
 
-			SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
+			void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				Ref<GraphicsPath> path = GraphicsPath::create();
+				if (path.isNotNull()) {
+					path->addPie(rect, startDegrees, sweepDegrees);
+					drawPath(path, pen, brush);
+				}
+			}
 
-		}
+			void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				if (path.isNotNull()) {
+					CGPathRef handle = GraphicsPlatform::getGraphicsPath(path.get());
+					if (handle) {
+						_drawPath(handle, pen, brush, path->getFillMode());
+					}
+				}
+			}
+
+			void _drawPath(CGPathRef path, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode)
+			{
+				if (brush.isNotNull()) {
+					if (_applySolidBrush(brush.get())) {
+						CGContextBeginPath(m_graphics);
+						CGContextAddPath(m_graphics, path);
+						switch (fillMode) {
+							case FillMode::Winding:
+								CGContextFillPath(m_graphics);
+								break;
+							case FillMode::Alternate:
+							default:
+								CGContextEOFillPath(m_graphics);
+								break;
+						}
+					} else {
+						CGContextSaveGState(m_graphics);
+						CGContextBeginPath(m_graphics);
+						CGContextAddPath(m_graphics, path);
+						switch (fillMode) {
+							case FillMode::Winding:
+								CGContextClip(m_graphics);
+								break;
+							case FillMode::Alternate:
+							default:
+								CGContextEOClip(m_graphics);
+								break;
+						}
+						_drawOtherBrush(brush.get());
+						CGContextRestoreGState(m_graphics);
+					}
+				}
+				if (pen.isNotNull()) {
+					_applyPen(pen.get());
+					CGContextBeginPath(m_graphics);
+					CGContextAddPath(m_graphics, path);
+					CGContextStrokePath(m_graphics);
+				}
+			}
+
+			void _applyPen(Pen* pen)
+			{
+				CGContextRef graphics = m_graphics;
+
+				CGFloat _width;
+				CGLineCap _cap;
+				CGLineJoin _join;
+				CGFloat _miterLimit;
+				CGFloat _dash[6];
+				sl_uint32 _dashLen;
+
+				_width = pen->getWidth();
+
+				switch (pen->getCap()) {
+					case LineCap::Square:
+						_cap = kCGLineCapSquare;
+						break;
+					case LineCap::Round:
+						_cap = kCGLineCapRound;
+						break;
+					case LineCap::Flat:
+					default:
+						_cap = kCGLineCapButt;
+						break;
+				}
+
+				switch (pen->getJoin()) {
+						break;
+					case LineJoin::Bevel:
+						_join = kCGLineJoinBevel;
+						break;
+					case LineJoin::Round:
+						_join = kCGLineJoinRound;
+						break;
+					case LineJoin::Miter:
+					default:
+						_join = kCGLineJoinMiter;
+						break;
+				}
+
+				_miterLimit = pen->getMiterLimit();
+
+				switch (pen->getStyle()) {
+					case PenStyle::Dot:
+						_dash[0] = _width;
+						_dash[1] = 2 * _width;
+						_dashLen = 2;
+						break;
+					case PenStyle::Dash:
+						_dash[0] = 3 * _width;
+						_dash[1] = _dash[0];
+						_dashLen = 2;
+						break;
+					case PenStyle::DashDot:
+						_dash[0] = 3 * _width;
+						_dash[1] = 2 * _width;
+						_dash[2] = _width;
+						_dash[3] = _dash[1];
+						_dashLen = 4;
+						break;
+					case PenStyle::DashDotDot:
+						_dash[0] = 3 * _width;
+						_dash[1] = 2 * _width;
+						_dash[2] = _width;
+						_dash[3] = _dash[1];
+						_dash[4] = _width;
+						_dash[5] = _dash[1];
+						_dashLen = 6;
+						break;
+					case PenStyle::Solid:
+					default:
+						_dashLen = 0;
+						break;
+				}
+
+				CGContextSetLineWidth(graphics, _width);
+				CGContextSetLineCap(graphics, _cap);
+				CGContextSetLineJoin(graphics, _join);
+				CGContextSetMiterLimit(graphics, _miterLimit);
+				CGContextSetLineDash(graphics, 0, _dash, _dashLen);
+
+				Color _color = pen->getColor();
+				CGContextSetRGBStrokeColor(graphics, _color.getRedF(), _color.getGreenF(), _color.getBlueF(), _color.getAlphaF());
+			}
+
+			sl_bool _applySolidBrush(Brush* brush)
+			{
+				BrushDesc& desc = brush->getDesc();
+				if (desc.style == BrushStyle::Solid) {
+					Color& color = desc.color;
+					CGContextSetRGBFillColor(m_graphics, color.getRedF(), color.getGreenF(), color.getBlueF(), color.getAlphaF());
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void _drawOtherBrush(Brush* brush)
+			{
+				BrushDesc& desc = brush->getDesc();
+				if (desc.style == BrushStyle::LinearGradient || desc.style == BrushStyle::RadialGradient) {
+					GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
+					if (detail) {
+						CGGradientRef gradient = GraphicsPlatform::getGradientBrushHandle(brush);
+						if (gradient) {
+							if (desc.style == BrushStyle::LinearGradient) {
+								CGContextDrawLinearGradient(m_graphics, gradient, CGPointMake(detail->point1.x, detail->point1.y), CGPointMake(detail->point2.x, detail->point2.y), kCGGradientDrawsBeforeStartLocation | kCGGradientDrawsAfterEndLocation);
+							} else {
+								CGContextDrawRadialGradient(m_graphics, gradient, CGPointMake(detail->point1.x, detail->point1.y), 0, CGPointMake(detail->point1.x, detail->point1.y), detail->radius, 0);
+							}
+						}
+					}
+				} else if (desc.style == BrushStyle::Texture) {
+					TextureBrushDetail* detail = (TextureBrushDetail*)(desc.detail.get());
+					if (detail) {
+						CGImageRef pattern = GraphicsPlatform::getTextureBrushRetainedHandle(brush);
+						if (pattern) {
+							CGFloat w = (CGFloat)(CGImageGetWidth(pattern));
+							CGFloat h = (CGFloat)(CGImageGetHeight(pattern));
+							CGContextTranslateCTM(m_graphics, 0, h);
+							CGContextScaleCTM(m_graphics, 1, -1);
+							CGContextTranslateCTM(m_graphics, 0, -h);
+							CGContextDrawTiledImage(m_graphics, CGRectMake(0, 0, w, h), pattern);
+							CFRelease(pattern);
+						}
+					}
+				}
+			}
+
+			void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
+			{
+				NSString* text = Apple::getNSStringFromString(_text);
+				if (text == nil) {
+					return;
+				}
+				if (!(text.length)) {
+					return;
+				}
+				UIFont* hFont = GraphicsPlatform::getNativeFont(font.get());
+				if (!hFont) {
+					return;
+				}
+				CGColorRef _color = GraphicsPlatform::getCGColorFromColor(param.color);
+#ifdef SLIB_PLATFORM_IS_MACOS
+				NSColor* color = [NSColor colorWithCGColor:_color];
+#else
+				UIColor* color = [UIColor colorWithCGColor:_color];
+#endif
+				if (_color) {
+					CFRelease(_color);
+				}
+				NSAttributedString* attrText = [[NSAttributedString alloc] initWithString:text attributes:@{
+					NSFontAttributeName: hFont,
+					NSUnderlineStyleAttributeName: @(font->isUnderline()? NSUnderlineStyleSingle : NSUnderlineStyleNone),
+					NSStrikethroughStyleAttributeName: @(font->isStrikeout()? NSUnderlineStyleSingle : NSUnderlineStyleNone),
+					NSForegroundColorAttributeName: color
+				}];
+				if (attrText == nil) {
+					return;
+				}
+				sl_bool flagSaveState = sl_false;
+				sl_real shadowOpacity = param.shadowOpacity;
+				if (shadowOpacity > 0.0001f) {
+					Color _shadowColor = param.shadowColor;
+					_shadowColor.multiplyAlpha((float)shadowOpacity);
+					CGColorRef shadowColor = GraphicsPlatform::getCGColorFromColor(_shadowColor);
+					if (shadowColor) {
+						flagSaveState = sl_true;
+						CGContextSaveGState(m_graphics);
+						CGSize offset;
+						offset.width = (CGFloat)(param.shadowOffset.x);
+						offset.height = (CGFloat)(param.shadowOffset.y);
+#ifdef SLIB_PLATFORM_IS_MACOS
+						if (getType() == CanvasType::View) {
+							offset.height = -offset.height;
+						}
+#endif
+						CGContextSetShadowWithColor(m_graphics, offset, (CGFloat)(param.shadowRadius), shadowColor);
+						CFRelease(shadowColor);
+					}
+				}
+#if defined(SLIB_PLATFORM_IS_MACOS)
+				NSGraphicsContext* oldContext = [NSGraphicsContext currentContext];
+				NSGraphicsContext* context = [NSGraphicsContext graphicsContextWithGraphicsPort:m_graphics flipped:YES];
+				[NSGraphicsContext setCurrentContext:context];
+				[attrText drawAtPoint:NSMakePoint(x, y)];
+				[NSGraphicsContext setCurrentContext:oldContext];
+#else
+				UIGraphicsPushContext(m_graphics);
+				[attrText drawAtPoint:CGPointMake(x, y)];
+				UIGraphicsPopContext();
+#endif
+				if (flagSaveState) {
+					CGContextRestoreGState(m_graphics);
+				}
+			}
+
+			void _setAlpha(sl_real alpha) override
+			{
+				CGContextSetAlpha(m_graphics, (CGFloat)alpha);
+			}
+
+			void _setAntiAlias(sl_bool flag) override
+			{
+				if (flag) {
+					CGContextSetAllowsAntialiasing(m_graphics, YES);
+					CGContextSetShouldAntialias(m_graphics, YES);
+					CGContextSetInterpolationQuality(m_graphics, kCGInterpolationMedium);
+				} else {
+					CGContextSetAllowsAntialiasing(m_graphics, NO);
+					CGContextSetShouldAntialias(m_graphics, NO);
+					CGContextSetInterpolationQuality(m_graphics, kCGInterpolationNone);
+				}
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
+
 	}
-
-	using namespace priv::quartz;
 
 	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, CGContextRef graphics, sl_uint32 width, sl_uint32 height)
 	{

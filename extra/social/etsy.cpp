@@ -28,18 +28,12 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace etsy
-		{
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Etsy>, g_instance)
-		}
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Etsy>, g_instance)
 	}
 
-	using namespace priv::etsy;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyUserFeedbackInfo)
-
 	SLIB_DEFINE_JSON_MEMBERS(EtsyUserFeedbackInfo, count, score)
 
 	EtsyUserFeedbackInfo::EtsyUserFeedbackInfo()
@@ -48,8 +42,8 @@ namespace slib
 		score = 0;
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyUser)
 
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyUser)
 	SLIB_DEFINE_JSON_MEMBERS(EtsyUser, user_id, login_name, primary_email, creation_tsz, user_pub_key, referred_by_user_id, feedback_info, awaiting_feedback_count, use_new_inventory_endpoints)
 
 	EtsyUser::EtsyUser()
@@ -81,6 +75,7 @@ namespace slib
 		authenticateUrl = "https://www.etsy.com/oauth/signin";
 		accessTokenUrl = "https://openapi.etsy.com/v2/oauth/access_token";
 	}
+
 
 	SLIB_DEFINE_OBJECT(Etsy, OAuth1)
 

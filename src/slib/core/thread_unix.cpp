@@ -34,47 +34,39 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace thread
-		{
-			SLIB_THREAD Thread* g_currentThread = sl_null;
-			SLIB_THREAD sl_uint64 g_uniqueId = 0;
-		}
+	namespace {
+		SLIB_THREAD Thread* g_currentThread = sl_null;
+		SLIB_THREAD sl_uint64 g_uniqueId = 0;
 	}
 
 	Thread* Thread::_nativeGetCurrentThread()
 	{
-		return priv::thread::g_currentThread;
+		return g_currentThread;
 	}
 
 	void Thread::_nativeSetCurrentThread(Thread* thread)
 	{
-		priv::thread::g_currentThread = thread;
+		g_currentThread = thread;
 	}
 
 	sl_uint64 Thread::_nativeGetCurrentThreadUniqueId()
 	{
-		return priv::thread::g_uniqueId;
+		return g_uniqueId;
 	}
 
 	void Thread::_nativeSetCurrentThreadUniqueId(sl_uint64 n)
 	{
-		priv::thread::g_uniqueId = n;
+		g_uniqueId = n;
 	}
 
-	namespace priv
-	{
-		namespace thread
+	namespace {
+		static void* ThreadProc(void* lpParam)
 		{
-			static void* ThreadProc(void* lpParam)
-			{
-				Thread* pThread = (Thread*)lpParam;
-				pThread->_run();
-				pThread->decreaseReference();
-				pthread_exit(0);
-				return 0;
-			}
+			Thread* pThread = (Thread*)lpParam;
+			pThread->_run();
+			pThread->decreaseReference();
+			pthread_exit(0);
+			return 0;
 		}
 	}
 
@@ -92,7 +84,7 @@ namespace slib
 			return;
 		}
 		this->increaseReference();
-		result = pthread_create(&threadId, &attr, &(priv::thread::ThreadProc), this);
+		result = pthread_create(&threadId, &attr, &ThreadProc, this);
 		if (result == 0) {
 			m_handle = (void*)(threadId);
 		} else {
@@ -110,19 +102,16 @@ namespace slib
 		return sl_true;
 	}
 
-	namespace priv
-	{
-		namespace thread
-		{
+	namespace {
 #define PRIV_UNIX_SCHED_POLICY SCHED_FIFO
-			static int getUnixPriority(ThreadPriority priority)
-			{
-				int min = sched_get_priority_min(PRIV_UNIX_SCHED_POLICY);
-				int max = sched_get_priority_max(PRIV_UNIX_SCHED_POLICY);
-				if (min < 0 || max < 0) {
-					return -1;
-				}
-				switch (priority) {
+		static int GetUnixPriority(ThreadPriority priority)
+		{
+			int min = sched_get_priority_min(PRIV_UNIX_SCHED_POLICY);
+			int max = sched_get_priority_max(PRIV_UNIX_SCHED_POLICY);
+			if (min < 0 || max < 0) {
+				return -1;
+			}
+			switch (priority) {
 				case ThreadPriority::Lowest:
 					return min;
 				case ThreadPriority::BelowNormal:
@@ -133,9 +122,8 @@ namespace slib
 					return (min + max * 3) / 4;
 				case ThreadPriority::Highest:
 					return max;
-				}
-				return -1;
 			}
+			return -1;
 		}
 	}
 
@@ -143,7 +131,7 @@ namespace slib
 	{
 		pthread_t thread = (pthread_t)m_handle;
 		if (thread) {
-			int p = priv::thread::getUnixPriority(m_priority);
+			int p = GetUnixPriority(m_priority);
 			if (p >= 0) {
 				sched_param param;
 				param.sched_priority = p;

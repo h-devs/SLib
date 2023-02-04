@@ -42,82 +42,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace socket_address
-		{
-
-			template <class CHAR>
-			static sl_reg ParseAddress(SocketAddress* obj, const CHAR* str, sl_size pos, sl_size posEnd) noexcept
-			{
-				if (pos >= posEnd) {
-					return SLIB_PARSE_ERROR;
-				}
-				IPAddress ip;
-				if (*str == '[') {
-					IPv6Address addr;
-					pos++;
-					pos = IPv6Address::parse(&addr, str, pos, posEnd);
-					if (pos == SLIB_PARSE_ERROR || pos >= posEnd) {
-						return SLIB_PARSE_ERROR;
-					}
-					if (str[pos] != ']') {
-						return SLIB_PARSE_ERROR;
-					}
-					pos++;
-					ip = addr;
-				} else {
-					IPv4Address addr;
-					pos = IPv4Address::parse(&addr, str, pos, posEnd);
-					if (pos == SLIB_PARSE_ERROR) {
-						return SLIB_PARSE_ERROR;
-					}
-					ip = addr;
-				}
-				if (pos >= posEnd) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (str[pos] != ':') {
-					return SLIB_PARSE_ERROR;
-				}
-				pos++;
-				sl_uint32 port;
-				pos = StringTypeFromCharType<CHAR>::Type::parseUint32(10, &port, str, pos, posEnd);
-				if (pos == SLIB_PARSE_ERROR) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (port >> 16) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (obj) {
-					obj->ip = ip;
-					obj->port = (sl_uint16)port;
-				}
-				return pos;
-			}
-
-			template <class VIEW>
-			static sl_bool SetHostAddress(SocketAddress& addr, const VIEW& str)
-			{
-				sl_reg index = str.lastIndexOf(':');
-				if (index < 0) {
-					addr.port = 0;
-					return addr.ip.setHostName(str);
-				} else {
-					sl_uint32 _port = str.substring(index + 1).parseUint32();
-					if (_port >> 16) {
-						return sl_false;
-					}
-					addr.port = (sl_uint16)(_port);
-					return addr.ip.setHostName(str.substring(0, index));
-				}
-			}
-
-		}
-	}
-
-	using namespace priv::socket_address;
-
 	const SocketAddress::_socket_address SocketAddress::_none = { { IPAddressType::None, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } }, 0 };
 
 	SocketAddress::SocketAddress(const StringParam& str) noexcept
@@ -184,6 +108,25 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace {
+		template <class VIEW>
+		static sl_bool SetHostAddress(SocketAddress& addr, const VIEW& str)
+		{
+			sl_reg index = str.lastIndexOf(':');
+			if (index < 0) {
+				addr.port = 0;
+				return addr.ip.setHostName(str);
+			} else {
+				sl_uint32 _port = str.substring(index + 1).parseUint32();
+				if (_port >> 16) {
+					return sl_false;
+				}
+				addr.port = (sl_uint16)(_port);
+				return addr.ip.setHostName(str.substring(0, index));
+			}
+		}
+	}
+
 	sl_bool SocketAddress::setHostAddress(const StringParam& address) noexcept
 	{
 		if (address.isEmpty()) {
@@ -240,7 +183,58 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_MEMBERS(SocketAddress, ParseAddress)
+	namespace {
+		template <class CHAR>
+		static sl_reg DoParse(SocketAddress* obj, const CHAR* str, sl_size pos, sl_size posEnd) noexcept
+		{
+			if (pos >= posEnd) {
+				return SLIB_PARSE_ERROR;
+			}
+			IPAddress ip;
+			if (*str == '[') {
+				IPv6Address addr;
+				pos++;
+				pos = IPv6Address::parse(&addr, str, pos, posEnd);
+				if (pos == SLIB_PARSE_ERROR || pos >= posEnd) {
+					return SLIB_PARSE_ERROR;
+				}
+				if (str[pos] != ']') {
+					return SLIB_PARSE_ERROR;
+				}
+				pos++;
+				ip = addr;
+			} else {
+				IPv4Address addr;
+				pos = IPv4Address::parse(&addr, str, pos, posEnd);
+				if (pos == SLIB_PARSE_ERROR) {
+					return SLIB_PARSE_ERROR;
+				}
+				ip = addr;
+			}
+			if (pos >= posEnd) {
+				return SLIB_PARSE_ERROR;
+			}
+			if (str[pos] != ':') {
+				return SLIB_PARSE_ERROR;
+			}
+			pos++;
+			sl_uint32 port;
+			pos = StringTypeFromCharType<CHAR>::Type::parseUint32(10, &port, str, pos, posEnd);
+			if (pos == SLIB_PARSE_ERROR) {
+				return SLIB_PARSE_ERROR;
+			}
+			if (port >> 16) {
+				return SLIB_PARSE_ERROR;
+			}
+			if (obj) {
+				obj->ip = ip;
+				obj->port = (sl_uint16)port;
+			}
+			return pos;
+		}
+	}
+
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(SocketAddress, DoParse)
 
 	sl_bool SocketAddress::parseIPv4Range(const StringParam& str, IPv4Address* from, IPv4Address* to) noexcept
 	{

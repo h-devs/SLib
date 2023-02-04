@@ -28,1178 +28,1151 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace css
+	namespace {
+
+		class CascadingStyleSheetHelper : public CascadingStyleSheet
 		{
+		public:
+			using CascadingStyleSheet::m_statements;
+			using CascadingStyleSheet::m_lastRuleOrder;
+		};
 
-			class CascadingStyleSheetHelper : public CascadingStyleSheet
+		template <class CHAR>
+		class StylesParser
+		{
+		public:
+			CascadingStyleSheetHelper* sheet;
+			CHAR* current;
+			CHAR* end;
+			sl_bool flagIgnoreErrors;
+			
+		public:
+			static void run(CascadingStyleSheet* sheet, CHAR* data, sl_size len, CascadingStylesParam& param)
 			{
-			public:
-				using CascadingStyleSheet::m_statements;
-				using CascadingStyleSheet::m_lastRuleOrder;
-			};
+				StylesParser parser;
+				parser.sheet = (CascadingStyleSheetHelper*)sheet;
+				parser.current = data;
+				parser.end = data + len;
+				parser.flagIgnoreErrors = param.flagIgnoreErrors;
+				param.flagError = !(parser.run());
+			}
 
-			template <class CHAR>
-			class StylesParser
+			sl_bool run()
 			{
-			public:
-				CascadingStyleSheetHelper* sheet;
-				CHAR* current;
-				CHAR* end;
-				sl_bool flagIgnoreErrors;
-				
-			public:
-				static void run(CascadingStyleSheet* sheet, CHAR* data, sl_size len, CascadingStylesParam& param)
-				{
-					StylesParser parser;
-					parser.sheet = (CascadingStyleSheetHelper*)sheet;
-					parser.current = data;
-					parser.end = data + len;
-					parser.flagIgnoreErrors = param.flagIgnoreErrors;
-					param.flagError = !(parser.run());
-				}
+				skipWhitespaces();
+				return parseStatements(sheet->m_statements, 0);
+			}
 
-				sl_bool run()
-				{
-					skipWhitespaces();
-					return parseStatements(sheet->m_statements, 0);
-				}
-
-				// Passes ending character
-				sl_bool parseStatements(CascadingStyleStatements& statements, CHAR chEnd)
-				{
-					while (current < end) {
-						CHAR ch = *current;
-						if (chEnd) {
-							if (ch == chEnd) {
-								current++;
-								break;
-							}
-						}
-						if (ch == '@') {
-							current++;
-							if (!(parseAtRule(statements))) {
-								if (flagIgnoreErrors) {
-									skipLine();
-								} else {
-									return sl_false;
-								}
-							}
-						} else {
-							if (!(parseRule(statements))) {
-								if (flagIgnoreErrors) {
-									skipLine();
-								} else {
-									return sl_false;
-								}
-							}
-						}
-						skipWhitespaces();
-					}
-					return sl_true;
-				}
-
-				sl_bool parseAtRule(CascadingStyleStatements& statements)
-				{
-					CascadingStyleAtRule at;
-					at.identifier = parseIdentifier();
-					if (at.identifier.isNull()) {
-						return sl_false;
-					}
-					at.rule = parseValueRegion(0);
-					if (at.rule.isNull()) {
-						return sl_false;
-					}
-					if (*current == '{') {
-						Shared<CascadingStyleStatements> statements = Shared<CascadingStyleStatements>::create();
-						if (statements.isNull()) {
-							return sl_false;
-						}
-						current++;
-						skipWhitespaces();
-						CHAR* start = current;
-						if (flagIgnoreErrors) {
-							sl_bool flagDecl = sl_false;
-							if (parseStatements(*statements, '}')) {
-								flagDecl = statements->rules.isEmpty() && at.statements->atRules.isEmpty();
-							} else {
-								flagDecl = sl_true;
-							}
-							if (flagDecl) {
-								current = start;
-								if (!(parseDeclarations(at.declarations, '}'))) {
-									return sl_false;
-								}
-							} else {
-								at.statements = Move(statements);
-							}
-						} else {
-							if (parseStatements(*statements, '}')) {
-								at.statements = Move(statements);
-							} else {
-								current = start;
-								if (!(parseDeclarations(at.declarations, '}'))) {
-									return sl_false;
-								}
-							}
-						}
-					} else if (*current == ';') {
-						current++;
-					} else {
-						return sl_false;
-					}
-					return addAtRule(statements, Move(at));
-				}
-
-				sl_bool addAtRule(CascadingStyleStatements& statements, CascadingStyleAtRule&& rule)
-				{
-					return statements.atRules.add_NoLock(Move(rule));
-				}
-
-				sl_bool parseRule(CascadingStyleStatements& statements)
-				{
-					Ref<CascadingStyleSelector> selector = parseCombindSelector(sl_null, CascadingStyleCombinator::None);
-					if (selector.isNull()) {
-						return sl_false;
-					}
-					if (current >= end) {
-						return sl_false;
-					}
-					List< Ref<CascadingStyleSelector> > group;
-					while (*current == ',') {
-						current++;
-						skipWhitespaces();
-						Ref<CascadingStyleSelector> item = parseCombindSelector(sl_null, CascadingStyleCombinator::None);
-						if (item.isNull()) {
-							return sl_false;
-						}
-						if (!(group.add_NoLock(Move(item)))) {
-							return sl_false;
-						}
-						if (current >= end) {
-							return sl_false;
-						}
-					}
-					if (*current != '{') {
-						return sl_false;
-					}
-					current++;
-					skipWhitespaces();
-					CascadingStyleDeclarations declarations;
-					if (!(parseDeclarations(declarations, '}'))) {
-						return sl_false;
-					}
-					CascadingStyleRule rule;
-					rule.selector = Move(selector);
-					rule.declarations = declarations;
-					rule.order = ++(sheet->m_lastRuleOrder);
-					if (!(addRule(statements, Move(rule)))) {
-						return sl_false;
-					}
-					{
-						ListElements< Ref<CascadingStyleSelector> > items(group);
-						for (sl_size i = 0; i < items.count; i++) {
-							rule.selector = Move(items[i]);
-							rule.declarations = declarations;
-							if (!(addRule(statements, Move(rule)))) {
-								return sl_false;
-							}
-						}
-					}
-					return sl_true;
-				}
-
-				sl_bool addRule(CascadingStyleStatements& statements, CascadingStyleRule&& rule)
-				{
-					do {
-						CascadingStyleSelector* selector = rule.selector.get();
-						if (selector->id.isNotNull()) {
-							statements.rulesById.add_NoLock(selector->id, rule);
-							break;
-						}
-						if (selector->classNames.getCount() >= 1) {
-							statements.rulesByClass.add_NoLock(selector->classNames.getValueAt_NoLock(0), rule);
-							break;
-						}
-						if (selector->flagUniversal || selector->elementName.isNull()) {
-							statements.rulesUniversal.add_NoLock(rule);
-						} else {
-							statements.rulesByTag.add_NoLock(selector->elementName, rule);
-						}
-					} while (0);
-					return statements.rules.add_NoLock(Move(rule));
-				}
-
-				static CascadingStyleDeclarations parseDeclarations(CHAR* data, sl_size len)
-				{
-					StylesParser parser;
-					parser.sheet = sl_null;
-					parser.current = data;
-					parser.end = data + len;
-					parser.flagIgnoreErrors = sl_false;
-					CascadingStyleDeclarations decls;
-					parser.parseDeclarations(decls, 0);
-					return decls;
-				}
-
-				Ref<CascadingStyleValue> parseDeclaration(String& name)
-				{
-					name = parseIdentifier();
-					if (name.isNull()) {
-						return sl_null;
-					}
-					skipWhitespaces();
-					if (current >= end) {
-						return sl_null;
-					}
-					if (*current != ':') {
-						return sl_null;
-					}
-					current++;
-					skipWhitespaces();
-					Ref<CascadingStyleValue> ret = parseValue();
-					if (ret.isNull()) {
-						return sl_null;
-					}
-					if (current < end) {
-						if (*current == '!') {
-							current++;
-							skipComment();
-							String label = parseIdentifier();
-							if (label == StringView::literal("important")) {
-								ret->setImportant();
-							}
-						}
-					}
-					return ret;
-				}
-
-				// Passes ending character
-				sl_bool parseDeclarations(CascadingStyleDeclarations& declarations, CHAR chEnd)
-				{
-					while (current < end) {
-						CHAR ch = *current;
-						if (ch == ';') {
-							current++;
-						} else if (ch == chEnd) {
-							current++;
-							return sl_true;
-						} else {
-							String name;
-							Ref<CascadingStyleValue> value = parseDeclaration(name);
-							if (value.isNotNull()) {
-								if (!(declarations.add_NoLock(Move(name), Move(value)))) {
-									declarations.setNull();
-									return sl_false;
-								}
-							} else {
-								if (flagIgnoreErrors) {
-									skipLine();
-								} else {
-									return sl_false;
-								}
-							}
-						}
-						skipWhitespaces();
-					}
-					if (!chEnd) {
-						return sl_true;
-					}
-					declarations.setNull();
-					return sl_false;
-				}
-
-				Ref<CascadingStyleValue> parseValue()
-				{
-					CHAR* start = current;
-					Ref<CascadingStyleValue> value = parseVariableValue();
-					if (value.isNotNull()) {
-						return value;
-					}
-					current = start;
-					return parseNormalValue();
-				}
-
-				Ref<CascadingStyleValue> parseVariableValue()
-				{
-					if (current + 3 > end) {
-						return sl_null;
-					}
-					if (!(*current == 'v' && *(current + 1) == 'a' && *(current + 2) == 'r')) {
-						return sl_null;
-					}
-					current += 3;
-					skipWhitespaces();
-					if (current >= end) {
-						return sl_null;
-					}
-					if (*current != '(') {
-						return sl_null;
-					}
-					current++;
-					skipWhitespaces();
-					String name = parseIdentifier();
-					if (name.isNull()) {
-						return sl_null;
-					}
-					skipWhitespaces();
-					if (current >= end) {
-						return sl_null;
-					}
-					String defaultValue;
+			// Passes ending character
+			sl_bool parseStatements(CascadingStyleStatements& statements, CHAR chEnd)
+			{
+				while (current < end) {
 					CHAR ch = *current;
-					if (ch == ',') {
-						current++;
-						skipWhitespaces();
-						String defaultValue = parseValueRegion(')');
-						if (defaultValue.isNull()) {
-							return sl_null;
+					if (chEnd) {
+						if (ch == chEnd) {
+							current++;
+							break;
 						}
+					}
+					if (ch == '@') {
 						current++;
-						return new CascadingStyleVariableValue(Move(name), Move(defaultValue));
-					} else if (ch == ')') {
-						current++;
-						return new CascadingStyleVariableValue(Move(name));
+						if (!(parseAtRule(statements))) {
+							if (flagIgnoreErrors) {
+								skipLine();
+							} else {
+								return sl_false;
+							}
+						}
 					} else {
-						return sl_null;
-					}
-				}
-
-				Ref<CascadingStyleValue> parseNormalValue()
-				{
-					String value = parseValueRegion(0);
-					if (value.isNull()) {
-						return sl_null;
-					}
-					return new CascadingStyleNormalValue(Move(value));
-				}
-
-				Ref<CascadingStyleSelector> parseCombindSelector(CascadingStyleSelector* before, CascadingStyleCombinator combinator)
-				{
-					Ref<CascadingStyleSelector> first = parseBasicSelector(before, combinator);
-					if (first.isNull()) {
-						return sl_null;
-					}
-					skipWhitespaces();
-					if (current >= end) {
-						return first;
-					}
-					combinator = CascadingStyleCombinator::Descendant;
-					CHAR ch = *current;
-					if (ch == '>') {
-						combinator = CascadingStyleCombinator::Child;
-					} else if (ch == '~') {
-						combinator = CascadingStyleCombinator::Sibling;
-					} else if (ch == '+') {
-						combinator = CascadingStyleCombinator::Adjacent;
-					}
-					if (combinator != CascadingStyleCombinator::Descendant) {
-						current++;
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_null;
-						}
-					}
-					CHAR* start = current;
-					Ref<CascadingStyleSelector> last = parseCombindSelector(first.get(), combinator);
-					if (last.isNotNull()) {
-						return last;
-					}
-					if (combinator != CascadingStyleCombinator::Descendant) {
-						return sl_null;
-					}
-					if (start != current) {
-						return sl_null;
-					}
-					return first;
-				}
-
-				Ref<CascadingStyleSelector> parseBasicSelector(CascadingStyleSelector* before, CascadingStyleCombinator combinator)
-				{
-					Ref<CascadingStyleSelector> ret = new CascadingStyleSelector;
-					if (ret.isNull()) {
-						return sl_null;
-					}
-					ret->before = before;
-					ret->combinator = combinator;
-					CHAR* start = current;
-					for (;;) {
-						switch (*current) {
-							case '.':
-								{
-									current++;
-									String name = parseIdentifier();
-									if (name.isNull()) {
-										return sl_null;
-									}
-									if (!(ret->classNames.add_NoLock(Move(name)))) {
-										return sl_null;
-									}
-									break;
-								}
-							case '#':
-								{
-									current++;
-									String name = parseIdentifier();
-									if (name.isNull()) {
-										return sl_null;
-									}
-									ret->id = Move(name);
-									break;
-								}
-							case '[':
-								{
-									current++;
-									if (!(parseSelector_AttributeMatch(ret.get()))) {
-										return sl_null;
-									}
-									break;
-								}
-							case '*':
-								{
-									if (ret->elementName.isNotNull() || ret->flagUniversal) {
-										return sl_null;
-									}
-									current++;
-									ret->flagUniversal = sl_true;
-									break;
-								}
-							case '|':
-								{
-									if (ret->flagNamespace) {
-										return sl_null;
-									}
-									current++;
-									if (ret->flagUniversal) {
-										ret->flagUniversal = sl_false;
-									} else {
-										ret->namespaceName = Move(ret->elementName);
-										if (ret->namespaceName.isNull()) {
-											ret->namespaceName.setEmpty();
-										}
-									}
-									ret->flagNamespace = sl_true;
-									if (current >= end) {
-										return sl_null;
-									}
-									if (*current == '*') {
-										current++;
-										ret->flagUniversal = sl_true;
-									} else {
-										String name = parseIdentifier();
-										if (name.isNull()) {
-											return sl_null;
-										}
-										ret->elementName = Move(name);
-									}
-									break;
-								}
-							case ':':
-								{
-									current++;
-									if (current >= end) {
-										return sl_null;
-									}
-									if (*current == ':') {
-										current++;
-										if (ret->pseudoElement.isNotNull()) {
-											return sl_null;
-										}
-										String name = parsePseudoClass();
-										if (name.isNull()) {
-											return sl_null;
-										}
-										ret->pseudoElement = Move(name);
-									} else {
-										String name = parsePseudoClass();
-										if (name.isNull()) {
-											return sl_null;
-										}
-										if (!(ret->pseudoClasses.add_NoLock(Move(name)))) {
-											return sl_null;
-										}
-									}
-									break;
-								}
-							default:
-								{
-									if (ret->elementName.isNotNull() || ret->flagUniversal) {
-										return ret;
-									}
-									String name = parseIdentifier();
-									if (name.isNull()) {
-										name = parseUnquotedStringValue();
-										if (name.isNull()) {
-											if (current == start) {
-												return sl_null;
-											}
-											return ret;
-										}
-									}
-									ret->elementName = Move(name);
-									break;
-								}
-						}
-						if (current >= end) {
-							break;
-						}
-						skipComment();
-					}
-					return ret;
-				}
-
-				sl_bool parseSelector_AttributeMatch(CascadingStyleSelector* selector)
-				{
-					skipWhitespaces();
-					if (current >= end) {
-						return sl_false;
-					}
-					CascadingStyleAttributeMatch match;
-					match.name = parseIdentifier();
-					if (match.name.isNull()) {
-						return sl_false;
-					}
-					skipWhitespaces();
-					if (current >= end) {
-						return sl_false;
-					}
-					match.type = CascadingStyleMatchType::Exist;
-					switch (*current) {
-						case '~':
-							match.type = CascadingStyleMatchType::Contains_Word;
-							current++;
-							break;
-						case '|':
-							match.type = CascadingStyleMatchType::LocalePrefix;
-							current++;
-							break;
-						case '^':
-							match.type = CascadingStyleMatchType::Start;
-							current++;
-							break;
-						case '$':
-							match.type = CascadingStyleMatchType::End;
-							current++;
-							break;
-						case '*':
-							match.type = CascadingStyleMatchType::Contain;
-							current++;
-							break;
-						case '=':
-							match.type = CascadingStyleMatchType::Equal;
-							current++;
-							break;
-					}
-					if (match.type > CascadingStyleMatchType::Equal) {
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-						if (*current != '=') {
-							return sl_false;
-						}
-						current++;
-					}
-					if (match.type != CascadingStyleMatchType::Exist) {
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-					}
-					if (match.type != CascadingStyleMatchType::Exist) {
-						match.value = parseStringValue();
-						if (match.value.isNull()) {
-							return sl_false;
-						}
-						skipWhitespaces();
-						if (current >= end) {
-							return sl_false;
-						}
-						if (*current == 'i' || *current == 'I') {
-							match.flagIgnoreCase = sl_true;
-							current++;
-							skipWhitespaces();
-							if (current >= end) {
+						if (!(parseRule(statements))) {
+							if (flagIgnoreErrors) {
+								skipLine();
+							} else {
 								return sl_false;
 							}
 						}
 					}
-					if (*current != ']') {
+					skipWhitespaces();
+				}
+				return sl_true;
+			}
+
+			sl_bool parseAtRule(CascadingStyleStatements& statements)
+			{
+				CascadingStyleAtRule at;
+				at.identifier = parseIdentifier();
+				if (at.identifier.isNull()) {
+					return sl_false;
+				}
+				at.rule = parseValueRegion(0);
+				if (at.rule.isNull()) {
+					return sl_false;
+				}
+				if (*current == '{') {
+					Shared<CascadingStyleStatements> statements = Shared<CascadingStyleStatements>::create();
+					if (statements.isNull()) {
 						return sl_false;
 					}
 					current++;
-					return selector->attributes.add_NoLock(Move(match));
-				}
-
-				void skipCommentInner()
-				{
-					current += 2;
-					for (;;) {
-						if (current + 2 > end) {
-							current = end;
-							return;
-						}
-						if (*current == '*' && *(current + 1) == '/') {
-							current += 2;
-							break;
-						} else {
-							current++;
-						}
-					}
-				}
-
-				void skipComment()
-				{
-					if (current + 2 > end) {
-						return;
-					}
-					if (*current == '/' && *(current + 1) == '*') {
-						skipCommentInner();
-					}
-				}
-
-				void skipWhitespaces()
-				{
-					while (current < end) {
-						CHAR ch = *current;
-						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
-							current++;
-						} else if (ch == '/') {
-							if (current + 1 < end && *(current + 1) == '*') {
-								skipCommentInner();
-							} else {
-								return;
-							}
-						} else {
-							return;
-						}
-					}
-				}
-
-				void skipLine()
-				{
-					while (current < end) {
-						CHAR ch = *(current++);
-						if (ch == '\r') {
-							if (current < end) {
-								ch = current[1];
-								if (ch == '\n') {
-									current++;
-								}
-							}
-							return;
-						} else if (ch == '\n') {
-							return;
-						}
-					}
-				}
-
-				sl_bool parseHexValue(CHAR*& input, sl_uint32& value)
-				{
-					sl_uint32 h = (sl_uint32)(*input);
-					h = SLIB_CHAR_HEX_TO_INT(h);
-					if (h < 16) {
-						value = h;
-						input++;
-						sl_uint32 n = 1;
-						while (input < end && n < 6) {
-							h = (sl_uint32)(*input);
-							h = SLIB_CHAR_HEX_TO_INT(h);
-							if (h < 16) {
-								value = (value << 4) | h;
-								input++;
-								n++;
-							} else {
-								break;
-							}
-						}
-						if (input < end) {
-							CHAR ch = *input;
-							if (ch == ' ' || ch == '\t' || ch == '\n') {
-								input++;
-							} else if (ch == '\r') {
-								input++;
-								if (input < end) {
-									ch = *input;
-									if (ch == '\n') {
-										input++;
-									}
-								}
-							}
-						}
-						return sl_true;
-					} else {
-						return sl_false;
-					}
-				}
-
-				sl_bool parseIdentifier(CHAR*& input, CHAR* _out, sl_size& lenOutput)
-				{
-					lenOutput = 0;
-					CHAR* start = input;
-					while (input < end) {
-						CHAR ch = *input;
-						if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
-							if (start == input) {
-								if (SLIB_CHAR_IS_DIGIT(ch)) {
-									return sl_false;
-								}
-								if (ch == '-' && input + 1 < end) {
-									CHAR next = *(input + 1);
-									if (SLIB_CHAR_IS_DIGIT(next)) {
-										return sl_false;
-									}
-								}
-							}
-							input++;
-						} else if (ch == '\\') {
-							input++;
-							if (input >= end) {
-								return sl_false;
-							}
-							sl_uint32 code;
-							if (parseHexValue(input, code)) {
-								lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
-								continue;
-							} else {
-								ch = *(input++);
-							}
-						} else {
-							break;
-						}
-						if (_out) {
-							_out[lenOutput] = ch;
-						}
-						lenOutput++;
-					}
-					return lenOutput > 0;
-				}
-
-				String parseIdentifier()
-				{
-					if (current >= end) {
-						return sl_null;
-					}
-					CHAR* s = current;
-					sl_size len;
-					if (!(parseIdentifier(s, sl_null, len))) {
-						return sl_null;
-					}
-					typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
-					if (ret.isNull()) {
-						return sl_null;
-					}
-					parseIdentifier(current, ret.getData(), len);
-					return String::from(ret);
-				}
-
-				sl_bool parseUnquotedStringValue(CHAR*& input, CHAR* _out, sl_size& lenOutput)
-				{
-					lenOutput = 0;
-					CHAR* start = input;
-					while (input < end) {
-						CHAR ch = *input;
-						if (SLIB_CHAR_IS_ALNUM(ch) || (ch & 0x80) || ch == '-' || ch == '_' || ch == '.' || ch == '%' || ch == '@') {
-							input++;
-						} else if (ch == '\\') {
-							if (input >= end) {
-								return sl_false;
-							}
-							sl_uint32 code;
-							if (parseHexValue(input, code)) {
-								lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
-								continue;
-							} else {
-								ch = *(input++);
-							}
-						} else {
-							break;
-						}
-						if (_out) {
-							_out[lenOutput] = ch;
-						}
-						lenOutput++;
-					}
-					return lenOutput > 0;
-				}
-
-				String parseUnquotedStringValue()
-				{
-					if (current >= end) {
-						return sl_null;
-					}
-					CHAR* s = current;
-					sl_size len;
-					if (!(parseUnquotedStringValue(s, sl_null, len))) {
-						return sl_null;
-					}
-					typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
-					if (ret.isNull()) {
-						return sl_null;
-					}
-					parseUnquotedStringValue(current, ret.getData(), len);
-					return String::from(ret);
-				}
-
-				sl_bool parseStringValue(CHAR*& input, CHAR chOpen, CHAR* _out, sl_size& lenOutput)
-				{
-					lenOutput = 0;
-					while (input < end) {
-						CHAR ch = *(input++);
-						if (ch == chOpen) {
-							return sl_true;
-						} else if (ch == '\\') {
-							if (input >= end) {
-								return sl_false;
-							}
-							sl_uint32 code;
-							if (parseHexValue(input, code)) {
-								lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
-								continue;
-							} else {
-								ch = *(input++);
-							}
-						}
-						if (_out) {
-							_out[lenOutput] = ch;
-						}
-						lenOutput++;
-					}
-					return sl_false;
-				}
-
-				String parseStringValue()
-				{
-					CHAR chOpen = *current;
-					if (chOpen != '"' && chOpen != '\'') {
-						return parseUnquotedStringValue();
-					}
-					current++;
-					CHAR* s = current;
-					sl_size len;
-					if (!(parseStringValue(s, chOpen, sl_null, len))) {
-						return sl_null;
-					}
-					typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
-					if (ret.isNull()) {
-						return sl_null;
-					}
-					if (!(parseStringValue(current, chOpen, ret.getData(), len))) {
-						return sl_null;
-					}
-					return String::from(ret);
-				}
-
-				sl_bool skipValueRegion(CHAR chEnd)
-				{
-					while (current < end) {
-						CHAR ch = *current;
-						switch (ch) {
-							case '(':
-								current++;
-								if (!(skipValueRegion(')'))) {
-									return sl_false;
-								}
-								current++;
-								break;
-							case '[':
-								current++;
-								if (!(skipValueRegion(']'))) {
-									return sl_false;
-								}
-								current++;
-								break;
-							case '\\':
-								current++;
-								if (current >= end) {
-									return sl_false;
-								}
-								current++;
-								break;
-							case '"':
-							case '\'':
-								current++;
-								sl_size n;
-								if (!(parseStringValue(current, ch, sl_null, n))) {
-									return sl_false;
-								}
-								break;
-							case '/':
-								if (current + 1 < end && *(current + 1) == '*') {
-									skipComment();
-								} else {
-									current++;
-								}
-								break;
-							default:
-								if (chEnd) {
-									if (ch == chEnd) {
-										return sl_true;
-									} else {
-										current++;
-									}
-								} else {
-									if (ch == ';' || ch == '{' || ch == '}' || ch == '!') {
-										return sl_true;
-									} else {
-										current++;
-									}
-								}
-								break;
-						}
-					}
-					return !chEnd;
-				}
-
-				String parseValueRegion(CHAR chEnd)
-				{
 					skipWhitespaces();
 					CHAR* start = current;
-					if (!(skipValueRegion(chEnd))) {
-						return sl_null;
-					}
-					if (current == start) {
-						return String::getEmpty();
-					}
-					CHAR* last = current - 1;
-					while (last > start) {
-						CHAR ch = *last;
-						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
-							last--;
+					if (flagIgnoreErrors) {
+						sl_bool flagDecl = sl_false;
+						if (parseStatements(*statements, '}')) {
+							flagDecl = statements->rules.isEmpty() && at.statements->atRules.isEmpty();
 						} else {
-							break;
+							flagDecl = sl_true;
 						}
-					}
-					return String::from(start, last - start + 1);
-				}
-
-				String parsePseudoClass()
-				{
-					CHAR* start = current;
-					sl_size n;
-					if (!(parseIdentifier(current, sl_null, n))) {
-						return sl_null;
-					}
-					if (current < end) {
-						if (*current == '(') {
-							current++;
-							if (!(skipValueRegion(')'))) {
-								return sl_null;
+						if (flagDecl) {
+							current = start;
+							if (!(parseDeclarations(at.declarations, '}'))) {
+								return sl_false;
 							}
-							current++;
+						} else {
+							at.statements = Move(statements);
 						}
-					}
-					return String::from(start, current - start);
-				}
-
-			};
-
-			SLIB_INLINE static void WriteChar(char* output, sl_size& lenOutput, char ch)
-			{
-				if (output) {
-					output[lenOutput] = ch;
-				}
-				lenOutput++;
-			}
-
-			// Returns output length
-			static sl_size MakeIdentifier(char* input, sl_size lenInput, char* output, sl_bool& outFlagDiffOriginal)
-			{
-				sl_size lenOutput = 0;
-				sl_size posInput = 0;
-				sl_bool flagDiffOriginal = sl_false;
-				const char* hex = "0123456789abcdef";
-				while (posInput < lenInput) {
-					char ch = input[posInput];
-					if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
-						if (!posInput) {
-							if (SLIB_CHAR_IS_DIGIT(ch)) {
-								if (output) {
-									output[lenOutput++] = '\\';
-									output[lenOutput++] = '0';
-									output[lenOutput++] = '0';
-									output[lenOutput++] = '0';
-									output[lenOutput++] = '0';
-									output[lenOutput++] = hex[(ch >> 4) & 15];
-								} else {
-									lenOutput += 6;
-								}
-								ch = hex[ch & 15];
-								flagDiffOriginal = sl_true;
-							} else if (ch == '-' && lenInput >= 2) {
-								char next = input[1];
-								if (SLIB_CHAR_IS_DIGIT(next)) {
-									WriteChar(output, lenOutput, '\\');
-									flagDiffOriginal = sl_true;
-								}
+					} else {
+						if (parseStatements(*statements, '}')) {
+							at.statements = Move(statements);
+						} else {
+							current = start;
+							if (!(parseDeclarations(at.declarations, '}'))) {
+								return sl_false;
 							}
 						}
-						WriteChar(output, lenOutput, ch);
-						posInput++;
-					} else if (ch == '\\') {
-						flagDiffOriginal = sl_true;
-						if (output) {
-							output[lenOutput++] = '\\';
-							output[lenOutput++] = '\\';
-						} else {
-							lenOutput += 2;
-						}
-						posInput++;
-					} else {
-						flagDiffOriginal = sl_true;
-						sl_char32 code;
-						if (!(Charsets::getUnicode(code, input, lenInput, posInput))) {
-							code = ch;
-							posInput++;
-						}
-						if (output) {
-							output[lenOutput++] = '\\';
-							output[lenOutput++] = hex[(code >> 20) & 15];
-							output[lenOutput++] = hex[(code >> 16) & 15];
-							output[lenOutput++] = hex[(code >> 12) & 15];
-							output[lenOutput++] = hex[(code >> 8) & 15];
-							output[lenOutput++] = hex[(code >> 4) & 15];
-							output[lenOutput++] = hex[code & 15];
-						} else {
-							lenOutput += 7;
-						}
 					}
-				}
-				outFlagDiffOriginal = flagDiffOriginal;
-				return lenOutput;
-			}
-
-			static String MakeIdentifier(const String& value)
-			{
-				sl_bool flagDiff;
-				sl_size n = MakeIdentifier(value.getData(), value.getLength(), sl_null, flagDiff);
-				if (!flagDiff) {
-					return value;
-				}
-				String ret = String::allocate(n);
-				if (ret.isNotNull()) {
-					MakeIdentifier(value.getData(), value.getLength(), ret.getData(), flagDiff);
-				}
-				return ret;
-			}
-
-			static sl_bool WriteIdentifier(StringBuffer& buf, const String& value)
-			{
-				String s = MakeIdentifier(value);
-				if (s.isNull()) {
+				} else if (*current == ';') {
+					current++;
+				} else {
 					return sl_false;
 				}
-				return buf.add(Move(s));
+				return addAtRule(statements, Move(at));
 			}
 
-			// Returns output length
-			static sl_size MakeStringValue(char* input, sl_size lenInput, char* output, sl_bool& outFlagDiffOriginal)
+			sl_bool addAtRule(CascadingStyleStatements& statements, CascadingStyleAtRule&& rule)
 			{
-				sl_size lenOutput = 0;
-				sl_size posInput = 0;
-				sl_bool flagDiffOriginal = sl_false;
-				while (posInput < lenInput) {
-					char ch = input[posInput];
-					if (SLIB_CHAR_IS_PRINTABLE_ASCII(ch)) {
-						if (ch == '\\' || ch == '"') {
-							WriteChar(output, lenOutput, '\\');
-							flagDiffOriginal = sl_true;
-						}
-						WriteChar(output, lenOutput, ch);
-						posInput++;
-					} else if (ch == '\t') {
-						WriteChar(output, lenOutput, ch);
-						posInput++;
-					} else {
-						flagDiffOriginal = sl_true;
-						sl_char32 code;
-						if (!(Charsets::getUnicode(code, input, lenInput, posInput))) {
-							code = ch;
-							posInput++;
-						}
-						if (output) {
-							output[lenOutput++] = '\\';
-							const char* hex = "0123456789abcdef";
-							output[lenOutput++] = hex[(code >> 20) & 15];
-							output[lenOutput++] = hex[(code >> 16) & 15];
-							output[lenOutput++] = hex[(code >> 12) & 15];
-							output[lenOutput++] = hex[(code >> 8) & 15];
-							output[lenOutput++] = hex[(code >> 4) & 15];
-							output[lenOutput++] = hex[code & 15];
-						} else {
-							lenOutput += 7;
-						}
-					}
-				}
-				outFlagDiffOriginal = flagDiffOriginal;
-				return lenOutput;
+				return statements.atRules.add_NoLock(Move(rule));
 			}
 
-			static String MakeStringValue(const String& value)
+			sl_bool parseRule(CascadingStyleStatements& statements)
 			{
-				sl_bool flagDiff;
-				sl_size n = MakeStringValue(value.getData(), value.getLength(), sl_null, flagDiff);
-				if (!flagDiff) {
-					return value;
-				}
-				String ret = String::allocate(n);
-				if (ret.isNotNull()) {
-					MakeStringValue(value.getData(), value.getLength(), ret.getData(), flagDiff);
-				}
-				return ret;
-			}
-
-			static sl_bool WriteStringValue(StringBuffer& buf, const String& value)
-			{
-				String s = MakeStringValue(value);
-				if (s.isNull()) {
+				Ref<CascadingStyleSelector> selector = parseCombindSelector(sl_null, CascadingStyleCombinator::None);
+				if (selector.isNull()) {
 					return sl_false;
 				}
-				if (!(buf.addStatic("\""))) {
+				if (current >= end) {
 					return sl_false;
 				}
-				if (!(buf.add(Move(s)))) {
-					return sl_false;
-				}
-				return buf.addStatic("\"");
-			}
-
-			static sl_bool WriteTabs(StringBuffer& buf, sl_uint32 nTabs)
-			{
-				for (sl_uint32 i = 0; i < nTabs; i++) {
-					if (!(buf.addStatic("\t"))) {
+				List< Ref<CascadingStyleSelector> > group;
+				while (*current == ',') {
+					current++;
+					skipWhitespaces();
+					Ref<CascadingStyleSelector> item = parseCombindSelector(sl_null, CascadingStyleCombinator::None);
+					if (item.isNull()) {
 						return sl_false;
+					}
+					if (!(group.add_NoLock(Move(item)))) {
+						return sl_false;
+					}
+					if (current >= end) {
+						return sl_false;
+					}
+				}
+				if (*current != '{') {
+					return sl_false;
+				}
+				current++;
+				skipWhitespaces();
+				CascadingStyleDeclarations declarations;
+				if (!(parseDeclarations(declarations, '}'))) {
+					return sl_false;
+				}
+				CascadingStyleRule rule;
+				rule.selector = Move(selector);
+				rule.declarations = declarations;
+				rule.order = ++(sheet->m_lastRuleOrder);
+				if (!(addRule(statements, Move(rule)))) {
+					return sl_false;
+				}
+				{
+					ListElements< Ref<CascadingStyleSelector> > items(group);
+					for (sl_size i = 0; i < items.count; i++) {
+						rule.selector = Move(items[i]);
+						rule.declarations = declarations;
+						if (!(addRule(statements, Move(rule)))) {
+							return sl_false;
+						}
 					}
 				}
 				return sl_true;
 			}
 
-			static Ref<CascadingStyleValue> GetDeclarationValue(const List<CascadingStyleDeclarations>& decls, const String& key)
+			sl_bool addRule(CascadingStyleStatements& statements, CascadingStyleRule&& rule)
 			{
-				ListElements<CascadingStyleDeclarations> items(decls);
-				sl_bool flagImportant = sl_false;
-				Ref<CascadingStyleValue> ret;
-				for (sl_size i = 0; i < items.count; i++) {
-					Ref<CascadingStyleValue> value = items[i].getValue_NoLock(key);
-					if (value.isNotNull()) {
-						if (value->isImportant()) {
-							flagImportant = sl_true;
-							ret = Move(value);
-						} else {
-							if (!flagImportant) {
-								ret = Move(value);
-							}
+				do {
+					CascadingStyleSelector* selector = rule.selector.get();
+					if (selector->id.isNotNull()) {
+						statements.rulesById.add_NoLock(selector->id, rule);
+						break;
+					}
+					if (selector->classNames.getCount() >= 1) {
+						statements.rulesByClass.add_NoLock(selector->classNames.getValueAt_NoLock(0), rule);
+						break;
+					}
+					if (selector->flagUniversal || selector->elementName.isNull()) {
+						statements.rulesUniversal.add_NoLock(rule);
+					} else {
+						statements.rulesByTag.add_NoLock(selector->elementName, rule);
+					}
+				} while (0);
+				return statements.rules.add_NoLock(Move(rule));
+			}
+
+			static CascadingStyleDeclarations parseDeclarations(CHAR* data, sl_size len)
+			{
+				StylesParser parser;
+				parser.sheet = sl_null;
+				parser.current = data;
+				parser.end = data + len;
+				parser.flagIgnoreErrors = sl_false;
+				CascadingStyleDeclarations decls;
+				parser.parseDeclarations(decls, 0);
+				return decls;
+			}
+
+			Ref<CascadingStyleValue> parseDeclaration(String& name)
+			{
+				name = parseIdentifier();
+				if (name.isNull()) {
+					return sl_null;
+				}
+				skipWhitespaces();
+				if (current >= end) {
+					return sl_null;
+				}
+				if (*current != ':') {
+					return sl_null;
+				}
+				current++;
+				skipWhitespaces();
+				Ref<CascadingStyleValue> ret = parseValue();
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				if (current < end) {
+					if (*current == '!') {
+						current++;
+						skipComment();
+						String label = parseIdentifier();
+						if (label == StringView::literal("important")) {
+							ret->setImportant();
 						}
 					}
 				}
 				return ret;
 			}
 
-		}
-	}
+			// Passes ending character
+			sl_bool parseDeclarations(CascadingStyleDeclarations& declarations, CHAR chEnd)
+			{
+				while (current < end) {
+					CHAR ch = *current;
+					if (ch == ';') {
+						current++;
+					} else if (ch == chEnd) {
+						current++;
+						return sl_true;
+					} else {
+						String name;
+						Ref<CascadingStyleValue> value = parseDeclaration(name);
+						if (value.isNotNull()) {
+							if (!(declarations.add_NoLock(Move(name), Move(value)))) {
+								declarations.setNull();
+								return sl_false;
+							}
+						} else {
+							if (flagIgnoreErrors) {
+								skipLine();
+							} else {
+								return sl_false;
+							}
+						}
+					}
+					skipWhitespaces();
+				}
+				if (!chEnd) {
+					return sl_true;
+				}
+				declarations.setNull();
+				return sl_false;
+			}
 
-	using namespace priv::css;
+			Ref<CascadingStyleValue> parseValue()
+			{
+				CHAR* start = current;
+				Ref<CascadingStyleValue> value = parseVariableValue();
+				if (value.isNotNull()) {
+					return value;
+				}
+				current = start;
+				return parseNormalValue();
+			}
+
+			Ref<CascadingStyleValue> parseVariableValue()
+			{
+				if (current + 3 > end) {
+					return sl_null;
+				}
+				if (!(*current == 'v' && *(current + 1) == 'a' && *(current + 2) == 'r')) {
+					return sl_null;
+				}
+				current += 3;
+				skipWhitespaces();
+				if (current >= end) {
+					return sl_null;
+				}
+				if (*current != '(') {
+					return sl_null;
+				}
+				current++;
+				skipWhitespaces();
+				String name = parseIdentifier();
+				if (name.isNull()) {
+					return sl_null;
+				}
+				skipWhitespaces();
+				if (current >= end) {
+					return sl_null;
+				}
+				String defaultValue;
+				CHAR ch = *current;
+				if (ch == ',') {
+					current++;
+					skipWhitespaces();
+					String defaultValue = parseValueRegion(')');
+					if (defaultValue.isNull()) {
+						return sl_null;
+					}
+					current++;
+					return new CascadingStyleVariableValue(Move(name), Move(defaultValue));
+				} else if (ch == ')') {
+					current++;
+					return new CascadingStyleVariableValue(Move(name));
+				} else {
+					return sl_null;
+				}
+			}
+
+			Ref<CascadingStyleValue> parseNormalValue()
+			{
+				String value = parseValueRegion(0);
+				if (value.isNull()) {
+					return sl_null;
+				}
+				return new CascadingStyleNormalValue(Move(value));
+			}
+
+			Ref<CascadingStyleSelector> parseCombindSelector(CascadingStyleSelector* before, CascadingStyleCombinator combinator)
+			{
+				Ref<CascadingStyleSelector> first = parseBasicSelector(before, combinator);
+				if (first.isNull()) {
+					return sl_null;
+				}
+				skipWhitespaces();
+				if (current >= end) {
+					return first;
+				}
+				combinator = CascadingStyleCombinator::Descendant;
+				CHAR ch = *current;
+				if (ch == '>') {
+					combinator = CascadingStyleCombinator::Child;
+				} else if (ch == '~') {
+					combinator = CascadingStyleCombinator::Sibling;
+				} else if (ch == '+') {
+					combinator = CascadingStyleCombinator::Adjacent;
+				}
+				if (combinator != CascadingStyleCombinator::Descendant) {
+					current++;
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_null;
+					}
+				}
+				CHAR* start = current;
+				Ref<CascadingStyleSelector> last = parseCombindSelector(first.get(), combinator);
+				if (last.isNotNull()) {
+					return last;
+				}
+				if (combinator != CascadingStyleCombinator::Descendant) {
+					return sl_null;
+				}
+				if (start != current) {
+					return sl_null;
+				}
+				return first;
+			}
+
+			Ref<CascadingStyleSelector> parseBasicSelector(CascadingStyleSelector* before, CascadingStyleCombinator combinator)
+			{
+				Ref<CascadingStyleSelector> ret = new CascadingStyleSelector;
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				ret->before = before;
+				ret->combinator = combinator;
+				CHAR* start = current;
+				for (;;) {
+					switch (*current) {
+						case '.':
+							{
+								current++;
+								String name = parseIdentifier();
+								if (name.isNull()) {
+									return sl_null;
+								}
+								if (!(ret->classNames.add_NoLock(Move(name)))) {
+									return sl_null;
+								}
+								break;
+							}
+						case '#':
+							{
+								current++;
+								String name = parseIdentifier();
+								if (name.isNull()) {
+									return sl_null;
+								}
+								ret->id = Move(name);
+								break;
+							}
+						case '[':
+							{
+								current++;
+								if (!(parseSelector_AttributeMatch(ret.get()))) {
+									return sl_null;
+								}
+								break;
+							}
+						case '*':
+							{
+								if (ret->elementName.isNotNull() || ret->flagUniversal) {
+									return sl_null;
+								}
+								current++;
+								ret->flagUniversal = sl_true;
+								break;
+							}
+						case '|':
+							{
+								if (ret->flagNamespace) {
+									return sl_null;
+								}
+								current++;
+								if (ret->flagUniversal) {
+									ret->flagUniversal = sl_false;
+								} else {
+									ret->namespaceName = Move(ret->elementName);
+									if (ret->namespaceName.isNull()) {
+										ret->namespaceName.setEmpty();
+									}
+								}
+								ret->flagNamespace = sl_true;
+								if (current >= end) {
+									return sl_null;
+								}
+								if (*current == '*') {
+									current++;
+									ret->flagUniversal = sl_true;
+								} else {
+									String name = parseIdentifier();
+									if (name.isNull()) {
+										return sl_null;
+									}
+									ret->elementName = Move(name);
+								}
+								break;
+							}
+						case ':':
+							{
+								current++;
+								if (current >= end) {
+									return sl_null;
+								}
+								if (*current == ':') {
+									current++;
+									if (ret->pseudoElement.isNotNull()) {
+										return sl_null;
+									}
+									String name = parsePseudoClass();
+									if (name.isNull()) {
+										return sl_null;
+									}
+									ret->pseudoElement = Move(name);
+								} else {
+									String name = parsePseudoClass();
+									if (name.isNull()) {
+										return sl_null;
+									}
+									if (!(ret->pseudoClasses.add_NoLock(Move(name)))) {
+										return sl_null;
+									}
+								}
+								break;
+							}
+						default:
+							{
+								if (ret->elementName.isNotNull() || ret->flagUniversal) {
+									return ret;
+								}
+								String name = parseIdentifier();
+								if (name.isNull()) {
+									name = parseUnquotedStringValue();
+									if (name.isNull()) {
+										if (current == start) {
+											return sl_null;
+										}
+										return ret;
+									}
+								}
+								ret->elementName = Move(name);
+								break;
+							}
+					}
+					if (current >= end) {
+						break;
+					}
+					skipComment();
+				}
+				return ret;
+			}
+
+			sl_bool parseSelector_AttributeMatch(CascadingStyleSelector* selector)
+			{
+				skipWhitespaces();
+				if (current >= end) {
+					return sl_false;
+				}
+				CascadingStyleAttributeMatch match;
+				match.name = parseIdentifier();
+				if (match.name.isNull()) {
+					return sl_false;
+				}
+				skipWhitespaces();
+				if (current >= end) {
+					return sl_false;
+				}
+				match.type = CascadingStyleMatchType::Exist;
+				switch (*current) {
+					case '~':
+						match.type = CascadingStyleMatchType::Contains_Word;
+						current++;
+						break;
+					case '|':
+						match.type = CascadingStyleMatchType::LocalePrefix;
+						current++;
+						break;
+					case '^':
+						match.type = CascadingStyleMatchType::Start;
+						current++;
+						break;
+					case '$':
+						match.type = CascadingStyleMatchType::End;
+						current++;
+						break;
+					case '*':
+						match.type = CascadingStyleMatchType::Contain;
+						current++;
+						break;
+					case '=':
+						match.type = CascadingStyleMatchType::Equal;
+						current++;
+						break;
+				}
+				if (match.type > CascadingStyleMatchType::Equal) {
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_false;
+					}
+					if (*current != '=') {
+						return sl_false;
+					}
+					current++;
+				}
+				if (match.type != CascadingStyleMatchType::Exist) {
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_false;
+					}
+				}
+				if (match.type != CascadingStyleMatchType::Exist) {
+					match.value = parseStringValue();
+					if (match.value.isNull()) {
+						return sl_false;
+					}
+					skipWhitespaces();
+					if (current >= end) {
+						return sl_false;
+					}
+					if (*current == 'i' || *current == 'I') {
+						match.flagIgnoreCase = sl_true;
+						current++;
+						skipWhitespaces();
+						if (current >= end) {
+							return sl_false;
+						}
+					}
+				}
+				if (*current != ']') {
+					return sl_false;
+				}
+				current++;
+				return selector->attributes.add_NoLock(Move(match));
+			}
+
+			void skipCommentInner()
+			{
+				current += 2;
+				for (;;) {
+					if (current + 2 > end) {
+						current = end;
+						return;
+					}
+					if (*current == '*' && *(current + 1) == '/') {
+						current += 2;
+						break;
+					} else {
+						current++;
+					}
+				}
+			}
+
+			void skipComment()
+			{
+				if (current + 2 > end) {
+					return;
+				}
+				if (*current == '/' && *(current + 1) == '*') {
+					skipCommentInner();
+				}
+			}
+
+			void skipWhitespaces()
+			{
+				while (current < end) {
+					CHAR ch = *current;
+					if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						current++;
+					} else if (ch == '/') {
+						if (current + 1 < end && *(current + 1) == '*') {
+							skipCommentInner();
+						} else {
+							return;
+						}
+					} else {
+						return;
+					}
+				}
+			}
+
+			void skipLine()
+			{
+				while (current < end) {
+					CHAR ch = *(current++);
+					if (ch == '\r') {
+						if (current < end) {
+							ch = current[1];
+							if (ch == '\n') {
+								current++;
+							}
+						}
+						return;
+					} else if (ch == '\n') {
+						return;
+					}
+				}
+			}
+
+			sl_bool parseHexValue(CHAR*& input, sl_uint32& value)
+			{
+				sl_uint32 h = (sl_uint32)(*input);
+				h = SLIB_CHAR_HEX_TO_INT(h);
+				if (h < 16) {
+					value = h;
+					input++;
+					sl_uint32 n = 1;
+					while (input < end && n < 6) {
+						h = (sl_uint32)(*input);
+						h = SLIB_CHAR_HEX_TO_INT(h);
+						if (h < 16) {
+							value = (value << 4) | h;
+							input++;
+							n++;
+						} else {
+							break;
+						}
+					}
+					if (input < end) {
+						CHAR ch = *input;
+						if (ch == ' ' || ch == '\t' || ch == '\n') {
+							input++;
+						} else if (ch == '\r') {
+							input++;
+							if (input < end) {
+								ch = *input;
+								if (ch == '\n') {
+									input++;
+								}
+							}
+						}
+					}
+					return sl_true;
+				} else {
+					return sl_false;
+				}
+			}
+
+			sl_bool parseIdentifier(CHAR*& input, CHAR* _out, sl_size& lenOutput)
+			{
+				lenOutput = 0;
+				CHAR* start = input;
+				while (input < end) {
+					CHAR ch = *input;
+					if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
+						if (start == input) {
+							if (SLIB_CHAR_IS_DIGIT(ch)) {
+								return sl_false;
+							}
+							if (ch == '-' && input + 1 < end) {
+								CHAR next = *(input + 1);
+								if (SLIB_CHAR_IS_DIGIT(next)) {
+									return sl_false;
+								}
+							}
+						}
+						input++;
+					} else if (ch == '\\') {
+						input++;
+						if (input >= end) {
+							return sl_false;
+						}
+						sl_uint32 code;
+						if (parseHexValue(input, code)) {
+							lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
+							continue;
+						} else {
+							ch = *(input++);
+						}
+					} else {
+						break;
+					}
+					if (_out) {
+						_out[lenOutput] = ch;
+					}
+					lenOutput++;
+				}
+				return lenOutput > 0;
+			}
+
+			String parseIdentifier()
+			{
+				if (current >= end) {
+					return sl_null;
+				}
+				CHAR* s = current;
+				sl_size len;
+				if (!(parseIdentifier(s, sl_null, len))) {
+					return sl_null;
+				}
+				typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				parseIdentifier(current, ret.getData(), len);
+				return String::from(ret);
+			}
+
+			sl_bool parseUnquotedStringValue(CHAR*& input, CHAR* _out, sl_size& lenOutput)
+			{
+				lenOutput = 0;
+				CHAR* start = input;
+				while (input < end) {
+					CHAR ch = *input;
+					if (SLIB_CHAR_IS_ALNUM(ch) || (ch & 0x80) || ch == '-' || ch == '_' || ch == '.' || ch == '%' || ch == '@') {
+						input++;
+					} else if (ch == '\\') {
+						if (input >= end) {
+							return sl_false;
+						}
+						sl_uint32 code;
+						if (parseHexValue(input, code)) {
+							lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
+							continue;
+						} else {
+							ch = *(input++);
+						}
+					} else {
+						break;
+					}
+					if (_out) {
+						_out[lenOutput] = ch;
+					}
+					lenOutput++;
+				}
+				return lenOutput > 0;
+			}
+
+			String parseUnquotedStringValue()
+			{
+				if (current >= end) {
+					return sl_null;
+				}
+				CHAR* s = current;
+				sl_size len;
+				if (!(parseUnquotedStringValue(s, sl_null, len))) {
+					return sl_null;
+				}
+				typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				parseUnquotedStringValue(current, ret.getData(), len);
+				return String::from(ret);
+			}
+
+			sl_bool parseStringValue(CHAR*& input, CHAR chOpen, CHAR* _out, sl_size& lenOutput)
+			{
+				lenOutput = 0;
+				while (input < end) {
+					CHAR ch = *(input++);
+					if (ch == chOpen) {
+						return sl_true;
+					} else if (ch == '\\') {
+						if (input >= end) {
+							return sl_false;
+						}
+						sl_uint32 code;
+						if (parseHexValue(input, code)) {
+							lenOutput += Charsets::getUtfn(code, _out ? _out + lenOutput : sl_null);
+							continue;
+						} else {
+							ch = *(input++);
+						}
+					}
+					if (_out) {
+						_out[lenOutput] = ch;
+					}
+					lenOutput++;
+				}
+				return sl_false;
+			}
+
+			String parseStringValue()
+			{
+				CHAR chOpen = *current;
+				if (chOpen != '"' && chOpen != '\'') {
+					return parseUnquotedStringValue();
+				}
+				current++;
+				CHAR* s = current;
+				sl_size len;
+				if (!(parseStringValue(s, chOpen, sl_null, len))) {
+					return sl_null;
+				}
+				typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
+				if (ret.isNull()) {
+					return sl_null;
+				}
+				if (!(parseStringValue(current, chOpen, ret.getData(), len))) {
+					return sl_null;
+				}
+				return String::from(ret);
+			}
+
+			sl_bool skipValueRegion(CHAR chEnd)
+			{
+				while (current < end) {
+					CHAR ch = *current;
+					switch (ch) {
+						case '(':
+							current++;
+							if (!(skipValueRegion(')'))) {
+								return sl_false;
+							}
+							current++;
+							break;
+						case '[':
+							current++;
+							if (!(skipValueRegion(']'))) {
+								return sl_false;
+							}
+							current++;
+							break;
+						case '\\':
+							current++;
+							if (current >= end) {
+								return sl_false;
+							}
+							current++;
+							break;
+						case '"':
+						case '\'':
+							current++;
+							sl_size n;
+							if (!(parseStringValue(current, ch, sl_null, n))) {
+								return sl_false;
+							}
+							break;
+						case '/':
+							if (current + 1 < end && *(current + 1) == '*') {
+								skipComment();
+							} else {
+								current++;
+							}
+							break;
+						default:
+							if (chEnd) {
+								if (ch == chEnd) {
+									return sl_true;
+								} else {
+									current++;
+								}
+							} else {
+								if (ch == ';' || ch == '{' || ch == '}' || ch == '!') {
+									return sl_true;
+								} else {
+									current++;
+								}
+							}
+							break;
+					}
+				}
+				return !chEnd;
+			}
+
+			String parseValueRegion(CHAR chEnd)
+			{
+				skipWhitespaces();
+				CHAR* start = current;
+				if (!(skipValueRegion(chEnd))) {
+					return sl_null;
+				}
+				if (current == start) {
+					return String::getEmpty();
+				}
+				CHAR* last = current - 1;
+				while (last > start) {
+					CHAR ch = *last;
+					if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						last--;
+					} else {
+						break;
+					}
+				}
+				return String::from(start, last - start + 1);
+			}
+
+			String parsePseudoClass()
+			{
+				CHAR* start = current;
+				sl_size n;
+				if (!(parseIdentifier(current, sl_null, n))) {
+					return sl_null;
+				}
+				if (current < end) {
+					if (*current == '(') {
+						current++;
+						if (!(skipValueRegion(')'))) {
+							return sl_null;
+						}
+						current++;
+					}
+				}
+				return String::from(start, current - start);
+			}
+
+		};
+
+		SLIB_INLINE static void WriteChar(char* output, sl_size& lenOutput, char ch)
+		{
+			if (output) {
+				output[lenOutput] = ch;
+			}
+			lenOutput++;
+		}
+
+		// Returns output length
+		static sl_size MakeIdentifier(char* input, sl_size lenInput, char* output, sl_bool& outFlagDiffOriginal)
+		{
+			sl_size lenOutput = 0;
+			sl_size posInput = 0;
+			sl_bool flagDiffOriginal = sl_false;
+			const char* hex = "0123456789abcdef";
+			while (posInput < lenInput) {
+				char ch = input[posInput];
+				if (SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_') {
+					if (!posInput) {
+						if (SLIB_CHAR_IS_DIGIT(ch)) {
+							if (output) {
+								output[lenOutput++] = '\\';
+								output[lenOutput++] = '0';
+								output[lenOutput++] = '0';
+								output[lenOutput++] = '0';
+								output[lenOutput++] = '0';
+								output[lenOutput++] = hex[(ch >> 4) & 15];
+							} else {
+								lenOutput += 6;
+							}
+							ch = hex[ch & 15];
+							flagDiffOriginal = sl_true;
+						} else if (ch == '-' && lenInput >= 2) {
+							char next = input[1];
+							if (SLIB_CHAR_IS_DIGIT(next)) {
+								WriteChar(output, lenOutput, '\\');
+								flagDiffOriginal = sl_true;
+							}
+						}
+					}
+					WriteChar(output, lenOutput, ch);
+					posInput++;
+				} else if (ch == '\\') {
+					flagDiffOriginal = sl_true;
+					if (output) {
+						output[lenOutput++] = '\\';
+						output[lenOutput++] = '\\';
+					} else {
+						lenOutput += 2;
+					}
+					posInput++;
+				} else {
+					flagDiffOriginal = sl_true;
+					sl_char32 code;
+					if (!(Charsets::getUnicode(code, input, lenInput, posInput))) {
+						code = ch;
+						posInput++;
+					}
+					if (output) {
+						output[lenOutput++] = '\\';
+						output[lenOutput++] = hex[(code >> 20) & 15];
+						output[lenOutput++] = hex[(code >> 16) & 15];
+						output[lenOutput++] = hex[(code >> 12) & 15];
+						output[lenOutput++] = hex[(code >> 8) & 15];
+						output[lenOutput++] = hex[(code >> 4) & 15];
+						output[lenOutput++] = hex[code & 15];
+					} else {
+						lenOutput += 7;
+					}
+				}
+			}
+			outFlagDiffOriginal = flagDiffOriginal;
+			return lenOutput;
+		}
+
+		static String MakeIdentifier(const String& value)
+		{
+			sl_bool flagDiff;
+			sl_size n = MakeIdentifier(value.getData(), value.getLength(), sl_null, flagDiff);
+			if (!flagDiff) {
+				return value;
+			}
+			String ret = String::allocate(n);
+			if (ret.isNotNull()) {
+				MakeIdentifier(value.getData(), value.getLength(), ret.getData(), flagDiff);
+			}
+			return ret;
+		}
+
+		static sl_bool WriteIdentifier(StringBuffer& buf, const String& value)
+		{
+			String s = MakeIdentifier(value);
+			if (s.isNull()) {
+				return sl_false;
+			}
+			return buf.add(Move(s));
+		}
+
+		// Returns output length
+		static sl_size MakeStringValue(char* input, sl_size lenInput, char* output, sl_bool& outFlagDiffOriginal)
+		{
+			sl_size lenOutput = 0;
+			sl_size posInput = 0;
+			sl_bool flagDiffOriginal = sl_false;
+			while (posInput < lenInput) {
+				char ch = input[posInput];
+				if (SLIB_CHAR_IS_PRINTABLE_ASCII(ch)) {
+					if (ch == '\\' || ch == '"') {
+						WriteChar(output, lenOutput, '\\');
+						flagDiffOriginal = sl_true;
+					}
+					WriteChar(output, lenOutput, ch);
+					posInput++;
+				} else if (ch == '\t') {
+					WriteChar(output, lenOutput, ch);
+					posInput++;
+				} else {
+					flagDiffOriginal = sl_true;
+					sl_char32 code;
+					if (!(Charsets::getUnicode(code, input, lenInput, posInput))) {
+						code = ch;
+						posInput++;
+					}
+					if (output) {
+						output[lenOutput++] = '\\';
+						const char* hex = "0123456789abcdef";
+						output[lenOutput++] = hex[(code >> 20) & 15];
+						output[lenOutput++] = hex[(code >> 16) & 15];
+						output[lenOutput++] = hex[(code >> 12) & 15];
+						output[lenOutput++] = hex[(code >> 8) & 15];
+						output[lenOutput++] = hex[(code >> 4) & 15];
+						output[lenOutput++] = hex[code & 15];
+					} else {
+						lenOutput += 7;
+					}
+				}
+			}
+			outFlagDiffOriginal = flagDiffOriginal;
+			return lenOutput;
+		}
+
+		static String MakeStringValue(const String& value)
+		{
+			sl_bool flagDiff;
+			sl_size n = MakeStringValue(value.getData(), value.getLength(), sl_null, flagDiff);
+			if (!flagDiff) {
+				return value;
+			}
+			String ret = String::allocate(n);
+			if (ret.isNotNull()) {
+				MakeStringValue(value.getData(), value.getLength(), ret.getData(), flagDiff);
+			}
+			return ret;
+		}
+
+		static sl_bool WriteStringValue(StringBuffer& buf, const String& value)
+		{
+			String s = MakeStringValue(value);
+			if (s.isNull()) {
+				return sl_false;
+			}
+			if (!(buf.addStatic("\""))) {
+				return sl_false;
+			}
+			if (!(buf.add(Move(s)))) {
+				return sl_false;
+			}
+			return buf.addStatic("\"");
+		}
+
+		static sl_bool WriteTabs(StringBuffer& buf, sl_uint32 nTabs)
+		{
+			for (sl_uint32 i = 0; i < nTabs; i++) {
+				if (!(buf.addStatic("\t"))) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
+	}
 
 	CascadingStyleValue::CascadingStyleValue(CascadingStyleValueType type): m_type(type), m_flagImportant(sl_false)
 	{
@@ -2009,6 +1982,29 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	namespace {
+		static Ref<CascadingStyleValue> GetDeclarationValue(const List<CascadingStyleDeclarations>& decls, const String& key)
+		{
+			ListElements<CascadingStyleDeclarations> items(decls);
+			sl_bool flagImportant = sl_false;
+			Ref<CascadingStyleValue> ret;
+			for (sl_size i = 0; i < items.count; i++) {
+				Ref<CascadingStyleValue> value = items[i].getValue_NoLock(key);
+				if (value.isNotNull()) {
+					if (value->isImportant()) {
+						flagImportant = sl_true;
+						ret = Move(value);
+					} else {
+						if (!flagImportant) {
+							ret = Move(value);
+						}
+					}
+				}
+			}
+			return ret;
+		}
 	}
 
 	String CascadingStyleSheet::getDeclarationValue(const List<CascadingStyleDeclarations>& decls, const String& key)

@@ -33,36 +33,30 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace preference
+	namespace {
+
+		static JniLocal<jobject> GetSharedPreference() noexcept
 		{
-
-			static JniLocal<jobject> GetSharedPreference() noexcept
-			{
-				jobject context = Android::getCurrentContext();
-				if (context) {
-					return android::Context::getSharedPreferences(context,
-						android::Context::getPackageName(context) + "__preferences",
-						0 // Context.MODE_PRIVATE
-						);
-				}
-				return sl_null;
+			jobject context = Android::getCurrentContext();
+			if (context) {
+				return android::Context::getSharedPreferences(context,
+					android::Context::getPackageName(context) + "__preferences",
+					0 // Context.MODE_PRIVATE
+					);
 			}
-
-			static JniLocal<jobject> GetSharedPreferenceEditor() noexcept
-			{
-				JniLocal<jobject> pref = GetSharedPreference();
-				if (pref) {
-					return android::SharedPreferences::getEditor(pref);
-				}
-				return sl_null;
-			}
-
+			return sl_null;
 		}
-	}
 
-	using namespace priv::preference;
+		static JniLocal<jobject> GetSharedPreferenceEditor() noexcept
+		{
+			JniLocal<jobject> pref = GetSharedPreference();
+			if (pref) {
+				return android::SharedPreferences::getEditor(pref);
+			}
+			return sl_null;
+		}
+
+	}
 
 	// From Java code: slib.android.Preference.getString
 	Json Preference::getValue(const StringParam& key)

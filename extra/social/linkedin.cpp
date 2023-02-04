@@ -28,15 +28,10 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace linkedin
-		{
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<LinkedIn>, g_instance)
-		}
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<LinkedIn>, g_instance)
 	}
 
-	using namespace priv::linkedin;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInUser)
 

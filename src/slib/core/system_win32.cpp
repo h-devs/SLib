@@ -60,138 +60,19 @@ namespace slib
 
 	namespace priv
 	{
-
 		void Assert(const char* msg, const char* file, sl_uint32 line) noexcept
 		{
 #if defined(SLIB_DEBUG)
 			System::assert(msg, file, line);
 #endif
 		}
-
-		namespace system
-		{
-
-#ifdef SLIB_PLATFORM_IS_WIN32
-
-			static volatile double g_signal_fpe_dummy = 0.0f;
-			static SIGNAL_HANDLER g_handlerSignalCrash;
-			static DEBUG_ALLOC_HOOK g_debugAllocHook;
-
-			static void DoHandleSignalCrash(int sig)
-			{
-				if (sig == SIGFPE) {
-					_fpreset();
-				}
-				g_handlerSignalCrash(sig);
-			}
-
-			static LONG WINAPI DoHandleException(PEXCEPTION_POINTERS pExceptionPtrs)
-			{
-				DWORD code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
-				switch (code) {
-				case EXCEPTION_ACCESS_VIOLATION:
-				case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-				case EXCEPTION_DATATYPE_MISALIGNMENT:
-				case EXCEPTION_FLT_DENORMAL_OPERAND:
-				case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-				case EXCEPTION_FLT_INEXACT_RESULT:
-				case EXCEPTION_FLT_INVALID_OPERATION:
-				case EXCEPTION_FLT_OVERFLOW:
-				case EXCEPTION_FLT_STACK_CHECK:
-				case EXCEPTION_FLT_UNDERFLOW:
-				case EXCEPTION_ILLEGAL_INSTRUCTION:
-				case EXCEPTION_IN_PAGE_ERROR:
-				case EXCEPTION_INT_DIVIDE_BY_ZERO:
-				case EXCEPTION_INT_OVERFLOW:
-				case EXCEPTION_INVALID_DISPOSITION:
-				case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-				case EXCEPTION_PRIV_INSTRUCTION:
-				case EXCEPTION_STACK_OVERFLOW:
-					g_handlerSignalCrash(-1);
-					break;
-				}
-				return EXCEPTION_EXECUTE_HANDLER;
-			}
-
-			static int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
-			{
-				return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
-			}
-
-			static BOOL GetVersionInfo(const StringParam& _filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion)
-			{
-				DWORD  verHandle = 0;
-				UINT   size = 0;
-				LPBYTE lpBuffer = NULL;
-				StringCstr16 filePath(_filePath);
-				DWORD  verSize = GetFileVersionInfoSizeW((LPCWSTR)(filePath.getData()), &verHandle);
-
-				if (verSize != NULL) {
-					UniquePtr<char[]> verData = new char[verSize];
-					if (GetFileVersionInfoW((LPCWSTR)(filePath.getData()), verHandle, verSize, verData)) {
-						if (VerQueryValueW(verData, L"\\", (LPVOID*)&lpBuffer, &size)) {
-							if (size) {
-								VS_FIXEDFILEINFO *verInfo = (VS_FIXEDFILEINFO *)lpBuffer;
-								if (verInfo->dwSignature == 0xfeef04bd) {
-									if (pFileVersion) {
-										*pFileVersion = SLIB_MAKE_QWORD4(verInfo->dwFileVersionMS, verInfo->dwFileVersionLS);
-									}
-									if (pProductVersion) {
-										*pProductVersion = SLIB_MAKE_QWORD4(verInfo->dwProductVersionMS, verInfo->dwProductVersionLS);
-									}
-									return TRUE;
-								}
-							}
-						}
-					}
-				}
-
-				return FALSE;
-			}
-
-			static String GetVersionInfo(const StringParam& _filePath, const StringParam& _verEntry)
-			{
-				DWORD  verHandle = 0;
-				UINT   size = 0;
-				LPBYTE lpBuffer = NULL;
-				StringCstr16 filePath(_filePath);
-				StringCstr16 verEntry(_verEntry);
-				DWORD  verSize = GetFileVersionInfoSizeW((LPCWSTR)(filePath.getData()), &verHandle);
-
-				struct LANGANDCODEPAGE {
-					WORD wLanguage;
-					WORD wCodePage;
-				} *lpTranslate;
-
-				if (verSize != NULL) {
-					UniquePtr<char[]> verData = new char[verSize];
-					if (GetFileVersionInfoW((LPCWSTR)(filePath.getData()), verHandle, verSize, verData)) {
-						if (VerQueryValueW(verData, L"\\VarFileInfo\\Translation", (LPVOID*)&lpTranslate, &size)) {
-							if (size) {
-								StringCstr16 subBlock = String16::concat(
-									L"\\StringFileInfo\\",
-									String16::fromUint32((*lpTranslate).wLanguage, 16, 4),
-									String16::fromUint32((*lpTranslate).wCodePage, 16, 4),
-									L"\\", verEntry);
-								if (VerQueryValueW(verData, (LPCWSTR)(subBlock.getData()), (LPVOID*)&lpBuffer, &size)) {
-									if (size) {
-										return String::from((WCHAR*)(lpBuffer), Base::getStringLength2((sl_char16*)lpBuffer, size));
-									}
-								}
-							}
-						}
-					}
-				}
-
-				return sl_null;
-			}
-
-#endif
-
-		}
 	}
 
-	using namespace priv::system;
+#ifdef SLIB_PLATFORM_IS_WIN32
+	namespace {
+		static volatile double g_signal_fpe_dummy = 0.0f;
+	}
+#endif
 
 	String System::getApplicationPath()
 	{
@@ -514,6 +395,78 @@ namespace slib
 		return sl_null;
 	}
 
+	namespace {
+
+		static BOOL GetVersionInfo(const StringParam& _filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion)
+		{
+			DWORD  verHandle = 0;
+			UINT   size = 0;
+			LPBYTE lpBuffer = NULL;
+			StringCstr16 filePath(_filePath);
+			DWORD  verSize = GetFileVersionInfoSizeW((LPCWSTR)(filePath.getData()), &verHandle);
+
+			if (verSize != NULL) {
+				UniquePtr<char[]> verData = new char[verSize];
+				if (GetFileVersionInfoW((LPCWSTR)(filePath.getData()), verHandle, verSize, verData)) {
+					if (VerQueryValueW(verData, L"\\", (LPVOID*)&lpBuffer, &size)) {
+						if (size) {
+							VS_FIXEDFILEINFO *verInfo = (VS_FIXEDFILEINFO *)lpBuffer;
+							if (verInfo->dwSignature == 0xfeef04bd) {
+								if (pFileVersion) {
+									*pFileVersion = SLIB_MAKE_QWORD4(verInfo->dwFileVersionMS, verInfo->dwFileVersionLS);
+								}
+								if (pProductVersion) {
+									*pProductVersion = SLIB_MAKE_QWORD4(verInfo->dwProductVersionMS, verInfo->dwProductVersionLS);
+								}
+								return TRUE;
+							}
+						}
+					}
+				}
+			}
+
+			return FALSE;
+		}
+
+		static String GetVersionInfo(const StringParam& _filePath, const StringParam& _verEntry)
+		{
+			DWORD  verHandle = 0;
+			UINT   size = 0;
+			LPBYTE lpBuffer = NULL;
+			StringCstr16 filePath(_filePath);
+			StringCstr16 verEntry(_verEntry);
+			DWORD  verSize = GetFileVersionInfoSizeW((LPCWSTR)(filePath.getData()), &verHandle);
+
+			struct LANGANDCODEPAGE {
+				WORD wLanguage;
+				WORD wCodePage;
+			} *lpTranslate;
+
+			if (verSize != NULL) {
+				UniquePtr<char[]> verData = new char[verSize];
+				if (GetFileVersionInfoW((LPCWSTR)(filePath.getData()), verHandle, verSize, verData)) {
+					if (VerQueryValueW(verData, L"\\VarFileInfo\\Translation", (LPVOID*)&lpTranslate, &size)) {
+						if (size) {
+							StringCstr16 subBlock = String16::concat(
+								L"\\StringFileInfo\\",
+								String16::fromUint32((*lpTranslate).wLanguage, 16, 4),
+								String16::fromUint32((*lpTranslate).wCodePage, 16, 4),
+								L"\\", verEntry);
+							if (VerQueryValueW(verData, (LPCWSTR)(subBlock.getData()), (LPVOID*)&lpBuffer, &size)) {
+								if (size) {
+									return String::from((WCHAR*)(lpBuffer), Base::getStringLength2((sl_char16*)lpBuffer, size));
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return sl_null;
+		}
+
+	}
+
 	sl_bool System::getFileVersionInfo(const StringParam& filePath, sl_uint64* pFileVersion, sl_uint64* pProductVersion)
 	{
 		return GetVersionInfo(filePath, pFileVersion, pProductVersion);
@@ -727,9 +680,52 @@ namespace slib
 	}
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
+
+	namespace {
+
+		static SIGNAL_HANDLER g_handlerSignalCrash;
+
+		static void DoHandleSignalCrash(int sig)
+		{
+			if (sig == SIGFPE) {
+				_fpreset();
+			}
+			g_handlerSignalCrash(sig);
+		}
+
+		static LONG WINAPI DoHandleException(PEXCEPTION_POINTERS pExceptionPtrs)
+		{
+			DWORD code = pExceptionPtrs->ExceptionRecord->ExceptionCode;
+			switch (code) {
+				case EXCEPTION_ACCESS_VIOLATION:
+				case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+				case EXCEPTION_DATATYPE_MISALIGNMENT:
+				case EXCEPTION_FLT_DENORMAL_OPERAND:
+				case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+				case EXCEPTION_FLT_INEXACT_RESULT:
+				case EXCEPTION_FLT_INVALID_OPERATION:
+				case EXCEPTION_FLT_OVERFLOW:
+				case EXCEPTION_FLT_STACK_CHECK:
+				case EXCEPTION_FLT_UNDERFLOW:
+				case EXCEPTION_ILLEGAL_INSTRUCTION:
+				case EXCEPTION_IN_PAGE_ERROR:
+				case EXCEPTION_INT_DIVIDE_BY_ZERO:
+				case EXCEPTION_INT_OVERFLOW:
+				case EXCEPTION_INVALID_DISPOSITION:
+				case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+				case EXCEPTION_PRIV_INSTRUCTION:
+				case EXCEPTION_STACK_OVERFLOW:
+					g_handlerSignalCrash(-1);
+					break;
+			}
+			return EXCEPTION_EXECUTE_HANDLER;
+		}
+
+	}
+
 	void System::setCrashHandler(SIGNAL_HANDLER handler)
 	{
-		priv::system::g_handlerSignalCrash = handler;
+		g_handlerSignalCrash = handler;
 		SetUnhandledExceptionFilter(DoHandleException);
 		handler = DoHandleSignalCrash;
 		signal(SIGFPE, handler);
@@ -748,6 +744,17 @@ namespace slib
 		// set the flags again
 		_CrtSetDbgFlag(flag);
 #endif
+	}
+
+	namespace {
+
+		static DEBUG_ALLOC_HOOK g_debugAllocHook;
+
+		static int DebugAllocHook(int allocType, void* userData, size_t size, int blockType, long requestNumber, const unsigned char* filename, int lineNumber)
+		{
+			return g_debugAllocHook(userData, (sl_size)size, (sl_uint32)requestNumber);
+		}
+
 	}
 
 	void System::setDebugAllocHook(DEBUG_ALLOC_HOOK hook)

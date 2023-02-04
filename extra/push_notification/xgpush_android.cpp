@@ -34,40 +34,34 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace xgpush
+	namespace {
+
+		static void OnDeviceToken(JNIEnv* env, jobject _this, jstring _token)
 		{
-
-			static void OnDeviceToken(JNIEnv* env, jobject _this, jstring _token)
-			{
-				String token = Jni::getString(_token);
-				XgPush::getInstance()->dispatchRefreshToken(token);
-			}
-
-			static void OnReceiveMessage(JNIEnv* env, jobject _this, jboolean flagClicked, jstring title, jstring content, jstring data)
-			{
-				PushNotificationMessage message;
-				message.title = Jni::getString(title);
-				message.content = Jni::getString(content);
-				message.data = Json::parse(Jni::getString(data));
-				message.flagClicked = flagClicked ? sl_true : sl_false;
-				XgPush::getInstance()->dispatchReceiveMessage(message);
-			}
-
-			SLIB_JNI_BEGIN_CLASS(JXgPush, "slib/android/xgpush/XgPush")
-				SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(stop, "stop", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(setEnableDebug, "setEnableDebug", "(Landroid/app/Activity;Z)V");
-
-				SLIB_JNI_NATIVE(nativeOnDeviceToken, "nativeOnDeviceToken", "(Ljava/lang/String;)V", OnDeviceToken);
-				SLIB_JNI_NATIVE(nativeOnReceiveMessage, "nativeOnReceiveMessage", "(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", OnReceiveMessage);
-			SLIB_JNI_END_CLASS
-
+			String token = Jni::getString(_token);
+			XgPush::getInstance()->dispatchRefreshToken(token);
 		}
-	}
 
-	using namespace priv::xgpush;
+		static void OnReceiveMessage(JNIEnv* env, jobject _this, jboolean flagClicked, jstring title, jstring content, jstring data)
+		{
+			PushNotificationMessage message;
+			message.title = Jni::getString(title);
+			message.content = Jni::getString(content);
+			message.data = Json::parse(Jni::getString(data));
+			message.flagClicked = flagClicked ? sl_true : sl_false;
+			XgPush::getInstance()->dispatchReceiveMessage(message);
+		}
+
+		SLIB_JNI_BEGIN_CLASS(JXgPush, "slib/android/xgpush/XgPush")
+			SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/app/Activity;)V");
+			SLIB_JNI_STATIC_METHOD(stop, "stop", "(Landroid/app/Activity;)V");
+			SLIB_JNI_STATIC_METHOD(setEnableDebug, "setEnableDebug", "(Landroid/app/Activity;Z)V");
+
+			SLIB_JNI_NATIVE(nativeOnDeviceToken, "nativeOnDeviceToken", "(Ljava/lang/String;)V", OnDeviceToken);
+			SLIB_JNI_NATIVE(nativeOnReceiveMessage, "nativeOnReceiveMessage", "(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", OnReceiveMessage);
+		SLIB_JNI_END_CLASS
+
+	}
 
 
 	Ref<XgPush> XgPush::getInstance()

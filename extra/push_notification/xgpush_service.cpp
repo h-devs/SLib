@@ -30,39 +30,31 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace xgpush
-		{
-
-			SLIB_STATIC_STRING(g_str_title, "title")
-			SLIB_STATIC_STRING(g_str_content, "content")
-			SLIB_STATIC_STRING(g_str_body, "body")
-			SLIB_STATIC_STRING(g_str_alert, "alert")
-			SLIB_STATIC_STRING(g_str_aps, "aps")
-			SLIB_STATIC_STRING(g_str_ios, "ios")
-			SLIB_STATIC_STRING(g_str_badge_type, "badge_type")
-			SLIB_STATIC_STRING(g_str_sound, "sound")
-			SLIB_STATIC_STRING(g_str_custom, "custom")
-			SLIB_STATIC_STRING(g_str_android, "android")
-			SLIB_STATIC_STRING(g_str_ring, "ring")
-			SLIB_STATIC_STRING(g_str_ring_raw, "ring_raw")
-			SLIB_STATIC_STRING(g_str_custom_content, "custom_content")
-			SLIB_STATIC_STRING(g_str_audience_type, "audience_type")
-			SLIB_STATIC_STRING(g_str_token_list, "token_list")
-			SLIB_STATIC_STRING(g_str_platform, "platform")
-			SLIB_STATIC_STRING(g_str_environment, "environment")
-			SLIB_STATIC_STRING(g_str_message_type, "message_type")
-			SLIB_STATIC_STRING(g_str_message, "message")
-			SLIB_STATIC_STRING(g_str_notify, "notify")
-			SLIB_STATIC_STRING(g_str_token, "token")
-			SLIB_STATIC_STRING(g_str_ret_code, "ret_code")
-			SLIB_STATIC_STRING(g_str_err_msg, "err_msg")
-
-		}
+	namespace {
+		SLIB_STATIC_STRING(g_str_title, "title")
+		SLIB_STATIC_STRING(g_str_content, "content")
+		SLIB_STATIC_STRING(g_str_body, "body")
+		SLIB_STATIC_STRING(g_str_alert, "alert")
+		SLIB_STATIC_STRING(g_str_aps, "aps")
+		SLIB_STATIC_STRING(g_str_ios, "ios")
+		SLIB_STATIC_STRING(g_str_badge_type, "badge_type")
+		SLIB_STATIC_STRING(g_str_sound, "sound")
+		SLIB_STATIC_STRING(g_str_custom, "custom")
+		SLIB_STATIC_STRING(g_str_android, "android")
+		SLIB_STATIC_STRING(g_str_ring, "ring")
+		SLIB_STATIC_STRING(g_str_ring_raw, "ring_raw")
+		SLIB_STATIC_STRING(g_str_custom_content, "custom_content")
+		SLIB_STATIC_STRING(g_str_audience_type, "audience_type")
+		SLIB_STATIC_STRING(g_str_token_list, "token_list")
+		SLIB_STATIC_STRING(g_str_platform, "platform")
+		SLIB_STATIC_STRING(g_str_environment, "environment")
+		SLIB_STATIC_STRING(g_str_message_type, "message_type")
+		SLIB_STATIC_STRING(g_str_message, "message")
+		SLIB_STATIC_STRING(g_str_notify, "notify")
+		SLIB_STATIC_STRING(g_str_token, "token")
+		SLIB_STATIC_STRING(g_str_ret_code, "ret_code")
+		SLIB_STATIC_STRING(g_str_err_msg, "err_msg")
 	}
-
-	using namespace priv::xgpush;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XgPushSendParam)
 

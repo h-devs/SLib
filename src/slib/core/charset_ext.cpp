@@ -54,194 +54,197 @@ namespace slib
 
 			String16 DecodeString16(sl_uint32 codepage, const void* data, sl_size size);
 
-#else
-
-			static Memory EncodeString16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage)
-			{
-				sl_size len = Encode16(utf16, lenUtf16, codepage, sl_null, -1);
-				if (len) {
-					Memory mem = Memory::create(len);
-					if (mem.isNotNull()) {
-						Encode16(utf16, lenUtf16, codepage, mem.getData(), len);
-						return mem;
-					}
-				}
-				return sl_null;
-			}
-
-			static String16 DecodeString16(sl_uint32 codepage, const void* data, sl_size size)
-			{
-				String16 str = String16::allocate(size);
-				if (str.isNotNull()) {
-					sl_char16* s = str.getData();
-					sl_size len = Decode16(codepage, data, size, s, size);
-					if (len) {
-						s[len] = 0;
-						str.setLength(len);
-						return str;
-					}
-				}
-				return sl_null;
-			}
-
-			static sl_size Encode8(const sl_char8* utf8, sl_size lenUtf8, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
-			{
-				if (lenUtf8) {
-					sl_size len = Charsets::utf8ToUtf16(utf8, lenUtf8, sl_null, -1);
-					if (len) {
-						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						if (buf) {
-							Charsets::utf8ToUtf16(utf8, lenUtf8, buf, len);
-							return Encode16(buf, len, codepage, output, sizeOutputBuffer);
-						}
-					}
-				}
-				return 0;
-			}
-
-			static sl_size Decode8(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer)
-			{
-				if (sizeInput) {
-					sl_size len = Decode16(codepage, input, sizeInput, sl_null, -1);
-					if (len) {
-						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						if (buf) {
-							Decode16(codepage, input, sizeInput, buf, len);
-							return Charsets::utf16ToUtf8(buf, len, utf8, lenUtf8Buffer);
-						}
-					}
-				}
-				return 0;
-			}
-
-			static Memory EncodeString8(const sl_char8* utf8, sl_size lenUtf8, sl_uint32 codepage)
-			{
-				String16 str = String16::create(utf8, lenUtf8);
-				return EncodeString16(str.getData(), str.getLength(), codepage);
-			}
-
-			static String DecodeString8(sl_uint32 codepage, const void* data, sl_size size)
-			{
-				SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, size)
-				if (buf) {
-					sl_size len = Decode16(codepage, data, size, buf, size);
-					if (len) {
-						return String::create(buf, len);
-					}
-				}
-				return sl_null;
-			}
-
 #endif
-
-			sl_size Encode32(const sl_char32* utf32, sl_size lenUtf32, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
-			{
-				if (lenUtf32) {
-					sl_size len = Charsets::utf32ToUtf16(utf32, lenUtf32, sl_null, -1);
-					if (len) {
-						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						if (buf) {
-							Charsets::utf32ToUtf16(utf32, lenUtf32, buf, len);
-							return Encode16(buf, len, codepage, output, sizeOutputBuffer);
-						}
-					}
-				}
-				return 0;
-			}
-
-			sl_size Decode32(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char32* utf32, sl_reg lenUtf32Buffer)
-			{
-				if (sizeInput) {
-					sl_size len = Decode16(codepage, input, sizeInput, sl_null, -1);
-					if (len) {
-						SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
-						if (buf) {
-							Decode16(codepage, input, sizeInput, buf, len);
-							return Charsets::utf16ToUtf32(buf, len, utf32, lenUtf32Buffer);
-						}
-					}
-				}
-				return 0;
-			}
-
-			static Memory EncodeString32(const sl_char32* utf32, sl_size lenUtf32, sl_uint32 codepage)
-			{
-				String16 str = String16::create(utf32, lenUtf32);
-				return EncodeString16(str.getData(), str.getLength(), codepage);
-			}
-
-			static String32 DecodeString32(sl_uint32 codepage, const void* data, sl_size size)
-			{
-				SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, size)
-				if (buf) {
-					sl_size len = Decode16(codepage, data, size, buf, size);
-					if (len) {
-						return String32::create(buf, len);
-					}
-				}
-				return sl_null;
-			}
-
-			static sl_size Utf8ToUtf8(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
-			{
-				sl_size n;
-				if (lenOutputBuffer < 0) {
-					n = lenInput;
-				} else {
-					n = lenOutputBuffer;
-					if (lenInput < n) {
-						n = lenInput;
-					}
-				}
-				if (output) {
-					Base::copyMemory(output, input, n);
-				}
-				return n;
-			}
-
-			static sl_size Utf16ToUtf16(EndianType endianInput, const void* input, sl_size lenInput, EndianType endianOutput, void* output, sl_reg lenOutputBuffer) noexcept
-			{
-				sl_size n;
-				if (lenOutputBuffer < 0) {
-					n = lenInput;
-				} else {
-					n = lenOutputBuffer;
-					if (lenInput < n) {
-						n = lenInput;
-					}
-				}
-				if (output) {
-					Charsets::utf16ToUtf16(endianInput, input, endianOutput, output, n);
-				}
-				return n;
-			}
-
-			static sl_size Utf32ToUtf32(EndianType endianInput, const void* input, sl_size lenInput, EndianType endianOutput, void* output, sl_reg lenOutputBuffer) noexcept
-			{
-				sl_size n;
-				if (lenOutputBuffer < 0) {
-					n = lenInput;
-				} else {
-					n = lenOutputBuffer;
-					if (lenInput < n) {
-						n = lenInput;
-					}
-				}
-				if (output) {
-					Charsets::utf32ToUtf32(endianInput, input, endianOutput, output, n);
-				}
-				return n;
-			}
-
-			static sl_uint32 ToWindowsCodepage(Charset charset) noexcept
-			{
-				return ((sl_uint32)charset) & 0xffff;
-			}
-
 		}
 	}
 
 	using namespace priv::charset;
+
+	namespace {
+
+#if !defined(SLIB_PLATFORM_IS_APPLE)
+		static Memory EncodeString16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage)
+		{
+			sl_size len = Encode16(utf16, lenUtf16, codepage, sl_null, -1);
+			if (len) {
+				Memory mem = Memory::create(len);
+				if (mem.isNotNull()) {
+					Encode16(utf16, lenUtf16, codepage, mem.getData(), len);
+					return mem;
+				}
+			}
+			return sl_null;
+		}
+
+		static String16 DecodeString16(sl_uint32 codepage, const void* data, sl_size size)
+		{
+			String16 str = String16::allocate(size);
+			if (str.isNotNull()) {
+				sl_char16* s = str.getData();
+				sl_size len = Decode16(codepage, data, size, s, size);
+				if (len) {
+					s[len] = 0;
+					str.setLength(len);
+					return str;
+				}
+			}
+			return sl_null;
+		}
+
+		static sl_size Encode8(const sl_char8* utf8, sl_size lenUtf8, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
+		{
+			if (lenUtf8) {
+				sl_size len = Charsets::utf8ToUtf16(utf8, lenUtf8, sl_null, -1);
+				if (len) {
+					SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
+					if (buf) {
+						Charsets::utf8ToUtf16(utf8, lenUtf8, buf, len);
+						return Encode16(buf, len, codepage, output, sizeOutputBuffer);
+					}
+				}
+			}
+			return 0;
+		}
+
+		static sl_size Decode8(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char8* utf8, sl_reg lenUtf8Buffer)
+		{
+			if (sizeInput) {
+				sl_size len = Decode16(codepage, input, sizeInput, sl_null, -1);
+				if (len) {
+					SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
+					if (buf) {
+						Decode16(codepage, input, sizeInput, buf, len);
+						return Charsets::utf16ToUtf8(buf, len, utf8, lenUtf8Buffer);
+					}
+				}
+			}
+			return 0;
+		}
+
+		static Memory EncodeString8(const sl_char8* utf8, sl_size lenUtf8, sl_uint32 codepage)
+		{
+			String16 str = String16::create(utf8, lenUtf8);
+			return EncodeString16(str.getData(), str.getLength(), codepage);
+		}
+
+		static String DecodeString8(sl_uint32 codepage, const void* data, sl_size size)
+		{
+			SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, size)
+			if (buf) {
+				sl_size len = Decode16(codepage, data, size, buf, size);
+				if (len) {
+					return String::create(buf, len);
+				}
+			}
+			return sl_null;
+		}
+#endif
+
+		sl_size Encode32(const sl_char32* utf32, sl_size lenUtf32, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
+		{
+			if (lenUtf32) {
+				sl_size len = Charsets::utf32ToUtf16(utf32, lenUtf32, sl_null, -1);
+				if (len) {
+					SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
+					if (buf) {
+						Charsets::utf32ToUtf16(utf32, lenUtf32, buf, len);
+						return Encode16(buf, len, codepage, output, sizeOutputBuffer);
+					}
+				}
+			}
+			return 0;
+		}
+
+		sl_size Decode32(sl_uint32 codepage, const void* input, sl_size sizeInput, sl_char32* utf32, sl_reg lenUtf32Buffer)
+		{
+			if (sizeInput) {
+				sl_size len = Decode16(codepage, input, sizeInput, sl_null, -1);
+				if (len) {
+					SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, len)
+					if (buf) {
+						Decode16(codepage, input, sizeInput, buf, len);
+						return Charsets::utf16ToUtf32(buf, len, utf32, lenUtf32Buffer);
+					}
+				}
+			}
+			return 0;
+		}
+
+		static Memory EncodeString32(const sl_char32* utf32, sl_size lenUtf32, sl_uint32 codepage)
+		{
+			String16 str = String16::create(utf32, lenUtf32);
+			return EncodeString16(str.getData(), str.getLength(), codepage);
+		}
+
+		static String32 DecodeString32(sl_uint32 codepage, const void* data, sl_size size)
+		{
+			SLIB_SCOPED_BUFFER(sl_char16, 1024, buf, size)
+			if (buf) {
+				sl_size len = Decode16(codepage, data, size, buf, size);
+				if (len) {
+					return String32::create(buf, len);
+				}
+			}
+			return sl_null;
+		}
+
+		static sl_size Utf8ToUtf8(const void* input, sl_size lenInput, void* output, sl_reg lenOutputBuffer) noexcept
+		{
+			sl_size n;
+			if (lenOutputBuffer < 0) {
+				n = lenInput;
+			} else {
+				n = lenOutputBuffer;
+				if (lenInput < n) {
+					n = lenInput;
+				}
+			}
+			if (output) {
+				Base::copyMemory(output, input, n);
+			}
+			return n;
+		}
+
+		static sl_size Utf16ToUtf16(EndianType endianInput, const void* input, sl_size lenInput, EndianType endianOutput, void* output, sl_reg lenOutputBuffer) noexcept
+		{
+			sl_size n;
+			if (lenOutputBuffer < 0) {
+				n = lenInput;
+			} else {
+				n = lenOutputBuffer;
+				if (lenInput < n) {
+					n = lenInput;
+				}
+			}
+			if (output) {
+				Charsets::utf16ToUtf16(endianInput, input, endianOutput, output, n);
+			}
+			return n;
+		}
+
+		static sl_size Utf32ToUtf32(EndianType endianInput, const void* input, sl_size lenInput, EndianType endianOutput, void* output, sl_reg lenOutputBuffer) noexcept
+		{
+			sl_size n;
+			if (lenOutputBuffer < 0) {
+				n = lenInput;
+			} else {
+				n = lenOutputBuffer;
+				if (lenInput < n) {
+					n = lenInput;
+				}
+			}
+			if (output) {
+				Charsets::utf32ToUtf32(endianInput, input, endianOutput, output, n);
+			}
+			return n;
+		}
+
+		static sl_uint32 ToWindowsCodepage(Charset charset) noexcept
+		{
+			return ((sl_uint32)charset) & 0xffff;
+		}
+
+	}
 
 	sl_size Charsets::encode8(const sl_char8* utf8, sl_size lenUtf8, Charset charset, void* output, sl_reg sizeOutputBuffer)
 	{

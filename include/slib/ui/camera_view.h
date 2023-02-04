@@ -32,14 +32,6 @@ namespace slib
 
 	class Button;
 
-	namespace priv
-	{
-		namespace camera
-		{
-			class Controls;
-		}
-	}
-
 	class SLIB_EXPORT CameraView : public VideoView
 	{
 		SLIB_DECLARE_OBJECT
@@ -117,7 +109,9 @@ namespace slib
 		Time m_timeTouchFocusBegan;
 		UIPoint m_pointTouchFocus;
 
-		friend class priv::camera::Controls;
+#ifdef PRIV_SLIB_CAMERA_VIEW_FRIENDS
+		PRIV_SLIB_CAMERA_VIEW_FRIENDS
+#endif
 
 	};
 

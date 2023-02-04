@@ -36,7 +36,7 @@ namespace slib
 
 	class Event;
 
-	class SLIB_EXPORT AudioPlayerInfo
+	class SLIB_EXPORT AudioPlayerDeviceInfo
 	{
 	public:
 		String id;
@@ -44,9 +44,9 @@ namespace slib
 		String description;
 
 	public:
-		AudioPlayerInfo();
+		AudioPlayerDeviceInfo();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerInfo)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceInfo)
 
 	};
 
@@ -99,7 +99,7 @@ namespace slib
 	public:
 		static Ref<AudioPlayer> create(const AudioPlayerParam& param);
 
-		static List<AudioPlayerInfo> getPlayersList();
+		static List<AudioPlayerDeviceInfo> getDevices();
 
 	public:
 		void release();
@@ -171,7 +171,7 @@ namespace slib
 
 		static Ref<AudioPlayerDevice> create();
 
-		static List<AudioPlayerInfo> getPlayersList();
+		static List<AudioPlayerDeviceInfo> getDevices();
 
 	public:
 		virtual Ref<AudioPlayer> createPlayer(const AudioPlayerParam& param) = 0;

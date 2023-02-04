@@ -73,75 +73,6 @@ namespace slib
 
 	class PseudoTcp;
 
-	namespace priv
-	{
-		namespace pseudo_tcp
-		{
-
-			class Segment
-			{
-			public:
-				sl_uint32 conv, seq, ack;
-				sl_uint8 flags;
-				sl_uint16 wnd;
-				const char* data;
-				sl_uint32 len;
-				sl_uint32 tsval, tsecr;
-			};
-
-			class SSegment
-			{
-			public:
-				SSegment(sl_uint32 s, sl_uint32 l, sl_bool c) : seq(s), len(l), xmit(0), bCtrl(c) {}
-
-			public:
-				sl_uint32 seq, len;
-				sl_uint8 xmit;
-				sl_bool bCtrl;
-			};
-
-			class RSegment
-			{
-			public:
-				sl_uint32 seq, len;
-			};
-
-			typedef CLinkedList<SSegment> SList;
-
-			typedef CLinkedList<RSegment> RList;
-
-			class LockedFifoBuffer
-			{
-			public:
-				LockedFifoBuffer(sl_size size);
-				~LockedFifoBuffer();
-
-			public:
-				sl_size getBuffered() const;
-				sl_bool setCapacity(sl_size size);
-				sl_bool readOffset(void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_read);
-				sl_bool writeOffset(const void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_written);
-				sl_bool read(void* buffer, sl_size bytes, sl_size* bytes_read);
-				sl_bool write(const void* buffer, sl_size bytes, sl_size* bytes_written);
-				void consumeReadData(sl_size size);
-				void consumeWriteBuffer(sl_size size);
-				sl_bool getWriteRemaining(sl_size* size) const;
-
-			private:
-				sl_bool readOffsetLocked(void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_read);
-				sl_bool writeOffsetLocked(const void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_written);
-
-			private:
-				UniquePtr<char[]> m_buf; // the allocated buffer
-				sl_size m_lenBuf; // size of the allocated buffer
-				sl_size m_lenData; // amount of readable data in the buffer
-				sl_size m_posRead; // offset to the readable data
-				Mutex m_lock;
-			};
-
-		}
-	}
-
 	class SLIB_EXPORT IPseudoTcpNotify
 	{
 	public:
@@ -230,6 +161,12 @@ namespace slib
 		sl_uint32 getRoundTripTimeEstimate() const;
 
 	protected:
+		struct Segment;
+		class SSegment;
+		class RSegment;
+		class LockedFifoBuffer;
+
+	protected:
 		sl_uint32 queue(const char* data, sl_uint32 len, sl_bool bCtrl);
 
 		PseudoTcpWriteResult buildPacket(sl_uint32 seq, sl_uint8 flags, sl_uint32 offset, sl_uint32 len);
@@ -242,9 +179,9 @@ namespace slib
 
 		sl_bool clock_check(sl_uint32 now, sl_uint32& nTimeout);
 
-		sl_bool process(priv::pseudo_tcp::Segment& seg);
+		sl_bool process(Segment& seg);
 
-		sl_bool transmit(Link<priv::pseudo_tcp::SSegment>* seg, sl_uint32 now);
+		sl_bool transmit(Link<SSegment>* seg, sl_uint32 now);
 
 		void adjustMTU();
 
@@ -277,16 +214,16 @@ namespace slib
 		sl_uint32 m_lasttraffic;
 
 		// Incoming data
-		priv::pseudo_tcp::RList m_rlist;
+		LinkedList<RSegment> m_rlist;
 		sl_uint32 m_rbuf_len, m_rcv_nxt, m_rcv_wnd, m_lastrecv;
 		sl_uint8 m_rwnd_scale;  // Window scale factor.
-		priv::pseudo_tcp::LockedFifoBuffer m_rbuf;
+		UniquePtr<LockedFifoBuffer> m_rbuf;
 
 		// Outgoing data
-		priv::pseudo_tcp::SList m_slist;
+		LinkedList<SSegment> m_slist;
 		sl_uint32 m_sbuf_len, m_snd_nxt, m_snd_wnd, m_lastsend, m_snd_una;
 		sl_uint8 m_swnd_scale;  // Window scale factor.
-		priv::pseudo_tcp::LockedFifoBuffer m_sbuf;
+		UniquePtr<LockedFifoBuffer> m_sbuf;
 
 		// Maximum segment size, estimated protocol level, largest segment sent
 		sl_uint32 m_mss, m_msslevel, m_largest, m_mtu_advise;

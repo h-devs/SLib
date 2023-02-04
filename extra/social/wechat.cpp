@@ -28,38 +28,32 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace wechat
+	namespace {
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<WeChat>, g_instance)
+
+		static String GenerateSign(const Map<String, String>& map, const String& apiKey)
 		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<WeChat>, g_instance)
-
-			static String GenerateSign(const Map<String, String>& map, const String& apiKey)
-			{
-				StringBuffer buf;
-				sl_bool flagFirst = sl_true;
-				for (auto& item : map) {
-					if (item.value.isNotEmpty()) {
-						if (flagFirst) {
-							flagFirst = sl_false;
-						} else {
-							buf.addStatic("&");
-						}
-						buf.add(item.key);
-						buf.addStatic("=");
-						buf.add(item.value);
+			StringBuffer buf;
+			sl_bool flagFirst = sl_true;
+			for (auto& item : map) {
+				if (item.value.isNotEmpty()) {
+					if (flagFirst) {
+						flagFirst = sl_false;
+					} else {
+						buf.addStatic("&");
 					}
+					buf.add(item.key);
+					buf.addStatic("=");
+					buf.add(item.value);
 				}
-				buf.addStatic("&key=");
-				buf.add(apiKey);
-				return String::makeHexString(MD5::hash(buf.merge()), sl_false);
 			}
-
+			buf.addStatic("&key=");
+			buf.add(apiKey);
+			return String::makeHexString(MD5::hash(buf.merge()), sl_false);
 		}
-	}
 
-	using namespace priv::wechat;
+	}
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WeChatUser)

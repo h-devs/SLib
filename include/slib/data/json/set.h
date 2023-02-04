@@ -33,88 +33,85 @@ namespace slib
 
 	namespace priv
 	{
-		namespace json
+
+		template <class SET>
+		static void GetSetFromJson(SET& _out, const Json& json)
 		{
-
-			template <class SET>
-			static void GetSetFromJson(SET& _out, const Json& json)
-			{
-				if (json.isUndefined()) {
-					return;
-				}
-				_out.setNull();
-				if (json.getType() == VariantType::List) {
-					JsonList list = json.getJsonList();
-					if (list.isNotNull()) {
-						ListLocker<Json> src(list);
-						if (src.count) {
-							for (sl_size i = 0; i < src.count; i++) {
-								typename SET::VALUE_TYPE v;
-								FromJson(src[i], v);
-								_out.add_NoLock(Move(v));
-							}
-							return;
+			if (json.isUndefined()) {
+				return;
+			}
+			_out.setNull();
+			if (json.getType() == VariantType::List) {
+				JsonList list = json.getJsonList();
+				if (list.isNotNull()) {
+					ListLocker<Json> src(list);
+					if (src.count) {
+						for (sl_size i = 0; i < src.count; i++) {
+							typename SET::VALUE_TYPE v;
+							FromJson(src[i], v);
+							_out.add_NoLock(Move(v));
 						}
+						return;
 					}
-				} else {
-					Ref<Collection> src = json.getCollection();
-					if (src.isNotNull()) {
-						sl_size n = (sl_size)(src->getElementCount());
-						if (n) {
-							for (sl_size i = 0; i < n; i++) {
-								typename SET::VALUE_TYPE v;
-								Variant value = src->getElement(i);
-								FromJson(*(static_cast<const Json*>(&value)), v);
-								_out.add_NoLock(Move(v));
-							}
-							return;
+				}
+			} else {
+				Ref<Collection> src = json.getCollection();
+				if (src.isNotNull()) {
+					sl_size n = (sl_size)(src->getElementCount());
+					if (n) {
+						for (sl_size i = 0; i < n; i++) {
+							typename SET::VALUE_TYPE v;
+							Variant value = src->getElement(i);
+							FromJson(*(static_cast<const Json*>(&value)), v);
+							_out.add_NoLock(Move(v));
 						}
+						return;
 					}
 				}
 			}
-
-			template <class SET>
-			static void GetJsonFromSet(Json& _out, const SET& _in)
-			{
-				if (_in.isNotNull()) {
-					MutexLocker locker(_in.getLocker());
-					JsonList list;
-					auto node = _in.getFirstNode();
-					while (node) {
-						list.add_NoLock(node->key);
-						node = node->getNext();
-					}
-					_out = Move(list);
-				} else {
-					_out.setNull();
-				}
-			}
-
 		}
+
+		template <class SET>
+		static void GetJsonFromSet(Json& _out, const SET& _in)
+		{
+			if (_in.isNotNull()) {
+				MutexLocker locker(_in.getLocker());
+				JsonList list;
+				auto node = _in.getFirstNode();
+				while (node) {
+					list.add_NoLock(node->key);
+					node = node->getNext();
+				}
+				_out = Move(list);
+			} else {
+				_out.setNull();
+			}
+		}
+
 	}
 
 	template <class T>
 	static void ToJson(Json& json, const Set<T>& _in)
 	{
-		priv::json::GetJsonFromSet(json, _in);
+		priv::GetJsonFromSet(json, _in);
 	}
 
 	template <class T>
 	static void FromJson(const Json& json, Set<T>& _out)
 	{
-		priv::json::GetSetFromJson(_out, json);
+		priv::GetSetFromJson(_out, json);
 	}
 
 	template <class T>
 	static void ToJson(Json& json, const HashSet<T>& _in)
 	{
-		priv::json::GetJsonFromSet(json, _in);
+		priv::GetJsonFromSet(json, _in);
 	}
 
 	template <class T>
 	static void FromJson(const Json& json, HashSet<T>& _out)
 	{
-		priv::json::GetSetFromJson(_out, json);
+		priv::GetSetFromJson(_out, json);
 	}
 
 }

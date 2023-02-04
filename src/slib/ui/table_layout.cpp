@@ -28,120 +28,110 @@
 namespace slib
 {
 
-	namespace priv
+	class TableLayout::Cell
 	{
-		namespace table_layout
+	public:
+		Ref<View> view;
+		sl_uint32 rowspan = 1;
+		sl_uint32 colspan = 1;
+		sl_bool flagSelfHorzAlign = sl_false;
+		sl_bool flagSelfVertAlign = sl_false;
+
+	};
+
+	class TableLayout::Column
+	{
+	public:
+		SizeMode widthMode = SizeMode::Filling;
+		sl_ui_len widthLayout = 0;
+		sl_ui_len widthFixed = 0;
+		sl_real widthWeight = 1;
+
+		sl_ui_len minWidth = 0;
+		sl_ui_len maxWidth = 0;
+		sl_bool flagMaxWidthDefined = sl_false;
+
+		sl_ui_len marginLeft = 0;
+		sl_ui_len marginRight = 0;
+		sl_ui_len paddingLeft = 0;
+		sl_ui_len paddingRight = 0;
+
+		Ref<Drawable> background;
+		Alignment align = Alignment::Default;
+
+	public:
+		sl_ui_len restrictWidth(sl_ui_len width)
 		{
-
-			class Cell
-			{
-			public:
-				Ref<View> view;
-				sl_uint32 rowspan = 1;
-				sl_uint32 colspan = 1;
-				sl_bool flagSelfHorzAlign = sl_false;
-				sl_bool flagSelfVertAlign = sl_false;
-
-			};
-
-			class Column
-			{
-			public:
-				SizeMode widthMode = SizeMode::Filling;
-				sl_ui_len widthLayout = 0;
-				sl_ui_len widthFixed = 0;
-				sl_real widthWeight = 1;
-
-				sl_ui_len minWidth = 0;
-				sl_ui_len maxWidth = 0;
-				sl_bool flagMaxWidthDefined = sl_false;
-
-				sl_ui_len marginLeft = 0;
-				sl_ui_len marginRight = 0;
-				sl_ui_len paddingLeft = 0;
-				sl_ui_len paddingRight = 0;
-
-				Ref<Drawable> background;
-				Alignment align = Alignment::Default;
-
-			public:
-				sl_ui_len restrictWidth(sl_ui_len width)
-				{
-					if (width < minWidth) {
-						return minWidth;
-					}
-					if (flagMaxWidthDefined) {
-						if (width > maxWidth) {
-							return maxWidth;
-						}
-					}
-					return width;
+			if (width < minWidth) {
+				return minWidth;
+			}
+			if (flagMaxWidthDefined) {
+				if (width > maxWidth) {
+					return maxWidth;
 				}
-
-				sl_ui_len getFixedWidth()
-				{
-					return restrictWidth(widthFixed);
-				}
-
-				sl_ui_len getWeightWidth(sl_ui_len widthParent)
-				{
-					return restrictWidth((sl_ui_len)(widthParent * widthWeight));
-				}
-
-			};
-
-			class Row
-			{
-			public:
-				SizeMode heightMode = SizeMode::Filling;
-				sl_ui_len heightLayout = 0;
-				sl_ui_len heightFixed = 0;
-				sl_real heightWeight = 1;
-
-				sl_ui_len minHeight = 0;
-				sl_ui_len maxHeight = 0;
-				sl_bool flagMaxHeightDefined = sl_false;
-
-				sl_ui_len marginTop = 0;
-				sl_ui_len marginBottom = 0;
-				sl_ui_len paddingTop = 0;
-				sl_ui_len paddingBottom = 0;
-
-				Ref<Drawable> background;
-				Alignment align = Alignment::Default;
-
-				CList<Cell> cells;
-
-			public:
-				sl_ui_len restrictHeight(sl_ui_len height)
-				{
-					if (height < minHeight) {
-						return minHeight;
-					}
-					if (flagMaxHeightDefined) {
-						if (height > maxHeight) {
-							return maxHeight;
-						}
-					}
-					return height;
-				}
-
-				sl_ui_len getFixedHeight()
-				{
-					return restrictHeight(heightFixed);
-				}
-
-				sl_ui_len getWeightHeight(sl_ui_len heightParent)
-				{
-					return restrictHeight((sl_ui_len)(heightParent * heightWeight));
-				}
-
-			};
-
+			}
+			return width;
 		}
-	}
 
-	using namespace priv::table_layout;
+		sl_ui_len getFixedWidth()
+		{
+			return restrictWidth(widthFixed);
+		}
+
+		sl_ui_len getWeightWidth(sl_ui_len widthParent)
+		{
+			return restrictWidth((sl_ui_len)(widthParent * widthWeight));
+		}
+
+	};
+
+	class TableLayout::Row
+	{
+	public:
+		SizeMode heightMode = SizeMode::Filling;
+		sl_ui_len heightLayout = 0;
+		sl_ui_len heightFixed = 0;
+		sl_real heightWeight = 1;
+
+		sl_ui_len minHeight = 0;
+		sl_ui_len maxHeight = 0;
+		sl_bool flagMaxHeightDefined = sl_false;
+
+		sl_ui_len marginTop = 0;
+		sl_ui_len marginBottom = 0;
+		sl_ui_len paddingTop = 0;
+		sl_ui_len paddingBottom = 0;
+
+		Ref<Drawable> background;
+		Alignment align = Alignment::Default;
+
+		CList<Cell> cells;
+
+	public:
+		sl_ui_len restrictHeight(sl_ui_len height)
+		{
+			if (height < minHeight) {
+				return minHeight;
+			}
+			if (flagMaxHeightDefined) {
+				if (height > maxHeight) {
+					return maxHeight;
+				}
+			}
+			return height;
+		}
+
+		sl_ui_len getFixedHeight()
+		{
+			return restrictHeight(heightFixed);
+		}
+
+		sl_ui_len getWeightHeight(sl_ui_len heightParent)
+		{
+			return restrictHeight((sl_ui_len)(heightParent * heightWeight));
+		}
+
+	};
 
 	SLIB_DEFINE_OBJECT(TableLayout, ViewGroup)
 
@@ -913,7 +903,7 @@ namespace slib
 		}
 	}
 
-	Cell* TableLayout::_getCell(sl_uint32 iRow, sl_uint32 iCol)
+	TableLayout::Cell* TableLayout::_getCell(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		Row* row = m_rows.getPointerAt(iRow);
 		if (row) {
@@ -922,7 +912,7 @@ namespace slib
 		return sl_null;
 	}
 
-	priv::table_layout::Cell* TableLayout::_allocCell(sl_uint32 iRow, sl_uint32 iCol)
+	TableLayout::Cell* TableLayout::_allocCell(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		if (iCol >= m_columns.getCount() || iRow >= m_rows.getCount()) {
 			return sl_null;
@@ -957,7 +947,7 @@ namespace slib
 		return ret;
 	}
 
-	void TableLayout::_initCellAlign(priv::table_layout::Cell* cell, sl_uint32 iRow, sl_uint32 iCol)
+	void TableLayout::_initCellAlign(Cell* cell, sl_uint32 iRow, sl_uint32 iCol)
 	{
 		View* view = cell->view.get();
 		sl_bool flagHorz = view->isLeftFree() && view->isRightFree();
@@ -989,7 +979,7 @@ namespace slib
 		cell->flagSelfVertAlign = !flagVert;
 	}
 
-	void TableLayout::_applyCellAlign(priv::table_layout::Cell* cell, sl_uint32 iRow, sl_uint32 iCol, UIUpdateMode mode)
+	void TableLayout::_applyCellAlign(Cell* cell, sl_uint32 iRow, sl_uint32 iCol, UIUpdateMode mode)
 	{
 		if (!SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
 			mode = UIUpdateMode::None;

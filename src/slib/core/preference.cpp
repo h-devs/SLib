@@ -28,15 +28,9 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace preference
-		{
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_appKey)
-		}
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_appKey)
 	}
-
-	using namespace priv::preference;
 
 	void Preference::removeValue(const StringParam& key)
 	{

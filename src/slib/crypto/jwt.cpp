@@ -30,40 +30,34 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace jwt
-		{
+	namespace {
 
-			SLIB_STATIC_STRING(g_field_iss, "iss")
-			SLIB_STATIC_STRING(g_field_sub, "sub")
-			SLIB_STATIC_STRING(g_field_aud, "aud")
-			SLIB_STATIC_STRING(g_field_exp, "exp")
-			SLIB_STATIC_STRING(g_field_nbf, "nbf")
-			SLIB_STATIC_STRING(g_field_iat, "iat")
-			SLIB_STATIC_STRING(g_field_jti, "jti")
+		SLIB_STATIC_STRING(g_field_iss, "iss")
+		SLIB_STATIC_STRING(g_field_sub, "sub")
+		SLIB_STATIC_STRING(g_field_aud, "aud")
+		SLIB_STATIC_STRING(g_field_exp, "exp")
+		SLIB_STATIC_STRING(g_field_nbf, "nbf")
+		SLIB_STATIC_STRING(g_field_iat, "iat")
+		SLIB_STATIC_STRING(g_field_jti, "jti")
 
-			SLIB_STATIC_STRING(g_field_typ, "typ")
-			SLIB_STATIC_STRING(g_field_cty, "cty")
-			SLIB_STATIC_STRING(g_field_alg, "alg")
+		SLIB_STATIC_STRING(g_field_typ, "typ")
+		SLIB_STATIC_STRING(g_field_cty, "cty")
+		SLIB_STATIC_STRING(g_field_alg, "alg")
 
-			SLIB_STATIC_STRING(g_alg_HS256, "HS256")
-			SLIB_STATIC_STRING(g_alg_HS384, "HS384")
-			SLIB_STATIC_STRING(g_alg_HS512, "HS512")
-			SLIB_STATIC_STRING(g_alg_RS256, "RS256")
-			SLIB_STATIC_STRING(g_alg_RS384, "RS384")
-			SLIB_STATIC_STRING(g_alg_RS512, "RS512")
-			SLIB_STATIC_STRING(g_alg_ES256, "ES256")
-			SLIB_STATIC_STRING(g_alg_ES384, "ES384")
-			SLIB_STATIC_STRING(g_alg_ES512, "ES512")
-			SLIB_STATIC_STRING(g_alg_PS256, "PS256")
-			SLIB_STATIC_STRING(g_alg_PS384, "PS384")
-			SLIB_STATIC_STRING(g_alg_PS512, "PS512")
+		SLIB_STATIC_STRING(g_alg_HS256, "HS256")
+		SLIB_STATIC_STRING(g_alg_HS384, "HS384")
+		SLIB_STATIC_STRING(g_alg_HS512, "HS512")
+		SLIB_STATIC_STRING(g_alg_RS256, "RS256")
+		SLIB_STATIC_STRING(g_alg_RS384, "RS384")
+		SLIB_STATIC_STRING(g_alg_RS512, "RS512")
+		SLIB_STATIC_STRING(g_alg_ES256, "ES256")
+		SLIB_STATIC_STRING(g_alg_ES384, "ES384")
+		SLIB_STATIC_STRING(g_alg_ES512, "ES512")
+		SLIB_STATIC_STRING(g_alg_PS256, "PS256")
+		SLIB_STATIC_STRING(g_alg_PS384, "PS384")
+		SLIB_STATIC_STRING(g_alg_PS512, "PS512")
 
-		}
 	}
-
-	using namespace priv::jwt;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Jwt)
 

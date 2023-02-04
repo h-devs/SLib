@@ -31,187 +31,181 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace web_view
+	namespace {
+
+		class WebViewHelper : public WebView
 		{
+		public:
+			void load(jobject handle);
 
-			class WebViewHelper : public WebView
+			static void JNICALL nativeOnStartLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl)
 			{
-			public:
-				void load(jobject handle);
-
-				static void JNICALL nativeOnStartLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl)
-				{
-					Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
-					if (helper.isNotNull()) {
-						String url = Jni::getString(jurl);
-						helper->dispatchStartLoad(url);
-					}
-				}
-
-				static void JNICALL nativeOnFinishLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl)
-				{
-					Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
-					if (helper.isNotNull()) {
-						String url = Jni::getString(jurl);
-						helper->dispatchFinishLoad(url, sl_false);
-					}
-				}
-
-				static void JNICALL nativeOnErrorLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl, jstring jerror)
-				{
-					Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
-					if (helper.isNotNull()) {
-						helper->m_errorMessage = Jni::getString(jerror);
-						String url = Jni::getString(jurl);
-						helper->dispatchFinishLoad(url, sl_true);
-					}
-				}
-
-				static void JNICALL nativeOnMessage(JNIEnv* env, jobject _this, jlong instance, jstring jmsg, jstring jparam)
-				{
-					Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
-					if (helper.isNotNull()) {
-						String msg = Jni::getString(jmsg);
-						if (msg.isNotEmpty()) {
-							String param = Jni::getString(jparam);
-							helper->dispatchMessageFromJavaScript(msg, param);
-						}
-					}
-				}
-			};
-
-			SLIB_JNI_BEGIN_CLASS(JWebView, "slib/android/ui/view/UiWebView")
-
-				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/android/ui/view/UiWebView;");
-
-				SLIB_JNI_STATIC_METHOD(load, "_load", "(Landroid/view/View;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(loadHTML, "_loadHTML", "(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(getURL, "_getURL", "(Landroid/view/View;)Ljava/lang/String;");
-				SLIB_JNI_STATIC_METHOD(getTitle, "_getTitle", "(Landroid/view/View;)Ljava/lang/String;");
-				SLIB_JNI_STATIC_METHOD(goBack, "_goBack", "(Landroid/view/View;)V");
-				SLIB_JNI_STATIC_METHOD(goForward, "_goForward", "(Landroid/view/View;)V");
-				SLIB_JNI_STATIC_METHOD(reload, "_reload", "(Landroid/view/View;)V");
-				SLIB_JNI_STATIC_METHOD(runJavaScript, "_runJavaScript", "(Landroid/view/View;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(setCustomUserAgent, "_setCustomUserAgent", "(Landroid/view/View;Ljava/lang/String;)V");
-
-				SLIB_JNI_STATIC_METHOD(clearCache, "_clearCache", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(clearCookie, "_clearCookie", "(Landroid/app/Activity;)V");
-
-				SLIB_JNI_NATIVE(nativeOnStartLoad, "nativeOnStartLoad", "(JLjava/lang/String;)V", WebViewHelper::nativeOnStartLoad);
-				SLIB_JNI_NATIVE(nativeOnFinishLoad, "nativeOnFinishLoad", "(JLjava/lang/String;)V", WebViewHelper::nativeOnFinishLoad);
-				SLIB_JNI_NATIVE(nativeOnErrorLoad, "nativeOnErrorLoad", "(JLjava/lang/String;Ljava/lang/String;)V", WebViewHelper::nativeOnErrorLoad);
-				SLIB_JNI_NATIVE(nativeOnMessage, "nativeOnMessage", "(JLjava/lang/String;Ljava/lang/String;)V", WebViewHelper::nativeOnMessage);
-
-			SLIB_JNI_END_CLASS
-
-			void WebViewHelper::load(jobject handle)
-			{
-				JniLocal<jstring> jurl = Jni::getJniString(m_urlOrigin);
-				if (m_flagOfflineContent) {
-					JniLocal<jstring> jcontent = Jni::getJniString(m_offlineContentHTML);
-					JWebView::loadHTML.call(sl_null, handle, jcontent.get(), jurl.get());
-				} else {
-					JWebView::load.call(sl_null, handle, jurl.get());
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				if (helper.isNotNull()) {
+					String url = Jni::getString(jurl);
+					helper->dispatchStartLoad(url);
 				}
 			}
 
-			class WebViewInstance : public Android_ViewInstance, public IWebViewInstance
+			static void JNICALL nativeOnFinishLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl)
 			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				void initialize(View* _view) override
-				{
-					WebView* view = (WebView*)_view;
-
-					setCustomUserAgent(view, view->getCustomUserAgent());
-					load(view);
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				if (helper.isNotNull()) {
+					String url = Jni::getString(jurl);
+					helper->dispatchFinishLoad(url, sl_false);
 				}
+			}
 
-				void refreshSize(WebView* view) override
-				{
+			static void JNICALL nativeOnErrorLoad(JNIEnv* env, jobject _this, jlong instance, jstring jurl, jstring jerror)
+			{
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				if (helper.isNotNull()) {
+					helper->m_errorMessage = Jni::getString(jerror);
+					String url = Jni::getString(jurl);
+					helper->dispatchFinishLoad(url, sl_true);
 				}
+			}
 
-				void load(WebView* view) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						(static_cast<WebViewHelper*>(view))->load(handle);
+			static void JNICALL nativeOnMessage(JNIEnv* env, jobject _this, jlong instance, jstring jmsg, jstring jparam)
+			{
+				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
+				if (helper.isNotNull()) {
+					String msg = Jni::getString(jmsg);
+					if (msg.isNotEmpty()) {
+						String param = Jni::getString(jparam);
+						helper->dispatchMessageFromJavaScript(msg, param);
 					}
 				}
+			}
+		};
 
-				sl_bool getURL(WebView* view, String& _out) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						_out = JWebView::getURL.callString(sl_null, handle);
-						return sl_true;
-					}
-					return sl_false;
-				}
+		SLIB_JNI_BEGIN_CLASS(JWebView, "slib/android/ui/view/UiWebView")
 
-				sl_bool getPageTitle(WebView* view, String& _out) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						_out = JWebView::getTitle.callString(sl_null, handle);
-						return sl_true;
-					}
-					return sl_false;
-				}
+			SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/android/ui/view/UiWebView;");
 
-				void goBack(WebView* view) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JWebView::goBack.call(sl_null, handle);
-					}
-				}
+			SLIB_JNI_STATIC_METHOD(load, "_load", "(Landroid/view/View;Ljava/lang/String;)V");
+			SLIB_JNI_STATIC_METHOD(loadHTML, "_loadHTML", "(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;)V");
+			SLIB_JNI_STATIC_METHOD(getURL, "_getURL", "(Landroid/view/View;)Ljava/lang/String;");
+			SLIB_JNI_STATIC_METHOD(getTitle, "_getTitle", "(Landroid/view/View;)Ljava/lang/String;");
+			SLIB_JNI_STATIC_METHOD(goBack, "_goBack", "(Landroid/view/View;)V");
+			SLIB_JNI_STATIC_METHOD(goForward, "_goForward", "(Landroid/view/View;)V");
+			SLIB_JNI_STATIC_METHOD(reload, "_reload", "(Landroid/view/View;)V");
+			SLIB_JNI_STATIC_METHOD(runJavaScript, "_runJavaScript", "(Landroid/view/View;Ljava/lang/String;)V");
+			SLIB_JNI_STATIC_METHOD(setCustomUserAgent, "_setCustomUserAgent", "(Landroid/view/View;Ljava/lang/String;)V");
 
-				void goForward(WebView* view) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JWebView::goForward.call(sl_null, handle);
-					}
-				}
+			SLIB_JNI_STATIC_METHOD(clearCache, "_clearCache", "(Landroid/app/Activity;)V");
+			SLIB_JNI_STATIC_METHOD(clearCookie, "_clearCookie", "(Landroid/app/Activity;)V");
 
-				void reload(WebView* view) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JWebView::reload.call(sl_null, handle);
-					}
-				}
+			SLIB_JNI_NATIVE(nativeOnStartLoad, "nativeOnStartLoad", "(JLjava/lang/String;)V", WebViewHelper::nativeOnStartLoad);
+			SLIB_JNI_NATIVE(nativeOnFinishLoad, "nativeOnFinishLoad", "(JLjava/lang/String;)V", WebViewHelper::nativeOnFinishLoad);
+			SLIB_JNI_NATIVE(nativeOnErrorLoad, "nativeOnErrorLoad", "(JLjava/lang/String;Ljava/lang/String;)V", WebViewHelper::nativeOnErrorLoad);
+			SLIB_JNI_NATIVE(nativeOnMessage, "nativeOnMessage", "(JLjava/lang/String;Ljava/lang/String;)V", WebViewHelper::nativeOnMessage);
 
-				void runJavaScript(WebView* view, const StringParam& script) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JniLocal<jstring> jscript = Jni::getJniString(script);
-						JWebView::runJavaScript.call(sl_null, handle, jscript.get());
-					}
-				}
+		SLIB_JNI_END_CLASS
 
-				void setCustomUserAgent(WebView* view, const String& agent) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JniLocal<jstring> jvalue = Jni::getJniString(agent);
-						JWebView::setCustomUserAgent.call(sl_null, handle, jvalue.get());
-					}
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(WebViewInstance, Android_ViewInstance)
-
+		void WebViewHelper::load(jobject handle)
+		{
+			JniLocal<jstring> jurl = Jni::getJniString(m_urlOrigin);
+			if (m_flagOfflineContent) {
+				JniLocal<jstring> jcontent = Jni::getJniString(m_offlineContentHTML);
+				JWebView::loadHTML.call(sl_null, handle, jcontent.get(), jurl.get());
+			} else {
+				JWebView::load.call(sl_null, handle, jurl.get());
+			}
 		}
-	}
 
-	using namespace priv::web_view;
+		class WebViewInstance : public Android_ViewInstance, public IWebViewInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			void initialize(View* _view) override
+			{
+				WebView* view = (WebView*)_view;
+
+				setCustomUserAgent(view, view->getCustomUserAgent());
+				load(view);
+			}
+
+			void refreshSize(WebView* view) override
+			{
+			}
+
+			void load(WebView* view) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					(static_cast<WebViewHelper*>(view))->load(handle);
+				}
+			}
+
+			sl_bool getURL(WebView* view, String& _out) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					_out = JWebView::getURL.callString(sl_null, handle);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool getPageTitle(WebView* view, String& _out) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					_out = JWebView::getTitle.callString(sl_null, handle);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void goBack(WebView* view) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JWebView::goBack.call(sl_null, handle);
+				}
+			}
+
+			void goForward(WebView* view) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JWebView::goForward.call(sl_null, handle);
+				}
+			}
+
+			void reload(WebView* view) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JWebView::reload.call(sl_null, handle);
+				}
+			}
+
+			void runJavaScript(WebView* view, const StringParam& script) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JniLocal<jstring> jscript = Jni::getJniString(script);
+					JWebView::runJavaScript.call(sl_null, handle, jscript.get());
+				}
+			}
+
+			void setCustomUserAgent(WebView* view, const String& agent) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JniLocal<jstring> jvalue = Jni::getJniString(agent);
+					JWebView::setCustomUserAgent.call(sl_null, handle, jvalue.get());
+				}
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(WebViewInstance, Android_ViewInstance)
+
+	}
 
 	Ref<ViewInstance> WebView::createNativeWidget(ViewInstance* _parent)
 	{

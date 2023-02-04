@@ -32,24 +32,18 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace java_io
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JInputStream, "java/io/InputStream")
-				SLIB_JNI_METHOD(read, "read", "([B)I")
-				SLIB_JNI_METHOD(close, "close", "()V")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JInputStream, "java/io/InputStream")
+			SLIB_JNI_METHOD(read, "read", "([B)I")
+			SLIB_JNI_METHOD(close, "close", "()V")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JFile, "java/io/File")
-				SLIB_JNI_METHOD(getAbsolutePath, "getAbsolutePath", "()Ljava/lang/String;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JFile, "java/io/File")
+			SLIB_JNI_METHOD(getAbsolutePath, "getAbsolutePath", "()Ljava/lang/String;")
+		SLIB_JNI_END_CLASS
 
-		}
 	}
-
-	using namespace priv::java_io;
 
 	namespace java
 	{

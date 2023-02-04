@@ -34,342 +34,336 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace android
+	namespace {
+
+		SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/android/ui/UiBitmap")
+			SLIB_JNI_STATIC_METHOD(create, "create", "(II)Lslib/android/ui/UiBitmap;");
+			SLIB_JNI_STATIC_METHOD(load, "load", "(Landroid/app/Activity;[B)Lslib/android/ui/UiBitmap;");
+			SLIB_JNI_METHOD(getWidth, "getWidth", "()I");
+			SLIB_JNI_METHOD(getHeight, "getHeight", "()I");
+			SLIB_JNI_METHOD(recycle, "recycle", "()V");
+			SLIB_JNI_METHOD(read, "read", "(IIII[II)V");
+			SLIB_JNI_METHOD(write, "write", "(IIII[II)V");
+			SLIB_JNI_METHOD(getCanvas, "getCanvas", "()Lslib/android/ui/Graphics;");
+			SLIB_JNI_METHOD(draw, "draw", "(Lslib/android/ui/Graphics;FFFFIIIIFF)V");
+			SLIB_JNI_METHOD(drawWithColorMatrix, "draw", "(Lslib/android/ui/Graphics;FFFFIIIIFFFFFFFFFFFFFFFFFFFFFF)V");
+			SLIB_JNI_STATIC_METHOD(getArrayBuffer, "getArrayBuffer", "()[I");
+			SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
+		SLIB_JNI_END_CLASS
+
+		class BitmapImpl : public Bitmap
 		{
+			SLIB_DECLARE_OBJECT
+		public:
+			JniGlobal<jobject> m_bitmap;
 
-			SLIB_JNI_BEGIN_CLASS(JBitmap, "slib/android/ui/UiBitmap")
-				SLIB_JNI_STATIC_METHOD(create, "create", "(II)Lslib/android/ui/UiBitmap;");
-				SLIB_JNI_STATIC_METHOD(load, "load", "(Landroid/app/Activity;[B)Lslib/android/ui/UiBitmap;");
-				SLIB_JNI_METHOD(getWidth, "getWidth", "()I");
-				SLIB_JNI_METHOD(getHeight, "getHeight", "()I");
-				SLIB_JNI_METHOD(recycle, "recycle", "()V");
-				SLIB_JNI_METHOD(read, "read", "(IIII[II)V");
-				SLIB_JNI_METHOD(write, "write", "(IIII[II)V");
-				SLIB_JNI_METHOD(getCanvas, "getCanvas", "()Lslib/android/ui/Graphics;");
-				SLIB_JNI_METHOD(draw, "draw", "(Lslib/android/ui/Graphics;FFFFIIIIFF)V");
-				SLIB_JNI_METHOD(drawWithColorMatrix, "draw", "(Lslib/android/ui/Graphics;FFFFIIIIFFFFFFFFFFFFFFFFFFFFFF)V");
-				SLIB_JNI_STATIC_METHOD(getArrayBuffer, "getArrayBuffer", "()[I");
-				SLIB_JNI_STATIC_METHOD(returnArrayBuffer, "returnArrayBuffer", "([I)V");
-			SLIB_JNI_END_CLASS
+			sl_uint32 m_width;
+			sl_uint32 m_height;
 
-			class BitmapImpl : public Bitmap
+			sl_bool m_flagFreeOnRelease;
+			Ref<Referable> m_ref;
+
+		public:
+			BitmapImpl()
 			{
-				SLIB_DECLARE_OBJECT
-			public:
-				JniGlobal<jobject> m_bitmap;
+				m_flagFreeOnRelease = sl_true;
+			}
 
-				sl_uint32 m_width;
-				sl_uint32 m_height;
-
-				sl_bool m_flagFreeOnRelease;
-				Ref<Referable> m_ref;
-
-			public:
-				BitmapImpl()
-				{
-					m_flagFreeOnRelease = sl_true;
+			~BitmapImpl()
+			{
+				if (m_flagFreeOnRelease) {
+					JBitmap::recycle.call(m_bitmap);
 				}
+			}
 
-				~BitmapImpl()
-				{
-					if (m_flagFreeOnRelease) {
-						JBitmap::recycle.call(m_bitmap);
-					}
-				}
-
-			public:
-				static Ref<BitmapImpl> create(jobject jbitmap, sl_bool flagFreeOnRelease, Referable* ref)
-				{
-					Ref<BitmapImpl> ret;
-					if (jbitmap) {
-						jint width = JBitmap::getWidth.callInt(jbitmap);
-						jint height = JBitmap::getHeight.callInt(jbitmap);
-						if (width > 0 && height > 0) {
-							JniGlobal<jobject> bitmap = JniGlobal<jobject>::create(jbitmap);
-							if (bitmap.isNotNull()) {
-								ret = new BitmapImpl();
-								if (ret.isNotNull()) {
-									ret->m_width = (sl_real)width;
-									ret->m_height = (sl_real)height;
-									ret->m_flagFreeOnRelease = flagFreeOnRelease;
-									ret->m_ref = ref;
-									ret->m_bitmap = Move(bitmap);
-									return ret;
-								}
-							}
-						}
-						if (flagFreeOnRelease) {
-							JBitmap::recycle.call(jbitmap);
-						}
-					}
-					return ret;
-				}
-
-				static Ref<BitmapImpl> create(sl_uint32 width, sl_uint32 height)
-				{
-					Ref<BitmapImpl> ret;
+		public:
+			static Ref<BitmapImpl> create(jobject jbitmap, sl_bool flagFreeOnRelease, Referable* ref)
+			{
+				Ref<BitmapImpl> ret;
+				if (jbitmap) {
+					jint width = JBitmap::getWidth.callInt(jbitmap);
+					jint height = JBitmap::getHeight.callInt(jbitmap);
 					if (width > 0 && height > 0) {
-						JniGlobal<jobject> bitmap = JBitmap::create.callObject(sl_null, width, height);
+						JniGlobal<jobject> bitmap = JniGlobal<jobject>::create(jbitmap);
 						if (bitmap.isNotNull()) {
 							ret = new BitmapImpl();
 							if (ret.isNotNull()) {
-								ret->m_width = width;
-								ret->m_height = height;
+								ret->m_width = (sl_real)width;
+								ret->m_height = (sl_real)height;
+								ret->m_flagFreeOnRelease = flagFreeOnRelease;
+								ret->m_ref = ref;
 								ret->m_bitmap = Move(bitmap);
 								return ret;
 							}
-							JBitmap::recycle.call(bitmap);
 						}
 					}
-					return ret;
-				}
-
-				static JniLocal<jobject> loadJBitmap(const void* buf, sl_size size)
-				{
-					JniLocal<jbyteArray> imageData = Jni::newByteArray(size);
-					if (imageData.isNotNull()) {
-						Jni::setByteArrayRegion(imageData, 0, size, (jbyte*)buf);
-						return JBitmap::load.callObject(sl_null, Android::getCurrentContext(), imageData.get());
+					if (flagFreeOnRelease) {
+						JBitmap::recycle.call(jbitmap);
 					}
-					return sl_null;
 				}
+				return ret;
+			}
 
-				static Ref<BitmapImpl> load(const void* buf, sl_size size)
-				{
-					Ref<BitmapImpl> ret;
-					JniGlobal<jobject> bitmap = loadJBitmap(buf, size);
+			static Ref<BitmapImpl> create(sl_uint32 width, sl_uint32 height)
+			{
+				Ref<BitmapImpl> ret;
+				if (width > 0 && height > 0) {
+					JniGlobal<jobject> bitmap = JBitmap::create.callObject(sl_null, width, height);
 					if (bitmap.isNotNull()) {
 						ret = new BitmapImpl();
 						if (ret.isNotNull()) {
-							ret->m_width = JBitmap::getWidth.callInt(bitmap);
-							ret->m_height = JBitmap::getHeight.callInt(bitmap);
+							ret->m_width = width;
+							ret->m_height = height;
 							ret->m_bitmap = Move(bitmap);
 							return ret;
 						}
 						JBitmap::recycle.call(bitmap);
 					}
-					return ret;
+				}
+				return ret;
+			}
+
+			static JniLocal<jobject> loadJBitmap(const void* buf, sl_size size)
+			{
+				JniLocal<jbyteArray> imageData = Jni::newByteArray(size);
+				if (imageData.isNotNull()) {
+					Jni::setByteArrayRegion(imageData, 0, size, (jbyte*)buf);
+					return JBitmap::load.callObject(sl_null, Android::getCurrentContext(), imageData.get());
+				}
+				return sl_null;
+			}
+
+			static Ref<BitmapImpl> load(const void* buf, sl_size size)
+			{
+				Ref<BitmapImpl> ret;
+				JniGlobal<jobject> bitmap = loadJBitmap(buf, size);
+				if (bitmap.isNotNull()) {
+					ret = new BitmapImpl();
+					if (ret.isNotNull()) {
+						ret->m_width = JBitmap::getWidth.callInt(bitmap);
+						ret->m_height = JBitmap::getHeight.callInt(bitmap);
+						ret->m_bitmap = Move(bitmap);
+						return ret;
+					}
+					JBitmap::recycle.call(bitmap);
+				}
+				return ret;
+			}
+
+			sl_uint32 getBitmapWidth() override
+			{
+				return m_width;
+			}
+
+			sl_uint32 getBitmapHeight() override
+			{
+				return m_height;
+			}
+
+			sl_bool readWritePixels(sl_bool flagRead, sl_uint32 x, sl_uint32 y, BitmapData& bitmapData)
+			{
+				jobject jbitmap = m_bitmap;
+				sl_uint32 w = m_width;
+				sl_uint32 h = m_height;
+
+				if (x >= w || y >= h) {
+					return sl_false;
+				}
+				sl_uint32 width = bitmapData.width;
+				sl_uint32 height = bitmapData.height;
+				if (width > w - x) {
+					width = w - x;
+				}
+				if (height > h - y) {
+					height = h - y;
+				}
+				if (width == 0 || height == 0) {
+					return sl_true;
 				}
 
-				sl_uint32 getBitmapWidth() override
-				{
-					return m_width;
-				}
+				BitmapFormat formatRaw = Endian::isLE() ? BitmapFormat::BGRA : BitmapFormat::ARGB;
 
-				sl_uint32 getBitmapHeight() override
-				{
-					return m_height;
-				}
-
-				sl_bool readWritePixels(sl_bool flagRead, sl_uint32 x, sl_uint32 y, BitmapData& bitmapData)
-				{
-					jobject jbitmap = m_bitmap;
-					sl_uint32 w = m_width;
-					sl_uint32 h = m_height;
-
-					if (x >= w || y >= h) {
+				BitmapData data;
+				Memory memData;
+				data.width = width;
+				data.height = height;
+				data.format = formatRaw;
+				if (bitmapData.format == formatRaw) {
+					data.data = bitmapData.data;
+					data.pitch = bitmapData.pitch;
+				} else {
+					memData = Memory::create((width * height) << 2);
+					if (memData.isNull()) {
 						return sl_false;
 					}
-					sl_uint32 width = bitmapData.width;
-					sl_uint32 height = bitmapData.height;
-					if (width > w - x) {
-						width = w - x;
-					}
-					if (height > h - y) {
-						height = h - y;
-					}
-					if (width == 0 || height == 0) {
-						return sl_true;
-					}
+					data.data = memData.getData();
+					data.pitch = width << 2;
+				}
+				if (!flagRead) {
+					data.copyPixelsFrom(bitmapData);
+				}
 
-					BitmapFormat formatRaw = Endian::isLE() ? BitmapFormat::BGRA : BitmapFormat::ARGB;
+				sl_bool ret = sl_false;
+				JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
+				if (abuf.isNotNull()) {
+					sl_uint32 nAbuf = Jni::getArrayLength(abuf);
+					if (nAbuf >= width) {
 
-					BitmapData data;
-					Memory memData;
-					data.width = width;
-					data.height = height;
-					data.format = formatRaw;
-					if (bitmapData.format == formatRaw) {
-						data.data = bitmapData.data;
-						data.pitch = bitmapData.pitch;
-					} else {
-						memData = Memory::create((width * height) << 2);
-						if (memData.isNull()) {
-							return sl_false;
+						sl_uint32 nRowsMax = nAbuf / width;
+						sl_uint32 heightRemain = height;
+						sl_uint32 yCurrent = y;
+						sl_uint8* pixelsCurrent = (sl_uint8*)(data.data);
+
+						while (heightRemain > 0) {
+							sl_uint32 heightSegment = heightRemain;
+							if (heightSegment > nRowsMax) {
+								heightSegment = nRowsMax;
+							}
+							if (flagRead) {
+								JBitmap::read.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
+								for (sl_uint32 r = 0; r < heightSegment; r++) {
+									Jni::getIntArrayRegion(abuf, r*width, width, (jint*)(pixelsCurrent));
+									pixelsCurrent += data.pitch;
+								}
+							} else {
+								for (sl_uint32 r = 0; r < heightSegment; r++) {
+									Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(pixelsCurrent));
+									pixelsCurrent += data.pitch;
+								}
+								JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
+							}
+							yCurrent += heightSegment;
+							heightRemain -= heightSegment;
 						}
-						data.data = memData.getData();
-						data.pitch = width << 2;
+						ret = sl_true;
 					}
-					if (!flagRead) {
-						data.copyPixelsFrom(bitmapData);
-					}
+					JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
+				}
+				if (ret && flagRead) {
+					bitmapData.copyPixelsFrom(data);
+				}
+				return ret;
+			}
 
-					sl_bool ret = sl_false;
-					JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
-					if (abuf.isNotNull()) {
-						sl_uint32 nAbuf = Jni::getArrayLength(abuf);
-						if (nAbuf >= width) {
+			sl_bool readPixels(sl_uint32 x, sl_uint32 y, BitmapData& bitmapData) override
+			{
+				return readWritePixels(sl_true, x, y, bitmapData);
+			}
 
-							sl_uint32 nRowsMax = nAbuf / width;
-							sl_uint32 heightRemain = height;
-							sl_uint32 yCurrent = y;
-							sl_uint8* pixelsCurrent = (sl_uint8*)(data.data);
+			sl_bool writePixels(sl_uint32 x, sl_uint32 y, const BitmapData& bitmapData) override
+			{
+				return readWritePixels(sl_false, x, y, *((BitmapData*)&bitmapData));
+			}
 
+			sl_bool resetPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color& color) override
+			{
+				jobject jbitmap = m_bitmap;
+				sl_uint32 w = m_width;
+				sl_uint32 h = m_height;
+
+				if (x >= w || y >= h) {
+					return sl_false;
+				}
+				if (width > w - x) {
+					width = w - x;
+				}
+				if (height > h - y) {
+					height = h - y;
+				}
+				if (width == 0 || height == 0) {
+					return sl_true;
+				}
+
+				sl_bool ret = sl_false;
+
+				JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
+
+				if (abuf.isNotNull()) {
+
+					sl_uint32 nAbuf = Jni::getArrayLength(abuf);
+					if (nAbuf >= width) {
+
+						sl_uint32 nRowsMax = nAbuf / width;
+						sl_uint32 heightRemain = height;
+						sl_uint32 yCurrent = y;
+						sl_uint32 colorValue = color.getARGB();
+
+						SLIB_SCOPED_BUFFER(sl_uint32, 2048, bufRow, width);
+						if (bufRow) {
+							for (sl_uint32 k = 0; k < width; k++) {
+								bufRow[k] = colorValue;
+							}
 							while (heightRemain > 0) {
 								sl_uint32 heightSegment = heightRemain;
 								if (heightSegment > nRowsMax) {
 									heightSegment = nRowsMax;
 								}
-								if (flagRead) {
-									JBitmap::read.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
-									for (sl_uint32 r = 0; r < heightSegment; r++) {
-										Jni::getIntArrayRegion(abuf, r*width, width, (jint*)(pixelsCurrent));
-										pixelsCurrent += data.pitch;
-									}
-								} else {
-									for (sl_uint32 r = 0; r < heightSegment; r++) {
-										Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(pixelsCurrent));
-										pixelsCurrent += data.pitch;
-									}
-									JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
+								for (sl_uint32 r = 0; r < heightSegment; r++) {
+									Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(bufRow));
 								}
+								JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
 								yCurrent += heightSegment;
 								heightRemain -= heightSegment;
 							}
 							ret = sl_true;
 						}
-						JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
 					}
-					if (ret && flagRead) {
-						bitmapData.copyPixelsFrom(data);
-					}
-					return ret;
+					JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
 				}
+				return ret;
+			}
 
-				sl_bool readPixels(sl_uint32 x, sl_uint32 y, BitmapData& bitmapData) override
-				{
-					return readWritePixels(sl_true, x, y, bitmapData);
+			Ref<Canvas> getCanvas() override
+			{
+				JniLocal<jobject> jcanvas = JBitmap::getCanvas.callObject(m_bitmap.get());
+				if (jcanvas.isNotNull()) {
+					return GraphicsPlatform::createCanvas(CanvasType::Bitmap, jcanvas);
 				}
+				return sl_null;
+			}
 
-				sl_bool writePixels(sl_uint32 x, sl_uint32 y, const BitmapData& bitmapData) override
-				{
-					return readWritePixels(sl_false, x, y, *((BitmapData*)&bitmapData));
+			void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
+			{
+				jobject jcanvas = GraphicsPlatform::getCanvasHandle(canvas);
+				if (!jcanvas) {
+					return;
 				}
-
-				sl_bool resetPixels(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height, const Color& color) override
-				{
-					jobject jbitmap = m_bitmap;
-					sl_uint32 w = m_width;
-					sl_uint32 h = m_height;
-
-					if (x >= w || y >= h) {
-						return sl_false;
-					}
-					if (width > w - x) {
-						width = w - x;
-					}
-					if (height > h - y) {
-						height = h - y;
-					}
-					if (width == 0 || height == 0) {
-						return sl_true;
-					}
-
-					sl_bool ret = sl_false;
-
-					JniLocal<jintArray> abuf = JBitmap::getArrayBuffer.callObject(sl_null);
-
-					if (abuf.isNotNull()) {
-
-						sl_uint32 nAbuf = Jni::getArrayLength(abuf);
-						if (nAbuf >= width) {
-
-							sl_uint32 nRowsMax = nAbuf / width;
-							sl_uint32 heightRemain = height;
-							sl_uint32 yCurrent = y;
-							sl_uint32 colorValue = color.getARGB();
-
-							SLIB_SCOPED_BUFFER(sl_uint32, 2048, bufRow, width);
-							if (bufRow) {
-								for (sl_uint32 k = 0; k < width; k++) {
-									bufRow[k] = colorValue;
-								}
-								while (heightRemain > 0) {
-									sl_uint32 heightSegment = heightRemain;
-									if (heightSegment > nRowsMax) {
-										heightSegment = nRowsMax;
-									}
-									for (sl_uint32 r = 0; r < heightSegment; r++) {
-										Jni::setIntArrayRegion(abuf, r*width, width, (jint*)(bufRow));
-									}
-									JBitmap::write.call(jbitmap, x, yCurrent, width, heightSegment, abuf.get(), width);
-									yCurrent += heightSegment;
-									heightRemain -= heightSegment;
-								}
-								ret = sl_true;
-							}
-						}
-						JBitmap::returnArrayBuffer.call(sl_null, abuf.get());
-					}
-					return ret;
+				float alpha = 1;
+				if (param.useAlpha) {
+					alpha = (float)(param.alpha);
 				}
-
-				Ref<Canvas> getCanvas() override
-				{
-					JniLocal<jobject> jcanvas = JBitmap::getCanvas.callObject(m_bitmap.get());
-					if (jcanvas.isNotNull()) {
-						return GraphicsPlatform::createCanvas(CanvasType::Bitmap, jcanvas);
-					}
-					return sl_null;
+				float blur = 0;
+				if (param.useBlur) {
+					blur = (float)(param.blurRadius);
 				}
-
-				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
-				{
-					jobject jcanvas = GraphicsPlatform::getCanvasHandle(canvas);
-					if (!jcanvas) {
-						return;
-					}
-					float alpha = 1;
-					if (param.useAlpha) {
-						alpha = (float)(param.alpha);
-					}
-					float blur = 0;
-					if (param.useBlur) {
-						blur = (float)(param.blurRadius);
-					}
-					if (param.useColorMatrix) {
-						const Color4f& cr = param.colorMatrix.red;
-						const Color4f& cg = param.colorMatrix.green;
-						const Color4f& cb = param.colorMatrix.blue;
-						const Color4f& ca = param.colorMatrix.alpha;
-						const Color4f& cc = param.colorMatrix.bias;
-						JBitmap::drawWithColorMatrix.call(m_bitmap, jcanvas,
-							rectDst.left, rectDst.top, rectDst.right, rectDst.bottom,
-							(sl_int32)(rectSrc.left), (sl_int32)(rectSrc.top), (sl_int32)(rectSrc.right), (sl_int32)(rectSrc.bottom),
-							alpha, blur,
-							cr.x, cr.y, cr.z, cr.w,
-							cg.x, cg.y, cg.z, cg.w,
-							cb.x, cb.y, cb.z, cb.w,
-							ca.x, ca.y, ca.z, ca.w,
-							cc.x, cc.y, cc.z, cc.w
-							);
-					} else {
-						JBitmap::draw.call(m_bitmap, jcanvas,
-							rectDst.left, rectDst.top, rectDst.right, rectDst.bottom,
-							(sl_int32)(rectSrc.left), (sl_int32)(rectSrc.top), (sl_int32)(rectSrc.right), (sl_int32)(rectSrc.bottom),
-							alpha, blur);
-					}
+				if (param.useColorMatrix) {
+					const Color4f& cr = param.colorMatrix.red;
+					const Color4f& cg = param.colorMatrix.green;
+					const Color4f& cb = param.colorMatrix.blue;
+					const Color4f& ca = param.colorMatrix.alpha;
+					const Color4f& cc = param.colorMatrix.bias;
+					JBitmap::drawWithColorMatrix.call(m_bitmap, jcanvas,
+						rectDst.left, rectDst.top, rectDst.right, rectDst.bottom,
+						(sl_int32)(rectSrc.left), (sl_int32)(rectSrc.top), (sl_int32)(rectSrc.right), (sl_int32)(rectSrc.bottom),
+						alpha, blur,
+						cr.x, cr.y, cr.z, cr.w,
+						cg.x, cg.y, cg.z, cg.w,
+						cb.x, cb.y, cb.z, cb.w,
+						ca.x, ca.y, ca.z, ca.w,
+						cc.x, cc.y, cc.z, cc.w
+						);
+				} else {
+					JBitmap::draw.call(m_bitmap, jcanvas,
+						rectDst.left, rectDst.top, rectDst.right, rectDst.bottom,
+						(sl_int32)(rectSrc.left), (sl_int32)(rectSrc.top), (sl_int32)(rectSrc.right), (sl_int32)(rectSrc.bottom),
+						alpha, blur);
 				}
-			};
+			}
+		};
 
-			SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
+		SLIB_DEFINE_OBJECT(BitmapImpl, Bitmap)
 
-		}
 	}
-
-	using namespace priv::android;
 
 	Ref<Bitmap> Bitmap::create(sl_uint32 width, sl_uint32 height)
 	{

@@ -38,21 +38,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace service
-		{
-
-			static void TermHandler(int signum)
-			{
-				Service::quitApp();
-			}
-
-		}
-	}
-
-	using namespace priv::service;
-
 	SLIB_DEFINE_OBJECT(Service, Object)
 
 	Service::Service()
@@ -359,6 +344,13 @@ namespace slib
 		}
 #endif
 		return -1;
+	}
+
+	namespace {
+		static void TermHandler(int signum)
+		{
+			Service::quitApp();
+		}
 	}
 
 	sl_int32 Service::onRunApp()

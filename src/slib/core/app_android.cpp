@@ -33,60 +33,54 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace app
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JApplication, "slib/android/app/Application")
-				SLIB_JNI_STATIC_METHOD(checkPermissions, "checkPermissions", "(Landroid/app/Activity;I)Z");
-				SLIB_JNI_STATIC_METHOD(grantPermissions, "grantPermissions", "(Landroid/app/Activity;I)V");
+		SLIB_JNI_BEGIN_CLASS(JApplication, "slib/android/app/Application")
+			SLIB_JNI_STATIC_METHOD(checkPermissions, "checkPermissions", "(Landroid/app/Activity;I)Z");
+			SLIB_JNI_STATIC_METHOD(grantPermissions, "grantPermissions", "(Landroid/app/Activity;I)V");
 
-				SLIB_JNI_STATIC_METHOD(isRoleHeld, "isRoleHeld", "(Landroid/app/Activity;I)Z");
-				SLIB_JNI_STATIC_METHOD(requestRole, "requestRole", "(Landroid/app/Activity;I)V");
+			SLIB_JNI_STATIC_METHOD(isRoleHeld, "isRoleHeld", "(Landroid/app/Activity;I)Z");
+			SLIB_JNI_STATIC_METHOD(requestRole, "requestRole", "(Landroid/app/Activity;I)V");
 
-				SLIB_JNI_STATIC_METHOD(openDefaultAppsSetting, "openDefaultAppsSetting", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(isSupportedDefaultCallingApp, "isSupportedDefaultCallingApp", "()Z");
-				SLIB_JNI_STATIC_METHOD(isDefaultCallingApp, "isDefaultCallingApp", "(Landroid/app/Activity;)Z");
-				SLIB_JNI_STATIC_METHOD(setDefaultCallingApp, "setDefaultCallingApp", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(isSystemOverlayEnabled, "isSystemOverlayEnabled", "(Landroid/app/Activity;)Z");
-				SLIB_JNI_STATIC_METHOD(openSystemOverlaySetting, "openSystemOverlaySetting", "(Landroid/app/Activity;)V");
-			SLIB_JNI_END_CLASS
+			SLIB_JNI_STATIC_METHOD(openDefaultAppsSetting, "openDefaultAppsSetting", "(Landroid/app/Activity;)V");
+			SLIB_JNI_STATIC_METHOD(isSupportedDefaultCallingApp, "isSupportedDefaultCallingApp", "()Z");
+			SLIB_JNI_STATIC_METHOD(isDefaultCallingApp, "isDefaultCallingApp", "(Landroid/app/Activity;)Z");
+			SLIB_JNI_STATIC_METHOD(setDefaultCallingApp, "setDefaultCallingApp", "(Landroid/app/Activity;)V");
+			SLIB_JNI_STATIC_METHOD(isSystemOverlayEnabled, "isSystemOverlayEnabled", "(Landroid/app/Activity;)Z");
+			SLIB_JNI_STATIC_METHOD(openSystemOverlaySetting, "openSystemOverlaySetting", "(Landroid/app/Activity;)V");
+		SLIB_JNI_END_CLASS
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnGrantPermission);
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnGrantPermission);
 
-			SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
-				SLIB_JNI_NATIVE_IMPL(nativeOnCallbackGrantPermissions, "nativeOnCallbackGrantPermissions", "()V", void)
-				{
-					g_callbackOnGrantPermission();
-					g_callbackOnGrantPermission.setNull();
-				}
-			SLIB_JNI_END_CLASS_SECTION
+		SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
+			SLIB_JNI_NATIVE_IMPL(nativeOnCallbackGrantPermissions, "nativeOnCallbackGrantPermissions", "()V", void)
+			{
+				g_callbackOnGrantPermission();
+				g_callbackOnGrantPermission.setNull();
+			}
+		SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnRequestRole);
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnRequestRole);
 
-			SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
-				SLIB_JNI_NATIVE_IMPL(nativeOnCallbackRequestRole, "nativeOnCallbackRequestRole", "()V", void)
-				{
-					g_callbackOnRequestRole();
-					g_callbackOnRequestRole.setNull();
-				}
-			SLIB_JNI_END_CLASS_SECTION
+		SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
+			SLIB_JNI_NATIVE_IMPL(nativeOnCallbackRequestRole, "nativeOnCallbackRequestRole", "()V", void)
+			{
+				g_callbackOnRequestRole();
+				g_callbackOnRequestRole.setNull();
+			}
+		SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnSetDefaultCallingApp);
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callbackOnSetDefaultCallingApp);
 
-			SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
-				SLIB_JNI_NATIVE_IMPL(nativeOnCallbackSetDefaultCallingApp, "nativeOnCallbackSetDefaultCallingApp", "()V", void)
-				{
-					g_callbackOnSetDefaultCallingApp();
-					g_callbackOnSetDefaultCallingApp.setNull();
-				}
-			SLIB_JNI_END_CLASS_SECTION
+		SLIB_JNI_BEGIN_CLASS_SECTION(JApplication)
+			SLIB_JNI_NATIVE_IMPL(nativeOnCallbackSetDefaultCallingApp, "nativeOnCallbackSetDefaultCallingApp", "()V", void)
+			{
+				g_callbackOnSetDefaultCallingApp();
+				g_callbackOnSetDefaultCallingApp.setNull();
+			}
+		SLIB_JNI_END_CLASS_SECTION
 
-		}
 	}
-
-	using namespace priv::app;
 
 	sl_bool Application::checkPermissions(const AppPermissions& permissions)
 	{

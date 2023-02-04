@@ -40,62 +40,59 @@ namespace slib
 
 	namespace priv
 	{
-		namespace sha2
+
+		class SLIB_EXPORT SHA256Base
 		{
+		public:
+			SHA256Base() noexcept;
 
-			class SLIB_EXPORT SHA256Base
-			{
-			public:
-				SHA256Base() noexcept;
+			~SHA256Base();
 
-				~SHA256Base();
+		public:
+			void update(const void* input, sl_size n) noexcept;
 
-			public:
-				void update(const void* input, sl_size n) noexcept;
+		protected:
+			void _start() noexcept;
 
-			protected:
-				void _start() noexcept;
+			void _finish() noexcept;
 
-				void _finish() noexcept;
+			void _updateSection(const sl_uint8* input) noexcept;
 
-				void _updateSection(const sl_uint8* input) noexcept;
+		protected:
+			sl_size sizeTotalInput;
+			sl_uint32 rdata_len;
+			sl_uint8 rdata[64];
+			sl_uint32 h[8];
+		};
 
-			protected:
-				sl_size sizeTotalInput;
-				sl_uint32 rdata_len;
-				sl_uint8 rdata[64];
-				sl_uint32 h[8];
-			};
+		class SLIB_EXPORT SHA512Base
+		{
+		public:
+			SHA512Base() noexcept;
 
-			class SLIB_EXPORT SHA512Base
-			{
-			public:
-				SHA512Base() noexcept;
+			~SHA512Base();
 
-				~SHA512Base();
+		public:
+			void update(const void* input, sl_size n) noexcept;
 
-			public:
-				void update(const void* input, sl_size n) noexcept;
+		protected:
+			void _start() noexcept;
 
-			protected:
-				void _start() noexcept;
+			void _finish() noexcept;
 
-				void _finish() noexcept;
+			void _updateSection(const sl_uint8* input) noexcept;
 
-				void _updateSection(const sl_uint8* input) noexcept;
+		protected:
+			sl_size sizeTotalInput;
+			sl_uint32 rdata_len;
+			sl_uint8 rdata[128];
+			sl_uint64 h[8];
 
-			protected:
-				sl_size sizeTotalInput;
-				sl_uint32 rdata_len;
-				sl_uint8 rdata[128];
-				sl_uint64 h[8];
+		};
 
-			};
-
-		}
 	}
 
-	class SLIB_EXPORT SHA224 : public priv::sha2::SHA256Base, public CryptoHash<SHA224>
+	class SLIB_EXPORT SHA224 : public priv::SHA256Base, public CryptoHash<SHA224>
 	{
 	public:
 		enum {
@@ -115,7 +112,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA256 : public priv::sha2::SHA256Base, public CryptoHash<SHA256>
+	class SLIB_EXPORT SHA256 : public priv::SHA256Base, public CryptoHash<SHA256>
 	{
 	public:
 		enum {
@@ -138,7 +135,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA384 : public priv::sha2::SHA512Base, public CryptoHash<SHA384>
+	class SLIB_EXPORT SHA384 : public priv::SHA512Base, public CryptoHash<SHA384>
 	{
 	public:
 		enum {
@@ -158,7 +155,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA512 : public priv::sha2::SHA512Base, public CryptoHash<SHA512>
+	class SLIB_EXPORT SHA512 : public priv::SHA512Base, public CryptoHash<SHA512>
 	{
 	public:
 		enum {

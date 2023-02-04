@@ -30,43 +30,35 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace shell_code
+	namespace {
+		static Memory GetLinkedCodeSectionContent(Coff& coff, CoffCodeSectionSet& set, const CoffCodeSection& section)
 		{
-
-			static Memory GetLinkedCodeSectionContent(Coff& coff, CoffCodeSectionSet& set, const CoffCodeSection& section)
-			{
-				Memory mem = coff.getSectionData(section);
-				if (mem.isNull()) {
+			Memory mem = coff.getSectionData(section);
+			if (mem.isNull()) {
+				return sl_null;
+			}
+			sl_uint8* data = (sl_uint8*)(mem.getData());
+			for (sl_uint32 i = 0; i < section.numberOfRelocations; i++) {
+				CoffSectionRelocation relocation;
+				if (!(coff.getSectionRelocation(section, i, relocation))) {
 					return sl_null;
 				}
-				sl_uint8* data = (sl_uint8*)(mem.getData());
-				for (sl_uint32 i = 0; i < section.numberOfRelocations; i++) {
-					CoffSectionRelocation relocation;
-					if (!(coff.getSectionRelocation(section, i, relocation))) {
+				if (relocation.type == SLIB_PE_RELOC_I386_REL32 || relocation.type == SLIB_PE_REL_AMD64_REL32) {
+					CoffSymbol* pSymbol = coff.getSymbol(relocation.symbolTableIndex);
+					if (!pSymbol) {
 						return sl_null;
 					}
-					if (relocation.type == SLIB_PE_RELOC_I386_REL32 || relocation.type == SLIB_PE_REL_AMD64_REL32) {
-						CoffSymbol* pSymbol = coff.getSymbol(relocation.symbolTableIndex);
-						if (!pSymbol) {
-							return sl_null;
-						}
-						sl_uint32 offsetRelocation = relocation.virtualAddress;
-						CoffCodeSection* pSectionRef = set.getSectionByNumber(pSymbol->sectionNumber);
-						if (!pSectionRef) {
-							return sl_null;
-						}
-						MIO::writeUint32(data + offsetRelocation, pSectionRef->codeOffset - section.codeOffset - offsetRelocation - 4);
+					sl_uint32 offsetRelocation = relocation.virtualAddress;
+					CoffCodeSection* pSectionRef = set.getSectionByNumber(pSymbol->sectionNumber);
+					if (!pSectionRef) {
+						return sl_null;
 					}
+					MIO::writeUint32(data + offsetRelocation, pSectionRef->codeOffset - section.codeOffset - offsetRelocation - 4);
 				}
-				return mem;
 			}
-
+			return mem;
 		}
 	}
-
-	using namespace priv::shell_code;
 
 	Memory ShellCode::generate(const void* obj, sl_size size, const StringParam& entryFuntionName)
 	{

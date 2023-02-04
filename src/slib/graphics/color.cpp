@@ -229,256 +229,274 @@ namespace slib
 		return String(s, 9);
 	}
 
-	namespace priv
-	{
-		namespace color
-		{
+	namespace {
 
-			/*
+		/*
 
 			Color names supported by all web-browsers
 
 			http://www.w3schools.com/colors/colors_names.asp
 
-			*/
+		*/
 
 #define PRIV_MAP_COLOR(NAME) \
-			{ \
-				SLIB_STATIC_STRING(_s, #NAME); \
-				mapName.put(_s.toLower(), (sl_uint32)(Color::NAME)); \
+		{ \
+			SLIB_STATIC_STRING(_s, #NAME); \
+			mapName.put(_s.toLower(), (sl_uint32)(Color::NAME)); \
+		}
+
+		class NameMap
+		{
+		public:
+			HashTable<String, Color> mapName;
+
+
+			NameMap() noexcept
+			{
+				PRIV_MAP_COLOR(AliceBlue)
+				PRIV_MAP_COLOR(AntiqueWhite)
+				PRIV_MAP_COLOR(Aqua)
+				PRIV_MAP_COLOR(Aquamarine)
+				PRIV_MAP_COLOR(Azure)
+				PRIV_MAP_COLOR(Beige)
+				PRIV_MAP_COLOR(Bisque)
+				PRIV_MAP_COLOR(Black)
+				PRIV_MAP_COLOR(BlanchedAlmond)
+				PRIV_MAP_COLOR(Blue)
+				PRIV_MAP_COLOR(BlueViolet)
+				PRIV_MAP_COLOR(Brown)
+				PRIV_MAP_COLOR(BurlyWood)
+				PRIV_MAP_COLOR(CadetBlue)
+				PRIV_MAP_COLOR(Chartreuse)
+				PRIV_MAP_COLOR(Chocolate)
+				PRIV_MAP_COLOR(Coral)
+				PRIV_MAP_COLOR(CornflowerBlue)
+				PRIV_MAP_COLOR(Cornsilk)
+				PRIV_MAP_COLOR(Crimson)
+				PRIV_MAP_COLOR(Cyan)
+				PRIV_MAP_COLOR(DarkBlue)
+				PRIV_MAP_COLOR(DarkCyan)
+				PRIV_MAP_COLOR(DarkGoldenrod)
+				PRIV_MAP_COLOR(DarkGray)
+				PRIV_MAP_COLOR(DarkGreen)
+				PRIV_MAP_COLOR(DarkKhaki)
+				PRIV_MAP_COLOR(DarkMagenta)
+				PRIV_MAP_COLOR(DarkOliveGreen)
+				PRIV_MAP_COLOR(DarkOrange)
+				PRIV_MAP_COLOR(DarkOrchid)
+				PRIV_MAP_COLOR(DarkRed)
+				PRIV_MAP_COLOR(DarkSalmon)
+				PRIV_MAP_COLOR(DarkSeaGreen)
+				PRIV_MAP_COLOR(DarkSlateBlue)
+				PRIV_MAP_COLOR(DarkSlateGray)
+				PRIV_MAP_COLOR(DarkTurquoise)
+				PRIV_MAP_COLOR(DarkViolet)
+				PRIV_MAP_COLOR(DeepPink)
+				PRIV_MAP_COLOR(DeepSkyBlue)
+				PRIV_MAP_COLOR(DimGray)
+				PRIV_MAP_COLOR(DodgerBlue)
+				PRIV_MAP_COLOR(Firebrick)
+				PRIV_MAP_COLOR(FloralWhite)
+				PRIV_MAP_COLOR(ForestGreen)
+				PRIV_MAP_COLOR(Fuchsia)
+				PRIV_MAP_COLOR(Gainsboro)
+				PRIV_MAP_COLOR(GhostWhite)
+				PRIV_MAP_COLOR(Gold)
+				PRIV_MAP_COLOR(Goldenrod)
+				PRIV_MAP_COLOR(Gray)
+				PRIV_MAP_COLOR(Green)
+				PRIV_MAP_COLOR(GreenYellow)
+				PRIV_MAP_COLOR(Honeydew)
+				PRIV_MAP_COLOR(HotPink)
+				PRIV_MAP_COLOR(IndianRed)
+				PRIV_MAP_COLOR(Indigo)
+				PRIV_MAP_COLOR(Ivory)
+				PRIV_MAP_COLOR(Khaki)
+				PRIV_MAP_COLOR(Lavender)
+				PRIV_MAP_COLOR(LavenderBlush)
+				PRIV_MAP_COLOR(LawnGreen)
+				PRIV_MAP_COLOR(LemonChiffon)
+				PRIV_MAP_COLOR(LightBlue)
+				PRIV_MAP_COLOR(LightCoral)
+				PRIV_MAP_COLOR(LightCyan)
+				PRIV_MAP_COLOR(LightGoldenrodYellow)
+				PRIV_MAP_COLOR(LightGray)
+				PRIV_MAP_COLOR(LightGreen)
+				PRIV_MAP_COLOR(LightPink)
+				PRIV_MAP_COLOR(LightSalmon)
+				PRIV_MAP_COLOR(LightSeaGreen)
+				PRIV_MAP_COLOR(LightSkyBlue)
+				PRIV_MAP_COLOR(LightSlateGray)
+				PRIV_MAP_COLOR(LightSteelBlue)
+				PRIV_MAP_COLOR(LightYellow)
+				PRIV_MAP_COLOR(Lime)
+				PRIV_MAP_COLOR(LimeGreen)
+				PRIV_MAP_COLOR(Linen)
+				PRIV_MAP_COLOR(Magenta)
+				PRIV_MAP_COLOR(Maroon)
+				PRIV_MAP_COLOR(MediumAquamarine)
+				PRIV_MAP_COLOR(MediumBlue)
+				PRIV_MAP_COLOR(MediumOrchid)
+				PRIV_MAP_COLOR(MediumPurple)
+				PRIV_MAP_COLOR(MediumSeaGreen)
+				PRIV_MAP_COLOR(MediumSlateBlue)
+				PRIV_MAP_COLOR(MediumSpringGreen)
+				PRIV_MAP_COLOR(MediumTurquoise)
+				PRIV_MAP_COLOR(MediumVioletRed)
+				PRIV_MAP_COLOR(MidnightBlue)
+				PRIV_MAP_COLOR(MintCream)
+				PRIV_MAP_COLOR(MistyRose)
+				PRIV_MAP_COLOR(Moccasin)
+				PRIV_MAP_COLOR(NavajoWhite)
+				PRIV_MAP_COLOR(Navy)
+				PRIV_MAP_COLOR(OldLace)
+				PRIV_MAP_COLOR(Olive)
+				PRIV_MAP_COLOR(OliveDrab)
+				PRIV_MAP_COLOR(Orange)
+				PRIV_MAP_COLOR(OrangeRed)
+				PRIV_MAP_COLOR(Orchid)
+				PRIV_MAP_COLOR(PaleGoldenrod)
+				PRIV_MAP_COLOR(PaleGreen)
+				PRIV_MAP_COLOR(PaleTurquoise)
+				PRIV_MAP_COLOR(PaleVioletRed)
+				PRIV_MAP_COLOR(PapayaWhip)
+				PRIV_MAP_COLOR(PeachPuff)
+				PRIV_MAP_COLOR(Peru)
+				PRIV_MAP_COLOR(Pink)
+				PRIV_MAP_COLOR(Plum)
+				PRIV_MAP_COLOR(PowderBlue)
+				PRIV_MAP_COLOR(Purple)
+				PRIV_MAP_COLOR(Red)
+				PRIV_MAP_COLOR(RosyBrown)
+				PRIV_MAP_COLOR(RoyalBlue)
+				PRIV_MAP_COLOR(SaddleBrown)
+				PRIV_MAP_COLOR(Salmon)
+				PRIV_MAP_COLOR(SandyBrown)
+				PRIV_MAP_COLOR(SeaGreen)
+				PRIV_MAP_COLOR(SeaShell)
+				PRIV_MAP_COLOR(Sienna)
+				PRIV_MAP_COLOR(Silver)
+				PRIV_MAP_COLOR(SkyBlue)
+				PRIV_MAP_COLOR(SlateBlue)
+				PRIV_MAP_COLOR(SlateGray)
+				PRIV_MAP_COLOR(Snow)
+				PRIV_MAP_COLOR(SpringGreen)
+				PRIV_MAP_COLOR(SteelBlue)
+				PRIV_MAP_COLOR(Tan)
+				PRIV_MAP_COLOR(Teal)
+				PRIV_MAP_COLOR(Thistle)
+				PRIV_MAP_COLOR(Tomato)
+				PRIV_MAP_COLOR(Transparent)
+				PRIV_MAP_COLOR(Turquoise)
+				PRIV_MAP_COLOR(Violet)
+				PRIV_MAP_COLOR(Wheat)
+				PRIV_MAP_COLOR(White)
+				PRIV_MAP_COLOR(WhiteSmoke)
+				PRIV_MAP_COLOR(Yellow)
+				PRIV_MAP_COLOR(YellowGreen)
+				PRIV_MAP_COLOR(Zero)
+				PRIV_MAP_COLOR(None)
 			}
 
-			class NameMap
+			sl_bool getColorFromName(const String& nameLower, Color& color) noexcept
 			{
-			public:
-				HashTable<String, Color> mapName;
+				return mapName.get(nameLower, &color);
+			}
 
+		};
 
-				NameMap() noexcept
-				{
-					PRIV_MAP_COLOR(AliceBlue)
-					PRIV_MAP_COLOR(AntiqueWhite)
-					PRIV_MAP_COLOR(Aqua)
-					PRIV_MAP_COLOR(Aquamarine)
-					PRIV_MAP_COLOR(Azure)
-					PRIV_MAP_COLOR(Beige)
-					PRIV_MAP_COLOR(Bisque)
-					PRIV_MAP_COLOR(Black)
-					PRIV_MAP_COLOR(BlanchedAlmond)
-					PRIV_MAP_COLOR(Blue)
-					PRIV_MAP_COLOR(BlueViolet)
-					PRIV_MAP_COLOR(Brown)
-					PRIV_MAP_COLOR(BurlyWood)
-					PRIV_MAP_COLOR(CadetBlue)
-					PRIV_MAP_COLOR(Chartreuse)
-					PRIV_MAP_COLOR(Chocolate)
-					PRIV_MAP_COLOR(Coral)
-					PRIV_MAP_COLOR(CornflowerBlue)
-					PRIV_MAP_COLOR(Cornsilk)
-					PRIV_MAP_COLOR(Crimson)
-					PRIV_MAP_COLOR(Cyan)
-					PRIV_MAP_COLOR(DarkBlue)
-					PRIV_MAP_COLOR(DarkCyan)
-					PRIV_MAP_COLOR(DarkGoldenrod)
-					PRIV_MAP_COLOR(DarkGray)
-					PRIV_MAP_COLOR(DarkGreen)
-					PRIV_MAP_COLOR(DarkKhaki)
-					PRIV_MAP_COLOR(DarkMagenta)
-					PRIV_MAP_COLOR(DarkOliveGreen)
-					PRIV_MAP_COLOR(DarkOrange)
-					PRIV_MAP_COLOR(DarkOrchid)
-					PRIV_MAP_COLOR(DarkRed)
-					PRIV_MAP_COLOR(DarkSalmon)
-					PRIV_MAP_COLOR(DarkSeaGreen)
-					PRIV_MAP_COLOR(DarkSlateBlue)
-					PRIV_MAP_COLOR(DarkSlateGray)
-					PRIV_MAP_COLOR(DarkTurquoise)
-					PRIV_MAP_COLOR(DarkViolet)
-					PRIV_MAP_COLOR(DeepPink)
-					PRIV_MAP_COLOR(DeepSkyBlue)
-					PRIV_MAP_COLOR(DimGray)
-					PRIV_MAP_COLOR(DodgerBlue)
-					PRIV_MAP_COLOR(Firebrick)
-					PRIV_MAP_COLOR(FloralWhite)
-					PRIV_MAP_COLOR(ForestGreen)
-					PRIV_MAP_COLOR(Fuchsia)
-					PRIV_MAP_COLOR(Gainsboro)
-					PRIV_MAP_COLOR(GhostWhite)
-					PRIV_MAP_COLOR(Gold)
-					PRIV_MAP_COLOR(Goldenrod)
-					PRIV_MAP_COLOR(Gray)
-					PRIV_MAP_COLOR(Green)
-					PRIV_MAP_COLOR(GreenYellow)
-					PRIV_MAP_COLOR(Honeydew)
-					PRIV_MAP_COLOR(HotPink)
-					PRIV_MAP_COLOR(IndianRed)
-					PRIV_MAP_COLOR(Indigo)
-					PRIV_MAP_COLOR(Ivory)
-					PRIV_MAP_COLOR(Khaki)
-					PRIV_MAP_COLOR(Lavender)
-					PRIV_MAP_COLOR(LavenderBlush)
-					PRIV_MAP_COLOR(LawnGreen)
-					PRIV_MAP_COLOR(LemonChiffon)
-					PRIV_MAP_COLOR(LightBlue)
-					PRIV_MAP_COLOR(LightCoral)
-					PRIV_MAP_COLOR(LightCyan)
-					PRIV_MAP_COLOR(LightGoldenrodYellow)
-					PRIV_MAP_COLOR(LightGray)
-					PRIV_MAP_COLOR(LightGreen)
-					PRIV_MAP_COLOR(LightPink)
-					PRIV_MAP_COLOR(LightSalmon)
-					PRIV_MAP_COLOR(LightSeaGreen)
-					PRIV_MAP_COLOR(LightSkyBlue)
-					PRIV_MAP_COLOR(LightSlateGray)
-					PRIV_MAP_COLOR(LightSteelBlue)
-					PRIV_MAP_COLOR(LightYellow)
-					PRIV_MAP_COLOR(Lime)
-					PRIV_MAP_COLOR(LimeGreen)
-					PRIV_MAP_COLOR(Linen)
-					PRIV_MAP_COLOR(Magenta)
-					PRIV_MAP_COLOR(Maroon)
-					PRIV_MAP_COLOR(MediumAquamarine)
-					PRIV_MAP_COLOR(MediumBlue)
-					PRIV_MAP_COLOR(MediumOrchid)
-					PRIV_MAP_COLOR(MediumPurple)
-					PRIV_MAP_COLOR(MediumSeaGreen)
-					PRIV_MAP_COLOR(MediumSlateBlue)
-					PRIV_MAP_COLOR(MediumSpringGreen)
-					PRIV_MAP_COLOR(MediumTurquoise)
-					PRIV_MAP_COLOR(MediumVioletRed)
-					PRIV_MAP_COLOR(MidnightBlue)
-					PRIV_MAP_COLOR(MintCream)
-					PRIV_MAP_COLOR(MistyRose)
-					PRIV_MAP_COLOR(Moccasin)
-					PRIV_MAP_COLOR(NavajoWhite)
-					PRIV_MAP_COLOR(Navy)
-					PRIV_MAP_COLOR(OldLace)
-					PRIV_MAP_COLOR(Olive)
-					PRIV_MAP_COLOR(OliveDrab)
-					PRIV_MAP_COLOR(Orange)
-					PRIV_MAP_COLOR(OrangeRed)
-					PRIV_MAP_COLOR(Orchid)
-					PRIV_MAP_COLOR(PaleGoldenrod)
-					PRIV_MAP_COLOR(PaleGreen)
-					PRIV_MAP_COLOR(PaleTurquoise)
-					PRIV_MAP_COLOR(PaleVioletRed)
-					PRIV_MAP_COLOR(PapayaWhip)
-					PRIV_MAP_COLOR(PeachPuff)
-					PRIV_MAP_COLOR(Peru)
-					PRIV_MAP_COLOR(Pink)
-					PRIV_MAP_COLOR(Plum)
-					PRIV_MAP_COLOR(PowderBlue)
-					PRIV_MAP_COLOR(Purple)
-					PRIV_MAP_COLOR(Red)
-					PRIV_MAP_COLOR(RosyBrown)
-					PRIV_MAP_COLOR(RoyalBlue)
-					PRIV_MAP_COLOR(SaddleBrown)
-					PRIV_MAP_COLOR(Salmon)
-					PRIV_MAP_COLOR(SandyBrown)
-					PRIV_MAP_COLOR(SeaGreen)
-					PRIV_MAP_COLOR(SeaShell)
-					PRIV_MAP_COLOR(Sienna)
-					PRIV_MAP_COLOR(Silver)
-					PRIV_MAP_COLOR(SkyBlue)
-					PRIV_MAP_COLOR(SlateBlue)
-					PRIV_MAP_COLOR(SlateGray)
-					PRIV_MAP_COLOR(Snow)
-					PRIV_MAP_COLOR(SpringGreen)
-					PRIV_MAP_COLOR(SteelBlue)
-					PRIV_MAP_COLOR(Tan)
-					PRIV_MAP_COLOR(Teal)
-					PRIV_MAP_COLOR(Thistle)
-					PRIV_MAP_COLOR(Tomato)
-					PRIV_MAP_COLOR(Transparent)
-					PRIV_MAP_COLOR(Turquoise)
-					PRIV_MAP_COLOR(Violet)
-					PRIV_MAP_COLOR(Wheat)
-					PRIV_MAP_COLOR(White)
-					PRIV_MAP_COLOR(WhiteSmoke)
-					PRIV_MAP_COLOR(Yellow)
-					PRIV_MAP_COLOR(YellowGreen)
-					PRIV_MAP_COLOR(Zero)
-					PRIV_MAP_COLOR(None)
-				}
+		SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
 
-				sl_bool getColorFromName(const String& nameLower, Color& color) noexcept
-				{
-					return mapName.get(nameLower, &color);
-				}
+		template <class CT>
+		static sl_reg DoParse(Color* _out, const CT* str, sl_size pos, sl_size len) noexcept
+		{
+			if (pos >= len) {
+				return SLIB_PARSE_ERROR;
+			}
 
-			};
+			if (str[pos] == '#') {
 
-			SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
+				pos++;
+				sl_size start = pos;
 
-			template <class CT>
-			static sl_reg Parse(Color* _out, const CT* str, sl_size pos, sl_size len) noexcept
-			{
-				if (pos >= len) {
-					return SLIB_PARSE_ERROR;
-				}
-
-				if (str[pos] == '#') {
-
-					pos++;
-					sl_size start = pos;
-
-					for (; pos < len; pos++) {
-						CT c = str[pos];
-						if (!SLIB_CHAR_IS_HEX(c)) {
-							break;
-						}
+				for (; pos < len; pos++) {
+					CT c = str[pos];
+					if (!SLIB_CHAR_IS_HEX(c)) {
+						break;
 					}
+				}
 
-					sl_size n = pos - start;
-					if (n == 6 || n == 8) {
-						if (_out) {
-							sl_uint32 r, g, b, a;
-							sl_uint32 c0 = str[start];
-							sl_uint32 c1 = str[start + 1];
-							sl_uint32 c2 = str[start + 2];
-							sl_uint32 c3 = str[start + 3];
-							sl_uint32 c4 = str[start + 4];
-							sl_uint32 c5 = str[start + 5];
-							if (n == 6) {
-								a = 255;
-								r = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
-								g = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
-								b = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
-							} else {
-								sl_uint32 c6 = str[start + 6];
-								sl_uint32 c7 = str[start + 7];
-								a = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
-								r = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
-								g = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
-								b = (SLIB_CHAR_HEX_TO_INT(c6) << 4) | SLIB_CHAR_HEX_TO_INT(c7);
+				sl_size n = pos - start;
+				if (n == 6 || n == 8) {
+					if (_out) {
+						sl_uint32 r, g, b, a;
+						sl_uint32 c0 = str[start];
+						sl_uint32 c1 = str[start + 1];
+						sl_uint32 c2 = str[start + 2];
+						sl_uint32 c3 = str[start + 3];
+						sl_uint32 c4 = str[start + 4];
+						sl_uint32 c5 = str[start + 5];
+						if (n == 6) {
+							a = 255;
+							r = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
+							g = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
+							b = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
+						} else {
+							sl_uint32 c6 = str[start + 6];
+							sl_uint32 c7 = str[start + 7];
+							a = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
+							r = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
+							g = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
+							b = (SLIB_CHAR_HEX_TO_INT(c6) << 4) | SLIB_CHAR_HEX_TO_INT(c7);
+						}
+						*_out = Color(r, g, b, a);
+					}
+					return pos;
+				}
+
+			} else {
+
+				sl_size start = pos;
+
+				for (; pos < len; pos++) {
+					CT c = str[pos];
+					if (!SLIB_CHAR_IS_ALPHA(c)) {
+						break;
+					}
+				}
+
+				sl_size n = pos - start;
+
+				if (n > 0) {
+
+					if ((n == 3 || n == 4) && (str[start] == 'r' || str[start] == 'R') && (str[start + 1] == 'g' || str[start + 1] == 'G') && (str[start + 2] == 'b' || str[start + 2] == 'B')) {
+
+						if (n == 4) {
+							if (str[start + 3] != 'a' && str[start + 3] != 'A') {
+								return SLIB_PARSE_ERROR;
 							}
-							*_out = Color(r, g, b, a);
 						}
-						return pos;
-					}
 
-				} else {
-
-					sl_size start = pos;
-
-					for (; pos < len; pos++) {
-						CT c = str[pos];
-						if (!SLIB_CHAR_IS_ALPHA(c)) {
-							break;
-						}
-					}
-
-					sl_size n = pos - start;
-
-					if (n > 0) {
-
-						if ((n == 3 || n == 4) && (str[start] == 'r' || str[start] == 'R') && (str[start + 1] == 'g' || str[start + 1] == 'G') && (str[start + 2] == 'b' || str[start + 2] == 'B')) {
-
-							if (n == 4) {
-								if (str[start + 3] != 'a' && str[start + 3] != 'A') {
-									return SLIB_PARSE_ERROR;
-								}
+						for (; pos < len; pos++) {
+							CT c = str[pos];
+							if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
+								break;
 							}
+						}
+						if (pos >= len) {
+							return SLIB_PARSE_ERROR;
+						}
+
+						if (str[pos] != '(') {
+							return SLIB_PARSE_ERROR;
+						}
+						pos++;
+
+						sl_reg iRet;
+						sl_uint32 comp[3];
+						sl_real a = 1;
+
+						for (sl_size i = 0; i < n; i++) {
 
 							for (; pos < len; pos++) {
 								CT c = str[pos];
@@ -489,108 +507,86 @@ namespace slib
 							if (pos >= len) {
 								return SLIB_PARSE_ERROR;
 							}
-
-							if (str[pos] != '(') {
+							if (i == 3) {
+								iRet = StringTypeFromCharType<CT>::Type::parseFloat(&a, str, pos, len);
+								if (iRet == SLIB_PARSE_ERROR) {
+									return SLIB_PARSE_ERROR;
+								}
+								if (a > 1) {
+									return SLIB_PARSE_ERROR;
+								}
+								if (a < 0) {
+									return SLIB_PARSE_ERROR;
+								}
+							} else {
+								iRet = StringTypeFromCharType<CT>::Type::parseUint32(10, comp + i, str, pos, len);
+								if (iRet == SLIB_PARSE_ERROR) {
+									return SLIB_PARSE_ERROR;
+								}
+								if (comp[i] > 255) {
+									return SLIB_PARSE_ERROR;
+								}
+							}
+							pos = iRet;
+							for (; pos < len; pos++) {
+								CT c = str[pos];
+								if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
+									break;
+								}
+							}
+							if (pos >= len) {
 								return SLIB_PARSE_ERROR;
 							}
+							if (i < n - 1) {
+								if (str[pos] != ',') {
+									return SLIB_PARSE_ERROR;
+								}
+							} else {
+								if (str[pos] != ')') {
+									return SLIB_PARSE_ERROR;
+								}
+							}
 							pos++;
-
-							sl_reg iRet;
-							sl_uint32 comp[3];
-							sl_real a = 1;
-
-							for (sl_size i = 0; i < n; i++) {
-
-								for (; pos < len; pos++) {
-									CT c = str[pos];
-									if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-										break;
-									}
-								}
-								if (pos >= len) {
-									return SLIB_PARSE_ERROR;
-								}
-								if (i == 3) {
-									iRet = StringTypeFromCharType<CT>::Type::parseFloat(&a, str, pos, len);
-									if (iRet == SLIB_PARSE_ERROR) {
-										return SLIB_PARSE_ERROR;
-									}
-									if (a > 1) {
-										return SLIB_PARSE_ERROR;
-									}
-									if (a < 0) {
-										return SLIB_PARSE_ERROR;
-									}
-								} else {
-									iRet = StringTypeFromCharType<CT>::Type::parseUint32(10, comp + i, str, pos, len);
-									if (iRet == SLIB_PARSE_ERROR) {
-										return SLIB_PARSE_ERROR;
-									}
-									if (comp[i] > 255) {
-										return SLIB_PARSE_ERROR;
-									}
-								}
-								pos = iRet;
-								for (; pos < len; pos++) {
-									CT c = str[pos];
-									if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-										break;
-									}
-								}
-								if (pos >= len) {
-									return SLIB_PARSE_ERROR;
-								}
-								if (i < n - 1) {
-									if (str[pos] != ',') {
-										return SLIB_PARSE_ERROR;
-									}
-								} else {
-									if (str[pos] != ')') {
-										return SLIB_PARSE_ERROR;
-									}
-								}
-								pos++;
-							}
-
-							if (_out) {
-								if (n == 4) {
-									*_out = Color(comp[0], comp[1], comp[2], (sl_uint32)(a * 255));
-								} else {
-									*_out = Color(comp[0], comp[1], comp[2]);
-								}
-							}
-
-							return pos;
-
-						} else if (n < 64) {
-
-							sl_char8 s[64];
-							for (sl_size i = 0; i < n; i++) {
-								sl_char8 ch = (sl_char8)(str[start + i]);
-								s[i] = SLIB_CHAR_UPPER_TO_LOWER(ch);
-							}
-
-							NameMap* nm = GetNameMap();
-							if (nm) {
-								Color color;
-								if (nm->getColorFromName(String(s, n), color)) {
-									if (_out) {
-										*_out = color;
-									}
-									return pos;
-								}
-							}
-
 						}
+
+						if (_out) {
+							if (n == 4) {
+								*_out = Color(comp[0], comp[1], comp[2], (sl_uint32)(a * 255));
+							} else {
+								*_out = Color(comp[0], comp[1], comp[2]);
+							}
+						}
+
+						return pos;
+
+					} else if (n < 64) {
+
+						sl_char8 s[64];
+						for (sl_size i = 0; i < n; i++) {
+							sl_char8 ch = (sl_char8)(str[start + i]);
+							s[i] = SLIB_CHAR_UPPER_TO_LOWER(ch);
+						}
+
+						NameMap* nm = GetNameMap();
+						if (nm) {
+							Color color;
+							if (nm->getColorFromName(String(s, n), color)) {
+								if (_out) {
+									*_out = color;
+								}
+								return pos;
+							}
+						}
+
 					}
 				}
-				return SLIB_PARSE_ERROR;
 			}
-
+			return SLIB_PARSE_ERROR;
 		}
+
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Color, priv::color::Parse)
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Color, DoParse)
 
 
 	Color4f ColorMatrix::transformColor(const Color4f& src) const noexcept

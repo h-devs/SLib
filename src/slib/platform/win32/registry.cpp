@@ -34,162 +34,156 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace registry
+	namespace {
+
+		static String ParseRegistryPath(const StringParam& _path, HKEY* hRootKeyOut)
 		{
-
-			static String ParseRegistryPath(const StringParam& _path, HKEY* hRootKeyOut)
-			{
-				HKEY tmp;
-				if (!hRootKeyOut) {
-					hRootKeyOut = &tmp;
-				}
-				String path = _path.toString();
-				if (path.startsWith("HKLM\\")) {
-					*hRootKeyOut = HKEY_LOCAL_MACHINE;
-					path = path.substring(5);
-				} else if (path.startsWith("HKCU\\")) {
-					*hRootKeyOut = HKEY_CURRENT_USER;
-					path = path.substring(5);
-				} else if (path.startsWith("HKCR\\")) {
-					*hRootKeyOut = HKEY_CLASSES_ROOT;
-					path = path.substring(5);
-				} else if (path.startsWith("HKCC\\")) {
-					*hRootKeyOut = HKEY_CURRENT_CONFIG;
-					path = path.substring(5);
-				} else if (path.startsWith("HKU\\")) {
-					*hRootKeyOut = HKEY_USERS;
-					path = path.substring(4);
-				} else {
-					*hRootKeyOut = HKEY_CURRENT_USER;
-				}
-				return path;
+			HKEY tmp;
+			if (!hRootKeyOut) {
+				hRootKeyOut = &tmp;
 			}
+			String path = _path.toString();
+			if (path.startsWith("HKLM\\")) {
+				*hRootKeyOut = HKEY_LOCAL_MACHINE;
+				path = path.substring(5);
+			} else if (path.startsWith("HKCU\\")) {
+				*hRootKeyOut = HKEY_CURRENT_USER;
+				path = path.substring(5);
+			} else if (path.startsWith("HKCR\\")) {
+				*hRootKeyOut = HKEY_CLASSES_ROOT;
+				path = path.substring(5);
+			} else if (path.startsWith("HKCC\\")) {
+				*hRootKeyOut = HKEY_CURRENT_CONFIG;
+				path = path.substring(5);
+			} else if (path.startsWith("HKU\\")) {
+				*hRootKeyOut = HKEY_USERS;
+				path = path.substring(4);
+			} else {
+				*hRootKeyOut = HKEY_CURRENT_USER;
+			}
+			return path;
+		}
 
-			static sl_bool GetRegistryValue(HKEY hKey, LPCWSTR name, Variant* out)
-			{
-				DWORD type = 0;
-				DWORD size = 0;
-				sl_bool flagSuccess = sl_false;
-				if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, NULL, &size)) {
-					if (out) {
-						if (size > 0) {
-							switch (type) {
-								case REG_BINARY:
-									{
-										SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
-										if (!buf) {
-											break;
-										}
-										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
-											Memory mem = Memory::create(buf, size);
-											if (mem.isNotNull()) {
-												out->setMemory(mem);
-												flagSuccess = sl_true;
-											}
+		static sl_bool GetRegistryValue(HKEY hKey, LPCWSTR name, Variant* out)
+		{
+			DWORD type = 0;
+			DWORD size = 0;
+			sl_bool flagSuccess = sl_false;
+			if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, NULL, &size)) {
+				if (out) {
+					if (size > 0) {
+						switch (type) {
+							case REG_BINARY:
+								{
+									SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+									if (!buf) {
+										break;
+									}
+									if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
+										Memory mem = Memory::create(buf, size);
+										if (mem.isNotNull()) {
+											out->setMemory(mem);
+											flagSuccess = sl_true;
 										}
 									}
-									break;
-								case REG_MULTI_SZ:
-									{
-										SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
-										if (!buf) {
-											break;
-										}
-										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
-											if (size >= 2) {
-												sl_size len = size >> 1;
-												WCHAR* str = (WCHAR*)buf;
-												VariantList ret = VariantList::create();
-												sl_size start = 0;
-												for (sl_size i = 0; i < len; i++) {
-													WCHAR ch = str[i];
-													if (!ch) {
-														if (i < len - 1 || i > start) {
-															ret.add_NoLock(String16::from(str + start, i - start));
-														}
-														start = i + 1;
+								}
+								break;
+							case REG_MULTI_SZ:
+								{
+									SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+									if (!buf) {
+										break;
+									}
+									if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
+										if (size >= 2) {
+											sl_size len = size >> 1;
+											WCHAR* str = (WCHAR*)buf;
+											VariantList ret = VariantList::create();
+											sl_size start = 0;
+											for (sl_size i = 0; i < len; i++) {
+												WCHAR ch = str[i];
+												if (!ch) {
+													if (i < len - 1 || i > start) {
+														ret.add_NoLock(String16::from(str + start, i - start));
 													}
+													start = i + 1;
 												}
-												if (len > start) {
-													ret.add_NoLock(String16::from(str + start, len - start));
-												}
-												out->setVariantList(ret);
-												flagSuccess = sl_true;
+											}
+											if (len > start) {
+												ret.add_NoLock(String16::from(str + start, len - start));
+											}
+											out->setVariantList(ret);
+											flagSuccess = sl_true;
+										} else {
+											out->setNull();
+											flagSuccess = sl_true;
+										}
+									}
+								}
+								break;
+							case REG_EXPAND_SZ:
+							case REG_SZ:
+								{
+									SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
+									if (!buf) {
+										break;
+									}
+									if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
+										if (size >= 2) {
+											String16 s(reinterpret_cast<sl_char16*>(buf), size / 2 - 1);
+											out->setString(s);
+											flagSuccess = sl_true;
+										} else {
+											out->setNull();
+											flagSuccess = sl_true;
+										}
+									}
+								}
+								break;
+							case REG_DWORD:
+							case REG_DWORD_BIG_ENDIAN:
+								if (size == 4) {
+									sl_uint32 n;
+									if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
+										if (size == 4) {
+											if (type == REG_DWORD) {
+												out->setUint32(n);
 											} else {
-												out->setNull();
-												flagSuccess = sl_true;
+												out->setUint32(Endian::swap32(n));
 											}
+											flagSuccess = sl_true;
 										}
 									}
-									break;
-								case REG_EXPAND_SZ:
-								case REG_SZ:
-									{
-										SLIB_SCOPED_BUFFER(BYTE, 512, buf, size);
-										if (!buf) {
-											break;
-										}
-										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, buf, &size)) {
-											if (size >= 2) {
-												String16 s(reinterpret_cast<sl_char16*>(buf), size / 2 - 1);
-												out->setString(s);
-												flagSuccess = sl_true;
-											} else {
-												out->setNull();
-												flagSuccess = sl_true;
-											}
+								}
+								break;
+							case REG_QWORD:
+								if (size == 8) {
+									sl_uint64 n;
+									if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
+										if (size == 8) {
+											out->setUint64(n);
+											flagSuccess = sl_true;
 										}
 									}
-									break;
-								case REG_DWORD:
-								case REG_DWORD_BIG_ENDIAN:
-									if (size == 4) {
-										sl_uint32 n;
-										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
-											if (size == 4) {
-												if (type == REG_DWORD) {
-													out->setUint32(n);
-												} else {
-													out->setUint32(Endian::swap32(n));
-												}
-												flagSuccess = sl_true;
-											}
-										}
-									}
-									break;
-								case REG_QWORD:
-									if (size == 8) {
-										sl_uint64 n;
-										if (ERROR_SUCCESS == RegQueryValueExW(hKey, name, NULL, &type, reinterpret_cast<BYTE*>(&n), &size)) {
-											if (size == 8) {
-												out->setUint64(n);
-												flagSuccess = sl_true;
-											}
-										}
-									}
-									break;
-								default: // REG_NONE
-									out->setNull();
-									flagSuccess = sl_true;
-									break;
-							}
-						} else {
-							out->setNull();
-							flagSuccess = sl_true;
+								}
+								break;
+							default: // REG_NONE
+								out->setNull();
+								flagSuccess = sl_true;
+								break;
 						}
 					} else {
+						out->setNull();
 						flagSuccess = sl_true;
 					}
+				} else {
+					flagSuccess = sl_true;
 				}
-				return flagSuccess;
 			}
-
+			return flagSuccess;
 		}
-	}
 
-	using namespace priv::registry;
+	}
 
 	namespace win32
 	{

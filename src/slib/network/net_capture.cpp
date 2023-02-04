@@ -124,359 +124,369 @@ namespace slib
 		m_onError(this);
 	}
 
-	namespace priv
-	{
-		namespace net_capture
+	namespace {
+		class RawPacketCapture : public NetCapture
 		{
+		public:
+			Socket m_socket;
 
-			class RawPacketCapture : public NetCapture
+			NetworkLinkDeviceType m_deviceType;
+			sl_uint32 m_ifaceIndex;
+			Memory m_bufPacket;
+			Ref<Thread> m_thread;
+
+			sl_bool m_flagInit;
+			sl_bool m_flagRunning;
+
+		public:
+			RawPacketCapture()
 			{
-			public:
-				Socket m_socket;
+				m_deviceType = NetworkLinkDeviceType::Ethernet;
+				m_ifaceIndex = 0;
 
-				NetworkLinkDeviceType m_deviceType;
-				sl_uint32 m_ifaceIndex;
-				Memory m_bufPacket;
-				Ref<Thread> m_thread;
+				m_flagInit = sl_false;
+				m_flagRunning = sl_false;
+			}
 
-				sl_bool m_flagInit;
-				sl_bool m_flagRunning;
+			~RawPacketCapture()
+			{
+				release();
+			}
 
-			public:
-				RawPacketCapture()
-				{
-					m_deviceType = NetworkLinkDeviceType::Ethernet;
-					m_ifaceIndex = 0;
+		public:
+			static Ref<RawPacketCapture> create(const NetCaptureParam& param)
+			{
 
-					m_flagInit = sl_false;
-					m_flagRunning = sl_false;
+				sl_uint32 iface = 0;
+				StringCstr deviceName = param.deviceName;
+				if (deviceName.isNotEmpty()) {
+					iface = Network::getInterfaceIndexFromName(deviceName);
+					if (iface == 0) {
+						LogError(TAG, "Failed to find the interface index of device: %s", deviceName);
+						return sl_null;
+					}
 				}
-
-				~RawPacketCapture()
-				{
-					release();
+				Socket socket;
+				NetworkLinkDeviceType deviceType = param.preferedLinkDeviceType;
+				if (deviceType == NetworkLinkDeviceType::Raw) {
+					socket = Socket::openPacketDatagram(NetworkLinkProtocol::All);
+				} else {
+					deviceType = NetworkLinkDeviceType::Ethernet;
+					socket = Socket::openPacketRaw(NetworkLinkProtocol::All);
 				}
-
-			public:
-				static Ref<RawPacketCapture> create(const NetCaptureParam& param)
-				{
-
-					sl_uint32 iface = 0;
-					StringCstr deviceName = param.deviceName;
-					if (deviceName.isNotEmpty()) {
-						iface = Network::getInterfaceIndexFromName(deviceName);
-						if (iface == 0) {
-							LogError(TAG, "Failed to find the interface index of device: %s", deviceName);
-							return sl_null;
+				if (socket.isOpened()) {
+					if (iface > 0) {
+						if (param.flagPromiscuous) {
+							if (!(socket.setPromiscuousMode(deviceName, sl_true))) {
+								Log(TAG, "Failed to set promiscuous mode to the network device: %s", deviceName);
+							}
+						}
+						if (!(socket.setOption_bindToDevice(deviceName))) {
+							Log(TAG, "Failed to bind the network device: %s", deviceName);
 						}
 					}
-					Socket socket;
-					NetworkLinkDeviceType deviceType = param.preferedLinkDeviceType;
-					if (deviceType == NetworkLinkDeviceType::Raw) {
-						socket = Socket::openPacketDatagram(NetworkLinkProtocol::All);
-					} else {
-						deviceType = NetworkLinkDeviceType::Ethernet;
-						socket = Socket::openPacketRaw(NetworkLinkProtocol::All);
-					}
-					if (socket.isOpened()) {
-						if (iface > 0) {
-							if (param.flagPromiscuous) {
-								if (!(socket.setPromiscuousMode(deviceName, sl_true))) {
-									Log(TAG, "Failed to set promiscuous mode to the network device: %s", deviceName);
+					Memory mem = Memory::create(MAX_PACKET_SIZE);
+					if (mem.isNotNull()) {
+						Ref<RawPacketCapture> ret = new RawPacketCapture;
+						if (ret.isNotNull()) {
+							ret->_initWithParam(param);
+							ret->m_bufPacket = Move(mem);
+							ret->m_socket = Move(socket);
+							ret->m_deviceType = deviceType;
+							ret->m_ifaceIndex = iface;
+							ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
+							if (ret->m_thread.isNotNull()) {
+								ret->m_flagInit = sl_true;
+								if (param.flagAutoStart) {
+									ret->start();
 								}
-							}
-							if (!(socket.setOption_bindToDevice(deviceName))) {
-								Log(TAG, "Failed to bind the network device: %s", deviceName);
-							}
-						}
-						Memory mem = Memory::create(MAX_PACKET_SIZE);
-						if (mem.isNotNull()) {
-							Ref<RawPacketCapture> ret = new RawPacketCapture;
-							if (ret.isNotNull()) {
-								ret->_initWithParam(param);
-								ret->m_bufPacket = Move(mem);
-								ret->m_socket = Move(socket);
-								ret->m_deviceType = deviceType;
-								ret->m_ifaceIndex = iface;
-								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
-								if (ret->m_thread.isNotNull()) {
-									ret->m_flagInit = sl_true;
-									if (param.flagAutoStart) {
-										ret->start();
-									}
-									return ret;
-								} else {
-									LogError(TAG, "Failed to create thread");
-								}
+								return ret;
+							} else {
+								LogError(TAG, "Failed to create thread");
 							}
 						}
+					}
+				} else {
+					LogError(TAG, "Failed to create Packet socket");
+				}
+				return sl_null;
+			}
+
+			void release()
+			{
+				ObjectLocker lock(this);
+				if (!m_flagInit) {
+					return;
+				}
+				m_flagInit = sl_false;
+
+				m_flagRunning = sl_false;
+				if (m_thread.isNotNull()) {
+					m_thread->finishAndWait();
+					m_thread.setNull();
+				}
+				m_socket.setNone();
+			}
+
+			void start()
+			{
+				ObjectLocker lock(this);
+				if (!m_flagInit) {
+					return;
+				}
+
+				if (m_flagRunning) {
+					return;
+				}
+				if (m_thread.isNotNull()) {
+					if (m_thread->start()) {
+						m_flagRunning = sl_true;
+					}
+				}
+			}
+
+			sl_bool isRunning()
+			{
+				return m_flagRunning;
+			}
+
+			void _run()
+			{
+				Thread* thread = Thread::getCurrent();
+				if (!thread) {
+					return;
+				}
+
+				NetCapturePacket packet;
+
+				Socket& socket = m_socket;
+
+				socket.setNonBlockingMode();
+				Ref<SocketEvent> event = SocketEvent::createRead(socket);
+				if (event.isNull()) {
+					return;
+				}
+
+				sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
+				sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
+
+				while (thread->isNotStopping()) {
+					L2PacketInfo info;
+					sl_int32 n = socket.receivePacket(buf, sizeBuf, info);
+					if (n >= 0) {
+						packet.data = buf;
+						packet.length = n;
+						packet.time = 0;
+						_onCapturePacket(packet);
+					} else if (n == SLIB_IO_WOULD_BLOCK) {
+						event->wait();
 					} else {
-						LogError(TAG, "Failed to create Packet socket");
-					}
-					return sl_null;
-				}
-
-				void release()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagInit) {
-						return;
-					}
-					m_flagInit = sl_false;
-
-					m_flagRunning = sl_false;
-					if (m_thread.isNotNull()) {
-						m_thread->finishAndWait();
-						m_thread.setNull();
-					}
-					m_socket.setNone();
-				}
-
-				void start()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagInit) {
-						return;
-					}
-
-					if (m_flagRunning) {
-						return;
-					}
-					if (m_thread.isNotNull()) {
-						if (m_thread->start()) {
-							m_flagRunning = sl_true;
-						}
+						break;
 					}
 				}
+			}
 
-				sl_bool isRunning()
-				{
-					return m_flagRunning;
-				}
+			NetworkLinkDeviceType getLinkType()
+			{
+				return m_deviceType;
+			}
 
-				void _run()
-				{
-					Thread* thread = Thread::getCurrent();
-					if (!thread) {
-						return;
-					}
-
-					NetCapturePacket packet;
-
-					Socket& socket = m_socket;
-
-					socket.setNonBlockingMode();
-					Ref<SocketEvent> event = SocketEvent::createRead(socket);
-					if (event.isNull()) {
-						return;
-					}
-
-					sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
-					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
-
-					while (thread->isNotStopping()) {
-						L2PacketInfo info;
-						sl_int32 n = socket.receivePacket(buf, sizeBuf, info);
-						if (n >= 0) {
-							packet.data = buf;
-							packet.length = n;
-							packet.time = 0;
-							_onCapturePacket(packet);
-						} else if (n == SLIB_IO_WOULD_BLOCK) {
-							event->wait();
-						} else {
-							break;
-						}
-					}
-				}
-
-				NetworkLinkDeviceType getLinkType()
-				{
-					return m_deviceType;
-				}
-
-				sl_bool sendPacket(const void* buf, sl_uint32 size)
-				{
-					if (m_ifaceIndex == 0) {
-						return sl_false;
-					}
-					if (m_flagInit) {
-						L2PacketInfo info;
-						info.type = L2PacketType::OutGoing;
-						info.iface = m_ifaceIndex;
-						if (m_deviceType == NetworkLinkDeviceType::Ethernet) {
-							EthernetFrame* frame = (EthernetFrame*)buf;
-							if (size < EthernetFrame::HeaderSize) {
-								return sl_false;
-							}
-							info.protocol = frame->getProtocol();
-							info.setMacAddress(frame->getDestinationAddress());
-						} else {
-							info.protocol = NetworkLinkProtocol::IPv4;
-							info.clearAddress();
-						}
-						sl_uint32 ret = m_socket.sendPacket(buf, size, info);
-						if (ret == size) {
-							return sl_true;
-						}
-					}
+			sl_bool sendPacket(const void* buf, sl_uint32 size)
+			{
+				if (m_ifaceIndex == 0) {
 					return sl_false;
 				}
+				if (m_flagInit) {
+					L2PacketInfo info;
+					info.type = L2PacketType::OutGoing;
+					info.iface = m_ifaceIndex;
+					if (m_deviceType == NetworkLinkDeviceType::Ethernet) {
+						EthernetFrame* frame = (EthernetFrame*)buf;
+						if (size < EthernetFrame::HeaderSize) {
+							return sl_false;
+						}
+						info.protocol = frame->getProtocol();
+						info.setMacAddress(frame->getDestinationAddress());
+					} else {
+						info.protocol = NetworkLinkProtocol::IPv4;
+						info.clearAddress();
+					}
+					sl_uint32 ret = m_socket.sendPacket(buf, size, info);
+					if (ret == size) {
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+		};
+	}
 
-			};
+	Ref<NetCapture> NetCapture::createRawPacket(const NetCaptureParam& param)
+	{
+		return RawPacketCapture::create(param);
+	}
 
+	namespace {
+		class RawIPv4Capture : public NetCapture
+		{
+		public:
+			Socket m_socketTCP;
+			Socket m_socketUDP;
+			Socket m_socketICMP;
 
-			class RawIPv4Capture : public NetCapture
+			Memory m_bufPacket;
+			Ref<Thread> m_thread;
+
+			sl_bool m_flagInit;
+			sl_bool m_flagRunning;
+
+		public:
+			RawIPv4Capture()
 			{
-			public:
-				Socket m_socketTCP;
-				Socket m_socketUDP;
-				Socket m_socketICMP;
+				m_flagInit = sl_false;
+				m_flagRunning = sl_false;
+			}
 
-				Memory m_bufPacket;
-				Ref<Thread> m_thread;
+			~RawIPv4Capture()
+			{
+				release();
+			}
 
-				sl_bool m_flagInit;
-				sl_bool m_flagRunning;
-
-			public:
-				RawIPv4Capture()
-				{
-					m_flagInit = sl_false;
-					m_flagRunning = sl_false;
-				}
-
-				~RawIPv4Capture()
-				{
-					release();
-				}
-
-			public:
-				static Ref<RawIPv4Capture> create(const NetCaptureParam& param)
-				{
-					Socket socketTCP = Socket::openRaw(NetworkInternetProtocol::TCP);
-					Socket socketUDP = Socket::openRaw(NetworkInternetProtocol::UDP);
-					Socket socketICMP = Socket::openRaw(NetworkInternetProtocol::ICMP);
-					if (socketTCP.isOpened() && socketUDP.isOpened() && socketICMP.isOpened()) {
-						socketTCP.setOption_IncludeIpHeader(sl_true);
-						socketUDP.setOption_IncludeIpHeader(sl_true);
-						socketICMP.setOption_IncludeIpHeader(sl_true);
-						Memory mem = Memory::create(MAX_PACKET_SIZE);
-						if (mem.isNotNull()) {
-							Ref<RawIPv4Capture> ret = new RawIPv4Capture;
-							if (ret.isNotNull()) {
-								ret->_initWithParam(param);
-								ret->m_bufPacket = Move(mem);
-								ret->m_socketTCP = Move(socketTCP);
-								ret->m_socketUDP = Move(socketUDP);
-								ret->m_socketICMP = Move(socketICMP);
-								ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
-								if (ret->m_thread.isNotNull()) {
-									ret->m_flagInit = sl_true;
-									if (param.flagAutoStart) {
-										ret->start();
-									}
-									return ret;
-								} else {
-									LogError(TAG, "Failed to create thread");
+		public:
+			static Ref<RawIPv4Capture> create(const NetCaptureParam& param)
+			{
+				Socket socketTCP = Socket::openRaw(NetworkInternetProtocol::TCP);
+				Socket socketUDP = Socket::openRaw(NetworkInternetProtocol::UDP);
+				Socket socketICMP = Socket::openRaw(NetworkInternetProtocol::ICMP);
+				if (socketTCP.isOpened() && socketUDP.isOpened() && socketICMP.isOpened()) {
+					socketTCP.setOption_IncludeIpHeader(sl_true);
+					socketUDP.setOption_IncludeIpHeader(sl_true);
+					socketICMP.setOption_IncludeIpHeader(sl_true);
+					Memory mem = Memory::create(MAX_PACKET_SIZE);
+					if (mem.isNotNull()) {
+						Ref<RawIPv4Capture> ret = new RawIPv4Capture;
+						if (ret.isNotNull()) {
+							ret->_initWithParam(param);
+							ret->m_bufPacket = Move(mem);
+							ret->m_socketTCP = Move(socketTCP);
+							ret->m_socketUDP = Move(socketUDP);
+							ret->m_socketICMP = Move(socketICMP);
+							ret->m_thread = Thread::create(SLIB_FUNCTION_MEMBER(ret.get(), _run));
+							if (ret->m_thread.isNotNull()) {
+								ret->m_flagInit = sl_true;
+								if (param.flagAutoStart) {
+									ret->start();
 								}
+								return ret;
+							} else {
+								LogError(TAG, "Failed to create thread");
 							}
 						}
 					}
-					return sl_null;
+				}
+				return sl_null;
+			}
+
+			void release()
+			{
+				ObjectLocker lock(this);
+				if (!m_flagInit) {
+					return;
+				}
+				m_flagInit = sl_false;
+
+				m_flagRunning = sl_false;
+				if (m_thread.isNotNull()) {
+					m_thread->finishAndWait();
+					m_thread.setNull();
+				}
+				m_socketTCP.setNone();
+				m_socketUDP.setNone();
+				m_socketICMP.setNone();
+			}
+
+			void start()
+			{
+				ObjectLocker lock(this);
+				if (!m_flagInit) {
+					return;
 				}
 
-				void release()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagInit) {
-						return;
-					}
-					m_flagInit = sl_false;
-
-					m_flagRunning = sl_false;
-					if (m_thread.isNotNull()) {
-						m_thread->finishAndWait();
-						m_thread.setNull();
-					}
-					m_socketTCP.setNone();
-					m_socketUDP.setNone();
-					m_socketICMP.setNone();
+				if (m_flagRunning) {
+					return;
 				}
 
-				void start()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagInit) {
-						return;
-					}
-
-					if (m_flagRunning) {
-						return;
-					}
-
-					if (m_thread.isNotNull()) {
-						if (m_thread->start()) {
-							m_flagRunning = sl_true;
-						}
+				if (m_thread.isNotNull()) {
+					if (m_thread->start()) {
+						m_flagRunning = sl_true;
 					}
 				}
+			}
 
-				sl_bool isRunning()
-				{
-					return m_flagRunning;
+			sl_bool isRunning()
+			{
+				return m_flagRunning;
+			}
+
+			void _run()
+			{
+				Thread* thread = Thread::getCurrent();
+				if (!thread) {
+					return;
 				}
 
-				void _run()
-				{
-					Thread* thread = Thread::getCurrent();
-					if (!thread) {
-						return;
-					}
+				NetCapturePacket packet;
 
-					NetCapturePacket packet;
+				Socket& socketTCP = m_socketTCP;
+				if (socketTCP.isNone()) {
+					return;
+				}
+				socketTCP.setNonBlockingMode();
+				Ref<SocketEvent> eventTCP = SocketEvent::createRead(socketTCP);
+				if (eventTCP.isNull()) {
+					return;
+				}
 
-					Socket& socketTCP = m_socketTCP;
-					if (socketTCP.isNone()) {
-						return;
-					}
-					socketTCP.setNonBlockingMode();
-					Ref<SocketEvent> eventTCP = SocketEvent::createRead(socketTCP);
-					if (eventTCP.isNull()) {
-						return;
-					}
+				Socket& socketUDP = m_socketUDP;
+				if (socketUDP.isNone()) {
+					return;
+				}
+				socketUDP.setNonBlockingMode();
+				Ref<SocketEvent> eventUDP = SocketEvent::createRead(socketUDP);
+				if (eventUDP.isNull()) {
+					return;
+				}
 
-					Socket& socketUDP = m_socketUDP;
-					if (socketUDP.isNone()) {
-						return;
-					}
-					socketUDP.setNonBlockingMode();
-					Ref<SocketEvent> eventUDP = SocketEvent::createRead(socketUDP);
-					if (eventUDP.isNull()) {
-						return;
-					}
+				Socket& socketICMP = m_socketICMP;
+				if (socketICMP.isNone()) {
+					return;
+				}
+				socketICMP.setNonBlockingMode();
+				Ref<SocketEvent> eventICMP = SocketEvent::createRead(socketICMP);
+				if (eventICMP.isNull()) {
+					return;
+				}
 
-					Socket& socketICMP = m_socketICMP;
-					if (socketICMP.isNone()) {
-						return;
-					}
-					socketICMP.setNonBlockingMode();
-					Ref<SocketEvent> eventICMP = SocketEvent::createRead(socketICMP);
-					if (eventICMP.isNull()) {
-						return;
-					}
+				SocketEvent* events[3];
+				events[0] = eventTCP.get();
+				events[1] = eventUDP.get();
+				events[2] = eventICMP.get();
 
-					SocketEvent* events[3];
-					events[0] = eventTCP.get();
-					events[1] = eventUDP.get();
-					events[2] = eventICMP.get();
+				sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
+				sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
 
-					sl_uint8* buf = (sl_uint8*)(m_bufPacket.getData());
-					sl_uint32 sizeBuf = (sl_uint32)(m_bufPacket.getSize());
-
-					while (thread->isNotStopping()) {
-						SocketAddress address;
-						sl_int32 n = socketTCP.receiveFrom(address, buf, sizeBuf);
+				while (thread->isNotStopping()) {
+					SocketAddress address;
+					sl_int32 n = socketTCP.receiveFrom(address, buf, sizeBuf);
+					if (n >= 0) {
+						packet.data = buf;
+						packet.length = n;
+						packet.time = 0;
+						_onCapturePacket(packet);
+					} else if (n != SLIB_IO_WOULD_BLOCK) {
+						break;
+					} else {
+						n = socketUDP.receiveFrom(address, buf, sizeBuf);
 						if (n >= 0) {
 							packet.data = buf;
 							packet.length = n;
@@ -485,7 +495,7 @@ namespace slib
 						} else if (n != SLIB_IO_WOULD_BLOCK) {
 							break;
 						} else {
-							n = socketUDP.receiveFrom(address, buf, sizeBuf);
+							n = socketICMP.receiveFrom(address, buf, sizeBuf);
 							if (n >= 0) {
 								packet.data = buf;
 								packet.length = n;
@@ -494,66 +504,46 @@ namespace slib
 							} else if (n != SLIB_IO_WOULD_BLOCK) {
 								break;
 							} else {
-								n = socketICMP.receiveFrom(address, buf, sizeBuf);
-								if (n >= 0) {
-									packet.data = buf;
-									packet.length = n;
-									packet.time = 0;
-									_onCapturePacket(packet);
-								} else if (n != SLIB_IO_WOULD_BLOCK) {
-									break;
-								} else {
-									SocketEvent::waitMultipleEvents(events, sl_null, 3);
-								}
+								SocketEvent::waitMultipleEvents(events, sl_null, 3);
 							}
 						}
 					}
 				}
+			}
 
-				NetworkLinkDeviceType getLinkType()
-				{
-					return NetworkLinkDeviceType::Raw;
-				}
+			NetworkLinkDeviceType getLinkType()
+			{
+				return NetworkLinkDeviceType::Raw;
+			}
 
-				sl_bool sendPacket(const void* buf, sl_uint32 size)
-				{
-					if (m_flagInit) {
-						SocketAddress address;
-						if (IPv4Packet::check(buf, size)) {
-							IPv4Packet* ip = (IPv4Packet*)buf;
-							address.ip = ip->getDestinationAddress();
-							address.port = 0;
-							Socket* socket;
-							NetworkInternetProtocol protocol = ip->getProtocol();
-							if (protocol == NetworkInternetProtocol::TCP) {
-								socket = &m_socketTCP;
-							} else if (protocol == NetworkInternetProtocol::UDP) {
-								socket = &m_socketUDP;
-							} else if (protocol == NetworkInternetProtocol::ICMP) {
-								socket = &m_socketICMP;
-							} else {
-								return sl_false;
-							}
-							sl_uint32 ret = socket->sendTo(address, buf, size);
-							if (ret == size) {
-								return sl_true;
-							}
+			sl_bool sendPacket(const void* buf, sl_uint32 size)
+			{
+				if (m_flagInit) {
+					SocketAddress address;
+					if (IPv4Packet::check(buf, size)) {
+						IPv4Packet* ip = (IPv4Packet*)buf;
+						address.ip = ip->getDestinationAddress();
+						address.port = 0;
+						Socket* socket;
+						NetworkInternetProtocol protocol = ip->getProtocol();
+						if (protocol == NetworkInternetProtocol::TCP) {
+							socket = &m_socketTCP;
+						} else if (protocol == NetworkInternetProtocol::UDP) {
+							socket = &m_socketUDP;
+						} else if (protocol == NetworkInternetProtocol::ICMP) {
+							socket = &m_socketICMP;
+						} else {
+							return sl_false;
+						}
+						sl_uint32 ret = socket->sendTo(address, buf, size);
+						if (ret == size) {
+							return sl_true;
 						}
 					}
-					return sl_false;
 				}
-
-			};
-
-		}
-	}
-
-	using namespace priv::net_capture;
-
-
-	Ref<NetCapture> NetCapture::createRawPacket(const NetCaptureParam& param)
-	{
-		return RawPacketCapture::create(param);
+				return sl_false;
+			}
+		};
 	}
 
 	Ref<NetCapture> NetCapture::createRawIPv4(const NetCaptureParam& param)

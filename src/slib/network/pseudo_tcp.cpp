@@ -89,252 +89,286 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace pseudo_tcp
-		{
+	namespace {
 
-			// Standard MTUs
-			const sl_uint16 PACKET_MAXIMUMS[] = {
-				65535, // Theoretical maximum, Hyperchannel
-				32000, // Nothing
-				17914, // 16Mb IBM Token Ring
-				8166, // IEEE 802.4
-				// 4464, // IEEE 802.5 (4Mb max)
-				4352,  // FDDI
-				// 2048, // Wideband Network
-				2002,  // IEEE 802.5 (4Mb recommended)
-				// 1536, // Expermental Ethernet Networks
-				// 1500, // Ethernet, Point-to-Point (default)
-				1492, // IEEE 802.3
-				1006, // SLIP, ARPANET
-				// 576, // X.25 Networks
-				// 544, // DEC IP Portal
-				// 512, // NETBIOS
-				508, // IEEE 802/Source-Rt Bridge, ARCNET
-				296, // Point-to-Point (low delay)
-				// 68, // Official minimum
-				0, // End of list marker
-			};
+		// Standard MTUs
+		static const sl_uint16 PACKET_MAXIMUMS[] = {
+			65535, // Theoretical maximum, Hyperchannel
+			32000, // Nothing
+			17914, // 16Mb IBM Token Ring
+			8166, // IEEE 802.4
+			// 4464, // IEEE 802.5 (4Mb max)
+			4352,  // FDDI
+			// 2048, // Wideband Network
+			2002,  // IEEE 802.5 (4Mb recommended)
+			// 1536, // Expermental Ethernet Networks
+			// 1500, // Ethernet, Point-to-Point (default)
+			1492, // IEEE 802.3
+			1006, // SLIP, ARPANET
+			// 576, // X.25 Networks
+			// 544, // DEC IP Portal
+			// 512, // NETBIOS
+			508, // IEEE 802/Source-Rt Bridge, ARCNET
+			296, // Point-to-Point (low delay)
+			// 68, // Official minimum
+			0, // End of list marker
+		};
 
-			const sl_uint32 MAX_PACKET = 65535;
-			// Note: we removed lowest level because packet overhead was larger!
-			const sl_uint32 MIN_PACKET = 296;
+		const sl_uint32 MAX_PACKET = 65535;
+		// Note: we removed lowest level because packet overhead was larger!
+		const sl_uint32 MIN_PACKET = 296;
 
-			const sl_uint32 IP_HEADER_SIZE = 20;  // (+ up to 40 bytes of options?)
-			const sl_uint32 UDP_HEADER_SIZE = 8;
-			// TODO(?): Make JINGLE_HEADER_SIZE transparent to this code?
-			const sl_uint32 JINGLE_HEADER_SIZE = 64;  // when relay framing is in use
+		const sl_uint32 IP_HEADER_SIZE = 20;  // (+ up to 40 bytes of options?)
+		const sl_uint32 UDP_HEADER_SIZE = 8;
+		// TODO(?): Make JINGLE_HEADER_SIZE transparent to this code?
+		const sl_uint32 JINGLE_HEADER_SIZE = 64;  // when relay framing is in use
 
-			// Default size for receive and send buffer.
-			const sl_uint32 DEFAULT_RCV_BUF_SIZE = 60 * 1024;
-			const sl_uint32 DEFAULT_SND_BUF_SIZE = 90 * 1024;
+		// Default size for receive and send buffer.
+		const sl_uint32 DEFAULT_RCV_BUF_SIZE = 60 * 1024;
+		const sl_uint32 DEFAULT_SND_BUF_SIZE = 90 * 1024;
 
-			const sl_uint32 HEADER_SIZE = 24;
-			const sl_uint32 PACKET_OVERHEAD = HEADER_SIZE + UDP_HEADER_SIZE + IP_HEADER_SIZE + JINGLE_HEADER_SIZE;
+		const sl_uint32 HEADER_SIZE = 24;
+		const sl_uint32 PACKET_OVERHEAD = HEADER_SIZE + UDP_HEADER_SIZE + IP_HEADER_SIZE + JINGLE_HEADER_SIZE;
 
-			const sl_uint32 MIN_RTO = 250; // 250 ms (RFC1122, Sec 4.2.3.1 "fractions of a second")
-			const sl_uint32 DEF_RTO = 3000; // 3 seconds (RFC1122, Sec 4.2.3.1)
-			const sl_uint32 MAX_RTO = 60000; // 60 seconds
-			const sl_uint32 DEF_ACK_DELAY = 100; // 100 milliseconds
+		const sl_uint32 MIN_RTO = 250; // 250 ms (RFC1122, Sec 4.2.3.1 "fractions of a second")
+		const sl_uint32 DEF_RTO = 3000; // 3 seconds (RFC1122, Sec 4.2.3.1)
+		const sl_uint32 MAX_RTO = 60000; // 60 seconds
+		const sl_uint32 DEF_ACK_DELAY = 100; // 100 milliseconds
 
-			const sl_uint8 FLAG_CTL = 0x02;
-			const sl_uint8 FLAG_RST = 0x04;
+		const sl_uint8 FLAG_CTL = 0x02;
+		const sl_uint8 FLAG_RST = 0x04;
 
-			const sl_uint8 CTL_CONNECT = 0;
+		const sl_uint8 CTL_CONNECT = 0;
 
-			// TCP options
-			const sl_uint8 TCP_OPT_EOL = 0; // End of list.
-			const sl_uint8 TCP_OPT_NOOP = 1; // No-op.
-			const sl_uint8 TCP_OPT_MSS = 2; // Maximum segment size.
-			const sl_uint8 TCP_OPT_WND_SCALE = 3; // Window scale factor.
+		// TCP options
+		const sl_uint8 TCP_OPT_EOL = 0; // End of list.
+		const sl_uint8 TCP_OPT_NOOP = 1; // No-op.
+		const sl_uint8 TCP_OPT_MSS = 2; // Maximum segment size.
+		const sl_uint8 TCP_OPT_WND_SCALE = 3; // Window scale factor.
 
-			const long DEFAULT_TIMEOUT = 4000; // If there are no pending clocks, wake up every 4 seconds
-			const long CLOSED_TIMEOUT = 60 * 1000; // If the connection is closed, once per minute
+		const long DEFAULT_TIMEOUT = 4000; // If there are no pending clocks, wake up every 4 seconds
+		const long CLOSED_TIMEOUT = 60 * 1000; // If the connection is closed, once per minute
 
 #if PSEUDO_KEEPALIVE
-			// !?! Rethink these times
-			const sl_uint32 IDLE_PING = 20 * 1000; // 20 seconds (note: WinXP SP2 firewall udp timeout is 90 seconds)
-			const sl_uint32 IDLE_TIMEOUT = 90 * 1000; // 90 seconds;
+		// !?! Rethink these times
+		const sl_uint32 IDLE_PING = 20 * 1000; // 20 seconds (note: WinXP SP2 firewall udp timeout is 90 seconds)
+		const sl_uint32 IDLE_TIMEOUT = 90 * 1000; // 90 seconds;
 #endif
 
-			SLIB_INLINE static void LongToBytes(sl_uint32 val, void* buf)
-			{
-				MIO::writeUint32BE(buf, val);
-			}
+		SLIB_INLINE static void LongToBytes(sl_uint32 val, void* buf)
+		{
+			MIO::writeUint32BE(buf, val);
+		}
 
-			SLIB_INLINE static void ShortToBytes(sl_uint16 val, void* buf)
-			{
-				MIO::writeUint16BE(buf, val);
-			}
+		SLIB_INLINE static void ShortToBytes(sl_uint16 val, void* buf)
+		{
+			MIO::writeUint16BE(buf, val);
+		}
 
-			SLIB_INLINE static sl_uint32 BytesToLong(const void* buf)
-			{
-				return MIO::readUint32BE(buf);
-			}
+		SLIB_INLINE static sl_uint32 BytesToLong(const void* buf)
+		{
+			return MIO::readUint32BE(buf);
+		}
 
-			SLIB_INLINE static sl_uint16 BytesToShort(const void* buf)
-			{
-				return MIO::readUint16BE(buf);
-			}
+		SLIB_INLINE static sl_uint16 BytesToShort(const void* buf)
+		{
+			return MIO::readUint16BE(buf);
+		}
 
-			SLIB_INLINE static sl_int32 TimeDiff32(sl_uint32 later, sl_uint32 earlier)
-			{
-				return later - earlier;
-			}
-
-
-			LockedFifoBuffer::LockedFifoBuffer(sl_size size): m_buf(new char[size]), m_lenBuf(size), m_lenData(0), m_posRead(0)
-			{
-			}
-
-			LockedFifoBuffer::~LockedFifoBuffer()
-			{
-			}
-
-			sl_size LockedFifoBuffer::getBuffered() const
-			{
-				MutexLocker locker(&m_lock);
-				return m_lenData;
-			}
-
-			sl_bool LockedFifoBuffer::setCapacity(sl_size size)
-			{
-				MutexLocker locker(&m_lock);
-				if (m_lenData > size) {
-					return sl_false;
-				}
-
-				if (size != m_lenBuf) {
-					char* buffer = new char[size];
-					const sl_size copy = m_lenData;
-					const sl_size tail_copy = Math::min(copy, m_lenBuf - m_posRead);
-					Base::copyMemory(buffer, &m_buf[m_posRead], tail_copy);
-					Base::copyMemory(buffer + tail_copy, &m_buf[0], copy - tail_copy);
-					m_buf = buffer;
-					m_posRead = 0;
-					m_lenBuf = size;
-				}
-
-				return sl_true;
-			}
-
-			sl_bool LockedFifoBuffer::readOffset(void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_read)
-			{
-				MutexLocker locker(&m_lock);
-				return readOffsetLocked(buffer, bytes, offset, bytes_read);
-			}
-
-			sl_bool LockedFifoBuffer::writeOffset(const void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_written)
-			{
-				MutexLocker locker(&m_lock);
-				return writeOffsetLocked(buffer, bytes, offset, bytes_written);
-			}
-
-			sl_bool LockedFifoBuffer::read(void* buffer, sl_size bytes, sl_size* bytes_read)
-			{
-				MutexLocker locker(&m_lock);
-				sl_size copy = 0;
-				if (!readOffsetLocked(buffer, bytes, 0, &copy)) {
-					return sl_false;
-				}
-
-				// If read was successful then adjust the read position and number of bytes buffered.
-				m_posRead = (m_posRead + copy) % m_lenBuf;
-				m_lenData -= copy;
-				if (bytes_read) {
-					*bytes_read = copy;
-				}
-
-				return sl_true;
-			}
-
-			sl_bool LockedFifoBuffer::write(const void* buffer, sl_size bytes, sl_size* bytes_written)
-			{
-				MutexLocker locker(&m_lock);
-
-				sl_size copy = 0;
-				if (!writeOffsetLocked(buffer, bytes, 0, &copy)) {
-					return sl_false;
-				}
-
-				// If write was successful then adjust the number of readable bytes.
-				m_lenData += copy;
-				if (bytes_written) {
-					*bytes_written = copy;
-				}
-
-				return sl_true;
-			}
-
-			void LockedFifoBuffer::consumeReadData(sl_size size)
-			{
-				MutexLocker locker(&m_lock);
-				SLIB_ASSERT(size <= m_lenData);
-				m_posRead = (m_posRead + size) % m_lenBuf;
-				m_lenData -= size;
-			}
-
-			void LockedFifoBuffer::consumeWriteBuffer(sl_size size)
-			{
-				MutexLocker locker(&m_lock);
-				SLIB_ASSERT(size <= m_lenBuf - m_lenData);
-				m_lenData += size;
-			}
-
-			sl_bool LockedFifoBuffer::getWriteRemaining(sl_size* size) const
-			{
-				MutexLocker locker(&m_lock);
-				*size = m_lenBuf - m_lenData;
-				return sl_true;
-			}
-
-			sl_bool LockedFifoBuffer::readOffsetLocked(void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_read)
-			{
-				if (offset >= m_lenData) {
-					return sl_false;
-				}
-
-				const sl_size available = m_lenData - offset;
-				const sl_size read_position = (m_posRead + offset) % m_lenBuf;
-				const sl_size copy = Math::min(bytes, available);
-				const sl_size tail_copy = Math::min(copy, m_lenBuf - read_position);
-				char* const p = static_cast<char*>(buffer);
-				Base::copyMemory(p, &m_buf[read_position], tail_copy);
-				Base::copyMemory(p + tail_copy, &m_buf[0], copy - tail_copy);
-
-				if (bytes_read) {
-					*bytes_read = copy;
-				}
-
-				return sl_true;
-			}
-
-			sl_bool LockedFifoBuffer::writeOffsetLocked(const void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_written)
-			{
-				if (m_lenData + offset >= m_lenBuf) {
-					return sl_false;
-				}
-
-				const sl_size available = m_lenBuf - m_lenData - offset;
-				const sl_size write_position = (m_posRead + m_lenData + offset) % m_lenBuf;
-				const sl_size copy = Math::min(bytes, available);
-				const sl_size tail_copy = Math::min(copy, m_lenBuf - write_position);
-				const char* const p = static_cast<const char*>(buffer);
-				Base::copyMemory(&m_buf[write_position], p, tail_copy);
-				Base::copyMemory(&m_buf[0], p + tail_copy, copy - tail_copy);
-
-				if (bytes_written) {
-					*bytes_written = copy;
-				}
-
-				return sl_true;
-			}
-
+		SLIB_INLINE static sl_int32 TimeDiff32(sl_uint32 later, sl_uint32 earlier)
+		{
+			return later - earlier;
 		}
 	}
 
-	using namespace priv::pseudo_tcp;
+	struct PseudoTcp::Segment
+	{
+	public:
+		sl_uint32 conv, seq, ack;
+		sl_uint8 flags;
+		sl_uint16 wnd;
+		const char* data;
+		sl_uint32 len;
+		sl_uint32 tsval, tsecr;
+
+	};
+
+	class PseudoTcp::SSegment
+	{
+	public:
+		SSegment(sl_uint32 s, sl_uint32 l, sl_bool c) : seq(s), len(l), xmit(0), bCtrl(c) {}
+
+	public:
+		sl_uint32 seq, len;
+		sl_uint8 xmit;
+		sl_bool bCtrl;
+
+	};
+
+	class PseudoTcp::RSegment
+	{
+	public:
+		sl_uint32 seq;
+		sl_uint32 len;
+
+	};
+
+	class PseudoTcp::LockedFifoBuffer
+	{
+	public:
+		LockedFifoBuffer(sl_size size): m_buf(new char[size]), m_lenBuf(size), m_lenData(0), m_posRead(0)
+		{
+		}
+
+	public:
+		sl_size getBuffered() const
+		{
+			MutexLocker locker(&m_lock);
+			return m_lenData;
+		}
+
+		sl_bool setCapacity(sl_size size)
+		{
+			MutexLocker locker(&m_lock);
+			if (m_lenData > size) {
+				return sl_false;
+			}
+
+			if (size != m_lenBuf) {
+				char* buffer = new char[size];
+				const sl_size copy = m_lenData;
+				const sl_size tail_copy = Math::min(copy, m_lenBuf - m_posRead);
+				Base::copyMemory(buffer, &m_buf[m_posRead], tail_copy);
+				Base::copyMemory(buffer + tail_copy, &m_buf[0], copy - tail_copy);
+				m_buf = buffer;
+				m_posRead = 0;
+				m_lenBuf = size;
+			}
+
+			return sl_true;
+		}
+
+		sl_bool readOffset(void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_read)
+		{
+			MutexLocker locker(&m_lock);
+			return readOffsetLocked(buffer, bytes, offset, bytes_read);
+		}
+
+		sl_bool writeOffset(const void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_written)
+		{
+			MutexLocker locker(&m_lock);
+			return writeOffsetLocked(buffer, bytes, offset, bytes_written);
+		}
+
+		sl_bool read(void* buffer, sl_size bytes, sl_size* bytes_read)
+		{
+			MutexLocker locker(&m_lock);
+			sl_size copy = 0;
+			if (!readOffsetLocked(buffer, bytes, 0, &copy)) {
+				return sl_false;
+			}
+
+			// If read was successful then adjust the read position and number of bytes buffered.
+			m_posRead = (m_posRead + copy) % m_lenBuf;
+			m_lenData -= copy;
+			if (bytes_read) {
+				*bytes_read = copy;
+			}
+
+			return sl_true;
+		}
+
+		sl_bool write(const void* buffer, sl_size bytes, sl_size* bytes_written)
+		{
+			MutexLocker locker(&m_lock);
+
+			sl_size copy = 0;
+			if (!writeOffsetLocked(buffer, bytes, 0, &copy)) {
+				return sl_false;
+			}
+
+			// If write was successful then adjust the number of readable bytes.
+			m_lenData += copy;
+			if (bytes_written) {
+				*bytes_written = copy;
+			}
+
+			return sl_true;
+		}
+
+		void consumeReadData(sl_size size)
+		{
+			MutexLocker locker(&m_lock);
+			SLIB_ASSERT(size <= m_lenData);
+			m_posRead = (m_posRead + size) % m_lenBuf;
+			m_lenData -= size;
+		}
+
+		void consumeWriteBuffer(sl_size size)
+		{
+			MutexLocker locker(&m_lock);
+			SLIB_ASSERT(size <= m_lenBuf - m_lenData);
+			m_lenData += size;
+		}
+
+		sl_bool getWriteRemaining(sl_size* size) const
+		{
+			MutexLocker locker(&m_lock);
+			*size = m_lenBuf - m_lenData;
+			return sl_true;
+		}
+
+	private:
+		sl_bool readOffsetLocked(void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_read)
+		{
+			if (offset >= m_lenData) {
+				return sl_false;
+			}
+
+			const sl_size available = m_lenData - offset;
+			const sl_size read_position = (m_posRead + offset) % m_lenBuf;
+			const sl_size copy = Math::min(bytes, available);
+			const sl_size tail_copy = Math::min(copy, m_lenBuf - read_position);
+			char* const p = static_cast<char*>(buffer);
+			Base::copyMemory(p, &m_buf[read_position], tail_copy);
+			Base::copyMemory(p + tail_copy, &m_buf[0], copy - tail_copy);
+
+			if (bytes_read) {
+				*bytes_read = copy;
+			}
+
+			return sl_true;
+		}
+
+		sl_bool writeOffsetLocked(const void* buffer, sl_size bytes, sl_size offset, sl_size* bytes_written)
+		{
+			if (m_lenData + offset >= m_lenBuf) {
+				return sl_false;
+			}
+
+			const sl_size available = m_lenBuf - m_lenData - offset;
+			const sl_size write_position = (m_posRead + m_lenData + offset) % m_lenBuf;
+			const sl_size copy = Math::min(bytes, available);
+			const sl_size tail_copy = Math::min(copy, m_lenBuf - write_position);
+			const char* const p = static_cast<const char*>(buffer);
+			Base::copyMemory(&m_buf[write_position], p, tail_copy);
+			Base::copyMemory(&m_buf[0], p + tail_copy, copy - tail_copy);
+
+			if (bytes_written) {
+				*bytes_written = copy;
+			}
+
+			return sl_true;
+		}
+
+	private:
+		UniquePtr<char[]> m_buf; // the allocated buffer
+		sl_size m_lenBuf; // size of the allocated buffer
+		sl_size m_lenData; // amount of readable data in the buffer
+		sl_size m_posRead; // offset to the readable data
+		Mutex m_lock;
+	};
+
 
 	IPseudoTcpNotify::IPseudoTcpNotify()
 	{
@@ -344,14 +378,15 @@ namespace slib
 	{
 	}
 
+
 	PseudoTcp::PseudoTcp(IPseudoTcpNotify* notify, sl_uint32 conv):
 		m_notify(notify),
 		m_shutdown(PseudoTcpShutdownType::None),
 		m_error(PseudoTcpError::None),
 		m_rbuf_len(DEFAULT_RCV_BUF_SIZE),
-		m_rbuf(m_rbuf_len),
+		m_rbuf(new LockedFifoBuffer(m_rbuf_len)),
 		m_sbuf_len(DEFAULT_SND_BUF_SIZE),
-		m_sbuf(m_sbuf_len)
+		m_sbuf(new LockedFifoBuffer(m_sbuf_len))
 	{
 		SLIB_ASSERT(m_rbuf_len + MIN_PACKET < m_sbuf_len);
 
@@ -563,7 +598,7 @@ namespace slib
 
 	sl_uint32 PseudoTcp::getBytesBufferedNotSent() const
 	{
-		return static_cast<sl_uint32>(m_snd_una + m_sbuf.getBuffered() - m_snd_nxt);
+		return static_cast<sl_uint32>(m_snd_una + m_sbuf->getBuffered() - m_snd_nxt);
 	}
 
 	sl_uint32 PseudoTcp::getRoundTripTimeEstimate() const
@@ -579,14 +614,14 @@ namespace slib
 		}
 
 		sl_size read = 0;
-		if (!m_rbuf.read(buffer, len, &read)) {
+		if (!m_rbuf->read(buffer, len, &read)) {
 			m_bReadEnable = sl_true;
 			m_error = PseudoTcpError::WouldBlock;
 			return SLIB_IO_WOULD_BLOCK;
 		}
 
 		sl_size available_space = 0;
-		m_rbuf.getWriteRemaining(&available_space);
+		m_rbuf->getWriteRemaining(&available_space);
 
 		if (sl_uint32(available_space) - m_rcv_wnd >= Math::min<sl_uint32>(m_rbuf_len / 2, m_mss)) {
 			// TODO(jbeda): !?! Not sure about this was closed business
@@ -611,7 +646,7 @@ namespace slib
 		}
 
 		sl_size available_space = 0;
-		m_sbuf.getWriteRemaining(&available_space);
+		m_sbuf->getWriteRemaining(&available_space);
 
 		if (!available_space) {
 			m_bWriteEnable = sl_true;
@@ -643,7 +678,7 @@ namespace slib
 	sl_uint32 PseudoTcp::queue(const char* data, sl_uint32 len, sl_bool bCtrl)
 	{
 		sl_size available_space = 0;
-		m_sbuf.getWriteRemaining(&available_space);
+		m_sbuf->getWriteRemaining(&available_space);
 
 		if (len > static_cast<sl_uint32>(available_space)) {
 			SLIB_ASSERT(!bCtrl);
@@ -654,12 +689,12 @@ namespace slib
 		if (!m_slist.isEmpty() && (m_slist.getBack()->value.bCtrl == bCtrl) && (m_slist.getBack()->value.xmit == 0)) {
 			m_slist.getBack()->value.len += len;
 		} else {
-			SSegment sseg(static_cast<sl_uint32>(m_snd_una + m_sbuf.getBuffered()), len, bCtrl);
+			SSegment sseg(static_cast<sl_uint32>(m_snd_una + m_sbuf->getBuffered()), len, bCtrl);
 			m_slist.pushBack_NoLock(sseg);
 		}
 
 		sl_size written = 0;
-		m_sbuf.write(data, len, &written);
+		m_sbuf->write(data, len, &written);
 		return static_cast<sl_uint32>(written);
 	}
 
@@ -701,7 +736,7 @@ namespace slib
 
 		if (len) {
 			sl_size bytes_read = 0;
-			sl_bool result = m_sbuf.readOffset(buffer + HEADER_SIZE, len, offset, &bytes_read);
+			sl_bool result = m_sbuf->readOffset(buffer + HEADER_SIZE, len, offset, &bytes_read);
 			SLIB_UNUSED(result);
 			SLIB_ASSERT(result);
 			SLIB_ASSERT(static_cast<sl_uint32>(bytes_read) == len);
@@ -757,7 +792,7 @@ namespace slib
 			return sl_false;
 		}
 
-		if ((m_shutdown == PseudoTcpShutdownType::Graceful) && ((m_state != PseudoTcpState::Established) || ((m_sbuf.getBuffered() == 0) && (m_t_ack == 0)))) {
+		if ((m_shutdown == PseudoTcpShutdownType::Graceful) && ((m_state != PseudoTcpState::Established) || ((m_sbuf->getBuffered() == 0) && (m_t_ack == 0)))) {
 			return sl_false;
 		}
 
@@ -877,7 +912,7 @@ namespace slib
 
 			m_rto_base = (m_snd_una == m_snd_nxt) ? 0 : now;
 
-			m_sbuf.consumeReadData(nAcked);
+			m_sbuf->consumeReadData(nAcked);
 
 			for (sl_uint32 nFree = nAcked; nFree > 0;) {
 				SLIB_ASSERT(!m_slist.isEmpty());
@@ -956,7 +991,7 @@ namespace slib
 
 		// If we make room in the send queue, notify the user. The goal it to make sure we always have at least enough data to fill the window. We'd like to notify the app when we are halfway to that point.
 		const sl_uint32 kIdealRefillSize = (m_sbuf_len + m_rbuf_len) / 2;
-		if (m_bWriteEnable && static_cast<sl_uint32>(m_sbuf.getBuffered()) < kIdealRefillSize) {
+		if (m_bWriteEnable && static_cast<sl_uint32>(m_sbuf->getBuffered()) < kIdealRefillSize) {
 			m_bWriteEnable = sl_false;
 			if (m_notify) {
 				m_notify->onTcpWriteable(this);
@@ -1001,7 +1036,7 @@ namespace slib
 		}
 
 		sl_size available_space = 0;
-		m_rbuf.getWriteRemaining(&available_space);
+		m_rbuf->getWriteRemaining(&available_space);
 
 		if ((seg.seq + seg.len - m_rcv_nxt) > static_cast<sl_uint32>(available_space)) {
 			sl_uint32 nAdjust = seg.seq + seg.len - m_rcv_nxt - static_cast<sl_uint32>(available_space);
@@ -1022,9 +1057,9 @@ namespace slib
 					m_rcv_nxt += seg.len;
 					// If we received a data segment out of order relative to a control segment, then we wrote it into the receive buffer at an offset (see "writeOffset") below. So we need to advance the position in the buffer to avoid corrupting data. See bugs.webrtc.org/9208
 					// We advance the position in the buffer by N bytes by acting like we wrote N bytes and then immediately read them. We can only do this if there's not already data ready to read, but this should always be true in the problematic scenario, since control frames are always sent first in the stream.
-					if (m_rbuf.getBuffered() == 0) {
-						m_rbuf.consumeWriteBuffer(seg.len);
-						m_rbuf.consumeReadData(seg.len);
+					if (m_rbuf->getBuffered() == 0) {
+						m_rbuf->consumeWriteBuffer(seg.len);
+						m_rbuf->consumeReadData(seg.len);
 						// After shifting the position in the buffer, we may have out-of-order packets ready to be recovered.
 						bRecover = sl_true;
 					}
@@ -1032,13 +1067,13 @@ namespace slib
 			} else {
 				sl_uint32 nOffset = seg.seq - m_rcv_nxt;
 
-				if (!m_rbuf.writeOffset(seg.data, seg.len, nOffset, sl_null)) {
+				if (!m_rbuf->writeOffset(seg.data, seg.len, nOffset, sl_null)) {
 					// Ignore incoming packets outside of the receive window.
 					return sl_false;
 				}
 
 				if (seg.seq == m_rcv_nxt) {
-					m_rbuf.consumeWriteBuffer(seg.len);
+					m_rbuf->consumeWriteBuffer(seg.len);
 					m_rcv_nxt += seg.len;
 					m_rcv_wnd -= seg.len;
 					bNewData = sl_true;
@@ -1063,7 +1098,7 @@ namespace slib
 						sflags = PseudoTcpSendFlags::ImmediateAck;  // (Fast Recovery)
 						sl_uint32 nAdjust = (it->value.seq + it->value.len) - m_rcv_nxt;
 						LOG_NORMAL("process: Recovered %s bytes (%s->%s", nAdjust, m_rcv_nxt, m_rcv_nxt + nAdjust);
-						m_rbuf.consumeWriteBuffer(nAdjust);
+						m_rbuf->consumeWriteBuffer(nAdjust);
 						m_rcv_nxt += nAdjust;
 						m_rcv_wnd -= nAdjust;
 						bNewData = sl_true;
@@ -1178,7 +1213,7 @@ namespace slib
 			sl_uint32 nInFlight = m_snd_nxt - m_snd_una;
 			sl_uint32 nUseable = (nInFlight < nWindow) ? (nWindow - nInFlight) : 0;
 
-			sl_size snd_buffered = m_sbuf.getBuffered();
+			sl_size snd_buffered = m_sbuf->getBuffered();
 			sl_uint32 nAvailable = Math::min(static_cast<sl_uint32>(snd_buffered) - nInFlight, m_mss);
 
 			if (nAvailable > nUseable) {
@@ -1193,7 +1228,7 @@ namespace slib
 #if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 			if (bFirst) {
 				sl_size available_space = 0;
-				m_sbuf.getWriteRemaining(&available_space);
+				m_sbuf->getWriteRemaining(&available_space);
 
 				bFirst = sl_false;
 				LOG_VERBOSE("attemptSend: cwnd=%s, nWindow=%s, nInFlight=%s, nAvailable=%s, nQueued=%s, nEmpty=%s, ssthresh=%s", m_cwnd, nWindow, nInFlight, nAvailable, snd_buffered, available_space, m_ssthresh);
@@ -1272,7 +1307,7 @@ namespace slib
 	sl_bool PseudoTcp::isReceiveBufferFull() const
 	{
 		sl_size available_space = 0;
-		m_rbuf.getWriteRemaining(&available_space);
+		m_rbuf->getWriteRemaining(&available_space);
 		return !available_space;
 	}
 
@@ -1372,7 +1407,7 @@ namespace slib
 	void PseudoTcp::resizeSendBuffer(sl_uint32 new_size)
 	{
 		m_sbuf_len = new_size;
-		m_sbuf.setCapacity(new_size);
+		m_sbuf->setCapacity(new_size);
 	}
 
 	// Resize the receive buffer with `new_size` in bytes. This call adjusts window scale factor `m_swnd_scale` accordingly.
@@ -1388,7 +1423,7 @@ namespace slib
 
 		// Determine the proper size of the buffer.
 		new_size <<= scale_factor;
-		sl_bool result = m_rbuf.setCapacity(new_size);
+		sl_bool result = m_rbuf->setCapacity(new_size);
 		SLIB_UNUSED(result);
 
 		// Make sure the new buffer is large enough to contain data in the old buffer. This should always be sl_true because this method is called either before connection is established or when peers are exchanging connect messages.
@@ -1398,7 +1433,7 @@ namespace slib
 		m_ssthresh = new_size;
 
 		sl_size available_space = 0;
-		m_rbuf.getWriteRemaining(&available_space);
+		m_rbuf->getWriteRemaining(&available_space);
 		m_rcv_wnd = static_cast<sl_uint32>(available_space);
 	}
 

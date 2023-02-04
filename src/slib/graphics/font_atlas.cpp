@@ -36,20 +36,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace font_atlas
-		{
-
-			typedef CHashMap< String, WeakRef<FontAtlas> > FontAtlasMap;
-
-			SLIB_SAFE_STATIC_GETTER(FontAtlasMap, GetFontAtlasMap)
-
-		}
-	}
-
-	using namespace priv::font_atlas;
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontAtlasParam)
 
 	FontAtlasParam::FontAtlasParam()
@@ -158,6 +144,14 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	namespace {
+
+		typedef CHashMap< String, WeakRef<FontAtlas> > FontAtlasMap;
+
+		SLIB_SAFE_STATIC_GETTER(FontAtlasMap, GetFontAtlasMap)
+
 	}
 
 	Ref<FontAtlas> FontAtlas::getShared(const Ref<Font>& font)

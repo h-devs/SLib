@@ -46,61 +46,54 @@ namespace slib
 	{
 	}
 
-	namespace priv
+	class ListView::ContentView : public ViewGroup
 	{
-		namespace list_view
+	private:
+		WeakRef<ListView> m_listView;
+
+	public:
+		ContentView()
 		{
-
-			class ContentView : public ViewGroup
-			{
-			private:
-				WeakRef<ListView> m_listView;
-
-			public:
-				ContentView()
-				{
-					setCreatingEmptyContent(sl_true);
-					setSavingCanvasState(sl_false);
-					setUsingChildLayouts(sl_false);
-				}
-
-			public:
-				Ref<ListView> getListView()
-				{
-					return m_listView;
-				}
-
-				void setListView(ListView* view)
-				{
-					m_listView = view;
-				}
-
-			protected:
-				void dispatchDraw(Canvas* canvas) override
-				{
-					Ref<ListView> lv = m_listView;
-					if (lv.isNotNull()) {
-						if (!(lv->getChildCount())) {
-							lv->_layoutItemViews(ListView::LayoutCaller::Draw, sl_false);
-						}
-					}
-					ViewGroup::dispatchDraw(canvas);
-				}
-
-				void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override
-				{
-					Ref<ListView> lv = m_listView;
-					if (lv.isNotNull()) {
-						if (lv->m_lockCountLayouting == 0) {
-							dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), lv, _layoutItemViews, ListView::LayoutCaller::None, sl_false));
-						}
-					}
-				}
-
-			};
-
+			setCreatingEmptyContent(sl_true);
+			setSavingCanvasState(sl_false);
+			setUsingChildLayouts(sl_false);
 		}
-	}
+
+	public:
+		Ref<ListView> getListView()
+		{
+			return m_listView;
+		}
+
+		void setListView(ListView* view)
+		{
+			m_listView = view;
+		}
+
+	protected:
+		void dispatchDraw(Canvas* canvas) override
+		{
+			Ref<ListView> lv = m_listView;
+			if (lv.isNotNull()) {
+				if (!(lv->getChildCount())) {
+					lv->_layoutItemViews(ListView::LayoutCaller::Draw, sl_false);
+				}
+			}
+			ViewGroup::dispatchDraw(canvas);
+		}
+
+		void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override
+		{
+			Ref<ListView> lv = m_listView;
+			if (lv.isNotNull()) {
+				if (lv->m_lockCountLayouting == 0) {
+					dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), lv, _layoutItemViews, ListView::LayoutCaller::None, sl_false));
+				}
+			}
+		}
+
+	};
+
 
 	SLIB_DEFINE_OBJECT(ListView, VerticalScrollView)
 
@@ -127,7 +120,7 @@ namespace slib
 
 		_initStatus();
 
-		m_contentView = new priv::list_view::ContentView;
+		m_contentView = new ContentView;
 	}
 
 	ListView::~ListView()

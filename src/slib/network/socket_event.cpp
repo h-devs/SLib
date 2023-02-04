@@ -37,75 +37,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace socket_event
-		{
-
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-			static sl_uint32 GetEventStatus(sl_uint32 ne)
-			{
-				sl_uint32 ret = 0;
-				if (ne & (FD_CONNECT | FD_WRITE)) {
-					ret |= SocketEvent::Write;
-				}
-				if (ne & (FD_ACCEPT | FD_READ)) {
-					ret |= SocketEvent::Read;
-				}
-				if (ne & FD_CLOSE) {
-					ret |= SocketEvent::Close;
-				}
-				return ret;
-			}
-#else
-			static void PreparePoll(pollfd* fd, int socket, int pipe, sl_uint32 eventsReq)
-			{
-				fd->fd = socket;
-				sl_uint32 events = 0;
-				if (eventsReq & SocketEvent::Read) {
-					events = events | POLLIN | POLLPRI;
-				}
-				if (eventsReq & SocketEvent::Write) {
-					events = events | POLLOUT;
-				}
-				if (eventsReq & SocketEvent::Close) {
-#if defined(SLIB_PLATFORM_IS_LINUX)
-					events = events | POLLERR | POLLHUP | POLLRDHUP;
-#else
-					events = events | POLLERR | POLLHUP;
-#endif
-				}
-				fd->events = events;
-				fd++;
-				fd->fd = pipe;
-				fd->events = POLLIN | POLLPRI | POLLERR | POLLHUP;
-			}
-
-			static sl_uint32 GetEventStatus(sl_uint32 ne)
-			{
-				sl_uint32 ret = 0;
-				if (ne & (POLLIN | POLLPRI)) {
-					ret |= SocketEvent::Read;
-				}
-				if (ne & POLLOUT) {
-					ret |= SocketEvent::Write;
-				}
-#if defined(SLIB_PLATFORM_IS_LINUX)
-				if (ne & (POLLERR | POLLHUP | POLLRDHUP)) {
-#else
-				if (ne & (POLLERR | POLLHUP)) {
-#endif
-					ret |= SocketEvent::Close;
-				}
-				return ret;
-			}
-#endif
-
-		}
-	}
-
-	using namespace priv::socket_event;
-
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
 	SocketEvent::SocketEvent(sl_socket socket, sl_uint32 events, void* handle): m_handle(handle)
 #else
@@ -218,6 +149,69 @@ namespace slib
 	sl_bool SocketEvent::doWait(sl_int32 timeout)
 	{
 		return doWait(sl_null, timeout);
+	}
+
+	namespace {
+
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+		static sl_uint32 GetEventStatus(sl_uint32 ne)
+		{
+			sl_uint32 ret = 0;
+			if (ne & (FD_CONNECT | FD_WRITE)) {
+				ret |= SocketEvent::Write;
+			}
+			if (ne & (FD_ACCEPT | FD_READ)) {
+				ret |= SocketEvent::Read;
+			}
+			if (ne & FD_CLOSE) {
+				ret |= SocketEvent::Close;
+			}
+			return ret;
+		}
+#else
+		static void PreparePoll(pollfd* fd, int socket, int pipe, sl_uint32 eventsReq)
+		{
+			fd->fd = socket;
+			sl_uint32 events = 0;
+			if (eventsReq & SocketEvent::Read) {
+				events = events | POLLIN | POLLPRI;
+			}
+			if (eventsReq & SocketEvent::Write) {
+				events = events | POLLOUT;
+			}
+			if (eventsReq & SocketEvent::Close) {
+#if defined(SLIB_PLATFORM_IS_LINUX)
+				events = events | POLLERR | POLLHUP | POLLRDHUP;
+#else
+				events = events | POLLERR | POLLHUP;
+#endif
+			}
+			fd->events = events;
+			fd++;
+			fd->fd = pipe;
+			fd->events = POLLIN | POLLPRI | POLLERR | POLLHUP;
+		}
+
+		static sl_uint32 GetEventStatus(sl_uint32 ne)
+		{
+			sl_uint32 ret = 0;
+			if (ne & (POLLIN | POLLPRI)) {
+				ret |= SocketEvent::Read;
+			}
+			if (ne & POLLOUT) {
+				ret |= SocketEvent::Write;
+			}
+#if defined(SLIB_PLATFORM_IS_LINUX)
+			if (ne & (POLLERR | POLLHUP | POLLRDHUP)) {
+#else
+			if (ne & (POLLERR | POLLHUP)) {
+#endif
+				ret |= SocketEvent::Close;
+			}
+			return ret;
+		}
+#endif
+
 	}
 
 	sl_bool SocketEvent::doWait(sl_uint32* pOutStatus, sl_int32 timeout) noexcept

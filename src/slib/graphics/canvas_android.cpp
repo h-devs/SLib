@@ -31,256 +31,250 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace android
+	namespace {
+
+		SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
+			SLIB_JNI_INT_FIELD(left);
+			SLIB_JNI_INT_FIELD(top);
+			SLIB_JNI_INT_FIELD(right);
+			SLIB_JNI_INT_FIELD(bottom);
+		SLIB_JNI_END_CLASS
+
+		SLIB_JNI_BEGIN_CLASS(JGraphics, "slib/android/ui/Graphics")
+			SLIB_JNI_METHOD(getWidth, "getWidth", "()I");
+			SLIB_JNI_METHOD(getHeight, "getHeight", "()I");
+			SLIB_JNI_METHOD(save, "save", "()V");
+			SLIB_JNI_METHOD(restore, "restore", "()V");
+			SLIB_JNI_METHOD(getClipBounds, "getClipBounds", "()Landroid/graphics/Rect;");
+			SLIB_JNI_METHOD(clipToRectangle, "clipToRectangle", "(FFFF)V");
+			SLIB_JNI_METHOD(clipToPath, "clipToPath", "(Lslib/android/ui/UiPath;)V");
+			SLIB_JNI_METHOD(concatMatrix, "concatMatrix", "(FFFFFFFFF)V");
+			SLIB_JNI_METHOD(drawText, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;I)V");
+			SLIB_JNI_METHOD(drawText2, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;IIFFF)V");
+			SLIB_JNI_METHOD(drawLine, "drawLine", "(FFFFLslib/android/ui/UiPen;)V");
+			SLIB_JNI_METHOD(drawLines, "drawLines", "([FLslib/android/ui/UiPen;)V");
+			SLIB_JNI_METHOD(drawArc, "drawArc", "(FFFFFFLslib/android/ui/UiPen;)V");
+			SLIB_JNI_METHOD(drawRectangle, "drawRectangle", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+			SLIB_JNI_METHOD(drawRoundRectangle, "drawRoundRectangle", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+			SLIB_JNI_METHOD(drawEllipse, "drawEllipse", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+			SLIB_JNI_METHOD(drawPolygon, "drawPolygon", "([FLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;I)V");
+			SLIB_JNI_METHOD(drawPie, "drawPie", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+			SLIB_JNI_METHOD(drawPath, "drawPath", "(Lslib/android/ui/UiPath;Lslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
+			SLIB_JNI_METHOD(setAlpha, "setAlpha", "(F)V");
+			SLIB_JNI_METHOD(setAntiAlias, "setAntiAlias", "(Z)V");
+		SLIB_JNI_END_CLASS
+
+		class CanvasImpl : public CanvasExt
 		{
+			SLIB_DECLARE_OBJECT
+		public:
+			JniGlobal<jobject> m_canvas;
 
-			SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
-				SLIB_JNI_INT_FIELD(left);
-				SLIB_JNI_INT_FIELD(top);
-				SLIB_JNI_INT_FIELD(right);
-				SLIB_JNI_INT_FIELD(bottom);
-			SLIB_JNI_END_CLASS
-
-			SLIB_JNI_BEGIN_CLASS(JGraphics, "slib/android/ui/Graphics")
-				SLIB_JNI_METHOD(getWidth, "getWidth", "()I");
-				SLIB_JNI_METHOD(getHeight, "getHeight", "()I");
-				SLIB_JNI_METHOD(save, "save", "()V");
-				SLIB_JNI_METHOD(restore, "restore", "()V");
-				SLIB_JNI_METHOD(getClipBounds, "getClipBounds", "()Landroid/graphics/Rect;");
-				SLIB_JNI_METHOD(clipToRectangle, "clipToRectangle", "(FFFF)V");
-				SLIB_JNI_METHOD(clipToPath, "clipToPath", "(Lslib/android/ui/UiPath;)V");
-				SLIB_JNI_METHOD(concatMatrix, "concatMatrix", "(FFFFFFFFF)V");
-				SLIB_JNI_METHOD(drawText, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;I)V");
-				SLIB_JNI_METHOD(drawText2, "drawText", "(Ljava/lang/String;FFLslib/android/ui/UiFont;IIFFF)V");
-				SLIB_JNI_METHOD(drawLine, "drawLine", "(FFFFLslib/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawLines, "drawLines", "([FLslib/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawArc, "drawArc", "(FFFFFFLslib/android/ui/UiPen;)V");
-				SLIB_JNI_METHOD(drawRectangle, "drawRectangle", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawRoundRectangle, "drawRoundRectangle", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawEllipse, "drawEllipse", "(FFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawPolygon, "drawPolygon", "([FLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;I)V");
-				SLIB_JNI_METHOD(drawPie, "drawPie", "(FFFFFFLslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(drawPath, "drawPath", "(Lslib/android/ui/UiPath;Lslib/android/ui/UiPen;Lslib/android/ui/UiBrush;)V");
-				SLIB_JNI_METHOD(setAlpha, "setAlpha", "(F)V");
-				SLIB_JNI_METHOD(setAntiAlias, "setAntiAlias", "(Z)V");
-			SLIB_JNI_END_CLASS
-
-			class CanvasImpl : public CanvasExt
-			{
-				SLIB_DECLARE_OBJECT
-			public:
-				JniGlobal<jobject> m_canvas;
-
-			public:
-				static Ref<CanvasImpl> create(CanvasType type, jobject jcanvas) {
-					JniGlobal<jobject> canvas = JniGlobal<jobject>::create(jcanvas);
-					if (canvas.isNotNull()) {
-						int width = JGraphics::getWidth.callInt(jcanvas);
-						int height = JGraphics::getHeight.callInt(jcanvas);
-						Ref<CanvasImpl> ret = new CanvasImpl();
-						if (ret.isNotNull()) {
-							ret->setType(type);
-							ret->setSize(Size((sl_real)width, (sl_real)height));
-							ret->m_canvas = Move(canvas);
-							return ret;
-						}
-					}
-					return sl_null;
-				}
-
-				void save() override
-				{
-					JGraphics::save.call(m_canvas);
-				}
-
-				void restore() override
-				{
-					JGraphics::restore.call(m_canvas);
-				}
-
-				Rectangle getClipBounds() override
-				{
-					JniLocal<jobject> rect(JGraphics::getClipBounds.callObject(m_canvas));
-					if (rect.isNotNull()) {
-						Rectangle ret;
-						ret.left = JRect::left.get(rect);
-						ret.top = JRect::top.get(rect);
-						ret.right = JRect::right.get(rect);
-						ret.bottom = JRect::bottom.get(rect);
+		public:
+			static Ref<CanvasImpl> create(CanvasType type, jobject jcanvas) {
+				JniGlobal<jobject> canvas = JniGlobal<jobject>::create(jcanvas);
+				if (canvas.isNotNull()) {
+					int width = JGraphics::getWidth.callInt(jcanvas);
+					int height = JGraphics::getHeight.callInt(jcanvas);
+					Ref<CanvasImpl> ret = new CanvasImpl();
+					if (ret.isNotNull()) {
+						ret->setType(type);
+						ret->setSize(Size((sl_real)width, (sl_real)height));
+						ret->m_canvas = Move(canvas);
 						return ret;
 					}
-					Size size = getSize();
-					return Rectangle(0, 0, size.x, size.y);
 				}
+				return sl_null;
+			}
 
-				void clipToRectangle(const Rectangle& _rect) override
-				{
-					JGraphics::clipToRectangle.call(m_canvas, (float)(_rect.left), (float)(_rect.top), (float)(_rect.right), (float)(_rect.bottom));
+			void save() override
+			{
+				JGraphics::save.call(m_canvas);
+			}
+
+			void restore() override
+			{
+				JGraphics::restore.call(m_canvas);
+			}
+
+			Rectangle getClipBounds() override
+			{
+				JniLocal<jobject> rect(JGraphics::getClipBounds.callObject(m_canvas));
+				if (rect.isNotNull()) {
+					Rectangle ret;
+					ret.left = JRect::left.get(rect);
+					ret.top = JRect::top.get(rect);
+					ret.right = JRect::right.get(rect);
+					ret.bottom = JRect::bottom.get(rect);
+					return ret;
 				}
+				Size size = getSize();
+				return Rectangle(0, 0, size.x, size.y);
+			}
 
-				void clipToPath(const Ref<GraphicsPath>& path) override
-				{
-					jobject handle = GraphicsPlatform::getGraphicsPath(path.get());
-					if (handle) {
-						JGraphics::clipToPath.call(m_canvas, handle);
+			void clipToRectangle(const Rectangle& _rect) override
+			{
+				JGraphics::clipToRectangle.call(m_canvas, (float)(_rect.left), (float)(_rect.top), (float)(_rect.right), (float)(_rect.bottom));
+			}
+
+			void clipToPath(const Ref<GraphicsPath>& path) override
+			{
+				jobject handle = GraphicsPlatform::getGraphicsPath(path.get());
+				if (handle) {
+					JGraphics::clipToPath.call(m_canvas, handle);
+				}
+			}
+
+			void concatMatrix(const Matrix3& matrix) override
+			{
+				JGraphics::concatMatrix.call(m_canvas,
+						(float)(matrix.m00), (float)(matrix.m10), (float)(matrix.m20),
+						(float)(matrix.m01), (float)(matrix.m11), (float)(matrix.m21),
+						(float)(matrix.m02), (float)(matrix.m12), (float)(matrix.m22));
+			}
+
+			void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
+			{
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				if (hPen) {
+					JGraphics::drawLine.call(m_canvas, (float)(pt1.x), (float)(pt1.y), (float)(pt2.x), (float)(pt2.y), hPen);
+				}
+			}
+
+			void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
+			{
+				if (countPoints < 2) {
+					return;
+				}
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				if (hPen) {
+					JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
+					if (jarr.isNotNull()) {
+						Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
+						JGraphics::drawLines.call(m_canvas, jarr.get(), hPen);
 					}
 				}
+			}
 
-				void concatMatrix(const Matrix3& matrix) override
-				{
-					JGraphics::concatMatrix.call(m_canvas,
-							(float)(matrix.m00), (float)(matrix.m10), (float)(matrix.m20),
-							(float)(matrix.m01), (float)(matrix.m11), (float)(matrix.m21),
-							(float)(matrix.m02), (float)(matrix.m12), (float)(matrix.m22));
+			void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& pen) override
+			{
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				if (hPen) {
+					JGraphics::drawArc.call(m_canvas,
+						(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+						(float)(startDegrees), (float)(endDegrees),
+						hPen);
 				}
+			}
 
-				void drawLine(const Point& pt1, const Point& pt2, const Ref<Pen>& pen) override
-				{
+			void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
+				if (hPen || hBrush) {
+					JGraphics::drawRectangle.call(m_canvas,
+						(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+						hPen, hBrush);
+				}
+			}
+
+			void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
+				if (hPen || hBrush) {
+					JGraphics::drawRoundRectangle.call(m_canvas,
+						(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+						(float)(radius.x), (float)(radius.y), hPen, hBrush);
+				}
+			}
+
+			void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
+				if (hPen || hBrush) {
+					JGraphics::drawEllipse.call(m_canvas,
+						(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+						hPen, hBrush);
+				}
+			}
+
+			void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
+			{
+				if (countPoints <= 2) {
+					return;
+				}
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
+				if (hPen || hBrush) {
+					JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
+					if (jarr.isNotNull()) {
+						Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
+						JGraphics::drawPolygon.call(m_canvas, jarr.get(), hPen, hBrush, fillMode);
+					}
+				}
+			}
+
+			void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
+				jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
+				if (hPen || hBrush) {
+					JGraphics::drawPie.call(m_canvas,
+						(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
+						(float)(startDegrees), (float)(endDegrees),
+						hPen, hBrush);
+				}
+			}
+
+			void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
+			{
+				jobject hPath = GraphicsPlatform::getGraphicsPath(path.get());
+				if (hPath) {
 					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					if (hPen) {
-						JGraphics::drawLine.call(m_canvas, (float)(pt1.x), (float)(pt1.y), (float)(pt2.x), (float)(pt2.y), hPen);
+					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
+					if (hPen || hBrush) {
+						JGraphics::drawPath.call(m_canvas,hPath, hPen, hBrush);
 					}
 				}
+			}
 
-				void drawLines(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen) override
-				{
-					if (countPoints < 2) {
-						return;
-					}
-					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					if (hPen) {
-						JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
-						if (jarr.isNotNull()) {
-							Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
-							JGraphics::drawLines.call(m_canvas, jarr.get(), hPen);
+			void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
+			{
+				StringData16 text(_text);
+				if (text.isNotEmpty()) {
+					jobject hFont = GraphicsPlatform::getNativeFont(font.get());
+					if (hFont) {
+						JniLocal<jstring> jtext = Jni::getJniString(text.getData(), text.getLength());
+						sl_real shadowOpacity = param.shadowOpacity;
+						if (shadowOpacity > 0.0001f) {
+							Color shadowColor = param.shadowColor;
+							shadowColor.multiplyAlpha((float)shadowOpacity);
+							JGraphics::drawText2.call(m_canvas, jtext.get(), (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()),
+								(jint)(shadowColor.getARGB()), (jfloat)(param.shadowRadius), (jfloat)(param.shadowOffset.x), (jfloat)(param.shadowOffset.y));
+						} else {
+							JGraphics::drawText.call(m_canvas, jtext.get(), (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()));
 						}
 					}
 				}
+			}
 
-				void drawArc(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& pen) override
-				{
-					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					if (hPen) {
-						JGraphics::drawArc.call(m_canvas,
-							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
-							(float)(startDegrees), (float)(endDegrees),
-							hPen);
-					}
-				}
+			void _setAlpha(sl_real alpha) override
+			{
+				JGraphics::setAlpha.call(m_canvas, (float)alpha);
+			}
 
-				void drawRectangle(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
-					if (hPen || hBrush) {
-						JGraphics::drawRectangle.call(m_canvas,
-							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
-							hPen, hBrush);
-					}
-				}
+			void _setAntiAlias(sl_bool flag) override
+			{
+				JGraphics::setAntiAlias.call(m_canvas, flag);
+			}
 
-				void drawRoundRect(const Rectangle& rect, const Size& radius, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
-					if (hPen || hBrush) {
-						JGraphics::drawRoundRectangle.call(m_canvas,
-							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
-							(float)(radius.x), (float)(radius.y), hPen, hBrush);
-					}
-				}
+		};
 
-				void drawEllipse(const Rectangle& rect, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
-					if (hPen || hBrush) {
-						JGraphics::drawEllipse.call(m_canvas,
-							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
-							hPen, hBrush);
-					}
-				}
+		SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
 
-				void drawPolygon(const Point* points, sl_uint32 countPoints, const Ref<Pen>& pen, const Ref<Brush>& brush, FillMode fillMode) override
-				{
-					if (countPoints <= 2) {
-						return;
-					}
-					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
-					if (hPen || hBrush) {
-						JniLocal<jfloatArray> jarr = Jni::newFloatArray(countPoints*2);
-						if (jarr.isNotNull()) {
-							Jni::setFloatArrayRegion(jarr, 0, countPoints*2, (jfloat*)(points));
-							JGraphics::drawPolygon.call(m_canvas, jarr.get(), hPen, hBrush, fillMode);
-						}
-					}
-				}
-
-				void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real endDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-					jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
-					if (hPen || hBrush) {
-						JGraphics::drawPie.call(m_canvas,
-							(float)(rect.left), (float)(rect.top), (float)(rect.right), (float)(rect.bottom),
-							(float)(startDegrees), (float)(endDegrees),
-							hPen, hBrush);
-					}
-				}
-
-				void drawPath(const Ref<GraphicsPath>& path, const Ref<Pen>& pen, const Ref<Brush>& brush) override
-				{
-					jobject hPath = GraphicsPlatform::getGraphicsPath(path.get());
-					if (hPath) {
-						jobject hPen = GraphicsPlatform::getPenHandle(pen.get());
-						jobject hBrush = GraphicsPlatform::getBrushHandle(brush.get());
-						if (hPen || hBrush) {
-							JGraphics::drawPath.call(m_canvas,hPath, hPen, hBrush);
-						}
-					}
-				}
-
-				void onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param) override
-				{
-					StringData16 text(_text);
-					if (text.isNotEmpty()) {
-						jobject hFont = GraphicsPlatform::getNativeFont(font.get());
-						if (hFont) {
-							JniLocal<jstring> jtext = Jni::getJniString(text.getData(), text.getLength());
-							sl_real shadowOpacity = param.shadowOpacity;
-							if (shadowOpacity > 0.0001f) {
-								Color shadowColor = param.shadowColor;
-								shadowColor.multiplyAlpha((float)shadowOpacity);
-								JGraphics::drawText2.call(m_canvas, jtext.get(), (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()),
-									(jint)(shadowColor.getARGB()), (jfloat)(param.shadowRadius), (jfloat)(param.shadowOffset.x), (jfloat)(param.shadowOffset.y));
-							} else {
-								JGraphics::drawText.call(m_canvas, jtext.get(), (jfloat)x, (jfloat)y, hFont, (jint)(param.color.getARGB()));
-							}
-						}
-					}
-				}
-
-				void _setAlpha(sl_real alpha) override
-				{
-					JGraphics::setAlpha.call(m_canvas, (float)alpha);
-				}
-
-				void _setAntiAlias(sl_bool flag) override
-				{
-					JGraphics::setAntiAlias.call(m_canvas, flag);
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(CanvasImpl, CanvasExt)
-
-		}
 	}
-
-	using namespace priv::android;
 
 	Ref<Canvas> GraphicsPlatform::createCanvas(CanvasType type, jobject jcanvas)
 	{

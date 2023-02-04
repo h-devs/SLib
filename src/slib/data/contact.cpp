@@ -27,34 +27,26 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace contact
-		{
-
-			String EncodeVCardText(const String& text)
-			{
-				char* data = text.getData();
-				sl_size len = text.getLength();
-				StringBuffer buf;
-				for (sl_size i = 0; i < len; i++) {
-					buf.addStatic("=");
-					buf.add(String::fromInt((sl_uint8)(data[i]), 16, 0, sl_true));
-				}
-				return buf.merge();
-			}
-
-		}
-	}
-
-	using namespace priv::contact;
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Contact)
 
 	SLIB_DEFINE_JSON_MEMBERS(Contact, namePrefix, nameSuffix, familyName, givenName, middleName, displayName, nickname, phoneNumbers, emails)
 
 	Contact::Contact()
 	{
+	}
+
+	namespace {
+		String EncodeVCardText(const String& text)
+		{
+			char* data = text.getData();
+			sl_size len = text.getLength();
+			StringBuffer buf;
+			for (sl_size i = 0; i < len; i++) {
+				buf.addStatic("=");
+				buf.add(String::fromInt((sl_uint8)(data[i]), 16, 0, sl_true));
+			}
+			return buf.merge();
+		}
 	}
 
 	String Contact::generateVCard()

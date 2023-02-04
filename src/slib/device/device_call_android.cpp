@@ -32,66 +32,60 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace device
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JPhoneCall, "slib/android/device/PhoneCall")
-				SLIB_JNI_STATIC_METHOD(openDial, "openDial", "(Landroid/app/Activity;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(callPhone, "callPhone", "(Landroid/app/Activity;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(callPhoneWithSim, "callPhone", "(Landroid/app/Activity;Ljava/lang/String;I)V");
-				SLIB_JNI_STATIC_METHOD(answerCall, "answerCall", "(Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(endCall, "endCall", "(Ljava/lang/String;)V");
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JPhoneCall, "slib/android/device/PhoneCall")
+			SLIB_JNI_STATIC_METHOD(openDial, "openDial", "(Landroid/app/Activity;Ljava/lang/String;)V");
+			SLIB_JNI_STATIC_METHOD(callPhone, "callPhone", "(Landroid/app/Activity;Ljava/lang/String;)V");
+			SLIB_JNI_STATIC_METHOD(callPhoneWithSim, "callPhone", "(Landroid/app/Activity;Ljava/lang/String;I)V");
+			SLIB_JNI_STATIC_METHOD(answerCall, "answerCall", "(Ljava/lang/String;)V");
+			SLIB_JNI_STATIC_METHOD(endCall, "endCall", "(Ljava/lang/String;)V");
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JContact, "slib/android/device/Contact")
-				SLIB_JNI_NEW(init, "()V");
-				SLIB_JNI_STRING_FIELD(namePrefix);
-				SLIB_JNI_STRING_FIELD(givenName);
-				SLIB_JNI_STRING_FIELD(middleName);
-				SLIB_JNI_STRING_FIELD(familyName);
-				SLIB_JNI_STRING_FIELD(nameSuffix);
-				SLIB_JNI_STRING_FIELD(displayName);
-				SLIB_JNI_STRING_FIELD(nickname);
-				SLIB_JNI_STRING_FIELD(phoneNumbers);
-				SLIB_JNI_STRING_FIELD(emails);
+		SLIB_JNI_BEGIN_CLASS(JContact, "slib/android/device/Contact")
+			SLIB_JNI_NEW(init, "()V");
+			SLIB_JNI_STRING_FIELD(namePrefix);
+			SLIB_JNI_STRING_FIELD(givenName);
+			SLIB_JNI_STRING_FIELD(middleName);
+			SLIB_JNI_STRING_FIELD(familyName);
+			SLIB_JNI_STRING_FIELD(nameSuffix);
+			SLIB_JNI_STRING_FIELD(displayName);
+			SLIB_JNI_STRING_FIELD(nickname);
+			SLIB_JNI_STRING_FIELD(phoneNumbers);
+			SLIB_JNI_STRING_FIELD(emails);
 
-				SLIB_JNI_STATIC_METHOD(getAllContacts, "getAllContacts", "(Landroid/app/Activity;)[Lslib/android/device/Contact;");
-				SLIB_JNI_STATIC_METHOD(addContact, "addContact", "(Landroid/app/Activity;Lslib/android/device/Contact;)Z");
-			SLIB_JNI_END_CLASS
+			SLIB_JNI_STATIC_METHOD(getAllContacts, "getAllContacts", "(Landroid/app/Activity;)[Lslib/android/device/Contact;");
+			SLIB_JNI_STATIC_METHOD(addContact, "addContact", "(Landroid/app/Activity;Lslib/android/device/Contact;)Z");
+		SLIB_JNI_END_CLASS
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnIncomingCall)
+		SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnIncomingCall)
 
-			SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
-				SLIB_JNI_NATIVE_IMPL(nativeOnIncomingCall, "nativeOnIncomingCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
-				{
-					g_callbackOnIncomingCall(Jni::getString(callId), Jni::getString(phoneNumber));
-				}
-			SLIB_JNI_END_CLASS_SECTION
+		SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
+			SLIB_JNI_NATIVE_IMPL(nativeOnIncomingCall, "nativeOnIncomingCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
+			{
+				g_callbackOnIncomingCall(Jni::getString(callId), Jni::getString(phoneNumber));
+			}
+		SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnOutgoingCall)
+		SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnOutgoingCall)
 
-			SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
-				SLIB_JNI_NATIVE_IMPL(nativeOnOutgoingCall, "nativeOnOutgoingCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
-				{
-					g_callbackOnOutgoingCall(Jni::getString(callId), Jni::getString(phoneNumber));
-				}
-			SLIB_JNI_END_CLASS_SECTION
+		SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
+			SLIB_JNI_NATIVE_IMPL(nativeOnOutgoingCall, "nativeOnOutgoingCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
+			{
+				g_callbackOnOutgoingCall(Jni::getString(callId), Jni::getString(phoneNumber));
+			}
+		SLIB_JNI_END_CLASS_SECTION
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnEndCall)
+		SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<PhoneCallCallback>, g_callbackOnEndCall)
 
-			SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
-				SLIB_JNI_NATIVE_IMPL(nativeOnEndCall, "nativeOnEndCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
-				{
-					g_callbackOnEndCall(Jni::getString(callId), Jni::getString(phoneNumber));
-				}
-			SLIB_JNI_END_CLASS_SECTION
+		SLIB_JNI_BEGIN_CLASS_SECTION(JPhoneCall)
+			SLIB_JNI_NATIVE_IMPL(nativeOnEndCall, "nativeOnEndCall", "(Ljava/lang/String;Ljava/lang/String;)V", void, jstring callId, jstring phoneNumber)
+			{
+				g_callbackOnEndCall(Jni::getString(callId), Jni::getString(phoneNumber));
+			}
+		SLIB_JNI_END_CLASS_SECTION
 
-		}
 	}
-
-	using namespace priv::device;
 
 	void Device::openDial(const String& phoneNumber)
 	{

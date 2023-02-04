@@ -35,34 +35,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace pt_msg
-		{
-
-			struct Address;
-
-			class Connection;
-
-			struct Packet;
-
-		}
-	}
-
-	template <>
-	class Hash<priv::pt_msg::Address>
-	{
-	public:
-		sl_size operator()(const priv::pt_msg::Address& addr) const;
-	};
-
-	template <>
-	class Compare<priv::pt_msg::Address>
-	{
-	public:
-		sl_compare_result operator()(const priv::pt_msg::Address& a1, const priv::pt_msg::Address& a2) const;
-	};
-
 	class Thread;
 	class Event;
 
@@ -86,11 +58,9 @@ namespace slib
 		void notifyPacketForListeningMessage(const String& host, const void* data, sl_size size, const Function<Promise<sl_bool>(sl_uint8* data, sl_uint32 size, MemoryOutput* output)>& callbackMessage, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket);
 
 	protected:
-		typedef priv::pt_msg::Address Address;
-		typedef priv::pt_msg::Connection Connection;
-		typedef priv::pt_msg::Packet Packet;
+		class Address;
+		class Connection;
 
-	protected:
 		sl_uint32 generateConversationNo();
 
 		void process();
@@ -112,6 +82,7 @@ namespace slib
 
 		Ref<Thread> m_threadProcess;
 		Ref<Event> m_eventProcess;
+		struct Packet;
 		LinkedList<Packet> m_queuePackets;
 		LinkedList< Function<void()> > m_queueDispatch;
 

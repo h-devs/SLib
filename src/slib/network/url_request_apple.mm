@@ -29,265 +29,248 @@
 #include "slib/core/safe_static.h"
 #include "slib/platform.h"
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace url_request
-		{
-			class UrlRequestImpl;
-		}
-	}
-}
-
-@interface SLIBUrlRequestListener : NSObject<NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate>
-{
-}
+@interface SLIBUrlRequestListener : NSObject<NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate> {}
 @end
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace url_request
+	namespace {
+
+		class UrlRequestImpl;
+
+		class SharedContext
 		{
+		public:
+			NSURLSession* defaultSession;
+			NSURLSession* backgroundSession;
+			SLIBUrlRequestListener* listener;
+			NSOperationQueue* operationQueue;
+			NSFileManager* fileManager;
+			CHashMap< NSUInteger, WeakRef<UrlRequestImpl> > requests;
 
-			class SharedContext
+		public:
+			SharedContext()
 			{
-			public:
-				NSURLSession* defaultSession;
-				NSURLSession* backgroundSession;
-				SLIBUrlRequestListener* listener;
-				NSOperationQueue* operationQueue;
-				NSFileManager* fileManager;
-				CHashMap< NSUInteger, WeakRef<UrlRequestImpl> > requests;
-
-			public:
-				SharedContext()
-				{
-					operationQueue = [[NSOperationQueue alloc] init];
-					listener = [[SLIBUrlRequestListener alloc] init];
-					NSURLSessionConfiguration* configDefault = [NSURLSessionConfiguration defaultSessionConfiguration];
-					defaultSession = [NSURLSession sessionWithConfiguration:configDefault delegate:listener delegateQueue:operationQueue];
-					NSURLSessionConfiguration* configDownload = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"slib_main_background_url_session"];
-					if (configDownload != nil) {
-						configDownload.discretionary = YES;
-						backgroundSession = [NSURLSession sessionWithConfiguration:configDownload delegate:listener delegateQueue:operationQueue];
-					}
-					if (backgroundSession == nil) {
-						backgroundSession = defaultSession;
-					}
-					fileManager = [[NSFileManager alloc] init];
+				operationQueue = [[NSOperationQueue alloc] init];
+				listener = [[SLIBUrlRequestListener alloc] init];
+				NSURLSessionConfiguration* configDefault = [NSURLSessionConfiguration defaultSessionConfiguration];
+				defaultSession = [NSURLSession sessionWithConfiguration:configDefault delegate:listener delegateQueue:operationQueue];
+				NSURLSessionConfiguration* configDownload = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"slib_main_background_url_session"];
+				if (configDownload != nil) {
+					configDownload.discretionary = YES;
+					backgroundSession = [NSURLSession sessionWithConfiguration:configDownload delegate:listener delegateQueue:operationQueue];
 				}
+				if (backgroundSession == nil) {
+					backgroundSession = defaultSession;
+				}
+				fileManager = [[NSFileManager alloc] init];
+			}
 
-			};
+		};
 
-			SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
+		SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
 
-			class UrlRequestImpl : public UrlRequest
+		class UrlRequestImpl : public UrlRequest
+		{
+		public:
+			NSURLSessionTask* m_task;
+			NSUInteger m_taskId;
+			using UrlRequest::m_flagAllowInsecureConnection;
+
+		public:
+			UrlRequestImpl()
 			{
-			public:
-				NSURLSessionTask* m_task;
-				NSUInteger m_taskId;
-				using UrlRequest::m_flagAllowInsecureConnection;
+				m_task = nil;
+				m_taskId = -1;
+			}
 
-			public:
-				UrlRequestImpl()
-				{
-					m_task = nil;
-					m_taskId = -1;
-				}
+			~UrlRequestImpl()
+			{
+				clean();
+			}
 
-				~UrlRequestImpl()
-				{
-					clean();
-				}
-
-				static Ref<UrlRequestImpl> create(const UrlRequestParam& param, const String& _url)
-				{
-					SharedContext* shared = GetSharedContext();
-					if (shared) {
-						NSURLSession* session;
-						if (param.flagUseBackgroundSession) {
-							session = shared->backgroundSession;
-						} else {
-							session = shared->defaultSession;
-						}
-						NSURL* url = [NSURL URLWithString:(Apple::getNSStringFromString(_url))];
-						if (url != nil) {
-							NSMutableURLRequest* req = [[NSMutableURLRequest alloc] initWithURL:url];
-							if (req != nil) {
-								req.HTTPMethod = Apple::getNSStringFromString(HttpMethodHelper::toString(param.method));
-								req.HTTPBody = [NSData dataWithBytes:param.requestBody.getData() length:param.requestBody.getSize()];
-								req.timeoutInterval = NSTimeInterval(param.timeout) / 1000;
-								req.HTTPShouldHandleCookies = NO;
-								{
-									for (auto& pair : param.requestHeaders) {
-										[req addValue:(Apple::getNSStringFromString(pair.value)) forHTTPHeaderField:(Apple::getNSStringFromString(pair.key))];
-									}
-								}
-								NSURLSessionTask* task;
-								if (param.downloadFilePath.isNotEmpty()) {
-									task = [session downloadTaskWithRequest:req];
-								} else {
-									if (param.requestBody.isNotNull()) {
-										NSData* data = req.HTTPBody;
-										req.HTTPBody = nil;
-										task = [session uploadTaskWithRequest:req fromData:data];
-									} else {
-										task = [session dataTaskWithRequest:req];
-									}
-								}
-								if (task != nil) {
-									Ref<UrlRequestImpl> ret = new UrlRequestImpl;
-									if (ret.isNotNull()) {
-										ret->_init(param, _url);
-										ret->m_task = task;
-										NSUInteger taskId = task.taskIdentifier;
-										ret->m_taskId = taskId;
-										shared->requests.put(taskId, ret);
-										return ret;
-									}
+			static Ref<UrlRequestImpl> create(const UrlRequestParam& param, const String& _url)
+			{
+				SharedContext* shared = GetSharedContext();
+				if (shared) {
+					NSURLSession* session;
+					if (param.flagUseBackgroundSession) {
+						session = shared->backgroundSession;
+					} else {
+						session = shared->defaultSession;
+					}
+					NSURL* url = [NSURL URLWithString:(Apple::getNSStringFromString(_url))];
+					if (url != nil) {
+						NSMutableURLRequest* req = [[NSMutableURLRequest alloc] initWithURL:url];
+						if (req != nil) {
+							req.HTTPMethod = Apple::getNSStringFromString(HttpMethodHelper::toString(param.method));
+							req.HTTPBody = [NSData dataWithBytes:param.requestBody.getData() length:param.requestBody.getSize()];
+							req.timeoutInterval = NSTimeInterval(param.timeout) / 1000;
+							req.HTTPShouldHandleCookies = NO;
+							{
+								for (auto& pair : param.requestHeaders) {
+									[req addValue:(Apple::getNSStringFromString(pair.value)) forHTTPHeaderField:(Apple::getNSStringFromString(pair.key))];
 								}
 							}
-						}
-					}
-					return sl_null;
-				}
-
-				void _sendAsync() override
-				{
-					[m_task resume];
-				}
-
-				void _cancel() override
-				{
-					clean();
-				}
-
-				void clean()
-				{
-					if (m_task != nil) {
-						[m_task cancel];
-						m_task = nil;
-						SharedContext* shared = GetSharedContext();
-						if (shared) {
-							shared->requests.remove(m_taskId);
-						}
-					}
-				}
-
-				static Ref<UrlRequestImpl> fromTask(NSURLSessionTask* task)
-				{
-					if (task != nil) {
-						SharedContext* shared = GetSharedContext();
-						if (shared) {
-							NSUInteger taskId = [task taskIdentifier];
-							return shared->requests.getValue(taskId, WeakRef<UrlRequestImpl>::null());
-						}
-					}
-					return sl_null;
-				}
-
-				void dispatchUploadBody(sl_uint64 bytesSent, sl_uint64 totalBytesSent)
-				{
-					m_sizeBodySent = totalBytesSent;
-					onUploadBody(bytesSent);
-				}
-
-				sl_bool dispatchReceiveResponse(NSURLResponse* response)
-				{
-					if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
-						NSHTTPURLResponse* http = (NSHTTPURLResponse*)response;
-						m_responseStatus = (HttpStatus)(http.statusCode);
-						NSDictionary* dict = http.allHeaderFields;
-						if (dict != nil && [dict count] > 0) {
-							HttpHeaderMap map;
-
-							map.initialize();
-							auto cmap = map.ref.get();
-							if (cmap) {
-								[dict enumerateKeysAndObjectsUsingBlock:^(id _key, id _value, BOOL *stop) {
-									String key = Apple::getStringFromNSString((NSString*)_key);
-									String value = Apple::getStringFromNSString((NSString*)_value);
-									cmap->add_NoLock(key, value);
-								}];
-								m_responseHeaders = map;
-							}
-						}
-					}
-					m_sizeContentTotal = response.expectedContentLength;
-					onResponse();
-					if (m_flagClosed) {
-						return sl_false;
-					}
-					return sl_true;
-				}
-
-				void dispatchReceiveContent(NSData* data)
-				{
-					Memory mem = Apple::getMemoryFromNSData(data);
-					onReceiveContent(mem.getData(), mem.getSize(), mem);
-				}
-
-				void dispatchDownloadContent(sl_uint64 bytesReceived, sl_uint64 totalBytesReceived, sl_uint64 total)
-				{
-					if (m_sizeContentTotal == 0) {
-						m_sizeContentTotal = total;
-					}
-					onDownloadContent(bytesReceived);
-					m_sizeContentReceived = totalBytesReceived;
-				}
-
-				void dispatchFinishDownload(NSURL* pathTempFile)
-				{
-					SharedContext* shared = GetSharedContext();
-					if (shared) {
-						NSError* error = nil;
-						NSURL* pathDst = [NSURL fileURLWithPath:Apple::getNSStringFromString(m_downloadFilePath)];
-						[shared->fileManager removeItemAtURL:pathDst error:nil];
-						if ([shared->fileManager moveItemAtURL:pathTempFile toURL:pathDst error:&error]) {
-							onComplete();
-						} else {
-							String strError;
-							if (error != nil) {
-								strError = Apple::getStringFromNSString(error.localizedDescription);
+							NSURLSessionTask* task;
+							if (param.downloadFilePath.isNotEmpty()) {
+								task = [session downloadTaskWithRequest:req];
 							} else {
-								strError = String::format("Moving downloaded file failed: %s=>%s", Apple::getStringFromNSString(pathTempFile.absoluteString), m_downloadFilePath);
+								if (param.requestBody.isNotNull()) {
+									NSData* data = req.HTTPBody;
+									req.HTTPBody = nil;
+									task = [session uploadTaskWithRequest:req fromData:data];
+								} else {
+									task = [session dataTaskWithRequest:req];
+								}
 							}
-							m_errorMessage = strError;
-							onError();
+							if (task != nil) {
+								Ref<UrlRequestImpl> ret = new UrlRequestImpl;
+								if (ret.isNotNull()) {
+									ret->_init(param, _url);
+									ret->m_task = task;
+									NSUInteger taskId = task.taskIdentifier;
+									ret->m_taskId = taskId;
+									shared->requests.put(taskId, ret);
+									return ret;
+								}
+							}
 						}
 					}
 				}
+				return sl_null;
+			}
 
-				void dispatchComplete(NSError* error)
-				{
-					if (error != nil) {
-						String strError = Apple::getStringFromNSString(error.localizedDescription);
+			void _sendAsync() override
+			{
+				[m_task resume];
+			}
+
+			void _cancel() override
+			{
+				clean();
+			}
+
+			void clean()
+			{
+				if (m_task != nil) {
+					[m_task cancel];
+					m_task = nil;
+					SharedContext* shared = GetSharedContext();
+					if (shared) {
+						shared->requests.remove(m_taskId);
+					}
+				}
+			}
+
+			static Ref<UrlRequestImpl> fromTask(NSURLSessionTask* task)
+			{
+				if (task != nil) {
+					SharedContext* shared = GetSharedContext();
+					if (shared) {
+						NSUInteger taskId = [task taskIdentifier];
+						return shared->requests.getValue(taskId, WeakRef<UrlRequestImpl>::null());
+					}
+				}
+				return sl_null;
+			}
+
+			void dispatchUploadBody(sl_uint64 bytesSent, sl_uint64 totalBytesSent)
+			{
+				m_sizeBodySent = totalBytesSent;
+				onUploadBody(bytesSent);
+			}
+
+			sl_bool dispatchReceiveResponse(NSURLResponse* response)
+			{
+				if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
+					NSHTTPURLResponse* http = (NSHTTPURLResponse*)response;
+					m_responseStatus = (HttpStatus)(http.statusCode);
+					NSDictionary* dict = http.allHeaderFields;
+					if (dict != nil && [dict count] > 0) {
+						HttpHeaderMap map;
+
+						map.initialize();
+						auto cmap = map.ref.get();
+						if (cmap) {
+							[dict enumerateKeysAndObjectsUsingBlock:^(id _key, id _value, BOOL *stop) {
+								String key = Apple::getStringFromNSString((NSString*)_key);
+								String value = Apple::getStringFromNSString((NSString*)_value);
+								cmap->add_NoLock(key, value);
+							}];
+							m_responseHeaders = map;
+						}
+					}
+				}
+				m_sizeContentTotal = response.expectedContentLength;
+				onResponse();
+				if (m_flagClosed) {
+					return sl_false;
+				}
+				return sl_true;
+			}
+
+			void dispatchReceiveContent(NSData* data)
+			{
+				Memory mem = Apple::getMemoryFromNSData(data);
+				onReceiveContent(mem.getData(), mem.getSize(), mem);
+			}
+
+			void dispatchDownloadContent(sl_uint64 bytesReceived, sl_uint64 totalBytesReceived, sl_uint64 total)
+			{
+				if (m_sizeContentTotal == 0) {
+					m_sizeContentTotal = total;
+				}
+				onDownloadContent(bytesReceived);
+				m_sizeContentReceived = totalBytesReceived;
+			}
+
+			void dispatchFinishDownload(NSURL* pathTempFile)
+			{
+				SharedContext* shared = GetSharedContext();
+				if (shared) {
+					NSError* error = nil;
+					NSURL* pathDst = [NSURL fileURLWithPath:Apple::getNSStringFromString(m_downloadFilePath)];
+					[shared->fileManager removeItemAtURL:pathDst error:nil];
+					if ([shared->fileManager moveItemAtURL:pathTempFile toURL:pathDst error:&error]) {
+						onComplete();
+					} else {
+						String strError;
+						if (error != nil) {
+							strError = Apple::getStringFromNSString(error.localizedDescription);
+						} else {
+							strError = String::format("Moving downloaded file failed: %s=>%s", Apple::getStringFromNSString(pathTempFile.absoluteString), m_downloadFilePath);
+						}
 						m_errorMessage = strError;
 						onError();
-					} else {
-						onComplete();
 					}
 				}
+			}
 
-			};
+			void dispatchComplete(NSError* error)
+			{
+				if (error != nil) {
+					String strError = Apple::getStringFromNSString(error.localizedDescription);
+					m_errorMessage = strError;
+					onError();
+				} else {
+					onComplete();
+				}
+			}
 
+		};
 
-		}
 	}
 
 	Ref<UrlRequest> UrlRequest::_create(const UrlRequestParam& param, const String& url)
 	{
-		return Ref<UrlRequest>::from(priv::url_request::UrlRequestImpl::create(param, url));
+		return Ref<UrlRequest>::from(UrlRequestImpl::create(param, url));
 	}
 
 }
 
 using namespace slib;
-using namespace slib::priv::url_request;
 
 @implementation SLIBUrlRequestListener
 

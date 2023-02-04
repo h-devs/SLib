@@ -33,40 +33,32 @@
 #include "external/firebase/iOS/FirebaseCore/FIRApp.h"
 #include "external/firebase/iOS/FirebaseMessaging/FIRMessaging.h"
 
-@interface SLIBFirebaseMessagingDelegate : NSObject<FIRMessagingDelegate>
-{
-}
+@interface SLIBFirebaseMessagingDelegate : NSObject<FIRMessagingDelegate> {}
 @end
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace fcm
+	namespace {
+
+		static SLIBFirebaseMessagingDelegate* g_delegate;
+
+		class FCMImpl : public FCM
 		{
-
-			static SLIBFirebaseMessagingDelegate* g_delegate;
-
-			class FCMImpl : public FCM
+		public:
+			void onStart() override
 			{
-			public:
-				void onStart() override
-				{
-					[FIRApp configure];
+				[FIRApp configure];
 
-					g_delegate = [SLIBFirebaseMessagingDelegate new];
-					[FIRMessaging messaging].delegate = g_delegate;
+				g_delegate = [SLIBFirebaseMessagingDelegate new];
+				[FIRMessaging messaging].delegate = g_delegate;
 
-					APNs::getInstance()->start();
-				}
+				APNs::getInstance()->start();
+			}
 
-			};
+		};
 
-		}
 	}
-
-	using namespace priv::fcm;
 
 	Ref<FCM> FCM::getInstance()
 	{
@@ -93,7 +85,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::fcm;
 
 @implementation SLIBFirebaseMessagingDelegate
 

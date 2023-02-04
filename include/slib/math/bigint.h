@@ -118,32 +118,24 @@ namespace slib
 
 		sl_bool setValueFromElements(const sl_uint32* data, sl_size n) noexcept;
 
-		// set/get data from/to bytes buffer (Little Endian), the sign is not changed
+		// set/get data from/to bytes buffer, the sign is not changed
 		sl_bool setBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
-
-		void setBytesLE(const MemoryView& mem, sl_bool flagSigned = sl_false) noexcept;
-
-		static CBigInt* fromBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
-
-		static CBigInt* fromBytesLE(const MemoryView& mem, sl_bool flagSigned = sl_false) noexcept;
-
-		// fill zeros in remaining spaces
-		void getBytesLE(void* buf, sl_size n, sl_bool flagSigned = sl_false) const noexcept;
-
-		Memory getBytesLE(sl_bool flagSigned = sl_false) const noexcept;
-
-		// set/get data from/to bytes buffer (Big Endian), the sign is not changed
 		sl_bool setBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
+		void setBytesLE(const MemoryView& mem, sl_bool flagSigned = sl_false) noexcept;
 		void setBytesBE(const MemoryView& mem, sl_bool flagSigned = sl_false) noexcept;
 
+		static CBigInt* fromBytesLE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 		static CBigInt* fromBytesBE(const void* bytes, sl_size nBytes, sl_bool flagSigned = sl_false) noexcept;
 
+		static CBigInt* fromBytesLE(const MemoryView& mem, sl_bool flagSigned = sl_false) noexcept;
 		static CBigInt* fromBytesBE(const MemoryView& mem, sl_bool flagSigned = sl_false) noexcept;
 
 		// fill zeros in remaining spaces
+		void getBytesLE(void* buf, sl_size n, sl_bool flagSigned = sl_false) const noexcept;
 		void getBytesBE(void* buf, sl_size n, sl_bool flagSigned = sl_false) const noexcept;
 
+		Memory getBytesLE(sl_bool flagSigned = sl_false) const noexcept;
 		Memory getBytesBE(sl_bool flagSigned = sl_false) const noexcept;
 
 
@@ -175,12 +167,6 @@ namespace slib
 
 		double getDouble() const noexcept;
 
-		String toString(sl_uint32 radix, sl_bool flagUpperCase = sl_true) const noexcept;
-
-		String toString() override;
-
-		String toHexString(sl_bool flagUpperCase = sl_true) const noexcept;
-
 
 		sl_bool equals(const CBigInt& other) const noexcept;
 
@@ -206,6 +192,17 @@ namespace slib
 		sl_compare_result compare(sl_int64 v) const noexcept;
 
 		sl_compare_result compare(sl_uint64 v) const noexcept;
+
+
+		sl_bool shiftLeft(const CBigInt& other, sl_size n, const CBigInt* pM = sl_null) noexcept;
+
+		sl_bool shiftLeftOneBit(const CBigInt& other, const CBigInt* pM = sl_null) noexcept;
+
+		sl_bool shiftRight(const CBigInt& other, sl_size n) noexcept;
+
+		sl_bool shiftLeft(sl_size n) noexcept;
+
+		sl_bool shiftRight(sl_size n) noexcept;
 
 
 		sl_bool addAbs(const CBigInt& a, const CBigInt& b) noexcept;
@@ -348,17 +345,6 @@ namespace slib
 
 		sl_bool bitwiseOr(sl_uint64 v) noexcept;
 
-
-		sl_bool shiftLeft(const CBigInt& other, sl_size n, const CBigInt* pM = sl_null) noexcept;
-
-		sl_bool shiftLeftOneBit(const CBigInt& other, const CBigInt* pM = sl_null) noexcept;
-
-		sl_bool shiftRight(const CBigInt& other, sl_size n) noexcept;
-
-		sl_bool shiftLeft(sl_size n) noexcept;
-
-		sl_bool shiftRight(sl_size n) noexcept;
-
 		/*
 			E > 0
 			M is not null => C = A^E mod M
@@ -443,6 +429,13 @@ namespace slib
 
 		sl_bool runOperator(sl_uint32 op, Variant& result, const Variant& secondOperand, sl_bool flagThisOnLeft) override;
 
+
+		String toString(sl_uint32 radix, sl_bool flagUpperCase = sl_true) const noexcept;
+
+		String toString() override;
+
+		String toHexString(sl_bool flagUpperCase = sl_true) const noexcept;
+	
 	private:
 		void _free() noexcept;
 

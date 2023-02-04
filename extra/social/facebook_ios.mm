@@ -44,73 +44,67 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace facebook
+	namespace {
+
+		class FacebookSDKContext : public Referable
 		{
+		public:
+			FBSDKLoginManager* loginManager;
+			SLIBFacebookDelegate* shareDelegate;
 
-			class FacebookSDKContext : public Referable
+		public:
+			FacebookSDKContext()
 			{
-			public:
-				FBSDKLoginManager* loginManager;
-				SLIBFacebookDelegate* shareDelegate;
-
-			public:
-				FacebookSDKContext()
-				{
-					loginManager = [[FBSDKLoginManager alloc] init];
-					shareDelegate = [[SLIBFacebookDelegate alloc] init];
-				}
-
-				static FacebookSDKContext* get()
-				{
-					SLIB_SAFE_LOCAL_STATIC(Ref<FacebookSDKContext>, s, new FacebookSDKContext)
-					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
-						return sl_null;
-					}
-					return s.get();
-				}
-
-				static FBSDKLoginManager* getLoginManager()
-				{
-					FacebookSDKContext* sdk = get();
-					if (sdk) {
-						return sdk->loginManager;
-					}
-					return nil;
-				}
-
-				static SLIBFacebookDelegate* getShareDelegate()
-				{
-					FacebookSDKContext* sdk = get();
-					if (sdk) {
-						return sdk->shareDelegate;
-					}
-					return nil;
-				}
-			};
-
-			static void GetToken(OAuthAccessToken& _out, FBSDKAccessToken* _in)
-			{
-				_out.token = Apple::getStringFromNSString(_in.tokenString);
-				_out.expirationTime = Apple::getTimeFromNSDate(_in.expirationDate);
-				_out.refreshTime = Apple::getTimeFromNSDate(_in.refreshDate);
-				{
-					List<String> permissions;
-					if (_in.permissions != nil) {
-						for (id item in _in.permissions) {
-							NSString* s = (NSString*)item;
-							permissions.add_NoLock(Apple::getStringFromNSString(s));
-						}
-					}
-					_out.scopes = permissions;
-				}
+				loginManager = [[FBSDKLoginManager alloc] init];
+				shareDelegate = [[SLIBFacebookDelegate alloc] init];
 			}
 
-		}
-	}
+			static FacebookSDKContext* get()
+			{
+				SLIB_SAFE_LOCAL_STATIC(Ref<FacebookSDKContext>, s, new FacebookSDKContext)
+				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
+					return sl_null;
+				}
+				return s.get();
+			}
 
-	using namespace priv::facebook;
+			static FBSDKLoginManager* getLoginManager()
+			{
+				FacebookSDKContext* sdk = get();
+				if (sdk) {
+					return sdk->loginManager;
+				}
+				return nil;
+			}
+
+			static SLIBFacebookDelegate* getShareDelegate()
+			{
+				FacebookSDKContext* sdk = get();
+				if (sdk) {
+					return sdk->shareDelegate;
+				}
+				return nil;
+			}
+		};
+
+		static void GetToken(OAuthAccessToken& _out, FBSDKAccessToken* _in)
+		{
+			_out.token = Apple::getStringFromNSString(_in.tokenString);
+			_out.expirationTime = Apple::getTimeFromNSDate(_in.expirationDate);
+			_out.refreshTime = Apple::getTimeFromNSDate(_in.refreshDate);
+			{
+				List<String> permissions;
+				if (_in.permissions != nil) {
+					for (id item in _in.permissions) {
+						NSString* s = (NSString*)item;
+						permissions.add_NoLock(Apple::getStringFromNSString(s));
+					}
+				}
+				_out.scopes = permissions;
+			}
+		}
+
+	}
 
 	void FacebookSDK::initialize()
 	{

@@ -34,73 +34,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace gdi
-		{
-
-			class ImageDrawableImpl : public Drawable
-			{
-				SLIB_DECLARE_OBJECT
-			public:
-				Gdiplus::Image* m_image;
-				sl_bool m_flagFreeOnRelease;
-				Ref<Referable> m_ref;
-
-			public:
-				ImageDrawableImpl()
-				{
-				}
-
-				~ImageDrawableImpl()
-				{
-					if (m_flagFreeOnRelease) {
-						delete m_image;
-					}
-				}
-
-			public:
-				static Ref<ImageDrawableImpl> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
-				{
-					if (image) {
-						Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
-						if (ret.isNotNull()) {
-							ret->m_image = image;
-							ret->m_flagFreeOnRelease = flagFreeOnRelease;
-							ret->m_ref = ref;
-							return ret;
-						}
-						if (flagFreeOnRelease) {
-							delete image;
-						}
-					}
-					return sl_null;
-				}
-
-				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
-				{
-					GraphicsPlatform::drawImage(canvas, rectDst, m_image, rectSrc, param);
-				}
-
-				sl_real getDrawableWidth() override
-				{
-					return (sl_real)(m_image->GetWidth());
-				}
-
-				sl_real getDrawableHeight() override
-				{
-					return (sl_real)(m_image->GetHeight());
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
-
-		}
-	}
-
-	using namespace priv::gdi;
-
 	Ref<Drawable> PlatformDrawable::create(const ImageDesc& desc)
 	{
 		return Bitmap::create(desc);
@@ -118,6 +51,67 @@ namespace slib
 			}
 		}
 		return sl_null;
+	}
+
+	namespace {
+
+		class ImageDrawableImpl : public Drawable
+		{
+			SLIB_DECLARE_OBJECT
+		public:
+			Gdiplus::Image* m_image;
+			sl_bool m_flagFreeOnRelease;
+			Ref<Referable> m_ref;
+
+		public:
+			ImageDrawableImpl()
+			{
+			}
+
+			~ImageDrawableImpl()
+			{
+				if (m_flagFreeOnRelease) {
+					delete m_image;
+				}
+			}
+
+		public:
+			static Ref<ImageDrawableImpl> create(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)
+			{
+				if (image) {
+					Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
+					if (ret.isNotNull()) {
+						ret->m_image = image;
+						ret->m_flagFreeOnRelease = flagFreeOnRelease;
+						ret->m_ref = ref;
+						return ret;
+					}
+					if (flagFreeOnRelease) {
+						delete image;
+					}
+				}
+				return sl_null;
+			}
+
+			void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
+			{
+				GraphicsPlatform::drawImage(canvas, rectDst, m_image, rectSrc, param);
+			}
+
+			sl_real getDrawableWidth() override
+			{
+				return (sl_real)(m_image->GetWidth());
+			}
+
+			sl_real getDrawableHeight() override
+			{
+				return (sl_real)(m_image->GetHeight());
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
+
 	}
 
 	Ref<Drawable> GraphicsPlatform::createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease, Referable* ref)

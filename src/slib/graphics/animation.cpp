@@ -737,14 +737,10 @@ namespace slib
 		return time;
 	}
 
-	namespace priv
-	{
-		namespace animation
+	namespace {
+		SLIB_INLINE static float Bounce(float f)
 		{
-			constexpr static float bounce(float f)
-			{
-				return f * f * 8.0f;
-			}
+			return f * f * 8.0f;
 		}
 	}
 
@@ -784,13 +780,13 @@ namespace slib
 				{
 					f *= 1.1226f;
 					if (f < 0.3535f) {
-						return priv::animation::bounce(f);
+						return Bounce(f);
 					} else if (f < 0.7408f) {
-						return priv::animation::bounce(f - 0.54719f) + 0.7f;
+						return Bounce(f - 0.54719f) + 0.7f;
 					} else if (f < 0.9644f) {
-						return priv::animation::bounce(f - 0.8526f) + 0.9f;
+						return Bounce(f - 0.8526f) + 0.9f;
 					} else {
-						return priv::animation::bounce(f - 1.0435f) + 0.95f;
+						return Bounce(f - 1.0435f) + 0.95f;
 					}
 				}
 			case AnimationCurve::Anticipate:
@@ -990,73 +986,67 @@ namespace slib
 
 	}
 
-	namespace priv
-	{
-		namespace animation
+	namespace {
+
+		class DefaultAnimationLoop : public AnimationLoop
 		{
+		public:
+			Ref<Thread> m_thread;
 
-			class DefaultAnimationLoop : public AnimationLoop
+		public:
+			void init() override
 			{
-			public:
-				Ref<Thread> m_thread;
+				AnimationLoop::init();
 
-			public:
-				void init() override
-				{
-					AnimationLoop::init();
+				if (m_thread.isNull()) {
+					m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
+				} else {
+					m_thread->wake();
+				}
+			}
 
-					if (m_thread.isNull()) {
-						m_thread = Thread::start(SLIB_FUNCTION_MEMBER(this, run));
+			~DefaultAnimationLoop()
+			{
+				if (m_thread.isNotNull()) {
+					m_thread->finishAndWait();
+				}
+			}
+
+		public:
+			void _wake() override
+			{
+				if (m_thread.isNotNull()) {
+					m_thread->wake();
+				}
+			}
+
+			void run()
+			{
+				Thread* thread = Thread::getCurrent();
+				if (!thread) {
+					return;
+				}
+				while (thread->isNotStopping()) {
+					sl_int32 n = _runStep();
+					if (n < 0) {
+						thread->wait(100000);
 					} else {
-						m_thread->wake();
-					}
-				}
-
-				~DefaultAnimationLoop()
-				{
-					if (m_thread.isNotNull()) {
-						m_thread->finishAndWait();
-					}
-				}
-
-			public:
-				void _wake() override
-				{
-					if (m_thread.isNotNull()) {
-						m_thread->wake();
-					}
-				}
-
-				void run()
-				{
-					Thread* thread = Thread::getCurrent();
-					if (!thread) {
-						return;
-					}
-					while (thread->isNotStopping()) {
-						sl_int32 n = _runStep();
-						if (n < 0) {
-							thread->wait(100000);
-						} else {
-							if (n > 0) {
-								thread->wait(n);
-							}
+						if (n > 0) {
+							thread->wait(n);
 						}
 					}
 				}
+			}
 
-			};
+		};
 
-			SLIB_SAFE_STATIC_GETTER(Ref<AnimationLoop>, getDefaultAnimationLoop, new DefaultAnimationLoop)
+		SLIB_SAFE_STATIC_GETTER(Ref<AnimationLoop>, GetDefaultAnimationLoop, new DefaultAnimationLoop)
 
-		}
 	}
-
-	using namespace priv::animation;
 
 	Ref<AnimationLoop> AnimationLoop::getDefault()
 	{
-		Ref<AnimationLoop>* pLoop = getDefaultAnimationLoop();
+		Ref<AnimationLoop>* pLoop = GetDefaultAnimationLoop();
 		if (pLoop) {
 			return *pLoop;
 		}

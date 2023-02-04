@@ -30,22 +30,16 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace java_lang
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JObject, "java/lang/Object")
-				SLIB_JNI_METHOD(toString, "toString", "()Ljava/lang/String;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JObject, "java/lang/Object")
+			SLIB_JNI_METHOD(toString, "toString", "()Ljava/lang/String;")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JString, "java/lang/String")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JString, "java/lang/String")
+		SLIB_JNI_END_CLASS
 
-		}
 	}
-
-	using namespace priv::java_lang;
 
 	namespace java
 	{

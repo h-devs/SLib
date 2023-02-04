@@ -39,70 +39,64 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace system
+	namespace {
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
+		static sl_uint32 g_systemVersionMajor = 0;
+		static sl_uint32 g_systemVersionMinor = 0;
+		static sl_uint32 g_systemVersionPatch = 0;
+		static sl_bool g_flagInitSystemVersion = sl_true;
+
+		static void InitSystemVersion()
 		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_systemVersion);
-			static sl_uint32 g_systemVersionMajor = 0;
-			static sl_uint32 g_systemVersionMinor = 0;
-			static sl_uint32 g_systemVersionPatch = 0;
-			static sl_bool g_flagInitSystemVersion = sl_true;
-
-			static void InitSystemVersion()
-			{
-				if (g_flagInitSystemVersion) {
+			if (g_flagInitSystemVersion) {
 #if defined(SLIB_PLATFORM_IS_MACOS)
-					double v = NSAppKitVersionNumber;
-					if (v >= NSAppKitVersionNumber10_10) {
-						NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
-						g_systemVersionMajor = (sl_uint32)(version.majorVersion);
-						g_systemVersionMinor = (sl_uint32)(version.minorVersion);
-						g_systemVersionPatch = (sl_uint32)(version.patchVersion);
-						g_systemVersion = String::concat(String::fromUint32(g_systemVersionMajor), ".", String::fromUint32(g_systemVersionMinor));
-						if (g_systemVersionPatch > 0) {
-							g_systemVersion = String::concat(g_systemVersion, ".", String::fromUint32(g_systemVersionPatch));
-						}
-					} else if (v >= NSAppKitVersionNumber10_9) {
-						g_systemVersion = "10.9";
-						g_systemVersionMajor = 10;
-						g_systemVersionMinor = 9;
-					} else if (v >= NSAppKitVersionNumber10_8) {
-						g_systemVersion = "10.8";
-						g_systemVersionMajor = 10;
-						g_systemVersionMinor = 8;
-					} else if (v >= NSAppKitVersionNumber10_7) {
-						g_systemVersion = "10.7";
-						g_systemVersionMajor = 10;
-						g_systemVersionMinor = 7;
-					} else if (v >= NSAppKitVersionNumber10_6) {
-						g_systemVersion = "10.6";
-						g_systemVersionMajor = 10;
-						g_systemVersionMinor = 6;
+				double v = NSAppKitVersionNumber;
+				if (v >= NSAppKitVersionNumber10_10) {
+					NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
+					g_systemVersionMajor = (sl_uint32)(version.majorVersion);
+					g_systemVersionMinor = (sl_uint32)(version.minorVersion);
+					g_systemVersionPatch = (sl_uint32)(version.patchVersion);
+					g_systemVersion = String::concat(String::fromUint32(g_systemVersionMajor), ".", String::fromUint32(g_systemVersionMinor));
+					if (g_systemVersionPatch > 0) {
+						g_systemVersion = String::concat(g_systemVersion, ".", String::fromUint32(g_systemVersionPatch));
 					}
-#elif defined(SLIB_PLATFORM_IS_IOS)
-					NSString* _version = [[UIDevice currentDevice] systemVersion];
-					String version = Apple::getStringFromNSString(_version);
-					if (version.isNotEmpty()) {
-						ListElements<String> list(version.split("."));
-						if (list.count > 0) {
-							g_systemVersionMajor = list[0].parseUint32();
-							if (list.count > 1) {
-								g_systemVersionMinor = list[1].parseUint32();
-							}
-						}
-					}
-					g_systemVersion = version;
-#endif
-					g_flagInitSystemVersion = sl_false;
+				} else if (v >= NSAppKitVersionNumber10_9) {
+					g_systemVersion = "10.9";
+					g_systemVersionMajor = 10;
+					g_systemVersionMinor = 9;
+				} else if (v >= NSAppKitVersionNumber10_8) {
+					g_systemVersion = "10.8";
+					g_systemVersionMajor = 10;
+					g_systemVersionMinor = 8;
+				} else if (v >= NSAppKitVersionNumber10_7) {
+					g_systemVersion = "10.7";
+					g_systemVersionMajor = 10;
+					g_systemVersionMinor = 7;
+				} else if (v >= NSAppKitVersionNumber10_6) {
+					g_systemVersion = "10.6";
+					g_systemVersionMajor = 10;
+					g_systemVersionMinor = 6;
 				}
+#elif defined(SLIB_PLATFORM_IS_IOS)
+				NSString* _version = [[UIDevice currentDevice] systemVersion];
+				String version = Apple::getStringFromNSString(_version);
+				if (version.isNotEmpty()) {
+					ListElements<String> list(version.split("."));
+					if (list.count > 0) {
+						g_systemVersionMajor = list[0].parseUint32();
+						if (list.count > 1) {
+							g_systemVersionMinor = list[1].parseUint32();
+						}
+					}
+				}
+				g_systemVersion = version;
+#endif
+				g_flagInitSystemVersion = sl_false;
 			}
-
 		}
-	}
 
-	using namespace priv::system;
+	}
 
 	String System::getApplicationPath()
 	{

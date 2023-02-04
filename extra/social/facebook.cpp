@@ -27,15 +27,10 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace facebook
-		{
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instance)
-		}
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instance)
 	}
 
-	using namespace priv::facebook;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookUser)
 
@@ -87,6 +82,7 @@ namespace slib
 		defaultScopes.add_NoLock("public_profile");
 		defaultScopes.add_NoLock("email");
 	}
+
 
 	SLIB_DEFINE_OBJECT(Facebook, OAuth2)
 

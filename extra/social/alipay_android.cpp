@@ -33,58 +33,52 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace alipay_android
+	namespace {
+
+		static void OnPayResult(JNIEnv* env, jobject _this, jstring jresult);
+
+		SLIB_JNI_BEGIN_CLASS(JAlipay, "slib/android/alipay/Alipay")
+			SLIB_JNI_STATIC_METHOD(pay, "pay", "(Landroid/app/Activity;Ljava/lang/String;)V");
+			SLIB_JNI_NATIVE(nativeOnPayResult, "nativeOnPayResult", "(Ljava/lang/String;)V", OnPayResult);
+		SLIB_JNI_END_CLASS
+
+		class StaticContext
 		{
+		public:
+			Mutex lock;
+			Function<void(AlipayPaymentResult&)> callbackPay;
 
-			void OnPayResult(JNIEnv* env, jobject _this, jstring jresult);
-
-			SLIB_JNI_BEGIN_CLASS(JAlipay, "slib/android/alipay/Alipay")
-				SLIB_JNI_STATIC_METHOD(pay, "pay", "(Landroid/app/Activity;Ljava/lang/String;)V");
-				SLIB_JNI_NATIVE(nativeOnPayResult, "nativeOnPayResult", "(Ljava/lang/String;)V", OnPayResult);
-			SLIB_JNI_END_CLASS
-
-			class StaticContext
+		public:
+			void setPayCallback(const Function<void(AlipayPaymentResult&)>& callback)
 			{
-			public:
-				Mutex lock;
-				Function<void(AlipayPaymentResult&)> callbackPay;
-
-			public:
-				void setPayCallback(const Function<void(AlipayPaymentResult&)>& callback)
-				{
-					MutexLocker locker(&lock);
-					if (callbackPay.isNotNull()) {
-						AlipayPaymentResult result;
-						result.flagCancel = sl_true;
-						callbackPay(result);
-					}
-					callbackPay = callback;
-				}
-
-				void onPayResult(AlipayPaymentResult& result)
-				{
-					MutexLocker locker(&lock);
+				MutexLocker locker(&lock);
+				if (callbackPay.isNotNull()) {
+					AlipayPaymentResult result;
+					result.flagCancel = sl_true;
 					callbackPay(result);
-					callbackPay.setNull();
 				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-			void OnPayResult(JNIEnv* env, jobject _this, jstring jresult)
-			{
-				AlipayPaymentResult result;
-				result.applyAppResponse(Jni::getString(jresult));
-				GetStaticContext()->onPayResult(result);
+				callbackPay = callback;
 			}
 
-		}
-	}
+			void onPayResult(AlipayPaymentResult& result)
+			{
+				MutexLocker locker(&lock);
+				callbackPay(result);
+				callbackPay.setNull();
+			}
 
-	using namespace priv::alipay_android;
+		};
+
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+
+		void OnPayResult(JNIEnv* env, jobject _this, jstring jresult)
+		{
+			AlipayPaymentResult result;
+			result.applyAppResponse(Jni::getString(jresult));
+			GetStaticContext()->onPayResult(result);
+		}
+
+	}
 
 	void AlipaySDK::initialize(const String& appScheme)
 	{

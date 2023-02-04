@@ -87,368 +87,364 @@ EXTERN_C const CLSID CLSID_NullRenderer;
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace dshow
-		{
+	namespace {
 
-			static void LogHResult(String error, HRESULT hr)
+		static void LogHResult(String error, HRESULT hr)
+		{
+			LOG_ERROR("%s (Result=%d)", error, (sl_int32)hr);
+		}
+
+		class CameraImpl : public Camera, public ISampleGrabberCB
+		{
+		public:
+			ICaptureGraphBuilder2* m_capture;
+			IGraphBuilder* m_graph;
+			IMediaControl* m_control;
+			ISampleGrabber* m_grabber;
+
+			sl_bool m_flagRunning;
+
+		public:
+			CameraImpl()
 			{
-				LOG_ERROR("%s (Result=%d)", error, (sl_int32)hr);
+				m_capture = sl_null;
+				m_graph = sl_null;
+				m_control = sl_null;
+				m_grabber = sl_null;
+
+				m_flagRunning = sl_false;
 			}
 
-			class CameraImpl : public Camera, public ISampleGrabberCB
+			~CameraImpl()
 			{
-			public:
-				ICaptureGraphBuilder2* m_capture;
-				IGraphBuilder* m_graph;
-				IMediaControl* m_control;
-				ISampleGrabber* m_grabber;
+				release();
+			}
 
-				sl_bool m_flagRunning;
+		public:
+			static Ref<CameraImpl> _create(const CameraParam& param)
+			{
+				HRESULT hr;
 
-			public:
-				CameraImpl()
-				{
-					m_capture = sl_null;
-					m_graph = sl_null;
-					m_control = sl_null;
-					m_grabber = sl_null;
+				IBaseFilter* filterSource = NULL;
+				_queryDevices(param.deviceId, &filterSource);
 
-					m_flagRunning = sl_false;
-				}
+				if (filterSource) {
 
-				~CameraImpl()
-				{
-					release();
-				}
+					IGraphBuilder* graph = NULL;
+					hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void**)&graph);
+					if (graph) {
+						ICaptureGraphBuilder2* capture = NULL;
+						hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC, IID_ICaptureGraphBuilder2, (void**)&capture);
+						if (capture) {
+							IMediaControl* control = NULL;
+							hr = graph->QueryInterface(IID_IMediaControl, (LPVOID*)&control);
+							if (control) {
+								IBaseFilter* filterGrabber = NULL;
+								hr = CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&filterGrabber);
+								if (filterGrabber) {
+									IBaseFilter* filterNullRenderer = NULL;
+									hr = CoCreateInstance(CLSID_NullRenderer, NULL, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&filterNullRenderer);
+									if (filterNullRenderer) {
 
-			public:
-				static Ref<CameraImpl> _create(const CameraParam& param)
-				{
-					HRESULT hr;
-
-					IBaseFilter* filterSource = NULL;
-					_queryDevices(param.deviceId, &filterSource);
-
-					if (filterSource) {
-
-						IGraphBuilder* graph = NULL;
-						hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void**)&graph);
-						if (graph) {
-							ICaptureGraphBuilder2* capture = NULL;
-							hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC, IID_ICaptureGraphBuilder2, (void**)&capture);
-							if (capture) {
-								IMediaControl* control = NULL;
-								hr = graph->QueryInterface(IID_IMediaControl, (LPVOID*)&control);
-								if (control) {
-									IBaseFilter* filterGrabber = NULL;
-									hr = CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&filterGrabber);
-									if (filterGrabber) {
-										IBaseFilter* filterNullRenderer = NULL;
-										hr = CoCreateInstance(CLSID_NullRenderer, NULL, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&filterNullRenderer);
-										if (filterNullRenderer) {
-
-											hr = capture->SetFiltergraph(graph);
+										hr = capture->SetFiltergraph(graph);
+										if (SUCCEEDED(hr)) {
+											hr = graph->AddFilter(filterSource, L"Video Capture");
 											if (SUCCEEDED(hr)) {
-												hr = graph->AddFilter(filterSource, L"Video Capture");
+												hr = graph->AddFilter(filterGrabber, L"Sample Grabber");
 												if (SUCCEEDED(hr)) {
-													hr = graph->AddFilter(filterGrabber, L"Sample Grabber");
-													if (SUCCEEDED(hr)) {
-														ISampleGrabber* grabber = NULL;
-														hr = filterGrabber->QueryInterface(IID_ISampleGrabber, (void**)&grabber);
-														if (grabber) {
-															AM_MEDIA_TYPE mt;
-															ZeroMemory(&mt, sizeof(AM_MEDIA_TYPE));
-															mt.majortype = MEDIATYPE_Video;
-															mt.subtype = MEDIASUBTYPE_RGB24;
-															hr = grabber->SetMediaType(&mt);
+													ISampleGrabber* grabber = NULL;
+													hr = filterGrabber->QueryInterface(IID_ISampleGrabber, (void**)&grabber);
+													if (grabber) {
+														AM_MEDIA_TYPE mt;
+														ZeroMemory(&mt, sizeof(AM_MEDIA_TYPE));
+														mt.majortype = MEDIATYPE_Video;
+														mt.subtype = MEDIASUBTYPE_RGB24;
+														hr = grabber->SetMediaType(&mt);
+														if (SUCCEEDED(hr)) {
+															hr = graph->AddFilter(filterNullRenderer, L"Null Renderer");
 															if (SUCCEEDED(hr)) {
-																hr = graph->AddFilter(filterNullRenderer, L"Null Renderer");
+																hr = capture->RenderStream(&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video, filterSource, filterGrabber, filterNullRenderer);
 																if (SUCCEEDED(hr)) {
-																	hr = capture->RenderStream(&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video, filterSource, filterGrabber, filterNullRenderer);
-																	if (SUCCEEDED(hr)) {
-																		Ref<CameraImpl> ret = new CameraImpl();
-																		if (ret.isNotNull()) {
-																			hr = grabber->SetCallback(ret.get(), 0);
-																			if (SUCCEEDED(hr)) {
-																				ret->m_capture = capture;
-																				ret->m_graph = graph;
-																				ret->m_control = control;
-																				ret->m_grabber = grabber;
-																				ret->_init(param);
-																				if (param.flagAutoStart) {
-																					ret->start();
-																				}
-																				return ret;
-																			} else {
-																				LOG_HRESULT("Failed to set capture callback", hr);
+																	Ref<CameraImpl> ret = new CameraImpl();
+																	if (ret.isNotNull()) {
+																		hr = grabber->SetCallback(ret.get(), 0);
+																		if (SUCCEEDED(hr)) {
+																			ret->m_capture = capture;
+																			ret->m_graph = graph;
+																			ret->m_control = control;
+																			ret->m_grabber = grabber;
+																			ret->_init(param);
+																			if (param.flagAutoStart) {
+																				ret->start();
 																			}
+																			return ret;
+																		} else {
+																			LOG_HRESULT("Failed to set capture callback", hr);
 																		}
-																	} else {
-																		LOG_HRESULT("Failed to render capture stream", hr);
 																	}
 																} else {
-																	LOG_HRESULT("Failed to add null rendering filter", hr);
+																	LOG_HRESULT("Failed to render capture stream", hr);
 																}
 															} else {
-																LOG_HRESULT("Failed to set grabber media type", hr);
+																LOG_HRESULT("Failed to add null rendering filter", hr);
 															}
 														} else {
-															LOG_HRESULT("Failed to query sample grabber", hr);
+															LOG_HRESULT("Failed to set grabber media type", hr);
 														}
 													} else {
-														LOG_HRESULT("Failed to add sample grabber filter", hr);
+														LOG_HRESULT("Failed to query sample grabber", hr);
 													}
 												} else {
-													LOG_HRESULT("Failed to add source filter", hr);
+													LOG_HRESULT("Failed to add sample grabber filter", hr);
 												}
 											} else {
-												LOG_HRESULT("Failed to set FilterGraph", hr);
+												LOG_HRESULT("Failed to add source filter", hr);
 											}
-											filterNullRenderer->Release();
 										} else {
-											LOG_HRESULT("Failed to create CLSID_NullRenderer", hr);
+											LOG_HRESULT("Failed to set FilterGraph", hr);
 										}
-										filterGrabber->Release();
+										filterNullRenderer->Release();
 									} else {
-										LOG_HRESULT("Failed to create CLSID_SampleGrabber", hr);
+										LOG_HRESULT("Failed to create CLSID_NullRenderer", hr);
 									}
-									control->Release();
+									filterGrabber->Release();
 								} else {
-									LOG_HRESULT("Failed to query IMediaControl", hr);
+									LOG_HRESULT("Failed to create CLSID_SampleGrabber", hr);
 								}
-								capture->Release();
+								control->Release();
 							} else {
-								LOG_HRESULT("Failed to create CLSID_CaptureGraphBuilder2", hr);
+								LOG_HRESULT("Failed to query IMediaControl", hr);
 							}
-							graph->Release();
+							capture->Release();
 						} else {
-							LOG_HRESULT("Failed to create CLSID_FilterGraph", hr);
+							LOG_HRESULT("Failed to create CLSID_CaptureGraphBuilder2", hr);
 						}
-
-						filterSource->Release();
-
+						graph->Release();
 					} else {
-						LOG_ERROR("Failed to find capture device: %s", param.deviceId);
+						LOG_HRESULT("Failed to create CLSID_FilterGraph", hr);
 					}
 
-					return sl_null;
+					filterSource->Release();
+
+				} else {
+					LOG_ERROR("Failed to find capture device: %s", param.deviceId);
 				}
 
-				void release()
-				{
-					ObjectLocker lock(this);
-					if (m_capture) {
-						stop();
-						SLIB_WIN32_COM_SAFE_RELEASE(m_capture);
-						SLIB_WIN32_COM_SAFE_RELEASE(m_graph);
-						SLIB_WIN32_COM_SAFE_RELEASE(m_control);
-						SLIB_WIN32_COM_SAFE_RELEASE(m_grabber);
-					}
-				}
+				return sl_null;
+			}
 
-				sl_bool isOpened()
-				{
-					return m_capture != sl_null;
+			void release()
+			{
+				ObjectLocker lock(this);
+				if (m_capture) {
+					stop();
+					SLIB_WIN32_COM_SAFE_RELEASE(m_capture);
+					SLIB_WIN32_COM_SAFE_RELEASE(m_graph);
+					SLIB_WIN32_COM_SAFE_RELEASE(m_control);
+					SLIB_WIN32_COM_SAFE_RELEASE(m_grabber);
 				}
+			}
 
-				void start()
-				{
-					ObjectLocker lock(this);
-					if (m_flagRunning) {
-						return;
-					}
-					if (m_capture && m_control) {
-						HRESULT hr = m_control->Run();
-						if (SUCCEEDED(hr)) {
-							m_flagRunning = sl_true;
+			sl_bool isOpened()
+			{
+				return m_capture != sl_null;
+			}
+
+			void start()
+			{
+				ObjectLocker lock(this);
+				if (m_flagRunning) {
+					return;
+				}
+				if (m_capture && m_control) {
+					HRESULT hr = m_control->Run();
+					if (SUCCEEDED(hr)) {
+						m_flagRunning = sl_true;
+					} else {
+						OAFilterState fs;
+						if (SUCCEEDED(m_control->GetState(10, &fs))) {
+							LOG_HRESULT("Device is already in use", hr);
 						} else {
-							OAFilterState fs;
-							if (SUCCEEDED(m_control->GetState(10, &fs))) {
-								LOG_HRESULT("Device is already in use", hr);
-							} else {
-								LOG_HRESULT("Failed to start capture", hr);
-							}
+							LOG_HRESULT("Failed to start capture", hr);
+						}
+					}
+				}
+			}
+
+			void stop()
+			{
+				ObjectLocker lock(this);
+				if (!m_flagRunning) {
+					return;
+				}
+				if (m_capture && m_control) {
+					m_control->Stop();
+				}
+				m_flagRunning = sl_false;
+			}
+
+			sl_bool isRunning()
+			{
+				return m_flagRunning;
+			}
+
+			HRESULT STDMETHODCALLTYPE BufferCB(double SampleTime, BYTE *pBuffer, long BufferLen) {
+				return S_OK;
+			}
+
+			HRESULT STDMETHODCALLTYPE SampleCB(double SampleTime, IMediaSample *pSample) {
+
+				HRESULT hr;
+
+				long cbBuffer = 0;
+				char* pBuffer = NULL;
+
+				pSample->GetPointer((BYTE**)&pBuffer);
+				cbBuffer = pSample->GetSize();
+				if (!pBuffer) {
+					return E_FAIL;
+				}
+				AM_MEDIA_TYPE mt;
+				hr = m_grabber->GetConnectedMediaType(&mt);
+				if (FAILED(hr)) {
+					return hr;
+				}
+
+				VideoCaptureFrame frame;
+				if (mt.majortype == MEDIATYPE_Video) {
+					if (mt.formattype == FORMAT_VideoInfo && mt.cbFormat >= sizeof(VIDEOINFOHEADER)) {
+						VIDEOINFOHEADER* vih = (VIDEOINFOHEADER*)(mt.pbFormat);
+						frame.image.width = vih->bmiHeader.biWidth;
+						frame.image.height = vih->bmiHeader.biHeight;
+						frame.image.format = BitmapFormat::BGR;
+						frame.image.pitch =  - frame.image.calculatePitchAlign4(frame.image.width, 24);
+						frame.image.data = pBuffer + cbBuffer + frame.image.pitch;
+						if (frame.image.format != BitmapFormat::None) {
+							onCaptureVideoFrame(frame);
 						}
 					}
 				}
 
-				void stop()
-				{
-					ObjectLocker lock(this);
-					if (!m_flagRunning) {
-						return;
-					}
-					if (m_capture && m_control) {
-						m_control->Stop();
-					}
-					m_flagRunning = sl_false;
+				return S_OK;
+			}
+
+			STDMETHODIMP_(ULONG) AddRef() { return 2; }
+			STDMETHODIMP_(ULONG) Release() { return 1; }
+			STDMETHODIMP QueryInterface(REFIID riid, void ** ppv)
+			{
+				if (riid == IID_ISampleGrabberCB || riid == IID_IUnknown) {
+					*ppv = (void*)(ISampleGrabberCB*)(this);
+					return NOERROR;
+				}
+				return E_NOINTERFACE;
+			}
+
+			static List<CameraInfo> _queryDevices(String deviceId, IBaseFilter** filter)
+			{
+				List<CameraInfo> ret;
+				HRESULT hr;
+
+				if (deviceId == "FRONT" || deviceId == "BACK") {
+					deviceId.setNull();
 				}
 
-				sl_bool isRunning()
-				{
-					return m_flagRunning;
-				}
+				ICreateDevEnum* pDevEnum = NULL;
+				hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC, IID_ICreateDevEnum, (void**)&pDevEnum);
 
-				HRESULT STDMETHODCALLTYPE BufferCB(double SampleTime, BYTE *pBuffer, long BufferLen) {
-					return S_OK;
-				}
+				if (pDevEnum) {
 
-				HRESULT STDMETHODCALLTYPE SampleCB(double SampleTime, IMediaSample *pSample) {
+					IEnumMoniker* pClassEnum = NULL;
+					hr = pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pClassEnum, 0);
 
-					HRESULT hr;
+					if (pClassEnum) {
 
-					long cbBuffer = 0;
-					char* pBuffer = NULL;
+						IMoniker* pMoniker = NULL;
+						ULONG cFetched = 0;
 
-					pSample->GetPointer((BYTE**)&pBuffer);
-					cbBuffer = pSample->GetSize();
-					if (!pBuffer) {
-						return E_FAIL;
-					}
-					AM_MEDIA_TYPE mt;
-					hr = m_grabber->GetConnectedMediaType(&mt);
-					if (FAILED(hr)) {
-						return hr;
-					}
+						while (S_OK == pClassEnum->Next(1, &pMoniker, &cFetched)) {
 
-					VideoCaptureFrame frame;
-					if (mt.majortype == MEDIATYPE_Video) {
-						if (mt.formattype == FORMAT_VideoInfo && mt.cbFormat >= sizeof(VIDEOINFOHEADER)) {
-							VIDEOINFOHEADER* vih = (VIDEOINFOHEADER*)(mt.pbFormat);
-							frame.image.width = vih->bmiHeader.biWidth;
-							frame.image.height = vih->bmiHeader.biHeight;
-							frame.image.format = BitmapFormat::BGR;
-							frame.image.pitch =  - frame.image.calculatePitchAlign4(frame.image.width, 24);
-							frame.image.data = pBuffer + cbBuffer + frame.image.pitch;
-							if (frame.image.format != BitmapFormat::None) {
-								onCaptureVideoFrame(frame);
-							}
-						}
-					}
+							CameraInfo dev;
 
-					return S_OK;
-				}
+							if (pMoniker) {
 
-				STDMETHODIMP_(ULONG) AddRef() { return 2; }
-				STDMETHODIMP_(ULONG) Release() { return 1; }
-				STDMETHODIMP QueryInterface(REFIID riid, void ** ppv)
-				{
-					if (riid == IID_ISampleGrabberCB || riid == IID_IUnknown) {
-						*ppv = (void*)(ISampleGrabberCB*)(this);
-						return NOERROR;
-					}
-					return E_NOINTERFACE;
-				}
+								IPropertyBag* prop = NULL;
+								hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void**)&prop);
 
-				static List<CameraInfo> _queryDevices(String deviceId, IBaseFilter** filter)
-				{
-					List<CameraInfo> ret;
-					HRESULT hr;
+								if (prop) {
 
-					if (deviceId == "FRONT" || deviceId == "BACK") {
-						deviceId.setNull();
-					}
+									VARIANT var;
 
-					ICreateDevEnum* pDevEnum = NULL;
-					hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC, IID_ICreateDevEnum, (void**)&pDevEnum);
-
-					if (pDevEnum) {
-
-						IEnumMoniker* pClassEnum = NULL;
-						hr = pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pClassEnum, 0);
-
-						if (pClassEnum) {
-
-							IMoniker* pMoniker = NULL;
-							ULONG cFetched = 0;
-
-							while (S_OK == pClassEnum->Next(1, &pMoniker, &cFetched)) {
-
-								CameraInfo dev;
-
-								if (pMoniker) {
-
-									IPropertyBag* prop = NULL;
-									hr = pMoniker->BindToStorage(0, 0, IID_IPropertyBag, (void**)&prop);
-
-									if (prop) {
-
-										VARIANT var;
-
-										VariantInit(&var);
-										hr = prop->Read(L"DevicePath", &var, 0);
-										if (SUCCEEDED(hr)) {
-											dev.id = String::create(var.bstrVal);
-										}
-										VariantClear(&var);
-
-										VariantInit(&var);
-										hr = prop->Read(L"FriendlyName", &var, 0);
-										if (SUCCEEDED(hr)) {
-											dev.name = String::create(var.bstrVal);
-										}
-										VariantClear(&var);
-
-										VariantInit(&var);
-										hr = prop->Read(L"Description", &var, 0);
-										if (SUCCEEDED(hr)) {
-											dev.description = String::create(var.bstrVal);
-										}
-										VariantClear(&var);
-
-										prop->Release();
-
+									VariantInit(&var);
+									hr = prop->Read(L"DevicePath", &var, 0);
+									if (SUCCEEDED(hr)) {
+										dev.id = String::create(var.bstrVal);
 									}
+									VariantClear(&var);
 
-									if (dev.id.isNotEmpty()) {
-										if (filter) {
-											if (deviceId.isEmpty() || deviceId == dev.id) {
-												hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)filter);
-												if (FAILED(hr)) {
-													LOG_HRESULT("Failed to bind Filter", hr);
-												}
-												return ret;
+									VariantInit(&var);
+									hr = prop->Read(L"FriendlyName", &var, 0);
+									if (SUCCEEDED(hr)) {
+										dev.name = String::create(var.bstrVal);
+									}
+									VariantClear(&var);
+
+									VariantInit(&var);
+									hr = prop->Read(L"Description", &var, 0);
+									if (SUCCEEDED(hr)) {
+										dev.description = String::create(var.bstrVal);
+									}
+									VariantClear(&var);
+
+									prop->Release();
+
+								}
+
+								if (dev.id.isNotEmpty()) {
+									if (filter) {
+										if (deviceId.isEmpty() || deviceId == dev.id) {
+											hr = pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void**)filter);
+											if (FAILED(hr)) {
+												LOG_HRESULT("Failed to bind Filter", hr);
 											}
-										} else {
-											ret.add_NoLock(dev);
+											return ret;
 										}
+									} else {
+										ret.add_NoLock(dev);
 									}
-
-									pMoniker->Release();
-									pMoniker = NULL;
 								}
+
+								pMoniker->Release();
+								pMoniker = NULL;
 							}
-
-							pClassEnum->Release();
-
-						} else {
-							LOG_HRESULT("Failed to create CLSID_VideoInputDeviceCategory", hr);
 						}
 
-						pDevEnum->Release();
+						pClassEnum->Release();
 
 					} else {
-						LOG_HRESULT("Failed to create CLSID_SystemDeviceEnum", hr);
+						LOG_HRESULT("Failed to create CLSID_VideoInputDeviceCategory", hr);
 					}
 
-					return ret;
+					pDevEnum->Release();
 
+				} else {
+					LOG_HRESULT("Failed to create CLSID_SystemDeviceEnum", hr);
 				}
-			};
 
-		}
+				return ret;
+
+			}
+		};
+
 	}
 
 	Ref<Camera> Camera::create(const CameraParam& param)
 	{
-		return priv::dshow::CameraImpl::_create(param);
+		return CameraImpl::_create(param);
 	}
 
-	List<CameraInfo> Camera::getCamerasList()
+	List<CameraInfo> Camera::getCameras()
 	{
-		return priv::dshow::CameraImpl::_queryDevices(String::null(), NULL);
+		return CameraImpl::_queryDevices(String::null(), NULL);
 	}
 
 }

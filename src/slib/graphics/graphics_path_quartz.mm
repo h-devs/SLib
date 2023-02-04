@@ -31,58 +31,52 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace graphics_path
+	namespace {
+
+		class PlatformObject : public Referable
 		{
+		public:
+			CGMutablePathRef path;
 
-			class PlatformObject : public Referable
+		protected:
+			PlatformObject(CGMutablePathRef _path): path(_path) {}
+
+			~PlatformObject()
 			{
-			public:
-				CGMutablePathRef path;
+				CGPathRelease(path);
+			}
 
-			protected:
-				PlatformObject(CGMutablePathRef _path): path(_path) {}
-
-				~PlatformObject()
-				{
+		public:
+			static Ref<PlatformObject> create()
+			{
+				CGMutablePathRef path = CGPathCreateMutable();
+				if (path) {
+					Ref<PlatformObject> ret = new PlatformObject(path);
+					if (ret.isNotNull()) {
+						return ret;
+					}
 					CGPathRelease(path);
 				}
+				return sl_null;
+			}
 
-			public:
-				static Ref<PlatformObject> create()
-				{
-					CGMutablePathRef path = CGPathCreateMutable();
-					if (path) {
-						Ref<PlatformObject> ret = new PlatformObject(path);
-						if (ret.isNotNull()) {
-							return ret;
-						}
-						CGPathRelease(path);
-					}
-					return sl_null;
-				}
+		};
 
-			};
-
-			class GraphicsPathHelper : public GraphicsPath
+		class GraphicsPathHelper : public GraphicsPath
+		{
+		public:
+			CGPathRef getPlatformPath()
 			{
-			public:
-				CGPathRef getPlatformPath()
-				{
-					_initPlatformObject();
-					PlatformObject* po = (PlatformObject*)(m_platformObject.get());
-					if (po) {
-						return po->path;
-					}
-					return sl_null;
+				_initPlatformObject();
+				PlatformObject* po = (PlatformObject*)(m_platformObject.get());
+				if (po) {
+					return po->path;
 				}
-			};
+				return sl_null;
+			}
+		};
 
-		}
 	}
-
-	using namespace priv::graphics_path;
 
 	Ref<Referable> GraphicsPath::_createPlatformObject()
 	{

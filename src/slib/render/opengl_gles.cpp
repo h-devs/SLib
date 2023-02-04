@@ -31,7 +31,6 @@
 
 #define PRIV_OPENGL_ES_IMPL
 #define GL_BASE GLES
-#define GL_ENGINE GLES_Engine
 #define GL_ENTRY(x) PRIV_GLES_ENTRY(x)
 #include "opengl_impl.h"
 

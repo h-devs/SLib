@@ -29,44 +29,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace kvs
-		{
-
-			static Variant DeserializeValue(MemoryData&& mem)
-			{
-				if (mem.size) {
-					sl_char8* buf = (sl_char8*)(mem.data);
-					if (*buf) {
-						Referable* ref = mem.ref.get();
-						if (ref) {
-							return String::fromRef(ref, buf, mem.size);
-						} else {
-							return String(buf, mem.size);
-						}
-					} else {
-						if (mem.size > 1) {
-							mem.size--;
-							mem.data = buf + 1;
-							Variant ret;
-							ret.deserialize(Move(mem));
-							return ret;
-						} else {
-							return String::getEmpty();
-						}
-					}
-				} else {
-					return sl_null;
-				}
-			}
-
-		}
-	}
-
-	using namespace priv::kvs;
-
-
 	KeyValueReader::KeyValueReader()
 	{
 	}
@@ -114,6 +76,35 @@ namespace slib
 			return mem.size;
 		} else {
 			return -1;
+		}
+	}
+
+	namespace {
+		static Variant DeserializeValue(MemoryData&& mem)
+		{
+			if (mem.size) {
+				sl_char8* buf = (sl_char8*)(mem.data);
+				if (*buf) {
+					Referable* ref = mem.ref.get();
+					if (ref) {
+						return String::fromRef(ref, buf, mem.size);
+					} else {
+						return String(buf, mem.size);
+					}
+				} else {
+					if (mem.size > 1) {
+						mem.size--;
+						mem.data = buf + 1;
+						Variant ret;
+						ret.deserialize(Move(mem));
+						return ret;
+					} else {
+						return String::getEmpty();
+					}
+				}
+			} else {
+				return sl_null;
+			}
 		}
 	}
 

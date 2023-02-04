@@ -114,36 +114,30 @@ namespace slib
 		m_program.setNull();
 	}
 
-	namespace priv
-	{
-		namespace render_drawable
+	namespace {
+		class ShaderDrawable_Program : public RenderProgram2D_Position
 		{
+		public:
+			String m_vertexShader;
+			String m_fragmentShader;
 
-			class ShaderDrawable_Program : public RenderProgram2D_Position
+		public:
+			ShaderDrawable_Program(const String& vs, const String& fs)
+			: m_vertexShader(vs), m_fragmentShader(fs)
 			{
-			public:
-				String m_vertexShader;
-				String m_fragmentShader;
+			}
 
-			public:
-				ShaderDrawable_Program(const String& vs, const String& fs)
-				: m_vertexShader(vs), m_fragmentShader(fs)
-				{
-				}
+			String getGLSLVertexShader(RenderEngine* engine) override
+			{
+				return m_vertexShader;
+			}
 
-				String getGLSLVertexShader(RenderEngine* engine) override
-				{
-					return m_vertexShader;
-				}
+			String getGLSLFragmentShader(RenderEngine* engine) override
+			{
+				return m_fragmentShader;
+			}
 
-				String getGLSLFragmentShader(RenderEngine* engine) override
-				{
-					return m_fragmentShader;
-				}
-
-			};
-
-		}
+		};
 	}
 
 	void ShaderDrawable::onRender(RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param)
@@ -155,7 +149,7 @@ namespace slib
 			if (vs.isEmpty() || fs.isEmpty()) {
 				return;
 			}
-			program = new priv::render_drawable::ShaderDrawable_Program(vs, fs);
+			program = new ShaderDrawable_Program(vs, fs);
 			if (program.isNull()) {
 				return;
 			}

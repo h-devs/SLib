@@ -33,253 +33,249 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace redis
+	namespace {
+
+		class DatabaseImpl : public Redis
 		{
+		public:
+			redisContext* m_context;
 
-			class DatabaseImpl : public Redis
+			DatabaseImpl()
 			{
-			public:
-				redisContext* m_context;
+				m_context = sl_null;
+			}
 
-				DatabaseImpl()
-				{
-					m_context = sl_null;
-				}
+			~DatabaseImpl()
+			{
+				redisFree(m_context);
+			}
 
-				~DatabaseImpl()
-				{
-					redisFree(m_context);
-				}
-
-			public:
-				static Ref<DatabaseImpl> connect(const StringParam& _ip, sl_uint16 port)
-				{
-					StringCstr ip(_ip);
-					redisContext* context = redisConnect(ip.getData(), port);
-					if (context) {
-						Ref<DatabaseImpl> ret = new DatabaseImpl();
-						if (ret.isNotNull()) {
-							ret->m_context = context;
-							return ret;
-						}
-						redisFree(context);
-					}
-					return sl_null;
-				}
-
-			public:
-				Variant _parseReply(redisReply* reply)
-				{
-					clearErrorMessage();
-					if (reply) {
-						switch (reply->type) {
-							case REDIS_REPLY_INTEGER:
-								return reply->integer;
-							case REDIS_REPLY_STRING:
-							case REDIS_REPLY_STATUS:
-								return String(reply->str);
-							case REDIS_REPLY_ARRAY:
-								{
-									List<Variant> list;
-									for (size_t i = 0; i < reply->elements; i++) {
-										list.add(_parseReply(reply->element[i]));
-									}
-									return list;
-								}
-							case REDIS_REPLY_ERROR:
-								processError(reply->str);
-								break;
-						}
-					}
-					return Variant();
-				}
-
-				Variant _processReply(redisReply* reply)
-				{
-					if (reply) {
-						Variant ret = _parseReply(reply);
-						freeReplyObject(reply);
+		public:
+			static Ref<DatabaseImpl> connect(const StringParam& _ip, sl_uint16 port)
+			{
+				StringCstr ip(_ip);
+				redisContext* context = redisConnect(ip.getData(), port);
+				if (context) {
+					Ref<DatabaseImpl> ret = new DatabaseImpl();
+					if (ret.isNotNull()) {
+						ret->m_context = context;
 						return ret;
-					} else {
-						processError("Cannot connect to the server");
 					}
-					return Variant();
+					redisFree(context);
 				}
+				return sl_null;
+			}
 
-				sl_bool _processCheckReply(redisReply* reply, Variant check)
-				{
-					return _processReply(reply) == check;
+		public:
+			Variant _parseReply(redisReply* reply)
+			{
+				clearErrorMessage();
+				if (reply) {
+					switch (reply->type) {
+						case REDIS_REPLY_INTEGER:
+							return reply->integer;
+						case REDIS_REPLY_STRING:
+						case REDIS_REPLY_STATUS:
+							return String(reply->str);
+						case REDIS_REPLY_ARRAY:
+							{
+								List<Variant> list;
+								for (size_t i = 0; i < reply->elements; i++) {
+									list.add(_parseReply(reply->element[i]));
+								}
+								return list;
+							}
+						case REDIS_REPLY_ERROR:
+							processError(reply->str);
+							break;
+					}
 				}
+				return Variant();
+			}
 
-				sl_bool _processIntReply(redisReply* reply, sl_int64* pValue)
-				{
-					return _processReply(reply).getInt64(pValue);
+			Variant _processReply(redisReply* reply)
+			{
+				if (reply) {
+					Variant ret = _parseReply(reply);
+					freeReplyObject(reply);
+					return ret;
+				} else {
+					processError("Cannot connect to the server");
 				}
+				return Variant();
+			}
 
-				Variant get(const StringParam& _key) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "GET %s", key.getData()));
-					return _processReply(reply);
-				}
+			sl_bool _processCheckReply(redisReply* reply, Variant check)
+			{
+				return _processReply(reply) == check;
+			}
 
-				sl_bool put(const StringParam& _key, const Variant& value) override
-				{
-					StringCstr key(_key);
-					StringCstr str = value.getString();
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "SET %s %s", key.getData(), str.getData()));
-					return _processCheckReply(reply, "OK");
-				}
+			sl_bool _processIntReply(redisReply* reply, sl_int64* pValue)
+			{
+				return _processReply(reply).getInt64(pValue);
+			}
 
-				sl_bool remove(const void* _key, sl_size sizeKey) override
-				{
-					StringCstr key((sl_char8*)_key, sizeKey);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "DEL %s", key.getData()));
-					return _processCheckReply(reply, 1);
-				}
+			Variant get(const StringParam& _key) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "GET %s", key.getData()));
+				return _processReply(reply);
+			}
 
-				Ref<KeyValueWriteBatch> createWriteBatch() override
-				{
-					return sl_null;
-				}
+			sl_bool put(const StringParam& _key, const Variant& value) override
+			{
+				StringCstr key(_key);
+				StringCstr str = value.getString();
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "SET %s %s", key.getData(), str.getData()));
+				return _processCheckReply(reply, "OK");
+			}
 
-				Ref<KeyValueIterator> getIterator() override
-				{
-					return sl_null;
-				}
+			sl_bool remove(const void* _key, sl_size sizeKey) override
+			{
+				StringCstr key((sl_char8*)_key, sizeKey);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "DEL %s", key.getData()));
+				return _processCheckReply(reply, 1);
+			}
 
-				Ref<KeyValueSnapshot> getSnapshot() override
-				{
-					return sl_null;
-				}
+			Ref<KeyValueWriteBatch> createWriteBatch() override
+			{
+				return sl_null;
+			}
 
-				Variant execute(const StringParam& command) override
-				{
-					ObjectLocker lock(this);
-					String s = command.toString().replaceAll("%", "%%").toNullTerminated();
-					redisReply* reply = (redisReply*)(redisCommand(m_context, s.getData()));
-					return _processReply(reply);
-				}
+			Ref<KeyValueIterator> getIterator() override
+			{
+				return sl_null;
+			}
 
-				sl_bool incr(const StringParam& _key, sl_int64* pValue) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "INCR %s", key.getData()));
-					return _processIntReply(reply, pValue);
-				}
+			Ref<KeyValueSnapshot> getSnapshot() override
+			{
+				return sl_null;
+			}
 
-				sl_bool decr(const StringParam& _key, sl_int64* pValue) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "DECR %s", key.getData()));
-					return _processIntReply(reply, pValue);
-				}
+			Variant execute(const StringParam& command) override
+			{
+				ObjectLocker lock(this);
+				String s = command.toString().replaceAll("%", "%%").toNullTerminated();
+				redisReply* reply = (redisReply*)(redisCommand(m_context, s.getData()));
+				return _processReply(reply);
+			}
 
-				sl_bool incrby(const StringParam& _key, sl_int64 n, sl_int64* pValue) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "INCRBY %s %lld", key.getData(), n));
-					return _processIntReply(reply, pValue);
-				}
+			sl_bool incr(const StringParam& _key, sl_int64* pValue) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "INCR %s", key.getData()));
+				return _processIntReply(reply, pValue);
+			}
 
-				sl_bool decrby(const StringParam& _key, sl_int64 n, sl_int64* pValue) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "DECRBY %s %lld", key.getData(), n));
-					return _processIntReply(reply, pValue);
-				}
+			sl_bool decr(const StringParam& _key, sl_int64* pValue) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "DECR %s", key.getData()));
+				return _processIntReply(reply, pValue);
+			}
 
-				sl_bool llen(const StringParam& _key, sl_int64* pValue) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "LLEN %s", key.getData()));
-					return _processIntReply(reply, pValue);
-				}
+			sl_bool incrby(const StringParam& _key, sl_int64 n, sl_int64* pValue) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "INCRBY %s %lld", key.getData(), n));
+				return _processIntReply(reply, pValue);
+			}
 
-				sl_int64 lpush(const StringParam& _key, const Variant& value) override
-				{
-					StringCstr key(_key);
-					StringCstr str = value.getString();
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "LPUSH %s %s", key.getData(), str.getData()));
-					sl_int64 count = 0;
-					_processIntReply(reply, &count);
-					return count;
-				}
+			sl_bool decrby(const StringParam& _key, sl_int64 n, sl_int64* pValue) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "DECRBY %s %lld", key.getData(), n));
+				return _processIntReply(reply, pValue);
+			}
 
-				sl_int64 rpush(const StringParam& _key, const Variant& value) override
-				{
-					StringCstr key(_key);
-					StringCstr str = value.getString();
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "RPUSH %s %s", key.getData(), str.getData()));
-					sl_int64 count = 0;
-					_processIntReply(reply, &count);
-					return count;
-				}
+			sl_bool llen(const StringParam& _key, sl_int64* pValue) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "LLEN %s", key.getData()));
+				return _processIntReply(reply, pValue);
+			}
 
-				Variant lindex(const StringParam& _key, sl_int64 index) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "LINDEX %s %lld", key.getData(), index));
-					return _processReply(reply);
-				}
+			sl_int64 lpush(const StringParam& _key, const Variant& value) override
+			{
+				StringCstr key(_key);
+				StringCstr str = value.getString();
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "LPUSH %s %s", key.getData(), str.getData()));
+				sl_int64 count = 0;
+				_processIntReply(reply, &count);
+				return count;
+			}
 
-				sl_bool lset(const StringParam& _key, sl_int64 index, const Variant& value) override
-				{
-					StringCstr key(_key);
-					StringCstr str = value.getString();
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "LSET %s %lld %s", key.getData(), index, str.getData()));
-					return _processCheckReply(reply, "OK");
-				}
+			sl_int64 rpush(const StringParam& _key, const Variant& value) override
+			{
+				StringCstr key(_key);
+				StringCstr str = value.getString();
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "RPUSH %s %s", key.getData(), str.getData()));
+				sl_int64 count = 0;
+				_processIntReply(reply, &count);
+				return count;
+			}
 
-				sl_bool ltrm(const StringParam& _key, sl_int64 start, sl_int64 stop) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "LSET %s %lld %lld", key.getData(), start, stop));
-					return _processCheckReply(reply, "OK");
-				}
+			Variant lindex(const StringParam& _key, sl_int64 index) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "LINDEX %s %lld", key.getData(), index));
+				return _processReply(reply);
+			}
 
-				Variant lpop(const StringParam& _key) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "LPOP %s", key.getData()));
-					return _processReply(reply);
-				}
+			sl_bool lset(const StringParam& _key, sl_int64 index, const Variant& value) override
+			{
+				StringCstr key(_key);
+				StringCstr str = value.getString();
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "LSET %s %lld %s", key.getData(), index, str.getData()));
+				return _processCheckReply(reply, "OK");
+			}
 
-				Variant rpop(const StringParam& _key) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "RPOP %s", key.getData()));
-					return _processReply(reply);
-				}
+			sl_bool ltrm(const StringParam& _key, sl_int64 start, sl_int64 stop) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "LSET %s %lld %lld", key.getData(), start, stop));
+				return _processCheckReply(reply, "OK");
+			}
 
-				VariantList lrange(const StringParam& _key, sl_int64 start, sl_int64 stop) override
-				{
-					StringCstr key(_key);
-					ObjectLocker lock(this);
-					redisReply* reply = (redisReply*)(redisCommand(m_context, "LRANGE %s %lld %lld", key.getData(), start, stop));
-					return _processReply(reply).getVariantList();
-				}
+			Variant lpop(const StringParam& _key) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "LPOP %s", key.getData()));
+				return _processReply(reply);
+			}
 
-			};
+			Variant rpop(const StringParam& _key) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "RPOP %s", key.getData()));
+				return _processReply(reply);
+			}
 
-		}
+			VariantList lrange(const StringParam& _key, sl_int64 start, sl_int64 stop) override
+			{
+				StringCstr key(_key);
+				ObjectLocker lock(this);
+				redisReply* reply = (redisReply*)(redisCommand(m_context, "LRANGE %s %lld %lld", key.getData(), start, stop));
+				return _processReply(reply).getVariantList();
+			}
+
+		};
+
 	}
 
 	SLIB_DEFINE_OBJECT(Redis, KeyValueStore)
@@ -392,7 +388,7 @@ namespace slib
 
 	Ref<Redis> Redis::connect(const StringParam& ip, sl_uint16 port)
 	{
-		return priv::redis::DatabaseImpl::connect(ip, port);
+		return DatabaseImpl::connect(ip, port);
 	}
 
 }

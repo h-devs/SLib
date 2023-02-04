@@ -39,251 +39,245 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace process
-		{
+	namespace {
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 
-			static sl_bool CreatePipe(HANDLE* pRead, HANDLE* pWrite)
-			{
-				SECURITY_ATTRIBUTES saAttr;
-				saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-				saAttr.bInheritHandle = TRUE;
-				saAttr.lpSecurityDescriptor = NULL;
-				return ::CreatePipe(pRead, pWrite, &saAttr, 0) != 0;
-			}
+		static sl_bool CreatePipe(HANDLE* pRead, HANDLE* pWrite)
+		{
+			SECURITY_ATTRIBUTES saAttr;
+			saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+			saAttr.bInheritHandle = TRUE;
+			saAttr.lpSecurityDescriptor = NULL;
+			return ::CreatePipe(pRead, pWrite, &saAttr, 0) != 0;
+		}
 
-			static sl_bool Execute(const StringParam& _pathExecutable, const StringParam* cmds, sl_size nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, DWORD flags, sl_bool flagInheritHandles)
+		static sl_bool Execute(const StringParam& _pathExecutable, const StringParam* cmds, sl_size nCmds, PROCESS_INFORMATION* pi, STARTUPINFOW* si, DWORD flags, sl_bool flagInheritHandles)
+		{
+			StringCstr16 pathExecutable(_pathExecutable);
+			StringCstr16 cmd;
 			{
-				StringCstr16 pathExecutable(_pathExecutable);
-				StringCstr16 cmd;
-				{
-					StringBuffer16 sb;
-					sb.addStatic(SLIB_UNICODE("\""));
-					sb.addStatic(pathExecutable.getData(), pathExecutable.getLength());
-					sb.addStatic(SLIB_UNICODE("\""));
-					String args = CommandLine::build(cmds, nCmds);
-					if (args.isNotEmpty()) {
-						sb.addStatic(SLIB_UNICODE(" "));
-						sb.add(String16::from(args));
-					}
-					cmd = sb.merge();
+				StringBuffer16 sb;
+				sb.addStatic(SLIB_UNICODE("\""));
+				sb.addStatic(pathExecutable.getData(), pathExecutable.getLength());
+				sb.addStatic(SLIB_UNICODE("\""));
+				String args = CommandLine::build(cmds, nCmds);
+				if (args.isNotEmpty()) {
+					sb.addStatic(SLIB_UNICODE(" "));
+					sb.add(String16::from(args));
 				}
-				return CreateProcessW(
-					(LPCWSTR)(pathExecutable.getData()),
-					(LPWSTR)(cmd.getData()),
-					NULL, // process security attributes
-					NULL, // thread security attributes
-					flagInheritHandles, // handles are inherited,
-					flags,
-					NULL, // Environment (uses parent's environment)
-					NULL, // Current Directory (uses parent's current directory)
-					si,
-					pi) != 0;
+				cmd = sb.merge();
+			}
+			return CreateProcessW(
+				(LPCWSTR)(pathExecutable.getData()),
+				(LPWSTR)(cmd.getData()),
+				NULL, // process security attributes
+				NULL, // thread security attributes
+				flagInheritHandles, // handles are inherited,
+				flags,
+				NULL, // Environment (uses parent's environment)
+				NULL, // Current Directory (uses parent's current directory)
+				si,
+				pi) != 0;
+		}
+
+		class ProcessStream : public IStream
+		{
+		public:
+			HANDLE m_hRead;
+			HANDLE m_hWrite;
+
+		public:
+			ProcessStream()
+			{
+				m_hRead = INVALID_HANDLE_VALUE;
+				m_hWrite = INVALID_HANDLE_VALUE;
 			}
 
-			class ProcessStream : public IStream
+			~ProcessStream()
 			{
-			public:
-				HANDLE m_hRead;
-				HANDLE m_hWrite;
+				_close();
+			}
 
-			public:
-				ProcessStream()
-				{
+		public:
+			void close() override
+			{
+				_close();
+			}
+
+			sl_int32 read32(void* buf, sl_uint32 size) override
+			{
+				HANDLE handle = m_hRead;
+				if (handle != INVALID_HANDLE_VALUE) {
+					if (!size) {
+						return SLIB_IO_EMPTY_CONTENT;
+					}
+					sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
+					if (n <= 0) {
+						close();
+					}
+					return n;
+				}
+				return SLIB_IO_ERROR;
+			}
+
+			sl_int32 write32(const void* buf, sl_uint32 size) override
+			{
+				HANDLE handle = m_hWrite;
+				if (handle != INVALID_HANDLE_VALUE) {
+					sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size);
+					if (n < 0) {
+						close();
+					}
+					return n;
+				}
+				close();
+				return SLIB_IO_ERROR;
+			}
+
+			void _close()
+			{
+				if (m_hRead >= 0) {
+					CloseHandle(m_hRead);
 					m_hRead = INVALID_HANDLE_VALUE;
+				}
+				if (m_hWrite >= 0) {
+					CloseHandle(m_hWrite);
 					m_hWrite = INVALID_HANDLE_VALUE;
 				}
+			}
 
-				~ProcessStream()
-				{
-					_close();
-				}
+		};
 
-			public:
-				void close() override
-				{
-					_close();
-				}
+		class ProcessImpl : public Process
+		{
+		public:
+			HANDLE m_hProcess;
+			ProcessStream m_stream;
 
-				sl_int32 read32(void* buf, sl_uint32 size) override
-				{
-					HANDLE handle = m_hRead;
-					if (handle != INVALID_HANDLE_VALUE) {
-						if (!size) {
-							return SLIB_IO_EMPTY_CONTENT;
-						}
-						sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
-						if (n <= 0) {
-							close();
-						}
-						return n;
-					}
-					return SLIB_IO_ERROR;
-				}
-
-				sl_int32 write32(const void* buf, sl_uint32 size) override
-				{
-					HANDLE handle = m_hWrite;
-					if (handle != INVALID_HANDLE_VALUE) {
-						sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size);
-						if (n < 0) {
-							close();
-						}
-						return n;
-					}
-					close();
-					return SLIB_IO_ERROR;
-				}
-
-				void _close()
-				{
-					if (m_hRead >= 0) {
-						CloseHandle(m_hRead);
-						m_hRead = INVALID_HANDLE_VALUE;
-					}
-					if (m_hWrite >= 0) {
-						CloseHandle(m_hWrite);
-						m_hWrite = INVALID_HANDLE_VALUE;
-					}
-				}
-
-			};
-
-			class ProcessImpl : public Process
+		public:
+			ProcessImpl()
 			{
-			public:
-				HANDLE m_hProcess;
-				ProcessStream m_stream;
+				m_hProcess = INVALID_HANDLE_VALUE;
+			}
 
-			public:
-				ProcessImpl()
-				{
+			~ProcessImpl()
+			{
+				close();
+			}
+
+		public:
+			static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+			{
+				HANDLE hStdinRead, hStdinWrite, hStdoutRead, hStdoutWrite;
+				if (CreatePipe(&hStdinRead, &hStdinWrite)) {
+					SetHandleInformation(hStdinWrite, HANDLE_FLAG_INHERIT, 0);
+					if (CreatePipe(&hStdoutRead, &hStdoutWrite)) {
+						SetHandleInformation(hStdoutRead, HANDLE_FLAG_INHERIT, 0);
+						PROCESS_INFORMATION pi;
+						Base::zeroMemory(&pi, sizeof(pi));
+						STARTUPINFOW si;
+						Base::zeroMemory(&si, sizeof(si));
+						si.cb = sizeof(si);
+						si.hStdInput = hStdinRead;
+						si.hStdOutput = hStdoutWrite;
+						si.hStdError = hStdoutWrite;
+						si.dwFlags = STARTF_USESTDHANDLES;
+						if (Execute(pathExecutable, arguments, nArguments, &pi, &si, NORMAL_PRIORITY_CLASS, sl_true)) {
+							CloseHandle(pi.hThread);
+							CloseHandle(hStdinRead);
+							CloseHandle(hStdoutWrite);
+							Ref<ProcessImpl> ret = new ProcessImpl;
+							if (ret.isNotNull()) {
+								ret->m_hProcess = pi.hProcess;
+								ret->m_stream.m_hRead = hStdoutRead;
+								ret->m_stream.m_hWrite = hStdinWrite;
+								return ret;
+							}
+						}
+						CloseHandle(hStdoutRead);
+						CloseHandle(hStdoutWrite);
+					}
+					CloseHandle(hStdinRead);
+					CloseHandle(hStdinWrite);
+				}
+				return sl_null;
+			}
+
+		public:
+			void terminate() override
+			{
+				ObjectLocker lock(this);
+				m_stream.close();
+				if (m_hProcess != INVALID_HANDLE_VALUE) {
+					HANDLE handle = m_hProcess;
+					m_hProcess = INVALID_HANDLE_VALUE;
+					lock.unlock();
+					TerminateProcess(handle, 0);
+					CloseHandle(handle);
+					m_status = ProcessStatus::Terminated;
+				}
+			}
+
+			void kill() override
+			{
+				terminate();
+			}
+
+			void wait() override
+			{
+				ObjectLocker lock(this);
+				if (m_hProcess != INVALID_HANDLE_VALUE) {
+					HANDLE handle = m_hProcess;
+					m_hProcess = INVALID_HANDLE_VALUE;
+					lock.unlock();
+					DWORD ret = WaitForSingleObject(handle, INFINITE);
+					if (ret == WAIT_OBJECT_0) {
+						m_status = ProcessStatus::Exited;
+						DWORD code = 0;
+						if (GetExitCodeProcess(handle, &code)) {
+							m_exitStatus = (int)code;
+						}
+					} else {
+						m_status = ProcessStatus::Unknown;
+					}
+					CloseHandle(handle);
+					m_stream.close();
+				}
+			}
+
+			sl_bool isAlive() override
+			{
+				ObjectLocker lock(this);
+				if (m_hProcess != INVALID_HANDLE_VALUE) {
+					DWORD code = 0;
+					if (GetExitCodeProcess(m_hProcess, &code)) {
+						if (code == STILL_ACTIVE) {
+							return sl_true;
+						}
+					}
+				}
+				return sl_false;
+			}
+
+			IStream* getStream() override
+			{
+				return &m_stream;
+			}
+
+			void close()
+			{
+				if (m_hProcess != INVALID_HANDLE_VALUE) {
+					CloseHandle(m_hProcess);
 					m_hProcess = INVALID_HANDLE_VALUE;
 				}
+			}
 
-				~ProcessImpl()
-				{
-					close();
-				}
-
-			public:
-				static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
-				{
-					HANDLE hStdinRead, hStdinWrite, hStdoutRead, hStdoutWrite;
-					if (CreatePipe(&hStdinRead, &hStdinWrite)) {
-						SetHandleInformation(hStdinWrite, HANDLE_FLAG_INHERIT, 0);
-						if (CreatePipe(&hStdoutRead, &hStdoutWrite)) {
-							SetHandleInformation(hStdoutRead, HANDLE_FLAG_INHERIT, 0);
-							PROCESS_INFORMATION pi;
-							Base::zeroMemory(&pi, sizeof(pi));
-							STARTUPINFOW si;
-							Base::zeroMemory(&si, sizeof(si));
-							si.cb = sizeof(si);
-							si.hStdInput = hStdinRead;
-							si.hStdOutput = hStdoutWrite;
-							si.hStdError = hStdoutWrite;
-							si.dwFlags = STARTF_USESTDHANDLES;
-							if (Execute(pathExecutable, arguments, nArguments, &pi, &si, NORMAL_PRIORITY_CLASS, sl_true)) {
-								CloseHandle(pi.hThread);
-								CloseHandle(hStdinRead);
-								CloseHandle(hStdoutWrite);
-								Ref<ProcessImpl> ret = new ProcessImpl;
-								if (ret.isNotNull()) {
-									ret->m_hProcess = pi.hProcess;
-									ret->m_stream.m_hRead = hStdoutRead;
-									ret->m_stream.m_hWrite = hStdinWrite;
-									return ret;
-								}
-							}
-							CloseHandle(hStdoutRead);
-							CloseHandle(hStdoutWrite);
-						}
-						CloseHandle(hStdinRead);
-						CloseHandle(hStdinWrite);
-					}
-					return sl_null;
-				}
-
-			public:
-				void terminate() override
-				{
-					ObjectLocker lock(this);
-					m_stream.close();
-					if (m_hProcess != INVALID_HANDLE_VALUE) {
-						HANDLE handle = m_hProcess;
-						m_hProcess = INVALID_HANDLE_VALUE;
-						lock.unlock();
-						TerminateProcess(handle, 0);
-						CloseHandle(handle);
-						m_status = ProcessStatus::Terminated;
-					}
-				}
-
-				void kill() override
-				{
-					terminate();
-				}
-
-				void wait() override
-				{
-					ObjectLocker lock(this);
-					if (m_hProcess != INVALID_HANDLE_VALUE) {
-						HANDLE handle = m_hProcess;
-						m_hProcess = INVALID_HANDLE_VALUE;
-						lock.unlock();
-						DWORD ret = WaitForSingleObject(handle, INFINITE);
-						if (ret == WAIT_OBJECT_0) {
-							m_status = ProcessStatus::Exited;
-							DWORD code = 0;
-							if (GetExitCodeProcess(handle, &code)) {
-								m_exitStatus = (int)code;
-							}
-						} else {
-							m_status = ProcessStatus::Unknown;
-						}
-						CloseHandle(handle);
-						m_stream.close();
-					}
-				}
-
-				sl_bool isAlive() override
-				{
-					ObjectLocker lock(this);
-					if (m_hProcess != INVALID_HANDLE_VALUE) {
-						DWORD code = 0;
-						if (GetExitCodeProcess(m_hProcess, &code)) {
-							if (code == STILL_ACTIVE) {
-								return sl_true;
-							}
-						}
-					}
-					return sl_false;
-				}
-
-				IStream* getStream() override
-				{
-					return &m_stream;
-				}
-
-				void close()
-				{
-					if (m_hProcess != INVALID_HANDLE_VALUE) {
-						CloseHandle(m_hProcess);
-						m_hProcess = INVALID_HANDLE_VALUE;
-					}
-				}
-
-			};
+		};
 
 #endif
 
-		}
 	}
-
-	using namespace priv::process;
 
 	List<sl_uint32> Process::getAllProcessIds()
 	{

@@ -121,46 +121,42 @@ namespace slib
 		release();
 	}
 
-	namespace priv
-	{
-		namespace dispatch
+	namespace {
+
+		static Ref<DispatchLoop> CreateDefaultDispatchLoop(sl_bool flagRelease = sl_false)
 		{
-
-			static Ref<DispatchLoop> CreateDefaultDispatchLoop(sl_bool flagRelease = sl_false)
-			{
-				if (flagRelease) {
-					return sl_null;
-				}
-				return DispatchLoop::create();
-			}
-
-			static Ref<DispatchLoop> GetDefaultDispatchLoop(sl_bool flagRelease = sl_false)
-			{
-				SLIB_SAFE_LOCAL_STATIC(Ref<DispatchLoop>, ret, CreateDefaultDispatchLoop(flagRelease))
-				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
-					return sl_null;
-				}
-				if (ret.isNotNull()) {
-					if (flagRelease) {
-						ret->release();
-					} else {
-						return ret;
-					}
-				}
+			if (flagRelease) {
 				return sl_null;
 			}
-
+			return DispatchLoop::create();
 		}
+
+		static Ref<DispatchLoop> GetDefaultDispatchLoop(sl_bool flagRelease = sl_false)
+		{
+			SLIB_SAFE_LOCAL_STATIC(Ref<DispatchLoop>, ret, CreateDefaultDispatchLoop(flagRelease))
+			if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+				return sl_null;
+			}
+			if (ret.isNotNull()) {
+				if (flagRelease) {
+					ret->release();
+				} else {
+					return ret;
+				}
+			}
+			return sl_null;
+		}
+
 	}
 
 	Ref<DispatchLoop> DispatchLoop::getDefault()
 	{
-		return priv::dispatch::GetDefaultDispatchLoop();
+		return GetDefaultDispatchLoop();
 	}
 
 	void DispatchLoop::releaseDefault()
 	{
-		priv::dispatch::GetDefaultDispatchLoop(sl_true);
+		GetDefaultDispatchLoop(sl_true);
 	}
 
 	Ref<DispatchLoop> DispatchLoop::create(sl_bool flagAutoStart)

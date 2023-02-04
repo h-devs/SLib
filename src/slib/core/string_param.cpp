@@ -71,297 +71,68 @@ namespace slib
 	{
 		namespace string_param
 		{
-
 			const ConstContainer g_undefined = { sl_null, 0 };
 			const ConstContainer g_null = { sl_null, 1 };
-
-			SLIB_INLINE static void CopyParam(StringParam& dst, const StringParam& src) noexcept
-			{
-				dst._value = src._value;
-				dst._length = src._length;
-				if (src._value) {
-					switch (src._length) {
-						case STRING_TYPE_STRING8_REF:
-							dst._length = STRING_TYPE_STRING8_NOREF;
-							break;
-						case STRING_TYPE_STRING16_REF:
-							dst._length = STRING_TYPE_STRING16_NOREF;
-							break;
-						case STRING_TYPE_STRING32_REF:
-							dst._length = STRING_TYPE_STRING32_NOREF;
-							break;
-					}
-				}
-			}
-
-			template <class STRING>
-			static STRING ToString(const StringParam& param) noexcept
-			{
-				if (!(param._value)) {
-					return sl_null;
-				}
-				switch (param._length) {
-					case STRING_TYPE_STRING8_REF:
-					case STRING_TYPE_STRING8_NOREF:
-						return STRING::from(STRING_REF(param));
-					case STRING_TYPE_STRING16_REF:
-					case STRING_TYPE_STRING16_NOREF:
-						return STRING::from(STRING16_REF(param));
-					case STRING_TYPE_STRING32_REF:
-					case STRING_TYPE_STRING32_NOREF:
-						return STRING::from(STRING32_REF(param));
-					case STRING_TYPE_SZ8:
-						return STRING::create((sl_char8*)(param._value));
-					case STRING_TYPE_SZ16:
-						return STRING::create((sl_char16*)(param._value));
-					case STRING_TYPE_SZ32:
-						return STRING::create((sl_char32*)(param._value));
-					default:
-						if (IS_STR8(param._length)) {
-							return STRING::create((sl_char8*)(param._value), param._length);
-						} else if (IS_STR16(param._length)) {
-							return STRING::create((sl_char16*)(param._value), GET_LENGTH(param._length));
-						} else if (IS_STR32(param._length)) {
-							return STRING::create((sl_char32*)(param._value), GET_LENGTH(param._length));
-						} else {
-							return sl_null;
-						}
-				}
-			}
-
-			template <class BASE>
-			class StringDataHelper : public BASE
-			{
-			public:
-				typedef typename BASE::StringType StringType;
-				typedef typename BASE::Char Char;
-
-				using BASE::data;
-				using BASE::length;
-				using BASE::string;
-
-			public:
-				SLIB_INLINE void construct(const StringType& str) noexcept
-				{
-					data = str.getData(*((sl_size*)&length));
-				}
-
-				SLIB_INLINE void constructMove(StringType& str, StringParam& param) noexcept
-				{
-					new (&string) StringType(Move(str));
-					data = string.getData(*((sl_size*)&length));
-					param._value = sl_null;
-					param._length = 0;
-				}
-
-				SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type const& str) noexcept
-				{
-					new (&string) StringType(StringType::create(str));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-				SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type& str, StringParam& param) noexcept
-				{
-					construct(str);
-				}
-
-				SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type const& str
-				) noexcept
-				{
-					new (&string) StringType(StringType::create(str));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-				SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type& str, StringParam& param) noexcept
-				{
-					construct(str);
-				}
-
-				SLIB_INLINE void construct(const Char* str, sl_reg len) noexcept
-				{
-					data = (Char*)str;
-					length = len;
-				}
-
-				SLIB_INLINE void construct(typename OtherCharType<Char>::Type1 const* str, sl_reg len) noexcept
-				{
-					new (&string) StringType(StringType::create(str, len));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-				SLIB_INLINE void construct(typename OtherCharType<Char>::Type2 const* str, sl_reg len) noexcept
-				{
-					new (&string) StringType(StringType::create(str, len));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-			};
-
-			template <class BASE>
-			class StringCstrHelper : public BASE
-			{
-			public:
-				typedef typename BASE::StringType StringType;
-				typedef typename BASE::Char Char;
-
-				using BASE::data;
-				using BASE::length;
-				using BASE::string;
-
-			public:
-				SLIB_INLINE void construct(const StringType& str) noexcept
-				{
-					data = str.getNullTerminatedData(*((sl_size*)&length), string);
-				}
-
-				SLIB_INLINE void constructMove(StringType& str, StringParam& param) noexcept
-				{
-					new (&string) StringType(Move(str));
-					data = string.getNullTerminatedData(*((sl_size*)&length), string);
-					param._value = sl_null;
-					param._length = 0;
-				}
-
-				SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type const& str) noexcept
-				{
-					new (&string) StringType(StringType::create(str));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-				SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type& str, StringParam& param) noexcept
-				{
-					construct(str);
-				}
-
-				SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type const& str) noexcept
-				{
-					new (&string) StringType(StringType::create(str));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-				SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type& str, StringParam& param) noexcept
-				{
-					construct(str);
-				}
-
-				SLIB_INLINE void construct(const Char* str, sl_reg len) noexcept
-				{
-					if (len >= 0 && str[len]) {
-						new (&string) StringType(str, len);
-						data = string.getData(*((sl_size*)&length));
-					} else {
-						data = (Char*)str;
-						length = len;
-					}
-				}
-
-				SLIB_INLINE void construct(typename OtherCharType<Char>::Type1 const* str, sl_reg len) noexcept
-				{
-					new (&string) StringType(StringType::create(str, len));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-				SLIB_INLINE void construct(typename OtherCharType<Char>::Type2 const* str, sl_reg len) noexcept
-				{
-					new (&string) StringType(StringType::create(str, len));
-					data = string.getData(*((sl_size*)&length));
-				}
-
-			};
-
-			template <class HELPER>
-			static void ConstructData(HELPER& data, const StringParam& param) noexcept
-			{
-				if (param._value) {
-					switch (param._length) {
-						case STRING_TYPE_STRING8_REF:
-						case STRING_TYPE_STRING8_NOREF:
-							data.construct(STRING_REF(param));
-							return;
-						case STRING_TYPE_STRING16_REF:
-						case STRING_TYPE_STRING16_NOREF:
-							data.construct(STRING16_REF(param));
-							return;
-						case STRING_TYPE_STRING32_REF:
-						case STRING_TYPE_STRING32_NOREF:
-							data.construct(STRING32_REF(param));
-							return;
-						case STRING_TYPE_SZ8:
-							data.construct((sl_char8*)(param._value), -1);
-							return;
-						case STRING_TYPE_SZ16:
-							data.construct((sl_char16*)(param._value), -1);
-							return;
-						case STRING_TYPE_SZ32:
-							data.construct((sl_char32*)(param._value), -1);
-							return;
-						default:
-							if (IS_STR8(param._length)) {
-								data.construct((sl_char8*)(param._value), param._length);
-								return;
-							} else if (IS_STR16(param._length)) {
-								data.construct((sl_char16*)(param._value), GET_LENGTH(param._length));
-								return;
-							} else if (IS_STR32(param._length)) {
-								data.construct((sl_char32*)(param._value), GET_LENGTH(param._length));
-								return;
-							}
-							break;
-					}
-				}
-				data.setNull();
-			}
-
-			template <class HELPER>
-			void ConstructDataMove(HELPER& data, StringParam& param) noexcept
-			{
-				if (param._value) {
-					switch (param._length) {
-						case STRING_TYPE_STRING8_REF:
-							data.constructMove(STRING_REF(param), param);
-							return;
-						case STRING_TYPE_STRING16_REF:
-							data.constructMove(STRING16_REF(param), param);
-							return;
-						case STRING_TYPE_STRING32_REF:
-							data.constructMove(STRING32_REF(param), param);
-							return;
-						default:
-							ConstructData(data, param);
-							return;
-					}
-				}
-				data.setNull();
-			}
-
-			template <class DATA>
-			SLIB_INLINE static void ConstructStringData(DATA& data, const StringParam& param) noexcept
-			{
-				ConstructData(*((StringDataHelper<DATA>*)&data), param);
-			}
-
-			template <class DATA>
-			SLIB_INLINE static void ConstructStringDataMove(DATA& data, StringParam& param) noexcept
-			{
-				ConstructDataMove(*((StringDataHelper<DATA>*)&data), param);
-			}
-
-			template <class CSTR>
-			SLIB_INLINE static void ConstructStringCstr(CSTR& cstr, const StringParam& param) noexcept
-			{
-				ConstructData(*((StringCstrHelper<CSTR>*)&cstr), param);
-			}
-
-			template <class CSTR>
-			SLIB_INLINE static void ConstructStringCstrMove(CSTR& cstr, StringParam& param) noexcept
-			{
-				ConstructDataMove(*((StringCstrHelper<CSTR>*)&cstr), param);
-			}
-
 		}
 	}
 
-	using namespace priv::string_param;
+	namespace {
+
+		SLIB_INLINE static void CopyParam(StringParam& dst, const StringParam& src) noexcept
+		{
+			dst._value = src._value;
+			dst._length = src._length;
+			if (src._value) {
+				switch (src._length) {
+					case STRING_TYPE_STRING8_REF:
+						dst._length = STRING_TYPE_STRING8_NOREF;
+						break;
+					case STRING_TYPE_STRING16_REF:
+						dst._length = STRING_TYPE_STRING16_NOREF;
+						break;
+					case STRING_TYPE_STRING32_REF:
+						dst._length = STRING_TYPE_STRING32_NOREF;
+						break;
+				}
+			}
+		}
+
+		template <class STRING>
+		static STRING ToString(const StringParam& param) noexcept
+		{
+			if (!(param._value)) {
+				return sl_null;
+			}
+			switch (param._length) {
+				case STRING_TYPE_STRING8_REF:
+				case STRING_TYPE_STRING8_NOREF:
+					return STRING::from(STRING_REF(param));
+				case STRING_TYPE_STRING16_REF:
+				case STRING_TYPE_STRING16_NOREF:
+					return STRING::from(STRING16_REF(param));
+				case STRING_TYPE_STRING32_REF:
+				case STRING_TYPE_STRING32_NOREF:
+					return STRING::from(STRING32_REF(param));
+				case STRING_TYPE_SZ8:
+					return STRING::create((sl_char8*)(param._value));
+				case STRING_TYPE_SZ16:
+					return STRING::create((sl_char16*)(param._value));
+				case STRING_TYPE_SZ32:
+					return STRING::create((sl_char32*)(param._value));
+				default:
+					if (IS_STR8(param._length)) {
+						return STRING::create((sl_char8*)(param._value), param._length);
+					} else if (IS_STR16(param._length)) {
+						return STRING::create((sl_char16*)(param._value), GET_LENGTH(param._length));
+					} else if (IS_STR32(param._length)) {
+						return STRING::create((sl_char32*)(param._value), GET_LENGTH(param._length));
+					} else {
+						return sl_null;
+					}
+			}
+		}
+
+	}
 
 	void StringParam::_free() noexcept
 	{
@@ -975,6 +746,238 @@ namespace slib
 		}
 	}
 
+	namespace {
+
+		template <class BASE>
+		class StringDataHelper : public BASE
+		{
+		public:
+			typedef typename BASE::StringType StringType;
+			typedef typename BASE::Char Char;
+
+			using BASE::data;
+			using BASE::length;
+			using BASE::string;
+
+		public:
+			SLIB_INLINE void construct(const StringType& str) noexcept
+			{
+				data = str.getData(*((sl_size*)&length));
+			}
+
+			SLIB_INLINE void constructMove(StringType& str, StringParam& param) noexcept
+			{
+				new (&string) StringType(Move(str));
+				data = string.getData(*((sl_size*)&length));
+				param._value = sl_null;
+				param._length = 0;
+			}
+
+			SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type const& str) noexcept
+			{
+				new (&string) StringType(StringType::create(str));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+			SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type& str, StringParam& param) noexcept
+			{
+				construct(str);
+			}
+
+			SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type const& str
+			) noexcept
+			{
+				new (&string) StringType(StringType::create(str));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+			SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type& str, StringParam& param) noexcept
+			{
+				construct(str);
+			}
+
+			SLIB_INLINE void construct(const Char* str, sl_reg len) noexcept
+			{
+				data = (Char*)str;
+				length = len;
+			}
+
+			SLIB_INLINE void construct(typename OtherCharType<Char>::Type1 const* str, sl_reg len) noexcept
+			{
+				new (&string) StringType(StringType::create(str, len));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+			SLIB_INLINE void construct(typename OtherCharType<Char>::Type2 const* str, sl_reg len) noexcept
+			{
+				new (&string) StringType(StringType::create(str, len));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+		};
+
+		template <class BASE>
+		class StringCstrHelper : public BASE
+		{
+		public:
+			typedef typename BASE::StringType StringType;
+			typedef typename BASE::Char Char;
+
+			using BASE::data;
+			using BASE::length;
+			using BASE::string;
+
+		public:
+			SLIB_INLINE void construct(const StringType& str) noexcept
+			{
+				data = str.getNullTerminatedData(*((sl_size*)&length), string);
+			}
+
+			SLIB_INLINE void constructMove(StringType& str, StringParam& param) noexcept
+			{
+				new (&string) StringType(Move(str));
+				data = string.getNullTerminatedData(*((sl_size*)&length), string);
+				param._value = sl_null;
+				param._length = 0;
+			}
+
+			SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type const& str) noexcept
+			{
+				new (&string) StringType(StringType::create(str));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+			SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type1>::Type& str, StringParam& param) noexcept
+			{
+				construct(str);
+			}
+
+			SLIB_INLINE void construct(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type const& str) noexcept
+			{
+				new (&string) StringType(StringType::create(str));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+			SLIB_INLINE void constructMove(typename StringTypeFromCharType<typename OtherCharType<Char>::Type2>::Type& str, StringParam& param) noexcept
+			{
+				construct(str);
+			}
+
+			SLIB_INLINE void construct(const Char* str, sl_reg len) noexcept
+			{
+				if (len >= 0 && str[len]) {
+					new (&string) StringType(str, len);
+					data = string.getData(*((sl_size*)&length));
+				} else {
+					data = (Char*)str;
+					length = len;
+				}
+			}
+
+			SLIB_INLINE void construct(typename OtherCharType<Char>::Type1 const* str, sl_reg len) noexcept
+			{
+				new (&string) StringType(StringType::create(str, len));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+			SLIB_INLINE void construct(typename OtherCharType<Char>::Type2 const* str, sl_reg len) noexcept
+			{
+				new (&string) StringType(StringType::create(str, len));
+				data = string.getData(*((sl_size*)&length));
+			}
+
+		};
+
+		template <class HELPER>
+		static void ConstructData(HELPER& data, const StringParam& param) noexcept
+		{
+			if (param._value) {
+				switch (param._length) {
+					case STRING_TYPE_STRING8_REF:
+					case STRING_TYPE_STRING8_NOREF:
+						data.construct(STRING_REF(param));
+						return;
+					case STRING_TYPE_STRING16_REF:
+					case STRING_TYPE_STRING16_NOREF:
+						data.construct(STRING16_REF(param));
+						return;
+					case STRING_TYPE_STRING32_REF:
+					case STRING_TYPE_STRING32_NOREF:
+						data.construct(STRING32_REF(param));
+						return;
+					case STRING_TYPE_SZ8:
+						data.construct((sl_char8*)(param._value), -1);
+						return;
+					case STRING_TYPE_SZ16:
+						data.construct((sl_char16*)(param._value), -1);
+						return;
+					case STRING_TYPE_SZ32:
+						data.construct((sl_char32*)(param._value), -1);
+						return;
+					default:
+						if (IS_STR8(param._length)) {
+							data.construct((sl_char8*)(param._value), param._length);
+							return;
+						} else if (IS_STR16(param._length)) {
+							data.construct((sl_char16*)(param._value), GET_LENGTH(param._length));
+							return;
+						} else if (IS_STR32(param._length)) {
+							data.construct((sl_char32*)(param._value), GET_LENGTH(param._length));
+							return;
+						}
+						break;
+				}
+			}
+			data.setNull();
+		}
+
+		template <class HELPER>
+		void ConstructDataMove(HELPER& data, StringParam& param) noexcept
+		{
+			if (param._value) {
+				switch (param._length) {
+					case STRING_TYPE_STRING8_REF:
+						data.constructMove(STRING_REF(param), param);
+						return;
+					case STRING_TYPE_STRING16_REF:
+						data.constructMove(STRING16_REF(param), param);
+						return;
+					case STRING_TYPE_STRING32_REF:
+						data.constructMove(STRING32_REF(param), param);
+						return;
+					default:
+						ConstructData(data, param);
+						return;
+				}
+			}
+			data.setNull();
+		}
+
+		template <class DATA>
+		SLIB_INLINE static void ConstructStringData(DATA& data, const StringParam& param) noexcept
+		{
+			ConstructData(*((StringDataHelper<DATA>*)&data), param);
+		}
+
+		template <class DATA>
+		SLIB_INLINE static void ConstructStringDataMove(DATA& data, StringParam& param) noexcept
+		{
+			ConstructDataMove(*((StringDataHelper<DATA>*)&data), param);
+		}
+
+		template <class CSTR>
+		SLIB_INLINE static void ConstructStringCstr(CSTR& cstr, const StringParam& param) noexcept
+		{
+			ConstructData(*((StringCstrHelper<CSTR>*)&cstr), param);
+		}
+
+		template <class CSTR>
+		SLIB_INLINE static void ConstructStringCstrMove(CSTR& cstr, StringParam& param) noexcept
+		{
+			ConstructDataMove(*((StringCstrHelper<CSTR>*)&cstr), param);
+		}
+
+	}
 
 #define DEFINE_STRING_DATA_MEMBERS(DATA, BASE) \
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DATA) \

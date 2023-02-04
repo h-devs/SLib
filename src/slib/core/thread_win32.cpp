@@ -31,97 +31,84 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace thread
+	namespace {
+
+		static DWORD g_tlsCurrentThread = TLS_OUT_OF_INDEXES;
+		static DWORD g_tlsUniqueId = TLS_OUT_OF_INDEXES;
+
+		static void InitializeTLS()
 		{
-
-			static DWORD CALLBACK ThreadProc(LPVOID lpParam)
-			{
-				Thread* pThread = (Thread*)lpParam;
-				pThread->_run();
-				pThread->decreaseReference();
-				return 0;
+			static sl_bool flagInit = sl_false;
+			if (flagInit) {
+				return;
 			}
-
-			static DWORD g_tlsCurrentThread = TLS_OUT_OF_INDEXES;
-			static DWORD g_tlsUniqueId = TLS_OUT_OF_INDEXES;
-
-			static void InitializeTLS()
-			{
-				static sl_bool flagInit = sl_false;
-				if (flagInit) {
-					return;
-				}
-				flagInit = sl_true;
-				g_tlsCurrentThread = TlsAlloc();
-				g_tlsUniqueId = TlsAlloc();
-			}
-
-			static void FreeTLSValue(DWORD& index)
-			{
-				if (index == TLS_OUT_OF_INDEXES) {
-					return;
-				}
-				LPVOID pData = TlsGetValue(index);
-				if (pData) {
-					LocalFree((HLOCAL)pData);
-				}
-				TlsFree(index);
-				index = TLS_OUT_OF_INDEXES;
-			}
-
-			static void FreeTLS()
-			{
-				FreeTLSValue(g_tlsCurrentThread);
-				FreeTLSValue(g_tlsUniqueId);
-			}
-
-			static sl_uint64 GetTLSUint64(DWORD& index)
-			{
-				InitializeTLS();
-				if (index == TLS_OUT_OF_INDEXES) {
-					return 0;
-				}
-				LPVOID pData = TlsGetValue(index);
-				if (pData) {
-					return *((sl_uint64*)pData);
-				}
-				return 0;
-			}
-
-			static void SetTLSUint64(DWORD& index, sl_uint64 value)
-			{
-				InitializeTLS();
-				if (index == TLS_OUT_OF_INDEXES) {
-					return;
-				}
-				HLOCAL hLocal = LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, 8);
-				if (hLocal) {
-					*((sl_uint64*)hLocal) = value;
-					TlsSetValue(index, (LPVOID)hLocal);
-				}
-			}
-
-			class TLSInit
-			{
-			public:
-				TLSInit()
-				{
-					InitializeTLS();
-				}
-
-				~TLSInit()
-				{
-					FreeTLS();
-				}
-
-			} g_tlsInit;
-
+			flagInit = sl_true;
+			g_tlsCurrentThread = TlsAlloc();
+			g_tlsUniqueId = TlsAlloc();
 		}
-	}
 
-	using namespace priv::thread;
+		static void FreeTLSValue(DWORD& index)
+		{
+			if (index == TLS_OUT_OF_INDEXES) {
+				return;
+			}
+			LPVOID pData = TlsGetValue(index);
+			if (pData) {
+				LocalFree((HLOCAL)pData);
+			}
+			TlsFree(index);
+			index = TLS_OUT_OF_INDEXES;
+		}
+
+		static void FreeTLS()
+		{
+			FreeTLSValue(g_tlsCurrentThread);
+			FreeTLSValue(g_tlsUniqueId);
+		}
+
+		static sl_uint64 GetTLSUint64(DWORD& index)
+		{
+			InitializeTLS();
+			if (index == TLS_OUT_OF_INDEXES) {
+				return 0;
+			}
+			LPVOID pData = TlsGetValue(index);
+			if (pData) {
+				return *((sl_uint64*)pData);
+			}
+			return 0;
+		}
+
+		static void SetTLSUint64(DWORD& index, sl_uint64 value)
+		{
+			InitializeTLS();
+			if (index == TLS_OUT_OF_INDEXES) {
+				return;
+			}
+			HLOCAL hLocal = LocalAlloc(LMEM_FIXED | LMEM_ZEROINIT, 8);
+			if (hLocal) {
+				*((sl_uint64*)hLocal) = value;
+				TlsSetValue(index, (LPVOID)hLocal);
+			}
+		}
+
+		class TLSInit
+		{
+		public:
+			TLSInit()
+			{
+				InitializeTLS();
+			}
+
+			~TLSInit()
+			{
+				FreeTLS();
+			}
+
+		};
+		static TLSInit g_tlsInit;
+
+	}
 
 	Thread* Thread::_nativeGetCurrentThread()
 	{
@@ -141,6 +128,16 @@ namespace slib
 	void Thread::_nativeSetCurrentThreadUniqueId(sl_uint64 n)
 	{
 		SetTLSUint64(g_tlsUniqueId, n);
+	}
+
+	namespace {
+		static DWORD CALLBACK ThreadProc(LPVOID lpParam)
+		{
+			Thread* pThread = (Thread*)lpParam;
+			pThread->_run();
+			pThread->decreaseReference();
+			return 0;
+		}
 	}
 
 	void Thread::_nativeStart(sl_uint32 stackSize)

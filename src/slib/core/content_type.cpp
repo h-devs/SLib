@@ -30,12 +30,10 @@ namespace slib
 {
 
 #define DEFINE_CONTENT_TYPE(name, text) \
-	namespace priv { \
-		namespace content_type { \
-			SLIB_STATIC_STRING(g_##name, text); \
-		} \
+	namespace { \
+		SLIB_STATIC_STRING(g_##name, text); \
 	} \
-	const String& ContentType::name=priv::content_type::g_##name;
+	const String& ContentType::name=g_##name;
 
 	DEFINE_CONTENT_TYPE(TextPlain, "text/plain")
 	DEFINE_CONTENT_TYPE(TextHtml, "text/html")
@@ -80,78 +78,73 @@ namespace slib
 	DEFINE_CONTENT_TYPE(WebForm, "application/x-www-form-urlencoded")
 	DEFINE_CONTENT_TYPE(MultipartFormData, "multipart/form-data")
 
-	namespace priv
-	{
-		namespace content_type
-		{
-			class Mapping
-			{
-			public:
-				CHashMap<String, String> maps;
-
-			public:
-				Mapping()
-				{
-					maps.put("txt", ContentType::TextPlain);
-					maps.put("htm", ContentType::TextHtml);
-					maps.put("html", ContentType::TextHtml);
-					maps.put("xml", ContentType::TextXml);
-					maps.put("css", ContentType::TextCss);
-					maps.put("js", ContentType::TextJavascript);
-					maps.put("rtf", ContentType::TextRtf);
-					maps.put("csv", ContentType::TextCsv);
-
-					maps.put("gif", ContentType::ImageGif);
-					maps.put("jpeg", ContentType::ImageJpeg);
-					maps.put("jpg", ContentType::ImageJpeg);
-					maps.put("png", ContentType::ImagePng);
-					maps.put("bmp", ContentType::ImageBmp);
-					maps.put("tiff", ContentType::ImageTiff);
-					maps.put("tif", ContentType::ImageTiff);
-
-					maps.put("oga", ContentType::AudioOgg);
-					maps.put("opus", ContentType::AudioOpus);
-					maps.put("weba", ContentType::AudioWebm);
-					maps.put("mpa", ContentType::AudioMpeg);
-					maps.put("mp1", ContentType::AudioMpeg);
-					maps.put("mp2", ContentType::AudioMpeg);
-					maps.put("mp3", ContentType::AudioMpeg);
-					maps.put("m4a", ContentType::AudioMp4);
-					maps.put("aac", ContentType::AudioMp4);
-
-					maps.put("avi", ContentType::VideoAvi);
-					maps.put("mpg", ContentType::VideoMpeg);
-					maps.put("mpeg", ContentType::VideoMpeg);
-					maps.put("mpv", ContentType::VideoMpeg);
-					maps.put("mp4", ContentType::VideoMp4);
-					maps.put("m4v", ContentType::VideoMp4);
-					maps.put("ogg", ContentType::VideoOgg);
-					maps.put("ogv", ContentType::VideoOgg);
-					maps.put("webm", ContentType::VideoWebm);
-					maps.put("flv", ContentType::VideoFlv);
-					maps.put("mkv", ContentType::VideoMatroska);
-
-					maps.put("json", ContentType::Json);
-					maps.put("pdf", ContentType::Pdf);
-					maps.put("woff", ContentType::FontWOFF);
-					maps.put("ttf", ContentType::FontTTF);
-					maps.put("zip", ContentType::Zip);
-					maps.put("gz", ContentType::Gzip);
-					maps.put("swf", ContentType::Flash);
-				}
-			};
-
-		}
-	}
-
 	String ContentTypeHelper::getFromFileExtension(const String& fileExt)
 	{
 		return getFromFileExtension(fileExt, sl_null);
 	}
 
+	namespace {
+		class Mapping
+		{
+		public:
+			CHashMap<String, String> maps;
+
+		public:
+			Mapping()
+			{
+				maps.put("txt", ContentType::TextPlain);
+				maps.put("htm", ContentType::TextHtml);
+				maps.put("html", ContentType::TextHtml);
+				maps.put("xml", ContentType::TextXml);
+				maps.put("css", ContentType::TextCss);
+				maps.put("js", ContentType::TextJavascript);
+				maps.put("rtf", ContentType::TextRtf);
+				maps.put("csv", ContentType::TextCsv);
+
+				maps.put("gif", ContentType::ImageGif);
+				maps.put("jpeg", ContentType::ImageJpeg);
+				maps.put("jpg", ContentType::ImageJpeg);
+				maps.put("png", ContentType::ImagePng);
+				maps.put("bmp", ContentType::ImageBmp);
+				maps.put("tiff", ContentType::ImageTiff);
+				maps.put("tif", ContentType::ImageTiff);
+
+				maps.put("oga", ContentType::AudioOgg);
+				maps.put("opus", ContentType::AudioOpus);
+				maps.put("weba", ContentType::AudioWebm);
+				maps.put("mpa", ContentType::AudioMpeg);
+				maps.put("mp1", ContentType::AudioMpeg);
+				maps.put("mp2", ContentType::AudioMpeg);
+				maps.put("mp3", ContentType::AudioMpeg);
+				maps.put("m4a", ContentType::AudioMp4);
+				maps.put("aac", ContentType::AudioMp4);
+
+				maps.put("avi", ContentType::VideoAvi);
+				maps.put("mpg", ContentType::VideoMpeg);
+				maps.put("mpeg", ContentType::VideoMpeg);
+				maps.put("mpv", ContentType::VideoMpeg);
+				maps.put("mp4", ContentType::VideoMp4);
+				maps.put("m4v", ContentType::VideoMp4);
+				maps.put("ogg", ContentType::VideoOgg);
+				maps.put("ogv", ContentType::VideoOgg);
+				maps.put("webm", ContentType::VideoWebm);
+				maps.put("flv", ContentType::VideoFlv);
+				maps.put("mkv", ContentType::VideoMatroska);
+
+				maps.put("json", ContentType::Json);
+				maps.put("pdf", ContentType::Pdf);
+				maps.put("woff", ContentType::FontWOFF);
+				maps.put("ttf", ContentType::FontTTF);
+				maps.put("zip", ContentType::Zip);
+				maps.put("gz", ContentType::Gzip);
+				maps.put("swf", ContentType::Flash);
+			}
+		};
+	}
+
 	String ContentTypeHelper::getFromFileExtension(const String& fileExt, const String& def)
 	{
-		SLIB_SAFE_LOCAL_STATIC(priv::content_type::Mapping, t)
+		SLIB_SAFE_LOCAL_STATIC(Mapping, t)
 		if (SLIB_SAFE_STATIC_CHECK_FREED(t)) {
 			return String::null();
 		}

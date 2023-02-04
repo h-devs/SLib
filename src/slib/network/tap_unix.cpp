@@ -44,172 +44,164 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace tap
+	namespace {
+		class TapImpl : public Tap
 		{
+		public:
+			int m_handle;
 
-			class TapImpl : public Tap
+		public:
+			TapImpl()
 			{
-			public:
-				int m_handle;
+			}
 
-			public:
-				TapImpl()
-				{
+			~TapImpl()
+			{
+				close();
+			}
+
+		public:
+			static Ref<TapImpl> open(const StringParam& _deviceName)
+			{
+				StringCstr deviceName(_deviceName);
+				const char* szDeviceName;
+				if (deviceName.isEmpty()) {
+					szDeviceName = "tap";
+				} else {
+					szDeviceName = deviceName.getData();
 				}
 
-				~TapImpl()
-				{
-					close();
-				}
-
-			public:
-				static Ref<TapImpl> open(const StringParam& _deviceName)
-				{
-					StringCstr deviceName(_deviceName);
-					const char* szDeviceName;
-					if (deviceName.isEmpty()) {
-						szDeviceName = "tap";
-					} else {
-						szDeviceName = deviceName.getData();
-					}
-
-					int handle = ::open("/dev/net/tun", O_RDWR);
-					if (handle != -1) {
-						HandlePtr<File>(handle)->setNonBlocking();
-						ifreq ifr;
-						Base::zeroMemory(&ifr, sizeof(ifr));
-						ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-						Base::copyString(ifr.ifr_name, szDeviceName, IFNAMSIZ);
-						if (ioctl(handle, TUNSETIFF, &ifr) >= 0) {
-							Ref<TapImpl> tap = new TapImpl;
-							if (tap.isNotNull()) {
-								tap->m_handle = handle;
-								tap->m_deviceName = szDeviceName;
-								tap->m_interfaceName = szDeviceName;
-								return tap;
-							}
-						}
-
-					}
-					return sl_null;
-				}
-
-				void _close() override
-				{
-					::close(m_handle);
-				}
-
-				sl_int32 read(void* buf, sl_uint32 size) override
-				{
-					if (m_flagOpened) {
-						for (;;) {
-							sl_int32 n = (sl_int32)(::read(m_handle, buf, size));
-							if (n > 0) {
-								return n;
-							}
-							if (n) {
-								int err = errno;
-								if (err != EAGAIN && err != EWOULDBLOCK && err != EINTR) {
-									return SLIB_IO_ERROR;
-								}
-							}
-							pollfd fd;
-							Base::zeroMemory(&fd, sizeof(fd));
-							fd.fd = m_handle;
-							fd.events = POLLIN | POLLPRI | POLLERR | POLLHUP;
-							int iRet = poll(&fd, 1, 10);
-							if (iRet < 0) {
-								break;
-							}
-							if (Thread::isStoppingCurrent()) {
-								return SLIB_IO_WOULD_BLOCK;
-							}
+				int handle = ::open("/dev/net/tun", O_RDWR);
+				if (handle != -1) {
+					HandlePtr<File>(handle)->setNonBlocking();
+					ifreq ifr;
+					Base::zeroMemory(&ifr, sizeof(ifr));
+					ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+					Base::copyString(ifr.ifr_name, szDeviceName, IFNAMSIZ);
+					if (ioctl(handle, TUNSETIFF, &ifr) >= 0) {
+						Ref<TapImpl> tap = new TapImpl;
+						if (tap.isNotNull()) {
+							tap->m_handle = handle;
+							tap->m_deviceName = szDeviceName;
+							tap->m_interfaceName = szDeviceName;
+							return tap;
 						}
 					}
-					return SLIB_IO_ERROR;
-				}
 
-				sl_int32 write(const void* buf, sl_uint32 size) override
-				{
-					if (m_flagOpened) {
-						for (;;) {
-							sl_int32 n = (sl_int32)(::write(m_handle, buf, size));
-							if (n >= 0) {
-								return n;
-							}
+				}
+				return sl_null;
+			}
+
+			void _close() override
+			{
+				::close(m_handle);
+			}
+
+			sl_int32 read(void* buf, sl_uint32 size) override
+			{
+				if (m_flagOpened) {
+					for (;;) {
+						sl_int32 n = (sl_int32)(::read(m_handle, buf, size));
+						if (n > 0) {
+							return n;
+						}
+						if (n) {
 							int err = errno;
 							if (err != EAGAIN && err != EWOULDBLOCK && err != EINTR) {
 								return SLIB_IO_ERROR;
 							}
-							pollfd fd;
-							Base::zeroMemory(&fd, sizeof(fd));
-							fd.fd = m_handle;
-							fd.events = POLLOUT | POLLERR | POLLHUP;
-							int iRet = poll(&fd, 1, 10);
-							if (iRet < 0) {
-								break;
-							}
-							if (Thread::isStoppingCurrent()) {
-								return SLIB_IO_WOULD_BLOCK;
-							}
+						}
+						pollfd fd;
+						Base::zeroMemory(&fd, sizeof(fd));
+						fd.fd = m_handle;
+						fd.events = POLLIN | POLLPRI | POLLERR | POLLHUP;
+						int iRet = poll(&fd, 1, 10);
+						if (iRet < 0) {
+							break;
+						}
+						if (Thread::isStoppingCurrent()) {
+							return SLIB_IO_WOULD_BLOCK;
 						}
 					}
-					return SLIB_IO_ERROR;
 				}
+				return SLIB_IO_ERROR;
+			}
 
-				sl_bool setIpAddress(const StringParam& _ip, const StringParam& _mask) override
-				{
+			sl_int32 write(const void* buf, sl_uint32 size) override
+			{
+				if (m_flagOpened) {
+					for (;;) {
+						sl_int32 n = (sl_int32)(::write(m_handle, buf, size));
+						if (n >= 0) {
+							return n;
+						}
+						int err = errno;
+						if (err != EAGAIN && err != EWOULDBLOCK && err != EINTR) {
+							return SLIB_IO_ERROR;
+						}
+						pollfd fd;
+						Base::zeroMemory(&fd, sizeof(fd));
+						fd.fd = m_handle;
+						fd.events = POLLOUT | POLLERR | POLLHUP;
+						int iRet = poll(&fd, 1, 10);
+						if (iRet < 0) {
+							break;
+						}
+						if (Thread::isStoppingCurrent()) {
+							return SLIB_IO_WOULD_BLOCK;
+						}
+					}
+				}
+				return SLIB_IO_ERROR;
+			}
 
-					StringCstr ip(_ip);
-					StringCstr mask(_mask);
+			sl_bool setIpAddress(const StringParam& _ip, const StringParam& _mask) override
+			{
 
-					sl_bool bRet = sl_false;
+				StringCstr ip(_ip);
+				StringCstr mask(_mask);
 
-					int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-					if (fd >= 0) {
+				sl_bool bRet = sl_false;
 
-						ifreq req;
-						Base::zeroMemory(&req, sizeof(req));
-						Base::copyString(req.ifr_name, m_interfaceName.getData(), IFNAMSIZ);
+				int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+				if (fd >= 0) {
 
-						req.ifr_addr.sa_family = AF_INET;
-						inet_pton(AF_INET, ip.getData(), &(((sockaddr_in*)&(req.ifr_addr))->sin_addr));
+					ifreq req;
+					Base::zeroMemory(&req, sizeof(req));
+					Base::copyString(req.ifr_name, m_interfaceName.getData(), IFNAMSIZ);
 
-						if(ioctl(fd, SIOCSIFADDR, &req) != -1) {
+					req.ifr_addr.sa_family = AF_INET;
+					inet_pton(AF_INET, ip.getData(), &(((sockaddr_in*)&(req.ifr_addr))->sin_addr));
 
-							if (((sockaddr_in*)&(req.ifr_addr))->sin_addr.s_addr) {
-								if (mask.isNotEmpty()) {
+					if(ioctl(fd, SIOCSIFADDR, &req) != -1) {
 
-									inet_pton(AF_INET, mask.getData(), &(((sockaddr_in*)&(req.ifr_addr))->sin_addr));
+						if (((sockaddr_in*)&(req.ifr_addr))->sin_addr.s_addr) {
+							if (mask.isNotEmpty()) {
 
-									if(ioctl(fd, SIOCSIFNETMASK, &req) != -1) {
+								inet_pton(AF_INET, mask.getData(), &(((sockaddr_in*)&(req.ifr_addr))->sin_addr));
 
-										if(ioctl(fd, SIOCGIFFLAGS, &req) != -1) {
-											req.ifr_flags |= (IFF_UP | IFF_RUNNING);
-											if(ioctl(fd, SIOCSIFFLAGS, &req) != -1) {
-												bRet = sl_true;
-											}
+								if(ioctl(fd, SIOCSIFNETMASK, &req) != -1) {
+
+									if(ioctl(fd, SIOCGIFFLAGS, &req) != -1) {
+										req.ifr_flags |= (IFF_UP | IFF_RUNNING);
+										if(ioctl(fd, SIOCSIFFLAGS, &req) != -1) {
+											bRet = sl_true;
 										}
-
 									}
+
 								}
 							}
 						}
-
-						::close(fd);
 					}
 
-					return bRet;
+					::close(fd);
 				}
 
-			};
+				return bRet;
+			}
 
-		}
+		};
 	}
-
-	using namespace priv::tap;
 
 	Ref<Tap> Tap::open(const StringParam& deviceName)
 	{

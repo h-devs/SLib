@@ -32,49 +32,43 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace zxing_scanner
+	namespace {
+
+		class Program_ScanBar : public RenderProgram2D_Position
 		{
-
-			class Program_ScanBar : public RenderProgram2D_Position
+		public:
+			String getGLSLVertexShader(RenderEngine* engine) override
 			{
-			public:
-				String getGLSLVertexShader(RenderEngine* engine) override
-				{
-					String source = SLIB_STRINGIFY(
-												uniform mat3 u_Transform;
-												attribute vec2 a_Position;
-												varying vec2 v_Position;
-												void main() {
-													vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
-													gl_Position = vec4(P.x, P.y, 0.0, 1.0);
-													v_Position = a_Position;
-												}
-												);
-					return source;
-				}
+				String source = SLIB_STRINGIFY(
+											uniform mat3 u_Transform;
+											attribute vec2 a_Position;
+											varying vec2 v_Position;
+											void main() {
+												vec3 P = vec3(a_Position.x, a_Position.y, 1.0) * u_Transform;
+												gl_Position = vec4(P.x, P.y, 0.0, 1.0);
+												v_Position = a_Position;
+											}
+											);
+				return source;
+			}
 
-				String getGLSLFragmentShader(RenderEngine* engine) override
-				{
-					String source = SLIB_STRINGIFY(
-												uniform vec4 u_Color;
-												varying vec2 v_Position;
-												void main() {
-													float a = 1.0 - (abs(0.5 - v_Position.y) * 2.0);
-													float c = 1.0 - (abs(0.5 - v_Position.x) * 2.0);
-													float b = pow(c, 0.2);
-													gl_FragColor = u_Color*a*b;
-												}
-												);
-					return source;
-				}
-			};
+			String getGLSLFragmentShader(RenderEngine* engine) override
+			{
+				String source = SLIB_STRINGIFY(
+											uniform vec4 u_Color;
+											varying vec2 v_Position;
+											void main() {
+												float a = 1.0 - (abs(0.5 - v_Position.y) * 2.0);
+												float c = 1.0 - (abs(0.5 - v_Position.x) * 2.0);
+												float b = pow(c, 0.2);
+												gl_FragColor = u_Color*a*b;
+											}
+											);
+				return source;
+			}
+		};
 
-		}
 	}
-
-	using namespace priv::zxing_scanner;
 
 	ZXingScanner::ZXingScanner()
 	{

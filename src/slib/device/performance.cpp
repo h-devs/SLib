@@ -47,66 +47,41 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace cpu
-		{
-
-			static sl_uint32 GetCoreCount()
-			{
-#if defined(SLIB_PLATFORM_IS_WIN32)
-				DWORD_PTR dwMaskProcess, dwMaskSystem;
-				if (GetProcessAffinityMask(GetCurrentProcess(), &dwMaskProcess, &dwMaskSystem)) {
-					return Math::popCount((sl_size)dwMaskSystem);
-				}
-#elif defined(SLIB_PLATFORM_IS_APPLE)
-				int mib[2] = {CTL_HW, HW_NCPU};
-				sl_uint32 n = 1;
-				size_t len = sizeof(n);
-				if (!(sysctl(mib, 2, &n, &len, sl_null, 0))) {
-					return n;
-				}
-#elif defined(SLIB_PLATFORM_IS_LINUX) && defined(CPU_COUNT)
-				cpu_set_t set;
-				CPU_ZERO(&set);
-				if (!(sched_getaffinity(0, sizeof(set), &set))) {
-					return (sl_uint32)(CPU_COUNT(&set));
-				}
-#endif
-				return 1;
-			}
-
-
-#ifdef SLIB_ARCH_IS_X64
-			static sl_bool IsSupportedSSE42() noexcept
-			{
-#if defined(SLIB_COMPILER_IS_VC)
-				int cpu_info[4];
-				__cpuid(cpu_info, 1);
-				return (cpu_info[2] & (1 << 20)) != 0;
-#else
-				unsigned int eax, ebx, ecx, edx;
-				return __get_cpuid(1, &eax, &ebx, &ecx, &edx) && ((ecx & (1 << 20)) != 0);
-#endif
-			}
-#endif
-
-		}
-	}
-
-	using namespace priv::cpu;
-
 	sl_uint32 Cpu::getCoreCount()
 	{
-		static sl_uint32 n = GetCoreCount();
-		return n;
+#if defined(SLIB_PLATFORM_IS_WIN32)
+		DWORD_PTR dwMaskProcess, dwMaskSystem;
+		if (GetProcessAffinityMask(GetCurrentProcess(), &dwMaskProcess, &dwMaskSystem)) {
+			return Math::popCount((sl_size)dwMaskSystem);
+		}
+#elif defined(SLIB_PLATFORM_IS_APPLE)
+		int mib[2] = {CTL_HW, HW_NCPU};
+		sl_uint32 n = 1;
+		size_t len = sizeof(n);
+		if (!(sysctl(mib, 2, &n, &len, sl_null, 0))) {
+			return n;
+		}
+#elif defined(SLIB_PLATFORM_IS_LINUX) && defined(CPU_COUNT)
+		cpu_set_t set;
+		CPU_ZERO(&set);
+		if (!(sched_getaffinity(0, sizeof(set), &set))) {
+			return (sl_uint32)(CPU_COUNT(&set));
+		}
+#endif
+		return 1;
 	}
 
 #ifdef SLIB_ARCH_IS_X64
 	sl_bool Cpu::isSupportedSSE42() noexcept
 	{
-		static sl_bool f = IsSupportedSSE42();
-		return f;
+#if defined(SLIB_COMPILER_IS_VC)
+		int cpu_info[4];
+		__cpuid(cpu_info, 1);
+		return (cpu_info[2] & (1 << 20)) != 0;
+#else
+		unsigned int eax, ebx, ecx, edx;
+		return __get_cpuid(1, &eax, &ebx, &ecx, &edx) && ((ecx & (1 << 20)) != 0);
+#endif
 	}
 #endif
 

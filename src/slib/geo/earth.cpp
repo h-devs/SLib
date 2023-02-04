@@ -25,38 +25,22 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace earth
+	namespace {
+
+		struct EarthGlobe
 		{
+			double radiusEquatorial;
+			double radiusPolar;
 
-			struct EarthGlobe
-			{
-				double radiusEquatorial;
-				double radiusPolar;
+			double inverseFlattening;
+			double eccentricitySquared;
+		};
 
-				double inverseFlattening;
-				double eccentricitySquared;
-			};
+		static EarthGlobe g_earthGlobe = {SLIB_GEO_EARTH_RADIUS_EQUATORIAL_WGS84, SLIB_GEO_EARTH_RADIUS_POLAR_WGS84, SLIB_GEO_EARTH_INVERSE_FLATTENING_WGS84, SLIB_GEO_EARTH_ECCENTRICITY_SQUARED_WGS84};
 
-			static EarthGlobe g_earthGlobe = {SLIB_GEO_EARTH_RADIUS_EQUATORIAL_WGS84, SLIB_GEO_EARTH_RADIUS_POLAR_WGS84, SLIB_GEO_EARTH_INVERSE_FLATTENING_WGS84, SLIB_GEO_EARTH_ECCENTRICITY_SQUARED_WGS84};
+		static const Globe& g_globe = *((Globe*)((void*)&g_earthGlobe));
 
-			static const Globe& g_globe = *((Globe*)((void*)&g_earthGlobe));
-
-
-			struct EarthSphericalGlobe
-			{
-				double radius;
-			};
-
-			static EarthSphericalGlobe g_earthSphericalGlobe = {SLIB_GEO_EARTH_RADIUS_EQUATORIAL_WGS84};
-
-			static const SphericalGlobe& g_sphericalGlobe = *((SphericalGlobe*)((void*)&g_earthSphericalGlobe));
-
-		}
 	}
-
-	using namespace priv::earth;
 
 	const Globe& Earth::getGlobe()
 	{
@@ -143,6 +127,19 @@ namespace slib
 		return g_globe.getGeoLocation(position.x, position.y, position.z);
 	}
 
+
+	namespace {
+
+		struct EarthSphericalGlobe
+		{
+			double radius;
+		};
+
+		static EarthSphericalGlobe g_earthSphericalGlobe = {SLIB_GEO_EARTH_RADIUS_EQUATORIAL_WGS84};
+
+		static const SphericalGlobe& g_sphericalGlobe = *((SphericalGlobe*)((void*)&g_earthSphericalGlobe));
+
+	}
 
 	const SphericalGlobe& SphericalEarth::getGlobe()
 	{

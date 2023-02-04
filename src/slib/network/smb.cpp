@@ -50,380 +50,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace smb
-		{
-
-			SLIB_STATIC_STRING16(g_strPathDelimiter, "\\")
-
-			static sl_uint64 GetFileId(SmbServer::Smb2Param& param, sl_uint8* guid)
-			{
-				sl_uint64 id = MIO::readUint64LE(guid);
-				if (id == SLIB_UINT64(0xffffffffffffffff)) {
-					id = param.lastCreatedFileId;
-					MIO::writeUint64LE(guid, 8);
-					Base::zeroMemory(guid + 8, 8);
-				}
-				return id;
-			}
-
-			static void WriteOpaqueFileUniqueId(sl_uint8* buf, sl_uint64 id)
-			{
-				MIO::writeUint64LE(buf, id);
-				buf[8] = 1;
-			}
-
-			static sl_uint32 ToNetworkAttrs(const FileAttributes& attrs)
-			{
-				sl_uint32 n = (sl_uint32)(attrs & (FileAttributes::Directory | FileAttributes::ReadOnly | FileAttributes::Hidden));
-				if (!(n & FileAttributes::Directory)) {
-					n |= FileAttributes::Normal;
-				}
-				return n;
-			}
-
-			static sl_uint64 GetAllocationSize(sl_uint64 size)
-			{
-				return ((size - 1) | (ALLOCATION_SIZE - 1)) + 1;
-			}
-
-			static StringView16 GetParentDirectoryPath(const StringView16& path) noexcept
-			{
-				if (path.isEmpty()) {
-					return sl_null;
-				}
-				sl_reg index = path.lastIndexOf('\\');
-				if (index > 0) {
-					return path.substring(0, index);
-				}
-				return sl_null;
-			}
-
-			static sl_bool WriteNetBIOSHeader(SmbServer::Connection& connection, sl_size sizeMessage)
-			{
-				sl_uint8 buf[4];
-				MIO::writeUint32BE(buf, (sl_uint32)sizeMessage);
-				buf[0] = 0;
-				return connection.socket->sendFully(buf, 4, connection.event) == 4;
-			}
-
-			static void InitSmb2ResponseHeader(Smb2Header& header)
-			{
-				Base::zeroMemory(&header, sizeof(header));
-				header.setSmb2();
-				header.setHeaderLength(sizeof(header));
-				header.setCreditGranted(1);
-				header.setFlags(Smb2HeaderFlags::Response);
-			}
-
-			static void InitSmb2ResponseHeader(Smb2Header& response, const Smb2Header& request)
-			{
-				Base::zeroMemory(&response, sizeof(response));
-				response.setSmb2();
-				response.setCommand(request.getCommand());
-				response.setHeaderLength(sizeof(response));
-				response.setCreditCharge(1);
-				response.setCreditGranted(request.getCreditGranted());
-				response.setFlags(Smb2HeaderFlags::Response | Smb2HeaderFlags::Priority);
-				response.setProcessId(request.getProcessId());
-				response.setMessageId(request.getMessageId());
-				response.setSessionId(request.getSessionId());
-				response.setTreeId(request.getTreeId());
-			}
-
-			struct Smb2Chain
-			{
-				MemoryBuffer buffer;
-			};
-
-			static sl_bool WriteResponse(SmbServer::Smb2Param& param, Smb2Header& smb, const void* response, sl_size sizeResponse, const void* blob = sl_null, sl_size sizeBlob = 0)
-			{
-				if (param.smb->getChainOffset()) {
-					Smb2Chain* chain;
-					if (param.chain) {
-						chain = (Smb2Chain*)(param.chain);
-					} else {
-						chain = new Smb2Chain;
-						if (!chain) {
-							return sl_false;
-						}
-						param.chain = chain;
-					}
-					sl_uint32 size = (sl_uint32)(sizeof(Smb2Header) + sizeResponse + sizeBlob);
-					sl_uint32 sizeChain = ((size - 1) | 7) + 1;
-					smb.setChainOffset(sizeChain);
-					if (!(chain->buffer.addNew(&smb, sizeof(Smb2Header)))) {
-						return sl_false;
-					}
-					if (!(chain->buffer.addNew(response, sizeResponse))) {
-						return sl_false;
-					}
-					if (sizeBlob) {
-						if (!(chain->buffer.addNew(blob, sizeBlob))) {
-							return sl_false;
-						}
-					}
-					if (sizeChain > size) {
-						sl_uint8 zero[8] = { 0 };
-						if (!(chain->buffer.addNew(zero, sizeChain - size))) {
-							return sl_false;
-						}
-					}
-					return sl_true;
-				} else {
-					if (param.chain) {
-						Smb2Chain* chain = (Smb2Chain*)(param.chain);
-						Memory mem = chain->buffer.merge();
-						if (mem.isNull()) {
-							return sl_false;
-						}
-						if (!(WriteNetBIOSHeader(param, mem.getSize() + sizeof(Smb2Header) + sizeResponse + sizeBlob))) {
-							return sl_false;
-						}
-						if (param.socket->sendFully(mem.getData(), mem.getSize(), param.event) != mem.getSize()) {
-							return sl_false;
-						}
-					} else {
-						if (!(WriteNetBIOSHeader(param, sizeof(Smb2Header) + sizeResponse + sizeBlob))) {
-							return sl_false;
-						}
-					}
-					if (param.socket->sendFully(&smb, sizeof(Smb2Header), param.event) != sizeof(Smb2Header)) {
-						return sl_false;
-					}
-					if (param.socket->sendFully(response, sizeResponse, param.event) != sizeResponse) {
-						return sl_false;
-					}
-					if (sizeBlob) {
-						if (param.socket->sendFully(blob, sizeBlob, param.event) != sizeBlob) {
-							return sl_false;
-						}
-					}
-					return sl_true;
-				}
-			}
-
-			template <class RESPONSE>
-			static sl_bool WriteResponse(SmbServer::Smb2Param& param, Smb2Header& smb, const RESPONSE& response, const void* blob = sl_null, sl_size sizeBlob = 0)
-			{
-				return WriteResponse(param, smb, &response, sizeof(response), blob, sizeBlob);
-			}
-
-			static sl_bool WriteSmb2NegotiateContext(SmbServer::Connection& connection, Smb2NegotiateContextType type, const void* data, sl_size len)
-			{
-				Smb2NegotiateContextHeader header;
-				Base::zeroMemory(&header, sizeof(header));
-				header.setType(type);
-				header.setDataLength((sl_uint16)len);
-				if (connection.socket->sendFully(&header, sizeof(header), connection.event) == sizeof(header)) {
-					return connection.socket->sendFully(data, len, connection.event) == len;
-				}
-				return sl_false;
-			}
-
-			static sl_bool WriteErrorResponse(SmbServer::Smb2Param& param, SmbStatus status, sl_uint8 errorData = 0)
-			{
-				Smb2Header smb;
-				InitSmb2ResponseHeader(smb, *(param.smb));
-				smb.setStatus(status);
-
-				Smb2ErrorResponseMessage response;
-				Base::zeroMemory(&response, sizeof(response));
-				response.setSize(sizeof(response), sl_true);
-				response.setErrorData(errorData);
-
-				return WriteResponse(param, smb, response);
-			}
-
-			// RFC 2743 - Generic Security Service Application Program Interface Version 2, Update 1
-			static Memory Gssapi_BuildNegTokenInit()
-			{
-				MemoryBuffer body;
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Body> >::serialize(&body, SLIB_ASN1_ENCODED_OID_NTLMSSP); // mechTypes
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(3), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_TYPE_GENERAL_STRING, Asn1Body> > > >::serialize(&body, "not_defined_in_RFC4178@please_ignore"); // negHints
-				MemoryBuffer body2;
-				SerializeStatic(&body2, SLIB_ASN1_ENCODED_OID_SPNEGO);
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Body> >::serialize(&body2, body);
-				MemoryBuffer buf;
-				Asn1Tag<SLIB_ASN1_TAG_APP(0), Asn1Body>::serialize(&buf, body2);
-				return buf.merge();
-			}
-
-			static Memory Gssapi_BuildNegTokenTargCompleted()
-			{
-				MemoryBuffer buf;
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(1), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_ENUMERATED, Asn1Body> > > >::serialize(&buf, "\x00");
-				return buf.merge();
-			}
-
-			static Memory Gssapi_BuildNegTokenTargIncompleted(const Memory& token)
-			{
-				MemoryBuffer body;
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_ENUMERATED, Asn1Body> >::serialize(&body, "\x01"); // acccept-incomplete
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(1), Asn1Body >::serialize(&body, SLIB_ASN1_ENCODED_OID_NTLMSSP); // supportedMech
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(2), Asn1Tag<SLIB_ASN1_TAG_OCTET_STRING, Asn1Body> >::serialize(&body, token); // responseToken
-				MemoryBuffer buf;
-				Asn1Tag<SLIB_ASN1_TAG_CONTEXT(1), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Body> >::serialize(&buf, body);
-				return buf.merge();
-			}
-
-			// DCE/RPC
-			static String16 RpcReadString(MemoryReader& reader)
-			{
-				sl_uint32 maxCount;
-				if (!(reader.readUint32(&maxCount))) {
-					return sl_null;
-				}
-				sl_uint32 offset;
-				if (!(reader.readUint32(&offset))) {
-					return sl_null;
-				}
-				sl_uint32 actualCount;
-				if (!(reader.readUint32(&actualCount))) {
-					return sl_null;
-				}
-				if (offset + actualCount > maxCount) {
-					return sl_null;
-				}
-				if (!maxCount) {
-					return String16::getEmpty();
-				}
-				sl_uint32 allocCount = maxCount;
-				if (allocCount & 1) {
-					allocCount += 1;
-				}
-				if (reader.getRemainedSize() < allocCount) {
-					return sl_null;
-				}
-				String16 ret = String16::allocate(actualCount);
-				if (ret.isNull()) {
-					return sl_null;
-				}
-				sl_char16* str =  ret.getData();
-				sl_uint8* data = (sl_uint8*)(reader.getBuffer() + reader.getPosition()) + (offset << 1);
-				sl_uint32 len = 0;
-				for (sl_uint32 i = 0; i < actualCount; i++) {
-					str[i] = MIO::readUint16LE(data);
-					if (str[i]) {
-						len = i + 1;
-					}
-					data += 2;
-				}
-				reader.skip(allocCount << 1);
-				ret.setLength(len);
-				return ret;
-			}
-
-			static Memory RpcWriteString(const StringParam& _str)
-			{
-				StringData16 str(_str);
-				sl_uint32 len = (sl_uint32)(str.getLength());
-				sl_uint32 lenAlloc = len + 1;
-				if (lenAlloc & 1) {
-					lenAlloc += 1;
-				}
-				Memory mem = Memory::create(12 + (lenAlloc << 1));
-				if (mem.isNull()) {
-					return sl_null;
-				}
-				sl_uint8* buf = (sl_uint8*)(mem.getData());
-				MIO::writeUint32LE(buf, len + 1); // max count
-				MIO::writeUint32LE(buf + 4, 0); // offset
-				MIO::writeUint32LE(buf + 8, len + 1); // actual count
-				buf += 12;
-				sl_char16* s = str.getData();
-				sl_uint32 i = 0;
-				for (; i < len; i++) {
-					MIO::writeUint16LE(buf, s[i]);
-					buf += 2;
-				}
-				for (; i < lenAlloc; i++) {
-					MIO::writeUint16LE(buf, 0);
-					buf += 2;
-				}
-				return mem;
-			}
-
-			static Memory GenerateCreateFileExtraInfoChain(const char* tag, const void* data, sl_size size)
-			{
-				sl_size sizeChain = sizeof(Smb2ExtraInfoItemHeader) + 8 + size;
-				sizeChain = ((sizeChain - 1) | 7) + 1;
-				Memory mem = Memory::create(sizeChain);
-				if (mem.isNotNull()) {
-					sl_uint8* buf = (sl_uint8*)(mem.getData());
-					Base::zeroMemory(buf, sizeChain);
-					Smb2ExtraInfoItemHeader& info = *((Smb2ExtraInfoItemHeader*)buf);
-					info.setChainOffset((sl_uint32)sizeChain);
-					info.setTagOffset(sizeof(Smb2ExtraInfoItemHeader));
-					info.setTagLength(4);
-					info.setBlobOffset(sizeof(Smb2ExtraInfoItemHeader) + 8);
-					info.setBlobLength((sl_uint32)size);
-					Base::copyMemory(buf + sizeof(Smb2ExtraInfoItemHeader), tag, 4);
-					Base::copyMemory(buf + sizeof(Smb2ExtraInfoItemHeader) + 8, data, size);
-					return mem;
-				}
-				return sl_null;
-			}
-
-			static Memory GenerateFileIdBothDirectoryInfo(const String16& fileName, sl_uint32 index, sl_uint64 id, SmbFileInfo& info)
-			{
-				sl_uint32 lenFileName = (sl_uint32)(fileName.getLength());
-
-				sl_size size = sizeof(Smb2FindFileIdBothDirectoryInfo) + (lenFileName << 1);
-				size = ((size - 1) | 7) + 1;
-
-				Memory mem = Memory::create(size);
-				if (mem.isNull()) {
-					return sl_null;
-				}
-				sl_uint8* buf = (sl_uint8*)(mem.getData());
-				Base::zeroMemory(buf, size);
-
-				Smb2FindFileIdBothDirectoryInfo* header = (Smb2FindFileIdBothDirectoryInfo*)buf;
-				header->setNextOffset((sl_uint32)size);
-				header->setFileId(id);
-				header->setCreationTime(info.createdAt);
-				header->setLastAccessTime(info.modifiedAt);
-				header->setLastChangeTime(info.modifiedAt);
-				header->setLastWriteTime(info.modifiedAt);
-				header->setEndOfFile(info.size);
-				header->setAllocationSize(GetAllocationSize(info.size));
-				header->setAttributes(ToNetworkAttrs(info.attributes));
-				header->setFileNameLength(lenFileName << 1);
-
-				buf += sizeof(Smb2FindFileIdBothDirectoryInfo);
-				sl_char16* dataFileName = fileName.getData();
-				for (sl_uint32 i = 0; i < lenFileName; i++) {
-					MIO::writeUint16LE(buf, dataFileName[i]);
-					buf += 2;
-				}
-
-				if (index) {
-					header->setShortNameLength(16);
-					sl_uint8* s = header->getShortName();
-					sl_uint8 n[4];
-					MIO::writeUint32BE(n, index);
-					const char hex[] = "0123456789abcdef";
-					s[0] = hex[n[0] >> 4];
-					s[2] = hex[n[0] & 15];
-					s[4] = hex[n[1] >> 4];
-					s[6] = hex[n[1] & 15];
-					s[8] = hex[n[2] >> 4];
-					s[10] = hex[n[2] & 15];
-					s[12] = hex[n[3] >> 4];
-					s[14] = hex[n[3] & 15];
-				}
-
-				return mem;
-			}
-
-		}
-	}
-
-	using namespace priv::smb;
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SmbFileInfo)
 
 	SmbFileInfo::SmbFileInfo() noexcept
@@ -853,6 +479,134 @@ namespace slib
 		}
 	}
 
+	namespace {
+		
+		struct Smb2Chain
+		{
+			MemoryBuffer buffer;
+		};
+
+		static void InitSmb2ResponseHeader(Smb2Header& header)
+		{
+			Base::zeroMemory(&header, sizeof(header));
+			header.setSmb2();
+			header.setHeaderLength(sizeof(header));
+			header.setCreditGranted(1);
+			header.setFlags(Smb2HeaderFlags::Response);
+		}
+
+		static void InitSmb2ResponseHeader(Smb2Header& response, const Smb2Header& request)
+		{
+			Base::zeroMemory(&response, sizeof(response));
+			response.setSmb2();
+			response.setCommand(request.getCommand());
+			response.setHeaderLength(sizeof(response));
+			response.setCreditCharge(1);
+			response.setCreditGranted(request.getCreditGranted());
+			response.setFlags(Smb2HeaderFlags::Response | Smb2HeaderFlags::Priority);
+			response.setProcessId(request.getProcessId());
+			response.setMessageId(request.getMessageId());
+			response.setSessionId(request.getSessionId());
+			response.setTreeId(request.getTreeId());
+		}
+
+		static sl_bool WriteNetBIOSHeader(SmbServer::Connection& connection, sl_size sizeMessage)
+		{
+			sl_uint8 buf[4];
+			MIO::writeUint32BE(buf, (sl_uint32)sizeMessage);
+			buf[0] = 0;
+			return connection.socket->sendFully(buf, 4, connection.event) == 4;
+		}
+
+		static sl_bool WriteResponse(SmbServer::Smb2Param& param, Smb2Header& smb, const void* response, sl_size sizeResponse, const void* blob = sl_null, sl_size sizeBlob = 0)
+		{
+			if (param.smb->getChainOffset()) {
+				Smb2Chain* chain;
+				if (param.chain) {
+					chain = (Smb2Chain*)(param.chain);
+				} else {
+					chain = new Smb2Chain;
+					if (!chain) {
+						return sl_false;
+					}
+					param.chain = chain;
+				}
+				sl_uint32 size = (sl_uint32)(sizeof(Smb2Header) + sizeResponse + sizeBlob);
+				sl_uint32 sizeChain = ((size - 1) | 7) + 1;
+				smb.setChainOffset(sizeChain);
+				if (!(chain->buffer.addNew(&smb, sizeof(Smb2Header)))) {
+					return sl_false;
+				}
+				if (!(chain->buffer.addNew(response, sizeResponse))) {
+					return sl_false;
+				}
+				if (sizeBlob) {
+					if (!(chain->buffer.addNew(blob, sizeBlob))) {
+						return sl_false;
+					}
+				}
+				if (sizeChain > size) {
+					sl_uint8 zero[8] = { 0 };
+					if (!(chain->buffer.addNew(zero, sizeChain - size))) {
+						return sl_false;
+					}
+				}
+				return sl_true;
+			} else {
+				if (param.chain) {
+					Smb2Chain* chain = (Smb2Chain*)(param.chain);
+					Memory mem = chain->buffer.merge();
+					if (mem.isNull()) {
+						return sl_false;
+					}
+					if (!(WriteNetBIOSHeader(param, mem.getSize() + sizeof(Smb2Header) + sizeResponse + sizeBlob))) {
+						return sl_false;
+					}
+					if (param.socket->sendFully(mem.getData(), mem.getSize(), param.event) != mem.getSize()) {
+						return sl_false;
+					}
+				} else {
+					if (!(WriteNetBIOSHeader(param, sizeof(Smb2Header) + sizeResponse + sizeBlob))) {
+						return sl_false;
+					}
+				}
+				if (param.socket->sendFully(&smb, sizeof(Smb2Header), param.event) != sizeof(Smb2Header)) {
+					return sl_false;
+				}
+				if (param.socket->sendFully(response, sizeResponse, param.event) != sizeResponse) {
+					return sl_false;
+				}
+				if (sizeBlob) {
+					if (param.socket->sendFully(blob, sizeBlob, param.event) != sizeBlob) {
+						return sl_false;
+					}
+				}
+				return sl_true;
+			}
+		}
+
+		template <class RESPONSE>
+		static sl_bool WriteResponse(SmbServer::Smb2Param& param, Smb2Header& smb, const RESPONSE& response, const void* blob = sl_null, sl_size sizeBlob = 0)
+		{
+			return WriteResponse(param, smb, &response, sizeof(response), blob, sizeBlob);
+		}
+
+		static sl_bool WriteErrorResponse(SmbServer::Smb2Param& param, SmbStatus status, sl_uint8 errorData = 0)
+		{
+			Smb2Header smb;
+			InitSmb2ResponseHeader(smb, *(param.smb));
+			smb.setStatus(status);
+
+			Smb2ErrorResponseMessage response;
+			Base::zeroMemory(&response, sizeof(response));
+			response.setSize(sizeof(response), sl_true);
+			response.setErrorData(errorData);
+
+			return WriteResponse(param, smb, response);
+		}
+
+	}
+
 	sl_bool SmbServer::_onProcessMessage(SmbServer::IOParam& param)
 	{
 		if (param.size < 4) {
@@ -943,6 +697,34 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace {
+		// RFC 2743 - Generic Security Service Application Program Interface Version 2, Update 1
+		static Memory Gssapi_BuildNegTokenInit()
+		{
+			MemoryBuffer body;
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Body> >::serialize(&body, SLIB_ASN1_ENCODED_OID_NTLMSSP); // mechTypes
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(3), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_TYPE_GENERAL_STRING, Asn1Body> > > >::serialize(&body, "not_defined_in_RFC4178@please_ignore"); // negHints
+			MemoryBuffer body2;
+			SerializeStatic(&body2, SLIB_ASN1_ENCODED_OID_SPNEGO);
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Body> >::serialize(&body2, body);
+			MemoryBuffer buf;
+			Asn1Tag<SLIB_ASN1_TAG_APP(0), Asn1Body>::serialize(&buf, body2);
+			return buf.merge();
+		}
+
+		static sl_bool WriteSmb2NegotiateContext(SmbServer::Connection& connection, Smb2NegotiateContextType type, const void* data, sl_size len)
+		{
+			Smb2NegotiateContextHeader header;
+			Base::zeroMemory(&header, sizeof(header));
+			header.setType(type);
+			header.setDataLength((sl_uint16)len);
+			if (connection.socket->sendFully(&header, sizeof(header), connection.event) == sizeof(header)) {
+				return connection.socket->sendFully(data, len, connection.event) == len;
+			}
+			return sl_false;
+		}
+	}
+
 	sl_bool SmbServer::_onProcessNegotiate(SmbServer::Smb2Param& param)
 	{
 		Memory memSecurityBlob = Gssapi_BuildNegTokenInit();
@@ -1023,6 +805,26 @@ namespace slib
 			}
 		}
 		return sl_true;
+	}
+
+	namespace {
+		static Memory Gssapi_BuildNegTokenTargCompleted()
+		{
+			MemoryBuffer buf;
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(1), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_ENUMERATED, Asn1Body> > > >::serialize(&buf, "\x00");
+			return buf.merge();
+		}
+
+		static Memory Gssapi_BuildNegTokenTargIncompleted(const Memory& token)
+		{
+			MemoryBuffer body;
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(0), Asn1Tag<SLIB_ASN1_TAG_ENUMERATED, Asn1Body> >::serialize(&body, "\x01"); // acccept-incomplete
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(1), Asn1Body >::serialize(&body, SLIB_ASN1_ENCODED_OID_NTLMSSP); // supportedMech
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(2), Asn1Tag<SLIB_ASN1_TAG_OCTET_STRING, Asn1Body> >::serialize(&body, token); // responseToken
+			MemoryBuffer buf;
+			Asn1Tag<SLIB_ASN1_TAG_CONTEXT(1), Asn1Tag<SLIB_ASN1_TAG_SEQUENCE, Asn1Body> >::serialize(&buf, body);
+			return buf.merge();
+		}
 	}
 
 	sl_bool SmbServer::_onProcessSessionSetup(SmbServer::Smb2Param& param)
@@ -1168,6 +970,62 @@ namespace slib
 		response.setSize(sizeof(response), sl_false);
 
 		return WriteResponse(param, smb, response);
+	}
+
+	namespace {
+
+		static sl_uint64 GetFileId(SmbServer::Smb2Param& param, sl_uint8* guid)
+		{
+			sl_uint64 id = MIO::readUint64LE(guid);
+			if (id == SLIB_UINT64(0xffffffffffffffff)) {
+				id = param.lastCreatedFileId;
+				MIO::writeUint64LE(guid, 8);
+				Base::zeroMemory(guid + 8, 8);
+			}
+			return id;
+		}
+
+		static void WriteOpaqueFileUniqueId(sl_uint8* buf, sl_uint64 id)
+		{
+			MIO::writeUint64LE(buf, id);
+			buf[8] = 1;
+		}
+
+		static sl_uint32 ToNetworkAttrs(const FileAttributes& attrs)
+		{
+			sl_uint32 n = (sl_uint32)(attrs & (FileAttributes::Directory | FileAttributes::ReadOnly | FileAttributes::Hidden));
+			if (!(n & FileAttributes::Directory)) {
+				n |= FileAttributes::Normal;
+			}
+			return n;
+		}
+
+		static sl_uint64 GetAllocationSize(sl_uint64 size)
+		{
+			return ((size - 1) | (ALLOCATION_SIZE - 1)) + 1;
+		}
+
+		static Memory GenerateCreateFileExtraInfoChain(const char* tag, const void* data, sl_size size)
+		{
+			sl_size sizeChain = sizeof(Smb2ExtraInfoItemHeader) + 8 + size;
+			sizeChain = ((sizeChain - 1) | 7) + 1;
+			Memory mem = Memory::create(sizeChain);
+			if (mem.isNotNull()) {
+				sl_uint8* buf = (sl_uint8*)(mem.getData());
+				Base::zeroMemory(buf, sizeChain);
+				Smb2ExtraInfoItemHeader& info = *((Smb2ExtraInfoItemHeader*)buf);
+				info.setChainOffset((sl_uint32)sizeChain);
+				info.setTagOffset(sizeof(Smb2ExtraInfoItemHeader));
+				info.setTagLength(4);
+				info.setBlobOffset(sizeof(Smb2ExtraInfoItemHeader) + 8);
+				info.setBlobLength((sl_uint32)size);
+				Base::copyMemory(buf + sizeof(Smb2ExtraInfoItemHeader), tag, 4);
+				Base::copyMemory(buf + sizeof(Smb2ExtraInfoItemHeader) + 8, data, size);
+				return mem;
+			}
+			return sl_null;
+		}
+
 	}
 
 	sl_bool SmbServer::_onProcessCreate(SmbServer::Smb2Param& param)
@@ -1487,6 +1345,76 @@ namespace slib
 		return WriteResponse(param, smb, response, data.getData(), data.getSize());
 	}
 
+	namespace {
+
+		SLIB_STATIC_STRING16(g_strPathDelimiter, "\\")
+
+		static StringView16 GetParentDirectoryPath(const StringView16& path) noexcept
+		{
+			if (path.isEmpty()) {
+				return sl_null;
+			}
+			sl_reg index = path.lastIndexOf('\\');
+			if (index > 0) {
+				return path.substring(0, index);
+			}
+			return sl_null;
+		}
+
+		static Memory GenerateFileIdBothDirectoryInfo(const String16& fileName, sl_uint32 index, sl_uint64 id, SmbFileInfo& info)
+		{
+			sl_uint32 lenFileName = (sl_uint32)(fileName.getLength());
+
+			sl_size size = sizeof(Smb2FindFileIdBothDirectoryInfo) + (lenFileName << 1);
+			size = ((size - 1) | 7) + 1;
+
+			Memory mem = Memory::create(size);
+			if (mem.isNull()) {
+				return sl_null;
+			}
+			sl_uint8* buf = (sl_uint8*)(mem.getData());
+			Base::zeroMemory(buf, size);
+
+			Smb2FindFileIdBothDirectoryInfo* header = (Smb2FindFileIdBothDirectoryInfo*)buf;
+			header->setNextOffset((sl_uint32)size);
+			header->setFileId(id);
+			header->setCreationTime(info.createdAt);
+			header->setLastAccessTime(info.modifiedAt);
+			header->setLastChangeTime(info.modifiedAt);
+			header->setLastWriteTime(info.modifiedAt);
+			header->setEndOfFile(info.size);
+			header->setAllocationSize(GetAllocationSize(info.size));
+			header->setAttributes(ToNetworkAttrs(info.attributes));
+			header->setFileNameLength(lenFileName << 1);
+
+			buf += sizeof(Smb2FindFileIdBothDirectoryInfo);
+			sl_char16* dataFileName = fileName.getData();
+			for (sl_uint32 i = 0; i < lenFileName; i++) {
+				MIO::writeUint16LE(buf, dataFileName[i]);
+				buf += 2;
+			}
+
+			if (index) {
+				header->setShortNameLength(16);
+				sl_uint8* s = header->getShortName();
+				sl_uint8 n[4];
+				MIO::writeUint32BE(n, index);
+				const char hex[] = "0123456789abcdef";
+				s[0] = hex[n[0] >> 4];
+				s[2] = hex[n[0] & 15];
+				s[4] = hex[n[1] >> 4];
+				s[6] = hex[n[1] & 15];
+				s[8] = hex[n[2] >> 4];
+				s[10] = hex[n[2] & 15];
+				s[12] = hex[n[3] >> 4];
+				s[14] = hex[n[3] & 15];
+			}
+
+			return mem;
+		}
+
+	}
+
 	sl_bool SmbServer::_onProcessFind(SmbServer::Smb2Param& param)
 	{
 		if (param.size < sizeof(Smb2Header) + sizeof(Smb2FindRequestMessage)) {
@@ -1768,6 +1696,85 @@ namespace slib
 		response.setBlobLength((sl_uint32)(data.getSize()));
 
 		return WriteResponse(param, smb, response, data.getData(), data.getSize());
+	}
+
+	namespace {
+		// DCE/RPC
+		static String16 RpcReadString(MemoryReader& reader)
+		{
+			sl_uint32 maxCount;
+			if (!(reader.readUint32(&maxCount))) {
+				return sl_null;
+			}
+			sl_uint32 offset;
+			if (!(reader.readUint32(&offset))) {
+				return sl_null;
+			}
+			sl_uint32 actualCount;
+			if (!(reader.readUint32(&actualCount))) {
+				return sl_null;
+			}
+			if (offset + actualCount > maxCount) {
+				return sl_null;
+			}
+			if (!maxCount) {
+				return String16::getEmpty();
+			}
+			sl_uint32 allocCount = maxCount;
+			if (allocCount & 1) {
+				allocCount += 1;
+			}
+			if (reader.getRemainedSize() < allocCount) {
+				return sl_null;
+			}
+			String16 ret = String16::allocate(actualCount);
+			if (ret.isNull()) {
+				return sl_null;
+			}
+			sl_char16* str =  ret.getData();
+			sl_uint8* data = (sl_uint8*)(reader.getBuffer() + reader.getPosition()) + (offset << 1);
+			sl_uint32 len = 0;
+			for (sl_uint32 i = 0; i < actualCount; i++) {
+				str[i] = MIO::readUint16LE(data);
+				if (str[i]) {
+					len = i + 1;
+				}
+				data += 2;
+			}
+			reader.skip(allocCount << 1);
+			ret.setLength(len);
+			return ret;
+		}
+
+		static Memory RpcWriteString(const StringParam& _str)
+		{
+			StringData16 str(_str);
+			sl_uint32 len = (sl_uint32)(str.getLength());
+			sl_uint32 lenAlloc = len + 1;
+			if (lenAlloc & 1) {
+				lenAlloc += 1;
+			}
+			Memory mem = Memory::create(12 + (lenAlloc << 1));
+			if (mem.isNull()) {
+				return sl_null;
+			}
+			sl_uint8* buf = (sl_uint8*)(mem.getData());
+			MIO::writeUint32LE(buf, len + 1); // max count
+			MIO::writeUint32LE(buf + 4, 0); // offset
+			MIO::writeUint32LE(buf + 8, len + 1); // actual count
+			buf += 12;
+			sl_char16* s = str.getData();
+			sl_uint32 i = 0;
+			for (; i < len; i++) {
+				MIO::writeUint16LE(buf, s[i]);
+				buf += 2;
+			}
+			for (; i < lenAlloc; i++) {
+				MIO::writeUint16LE(buf, 0);
+				buf += 2;
+			}
+			return mem;
+		}
 	}
 
 	Memory SmbServer::_processRpc(sl_uint64 fileId, sl_uint8* packet, sl_uint32 size)

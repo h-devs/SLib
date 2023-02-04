@@ -32,22 +32,16 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace preference
+	namespace {
+		static String GetFilePath(const String& appName)
 		{
-			static String GetFilePath(const String& appName)
-			{
-				String path = System::getHomeDirectory() + "/.local/.pref";
-				if (!(File::exists(path))) {
-					File::createDirectories(path);
-				}
-				return String::concat(path, "/", appName, ".json");
+			String path = System::getHomeDirectory() + "/.local/.pref";
+			if (!(File::exists(path))) {
+				File::createDirectories(path);
 			}
+			return String::concat(path, "/", appName, ".json");
 		}
 	}
-
-	using namespace priv::preference;
 
 	void Preference::setValue(const StringParam& key, const Json& value)
 	{

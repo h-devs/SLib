@@ -33,59 +33,51 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace app
+	namespace {
+		static void SetRunAtStartup(const StringParam& _appName, const StringParam& _path, sl_bool flagRegister)
 		{
-
-			static void SetRunAtStartup(const StringParam& _appName, const StringParam& _path, sl_bool flagRegister)
-			{
-				StringCstr16 path(_path);
-				List<String16> listDelete;
-				HKEY hKey = NULL;
-				RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey);
-				if (hKey) {
-					DWORD dwIndex = 0;
-					sl_char16 name[513] = { 0 };
-					sl_char16 data[1025] = { 0 };
-					for (;;) {
-						DWORD dwType = 0;
-						DWORD dwLenName = 512;
-						DWORD nData = 1024;
-						LSTATUS lRet = RegEnumValueW(hKey, dwIndex, (LPWSTR)name, &dwLenName, NULL, &dwType, (LPBYTE)data, &nData);
-						if (lRet == ERROR_SUCCESS) {
-							if (dwType == REG_SZ) {
-								if (path.equals(data)) {
-									if (flagRegister) {
-										// already registered
-										return;
-									} else {
-										listDelete.add_NoLock(name);
-									}
+			StringCstr16 path(_path);
+			List<String16> listDelete;
+			HKEY hKey = NULL;
+			RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_QUERY_VALUE | KEY_SET_VALUE, &hKey);
+			if (hKey) {
+				DWORD dwIndex = 0;
+				sl_char16 name[513] = { 0 };
+				sl_char16 data[1025] = { 0 };
+				for (;;) {
+					DWORD dwType = 0;
+					DWORD dwLenName = 512;
+					DWORD nData = 1024;
+					LSTATUS lRet = RegEnumValueW(hKey, dwIndex, (LPWSTR)name, &dwLenName, NULL, &dwType, (LPBYTE)data, &nData);
+					if (lRet == ERROR_SUCCESS) {
+						if (dwType == REG_SZ) {
+							if (path.equals(data)) {
+								if (flagRegister) {
+									// already registered
+									return;
+								} else {
+									listDelete.add_NoLock(name);
 								}
 							}
-						} else {
-							break;
 						}
-						dwIndex++;
-					}
-					if (flagRegister) {
-						StringCstr16 appName(_appName);
-						RegSetValueExW(hKey, (LPCWSTR)(appName.getData()), NULL, REG_SZ, (BYTE*)(path.getData()), (DWORD)(path.getLength() + 1) * 2);
 					} else {
-						ListElements<String16> names(listDelete);
-						for (sl_size i = 0; i < names.count; i++) {
-							RegDeleteValueW(hKey, (LPCWSTR)(names[i].getData()));
-						}
+						break;
 					}
-					RegCloseKey(hKey);
+					dwIndex++;
 				}
+				if (flagRegister) {
+					StringCstr16 appName(_appName);
+					RegSetValueExW(hKey, (LPCWSTR)(appName.getData()), NULL, REG_SZ, (BYTE*)(path.getData()), (DWORD)(path.getLength() + 1) * 2);
+				} else {
+					ListElements<String16> names(listDelete);
+					for (sl_size i = 0; i < names.count; i++) {
+						RegDeleteValueW(hKey, (LPCWSTR)(names[i].getData()));
+					}
+				}
+				RegCloseKey(hKey);
 			}
-
 		}
 	}
-
-	using namespace priv::app;
 
 	void Application::registerRunAtStartup(const StringParam& appName, const StringParam& path)
 	{

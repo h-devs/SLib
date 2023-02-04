@@ -34,229 +34,172 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace memory
+	namespace {
+
+		static CMemory* Create(sl_size size) noexcept
 		{
-
-			static CMemory* Create(sl_size size) noexcept
-			{
-				if (size) {
-					sl_uint8* mem = new sl_uint8[sizeof(CMemory) + size];
-					if (mem) {
-						CMemory* ret = (CMemory*)mem;
-						new (ret) CMemory(mem + sizeof(CMemory), size);
-						return ret;
-					}
-				}
-				return sl_null;
-			}
-
-			static CMemory* Create(const void* data, sl_size size) noexcept
-			{
-				CMemory* ret = Create(size);
-				if (ret) {
-					if (data) {
-						Base::copyMemory(ret->data, data, size);
-					}
+			if (size) {
+				sl_uint8* mem = new sl_uint8[sizeof(CMemory) + size];
+				if (mem) {
+					CMemory* ret = (CMemory*)mem;
+					new (ret) CMemory(mem + sizeof(CMemory), size);
 					return ret;
 				}
-				return sl_null;
 			}
+			return sl_null;
+		}
 
-			class ResizableMemory : public CMemory
-			{
-			public:
-				ResizableMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
-
-				~ResizableMemory() noexcept
-				{
-					if (data) {
-						Base::freeMemory(data);
-					}
+		static CMemory* Create(const void* data, sl_size size) noexcept
+		{
+			CMemory* ret = Create(size);
+			if (ret) {
+				if (data) {
+					Base::copyMemory(ret->data, data, size);
 				}
-
-			public:
-				sl_bool isResizable() noexcept override
-				{
-					return sl_true;
-				}
-
-				sl_bool setSize(sl_size sizeNew) noexcept override
-				{
-					void* p = data;
-					if (p) {
-						if (sizeNew) {
-							p = Base::reallocMemory(p, sizeNew);
-							if (p) {
-								data = p;
-								size = sizeNew;
-								return sl_true;
-							}
-						} else {
-							Base::freeMemory(p);
-							data = sl_null;
-							size = 0;
-							return sl_true;
-						}
-					}
-					return sl_false;
-				}
-
-			};
-
-			static CMemory* CreateResizable(sl_size size) noexcept
-			{
-				if (size) {
-					void* mem = Base::createMemory(size);
-					if (mem) {
-						CMemory* ret = new ResizableMemory(mem, size);
-						if (ret) {
-							return ret;
-						}
-						Base::freeMemory(mem);
-					}
-				}
-				return sl_null;
+				return ret;
 			}
+			return sl_null;
+		}
 
-			static CMemory* CreateResizable(const void* data, sl_size size) noexcept
+		class ResizableMemory : public CMemory
+		{
+		public:
+			ResizableMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
+
+			~ResizableMemory() noexcept
 			{
-				CMemory* ret = CreateResizable(size);
-				if (ret) {
-					if (data) {
-						Base::copyMemory(ret->data, data, size);
-					}
-					return ret;
-				}
-				return sl_null;
-			}
-
-			class HeapMemory : public CMemory
-			{
-			public:
-				HeapMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
-
-				~HeapMemory() noexcept
-				{
+				if (data) {
 					Base::freeMemory(data);
 				}
+			}
 
-			};
-
-			static CMemory* CreateNoCopy(const void* data, sl_size size) noexcept
+		public:
+			sl_bool isResizable() noexcept override
 			{
-				if (data && size) {
-					CMemory* ret = new HeapMemory((void*)data, size);
+				return sl_true;
+			}
+
+			sl_bool setSize(sl_size sizeNew) noexcept override
+			{
+				void* p = data;
+				if (p) {
+					if (sizeNew) {
+						p = Base::reallocMemory(p, sizeNew);
+						if (p) {
+							data = p;
+							size = sizeNew;
+							return sl_true;
+						}
+					} else {
+						Base::freeMemory(p);
+						data = sl_null;
+						size = 0;
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
+
+		};
+
+		static CMemory* CreateResizable(sl_size size) noexcept
+		{
+			if (size) {
+				void* mem = Base::createMemory(size);
+				if (mem) {
+					CMemory* ret = new ResizableMemory(mem, size);
 					if (ret) {
 						return ret;
 					}
+					Base::freeMemory(mem);
 				}
-				return sl_null;
 			}
-
-			class StaticMemory : public CMemory
-			{
-			public:
-				StaticMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
-
-			public:
-				Referable * getRef() noexcept override
-				{
-					return sl_null;
-				}
-
-			};
-
-			static CMemory* CreateStatic(const void* data, sl_size size) noexcept
-			{
-				if (data && size) {
-					return new StaticMemory(data, size);
-				}
-				return sl_null;
-			}
-
-			class MemoryWithRef : public CMemory
-			{
-			public:
-				Ref<Referable> ref;
-
-			public:
-				template <class REF>
-				MemoryWithRef(const void* _data, sl_size _size, REF&& _ref) noexcept: CMemory(_data, _size), ref(Forward<REF>(_ref)) {}
-
-			public:
-				Referable* getRef() noexcept override
-				{
-					return ref.get();
-				}
-
-			};
-
-			template <class REF>
-			static CMemory* CreateStatic(const void* data, sl_size size, REF&& ref) noexcept
-			{
-				if (data && size) {
-					return new MemoryWithRef(data, size, Forward<REF>(ref));
-				}
-				return sl_null;
-			}
-
-			class MemoryWithString : public CMemory
-			{
-			public:
-				String str;
-
-			public:
-				template <class STRING>
-				MemoryWithString(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
-
-			public:
-				String getString() noexcept override
-				{
-					return str;
-				}
-
-			};
-
-			class MemoryWithString16 : public CMemory
-			{
-			public:
-				String16 str;
-
-			public:
-				template <class STRING>
-				MemoryWithString16(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
-
-			public:
-				String16 getString16() noexcept override
-				{
-					return str;
-				}
-
-			};
-
-			class MemoryWithString32 : public CMemory
-			{
-			public:
-				String32 str;
-
-			public:
-				template <class STRING>
-				MemoryWithString32(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
-
-			public:
-				String32 getString32() noexcept override
-				{
-					return str;
-				}
-
-			};
-
+			return sl_null;
 		}
-	}
 
-	using namespace priv::memory;
+		static CMemory* CreateResizable(const void* data, sl_size size) noexcept
+		{
+			CMemory* ret = CreateResizable(size);
+			if (ret) {
+				if (data) {
+					Base::copyMemory(ret->data, data, size);
+				}
+				return ret;
+			}
+			return sl_null;
+		}
+
+		class HeapMemory : public CMemory
+		{
+		public:
+			HeapMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
+
+			~HeapMemory() noexcept
+			{
+				Base::freeMemory(data);
+			}
+
+		};
+
+		static CMemory* CreateNoCopy(const void* data, sl_size size) noexcept
+		{
+			if (data && size) {
+				CMemory* ret = new HeapMemory((void*)data, size);
+				if (ret) {
+					return ret;
+				}
+			}
+			return sl_null;
+		}
+
+		class StaticMemory : public CMemory
+		{
+		public:
+			StaticMemory(const void* _data, sl_size _size) noexcept: CMemory(_data, _size) {}
+
+		public:
+			Referable * getRef() noexcept override
+			{
+				return sl_null;
+			}
+
+		};
+
+		static CMemory* CreateStatic(const void* data, sl_size size) noexcept
+		{
+			if (data && size) {
+				return new StaticMemory(data, size);
+			}
+			return sl_null;
+		}
+
+		class MemoryWithRef : public CMemory
+		{
+		public:
+			Ref<Referable> ref;
+
+		public:
+			template <class REF>
+			MemoryWithRef(const void* _data, sl_size _size, REF&& _ref) noexcept: CMemory(_data, _size), ref(Forward<REF>(_ref)) {}
+
+		public:
+			Referable* getRef() noexcept override
+			{
+				return ref.get();
+			}
+
+		};
+
+		template <class REF>
+		static CMemory* CreateStatic(const void* data, sl_size size, REF&& ref) noexcept
+		{
+			if (data && size) {
+				return new MemoryWithRef(data, size, Forward<REF>(ref));
+			}
+			return sl_null;
+		}
+
+	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MemoryData)
 
@@ -606,6 +549,24 @@ namespace slib
 		return CreateStatic(buf, size, Move(*((Ref<Referable>*)pRef)));
 	}
 
+	namespace {
+		class MemoryWithString : public CMemory
+		{
+		public:
+			String str;
+
+		public:
+			template <class STRING>
+			MemoryWithString(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
+
+		public:
+			String getString() noexcept override
+			{
+				return str;
+			}
+		};
+	}
+
 	Memory Memory::createFromString(const String& str) noexcept
 	{
 		sl_char8* data = str.getData();
@@ -628,6 +589,24 @@ namespace slib
 		}
 	}
 
+	namespace {
+		class MemoryWithString16 : public CMemory
+		{
+		public:
+			String16 str;
+
+		public:
+			template <class STRING>
+			MemoryWithString16(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
+
+		public:
+			String16 getString16() noexcept override
+			{
+				return str;
+			}
+		};
+	}
+
 	Memory Memory::createFromString(const String16& str) noexcept
 	{
 		sl_char16* data = str.getData();
@@ -648,6 +627,24 @@ namespace slib
 		} else {
 			return sl_null;
 		}
+	}
+
+	namespace {
+		class MemoryWithString32 : public CMemory
+		{
+		public:
+			String32 str;
+
+		public:
+			template <class STRING>
+			MemoryWithString32(const void* _data, sl_size _size, STRING&& _str) noexcept : CMemory(_data, _size), str(Forward<STRING>(_str)) {}
+
+		public:
+			String32 getString32() noexcept override
+			{
+				return str;
+			}
+		};
 	}
 
 	Memory Memory::createFromString(const String32& str) noexcept

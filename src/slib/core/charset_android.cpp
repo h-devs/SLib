@@ -30,17 +30,20 @@
 namespace slib
 {
 
+	namespace {
+
+		SLIB_JNI_BEGIN_CLASS(JCharsets, "slib/util/Charsets")
+			SLIB_JNI_STATIC_METHOD(encode, "encode", "(ILjava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I");
+			SLIB_JNI_STATIC_METHOD(decode, "decode", "(ILjava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I");
+		SLIB_JNI_END_CLASS
+
+		#define MAX_LEN 0x1000000
+	}
+
 	namespace priv
 	{
 		namespace charset
 		{
-
-			SLIB_JNI_BEGIN_CLASS(JCharsets, "slib/util/Charsets")
-				SLIB_JNI_STATIC_METHOD(encode, "encode", "(ILjava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I");
-				SLIB_JNI_STATIC_METHOD(decode, "decode", "(ILjava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I");
-			SLIB_JNI_END_CLASS
-
-			#define MAX_LEN 0x1000000
 
 			sl_size Encode16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
 			{

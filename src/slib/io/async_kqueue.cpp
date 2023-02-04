@@ -36,19 +36,13 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace async_kqueue
+	namespace {
+		struct AsyncIoLoopHandle
 		{
-			struct AsyncIoLoopHandle
-			{
-				int kq;
-				Ref<PipeEvent> eventWake;
-			};
-		}
+			int kq;
+			Ref<PipeEvent> eventWake;
+		};
 	}
-
-	using namespace priv::async_kqueue;
 
 	void* AsyncIoLoop::_native_createHandle()
 	{

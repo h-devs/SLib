@@ -33,76 +33,70 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace fcm
+	namespace {
+
+		static void OnToken(JNIEnv* env, jobject _this, jstring token);
+
+		static void OnMessageReceived(JNIEnv* env, jobject _this, jstring title, jstring content, jobjectArray data, jboolean flagClicked, jboolean flagBackground);
+
+		SLIB_JNI_BEGIN_CLASS(JFCM, "slib/android/fcm/FCM")
+			SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;)V");
+			SLIB_JNI_NATIVE(onToken, "nativeOnToken", "(Ljava/lang/String;)V", OnToken);
+			SLIB_JNI_NATIVE(onReceive, "nativeOnMessageReceived", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;ZZ)V", OnMessageReceived);
+		SLIB_JNI_END_CLASS
+
+		void OnToken(JNIEnv* env, jobject _this, jstring _token)
 		{
-
-			void OnToken(JNIEnv* env, jobject _this, jstring token);
-
-			void OnMessageReceived(JNIEnv* env, jobject _this, jstring title, jstring content, jobjectArray data, jboolean flagClicked, jboolean flagBackground);
-
-			SLIB_JNI_BEGIN_CLASS(JFCM, "slib/android/fcm/FCM")
-				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;)V");
-				SLIB_JNI_NATIVE(onToken, "nativeOnToken", "(Ljava/lang/String;)V", OnToken);
-				SLIB_JNI_NATIVE(onReceive, "nativeOnMessageReceived", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;ZZ)V", OnMessageReceived);
-			SLIB_JNI_END_CLASS
-
-			void OnToken(JNIEnv* env, jobject _this, jstring _token)
-			{
-				Ref<FCM> instance = FCM::getInstance();
-				if (instance.isNotNull()) {
-					String token = Jni::getString(_token);
-					instance->dispatchRefreshToken(token);
-				}
+			Ref<FCM> instance = FCM::getInstance();
+			if (instance.isNotNull()) {
+				String token = Jni::getString(_token);
+				instance->dispatchRefreshToken(token);
 			}
+		}
 
-			void OnMessageReceived(JNIEnv* env, jobject _this, jstring title, jstring content, jobjectArray data, jboolean flagClicked, jboolean flagBackground)
-			{
-				Ref<FCM> instance = FCM::getInstance();
-				if (instance.isNull()) {
-					return;
-				}
-				JsonMap _data;
-				if (data) {
-					sl_uint32 n = Jni::getArrayLength(data);
-					if (n > 0) {
-						for (sl_uint32 i = 0; i + 1 < n; i += 2) {
-							String key = Jni::getStringArrayElement(data, i);
-							String strValue = Jni::getStringArrayElement(data, i + 1);
-							Json value;
-							if (strValue.isNotEmpty()) {
-								JsonParseParam p;
-								p.flagLogError = sl_false;
-								value = Json::parse(strValue, p);
-								if (value.isNull()) {
-									value = strValue;
-								}
-							} else {
+		void OnMessageReceived(JNIEnv* env, jobject _this, jstring title, jstring content, jobjectArray data, jboolean flagClicked, jboolean flagBackground)
+		{
+			Ref<FCM> instance = FCM::getInstance();
+			if (instance.isNull()) {
+				return;
+			}
+			JsonMap _data;
+			if (data) {
+				sl_uint32 n = Jni::getArrayLength(data);
+				if (n > 0) {
+					for (sl_uint32 i = 0; i + 1 < n; i += 2) {
+						String key = Jni::getStringArrayElement(data, i);
+						String strValue = Jni::getStringArrayElement(data, i + 1);
+						Json value;
+						if (strValue.isNotEmpty()) {
+							JsonParseParam p;
+							p.flagLogError = sl_false;
+							value = Json::parse(strValue, p);
+							if (value.isNull()) {
 								value = strValue;
 							}
-							_data.add_NoLock(key, value);
+						} else {
+							value = strValue;
 						}
+						_data.add_NoLock(key, value);
 					}
 				}
-
-				String _title = Jni::getString(title);
-				String _content = Jni::getString(content);
-
-				PushNotificationMessage message;
-				message.title = _title;
-				message.content = _content;
-				message.data = _data;
-				message.flagClicked = flagClicked;
-				message.flagBackground = flagBackground;
-
-				instance->dispatchReceiveMessage(message);
 			}
 
-		}
-	}
+			String _title = Jni::getString(title);
+			String _content = Jni::getString(content);
 
-	using namespace priv::fcm;
+			PushNotificationMessage message;
+			message.title = _title;
+			message.content = _content;
+			message.data = _data;
+			message.flagClicked = flagClicked;
+			message.flagBackground = flagBackground;
+
+			instance->dispatchReceiveMessage(message);
+		}
+
+	}
 
 	Ref<FCM> FCM::getInstance()
 	{

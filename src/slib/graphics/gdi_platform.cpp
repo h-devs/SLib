@@ -33,15 +33,9 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace graphics_platform_win32
-		{
-			static ULONG_PTR g_tokenGdiplus = 0;
-		}
+	namespace {
+		static ULONG_PTR g_tokenGdiplus = 0;
 	}
-
-	using namespace priv::graphics_platform_win32;
 
 	void GraphicsPlatform::startGdiplus()
 	{

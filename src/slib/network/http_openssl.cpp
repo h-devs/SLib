@@ -27,126 +27,118 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace http_openssl
+	namespace {
+		class ServerConnectionProvider : public HttpServerConnectionProvider
 		{
+		public:
+			Ref<AsyncTcpServer> m_server;
+			Ref<AsyncIoLoop> m_loop;
+			TlsAcceptStreamParam m_tlsParam;
 
-			class ServerConnectionProvider : public HttpServerConnectionProvider
+			struct StreamDesc
 			{
-			public:
-				Ref<AsyncTcpServer> m_server;
-				Ref<AsyncIoLoop> m_loop;
-				TlsAcceptStreamParam m_tlsParam;
-
-				struct StreamDesc
-				{
-					Ref<OpenSSL_AsyncStream> stream;
-					SocketAddress addressLocal;
-					SocketAddress addressRemote;
-				};
-				HashMap< AsyncStream*, StreamDesc > m_streamsHandshaking;
-
-			public:
-				ServerConnectionProvider()
-				{
-				}
-
-				~ServerConnectionProvider()
-				{
-					release();
-				}
-
-			public:
-				static Ref<HttpServerConnectionProvider> create(HttpServer* server, const TlsAcceptStreamParam& tlsParam, const SocketAddress& addressListen)
-				{
-					Ref<OpenSSL_Context> context = Ref<OpenSSL_Context>::from(tlsParam.context);
-					if (!(IsInstanceOf<OpenSSL_Context>(context))) {
-						context = OpenSSL::createContext(tlsParam);
-						if (context.isNull()) {
-							return sl_null;
-						}
-					}
-					Ref<AsyncIoLoop> loop = server->getAsyncIoLoop();
-					if (loop.isNotNull()) {
-						Ref<ServerConnectionProvider> ret = new ServerConnectionProvider;
-						if (ret.isNotNull()) {
-							ret->m_tlsParam = tlsParam;
-							ret->m_tlsParam.context = context;
-							ret->m_tlsParam.flagAutoStartHandshake = sl_false;
-							ret->m_tlsParam.onHandshake = SLIB_FUNCTION_WEAKREF(ret, onHandshake);
-							ret->m_loop = loop;
-							ret->setServer(server);
-							AsyncTcpServerParam sp;
-							sp.bindAddress = addressListen;
-							sp.onAccept = SLIB_FUNCTION_WEAKREF(ret, onAccept);
-							sp.ioLoop = loop;
-							Ref<AsyncTcpServer> server = AsyncTcpServer::create(sp);
-							if (server.isNotNull()) {
-								ret->m_server = Move(server);
-								return ret;
-							}
-						}
-					}
-					return sl_null;
-				}
-
-				void release() override
-				{
-					ObjectLocker lock(this);
-					if (m_server.isNotNull()) {
-						m_server->close();
-					}
-					m_streamsHandshaking.setNull();
-				}
-
-				void onAccept(AsyncTcpServer* socketListen, Socket& socketAccept, const SocketAddress& address)
-				{
-					Ref<HttpServer> server = getServer();
-					if (server.isNotNull()) {
-						Ref<AsyncIoLoop> loop = m_loop;
-						if (loop.isNull()) {
-							return;
-						}
-						SocketAddress addrLocal;
-						socketAccept.getLocalAddress(addrLocal);
-						AsyncTcpSocketParam cp;
-						cp.socket = Move(socketAccept);
-						cp.ioLoop = loop;
-						Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(cp);
-						if (stream.isNotNull()) {
-							Ref<OpenSSL_AsyncStream> tlsStream = OpenSSL::acceptStream(stream, m_tlsParam);
-							if (tlsStream.isNotNull()) {
-								StreamDesc desc;
-								desc.stream = tlsStream;
-								desc.addressLocal = addrLocal;
-								desc.addressRemote = address;
-								m_streamsHandshaking.put(tlsStream.get(), desc);
-								tlsStream->handshake();
-							}
-						}
-					}
-				}
-
-				void onHandshake(TlsStreamResult& result)
-				{
-					StreamDesc desc;
-					if (m_streamsHandshaking.remove(result.stream, &desc)) {
-						if (!(result.flagError)) {
-							Ref<HttpServer> server = getServer();
-							if (server.isNotNull()) {
-								server->addConnection(desc.stream, desc.addressRemote, desc.addressLocal);
-							}
-						}
-					}
-				}
-
+				Ref<OpenSSL_AsyncStream> stream;
+				SocketAddress addressLocal;
+				SocketAddress addressRemote;
 			};
+			HashMap< AsyncStream*, StreamDesc > m_streamsHandshaking;
 
-		}
+		public:
+			ServerConnectionProvider()
+			{
+			}
+
+			~ServerConnectionProvider()
+			{
+				release();
+			}
+
+		public:
+			static Ref<HttpServerConnectionProvider> create(HttpServer* server, const TlsAcceptStreamParam& tlsParam, const SocketAddress& addressListen)
+			{
+				Ref<OpenSSL_Context> context = Ref<OpenSSL_Context>::from(tlsParam.context);
+				if (!(IsInstanceOf<OpenSSL_Context>(context))) {
+					context = OpenSSL::createContext(tlsParam);
+					if (context.isNull()) {
+						return sl_null;
+					}
+				}
+				Ref<AsyncIoLoop> loop = server->getAsyncIoLoop();
+				if (loop.isNotNull()) {
+					Ref<ServerConnectionProvider> ret = new ServerConnectionProvider;
+					if (ret.isNotNull()) {
+						ret->m_tlsParam = tlsParam;
+						ret->m_tlsParam.context = context;
+						ret->m_tlsParam.flagAutoStartHandshake = sl_false;
+						ret->m_tlsParam.onHandshake = SLIB_FUNCTION_WEAKREF(ret, onHandshake);
+						ret->m_loop = loop;
+						ret->setServer(server);
+						AsyncTcpServerParam sp;
+						sp.bindAddress = addressListen;
+						sp.onAccept = SLIB_FUNCTION_WEAKREF(ret, onAccept);
+						sp.ioLoop = loop;
+						Ref<AsyncTcpServer> server = AsyncTcpServer::create(sp);
+						if (server.isNotNull()) {
+							ret->m_server = Move(server);
+							return ret;
+						}
+					}
+				}
+				return sl_null;
+			}
+
+			void release() override
+			{
+				ObjectLocker lock(this);
+				if (m_server.isNotNull()) {
+					m_server->close();
+				}
+				m_streamsHandshaking.setNull();
+			}
+
+			void onAccept(AsyncTcpServer* socketListen, Socket& socketAccept, const SocketAddress& address)
+			{
+				Ref<HttpServer> server = getServer();
+				if (server.isNotNull()) {
+					Ref<AsyncIoLoop> loop = m_loop;
+					if (loop.isNull()) {
+						return;
+					}
+					SocketAddress addrLocal;
+					socketAccept.getLocalAddress(addrLocal);
+					AsyncTcpSocketParam cp;
+					cp.socket = Move(socketAccept);
+					cp.ioLoop = loop;
+					Ref<AsyncTcpSocket> stream = AsyncTcpSocket::create(cp);
+					if (stream.isNotNull()) {
+						Ref<OpenSSL_AsyncStream> tlsStream = OpenSSL::acceptStream(stream, m_tlsParam);
+						if (tlsStream.isNotNull()) {
+							StreamDesc desc;
+							desc.stream = tlsStream;
+							desc.addressLocal = addrLocal;
+							desc.addressRemote = address;
+							m_streamsHandshaking.put(tlsStream.get(), desc);
+							tlsStream->handshake();
+						}
+					}
+				}
+			}
+
+			void onHandshake(TlsStreamResult& result)
+			{
+				StreamDesc desc;
+				if (m_streamsHandshaking.remove(result.stream, &desc)) {
+					if (!(result.flagError)) {
+						Ref<HttpServer> server = getServer();
+						if (server.isNotNull()) {
+							server->addConnection(desc.stream, desc.addressRemote, desc.addressLocal);
+						}
+					}
+				}
+			}
+
+		};
 	}
-
-	using namespace priv::http_openssl;
 
 	sl_bool HttpServer::addHttpsBinding(const TlsAcceptStreamParam& param, const SocketAddress& addr)
 	{

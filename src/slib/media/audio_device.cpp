@@ -29,9 +29,9 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioRecorderInfo)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioRecorderDeviceInfo)
 
-	AudioRecorderInfo::AudioRecorderInfo()
+	AudioRecorderDeviceInfo::AudioRecorderDeviceInfo()
 	{
 	}
 
@@ -309,9 +309,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerInfo)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(AudioPlayerDeviceInfo)
 
-	AudioPlayerInfo::AudioPlayerInfo()
+	AudioPlayerDeviceInfo::AudioPlayerDeviceInfo()
 	{
 	}
 
@@ -568,8 +568,8 @@ namespace slib
 		return sl_null;
 	}
 
-	List<AudioPlayerInfo> AudioPlayer::getPlayersList()
+	List<AudioPlayerDeviceInfo> AudioPlayer::getDevices()
 	{
-		return AudioPlayerDevice::getPlayersList();
+		return AudioPlayerDevice::getDevices();
 	}
 }

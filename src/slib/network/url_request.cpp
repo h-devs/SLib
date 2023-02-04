@@ -32,20 +32,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace url_request
-		{
-
-			typedef HashMap< UrlRequest*, Ref<UrlRequest> > UrlRequestMap;
-
-			SLIB_SAFE_STATIC_GETTER(UrlRequestMap, GetUrlRequestMap)
-
-		}
-	}
-
-	using namespace priv::url_request;
-
 	SLIB_DEFINE_OBJECT(UrlRequest, Object)
 
 	UrlRequest::UrlRequest()
@@ -311,6 +297,11 @@ namespace slib
 			}
 		}
 		onError();
+	}
+
+	namespace {
+		typedef HashMap< UrlRequest*, Ref<UrlRequest> > UrlRequestMap;
+		SLIB_SAFE_STATIC_GETTER(UrlRequestMap, GetUrlRequestMap)
 	}
 
 	void UrlRequest::_init(const UrlRequestParam& param, const String& url)

@@ -36,28 +36,24 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace spinlock
+	namespace {
+		SLIB_INLINE static sl_bool TryLock(const sl_int32* lock)
 		{
-			SLIB_INLINE static sl_bool tryLock(const sl_int32* lock)
-			{
 #if defined(USE_CPP_ATOMIC)
-				std::atomic_flag* p = (std::atomic_flag*)(lock);
-				return !(p->test_and_set(std::memory_order_acquire));
+			std::atomic_flag* p = (std::atomic_flag*)(lock);
+			return !(p->test_and_set(std::memory_order_acquire));
 #else
-				bool* p = (bool*)(lock);
-				// __atomic_test_and_set equals __atomic_exchange(p, true, mem_order)
-				return !(__atomic_test_and_set(p, __ATOMIC_ACQUIRE));
+			bool* p = (bool*)(lock);
+			// __atomic_test_and_set equals __atomic_exchange(p, true, mem_order)
+			return !(__atomic_test_and_set(p, __ATOMIC_ACQUIRE));
 #endif
-			}
 		}
 	}
 
 	void SpinLock::lock() const noexcept
 	{
 		sl_uint32 count = 0;
-		while (!(priv::spinlock::tryLock(&m_flagLock))) {
+		while (!(TryLock(&m_flagLock))) {
 			System::yield(count);
 			count++;
 		}
@@ -65,7 +61,7 @@ namespace slib
 
 	sl_bool SpinLock::tryLock() const noexcept
 	{
-		return priv::spinlock::tryLock(&m_flagLock);
+		return TryLock(&m_flagLock);
 	}
 
 	void SpinLock::unlock() const noexcept

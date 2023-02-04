@@ -170,48 +170,40 @@ namespace slib
 	{
 	}
 
-	namespace priv
-	{
-		namespace http
+	namespace {
+		class ContentReader_Persistent : public HttpContentReader
 		{
-			class ContentReader_Persistent : public HttpContentReader
+		public:
+			sl_uint64 m_sizeTotal;
+			sl_uint64 m_sizeRead;
+
+		public:
+			ContentReader_Persistent()
 			{
-			public:
-				sl_uint64 m_sizeTotal;
-				sl_uint64 m_sizeRead;
+				m_sizeRead = 0;
+				m_sizeTotal = 0;
+			}
 
-			public:
-				ContentReader_Persistent()
-				{
-					m_sizeRead = 0;
-					m_sizeTotal = 0;
+			sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
+			{
+				sl_uint64 sizeRemain = m_sizeTotal - m_sizeRead;
+				if (size < sizeRemain) {
+					m_sizeRead += size;
+					return decompressData(output, data, size, refData);
+				} else {
+					m_sizeRead = m_sizeTotal;
+					sl_size sizeRead = (sl_size)sizeRemain;
+					sl_bool flagSuccess = decompressData(output, data, sizeRead, refData);
+					setCompleted((char*)data + sizeRead, size - sizeRead);
+					return flagSuccess;
 				}
-
-				sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
-				{
-					sl_uint64 sizeRemain = m_sizeTotal - m_sizeRead;
-					if (size < sizeRemain) {
-						m_sizeRead += size;
-						return decompressData(output, data, size, refData);
-					} else {
-						m_sizeRead = m_sizeTotal;
-						sl_size sizeRead = (sl_size)sizeRemain;
-						sl_bool flagSuccess = decompressData(output, data, sizeRead, refData);
-						setCompleted((char*)data + sizeRead, size - sizeRead);
-						return flagSuccess;
-					}
-				}
-			};
-		}
+			}
+		};
 	}
 
-	Ref<HttpContentReader> HttpContentReader::createPersistent(const Ref<AsyncStream>& io,
-															   const HttpContentReaderOnComplete& onComplete,
-															   sl_uint64 contentLength,
-															   sl_uint32 bufferSize,
-															   sl_bool flagDecompress)
+	Ref<HttpContentReader> HttpContentReader::createPersistent(const Ref<AsyncStream>& io, const HttpContentReaderOnComplete& onComplete, sl_uint64 contentLength, sl_uint32 bufferSize, sl_bool flagDecompress)
 	{
-		Ref<priv::http::ContentReader_Persistent> ret = new priv::http::ContentReader_Persistent;
+		Ref<ContentReader_Persistent> ret = new ContentReader_Persistent;
 		if (io.isNull()) {
 			return ret;
 		}
@@ -250,142 +242,135 @@ namespace slib
 
 */
 
-	namespace priv
-	{
-		namespace http
+	namespace {
+		class ContentReader_Chunked : public HttpContentReader
 		{
-			class ContentReader_Chunked : public HttpContentReader
+		public:
+			sl_uint32 m_state;
+			sl_uint64 m_sizeCurrentChunk;
+			sl_uint64 m_sizeCurrentChunkRead;
+			sl_uint32 m_sizeTrailerField;
+
+		public:
+			ContentReader_Chunked()
 			{
-			public:
-				sl_uint32 m_state;
-				sl_uint64 m_sizeCurrentChunk;
-				sl_uint64 m_sizeCurrentChunkRead;
-				sl_uint32 m_sizeTrailerField;
+				m_state = 0;
+				m_sizeCurrentChunk = 0;
+				m_sizeCurrentChunkRead = 0;
+				m_sizeTrailerField = 0;
+			}
 
-			public:
-				ContentReader_Chunked()
-				{
-					m_state = 0;
-					m_sizeCurrentChunk = 0;
-					m_sizeCurrentChunkRead = 0;
-					m_sizeTrailerField = 0;
-				}
+			sl_bool filterRead(MemoryData& mem, void* _data, sl_size size, Referable* refData) override
+			{
+				sl_uint8* data = (sl_uint8*)_data;
+				sl_size pos = 0;
 
-				sl_bool filterRead(MemoryData& mem, void* _data, sl_size size, Referable* refData) override
-				{
-					sl_uint8* data = (sl_uint8*)_data;
-					sl_size pos = 0;
+				sl_uint8* output = data;
+				sl_size sizeOutput = 0;
 
-					sl_uint8* output = data;
-					sl_size sizeOutput = 0;
+				sl_uint32 v;
 
-					sl_uint32 v;
-
-					while (pos < size) {
-						sl_uint8 ch = data[pos];
-						switch (m_state) {
-						case 0: // chunk-size
-							v = SLIB_CHAR_HEX_TO_INT(ch);
-							if (v < 16) {
-								m_sizeCurrentChunk = (m_sizeCurrentChunk << 4) | v;
-								pos++;
-							} else {
-								m_state = 1;
-							}
-							break;
-						case 1: // chunk-ext
-							if (ch == '\r') {
-								m_state = 2;
-							}
+				while (pos < size) {
+					sl_uint8 ch = data[pos];
+					switch (m_state) {
+					case 0: // chunk-size
+						v = SLIB_CHAR_HEX_TO_INT(ch);
+						if (v < 16) {
+							m_sizeCurrentChunk = (m_sizeCurrentChunk << 4) | v;
 							pos++;
-							break;
-						case 2: // CRLF
-							if (ch == '\n') {
-								if (m_sizeCurrentChunk > 0) {
-									m_state = 3;
-								} else {
-									// last chunk
-									m_state = 10;
-									m_sizeTrailerField = 0;
-								}
+						} else {
+							m_state = 1;
+						}
+						break;
+					case 1: // chunk-ext
+						if (ch == '\r') {
+							m_state = 2;
+						}
+						pos++;
+						break;
+					case 2: // CRLF
+						if (ch == '\n') {
+							if (m_sizeCurrentChunk > 0) {
+								m_state = 3;
 							} else {
-								m_state = -1;
-								setError();
-								return sl_false;
+								// last chunk
+								m_state = 10;
+								m_sizeTrailerField = 0;
 							}
-							pos++;
-							break;
-						case 3: // chunk-data
-							if (m_sizeCurrentChunkRead < m_sizeCurrentChunk) {
-								output[sizeOutput] = ch;
-								m_sizeCurrentChunkRead++;
-								sizeOutput++;
-							} else {
-								if (ch == '\r') {
-									m_state = 4;
-								} else {
-									m_state = -1;
-									setError();
-									return sl_false;
-								}
-							}
-							pos++;
-							break;
-						case 4: // CRLF
-							if (ch == '\n') {
-								m_sizeCurrentChunk = 0;
-								m_sizeCurrentChunkRead = 0;
-								m_state = 0;
-							} else {
-								m_state = -1;
-								setError();
-								return sl_false;
-							}
-							pos++;
-							break;
-						case 10: // trailer-part
-							if (ch == '\r') {
-								m_state = 11;
-							} else {
-								m_sizeTrailerField++;
-							}
-							pos++;
-							break;
-						case 11: // CRLF
-							if (ch == '\n') {
-								if (m_sizeTrailerField > 0) {
-									m_state = 10;
-									m_sizeTrailerField = 0;
-								} else {
-									pos++;
-									m_state = -1;
-									sl_bool flagSuccess = decompressData(mem, output, sizeOutput, refData);
-									setCompleted(data + pos, size - pos);
-									return flagSuccess;
-								}
-							} else {
-								m_state = -1;
-								setError();
-								return sl_false;
-							}
-							pos++;
-							break;
-						default:
+						} else {
+							m_state = -1;
+							setError();
 							return sl_false;
 						}
+						pos++;
+						break;
+					case 3: // chunk-data
+						if (m_sizeCurrentChunkRead < m_sizeCurrentChunk) {
+							output[sizeOutput] = ch;
+							m_sizeCurrentChunkRead++;
+							sizeOutput++;
+						} else {
+							if (ch == '\r') {
+								m_state = 4;
+							} else {
+								m_state = -1;
+								setError();
+								return sl_false;
+							}
+						}
+						pos++;
+						break;
+					case 4: // CRLF
+						if (ch == '\n') {
+							m_sizeCurrentChunk = 0;
+							m_sizeCurrentChunkRead = 0;
+							m_state = 0;
+						} else {
+							m_state = -1;
+							setError();
+							return sl_false;
+						}
+						pos++;
+						break;
+					case 10: // trailer-part
+						if (ch == '\r') {
+							m_state = 11;
+						} else {
+							m_sizeTrailerField++;
+						}
+						pos++;
+						break;
+					case 11: // CRLF
+						if (ch == '\n') {
+							if (m_sizeTrailerField > 0) {
+								m_state = 10;
+								m_sizeTrailerField = 0;
+							} else {
+								pos++;
+								m_state = -1;
+								sl_bool flagSuccess = decompressData(mem, output, sizeOutput, refData);
+								setCompleted(data + pos, size - pos);
+								return flagSuccess;
+							}
+						} else {
+							m_state = -1;
+							setError();
+							return sl_false;
+						}
+						pos++;
+						break;
+					default:
+						return sl_false;
 					}
-					return decompressData(mem, output, sizeOutput, refData);
 				}
-			};
-		}
+				return decompressData(mem, output, sizeOutput, refData);
+			}
+		};
 	}
 
-	Ref<HttpContentReader> HttpContentReader::createChunked(const Ref<AsyncStream>& io,
-															const HttpContentReaderOnComplete& onComplete,
-															sl_uint32 bufferSize,
-															sl_bool flagDecompress)
+	Ref<HttpContentReader> HttpContentReader::createChunked(const Ref<AsyncStream>& io, const HttpContentReaderOnComplete& onComplete, sl_uint32 bufferSize, sl_bool flagDecompress)
 	{
-		Ref<priv::http::ContentReader_Chunked> ret = new priv::http::ContentReader_Chunked;
+		Ref<ContentReader_Chunked> ret = new ContentReader_Chunked;
 		if (io.isNull()) {
 			return ret;
 		}
@@ -405,27 +390,20 @@ namespace slib
 		return ret;
 	}
 
-	namespace priv
-	{
-		namespace http
+	namespace {
+		class ContentReader_TearDown : public HttpContentReader
 		{
-			class ContentReader_TearDown : public HttpContentReader
+		public:
+			sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
 			{
-			public:
-				sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* refData) override
-				{
-					return decompressData(output, data, size, refData);
-				}
-			};
-		}
+				return decompressData(output, data, size, refData);
+			}
+		};
 	}
 
-	Ref<HttpContentReader> HttpContentReader::createTearDown(const Ref<AsyncStream>& io,
-															 const HttpContentReaderOnComplete& onComplete,
-															 sl_uint32 bufferSize,
-															 sl_bool flagDecompress)
+	Ref<HttpContentReader> HttpContentReader::createTearDown(const Ref<AsyncStream>& io, const HttpContentReaderOnComplete& onComplete, sl_uint32 bufferSize, sl_bool flagDecompress)
 	{
-		Ref<priv::http::ContentReader_TearDown> ret = new priv::http::ContentReader_TearDown;
+		Ref<ContentReader_TearDown> ret = new ContentReader_TearDown;
 		if (io.isNull()) {
 			return ret;
 		}

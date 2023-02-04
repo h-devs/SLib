@@ -39,83 +39,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace file
-		{
-
-			SLIB_INLINE static Time FileTimeToTime(const FILETIME& ft) noexcept
-			{
-				return Time::fromWindowsFileTime(*((sl_int64*)&ft));
-			}
-
-			SLIB_INLINE static void TimeToFileTime(const Time& time, FILETIME& ft) noexcept
-			{
-				*((sl_int64*)&ft) = time.toWindowsFileTime();
-			}
-
-			SLIB_INLINE static Time GetModifiedTime(HANDLE handle) noexcept
-			{
-				FILETIME ft;
-				BOOL bRet = GetFileTime(handle, NULL, NULL, &ft);
-				if (bRet) {
-					return FileTimeToTime(ft);
-				} else {
-					return Time::zero();
-				}
-			}
-
-			SLIB_INLINE static Time GetAccessedTime(HANDLE handle) noexcept
-			{
-				FILETIME ft;
-				BOOL bRet = GetFileTime(handle, NULL, &ft, NULL);
-				if (bRet) {
-					return FileTimeToTime(ft);
-				} else {
-					return Time::zero();
-				}
-			}
-
-			SLIB_INLINE static Time GetCreatedTime(HANDLE handle) noexcept
-			{
-				FILETIME ft;
-				BOOL bRet = GetFileTime(handle, &ft, NULL, NULL);
-				if (bRet) {
-					return FileTimeToTime(ft);
-				} else {
-					return Time::zero();
-				}
-			}
-
-			SLIB_INLINE static sl_bool SetModifiedTime(HANDLE handle, const Time& time) noexcept
-			{
-				FILETIME ft;
-				TimeToFileTime(time, ft);
-				BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
-				return bRet != 0;
-			}
-
-			SLIB_INLINE static sl_bool SetAccessedTime(HANDLE handle, const Time& time) noexcept
-			{
-				FILETIME ft;
-				TimeToFileTime(time, ft);
-				BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
-				return bRet != 0;
-			}
-
-			SLIB_INLINE static sl_bool SetCreatedTime(HANDLE handle, const Time& time) noexcept
-			{
-				FILETIME ft;
-				TimeToFileTime(time, ft);
-				BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
-				return bRet != 0;
-			}
-
-		}
-	}
-
-	using namespace priv::file;
-
 	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs) noexcept
 	{
 		DWORD dwShareMode = 0;
@@ -436,6 +359,31 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace {
+
+		SLIB_INLINE static Time FileTimeToTime(const FILETIME& ft) noexcept
+		{
+			return Time::fromWindowsFileTime(*((sl_int64*)&ft));
+		}
+
+		SLIB_INLINE static void TimeToFileTime(const Time& time, FILETIME& ft) noexcept
+		{
+			*((sl_int64*)&ft) = time.toWindowsFileTime();
+		}
+
+		SLIB_INLINE static Time GetModifiedTime(HANDLE handle) noexcept
+		{
+			FILETIME ft;
+			BOOL bRet = GetFileTime(handle, NULL, NULL, &ft);
+			if (bRet) {
+				return FileTimeToTime(ft);
+			} else {
+				return Time::zero();
+			}
+		}
+
+	}
+
 	Time File::getModifiedTime() const noexcept
 	{
 		HANDLE handle = m_file;
@@ -460,6 +408,19 @@ namespace slib
 			return ret;
 		} else {
 			return Time::zero();
+		}
+	}
+
+	namespace {
+		SLIB_INLINE static Time GetAccessedTime(HANDLE handle) noexcept
+		{
+			FILETIME ft;
+			BOOL bRet = GetFileTime(handle, NULL, &ft, NULL);
+			if (bRet) {
+				return FileTimeToTime(ft);
+			} else {
+				return Time::zero();
+			}
 		}
 	}
 
@@ -490,6 +451,19 @@ namespace slib
 		}
 	}
 
+	namespace {
+		SLIB_INLINE static Time GetCreatedTime(HANDLE handle) noexcept
+		{
+			FILETIME ft;
+			BOOL bRet = GetFileTime(handle, &ft, NULL, NULL);
+			if (bRet) {
+				return FileTimeToTime(ft);
+			} else {
+				return Time::zero();
+			}
+		}
+	}
+
 	Time File::getCreatedTime() const noexcept
 	{
 		HANDLE handle = m_file;
@@ -513,6 +487,16 @@ namespace slib
 			return ret;
 		} else {
 			return Time::zero();
+		}
+	}
+
+	namespace {
+		SLIB_INLINE static sl_bool SetModifiedTime(HANDLE handle, const Time& time) noexcept
+		{
+			FILETIME ft;
+			TimeToFileTime(time, ft);
+			BOOL bRet = SetFileTime(handle, NULL, NULL, &ft);
+			return bRet != 0;
 		}
 	}
 
@@ -542,6 +526,16 @@ namespace slib
 		}
 	}
 
+	namespace {
+		SLIB_INLINE static sl_bool SetAccessedTime(HANDLE handle, const Time& time) noexcept
+		{
+			FILETIME ft;
+			TimeToFileTime(time, ft);
+			BOOL bRet = SetFileTime(handle, NULL, &ft, NULL);
+			return bRet != 0;
+		}
+	}
+
 	sl_bool File::setAccessedTime(const Time& time) const noexcept
 	{
 		HANDLE handle = m_file;
@@ -565,6 +559,16 @@ namespace slib
 			return ret;
 		} else {
 			return sl_false;
+		}
+	}
+
+	namespace {
+		SLIB_INLINE static sl_bool SetCreatedTime(HANDLE handle, const Time& time) noexcept
+		{
+			FILETIME ft;
+			TimeToFileTime(time, ft);
+			BOOL bRet = SetFileTime(handle, &ft, NULL, NULL);
+			return bRet != 0;
 		}
 	}
 

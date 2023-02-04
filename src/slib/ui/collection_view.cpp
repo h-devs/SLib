@@ -33,121 +33,68 @@
 namespace slib
 {
 
-	namespace priv
+	class CollectionView::ContentView : public ViewGroup
 	{
-		namespace collection_view
+	private:
+		WeakRef<CollectionView> m_collectionView;
+
+	public:
+		ContentView()
 		{
-
-			class ContentView : public ViewGroup
-			{
-			private:
-				WeakRef<CollectionView> m_collectionView;
-
-			public:
-				ContentView()
-				{
-					setCreatingEmptyContent(sl_true);
-					setSavingCanvasState(sl_false);
-					setUsingChildLayouts(sl_false);
-				}
-
-			public:
-				Ref<CollectionView> getCollectionView()
-				{
-					return m_collectionView;
-				}
-
-				void setCollectionView(CollectionView* view)
-				{
-					m_collectionView = view;
-				}
-
-			protected:
-				void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override
-				{
-					Ref<CollectionView> view = m_collectionView;
-					if (view.isNotNull()) {
-						view->_requestLayout();
-					}
-				}
-
-			};
-
-			class FreeViewSet
-			{
-			public:
-				sl_object_type type;
-				CLinkedList< Ref<View> > queue;
-			};
-
-			class Column
-			{
-			public:
-				Ref<ViewAdapter> adapter;
-				sl_ui_len width;
-				sl_scroll_pos contentHeight;
-				CList<sl_ui_len> heights;
-				HashMap< sl_uint32, Ref<View> > viewsVisible;
-				CList<FreeViewSet> viewsFreed;
-
-			public:
-				Column(const Ref<ViewAdapter>& _adapter, sl_ui_len _width): adapter(_adapter), width(_width)
-				{
-					width = 0;
-					contentHeight = 0;
-				}
-
-			};
-
-			class ColumnAdapter : public ViewAdapter
-			{
-			public:
-				Ref<ViewAdapter> adapterTotal;
-				sl_uint32 indexColumn;
-				sl_uint32 nColumns;
-
-			public:
-				sl_uint64 getItemCount() override
-				{
-					sl_uint64 m = adapterTotal->getItemCount() ;
-					sl_uint64 n = m / nColumns;
-					if (indexColumn < (m % nColumns)) {
-						n++;
-					}
-					return n;
-				}
-
-				Ref<View> getView(sl_uint64 index, View* original, View* parent) override
-				{
-					return adapterTotal->getView(index * nColumns + indexColumn, original, parent);
-				}
-
-				sl_object_type getViewType(sl_uint64 index, View* parent) override
-				{
-					return adapterTotal->getViewType(index * nColumns + indexColumn, parent);
-				}
-
-				sl_ui_len getAverageItemHeight(View* parent) override
-				{
-					return adapterTotal->getAverageItemHeight(parent);
-				}
-
-				sl_ui_len getItemHeight(sl_uint64 index, View* parent) override
-				{
-					return adapterTotal->getItemHeight(index * nColumns + indexColumn, parent);
-				}
-
-				sl_uint32 getMaximumItemCountPerPage(View* parent) override
-				{
-					return adapterTotal->getMaximumItemCountPerPage(parent);
-				}
-
-			};
-
+			setCreatingEmptyContent(sl_true);
+			setSavingCanvasState(sl_false);
+			setUsingChildLayouts(sl_false);
 		}
+
+	public:
+		Ref<CollectionView> getCollectionView()
+		{
+			return m_collectionView;
+		}
+
+		void setCollectionView(CollectionView* view)
+		{
+			m_collectionView = view;
+		}
+
+	protected:
+		void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override
+		{
+			Ref<CollectionView> view = m_collectionView;
+			if (view.isNotNull()) {
+				view->_requestLayout();
+			}
+		}
+
+	};
+
+	namespace {
+		class FreeViewSet
+		{
+		public:
+			sl_object_type type;
+			CLinkedList< Ref<View> > queue;
+		};
 	}
 
-	using namespace priv::collection_view;
+	class CollectionView::Column
+	{
+	public:
+		Ref<ViewAdapter> adapter;
+		sl_ui_len width;
+		sl_scroll_pos contentHeight;
+		CList<sl_ui_len> heights;
+		HashMap< sl_uint32, Ref<View> > viewsVisible;
+		CList<FreeViewSet> viewsFreed;
+
+	public:
+		Column(const Ref<ViewAdapter>& _adapter, sl_ui_len _width): adapter(_adapter), width(_width)
+		{
+			width = 0;
+			contentHeight = 0;
+		}
+
+	};
 
 	SLIB_DEFINE_OBJECT(CollectionView, VerticalScrollView)
 
@@ -234,6 +181,53 @@ namespace slib
 			return;
 		}
 		setAdapters(List< Ref<ViewAdapter> >::createFromElement(adapter), sl_null);
+	}
+
+	namespace {
+		class ColumnAdapter : public ViewAdapter
+		{
+		public:
+			Ref<ViewAdapter> adapterTotal;
+			sl_uint32 indexColumn;
+			sl_uint32 nColumns;
+
+		public:
+			sl_uint64 getItemCount() override
+			{
+				sl_uint64 m = adapterTotal->getItemCount();
+				sl_uint64 n = m / nColumns;
+				if (indexColumn < (m % nColumns)) {
+					n++;
+				}
+				return n;
+			}
+
+			Ref<View> getView(sl_uint64 index, View* original, View* parent) override
+			{
+				return adapterTotal->getView(index * nColumns + indexColumn, original, parent);
+			}
+
+			sl_object_type getViewType(sl_uint64 index, View* parent) override
+			{
+				return adapterTotal->getViewType(index * nColumns + indexColumn, parent);
+			}
+
+			sl_ui_len getAverageItemHeight(View* parent) override
+			{
+				return adapterTotal->getAverageItemHeight(parent);
+			}
+
+			sl_ui_len getItemHeight(sl_uint64 index, View* parent) override
+			{
+				return adapterTotal->getItemHeight(index * nColumns + indexColumn, parent);
+			}
+
+			sl_uint32 getMaximumItemCountPerPage(View* parent) override
+			{
+				return adapterTotal->getMaximumItemCountPerPage(parent);
+			}
+
+		};
 	}
 
 	void CollectionView::setAdapter(const Ref<ViewAdapter>& adapterTotal, sl_uint32 nColumns)

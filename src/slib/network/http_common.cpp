@@ -33,71 +33,44 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace http
-		{
+	namespace {
 
-			SLIB_STATIC_STRING(g_method_GET, "GET")
-			SLIB_STATIC_STRING(g_method_HEAD, "HEAD")
-			SLIB_STATIC_STRING(g_method_POST, "POST")
-			SLIB_STATIC_STRING(g_method_PUT, "PUT")
-			SLIB_STATIC_STRING(g_method_DELETE, "DELETE")
-			SLIB_STATIC_STRING(g_method_CONNECT, "CONNECT")
-			SLIB_STATIC_STRING(g_method_OPTIONS, "OPTIONS")
-			SLIB_STATIC_STRING(g_method_TRACE, "TRACE")
-			SLIB_STATIC_STRING(g_method_PATCH, "PATCH")
-			SLIB_STATIC_STRING(g_method_PROPFIND, "PROPFIND")
+		SLIB_STATIC_STRING(g_method_GET, "GET")
+		SLIB_STATIC_STRING(g_method_HEAD, "HEAD")
+		SLIB_STATIC_STRING(g_method_POST, "POST")
+		SLIB_STATIC_STRING(g_method_PUT, "PUT")
+		SLIB_STATIC_STRING(g_method_DELETE, "DELETE")
+		SLIB_STATIC_STRING(g_method_CONNECT, "CONNECT")
+		SLIB_STATIC_STRING(g_method_OPTIONS, "OPTIONS")
+		SLIB_STATIC_STRING(g_method_TRACE, "TRACE")
+		SLIB_STATIC_STRING(g_method_PATCH, "PATCH")
+		SLIB_STATIC_STRING(g_method_PROPFIND, "PROPFIND")
 
-			SLIB_STATIC_STRING(g_setCookie_expires, "Expires")
-			SLIB_STATIC_STRING(g_setCookie_max_age, "Max-Age")
-			SLIB_STATIC_STRING(g_setCookie_domain, "Domain")
-			SLIB_STATIC_STRING(g_setCookie_path, "Path")
-			SLIB_STATIC_STRING(g_setCookie_secure, "Secure")
-			SLIB_STATIC_STRING(g_setCookie_http_only, "HttpOnly")
-			SLIB_STATIC_STRING(g_setCookie_same_site, "SameSite")
+		SLIB_STATIC_STRING(g_setCookie_expires, "Expires")
+		SLIB_STATIC_STRING(g_setCookie_max_age, "Max-Age")
+		SLIB_STATIC_STRING(g_setCookie_domain, "Domain")
+		SLIB_STATIC_STRING(g_setCookie_path, "Path")
+		SLIB_STATIC_STRING(g_setCookie_secure, "Secure")
+		SLIB_STATIC_STRING(g_setCookie_http_only, "HttpOnly")
+		SLIB_STATIC_STRING(g_setCookie_same_site, "SameSite")
 
-			SLIB_STATIC_STRING(g_cacheControl_max_age, "max-age")
-			SLIB_STATIC_STRING(g_cacheControl_max_stale, "max-stale")
-			SLIB_STATIC_STRING(g_cacheControl_min_fresh, "min-fresh")
-			SLIB_STATIC_STRING(g_cacheControl_no_cache, "no-cache")
-			SLIB_STATIC_STRING(g_cacheControl_no_store, "no-store")
-			SLIB_STATIC_STRING(g_cacheControl_no_transform, "no-transform")
-			SLIB_STATIC_STRING(g_cacheControl_only_if_cached, "only-if-cached")
-			SLIB_STATIC_STRING(g_cacheControl_must_revalidate, "must-revalidate")
-			SLIB_STATIC_STRING(g_cacheControl_public, "public")
-			SLIB_STATIC_STRING(g_cacheControl_private, "private")
-			SLIB_STATIC_STRING(g_cacheControl_proxy_revalidate, "proxy-revalidate")
-			SLIB_STATIC_STRING(g_cacheControl_s_maxage, "s-maxage")
-			SLIB_STATIC_STRING(g_cacheControl_immutable, "immutable")
-			SLIB_STATIC_STRING(g_cacheControl_stale_while_revalidate, "stale-while-revalidate")
-			SLIB_STATIC_STRING(g_cacheControl_stale_if_error, "stale-if-error")
+		SLIB_STATIC_STRING(g_cacheControl_max_age, "max-age")
+		SLIB_STATIC_STRING(g_cacheControl_max_stale, "max-stale")
+		SLIB_STATIC_STRING(g_cacheControl_min_fresh, "min-fresh")
+		SLIB_STATIC_STRING(g_cacheControl_no_cache, "no-cache")
+		SLIB_STATIC_STRING(g_cacheControl_no_store, "no-store")
+		SLIB_STATIC_STRING(g_cacheControl_no_transform, "no-transform")
+		SLIB_STATIC_STRING(g_cacheControl_only_if_cached, "only-if-cached")
+		SLIB_STATIC_STRING(g_cacheControl_must_revalidate, "must-revalidate")
+		SLIB_STATIC_STRING(g_cacheControl_public, "public")
+		SLIB_STATIC_STRING(g_cacheControl_private, "private")
+		SLIB_STATIC_STRING(g_cacheControl_proxy_revalidate, "proxy-revalidate")
+		SLIB_STATIC_STRING(g_cacheControl_s_maxage, "s-maxage")
+		SLIB_STATIC_STRING(g_cacheControl_immutable, "immutable")
+		SLIB_STATIC_STRING(g_cacheControl_stale_while_revalidate, "stale-while-revalidate")
+		SLIB_STATIC_STRING(g_cacheControl_stale_if_error, "stale-if-error")
 
-			class HttpMethodMapping
-			{
-			public:
-				CHashMap<String, HttpMethod> maps;
-
-			public:
-				HttpMethodMapping()
-				{
-					maps.put_NoLock(g_method_GET, HttpMethod::GET);
-					maps.put_NoLock(g_method_HEAD, HttpMethod::HEAD);
-					maps.put_NoLock(g_method_POST, HttpMethod::POST);
-					maps.put_NoLock(g_method_PUT, HttpMethod::PUT);
-					maps.put_NoLock(g_method_DELETE, HttpMethod::DELETE);
-					maps.put_NoLock(g_method_CONNECT, HttpMethod::CONNECT);
-					maps.put_NoLock(g_method_OPTIONS, HttpMethod::OPTIONS);
-					maps.put_NoLock(g_method_TRACE, HttpMethod::TRACE);
-					maps.put_NoLock(g_method_PATCH, HttpMethod::PATCH);
-					maps.put_NoLock(g_method_PROPFIND, HttpMethod::PROPFIND);
-				}
-			};
-
-		}
 	}
-
-	using namespace priv::http;
 
 #define HTTP_STATUS_CASE(name, text) \
 	case HttpStatus::name: SLIB_RETURN_STRING(text);
@@ -189,6 +162,29 @@ namespace slib
 		return sl_null;
 	}
 
+	namespace {
+		class HttpMethodMapping
+		{
+		public:
+			CHashMap<String, HttpMethod> maps;
+
+		public:
+			HttpMethodMapping()
+			{
+				maps.put_NoLock(g_method_GET, HttpMethod::GET);
+				maps.put_NoLock(g_method_HEAD, HttpMethod::HEAD);
+				maps.put_NoLock(g_method_POST, HttpMethod::POST);
+				maps.put_NoLock(g_method_PUT, HttpMethod::PUT);
+				maps.put_NoLock(g_method_DELETE, HttpMethod::DELETE);
+				maps.put_NoLock(g_method_CONNECT, HttpMethod::CONNECT);
+				maps.put_NoLock(g_method_OPTIONS, HttpMethod::OPTIONS);
+				maps.put_NoLock(g_method_TRACE, HttpMethod::TRACE);
+				maps.put_NoLock(g_method_PATCH, HttpMethod::PATCH);
+				maps.put_NoLock(g_method_PROPFIND, HttpMethod::PROPFIND);
+			}
+		};
+	}
+
 	HttpMethod HttpMethodHelper::fromString(const String& method)
 	{
 		SLIB_SAFE_LOCAL_STATIC(HttpMethodMapping, t)
@@ -200,12 +196,10 @@ namespace slib
 
 
 #define DEFINE_HTTP_HEADER(name, value) \
-	namespace priv { \
-		namespace http { \
-			SLIB_STATIC_STRING(static_##name, value); \
-		} \
+	namespace { \
+		SLIB_STATIC_STRING(static_##name, value); \
 	} \
-	const String& HttpHeader::name = priv::http::static_##name;
+	const String& HttpHeader::name = static_##name;
 
 	DEFINE_HTTP_HEADER(Connection, "Connection")
 	DEFINE_HTTP_HEADER(KeepAlive, "Keep-Alive")

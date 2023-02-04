@@ -133,13 +133,12 @@ namespace slib
 		public:
 			void setText(const StringParam& text);
 
+		public:
+			class Element;
+
 		protected:
 			ULONG m_nRef;
-#ifdef PRIV_SLIB_IMPLEMENT_WIN32_COM
-			List< Ref<priv::win32_com::GenericDataElement> > m_mediums;
-#else
-			List< Ref<Referable> > m_mediums;
-#endif
+			List< Ref<Element> > m_mediums;
 
 		};
 

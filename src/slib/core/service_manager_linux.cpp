@@ -34,43 +34,37 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace svc_mng
-		{
+	namespace {
 
-			static sl_bool WaitState(const StringParam& name, ServiceState state, sl_int32 timeout)
-			{
-				sl_uint32 n = 0;
-				if (timeout > 0) {
-					n = timeout / 100;
-					if (n < 5) {
-						n = 5;
-					}
-					if (n > 50) {
-						n = 50;
-					}
-				} else {
+		static sl_bool WaitState(const StringParam& name, ServiceState state, sl_int32 timeout)
+		{
+			sl_uint32 n = 0;
+			if (timeout > 0) {
+				n = timeout / 100;
+				if (n < 5) {
+					n = 5;
+				}
+				if (n > 50) {
 					n = 50;
 				}
-				for (sl_uint32 i = 0; i < n; i++) {
-					if (ServiceManager::getState(name) == state) {
-						return sl_true;
-					}
-					System::sleep(100);
+			} else {
+				n = 50;
+			}
+			for (sl_uint32 i = 0; i < n; i++) {
+				if (ServiceManager::getState(name) == state) {
+					return sl_true;
 				}
-				return sl_false;
+				System::sleep(100);
 			}
-
-			static String GetUnitFilePath(const StringParam& serviceName)
-			{
-				return String::concat("/etc/systemd/system/", serviceName, ".service");
-			}
-
+			return sl_false;
 		}
-	}
 
-	using namespace priv::svc_mng;
+		static String GetUnitFilePath(const StringParam& serviceName)
+		{
+			return String::concat("/etc/systemd/system/", serviceName, ".service");
+		}
+
+	}
 
 	sl_bool ServiceManager::isExisting(const StringParam& name)
 	{

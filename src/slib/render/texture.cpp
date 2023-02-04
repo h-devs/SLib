@@ -28,34 +28,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace texture
-		{
-
-			class TextureBitmap : public Bitmap
-			{
-				friend class slib::Texture;
-			};
-
-			class TextureBitmapCache : public BitmapCache
-			{
-			public:
-				Ref<Texture> texture;
-
-			public:
-				void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) override
-				{
-					texture->update(x, y, width, height);
-				}
-
-			};
-
-		}
-	}
-
-	using namespace priv::texture;
-
 	SLIB_DEFINE_OBJECT(TextureInstance, RenderBaseObjectInstance)
 
 	TextureInstance::TextureInstance()
@@ -138,6 +110,28 @@ namespace slib
 	Ref<Texture> Texture::loadFromAsset(const String& path)
 	{
 		return create(Image::loadFromAsset(path));
+	}
+
+	namespace {
+
+		class TextureBitmap : public Bitmap
+		{
+			friend class slib::Texture;
+		};
+
+		class TextureBitmapCache : public BitmapCache
+		{
+		public:
+			Ref<Texture> texture;
+
+		public:
+			void update(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) override
+			{
+				texture->update(x, y, width, height);
+			}
+
+		};
+
 	}
 
 	Ref<Texture> Texture::getBitmapRenderingCache(const Ref<Bitmap>& source)

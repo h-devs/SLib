@@ -30,41 +30,35 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace font
+	namespace {
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(SpinLock, g_lockDefaultFont)
+		SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_defaultFamily)
+		static sl_real g_defaultSize = 12;
+
+		static String GetSystemDefaultFontFamily()
 		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(SpinLock, g_lockDefaultFont)
-			SLIB_GLOBAL_ZERO_INITIALIZED(Ref<Font>, g_defaultFont)
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_defaultFamily)
-			static sl_real g_defaultSize = 12;
-
-			static String GetSystemDefaultFontFamily()
-			{
 #ifdef SLIB_PLATFORM_IS_WIN32
-				SLIB_STATIC_STRING(tohoma, "Tahoma")
-				SLIB_STATIC_STRING(cambria, "Cambria")
-				auto fonts = Font::getAllFamilyNames();
-				if (fonts.contains(tohoma)) {
-					return tohoma;
-				}
-				if (fonts.contains(cambria)) {
-					return cambria;
-				}
-				SLIB_STATIC_STRING(s, "System")
-				return s;
-#else
-				SLIB_STATIC_STRING(s, "Arial")
-				return s;
-#endif
+			SLIB_STATIC_STRING(tohoma, "Tahoma")
+			SLIB_STATIC_STRING(cambria, "Cambria")
+			auto fonts = Font::getAllFamilyNames();
+			if (fonts.contains(tohoma)) {
+				return tohoma;
 			}
-
+			if (fonts.contains(cambria)) {
+				return cambria;
+			}
+			SLIB_STATIC_STRING(s, "System")
+			return s;
+#else
+			SLIB_STATIC_STRING(s, "Arial")
+			return s;
+#endif
 		}
-	}
 
-	using namespace priv::font;
+	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FontDesc)
 

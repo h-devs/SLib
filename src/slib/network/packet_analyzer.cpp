@@ -36,412 +36,20 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace packet_analyzer
+	namespace {
+
+		class PacketAnalyzerHelper : public PacketAnalyzer
 		{
+			friend class ContentAnalyzer;
+			friend class TcpConnectionTableEntry;
+		};
 
-			class PacketAnalyzerHelper : public PacketAnalyzer
-			{
-				friend class ContentAnalyzer;
-				friend class TcpConnectionTableEntry;
-			};
-
-			sl_uint64 ToKey(const IPv4Address& address, sl_uint16 port) noexcept
-			{
-				return SLIB_MAKE_QWORD4(address.getInt(), port);
-			}
-
-			class TcpConnection
-			{
-			public:
-				IPv4Address destinationIp;
-				sl_uint16 destinationPort;
-				sl_uint64 startTime;
-				sl_uint32 startSequenceNumber;
-				sl_uint32 sizeContent;
-				char content[CONTENT_LOOKUP_SIZE];
-
-				sl_bool flagNotHttp;
-				sl_bool flagNotHttps;
-
-			public:
-				TcpConnection() noexcept : startSequenceNumber(0), sizeContent(0)
-				{
-					startTime = System::getHighResolutionTickCount();
-					flagNotHttp = sl_false;
-					flagNotHttps = sl_false;
-				}
-
-			public:
-				sl_bool addContent(TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData) noexcept
-				{
-					sl_uint32 offset = tcp->getSequenceNumber() - startSequenceNumber;
-					if (!offset) {
-						return sl_true;
-					}
-					offset--;
-					if (offset > CONTENT_LOOKUP_SIZE) {
-						return sl_false;
-					}
-					if (!sizeData) {
-						return sl_true;
-					}
-					if (sizeData > CONTENT_LOOKUP_SIZE - offset) {
-						sizeData = CONTENT_LOOKUP_SIZE - offset;
-					}
-					Base::copyMemory(content + offset, data, sizeData);
-					if (sizeContent < offset + sizeData) {
-						sizeContent = offset + sizeData;
-					}
-					return sl_true;
-				}
-
-			};
-
-			class TcpConnectionTableEntry
-			{
-			public:
-				Shared<TcpConnection> create(IPv4Packet* packet, TcpSegment* tcp) noexcept
-				{
-					sl_uint64 key = ToKey(packet->getSourceAddress(), tcp->getSourcePort());
-					Shared<TcpConnection> connection = Shared<TcpConnection>::create();
-					if (connection.isNotNull()) {
-						connection->destinationIp = packet->getDestinationAddress();
-						connection->destinationPort = tcp->getDestinationPort();
-						connection->startSequenceNumber = tcp->getSequenceNumber();
-						WriteLocker locker(&m_lock);
-						if (m_table.put(key, connection)) {
-							return connection;
-						}
-					}
-					return sl_null;
-				}
-
-				Shared<TcpConnection> get(const IPv4Address& address, sl_uint16 port) noexcept
-				{
-					if (m_table.isEmpty()) {
-						return sl_null;
-					}
-					sl_uint64 key = ToKey(address, port);
-					ReadLocker locker(&m_lock);
-					return m_table.getValue(key);
-				}
-
-				void remove(const IPv4Address& address, sl_uint16 port) noexcept
-				{
-					if (m_table.isEmpty()) {
-						return;
-					}
-					sl_uint64 key = ToKey(address, port);
-					WriteLocker locker(&m_lock);
-					m_table.remove(key);
-				}
-
-				void removeOldConnections(sl_uint64 now) noexcept
-				{
-					CList<sl_uint64> listRemove;
-					sl_bool flagValidTable = sl_false;
-					{
-						ReadLocker lock(&m_lock);
-						for (auto& item : m_table) {
-							if (item.value->startTime + CONNECTION_TIMEOUT < now) {
-								listRemove.add_NoLock(item.key);
-							} else {
-								flagValidTable = sl_true;
-							}
-						}
-					}
-					if (flagValidTable) {
-						ListElements<sl_uint64> list(listRemove);
-						for (sl_size i = 0; i < list.count; i++) {
-							WriteLocker lock(&m_lock);
-							Shared<TcpConnection> old;
-							if (m_table.remove(list[i], &old)) {
-								if (old->startTime + CONNECTION_TIMEOUT > now) {
-									m_table.put(list[i], Move(old));
-								}
-							}
-						}
-					} else {
-						WriteLocker lock(&m_lock);
-						m_table.removeAll();
-					}
-				}
-
-			private:
-				HashTable< sl_uint64, Shared<TcpConnection> > m_table;
-				ReadWriteLock m_lock;
-			};
-
-			class TcpConnectionTable
-			{
-			public:
-				TcpConnectionTable()
-				{
-					m_threadGC = Thread::start(SLIB_FUNCTION_MEMBER(this, onRunGC));
-				}
-
-				~TcpConnectionTable()
-				{
-					if (m_threadGC.isNotNull()) {
-						m_threadGC->finishAndWait();
-					}
-				}
-
-			public:
-				Shared<TcpConnection> get(const IPv4Address& address, sl_uint16 port) noexcept
-				{
-					return m_entries[port & (CONNECTION_TABLE_LENGTH - 1)].get(address, port);
-				}
-
-				Shared<TcpConnection> create(IPv4Packet* packet, TcpSegment* tcp) noexcept
-				{
-					return m_entries[tcp->getSourcePort() & (CONNECTION_TABLE_LENGTH - 1)].create(packet, tcp);
-				}
-
-				void remove(const IPv4Address& address, sl_uint16 port) noexcept
-				{
-					m_entries[port & (CONNECTION_TABLE_LENGTH - 1)].remove(address, port);
-				}
-
-				void onRunGC()
-				{
-					Thread* thread = Thread::getCurrent();
-					if (!thread) {
-						return;
-					}
-					while (thread->isNotStopping()) {
-						sl_uint64 now = System::getHighResolutionTickCount();
-						for (sl_size i = 0; i < CONNECTION_TABLE_LENGTH && thread->isNotStopping(); i++) {
-							m_entries[i].removeOldConnections(now);
-						}
-						thread->wait(CONNECTION_TIMEOUT);
-					}
-				}
-
-			private:
-				TcpConnectionTableEntry m_entries[CONNECTION_TABLE_LENGTH];
-				Ref<Thread> m_threadGC;
-
-			};
-
-			class ContentAnalyzer : public Referable
-			{
-			public:
-				void analyze(PacketAnalyzerHelper* parent, IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData)
-				{
-					Shared<TcpConnection> connection;
-					if (tcp->isSYN()) {
-						if (tcp->isACK()) {
-							return;
-						}
-						if (parent->m_flagGatheringHostInfo) {
-							parent->resetHostInfo(packet, tcp);
-						}
-						connection = m_table.create(packet, tcp);
-						if (connection.isNull()) {
-							return;
-						}
-					} else if (tcp->isFIN() || tcp->isRST()) {
-						m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
-						m_table.remove(packet->getDestinationAddress(), tcp->getDestinationPort());
-						return;
-					} else {
-						connection = m_table.get(packet->getSourceAddress(), tcp->getSourcePort());
-						if (connection.isNotNull()) {
-							if (connection->destinationIp != packet->getDestinationAddress() || connection->destinationPort != tcp->getDestinationPort()) {
-								m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
-								if (parent->m_flagGatheringHostInfo) {
-									parent->resetHostInfo(packet, tcp);
-								}
-								return;
-							}
-						} else {
-							return;
-						}
-					}
-					if (!sizeData) {
-						return;
-					}
-					TcpConnection* c = connection.get();
-					if (!(c->addContent(tcp, data, sizeData))) {
-						m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
-						return;
-					}
-					sl_bool flagNotHttp = sl_true;
-					if (parent->m_flagAnalyzeHttp) {
-						flagNotHttp = c->flagNotHttp;
-						if (!flagNotHttp) {
-							ContentResult result = analyzeHttp(parent, packet, tcp, c->content, c->sizeContent, userData);
-							if (result == ContentResult::Success) {
-								m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
-							} else if (result == ContentResult::Error) {
-								c->flagNotHttp = sl_true;
-								flagNotHttp = sl_true;
-							}
-						}
-					}
-					sl_bool flagNotHttps = sl_true;
-					if (parent->m_flagAnalyzeHttps) {
-						flagNotHttps = c->flagNotHttps;
-						if (!flagNotHttps) {
-							ContentResult result = analyzeHttps(parent, packet, tcp, c->content, c->sizeContent, userData);
-							if (result == ContentResult::Success) {
-								m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
-							} else if (result == ContentResult::Error) {
-								c->flagNotHttps = sl_true;
-								flagNotHttps = sl_true;
-							}
-						}
-					}
-					if (flagNotHttp && flagNotHttps) {
-						m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
-					}
-				}
-
-				enum class ContentResult
-				{
-					InProgress = 0,
-					Success = 1,
-					Error = 2
-				};
-
-				ContentResult analyzeHttp(PacketAnalyzerHelper* parent, IPv4Packet* packet, TcpSegment* tcp, char* content, sl_uint32 size, void* userData)
-				{
-					if (size < 4) {
-						return ContentResult::InProgress;
-					}
-					if (!(Base::equalsString_IgnoreCase(content, "GET ", 4))) {
-						return ContentResult::Error;
-					}
-					char* uri = content + 4;
-					sl_size n = size - 4;
-					char* strFirstLine = (char*)(Base::findMemory(uri, n, '\r'));
-					if (!strFirstLine) {
-						if (size > 512) {
-							return ContentResult::Error;
-						}
-						return ContentResult::InProgress;
-					}
-					if (strFirstLine < uri + 9) {
-						return ContentResult::Error;
-					}
-					if (!(Base::equalsString_IgnoreCase(strFirstLine - 9, " HTTP/1.", 8))) {
-						return ContentResult::Error;
-					}
-					if (*(strFirstLine - 1) != '1' && *(strFirstLine - 1) != '0') {
-						return ContentResult::Error;
-					}
-					sl_size lenUri = strFirstLine - 9 - uri;
-					n = content + size - strFirstLine;
-					if (n < 2) {
-						return ContentResult::InProgress;
-					}
-					if (strFirstLine[1] != '\n') {
-						return ContentResult::Error;
-					}
-					char* startHeader = strFirstLine + 2;
-					n -= 2;
-					char* s = startHeader;
-					for (;;) {
-						if (!n) {
-							return ContentResult::InProgress;
-						}
-						char* line = (char*)(Base::findMemory(s, n, '\r'));
-						if (!line) {
-							return ContentResult::InProgress;
-						}
-						n = content + size - line;
-						if (n >= 2) {
-							if (line[1] != '\n') {
-								return ContentResult::Error;
-							}
-						}
-						sl_size m = line - s;
-						if (!m) {
-							return ContentResult::Error;
-						}
-						char* sep = (char*)(Base::findMemory(s, m, ':'));
-						if (sep) {
-							if (sep == s + 4 && Base::equalsString_IgnoreCase(s, "Host", 4)) {
-								char* host = sep + 1;
-								if (host < line && *host == ' ') {
-									host++;
-								}
-								sl_size lenHost = line - host;
-								if (parent->m_flagGatheringHostInfo) {
-									parent->registerHostInfo(packet, tcp, TcpConnectionType::HTTP, String::from(host, lenHost));
-								}
-								parent->onHTTP_IPv4(packet, tcp, StringView(host, lenHost), StringView(uri, lenUri), userData);
-								return ContentResult::Success;
-							}
-						}
-						n -= 2;
-						s = line + 2;
-					}
-				}
-
-				ContentResult analyzeHttps(PacketAnalyzerHelper* parent, IPv4Packet* packet, TcpSegment* tcp, char* content, sl_uint32 size, void* userData)
-				{
-					if (size <= sizeof(TlsRecordHeader) + sizeof(TlsHandshakeProtocolHeader)) {
-						return ContentResult::InProgress;
-					}
-					TlsRecordHeader* record = (TlsRecordHeader*)content;
-					if (record->getType() != TlsRecordType::Handshake) {
-						return ContentResult::Error;
-					}
-					content += sizeof(TlsRecordHeader);
-					size -= sizeof(TlsRecordHeader);
-					sl_uint16 sizeProtocol = record->getContentLength();
-					if (size > sizeProtocol) {
-						size = sizeProtocol;
-					}
-					TlsHandshakeProtocolHeader* protocol = (TlsHandshakeProtocolHeader*)content;
-					if (protocol->getType() != TlsHandshakeType::ClientHello) {
-						return ContentResult::Error;
-					}
-					content += sizeof(TlsHandshakeProtocolHeader);
-					size -= sizeof(TlsHandshakeProtocolHeader);
-					sl_uint32 sizeMessage = protocol->getContentLength();
-					if (size > sizeMessage) {
-						size = sizeMessage;
-					}
-					TlsClientHelloMessage msg;
-					sl_int32 iResult = msg.parse(content, size);
-					if (iResult >= 0) {
-						ListElements<TlsExtension> extensions(msg.extensions);
-						for (sl_size i = 0; i < extensions.count; i++) {
-							if (extensions[i].type == TlsExtensionType::ServerName) {
-								TlsServerNameIndicationExtension sni;
-								if (sni.parse(extensions[i].data, extensions[i].length)) {
-									String host = sni.serverNames.getValueAt(0);
-									if (parent->m_flagGatheringHostInfo) {
-										parent->registerHostInfo(packet, tcp, TcpConnectionType::HTTPS, host);
-									}
-									parent->onHTTPS_IPv4(packet, tcp, host, userData);
-								}
-								return ContentResult::Success;
-							}
-						}
-						if (iResult) {
-							return ContentResult::Success;
-						} else {
-							return ContentResult::InProgress;
-						}
-					}
-					return ContentResult::Error;
-				}
-
-			private:
-				TcpConnectionTable m_table;
-
-			};
-
+		static sl_uint64 ToKey(const IPv4Address& address, sl_uint16 port) noexcept
+		{
+			return SLIB_MAKE_QWORD4(address.getInt(), port);
 		}
-	}
 
-	using namespace priv::packet_analyzer;
+	}
 
 	PacketAnalyzer::PacketAnalyzer()
 	{
@@ -867,6 +475,396 @@ namespace slib
 	sl_bool PacketAnalyzer::shouldBlockTcpConnection(IPv4Packet* packet, TcpSegment* tcp, TcpConnectionType type, const String& host, void* userData)
 	{
 		return sl_false;
+	}
+
+	namespace {
+
+		class TcpConnection
+		{
+		public:
+			IPv4Address destinationIp;
+			sl_uint16 destinationPort;
+			sl_uint64 startTime;
+			sl_uint32 startSequenceNumber;
+			sl_uint32 sizeContent;
+			char content[CONTENT_LOOKUP_SIZE];
+
+			sl_bool flagNotHttp;
+			sl_bool flagNotHttps;
+
+		public:
+			TcpConnection() noexcept : startSequenceNumber(0), sizeContent(0)
+			{
+				startTime = System::getHighResolutionTickCount();
+				flagNotHttp = sl_false;
+				flagNotHttps = sl_false;
+			}
+
+		public:
+			sl_bool addContent(TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData) noexcept
+			{
+				sl_uint32 offset = tcp->getSequenceNumber() - startSequenceNumber;
+				if (!offset) {
+					return sl_true;
+				}
+				offset--;
+				if (offset > CONTENT_LOOKUP_SIZE) {
+					return sl_false;
+				}
+				if (!sizeData) {
+					return sl_true;
+				}
+				if (sizeData > CONTENT_LOOKUP_SIZE - offset) {
+					sizeData = CONTENT_LOOKUP_SIZE - offset;
+				}
+				Base::copyMemory(content + offset, data, sizeData);
+				if (sizeContent < offset + sizeData) {
+					sizeContent = offset + sizeData;
+				}
+				return sl_true;
+			}
+
+		};
+
+		class TcpConnectionTableEntry
+		{
+		public:
+			Shared<TcpConnection> create(IPv4Packet* packet, TcpSegment* tcp) noexcept
+			{
+				sl_uint64 key = ToKey(packet->getSourceAddress(), tcp->getSourcePort());
+				Shared<TcpConnection> connection = Shared<TcpConnection>::create();
+				if (connection.isNotNull()) {
+					connection->destinationIp = packet->getDestinationAddress();
+					connection->destinationPort = tcp->getDestinationPort();
+					connection->startSequenceNumber = tcp->getSequenceNumber();
+					WriteLocker locker(&m_lock);
+					if (m_table.put(key, connection)) {
+						return connection;
+					}
+				}
+				return sl_null;
+			}
+
+			Shared<TcpConnection> get(const IPv4Address& address, sl_uint16 port) noexcept
+			{
+				if (m_table.isEmpty()) {
+					return sl_null;
+				}
+				sl_uint64 key = ToKey(address, port);
+				ReadLocker locker(&m_lock);
+				return m_table.getValue(key);
+			}
+
+			void remove(const IPv4Address& address, sl_uint16 port) noexcept
+			{
+				if (m_table.isEmpty()) {
+					return;
+				}
+				sl_uint64 key = ToKey(address, port);
+				WriteLocker locker(&m_lock);
+				m_table.remove(key);
+			}
+
+			void removeOldConnections(sl_uint64 now) noexcept
+			{
+				CList<sl_uint64> listRemove;
+				sl_bool flagValidTable = sl_false;
+				{
+					ReadLocker lock(&m_lock);
+					for (auto& item : m_table) {
+						if (item.value->startTime + CONNECTION_TIMEOUT < now) {
+							listRemove.add_NoLock(item.key);
+						} else {
+							flagValidTable = sl_true;
+						}
+					}
+				}
+				if (flagValidTable) {
+					ListElements<sl_uint64> list(listRemove);
+					for (sl_size i = 0; i < list.count; i++) {
+						WriteLocker lock(&m_lock);
+						Shared<TcpConnection> old;
+						if (m_table.remove(list[i], &old)) {
+							if (old->startTime + CONNECTION_TIMEOUT > now) {
+								m_table.put(list[i], Move(old));
+							}
+						}
+					}
+				} else {
+					WriteLocker lock(&m_lock);
+					m_table.removeAll();
+				}
+			}
+
+		private:
+			HashTable< sl_uint64, Shared<TcpConnection> > m_table;
+			ReadWriteLock m_lock;
+		};
+
+		class TcpConnectionTable
+		{
+		public:
+			TcpConnectionTable()
+			{
+				m_threadGC = Thread::start(SLIB_FUNCTION_MEMBER(this, onRunGC));
+			}
+
+			~TcpConnectionTable()
+			{
+				if (m_threadGC.isNotNull()) {
+					m_threadGC->finishAndWait();
+				}
+			}
+
+		public:
+			Shared<TcpConnection> get(const IPv4Address& address, sl_uint16 port) noexcept
+			{
+				return m_entries[port & (CONNECTION_TABLE_LENGTH - 1)].get(address, port);
+			}
+
+			Shared<TcpConnection> create(IPv4Packet* packet, TcpSegment* tcp) noexcept
+			{
+				return m_entries[tcp->getSourcePort() & (CONNECTION_TABLE_LENGTH - 1)].create(packet, tcp);
+			}
+
+			void remove(const IPv4Address& address, sl_uint16 port) noexcept
+			{
+				m_entries[port & (CONNECTION_TABLE_LENGTH - 1)].remove(address, port);
+			}
+
+			void onRunGC()
+			{
+				Thread* thread = Thread::getCurrent();
+				if (!thread) {
+					return;
+				}
+				while (thread->isNotStopping()) {
+					sl_uint64 now = System::getHighResolutionTickCount();
+					for (sl_size i = 0; i < CONNECTION_TABLE_LENGTH && thread->isNotStopping(); i++) {
+						m_entries[i].removeOldConnections(now);
+					}
+					thread->wait(CONNECTION_TIMEOUT);
+				}
+			}
+
+		private:
+			TcpConnectionTableEntry m_entries[CONNECTION_TABLE_LENGTH];
+			Ref<Thread> m_threadGC;
+
+		};
+
+		class ContentAnalyzer : public Referable
+		{
+		public:
+			void analyze(PacketAnalyzerHelper* parent, IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData)
+			{
+				Shared<TcpConnection> connection;
+				if (tcp->isSYN()) {
+					if (tcp->isACK()) {
+						return;
+					}
+					if (parent->m_flagGatheringHostInfo) {
+						parent->resetHostInfo(packet, tcp);
+					}
+					connection = m_table.create(packet, tcp);
+					if (connection.isNull()) {
+						return;
+					}
+				} else if (tcp->isFIN() || tcp->isRST()) {
+					m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
+					m_table.remove(packet->getDestinationAddress(), tcp->getDestinationPort());
+					return;
+				} else {
+					connection = m_table.get(packet->getSourceAddress(), tcp->getSourcePort());
+					if (connection.isNotNull()) {
+						if (connection->destinationIp != packet->getDestinationAddress() || connection->destinationPort != tcp->getDestinationPort()) {
+							m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
+							if (parent->m_flagGatheringHostInfo) {
+								parent->resetHostInfo(packet, tcp);
+							}
+							return;
+						}
+					} else {
+						return;
+					}
+				}
+				if (!sizeData) {
+					return;
+				}
+				TcpConnection* c = connection.get();
+				if (!(c->addContent(tcp, data, sizeData))) {
+					m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
+					return;
+				}
+				sl_bool flagNotHttp = sl_true;
+				if (parent->m_flagAnalyzeHttp) {
+					flagNotHttp = c->flagNotHttp;
+					if (!flagNotHttp) {
+						ContentResult result = analyzeHttp(parent, packet, tcp, c->content, c->sizeContent, userData);
+						if (result == ContentResult::Success) {
+							m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
+						} else if (result == ContentResult::Error) {
+							c->flagNotHttp = sl_true;
+							flagNotHttp = sl_true;
+						}
+					}
+				}
+				sl_bool flagNotHttps = sl_true;
+				if (parent->m_flagAnalyzeHttps) {
+					flagNotHttps = c->flagNotHttps;
+					if (!flagNotHttps) {
+						ContentResult result = analyzeHttps(parent, packet, tcp, c->content, c->sizeContent, userData);
+						if (result == ContentResult::Success) {
+							m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
+						} else if (result == ContentResult::Error) {
+							c->flagNotHttps = sl_true;
+							flagNotHttps = sl_true;
+						}
+					}
+				}
+				if (flagNotHttp && flagNotHttps) {
+					m_table.remove(packet->getSourceAddress(), tcp->getSourcePort());
+				}
+			}
+
+			enum class ContentResult
+			{
+				InProgress = 0,
+				Success = 1,
+				Error = 2
+			};
+
+			ContentResult analyzeHttp(PacketAnalyzerHelper* parent, IPv4Packet* packet, TcpSegment* tcp, char* content, sl_uint32 size, void* userData)
+			{
+				if (size < 4) {
+					return ContentResult::InProgress;
+				}
+				if (!(Base::equalsString_IgnoreCase(content, "GET ", 4))) {
+					return ContentResult::Error;
+				}
+				char* uri = content + 4;
+				sl_size n = size - 4;
+				char* strFirstLine = (char*)(Base::findMemory(uri, n, '\r'));
+				if (!strFirstLine) {
+					if (size > 512) {
+						return ContentResult::Error;
+					}
+					return ContentResult::InProgress;
+				}
+				if (strFirstLine < uri + 9) {
+					return ContentResult::Error;
+				}
+				if (!(Base::equalsString_IgnoreCase(strFirstLine - 9, " HTTP/1.", 8))) {
+					return ContentResult::Error;
+				}
+				if (*(strFirstLine - 1) != '1' && *(strFirstLine - 1) != '0') {
+					return ContentResult::Error;
+				}
+				sl_size lenUri = strFirstLine - 9 - uri;
+				n = content + size - strFirstLine;
+				if (n < 2) {
+					return ContentResult::InProgress;
+				}
+				if (strFirstLine[1] != '\n') {
+					return ContentResult::Error;
+				}
+				char* startHeader = strFirstLine + 2;
+				n -= 2;
+				char* s = startHeader;
+				for (;;) {
+					if (!n) {
+						return ContentResult::InProgress;
+					}
+					char* line = (char*)(Base::findMemory(s, n, '\r'));
+					if (!line) {
+						return ContentResult::InProgress;
+					}
+					n = content + size - line;
+					if (n >= 2) {
+						if (line[1] != '\n') {
+							return ContentResult::Error;
+						}
+					}
+					sl_size m = line - s;
+					if (!m) {
+						return ContentResult::Error;
+					}
+					char* sep = (char*)(Base::findMemory(s, m, ':'));
+					if (sep) {
+						if (sep == s + 4 && Base::equalsString_IgnoreCase(s, "Host", 4)) {
+							char* host = sep + 1;
+							if (host < line && *host == ' ') {
+								host++;
+							}
+							sl_size lenHost = line - host;
+							if (parent->m_flagGatheringHostInfo) {
+								parent->registerHostInfo(packet, tcp, TcpConnectionType::HTTP, String::from(host, lenHost));
+							}
+							parent->onHTTP_IPv4(packet, tcp, StringView(host, lenHost), StringView(uri, lenUri), userData);
+							return ContentResult::Success;
+						}
+					}
+					n -= 2;
+					s = line + 2;
+				}
+			}
+
+			ContentResult analyzeHttps(PacketAnalyzerHelper* parent, IPv4Packet* packet, TcpSegment* tcp, char* content, sl_uint32 size, void* userData)
+			{
+				if (size <= sizeof(TlsRecordHeader) + sizeof(TlsHandshakeProtocolHeader)) {
+					return ContentResult::InProgress;
+				}
+				TlsRecordHeader* record = (TlsRecordHeader*)content;
+				if (record->getType() != TlsRecordType::Handshake) {
+					return ContentResult::Error;
+				}
+				content += sizeof(TlsRecordHeader);
+				size -= sizeof(TlsRecordHeader);
+				sl_uint16 sizeProtocol = record->getContentLength();
+				if (size > sizeProtocol) {
+					size = sizeProtocol;
+				}
+				TlsHandshakeProtocolHeader* protocol = (TlsHandshakeProtocolHeader*)content;
+				if (protocol->getType() != TlsHandshakeType::ClientHello) {
+					return ContentResult::Error;
+				}
+				content += sizeof(TlsHandshakeProtocolHeader);
+				size -= sizeof(TlsHandshakeProtocolHeader);
+				sl_uint32 sizeMessage = protocol->getContentLength();
+				if (size > sizeMessage) {
+					size = sizeMessage;
+				}
+				TlsClientHelloMessage msg;
+				sl_int32 iResult = msg.parse(content, size);
+				if (iResult >= 0) {
+					ListElements<TlsExtension> extensions(msg.extensions);
+					for (sl_size i = 0; i < extensions.count; i++) {
+						if (extensions[i].type == TlsExtensionType::ServerName) {
+							TlsServerNameIndicationExtension sni;
+							if (sni.parse(extensions[i].data, extensions[i].length)) {
+								String host = sni.serverNames.getValueAt(0);
+								if (parent->m_flagGatheringHostInfo) {
+									parent->registerHostInfo(packet, tcp, TcpConnectionType::HTTPS, host);
+								}
+								parent->onHTTPS_IPv4(packet, tcp, host, userData);
+							}
+							return ContentResult::Success;
+						}
+					}
+					if (iResult) {
+						return ContentResult::Success;
+					} else {
+						return ContentResult::InProgress;
+					}
+				}
+				return ContentResult::Error;
+			}
+
+		private:
+			TcpConnectionTable m_table;
+
+		};
+
 	}
 
 	void PacketAnalyzer::analyzeTcpContent(IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData)

@@ -31,25 +31,17 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace svmng
+	namespace {
+		static String GetName(const StringParam& _name)
 		{
-
-			static String GetName(const StringParam& _name)
-			{
-				StringData name(_name);
-				if (name.contains('/')) {
-					return name.toString(_name);
-				} else {
-					return String::concat("system/", name);
-				}
+			StringData name(_name);
+			if (name.contains('/')) {
+				return name.toString(_name);
+			} else {
+				return String::concat("system/", name);
 			}
-
 		}
 	}
-
-	using namespace priv::svmng;
 
 	sl_bool ServiceManager::isExisting(const StringParam& name)
 	{

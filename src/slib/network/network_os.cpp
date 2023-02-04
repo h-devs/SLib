@@ -255,26 +255,20 @@ namespace slib
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace network_os
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JNetworkDevice, "slib/android/network/NetworkDevice")
-				SLIB_JNI_STRING_FIELD(name);
-				SLIB_JNI_STRING_FIELD(macAddress);
-				SLIB_JNI_OBJECT_FIELD(addresses_IPv4, "[Ljava/lang/String;");
-				SLIB_JNI_OBJECT_FIELD(addresses_IPv6, "[Ljava/lang/String;");
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JNetworkDevice, "slib/android/network/NetworkDevice")
+			SLIB_JNI_STRING_FIELD(name);
+			SLIB_JNI_STRING_FIELD(macAddress);
+			SLIB_JNI_OBJECT_FIELD(addresses_IPv4, "[Ljava/lang/String;");
+			SLIB_JNI_OBJECT_FIELD(addresses_IPv6, "[Ljava/lang/String;");
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JNetworkAddress, "slib/android/network/Network")
-				SLIB_JNI_STATIC_METHOD(getAllDevices, "getAllDevices", "()[Lslib/android/network/NetworkDevice;");
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JNetworkAddress, "slib/android/network/Network")
+			SLIB_JNI_STATIC_METHOD(getAllDevices, "getAllDevices", "()[Lslib/android/network/NetworkDevice;");
+		SLIB_JNI_END_CLASS
 
-		}
 	}
-
-	using namespace priv::network_os;
 
 	List<NetworkInterfaceInfo> Network::findAllInterfaces()
 	{

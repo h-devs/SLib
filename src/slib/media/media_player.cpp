@@ -28,21 +28,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace media_player
-		{
-
-			typedef CHashMap< MediaPlayer*, Ref<MediaPlayer> > MediaPlayersMap;
-
-			SLIB_SAFE_STATIC_GETTER(MediaPlayersMap, GetMediaPlayersMap)
-
-		}
-	}
-
-	using namespace priv::media_player;
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MediaPlayerParam)
 
 	MediaPlayerParam::MediaPlayerParam()
@@ -168,6 +153,11 @@ namespace slib
 		m_flagSelfAlive = param.flagSelfAlive;
 		setOnReadyToPlay(param.onReadyToPlay);
 		setOnComplete(param.onComplete);
+	}
+
+	namespace {
+		typedef CHashMap< MediaPlayer*, Ref<MediaPlayer> > MediaPlayersMap;
+		SLIB_SAFE_STATIC_GETTER(MediaPlayersMap, GetMediaPlayersMap)
 	}
 
 	void MediaPlayer::_addToMap()

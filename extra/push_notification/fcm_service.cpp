@@ -29,24 +29,16 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace fcm_service
-		{
-
-			SLIB_STATIC_STRING(g_str_to, "to")
-			SLIB_STATIC_STRING(g_str_registration_ids, "registration_ids")
-			SLIB_STATIC_STRING(g_str_data, "data")
-			SLIB_STATIC_STRING(g_str_notification, "notification")
-			SLIB_STATIC_STRING(g_str_title, "title")
-			SLIB_STATIC_STRING(g_str_body, "body")
-			SLIB_STATIC_STRING(g_str_sound, "sound")
-			SLIB_STATIC_STRING(g_str_badge, "badge")
-
-		}
+	namespace {
+		SLIB_STATIC_STRING(g_str_to, "to")
+		SLIB_STATIC_STRING(g_str_registration_ids, "registration_ids")
+		SLIB_STATIC_STRING(g_str_data, "data")
+		SLIB_STATIC_STRING(g_str_notification, "notification")
+		SLIB_STATIC_STRING(g_str_title, "title")
+		SLIB_STATIC_STRING(g_str_body, "body")
+		SLIB_STATIC_STRING(g_str_sound, "sound")
+		SLIB_STATIC_STRING(g_str_badge, "badge")
 	}
-
-	using namespace priv::fcm_service;
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FCM_ServiceSendResult)

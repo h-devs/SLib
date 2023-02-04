@@ -27,36 +27,30 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace paypal
+	namespace {
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<PayPal>, g_instance)
+
+		static PayPalOrderStatus ParseOrderStatus(const String& strStatus)
 		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<PayPal>, g_instance)
-
-			static PayPalOrderStatus ParseOrderStatus(const String& strStatus)
-			{
-				if (strStatus == "CREATED") {
-					return PayPalOrderStatus::CREATED;
-				} else if (strStatus == "SAVED") {
-					return PayPalOrderStatus::SAVED;
-				} else if (strStatus == "APPROVED") {
-					return PayPalOrderStatus::APPROVED;
-				} else if (strStatus == "VOIDED") {
-					return PayPalOrderStatus::VOIDED;
-				} else if (strStatus == "COMPLETED") {
-					return PayPalOrderStatus::COMPLETED;
-				} else if (strStatus == "SAVED") {
-					return PayPalOrderStatus::SAVED;
-				} else {
-					return PayPalOrderStatus::None;
-				}
+			if (strStatus == "CREATED") {
+				return PayPalOrderStatus::CREATED;
+			} else if (strStatus == "SAVED") {
+				return PayPalOrderStatus::SAVED;
+			} else if (strStatus == "APPROVED") {
+				return PayPalOrderStatus::APPROVED;
+			} else if (strStatus == "VOIDED") {
+				return PayPalOrderStatus::VOIDED;
+			} else if (strStatus == "COMPLETED") {
+				return PayPalOrderStatus::COMPLETED;
+			} else if (strStatus == "SAVED") {
+				return PayPalOrderStatus::SAVED;
+			} else {
+				return PayPalOrderStatus::None;
 			}
-
 		}
-	}
 
-	using namespace priv::paypal;
+	}
 
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCreateOrderResult)
@@ -138,6 +132,7 @@ namespace slib
 			accessTokenUrl = "https://api.paypal.com/v1/oauth2/token";
 		}
 	}
+
 
 	SLIB_DEFINE_OBJECT(PayPal, OAuth2)
 

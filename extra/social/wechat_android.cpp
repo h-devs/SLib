@@ -33,93 +33,87 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace wechat_android
+	namespace {
+
+		static void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr);
+		static void OnPayResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring errStr);
+
+		SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/android/wechat/WeChat")
+			SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;Ljava/lang/String;)V");
+			SLIB_JNI_STATIC_METHOD(login, "login", "()V");
+			SLIB_JNI_STATIC_METHOD(pay, "pay", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)V");
+			SLIB_JNI_NATIVE(nativeOnLoginResult, "nativeOnLoginResult", "(ZZLjava/lang/String;Ljava/lang/String;)V", OnLoginResult);
+			SLIB_JNI_NATIVE(nativeOnPayResult, "nativeOnPayResult", "(ZZLjava/lang/String;)V", OnPayResult);
+		SLIB_JNI_END_CLASS
+
+		class StaticContext
 		{
+		public:
+			Mutex lock;
+			Function<void(WeChatLoginResult&)> callbackLogin;
+			Function<void(WeChatPaymentResult&)> callbackPay;
 
-			void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr);
-			void OnPayResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring errStr);
-
-			SLIB_JNI_BEGIN_CLASS(JWeChat, "slib/android/wechat/WeChat")
-				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;Ljava/lang/String;)V");
-				SLIB_JNI_STATIC_METHOD(login, "login", "()V");
-				SLIB_JNI_STATIC_METHOD(pay, "pay", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)V");
-				SLIB_JNI_NATIVE(nativeOnLoginResult, "nativeOnLoginResult", "(ZZLjava/lang/String;Ljava/lang/String;)V", OnLoginResult);
-				SLIB_JNI_NATIVE(nativeOnPayResult, "nativeOnPayResult", "(ZZLjava/lang/String;)V", OnPayResult);
-			SLIB_JNI_END_CLASS
-
-			class StaticContext
+		public:
+			void setLoginCallback(const Function<void(WeChatLoginResult&)>& callback)
 			{
-			public:
-				Mutex lock;
-				Function<void(WeChatLoginResult&)> callbackLogin;
-				Function<void(WeChatPaymentResult&)> callbackPay;
-
-			public:
-				void setLoginCallback(const Function<void(WeChatLoginResult&)>& callback)
-				{
-					MutexLocker locker(&lock);
-					if (callbackPay.isNotNull()) {
-						WeChatLoginResult result;
-						result.flagCancel = sl_true;
-						callbackLogin(result);
-					}
-					callbackLogin = callback;
-				}
-
-				void onLoginResult(WeChatLoginResult& result)
-				{
-					MutexLocker locker(&lock);
+				MutexLocker locker(&lock);
+				if (callbackPay.isNotNull()) {
+					WeChatLoginResult result;
+					result.flagCancel = sl_true;
 					callbackLogin(result);
-					callbackLogin.setNull();
 				}
+				callbackLogin = callback;
+			}
 
-				void setPayCallback(const Function<void(WeChatPaymentResult&)>& callback)
-				{
-					MutexLocker locker(&lock);
-					if (callbackPay.isNotNull()) {
-						WeChatPaymentResult result;
-						result.flagCancel = sl_true;
-						callbackPay(result);
-					}
-					callbackPay = callback;
-				}
+			void onLoginResult(WeChatLoginResult& result)
+			{
+				MutexLocker locker(&lock);
+				callbackLogin(result);
+				callbackLogin.setNull();
+			}
 
-				void onPayResult(WeChatPaymentResult& result)
-				{
-					MutexLocker locker(&lock);
+			void setPayCallback(const Function<void(WeChatPaymentResult&)>& callback)
+			{
+				MutexLocker locker(&lock);
+				if (callbackPay.isNotNull()) {
+					WeChatPaymentResult result;
+					result.flagCancel = sl_true;
 					callbackPay(result);
-					callbackPay.setNull();
 				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-			void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr)
-			{
-				WeChatLoginResult result;
-				result.flagSuccess = flagSuccess;
-				result.flagCancel = flagCancel;
-				result.code = Jni::getString(code);
-				result.error = Jni::getString(errStr);
-				GetStaticContext()->onLoginResult(result);
+				callbackPay = callback;
 			}
 
-			void OnPayResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring errStr)
+			void onPayResult(WeChatPaymentResult& result)
 			{
-				WeChatPaymentResult result;
-				result.flagSuccess = flagSuccess;
-				result.flagCancel = flagCancel;
-				result.error = Jni::getString(errStr);
-				GetStaticContext()->onPayResult(result);
+				MutexLocker locker(&lock);
+				callbackPay(result);
+				callbackPay.setNull();
 			}
 
+		};
+
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+
+		void OnLoginResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring code, jstring errStr)
+		{
+			WeChatLoginResult result;
+			result.flagSuccess = flagSuccess;
+			result.flagCancel = flagCancel;
+			result.code = Jni::getString(code);
+			result.error = Jni::getString(errStr);
+			GetStaticContext()->onLoginResult(result);
 		}
-	}
 
-	using namespace priv::wechat_android;
+		void OnPayResult(JNIEnv* env, jobject _this, jboolean flagSuccess, jboolean flagCancel, jstring errStr)
+		{
+			WeChatPaymentResult result;
+			result.flagSuccess = flagSuccess;
+			result.flagCancel = flagCancel;
+			result.error = Jni::getString(errStr);
+			GetStaticContext()->onPayResult(result);
+		}
+
+	}
 
 	void WeChatSDK::initialize(const String& appId, const String& universalLink)
 	{

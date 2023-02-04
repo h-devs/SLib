@@ -47,7 +47,6 @@ namespace slib
 
 #define PRIV_OPENGL_IMPL
 #define GL_BASE GL
-#define GL_ENGINE GL_Engine
 #define GL_ENTRY(x) PRIV_GL_ENTRY(x)
 #include "opengl_impl.h"
 

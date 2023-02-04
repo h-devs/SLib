@@ -43,155 +43,150 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace keygen
+	namespace {
+
+		static const char g_pattern[33] = "0123456789ABCDFGHJKLMNPQRTUVWXYZ";
+
+		static const sl_uint8 g_inverse_pattern[128] = {
+			/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*18*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*20*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*28*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*30*/ 0,   1,   2,   3,   4,   5,   6,   7,
+			/*38*/ 8,   9,   255, 255, 255, 255, 255, 255,
+			/*40*/ 255, 10,  11,  12,  13,  2,   14,  15,
+			/*48*/ 16,  1,   17,  18,  19,  20,  21,  0,
+			/*50*/ 22,  23,  24,  5,   25,  26,  27,  28,
+			/*58*/ 29,  30,  31,  255, 255, 255, 255, 255,
+			/*60*/ 255, 10,  11,  12,  13,  2,   14,  15,
+			/*68*/ 16,  1,   17,  18,  19,  20,  21,  0,
+			/*70*/ 22,  23,  24,  5,   25,  26,  27,  28,
+			/*78*/ 29,  30,  31,  255, 255, 255, 255, 255
+		};
+
+		static String EncodePublicKey(ECPublicKey& key)
 		{
-			static const char g_pattern[33] = "0123456789ABCDFGHJKLMNPQRTUVWXYZ";
+			sl_uint8 buf[64];
+			key.Q.x.getBytesBE(buf, 32);
+			key.Q.y.getBytesBE(buf + 32, 32);
+			return Base64::encodeUrl(buf, 64);
+		}
 
-			static const sl_uint8 g_inverse_pattern[128] = {
-				/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*18*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*20*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*28*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*30*/ 0,   1,   2,   3,   4,   5,   6,   7,
-				/*38*/ 8,   9,   255, 255, 255, 255, 255, 255,
-				/*40*/ 255, 10,  11,  12,  13,  2,   14,  15,
-				/*48*/ 16,  1,   17,  18,  19,  20,  21,  0,
-				/*50*/ 22,  23,  24,  5,   25,  26,  27,  28,
-				/*58*/ 29,  30,  31,  255, 255, 255, 255, 255,
-				/*60*/ 255, 10,  11,  12,  13,  2,   14,  15,
-				/*68*/ 16,  1,   17,  18,  19,  20,  21,  0,
-				/*70*/ 22,  23,  24,  5,   25,  26,  27,  28,
-				/*78*/ 29,  30,  31,  255, 255, 255, 255, 255
-			};
-
-			static String EncodePublicKey(ECPublicKey& key)
-			{
-				sl_uint8 buf[64];
-				key.Q.x.getBytesBE(buf, 32);
-				key.Q.y.getBytesBE(buf + 32, 32);
-				return Base64::encodeUrl(buf, 64);
+		static sl_bool DecodePublicKey(const StringView& strKey, ECPublicKey& key)
+		{
+			Memory mem = Base64::decode(strKey);
+			sl_size n = mem.getSize();
+			if (n != 64) {
+				return sl_false;
 			}
+			sl_uint8* buf = (sl_uint8*)(mem.getData());
+			key.Q.x = BigInt::fromBytesBE(buf, 32);
+			key.Q.y = BigInt::fromBytesBE(buf + 32, 32);
+			return sl_true;
+		}
 
-			static sl_bool DecodePublicKey(const StringView& strKey, ECPublicKey& key)
-			{
-				Memory mem = Base64::decode(strKey);
-				sl_size n = mem.getSize();
-				if (n != 64) {
-					return sl_false;
-				}
-				sl_uint8* buf = (sl_uint8*)(mem.getData());
-				key.Q.x = BigInt::fromBytesBE(buf, 32);
-				key.Q.y = BigInt::fromBytesBE(buf + 32, 32);
-				return sl_true;
+		static String EncodePrivateKey(const ECPrivateKey& key)
+		{
+			sl_uint8 buf[96];
+			key.Q.x.getBytesBE(buf, 32);
+			key.Q.y.getBytesBE(buf + 32, 32);
+			key.d.getBytesBE(buf + 64, 32);
+			return Base64::encodeUrl(buf, 96);
+		}
+
+		static sl_bool DecodePrivateKey(const StringView& strKey, ECPrivateKey& key)
+		{
+			Memory mem = Base64::decode(strKey);
+			sl_size n = mem.getSize();
+			if (n != 96) {
+				return sl_false;
 			}
+			sl_uint8* buf = (sl_uint8*)(mem.getData());
+			key.Q.x = BigInt::fromBytesBE(buf, 32);
+			key.Q.y = BigInt::fromBytesBE(buf + 32, 32);
+			key.d = BigInt::fromBytesBE(buf + 64, 32);
+			return sl_true;
+		}
 
-			static String EncodePrivateKey(const ECPrivateKey& key)
-			{
-				sl_uint8 buf[96];
-				key.Q.x.getBytesBE(buf, 32);
-				key.Q.y.getBytesBE(buf + 32, 32);
-				key.d.getBytesBE(buf + 64, 32);
-				return Base64::encodeUrl(buf, 96);
-			}
-
-			static sl_bool DecodePrivateKey(const StringView& strKey, ECPrivateKey& key)
-			{
-				Memory mem = Base64::decode(strKey);
-				sl_size n = mem.getSize();
-				if (n != 96) {
-					return sl_false;
-				}
-				sl_uint8* buf = (sl_uint8*)(mem.getData());
-				key.Q.x = BigInt::fromBytesBE(buf, 32);
-				key.Q.y = BigInt::fromBytesBE(buf + 32, 32);
-				key.d = BigInt::fromBytesBE(buf + 64, 32);
-				return sl_true;
-			}
-
-			static String EncodeCode(const void* _buf, sl_size nBuf)
-			{
-				sl_uint8* buf = (sl_uint8*)_buf;
-				sl_size n = (nBuf * 8 + 4) / 5;
-				sl_size m = (n - 1) >> 2;
-				String ret = String::allocate(n + m);
-				if (ret.isNotNull()) {
-					char* str = ret.getData();
-					sl_size p = 0;
-					for (sl_size i = 0; i < n; i++) {
-						sl_size k1 = p >> 3;
-						sl_uint32 k2 = (sl_uint32)(p & 7);
-						sl_uint8 c;
-						if (k1 < nBuf) {
-							c = buf[k1];
-							if (k2) {
-								c <<= k2;
-							}
-							c >>= 3;
-							k1++;
-							if (k2 > 3 && k1 < nBuf) {
-								sl_uint8 c2 = buf[k1];
-								c |= c2 >> (11 - k2);
-							}
-						} else {
-							c = 0;
+		static String EncodeCode(const void* _buf, sl_size nBuf)
+		{
+			sl_uint8* buf = (sl_uint8*)_buf;
+			sl_size n = (nBuf * 8 + 4) / 5;
+			sl_size m = (n - 1) >> 2;
+			String ret = String::allocate(n + m);
+			if (ret.isNotNull()) {
+				char* str = ret.getData();
+				sl_size p = 0;
+				for (sl_size i = 0; i < n; i++) {
+					sl_size k1 = p >> 3;
+					sl_uint32 k2 = (sl_uint32)(p & 7);
+					sl_uint8 c;
+					if (k1 < nBuf) {
+						c = buf[k1];
+						if (k2) {
+							c <<= k2;
 						}
-						*str = g_pattern[c];
-						str++;
-						p += 5;
-						if ((i & 3) == 3) {
-							*str = '-';
-							str++;
+						c >>= 3;
+						k1++;
+						if (k2 > 3 && k1 < nBuf) {
+							sl_uint8 c2 = buf[k1];
+							c |= c2 >> (11 - k2);
 						}
+					} else {
+						c = 0;
 					}
-					return ret;
+					*str = g_pattern[c];
+					str++;
+					p += 5;
+					if ((i & 3) == 3) {
+						*str = '-';
+						str++;
+					}
 				}
+				return ret;
+			}
+			return sl_null;
+		}
+
+		static Memory DecodeCode(const StringView& code)
+		{
+			sl_size lenCode = code.getLength();
+			if (!lenCode) {
 				return sl_null;
 			}
-
-			static Memory DecodeCode(const StringView& code)
-			{
-				sl_size lenCode = code.getLength();
-				if (!lenCode) {
-					return sl_null;
-				}
-				sl_size nBuf = (lenCode * 5 + 7) >> 3;
-				SLIB_SCOPED_BUFFER(sl_uint8, 256, buf, nBuf)
-				if (!buf) {
-					return sl_null;
-				}
-				Base::zeroMemory(buf, nBuf);
-				char* str = code.getData();
-				sl_size p = 0;
-				for (sl_size i = 0; i < lenCode; i++) {
-					sl_uint8 c = str[i];
-					if (c < 128) {
-						c = g_inverse_pattern[c];
-						if (c < 32) {
-							sl_size k1 = p >> 3;
-							sl_uint32 k2 = (sl_uint32)(p & 7);
-							if (k2 < 3) {
-								buf[k1] |= c << (3 - k2);
-							} else if (k2 == 3) {
-								buf[k1] |= c;
-							} else {
-								buf[k1] |= c >> (k2 - 3);
-								buf[k1 + 1] |= c << (11 - k2);
-							}
-							p += 5;
+			sl_size nBuf = (lenCode * 5 + 7) >> 3;
+			SLIB_SCOPED_BUFFER(sl_uint8, 256, buf, nBuf)
+			if (!buf) {
+				return sl_null;
+			}
+			Base::zeroMemory(buf, nBuf);
+			char* str = code.getData();
+			sl_size p = 0;
+			for (sl_size i = 0; i < lenCode; i++) {
+				sl_uint8 c = str[i];
+				if (c < 128) {
+					c = g_inverse_pattern[c];
+					if (c < 32) {
+						sl_size k1 = p >> 3;
+						sl_uint32 k2 = (sl_uint32)(p & 7);
+						if (k2 < 3) {
+							buf[k1] |= c << (3 - k2);
+						} else if (k2 == 3) {
+							buf[k1] |= c;
+						} else {
+							buf[k1] |= c >> (k2 - 3);
+							buf[k1 + 1] |= c << (11 - k2);
 						}
+						p += 5;
 					}
 				}
-				return Memory::create(buf, p >> 3);
 			}
-
+			return Memory::create(buf, p >> 3);
 		}
-	}
 
-	using namespace priv::keygen;
+	}
 
 	void Keygen::generateKey(String& privateKey, String& publicKey)
 	{

@@ -31,28 +31,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace win32_msg_loop
-		{
-
-			static LRESULT CALLBACK LoopWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-			{
-				win32::MessageLoop* loop = (win32::MessageLoop*)(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
-				if (loop) {
-					LRESULT result = 0;
-					if (loop->onMessage(uMsg, wParam, lParam, result)) {
-						return result;
-					}
-				}
-				return DefWindowProcW(hWnd, uMsg, wParam, lParam);
-			}
-
-		}
-	}
-
-	using namespace priv::win32_msg_loop;
-
 	namespace win32
 	{
 
@@ -187,6 +165,20 @@ namespace slib
 				return m_onMessage(uMsg, wParam, lParam, result);
 			}
 			return sl_false;
+		}
+
+		namespace {
+			static LRESULT CALLBACK LoopWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+			{
+				win32::MessageLoop* loop = (win32::MessageLoop*)(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
+				if (loop) {
+					LRESULT result = 0;
+					if (loop->onMessage(uMsg, wParam, lParam, result)) {
+						return result;
+					}
+				}
+				return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+			}
 		}
 
 		void MessageLoop::_run()

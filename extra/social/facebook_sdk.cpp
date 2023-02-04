@@ -59,15 +59,9 @@ namespace slib
 
 #else
 
-	namespace priv
-	{
-		namespace facebook
-		{
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instanceSDK)
-		}
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Facebook>, g_instanceSDK)
 	}
-
-	using namespace priv::facebook;
 
 	Ref<Facebook> FacebookSDK::getInstance()
 	{

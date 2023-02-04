@@ -44,679 +44,676 @@ namespace slib
 
 	namespace priv
 	{
-		namespace function
+
+		template <class RET_TYPE, class INVOKE_TYPE>
+		class FunctionInvoker
 		{
-
-			template <class RET_TYPE, class INVOKE_TYPE>
-			class FunctionInvoker
+		public:
+			template <class FUNC, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, ARGS&&... args)
 			{
-			public:
-				template <class FUNC, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, ARGS&&... args)
-				{
-					return func(Forward<ARGS>(args)...);
-				}
+				return func(Forward<ARGS>(args)...);
+			}
 
-				template <class CLASS, class FUNC, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
-				{
-					return (obj->*func)(Forward<ARGS>(args)...);
-				}
-
-			};
-
-			template <class RET_TYPE>
-			class FunctionInvoker<RET_TYPE, void>
+			template <class CLASS, class FUNC, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
 			{
-			public:
-				template <class FUNC, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, ARGS&&... args)
-				{
-					func(Forward<ARGS>(args)...);
+				return (obj->*func)(Forward<ARGS>(args)...);
+			}
+
+		};
+
+		template <class RET_TYPE>
+		class FunctionInvoker<RET_TYPE, void>
+		{
+		public:
+			template <class FUNC, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, ARGS&&... args)
+			{
+				func(Forward<ARGS>(args)...);
+				return RET_TYPE();
+			}
+
+			template <class CLASS, class FUNC, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
+			{
+				(obj->*func)(Forward<ARGS>(args)...);
+				return RET_TYPE();
+			}
+
+		};
+
+		template <class INVOKE_TYPE>
+		class FunctionInvoker<void, INVOKE_TYPE>
+		{
+		public:
+			template <class FUNC, class... ARGS>
+			static void invoke(FUNC&& func, ARGS&&... args)
+			{
+				func(Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
+			{
+				(obj->*func)(Forward<ARGS>(args)...);
+			}
+
+		};
+
+		template <>
+		class FunctionInvoker<void, void>
+		{
+		public:
+			template <class FUNC, class... ARGS>
+			static void invoke(FUNC&& func, ARGS&&... args)
+			{
+				func(Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
+			{
+				(obj->*func)(Forward<ARGS>(args)...);
+			}
+
+		};
+
+		template <class RET_TYPE>
+		class BindInvoker
+		{
+		public:
+			template <class FUNC, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<>& t, ARGS&&... args)
+			{
+				return func(Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<>& t, ARGS&&... args)
+			{
+				return (obj->*func)(Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
+			{
+				return func(t.m1, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
+			static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+			{
+				return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
+			static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+			{
+				return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
+			}
+
+		};
+
+		template<>
+		class BindInvoker<void>
+		{
+		public:
+			template <class FUNC, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<>& t, ARGS&&... args)
+			{
+				func(Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<>& t, ARGS&&... args)
+			{
+				(obj->*func)(Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
+			{
+				func(t.m1, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
+			}
+
+			template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
+			static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+			{
+				func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
+			}
+
+			template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
+			static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
+			{
+				(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
+			}
+
+		};
+
+		template <class FUNC, class RET_TYPE, class... ARGS>
+		class CallableFromFunction : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			FUNC func;
+
+		public:
+			template <class OTHER_FUNC>
+			CallableFromFunction(OTHER_FUNC&& _func) noexcept: func(Forward<OTHER_FUNC>(_func)) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
+			}
+		};
+
+		// prevent infinite encapsulation
+		template <class RET_TYPE, class... ARGS>
+		class CallableFromFunction<Function<RET_TYPE(ARGS...)>, RET_TYPE, ARGS...> : public Callable<RET_TYPE(ARGS...)> {};
+		template <class RET_TYPE, class... ARGS>
+		class CallableFromFunction<Atomic< Function<RET_TYPE(ARGS...)> >, RET_TYPE, ARGS...> : public Callable<RET_TYPE(ARGS...)> {};
+
+		template <class BIND_TUPLE, class FUNC, class RET_TYPE, class... ARGS>
+		class BindFromFunction : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			FUNC func;
+			BIND_TUPLE binds;
+
+		public:
+			template <class OTHER_FUNC, class OTHER_BIND_TUPLE>
+			BindFromFunction(OTHER_FUNC&& _func, OTHER_BIND_TUPLE&& _binds) noexcept: func(Forward<OTHER_FUNC>(_func)), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				return BindInvoker<RET_TYPE>::invoke(func, binds, Forward<ARGS>(args)...);
+			}
+		};
+
+		template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class CallableFromMember : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			CLASS* object;
+			FUNC func;
+
+		public:
+			CallableFromMember(CLASS* _object, const FUNC& _func) noexcept: object(_object), func(_func) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				return FunctionInvoker<RET_TYPE, decltype((object->*func)(Forward<ARGS>(args)...))>::invokeMember(object, func, Forward<ARGS>(args)...);
+			}
+		};
+
+		template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class BindFromMember : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			CLASS* object;
+			FUNC func;
+			BIND_TUPLE binds;
+
+		public:
+			template <class OTHER_BIND_TUPLE>
+			BindFromMember(CLASS* _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(_object), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				return BindInvoker<RET_TYPE>::invokeMember(object, func, binds, Forward<ARGS>(args)...);
+			}
+		};
+
+		template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class CallableFromRef : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			Ref<CLASS> object;
+			FUNC func;
+
+		public:
+			template <class T>
+			CallableFromRef(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				return FunctionInvoker<RET_TYPE, decltype((object.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(object.ptr, func, Forward<ARGS>(args)...);
+			}
+		};
+
+		template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class BindFromRef : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			Ref<CLASS> object;
+			FUNC func;
+			BIND_TUPLE binds;
+
+		public:
+			template <class T, class OTHER_BIND_TUPLE>
+			BindFromRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				return BindInvoker<RET_TYPE>::invokeMember(object.ptr, func, binds, Forward<ARGS>(args)...);
+			}
+		};
+
+		template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class CallableFromWeakRef : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			WeakRef<CLASS> object;
+			FUNC func;
+
+		public:
+			template <class T>
+			CallableFromWeakRef(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				Ref<CLASS> o(object);
+				if (o.isNotNull()) {
+					return FunctionInvoker<RET_TYPE, decltype((o.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
+				} else {
 					return RET_TYPE();
 				}
+			}
+		};
 
-				template <class CLASS, class FUNC, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
-				{
-					(obj->*func)(Forward<ARGS>(args)...);
+		template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class BindFromWeakRef : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			WeakRef<CLASS> object;
+			FUNC func;
+			BIND_TUPLE binds;
+
+		public:
+			template <class T, class OTHER_BIND_TUPLE>
+			BindFromWeakRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
+			{
+				Ref<CLASS> o(object);
+				if (o.isNotNull()) {
+					return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
+				} else {
 					return RET_TYPE();
 				}
+			}
+		};
 
-			};
+		template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class CallableFromPtr : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			Ptr<CLASS> object;
+			FUNC func;
 
-			template <class INVOKE_TYPE>
-			class FunctionInvoker<void, INVOKE_TYPE>
+		public:
+			template <class T>
+			CallableFromPtr(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
 			{
-			public:
-				template <class FUNC, class... ARGS>
-				static void invoke(FUNC&& func, ARGS&&... args)
-				{
-					func(Forward<ARGS>(args)...);
+				Ptr<CLASS> o(object.lock());
+				if (o.isNotNull()) {
+					return FunctionInvoker<RET_TYPE, decltype((o.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
+				} else {
+					return RET_TYPE();
 				}
+			}
+		};
 
-				template <class CLASS, class FUNC, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
-				{
-					(obj->*func)(Forward<ARGS>(args)...);
-				}
+		template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class BindFromPtr : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			Ptr<CLASS> object;
+			FUNC func;
+			BIND_TUPLE binds;
 
-			};
+		public:
+			template <class T, class OTHER_BIND_TUPLE>
+			BindFromPtr(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
 
-			template <>
-			class FunctionInvoker<void, void>
+		public:
+			RET_TYPE invoke(ARGS... args) override
 			{
-			public:
-				template <class FUNC, class... ARGS>
-				static void invoke(FUNC&& func, ARGS&&... args)
-				{
-					func(Forward<ARGS>(args)...);
+				Ptr<CLASS> o(object.lock());
+				if (o.isNotNull()) {
+					return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
+				} else {
+					return RET_TYPE();
 				}
+			}
+		};
 
-				template <class CLASS, class FUNC, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, ARGS&&... args)
-				{
-					(obj->*func)(Forward<ARGS>(args)...);
-				}
+		template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class CallableWithRef : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			Ref<CLASS> object;
+			FUNC func;
 
-			};
+		public:
+			template <class OTHER_CLASS, class OTHER_FUNC>
+			CallableWithRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
 
-			template <class RET_TYPE>
-			class BindInvoker
+		public:
+			RET_TYPE invoke(ARGS... args) override
 			{
-			public:
-				template <class FUNC, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<>& t, ARGS&&... args)
-				{
-					return func(Forward<ARGS>(args)...);
-				}
+				return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
+			}
+		};
 
-				template <class CLASS, class FUNC, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<>& t, ARGS&&... args)
-				{
-					return (obj->*func)(Forward<ARGS>(args)...);
-				}
+		template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class CallableWithWeakRef : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			WeakRef<CLASS> object;
+			FUNC func;
 
-				template <class FUNC, class T1, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
-				{
-					return func(t.m1, Forward<ARGS>(args)...);
-				}
+		public:
+			template <class OTHER_CLASS, class OTHER_FUNC>
+			CallableWithWeakRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
 
-				template <class CLASS, class FUNC, class T1, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static RET_TYPE invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
-				{
-					return func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static RET_TYPE invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
-				{
-					return (obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
-				}
-
-			};
-
-			template<>
-			class BindInvoker<void>
+		public:
+			RET_TYPE invoke(ARGS... args) override
 			{
-			public:
-				template <class FUNC, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<>& t, ARGS&&... args)
-				{
-					func(Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<>& t, ARGS&&... args)
-				{
-					(obj->*func)(Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
-				{
-					func(t.m1, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, t.m4, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, Forward<ARGS>(args)...);
-				}
-
-				template <class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static void invoke(FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
-				{
-					func(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
-				}
-
-				template <class CLASS, class FUNC, class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class T9, class T10, class... ARGS>
-				static void invokeMember(CLASS* obj, FUNC&& func, const Tuple<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>& t, ARGS&&... args)
-				{
-					(obj->*func)(t.m1, t.m2, t.m3, t.m4, t.m5, t.m6, t.m7, t.m8, t.m9, t.m10, Forward<ARGS>(args)...);
-				}
-
-			};
-
-			template <class FUNC, class RET_TYPE, class... ARGS>
-			class CallableFromFunction : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				FUNC func;
-
-			public:
-				template <class OTHER_FUNC>
-				CallableFromFunction(OTHER_FUNC&& _func) noexcept: func(Forward<OTHER_FUNC>(_func)) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
+				Ref<CLASS> o(object);
+				if (o.isNotNull()) {
 					return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
+				} else {
+					return RET_TYPE();
 				}
-			};
+			}
+		};
 
-			// prevent infinite encapsulation
-			template <class RET_TYPE, class... ARGS>
-			class CallableFromFunction<Function<RET_TYPE(ARGS...)>, RET_TYPE, ARGS...> : public Callable<RET_TYPE(ARGS...)> {};
-			template <class RET_TYPE, class... ARGS>
-			class CallableFromFunction<Atomic< Function<RET_TYPE(ARGS...)> >, RET_TYPE, ARGS...> : public Callable<RET_TYPE(ARGS...)> {};
+		template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
+		class CallableWithPtr : public Callable<RET_TYPE(ARGS...)>
+		{
+		protected:
+			Ptr<CLASS> object;
+			FUNC func;
 
-			template <class BIND_TUPLE, class FUNC, class RET_TYPE, class... ARGS>
-			class BindFromFunction : public Callable<RET_TYPE(ARGS...)>
+		public:
+			template <class OTHER_CLASS, class OTHER_FUNC>
+			CallableWithPtr(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
+
+		public:
+			RET_TYPE invoke(ARGS... args) override
 			{
-			protected:
-				FUNC func;
-				BIND_TUPLE binds;
-
-			public:
-				template <class OTHER_FUNC, class OTHER_BIND_TUPLE>
-				BindFromFunction(OTHER_FUNC&& _func, OTHER_BIND_TUPLE&& _binds) noexcept: func(Forward<OTHER_FUNC>(_func)), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					return BindInvoker<RET_TYPE>::invoke(func, binds, Forward<ARGS>(args)...);
-				}
-			};
-
-			template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class CallableFromMember : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				CLASS* object;
-				FUNC func;
-
-			public:
-				CallableFromMember(CLASS* _object, const FUNC& _func) noexcept: object(_object), func(_func) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					return FunctionInvoker<RET_TYPE, decltype((object->*func)(Forward<ARGS>(args)...))>::invokeMember(object, func, Forward<ARGS>(args)...);
-				}
-			};
-
-			template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class BindFromMember : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				CLASS* object;
-				FUNC func;
-				BIND_TUPLE binds;
-
-			public:
-				template <class OTHER_BIND_TUPLE>
-				BindFromMember(CLASS* _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(_object), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					return BindInvoker<RET_TYPE>::invokeMember(object, func, binds, Forward<ARGS>(args)...);
-				}
-			};
-
-			template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class CallableFromRef : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				Ref<CLASS> object;
-				FUNC func;
-
-			public:
-				template <class T>
-				CallableFromRef(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					return FunctionInvoker<RET_TYPE, decltype((object.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(object.ptr, func, Forward<ARGS>(args)...);
-				}
-			};
-
-			template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class BindFromRef : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				Ref<CLASS> object;
-				FUNC func;
-				BIND_TUPLE binds;
-
-			public:
-				template <class T, class OTHER_BIND_TUPLE>
-				BindFromRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					return BindInvoker<RET_TYPE>::invokeMember(object.ptr, func, binds, Forward<ARGS>(args)...);
-				}
-			};
-
-			template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class CallableFromWeakRef : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				WeakRef<CLASS> object;
-				FUNC func;
-
-			public:
-				template <class T>
-				CallableFromWeakRef(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					Ref<CLASS> o(object);
-					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE, decltype((o.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
-					} else {
-						return RET_TYPE();
-					}
-				}
-			};
-
-			template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class BindFromWeakRef : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				WeakRef<CLASS> object;
-				FUNC func;
-				BIND_TUPLE binds;
-
-			public:
-				template <class T, class OTHER_BIND_TUPLE>
-				BindFromWeakRef(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					Ref<CLASS> o(object);
-					if (o.isNotNull()) {
-						return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
-					} else {
-						return RET_TYPE();
-					}
-				}
-			};
-
-			template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class CallableFromPtr : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				Ptr<CLASS> object;
-				FUNC func;
-
-			public:
-				template <class T>
-				CallableFromPtr(T&& _object, const FUNC& _func) noexcept: object(Forward<T>(_object)), func(_func) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					Ptr<CLASS> o(object.lock());
-					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE, decltype((o.ptr->*func)(Forward<ARGS>(args)...))>::invokeMember(o.ptr, func, Forward<ARGS>(args)...);
-					} else {
-						return RET_TYPE();
-					}
-				}
-			};
-
-			template <class BIND_TUPLE, class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class BindFromPtr : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				Ptr<CLASS> object;
-				FUNC func;
-				BIND_TUPLE binds;
-
-			public:
-				template <class T, class OTHER_BIND_TUPLE>
-				BindFromPtr(T&& _object, const FUNC& _func, OTHER_BIND_TUPLE&& _binds) noexcept: object(Forward<T>(_object)), func(_func), binds(Forward<OTHER_BIND_TUPLE>(_binds)) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					Ptr<CLASS> o(object.lock());
-					if (o.isNotNull()) {
-						return BindInvoker<RET_TYPE>::invokeMember(o.ptr, func, binds, Forward<ARGS>(args)...);
-					} else {
-						return RET_TYPE();
-					}
-				}
-			};
-
-			template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class CallableWithRef : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				Ref<CLASS> object;
-				FUNC func;
-
-			public:
-				template <class OTHER_CLASS, class OTHER_FUNC>
-				CallableWithRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
-
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
+				Ptr<CLASS> o(object.lock());
+				if (o.isNotNull()) {
 					return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
+				} else {
+					return RET_TYPE();
 				}
-			};
+			}
+		};
 
-			template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class CallableWithWeakRef : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				WeakRef<CLASS> object;
-				FUNC func;
+		template <class T>
+		struct FunctionTypeHelper;
 
-			public:
-				template <class OTHER_CLASS, class OTHER_FUNC>
-				CallableWithWeakRef(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
+		template <class T>
+		struct FunctionTypeHelper<T*>
+		{
+			typedef typename RemoveConst<T>::Type Type;
+		};
 
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					Ref<CLASS> o(object);
-					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
-					} else {
-						return RET_TYPE();
-					}
-				}
-			};
+		template <class T>
+		struct FunctionTypeHelper< Ref<T> >
+		{
+			typedef T Type;
+		};
 
-			template <class CLASS, class FUNC, class RET_TYPE, class... ARGS>
-			class CallableWithPtr : public Callable<RET_TYPE(ARGS...)>
-			{
-			protected:
-				Ptr<CLASS> object;
-				FUNC func;
+		template <class T>
+		struct FunctionTypeHelper< Atomic< Ref<T> > >
+		{
+			typedef T Type;
+		};
 
-			public:
-				template <class OTHER_CLASS, class OTHER_FUNC>
-				CallableWithPtr(OTHER_CLASS&& _object, OTHER_FUNC&& _func) noexcept: object(Forward<OTHER_CLASS>(_object)), func(Forward<OTHER_FUNC>(_func)) {}
+		template <class T>
+		struct FunctionTypeHelper< WeakRef<T> >
+		{
+			typedef T Type;
+		};
 
-			public:
-				RET_TYPE invoke(ARGS... args) override
-				{
-					Ptr<CLASS> o(object.lock());
-					if (o.isNotNull()) {
-						return FunctionInvoker<RET_TYPE, decltype(func(Forward<ARGS>(args)...))>::invoke(func, Forward<ARGS>(args)...);
-					} else {
-						return RET_TYPE();
-					}
-				}
-			};
+		template <class T>
+		struct FunctionTypeHelper< Atomic< WeakRef<T> > >
+		{
+			typedef T Type;
+		};
 
-			template <class T>
-			struct GetClassTypeHelper;
+		template <class T>
+		struct FunctionTypeHelper< Ptr<T> >
+		{
+			typedef T Type;
+		};
 
-			template <class T>
-			struct GetClassTypeHelper<T*>
-			{
-				typedef typename RemoveConst<T>::Type Type;
-			};
+		template <class T>
+		struct FunctionTypeHelper< Atomic< Ptr<T> > >
+		{
+			typedef T Type;
+		};
 
-			template <class T>
-			struct GetClassTypeHelper< Ref<T> >
-			{
-				typedef T Type;
-			};
+#define PRIV_SLIB_FUNCTION_GET_CLASS(OBJECT) slib::priv::FunctionTypeHelper<typename slib::RemoveConstReference<decltype(OBJECT)>::Type>::Type
 
-			template <class T>
-			struct GetClassTypeHelper< Atomic< Ref<T> > >
-			{
-				typedef T Type;
-			};
-
-			template <class T>
-			struct GetClassTypeHelper< WeakRef<T> >
-			{
-				typedef T Type;
-			};
-
-			template <class T>
-			struct GetClassTypeHelper< Atomic< WeakRef<T> > >
-			{
-				typedef T Type;
-			};
-
-			template <class T>
-			struct GetClassTypeHelper< Ptr<T> >
-			{
-				typedef T Type;
-			};
-
-			template <class T>
-			struct GetClassTypeHelper< Atomic< Ptr<T> > >
-			{
-				typedef T Type;
-			};
-
-#define PRIV_SLIB_FUNCTION_GET_CLASS(OBJECT) slib::priv::function::GetClassTypeHelper<typename slib::RemoveConstReference<decltype(OBJECT)>::Type>::Type
-
-		}
 	}
 
 
@@ -749,13 +746,13 @@ namespace slib
 
 	public:
 		template <class FUNC>
-		Function(FUNC&& func) noexcept: ref(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func))) {}
+		Function(FUNC&& func) noexcept: ref(new priv::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func))) {}
 
 	public:
 		template <class FUNC>
 		Function& operator=(FUNC&& func) noexcept
 		{
-			ref = new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func));
+			ref = new priv::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func));
 			return *this;
 		}
 
@@ -853,14 +850,14 @@ namespace slib
 		template <class FUNC>
 		static Function create(FUNC&& func) noexcept
 		{
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func)));
+			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func)));
 		}
 
 		template <class CLASS, class FUNC>
 		static Function fromMember(CLASS* object, const FUNC& func) noexcept
 		{
 			if (object) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromMember<CLASS, FUNC, RET_TYPE, ARGS...>(object, func));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromMember<CLASS, FUNC, RET_TYPE, ARGS...>(object, func));
 			}
 			return sl_null;
 		}
@@ -871,7 +868,7 @@ namespace slib
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ref<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
 			}
 			return sl_null;
 		}
@@ -882,7 +879,7 @@ namespace slib
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			WeakRef<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromWeakRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromWeakRef<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
 			}
 			return sl_null;
 		}
@@ -893,7 +890,7 @@ namespace slib
 			typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) CLASS;
 			Ptr<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromPtr<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromPtr<CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func));
 			}
 			return sl_null;
 		}
@@ -908,7 +905,7 @@ namespace slib
 		static Function bind(FUNC&& func, BINDS&&... binds) noexcept
 		{
 			typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::BindFromFunction<TUPLE, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func), TUPLE(Forward<BINDS>(binds)...)));
+			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromFunction<TUPLE, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func), TUPLE(Forward<BINDS>(binds)...)));
 		}
 
 		template <class CLASS, class FUNC>
@@ -922,7 +919,7 @@ namespace slib
 		{
 			if (object) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::BindFromMember<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(object, func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromMember<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(object, func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -940,7 +937,7 @@ namespace slib
 			Ref<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::BindFromRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -958,7 +955,7 @@ namespace slib
 			WeakRef<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::BindFromWeakRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromWeakRef<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -976,7 +973,7 @@ namespace slib
 			Ptr<CLASS> object(Forward<OBJECT>(_object));
 			if (object.isNotNull()) {
 				typedef Tuple<typename RemoveConstReference<BINDS>::Type...> TUPLE;
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::BindFromPtr<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::BindFromPtr<TUPLE, CLASS, FUNC, RET_TYPE, ARGS...>(Move(object), func, TUPLE(Forward<BINDS>(binds)...)));
 			}
 			return sl_null;
 		}
@@ -985,7 +982,7 @@ namespace slib
 		static Function with(const Ref<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableWithRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableWithRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
 			}
 			return sl_null;
 		}
@@ -994,7 +991,7 @@ namespace slib
 		static Function with(const WeakRef<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableWithWeakRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableWithWeakRef<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
 			}
 			return sl_null;
 		}
@@ -1003,7 +1000,7 @@ namespace slib
 		static Function with(const Ptr<CLASS>& object, FUNC&& func) noexcept
 		{
 			if (object.isNotNull()) {
-				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableWithPtr<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
+				return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableWithPtr<CLASS, typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(object, Forward<FUNC>(func)));
 			}
 			return sl_null;
 		}
@@ -1160,13 +1157,13 @@ namespace slib
 
 	public:
 		template <class FUNC>
-		Atomic(FUNC&& func) noexcept: ref(new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func))) {}
+		Atomic(FUNC&& func) noexcept: ref(new priv::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func))) {}
 
 	public:
 		template <class FUNC>
 		Atomic& operator=(FUNC&& func) noexcept
 		{
-			ref = new priv::function::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func));
+			ref = new priv::CallableFromFunction<typename RemoveConstReference<FUNC>::Type, RET_TYPE, ARGS...>(Forward<FUNC>(func));
 			return *this;
 		}
 
@@ -1285,7 +1282,7 @@ namespace slib
 	SLIB_INLINE Function<RET_TYPE(ARGS...)> CreateMemberFunction(OBJECT* object, RET_TYPE (CLASS::*func)(ARGS...)) noexcept
 	{
 		if (object) {
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromMember<CLASS, RET_TYPE (CLASS::*)(ARGS...), RET_TYPE, ARGS...>(object, func));
+			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromMember<CLASS, RET_TYPE (CLASS::*)(ARGS...), RET_TYPE, ARGS...>(object, func));
 		}
 		return sl_null;
 	}
@@ -1296,7 +1293,7 @@ namespace slib
 		typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) REF_CLASS;
 		Ref<REF_CLASS> object(Forward<OBJECT>(_object));
 		if (object.isNotNull()) {
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromRef<REF_CLASS, RET_TYPE(CLASS::*)(ARGS...), RET_TYPE, ARGS...>(Move(object), func));
+			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromRef<REF_CLASS, RET_TYPE(CLASS::*)(ARGS...), RET_TYPE, ARGS...>(Move(object), func));
 		}
 		return sl_null;
 	}
@@ -1307,7 +1304,7 @@ namespace slib
 		typedef typename PRIV_SLIB_FUNCTION_GET_CLASS(_object) REF_CLASS;
 		WeakRef<REF_CLASS> object(Forward<OBJECT>(_object));
 		if (object.isNotNull()) {
-			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::function::CallableFromWeakRef<REF_CLASS, RET_TYPE (CLASS::*)(ARGS...), RET_TYPE, ARGS...>(Move(object), func));
+			return static_cast<Callable<RET_TYPE(ARGS...)>*>(new priv::CallableFromWeakRef<REF_CLASS, RET_TYPE (CLASS::*)(ARGS...), RET_TYPE, ARGS...>(Move(object), func));
 		}
 		return sl_null;
 	}

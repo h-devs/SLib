@@ -9,23 +9,19 @@
 
 namespace slib
 {
-	namespace priv
-	{
-		namespace window
+	namespace {
+
+		class WindowHelper : public Window
 		{
+		public:
+			using Window::_makeFrame;
+		};
 
-			class WindowHelper : public Window
-			{
-			public:
-				using Window::_makeFrame;
-			};
-
-			SLIB_INLINE static UIRect MakeWindowFrame(Window* window)
-			{
-				return ((WindowHelper*)window)->_makeFrame();
-			}
-
+		SLIB_INLINE static UIRect MakeWindowFrame(Window* window)
+		{
+			return ((WindowHelper*)window)->_makeFrame();
 		}
+
 	}
 }
 

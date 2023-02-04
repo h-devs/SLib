@@ -27,93 +27,37 @@
 namespace slib
 {
 
-	namespace priv
+	class TreeView::ContentView : public View
 	{
-		namespace tree_view
+	public:
+		AtomicWeakRef<TreeView> m_tree;
+
+	public:
+		ContentView()
 		{
-
-			class TreeContentViewImpl : public View
-			{
-			public:
-				AtomicWeakRef<TreeView> m_tree;
-
-			public:
-				TreeContentViewImpl()
-				{
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-					setFocusable(sl_true);
+			setFocusable(sl_true);
 #endif
-				}
-
-			public:
-				void onDraw(Canvas* canvas) override
-				{
-					Ref<TreeView> tree = m_tree;
-					if (tree.isNotNull()) {
-						tree->_drawContent(canvas);
-					}
-				}
-
-				void onMouseEvent(UIEvent* ev) override
-				{
-					Ref<TreeView> tree = m_tree;
-					if (tree.isNotNull()) {
-						tree->_processMouseEvent(ev);
-					}
-				}
-
-			};
-
-			class DefaultIndentIcon : public Drawable
-			{
-			public:
-				Ref<Brush> m_brush;
-				Point m_pts[3];
-
-			public:
-				DefaultIndentIcon(sl_bool flagCollapse)
-				{
-					m_brush = Brush::createSolidBrush(Color(50, 50, 50));
-					if (flagCollapse) {
-						m_pts[0] = Point(0.33f, 0.34f);
-						m_pts[1] = Point(0.67f, 0.51f);
-						m_pts[2] = Point(0.33f, 0.68f);
-					} else {
-						m_pts[0] = Point(0.3f, 0.35f);
-						m_pts[1] = Point(0.5f, 0.65f);
-						m_pts[2] = Point(0.7f, 0.35f);
-					}
-				}
-
-			public:
-				sl_real getDrawableWidth() override
-				{
-					return 16;
-				}
-
-				sl_real getDrawableHeight() override
-				{
-					return 16;
-				}
-
-				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
-				{
-					if (m_brush.isNotNull()) {
-						Point pts[3];
-						for (int i = 0; i < 3; i++) {
-							pts[i].x = rectDst.left + rectDst.getWidth() * m_pts[i].x;
-							pts[i].y = rectDst.top + rectDst.getHeight() * m_pts[i].y;
-						}
-						canvas->fillPolygon(pts, 3, m_brush);
-					}
-				}
-
-			};
-
 		}
-	}
 
-	using namespace priv::tree_view;
+	public:
+		void onDraw(Canvas* canvas) override
+		{
+			Ref<TreeView> tree = m_tree;
+			if (tree.isNotNull()) {
+				tree->_drawContent(canvas);
+			}
+		}
+
+		void onMouseEvent(UIEvent* ev) override
+		{
+			Ref<TreeView> tree = m_tree;
+			if (tree.isNotNull()) {
+				tree->_processMouseEvent(ev);
+			}
+		}
+
+	};
 
 	SLIB_DEFINE_OBJECT(TreeViewItem, Object)
 
@@ -385,7 +329,11 @@ namespace slib
 	{
 		Ref<View> old = m_customView;
 		m_customView = view;
-		Ref<TreeContentViewImpl> content = _getContentView();
+		Ref<TreeView> tree = getTreeView();
+		if (tree.isNull()) {
+			return;
+		}
+		Ref<TreeView::ContentView> content = tree->m_content;
 		if (content.isNotNull()) {
 			if (old.isNotNull()) {
 				content->removeChild(old);
@@ -488,15 +436,56 @@ namespace slib
 		}
 	}
 
-	Ref<TreeContentViewImpl> TreeViewItem::_getContentView()
-	{
-		Ref<TreeView> tree = getTreeView();
-		if (tree.isNotNull()) {
-			return tree->m_content;
-		}
-		return sl_null;
-	}
 
+	namespace {
+
+		class DefaultIndentIcon : public Drawable
+		{
+		public:
+			Ref<Brush> m_brush;
+			Point m_pts[3];
+
+		public:
+			DefaultIndentIcon(sl_bool flagCollapse)
+			{
+				m_brush = Brush::createSolidBrush(Color(50, 50, 50));
+				if (flagCollapse) {
+					m_pts[0] = Point(0.33f, 0.34f);
+					m_pts[1] = Point(0.67f, 0.51f);
+					m_pts[2] = Point(0.33f, 0.68f);
+				} else {
+					m_pts[0] = Point(0.3f, 0.35f);
+					m_pts[1] = Point(0.5f, 0.65f);
+					m_pts[2] = Point(0.7f, 0.35f);
+				}
+			}
+
+		public:
+			sl_real getDrawableWidth() override
+			{
+				return 16;
+			}
+
+			sl_real getDrawableHeight() override
+			{
+				return 16;
+			}
+
+			void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
+			{
+				if (m_brush.isNotNull()) {
+					Point pts[3];
+					for (int i = 0; i < 3; i++) {
+						pts[i].x = rectDst.left + rectDst.getWidth() * m_pts[i].x;
+						pts[i].y = rectDst.top + rectDst.getHeight() * m_pts[i].y;
+					}
+					canvas->fillPolygon(pts, 3, m_brush);
+				}
+			}
+
+		};
+
+	}
 
 	SLIB_DEFINE_OBJECT(TreeView, ScrollView)
 
@@ -809,7 +798,7 @@ namespace slib
 	void TreeView::onResize(sl_ui_len width, sl_ui_len height)
 	{
 		ScrollView::onResize(width, height);
-		Ref<TreeContentViewImpl> content = m_content;
+		Ref<ContentView> content = m_content;
 		if (content.isNotNull()) {
 			content->setWidth(width, UIUpdateMode::None);
 			_relayoutContent(UIUpdateMode::None);
@@ -843,7 +832,7 @@ namespace slib
 
 	void TreeView::_createContentView()
 	{
-		Ref<TreeContentViewImpl> view = new TreeContentViewImpl;
+		Ref<ContentView> view = new ContentView;
 		if (view.isNotNull()) {
 			view->m_tree = this;
 			m_content = view;
@@ -853,7 +842,7 @@ namespace slib
 
 	void TreeView::_relayoutContent(UIUpdateMode mode)
 	{
-		Ref<TreeContentViewImpl> content = m_content;
+		Ref<ContentView> content = m_content;
 		if (content.isNotNull()) {
 			m_flagInvalidTreeLayout = sl_true;
 			if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
@@ -864,7 +853,7 @@ namespace slib
 
 	void TreeView::_redrawContent(UIUpdateMode mode)
 	{
-		Ref<TreeContentViewImpl> view = m_content;
+		Ref<ContentView> view = m_content;
 		if (view.isNotNull()) {
 			view->invalidate(mode);
 		}
@@ -913,7 +902,7 @@ namespace slib
 			if (top < 0) {
 				top = 0;
 			}
-			Ref<TreeContentViewImpl> content = m_content;
+			Ref<ContentView> content = m_content;
 			if (content.isNotNull()) {
 				if (content->getHeight() != top) {
 					content->setHeight(top, UIUpdateMode::Redraw);
@@ -1071,14 +1060,14 @@ namespace slib
 			return;
 		}
 		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
-			Ref<TreeContentViewImpl> content = m_content;
+			Ref<ContentView> content = m_content;
 			if (content.isNotNull()) {
 				m_pointBeginTapping = content->convertCoordinateToParent(ev->getPoint());
 				m_flagBeginTapping = sl_true;
 			}
 		} else if (action == UIAction::LeftButtonUp || action == UIAction::TouchEnd) {
 			if (m_flagBeginTapping) {
-				Ref<TreeContentViewImpl> content = m_content;
+				Ref<ContentView> content = m_content;
 				if (content.isNotNull()) {
 					if (content->convertCoordinateToParent(ev->getPoint()).getLength2p(m_pointBeginTapping) < 25) {
 						Ref<TreeViewItem> root = m_root;
@@ -1090,7 +1079,7 @@ namespace slib
 			}
 		} else if (action == UIAction::MouseMove) {
 			if (m_flagBeginTapping) {
-				Ref<TreeContentViewImpl> content = m_content;
+				Ref<ContentView> content = m_content;
 				if (content.isNotNull()) {
 					if (content->convertCoordinateToParent(ev->getPoint()).getLength2p(m_pointBeginTapping) > 25) {
 						m_flagBeginTapping = sl_false;

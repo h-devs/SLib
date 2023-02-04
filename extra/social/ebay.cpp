@@ -28,16 +28,29 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ebay
+	namespace {
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Ebay>, g_instance)
+
+		static String GetSimpleXMLValue(const String& xml, const String& tagName)
 		{
+			sl_reg index1 = xml.indexOf("<" + tagName + ">");
+			if (index1 < 0) {
+				return sl_null;
+			}
+			sl_reg index2 = xml.indexOf("</" + tagName + ">", index1 + 1);
+			if (index2 < 0) {
+				return sl_null;
+			}
+			return xml.substring(index1 + tagName.getLength() + 2, index2);
+		}
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Ebay>, g_instance)
-
-			static String GetSimpleXMLValue(const String& xml, const String& tagName)
-			{
-				sl_reg index1 = xml.indexOf("<" + tagName + ">");
+		/*
+		static List<String> GetSimpleXMLValues(const String& xml, const String& tagName) {
+			List<String> ret;
+			sl_reg index = 0;
+			while (true) {
+				sl_reg index1 = xml.indexOf("<" + tagName + ">", index);
 				if (index1 < 0) {
 					return sl_null;
 				}
@@ -45,33 +58,14 @@ namespace slib
 				if (index2 < 0) {
 					return sl_null;
 				}
-				return xml.substring(index1 + tagName.getLength() + 2, index2);
+				ret.add(xml.substring(index1 + tagName.getLength() + 2, index2));
+				index = index2 + 1;
 			}
-
-			/*
-			static List<String> GetSimpleXMLValues(const String& xml, const String& tagName) {
-				List<String> ret;
-				sl_reg index = 0;
-				while (true) {
-					sl_reg index1 = xml.indexOf("<" + tagName + ">", index);
-					if (index1 < 0) {
-						return sl_null;
-					}
-					sl_reg index2 = xml.indexOf("</" + tagName + ">", index1 + 1);
-					if (index2 < 0) {
-						return sl_null;
-					}
-					ret.add(xml.substring(index1 + tagName.getLength() + 2, index2));
-					index = index2 + 1;
-				}
-				return ret;
-			}
-			*/
-
+			return ret;
 		}
-	}
+		*/
 
-	using namespace priv::ebay;
+	}
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EbayUser)
 

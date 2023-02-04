@@ -39,19 +39,13 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace async_epoll
+	namespace {
+		struct AsyncIoLoopHandle
 		{
-			struct AsyncIoLoopHandle
-			{
-				int fdEpoll;
-				Ref<PipeEvent> eventWake;
-			};
-		}
+			int fdEpoll;
+			Ref<PipeEvent> eventWake;
+		};
 	}
-
-	using namespace priv::async_epoll;
 
 	void* AsyncIoLoop::_native_createHandle()
 	{

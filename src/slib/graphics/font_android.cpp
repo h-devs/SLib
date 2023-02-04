@@ -31,87 +31,81 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace android
+	namespace {
+
+		SLIB_JNI_BEGIN_CLASS(JPointF, "android/graphics/PointF")
+			SLIB_JNI_FLOAT_FIELD(x);
+			SLIB_JNI_FLOAT_FIELD(y);
+		SLIB_JNI_END_CLASS
+
+		SLIB_JNI_BEGIN_CLASS(JFontMetrics, "android/graphics/Paint$FontMetrics")
+			SLIB_JNI_FLOAT_FIELD(ascent);
+			SLIB_JNI_FLOAT_FIELD(descent);
+			SLIB_JNI_FLOAT_FIELD(leading);
+		SLIB_JNI_END_CLASS
+
+		SLIB_JNI_BEGIN_CLASS(JFont, "slib/android/ui/UiFont")
+			SLIB_JNI_STATIC_METHOD(create, "create", "(Ljava/lang/String;FI)Lslib/android/ui/UiFont;");
+			SLIB_JNI_METHOD(getFontMetrics, "getFontMetrics", "()Landroid/graphics/Paint$FontMetrics;");
+			SLIB_JNI_METHOD(measureText, "measureText", "(Ljava/lang/String;)Landroid/graphics/PointF;");
+		SLIB_JNI_END_CLASS
+
+		class FontPlatformObject : public Referable
 		{
+		public:
+			JniGlobal<jobject> m_font;
 
-			SLIB_JNI_BEGIN_CLASS(JPointF, "android/graphics/PointF")
-				SLIB_JNI_FLOAT_FIELD(x);
-				SLIB_JNI_FLOAT_FIELD(y);
-			SLIB_JNI_END_CLASS
-
-			SLIB_JNI_BEGIN_CLASS(JFontMetrics, "android/graphics/Paint$FontMetrics")
-				SLIB_JNI_FLOAT_FIELD(ascent);
-				SLIB_JNI_FLOAT_FIELD(descent);
-				SLIB_JNI_FLOAT_FIELD(leading);
-			SLIB_JNI_END_CLASS
-
-			SLIB_JNI_BEGIN_CLASS(JFont, "slib/android/ui/UiFont")
-				SLIB_JNI_STATIC_METHOD(create, "create", "(Ljava/lang/String;FI)Lslib/android/ui/UiFont;");
-				SLIB_JNI_METHOD(getFontMetrics, "getFontMetrics", "()Landroid/graphics/Paint$FontMetrics;");
-				SLIB_JNI_METHOD(measureText, "measureText", "(Ljava/lang/String;)Landroid/graphics/PointF;");
-			SLIB_JNI_END_CLASS
-
-			class FontPlatformObject : public Referable
+		public:
+			FontPlatformObject(const FontDesc& desc)
 			{
-			public:
-				JniGlobal<jobject> m_font;
-
-			public:
-				FontPlatformObject(const FontDesc& desc)
-				{
-					int style = 0;
-					if (desc.flagBold) {
-						style |= 1;
-					}
-					if (desc.flagItalic) {
-						style |= 2;
-					}
-					if (desc.flagUnderline) {
-						style |= 4;
-					}
-					if (desc.flagStrikeout) {
-						style |= 8;
-					}
-					float size = (float)(desc.size);
-					JniLocal<jstring> fontName = Jni::getJniString(desc.familyName);
-					JniGlobal<jobject> font = JFont::create.callObject(sl_null, fontName.get(), size, style);
-					if (font.isNotNull()) {
-						m_font = Move(font);
-					}
+				int style = 0;
+				if (desc.flagBold) {
+					style |= 1;
 				}
+				if (desc.flagItalic) {
+					style |= 2;
+				}
+				if (desc.flagUnderline) {
+					style |= 4;
+				}
+				if (desc.flagStrikeout) {
+					style |= 8;
+				}
+				float size = (float)(desc.size);
+				JniLocal<jstring> fontName = Jni::getJniString(desc.familyName);
+				JniGlobal<jobject> font = JFont::create.callObject(sl_null, fontName.get(), size, style);
+				if (font.isNotNull()) {
+					m_font = Move(font);
+				}
+			}
 
-			};
+		};
 
-			class FontHelper : public Font
+		class FontHelper : public Font
+		{
+		public:
+			FontPlatformObject* getPlatformObject()
 			{
-			public:
-				FontPlatformObject* getPlatformObject()
-				{
+				if (m_platformObject.isNull()) {
+					SpinLocker lock(&m_lock);
 					if (m_platformObject.isNull()) {
-						SpinLocker lock(&m_lock);
-						if (m_platformObject.isNull()) {
-							m_platformObject = new FontPlatformObject(m_desc);
-						}
+						m_platformObject = new FontPlatformObject(m_desc);
 					}
-					return (FontPlatformObject*)(m_platformObject.get());;
 				}
+				return (FontPlatformObject*)(m_platformObject.get());;
+			}
 
-				jobject getPlatformHandle()
-				{
-					FontPlatformObject* po = getPlatformObject();
-					if (po) {
-						return po->m_font.get();
-					}
-					return 0;
+			jobject getPlatformHandle()
+			{
+				FontPlatformObject* po = getPlatformObject();
+				if (po) {
+					return po->m_font.get();
 				}
-			};
+				return 0;
+			}
+		};
 
-		}
 	}
-
-	using namespace priv::android;
 
 	sl_bool Font::_getFontMetrics_PO(FontMetrics& _out)
 	{

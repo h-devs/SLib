@@ -38,44 +38,38 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace pipe
+	namespace {
+
+		static void CreatePipeHandle(HPipe& handle) noexcept
 		{
-
-			static void CreatePipeHandle(HPipe& handle) noexcept
-			{
 #if defined(SLIB_PLATFORM_IS_WINDOWS)
-				if (CreatePipe(&(handle.hRead), &(handle.hWrite), NULL, 4096)) {
-					return;
-				}
-#else
-				int fd[2];
-				if (!(::pipe(fd))) {
-					handle.hRead = fd[0];
-					handle.hWrite = fd[1];
-					return;
-				}
-#endif
-				handle.hRead = SLIB_PIPE_INVALID_HANDLE;
-				handle.hWrite = SLIB_PIPE_INVALID_HANDLE;
+			if (CreatePipe(&(handle.hRead), &(handle.hWrite), NULL, 4096)) {
+				return;
 			}
-
-			static void ClosePipeHandle(const HPipe& handle) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-				CloseHandle(handle.hRead);
-				CloseHandle(handle.hWrite);
 #else
-				close(handle.hRead);
-				close(handle.hWrite);
-#endif
+			int fd[2];
+			if (!(::pipe(fd))) {
+				handle.hRead = fd[0];
+				handle.hWrite = fd[1];
+				return;
 			}
-
+#endif
+			handle.hRead = SLIB_PIPE_INVALID_HANDLE;
+			handle.hWrite = SLIB_PIPE_INVALID_HANDLE;
 		}
-	}
 
-	using namespace priv::pipe;
+		static void ClosePipeHandle(const HPipe& handle) noexcept
+		{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+			CloseHandle(handle.hRead);
+			CloseHandle(handle.hWrite);
+#else
+			close(handle.hRead);
+			close(handle.hWrite);
+#endif
+		}
+
+	}
 
 	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(Pipe, HPipe, m_handle, sl_null, ClosePipeHandle)
 	SLIB_DEFINE_ISTREAM_MEMBERS(Pipe, const noexcept)

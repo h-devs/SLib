@@ -36,191 +36,199 @@
 namespace slib
 {
 
-	namespace priv
+	struct PseudoTcpMessage::Packet
 	{
-		namespace pt_msg
+		WeakRef<Connection> connection;
+		Memory content;
+	};
+
+	class PseudoTcpMessage::Address
+	{
+	public:
+		String host;
+		sl_uint32 conversationNo;
+
+	public:
+		SLIB_INLINE sl_size getHashCode() const noexcept
 		{
+			return Rehash(host.getHashCode() ^ conversationNo);
+		}
 
-			struct Address
-			{
-				String host;
-				sl_uint32 conversationNo;
-			};
+		SLIB_INLINE sl_compare_result compare(const PseudoTcpMessage::Address& other) const noexcept
+		{
+			sl_compare_result r = host.compare(other.host);
+			if (r) {
+				return r;
+			}
+			return Compare<sl_uint32>()(conversationNo, other.conversationNo);
+		}
 
-			class Connection : public Referable, public IPseudoTcpNotify
-			{
-			public:
-				PseudoTcp tcp;
-				Function<void(Connection* connection)> onUpdate;
+	};
 
-				Memory dataSend;
-				sl_bool flagCalledReceiveCallback;
-				sl_bool flagError;
-				sl_bool flagEnd;
+	class PseudoTcpMessage::Connection : public Referable, public IPseudoTcpNotify
+	{
+	public:
+		PseudoTcp tcp;
+		Function<void(Connection* connection)> onUpdate;
 
-			protected:
-				sl_uint32 m_timeout;
-				Function<void(sl_uint8* packet, sl_uint32 size)> m_callbackSendPacket;
+		Memory dataSend;
+		sl_bool flagCalledReceiveCallback;
+		sl_bool flagError;
+		sl_bool flagEnd;
 
-				sl_uint32 m_offsetWrite;
-				MemoryOutput m_dataReceive;
-				sl_uint8 m_bufReceiveHeader[4];
+	protected:
+		sl_uint32 m_timeout;
+		Function<void(sl_uint8* packet, sl_uint32 size)> m_callbackSendPacket;
 
-				sl_uint32 m_timeStart;
+		sl_uint32 m_offsetWrite;
+		MemoryOutput m_dataReceive;
+		sl_uint8 m_bufReceiveHeader[4];
 
-			public:
-				Connection(sl_uint32 conversationNo, const Function<void(Connection* connection)>& _onUpdate, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout): tcp(this, conversationNo), onUpdate(_onUpdate), m_callbackSendPacket(callbackSendPacket)
-				{
-					tcp.notifyMTU(DEFAULT_MTU);
-					flagCalledReceiveCallback = sl_false;
-					flagError = sl_false;
-					flagEnd = sl_false;
+		sl_uint32 m_timeStart;
 
-					m_timeout = timeout;
+	public:
+		Connection(sl_uint32 conversationNo, const Function<void(Connection* connection)>& _onUpdate, const Function<void(sl_uint8* packet, sl_uint32 size)>& callbackSendPacket, sl_uint32 timeout): tcp(this, conversationNo), onUpdate(_onUpdate), m_callbackSendPacket(callbackSendPacket)
+		{
+			tcp.notifyMTU(DEFAULT_MTU);
+			flagCalledReceiveCallback = sl_false;
+			flagError = sl_false;
+			flagEnd = sl_false;
 
-					m_offsetWrite = 0;
-					m_timeStart = PseudoTcp::now();
-				}
+			m_timeout = timeout;
 
-			public:
-				void onTcpOpen(PseudoTcp* tcp) override
-				{
-					onTcpReadable(tcp);
-					onTcpWriteable(tcp);
-				}
+			m_offsetWrite = 0;
+			m_timeStart = PseudoTcp::now();
+		}
 
-				void onTcpReadable(PseudoTcp*) override
-				{
-					sl_uint8 buf[65536];
-					for (;;) {
-						sl_int32 n = tcp.receive(buf, sizeof(buf));
-						if (n < 0) {
-							if (n != SLIB_IO_WOULD_BLOCK) {
-								flagError = sl_true;
-								onUpdate(this);
-							}
-							return;
-						}
-						sl_uint32 m = (sl_uint32)(m_dataReceive.getSize());
-						if (m < 4) {
-							sl_uint32 k = 4 - m;
-							if (k > (sl_uint32)n) {
-								k = n;
-							}
-							Base::copyMemory(m_bufReceiveHeader + m, buf, k);
-						}
-						if (!(m_dataReceive.write(buf, n))) {
-							flagError = sl_true;
-							onUpdate(this);
-							return;
-						}
-						if (isReadComplete()) {
-							onUpdate(this);
-							return;
-						}
+	public:
+		void onTcpOpen(PseudoTcp* tcp) override
+		{
+			onTcpReadable(tcp);
+			onTcpWriteable(tcp);
+		}
+
+		void onTcpReadable(PseudoTcp*) override
+		{
+			sl_uint8 buf[65536];
+			for (;;) {
+				sl_int32 n = tcp.receive(buf, sizeof(buf));
+				if (n < 0) {
+					if (n != SLIB_IO_WOULD_BLOCK) {
+						flagError = sl_true;
+						onUpdate(this);
 					}
+					return;
 				}
-
-				void onTcpWriteable(PseudoTcp*) override
-				{
-					if (dataSend.isNull()) {
-						return;
+				sl_uint32 m = (sl_uint32)(m_dataReceive.getSize());
+				if (m < 4) {
+					sl_uint32 k = 4 - m;
+					if (k > (sl_uint32)n) {
+						k = n;
 					}
-					for (;;) {
-						sl_uint32 total = (sl_uint32)(dataSend.getSize());
-						if (m_offsetWrite >= total) {
-							return;
-						}
-						sl_int32 n = tcp.send((sl_uint8*)(dataSend.getData()) + m_offsetWrite, total - m_offsetWrite);
-						if (n < 0) {
-							if (n != SLIB_IO_WOULD_BLOCK) {
-								flagError = sl_true;
-								onUpdate(this);
-							}
-							return;
-						}
-						m_offsetWrite += n;
-						if (isWriteComplete()) {
-							onUpdate(this);
-							return;
-						}
-					}
+					Base::copyMemory(m_bufReceiveHeader + m, buf, k);
 				}
-
-				void onTcpClosed(PseudoTcp*, PseudoTcpError) override
-				{
+				if (!(m_dataReceive.write(buf, n))) {
 					flagError = sl_true;
 					onUpdate(this);
+					return;
 				}
-
-				PseudoTcpWriteResult writeTcpPacket(PseudoTcp*, const void* buf, sl_size len) override
-				{
-					m_callbackSendPacket((sl_uint8*)buf, (sl_uint32)len);
-					return PseudoTcpWriteResult::Success;
+				if (isReadComplete()) {
+					onUpdate(this);
+					return;
 				}
-
-				sl_bool setSendingData(const void* data, sl_size size)
-				{
-					if (size <= MESSAGE_SIZE_MAX) {
-						Memory mem = Memory::create(4 + size);
-						if (mem.isNotNull()) {
-							sl_uint8* p = (sl_uint8*)(mem.getData());
-							MIO::writeUint32LE(p, (sl_uint32)size);
-							if (size) {
-								Base::copyMemory(p + 4, data, size);
-							}
-							dataSend = Move(mem);
-							m_offsetWrite = 0;
-							return sl_true;
-						}
-					}
-					return sl_false;
-				}
-
-				Memory getReceivedData()
-				{
-					Memory mem = m_dataReceive.getData();
-					sl_size n = mem.getSize();
-					if (n > 4) {
-						return mem.sub(4, MIO::readUint32LE(m_bufReceiveHeader));
-					}
-					return sl_null;
-				}
-
-				sl_bool isReadComplete()
-				{
-					sl_size m = m_dataReceive.getSize();
-					return m >= 4 && m >= 4 + MIO::readUint32LE(m_bufReceiveHeader);
-				}
-
-				sl_bool isReadCompleteOver()
-				{
-					sl_size m = m_dataReceive.getSize();
-					return m > 4 && m > 4 + MIO::readUint32LE(m_bufReceiveHeader);
-				}
-
-				sl_bool isWriteComplete()
-				{
-					return m_offsetWrite >= dataSend.getSize();
-				}
-
-				sl_bool isTimeout(sl_uint32 now)
-				{
-					return now - m_timeStart > m_timeout;
-				}
-
-			};
-
-			struct Packet
-			{
-				WeakRef<Connection> connection;
-				Memory content;
-			};
-
+			}
 		}
-	}
 
-	using namespace priv::pt_msg;
+		void onTcpWriteable(PseudoTcp*) override
+		{
+			if (dataSend.isNull()) {
+				return;
+			}
+			for (;;) {
+				sl_uint32 total = (sl_uint32)(dataSend.getSize());
+				if (m_offsetWrite >= total) {
+					return;
+				}
+				sl_int32 n = tcp.send((sl_uint8*)(dataSend.getData()) + m_offsetWrite, total - m_offsetWrite);
+				if (n < 0) {
+					if (n != SLIB_IO_WOULD_BLOCK) {
+						flagError = sl_true;
+						onUpdate(this);
+					}
+					return;
+				}
+				m_offsetWrite += n;
+				if (isWriteComplete()) {
+					onUpdate(this);
+					return;
+				}
+			}
+		}
+
+		void onTcpClosed(PseudoTcp*, PseudoTcpError) override
+		{
+			flagError = sl_true;
+			onUpdate(this);
+		}
+
+		PseudoTcpWriteResult writeTcpPacket(PseudoTcp*, const void* buf, sl_size len) override
+		{
+			m_callbackSendPacket((sl_uint8*)buf, (sl_uint32)len);
+			return PseudoTcpWriteResult::Success;
+		}
+
+		sl_bool setSendingData(const void* data, sl_size size)
+		{
+			if (size <= MESSAGE_SIZE_MAX) {
+				Memory mem = Memory::create(4 + size);
+				if (mem.isNotNull()) {
+					sl_uint8* p = (sl_uint8*)(mem.getData());
+					MIO::writeUint32LE(p, (sl_uint32)size);
+					if (size) {
+						Base::copyMemory(p + 4, data, size);
+					}
+					dataSend = Move(mem);
+					m_offsetWrite = 0;
+					return sl_true;
+				}
+			}
+			return sl_false;
+		}
+
+		Memory getReceivedData()
+		{
+			Memory mem = m_dataReceive.getData();
+			sl_size n = mem.getSize();
+			if (n > 4) {
+				return mem.sub(4, MIO::readUint32LE(m_bufReceiveHeader));
+			}
+			return sl_null;
+		}
+
+		sl_bool isReadComplete()
+		{
+			sl_size m = m_dataReceive.getSize();
+			return m >= 4 && m >= 4 + MIO::readUint32LE(m_bufReceiveHeader);
+		}
+
+		sl_bool isReadCompleteOver()
+		{
+			sl_size m = m_dataReceive.getSize();
+			return m > 4 && m > 4 + MIO::readUint32LE(m_bufReceiveHeader);
+		}
+
+		sl_bool isWriteComplete()
+		{
+			return m_offsetWrite >= dataSend.getSize();
+		}
+
+		sl_bool isTimeout(sl_uint32 now)
+		{
+			return now - m_timeStart > m_timeout;
+		}
+
+	};
+
 
 	PseudoTcpMessage::PseudoTcpMessage()
 	{
@@ -507,21 +515,6 @@ namespace slib
 		connection->flagEnd = sl_true;
 		m_queueEndListen.pushBack(address);
 		m_eventProcess->set();
-	}
-
-
-	sl_size Hash<Address>::operator()(const Address& addr) const
-	{
-		return Rehash(addr.host.getHashCode() ^ addr.conversationNo);
-	}
-
-	sl_compare_result Compare<Address>::operator()(const Address& a1, const Address& a2) const
-	{
-		sl_compare_result r = a1.host.compare(a2.host);
-		if (r) {
-			return r;
-		}
-		return Compare<sl_uint32>()(a1.conversationNo, a2.conversationNo);
 	}
 
 }

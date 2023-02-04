@@ -32,97 +32,91 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace cairo
+	namespace {
+
+		class FontPlatformObject : public Referable
 		{
+		public:
+			PangoFontDescription* m_font;
 
-			class FontPlatformObject : public Referable
+		public:
+			FontPlatformObject(const FontDesc& desc)
 			{
-			public:
-				PangoFontDescription* m_font;
-
-			public:
-				FontPlatformObject(const FontDesc& desc)
-				{
-					PangoFontDescription* font = pango_font_description_new();
-					if (font) {
-						StringCstr familyName(desc.familyName);
-						pango_font_description_set_family(font, familyName.getData());
-						if (desc.flagBold) {
-							pango_font_description_set_weight(font, PANGO_WEIGHT_BOLD);
-						}
-						if (desc.flagItalic) {
-							pango_font_description_set_style(font, PANGO_STYLE_ITALIC);
-						}
-						pango_font_description_set_absolute_size (font, desc.size * PANGO_SCALE);
+				PangoFontDescription* font = pango_font_description_new();
+				if (font) {
+					StringCstr familyName(desc.familyName);
+					pango_font_description_set_family(font, familyName.getData());
+					if (desc.flagBold) {
+						pango_font_description_set_weight(font, PANGO_WEIGHT_BOLD);
 					}
-					m_font = font;
-				}
-
-				~FontPlatformObject()
-				{
-					if (m_font) {
-						pango_font_description_free(m_font);
+					if (desc.flagItalic) {
+						pango_font_description_set_style(font, PANGO_STYLE_ITALIC);
 					}
+					pango_font_description_set_absolute_size (font, desc.size * PANGO_SCALE);
 				}
+				m_font = font;
+			}
 
-			};
-
-			class FontHelper : public Font
+			~FontPlatformObject()
 			{
-			public:
-				FontPlatformObject* getPlatformObject()
-				{
+				if (m_font) {
+					pango_font_description_free(m_font);
+				}
+			}
+
+		};
+
+		class FontHelper : public Font
+		{
+		public:
+			FontPlatformObject* getPlatformObject()
+			{
+				if (m_platformObject.isNull()) {
+					SpinLocker lock(&m_lock);
 					if (m_platformObject.isNull()) {
-						SpinLocker lock(&m_lock);
-						if (m_platformObject.isNull()) {
-							m_platformObject = new FontPlatformObject(m_desc);
-						}
+						m_platformObject = new FontPlatformObject(m_desc);
 					}
-					return (FontPlatformObject*)(m_platformObject.get());;
 				}
+				return (FontPlatformObject*)(m_platformObject.get());;
+			}
 
-				PangoFontDescription* getPlatformHandle()
-				{
-					FontPlatformObject* po = getPlatformObject();
-					if (po) {
-						return po->m_font;
-					}
-					return 0;
-				}
-			};
-
-			class StaticContext
+			PangoFontDescription* getPlatformHandle()
 			{
-			public:
-				cairo_surface_t* surface;
-				cairo_t* cairo;
-				PangoContext* pango;
-
-			public:
-				StaticContext()
-				{
-					surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 32, 32);
-					cairo = cairo_create(surface);
-					pango = pango_cairo_create_context(cairo);
+				FontPlatformObject* po = getPlatformObject();
+				if (po) {
+					return po->m_font;
 				}
+				return 0;
+			}
+		};
 
-				~StaticContext()
-				{
-					cairo_surface_destroy(surface);
-					cairo_destroy(cairo);
-					g_object_unref(pango);
-				}
+		class StaticContext
+		{
+		public:
+			cairo_surface_t* surface;
+			cairo_t* cairo;
+			PangoContext* pango;
 
-			};
+		public:
+			StaticContext()
+			{
+				surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 32, 32);
+				cairo = cairo_create(surface);
+				pango = pango_cairo_create_context(cairo);
+			}
 
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+			~StaticContext()
+			{
+				cairo_surface_destroy(surface);
+				cairo_destroy(cairo);
+				g_object_unref(pango);
+			}
 
-		}
+		};
+
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+
 	}
-
-	using namespace priv::cairo;
 
 	sl_bool Font::_getFontMetrics_PO(FontMetrics& _out)
 	{

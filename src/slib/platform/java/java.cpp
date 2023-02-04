@@ -50,61 +50,62 @@
 namespace slib
 {
 
+	namespace {
+
+		static JavaVM* g_jvmShared = sl_null;
+		SLIB_THREAD JNIEnv* g_envCurrent = sl_null;
+		SLIB_THREAD sl_bool g_flagAutoClearException = sl_true;
+		SLIB_THREAD sl_bool g_flagAutoPrintException = sl_true;
+
+		class SharedContext
+		{
+		public:
+			CHashMap< String, JniGlobal<jclass> > classes;
+			CList< Function<void()> > callbacksInit;
+		};
+
+		SLIB_SAFE_STATIC_GETTER(SharedContext, getSharedContext)
+
+		static void AddInitCallback(const Function<void()>& callback) noexcept
+		{
+			SharedContext* shared = getSharedContext();
+			if (shared) {
+				shared->callbacksInit.add(callback);
+			}
+		}
+
+		static void ProcessException(JNIEnv* env) noexcept
+		{
+			if (g_flagAutoClearException) {
+				if (env->ExceptionCheck()) {
+					if (g_flagAutoPrintException) {
+						env->ExceptionDescribe();
+					}
+					env->ExceptionClear();
+				}
+			}
+		}
+
+		static sl_bool CheckException(JNIEnv* env) noexcept
+		{
+			if (env->ExceptionCheck()) {
+				if (g_flagAutoClearException) {
+					if (g_flagAutoPrintException) {
+						env->ExceptionDescribe();
+					}
+					env->ExceptionClear();
+				}
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+	}
+
 	namespace priv
 	{
 		namespace java
 		{
-
-			static JavaVM* g_jvmShared = sl_null;
-			SLIB_THREAD JNIEnv* g_envCurrent = sl_null;
-			SLIB_THREAD sl_bool g_flagAutoClearException = sl_true;
-			SLIB_THREAD sl_bool g_flagAutoPrintException = sl_true;
-
-
-			class SharedContext
-			{
-			public:
-				CHashMap< String, JniGlobal<jclass> > classes;
-				CList< Function<void()> > callbacksInit;
-			};
-
-			SLIB_SAFE_STATIC_GETTER(SharedContext, getSharedContext)
-
-
-			static void AddInitCallback(const Function<void()>& callback) noexcept
-			{
-				SharedContext* shared = getSharedContext();
-				if (shared) {
-					shared->callbacksInit.add(callback);
-				}
-			}
-
-			static void ProcessException(JNIEnv* env) noexcept
-			{
-				if (g_flagAutoClearException) {
-					if (env->ExceptionCheck()) {
-						if (g_flagAutoPrintException) {
-							env->ExceptionDescribe();
-						}
-						env->ExceptionClear();
-					}
-				}
-			}
-
-			static sl_bool CheckException(JNIEnv* env) noexcept
-			{
-				if (env->ExceptionCheck()) {
-					if (g_flagAutoClearException) {
-						if (g_flagAutoPrintException) {
-							env->ExceptionDescribe();
-						}
-						env->ExceptionClear();
-					}
-					return sl_true;
-				}
-				return sl_false;
-			}
-
 
 			JClass::JClass(const char* _name) noexcept: name(_name), m_flagLoaded(sl_false), m_cls(sl_null)
 			{
@@ -851,8 +852,6 @@ namespace slib
 
 		}
 	}
-
-	using namespace priv::java;
 
 //#define JNI_LOG_INIT_LOAD
 

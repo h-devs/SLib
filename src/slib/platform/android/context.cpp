@@ -31,50 +31,44 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace android_context
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JContext, "android/content/Context")
-				SLIB_JNI_METHOD(getSystemService, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;")
-				SLIB_JNI_METHOD(getExternalFilesDir, "getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;")
-				SLIB_JNI_METHOD(getPackageName, "getPackageName", "()Ljava/lang/String;")
-				SLIB_JNI_METHOD(getAssets, "getAssets", "()Landroid/content/res/AssetManager;")
-				SLIB_JNI_METHOD(getSharedPreferences, "getSharedPreferences", "(Ljava/lang/String;I)Landroid/content/SharedPreferences;")
+		SLIB_JNI_BEGIN_CLASS(JContext, "android/content/Context")
+			SLIB_JNI_METHOD(getSystemService, "getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;")
+			SLIB_JNI_METHOD(getExternalFilesDir, "getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;")
+			SLIB_JNI_METHOD(getPackageName, "getPackageName", "()Ljava/lang/String;")
+			SLIB_JNI_METHOD(getAssets, "getAssets", "()Landroid/content/res/AssetManager;")
+			SLIB_JNI_METHOD(getSharedPreferences, "getSharedPreferences", "(Ljava/lang/String;I)Landroid/content/SharedPreferences;")
 
-				SLIB_JNI_FINAL_STRING_OBJECT_FIELD(AUDIO_SERVICE)
-				SLIB_JNI_FINAL_STRING_OBJECT_FIELD(VIBRATOR_SERVICE)
-				SLIB_JNI_FINAL_STRING_OBJECT_FIELD(TELEPHONY_SERVICE)
-				SLIB_JNI_FINAL_STRING_OBJECT_FIELD(TELEPHONY_SUBSCRIPTION_SERVICE)
-			SLIB_JNI_END_CLASS
+			SLIB_JNI_FINAL_STRING_OBJECT_FIELD(AUDIO_SERVICE)
+			SLIB_JNI_FINAL_STRING_OBJECT_FIELD(VIBRATOR_SERVICE)
+			SLIB_JNI_FINAL_STRING_OBJECT_FIELD(TELEPHONY_SERVICE)
+			SLIB_JNI_FINAL_STRING_OBJECT_FIELD(TELEPHONY_SUBSCRIPTION_SERVICE)
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JActivity, "android/app/Activity")
-				SLIB_JNI_METHOD(finish, "finish", "()V")
-				SLIB_JNI_METHOD(getWindowManager, "getWindowManager", "()Landroid/view/WindowManager;")
-				SLIB_JNI_METHOD(getWindow, "getWindow", "()Landroid/view/Window;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JActivity, "android/app/Activity")
+			SLIB_JNI_METHOD(finish, "finish", "()V")
+			SLIB_JNI_METHOD(getWindowManager, "getWindowManager", "()Landroid/view/WindowManager;")
+			SLIB_JNI_METHOD(getWindow, "getWindow", "()Landroid/view/Window;")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JEnvironment, "android/os/Environment")
-				SLIB_JNI_FINAL_STRING_OBJECT_FIELD(DIRECTORY_PICTURES)
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JEnvironment, "android/os/Environment")
+			SLIB_JNI_FINAL_STRING_OBJECT_FIELD(DIRECTORY_PICTURES)
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JSharedPreferences, "android/content/SharedPreferences")
-				SLIB_JNI_METHOD(edit, "edit", "()Landroid/content/SharedPreferences$Editor;")
-				SLIB_JNI_METHOD(getString, "getString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JSharedPreferences, "android/content/SharedPreferences")
+			SLIB_JNI_METHOD(edit, "edit", "()Landroid/content/SharedPreferences$Editor;")
+			SLIB_JNI_METHOD(getString, "getString", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JSharedPreferencesEditor, "android/content/SharedPreferences$Editor")
-				SLIB_JNI_METHOD(apply, "apply", "()V")
-				SLIB_JNI_METHOD(commit, "commit", "()Z")
-				SLIB_JNI_METHOD(putString, "putString", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;")
-				SLIB_JNI_METHOD(remove, "remove", "(Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JSharedPreferencesEditor, "android/content/SharedPreferences$Editor")
+			SLIB_JNI_METHOD(apply, "apply", "()V")
+			SLIB_JNI_METHOD(commit, "commit", "()Z")
+			SLIB_JNI_METHOD(putString, "putString", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;")
+			SLIB_JNI_METHOD(remove, "remove", "(Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;")
+		SLIB_JNI_END_CLASS
 
-		}
 	}
-
-	using namespace priv::android_context;
 
 	namespace android
 	{

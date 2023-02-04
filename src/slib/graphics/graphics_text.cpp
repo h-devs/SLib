@@ -185,44 +185,40 @@ namespace slib
 	{
 	}
 
-	namespace priv
-	{
-		namespace text_word
+	namespace {
+		static sl_bool CheckURL(const String16& text, String16& url)
 		{
-			static sl_bool checkURL(const String16& text, String16& url)
-			{
-				SLIB_STATIC_STRING16(http, "http://")
-				SLIB_STATIC_STRING16(https, "https://")
-				SLIB_STATIC_STRING16(www, "www.")
-				if (text.startsWith(http) && text.getLength() > http.getLength()) {
-					url = text;
-					return sl_true;
+			SLIB_STATIC_STRING16(http, "http://")
+			SLIB_STATIC_STRING16(https, "https://")
+			SLIB_STATIC_STRING16(www, "www.")
+			if (text.startsWith(http) && text.getLength() > http.getLength()) {
+				url = text;
+				return sl_true;
+			}
+			if (text.startsWith(https) && text.getLength() > https.getLength()) {
+				url = text;
+				return sl_true;
+			}
+			if (text.startsWith(www) && text.getLength() > www.getLength()) {
+				sl_reg len = text.indexOf('/');
+				if (len < 0) {
+					len = text.getLength();
 				}
-				if (text.startsWith(https) && text.getLength() > https.getLength()) {
-					url = text;
-					return sl_true;
+				sl_reg indexDotDot = text.indexOf(SLIB_UNICODE(".."));
+				if (indexDotDot >= 0 && indexDotDot < len) {
+					return sl_false;
 				}
-				if (text.startsWith(www) && text.getLength() > www.getLength()) {
-					sl_reg len = text.indexOf('/');
-					if (len < 0) {
-						len = text.getLength();
-					}
-					sl_reg indexDotDot = text.indexOf(SLIB_UNICODE(".."));
-					if (indexDotDot >= 0 && indexDotDot < len) {
+				sl_char16* sz = text.getData();
+				for (sl_reg i = 0; i < len; i++) {
+					sl_char16 ch = sz[i];
+					if (!(SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_' || ch == '.')) {
 						return sl_false;
 					}
-					sl_char16* sz = text.getData();
-					for (sl_reg i = 0; i < len; i++) {
-						sl_char16 ch = sz[i];
-						if (!(SLIB_CHAR_IS_ALNUM(ch) || ch == '-' || ch == '_' || ch == '.')) {
-							return sl_false;
-						}
-					}
-					url = http + text;
-					return sl_true;
 				}
-				return sl_false;
+				url = http + text;
+				return sl_true;
 			}
+			return sl_false;
 		}
 	}
 
@@ -235,7 +231,7 @@ namespace slib
 				ret->m_style = style;
 				if (flagEnabledHyperlinksInPlainText) {
 					String16 url;
-					if (priv::text_word::checkURL(text, url)) {
+					if (CheckURL(text, url)) {
 						Ref<TextStyle> styleNew = style->duplicate();
 						if (styleNew.isNotNull()) {
 							styleNew->flagLink = sl_true;
@@ -729,103 +725,99 @@ namespace slib
 		}
 	}
 
-	namespace priv
-	{
-		namespace text_paragraph
+	namespace {
+		static sl_bool ParseSize(const String& _str, const Ref<Font>& _font, float* _out)
 		{
-			static sl_bool ParseSize(const String& _str, const Ref<Font>& _font, float* _out)
-			{
-				sl_real sizeBase;
-				Ref<Font> font = _font;
+			sl_real sizeBase;
+			Ref<Font> font = _font;
+			if (font.isNotNull()) {
+				sizeBase = font->getSize();
+			} else {
+				font = Font::getDefault();
 				if (font.isNotNull()) {
 					sizeBase = font->getSize();
 				} else {
-					font = Font::getDefault();
-					if (font.isNotNull()) {
-						sizeBase = font->getSize();
-					} else {
-						sizeBase = Font::getDefaultFontSize();
-					}
+					sizeBase = Font::getDefaultFontSize();
 				}
-				String str = _str.trim().toLower();
-				sl_real f = -1;
-				if (str == "medium") {
-					f = Font::getDefaultFontSize();
-				} else if (str == "xx-small") {
-					f = Font::getDefaultFontSize() / 4;
-				} else if (str == "x-small") {
-					f = Font::getDefaultFontSize() / 2;
-				} else if (str == "small") {
-					f = Font::getDefaultFontSize() / 4 * 3;
-				} else if (str == "large") {
-					f = Font::getDefaultFontSize() / 2 * 3;
-				} else if (str == "x-large") {
-					f = Font::getDefaultFontSize() * 2;
-				} else if (str == "xx-large") {
-					f = Font::getDefaultFontSize() * 4;
-				} else if (str == "smaller") {
-					f = sizeBase / 1.5f;
-				} else if (str == "initial") {
-					f = Font::getDefaultFontSize();
-				} else if (str == "inherit") {
-					f = sizeBase;
-				}
-				if (f >= 0) {
-					if (_out) {
-						*_out = f;
-					}
-					return sl_true;
-				}
-				sl_char8* sz = str.getData();
-				sl_size len = str.getLength();
-				f = 0;
-				sl_reg pos = Calculator::calculate(&f, sl_null, sz, 0, len);
-				if (pos > 0) {
-					StringView unit = StringView(sz + pos, len - pos).trim();
-					if (Math::isAlmostZero(f) && unit.isEmpty()) {
-					} else if (unit == ("%")) {
-						f = sizeBase * f / 100;
-					} else if (unit == ("cm")) {
-						f = GraphicsUtil::centimeterToPixel(f);
-					} else if (unit == ("mm")) {
-						f = GraphicsUtil::millimeterToPixel(f);
-					} else if (unit == ("in")) {
-						f = GraphicsUtil::inchToPixel(f);
-					} else if (unit == ("px")) {
-					} else if (unit == ("pt")) {
-						f = GraphicsUtil::pointToPixel(f);
-					} else if (unit == ("pc")) {
-						f = GraphicsUtil::picasToPixel(f);
-					} else if (unit == ("em")) {
-						f = sizeBase * f;
-					} else if (unit == ("rem")) {
-						f = Font::getDefaultFontSize() * f;
-					} else if (unit == ("ch")) {
-						if (font.isNotNull()) {
-							f = font->getFontHeight() * f;
-						}
-					} else if (unit == ("ex")) {
-						if (font.isNotNull()) {
-							f = font->measureText("0").x * f;
-						}
-					} else if (unit == ("vw")) {
-						f = (sl_real)(Device::getScreenWidth() * f / 100);
-					} else if (unit == ("vh")) {
-						f = (sl_real)(Device::getScreenHeight() * f / 100);
-					} else if (unit == ("vmin")) {
-						f = (sl_real)(Math::min(Device::getScreenWidth(), Device::getScreenHeight()) * f / 100);
-					} else if (unit == ("vmax")) {
-						f = (sl_real)(Math::max(Device::getScreenWidth(), Device::getScreenHeight()) * f / 100);
-					} else {
-						return sl_false;
-					}
-					if (_out) {
-						*_out = f;
-					}
-					return sl_true;
-				}
-				return sl_false;
 			}
+			String str = _str.trim().toLower();
+			sl_real f = -1;
+			if (str == "medium") {
+				f = Font::getDefaultFontSize();
+			} else if (str == "xx-small") {
+				f = Font::getDefaultFontSize() / 4;
+			} else if (str == "x-small") {
+				f = Font::getDefaultFontSize() / 2;
+			} else if (str == "small") {
+				f = Font::getDefaultFontSize() / 4 * 3;
+			} else if (str == "large") {
+				f = Font::getDefaultFontSize() / 2 * 3;
+			} else if (str == "x-large") {
+				f = Font::getDefaultFontSize() * 2;
+			} else if (str == "xx-large") {
+				f = Font::getDefaultFontSize() * 4;
+			} else if (str == "smaller") {
+				f = sizeBase / 1.5f;
+			} else if (str == "initial") {
+				f = Font::getDefaultFontSize();
+			} else if (str == "inherit") {
+				f = sizeBase;
+			}
+			if (f >= 0) {
+				if (_out) {
+					*_out = f;
+				}
+				return sl_true;
+			}
+			sl_char8* sz = str.getData();
+			sl_size len = str.getLength();
+			f = 0;
+			sl_reg pos = Calculator::calculate(&f, sl_null, sz, 0, len);
+			if (pos > 0) {
+				StringView unit = StringView(sz + pos, len - pos).trim();
+				if (Math::isAlmostZero(f) && unit.isEmpty()) {
+				} else if (unit == ("%")) {
+					f = sizeBase * f / 100;
+				} else if (unit == ("cm")) {
+					f = GraphicsUtil::centimeterToPixel(f);
+				} else if (unit == ("mm")) {
+					f = GraphicsUtil::millimeterToPixel(f);
+				} else if (unit == ("in")) {
+					f = GraphicsUtil::inchToPixel(f);
+				} else if (unit == ("px")) {
+				} else if (unit == ("pt")) {
+					f = GraphicsUtil::pointToPixel(f);
+				} else if (unit == ("pc")) {
+					f = GraphicsUtil::picasToPixel(f);
+				} else if (unit == ("em")) {
+					f = sizeBase * f;
+				} else if (unit == ("rem")) {
+					f = Font::getDefaultFontSize() * f;
+				} else if (unit == ("ch")) {
+					if (font.isNotNull()) {
+						f = font->getFontHeight() * f;
+					}
+				} else if (unit == ("ex")) {
+					if (font.isNotNull()) {
+						f = font->measureText("0").x * f;
+					}
+				} else if (unit == ("vw")) {
+					f = (sl_real)(Device::getScreenWidth() * f / 100);
+				} else if (unit == ("vh")) {
+					f = (sl_real)(Device::getScreenHeight() * f / 100);
+				} else if (unit == ("vmin")) {
+					f = (sl_real)(Math::min(Device::getScreenWidth(), Device::getScreenHeight()) * f / 100);
+				} else if (unit == ("vmax")) {
+					f = (sl_real)(Math::max(Device::getScreenWidth(), Device::getScreenHeight()) * f / 100);
+				} else {
+					return sl_false;
+				}
+				if (_out) {
+					*_out = f;
+				}
+				return sl_true;
+			}
+			return sl_false;
 		}
 	}
 
@@ -1000,17 +992,17 @@ namespace slib
 							}
 							sl_reg indexLineHeight = s.indexOf('/');
 							if (indexLineHeight < 0) {
-								if (priv::text_paragraph::ParseSize(s, font, &attrFontSizeParsed)) {
+								if (ParseSize(s, font, &attrFontSizeParsed)) {
 									attrFontSize.setNull();
 									flagDefineFontSize = sl_true;
 									break;
 								}
 							} else {
-								if (priv::text_paragraph::ParseSize(s.substring(indexLineHeight + 1), font, &attrLineHeightParsed)) {
+								if (ParseSize(s.substring(indexLineHeight + 1), font, &attrLineHeightParsed)) {
 									attrLineHeight.setNull();
 									flagDefineLineHeight = sl_true;
 								}
-								if (priv::text_paragraph::ParseSize(s.substring(0, indexLineHeight), font, &attrFontSizeParsed)) {
+								if (ParseSize(s.substring(0, indexLineHeight), font, &attrFontSizeParsed)) {
 									attrFontSize.setNull();
 									flagDefineFontSize = sl_true;
 								}
@@ -1038,14 +1030,14 @@ namespace slib
 
 		if (flagDefineFontSize) {
 			if (attrFontSize.isNotNull()) {
-				if (!(priv::text_paragraph::ParseSize(attrFontSize, font, &attrFontSizeParsed))) {
+				if (!(ParseSize(attrFontSize, font, &attrFontSizeParsed))) {
 					flagDefineFontSize = sl_false;
 				}
 			}
 		}
 		if (flagDefineLineHeight) {
 			if (attrLineHeight.isNotNull()) {
-				if (!(priv::text_paragraph::ParseSize(attrLineHeight, font, &attrLineHeightParsed))) {
+				if (!(ParseSize(attrLineHeight, font, &attrLineHeightParsed))) {
 					flagDefineLineHeight = sl_false;
 				}
 			}
@@ -1226,530 +1218,526 @@ namespace slib
 		}
 	}
 
-	namespace priv
-	{
-		namespace text_paragraph
+	namespace {
+		class Layouter
 		{
-			class Layouter
+		public:
+			CList< Ref<TextItem> >* m_layoutItems;
+			sl_real m_layoutWidth;
+			Alignment m_align;
+			MultiLineMode m_multiLineMode;
+			EllipsizeMode m_ellipsizeMode;
+			sl_uint32 m_lineCount;
+			sl_real m_tabMargin;
+			sl_real m_tabWidth;
+
+			sl_bool m_flagEnd;
+			sl_real m_x;
+			sl_real m_y;
+
+			CList< Ref<TextItem> > m_lineItems;
+			sl_real m_lineWidth;
+			sl_real m_lineHeight;
+			sl_uint32 m_lineNo;
+
+			sl_real m_maxWidth;
+
+		public:
+			Layouter(CList< Ref<TextItem> >* layoutItems, const TextParagraphLayoutParam& param) noexcept
 			{
-			public:
-				CList< Ref<TextItem> >* m_layoutItems;
-				sl_real m_layoutWidth;
-				Alignment m_align;
-				MultiLineMode m_multiLineMode;
-				EllipsizeMode m_ellipsizeMode;
-				sl_uint32 m_lineCount;
-				sl_real m_tabMargin;
-				sl_real m_tabWidth;
+				m_layoutItems = layoutItems;
+				m_layoutWidth = param.width;
+				m_align = param.align;
+				m_multiLineMode = param.multiLineMode;
+				m_ellipsizeMode = param.ellipsisMode;
+				m_lineCount = param.lineCount;
+				m_tabWidth = param.tabWidth;
+				m_tabMargin = param.tabMargin;
 
-				sl_bool m_flagEnd;
-				sl_real m_x;
-				sl_real m_y;
+				m_flagEnd = sl_false;
+				m_x = 0;
+				m_y = 0;
 
-				CList< Ref<TextItem> > m_lineItems;
-				sl_real m_lineWidth;
-				sl_real m_lineHeight;
-				sl_uint32 m_lineNo;
+				m_lineWidth = 0;
+				m_lineHeight = 0;
+				m_lineNo = 0;
+				m_maxWidth = 0;
+			}
 
-				sl_real m_maxWidth;
-
-			public:
-				Layouter(CList< Ref<TextItem> >* layoutItems, const TextParagraphLayoutParam& param) noexcept
-				{
-					m_layoutItems = layoutItems;
-					m_layoutWidth = param.width;
-					m_align = param.align;
-					m_multiLineMode = param.multiLineMode;
-					m_ellipsizeMode = param.ellipsisMode;
-					m_lineCount = param.lineCount;
-					m_tabWidth = param.tabWidth;
-					m_tabMargin = param.tabMargin;
-
-					m_flagEnd = sl_false;
-					m_x = 0;
-					m_y = 0;
-
-					m_lineWidth = 0;
-					m_lineHeight = 0;
-					m_lineNo = 0;
-					m_maxWidth = 0;
+			void endLine() noexcept
+			{
+				sl_size n = m_lineItems.getCount();
+				if (!n) {
+					return;
 				}
 
-				void endLine() noexcept
-				{
-					sl_size n = m_lineItems.getCount();
-					if (!n) {
-						return;
-					}
+				sl_real x;
+				if (m_align == Alignment::Left) {
+					x = 0;
+				} else if (m_align == Alignment::Right) {
+					x = - m_lineWidth;
+				} else {
+					x = - m_lineWidth / 2;
+				}
 
-					sl_real x;
-					if (m_align == Alignment::Left) {
-						x = 0;
-					} else if (m_align == Alignment::Right) {
-						x = - m_lineWidth;
-					} else {
-						x = - m_lineWidth / 2;
-					}
+				sl_real bottom = m_y + m_lineHeight;
 
-					sl_real bottom = m_y + m_lineHeight;
-
-					Ref<TextItem>* p = m_lineItems.getData();
-					for (sl_size i = 0; i < n; i++) {
-						TextItem* item = p[i].get();
-						Size size = item->getLayoutSize();
-						Point pt(x, m_y + (m_lineHeight - size.y) / 2);
-						item->setLayoutPosition(pt);
-						x += size.x;
-						TextItemType type = item->getType();
-						if (type == TextItemType::Attach) {
-							(static_cast<TextAttachItem*>(item))->setPosition(pt);
-						}
-					}
-
-					m_lineNo++;
-					if (m_ellipsizeMode != EllipsizeMode::None) {
-						if ((m_lineWidth > m_layoutWidth && m_multiLineMode == MultiLineMode::Single) || (m_lineCount > 0 && m_lineNo >= m_lineCount)) {
-							endEllipsize();
-						}
-					}
-
-					p = m_lineItems.getData();
-					n = m_lineItems.getCount();
-					for (sl_size i = 0; i < n; i++) {
-						TextItem* item = p[i].get();
-						TextItemType type = item->getType();
-						if (type == TextItemType::Word || type == TextItemType::JoinedChar || type == TextItemType::Space || type == TextItemType::Tab) {
-							m_layoutItems->add_NoLock(item);
-						}
-					}
-
-					m_lineItems.removeAll_NoLock();
-					if (m_lineWidth > m_maxWidth) {
-						m_maxWidth = m_lineWidth;
-					}
-					m_x = 0;
-					m_lineWidth = 0;
-					m_y = bottom;
-					m_lineHeight = 0;
-
-					if (m_multiLineMode == MultiLineMode::Single) {
-						m_flagEnd = sl_true;
-					} else {
-						if (m_lineCount > 0) {
-							if (m_lineNo >= m_lineCount) {
-								m_flagEnd = sl_true;
-							}
-						}
+				Ref<TextItem>* p = m_lineItems.getData();
+				for (sl_size i = 0; i < n; i++) {
+					TextItem* item = p[i].get();
+					Size size = item->getLayoutSize();
+					Point pt(x, m_y + (m_lineHeight - size.y) / 2);
+					item->setLayoutPosition(pt);
+					x += size.x;
+					TextItemType type = item->getType();
+					if (type == TextItemType::Attach) {
+						(static_cast<TextAttachItem*>(item))->setPosition(pt);
 					}
 				}
 
-				void endEllipsize() noexcept
-				{
-					SLIB_STATIC_STRING16(strEllipsis, "...")
-					CList< Ref<TextItem> >* listItems = &m_lineItems;
-					sl_size nItems = listItems->getCount();
-					Ref<TextItem>* items = listItems->getData();
-					if (nItems < 1) {
-						return;
+				m_lineNo++;
+				if (m_ellipsizeMode != EllipsizeMode::None) {
+					if ((m_lineWidth > m_layoutWidth && m_multiLineMode == MultiLineMode::Single) || (m_lineCount > 0 && m_lineNo >= m_lineCount)) {
+						endEllipsize();
 					}
-					Ref<TextStyle> style = items[nItems - 1]->getStyle();
-					Ref<TextWordItem> itemEllipsis = TextWordItem::create(strEllipsis, style);
-					if (itemEllipsis.isNull()) {
-						return;
+				}
+
+				p = m_lineItems.getData();
+				n = m_lineItems.getCount();
+				for (sl_size i = 0; i < n; i++) {
+					TextItem* item = p[i].get();
+					TextItemType type = item->getType();
+					if (type == TextItemType::Word || type == TextItemType::JoinedChar || type == TextItemType::Space || type == TextItemType::Tab) {
+						m_layoutItems->add_NoLock(item);
 					}
-					Size sizeEllipsis = itemEllipsis->getSize();
-					if (m_layoutWidth < sizeEllipsis.x) {
-						return;
+				}
+
+				m_lineItems.removeAll_NoLock();
+				if (m_lineWidth > m_maxWidth) {
+					m_maxWidth = m_lineWidth;
+				}
+				m_x = 0;
+				m_lineWidth = 0;
+				m_y = bottom;
+				m_lineHeight = 0;
+
+				if (m_multiLineMode == MultiLineMode::Single) {
+					m_flagEnd = sl_true;
+				} else {
+					if (m_lineCount > 0) {
+						if (m_lineNo >= m_lineCount) {
+							m_flagEnd = sl_true;
+						}
 					}
-					sl_real xLimit = m_layoutWidth - sizeEllipsis.x;
-					if (m_ellipsizeMode == EllipsizeMode::End) {
-						for (sl_size i = 0; i < nItems; i++) {
-							TextItem* item = items[i].get();
-							Point pos = item->getLayoutPosition();
-							if (pos.x + item->getLayoutSize().x > xLimit) {
-								itemEllipsis->setLayoutPosition(pos);
-								itemEllipsis->setLayoutSize(sizeEllipsis);
-								if (item->getType() == TextItemType::Word) {
-									String16 text = ((TextWordItem*)item)->getText();
-									Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
-									if (word.isNotNull()) {
-										sl_real widthLimit = xLimit - pos.x;
-										sl_size n = text.getLength();
-										sl_size k = n;
-										for (; k > 0; k--) {
-											word->setText(text.substring(0, k));
-											if (word->getSize().x <= widthLimit) {
-												break;
-											}
+				}
+			}
+
+			void endEllipsize() noexcept
+			{
+				SLIB_STATIC_STRING16(strEllipsis, "...")
+				CList< Ref<TextItem> >* listItems = &m_lineItems;
+				sl_size nItems = listItems->getCount();
+				Ref<TextItem>* items = listItems->getData();
+				if (nItems < 1) {
+					return;
+				}
+				Ref<TextStyle> style = items[nItems - 1]->getStyle();
+				Ref<TextWordItem> itemEllipsis = TextWordItem::create(strEllipsis, style);
+				if (itemEllipsis.isNull()) {
+					return;
+				}
+				Size sizeEllipsis = itemEllipsis->getSize();
+				if (m_layoutWidth < sizeEllipsis.x) {
+					return;
+				}
+				sl_real xLimit = m_layoutWidth - sizeEllipsis.x;
+				if (m_ellipsizeMode == EllipsizeMode::End) {
+					for (sl_size i = 0; i < nItems; i++) {
+						TextItem* item = items[i].get();
+						Point pos = item->getLayoutPosition();
+						if (pos.x + item->getLayoutSize().x > xLimit) {
+							itemEllipsis->setLayoutPosition(pos);
+							itemEllipsis->setLayoutSize(sizeEllipsis);
+							if (item->getType() == TextItemType::Word) {
+								String16 text = ((TextWordItem*)item)->getText();
+								Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
+								if (word.isNotNull()) {
+									sl_real widthLimit = xLimit - pos.x;
+									sl_size n = text.getLength();
+									sl_size k = n;
+									for (; k > 0; k--) {
+										word->setText(text.substring(0, k));
+										if (word->getSize().x <= widthLimit) {
+											break;
 										}
-										listItems->setCount_NoLock(i);
-										if (k > 0) {
-											word->setLayoutPosition(item->getLayoutPosition());
-											word->setLayoutSize(word->getSize());
-											listItems->add_NoLock(word);
-											pos.x += word->getSize().x;
-											itemEllipsis->setLayoutPosition(pos);
-										}
-									} else {
-										listItems->setCount_NoLock(i);
+									}
+									listItems->setCount_NoLock(i);
+									if (k > 0) {
+										word->setLayoutPosition(item->getLayoutPosition());
+										word->setLayoutSize(word->getSize());
+										listItems->add_NoLock(word);
+										pos.x += word->getSize().x;
+										itemEllipsis->setLayoutPosition(pos);
 									}
 								} else {
 									listItems->setCount_NoLock(i);
 								}
-								listItems->add_NoLock(itemEllipsis);
-								m_flagEnd = sl_true;
-								return;
+							} else {
+								listItems->setCount_NoLock(i);
 							}
+							listItems->add_NoLock(itemEllipsis);
+							m_flagEnd = sl_true;
+							return;
 						}
-					} else if (m_ellipsizeMode == EllipsizeMode::Start) {
-						for (sl_size i = 0; i < nItems; i++) {
-							TextItem* item = items[nItems - 1 - i].get();
-							Point pos = item->getLayoutPosition();
-							pos.x = m_layoutWidth - m_lineWidth + pos.x;
-							item->setLayoutPosition(pos);
-							if (pos.x < sizeEllipsis.x) {
-								if (i > 0) {
-									itemEllipsis->setLayoutPosition(Point(items[nItems - i]->getLayoutPosition().x - sizeEllipsis.x, item->getLayoutPosition().y));
-								} else {
-									itemEllipsis->setLayoutPosition(Point(pos.x + item->getLayoutSize().x - sizeEllipsis.x, item->getLayoutPosition().y));
-								}
-								itemEllipsis->setLayoutSize(sizeEllipsis);
-								if (item->getType() == TextItemType::Word) {
-									sl_real widthWord = item->getLayoutSize().x;
-									String16 text = ((TextWordItem*)item)->getText();
-									Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
-									if (word.isNotNull()) {
-										sl_real widthLimit = widthWord - (sizeEllipsis.x - pos.x);
-										sl_size n = text.getLength();
-										sl_size k = n;
-										for (; k > 0; k--) {
-											word->setText(text.substring(n - k, n));
-											if (word->getSize().x <= widthLimit) {
-												break;
-											}
+					}
+				} else if (m_ellipsizeMode == EllipsizeMode::Start) {
+					for (sl_size i = 0; i < nItems; i++) {
+						TextItem* item = items[nItems - 1 - i].get();
+						Point pos = item->getLayoutPosition();
+						pos.x = m_layoutWidth - m_lineWidth + pos.x;
+						item->setLayoutPosition(pos);
+						if (pos.x < sizeEllipsis.x) {
+							if (i > 0) {
+								itemEllipsis->setLayoutPosition(Point(items[nItems - i]->getLayoutPosition().x - sizeEllipsis.x, item->getLayoutPosition().y));
+							} else {
+								itemEllipsis->setLayoutPosition(Point(pos.x + item->getLayoutSize().x - sizeEllipsis.x, item->getLayoutPosition().y));
+							}
+							itemEllipsis->setLayoutSize(sizeEllipsis);
+							if (item->getType() == TextItemType::Word) {
+								sl_real widthWord = item->getLayoutSize().x;
+								String16 text = ((TextWordItem*)item)->getText();
+								Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
+								if (word.isNotNull()) {
+									sl_real widthLimit = widthWord - (sizeEllipsis.x - pos.x);
+									sl_size n = text.getLength();
+									sl_size k = n;
+									for (; k > 0; k--) {
+										word->setText(text.substring(n - k, n));
+										if (word->getSize().x <= widthLimit) {
+											break;
 										}
-										listItems->removeRange_NoLock(0, nItems - i);
-										if (k > 0) {
-											pos.x = pos.x + widthWord - word->getSize().x;
-											word->setLayoutPosition(pos);
-											word->setLayoutSize(word->getSize());
-											listItems->add_NoLock(word);
-											pos.x -= sizeEllipsis.x;
-											itemEllipsis->setLayoutPosition(pos);
-										}
-									} else {
-										listItems->removeRange_NoLock(0, nItems - i);
+									}
+									listItems->removeRange_NoLock(0, nItems - i);
+									if (k > 0) {
+										pos.x = pos.x + widthWord - word->getSize().x;
+										word->setLayoutPosition(pos);
+										word->setLayoutSize(word->getSize());
+										listItems->add_NoLock(word);
+										pos.x -= sizeEllipsis.x;
+										itemEllipsis->setLayoutPosition(pos);
 									}
 								} else {
 									listItems->removeRange_NoLock(0, nItems - i);
 								}
-								listItems->insert_NoLock(0, itemEllipsis);
-								m_flagEnd = sl_true;
-								return;
+							} else {
+								listItems->removeRange_NoLock(0, nItems - i);
 							}
+							listItems->insert_NoLock(0, itemEllipsis);
+							m_flagEnd = sl_true;
+							return;
 						}
-					} else if (m_ellipsizeMode == EllipsizeMode::Middle) {
-						sl_real xEllipsis = 0;
-						itemEllipsis->setLayoutSize(sizeEllipsis);
-						sl_size i;
-						for (i = 0; i < nItems; i++) {
-							TextItem* item = items[i].get();
-							Point pos = item->getLayoutPosition();
-							if (pos.x + item->getLayoutSize().x > xLimit / 2) {
-								xEllipsis = pos.x;
-								break;
-							}
+					}
+				} else if (m_ellipsizeMode == EllipsizeMode::Middle) {
+					sl_real xEllipsis = 0;
+					itemEllipsis->setLayoutSize(sizeEllipsis);
+					sl_size i;
+					for (i = 0; i < nItems; i++) {
+						TextItem* item = items[i].get();
+						Point pos = item->getLayoutPosition();
+						if (pos.x + item->getLayoutSize().x > xLimit / 2) {
+							xEllipsis = pos.x;
+							break;
 						}
-						itemEllipsis->setLayoutPosition(Point(xEllipsis, items[0]->getLayoutPosition().y));
-						sl_size indexMid = i;
-						for (i = 0; i < nItems - indexMid; i++) {
-							TextItem* item = items[nItems - 1 - i].get();
-							Point pos = item->getLayoutPosition();
-							pos.x = m_layoutWidth - m_lineWidth + pos.x;
-							item->setLayoutPosition(pos);
-							if (pos.x < itemEllipsis->getLayoutFrame().right + sizeEllipsis.x * 0.2f) {
-								if (item->getType() == TextItemType::Word) {
-									sl_real widthWord = item->getLayoutSize().x;
-									String16 text = ((TextWordItem*)item)->getText();
-									Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
-									if (word.isNotNull()) {
-										sl_real widthLimit = widthWord - (itemEllipsis->getLayoutFrame().right + sizeEllipsis.x * 0.2f - pos.x);
-										sl_size n = text.getLength();
-										sl_size k = n;
-										for (; k > 0; k--) {
-											word->setText(text.substring(n - k, n));
-											if (word->getSize().x <= widthLimit) {
-												break;
-											}
+					}
+					itemEllipsis->setLayoutPosition(Point(xEllipsis, items[0]->getLayoutPosition().y));
+					sl_size indexMid = i;
+					for (i = 0; i < nItems - indexMid; i++) {
+						TextItem* item = items[nItems - 1 - i].get();
+						Point pos = item->getLayoutPosition();
+						pos.x = m_layoutWidth - m_lineWidth + pos.x;
+						item->setLayoutPosition(pos);
+						if (pos.x < itemEllipsis->getLayoutFrame().right + sizeEllipsis.x * 0.2f) {
+							if (item->getType() == TextItemType::Word) {
+								sl_real widthWord = item->getLayoutSize().x;
+								String16 text = ((TextWordItem*)item)->getText();
+								Ref<TextWordItem> word = TextWordItem::create(text, item->getStyle());
+								if (word.isNotNull()) {
+									sl_real widthLimit = widthWord - (itemEllipsis->getLayoutFrame().right + sizeEllipsis.x * 0.2f - pos.x);
+									sl_size n = text.getLength();
+									sl_size k = n;
+									for (; k > 0; k--) {
+										word->setText(text.substring(n - k, n));
+										if (word->getSize().x <= widthLimit) {
+											break;
 										}
-										listItems->removeRange(indexMid, nItems - indexMid - i);
-										if (k > 0) {
-											pos.x = pos.x + widthWord - word->getSize().x;
-											word->setLayoutPosition(pos);
-											word->setLayoutSize(word->getSize());
-											listItems->insert_NoLock(indexMid, word);
-											pos.x -= sizeEllipsis.x + sizeEllipsis.x * 0.2f;
-											itemEllipsis->setLayoutPosition(pos);
-										}
-									} else {
-										listItems->removeRange_NoLock(indexMid, nItems - indexMid - i);
+									}
+									listItems->removeRange(indexMid, nItems - indexMid - i);
+									if (k > 0) {
+										pos.x = pos.x + widthWord - word->getSize().x;
+										word->setLayoutPosition(pos);
+										word->setLayoutSize(word->getSize());
+										listItems->insert_NoLock(indexMid, word);
+										pos.x -= sizeEllipsis.x + sizeEllipsis.x * 0.2f;
+										itemEllipsis->setLayoutPosition(pos);
 									}
 								} else {
 									listItems->removeRange_NoLock(indexMid, nItems - indexMid - i);
 								}
-								listItems->insert_NoLock(indexMid, itemEllipsis);
-								m_flagEnd = sl_true;
-								return;
+							} else {
+								listItems->removeRange_NoLock(indexMid, nItems - indexMid - i);
 							}
+							listItems->insert_NoLock(indexMid, itemEllipsis);
+							m_flagEnd = sl_true;
+							return;
 						}
 					}
 				}
+			}
 
-				void breakWord(TextWordItem* breakItem) noexcept
-				{
-					Ref<TextStyle> style = breakItem->getStyle();
-					if (style.isNull()) {
+			void breakWord(TextWordItem* breakItem) noexcept
+			{
+				Ref<TextStyle> style = breakItem->getStyle();
+				if (style.isNull()) {
+					return;
+				}
+
+				Ref<Font> font = style->font;
+				if (font.isNull()) {
+					return;
+				}
+
+				String16 text = breakItem->getText();
+				if (text.isEmpty()) {
+					return;
+				}
+
+				Ref<FontAtlas> atlas = font->getSharedAtlas();
+				if (atlas.isNull()) {
+					return;
+				}
+
+				ObjectLocker lockAtlas(atlas.get());
+
+				sl_char16* sz = text.getData();
+				sl_size len = text.getLength();
+
+				sl_real widthRemaining = m_layoutWidth - m_x;
+
+				Size size = atlas->getFontSize_NoLock(sz[0]);
+				sl_real x = size.x;
+				sl_real height = size.y;
+				sl_size startLine = 0;
+				sl_size pos = 1;
+
+				if (size.x > widthRemaining && m_x > 0) {
+					endLine();
+					widthRemaining = m_layoutWidth;
+					if (m_flagEnd) {
 						return;
 					}
+				}
 
-					Ref<Font> font = style->font;
-					if (font.isNull()) {
-						return;
-					}
-
-					String16 text = breakItem->getText();
-					if (text.isEmpty()) {
-						return;
-					}
-
-					Ref<FontAtlas> atlas = font->getSharedAtlas();
-					if (atlas.isNull()) {
-						return;
-					}
-
-					ObjectLocker lockAtlas(atlas.get());
-
-					sl_char16* sz = text.getData();
-					sl_size len = text.getLength();
-
-					sl_real widthRemaining = m_layoutWidth - m_x;
-
-					Size size = atlas->getFontSize_NoLock(sz[0]);
-					sl_real x = size.x;
-					sl_real height = size.y;
-					sl_size startLine = 0;
-					sl_size pos = 1;
-
-					if (size.x > widthRemaining && m_x > 0) {
+				while (pos < len) {
+					size = atlas->getFontSize_NoLock(sz[pos]);
+					if (pos > startLine && x + size.x > widthRemaining) {
+						Ref<TextWordItem> newItem = TextWordItem::create(String16(sz + startLine, pos - startLine), style);
+						if (newItem.isNotNull()) {
+							addLineItem(newItem.get(), Size(x, height));
+						}
+						startLine = pos;
 						endLine();
+						x = 0;
+						height = 0;
 						widthRemaining = m_layoutWidth;
 						if (m_flagEnd) {
 							return;
 						}
 					}
+					x += size.x;
+					if (size.y > height) {
+						height = size.y;
+					}
+					pos++;
+				}
+				if (len > startLine) {
+					Ref<TextWordItem> newItem = TextWordItem::create(String16(sz + startLine, len - startLine), style);
+					if (newItem.isNotNull()) {
+						addLineItem(newItem.get(), Size(x, height));
+					}
+				}
+			}
 
-					while (pos < len) {
-						size = atlas->getFontSize_NoLock(sz[pos]);
-						if (pos > startLine && x + size.x > widthRemaining) {
-							Ref<TextWordItem> newItem = TextWordItem::create(String16(sz + startLine, pos - startLine), style);
-							if (newItem.isNotNull()) {
-								addLineItem(newItem.get(), Size(x, height));
-							}
-							startLine = pos;
-							endLine();
-							x = 0;
-							height = 0;
-							widthRemaining = m_layoutWidth;
-							if (m_flagEnd) {
-								return;
-							}
-						}
+			sl_size processWords(Ref<TextItem>* items, sl_size nItems) noexcept
+			{
+				sl_real x = 0;
+				TextWordItem* lastWord = sl_null;
+
+				sl_size nWords = 0;
+				while (nWords < nItems) {
+					TextItem* item = items[nWords].get();
+					if (item->getType() == TextItemType::Word) {
+						lastWord = static_cast<TextWordItem*>(item);
+						Size size = lastWord->getSize();
+						lastWord->setLayoutSize(size);
 						x += size.x;
-						if (size.y > height) {
-							height = size.y;
-						}
-						pos++;
-					}
-					if (len > startLine) {
-						Ref<TextWordItem> newItem = TextWordItem::create(String16(sz + startLine, len - startLine), style);
-						if (newItem.isNotNull()) {
-							addLineItem(newItem.get(), Size(x, height));
-						}
-					}
-				}
-
-				sl_size processWords(Ref<TextItem>* items, sl_size nItems) noexcept
-				{
-					sl_real x = 0;
-					TextWordItem* lastWord = sl_null;
-
-					sl_size nWords = 0;
-					while (nWords < nItems) {
-						TextItem* item = items[nWords].get();
-						if (item->getType() == TextItemType::Word) {
-							lastWord = static_cast<TextWordItem*>(item);
-							Size size = lastWord->getSize();
-							lastWord->setLayoutSize(size);
-							x += size.x;
-							applyLineHeight(item, size.y);
-						} else {
-							break;
-						}
-						nWords++;
-					}
-					if (nWords == 0) {
-						return 0;
-					}
-
-					sl_bool flagBreakWord = sl_false;
-					if (m_x + x > m_layoutWidth) {
-						if (m_multiLineMode == MultiLineMode::WordWrap) {
-							if (m_lineItems.getCount() == 0) {
-								flagBreakWord = sl_true;
-							} else {
-								endLine();
-								if (lastWord) {
-									applyLineHeight(lastWord, lastWord->getSize().y);
-								}
-								if (x > m_layoutWidth) {
-									flagBreakWord = sl_true;
-								}
-								if (m_flagEnd) {
-									return nWords - 1;
-								}
-							}
-						} else if (m_multiLineMode == MultiLineMode::BreakWord) {
-							flagBreakWord = sl_true;
-						}
-					}
-
-					if (flagBreakWord) {
-						for (sl_size i = 0; i < nWords; i++) {
-							TextWordItem* item = static_cast<TextWordItem*>(items[i].get());
-							Size size = item->getLayoutSize();
-							if (m_x + size.x > m_layoutWidth) {
-								breakWord(item);
-								return i;
-							} else {
-								m_lineItems.add_NoLock(item);
-								m_x += size.x;
-								m_lineWidth = m_x;
-							}
-						}
+						applyLineHeight(item, size.y);
 					} else {
-						m_lineItems.addElements_NoLock(items, nWords);
-						m_x += x;
-						m_lineWidth = m_x;
+						break;
 					}
-					return nWords - 1;
+					nWords++;
+				}
+				if (nWords == 0) {
+					return 0;
 				}
 
-				void processJoinedChar(TextJoinedCharItem* item) noexcept
-				{
-					addLineItem(item, item->getSize());
-				}
-
-				void processSpace(TextSpaceItem* item) noexcept
-				{
-					addLineItem(item, item->getSize());
-				}
-
-				void processTab(TextTabItem* item) noexcept
-				{
-					sl_real tabX = m_x + m_tabMargin;
-					tabX = (Math::floor(tabX / m_tabWidth) + 1) * m_tabWidth;
-					sl_real h = item->getHeight();
-					addLineItem(item, Size(tabX - m_x, h));
-				}
-
-				void processLineBreak(TextLineBreakItem* item) noexcept
-				{
-					sl_real h = item->getHeight();
-					addLineItem(item, Size(h / 2, h), sl_false);
-					endLine();
-					item->setLayoutPosition(Point(m_x, m_y));
-				}
-
-				void processAttach(TextAttachItem* item) noexcept
-				{
-					addLineItem(item, item->getSize());
-				}
-
-				void addLineItem(TextItem* item, const Size& size, sl_bool flagAdvancePosition = sl_true)
-				{
-					applyLineHeight(item, size.y);
-					item->setLayoutSize(size);
-					m_lineItems.add_NoLock(item);
-					if (flagAdvancePosition) {
-						m_x += size.x;
+				sl_bool flagBreakWord = sl_false;
+				if (m_x + x > m_layoutWidth) {
+					if (m_multiLineMode == MultiLineMode::WordWrap) {
+						if (m_lineItems.getCount() == 0) {
+							flagBreakWord = sl_true;
+						} else {
+							endLine();
+							if (lastWord) {
+								applyLineHeight(lastWord, lastWord->getSize().y);
+							}
+							if (x > m_layoutWidth) {
+								flagBreakWord = sl_true;
+							}
+							if (m_flagEnd) {
+								return nWords - 1;
+							}
+						}
+					} else if (m_multiLineMode == MultiLineMode::BreakWord) {
+						flagBreakWord = sl_true;
 					}
+				}
+
+				if (flagBreakWord) {
+					for (sl_size i = 0; i < nWords; i++) {
+						TextWordItem* item = static_cast<TextWordItem*>(items[i].get());
+						Size size = item->getLayoutSize();
+						if (m_x + size.x > m_layoutWidth) {
+							breakWord(item);
+							return i;
+						} else {
+							m_lineItems.add_NoLock(item);
+							m_x += size.x;
+							m_lineWidth = m_x;
+						}
+					}
+				} else {
+					m_lineItems.addElements_NoLock(items, nWords);
+					m_x += x;
 					m_lineWidth = m_x;
 				}
+				return nWords - 1;
+			}
 
-				void applyLineHeight(TextItem* item, sl_real height)
-				{
-					sl_real lineHeight = height;
-					Ref<TextStyle> style = item->getStyle();
-					if (style.isNotNull()) {
-						if (style->lineHeight >= 0) {
-							lineHeight = style->lineHeight;
-						}
-					}
-					if (lineHeight > m_lineHeight) {
-						m_lineHeight = lineHeight;
+			void processJoinedChar(TextJoinedCharItem* item) noexcept
+			{
+				addLineItem(item, item->getSize());
+			}
+
+			void processSpace(TextSpaceItem* item) noexcept
+			{
+				addLineItem(item, item->getSize());
+			}
+
+			void processTab(TextTabItem* item) noexcept
+			{
+				sl_real tabX = m_x + m_tabMargin;
+				tabX = (Math::floor(tabX / m_tabWidth) + 1) * m_tabWidth;
+				sl_real h = item->getHeight();
+				addLineItem(item, Size(tabX - m_x, h));
+			}
+
+			void processLineBreak(TextLineBreakItem* item) noexcept
+			{
+				sl_real h = item->getHeight();
+				addLineItem(item, Size(h / 2, h), sl_false);
+				endLine();
+				item->setLayoutPosition(Point(m_x, m_y));
+			}
+
+			void processAttach(TextAttachItem* item) noexcept
+			{
+				addLineItem(item, item->getSize());
+			}
+
+			void addLineItem(TextItem* item, const Size& size, sl_bool flagAdvancePosition = sl_true)
+			{
+				applyLineHeight(item, size.y);
+				item->setLayoutSize(size);
+				m_lineItems.add_NoLock(item);
+				if (flagAdvancePosition) {
+					m_x += size.x;
+				}
+				m_lineWidth = m_x;
+			}
+
+			void applyLineHeight(TextItem* item, sl_real height)
+			{
+				sl_real lineHeight = height;
+				Ref<TextStyle> style = item->getStyle();
+				if (style.isNotNull()) {
+					if (style->lineHeight >= 0) {
+						lineHeight = style->lineHeight;
 					}
 				}
+				if (lineHeight > m_lineHeight) {
+					m_lineHeight = lineHeight;
+				}
+			}
 
-				void layout(CList< Ref<TextItem> >* list) noexcept
-				{
-					sl_size n = list->getCount();
-					Ref<TextItem>* items = list->getData();
+			void layout(CList< Ref<TextItem> >* list) noexcept
+			{
+				sl_size n = list->getCount();
+				Ref<TextItem>* items = list->getData();
 
-					for (sl_size i = 0; i < n; i++) {
+				for (sl_size i = 0; i < n; i++) {
 
-						TextItem* item = items[i].get();
+					TextItem* item = items[i].get();
 
-						TextItemType type = item->getType();
+					TextItemType type = item->getType();
 
-						switch (type) {
+					switch (type) {
 
-							case TextItemType::Word:
-								i += processWords(items + i, n - i);
-								break;
-
-							case TextItemType::JoinedChar:
-								processJoinedChar(static_cast<TextJoinedCharItem*>(item));
-								break;
-
-							case TextItemType::Space:
-								processSpace(static_cast<TextSpaceItem*>(item));
-								break;
-
-							case TextItemType::Tab:
-								processTab(static_cast<TextTabItem*>(item));
-								break;
-
-							case TextItemType::LineBreak:
-								processLineBreak(static_cast<TextLineBreakItem*>(item));
-								break;
-
-							case TextItemType::Attach:
-								processAttach(static_cast<TextAttachItem*>(item));
-								break;
-						}
-
-						if (m_flagEnd) {
+						case TextItemType::Word:
+							i += processWords(items + i, n - i);
 							break;
-						}
+
+						case TextItemType::JoinedChar:
+							processJoinedChar(static_cast<TextJoinedCharItem*>(item));
+							break;
+
+						case TextItemType::Space:
+							processSpace(static_cast<TextSpaceItem*>(item));
+							break;
+
+						case TextItemType::Tab:
+							processTab(static_cast<TextTabItem*>(item));
+							break;
+
+						case TextItemType::LineBreak:
+							processLineBreak(static_cast<TextLineBreakItem*>(item));
+							break;
+
+						case TextItemType::Attach:
+							processAttach(static_cast<TextAttachItem*>(item));
+							break;
 					}
 
-					m_lineWidth = m_x;
-					endLine();
-
+					if (m_flagEnd) {
+						break;
+					}
 				}
 
-			};
-		}
+				m_lineWidth = m_x;
+				endLine();
+
+			}
+
+		};
 	}
 
 	void TextParagraph::layout(const TextParagraphLayoutParam& param) noexcept
@@ -1764,8 +1752,7 @@ namespace slib
 			}
 		}
 
-		priv::text_paragraph::Layouter layouter(&m_layoutItems, param);
-
+		Layouter layouter(&m_layoutItems, param);
 		layouter.layout(&m_items);
 
 		m_align = param.align;
@@ -1929,33 +1916,29 @@ namespace slib
 		return m_positionLength;
 	}
 
-	namespace priv
-	{
-		namespace text_paragraph
-		{
-			static Color g_defaultLinkColor = Color::Blue;
-			static sl_bool g_defaultLinkUnderline = sl_true;
-		}
+	namespace {
+		static Color g_defaultLinkColor = Color::Blue;
+		static sl_bool g_defaultLinkUnderline = sl_true;
 	}
 
 	const Color& TextParagraph::getDefaultLinkColor()
 	{
-		return priv::text_paragraph::g_defaultLinkColor;
+		return g_defaultLinkColor;
 	}
 
 	void TextParagraph::setDefaultLinkColor(const Color& color)
 	{
-		priv::text_paragraph::g_defaultLinkColor = color;
+		g_defaultLinkColor = color;
 	}
 
 	sl_bool TextParagraph::isDefaultLinkUnderline()
 	{
-		return priv::text_paragraph::g_defaultLinkUnderline;
+		return g_defaultLinkUnderline;
 	}
 
 	void TextParagraph::setDefaultLinkUnderline(sl_bool flag)
 	{
-		priv::text_paragraph::g_defaultLinkUnderline = flag;
+		g_defaultLinkUnderline = flag;
 	}
 
 

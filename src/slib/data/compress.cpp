@@ -27,69 +27,8 @@
 
 #define DEFAULT_STACK_SIZE 4096
 
-#define PREPARE_CHUNK(BUF_NAME, SIZE_NAME, SIZE) \
-	char* BUF_NAME; \
-	sl_size SIZE_NAME = SIZE; \
-	char stack__##BUF_NAME[DEFAULT_STACK_SIZE]; \
-	Memory mem__##BUF_NAME = Memory::create(SIZE_NAME); \
-	if (mem__##BUF_NAME.isNotNull()) { \
-		BUF_NAME = (char*)(mem__##BUF_NAME.getData()); \
-	} else { \
-		BUF_NAME = stack__##BUF_NAME; \
-		SIZE_NAME = DEFAULT_STACK_SIZE; \
-	}
-
 namespace slib
 {
-
-	namespace priv
-	{
-		namespace compress
-		{
-
-			static DataConvertResult Pass(IDataConverter* converter, const void* input, sl_size size, MemoryBuffer& output, void* chunk, sl_size sizeChunk)
-			{
-				for (;;) {
-					sl_size sizeInputPassed;
-					sl_size sizeOutputUsed;
-					DataConvertResult result = converter->pass(input, size, sizeInputPassed, chunk, sizeChunk, sizeOutputUsed);
-					input = (char*)input + sizeInputPassed;
-					size -= sizeInputPassed;
-					if (sizeOutputUsed) {
-						if (!(output.addNew(chunk, sizeOutputUsed))) {
-							return DataConvertResult::Error;
-						}
-					}
-					if (result != DataConvertResult::Continue) {
-						return result;
-					}
-					if (!size) {
-						break;
-					}
-				}
-				return DataConvertResult::Continue;
-			}
-
-			static DataConvertResult Finish(IDataConverter* converter, MemoryBuffer& output, void* chunk, sl_size sizeChunk)
-			{
-				for (;;) {
-					sl_size sizeOutputUsed;
-					DataConvertResult result = converter->finish(chunk, sizeChunk, sizeOutputUsed);
-					if (sizeOutputUsed) {
-						if (!(output.addNew(chunk, sizeOutputUsed))) {
-							return DataConvertResult::Error;
-						}
-					}
-					if (result != DataConvertResult::Continue) {
-						return result;
-					}
-				}
-			}
-
-		}
-	}
-
-	using namespace priv::compress;
 
 	DataConvertResult IDataConverter::pass(const void* input, sl_size sizeInputAvailable, sl_size& sizeInputPassed,
 		void* output, sl_size sizeOutputAvailable, sl_size& sizeOutputUsed)
@@ -174,6 +113,61 @@ namespace slib
 	sl_size IDataConverter::getRecommendedOutputSize()
 	{
 		return 0x20000;
+	}
+
+	namespace {
+
+		static DataConvertResult Pass(IDataConverter* converter, const void* input, sl_size size, MemoryBuffer& output, void* chunk, sl_size sizeChunk)
+		{
+			for (;;) {
+				sl_size sizeInputPassed;
+				sl_size sizeOutputUsed;
+				DataConvertResult result = converter->pass(input, size, sizeInputPassed, chunk, sizeChunk, sizeOutputUsed);
+				input = (char*)input + sizeInputPassed;
+				size -= sizeInputPassed;
+				if (sizeOutputUsed) {
+					if (!(output.addNew(chunk, sizeOutputUsed))) {
+						return DataConvertResult::Error;
+					}
+				}
+				if (result != DataConvertResult::Continue) {
+					return result;
+				}
+				if (!size) {
+					break;
+				}
+			}
+			return DataConvertResult::Continue;
+		}
+
+		static DataConvertResult Finish(IDataConverter* converter, MemoryBuffer& output, void* chunk, sl_size sizeChunk)
+		{
+			for (;;) {
+				sl_size sizeOutputUsed;
+				DataConvertResult result = converter->finish(chunk, sizeChunk, sizeOutputUsed);
+				if (sizeOutputUsed) {
+					if (!(output.addNew(chunk, sizeOutputUsed))) {
+						return DataConvertResult::Error;
+					}
+				}
+				if (result != DataConvertResult::Continue) {
+					return result;
+				}
+			}
+		}
+
+	}
+
+#define PREPARE_CHUNK(BUF_NAME, SIZE_NAME, SIZE) \
+	char* BUF_NAME; \
+	sl_size SIZE_NAME = SIZE; \
+	char stack__##BUF_NAME[DEFAULT_STACK_SIZE]; \
+	Memory mem__##BUF_NAME = Memory::create(SIZE_NAME); \
+	if (mem__##BUF_NAME.isNotNull()) { \
+		BUF_NAME = (char*)(mem__##BUF_NAME.getData()); \
+	} else { \
+		BUF_NAME = stack__##BUF_NAME; \
+		SIZE_NAME = DEFAULT_STACK_SIZE; \
 	}
 
 	DataConvertResult IDataConverter::pass(const void* input, sl_size size, MemoryBuffer& output)

@@ -43,406 +43,108 @@ namespace slib
 	{
 		namespace variant
 		{
-
 			const ConstContainer g_undefined = {0, {0}, VariantType::Null, 0};
 			const ConstContainer g_null = {1, {0}, VariantType::Null, 0};
-
-			SLIB_INLINE static void CopyBytes16(void* _dst, const void* _src)
-			{
-				sl_uint64* dst = (sl_uint64*)_dst;
-				const sl_uint64* src = (const sl_uint64*)_src;
-				*(dst++) = *(src++);
-				*dst = *src;
-			}
-
-			SLIB_INLINE static void CopyBytes12(Variant& dst, const void* src)
-			{
-				dst._value = *((const sl_uint64*)src);
-				dst._value2 = *(((const sl_uint32*)src) + 2);
-			}
-
-			SLIB_INLINE static void ZeroBytes12(void* dst)
-			{
-				*((sl_uint64*)dst) = 0;
-				*((sl_uint32*)dst + 2) = 0;
-			}
-
-			SLIB_INLINE static sl_bool IsReferable(sl_uint8 type)
-			{
-				return type >= VariantType::Referable;
-			}
-
-			SLIB_INLINE static sl_bool IsStringType(sl_uint8 type)
-			{
-				return type >= VariantType::String8 && type <= VariantType::StringData32;
-			}
-
-			SLIB_INLINE static sl_bool IsStringViewType(sl_uint8 type)
-			{
-				return type >= VariantType::Sz8 && type <= VariantType::StringData32;
-			}
-
-			SLIB_INLINE static void Init(Variant& var, sl_uint8 type)
-			{
-				var._tag = 0;
-				var._type = type;
-			}
-
-			static void Copy(Variant& dst, const Variant& src) noexcept
-			{
-				dst._tag = src._tag;
-				sl_uint8 type = src._type;
-				dst._type = type;
-				switch (type) {
-					case VariantType::String8:
-						new PTR_VAR(String, dst._value) String(REF_VAR(String, src._value));
-						break;
-					case VariantType::String16:
-						new PTR_VAR(String16, dst._value) String16(REF_VAR(String16, src._value));
-						break;
-					case VariantType::String32:
-						new PTR_VAR(String32, dst._value) String32(REF_VAR(String32, src._value));
-						break;
-					case VariantType::ObjectId:
-					case VariantType::StringData8:
-					case VariantType::StringData16:
-					case VariantType::StringData32:
-						dst._value = src._value;
-						dst._value2 = src._value2;
-						break;
-					default:
-						if (IsReferable(type)) {
-							new PTR_VAR(Ref<Referable>, dst._value) Ref<Referable>(REF_VAR(Ref<Referable>, src._value));
-						} else {
-							dst._value = src._value;
-						}
-						break;
-				}
-			}
-
-			static void Free(sl_uint8 type, sl_uint64 value) noexcept
-			{
-				switch (type)
-				{
-					case VariantType::String8:
-						REF_VAR(String, value).String::~String();
-						break;
-					case VariantType::String16:
-						REF_VAR(String16, value).String16::~String16();
-						break;
-					case VariantType::String32:
-						REF_VAR(String32, value).String32::~String32();
-						break;
-					default:
-						if (IsReferable(type)) {
-							REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
-						}
-						break;
-				}
-			}
-
-			template <class T, sl_uint8 type>
-			static sl_bool IsObject(const Variant& v)
-			{
-				if (v._type == type) {
-					return sl_true;
-				}
-				if (v._type == VariantType::Weak) {
-					Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
-					if (ref.isNotNull()) {
-						return IsInstanceOf<T>(ref);
-					}
-				} else if (IsReferable(v._type)) {
-					return IsInstanceOf<T>(REF_VAR(Ref<Referable> const, v._value));
-				}
-				return sl_false;
-			}
-
-			template <class T, class OT, sl_uint8 type>
-			static OT GetObjectT(const Variant& v)
-			{
-				if (v._type == type) {
-					return REF_VAR(OT, v._value);
-				}
-				if (v._type == VariantType::Weak) {
-					Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
-					if (IsInstanceOf<T>(ref)) {
-						return REF_VAR(OT, ref);
-					}
-				} else if (IsReferable(v._type)) {
-					if (IsInstanceOf<T>(REF_VAR(Referable*, v._value))) {
-						return REF_VAR(OT, v._value);
-					}
-				}
-				return OT();
-			}
-
-#define GET_COLLECTION(v) GetObjectT<Collection, Ref<Collection>, VariantType::Collection>(v)
-#define GET_OBJECT(v) GetObjectT<Object, Ref<Object>, VariantType::Object>(v)
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_int32* _out) noexcept
-			{
-				return str.parseInt32(_out);
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_uint32* _out) noexcept
-			{
-				return str.parseUint32(_out);
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_int64* _out) noexcept
-			{
-				return str.parseInt64(_out);
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_uint64* _out) noexcept
-			{
-				return str.parseUint64(_out);
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool ParseNumber(const STRING& str, float* _out) noexcept
-			{
-				return str.parseFloat(_out);
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool ParseNumber(const STRING& str, double* _out) noexcept
-			{
-				return str.parseDouble(_out);
-			}
-
-			template <class NUMBER>
-			SLIB_INLINE static void GetNumberFromTime(const Time& t, NUMBER& _out) noexcept
-			{
-				_out = (NUMBER)(t.toUnixTime());
-			}
-
-			template <>
-			SLIB_INLINE void GetNumberFromTime<float>(const Time& t, float& _out) noexcept
-			{
-				_out = (float)(t.toUnixTimef());
-			}
-
-			template <>
-			SLIB_INLINE void GetNumberFromTime<double>(const Time& t, double& _out) noexcept
-			{
-				_out = t.toUnixTimef();
-			}
-
-			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_int32& _out) noexcept
-			{
-				_out = n.getInt32();
-			}
-
-			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_uint32& _out) noexcept
-			{
-				_out = n.getUint32();
-			}
-
-			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_int64& _out) noexcept
-			{
-				_out = n.getInt64();
-			}
-
-			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_uint64& _out) noexcept
-			{
-				_out = n.getUint64();
-			}
-
-			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, float& _out) noexcept
-			{
-				_out = n.getFloat();
-			}
-
-			SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, double& _out) noexcept
-			{
-				_out = n.getDouble();
-			}
-
-			template <class NUMBER>
-			static sl_bool GetNumber(const Variant& var, NUMBER* _out) noexcept
-			{
-				switch (var._type) {
-					case VariantType::Int32:
-						if (_out) {
-							*_out = (NUMBER)(REF_VAR(sl_int32 const, var._value));
-						}
-						return sl_true;
-					case VariantType::Uint32:
-						if (_out) {
-							*_out = (NUMBER)(REF_VAR(sl_uint32 const, var._value));
-						}
-						return sl_true;
-					case VariantType::Int64:
-						if (_out) {
-							*_out = (NUMBER)(REF_VAR(sl_int64 const, var._value));
-						}
-						return sl_true;
-					case VariantType::Uint64:
-						if (_out) {
-							*_out = (NUMBER)(REF_VAR(sl_uint64 const, var._value));
-						}
-						return sl_true;
-					case VariantType::Float:
-						if (_out) {
-							*_out = (NUMBER)(REF_VAR(float const, var._value));
-						}
-						return sl_true;
-					case VariantType::Double:
-						if (_out) {
-							*_out = (NUMBER)(REF_VAR(double const, var._value));
-						}
-						return sl_true;
-					case VariantType::Boolean:
-						if (_out) {
-							*_out = (REF_VAR(sl_bool const, var._value)) ? (NUMBER)1 : (NUMBER)0;
-						}
-						return sl_true;
-					case VariantType::String8:
-						return ParseNumber(REF_VAR(String const, var._value), _out);
-					case VariantType::String16:
-						return ParseNumber(REF_VAR(String16 const, var._value), _out);
-					case VariantType::String32:
-						return ParseNumber(REF_VAR(String32 const, var._value), _out);
-					case VariantType::Sz8:
-						return ParseNumber(StringView(REF_VAR(sl_char8 const* const, var._value)), _out);
-					case VariantType::Sz16:
-						return ParseNumber(StringView16(REF_VAR(sl_char16 const* const, var._value)), _out);
-					case VariantType::Sz32:
-						return ParseNumber(StringView32(REF_VAR(sl_char32 const* const, var._value)), _out);
-					case VariantType::StringData8:
-						return ParseNumber(StringView(REF_VAR(sl_char8 const* const, var._value), var._value2), _out);
-					case VariantType::StringData16:
-						return ParseNumber(StringView16(REF_VAR(sl_char16 const* const, var._value), var._value2), _out);
-					case VariantType::StringData32:
-						return ParseNumber(StringView32(REF_VAR(sl_char32 const* const, var._value), var._value2), _out);
-					case VariantType::Pointer:
-						if (_out) {
-							*_out = (NUMBER)(REF_VAR(const sl_size, var._value));
-						}
-						return sl_true;
-					case VariantType::Time:
-						if (_out) {
-							GetNumberFromTime(REF_VAR(Time const, var._value), *_out);
-						}
-						return sl_true;
-					case VariantType::BigInt:
-						if (_out) {
-							GetNumberFromBigInt(REF_VAR(BigInt const, var._value), *_out);
-						}
-						return sl_true;
-					default:
-						break;
-				}
-				return sl_false;
-			}
-
-			template <class STRING>
-			static STRING GetStringFromBoolean(sl_bool flag) noexcept;
-
-			template <>
-			String GetStringFromBoolean<String>(sl_bool flag) noexcept
-			{
-				if (flag) {
-					SLIB_RETURN_STRING("true")
-				} else {
-					SLIB_RETURN_STRING("false")
-				}
-			}
-
-			template <>
-			String16 GetStringFromBoolean<String16>(sl_bool flag) noexcept
-			{
-				if (flag) {
-					SLIB_RETURN_STRING16("true")
-				} else {
-					SLIB_RETURN_STRING16("false")
-				}
-			}
-
-			template <>
-			String32 GetStringFromBoolean<String32>(sl_bool flag) noexcept
-			{
-				if (flag) {
-					SLIB_RETURN_STRING32("true")
-				} else {
-					SLIB_RETURN_STRING32("false")
-				}
-			}
-
-			template <class STRING>
-			static STRING GetString(const Variant& var, const STRING& def) noexcept
-			{
-				switch (var._type) {
-					case VariantType::Int32:
-						return STRING::fromInt32(REF_VAR(sl_int32 const, var._value));
-					case VariantType::Uint32:
-						return STRING::fromUint32(REF_VAR(sl_uint32 const, var._value));
-					case VariantType::Int64:
-						return STRING::fromInt64(REF_VAR(sl_int64 const, var._value));
-					case VariantType::Uint64:
-						return STRING::fromUint64(REF_VAR(sl_uint64 const, var._value));
-					case VariantType::Float:
-						return STRING::fromFloat(REF_VAR(float const, var._value));
-					case VariantType::Double:
-						return STRING::fromDouble(REF_VAR(double const, var._value));
-					case VariantType::Boolean:
-						return GetStringFromBoolean<STRING>(REF_VAR(sl_bool const, var._value));
-					case VariantType::Time:
-						return STRING::from(REF_VAR(Time const, var._value).toString());
-					case VariantType::String8:
-						return STRING::from(REF_VAR(String const, var._value));
-					case VariantType::String16:
-						return STRING::from(REF_VAR(String16 const, var._value));
-					case VariantType::String32:
-						return STRING::from(REF_VAR(String32 const, var._value));
-					case VariantType::Sz8:
-						return STRING::create(REF_VAR(sl_char8 const* const, var._value));
-					case VariantType::Sz16:
-						return STRING::create(REF_VAR(sl_char16 const* const, var._value));
-					case VariantType::Sz32:
-						return STRING::create(REF_VAR(sl_char32 const* const, var._value));
-					case VariantType::StringData8:
-						return STRING::create(REF_VAR(sl_char8 const* const, var._value), var._value2);
-					case VariantType::StringData16:
-						return STRING::create(REF_VAR(sl_char16 const* const, var._value), var._value2);
-					case VariantType::StringData32:
-						return STRING::create(REF_VAR(sl_char32 const* const, var._value), var._value2);
-					case VariantType::Pointer:
-						{
-							typename STRING::Char ch = '#';
-							return typename STRING::StringViewType(&ch, 1) + STRING::fromPointerValue(REF_VAR(void const* const, var._value));
-						}
-					case VariantType::ObjectId:
-						{
-							ObjectId& _id = REF_VAR(ObjectId, var._value);
-							return STRING::makeHexString(_id.data, sizeof(ObjectId));
-						}
-					case VariantType::Null:
-						if (var._value) {
-							return sl_null;
-						}
-						break;
-					default:
-						if (var.isMemory()) {
-							return STRING::fromMemory(REF_VAR(Memory, var._value));
-						} else if (var.isBigInt()) {
-							return STRING::from(REF_VAR(BigInt, var._value).toString());
-						}
-						break;
-				}
-				return def;
-			}
-
 		}
 	}
 
-	using namespace priv::variant;
+	namespace {
+
+		SLIB_INLINE static void CopyBytes16(void* _dst, const void* _src)
+		{
+			sl_uint64* dst = (sl_uint64*)_dst;
+			const sl_uint64* src = (const sl_uint64*)_src;
+			*(dst++) = *(src++);
+			*dst = *src;
+		}
+
+		SLIB_INLINE static void CopyBytes12(Variant& dst, const void* src)
+		{
+			dst._value = *((const sl_uint64*)src);
+			dst._value2 = *(((const sl_uint32*)src) + 2);
+		}
+
+		SLIB_INLINE static void ZeroBytes12(void* dst)
+		{
+			*((sl_uint64*)dst) = 0;
+			*((sl_uint32*)dst + 2) = 0;
+		}
+
+		SLIB_INLINE static sl_bool IsReferable(sl_uint8 type)
+		{
+			return type >= VariantType::Referable;
+		}
+
+		SLIB_INLINE static sl_bool IsStringType(sl_uint8 type)
+		{
+			return type >= VariantType::String8 && type <= VariantType::StringData32;
+		}
+
+		SLIB_INLINE static sl_bool IsStringViewType(sl_uint8 type)
+		{
+			return type >= VariantType::Sz8 && type <= VariantType::StringData32;
+		}
+
+		SLIB_INLINE static void Init(Variant& var, sl_uint8 type)
+		{
+			var._tag = 0;
+			var._type = type;
+		}
+
+		static void Copy(Variant& dst, const Variant& src) noexcept
+		{
+			dst._tag = src._tag;
+			sl_uint8 type = src._type;
+			dst._type = type;
+			switch (type) {
+				case VariantType::String8:
+					new PTR_VAR(String, dst._value) String(REF_VAR(String, src._value));
+					break;
+				case VariantType::String16:
+					new PTR_VAR(String16, dst._value) String16(REF_VAR(String16, src._value));
+					break;
+				case VariantType::String32:
+					new PTR_VAR(String32, dst._value) String32(REF_VAR(String32, src._value));
+					break;
+				case VariantType::ObjectId:
+				case VariantType::StringData8:
+				case VariantType::StringData16:
+				case VariantType::StringData32:
+					dst._value = src._value;
+					dst._value2 = src._value2;
+					break;
+				default:
+					if (IsReferable(type)) {
+						new PTR_VAR(Ref<Referable>, dst._value) Ref<Referable>(REF_VAR(Ref<Referable>, src._value));
+					} else {
+						dst._value = src._value;
+					}
+					break;
+			}
+		}
+
+		static void Free(sl_uint8 type, sl_uint64 value) noexcept
+		{
+			switch (type)
+			{
+				case VariantType::String8:
+					REF_VAR(String, value).String::~String();
+					break;
+				case VariantType::String16:
+					REF_VAR(String16, value).String16::~String16();
+					break;
+				case VariantType::String32:
+					REF_VAR(String32, value).String32::~String32();
+					break;
+				default:
+					if (IsReferable(type)) {
+						REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
+					}
+					break;
+			}
+		}
+
+	}
 
 	void Variant::_assign(const Variant& other) noexcept
 	{
@@ -1635,6 +1337,172 @@ namespace slib
 		_value = 1;
 	}
 
+	namespace {
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_int32* _out) noexcept
+		{
+			return str.parseInt32(_out);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_uint32* _out) noexcept
+		{
+			return str.parseUint32(_out);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_int64* _out) noexcept
+		{
+			return str.parseInt64(_out);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool ParseNumber(const STRING& str, sl_uint64* _out) noexcept
+		{
+			return str.parseUint64(_out);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool ParseNumber(const STRING& str, float* _out) noexcept
+		{
+			return str.parseFloat(_out);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool ParseNumber(const STRING& str, double* _out) noexcept
+		{
+			return str.parseDouble(_out);
+		}
+
+		template <class NUMBER>
+		SLIB_INLINE static void GetNumberFromTime(const Time& t, NUMBER& _out) noexcept
+		{
+			_out = (NUMBER)(t.toUnixTime());
+		}
+
+		template <>
+		SLIB_INLINE void GetNumberFromTime<float>(const Time& t, float& _out) noexcept
+		{
+			_out = (float)(t.toUnixTimef());
+		}
+
+		template <>
+		SLIB_INLINE void GetNumberFromTime<double>(const Time& t, double& _out) noexcept
+		{
+			_out = t.toUnixTimef();
+		}
+
+		SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_int32& _out) noexcept
+		{
+			_out = n.getInt32();
+		}
+
+		SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_uint32& _out) noexcept
+		{
+			_out = n.getUint32();
+		}
+
+		SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_int64& _out) noexcept
+		{
+			_out = n.getInt64();
+		}
+
+		SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_uint64& _out) noexcept
+		{
+			_out = n.getUint64();
+		}
+
+		SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, float& _out) noexcept
+		{
+			_out = n.getFloat();
+		}
+
+		SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, double& _out) noexcept
+		{
+			_out = n.getDouble();
+		}
+
+		template <class NUMBER>
+		static sl_bool GetNumber(const Variant& var, NUMBER* _out) noexcept
+		{
+			switch (var._type) {
+				case VariantType::Int32:
+					if (_out) {
+						*_out = (NUMBER)(REF_VAR(sl_int32 const, var._value));
+					}
+					return sl_true;
+				case VariantType::Uint32:
+					if (_out) {
+						*_out = (NUMBER)(REF_VAR(sl_uint32 const, var._value));
+					}
+					return sl_true;
+				case VariantType::Int64:
+					if (_out) {
+						*_out = (NUMBER)(REF_VAR(sl_int64 const, var._value));
+					}
+					return sl_true;
+				case VariantType::Uint64:
+					if (_out) {
+						*_out = (NUMBER)(REF_VAR(sl_uint64 const, var._value));
+					}
+					return sl_true;
+				case VariantType::Float:
+					if (_out) {
+						*_out = (NUMBER)(REF_VAR(float const, var._value));
+					}
+					return sl_true;
+				case VariantType::Double:
+					if (_out) {
+						*_out = (NUMBER)(REF_VAR(double const, var._value));
+					}
+					return sl_true;
+				case VariantType::Boolean:
+					if (_out) {
+						*_out = (REF_VAR(sl_bool const, var._value)) ? (NUMBER)1 : (NUMBER)0;
+					}
+					return sl_true;
+				case VariantType::String8:
+					return ParseNumber(REF_VAR(String const, var._value), _out);
+				case VariantType::String16:
+					return ParseNumber(REF_VAR(String16 const, var._value), _out);
+				case VariantType::String32:
+					return ParseNumber(REF_VAR(String32 const, var._value), _out);
+				case VariantType::Sz8:
+					return ParseNumber(StringView(REF_VAR(sl_char8 const* const, var._value)), _out);
+				case VariantType::Sz16:
+					return ParseNumber(StringView16(REF_VAR(sl_char16 const* const, var._value)), _out);
+				case VariantType::Sz32:
+					return ParseNumber(StringView32(REF_VAR(sl_char32 const* const, var._value)), _out);
+				case VariantType::StringData8:
+					return ParseNumber(StringView(REF_VAR(sl_char8 const* const, var._value), var._value2), _out);
+				case VariantType::StringData16:
+					return ParseNumber(StringView16(REF_VAR(sl_char16 const* const, var._value), var._value2), _out);
+				case VariantType::StringData32:
+					return ParseNumber(StringView32(REF_VAR(sl_char32 const* const, var._value), var._value2), _out);
+				case VariantType::Pointer:
+					if (_out) {
+						*_out = (NUMBER)(REF_VAR(const sl_size, var._value));
+					}
+					return sl_true;
+				case VariantType::Time:
+					if (_out) {
+						GetNumberFromTime(REF_VAR(Time const, var._value), *_out);
+					}
+					return sl_true;
+				case VariantType::BigInt:
+					if (_out) {
+						GetNumberFromBigInt(REF_VAR(BigInt const, var._value), *_out);
+					}
+					return sl_true;
+				default:
+					break;
+			}
+			return sl_false;
+		}
+
+	}
+
 	sl_bool Variant::isInt32() const noexcept
 	{
 		return _type == VariantType::Int32;
@@ -1971,6 +1839,107 @@ namespace slib
 	sl_bool Variant::isSz32() const noexcept
 	{
 		return _type == VariantType::Sz32;
+	}
+
+	namespace {
+
+		template <class STRING>
+		static STRING GetStringFromBoolean(sl_bool flag) noexcept;
+
+		template <>
+		String GetStringFromBoolean<String>(sl_bool flag) noexcept
+		{
+			if (flag) {
+				SLIB_RETURN_STRING("true")
+			} else {
+				SLIB_RETURN_STRING("false")
+			}
+		}
+
+		template <>
+		String16 GetStringFromBoolean<String16>(sl_bool flag) noexcept
+		{
+			if (flag) {
+				SLIB_RETURN_STRING16("true")
+			} else {
+				SLIB_RETURN_STRING16("false")
+			}
+		}
+
+		template <>
+		String32 GetStringFromBoolean<String32>(sl_bool flag) noexcept
+		{
+			if (flag) {
+				SLIB_RETURN_STRING32("true")
+			} else {
+				SLIB_RETURN_STRING32("false")
+			}
+		}
+
+		template <class STRING>
+		static STRING GetString(const Variant& var, const STRING& def) noexcept
+		{
+			switch (var._type) {
+				case VariantType::Int32:
+					return STRING::fromInt32(REF_VAR(sl_int32 const, var._value));
+				case VariantType::Uint32:
+					return STRING::fromUint32(REF_VAR(sl_uint32 const, var._value));
+				case VariantType::Int64:
+					return STRING::fromInt64(REF_VAR(sl_int64 const, var._value));
+				case VariantType::Uint64:
+					return STRING::fromUint64(REF_VAR(sl_uint64 const, var._value));
+				case VariantType::Float:
+					return STRING::fromFloat(REF_VAR(float const, var._value));
+				case VariantType::Double:
+					return STRING::fromDouble(REF_VAR(double const, var._value));
+				case VariantType::Boolean:
+					return GetStringFromBoolean<STRING>(REF_VAR(sl_bool const, var._value));
+				case VariantType::Time:
+					return STRING::from(REF_VAR(Time const, var._value).toString());
+				case VariantType::String8:
+					return STRING::from(REF_VAR(String const, var._value));
+				case VariantType::String16:
+					return STRING::from(REF_VAR(String16 const, var._value));
+				case VariantType::String32:
+					return STRING::from(REF_VAR(String32 const, var._value));
+				case VariantType::Sz8:
+					return STRING::create(REF_VAR(sl_char8 const* const, var._value));
+				case VariantType::Sz16:
+					return STRING::create(REF_VAR(sl_char16 const* const, var._value));
+				case VariantType::Sz32:
+					return STRING::create(REF_VAR(sl_char32 const* const, var._value));
+				case VariantType::StringData8:
+					return STRING::create(REF_VAR(sl_char8 const* const, var._value), var._value2);
+				case VariantType::StringData16:
+					return STRING::create(REF_VAR(sl_char16 const* const, var._value), var._value2);
+				case VariantType::StringData32:
+					return STRING::create(REF_VAR(sl_char32 const* const, var._value), var._value2);
+				case VariantType::Pointer:
+					{
+						typename STRING::Char ch = '#';
+						return typename STRING::StringViewType(&ch, 1) + STRING::fromPointerValue(REF_VAR(void const* const, var._value));
+					}
+				case VariantType::ObjectId:
+					{
+						ObjectId& _id = REF_VAR(ObjectId, var._value);
+						return STRING::makeHexString(_id.data, sizeof(ObjectId));
+					}
+				case VariantType::Null:
+					if (var._value) {
+						return sl_null;
+					}
+					break;
+				default:
+					if (var.isMemory()) {
+						return STRING::fromMemory(REF_VAR(Memory, var._value));
+					} else if (var.isBigInt()) {
+						return STRING::from(REF_VAR(BigInt, var._value).toString());
+					}
+					break;
+			}
+			return def;
+		}
+
 	}
 
 	String Variant::getString(const String& def) const noexcept
@@ -2563,6 +2532,49 @@ namespace slib
 			setNull();
 		}
 	}
+
+	namespace {
+
+		template <class T, sl_uint8 type>
+		static sl_bool IsObject(const Variant& v)
+		{
+			if (v._type == type) {
+				return sl_true;
+			}
+			if (v._type == VariantType::Weak) {
+				Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
+				if (ref.isNotNull()) {
+					return IsInstanceOf<T>(ref);
+				}
+			} else if (IsReferable(v._type)) {
+				return IsInstanceOf<T>(REF_VAR(Ref<Referable> const, v._value));
+			}
+			return sl_false;
+		}
+
+		template <class T, class OT, sl_uint8 type>
+		static OT GetObjectT(const Variant& v)
+		{
+			if (v._type == type) {
+				return REF_VAR(OT, v._value);
+			}
+			if (v._type == VariantType::Weak) {
+				Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
+				if (IsInstanceOf<T>(ref)) {
+					return REF_VAR(OT, ref);
+				}
+			} else if (IsReferable(v._type)) {
+				if (IsInstanceOf<T>(REF_VAR(Referable*, v._value))) {
+					return REF_VAR(OT, v._value);
+				}
+			}
+			return OT();
+		}
+
+	}
+
+#define GET_COLLECTION(v) GetObjectT<Collection, Ref<Collection>, VariantType::Collection>(v)
+#define GET_OBJECT(v) GetObjectT<Object, Ref<Object>, VariantType::Object>(v)
 
 	sl_bool Variant::isObjectId() const noexcept
 	{

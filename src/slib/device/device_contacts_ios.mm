@@ -35,67 +35,62 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace device_contact
+	namespace {
+
+		class SharedContext
 		{
+		public:
+			NSMutableDictionary* dictLabel;
 
-			class SharedContext
+		public:
+			SharedContext()
 			{
-			public:
-				NSMutableDictionary* dictLabel;
+				dictLabel = [NSMutableDictionary new];
 
-			public:
-				SharedContext()
-				{
-					dictLabel = [NSMutableDictionary new];
-
-					addMapping(CNLabelHome, @"Home");
-					addMapping(CNLabelWork, @"Work");
+				addMapping(CNLabelHome, @"Home");
+				addMapping(CNLabelWork, @"Work");
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 #	if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
-					if (@available(iOS 13.0, *)) {
-						addMapping(CNLabelSchool, @"School");
-					}
+				if (@available(iOS 13.0, *)) {
+					addMapping(CNLabelSchool, @"School");
+				}
 #	endif
 #endif
-					addMapping(CNLabelOther, @"Other");
+				addMapping(CNLabelOther, @"Other");
 
-					addMapping(CNLabelPhoneNumberMain, @"Main");
-					addMapping(CNLabelPhoneNumberiPhone, @"iPhone");
-					addMapping(CNLabelPhoneNumberMobile, @"Mobile");
-					addMapping(CNLabelPhoneNumberHomeFax, @"HomeFax");
-					addMapping(CNLabelPhoneNumberWorkFax, @"WorkFax");
-					addMapping(CNLabelPhoneNumberOtherFax, @"Fax");
-					addMapping(CNLabelPhoneNumberPager, @"Pager");
+				addMapping(CNLabelPhoneNumberMain, @"Main");
+				addMapping(CNLabelPhoneNumberiPhone, @"iPhone");
+				addMapping(CNLabelPhoneNumberMobile, @"Mobile");
+				addMapping(CNLabelPhoneNumberHomeFax, @"HomeFax");
+				addMapping(CNLabelPhoneNumberWorkFax, @"WorkFax");
+				addMapping(CNLabelPhoneNumberOtherFax, @"Fax");
+				addMapping(CNLabelPhoneNumberPager, @"Pager");
 
-					addMapping(CNLabelEmailiCloud, @"iCloud");
+				addMapping(CNLabelEmailiCloud, @"iCloud");
 
-					addMapping(CNLabelURLAddressHomePage, @"HomePage");
+				addMapping(CNLabelURLAddressHomePage, @"HomePage");
 
-					addMapping(CNLabelDateAnniversary, @"Anniversary");
-				}
-
-			public:
-				void addMapping(NSString* s1, NSString* s2)
-				{
-					[dictLabel setObject:s2 forKey:s1];
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
-
-			static String GetLabel(NSString* label)
-			{
-				SharedContext* context = GetSharedContext();
-				NSString* s = [context->dictLabel objectForKey:label];
-				return Apple::getStringFromNSString(s);
+				addMapping(CNLabelDateAnniversary, @"Anniversary");
 			}
-		}
-	}
 
-	using namespace priv::device_contact;
+		public:
+			void addMapping(NSString* s1, NSString* s2)
+			{
+				[dictLabel setObject:s2 forKey:s1];
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
+
+		static String GetLabel(NSString* label)
+		{
+			SharedContext* context = GetSharedContext();
+			NSString* s = [context->dictLabel objectForKey:label];
+			return Apple::getStringFromNSString(s);
+		}
+
+	}
 
 	List<Contact> Device::getAllContacts()
 	{

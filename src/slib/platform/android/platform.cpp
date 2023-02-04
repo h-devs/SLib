@@ -30,18 +30,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace platform
-		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(JniGlobal<jobject>, g_contextCurrent);
-
-		}
-	}
-
-	using namespace priv::platform;
-
 	void Android::initialize(JavaVM* jvm) noexcept
 	{
 		Jni::initialize(jvm);
@@ -57,6 +45,10 @@ namespace slib
 			}
 		}
 		return version;
+	}
+
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(JniGlobal<jobject>, g_contextCurrent);
 	}
 
 	jobject Android::getCurrentContext() noexcept

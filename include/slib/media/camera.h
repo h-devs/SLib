@@ -164,7 +164,7 @@ namespace slib
 	public:
 		static Ref<Camera> create(const CameraParam& param);
 
-		static List<CameraInfo> getCamerasList();
+		static List<CameraInfo> getCameras();
 
 		static sl_bool isMobileDeviceTorchActive();
 

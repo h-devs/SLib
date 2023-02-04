@@ -48,7 +48,7 @@ public: \
 #define SLIB_JSON_ADD_MEMBER(MEMBER_NAME, JSON_NAME) \
 	{ \
 		static sl_char8 _strJsonField_buf[] = JSON_NAME; \
-		static slib::priv::json::JsonFieldContainer _strJsonField_container(_strJsonField_buf, sizeof(_strJsonField_buf)-1); \
+		static slib::priv::JsonFieldContainer _strJsonField_container(_strJsonField_buf, sizeof(_strJsonField_buf)-1); \
 		static slib::StringContainer* _strJsonField_str = &_strJsonField_container; \
 		static const slib::String& _strJsonField = *(reinterpret_cast<slib::String*>(&_strJsonField_str)); \
 		if (isFromJson) { \
@@ -62,7 +62,7 @@ public: \
 	{ \
 		if (isFromJson) { \
 			static sl_char8 _strJsonField_buf[] = JSON_NAME; \
-			static slib::priv::json::JsonFieldContainer _strJsonField_container(_strJsonField_buf, sizeof(_strJsonField_buf)-1); \
+			static slib::priv::JsonFieldContainer _strJsonField_container(_strJsonField_buf, sizeof(_strJsonField_buf)-1); \
 			static slib::StringContainer* _strJsonField_str = &_strJsonField_container; \
 			static const slib::String& _strJsonField = *(reinterpret_cast<slib::String*>(&_strJsonField_str)); \
 			slib::FromJson(json.getItem(_strJsonField), MEMBER_NAME); \
@@ -73,7 +73,7 @@ public: \
 	{ \
 		if (!isFromJson) { \
 			static sl_char8 _strJsonField_buf[] = JSON_NAME; \
-			static slib::priv::json::JsonFieldContainer _strJsonField_container(_strJsonField_buf, sizeof(_strJsonField_buf)-1); \
+			static slib::priv::JsonFieldContainer _strJsonField_container(_strJsonField_buf, sizeof(_strJsonField_buf)-1); \
 			static slib::StringContainer* _strJsonField_str = &_strJsonField_container; \
 			static const slib::String& _strJsonField = *(reinterpret_cast<slib::String*>(&_strJsonField_str)); \
 			json.putItem(_strJsonField, MEMBER_NAME); \
@@ -189,22 +189,18 @@ namespace slib
 
 	namespace priv
 	{
-		namespace json
+		class SLIB_EXPORT JsonFieldContainer : public StringContainer
 		{
-			class SLIB_EXPORT JsonFieldContainer : public StringContainer
+		public:
+			JsonFieldContainer(sl_char8* _sz, sl_size _len)
 			{
-			public:
-				JsonFieldContainer(sl_char8* _sz, sl_size _len)
-				{
-					sz = _sz;
-					len = _len;
-					hash = 0;
-					type = 0;
-					ref = -1;
-				}
-			};
-
-		}
+				sz = _sz;
+				len = _len;
+				hash = 0;
+				type = 0;
+				ref = -1;
+			}
+		};
 	}
 
 }

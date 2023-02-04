@@ -34,32 +34,21 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace file_system_logger
-		{
-
-			SLIB_STATIC_STRING(g_defaultFilter, ".*")
-
-		}
+	namespace {
+		SLIB_STATIC_STRING(g_defaultFilter, ".*")
 	}
-
-	using namespace priv::file_system_logger;
 
 	SLIB_DEFINE_OBJECT(FileSystemLogger, FileSystemWrapper)
 
-	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base)
-		: FileSystemLogger(base, FileSystemLogFlags::All, g_defaultFilter)
+	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base): FileSystemLogger(base, FileSystemLogFlags::All, g_defaultFilter)
 	{
 	}
 
-	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags)
-		: FileSystemLogger(base, flags, g_defaultFilter)
+	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags): FileSystemLogger(base, flags, g_defaultFilter)
 	{
 	}
 
-	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags, const String& filter)
-		: FileSystemWrapper(base), m_flags(flags), m_regex(filter)
+	FileSystemLogger::FileSystemLogger(const Ref<FileSystemProvider>& base, const FileSystemLogFlags& flags, const String& filter): FileSystemWrapper(base), m_flags(flags), m_regex(filter)
 	{
 		LOG_DEBUG("LogFlags: 0x%08X, Filter: %s", (sl_uint32)m_flags, filter);
 

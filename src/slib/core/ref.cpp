@@ -34,9 +34,7 @@ namespace slib
 	{
 		namespace ref
 		{
-
 			void* const g_null = sl_null;
-
 		}
 	}
 

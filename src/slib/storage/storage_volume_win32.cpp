@@ -43,110 +43,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace storage
-		{
-
-			static char GetFirstDriveFromMask(ULONG mask)
-			{
-				char i;
-				for (i = 0; i < 26; ++i) {
-					if (mask & 1) {
-						break;
-					}
-					mask >>= 1;
-				}
-				return i + 'A';
-			}
-
-			class DeviceChangeMonitor
-			{
-			public:
-				Mutex m_lock;
-				Ref<win32::MessageLoop> m_loop;
-				Atomic<VolumeArrivalCallback> m_callbackArrival;
-				Atomic<VolumeRemovalCallback> m_callbackRemoval;
-
-			public:
-				DeviceChangeMonitor()
-				{
-				}
-
-				~DeviceChangeMonitor()
-				{
-				}
-
-			public:
-				sl_bool onMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& result)
-				{
-					if (uMsg == WM_DEVICECHANGE) {
-						if (wParam == DBT_DEVICEARRIVAL) {
-							DEV_BROADCAST_HDR* hdr = (DEV_BROADCAST_HDR*)lParam;
-							if (hdr->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-								DEV_BROADCAST_VOLUME* vol = (DEV_BROADCAST_VOLUME*)lParam;
-								String path;
-								if (vol->dbcv_unitmask) {
-									char _path[] = "C:\\";
-									_path[0] = GetFirstDriveFromMask(vol->dbcv_unitmask);
-									path = _path;
-								}
-								m_callbackArrival(path);
-							}
-						} else if (wParam == DBT_DEVICEREMOVECOMPLETE) {
-							DEV_BROADCAST_HDR* hdr = (DEV_BROADCAST_HDR*)lParam;
-							if (hdr->dbch_devicetype == DBT_DEVTYP_VOLUME) {
-								DEV_BROADCAST_VOLUME* vol = (DEV_BROADCAST_VOLUME*)lParam;
-								String path;
-								if (vol->dbcv_unitmask) {
-									char _path[] = "C:\\";
-									_path[0] = GetFirstDriveFromMask(vol->dbcv_unitmask);
-									path = _path;
-								}
-								m_callbackRemoval(path);
-							}
-						}
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void updateCallback()
-				{
-					MutexLocker locker(&m_lock);
-					if (m_callbackArrival.isNull() && m_callbackRemoval.isNull()) {
-						m_loop.setNull();
-					} else {
-						if (m_loop.isNull()) {
-							win32::MessageLoopParam param;
-							param.name = SLIB_UNICODE("SLibDeviceChangeMonitor");
-							param.onMessage = SLIB_FUNCTION_MEMBER(this, onMessage);
-							param.hWndParent = NULL;
-							m_loop = win32::MessageLoop::create(param);
-						}
-					}
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(DeviceChangeMonitor, GetMonitor)
-
-			static sl_bool SetUsbMassStorageEnabled(sl_bool flag)
-			{
-				return ServiceManager::setStartType(L"usbstor", flag ? ServiceStartType::Manual : ServiceStartType::Disabled);
-			}
-
-			static sl_bool IsUsbMassStorageEnabled()
-			{
-				ServiceStartType type = ServiceManager::getStartType(L"usbstor");
-				return type != ServiceStartType::Disabled && type != ServiceStartType::Unknown;
-			}
-
-		}
-	}
-
-	using namespace priv::storage;
-
 	List<String> Storage::getAllVolumes()
 	{
 		WCHAR volumeName[MAX_PATH];
@@ -322,6 +218,19 @@ namespace slib
 		return bRet;
 	}
 
+	namespace {
+		static sl_bool SetUsbMassStorageEnabled(sl_bool flag)
+		{
+			return ServiceManager::setStartType(L"usbstor", flag ? ServiceStartType::Manual : ServiceStartType::Disabled);
+		}
+
+		static sl_bool IsUsbMassStorageEnabled()
+		{
+			ServiceStartType type = ServiceManager::getStartType(L"usbstor");
+			return type != ServiceStartType::Disabled && type != ServiceStartType::Unknown;
+		}
+	}
+
 	sl_bool Storage::disableUsbMassStorage()
 	{
 		return SetUsbMassStorageEnabled(sl_false);
@@ -335,6 +244,93 @@ namespace slib
 	sl_bool Storage::isEnabledUsbMassStorage()
 	{
 		return IsUsbMassStorageEnabled();
+	}
+
+	namespace {
+
+		static char GetFirstDriveFromMask(ULONG mask)
+		{
+			char i;
+			for (i = 0; i < 26; ++i) {
+				if (mask & 1) {
+					break;
+				}
+				mask >>= 1;
+			}
+			return i + 'A';
+		}
+
+		class DeviceChangeMonitor
+		{
+		public:
+			Mutex m_lock;
+			Ref<win32::MessageLoop> m_loop;
+			Atomic<VolumeArrivalCallback> m_callbackArrival;
+			Atomic<VolumeRemovalCallback> m_callbackRemoval;
+
+		public:
+			DeviceChangeMonitor()
+			{
+			}
+
+			~DeviceChangeMonitor()
+			{
+			}
+
+		public:
+			sl_bool onMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& result)
+			{
+				if (uMsg == WM_DEVICECHANGE) {
+					if (wParam == DBT_DEVICEARRIVAL) {
+						DEV_BROADCAST_HDR* hdr = (DEV_BROADCAST_HDR*)lParam;
+						if (hdr->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+							DEV_BROADCAST_VOLUME* vol = (DEV_BROADCAST_VOLUME*)lParam;
+							String path;
+							if (vol->dbcv_unitmask) {
+								char _path[] = "C:\\";
+								_path[0] = GetFirstDriveFromMask(vol->dbcv_unitmask);
+								path = _path;
+							}
+							m_callbackArrival(path);
+						}
+					} else if (wParam == DBT_DEVICEREMOVECOMPLETE) {
+						DEV_BROADCAST_HDR* hdr = (DEV_BROADCAST_HDR*)lParam;
+						if (hdr->dbch_devicetype == DBT_DEVTYP_VOLUME) {
+							DEV_BROADCAST_VOLUME* vol = (DEV_BROADCAST_VOLUME*)lParam;
+							String path;
+							if (vol->dbcv_unitmask) {
+								char _path[] = "C:\\";
+								_path[0] = GetFirstDriveFromMask(vol->dbcv_unitmask);
+								path = _path;
+							}
+							m_callbackRemoval(path);
+						}
+					}
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void updateCallback()
+			{
+				MutexLocker locker(&m_lock);
+				if (m_callbackArrival.isNull() && m_callbackRemoval.isNull()) {
+					m_loop.setNull();
+				} else {
+					if (m_loop.isNull()) {
+						win32::MessageLoopParam param;
+						param.name = SLIB_UNICODE("SLibDeviceChangeMonitor");
+						param.onMessage = SLIB_FUNCTION_MEMBER(this, onMessage);
+						param.hWndParent = NULL;
+						m_loop = win32::MessageLoop::create(param);
+					}
+				}
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(DeviceChangeMonitor, GetMonitor)
+
 	}
 
 	void Storage::addOnVolumeArrival(const VolumeArrivalCallback& callback)

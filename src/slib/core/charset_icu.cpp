@@ -36,121 +36,124 @@
 #define LOAD_DLL
 
 #ifdef LOAD_DLL
-#include <dlfcn.h>
+#	include <dlfcn.h>
+#	ifdef ucnv_open
+#		undef ucnv_open
+#		undef ucnv_close
+#		undef ucnv_fromUChars
+#		undef ucnv_toUChars
+#		undef ucnv_countAvailable
+#		undef ucnv_getAvailableName
+#	endif
 #endif
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace charset
+	namespace {
+
+
+		#define ucnv_open SLIB_ucnv_open
+		typedef UConverter* (*TYPE_ucnv_open)(const char *converterName, UErrorCode *err);
+		TYPE_ucnv_open SLIB_ucnv_open = sl_null;
+
+		#define ucnv_close SLIB_ucnv_close
+		typedef void (*TYPE_ucnv_close)(UConverter * converter);
+		TYPE_ucnv_close SLIB_ucnv_close = sl_null;
+
+		#define ucnv_fromUChars SLIB_ucnv_fromUChars
+		typedef int32_t (*TYPE_ucnv_fromUChars)(UConverter *cnv, char *dest, int32_t destCapacity, const UChar *src, int32_t srcLength, UErrorCode *pErrorCode);
+		TYPE_ucnv_fromUChars SLIB_ucnv_fromUChars = sl_null;
+
+		#define ucnv_toUChars SLIB_ucnv_toUChars
+		typedef int32_t (*TYPE_ucnv_toUChars)(UConverter *cnv, UChar *dest, int32_t destCapacity, const char *src, int32_t srcLength, UErrorCode *pErrorCode);
+		TYPE_ucnv_toUChars SLIB_ucnv_toUChars = sl_null;
+
+		#define ucnv_countAvailable SLIB_ucnv_countAvailable
+		typedef int32_t (*TYPE_ucnv_countAvailable)();
+		TYPE_ucnv_countAvailable SLIB_ucnv_countAvailable = sl_null;
+
+		#define ucnv_getAvailableName SLIB_ucnv_getAvailableName
+		typedef const char* (*TYPE_ucnv_getAvailableName)(int32_t n);
+		TYPE_ucnv_getAvailableName SLIB_ucnv_getAvailableName = sl_null;
+
+		static void* LoadSymbolWithSuffix(void* handle, const char* symbol, const String& suffix)
 		{
-
-#ifdef LOAD_DLL
-			#ifdef ucnv_open
-			#undef ucnv_open
-			#undef ucnv_close
-			#undef ucnv_fromUChars
-			#undef ucnv_toUChars
-			#undef ucnv_countAvailable
-			#undef ucnv_getAvailableName
-			#endif
-
-			#define ucnv_open SLIB_ucnv_open
-			typedef UConverter* (*TYPE_ucnv_open)(const char *converterName, UErrorCode *err);
-			TYPE_ucnv_open SLIB_ucnv_open = sl_null;
-
-			#define ucnv_close SLIB_ucnv_close
- 			typedef void (*TYPE_ucnv_close)(UConverter * converter);
-			TYPE_ucnv_close SLIB_ucnv_close = sl_null;
-
-			#define ucnv_fromUChars SLIB_ucnv_fromUChars
-			typedef int32_t (*TYPE_ucnv_fromUChars)(UConverter *cnv, char *dest, int32_t destCapacity, const UChar *src, int32_t srcLength, UErrorCode *pErrorCode);
-			TYPE_ucnv_fromUChars SLIB_ucnv_fromUChars = sl_null;
-
-			#define ucnv_toUChars SLIB_ucnv_toUChars
-			typedef int32_t (*TYPE_ucnv_toUChars)(UConverter *cnv, UChar *dest, int32_t destCapacity, const char *src, int32_t srcLength, UErrorCode *pErrorCode);
-			TYPE_ucnv_toUChars SLIB_ucnv_toUChars = sl_null;
-
-			#define ucnv_countAvailable SLIB_ucnv_countAvailable
-			typedef int32_t (*TYPE_ucnv_countAvailable)();
-			TYPE_ucnv_countAvailable SLIB_ucnv_countAvailable = sl_null;
-
-			#define ucnv_getAvailableName SLIB_ucnv_getAvailableName
-			typedef const char* (*TYPE_ucnv_getAvailableName)(int32_t n);
-			TYPE_ucnv_getAvailableName SLIB_ucnv_getAvailableName = sl_null;
-
-			static void* LoadSymbolWithSuffix(void* handle, const char* symbol, const String& suffix)
-			{
-				if (suffix.isNotEmpty()) {
-					StringCstr s(symbol + suffix);
-					void* ret = dlsym(handle, s.getData());
-					if (ret) {
-						return ret;
-					}
+			if (suffix.isNotEmpty()) {
+				StringCstr s(symbol + suffix);
+				void* ret = dlsym(handle, s.getData());
+				if (ret) {
+					return ret;
 				}
-				return dlsym(handle, symbol);
 			}
+			return dlsym(handle, symbol);
+		}
 
-			static sl_bool LoadIcu()
-			{
-				static void* hDll = sl_null;
-				static sl_bool flagLoaded = sl_false;
-				if (!flagLoaded) {
-					String pathDll;
-					String suffix;
-					{
+		static sl_bool LoadIcu()
+		{
+			static void* hDll = sl_null;
+			static sl_bool flagLoaded = sl_false;
+			if (!flagLoaded) {
+				String pathDll;
+				String suffix;
+				{
 #ifdef SLIB_ARCH_IS_64BIT
 #define LIB_PATH "/usr/lib64"
 #else
 #define LIB_PATH "/usr/lib"
 #endif
-						ListElements<String> files(File::getFiles(LIB_PATH));
-						for (sl_size i = 0; i < files.count; i++) {
-							String& fileName = files[i];
-							if (fileName.startsWith("libicuuc.so") && fileName > pathDll) {
-								pathDll = fileName;
-							}
+					ListElements<String> files(File::getFiles(LIB_PATH));
+					for (sl_size i = 0; i < files.count; i++) {
+						String& fileName = files[i];
+						if (fileName.startsWith("libicuuc.so") && fileName > pathDll) {
+							pathDll = fileName;
 						}
 					}
-					if (pathDll.isNotEmpty()) {
-						suffix = pathDll.substring(12);
-						if (suffix.isNotEmpty()) {
-							sl_reg index = suffix.indexOf('.');
-							if (index > 0) {
-								suffix = "_" + suffix.substring(0, index);
-							}
-						}
-						pathDll = LIB_PATH + ("/" + pathDll);
-						hDll = dlopen(pathDll.getData(), RTLD_LAZY);
-						if (hDll) {
-							SLIB_ucnv_open = (TYPE_ucnv_open)(LoadSymbolWithSuffix(hDll, "ucnv_open", suffix));
-							SLIB_ucnv_close = (TYPE_ucnv_close)(LoadSymbolWithSuffix(hDll, "ucnv_close", suffix));
-							SLIB_ucnv_fromUChars = (TYPE_ucnv_fromUChars)(LoadSymbolWithSuffix(hDll, "ucnv_fromUChars", suffix));
-							SLIB_ucnv_toUChars = (TYPE_ucnv_toUChars)(LoadSymbolWithSuffix(hDll, "ucnv_toUChars", suffix));
-							SLIB_ucnv_countAvailable = (TYPE_ucnv_countAvailable)(LoadSymbolWithSuffix(hDll, "ucnv_countAvailable", suffix));
-							SLIB_ucnv_getAvailableName = (TYPE_ucnv_getAvailableName)(LoadSymbolWithSuffix(hDll, "ucnv_getAvailableName", suffix));
-						}
-					}
-					flagLoaded = sl_true;
 				}
-				return SLIB_ucnv_open != sl_null;
+				if (pathDll.isNotEmpty()) {
+					suffix = pathDll.substring(12);
+					if (suffix.isNotEmpty()) {
+						sl_reg index = suffix.indexOf('.');
+						if (index > 0) {
+							suffix = "_" + suffix.substring(0, index);
+						}
+					}
+					pathDll = LIB_PATH + ("/" + pathDll);
+					hDll = dlopen(pathDll.getData(), RTLD_LAZY);
+					if (hDll) {
+						SLIB_ucnv_open = (TYPE_ucnv_open)(LoadSymbolWithSuffix(hDll, "ucnv_open", suffix));
+						SLIB_ucnv_close = (TYPE_ucnv_close)(LoadSymbolWithSuffix(hDll, "ucnv_close", suffix));
+						SLIB_ucnv_fromUChars = (TYPE_ucnv_fromUChars)(LoadSymbolWithSuffix(hDll, "ucnv_fromUChars", suffix));
+						SLIB_ucnv_toUChars = (TYPE_ucnv_toUChars)(LoadSymbolWithSuffix(hDll, "ucnv_toUChars", suffix));
+						SLIB_ucnv_countAvailable = (TYPE_ucnv_countAvailable)(LoadSymbolWithSuffix(hDll, "ucnv_countAvailable", suffix));
+						SLIB_ucnv_getAvailableName = (TYPE_ucnv_getAvailableName)(LoadSymbolWithSuffix(hDll, "ucnv_getAvailableName", suffix));
+					}
+				}
+				flagLoaded = sl_true;
 			}
+			return SLIB_ucnv_open != sl_null;
+		}
 #endif
 
-			static UConverter* OpenConverter(sl_uint32 codepage)
-			{
+		static UConverter* OpenConverter(sl_uint32 codepage)
+		{
 #ifdef LOAD_DLL
-				if (!(LoadIcu())) {
-					return sl_null;
-				}
-#endif
-				UErrorCode err = U_ZERO_ERROR;
-				SLIB_STATIC_STRING(strCodepagePrefix, "cp")
-				String strCodepage = strCodepagePrefix + String::fromUint32(codepage);
-				return ucnv_open(strCodepage.getData(), &err);
+			if (!(LoadIcu())) {
+				return sl_null;
 			}
+#endif
+			UErrorCode err = U_ZERO_ERROR;
+			SLIB_STATIC_STRING(strCodepagePrefix, "cp")
+			String strCodepage = strCodepagePrefix + String::fromUint32(codepage);
+			return ucnv_open(strCodepage.getData(), &err);
+		}
+
+	}
+
+	namespace priv
+	{
+		namespace charset
+		{
 
 			sl_size Encode16(const sl_char16* utf16, sl_size lenUtf16, sl_uint32 codepage, void* output, sl_reg sizeOutputBuffer)
 			{

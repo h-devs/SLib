@@ -60,7 +60,7 @@
 	SLIB_ALIGN(8) static sl_uint8 _static_safemem_##NAME[sizeof(TYPE)]; \
 	static sl_int32 _static_safeflag_##NAME = 0; \
 	static sl_bool _static_freeflag_##NAME = sl_false; \
-	TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME)); \
+	static TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME)); \
 	SLIB_STATIC_SPINLOCK(_static_safelock_##NAME); \
 	if (_static_safeflag_##NAME == 0) { \
 		_static_safelock_##NAME.lock(); \
@@ -83,7 +83,7 @@
 
 #define SLIB_STATIC_ZERO_INIT_NO_DESTRUCTOR(TYPE, NAME) \
 	SLIB_ALIGN(8) static char _static_safemem_##NAME[sizeof(TYPE)] = {0}; \
-	TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME));
+	static TYPE& NAME = *(reinterpret_cast<TYPE*>(_static_safemem_##NAME));
 
 #define SLIB_GLOBAL_ZERO_INITIALIZED(TYPE, NAME) \
 	SLIB_STATIC_ZERO_INIT_NO_DESTRUCTOR(TYPE, NAME) \

@@ -37,38 +37,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace async
-		{
-
-			static Ref<AsyncIoLoop> CreateDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
-			{
-				if (flagRelease) {
-					return sl_null;
-				}
-				return AsyncIoLoop::create();
-			}
-
-			static Ref<AsyncIoLoop> GetDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
-			{
-				SLIB_SAFE_LOCAL_STATIC(Ref<AsyncIoLoop>, ret, CreateDefaultAsyncIoLoop(flagRelease))
-				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
-					return sl_null;
-				}
-				if (ret.isNotNull()) {
-					if (flagRelease) {
-						ret->release();
-					} else {
-						return ret;
-					}
-				}
-				return sl_null;
-			}
-
-		}
-	}
-
 	SLIB_DEFINE_OBJECT(AsyncIoLoop, Dispatcher)
 
 	AsyncIoLoop::AsyncIoLoop()
@@ -83,14 +51,42 @@ namespace slib
 		release();
 	}
 
+	namespace {
+
+		static Ref<AsyncIoLoop> CreateDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
+		{
+			if (flagRelease) {
+				return sl_null;
+			}
+			return AsyncIoLoop::create();
+		}
+
+		static Ref<AsyncIoLoop> GetDefaultAsyncIoLoop(sl_bool flagRelease = sl_false)
+		{
+			SLIB_SAFE_LOCAL_STATIC(Ref<AsyncIoLoop>, ret, CreateDefaultAsyncIoLoop(flagRelease))
+			if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+				return sl_null;
+			}
+			if (ret.isNotNull()) {
+				if (flagRelease) {
+					ret->release();
+				} else {
+					return ret;
+				}
+			}
+			return sl_null;
+		}
+
+	}
+
 	Ref<AsyncIoLoop> AsyncIoLoop::getDefault()
 	{
-		return priv::async::GetDefaultAsyncIoLoop();
+		return GetDefaultAsyncIoLoop();
 	}
 
 	void AsyncIoLoop::releaseDefault()
 	{
-		priv::async::GetDefaultAsyncIoLoop(sl_true);
+		GetDefaultAsyncIoLoop(sl_true);
 	}
 
 	Ref<AsyncIoLoop> AsyncIoLoop::create(sl_bool flagAutoStart)

@@ -31,73 +31,69 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace android
+	namespace {
+
+		SLIB_JNI_BEGIN_CLASS(JPen, "slib/android/ui/UiPen")
+			SLIB_JNI_NEW(init, "()V");
+			SLIB_JNI_METHOD(setStyle, "setStyle", "(I)V");
+			SLIB_JNI_INT_FIELD(cap);
+			SLIB_JNI_INT_FIELD(join);
+			SLIB_JNI_FLOAT_FIELD(width);
+			SLIB_JNI_INT_FIELD(color);
+			SLIB_JNI_FLOAT_FIELD(miterLimit);
+		SLIB_JNI_END_CLASS
+
+		class PenPlatformObject : public Referable
 		{
+		public:
+			JniGlobal<jobject> m_pen;
 
-			SLIB_JNI_BEGIN_CLASS(JPen, "slib/android/ui/UiPen")
-				SLIB_JNI_NEW(init, "()V");
-				SLIB_JNI_METHOD(setStyle, "setStyle", "(I)V");
-				SLIB_JNI_INT_FIELD(cap);
-				SLIB_JNI_INT_FIELD(join);
-				SLIB_JNI_FLOAT_FIELD(width);
-				SLIB_JNI_INT_FIELD(color);
-				SLIB_JNI_FLOAT_FIELD(miterLimit);
-			SLIB_JNI_END_CLASS
-
-			class PenPlatformObject : public Referable
+		public:
+			PenPlatformObject(const PenDesc& desc)
 			{
-			public:
-				JniGlobal<jobject> m_pen;
-
-			public:
-				PenPlatformObject(const PenDesc& desc)
-				{
-					JniGlobal<jobject> pen = JPen::init.newObject(sl_null);
-					if (pen.isNotNull()) {
-						JPen::cap.set(pen, (int)(desc.cap));
-						JPen::join.set(pen, (int)(desc.join));
-						JPen::color.set(pen, desc.color.getARGB());
-						JPen::width.set(pen, desc.width);
-						JPen::miterLimit.set(pen, desc.miterLimit);
-						JPen::setStyle.call(pen, desc.style);
-						m_pen = Move(pen);
-					}
+				JniGlobal<jobject> pen = JPen::init.newObject(sl_null);
+				if (pen.isNotNull()) {
+					JPen::cap.set(pen, (int)(desc.cap));
+					JPen::join.set(pen, (int)(desc.join));
+					JPen::color.set(pen, desc.color.getARGB());
+					JPen::width.set(pen, desc.width);
+					JPen::miterLimit.set(pen, desc.miterLimit);
+					JPen::setStyle.call(pen, desc.style);
+					m_pen = Move(pen);
 				}
-			};
+			}
+		};
 
-			class PenHelper : public Pen
+		class PenHelper : public Pen
+		{
+		public:
+			PenPlatformObject* getPenPlatformObject()
 			{
-			public:
-				PenPlatformObject* getPenPlatformObject()
-				{
+				if (m_platformObject.isNull()) {
+					SpinLocker lock(&m_lock);
 					if (m_platformObject.isNull()) {
-						SpinLocker lock(&m_lock);
-						if (m_platformObject.isNull()) {
-							m_platformObject = new PenPlatformObject(m_desc);
-						}
+						m_platformObject = new PenPlatformObject(m_desc);
 					}
-					return (PenPlatformObject*)(m_platformObject.get());;
 				}
+				return (PenPlatformObject*)(m_platformObject.get());;
+			}
 
-				jobject getPlatformHandle()
-				{
-					PenPlatformObject* po = getPenPlatformObject();
-					if (po) {
-						return po->m_pen;
-					}
-					return 0;
+			jobject getPlatformHandle()
+			{
+				PenPlatformObject* po = getPenPlatformObject();
+				if (po) {
+					return po->m_pen;
 				}
-			};
+				return 0;
+			}
+		};
 
-		}
 	}
 
 	jobject GraphicsPlatform::getPenHandle(Pen* pen)
 	{
 		if (pen) {
-			return ((priv::android::PenHelper*)pen)->getPlatformHandle();
+			return ((PenHelper*)pen)->getPlatformHandle();
 		}
 		return 0;
 	}

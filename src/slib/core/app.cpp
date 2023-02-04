@@ -35,141 +35,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace app
-		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_weakref_app)
-
-			SLIB_SAFE_STATIC_GETTER(String, GetAppPath, System::getApplicationPath())
-
-			SLIB_SAFE_STATIC_GETTER(String, GetAppDir, System::getApplicationDirectory())
-
-#if !defined(SLIB_PLATFORM_IS_MOBILE)
-			static void CrashHandler(int)
-			{
-				Ref<Application> app = Application::getApp();
-				if (app.isNotNull()) {
-					List<StringParam> args;
-					args.addAll_NoLock(app->getArguments());
-					if (args.isNotEmpty()) {
-						Process::exec(app->getExecutablePath(), args.getData() + 1, args.getCount() - 1);
-					} else {
-						Process::exec(app->getExecutablePath());
-					}
-				}
-			}
-#endif
-
-/**************************************************************************************
-For parsing command line in Win32 platform,
-	refered to https://msdn.microsoft.com/en-us/library/windows/desktop/17w5ykft(v=vs.85).aspx
-
-Microsoft Specific
-	Microsoft C/C++ startup code uses the following rules when interpreting arguments given on the operating system command line:
-	* Arguments are delimited by white space, which is either a space or a tab.
-	* The caret character (^) is not recognized as an escape character or delimiter. The character is handled completely by the command-line parser in the operating system before being passed to the argv array in the program.
-	* A string surrounded by double quotation marks ("string") is interpreted as a single argument, regardless of white space contained within. A quoted string can be embedded in an argument.
-	* A double quotation mark preceded by a backslash (\") is interpreted as a literal double quotation mark character (").
-	* Backslashes are interpreted literally, unless they immediately precede a double quotation mark.
-	* If an even number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is interpreted as a string delimiter.
-	* If an odd number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is "escaped" by the remaining backslash, causing a literal double quotation mark (") to be placed in argv.
-***************************************************************************************/
-
-			List<String> ParseCommandLine(const StringParam& _commandLine, sl_bool flagWin32)
-			{
-				StringCstr commandLine(_commandLine);
-				List<String> ret;
-				sl_char8* sz = commandLine.getData();
-				sl_size len = commandLine.getLength();
-				StringBuffer sb;
-				sl_size start = 0;
-				sl_size pos = 0;
-				sl_bool flagQuote = sl_false;
-				while (pos < len) {
-					sl_char8 ch = sz[pos];
-					if (flagWin32) {
-						if (ch == '\"') {
-							sl_size k = pos - 1;
-							while (k > 0) {
-								if (sz[k] != '\\') {
-									break;
-								}
-								k--;
-							}
-							sl_size n = pos - 1 - k;
-							sl_size m = n / 2;
-							sb.addStatic(sz + start, k + 1 + m - start);
-							if (n % 2) {
-								start = pos;
-								pos++;
-								continue;
-							} else {
-								start = pos + 1;
-							}
-						}
-					} else {
-						if (ch == '\\') {
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-							pos++;
-							if (pos < len) {
-								pos++;
-								continue;
-							} else {
-								break;
-							}
-						}
-					}
-					if (flagQuote) {
-						if (ch == '\"') {
-							flagQuote = sl_false;
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-						}
-					} else {
-						if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-							String s = sb.merge();
-							if (s.isNotEmpty()) {
-								ret.add(s);
-							}
-							sb.clear();
-						} else if (ch == '\"') {
-							flagQuote = sl_true;
-							if (pos > start) {
-								sb.addStatic(sz + start, pos - start);
-							}
-							start = pos + 1;
-						}
-					}
-					pos++;
-				}
-				if (!flagQuote) {
-					if (pos > start) {
-						sb.addStatic(sz + start, pos - start);
-					}
-					String s = sb.merge();
-					if (s.isNotEmpty()) {
-						ret.add(s);
-					}
-				}
-				return ret;
-			}
-
-		}
-	}
-
-	using namespace priv::app;
-
 	SLIB_DEFINE_OBJECT(Application, Object)
 
 	Application::Application()
@@ -182,20 +47,24 @@ Microsoft Specific
 	{
 	}
 
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicWeakRef<Application>, g_app)
+	}
+
 	Ref<Application> Application::getApp()
 	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_weakref_app)) {
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_app)) {
 			return sl_null;
 		}
-		return g_weakref_app;
+		return g_app;
 	}
 
 	void Application::setApp(Application* app)
 	{
-		if (SLIB_SAFE_STATIC_CHECK_FREED(g_weakref_app)) {
+		if (SLIB_SAFE_STATIC_CHECK_FREED(g_app)) {
 			return;
 		}
-		g_weakref_app = app;
+		g_app = app;
 	}
 
 	String Application::getApplicationId()
@@ -284,6 +153,24 @@ Microsoft Specific
 	{
 	}
 
+#if !defined(SLIB_PLATFORM_IS_MOBILE)
+	namespace {
+		static void CrashHandler(int)
+		{
+			Ref<Application> app = Application::getApp();
+			if (app.isNotNull()) {
+				List<StringParam> args;
+				args.addAll_NoLock(app->getArguments());
+				if (args.isNotEmpty()) {
+					Process::exec(app->getExecutablePath(), args.getData() + 1, args.getCount() - 1);
+				} else {
+					Process::exec(app->getExecutablePath());
+				}
+			}
+		}
+	}
+#endif
+
 	sl_int32 Application::doRun()
 	{
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
@@ -347,6 +234,10 @@ Microsoft Specific
 		m_flagCrashRecoverySupport = flagSupport;
 	}
 
+	namespace {
+		SLIB_SAFE_STATIC_GETTER(String, GetAppPath, System::getApplicationPath())
+	}
+
 	String Application::getApplicationPath()
 	{
 		String* s = GetAppPath();
@@ -354,6 +245,10 @@ Microsoft Specific
 			return sl_null;
 		}
 		return *s;
+	}
+
+	namespace {
+		SLIB_SAFE_STATIC_GETTER(String, GetAppDir, System::getApplicationDirectory())
 	}
 
 	String Application::getApplicationDirectory()
@@ -485,6 +380,110 @@ Microsoft Specific
 	}
 #endif
 
+
+/**************************************************************************************
+For parsing command line in Win32 platform,
+	refered to https://msdn.microsoft.com/en-us/library/windows/desktop/17w5ykft(v=vs.85).aspx
+
+Microsoft Specific
+	Microsoft C/C++ startup code uses the following rules when interpreting arguments given on the operating system command line:
+	* Arguments are delimited by white space, which is either a space or a tab.
+	* The caret character (^) is not recognized as an escape character or delimiter. The character is handled completely by the command-line parser in the operating system before being passed to the argv array in the program.
+	* A string surrounded by double quotation marks ("string") is interpreted as a single argument, regardless of white space contained within. A quoted string can be embedded in an argument.
+	* A double quotation mark preceded by a backslash (\") is interpreted as a literal double quotation mark character (").
+	* Backslashes are interpreted literally, unless they immediately precede a double quotation mark.
+	* If an even number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is interpreted as a string delimiter.
+	* If an odd number of backslashes is followed by a double quotation mark, one backslash is placed in the argv array for every pair of backslashes, and the double quotation mark is "escaped" by the remaining backslash, causing a literal double quotation mark (") to be placed in argv.
+***************************************************************************************/
+	namespace {
+		static List<String> ParseCommandLine(const StringParam& _commandLine, sl_bool flagWin32)
+		{
+			StringCstr commandLine(_commandLine);
+			List<String> ret;
+			sl_char8* sz = commandLine.getData();
+			sl_size len = commandLine.getLength();
+			StringBuffer sb;
+			sl_size start = 0;
+			sl_size pos = 0;
+			sl_bool flagQuote = sl_false;
+			while (pos < len) {
+				sl_char8 ch = sz[pos];
+				if (flagWin32) {
+					if (ch == '\"') {
+						sl_size k = pos - 1;
+						while (k > 0) {
+							if (sz[k] != '\\') {
+								break;
+							}
+							k--;
+						}
+						sl_size n = pos - 1 - k;
+						sl_size m = n / 2;
+						sb.addStatic(sz + start, k + 1 + m - start);
+						if (n % 2) {
+							start = pos;
+							pos++;
+							continue;
+						} else {
+							start = pos + 1;
+						}
+					}
+				} else {
+					if (ch == '\\') {
+						if (pos > start) {
+							sb.addStatic(sz + start, pos - start);
+						}
+						start = pos + 1;
+						pos++;
+						if (pos < len) {
+							pos++;
+							continue;
+						} else {
+							break;
+						}
+					}
+				}
+				if (flagQuote) {
+					if (ch == '\"') {
+						flagQuote = sl_false;
+						if (pos > start) {
+							sb.addStatic(sz + start, pos - start);
+						}
+						start = pos + 1;
+					}
+				} else {
+					if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
+						if (pos > start) {
+							sb.addStatic(sz + start, pos - start);
+						}
+						start = pos + 1;
+						String s = sb.merge();
+						if (s.isNotEmpty()) {
+							ret.add(s);
+						}
+						sb.clear();
+					} else if (ch == '\"') {
+						flagQuote = sl_true;
+						if (pos > start) {
+							sb.addStatic(sz + start, pos - start);
+						}
+						start = pos + 1;
+					}
+				}
+				pos++;
+			}
+			if (!flagQuote) {
+				if (pos > start) {
+					sb.addStatic(sz + start, pos - start);
+				}
+				String s = sb.merge();
+				if (s.isNotEmpty()) {
+					ret.add(s);
+				}
+			}
+			return ret;
+		}
+	}
 
 	List<String> CommandLine::parse(const StringParam& commandLine)
 	{

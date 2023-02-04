@@ -28,27 +28,22 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace twitter
+	namespace {
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
+
+		class ShareLocalParams : public TwitterShareParam
 		{
+		public:
+			ShareLocalParams(const TwitterShareParam& param): TwitterShareParam(param) {}
+		public:
+			sl_size indexMedia;
+			List<String> mediaIds;
+			Ref<Twitter> twitter;
+		};
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
-
-			class ShareLocalParams : public TwitterShareParam
-			{
-			public:
-				ShareLocalParams(const TwitterShareParam& param): TwitterShareParam(param) {}
-			public:
-				sl_size indexMedia;
-				List<String> mediaIds;
-				Ref<Twitter> twitter;
-			};
-
-		}
 	}
 
-	using namespace priv::twitter;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterUser)
 

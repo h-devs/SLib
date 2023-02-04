@@ -39,36 +39,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace thread
-		{
-			static double GetThreadPriority(ThreadPriority priority)
-			{
-				double min = 0;
-				double max = 1;
-				if (min < 0 || max < 0) {
-					return -1;
-				}
-				switch (priority) {
-					case ThreadPriority::Lowest:
-						return min;
-					case ThreadPriority::BelowNormal:
-						return (min * 3 + max) / 4;
-					case ThreadPriority::Normal:
-						return (min + max) / 2;
-					case ThreadPriority::AboveNormal:
-						return (min + max * 3) / 4;
-					case ThreadPriority::Highest:
-						return max;
-				}
-				return -1;
-			}
-		}
-	}
-
-	using namespace priv::thread;
-
 	Thread* Thread::_nativeGetCurrentThread() {
 		NSThread *thread_this = [NSThread currentThread];
 		long long thread_id = 0;
@@ -134,6 +104,30 @@ namespace slib
 	sl_bool Thread::_nativeCheckRunning()
 	{
 		return sl_true;
+	}
+
+	namespace {
+		static double GetThreadPriority(ThreadPriority priority)
+		{
+			double min = 0;
+			double max = 1;
+			if (min < 0 || max < 0) {
+				return -1;
+			}
+			switch (priority) {
+				case ThreadPriority::Lowest:
+					return min;
+				case ThreadPriority::BelowNormal:
+					return (min * 3 + max) / 4;
+				case ThreadPriority::Normal:
+					return (min + max) / 2;
+				case ThreadPriority::AboveNormal:
+					return (min + max * 3) / 4;
+				case ThreadPriority::Highest:
+					return max;
+			}
+			return -1;
+		}
 	}
 
 	void Thread::_nativeSetPriority()

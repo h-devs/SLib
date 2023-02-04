@@ -31,40 +31,35 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace java_util
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JList, "java/util/List")
-				SLIB_JNI_METHOD(size, "size", "()I")
-				SLIB_JNI_METHOD(contains, "contains", "(Ljava/lang/Object;)Z")
-				SLIB_JNI_METHOD(iterator, "iterator", "()Ljava/util/Iterator;")
-				SLIB_JNI_METHOD(getAt, "get", "(I)Ljava/lang/Object;")
-				SLIB_JNI_METHOD(set, "set", "(ILjava/lang/Object;)Ljava/lang/Object;")
-				SLIB_JNI_METHOD(add, "add", "(Ljava/lang/Object;)Z")
-				SLIB_JNI_METHOD(addAt, "add", "(ILjava/lang/Object;)V")
-				SLIB_JNI_METHOD(remove, "remove", "(Ljava/lang/Object;)Z")
-				SLIB_JNI_METHOD(removeAt, "remove", "(I)Ljava/lang/Object;")
-				SLIB_JNI_METHOD(clear, "clear", "()V")
-				SLIB_JNI_METHOD(indexOf, "indexOf", "(Ljava/lang/Object;)I")
-				SLIB_JNI_METHOD(lastIndexOf, "lastIndexOf", "(Ljava/lang/Object;)I")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JList, "java/util/List")
+			SLIB_JNI_METHOD(size, "size", "()I")
+			SLIB_JNI_METHOD(contains, "contains", "(Ljava/lang/Object;)Z")
+			SLIB_JNI_METHOD(iterator, "iterator", "()Ljava/util/Iterator;")
+			SLIB_JNI_METHOD(getAt, "get", "(I)Ljava/lang/Object;")
+			SLIB_JNI_METHOD(set, "set", "(ILjava/lang/Object;)Ljava/lang/Object;")
+			SLIB_JNI_METHOD(add, "add", "(Ljava/lang/Object;)Z")
+			SLIB_JNI_METHOD(addAt, "add", "(ILjava/lang/Object;)V")
+			SLIB_JNI_METHOD(remove, "remove", "(Ljava/lang/Object;)Z")
+			SLIB_JNI_METHOD(removeAt, "remove", "(I)Ljava/lang/Object;")
+			SLIB_JNI_METHOD(clear, "clear", "()V")
+			SLIB_JNI_METHOD(indexOf, "indexOf", "(Ljava/lang/Object;)I")
+			SLIB_JNI_METHOD(lastIndexOf, "lastIndexOf", "(Ljava/lang/Object;)I")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JLocale, "java/util/Locale")
-				SLIB_JNI_STATIC_METHOD(getDefault, "getDefault", "()Ljava/util/Locale;")
-				SLIB_JNI_METHOD(getLanguage, "getLanguage", "()Ljava/lang/String;")
-				SLIB_JNI_METHOD(getCountry, "getCountry", "()Ljava/lang/String;")
-				SLIB_JNI_METHOD(getScript, "getScript", "()Ljava/lang/String;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JLocale, "java/util/Locale")
+			SLIB_JNI_STATIC_METHOD(getDefault, "getDefault", "()Ljava/util/Locale;")
+			SLIB_JNI_METHOD(getLanguage, "getLanguage", "()Ljava/lang/String;")
+			SLIB_JNI_METHOD(getCountry, "getCountry", "()Ljava/lang/String;")
+			SLIB_JNI_METHOD(getScript, "getScript", "()Ljava/lang/String;")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JUUID, "java/util/UUID")
-				SLIB_JNI_STATIC_METHOD(randomUUID, "randomUUID", "()Ljava/util/UUID;")
-			SLIB_JNI_END_CLASS
-		}
+		SLIB_JNI_BEGIN_CLASS(JUUID, "java/util/UUID")
+			SLIB_JNI_STATIC_METHOD(randomUUID, "randomUUID", "()Ljava/util/UUID;")
+		SLIB_JNI_END_CLASS
+
 	}
-
-	using namespace priv::java_util;
 
 	namespace java
 	{

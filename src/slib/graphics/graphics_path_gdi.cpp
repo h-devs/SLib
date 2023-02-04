@@ -32,76 +32,70 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace graphics_path
-		{
+	namespace {
 
-			static Gdiplus::FillMode ConvertFillMode(FillMode _mode)
+		static Gdiplus::FillMode ConvertFillMode(FillMode _mode)
+		{
+			Gdiplus::FillMode fillMode;
+			switch (_mode) {
+			case FillMode::Winding:
+				fillMode = Gdiplus::FillModeWinding;
+				break;
+			case FillMode::Alternate:
+			default:
+				fillMode = Gdiplus::FillModeAlternate;
+				break;
+			}
+			return fillMode;
+		}
+
+		class PlatformObject : public Referable
+		{
+		public:
+			Gdiplus::GraphicsPath* path;
+			sl_real lastX;
+			sl_real lastY;
+
+		protected:
+			PlatformObject(Gdiplus::GraphicsPath* _path): path(_path), lastX(0), lastY(0) {}
+
+			~PlatformObject()
 			{
-				Gdiplus::FillMode fillMode;
-				switch (_mode) {
-				case FillMode::Winding:
-					fillMode = Gdiplus::FillModeWinding;
-					break;
-				case FillMode::Alternate:
-				default:
-					fillMode = Gdiplus::FillModeAlternate;
-					break;
-				}
-				return fillMode;
+				delete path;
 			}
 
-			class PlatformObject : public Referable
+		public:
+			static Ref<PlatformObject> create()
 			{
-			public:
-				Gdiplus::GraphicsPath* path;
-				sl_real lastX;
-				sl_real lastY;
-
-			protected:
-				PlatformObject(Gdiplus::GraphicsPath* _path): path(_path), lastX(0), lastY(0) {}
-
-				~PlatformObject()
-				{
+				Gdiplus::GraphicsPath* path = new Gdiplus::GraphicsPath(Gdiplus::FillModeWinding);
+				if (path) {
+					Ref<PlatformObject> ret = new PlatformObject(path);
+					if (ret.isNotNull()) {
+						return ret;
+					}
 					delete path;
 				}
+				return sl_null;
+			}
 
-			public:
-				static Ref<PlatformObject> create()
-				{
-					Gdiplus::GraphicsPath* path = new Gdiplus::GraphicsPath(Gdiplus::FillModeWinding);
-					if (path) {
-						Ref<PlatformObject> ret = new PlatformObject(path);
-						if (ret.isNotNull()) {
-							return ret;
-						}
-						delete path;
-					}
-					return sl_null;
-				}
+		};
 
-			};
-
-			class GraphicsPathHelper : public GraphicsPath
+		class GraphicsPathHelper : public GraphicsPath
+		{
+		public:
+			Gdiplus::GraphicsPath* getPlatformPath()
 			{
-			public:
-				Gdiplus::GraphicsPath* getPlatformPath()
-				{
-					_initPlatformObject();
-					PlatformObject* po = (PlatformObject*)(m_platformObject.get());
-					if (po) {
-						return po->path;
-					}
-					return sl_null;
+				_initPlatformObject();
+				PlatformObject* po = (PlatformObject*)(m_platformObject.get());
+				if (po) {
+					return po->path;
 				}
+				return sl_null;
+			}
 
-			};
+		};
 
-		}
 	}
-
-	using namespace priv::graphics_path;
 
 	Ref<Referable> GraphicsPath::_createPlatformObject()
 	{

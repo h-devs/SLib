@@ -27,23 +27,15 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace libc
+#if defined(SLIB_ARCH_IS_64BIT)
+	namespace {
+		static int EmptyFcntl(int fd, int cmd, ...)
 		{
-
-			int EmptyFcntl(int fd, int cmd, ...)
-			{
-				return -1;
-			}
-
+			return -1;
 		}
 	}
 
-	using namespace priv::libc;
-
-#if defined(SLIB_ARCH_IS_64BIT)
-	FUNC_fcntl getApi_fcntl()
+	FUNC_fcntl GetApi_fcntl()
 	{
 		static FUNC_fcntl func = sl_null;
 		static sl_bool flagInit = sl_true;

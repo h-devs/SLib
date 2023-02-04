@@ -32,91 +32,88 @@ namespace slib
 
 	namespace priv
 	{
-		namespace json
+
+		template <class MAP>
+		static void GetMapFromJson(MAP& _out, const Json& json)
 		{
-
-			template <class MAP>
-			static void GetMapFromJson(MAP& _out, const Json& json)
-			{
-				if (json.isUndefined()) {
-					return;
-				}
-				MapHelper<MAP>::clear(_out);
-				if (json.getType() == VariantType::Map) {
-					JsonMap src = json.getJsonMap();
-					if (src.isNotNull()) {
-						MutexLocker lock(src.getLocker());
-						auto node = src.getFirstNode();
-						while (node) {
-							typename MAP::VALUE_TYPE v;
-							FromJson(node->value, v);
-							MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(node->key), Move(v));
-							node = node->getNext();
-						}
-					}
-				} else {
-					Ref<Object> src = json.getObject();
-					if (src.isNotNull()) {
-						PropertyIterator iterator = src->getPropertyIterator();
-						while (iterator.moveNext()) {
-							typename MAP::VALUE_TYPE v;
-							Variant value = iterator.getValue();
-							FromJson(*(static_cast<const Json*>(&value)), v);
-							MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
-						}
-					}
-				}
+			if (json.isUndefined()) {
+				return;
 			}
-
-			template <class MAP>
-			static void ToJsonMap(Json& _out, const MAP& _in)
-			{
-				if (_in.isNotNull()) {
-					MutexLocker locker(_in.getLocker());
-					JsonMap map;
-					auto node = _in.getFirstNode();
+			MapHelper<MAP>::clear(_out);
+			if (json.getType() == VariantType::Map) {
+				JsonMap src = json.getJsonMap();
+				if (src.isNotNull()) {
+					MutexLocker lock(src.getLocker());
+					auto node = src.getFirstNode();
 					while (node) {
-						map.put_NoLock(Cast<typename MAP::KEY_TYPE, String>()(node->key), node->value);
+						typename MAP::VALUE_TYPE v;
+						FromJson(node->value, v);
+						MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(node->key), Move(v));
 						node = node->getNext();
 					}
-					_out = Move(map);
-				} else {
-					_out.setNull();
+				}
+			} else {
+				Ref<Object> src = json.getObject();
+				if (src.isNotNull()) {
+					PropertyIterator iterator = src->getPropertyIterator();
+					while (iterator.moveNext()) {
+						typename MAP::VALUE_TYPE v;
+						Variant value = iterator.getValue();
+						FromJson(*(static_cast<const Json*>(&value)), v);
+						MapHelper<MAP>::add(_out, Cast<String, typename MAP::KEY_TYPE>()(iterator.getKey()), Move(v));
+					}
 				}
 			}
-
 		}
+
+		template <class MAP>
+		static void ToJsonMap(Json& _out, const MAP& _in)
+		{
+			if (_in.isNotNull()) {
+				MutexLocker locker(_in.getLocker());
+				JsonMap map;
+				auto node = _in.getFirstNode();
+				while (node) {
+					map.put_NoLock(Cast<typename MAP::KEY_TYPE, String>()(node->key), node->value);
+					node = node->getNext();
+				}
+				_out = Move(map);
+			} else {
+				_out.setNull();
+			}
+		}
+
 	}
 
 	template <class KT, class VT, class KEY_COMPARE>
 	static void FromJson(const Json& json, Map<KT, VT, KEY_COMPARE>& _out)
 	{
-		priv::json::GetMapFromJson(_out, json);
+		priv::GetMapFromJson(_out, json);
 	}
 
 	template <class KT, class VT, class KEY_COMPARE>
 	static void ToJson(Json& json, const Map<KT, VT, KEY_COMPARE>& _in)
 	{
-		priv::json::ToJsonMap(json, _in);
+		priv::ToJsonMap(json, _in);
 	}
 
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
 	static void FromJson(const Json& json, HashMap<KT, VT, HASH, KEY_COMPARE>& _out)
 	{
-		priv::json::GetMapFromJson(_out, json);
+		priv::GetMapFromJson(_out, json);
 	}
 
 	template <class KT, class VT, class HASH, class KEY_COMPARE>
 	static void ToJson(Json& json, const HashMap<KT, VT, HASH, KEY_COMPARE>& _in)
 	{
-		priv::json::ToJsonMap(json, _in);
+		priv::ToJsonMap(json, _in);
 	}
 
 #ifdef SLIB_SUPPORT_STD_TYPES
 	template <class KT, class... TYPES>
 	static void FromJson(const Json& json, std::map<KT, TYPES...>& _out)
 	{
-		priv::json::GetMapFromJson(_out, json);
+		priv::GetMapFromJson(_out, json);
 	}
 
 	template <class KT, class... TYPES>
@@ -132,7 +129,7 @@ namespace slib
 	template <class KT, class... TYPES>
 	static void FromJson(const Json& json, std::unordered_map<KT, TYPES...>& _out)
 	{
-		priv::json::GetMapFromJson(_out, json);
+		priv::GetMapFromJson(_out, json);
 	}
 
 	template <class KT, class... TYPES>

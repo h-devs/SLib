@@ -31,34 +31,28 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace android_context
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JWindow, "android/view/Window")
-				SLIB_JNI_METHOD(setSoftInputMode, "setSoftInputMode", "(I)V")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JWindow, "android/view/Window")
+			SLIB_JNI_METHOD(setSoftInputMode, "setSoftInputMode", "(I)V")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JWindowManager, "android/view/WindowManager")
-				SLIB_JNI_METHOD(getDefaultDisplay, "getDefaultDisplay", "()Landroid/view/Display;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JWindowManager, "android/view/WindowManager")
+			SLIB_JNI_METHOD(getDefaultDisplay, "getDefaultDisplay", "()Landroid/view/Display;")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JDisplay, "android/view/Display")
-				SLIB_JNI_METHOD(getMetrics, "getMetrics", "(Landroid/util/DisplayMetrics;)V")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JDisplay, "android/view/Display")
+			SLIB_JNI_METHOD(getMetrics, "getMetrics", "(Landroid/util/DisplayMetrics;)V")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JDisplayMetrics, "android/util/DisplayMetrics")
-				SLIB_JNI_NEW(init, "()V")
-				SLIB_JNI_INT_FIELD(widthPixels)
-				SLIB_JNI_INT_FIELD(heightPixels)
-				SLIB_JNI_INT_FIELD(densityDpi)
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JDisplayMetrics, "android/util/DisplayMetrics")
+			SLIB_JNI_NEW(init, "()V")
+			SLIB_JNI_INT_FIELD(widthPixels)
+			SLIB_JNI_INT_FIELD(heightPixels)
+			SLIB_JNI_INT_FIELD(densityDpi)
+		SLIB_JNI_END_CLASS
 
-		}
 	}
-
-	using namespace priv::android_context;
 
 	namespace android
 	{

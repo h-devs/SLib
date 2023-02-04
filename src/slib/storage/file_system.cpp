@@ -41,18 +41,10 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace file_system
-		{
-
-			typedef HashMap< String, FileSystemHost* > FileSystemHostMap;
-			SLIB_SAFE_STATIC_GETTER(FileSystemHostMap, GetFileSystemHostMap)
-
-		}
+	namespace {
+		typedef HashMap< String, FileSystemHost* > FileSystemHostMap;
+		SLIB_SAFE_STATIC_GETTER(FileSystemHostMap, GetFileSystemHostMap)
 	}
-
-	using namespace priv::file_system;
 
 	Ref<FileSystemHost> FileSystem::createHost()
 	{

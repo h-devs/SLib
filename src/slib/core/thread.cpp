@@ -34,18 +34,12 @@
 namespace slib
 {
 
-	SLIB_DEFINE_OBJECT(Thread, Object)
-
-	namespace priv
-	{
-		namespace thread
-		{
-			typedef HashMap< Thread*, WeakRef<Thread> > ThreadMap;
-			SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<ThreadMap>, g_mapThreads)
-		}
+	namespace {
+		typedef HashMap< Thread*, WeakRef<Thread> > ThreadMap;
+		SLIB_GLOBAL_ZERO_INITIALIZED(Atomic<ThreadMap>, g_mapThreads)
 	}
 
-	using namespace priv::thread;
+	SLIB_DEFINE_OBJECT(Thread, Object)
 
 	Thread::Thread()
 	{

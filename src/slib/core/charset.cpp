@@ -27,570 +27,494 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace charset
+	namespace {
+
+		class BigEndianHelper
 		{
-
-			class BigEndianHelper
+		public:
+			SLIB_INLINE static sl_char16 read16(const void* src, sl_size pos) noexcept
 			{
-			public:
-				SLIB_INLINE static sl_char16 read16(const void* src, sl_size pos) noexcept
-				{
-					sl_uint8* s = ((sl_uint8*)src) + (pos << 1);
-					return (sl_char16)(((sl_uint16)(s[0]) << 8) | ((sl_uint16)(s[1])));
-				}
+				sl_uint8* s = ((sl_uint8*)src) + (pos << 1);
+				return (sl_char16)(((sl_uint16)(s[0]) << 8) | ((sl_uint16)(s[1])));
+			}
 
-				SLIB_INLINE static void write16(void* dst, sl_size pos, sl_char16 _v) noexcept
-				{
-					sl_uint16 v = (sl_uint16)_v;
-					sl_uint8* d = ((sl_uint8*)dst) + (pos << 1);
-					d[0] = (sl_uint8)(v >> 8);
-					d[1] = (sl_uint8)(v);
-				}
-
-				SLIB_INLINE static sl_char32 read32(const void* src, sl_size pos) noexcept
-				{
-					sl_uint8* s = ((sl_uint8*)src) + (pos << 2);
-					return (sl_char32)(((sl_uint32)(s[0]) << 24) | ((sl_uint32)(s[1]) << 16) | ((sl_uint32)(s[2]) << 8) | ((sl_uint32)(s[3])));
-				}
-
-				SLIB_INLINE static void write32(void* dst, sl_size pos, sl_char32 _v) noexcept
-				{
-					sl_uint32 v = (sl_uint32)_v;
-					sl_uint8* d = ((sl_uint8*)dst) + (pos << 2);
-					d[0] = (sl_uint8)(v >> 24);
-					d[1] = (sl_uint8)(v >> 16);
-					d[2] = (sl_uint8)(v >> 8);
-					d[3] = (sl_uint8)(v);
-				}
-
-			};
-
-			class LittleEndianHelper
+			SLIB_INLINE static void write16(void* dst, sl_size pos, sl_char16 _v) noexcept
 			{
-			public:
-				SLIB_INLINE static sl_char16 read16(const void* src, sl_size pos) noexcept
-				{
-					sl_uint8* s = ((sl_uint8*)src) + (pos << 1);
-					return (sl_char16)(((sl_uint16)(s[0])) | ((sl_uint16)(s[1]) << 8));
-				}
+				sl_uint16 v = (sl_uint16)_v;
+				sl_uint8* d = ((sl_uint8*)dst) + (pos << 1);
+				d[0] = (sl_uint8)(v >> 8);
+				d[1] = (sl_uint8)(v);
+			}
 
-				SLIB_INLINE static void write16(void* dst, sl_size pos, sl_char16 _v) noexcept
-				{
-					sl_uint16 v = (sl_uint16)_v;
-					sl_uint8* d = ((sl_uint8*)dst) + (pos << 1);
-					d[0] = (sl_uint8)(v);
-					d[1] = (sl_uint8)(v >> 8);
-				}
-
-				SLIB_INLINE static sl_char32 read32(const void* src, sl_size pos) noexcept
-				{
-					sl_uint8* s = ((sl_uint8*)src) + (pos << 2);
-					return (sl_char32)(((sl_uint32)(s[0])) | ((sl_uint32)(s[1]) << 8) | ((sl_uint32)(s[2]) << 16) | ((sl_uint32)(s[3]) << 24));
-				}
-
-				SLIB_INLINE static void write32(void* dst, sl_size pos, sl_char32 _v) noexcept
-				{
-					sl_uint32 v = (sl_uint32)_v;
-					sl_uint8* d = ((sl_uint8*)dst) + (pos << 2);
-					d[0] = (sl_uint8)(v);
-					d[1] = (sl_uint8)(v >> 8);
-					d[2] = (sl_uint8)(v >> 16);
-					d[3] = (sl_uint8)(v >> 24);
-				}
-
-			};
-
-			class NoEndianHelper
+			SLIB_INLINE static sl_char32 read32(const void* src, sl_size pos) noexcept
 			{
-			public:
-				SLIB_INLINE static sl_char16 read16(const void* src, sl_size pos) noexcept
-				{
-					return ((sl_char16*)src)[pos];
-				}
+				sl_uint8* s = ((sl_uint8*)src) + (pos << 2);
+				return (sl_char32)(((sl_uint32)(s[0]) << 24) | ((sl_uint32)(s[1]) << 16) | ((sl_uint32)(s[2]) << 8) | ((sl_uint32)(s[3])));
+			}
 
-				SLIB_INLINE static void write16(void* dst, sl_size pos, sl_char16 v) noexcept
-				{
-					((sl_char16*)dst)[pos] = v;
-				}
-
-				SLIB_INLINE static sl_char32 read32(const void* src, sl_size pos) noexcept
-				{
-					return ((sl_char32*)src)[pos];
-				}
-
-				SLIB_INLINE static void write32(void* dst, sl_size pos, sl_char32 v) noexcept
-				{
-					((sl_char32*)dst)[pos] = v;
-				}
-
-			};
-
-			class Utf8Helper
+			SLIB_INLINE static void write32(void* dst, sl_size pos, sl_char32 _v) noexcept
 			{
-			public:
-				// 0xC0 <= `ch0` < 0xE0
-				SLIB_INLINE static sl_bool getUnicode2(sl_uint32& code, sl_uint8 _ch0, sl_uint8 _ch1)
-				{
-					sl_uint32 ch1 = _ch1;
-					if ((ch1 & 0xC0) == 0x80) {
+				sl_uint32 v = (sl_uint32)_v;
+				sl_uint8* d = ((sl_uint8*)dst) + (pos << 2);
+				d[0] = (sl_uint8)(v >> 24);
+				d[1] = (sl_uint8)(v >> 16);
+				d[2] = (sl_uint8)(v >> 8);
+				d[3] = (sl_uint8)(v);
+			}
+
+		};
+
+		class LittleEndianHelper
+		{
+		public:
+			SLIB_INLINE static sl_char16 read16(const void* src, sl_size pos) noexcept
+			{
+				sl_uint8* s = ((sl_uint8*)src) + (pos << 1);
+				return (sl_char16)(((sl_uint16)(s[0])) | ((sl_uint16)(s[1]) << 8));
+			}
+
+			SLIB_INLINE static void write16(void* dst, sl_size pos, sl_char16 _v) noexcept
+			{
+				sl_uint16 v = (sl_uint16)_v;
+				sl_uint8* d = ((sl_uint8*)dst) + (pos << 1);
+				d[0] = (sl_uint8)(v);
+				d[1] = (sl_uint8)(v >> 8);
+			}
+
+			SLIB_INLINE static sl_char32 read32(const void* src, sl_size pos) noexcept
+			{
+				sl_uint8* s = ((sl_uint8*)src) + (pos << 2);
+				return (sl_char32)(((sl_uint32)(s[0])) | ((sl_uint32)(s[1]) << 8) | ((sl_uint32)(s[2]) << 16) | ((sl_uint32)(s[3]) << 24));
+			}
+
+			SLIB_INLINE static void write32(void* dst, sl_size pos, sl_char32 _v) noexcept
+			{
+				sl_uint32 v = (sl_uint32)_v;
+				sl_uint8* d = ((sl_uint8*)dst) + (pos << 2);
+				d[0] = (sl_uint8)(v);
+				d[1] = (sl_uint8)(v >> 8);
+				d[2] = (sl_uint8)(v >> 16);
+				d[3] = (sl_uint8)(v >> 24);
+			}
+
+		};
+
+		class NoEndianHelper
+		{
+		public:
+			SLIB_INLINE static sl_char16 read16(const void* src, sl_size pos) noexcept
+			{
+				return ((sl_char16*)src)[pos];
+			}
+
+			SLIB_INLINE static void write16(void* dst, sl_size pos, sl_char16 v) noexcept
+			{
+				((sl_char16*)dst)[pos] = v;
+			}
+
+			SLIB_INLINE static sl_char32 read32(const void* src, sl_size pos) noexcept
+			{
+				return ((sl_char32*)src)[pos];
+			}
+
+			SLIB_INLINE static void write32(void* dst, sl_size pos, sl_char32 v) noexcept
+			{
+				((sl_char32*)dst)[pos] = v;
+			}
+
+		};
+
+		class Utf8Helper
+		{
+		public:
+			// 0xC0 <= `ch0` < 0xE0
+			SLIB_INLINE static sl_bool getUnicode2(sl_uint32& code, sl_uint8 _ch0, sl_uint8 _ch1)
+			{
+				sl_uint32 ch1 = _ch1;
+				if ((ch1 & 0xC0) == 0x80) {
+					sl_uint32 ch0 = _ch0;
+					code = ((ch0 & 0x1F) << 6) | (ch1 & 0x3F);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			// 0xE0 <= `ch0` < 0xF0, `ch1`: 2 bytes
+			SLIB_INLINE static sl_bool getUnicode3(sl_uint32& code, sl_uint8 _ch0, const sl_char8* _ch1)
+			{
+				const sl_char8* s = _ch1;
+				sl_uint32 ch1 = (sl_uint8)(*(s++));
+				if ((ch1 & 0xC0) == 0x80) {
+					sl_uint32 ch2 = (sl_uint8)(*s);
+					if ((ch2 & 0xC0) == 0x80) {
 						sl_uint32 ch0 = _ch0;
-						code = ((ch0 & 0x1F) << 6) | (ch1 & 0x3F);
+						code = ((ch0 & 0x0F) << 12) | ((ch1 & 0x3F) << 6) | (ch2 & 0x3F);
 						return sl_true;
 					}
-					return sl_false;
 				}
+				return sl_false;
+			}
 
-				// 0xE0 <= `ch0` < 0xF0, `ch1`: 2 bytes
-				SLIB_INLINE static sl_bool getUnicode3(sl_uint32& code, sl_uint8 _ch0, const sl_char8* _ch1)
-				{
-					const sl_char8* s = _ch1;
-					sl_uint32 ch1 = (sl_uint8)(*(s++));
-					if ((ch1 & 0xC0) == 0x80) {
-						sl_uint32 ch2 = (sl_uint8)(*s);
-						if ((ch2 & 0xC0) == 0x80) {
+			// 0xF0 <= `ch0` < 0xF8, `ch1`: 3 bytes
+			SLIB_INLINE static sl_bool getUnicode4(sl_uint32& code, sl_uint8 _ch0, const sl_char8* _ch1)
+			{
+				const sl_char8* s = _ch1;
+				sl_uint32 ch1 = (sl_uint8)(*(s++));
+				if ((ch1 & 0xC0) == 0x80) {
+					sl_uint32 ch2 = (sl_uint8)(*(s++));
+					if ((ch2 & 0xC0) == 0x80) {
+						sl_uint32 ch3 = (sl_uint8)(*s);
+						if ((ch3 & 0xC0) == 0x80) {
 							sl_uint32 ch0 = _ch0;
-							code = ((ch0 & 0x0F) << 12) | ((ch1 & 0x3F) << 6) | (ch2 & 0x3F);
+							code = ((ch0 & 0x07) << 18) | ((ch1 & 0x3F) << 12) | ((ch2 & 0x3F) << 6) | (ch3 & 0x3F);
 							return sl_true;
 						}
 					}
-					return sl_false;
 				}
+				return sl_false;
+			}
 
-				// 0xF0 <= `ch0` < 0xF8, `ch1`: 3 bytes
-				SLIB_INLINE static sl_bool getUnicode4(sl_uint32& code, sl_uint8 _ch0, const sl_char8* _ch1)
-				{
-					const sl_char8* s = _ch1;
-					sl_uint32 ch1 = (sl_uint8)(*(s++));
-					if ((ch1 & 0xC0) == 0x80) {
-						sl_uint32 ch2 = (sl_uint8)(*(s++));
-						if ((ch2 & 0xC0) == 0x80) {
-							sl_uint32 ch3 = (sl_uint8)(*s);
-							if ((ch3 & 0xC0) == 0x80) {
-								sl_uint32 ch0 = _ch0;
-								code = ((ch0 & 0x07) << 18) | ((ch1 & 0x3F) << 12) | ((ch2 & 0x3F) << 6) | (ch3 & 0x3F);
-								return sl_true;
-							}
-						}
-					}
-					return sl_false;
-				}
-
-				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* _utf8, sl_size len, sl_size& pos)
-				{
-					sl_char8* utf8 = (sl_char8*)_utf8;
-					sl_uint8 ch = utf8[pos];
-					if (ch < 0x80) {
-						code = ch;
-						pos++;
-						return sl_true;
-					} else if (ch < 0xC0) {
-						// Corrupted data element
-					} else if (ch < 0xE0) {
-						if (pos + 1 < len) {
-							if (getUnicode2(code, ch, utf8[pos + 1])) {
-								pos += 2;
-								return sl_true;
-							}
-						}
-					} else if (ch < 0xF0) {
-						if (pos + 2 < len) {
-							if (getUnicode3(code, ch, utf8 + pos + 1)) {
-								pos += 3;
-								return sl_true;
-							}
-						}
-					} else if (ch < 0xF8) {
-						if (pos + 3 < len) {
-							if (getUnicode4(code, ch, utf8 + pos + 1)) {
-								pos += 4;
-								return sl_true;
-							}
-						}
-					}
-					return sl_false;
-				}
-
-				// Zero-terminated source
-				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* _utf8, sl_size& pos)
-				{
-					sl_char8* utf8 = (sl_char8*)_utf8;
-					sl_uint8 ch = utf8[pos];
-					if (ch < 0x80) {
-						code = ch;
-						pos++;
-						return sl_true;
-					} else if (ch < 0xC0) {
-						// Corrupted data element
-					} else if (ch < 0xE0) {
+			SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* _utf8, sl_size len, sl_size& pos)
+			{
+				sl_char8* utf8 = (sl_char8*)_utf8;
+				sl_uint8 ch = utf8[pos];
+				if (ch < 0x80) {
+					code = ch;
+					pos++;
+					return sl_true;
+				} else if (ch < 0xC0) {
+					// Corrupted data element
+				} else if (ch < 0xE0) {
+					if (pos + 1 < len) {
 						if (getUnicode2(code, ch, utf8[pos + 1])) {
 							pos += 2;
 							return sl_true;
 						}
-					} else if (ch < 0xF0) {
+					}
+				} else if (ch < 0xF0) {
+					if (pos + 2 < len) {
 						if (getUnicode3(code, ch, utf8 + pos + 1)) {
 							pos += 3;
 							return sl_true;
 						}
-					} else if (ch < 0xF8) {
+					}
+				} else if (ch < 0xF8) {
+					if (pos + 3 < len) {
 						if (getUnicode4(code, ch, utf8 + pos + 1)) {
 							pos += 4;
 							return sl_true;
 						}
 					}
-					return sl_false;
 				}
+				return sl_false;
+			}
 
-				// 0x0080 <= `code` < 0x07ff
-				SLIB_INLINE static void putUnicode2(sl_uint32 code, sl_char8* utf8)
-				{
-					*(utf8++) = (sl_char8)((code >> 6) | 0xC0);
-					*utf8 = (sl_char8)((code & 0x3F) | 0x80);
-				}
-
-				// 0x0800 <= `code` < 0x10000
-				SLIB_INLINE static void putUnicode3(sl_uint32 code, sl_char8* utf8)
-				{
-					*(utf8++) = (sl_char8)((code >> 12) | 0xE0);
-					*(utf8++) = (sl_char8)(((code >> 6) & 0x3F) | 0x80);
-					*utf8 = (sl_char8)((code & 0x3F) | 0x80);
-				}
-
-				// 0x10000 <= `code` < 0x110000
-				SLIB_INLINE static void putUnicode4(sl_uint32 code, sl_char8* utf8)
-				{
-					*(utf8++) = (sl_char8)((code >> 18) | 0xF0);
-					*(utf8++) = (sl_char8)(((code >> 12) & 0x3F) | 0x80);
-					*(utf8++) = (sl_char8)(((code >> 6) & 0x3F) | 0x80);
-					*utf8 = (sl_char8)((code & 0x3F) | 0x80);
-				}
-
-				SLIB_INLINE static void putUnicode(sl_uint32 code, void* _utf8, sl_size len, sl_size& pos)
-				{
-					sl_char8* utf8 = (sl_char8*)_utf8;
-					if (code < 0x80) {
-						if (utf8) {
-							utf8[pos] = (sl_char8)code;
-						}
-						pos++;
-					} else if (code < 0x800) {
-						if (pos + 1 < len) {
-							if (utf8) {
-								putUnicode2(code, utf8 + pos);
-							}
-							pos += 2;
-						}
-					} else if (code < 0x10000) {
-						if (pos + 2 < len) {
-							if (utf8) {
-								putUnicode3(code, utf8 + pos);
-							}
-							pos += 3;
-						}
-					} else if (code < 0x110000) {
-						if (pos + 3 < len) {
-							if (utf8) {
-								putUnicode4(code, utf8 + pos);
-							}
-							pos += 4;
-						}
+			// Zero-terminated source
+			SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* _utf8, sl_size& pos)
+			{
+				sl_char8* utf8 = (sl_char8*)_utf8;
+				sl_uint8 ch = utf8[pos];
+				if (ch < 0x80) {
+					code = ch;
+					pos++;
+					return sl_true;
+				} else if (ch < 0xC0) {
+					// Corrupted data element
+				} else if (ch < 0xE0) {
+					if (getUnicode2(code, ch, utf8[pos + 1])) {
+						pos += 2;
+						return sl_true;
+					}
+				} else if (ch < 0xF0) {
+					if (getUnicode3(code, ch, utf8 + pos + 1)) {
+						pos += 3;
+						return sl_true;
+					}
+				} else if (ch < 0xF8) {
+					if (getUnicode4(code, ch, utf8 + pos + 1)) {
+						pos += 4;
+						return sl_true;
 					}
 				}
+				return sl_false;
+			}
 
-				SLIB_INLINE static void putUnicode(sl_uint32 code, void* _utf8, sl_size& pos)
-				{
-					sl_char8* utf8 = (sl_char8*)_utf8;
-					if (code < 0x80) {
-						if (utf8) {
-							utf8[pos] = (sl_char8)code;
-						}
-						pos++;
-					} else if (code < 0x800) {
+			// 0x0080 <= `code` < 0x07ff
+			SLIB_INLINE static void putUnicode2(sl_uint32 code, sl_char8* utf8)
+			{
+				*(utf8++) = (sl_char8)((code >> 6) | 0xC0);
+				*utf8 = (sl_char8)((code & 0x3F) | 0x80);
+			}
+
+			// 0x0800 <= `code` < 0x10000
+			SLIB_INLINE static void putUnicode3(sl_uint32 code, sl_char8* utf8)
+			{
+				*(utf8++) = (sl_char8)((code >> 12) | 0xE0);
+				*(utf8++) = (sl_char8)(((code >> 6) & 0x3F) | 0x80);
+				*utf8 = (sl_char8)((code & 0x3F) | 0x80);
+			}
+
+			// 0x10000 <= `code` < 0x110000
+			SLIB_INLINE static void putUnicode4(sl_uint32 code, sl_char8* utf8)
+			{
+				*(utf8++) = (sl_char8)((code >> 18) | 0xF0);
+				*(utf8++) = (sl_char8)(((code >> 12) & 0x3F) | 0x80);
+				*(utf8++) = (sl_char8)(((code >> 6) & 0x3F) | 0x80);
+				*utf8 = (sl_char8)((code & 0x3F) | 0x80);
+			}
+
+			SLIB_INLINE static void putUnicode(sl_uint32 code, void* _utf8, sl_size len, sl_size& pos)
+			{
+				sl_char8* utf8 = (sl_char8*)_utf8;
+				if (code < 0x80) {
+					if (utf8) {
+						utf8[pos] = (sl_char8)code;
+					}
+					pos++;
+				} else if (code < 0x800) {
+					if (pos + 1 < len) {
 						if (utf8) {
 							putUnicode2(code, utf8 + pos);
 						}
 						pos += 2;
-					} else if (code < 0x10000) {
+					}
+				} else if (code < 0x10000) {
+					if (pos + 2 < len) {
 						if (utf8) {
 							putUnicode3(code, utf8 + pos);
 						}
 						pos += 3;
-					} else if (code < 0x110000) {
+					}
+				} else if (code < 0x110000) {
+					if (pos + 3 < len) {
 						if (utf8) {
 							putUnicode4(code, utf8 + pos);
 						}
 						pos += 4;
 					}
 				}
+			}
 
-			};
-
-			template <class EndianHelper>
-			class Utf16Helper
+			SLIB_INLINE static void putUnicode(sl_uint32 code, void* _utf8, sl_size& pos)
 			{
-			public:
-				// 0xD800 <= `ch0` < 0xE000
-				SLIB_INLINE static sl_bool getUnicode2(sl_uint32& code, sl_uint16 _ch0, sl_uint16 _ch1)
-				{
-					sl_uint32 ch0 = _ch0;
-					sl_uint32 ch1 = _ch1;
-					if (ch0 < 0xDC00 && ch1 >= 0xDC00 && ch1 < 0xE000) {
-						code = (((ch0 - 0xD800) << 10) | (ch1 - 0xDC00)) + 0x10000;
-						return sl_true;
+				sl_char8* utf8 = (sl_char8*)_utf8;
+				if (code < 0x80) {
+					if (utf8) {
+						utf8[pos] = (sl_char8)code;
 					}
-					return sl_false;
-				}
-
-				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf16, sl_size len, sl_size& pos)
-				{
-					sl_uint16 ch = EndianHelper::read16(utf16, pos);
-					if (SLIB_CHAR_IS_SURROGATE(ch)) {
-						if (pos + 1 < len) {
-							sl_char16 ch1 = EndianHelper::read16(utf16, pos + 1);
-							if (getUnicode2(code, ch, ch1)) {
-								pos += 2;
-								return sl_true;
-							}
-						}
-					} else {
-						code = ch;
-						pos++;
-						return sl_true;
+					pos++;
+				} else if (code < 0x800) {
+					if (utf8) {
+						putUnicode2(code, utf8 + pos);
 					}
-					return sl_false;
+					pos += 2;
+				} else if (code < 0x10000) {
+					if (utf8) {
+						putUnicode3(code, utf8 + pos);
+					}
+					pos += 3;
+				} else if (code < 0x110000) {
+					if (utf8) {
+						putUnicode4(code, utf8 + pos);
+					}
+					pos += 4;
 				}
+			}
 
-				// Null-terminated source
-				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf16, sl_size& pos)
-				{
-					sl_uint16 ch = EndianHelper::read16(utf16, pos);
-					if (SLIB_CHAR_IS_SURROGATE(ch)) {
+		};
+
+		template <class EndianHelper>
+		class Utf16Helper
+		{
+		public:
+			// 0xD800 <= `ch0` < 0xE000
+			SLIB_INLINE static sl_bool getUnicode2(sl_uint32& code, sl_uint16 _ch0, sl_uint16 _ch1)
+			{
+				sl_uint32 ch0 = _ch0;
+				sl_uint32 ch1 = _ch1;
+				if (ch0 < 0xDC00 && ch1 >= 0xDC00 && ch1 < 0xE000) {
+					code = (((ch0 - 0xD800) << 10) | (ch1 - 0xDC00)) + 0x10000;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf16, sl_size len, sl_size& pos)
+			{
+				sl_uint16 ch = EndianHelper::read16(utf16, pos);
+				if (SLIB_CHAR_IS_SURROGATE(ch)) {
+					if (pos + 1 < len) {
 						sl_char16 ch1 = EndianHelper::read16(utf16, pos + 1);
 						if (getUnicode2(code, ch, ch1)) {
 							pos += 2;
 							return sl_true;
 						}
-					} else {
-						code = ch;
-						pos++;
+					}
+				} else {
+					code = ch;
+					pos++;
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			// Null-terminated source
+			SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf16, sl_size& pos)
+			{
+				sl_uint16 ch = EndianHelper::read16(utf16, pos);
+				if (SLIB_CHAR_IS_SURROGATE(ch)) {
+					sl_char16 ch1 = EndianHelper::read16(utf16, pos + 1);
+					if (getUnicode2(code, ch, ch1)) {
+						pos += 2;
 						return sl_true;
 					}
-					return sl_false;
+				} else {
+					code = ch;
+					pos++;
+					return sl_true;
 				}
+				return sl_false;
+			}
 
-				// 0x10000 <= `code` < 0x110000
-				SLIB_INLINE static void putUnicode2(sl_uint32 code, void* utf16, sl_size pos)
-				{
-					code -= 0x10000;
-					EndianHelper::write16(utf16, pos, (sl_char16)(0xD800 + (code >> 10)));
-					EndianHelper::write16(utf16, pos + 1, (sl_char16)(0xDC00 + (code & 0x3FF)));
-				}
+			// 0x10000 <= `code` < 0x110000
+			SLIB_INLINE static void putUnicode2(sl_uint32 code, void* utf16, sl_size pos)
+			{
+				code -= 0x10000;
+				EndianHelper::write16(utf16, pos, (sl_char16)(0xD800 + (code >> 10)));
+				EndianHelper::write16(utf16, pos + 1, (sl_char16)(0xDC00 + (code & 0x3FF)));
+			}
 
-				SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf16, sl_size len, sl_size& pos) noexcept
-				{
-					if (code >= 0x10000) {
-						if (code < 0x110000) {
-							if (pos + 1 < len) {
-								if (utf16) {
-									putUnicode2(code, utf16, pos);
-								}
-								pos += 2;
-							}
-						}
-					} else {
-						if (!SLIB_CHAR_IS_SURROGATE(code)) {
-							if (utf16) {
-								EndianHelper::write16(utf16, pos, (sl_char16)code);
-							}
-							pos++;
-						}
-					}
-				}
-
-				SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf16, sl_size& pos) noexcept
-				{
-					if (code >= 0x10000) {
-						if (code < 0x110000) {
+			SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf16, sl_size len, sl_size& pos) noexcept
+			{
+				if (code >= 0x10000) {
+					if (code < 0x110000) {
+						if (pos + 1 < len) {
 							if (utf16) {
 								putUnicode2(code, utf16, pos);
 							}
 							pos += 2;
 						}
-					} else {
-						if (!SLIB_CHAR_IS_SURROGATE(code)) {
-							if (utf16) {
-								EndianHelper::write16(utf16, pos, (sl_char16)code);
-							}
-							pos++;
-						}
-					}
-				}
-
-			};
-
-			template <class EndianHelper>
-			class Utf32Helper
-			{
-			public:
-				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf32, sl_size len, sl_size& pos)
-				{
-					code = EndianHelper::read32(utf32, pos);
-					pos++;
-					return sl_true;
-				}
-
-				SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf32, sl_size& pos)
-				{
-					code = EndianHelper::read32(utf32, pos);
-					pos++;
-					return sl_true;
-				}
-
-				SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf32, sl_size len, sl_size& pos) noexcept
-				{
-					if (utf32) {
-						EndianHelper::write32(utf32, pos, code);
-					}
-					pos++;
-				}
-
-				SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf32, sl_size& pos) noexcept
-				{
-					if (utf32) {
-						EndianHelper::write32(utf32, pos, code);
-					}
-					pos++;
-				}
-
-			};
-
-			template <class SrcHelper, class DstHelper>
-			sl_size ConvertUtf(const void* src, sl_reg lenSrc, void* dst, sl_reg lenDst) noexcept
-			{
-				sl_size posDst = 0;
-				sl_size posSrc = 0;
-				sl_uint32 code;
-				if (lenSrc < 0) {
-					if (lenDst < 0) {
-						for (;;) {
-							if (SrcHelper::getUnicode(code, src, posSrc)) {
-								if (!code) {
-									break;
-								}
-								DstHelper::putUnicode(code, dst, posDst);
-							} else {
-								posSrc++;
-							}
-						}
-					} else {
-						while (posDst < (sl_size)lenDst) {
-							if (SrcHelper::getUnicode(code, src, posSrc)) {
-								if (!code) {
-									break;
-								}
-								DstHelper::putUnicode(code, dst, lenDst, posDst);
-							} else {
-								posSrc++;
-							}
-						}
 					}
 				} else {
-					if (lenDst < 0) {
-						while (posSrc < (sl_size)lenSrc) {
-							if (SrcHelper::getUnicode(code, src, lenSrc, posSrc)) {
-								DstHelper::putUnicode(code, dst, posDst);
-							} else {
-								posSrc++;
-							}
+					if (!SLIB_CHAR_IS_SURROGATE(code)) {
+						if (utf16) {
+							EndianHelper::write16(utf16, pos, (sl_char16)code);
 						}
-					} else {
-						while (posSrc < (sl_size)lenSrc && posDst < (sl_size)lenDst) {
-							if (SrcHelper::getUnicode(code, src, lenSrc, posSrc)) {
-								DstHelper::putUnicode(code, dst, lenDst, posDst);
-							} else {
-								posSrc++;
-							}
-						}
+						pos++;
 					}
 				}
-				return posDst;
 			}
 
-			SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char8* data, sl_size len, sl_size& pos)
+			SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf16, sl_size& pos) noexcept
 			{
-				if (pos >= len) {
-					return sl_false;
+				if (code >= 0x10000) {
+					if (code < 0x110000) {
+						if (utf16) {
+							putUnicode2(code, utf16, pos);
+						}
+						pos += 2;
+					}
+				} else {
+					if (!SLIB_CHAR_IS_SURROGATE(code)) {
+						if (utf16) {
+							EndianHelper::write16(utf16, pos, (sl_char16)code);
+						}
+						pos++;
+					}
 				}
-				return Utf8Helper::getUnicode(outCode, data, len, pos);
 			}
 
-			SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char16* data, sl_size len, sl_size& pos)
-			{
-				if (pos >= len) {
-					return sl_false;
-				}
-				return Utf16Helper<NoEndianHelper>::getUnicode(outCode, data, len, pos);
-			}
+		};
 
-			SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char32* data, sl_size len, sl_size& pos)
+		template <class EndianHelper>
+		class Utf32Helper
+		{
+		public:
+			SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf32, sl_size len, sl_size& pos)
 			{
-				if (pos >= len) {
-					return sl_false;
-				}
-				outCode = data[pos++];
+				code = EndianHelper::read32(utf32, pos);
+				pos++;
 				return sl_true;
 			}
 
-			template <class CHAR>
-			static sl_size GetJoinedCharLength(sl_uint32 firstChar, const CHAR* dataNext, sl_size lenNext)
+			SLIB_INLINE static sl_bool getUnicode(sl_uint32& code, const void* utf32, sl_size& pos)
 			{
-				if (firstChar >= 0x100) {
-					sl_uint32 next;
-					sl_size n = 0;
+				code = EndianHelper::read32(utf32, pos);
+				pos++;
+				return sl_true;
+			}
+
+			SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf32, sl_size len, sl_size& pos) noexcept
+			{
+				if (utf32) {
+					EndianHelper::write32(utf32, pos, code);
+				}
+				pos++;
+			}
+
+			SLIB_INLINE static void putUnicode(sl_uint32 code, void* utf32, sl_size& pos) noexcept
+			{
+				if (utf32) {
+					EndianHelper::write32(utf32, pos, code);
+				}
+				pos++;
+			}
+
+		};
+
+		template <class SrcHelper, class DstHelper>
+		sl_size ConvertUtf(const void* src, sl_reg lenSrc, void* dst, sl_reg lenDst) noexcept
+		{
+			sl_size posDst = 0;
+			sl_size posSrc = 0;
+			sl_uint32 code;
+			if (lenSrc < 0) {
+				if (lenDst < 0) {
 					for (;;) {
-						sl_size m = n;
-						if (!(GetUnicode(next, dataNext, lenNext, n))) {
-							return m;
-						}
-						if (next >= 0x1f3fb && next <= 0x1f3ff) {
-							// EMOJI MODIFIER FITZPATRICK TYPE
-							m = n;
-							if (!(GetUnicode(next, dataNext, lenNext, n))) {
-								return m;
+						if (SrcHelper::getUnicode(code, src, posSrc)) {
+							if (!code) {
+								break;
 							}
-						}
-						if (next != 0x200d) {
-							// Not ZERO-WIDTH JOINER
-							return m;
-						}
-						if (!(GetUnicode(next, dataNext, lenNext, n))) {
-							return m;
+							DstHelper::putUnicode(code, dst, posDst);
+						} else {
+							posSrc++;
 						}
 					}
 				} else {
-					switch (firstChar) {
-						case '*': case '#':
-						case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-							break;
-						default:
-							return 0;
-					}
-					sl_uint32 next;
-					sl_size n = 0;
-					if (GetUnicode(next, dataNext, lenNext, n)) {
-						if (next == 0x20e3) {
-							return n;
+					while (posDst < (sl_size)lenDst) {
+						if (SrcHelper::getUnicode(code, src, posSrc)) {
+							if (!code) {
+								break;
+							}
+							DstHelper::putUnicode(code, dst, lenDst, posDst);
+						} else {
+							posSrc++;
 						}
 					}
 				}
-				return 0;
+			} else {
+				if (lenDst < 0) {
+					while (posSrc < (sl_size)lenSrc) {
+						if (SrcHelper::getUnicode(code, src, lenSrc, posSrc)) {
+							DstHelper::putUnicode(code, dst, posDst);
+						} else {
+							posSrc++;
+						}
+					}
+				} else {
+					while (posSrc < (sl_size)lenSrc && posDst < (sl_size)lenDst) {
+						if (SrcHelper::getUnicode(code, src, lenSrc, posSrc)) {
+							DstHelper::putUnicode(code, dst, lenDst, posDst);
+						} else {
+							posSrc++;
+						}
+					}
+				}
 			}
-
+			return posDst;
 		}
-	}
 
-	using namespace priv::charset;
+	}
 
 	sl_size Charsets::utf8ToUtf16(const sl_char8* utf8, sl_reg lenUtf8, sl_char16* utf16, sl_reg lenUtf16Buffer) noexcept
 	{
@@ -1010,6 +934,80 @@ namespace slib
 			}
 		}
 		return sl_false;
+	}
+
+	namespace {
+
+		SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char8* data, sl_size len, sl_size& pos)
+		{
+			if (pos >= len) {
+				return sl_false;
+			}
+			return Utf8Helper::getUnicode(outCode, data, len, pos);
+		}
+
+		SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char16* data, sl_size len, sl_size& pos)
+		{
+			if (pos >= len) {
+				return sl_false;
+			}
+			return Utf16Helper<NoEndianHelper>::getUnicode(outCode, data, len, pos);
+		}
+
+		SLIB_INLINE static sl_bool GetUnicode(sl_uint32& outCode, const sl_char32* data, sl_size len, sl_size& pos)
+		{
+			if (pos >= len) {
+				return sl_false;
+			}
+			outCode = data[pos++];
+			return sl_true;
+		}
+
+		template <class CHAR>
+		static sl_size GetJoinedCharLength(sl_uint32 firstChar, const CHAR* dataNext, sl_size lenNext)
+		{
+			if (firstChar >= 0x100) {
+				sl_uint32 next;
+				sl_size n = 0;
+				for (;;) {
+					sl_size m = n;
+					if (!(GetUnicode(next, dataNext, lenNext, n))) {
+						return m;
+					}
+					if (next >= 0x1f3fb && next <= 0x1f3ff) {
+						// EMOJI MODIFIER FITZPATRICK TYPE
+						m = n;
+						if (!(GetUnicode(next, dataNext, lenNext, n))) {
+							return m;
+						}
+					}
+					if (next != 0x200d) {
+						// Not ZERO-WIDTH JOINER
+						return m;
+					}
+					if (!(GetUnicode(next, dataNext, lenNext, n))) {
+						return m;
+					}
+				}
+			} else {
+				switch (firstChar) {
+					case '*': case '#':
+					case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+						break;
+					default:
+						return 0;
+				}
+				sl_uint32 next;
+				sl_size n = 0;
+				if (GetUnicode(next, dataNext, lenNext, n)) {
+					if (next == 0x20e3) {
+						return n;
+					}
+				}
+			}
+			return 0;
+		}
+
 	}
 
 	sl_size Charsets::getJoinedCharLength(sl_char32 firstChar, const sl_char8* dataNext, sl_size lenNext)

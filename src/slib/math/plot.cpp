@@ -28,34 +28,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace plot
-		{
-
-			static sl_real GetStep(sl_real width)
-			{
-				if (Math::isAlmostZero(width)) {
-					return 1;
-				}
-				sl_real step = Math::pow(10, Math::floor(Math::log10(width / 10)));
-				sl_real n = width / step;
-				if (n >= 80) {
-					step *= 10;
-				} else if (n > 40) {
-					step *= 5;
-				} else if (n > 20) {
-					step *= 2;
-				}
-				return step;
-			}
-
-		}
-	}
-
-	using namespace priv::plot;
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PlotGraphParam)
 
 	PlotGraphParam::PlotGraphParam(): type(PlotGraphType::Line), color(Color::Red), size(1)
@@ -309,6 +281,25 @@ namespace slib
 		PlotGraphParam param;
 		param.color = color;
 		return add(points, param);
+	}
+
+	namespace {
+		static sl_real GetStep(sl_real width)
+		{
+			if (Math::isAlmostZero(width)) {
+				return 1;
+			}
+			sl_real step = Math::pow(10, Math::floor(Math::log10(width / 10)));
+			sl_real n = width / step;
+			if (n >= 80) {
+				step *= 10;
+			} else if (n > 40) {
+				step *= 5;
+			} else if (n > 20) {
+				step *= 2;
+			}
+			return step;
+		}
 	}
 
 	void Plot::draw(Canvas* canvas, sl_uint32 width, sl_uint32 height)

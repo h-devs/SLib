@@ -41,53 +41,47 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace device
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JAudioManager, "android/media/AudioManager")
-				SLIB_JNI_METHOD(getMode, "getMode", "()I")
-				SLIB_JNI_METHOD(setMode, "setMode", "(I)V");
-				SLIB_JNI_METHOD(getRingerMode, "getRingerMode", "()I")
-				SLIB_JNI_METHOD(setRingerMode, "setRingerMode", "(I)V");
-				SLIB_JNI_METHOD(getStreamVolume, "getStreamVolume", "(I)I")
-				SLIB_JNI_METHOD(setStreamVolume, "setStreamVolume", "(III)V");
-				SLIB_JNI_METHOD(getStreamMaxVolume, "getStreamMaxVolume", "(I)I")
-				SLIB_JNI_METHOD(isMicrophoneMute, "isMicrophoneMute", "()Z")
-				SLIB_JNI_METHOD(setMicrophoneMute, "setMicrophoneMute", "(Z)V")
-				SLIB_JNI_METHOD(isSpeakerphoneOn, "isSpeakerphoneOn", "()Z")
-				SLIB_JNI_METHOD(setSpeakerphoneOn, "setSpeakerphoneOn", "(Z)V")
-				SLIB_JNI_METHOD(isBluetoothScoOn, "isBluetoothScoOn", "()Z")
-				SLIB_JNI_METHOD(setBluetoothScoOn, "setBluetoothScoOn", "(Z)V")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JAudioManager, "android/media/AudioManager")
+			SLIB_JNI_METHOD(getMode, "getMode", "()I")
+			SLIB_JNI_METHOD(setMode, "setMode", "(I)V");
+			SLIB_JNI_METHOD(getRingerMode, "getRingerMode", "()I")
+			SLIB_JNI_METHOD(setRingerMode, "setRingerMode", "(I)V");
+			SLIB_JNI_METHOD(getStreamVolume, "getStreamVolume", "(I)I")
+			SLIB_JNI_METHOD(setStreamVolume, "setStreamVolume", "(III)V");
+			SLIB_JNI_METHOD(getStreamMaxVolume, "getStreamMaxVolume", "(I)I")
+			SLIB_JNI_METHOD(isMicrophoneMute, "isMicrophoneMute", "()Z")
+			SLIB_JNI_METHOD(setMicrophoneMute, "setMicrophoneMute", "(Z)V")
+			SLIB_JNI_METHOD(isSpeakerphoneOn, "isSpeakerphoneOn", "()Z")
+			SLIB_JNI_METHOD(setSpeakerphoneOn, "setSpeakerphoneOn", "(Z)V")
+			SLIB_JNI_METHOD(isBluetoothScoOn, "isBluetoothScoOn", "()Z")
+			SLIB_JNI_METHOD(setBluetoothScoOn, "setBluetoothScoOn", "(Z)V")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JVibrator, "android/os/Vibrator")
-				SLIB_JNI_METHOD(vibrate, "vibrate", "(J)V")
-				SLIB_JNI_METHOD(cancel, "cancel", "()V")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JVibrator, "android/os/Vibrator")
+			SLIB_JNI_METHOD(vibrate, "vibrate", "(J)V")
+			SLIB_JNI_METHOD(cancel, "cancel", "()V")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JTelephonyManager, "android/telephony/TelephonyManager")
-				SLIB_JNI_METHOD(getPhoneCount, "getPhoneCount", "()I")
-				SLIB_JNI_METHOD(getImei, "getImei", "(I)Ljava/lang/String;")
-				SLIB_JNI_METHOD(getDeviceId, "getDeviceId", "()Ljava/lang/String;")
-				SLIB_JNI_METHOD(getDeviceIdWithSlotIndex, "getDeviceId", "(I)Ljava/lang/String;")
-				SLIB_JNI_METHOD(getLine1Number, "getLine1Number", "()Ljava/lang/String;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JTelephonyManager, "android/telephony/TelephonyManager")
+			SLIB_JNI_METHOD(getPhoneCount, "getPhoneCount", "()I")
+			SLIB_JNI_METHOD(getImei, "getImei", "(I)Ljava/lang/String;")
+			SLIB_JNI_METHOD(getDeviceId, "getDeviceId", "()Ljava/lang/String;")
+			SLIB_JNI_METHOD(getDeviceIdWithSlotIndex, "getDeviceId", "(I)Ljava/lang/String;")
+			SLIB_JNI_METHOD(getLine1Number, "getLine1Number", "()Ljava/lang/String;")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JTelephonySubscriptionManager, "android/telephony/SubscriptionManager")
-				SLIB_JNI_METHOD(getActiveSubscriptionInfoForSimSlotIndex, "getActiveSubscriptionInfoForSimSlotIndex", "(I)Landroid/telephony/SubscriptionInfo;")
-				SLIB_JNI_METHOD(getActiveSubscriptionInfoList, "getActiveSubscriptionInfoList", "()Ljava/util/List;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JTelephonySubscriptionManager, "android/telephony/SubscriptionManager")
+			SLIB_JNI_METHOD(getActiveSubscriptionInfoForSimSlotIndex, "getActiveSubscriptionInfoForSimSlotIndex", "(I)Landroid/telephony/SubscriptionInfo;")
+			SLIB_JNI_METHOD(getActiveSubscriptionInfoList, "getActiveSubscriptionInfoList", "()Ljava/util/List;")
+		SLIB_JNI_END_CLASS
 
-			SLIB_JNI_BEGIN_CLASS(JTelephonySubscriptionInfo, "android/telephony/SubscriptionInfo")
-				SLIB_JNI_METHOD(getNumber, "getNumber", "()Ljava/lang/String;")
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JTelephonySubscriptionInfo, "android/telephony/SubscriptionInfo")
+			SLIB_JNI_METHOD(getNumber, "getNumber", "()Ljava/lang/String;")
+		SLIB_JNI_END_CLASS
 
-		}
 	}
-
-	using namespace priv::device;
 
 	DeviceAudioMode Device::getAudioMode()
 	{

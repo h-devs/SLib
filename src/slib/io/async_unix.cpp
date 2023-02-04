@@ -32,171 +32,167 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace async
-		{
+	namespace {
 
-			class FileInstance : public AsyncFileStreamInstance
+		class FileInstance : public AsyncFileStreamInstance
+		{
+		public:
+			static Ref<FileInstance> create(const AsyncFileStreamParam& param)
 			{
-			public:
-				static Ref<FileInstance> create(const AsyncFileStreamParam& param)
-				{
-					if (param.handle != SLIB_FILE_INVALID_HANDLE) {
-						Ref<FileInstance> ret = new FileInstance;
-						if (ret.isNotNull()) {
-							ret->setHandle(param.handle);
-							ret->m_flagCloseOnRelease = param.flagCloseOnRelease;
-							return ret;
-						} else {
-							if (param.flagCloseOnRelease) {
-								File::close(param.handle);
-							}
+				if (param.handle != SLIB_FILE_INVALID_HANDLE) {
+					Ref<FileInstance> ret = new FileInstance;
+					if (ret.isNotNull()) {
+						ret->setHandle(param.handle);
+						ret->m_flagCloseOnRelease = param.flagCloseOnRelease;
+						return ret;
+					} else {
+						if (param.flagCloseOnRelease) {
+							File::close(param.handle);
 						}
 					}
-					return sl_null;
+				}
+				return sl_null;
+			}
+
+			void processRead(sl_bool flagError)
+			{
+				HandlePtr<File> file = getHandle();
+				if (file->isNone()) {
+					return;
 				}
 
-				void processRead(sl_bool flagError)
-				{
-					HandlePtr<File> file = getHandle();
-					if (file->isNone()) {
-						return;
-					}
+				Ref<AsyncStreamRequest> request = Move(m_requestReading);
+				sl_size nQueue = getReadRequestCount();
 
-					Ref<AsyncStreamRequest> request = Move(m_requestReading);
-					sl_size nQueue = getReadRequestCount();
-
-					Thread* thread = Thread::getCurrent();
-					while (!thread || thread->isNotStopping()) {
-						if (request.isNull()) {
-							if (nQueue > 0) {
-								nQueue--;
-								popReadRequest(request);
-								if (request.isNull()) {
-									return;
-								}
-							} else {
+				Thread* thread = Thread::getCurrent();
+				while (!thread || thread->isNotStopping()) {
+					if (request.isNull()) {
+						if (nQueue > 0) {
+							nQueue--;
+							popReadRequest(request);
+							if (request.isNull()) {
 								return;
 							}
+						} else {
+							return;
 						}
-						char* data = (char*)(request->data);
-						sl_size size = request->size;
-						if (data && size) {
-							sl_reg n = file->read(data, size);
-							if (n > 0) {
-								processStreamResult(request.get(), n, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
+					}
+					char* data = (char*)(request->data);
+					sl_size size = request->size;
+					if (data && size) {
+						sl_reg n = file->read(data, size);
+						if (n > 0) {
+							processStreamResult(request.get(), n, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
+						} else {
+							if (n == SLIB_IO_WOULD_BLOCK) {
+								if (flagError) {
+									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
+								} else {
+									m_requestReading = Move(request);
+								}
+							} else if (n == SLIB_IO_ENDED) {
+								processStreamResult(request.get(), 0, AsyncStreamResultCode::Ended);
+							} else {
+								processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
+							}
+							return;
+						}
+					} else {
+						processStreamResult(request.get(), 0, AsyncStreamResultCode::Success);
+					}
+					request.setNull();
+				}
+			}
+
+			void processWrite(sl_bool flagError)
+			{
+				HandlePtr<File> file = getHandle();
+				if (file->isNone()) {
+					return;
+				}
+
+				Ref<AsyncStreamRequest> request = Move(m_requestWriting);
+				sl_size nQueue = getWriteRequestCount();
+
+				Thread* thread = Thread::getCurrent();
+				while (!thread || thread->isNotStopping()) {
+					if (request.isNull()) {
+						if (nQueue > 0) {
+							nQueue--;
+							popWriteRequest(request);
+							if (request.isNull()) {
+								return;
+							}
+						} else {
+							return;
+						}
+					}
+					char* data = (char*)(request->data);
+					sl_size size = request->size;
+					if (data && size) {
+						for (;;) {
+							sl_size sizeWritten = request->sizeWritten;
+							sl_reg n = file->write(data + sizeWritten, size - sizeWritten);
+							if (n >= 0) {
+								request->sizeWritten += n;
+								if (request->sizeWritten >= size) {
+									request->sizeWritten = 0;
+									processStreamResult(request.get(), size, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
+									break;
+								}
 							} else {
 								if (n == SLIB_IO_WOULD_BLOCK) {
 									if (flagError) {
-										processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
-									} else {
-										m_requestReading = Move(request);
-									}
-								} else if (n == SLIB_IO_ENDED) {
-									processStreamResult(request.get(), 0, AsyncStreamResultCode::Ended);
-								} else {
-									processStreamResult(request.get(), 0, AsyncStreamResultCode::Unknown);
-								}
-								return;
-							}
-						} else {
-							processStreamResult(request.get(), 0, AsyncStreamResultCode::Success);
-						}
-						request.setNull();
-					}
-				}
-
-				void processWrite(sl_bool flagError)
-				{
-					HandlePtr<File> file = getHandle();
-					if (file->isNone()) {
-						return;
-					}
-
-					Ref<AsyncStreamRequest> request = Move(m_requestWriting);
-					sl_size nQueue = getWriteRequestCount();
-
-					Thread* thread = Thread::getCurrent();
-					while (!thread || thread->isNotStopping()) {
-						if (request.isNull()) {
-							if (nQueue > 0) {
-								nQueue--;
-								popWriteRequest(request);
-								if (request.isNull()) {
-									return;
-								}
-							} else {
-								return;
-							}
-						}
-						char* data = (char*)(request->data);
-						sl_size size = request->size;
-						if (data && size) {
-							for (;;) {
-								sl_size sizeWritten = request->sizeWritten;
-								sl_reg n = file->write(data + sizeWritten, size - sizeWritten);
-								if (n >= 0) {
-									request->sizeWritten += n;
-									if (request->sizeWritten >= size) {
-										request->sizeWritten = 0;
-										processStreamResult(request.get(), size, flagError ? AsyncStreamResultCode::Unknown : AsyncStreamResultCode::Success);
-										break;
-									}
-								} else {
-									if (n == SLIB_IO_WOULD_BLOCK) {
-										if (flagError) {
-											request->sizeWritten = 0;
-											processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
-										} else {
-											m_requestWriting = Move(request);
-										}
-									} else {
 										request->sizeWritten = 0;
 										processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
+									} else {
+										m_requestWriting = Move(request);
 									}
-									return;
+								} else {
+									request->sizeWritten = 0;
+									processStreamResult(request.get(), sizeWritten, AsyncStreamResultCode::Unknown);
 								}
+								return;
 							}
 						}
-						request.setNull();
+					}
+					request.setNull();
+				}
+			}
+
+			void onOrder() override
+			{
+				processRead(sl_false);
+				processWrite(sl_false);
+			}
+
+			void onEvent(EventDesc* pev) override
+			{
+				sl_bool flagProcessed = sl_false;
+				if (pev->flagIn) {
+					processRead(pev->flagError);
+					flagProcessed = sl_true;
+				}
+				if (pev->flagOut) {
+					processWrite(pev->flagError);
+					flagProcessed = sl_true;
+				}
+				if (!flagProcessed) {
+					if (pev->flagError) {
+						processRead(sl_true);
+						processWrite(sl_true);
 					}
 				}
+				requestOrder();
+			}
 
-				void onOrder() override
-				{
-					processRead(sl_false);
-					processWrite(sl_false);
-				}
+		};
 
-				void onEvent(EventDesc* pev) override
-				{
-					sl_bool flagProcessed = sl_false;
-					if (pev->flagIn) {
-						processRead(pev->flagError);
-						flagProcessed = sl_true;
-					}
-					if (pev->flagOut) {
-						processWrite(pev->flagError);
-						flagProcessed = sl_true;
-					}
-					if (!flagProcessed) {
-						if (pev->flagError) {
-							processRead(sl_true);
-							processWrite(sl_true);
-						}
-					}
-					requestOrder();
-				}
-
-			};
-
-		}
 	}
 
 	Ref<AsyncFileStream> AsyncFileStream::create(const AsyncFileStreamParam& param)
 	{
-		Ref<priv::async::FileInstance> ret = priv::async::FileInstance::create(param);
+		Ref<FileInstance> ret = FileInstance::create(param);
 		if (ret.isNotNull()) {
 			return AsyncFileStream::create(ret.get(), param.mode, param.ioLoop);
 		}

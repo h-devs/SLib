@@ -79,2643 +79,2621 @@ namespace slib
 		charSize = 4;
 	}
 
-	enum STRING_CONTAINER_TYPES
-	{
-		STRING_CONTAINER_TYPE_NORMAL = 0,
-		STRING_CONTAINER_TYPE_STD = 10,
-		STRING_CONTAINER_TYPE_REF = 11,
-		STRING_CONTAINER_TYPE_SUB = 12
-	};
+	namespace {
+
+		enum STRING_CONTAINER_TYPES
+		{
+			STRING_CONTAINER_TYPE_NORMAL = 0,
+			STRING_CONTAINER_TYPE_STD = 10,
+			STRING_CONTAINER_TYPE_REF = 11,
+			STRING_CONTAINER_TYPE_SUB = 12
+		};
+
+		static const sl_char8 g_empty_buf[] = {0, 0};
+		static const StringContainer g_empty_container = {const_cast<sl_char8*>(g_empty_buf), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
+		static const sl_char16 g_empty_buf16[] = {0, 0};
+		static const StringContainer16 g_empty_container16 = {const_cast<sl_char16*>(g_empty_buf16), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
+		static const sl_char32 g_empty_buf32[] = { 0, 0 };
+		static const StringContainer32 g_empty_container32 = { const_cast<sl_char32*>(g_empty_buf32), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1 };
+
+		static const char g_conv_radix_pattern_lower[65] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_";
+		static const char g_conv_radix_pattern_upper[65] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@_";
+
+		static const sl_uint8 g_conv_radix_inverse_pattern_big[128] = {
+			/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*18*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*20*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*28*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*30*/ 0,   1,   2,   3,   4,   5,   6,   7,
+			/*38*/ 8,   9,   255, 255, 255, 255, 255, 255,
+			/*40*/ 62,  36,  37,  38,  39,  40,  41,  42,
+			/*48*/ 43,  44,  45,  46,  47,  48,  49,  50,
+			/*50*/ 51,  52,  53,  54,  55,  56,  57,  58,
+			/*58*/ 59,  60,  61,  255, 255, 255, 255, 63,
+			/*60*/ 255, 10,  11,  12,  13,  14,  15,  16,
+			/*68*/ 17,  18,  19,  20,  21,  22,  23,  24,
+			/*70*/ 25,  26,  27,  28,  29,  30,  31,  32,
+			/*78*/ 33,  34,  35,  255, 255, 255, 255, 255
+		};
+
+		static const sl_uint8 g_conv_radix_inverse_pattern_small[128] = {
+			/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*18*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*20*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*28*/ 255, 255, 255, 255, 255, 255, 255, 255,
+			/*30*/ 0,   1,   2,   3,   4,   5,   6,   7,
+			/*38*/ 8,   9,   255, 255, 255, 255, 255, 255,
+			/*40*/ 255, 10,  11,  12,  13,  14,  15,  16,
+			/*48*/ 17,  18,  19,  20,  21,  22,  23,  24,
+			/*50*/ 25,  26,  27,  28,  29,  30,  31,  32,
+			/*58*/ 33,  34,  35,  255, 255, 255, 255, 255,
+			/*60*/ 255, 10,  11,  12,  13,  14,  15,  16,
+			/*68*/ 17,  18,  19,  20,  21,  22,  23,  24,
+			/*70*/ 25,  26,  27,  28,  29,  30,  31,  32,
+			/*78*/ 33,  34,  35,  255, 255, 255, 255, 255
+		};
+
+	}
 
 	namespace priv
 	{
 		namespace string
 		{
-
 			StringContainer* const g_null = sl_null;
-
-			static const sl_char8 g_empty_buf[] = {0, 0};
-			static const StringContainer g_empty_container = {const_cast<sl_char8*>(g_empty_buf), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
 			StringContainer* const g_empty = const_cast<StringContainer*>(&g_empty_container);
-
 			StringContainer16* const g_null16 = sl_null;
-
-			static const sl_char16 g_empty_buf16[] = {0, 0};
-			static const StringContainer16 g_empty_container16 = {const_cast<sl_char16*>(g_empty_buf16), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1};
 			StringContainer16* const g_empty16 = const_cast<StringContainer16*>(&g_empty_container16);
-
 			StringContainer32* const g_null32 = sl_null;
-
-			static const sl_char32 g_empty_buf32[] = { 0, 0 };
-			static const StringContainer32 g_empty_container32 = { const_cast<sl_char32*>(g_empty_buf32), 0, 0, STRING_CONTAINER_TYPE_NORMAL, -1 };
 			StringContainer32* const g_empty32 = const_cast<StringContainer32*>(&g_empty_container32);
 
-			struct StringViewContainer
+			const char* g_conv_radixPatternLower = g_conv_radix_pattern_lower;
+			const char* g_conv_radixPatternUpper = g_conv_radix_pattern_upper;
+			const sl_uint8* g_conv_radixInversePatternBig = g_conv_radix_inverse_pattern_big;
+			const sl_uint8* g_conv_radixInversePatternSmall = g_conv_radix_inverse_pattern_small;
+		}
+	}
+
+	namespace {
+
+		struct StringViewContainer
+		{
+			const sl_char8* data;
+			sl_reg length;
+		};
+
+		static StringViewContainer g_stringView_null = { sl_null, 0 };
+		static StringViewContainer g_stringView_empty = { "\0\0\0\0", 0 };
+
+		template <class CONTAINTER>
+		class ConstContainers;
+
+		template <>
+		class ConstContainers<StringContainer>
+		{
+		public:
+			constexpr static StringContainer* getEmpty()
 			{
-				const sl_char8* data;
-				sl_reg length;
-			};
-
-			static StringViewContainer g_stringView_null = { sl_null, 0 };
-			static StringViewContainer g_stringView_empty = { "\0\0\0\0", 0 };
-
-			template <class CONTAINTER>
-			class ConstContainers;
-
-			template <>
-			class ConstContainers<StringContainer>
-			{
-			public:
-				constexpr static StringContainer* getEmpty()
-				{
-					return const_cast<StringContainer*>(&g_empty_container);
-				}
-			};
-
-			template <>
-			class ConstContainers<StringContainer16>
-			{
-			public:
-				constexpr static StringContainer16* getEmpty()
-				{
-					return const_cast<StringContainer16*>(&g_empty_container16);
-				}
-			};
-
-			template <>
-			class ConstContainers<StringContainer32>
-			{
-			public:
-				constexpr static StringContainer32* getEmpty()
-				{
-					return const_cast<StringContainer32*>(&g_empty_container32);
-				}
-			};
-
-			template <class STRING_CONTAINER, class OBJECT>
-			class ObjectContainer : public STRING_CONTAINER
-			{
-			public:
-				OBJECT object;
-
-			public:
-				template <class TYPE>
-				ObjectContainer(TYPE&& _object): object(Forward<TYPE>(_object)) {}
-
-			};
-
-			template <class STRING_CONTAINER>
-			using StdContainer = ObjectContainer<STRING_CONTAINER, typename STRING_CONTAINER::StringType::StdString>;
-			template <class STRING_CONTAINER>
-			using RefContainer = ObjectContainer< STRING_CONTAINER, Ref<Referable> >;
-			template <class STRING_CONTAINER>
-			using SubContainer = ObjectContainer<STRING_CONTAINER, typename STRING_CONTAINER::StringType>;
-
-			template <class CONTAINER>
-			SLIB_INLINE static void Free(CONTAINER* _container) noexcept
-			{
-				sl_uint32 type = _container->type;
-				if (type != STRING_CONTAINER_TYPE_NORMAL) {
-					if (type == STRING_CONTAINER_TYPE_STD) {
-						StdContainer<CONTAINER>* container = static_cast<StdContainer<CONTAINER>*>(_container);
-						container->StdContainer<CONTAINER>::~ObjectContainer();
-					} else if (type == STRING_CONTAINER_TYPE_REF) {
-						RefContainer<CONTAINER>* container = static_cast<RefContainer<CONTAINER>*>(_container);
-						container->RefContainer<CONTAINER>::~ObjectContainer();
-					} else if (type == STRING_CONTAINER_TYPE_SUB) {
-						SubContainer<CONTAINER>* container = static_cast<SubContainer<CONTAINER>*>(_container);
-						container->SubContainer<CONTAINER>::~ObjectContainer();
-					}
-				}
-				Base::freeMemory(_container);
+				return const_cast<StringContainer*>(&g_empty_container);
 			}
+		};
 
-			template <class CONTAINER>
-			static CONTAINER* Alloc(sl_size len) noexcept
+		template <>
+		class ConstContainers<StringContainer16>
+		{
+		public:
+			constexpr static StringContainer16* getEmpty()
 			{
-				if (!len) {
-					return ConstContainers<CONTAINER>::getEmpty();
-				}
-				sl_uint8* buf = (sl_uint8*)(Base::createMemory(sizeof(CONTAINER) + (len + 1) * sizeof(typename CONTAINER::StringType::Char)));
-				if (buf) {
-					CONTAINER* container = reinterpret_cast<CONTAINER*>(buf);
-					container->sz = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
-					container->len = len;
-					container->hash = 0;
-					container->type = STRING_CONTAINER_TYPE_NORMAL;
-					container->ref = 1;
-					container->sz[len] = 0;
-					return container;
-				}
-				return sl_null;
+				return const_cast<StringContainer16*>(&g_empty_container16);
 			}
+		};
 
-			template <class CONTAINER>
-			static CONTAINER* AllocStatic(typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
+		template <>
+		class ConstContainers<StringContainer32>
+		{
+		public:
+			constexpr static StringContainer32* getEmpty()
 			{
-				if (!len) {
-					return ConstContainers<CONTAINER>::getEmpty();
+				return const_cast<StringContainer32*>(&g_empty_container32);
+			}
+		};
+
+		template <class STRING_CONTAINER, class OBJECT>
+		class ObjectContainer : public STRING_CONTAINER
+		{
+		public:
+			OBJECT object;
+
+		public:
+			template <class TYPE>
+			ObjectContainer(TYPE&& _object): object(Forward<TYPE>(_object)) {}
+
+		};
+
+		template <class STRING_CONTAINER>
+		using StdContainer = ObjectContainer<STRING_CONTAINER, typename STRING_CONTAINER::StringType::StdString>;
+		template <class STRING_CONTAINER>
+		using RefContainer = ObjectContainer< STRING_CONTAINER, Ref<Referable> >;
+		template <class STRING_CONTAINER>
+		using SubContainer = ObjectContainer<STRING_CONTAINER, typename STRING_CONTAINER::StringType>;
+
+		template <class CONTAINER>
+		SLIB_INLINE static void Free(CONTAINER* _container) noexcept
+		{
+			sl_uint32 type = _container->type;
+			if (type != STRING_CONTAINER_TYPE_NORMAL) {
+				if (type == STRING_CONTAINER_TYPE_STD) {
+					StdContainer<CONTAINER>* container = static_cast<StdContainer<CONTAINER>*>(_container);
+					container->StdContainer<CONTAINER>::~ObjectContainer();
+				} else if (type == STRING_CONTAINER_TYPE_REF) {
+					RefContainer<CONTAINER>* container = static_cast<RefContainer<CONTAINER>*>(_container);
+					container->RefContainer<CONTAINER>::~ObjectContainer();
+				} else if (type == STRING_CONTAINER_TYPE_SUB) {
+					SubContainer<CONTAINER>* container = static_cast<SubContainer<CONTAINER>*>(_container);
+					container->SubContainer<CONTAINER>::~ObjectContainer();
 				}
-				CONTAINER* container = (CONTAINER*)(Base::createMemory(sizeof(CONTAINER)));
+			}
+			Base::freeMemory(_container);
+		}
+
+		template <class CONTAINER>
+		static CONTAINER* Alloc(sl_size len) noexcept
+		{
+			if (!len) {
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			sl_uint8* buf = (sl_uint8*)(Base::createMemory(sizeof(CONTAINER) + (len + 1) * sizeof(typename CONTAINER::StringType::Char)));
+			if (buf) {
+				CONTAINER* container = reinterpret_cast<CONTAINER*>(buf);
+				container->sz = (typename CONTAINER::StringType::Char*)(buf + sizeof(CONTAINER));
+				container->len = len;
+				container->hash = 0;
+				container->type = STRING_CONTAINER_TYPE_NORMAL;
+				container->ref = 1;
+				container->sz[len] = 0;
+				return container;
+			}
+			return sl_null;
+		}
+
+		template <class CONTAINER>
+		static CONTAINER* AllocStatic(typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
+		{
+			if (!len) {
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			CONTAINER* container = (CONTAINER*)(Base::createMemory(sizeof(CONTAINER)));
+			if (container) {
+				container->sz = (typename CONTAINER::StringType::Char*)sz;
+				container->len = len;
+				container->hash = 0;
+				container->type = STRING_CONTAINER_TYPE_NORMAL;
+				container->ref = 1;
+				return container;
+			}
+			return sl_null;
+		}
+
+		template <class CONTAINER, class VALUE>
+		static CONTAINER* AllocStd(VALUE&& str) noexcept
+		{
+			sl_size len = (sl_size)(str.length());
+			if (!len) {
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			if (len < 40) {
+				CONTAINER* container = Alloc<CONTAINER>(len);
 				if (container) {
-					container->sz = (typename CONTAINER::StringType::Char*)sz;
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str.c_str(), len);
+					return container;
+				}
+			} else {
+				StdContainer<CONTAINER>* container = (StdContainer<CONTAINER>*)(Base::createMemory(sizeof(StdContainer<CONTAINER>)));
+				if (container) {
+					new (container) StdContainer<CONTAINER>(Forward<VALUE>(str));
+					container->sz = (typename CONTAINER::StringType::Char*)(container->object.c_str());
 					container->len = len;
 					container->hash = 0;
-					container->type = STRING_CONTAINER_TYPE_NORMAL;
+					container->type = STRING_CONTAINER_TYPE_STD;
 					container->ref = 1;
 					return container;
 				}
-				return sl_null;
 			}
+			return sl_null;
+		}
 
-			template <class CONTAINER, class VALUE>
-			static CONTAINER* AllocStd(VALUE&& str) noexcept
-			{
-				sl_size len = (sl_size)(str.length());
-				if (!len) {
-					return ConstContainers<CONTAINER>::getEmpty();
-				}
-				if (len < 40) {
-					CONTAINER* container = Alloc<CONTAINER>(len);
-					if (container) {
-						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str.c_str(), len);
-						return container;
-					}
+		template <class CONTAINER>
+		static CONTAINER* AllocRef(Referable* obj, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
+		{
+			if (!len) {
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			RefContainer<CONTAINER>* container = (RefContainer<CONTAINER>*)(Base::createMemory(sizeof(RefContainer<CONTAINER>)));
+			if (container) {
+				new (container) RefContainer<CONTAINER>(obj);
+				container->sz = (typename CONTAINER::StringType::Char*)(sz);
+				container->len = len;
+				container->hash = 0;
+				container->type = STRING_CONTAINER_TYPE_REF;
+				container->ref = 1;
+				return container;
+			}
+			return sl_null;
+		}
+
+		template <class CONTAINER>
+		static CONTAINER* AllocSub(typename CONTAINER::StringType const& str, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
+		{
+			if (!len) {
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			SubContainer<CONTAINER>* container = (SubContainer<CONTAINER>*)(Base::createMemory(sizeof(SubContainer<CONTAINER>)));
+			if (container) {
+				new (container) SubContainer<CONTAINER>(str);
+				container->sz = (typename CONTAINER::StringType::Char*)(sz);
+				container->len = len;
+				container->hash = 0;
+				container->type = STRING_CONTAINER_TYPE_SUB;
+				container->ref = 1;
+				return container;
+			}
+			return sl_null;
+		}
+
+		template <class CONTAINER>
+		static CONTAINER* Create(typename CONTAINER::StringType::Char ch, sl_size nRepeatCount) noexcept
+		{
+			CONTAINER* container = Alloc<CONTAINER>(nRepeatCount);
+			if (container && nRepeatCount) {
+				MemoryTraits<typename CONTAINER::StringType::Char>::reset(container->sz, nRepeatCount, ch);
+			}
+			return container;
+		}
+
+		template <class CHAR>
+		static sl_size ConvertCharset(const CHAR* src, sl_reg lenSrc, CHAR* dst) noexcept
+		{
+			if (dst) {
+				if (lenSrc >= 0) {
+					MemoryTraits<CHAR>::copy(dst, src, lenSrc);
+					return lenSrc;
 				} else {
-					StdContainer<CONTAINER>* container = (StdContainer<CONTAINER>*)(Base::createMemory(sizeof(StdContainer<CONTAINER>)));
-					if (container) {
-						new (container) StdContainer<CONTAINER>(Forward<VALUE>(str));
-						container->sz = (typename CONTAINER::StringType::Char*)(container->object.c_str());
-						container->len = len;
-						container->hash = 0;
-						container->type = STRING_CONTAINER_TYPE_STD;
-						container->ref = 1;
-						return container;
+					return StringTraits<CHAR>::copy(dst, src);
+				}
+			} else {
+				if (lenSrc >= 0) {
+					return lenSrc;
+				} else {
+					return StringTraits<CHAR>::getLength(src);
+				}
+			}
+		}
+
+		SLIB_INLINE static sl_size ConvertCharset(const sl_char8* utf8, sl_reg lenUtf8, sl_char16* utf16) noexcept
+		{
+			return Charsets::utf8ToUtf16(utf8, lenUtf8, utf16, -1);
+		}
+
+		SLIB_INLINE static sl_size ConvertCharset(const sl_char8* utf8, sl_reg lenUtf8, sl_char32* utf32) noexcept
+		{
+			return Charsets::utf8ToUtf32(utf8, lenUtf8, utf32, -1);
+		}
+
+		SLIB_INLINE static sl_size ConvertCharset(const sl_char16* utf16, sl_reg lenUtf16, sl_char8* utf8) noexcept
+		{
+			return Charsets::utf16ToUtf8(utf16, lenUtf16, utf8, -1);
+		}
+
+		SLIB_INLINE static sl_size ConvertCharset(const sl_char16* utf16, sl_reg lenUtf16, sl_char32* utf32) noexcept
+		{
+			return Charsets::utf16ToUtf32(utf16, lenUtf16, utf32, -1);
+		}
+
+		SLIB_INLINE static sl_size ConvertCharset(const sl_char32* utf32, sl_reg lenUtf32, sl_char8* utf8) noexcept
+		{
+			return Charsets::utf32ToUtf8(utf32, lenUtf32, utf8, -1);
+		}
+
+		SLIB_INLINE static sl_size ConvertCharset(const sl_char32* utf32, sl_reg lenUtf32, sl_char16* utf16) noexcept
+		{
+			return Charsets::utf32ToUtf16(utf32, lenUtf32, utf16, -1);
+		}
+
+		template <class CONTAINER, class CHAR_TYPE>
+		class CreatorFromString
+		{
+		public:
+			static CONTAINER* create(const CHAR_TYPE* src, sl_reg lenSrc) noexcept
+			{
+				if (src) {
+					sl_size lenDst = 0;
+					if (lenSrc) {
+						lenDst = ConvertCharset(src, lenSrc, (typename CONTAINER::StringType::Char*)sl_null);
+					}
+					CONTAINER* container = Alloc<CONTAINER>(lenDst);
+					if (container && lenDst) {
+						ConvertCharset(src, lenSrc, container->sz);
+						container->sz[lenDst] = 0;
+					}
+					return container;
+				}
+				return sl_null;
+			}
+		};
+
+		template <class CONTAINER>
+		class CreatorFromString<CONTAINER, typename CONTAINER::StringType::Char>
+		{
+		public:
+			static CONTAINER* create(typename CONTAINER::StringType::Char const* str, sl_reg len) noexcept
+			{
+				if (str) {
+					if (len < 0) {
+						len = StringTraits<typename CONTAINER::StringType::Char>::getLength(str);
+					}
+					CONTAINER* container = Alloc<CONTAINER>(len);
+					if (container && len > 0) {
+						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str, len);
+					}
+					return container;
+				}
+				return sl_null;
+			}
+		};
+
+		template <class CONTAINER, class CHAR_TYPE>
+		SLIB_INLINE static CONTAINER* CreateFromSz(const CHAR_TYPE* src, sl_reg lenSrc) noexcept
+		{
+			return CreatorFromString<CONTAINER, CHAR_TYPE>::create(src, lenSrc);
+		}
+
+		template <class CONTAINER, class STRING>
+		SLIB_INLINE static CONTAINER* CreateFromString(const STRING& str) noexcept
+		{
+			sl_size len;
+			typename STRING::Char* sz = str.getData(len);
+			return CreatorFromString<CONTAINER, typename STRING::Char>::create(sz, len);
+		}
+
+		SLIB_INLINE sl_size FromUtf16(EndianType endian, const void* utf16, sl_size sizeUtf16, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept
+		{
+			return Charsets::utf16ToUtf8(endian, utf16, sizeUtf16, utf8, lenUtf8Buffer);
+		}
+
+		SLIB_INLINE sl_size FromUtf16(EndianType endian, const void* utf16, sl_size sizeUtf16, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept
+		{
+			return Charsets::utf16ToUtf32(endian, utf16, sizeUtf16, utf32, lenUtf32Buffer);
+		}
+
+		template <class CONTAINER>
+		class CreatorFromUtf16
+		{
+		public:
+			static CONTAINER* create(EndianType endian, const void* src, sl_size size) noexcept
+			{
+				if (src) {
+					if (!size) {
+						return ConstContainers<CONTAINER>::getEmpty();
+					}
+					sl_size lenDst = FromUtf16(endian, src, size, (typename CONTAINER::StringType::Char*)sl_null, -1);
+					CONTAINER* container = Alloc<CONTAINER>(lenDst);
+					if (container && lenDst) {
+						FromUtf16(endian, src, size, container->sz, lenDst);
+						container->sz[lenDst] = 0;
+					}
+					return container;
+				}
+				return sl_null;
+			}
+		};
+
+		template <>
+		class CreatorFromUtf16<StringContainer16>
+		{
+		public:
+			static StringContainer16* create(EndianType endian, const void* src, sl_size size) noexcept
+			{
+				if (src) {
+					sl_size len = size >> 1;
+					StringContainer16* container = Alloc<StringContainer16>(len);
+					if (container && len) {
+						Charsets::utf16ToUtf16(endian, src, container->sz, len);
+						container->sz[len] = 0;
+					}
+					return container;
+				}
+				return sl_null;
+			}
+		};
+
+		template <class CONTAINER>
+		SLIB_INLINE static CONTAINER* CreateFromUtf16(EndianType endian, const void* src, sl_size size) noexcept
+		{
+			return CreatorFromUtf16<CONTAINER>::create(endian, src, size);
+		}
+
+		template <class CONTAINER>
+		static CONTAINER* CreateFromUtf(const void* _buf, sl_size size) noexcept
+		{
+			sl_char8* buf = (sl_char8*)_buf;
+			if (!buf) {
+				return sl_null;
+			}
+			if (!size) {
+				return ConstContainers<CONTAINER>::getEmpty();
+			}
+			if (size >= 2) {
+				if (buf[0] == (sl_char8)0xFF && buf[1] == (sl_char8)0xFE) {
+					return CreateFromUtf16<CONTAINER>(Endian::Little, buf + 2, size - 2);
+				}
+				if (buf[0] == (sl_char8)0xFE && buf[1] == (sl_char8)0xFF) {
+					return CreateFromUtf16<CONTAINER>(Endian::Big, buf + 2, size - 2);
+				}
+			}
+			if (size >= 3) {
+				if (buf[0] == (sl_char8)0xEF && buf[1] == (sl_char8)0xBB && buf[2] == (sl_char8)0xBF) {
+					return CreateFromSz<CONTAINER>(buf + 3, size - 3);
+				}
+			}
+			return CreateFromSz<CONTAINER>(buf, size);
+		}
+
+		template <class STRING>
+		static typename STRING::Char* GetNullTerminatedData(typename STRING::Container* container, sl_size& outLength, STRING& outStringConverted) noexcept
+		{
+			if (container) {
+				sl_uint32 type = container->type;
+				sl_size len = container->len;
+				if (type == STRING_CONTAINER_TYPE_NORMAL || type == STRING_CONTAINER_TYPE_STD) {
+					outLength = len;
+					return container->sz;
+				}
+				typename STRING::Char* sz = container->sz;
+				if (sz[len]) {
+					outStringConverted = STRING(sz, len);
+					outLength = len;
+					return outStringConverted.getData();
+				} else {
+					outLength = len;
+					return sz;
+				}
+			}
+			outLength = 0;
+			return EMPTY_SZ(typename STRING::Char);
+		}
+
+		template <class STRING>
+		static Memory ToMemory(STRING* thiz, typename STRING::Container* container) noexcept
+		{
+			if (container) {
+				if (container->type == STRING_CONTAINER_TYPE_REF) {
+					RefContainer<typename STRING::Container>* c = static_cast<RefContainer<typename STRING::Container>*>(container);
+					if (IsInstanceOf<CMemory>(c->object)) {
+						CMemory* mem = (CMemory*)(c->object.ptr);
+						if (mem->data == container->sz && mem->size == container->len) {
+							return mem;
+						}
 					}
 				}
+				return Memory::createFromString(*thiz);
+			}
+			return sl_null;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static STRING MidPriv(const STRING* thiz, typename STRING::Char const* data, sl_size start, sl_size length)
+		{
+			if (length <= 32) {
+				return STRING(data + start, length);
+			} else {
+				return AllocSub<typename STRING::Container>(*thiz, data + start, length);
+			}
+		}
+
+		template <>
+		SLIB_INLINE StringView MidPriv<StringView>(const StringView* thiz, const sl_char8* data, sl_size start, sl_size length)
+		{
+			return StringView(data + start, length);
+		}
+
+		template <>
+		SLIB_INLINE StringView16 MidPriv<StringView16>(const StringView16* thiz, const sl_char16* data, sl_size start, sl_size length)
+		{
+			return StringView16(data + start, length);
+		}
+
+		template <>
+		SLIB_INLINE StringView32 MidPriv<StringView32>(const StringView32* thiz, const sl_char32* data, sl_size start, sl_size length)
+		{
+			return StringView32(data + start, length);
+		}
+
+		template <class STRING>
+		static STRING SubString(const STRING* thiz, sl_reg start, sl_reg end) noexcept
+		{
+			if (thiz->isNull()) {
 				return sl_null;
 			}
+			sl_size length;
+			typename STRING::Char* data = thiz->getData(length);
+			if (start < 0) {
+				start = 0;
+			}
+			if (end < 0 || (sl_size)end > length) {
+				end = length;
+			}
+			if (start >= end) {
+				return STRING::getEmpty();
+			}
+			if (!start && end == length) {
+				return *thiz;
+			}
+			return MidPriv(thiz, data, start, end - start);
+		}
 
-			template <class CONTAINER>
-			static CONTAINER* AllocRef(Referable* obj, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
-			{
-				if (!len) {
-					return ConstContainers<CONTAINER>::getEmpty();
-				}
-				RefContainer<CONTAINER>* container = (RefContainer<CONTAINER>*)(Base::createMemory(sizeof(RefContainer<CONTAINER>)));
-				if (container) {
-					new (container) RefContainer<CONTAINER>(obj);
-					container->sz = (typename CONTAINER::StringType::Char*)(sz);
-					container->len = len;
-					container->hash = 0;
-					container->type = STRING_CONTAINER_TYPE_REF;
-					container->ref = 1;
-					return container;
-				}
+		template <class STRING>
+		static STRING Left(const STRING* thiz, sl_reg len) noexcept
+		{
+			if (thiz->isNull()) {
 				return sl_null;
 			}
+			if (len <= 0) {
+				return STRING::getEmpty();
+			}
+			sl_size total;
+			typename STRING::Char* data = thiz->getData(total);
+			if ((sl_size)len >= total) {
+				return *thiz;
+			}
+			return MidPriv(thiz, data, 0, len);
+		}
 
-			template <class CONTAINER>
-			static CONTAINER* AllocSub(typename CONTAINER::StringType const& str, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
-			{
-				if (!len) {
-					return ConstContainers<CONTAINER>::getEmpty();
-				}
-				SubContainer<CONTAINER>* container = (SubContainer<CONTAINER>*)(Base::createMemory(sizeof(SubContainer<CONTAINER>)));
-				if (container) {
-					new (container) SubContainer<CONTAINER>(str);
-					container->sz = (typename CONTAINER::StringType::Char*)(sz);
-					container->len = len;
-					container->hash = 0;
-					container->type = STRING_CONTAINER_TYPE_SUB;
-					container->ref = 1;
-					return container;
-				}
+		template <class STRING>
+		static STRING Right(const STRING* thiz, sl_reg len) noexcept
+		{
+			if (thiz->isNull()) {
 				return sl_null;
 			}
+			if (len <= 0) {
+				return STRING::getEmpty();
+			}
+			sl_size total;
+			typename STRING::Char* data = thiz->getData(total);
+			if ((sl_size)len >= total) {
+				return *thiz;
+			}
+			return MidPriv(thiz, data, total - (sl_size)len, len);
+		}
 
-			template <class CONTAINER>
-			static CONTAINER* Create(typename CONTAINER::StringType::Char ch, sl_size nRepeatCount) noexcept
+		template <class STRING>
+		static STRING Mid(const STRING* thiz, sl_reg start, sl_reg len) noexcept
+		{
+			if (len < 0) {
+				return SubString(thiz, start, -1);
+			} else {
+				return SubString(thiz, start, start + len);
+			}
+		}
+
+		template <class CONTAINER, class CHAR1, class CHAR2>
+		class Concatenator
+		{
+		public:
+			static CONTAINER* concat(const CHAR1* src1, sl_reg lenSrc1, const CHAR2* src2, sl_reg lenSrc2) noexcept
 			{
-				CONTAINER* container = Alloc<CONTAINER>(nRepeatCount);
-				if (container && nRepeatCount) {
-					MemoryTraits<typename CONTAINER::StringType::Char>::reset(container->sz, nRepeatCount, ch);
+				sl_size len1 = 0;
+				if (lenSrc1) {
+					len1 = ConvertCharset(src1, lenSrc1, (typename CONTAINER::StringType::Char*)sl_null);
+				}
+				sl_size len2 = 0;
+				if (lenSrc2) {
+					len2 = ConvertCharset(src2, lenSrc2, (typename CONTAINER::StringType::Char*)sl_null);
+				}
+				sl_size len = len1 + len2;
+				CONTAINER* container = Alloc<CONTAINER>(len);
+				if (container && len) {
+					if (len1) {
+						ConvertCharset(src1, lenSrc1, container->sz);
+					}
+					if (len2) {
+						ConvertCharset(src2, lenSrc2, container->sz + len1);
+					}
+					container->sz[len] = 0;
 				}
 				return container;
 			}
+		};
 
-			template <class CHAR>
-			static sl_size ConvertCharset(const CHAR* src, sl_reg lenSrc, CHAR* dst) noexcept
+		template <class CONTAINER>
+		class Concatenator<CONTAINER, typename CONTAINER::StringType::Char, typename CONTAINER::StringType::Char>
+		{
+		public:
+			static CONTAINER* concat(typename CONTAINER::StringType::Char const* s1, sl_reg len1, typename CONTAINER::StringType::Char const* s2, sl_reg len2) noexcept
 			{
-				if (dst) {
-					if (lenSrc >= 0) {
-						MemoryTraits<CHAR>::copy(dst, src, lenSrc);
-						return lenSrc;
-					} else {
-						return StringTraits<CHAR>::copy(dst, src);
+				if (len1 < 0) {
+					len1 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s1);
+				}
+				if (len2 < 0) {
+					len2 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s2);
+				}
+				sl_size len = len1 + len2;
+				CONTAINER* container = Alloc<CONTAINER>(len);
+				if (container && len) {
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
+					container->sz[len] = 0;
+				}
+				return container;
+			}
+		};
+
+		template <class CONTAINER, class CHAR_TYPE>
+		class Concatenator<CONTAINER, typename CONTAINER::StringType::Char, CHAR_TYPE>
+		{
+		public:
+			static CONTAINER* concat(typename CONTAINER::StringType::Char const* s1, sl_reg len1, const CHAR_TYPE* src2, sl_reg lenSrc2) noexcept
+			{
+				if (len1 < 0) {
+					len1 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s1);
+				}
+				if (lenSrc2 < 0) {
+					lenSrc2 = StringTraits<CHAR_TYPE>::getLength(src2);
+				}
+				sl_size len2 = 0;
+				if (lenSrc2) {
+					len2 = ConvertCharset(src2, lenSrc2, (typename CONTAINER::StringType::Char*)sl_null);
+				}
+				sl_size len = len1 + len2;
+				CONTAINER* container = Alloc<CONTAINER>(len);
+				if (container && len) {
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
+					if (len2) {
+						ConvertCharset(src2, lenSrc2, container->sz + len1);
 					}
+					container->sz[len] = 0;
+				}
+				return container;
+			}
+		};
+
+		template <class CONTAINER, class CHAR_TYPE>
+		class Concatenator<CONTAINER, CHAR_TYPE, typename CONTAINER::StringType::Char>
+		{
+		public:
+			static CONTAINER* concat(const CHAR_TYPE* src1, sl_reg lenSrc1, typename CONTAINER::StringType::Char const* s2, sl_reg len2) noexcept
+			{
+				if (lenSrc1 < 0) {
+					lenSrc1 = StringTraits<CHAR_TYPE>::getLength(src1);
+				}
+				if (len2 < 0) {
+					len2 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s2);
+				}
+				sl_size len1 = 0;
+				if (lenSrc1) {
+					len1 = ConvertCharset(src1, lenSrc1, (typename CONTAINER::StringType::Char*)sl_null);
+				}
+				sl_size len = len1 + len2;
+				CONTAINER* container = Alloc<CONTAINER>(len);
+				if (container && len) {
+					if (len1) {
+						ConvertCharset(src1, lenSrc1, container->sz);
+					}
+					MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
+					container->sz[len] = 0;
+				}
+				return container;
+			}
+		};
+
+		template <class CONTAINER, class CHAR1, class CHAR2>
+		SLIB_INLINE static CONTAINER* Concat(const CHAR1* s1, sl_reg len1, const CHAR2* s2, sl_reg len2) noexcept
+		{
+			if (!s1) {
+				s1 = EMPTY_SZ(CHAR1);
+			}
+			if (!s2) {
+				s2 = EMPTY_SZ(CHAR2);
+			}
+			return Concatenator<CONTAINER, CHAR1, CHAR2>::concat(s1, len1, s2, len2);
+		}
+
+		template <class STRING>
+		static STRING ConcatParams(const StringParam& _s1, const StringParam& _s2) noexcept
+		{
+			if (_s2.isNull()) {
+				return STRING::from(_s1);
+			}
+			if (_s1.isEmpty()) {
+				return STRING::from(_s2);
+			}
+			if (_s2.isEmpty()) {
+				return STRING::from(_s1);
+			}
+			StringRawData s1, s2;
+			_s1.getData(s1);
+			_s2.getData(s2);
+			if (s1.charSize == 1) {
+				if (s2.charSize == 1) {
+					return Concat<typename STRING::Container>(s1.data8, s1.length, s2.data8, s2.length);
+				} else if (s2.charSize == 2) {
+					return Concat<typename STRING::Container>(s1.data8, s1.length, s2.data16, s2.length);
 				} else {
-					if (lenSrc >= 0) {
-						return lenSrc;
-					} else {
-						return StringTraits<CHAR>::getLength(src);
-					}
+					return Concat<typename STRING::Container>(s1.data8, s1.length, s2.data32, s2.length);
 				}
-			}
-
-			SLIB_INLINE static sl_size ConvertCharset(const sl_char8* utf8, sl_reg lenUtf8, sl_char16* utf16) noexcept
-			{
-				return Charsets::utf8ToUtf16(utf8, lenUtf8, utf16, -1);
-			}
-
-			SLIB_INLINE static sl_size ConvertCharset(const sl_char8* utf8, sl_reg lenUtf8, sl_char32* utf32) noexcept
-			{
-				return Charsets::utf8ToUtf32(utf8, lenUtf8, utf32, -1);
-			}
-
-			SLIB_INLINE static sl_size ConvertCharset(const sl_char16* utf16, sl_reg lenUtf16, sl_char8* utf8) noexcept
-			{
-				return Charsets::utf16ToUtf8(utf16, lenUtf16, utf8, -1);
-			}
-
-			SLIB_INLINE static sl_size ConvertCharset(const sl_char16* utf16, sl_reg lenUtf16, sl_char32* utf32) noexcept
-			{
-				return Charsets::utf16ToUtf32(utf16, lenUtf16, utf32, -1);
-			}
-
-			SLIB_INLINE static sl_size ConvertCharset(const sl_char32* utf32, sl_reg lenUtf32, sl_char8* utf8) noexcept
-			{
-				return Charsets::utf32ToUtf8(utf32, lenUtf32, utf8, -1);
-			}
-
-			SLIB_INLINE static sl_size ConvertCharset(const sl_char32* utf32, sl_reg lenUtf32, sl_char16* utf16) noexcept
-			{
-				return Charsets::utf32ToUtf16(utf32, lenUtf32, utf16, -1);
-			}
-
-			template <class CONTAINER, class CHAR_TYPE>
-			class CreatorFromString
-			{
-			public:
-				static CONTAINER* create(const CHAR_TYPE* src, sl_reg lenSrc) noexcept
-				{
-					if (src) {
-						sl_size lenDst = 0;
-						if (lenSrc) {
-							lenDst = ConvertCharset(src, lenSrc, (typename CONTAINER::StringType::Char*)sl_null);
-						}
-						CONTAINER* container = Alloc<CONTAINER>(lenDst);
-						if (container && lenDst) {
-							ConvertCharset(src, lenSrc, container->sz);
-							container->sz[lenDst] = 0;
-						}
-						return container;
-					}
-					return sl_null;
-				}
-			};
-
-			template <class CONTAINER>
-			class CreatorFromString<CONTAINER, typename CONTAINER::StringType::Char>
-			{
-			public:
-				static CONTAINER* create(typename CONTAINER::StringType::Char const* str, sl_reg len) noexcept
-				{
-					if (str) {
-						if (len < 0) {
-							len = StringTraits<typename CONTAINER::StringType::Char>::getLength(str);
-						}
-						CONTAINER* container = Alloc<CONTAINER>(len);
-						if (container && len > 0) {
-							MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, str, len);
-						}
-						return container;
-					}
-					return sl_null;
-				}
-			};
-
-			template <class CONTAINER, class CHAR_TYPE>
-			SLIB_INLINE static CONTAINER* CreateFromSz(const CHAR_TYPE* src, sl_reg lenSrc) noexcept
-			{
-				return CreatorFromString<CONTAINER, CHAR_TYPE>::create(src, lenSrc);
-			}
-
-			template <class CONTAINER, class STRING>
-			SLIB_INLINE static CONTAINER* CreateFromString(const STRING& str) noexcept
-			{
-				sl_size len;
-				typename STRING::Char* sz = str.getData(len);
-				return CreatorFromString<CONTAINER, typename STRING::Char>::create(sz, len);
-			}
-
-			SLIB_INLINE sl_size FromUtf16(EndianType endian, const void* utf16, sl_size sizeUtf16, sl_char8* utf8, sl_reg lenUtf8Buffer) noexcept
-			{
-				return Charsets::utf16ToUtf8(endian, utf16, sizeUtf16, utf8, lenUtf8Buffer);
-			}
-
-			SLIB_INLINE sl_size FromUtf16(EndianType endian, const void* utf16, sl_size sizeUtf16, sl_char32* utf32, sl_reg lenUtf32Buffer) noexcept
-			{
-				return Charsets::utf16ToUtf32(endian, utf16, sizeUtf16, utf32, lenUtf32Buffer);
-			}
-
-			template <class CONTAINER>
-			class CreatorFromUtf16
-			{
-			public:
-				static CONTAINER* create(EndianType endian, const void* src, sl_size size) noexcept
-				{
-					if (src) {
-						if (!size) {
-							return ConstContainers<CONTAINER>::getEmpty();
-						}
-						sl_size lenDst = FromUtf16(endian, src, size, (typename CONTAINER::StringType::Char*)sl_null, -1);
-						CONTAINER* container = Alloc<CONTAINER>(lenDst);
-						if (container && lenDst) {
-							FromUtf16(endian, src, size, container->sz, lenDst);
-							container->sz[lenDst] = 0;
-						}
-						return container;
-					}
-					return sl_null;
-				}
-			};
-
-			template <>
-			class CreatorFromUtf16<StringContainer16>
-			{
-			public:
-				static StringContainer16* create(EndianType endian, const void* src, sl_size size) noexcept
-				{
-					if (src) {
-						sl_size len = size >> 1;
-						StringContainer16* container = Alloc<StringContainer16>(len);
-						if (container && len) {
-							Charsets::utf16ToUtf16(endian, src, container->sz, len);
-							container->sz[len] = 0;
-						}
-						return container;
-					}
-					return sl_null;
-				}
-			};
-
-			template <class CONTAINER>
-			SLIB_INLINE static CONTAINER* CreateFromUtf16(EndianType endian, const void* src, sl_size size) noexcept
-			{
-				return CreatorFromUtf16<CONTAINER>::create(endian, src, size);
-			}
-
-			template <class CONTAINER>
-			static CONTAINER* CreateFromUtf(const void* _buf, sl_size size) noexcept
-			{
-				sl_char8* buf = (sl_char8*)_buf;
-				if (!buf) {
-					return sl_null;
-				}
-				if (!size) {
-					return ConstContainers<CONTAINER>::getEmpty();
-				}
-				if (size >= 2) {
-					if (buf[0] == (sl_char8)0xFF && buf[1] == (sl_char8)0xFE) {
-						return CreateFromUtf16<CONTAINER>(Endian::Little, buf + 2, size - 2);
-					}
-					if (buf[0] == (sl_char8)0xFE && buf[1] == (sl_char8)0xFF) {
-						return CreateFromUtf16<CONTAINER>(Endian::Big, buf + 2, size - 2);
-					}
-				}
-				if (size >= 3) {
-					if (buf[0] == (sl_char8)0xEF && buf[1] == (sl_char8)0xBB && buf[2] == (sl_char8)0xBF) {
-						return CreateFromSz<CONTAINER>(buf + 3, size - 3);
-					}
-				}
-				return CreateFromSz<CONTAINER>(buf, size);
-			}
-
-			template <class STRING>
-			static typename STRING::Char* GetNullTerminatedData(typename STRING::Container* container, sl_size& outLength, STRING& outStringConverted) noexcept
-			{
-				if (container) {
-					sl_uint32 type = container->type;
-					sl_size len = container->len;
-					if (type == STRING_CONTAINER_TYPE_NORMAL || type == STRING_CONTAINER_TYPE_STD) {
-						outLength = len;
-						return container->sz;
-					}
-					typename STRING::Char* sz = container->sz;
-					if (sz[len]) {
-						outStringConverted = STRING(sz, len);
-						outLength = len;
-						return outStringConverted.getData();
-					} else {
-						outLength = len;
-						return sz;
-					}
-				}
-				outLength = 0;
-				return EMPTY_SZ(typename STRING::Char);
-			}
-
-			template <class STRING>
-			static Memory ToMemory(STRING* thiz, typename STRING::Container* container) noexcept
-			{
-				if (container) {
-					if (container->type == STRING_CONTAINER_TYPE_REF) {
-						RefContainer<typename STRING::Container>* c = static_cast<RefContainer<typename STRING::Container>*>(container);
-						if (IsInstanceOf<CMemory>(c->object)) {
-							CMemory* mem = (CMemory*)(c->object.ptr);
-							if (mem->data == container->sz && mem->size == container->len) {
-								return mem;
-							}
-						}
-					}
-					return Memory::createFromString(*thiz);
-				}
-				return sl_null;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static STRING MidPriv(const STRING* thiz, typename STRING::Char const* data, sl_size start, sl_size length)
-			{
-				if (length <= 32) {
-					return STRING(data + start, length);
+			} else if (s1.charSize == 2) {
+				if (s2.charSize == 1) {
+					return Concat<typename STRING::Container>(s1.data16, s1.length, s2.data8, s2.length);
+				} else if (s2.charSize == 2) {
+					return Concat<typename STRING::Container>(s1.data16, s1.length, s2.data16, s2.length);
 				} else {
-					return AllocSub<typename STRING::Container>(*thiz, data + start, length);
+					return Concat<typename STRING::Container>(s1.data16, s1.length, s2.data32, s2.length);
 				}
-			}
-
-			template <>
-			SLIB_INLINE StringView MidPriv<StringView>(const StringView* thiz, const sl_char8* data, sl_size start, sl_size length)
-			{
-				return StringView(data + start, length);
-			}
-
-			template <>
-			SLIB_INLINE StringView16 MidPriv<StringView16>(const StringView16* thiz, const sl_char16* data, sl_size start, sl_size length)
-			{
-				return StringView16(data + start, length);
-			}
-
-			template <>
-			SLIB_INLINE StringView32 MidPriv<StringView32>(const StringView32* thiz, const sl_char32* data, sl_size start, sl_size length)
-			{
-				return StringView32(data + start, length);
-			}
-
-			template <class STRING>
-			static STRING SubString(const STRING* thiz, sl_reg start, sl_reg end) noexcept
-			{
-				if (thiz->isNull()) {
-					return sl_null;
-				}
-				sl_size length;
-				typename STRING::Char* data = thiz->getData(length);
-				if (start < 0) {
-					start = 0;
-				}
-				if (end < 0 || (sl_size)end > length) {
-					end = length;
-				}
-				if (start >= end) {
-					return STRING::getEmpty();
-				}
-				if (!start && end == length) {
-					return *thiz;
-				}
-				return MidPriv(thiz, data, start, end - start);
-			}
-
-			template <class STRING>
-			static STRING Left(const STRING* thiz, sl_reg len) noexcept
-			{
-				if (thiz->isNull()) {
-					return sl_null;
-				}
-				if (len <= 0) {
-					return STRING::getEmpty();
-				}
-				sl_size total;
-				typename STRING::Char* data = thiz->getData(total);
-				if ((sl_size)len >= total) {
-					return *thiz;
-				}
-				return MidPriv(thiz, data, 0, len);
-			}
-
-			template <class STRING>
-			static STRING Right(const STRING* thiz, sl_reg len) noexcept
-			{
-				if (thiz->isNull()) {
-					return sl_null;
-				}
-				if (len <= 0) {
-					return STRING::getEmpty();
-				}
-				sl_size total;
-				typename STRING::Char* data = thiz->getData(total);
-				if ((sl_size)len >= total) {
-					return *thiz;
-				}
-				return MidPriv(thiz, data, total - (sl_size)len, len);
-			}
-
-			template <class STRING>
-			static STRING Mid(const STRING* thiz, sl_reg start, sl_reg len) noexcept
-			{
-				if (len < 0) {
-					return SubString(thiz, start, -1);
+			} else {
+				if (s2.charSize == 1) {
+					return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data8, s2.length);
+				} else if (s2.charSize == 2) {
+					return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data16, s2.length);
 				} else {
-					return SubString(thiz, start, start + len);
+					return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data32, s2.length);
 				}
 			}
+		}
 
-			template <class CONTAINER, class CHAR1, class CHAR2>
-			class Concatenator
-			{
-			public:
-				static CONTAINER* concat(const CHAR1* src1, sl_reg lenSrc1, const CHAR2* src2, sl_reg lenSrc2) noexcept
-				{
-					sl_size len1 = 0;
-					if (lenSrc1) {
-						len1 = ConvertCharset(src1, lenSrc1, (typename CONTAINER::StringType::Char*)sl_null);
-					}
-					sl_size len2 = 0;
-					if (lenSrc2) {
-						len2 = ConvertCharset(src2, lenSrc2, (typename CONTAINER::StringType::Char*)sl_null);
-					}
-					sl_size len = len1 + len2;
-					CONTAINER* container = Alloc<CONTAINER>(len);
-					if (container && len) {
-						if (len1) {
-							ConvertCharset(src1, lenSrc1, container->sz);
-						}
-						if (len2) {
-							ConvertCharset(src2, lenSrc2, container->sz + len1);
-						}
-						container->sz[len] = 0;
-					}
-					return container;
+		template <class CHAR>
+		SLIB_INLINE static sl_bool EqualsString(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
+		{
+			if (len1 == len2) {
+				if (!len1) {
+					return sl_true;
 				}
-			};
-
-			template <class CONTAINER>
-			class Concatenator<CONTAINER, typename CONTAINER::StringType::Char, typename CONTAINER::StringType::Char>
-			{
-			public:
-				static CONTAINER* concat(typename CONTAINER::StringType::Char const* s1, sl_reg len1, typename CONTAINER::StringType::Char const* s2, sl_reg len2) noexcept
-				{
-					if (len1 < 0) {
-						len1 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s1);
-					}
-					if (len2 < 0) {
-						len2 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s2);
-					}
-					sl_size len = len1 + len2;
-					CONTAINER* container = Alloc<CONTAINER>(len);
-					if (container && len) {
-						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
-						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
-						container->sz[len] = 0;
-					}
-					return container;
+				if (str1 == str2) {
+					return sl_true;
 				}
-			};
-
-			template <class CONTAINER, class CHAR_TYPE>
-			class Concatenator<CONTAINER, typename CONTAINER::StringType::Char, CHAR_TYPE>
-			{
-			public:
-				static CONTAINER* concat(typename CONTAINER::StringType::Char const* s1, sl_reg len1, const CHAR_TYPE* src2, sl_reg lenSrc2) noexcept
-				{
-					if (len1 < 0) {
-						len1 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s1);
-					}
-					if (lenSrc2 < 0) {
-						lenSrc2 = StringTraits<CHAR_TYPE>::getLength(src2);
-					}
-					sl_size len2 = 0;
-					if (lenSrc2) {
-						len2 = ConvertCharset(src2, lenSrc2, (typename CONTAINER::StringType::Char*)sl_null);
-					}
-					sl_size len = len1 + len2;
-					CONTAINER* container = Alloc<CONTAINER>(len);
-					if (container && len) {
-						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz, s1, len1);
-						if (len2) {
-							ConvertCharset(src2, lenSrc2, container->sz + len1);
-						}
-						container->sz[len] = 0;
-					}
-					return container;
-				}
-			};
-
-			template <class CONTAINER, class CHAR_TYPE>
-			class Concatenator<CONTAINER, CHAR_TYPE, typename CONTAINER::StringType::Char>
-			{
-			public:
-				static CONTAINER* concat(const CHAR_TYPE* src1, sl_reg lenSrc1, typename CONTAINER::StringType::Char const* s2, sl_reg len2) noexcept
-				{
-					if (lenSrc1 < 0) {
-						lenSrc1 = StringTraits<CHAR_TYPE>::getLength(src1);
-					}
-					if (len2 < 0) {
-						len2 = StringTraits<typename CONTAINER::StringType::Char>::getLength(s2);
-					}
-					sl_size len1 = 0;
-					if (lenSrc1) {
-						len1 = ConvertCharset(src1, lenSrc1, (typename CONTAINER::StringType::Char*)sl_null);
-					}
-					sl_size len = len1 + len2;
-					CONTAINER* container = Alloc<CONTAINER>(len);
-					if (container && len) {
-						if (len1) {
-							ConvertCharset(src1, lenSrc1, container->sz);
-						}
-						MemoryTraits<typename CONTAINER::StringType::Char>::copy(container->sz + len1, s2, len2);
-						container->sz[len] = 0;
-					}
-					return container;
-				}
-			};
-
-			template <class CONTAINER, class CHAR1, class CHAR2>
-			SLIB_INLINE static CONTAINER* Concat(const CHAR1* s1, sl_reg len1, const CHAR2* s2, sl_reg len2) noexcept
-			{
-				if (!s1) {
-					s1 = EMPTY_SZ(CHAR1);
-				}
-				if (!s2) {
-					s2 = EMPTY_SZ(CHAR2);
-				}
-				return Concatenator<CONTAINER, CHAR1, CHAR2>::concat(s1, len1, s2, len2);
+				return MemoryTraits<CHAR>::equals(str1, str2, len1);
+			} else {
+				return sl_false;
 			}
+		}
 
-			template <class STRING>
-			static STRING ConcatParams(const StringParam& _s1, const StringParam& _s2) noexcept
-			{
-				if (_s2.isNull()) {
-					return STRING::from(_s1);
+		template <class STRING>
+		static sl_bool EqualsString(const STRING& str1, const STRING& str2) noexcept
+		{
+			sl_size len1, len2;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			typename STRING::Char const* data2 = str2.getData(len2);
+			if (len1 == len2) {
+				if (!len1) {
+					return sl_true;
 				}
-				if (_s1.isEmpty()) {
-					return STRING::from(_s2);
+				if (data1 == data2) {
+					return sl_true;
 				}
-				if (_s2.isEmpty()) {
-					return STRING::from(_s1);
-				}
-				StringRawData s1, s2;
-				_s1.getData(s1);
-				_s2.getData(s2);
-				if (s1.charSize == 1) {
-					if (s2.charSize == 1) {
-						return Concat<typename STRING::Container>(s1.data8, s1.length, s2.data8, s2.length);
-					} else if (s2.charSize == 2) {
-						return Concat<typename STRING::Container>(s1.data8, s1.length, s2.data16, s2.length);
-					} else {
-						return Concat<typename STRING::Container>(s1.data8, s1.length, s2.data32, s2.length);
-					}
-				} else if (s1.charSize == 2) {
-					if (s2.charSize == 1) {
-						return Concat<typename STRING::Container>(s1.data16, s1.length, s2.data8, s2.length);
-					} else if (s2.charSize == 2) {
-						return Concat<typename STRING::Container>(s1.data16, s1.length, s2.data16, s2.length);
-					} else {
-						return Concat<typename STRING::Container>(s1.data16, s1.length, s2.data32, s2.length);
-					}
-				} else {
-					if (s2.charSize == 1) {
-						return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data8, s2.length);
-					} else if (s2.charSize == 2) {
-						return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data16, s2.length);
-					} else {
-						return Concat<typename STRING::Container>(s1.data32, s1.length, s2.data32, s2.length);
+				typename STRING::Container* container1 = *((typename STRING::Container**)((void*)&str1));
+				typename STRING::Container* container2 = *((typename STRING::Container**)((void*)&str2));
+				sl_size h1 = container1->hash;
+				if (h1) {
+					sl_size h2 = container2->hash;
+					if (h2) {
+						if (h1 != h2) {
+							return sl_false;
+						}
 					}
 				}
+				return MemoryTraits<typename STRING::Char>::equals(data1, data2, len1);
+			} else {
+				return sl_false;
 			}
+		}
 
-			template <class CHAR>
-			SLIB_INLINE static sl_bool EqualsString(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
-			{
-				if (len1 == len2) {
-					if (!len1) {
-						return sl_true;
-					}
-					if (str1 == str2) {
-						return sl_true;
-					}
-					return MemoryTraits<CHAR>::equals(str1, str2, len1);
-				} else {
+		template <class STRING>
+		SLIB_INLINE static sl_bool EqualsString(const STRING& str1, typename STRING::Char const* str2, sl_size len2) noexcept
+		{
+			sl_size len1;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			return EqualsString(data1, len1, str2, len2);
+		}
+
+		template <class CHAR>
+		static sl_bool EqualsStringSzSub(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
+		{
+			for (sl_size i = 0; i < len1; i++) {
+				CHAR c = str2[i];
+				if (str1[i] != c) {
+					return sl_false;
+				}
+				if (!c) {
 					return sl_false;
 				}
 			}
+			return !(str2[len1]);
+		}
 
-			template <class STRING>
-			static sl_bool EqualsString(const STRING& str1, const STRING& str2) noexcept
-			{
-				sl_size len1, len2;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				typename STRING::Char const* data2 = str2.getData(len2);
-				if (len1 == len2) {
-					if (!len1) {
-						return sl_true;
-					}
-					if (data1 == data2) {
-						return sl_true;
-					}
-					typename STRING::Container* container1 = *((typename STRING::Container**)((void*)&str1));
-					typename STRING::Container* container2 = *((typename STRING::Container**)((void*)&str2));
-					sl_size h1 = container1->hash;
-					if (h1) {
-						sl_size h2 = container2->hash;
-						if (h2) {
-							if (h1 != h2) {
-								return sl_false;
-							}
-						}
-					}
-					return MemoryTraits<typename STRING::Char>::equals(data1, data2, len1);
-				} else {
-					return sl_false;
+		template <class CHAR>
+		SLIB_INLINE static sl_bool EqualsStringSz(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len2 < 0) {
+				if (!str2) {
+					str2 = EMPTY_SZ(CHAR);
 				}
+				return EqualsStringSzSub(str1, len1, str2);
+			} else {
+				return EqualsString(str1, len1, str2, len2);
 			}
+		}
 
-			template <class STRING>
-			SLIB_INLINE static sl_bool EqualsString(const STRING& str1, typename STRING::Char const* str2, sl_size len2) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return EqualsString(data1, len1, str2, len2);
-			}
+		template <class STRING>
+		static sl_bool EqualsStringSz(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
+		{
+			sl_size len1;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			return EqualsStringSz(data1, len1, str2, len2);
+		}
 
-			template <class CHAR>
-			static sl_bool EqualsStringSzSub(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
-			{
-				for (sl_size i = 0; i < len1; i++) {
-					CHAR c = str2[i];
-					if (str1[i] != c) {
-						return sl_false;
-					}
-					if (!c) {
-						return sl_false;
-					}
+		template <class CHAR>
+		static sl_bool EqualsSz(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len1 < 0) {
+				if (!str1) {
+					str1 = EMPTY_SZ(CHAR);
 				}
-				return !(str2[len1]);
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool EqualsStringSz(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
-			{
 				if (len2 < 0) {
 					if (!str2) {
 						str2 = EMPTY_SZ(CHAR);
 					}
-					return EqualsStringSzSub(str1, len1, str2);
+					if (str1 == str2) {
+						return sl_true;
+					}
+					return StringTraits<CHAR>::equals(str1, str2);
 				} else {
-					return EqualsString(str1, len1, str2, len2);
+					return EqualsStringSzSub(str2, len2, str1);
+				}
+			} else {
+				return EqualsStringSz(str1, len1, str2, len2);
+			}
+		}
+
+		template <class CHAR>
+		static sl_bool EqualsStringSub_IgnoreCase(const CHAR* str1, const CHAR* str2, sl_size len) noexcept
+		{
+			for (sl_size i = 0; i < len; i++) {
+				CHAR c1 = str1[i];
+				CHAR c2 = str2[i];
+				if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
+					return sl_false;
 				}
 			}
+			return sl_true;
+		}
 
-			template <class STRING>
-			static sl_bool EqualsStringSz(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return EqualsStringSz(data1, len1, str2, len2);
+		template <class CHAR>
+		SLIB_INLINE static sl_bool EqualsString_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
+		{
+			if (len1 == len2) {
+				if (!len1) {
+					return sl_true;
+				}
+				if (str1 == str2) {
+					return sl_true;
+				}
+				return EqualsStringSub_IgnoreCase(str1, str2, len1);
+			} else {
+				return sl_false;
 			}
+		}
 
-			template <class CHAR>
-			static sl_bool EqualsSz(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len1 < 0) {
-					if (!str1) {
-						str1 = EMPTY_SZ(CHAR);
-					}
-					if (len2 < 0) {
-						if (!str2) {
-							str2 = EMPTY_SZ(CHAR);
-						}
-						if (str1 == str2) {
-							return sl_true;
-						}
-						return StringTraits<CHAR>::equals(str1, str2);
-					} else {
-						return EqualsStringSzSub(str2, len2, str1);
-					}
-				} else {
-					return EqualsStringSz(str1, len1, str2, len2);
+		template <class CHAR>
+		static sl_bool EqualsStringSzSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
+		{
+			for (sl_size i = 0; i < len1; i++) {
+				CHAR c1 = str1[i];
+				CHAR c2 = str2[i];
+				if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
+					return sl_false;
+				}
+				if (!c2) {
+					return sl_false;
 				}
 			}
+			return !(str2[len1]);
+		}
 
-			template <class CHAR>
-			static sl_bool EqualsStringSub_IgnoreCase(const CHAR* str1, const CHAR* str2, sl_size len) noexcept
-			{
+		template <class CHAR>
+		SLIB_INLINE static sl_bool EqualsStringSz_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len2 < 0) {
+				if (!str2) {
+					str2 = EMPTY_SZ(CHAR);
+				}
+				return EqualsStringSzSub_IgnoreCase(str1, len1, str2);
+			} else {
+				return EqualsString_IgnoreCase(str1, len1, str2, len2);
+			}
+		}
+
+		template <class STRING>
+		static sl_bool EqualsStringSz_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
+		{
+			sl_size len1;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			return EqualsStringSz_IgnoreCase(data1, len1, str2, len2);
+		}
+
+		template <class CHAR>
+		static sl_bool EqualsSz_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len1 < 0) {
+				if (!str1) {
+					str1 = EMPTY_SZ(CHAR);
+				}
+				if (len2 < 0) {
+					if (!str2) {
+						str2 = EMPTY_SZ(CHAR);
+					}
+					if (str1 == str2) {
+						return sl_true;
+					}
+					return StringTraits<CHAR>::equals_IgnoreCase(str1, str2);
+				} else {
+					return EqualsStringSzSub_IgnoreCase(str2, len2, str1);
+				}
+			} else {
+				return EqualsStringSz_IgnoreCase(str1, len1, str2, len2);
+			}
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareString(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
+		{
+			if (len1 < len2) {
+				if (!len1) {
+					return -1;
+				}
+				if (str1 == str2) {
+					return -1;
+				}
+				sl_compare_result r = MemoryTraits<CHAR>::compare(str1, str2, len1);
+				if (r) {
+					return r;
+				} else {
+					return -1;
+				}
+			} else if (len1 > len2) {
+				if (!len2) {
+					return 1;
+				}
+				if (str1 == str2) {
+					return 1;
+				}
+				sl_compare_result r = MemoryTraits<CHAR>::compare(str1, str2, len2);
+				if (r) {
+					return r;
+				} else {
+					return 1;
+				}
+			} else {
+				if (!len1) {
+					return 0;
+				}
+				if (str1 == str2) {
+					return 0;
+				}
+				return MemoryTraits<CHAR>::compare(str1, str2, len1);
+			}
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareStringSzSub(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
+		{
+			for (sl_size i = 0; i < len1; i++) {
+				typename UnsignedType<CHAR>::Type c1 = str1[i];
+				typename UnsignedType<CHAR>::Type c2 = str2[i];
+				if (!c2) {
+					return 1;
+				}
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+			}
+			if (str2[len1]) {
+				return -1;
+			}
+			return 0;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_compare_result CompareStringSz(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len2 < 0) {
+				if (!str2) {
+					str2 = EMPTY_SZ(CHAR);
+				}
+				return CompareStringSzSub(str1, len1, str2);
+			} else {
+				return CompareString(str1, len1, str2, len2);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_compare_result CompareStringSz(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
+		{
+			sl_size len1;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			return CompareStringSz(data1, len1, str2, len2);
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareSz(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len1 < 0) {
+				if (!str1) {
+					str1 = EMPTY_SZ(CHAR);
+				}
+				if (len2 < 0) {
+					if (!str2) {
+						str2 = EMPTY_SZ(CHAR);
+					}
+					if (str1 == str2) {
+						return 0;
+					}
+					return StringTraits<CHAR>::compare(str1, str2);
+				} else {
+					return -(CompareStringSzSub(str2, len2, str1));
+				}
+			} else {
+				return CompareStringSz(str1, len1, str2, len2);
+			}
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareString_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
+		{
+			sl_size len = SLIB_MIN(len1, len2);
+			if (str1 != str2) {
 				for (sl_size i = 0; i < len; i++) {
-					CHAR c1 = str1[i];
-					CHAR c2 = str2[i];
-					if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
+					typename UnsignedType<CHAR>::Type c1 = str1[i];
+					typename UnsignedType<CHAR>::Type c2 = str2[i];
+					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+					if (c1 < c2) {
+						return -1;
+					} else if (c1 > c2) {
+						return 1;
+					}
+				}
+			}
+			if (len1 < len2) {
+				return -1;
+			} else if (len1 > len2) {
+				return 1;
+			}
+			return 0;
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareStringSzSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
+		{
+			for (sl_size i = 0; i < len1; i++) {
+				typename UnsignedType<CHAR>::Type c1 = str1[i];
+				typename UnsignedType<CHAR>::Type c2 = str2[i];
+				if (!c2) {
+					return 1;
+				}
+				c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+				c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+			}
+			if (str2[len1]) {
+				return -1;
+			}
+			return 0;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_compare_result CompareStringSz_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len2 < 0) {
+				if (!str2) {
+					str2 = EMPTY_SZ(CHAR);
+				}
+				return CompareStringSzSub_IgnoreCase(str1, len1, str2);
+			} else {
+				return CompareString_IgnoreCase(str1, len1, str2, len2);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_compare_result CompareStringSz_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
+		{
+			sl_size len1;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			return CompareStringSz_IgnoreCase(data1, len1, str2, len2);
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareSz_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
+		{
+			if (len1 < 0) {
+				if (!str1) {
+					str1 = EMPTY_SZ(CHAR);
+				}
+				if (len2 < 0) {
+					if (!str2) {
+						str2 = EMPTY_SZ(CHAR);
+					}
+					if (str1 == str2) {
+						return 0;
+					}
+					return StringTraits<CHAR>::compare_IgnoreCase(str1, str2);
+				} else {
+					return -(CompareStringSzSub_IgnoreCase(str2, len2, str1));
+				}
+			} else {
+				return CompareStringSz_IgnoreCase(str1, len1, str2, len2);
+			}
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_compare_result CompareStringLimited(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2, sl_size nLimit) noexcept
+		{
+			if (len1 > nLimit) {
+				len1 = nLimit;
+			}
+			if (len2 > nLimit) {
+				len2 = nLimit;
+			}
+			return CompareString(str1, len1, str2, len2);
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareStringSzLimitedSub(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size nLimit) noexcept
+		{
+			if (len1 < nLimit) {
+				return CompareStringSzSub(str1, len1, str2);
+			}
+			for (sl_size i = 0; i < nLimit; i++) {
+				typename UnsignedType<CHAR>::Type c1 = str1[i];
+				typename UnsignedType<CHAR>::Type c2 = str2[i];
+				if (!c2) {
+					return 1;
+				}
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+			}
+			return 0;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_compare_result CompareStringSzLimited(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
+		{
+			if (len2 < 0) {
+				if (!str2) {
+					str2 = EMPTY_SZ(CHAR);
+				}
+				return CompareStringSzLimitedSub(str1, len1, str2, nLimit);
+			} else {
+				return CompareStringLimited(str1, len1, str2, len2, nLimit);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_compare_result CompareStringSzLimited(const STRING& str1, typename STRING::Char const* str2, sl_reg len2, sl_size nLimit) noexcept
+		{
+			sl_size len1;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			return CompareStringSzLimited(data1, len1, str2, len2, nLimit);
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareSzLimited(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
+		{
+			if (len1 < 0) {
+				if (!str1) {
+					str1 = EMPTY_SZ(CHAR);
+				}
+				if (len2 < 0) {
+					if (!str2) {
+						str2 = EMPTY_SZ(CHAR);
+					}
+					if (str1 == str2) {
+						return 0;
+					}
+					return StringTraits<CHAR>::compare(str1, str2, nLimit);
+				} else {
+					return -(CompareStringSzLimitedSub(str2, len2, str1, nLimit));
+				}
+			} else {
+				return CompareStringSzLimited(str1, len1, str2, len2, nLimit);
+			}
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_compare_result CompareStringLimited_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2, sl_size nLimit) noexcept
+		{
+			if (len1 > nLimit) {
+				len1 = nLimit;
+			}
+			if (len2 > nLimit) {
+				len2 = nLimit;
+			}
+			return CompareString_IgnoreCase(str1, len1, str2, len2);
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareStringSzLimitedSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size nLimit) noexcept
+		{
+			if (len1 < nLimit) {
+				return CompareStringSzSub_IgnoreCase(str1, len1, str2);
+			}
+			for (sl_size i = 0; i < nLimit; i++) {
+				typename UnsignedType<CHAR>::Type c1 = str1[i];
+				typename UnsignedType<CHAR>::Type c2 = str2[i];
+				if (!c2) {
+					return 1;
+				}
+				c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+				c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+				if (c1 < c2) {
+					return -1;
+				} else if (c1 > c2) {
+					return 1;
+				}
+			}
+			return 0;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_compare_result CompareStringSzLimited_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
+		{
+			if (len2 < 0) {
+				if (!str2) {
+					str2 = EMPTY_SZ(CHAR);
+				}
+				return CompareStringSzLimitedSub_IgnoreCase(str1, len1, str2, nLimit);
+			} else {
+				return CompareStringLimited_IgnoreCase(str1, len1, str2, len2, nLimit);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_compare_result CompareStringSzLimited_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2, sl_size nLimit) noexcept
+		{
+			sl_size len1;
+			typename STRING::Char const* data1 = str1.getData(len1);
+			return CompareStringSzLimited_IgnoreCase(data1, len1, str2, len2, nLimit);
+		}
+
+		template <class CHAR>
+		static sl_compare_result CompareSzLimited_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
+		{
+			if (len1 < 0) {
+				if (!str1) {
+					str1 = EMPTY_SZ(CHAR);
+				}
+				if (len2 < 0) {
+					if (!str2) {
+						str2 = EMPTY_SZ(CHAR);
+					}
+					if (str1 == str2) {
+						return 0;
+					}
+					return StringTraits<CHAR>::compare_IgnoreCase(str1, str2, nLimit);
+				} else {
+					return -(CompareStringSzLimitedSub_IgnoreCase(str2, len2, str1, nLimit));
+				}
+			} else {
+				return CompareStringSzLimited_IgnoreCase(str1, len1, str2, len2, nLimit);
+			}
+		}
+
+		template <class CHAR>
+		static sl_size GetHashCode(const CHAR* buf, sl_size len) noexcept
+		{
+			sl_size hash = 0;
+			for (sl_size i = 0; i < len; i++) {
+				sl_uint32 ch = buf[i];
+				if (ch) {
+					hash = hash * 31 + ch;
+				} else {
+					break;
+				}
+			}
+			if (hash) {
+				hash = Rehash(hash);
+			}
+			return hash;
+		}
+
+		template <class CHAR>
+		static sl_size GetHashCode_IgnoreCase(const CHAR* buf, sl_size len) noexcept
+		{
+			sl_size hash = 0;
+			for (sl_size i = 0; i < len; i++) {
+				sl_uint32 ch = buf[i];
+				if (ch) {
+					ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
+					hash = hash * 31 + ch;
+				} else {
+					break;
+				}
+			}
+			if (hash) {
+				hash = Rehash(hash);
+			}
+			return hash;
+		}
+
+		template <class CHAR>
+		static sl_reg IndexOfChar(const CHAR* str, sl_size len, CHAR ch, sl_reg _start) noexcept
+		{
+			if (!len) {
+				return -1;
+			}
+			sl_size start;
+			if (_start < 0) {
+				start = 0;
+			} else {
+				start = _start;
+				if (start >= len) {
+					return -1;
+				}
+			}
+			CHAR* pt = MemoryTraits<CHAR>::find(str + start, len - start, ch);
+			if (pt) {
+				return (sl_reg)(pt - str);
+			} else {
+				return -1;
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_reg IndexOfChar(const STRING& str, typename STRING::Char ch, sl_reg start) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return IndexOfChar(data, len, ch, start);
+		}
+
+		template <class CHAR>
+		static sl_reg IndexOfCharSz(const CHAR* str, sl_reg len, CHAR chWhat, sl_reg _start) noexcept
+		{
+			if (!str) {
+				return -1;
+			}
+			if (len >= 0) {
+				return IndexOfChar(str, len, chWhat, _start);
+			}
+			sl_size start;
+			if (_start < 0) {
+				start = 0;
+			} else {
+				start = _start;
+			}
+			sl_size i = 0;
+			for (; i < start; i++) {
+				if (!(str[i])) {
+					return -1;
+				}
+			}
+			for (;;) {
+				CHAR ch = str[i];
+				if (ch == chWhat) {
+					return i;
+				}
+				if (!ch) {
+					break;
+				}
+				i++;
+			}
+			return -1;
+		}
+
+		template <class CHAR>
+		static sl_reg IndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg _start) noexcept
+		{
+			if (count < nPattern) {
+				return -1;
+			}
+			if (!nPattern) {
+				return 0;
+			}
+			sl_size start;
+			if (_start < 0) {
+				start = 0;
+			} else {
+				start = _start;
+				if (start > count - nPattern) {
+					return -1;
+				}
+			}
+			CHAR* pt = MemoryTraits<CHAR>::find(str + start, count - start, pattern, nPattern);
+			if (pt) {
+				return pt - str;
+			}
+			return -1;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_reg IndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return IndexOf(data, len, pattern, nPattern, start);
+		}
+
+		template <class CHAR>
+		static sl_reg IndexOfChar_IgnoreCase(const CHAR* str, sl_size count, CHAR pattern)
+		{
+			pattern = SLIB_CHAR_LOWER_TO_UPPER(pattern);
+			for (sl_size i = 0; i < count; i++) {
+				CHAR ch = str[i];
+				ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
+				if (ch == pattern) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		template <class CHAR>
+		static sl_reg IndexOf_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg _start) noexcept
+		{
+			if (count < nPattern) {
+				return -1;
+			}
+			if (!nPattern) {
+				return 0;
+			}
+			sl_size start;
+			if (_start < 0) {
+				start = 0;
+			} else {
+				start = _start;
+				if (start > count - nPattern) {
+					return -1;
+				}
+			}
+			count -= start;
+			str += start;
+			CHAR pattern0 = *pattern;
+			if (nPattern == 1) {
+				sl_reg index = IndexOfChar_IgnoreCase(str, count, pattern0);
+				if (index >= 0) {
+					return index + start;
+				} else {
+					return -1;
+				}
+			}
+			if (nPattern > count) {
+				return -1;
+			}
+			nPattern--;
+			const CHAR* pattern1 = pattern + 1;
+			sl_size n = count - nPattern;
+			sl_size pos = 0;
+			do {
+				sl_reg index = IndexOfChar_IgnoreCase(str + pos, n - pos, pattern0);
+				if (index < 0) {
+					return -1;
+				}
+				pos += index;
+				if (EqualsStringSub_IgnoreCase(str + pos + 1, pattern1, nPattern)) {
+					return start + pos;
+				} else {
+					pos++;
+				}
+			} while (pos < n);
+			return -1;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_reg IndexOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return IndexOf_IgnoreCase(data, len, pattern, nPattern, start);
+		}
+
+		template <class CHAR>
+		static sl_reg LastIndexOfChar(const CHAR* str, sl_size len, CHAR ch, sl_reg start) noexcept
+		{
+			if (!len) {
+				return -1;
+			}
+			if (start >= 0 && (sl_size)start < len - 1) {
+				len = start + 1;
+			}
+			CHAR* pt = MemoryTraits<CHAR>::findBackward(str, len, ch);
+			if (pt == sl_null) {
+				return -1;
+			} else {
+				return (sl_reg)(pt - str);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_reg LastIndexOfChar(const STRING& str, typename STRING::Char ch, sl_reg start) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return LastIndexOfChar(data, len, ch, start);
+		}
+
+		template <class CHAR>
+		static sl_reg LastIndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg start) noexcept
+		{
+			if (count < nPattern) {
+				return -1;
+			}
+			if (!nPattern) {
+				return count;
+			}
+			if (start >= 0 && (sl_size)start < count - nPattern) {
+				count = start + nPattern;
+			}
+			CHAR* pt = MemoryTraits<CHAR>::findBackward(str, count, pattern, nPattern);
+			if (pt) {
+				return pt - str;
+			}
+			return -1;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_reg LastIndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return LastIndexOf(data, len, pattern, nPattern, start);
+		}
+
+		template <class CHAR>
+		static sl_reg LastIndexOfChar_IgnoreCase(const CHAR* str, sl_size count, CHAR pattern) noexcept
+		{
+			pattern = SLIB_CHAR_LOWER_TO_UPPER(pattern);
+			while (count) {
+				count--;
+				CHAR ch = str[count];
+				ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
+				if (ch == pattern) {
+					return count;
+				}
+			}
+			return -1;
+		}
+
+		template <class CHAR>
+		static sl_reg LastIndexOf_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg start) noexcept
+		{
+			if (count < nPattern) {
+				return -1;
+			}
+			if (!nPattern) {
+				return count;
+			}
+			if (start >= 0 && (sl_size)start < count - nPattern) {
+				count = start + nPattern;
+			}
+			CHAR pattern0 = *pattern;
+			if (nPattern == 1) {
+				return LastIndexOfChar_IgnoreCase(str, count, pattern0);
+			}
+			if (nPattern > count) {
+				return -1;
+			}
+			nPattern--;
+			const CHAR* pattern1 = pattern + 1;
+			sl_size n = count - nPattern;
+			do {
+				sl_reg index = LastIndexOfChar_IgnoreCase(str, n, pattern0);
+				if (index < 0) {
+					return -1;
+				}
+				if (EqualsStringSub_IgnoreCase(str + index + 1, pattern1, nPattern)) {
+					return index;
+				} else {
+					n = index;
+				}
+			} while (n);
+			return -1;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_reg LastIndexOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return LastIndexOf_IgnoreCase(data, len, pattern, nPattern, start);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool StartsWithChar(const STRING& str, typename STRING::Char ch) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			if (len) {
+				return *data == ch;
+			}
+			return sl_false;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_bool StartsWithCharSz(const CHAR* str, sl_reg len, CHAR ch) noexcept
+		{
+			if (str && len) {
+				return *str == ch;
+			}
+			return sl_false;
+		}
+
+		template <class CHAR>
+		static sl_bool StartsWithStringSub(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
+		{
+			if (nPattern > 0) {
+				if (count < (sl_size)nPattern) {
+					return sl_false;
+				} else {
+					return MemoryTraits<CHAR>::equals(str, pattern, nPattern);
+				}
+			} else {
+				for (sl_size i = 0; i < count; i++) {
+					CHAR ch = pattern[i];
+					if (!ch) {
+						return sl_true;
+					}
+					if (str[i] != ch) {
+						return sl_false;
+					}
+				}
+				return !(pattern[count]);
+			}
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_bool StartsWithString(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
+		{
+			if (!(pattern && nPattern)) {
+				return sl_true;
+			}
+			return StartsWithStringSub(str, count, pattern, nPattern);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool StartsWithString(const STRING& str, typename STRING::Char const* pattern, sl_reg nPattern) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return StartsWithString(data, len, pattern, nPattern);
+		}
+
+		template <class CHAR>
+		static sl_bool StartsWithSz(const CHAR* str, sl_reg count, const CHAR* pattern, sl_reg nPattern) noexcept
+		{
+			if (!(pattern && nPattern)) {
+				return sl_true;
+			}
+			if (count >= 0) {
+				return StartsWithStringSub(str, count, pattern, nPattern);
+			}
+			if (nPattern > 0) {
+				for (sl_reg i = 0; i < nPattern; i++) {
+					CHAR ch = str[i];
+					if (!ch) {
+						return sl_false;
+					}
+					if (ch != pattern[i]) {
 						return sl_false;
 					}
 				}
 				return sl_true;
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool EqualsString_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
-			{
-				if (len1 == len2) {
-					if (!len1) {
-						return sl_true;
-					}
-					if (str1 == str2) {
-						return sl_true;
-					}
-					return EqualsStringSub_IgnoreCase(str1, str2, len1);
-				} else {
-					return sl_false;
-				}
-			}
-
-			template <class CHAR>
-			static sl_bool EqualsStringSzSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
-			{
-				for (sl_size i = 0; i < len1; i++) {
-					CHAR c1 = str1[i];
-					CHAR c2 = str2[i];
-					if (SLIB_CHAR_LOWER_TO_UPPER(c1) != SLIB_CHAR_LOWER_TO_UPPER(c2)) {
-						return sl_false;
-					}
-					if (!c2) {
-						return sl_false;
-					}
-				}
-				return !(str2[len1]);
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool EqualsStringSz_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len2 < 0) {
-					if (!str2) {
-						str2 = EMPTY_SZ(CHAR);
-					}
-					return EqualsStringSzSub_IgnoreCase(str1, len1, str2);
-				} else {
-					return EqualsString_IgnoreCase(str1, len1, str2, len2);
-				}
-			}
-
-			template <class STRING>
-			static sl_bool EqualsStringSz_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return EqualsStringSz_IgnoreCase(data1, len1, str2, len2);
-			}
-
-			template <class CHAR>
-			static sl_bool EqualsSz_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len1 < 0) {
-					if (!str1) {
-						str1 = EMPTY_SZ(CHAR);
-					}
-					if (len2 < 0) {
-						if (!str2) {
-							str2 = EMPTY_SZ(CHAR);
-						}
-						if (str1 == str2) {
-							return sl_true;
-						}
-						return StringTraits<CHAR>::equals_IgnoreCase(str1, str2);
-					} else {
-						return EqualsStringSzSub_IgnoreCase(str2, len2, str1);
-					}
-				} else {
-					return EqualsStringSz_IgnoreCase(str1, len1, str2, len2);
-				}
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareString(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
-			{
-				if (len1 < len2) {
-					if (!len1) {
-						return -1;
-					}
-					if (str1 == str2) {
-						return -1;
-					}
-					sl_compare_result r = MemoryTraits<CHAR>::compare(str1, str2, len1);
-					if (r) {
-						return r;
-					} else {
-						return -1;
-					}
-				} else if (len1 > len2) {
-					if (!len2) {
-						return 1;
-					}
-					if (str1 == str2) {
-						return 1;
-					}
-					sl_compare_result r = MemoryTraits<CHAR>::compare(str1, str2, len2);
-					if (r) {
-						return r;
-					} else {
-						return 1;
-					}
-				} else {
-					if (!len1) {
-						return 0;
-					}
-					if (str1 == str2) {
-						return 0;
-					}
-					return MemoryTraits<CHAR>::compare(str1, str2, len1);
-				}
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareStringSzSub(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
-			{
-				for (sl_size i = 0; i < len1; i++) {
-					typename UnsignedType<CHAR>::Type c1 = str1[i];
-					typename UnsignedType<CHAR>::Type c2 = str2[i];
-					if (!c2) {
-						return 1;
-					}
-					if (c1 < c2) {
-						return -1;
-					} else if (c1 > c2) {
-						return 1;
-					}
-				}
-				if (str2[len1]) {
-					return -1;
-				}
-				return 0;
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_compare_result CompareStringSz(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len2 < 0) {
-					if (!str2) {
-						str2 = EMPTY_SZ(CHAR);
-					}
-					return CompareStringSzSub(str1, len1, str2);
-				} else {
-					return CompareString(str1, len1, str2, len2);
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_compare_result CompareStringSz(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return CompareStringSz(data1, len1, str2, len2);
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareSz(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len1 < 0) {
-					if (!str1) {
-						str1 = EMPTY_SZ(CHAR);
-					}
-					if (len2 < 0) {
-						if (!str2) {
-							str2 = EMPTY_SZ(CHAR);
-						}
-						if (str1 == str2) {
-							return 0;
-						}
-						return StringTraits<CHAR>::compare(str1, str2);
-					} else {
-						return -(CompareStringSzSub(str2, len2, str1));
-					}
-				} else {
-					return CompareStringSz(str1, len1, str2, len2);
-				}
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareString_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2) noexcept
-			{
-				sl_size len = SLIB_MIN(len1, len2);
-				if (str1 != str2) {
-					for (sl_size i = 0; i < len; i++) {
-						typename UnsignedType<CHAR>::Type c1 = str1[i];
-						typename UnsignedType<CHAR>::Type c2 = str2[i];
-						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-						if (c1 < c2) {
-							return -1;
-						} else if (c1 > c2) {
-							return 1;
-						}
-					}
-				}
-				if (len1 < len2) {
-					return -1;
-				} else if (len1 > len2) {
-					return 1;
-				}
-				return 0;
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareStringSzSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2) noexcept
-			{
-				for (sl_size i = 0; i < len1; i++) {
-					typename UnsignedType<CHAR>::Type c1 = str1[i];
-					typename UnsignedType<CHAR>::Type c2 = str2[i];
-					if (!c2) {
-						return 1;
-					}
-					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-					if (c1 < c2) {
-						return -1;
-					} else if (c1 > c2) {
-						return 1;
-					}
-				}
-				if (str2[len1]) {
-					return -1;
-				}
-				return 0;
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_compare_result CompareStringSz_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len2 < 0) {
-					if (!str2) {
-						str2 = EMPTY_SZ(CHAR);
-					}
-					return CompareStringSzSub_IgnoreCase(str1, len1, str2);
-				} else {
-					return CompareString_IgnoreCase(str1, len1, str2, len2);
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_compare_result CompareStringSz_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return CompareStringSz_IgnoreCase(data1, len1, str2, len2);
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareSz_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2) noexcept
-			{
-				if (len1 < 0) {
-					if (!str1) {
-						str1 = EMPTY_SZ(CHAR);
-					}
-					if (len2 < 0) {
-						if (!str2) {
-							str2 = EMPTY_SZ(CHAR);
-						}
-						if (str1 == str2) {
-							return 0;
-						}
-						return StringTraits<CHAR>::compare_IgnoreCase(str1, str2);
-					} else {
-						return -(CompareStringSzSub_IgnoreCase(str2, len2, str1));
-					}
-				} else {
-					return CompareStringSz_IgnoreCase(str1, len1, str2, len2);
-				}
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_compare_result CompareStringLimited(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2, sl_size nLimit) noexcept
-			{
-				if (len1 > nLimit) {
-					len1 = nLimit;
-				}
-				if (len2 > nLimit) {
-					len2 = nLimit;
-				}
-				return CompareString(str1, len1, str2, len2);
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareStringSzLimitedSub(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size nLimit) noexcept
-			{
-				if (len1 < nLimit) {
-					return CompareStringSzSub(str1, len1, str2);
-				}
-				for (sl_size i = 0; i < nLimit; i++) {
-					typename UnsignedType<CHAR>::Type c1 = str1[i];
-					typename UnsignedType<CHAR>::Type c2 = str2[i];
-					if (!c2) {
-						return 1;
-					}
-					if (c1 < c2) {
-						return -1;
-					} else if (c1 > c2) {
-						return 1;
-					}
-				}
-				return 0;
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_compare_result CompareStringSzLimited(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
-			{
-				if (len2 < 0) {
-					if (!str2) {
-						str2 = EMPTY_SZ(CHAR);
-					}
-					return CompareStringSzLimitedSub(str1, len1, str2, nLimit);
-				} else {
-					return CompareStringLimited(str1, len1, str2, len2, nLimit);
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_compare_result CompareStringSzLimited(const STRING& str1, typename STRING::Char const* str2, sl_reg len2, sl_size nLimit) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return CompareStringSzLimited(data1, len1, str2, len2, nLimit);
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareSzLimited(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
-			{
-				if (len1 < 0) {
-					if (!str1) {
-						str1 = EMPTY_SZ(CHAR);
-					}
-					if (len2 < 0) {
-						if (!str2) {
-							str2 = EMPTY_SZ(CHAR);
-						}
-						if (str1 == str2) {
-							return 0;
-						}
-						return StringTraits<CHAR>::compare(str1, str2, nLimit);
-					} else {
-						return -(CompareStringSzLimitedSub(str2, len2, str1, nLimit));
-					}
-				} else {
-					return CompareStringSzLimited(str1, len1, str2, len2, nLimit);
-				}
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_compare_result CompareStringLimited_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size len2, sl_size nLimit) noexcept
-			{
-				if (len1 > nLimit) {
-					len1 = nLimit;
-				}
-				if (len2 > nLimit) {
-					len2 = nLimit;
-				}
-				return CompareString_IgnoreCase(str1, len1, str2, len2);
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareStringSzLimitedSub_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_size nLimit) noexcept
-			{
-				if (len1 < nLimit) {
-					return CompareStringSzSub_IgnoreCase(str1, len1, str2);
-				}
-				for (sl_size i = 0; i < nLimit; i++) {
-					typename UnsignedType<CHAR>::Type c1 = str1[i];
-					typename UnsignedType<CHAR>::Type c2 = str2[i];
-					if (!c2) {
-						return 1;
-					}
-					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-					if (c1 < c2) {
-						return -1;
-					} else if (c1 > c2) {
-						return 1;
-					}
-				}
-				return 0;
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_compare_result CompareStringSzLimited_IgnoreCase(const CHAR* str1, sl_size len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
-			{
-				if (len2 < 0) {
-					if (!str2) {
-						str2 = EMPTY_SZ(CHAR);
-					}
-					return CompareStringSzLimitedSub_IgnoreCase(str1, len1, str2, nLimit);
-				} else {
-					return CompareStringLimited_IgnoreCase(str1, len1, str2, len2, nLimit);
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_compare_result CompareStringSzLimited_IgnoreCase(const STRING& str1, typename STRING::Char const* str2, sl_reg len2, sl_size nLimit) noexcept
-			{
-				sl_size len1;
-				typename STRING::Char const* data1 = str1.getData(len1);
-				return CompareStringSzLimited_IgnoreCase(data1, len1, str2, len2, nLimit);
-			}
-
-			template <class CHAR>
-			static sl_compare_result CompareSzLimited_IgnoreCase(const CHAR* str1, sl_reg len1, const CHAR* str2, sl_reg len2, sl_size nLimit) noexcept
-			{
-				if (len1 < 0) {
-					if (!str1) {
-						str1 = EMPTY_SZ(CHAR);
-					}
-					if (len2 < 0) {
-						if (!str2) {
-							str2 = EMPTY_SZ(CHAR);
-						}
-						if (str1 == str2) {
-							return 0;
-						}
-						return StringTraits<CHAR>::compare_IgnoreCase(str1, str2, nLimit);
-					} else {
-						return -(CompareStringSzLimitedSub_IgnoreCase(str2, len2, str1, nLimit));
-					}
-				} else {
-					return CompareStringSzLimited_IgnoreCase(str1, len1, str2, len2, nLimit);
-				}
-			}
-
-			template <class CHAR>
-			static sl_size GetHashCode(const CHAR* buf, sl_size len) noexcept
-			{
-				sl_size hash = 0;
-				for (sl_size i = 0; i < len; i++) {
-					sl_uint32 ch = buf[i];
-					if (ch) {
-						hash = hash * 31 + ch;
-					} else {
-						break;
-					}
-				}
-				if (hash) {
-					hash = Rehash(hash);
-				}
-				return hash;
-			}
-
-			template <class CHAR>
-			static sl_size GetHashCode_IgnoreCase(const CHAR* buf, sl_size len) noexcept
-			{
-				sl_size hash = 0;
-				for (sl_size i = 0; i < len; i++) {
-					sl_uint32 ch = buf[i];
-					if (ch) {
-						ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
-						hash = hash * 31 + ch;
-					} else {
-						break;
-					}
-				}
-				if (hash) {
-					hash = Rehash(hash);
-				}
-				return hash;
-			}
-
-			template <class CHAR>
-			static sl_reg IndexOfChar(const CHAR* str, sl_size len, CHAR ch, sl_reg _start) noexcept
-			{
-				if (!len) {
-					return -1;
-				}
-				sl_size start;
-				if (_start < 0) {
-					start = 0;
-				} else {
-					start = _start;
-					if (start >= len) {
-						return -1;
-					}
-				}
-				CHAR* pt = MemoryTraits<CHAR>::find(str + start, len - start, ch);
-				if (pt) {
-					return (sl_reg)(pt - str);
-				} else {
-					return -1;
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_reg IndexOfChar(const STRING& str, typename STRING::Char ch, sl_reg start) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return IndexOfChar(data, len, ch, start);
-			}
-
-			template <class CHAR>
-			static sl_reg IndexOfCharSz(const CHAR* str, sl_reg len, CHAR chWhat, sl_reg _start) noexcept
-			{
-				if (!str) {
-					return -1;
-				}
-				if (len >= 0) {
-					return IndexOfChar(str, len, chWhat, _start);
-				}
-				sl_size start;
-				if (_start < 0) {
-					start = 0;
-				} else {
-					start = _start;
-				}
-				sl_size i = 0;
-				for (; i < start; i++) {
-					if (!(str[i])) {
-						return -1;
-					}
-				}
+			} else {
 				for (;;) {
-					CHAR ch = str[i];
-					if (ch == chWhat) {
-						return i;
-					}
+					CHAR ch = *pattern;
 					if (!ch) {
-						break;
+						return sl_true;
 					}
-					i++;
+					if (*str != ch) {
+						return sl_false;
+					}
+					str++;
+					pattern++;
 				}
-				return -1;
+				return sl_true;
 			}
-
-			template <class CHAR>
-			static sl_reg IndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg _start) noexcept
-			{
-				if (count < nPattern) {
-					return -1;
-				}
-				if (!nPattern) {
-					return 0;
-				}
-				sl_size start;
-				if (_start < 0) {
-					start = 0;
+		}
+		
+		template <class CHAR>
+		static sl_bool StartsWithStringSub_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
+		{
+			if (nPattern > 0) {
+				if (count < (sl_size)nPattern) {
+					return sl_false;
 				} else {
-					start = _start;
-					if (start > count - nPattern) {
-						return -1;
-					}
+					return EqualsStringSub_IgnoreCase(str, pattern, nPattern);
 				}
-				CHAR* pt = MemoryTraits<CHAR>::find(str + start, count - start, pattern, nPattern);
-				if (pt) {
-					return pt - str;
-				}
-				return -1;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_reg IndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return IndexOf(data, len, pattern, nPattern, start);
-			}
-
-			template <class CHAR>
-			static sl_reg IndexOfChar_IgnoreCase(const CHAR* str, sl_size count, CHAR pattern)
-			{
-				pattern = SLIB_CHAR_LOWER_TO_UPPER(pattern);
+			} else {
 				for (sl_size i = 0; i < count; i++) {
-					CHAR ch = str[i];
-					ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
-					if (ch == pattern) {
-						return i;
+					CHAR c1 = pattern[i];
+					if (!c1) {
+						return sl_true;
 					}
-				}
-				return -1;
-			}
-
-			template <class CHAR>
-			static sl_reg IndexOf_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg _start) noexcept
-			{
-				if (count < nPattern) {
-					return -1;
-				}
-				if (!nPattern) {
-					return 0;
-				}
-				sl_size start;
-				if (_start < 0) {
-					start = 0;
-				} else {
-					start = _start;
-					if (start > count - nPattern) {
-						return -1;
-					}
-				}
-				count -= start;
-				str += start;
-				CHAR pattern0 = *pattern;
-				if (nPattern == 1) {
-					sl_reg index = IndexOfChar_IgnoreCase(str, count, pattern0);
-					if (index >= 0) {
-						return index + start;
-					} else {
-						return -1;
-					}
-				}
-				if (nPattern > count) {
-					return -1;
-				}
-				nPattern--;
-				const CHAR* pattern1 = pattern + 1;
-				sl_size n = count - nPattern;
-				sl_size pos = 0;
-				do {
-					sl_reg index = IndexOfChar_IgnoreCase(str + pos, n - pos, pattern0);
-					if (index < 0) {
-						return -1;
-					}
-					pos += index;
-					if (EqualsStringSub_IgnoreCase(str + pos + 1, pattern1, nPattern)) {
-						return start + pos;
-					} else {
-						pos++;
-					}
-				} while (pos < n);
-				return -1;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_reg IndexOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return IndexOf_IgnoreCase(data, len, pattern, nPattern, start);
-			}
-
-			template <class CHAR>
-			static sl_reg LastIndexOfChar(const CHAR* str, sl_size len, CHAR ch, sl_reg start) noexcept
-			{
-				if (!len) {
-					return -1;
-				}
-				if (start >= 0 && (sl_size)start < len - 1) {
-					len = start + 1;
-				}
-				CHAR* pt = MemoryTraits<CHAR>::findBackward(str, len, ch);
-				if (pt == sl_null) {
-					return -1;
-				} else {
-					return (sl_reg)(pt - str);
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_reg LastIndexOfChar(const STRING& str, typename STRING::Char ch, sl_reg start) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return LastIndexOfChar(data, len, ch, start);
-			}
-
-			template <class CHAR>
-			static sl_reg LastIndexOf(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg start) noexcept
-			{
-				if (count < nPattern) {
-					return -1;
-				}
-				if (!nPattern) {
-					return count;
-				}
-				if (start >= 0 && (sl_size)start < count - nPattern) {
-					count = start + nPattern;
-				}
-				CHAR* pt = MemoryTraits<CHAR>::findBackward(str, count, pattern, nPattern);
-				if (pt) {
-					return pt - str;
-				}
-				return -1;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_reg LastIndexOf(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return LastIndexOf(data, len, pattern, nPattern, start);
-			}
-
-			template <class CHAR>
-			static sl_reg LastIndexOfChar_IgnoreCase(const CHAR* str, sl_size count, CHAR pattern) noexcept
-			{
-				pattern = SLIB_CHAR_LOWER_TO_UPPER(pattern);
-				while (count) {
-					count--;
-					CHAR ch = str[count];
-					ch = SLIB_CHAR_LOWER_TO_UPPER(ch);
-					if (ch == pattern) {
-						return count;
-					}
-				}
-				return -1;
-			}
-
-			template <class CHAR>
-			static sl_reg LastIndexOf_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern, sl_reg start) noexcept
-			{
-				if (count < nPattern) {
-					return -1;
-				}
-				if (!nPattern) {
-					return count;
-				}
-				if (start >= 0 && (sl_size)start < count - nPattern) {
-					count = start + nPattern;
-				}
-				CHAR pattern0 = *pattern;
-				if (nPattern == 1) {
-					return LastIndexOfChar_IgnoreCase(str, count, pattern0);
-				}
-				if (nPattern > count) {
-					return -1;
-				}
-				nPattern--;
-				const CHAR* pattern1 = pattern + 1;
-				sl_size n = count - nPattern;
-				do {
-					sl_reg index = LastIndexOfChar_IgnoreCase(str, n, pattern0);
-					if (index < 0) {
-						return -1;
-					}
-					if (EqualsStringSub_IgnoreCase(str + index + 1, pattern1, nPattern)) {
-						return index;
-					} else {
-						n = index;
-					}
-				} while (n);
-				return -1;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_reg LastIndexOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, sl_reg start) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return LastIndexOf_IgnoreCase(data, len, pattern, nPattern, start);
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool StartsWithChar(const STRING& str, typename STRING::Char ch) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				if (len) {
-					return *data == ch;
-				}
-				return sl_false;
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool StartsWithCharSz(const CHAR* str, sl_reg len, CHAR ch) noexcept
-			{
-				if (str && len) {
-					return *str == ch;
-				}
-				return sl_false;
-			}
-
-			template <class CHAR>
-			static sl_bool StartsWithStringSub(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
-			{
-				if (nPattern > 0) {
-					if (count < (sl_size)nPattern) {
+					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+					CHAR c2 = str[i];
+					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+					if (c1 != c2) {
 						return sl_false;
-					} else {
-						return MemoryTraits<CHAR>::equals(str, pattern, nPattern);
 					}
-				} else {
-					for (sl_size i = 0; i < count; i++) {
-						CHAR ch = pattern[i];
-						if (!ch) {
-							return sl_true;
-						}
-						if (str[i] != ch) {
-							return sl_false;
-						}
-					}
-					return !(pattern[count]);
 				}
+				return !(pattern[count]);
 			}
+		}
 
-			template <class CHAR>
-			SLIB_INLINE static sl_bool StartsWithString(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
-			{
-				if (!(pattern && nPattern)) {
-					return sl_true;
-				}
-				return StartsWithStringSub(str, count, pattern, nPattern);
+		template <class CHAR>
+		SLIB_INLINE static sl_bool StartsWithString_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
+		{
+			if (!(pattern && nPattern)) {
+				return sl_true;
 			}
+			return StartsWithStringSub_IgnoreCase(str, count, pattern, nPattern);
+		}
 
-			template <class STRING>
-			SLIB_INLINE static sl_bool StartsWithString(const STRING& str, typename STRING::Char const* pattern, sl_reg nPattern) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return StartsWithString(data, len, pattern, nPattern);
-			}
+		template <class STRING>
+		SLIB_INLINE static sl_bool StartsWithString_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_reg nPattern) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return StartsWithString_IgnoreCase(data, len, pattern, nPattern);
+		}
 
-			template <class CHAR>
-			static sl_bool StartsWithSz(const CHAR* str, sl_reg count, const CHAR* pattern, sl_reg nPattern) noexcept
-			{
-				if (!(pattern && nPattern)) {
-					return sl_true;
-				}
-				if (count >= 0) {
-					return StartsWithStringSub(str, count, pattern, nPattern);
-				}
-				if (nPattern > 0) {
-					for (sl_reg i = 0; i < nPattern; i++) {
-						CHAR ch = str[i];
-						if (!ch) {
-							return sl_false;
-						}
-						if (ch != pattern[i]) {
-							return sl_false;
-						}
-					}
-					return sl_true;
-				} else {
-					for (;;) {
-						CHAR ch = *pattern;
-						if (!ch) {
-							return sl_true;
-						}
-						if (*str != ch) {
-							return sl_false;
-						}
-						str++;
-						pattern++;
-					}
-					return sl_true;
-				}
+		template <class CHAR>
+		static sl_bool StartsWithSz_IgnoreCase(const CHAR* str, sl_reg count, const CHAR* pattern, sl_reg nPattern) noexcept
+		{
+			if (!(pattern && nPattern)) {
+				return sl_true;
 			}
-			
-			template <class CHAR>
-			static sl_bool StartsWithStringSub_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
-			{
-				if (nPattern > 0) {
-					if (count < (sl_size)nPattern) {
-						return sl_false;
-					} else {
-						return EqualsStringSub_IgnoreCase(str, pattern, nPattern);
-					}
-				} else {
-					for (sl_size i = 0; i < count; i++) {
-						CHAR c1 = pattern[i];
-						if (!c1) {
-							return sl_true;
-						}
-						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-						CHAR c2 = str[i];
-						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-						if (c1 != c2) {
-							return sl_false;
-						}
-					}
-					return !(pattern[count]);
-				}
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool StartsWithString_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_reg nPattern) noexcept
-			{
-				if (!(pattern && nPattern)) {
-					return sl_true;
-				}
+			if (count >= 0) {
 				return StartsWithStringSub_IgnoreCase(str, count, pattern, nPattern);
 			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool StartsWithString_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_reg nPattern) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return StartsWithString_IgnoreCase(data, len, pattern, nPattern);
-			}
-
-			template <class CHAR>
-			static sl_bool StartsWithSz_IgnoreCase(const CHAR* str, sl_reg count, const CHAR* pattern, sl_reg nPattern) noexcept
-			{
-				if (!(pattern && nPattern)) {
-					return sl_true;
-				}
-				if (count >= 0) {
-					return StartsWithStringSub_IgnoreCase(str, count, pattern, nPattern);
-				}
-				if (nPattern > 0) {
-					for (sl_reg i = 0; i < nPattern; i++) {
-						CHAR c1 = str[i];
-						if (!c1) {
-							return sl_false;
-						}
-						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-						CHAR c2 = pattern[i];
-						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-						if (c1 != c2) {
-							return sl_false;
-						}
+			if (nPattern > 0) {
+				for (sl_reg i = 0; i < nPattern; i++) {
+					CHAR c1 = str[i];
+					if (!c1) {
+						return sl_false;
 					}
-					return sl_true;
+					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+					CHAR c2 = pattern[i];
+					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+					if (c1 != c2) {
+						return sl_false;
+					}
+				}
+				return sl_true;
+			} else {
+				for (;;) {
+					CHAR c1 = *pattern;
+					if (!c1) {
+						return sl_true;
+					}
+					c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
+					CHAR c2 = *str;
+					c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
+					if (c1 != c2) {
+						return sl_false;
+					}
+					str++;
+					pattern++;
+				}
+				return sl_true;
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool EndsWithChar(const STRING& str, typename STRING::Char ch) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			if (len) {
+				return data[len - 1] == ch;
+			}
+			return sl_false;
+		}
+
+		template <class CHAR>
+		static sl_bool EndsWithCharSz(const CHAR* str, sl_reg len, CHAR chWhat) noexcept
+		{
+			if (str && len) {
+				if (len > 0) {
+					return str[len - 1] == chWhat;
 				} else {
-					for (;;) {
-						CHAR c1 = *pattern;
-						if (!c1) {
-							return sl_true;
-						}
-						c1 = SLIB_CHAR_LOWER_TO_UPPER(c1);
-						CHAR c2 = *str;
-						c2 = SLIB_CHAR_LOWER_TO_UPPER(c2);
-						if (c1 != c2) {
-							return sl_false;
-						}
-						str++;
-						pattern++;
-					}
-					return sl_true;
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool EndsWithChar(const STRING& str, typename STRING::Char ch) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				if (len) {
-					return data[len - 1] == ch;
-				}
-				return sl_false;
-			}
-
-			template <class CHAR>
-			static sl_bool EndsWithCharSz(const CHAR* str, sl_reg len, CHAR chWhat) noexcept
-			{
-				if (str && len) {
-					if (len > 0) {
-						return str[len - 1] == chWhat;
-					} else {
-						CHAR old = *str;
-						if (old) {
-							for (;;) {
-								CHAR ch = *(++str);
-								if (!ch) {
-									return old == chWhat;
-								}
-								old = ch;
-							}
-						}
-					}
-				}
-				return sl_false;
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool EndsWith(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern) noexcept
-			{
-				if (!nPattern) {
-					return sl_true;
-				}
-				if (count < nPattern) {
-					return sl_false;
-				} else {
-					return MemoryTraits<CHAR>::equals(str + count - nPattern, pattern, nPattern);
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool EndsWith(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return EndsWith(data, len, pattern, nPattern);
-			}
-
-			template <class CHAR>
-			SLIB_INLINE static sl_bool EndsWith_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern) noexcept
-			{
-				if (!nPattern) {
-					return sl_true;
-				}
-				if (count < nPattern) {
-					return sl_false;
-				} else {
-					return EqualsStringSub_IgnoreCase(str + count - nPattern, pattern, nPattern);
-				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_bool EndsWith_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return EndsWith_IgnoreCase(data, len, pattern, nPattern);
-			}
-
-			template <class CHAR>
-			static sl_size CountOfChar(const CHAR* str, sl_size len, CHAR ch) noexcept
-			{
-				sl_size count = 0;
-				for (sl_size i = 0; i < len; i++) {
-					if (str[i] == ch) {
-						count++;
-					}
-				}
-				return count;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static sl_size CountOfChar(const STRING& str, typename STRING::Char ch) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return CountOfChar(data, len, ch);
-			}
-
-			template <class CHAR>
-			static sl_size CountOfCharSz(const CHAR* str, sl_reg len, CHAR chWhat) noexcept
-			{
-				if (str && len) {
-					if (len > 0) {
-						return CountOfChar(str, len, chWhat);
-					} else {
-						sl_size count = 0;
+					CHAR old = *str;
+					if (old) {
 						for (;;) {
-							CHAR ch = *(str++);
-							if (ch == chWhat) {
-								count++;
-							}
+							CHAR ch = *(++str);
 							if (!ch) {
-								break;
+								return old == chWhat;
 							}
+							old = ch;
 						}
-						return count;
 					}
 				}
+			}
+			return sl_false;
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_bool EndsWith(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern) noexcept
+		{
+			if (!nPattern) {
+				return sl_true;
+			}
+			if (count < nPattern) {
+				return sl_false;
+			} else {
+				return MemoryTraits<CHAR>::equals(str + count - nPattern, pattern, nPattern);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool EndsWith(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return EndsWith(data, len, pattern, nPattern);
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static sl_bool EndsWith_IgnoreCase(const CHAR* str, sl_size count, const CHAR* pattern, sl_size nPattern) noexcept
+		{
+			if (!nPattern) {
+				return sl_true;
+			}
+			if (count < nPattern) {
+				return sl_false;
+			} else {
+				return EqualsStringSub_IgnoreCase(str + count - nPattern, pattern, nPattern);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_bool EndsWith_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return EndsWith_IgnoreCase(data, len, pattern, nPattern);
+		}
+
+		template <class CHAR>
+		static sl_size CountOfChar(const CHAR* str, sl_size len, CHAR ch) noexcept
+		{
+			sl_size count = 0;
+			for (sl_size i = 0; i < len; i++) {
+				if (str[i] == ch) {
+					count++;
+				}
+			}
+			return count;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_size CountOfChar(const STRING& str, typename STRING::Char ch) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return CountOfChar(data, len, ch);
+		}
+
+		template <class CHAR>
+		static sl_size CountOfCharSz(const CHAR* str, sl_reg len, CHAR chWhat) noexcept
+		{
+			if (str && len) {
+				if (len > 0) {
+					return CountOfChar(str, len, chWhat);
+				} else {
+					sl_size count = 0;
+					for (;;) {
+						CHAR ch = *(str++);
+						if (ch == chWhat) {
+							count++;
+						}
+						if (!ch) {
+							break;
+						}
+					}
+					return count;
+				}
+			}
+			return 0;
+		}
+
+		template <class CHAR>
+		static sl_size CountOf(const CHAR* str, sl_size len, const CHAR* pattern, sl_size lenPattern) noexcept
+		{
+			if (!lenPattern) {
 				return 0;
 			}
-
-			template <class CHAR>
-			static sl_size CountOf(const CHAR* str, sl_size len, const CHAR* pattern, sl_size lenPattern) noexcept
-			{
-				if (!lenPattern) {
-					return 0;
+			sl_size count = 0;
+			sl_reg start = 0;
+			for (;;) {
+				start = IndexOf(str, len, pattern, lenPattern, start);
+				if (start >= 0) {
+					count++;
+					start += lenPattern;
+				} else {
+					break;
 				}
-				sl_size count = 0;
-				sl_reg start = 0;
+			}
+			return count;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_size CountOf(const STRING& str, typename STRING::Char const* pattern, sl_size lenPattern) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return CountOf(data, len, pattern, lenPattern);
+		}
+
+		template <class CHAR>
+		static sl_size CountOf_IgnoreCase(const CHAR* str, sl_size len, const CHAR* pattern, sl_size lenPattern) noexcept
+		{
+			if (!lenPattern) {
+				return 0;
+			}
+			sl_size count = 0;
+			sl_reg start = 0;
+			for (;;) {
+				start = IndexOf_IgnoreCase(str, len, pattern, lenPattern, start);
+				if (start >= 0) {
+					count++;
+					start += lenPattern;
+				} else {
+					break;
+				}
+			}
+			return count;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static sl_size CountOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size lenPattern) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return CountOf_IgnoreCase(data, len, pattern, lenPattern);
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static void ToUpper(CHAR* dst, const CHAR* src, sl_size len) noexcept
+		{
+			for (sl_size i = 0; i < len; i++) {
+				CHAR ch = src[i];
+				dst[i] = SLIB_CHAR_LOWER_TO_UPPER(ch);
+			}
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static void ToLower(CHAR* dst, const CHAR* src, sl_size len) noexcept
+		{
+			for (sl_size i = 0; i < len; i++) {
+				CHAR ch = src[i];
+				dst[i] = SLIB_CHAR_UPPER_TO_LOWER(ch);
+			}
+		}
+
+		template <class STRING>
+		SLIB_INLINE static void MakeUpperString(STRING& str) noexcept
+		{
+			sl_size len;
+			typename STRING::Char* data = str.getData(len);
+			ToUpper(data, data, len);
+		}
+
+		template <class CHAR>
+		static void MakeUpperSz(CHAR* str, sl_reg len) noexcept
+		{
+			if (!str) {
+				return;
+			}
+			if (len >= 0) {
+				ToUpper(str, str, len);
+			} else {
 				for (;;) {
-					start = IndexOf(str, len, pattern, lenPattern, start);
-					if (start >= 0) {
-						count++;
-						start += lenPattern;
+					CHAR ch = *str;
+					if (ch) {
+						*str = SLIB_CHAR_LOWER_TO_UPPER(ch);
+						str++;
 					} else {
 						break;
 					}
 				}
-				return count;
 			}
+		}
 
-			template <class STRING>
-			SLIB_INLINE static sl_size CountOf(const STRING& str, typename STRING::Char const* pattern, sl_size lenPattern) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return CountOf(data, len, pattern, lenPattern);
+		template <class STRING>
+		SLIB_INLINE static void MakeLowerString(STRING& str) noexcept
+		{
+			sl_size len;
+			typename STRING::Char* data = str.getData(len);
+			ToLower(data, data, len);
+		}
+
+		template <class CHAR>
+		static void MakeLowerSz(CHAR* str, sl_reg len) noexcept
+		{
+			if (!str) {
+				return;
 			}
-
-			template <class CHAR>
-			static sl_size CountOf_IgnoreCase(const CHAR* str, sl_size len, const CHAR* pattern, sl_size lenPattern) noexcept
-			{
-				if (!lenPattern) {
-					return 0;
-				}
-				sl_size count = 0;
-				sl_reg start = 0;
+			if (len >= 0) {
+				ToLower(str, str, len);
+			} else {
 				for (;;) {
-					start = IndexOf_IgnoreCase(str, len, pattern, lenPattern, start);
-					if (start >= 0) {
-						count++;
-						start += lenPattern;
+					CHAR ch = *str;
+					if (ch) {
+						*str = SLIB_CHAR_UPPER_TO_LOWER(ch);
+						str++;
 					} else {
 						break;
 					}
 				}
-				return count;
 			}
+		}
 
-			template <class STRING>
-			SLIB_INLINE static sl_size CountOf_IgnoreCase(const STRING& str, typename STRING::Char const* pattern, sl_size lenPattern) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return CountOf_IgnoreCase(data, len, pattern, lenPattern);
+		template <class STRING>
+		static STRING CreateUpperString(typename STRING::Char const* str, sl_reg _len) noexcept
+		{
+			if (!str) {
+				return sl_null;
 			}
-
-			template <class CHAR>
-			SLIB_INLINE static void ToUpper(CHAR* dst, const CHAR* src, sl_size len) noexcept
-			{
-				for (sl_size i = 0; i < len; i++) {
-					CHAR ch = src[i];
-					dst[i] = SLIB_CHAR_LOWER_TO_UPPER(ch);
-				}
+			if (!_len) {
+				return STRING::getEmpty();
 			}
-
-			template <class CHAR>
-			SLIB_INLINE static void ToLower(CHAR* dst, const CHAR* src, sl_size len) noexcept
-			{
-				for (sl_size i = 0; i < len; i++) {
-					CHAR ch = src[i];
-					dst[i] = SLIB_CHAR_UPPER_TO_LOWER(ch);
-				}
+			sl_size len;
+			if (_len < 0) {
+				len = StringTraits<typename STRING::Char>::getLength(str);
+			} else {
+				len = _len;
 			}
-
-			template <class STRING>
-			SLIB_INLINE static void MakeUpperString(STRING& str) noexcept
-			{
-				sl_size len;
-				typename STRING::Char* data = str.getData(len);
-				ToUpper(data, data, len);
+			STRING ret = STRING::allocate(len);
+			if (ret.isNull()) {
+				return ret;
 			}
+			ToUpper(ret.getData(), str, len);
+			return ret;
+		}
 
-			template <class CHAR>
-			static void MakeUpperSz(CHAR* str, sl_reg len) noexcept
+		template <class STRING>
+		static STRING CreateUpperString(const STRING& str) noexcept
+		{
+			if (str.isNull()) {
+				return sl_null;
+			}
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			if (!len) {
+				return STRING::getEmpty();
+			}
+			STRING ret = STRING::allocate(len);
+			if (ret.isNull()) {
+				return ret;
+			}
+			ToUpper(ret.getData(), data, len);
+			return ret;
+		}
+
+		template <class STRING>
+		static STRING CreateLowerString(typename STRING::Char const* str, sl_reg _len) noexcept
+		{
+			if (!str) {
+				return sl_null;
+			}
+			if (!_len) {
+				return STRING::getEmpty();
+			}
+			sl_size len;
+			if (_len < 0) {
+				len = StringTraits<typename STRING::Char>::getLength(str);
+			} else {
+				len = _len;
+			}
+			STRING ret = STRING::allocate(len);
+			if (ret.isNull()) {
+				return ret;
+			}
+			ToLower(ret.getData(), str, len);
+			return ret;
+		}
+
+		template <class STRING>
+		static STRING CreateLowerString(const STRING& str) noexcept
+		{
+			if (str.isNull()) {
+				return sl_null;
+			}
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			if (!len) {
+				return STRING::getEmpty();
+			}
+			STRING ret = STRING::allocate(len);
+			if (ret.isNull()) {
+				return ret;
+			}
+			ToLower(ret.getData(), data, len);
+			return ret;
+		}
+
+		template <class STRING>
+		SLIB_INLINE static STRING ReplaceChar(const STRING& str, typename STRING::Char pattern, typename STRING::Char replace) noexcept
+		{
+			if (str.isNull()) {
+				return str;
+			}
+			sl_size len;
+			typename STRING::Char const* dataSrc = str.getData(len);
+			sl_size posStart = 0;
 			{
-				if (!str) {
-					return;
-				}
-				if (len >= 0) {
-					ToUpper(str, str, len);
-				} else {
-					for (;;) {
-						CHAR ch = *str;
-						if (ch) {
-							*str = SLIB_CHAR_LOWER_TO_UPPER(ch);
-							str++;
-						} else {
-							break;
-						}
+				sl_size i = 0;
+				for (; i < len; i++) {
+					typename STRING::Char ch = dataSrc[i];
+					if (ch == pattern) {
+						posStart = i;
+						break;
 					}
 				}
-			}
-
-			template <class STRING>
-			SLIB_INLINE static void MakeLowerString(STRING& str) noexcept
-			{
-				sl_size len;
-				typename STRING::Char* data = str.getData(len);
-				ToLower(data, data, len);
-			}
-
-			template <class CHAR>
-			static void MakeLowerSz(CHAR* str, sl_reg len) noexcept
-			{
-				if (!str) {
-					return;
-				}
-				if (len >= 0) {
-					ToLower(str, str, len);
-				} else {
-					for (;;) {
-						CHAR ch = *str;
-						if (ch) {
-							*str = SLIB_CHAR_UPPER_TO_LOWER(ch);
-							str++;
-						} else {
-							break;
-						}
-					}
-				}
-			}
-
-			template <class STRING>
-			static STRING CreateUpperString(typename STRING::Char const* str, sl_reg _len) noexcept
-			{
-				if (!str) {
-					return sl_null;
-				}
-				if (!_len) {
-					return STRING::getEmpty();
-				}
-				sl_size len;
-				if (_len < 0) {
-					len = StringTraits<typename STRING::Char>::getLength(str);
-				} else {
-					len = _len;
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNull()) {
-					return ret;
-				}
-				ToUpper(ret.getData(), str, len);
-				return ret;
-			}
-
-			template <class STRING>
-			static STRING CreateUpperString(const STRING& str) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				if (!len) {
-					return STRING::getEmpty();
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNull()) {
-					return ret;
-				}
-				ToUpper(ret.getData(), data, len);
-				return ret;
-			}
-
-			template <class STRING>
-			static STRING CreateLowerString(typename STRING::Char const* str, sl_reg _len) noexcept
-			{
-				if (!str) {
-					return sl_null;
-				}
-				if (!_len) {
-					return STRING::getEmpty();
-				}
-				sl_size len;
-				if (_len < 0) {
-					len = StringTraits<typename STRING::Char>::getLength(str);
-				} else {
-					len = _len;
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNull()) {
-					return ret;
-				}
-				ToLower(ret.getData(), str, len);
-				return ret;
-			}
-
-			template <class STRING>
-			static STRING CreateLowerString(const STRING& str) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				if (!len) {
-					return STRING::getEmpty();
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNull()) {
-					return ret;
-				}
-				ToLower(ret.getData(), data, len);
-				return ret;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static STRING ReplaceChar(const STRING& str, typename STRING::Char pattern, typename STRING::Char replace) noexcept
-			{
-				if (str.isNull()) {
+				if (i == len) {
 					return str;
 				}
-				sl_size len;
-				typename STRING::Char const* dataSrc = str.getData(len);
-				sl_size posStart = 0;
-				{
-					sl_size i = 0;
-					for (; i < len; i++) {
-						typename STRING::Char ch = dataSrc[i];
-						if (ch == pattern) {
-							posStart = i;
-							break;
-						}
-					}
-					if (i == len) {
-						return str;
-					}
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNull()) {
-					return sl_null;
-				}
-				typename STRING::Char* dataDst = ret.getData();
-				{
-					for (sl_size i = 0; i < posStart; i++) {
-						dataDst[i] = dataSrc[i];
-					}
-				}
-				if (replace) {
-					dataDst[posStart] = replace;
-					posStart++;
-					for (sl_size i = posStart; i < len; i++) {
-						typename STRING::Char ch = dataSrc[i];
-						if (ch == pattern) {
-							dataDst[i] = replace;
-						} else {
-							dataDst[i] = ch;
-						}
-					}
-				} else {
-					sl_size k = posStart;
-					posStart++;
-					for (sl_size i = posStart; i < len; i++) {
-						typename STRING::Char ch = dataSrc[i];
-						if (ch != pattern) {
-							dataDst[k] = ch;
-							k++;
-						}
-					}
-					dataDst[k] = 0;
-					ret.setLength(k);
-				}
-				return ret;
 			}
-
-			template <class STRING>
-			static STRING ReplaceSzCharSub(typename STRING::Char const* str, sl_size count, typename STRING::Char pattern, typename STRING::Char replace) noexcept
-			{
-				if (!count) {
-					return STRING::getEmpty();
-				}
-				STRING ret = STRING::allocate(count);
-				if (ret.isNull()) {
-					return sl_null;
-				}
-				typename STRING::Char* data = ret.getData();
-				if (replace) {
-					for (sl_size i = 0; i < count; i++) {
-						typename STRING::Char ch = str[i];
-						if (ch == pattern) {
-							data[i] = replace;
-						} else {
-							data[i] = ch;
-						}
-					}
-				} else {
-					sl_reg k = 0;
-					for (sl_size i = 0; i < count; i++) {
-						typename STRING::Char ch = str[i];
-						if (ch != pattern) {
-							data[k] = ch;
-							k++;
-						}
-					}
-					if (k != count) {
-						data[k] = 0;
-					}
-					ret.setLength(k);
-				}
-				return ret;
+			STRING ret = STRING::allocate(len);
+			if (ret.isNull()) {
+				return sl_null;
 			}
-
-			template <class STRING>
-			SLIB_INLINE static STRING ReplaceSzChar(typename STRING::Char const* str, sl_reg len, typename STRING::Char pattern, typename STRING::Char replace) noexcept
+			typename STRING::Char* dataDst = ret.getData();
 			{
-				if (!str) {
-					return sl_null;
+				for (sl_size i = 0; i < posStart; i++) {
+					dataDst[i] = dataSrc[i];
 				}
-				if (len < 0) {
-					len = StringTraits<typename STRING::Char>::getLength(str);
-				}
-				return ReplaceSzCharSub<STRING>(str, len, pattern, replace);
 			}
-
-			struct STRING_REPLACE_SUBSET
-			{
-				sl_reg start;
-				sl_reg len;
-			};
-
-			template <class STRING>
-			static STRING ReplaceAllSub(typename STRING::Char const* src, sl_size countSrc, typename STRING::Char const* pattern, sl_size nPattern, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
-			{
-				if (!nPattern) {
-					return sl_null;
-				}
-				if (!countSrc) {
-					return STRING::getEmpty();
-				}
-				LinkedQueue<STRING_REPLACE_SUBSET> queue;
-				STRING_REPLACE_SUBSET subset;
-				sl_size countNew = 0;
-				sl_size start = 0;
-				while (start <= countSrc + nPattern - 1) {
-					sl_reg index = IndexOf(src, countSrc, pattern, nPattern, start);
-					if (index < 0) {
-						index = countSrc;
+			if (replace) {
+				dataDst[posStart] = replace;
+				posStart++;
+				for (sl_size i = posStart; i < len; i++) {
+					typename STRING::Char ch = dataSrc[i];
+					if (ch == pattern) {
+						dataDst[i] = replace;
 					} else {
-						countNew += countReplace;
-					}
-					subset.start = start;
-					subset.len = index - start;
-					queue.push_NoLock(subset);
-					countNew += subset.len;
-					start = index + nPattern;
-				}
-				if (!countNew) {
-					return STRING::getEmpty();
-				}
-				STRING ret = STRING::allocate(countNew);
-				if (ret.isNotNull()) {
-					typename STRING::Char* out = ret.getData();
-					while (queue.pop_NoLock(&subset)) {
-						MemoryTraits<typename STRING::Char>::copy(out, src + subset.start, subset.len);
-						out += subset.len;
-						if (queue.isNotEmpty()) {
-							if (countReplace) {
-								MemoryTraits<typename STRING::Char>::copy(out, strReplace, countReplace);
-								out += countReplace;
-							}
-						}
+						dataDst[i] = ch;
 					}
 				}
-				return ret;
-			}
-
-			template <class STRING>
-			SLIB_INLINE static typename StringTypeFromCharType<typename STRING::Char>::Type ReplaceAll(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				return ReplaceAllSub<typename StringTypeFromCharType<typename STRING::Char>::Type>(data, len, pattern, nPattern, strReplace, countReplace);
-			}
-
-			template <class STRING>
-			static STRING Trim(const STRING& str) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char* data = str.getData(len);
-				sl_size i = 0;
-				for (; i < len; i++) {
-					typename STRING::Char c = data[i];
-					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
-						break;
+			} else {
+				sl_size k = posStart;
+				posStart++;
+				for (sl_size i = posStart; i < len; i++) {
+					typename STRING::Char ch = dataSrc[i];
+					if (ch != pattern) {
+						dataDst[k] = ch;
+						k++;
 					}
 				}
-				if (i >= len) {
-					return STRING::getEmpty();
-				}
-				sl_size j = len - 1;
-				for (; j > i; j--) {
-					typename STRING::Char c = data[j];
-					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
-						break;
+				dataDst[k] = 0;
+				ret.setLength(k);
+			}
+			return ret;
+		}
+
+		template <class STRING>
+		static STRING ReplaceSzCharSub(typename STRING::Char const* str, sl_size count, typename STRING::Char pattern, typename STRING::Char replace) noexcept
+		{
+			if (!count) {
+				return STRING::getEmpty();
+			}
+			STRING ret = STRING::allocate(count);
+			if (ret.isNull()) {
+				return sl_null;
+			}
+			typename STRING::Char* data = ret.getData();
+			if (replace) {
+				for (sl_size i = 0; i < count; i++) {
+					typename STRING::Char ch = str[i];
+					if (ch == pattern) {
+						data[i] = replace;
+					} else {
+						data[i] = ch;
 					}
 				}
-				return MidPriv(&str, data, i, j + 1 - i);
-			}
-
-			template <class STRING>
-			static STRING TrimLeft(const STRING& str) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char* data = str.getData(len);
-				sl_size i = 0;
-				for (; i < len; i++) {
-					typename STRING::Char c = data[i];
-					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
-						break;
+			} else {
+				sl_reg k = 0;
+				for (sl_size i = 0; i < count; i++) {
+					typename STRING::Char ch = str[i];
+					if (ch != pattern) {
+						data[k] = ch;
+						k++;
 					}
 				}
-				if (i >= len) {
-					return STRING::getEmpty();
+				if (k != count) {
+					data[k] = 0;
 				}
-				return MidPriv(&str, data, i, len - i);
+				ret.setLength(k);
 			}
+			return ret;
+		}
 
-			template <class STRING>
-			static STRING TrimRight(const STRING& str) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char* data = str.getData(len);
-				sl_size j = len;
-				for (; j > 0; j--) {
-					typename STRING::Char c = data[j - 1];
-					if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
-						break;
-					}
-				}
-				if (!j) {
-					return STRING::getEmpty();
-				}
-				return MidPriv(&str, data, 0, j);
+		template <class STRING>
+		SLIB_INLINE static STRING ReplaceSzChar(typename STRING::Char const* str, sl_reg len, typename STRING::Char pattern, typename STRING::Char replace) noexcept
+		{
+			if (!str) {
+				return sl_null;
 			}
-
-			template <class STRING>
-			static STRING TrimLine(const STRING& str) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char* data = str.getData(len);
-				sl_size i = 0;
-				for (; i < len; i++) {
-					typename STRING::Char c = data[i];
-					if (c != '\r' && c != '\n') {
-						break;
-					}
-				}
-				if (i >= len) {
-					return STRING::getEmpty();
-				}
-				sl_size j = len - 1;
-				for (; j > i; j--) {
-					typename STRING::Char c = data[j];
-					if (c != '\r' && c != '\n') {
-						break;
-					}
-				}
-				return MidPriv(&str, data, i, j + 1 - i);
+			if (len < 0) {
+				len = StringTraits<typename STRING::Char>::getLength(str);
 			}
+			return ReplaceSzCharSub<STRING>(str, len, pattern, replace);
+		}
 
-			template <class STRING>
-			SLIB_INLINE static void MakeReverse(STRING& str) noexcept
-			{
-				sl_size len;
-				typename STRING::Char* data = str.getData(len);
-				typename STRING::Char* end = data + (len - 1);
-				while (data < end) {
-					Swap(*data, *end);
-					data++;
-					end--;
-				}
+		struct STRING_REPLACE_SUBSET
+		{
+			sl_reg start;
+			sl_reg len;
+		};
+
+		template <class STRING>
+		static STRING ReplaceAllSub(typename STRING::Char const* src, sl_size countSrc, typename STRING::Char const* pattern, sl_size nPattern, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
+		{
+			if (!nPattern) {
+				return sl_null;
 			}
-
-			template <class CHAR>
-			SLIB_INLINE static void DoReverse(CHAR* dst, const CHAR* src, sl_size len) noexcept
-			{
-				CHAR* end = dst + len;
-				src = src + (len - 1);
-				while (dst < end) {
-					*dst = *src;
-					dst++;
-					src--;
-				}
+			if (!countSrc) {
+				return STRING::getEmpty();
 			}
-
-			template <class STRING>
-			static STRING CreateReverseString(typename STRING::Char const* str, sl_reg _len) noexcept
-			{
-				if (!str) {
-					return sl_null;
-				}
-				if (!_len) {
-					return STRING::getEmpty();
-				}
-				sl_size len;
-				if (_len < 0) {
-					len = StringTraits<typename STRING::Char>::getLength(str);
+			LinkedQueue<STRING_REPLACE_SUBSET> queue;
+			STRING_REPLACE_SUBSET subset;
+			sl_size countNew = 0;
+			sl_size start = 0;
+			while (start <= countSrc + nPattern - 1) {
+				sl_reg index = IndexOf(src, countSrc, pattern, nPattern, start);
+				if (index < 0) {
+					index = countSrc;
 				} else {
-					len = _len;
+					countNew += countReplace;
 				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNull()) {
-					return ret;
-				}
-				DoReverse(ret.getData(), str, len);
-				return ret;
+				subset.start = start;
+				subset.len = index - start;
+				queue.push_NoLock(subset);
+				countNew += subset.len;
+				start = index + nPattern;
 			}
-
-			template <class STRING>
-			static STRING CreateReverseString(const STRING& str) noexcept
-			{
-				if (str.isNull()) {
-					return sl_null;
-				}
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				if (!len) {
-					return STRING::getEmpty();
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNull()) {
-					return ret;
-				}
-				DoReverse(ret.getData(), data, len);
-				return ret;
+			if (!countNew) {
+				return STRING::getEmpty();
 			}
+			STRING ret = STRING::allocate(countNew);
+			if (ret.isNotNull()) {
+				typename STRING::Char* out = ret.getData();
+				while (queue.pop_NoLock(&subset)) {
+					MemoryTraits<typename STRING::Char>::copy(out, src + subset.start, subset.len);
+					out += subset.len;
+					if (queue.isNotEmpty()) {
+						if (countReplace) {
+							MemoryTraits<typename STRING::Char>::copy(out, strReplace, countReplace);
+							out += countReplace;
+						}
+					}
+				}
+			}
+			return ret;
+		}
 
-			template <class STRING>
-			static List<STRING> Split(const STRING& str, typename STRING::Char const* pattern, sl_size countPattern, sl_size nMaxSplit) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				if (!(len && countPattern)) {
-					return sl_null;
-				}
-				List<STRING> ret;
-				sl_reg start = 0;
-				for (sl_size nSplit = 0; nSplit < nMaxSplit; nSplit++) {
-					sl_reg index = IndexOf(data, len, pattern, countPattern, start);
-					if (index < 0) {
-						break;
-					}
-					if (!(ret.add_NoLock(MidPriv(&str, data, start, index - start)))) {
-						return sl_null;
-					}
-					start = index + countPattern;
-				}
-				if (ret.add_NoLock(MidPriv(&str, data, start, len - start))) {
-					return ret;
-				}
+		template <class STRING>
+		SLIB_INLINE static typename StringTypeFromCharType<typename STRING::Char>::Type ReplaceAll(const STRING& str, typename STRING::Char const* pattern, sl_size nPattern, typename STRING::Char const* strReplace, sl_size countReplace) noexcept
+		{
+			if (str.isNull()) {
 				return sl_null;
 			}
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			return ReplaceAllSub<typename StringTypeFromCharType<typename STRING::Char>::Type>(data, len, pattern, nPattern, strReplace, countReplace);
+		}
 
-			template <class STRING>
-			static List<STRING> Split(const STRING& str, typename STRING::Char pattern, sl_size nMaxSplit) noexcept
-			{
-				sl_size len;
-				typename STRING::Char const* data = str.getData(len);
-				if (!len) {
-					return sl_null;
-				}
-				List<STRING> ret;
-				sl_reg start = 0;
-				for (sl_size nSplit = 0; nSplit < nMaxSplit; nSplit++) {
-					sl_reg index = IndexOfChar(data, len, pattern, start);
-					if (index < 0) {
-						break;
-					}
-					if (!(ret.add_NoLock(MidPriv(&str, data, start, index - start)))) {
-						return sl_null;
-					}
-					start = index + 1;
-				}
-				if (ret.add_NoLock(MidPriv(&str, data, start, len - start))) {
-					return ret;
-				}
+		template <class STRING>
+		static STRING Trim(const STRING& str) noexcept
+		{
+			if (str.isNull()) {
 				return sl_null;
 			}
+			sl_size len;
+			typename STRING::Char* data = str.getData(len);
+			sl_size i = 0;
+			for (; i < len; i++) {
+				typename STRING::Char c = data[i];
+				if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
+					break;
+				}
+			}
+			if (i >= len) {
+				return STRING::getEmpty();
+			}
+			sl_size j = len - 1;
+			for (; j > i; j--) {
+				typename STRING::Char c = data[j];
+				if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
+					break;
+				}
+			}
+			return MidPriv(&str, data, i, j + 1 - i);
+		}
 
-			template <class STRING>
-			static typename StringTypeFromCharType<typename STRING::Char>::Type Join(const STRING* strings, sl_size count) noexcept
-			{
-				if (!count) {
+		template <class STRING>
+		static STRING TrimLeft(const STRING& str) noexcept
+		{
+			if (str.isNull()) {
+				return sl_null;
+			}
+			sl_size len;
+			typename STRING::Char* data = str.getData(len);
+			sl_size i = 0;
+			for (; i < len; i++) {
+				typename STRING::Char c = data[i];
+				if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
+					break;
+				}
+			}
+			if (i >= len) {
+				return STRING::getEmpty();
+			}
+			return MidPriv(&str, data, i, len - i);
+		}
+
+		template <class STRING>
+		static STRING TrimRight(const STRING& str) noexcept
+		{
+			if (str.isNull()) {
+				return sl_null;
+			}
+			sl_size len;
+			typename STRING::Char* data = str.getData(len);
+			sl_size j = len;
+			for (; j > 0; j--) {
+				typename STRING::Char c = data[j - 1];
+				if (!(SLIB_CHAR_IS_WHITE_SPACE(c))) {
+					break;
+				}
+			}
+			if (!j) {
+				return STRING::getEmpty();
+			}
+			return MidPriv(&str, data, 0, j);
+		}
+
+		template <class STRING>
+		static STRING TrimLine(const STRING& str) noexcept
+		{
+			if (str.isNull()) {
+				return sl_null;
+			}
+			sl_size len;
+			typename STRING::Char* data = str.getData(len);
+			sl_size i = 0;
+			for (; i < len; i++) {
+				typename STRING::Char c = data[i];
+				if (c != '\r' && c != '\n') {
+					break;
+				}
+			}
+			if (i >= len) {
+				return STRING::getEmpty();
+			}
+			sl_size j = len - 1;
+			for (; j > i; j--) {
+				typename STRING::Char c = data[j];
+				if (c != '\r' && c != '\n') {
+					break;
+				}
+			}
+			return MidPriv(&str, data, i, j + 1 - i);
+		}
+
+		template <class STRING>
+		SLIB_INLINE static void MakeReverse(STRING& str) noexcept
+		{
+			sl_size len;
+			typename STRING::Char* data = str.getData(len);
+			typename STRING::Char* end = data + (len - 1);
+			while (data < end) {
+				Swap(*data, *end);
+				data++;
+				end--;
+			}
+		}
+
+		template <class CHAR>
+		SLIB_INLINE static void DoReverse(CHAR* dst, const CHAR* src, sl_size len) noexcept
+		{
+			CHAR* end = dst + len;
+			src = src + (len - 1);
+			while (dst < end) {
+				*dst = *src;
+				dst++;
+				src--;
+			}
+		}
+
+		template <class STRING>
+		static STRING CreateReverseString(typename STRING::Char const* str, sl_reg _len) noexcept
+		{
+			if (!str) {
+				return sl_null;
+			}
+			if (!_len) {
+				return STRING::getEmpty();
+			}
+			sl_size len;
+			if (_len < 0) {
+				len = StringTraits<typename STRING::Char>::getLength(str);
+			} else {
+				len = _len;
+			}
+			STRING ret = STRING::allocate(len);
+			if (ret.isNull()) {
+				return ret;
+			}
+			DoReverse(ret.getData(), str, len);
+			return ret;
+		}
+
+		template <class STRING>
+		static STRING CreateReverseString(const STRING& str) noexcept
+		{
+			if (str.isNull()) {
+				return sl_null;
+			}
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			if (!len) {
+				return STRING::getEmpty();
+			}
+			STRING ret = STRING::allocate(len);
+			if (ret.isNull()) {
+				return ret;
+			}
+			DoReverse(ret.getData(), data, len);
+			return ret;
+		}
+
+		template <class STRING>
+		static List<STRING> Split(const STRING& str, typename STRING::Char const* pattern, sl_size countPattern, sl_size nMaxSplit) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			if (!(len && countPattern)) {
+				return sl_null;
+			}
+			List<STRING> ret;
+			sl_reg start = 0;
+			for (sl_size nSplit = 0; nSplit < nMaxSplit; nSplit++) {
+				sl_reg index = IndexOf(data, len, pattern, countPattern, start);
+				if (index < 0) {
+					break;
+				}
+				if (!(ret.add_NoLock(MidPriv(&str, data, start, index - start)))) {
 					return sl_null;
 				}
-				if (count == 1) {
-					return *strings;
-				}
-				if (count == 2) {
-					return *strings + strings[1];
-				}
-				typename StringBufferTypeFromCharType<typename STRING::Char>::Type buf;
-				for (sl_size i = 0; i < count; i++) {
-					sl_size len;
-					typename STRING::Char* data = strings[i].getData(len);
-					buf.addStatic(data, len);
-				}
-				return buf.merge();
+				start = index + countPattern;
 			}
+			if (ret.add_NoLock(MidPriv(&str, data, start, len - start))) {
+				return ret;
+			}
+			return sl_null;
+		}
 
-			template <class STRING>
-			static typename StringTypeFromCharType<typename STRING::Char>::Type Join(const STRING* strings, sl_size count, typename StringViewTypeFromCharType<typename STRING::Char>::Type const& delimiter) noexcept
-			{
-				if (!count) {
+		template <class STRING>
+		static List<STRING> Split(const STRING& str, typename STRING::Char pattern, sl_size nMaxSplit) noexcept
+		{
+			sl_size len;
+			typename STRING::Char const* data = str.getData(len);
+			if (!len) {
+				return sl_null;
+			}
+			List<STRING> ret;
+			sl_reg start = 0;
+			for (sl_size nSplit = 0; nSplit < nMaxSplit; nSplit++) {
+				sl_reg index = IndexOfChar(data, len, pattern, start);
+				if (index < 0) {
+					break;
+				}
+				if (!(ret.add_NoLock(MidPriv(&str, data, start, index - start)))) {
 					return sl_null;
 				}
-				if (count == 1) {
-					return *strings;
-				}
-				sl_size lenDelimiter;
-				typename STRING::Char* strDelimiter = delimiter.getData(lenDelimiter);
-				typename StringBufferTypeFromCharType<typename STRING::Char>::Type buf;
-				for (sl_size i = 0; i < count; i++) {
-					if (i) {
-						buf.addStatic(strDelimiter, lenDelimiter);
-					}
-					sl_size len;
-					typename STRING::Char* data = strings[i].getData(len);
-					buf.addStatic(data, len);
-				}
-				return buf.merge();
+				start = index + 1;
 			}
+			if (ret.add_NoLock(MidPriv(&str, data, start, len - start))) {
+				return ret;
+			}
+			return sl_null;
+		}
 
-			struct STRING_PARAM_ITEM
-			{
-				sl_uint32 type; // 8, 16, 32
-				union {
-					sl_char8* sz8;
-					sl_char8* sz16;
-					sl_char8* sz32;
-				};
-				sl_reg len;
+		template <class STRING>
+		static typename StringTypeFromCharType<typename STRING::Char>::Type Join(const STRING* strings, sl_size count) noexcept
+		{
+			if (!count) {
+				return sl_null;
+			}
+			if (count == 1) {
+				return *strings;
+			}
+			if (count == 2) {
+				return *strings + strings[1];
+			}
+			typename StringBufferTypeFromCharType<typename STRING::Char>::Type buf;
+			for (sl_size i = 0; i < count; i++) {
+				sl_size len;
+				typename STRING::Char* data = strings[i].getData(len);
+				buf.addStatic(data, len);
+			}
+			return buf.merge();
+		}
+
+		template <class STRING>
+		static typename StringTypeFromCharType<typename STRING::Char>::Type Join(const STRING* strings, sl_size count, typename StringViewTypeFromCharType<typename STRING::Char>::Type const& delimiter) noexcept
+		{
+			if (!count) {
+				return sl_null;
+			}
+			if (count == 1) {
+				return *strings;
+			}
+			sl_size lenDelimiter;
+			typename STRING::Char* strDelimiter = delimiter.getData(lenDelimiter);
+			typename StringBufferTypeFromCharType<typename STRING::Char>::Type buf;
+			for (sl_size i = 0; i < count; i++) {
+				if (i) {
+					buf.addStatic(strDelimiter, lenDelimiter);
+				}
+				sl_size len;
+				typename STRING::Char* data = strings[i].getData(len);
+				buf.addStatic(data, len);
+			}
+			return buf.merge();
+		}
+
+		struct STRING_PARAM_ITEM
+		{
+			sl_uint32 type; // 8, 16, 32
+			union {
+				sl_char8* sz8;
+				sl_char8* sz16;
+				sl_char8* sz32;
 			};
+			sl_reg len;
+		};
 
-			template <class STRING>
-			static STRING JoinParams(const StringParam* strings, sl_size count) noexcept
-			{
-				if (!count) {
-					return sl_null;
-				}
-				if (count == 1) {
-					return STRING::from(*strings);
-				}
-				if (count == 2) {
-					return ConcatParams<STRING>(*strings, strings[1]);
-				}
-				sl_bool flagNotNull = sl_false;
-				sl_size len = 0;
-				sl_size i;
-				for (i = 0; i < count; i++) {
-					const StringParam& s = strings[i];
-					if (s.isNotNull()) {
-						flagNotNull = sl_true;
-						StringRawData data;
-						s.getData(data);
-						if (data.length) {
-							if (data.charSize == 1) {
-								sl_size n = ConvertCharset(data.data8, data.length, (typename STRING::Char*)sl_null);
-								if (n) {
-									len += n;
-								}
-							} else if (data.charSize == 2) {
-								sl_size n = ConvertCharset(data.data16, data.length, (typename STRING::Char*)sl_null);
-								if (n) {
-									len += n;
-								}
-							} else {
-								sl_size n = ConvertCharset(data.data32, data.length, (typename STRING::Char*)sl_null);
-								if (n) {
-									len += n;
-								}
-							}
-						}
-					}
-				}
-				if (!flagNotNull) {
-					return sl_null;
-				}
-				if (!len) {
-					return STRING::getEmpty();
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNotNull()) {
-					typename STRING::Char* dst = ret.getData();
-					for (i = 0; i < count; i++) {
-						const StringParam& s = strings[i];
-						StringRawData data;
-						s.getData(data);
-						if (data.length) {
-							if (data.charSize == 1) {
-								sl_size n = ConvertCharset(data.data8, data.length, dst);
-								dst += n;
-							} else if (data.charSize == 2) {
-								sl_size n = ConvertCharset(data.data16, data.length, dst);
-								dst += n;
-							} else {
-								sl_size n = ConvertCharset(data.data32, data.length, dst);
-								dst += n;
-							}
-						}
-					}
-					return ret;
-				}
+		template <class STRING>
+		static STRING JoinParams(const StringParam* strings, sl_size count) noexcept
+		{
+			if (!count) {
 				return sl_null;
 			}
-
-			template <class STRING>
-			static STRING JoinParams(const StringParam* strings, sl_size count, typename STRING::StringViewType const& delimiter) noexcept
-			{
-				if (!count) {
-					return sl_null;
-				}
-				if (count == 1) {
-					return STRING::from(*strings);
-				}
-				sl_size lenDelimiter;
-				typename STRING::Char* strDelimiter = delimiter.getData(lenDelimiter);
-				sl_size len = 0;
-				sl_size i;
-				for (i = 0; i < count; i++) {
-					if (i) {
-						len += lenDelimiter;
-					}
+			if (count == 1) {
+				return STRING::from(*strings);
+			}
+			if (count == 2) {
+				return ConcatParams<STRING>(*strings, strings[1]);
+			}
+			sl_bool flagNotNull = sl_false;
+			sl_size len = 0;
+			sl_size i;
+			for (i = 0; i < count; i++) {
+				const StringParam& s = strings[i];
+				if (s.isNotNull()) {
+					flagNotNull = sl_true;
 					StringRawData data;
-					const StringParam& s = strings[i];
 					s.getData(data);
 					if (data.length) {
 						if (data.charSize == 1) {
@@ -2736,683 +2714,649 @@ namespace slib
 						}
 					}
 				}
-				if (!len) {
-					return STRING::getEmpty();
-				}
-				STRING ret = STRING::allocate(len);
-				if (ret.isNotNull()) {
-					typename STRING::Char* dst = ret.getData();
-					for (i = 0; i < count; i++) {
-						if (i) {
-							MemoryTraits<typename STRING::Char>::copy(dst, strDelimiter, lenDelimiter);
-							dst += lenDelimiter;
-						}
-						StringRawData data;
-						const StringParam& s = strings[i];
-						s.getData(data);
-						if (data.length) {
-							if (data.charSize == 1) {
-								sl_size n = ConvertCharset(data.data8, data.length, dst);
-								dst += n;
-							} else if (data.charSize == 2) {
-								sl_size n = ConvertCharset(data.data16, data.length, dst);
-								dst += n;
-							} else {
-								sl_size n = ConvertCharset(data.data32, data.length, dst);
-								dst += n;
-							}
-						}
-					}
-					return ret;
-				}
+			}
+			if (!flagNotNull) {
 				return sl_null;
 			}
+			if (!len) {
+				return STRING::getEmpty();
+			}
+			STRING ret = STRING::allocate(len);
+			if (ret.isNotNull()) {
+				typename STRING::Char* dst = ret.getData();
+				for (i = 0; i < count; i++) {
+					const StringParam& s = strings[i];
+					StringRawData data;
+					s.getData(data);
+					if (data.length) {
+						if (data.charSize == 1) {
+							sl_size n = ConvertCharset(data.data8, data.length, dst);
+							dst += n;
+						} else if (data.charSize == 2) {
+							sl_size n = ConvertCharset(data.data16, data.length, dst);
+							dst += n;
+						} else {
+							sl_size n = ConvertCharset(data.data32, data.length, dst);
+							dst += n;
+						}
+					}
+				}
+				return ret;
+			}
+			return sl_null;
+		}
+
+		template <class STRING>
+		static STRING JoinParams(const StringParam* strings, sl_size count, typename STRING::StringViewType const& delimiter) noexcept
+		{
+			if (!count) {
+				return sl_null;
+			}
+			if (count == 1) {
+				return STRING::from(*strings);
+			}
+			sl_size lenDelimiter;
+			typename STRING::Char* strDelimiter = delimiter.getData(lenDelimiter);
+			sl_size len = 0;
+			sl_size i;
+			for (i = 0; i < count; i++) {
+				if (i) {
+					len += lenDelimiter;
+				}
+				StringRawData data;
+				const StringParam& s = strings[i];
+				s.getData(data);
+				if (data.length) {
+					if (data.charSize == 1) {
+						sl_size n = ConvertCharset(data.data8, data.length, (typename STRING::Char*)sl_null);
+						if (n) {
+							len += n;
+						}
+					} else if (data.charSize == 2) {
+						sl_size n = ConvertCharset(data.data16, data.length, (typename STRING::Char*)sl_null);
+						if (n) {
+							len += n;
+						}
+					} else {
+						sl_size n = ConvertCharset(data.data32, data.length, (typename STRING::Char*)sl_null);
+						if (n) {
+							len += n;
+						}
+					}
+				}
+			}
+			if (!len) {
+				return STRING::getEmpty();
+			}
+			STRING ret = STRING::allocate(len);
+			if (ret.isNotNull()) {
+				typename STRING::Char* dst = ret.getData();
+				for (i = 0; i < count; i++) {
+					if (i) {
+						MemoryTraits<typename STRING::Char>::copy(dst, strDelimiter, lenDelimiter);
+						dst += lenDelimiter;
+					}
+					StringRawData data;
+					const StringParam& s = strings[i];
+					s.getData(data);
+					if (data.length) {
+						if (data.charSize == 1) {
+							sl_size n = ConvertCharset(data.data8, data.length, dst);
+							dst += n;
+						} else if (data.charSize == 2) {
+							sl_size n = ConvertCharset(data.data16, data.length, dst);
+							dst += n;
+						} else {
+							sl_size n = ConvertCharset(data.data32, data.length, dst);
+							dst += n;
+						}
+					}
+				}
+				return ret;
+			}
+			return sl_null;
+		}
 
 #define MAX_NUMBER_STR_LEN 256
 #define MAX_PRECISION 50
 
-			static const char g_conv_radix_pattern_lower[65] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_";
-			const char* g_conv_radixPatternLower = g_conv_radix_pattern_lower;
-			static const char g_conv_radix_pattern_upper[65] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@_";
-			const char* g_conv_radixPatternUpper = g_conv_radix_pattern_upper;
+		template <class CHAR>
+		static sl_uint32 DetermineRadix(const CHAR* str, sl_size& i, sl_size n)
+		{
+			if (str[i] == '0') {
+				if (i + 1 < n) {
+					CHAR ch = str[i + 1];
+					if (ch == 'x' || ch == 'X') {
+						i += 2;
+						return 16;
+					} else if (ch >= '0' && ch <= '7') {
+						i += 1;
+						return 8;
+					} else if (ch == '8' || ch == '9') {
+						return 0;
+					}
+				}
+			}
+			return 10;
+		}
 
-			static const sl_uint8 g_conv_radix_inverse_pattern_big[128] = {
-				/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*18*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*20*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*28*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*30*/ 0,   1,   2,   3,   4,   5,   6,   7,
-				/*38*/ 8,   9,   255, 255, 255, 255, 255, 255,
-				/*40*/ 62,  36,  37,  38,  39,  40,  41,  42,
-				/*48*/ 43,  44,  45,  46,  47,  48,  49,  50,
-				/*50*/ 51,  52,  53,  54,  55,  56,  57,  58,
-				/*58*/ 59,  60,  61,  255, 255, 255, 255, 63,
-				/*60*/ 255, 10,  11,  12,  13,  14,  15,  16,
-				/*68*/ 17,  18,  19,  20,  21,  22,  23,  24,
-				/*70*/ 25,  26,  27,  28,  29,  30,  31,  32,
-				/*78*/ 33,  34,  35,  255, 255, 255, 255, 255
-			};
-			const sl_uint8* g_conv_radixInversePatternBig = g_conv_radix_inverse_pattern_big;
+		template <class INTEGER, class CHAR>
+		static sl_reg ParseInt(sl_uint32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
+		{
+			if (i >= n) {
+				return SLIB_PARSE_ERROR;
+			}
 
-			static const sl_uint8 g_conv_radix_inverse_pattern_small[128] = {
-				/*00*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*08*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*10*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*18*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*20*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*28*/ 255, 255, 255, 255, 255, 255, 255, 255,
-				/*30*/ 0,   1,   2,   3,   4,   5,   6,   7,
-				/*38*/ 8,   9,   255, 255, 255, 255, 255, 255,
-				/*40*/ 255, 10,  11,  12,  13,  14,  15,  16,
-				/*48*/ 17,  18,  19,  20,  21,  22,  23,  24,
-				/*50*/ 25,  26,  27,  28,  29,  30,  31,  32,
-				/*58*/ 33,  34,  35,  255, 255, 255, 255, 255,
-				/*60*/ 255, 10,  11,  12,  13,  14,  15,  16,
-				/*68*/ 17,  18,  19,  20,  21,  22,  23,  24,
-				/*70*/ 25,  26,  27,  28,  29,  30,  31,  32,
-				/*78*/ 33,  34,  35,  255, 255, 255, 255, 255
-			};
-			const sl_uint8* g_conv_radixInversePatternSmall = g_conv_radix_inverse_pattern_small;
+			sl_bool bMinus = sl_false;
+			if (str[i] == '-') {
+				i++;
+				bMinus = sl_true;
+			}
+			for (; i < n; i++) {
+				sl_uint32 c = (sl_uint32)(str[i]);
+				if (c != '\t' && c != ' ') {
+					break;
+				}
+			}
+			if (!radix) {
+				if (i >= n) {
+					return SLIB_PARSE_ERROR;
+				}
+				radix = DetermineRadix(str, i, n);
+				if (!radix) {
+					return SLIB_PARSE_ERROR;
+				}
+			}
+			const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
+			INTEGER v = 0;
+			sl_bool bEmpty = sl_true;
+			for (; i < n; i++) {
+				sl_uint32 c = (sl_uint32)(str[i]);
+				sl_uint32 m = c < 128 ? pattern[c] : 255;
+				if (m < (sl_uint32)radix) {
+					v = v * radix + m;
+					bEmpty = sl_false;
+				} else {
+					break;
+				}
+			}
+			if (bEmpty) {
+				return SLIB_PARSE_ERROR;
+			}
+			if (bMinus) {
+				v = -v;
+			}
+			if (_out) {
+				*_out = v;
+			}
+			return i;
+		}
 
-			template <class CHAR>
-			static sl_uint32 DetermineRadix(const CHAR* str, sl_size& i, sl_size n)
-			{
-				if (str[i] == '0') {
-					if (i + 1 < n) {
-						CHAR ch = str[i + 1];
-						if (ch == 'x' || ch == 'X') {
-							i += 2;
-							return 16;
-						} else if (ch >= '0' && ch <= '7') {
-							i += 1;
-							return 8;
-						} else if (ch == '8' || ch == '9') {
-							return 0;
+		template <class VIEW, class INTEGER>
+		static sl_bool ParseViewInt(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
+		{
+			typename VIEW::Char* data = view.getUnsafeData();
+			sl_reg len = view.getUnsafeLength();
+			if (data && len) {
+				if (len > 0) {
+					return ParseInt(radix, data, 0, len, _out) == (sl_reg)len;
+				} else {
+					sl_reg ret = ParseInt(radix, data, 0, len, _out);
+					return ret != SLIB_PARSE_ERROR && !(data[ret]);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class INTEGER, class CHAR>
+		static sl_reg ParseUint(sl_uint32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
+		{
+			if (i >= n) {
+				return SLIB_PARSE_ERROR;
+			}
+			if (!radix) {
+				radix = DetermineRadix(str, i, n);
+				if (!radix) {
+					return SLIB_PARSE_ERROR;
+				}
+			}
+			sl_bool bEmpty = sl_true;
+			const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
+			INTEGER v = 0;
+			for (; i < n; i++) {
+				sl_uint32 c = (sl_uint32)(str[i]);
+				sl_uint32 m = c < 128 ? pattern[c] : 255;
+				if (m < radix) {
+					v = v * radix + m;
+					bEmpty = sl_false;
+				} else {
+					break;
+				}
+			}
+			if (bEmpty) {
+				return SLIB_PARSE_ERROR;
+			}
+			if (_out) {
+				*_out = v;
+			}
+			return i;
+		}
+
+		template <class VIEW, class INTEGER>
+		static sl_bool ParseViewUint(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
+		{
+			typename VIEW::Char* data = view.getUnsafeData();
+			sl_reg len = view.getUnsafeLength();
+			if (data && len) {
+				if (len > 0) {
+					return ParseUint(radix, data, 0, len, _out) == (sl_reg)len;
+				} else {
+					sl_reg ret = ParseUint(radix, data, 0, len, _out);
+					return ret != SLIB_PARSE_ERROR && !(data[ret]);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class FLOAT, class CHAR>
+		static sl_reg ParseFloat(const CHAR* str, sl_size i, sl_size n, FLOAT* _out) noexcept
+		{
+			if (i >= n) {
+				return SLIB_PARSE_ERROR; // input string is empty
+			}
+
+			sl_bool bMinus = sl_false;
+			sl_bool bEmpty = sl_true;
+
+			if (str[i] == '-') {
+				i++;
+				bMinus = sl_true;
+			}
+			for (; i < n; i++) {
+				sl_uint32 c = (sl_uint32)(str[i]);
+				if (!(SLIB_CHAR_IS_SPACE_TAB(c))) {
+					break;
+				}
+			}
+
+			FLOAT v = 0;
+			sl_uint32 vi = 0;
+			sl_bool flagMulInt = sl_true;
+
+			for (; i < n; i++) {
+				sl_uint32 c = (sl_uint32)(str[i]);
+				if (SLIB_CHAR_IS_DIGIT(c)) {
+					if (flagMulInt) {
+						vi = vi * 10 + (c - '0');
+						if (vi >= 214748364) {
+							v = (FLOAT)vi;
+							flagMulInt = sl_false;
 						}
-					}
-				}
-				return 10;
-			}
-
-			template <class INTEGER, class CHAR>
-			static sl_reg ParseInt(sl_uint32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
-			{
-				if (i >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-
-				sl_bool bMinus = sl_false;
-				if (str[i] == '-') {
-					i++;
-					bMinus = sl_true;
-				}
-				for (; i < n; i++) {
-					sl_uint32 c = (sl_uint32)(str[i]);
-					if (c != '\t' && c != ' ') {
-						break;
-					}
-				}
-				if (!radix) {
-					if (i >= n) {
-						return SLIB_PARSE_ERROR;
-					}
-					radix = DetermineRadix(str, i, n);
-					if (!radix) {
-						return SLIB_PARSE_ERROR;
-					}
-				}
-				const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
-				INTEGER v = 0;
-				sl_bool bEmpty = sl_true;
-				for (; i < n; i++) {
-					sl_uint32 c = (sl_uint32)(str[i]);
-					sl_uint32 m = c < 128 ? pattern[c] : 255;
-					if (m < (sl_uint32)radix) {
-						v = v * radix + m;
-						bEmpty = sl_false;
 					} else {
-						break;
+						v = v * 10 + (c - '0');
 					}
+					bEmpty = sl_false;
+				} else {
+					break;
 				}
-				if (bEmpty) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (bMinus) {
-					v = -v;
-				}
-				if (_out) {
-					*_out = v;
-				}
-				return i;
 			}
-
-			template <class VIEW, class INTEGER>
-			static sl_bool ParseViewInt(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
-			{
-				typename VIEW::Char* data = view.getUnsafeData();
-				sl_reg len = view.getUnsafeLength();
-				if (data && len) {
-					if (len > 0) {
-						return ParseInt(radix, data, 0, len, _out) == (sl_reg)len;
-					} else {
-						sl_reg ret = ParseInt(radix, data, 0, len, _out);
-						return ret != SLIB_PARSE_ERROR && !(data[ret]);
-					}
-				}
-				return sl_false;
-			}
-
-			template <class INTEGER, class CHAR>
-			static sl_reg ParseUint(sl_uint32 radix, const CHAR* str, sl_size i, sl_size n, INTEGER* _out) noexcept
-			{
-				if (i >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (!radix) {
-					radix = DetermineRadix(str, i, n);
-					if (!radix) {
-						return SLIB_PARSE_ERROR;
-					}
-				}
-				sl_bool bEmpty = sl_true;
-				const sl_uint8* pattern = radix <= 36 ? g_conv_radix_inverse_pattern_small : g_conv_radix_inverse_pattern_big;
-				INTEGER v = 0;
-				for (; i < n; i++) {
+			if (bEmpty) {
+				if (i + 3 <= n) {
 					sl_uint32 c = (sl_uint32)(str[i]);
-					sl_uint32 m = c < 128 ? pattern[c] : 255;
-					if (m < radix) {
-						v = v * radix + m;
-						bEmpty = sl_false;
-					} else {
-						break;
-					}
-				}
-				if (bEmpty) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (_out) {
-					*_out = v;
-				}
-				return i;
-			}
-
-			template <class VIEW, class INTEGER>
-			static sl_bool ParseViewUint(const VIEW& view, sl_int32 radix, INTEGER* _out) noexcept
-			{
-				typename VIEW::Char* data = view.getUnsafeData();
-				sl_reg len = view.getUnsafeLength();
-				if (data && len) {
-					if (len > 0) {
-						return ParseUint(radix, data, 0, len, _out) == (sl_reg)len;
-					} else {
-						sl_reg ret = ParseUint(radix, data, 0, len, _out);
-						return ret != SLIB_PARSE_ERROR && !(data[ret]);
-					}
-				}
-				return sl_false;
-			}
-
-			template <class FLOAT, class CHAR>
-			static sl_reg ParseFloat(const CHAR* str, sl_size i, sl_size n, FLOAT* _out) noexcept
-			{
-				if (i >= n) {
-					return SLIB_PARSE_ERROR; // input string is empty
-				}
-
-				sl_bool bMinus = sl_false;
-				sl_bool bEmpty = sl_true;
-
-				if (str[i] == '-') {
-					i++;
-					bMinus = sl_true;
-				}
-				for (; i < n; i++) {
-					sl_uint32 c = (sl_uint32)(str[i]);
-					if (!(SLIB_CHAR_IS_SPACE_TAB(c))) {
-						break;
-					}
-				}
-
-				FLOAT v = 0;
-				sl_uint32 vi = 0;
-				sl_bool flagMulInt = sl_true;
-
-				for (; i < n; i++) {
-					sl_uint32 c = (sl_uint32)(str[i]);
-					if (SLIB_CHAR_IS_DIGIT(c)) {
-						if (flagMulInt) {
-							vi = vi * 10 + (c - '0');
-							if (vi >= 214748364) {
-								v = (FLOAT)vi;
-								flagMulInt = sl_false;
+					if ((c == 'n' || c == 'N') || (str[i + 1] == 'a' || str[i + 1] == 'A') || (str[i + 2] == 'n' || str[i + 2] == 'N')) {
+						i += 3;
+						if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
+							if (_out) {
+								Math::getNaN(*_out);
 							}
-						} else {
-							v = v * 10 + (c - '0');
+							return i;
 						}
-						bEmpty = sl_false;
-					} else {
-						break;
+					} else if ((c == 'i' || c == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'f' || str[i + 2] == 'F')) {
+						i += 3;
+						if (i + 5 <= n && (str[i] == 'i' || str[i] == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'i' || str[i + 2] == 'I') || (str[i + 3] == 't' || str[i + 3] == 'T') || (str[i + 4] == 'y' || str[i + 4] == 'Y')) {
+							i += 5;
+						}
+						c = (sl_uint32)(str[i]);
+						if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
+							if (_out) {
+								if (bMinus) {
+									Math::getNegativeInfinite(*_out);
+								} else {
+									Math::getPositiveInfinite(*_out);
+								}
+							}
+							return i;
+						}
 					}
 				}
-				if (bEmpty) {
-					if (i + 3 <= n) {
+				return SLIB_PARSE_ERROR; // integral number is required
+			}
+			if (flagMulInt) {
+				v = (FLOAT)vi;
+			}
+
+			if (i < n) {
+				if (str[i] == '.') {
+					i++;
+					bEmpty = sl_true;
+					FLOAT weight = (FLOAT)(0.1);
+					for (; i < n; i++) {
 						sl_uint32 c = (sl_uint32)(str[i]);
-						if ((c == 'n' || c == 'N') || (str[i + 1] == 'a' || str[i + 1] == 'A') || (str[i + 2] == 'n' || str[i + 2] == 'N')) {
-							i += 3;
-							if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
-								if (_out) {
-									Math::getNaN(*_out);
-								}
-								return i;
-							}
-						} else if ((c == 'i' || c == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'f' || str[i + 2] == 'F')) {
-							i += 3;
-							if (i + 5 <= n && (str[i] == 'i' || str[i] == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'i' || str[i + 2] == 'I') || (str[i + 3] == 't' || str[i + 3] == 'T') || (str[i + 4] == 'y' || str[i + 4] == 'Y')) {
-								i += 5;
-							}
-							c = (sl_uint32)(str[i]);
-							if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
-								if (_out) {
-									if (bMinus) {
-										Math::getNegativeInfinite(*_out);
-									} else {
-										Math::getPositiveInfinite(*_out);
-									}
-								}
-								return i;
-							}
+						if (SLIB_CHAR_IS_DIGIT(c)) {
+							v = v + (c - '0') * weight;
+							weight /= 10;
+							bEmpty = sl_false;
+						} else {
+							break;
 						}
 					}
-					return SLIB_PARSE_ERROR; // integral number is required
+					if (bEmpty) {
+						return SLIB_PARSE_ERROR; // fraction number is required
+					}
 				}
-				if (flagMulInt) {
-					v = (FLOAT)vi;
-				}
-
 				if (i < n) {
-					if (str[i] == '.') {
+					if (str[i] == 'e' || str[i] == 'E') {
 						i++;
 						bEmpty = sl_true;
-						FLOAT weight = (FLOAT)(0.1);
+						sl_bool bMinuxExp = sl_false;
+						FLOAT exp = 0;
+						if (i < n && (str[i] == '+' || str[i] == '-')) {
+							if (str[i] == '-') {
+								bMinuxExp = sl_true;
+							}
+							i++;
+						}
 						for (; i < n; i++) {
 							sl_uint32 c = (sl_uint32)(str[i]);
 							if (SLIB_CHAR_IS_DIGIT(c)) {
-								v = v + (c - '0') * weight;
-								weight /= 10;
+								exp = exp * 10 + (c - '0');
 								bEmpty = sl_false;
 							} else {
-								break;
+								break; // invalid character
 							}
 						}
 						if (bEmpty) {
-							return SLIB_PARSE_ERROR; // fraction number is required
+							return SLIB_PARSE_ERROR; // exponent number is required
 						}
+						if (bMinuxExp) {
+							exp = -exp;
+						}
+						v *= Math::pow((FLOAT)(10.0), exp);
 					}
-					if (i < n) {
-						if (str[i] == 'e' || str[i] == 'E') {
+				}
+			}
+			if (bMinus) {
+				v = -v;
+			}
+			if (_out) {
+				*_out = v;
+			}
+			return i;
+		}
+
+		template <class VIEW, class FLOAT>
+		static sl_bool ParseViewFloat(const VIEW& view, FLOAT* _out) noexcept
+		{
+			typename VIEW::Char* data = view.getUnsafeData();
+			sl_reg len = view.getUnsafeLength();
+			if (data && len) {
+				if (len > 0) {
+					return ParseFloat(data, 0, len, _out) == (sl_reg)len;
+				} else {
+					sl_reg ret = ParseFloat(data, 0, len, _out);
+					return ret != SLIB_PARSE_ERROR && !(data[ret]);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class CHAR>
+		static sl_reg ParseBoolean(const CHAR* str, sl_size i, sl_size n, sl_bool* _out) noexcept
+		{
+			if (i >= n) {
+				return SLIB_PARSE_ERROR;
+			}
+			sl_bool f = sl_false;
+			switch (str[i]) {
+				case '1':
+					i++;
+					f = sl_true;
+					break;
+				case '0':
+					i++;
+					f = sl_false;
+					break;
+				case 'T':
+				case 't':
+					if (i + 4 <= n) {
+						i++;
+						if (str[i] == 'R' || str[i] == 'r') {
 							i++;
-							bEmpty = sl_true;
-							sl_bool bMinuxExp = sl_false;
-							FLOAT exp = 0;
-							if (i < n && (str[i] == '+' || str[i] == '-')) {
-								if (str[i] == '-') {
-									bMinuxExp = sl_true;
-								}
+							if (str[i] == 'U' || str[i] == 'u') {
 								i++;
-							}
-							for (; i < n; i++) {
-								sl_uint32 c = (sl_uint32)(str[i]);
-								if (SLIB_CHAR_IS_DIGIT(c)) {
-									exp = exp * 10 + (c - '0');
-									bEmpty = sl_false;
-								} else {
-									break; // invalid character
+								if (str[i] == 'E' || str[i] == 'e') {
+									i++;
+									f = sl_true;
+									break;
 								}
 							}
-							if (bEmpty) {
-								return SLIB_PARSE_ERROR; // exponent number is required
-							}
-							if (bMinuxExp) {
-								exp = -exp;
-							}
-							v *= Math::pow((FLOAT)(10.0), exp);
 						}
 					}
-				}
-				if (bMinus) {
-					v = -v;
-				}
-				if (_out) {
-					*_out = v;
-				}
-				return i;
-			}
-
-			template <class VIEW, class FLOAT>
-			static sl_bool ParseViewFloat(const VIEW& view, FLOAT* _out) noexcept
-			{
-				typename VIEW::Char* data = view.getUnsafeData();
-				sl_reg len = view.getUnsafeLength();
-				if (data && len) {
-					if (len > 0) {
-						return ParseFloat(data, 0, len, _out) == (sl_reg)len;
-					} else {
-						sl_reg ret = ParseFloat(data, 0, len, _out);
-						return ret != SLIB_PARSE_ERROR && !(data[ret]);
-					}
-				}
-				return sl_false;
-			}
-
-			template <class CHAR>
-			static sl_reg ParseBoolean(const CHAR* str, sl_size i, sl_size n, sl_bool* _out) noexcept
-			{
-				if (i >= n) {
 					return SLIB_PARSE_ERROR;
-				}
-				sl_bool f = sl_false;
-				switch (str[i]) {
-					case '1':
+				case 'F':
+				case 'f':
+					if (i + 5 <= n) {
 						i++;
-						f = sl_true;
-						break;
-					case '0':
-						i++;
-						f = sl_false;
-						break;
-					case 'T':
-					case 't':
-						if (i + 4 <= n) {
+						if (str[i] == 'A' || str[i] == 'a') {
 							i++;
-							if (str[i] == 'R' || str[i] == 'r') {
+							if (str[i] == 'L' || str[i] == 'l') {
 								i++;
-								if (str[i] == 'U' || str[i] == 'u') {
+								if (str[i] == 'S' || str[i] == 's') {
 									i++;
 									if (str[i] == 'E' || str[i] == 'e') {
 										i++;
-										f = sl_true;
+										f = sl_false;
 										break;
 									}
 								}
 							}
 						}
-						return SLIB_PARSE_ERROR;
-					case 'F':
-					case 'f':
-						if (i + 5 <= n) {
-							i++;
-							if (str[i] == 'A' || str[i] == 'a') {
-								i++;
-								if (str[i] == 'L' || str[i] == 'l') {
-									i++;
-									if (str[i] == 'S' || str[i] == 's') {
-										i++;
-										if (str[i] == 'E' || str[i] == 'e') {
-											i++;
-											f = sl_false;
-											break;
-										}
-									}
-								}
-							}
-						}
-						return SLIB_PARSE_ERROR;
-					case 'Y':
-					case 'y':
+					}
+					return SLIB_PARSE_ERROR;
+				case 'Y':
+				case 'y':
+					i++;
+					if (i + 2 <= n && (str[i] == 'E' || str[i] == 'e')) {
 						i++;
-						if (i + 2 <= n && (str[i] == 'E' || str[i] == 'e')) {
+						if (str[i] == 'S' || str[i] == 's') {
 							i++;
-							if (str[i] == 'S' || str[i] == 's') {
-								i++;
-								f = sl_true;
-								break;
-							}
-						} else {
 							f = sl_true;
 							break;
 						}
-						return SLIB_PARSE_ERROR;
-					case 'N':
-					case 'n':
-						i++;
-						if (i + 1 <= n && (str[i] == 'O' || str[i] == 'o')) {
-							i++;
-						}
-						f = sl_false;
-						break;
-					default:
-						break;
-				}
-				if (i < n) {
-					CHAR c = str[i];
-					if (SLIB_CHAR_IS_C_NAME(c)) {
-						return SLIB_PARSE_ERROR;
-					}
-				}
-				if (_out) {
-					*_out = f;
-				}
-				return i;
-			}
-
-			template <class VIEW>
-			static sl_bool ParseViewBoolean(const VIEW& view, sl_bool* _out) noexcept
-			{
-				typename VIEW::Char* data = view.getUnsafeData();
-				sl_reg len = view.getUnsafeLength();
-				if (data && len) {
-					if (len > 0) {
-						return ParseBoolean(data, 0, len, _out) == (sl_reg)len;
 					} else {
-						sl_reg ret = ParseBoolean(data, 0, len, _out);
-						return ret != SLIB_PARSE_ERROR && !(data[ret]);
+						f = sl_true;
+						break;
 					}
-				}
-				return sl_false;
+					return SLIB_PARSE_ERROR;
+				case 'N':
+				case 'n':
+					i++;
+					if (i + 1 <= n && (str[i] == 'O' || str[i] == 'o')) {
+						i++;
+					}
+					f = sl_false;
+					break;
+				default:
+					break;
 			}
-
-			template <class CHAR>
-			static sl_reg ParseHexString(const CHAR* str, sl_size i, sl_size n, void* _out) noexcept
-			{
-				if (i >= n || (n & 1)) {
+			if (i < n) {
+				CHAR c = str[i];
+				if (SLIB_CHAR_IS_C_NAME(c)) {
 					return SLIB_PARSE_ERROR;
 				}
-				sl_uint8* buf = (sl_uint8*)(_out);
-				sl_size k = 0;
-				for (; i < n; i += 2) {
-					sl_uint32 v1, v2;
-					{
-						sl_uint32 ch = (sl_uint32)(str[i]);
-						if (ch >= '0' && ch <= '9') {
-							v1 = ch - '0';
-						} else if (ch >= 'A' && ch <= 'F') {
-							v1 = ch - 'A' + 10;
-						} else if (ch >= 'a' && ch <= 'f') {
-							v1 = ch - 'a' + 10;
-						} else {
-							break;
-						}
-					}
-					{
-						sl_uint32 ch = (sl_uint32)(str[i + 1]);
-						if (ch >= '0' && ch <= '9') {
-							v2 = ch - '0';
-						} else if (ch >= 'A' && ch <= 'F') {
-							v2 = ch - 'A' + 10;
-						} else if (ch >= 'a' && ch <= 'f') {
-							v2 = ch - 'a' + 10;
-						} else {
-							break;
-						}
-					}
-					buf[k++] = (sl_uint8)((v1 << 4) | v2);
-				}
-				return i;
 			}
+			if (_out) {
+				*_out = f;
+			}
+			return i;
+		}
 
-			template <class VIEW>
-			static sl_bool ParseViewHexString(const VIEW& view, void* _out) noexcept
-			{
-				typename VIEW::Char* data = view.getUnsafeData();
-				sl_reg len = view.getUnsafeLength();
-				if (data && len) {
-					if (len > 0) {
-						return ParseHexString(data, 0, len, _out) == (sl_reg)len;
+		template <class VIEW>
+		static sl_bool ParseViewBoolean(const VIEW& view, sl_bool* _out) noexcept
+		{
+			typename VIEW::Char* data = view.getUnsafeData();
+			sl_reg len = view.getUnsafeLength();
+			if (data && len) {
+				if (len > 0) {
+					return ParseBoolean(data, 0, len, _out) == (sl_reg)len;
+				} else {
+					sl_reg ret = ParseBoolean(data, 0, len, _out);
+					return ret != SLIB_PARSE_ERROR && !(data[ret]);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class CHAR>
+		static sl_reg ParseHexString(const CHAR* str, sl_size i, sl_size n, void* _out) noexcept
+		{
+			if (i >= n || (n & 1)) {
+				return SLIB_PARSE_ERROR;
+			}
+			sl_uint8* buf = (sl_uint8*)(_out);
+			sl_size k = 0;
+			for (; i < n; i += 2) {
+				sl_uint32 v1, v2;
+				{
+					sl_uint32 ch = (sl_uint32)(str[i]);
+					if (ch >= '0' && ch <= '9') {
+						v1 = ch - '0';
+					} else if (ch >= 'A' && ch <= 'F') {
+						v1 = ch - 'A' + 10;
+					} else if (ch >= 'a' && ch <= 'f') {
+						v1 = ch - 'a' + 10;
 					} else {
-						sl_reg ret = ParseHexString(data, 0, len, _out);
-						return ret != SLIB_PARSE_ERROR && !(data[ret]);
+						break;
 					}
 				}
-				return sl_false;
+				{
+					sl_uint32 ch = (sl_uint32)(str[i + 1]);
+					if (ch >= '0' && ch <= '9') {
+						v2 = ch - '0';
+					} else if (ch >= 'A' && ch <= 'F') {
+						v2 = ch - 'A' + 10;
+					} else if (ch >= 'a' && ch <= 'f') {
+						v2 = ch - 'a' + 10;
+					} else {
+						break;
+					}
+				}
+				buf[k++] = (sl_uint8)((v1 << 4) | v2);
 			}
+			return i;
+		}
 
-			template <class STRING>
-			static Memory ParseHexString(const STRING& str) noexcept
-			{
-				sl_size n;
-				typename STRING::Char* data = str.getData(n);
-				if (n > 0 && !(n & 1)) {
-					Memory mem = Memory::create(n >> 1);
-					if (mem.isNotNull()) {
-						if (ParseHexString(data, 0, n, mem.getData()) == (sl_reg)n) {
-							return mem;
-						}
+		template <class VIEW>
+		static sl_bool ParseViewHexString(const VIEW& view, void* _out) noexcept
+		{
+			typename VIEW::Char* data = view.getUnsafeData();
+			sl_reg len = view.getUnsafeLength();
+			if (data && len) {
+				if (len > 0) {
+					return ParseHexString(data, 0, len, _out) == (sl_reg)len;
+				} else {
+					sl_reg ret = ParseHexString(data, 0, len, _out);
+					return ret != SLIB_PARSE_ERROR && !(data[ret]);
+				}
+			}
+			return sl_false;
+		}
+
+		template <class STRING>
+		static Memory ParseHexString(const STRING& str) noexcept
+		{
+			sl_size n;
+			typename STRING::Char* data = str.getData(n);
+			if (n > 0 && !(n & 1)) {
+				Memory mem = Memory::create(n >> 1);
+				if (mem.isNotNull()) {
+					if (ParseHexString(data, 0, n, mem.getData()) == (sl_reg)n) {
+						return mem;
 					}
 				}
+			}
+			return sl_null;
+		}
+
+		template <class INTEGER, class CHAR>
+		static typename StringTypeFromCharType<CHAR>::Type FromInt(INTEGER _value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CHAR chGroup = sl_false, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
+		{
+			if (radix < 2 || radix > 64) {
 				return sl_null;
 			}
 
-			template <class INTEGER, class CHAR>
-			static typename StringTypeFromCharType<CHAR>::Type FromInt(INTEGER _value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CHAR chGroup = sl_false, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
-			{
-				if (radix < 2 || radix > 64) {
-					return sl_null;
-				}
+			const char* pattern = flagUpperCase && radix <= 36 ? g_conv_radix_pattern_upper : g_conv_radix_pattern_lower;
 
-				const char* pattern = flagUpperCase && radix <= 36 ? g_conv_radix_pattern_upper : g_conv_radix_pattern_lower;
+			CHAR buf[MAX_NUMBER_STR_LEN];
 
-				CHAR buf[MAX_NUMBER_STR_LEN];
+			sl_uint32 pos = MAX_NUMBER_STR_LEN;
 
-				sl_uint32 pos = MAX_NUMBER_STR_LEN;
-
-				if (minWidth < 1) {
-					minWidth = 1;
-				}
-
-				sl_bool flagMinus = sl_false;
-				typename UnsignedType<INTEGER>::Type value;
-				if (_value < 0) {
-					value = -_value;
-					flagMinus = sl_true;
-					if (flagEncloseNagtive) {
-						pos--;
-						buf[pos] = ')';
-					}
-				} else {
-					value = _value;
-				}
-
-				sl_uint32 nDigits = 0;
-				while (value || minWidth > 0) {
-					if (chGroup) {
-						if (nDigits > 0) {
-							if (pos > 0) {
-								if (!(nDigits % 3)) {
-									pos--;
-									buf[pos] = chGroup;
-								}
-							} else {
-								break;
-							}
-						}
-					}
-					if (pos > 0) {
-						pos--;
-						buf[pos] = pattern[value % radix];
-						value = value / radix;
-						if (minWidth > 0) {
-							minWidth--;
-						}
-						nDigits++;
-					} else {
-						break;
-					}
-				}
-
-				if (flagMinus) {
-					if (pos > 0) {
-						pos--;
-						buf[pos] = '-';
-						if (flagEncloseNagtive) {
-							if (pos > 0) {
-								pos--;
-								buf[pos] = '(';
-							}
-						}
-					}
-				} else {
-					if (flagSignPositive) {
-						if (pos > 0) {
-							pos--;
-							buf[pos] = '+';
-						}
-					}
-					if (flagLeadingSpacePositive) {
-						if (pos > 0) {
-							pos--;
-							buf[pos] = ' ';
-						}
-					}
-				}
-				return typename StringTypeFromCharType<CHAR>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
+			if (minWidth < 1) {
+				minWidth = 1;
 			}
 
-			template <class INTEGER, class CHAR>
-			static typename StringTypeFromCharType<CHAR>::Type FromUint(INTEGER value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CHAR chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false) noexcept
-			{
-				if (radix < 2 || radix > 64) {
-					return sl_null;
+			sl_bool flagMinus = sl_false;
+			typename UnsignedType<INTEGER>::Type value;
+			if (_value < 0) {
+				value = -_value;
+				flagMinus = sl_true;
+				if (flagEncloseNagtive) {
+					pos--;
+					buf[pos] = ')';
 				}
+			} else {
+				value = _value;
+			}
 
-				const char* pattern = flagUpperCase && radix <= 36 ? g_conv_radix_pattern_upper : g_conv_radix_pattern_lower;
-
-				CHAR buf[MAX_NUMBER_STR_LEN];
-
-				sl_uint32 pos = MAX_NUMBER_STR_LEN;
-
-				if (minWidth < 1) {
-					minWidth = 1;
-				}
-
-				sl_uint32 nDigits = 0;
-				while (value || minWidth > 0) {
-					if (chGroup) {
-						if (nDigits > 0) {
-							if (pos > 0) {
-								if (!(nDigits % 3)) {
-									pos--;
-									buf[pos] = chGroup;
-								}
-							} else {
-								break;
+			sl_uint32 nDigits = 0;
+			while (value || minWidth > 0) {
+				if (chGroup) {
+					if (nDigits > 0) {
+						if (pos > 0) {
+							if (!(nDigits % 3)) {
+								pos--;
+								buf[pos] = chGroup;
 							}
+						} else {
+							break;
 						}
-					}
-					if (pos > 0) {
-						pos--;
-						buf[pos] = pattern[value % radix];
-						value = value / radix;
-						if (minWidth > 0) {
-							minWidth--;
-						}
-						nDigits++;
-					} else {
-						break;
 					}
 				}
+				if (pos > 0) {
+					pos--;
+					buf[pos] = pattern[value % radix];
+					value = value / radix;
+					if (minWidth > 0) {
+						minWidth--;
+					}
+					nDigits++;
+				} else {
+					break;
+				}
+			}
 
+			if (flagMinus) {
+				if (pos > 0) {
+					pos--;
+					buf[pos] = '-';
+					if (flagEncloseNagtive) {
+						if (pos > 0) {
+							pos--;
+							buf[pos] = '(';
+						}
+					}
+				}
+			} else {
 				if (flagSignPositive) {
 					if (pos > 0) {
 						pos--;
@@ -3425,737 +3369,794 @@ namespace slib
 						buf[pos] = ' ';
 					}
 				}
+			}
+			return typename StringTypeFromCharType<CHAR>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
+		}
 
-				return typename StringTypeFromCharType<CHAR>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
+		template <class INTEGER, class CHAR>
+		static typename StringTypeFromCharType<CHAR>::Type FromUint(INTEGER value, sl_uint32 radix, sl_uint32 minWidth, sl_bool flagUpperCase, CHAR chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false) noexcept
+		{
+			if (radix < 2 || radix > 64) {
+				return sl_null;
 			}
 
-			template <class FLOAT, class CHAR>
-			static typename StringTypeFromCharType<CHAR>::Type FromFloat(FLOAT value, sl_int32 precision, sl_bool flagZeroPadding, sl_int32 minWidthIntegral, CHAR chConv = 'g', CHAR chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
-			{
+			const char* pattern = flagUpperCase && radix <= 36 ? g_conv_radix_pattern_upper : g_conv_radix_pattern_lower;
 
-				CHAR buf[MAX_NUMBER_STR_LEN];
+			CHAR buf[MAX_NUMBER_STR_LEN];
 
-				if (Math::isNaN(value)) {
-					static CHAR s[] = { 'N', 'a', 'N', 0 };
-					return StringTypeFromCharType<CHAR>::Type::fromStatic(s);
-				}
-				if (Math::isPositiveInfinite(value)) {
-					static CHAR s[] = { 'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0 };
-					return StringTypeFromCharType<CHAR>::Type::fromStatic(s);
-				}
-				if (Math::isNegativeInfinite(value)) {
-					static CHAR s[] = { '-', 'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0 };
-					return StringTypeFromCharType<CHAR>::Type::fromStatic(s);
-				}
+			sl_uint32 pos = MAX_NUMBER_STR_LEN;
 
-				if (minWidthIntegral > MAX_PRECISION) {
-					minWidthIntegral = MAX_PRECISION;
-				}
-				if (precision > MAX_PRECISION) {
-					precision = MAX_PRECISION;
-				}
-				if (precision <= 0) {
-					flagZeroPadding = sl_false;
-				}
+			if (minWidth < 1) {
+				minWidth = 1;
+			}
 
-				if (!value) {
-					sl_uint32 pos = 0;
-					if (flagLeadingSpacePositive) {
-						buf[pos++] = ' ';
-					}
-					if (flagSignPositive) {
-						buf[pos++] = '+';
-					}
-					for (sl_int32 i = 0; i < minWidthIntegral; i++) {
-						if (chGroup) {
-							if (i > 0) {
-								if (!((minWidthIntegral - i) % 3)) {
-									buf[pos++] = chGroup;
-								}
-							}
-						}
-						buf[pos++] = '0';
-					}
-					if (precision != 0) {
-						buf[pos++] = '.';
-						if (flagZeroPadding) {
-							for (sl_int32 k = 0; k < precision; k++) {
-								buf[pos++] = '0';
+			sl_uint32 nDigits = 0;
+			while (value || minWidth > 0) {
+				if (chGroup) {
+					if (nDigits > 0) {
+						if (pos > 0) {
+							if (!(nDigits % 3)) {
+								pos--;
+								buf[pos] = chGroup;
 							}
 						} else {
+							break;
+						}
+					}
+				}
+				if (pos > 0) {
+					pos--;
+					buf[pos] = pattern[value % radix];
+					value = value / radix;
+					if (minWidth > 0) {
+						minWidth--;
+					}
+					nDigits++;
+				} else {
+					break;
+				}
+			}
+
+			if (flagSignPositive) {
+				if (pos > 0) {
+					pos--;
+					buf[pos] = '+';
+				}
+			}
+			if (flagLeadingSpacePositive) {
+				if (pos > 0) {
+					pos--;
+					buf[pos] = ' ';
+				}
+			}
+
+			return typename StringTypeFromCharType<CHAR>::Type(buf + pos, MAX_NUMBER_STR_LEN - pos);
+		}
+
+		template <class FLOAT, class CHAR>
+		static typename StringTypeFromCharType<CHAR>::Type FromFloat(FLOAT value, sl_int32 precision, sl_bool flagZeroPadding, sl_int32 minWidthIntegral, CHAR chConv = 'g', CHAR chGroup = 0, sl_bool flagSignPositive = sl_false, sl_bool flagLeadingSpacePositive = sl_false, sl_bool flagEncloseNagtive = sl_false) noexcept
+		{
+
+			CHAR buf[MAX_NUMBER_STR_LEN];
+
+			if (Math::isNaN(value)) {
+				static CHAR s[] = { 'N', 'a', 'N', 0 };
+				return StringTypeFromCharType<CHAR>::Type::fromStatic(s);
+			}
+			if (Math::isPositiveInfinite(value)) {
+				static CHAR s[] = { 'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0 };
+				return StringTypeFromCharType<CHAR>::Type::fromStatic(s);
+			}
+			if (Math::isNegativeInfinite(value)) {
+				static CHAR s[] = { '-', 'I', 'n', 'f', 'i', 'n', 'i', 't', 'y', 0 };
+				return StringTypeFromCharType<CHAR>::Type::fromStatic(s);
+			}
+
+			if (minWidthIntegral > MAX_PRECISION) {
+				minWidthIntegral = MAX_PRECISION;
+			}
+			if (precision > MAX_PRECISION) {
+				precision = MAX_PRECISION;
+			}
+			if (precision <= 0) {
+				flagZeroPadding = sl_false;
+			}
+
+			if (!value) {
+				sl_uint32 pos = 0;
+				if (flagLeadingSpacePositive) {
+					buf[pos++] = ' ';
+				}
+				if (flagSignPositive) {
+					buf[pos++] = '+';
+				}
+				for (sl_int32 i = 0; i < minWidthIntegral; i++) {
+					if (chGroup) {
+						if (i > 0) {
+							if (!((minWidthIntegral - i) % 3)) {
+								buf[pos++] = chGroup;
+							}
+						}
+					}
+					buf[pos++] = '0';
+				}
+				if (precision != 0) {
+					buf[pos++] = '.';
+					if (flagZeroPadding) {
+						for (sl_int32 k = 0; k < precision; k++) {
 							buf[pos++] = '0';
 						}
-					}
-					return typename StringTypeFromCharType<CHAR>::Type(buf, pos);
-				}
-
-				CHAR* str = buf;
-				CHAR* str_last = buf + MAX_NUMBER_STR_LEN - MAX_PRECISION;
-
-				sl_int32 flagMinus;
-				if (value < 0) {
-					flagMinus = 1;
-					value = -value;
-					if (flagEncloseNagtive) {
-						*(str++) = '(';
-					}
-					*(str++) = '-';
-				} else {
-					flagMinus = 0;
-					if (flagLeadingSpacePositive) {
-						*(str++) = ' ';
-					}
-					if (flagSignPositive) {
-						*(str++) = '+';
-					}
-				}
-
-				sl_int32 nExp;
-				sl_int32 nInt;
-				if (chConv == 'f') {
-					nInt = (sl_int32)(Math::log10(value));
-					nExp = 0;
-				} else if (chConv == 'e' || chConv == 'E') {
-					nInt = minWidthIntegral - 1;
-					nExp = (sl_int32)(Math::log10(value));
-				} else {
-					nInt = (sl_int32)(Math::log10(value));
-					nExp = 0;
-					if (nInt >= 15) { // use exp
-						nExp = nInt;
-						nInt = 0;
-					}
-					if (nInt < -15) { // use exp
-						nExp = nInt - 1;
-						nInt = 0;
-					}
-				}
-
-				if (nExp != 0) {
-					value = value / Math::pow((FLOAT)10, (FLOAT)(nExp));
-				}
-
-				FLOAT min_value;
-				if (precision < 0) {
-					if (sizeof(FLOAT) == 4) {
-						precision = 5 - nInt;
 					} else {
-						precision = 15 - nInt;
-					}
-					if (precision < 1) {
-						precision = 1;
-					} else if (precision > 50) {
-						precision = 50;
+						buf[pos++] = '0';
 					}
 				}
-				min_value = Math::pow((FLOAT)10, (FLOAT)(-precision));
-				value += min_value / 3;
-				if (flagZeroPadding) {
-					min_value = 0;
-				}
-
-				if (nInt < minWidthIntegral - 1) {
-					nInt = minWidthIntegral - 1;
-				}
-				FLOAT weight = 1;
-				if (nInt != 0) {
-					weight = Math::pow((FLOAT)10, (FLOAT)nInt);
-				}
-				while (str < str_last && nInt >= -precision && (nInt >= 0 || value >= min_value)) {
-					if (nInt == -1) {
-						if (value >= min_value) {
-							*(str++) = '.';
-						} else {
-							break;
-						}
-					}
-					if (weight > 0 && !(Math::isInfinite(weight))) {
-						sl_int32 digit = (sl_int32)(value / weight);
-						if (digit < 0) {
-							digit = 0;
-						}
-						if (digit > 9) {
-							digit = 9;
-						}
-						*(str++) = (CHAR)('0' + digit);
-						value -= (digit * weight);
-					}
-					if (chGroup) {
-						if (nInt > 0 && !(nInt % 3)) {
-							*(str++) = chGroup;
-						}
-					}
-					nInt--;
-					weight /= 10;
-				}
-				if (precision > 0) {
-					if (nInt >= -1) {
-						*(str++) = '.';
-						*(str++) = '0';
-					}
-				}
-
-				if (nExp) {
-					if (chConv == 'E' || chConv == 'G') {
-						*(str++) = 'E';
-					} else {
-						*(str++) = 'e';
-					}
-					if (nExp > 0) {
-						*(str++) = '+';
-					} else {
-						*(str++) = '-';
-						nExp = -nExp;
-					}
-					CHAR* t1 = str;
-					while (nExp > 0 && str < str_last) {
-						*(str++) = (CHAR)('0' + (nExp % 10));
-						nExp /= 10;
-					}
-					CHAR* t2 = str - 1;
-					while (t1 < t2) {
-						CHAR chTemp = *t1;
-						*t1 = *t2;
-						*t2 = chTemp;
-						t1++;
-						t2--;
-					}
-				}
-
-				if (flagMinus) {
-					if (flagEncloseNagtive) {
-						*(str++) = ')';
-					}
-				}
-
-				return typename StringTypeFromCharType<CHAR>::Type(buf, str - buf);
+				return typename StringTypeFromCharType<CHAR>::Type(buf, pos);
 			}
 
-			template <class CHAR>
-			static typename StringTypeFromCharType<CHAR>::Type MakeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
-			{
-				if (!buf || size <= 0) {
-					return sl_null;
+			CHAR* str = buf;
+			CHAR* str_last = buf + MAX_NUMBER_STR_LEN - MAX_PRECISION;
+
+			sl_int32 flagMinus;
+			if (value < 0) {
+				flagMinus = 1;
+				value = -value;
+				if (flagEncloseNagtive) {
+					*(str++) = '(';
 				}
-				typename StringTypeFromCharType<CHAR>::Type str = StringTypeFromCharType<CHAR>::Type::allocate(size * 2);
-				if (str.isEmpty()) {
-					return str;
+				*(str++) = '-';
+			} else {
+				flagMinus = 0;
+				if (flagLeadingSpacePositive) {
+					*(str++) = ' ';
 				}
-				CHAR* data = (CHAR*)(str.getData());
-				if (flagUseLowerChar) {
-					for (sl_size i = 0; i < size; i++) {
-						sl_uint8 v = ((sl_uint8*)(buf))[i];
-						data[i << 1] = g_conv_radix_pattern_lower[v >> 4];
-						data[(i << 1) + 1] = g_conv_radix_pattern_lower[v & 15];
-					}
+				if (flagSignPositive) {
+					*(str++) = '+';
+				}
+			}
+
+			sl_int32 nExp;
+			sl_int32 nInt;
+			if (chConv == 'f') {
+				nInt = (sl_int32)(Math::log10(value));
+				nExp = 0;
+			} else if (chConv == 'e' || chConv == 'E') {
+				nInt = minWidthIntegral - 1;
+				nExp = (sl_int32)(Math::log10(value));
+			} else {
+				nInt = (sl_int32)(Math::log10(value));
+				nExp = 0;
+				if (nInt >= 15) { // use exp
+					nExp = nInt;
+					nInt = 0;
+				}
+				if (nInt < -15) { // use exp
+					nExp = nInt - 1;
+					nInt = 0;
+				}
+			}
+
+			if (nExp != 0) {
+				value = value / Math::pow((FLOAT)10, (FLOAT)(nExp));
+			}
+
+			FLOAT min_value;
+			if (precision < 0) {
+				if (sizeof(FLOAT) == 4) {
+					precision = 5 - nInt;
 				} else {
-					for (sl_size i = 0; i < size; i++) {
-						sl_uint8 v = ((sl_uint8*)(buf))[i];
-						data[i << 1] = g_conv_radix_pattern_upper[v >> 4];
-						data[(i << 1) + 1] = g_conv_radix_pattern_upper[v & 15];
+					precision = 15 - nInt;
+				}
+				if (precision < 1) {
+					precision = 1;
+				} else if (precision > 50) {
+					precision = 50;
+				}
+			}
+			min_value = Math::pow((FLOAT)10, (FLOAT)(-precision));
+			value += min_value / 3;
+			if (flagZeroPadding) {
+				min_value = 0;
+			}
+
+			if (nInt < minWidthIntegral - 1) {
+				nInt = minWidthIntegral - 1;
+			}
+			FLOAT weight = 1;
+			if (nInt != 0) {
+				weight = Math::pow((FLOAT)10, (FLOAT)nInt);
+			}
+			while (str < str_last && nInt >= -precision && (nInt >= 0 || value >= min_value)) {
+				if (nInt == -1) {
+					if (value >= min_value) {
+						*(str++) = '.';
+					} else {
+						break;
 					}
 				}
+				if (weight > 0 && !(Math::isInfinite(weight))) {
+					sl_int32 digit = (sl_int32)(value / weight);
+					if (digit < 0) {
+						digit = 0;
+					}
+					if (digit > 9) {
+						digit = 9;
+					}
+					*(str++) = (CHAR)('0' + digit);
+					value -= (digit * weight);
+				}
+				if (chGroup) {
+					if (nInt > 0 && !(nInt % 3)) {
+						*(str++) = chGroup;
+					}
+				}
+				nInt--;
+				weight /= 10;
+			}
+			if (precision > 0) {
+				if (nInt >= -1) {
+					*(str++) = '.';
+					*(str++) = '0';
+				}
+			}
+
+			if (nExp) {
+				if (chConv == 'E' || chConv == 'G') {
+					*(str++) = 'E';
+				} else {
+					*(str++) = 'e';
+				}
+				if (nExp > 0) {
+					*(str++) = '+';
+				} else {
+					*(str++) = '-';
+					nExp = -nExp;
+				}
+				CHAR* t1 = str;
+				while (nExp > 0 && str < str_last) {
+					*(str++) = (CHAR)('0' + (nExp % 10));
+					nExp /= 10;
+				}
+				CHAR* t2 = str - 1;
+				while (t1 < t2) {
+					CHAR chTemp = *t1;
+					*t1 = *t2;
+					*t2 = chTemp;
+					t1++;
+					t2--;
+				}
+			}
+
+			if (flagMinus) {
+				if (flagEncloseNagtive) {
+					*(str++) = ')';
+				}
+			}
+
+			return typename StringTypeFromCharType<CHAR>::Type(buf, str - buf);
+		}
+
+		template <class CHAR>
+		static typename StringTypeFromCharType<CHAR>::Type MakeHexString(const void* buf, sl_size size, sl_bool flagUseLowerChar) noexcept
+		{
+			if (!buf || size <= 0) {
+				return sl_null;
+			}
+			typename StringTypeFromCharType<CHAR>::Type str = StringTypeFromCharType<CHAR>::Type::allocate(size * 2);
+			if (str.isEmpty()) {
 				return str;
 			}
-
-			/*
-
-				String Formatting is similar with Java Formatter
-
-				https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
-
-				%[argument_index$][flags][width][.precision]conversion
-
-			*/
-
-			template <class VIEW>
-			static typename VIEW::StringType Format(const Locale& locale, const VIEW& view, const Variant* params, sl_size nParams) noexcept
-			{
-				typedef typename VIEW::Char CHAR;
-				typedef typename VIEW::StringType STRING;
-				if (view.isNull()) {
-					return sl_null;
+			CHAR* data = (CHAR*)(str.getData());
+			if (flagUseLowerChar) {
+				for (sl_size i = 0; i < size; i++) {
+					sl_uint8 v = ((sl_uint8*)(buf))[i];
+					data[i << 1] = g_conv_radix_pattern_lower[v >> 4];
+					data[(i << 1) + 1] = g_conv_radix_pattern_lower[v & 15];
 				}
-				CHAR* format = view.getUnsafeData();
-				sl_size len = view.getUnsafeLength();
-				if (!nParams) {
-					if (len & SLIB_SIZE_TEST_SIGN_BIT) {
-						return STRING(format);
-					} else {
-						return STRING(format, len);
-					}
+			} else {
+				for (sl_size i = 0; i < size; i++) {
+					sl_uint8 v = ((sl_uint8*)(buf))[i];
+					data[i << 1] = g_conv_radix_pattern_upper[v >> 4];
+					data[(i << 1) + 1] = g_conv_radix_pattern_upper[v & 15];
 				}
-				typename StringBufferTypeFromCharType<CHAR>::Type sb;
-				sl_size pos = 0;
-				sl_size posText = 0;
-				sl_size indexArgLast = 0;
-				sl_size indexArgAuto = 0;
-				while (pos <= len) {
-					CHAR ch;
-					if (pos < len) {
-						ch = format[pos];
-					} else {
-						ch = 0;
+			}
+			return str;
+		}
+
+		/*
+
+			String Formatting is similar with Java Formatter
+
+			https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
+
+			%[argument_index$][flags][width][.precision]conversion
+
+		*/
+
+		template <class VIEW>
+		static typename VIEW::StringType Format(const Locale& locale, const VIEW& view, const Variant* params, sl_size nParams) noexcept
+		{
+			typedef typename VIEW::Char CHAR;
+			typedef typename VIEW::StringType STRING;
+			if (view.isNull()) {
+				return sl_null;
+			}
+			CHAR* format = view.getUnsafeData();
+			sl_size len = view.getUnsafeLength();
+			if (!nParams) {
+				if (len & SLIB_SIZE_TEST_SIGN_BIT) {
+					return STRING(format);
+				} else {
+					return STRING(format, len);
+				}
+			}
+			typename StringBufferTypeFromCharType<CHAR>::Type sb;
+			sl_size pos = 0;
+			sl_size posText = 0;
+			sl_size indexArgLast = 0;
+			sl_size indexArgAuto = 0;
+			while (pos <= len) {
+				CHAR ch;
+				if (pos < len) {
+					ch = format[pos];
+				} else {
+					ch = 0;
+				}
+				if (ch == '%' || !ch) {
+					sb.addStatic(format + posText, pos - posText);
+					posText = pos;
+					pos++;
+					if (pos >= len) {
+						break;
 					}
-					if (ch == '%' || !ch) {
-						sb.addStatic(format + posText, pos - posText);
-						posText = pos;
-						pos++;
-						if (pos >= len) {
-							break;
-						}
-						if (ch == '%') {
-							do {
-								ch = format[pos];
-								if (ch == '%') {
-									CHAR t = '%';
-									sb.addStatic(&t, 1);
-									pos++;
-									posText = pos;
-									break;
-								} else if (ch == 'n') {
-									CHAR t[2] = { '\r', '\n' };
-									sb.addStatic(t, 2);
-									pos++;
-									posText = pos;
-									break;
-								}
-								// Argument Index
-								sl_size indexArg;
-								if (ch == '<') {
-									indexArg = indexArgLast;
-									pos++;
+					if (ch == '%') {
+						do {
+							ch = format[pos];
+							if (ch == '%') {
+								CHAR t = '%';
+								sb.addStatic(&t, 1);
+								pos++;
+								posText = pos;
+								break;
+							} else if (ch == 'n') {
+								CHAR t[2] = { '\r', '\n' };
+								sb.addStatic(t, 2);
+								pos++;
+								posText = pos;
+								break;
+							}
+							// Argument Index
+							sl_size indexArg;
+							if (ch == '<') {
+								indexArg = indexArgLast;
+								pos++;
+							} else {
+								sl_uint32 iv;
+								sl_reg iRet = STRING::parseUint32(10, &iv, format, pos, len);
+								if (iRet == SLIB_PARSE_ERROR) {
+									indexArg = indexArgAuto;
+									indexArgAuto++;
 								} else {
-									sl_uint32 iv;
-									sl_reg iRet = STRING::parseUint32(10, &iv, format, pos, len);
-									if (iRet == SLIB_PARSE_ERROR) {
-										indexArg = indexArgAuto;
-										indexArgAuto++;
-									} else {
-										if ((sl_uint32)iRet >= len) {
-											break;
-										}
-										if (format[iRet] == '$') {
-											if (iv > 0) {
-												iv--;
-											}
-											indexArg = iv;
-											pos = iRet + 1;
-										} else {
-											indexArg = indexArgAuto;
-											indexArgAuto++;
-										}
-									}
-								}
-								if (indexArg >= nParams) {
-									indexArg = nParams - 1;
-								}
-								indexArgLast = indexArg;
-								if (pos >= len) {
-									break;
-								}
-
-								// Flags
-								sl_bool flagAlignLeft = sl_false; // '-'
-								sl_bool flagSignPositive = sl_false; // '+'
-								sl_bool flagLeadingSpacePositive = sl_false; // ' '
-								sl_bool flagZeroPadded = sl_false; // '0'
-								sl_bool flagGroupingDigits = sl_false; // ','
-								sl_bool flagEncloseNegative = sl_false; // '('
-								do {
-									ch = format[pos];
-									if (ch == '-') {
-										flagAlignLeft = sl_true;
-									} else if (ch == '+') {
-										flagSignPositive = sl_true;
-									} else if (ch == ' ') {
-										flagLeadingSpacePositive = sl_true;
-									} else if (ch == '0') {
-										flagZeroPadded = sl_true;
-									} else if (ch == ',') {
-										flagGroupingDigits = sl_true;
-									} else if (ch == '(') {
-										flagEncloseNegative = sl_true;
-									} else {
+									if ((sl_uint32)iRet >= len) {
 										break;
 									}
-									pos++;
-								} while (pos < len);
+									if (format[iRet] == '$') {
+										if (iv > 0) {
+											iv--;
+										}
+										indexArg = iv;
+										pos = iRet + 1;
+									} else {
+										indexArg = indexArgAuto;
+										indexArgAuto++;
+									}
+								}
+							}
+							if (indexArg >= nParams) {
+								indexArg = nParams - 1;
+							}
+							indexArgLast = indexArg;
+							if (pos >= len) {
+								break;
+							}
+
+							// Flags
+							sl_bool flagAlignLeft = sl_false; // '-'
+							sl_bool flagSignPositive = sl_false; // '+'
+							sl_bool flagLeadingSpacePositive = sl_false; // ' '
+							sl_bool flagZeroPadded = sl_false; // '0'
+							sl_bool flagGroupingDigits = sl_false; // ','
+							sl_bool flagEncloseNegative = sl_false; // '('
+							do {
+								ch = format[pos];
+								if (ch == '-') {
+									flagAlignLeft = sl_true;
+								} else if (ch == '+') {
+									flagSignPositive = sl_true;
+								} else if (ch == ' ') {
+									flagLeadingSpacePositive = sl_true;
+								} else if (ch == '0') {
+									flagZeroPadded = sl_true;
+								} else if (ch == ',') {
+									flagGroupingDigits = sl_true;
+								} else if (ch == '(') {
+									flagEncloseNegative = sl_true;
+								} else {
+									break;
+								}
+								pos++;
+							} while (pos < len);
+							if (pos >= len) {
+								break;
+							}
+
+							// Min-Width
+							sl_uint32 minWidth = 0;
+							sl_reg iRet = STRING::parseUint32(10, &minWidth, format, pos, len);
+							if (iRet != SLIB_PARSE_ERROR) {
+								pos = iRet;
 								if (pos >= len) {
 									break;
 								}
+							}
 
-								// Min-Width
-								sl_uint32 minWidth = 0;
-								sl_reg iRet = STRING::parseUint32(10, &minWidth, format, pos, len);
+							// Precision
+							sl_uint32 precision = 0;
+							sl_bool flagUsePrecision = sl_false;
+							if (format[pos] == '.') {
+								pos++;
+								if (pos >= len) {
+									break;
+								}
+								flagUsePrecision = sl_true;
+								iRet = STRING::parseUint32(10, &precision, format, pos, len);
 								if (iRet != SLIB_PARSE_ERROR) {
 									pos = iRet;
 									if (pos >= len) {
 										break;
 									}
 								}
+							}
 
-								// Precision
-								sl_uint32 precision = 0;
-								sl_bool flagUsePrecision = sl_false;
-								if (format[pos] == '.') {
-									pos++;
-									if (pos >= len) {
-										break;
+							// Conversion
+							ch = format[pos];
+							pos++;
+
+							const Variant& arg = params[indexArg];
+
+							sl_size lenContent = 0;
+							sl_bool flagError = sl_false;
+
+							if (arg.isTime()) {
+								const TimeZone* zone;
+								if (ch == 'u' || ch == 'U') {
+									zone = &(TimeZone::UTC());
+									if (pos < len) {
+										ch = format[pos];
+										pos++;
+									} else {
+										ch = 's';
 									}
-									flagUsePrecision = sl_true;
-									iRet = STRING::parseUint32(10, &precision, format, pos, len);
-									if (iRet != SLIB_PARSE_ERROR) {
-										pos = iRet;
-										if (pos >= len) {
-											break;
-										}
-									}
+								} else {
+									zone = &(TimeZone::Local);
 								}
-
-								// Conversion
-								ch = format[pos];
-								pos++;
-
-								const Variant& arg = params[indexArg];
-
-								sl_size lenContent = 0;
-								sl_bool flagError = sl_false;
-
-								if (arg.isTime()) {
-									const TimeZone* zone;
-									if (ch == 'u' || ch == 'U') {
-										zone = &(TimeZone::UTC());
-										if (pos < len) {
-											ch = format[pos];
-											pos++;
+								STRING content;
+								Time time = arg.getTime();
+								switch (ch) {
+									case 'y':
+										if (flagZeroPadded) {
+											if (flagZeroPadded) {
+												if (minWidth < 4) {
+													minWidth = 4;
+												}
+											}
+											content = STRING::fromInt32(time.getYear(*zone), 10, minWidth);
 										} else {
-											ch = 's';
+											content = STRING::fromInt32(time.getYear(*zone));
 										}
-									} else {
-										zone = &(TimeZone::Local);
-									}
-									STRING content;
-									Time time = arg.getTime();
-									switch (ch) {
-										case 'y':
-											if (flagZeroPadded) {
-												if (flagZeroPadded) {
-													if (minWidth < 4) {
-														minWidth = 4;
-													}
-												}
-												content = STRING::fromInt32(time.getYear(*zone), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getYear(*zone));
-											}
-											break;
-										case 'Y':
-											content = STRING::fromInt32(time.getYear(*zone) % 100, 10, 2);
-											break;
-										case 'm':
-											if (flagZeroPadded) {
-												if (flagZeroPadded) {
-													if (minWidth < 2) {
-														minWidth = 2;
-													}
-												}
-												content = STRING::fromInt32(time.getMonth(*zone), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getMonth(*zone));
-											}
-											break;
-										case 'd':
-											if (flagZeroPadded) {
-												if (flagZeroPadded) {
-													if (minWidth < 2) {
-														minWidth = 2;
-													}
-												}
-												content = STRING::fromInt32(time.getDay(*zone), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getDay(*zone));
-											}
-											break;
-										case 'w':
-											content = STRING::from(time.getWeekdayShort(*zone, locale));
-											break;
-										case 'W':
-											content = STRING::from(time.getWeekdayLong(*zone, locale));
-											break;
-										case 'H':
-											if (flagZeroPadded) {
-												if (flagZeroPadded) {
-													if (minWidth < 2) {
-														minWidth = 2;
-													}
-												}
-												content = STRING::fromInt32(time.getHour(*zone), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getHour(*zone));
-											}
-											break;
-										case 'h': // Hour-12
-											if (flagZeroPadded) {
-												if (flagZeroPadded) {
-													if (minWidth < 2) {
-														minWidth = 2;
-													}
-												}
-												content = STRING::fromInt32(time.getHour12(*zone), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getHour12(*zone));
-											}
-											break;
-										case 'a':
-											content = STRING::from(time.getAM_PM(*zone, locale));
-											break;
-										case 'M':
-											if (flagZeroPadded) {
-												if (flagZeroPadded) {
-													if (minWidth < 2) {
-														minWidth = 2;
-													}
-												}
-												content = STRING::fromInt32(time.getMinute(*zone), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getMinute(*zone));
-											}
-											break;
-										case 'S':
-											if (flagZeroPadded) {
-												if (flagZeroPadded) {
-													if (minWidth < 2) {
-														minWidth = 2;
-													}
-												}
-												content = STRING::fromInt32(time.getSecond(*zone), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getSecond(*zone));
-											}
-											break;
-										case 'l':
-											if (flagZeroPadded) {
-												content = STRING::fromInt32(time.getMillisecond(), 10, minWidth);
-											} else {
-												content = STRING::fromInt32(time.getMillisecond());
-											}
-											break;
-										case 'D':
-											content = STRING::from(time.getDateString(*zone));
-											break;
-										case 'T':
-											content = STRING::from(time.getTimeString(*zone));
-											break;
-										case 'O':
-											content = STRING::from(time.getMonthLong(*zone));
-											break;
-										case 'o':
-											content = STRING::from(time.getMonthShort(*zone));
-											break;
-										case 's':
-											content = STRING::from(time.toString(*zone));
-											break;
-										default:
-											flagError = sl_true;
-											break;
-									}
-									if (flagError) {
 										break;
-									}
-									lenContent = content.getLength();
-									if (lenContent < minWidth) {
-										if (flagAlignLeft) {
-											sb.add(content);
-											sb.add(STRING(' ', minWidth - lenContent));
+									case 'Y':
+										content = STRING::fromInt32(time.getYear(*zone) % 100, 10, 2);
+										break;
+									case 'm':
+										if (flagZeroPadded) {
+											if (flagZeroPadded) {
+												if (minWidth < 2) {
+													minWidth = 2;
+												}
+											}
+											content = STRING::fromInt32(time.getMonth(*zone), 10, minWidth);
 										} else {
-											sb.add(STRING(' ', minWidth - lenContent));
-											sb.add(content);
+											content = STRING::fromInt32(time.getMonth(*zone));
 										}
+										break;
+									case 'd':
+										if (flagZeroPadded) {
+											if (flagZeroPadded) {
+												if (minWidth < 2) {
+													minWidth = 2;
+												}
+											}
+											content = STRING::fromInt32(time.getDay(*zone), 10, minWidth);
+										} else {
+											content = STRING::fromInt32(time.getDay(*zone));
+										}
+										break;
+									case 'w':
+										content = STRING::from(time.getWeekdayShort(*zone, locale));
+										break;
+									case 'W':
+										content = STRING::from(time.getWeekdayLong(*zone, locale));
+										break;
+									case 'H':
+										if (flagZeroPadded) {
+											if (flagZeroPadded) {
+												if (minWidth < 2) {
+													minWidth = 2;
+												}
+											}
+											content = STRING::fromInt32(time.getHour(*zone), 10, minWidth);
+										} else {
+											content = STRING::fromInt32(time.getHour(*zone));
+										}
+										break;
+									case 'h': // Hour-12
+										if (flagZeroPadded) {
+											if (flagZeroPadded) {
+												if (minWidth < 2) {
+													minWidth = 2;
+												}
+											}
+											content = STRING::fromInt32(time.getHour12(*zone), 10, minWidth);
+										} else {
+											content = STRING::fromInt32(time.getHour12(*zone));
+										}
+										break;
+									case 'a':
+										content = STRING::from(time.getAM_PM(*zone, locale));
+										break;
+									case 'M':
+										if (flagZeroPadded) {
+											if (flagZeroPadded) {
+												if (minWidth < 2) {
+													minWidth = 2;
+												}
+											}
+											content = STRING::fromInt32(time.getMinute(*zone), 10, minWidth);
+										} else {
+											content = STRING::fromInt32(time.getMinute(*zone));
+										}
+										break;
+									case 'S':
+										if (flagZeroPadded) {
+											if (flagZeroPadded) {
+												if (minWidth < 2) {
+													minWidth = 2;
+												}
+											}
+											content = STRING::fromInt32(time.getSecond(*zone), 10, minWidth);
+										} else {
+											content = STRING::fromInt32(time.getSecond(*zone));
+										}
+										break;
+									case 'l':
+										if (flagZeroPadded) {
+											content = STRING::fromInt32(time.getMillisecond(), 10, minWidth);
+										} else {
+											content = STRING::fromInt32(time.getMillisecond());
+										}
+										break;
+									case 'D':
+										content = STRING::from(time.getDateString(*zone));
+										break;
+									case 'T':
+										content = STRING::from(time.getTimeString(*zone));
+										break;
+									case 'O':
+										content = STRING::from(time.getMonthLong(*zone));
+										break;
+									case 'o':
+										content = STRING::from(time.getMonthShort(*zone));
+										break;
+									case 's':
+										content = STRING::from(time.toString(*zone));
+										break;
+									default:
+										flagError = sl_true;
+										break;
+								}
+								if (flagError) {
+									break;
+								}
+								lenContent = content.getLength();
+								if (lenContent < minWidth) {
+									if (flagAlignLeft) {
+										sb.add(content);
+										sb.add(STRING(' ', minWidth - lenContent));
 									} else {
+										sb.add(STRING(' ', minWidth - lenContent));
 										sb.add(content);
 									}
 								} else {
-									switch (ch) {
-										case 's':
-											{
-												CHAR* content = sl_null;
-												sl_size lenContent = 0;
-												STRING strTemp;
-												StringRawData sd;
-												if (arg.getStringData(sd)) {
-													if (sd.charSize == sizeof(CHAR)) {
-														content = (CHAR*)(sd.data);
-														if (content) {
-															if (sd.length < 0) {
-																lenContent = StringTraits<CHAR>::getLength(content);
-															} else {
-																lenContent = sd.length;
-															}
+									sb.add(content);
+								}
+							} else {
+								switch (ch) {
+									case 's':
+										{
+											CHAR* content = sl_null;
+											sl_size lenContent = 0;
+											STRING strTemp;
+											StringRawData sd;
+											if (arg.getStringData(sd)) {
+												if (sd.charSize == sizeof(CHAR)) {
+													content = (CHAR*)(sd.data);
+													if (content) {
+														if (sd.length < 0) {
+															lenContent = StringTraits<CHAR>::getLength(content);
+														} else {
+															lenContent = sd.length;
 														}
 													}
 												}
-												if (!content) {
-													strTemp = STRING::from(arg);
-													content = strTemp.getData(lenContent);
-												}
-												if (lenContent < minWidth) {
-													if (flagAlignLeft) {
-														if (strTemp.isNotNull()) {
-															sb.add(Move(strTemp));
-														} else if (lenContent) {
-															sb.addStatic(content, lenContent);
-														}
-														sb.add(STRING(' ', minWidth - lenContent));
-													} else {
-														sb.add(STRING(' ', minWidth - lenContent));
-														if (strTemp.isNotNull()) {
-															sb.add(Move(strTemp));
-														} else if (lenContent) {
-															sb.addStatic(content, lenContent);
-														}
+											}
+											if (!content) {
+												strTemp = STRING::from(arg);
+												content = strTemp.getData(lenContent);
+											}
+											if (lenContent < minWidth) {
+												if (flagAlignLeft) {
+													if (strTemp.isNotNull()) {
+														sb.add(Move(strTemp));
+													} else if (lenContent) {
+														sb.addStatic(content, lenContent);
 													}
+													sb.add(STRING(' ', minWidth - lenContent));
 												} else {
+													sb.add(STRING(' ', minWidth - lenContent));
 													if (strTemp.isNotNull()) {
 														sb.add(Move(strTemp));
 													} else if (lenContent) {
 														sb.addStatic(content, lenContent);
 													}
 												}
-												break;
+											} else {
+												if (strTemp.isNotNull()) {
+													sb.add(Move(strTemp));
+												} else if (lenContent) {
+													sb.addStatic(content, lenContent);
+												}
 											}
-										case 'd':
-										case 'x':
-										case 'X':
-										case 'o':
-											{
-												CHAR chGroup = 0;
-												if (flagGroupingDigits) {
-													chGroup = ',';
-												}
-												sl_uint32 radix = 10;
-												sl_bool flagUpperCase = sl_false;
-												if (ch == 'x') {
-													radix = 16;
-												} else if (ch == 'X') {
-													radix = 16;
-													flagUpperCase = sl_true;
-												} else if (ch == 'o') {
-													radix = 8;
-												}
-												sl_uint32 _minWidth = 0;
-												if (flagZeroPadded) {
-													_minWidth = minWidth;
-												}
-												STRING content;
-												if (arg.isUint32()) {
-													content = FromUint<sl_uint32, CHAR>(arg.getUint32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
-												} else if (arg.isInt32()) {
-													content = FromInt<sl_int32, CHAR>(arg.getInt32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-												} else if (arg.isUint64()) {
-													content = FromUint<sl_uint64, CHAR>(arg.getUint64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
-												} else if (arg.isInt64()) {
-													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-												} else if (arg.isBigInt()) {
-													content = STRING::from(arg.getBigInt().toString(radix, flagUpperCase));
-												} else if (arg.isMemory() && radix == 16) {
-													content = STRING::makeHexString(arg.getMemory(), !flagUpperCase);
+											break;
+										}
+									case 'd':
+									case 'x':
+									case 'X':
+									case 'o':
+										{
+											CHAR chGroup = 0;
+											if (flagGroupingDigits) {
+												chGroup = ',';
+											}
+											sl_uint32 radix = 10;
+											sl_bool flagUpperCase = sl_false;
+											if (ch == 'x') {
+												radix = 16;
+											} else if (ch == 'X') {
+												radix = 16;
+												flagUpperCase = sl_true;
+											} else if (ch == 'o') {
+												radix = 8;
+											}
+											sl_uint32 _minWidth = 0;
+											if (flagZeroPadded) {
+												_minWidth = minWidth;
+											}
+											STRING content;
+											if (arg.isUint32()) {
+												content = FromUint<sl_uint32, CHAR>(arg.getUint32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
+											} else if (arg.isInt32()) {
+												content = FromInt<sl_int32, CHAR>(arg.getInt32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+											} else if (arg.isUint64()) {
+												content = FromUint<sl_uint64, CHAR>(arg.getUint64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
+											} else if (arg.isInt64()) {
+												content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+											} else if (arg.isBigInt()) {
+												content = STRING::from(arg.getBigInt().toString(radix, flagUpperCase));
+											} else if (arg.isMemory() && radix == 16) {
+												content = STRING::makeHexString(arg.getMemory(), !flagUpperCase);
+											} else {
+												content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+											}
+											lenContent = content.getLength();
+											if (lenContent < minWidth) {
+												if (flagAlignLeft) {
+													sb.add(content);
+													sb.add(STRING(' ', minWidth - lenContent));
 												} else {
-													content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-												}
-												lenContent = content.getLength();
-												if (lenContent < minWidth) {
-													if (flagAlignLeft) {
-														sb.add(content);
-														sb.add(STRING(' ', minWidth - lenContent));
-													} else {
-														sb.add(STRING(' ', minWidth - lenContent));
-														sb.add(content);
-													}
-												} else {
+													sb.add(STRING(' ', minWidth - lenContent));
 													sb.add(content);
 												}
-												break;
+											} else {
+												sb.add(content);
 											}
-										case 'f':
-										case 'e':
-										case 'E':
-										case 'g':
-										case 'G':
-											{
-												CHAR chGroup = 0;
-												if (flagGroupingDigits) {
-													chGroup = ',';
-												}
-												sl_int32 _precision = -1;
-												if (flagUsePrecision) {
-													_precision = precision;
-												}
-												STRING content;
-												if (arg.isFloat()) {
-													content = FromFloat<float, CHAR>(arg.getFloat(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+											break;
+										}
+									case 'f':
+									case 'e':
+									case 'E':
+									case 'g':
+									case 'G':
+										{
+											CHAR chGroup = 0;
+											if (flagGroupingDigits) {
+												chGroup = ',';
+											}
+											sl_int32 _precision = -1;
+											if (flagUsePrecision) {
+												_precision = precision;
+											}
+											STRING content;
+											if (arg.isFloat()) {
+												content = FromFloat<float, CHAR>(arg.getFloat(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+											} else {
+												content = FromFloat<double, CHAR>(arg.getDouble(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
+											}
+											lenContent = content.getLength();
+											if (lenContent < minWidth) {
+												if (flagAlignLeft) {
+													sb.add(content);
+													sb.add(STRING(' ', minWidth - lenContent));
 												} else {
-													content = FromFloat<double, CHAR>(arg.getDouble(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-												}
-												lenContent = content.getLength();
-												if (lenContent < minWidth) {
-													if (flagAlignLeft) {
-														sb.add(content);
-														sb.add(STRING(' ', minWidth - lenContent));
-													} else {
-														sb.add(STRING(' ', minWidth - lenContent));
-														sb.add(content);
-													}
-												} else {
+													sb.add(STRING(' ', minWidth - lenContent));
 													sb.add(content);
 												}
-												break;
+											} else {
+												sb.add(content);
 											}
-										case 'c':
-											{
-												sl_char32 unicode = (sl_char32)(arg.getUint32());
-												STRING str = STRING::create(&unicode, 1);
-												lenContent = str.getLength();
-												if (lenContent < minWidth) {
-													if (flagAlignLeft) {
-														sb.add(str);
-														sb.add(STRING(' ', minWidth - lenContent));
-													} else {
-														sb.add(STRING(' ', minWidth - lenContent));
-														sb.add(str);
-													}
+											break;
+										}
+									case 'c':
+										{
+											sl_char32 unicode = (sl_char32)(arg.getUint32());
+											STRING str = STRING::create(&unicode, 1);
+											lenContent = str.getLength();
+											if (lenContent < minWidth) {
+												if (flagAlignLeft) {
+													sb.add(str);
+													sb.add(STRING(' ', minWidth - lenContent));
 												} else {
+													sb.add(STRING(' ', minWidth - lenContent));
 													sb.add(str);
 												}
-												break;
+											} else {
+												sb.add(str);
 											}
-										default:
-											flagError = sl_true;
 											break;
-									}
-									if (flagError) {
+										}
+									default:
+										flagError = sl_true;
 										break;
-									}
 								}
-								posText = pos;
-							} while (0);
-						} else {
-							break;
-						}
+								if (flagError) {
+									break;
+								}
+							}
+							posText = pos;
+						} while (0);
 					} else {
-						pos++;
-					}
-					if (!ch) {
 						break;
 					}
+				} else {
+					pos++;
 				}
-				return sb.merge();
+				if (!ch) {
+					break;
+				}
 			}
-
+			return sb.merge();
 		}
-	}
 
-	using namespace priv::string;
+	}
 
 #define DEFINE_STRING_CONTAINER_IMPL(CONTAINER) \
 	SLIB_INLINE sl_reg CONTAINER::increaseReference() noexcept \

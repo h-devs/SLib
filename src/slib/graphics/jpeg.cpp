@@ -35,117 +35,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace jpeg
-		{
-
-			static const sl_uint8 g_tableZigzag[64] = {
-				0,  1,  5,  6,  14, 15, 27, 28,
-				2,  4,  7,  13, 16, 26, 29, 42,
-				3,  8,  12, 17, 25, 30, 41, 43,
-				9,  11, 18, 24, 31, 40, 44, 53,
-				10, 19, 23, 32, 39, 45, 52, 54,
-				20, 22, 33, 38, 46, 51, 55, 60,
-				21, 34, 37, 47, 50, 56, 59, 61,
-				35, 36, 48, 49, 57, 58, 62, 63
-			};
-
-			static const sl_uint8 g_tableDezigzag[64 + 15] = {
-				0,  1,  8, 16,  9,  2,  3, 10,
-				17, 24, 32, 25, 18, 11,  4,  5,
-				12, 19, 26, 33, 40, 48, 41, 34,
-				27, 20, 13,  6,  7, 14, 21, 28,
-				35, 42, 49, 56, 57, 50, 43, 36,
-				29, 22, 15, 23, 30, 37, 44, 51,
-				58, 59, 52, 45, 38, 31, 39, 46,
-				53, 60, 61, 54, 47, 55, 62, 63,
-				// let corrupt input sample past end
-				63, 63, 63, 63, 63, 63, 63, 63,
-				63, 63, 63, 63, 63, 63, 63
-			};
-
-			static sl_bool IsSOF(JpegMarkerCode code)
-			{
-				switch (code) {
-					case JpegMarkerCode::SOF0:
-					case JpegMarkerCode::SOF1:
-					case JpegMarkerCode::SOF2:
-					case JpegMarkerCode::SOF9:
-					case JpegMarkerCode::SOF10:
-					case JpegMarkerCode::SOF3:
-					case JpegMarkerCode::SOF5:
-					case JpegMarkerCode::SOF6:
-					case JpegMarkerCode::SOF7:
-					case JpegMarkerCode::JPG:
-					case JpegMarkerCode::SOF11:
-					case JpegMarkerCode::SOF13:
-					case JpegMarkerCode::SOF14:
-					case JpegMarkerCode::SOF15:
-						return sl_true;
-					default:
-						break;
-				}
-				return sl_false;
-			}
-
-			static sl_bool IsSupportedSOF(JpegMarkerCode code)
-			{
-				switch (code) {
-					case JpegMarkerCode::SOF0:
-					case JpegMarkerCode::SOF1:
-					case JpegMarkerCode::SOF2:
-					case JpegMarkerCode::SOF9:
-					case JpegMarkerCode::SOF10:
-						return sl_true;
-					default:
-						break;
-				}
-				return sl_false;
-			}
-
-			class EncodeContext
-			{
-			public:
-				sl_uint8 category[65535];
-				JpegHuffmanEncodeItem bitcode[65535];
-				sl_bool flagInit;
-
-			public:
-				void initialize()
-				{
-					if (flagInit) {
-						return;
-					}
-					sl_int32 lower = 1;
-					sl_int32 upper = 2;
-					for (sl_int32 cat = 1; cat <= 15; cat++) {
-						sl_int32 v;
-						for (v = lower; v < upper; v++) {
-							category[32767 + v] = cat;
-							bitcode[32767 + v].size = cat;
-							bitcode[32767 + v].code = v;
-						}
-						for (v = -(upper - 1); v <= -lower; v++) {
-							category[32767 + v] = cat;
-							bitcode[32767 + v].size = cat;
-							bitcode[32767 + v].code = upper - 1 + v;
-						}
-						lower <<= 1;
-						upper <<= 1;
-					}
-					flagInit = sl_true;
-				}
-
-			};
-			static EncodeContext g_encodeContext = { 0 };
-
-		}
-	}
-
-	using namespace priv::jpeg;
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(JpegMarker)
 
 	JpegMarker::JpegMarker():
@@ -321,6 +210,47 @@ namespace slib
 		m_flagEnd = sl_false;
 	}
 
+
+	namespace {
+		
+		class EncodeContext
+		{
+		public:
+			sl_uint8 category[65535];
+			JpegHuffmanEncodeItem bitcode[65535];
+			sl_bool flagInit;
+
+		public:
+			void initialize()
+			{
+				if (flagInit) {
+					return;
+				}
+				sl_int32 lower = 1;
+				sl_int32 upper = 2;
+				for (sl_int32 cat = 1; cat <= 15; cat++) {
+					sl_int32 v;
+					for (v = lower; v < upper; v++) {
+						category[32767 + v] = cat;
+						bitcode[32767 + v].size = cat;
+						bitcode[32767 + v].code = v;
+					}
+					for (v = -(upper - 1); v <= -lower; v++) {
+						category[32767 + v] = cat;
+						bitcode[32767 + v].size = cat;
+						bitcode[32767 + v].code = upper - 1 + v;
+					}
+					lower <<= 1;
+					upper <<= 1;
+				}
+				flagInit = sl_true;
+			}
+
+		};
+
+		static EncodeContext g_encodeContext = { 0 };
+
+	}
 
 	JpegHuffmanWriter::JpegHuffmanWriter(JpegFile* file, IWriter* writer) : m_file(file), m_writer(writer)
 	{
@@ -603,6 +533,49 @@ namespace slib
 	sl_bool JpegFile::setReader(const Ptrx<IReader, ISeekable>& reader)
 	{
 		return m_reader.setReader(reader);
+	}
+
+	namespace {
+
+		static sl_bool IsSOF(JpegMarkerCode code)
+		{
+			switch (code) {
+				case JpegMarkerCode::SOF0:
+				case JpegMarkerCode::SOF1:
+				case JpegMarkerCode::SOF2:
+				case JpegMarkerCode::SOF9:
+				case JpegMarkerCode::SOF10:
+				case JpegMarkerCode::SOF3:
+				case JpegMarkerCode::SOF5:
+				case JpegMarkerCode::SOF6:
+				case JpegMarkerCode::SOF7:
+				case JpegMarkerCode::JPG:
+				case JpegMarkerCode::SOF11:
+				case JpegMarkerCode::SOF13:
+				case JpegMarkerCode::SOF14:
+				case JpegMarkerCode::SOF15:
+					return sl_true;
+				default:
+					break;
+			}
+			return sl_false;
+		}
+
+		static sl_bool IsSupportedSOF(JpegMarkerCode code)
+		{
+			switch (code) {
+				case JpegMarkerCode::SOF0:
+				case JpegMarkerCode::SOF1:
+				case JpegMarkerCode::SOF2:
+				case JpegMarkerCode::SOF9:
+				case JpegMarkerCode::SOF10:
+					return sl_true;
+				default:
+					break;
+			}
+			return sl_false;
+		}
+
 	}
 
 	sl_bool JpegFile::readHeader()
@@ -1135,15 +1108,38 @@ namespace slib
 
 	void JpegFile::zigzag(sl_int16 input[64], sl_int16 output[64])
 	{
+		static const sl_uint8 table[64] = {
+			0,  1,  5,  6,  14, 15, 27, 28,
+			2,  4,  7,  13, 16, 26, 29, 42,
+			3,  8,  12, 17, 25, 30, 41, 43,
+			9,  11, 18, 24, 31, 40, 44, 53,
+			10, 19, 23, 32, 39, 45, 52, 54,
+			20, 22, 33, 38, 46, 51, 55, 60,
+			21, 34, 37, 47, 50, 56, 59, 61,
+			35, 36, 48, 49, 57, 58, 62, 63
+		};
 		for (sl_uint32 i = 0; i < 64; i++) {
-			output[g_tableZigzag[i]] = input[i];
+			output[table[i]] = input[i];
 		}
 	}
 
 	void JpegFile::dezigzag(sl_int16 input[64], sl_int16 output[64])
 	{
+		static const sl_uint8 table[64 + 15] = {
+			0,  1,  8, 16,  9,  2,  3, 10,
+			17, 24, 32, 25, 18, 11,  4,  5,
+			12, 19, 26, 33, 40, 48, 41, 34,
+			27, 20, 13,  6,  7, 14, 21, 28,
+			35, 42, 49, 56, 57, 50, 43, 36,
+			29, 22, 15, 23, 30, 37, 44, 51,
+			58, 59, 52, 45, 38, 31, 39, 46,
+			53, 60, 61, 54, 47, 55, 62, 63,
+			// let corrupt input sample past end
+			63, 63, 63, 63, 63, 63, 63, 63,
+			63, 63, 63, 63, 63, 63, 63
+		};
 		for (sl_uint32 i = 0; i < 64; i++) {
-			output[g_tableDezigzag[i]] = input[i];
+			output[table[i]] = input[i];
 		}
 	}
 

@@ -35,245 +35,226 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace gdi
+	namespace {
+
+		class FontStaticContext
 		{
+		public:
+			Gdiplus::Bitmap* image;
+			Gdiplus::Graphics* graphics;
+			CHashMap< String, SharedPtr<Gdiplus::PrivateFontCollection> > fontCollections;
 
-			class FontStaticContext
+		public:
+			FontStaticContext()
 			{
-			public:
-				Gdiplus::Bitmap* image;
-				Gdiplus::Graphics* graphics;
-				CHashMap< String, SharedPtr<Gdiplus::PrivateFontCollection> > fontCollections;
+				graphics = sl_null;
 
-			public:
-				FontStaticContext()
-				{
-					graphics = sl_null;
-
-					GraphicsPlatform::startGdiplus();
-					image = new Gdiplus::Bitmap(1, 1, PixelFormat24bppRGB);
-					if (image) {
-						graphics = new Gdiplus::Graphics(image);
-					}
+				GraphicsPlatform::startGdiplus();
+				image = new Gdiplus::Bitmap(1, 1, PixelFormat24bppRGB);
+				if (image) {
+					graphics = new Gdiplus::Graphics(image);
 				}
-
-				~FontStaticContext()
-				{
-					if (graphics) {
-						delete graphics;
-					}
-					if (image) {
-						delete image;
-					}
-				}
-
-			public:
-				void addCollection(const SharedPtr<Gdiplus::PrivateFontCollection>& collection)
-				{
-					INT n = collection->GetFamilyCount();
-					Gdiplus::FontFamily* families = new Gdiplus::FontFamily[n];
-					if (families) {
-						if (collection->GetFamilies(n, families, &n) == Gdiplus::Ok) {
-							for (INT i = 0; i < n; i++) {
-								WCHAR name[LF_FACESIZE];
-								if (families[i].GetFamilyName(name) == Gdiplus::Ok) {
-									fontCollections.add(String::from(name), collection);
-								}
-							}
-						}
-						delete[] families;
-					}
-				}
-			};
-
-			SLIB_SAFE_STATIC_GETTER(FontStaticContext, GetFontStaticContext)
-
-			class FontPlatformObject : public Referable
-			{
-			public:
-				Gdiplus::Font* m_fontGdiplus;
-				sl_bool m_flagCreatedGdiplus;
-
-				HFONT m_fontGDI;
-				sl_bool m_flagCreatedGDI;
-
-				SpinLock m_lock;
-
-			public:
-				FontPlatformObject()
-				{
-					m_fontGdiplus = sl_null;
-					m_flagCreatedGdiplus = sl_false;
-
-					m_fontGDI = NULL;
-					m_flagCreatedGDI = sl_false;
-				}
-
-				~FontPlatformObject()
-				{
-					if (m_fontGdiplus) {
-						delete m_fontGdiplus;
-					}
-					if (m_fontGDI) {
-						DeleteObject(m_fontGDI);
-					}
-				}
-
-			public:
-				void _createGdiplus(const FontDesc& desc)
-				{
-					if (m_flagCreatedGdiplus) {
-						return;
-					}
-
-					FontStaticContext* context = GetFontStaticContext();
-					if (!context) {
-						return;
-					}
-
-					SpinLocker lock(&m_lock);
-
-					if (m_flagCreatedGdiplus) {
-						return;
-					}
-
-					m_flagCreatedGdiplus = sl_true;
-
-					int style = 0;
-					if (desc.flagBold) {
-						style |= Gdiplus::FontStyleBold;
-					}
-					if (desc.flagItalic) {
-						style |= Gdiplus::FontStyleItalic;
-					}
-					if (desc.flagUnderline) {
-						style |= Gdiplus::FontStyleUnderline;
-					}
-					if (desc.flagStrikeout) {
-						style |= Gdiplus::FontStyleStrikeout;
-					}
-
-					StringCstr16 fontName(desc.familyName);
-
-					SharedPtr<Gdiplus::PrivateFontCollection> collection = context->fontCollections.getValue(desc.familyName);
-
-					m_fontGdiplus = new Gdiplus::Font(
-						(LPCWSTR)(fontName.getData()),
-						desc.size,
-						style,
-						Gdiplus::UnitPixel,
-						collection.get()
-					);
-
-				}
-
-				void _createGDI(const FontDesc& desc)
-				{
-					if (m_flagCreatedGDI) {
-						return;
-					}
-
-					SpinLocker lock(&m_lock);
-
-					if (m_flagCreatedGDI) {
-						return;
-					}
-
-					m_flagCreatedGDI = sl_true;
-
-					int height = -(int)(desc.size);
-					int weight;
-					if (desc.flagBold) {
-						weight = 700;
-					} else {
-						weight = 400;
-					}
-					DWORD bItalic;
-					if (desc.flagItalic) {
-						bItalic = TRUE;
-					} else {
-						bItalic = FALSE;
-					}
-					DWORD bUnderline;
-					if (desc.flagUnderline) {
-						bUnderline = TRUE;
-					} else {
-						bUnderline = FALSE;
-					}
-					DWORD bStrikeout;
-					if (desc.flagStrikeout) {
-						bStrikeout = TRUE;
-					} else {
-						bStrikeout = FALSE;
-					}
-					StringCstr16 fontName = desc.familyName;
-					HFONT hFont = CreateFontW(height, 0, 0, 0, weight, bItalic, bUnderline, bStrikeout,
-						DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-						ANTIALIASED_QUALITY,
-						DEFAULT_PITCH,
-						(LPCWSTR)(fontName.getData()));
-
-					m_fontGDI = hFont;
-
-				}
-
-			};
-
-			class FontHelper : public Font
-			{
-			public:
-				FontPlatformObject* getPlatformObject()
-				{
-					if (m_platformObject.isNull()) {
-						SpinLocker lock(&m_lock);
-						if (m_platformObject.isNull()) {
-							m_platformObject = new FontPlatformObject;
-						}
-					}
-					return (FontPlatformObject*)(m_platformObject.get());;
-				}
-
-				Gdiplus::Font* getGdiplus()
-				{
-					FontPlatformObject* po = getPlatformObject();
-					if (po) {
-						po->_createGdiplus(m_desc);
-						return po->m_fontGdiplus;
-					}
-					return sl_null;
-				}
-
-				HFONT getGDI()
-				{
-					FontPlatformObject* po = getPlatformObject();
-					if (po) {
-						po->_createGDI(m_desc);
-						return po->m_fontGDI;
-					}
-					return sl_null;
-				}
-
-			};
-
-			int CALLBACK EnumFontFamilyNamesProc(
-				const LOGFONT* plf,
-				const TEXTMETRIC *lpntme,
-				DWORD FontType,
-				LPARAM lParam
-			)
-			{
-				ENUMLOGFONTEXW& elf = *((ENUMLOGFONTEXW*)plf);
-				HashMap<String, sl_bool>& map = *((HashMap<String, sl_bool>*)lParam);
-				map.put_NoLock(String::create(elf.elfLogFont.lfFaceName), sl_true);
-				return TRUE;
 			}
 
-		}
-	}
+			~FontStaticContext()
+			{
+				if (graphics) {
+					delete graphics;
+				}
+				if (image) {
+					delete image;
+				}
+			}
 
-	using namespace priv::gdi;
+		public:
+			void addCollection(const SharedPtr<Gdiplus::PrivateFontCollection>& collection)
+			{
+				INT n = collection->GetFamilyCount();
+				Gdiplus::FontFamily* families = new Gdiplus::FontFamily[n];
+				if (families) {
+					if (collection->GetFamilies(n, families, &n) == Gdiplus::Ok) {
+						for (INT i = 0; i < n; i++) {
+							WCHAR name[LF_FACESIZE];
+							if (families[i].GetFamilyName(name) == Gdiplus::Ok) {
+								fontCollections.add(String::from(name), collection);
+							}
+						}
+					}
+					delete[] families;
+				}
+			}
+		};
+
+		SLIB_SAFE_STATIC_GETTER(FontStaticContext, GetFontStaticContext)
+
+		class FontPlatformObject : public Referable
+		{
+		public:
+			Gdiplus::Font* m_fontGdiplus;
+			sl_bool m_flagCreatedGdiplus;
+
+			HFONT m_fontGDI;
+			sl_bool m_flagCreatedGDI;
+
+			SpinLock m_lock;
+
+		public:
+			FontPlatformObject()
+			{
+				m_fontGdiplus = sl_null;
+				m_flagCreatedGdiplus = sl_false;
+
+				m_fontGDI = NULL;
+				m_flagCreatedGDI = sl_false;
+			}
+
+			~FontPlatformObject()
+			{
+				if (m_fontGdiplus) {
+					delete m_fontGdiplus;
+				}
+				if (m_fontGDI) {
+					DeleteObject(m_fontGDI);
+				}
+			}
+
+		public:
+			void _createGdiplus(const FontDesc& desc)
+			{
+				if (m_flagCreatedGdiplus) {
+					return;
+				}
+
+				FontStaticContext* context = GetFontStaticContext();
+				if (!context) {
+					return;
+				}
+
+				SpinLocker lock(&m_lock);
+
+				if (m_flagCreatedGdiplus) {
+					return;
+				}
+
+				m_flagCreatedGdiplus = sl_true;
+
+				int style = 0;
+				if (desc.flagBold) {
+					style |= Gdiplus::FontStyleBold;
+				}
+				if (desc.flagItalic) {
+					style |= Gdiplus::FontStyleItalic;
+				}
+				if (desc.flagUnderline) {
+					style |= Gdiplus::FontStyleUnderline;
+				}
+				if (desc.flagStrikeout) {
+					style |= Gdiplus::FontStyleStrikeout;
+				}
+
+				StringCstr16 fontName(desc.familyName);
+
+				SharedPtr<Gdiplus::PrivateFontCollection> collection = context->fontCollections.getValue(desc.familyName);
+
+				m_fontGdiplus = new Gdiplus::Font(
+					(LPCWSTR)(fontName.getData()),
+					desc.size,
+					style,
+					Gdiplus::UnitPixel,
+					collection.get()
+				);
+
+			}
+
+			void _createGDI(const FontDesc& desc)
+			{
+				if (m_flagCreatedGDI) {
+					return;
+				}
+
+				SpinLocker lock(&m_lock);
+
+				if (m_flagCreatedGDI) {
+					return;
+				}
+
+				m_flagCreatedGDI = sl_true;
+
+				int height = -(int)(desc.size);
+				int weight;
+				if (desc.flagBold) {
+					weight = 700;
+				} else {
+					weight = 400;
+				}
+				DWORD bItalic;
+				if (desc.flagItalic) {
+					bItalic = TRUE;
+				} else {
+					bItalic = FALSE;
+				}
+				DWORD bUnderline;
+				if (desc.flagUnderline) {
+					bUnderline = TRUE;
+				} else {
+					bUnderline = FALSE;
+				}
+				DWORD bStrikeout;
+				if (desc.flagStrikeout) {
+					bStrikeout = TRUE;
+				} else {
+					bStrikeout = FALSE;
+				}
+				StringCstr16 fontName = desc.familyName;
+				HFONT hFont = CreateFontW(height, 0, 0, 0, weight, bItalic, bUnderline, bStrikeout,
+					DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+					ANTIALIASED_QUALITY,
+					DEFAULT_PITCH,
+					(LPCWSTR)(fontName.getData()));
+
+				m_fontGDI = hFont;
+
+			}
+
+		};
+
+		class FontHelper : public Font
+		{
+		public:
+			FontPlatformObject* getPlatformObject()
+			{
+				if (m_platformObject.isNull()) {
+					SpinLocker lock(&m_lock);
+					if (m_platformObject.isNull()) {
+						m_platformObject = new FontPlatformObject;
+					}
+				}
+				return (FontPlatformObject*)(m_platformObject.get());;
+			}
+
+			Gdiplus::Font* getGdiplus()
+			{
+				FontPlatformObject* po = getPlatformObject();
+				if (po) {
+					po->_createGdiplus(m_desc);
+					return po->m_fontGdiplus;
+				}
+				return sl_null;
+			}
+
+			HFONT getGDI()
+			{
+				FontPlatformObject* po = getPlatformObject();
+				if (po) {
+					po->_createGDI(m_desc);
+					return po->m_fontGDI;
+				}
+				return sl_null;
+			}
+
+		};
+
+	}
 
 	sl_bool Font::_getFontMetrics_PO(FontMetrics& _out)
 	{
@@ -338,6 +319,21 @@ namespace slib
 			return font->getGDI();
 		}
 		return NULL;
+	}
+
+	namespace {
+		int CALLBACK EnumFontFamilyNamesProc(
+			const LOGFONT* plf,
+			const TEXTMETRIC *lpntme,
+			DWORD FontType,
+			LPARAM lParam
+		)
+		{
+			ENUMLOGFONTEXW& elf = *((ENUMLOGFONTEXW*)plf);
+			HashMap<String, sl_bool>& map = *((HashMap<String, sl_bool>*)lParam);
+			map.put_NoLock(String::create(elf.elfLogFont.lfFaceName), sl_true);
+			return TRUE;
+		}
 	}
 
 	List<String> Font::getAllFamilyNames()

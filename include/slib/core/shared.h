@@ -56,7 +56,7 @@ public: \
 public: \
 	static const Shared& null() noexcept \
 	{ \
-		return *(reinterpret_cast<Shared const*>(&(priv::shared::g_shared_null))); \
+		return *(reinterpret_cast<Shared const*>(&(priv::shared::g_null))); \
 	} \
 	SLIB_CONSTEXPR sl_bool isNull() const \
 	{ \
@@ -304,10 +304,10 @@ namespace slib
 		namespace shared
 		{
 
-			extern void* const g_shared_null;
+			extern void* const g_null;
 
 			template <class T>
-			class SharedContainer
+			class ValueContainer
 			{
 			public:
 				T value;
@@ -315,7 +315,7 @@ namespace slib
 
 			public:
 				template <class... ARGS>
-				SharedContainer(ARGS&&... args) noexcept: value(Forward<ARGS>(args)...), refCount(1) {}
+				ValueContainer(ARGS&&... args) noexcept: value(Forward<ARGS>(args)...), refCount(1) {}
 
 			public:
 				sl_reg increaseReference() noexcept
@@ -335,17 +335,17 @@ namespace slib
 			};
 
 			template <class T, sl_bool CanBeBool = __is_class(T) && (SLIB_IS_CONVERTIBLE(T, sl_bool) || SLIB_IS_CONVERTIBLE(const T&, sl_bool))>
-			class SharedContainerHelper;
+			class ValueContainerHelper;
 
 			template <class T>
-			class SharedContainerHelper<T, sl_true>
+			class ValueContainerHelper<T, sl_true>
 			{
 			public:
 				template <class VALUE>
-				static SharedContainer<T>* create(VALUE&& value)
+				static ValueContainer<T>* create(VALUE&& value)
 				{
 					if (value) {
-						return new SharedContainer<T>(Forward<VALUE>(value));
+						return new ValueContainer<T>(Forward<VALUE>(value));
 					} else {
 						return sl_null;
 					}
@@ -353,13 +353,13 @@ namespace slib
 			};
 
 			template <class T>
-			class SharedContainerHelper<T, sl_false>
+			class ValueContainerHelper<T, sl_false>
 			{
 			public:
 				template <class VALUE>
-				static SharedContainer<T>* create(VALUE&& value)
+				static ValueContainer<T>* create(VALUE&& value)
 				{
-					return new SharedContainer<T>(Forward<VALUE>(value));
+					return new ValueContainer<T>(Forward<VALUE>(value));
 				}
 			};
 
@@ -457,16 +457,16 @@ namespace slib
 	class SLIB_EXPORT Shared
 	{
 	public:
-		typedef typename priv::shared::SharedContainer<T> Container;
+		typedef typename priv::shared::ValueContainer<T> Container;
 		typedef T ValueType;
 		PRIV_SLIB_DEFINE_SHARED_CLASS_MEMBERS
 
 	public:
 		Shared(const AtomicShared<T>& other) noexcept;
 
-		Shared(const T& t) noexcept: container(priv::shared::SharedContainerHelper<ValueType>::create(t)) {}
+		Shared(const T& t) noexcept: container(priv::shared::ValueContainerHelper<ValueType>::create(t)) {}
 
-		Shared(T&& t) noexcept: container(priv::shared::SharedContainerHelper<ValueType>::create(Move(t))) {}
+		Shared(T&& t) noexcept: container(priv::shared::ValueContainerHelper<ValueType>::create(Move(t))) {}
 
 	public:
 		template <class... Args>
@@ -485,13 +485,13 @@ namespace slib
 
 		Shared& operator=(const T& other)
 		{
-			_replace(priv::shared::SharedContainerHelper<ValueType>::create(other));
+			_replace(priv::shared::ValueContainerHelper<ValueType>::create(other));
 			return *this;
 		}
 
 		Shared& operator=(T&& other)
 		{
-			_replace(priv::shared::SharedContainerHelper<ValueType>::create(Move(other)));
+			_replace(priv::shared::ValueContainerHelper<ValueType>::create(Move(other)));
 			return *this;
 		}
 
@@ -516,25 +516,25 @@ namespace slib
 	class SLIB_EXPORT Atomic< Shared<T> >
 	{
 	public:
-		typedef typename priv::shared::SharedContainer<T> Container;
+		typedef typename priv::shared::ValueContainer<T> Container;
 		typedef T ValueType;
 		PRIV_SLIB_DEFINE_ATOMIC_SHARED_CLASS_MEMBERS
 
 	public:
-		Atomic(const T& t) noexcept: _container(priv::shared::SharedContainerHelper<ValueType>::create(t)) {}
+		Atomic(const T& t) noexcept: _container(priv::shared::ValueContainerHelper<ValueType>::create(t)) {}
 
-		Atomic(T&& t) noexcept: _container(priv::shared::SharedContainerHelper<ValueType>::create(Move(t))) {}
+		Atomic(T&& t) noexcept: _container(priv::shared::ValueContainerHelper<ValueType>::create(Move(t))) {}
 
 	public:
 		Atomic& operator=(const T& other)
 		{
-			_replace(priv::shared::SharedContainerHelper<ValueType>::create(other));
+			_replace(priv::shared::ValueContainerHelper<ValueType>::create(other));
 			return *this;
 		}
 
 		Atomic& operator=(T&& other)
 		{
-			_replace(priv::shared::SharedContainerHelper<ValueType>::create(Move(other)));
+			_replace(priv::shared::ValueContainerHelper<ValueType>::create(Move(other)));
 			return *this;
 		}
 

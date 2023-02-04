@@ -27,29 +27,24 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace oauth_server
-		{
+	namespace {
 
-			SLIB_STATIC_STRING(g_string_space, " ")
+		SLIB_STATIC_STRING(g_string_space, " ")
 
-			SLIB_STATIC_STRING(g_field_tokenType, "t")
-			SLIB_STATIC_STRING(g_field_clientId, "cid")
-			SLIB_STATIC_STRING(g_field_scope, "scp")
-			SLIB_STATIC_STRING(g_field_user, "usr")
-			SLIB_STATIC_STRING(g_field_redirectUri, "dir")
-			SLIB_STATIC_STRING(g_field_codeChallenge, "cc")
-			SLIB_STATIC_STRING(g_field_codeChallengeMode, "cm")
+		SLIB_STATIC_STRING(g_field_tokenType, "t")
+		SLIB_STATIC_STRING(g_field_clientId, "cid")
+		SLIB_STATIC_STRING(g_field_scope, "scp")
+		SLIB_STATIC_STRING(g_field_user, "usr")
+		SLIB_STATIC_STRING(g_field_redirectUri, "dir")
+		SLIB_STATIC_STRING(g_field_codeChallenge, "cc")
+		SLIB_STATIC_STRING(g_field_codeChallengeMode, "cm")
 
-			SLIB_STATIC_STRING(g_tokenType_access, "access")
-			SLIB_STATIC_STRING(g_tokenType_refresh, "refresh")
-			SLIB_STATIC_STRING(g_tokenType_code, "code")
+		SLIB_STATIC_STRING(g_tokenType_access, "access")
+		SLIB_STATIC_STRING(g_tokenType_refresh, "refresh")
+		SLIB_STATIC_STRING(g_tokenType_code, "code")
 
-		}
 	}
 
-	using namespace priv::oauth_server;
 
 	SLIB_DEFINE_OBJECT(OAuthClientEntity, Object)
 

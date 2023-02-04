@@ -264,21 +264,17 @@ namespace slib
 		high = ~high;
 	}
 
-	namespace priv
-	{
-		namespace uint128
-		{
+	namespace {
 #ifdef SLIB_ARCH_IS_LITTLE_ENDIAN
-			SLIB_ALIGN(8) static const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x85ACEF8100000000), SLIB_UINT64(0x4EE2D6D415B) };
+		SLIB_ALIGN(8) static const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x85ACEF8100000000), SLIB_UINT64(0x4EE2D6D415B) };
 #else
-			SLIB_ALIGN(8) static const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x4EE2D6D415B), SLIB_UINT64(0x85ACEF8100000000) };
+		SLIB_ALIGN(8) static const sl_uint64 g_pow10_32[] = { SLIB_UINT64(0x4EE2D6D415B), SLIB_UINT64(0x85ACEF8100000000) };
 #endif
-		}
 	}
 
 	const Uint128& Uint128::pow10_32() noexcept
 	{
-		return *((Uint128*)((void*)(priv::uint128::g_pow10_32)));
+		return *((Uint128*)((void*)(g_pow10_32)));
 
 	}
 
@@ -904,54 +900,48 @@ namespace slib
 		return toString(16);
 	}
 
-	namespace priv
-	{
-		namespace uint128
+	namespace {
+		template <class CT>
+		SLIB_INLINE static sl_reg DoParse(Uint128* out, sl_uint32 radix, const CT* sz, sl_size posBegin, sl_size len) noexcept
 		{
-
-			template <class CT>
-			SLIB_INLINE static sl_reg Parse(Uint128* out, sl_uint32 radix, const CT* sz, sl_size posBegin, sl_size len) noexcept
-			{
-				if (radix < 2 || radix > 64) {
-					return SLIB_PARSE_ERROR;
-				}
-				sl_size pos = posBegin;
-				Uint128 m;
-				const sl_uint8* pattern = radix <= 36 ? priv::string::g_conv_radixInversePatternSmall : priv::string::g_conv_radixInversePatternBig;
-				if (radix == 16) {
-					for (; pos < len; pos++) {
-						sl_uint32 c = (sl_uint8)(sz[pos]);
-						sl_uint32 v = c < 128 ? pattern[c] : 255;
-						if (v >= 16) {
-							break;
-						}
-						m <<= 4;
-						m |= v;
-					}
-				} else {
-					for (; pos < len; pos++) {
-						sl_uint32 c = (sl_uint8)(sz[pos]);
-						sl_uint32 v = c < 128 ? pattern[c] : 255;
-						if (v >= radix) {
-							break;
-						}
-						m *= radix;
-						m += v;
-					}
-				}
-				if (pos == posBegin) {
-					return SLIB_PARSE_ERROR;
-				}
-				if (out) {
-					*out = m;
-				}
-				return pos;
+			if (radix < 2 || radix > 64) {
+				return SLIB_PARSE_ERROR;
 			}
-
+			sl_size pos = posBegin;
+			Uint128 m;
+			const sl_uint8* pattern = radix <= 36 ? priv::string::g_conv_radixInversePatternSmall : priv::string::g_conv_radixInversePatternBig;
+			if (radix == 16) {
+				for (; pos < len; pos++) {
+					sl_uint32 c = (sl_uint8)(sz[pos]);
+					sl_uint32 v = c < 128 ? pattern[c] : 255;
+					if (v >= 16) {
+						break;
+					}
+					m <<= 4;
+					m |= v;
+				}
+			} else {
+				for (; pos < len; pos++) {
+					sl_uint32 c = (sl_uint8)(sz[pos]);
+					sl_uint32 v = c < 128 ? pattern[c] : 255;
+					if (v >= radix) {
+						break;
+					}
+					m *= radix;
+					m += v;
+				}
+			}
+			if (pos == posBegin) {
+				return SLIB_PARSE_ERROR;
+			}
+			if (out) {
+				*out = m;
+			}
+			return pos;
 		}
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_INT_MEMBERS(Uint128, priv::uint128::Parse)
+	SLIB_DEFINE_CLASS_PARSE_INT_MEMBERS(Uint128, DoParse)
 
 
 	template <>

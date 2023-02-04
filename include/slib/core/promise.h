@@ -50,16 +50,13 @@ namespace slib
 
 	namespace priv
 	{
-		namespace promise
+		template <class T>
+		struct PromiseAllContext : public Referable
 		{
-			template <class T>
-			struct PromiseAllContext : public Referable
-			{
-				SpinLock lock;
-				List<T> results;
-				volatile sl_reg nCompleted;
-			};
-		}
+			SpinLock lock;
+			List<T> results;
+			volatile sl_reg nCompleted;
+		};
 	}
 
 	class SLIB_EXPORT CPromiseBase : public Referable
@@ -268,8 +265,8 @@ namespace slib
 			if (!n) {
 				return sl_null;
 			}
-			Ref< priv::promise::PromiseAllContext<T> > refContext = new priv::promise::PromiseAllContext<T>;
-			priv::promise::PromiseAllContext<T>* context = refContext.get();
+			Ref< priv::PromiseAllContext<T> > refContext = new priv::PromiseAllContext<T>;
+			priv::PromiseAllContext<T>* context = refContext.get();
 			context->results = List<T>::create(n);
 			if (context->results.isNull()) {
 				return sl_null;
@@ -300,8 +297,8 @@ namespace slib
 			if (!(promises.count)) {
 				return sl_null;
 			}
-			Ref< priv::promise::PromiseAllContext<T> > refContext = new priv::promise::PromiseAllContext<T>;
-			priv::promise::PromiseAllContext<T>* context = refContext.get();
+			Ref< priv::PromiseAllContext<T> > refContext = new priv::PromiseAllContext<T>;
+			priv::PromiseAllContext<T>* context = refContext.get();
 			context->results = List<T>::create(n);
 			if (context->results.isNull()) {
 				return sl_null;

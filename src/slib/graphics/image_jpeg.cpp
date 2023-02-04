@@ -38,126 +38,22 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace jpeg
+	namespace {
+
+		struct JPEG_ERROR_MGR {
+			jpeg_error_mgr pub;	/* "public" fields */
+			jmp_buf setjmp_buffer;	/* for return to caller */
+		};
+
+		static void ExitError(j_common_ptr cinfo)
 		{
-
-			struct JPEG_ERROR_MGR {
-				jpeg_error_mgr pub;	/* "public" fields */
-				jmp_buf setjmp_buffer;	/* for return to caller */
-			};
-
-			static void ExitError(j_common_ptr cinfo)
-			{
-				JPEG_ERROR_MGR* err = (JPEG_ERROR_MGR*)(cinfo->err);
-				char jpegLastErrorMsg[JMSG_LENGTH_MAX];
-				(*(cinfo->err->format_message)) (cinfo, jpegLastErrorMsg);
-				longjmp(err->setjmp_buffer, 1);
-			}
-
-			static Memory SaveJpeg(const Ref<Image>& image, float quality, sl_bool flagMonochrome)
-			{
-				if (image.isNull()) {
-					return sl_null;
-				}
-
-				jpeg_compress_struct cinfo;
-				JPEG_ERROR_MGR jerr;
-
-				cinfo.err = jpeg_std_error(&(jerr.pub));
-				jerr.pub.error_exit = ExitError;
-
-				unsigned char* buf = sl_null;
-				size_t size = 0;
-
-				jpeg_create_compress(&cinfo);
-
-				if (setjmp(jerr.setjmp_buffer)) {
-					jpeg_destroy_compress(&cinfo);
-					if (buf) {
-						free(buf);
-					}
-					return sl_null;
-				}
-
-				jpeg_mem_dest(&cinfo, &buf, &size);
-
-				sl_uint32 width = image->getWidth();
-				sl_uint32 height = image->getHeight();
-				sl_reg stride = image->getStride();
-				Color* pixels = image->getColors();
-
-				cinfo.image_width = (JDIMENSION)width;
-				cinfo.image_height = (JDIMENSION)height;
-				if (flagMonochrome) {
-					cinfo.input_components = 1;
-					cinfo.in_color_space = JCS_GRAYSCALE;
-				} else {
-					cinfo.input_components = 3;
-					cinfo.in_color_space = JCS_RGB;
-				}
-
-				jpeg_set_defaults(&cinfo);
-
-				sl_int32 q = (sl_int32)(quality * 100);
-				if (q < 0) {
-					q = 0;
-				}
-				if (q > 100) {
-					q = 100;
-				}
-				jpeg_set_quality(&cinfo, (int)q, 1 /* limit to baseline-JPEG values */);
-
-				jpeg_start_compress(&cinfo, 1);
-
-				SLIB_SCOPED_BUFFER(sl_uint8, 4096, row, width * (flagMonochrome ? 1 : 3));
-				if (row) {
-					JSAMPROW row_pointer[1];
-					row_pointer[0] = (JSAMPROW)(row);
-					if (flagMonochrome) {
-						while (cinfo.next_scanline < height) {
-							sl_uint8* p = row;
-							for (sl_uint32 i = 0; i < width; i++) {
-								*(p++) = (sl_uint8)(((sl_uint32)(pixels[i].r) + (sl_uint32)(pixels[i].g) + (sl_uint32)(pixels[i].b)) / 3);
-							}
-							jpeg_write_scanlines(&cinfo, row_pointer, 1);
-							pixels += stride;
-						}
-					} else {
-						while (cinfo.next_scanline < height) {
-							sl_uint8* p = row;
-							for (sl_uint32 i = 0; i < width; i++) {
-								*(p++) = pixels[i].r;
-								*(p++) = pixels[i].g;
-								*(p++) = pixels[i].b;
-							}
-							jpeg_write_scanlines(&cinfo, row_pointer, 1);
-							pixels += stride;
-						}
-					}
-				}
-
-				jpeg_finish_compress(&cinfo);
-
-				Memory ret;
-				if (row && buf) {
-					ret = Memory::create(buf, size);
-				}
-
-				jpeg_destroy_compress(&cinfo);
-
-				if (buf) {
-					free(buf);
-				}
-
-				return ret;
-			}
-
+			JPEG_ERROR_MGR* err = (JPEG_ERROR_MGR*)(cinfo->err);
+			char jpegLastErrorMsg[JMSG_LENGTH_MAX];
+			(*(cinfo->err->format_message)) (cinfo, jpegLastErrorMsg);
+			longjmp(err->setjmp_buffer, 1);
 		}
-	}
 
-	using namespace priv::jpeg;
+	}
 
 	Ref<Image> Image::loadJpeg(const void* content, sl_size size)
 	{
@@ -214,6 +110,108 @@ namespace slib
 		jpeg_destroy_decompress(&cinfo);
 
 		return ret;
+	}
+
+	namespace {
+
+		static Memory SaveJpeg(const Ref<Image>& image, float quality, sl_bool flagMonochrome)
+		{
+			if (image.isNull()) {
+				return sl_null;
+			}
+
+			jpeg_compress_struct cinfo;
+			JPEG_ERROR_MGR jerr;
+
+			cinfo.err = jpeg_std_error(&(jerr.pub));
+			jerr.pub.error_exit = ExitError;
+
+			unsigned char* buf = sl_null;
+			size_t size = 0;
+
+			jpeg_create_compress(&cinfo);
+
+			if (setjmp(jerr.setjmp_buffer)) {
+				jpeg_destroy_compress(&cinfo);
+				if (buf) {
+					free(buf);
+				}
+				return sl_null;
+			}
+
+			jpeg_mem_dest(&cinfo, &buf, &size);
+
+			sl_uint32 width = image->getWidth();
+			sl_uint32 height = image->getHeight();
+			sl_reg stride = image->getStride();
+			Color* pixels = image->getColors();
+
+			cinfo.image_width = (JDIMENSION)width;
+			cinfo.image_height = (JDIMENSION)height;
+			if (flagMonochrome) {
+				cinfo.input_components = 1;
+				cinfo.in_color_space = JCS_GRAYSCALE;
+			} else {
+				cinfo.input_components = 3;
+				cinfo.in_color_space = JCS_RGB;
+			}
+
+			jpeg_set_defaults(&cinfo);
+
+			sl_int32 q = (sl_int32)(quality * 100);
+			if (q < 0) {
+				q = 0;
+			}
+			if (q > 100) {
+				q = 100;
+			}
+			jpeg_set_quality(&cinfo, (int)q, 1 /* limit to baseline-JPEG values */);
+
+			jpeg_start_compress(&cinfo, 1);
+
+			SLIB_SCOPED_BUFFER(sl_uint8, 4096, row, width * (flagMonochrome ? 1 : 3));
+			if (row) {
+				JSAMPROW row_pointer[1];
+				row_pointer[0] = (JSAMPROW)(row);
+				if (flagMonochrome) {
+					while (cinfo.next_scanline < height) {
+						sl_uint8* p = row;
+						for (sl_uint32 i = 0; i < width; i++) {
+							*(p++) = (sl_uint8)(((sl_uint32)(pixels[i].r) + (sl_uint32)(pixels[i].g) + (sl_uint32)(pixels[i].b)) / 3);
+						}
+						jpeg_write_scanlines(&cinfo, row_pointer, 1);
+						pixels += stride;
+					}
+				} else {
+					while (cinfo.next_scanline < height) {
+						sl_uint8* p = row;
+						for (sl_uint32 i = 0; i < width; i++) {
+							*(p++) = pixels[i].r;
+							*(p++) = pixels[i].g;
+							*(p++) = pixels[i].b;
+						}
+						jpeg_write_scanlines(&cinfo, row_pointer, 1);
+						pixels += stride;
+					}
+				}
+			}
+
+			jpeg_finish_compress(&cinfo);
+
+			Memory ret;
+			if (row && buf) {
+				ret = Memory::create(buf, size);
+			}
+
+			jpeg_destroy_compress(&cinfo);
+
+			if (buf) {
+				free(buf);
+			}
+
+			return ret;
+		}
+
 	}
 
 	Memory Image::saveJpeg(const Ref<Image>& image, float quality)

@@ -357,24 +357,19 @@ namespace slib
 
 	namespace priv
 	{
-		namespace render_program
+		class SLIB_EXPORT RenderProgramTemplate : public RenderProgram
 		{
+		public:
+			sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state) override;
 
-			class SLIB_EXPORT RenderProgramTemplate : public RenderProgram
-			{
-			public:
-				sl_bool onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* state) override;
+			sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param) override;
 
-				sl_bool getInputLayoutParam(RenderProgramState* state, RenderInputLayoutParam& param) override;
-
-			};
-
-		}
+		};
 	}
 
 
 	template <class StateType>
-	class SLIB_EXPORT RenderProgramT : public priv::render_program::RenderProgramTemplate
+	class SLIB_EXPORT RenderProgramT : public priv::RenderProgramTemplate
 	{
 	public:
 		Ref<RenderProgramState> onCreate(RenderEngine* engine) override

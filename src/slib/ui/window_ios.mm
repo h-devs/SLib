@@ -32,20 +32,15 @@
 
 #include "view_ios.h"
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace window
-		{
-			class iOS_WindowInstance;
-		}
+namespace slib {
+	namespace {
+		class iOS_WindowInstance;
 	}
 }
 
 @interface SLIBWindowRootViewController : UIViewController
 {
-	@public slib::WeakRef<slib::priv::window::iOS_WindowInstance> m_window;
+	@public slib::WeakRef<slib::iOS_WindowInstance> m_window;
 
 	@public slib::UISize m_sizeClient;
 	@public slib::UISize m_sizeClientResizedByKeyboard;
@@ -57,336 +52,331 @@ namespace slib
 
 	namespace priv
 	{
-
 		namespace platform
 		{
 			extern UIInterfaceOrientation g_screenOrientation;
 		}
-
-		using namespace platform;
-
-		namespace window
-		{
-
-			static __weak SLIBWindowRootViewController* g_currentRootController = nil;
-			static sl_bool g_flagSetStatusBarStyle = sl_false;
-			static StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
-
-			static __weak UIScrollView* g_keyboardCurrentScrollView = nil;
-			static CGRect g_keyboardCurrentScrollViewOriginalFrame;
-
-			class iOS_WindowInstance : public WindowInstance
-			{
-			public:
-				UIView* m_window;
-				AtomicRef<ViewInstance> m_viewContent;
-
-			public:
-				iOS_WindowInstance()
-				{
-				}
-
-				~iOS_WindowInstance()
-				{
-					release();
-				}
-
-			public:
-				static Ref<iOS_WindowInstance> create(UIView* window)
-				{
-					if (window != nil) {
-						Ref<iOS_WindowInstance> ret = new iOS_WindowInstance();
-						if (ret.isNotNull()) {
-							ret->m_window = window;
-							UIView* view;
-							if ([window isKindOfClass:[UIWindow class]]) {
-								view = ((UIWindow*)window).rootViewController.view;
-							} else {
-								view = window;
-							}
-							if (view != nil) {
-								Ref<ViewInstance> content = UIPlatform::createViewInstance(view);
-								if (content.isNotNull()) {
-									content->setWindowContent(sl_true);
-									ret->m_viewContent = content;
-									if ([view isKindOfClass:[SLIBViewHandle class]]) {
-										((SLIBViewHandle*)view)->m_viewInstance = Ref<iOS_ViewInstance>::from(content);
-									}
-								}
-							}
-							UIPlatform::registerWindowInstance(window, ret.get());
-							return ret;
-						}
-					}
-					return sl_null;
-				}
-
-				static Ref<WindowInstance> create(Window* window)
-				{
-					UIRect _rect = MakeWindowFrame(window);
-					CGRect rect;
-					CGFloat f = UIPlatform::getGlobalScaleFactor();
-					rect.origin.x = (CGFloat)(_rect.left) / f;
-					rect.origin.y = (CGFloat)(_rect.top) / f;
-					rect.size.width = (CGFloat)(_rect.getWidth()) / f;
-					rect.size.height = (CGFloat)(_rect.getHeight()) / f;
-
-					UIWindow* handle;
-					sl_bool flagMainWindow = sl_false;
-					static sl_bool flagFirstWindow = sl_true;
-					if (flagFirstWindow) {
-						handle = UIPlatform::getMainWindow();
-						flagFirstWindow = sl_false;
-						flagMainWindow = sl_true;
-					} else {
-						handle = [[UIWindow alloc] initWithFrame:rect];
-					}
-					if (handle != nil) {
-						Color backColor = window->getBackgroundColor();
-						if (backColor.isNotZero()) {
-							[handle setBackgroundColor:GraphicsPlatform::getUIColorFromColor(backColor)];
-						}
-						sl_real alpha = window->getAlpha();
-						if (alpha < 0.9999f) {
-							if (alpha < 0) {
-								alpha = 0;
-							}
-							handle.alpha = alpha;
-						}
-						if (window->isAlwaysOnTop()) {
-							handle.windowLevel = UIWindowLevelAlert + 1;
-						}
-#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-						else if (!flagMainWindow) {
-							Ref<Screen> _screen = window->getScreen();
-							UIScreen* screen = UIPlatform::getScreenHandle(_screen.get());
-							if (screen != nil) {
-								handle.screen = screen;
-							}
-							handle.windowLevel = UIWindowLevelNormal + 1;
-						}
-#endif
-						SLIBWindowRootViewController* controller = [[SLIBWindowRootViewController alloc] init];
-						if (controller != nil) {
-							controller->m_sizeClient = _rect.getSize();
-							controller->m_sizeClientResizedByKeyboard = controller->m_sizeClient;
-							SLIBViewHandle* view = [[SLIBViewHandle alloc] init];
-							if (view != nil) {
-								view.opaque = NO;
-								controller.view = view;
-								handle.rootViewController = controller;
-								Ref<iOS_WindowInstance> ret = create(handle);
-								if (ret.isNotNull()) {
-									controller->m_window = ret;
-									ret->activate();
-									return ret;
-								}
-							}
-						}
-					}
-					return sl_null;
-				}
-
-				void release()
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						UIPlatform::removeWindowInstance(window);
-					}
-					if (!([window isKindOfClass:[UIWindow class]])) {
-						[window removeFromSuperview];
-					}
-					m_viewContent.setNull();
-					m_window = nil;
-				}
-
-				void close() override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							window.hidden = TRUE;
-						} else {
-							[view removeFromSuperview];
-						}
-					}
-					m_window = nil;
-					m_viewContent.setNull();
-				}
-
-				sl_bool isClosed() override
-				{
-					return m_window == nil;
-				}
-
-				void setParent(const Ref<WindowInstance>& window) override
-				{
-				}
-
-				Ref<ViewInstance> getContentView() override
-				{
-					return m_viewContent;
-				}
-
-				sl_bool getFrame(UIRect& _out) override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						CGRect rect = [window frame];
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						_out.left = (sl_ui_pos)(rect.origin.x * f);
-						_out.top = (sl_ui_pos)(rect.origin.y * f);
-						_out.right = (sl_ui_pos)((rect.origin.x + rect.size.width) * f);
-						_out.bottom = (sl_ui_pos)((rect.origin.y + rect.size.height) * f);
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void setFrame(const UIRect& frame) override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						CGFloat f = UIPlatform::getGlobalScaleFactor();
-						CGRect rect;
-						rect.origin.x = (CGFloat)(frame.left) / f;
-						rect.origin.y = (CGFloat)(frame.top) / f;
-						rect.size.width = (CGFloat)(frame.getWidth()) / f;
-						rect.size.height = (CGFloat)(frame.getHeight()) / f;
-						[window setFrame:rect];
-						if ([window isKindOfClass:[UIWindow class]]) {
-							UIViewController* controller = ((UIWindow*)window).rootViewController;
-							if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
-								UISize size = frame.getSize();
-								((SLIBWindowRootViewController*)controller)->m_sizeClient = size;
-								((SLIBWindowRootViewController*)controller)->m_sizeClientResizedByKeyboard = size;
-							}
-						}
-					}
-				}
-
-				sl_bool isActive() override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							return [window isKeyWindow];
-						} else {
-							return [view isFirstResponder];
-						}
-					}
-					return sl_false;
-				}
-
-				void activate() override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							[window makeKeyAndVisible];
-						} else {
-							[view becomeFirstResponder];
-						}
-					}
-				}
-
-				void setBackgroundColor(const Color& _color) override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						UIColor* color;
-						if (_color.isZero()) {
-							color = nil;
-						} else {
-							color = GraphicsPlatform::getUIColorFromColor(_color);
-						}
-						[window setBackgroundColor:color];
-					}
-				}
-
-				void setVisible(sl_bool flag) override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						[window setHidden:(flag ? NO : YES)];
-					}
-				}
-
-				void setAlwaysOnTop(sl_bool flag) override
-				{
-					UIView* view = m_window;
-					if (view != nil) {
-						if ([view isKindOfClass:[UIWindow class]]) {
-							UIWindow* window = (UIWindow*)view;
-							if (flag) {
-								window.windowLevel = UIWindowLevelAlert + 1;
-							} else {
-								window.windowLevel = UIWindowLevelNormal + 1;
-							}
-						}
-					}
-				}
-
-				void setAlpha(sl_real _alpha) override
-				{
-					UIView* window = m_window;
-					if (window != nil) {
-						sl_real alpha = _alpha;
-						if (alpha < 0) {
-							alpha = 0;
-						}
-						if (alpha > 1) {
-							alpha = 1;
-						}
-						window.alpha = alpha;
-					}
-				}
-
-			};
-
-			void ResetOrientation()
-			{
-#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-				g_screenOrientation = [[UIApplication sharedApplication] statusBarOrientation];
-#endif
-			}
-
-			ScreenOrientation ConvertScreenOrientation(UIInterfaceOrientation orientation)
-			{
-				switch (orientation) {
-					case UIInterfaceOrientationPortraitUpsideDown:
-						return ScreenOrientation::PortraitUpsideDown;
-					case UIInterfaceOrientationLandscapeLeft:
-						return ScreenOrientation::LandscapeLeft;
-					case UIInterfaceOrientationLandscapeRight:
-						return ScreenOrientation::LandscapeRight;
-					default:
-						return ScreenOrientation::Portrait;
-				}
-			}
-
-			UIInterfaceOrientation ConvertScreenOrientation(ScreenOrientation orientation)
-			{
-				switch (orientation) {
-					case ScreenOrientation::PortraitUpsideDown:
-						return UIInterfaceOrientationPortraitUpsideDown;
-					case ScreenOrientation::LandscapeLeft:
-						return UIInterfaceOrientationLandscapeLeft;
-					case ScreenOrientation::LandscapeRight:
-						return UIInterfaceOrientationLandscapeRight;
-					default:
-						return UIInterfaceOrientationPortrait;
-				}
-			}
-
-		}
 	}
 
 	using namespace priv::platform;
-	using namespace priv::window;
+
+	namespace {
+
+		static __weak SLIBWindowRootViewController* g_currentRootController = nil;
+		static sl_bool g_flagSetStatusBarStyle = sl_false;
+		static StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
+
+		static __weak UIScrollView* g_keyboardCurrentScrollView = nil;
+		static CGRect g_keyboardCurrentScrollViewOriginalFrame;
+
+		class iOS_WindowInstance : public WindowInstance
+		{
+		public:
+			UIView* m_window;
+			AtomicRef<ViewInstance> m_viewContent;
+
+		public:
+			iOS_WindowInstance()
+			{
+			}
+
+			~iOS_WindowInstance()
+			{
+				release();
+			}
+
+		public:
+			static Ref<iOS_WindowInstance> create(UIView* window)
+			{
+				if (window != nil) {
+					Ref<iOS_WindowInstance> ret = new iOS_WindowInstance();
+					if (ret.isNotNull()) {
+						ret->m_window = window;
+						UIView* view;
+						if ([window isKindOfClass:[UIWindow class]]) {
+							view = ((UIWindow*)window).rootViewController.view;
+						} else {
+							view = window;
+						}
+						if (view != nil) {
+							Ref<ViewInstance> content = UIPlatform::createViewInstance(view);
+							if (content.isNotNull()) {
+								content->setWindowContent(sl_true);
+								ret->m_viewContent = content;
+								if ([view isKindOfClass:[SLIBViewHandle class]]) {
+									((SLIBViewHandle*)view)->m_viewInstance = Ref<iOS_ViewInstance>::from(content);
+								}
+							}
+						}
+						UIPlatform::registerWindowInstance(window, ret.get());
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+			static Ref<WindowInstance> create(Window* window)
+			{
+				UIRect _rect = MakeWindowFrame(window);
+				CGRect rect;
+				CGFloat f = UIPlatform::getGlobalScaleFactor();
+				rect.origin.x = (CGFloat)(_rect.left) / f;
+				rect.origin.y = (CGFloat)(_rect.top) / f;
+				rect.size.width = (CGFloat)(_rect.getWidth()) / f;
+				rect.size.height = (CGFloat)(_rect.getHeight()) / f;
+
+				UIWindow* handle;
+				sl_bool flagMainWindow = sl_false;
+				static sl_bool flagFirstWindow = sl_true;
+				if (flagFirstWindow) {
+					handle = UIPlatform::getMainWindow();
+					flagFirstWindow = sl_false;
+					flagMainWindow = sl_true;
+				} else {
+					handle = [[UIWindow alloc] initWithFrame:rect];
+				}
+				if (handle != nil) {
+					Color backColor = window->getBackgroundColor();
+					if (backColor.isNotZero()) {
+						[handle setBackgroundColor:GraphicsPlatform::getUIColorFromColor(backColor)];
+					}
+					sl_real alpha = window->getAlpha();
+					if (alpha < 0.9999f) {
+						if (alpha < 0) {
+							alpha = 0;
+						}
+						handle.alpha = alpha;
+					}
+					if (window->isAlwaysOnTop()) {
+						handle.windowLevel = UIWindowLevelAlert + 1;
+					}
+#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
+					else if (!flagMainWindow) {
+						Ref<Screen> _screen = window->getScreen();
+						UIScreen* screen = UIPlatform::getScreenHandle(_screen.get());
+						if (screen != nil) {
+							handle.screen = screen;
+						}
+						handle.windowLevel = UIWindowLevelNormal + 1;
+					}
+#endif
+					SLIBWindowRootViewController* controller = [[SLIBWindowRootViewController alloc] init];
+					if (controller != nil) {
+						controller->m_sizeClient = _rect.getSize();
+						controller->m_sizeClientResizedByKeyboard = controller->m_sizeClient;
+						SLIBViewHandle* view = [[SLIBViewHandle alloc] init];
+						if (view != nil) {
+							view.opaque = NO;
+							controller.view = view;
+							handle.rootViewController = controller;
+							Ref<iOS_WindowInstance> ret = create(handle);
+							if (ret.isNotNull()) {
+								controller->m_window = ret;
+								ret->activate();
+								return ret;
+							}
+						}
+					}
+				}
+				return sl_null;
+			}
+
+			void release()
+			{
+				UIView* window = m_window;
+				if (window != nil) {
+					UIPlatform::removeWindowInstance(window);
+				}
+				if (!([window isKindOfClass:[UIWindow class]])) {
+					[window removeFromSuperview];
+				}
+				m_viewContent.setNull();
+				m_window = nil;
+			}
+
+			void close() override
+			{
+				UIView* view = m_window;
+				if (view != nil) {
+					if ([view isKindOfClass:[UIWindow class]]) {
+						UIWindow* window = (UIWindow*)view;
+						window.hidden = TRUE;
+					} else {
+						[view removeFromSuperview];
+					}
+				}
+				m_window = nil;
+				m_viewContent.setNull();
+			}
+
+			sl_bool isClosed() override
+			{
+				return m_window == nil;
+			}
+
+			void setParent(const Ref<WindowInstance>& window) override
+			{
+			}
+
+			Ref<ViewInstance> getContentView() override
+			{
+				return m_viewContent;
+			}
+
+			sl_bool getFrame(UIRect& _out) override
+			{
+				UIView* window = m_window;
+				if (window != nil) {
+					CGRect rect = [window frame];
+					CGFloat f = UIPlatform::getGlobalScaleFactor();
+					_out.left = (sl_ui_pos)(rect.origin.x * f);
+					_out.top = (sl_ui_pos)(rect.origin.y * f);
+					_out.right = (sl_ui_pos)((rect.origin.x + rect.size.width) * f);
+					_out.bottom = (sl_ui_pos)((rect.origin.y + rect.size.height) * f);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void setFrame(const UIRect& frame) override
+			{
+				UIView* window = m_window;
+				if (window != nil) {
+					CGFloat f = UIPlatform::getGlobalScaleFactor();
+					CGRect rect;
+					rect.origin.x = (CGFloat)(frame.left) / f;
+					rect.origin.y = (CGFloat)(frame.top) / f;
+					rect.size.width = (CGFloat)(frame.getWidth()) / f;
+					rect.size.height = (CGFloat)(frame.getHeight()) / f;
+					[window setFrame:rect];
+					if ([window isKindOfClass:[UIWindow class]]) {
+						UIViewController* controller = ((UIWindow*)window).rootViewController;
+						if (controller != nil && [controller isKindOfClass:[SLIBWindowRootViewController class]]) {
+							UISize size = frame.getSize();
+							((SLIBWindowRootViewController*)controller)->m_sizeClient = size;
+							((SLIBWindowRootViewController*)controller)->m_sizeClientResizedByKeyboard = size;
+						}
+					}
+				}
+			}
+
+			sl_bool isActive() override
+			{
+				UIView* view = m_window;
+				if (view != nil) {
+					if ([view isKindOfClass:[UIWindow class]]) {
+						UIWindow* window = (UIWindow*)view;
+						return [window isKeyWindow];
+					} else {
+						return [view isFirstResponder];
+					}
+				}
+				return sl_false;
+			}
+
+			void activate() override
+			{
+				UIView* view = m_window;
+				if (view != nil) {
+					if ([view isKindOfClass:[UIWindow class]]) {
+						UIWindow* window = (UIWindow*)view;
+						[window makeKeyAndVisible];
+					} else {
+						[view becomeFirstResponder];
+					}
+				}
+			}
+
+			void setBackgroundColor(const Color& _color) override
+			{
+				UIView* window = m_window;
+				if (window != nil) {
+					UIColor* color;
+					if (_color.isZero()) {
+						color = nil;
+					} else {
+						color = GraphicsPlatform::getUIColorFromColor(_color);
+					}
+					[window setBackgroundColor:color];
+				}
+			}
+
+			void setVisible(sl_bool flag) override
+			{
+				UIView* window = m_window;
+				if (window != nil) {
+					[window setHidden:(flag ? NO : YES)];
+				}
+			}
+
+			void setAlwaysOnTop(sl_bool flag) override
+			{
+				UIView* view = m_window;
+				if (view != nil) {
+					if ([view isKindOfClass:[UIWindow class]]) {
+						UIWindow* window = (UIWindow*)view;
+						if (flag) {
+							window.windowLevel = UIWindowLevelAlert + 1;
+						} else {
+							window.windowLevel = UIWindowLevelNormal + 1;
+						}
+					}
+				}
+			}
+
+			void setAlpha(sl_real _alpha) override
+			{
+				UIView* window = m_window;
+				if (window != nil) {
+					sl_real alpha = _alpha;
+					if (alpha < 0) {
+						alpha = 0;
+					}
+					if (alpha > 1) {
+						alpha = 1;
+					}
+					window.alpha = alpha;
+				}
+			}
+
+		};
+
+		void ResetOrientation()
+		{
+#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
+			g_screenOrientation = [[UIApplication sharedApplication] statusBarOrientation];
+#endif
+		}
+
+		ScreenOrientation ConvertScreenOrientation(UIInterfaceOrientation orientation)
+		{
+			switch (orientation) {
+				case UIInterfaceOrientationPortraitUpsideDown:
+					return ScreenOrientation::PortraitUpsideDown;
+				case UIInterfaceOrientationLandscapeLeft:
+					return ScreenOrientation::LandscapeLeft;
+				case UIInterfaceOrientationLandscapeRight:
+					return ScreenOrientation::LandscapeRight;
+				default:
+					return ScreenOrientation::Portrait;
+			}
+		}
+
+		UIInterfaceOrientation ConvertScreenOrientation(ScreenOrientation orientation)
+		{
+			switch (orientation) {
+				case ScreenOrientation::PortraitUpsideDown:
+					return UIInterfaceOrientationPortraitUpsideDown;
+				case ScreenOrientation::LandscapeLeft:
+					return UIInterfaceOrientationLandscapeLeft;
+				case ScreenOrientation::LandscapeRight:
+					return UIInterfaceOrientationLandscapeRight;
+				default:
+					return UIInterfaceOrientationPortrait;
+			}
+		}
+
+	}
 
 	Ref<WindowInstance> Window::createWindowInstance()
 	{
@@ -501,7 +491,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::window;
 
 @implementation SLIBWindowRootViewController
 

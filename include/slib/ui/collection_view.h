@@ -29,19 +29,12 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace collection_view
-		{
-			class ContentView;
-			class Column;
-			class FreeViewSet;
-		}
-	}
-
 	class SLIB_EXPORT CollectionView : public VerticalScrollView
 	{
 		SLIB_DECLARE_OBJECT
+
+		class Column;
+		class ContentView;
 
 	public:
 		CollectionView();
@@ -88,16 +81,16 @@ namespace slib
 
 		void _layout();
 
-		void _layoutColumn(priv::collection_view::Column* column, sl_bool flagRefresh, sl_ui_len x, sl_ui_len width);
+		void _layoutColumn(Column* column, sl_bool flagRefresh, sl_ui_len x, sl_ui_len width);
 
 		void _updateItemLayout(const Ref<View>& itemView, sl_ui_pos x, sl_ui_len widthList, sl_ui_len heightList);
 
 	protected:
-		AtomicList<priv::collection_view::Column> m_columns;
-		List<priv::collection_view::Column> m_columnsCurrent;
+		AtomicList<Column> m_columns;
+		List<Column> m_columnsCurrent;
 		sl_bool m_flagCuttingOverflowItems;
 
-		Ref<priv::collection_view::ContentView> m_contentView;
+		Ref<ContentView> m_contentView;
 		sl_bool m_flagRefreshItems;
 
 		Mutex m_lockLayout;
@@ -105,8 +98,6 @@ namespace slib
 		volatile sl_int32 m_idLayoutComplete;
 
 		sl_ui_pos m_lastScrollY;
-
-		friend class priv::collection_view::ContentView;
 
 	};
 

@@ -34,23 +34,15 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace win32_setup
-		{
-
-			typedef BOOL (WINAPI *TYPE_UpdateDriverForPlugAndPlayDevices)(
-				HWND hwndParent,
-				LPCWSTR hardwareId,
-				LPCWSTR fullInfPath,
-				DWORD installFlags,
-				PBOOL bRebootRequired
-				);
-
-		}
+	namespace {
+		typedef BOOL (WINAPI *TYPE_UpdateDriverForPlugAndPlayDevices)(
+			HWND hwndParent,
+			LPCWSTR hardwareId,
+			LPCWSTR fullInfPath,
+			DWORD installFlags,
+			PBOOL bRebootRequired
+			);
 	}
-
-	using namespace priv::win32_setup;
 
 	namespace win32
 	{

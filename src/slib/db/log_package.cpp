@@ -5,23 +5,15 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace log_package
+	namespace {
+		struct INDEX
 		{
-
-			struct INDEX
-			{
-				sl_uint8 position[8];
-				sl_uint8 size[8];
-				sl_uint8 id[8];
-				sl_uint8 reserved[8];
-			};
-
-		}
+			sl_uint8 position[8];
+			sl_uint8 size[8];
+			sl_uint8 id[8];
+			sl_uint8 reserved[8];
+		};
 	}
-
-	using namespace priv::log_package;
 
 	LogPackageAppender::LogPackageAppender()
 	{

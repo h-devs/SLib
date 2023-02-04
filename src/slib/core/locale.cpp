@@ -29,90 +29,16 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace locale
-		{
+	namespace {
 
-			static sl_uint64 g_localeUnknown = 0;
+		static sl_uint64 g_localeUnknown = 0;
 
-			static Locale g_localeCurrent = Locale::Unknown;
-			static Locale g_localeLastCurrent = Locale::Unknown;
+		static Locale g_localeCurrent = Locale::Unknown;
+		static Locale g_localeLastCurrent = Locale::Unknown;
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void()>, g_callback_onChangeCurrent)
 
-			template <class T>
-			static sl_reg Parse(Locale* _out, const T* str, sl_size i, sl_size n)
-			{
-				if (i + 1 >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-
-				if (SLIB_CHAR_IS_ALPHA_UPPER(str[i]) && SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1])) {
-					if (_out) {
-						*_out = Locale(Language::Unknown, LanguageScript::Unknown, Locale::getCountryFromCode(str));
-					}
-					return i + 2;
-				}
-
-				if (!(SLIB_CHAR_IS_ALPHA_LOWER(str[i]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 1]))) {
-					return SLIB_PARSE_ERROR;
-				}
-
-				Language language = Locale::getLanguageFromCode(str + i);
-				LanguageScript script = LanguageScript::Unknown;
-				Country country = Country::Unknown;
-
-				i += 2;
-				if (i < n) {
-					if (str[i] == '-' || str[i] == '_') {
-						i++;
-						if (i + 1 >= n) {
-							return SLIB_PARSE_ERROR;
-						}
-						if (!SLIB_CHAR_IS_ALPHA_UPPER(str[i])) {
-							return SLIB_PARSE_ERROR;
-						}
-						if (SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1])) {
-							country = Locale::getCountryFromCode(str + i);
-							i += 2;
-						} else {
-							if (i + 3 >= n) {
-								return SLIB_PARSE_ERROR;
-							}
-							if (!(SLIB_CHAR_IS_ALPHA_LOWER(str[i + 1]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 2]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 3]))) {
-								return SLIB_PARSE_ERROR;
-							}
-							script = Locale::getScriptFromCode(str + i);
-							i += 4;
-							if (i < n && (str[i] == '-' || str[i] == '_')) {
-								i++;
-								if (i + 1 >= n) {
-									return SLIB_PARSE_ERROR;
-								}
-								if (!(SLIB_CHAR_IS_ALPHA_UPPER(str[i]) && SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1]))) {
-									return SLIB_PARSE_ERROR;
-								}
-								country = Locale::getCountryFromCode(str + i);
-								i += 2;
-							}
-						}
-					}
-				}
-				if (_out) {
-					if (script == LanguageScript::Unknown) {
-						*_out = Locale(language, country);
-					} else {
-						*_out = Locale(language, script, country);
-					}
-				}
-				return i;
-			}
-
-		}
 	}
-
-	using namespace priv::locale;
 
 	const Locale& Locale::Unknown = *((Locale*)&g_localeUnknown);
 
@@ -266,7 +192,77 @@ namespace slib
 		return sl_null;
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Locale, Parse)
+	namespace {
+		template <class T>
+		static sl_reg DoParse(Locale* _out, const T* str, sl_size i, sl_size n)
+		{
+			if (i + 1 >= n) {
+				return SLIB_PARSE_ERROR;
+			}
+
+			if (SLIB_CHAR_IS_ALPHA_UPPER(str[i]) && SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1])) {
+				if (_out) {
+					*_out = Locale(Language::Unknown, LanguageScript::Unknown, Locale::getCountryFromCode(str));
+				}
+				return i + 2;
+			}
+
+			if (!(SLIB_CHAR_IS_ALPHA_LOWER(str[i]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 1]))) {
+				return SLIB_PARSE_ERROR;
+			}
+
+			Language language = Locale::getLanguageFromCode(str + i);
+			LanguageScript script = LanguageScript::Unknown;
+			Country country = Country::Unknown;
+
+			i += 2;
+			if (i < n) {
+				if (str[i] == '-' || str[i] == '_') {
+					i++;
+					if (i + 1 >= n) {
+						return SLIB_PARSE_ERROR;
+					}
+					if (!SLIB_CHAR_IS_ALPHA_UPPER(str[i])) {
+						return SLIB_PARSE_ERROR;
+					}
+					if (SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1])) {
+						country = Locale::getCountryFromCode(str + i);
+						i += 2;
+					} else {
+						if (i + 3 >= n) {
+							return SLIB_PARSE_ERROR;
+						}
+						if (!(SLIB_CHAR_IS_ALPHA_LOWER(str[i + 1]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 2]) && SLIB_CHAR_IS_ALPHA_LOWER(str[i + 3]))) {
+							return SLIB_PARSE_ERROR;
+						}
+						script = Locale::getScriptFromCode(str + i);
+						i += 4;
+						if (i < n && (str[i] == '-' || str[i] == '_')) {
+							i++;
+							if (i + 1 >= n) {
+								return SLIB_PARSE_ERROR;
+							}
+							if (!(SLIB_CHAR_IS_ALPHA_UPPER(str[i]) && SLIB_CHAR_IS_ALPHA_UPPER(str[i + 1]))) {
+								return SLIB_PARSE_ERROR;
+							}
+							country = Locale::getCountryFromCode(str + i);
+							i += 2;
+						}
+					}
+				}
+			}
+			if (_out) {
+				if (script == LanguageScript::Unknown) {
+					*_out = Locale(language, country);
+				} else {
+					*_out = Locale(language, script, country);
+				}
+			}
+			return i;
+		}
+	}
+
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Locale, DoParse)
 
 #define DEFINE_LANGUAGE_CASE(LANG, NAME) \
 	case Language::LANG: SLIB_RETURN_STRING(NAME);

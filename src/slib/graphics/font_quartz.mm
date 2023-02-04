@@ -35,121 +35,115 @@ typedef NSFontDescriptor UIFontDescriptor;
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace quartz
+	namespace {
+
+		class FontPlatformObject : public Referable
 		{
+		public:
+			UIFont* m_font;
+			sl_bool m_flagCreatedFont;
+			CGFloat m_lastUIScaleFactor;
 
-			class FontPlatformObject : public Referable
+			SpinLock m_lock;
+
+		public:
+			FontPlatformObject()
 			{
-			public:
-				UIFont* m_font;
-				sl_bool m_flagCreatedFont;
-				CGFloat m_lastUIScaleFactor;
+				m_font = nil;
+				m_flagCreatedFont = sl_false;
+				m_lastUIScaleFactor = 0;
+			}
 
-				SpinLock m_lock;
+			~FontPlatformObject()
+			{
+				m_font = nil;
+			}
 
-			public:
-				FontPlatformObject()
-				{
-					m_font = nil;
-					m_flagCreatedFont = sl_false;
-					m_lastUIScaleFactor = 0;
-				}
+		public:
+			UIFont* _createFont(const FontDesc& desc, CGFloat scaleFactor)
+			{
+				SpinLocker lock(&m_lock);
 
-				~FontPlatformObject()
-				{
-					m_font = nil;
-				}
-
-			public:
-				UIFont* _createFont(const FontDesc& desc, CGFloat scaleFactor)
-				{
-					SpinLocker lock(&m_lock);
-
-					if (m_flagCreatedFont && m_lastUIScaleFactor == scaleFactor) {
-						return m_font;
-					}
-
-					m_flagCreatedFont = sl_true;
-
-					float size = desc.size / scaleFactor;
-					NSString* familyName = Apple::getNSStringFromString(desc.familyName);
-					uint32_t traits = 0;
-					UIFontDescriptor* descriptor = [UIFontDescriptor fontDescriptorWithName:familyName size:size];
-					if (descriptor == nil) {
-						return nil;
-					}
-#if defined(SLIB_PLATFORM_IS_MACOS)
-					if (desc.flagBold) {
-						traits |= NSFontBoldTrait;
-					}
-					if (desc.flagItalic) {
-						traits |= NSFontItalicTrait;
-					}
-#else
-					if (desc.flagBold) {
-						traits |= UIFontDescriptorTraitBold;
-					}
-					if (desc.flagItalic) {
-						traits |= UIFontDescriptorTraitItalic;
-					}
-#endif
-					if (traits) {
-						UIFontDescriptor* descriptorWithTraits = [descriptor fontDescriptorWithSymbolicTraits:traits];
-						if (descriptorWithTraits != nil) {
-							descriptor = descriptorWithTraits;
-						}
-					}
-					UIFont* font = [UIFont fontWithDescriptor:descriptor size:size];
-					if (font == nil) {
-						descriptor = [UIFontDescriptor fontDescriptorWithName:@"Arial" size:size];
-						if (descriptor != nil) {
-							if (traits) {
-								UIFontDescriptor* descriptorWithTraits = [descriptor fontDescriptorWithSymbolicTraits:traits];
-								if (descriptorWithTraits != nil) {
-									descriptor = descriptorWithTraits;
-								}
-							}
-							font = [UIFont fontWithDescriptor:descriptor size:size];
-						}
-					}
-					m_font = font;
-					m_lastUIScaleFactor = scaleFactor;
+				if (m_flagCreatedFont && m_lastUIScaleFactor == scaleFactor) {
 					return m_font;
 				}
 
-			};
+				m_flagCreatedFont = sl_true;
 
-			class FontHelper : public Font
-			{
-			public:
-				FontPlatformObject* getPlatformObject()
-				{
-					if (m_platformObject.isNull()) {
-						SpinLocker lock(&m_lock);
-						if (m_platformObject.isNull()) {
-							m_platformObject = new FontPlatformObject;
-						}
-					}
-					return (FontPlatformObject*)(m_platformObject.get());;
-				}
-
-				UIFont* getFontObject(CGFloat scaleFactor)
-				{
-					FontPlatformObject* po = getPlatformObject();
-					if (po) {
-						return po->_createFont(m_desc, scaleFactor);
-					}
+				float size = desc.size / scaleFactor;
+				NSString* familyName = Apple::getNSStringFromString(desc.familyName);
+				uint32_t traits = 0;
+				UIFontDescriptor* descriptor = [UIFontDescriptor fontDescriptorWithName:familyName size:size];
+				if (descriptor == nil) {
 					return nil;
 				}
+#if defined(SLIB_PLATFORM_IS_MACOS)
+				if (desc.flagBold) {
+					traits |= NSFontBoldTrait;
+				}
+				if (desc.flagItalic) {
+					traits |= NSFontItalicTrait;
+				}
+#else
+				if (desc.flagBold) {
+					traits |= UIFontDescriptorTraitBold;
+				}
+				if (desc.flagItalic) {
+					traits |= UIFontDescriptorTraitItalic;
+				}
+#endif
+				if (traits) {
+					UIFontDescriptor* descriptorWithTraits = [descriptor fontDescriptorWithSymbolicTraits:traits];
+					if (descriptorWithTraits != nil) {
+						descriptor = descriptorWithTraits;
+					}
+				}
+				UIFont* font = [UIFont fontWithDescriptor:descriptor size:size];
+				if (font == nil) {
+					descriptor = [UIFontDescriptor fontDescriptorWithName:@"Arial" size:size];
+					if (descriptor != nil) {
+						if (traits) {
+							UIFontDescriptor* descriptorWithTraits = [descriptor fontDescriptorWithSymbolicTraits:traits];
+							if (descriptorWithTraits != nil) {
+								descriptor = descriptorWithTraits;
+							}
+						}
+						font = [UIFont fontWithDescriptor:descriptor size:size];
+					}
+				}
+				m_font = font;
+				m_lastUIScaleFactor = scaleFactor;
+				return m_font;
+			}
 
-			};
+		};
 
-		}
+		class FontHelper : public Font
+		{
+		public:
+			FontPlatformObject* getPlatformObject()
+			{
+				if (m_platformObject.isNull()) {
+					SpinLocker lock(&m_lock);
+					if (m_platformObject.isNull()) {
+						m_platformObject = new FontPlatformObject;
+					}
+				}
+				return (FontPlatformObject*)(m_platformObject.get());;
+			}
+
+			UIFont* getFontObject(CGFloat scaleFactor)
+			{
+				FontPlatformObject* po = getPlatformObject();
+				if (po) {
+					return po->_createFont(m_desc, scaleFactor);
+				}
+				return nil;
+			}
+
+		};
+
 	}
-
-	using namespace priv::quartz;
 
 	sl_bool Font::_getFontMetrics_PO(FontMetrics& _out)
 	{

@@ -62,7 +62,6 @@ namespace slib
 
 	namespace priv
 	{
-
 		void Assert(const char* msg, const char* file, sl_uint32 line) noexcept
 		{
 #if defined(SLIB_DEBUG)
@@ -73,57 +72,54 @@ namespace slib
 #endif
 #endif
 		}
+	}
 
-		namespace system
-		{
+	namespace {
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
-			static volatile double g_signal_fpe_dummy = 0.0f;
+		static volatile double g_signal_fpe_dummy = 0.0f;
 #endif
 
 #if !defined(SLIB_PLATFORM_IS_ANDROID) && !defined(SLIB_PLATFORM_IS_APPLE)
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemName)
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemVersion)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemName)
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicString, g_strSystemVersion)
 
-			static void InitSystemNameAndVersion()
-			{
-				if (g_strSystemName.isNotNull()) {
-					return;
-				}
+		static void InitSystemNameAndVersion()
+		{
+			if (g_strSystemName.isNotNull()) {
+				return;
+			}
 #if defined(SLIB_PLATFORM_IS_LINUX_DESKTOP)
-				String strRelease = File::readAllTextUTF8("/etc/os-release");
-				if (strRelease.isNotEmpty()) {
-					// FIXME: parse non-quoted values such as NAME=Fedora, VERSION_ID=32
-					sl_reg indexVersion = strRelease.indexOf("VERSION_ID=\"");
-					sl_reg indexName = strRelease.indexOf("NAME=\"");
-					if (indexName > 0 && strRelease.getAt(indexName - 1) == '_') {
-						// prevent matching PRETTY_NAME, CFE_NAME, etc
-						indexName = strRelease.indexOf("NAME=\"", indexName + 1);
-					}
-					if (indexVersion >= 0 && indexName >= 0) {
-						indexVersion += 12;
-						indexName += 6;
-						sl_reg lastVersion = strRelease.indexOf('"', indexVersion);
-						sl_reg lastName = strRelease.indexOf('"', indexName);
-						if (lastVersion >= 0 && lastName >= 0) {
-							g_strSystemVersion = strRelease.substring(indexVersion, lastVersion);
-							g_strSystemName = String::concat(strRelease.substring(indexName, lastName), " ", g_strSystemVersion);
-							return;
-						}
+			String strRelease = File::readAllTextUTF8("/etc/os-release");
+			if (strRelease.isNotEmpty()) {
+				// FIXME: parse non-quoted values such as NAME=Fedora, VERSION_ID=32
+				sl_reg indexVersion = strRelease.indexOf("VERSION_ID=\"");
+				sl_reg indexName = strRelease.indexOf("NAME=\"");
+				if (indexName > 0 && strRelease.getAt(indexName - 1) == '_') {
+					// prevent matching PRETTY_NAME, CFE_NAME, etc
+					indexName = strRelease.indexOf("NAME=\"", indexName + 1);
+				}
+				if (indexVersion >= 0 && indexName >= 0) {
+					indexVersion += 12;
+					indexName += 6;
+					sl_reg lastVersion = strRelease.indexOf('"', indexVersion);
+					sl_reg lastName = strRelease.indexOf('"', indexName);
+					if (lastVersion >= 0 && lastName >= 0) {
+						g_strSystemVersion = strRelease.substring(indexVersion, lastVersion);
+						g_strSystemName = String::concat(strRelease.substring(indexName, lastName), " ", g_strSystemVersion);
+						return;
 					}
 				}
-#endif
-				utsname systemInfo;
-				uname(&systemInfo);
-				g_strSystemName = String::concat(systemInfo.sysname, " ", systemInfo.release);
-				g_strSystemVersion = systemInfo.release;
 			}
 #endif
+			utsname systemInfo;
+			uname(&systemInfo);
+			g_strSystemName = String::concat(systemInfo.sysname, " ", systemInfo.release);
+			g_strSystemVersion = systemInfo.release;
 		}
+#endif
 
 	}
-
-	using namespace priv::system;
 
 #if !defined(SLIB_PLATFORM_IS_APPLE) && !defined(SLIB_PLATFORM_IS_ANDROID)
 	String System::getApplicationPath()

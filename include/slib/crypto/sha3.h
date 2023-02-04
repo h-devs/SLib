@@ -40,8 +40,26 @@ namespace slib
 
 	namespace priv
 	{
-		namespace sha3
+
+		class SLIB_EXPORT SHA3Base
 		{
+		public:
+			SHA3Base() noexcept;
+
+			~SHA3Base();
+
+		public:
+			void start() noexcept;
+
+			void update(const void* input, sl_size n) noexcept;
+
+			void finish(void* output) noexcept;
+
+		protected:
+
+			void _updateBlock(const sl_uint8* input) noexcept;
+
+		public:
 			// bit-interleaved internal representation.
 			// This stores a 64 bit quantity in two 32 bit words: one word contains odd bits, the other even. This means 64-bit rotations are cheaper to compute.
 			struct BitInterleaved64
@@ -49,35 +67,16 @@ namespace slib
 				sl_uint32 odd, even;
 			};
 
-			class SLIB_EXPORT SHA3Base
-			{
-			public:
-				SHA3Base() noexcept;
+		protected:
+			BitInterleaved64 A[5][5]; // State Blocks for Keccak-f[1600]
+			sl_uint8 rdata[144];
+			sl_uint32 rdata_len;
+			sl_uint32 rate, nhash; // in bytes
+		};
 
-				~SHA3Base();
-
-			public:
-				void start() noexcept;
-
-				void update(const void* input, sl_size n) noexcept;
-
-				void finish(void* output) noexcept;
-
-			protected:
-
-				void _updateBlock(const sl_uint8* input) noexcept;
-
-			protected:
-				BitInterleaved64 A[5][5]; // State Blocks for Keccak-f[1600]
-				sl_uint8 rdata[144];
-				sl_uint32 rdata_len;
-				sl_uint32 rate, nhash; // in bytes
-			};
-
-		}
 	}
 
-	class SLIB_EXPORT SHA3_224 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_224>
+	class SLIB_EXPORT SHA3_224 : public priv::SHA3Base, public CryptoHash<SHA3_224>
 	{
 	public:
 		enum {
@@ -92,7 +91,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA3_256 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_256>
+	class SLIB_EXPORT SHA3_256 : public priv::SHA3Base, public CryptoHash<SHA3_256>
 	{
 	public:
 		enum {
@@ -107,7 +106,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA3_384 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_384>
+	class SLIB_EXPORT SHA3_384 : public priv::SHA3Base, public CryptoHash<SHA3_384>
 	{
 	public:
 		enum {
@@ -122,7 +121,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SHA3_512 : public priv::sha3::SHA3Base, public CryptoHash<SHA3_512>
+	class SLIB_EXPORT SHA3_512 : public priv::SHA3Base, public CryptoHash<SHA3_512>
 	{
 	public:
 		enum {

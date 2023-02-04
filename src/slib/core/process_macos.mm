@@ -32,89 +32,83 @@
 
 namespace slib
 {
-	namespace priv
-	{
-		namespace process
+	namespace {
+
+		static id g_activityDisableAppNap;
+	
+		static String FixArgument(const StringParam& arg)
 		{
-
-			static id g_activityDisableAppNap;
-        
-			static String FixArgument(const StringParam& arg)
-			{
-				String s = arg.toString();
-				s = s.removeAll('\\');
-				s = s.removeAll('"');
-				s = s.removeAll('\'');
-				if (s.contains(' ') || s.contains('\t') || s.contains('\r') || s.contains('\n')) {
-					s = String::concat("'", s, "'");
-				}
-				if (s.isEmpty()) {
-					return "''";
-				}
-				return s;
+			String s = arg.toString();
+			s = s.removeAll('\\');
+			s = s.removeAll('"');
+			s = s.removeAll('\'');
+			if (s.contains(' ') || s.contains('\t') || s.contains('\r') || s.contains('\n')) {
+				s = String::concat("'", s, "'");
 			}
+			if (s.isEmpty()) {
+				return "''";
+			}
+			return s;
+		}
 
-			static String BuildCommand(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
-			{
-				StringBuffer commandLine;
-				commandLine.add(FixArgument(pathExecutable.toString()));
-				if (nArguments > 0) {
+		static String BuildCommand(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+		{
+			StringBuffer commandLine;
+			commandLine.add(FixArgument(pathExecutable.toString()));
+			if (nArguments > 0) {
+				commandLine.addStatic(" ");
+			}
+			for (sl_size i = 0; i < nArguments; i++) {
+				if (i > 0) {
 					commandLine.addStatic(" ");
 				}
-				for (sl_size i = 0; i < nArguments; i++) {
-					if (i > 0) {
-						commandLine.addStatic(" ");
-					}
-					commandLine.add(FixArgument(arguments[i]));
-				}
-				return commandLine.merge();
+				commandLine.add(FixArgument(arguments[i]));
+			}
+			return commandLine.merge();
+		}
+
+		class TaskProcessImpl : public Process
+		{
+		public:
+			NSTask* m_task;
+
+		public:
+			void terminate() override
+			{
+				[m_task terminate];
+				m_status = ProcessStatus::Terminated;
 			}
 
-			class TaskProcessImpl : public Process
+			void kill() override
 			{
-			public:
-				NSTask* m_task;
+				terminate();
+			}
 
-			public:
-				void terminate() override
-				{
-					[m_task terminate];
-					m_status = ProcessStatus::Terminated;
+			void wait() override
+			{
+				[m_task waitUntilExit];
+				int status = [m_task terminationStatus];
+				if (!status) {
+					m_status = ProcessStatus::Exited;
+				} else {
+					m_status = ProcessStatus::Unknown;
 				}
 
-				void kill() override
-				{
-					terminate();
-				}
+			}
 
-				void wait() override
-				{
-					[m_task waitUntilExit];
-					int status = [m_task terminationStatus];
-					if (!status) {
-						m_status = ProcessStatus::Exited;
-					} else {
-						m_status = ProcessStatus::Unknown;
-					}
+			sl_bool isAlive() override
+			{
+				return [m_task isRunning];
+			}
 
-				}
+			IStream* getStream() override
+			{
+				return sl_null;
+			}
 
-				sl_bool isAlive() override
-				{
-					return [m_task isRunning];
-				}
-
-				IStream* getStream() override
-				{
-					return sl_null;
-				}
-
-			};
+		};
         
-		}
 	}
-
-	using namespace priv::process;
 
 	Ref<Process> Process::run(const StringParam& pathExecutable, const StringParam* strArguments, sl_size nArguments)
 	{

@@ -32,64 +32,58 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace graphics_path
+	namespace {
+
+		SLIB_JNI_BEGIN_CLASS(JRectF, "android/graphics/RectF")
+			SLIB_JNI_FLOAT_FIELD(left);
+			SLIB_JNI_FLOAT_FIELD(top);
+			SLIB_JNI_FLOAT_FIELD(right);
+			SLIB_JNI_FLOAT_FIELD(bottom);
+		SLIB_JNI_END_CLASS
+
+		SLIB_JNI_BEGIN_CLASS(JPath, "slib/android/ui/UiPath")
+			SLIB_JNI_NEW(init, "()V");
+			SLIB_JNI_METHOD(setFillMode, "setFillMode", "(I)V");
+			SLIB_JNI_METHOD(moveTo, "moveTo", "(FF)V");
+			SLIB_JNI_METHOD(lineTo, "lineTo", "(FF)V");
+			SLIB_JNI_METHOD(cubicTo, "cubicTo", "(FFFFFF)V");
+			SLIB_JNI_METHOD(closeSubpath, "closeSubpath", "()V");
+		SLIB_JNI_END_CLASS
+
+		class PlatformObject : public Referable
 		{
+		public:
+			JniGlobal<jobject> m_path;
 
-			SLIB_JNI_BEGIN_CLASS(JRectF, "android/graphics/RectF")
-				SLIB_JNI_FLOAT_FIELD(left);
-				SLIB_JNI_FLOAT_FIELD(top);
-				SLIB_JNI_FLOAT_FIELD(right);
-				SLIB_JNI_FLOAT_FIELD(bottom);
-			SLIB_JNI_END_CLASS
+		protected:
+			PlatformObject(JniGlobal<jobject>&& path): m_path(Move(path)) {}
 
-			SLIB_JNI_BEGIN_CLASS(JPath, "slib/android/ui/UiPath")
-				SLIB_JNI_NEW(init, "()V");
-				SLIB_JNI_METHOD(setFillMode, "setFillMode", "(I)V");
-				SLIB_JNI_METHOD(moveTo, "moveTo", "(FF)V");
-				SLIB_JNI_METHOD(lineTo, "lineTo", "(FF)V");
-				SLIB_JNI_METHOD(cubicTo, "cubicTo", "(FFFFFF)V");
-				SLIB_JNI_METHOD(closeSubpath, "closeSubpath", "()V");
-			SLIB_JNI_END_CLASS
-
-			class PlatformObject : public Referable
+		public:
+			static Ref<PlatformObject> create()
 			{
-			public:
-				JniGlobal<jobject> m_path;
-
-			protected:
-				PlatformObject(JniGlobal<jobject>&& path): m_path(Move(path)) {}
-
-			public:
-				static Ref<PlatformObject> create()
-				{
-					JniGlobal<jobject> path = JPath::init.newObject(sl_null);
-					if (path.isNotNull()) {
-						return new PlatformObject(Move(path));
-					}
-					return sl_null;
+				JniGlobal<jobject> path = JPath::init.newObject(sl_null);
+				if (path.isNotNull()) {
+					return new PlatformObject(Move(path));
 				}
-			};
+				return sl_null;
+			}
+		};
 
-			class GraphicsPathHelper : public GraphicsPath
+		class GraphicsPathHelper : public GraphicsPath
+		{
+		public:
+			jobject getPlatformPath()
 			{
-			public:
-				jobject getPlatformPath()
-				{
-					_initPlatformObject();
-					PlatformObject* po = (PlatformObject*)(m_platformObject.get());
-					if (po) {
-						return po->m_path;
-					}
-					return 0;
+				_initPlatformObject();
+				PlatformObject* po = (PlatformObject*)(m_platformObject.get());
+				if (po) {
+					return po->m_path;
 				}
-			};
+				return 0;
+			}
+		};
 
-		}
 	}
-
-	using namespace priv::graphics_path;
 
 	Ref<Referable> GraphicsPath::_createPlatformObject()
 	{

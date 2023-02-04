@@ -247,7 +247,6 @@ namespace slib
 			return find_NoLock(value) != sl_null;
 		}
 
-
 		template <class... ARGS>
 		Link<T>* pushBack_NoLock(ARGS&&... args) noexcept
 		{
@@ -283,7 +282,6 @@ namespace slib
 			}
 			return sl_true;
 		}
-
 
 		template <class VALUE>
 		sl_bool pushBackAll(const CLinkedList<VALUE>* other) noexcept
@@ -428,7 +426,6 @@ namespace slib
 				return pushFront_NoLock(Forward<ARGS>(args)...);
 			}
 		}
-
 
 		/* unsynchronized function.*/
 		Link<T>* removeAt(Link<T>* item) noexcept
@@ -765,7 +762,6 @@ namespace slib
 			m_count++;
 		}
 
-
 	};
 
 	template <class T>
@@ -975,7 +971,6 @@ namespace slib
 			return sl_false;
 		}
 
-
 		sl_bool popBack(T* _out = sl_null) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
@@ -1107,16 +1102,15 @@ namespace slib
 			return sl_null;
 		}
 
-
 		/* unsynchronized function */
-		void removeAt(Link<T>* item) const noexcept
+		Link<T>* removeAt(Link<T>* item) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
 			if (obj) {
-				obj->removeAt(item);
+				return obj->removeAt(item);
 			}
+			return sl_null;
 		}
-
 
 		sl_size removeAll_NoLock() const noexcept
 		{
@@ -1126,7 +1120,6 @@ namespace slib
 			}
 			return 0;
 		}
-
 
 		sl_size removeAll() const noexcept
 		{
@@ -1146,7 +1139,6 @@ namespace slib
 			}
 			return sl_false;
 		}
-
 
 		template < class VALUE, class EQUALS = Equals<T, VALUE> >
 		sl_bool remove(const VALUE& value, const EQUALS& equals = EQUALS()) const noexcept
@@ -1177,7 +1169,6 @@ namespace slib
 			}
 			return 0;
 		}
-
 
 		void merge_NoLock(LinkedList<T>& _other) noexcept
 		{
@@ -1225,7 +1216,6 @@ namespace slib
 			}
 		}
 
-
 		Array<T> toArray_NoLock() const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;
@@ -1234,7 +1224,6 @@ namespace slib
 			}
 			return sl_null;
 		}
-
 
 		Array<T> toArray() const noexcept
 		{
@@ -1262,7 +1251,6 @@ namespace slib
 			}
 			return sl_null;
 		}
-
 
 		LinkedList<T> duplicate_NoLock() const noexcept
 		{
@@ -1295,7 +1283,6 @@ namespace slib
 		{
 			return LinkPosition<T>();
 		}
-
 
 	};
 

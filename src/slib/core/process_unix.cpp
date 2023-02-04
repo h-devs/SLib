@@ -43,243 +43,237 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace process
-		{
+	namespace {
 
 #if !defined(SLIB_PLATFORM_IS_MOBILE)
 
-			static void Exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
-			{
-				StringCstr pathExecutable(_pathExecutable);
-				char* exe = pathExecutable.getData();
-				char* args[64];
-				StringCstr _args[60];
-				args[0] = exe;
-				if (nArguments > 60) {
-					nArguments = 60;
-				}
-				for (sl_size i = 0; i < nArguments; i++) {
-					_args[i] = arguments[i];
-					args[i+1] = _args[i].getData();
-				}
-				args[nArguments+1] = 0;
+		static void Exec(const StringParam& _pathExecutable, const StringParam* arguments, sl_size nArguments)
+		{
+			StringCstr pathExecutable(_pathExecutable);
+			char* exe = pathExecutable.getData();
+			char* args[64];
+			StringCstr _args[60];
+			args[0] = exe;
+			if (nArguments > 60) {
+				nArguments = 60;
+			}
+			for (sl_size i = 0; i < nArguments; i++) {
+				_args[i] = arguments[i];
+				args[i+1] = _args[i].getData();
+			}
+			args[nArguments+1] = 0;
 
-				execvp(exe, args);
-				::abort();
+			execvp(exe, args);
+			::abort();
+		}
+
+		class ProcessStream : public IStream
+		{
+		public:
+			int m_hRead;
+			int m_hWrite;
+
+		public:
+			ProcessStream()
+			{
+				m_hRead = -1;
+				m_hWrite = -1;
 			}
 
-			class ProcessStream : public IStream
+			~ProcessStream()
 			{
-			public:
-				int m_hRead;
-				int m_hWrite;
+				_close();
+			}
 
-			public:
-				ProcessStream()
-				{
+		public:
+			void close() override
+			{
+				_close();
+			}
+
+			sl_int32 read32(void* buf, sl_uint32 size) override
+			{
+				int handle = m_hRead;
+				if (handle >= 0) {
+					if (!size) {
+						return SLIB_IO_EMPTY_CONTENT;
+					}
+					sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
+					if (n <= 0 && n != SLIB_IO_WOULD_BLOCK) {
+						close();
+					}
+					return n;
+				}
+				return SLIB_IO_ERROR;
+			}
+
+			sl_int32 write32(const void* buf, sl_uint32 size) override
+			{
+				int handle = m_hWrite;
+				if (handle) {
+					sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size);
+					if (n < 0 && n != SLIB_IO_WOULD_BLOCK) {
+						close();
+					}
+					return n;
+				}
+				return SLIB_IO_ERROR;
+			}
+
+			void _close()
+			{
+				if (m_hRead >= 0) {
+					::close(m_hRead);
 					m_hRead = -1;
+				}
+				if (m_hWrite >= 0) {
+					::close(m_hWrite);
 					m_hWrite = -1;
 				}
+			}
 
-				~ProcessStream()
-				{
-					_close();
-				}
+		};
 
-			public:
-				void close() override
-				{
-					_close();
-				}
+		class ProcessImpl : public Process
+		{
+		public:
+			pid_t m_pid;
+			ProcessStream m_stream;
 
-				sl_int32 read32(void* buf, sl_uint32 size) override
-				{
-					int handle = m_hRead;
-					if (handle >= 0) {
-						if (!size) {
-							return SLIB_IO_EMPTY_CONTENT;
-						}
-						sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
-						if (n <= 0 && n != SLIB_IO_WOULD_BLOCK) {
-							close();
-						}
-						return n;
-					}
-					return SLIB_IO_ERROR;
-				}
-
-				sl_int32 write32(const void* buf, sl_uint32 size) override
-				{
-					int handle = m_hWrite;
-					if (handle) {
-						sl_int32 n = (HandlePtr<File>(handle))->write32(buf, size);
-						if (n < 0 && n != SLIB_IO_WOULD_BLOCK) {
-							close();
-						}
-						return n;
-					}
-					return SLIB_IO_ERROR;
-				}
-
-				void _close()
-				{
-					if (m_hRead >= 0) {
-						::close(m_hRead);
-						m_hRead = -1;
-					}
-					if (m_hWrite >= 0) {
-						::close(m_hWrite);
-						m_hWrite = -1;
-					}
-				}
-
-			};
-
-			class ProcessImpl : public Process
+		public:
+			ProcessImpl()
 			{
-			public:
-				pid_t m_pid;
-				ProcessStream m_stream;
+				m_pid = -1;
+			}
 
-			public:
-				ProcessImpl()
-				{
-					m_pid = -1;
+			~ProcessImpl()
+			{
+				if (m_pid != -1) {
+					int status = 0;
+					waitpid(m_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
 				}
+			}
 
-				~ProcessImpl()
-				{
-					if (m_pid != -1) {
-						int status = 0;
-						waitpid(m_pid, &status, WNOHANG | WUNTRACED | WCONTINUED);
-					}
-				}
-
-			public:
-				static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
-				{
-					int hStdin[2], hStdout[2];
-					if (pipe(hStdin) == 0) {
-						if (pipe(hStdout) == 0) {
-							pid_t pid = fork();
-							if (!pid) {
-								// child process
-								::close(hStdin[1]); // WRITE
-								::close(hStdout[0]); // READ
-								dup2(hStdin[0], 0); // STDIN
-								dup2(hStdout[1], 1); // STDOUT
-								::close(hStdin[0]);
-								::close(hStdout[1]);
-								Exec(pathExecutable, arguments, nArguments);
-								return sl_null;
-							} else if (pid > 0) {
-								// parent process
-								Ref<ProcessImpl> ret = new ProcessImpl;
-								if (ret.isNotNull()) {
-									ret->m_pid = pid;
-									::close(hStdin[0]); // READ
-									::close(hStdout[1]); // WRITE
-									ret->m_stream.m_hRead = hStdout[0];
-									ret->m_stream.m_hWrite = hStdin[1];
-									return ret;
-								}
-							}
-							::close(hStdout[0]);
+		public:
+			static Ref<ProcessImpl> create(const StringParam& pathExecutable, const StringParam* arguments, sl_size nArguments)
+			{
+				int hStdin[2], hStdout[2];
+				if (pipe(hStdin) == 0) {
+					if (pipe(hStdout) == 0) {
+						pid_t pid = fork();
+						if (!pid) {
+							// child process
+							::close(hStdin[1]); // WRITE
+							::close(hStdout[0]); // READ
+							dup2(hStdin[0], 0); // STDIN
+							dup2(hStdout[1], 1); // STDOUT
+							::close(hStdin[0]);
 							::close(hStdout[1]);
-						}
-						::close(hStdin[0]);
-						::close(hStdin[1]);
-					}
-					return sl_null;
-				}
-
-			public:
-				void terminate() override
-				{
-					ObjectLocker lock(this);
-					m_stream.close();
-					if (m_pid > 0) {
-						pid_t pid = m_pid;
-						m_pid = -1;
-						lock.unlock();
-						::kill(pid, SIGTERM);
-						m_status = ProcessStatus::Terminated;
-					}
-				}
-
-				void kill() override
-				{
-					ObjectLocker lock(this);
-					m_stream.close();
-					if (m_pid > 0) {
-						pid_t pid = m_pid;
-						m_pid = -1;
-						lock.unlock();
-						::kill(pid, SIGKILL);
-						m_status = ProcessStatus::Killed;
-					}
-				}
-
-				void wait() override
-				{
-					ObjectLocker lock(this);
-					if (m_pid > 0) {
-						pid_t pid = m_pid;
-						m_pid = -1;
-						lock.unlock();
-						for (;;) {
-							int status = 0;
-							int ret = waitpid(pid, &status, WUNTRACED | WCONTINUED);
-							if (ret == -1) {
-								m_stream.close();
-								::kill(pid, SIGKILL);
-								m_status = ProcessStatus::Killed;
-								return;
-							} else if (ret != 0) {
-								if (WIFEXITED(status)) {
-									m_status = ProcessStatus::Exited;
-									m_exitStatus = WEXITSTATUS(status);
-									break;
-								} else if (WIFSIGNALED(status)) {
-									int sig = WTERMSIG(status);
-									if (sig == SIGTERM) {
-										m_status = ProcessStatus::Terminated;
-									} else if (sig == SIGKILL) {
-										m_status = ProcessStatus::Killed;
-									} else {
-										m_status = ProcessStatus::Unknown;
-									}
-									break;
-								}
-								System::sleep(1);
+							Exec(pathExecutable, arguments, nArguments);
+							return sl_null;
+						} else if (pid > 0) {
+							// parent process
+							Ref<ProcessImpl> ret = new ProcessImpl;
+							if (ret.isNotNull()) {
+								ret->m_pid = pid;
+								::close(hStdin[0]); // READ
+								::close(hStdout[1]); // WRITE
+								ret->m_stream.m_hRead = hStdout[0];
+								ret->m_stream.m_hWrite = hStdin[1];
+								return ret;
 							}
 						}
-						m_stream.close();
+						::close(hStdout[0]);
+						::close(hStdout[1]);
 					}
+					::close(hStdin[0]);
+					::close(hStdin[1]);
 				}
+				return sl_null;
+			}
 
-				sl_bool isAlive() override
-				{
+		public:
+			void terminate() override
+			{
+				ObjectLocker lock(this);
+				m_stream.close();
+				if (m_pid > 0) {
 					pid_t pid = m_pid;
-					int status;
-					return waitpid(pid, &status, WNOHANG) != -1;
+					m_pid = -1;
+					lock.unlock();
+					::kill(pid, SIGTERM);
+					m_status = ProcessStatus::Terminated;
 				}
+			}
 
-				IStream* getStream() override
-				{
-					return &m_stream;
+			void kill() override
+			{
+				ObjectLocker lock(this);
+				m_stream.close();
+				if (m_pid > 0) {
+					pid_t pid = m_pid;
+					m_pid = -1;
+					lock.unlock();
+					::kill(pid, SIGKILL);
+					m_status = ProcessStatus::Killed;
 				}
+			}
 
-			};
+			void wait() override
+			{
+				ObjectLocker lock(this);
+				if (m_pid > 0) {
+					pid_t pid = m_pid;
+					m_pid = -1;
+					lock.unlock();
+					for (;;) {
+						int status = 0;
+						int ret = waitpid(pid, &status, WUNTRACED | WCONTINUED);
+						if (ret == -1) {
+							m_stream.close();
+							::kill(pid, SIGKILL);
+							m_status = ProcessStatus::Killed;
+							return;
+						} else if (ret != 0) {
+							if (WIFEXITED(status)) {
+								m_status = ProcessStatus::Exited;
+								m_exitStatus = WEXITSTATUS(status);
+								break;
+							} else if (WIFSIGNALED(status)) {
+								int sig = WTERMSIG(status);
+								if (sig == SIGTERM) {
+									m_status = ProcessStatus::Terminated;
+								} else if (sig == SIGKILL) {
+									m_status = ProcessStatus::Killed;
+								} else {
+									m_status = ProcessStatus::Unknown;
+								}
+								break;
+							}
+							System::sleep(1);
+						}
+					}
+					m_stream.close();
+				}
+			}
+
+			sl_bool isAlive() override
+			{
+				pid_t pid = m_pid;
+				int status;
+				return waitpid(pid, &status, WNOHANG) != -1;
+			}
+
+			IStream* getStream() override
+			{
+				return &m_stream;
+			}
+
+		};
 
 #endif
 
-		}
 	}
-
-	using namespace priv::process;
 
 	sl_uint32 Process::getCurrentProcessId()
 	{

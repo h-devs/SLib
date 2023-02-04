@@ -32,98 +32,13 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace quartz
+	namespace {
+		static void ReleaseDrawableDataProvider(void *info, const void *data, size_t size)
 		{
-
-			static void ReleaseDrawableDataProvider(void *info, const void *data, size_t size)
-			{
-				Referable* ref = (Referable*)info;
-				ref->decreaseReference();
-			}
-
-			class ImageDrawableImpl : public Drawable
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				CGImageRef m_image;
-				sl_uint32 m_width;
-				sl_uint32 m_height;
-				sl_bool m_flagFlipped;
-
-			public:
-				ImageDrawableImpl()
-				{
-				}
-
-				~ImageDrawableImpl()
-				{
-					CGImageRelease(m_image);
-				}
-
-			public:
-				static Ref<ImageDrawableImpl> create(CGImageRef image, sl_bool flagFlipped)
-				{
-					if (image) {
-						CGImageRetain(image);
-						sl_int32 width = (sl_int32)(CGImageGetWidth(image));
-						if (width > 0) {
-							sl_int32 height = (sl_int32)(CGImageGetHeight(image));
-							if (height > 0) {
-								Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
-								if (ret.isNotNull()) {
-									ret->m_image = image;
-									ret->m_width = width;
-									ret->m_height = height;
-									ret->m_flagFlipped = flagFlipped;
-									return ret;
-								}
-							}
-						}
-						CGImageRelease(image);
-					}
-					return sl_null;
-				}
-
-				void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& _rectSrc, const DrawParam& param) override
-				{
-					CGRect rectSrc;
-					rectSrc.origin.x = _rectSrc.left;
-					rectSrc.origin.y = _rectSrc.top;
-					rectSrc.size.width = _rectSrc.getWidth();
-					rectSrc.size.height = _rectSrc.getHeight();
-					CGImageRef subImage = CGImageCreateWithImageInRect(m_image, rectSrc);
-					if (subImage) {
-						GraphicsPlatform::drawCGImage(canvas, rectDst, subImage, m_flagFlipped, param);
-						CGImageRelease(subImage);
-					}
-				}
-
-				void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
-				{
-					GraphicsPlatform::drawCGImage(canvas, rectDst, m_image, m_flagFlipped, param);
-				}
-
-				sl_real getDrawableWidth() override
-				{
-					return (sl_real)m_width;
-				}
-
-				sl_real getDrawableHeight() override
-				{
-					return (sl_real)m_height;
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
-
+			Referable* ref = (Referable*)info;
+			ref->decreaseReference();
 		}
 	}
-
-	using namespace priv::quartz;
 
 	Ref<Drawable> PlatformDrawable::create(const ImageDesc& desc)
 	{
@@ -174,6 +89,86 @@ namespace slib
 		return sl_null;
 	}
 
+	namespace {
+
+		class ImageDrawableImpl : public Drawable
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			CGImageRef m_image;
+			sl_uint32 m_width;
+			sl_uint32 m_height;
+			sl_bool m_flagFlipped;
+
+		public:
+			ImageDrawableImpl()
+			{
+			}
+
+			~ImageDrawableImpl()
+			{
+				CGImageRelease(m_image);
+			}
+
+		public:
+			static Ref<ImageDrawableImpl> create(CGImageRef image, sl_bool flagFlipped)
+			{
+				if (image) {
+					CGImageRetain(image);
+					sl_int32 width = (sl_int32)(CGImageGetWidth(image));
+					if (width > 0) {
+						sl_int32 height = (sl_int32)(CGImageGetHeight(image));
+						if (height > 0) {
+							Ref<ImageDrawableImpl> ret = new ImageDrawableImpl();
+							if (ret.isNotNull()) {
+								ret->m_image = image;
+								ret->m_width = width;
+								ret->m_height = height;
+								ret->m_flagFlipped = flagFlipped;
+								return ret;
+							}
+						}
+					}
+					CGImageRelease(image);
+				}
+				return sl_null;
+			}
+
+			void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& _rectSrc, const DrawParam& param) override
+			{
+				CGRect rectSrc;
+				rectSrc.origin.x = _rectSrc.left;
+				rectSrc.origin.y = _rectSrc.top;
+				rectSrc.size.width = _rectSrc.getWidth();
+				rectSrc.size.height = _rectSrc.getHeight();
+				CGImageRef subImage = CGImageCreateWithImageInRect(m_image, rectSrc);
+				if (subImage) {
+					GraphicsPlatform::drawCGImage(canvas, rectDst, subImage, m_flagFlipped, param);
+					CGImageRelease(subImage);
+				}
+			}
+
+			void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
+			{
+				GraphicsPlatform::drawCGImage(canvas, rectDst, m_image, m_flagFlipped, param);
+			}
+
+			sl_real getDrawableWidth() override
+			{
+				return (sl_real)m_width;
+			}
+
+			sl_real getDrawableHeight() override
+			{
+				return (sl_real)m_height;
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(ImageDrawableImpl, Drawable)
+
+	}
 
 	Ref<Drawable> GraphicsPlatform::createImageDrawable(CGImageRef image, sl_bool flagFlipped)
 	{

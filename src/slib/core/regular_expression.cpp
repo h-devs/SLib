@@ -31,86 +31,80 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace regex
+	namespace {
+
+		static constexpr int ToInt(int n)
 		{
-
-			static constexpr int ToInt(int n)
-			{
-				return n;
-			}
-
-			template<std::size_t N>
-			static int ToInt(const std::bitset<N>& n) noexcept
-			{
-				return (int)(n.to_ulong());
-			}
-
-			static std::regex* Create(const StringParam& _pattern, int _flags) noexcept
-			{
-				StringData pattern(_pattern);
-				std::regex* handle = (std::regex*)(Base::createMemory(sizeof(std::regex)));
-				if (handle) {
-					int flags = 0;
-					if (_flags & RegularExpressionFlags::Icase) {
-						flags |= std::regex_constants::icase;
-					}
-					if (_flags & RegularExpressionFlags::Nosubs) {
-						flags |= std::regex_constants::nosubs;
-					}
-					if (_flags & RegularExpressionFlags::Optimize) {
-						flags |= std::regex_constants::optimize;
-					}
-					if (_flags & RegularExpressionFlags::Collate) {
-						flags |= std::regex_constants::collate;
-					}
-					if (_flags & RegularExpressionFlags::ECMAScript) {
-						flags |= std::regex_constants::ECMAScript;
-					}
-					if (_flags & RegularExpressionFlags::Basic) {
-						flags |= std::regex_constants::basic;
-					}
-					if (_flags & RegularExpressionFlags::Extended) {
-						flags |= std::regex_constants::extended;
-					}
-					if (_flags & RegularExpressionFlags::Awk) {
-						flags |= std::regex_constants::awk;
-					}
-					if (_flags & RegularExpressionFlags::Grep) {
-						flags |= std::regex_constants::grep;
-					}
-					if (_flags & RegularExpressionFlags::Egrep) {
-						flags |= std::regex_constants::egrep;
-					}
-					try {
-						if (flags) {
-							new (handle) std::regex((char*)(pattern.getData()), (std::size_t)(pattern.getLength()), (std::regex_constants::syntax_option_type)flags);
-						} else {
-							new (handle) std::regex((char*)(pattern.getData()), (std::size_t)(pattern.getLength()));
-						}
-					} catch (std::regex_error&) {
-						Base::freeMemory(handle);
-						return sl_null;
-					}
-					return handle;
-				}
-				return sl_null;
-			}
-
-			static void DeleteRegExHandle(void* _handle) noexcept
-			{
-				std::regex* handle = reinterpret_cast<std::regex*>(_handle);
-				if (handle) {
-					handle->~basic_regex();
-					Base::freeMemory(handle);
-				}
-			}
-
+			return n;
 		}
-	}
 
-	using namespace priv::regex;
+		template<std::size_t N>
+		static int ToInt(const std::bitset<N>& n) noexcept
+		{
+			return (int)(n.to_ulong());
+		}
+
+		static std::regex* Create(const StringParam& _pattern, int _flags) noexcept
+		{
+			StringData pattern(_pattern);
+			std::regex* handle = (std::regex*)(Base::createMemory(sizeof(std::regex)));
+			if (handle) {
+				int flags = 0;
+				if (_flags & RegularExpressionFlags::Icase) {
+					flags |= std::regex_constants::icase;
+				}
+				if (_flags & RegularExpressionFlags::Nosubs) {
+					flags |= std::regex_constants::nosubs;
+				}
+				if (_flags & RegularExpressionFlags::Optimize) {
+					flags |= std::regex_constants::optimize;
+				}
+				if (_flags & RegularExpressionFlags::Collate) {
+					flags |= std::regex_constants::collate;
+				}
+				if (_flags & RegularExpressionFlags::ECMAScript) {
+					flags |= std::regex_constants::ECMAScript;
+				}
+				if (_flags & RegularExpressionFlags::Basic) {
+					flags |= std::regex_constants::basic;
+				}
+				if (_flags & RegularExpressionFlags::Extended) {
+					flags |= std::regex_constants::extended;
+				}
+				if (_flags & RegularExpressionFlags::Awk) {
+					flags |= std::regex_constants::awk;
+				}
+				if (_flags & RegularExpressionFlags::Grep) {
+					flags |= std::regex_constants::grep;
+				}
+				if (_flags & RegularExpressionFlags::Egrep) {
+					flags |= std::regex_constants::egrep;
+				}
+				try {
+					if (flags) {
+						new (handle) std::regex((char*)(pattern.getData()), (std::size_t)(pattern.getLength()), (std::regex_constants::syntax_option_type)flags);
+					} else {
+						new (handle) std::regex((char*)(pattern.getData()), (std::size_t)(pattern.getLength()));
+					}
+				} catch (std::regex_error&) {
+					Base::freeMemory(handle);
+					return sl_null;
+				}
+				return handle;
+			}
+			return sl_null;
+		}
+
+		static void DeleteRegExHandle(void* _handle) noexcept
+		{
+			std::regex* handle = reinterpret_cast<std::regex*>(_handle);
+			if (handle) {
+				handle->~basic_regex();
+				Base::freeMemory(handle);
+			}
+		}
+
+	}
 
 	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(RegularExpression, HRegEx, m_handle, sl_null, DeleteRegExHandle)
 

@@ -43,24 +43,18 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace console
-		{
 #if defined(SLIB_PLATFORM_IS_WIN32)
-			void PrintConsole(const void* data, sl_size size)
-			{
-				HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-				if (handle) {
-					DWORD dwWritten = 0;
-					WriteFile(handle, data, (DWORD)size, &dwWritten, NULL);
-				}
+	namespace {
+		static void PrintConsole(const void* data, sl_size size)
+		{
+			HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+			if (handle) {
+				DWORD dwWritten = 0;
+				WriteFile(handle, data, (DWORD)size, &dwWritten, NULL);
 			}
-#endif
 		}
 	}
-
-	using namespace priv::console;
+#endif
 
 	void Console::print(const StringParam& _s)
 	{

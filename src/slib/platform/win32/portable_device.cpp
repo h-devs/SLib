@@ -35,30 +35,24 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace wpd
+	namespace {
+
+		static void LogWpdError(const char* szErr, HRESULT hr)
 		{
-
-			static void LogWpdError(const char* szErr, HRESULT hr)
-			{
-				LogError("WPD", "%s, hr=0x%lx", szErr, hr);
-			}
-
-			static void LogWpdError(const char* szErr)
-			{
-				LogError("WPD", "%s", szErr);
-			}
-
-			static void LogWpdCreateInstanceError(const char* szClsid, HRESULT hr)
-			{
-				LogError("WPD", "Failed to CoCreateInstance: %s, hr=0x%lx", szClsid, hr);
-			}
-
+			LogError("WPD", "%s, hr=0x%lx", szErr, hr);
 		}
-	}
 
-	using namespace priv::wpd;
+		static void LogWpdError(const char* szErr)
+		{
+			LogError("WPD", "%s", szErr);
+		}
+
+		static void LogWpdCreateInstanceError(const char* szClsid, HRESULT hr)
+		{
+			LogError("WPD", "Failed to CoCreateInstance: %s, hr=0x%lx", szClsid, hr);
+		}
+
+	}
 
 	namespace win32
 	{

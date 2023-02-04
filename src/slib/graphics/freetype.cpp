@@ -43,374 +43,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace freetype
-		{
-
-			class Library : public Referable
-			{
-			public:
-				FT_Library handle;
-
-			protected:
-				Library(): handle(sl_null)
-				{
-				}
-
-				~Library()
-				{
-					FT_Done_FreeType(handle);
-				}
-
-			public:
-				static Ref<Library> create()
-				{
-					FT_Library lib;
-					FT_Error err = FT_Init_FreeType(&lib);
-					if (!err) {
-						Ref<Library> ret = new Library;
-						if (ret.isNotNull()) {
-							ret->handle = lib;
-							return ret;
-						}
-						FT_Done_FreeType(lib);
-					}
-					return sl_null;
-				}
-
-			};
-
-			static unsigned long ReadStreamCallback(FT_Stream stream, unsigned long offset, unsigned char* buffer, unsigned long count)
-			{
-				if (!count) {
-					return 0;
-				}
-				IBlockReader* reader = (IBlockReader*)(stream->descriptor.pointer);
-				sl_int32 n = reader->readAt32(offset, buffer, (sl_uint32)count);
-				if (n > 0) {
-					return n;
-				}
-				return 0;
-			}
-
-			static void CloseStreamCallback(FT_Stream stream)
-			{
-				delete stream;
-			}
-
-			static FT_Face OpenFace(FT_Library lib, IBlockReader* reader, sl_uint64 size,  FT_Long index)
-			{
-				FT_Stream stream = new FT_StreamRec;
-				if (!stream) {
-					return sl_null;
-				}
-				Base::zeroMemory(stream, sizeof(FT_StreamRec));
-				stream->descriptor.pointer = reader;
-				stream->size = (unsigned long)size;
-				stream->read = &ReadStreamCallback;
-				stream->close = &CloseStreamCallback;
-
-				FT_Open_Args args;
-				Base::zeroMemory(&args, sizeof(args));
-				args.flags = FT_OPEN_STREAM;
-				args.stream = stream;
-
-				FT_Face face;
-				FT_Error err = FT_Open_Face(lib, &args, index, &face);
-				if (!err) {
-					return face;
-				}
-				return sl_null;
-			}
-
-			static sl_int32 GetFaceIndex(const FreeTypeLoadParam& param)
-			{
-				if (param.faceIndex < 0) {
-					return param.faceIndex;
-				}
-				if (param.namedInstanceIndex < 0) {
-					return -(param.faceIndex + 1);
-				}
-				return SLIB_MAKE_DWORD2(param.namedInstanceIndex, param.faceIndex);
-			}
-
-			class SystemLoader
-			{
-			private:
-				struct RegistryItem
-				{
-					String path;
-					sl_uint32 faceIndex;
-					sl_bool flagBold;
-					sl_bool flagItalic;
-				};
-
-				typedef CMap< String, RegistryItem, Compare_IgnoreCase<String> > Registry;
-				typedef typename Registry::NODE RegistryNode;
-				Registry registry;
-
-			public:
-				SystemLoader()
-				{
-					ListElements<String> listDir(System::getFontsDirectories());
-					if (!(listDir.count)) {
-						return;
-					}
-					Ref<Library> lib = Library::create();
-					if (lib.isNull()) {
-						return;
-					}
-					FT_Library hLib = lib->handle;
-					for (sl_size i = 0; i < listDir.count; i++) {
-#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_APPLE)
-						loadDirectory(hLib, listDir[i], 0);
-#else
-						loadDirectory(hLib, listDir[i], 1);
-#endif
-					}
-				}
-
-			private:
-				void loadDirectory(FT_Library lib, const String& dir, sl_uint32 recursive)
-				{
-					ListElements<String> files(File::getFiles(dir));
-					for (sl_size k = 0; k < files.count; k++) {
-						String path = File::concatPath(dir, files[k]);
-						if (File::isDirectory(path)) {
-							if (recursive) {
-								loadDirectory(lib, path, recursive - 1);
-							}
-						} else {
-							loadFile(lib, path);
-						}
-					}
-				}
-
-				void registerFont(const String& familyName, const String& path, sl_uint32 faceIndex, sl_bool flagBold, sl_bool flagItalic)
-				{
-					RegistryItem item;
-					item.path = path;
-					item.faceIndex = faceIndex;
-					item.flagBold = !!flagBold;
-					item.flagItalic = !!flagItalic;
-					registry.add_NoLock(familyName, Move(item));
-				}
-
-				sl_bool loadFileBySFNT(const String& path, SeekableReader<File>* file)
-				{
-					ListElements<SFNTFontDescriptor> faces(SFNT::getFontDescriptors(file));
-					if (!(faces.count)) {
-						return sl_false;
-					}
-					for (sl_size i = 0; i < faces.count; i++) {
-						SFNTFontDescriptor face(faces[i]);
-						ListElements<String> names(face.familyNames);
-						for (sl_size k = 0; k < names.count; k++) {
-							registerFont(names[k], path, (sl_uint32)i, face.flagBold, face.flagItalic);
-						}
-					}
-					return sl_true;
-				}
-
-				void loadFileByFreeType(FT_Library lib, const String& path, SeekableReader<File>* file, sl_uint64 size)
-				{
-					FT_Long nFaces = 0;
-					FT_Long faceId = 0;
-					do {
-						FT_Face face = OpenFace(lib, file, size, faceId);
-						if (face) {
-							String name(face->family_name);
-							if (name.isNotEmpty()) {
-								sl_bool flagBold = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
-								sl_bool flagItalic = (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
-								registerFont(name, path, (sl_uint32)faceId, flagBold, flagItalic);
-							}
-							nFaces = face->num_faces;
-							FT_Done_Face(face);
-						}
-						faceId++;
-					} while (faceId < nFaces);
-				}
-
-				void loadFile(FT_Library lib, const String& path)
-				{
-					SeekableReader<File> file = File::openForRead(path);
-					sl_uint64 size = file.getSize();
-					if (!size) {
-						return;
-					}
-					if (loadFileBySFNT(path, &file)) {
-						return;
-					}
-					file.seekToBegin();
-					loadFileByFreeType(lib, path, &file, size);
-				}
-
-				static Ref<FreeType> open(const RegistryItem& item)
-				{
-					FreeTypeLoadParam param;
-					param.faceIndex = item.faceIndex;
-					return FreeType::loadFromFile(item.path, param);
-				}
-
-				static RegistryNode* findRegistry(RegistryNode* start, RegistryNode* end, sl_bool flagBold, sl_bool flagItalic)
-				{
-					flagBold = !!flagBold;
-					flagItalic = !!flagItalic;
-					RegistryNode* node = start;
-					for (;;) {
-						if (node->value.flagBold == flagBold && node->value.flagItalic == flagItalic) {
-							return node;
-						}
-						if (node == end) {
-							break;
-						}
-						node = node->getNext();
-					}
-					return sl_null;
-				}
-
-			public:
-				Ref<FreeType> open(const String& family, sl_bool flagBold, sl_bool flagItalic)
-				{
-					RegistryNode* start;
-					RegistryNode* end;
-					if (registry.getEqualRange(family, &start, &end)) {
-						RegistryNode* node = findRegistry(start, end, flagBold, flagItalic);
-						if (node) {
-							return open(node->value);
-						}
-						if (flagBold) {
-							node = findRegistry(start, end, sl_false, flagItalic);
-							if (node) {
-								return open(node->value);
-							}
-						}
-						if (flagItalic) {
-							node = findRegistry(start, end, flagBold, sl_false);
-							if (node) {
-								return open(node->value);
-							}
-						}
-						if (flagBold && flagItalic) {
-							node = findRegistry(start, end, sl_false, sl_false);
-							if (node) {
-								return open(node->value);
-							}
-						}
-						return open(start->value);
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(SystemLoader, GetSystemLoader)
-
-
-			static FT_CharMap SelectCharmap(FT_Face face, FreeTypeKind kind, sl_bool flagSymbolic)
-			{
-				if (kind == FreeTypeKind::Type1) {
-					for (FT_Int i = 0; i < face->num_charmaps; i++) {
-						FT_CharMap charmap = face->charmaps[i];
-						if (charmap->platform_id == TT_PLATFORM_ADOBE) {
-							return charmap;
-						}
-					}
-					if (face->num_charmaps > 0) {
-						return face->charmaps[0];
-					}
-				} else if (kind == FreeTypeKind::TrueType) {
-					if (flagSymbolic) {
-						for (FT_Int i = 0; i < face->num_charmaps; i++) {
-							FT_CharMap charmap = face->charmaps[i];
-							if (charmap->platform_id == TT_PLATFORM_MICROSOFT && charmap->encoding_id == TT_MS_ID_SYMBOL_CS) {
-								return charmap;
-							}
-						}
-					}
-					// look for a Microsoft Unicode cmap
-					for (FT_Int i = 0; i < face->num_charmaps; i++) {
-						FT_CharMap charmap = face->charmaps[i];
-						if (charmap->platform_id == TT_PLATFORM_MICROSOFT && charmap->encoding_id == TT_MS_ID_UNICODE_CS) {
-							if (FT_Get_CMap_Format(charmap) != -1) {
-								return charmap;
-							}
-						}
-					}
-					// look for an Apple MacRoman cmap
-					for (FT_Int i = 0; i < face->num_charmaps; i++) {
-						FT_CharMap charmap = face->charmaps[i];
-						if (charmap->platform_id == TT_PLATFORM_MACINTOSH && charmap->encoding_id == TT_MAC_ID_ROMAN) {
-							if (FT_Get_CMap_Format(charmap) != -1) {
-								return charmap;
-							}
-						}
-					}
-					if (face->num_charmaps > 0) {
-						FT_CharMap charmap = face->charmaps[0];
-						if (FT_Get_CMap_Format(charmap) != -1) {
-							return charmap;
-						}
-					}
-				} else {
-					if (face->num_charmaps > 0) {
-						return face->charmaps[0];
-					}
-				}
-				return sl_null;
-			}
-
-			static int Outline_MoveTo(const FT_Vector* to, void* user)
-			{
-				((GraphicsPath*)user)->moveTo(TO_REAL_POS(to->x), TO_REAL_POS(to->y));
-				return 0;
-			}
-
-			static int Outline_LineTo(const FT_Vector* to, void* user)
-			{
-				((GraphicsPath*)user)->lineTo(TO_REAL_POS(to->x), TO_REAL_POS(to->y));
-				return 0;
-			}
-
-			static int Outline_ConicTo(const FT_Vector* control, const FT_Vector* to, void* user)
-			{
-				((GraphicsPath*)user)->conicTo(TO_REAL_POS(control->x), TO_REAL_POS(control->y), TO_REAL_POS(to->x), TO_REAL_POS(to->y));
-				return 0;
-			}
-
-			static int Outline_CubicTo(const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to, void* user)
-			{
-				((GraphicsPath*)user)->cubicTo(TO_REAL_POS(control1->x), TO_REAL_POS(control1->y), TO_REAL_POS(control2->x), TO_REAL_POS(control2->y), TO_REAL_POS(to->x), TO_REAL_POS(to->y));
-				return 0;
-			}
-
-			static Ref<GraphicsPath> ConvertOutlineToPath(FT_Outline* outline)
-			{
-				if (outline->n_points) {
-					Ref<GraphicsPath> path = GraphicsPath::create();
-					if (path.isNotNull()) {
-						FT_Outline_Funcs funcs = {
-							Outline_MoveTo,
-							Outline_LineTo,
-							Outline_ConicTo,
-							Outline_CubicTo,
-							0, 0
-						};
-						FT_Outline_Decompose(outline, &funcs, path.get());
-						return path;
-					}
-				}
-				return sl_null;
-			}
-
-		}
-	}
-
-	using namespace priv::freetype;
-
-
 	FreeTypeGlyph::FreeTypeGlyph(): bitmapLeft(0), bitmapTop(0), flagGrayBitmap(sl_true), advance(0), height(0)
 	{
 	}
@@ -449,6 +81,97 @@ namespace slib
 		}
 		FT_Done_Face(face);
 		return sl_null;
+	}
+
+	namespace {
+
+		class Library : public Referable
+		{
+		public:
+			FT_Library handle;
+
+		protected:
+			Library(): handle(sl_null)
+			{
+			}
+
+			~Library()
+			{
+				FT_Done_FreeType(handle);
+			}
+
+		public:
+			static Ref<Library> create()
+			{
+				FT_Library lib;
+				FT_Error err = FT_Init_FreeType(&lib);
+				if (!err) {
+					Ref<Library> ret = new Library;
+					if (ret.isNotNull()) {
+						ret->handle = lib;
+						return ret;
+					}
+					FT_Done_FreeType(lib);
+				}
+				return sl_null;
+			}
+
+		};
+
+		static unsigned long ReadStreamCallback(FT_Stream stream, unsigned long offset, unsigned char* buffer, unsigned long count)
+		{
+			if (!count) {
+				return 0;
+			}
+			IBlockReader* reader = (IBlockReader*)(stream->descriptor.pointer);
+			sl_int32 n = reader->readAt32(offset, buffer, (sl_uint32)count);
+			if (n > 0) {
+				return n;
+			}
+			return 0;
+		}
+
+		static void CloseStreamCallback(FT_Stream stream)
+		{
+			delete stream;
+		}
+
+		static FT_Face OpenFace(FT_Library lib, IBlockReader* reader, sl_uint64 size,  FT_Long index)
+		{
+			FT_Stream stream = new FT_StreamRec;
+			if (!stream) {
+				return sl_null;
+			}
+			Base::zeroMemory(stream, sizeof(FT_StreamRec));
+			stream->descriptor.pointer = reader;
+			stream->size = (unsigned long)size;
+			stream->read = &ReadStreamCallback;
+			stream->close = &CloseStreamCallback;
+
+			FT_Open_Args args;
+			Base::zeroMemory(&args, sizeof(args));
+			args.flags = FT_OPEN_STREAM;
+			args.stream = stream;
+
+			FT_Face face;
+			FT_Error err = FT_Open_Face(lib, &args, index, &face);
+			if (!err) {
+				return face;
+			}
+			return sl_null;
+		}
+
+		static sl_int32 GetFaceIndex(const FreeTypeLoadParam& param)
+		{
+			if (param.faceIndex < 0) {
+				return param.faceIndex;
+			}
+			if (param.namedInstanceIndex < 0) {
+				return -(param.faceIndex + 1);
+			}
+			return SLIB_MAKE_DWORD2(param.namedInstanceIndex, param.faceIndex);
+		}
+
 	}
 
 	Ref<FreeType> FreeType::load(const Ptr<IBlockReader>& _reader, sl_uint64 size, const FreeTypeLoadParam& param)
@@ -512,6 +235,183 @@ namespace slib
 		FreeTypeLoadParam param;
 		param.faceIndex = index;
 		return loadFromMemory(mem, param);
+	}
+
+	namespace {
+
+		class SystemLoader
+		{
+		private:
+			struct RegistryItem
+			{
+				String path;
+				sl_uint32 faceIndex;
+				sl_bool flagBold;
+				sl_bool flagItalic;
+			};
+
+			typedef CMap< String, RegistryItem, Compare_IgnoreCase<String> > Registry;
+			typedef typename Registry::NODE RegistryNode;
+			Registry registry;
+
+		public:
+			SystemLoader()
+			{
+				ListElements<String> listDir(System::getFontsDirectories());
+				if (!(listDir.count)) {
+					return;
+				}
+				Ref<Library> lib = Library::create();
+				if (lib.isNull()) {
+					return;
+				}
+				FT_Library hLib = lib->handle;
+				for (sl_size i = 0; i < listDir.count; i++) {
+#if defined(SLIB_PLATFORM_IS_WIN32) || defined(SLIB_PLATFORM_IS_APPLE)
+					loadDirectory(hLib, listDir[i], 0);
+#else
+					loadDirectory(hLib, listDir[i], 1);
+#endif
+				}
+			}
+
+		private:
+			void loadDirectory(FT_Library lib, const String& dir, sl_uint32 recursive)
+			{
+				ListElements<String> files(File::getFiles(dir));
+				for (sl_size k = 0; k < files.count; k++) {
+					String path = File::concatPath(dir, files[k]);
+					if (File::isDirectory(path)) {
+						if (recursive) {
+							loadDirectory(lib, path, recursive - 1);
+						}
+					} else {
+						loadFile(lib, path);
+					}
+				}
+			}
+
+			void registerFont(const String& familyName, const String& path, sl_uint32 faceIndex, sl_bool flagBold, sl_bool flagItalic)
+			{
+				RegistryItem item;
+				item.path = path;
+				item.faceIndex = faceIndex;
+				item.flagBold = !!flagBold;
+				item.flagItalic = !!flagItalic;
+				registry.add_NoLock(familyName, Move(item));
+			}
+
+			sl_bool loadFileBySFNT(const String& path, SeekableReader<File>* file)
+			{
+				ListElements<SFNTFontDescriptor> faces(SFNT::getFontDescriptors(file));
+				if (!(faces.count)) {
+					return sl_false;
+				}
+				for (sl_size i = 0; i < faces.count; i++) {
+					SFNTFontDescriptor face(faces[i]);
+					ListElements<String> names(face.familyNames);
+					for (sl_size k = 0; k < names.count; k++) {
+						registerFont(names[k], path, (sl_uint32)i, face.flagBold, face.flagItalic);
+					}
+				}
+				return sl_true;
+			}
+
+			void loadFileByFreeType(FT_Library lib, const String& path, SeekableReader<File>* file, sl_uint64 size)
+			{
+				FT_Long nFaces = 0;
+				FT_Long faceId = 0;
+				do {
+					FT_Face face = OpenFace(lib, file, size, faceId);
+					if (face) {
+						String name(face->family_name);
+						if (name.isNotEmpty()) {
+							sl_bool flagBold = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
+							sl_bool flagItalic = (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
+							registerFont(name, path, (sl_uint32)faceId, flagBold, flagItalic);
+						}
+						nFaces = face->num_faces;
+						FT_Done_Face(face);
+					}
+					faceId++;
+				} while (faceId < nFaces);
+			}
+
+			void loadFile(FT_Library lib, const String& path)
+			{
+				SeekableReader<File> file = File::openForRead(path);
+				sl_uint64 size = file.getSize();
+				if (!size) {
+					return;
+				}
+				if (loadFileBySFNT(path, &file)) {
+					return;
+				}
+				file.seekToBegin();
+				loadFileByFreeType(lib, path, &file, size);
+			}
+
+			static Ref<FreeType> open(const RegistryItem& item)
+			{
+				FreeTypeLoadParam param;
+				param.faceIndex = item.faceIndex;
+				return FreeType::loadFromFile(item.path, param);
+			}
+
+			static RegistryNode* findRegistry(RegistryNode* start, RegistryNode* end, sl_bool flagBold, sl_bool flagItalic)
+			{
+				flagBold = !!flagBold;
+				flagItalic = !!flagItalic;
+				RegistryNode* node = start;
+				for (;;) {
+					if (node->value.flagBold == flagBold && node->value.flagItalic == flagItalic) {
+						return node;
+					}
+					if (node == end) {
+						break;
+					}
+					node = node->getNext();
+				}
+				return sl_null;
+			}
+
+		public:
+			Ref<FreeType> open(const String& family, sl_bool flagBold, sl_bool flagItalic)
+			{
+				RegistryNode* start;
+				RegistryNode* end;
+				if (registry.getEqualRange(family, &start, &end)) {
+					RegistryNode* node = findRegistry(start, end, flagBold, flagItalic);
+					if (node) {
+						return open(node->value);
+					}
+					if (flagBold) {
+						node = findRegistry(start, end, sl_false, flagItalic);
+						if (node) {
+							return open(node->value);
+						}
+					}
+					if (flagItalic) {
+						node = findRegistry(start, end, flagBold, sl_false);
+						if (node) {
+							return open(node->value);
+						}
+					}
+					if (flagBold && flagItalic) {
+						node = findRegistry(start, end, sl_false, sl_false);
+						if (node) {
+							return open(node->value);
+						}
+					}
+					return open(start->value);
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(SystemLoader, GetSystemLoader)
+
 	}
 
 	Ref<FreeType> FreeType::loadSystemFont(const String& family, sl_bool flagBold, sl_bool flagItalic)
@@ -581,6 +481,61 @@ namespace slib
 			return (sl_uint32)(FT_Get_Char_Index(m_face, (FT_ULong)(charcode + 0xf000)));
 		}
 		return 0;
+	}
+
+	namespace {
+		static FT_CharMap SelectCharmap(FT_Face face, FreeTypeKind kind, sl_bool flagSymbolic)
+		{
+			if (kind == FreeTypeKind::Type1) {
+				for (FT_Int i = 0; i < face->num_charmaps; i++) {
+					FT_CharMap charmap = face->charmaps[i];
+					if (charmap->platform_id == TT_PLATFORM_ADOBE) {
+						return charmap;
+					}
+				}
+				if (face->num_charmaps > 0) {
+					return face->charmaps[0];
+				}
+			} else if (kind == FreeTypeKind::TrueType) {
+				if (flagSymbolic) {
+					for (FT_Int i = 0; i < face->num_charmaps; i++) {
+						FT_CharMap charmap = face->charmaps[i];
+						if (charmap->platform_id == TT_PLATFORM_MICROSOFT && charmap->encoding_id == TT_MS_ID_SYMBOL_CS) {
+							return charmap;
+						}
+					}
+				}
+				// look for a Microsoft Unicode cmap
+				for (FT_Int i = 0; i < face->num_charmaps; i++) {
+					FT_CharMap charmap = face->charmaps[i];
+					if (charmap->platform_id == TT_PLATFORM_MICROSOFT && charmap->encoding_id == TT_MS_ID_UNICODE_CS) {
+						if (FT_Get_CMap_Format(charmap) != -1) {
+							return charmap;
+						}
+					}
+				}
+				// look for an Apple MacRoman cmap
+				for (FT_Int i = 0; i < face->num_charmaps; i++) {
+					FT_CharMap charmap = face->charmaps[i];
+					if (charmap->platform_id == TT_PLATFORM_MACINTOSH && charmap->encoding_id == TT_MAC_ID_ROMAN) {
+						if (FT_Get_CMap_Format(charmap) != -1) {
+							return charmap;
+						}
+					}
+				}
+				if (face->num_charmaps > 0) {
+					FT_CharMap charmap = face->charmaps[0];
+					if (FT_Get_CMap_Format(charmap) != -1) {
+						return charmap;
+					}
+				}
+			} else {
+				if (face->num_charmaps > 0) {
+					return face->charmaps[0];
+				}
+			}
+			return sl_null;
+		}
 	}
 
 	void FreeType::selectCharmap(sl_bool flagSymbolic)
@@ -966,6 +921,53 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		return _getGlyph(glyphId);
+	}
+
+	namespace {
+
+		static int Outline_MoveTo(const FT_Vector* to, void* user)
+		{
+			((GraphicsPath*)user)->moveTo(TO_REAL_POS(to->x), TO_REAL_POS(to->y));
+			return 0;
+		}
+
+		static int Outline_LineTo(const FT_Vector* to, void* user)
+		{
+			((GraphicsPath*)user)->lineTo(TO_REAL_POS(to->x), TO_REAL_POS(to->y));
+			return 0;
+		}
+
+		static int Outline_ConicTo(const FT_Vector* control, const FT_Vector* to, void* user)
+		{
+			((GraphicsPath*)user)->conicTo(TO_REAL_POS(control->x), TO_REAL_POS(control->y), TO_REAL_POS(to->x), TO_REAL_POS(to->y));
+			return 0;
+		}
+
+		static int Outline_CubicTo(const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to, void* user)
+		{
+			((GraphicsPath*)user)->cubicTo(TO_REAL_POS(control1->x), TO_REAL_POS(control1->y), TO_REAL_POS(control2->x), TO_REAL_POS(control2->y), TO_REAL_POS(to->x), TO_REAL_POS(to->y));
+			return 0;
+		}
+
+		static Ref<GraphicsPath> ConvertOutlineToPath(FT_Outline* outline)
+		{
+			if (outline->n_points) {
+				Ref<GraphicsPath> path = GraphicsPath::create();
+				if (path.isNotNull()) {
+					FT_Outline_Funcs funcs = {
+						Outline_MoveTo,
+						Outline_LineTo,
+						Outline_ConicTo,
+						Outline_CubicTo,
+						0, 0
+					};
+					FT_Outline_Decompose(outline, &funcs, path.get());
+					return path;
+				}
+			}
+			return sl_null;
+		}
+
 	}
 
 	Ref<FreeTypeGlyph> FreeType::_getGlyph(sl_uint32 glyphId)

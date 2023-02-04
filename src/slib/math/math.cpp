@@ -464,80 +464,72 @@ namespace slib
 		f = -INFINITY;
 	}
 
-	namespace priv
-	{
-		namespace math
+	namespace {
+		template <class T>
+		SLIB_INLINE static T NormalizeDegree(T v) noexcept
 		{
-			template <class T>
-			SLIB_INLINE static T normalizeDegree(T v) noexcept
-			{
-				if (Math::isNaN(v)) {
-					return 0;
-				}
-				sl_int32 n = (sl_int32)v;
-				T f = v - n;
-				if (f < 0) {
-					f = 1 + f;
-					n--;
-				}
-				n = n % 360;
-				if (n < 0) {
-					n += 360;
-				}
-				v = (T)(n) + f;
-				return v;
+			if (Math::isNaN(v)) {
+				return 0;
 			}
+			sl_int32 n = (sl_int32)v;
+			T f = v - n;
+			if (f < 0) {
+				f = 1 + f;
+				n--;
+			}
+			n = n % 360;
+			if (n < 0) {
+				n += 360;
+			}
+			v = (T)(n) + f;
+			return v;
 		}
 	}
 
 	float Math::normalizeDegree(float v) noexcept
 	{
-		return priv::math::normalizeDegree(v);
+		return NormalizeDegree(v);
 	}
 
 	double Math::normalizeDegree(double v) noexcept
 	{
-		return priv::math::normalizeDegree(v);
+		return NormalizeDegree(v);
 	}
 
 	float Math::normalizeDegreeDistance(float v) noexcept
 	{
-		return normalizeDegree(v + 180) - 180;
+		return NormalizeDegree(v + 180) - 180;
 	}
 
 	double Math::normalizeDegreeDistance(double v) noexcept
 	{
-		return normalizeDegree(v + 180) - 180;
+		return NormalizeDegree(v + 180) - 180;
 	}
 
-	namespace priv
-	{
-		namespace math
+	namespace {
+		template <class T>
+		SLIB_INLINE static T ConvertAngleFromEllipseToCircle(T angle, T radiusX, T radiusY) noexcept
 		{
-			template <class T>
-			SLIB_INLINE static T convertAngleFromEllipseToCircle(T angle, T radiusX, T radiusY) noexcept
-			{
-				T _cos = Math::cos(angle);
-				if (Math::isAlmostZero(_cos) || Math::isAlmostZero(sin(angle))) {
-					return angle;
-				}
-				T PI2 = Math::DualPI<T>();
-				T stretched = Math::arctan2(Math::sin(angle) / Math::abs(radiusY), Math::cos(angle) / Math::abs(radiusX));
-				T revs_off = Math::round(angle / PI2) - Math::round(stretched / PI2);
-				stretched += revs_off * PI2;
-				return stretched;
+			T _cos = Math::cos(angle);
+			if (Math::isAlmostZero(_cos) || Math::isAlmostZero(sin(angle))) {
+				return angle;
 			}
+			T PI2 = Math::DualPI<T>();
+			T stretched = Math::arctan2(Math::sin(angle) / Math::abs(radiusY), Math::cos(angle) / Math::abs(radiusX));
+			T revs_off = Math::round(angle / PI2) - Math::round(stretched / PI2);
+			stretched += revs_off * PI2;
+			return stretched;
 		}
 	}
 
 	float Math::convertAngleFromEllipseToCircle(float angle, float radiusX, float radiusY) noexcept
 	{
-		return priv::math::convertAngleFromEllipseToCircle(angle, radiusX, radiusY);
+		return ConvertAngleFromEllipseToCircle(angle, radiusX, radiusY);
 	}
 
 	double Math::convertAngleFromEllipseToCircle(double angle, double radiusX, double radiusY) noexcept
 	{
-		return priv::math::convertAngleFromEllipseToCircle(angle, radiusX, radiusY);
+		return ConvertAngleFromEllipseToCircle(angle, radiusX, radiusY);
 	}
 
 	double Math::random() noexcept

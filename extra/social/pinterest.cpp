@@ -28,15 +28,10 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace pinterest
-		{
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Pinterest>, g_instance)
-		}
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Pinterest>, g_instance)
 	}
 
-	using namespace priv::pinterest;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestUser)
 

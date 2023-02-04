@@ -28,48 +28,42 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace string_buffer
+	namespace {
+
+		template <class STRING>
+		class StringGetter;
+
+		template <>
+		class StringGetter<String>
 		{
-
-			template <class STRING>
-			class StringGetter;
-
-			template <>
-			class StringGetter<String>
+		public:
+			static String& get(StringStorage& storage)
 			{
-			public:
-				static String& get(StringStorage& storage)
-				{
-					return storage.string8;
-				}
-			};
+				return storage.string8;
+			}
+		};
 
-			template <>
-			class StringGetter<String16>
+		template <>
+		class StringGetter<String16>
+		{
+		public:
+			static String16& get(StringStorage& storage)
 			{
-			public:
-				static String16& get(StringStorage& storage)
-				{
-					return storage.string16;
-				}
-			};
+				return storage.string16;
+			}
+		};
 
-			template <>
-			class StringGetter<String32>
+		template <>
+		class StringGetter<String32>
+		{
+		public:
+			static String32& get(StringStorage& storage)
 			{
-			public:
-				static String32& get(StringStorage& storage)
-				{
-					return storage.string32;
-				}
-			};
+				return storage.string32;
+			}
+		};
 
-		}
 	}
-
-	using namespace priv::string_buffer;
 
 #define DEFINE_STRING_BUFFER_MEMBERS(BUFFER) \
 	BUFFER::BUFFER() noexcept: m_len(0) {} \

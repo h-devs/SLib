@@ -170,7 +170,7 @@ namespace slib
 		namespace shared
 		{
 
-			void* const g_shared_null = 0;
+			void* const g_null = 0;
 
 			PtrContainer::~PtrContainer()
 			{

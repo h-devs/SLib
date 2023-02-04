@@ -27,33 +27,38 @@
 namespace slib
 {
 
+	namespace {
+		
+		static Queue<priv::safe_static::IFreeable*>* g_listFreeables = sl_null;
+		static sl_bool g_flagFreed = sl_false;
+
+		class FreeHelper
+		{
+		public:
+			SLIB_CONSTEXPR FreeHelper() {}
+
+			~FreeHelper()
+			{
+				g_flagFreed = sl_true;
+				if (g_listFreeables) {
+					priv::safe_static::IFreeable* obj;
+					while (g_listFreeables->pop_NoLock(&obj)) {
+						delete obj;
+					}
+					delete g_listFreeables;
+					g_listFreeables = sl_null;
+				}
+			}
+
+		};
+		static FreeHelper g_freeHelper;
+
+	}
+
 	namespace priv
 	{
 		namespace safe_static
 		{
-
-			static Queue<IFreeable*>* g_listFreeables = sl_null;
-			static sl_bool g_flagFreed = sl_false;
-
-			class FreeHelper
-			{
-			public:
-				SLIB_CONSTEXPR FreeHelper() {}
-
-				~FreeHelper()
-				{
-					g_flagFreed = sl_true;
-					if (g_listFreeables) {
-						IFreeable* obj;
-						while (g_listFreeables->pop_NoLock(&obj)) {
-							delete obj;
-						}
-						delete g_listFreeables;
-						g_listFreeables = sl_null;
-					}
-				}
-
-			} g_freeHelper;
 
 			void FreeObjectOnExitImpl(IFreeable* obj)
 			{

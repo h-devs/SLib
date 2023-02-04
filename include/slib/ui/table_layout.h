@@ -29,16 +29,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace table_layout
-		{
-			class Cell;
-			class Column;
-			class Row;
-		}
-	}
-
 	class SLIB_EXPORT TableLayout : public ViewGroup
 	{
 		SLIB_DECLARE_OBJECT
@@ -203,19 +193,23 @@ namespace slib
 		void onDraw(Canvas* canvas) override;
 
 	private:
-		priv::table_layout::Cell* _getCell(sl_uint32 row, sl_uint32 col);
+		class Cell;
+		class Column;
+		class Row;
 
-		priv::table_layout::Cell* _allocCell(sl_uint32 row, sl_uint32 col);
+		Cell* _getCell(sl_uint32 row, sl_uint32 col);
+
+		Cell* _allocCell(sl_uint32 row, sl_uint32 col);
 
 		Alignment _getCellAlign(sl_uint32 row, sl_uint32 col);
 
-		void _initCellAlign(priv::table_layout::Cell* cell, sl_uint32 row, sl_uint32 col);
+		void _initCellAlign(Cell* cell, sl_uint32 row, sl_uint32 col);
 
-		void _applyCellAlign(priv::table_layout::Cell* cell, sl_uint32 row, sl_uint32 col, UIUpdateMode mode);
+		void _applyCellAlign(Cell* cell, sl_uint32 row, sl_uint32 col, UIUpdateMode mode);
 
 	protected:
-		List<priv::table_layout::Column> m_columns;
-		List<priv::table_layout::Row> m_rows;
+		List<Column> m_columns;
+		List<Row> m_rows;
 
 	};
 

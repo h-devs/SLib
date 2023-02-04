@@ -170,66 +170,62 @@ namespace slib
 		}
 	}
 
-	namespace priv
-	{
-		namespace mac_address
+	namespace {
+		template <class CT>
+		SLIB_INLINE static sl_reg DoParse(MacAddress* obj, const CT* sz, sl_size i, sl_size n) noexcept
 		{
-			template <class CT>
-			SLIB_INLINE static sl_reg Parse(MacAddress* obj, const CT* sz, sl_size i, sl_size n) noexcept
-			{
-				int v[6];
-				for (int k = 0; k < 6; k++) {
-					int t = 0;
-					int s = 0;
-					for (; i < n; i++) {
-						int h = sz[i];
-						if (h >= '0' && h <= '9') {
-							s = (s << 4) | (h - '0');
-							if (s > 255) {
-								return SLIB_PARSE_ERROR;
-							}
-							t++;
-						} else if (h >= 'A' && h <= 'F') {
-							s = (s << 4) | (h - 'A' + 10);
-							if (s > 255) {
-								return SLIB_PARSE_ERROR;
-							}
-							t++;
-						} else if (h >= 'a' && h <= 'f') {
-							s = (s << 4) | (h - 'a' + 10);
-							if (s > 255) {
-								return SLIB_PARSE_ERROR;
-							}
-							t++;
-						} else {
-							break;
-						}
-					}
-					if (k < 5) {
-						if (i >= n || (sz[i] != '-' && sz[i] != ':')) {
+			int v[6];
+			for (int k = 0; k < 6; k++) {
+				int t = 0;
+				int s = 0;
+				for (; i < n; i++) {
+					int h = sz[i];
+					if (h >= '0' && h <= '9') {
+						s = (s << 4) | (h - '0');
+						if (s > 255) {
 							return SLIB_PARSE_ERROR;
 						}
-						i++;
+						t++;
+					} else if (h >= 'A' && h <= 'F') {
+						s = (s << 4) | (h - 'A' + 10);
+						if (s > 255) {
+							return SLIB_PARSE_ERROR;
+						}
+						t++;
+					} else if (h >= 'a' && h <= 'f') {
+						s = (s << 4) | (h - 'a' + 10);
+						if (s > 255) {
+							return SLIB_PARSE_ERROR;
+						}
+						t++;
+					} else {
+						break;
 					}
-					if (t == 0) {
+				}
+				if (k < 5) {
+					if (i >= n || (sz[i] != '-' && sz[i] != ':')) {
 						return SLIB_PARSE_ERROR;
 					}
-					v[k] = s;
+					i++;
 				}
-				if (obj) {
-					obj->m[0] = (sl_uint8)(v[0]);
-					obj->m[1] = (sl_uint8)(v[1]);
-					obj->m[2] = (sl_uint8)(v[2]);
-					obj->m[3] = (sl_uint8)(v[3]);
-					obj->m[4] = (sl_uint8)(v[4]);
-					obj->m[5] = (sl_uint8)(v[5]);
+				if (t == 0) {
+					return SLIB_PARSE_ERROR;
 				}
-				return i;
+				v[k] = s;
 			}
+			if (obj) {
+				obj->m[0] = (sl_uint8)(v[0]);
+				obj->m[1] = (sl_uint8)(v[1]);
+				obj->m[2] = (sl_uint8)(v[2]);
+				obj->m[3] = (sl_uint8)(v[3]);
+				obj->m[4] = (sl_uint8)(v[4]);
+				obj->m[5] = (sl_uint8)(v[5]);
+			}
+			return i;
 		}
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_MEMBERS(MacAddress, priv::mac_address::Parse)
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(MacAddress, DoParse)
 
 	MacAddress& MacAddress::operator=(sl_null_t) noexcept
 	{

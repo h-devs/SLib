@@ -28,35 +28,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace db
-		{
-
-			String GetDatabaseDialectText(DatabaseDialect dialect)
-			{
-				switch (dialect) {
-				case DatabaseDialect::MSSQL:
-					SLIB_RETURN_STRING("MSSQL")
-				case DatabaseDialect::SQLite:
-					SLIB_RETURN_STRING("SQLite")
-				case DatabaseDialect::PostgreSQL:
-					SLIB_RETURN_STRING("PostgreSQL")
-				case DatabaseDialect::MySQL:
-					SLIB_RETURN_STRING("MySQL")
-				case DatabaseDialect::Oracle:
-					SLIB_RETURN_STRING("Oracle")
-				default:
-					SLIB_RETURN_STRING("Database")
-				}
-			}
-
-		}
-	}
-
-	using namespace priv::db;
-
-
 	SLIB_DEFINE_OBJECT(Database, Object)
 
 	Database::Database()
@@ -417,6 +388,26 @@ namespace slib
 	{
 		SLIB_STATIC_STRING(s, "ROLLBACK")
 		return execute(s) >= 0;
+	}
+
+	namespace {
+		String GetDatabaseDialectText(DatabaseDialect dialect)
+		{
+			switch (dialect) {
+			case DatabaseDialect::MSSQL:
+				SLIB_RETURN_STRING("MSSQL")
+			case DatabaseDialect::SQLite:
+				SLIB_RETURN_STRING("SQLite")
+			case DatabaseDialect::PostgreSQL:
+				SLIB_RETURN_STRING("PostgreSQL")
+			case DatabaseDialect::MySQL:
+				SLIB_RETURN_STRING("MySQL")
+			case DatabaseDialect::Oracle:
+				SLIB_RETURN_STRING("Oracle")
+			default:
+				SLIB_RETURN_STRING("Database")
+			}
+		}
 	}
 
 	void Database::_logSQL(const StringParam& sql)

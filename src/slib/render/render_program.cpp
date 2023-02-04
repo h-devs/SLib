@@ -339,48 +339,45 @@ namespace slib
 		}
 	}
 
+	namespace {
+		class RenderProgramStateTemplate : public RenderProgramState
+		{
+		public:
+			sl_uint32 vertexSize;
+			List<RenderInputLayoutItem> inputLayout;
+			RenderProgramStateItem items[1];
+		};
+	}
+
 	namespace priv
 	{
-		namespace render_program
+		sl_bool RenderProgramTemplate::onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* _state)
 		{
-
-			class RenderProgramStateTemplate : public RenderProgramState
-			{
-			public:
-				sl_uint32 vertexSize;
-				List<RenderInputLayoutItem> inputLayout;
-				RenderProgramStateItem items[1];
-			};
-
-			sl_bool RenderProgramTemplate::onInit(RenderEngine* engine, RenderProgramInstance* instance, RenderProgramState* _state)
-			{
-				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-				List<RenderInputLayoutItem> layouts;
-				RenderProgramStateItem* item = state->items;
-				while (item->kind != RenderProgramStateKind::None) {
-					if (item->kind == RenderProgramStateKind::Uniform) {
-						if (item->name) {
-							state->getUniformLocation(item->name, &(item->uniform));
-						}
-					} else if (item->kind == RenderProgramStateKind::Input) {
-						RenderInputLayoutItem layoutItem;
-						*((RenderInputDesc*)&layoutItem) = item->input;
-						layoutItem.name = item->name;
-						state->inputLayout.add_NoLock(layoutItem);
+			RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
+			List<RenderInputLayoutItem> layouts;
+			RenderProgramStateItem* item = state->items;
+			while (item->kind != RenderProgramStateKind::None) {
+				if (item->kind == RenderProgramStateKind::Uniform) {
+					if (item->name) {
+						state->getUniformLocation(item->name, &(item->uniform));
 					}
-					item++;
+				} else if (item->kind == RenderProgramStateKind::Input) {
+					RenderInputLayoutItem layoutItem;
+					*((RenderInputDesc*)&layoutItem) = item->input;
+					layoutItem.name = item->name;
+					state->inputLayout.add_NoLock(layoutItem);
 				}
-				return sl_true;
+				item++;
 			}
+			return sl_true;
+		}
 
-			sl_bool RenderProgramTemplate::getInputLayoutParam(RenderProgramState* _state, RenderInputLayoutParam& param)
-			{
-				RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
-				param.strides.add(state->vertexSize);
-				param.items = state->inputLayout;
-				return sl_true;
-			}
-
+		sl_bool RenderProgramTemplate::getInputLayoutParam(RenderProgramState* _state, RenderInputLayoutParam& param)
+		{
+			RenderProgramStateTemplate* state = (RenderProgramStateTemplate*)_state;
+			param.strides.add(state->vertexSize);
+			param.items = state->inputLayout;
+			return sl_true;
 		}
 	}
 

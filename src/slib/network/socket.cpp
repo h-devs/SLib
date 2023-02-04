@@ -76,140 +76,6 @@ typedef sockaddr_un SOCKADDR_UN;
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace socket
-		{
-
-			SLIB_INLINE static void CloseSocket(sl_socket socket) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-				closesocket(socket);
-#else
-				close(socket);
-#endif
-			}
-
-			static int SetDomainAddress(SOCKADDR_UN& addr, const StringParam& _path, sl_bool flagAbstract) noexcept
-			{
-				StringData path(_path);
-				sl_size len = path.getLength();
-				sl_size offset = offsetof(SOCKADDR_UN, sun_path);
-				char* str = addr.sun_path;
-				if (flagAbstract) {
-					if (len >= sizeof(addr.sun_path) - 2) {
-						return 0;
-					}
-					str++;
-					offset++;
-				} else {
-					if (len >= sizeof(addr.sun_path) - 1) {
-						return 0;
-					}
-				}
-				Base::zeroMemory(&addr, offset);
-				Base::copyMemory(str, path.getData(), len);
-				str[len] = 0;
-				addr.sun_family = AF_UNIX;
-				return (int)(offset + len + 1);
-			}
-
-			static sl_bool GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, String* outStr, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) noexcept
-			{
-				socklen_t offset = (socklen_t)(offsetof(SOCKADDR_UN, sun_path));
-				if (len >= offset) {
-					if (addr.sun_family == AF_UNIX) {
-						const char* str = addr.sun_path;
-						len -= offset;
-						sl_bool flagAbstract = sl_true;
-						if (len) {
-							if (*str) {
-								flagAbstract = sl_false;
-							} else {
-								str++;
-								len--;
-							}
-							len = (socklen_t)(Base::getStringLength(str, len));
-						}
-						if (pOutFlagAbstract) {
-							*pOutFlagAbstract = flagAbstract;
-						}
-						if (outStr) {
-							*outStr = String::fromUtf8(str, (sl_reg)len);
-							return sl_true;
-						} else {
-							if (inOutLenPath >= (sl_uint32)len) {
-								Base::copyMemory(outPath, str, len);
-								inOutLenPath = (sl_uint32)len;
-								return sl_true;
-							}
-						}
-					}
-				}
-				return sl_false;
-			}
-
-			static sl_bool GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, String& outPath, sl_bool* pOutFlagAbstract) noexcept
-			{
-				sl_uint32 lenPath;
-				return GetDomainAddress(addr, len, &outPath, (char*)sl_null, lenPath, pOutFlagAbstract);
-			}
-
-			static String GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, sl_bool* pOutFlagAbstract) noexcept
-			{
-				String str;
-				sl_uint32 lenPath;
-				if (GetDomainAddress(addr, len, &str, (char*)sl_null, lenPath, pOutFlagAbstract)) {
-					return str;
-				}
-				return sl_null;
-			}
-
-			static sl_bool SetNonBlocking(sl_socket fd, sl_bool flagEnable) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_WINDOWS)
-				u_long flag = flagEnable ? 1 : 0;
-				return !(ioctlsocket(fd, FIONBIO, &flag));
-#else
-#	if defined(FIONBIO)
-				sl_int32 flag = flagEnable ? 1 : 0;
-				return !(ioctl(fd, FIONBIO, &flag));
-#	else
-				return HandlePtr<File>(fd)->setNonBlocking(flagEnable);
-#	endif
-#endif
-			}
-
-			static sl_bool SetPromiscuousMode(sl_socket fd, const char* deviceName, sl_bool flagEnable) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_LINUX)
-				ifreq ifopts;
-				Base::copyString(ifopts.ifr_name, deviceName, IFNAMSIZ - 1);
-				int ret;
-				ret = ioctl(fd, SIOCGIFFLAGS, &ifopts);
-				if (!ret) {
-					if (flagEnable) {
-						ifopts.ifr_flags |= IFF_PROMISC;
-					} else {
-						ifopts.ifr_flags &= (~IFF_PROMISC);
-					}
-					ret = ioctl(fd, SIOCSIFFLAGS, &ifopts);
-					if (!ret) {
-						return sl_true;
-					}
-				}
-				return sl_false;
-#else
-				return sl_false;
-#endif
-			}
-
-		}
-	}
-
-	using namespace priv::socket;
-
-
 	void L2PacketInfo::setMacAddress(const MacAddress& address) noexcept
 	{
 		lenHardwareAddress = 6;
@@ -236,6 +102,17 @@ namespace slib
 		Base::zeroMemory(hardwareAddress, 8);
 	}
 
+
+	namespace {
+		SLIB_INLINE static void CloseSocket(sl_socket socket) noexcept
+		{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+			closesocket(socket);
+#else
+			close(socket);
+#endif
+		}
+	}
 
 	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(Socket, sl_socket, m_socket, SLIB_SOCKET_INVALID_HANDLE, CloseSocket)
 	SLIB_DEFINE_ISTREAM_MEMBERS(Socket, const noexcept)
@@ -629,6 +506,85 @@ namespace slib
 			_setError(SocketError::Closed);
 		}
 		return sl_false;
+	}
+
+	namespace {
+
+		static int SetDomainAddress(SOCKADDR_UN& addr, const StringParam& _path, sl_bool flagAbstract) noexcept
+		{
+			StringData path(_path);
+			sl_size len = path.getLength();
+			sl_size offset = offsetof(SOCKADDR_UN, sun_path);
+			char* str = addr.sun_path;
+			if (flagAbstract) {
+				if (len >= sizeof(addr.sun_path) - 2) {
+					return 0;
+				}
+				str++;
+				offset++;
+			} else {
+				if (len >= sizeof(addr.sun_path) - 1) {
+					return 0;
+				}
+			}
+			Base::zeroMemory(&addr, offset);
+			Base::copyMemory(str, path.getData(), len);
+			str[len] = 0;
+			addr.sun_family = AF_UNIX;
+			return (int)(offset + len + 1);
+		}
+
+		static sl_bool GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, String* outStr, char* outPath, sl_uint32& inOutLenPath, sl_bool* pOutFlagAbstract) noexcept
+		{
+			socklen_t offset = (socklen_t)(offsetof(SOCKADDR_UN, sun_path));
+			if (len >= offset) {
+				if (addr.sun_family == AF_UNIX) {
+					const char* str = addr.sun_path;
+					len -= offset;
+					sl_bool flagAbstract = sl_true;
+					if (len) {
+						if (*str) {
+							flagAbstract = sl_false;
+						} else {
+							str++;
+							len--;
+						}
+						len = (socklen_t)(Base::getStringLength(str, len));
+					}
+					if (pOutFlagAbstract) {
+						*pOutFlagAbstract = flagAbstract;
+					}
+					if (outStr) {
+						*outStr = String::fromUtf8(str, (sl_reg)len);
+						return sl_true;
+					} else {
+						if (inOutLenPath >= (sl_uint32)len) {
+							Base::copyMemory(outPath, str, len);
+							inOutLenPath = (sl_uint32)len;
+							return sl_true;
+						}
+					}
+				}
+			}
+			return sl_false;
+		}
+
+		static sl_bool GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, String& outPath, sl_bool* pOutFlagAbstract) noexcept
+		{
+			sl_uint32 lenPath;
+			return GetDomainAddress(addr, len, &outPath, (char*)sl_null, lenPath, pOutFlagAbstract);
+		}
+
+		static String GetDomainAddress(const SOCKADDR_UN& addr, socklen_t len, sl_bool* pOutFlagAbstract) noexcept
+		{
+			String str;
+			sl_uint32 lenPath;
+			if (GetDomainAddress(addr, len, &str, (char*)sl_null, lenPath, pOutFlagAbstract)) {
+				return str;
+			}
+			return sl_null;
+		}
+
 	}
 
 	sl_bool Socket::bindDomain(const StringParam& path, sl_bool flagAbstract) const noexcept
@@ -1155,6 +1111,23 @@ namespace slib
 		return SLIB_IO_ERROR;
 	}
 
+	namespace {
+		static sl_bool SetNonBlocking(sl_socket fd, sl_bool flagEnable) noexcept
+		{
+#if defined(SLIB_PLATFORM_IS_WINDOWS)
+			u_long flag = flagEnable ? 1 : 0;
+			return !(ioctlsocket(fd, FIONBIO, &flag));
+#else
+#	if defined(FIONBIO)
+			sl_int32 flag = flagEnable ? 1 : 0;
+			return !(ioctl(fd, FIONBIO, &flag));
+#	else
+			return HandlePtr<File>(fd)->setNonBlocking(flagEnable);
+#	endif
+#endif
+		}
+	}
+
 	sl_bool Socket::setNonBlockingMode(sl_bool flagEnable) const noexcept
 	{
 		if (isOpened()) {
@@ -1163,6 +1136,32 @@ namespace slib
 			}
 		}
 		return sl_false;
+	}
+
+	namespace {
+		static sl_bool SetPromiscuousMode(sl_socket fd, const char* deviceName, sl_bool flagEnable) noexcept
+		{
+#if defined(SLIB_PLATFORM_IS_LINUX)
+			ifreq ifopts;
+			Base::copyString(ifopts.ifr_name, deviceName, IFNAMSIZ - 1);
+			int ret;
+			ret = ioctl(fd, SIOCGIFFLAGS, &ifopts);
+			if (!ret) {
+				if (flagEnable) {
+					ifopts.ifr_flags |= IFF_PROMISC;
+				} else {
+					ifopts.ifr_flags &= (~IFF_PROMISC);
+				}
+				ret = ioctl(fd, SIOCSIFFLAGS, &ifopts);
+				if (!ret) {
+					return sl_true;
+				}
+			}
+			return sl_false;
+#else
+			return sl_false;
+#endif
+		}
 	}
 
 	sl_bool Socket::setPromiscuousMode(const StringParam& _deviceName, sl_bool flagEnable) const noexcept

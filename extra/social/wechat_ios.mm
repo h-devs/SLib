@@ -33,82 +33,74 @@
 
 #import "external/wechat/iOS/WXApi.h"
 
-@interface SLIBWeChatSDKDelegate : NSObject<WXApiDelegate>
-{
-}
+@interface SLIBWeChatSDKDelegate : NSObject<WXApiDelegate> {}
 @end
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace wechat_ios
+	namespace {
+
+		class StaticContext
 		{
+		public:
+			SLIBWeChatSDKDelegate* delegate;
+			Mutex lock;
+			Function<void(WeChatLoginResult&)> callbackLogin;
+			Function<void(WeChatPaymentResult&)> callbackPay;
 
-			class StaticContext
+		public:
+			StaticContext()
 			{
-			public:
-				SLIBWeChatSDKDelegate* delegate;
-				Mutex lock;
-				Function<void(WeChatLoginResult&)> callbackLogin;
-				Function<void(WeChatPaymentResult&)> callbackPay;
+				SLIBWeChatSDKDelegate* delegate = [SLIBWeChatSDKDelegate new];
+				this->delegate = delegate;
+				UIPlatform::registerOpenUrlCallback([delegate](NSURL* url, NSDictionary*) {
+					return [WXApi handleOpenURL:url delegate:delegate];
+				});
+			}
 
-			public:
-				StaticContext()
-				{
-					SLIBWeChatSDKDelegate* delegate = [SLIBWeChatSDKDelegate new];
-					this->delegate = delegate;
-					UIPlatform::registerOpenUrlCallback([delegate](NSURL* url, NSDictionary*) {
-						return [WXApi handleOpenURL:url delegate:delegate];
-					});
-				}
-
-			public:
-				void setLoginCallback(const Function<void(WeChatLoginResult&)>& callback)
-				{
-					MutexLocker locker(&lock);
-					if (callbackPay.isNotNull()) {
-						WeChatLoginResult result;
-						result.flagCancel = sl_true;
-						callbackLogin(result);
-					}
-					callbackLogin = callback;
-				}
-
-				void onLoginResult(WeChatLoginResult& result)
-				{
-					MutexLocker locker(&lock);
+		public:
+			void setLoginCallback(const Function<void(WeChatLoginResult&)>& callback)
+			{
+				MutexLocker locker(&lock);
+				if (callbackPay.isNotNull()) {
+					WeChatLoginResult result;
+					result.flagCancel = sl_true;
 					callbackLogin(result);
-					callbackLogin.setNull();
 				}
+				callbackLogin = callback;
+			}
 
-				void setPayCallback(const Function<void(WeChatPaymentResult&)>& callback)
-				{
-					MutexLocker locker(&lock);
-					if (callbackPay.isNotNull()) {
-						WeChatPaymentResult result;
-						result.flagCancel = sl_true;
-						callbackPay(result);
-					}
-					callbackPay = callback;
-				}
+			void onLoginResult(WeChatLoginResult& result)
+			{
+				MutexLocker locker(&lock);
+				callbackLogin(result);
+				callbackLogin.setNull();
+			}
 
-				void onPayResult(WeChatPaymentResult& result)
-				{
-					MutexLocker locker(&lock);
+			void setPayCallback(const Function<void(WeChatPaymentResult&)>& callback)
+			{
+				MutexLocker locker(&lock);
+				if (callbackPay.isNotNull()) {
+					WeChatPaymentResult result;
+					result.flagCancel = sl_true;
 					callbackPay(result);
-					callbackPay.setNull();
 				}
+				callbackPay = callback;
+			}
 
-			};
+			void onPayResult(WeChatPaymentResult& result)
+			{
+				MutexLocker locker(&lock);
+				callbackPay(result);
+				callbackPay.setNull();
+			}
 
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+		};
 
-		}
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+
 	}
-
-	using namespace priv::wechat_ios;
 
 	void WeChatSDK::initialize(const String& appId, const String& universalLink)
 	{
@@ -164,7 +156,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::wechat_ios;
 
 @implementation SLIBWeChatSDKDelegate
 

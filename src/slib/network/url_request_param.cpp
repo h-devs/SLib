@@ -132,20 +132,10 @@ namespace slib
 		setRequestBodyAsJson(json);
 	}
 
-	namespace priv
-	{
-		namespace url_request
-		{
-
-			static sl_uint32 g_default_timeout = 60000;
-			static sl_bool g_default_allowInsecureConnection = sl_false;
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
-
-		}
+	namespace {
+		static sl_uint32 g_default_timeout = 60000;
+		static sl_bool g_default_allowInsecureConnection = sl_false;
 	}
-
-	using namespace priv::url_request;
 
 	sl_uint32 UrlRequest::getDefaultTimeout()
 	{
@@ -165,6 +155,10 @@ namespace slib
 	void UrlRequest::setDefaultAllowInsecureConnection(sl_bool flag)
 	{
 		g_default_allowInsecureConnection = flag;
+	}
+
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Dispatcher>, g_default_dispatcher)
 	}
 
 	Ref<Dispatcher> UrlRequest::getDefaultDispatcher()

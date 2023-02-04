@@ -30,39 +30,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace module
-		{
-
-			static List<HMODULE> GetAllModules(HANDLE hProcess)
-			{
-				auto funcEnumProcessModules = psapi::getApi_EnumProcessModules();
-				if (!funcEnumProcessModules) {
-					return sl_null;
-				}
-				DWORD dwSize = 0;
-				if (!(funcEnumProcessModules(hProcess, sl_null, 0, &dwSize))) {
-					return sl_null;
-				}
-				sl_size n = (sl_size)(dwSize / sizeof(HMODULE));
-				List<HMODULE> ret(n);
-				if (ret.isNull()) {
-					return sl_null;
-				}
-				dwSize = 0;
-				if (!(funcEnumProcessModules(hProcess, ret.getData(), (DWORD)(n * sizeof(HMODULE)), &dwSize))) {
-					return sl_null;
-				}
-				return ret;
-			}
-
-		}
-	}
-
-	using namespace priv::module;
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ModuleDescription)
 
 	ModuleDescription::ModuleDescription(): baseAddress(sl_null), imageSize(0)
@@ -87,6 +54,30 @@ namespace slib
 			return mi.lpBaseOfDll;
 		}
 		return sl_null;
+	}
+
+	namespace {
+		static List<HMODULE> GetAllModules(HANDLE hProcess)
+		{
+			auto funcEnumProcessModules = psapi::getApi_EnumProcessModules();
+			if (!funcEnumProcessModules) {
+				return sl_null;
+			}
+			DWORD dwSize = 0;
+			if (!(funcEnumProcessModules(hProcess, sl_null, 0, &dwSize))) {
+				return sl_null;
+			}
+			sl_size n = (sl_size)(dwSize / sizeof(HMODULE));
+			List<HMODULE> ret(n);
+			if (ret.isNull()) {
+				return sl_null;
+			}
+			dwSize = 0;
+			if (!(funcEnumProcessModules(hProcess, ret.getData(), (DWORD)(n * sizeof(HMODULE)), &dwSize))) {
+				return sl_null;
+			}
+			return ret;
+		}
 	}
 
 	List<ModuleDescription> Module::getAllModules(sl_uint32 processId, sl_bool flagQueryImagePath, sl_bool flagQueryBaseAddressAndSize)

@@ -31,68 +31,60 @@
 
 #include <winioctl.h>
 
+// #define FIX_SERIAL_NUMBER
+
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace disk
+	namespace {
+		static String ProcessSerialNumber(char* sn, sl_size n)
 		{
-
-// #define FIX_SERIAL_NUMBER
-
-			static String ProcessSerialNumber(char* sn, sl_size n)
-			{
 #ifdef FIX_SERIAL_NUMBER
-				sl_size i;
-				sl_bool flagHex = sl_true;
-				for (i = 0; i < n; i++) {
-					char c = sn[i];
-					if (c) {
-						if (!SLIB_CHAR_IS_HEX(c)) {
-							flagHex = sl_false;
-						}
-					} else {
-						n = i;
-						break;
+			sl_size i;
+			sl_bool flagHex = sl_true;
+			for (i = 0; i < n; i++) {
+				char c = sn[i];
+				if (c) {
+					if (!SLIB_CHAR_IS_HEX(c)) {
+						flagHex = sl_false;
 					}
+				} else {
+					n = i;
+					break;
 				}
-				if (n) {
-					if (flagHex && n % 2 == 0) {
-						n >>= 1;
-						sl_size k = 0;
-						for (i = 0; i < n; i++) {
-							char c1 = sn[k];
-							c1 = SLIB_CHAR_HEX_TO_INT(c1);
-							char c2 = sn[k + 1];
-							c2 = SLIB_CHAR_HEX_TO_INT(c2);
-							sn[i] = (char)((c1 << 4) | c2);
-							k += 2;
-						}
-						String ret = String::fromUtf8(sn, n).trim();
-						if (ret.isNotEmpty()) {
-							n = ret.getLength() >> 1;
-							char* p = ret.getData();
-							for (i = 0; i < n; i++) {
-								Swap(p[0], p[1]);
-								p += 2;
-							}
-						}
-						return ret;
-					} else {
-						return String::fromUtf8(sn, n);
-					}
-				}
-				return sl_null;
-#else
-				return String::fromUtf8(sn, Base::getStringLength(sn, n));
-#endif
 			}
-
+			if (n) {
+				if (flagHex && n % 2 == 0) {
+					n >>= 1;
+					sl_size k = 0;
+					for (i = 0; i < n; i++) {
+						char c1 = sn[k];
+						c1 = SLIB_CHAR_HEX_TO_INT(c1);
+						char c2 = sn[k + 1];
+						c2 = SLIB_CHAR_HEX_TO_INT(c2);
+						sn[i] = (char)((c1 << 4) | c2);
+						k += 2;
+					}
+					String ret = String::fromUtf8(sn, n).trim();
+					if (ret.isNotEmpty()) {
+						n = ret.getLength() >> 1;
+						char* p = ret.getData();
+						for (i = 0; i < n; i++) {
+							Swap(p[0], p[1]);
+							p += 2;
+						}
+					}
+					return ret;
+				} else {
+					return String::fromUtf8(sn, n);
+				}
+			}
+			return sl_null;
+#else
+			return String::fromUtf8(sn, Base::getStringLength(sn, n));
+#endif
 		}
 	}
-
-	using namespace priv::disk;
 
 	String Disk::getSerialNumber(sl_uint32 diskNo)
 	{

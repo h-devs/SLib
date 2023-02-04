@@ -37,12 +37,8 @@
 
 namespace slib
 {
-	namespace priv
-	{
-		namespace sensor
-		{
-			class SensorImpl;
-		}
+	namespace {
+		class SensorImpl;
 	}
 }
 
@@ -52,7 +48,7 @@ namespace slib
 	@public NSOperationQueue* operationQueue;
 	@public CMMotionManager* m_motionManager;
 	@public CLLocationManager* m_locationManager;
-	@public slib::WeakRef<slib::priv::sensor::SensorImpl> m_sensor;
+	@public slib::WeakRef<slib::SensorImpl> m_sensor;
 
 	@public sl_bool flagUseCompass;
 	@public sl_bool flagUseAccelerometor;
@@ -69,108 +65,102 @@ namespace slib
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace sensor
+	namespace {
+
+		class SharedContext
 		{
+		public:
+			CMMotionManager* defaultMotion;
 
-			class SharedContext
+		public:
+			SharedContext()
 			{
-			public:
-				CMMotionManager* defaultMotion;
+				defaultMotion = [[CMMotionManager alloc] init];
+			}
 
-			public:
-				SharedContext()
-				{
-					defaultMotion = [[CMMotionManager alloc] init];
-				}
+		};
 
-			};
+		SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
 
-			SLIB_SAFE_STATIC_GETTER(SharedContext, GetSharedContext)
+		class SensorImpl : public Sensor
+		{
+		public:
+			SLIBSensor* m_sensor;
 
-			class SensorImpl : public Sensor
+		public:
+			SensorImpl()
 			{
-			public:
-				SLIBSensor* m_sensor;
+			}
 
-			public:
-				SensorImpl()
-				{
-				}
+			~SensorImpl()
+			{
+				stop();
+			}
 
-				~SensorImpl()
-				{
-					stop();
-				}
-
-			public:
-				static Ref<SensorImpl> create(const SensorParam& param)
-				{
-					SLIBSensor* sensor = [[SLIBSensor alloc] initWithParam:&param];
-					if(sensor != nil){
-						Ref<SensorImpl> ret = new SensorImpl;
-						if(ret.isNotNull()) {
-							ret->_init(param);
-							ret->m_sensor = sensor;
-							sensor->m_sensor = ret;
-							if(param.flagAutoStart) {
-								ret->start();
-							}
-							return ret;
+		public:
+			static Ref<SensorImpl> create(const SensorParam& param)
+			{
+				SLIBSensor* sensor = [[SLIBSensor alloc] initWithParam:&param];
+				if(sensor != nil){
+					Ref<SensorImpl> ret = new SensorImpl;
+					if(ret.isNotNull()) {
+						ret->_init(param);
+						ret->m_sensor = sensor;
+						sensor->m_sensor = ret;
+						if(param.flagAutoStart) {
+							ret->start();
 						}
+						return ret;
 					}
-					return sl_null;
 				}
+				return sl_null;
+			}
 
-				sl_bool _start() override
-				{
-					if ([m_sensor start]) {
-						return sl_true;
-					}
-					return sl_false;
+			sl_bool _start() override
+			{
+				if ([m_sensor start]) {
+					return sl_true;
 				}
+				return sl_false;
+			}
 
-				void _stop() override
-				{
-					[m_sensor stop];
-				}
+			void _stop() override
+			{
+				[m_sensor stop];
+			}
 
-				void onChangeLocation(double latitude, double longitude, double altitude)
-				{
-					_onLocationChanged(GeoLocation(latitude, longitude, altitude));
-				}
+			void onChangeLocation(double latitude, double longitude, double altitude)
+			{
+				_onLocationChanged(GeoLocation(latitude, longitude, altitude));
+			}
 
-				void onChangeCompass(float declination)
-				{
-					_onCompassChanged(declination);
-				}
+			void onChangeCompass(float declination)
+			{
+				_onCompassChanged(declination);
+			}
 
-				void onChangeAccelerometer(float xAccel, float yAccel, float zAccel)
-				{
-					_onAccelerometerChanged(xAccel, yAccel, zAccel);
-				}
+			void onChangeAccelerometer(float xAccel, float yAccel, float zAccel)
+			{
+				_onAccelerometerChanged(xAccel, yAccel, zAccel);
+			}
 
-				void setRunningLocation(sl_bool flag)
-				{
-					m_flagRunningLocation = flag;
-				}
+			void setRunningLocation(sl_bool flag)
+			{
+				m_flagRunningLocation = flag;
+			}
 
-				void setRunningCompass(sl_bool flag)
-				{
-					m_flagRunningCompass = flag;
-				}
+			void setRunningCompass(sl_bool flag)
+			{
+				m_flagRunningCompass = flag;
+			}
 
-				void setRunningAccelerometer(sl_bool flag)
-				{
-					m_flagRunningAccelerometer = flag;
-				}
-			};
+			void setRunningAccelerometer(sl_bool flag)
+			{
+				m_flagRunningAccelerometer = flag;
+			}
+		};
 
-		}
 	}
-
-	using namespace priv::sensor;
 
 	Ref<Sensor> Sensor::create(const SensorParam& param)
 	{
@@ -207,7 +197,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::sensor;
 
 @implementation SLIBSensor
 

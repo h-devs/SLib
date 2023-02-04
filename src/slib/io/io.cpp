@@ -37,18 +37,14 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace endian
+	namespace {
+
+		SLIB_INLINE static sl_bool CheckLittleEndianRuntime() noexcept
 		{
-
-			SLIB_INLINE static sl_bool checkLittleEndianRuntime() noexcept
-			{
-				sl_uint32 n = 0x12345678;
-				return *(sl_uint8*)(&n) == 0x78;
-			}
-
+			sl_uint32 n = 0x12345678;
+			return *(sl_uint8*)(&n) == 0x78;
 		}
+
 	}
 
 	sl_bool Endian::checkLittleEndianRuntime() noexcept
@@ -56,7 +52,7 @@ namespace slib
 		static volatile sl_bool flagInit = sl_true;
 		static volatile sl_bool value = sl_true;
 		if (flagInit) {
-			value = priv::endian::checkLittleEndianRuntime();;
+			value = CheckLittleEndianRuntime();;
 			flagInit = sl_false;
 		}
 		return value;
@@ -457,40 +453,36 @@ namespace slib
 		}
 	}
 
-	namespace priv
-	{
-		namespace io
+	namespace {
+		static sl_bool FixFindMemoryPosition(sl_size& outStartPos, sl_size& outEndPos, sl_size size, sl_int64 startPos, sl_int64 endPos)
 		{
-			static sl_bool FixFindMemoryPosition(sl_size& outStartPos, sl_size& outEndPos, sl_size size, sl_int64 startPos, sl_int64 endPos)
-			{
-				if (startPos < 0) {
-					outStartPos = 0;
-				} else if ((sl_uint64)startPos >= size) {
-					return sl_false;
-				} else {
-					outStartPos = (sl_size)startPos;
-				}
-				if (!endPos) {
-					return sl_false;
-				} else if (endPos< 0) {
-					outEndPos = size;
-				} else if ((sl_size)endPos > size) {
-					outEndPos = size;
-				} else {
-					outEndPos = (sl_size)endPos;
-				}
-				if (startPos >= endPos) {
-					return sl_false;
-				}
-				return sl_true;
+			if (startPos < 0) {
+				outStartPos = 0;
+			} else if ((sl_uint64)startPos >= size) {
+				return sl_false;
+			} else {
+				outStartPos = (sl_size)startPos;
 			}
+			if (!endPos) {
+				return sl_false;
+			} else if (endPos< 0) {
+				outEndPos = size;
+			} else if ((sl_size)endPos > size) {
+				outEndPos = size;
+			} else {
+				outEndPos = (sl_size)endPos;
+			}
+			if (startPos >= endPos) {
+				return sl_false;
+			}
+			return sl_true;
 		}
 	}
 
 	sl_int64 MemoryIO::find(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
 	{
 		sl_size startPosition, endPosition;
-		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+		if (!(FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
 			return -1;
 		}
 		sl_uint8* buf = (sl_uint8*)m_buf;
@@ -504,7 +496,7 @@ namespace slib
 	sl_int64 MemoryIO::findBackward(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
 	{
 		sl_size startPosition, endPosition;
-		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+		if (!(FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
 			return -1;
 		}
 		sl_uint8* buf = (sl_uint8*)m_buf;
@@ -644,7 +636,7 @@ namespace slib
 	sl_int64 MemoryReader::find(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
 	{
 		sl_size startPosition, endPosition;
-		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+		if (!(FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
 			return -1;
 		}
 		sl_uint8* buf = (sl_uint8*)m_buf;
@@ -658,7 +650,7 @@ namespace slib
 	sl_int64 MemoryReader::findBackward(const void* pattern, sl_size nPattern, sl_int64 _startPosition, sl_int64 _endPosition)
 	{
 		sl_size startPosition, endPosition;
-		if (!(priv::io::FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
+		if (!(FixFindMemoryPosition(startPosition, endPosition, m_size, _startPosition, _endPosition))) {
 			return -1;
 		}
 		sl_uint8* buf = (sl_uint8*)m_buf;

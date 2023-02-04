@@ -27,362 +27,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace graphics_path
-		{
-
-			SLIB_INLINE static sl_bool IsCubicControl2AndEnd(GraphicsPathPoint* ptControl2, sl_size n)
-			{
-				if (n >= 2) {
-					return ptControl2[0].type == GraphicsPathPoint::CubicTo && ptControl2[1].type == GraphicsPathPoint::CubicTo;
-				}
-				return sl_false;
-			}
-
-			static sl_real GetBounds_GetCubicPeak(sl_real q1, sl_real q2, sl_real q3, sl_real q4, sl_real epsillon)
-			{
-				// for a peak to exist above 0, the cubic segment must have at least one of its control off-points above 0
-				while (q2 > 0 || q3 > 0) {
-					// determine which half contains the maximum and split
-					if (q1 + q2 > q3 + q4) {
-						// first half
-						q4 = q4 + q3;
-						q3 = q3 + q2;
-						q2 = q2 + q1;
-						q4 = q4 + q3;
-						q3 = q3 + q2;
-						q4 = (q4 + q3) / 8;
-						q3 = q3 / 4;
-						q2 = q2 / 2;
-					} else {
-						// second half
-						q1 = q1 + q2;
-						q2 = q2 + q3;
-						q3 = q3 + q4;
-						q1 = q1 + q2;
-						q2 = q2 + q3;
-						q1 = (q1 + q2) / 8;
-						q2 = q2 / 4;
-						q3 = q3 / 2;
-					}
-					// check whether either end reached the maximum */
-					if (Math::abs(q1 - q2) <= epsillon && q1 >= q3) {
-						return q1;
-					}
-					if (Math::abs(q3 - q4) <= epsillon && q2 <= q4) {
-						return q4;
-					}
-				}
-				return 0;
-			}
-
-			static void GetBounds_ProcessCubic(sl_real p1, sl_real p2, sl_real p3, sl_real p4, sl_real epsillon, sl_real& min, sl_real& max)
-			{
-				if (p2 > max || p3 > max) {
-					max += GetBounds_GetCubicPeak(p1 - max, p2 - max, p3 - max, p4 - max, epsillon);
-				}
-				// now flip the signs to update the minimum
-				if (p2 < min || p3 < min) {
-					min -= GetBounds_GetCubicPeak(min - p1, min - p2, min - p3, min - p4, epsillon);
-				}
-			}
-
-			static Rectangle GetBounds(GraphicsPathPoint* pts, sl_size n)
-			{
-				if (!n) {
-					return Rectangle::zero();
-				}
-
-				Rectangle cbox;
-				Rectangle bbox;
-
-				sl_size i;
-				for (i = 0; i < n; i++) {
-					GraphicsPathPoint& pt = pts[i];
-					if (i) {
-						cbox.mergePoint(pt);
-						if (pt.type == GraphicsPathPoint::LineTo) {
-							bbox.mergePoint(pt);
-						}
-					} else {
-						cbox.setFromPoint(pt);
-						bbox.setFromPoint(pt);
-					}
-				}
-
-#define BBOX_CHECK_X(pt, bbox) (pt.x < bbox.left || pt.x > bbox.right)
-#define BBOX_CHECK_Y(pt, bbox) (pt.y < bbox.top || pt.y > bbox.bottom)
-
-				if (cbox.left < bbox.left || cbox.right > bbox.right || cbox.top < bbox.top || cbox.bottom > bbox.bottom) {
-					sl_real epsilon = Math::max(cbox.getWidth(), cbox.getHeight()) / 1000.0f;
-					if (epsilon < SLIB_EPSILON) {
-						epsilon = SLIB_EPSILON;
-					}
-					Point last = *pts;
-					for (i = 0; i < n; i++) {
-						GraphicsPathPoint& pt = pts[i];
-						switch (pt.type) {
-							case GraphicsPathPoint::MoveTo:
-								bbox.mergePoint(pt);
-								last = pt;
-								break;
-							case GraphicsPathPoint::LineTo:
-								// bbox already contains both explicit ends of the line segment
-								last = pt;
-								break;
-							case GraphicsPathPoint::CubicTo:
-								if (IsCubicControl2AndEnd(pts + i + 1, n - i - 1)) {
-									Point& control1 = pts[i];
-									Point& control2 = pts[i + 1];
-									Point& to = pts[i + 2];
-									if (BBOX_CHECK_X(control1, bbox) || BBOX_CHECK_X(control2, bbox)) {
-										GetBounds_ProcessCubic(last.x, control1.x, control2.x, to.x, epsilon, bbox.left, bbox.right);
-									}
-									if (BBOX_CHECK_Y(control1, bbox) || BBOX_CHECK_Y(control2, bbox)) {
-										GetBounds_ProcessCubic(last.y, control1.y, control2.y, to.y, epsilon, bbox.top, bbox.bottom);
-									}
-									last = to;
-									i += 2;
-								}
-								break;
-							default:
-								break;
-						}
-					}
-				}
-				return bbox;
-			}
-
-			static Rectangle GetControlBounds(GraphicsPathPoint* pts, sl_size n)
-			{
-				if (!n) {
-					return Rectangle::zero();
-				}
-				Rectangle cbox;
-				for (sl_size i = 0; i < n; i++) {
-					GraphicsPathPoint& pt = pts[i];
-					if (i) {
-						cbox.mergePoint(pt);
-					} else {
-						cbox.setFromPoint(pt);
-					}
-				}
-				return cbox;
-			}
-
-			class ContainsPoint
-			{
-			public:
-				sl_real x;
-				sl_real y;
-				sl_real tolerance2;
-				sl_real epsilon;
-
-				sl_bool flagOnEdge = sl_false;
-				sl_int32 winding = 0;
-
-				Point first;
-				Point current = { 0, 0 };
-				sl_bool hasCurPoint = sl_false;
-
-			public:
-				SLIB_INLINE sl_int32 getCompareResult(sl_real c)
-				{
-					if (c > epsilon) {
-						return 1;
-					} else if (c < -epsilon) {
-						return -1;
-					} else {
-						return 0;
-					}
-				}
-
-				sl_int32 compareEdgeForYAgainstX(const Point& p1, const Point& p2, sl_real y, sl_real x)
-				{
-					sl_real adx = p2.x - p1.x;
-					sl_real dx = x - p1.x;
-					if (Math::abs(adx) < epsilon) {
-						return getCompareResult(-dx);
-					}
-					if ((adx > 0 && dx < 0) || (adx < 0 && dx >= 0)) {
-						return getCompareResult(adx);
-					}
-					sl_real dy = y - p1.y;
-					sl_real ady = p2.y - p1.y;
-					sl_real L = dy * adx;
-					sl_real R = dx * ady;
-					return getCompareResult(L - R);
-				}
-
-				void addEdge(const Point* p1, const Point* p2)
-				{
-					if (flagOnEdge) {
-						return;
-					}
-					// count the number of edge crossing to -infinite
-					sl_int32 dir = 1;
-					if (p2->y < p1->y) {
-						const Point* tmp = p1;
-						p1 = p2;
-						p2 = tmp;
-						dir = -1;
-					}
-					// First check whether the query is on an edge
-					if (
-						(p1->x == x && p1->y == y) ||
-						(p2->x == x && p2->y == y) ||
-						(
-							!(
-								p2->y < y || p1->y > y ||
-								(p1->x > x && p2->x > x) ||
-								(p1->x < x && p2->x < x)
-							) &&
-							!compareEdgeForYAgainstX(*p1, *p2, y, x)
-						)
-					) {
-						flagOnEdge = sl_true;
-						return;
-					}
-					// edge is entirely above or below, note the shortening rule
-					if (p2->y <= y || p1->y > y) {
-						return;
-					}
-					// edge lies wholly to the right
-					if (p1->x >= x && p2->x >= x) {
-						return;
-					}
-					if ((p1->x <= x && p2->x <= x) || compareEdgeForYAgainstX(*p1, *p2, y, x) < 0) {
-						winding += dir;
-					}
-				}
-
-				void moveTo(const Point& pt)
-				{
-					if (hasCurPoint) {
-						addEdge(&current, &first);
-					}
-					first = pt;
-					current = pt;
-					hasCurPoint = sl_true;
-				}
-
-				void lineTo(const Point& pt)
-				{
-					if (hasCurPoint) {
-						addEdge(&current, &pt);
-					}
-					current = pt;
-					hasCurPoint = sl_true;
-				}
-
-				void processSpline(const CubicBezierCurve& curve, const Point& p1, sl_real t1, const Point& p2, sl_real t2)
-				{
-					if (p2.getLength2p(p1) <= tolerance2) {
-						lineTo(p2);
-						return;
-					}
-					sl_real tc = (t1 + t2) / 2.0f;
-					Point pc = curve.getPoint(tc);
-					processSpline(curve, p1, t1, pc, tc);
-					processSpline(curve, pc, tc, p2, t2);
-				}
-
-				void curveTo(const Point& b, const Point& c, const Point& d)
-				{
-					sl_real top, bottom, left;
-					// first reject based on bbox
-					bottom = top = current.y;
-					if (b.y < top) top = b.y;
-					if (b.y > bottom) bottom = b.y;
-					if (c.y < top) top = c.y;
-					if (c.y > bottom) bottom = c.y;
-					if (d.y < top) top = d.y;
-					if (d.y > bottom) bottom = d.y;
-					if (bottom < y || top > y) {
-						current = d;
-						return;
-					}
-					left = current.x;
-					if (b.x < left) left = b.x;
-					if (c.x < left) left = c.x;
-					if (d.x < left) left = d.x;
-					if (left > x) {
-						current = d;
-						return;
-					}
-					const Point& a = current;
-					// If both tangents are zero, this is just a straight line
-					if (Math::isAlmostZero(a.x - b.x) && Math::isAlmostZero(a.y - b.y) && Math::isAlmostZero(c.x - d.x) && Math::isAlmostZero(c.y - d.y)) {
-						return;
-					}
-					CubicBezierCurve curve(a, b, c, d);
-					processSpline(curve, a, 0.0f, d, 1.0f);
-				}
-
-				sl_bool run(GraphicsPathPoint* pts, sl_size n, FillMode fillMode)
-				{
-					for (sl_size i = 0; i < n; i++) {
-						GraphicsPathPoint& pt = pts[i];
-						switch (pt.type) {
-							case GraphicsPathPoint::MoveTo:
-								moveTo(pt);
-								break;
-							case GraphicsPathPoint::LineTo:
-								lineTo(pt);
-								break;
-							case GraphicsPathPoint::CubicTo:
-								if (IsCubicControl2AndEnd(pts + i + 1, n - i - 1)) {
-									curveTo(pts[i], pts[i + 1], pts[i + 2]);
-									i += 2;
-								}
-								break;
-							default:
-								break;
-						}
-						if (pts[i].flagClose) {
-							if (hasCurPoint) {
-								addEdge(&current, &first);
-								hasCurPoint = sl_false;
-							}
-						}
-					}
-					if (flagOnEdge) {
-						return sl_true;
-					}
-					if (fillMode == FillMode::Winding) {
-						return winding != 0;
-					} else {
-						return (sl_bool)(winding & 1);
-					}
-					return sl_false;
-				}
-
-				static sl_bool run(GraphicsPathPoint* pts, sl_size n, FillMode mode, sl_real x, sl_real y)
-				{
-					if (!n) {
-						return sl_false;
-					}
-					Rectangle cbox = GetControlBounds(pts, n);
-					ContainsPoint context;
-					context.x = x;
-					context.y = y;
-					sl_real t = Math::max(cbox.getWidth(), cbox.getHeight()) / 1000.0f;
-					context.epsilon = t / 2.0f;
-					context.tolerance2 = t * t;
-					if (context.epsilon < SLIB_EPSILON || context.tolerance2 < SLIB_EPSILON) {
-						return sl_false;
-					}
-					return context.run(pts, n, mode);
-				}
-
-			};
-
-		}
-	}
-
-	using namespace priv::graphics_path;
-
 	SLIB_DEFINE_ROOT_OBJECT(GraphicsPath)
 
 	GraphicsPath::GraphicsPath()
@@ -691,14 +335,368 @@ namespace slib
 		}
 	}
 
+	namespace {
+
+		SLIB_INLINE static sl_bool IsCubicControl2AndEnd(GraphicsPathPoint* ptControl2, sl_size n)
+		{
+			if (n >= 2) {
+				return ptControl2[0].type == GraphicsPathPoint::CubicTo && ptControl2[1].type == GraphicsPathPoint::CubicTo;
+			}
+			return sl_false;
+		}
+
+		static sl_real GetBounds_GetCubicPeak(sl_real q1, sl_real q2, sl_real q3, sl_real q4, sl_real epsillon)
+		{
+			// for a peak to exist above 0, the cubic segment must have at least one of its control off-points above 0
+			while (q2 > 0 || q3 > 0) {
+				// determine which half contains the maximum and split
+				if (q1 + q2 > q3 + q4) {
+					// first half
+					q4 = q4 + q3;
+					q3 = q3 + q2;
+					q2 = q2 + q1;
+					q4 = q4 + q3;
+					q3 = q3 + q2;
+					q4 = (q4 + q3) / 8;
+					q3 = q3 / 4;
+					q2 = q2 / 2;
+				} else {
+					// second half
+					q1 = q1 + q2;
+					q2 = q2 + q3;
+					q3 = q3 + q4;
+					q1 = q1 + q2;
+					q2 = q2 + q3;
+					q1 = (q1 + q2) / 8;
+					q2 = q2 / 4;
+					q3 = q3 / 2;
+				}
+				// check whether either end reached the maximum */
+				if (Math::abs(q1 - q2) <= epsillon && q1 >= q3) {
+					return q1;
+				}
+				if (Math::abs(q3 - q4) <= epsillon && q2 <= q4) {
+					return q4;
+				}
+			}
+			return 0;
+		}
+
+		static void GetBounds_ProcessCubic(sl_real p1, sl_real p2, sl_real p3, sl_real p4, sl_real epsillon, sl_real& min, sl_real& max)
+		{
+			if (p2 > max || p3 > max) {
+				max += GetBounds_GetCubicPeak(p1 - max, p2 - max, p3 - max, p4 - max, epsillon);
+			}
+			// now flip the signs to update the minimum
+			if (p2 < min || p3 < min) {
+				min -= GetBounds_GetCubicPeak(min - p1, min - p2, min - p3, min - p4, epsillon);
+			}
+		}
+
+		static Rectangle GetBounds(GraphicsPathPoint* pts, sl_size n)
+		{
+			if (!n) {
+				return Rectangle::zero();
+			}
+
+			Rectangle cbox;
+			Rectangle bbox;
+
+			sl_size i;
+			for (i = 0; i < n; i++) {
+				GraphicsPathPoint& pt = pts[i];
+				if (i) {
+					cbox.mergePoint(pt);
+					if (pt.type == GraphicsPathPoint::LineTo) {
+						bbox.mergePoint(pt);
+					}
+				} else {
+					cbox.setFromPoint(pt);
+					bbox.setFromPoint(pt);
+				}
+			}
+
+#define BBOX_CHECK_X(pt, bbox) (pt.x < bbox.left || pt.x > bbox.right)
+#define BBOX_CHECK_Y(pt, bbox) (pt.y < bbox.top || pt.y > bbox.bottom)
+
+			if (cbox.left < bbox.left || cbox.right > bbox.right || cbox.top < bbox.top || cbox.bottom > bbox.bottom) {
+				sl_real epsilon = Math::max(cbox.getWidth(), cbox.getHeight()) / 1000.0f;
+				if (epsilon < SLIB_EPSILON) {
+					epsilon = SLIB_EPSILON;
+				}
+				Point last = *pts;
+				for (i = 0; i < n; i++) {
+					GraphicsPathPoint& pt = pts[i];
+					switch (pt.type) {
+						case GraphicsPathPoint::MoveTo:
+							bbox.mergePoint(pt);
+							last = pt;
+							break;
+						case GraphicsPathPoint::LineTo:
+							// bbox already contains both explicit ends of the line segment
+							last = pt;
+							break;
+						case GraphicsPathPoint::CubicTo:
+							if (IsCubicControl2AndEnd(pts + i + 1, n - i - 1)) {
+								Point& control1 = pts[i];
+								Point& control2 = pts[i + 1];
+								Point& to = pts[i + 2];
+								if (BBOX_CHECK_X(control1, bbox) || BBOX_CHECK_X(control2, bbox)) {
+									GetBounds_ProcessCubic(last.x, control1.x, control2.x, to.x, epsilon, bbox.left, bbox.right);
+								}
+								if (BBOX_CHECK_Y(control1, bbox) || BBOX_CHECK_Y(control2, bbox)) {
+									GetBounds_ProcessCubic(last.y, control1.y, control2.y, to.y, epsilon, bbox.top, bbox.bottom);
+								}
+								last = to;
+								i += 2;
+							}
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			return bbox;
+		}
+
+	}
+
 	Rectangle GraphicsPath::getBounds()
 	{
 		return GetBounds(m_points.getData(), m_points.getCount());
 	}
 
+	namespace {
+		static Rectangle GetControlBounds(GraphicsPathPoint* pts, sl_size n)
+		{
+			if (!n) {
+				return Rectangle::zero();
+			}
+			Rectangle cbox;
+			for (sl_size i = 0; i < n; i++) {
+				GraphicsPathPoint& pt = pts[i];
+				if (i) {
+					cbox.mergePoint(pt);
+				} else {
+					cbox.setFromPoint(pt);
+				}
+			}
+			return cbox;
+		}
+	}
+
 	Rectangle GraphicsPath::getControlBounds()
 	{
 		return GetControlBounds(m_points.getData(), m_points.getCount());
+	}
+
+	namespace {
+		class ContainsPoint
+		{
+		public:
+			sl_real x;
+			sl_real y;
+			sl_real tolerance2;
+			sl_real epsilon;
+
+			sl_bool flagOnEdge = sl_false;
+			sl_int32 winding = 0;
+
+			Point first;
+			Point current = { 0, 0 };
+			sl_bool hasCurPoint = sl_false;
+
+		public:
+			SLIB_INLINE sl_int32 getCompareResult(sl_real c)
+			{
+				if (c > epsilon) {
+					return 1;
+				} else if (c < -epsilon) {
+					return -1;
+				} else {
+					return 0;
+				}
+			}
+
+			sl_int32 compareEdgeForYAgainstX(const Point& p1, const Point& p2, sl_real y, sl_real x)
+			{
+				sl_real adx = p2.x - p1.x;
+				sl_real dx = x - p1.x;
+				if (Math::abs(adx) < epsilon) {
+					return getCompareResult(-dx);
+				}
+				if ((adx > 0 && dx < 0) || (adx < 0 && dx >= 0)) {
+					return getCompareResult(adx);
+				}
+				sl_real dy = y - p1.y;
+				sl_real ady = p2.y - p1.y;
+				sl_real L = dy * adx;
+				sl_real R = dx * ady;
+				return getCompareResult(L - R);
+			}
+
+			void addEdge(const Point* p1, const Point* p2)
+			{
+				if (flagOnEdge) {
+					return;
+				}
+				// count the number of edge crossing to -infinite
+				sl_int32 dir = 1;
+				if (p2->y < p1->y) {
+					const Point* tmp = p1;
+					p1 = p2;
+					p2 = tmp;
+					dir = -1;
+				}
+				// First check whether the query is on an edge
+				if (
+					(p1->x == x && p1->y == y) ||
+					(p2->x == x && p2->y == y) ||
+					(
+						!(
+							p2->y < y || p1->y > y ||
+							(p1->x > x && p2->x > x) ||
+							(p1->x < x && p2->x < x)
+						) &&
+						!compareEdgeForYAgainstX(*p1, *p2, y, x)
+					)
+				) {
+					flagOnEdge = sl_true;
+					return;
+				}
+				// edge is entirely above or below, note the shortening rule
+				if (p2->y <= y || p1->y > y) {
+					return;
+				}
+				// edge lies wholly to the right
+				if (p1->x >= x && p2->x >= x) {
+					return;
+				}
+				if ((p1->x <= x && p2->x <= x) || compareEdgeForYAgainstX(*p1, *p2, y, x) < 0) {
+					winding += dir;
+				}
+			}
+
+			void moveTo(const Point& pt)
+			{
+				if (hasCurPoint) {
+					addEdge(&current, &first);
+				}
+				first = pt;
+				current = pt;
+				hasCurPoint = sl_true;
+			}
+
+			void lineTo(const Point& pt)
+			{
+				if (hasCurPoint) {
+					addEdge(&current, &pt);
+				}
+				current = pt;
+				hasCurPoint = sl_true;
+			}
+
+			void processSpline(const CubicBezierCurve& curve, const Point& p1, sl_real t1, const Point& p2, sl_real t2)
+			{
+				if (p2.getLength2p(p1) <= tolerance2) {
+					lineTo(p2);
+					return;
+				}
+				sl_real tc = (t1 + t2) / 2.0f;
+				Point pc = curve.getPoint(tc);
+				processSpline(curve, p1, t1, pc, tc);
+				processSpline(curve, pc, tc, p2, t2);
+			}
+
+			void curveTo(const Point& b, const Point& c, const Point& d)
+			{
+				sl_real top, bottom, left;
+				// first reject based on bbox
+				bottom = top = current.y;
+				if (b.y < top) top = b.y;
+				if (b.y > bottom) bottom = b.y;
+				if (c.y < top) top = c.y;
+				if (c.y > bottom) bottom = c.y;
+				if (d.y < top) top = d.y;
+				if (d.y > bottom) bottom = d.y;
+				if (bottom < y || top > y) {
+					current = d;
+					return;
+				}
+				left = current.x;
+				if (b.x < left) left = b.x;
+				if (c.x < left) left = c.x;
+				if (d.x < left) left = d.x;
+				if (left > x) {
+					current = d;
+					return;
+				}
+				const Point& a = current;
+				// If both tangents are zero, this is just a straight line
+				if (Math::isAlmostZero(a.x - b.x) && Math::isAlmostZero(a.y - b.y) && Math::isAlmostZero(c.x - d.x) && Math::isAlmostZero(c.y - d.y)) {
+					return;
+				}
+				CubicBezierCurve curve(a, b, c, d);
+				processSpline(curve, a, 0.0f, d, 1.0f);
+			}
+
+			sl_bool run(GraphicsPathPoint* pts, sl_size n, FillMode fillMode)
+			{
+				for (sl_size i = 0; i < n; i++) {
+					GraphicsPathPoint& pt = pts[i];
+					switch (pt.type) {
+						case GraphicsPathPoint::MoveTo:
+							moveTo(pt);
+							break;
+						case GraphicsPathPoint::LineTo:
+							lineTo(pt);
+							break;
+						case GraphicsPathPoint::CubicTo:
+							if (IsCubicControl2AndEnd(pts + i + 1, n - i - 1)) {
+								curveTo(pts[i], pts[i + 1], pts[i + 2]);
+								i += 2;
+							}
+							break;
+						default:
+							break;
+					}
+					if (pts[i].flagClose) {
+						if (hasCurPoint) {
+							addEdge(&current, &first);
+							hasCurPoint = sl_false;
+						}
+					}
+				}
+				if (flagOnEdge) {
+					return sl_true;
+				}
+				if (fillMode == FillMode::Winding) {
+					return winding != 0;
+				} else {
+					return (sl_bool)(winding & 1);
+				}
+				return sl_false;
+			}
+
+			static sl_bool run(GraphicsPathPoint* pts, sl_size n, FillMode mode, sl_real x, sl_real y)
+			{
+				if (!n) {
+					return sl_false;
+				}
+				Rectangle cbox = GetControlBounds(pts, n);
+				ContainsPoint context;
+				context.x = x;
+				context.y = y;
+				sl_real t = Math::max(cbox.getWidth(), cbox.getHeight()) / 1000.0f;
+				context.epsilon = t / 2.0f;
+				context.tolerance2 = t * t;
+				if (context.epsilon < SLIB_EPSILON || context.tolerance2 < SLIB_EPSILON) {
+					return sl_false;
+				}
+				return context.run(pts, n, mode);
+			}
+
+		};
 	}
 
 	sl_bool GraphicsPath::containsPoint(sl_real x, sl_real y)

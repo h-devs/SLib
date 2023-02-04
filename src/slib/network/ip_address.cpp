@@ -234,92 +234,86 @@ namespace slib
 		return String(buf, p - buf);
 	}
 
-	namespace priv
-	{
-		namespace ipv4address
+	namespace {
+		template <class CT>
+		SLIB_INLINE static sl_reg DoParse_IPv4(IPv4Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
 		{
-
-			template <class CT>
-			SLIB_INLINE static sl_reg Parse(IPv4Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
-			{
-				if (i >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-				int v[4];
-				for (int k = 0; k < 4; k++) {
-					int t = 0;
-					int s = 0;
-					for (; i < n; i++) {
-						int h = sz[i];
-						if (h >= '0' && h <= '9') {
-							s = s * 10 + (h - '0');
-							if (s > 255) {
-								return SLIB_PARSE_ERROR;
-							}
-							t++;
-						} else {
-							break;
-						}
-					}
-					if (t == 0) {
-						return SLIB_PARSE_ERROR;
-					}
-					if (k < 3) {
-						if (i >= n || sz[i] != '.') {
+			if (i >= n) {
+				return SLIB_PARSE_ERROR;
+			}
+			int v[4];
+			for (int k = 0; k < 4; k++) {
+				int t = 0;
+				int s = 0;
+				for (; i < n; i++) {
+					int h = sz[i];
+					if (h >= '0' && h <= '9') {
+						s = s * 10 + (h - '0');
+						if (s > 255) {
 							return SLIB_PARSE_ERROR;
 						}
-						i++;
+						t++;
+					} else {
+						break;
 					}
-					v[k] = s;
 				}
-				if (obj) {
-					obj->a = (sl_uint8)(v[0]);
-					obj->b = (sl_uint8)(v[1]);
-					obj->c = (sl_uint8)(v[2]);
-					obj->d = (sl_uint8)(v[3]);
+				if (t == 0) {
+					return SLIB_PARSE_ERROR;
 				}
-				return i;
+				if (k < 3) {
+					if (i >= n || sz[i] != '.') {
+						return SLIB_PARSE_ERROR;
+					}
+					i++;
+				}
+				v[k] = s;
 			}
+			if (obj) {
+				obj->a = (sl_uint8)(v[0]);
+				obj->b = (sl_uint8)(v[1]);
+				obj->c = (sl_uint8)(v[2]);
+				obj->d = (sl_uint8)(v[3]);
+			}
+			return i;
+		}
 
-			template <class VIEW>
-			static sl_bool ParseRange(const VIEW& str, IPv4Address* _from, IPv4Address* _to) noexcept
-			{
-				IPv4Address from;
-				IPv4Address to;
-				sl_reg index = str.indexOf('-');
-				if (index > 0) {
-					if (from.parse(str.substring(0, index))) {
-						if (to.parse(str.substring(index + 1))) {
-							if (to >= from) {
-								if (_from) {
-									*_from = from;
-								}
-								if (_to) {
-									*_to = to;
-								}
-								return sl_true;
+		template <class VIEW>
+		static sl_bool DoParseRange_IPv4(const VIEW& str, IPv4Address* _from, IPv4Address* _to) noexcept
+		{
+			IPv4Address from;
+			IPv4Address to;
+			sl_reg index = str.indexOf('-');
+			if (index > 0) {
+				if (from.parse(str.substring(0, index))) {
+					if (to.parse(str.substring(index + 1))) {
+						if (to >= from) {
+							if (_from) {
+								*_from = from;
 							}
+							if (_to) {
+								*_to = to;
+							}
+							return sl_true;
 						}
-					}
-				} else {
-					if (from.parse(str)) {
-						to = from;
-						if (_from) {
-							*_from = from;
-						}
-						if (_to) {
-							*_to = to;
-						}
-						return sl_true;
 					}
 				}
-				return sl_false;
+			} else {
+				if (from.parse(str)) {
+					to = from;
+					if (_from) {
+						*_from = from;
+					}
+					if (_to) {
+						*_to = to;
+					}
+					return sl_true;
+				}
 			}
-
+			return sl_false;
 		}
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv4Address, priv::ipv4address::Parse)
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv4Address, DoParse_IPv4)
 
 	sl_bool IPv4Address::parseRange(const StringParam& str, IPv4Address* from, IPv4Address* to) noexcept
 	{
@@ -327,11 +321,11 @@ namespace slib
 			return sl_false;
 		}
 		if (str.is8BitsStringType()) {
-			return priv::ipv4address::ParseRange(StringData(str), from, to);
+			return DoParseRange_IPv4(StringData(str), from, to);
 		} else if (str.is16BitsStringType()) {
-			return priv::ipv4address::ParseRange(StringData16(str), from, to);
+			return DoParseRange_IPv4(StringData16(str), from, to);
 		} else {
-			return priv::ipv4address::ParseRange(StringData32(str), from, to);
+			return DoParseRange_IPv4(StringData32(str), from, to);
 		}
 	}
 
@@ -554,107 +548,103 @@ namespace slib
 		return String(buf, p - buf);
 	}
 
-	namespace priv
-	{
-		namespace ipv6address
+	namespace {
+		template <class CT>
+		SLIB_INLINE static sl_reg DoParse_IPv6(IPv6Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
 		{
-			template <class CT>
-			SLIB_INLINE static sl_reg Parse(IPv6Address* obj, const CT* sz, sl_size i, sl_size n) noexcept
-			{
-				if (i >= n) {
-					return SLIB_PARSE_ERROR;
-				}
-				int k = 0;
-				sl_uint16 v[8];
-				int skip_START = -1;
-				for (k = 0; k < 8;) {
-					int t = 0;
-					int s = 0;
-					for (; i < n; i++) {
-						int h = sz[i];
-						int x = 0;
-						if (h >= '0' && h <= '9') {
-							x = h - '0';
-						} else if (h >= 'A' && h <= 'F') {
-							x = h - ('A' - 10);
-						} else if (h >= 'a' && h <= 'f') {
-							x = h - ('a' - 10);
-						} else {
-							break;
-						}
-						s = (s << 4) | x;
-						if (s > 0x10000) {
-							return SLIB_PARSE_ERROR;
-						}
-						t++;
-					}
-					if (i >= n || sz[i] != ':') {
-						if (t == 0) {
-							if (skip_START != k) {
-								return SLIB_PARSE_ERROR;
-							}
-						} else {
-							v[k] = (sl_uint16)s;
-							k++;
-						}
+			if (i >= n) {
+				return SLIB_PARSE_ERROR;
+			}
+			int k = 0;
+			sl_uint16 v[8];
+			int skip_START = -1;
+			for (k = 0; k < 8;) {
+				int t = 0;
+				int s = 0;
+				for (; i < n; i++) {
+					int h = sz[i];
+					int x = 0;
+					if (h >= '0' && h <= '9') {
+						x = h - '0';
+					} else if (h >= 'A' && h <= 'F') {
+						x = h - ('A' - 10);
+					} else if (h >= 'a' && h <= 'f') {
+						x = h - ('a' - 10);
+					} else {
 						break;
 					}
+					s = (s << 4) | x;
+					if (s > 0x10000) {
+						return SLIB_PARSE_ERROR;
+					}
+					t++;
+				}
+				if (i >= n || sz[i] != ':') {
 					if (t == 0) {
-						if (k == 0) {
-							if (i < n - 1 && sz[i + 1] == ':') {
-								skip_START = 0;
-								i += 2;
-							} else {
-								return SLIB_PARSE_ERROR;
-							}
-						} else {
-							if (skip_START >= 0) {
-								return SLIB_PARSE_ERROR;
-							}
-							skip_START = k;
-							i++;
+						if (skip_START != k) {
+							return SLIB_PARSE_ERROR;
 						}
 					} else {
 						v[k] = (sl_uint16)s;
 						k++;
+					}
+					break;
+				}
+				if (t == 0) {
+					if (k == 0) {
+						if (i < n - 1 && sz[i + 1] == ':') {
+							skip_START = 0;
+							i += 2;
+						} else {
+							return SLIB_PARSE_ERROR;
+						}
+					} else {
+						if (skip_START >= 0) {
+							return SLIB_PARSE_ERROR;
+						}
+						skip_START = k;
 						i++;
 					}
-				}
-				if (k == 8) {
-					if (skip_START >= 0) {
-						return SLIB_PARSE_ERROR;
-					} else {
-						if (obj) {
-							for (int q = 0; q < 8; q++) {
-								obj->setElement(q, v[q]);
-							}
-						}
-					}
 				} else {
-					if (skip_START < 0) {
-						return SLIB_PARSE_ERROR;
-					} else {
-						if (obj) {
-							int q;
-							for (q = 0; q < skip_START; q++) {
-								obj->setElement(q, v[q]);
-							}
-							int x = skip_START + 8 - k;
-							for (; q < x; q++) {
-								obj->setElement(q, 0);
-							}
-							for (; q < 8; q++) {
-								obj->setElement(q, v[q - 8 + k]);
-							}
+					v[k] = (sl_uint16)s;
+					k++;
+					i++;
+				}
+			}
+			if (k == 8) {
+				if (skip_START >= 0) {
+					return SLIB_PARSE_ERROR;
+				} else {
+					if (obj) {
+						for (int q = 0; q < 8; q++) {
+							obj->setElement(q, v[q]);
 						}
 					}
 				}
-				return i;
+			} else {
+				if (skip_START < 0) {
+					return SLIB_PARSE_ERROR;
+				} else {
+					if (obj) {
+						int q;
+						for (q = 0; q < skip_START; q++) {
+							obj->setElement(q, v[q]);
+						}
+						int x = skip_START + 8 - k;
+						for (; q < x; q++) {
+							obj->setElement(q, 0);
+						}
+						for (; q < 8; q++) {
+							obj->setElement(q, v[q - 8 + k]);
+						}
+					}
+				}
 			}
+			return i;
 		}
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv6Address, priv::ipv6address::Parse)
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPv6Address, DoParse_IPv6)
 
 	IPv6Address& IPv6Address::operator=(sl_null_t) noexcept
 	{
@@ -788,39 +778,35 @@ namespace slib
 		}
 	}
 
-	namespace priv
-	{
-		namespace ipaddress
+	namespace {
+		template <class CT>
+		SLIB_INLINE static sl_reg DoParse(IPAddress* obj, const CT* sz, sl_size posStart, sl_size posEnd) noexcept
 		{
-			template <class CT>
-			SLIB_INLINE static sl_reg Parse(IPAddress* obj, const CT* sz, sl_size posStart, sl_size posEnd) noexcept
-			{
-				if (posStart >= posEnd) {
-					return SLIB_PARSE_ERROR;
-				}
-				sl_reg index;
-				IPv4Address a4;
-				index = IPv4Address::parse(&a4, sz, posStart, posEnd);
-				if (index != SLIB_PARSE_ERROR) {
-					if (obj) {
-						*obj = a4;
-					}
-					return index;
-				}
-				IPv6Address a6;
-				index = IPv6Address::parse(&a6, sz, posStart, posEnd);
-				if (index != SLIB_PARSE_ERROR) {
-					if (obj) {
-						*obj = a6;
-					}
-					return index;
-				}
+			if (posStart >= posEnd) {
 				return SLIB_PARSE_ERROR;
 			}
+			sl_reg index;
+			IPv4Address a4;
+			index = IPv4Address::parse(&a4, sz, posStart, posEnd);
+			if (index != SLIB_PARSE_ERROR) {
+				if (obj) {
+					*obj = a4;
+				}
+				return index;
+			}
+			IPv6Address a6;
+			index = IPv6Address::parse(&a6, sz, posStart, posEnd);
+			if (index != SLIB_PARSE_ERROR) {
+				if (obj) {
+					*obj = a6;
+				}
+				return index;
+			}
+			return SLIB_PARSE_ERROR;
 		}
 	}
 
-	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPAddress, priv::ipaddress::Parse)
+	SLIB_DEFINE_CLASS_PARSE_MEMBERS(IPAddress, DoParse)
 
 	IPAddress& IPAddress::operator=(const IPv4Address& other) noexcept
 	{

@@ -70,170 +70,40 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace file
+	namespace {
+		static int GetFilePermissions(const FileAttributes& attrs)
 		{
-
-			static FileAttributes GetAttributes(struct stat& st)
-			{
-				int ret = 0;
-				if (S_ISDIR(st.st_mode)) {
-					ret |= FileAttributes::Directory;
-				}
-				if (S_ISSOCK(st.st_mode)) {
-					ret |= FileAttributes::Socket;
-				}
-				if (S_ISLNK(st.st_mode)) {
-					ret |= FileAttributes::Link;
-				}
-				if (S_ISBLK(st.st_mode)) {
-					ret |= FileAttributes::Device;
-				}
-				if (S_ISCHR(st.st_mode)) {
-					ret |= FileAttributes::CharDevice;
-				}
-				if (S_ISFIFO(st.st_mode)) {
-					ret |= FileAttributes::FIFO;
-				}
-				if (!ret) {
-					ret = FileAttributes::Normal;
-				}
-				if (st.st_mode & S_IRUSR) {
-					ret |= FileAttributes::ReadByUser;
-				}
-				if (st.st_mode & S_IWUSR) {
-					ret |= FileAttributes::WriteByUser;
-				}
-				if (st.st_mode & S_IXUSR) {
-					ret |= FileAttributes::ExecuteByUser;
-				}
-				if (st.st_mode & S_IRGRP) {
-					ret |= FileAttributes::ReadByGroup;
-				}
-				if (st.st_mode & S_IWGRP) {
-					ret |= FileAttributes::WriteByGroup;
-				}
-				if (st.st_mode & S_IXGRP) {
-					ret |= FileAttributes::ExecuteByGroup;
-				}
-				if (st.st_mode & S_IROTH) {
-					ret |= FileAttributes::ReadByOthers;
-				}
-				if (st.st_mode & S_IWOTH) {
-					ret |= FileAttributes::WriteByOthers;
-				}
-				if (st.st_mode & S_IXOTH) {
-					ret |= FileAttributes::ExecuteByOthers;
-				}
-				return ret;
+			int perm = 0;
+			if (attrs & FileAttributes::ReadByOthers) {
+				perm |= S_IROTH;
 			}
-
-			static sl_int64 GetModifiedTime(struct stat& st) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_APPLE)
-				sl_int64 t = st.st_mtimespec.tv_sec;
-				t *= 1000000;
-				t += st.st_mtimespec.tv_nsec / 1000;
-#elif defined(SLIB_PLATFORM_IS_ANDROID)
-				sl_int64 t = st.st_mtime;
-				t *= 1000000;
-				t += st.st_mtime_nsec / 1000;
-#else
-				sl_int64 t = st.st_mtim.tv_sec;
-				t *= 1000000;
-				t += st.st_mtim.tv_nsec / 1000;
-#endif
-				return t;
+			if (attrs & FileAttributes::WriteByOthers) {
+				perm |= S_IWOTH;
 			}
-
-			static sl_int64 GetAccessedTime(struct stat& st) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_APPLE)
-				sl_int64 t = st.st_atimespec.tv_sec;
-				t *= 1000000;
-				t += st.st_atimespec.tv_nsec / 1000;
-#elif defined(SLIB_PLATFORM_IS_ANDROID)
-				sl_int64 t = st.st_atime;
-				t *= 1000000;
-				t += st.st_atime_nsec / 1000;
-#else
-				sl_int64 t = st.st_atim.tv_sec;
-				t *= 1000000;
-				t += st.st_atim.tv_nsec / 1000;
-#endif
-				return t;
+			if (attrs & FileAttributes::ExecuteByOthers) {
+				perm |= S_IXOTH;
 			}
-
-			static sl_int64 GetCreatedTime(struct stat& st) noexcept
-			{
-#if defined(SLIB_PLATFORM_IS_APPLE)
-				sl_int64 t = st.st_ctimespec.tv_sec;
-				t *= 1000000;
-				t += st.st_ctimespec.tv_nsec / 1000;
-#elif defined(SLIB_PLATFORM_IS_ANDROID)
-				sl_int64 t = st.st_ctime;
-				t *= 1000000;
-				t += st.st_ctime_nsec / 1000;
-#else
-				sl_int64 t = st.st_ctim.tv_sec;
-				t *= 1000000;
-				t += st.st_ctim.tv_nsec / 1000;
-#endif
-				return t;
+			if (attrs & FileAttributes::ReadByGroup) {
+				perm |= S_IRGRP;
 			}
-
-			static sl_bool SetAccessedAndModifiedTime(const StringParam& _filePath, const Time& timeAccess, const Time& timeModify) noexcept
-			{
-				StringCstr filePath(_filePath);
-				if (filePath.isEmpty()) {
-					return sl_false;
-				}
-				timeval t[2];
-				t[0].tv_sec = (int)(timeAccess.toInt() / 1000000);
-				t[0].tv_usec = (int)(timeAccess.toInt() % 1000000);
-				t[1].tv_sec = (int)(timeModify.toInt() / 1000000);
-				t[1].tv_usec = (int)(timeModify.toInt() % 1000000);
-				return !(utimes(filePath.getData(), t));
+			if (attrs & FileAttributes::WriteByGroup) {
+				perm |= S_IWGRP;
 			}
-
-			static int GetFilePermissions(const FileAttributes& attrs)
-			{
-				int perm = 0;
-				if (attrs & FileAttributes::ReadByOthers) {
-					perm |= S_IROTH;
-				}
-				if (attrs & FileAttributes::WriteByOthers) {
-					perm |= S_IWOTH;
-				}
-				if (attrs & FileAttributes::ExecuteByOthers) {
-					perm |= S_IXOTH;
-				}
-				if (attrs & FileAttributes::ReadByGroup) {
-					perm |= S_IRGRP;
-				}
-				if (attrs & FileAttributes::WriteByGroup) {
-					perm |= S_IWGRP;
-				}
-				if (attrs & FileAttributes::ExecuteByGroup) {
-					perm |= S_IXGRP;
-				}
-				if (attrs & FileAttributes::ReadByUser) {
-					perm |= S_IRUSR;
-				}
-				if (attrs & FileAttributes::WriteByUser) {
-					perm |= S_IWUSR;
-				}
-				if (attrs & FileAttributes::ExecuteByUser) {
-					perm |= S_IXUSR;
-				}
-				return perm;
+			if (attrs & FileAttributes::ExecuteByGroup) {
+				perm |= S_IXGRP;
 			}
-
+			if (attrs & FileAttributes::ReadByUser) {
+				perm |= S_IRUSR;
+			}
+			if (attrs & FileAttributes::WriteByUser) {
+				perm |= S_IWUSR;
+			}
+			if (attrs & FileAttributes::ExecuteByUser) {
+				perm |= S_IXUSR;
+			}
+			return perm;
 		}
 	}
-
-	using namespace priv::file;
 
 	sl_file File::_open(const StringParam& _filePath, const FileMode& mode, const FileAttributes& attrs) noexcept
 	{
@@ -536,6 +406,26 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace {
+		static sl_int64 GetModifiedTime(struct stat& st) noexcept
+		{
+#if defined(SLIB_PLATFORM_IS_APPLE)
+			sl_int64 t = st.st_mtimespec.tv_sec;
+			t *= 1000000;
+			t += st.st_mtimespec.tv_nsec / 1000;
+#elif defined(SLIB_PLATFORM_IS_ANDROID)
+			sl_int64 t = st.st_mtime;
+			t *= 1000000;
+			t += st.st_mtime_nsec / 1000;
+#else
+			sl_int64 t = st.st_mtim.tv_sec;
+			t *= 1000000;
+			t += st.st_mtim.tv_nsec / 1000;
+#endif
+			return t;
+		}
+	}
+
 	Time File::getModifiedTime() const noexcept
 	{
 		int fd = m_file;
@@ -562,6 +452,26 @@ namespace slib
 		}
 	}
 
+	namespace {
+		static sl_int64 GetAccessedTime(struct stat& st) noexcept
+		{
+#if defined(SLIB_PLATFORM_IS_APPLE)
+			sl_int64 t = st.st_atimespec.tv_sec;
+			t *= 1000000;
+			t += st.st_atimespec.tv_nsec / 1000;
+#elif defined(SLIB_PLATFORM_IS_ANDROID)
+			sl_int64 t = st.st_atime;
+			t *= 1000000;
+			t += st.st_atime_nsec / 1000;
+#else
+			sl_int64 t = st.st_atim.tv_sec;
+			t *= 1000000;
+			t += st.st_atim.tv_nsec / 1000;
+#endif
+			return t;
+		}
+	}
+
 	Time File::getAccessedTime() const noexcept
 	{
 		int fd = m_file;
@@ -585,6 +495,26 @@ namespace slib
 			return GetAccessedTime(st);
 		} else {
 			return Time::zero();
+		}
+	}
+
+	namespace {
+		static sl_int64 GetCreatedTime(struct stat& st) noexcept
+		{
+#if defined(SLIB_PLATFORM_IS_APPLE)
+			sl_int64 t = st.st_ctimespec.tv_sec;
+			t *= 1000000;
+			t += st.st_ctimespec.tv_nsec / 1000;
+#elif defined(SLIB_PLATFORM_IS_ANDROID)
+			sl_int64 t = st.st_ctime;
+			t *= 1000000;
+			t += st.st_ctime_nsec / 1000;
+#else
+			sl_int64 t = st.st_ctim.tv_sec;
+			t *= 1000000;
+			t += st.st_ctim.tv_nsec / 1000;
+#endif
+			return t;
 		}
 	}
 
@@ -632,6 +562,22 @@ namespace slib
 		return sl_false;
 	}
 
+	namespace {
+		static sl_bool SetAccessedAndModifiedTime(const StringParam& _filePath, const Time& timeAccess, const Time& timeModify) noexcept
+		{
+			StringCstr filePath(_filePath);
+			if (filePath.isEmpty()) {
+				return sl_false;
+			}
+			timeval t[2];
+			t[0].tv_sec = (int)(timeAccess.toInt() / 1000000);
+			t[0].tv_usec = (int)(timeAccess.toInt() % 1000000);
+			t[1].tv_sec = (int)(timeModify.toInt() / 1000000);
+			t[1].tv_usec = (int)(timeModify.toInt() % 1000000);
+			return !(utimes(filePath.getData(), t));
+		}
+	}
+
 	sl_bool File::setModifiedTime(const StringParam& _filePath, const Time& time) noexcept
 	{
 		StringCstr filePath(_filePath);
@@ -650,6 +596,62 @@ namespace slib
 	{
 		// not supported
 		return sl_false;
+	}
+
+	namespace {
+		static FileAttributes GetAttributes(struct stat& st)
+		{
+			int ret = 0;
+			if (S_ISDIR(st.st_mode)) {
+				ret |= FileAttributes::Directory;
+			}
+			if (S_ISSOCK(st.st_mode)) {
+				ret |= FileAttributes::Socket;
+			}
+			if (S_ISLNK(st.st_mode)) {
+				ret |= FileAttributes::Link;
+			}
+			if (S_ISBLK(st.st_mode)) {
+				ret |= FileAttributes::Device;
+			}
+			if (S_ISCHR(st.st_mode)) {
+				ret |= FileAttributes::CharDevice;
+			}
+			if (S_ISFIFO(st.st_mode)) {
+				ret |= FileAttributes::FIFO;
+			}
+			if (!ret) {
+				ret = FileAttributes::Normal;
+			}
+			if (st.st_mode & S_IRUSR) {
+				ret |= FileAttributes::ReadByUser;
+			}
+			if (st.st_mode & S_IWUSR) {
+				ret |= FileAttributes::WriteByUser;
+			}
+			if (st.st_mode & S_IXUSR) {
+				ret |= FileAttributes::ExecuteByUser;
+			}
+			if (st.st_mode & S_IRGRP) {
+				ret |= FileAttributes::ReadByGroup;
+			}
+			if (st.st_mode & S_IWGRP) {
+				ret |= FileAttributes::WriteByGroup;
+			}
+			if (st.st_mode & S_IXGRP) {
+				ret |= FileAttributes::ExecuteByGroup;
+			}
+			if (st.st_mode & S_IROTH) {
+				ret |= FileAttributes::ReadByOthers;
+			}
+			if (st.st_mode & S_IWOTH) {
+				ret |= FileAttributes::WriteByOthers;
+			}
+			if (st.st_mode & S_IXOTH) {
+				ret |= FileAttributes::ExecuteByOthers;
+			}
+			return ret;
+		}		
 	}
 
 	FileAttributes File::_getAttributes() const noexcept

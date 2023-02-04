@@ -28,62 +28,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace captcha
-		{
-
-			static sl_int32 GetRandom(sl_int32 vmin, sl_int32 vmax)
-			{
-				if (vmin >= vmax) {
-					return vmin;
-				}
-				sl_int32 c;
-				Math::randomMemory(&c, 4);
-				return ((c & 0x7FFFFFFF) % (vmax - vmin + 1)) + vmin;
-			}
-
-			static sl_uint8 GetRandom8(sl_uint8 vmin, sl_uint8 vmax)
-			{
-				return (sl_uint8)(GetRandom(vmin, vmax));
-			}
-
-			static Ref<Image> GenerateCharImage(sl_char16 ch, const Ref<Font>& font)
-			{
-				StringParam str(&ch, 1);
-				Sizei size = font->measureText(str);
-				if (size.x < 1 || size.y < 1) {
-					return sl_null;
-				}
-				Ref<Bitmap> bitmap = Bitmap::create(size.x, size.y);
-				if (bitmap.isNull()) {
-					return sl_null;
-				}
-				// draw
-				{
-					bitmap->resetPixels(Color::zero());
-					Ref<Canvas> canvas = bitmap->getCanvas();
-					if (canvas.isNull()) {
-						return sl_null;
-					}
-					canvas->drawText(str, 0, 0, font, Color::Black);
-				}
-				Ref<Image> image = bitmap->toImage();
-				if (image.isNotNull()) {
-					Rectanglei bounds;
-					if (image->getDrawnBounds(&bounds)) {
-						return image->sub(bounds.left, bounds.top, bounds.getWidth(), bounds.getHeight());
-					}
-				}
-				return sl_null;
-			}
-
-		}
-	}
-
-	using namespace priv::captcha;
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Captcha)
 
 	Captcha::Captcha()
@@ -191,6 +135,55 @@ namespace slib
 	void Captcha::setBackgroundColor(const Color& color)
 	{
 		m_backgroundColor = color;
+	}
+
+	namespace {
+
+		static sl_int32 GetRandom(sl_int32 vmin, sl_int32 vmax)
+		{
+			if (vmin >= vmax) {
+				return vmin;
+			}
+			sl_int32 c;
+			Math::randomMemory(&c, 4);
+			return ((c & 0x7FFFFFFF) % (vmax - vmin + 1)) + vmin;
+		}
+
+		static sl_uint8 GetRandom8(sl_uint8 vmin, sl_uint8 vmax)
+		{
+			return (sl_uint8)(GetRandom(vmin, vmax));
+		}
+
+		static Ref<Image> GenerateCharImage(sl_char16 ch, const Ref<Font>& font)
+		{
+			StringParam str(&ch, 1);
+			Sizei size = font->measureText(str);
+			if (size.x < 1 || size.y < 1) {
+				return sl_null;
+			}
+			Ref<Bitmap> bitmap = Bitmap::create(size.x, size.y);
+			if (bitmap.isNull()) {
+				return sl_null;
+			}
+			// draw
+			{
+				bitmap->resetPixels(Color::zero());
+				Ref<Canvas> canvas = bitmap->getCanvas();
+				if (canvas.isNull()) {
+					return sl_null;
+				}
+				canvas->drawText(str, 0, 0, font, Color::Black);
+			}
+			Ref<Image> image = bitmap->toImage();
+			if (image.isNotNull()) {
+				Rectanglei bounds;
+				if (image->getDrawnBounds(&bounds)) {
+					return image->sub(bounds.left, bounds.top, bounds.getWidth(), bounds.getHeight());
+				}
+			}
+			return sl_null;
+		}
+
 	}
 
 	sl_bool Captcha::prepare()
