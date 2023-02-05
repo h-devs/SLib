@@ -31,74 +31,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace switch_view
-		{
-
-			class StaticContext
-			{
-			public:
-				Color textColorOff;
-				Color textColorOn;
-
-				Ref<Drawable> thumbOff;
-				Ref<Drawable> trackOff;
-				Ref<Drawable> pressedThumbOff;
-				Ref<Drawable> pressedTrackOff;
-				Ref<Drawable> hoverThumbOff;
-				Ref<Drawable> hoverTrackOff;
-				Ref<Drawable> thumbOn;
-				Ref<Drawable> trackOn;
-				Ref<Drawable> pressedThumbOn;
-				Ref<Drawable> pressedTrackOn;
-				Ref<Drawable> hoverThumbOn;
-				Ref<Drawable> hoverTrackOn;
-
-				StaticContext(sl_bool flagLabel)
-				{
-					if (flagLabel) {
-						textColorOff = Color::White;
-						textColorOn = Color::Black;
-						thumbOff = ColorDrawable::create(Color(255, 255, 255));
-						trackOff = ColorDrawable::create(Color(130, 130, 130));
-						pressedThumbOff = ColorDrawable::create(Color(255, 255, 255));
-						pressedTrackOff = ColorDrawable::create(Color(100, 100, 100));
-						hoverThumbOff = ColorDrawable::create(Color(255, 255, 255));
-						hoverTrackOff = ColorDrawable::create(Color(120, 120, 120));
-						thumbOn = thumbOff;
-						trackOn = trackOff;
-						pressedThumbOn = pressedThumbOff;
-						pressedTrackOn = pressedTrackOff;
-						hoverThumbOn = hoverThumbOff;
-						hoverTrackOn = hoverTrackOff;
-					} else {
-						textColorOff = Color::Black;
-						textColorOn = Color::Black;
-						thumbOff = ColorDrawable::create(Color(255, 255, 255));
-						trackOff = ColorDrawable::create(Color(120, 120, 120));
-						pressedThumbOff = ColorDrawable::create(Color(255, 255, 255));
-						pressedTrackOff = ColorDrawable::create(Color(0, 70, 210));
-						hoverThumbOff = ColorDrawable::create(Color(255, 255, 255));
-						hoverTrackOff = ColorDrawable::create(Color(90, 90, 90));
-						thumbOn = ColorDrawable::create(Color(255, 255, 255));
-						trackOn = ColorDrawable::create(Color(0, 80, 230));
-						pressedThumbOn = ColorDrawable::create(Color(255, 255, 255));
-						pressedTrackOn = ColorDrawable::create(Color(0, 70, 210));
-						hoverThumbOn = ColorDrawable::create(Color(255, 255, 255));
-						hoverTrackOn = ColorDrawable::create(Color(30, 90, 210));
-					}
-				}
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext, sl_false)
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticLabelContext, sl_true)
-
-		}
-	}
-
-	using namespace priv::switch_view;
-
 	SLIB_DEFINE_OBJECT(SwitchView, View)
 
 	SwitchView::SwitchView():
@@ -293,13 +225,74 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(Change, newValue)
 	}
 
+	namespace {
+		class DrawContext
+		{
+		public:
+			Color textColorOff;
+			Color textColorOn;
+
+			Ref<Drawable> thumbOff;
+			Ref<Drawable> trackOff;
+			Ref<Drawable> pressedThumbOff;
+			Ref<Drawable> pressedTrackOff;
+			Ref<Drawable> hoverThumbOff;
+			Ref<Drawable> hoverTrackOff;
+			Ref<Drawable> thumbOn;
+			Ref<Drawable> trackOn;
+			Ref<Drawable> pressedThumbOn;
+			Ref<Drawable> pressedTrackOn;
+			Ref<Drawable> hoverThumbOn;
+			Ref<Drawable> hoverTrackOn;
+
+		public:
+			DrawContext(sl_bool flagLabel)
+			{
+				if (flagLabel) {
+					textColorOff = Color::White;
+					textColorOn = Color::Black;
+					thumbOff = ColorDrawable::create(Color(255, 255, 255));
+					trackOff = ColorDrawable::create(Color(130, 130, 130));
+					pressedThumbOff = ColorDrawable::create(Color(255, 255, 255));
+					pressedTrackOff = ColorDrawable::create(Color(100, 100, 100));
+					hoverThumbOff = ColorDrawable::create(Color(255, 255, 255));
+					hoverTrackOff = ColorDrawable::create(Color(120, 120, 120));
+					thumbOn = thumbOff;
+					trackOn = trackOff;
+					pressedThumbOn = pressedThumbOff;
+					pressedTrackOn = pressedTrackOff;
+					hoverThumbOn = hoverThumbOff;
+					hoverTrackOn = hoverTrackOff;
+				} else {
+					textColorOff = Color::Black;
+					textColorOn = Color::Black;
+					thumbOff = ColorDrawable::create(Color(255, 255, 255));
+					trackOff = ColorDrawable::create(Color(120, 120, 120));
+					pressedThumbOff = ColorDrawable::create(Color(255, 255, 255));
+					pressedTrackOff = ColorDrawable::create(Color(0, 70, 210));
+					hoverThumbOff = ColorDrawable::create(Color(255, 255, 255));
+					hoverTrackOff = ColorDrawable::create(Color(90, 90, 90));
+					thumbOn = ColorDrawable::create(Color(255, 255, 255));
+					trackOn = ColorDrawable::create(Color(0, 80, 230));
+					pressedThumbOn = ColorDrawable::create(Color(255, 255, 255));
+					pressedTrackOn = ColorDrawable::create(Color(0, 70, 210));
+					hoverThumbOn = ColorDrawable::create(Color(255, 255, 255));
+					hoverTrackOn = ColorDrawable::create(Color(30, 90, 210));
+				}
+			}
+		};
+
+		SLIB_SAFE_STATIC_GETTER(DrawContext, GetDrawContext, sl_false)
+		SLIB_SAFE_STATIC_GETTER(DrawContext, GetDrawLabelContext, sl_true)
+	}
+
 	void SwitchView::onDraw(Canvas* canvas)
 	{
-		StaticContext* s;
+		DrawContext* s;
 		if (m_flagTextInButton) {
-			s = GetStaticLabelContext();
+			s = GetDrawLabelContext();
 		} else {
-			s = GetStaticContext();
+			s = GetDrawContext();
 		}
 		if (!s) {
 			return;

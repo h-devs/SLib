@@ -42,20 +42,27 @@ namespace slib
 
 	namespace priv
 	{
-		namespace alert_dialog
+		extern WNDPROC g_wndProc_CustomMsgBox;
+	}
+
+	DialogResult AlertDialog::run()
+	{
+		return _runOnUiThread();
+	}
+
+	namespace {
+		static LRESULT CALLBACK ProcessCustomMsgBox(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
+			HWND hWndMsg = FindWindowW(NULL, L"CustomizedMsgBox");
+			if (!hWndMsg) {
+				return 0;
+			}
 
-			void ProcessCustomMsgBox(WPARAM wParam, LPARAM lParam)
-			{
-				HWND hWndMsg = FindWindowW(NULL, L"CustomizedMsgBox");
-				if (hWndMsg == NULL) {
-					return;
-				}
-				AlertDialog* alert = (AlertDialog*)lParam;
-				StringCstr16 caption = alert->caption;
-				SetWindowTextW(hWndMsg, (LPCWSTR)(caption.getData()));
+			AlertDialog* alert = (AlertDialog*)lParam;
+			StringCstr16 caption = alert->caption;
+			SetWindowTextW(hWndMsg, (LPCWSTR)(caption.getData()));
 
-				switch (alert->buttons) {
+			switch (alert->buttons) {
 				case AlertButtons::OK:
 					if (alert->titleOK.isNotNull()) {
 						StringCstr16 titleOK = alert->titleOK;
@@ -96,21 +103,14 @@ namespace slib
 						SetDlgItemTextW(hWndMsg, 2, (LPCWSTR)(titleCancel.getData()));
 					}
 					break;
-				}
 			}
-
+			return 0;
 		}
-	}
-
-	DialogResult AlertDialog::run()
-	{
-		return _runOnUiThread();
 	}
 
 	DialogResult AlertDialog::_run()
 	{
 		int style;
-
 		switch (buttons) {
 		case AlertButtons::OkCancel:
 			style = MB_OKCANCEL;
@@ -149,10 +149,10 @@ namespace slib
 		}
 
 		int result;
-
 		StringCstr16 text = this->text;
 		Win32_UI_Shared* shared = Win32_UI_Shared::get();
 		if (shared) {
+			priv::g_wndProc_CustomMsgBox = &ProcessCustomMsgBox;
 			PostMessageW(shared->hWndMessage, SLIB_UI_MESSAGE_CUSTOM_MSGBOX, 0, (LPARAM)(this));
 			result = MessageBoxW(hWndParent, (LPCWSTR)(text.getData()), L"CustomizedMsgBox", style);
 		} else {
@@ -161,14 +161,14 @@ namespace slib
 		}
 
 		switch (result) {
-		case IDOK:
-			return DialogResult::OK;
-		case IDCANCEL:
-			return DialogResult::Cancel;
-		case IDYES:
-			return DialogResult::Yes;
-		case IDNO:
-			return DialogResult::No;
+			case IDOK:
+				return DialogResult::OK;
+			case IDCANCEL:
+				return DialogResult::Cancel;
+			case IDYES:
+				return DialogResult::Yes;
+			case IDNO:
+				return DialogResult::No;
 		}
 		return DialogResult::Error;
 	}
@@ -183,30 +183,23 @@ namespace slib
 		return sl_false;
 	}
 
-
-	namespace priv
-	{
-		namespace file_dialog
+	namespace {
+		struct Filter
 		{
+			String16 title;
+			String16 patterns;
+		};
 
-			struct Filter
-			{
-				String16 title;
-				String16 patterns;
-			};
-
-			static int CALLBACK BrowseDirCallback(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM pData)
-			{
-				switch (uMsg) {
-					case BFFM_INITIALIZED:
-						if (pData) {
-							SendMessageW(hwnd, BFFM_SETSELECTION, TRUE, pData);
-						}
-						break;
-				}
-				return 0;
+		static int CALLBACK BrowseDirCallback(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM pData)
+		{
+			switch (uMsg) {
+				case BFFM_INITIALIZED:
+					if (pData) {
+						SendMessageW(hwnd, BFFM_SETSELECTION, TRUE, pData);
+					}
+					break;
 			}
-
+			return 0;
 		}
 	}
 
@@ -235,7 +228,7 @@ namespace slib
 					bi.lpszTitle = (LPWSTR)(_title.getData());
 				}
 				bi.ulFlags = BIF_NEWDIALOGSTYLE;
-				bi.lpfn = priv::file_dialog::BrowseDirCallback;
+				bi.lpfn = &BrowseDirCallback;
 				StringCstr16 initialDir;
 				if (File::isDirectory(selectedPath)) {
 					initialDir = selectedPath;
@@ -268,9 +261,9 @@ namespace slib
 			ofn.lpstrDefExt = (LPCWSTR)(_defaultFileExt.getData());
 
 			sl_size lenSzFilters = 0;
-			CList<priv::file_dialog::Filter> wfilters;
+			CList<Filter> wfilters;
 			{
-				priv::file_dialog::Filter wfilter;
+				Filter wfilter;
 				ListLocker<FileDialogFilter> list(filters);
 				for (sl_size i = 0; i < list.count; i++) {
 					wfilter.title = String16::from(list[i].title);
@@ -287,7 +280,7 @@ namespace slib
 			if (szFilters) {
 				sl_size pos = 0;
 				sl_size len;
-				ListElements<priv::file_dialog::Filter> list(wfilters);
+				ListElements<Filter> list(wfilters);
 				for (sl_size i = 0; i < list.count; i++) {
 					len = list[i].title.getLength();
 					Base::copyMemory(szFilters + pos, list[i].title.getData(), len * 2);

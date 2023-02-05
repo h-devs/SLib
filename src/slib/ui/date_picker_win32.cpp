@@ -33,97 +33,91 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace date_picker
+	namespace {
+
+		class DatePickerInstance : public Win32_ViewInstance, public IDatePickerInstance
 		{
+			SLIB_DECLARE_OBJECT
 
-			class DatePickerInstance : public Win32_ViewInstance, public IDatePickerInstance
+		public:
+			void initialize(View* _view) override
 			{
-				SLIB_DECLARE_OBJECT
+				DatePicker* view = (DatePicker*)_view;
 
-			public:
-				void initialize(View* _view) override
-				{
-					DatePicker* view = (DatePicker*)_view;
+				setDate(view, view->getDate());
+			}
 
-					setDate(view, view->getDate());
+			sl_bool getDate(DatePicker* view, Time& _out) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					SYSTEMTIME st;
+					if (GDT_VALID == SendMessageW(handle, DTM_GETSYSTEMTIME, 0, (LPARAM)&st)) {
+						_out = Win32::getTime(&st, sl_false);
+						return sl_true;
+					}
 				}
+				return sl_false;
+			}
 
-				sl_bool getDate(DatePicker* view, Time& _out) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						SYSTEMTIME st;
-						if (GDT_VALID == SendMessageW(handle, DTM_GETSYSTEMTIME, 0, (LPARAM)&st)) {
-							_out = Win32::getTime(&st, sl_false);
+			void setDate(DatePicker* view, const Time& time) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					SYSTEMTIME st;
+					Win32::getSYSTEMTIME(time, sl_false, &st);
+					SendMessageW(handle, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM)&st);
+				}
+			}
+
+			sl_bool measureSize(DatePicker* view, UISize& _out) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					SIZE size = { 0, 0 };
+					SendMessageW(handle, (DTM_FIRST + 15) /*DTM_GETIDEALSIZE*/, 0, (LPARAM)&size);
+					if (size.cx > 0 && size.cy > 0) {
+						_out.x = (sl_ui_len)(size.cx);
+						_out.y = (sl_ui_len)(size.cy);
+						return sl_true;
+					} else {
+						if (m_font.isNotNull()) {
+							Size size = m_font->measureText("0000-00-00");
+							_out.x = (sl_ui_len)(size.x + size.y * 2);
+							_out.y = (sl_ui_len)(size.y * 1.5f);
 							return sl_true;
 						}
 					}
-					return sl_false;
 				}
+				return sl_false;
+			}
 
-				void setDate(DatePicker* view, const Time& time) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						SYSTEMTIME st;
-						Win32::getSYSTEMTIME(time, sl_false, &st);
-						SendMessageW(handle, DTM_SETSYSTEMTIME, GDT_VALID, (LPARAM)&st);
-					}
-				}
-
-				sl_bool measureSize(DatePicker* view, UISize& _out) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						SIZE size = { 0, 0 };
-						SendMessageW(handle, (DTM_FIRST + 15) /*DTM_GETIDEALSIZE*/, 0, (LPARAM)&size);
-						if (size.cx > 0 && size.cy > 0) {
-							_out.x = (sl_ui_len)(size.cx);
-							_out.y = (sl_ui_len)(size.cy);
-							return sl_true;
-						} else {
-							if (m_font.isNotNull()) {
-								Size size = m_font->measureText("0000-00-00");
-								_out.x = (sl_ui_len)(size.x + size.y * 2);
-								_out.y = (sl_ui_len)(size.y * 1.5f);
-								return sl_true;
-							}
+			sl_bool processNotify(NMHDR* nmhdr, LRESULT& result) override
+			{
+				Ref<DatePicker> view = CastRef<DatePicker>(getView());
+				if (view.isNotNull()) {
+					UINT code = nmhdr->code;
+					if (code == DTN_DATETIMECHANGE) {
+						NMDATETIMECHANGE* change = (NMDATETIMECHANGE*)nmhdr;
+						Time time;
+						if (change->dwFlags == GDT_VALID) {
+							time = Win32::getTime(&(change->st), sl_false);
+						}
+						Time old = time;
+						view->dispatchChange(time);
+						if (old != time) {
+							setDate(view.get(), time);
 						}
 					}
-					return sl_false;
 				}
+				return sl_false;
+			}
 
-				sl_bool processNotify(NMHDR* nmhdr, LRESULT& result) override
-				{
-					Ref<DatePicker> view = CastRef<DatePicker>(getView());
-					if (view.isNotNull()) {
-						UINT code = nmhdr->code;
-						if (code == DTN_DATETIMECHANGE) {
-							NMDATETIMECHANGE* change = (NMDATETIMECHANGE*)nmhdr;
-							Time time;
-							if (change->dwFlags == GDT_VALID) {
-								time = Win32::getTime(&(change->st), sl_false);
-							}
-							Time old = time;
-							view->dispatchChange(time);
-							if (old != time) {
-								setDate(view.get(), time);
-							}
-						}
-					}
-					return sl_false;
-				}
+		};
 
-			};
+		SLIB_DEFINE_OBJECT(DatePickerInstance, Win32_ViewInstance)
 
-			SLIB_DEFINE_OBJECT(DatePickerInstance, Win32_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::date_picker;
 
 	Ref<ViewInstance> DatePicker::createNativeWidget(ViewInstance* parent)
 	{

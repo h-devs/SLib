@@ -31,162 +31,156 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace scroll_view
+	namespace {
+
+		static void JNICALL OnScroll(JNIEnv* env, jobject _this, jlong instance, int x, int y);
+
+		SLIB_JNI_BEGIN_CLASS(JScrollView, "slib/android/ui/view/UiScrollView")
+
+			SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;Z)Landroid/view/View;");
+
+			SLIB_JNI_STATIC_METHOD(setBackgroundColor, "_setBackgroundColor", "(Landroid/view/View;I)V");
+			SLIB_JNI_STATIC_METHOD(scrollTo, "_scrollTo", "(Landroid/view/View;IIZ)V");
+			SLIB_JNI_STATIC_METHOD(getScrollX, "_getScrollX", "(Landroid/view/View;)I");
+			SLIB_JNI_STATIC_METHOD(getScrollY, "_getScrollY", "(Landroid/view/View;)I");
+			SLIB_JNI_STATIC_METHOD(setPaging, "_setPaging", "(Landroid/view/View;ZII)V");
+			SLIB_JNI_STATIC_METHOD(setLockScroll, "_setLockScroll", "(Landroid/view/View;Z)V");
+			SLIB_JNI_STATIC_METHOD(setScrollBarsVisible, "_setScrollBarsVisible", "(Landroid/view/View;ZZ)V");
+
+			SLIB_JNI_NATIVE(nativeOnScroll, "nativeOnScroll", "(JII)V", OnScroll);
+
+		SLIB_JNI_END_CLASS
+
+		class ScrollViewHelper : public ScrollView
 		{
-
-			void JNICALL OnScroll(JNIEnv* env, jobject _this, jlong instance, int x, int y);
-
-			SLIB_JNI_BEGIN_CLASS(JScrollView, "slib/android/ui/view/UiScrollView")
-
-				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;Z)Landroid/view/View;");
-
-				SLIB_JNI_STATIC_METHOD(setBackgroundColor, "_setBackgroundColor", "(Landroid/view/View;I)V");
-				SLIB_JNI_STATIC_METHOD(scrollTo, "_scrollTo", "(Landroid/view/View;IIZ)V");
-				SLIB_JNI_STATIC_METHOD(getScrollX, "_getScrollX", "(Landroid/view/View;)I");
-				SLIB_JNI_STATIC_METHOD(getScrollY, "_getScrollY", "(Landroid/view/View;)I");
-				SLIB_JNI_STATIC_METHOD(setPaging, "_setPaging", "(Landroid/view/View;ZII)V");
-				SLIB_JNI_STATIC_METHOD(setLockScroll, "_setLockScroll", "(Landroid/view/View;Z)V");
-				SLIB_JNI_STATIC_METHOD(setScrollBarsVisible, "_setScrollBarsVisible", "(Landroid/view/View;ZZ)V");
-
-				SLIB_JNI_NATIVE(nativeOnScroll, "nativeOnScroll", "(JII)V", OnScroll);
-
-			SLIB_JNI_END_CLASS
-
-			class ScrollViewHelper : public ScrollView
+		public:
+			void applyContent(jobject sv, ViewInstance* scrollViewInstance)
 			{
-			public:
-				void applyContent(jobject sv, ViewInstance* scrollViewInstance)
-				{
-					Ref<View> viewContent = m_viewContent;
-					if (viewContent.isNotNull()) {
-						viewContent->attachToNewInstance(scrollViewInstance);
-						viewContent->setParent(this);
-					}
-				}
-
-				void onScroll(int x, int y)
-				{
-					_onScroll_NW((sl_scroll_pos)x, (sl_scroll_pos)y);
-				}
-			};
-
-			class ScrollViewInstance : public Android_ViewInstance, public IScrollViewInstance
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				void initialize(View* _view) override
-				{
-					ScrollViewHelper* view = (ScrollViewHelper*)_view;
-					jobject jhandle = getHandle();
-
-					JScrollView::setBackgroundColor.call(sl_null, jhandle, view->getBackgroundColor().getARGB());
-					if (view->isPaging()) {
-						JScrollView::setPaging.call(sl_null, jhandle, 1, view->getPageWidth(), view->getPageHeight());
-					}
-					JScrollView::setScrollBarsVisible.call(sl_null, jhandle, view->isHorizontalScrollBarVisible(), view->isVerticalScrollBarVisible());
-					view->applyContent(jhandle, this);
-					JScrollView::scrollTo.call(sl_null, jhandle, (int)(view->getScrollX()), (int)(view->getScrollY()), 0);
-				}
-
-				void refreshContentSize(ScrollView* view) override
-				{
-				}
-
-				void setContentView(ScrollView* view, const Ref<View>& content) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						(static_cast<ScrollViewHelper*>(view))->applyContent(handle, this);
-					}
-				}
-
-				sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						_out.x = (sl_scroll_pos)(JScrollView::getScrollX.callInt(sl_null, handle));
-						_out.y = (sl_scroll_pos)(JScrollView::getScrollY.callInt(sl_null, handle));
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				sl_bool getScrollRange(View* view, ScrollPoint& _out) override
-				{
-					Ref<View> content = (static_cast<ScrollViewHelper*>(view))->getContentView();
-					if (content.isNotNull()) {
-						_out.x = (sl_scroll_pos)(content->getWidth() - view->getWidth());
-						if (_out.x < 0) {
-							_out.x = 0;
-						}
-						_out.y = (sl_scroll_pos)(content->getHeight() - view->getHeight());
-						if (_out.y < 0) {
-							_out.y = 0;
-						}
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JScrollView::scrollTo.call(sl_null, handle, (int)x, (int)y, flagAnimate ? 1 : 0);
-					}
-				}
-
-				void setPaging(View* view, sl_bool flagPaging, sl_ui_len pageWidth, sl_ui_len pageHeight) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JScrollView::setPaging.call(sl_null, handle, flagPaging, pageWidth, pageHeight);
-					}
-				}
-
-				void setLockScroll(View* view, sl_bool flagLock) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JScrollView::setLockScroll.call(sl_null, handle, flagLock);
-					}
-				}
-
-				void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JScrollView::setScrollBarsVisible.call(sl_null, handle, flagHorizontal, flagVertical);
-					}
-				}
-
-				void setBackgroundColor(View* view, const Color& color) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JScrollView::setBackgroundColor.call(sl_null, handle, color.getARGB());
-					}
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(ScrollViewInstance, Android_ViewInstance)
-
-			void JNICALL OnScroll(JNIEnv* env, jobject _this, jlong instance, int x, int y)
-			{
-				Ref<ScrollViewHelper> helper = CastRef<ScrollViewHelper>(Android_ViewInstance::findView(instance));
-				if (helper.isNotNull()) {
-					helper->onScroll(x, y);
+				Ref<View> viewContent = m_viewContent;
+				if (viewContent.isNotNull()) {
+					viewContent->attachToNewInstance(scrollViewInstance);
+					viewContent->setParent(this);
 				}
 			}
 
-		}
-	}
+			void onScroll(int x, int y)
+			{
+				_onScroll_NW((sl_scroll_pos)x, (sl_scroll_pos)y);
+			}
+		};
 
-	using namespace priv::scroll_view;
+		class ScrollViewInstance : public Android_ViewInstance, public IScrollViewInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			void initialize(View* _view) override
+			{
+				ScrollViewHelper* view = (ScrollViewHelper*)_view;
+				jobject jhandle = getHandle();
+
+				JScrollView::setBackgroundColor.call(sl_null, jhandle, view->getBackgroundColor().getARGB());
+				if (view->isPaging()) {
+					JScrollView::setPaging.call(sl_null, jhandle, 1, view->getPageWidth(), view->getPageHeight());
+				}
+				JScrollView::setScrollBarsVisible.call(sl_null, jhandle, view->isHorizontalScrollBarVisible(), view->isVerticalScrollBarVisible());
+				view->applyContent(jhandle, this);
+				JScrollView::scrollTo.call(sl_null, jhandle, (int)(view->getScrollX()), (int)(view->getScrollY()), 0);
+			}
+
+			void refreshContentSize(ScrollView* view) override
+			{
+			}
+
+			void setContentView(ScrollView* view, const Ref<View>& content) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					(static_cast<ScrollViewHelper*>(view))->applyContent(handle, this);
+				}
+			}
+
+			sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					_out.x = (sl_scroll_pos)(JScrollView::getScrollX.callInt(sl_null, handle));
+					_out.y = (sl_scroll_pos)(JScrollView::getScrollY.callInt(sl_null, handle));
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			sl_bool getScrollRange(View* view, ScrollPoint& _out) override
+			{
+				Ref<View> content = (static_cast<ScrollViewHelper*>(view))->getContentView();
+				if (content.isNotNull()) {
+					_out.x = (sl_scroll_pos)(content->getWidth() - view->getWidth());
+					if (_out.x < 0) {
+						_out.x = 0;
+					}
+					_out.y = (sl_scroll_pos)(content->getHeight() - view->getHeight());
+					if (_out.y < 0) {
+						_out.y = 0;
+					}
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JScrollView::scrollTo.call(sl_null, handle, (int)x, (int)y, flagAnimate ? 1 : 0);
+				}
+			}
+
+			void setPaging(View* view, sl_bool flagPaging, sl_ui_len pageWidth, sl_ui_len pageHeight) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JScrollView::setPaging.call(sl_null, handle, flagPaging, pageWidth, pageHeight);
+				}
+			}
+
+			void setLockScroll(View* view, sl_bool flagLock) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JScrollView::setLockScroll.call(sl_null, handle, flagLock);
+				}
+			}
+
+			void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JScrollView::setScrollBarsVisible.call(sl_null, handle, flagHorizontal, flagVertical);
+				}
+			}
+
+			void setBackgroundColor(View* view, const Color& color) override
+			{
+				jobject handle = m_handle.get();
+				if (handle) {
+					JScrollView::setBackgroundColor.call(sl_null, handle, color.getARGB());
+				}
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(ScrollViewInstance, Android_ViewInstance)
+
+		void JNICALL OnScroll(JNIEnv* env, jobject _this, jlong instance, int x, int y)
+		{
+			Ref<ScrollViewHelper> helper = CastRef<ScrollViewHelper>(Android_ViewInstance::findView(instance));
+			if (helper.isNotNull()) {
+				helper->onScroll(x, y);
+			}
+		}
+
+	}
 
 	Ref<ViewInstance> ScrollView::createNativeWidget(ViewInstance* _parent)
 	{

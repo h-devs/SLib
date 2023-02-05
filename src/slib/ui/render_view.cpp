@@ -37,63 +37,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace render_view
-		{
-
-			class AnimationLoopImpl : public AnimationLoop
-			{
-			public:
-				WeakRef<RenderView> m_view;
-
-			public:
-				AnimationLoopImpl(RenderView* view) : m_view(view)
-				{
-				}
-
-			public:
-				void _wake() override
-				{
-					Ref<RenderView> view(m_view);
-					if (view.isNotNull()) {
-						view->requestRender();
-					}
-				}
-
-				void runStep()
-				{
-					sl_int32 n = _runStep();
-					if (n >= 0) {
-						_wake();
-					}
-				}
-
-			};
-
-			class DispatcherImpl : public Dispatcher
-			{
-			public:
-				WeakRef<RenderView> m_view;
-
-			public:
-				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
-				{
-					Ref<RenderView> view(m_view);
-					if (view.isNotNull()) {
-						if (delayMillis >> 31) {
-							delayMillis = 0x7fffffff;
-						}
-						view->dispatchToDrawingThread(callback, (sl_uint32)delayMillis);
-						return sl_true;
-					}
-					return sl_false;
-				}
-			};
-
-		}
-	}
-
 	SLIB_DEFINE_OBJECT(RenderView, ViewGroup)
 
 	RenderView::RenderView()
@@ -144,11 +87,41 @@ namespace slib
 	{
 	}
 
+	namespace {
+		class AnimationLoopImpl : public AnimationLoop
+		{
+		public:
+			WeakRef<RenderView> m_view;
+
+		public:
+			AnimationLoopImpl(RenderView* view): m_view(view)
+			{
+			}
+
+		public:
+			void _wake() override
+			{
+				Ref<RenderView> view(m_view);
+				if (view.isNotNull()) {
+					view->requestRender();
+				}
+			}
+
+			void runStep()
+			{
+				sl_int32 n = _runStep();
+				if (n >= 0) {
+					_wake();
+				}
+			}
+		};
+	}
+
 	void RenderView::init()
 	{
 		ViewGroup::init();
 
-		m_animationLoop = new priv::render_view::AnimationLoopImpl(this);
+		m_animationLoop = new AnimationLoopImpl(this);
 	}
 
 	RenderEngineType RenderView::getPreferredEngineType()
@@ -313,9 +286,31 @@ namespace slib
 		}
 	}
 
+	namespace {
+		class DispatcherImpl : public Dispatcher
+		{
+		public:
+			WeakRef<RenderView> m_view;
+
+		public:
+			sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
+			{
+				Ref<RenderView> view(m_view);
+				if (view.isNotNull()) {
+					if (delayMillis >> 31) {
+						delayMillis = 0x7fffffff;
+					}
+					view->dispatchToDrawingThread(callback, (sl_uint32)delayMillis);
+					return sl_true;
+				}
+				return sl_false;
+			}
+		};
+	}
+
 	Ref<Dispatcher> RenderView::getDispatcher()
 	{
-		Ref<priv::render_view::DispatcherImpl> ret = new priv::render_view::DispatcherImpl;
+		Ref<DispatcherImpl> ret = new DispatcherImpl;
 		if (ret.isNotNull()) {
 			ret->m_view = this;
 			return ret;
@@ -391,7 +386,7 @@ namespace slib
 		m_lastRenderingThreadId = Thread::getCurrentThreadUniqueId();
 
 		if (m_animationLoop.isNotNull()) {
-			priv::render_view::AnimationLoopImpl* l = static_cast<priv::render_view::AnimationLoopImpl*>(m_animationLoop.get());
+			AnimationLoopImpl* l = static_cast<AnimationLoopImpl*>(m_animationLoop.get());
 			l->runStep();
 		}
 		_processPostedCallbacksNoLock();

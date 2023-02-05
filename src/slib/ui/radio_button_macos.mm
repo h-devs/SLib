@@ -31,7 +31,7 @@
 namespace slib
 {
 
-	using namespace priv::button;
+	using namespace priv;
 
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)
 	{

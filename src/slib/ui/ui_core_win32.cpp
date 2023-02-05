@@ -53,365 +53,180 @@
 namespace slib
 {
 
+	namespace {
+		static sl_bool g_bFlagQuit = sl_false;
+	}
+
 	namespace priv
 	{
+		sl_bool CaptureChildInstanceEvents(View* view, MSG& msg);
+		void ProcessMenuCommand(WPARAM wParam, LPARAM lParam);
+		sl_bool ProcessMenuShortcutKey(MSG& msg);
+		LRESULT CALLBACK WindowInstanceProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-		namespace menu
+		WNDPROC g_wndProc_CustomMsgBox = NULL;
+		WNDPROC g_wndProc_SystemTrayIcon = NULL;
+
+		void RunUiLoop(HWND hWndModalDialog)
 		{
-			void ProcessMenuCommand(WPARAM wParam, LPARAM lParam);
-			sl_bool ProcessMenuShortcutKey(MSG& msg);
-		}
-
-		namespace alert_dialog
-		{
-			void ProcessCustomMsgBox(WPARAM wParam, LPARAM lParam);
-		}
-
-		namespace view
-		{
-			sl_bool CaptureChildInstanceEvents(View* view, MSG& msg);
-		}
-
-		namespace window
-		{
-			LRESULT CALLBACK WindowInstanceProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-		}
-
-		namespace ui_core
-		{
-
-			static sl_bool g_bSetThreadMain = sl_false;
-			static DWORD g_threadMain = 0;
-			static sl_bool g_bFlagQuit = sl_false;
-
-			static sl_uint32 g_nBadgeNumber = 0;
-
-			static WNDPROC g_wndProc_SystemTrayIcon = NULL;
-
-			class MainThreadSetter
-			{
-			public:
-				MainThreadSetter()
-				{
-					g_threadMain = GetCurrentThreadId();
-					g_bSetThreadMain = sl_true;
-				}
-			};
-			static MainThreadSetter g_seterMainThread;
-
-			class MainContext
-			{
-			public:
-				Ref<Screen> m_screenPrimary;
-
-				MainContext();
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(MainContext, GetMainContext)
-
-			class PrimaryScreenImpl : public Screen
-			{
-			public:
-				UIRect getRegion() override
-				{
-					return UI::getScreenRegion();
-				}
-
-				UIRect getWorkingRegion() override
-				{
-					return UI::getScreenWorkingRegion();
-				}
-
-			};
-
-			class MonitorScreenImpl : public Screen
-			{
-			public:
-				HMONITOR m_hMonitor;
-
-			public:
-				MonitorScreenImpl(HMONITOR handle): m_hMonitor(handle)
-				{
-				}
-
-			public:
-				UIRect getRegion() override
-				{
-					MONITORINFOEXW info;
-					Base::zeroMemory(&info, sizeof(info));
-					info.cbSize = sizeof(info);
-					if (GetMonitorInfoW(m_hMonitor, &info)) {
-						RECT& rc = info.rcMonitor;
-						return UIRect(
-							(sl_ui_pos)(rc.left),
-							(sl_ui_pos)(rc.top),
-							(sl_ui_pos)(rc.right),
-							(sl_ui_pos)(rc.bottom)
-						);
-					}
-					return UIRect::zero();
-				}
-
-				UIRect getWorkingRegion() override
-				{
-					MONITORINFOEXW info;
-					Base::zeroMemory(&info, sizeof(info));
-					info.cbSize = sizeof(info);
-					if (GetMonitorInfoW(m_hMonitor, &info)) {
-						RECT& rc = info.rcWork;
-						return UIRect(
-							(sl_ui_pos)(rc.left),
-							(sl_ui_pos)(rc.top),
-							(sl_ui_pos)(rc.right),
-							(sl_ui_pos)(rc.bottom)
-						);
-					}
-					return UIRect::zero();
-				}
-
-			};
-
-			static BOOL CALLBACK EnumAllDisplayMonitorsCallback(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
-			{
-				List< Ref<Screen> >& list = *((List< Ref<Screen> >*)lParam);
-				Ref<MonitorScreenImpl> screen = new MonitorScreenImpl(hMonitor);
-				if (screen.isNotNull()) {
-					list.add_NoLock(Move(screen));
-				}
-				return TRUE;
+			if (g_bFlagQuit) {
+				return;
 			}
-
-			static List< Ref<Screen> > GetAllScreens()
-			{
-				List< Ref<Screen> > ret;
-				EnumDisplayMonitors(NULL, NULL, EnumAllDisplayMonitorsCallback, (LPARAM)&ret);
-				return ret;
-			}
-
-			static void ApplyBadgeNumber()
-			{
-				SLIB_SAFE_LOCAL_STATIC(Ref<Font>, font1, Font::create("Courier", 24, sl_true));
-				if (SLIB_SAFE_STATIC_CHECK_FREED(font1)) {
-					return;
-				}
-				SLIB_SAFE_LOCAL_STATIC(Ref<Font>, font2, Font::create("Courier", 20, sl_true));
-				if (SLIB_SAFE_STATIC_CHECK_FREED(font2)) {
-					return;
-				}
-				Ref<UIApp> app = UIApp::getApp();
-				if (app.isNull()) {
-					return;
-				}
-				Ref<Window> window = app->getMainWindow();
-				HWND hWnd = UIPlatform::getWindowHandle(window.get());
-				if (!hWnd) {
-					return;
-				}
-				ITaskbarList3* pList = NULL;
-				CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pList));
-				if (pList) {
-					HRESULT hr = pList->HrInit();
-					if (SUCCEEDED(hr)) {
-						HICON hIcon = NULL;
-						sl_uint32 n = g_nBadgeNumber;
-						if (n > 0) {
-							if (n >= 100) {
-								n = 99;
-							}
-							Ref<Bitmap> bitmap = Bitmap::create(32, 32);
-							if (bitmap.isNotNull()) {
-								bitmap->resetPixels(Color::zero());
-								Ref<Canvas> canvas = bitmap->getCanvas();
-								if (canvas.isNotNull()) {
-									canvas->setAntiAlias(sl_true);
-									canvas->fillEllipse(0, 0, 32, 32, Color::Red);
-									canvas->setAntiAlias(sl_false);
-									canvas->drawText(String::fromUint32(n), Rectangle(0, 0, 32, 30), n < 10 ? font1 : font2, Color::White, Alignment::MiddleCenter);
-									canvas.setNull();
-									hIcon = GraphicsPlatform::createHICON(bitmap);
+			ReleaseCapture();
+			MSG msg;
+			while (GetMessageW(&msg, NULL, 0, 0)) {
+				sl_bool flagQuitLoop = sl_false;
+				switch (msg.message) {
+				case WM_QUIT:
+					PostQuitMessage((int)(msg.wParam));
+					flagQuitLoop = sl_true;
+					break;
+				case SLIB_UI_MESSAGE_QUIT_LOOP:
+					flagQuitLoop = sl_true;
+					break;
+				case SLIB_UI_MESSAGE_DISPATCH:
+					UIDispatcher::processCallbacks();
+					break;
+				case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
+					UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
+					break;
+				case SLIB_UI_MESSAGE_CLOSE:
+				case WM_DESTROY:
+					DestroyWindow(msg.hwnd);
+					if (hWndModalDialog) {
+						if (msg.hwnd == hWndModalDialog) {
+							flagQuitLoop = sl_true;
+							break;
+						}
+					}
+					break;
+				case WM_MENUCOMMAND:
+					ProcessMenuCommand(msg.wParam, msg.lParam);
+					break;
+				default:
+					do {
+						if (ProcessMenuShortcutKey(msg)) {
+							break;
+						}
+						Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
+						if (instance.isNotNull()) {
+							Ref<View> view = instance->getView();
+							if (view.isNotNull()) {
+								if (CaptureChildInstanceEvents(view.get(), msg)) {
+									break;
 								}
 							}
 						}
-						pList->SetOverlayIcon(hWnd, hIcon, L"Status");
-						if (hIcon) {
-							DestroyIcon(hIcon);
-						}
-					}
-					pList->Release();
+						TranslateMessage(&msg);
+						DispatchMessageW(&msg);
+					} while (0);
+					break;
 				}
-			}
-
-			static LRESULT CALLBACK MessageWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-			{
-				static UINT uMsgTaskbarCreated = 0;
-				static UINT uMsgTaskbarButtonCreated = 0;
-				switch (uMsg) {
-					case WM_CREATE:
-						uMsgTaskbarCreated = RegisterWindowMessageW(L"TaskbarCreated");
-						uMsgTaskbarButtonCreated = RegisterWindowMessageW(L"TaskbarButtonCreated");
-						break;
-					case SLIB_UI_MESSAGE_DISPATCH:
-						UIDispatcher::processCallbacks();
-						return 0;
-					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
-						UIDispatcher::processDelayedCallback((sl_reg)lParam);
-						return 0;
-					case SLIB_UI_MESSAGE_CUSTOM_MSGBOX:
-						priv::alert_dialog::ProcessCustomMsgBox(wParam, lParam);
-						return 0;
-					case SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON:
-						if (g_wndProc_SystemTrayIcon) {
-							return g_wndProc_SystemTrayIcon(hWnd, uMsg, wParam, lParam);
-						}
-						return 0;
-					case WM_MENUCOMMAND:
-						priv::menu::ProcessMenuCommand(wParam, lParam);
-						return 0;
-					case WM_COPYDATA:
-						{
-							COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
-							UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
-						}
-						return 0;
+				if (flagQuitLoop) {
+					break;
 				}
-				if (uMsgTaskbarCreated) {
-					if (uMsg == uMsgTaskbarCreated) {
-						if (g_wndProc_SystemTrayIcon) {
-							g_wndProc_SystemTrayIcon(NULL, WM_CREATE, 0, 0);
-						}
-					}
-				}
-				if (uMsgTaskbarButtonCreated) {
-					if (uMsg == uMsgTaskbarButtonCreated) {
-						ApplyBadgeNumber();
-					}
-				}
-				return DefWindowProcW(hWnd, uMsg, wParam, lParam);
-			}
-
-			static void PostGlobalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
-			{
-				Win32_UI_Shared* shared = Win32_UI_Shared::get();
-				if (!shared) {
-					return;
-				}
-				PostMessageW(shared->hWndMessage, uMsg, wParam, lParam);
-			}
-
-			void RunLoop(HWND hWndModalDialog)
-			{
 				if (g_bFlagQuit) {
 					return;
 				}
-				ReleaseCapture();
-				MSG msg;
-				while (GetMessageW(&msg, NULL, 0, 0)) {
-					sl_bool flagQuitLoop = sl_false;
-					switch (msg.message) {
-					case WM_QUIT:
-						PostQuitMessage((int)(msg.wParam));
-						flagQuitLoop = sl_true;
-						break;
-					case SLIB_UI_MESSAGE_QUIT_LOOP:
-						flagQuitLoop = sl_true;
-						break;
-					case SLIB_UI_MESSAGE_DISPATCH:
-						UIDispatcher::processCallbacks();
-						break;
-					case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
-						UIDispatcher::processDelayedCallback((sl_reg)(msg.lParam));
-						break;
-					case SLIB_UI_MESSAGE_CLOSE:
-					case WM_DESTROY:
-						DestroyWindow(msg.hwnd);
-						if (hWndModalDialog) {
-							if (msg.hwnd == hWndModalDialog) {
-								flagQuitLoop = sl_true;
-								break;
-							}
-						}
-						break;
-					case WM_MENUCOMMAND:
-						priv::menu::ProcessMenuCommand(msg.wParam, msg.lParam);
-						break;
-					default:
-						do {
-							if (priv::menu::ProcessMenuShortcutKey(msg)) {
-								break;
-							}
-							Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(msg.hwnd));
-							if (instance.isNotNull()) {
-								Ref<View> view = instance->getView();
-								if (view.isNotNull()) {
-									if (priv::view::CaptureChildInstanceEvents(view.get(), msg)) {
-										break;
-									}
-								}
-							}
-							TranslateMessage(&msg);
-							DispatchMessageW(&msg);
-						} while (0);
-						break;
-					}
-					if (flagQuitLoop) {
-						break;
-					}
-					if (g_bFlagQuit) {
-						return;
-					}
-				}
 			}
-
-			MainContext::MainContext()
-			{
-				m_screenPrimary = new PrimaryScreenImpl();
-			}
-
-			static sl_bool g_flagInitializedSharedUIContext = sl_false;
-
-			static Win32_UI_Shared* GetSharedUIContextInternal()
-			{
-				SLIB_SAFE_LOCAL_STATIC(Win32_UI_Shared, ret);
-				if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
-					return sl_null;
-				}
-				return &ret;
-			}
-
-			static Win32_UI_Shared* GetSharedUIContext()
-			{
-				if (g_flagInitializedSharedUIContext) {
-					return GetSharedUIContextInternal();
-				} else {
-					return sl_null;
-				}
-			}
-
-			static void InitializeSharedUIContext()
-			{
-				GetSharedUIContextInternal();
-				g_flagInitializedSharedUIContext = sl_true;
-			}
-
 		}
 
 	}
 
-	using namespace priv::ui_core;
+	using namespace priv;
+
+	namespace {
+		class MonitorScreen : public Screen
+		{
+		public:
+			HMONITOR m_hMonitor;
+
+		public:
+			MonitorScreen(HMONITOR handle): m_hMonitor(handle)
+			{
+			}
+
+		public:
+			UIRect getRegion() override
+			{
+				MONITORINFOEXW info;
+				Base::zeroMemory(&info, sizeof(info));
+				info.cbSize = sizeof(info);
+				if (GetMonitorInfoW(m_hMonitor, &info)) {
+					RECT& rc = info.rcMonitor;
+					return UIRect(
+						(sl_ui_pos)(rc.left),
+						(sl_ui_pos)(rc.top),
+						(sl_ui_pos)(rc.right),
+						(sl_ui_pos)(rc.bottom)
+					);
+				}
+				return UIRect::zero();
+			}
+
+			UIRect getWorkingRegion() override
+			{
+				MONITORINFOEXW info;
+				Base::zeroMemory(&info, sizeof(info));
+				info.cbSize = sizeof(info);
+				if (GetMonitorInfoW(m_hMonitor, &info)) {
+					RECT& rc = info.rcWork;
+					return UIRect(
+						(sl_ui_pos)(rc.left),
+						(sl_ui_pos)(rc.top),
+						(sl_ui_pos)(rc.right),
+						(sl_ui_pos)(rc.bottom)
+					);
+				}
+				return UIRect::zero();
+			}
+
+		};
+
+		static BOOL CALLBACK EnumAllDisplayMonitorsCallback(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+		{
+			List< Ref<Screen> >& list = *((List< Ref<Screen> >*)lParam);
+			Ref<Screen> screen = new MonitorScreen(hMonitor);
+			if (screen.isNotNull()) {
+				list.add_NoLock(Move(screen));
+			}
+			return TRUE;
+		}
+
+	}
 
 	List< Ref<Screen> > UI::getScreens()
 	{
-		return GetAllScreens();
+		List< Ref<Screen> > ret;
+		EnumDisplayMonitors(NULL, NULL, EnumAllDisplayMonitorsCallback, (LPARAM)&ret);
+		return ret;
+	}
+
+	namespace {
+		class PrimaryScreen : public Screen
+		{
+		public:
+			UIRect getRegion() override
+			{
+				return UI::getScreenRegion();
+			}
+
+			UIRect getWorkingRegion() override
+			{
+				return UI::getScreenWorkingRegion();
+			}
+		};
+
+		SLIB_SAFE_STATIC_GETTER(Ref<Screen>, GetPrimaryScreen, new PrimaryScreen())
 	}
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
-		MainContext* ui = GetMainContext();
-		if (!ui) {
+		Ref<Screen>* pScreen = GetPrimaryScreen();
+		if (!pScreen) {
 			return sl_null;
 		}
-		return ui->m_screenPrimary;
+		return *pScreen;
 	}
 
 	UIRect UI::getScreenRegion()
@@ -458,6 +273,33 @@ namespace slib
 			ReleaseDC(NULL, hDC);
 		}
 		return sl_null;
+	}
+
+	namespace {
+
+		static sl_bool g_bSetThreadMain = sl_false;
+		static DWORD g_threadMain = 0;
+
+		class MainThreadSetter
+		{
+		public:
+			MainThreadSetter()
+			{
+				g_threadMain = GetCurrentThreadId();
+				g_bSetThreadMain = sl_true;
+			}
+		};
+		static MainThreadSetter g_seterMainThread;
+
+		static void PostGlobalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+		{
+			Win32_UI_Shared* shared = Win32_UI_Shared::get();
+			if (!shared) {
+				return;
+			}
+			PostMessageW(shared->hWndMessage, uMsg, wParam, lParam);
+		}
+
 	}
 
 	sl_bool UI::isUiThread()
@@ -536,7 +378,7 @@ namespace slib
 
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
-		RunLoop(NULL);
+		RunUiLoop(NULL);
 	}
 
 	void UIPlatform::quitLoop()
@@ -574,7 +416,7 @@ namespace slib
 
 		UIDispatcher::processCallbacks();
 		UIApp::dispatchStartToApp();
-		RunLoop(NULL);
+		RunUiLoop(NULL);
 		UIApp::dispatchExitToApp();
 	}
 
@@ -875,10 +717,135 @@ namespace slib
 		}
 	}
 
+	namespace {
+
+		static sl_uint32 g_nBadgeNumber = 0;
+
+		static void ApplyBadgeNumber()
+		{
+			SLIB_SAFE_LOCAL_STATIC(Ref<Font>, font1, Font::create("Courier", 24, sl_true));
+			if (SLIB_SAFE_STATIC_CHECK_FREED(font1)) {
+				return;
+			}
+			SLIB_SAFE_LOCAL_STATIC(Ref<Font>, font2, Font::create("Courier", 20, sl_true));
+			if (SLIB_SAFE_STATIC_CHECK_FREED(font2)) {
+				return;
+			}
+			Ref<UIApp> app = UIApp::getApp();
+			if (app.isNull()) {
+				return;
+			}
+			Ref<Window> window = app->getMainWindow();
+			HWND hWnd = UIPlatform::getWindowHandle(window.get());
+			if (!hWnd) {
+				return;
+			}
+			ITaskbarList3* pList = NULL;
+			CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pList));
+			if (pList) {
+				HRESULT hr = pList->HrInit();
+				if (SUCCEEDED(hr)) {
+					HICON hIcon = NULL;
+					sl_uint32 n = g_nBadgeNumber;
+					if (n > 0) {
+						if (n >= 100) {
+							n = 99;
+						}
+						Ref<Bitmap> bitmap = Bitmap::create(32, 32);
+						if (bitmap.isNotNull()) {
+							bitmap->resetPixels(Color::zero());
+							Ref<Canvas> canvas = bitmap->getCanvas();
+							if (canvas.isNotNull()) {
+								canvas->setAntiAlias(sl_true);
+								canvas->fillEllipse(0, 0, 32, 32, Color::Red);
+								canvas->setAntiAlias(sl_false);
+								canvas->drawText(String::fromUint32(n), Rectangle(0, 0, 32, 30), n < 10 ? font1 : font2, Color::White, Alignment::MiddleCenter);
+								canvas.setNull();
+								hIcon = GraphicsPlatform::createHICON(bitmap);
+							}
+						}
+					}
+					pList->SetOverlayIcon(hWnd, hIcon, L"Status");
+					if (hIcon) {
+						DestroyIcon(hIcon);
+					}
+				}
+				pList->Release();
+			}
+		}
+
+	}
+
 	void UIApp::setBadgeNumber(sl_uint32 num)
 	{
 		g_nBadgeNumber = num;
 		ApplyBadgeNumber();
+	}
+
+
+	namespace {
+
+		static sl_bool g_flagInitializedSharedUIContext = sl_false;
+
+		static Win32_UI_Shared* GetSharedUIContextInternal()
+		{
+			SLIB_SAFE_LOCAL_STATIC(Win32_UI_Shared, ret);
+			if (SLIB_SAFE_STATIC_CHECK_FREED(ret)) {
+				return sl_null;
+			}
+			return &ret;
+		}
+
+		static LRESULT CALLBACK MessageWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		{
+			static UINT uMsgTaskbarCreated = 0;
+			static UINT uMsgTaskbarButtonCreated = 0;
+			switch (uMsg) {
+				case WM_CREATE:
+					uMsgTaskbarCreated = RegisterWindowMessageW(L"TaskbarCreated");
+					uMsgTaskbarButtonCreated = RegisterWindowMessageW(L"TaskbarButtonCreated");
+					break;
+				case SLIB_UI_MESSAGE_DISPATCH:
+					UIDispatcher::processCallbacks();
+					return 0;
+				case SLIB_UI_MESSAGE_DISPATCH_DELAYED:
+					UIDispatcher::processDelayedCallback((sl_reg)lParam);
+					return 0;
+				case SLIB_UI_MESSAGE_CUSTOM_MSGBOX:
+					if (g_wndProc_CustomMsgBox) {
+						return g_wndProc_CustomMsgBox(hWnd, uMsg, wParam, lParam);
+					}
+					return 0;
+				case SLIB_UI_MESSAGE_SYSTEM_TRAY_ICON:
+					if (g_wndProc_SystemTrayIcon) {
+						return g_wndProc_SystemTrayIcon(hWnd, uMsg, wParam, lParam);
+					}
+					return 0;
+				case WM_MENUCOMMAND:
+					ProcessMenuCommand(wParam, lParam);
+					return 0;
+				case WM_COPYDATA:
+					{
+						COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
+						UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
+					}
+					return 0;
+			}
+			if (uMsgTaskbarCreated) {
+				if (uMsg == uMsgTaskbarCreated) {
+					if (g_wndProc_SystemTrayIcon) {
+						g_wndProc_SystemTrayIcon(NULL, WM_CREATE, 0, 0);
+					}
+				}
+			}
+			if (uMsgTaskbarButtonCreated) {
+				if (uMsg == uMsgTaskbarButtonCreated) {
+					ApplyBadgeNumber();
+				}
+			}
+			return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+		}
+
 	}
 
 	Win32_UI_Shared::Win32_UI_Shared()
@@ -918,12 +885,17 @@ namespace slib
 
 	Win32_UI_Shared* Win32_UI_Shared::get()
 	{
-		return GetSharedUIContext();
+		if (g_flagInitializedSharedUIContext) {
+			return GetSharedUIContextInternal();
+		} else {
+			return sl_null;
+		}
 	}
 
 	void Win32_UI_Shared::initialize()
 	{
-		InitializeSharedUIContext();
+		GetSharedUIContextInternal();
+		g_flagInitializedSharedUIContext = sl_true;
 	}
 
 	ATOM Win32_UI_Shared::getWndClassForWindow()
@@ -969,7 +941,7 @@ namespace slib
 		Base::zeroMemory(&wc, sizeof(wc));
 		wc.cbSize = sizeof(wc);
 		wc.style = CS_DBLCLKS | CS_PARENTDC;
-		wc.lpfnWndProc = priv::view::ViewInstanceProc;
+		wc.lpfnWndProc = ViewInstanceProc;
 		wc.hInstance = hInstance;
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wc.hbrBackground = NULL;
@@ -981,7 +953,7 @@ namespace slib
 		Base::zeroMemory(&wc, sizeof(wc));
 		wc.cbSize = sizeof(wc);
 		wc.style = CS_DBLCLKS;
-		wc.lpfnWndProc = priv::window::WindowInstanceProc;
+		wc.lpfnWndProc = WindowInstanceProc;
 		wc.hInstance = hInstance;
 		wc.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);

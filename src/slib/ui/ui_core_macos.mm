@@ -40,126 +40,69 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_core
+	using namespace priv;
+
+	namespace {
+
+		class ScreenImpl : public Screen
 		{
+		public:
+			NSScreen* m_screen;
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
-
-			class ScreenImpl : public Screen
+		public:
+			static Ref<ScreenImpl> create(NSScreen* screen)
 			{
-			public:
-				NSScreen* m_screen;
-
-			public:
-				static Ref<ScreenImpl> create(NSScreen* screen)
-				{
-					if (screen != nil) {
-						Ref<ScreenImpl> ret = new ScreenImpl();
-						if (ret.isNotNull()) {
-							ret->m_screen = screen;
-							return ret;
-						}
+				if (screen != nil) {
+					Ref<ScreenImpl> ret = new ScreenImpl();
+					if (ret.isNotNull()) {
+						ret->m_screen = screen;
+						return ret;
 					}
-					return sl_null;
-				}
-
-				UIRect getRegion() override
-				{
-					NSRect rect = [m_screen frame];
-					return convertRect(rect);
-				}
-
-				UIRect getWorkingRegion() override
-				{
-					NSRect rect = [m_screen visibleFrame];
-					return convertRect(rect);
-				}
-
-				static UIRect convertRect(const NSRect& rect)
-				{
-					sl_ui_pos leftBottom = 0;
-					NSScreen* primary = getPrimaryScreen();
-					if (primary != nil) {
-						NSRect rect = [primary frame];
-						leftBottom = (sl_ui_pos)(rect.origin.y + rect.size.height);
-					}
-					UIRect region;
-					region.left = (sl_ui_pos)(rect.origin.x);
-					region.top = leftBottom - (sl_ui_pos)(rect.origin.y + rect.size.height);
-					region.setWidth((sl_ui_pos)(rect.size.width));
-					region.setHeight((sl_ui_pos)(rect.size.height));
-					return region;
-				}
-				
-				static NSScreen* getPrimaryScreen()
-				{
-					NSArray* arr = [NSScreen screens];
-					NSUInteger n = [arr count];
-					if (!n) {
-						return nil;
-					}
-					return [arr objectAtIndex:0];
-				}
-
-			};
-
-			class StaticContext
-			{
-			public:
-				NSEvent* dispatchEvent;
-				Function<void()> customMessageLoop;
-				Function<void()> customQuitApp;
-
-			public:
-				StaticContext()
-				{
-					dispatchEvent = [NSEvent otherEventWithType:NSEventTypeApplicationDefined location:NSMakePoint(0, 0) modifierFlags:0 timestamp:0 windowNumber:0 context:nil subtype:0 data1:0 data2:0];
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-			static Function<void()> GetCustomMessageLoop()
-			{
-				StaticContext* context = GetStaticContext();
-				if (context) {
-					return context->customMessageLoop;
 				}
 				return sl_null;
 			}
 
-			void SetCustomMessageLoop(const Function<void()>& func)
+			UIRect getRegion() override
 			{
-				StaticContext* context = GetStaticContext();
-				if (context) {
-					context->customMessageLoop = func;
-				}
+				NSRect rect = [m_screen frame];
+				return convertRect(rect);
 			}
 
-			static Function<void()> GetCustomQuitApp()
+			UIRect getWorkingRegion() override
 			{
-				StaticContext* context = GetStaticContext();
-				if (context) {
-					return context->customQuitApp;
-				}
-				return sl_null;
+				NSRect rect = [m_screen visibleFrame];
+				return convertRect(rect);
 			}
 
-			void SetCustomQuitApp(const Function<void()>& func)
+			static UIRect convertRect(const NSRect& rect)
 			{
-				StaticContext* context = GetStaticContext();
-				if (context) {
-					context->customQuitApp = func;
+				sl_ui_pos leftBottom = 0;
+				NSScreen* primary = getPrimaryScreen();
+				if (primary != nil) {
+					NSRect rect = [primary frame];
+					leftBottom = (sl_ui_pos)(rect.origin.y + rect.size.height);
 				}
+				UIRect region;
+				region.left = (sl_ui_pos)(rect.origin.x);
+				region.top = leftBottom - (sl_ui_pos)(rect.origin.y + rect.size.height);
+				region.setWidth((sl_ui_pos)(rect.size.width));
+				region.setHeight((sl_ui_pos)(rect.size.height));
+				return region;
+			}
+			
+			static NSScreen* getPrimaryScreen()
+			{
+				NSArray* arr = [NSScreen screens];
+				NSUInteger n = [arr count];
+				if (!n) {
+					return nil;
+				}
+				return [arr objectAtIndex:0];
 			}
 
-		}
+		};
+
 	}
-
-	using namespace priv::ui_core;
 
 	Ref<Screen> UIPlatform::createScreen(NSScreen* screen)
 	{
@@ -218,12 +161,29 @@ namespace slib
 		return [NSThread isMainThread];
 	}
 
+	namespace {
+		class DispatchContext
+		{
+		public:
+			NSEvent* dispatchEvent;
+
+		public:
+			DispatchContext()
+			{
+				dispatchEvent = [NSEvent otherEventWithType:NSEventTypeApplicationDefined location:NSMakePoint(0, 0) modifierFlags:0 timestamp:0 windowNumber:0 context:nil subtype:0 data1:0 data2:0];
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(DispatchContext, GetDispatchContext)
+	}
+
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (callback.isNull()) {
 			return;
 		}
-		StaticContext* context = GetStaticContext();
+		DispatchContext* context = GetDispatchContext();
 		if (!context) {
 			return;
 		}
@@ -307,10 +267,6 @@ namespace slib
 
 	void UIPlatform::runLoop(sl_uint32 level)
 	{
-		StaticContext* context = GetStaticContext();
-		if (!context) {
-			return;
-		}
 		for (;;) {
 			@autoreleasepool {
 				NSDate* date = [NSDate dateWithTimeIntervalSinceNow:1000];
@@ -390,11 +346,28 @@ namespace slib
 		}];
 	}
 
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(Function<void()>, g_customMessageLoop)
+		SLIB_GLOBAL_ZERO_INITIALIZED(Function<void()>, g_customQuitApp)
+	}
+
+	namespace priv
+	{
+		void SetCustomMessageLoop(const Function<void()>& func)
+		{
+			g_customMessageLoop = func;
+		}
+
+		void SetCustomQuitApp(const Function<void()>& func)
+		{
+			g_customQuitApp = func;
+		}
+	}
+
 	void UIPlatform::runApp()
 	{
-		Function<void()> customMessageLoop = GetCustomMessageLoop();
-		if (customMessageLoop.isNotNull()) {
-			customMessageLoop();
+		if (g_customMessageLoop.isNotNull()) {
+			g_customMessageLoop();
 		} else {
 			@autoreleasepool {
 				[NSApp run];
@@ -409,13 +382,16 @@ namespace slib
 			app->dispatchQuitApp();
 		}
 		dispatch_async(dispatch_get_main_queue(), ^{
-			Function<void()> customQuitApp = GetCustomQuitApp();
-			if (customQuitApp.isNotNull()) {
-				customQuitApp();
+			if (g_customQuitApp.isNotNull()) {
+				g_customQuitApp();
 			} else {
 				[NSApp terminate:nil];
 			}
 		});
+	}
+
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSNotification*)>, g_callbackDidFinishLaunching);
 	}
 
 	void UIPlatform::registerDidFinishLaunchingCallback(const Function<void(NSNotification*)>& callback)
@@ -481,7 +457,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::ui_core;
 
 @implementation SLIBAppDelegate
 

@@ -42,79 +42,73 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace refresh_view
+	namespace {
+
+		class PlatformContainer : public Referable
 		{
+		public:
+			UIRefreshControl* m_refreshControl;
 
-			class PlatformContainer : public Referable
+		};
+
+		class RefreshViewHelper : public RefreshView
+		{
+		public:
+			UIRefreshControl* createControl()
 			{
-			public:
-				UIRefreshControl* m_refreshControl;
-
-			};
-
-			class RefreshViewHelper : public RefreshView
-			{
-			public:
-				UIRefreshControl* createControl()
-				{
-					SLIBRefreshViewHandle* control = [[SLIBRefreshViewHandle alloc] init];
-					if (control != nil) {
-						control->m_view = this;
-						[control addTarget:control action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
-						PlatformContainer* container = (PlatformContainer*)(m_platformContainer.get());
-						if (!container) {
-							Ref<PlatformContainer> _container = new PlatformContainer;
-							container = _container.get();
-							m_platformContainer = container;
-						}
-						if (container) {
-							container->m_refreshControl = control;
-						}
-						return control;
-					}
-					return nil;
-				}
-
-				UIRefreshControl* getControl()
-				{
+				SLIBRefreshViewHandle* control = [[SLIBRefreshViewHandle alloc] init];
+				if (control != nil) {
+					control->m_view = this;
+					[control addTarget:control action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
 					PlatformContainer* container = (PlatformContainer*)(m_platformContainer.get());
+					if (!container) {
+						Ref<PlatformContainer> _container = new PlatformContainer;
+						container = _container.get();
+						m_platformContainer = container;
+					}
 					if (container) {
-						return container->m_refreshControl;
+						container->m_refreshControl = control;
 					}
-					return nil;
+					return control;
 				}
+				return nil;
+			}
 
-				void _onRefresh()
-				{
-					_onRefresh_NW();
+			UIRefreshControl* getControl()
+			{
+				PlatformContainer* container = (PlatformContainer*)(m_platformContainer.get());
+				if (container) {
+					return container->m_refreshControl;
 				}
+				return nil;
+			}
 
-				static void setRefreshing(UIRefreshControl* control, sl_bool flag)
-				{
-					if (flag) {
-						if (!(control.refreshing)) {
-							[control beginRefreshing];
-							UIView* v = control.superview;
-							if ([v isKindOfClass:[UIScrollView class]]) {
-								UIScrollView* scrollView = (UIScrollView*)v;
-								[scrollView setContentOffset:CGPointMake(0, -control.frame.size.height) animated:YES];
-							}
-						}
-					} else {
-						if (control.refreshing) {
-							[control endRefreshing];
+			void _onRefresh()
+			{
+				_onRefresh_NW();
+			}
+
+			static void setRefreshing(UIRefreshControl* control, sl_bool flag)
+			{
+				if (flag) {
+					if (!(control.refreshing)) {
+						[control beginRefreshing];
+						UIView* v = control.superview;
+						if ([v isKindOfClass:[UIScrollView class]]) {
+							UIScrollView* scrollView = (UIScrollView*)v;
+							[scrollView setContentOffset:CGPointMake(0, -control.frame.size.height) animated:YES];
 						}
 					}
+				} else {
+					if (control.refreshing) {
+						[control endRefreshing];
+					}
 				}
+			}
 
-			};
+		};
 
-		}
 	}
-
-	using namespace priv::refresh_view;
 
 	void RefreshView::onAttachChild(View* child)
 	{
@@ -147,7 +141,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::refresh_view;
 
 @implementation SLIBRefreshViewHandle
 

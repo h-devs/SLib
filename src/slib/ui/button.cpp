@@ -56,85 +56,6 @@ namespace slib
 	}
 
 
-	namespace priv
-	{
-		namespace button
-		{
-
-			static const sl_real g_colorMatrix_hover_buf[20] = {
-				0.5f, 0, 0, 0,
-				0, 0.5f, 0, 0,
-				0, 0, 0.5f, 0,
-				0, 0, 0, 1,
-				0.2f, 0.3f, 0.4f, 0
-			};
-			static const ColorMatrix& g_colorMatrix_hover = *((const ColorMatrix*)((void*)g_colorMatrix_hover_buf));
-
-			static const sl_real g_colorMatrix_focused_buf[20] = {
-				0.5f, 0, 0, 0,
-				0, 0.5f, 0, 0,
-				0, 0, 0.5f, 0,
-				0, 0, 0, 1,
-				0.2f, 0.3f, 0.6f, 0
-			};
-			static const ColorMatrix& g_colorMatrix_focused = *((const ColorMatrix*)((void*)g_colorMatrix_focused_buf));
-
-			static const sl_real g_colorMatrix_focused_hover_buf[20] = {
-				0.5f, 0, 0, 0,
-				0, 0.5f, 0, 0,
-				0, 0, 0.5f, 0,
-				0, 0, 0, 1,
-				0.2f, 0.4f, 0.6f, 0
-			};
-			static const ColorMatrix& g_colorMatrix_focused_hover = *((const ColorMatrix*)((void*)g_colorMatrix_focused_hover_buf));
-
-			static const sl_real g_colorMatrix_pressed_buf[20] = {
-				0.5f, 0, 0, 0,
-				0, 0.5f, 0, 0,
-				0, 0, 0.5f, 0,
-				0, 0, 0, 1,
-				0.3f, 0.4f, 0.6f, 0
-
-			};
-			static const ColorMatrix& g_colorMatrix_pressed = *((const ColorMatrix*)((void*)g_colorMatrix_pressed_buf));
-
-			static const sl_real g_colorMatrix_disabled_buf[20] = {
-				0.2f, 0.2f, 0.2f, 0,
-				0.2f, 0.2f, 0.2f, 0,
-				0.2f, 0.2f, 0.2f, 0,
-				0, 0, 0, 1,
-				0, 0, 0, 0
-			};
-			static const ColorMatrix& g_colorMatrix_disabled = *((const ColorMatrix*)((void*)g_colorMatrix_disabled_buf));
-
-			class Categories
-			{
-			public:
-				ButtonCategory categories[2];
-				Array<ButtonCategory> arrCategories;
-
-			public:
-				Categories()
-				{
-					categories[1].properties[(int)(ButtonState::Default)].border = Pen::create(PenStyle::Solid, 3, Color(0, 100, 250));
-					arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
-				}
-
-			public:
-				static Array<ButtonCategory> getInitialCategories()
-				{
-					SLIB_SAFE_LOCAL_STATIC(Categories, s)
-					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
-						return sl_null;
-					}
-					return s.arrCategories;
-				}
-			};
-
-		}
-	}
-
-
 	SLIB_DEFINE_OBJECT(Button, View)
 
 	Button::Button()
@@ -1203,9 +1124,83 @@ namespace slib
 #endif
 
 
+	namespace {
+
+		static const sl_real g_colorMatrix_hover_buf[20] = {
+			0.5f, 0, 0, 0,
+			0, 0.5f, 0, 0,
+			0, 0, 0.5f, 0,
+			0, 0, 0, 1,
+			0.2f, 0.3f, 0.4f, 0
+		};
+		static const ColorMatrix& g_colorMatrix_hover = *((const ColorMatrix*)((void*)g_colorMatrix_hover_buf));
+
+		static const sl_real g_colorMatrix_focused_buf[20] = {
+			0.5f, 0, 0, 0,
+			0, 0.5f, 0, 0,
+			0, 0, 0.5f, 0,
+			0, 0, 0, 1,
+			0.2f, 0.3f, 0.6f, 0
+		};
+		static const ColorMatrix& g_colorMatrix_focused = *((const ColorMatrix*)((void*)g_colorMatrix_focused_buf));
+
+		static const sl_real g_colorMatrix_focused_hover_buf[20] = {
+			0.5f, 0, 0, 0,
+			0, 0.5f, 0, 0,
+			0, 0, 0.5f, 0,
+			0, 0, 0, 1,
+			0.2f, 0.4f, 0.6f, 0
+		};
+		static const ColorMatrix& g_colorMatrix_focused_hover = *((const ColorMatrix*)((void*)g_colorMatrix_focused_hover_buf));
+
+		static const sl_real g_colorMatrix_pressed_buf[20] = {
+			0.5f, 0, 0, 0,
+			0, 0.5f, 0, 0,
+			0, 0, 0.5f, 0,
+			0, 0, 0, 1,
+			0.3f, 0.4f, 0.6f, 0
+
+		};
+		static const ColorMatrix& g_colorMatrix_pressed = *((const ColorMatrix*)((void*)g_colorMatrix_pressed_buf));
+
+		static const sl_real g_colorMatrix_disabled_buf[20] = {
+			0.2f, 0.2f, 0.2f, 0,
+			0.2f, 0.2f, 0.2f, 0,
+			0.2f, 0.2f, 0.2f, 0,
+			0, 0, 0, 1,
+			0, 0, 0, 0
+		};
+		static const ColorMatrix& g_colorMatrix_disabled = *((const ColorMatrix*)((void*)g_colorMatrix_disabled_buf));
+
+		class Categories
+		{
+		public:
+			ButtonCategory categories[2];
+			Array<ButtonCategory> arrCategories;
+
+		public:
+			Categories()
+			{
+				categories[1].properties[(int)(ButtonState::Default)].border = Pen::create(PenStyle::Solid, 3, Color(0, 100, 250));
+				arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
+			}
+
+		public:
+			static Array<ButtonCategory> getInitialCategories()
+			{
+				SLIB_SAFE_LOCAL_STATIC(Categories, s)
+				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
+					return sl_null;
+				}
+				return s.arrCategories;
+			}
+		};
+
+	}
+
 	SLIB_DEFINE_OBJECT(ButtonCell, LabelViewCell)
 
-	ButtonCell::ButtonCell(): ButtonCell(priv::button::Categories::getInitialCategories().duplicate())
+	ButtonCell::ButtonCell(): ButtonCell(Categories::getInitialCategories().duplicate())
 	{
 	}
 
@@ -1314,18 +1309,18 @@ namespace slib
 		}
 		if (flagUseDefaultFilter) {
 			switch (state) {
-			case ButtonState::Hover:
-				return &(priv::button::g_colorMatrix_hover);
-			case ButtonState::Focused:
-				return &(priv::button::g_colorMatrix_focused);
-			case ButtonState::FocusedHover:
-				return &(priv::button::g_colorMatrix_focused_hover);
-			case ButtonState::Pressed:
-				return &(priv::button::g_colorMatrix_pressed);
-			case ButtonState::Disabled:
-				return &(priv::button::g_colorMatrix_disabled);
-			default:
-				break;
+				case ButtonState::Hover:
+					return &g_colorMatrix_hover;
+				case ButtonState::Focused:
+					return &g_colorMatrix_focused;
+				case ButtonState::FocusedHover:
+					return &g_colorMatrix_focused_hover;
+				case ButtonState::Pressed:
+					return &g_colorMatrix_pressed;
+				case ButtonState::Disabled:
+					return &g_colorMatrix_disabled;
+				default:
+					break;
 			}
 		}
 		return sl_null;

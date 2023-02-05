@@ -35,107 +35,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace check_box
-		{
-
-			class Icon : public Drawable
-			{
-			public:
-				Ref<Pen> m_penBorder;
-				Ref<Brush> m_brush;
-				Ref<Pen> m_penCheck;
-
-			public:
-				Icon(const Ref<Pen>& penBorder, const Color& backColor, const Ref<Pen>& penCheck)
-				{
-					m_penBorder = penBorder;
-					if (backColor.a > 0) {
-						m_brush = Brush::createSolidBrush(backColor);
-					}
-					m_penCheck = penCheck;
-				}
-
-			public:
-				void onDrawAll(Canvas* canvas, const Rectangle& rect, const DrawParam& param) override
-				{
-					sl_bool flagAntiAlias = canvas->isAntiAlias();
-					canvas->setAntiAlias(sl_false);
-					canvas->drawRectangle(rect, m_penBorder, m_brush);
-					canvas->setAntiAlias(flagAntiAlias);
-
-					if (m_penCheck.isNotNull()) {
-						Point pts[3];
-						pts[0] = Point(0.2f, 0.6f);
-						pts[1] = Point(0.4f, 0.8f);
-						pts[2] = Point(0.8f, 0.3f);
-						for (int i = 0; i < 3; i++) {
-							pts[i].x = rect.left + rect.getWidth() * pts[i].x;
-							pts[i].y = rect.top + rect.getHeight() * pts[i].y;
-						}
-						canvas->drawLines(pts, 3, m_penCheck);
-					}
-				}
-
-			};
-
-			class Categories
-			{
-			public:
-				ButtonCategory categories[2];
-				Array<ButtonCategory> arrCategories;
-
-			public:
-				Categories()
-				{
-					sl_real w = (sl_real)(UIResource::toUiPos(UIResource::dpToPixel(1)));
-					Color colorBackNormal = Color::White;
-					Color colorBackHover = Color::White;
-					Color colorBackDown(220, 230, 255);
-					Color colorBackDisabled(220, 220, 220);
-					Ref<Pen> penNormal = Pen::createSolidPen(w, Color::Black);
-					Ref<Pen> penHover = Pen::createSolidPen(w, Color(0, 80, 200));
-					Ref<Pen> penDown = penHover;
-					Ref<Pen> penDisabled = Pen::createSolidPen(w, Color(90, 90, 90));
-					Ref<Pen> penCheckNormal = Pen::createSolidPen(w * 2, Color::Black);
-					Ref<Pen> penCheckHover = Pen::createSolidPen(w * 2, Color(0, 80, 200));
-					Ref<Pen> penCheckDown = penCheckHover;
-					Ref<Pen> penCheckDisabled = Pen::createSolidPen(w * 2, Color(90, 90, 90));
-					categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Ref<Pen>::null());
-					categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Ref<Pen>::null());
-					categories[0].properties[(int)ButtonState::Focused].icon =
-						categories[0].properties[(int)ButtonState::FocusedHover].icon =
-						categories[0].properties[(int)ButtonState::Hover].icon =
-						new Icon(penHover, colorBackHover, Ref<Pen>::null());
-					categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Ref<Pen>::null());
-
-					categories[1] = categories[0];
-					categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, penCheckNormal);
-					categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, penCheckDisabled);
-					categories[1].properties[(int)ButtonState::Focused].icon =
-						categories[1].properties[(int)ButtonState::FocusedHover].icon =
-						categories[1].properties[(int)ButtonState::Hover].icon =
-						new Icon(penHover, colorBackHover, penCheckHover);
-					categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, penCheckDown);
-
-					arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
-				}
-
-			public:
-				static Array<ButtonCategory> getInitialCategories()
-				{
-					SLIB_SAFE_LOCAL_STATIC(Categories, s)
-					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
-						return sl_null;
-					}
-					return s.arrCategories;
-				}
-			};
-
-		}
-	}
-
 	SLIB_DEFINE_OBJECT(CheckBox, Button)
 
 	CheckBox::CheckBox()
@@ -225,9 +124,106 @@ namespace slib
 #endif
 
 
+	namespace {
+
+		class Icon : public Drawable
+		{
+		public:
+			Ref<Pen> m_penBorder;
+			Ref<Brush> m_brush;
+			Ref<Pen> m_penCheck;
+
+		public:
+			Icon(const Ref<Pen>& penBorder, const Color& backColor, const Ref<Pen>& penCheck)
+			{
+				m_penBorder = penBorder;
+				if (backColor.a > 0) {
+					m_brush = Brush::createSolidBrush(backColor);
+				}
+				m_penCheck = penCheck;
+			}
+
+		public:
+			void onDrawAll(Canvas* canvas, const Rectangle& rect, const DrawParam& param) override
+			{
+				sl_bool flagAntiAlias = canvas->isAntiAlias();
+				canvas->setAntiAlias(sl_false);
+				canvas->drawRectangle(rect, m_penBorder, m_brush);
+				canvas->setAntiAlias(flagAntiAlias);
+
+				if (m_penCheck.isNotNull()) {
+					Point pts[3];
+					pts[0] = Point(0.2f, 0.6f);
+					pts[1] = Point(0.4f, 0.8f);
+					pts[2] = Point(0.8f, 0.3f);
+					for (int i = 0; i < 3; i++) {
+						pts[i].x = rect.left + rect.getWidth() * pts[i].x;
+						pts[i].y = rect.top + rect.getHeight() * pts[i].y;
+					}
+					canvas->drawLines(pts, 3, m_penCheck);
+				}
+			}
+
+		};
+
+		class Categories
+		{
+		public:
+			ButtonCategory categories[2];
+			Array<ButtonCategory> arrCategories;
+
+		public:
+			Categories()
+			{
+				sl_real w = (sl_real)(UIResource::toUiPos(UIResource::dpToPixel(1)));
+				Color colorBackNormal = Color::White;
+				Color colorBackHover = Color::White;
+				Color colorBackDown(220, 230, 255);
+				Color colorBackDisabled(220, 220, 220);
+				Ref<Pen> penNormal = Pen::createSolidPen(w, Color::Black);
+				Ref<Pen> penHover = Pen::createSolidPen(w, Color(0, 80, 200));
+				Ref<Pen> penDown = penHover;
+				Ref<Pen> penDisabled = Pen::createSolidPen(w, Color(90, 90, 90));
+				Ref<Pen> penCheckNormal = Pen::createSolidPen(w * 2, Color::Black);
+				Ref<Pen> penCheckHover = Pen::createSolidPen(w * 2, Color(0, 80, 200));
+				Ref<Pen> penCheckDown = penCheckHover;
+				Ref<Pen> penCheckDisabled = Pen::createSolidPen(w * 2, Color(90, 90, 90));
+				categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Ref<Pen>::null());
+				categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Ref<Pen>::null());
+				categories[0].properties[(int)ButtonState::Focused].icon =
+					categories[0].properties[(int)ButtonState::FocusedHover].icon =
+					categories[0].properties[(int)ButtonState::Hover].icon =
+					new Icon(penHover, colorBackHover, Ref<Pen>::null());
+				categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Ref<Pen>::null());
+
+				categories[1] = categories[0];
+				categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, penCheckNormal);
+				categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, penCheckDisabled);
+				categories[1].properties[(int)ButtonState::Focused].icon =
+					categories[1].properties[(int)ButtonState::FocusedHover].icon =
+					categories[1].properties[(int)ButtonState::Hover].icon =
+					new Icon(penHover, colorBackHover, penCheckHover);
+				categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, penCheckDown);
+
+				arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
+			}
+
+		public:
+			static Array<ButtonCategory> getInitialCategories()
+			{
+				SLIB_SAFE_LOCAL_STATIC(Categories, s)
+				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
+					return sl_null;
+				}
+				return s.arrCategories;
+			}
+		};
+
+	}
+
 	SLIB_DEFINE_OBJECT(CheckBoxCell, ButtonCell)
 
-	CheckBoxCell::CheckBoxCell(): CheckBoxCell(priv::check_box::Categories::getInitialCategories().duplicate())
+	CheckBoxCell::CheckBoxCell(): CheckBoxCell(Categories::getInitialCategories().duplicate())
 	{
 	}
 

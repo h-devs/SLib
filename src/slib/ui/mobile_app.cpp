@@ -29,24 +29,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace mobile_app
-		{
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
-
-			static UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
-		   
-#if defined(SLIB_UI_IS_ANDROID)
-			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode);
-#endif
-		   
-		}
-	}
-
-	using namespace priv::mobile_app;
-
 	SLIB_DEFINE_OBJECT(MobileApp, UIApp)
 
 	MobileApp::MobileApp()
@@ -496,6 +478,10 @@ namespace slib
 	}
 
 
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList<ScreenOrientation>, g_listAvailableScreenOrientations)
+	}
+
 	List<ScreenOrientation> MobileApp::getAvailableScreenOrientations()
 	{
 		if (SLIB_SAFE_STATIC_CHECK_FREED(g_listAvailableScreenOrientations)) {
@@ -563,16 +549,27 @@ namespace slib
 	}
 #endif
 
+	namespace {
+		static UIKeyboardAdjustMode g_keyboardAdjustMode = UIKeyboardAdjustMode::Pan;
+	}
+
 	UIKeyboardAdjustMode MobileApp::getKeyboardAdjustMode()
 	{
 		return g_keyboardAdjustMode;
 	}
 
+#if defined(SLIB_UI_IS_ANDROID)
+	namespace priv
+	{
+		void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode);
+	}
+#endif
+
 	void MobileApp::setKeyboardAdjustMode(UIKeyboardAdjustMode mode)
 	{
 		g_keyboardAdjustMode = mode;
 #if defined(SLIB_UI_IS_ANDROID)
-		UpdateKeyboardAdjustMode(mode);
+		priv::UpdateKeyboardAdjustMode(mode);
 #endif
 	}
 

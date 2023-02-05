@@ -37,7 +37,6 @@
 #include <app.h>
 #include <Ecore.h>
 #include <Elementary.h>
-#include <pthread.h>
 
 #if defined(SLIB_PLATFORM_IS_TIZEN)
 #	include <system_info.h>
@@ -46,116 +45,62 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_core
+	using namespace priv;
+
+	namespace {
+		class ScreenImpl : public Screen
 		{
+		public:
+			int m_width;
+			int m_height;
 
-			static pthread_t g_threadMain = 0;
-			static volatile sl_int32 g_nLevelMainLoop = 0;
-
-			class ScreenImpl : public Screen
+		public:
+			static Ref<ScreenImpl> create()
 			{
-			public:
-				int m_width;
-				int m_height;
-
-			public:
-				static Ref<ScreenImpl> create()
-				{
-					Ref<ScreenImpl> ret = new ScreenImpl();
-					if (ret.isNotNull()) {
-						ret->m_width = 0;
-						ret->m_height = 0;
+				Ref<ScreenImpl> ret = new ScreenImpl();
+				if (ret.isNotNull()) {
+					ret->m_width = 0;
+					ret->m_height = 0;
 #if defined(SLIB_PLATFORM_IS_TIZEN)
-						system_info_get_platform_int("http://tizen.org/feature/screen.width", &(ret->m_width));
-						system_info_get_platform_int("http://tizen.org/feature/screen.height", &(ret->m_height));
+					system_info_get_platform_int("http://tizen.org/feature/screen.width", &(ret->m_width));
+					system_info_get_platform_int("http://tizen.org/feature/screen.height", &(ret->m_height));
 #endif
-						return ret;
-					}
-					return sl_null;
-				}
-
-			public:
-				UIRect getRegion() override
-				{
-					int rotation = 0;
-
-					Evas_Object* win = UIPlatform::getMainWindow();
-					if (win) {
-						rotation = elm_win_rotation_get(win);
-					}
-
-					List<ScreenOrientation> orientations = MobileApp::getAvailableScreenOrientations();
-					if(orientations.getCount() > 0) {
-						if(orientations.indexOf((ScreenOrientation)rotation) == -1) {
-							rotation = (int)(orientations.getValueAt(0));
-						}
-					}
-
-					UIRect ret;
-					ret.left = 0;
-					ret.top = 0;
-					if (rotation == 90 || rotation == 270) {
-						ret.right = (sl_ui_pos)m_height;
-						ret.bottom = (sl_ui_pos)m_width;
-					} else {
-						ret.right = (sl_ui_pos)m_width;
-						ret.bottom = (sl_ui_pos)m_height;
-					}
 					return ret;
 				}
-			};
-
-			static void DispatchCallback(void* data)
-			{
-				UIDispatcher::processCallbacks();
+				return sl_null;
 			}
 
-			static Eina_Bool DelayedDispatchCallback(void* data)
+		public:
+			UIRect getRegion() override
 			{
-				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(data);
-				callable->invoke();
-				callable->decreaseReference();
-				return ECORE_CALLBACK_CANCEL;
-			}
+				int rotation = 0;
 
-			static void QuitCallback(void* data)
-			{
-			}
+				Evas_Object* win = UIPlatform::getMainWindow();
+				if (win) {
+					rotation = elm_win_rotation_get(win);
+				}
 
-			static bool CreateCallback(void* data)
-			{
-				Log("App", "Create");
-				elm_config_accel_preference_set("opengl");
-				UIApp::dispatchStartToApp();
-				MobileApp::dispatchCreateActivityToApp();
-				return true;
-			}
+				List<ScreenOrientation> orientations = MobileApp::getAvailableScreenOrientations();
+				if(orientations.getCount() > 0) {
+					if(orientations.indexOf((ScreenOrientation)rotation) == -1) {
+						rotation = (int)(orientations.getValueAt(0));
+					}
+				}
 
-			static void ResumeCallback(void* data)
-			{
-				Log("App", "Resume");
-				MobileApp::dispatchResumeToApp();
+				UIRect ret;
+				ret.left = 0;
+				ret.top = 0;
+				if (rotation == 90 || rotation == 270) {
+					ret.right = (sl_ui_pos)m_height;
+					ret.bottom = (sl_ui_pos)m_width;
+				} else {
+					ret.right = (sl_ui_pos)m_width;
+					ret.bottom = (sl_ui_pos)m_height;
+				}
+				return ret;
 			}
-
-			static void PauseCallback(void* data)
-			{
-				Log("App", "Pause");
-				MobileApp::dispatchPauseToApp();
-			}
-
-			static void TerminateCallback(void* data)
-			{
-				Log("App", "Terminate");
-				MobileApp::dispatchDestroyActivityToApp();
-				UIApp::dispatchExitToApp();
-			}
-
-		}
+		};
 	}
-
-	using namespace priv::ui_core;
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
@@ -194,7 +139,26 @@ namespace slib
 
 	sl_bool UI::isUiThread()
 	{
-		return g_threadMain == ::pthread_self();
+		return getpid() == gettid();
+	}
+
+	namespace {
+
+		static volatile sl_int32 g_nLevelMainLoop = 0;
+
+		static void DispatchCallback(void* data)
+		{
+			UIDispatcher::processCallbacks();
+		}
+
+		static Eina_Bool DelayedDispatchCallback(void* data)
+		{
+			Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(data);
+			callable->invoke();
+			callable->decreaseReference();
+			return ECORE_CALLBACK_CANCEL;
+		}
+
 	}
 
 	void UI::dispatchToUiThread(const Function<void()>& callback, sl_uint32 delayMillis)
@@ -221,6 +185,12 @@ namespace slib
 		}
 	}
 
+	namespace {
+		static void QuitCallback(void* data)
+		{
+		}
+	}
+
 	void UIPlatform::quitLoop()
 	{
 		Base::interlockedDecrement(&g_nLevelMainLoop);
@@ -229,7 +199,36 @@ namespace slib
 
 	void UIPlatform::initApp()
 	{
-		g_threadMain = ::pthread_self();
+	}
+
+	namespace {
+		static bool CreateCallback(void* data)
+		{
+			Log("App", "Create");
+			elm_config_accel_preference_set("opengl");
+			UIApp::dispatchStartToApp();
+			MobileApp::dispatchCreateActivityToApp();
+			return true;
+		}
+
+		static void ResumeCallback(void* data)
+		{
+			Log("App", "Resume");
+			MobileApp::dispatchResumeToApp();
+		}
+
+		static void PauseCallback(void* data)
+		{
+			Log("App", "Pause");
+			MobileApp::dispatchPauseToApp();
+		}
+
+		static void TerminateCallback(void* data)
+		{
+			Log("App", "Terminate");
+			MobileApp::dispatchDestroyActivityToApp();
+			UIApp::dispatchExitToApp();
+		}
 	}
 
 	void UIPlatform::runApp()

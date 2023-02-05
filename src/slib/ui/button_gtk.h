@@ -37,54 +37,51 @@ namespace slib
 
 	namespace priv
 	{
-		namespace button
+
+		class ButtonInstance : public GTK_ViewInstance, public IButtonInstance
 		{
+			SLIB_DECLARE_OBJECT
 
-			class ButtonInstance : public GTK_ViewInstance, public IButtonInstance
-			{
-				SLIB_DECLARE_OBJECT
+		public:
+			ButtonInstance();
 
-			public:
-				ButtonInstance();
+			~ButtonInstance();
 
-				~ButtonInstance();
+		public:
+			void initialize(View* view) override;
 
-			public:
-				void initialize(View* view) override;
+			void setText(Button* view, const String& text) override;
 
-				void setText(Button* view, const String& text) override;
+			void setDefaultButton(Button* view, sl_bool flag) override;
 
-				void setDefaultButton(Button* view, sl_bool flag) override;
+			sl_bool measureSize(Button* view, UISize& _out) override;
 
-				sl_bool measureSize(Button* view, UISize& _out) override;
+			static void onClicked(GtkButton*, gpointer userinfo);
 
-				static void onClicked(GtkButton*, gpointer userinfo);
+		};
 
-			};
+		class CheckBoxInstance : public ButtonInstance, public ICheckBoxInstance
+		{
+			SLIB_DECLARE_OBJECT
 
-			class CheckBoxInstance : public ButtonInstance, public ICheckBoxInstance
-			{
-				SLIB_DECLARE_OBJECT
+		public:
+			CheckBoxInstance();
 
-			public:
-				CheckBoxInstance();
+			~CheckBoxInstance();
 
-				~CheckBoxInstance();
+		public:
+			void initialize(View* view) override;
 
-			public:
-				void initialize(View* view) override;
+			sl_bool getChecked(CheckBox* view, sl_bool& flag) override;
 
-				sl_bool getChecked(CheckBox* view, sl_bool& flag) override;
+			void setChecked(CheckBox* view, sl_bool flag) override;
 
-				void setChecked(CheckBox* view, sl_bool flag) override;
+			sl_bool measureSize(Button* view, UISize& _out) override;
 
-				sl_bool measureSize(Button* view, UISize& _out) override;
+			static void onChanged(GtkToggleButton *, gpointer userinfo);
 
-				static void onChanged(GtkToggleButton *, gpointer userinfo);
+		};
 
-			};
-
-		}
 	}
 
 }

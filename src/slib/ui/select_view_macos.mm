@@ -28,139 +28,128 @@
 
 #include "view_macos.h"
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace select_view
-		{
-			class SelectViewInstance;
-		}
+namespace slib {
+	namespace {
+		class SelectViewInstance;
 	}
 }
 
 @interface SLIBSelectViewHandle : NSPopUpButton
 {
-	@public slib::WeakRef<slib::priv::select_view::SelectViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::SelectViewInstance> m_viewInstance;
 }
 @end
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace select_view
+	namespace {
+
+		class SelectViewHelper : public SelectView
 		{
-
-			class SelectViewHelper : public SelectView
+		public:
+			void refreshItems(NSPopUpButton* v)
 			{
-			public:
-				void refreshItems(NSPopUpButton* v)
-				{
-					[v removeAllItems];
-					sl_uint32 n = (sl_uint32)(getItemCount());
-					for (sl_uint32 i = 0; i < n; i++) {
-						[v addItemWithTitle:@"____dummy____"];
-						NSMenuItem* item = [v lastItem];
-						if (item != nil) {
-							[item setTitle:Apple::getNSStringFromString(getItemTitle(i), @"")];
-						}
-					}
-					sl_uint32 indexSelected = m_indexSelected;
-					if (indexSelected < n) {
-						[v selectItemAtIndex:indexSelected];
+				[v removeAllItems];
+				sl_uint32 n = (sl_uint32)(getItemCount());
+				for (sl_uint32 i = 0; i < n; i++) {
+					[v addItemWithTitle:@"____dummy____"];
+					NSMenuItem* item = [v lastItem];
+					if (item != nil) {
+						[item setTitle:Apple::getNSStringFromString(getItemTitle(i), @"")];
 					}
 				}
+				sl_uint32 indexSelected = m_indexSelected;
+				if (indexSelected < n) {
+					[v selectItemAtIndex:indexSelected];
+				}
+			}
 
-			};
+		};
 
-			class SelectViewInstance : public macOS_ViewInstance, public ISelectViewInstance
+		class SelectViewInstance : public macOS_ViewInstance, public ISelectViewInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			NSPopUpButton* getHandle()
 			{
-				SLIB_DECLARE_OBJECT
+				return (NSPopUpButton*)m_handle;
+			}
 
-			public:
-				NSPopUpButton* getHandle()
-				{
-					return (NSPopUpButton*)m_handle;
+			void initialize(View* _view) override
+			{
+				SelectViewHelper* view = (SelectViewHelper*)_view;
+				NSPopUpButton* handle = getHandle();
+
+				[handle setPullsDown:NO];
+				view->refreshItems(handle);
+			}
+
+			void selectItem(SelectView* view, sl_uint32 index) override
+			{
+				NSPopUpButton* handle = getHandle();
+				if (handle != nil) {
+					[handle selectItemAtIndex:index];
 				}
+			}
 
-				void initialize(View* _view) override
-				{
-					SelectViewHelper* view = (SelectViewHelper*)_view;
-					NSPopUpButton* handle = getHandle();
-
-					[handle setPullsDown:NO];
-					view->refreshItems(handle);
+			void refreshItems(SelectView* view) override
+			{
+				NSPopUpButton* handle = getHandle();
+				if (handle != nil) {
+					static_cast<SelectViewHelper*>(view)->refreshItems(handle);
 				}
+			}
 
-				void selectItem(SelectView* view, sl_uint32 index) override
-				{
-					NSPopUpButton* handle = getHandle();
-					if (handle != nil) {
-						[handle selectItemAtIndex:index];
+			void insertItem(SelectView* view, sl_uint32 index, const String& title) override
+			{
+				NSPopUpButton* handle = getHandle();
+				if (handle != nil) {
+					[handle insertItemWithTitle:@"____dummy____" atIndex:index];
+					NSMenuItem* item = [handle itemAtIndex:index];
+					if (item != nil) {
+						[item setTitle:Apple::getNSStringFromString(title, @"")];
 					}
 				}
+			}
 
-				void refreshItems(SelectView* view) override
-				{
-					NSPopUpButton* handle = getHandle();
-					if (handle != nil) {
-						static_cast<SelectViewHelper*>(view)->refreshItems(handle);
+			void removeItem(SelectView* view, sl_uint32 index) override
+			{
+				NSPopUpButton* handle = getHandle();
+				if (handle != nil) {
+					[handle removeItemAtIndex:index];
+				}
+			}
+
+			void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
+			{
+				NSPopUpButton* handle = getHandle();
+				if (handle != nil) {
+					NSMenuItem* item = [handle itemAtIndex:index];
+					if (item != nil) {
+						[item setTitle:Apple::getNSStringFromString(title, @"")];
 					}
 				}
+			}
 
-				void insertItem(SelectView* view, sl_uint32 index, const String& title) override
-				{
-					NSPopUpButton* handle = getHandle();
-					if (handle != nil) {
-						[handle insertItemWithTitle:@"____dummy____" atIndex:index];
-						NSMenuItem* item = [handle itemAtIndex:index];
-						if (item != nil) {
-							[item setTitle:Apple::getNSStringFromString(title, @"")];
-						}
-					}
+			sl_bool measureSize(SelectView* view, UISize& _out) override
+			{
+				return UIPlatform::measureNativeWidgetFittingSize(this, _out);
+			}
+
+			void onSelectItem(NSPopUpButton* handle)
+			{
+				Ref<SelectView> view = CastRef<SelectView>(getView());
+				if (view.isNotNull()) {
+					view->dispatchSelectItem((sl_uint32)([handle indexOfSelectedItem]));
 				}
+			}
+		};
 
-				void removeItem(SelectView* view, sl_uint32 index) override
-				{
-					NSPopUpButton* handle = getHandle();
-					if (handle != nil) {
-						[handle removeItemAtIndex:index];
-					}
-				}
+		SLIB_DEFINE_OBJECT(SelectViewInstance, macOS_ViewInstance)
 
-				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
-				{
-					NSPopUpButton* handle = getHandle();
-					if (handle != nil) {
-						NSMenuItem* item = [handle itemAtIndex:index];
-						if (item != nil) {
-							[item setTitle:Apple::getNSStringFromString(title, @"")];
-						}
-					}
-				}
-
-				sl_bool measureSize(SelectView* view, UISize& _out) override
-				{
-					return UIPlatform::measureNativeWidgetFittingSize(this, _out);
-				}
-
-				void onSelectItem(NSPopUpButton* handle)
-				{
-					Ref<SelectView> view = CastRef<SelectView>(getView());
-					if (view.isNotNull()) {
-						view->dispatchSelectItem((sl_uint32)([handle indexOfSelectedItem]));
-					}
-				}
-			};
-
-			SLIB_DEFINE_OBJECT(SelectViewInstance, macOS_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::select_view;
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
@@ -175,7 +164,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::select_view;
 
 @implementation SLIBSelectViewHandle
 

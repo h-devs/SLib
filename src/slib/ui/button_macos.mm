@@ -33,92 +33,89 @@ namespace slib
 
 	namespace priv
 	{
-		namespace button
+
+		SLIB_DEFINE_OBJECT(ButtonInstance, macOS_ViewInstance)
+
+		ButtonInstance::ButtonInstance()
 		{
-
-			SLIB_DEFINE_OBJECT(ButtonInstance, macOS_ViewInstance)
-
-			ButtonInstance::ButtonInstance()
-			{
-			}
-
-			ButtonInstance::~ButtonInstance()
-			{
-			}
-
-			static NSString* getButtonText(Button* view, const String& s)
-			{
-				if (view->isMnemonic()) {
-					return Apple::getNSStringFromString(s.removeAll('&'));
-				} else {
-					return Apple::getNSStringFromString(s);
-				}
-			}
-
-			void ButtonInstance::initialize(View* _view)
-			{
-				NSButton* handle = getHandle();
-				Button* view = (Button*)_view;
-
-				handle.bezelStyle = NSRoundedBezelStyle;
-				handle.title = getButtonText(view, view->getText());
-				if (view->isDefaultButton()) {
-					[handle setKeyEquivalent:@"\r"];
-				}
-			}
-
-			NSButton* ButtonInstance::getHandle()
-			{
-				return (NSButton*)m_handle;
-			}
-
-			void ButtonInstance::setText(Button* view, const String& text)
-			{
-				NSButton* handle = getHandle();
-				if (handle != nil) {
-					handle.title = getButtonText(view, text);
-				}
-			}
-
-			void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
-			{
-				NSButton* handle = getHandle();
-				if (handle != nil) {
-					if (flag) {
-						[handle setKeyEquivalent:@"\r"];
-					} else {
-						[handle setKeyEquivalent:@""];
-					}
-				}
-			}
-
-			sl_bool ButtonInstance::measureSize(Button* view, UISize& _out)
-			{
-				return UIPlatform::measureNativeWidgetFittingSize(this, _out);
-			}
-
-			sl_bool ButtonInstance::getChecked(CheckBox* view, sl_bool& _out)
-			{
-				NSButton* handle = getHandle();
-				if (handle != nil) {
-					_out = (handle.state == NSOnState ? sl_true : sl_false);
-					return sl_true;
-				}
-				return sl_false;
-			}
-
-			void ButtonInstance::setChecked(CheckBox* view, sl_bool flag)
-			{
-				NSButton* handle = getHandle();
-				if (handle != nil) {
-					[handle setState: (flag ? NSOnState : NSOffState)];
-				}
-			}
-
 		}
+
+		ButtonInstance::~ButtonInstance()
+		{
+		}
+
+		static NSString* getButtonText(Button* view, const String& s)
+		{
+			if (view->isMnemonic()) {
+				return Apple::getNSStringFromString(s.removeAll('&'));
+			} else {
+				return Apple::getNSStringFromString(s);
+			}
+		}
+
+		void ButtonInstance::initialize(View* _view)
+		{
+			NSButton* handle = getHandle();
+			Button* view = (Button*)_view;
+
+			handle.bezelStyle = NSRoundedBezelStyle;
+			handle.title = getButtonText(view, view->getText());
+			if (view->isDefaultButton()) {
+				[handle setKeyEquivalent:@"\r"];
+			}
+		}
+
+		NSButton* ButtonInstance::getHandle()
+		{
+			return (NSButton*)m_handle;
+		}
+
+		void ButtonInstance::setText(Button* view, const String& text)
+		{
+			NSButton* handle = getHandle();
+			if (handle != nil) {
+				handle.title = getButtonText(view, text);
+			}
+		}
+
+		void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
+		{
+			NSButton* handle = getHandle();
+			if (handle != nil) {
+				if (flag) {
+					[handle setKeyEquivalent:@"\r"];
+				} else {
+					[handle setKeyEquivalent:@""];
+				}
+			}
+		}
+
+		sl_bool ButtonInstance::measureSize(Button* view, UISize& _out)
+		{
+			return UIPlatform::measureNativeWidgetFittingSize(this, _out);
+		}
+
+		sl_bool ButtonInstance::getChecked(CheckBox* view, sl_bool& _out)
+		{
+			NSButton* handle = getHandle();
+			if (handle != nil) {
+				_out = (handle.state == NSOnState ? sl_true : sl_false);
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		void ButtonInstance::setChecked(CheckBox* view, sl_bool flag)
+		{
+			NSButton* handle = getHandle();
+			if (handle != nil) {
+				[handle setState: (flag ? NSOnState : NSOffState)];
+			}
+		}
+
 	}
 
-	using namespace priv::button;
+	using namespace priv;
 
 	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
 	{
@@ -133,7 +130,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::button;
 
 @implementation SLIBButtonHandle
 

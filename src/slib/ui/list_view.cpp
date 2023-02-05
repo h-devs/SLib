@@ -308,141 +308,6 @@ namespace slib
 		}
 	}
 
-	namespace priv
-	{
-		namespace list_view
-		{
-
-			static sl_ui_len getTotalHeights(sl_uint64 count, sl_ui_len averageHeight, sl_ui_len* topHeights, sl_ui_len* bottomHeights, double& averageMidHeight)
-			{
-				averageMidHeight = (double)(averageHeight);
-				sl_uint32 i;
-				sl_ui_len s = 0;
-				for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
-					if (i >= count) {
-						return s;
-					}
-					sl_ui_len h = topHeights[i];
-					if (h <= 0) {
-						h = averageHeight;
-					}
-					s += h;
-				}
-				count -= MAX_ITEMS_SAVE_HEIGHTS;
-				if (count == 0) {
-					return s;
-				}
-				for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
-					if (i >= count) {
-						return s;
-					}
-					sl_ui_len h = bottomHeights[i];
-					if (h <= 0) {
-						h = averageHeight;
-					}
-					s += h;
-				}
-				count -= MAX_ITEMS_SAVE_HEIGHTS;
-				if (count == 0 || averageHeight == 0) {
-					return s;
-				}
-				double fCount = (double)count;
-				double mid = fCount * (double)(averageHeight);
-				sl_ui_len _mid;
-				if (mid > MAX_MID_HEIGHT) {
-					_mid = MAX_MID_HEIGHT;
-					averageMidHeight = MAX_MID_HEIGHT / fCount;
-				} else {
-					_mid = (sl_ui_len)(count) * averageHeight;
-				}
-				s += _mid;
-				return s;
-			}
-
-			static sl_ui_len getAverageHeight(sl_uint64 count, sl_ui_len* topHeights, sl_ui_len* bottomHeights)
-			{
-				sl_uint32 i;
-				sl_ui_len s = 0;
-				sl_uint32 n = 0;
-				for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
-					if (i >= count) {
-						break;
-					}
-					sl_ui_len h = topHeights[i];
-					if (h > 0) {
-						s += h;
-						n++;
-					}
-				}
-				if (count > MAX_ITEMS_SAVE_HEIGHTS) {
-					count -= MAX_ITEMS_SAVE_HEIGHTS;
-					if (count > 0) {
-						for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
-							if (i >= count) {
-								break;
-							}
-							sl_ui_len h = bottomHeights[i];
-							if (h > 0) {
-								s += h;
-								n++;
-							}
-						}
-					}
-				}
-				if (n == 0) {
-					return 0;
-				}
-				return s / n;
-			}
-
-			static sl_ui_pos getYPositionOfItem(sl_uint64 index, sl_uint64 count, sl_ui_len averageHeight, double averageMidHeight, sl_ui_len totalHeight, sl_ui_len* topHeights, sl_ui_len* bottomHeights)
-			{
-				if (index > count) {
-					index = count;
-				}
-				if (index <= MAX_ITEMS_SAVE_HEIGHTS) {
-					sl_ui_len y = 0;
-					sl_uint32 n = (sl_uint32)index;
-					for (sl_uint32 i = 0; i < n; i++) {
-						sl_ui_len h = topHeights[i];
-						if (h <= 0) {
-							h = averageHeight;
-						}
-						y += h;
-					}
-					return y;
-				}
-				if (count - index <= MAX_ITEMS_SAVE_HEIGHTS) {
-					sl_ui_len y = 0;
-					sl_uint32 n = (sl_uint32)(count - index);
-					for (sl_uint32 i = 0; i < n; i++) {
-						sl_ui_len h = bottomHeights[i];
-						if (h <= 0) {
-							h = averageHeight;
-						}
-						y += h;
-					}
-					if (totalHeight > y) {
-						y = totalHeight - y;
-					} else {
-						y = 0;
-					}
-					return y;
-				}
-				sl_ui_len y = 0;
-				for (sl_uint32 i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
-					sl_ui_len h = topHeights[i];
-					if (h <= 0) {
-						h = averageHeight;
-					}
-					y += h;
-				}
-				return y + (sl_ui_len)((double)(index - MAX_ITEMS_SAVE_HEIGHTS) * averageMidHeight);
-			}
-
-		}
-	}
-
 	Ref<View> ListView::_getView(ViewAdapter* adapter, sl_uint64 index, View* original)
 	{
 		Ref<View> view = adapter->getView(index, original, this);
@@ -460,6 +325,135 @@ namespace slib
 			return view;
 		}
 		return sl_null;
+	}
+
+	namespace {
+		static sl_ui_len GetTotalHeights(sl_uint64 count, sl_ui_len averageHeight, sl_ui_len* topHeights, sl_ui_len* bottomHeights, double& averageMidHeight)
+		{
+			averageMidHeight = (double)(averageHeight);
+			sl_uint32 i;
+			sl_ui_len s = 0;
+			for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
+				if (i >= count) {
+					return s;
+				}
+				sl_ui_len h = topHeights[i];
+				if (h <= 0) {
+					h = averageHeight;
+				}
+				s += h;
+			}
+			count -= MAX_ITEMS_SAVE_HEIGHTS;
+			if (count == 0) {
+				return s;
+			}
+			for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
+				if (i >= count) {
+					return s;
+				}
+				sl_ui_len h = bottomHeights[i];
+				if (h <= 0) {
+					h = averageHeight;
+				}
+				s += h;
+			}
+			count -= MAX_ITEMS_SAVE_HEIGHTS;
+			if (count == 0 || averageHeight == 0) {
+				return s;
+			}
+			double fCount = (double)count;
+			double mid = fCount * (double)(averageHeight);
+			sl_ui_len _mid;
+			if (mid > MAX_MID_HEIGHT) {
+				_mid = MAX_MID_HEIGHT;
+				averageMidHeight = MAX_MID_HEIGHT / fCount;
+			} else {
+				_mid = (sl_ui_len)(count) * averageHeight;
+			}
+			s += _mid;
+			return s;
+		}
+
+		static sl_ui_len GetAverageHeight(sl_uint64 count, sl_ui_len* topHeights, sl_ui_len* bottomHeights)
+		{
+			sl_uint32 i;
+			sl_ui_len s = 0;
+			sl_uint32 n = 0;
+			for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
+				if (i >= count) {
+					break;
+				}
+				sl_ui_len h = topHeights[i];
+				if (h > 0) {
+					s += h;
+					n++;
+				}
+			}
+			if (count > MAX_ITEMS_SAVE_HEIGHTS) {
+				count -= MAX_ITEMS_SAVE_HEIGHTS;
+				if (count > 0) {
+					for (i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
+						if (i >= count) {
+							break;
+						}
+						sl_ui_len h = bottomHeights[i];
+						if (h > 0) {
+							s += h;
+							n++;
+						}
+					}
+				}
+			}
+			if (n == 0) {
+				return 0;
+			}
+			return s / n;
+		}
+
+		static sl_ui_pos GetYPositionOfItem(sl_uint64 index, sl_uint64 count, sl_ui_len averageHeight, double averageMidHeight, sl_ui_len totalHeight, sl_ui_len* topHeights, sl_ui_len* bottomHeights)
+		{
+			if (index > count) {
+				index = count;
+			}
+			if (index <= MAX_ITEMS_SAVE_HEIGHTS) {
+				sl_ui_len y = 0;
+				sl_uint32 n = (sl_uint32)index;
+				for (sl_uint32 i = 0; i < n; i++) {
+					sl_ui_len h = topHeights[i];
+					if (h <= 0) {
+						h = averageHeight;
+					}
+					y += h;
+				}
+				return y;
+			}
+			if (count - index <= MAX_ITEMS_SAVE_HEIGHTS) {
+				sl_ui_len y = 0;
+				sl_uint32 n = (sl_uint32)(count - index);
+				for (sl_uint32 i = 0; i < n; i++) {
+					sl_ui_len h = bottomHeights[i];
+					if (h <= 0) {
+						h = averageHeight;
+					}
+					y += h;
+				}
+				if (totalHeight > y) {
+					y = totalHeight - y;
+				} else {
+					y = 0;
+				}
+				return y;
+			}
+			sl_ui_len y = 0;
+			for (sl_uint32 i = 0; i < MAX_ITEMS_SAVE_HEIGHTS; i++) {
+				sl_ui_len h = topHeights[i];
+				if (h <= 0) {
+					h = averageHeight;
+				}
+				y += h;
+			}
+			return y + (sl_ui_len)((double)(index - MAX_ITEMS_SAVE_HEIGHTS) * averageMidHeight);
+		}
 	}
 
 	void ListView::_layoutItemViews(ListView::LayoutCaller caller, sl_bool flagRefresh)
@@ -598,7 +592,7 @@ namespace slib
 						}
 					}
 
-					heightTotalItems = priv::list_view::getTotalHeights(countTotalItems, lastAverageItemHeight, heightsTopItems, heightsBottomItems, lastAverageMidItemHeight);
+					heightTotalItems = GetTotalHeights(countTotalItems, lastAverageItemHeight, heightsTopItems, heightsBottomItems, lastAverageMidItemHeight);
 
 					// free visible views
 					for (sl_uint32 iItem = 0; iItem < MAX_ITEMS_PER_PAGE; iItem++) {
@@ -686,7 +680,7 @@ namespace slib
 						if (lastAverageItemHeight <= 0) {
 							lastAverageItemHeight = adapter->getAverageItemHeight(this);
 							if (lastAverageItemHeight <= 0) {
-								lastAverageItemHeight = priv::list_view::getAverageHeight(countTotalItems, heightsTopItems, heightsBottomItems);
+								lastAverageItemHeight = GetAverageHeight(countTotalItems, heightsTopItems, heightsBottomItems);
 							}
 						}
 
@@ -846,16 +840,16 @@ namespace slib
 				}
 				sl_ui_len averageItemHeight = adapter->getAverageItemHeight(this);
 				if (averageItemHeight <= 0) {
-					averageItemHeight = priv::list_view::getAverageHeight(countTotalItems, heightsTopItems, heightsBottomItems);
+					averageItemHeight = GetAverageHeight(countTotalItems, heightsTopItems, heightsBottomItems);
 				}
 				double averageMidItemHeight = averageItemHeight;
-				heightTotalItems = priv::list_view::getTotalHeights(countTotalItems, averageItemHeight, heightsTopItems, heightsBottomItems, averageMidItemHeight);
+				heightTotalItems = GetTotalHeights(countTotalItems, averageItemHeight, heightsTopItems, heightsBottomItems, averageMidItemHeight);
 
 				// readjust scroll position
 				if (!flagClearAll) {
 					if (scrollY < heightListView || scrollY + 2 * heightListView >= (sl_ui_pos)heightTotalItems) {
 						sl_ui_pos scrollOffset = scrollY - yStart;
-						sl_ui_pos yStartNew = priv::list_view::getYPositionOfItem(indexStart, countTotalItems, averageItemHeight, averageMidItemHeight, heightTotalItems, heightsTopItems, heightsBottomItems);
+						sl_ui_pos yStartNew = GetYPositionOfItem(indexStart, countTotalItems, averageItemHeight, averageMidItemHeight, heightTotalItems, heightsTopItems, heightsBottomItems);
 						if (Math::abs(yStartNew - yStart) > (sl_ui_pos)averageItemHeight / 10) {
 							yStart = yStartNew;
 							scrollY = yStartNew + scrollOffset;

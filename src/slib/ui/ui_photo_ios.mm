@@ -40,76 +40,68 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_photo
+	namespace {
+		class TakePhotoResultEx : public TakePhotoResult
 		{
-
-			class TakePhotoResultEx : public TakePhotoResult
+		public:
+			void setResult(UIImage* image)
 			{
-			public:
-				void setResult(UIImage* image)
-				{
-					if (image != nil) {
-						drawable = GraphicsPlatform::createImageDrawable(image.CGImage);
-						if (drawable.isNotNull()) {
-							UIImageOrientation orientation = image.imageOrientation;
-							if (orientation != UIImageOrientationUp) {
-								switch (orientation) {
-									case UIImageOrientationDown:
-										drawable = drawable->rotate(RotationMode::Rotate180);
-										break;
-									case UIImageOrientationLeft:
-										drawable = drawable->rotate(RotationMode::Rotate270);
-										break;
-									case UIImageOrientationRight:
-										drawable = drawable->rotate(RotationMode::Rotate90);
-										break;
-									case UIImageOrientationUpMirrored:
-										drawable = drawable->flip(FlipMode::Horizontal);
-										break;
-									case UIImageOrientationDownMirrored:
-										drawable = drawable->flip(FlipMode::Vertical);
-										break;
-									case UIImageOrientationLeftMirrored:
-										drawable = drawable->rotate(RotationMode::Rotate270, FlipMode::Horizontal);
-										break;
-									case UIImageOrientationRightMirrored:
-										drawable = drawable->rotate(RotationMode::Rotate90, FlipMode::Horizontal);
-										break;
-									default:
-										break;
-								}
-								if (drawable.isNull()) {
-									return;
-								}
+				if (image != nil) {
+					drawable = GraphicsPlatform::createImageDrawable(image.CGImage);
+					if (drawable.isNotNull()) {
+						UIImageOrientation orientation = image.imageOrientation;
+						if (orientation != UIImageOrientationUp) {
+							switch (orientation) {
+								case UIImageOrientationDown:
+									drawable = drawable->rotate(RotationMode::Rotate180);
+									break;
+								case UIImageOrientationLeft:
+									drawable = drawable->rotate(RotationMode::Rotate270);
+									break;
+								case UIImageOrientationRight:
+									drawable = drawable->rotate(RotationMode::Rotate90);
+									break;
+								case UIImageOrientationUpMirrored:
+									drawable = drawable->flip(FlipMode::Horizontal);
+									break;
+								case UIImageOrientationDownMirrored:
+									drawable = drawable->flip(FlipMode::Vertical);
+									break;
+								case UIImageOrientationLeftMirrored:
+									drawable = drawable->rotate(RotationMode::Rotate270, FlipMode::Horizontal);
+									break;
+								case UIImageOrientationRightMirrored:
+									drawable = drawable->rotate(RotationMode::Rotate90, FlipMode::Horizontal);
+									break;
+								default:
+									break;
 							}
-							flagSuccess = sl_true;
+							if (drawable.isNull()) {
+								return;
+							}
 						}
+						flagSuccess = sl_true;
 					}
 				}
-			};
-
-			static void RunTakePhoto(TakePhoto& takePhoto, SLIBTakePhotoController* controller)
-			{
-				controller->takePhoto = takePhoto;
-				[controller setDelegate:controller];
-
-				UIViewController* rootController = UIPlatform::getCurrentViewController(takePhoto.parent);
-				if (rootController != nil) {
-					if (![rootController isBeingPresented]) {
-						[rootController presentViewController:controller animated:YES completion:nil];
-						return;
-					}
-				}
-				TakePhotoResult result;
-				takePhoto.onComplete(result);
 			}
+		};
 
+		static void RunTakePhoto(TakePhoto& takePhoto, SLIBTakePhotoController* controller)
+		{
+			controller->takePhoto = takePhoto;
+			[controller setDelegate:controller];
+
+			UIViewController* rootController = UIPlatform::getCurrentViewController(takePhoto.parent);
+			if (rootController != nil) {
+				if (![rootController isBeingPresented]) {
+					[rootController presentViewController:controller animated:YES completion:nil];
+					return;
+				}
+			}
+			TakePhotoResult result;
+			takePhoto.onComplete(result);
 		}
 	}
-
-	using namespace priv::ui_photo;
 
 	void TakePhoto::takeFromCamera()
 	{
@@ -133,7 +125,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::ui_photo;
 
 @implementation SLIBTakePhotoController
 

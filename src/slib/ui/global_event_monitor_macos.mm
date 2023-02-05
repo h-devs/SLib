@@ -32,126 +32,120 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace global_event_monitor
+	namespace {
+
+		static id g_monitorGlobal = nil;
+		static id g_monitorLocal = nil;
+
+		class GlobalEventMonitorHelper : public GlobalEventMonitor
 		{
+		public:
+			using GlobalEventMonitor::_onEvent;
+		};
 
-			static id g_monitorGlobal = nil;
-			static id g_monitorLocal = nil;
-
-			class GlobalEventMonitorHelper : public GlobalEventMonitor
-			{
-			public:
-				using GlobalEventMonitor::_onEvent;
-			};
-
-			static void ProcessMouseEvent(UIAction action, NSEvent* event)
-			{
-				NSPoint pt = event.locationInWindow;
-				NSWindow* window = event.window;
-				if (window != nil) {
-					pt = [window convertPointToScreen:pt];
-				}
-				sl_ui_posf x = (sl_ui_posf)(pt.x);
-				sl_ui_posf y = (sl_ui_posf)(pt.y);
-				Time t;
-				t.setSecondCountf(event.timestamp);
-				Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
-				if (ev.isNotNull()) {
-					UIPlatform::applyEventModifiers(ev.get(), event);
-					GlobalEventMonitorHelper::_onEvent(ev.get());
-				}
+		static void ProcessMouseEvent(UIAction action, NSEvent* event)
+		{
+			NSPoint pt = event.locationInWindow;
+			NSWindow* window = event.window;
+			if (window != nil) {
+				pt = [window convertPointToScreen:pt];
 			}
-
-			static void ProcessMouseWheelEvent(NSEvent* event)
-			{
-				sl_real deltaX = (sl_real)([event deltaX]);
-				sl_real deltaY = (sl_real)([event deltaY]);
-				if (Math::isAlmostZero(deltaX) && Math::isAlmostZero(deltaY)) {
-					return;
-				}
-				NSPoint pt = event.locationInWindow;
-				NSWindow* window = event.window;
-				if (window != nil) {
-					pt = [window convertPointToScreen:pt];
-				}
-				sl_ui_posf x = (sl_ui_posf)(pt.x);
-				sl_ui_posf y = (sl_ui_posf)(pt.y);
-				Time t;
-				t.setSecondCountf([event timestamp]);
-				Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, deltaX, deltaY, t);
-				if (ev.isNotNull()) {
-					UIPlatform::applyEventModifiers(ev.get(), event);
-					GlobalEventMonitorHelper::_onEvent(ev.get());
-				}
+			sl_ui_posf x = (sl_ui_posf)(pt.x);
+			sl_ui_posf y = (sl_ui_posf)(pt.y);
+			Time t;
+			t.setSecondCountf(event.timestamp);
+			Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
+			if (ev.isNotNull()) {
+				UIPlatform::applyEventModifiers(ev.get(), event);
+				GlobalEventMonitorHelper::_onEvent(ev.get());
 			}
-
-			static void ProcessKeyEvent(UIAction action, NSEvent* event)
-			{
-				sl_uint32 vkey = [event keyCode];
-				Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
-				Time t;
-				t.setSecondCountf([event timestamp]);
-				Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
-				if (ev.isNotNull()) {
-					UIPlatform::applyEventModifiers(ev.get(), event);
-					GlobalEventMonitorHelper::_onEvent(ev.get());
-				}
-			}
-
-			static void ProcessEvent(NSEvent* ev)
-			{
-				NSEventType type = ev.type;
-				switch (type) {
-					case NSLeftMouseDown:
-						ProcessMouseEvent(UIAction::LeftButtonDown, ev);
-						break;
-					case NSLeftMouseUp:
-						ProcessMouseEvent(UIAction::LeftButtonUp, ev);
-						break;
-					case NSLeftMouseDragged:
-						ProcessMouseEvent(UIAction::LeftButtonDrag, ev);
-						break;
-					case NSRightMouseDown:
-						ProcessMouseEvent(UIAction::RightButtonDown, ev);
-						break;
-					case NSRightMouseUp:
-						ProcessMouseEvent(UIAction::RightButtonUp, ev);
-						break;
-					case NSRightMouseDragged:
-						ProcessMouseEvent(UIAction::RightButtonDrag, ev);
-						break;
-					case NSOtherMouseDown:
-						ProcessMouseEvent(UIAction::MiddleButtonDown, ev);
-						break;
-					case NSOtherMouseUp:
-						ProcessMouseEvent(UIAction::MiddleButtonUp, ev);
-						break;
-					case NSOtherMouseDragged:
-						ProcessMouseEvent(UIAction::MiddleButtonDrag, ev);
-						break;
-					case NSMouseMoved:
-						ProcessMouseEvent(UIAction::MouseMove, ev);
-						break;
-					case NSScrollWheel:
-						ProcessMouseWheelEvent(ev);
-						break;
-					case NSKeyDown:
-						ProcessKeyEvent(UIAction::KeyDown, ev);
-						break;
-					case NSKeyUp:
-						ProcessKeyEvent(UIAction::KeyUp, ev);
-						break;
-					default:
-						break;
-				}
-			}
-
 		}
-	}
 
-	using namespace priv::global_event_monitor;
+		static void ProcessMouseWheelEvent(NSEvent* event)
+		{
+			sl_real deltaX = (sl_real)([event deltaX]);
+			sl_real deltaY = (sl_real)([event deltaY]);
+			if (Math::isAlmostZero(deltaX) && Math::isAlmostZero(deltaY)) {
+				return;
+			}
+			NSPoint pt = event.locationInWindow;
+			NSWindow* window = event.window;
+			if (window != nil) {
+				pt = [window convertPointToScreen:pt];
+			}
+			sl_ui_posf x = (sl_ui_posf)(pt.x);
+			sl_ui_posf y = (sl_ui_posf)(pt.y);
+			Time t;
+			t.setSecondCountf([event timestamp]);
+			Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, deltaX, deltaY, t);
+			if (ev.isNotNull()) {
+				UIPlatform::applyEventModifiers(ev.get(), event);
+				GlobalEventMonitorHelper::_onEvent(ev.get());
+			}
+		}
+
+		static void ProcessKeyEvent(UIAction action, NSEvent* event)
+		{
+			sl_uint32 vkey = [event keyCode];
+			Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
+			Time t;
+			t.setSecondCountf([event timestamp]);
+			Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
+			if (ev.isNotNull()) {
+				UIPlatform::applyEventModifiers(ev.get(), event);
+				GlobalEventMonitorHelper::_onEvent(ev.get());
+			}
+		}
+
+		static void ProcessEvent(NSEvent* ev)
+		{
+			NSEventType type = ev.type;
+			switch (type) {
+				case NSLeftMouseDown:
+					ProcessMouseEvent(UIAction::LeftButtonDown, ev);
+					break;
+				case NSLeftMouseUp:
+					ProcessMouseEvent(UIAction::LeftButtonUp, ev);
+					break;
+				case NSLeftMouseDragged:
+					ProcessMouseEvent(UIAction::LeftButtonDrag, ev);
+					break;
+				case NSRightMouseDown:
+					ProcessMouseEvent(UIAction::RightButtonDown, ev);
+					break;
+				case NSRightMouseUp:
+					ProcessMouseEvent(UIAction::RightButtonUp, ev);
+					break;
+				case NSRightMouseDragged:
+					ProcessMouseEvent(UIAction::RightButtonDrag, ev);
+					break;
+				case NSOtherMouseDown:
+					ProcessMouseEvent(UIAction::MiddleButtonDown, ev);
+					break;
+				case NSOtherMouseUp:
+					ProcessMouseEvent(UIAction::MiddleButtonUp, ev);
+					break;
+				case NSOtherMouseDragged:
+					ProcessMouseEvent(UIAction::MiddleButtonDrag, ev);
+					break;
+				case NSMouseMoved:
+					ProcessMouseEvent(UIAction::MouseMove, ev);
+					break;
+				case NSScrollWheel:
+					ProcessMouseWheelEvent(ev);
+					break;
+				case NSKeyDown:
+					ProcessKeyEvent(UIAction::KeyDown, ev);
+					break;
+				case NSKeyUp:
+					ProcessKeyEvent(UIAction::KeyUp, ev);
+					break;
+				default:
+					break;
+			}
+		}
+
+	}
 
 	sl_bool GlobalEventMonitor::_updateMonitor(sl_uint32 _mask)
 	{

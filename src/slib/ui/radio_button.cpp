@@ -34,105 +34,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace radio_button
-		{
-
-			class Icon : public Drawable
-			{
-			public:
-				Ref<Pen> m_penBorder;
-				Ref<Brush> m_brushBack;
-				Ref<Brush> m_brushCheck;
-
-			public:
-				Icon(const Ref<Pen>& penBorder, const Color& backColor, const Color& checkColor)
-				{
-					m_penBorder = penBorder;
-					if (backColor.a > 0) {
-						m_brushBack = Brush::createSolidBrush(backColor);
-					}
-					if (checkColor.a > 0) {
-						m_brushCheck = Brush::createSolidBrush(checkColor);
-					}
-				}
-
-			public:
-				void onDrawAll(Canvas* canvas, const Rectangle& rect, const DrawParam& param) override
-				{
-					canvas->drawEllipse(rect, m_penBorder, m_brushBack);
-					if (m_brushCheck.isNotNull()) {
-						Rectangle rcCheck;
-						rcCheck.setLeftTop(rect.getCenter());
-						sl_real w = rect.getWidth() / 2;
-						sl_real h = rect.getHeight() / 2;
-						rcCheck.left -= w / 2;
-						rcCheck.top -= h / 2;
-						rcCheck.right = rcCheck.left + w;
-						rcCheck.bottom = rcCheck.top + h;
-						canvas->fillEllipse(rcCheck, m_brushCheck);
-					}
-				}
-
-			};
-
-			class Categories
-			{
-			public:
-				ButtonCategory categories[2];
-				Array<ButtonCategory> arrCategories;
-
-			public:
-				Categories()
-				{
-					sl_real w = (sl_real)(UIResource::toUiPos(UIResource::dpToPixel(1)));
-					Color colorBackNormal = Color::White;
-					Color colorBackHover = Color::White;
-					Color colorBackDown(220, 230, 255);
-					Color colorBackDisabled = Color(220, 220, 220);
-					Ref<Pen> penNormal = Pen::createSolidPen(w, Color::Black);
-					Ref<Pen> penHover = Pen::createSolidPen(w, Color(0, 80, 200));
-					Ref<Pen> penDown = penHover;
-					Ref<Pen> penDisabled = Pen::createSolidPen(w, Color(90, 90, 90));
-					Color colorCheckNormal = Color::Black;
-					Color colorCheckDisabled = Color(90, 90, 90);
-					Color colorCheckHover = Color(0, 80, 200);
-					Color colorCheckDown = colorCheckHover;
-					categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Color::zero());
-					categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Color::zero());
-					categories[0].properties[(int)ButtonState::Focused].icon =
-						categories[0].properties[(int)ButtonState::FocusedHover].icon =
-						categories[0].properties[(int)ButtonState::Hover].icon =
-							new Icon(penHover, colorBackHover, Color::zero());
-					categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Color::zero());
-
-					categories[1] = categories[0];
-					categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, colorCheckNormal);
-					categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
-					categories[1].properties[(int)ButtonState::Focused].icon =
-						categories[1].properties[(int)ButtonState::FocusedHover].icon =
-						categories[1].properties[(int)ButtonState::Hover].icon =
-							new Icon(penHover, colorBackHover, colorCheckHover);
-					categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, colorCheckDown);
-
-					arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
-				}
-
-				static Array<ButtonCategory> getInitialCategories()
-				{
-					SLIB_SAFE_LOCAL_STATIC(Categories, s)
-					if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
-						return sl_null;
-					}
-					return s.arrCategories;
-				}
-
-			};
-
-		}
-	}
-
 	SLIB_DEFINE_OBJECT(RadioButton, CheckBox)
 
 	RadioButton::RadioButton()
@@ -191,9 +92,104 @@ namespace slib
 	}
 
 
+	namespace {
+
+		class Icon : public Drawable
+		{
+		public:
+			Ref<Pen> m_penBorder;
+			Ref<Brush> m_brushBack;
+			Ref<Brush> m_brushCheck;
+
+		public:
+			Icon(const Ref<Pen>& penBorder, const Color& backColor, const Color& checkColor)
+			{
+				m_penBorder = penBorder;
+				if (backColor.a > 0) {
+					m_brushBack = Brush::createSolidBrush(backColor);
+				}
+				if (checkColor.a > 0) {
+					m_brushCheck = Brush::createSolidBrush(checkColor);
+				}
+			}
+
+		public:
+			void onDrawAll(Canvas* canvas, const Rectangle& rect, const DrawParam& param) override
+			{
+				canvas->drawEllipse(rect, m_penBorder, m_brushBack);
+				if (m_brushCheck.isNotNull()) {
+					Rectangle rcCheck;
+					rcCheck.setLeftTop(rect.getCenter());
+					sl_real w = rect.getWidth() / 2;
+					sl_real h = rect.getHeight() / 2;
+					rcCheck.left -= w / 2;
+					rcCheck.top -= h / 2;
+					rcCheck.right = rcCheck.left + w;
+					rcCheck.bottom = rcCheck.top + h;
+					canvas->fillEllipse(rcCheck, m_brushCheck);
+				}
+			}
+
+		};
+
+		class Categories
+		{
+		public:
+			ButtonCategory categories[2];
+			Array<ButtonCategory> arrCategories;
+
+		public:
+			Categories()
+			{
+				sl_real w = (sl_real)(UIResource::toUiPos(UIResource::dpToPixel(1)));
+				Color colorBackNormal = Color::White;
+				Color colorBackHover = Color::White;
+				Color colorBackDown(220, 230, 255);
+				Color colorBackDisabled = Color(220, 220, 220);
+				Ref<Pen> penNormal = Pen::createSolidPen(w, Color::Black);
+				Ref<Pen> penHover = Pen::createSolidPen(w, Color(0, 80, 200));
+				Ref<Pen> penDown = penHover;
+				Ref<Pen> penDisabled = Pen::createSolidPen(w, Color(90, 90, 90));
+				Color colorCheckNormal = Color::Black;
+				Color colorCheckDisabled = Color(90, 90, 90);
+				Color colorCheckHover = Color(0, 80, 200);
+				Color colorCheckDown = colorCheckHover;
+				categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Color::zero());
+				categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Color::zero());
+				categories[0].properties[(int)ButtonState::Focused].icon =
+					categories[0].properties[(int)ButtonState::FocusedHover].icon =
+					categories[0].properties[(int)ButtonState::Hover].icon =
+						new Icon(penHover, colorBackHover, Color::zero());
+				categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Color::zero());
+
+				categories[1] = categories[0];
+				categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, colorCheckNormal);
+				categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
+				categories[1].properties[(int)ButtonState::Focused].icon =
+					categories[1].properties[(int)ButtonState::FocusedHover].icon =
+					categories[1].properties[(int)ButtonState::Hover].icon =
+						new Icon(penHover, colorBackHover, colorCheckHover);
+				categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, colorCheckDown);
+
+				arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
+			}
+
+			static Array<ButtonCategory> getInitialCategories()
+			{
+				SLIB_SAFE_LOCAL_STATIC(Categories, s)
+				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
+					return sl_null;
+				}
+				return s.arrCategories;
+			}
+
+		};
+
+	}
+
 	SLIB_DEFINE_OBJECT(RadioButtonCell, ViewCell)
 
-	RadioButtonCell::RadioButtonCell() : RadioButtonCell(priv::radio_button::Categories::getInitialCategories().duplicate())
+	RadioButtonCell::RadioButtonCell() : RadioButtonCell(Categories::getInitialCategories().duplicate())
 	{
 	}
 

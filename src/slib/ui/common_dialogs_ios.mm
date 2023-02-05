@@ -33,37 +33,13 @@
 
 #include "../resources.h"
 
-@interface SLIBAlertDialogLabelHelper : NSObject
-{
-}
+@interface SLIBAlertDialogLabelHelper : NSObject {}
 + (SLIBAlertDialogLabelHelper*)sharedInstance;
 - (void)handleTapOnLabel:(UITapGestureRecognizer *)tapGesture;
 @end
 
 namespace slib
 {
-
-	namespace priv
-	{
-		namespace alert_dialog
-		{
-
-			static void EnableLink(UIView* view)
-			{
-				for (UIView* subview in view.subviews) {
-					if ([subview isKindOfClass:[UILabel class]]) {
-						UILabel* label = (UILabel*)subview;
-						label.userInteractionEnabled = YES;
-						SLIBAlertDialogLabelHelper* target = [SLIBAlertDialogLabelHelper sharedInstance];
-						[label addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:target action:@selector(handleTapOnLabel:)]];
-					} else {
-						priv::alert_dialog::EnableLink(subview);
-					}
-				}
-			}
-
-		}
-	}
 
 	DialogResult AlertDialog::run()
 	{
@@ -78,6 +54,22 @@ namespace slib
 	void AlertDialog::show()
 	{
 		_showOnUiThread();
+	}
+
+	namespace {
+		static void EnableLink(UIView* view)
+		{
+			for (UIView* subview in view.subviews) {
+				if ([subview isKindOfClass:[UILabel class]]) {
+					UILabel* label = (UILabel*)subview;
+					label.userInteractionEnabled = YES;
+					SLIBAlertDialogLabelHelper* target = [SLIBAlertDialogLabelHelper sharedInstance];
+					[label addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:target action:@selector(handleTapOnLabel:)]];
+				} else {
+					EnableLink(subview);
+				}
+			}
+		}
 	}
 
 	sl_bool AlertDialog::_show()
@@ -119,48 +111,40 @@ namespace slib
 		if (alert != nil) {
 
 			if (buttons == AlertButtons::OkCancel) {
-				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOK style:UIAlertActionStyleDefault handler:
-										   ^(UIAlertAction *) {
-											   onOK();
-										   }];
-				UIAlertAction* actionCancel = [UIAlertAction actionWithTitle:titleCancel style:UIAlertActionStyleCancel handler:
-											   ^(UIAlertAction *) {
-												   onCancel();
-											   }];
+				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOK style:UIAlertActionStyleDefault handler: ^(UIAlertAction *) {
+					onOK();
+				}];
+				UIAlertAction* actionCancel = [UIAlertAction actionWithTitle:titleCancel style:UIAlertActionStyleCancel handler: ^(UIAlertAction *) {
+					onCancel();
+				}];
 				[alert addAction:actionOK];
 				[alert addAction:actionCancel];
 			} else if (buttons == AlertButtons::YesNo) {
-				UIAlertAction* actionYes = [UIAlertAction actionWithTitle:titleYes style:UIAlertActionStyleDefault handler:
-											^(UIAlertAction *) {
-												onYes();
-											}];
-				UIAlertAction* actionNo = [UIAlertAction actionWithTitle:titleNo style:UIAlertActionStyleDestructive handler:
-										   ^(UIAlertAction *) {
-											   onNo();
-										   }];
+				UIAlertAction* actionYes = [UIAlertAction actionWithTitle:titleYes style:UIAlertActionStyleDefault handler: ^(UIAlertAction *) {
+					onYes();
+				}];
+				UIAlertAction* actionNo = [UIAlertAction actionWithTitle:titleNo style:UIAlertActionStyleDestructive handler: ^(UIAlertAction *) {
+					onNo();
+				}];
 				[alert addAction:actionYes];
 				[alert addAction:actionNo];
 			} else if (buttons == AlertButtons::YesNoCancel) {
-				UIAlertAction* actionYes = [UIAlertAction actionWithTitle:titleYes style:UIAlertActionStyleDefault handler:
-											^(UIAlertAction *) {
-												onYes();
-											}];
-				UIAlertAction* actionNo = [UIAlertAction actionWithTitle:titleNo style:UIAlertActionStyleDestructive handler:
-										   ^(UIAlertAction *) {
-											   onNo();
-										   }];
-				UIAlertAction* actionCancel = [UIAlertAction actionWithTitle:titleCancel style:UIAlertActionStyleCancel handler:
-											   ^(UIAlertAction *) {
-												   onCancel();
-											   }];
+				UIAlertAction* actionYes = [UIAlertAction actionWithTitle:titleYes style:UIAlertActionStyleDefault handler: ^(UIAlertAction *) {
+					onYes();
+				}];
+				UIAlertAction* actionNo = [UIAlertAction actionWithTitle:titleNo style:UIAlertActionStyleDestructive handler: ^(UIAlertAction *) {
+					onNo();
+				}];
+				UIAlertAction* actionCancel = [UIAlertAction actionWithTitle:titleCancel style:UIAlertActionStyleCancel handler: ^(UIAlertAction *) {
+					onCancel();
+				}];
 				[alert addAction:actionYes];
 				[alert addAction:actionNo];
 				[alert addAction:actionCancel];
 			} else {
-				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOK style:UIAlertActionStyleCancel handler:
-										   ^(UIAlertAction *) {
-											   onOK();
-										   }];
+				UIAlertAction* actionOK = [UIAlertAction actionWithTitle:titleOK style:UIAlertActionStyleCancel handler: ^(UIAlertAction *) {
+					onOK();
+				}];
 				[alert addAction:actionOK];
 			}
 
@@ -177,7 +161,7 @@ namespace slib
 						[alert setValue:hyperText forKey: @"attributedMessage"];
 						UIView* view = alert.view;
 						if (view != nil) {
-							priv::alert_dialog::EnableLink(view);
+							EnableLink(view);
 						}
 					}
 				} @catch (NSException*) {}

@@ -42,82 +42,54 @@ namespace slib
 
 	namespace priv
 	{
-
-		namespace window
-		{
-			void ResetOrientation();
-		}
-
-		using namespace window;
-
-		namespace ui_core
-		{
-
-			static CGFloat g_fGlobalScaleFactor = 0;
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidFinishLaunching);
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSData*, NSError*)>, g_callbackDidRegisterForRemoteNotifications);
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidReceiveRemoteNotification);
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList< Function<BOOL(NSURL*, NSDictionary*)> >, g_callbackOpenURL);
-
-			class ScreenImpl : public Screen
-			{
-			public:
-				UIScreen* m_screen;
-
-			public:
-				static Ref<ScreenImpl> create(UIScreen* screen)
-				{
-					Ref<ScreenImpl> ret;
-					if (screen != nil) {
-						ret = new ScreenImpl();
-						if (ret.isNotNull()) {
-							ret->m_screen = screen;
-						}
-					}
-					return ret;
-				}
-
-				static UIScreen* getPrimaryScreen()
-				{
-					NSArray* arr = [UIScreen screens];
-					sl_size n = [arr count];
-					if (n == 0) {
-						return nil;
-					}
-					UIScreen* primary = [arr objectAtIndex:0];
-					return primary;
-				}
-
-				UIRect getRegion() override
-				{
-					CGRect rect = [m_screen bounds];
-					CGFloat f = UIPlatform::getGlobalScaleFactor();
-					UIRect region;
-					region.left = (sl_ui_pos)(rect.origin.x * f);
-					region.top = (sl_ui_pos)(rect.origin.y * f);
-					region.setWidth((sl_ui_pos)(rect.size.width * f));
-					region.setHeight((sl_ui_pos)(rect.size.height * f));
-					return region;
-				}
-
-			};
-
-			static BOOL UIPlatform_onOpenUrl(NSURL* url, NSDictionary* options)
-			{
-                List< Function<BOOL(NSURL*, NSDictionary*)> > callbacks(g_callbackOpenURL);
-				for (auto& callback : callbacks) {
-					if (callback(url, options)) {
-						return YES;
-					}
-				}
-				return MobileApp::dispatchOpenUrlToApp(Apple::getStringFromNSString(url.absoluteString));
-			}
-
-		}
+		void ResetOrientation();
 	}
 
-	using namespace priv::ui_core;
+	using namespace priv;
+
+	namespace {
+		class ScreenImpl : public Screen
+		{
+		public:
+			UIScreen* m_screen;
+
+		public:
+			static Ref<ScreenImpl> create(UIScreen* screen)
+			{
+				Ref<ScreenImpl> ret;
+				if (screen != nil) {
+					ret = new ScreenImpl();
+					if (ret.isNotNull()) {
+						ret->m_screen = screen;
+					}
+				}
+				return ret;
+			}
+
+			static UIScreen* getPrimaryScreen()
+			{
+				NSArray* arr = [UIScreen screens];
+				sl_size n = [arr count];
+				if (n == 0) {
+					return nil;
+				}
+				UIScreen* primary = [arr objectAtIndex:0];
+				return primary;
+			}
+
+			UIRect getRegion() override
+			{
+				CGRect rect = [m_screen bounds];
+				CGFloat f = UIPlatform::getGlobalScaleFactor();
+				UIRect region;
+				region.left = (sl_ui_pos)(rect.origin.x * f);
+				region.top = (sl_ui_pos)(rect.origin.y * f);
+				region.setWidth((sl_ui_pos)(rect.size.width * f));
+				region.setHeight((sl_ui_pos)(rect.size.height * f));
+				return region;
+			}
+		};
+	}
 
 	List< Ref<Screen> > UI::getScreens()
 	{
@@ -290,6 +262,27 @@ namespace slib
 		return nil;
 	}
 
+	namespace {
+
+		static CGFloat g_fGlobalScaleFactor = 0;
+
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidFinishLaunching);
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSData*, NSError*)>, g_callbackDidRegisterForRemoteNotifications);
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicFunction<void(NSDictionary*)>, g_callbackDidReceiveRemoteNotification);
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicList< Function<BOOL(NSURL*, NSDictionary*)> >, g_callbackOpenURL);
+
+		static BOOL UIPlatform_onOpenUrl(NSURL* url, NSDictionary* options)
+		{
+			List< Function<BOOL(NSURL*, NSDictionary*)> > callbacks(g_callbackOpenURL);
+			for (auto& callback : callbacks) {
+				if (callback(url, options)) {
+					return YES;
+				}
+			}
+			return MobileApp::dispatchOpenUrlToApp(Apple::getStringFromNSString(url.absoluteString));
+		}
+
+	}
 
 	CGFloat UIPlatform::getGlobalScaleFactor()
 	{
@@ -331,6 +324,7 @@ namespace slib
 		g_callbackOpenURL.add(callback);
 	}
 
+
 	sl_ui_len MobileApp::getStatusBarHeight()
 	{
 #ifndef SLIB_PLATFORM_IS_IOS_CATALYST
@@ -365,22 +359,22 @@ namespace slib
 
 }
 
-using namespace slib::priv::ui_core;
-using namespace slib::priv::window;
+using namespace slib;
+using namespace slib::priv;
 
 @implementation SLIBAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
-	slib::Log("App", "Finished Launching");
+	Log("App", "Finished Launching");
 
 	ResetOrientation();
 
-	slib::UIApp::dispatchStartToApp();
+	UIApp::dispatchStartToApp();
 
 	g_callbackDidFinishLaunching(launchOptions);
 
-	slib::MobileApp::dispatchCreateActivityToApp();
+	MobileApp::dispatchCreateActivityToApp();
 
 	return YES;
 }
@@ -389,23 +383,23 @@ using namespace slib::priv::window;
 	// Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
 	// Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
 
-	slib::Log("App", "Resign Active");
+	Log("App", "Resign Active");
 
-	slib::MobileApp::dispatchPauseToApp();
+	MobileApp::dispatchPauseToApp();
 
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
 	// Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
 	// If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-	slib::Log("App", "Enter Background");
+	Log("App", "Enter Background");
 
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
 	// Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
 
-	slib::Log("App", "Enter Foreground");
+	Log("App", "Enter Foreground");
 
 	ResetOrientation();
 
@@ -414,38 +408,38 @@ using namespace slib::priv::window;
 - (void)applicationDidBecomeActive:(UIApplication *)application {
 	// Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
 
-	slib::Log("App", "Become Active");
+	Log("App", "Become Active");
 
 	ResetOrientation();
 
-	slib::MobileApp::dispatchResumeToApp();
+	MobileApp::dispatchResumeToApp();
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 
-	slib::Log("App", "Terminate");
+	Log("App", "Terminate");
 
-	slib::MobileApp::dispatchDestroyActivityToApp();
+	MobileApp::dispatchDestroyActivityToApp();
 
-	slib::UIApp::dispatchExitToApp();
+	UIApp::dispatchExitToApp();
 }
 
 - (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(nullable UIWindow *)window
 {
 	UIInterfaceOrientationMask mask = 0;
-	for (slib::ScreenOrientation value : slib::MobileApp::getAvailableScreenOrientations()) {
+	for (ScreenOrientation value : MobileApp::getAvailableScreenOrientations()) {
 		switch (value) {
-			case slib::ScreenOrientation::Portrait:
+			case ScreenOrientation::Portrait:
 				mask |= UIInterfaceOrientationMaskPortrait;
 				break;
-			case slib::ScreenOrientation::LandscapeRight:
+			case ScreenOrientation::LandscapeRight:
 				mask |= UIInterfaceOrientationMaskLandscapeRight;
 				break;
-			case slib::ScreenOrientation::PortraitUpsideDown:
+			case ScreenOrientation::PortraitUpsideDown:
 				mask |= UIInterfaceOrientationMaskPortraitUpsideDown;
 				break;
-			case slib::ScreenOrientation::LandscapeLeft:
+			case ScreenOrientation::LandscapeLeft:
 				mask |= UIInterfaceOrientationMaskLandscapeLeft;
 				break;
 		}

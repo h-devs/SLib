@@ -29,32 +29,24 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_resource
-		{
-
-			static sl_ui_len g_screenWidth = 0;
-			static sl_ui_len g_screenHeight = 0;
-			static sl_ui_len g_defaultScreenWidth = 0;
-			static sl_ui_len g_defaultScreenHeight = 0;
-			static double g_screenPPI = 0;
-			static double g_defaultScreenPPI = 0;
-			static sl_ui_len g_statusBarHeight = -1;
-			static sl_ui_len g_defaultStatusBarHeight = -1;
-			static sl_ui_len g_safeAreaLeft = -1;
-			static sl_ui_len g_safeAreaTop = -1;
-			static sl_ui_len g_safeAreaRight = -1;
-			static sl_ui_len g_safeAreaBottom = -1;
-			static sl_ui_len g_defaultSafeAreaLeft = -1;
-			static sl_ui_len g_defaultSafeAreaTop = -1;
-			static sl_ui_len g_defaultSafeAreaRight = -1;
-			static sl_ui_len g_defaultSafeAreaBottom = -1;
-
-		}
+	namespace {
+		static sl_ui_len g_screenWidth = 0;
+		static sl_ui_len g_screenHeight = 0;
+		static sl_ui_len g_defaultScreenWidth = 0;
+		static sl_ui_len g_defaultScreenHeight = 0;
+		static double g_screenPPI = 0;
+		static double g_defaultScreenPPI = 0;
+		static sl_ui_len g_statusBarHeight = -1;
+		static sl_ui_len g_defaultStatusBarHeight = -1;
+		static sl_ui_len g_safeAreaLeft = -1;
+		static sl_ui_len g_safeAreaTop = -1;
+		static sl_ui_len g_safeAreaRight = -1;
+		static sl_ui_len g_safeAreaBottom = -1;
+		static sl_ui_len g_defaultSafeAreaLeft = -1;
+		static sl_ui_len g_defaultSafeAreaTop = -1;
+		static sl_ui_len g_defaultSafeAreaRight = -1;
+		static sl_ui_len g_defaultSafeAreaBottom = -1;
 	}
-
-	using namespace priv::ui_resource;
 
 	void UIResource::updateDefaultScreenSize()
 	{

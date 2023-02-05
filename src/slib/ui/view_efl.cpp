@@ -33,22 +33,14 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace view
-		{
-
-			static const void* g_strEventTouchBegin = "tb";
-			static const void* g_strEventTouchEnd = "te";
-			static const void* g_strEventTouchMove = "tm";
-			static const void* g_strEventMultiTouchBegin = "mtb";
-			static const void* g_strEventMultiTouchEnd = "mte";
-			static const void* g_strEventMultiTouchMove = "mtm";
-
-		}
+	namespace {
+		static const void* g_strEventTouchBegin = "tb";
+		static const void* g_strEventTouchEnd = "te";
+		static const void* g_strEventTouchMove = "tm";
+		static const void* g_strEventMultiTouchBegin = "mtb";
+		static const void* g_strEventMultiTouchEnd = "mte";
+		static const void* g_strEventMultiTouchMove = "mtm";
 	}
-
-	using namespace priv::view;
 
 	SLIB_DEFINE_OBJECT(EFL_ViewInstance, ViewInstance)
 

@@ -32,295 +32,282 @@
 
 #define NOTIFICATION_ID_PREFIX "system_tray_icon.notify."
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace system_tray_icon
-		{
-			class SystemTrayIconImpl;
-		}
+namespace slib {
+	namespace {
+		class SystemTrayIconImpl;
 	}
 }
 
 @interface SLIBSystemTrayIconListener : NSObject
 {
-	@public slib::WeakRef<slib::priv::system_tray_icon::SystemTrayIconImpl> m_object;
+	@public slib::WeakRef<slib::SystemTrayIconImpl> m_object;
 }
-
 - (void)onAction;
-
 @end
 
 @interface SLIBSystemTrayIconSubView : NSView
 {
-	@public slib::WeakRef<slib::priv::system_tray_icon::SystemTrayIconImpl> m_object;
+	@public slib::WeakRef<slib::SystemTrayIconImpl> m_object;
 }
 @end
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace system_tray_icon
+	namespace {
+
+		class StaticContext
 		{
+		public:
+			CHashMap< String, WeakRef<SystemTrayIcon> > icons;
+			Function<void(UserNotificationMessage&)> callbackClick;
 
-			class StaticContext
+		public:
+			StaticContext()
 			{
-			public:
-				CHashMap< String, WeakRef<SystemTrayIcon> > icons;
-				Function<void(UserNotificationMessage&)> callbackClick;
-
-			public:
-				StaticContext()
-				{
-					UserNotification::start();
-					UserNotification::requestAuthorization(UserNotificationAuthorizationOptions::Alert | UserNotificationAuthorizationOptions::Sound, sl_null);
-					callbackClick = [this](UserNotificationMessage& msg) {
-						if (msg.identifier.startsWith(NOTIFICATION_ID_PREFIX)) {
-							Ref<SystemTrayIcon> icon = icons.getValue(msg.identifier.substring(StringView(NOTIFICATION_ID_PREFIX).getLength()));
-							if (icon.isNotNull()) {
-								Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-								icon->dispatchClick(ev.get());
-							}
-						}
-					};
-					UserNotification::addOnClickMessage(callbackClick);
-				}
-
-				~StaticContext()
-				{
-					UserNotification::removeOnClickMessage(callbackClick);
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-			class SystemTrayIconImpl : public SystemTrayIcon
-			{
-			public:
-				NSStatusItem* m_item;
-				SLIBSystemTrayIconListener* m_listener;
-
-			public:
-				SystemTrayIconImpl()
-				{
-					m_item = nil;
-					m_listener = nil;
-				}
-
-				~SystemTrayIconImpl()
-				{
-					StaticContext* context = GetStaticContext();
-					if (context) {
-						context->icons.remove(m_iconName);
-					}
-					if (m_item != nil) {
-						NSStatusBar* bar = [NSStatusBar systemStatusBar];
-						if (bar != nil) {
-							[bar removeStatusItem:m_item];
+				UserNotification::start();
+				UserNotification::requestAuthorization(UserNotificationAuthorizationOptions::Alert | UserNotificationAuthorizationOptions::Sound, sl_null);
+				callbackClick = [this](UserNotificationMessage& msg) {
+					if (msg.identifier.startsWith(NOTIFICATION_ID_PREFIX)) {
+						Ref<SystemTrayIcon> icon = icons.getValue(msg.identifier.substring(StringView(NOTIFICATION_ID_PREFIX).getLength()));
+						if (icon.isNotNull()) {
+							Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+							icon->dispatchClick(ev.get());
 						}
 					}
-				}
+				};
+				UserNotification::addOnClickMessage(callbackClick);
+			}
 
-			public:
-				static Ref<SystemTrayIconImpl> create(const SystemTrayIconParam& param)
-				{
-					StaticContext* context = GetStaticContext();
-					if (!context) {
-						return sl_null;
-					}
+			~StaticContext()
+			{
+				UserNotification::removeOnClickMessage(callbackClick);
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+
+		class SystemTrayIconImpl : public SystemTrayIcon
+		{
+		public:
+			NSStatusItem* m_item;
+			SLIBSystemTrayIconListener* m_listener;
+
+		public:
+			SystemTrayIconImpl()
+			{
+				m_item = nil;
+				m_listener = nil;
+			}
+
+			~SystemTrayIconImpl()
+			{
+				StaticContext* context = GetStaticContext();
+				if (context) {
+					context->icons.remove(m_iconName);
+				}
+				if (m_item != nil) {
 					NSStatusBar* bar = [NSStatusBar systemStatusBar];
 					if (bar != nil) {
-						NSStatusItem* item = [bar statusItemWithLength:NSSquareStatusItemLength];
-						if (item != nil) {
-							Ref<SystemTrayIconImpl> ret = new SystemTrayIconImpl;
-							if (ret.isNotNull()) {
-								ret->m_item = item;
-								ret->_init(param);
-								context->icons.add(param.iconName, ret);
-								return ret;
-							}
-						}
+						[bar removeStatusItem:m_item];
 					}
+				}
+			}
+
+		public:
+			static Ref<SystemTrayIconImpl> create(const SystemTrayIconParam& param)
+			{
+				StaticContext* context = GetStaticContext();
+				if (!context) {
 					return sl_null;
 				}
-
-			public:
-				void _init(const SystemTrayIconParam& param)
-				{
-					SystemTrayIcon::_init(param);
-					if (@available(macos 10.12, *)) {
-						m_item.visible = YES;
-					}
-					if (param.icon.isNotNull() || param.iconName.isNotEmpty()) {
-						setIcon_NI(param.icon, param.iconName);
-					}
-					if (param.toolTip.isNotEmpty()) {
-						setToolTip_NI(param.toolTip);
-					}
-					if (param.menu.isNotNull()) {
-						setMenu_NI(param.menu);
-					}
-					m_item.highlightMode = param.flagHighlight;
-					if (@available(macos 10.10, *)) {
-						if (m_onClick.isNotNull() || m_onRightClick.isNotNull() || m_onEvent.isNotNull()) {
-							NSStatusBarButton* button = m_item.button;
-							SLIBSystemTrayIconSubView* subview = [SLIBSystemTrayIconSubView new];
-							subview->m_object = this;
-							[subview setFrame:button.frame];
-							[button addSubview:subview];
-						}
-					} else {
-						SLIBSystemTrayIconListener* listener = [SLIBSystemTrayIconListener new];
-						listener->m_object = this;
-						m_listener = listener;
-						m_item.target = listener;
-						m_item.action = @selector(onAction);
-					}
-				}
-
-				void setIcon_NI(const Ref<Drawable>& icon, const String& name) override
-				{
-					NSImage* image = nil;
-					if (name.isNotEmpty()) {
-						image = [NSImage imageNamed:Apple::getNSStringFromString(name)];
-					}
-					if (image == nil && icon.isNotNull()) {
-						image = GraphicsPlatform::getNSImage(icon);
-						if (image != nil) {
-							CGFloat height = [[NSStatusBar systemStatusBar] thickness];
-							if (image.size.width > height + 0.5 && image.size.height > height + 0.5) {
-								[image setSize:NSMakeSize(height, height)];
-							}
+				NSStatusBar* bar = [NSStatusBar systemStatusBar];
+				if (bar != nil) {
+					NSStatusItem* item = [bar statusItemWithLength:NSSquareStatusItemLength];
+					if (item != nil) {
+						Ref<SystemTrayIconImpl> ret = new SystemTrayIconImpl;
+						if (ret.isNotNull()) {
+							ret->m_item = item;
+							ret->_init(param);
+							context->icons.add(param.iconName, ret);
+							return ret;
 						}
 					}
-					if (@available(macos 10.10, *)) {
-						m_item.button.image = image;
-						m_item.button.alternateImage = image;
-					} else {
-						m_item.image = image;
-						m_item.alternateImage = image;
+				}
+				return sl_null;
+			}
+
+		public:
+			void _init(const SystemTrayIconParam& param)
+			{
+				SystemTrayIcon::_init(param);
+				if (@available(macos 10.12, *)) {
+					m_item.visible = YES;
+				}
+				if (param.icon.isNotNull() || param.iconName.isNotEmpty()) {
+					setIcon_NI(param.icon, param.iconName);
+				}
+				if (param.toolTip.isNotEmpty()) {
+					setToolTip_NI(param.toolTip);
+				}
+				if (param.menu.isNotNull()) {
+					setMenu_NI(param.menu);
+				}
+				m_item.highlightMode = param.flagHighlight;
+				if (@available(macos 10.10, *)) {
+					if (m_onClick.isNotNull() || m_onRightClick.isNotNull() || m_onEvent.isNotNull()) {
+						NSStatusBarButton* button = m_item.button;
+						SLIBSystemTrayIconSubView* subview = [SLIBSystemTrayIconSubView new];
+						subview->m_object = this;
+						[subview setFrame:button.frame];
+						[button addSubview:subview];
+					}
+				} else {
+					SLIBSystemTrayIconListener* listener = [SLIBSystemTrayIconListener new];
+					listener->m_object = this;
+					m_listener = listener;
+					m_item.target = listener;
+					m_item.action = @selector(onAction);
+				}
+			}
+
+			void setIcon_NI(const Ref<Drawable>& icon, const String& name) override
+			{
+				NSImage* image = nil;
+				if (name.isNotEmpty()) {
+					image = [NSImage imageNamed:Apple::getNSStringFromString(name)];
+				}
+				if (image == nil && icon.isNotNull()) {
+					image = GraphicsPlatform::getNSImage(icon);
+					if (image != nil) {
+						CGFloat height = [[NSStatusBar systemStatusBar] thickness];
+						if (image.size.width > height + 0.5 && image.size.height > height + 0.5) {
+							[image setSize:NSMakeSize(height, height)];
+						}
 					}
 				}
-
-				void setToolTip_NI(const String& toolTip) override
-				{
-					NSString* str = Apple::getNSStringFromString(toolTip);
-					if (@available(macos 10.10, *)) {
-						m_item.button.toolTip = str;
-					} else {
-						m_item.toolTip = str;
-					}
+				if (@available(macos 10.10, *)) {
+					m_item.button.image = image;
+					m_item.button.alternateImage = image;
+				} else {
+					m_item.image = image;
+					m_item.alternateImage = image;
 				}
+			}
 
-				void setMenu_NI(const Ref<Menu>& menu) override
-				{
-					m_item.menu = UIPlatform::getMenuHandle(menu.get());
+			void setToolTip_NI(const String& toolTip) override
+			{
+				NSString* str = Apple::getNSStringFromString(toolTip);
+				if (@available(macos 10.10, *)) {
+					m_item.button.toolTip = str;
+				} else {
+					m_item.toolTip = str;
 				}
+			}
 
-				void notify_NI(const SystemTrayIconNotifyParam& param) override
-				{
-					UserNotificationMessage msg;
-					msg.identifier = String::concat(NOTIFICATION_ID_PREFIX, m_iconName);
-					msg.title = param.title;
-					msg.content = param.message;
-					msg.flagSound = param.flagSound;
-					UserNotification::add(msg);
-				}
+			void setMenu_NI(const Ref<Menu>& menu) override
+			{
+				m_item.menu = UIPlatform::getMenuHandle(menu.get());
+			}
 
-				UIEventFlags _onEvent(UIAction action, NSEvent* event)
-				{
+			void notify_NI(const SystemTrayIconNotifyParam& param) override
+			{
+				UserNotificationMessage msg;
+				msg.identifier = String::concat(NOTIFICATION_ID_PREFIX, m_iconName);
+				msg.title = param.title;
+				msg.content = param.message;
+				msg.flagSound = param.flagSound;
+				UserNotification::add(msg);
+			}
+
+			UIEventFlags _onEvent(UIAction action, NSEvent* event)
+			{
+				if (event == nil) {
+					event = [NSApp currentEvent];
 					if (event == nil) {
-						event = [NSApp currentEvent];
-						if (event == nil) {
-							Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-							if (ev.isNotNull()) {
-								dispatchEvent(ev.get());
-							}
-							return 0;
+						Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+						if (ev.isNotNull()) {
+							dispatchEvent(ev.get());
 						}
+						return 0;
 					}
-					if (action == UIAction::Unknown) {
-						switch ([event type]) {
-							case NSLeftMouseDown:
-								action = UIAction::LeftButtonDown;
+				}
+				if (action == UIAction::Unknown) {
+					switch ([event type]) {
+						case NSLeftMouseDown:
+							action = UIAction::LeftButtonDown;
+							break;
+						case NSLeftMouseUp:
+							action = UIAction::LeftButtonUp;
+							break;
+						case NSLeftMouseDragged:
+							action = UIAction::LeftButtonDrag;
+							break;
+						case NSRightMouseDown:
+							action = UIAction::RightButtonDown;
+							break;
+						case NSRightMouseUp:
+							action = UIAction::RightButtonUp;
+							break;
+						case NSRightMouseDragged:
+							action = UIAction::RightButtonDrag;
+							break;
+						case NSOtherMouseDown:
+							action = UIAction::MiddleButtonDown;
+							break;
+						case NSOtherMouseUp:
+							action = UIAction::MiddleButtonUp;
+							break;
+						case NSOtherMouseDragged:
+							action = UIAction::MiddleButtonDrag;
+							break;
+						default:
+							return 0;
+					}
+				}
+				Time t;
+				t.setSecondCountf([event timestamp]);
+				NSPoint pt = [NSEvent mouseLocation];
+				sl_ui_posf x = (sl_ui_posf)(pt.x);
+				sl_ui_posf y = (sl_ui_posf)(pt.y);
+				Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
+				if (ev.isNotNull()) {
+					UIPlatform::applyEventModifiers(ev.get(), event);
+					dispatchEvent(ev.get());
+					if (!(ev->isPreventedDefault())) {
+						switch (action) {
+							case UIAction::LeftButtonDown:
+								dispatchClick(ev.get());
 								break;
-							case NSLeftMouseUp:
-								action = UIAction::LeftButtonUp;
-								break;
-							case NSLeftMouseDragged:
-								action = UIAction::LeftButtonDrag;
-								break;
-							case NSRightMouseDown:
-								action = UIAction::RightButtonDown;
-								break;
-							case NSRightMouseUp:
-								action = UIAction::RightButtonUp;
-								break;
-							case NSRightMouseDragged:
-								action = UIAction::RightButtonDrag;
-								break;
-							case NSOtherMouseDown:
-								action = UIAction::MiddleButtonDown;
-								break;
-							case NSOtherMouseUp:
-								action = UIAction::MiddleButtonUp;
-								break;
-							case NSOtherMouseDragged:
-								action = UIAction::MiddleButtonDrag;
+							case UIAction::RightButtonDown:
+								dispatchRightClick(ev.get());
 								break;
 							default:
-								return 0;
+								break;
 						}
 					}
-					Time t;
-					t.setSecondCountf([event timestamp]);
-					NSPoint pt = [NSEvent mouseLocation];
-					sl_ui_posf x = (sl_ui_posf)(pt.x);
-					sl_ui_posf y = (sl_ui_posf)(pt.y);
-					Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
-					if (ev.isNotNull()) {
-						UIPlatform::applyEventModifiers(ev.get(), event);
-						dispatchEvent(ev.get());
-						if (!(ev->isPreventedDefault())) {
-							switch (action) {
-								case UIAction::LeftButtonDown:
-									dispatchClick(ev.get());
-									break;
-								case UIAction::RightButtonDown:
-									dispatchRightClick(ev.get());
-									break;
-								default:
-									break;
-							}
-						}
-						return ev->getFlags();
-					}
-					return 0;
+					return ev->getFlags();
 				}
+				return 0;
+			}
 
-				void tryHighlight()
-				{
-					if (@available(macos 10.10, *)) {
-						if (m_flagHighlight) {
-							NSStatusBarButton* button = m_item.button;
-							[button highlight:YES];
-							dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-								[button highlight:NO];
-							});
-						}
+			void tryHighlight()
+			{
+				if (@available(macos 10.10, *)) {
+					if (m_flagHighlight) {
+						NSStatusBarButton* button = m_item.button;
+						[button highlight:YES];
+						dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+							[button highlight:NO];
+						});
 					}
 				}
+			}
 
-			};
+		};
 
-		}
 	}
-
-	using namespace priv::system_tray_icon;
 
 	Ref<SystemTrayIcon> SystemTrayIcon::create(const SystemTrayIconParam& param)
 	{
@@ -330,7 +317,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::system_tray_icon;
 
 @implementation SLIBSystemTrayIconListener
 

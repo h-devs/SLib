@@ -39,6 +39,9 @@
 
 namespace slib
 {
+
+	using namespace priv;
+
 	SLIB_DEFINE_OBJECT(UIApp, Application)
 
 	UIApp::UIApp()
@@ -185,7 +188,7 @@ namespace slib
 		if (app.isNotNull()) {
 			app->dispatchExit();
 		}
-		priv::ui_core::UIDispatcher::removeAllCallbacks();
+		UIDispatcher::removeAllCallbacks();
 		DispatchLoop::releaseDefault();
 		AsyncIoLoop::releaseDefault();
 		Thread::finishAllThreads();

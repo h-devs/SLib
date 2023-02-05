@@ -52,20 +52,21 @@ namespace slib
 
 	namespace priv
 	{
-		namespace platform
+		extern UIInterfaceOrientation g_screenOrientation;
+
+		void ResetOrientation()
 		{
-			extern UIInterfaceOrientation g_screenOrientation;
+#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
+			g_screenOrientation = [[UIApplication sharedApplication] statusBarOrientation];
+#endif
 		}
 	}
 
-	using namespace priv::platform;
+	using namespace priv;
 
 	namespace {
 
 		static __weak SLIBWindowRootViewController* g_currentRootController = nil;
-		static sl_bool g_flagSetStatusBarStyle = sl_false;
-		static StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
-
 		static __weak UIScrollView* g_keyboardCurrentScrollView = nil;
 		static CGRect g_keyboardCurrentScrollViewOriginalFrame;
 
@@ -341,41 +342,6 @@ namespace slib
 
 		};
 
-		void ResetOrientation()
-		{
-#ifndef SLIB_PLATFORM_IS_IOS_CATALYST
-			g_screenOrientation = [[UIApplication sharedApplication] statusBarOrientation];
-#endif
-		}
-
-		ScreenOrientation ConvertScreenOrientation(UIInterfaceOrientation orientation)
-		{
-			switch (orientation) {
-				case UIInterfaceOrientationPortraitUpsideDown:
-					return ScreenOrientation::PortraitUpsideDown;
-				case UIInterfaceOrientationLandscapeLeft:
-					return ScreenOrientation::LandscapeLeft;
-				case UIInterfaceOrientationLandscapeRight:
-					return ScreenOrientation::LandscapeRight;
-				default:
-					return ScreenOrientation::Portrait;
-			}
-		}
-
-		UIInterfaceOrientation ConvertScreenOrientation(ScreenOrientation orientation)
-		{
-			switch (orientation) {
-				case ScreenOrientation::PortraitUpsideDown:
-					return UIInterfaceOrientationPortraitUpsideDown;
-				case ScreenOrientation::LandscapeLeft:
-					return UIInterfaceOrientationLandscapeLeft;
-				case ScreenOrientation::LandscapeRight:
-					return UIInterfaceOrientationLandscapeRight;
-				default:
-					return UIInterfaceOrientationPortrait;
-			}
-		}
-
 	}
 
 	Ref<WindowInstance> Window::createWindowInstance()
@@ -440,6 +406,36 @@ namespace slib
 		return UIPlatform::getMainWindow();
 	}
 
+	namespace {
+		static ScreenOrientation ConvertScreenOrientation(UIInterfaceOrientation orientation)
+		{
+			switch (orientation) {
+				case UIInterfaceOrientationPortraitUpsideDown:
+					return ScreenOrientation::PortraitUpsideDown;
+				case UIInterfaceOrientationLandscapeLeft:
+					return ScreenOrientation::LandscapeLeft;
+				case UIInterfaceOrientationLandscapeRight:
+					return ScreenOrientation::LandscapeRight;
+				default:
+					return ScreenOrientation::Portrait;
+			}
+		}
+
+		static UIInterfaceOrientation ConvertScreenOrientation(ScreenOrientation orientation)
+		{
+			switch (orientation) {
+				case ScreenOrientation::PortraitUpsideDown:
+					return UIInterfaceOrientationPortraitUpsideDown;
+				case ScreenOrientation::LandscapeLeft:
+					return UIInterfaceOrientationLandscapeLeft;
+				case ScreenOrientation::LandscapeRight:
+					return UIInterfaceOrientationLandscapeRight;
+				default:
+					return UIInterfaceOrientationPortrait;
+			}
+		}
+	}
+
 	ScreenOrientation MobileApp::getScreenOrientation()
 	{
 		switch (g_screenOrientation) {
@@ -477,6 +473,11 @@ namespace slib
 #endif
 	}
 
+	namespace {
+		static sl_bool g_flagSetStatusBarStyle = sl_false;
+		static StatusBarStyle g_currentStatusBarStyle = StatusBarStyle::Dark;
+	}
+
 	void MobileApp::setStatusBarStyle(StatusBarStyle style)
 	{
 		g_flagSetStatusBarStyle = sl_true;
@@ -491,6 +492,7 @@ namespace slib
 }
 
 using namespace slib;
+using namespace slib::priv::window;
 
 @implementation SLIBWindowRootViewController
 

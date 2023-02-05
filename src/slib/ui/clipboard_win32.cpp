@@ -30,88 +30,82 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace clipboard
-		{
+	namespace {
 
-			LRESULT CALLBACK OwnerWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+		static LRESULT CALLBACK OwnerWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+		{
+			switch (message) {
+			case WM_RENDERFORMAT:
+			case WM_RENDERALLFORMATS:
+			case WM_DRAWCLIPBOARD:
+			case WM_DESTROY:
+			case WM_CHANGECBCHAIN:
+				return 0;
+			}
+			return DefWindowProcW(hwnd, message, wparam, lparam);
+		}
+
+		class ClipboardManager
+		{
+		public:
+			HWND owner;
+
+		public:
+			ClipboardManager()
 			{
-				switch (message) {
-				case WM_RENDERFORMAT:
-				case WM_RENDERALLFORMATS:
-				case WM_DRAWCLIPBOARD:
-				case WM_DESTROY:
-				case WM_CHANGECBCHAIN:
-					return 0;
-				}
-				return DefWindowProcW(hwnd, message, wparam, lparam);
+				LPCWSTR szClassName = L"SLibClipboardOwner";
+				WNDCLASSEXW wc;
+				Base::zeroMemory(&wc, sizeof(wc));
+				wc.cbSize = sizeof(wc);
+				wc.lpszClassName = szClassName;
+				wc.lpfnWndProc = OwnerWndProc;
+				wc.hInstance = GetModuleHandle(NULL);
+				RegisterClassExW(&wc);
+				owner = CreateWindowW(szClassName, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0);
 			}
 
-			class ClipboardManager
+			~ClipboardManager()
 			{
-			public:
-				HWND owner;
+				DestroyWindow(owner);
+				owner = NULL;
+			}
 
-			public:
-				ClipboardManager()
-				{
-					LPCWSTR szClassName = L"SLibClipboardOwner";
-					WNDCLASSEXW wc;
-					Base::zeroMemory(&wc, sizeof(wc));
-					wc.cbSize = sizeof(wc);
-					wc.lpszClassName = szClassName;
-					wc.lpfnWndProc = OwnerWndProc;
-					wc.hInstance = GetModuleHandle(NULL);
-					RegisterClassExW(&wc);
-					owner = CreateWindowW(szClassName, L"", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, 0, 0);
-				}
+		};
 
-				~ClipboardManager()
-				{
-					DestroyWindow(owner);
-					owner = NULL;
-				}
+		SLIB_SAFE_STATIC_GETTER(ClipboardManager, GetClipboardManager)
 
-			};
+		class ClipboardScope
+		{
+		public:
+			BOOL bOpened;
 
-			SLIB_SAFE_STATIC_GETTER(ClipboardManager, GetClipboardManager)
-
-			class ClipboardScope
+		public:
+			ClipboardScope()
 			{
-			public:
-				BOOL bOpened;
+				bOpened = FALSE;
+				ClipboardManager* manager = GetClipboardManager();
+				if (manager) {
+					if (manager->owner) {
+						bOpened = OpenClipboard(manager->owner);
+					}
+				}
+			}
 
-			public:
-				ClipboardScope()
-				{
-					bOpened = FALSE;
+			~ClipboardScope()
+			{
+				if (bOpened) {
 					ClipboardManager* manager = GetClipboardManager();
 					if (manager) {
 						if (manager->owner) {
-							bOpened = OpenClipboard(manager->owner);
+							CloseClipboard();
 						}
 					}
 				}
+			}
 
-				~ClipboardScope()
-				{
-					if (bOpened) {
-						ClipboardManager* manager = GetClipboardManager();
-						if (manager) {
-							if (manager->owner) {
-								CloseClipboard();
-							}
-						}
-					}
-				}
+		};
 
-			};
-
-		}
 	}
-
-	using namespace priv::clipboard;
 
 	sl_bool Clipboard::hasText()
 	{

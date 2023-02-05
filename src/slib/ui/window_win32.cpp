@@ -33,16 +33,11 @@ namespace slib
 
 	namespace priv
 	{
-		namespace ui_core
-		{
-			void RunLoop(HWND hWndModalDialog);
-		}
-
-		namespace view
-		{
-			extern sl_bool g_flagDuringPaint;
-		}
+		void RunUiLoop(HWND hWndModalDialog);
+		sl_bool IsAnyViewPainting();
 	}
+
+	using namespace priv;
 
 	namespace {
 
@@ -337,7 +332,7 @@ namespace slib
 
 			void setBackgroundColor(const Color& color) override
 			{
-				if (!(UI::isUiThread()) || priv::view::g_flagDuringPaint) {
+				if (!(UI::isUiThread()) || IsAnyViewPainting()) {
 					UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, setBackgroundColor, color));
 					return;
 				}
@@ -547,7 +542,7 @@ namespace slib
 							flagEnableParent = sl_true;
 						}
 					}
-					priv::ui_core::RunLoop(hWnd);
+					RunUiLoop(hWnd);
 					if (flagEnableParent) {
 						EnableWindow(hWndParent, TRUE);
 						SetForegroundWindow(hWndParent);
@@ -614,6 +609,96 @@ namespace slib
 
 		};
 
+	}
+
+	Ref<WindowInstance> Window::createWindowInstance()
+	{
+		HWND hWnd = Win32_WindowInstance::createHandle(this);
+		if (hWnd) {
+			return Win32_WindowInstance::create(this, hWnd, sl_true);
+		}
+		return sl_null;
+	}
+
+	Ref<Window> Window::getActiveWindow()
+	{
+		HWND hWnd = GetActiveWindow();
+		if (hWnd) {
+			Ref<WindowInstance> instance = UIPlatform::getWindowInstance(hWnd);
+			if (instance.isNotNull()) {
+				return instance->getWindow();
+			}
+		}
+		return sl_null;
+	}
+
+	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
+	{
+		HMENU hMenu;
+		DWORD style;
+		DWORD styleEx;
+		MakeWindowStyle(this, style, styleEx, hMenu);
+		RECT rc = { 100, 100, 200, 200 };
+		if (AdjustWindowRectEx(&rc, style, hMenu != sl_null, styleEx)) {
+			_out.left = (sl_ui_len)(100 - rc.left);
+			_out.top = (sl_ui_len)(100 - rc.top);
+			_out.right = (sl_ui_len)(rc.right - 200);
+			_out.bottom = (sl_ui_len)(rc.bottom - 200);
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
+	Ref<WindowInstance> UIPlatform::createWindowInstance(HWND hWnd, sl_bool flagDestroyOnRelease)
+	{
+		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance((void*)hWnd);
+		if (ret.isNotNull()) {
+			return ret;
+		}
+		return Win32_WindowInstance::create(sl_null, hWnd, flagDestroyOnRelease);
+	}
+
+	void UIPlatform::registerWindowInstance(HWND hWnd, WindowInstance* instance)
+	{
+		UIPlatform::_registerWindowInstance((void*)hWnd, instance);
+	}
+
+	Ref<WindowInstance> UIPlatform::getWindowInstance(HWND hWnd)
+	{
+		return UIPlatform::_getWindowInstance((void*)hWnd);
+	}
+
+	void UIPlatform::removeWindowInstance(HWND hWnd)
+	{
+		UIPlatform::_removeWindowInstance((void*)hWnd);
+	}
+
+	HWND UIPlatform::getWindowHandle(WindowInstance* instance)
+	{
+		Win32_WindowInstance* window = (Win32_WindowInstance*)instance;
+		if (window) {
+			return window->m_handle;
+		} else {
+			return 0;
+		}
+	}
+
+	HWND UIPlatform::getWindowHandle(Window* window)
+	{
+		if (window) {
+			Ref<WindowInstance> _instance = window->getWindowInstance();
+			Win32_WindowInstance* instance = (Win32_WindowInstance*)(_instance.get());
+			if (instance) {
+				return instance->m_handle;
+			}
+		}
+		return 0;
+	}
+
+
+	namespace priv
+	{
 		LRESULT CALLBACK WindowInstanceProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			Ref<WindowInstance> _window = UIPlatform::getWindowInstance(hWnd);
@@ -803,94 +888,8 @@ namespace slib
 					return 0;
 				}
 			}
-			return priv::view::ViewInstanceProc(hWnd, uMsg, wParam, lParam);
+			return ViewInstanceProc(hWnd, uMsg, wParam, lParam);
 		}
-
-	}
-
-	Ref<WindowInstance> Window::createWindowInstance()
-	{
-		HWND hWnd = Win32_WindowInstance::createHandle(this);
-		if (hWnd) {
-			return Win32_WindowInstance::create(this, hWnd, sl_true);
-		}
-		return sl_null;
-	}
-
-	Ref<Window> Window::getActiveWindow()
-	{
-		HWND hWnd = GetActiveWindow();
-		if (hWnd) {
-			Ref<WindowInstance> instance = UIPlatform::getWindowInstance(hWnd);
-			if (instance.isNotNull()) {
-				return instance->getWindow();
-			}
-		}
-		return sl_null;
-	}
-
-	sl_bool Window::_getClientInsets(UIEdgeInsets& _out)
-	{
-		HMENU hMenu;
-		DWORD style;
-		DWORD styleEx;
-		MakeWindowStyle(this, style, styleEx, hMenu);
-		RECT rc = { 100, 100, 200, 200 };
-		if (AdjustWindowRectEx(&rc, style, hMenu != sl_null, styleEx)) {
-			_out.left = (sl_ui_len)(100 - rc.left);
-			_out.top = (sl_ui_len)(100 - rc.top);
-			_out.right = (sl_ui_len)(rc.right - 200);
-			_out.bottom = (sl_ui_len)(rc.bottom - 200);
-			return sl_true;
-		}
-		return sl_false;
-	}
-
-
-	Ref<WindowInstance> UIPlatform::createWindowInstance(HWND hWnd, sl_bool flagDestroyOnRelease)
-	{
-		Ref<WindowInstance> ret = UIPlatform::_getWindowInstance((void*)hWnd);
-		if (ret.isNotNull()) {
-			return ret;
-		}
-		return Win32_WindowInstance::create(sl_null, hWnd, flagDestroyOnRelease);
-	}
-
-	void UIPlatform::registerWindowInstance(HWND hWnd, WindowInstance* instance)
-	{
-		UIPlatform::_registerWindowInstance((void*)hWnd, instance);
-	}
-
-	Ref<WindowInstance> UIPlatform::getWindowInstance(HWND hWnd)
-	{
-		return UIPlatform::_getWindowInstance((void*)hWnd);
-	}
-
-	void UIPlatform::removeWindowInstance(HWND hWnd)
-	{
-		UIPlatform::_removeWindowInstance((void*)hWnd);
-	}
-
-	HWND UIPlatform::getWindowHandle(WindowInstance* instance)
-	{
-		Win32_WindowInstance* window = (Win32_WindowInstance*)instance;
-		if (window) {
-			return window->m_handle;
-		} else {
-			return 0;
-		}
-	}
-
-	HWND UIPlatform::getWindowHandle(Window* window)
-	{
-		if (window) {
-			Ref<WindowInstance> _instance = window->getWindowInstance();
-			Win32_WindowInstance* instance = (Win32_WindowInstance*)(_instance.get());
-			if (instance) {
-				return instance->m_handle;
-			}
-		}
-		return 0;
 	}
 
 }

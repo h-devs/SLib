@@ -29,52 +29,33 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace slider
+	namespace {
+
+		class StaticContext
 		{
+		public:
+			Ref<Drawable> defaultTrack;
+			Ref<Drawable> defaultProgress;
+			Ref<Drawable> defaultProgress2;
+			Ref<Drawable> defaultThumb;
+			Ref<Drawable> defaultPressedThumb;
+			Ref<Drawable> defaultHoverThumb;
 
-			class StaticContext
+		public:
+			StaticContext()
 			{
-			public:
-				Ref<Drawable> defaultTrack;
-				Ref<Drawable> defaultProgress;
-				Ref<Drawable> defaultProgress2;
-				Ref<Drawable> defaultThumb;
-				Ref<Drawable> defaultPressedThumb;
-				Ref<Drawable> defaultHoverThumb;
-
-				StaticContext()
-				{
-					defaultTrack = ColorDrawable::create(Color(0, 0, 0));
-					defaultProgress = ColorDrawable::create(Color(0, 50, 250));
-					defaultProgress2 = ColorDrawable::create(Color(0, 250, 50));
-					defaultThumb = ColorDrawable::create(Color(50, 50, 50, 255));
-					defaultPressedThumb = ColorDrawable::create(Color(0, 100, 250, 255));
-					defaultHoverThumb = ColorDrawable::create(Color(0, 200, 150, 255));
-				}
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-			static Ref<Drawable> const& ResolveDrawable(const Ref<Drawable>& drawableOriginal, const Ref<Drawable>& drawableCommon, const Ref<Drawable>& drawableShared)
-			{
-				if (drawableOriginal.isNotNull()) {
-					return drawableOriginal;
-				}
-				if (drawableCommon.isNotNull()) {
-					if (drawableCommon->isColor()) {
-						return drawableShared;
-					}
-					return drawableCommon;
-				}
-				return Ref<Drawable>::null();
+				defaultTrack = ColorDrawable::create(Color(0, 0, 0));
+				defaultProgress = ColorDrawable::create(Color(0, 50, 250));
+				defaultProgress2 = ColorDrawable::create(Color(0, 250, 50));
+				defaultThumb = ColorDrawable::create(Color(50, 50, 50, 255));
+				defaultPressedThumb = ColorDrawable::create(Color(0, 100, 250, 255));
+				defaultHoverThumb = ColorDrawable::create(Color(0, 200, 150, 255));
 			}
+		};
 
-		}
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+
 	}
-
-	using namespace priv::slider;
 
 	SLIB_DEFINE_OBJECT(Slider, ProgressBar)
 
@@ -206,6 +187,22 @@ namespace slib
 	void Slider::dispatchChangeSecondary(float value)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ChangeSecondary, value)
+	}
+
+	namespace {
+		static Ref<Drawable> const& ResolveDrawable(const Ref<Drawable>& drawableOriginal, const Ref<Drawable>& drawableCommon, const Ref<Drawable>& drawableShared)
+		{
+			if (drawableOriginal.isNotNull()) {
+				return drawableOriginal;
+			}
+			if (drawableCommon.isNotNull()) {
+				if (drawableCommon->isColor()) {
+					return drawableShared;
+				}
+				return drawableCommon;
+			}
+			return sl_null;
+		}
 	}
 
 	void Slider::onDraw(Canvas* canvas)

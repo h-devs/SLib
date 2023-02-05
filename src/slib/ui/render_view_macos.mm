@@ -53,53 +53,47 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace render_view
+	namespace {
+
+		class RenderViewInstance : public macOS_ViewInstance, public IRenderViewInstance
 		{
+			SLIB_DECLARE_OBJECT
 
-			class RenderViewInstance : public macOS_ViewInstance, public IRenderViewInstance
+		public:
+			SLIBGLViewHandle* getHandle()
 			{
-				SLIB_DECLARE_OBJECT
+				return (SLIBGLViewHandle*)m_handle;
+			}
 
-			public:
-				SLIBGLViewHandle* getHandle()
-				{
-					return (SLIBGLViewHandle*)m_handle;
+			void initialize(View* _view) override
+			{
+				RenderView* view = (RenderView*)_view;
+				SLIBGLViewHandle* handle = getHandle();
+
+				handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
+			}
+
+			void setRedrawMode(RenderView* view, RedrawMode mode) override
+			{
+				SLIBGLViewHandle* handle = getHandle();
+				if (handle != nil) {
+					handle->m_flagRenderingContinuously = mode == RedrawMode::Continuously;
 				}
+			}
 
-				void initialize(View* _view) override
-				{
-					RenderView* view = (RenderView*)_view;
-					SLIBGLViewHandle* handle = getHandle();
-
-					handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
+			void requestRender(RenderView* view) override
+			{
+				SLIBGLViewHandle* handle = getHandle();
+				if (handle != nil) {
+					handle->m_flagRequestRender = sl_true;
 				}
+			}
 
-				void setRedrawMode(RenderView* view, RedrawMode mode) override
-				{
-					SLIBGLViewHandle* handle = getHandle();
-					if (handle != nil) {
-						handle->m_flagRenderingContinuously = mode == RedrawMode::Continuously;
-					}
-				}
+		};
 
-				void requestRender(RenderView* view) override
-				{
-					SLIBGLViewHandle* handle = getHandle();
-					if (handle != nil) {
-						handle->m_flagRequestRender = sl_true;
-					}
-				}
+		SLIB_DEFINE_OBJECT(RenderViewInstance, ViewInstance)
 
-			};
-
-			SLIB_DEFINE_OBJECT(RenderViewInstance, ViewInstance)
-
-		}
 	}
-
-	using namespace priv::render_view;
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
@@ -111,156 +105,153 @@ namespace slib
 		return CastRef<RenderViewInstance>(getViewInstance());
 	}
 
-	namespace priv
-	{
-		namespace gl_view
+	namespace {
+		static void RenderThreadProc(__weak SLIBGLViewHandle* _handle)
 		{
-			static void RenderThreadProc(__weak SLIBGLViewHandle* _handle)
-			{
-				Thread* thread = Thread::getCurrent();
-				if (!thread) {
-					return;
-				}
+			Thread* thread = Thread::getCurrent();
+			if (!thread) {
+				return;
+			}
 
-				Ref<RenderEngine> engine = GL::createEngine();
-				if (engine.isNull()) {
-					return;
-				}
+			Ref<RenderEngine> engine = GL::createEngine();
+			if (engine.isNull()) {
+				return;
+			}
 
-				sl_bool flagFirstFrame = sl_true;
+			sl_bool flagFirstFrame = sl_true;
 
-				TimeCounter timer;
-				NSOpenGLContext* context = nil;
+			TimeCounter timer;
+			NSOpenGLContext* context = nil;
 
-				NSOpenGLPixelFormatAttribute attrs[] = {
-					NSOpenGLPFADoubleBuffer,
-					NSOpenGLPFAColorSize, 24,
-					NSOpenGLPFAAlphaSize, 8,
-					NSOpenGLPFADepthSize, 24,
-					NSOpenGLPFAStencilSize, 8,
-					0
-				};
-				NSOpenGLPixelFormat* pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-				if (pf == nil) {
-					return;
-				}
+			NSOpenGLPixelFormatAttribute attrs[] = {
+				NSOpenGLPFADoubleBuffer,
+				NSOpenGLPFAColorSize, 24,
+				NSOpenGLPFAAlphaSize, 8,
+				NSOpenGLPFADepthSize, 24,
+				NSOpenGLPFAStencilSize, 8,
+				0
+			};
+			NSOpenGLPixelFormat* pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+			if (pf == nil) {
+				return;
+			}
 
-				int frameNumber = 0;
+			int frameNumber = 0;
 
-				for (;;) {
+			for (;;) {
 
-					sl_bool flagWorking = sl_false;
+				sl_bool flagWorking = sl_false;
 
-					if (thread->isNotStopping()) {
+				if (thread->isNotStopping()) {
 
-						SLIBGLViewHandle* handle = _handle;
-						if (handle == nil) {
-							return;
+					SLIBGLViewHandle* handle = _handle;
+					if (handle == nil) {
+						return;
+					}
+					Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
+					if (instance.isNull()) {
+						return;
+					}
+
+					if (frameNumber % 10 == 0) {
+						dispatch_async(dispatch_get_main_queue(), ^{
+							[handle queryViewStatus];
+						});
+						if (frameNumber % 500 == 20) {
+							handle->m_flagUpdate = sl_true;
 						}
-						Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
-						if (instance.isNull()) {
-							return;
-						}
+					}
 
-						if (frameNumber % 10 == 0) {
-							dispatch_async(dispatch_get_main_queue(), ^{
-								[handle queryViewStatus];
-							});
-							if (frameNumber % 500 == 20) {
+					do {
+						MutexLocker lock(&(handle->m_lockRender));
+						if (!(handle->m_flagViewVisible)) {
+							if (context != nil) {
+								[context clearDrawable];
+								context = nil;
 								handle->m_flagUpdate = sl_true;
 							}
+							break;
 						}
-
-						do {
-							MutexLocker lock(&(handle->m_lockRender));
-							if (!(handle->m_flagViewVisible)) {
-								if (context != nil) {
-									[context clearDrawable];
-									context = nil;
-									handle->m_flagUpdate = sl_true;
-								}
-								break;
-							}
+						if (context == nil) {
+							context = [[NSOpenGLContext alloc] initWithFormat:pf shareContext:nil];
 							if (context == nil) {
-								context = [[NSOpenGLContext alloc] initWithFormat:pf shareContext:nil];
-								if (context == nil) {
+								return;
+							}
+							dispatch_async(dispatch_get_main_queue(), ^{
+								[context setView: handle];
+							});
+						}
+						if (handle->m_flagUpdate) {
+							[context update];
+							handle->m_flagUpdate = sl_false;
+						}
+						sl_bool flagUpdate = sl_false;
+						if (handle->m_flagRenderingContinuously) {
+							flagUpdate = sl_true;
+						} else {
+							if (handle->m_flagRequestRender) {
+								flagUpdate = sl_true;
+							}
+						}
+						lock.unlock();
+						handle->m_flagRequestRender = sl_false;
+
+						flagWorking = sl_true;
+						if (flagUpdate) {
+							sl_uint32 viewportWidth = (sl_uint32)(handle->m_viewportWidth);
+							sl_uint32 viewportHeight = (sl_uint32)(handle->m_viewportHeight);
+							if (viewportWidth != 0 && viewportHeight != 0) {
+
+								[context makeCurrentContext];
+
+								Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
+								if (instance.isNotNull()) {
+									Ref<View> _view = instance->getView();
+									if (RenderView* view = CastInstance<RenderView>(_view.get())) {
+										if (flagFirstFrame) {
+											flagFirstFrame = sl_false;
+											view->dispatchCreateEngine(engine.get());
+										}
+										engine->setViewport(0, 0, viewportWidth, viewportHeight);
+										view->dispatchFrame(engine.get());
+									}
+								} else {
 									return;
 								}
-								dispatch_async(dispatch_get_main_queue(), ^{
-									[context setView: handle];
-								});
+
+								GL::flush();
+								[context flushBuffer];
+
 							}
-							if (handle->m_flagUpdate) {
-								[context update];
-								handle->m_flagUpdate = sl_false;
-							}
-							sl_bool flagUpdate = sl_false;
-							if (handle->m_flagRenderingContinuously) {
-								flagUpdate = sl_true;
-							} else {
-								if (handle->m_flagRequestRender) {
-									flagUpdate = sl_true;
-								}
-							}
-							lock.unlock();
-							handle->m_flagRequestRender = sl_false;
-
-							flagWorking = sl_true;
-							if (flagUpdate) {
-								sl_uint32 viewportWidth = (sl_uint32)(handle->m_viewportWidth);
-								sl_uint32 viewportHeight = (sl_uint32)(handle->m_viewportHeight);
-								if (viewportWidth != 0 && viewportHeight != 0) {
-
-									[context makeCurrentContext];
-
-									Ref<macOS_ViewInstance> instance = handle->m_viewInstance;
-									if (instance.isNotNull()) {
-										Ref<View> _view = instance->getView();
-										if (RenderView* view = CastInstance<RenderView>(_view.get())) {
-											if (flagFirstFrame) {
-												flagFirstFrame = sl_false;
-												view->dispatchCreateEngine(engine.get());
-											}
-											engine->setViewport(0, 0, viewportWidth, viewportHeight);
-											view->dispatchFrame(engine.get());
-										}
-									} else {
-										return;
-									}
-
-									GL::flush();
-									[context flushBuffer];
-
-								}
-							}
-						} while(0);
-
-						frameNumber++;
-
-					} else {
-						break;
-					}
-
-					if (thread->isNotStopping()) {
-						if (flagWorking) {
-							sl_uint64 t = timer.getElapsedMilliseconds();
-							if (t < 10) {
-								Thread::sleep(10 - (sl_uint32)(t));
-							}
-						} else {
-							Thread::sleep(1000);
 						}
-						timer.reset();
-					} else {
-						break;
-					}
+					} while(0);
 
+					frameNumber++;
+
+				} else {
+					break;
+				}
+
+				if (thread->isNotStopping()) {
+					if (flagWorking) {
+						sl_uint64 t = timer.getElapsedMilliseconds();
+						if (t < 10) {
+							Thread::sleep(10 - (sl_uint32)(t));
+						}
+					} else {
+						Thread::sleep(1000);
+					}
+					timer.reset();
+				} else {
+					break;
 				}
 			}
 		}
 	}
 
 }
+
+using namespace slib;
 
 @implementation SLIBGLViewHandle
 
@@ -276,7 +267,7 @@ namespace slib
 		m_viewportHeight = 1;
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(surfaceNeedsUpdate:) name:NSViewGlobalFrameDidChangeNotification object:self];
 		__weak SLIBGLViewHandle* weak = self;
-		m_thread = slib::Thread::start(slib::Function<void()>::bind(&(slib::priv::gl_view::RenderThreadProc), weak));
+		m_thread = Thread::start(Function<void()>::bind(&RenderThreadProc, weak));
 	}
 	return self;
 }
@@ -284,7 +275,7 @@ namespace slib
 -(void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	slib::Ref<slib::Thread> thread = m_thread;
+	Ref<Thread> thread = m_thread;
 	if (thread.isNotNull()) {
 		thread->finishAndWait();
 	}
@@ -302,10 +293,10 @@ namespace slib
 
 - (void)setFrame:(NSRect)frame
 {
-	slib::MutexLocker lock(&m_lockRender);
+	MutexLocker lock(&m_lockRender);
 	[super setFrame: frame];
 	m_flagUpdate = sl_true;
-	slib::Ref<slib::Thread> thread = m_thread;
+	Ref<Thread> thread = m_thread;
 	if (thread.isNotNull()) {
 		thread->wake();
 	}

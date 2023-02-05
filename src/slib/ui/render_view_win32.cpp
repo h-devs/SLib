@@ -34,117 +34,111 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace render_view
+	namespace {
+
+		class RenderViewInstance : public Win32_ViewInstance, public IRenderViewInstance
 		{
+			SLIB_DECLARE_OBJECT
 
-			class RenderViewInstance : public Win32_ViewInstance, public IRenderViewInstance
+		public:
+			AtomicRef<Renderer> m_renderer;
+			RenderEngine* m_pLastEngine;
+
+		public:
+			RenderViewInstance()
 			{
-				SLIB_DECLARE_OBJECT
+				m_pLastEngine = sl_null;
+			}
 
-			public:
-				AtomicRef<Renderer> m_renderer;
-				RenderEngine* m_pLastEngine;
+			~RenderViewInstance()
+			{
+				release();
+			}
 
-			public:
-				RenderViewInstance()
-				{
-					m_pLastEngine = sl_null;
+		public:
+			void setRedrawMode(RenderView* view, RedrawMode mode) override
+			{
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->setRenderingContinuously(mode == RedrawMode::Continuously);
 				}
+			}
 
-				~RenderViewInstance()
-				{
-					release();
+			void requestRender(RenderView* view) override
+			{
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->requestRender();
 				}
+			}
 
-			public:
-				void setRedrawMode(RenderView* view, RedrawMode mode) override
-				{
+			sl_bool isRenderEnabled(RenderView* view) override
+			{
+				return m_renderer.isNotNull();
+			}
+
+			void disableRendering(RenderView* view) override
+			{
+				release();
+			}
+
+			sl_bool isDrawingEnabled(View* view) override
+			{
+				return m_renderer.isNull();
+			}
+
+			void setRenderer(const Ref<Renderer>& renderer, RedrawMode redrawMode)
+			{
+				m_renderer = renderer;
+				if (renderer.isNotNull()) {
+					renderer->setRenderingContinuously(redrawMode == RedrawMode::Continuously);
+				}
+			}
+
+			LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
+			{
+				if (msg == WM_PAINT) {
 					Ref<Renderer> renderer = m_renderer;
 					if (renderer.isNotNull()) {
-						renderer->setRenderingContinuously(mode == RedrawMode::Continuously);
-					}
-				}
-
-				void requestRender(RenderView* view) override
-				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
+						PAINTSTRUCT ps;
+						BeginPaint(m_handle, &ps);
+						EndPaint(m_handle, &ps);
 						renderer->requestRender();
+						return 0;
 					}
+				} else if (msg == WM_ERASEBKGND) {
+					return TRUE;
 				}
+				return Win32_ViewInstance::processWindowMessage(msg, wParam, lParam);
+			}
 
-				sl_bool isRenderEnabled(RenderView* view) override
-				{
-					return m_renderer.isNotNull();
-				}
-
-				void disableRendering(RenderView* view) override
-				{
-					release();
-				}
-
-				sl_bool isDrawingEnabled(View* view) override
-				{
-					return m_renderer.isNull();
-				}
-
-				void setRenderer(const Ref<Renderer>& renderer, RedrawMode redrawMode)
-				{
-					m_renderer = renderer;
-					if (renderer.isNotNull()) {
-						renderer->setRenderingContinuously(redrawMode == RedrawMode::Continuously);
+			void onFrame(RenderEngine* engine)
+			{
+				Ref<View> _view = getView();
+				if (RenderView* view = CastInstance<RenderView>(_view.get())) {
+					if (m_pLastEngine != engine) {
+						view->dispatchCreateEngine(engine);
 					}
+					view->dispatchFrame(engine);
+					m_pLastEngine = engine;
 				}
+			}
 
-				LRESULT processWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam) override
-				{
-					if (msg == WM_PAINT) {
-						Ref<Renderer> renderer = m_renderer;
-						if (renderer.isNotNull()) {
-							PAINTSTRUCT ps;
-							BeginPaint(m_handle, &ps);
-							EndPaint(m_handle, &ps);
-							renderer->requestRender();
-							return 0;
-						}
-					} else if (msg == WM_ERASEBKGND) {
-						return TRUE;
-					}
-					return Win32_ViewInstance::processWindowMessage(msg, wParam, lParam);
+			void release()
+			{
+				ObjectLocker lock(this);
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->release();
+					m_renderer.setNull();
 				}
+			}
 
-				void onFrame(RenderEngine* engine)
-				{
-					Ref<View> _view = getView();
-					if (RenderView* view = CastInstance<RenderView>(_view.get())) {
-						if (m_pLastEngine != engine) {
-							view->dispatchCreateEngine(engine);
-						}
-						view->dispatchFrame(engine);
-						m_pLastEngine = engine;
-					}
-				}
+		};
 
-				void release()
-				{
-					ObjectLocker lock(this);
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->release();
-						m_renderer.setNull();
-					}
-				}
+		SLIB_DEFINE_OBJECT(RenderViewInstance, Win32_ViewInstance)
 
-			};
-
-			SLIB_DEFINE_OBJECT(RenderViewInstance, Win32_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::render_view;
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{

@@ -35,74 +35,71 @@ namespace slib
 
 	namespace priv
 	{
-		namespace button
+
+		SLIB_DEFINE_OBJECT(ButtonInstance, Win32_ViewInstance)
+
+		ButtonInstance::ButtonInstance()
 		{
-
-			SLIB_DEFINE_OBJECT(ButtonInstance, Win32_ViewInstance)
-
-			ButtonInstance::ButtonInstance()
-			{
-			}
-
-			ButtonInstance::~ButtonInstance()
-			{
-			}
-
-			void ButtonInstance::initialize(View* _view)
-			{
-				Button* view = (Button*)_view;
-				setPadding(view, view->getPadding());
-			}
-
-			void ButtonInstance::setPadding(View* view, const UIEdgeInsets& padding)
-			{
-				HWND handle = m_handle;
-				if (handle) {
-					RECT rc;
-					rc.left = (LONG)(padding.left);
-					rc.top = (LONG)(padding.top);
-					rc.right = (LONG)(padding.top);
-					rc.bottom = (LONG)(padding.bottom);
-					SendMessageW(handle, BCM_SETTEXTMARGIN, 0, (LPARAM)&rc);
-				}
-			}
-
-			void ButtonInstance::setText(Button* view, const String& text)
-			{
-				Win32_ViewInstance::setText(text);
-			}
-
-			void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
-			{
-				UIPlatform::setWindowStyle(m_handle, BS_DEFPUSHBUTTON, flag);
-			}
-
-			sl_bool ButtonInstance::measureSize(Button* view, UISize& _out)
-			{
-				HWND handle = m_handle;
-				if (handle) {
-					SIZE size = { 0, 0 };
-					SendMessageW(handle, BCM_GETIDEALSIZE, 0, (LPARAM)&size);
-					_out.x = (sl_ui_len)(size.cx);
-					_out.y = (sl_ui_len)(size.cy);
-					return sl_true;
-				}
-				return sl_false;
-			}
-
-			sl_bool ButtonInstance::processCommand(SHORT code, LRESULT& result)
-			{
-				if (code == BN_CLICKED) {
-					onClick();
-					return sl_true;
-				}
-				return sl_false;
-			}
-
 		}
+
+		ButtonInstance::~ButtonInstance()
+		{
+		}
+
+		void ButtonInstance::initialize(View* _view)
+		{
+			Button* view = (Button*)_view;
+			setPadding(view, view->getPadding());
+		}
+
+		void ButtonInstance::setPadding(View* view, const UIEdgeInsets& padding)
+		{
+			HWND handle = m_handle;
+			if (handle) {
+				RECT rc;
+				rc.left = (LONG)(padding.left);
+				rc.top = (LONG)(padding.top);
+				rc.right = (LONG)(padding.top);
+				rc.bottom = (LONG)(padding.bottom);
+				SendMessageW(handle, BCM_SETTEXTMARGIN, 0, (LPARAM)&rc);
+			}
+		}
+
+		void ButtonInstance::setText(Button* view, const String& text)
+		{
+			Win32_ViewInstance::setText(text);
+		}
+
+		void ButtonInstance::setDefaultButton(Button* view, sl_bool flag)
+		{
+			UIPlatform::setWindowStyle(m_handle, BS_DEFPUSHBUTTON, flag);
+		}
+
+		sl_bool ButtonInstance::measureSize(Button* view, UISize& _out)
+		{
+			HWND handle = m_handle;
+			if (handle) {
+				SIZE size = { 0, 0 };
+				SendMessageW(handle, BCM_GETIDEALSIZE, 0, (LPARAM)&size);
+				_out.x = (sl_ui_len)(size.cx);
+				_out.y = (sl_ui_len)(size.cy);
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		sl_bool ButtonInstance::processCommand(SHORT code, LRESULT& result)
+		{
+			if (code == BN_CLICKED) {
+				onClick();
+				return sl_true;
+			}
+			return sl_false;
+		}
+
 	}
 
-	using namespace priv::button;
+	using namespace priv;
 
 	Ref<ViewInstance> Button::createNativeWidget(ViewInstance* parent)
 	{

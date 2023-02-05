@@ -102,22 +102,18 @@ namespace slib
 	}
 
 #if !defined(SLIB_UI_IS_IOS) && !defined(SLIB_UI_IS_ANDROID)
-	namespace priv
-	{
-		namespace ui_photo
+	namespace {
+		class TakePhotoResultEx : public TakePhotoResult
 		{
-			class TakePhotoResultEx : public TakePhotoResult
+		public:
+			void setResult(const Ref<Image>& image)
 			{
-			public:
-				void setResult(const Ref<Image>& image)
-				{
-					if (image.isNotNull()) {
-						drawable = image;
-						flagSuccess = sl_true;
-					}
+				if (image.isNotNull()) {
+					drawable = image;
+					flagSuccess = sl_true;
 				}
-			};
-		}
+			}
+		};
 	}
 
 	void TakePhoto::takeFromCamera()
@@ -136,7 +132,7 @@ namespace slib
 			camera->setFlip(FlipMode::Horizontal);
 		}
 		camera->setOnTakePicture([thiz, dlg](CameraView*, CameraTakePictureResult& result) {
-			priv::ui_photo::TakePhotoResultEx tr;
+			TakePhotoResultEx tr;
 			if (thiz.flagFlipHorizontal) {
 				Ref<Image> image = result.getImage();
 				if (image.isNotNull()) {
@@ -166,7 +162,7 @@ namespace slib
 		dlg.flagShowHiddenFiles = sl_true;
 		dlg.addFilter(string::file_dialog_filter_image::get() + " (*.jpg;*.jpeg;*.png;*.gif;*.bmp)", "*.jpg;*.jpeg;*.png;*.gif;*.bmp");
 		dlg.addFilter(string::file_dialog_filter_all::get() + " (*.*)", "*");
-		priv::ui_photo::TakePhotoResultEx result;
+		TakePhotoResultEx result;
 		if (dlg.run() == DialogResult::OK) {
 			String path = dlg.selectedPath;
 			if (path.isNotEmpty()) {

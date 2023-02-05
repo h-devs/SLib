@@ -34,14 +34,9 @@
 
 #include <GLKit/GLKit.h>
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace render_view
-		{
-			class RenderViewInstance;
-		}
+namespace slib {
+	namespace {
+		class RenderViewInstance;
 	}
 }
 
@@ -49,7 +44,7 @@ namespace slib
 
 @interface SLIBGLViewHandle : GLKView
 {
-	@public slib::WeakRef<slib::priv::render_view::RenderViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::RenderViewInstance> m_viewInstance;
 
 	@public sl_bool m_flagRenderingContinuously;
 	@public sl_bool m_flagRequestRender;
@@ -86,54 +81,48 @@ namespace slib
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace render_view
+	namespace {
+
+		class RenderViewInstance : public iOS_ViewInstance, public IRenderViewInstance
 		{
+			SLIB_DECLARE_OBJECT
 
-			class RenderViewInstance : public iOS_ViewInstance, public IRenderViewInstance
+		public:
+			SLIBGLViewHandle* getHandle()
 			{
-				SLIB_DECLARE_OBJECT
+				return (SLIBGLViewHandle*)m_handle;
+			}
 
-			public:
-				SLIBGLViewHandle* getHandle()
-				{
-					return (SLIBGLViewHandle*)m_handle;
+			void initialize(View* _view) override
+			{
+				RenderView* view = (RenderView*)_view;
+				SLIBGLViewHandle* handle = getHandle();
+
+				[handle initialize];
+				handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
+			}
+
+			void setRedrawMode(RenderView* view, RedrawMode mode) override
+			{
+				SLIBGLViewHandle* handle = getHandle();
+				if (handle != nil) {
+					handle->m_flagRenderingContinuously = mode == RedrawMode::Continuously;
 				}
+			}
 
-				void initialize(View* _view) override
-				{
-					RenderView* view = (RenderView*)_view;
-					SLIBGLViewHandle* handle = getHandle();
-
-					[handle initialize];
-					handle->m_flagRenderingContinuously = view->getRedrawMode() == RedrawMode::Continuously;
+			void requestRender(RenderView* view) override
+			{
+				SLIBGLViewHandle* handle = getHandle();
+				if (handle != nil) {
+					handle->m_flagRequestRender = sl_true;
 				}
+			}
 
-				void setRedrawMode(RenderView* view, RedrawMode mode) override
-				{
-					SLIBGLViewHandle* handle = getHandle();
-					if (handle != nil) {
-						handle->m_flagRenderingContinuously = mode == RedrawMode::Continuously;
-					}
-				}
+		};
 
-				void requestRender(RenderView* view) override
-				{
-					SLIBGLViewHandle* handle = getHandle();
-					if (handle != nil) {
-						handle->m_flagRequestRender = sl_true;
-					}
-				}
+		SLIB_DEFINE_OBJECT(RenderViewInstance, iOS_ViewInstance)
 
-			};
-
-			SLIB_DEFINE_OBJECT(RenderViewInstance, iOS_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::render_view;
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* parent)
 	{
@@ -148,7 +137,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::render_view;
 
 @implementation SLIBGLViewHandle
 

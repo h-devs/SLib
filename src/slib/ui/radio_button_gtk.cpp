@@ -30,24 +30,19 @@
 
 namespace slib
 {
-	namespace priv
-	{
-		namespace button
+
+	using namespace priv;
+
+	namespace {
+		static void OnClickRadio(GtkButton* button)
 		{
-
-			static void OnClickRadio(GtkButton* button)
-			{
-				GtkButtonClass* clsRadio = GTK_BUTTON_GET_CLASS(button);
-				GtkButtonClass* clsCheck = (GtkButtonClass*)(g_type_class_peek_parent(clsRadio));
-				if (!(gtk_toggle_button_get_active((GtkToggleButton*)button))) {
-					clsCheck->clicked(button);
-				}
+			GtkButtonClass* clsRadio = GTK_BUTTON_GET_CLASS(button);
+			GtkButtonClass* clsCheck = (GtkButtonClass*)(g_type_class_peek_parent(clsRadio));
+			if (!(gtk_toggle_button_get_active((GtkToggleButton*)button))) {
+				clsCheck->clicked(button);
 			}
-
 		}
 	}
-
-	using namespace priv::button;
 
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)
 	{

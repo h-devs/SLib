@@ -28,32 +28,26 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace progress_bar
+	namespace {
+
+		class StaticContext
 		{
+		public:
+			Ref<Drawable> defaultTrack;
+			Ref<Drawable> defaultProgress;
+			Ref<Drawable> defaultProgress2;
 
-			class StaticContext
+			StaticContext()
 			{
-			public:
-				Ref<Drawable> defaultTrack;
-				Ref<Drawable> defaultProgress;
-				Ref<Drawable> defaultProgress2;
+				defaultTrack = ColorDrawable::create(Color(220, 220, 220));
+				defaultProgress = ColorDrawable::create(Color(150, 150, 150));
+				defaultProgress2 = ColorDrawable::create(Color(200, 200, 200));
+			}
+		};
 
-				StaticContext()
-				{
-					defaultTrack = ColorDrawable::create(Color(220, 220, 220));
-					defaultProgress = ColorDrawable::create(Color(150, 150, 150));
-					defaultProgress2 = ColorDrawable::create(Color(200, 200, 200));
-				}
-			};
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-		}
 	}
-
-	using namespace priv::progress_bar;
 
 	SLIB_DEFINE_OBJECT(ProgressBar, View)
 

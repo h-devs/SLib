@@ -29,35 +29,29 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace line_view
+	namespace {
+
+		class StaticContext
 		{
+		public:
+			sl_real defaultThickness;
+			Ref<Pen> defaultPen;
 
-			class StaticContext
+		public:
+			StaticContext()
 			{
-			public:
-				sl_real defaultThickness;
-				Ref<Pen> defaultPen;
-
-			public:
-				StaticContext()
-				{
-					defaultThickness = UI::dpToPixel(1);
-					if (defaultThickness < 1) {
-						defaultThickness = 1;
-					}
-					defaultPen = Pen::createSolidPen(defaultThickness, Color::Black);
+				defaultThickness = UI::dpToPixel(1);
+				if (defaultThickness < 1) {
+					defaultThickness = 1;
 				}
+				defaultPen = Pen::createSolidPen(defaultThickness, Color::Black);
+			}
 
-			};
+		};
 
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
-		}
 	}
-
-	using namespace priv::line_view;
 
 	SLIB_DEFINE_OBJECT(LineView, View)
 

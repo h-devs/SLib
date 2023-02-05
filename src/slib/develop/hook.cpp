@@ -115,7 +115,7 @@ namespace slib
 
 	namespace {
 
-		static sl_uint8 Generate_Jmp(void* _dst, const void* address, const void* callerAddress = sl_null, sl_bool flagUseAX = sl_true)
+		static sl_uint8 Generate_Jmp(void* _dst, const void* address, const void* callerAddress = sl_null, sl_bool flagUseAX = sl_false)
 		{
 			sl_reg offset = 0;
 			if (callerAddress) {
@@ -300,7 +300,7 @@ namespace slib
 #else
 			WriteBytes(dst, pos, 0x89, 0x04, 0x24); // mov dword ptr [esp], eax
 #endif
-			pos += Generate_Jmp(dst ? dst + pos : sl_null, targetFunctionAddress, dst ? dst + pos : sl_null);
+			pos += Generate_Jmp(dst ? dst + pos : sl_null, targetFunctionAddress, dst ? dst + pos : sl_null, sl_true);
 			if (dst) {
 				sl_uint8* p = dst + pos;
 				Base::copyMemory(pReturn, &p, sizeof(void*));
@@ -339,7 +339,7 @@ namespace slib
 	sl_bool Hook::hookFunction(const void* targetFunctionAddress, const void* newFunctionAddress, void* outCallHookedFunction)
 	{
 		sl_uint8 codesReplacing[JMP_FAR_CODE_MAX_LENGTH];
-		sl_uint8 sizeReplacing = Generate_Jmp(codesReplacing, newFunctionAddress, targetFunctionAddress);
+		sl_uint8 sizeReplacing = Generate_Jmp(codesReplacing, newFunctionAddress, targetFunctionAddress, sl_true);
 
 		sl_uint32 sizeCallHooked = Generate_CallHookedFunction(sl_null, targetFunctionAddress, codesReplacing, sizeReplacing);
 		sl_uint8* fnCallHooked = (sl_uint8*)(Base::createMemory(sizeCallHooked));

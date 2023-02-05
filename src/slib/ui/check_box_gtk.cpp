@@ -33,83 +33,80 @@ namespace slib
 
 	namespace priv
 	{
-		namespace button
+
+		SLIB_DEFINE_OBJECT(CheckBoxInstance, ButtonInstance)
+
+		CheckBoxInstance::CheckBoxInstance()
 		{
-
-			SLIB_DEFINE_OBJECT(CheckBoxInstance, ButtonInstance)
-
-			CheckBoxInstance::CheckBoxInstance()
-			{
-			}
-
-			CheckBoxInstance::~CheckBoxInstance()
-			{
-			}
-
-			void CheckBoxInstance::initialize(View* _view)
-			{
-				CheckBox* view = (CheckBox*)_view;
-				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
-				ButtonInstance::initialize(view);
-				setChecked(view, view->isChecked());
-				g_signal_connect(handle, "toggled", G_CALLBACK(onChanged), handle);
-			}
-
-			sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
-			{
-				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
-				if (handle) {
-					_out = gtk_toggle_button_get_active(handle);
-					return sl_true;
-				}
-				return sl_false;
-			}
-
-			void CheckBoxInstance::setChecked(CheckBox* view, sl_bool flag)
-			{
-				GtkToggleButton* handle = (GtkToggleButton*)m_handle;
-				if (handle) {
-					if (GTK_IS_RADIO_BUTTON(handle)) {
-						if (!flag != !(gtk_toggle_button_get_active(handle))) {
-							GtkButtonClass* clsRadio = GTK_BUTTON_GET_CLASS(handle);
-							GtkButtonClass* clsCheck = (GtkButtonClass*)(g_type_class_peek_parent(clsRadio));
-							clsCheck->clicked((GtkButton*)handle);
-						}
-					} else {
-						gtk_toggle_button_set_active(handle, flag);
-					}
-				}
-			}
-
-			sl_bool CheckBoxInstance::measureSize(Button* view, UISize& _out)
-			{
-				GtkWidget* handle = m_handle;
-				if(handle){
-					Ref<Font> font = view->getFont();
-					if (font.isNotNull()) {
-						_out = font->measureText(" " + view->getText());
-						return true;
-					}
-				}
-				return sl_false;
-			}
-
-			void CheckBoxInstance::onChanged(GtkToggleButton *, gpointer userinfo)
-			{
-				GtkCheckButton* handle = (GtkCheckButton*)userinfo;
-				Ref<CheckBox> view = CastRef<CheckBox>(UIPlatform::getView((GtkWidget*)handle));
-				if (view.isNotNull()) {
-					bool isChecked = gtk_toggle_button_get_active((GtkToggleButton*)handle);
-					if (isChecked != view->isChecked()) {
-						view->dispatchChange(isChecked);
-					}
-				}
-			}
-
 		}
+
+		CheckBoxInstance::~CheckBoxInstance()
+		{
+		}
+
+		void CheckBoxInstance::initialize(View* _view)
+		{
+			CheckBox* view = (CheckBox*)_view;
+			GtkToggleButton* handle = (GtkToggleButton*)m_handle;
+			ButtonInstance::initialize(view);
+			setChecked(view, view->isChecked());
+			g_signal_connect(handle, "toggled", G_CALLBACK(onChanged), handle);
+		}
+
+		sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
+		{
+			GtkToggleButton* handle = (GtkToggleButton*)m_handle;
+			if (handle) {
+				_out = gtk_toggle_button_get_active(handle);
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		void CheckBoxInstance::setChecked(CheckBox* view, sl_bool flag)
+		{
+			GtkToggleButton* handle = (GtkToggleButton*)m_handle;
+			if (handle) {
+				if (GTK_IS_RADIO_BUTTON(handle)) {
+					if (!flag != !(gtk_toggle_button_get_active(handle))) {
+						GtkButtonClass* clsRadio = GTK_BUTTON_GET_CLASS(handle);
+						GtkButtonClass* clsCheck = (GtkButtonClass*)(g_type_class_peek_parent(clsRadio));
+						clsCheck->clicked((GtkButton*)handle);
+					}
+				} else {
+					gtk_toggle_button_set_active(handle, flag);
+				}
+			}
+		}
+
+		sl_bool CheckBoxInstance::measureSize(Button* view, UISize& _out)
+		{
+			GtkWidget* handle = m_handle;
+			if(handle){
+				Ref<Font> font = view->getFont();
+				if (font.isNotNull()) {
+					_out = font->measureText(" " + view->getText());
+					return true;
+				}
+			}
+			return sl_false;
+		}
+
+		void CheckBoxInstance::onChanged(GtkToggleButton *, gpointer userinfo)
+		{
+			GtkCheckButton* handle = (GtkCheckButton*)userinfo;
+			Ref<CheckBox> view = CastRef<CheckBox>(UIPlatform::getView((GtkWidget*)handle));
+			if (view.isNotNull()) {
+				bool isChecked = gtk_toggle_button_get_active((GtkToggleButton*)handle);
+				if (isChecked != view->isChecked()) {
+					view->dispatchChange(isChecked);
+				}
+			}
+		}
+
 	}
 
-	using namespace priv::button;
+	using namespace priv;
 
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{

@@ -33,166 +33,124 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace screen_capture
+	namespace {
+
+		class Helper
 		{
+		private:
+			HDC m_hdcCache;
+			HBITMAP m_hbmCache;
+			HBITMAP m_hbmCacheOld;
+			sl_uint32 m_widthCache;
+			sl_uint32 m_heightCache;
 
-			class Helper
+		public:
+			Helper()
 			{
-			private:
-				HDC m_hdcCache;
-				HBITMAP m_hbmCache;
-				HBITMAP m_hbmCacheOld;
-				sl_uint32 m_widthCache;
-				sl_uint32 m_heightCache;
+				m_hdcCache = NULL;
+				m_hbmCache = NULL;
+				m_hbmCacheOld = NULL;
+				m_widthCache = 0;
+				m_heightCache = 0;
+			}
 
-			public:
-				Helper()
-				{
-					m_hdcCache = NULL;
-					m_hbmCache = NULL;
-					m_hbmCacheOld = NULL;
-					m_widthCache = 0;
-					m_heightCache = 0;
+			~Helper()
+			{
+				freeCache();
+			}
+
+		public:
+			Ref<Image> getImage(HDC hdcSource, sl_int32 x, sl_int32 y, sl_int32 _width, sl_int32 _height)
+			{
+				if (_width < 1 || _height < 1) {
+					return sl_null;
 				}
-
-				~Helper()
-				{
-					freeCache();
-				}
-
-			public:
-				Ref<Image> getImage(HDC hdcSource, sl_int32 x, sl_int32 y, sl_int32 _width, sl_int32 _height)
-				{
-					if (_width < 1 || _height < 1) {
-						return sl_null;
-					}
-					sl_uint32 width = (sl_uint32)_width;
-					sl_uint32 height = (sl_uint32)_height;
-					if (!m_hdcCache || m_widthCache < width || m_heightCache < height) {
-						do {
-							HDC hdc = CreateCompatibleDC(hdcSource);
-							if (hdc) {
-								HBITMAP hbm = CreateCompatibleBitmap(hdcSource, (int)width, (int)height);
-								if (hbm) {
-									freeCache();
-									m_hdcCache = hdc;
-									m_hbmCache = hbm;
-									m_hbmCacheOld = (HBITMAP)(SelectObject(hdc, hbm));
-									m_widthCache = width;
-									m_heightCache = height;
-									break;
-								}
-								DeleteDC(hdc);
+				sl_uint32 width = (sl_uint32)_width;
+				sl_uint32 height = (sl_uint32)_height;
+				if (!m_hdcCache || m_widthCache < width || m_heightCache < height) {
+					do {
+						HDC hdc = CreateCompatibleDC(hdcSource);
+						if (hdc) {
+							HBITMAP hbm = CreateCompatibleBitmap(hdcSource, (int)width, (int)height);
+							if (hbm) {
+								freeCache();
+								m_hdcCache = hdc;
+								m_hbmCache = hbm;
+								m_hbmCacheOld = (HBITMAP)(SelectObject(hdc, hbm));
+								m_widthCache = width;
+								m_heightCache = height;
+								break;
 							}
-						} while (0);
-					}
-					if (m_hdcCache && m_hbmCache) {
-						BitBlt(m_hdcCache, 0, 0, (int)width, (int)height, hdcSource, x, y, SRCCOPY);
-						Ref<Bitmap> bitmap = GraphicsPlatform::createBitmap(m_hbmCache);
-						if (bitmap.isNotNull()) {
-							return Image::createCopyBitmap(bitmap, 0, 0, width, height);
+							DeleteDC(hdc);
 						}
-					}
-					return sl_null;
+					} while (0);
 				}
-
-				void freeCache()
-				{
-					if (m_hdcCache) {
-						SelectObject(m_hdcCache, m_hbmCacheOld);
-						DeleteDC(m_hdcCache);
-						m_hdcCache = NULL;
-						m_hbmCacheOld = NULL;
-					}
-					if (m_hbmCache) {
-						DeleteObject(m_hbmCache);
-						m_hbmCache = NULL;
-					}
-					m_widthCache = 0;
-					m_heightCache = 0;
-				}
-
-			public:
-				Mutex m_lock;
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
-
-			static Ref<Image> CaptureScreen(HMONITOR hMonitor)
-			{
-				Helper* helper = GetHelper();
-				if (!helper) {
-					return sl_null;
-				}
-				MutexLocker lock(&(helper->m_lock));
-				MONITORINFOEXW info;
-				Base::zeroMemory(&info, sizeof(info));
-				info.cbSize = sizeof(info);
-				if (GetMonitorInfoW(hMonitor, &info)) {
-					HDC hDC = CreateDCW(L"DISPLAY", info.szDevice, NULL, NULL);
-					if (hDC) {
-						sl_uint32 width, height;
-						DEVMODEW dm;
-						Base::zeroMemory(&dm, sizeof(dm));
-						dm.dmSize = sizeof(dm);
-						if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
-							width = (sl_uint32)(dm.dmPelsWidth);
-							height = (sl_uint32)(dm.dmPelsHeight);
-						} else {
-							width = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
-							height = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
-						}
-						Ref<Image> image = helper->getImage(hDC, 0, 0, width, height);
-						DeleteDC(hDC);
-						return image;
+				if (m_hdcCache && m_hbmCache) {
+					BitBlt(m_hdcCache, 0, 0, (int)width, (int)height, hdcSource, x, y, SRCCOPY);
+					Ref<Bitmap> bitmap = GraphicsPlatform::createBitmap(m_hbmCache);
+					if (bitmap.isNotNull()) {
+						return Image::createCopyBitmap(bitmap, 0, 0, width, height);
 					}
 				}
 				return sl_null;
 			}
 
-			struct CaptureScreensContext
+			void freeCache()
 			{
-				List< Ref<Image> > list;
-			};
-
-			static BOOL CALLBACK EnumDisplayMonitorsCallbackForCaptureScreens(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
-			{
-				CaptureScreensContext& context = *((CaptureScreensContext*)lParam);
-				Ref<Image> image = CaptureScreen(hMonitor);
-				if (image.isNotNull()) {
-					context.list.add_NoLock(Move(image));
+				if (m_hdcCache) {
+					SelectObject(m_hdcCache, m_hbmCacheOld);
+					DeleteDC(m_hdcCache);
+					m_hdcCache = NULL;
+					m_hbmCacheOld = NULL;
 				}
-				return TRUE;
+				if (m_hbmCache) {
+					DeleteObject(m_hbmCache);
+					m_hbmCache = NULL;
+				}
+				m_widthCache = 0;
+				m_heightCache = 0;
 			}
 
-			static List< Ref<Image> > CaptureScreens()
-			{
-				CaptureScreensContext context;
-				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForCaptureScreens, (LPARAM)&context);
-				return context.list;
-			}
+		public:
+			Mutex m_lock;
 
-			static BOOL CALLBACK EnumDisplayMonitorsCallbackForGetScreenCount(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
-			{
-				sl_uint32 *count = (sl_uint32*)lParam;
-				(*count)++;
-				return TRUE;
-			}
+		};
 
-			static sl_uint32 GetScreenCount()
-			{
-				sl_uint32 count = 0;
-				EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForGetScreenCount, (LPARAM)&count);
-				return count;
-			}
+		SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
 
+		static Ref<Image> CaptureScreen(HMONITOR hMonitor)
+		{
+			Helper* helper = GetHelper();
+			if (!helper) {
+				return sl_null;
+			}
+			MutexLocker lock(&(helper->m_lock));
+			MONITORINFOEXW info;
+			Base::zeroMemory(&info, sizeof(info));
+			info.cbSize = sizeof(info);
+			if (GetMonitorInfoW(hMonitor, &info)) {
+				HDC hDC = CreateDCW(L"DISPLAY", info.szDevice, NULL, NULL);
+				if (hDC) {
+					sl_uint32 width, height;
+					DEVMODEW dm;
+					Base::zeroMemory(&dm, sizeof(dm));
+					dm.dmSize = sizeof(dm);
+					if (EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &dm)) {
+						width = (sl_uint32)(dm.dmPelsWidth);
+						height = (sl_uint32)(dm.dmPelsHeight);
+					} else {
+						width = (sl_uint32)(GetDeviceCaps(hDC, HORZRES));
+						height = (sl_uint32)(GetDeviceCaps(hDC, VERTRES));
+					}
+					Ref<Image> image = helper->getImage(hDC, 0, 0, width, height);
+					DeleteDC(hDC);
+					return image;
+				}
+			}
+			return sl_null;
 		}
-	}
 
-	using namespace priv::screen_capture;
+	}
 
 	Ref<Image> ScreenCapture::takeScreenshot()
 	{
@@ -215,14 +173,44 @@ namespace slib
 		return sl_null;
 	}
 
+	namespace {
+		struct CaptureScreensContext
+		{
+			List< Ref<Image> > list;
+		};
+
+		static BOOL CALLBACK EnumDisplayMonitorsCallbackForCaptureScreens(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+		{
+			CaptureScreensContext& context = *((CaptureScreensContext*)lParam);
+			Ref<Image> image = CaptureScreen(hMonitor);
+			if (image.isNotNull()) {
+				context.list.add_NoLock(Move(image));
+			}
+			return TRUE;
+		}
+	}
+
 	List< Ref<Image> > ScreenCapture::takeScreenshotsFromAllMonitors()
 	{
-		return CaptureScreens();
+		CaptureScreensContext context;
+		EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForCaptureScreens, (LPARAM)&context);
+		return context.list;
+	}
+
+	namespace {
+		static BOOL CALLBACK EnumDisplayMonitorsCallbackForGetScreenCount(HMONITOR hMonitor, HDC hDC, LPRECT pClip, LPARAM lParam)
+		{
+			sl_uint32 *count = (sl_uint32*)lParam;
+			(*count)++;
+			return TRUE;
+		}
 	}
 
 	sl_uint32 ScreenCapture::getScreenCount()
 	{
-		return GetScreenCount();
+		sl_uint32 count = 0;
+		EnumDisplayMonitors(NULL, NULL, EnumDisplayMonitorsCallbackForGetScreenCount, (LPARAM)&count);
+		return count;
 	}
 
 }

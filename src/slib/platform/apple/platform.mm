@@ -33,10 +33,7 @@ namespace slib
 #if defined(SLIB_PLATFORM_IS_IOS)
 	namespace priv
 	{
-		namespace platform
-		{
-			UIInterfaceOrientation g_screenOrientation = UIInterfaceOrientationPortrait;
-		}
+		UIInterfaceOrientation g_screenOrientation = UIInterfaceOrientationPortrait;
 	}
 #endif
 

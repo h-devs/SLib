@@ -57,428 +57,418 @@
 #endif
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
-@interface SLIBNSUserNotificationCenterDelegate : NSObject<NSUserNotificationCenterDelegate>
-{
-}
+@interface SLIBNSUserNotificationCenterDelegate : NSObject<NSUserNotificationCenterDelegate> {}
 @end
 #endif
 
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
 DEFINE_UN_API
-@interface SLIBUNUserNotificationCenterDelegate : NSObject<UNUserNotificationCenterDelegate>
-{
-}
+@interface SLIBUNUserNotificationCenterDelegate : NSObject<UNUserNotificationCenterDelegate> {}
 @end
 #endif
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_notification_apple
+	namespace {
+
+		class StaticContext
 		{
+		public:
+#if defined(SLIB_PLATFORM_IS_MACOS)
+			NSUserNotificationCenter* centerNS;
+			SLIBNSUserNotificationCenterDelegate* delegateNS;
+#endif
+#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
+			DEFINE_UN_API UNUserNotificationCenter* centerUN;
+			DEFINE_UN_API SLIBUNUserNotificationCenterDelegate* delegateUN;
+#endif
 
-			class StaticContext
+		public:
+			StaticContext()
 			{
-			public:
-#if defined(SLIB_PLATFORM_IS_MACOS)
-				NSUserNotificationCenter* centerNS;
-				SLIBNSUserNotificationCenterDelegate* delegateNS;
-#endif
+				if (CHECK_UN_API) {
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-				DEFINE_UN_API UNUserNotificationCenter* centerUN;
-				DEFINE_UN_API SLIBUNUserNotificationCenterDelegate* delegateUN;
-#endif
-
-			public:
-				StaticContext()
-				{
-					if (CHECK_UN_API) {
-#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-						centerUN = [UNUserNotificationCenter currentNotificationCenter];
-						delegateUN = [SLIBUNUserNotificationCenterDelegate new];
-						centerUN.delegate = delegateUN;
-						NSMutableSet* categories = [NSMutableSet new];
-						{
-							UNNotificationAction* actionOpen = [UNNotificationAction actionWithIdentifier:@"open" title:Apple::getNSStringFromString(::slib::string::open::get()) options:0];
-							UNNotificationCategory* category = [UNNotificationCategory categoryWithIdentifier:@"default" actions:@[actionOpen] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
-							[categories addObject:category];
-						}
-						{
-							UNTextInputNotificationAction* actionReply = [UNTextInputNotificationAction actionWithIdentifier:@"reply" title:Apple::getNSStringFromString(::slib::string::reply::get()) options:0];
-							UNNotificationCategory* category = [UNNotificationCategory categoryWithIdentifier:@"reply" actions:@[actionReply] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
-							[categories addObject:category];
-						}
-						[centerUN setNotificationCategories:categories];
-#endif
-					} else {
-#if defined(SLIB_PLATFORM_IS_MACOS)
-						centerNS = [NSUserNotificationCenter defaultUserNotificationCenter];
-						delegateNS = [SLIBNSUserNotificationCenterDelegate new];
-						centerNS.delegate = delegateNS;
-#endif
+					centerUN = [UNUserNotificationCenter currentNotificationCenter];
+					delegateUN = [SLIBUNUserNotificationCenterDelegate new];
+					centerUN.delegate = delegateUN;
+					NSMutableSet* categories = [NSMutableSet new];
+					{
+						UNNotificationAction* actionOpen = [UNNotificationAction actionWithIdentifier:@"open" title:Apple::getNSStringFromString(::slib::string::open::get()) options:0];
+						UNNotificationCategory* category = [UNNotificationCategory categoryWithIdentifier:@"default" actions:@[actionOpen] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
+						[categories addObject:category];
 					}
+					{
+						UNTextInputNotificationAction* actionReply = [UNTextInputNotificationAction actionWithIdentifier:@"reply" title:Apple::getNSStringFromString(::slib::string::reply::get()) options:0];
+						UNNotificationCategory* category = [UNNotificationCategory categoryWithIdentifier:@"reply" actions:@[actionReply] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
+						[categories addObject:category];
+					}
+					[centerUN setNotificationCategories:categories];
+#endif
+				} else {
+#if defined(SLIB_PLATFORM_IS_MACOS)
+					centerNS = [NSUserNotificationCenter defaultUserNotificationCenter];
+					delegateNS = [SLIBNSUserNotificationCenterDelegate new];
+					centerNS.delegate = delegateNS;
+#endif
 				}
+			}
 
-			};
+		};
 
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
-			class UserNotificationImpl : public UserNotification
+		class UserNotificationImpl : public UserNotification
+		{
+		public:
+#if defined(SLIB_PLATFORM_IS_MACOS)
+			NSUserNotification* m_object;
+#endif
+#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
+			NSString* m_identifier;
+#endif
+
+		public:
+			static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
 			{
-			public:
-#if defined(SLIB_PLATFORM_IS_MACOS)
-				NSUserNotification* m_object;
-#endif
-#if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-				NSString* m_identifier;
-#endif
-
-			public:
-				static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
-				{
 #if defined(SLIB_PLATFORM_IS_MACOS)
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-					if (CHECK_UN_API) {
-						return createUN(message);
-					}
-#endif
-					return createNS(message);
-#else
+				if (CHECK_UN_API) {
 					return createUN(message);
+				}
 #endif
-				}
+				return createNS(message);
+#else
+				return createUN(message);
+#endif
+			}
 
-				static String getIdentifier(const UserNotificationMessage& message)
-				{
-					if (message.identifier.isNotNull()) {
-						return message.identifier;
-					}
-					return String::fromUint32(message.id);
+			static String getIdentifier(const UserNotificationMessage& message)
+			{
+				if (message.identifier.isNotNull()) {
+					return message.identifier;
 				}
+				return String::fromUint32(message.id);
+			}
 
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-				DEFINE_UN_API
-				static Ref<UserNotificationImpl> createUN(const UserNotificationMessage& message)
-				{
-					StaticContext* context = GetStaticContext();
-					if (!context) {
-						return sl_null;
+			DEFINE_UN_API
+			static Ref<UserNotificationImpl> createUN(const UserNotificationMessage& message)
+			{
+				StaticContext* context = GetStaticContext();
+				if (!context) {
+					return sl_null;
+				}
+				Ref<UserNotificationImpl> ret = new UserNotificationImpl;
+				if (ret.isNotNull()) {
+					UNMutableNotificationContent* content = [UNMutableNotificationContent new];
+					if (message.title.isNotEmpty()) {
+						content.title = Apple::getNSStringFromString(message.title);
 					}
-					Ref<UserNotificationImpl> ret = new UserNotificationImpl;
-					if (ret.isNotNull()) {
-						UNMutableNotificationContent* content = [UNMutableNotificationContent new];
-						if (message.title.isNotEmpty()) {
-							content.title = Apple::getNSStringFromString(message.title);
+					if (message.content.isNotEmpty()) {
+						content.body = Apple::getNSStringFromString(message.content);
+					}
+					if (message.data.isNotUndefined()) {
+						content.userInfo = @{@"data": Apple::getNSStringFromString(message.data.toJsonString())};
+					}
+					if (message.subTitle.isNotEmpty()) {
+						content.subtitle = Apple::getNSStringFromString(message.subTitle);
+					}
+					if (message.categoryIdentifier.isNotEmpty()) {
+						content.categoryIdentifier = Apple::getNSStringFromString(message.categoryIdentifier);
+					} else {
+						if (message.flagActionButton) {
+							content.categoryIdentifier = @"default";
+						} else if (message.flagReplyButton) {
+							content.categoryIdentifier = @"reply";
 						}
-						if (message.content.isNotEmpty()) {
-							content.body = Apple::getNSStringFromString(message.content);
-						}
-						if (message.data.isNotUndefined()) {
-							content.userInfo = @{@"data": Apple::getNSStringFromString(message.data.toJsonString())};
-						}
-						if (message.subTitle.isNotEmpty()) {
-							content.subtitle = Apple::getNSStringFromString(message.subTitle);
-						}
-						if (message.categoryIdentifier.isNotEmpty()) {
-							content.categoryIdentifier = Apple::getNSStringFromString(message.categoryIdentifier);
-						} else {
-							if (message.flagActionButton) {
-								content.categoryIdentifier = @"default";
-							} else if (message.flagReplyButton) {
-								content.categoryIdentifier = @"reply";
-							}
-						}
-						if (message.threadIdentifier.isNotEmpty()) {
-							content.threadIdentifier = Apple::getNSStringFromString(message.threadIdentifier);
-						}
-						if (message.targetContentIdentifier.isNotEmpty()) {
+					}
+					if (message.threadIdentifier.isNotEmpty()) {
+						content.threadIdentifier = Apple::getNSStringFromString(message.threadIdentifier);
+					}
+					if (message.targetContentIdentifier.isNotEmpty()) {
 #ifdef SLIB_UI_IS_IOS
 #	ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 #		if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
-							if (@available(iOS 13.0, *)) {
-								content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
-							}
+						if (@available(iOS 13.0, *)) {
+							content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
+						}
 #		endif
 #	endif
 #else
 #	ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
 #		if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101500
-							if (@available(macOS 10.15, *)) {
-								content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
-							}
+						if (@available(macOS 10.15, *)) {
+							content.targetContentIdentifier = Apple::getNSStringFromString(message.targetContentIdentifier);
+						}
 #		endif
 #	endif
 #endif
-						}
-						if (message.badge.isNotNull()) {
-							content.badge = @((NSInteger)(message.badge.get()));
-						}
-						if (message.attachments.isNotEmpty()) {
-							NSMutableArray* arr = [NSMutableArray new];
-							ListElements<UserNotificationAttachment> list(message.attachments);
-							for (sl_size i = 0; i < list.count; i++) {
-								NSString* _id = Apple::getNSStringFromString(list[i].identifier);
-								NSURL* url = [NSURL URLWithString:Apple::getNSStringFromString(list[i].url)];
-								UNNotificationAttachment* attach = [UNNotificationAttachment attachmentWithIdentifier:_id URL:url options:nil error:nil];
-								if (attach != nil) {
-									[arr addObject:attach];
-								}
+					}
+					if (message.badge.isNotNull()) {
+						content.badge = @((NSInteger)(message.badge.get()));
+					}
+					if (message.attachments.isNotEmpty()) {
+						NSMutableArray* arr = [NSMutableArray new];
+						ListElements<UserNotificationAttachment> list(message.attachments);
+						for (sl_size i = 0; i < list.count; i++) {
+							NSString* _id = Apple::getNSStringFromString(list[i].identifier);
+							NSURL* url = [NSURL URLWithString:Apple::getNSStringFromString(list[i].url)];
+							UNNotificationAttachment* attach = [UNNotificationAttachment attachmentWithIdentifier:_id URL:url options:nil error:nil];
+							if (attach != nil) {
+								[arr addObject:attach];
 							}
-							content.attachments = arr;
 						}
+						content.attachments = arr;
+					}
 #ifdef SLIB_UI_IS_IOS
-						if (message.launchImageName.isNotEmpty()) {
-							content.launchImageName = Apple::getNSStringFromString(message.launchImageName);
-						}
+					if (message.launchImageName.isNotEmpty()) {
+						content.launchImageName = Apple::getNSStringFromString(message.launchImageName);
+					}
 #endif
-						if (message.flagSound) {
-							if (message.soundName.isNotEmpty()) {
-								content.sound = [UNNotificationSound soundNamed:(Apple::getNSStringFromString(message.soundName))];
-							} else {
-								content.sound = [UNNotificationSound defaultSound];
-							}
+					if (message.flagSound) {
+						if (message.soundName.isNotEmpty()) {
+							content.sound = [UNNotificationSound soundNamed:(Apple::getNSStringFromString(message.soundName))];
 						} else {
-							content.sound = nil;
+							content.sound = [UNNotificationSound defaultSound];
 						}
+					} else {
+						content.sound = nil;
+					}
 
-						UNNotificationTrigger* trigger = nil;
-						if (message.deliveryTime.isNotZero()) {
+					UNNotificationTrigger* trigger = nil;
+					if (message.deliveryTime.isNotZero()) {
+						NSDateComponents* comps = [NSDateComponents new];
+						comps.year = message.deliveryTime.getYear();
+						comps.month = message.deliveryTime.getMonth();
+						comps.day = message.deliveryTime.getDay();
+						comps.hour = message.deliveryTime.getHour();
+						comps.minute = message.deliveryTime.getMinute();
+						comps.second = message.deliveryTime.getSecond();
+						trigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:comps repeats:NO];
+					} else if (message.deliveryInterval > 0.1) {
+						double interval = message.deliveryInterval;
+						if (message.flagRepeat) {
+							if (interval < 60) {
+								interval = 60;
+							}
+						}
+						trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:interval repeats:message.flagRepeat];
+					}
+
+					NSString* _id = Apple::getNSStringFromString(getIdentifier(message), @"");
+					UNNotificationRequest* notification = [UNNotificationRequest requestWithIdentifier:_id content:content trigger:trigger];
+					[context->centerUN addNotificationRequest:notification withCompletionHandler:nil];
+
+					ret->m_identifier = _id;
+					return ret;
+				}
+				return sl_null;
+			}
+#endif
+
+#if defined(SLIB_PLATFORM_IS_MACOS)
+			static Ref<UserNotificationImpl> createNS(const UserNotificationMessage& message)
+			{
+				StaticContext* context = GetStaticContext();
+				if (!context) {
+					return sl_null;
+				}
+				Ref<UserNotificationImpl> ret = new UserNotificationImpl;
+				if (ret.isNotNull()) {
+					NSUserNotification* notification = [NSUserNotification new];
+
+					notification.identifier = Apple::getNSStringFromString(getIdentifier(message), @"");
+					if (message.title.isNotEmpty()) {
+						notification.title = Apple::getNSStringFromString(message.title);
+					}
+					if (message.content.isNotEmpty()) {
+						notification.informativeText = Apple::getNSStringFromString(message.content);
+					}
+					if (message.data.isNotUndefined()) {
+						notification.userInfo = @{@"data": Apple::getNSStringFromString(message.data.toJsonString())};
+					}
+
+					if (message.subTitle.isNotEmpty()) {
+						notification.subtitle = Apple::getNSStringFromString(message.subTitle);
+					}
+					notification.contentImage = GraphicsPlatform::getNSImage(message.contentImage);
+					if (message.flagSound) {
+						if (message.soundName.isNotEmpty()) {
+							notification.soundName = Apple::getNSStringFromString(message.soundName);
+						} else {
+							notification.soundName = NSUserNotificationDefaultSoundName;
+						}
+					} else {
+						notification.soundName = nil;
+					}
+
+					notification.hasActionButton = message.flagActionButton;
+					notification.hasReplyButton = message.flagReplyButton;
+					if (message.actionButtonTitle.isNotEmpty()) {
+						notification.actionButtonTitle = Apple::getNSStringFromString(message.actionButtonTitle);
+					}
+					if (message.closeButtonTitle.isNotEmpty()) {
+						notification.otherButtonTitle = Apple::getNSStringFromString(message.closeButtonTitle);
+					}
+					if (message.additionalActions.isNotEmpty()) {
+						NSMutableArray* arr = [NSMutableArray new];
+						for (auto& pair : message.additionalActions) {
+							NSString* _id = Apple::getNSStringFromString(pair.key);
+							NSString* title = Apple::getNSStringFromString(pair.value);
+							NSUserNotificationAction* action = [NSUserNotificationAction actionWithIdentifier:_id title:title];
+							[arr addObject:action];
+						}
+						notification.additionalActions = arr;
+						@try {
+							[notification setValue:@(YES) forKey:@"_alwaysShowAlternateActionMenu"];
+						} @catch(NSException*) {
+						}
+					}
+					if (message.responsePlaceholder.isNotEmpty()) {
+						notification.responsePlaceholder = Apple::getNSStringFromString(message.responsePlaceholder);
+					}
+
+					if (message.deliveryTime.isNotZero()) {
+						notification.deliveryDate = Apple::getNSDateFromTime(message.deliveryTime);
+					}
+					if (message.deliveryInterval > 0.1) {
+						if (message.flagRepeat) {
 							NSDateComponents* comps = [NSDateComponents new];
-							comps.year = message.deliveryTime.getYear();
-							comps.month = message.deliveryTime.getMonth();
-							comps.day = message.deliveryTime.getDay();
-							comps.hour = message.deliveryTime.getHour();
-							comps.minute = message.deliveryTime.getMinute();
-							comps.second = message.deliveryTime.getSecond();
-							trigger = [UNCalendarNotificationTrigger triggerWithDateMatchingComponents:comps repeats:NO];
-						} else if (message.deliveryInterval > 0.1) {
-							double interval = message.deliveryInterval;
-							if (message.flagRepeat) {
-								if (interval < 60) {
-									interval = 60;
-								}
+							NSInteger interval = (NSInteger)(message.deliveryInterval);
+							if (interval < 60) {
+								interval = 60;
 							}
-							trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:interval repeats:message.flagRepeat];
-						}
-
-						NSString* _id = Apple::getNSStringFromString(getIdentifier(message), @"");
-						UNNotificationRequest* notification = [UNNotificationRequest requestWithIdentifier:_id content:content trigger:trigger];
-						[context->centerUN addNotificationRequest:notification withCompletionHandler:nil];
-
-						ret->m_identifier = _id;
-						return ret;
-					}
-					return sl_null;
-				}
-#endif
-
-#if defined(SLIB_PLATFORM_IS_MACOS)
-				static Ref<UserNotificationImpl> createNS(const UserNotificationMessage& message)
-				{
-					StaticContext* context = GetStaticContext();
-					if (!context) {
-						return sl_null;
-					}
-					Ref<UserNotificationImpl> ret = new UserNotificationImpl;
-					if (ret.isNotNull()) {
-						NSUserNotification* notification = [NSUserNotification new];
-
-						notification.identifier = Apple::getNSStringFromString(getIdentifier(message), @"");
-						if (message.title.isNotEmpty()) {
-							notification.title = Apple::getNSStringFromString(message.title);
-						}
-						if (message.content.isNotEmpty()) {
-							notification.informativeText = Apple::getNSStringFromString(message.content);
-						}
-						if (message.data.isNotUndefined()) {
-							notification.userInfo = @{@"data": Apple::getNSStringFromString(message.data.toJsonString())};
-						}
-
-						if (message.subTitle.isNotEmpty()) {
-							notification.subtitle = Apple::getNSStringFromString(message.subTitle);
-						}
-						notification.contentImage = GraphicsPlatform::getNSImage(message.contentImage);
-						if (message.flagSound) {
-							if (message.soundName.isNotEmpty()) {
-								notification.soundName = Apple::getNSStringFromString(message.soundName);
-							} else {
-								notification.soundName = NSUserNotificationDefaultSoundName;
-							}
+							comps.second = interval;
+							notification.deliveryRepeatInterval = comps;
 						} else {
-							notification.soundName = nil;
+							notification.deliveryDate = Apple::getNSDateFromTime(Time::now() + Time::withSecondsf(message.deliveryInterval));
 						}
-
-						notification.hasActionButton = message.flagActionButton;
-						notification.hasReplyButton = message.flagReplyButton;
-						if (message.actionButtonTitle.isNotEmpty()) {
-							notification.actionButtonTitle = Apple::getNSStringFromString(message.actionButtonTitle);
-						}
-						if (message.closeButtonTitle.isNotEmpty()) {
-							notification.otherButtonTitle = Apple::getNSStringFromString(message.closeButtonTitle);
-						}
-						if (message.additionalActions.isNotEmpty()) {
-							NSMutableArray* arr = [NSMutableArray new];
-							for (auto& pair : message.additionalActions) {
-								NSString* _id = Apple::getNSStringFromString(pair.key);
-								NSString* title = Apple::getNSStringFromString(pair.value);
-								NSUserNotificationAction* action = [NSUserNotificationAction actionWithIdentifier:_id title:title];
-								[arr addObject:action];
-							}
-							notification.additionalActions = arr;
-							@try {
-								[notification setValue:@(YES) forKey:@"_alwaysShowAlternateActionMenu"];
-							} @catch(NSException*) {
-							}
-						}
-						if (message.responsePlaceholder.isNotEmpty()) {
-							notification.responsePlaceholder = Apple::getNSStringFromString(message.responsePlaceholder);
-						}
-
-						if (message.deliveryTime.isNotZero()) {
-							notification.deliveryDate = Apple::getNSDateFromTime(message.deliveryTime);
-						}
-						if (message.deliveryInterval > 0.1) {
-							if (message.flagRepeat) {
-								NSDateComponents* comps = [NSDateComponents new];
-								NSInteger interval = (NSInteger)(message.deliveryInterval);
-								if (interval < 60) {
-									interval = 60;
-								}
-								comps.second = interval;
-								notification.deliveryRepeatInterval = comps;
-							} else {
-								notification.deliveryDate = Apple::getNSDateFromTime(Time::now() + Time::withSecondsf(message.deliveryInterval));
-							}
-						}
-
-						ret->m_object = notification;
-						[context->centerNS scheduleNotification:notification];
-
-						return ret;
 					}
-					return sl_null;
+
+					ret->m_object = notification;
+					[context->centerNS scheduleNotification:notification];
+
+					return ret;
 				}
+				return sl_null;
+			}
 #endif
 
-			public:
-				void cancelPending() override
-				{
-					StaticContext* context = GetStaticContext();
-					if (CHECK_UN_API) {
+		public:
+			void cancelPending() override
+			{
+				StaticContext* context = GetStaticContext();
+				if (CHECK_UN_API) {
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-						if (m_identifier != nil) {
-							[context->centerUN removePendingNotificationRequestsWithIdentifiers:@[m_identifier]];
-						}
-#endif
-					} else {
-#if defined(SLIB_PLATFORM_IS_MACOS)
-						if (m_object != nil) {
-							[context->centerNS removeScheduledNotification:m_object];
-						}
-#endif
+					if (m_identifier != nil) {
+						[context->centerUN removePendingNotificationRequestsWithIdentifiers:@[m_identifier]];
 					}
+#endif
+				} else {
+#if defined(SLIB_PLATFORM_IS_MACOS)
+					if (m_object != nil) {
+						[context->centerNS removeScheduledNotification:m_object];
+					}
+#endif
 				}
+			}
 
-				void removeFromDeliveredList() override
-				{
-					StaticContext* context = GetStaticContext();
-					if (CHECK_UN_API) {
+			void removeFromDeliveredList() override
+			{
+				StaticContext* context = GetStaticContext();
+				if (CHECK_UN_API) {
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-						if (m_identifier != nil) {
-							[context->centerUN removeDeliveredNotificationsWithIdentifiers:@[m_identifier]];
-						}
-#endif
-					} else {
-#if defined(SLIB_PLATFORM_IS_MACOS)
-						if (m_object != nil) {
-							[context->centerNS removeDeliveredNotification:m_object];
-						}
-#endif
+					if (m_identifier != nil) {
+						[context->centerUN removeDeliveredNotificationsWithIdentifiers:@[m_identifier]];
 					}
+#endif
+				} else {
+#if defined(SLIB_PLATFORM_IS_MACOS)
+					if (m_object != nil) {
+						[context->centerNS removeDeliveredNotification:m_object];
+					}
+#endif
 				}
+			}
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
-				static sl_bool onMessage(NSUserNotification* notification, sl_bool flagPresent)
-				{
-					StaticContext* context = GetStaticContext();
-					UserNotificationMessage message;
-					message.identifier = Apple::getStringFromNSString(notification.identifier);
-					message.id = message.identifier.parseUint32();
-					message.title = Apple::getStringFromNSString(notification.title);
-					message.content = Apple::getStringFromNSString(notification.informativeText);
-					message.data = Json::parse(Apple::getStringFromNSString(notification.userInfo[@"data"]));
-					message.action = Apple::getStringFromNSString(notification.additionalActivationAction.identifier);
-					message.response = Apple::getStringFromNSString(notification.response.string);
-					message.actualDeliveryTime = Apple::getTimeFromNSDate(notification.actualDeliveryDate);
-					if (flagPresent) {
-						message.flagRemove = sl_false;
-						dispatchPresentMessage(message);
-						return !(message.flagRemove);
-					} else {
-						message.flagRemove = sl_true;
-						dispatchClickMessage(message);
-						if (message.flagRemove) {
-							[context->centerNS removeDeliveredNotification:notification];
-						}
-						return sl_true;
+			static sl_bool onMessage(NSUserNotification* notification, sl_bool flagPresent)
+			{
+				StaticContext* context = GetStaticContext();
+				UserNotificationMessage message;
+				message.identifier = Apple::getStringFromNSString(notification.identifier);
+				message.id = message.identifier.parseUint32();
+				message.title = Apple::getStringFromNSString(notification.title);
+				message.content = Apple::getStringFromNSString(notification.informativeText);
+				message.data = Json::parse(Apple::getStringFromNSString(notification.userInfo[@"data"]));
+				message.action = Apple::getStringFromNSString(notification.additionalActivationAction.identifier);
+				message.response = Apple::getStringFromNSString(notification.response.string);
+				message.actualDeliveryTime = Apple::getTimeFromNSDate(notification.actualDeliveryDate);
+				if (flagPresent) {
+					message.flagRemove = sl_false;
+					dispatchPresentMessage(message);
+					return !(message.flagRemove);
+				} else {
+					message.flagRemove = sl_true;
+					dispatchClickMessage(message);
+					if (message.flagRemove) {
+						[context->centerNS removeDeliveredNotification:notification];
 					}
+					return sl_true;
 				}
+			}
 #endif
 
 #if defined(SUPPORT_USER_NOTIFICATIONS_FRAMEWORK)
-				DEFINE_UN_API
-				static sl_bool onMessage(UNNotification* notification, NSString* action, NSString* input, sl_bool flagPresent)
-				{
-					UNNotificationRequest* request = notification.request;
-					UNNotificationContent* content = request.content;
-					StaticContext* context = GetStaticContext();
-					UserNotificationMessage message;
-					message.identifier = Apple::getStringFromNSString(request.identifier);
-					message.id = message.identifier.parseUint32();
-					message.title = Apple::getStringFromNSString(content.title);
-					message.content = Apple::getStringFromNSString(content.body);
-					message.data = Json::parse(Apple::getStringFromNSString(content.userInfo[@"data"]));
-					message.action = Apple::getStringFromNSString(action);
-					message.response = Apple::getStringFromNSString(input);
-					message.actualDeliveryTime = Apple::getTimeFromNSDate(notification.date);
-					if (flagPresent) {
-						message.flagRemove = sl_false;
-						dispatchPresentMessage(message);
-						return !(message.flagRemove);
-					} else {
-						message.flagRemove = sl_true;
-						dispatchClickMessage(message);
-						if (message.flagRemove) {
-							[context->centerUN removeDeliveredNotificationsWithIdentifiers:@[request.identifier]];
-						}
-						return sl_true;
+			DEFINE_UN_API
+			static sl_bool onMessage(UNNotification* notification, NSString* action, NSString* input, sl_bool flagPresent)
+			{
+				UNNotificationRequest* request = notification.request;
+				UNNotificationContent* content = request.content;
+				StaticContext* context = GetStaticContext();
+				UserNotificationMessage message;
+				message.identifier = Apple::getStringFromNSString(request.identifier);
+				message.id = message.identifier.parseUint32();
+				message.title = Apple::getStringFromNSString(content.title);
+				message.content = Apple::getStringFromNSString(content.body);
+				message.data = Json::parse(Apple::getStringFromNSString(content.userInfo[@"data"]));
+				message.action = Apple::getStringFromNSString(action);
+				message.response = Apple::getStringFromNSString(input);
+				message.actualDeliveryTime = Apple::getTimeFromNSDate(notification.date);
+				if (flagPresent) {
+					message.flagRemove = sl_false;
+					dispatchPresentMessage(message);
+					return !(message.flagRemove);
+				} else {
+					message.flagRemove = sl_true;
+					dispatchClickMessage(message);
+					if (message.flagRemove) {
+						[context->centerUN removeDeliveredNotificationsWithIdentifiers:@[request.identifier]];
 					}
+					return sl_true;
 				}
+			}
 
-				DEFINE_UN_API
-				static void onClickMessage(UNNotificationResponse* response)
-				{
-					NSString* input = nil;
-					if ([response isKindOfClass:[UNTextInputNotificationResponse class]]) {
-						input = ((UNTextInputNotificationResponse*)response).userText;
-					}
-					onMessage(response.notification, response.actionIdentifier, input, sl_false);
+			DEFINE_UN_API
+			static void onClickMessage(UNNotificationResponse* response)
+			{
+				NSString* input = nil;
+				if ([response isKindOfClass:[UNTextInputNotificationResponse class]]) {
+					input = ((UNTextInputNotificationResponse*)response).userText;
 				}
+				onMessage(response.notification, response.actionIdentifier, input, sl_false);
+			}
 
-				DEFINE_UN_API
-				static sl_bool onPresentMessage(UNNotification* notification)
-				{
-					return onMessage(notification, nil, nil, sl_true);
-				}
+			DEFINE_UN_API
+			static sl_bool onPresentMessage(UNNotification* notification)
+			{
+				return onMessage(notification, nil, nil, sl_true);
+			}
 #endif
-			};
+		};
 
-		}
 	}
-
-	using namespace priv::ui_notification_apple;
 
 	void UserNotification::startInternal()
 	{
@@ -638,7 +628,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::ui_notification_apple;
 
 #if defined(SLIB_PLATFORM_IS_MACOS)
 

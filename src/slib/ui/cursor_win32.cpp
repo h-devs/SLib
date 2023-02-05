@@ -31,52 +31,46 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace cursor
+	namespace {
+
+		class NativeCursorImpl : public Cursor
 		{
+		public:
+			HCURSOR m_hCursor;
+			sl_bool m_flagDestroyOnRelease;
 
-			class NativeCursorImpl : public Cursor
+		public:
+			NativeCursorImpl()
 			{
-			public:
-				HCURSOR m_hCursor;
-				sl_bool m_flagDestroyOnRelease;
+			}
 
-			public:
-				NativeCursorImpl()
-				{
+			~NativeCursorImpl()
+			{
+				if (m_flagDestroyOnRelease) {
+					DestroyCursor(m_hCursor);
 				}
+			}
 
-				~NativeCursorImpl()
-				{
-					if (m_flagDestroyOnRelease) {
-						DestroyCursor(m_hCursor);
+		public:
+			static Ref<NativeCursorImpl> create(HCURSOR hCursor, sl_bool flagFreeOnDestroy)
+			{
+				Ref<NativeCursorImpl> ret;
+				if (hCursor) {
+					ret = new NativeCursorImpl;
+					if (ret.isNotNull()) {
+						ret->m_hCursor = hCursor;
+						ret->m_flagDestroyOnRelease = flagFreeOnDestroy;
+						return ret;
+					}
+					if (flagFreeOnDestroy) {
+						DestroyCursor(hCursor);
 					}
 				}
+				return ret;
+			}
+		};
 
-			public:
-				static Ref<NativeCursorImpl> create(HCURSOR hCursor, sl_bool flagFreeOnDestroy)
-				{
-					Ref<NativeCursorImpl> ret;
-					if (hCursor) {
-						ret = new NativeCursorImpl;
-						if (ret.isNotNull()) {
-							ret->m_hCursor = hCursor;
-							ret->m_flagDestroyOnRelease = flagFreeOnDestroy;
-							return ret;
-						}
-						if (flagFreeOnDestroy) {
-							DestroyCursor(hCursor);
-						}
-					}
-					return ret;
-				}
-			};
-
-		}
 	}
-
-	using namespace priv::cursor;
 
 	Ref<Cursor> UIPlatform::createCursor(HCURSOR hCursor, sl_bool flagDestroyOnRelease)
 	{

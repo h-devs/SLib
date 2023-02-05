@@ -31,34 +31,26 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace cursor
+	namespace {
+		class NativeCursorImpl : public Cursor
 		{
+		public:
+			NSCursor* m_cursor;
 
-			class NativeCursorImpl : public Cursor
+		public:
+			static Ref<NativeCursorImpl> create(NSCursor* cursor)
 			{
-			public:
-				NSCursor* m_cursor;
-
-			public:
-				static Ref<NativeCursorImpl> create(NSCursor* cursor)
-				{
-					Ref<NativeCursorImpl> ret;
-					if (cursor != nil) {
-						ret = new NativeCursorImpl;
-						if (ret.isNotNull()) {
-							ret->m_cursor = cursor;
-						}
+				Ref<NativeCursorImpl> ret;
+				if (cursor != nil) {
+					ret = new NativeCursorImpl;
+					if (ret.isNotNull()) {
+						ret->m_cursor = cursor;
 					}
-					return ret;
 				}
-			};
-
-		}
+				return ret;
+			}
+		};
 	}
-
-	using namespace priv::cursor;
 
 	Ref<Cursor> UIPlatform::createCursor(NSCursor* cursor)
 	{

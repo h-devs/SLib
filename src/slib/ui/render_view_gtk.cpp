@@ -33,98 +33,92 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace render_view
+	namespace {
+
+		class RenderViewHelper : public RenderView
 		{
+		};
 
-			class RenderViewHelper : public RenderView
+		class RenderViewInstance : public GTK_ViewInstance, public IRenderViewInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			AtomicRef<Renderer> m_renderer;
+			RenderEngine* m_pLastEngine;
+
+		public:
+			RenderViewInstance()
 			{
-			};
+				m_pLastEngine = sl_null;
+			}
 
-			class RenderViewInstance : public GTK_ViewInstance, public IRenderViewInstance
+			~RenderViewInstance()
 			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				AtomicRef<Renderer> m_renderer;
-				RenderEngine* m_pLastEngine;
-
-			public:
-				RenderViewInstance()
-				{
-					m_pLastEngine = sl_null;
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->release();
 				}
+			}
 
-				~RenderViewInstance()
-				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->release();
+		public:
+			void setRedrawMode(RenderView* view, RedrawMode mode) override
+			{
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->setRenderingContinuously(mode == RedrawMode::Continuously);
+				}
+			}
+
+			void requestRender(RenderView* view) override
+			{
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->requestRender();
+				}
+			}
+
+			void setRenderer(const Ref<Renderer>& renderer, RedrawMode redrawMode)
+			{
+				m_renderer = renderer;
+				if (renderer.isNotNull()) {
+					renderer->setRenderingContinuously(redrawMode == RedrawMode::Continuously);
+				}
+			}
+
+			void onExposeEvent(GdkEventExpose*) override
+			{
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->requestRender();
+				}
+			}
+
+			void onDrawEvent(cairo_t*) override
+			{
+				Ref<Renderer> renderer = m_renderer;
+				if (renderer.isNotNull()) {
+					renderer->requestRender();
+				}
+			}
+
+			void onFrame(RenderEngine* engine)
+			{
+				Ref<RenderViewHelper> helper = CastRef<RenderViewHelper>(getView());
+				if (helper.isNotNull()) {
+					if (m_pLastEngine != engine) {
+						helper->dispatchCreateEngine(engine);
 					}
+					helper->dispatchFrame(engine);
+					m_pLastEngine = engine;
 				}
+			}
 
-			public:
-				void setRedrawMode(RenderView* view, RedrawMode mode) override
-				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->setRenderingContinuously(mode == RedrawMode::Continuously);
-					}
-				}
+		};
 
-				void requestRender(RenderView* view) override
-				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->requestRender();
-					}
-				}
+		SLIB_DEFINE_OBJECT(RenderViewInstance, GTK_ViewInstance)
 
-				void setRenderer(const Ref<Renderer>& renderer, RedrawMode redrawMode)
-				{
-					m_renderer = renderer;
-					if (renderer.isNotNull()) {
-						renderer->setRenderingContinuously(redrawMode == RedrawMode::Continuously);
-					}
-				}
-
-				void onExposeEvent(GdkEventExpose*) override
-				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->requestRender();
-					}
-				}
-
-				void onDrawEvent(cairo_t*) override
-				{
-					Ref<Renderer> renderer = m_renderer;
-					if (renderer.isNotNull()) {
-						renderer->requestRender();
-					}
-				}
-
-				void onFrame(RenderEngine* engine)
-				{
-					Ref<RenderViewHelper> helper = CastRef<RenderViewHelper>(getView());
-					if (helper.isNotNull()) {
-						if (m_pLastEngine != engine) {
-							helper->dispatchCreateEngine(engine);
-						}
-						helper->dispatchFrame(engine);
-						m_pLastEngine = engine;
-					}
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(RenderViewInstance, GTK_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::render_view;
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* _parent)
 	{

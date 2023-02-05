@@ -33,9 +33,9 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace alert_dialog
+	namespace {
+
+		namespace alert
 		{
 
 			class RunOnUiThread
@@ -83,21 +83,21 @@ namespace slib
 
 			};
 
-			void ShowOnWorkingThread(AlertDialog* alert, RunByShowOnWorkingThread* m)
+			static void ShowOnWorkingThread(AlertDialog* alert, RunByShowOnWorkingThread* m)
 			{
 				if (!(alert->_show())) {
 					m->onComplete(DialogResult::Error);
 				}
 			}
 
-			void ShowOnUiThread(const Ref<AlertDialog>& alert)
+			static void ShowOnUiThread(const Ref<AlertDialog>& alert)
 			{
 				if (!(alert->_show())) {
 					alert->_onResult(DialogResult::Error);
 				}
 			}
 
-			void ShowOnUiThreadByRun(const Ref<AlertDialog>& alert)
+			static void ShowOnUiThreadByRun(const Ref<AlertDialog>& alert)
 			{
 				DialogResult result = alert->_run();
 				alert->_onResult(result);
@@ -122,7 +122,7 @@ namespace slib
 		}
 		Ref<Event> ev = Event::create(sl_false);
 		if (ev.isNotNull()) {
-			priv::alert_dialog::RunOnUiThread m;
+			alert::RunOnUiThread m;
 			m.alert = this;
 			m.event = Move(ev);
 			UI::dispatchToUiThread(SLIB_FUNCTION_MEMBER(&m, run));
@@ -139,7 +139,7 @@ namespace slib
 			return DialogResult::Error;
 		}
 		if (UI::isUiThread()) {
-			priv::alert_dialog::RunByShowOnUiThread m;
+			alert::RunByShowOnUiThread m;
 			alert->onComplete = SLIB_FUNCTION_MEMBER(&m, onComplete);
 #if defined(SLIB_UI_IS_IOS)
 			if (alert->_showMobilePopup()) {
@@ -155,10 +155,10 @@ namespace slib
 		} else {
 			Ref<Event> ev = Event::create(sl_false);
 			if (ev.isNotNull()) {
-				priv::alert_dialog::RunByShowOnWorkingThread m;
+				alert::RunByShowOnWorkingThread m;
 				m.event = Move(ev);
 				alert->onComplete = SLIB_FUNCTION_MEMBER(&m, onComplete);
-				UI::dispatchToUiThread(Function<void()>::bind(&(priv::alert_dialog::ShowOnWorkingThread), alert.get(), &m));
+				UI::dispatchToUiThread(Function<void()>::bind(&(alert::ShowOnWorkingThread), alert.get(), &m));
 				m.event->wait();
 				return m.result;
 			}
@@ -171,9 +171,9 @@ namespace slib
 		Ref<AlertDialog> alert = _getReferable();
 		if (alert.isNotNull()) {
 			if (UI::isUiThread()) {
-				priv::alert_dialog::ShowOnUiThread(alert);
+				alert::ShowOnUiThread(alert);
 			} else {
-				UI::dispatchToUiThread(Function<void()>::bind(&(priv::alert_dialog::ShowOnUiThread), alert));
+				UI::dispatchToUiThread(Function<void()>::bind(&(alert::ShowOnUiThread), alert));
 			}
 		}
 	}
@@ -182,7 +182,7 @@ namespace slib
 	{
 		Ref<AlertDialog> alert = _getReferable();
 		if (alert.isNotNull()) {
-			UI::dispatchToUiThread(Function<void()>::bind(&(priv::alert_dialog::ShowOnUiThreadByRun), alert));
+			UI::dispatchToUiThread(Function<void()>::bind(&(alert::ShowOnUiThreadByRun), alert));
 		}
 	}
 
@@ -318,9 +318,9 @@ namespace slib
 	}
 
 
-	namespace priv
-	{
-		namespace file_dialog
+	namespace {
+
+		namespace file
 		{
 
 			class RunOnUiThread
@@ -376,7 +376,7 @@ namespace slib
 
 			};
 
-			void ShowOnWorkingThread(FileDialog* dialog, RunByShowOnWorkingThread* m)
+			static void ShowOnWorkingThread(FileDialog* dialog, RunByShowOnWorkingThread* m)
 			{
 				if (!(dialog->_show())) {
 					dialog->result = DialogResult::Error;
@@ -384,14 +384,14 @@ namespace slib
 				}
 			}
 
-			void ShowOnUiThread(const Ref<FileDialog>& dialog)
+			static void ShowOnUiThread(const Ref<FileDialog>& dialog)
 			{
 				if (!(dialog->_show())) {
 					dialog->_onResult(DialogResult::Error);
 				}
 			}
 
-			void ShowOnUiThreadByRun(const Ref<FileDialog>& dialog)
+			static void ShowOnUiThreadByRun(const Ref<FileDialog>& dialog)
 			{
 				DialogResult result = dialog->_run();
 				dialog->_onResult(result);
@@ -474,7 +474,7 @@ namespace slib
 		}
 		Ref<Event> ev = Event::create(sl_false);
 		if (ev.isNotNull()) {
-			priv::file_dialog::RunOnUiThread m;
+			file::RunOnUiThread m;
 			m.dlg = this;
 			m.event = Move(ev);
 			UI::dispatchToUiThread(SLIB_FUNCTION_MEMBER(&m, run));
@@ -491,7 +491,7 @@ namespace slib
 			return DialogResult::Error;
 		}
 		if (UI::isUiThread()) {
-			priv::file_dialog::RunByShowOnUiThread m;
+			file::RunByShowOnUiThread m;
 			dialog->onComplete = SLIB_FUNCTION_MEMBER(&m, onComplete);
 			if (dialog->_show()) {
 				UI::runLoop();
@@ -503,10 +503,10 @@ namespace slib
 		} else {
 			Ref<Event> ev = Event::create(sl_false);
 			if (ev.isNotNull()) {
-				priv::file_dialog::RunByShowOnWorkingThread m;
+				file::RunByShowOnWorkingThread m;
 				m.event = Move(ev);
 				dialog->onComplete = SLIB_FUNCTION_MEMBER(&m, onComplete);
-				UI::dispatchToUiThread(Function<void()>::bind(&(priv::file_dialog::ShowOnWorkingThread), dialog.get(), &m));
+				UI::dispatchToUiThread(Function<void()>::bind(&(file::ShowOnWorkingThread), dialog.get(), &m));
 				m.event->wait();
 				result = m.result;
 				selectedPath = m.path;
@@ -522,9 +522,9 @@ namespace slib
 		Ref<FileDialog> dialog = _getReferable();
 		if (dialog.isNotNull()) {
 			if (UI::isUiThread()) {
-				priv::file_dialog::ShowOnUiThread(dialog);
+				file::ShowOnUiThread(dialog);
 			} else {
-				UI::dispatchToUiThread(Function<void()>::bind(&(priv::file_dialog::ShowOnUiThread), dialog));
+				UI::dispatchToUiThread(Function<void()>::bind(&(file::ShowOnUiThread), dialog));
 			}
 		}
 	}
@@ -533,7 +533,7 @@ namespace slib
 	{
 		Ref<FileDialog> dialog = _getReferable();
 		if (dialog.isNotNull()) {
-			UI::dispatchToUiThread(Function<void()>::bind(&(priv::file_dialog::ShowOnUiThreadByRun), dialog));
+			UI::dispatchToUiThread(Function<void()>::bind(&(file::ShowOnUiThreadByRun), dialog));
 		}
 	}
 

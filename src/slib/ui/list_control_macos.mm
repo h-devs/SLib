@@ -29,27 +29,22 @@
 #include "view_macos.h"
 
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace list_control
-		{
-			class ListControlInstance;
-		}
+namespace slib {
+	namespace {
+		class ListControlInstance;
 	}
 }
 
 @interface SLIBListControlHandle_TableView : NSTableView
 {
-	@public slib::WeakRef<slib::priv::list_control::ListControlInstance> m_viewInstance;
+	@public slib::WeakRef<slib::ListControlInstance> m_viewInstance;
 }
 @end
 
 @interface SLIBListControlHandle : NSScrollView<NSTableViewDataSource, NSTableViewDelegate>
 {
 	@public SLIBListControlHandle_TableView* table;
-	@public slib::WeakRef<slib::priv::list_control::ListControlInstance> m_viewInstance;
+	@public slib::WeakRef<slib::ListControlInstance> m_viewInstance;
 	@public slib::CList<NSTableColumn*> m_columns;
 	@public NSFont* m_font;
 }
@@ -58,251 +53,245 @@ namespace slib
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace list_control
-		{
+	namespace {
 
-			static NSTextAlignment TranslateAlignment(Alignment _align)
+		static NSTextAlignment TranslateAlignment(Alignment _align)
+		{
+			Alignment align = _align & Alignment::HorizontalMask;
+			if (align == Alignment::Left) {
+				return NSLeftTextAlignment;
+			} else if (align == Alignment::Right) {
+				return NSRightTextAlignment;
+			} else {
+				return NSCenterTextAlignment;
+			}
+		}
+
+		class ListControlHelper : public ListControl
+		{
+		public:
+			void applyColumnCount(SLIBListControlHandle* tv)
 			{
-				Alignment align = _align & Alignment::HorizontalMask;
-				if (align == Alignment::Left) {
-					return NSLeftTextAlignment;
-				} else if (align == Alignment::Right) {
-					return NSRightTextAlignment;
+				ObjectLocker lock(this);
+				CList<NSTableColumn*>& _columns = tv->m_columns;
+				sl_uint32 nOrig = (sl_uint32)(_columns.getCount());
+				sl_uint32 nNew = (sl_uint32)(m_columns.getCount());
+				if (nOrig == nNew) {
+					return;
+				}
+				if (nOrig > nNew) {
+					ListLocker<NSTableColumn*> columns(_columns);
+					for (sl_uint32 i = nNew; i < columns.count; i++) {
+						[tv->table removeTableColumn:(columns[i])];
+					}
+					_columns.setCount(nNew);
 				} else {
-					return NSCenterTextAlignment;
+					_columns.setCount(nNew);
+					ListLocker<NSTableColumn*> columns(_columns);
+					for (sl_uint32 i = nOrig; i < columns.count; i++) {
+						NSTableColumn* column = [[NSTableColumn alloc] initWithIdentifier:[NSString stringWithFormat:@"%d",i]];
+						[tv->table addTableColumn:column];
+						columns[i] = column;
+					}
 				}
 			}
 
-			class ListControlHelper : public ListControl
+			void copyColumns(SLIBListControlHandle* tv)
 			{
-			public:
-				void applyColumnCount(SLIBListControlHandle* tv)
-				{
-					ObjectLocker lock(this);
-					CList<NSTableColumn*>& _columns = tv->m_columns;
-					sl_uint32 nOrig = (sl_uint32)(_columns.getCount());
-					sl_uint32 nNew = (sl_uint32)(m_columns.getCount());
-					if (nOrig == nNew) {
-						return;
-					}
-					if (nOrig > nNew) {
-						ListLocker<NSTableColumn*> columns(_columns);
-						for (sl_uint32 i = nNew; i < columns.count; i++) {
-							[tv->table removeTableColumn:(columns[i])];
-						}
-						_columns.setCount(nNew);
-					} else {
-						_columns.setCount(nNew);
-						ListLocker<NSTableColumn*> columns(_columns);
-						for (sl_uint32 i = nOrig; i < columns.count; i++) {
-							NSTableColumn* column = [[NSTableColumn alloc] initWithIdentifier:[NSString stringWithFormat:@"%d",i]];
-							[tv->table addTableColumn:column];
-							columns[i] = column;
-						}
+				ObjectLocker lock(this);
+				ListLocker<ListControlColumn> columns(m_columns);
+				applyColumnCount(tv);
+				for (sl_uint32 i = 0; i < columns.count; i++) {
+					NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
+					if (tc != nil) {
+						[tc setTitle:(Apple::getNSStringFromString(columns[i].title))];
+						[tc setWidth:(CGFloat)(columns[i].width)];
+						NSTableHeaderCell* headerCell = [tc headerCell];
+						NSCell* dataCell = [tc dataCell];
+						[headerCell setAlignment:TranslateAlignment(columns[i].headerAlign)];
+						[dataCell setAlignment:TranslateAlignment(columns[i].align)];
+						[dataCell setEditable:FALSE];
 					}
 				}
+			}
 
-				void copyColumns(SLIBListControlHandle* tv)
-				{
-					ObjectLocker lock(this);
-					ListLocker<ListControlColumn> columns(m_columns);
-					applyColumnCount(tv);
-					for (sl_uint32 i = 0; i < columns.count; i++) {
-						NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
-						if (tc != nil) {
-							[tc setTitle:(Apple::getNSStringFromString(columns[i].title))];
-							[tc setWidth:(CGFloat)(columns[i].width)];
-							NSTableHeaderCell* headerCell = [tc headerCell];
-							NSCell* dataCell = [tc dataCell];
-							[headerCell setAlignment:TranslateAlignment(columns[i].headerAlign)];
-							[dataCell setAlignment:TranslateAlignment(columns[i].align)];
-							[dataCell setEditable:FALSE];
-						}
-					}
-				}
-
-				void applyFont(SLIBListControlHandle* tv, const Ref<Font>& font)
-				{
-					if (font.isNull()) {
-						return;
-					}
-					NSFont* hFont = GraphicsPlatform::getNativeFont(font.get());
-					if (hFont == nil) {
-						return;
-					}
-					tv->m_font = hFont;
-					ListLocker<ListControlColumn> columns(m_columns);
-					for (sl_uint32 i = 0; i < columns.count; i++) {
-						NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
-						if (tc != nil) {
-							NSCell* dataCell = [tc dataCell];
-							[dataCell setFont:hFont];
-						}
-					}
-					[tv->table setRowHeight:([hFont pointSize] - [hFont descender])];
-				}
-
-			};
-
-			class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
+			void applyFont(SLIBListControlHandle* tv, const Ref<Font>& font)
 			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				SLIBListControlHandle* getHandle()
-				{
-					return (SLIBListControlHandle*)m_handle;
+				if (font.isNull()) {
+					return;
 				}
-
-				Ref<ListControlHelper> getHelper()
-				{
-					return CastRef<ListControlHelper>(getView());
+				NSFont* hFont = GraphicsPlatform::getNativeFont(font.get());
+				if (hFont == nil) {
+					return;
 				}
+				tv->m_font = hFont;
+				ListLocker<ListControlColumn> columns(m_columns);
+				for (sl_uint32 i = 0; i < columns.count; i++) {
+					NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
+					if (tc != nil) {
+						NSCell* dataCell = [tc dataCell];
+						[dataCell setFont:hFont];
+					}
+				}
+				[tv->table setRowHeight:([hFont pointSize] - [hFont descender])];
+			}
 
-				void initialize(View* _view) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					ListControlHelper* view = (ListControlHelper*)_view;
+		};
 
-					[handle setHasVerticalScroller:TRUE];
-					[handle setHasHorizontalScroller:TRUE];
-					[handle setBorderType:NSBezelBorder];
-					handle->table->m_viewInstance = this;
-					view->copyColumns(handle);
-					view->applyFont(handle, view->getFont());
+		class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			SLIBListControlHandle* getHandle()
+			{
+				return (SLIBListControlHandle*)m_handle;
+			}
+
+			Ref<ListControlHelper> getHelper()
+			{
+				return CastRef<ListControlHelper>(getView());
+			}
+
+			void initialize(View* _view) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				ListControlHelper* view = (ListControlHelper*)_view;
+
+				[handle setHasVerticalScroller:TRUE];
+				[handle setHasHorizontalScroller:TRUE];
+				[handle setBorderType:NSBezelBorder];
+				handle->table->m_viewInstance = this;
+				view->copyColumns(handle);
+				view->applyFont(handle, view->getFont());
+				[handle->table reloadData];
+			}
+
+			void refreshColumnCount(ListControl* view) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					static_cast<ListControlHelper*>(view)->applyColumnCount(handle);
 					[handle->table reloadData];
 				}
+			}
 
-				void refreshColumnCount(ListControl* view) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						static_cast<ListControlHelper*>(view)->applyColumnCount(handle);
-						[handle->table reloadData];
+			void refreshRowCount(ListControl* view) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					[handle->table reloadData];
+				}
+			}
+
+			void setHeaderText(ListControl* view, sl_uint32 iCol, const String& text) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
+					if (tc != nil) {
+						[tc setTitle:Apple::getNSStringFromString(text)];
 					}
 				}
+			}
 
-				void refreshRowCount(ListControl* view) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						[handle->table reloadData];
+			void setColumnWidth(ListControl* view, sl_uint32 iCol, sl_ui_len width) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
+					if (tc != nil) {
+						[tc setWidth:(CGFloat)width];
 					}
 				}
+			}
 
-				void setHeaderText(ListControl* view, sl_uint32 iCol, const String& text) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
-						if (tc != nil) {
-							[tc setTitle:Apple::getNSStringFromString(text)];
+			void setHeaderAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
+					if (tc != nil) {
+						[[tc headerCell] setAlignment:TranslateAlignment(align)];
+					}
+				}
+			}
+
+			void setColumnAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
+					if (tc != nil) {
+						[[tc dataCell] setAlignment:TranslateAlignment(align)];
+					}
+				}
+			}
+
+			sl_bool getSelectedRow(ListControl* view, sl_int32& _out) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					_out = (sl_int32)([handle->table selectedRow]);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void setFont(View* view, const Ref<Font>& font) override
+			{
+				SLIBListControlHandle* handle = getHandle();
+				if (handle != nil) {
+					static_cast<ListControlHelper*>(view)->applyFont(handle, font);
+					[handle->table reloadData];
+				}
+			}
+
+			void onMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
+			{
+				Ref<ListControlHelper> helper = getHelper();
+				if (helper.isNotNull()) {
+					NSInteger indexRowBefore = [tv selectedRow];
+					NSPoint ptWindow = [ev locationInWindow];
+					NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
+					NSInteger indexRow = [tv rowAtPoint:ptView];
+					if (indexRow >= 0) {
+						if (indexRow == indexRowBefore) {
+							// don't call event callback when it is new selection because it is already called by default
+							helper->dispatchSelectRow((sl_uint32)(indexRow));
+						}
+						sl_ui_posf x = (sl_ui_posf)(ptView.x);
+						sl_ui_posf y = (sl_ui_posf)(ptView.y);
+						NSInteger clicks = [ev clickCount];
+						if (clicks == 1) {
+							helper->dispatchClickRow((sl_uint32)(indexRow), UIPointf(x, y));
+						} else if (clicks == 2) {
+							helper->dispatchDoubleClickRow((sl_uint32)(indexRow), UIPointf(x, y));
 						}
 					}
 				}
+			}
 
-				void setColumnWidth(ListControl* view, sl_uint32 iCol, sl_ui_len width) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
-						if (tc != nil) {
-							[tc setWidth:(CGFloat)width];
-						}
+			void onRightMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
+			{
+				Ref<ListControlHelper> helper = getHelper();
+				if (helper.isNotNull()) {
+					NSPoint ptWindow = [ev locationInWindow];
+					NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
+					NSInteger indexRow = [tv rowAtPoint:ptView];
+					if (indexRow >= 0) {
+						sl_ui_posf x = (sl_ui_posf)(ptView.x);
+						sl_ui_posf y = (sl_ui_posf)(ptView.y);
+						helper->dispatchRightButtonClickRow((sl_uint32)(indexRow), UIPointf(x, y));
 					}
 				}
+			}
 
-				void setHeaderAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
-						if (tc != nil) {
-							[[tc headerCell] setAlignment:TranslateAlignment(align)];
-						}
-					}
-				}
+		};
 
-				void setColumnAlignment(ListControl* view, sl_uint32 iCol, const Alignment& align) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						NSTableColumn* tc = handle->m_columns.getValueAt(iCol, nil);
-						if (tc != nil) {
-							[[tc dataCell] setAlignment:TranslateAlignment(align)];
-						}
-					}
-				}
+		SLIB_DEFINE_OBJECT(ListControlInstance, macOS_ViewInstance)
 
-				sl_bool getSelectedRow(ListControl* view, sl_int32& _out) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						_out = (sl_int32)([handle->table selectedRow]);
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void setFont(View* view, const Ref<Font>& font) override
-				{
-					SLIBListControlHandle* handle = getHandle();
-					if (handle != nil) {
-						static_cast<ListControlHelper*>(view)->applyFont(handle, font);
-						[handle->table reloadData];
-					}
-				}
-
-				void onMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
-				{
-					Ref<ListControlHelper> helper = getHelper();
-					if (helper.isNotNull()) {
-						NSInteger indexRowBefore = [tv selectedRow];
-						NSPoint ptWindow = [ev locationInWindow];
-						NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
-						NSInteger indexRow = [tv rowAtPoint:ptView];
-						if (indexRow >= 0) {
-							if (indexRow == indexRowBefore) {
-								// don't call event callback when it is new selection because it is already called by default
-								helper->dispatchSelectRow((sl_uint32)(indexRow));
-							}
-							sl_ui_posf x = (sl_ui_posf)(ptView.x);
-							sl_ui_posf y = (sl_ui_posf)(ptView.y);
-							NSInteger clicks = [ev clickCount];
-							if (clicks == 1) {
-								helper->dispatchClickRow((sl_uint32)(indexRow), UIPointf(x, y));
-							} else if (clicks == 2) {
-								helper->dispatchDoubleClickRow((sl_uint32)(indexRow), UIPointf(x, y));
-							}
-						}
-					}
-				}
-
-				void onRightMouseDown(SLIBListControlHandle_TableView* tv, NSEvent* ev)
-				{
-					Ref<ListControlHelper> helper = getHelper();
-					if (helper.isNotNull()) {
-						NSPoint ptWindow = [ev locationInWindow];
-						NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
-						NSInteger indexRow = [tv rowAtPoint:ptView];
-						if (indexRow >= 0) {
-							sl_ui_posf x = (sl_ui_posf)(ptView.x);
-							sl_ui_posf y = (sl_ui_posf)(ptView.y);
-							helper->dispatchRightButtonClickRow((sl_uint32)(indexRow), UIPointf(x, y));
-						}
-					}
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(ListControlInstance, macOS_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::list_control;
 
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)
 	{
@@ -317,7 +306,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::list_control;
 
 @implementation SLIBListControlHandle
 

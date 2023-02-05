@@ -126,24 +126,20 @@ namespace slib
 		return sl_false;
 	}
 
-	namespace priv
-	{
-		namespace menu
+	namespace {
+		class Separator : public MenuItem
 		{
-			class Separator : public MenuItem
+		public:
+			sl_bool isSeparator() const override
 			{
-			public:
-				sl_bool isSeparator() const override
-				{
-					return sl_true;
-				}
-			};
-		}
+				return sl_true;
+			}
+		};
 	}
 
 	Ref<MenuItem> MenuItem::createSeparator()
 	{
-		return new priv::menu::Separator;
+		return new Separator;
 	}
 
 	sl_bool MenuItem::processShortcutKey(const KeycodeAndModifiers& km)
@@ -344,177 +340,173 @@ namespace slib
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace menu
+	namespace {
+
+		class DrawnMenu;
+
+		class DrawnMenuItem : public MenuItem
 		{
+		public:
+			Ref<Button> m_button;
 
-			class DrawnMenu;
-
-			class DrawnMenuItem : public MenuItem
+		public:
+			void setText(const String& text) override
 			{
-			public:
-				Ref<Button> m_button;
+				m_button->setText(text);
+			}
 
-			public:
-				void setText(const String& text) override
-				{
-					m_button->setText(text);
-				}
-
-				void setEnabled(sl_bool flag) override
-				{
-					m_button->setEnabled(flag);
-				}
-
-				void setChecked(sl_bool flag) override
-				{
-					m_button->setCurrentCategory(flag ? 1 : 0);
-				}
-
-				void setIcon(const Ref<Drawable>& icon) override
-				{
-					m_button->setIcon(icon);
-				}
-
-				void setCheckedIcon(const Ref<Drawable>& icon) override
-				{
-					m_button->setIcon(icon, ButtonState::Default, 1);
-				}
-
-			};
-
-			class DrawnMenu : public Menu
+			void setEnabled(sl_bool flag) override
 			{
-			public:
-				Ref<ui::MenuPopup> m_view;
+				m_button->setEnabled(flag);
+			}
 
-			public:
-				static Ref<DrawnMenu> create()
-				{
-					Ref<ui::MenuPopup> view = new ui::MenuPopup;
-					if (view.isNotNull()) {
-						view->setOnTouchEvent([](View*, UIEvent* ev) {
-							ev->stopPropagation();
-						});
-						Ref<DrawnMenu> ret = new DrawnMenu();
-						if (ret.isNotNull()) {
-							ret->m_view = view;
-							return ret;
-						}
-					}
-					return sl_null;
-				}
+			void setChecked(sl_bool flag) override
+			{
+				m_button->setCurrentCategory(flag ? 1 : 0);
+			}
 
-				Ref<MenuItem> addMenuItem(const MenuItemParam& param) override
-				{
-					Ref<Button> button = new Button;
-					button->setWidthWrapping(UIUpdateMode::Init);
-					button->setHeightWrapping(UIUpdateMode::Init);
-					button->setFontSize(UIResource::dpToPixel(20), UIUpdateMode::Init);
-					button->setTextColor(Color::Black, ButtonState::Default, 0, UIUpdateMode::Init);
-					button->setText(param.text, UIUpdateMode::Init);
-					button->setPadding(UIResource::dpToPixel(4), UIUpdateMode::Init);
-					if (param.icon.isNotNull()) {
-						button->setIcon(param.icon, UIUpdateMode::Init);
-					}
-					if (param.checkedIcon.isNotNull()) {
-						button->setIcon(param.icon, ButtonState::Default, 1, UIUpdateMode::Init);
-					}
-					if (param.flagChecked) {
-						button->setCurrentCategory(1, UIUpdateMode::Init);
-					}
-					if (!(param.flagEnabled)) {
-						button->setEnabled(sl_false, UIUpdateMode::Init);
-					}
-					Ref<DrawnMenuItem> item = new DrawnMenuItem;
-					item->m_button = button;
-					item->setAction(param.action);
-					DrawnMenuItem* pItem = item.get();
-					button->setOnClick([pItem, this](View*) {
-						pItem->getAction()();
-						Ref<View> back = m_view->getParent();
-						if (back.isNotNull()) {
-							back->removeFromParent();
-						}
+			void setIcon(const Ref<Drawable>& icon) override
+			{
+				m_button->setIcon(icon);
+			}
+
+			void setCheckedIcon(const Ref<Drawable>& icon) override
+			{
+				m_button->setIcon(icon, ButtonState::Default, 1);
+			}
+
+		};
+
+		class DrawnMenu : public Menu
+		{
+		public:
+			Ref<ui::MenuPopup> m_view;
+
+		public:
+			static Ref<DrawnMenu> create()
+			{
+				Ref<ui::MenuPopup> view = new ui::MenuPopup;
+				if (view.isNotNull()) {
+					view->setOnTouchEvent([](View*, UIEvent* ev) {
+						ev->stopPropagation();
 					});
-					ObjectLocker lock(this);
-					m_view->container->addChild(button);
-					m_items.add(item);
-					return item;
-				}
-
-				Ref<MenuItem> insertMenuItem(sl_uint32 index, const MenuItemParam& param) override
-				{
-					return sl_null;
-				}
-
-				Ref<MenuItem> addSeparator() override
-				{
-					Ref<MenuItem> item = MenuItem::createSeparator();
-					Ref<View> border = new View;
-					border->setWidthFilling(1, UIUpdateMode::Init);
-					border->setHeight(UIResource::dpToPixel(1), UIUpdateMode::Init);
-					border->setBackgroundColor(Color::Gray, UIUpdateMode::Init);
-					ObjectLocker lock(this);
-					m_view->container->addChild(border);
-					m_items.add(item);
-					return item;
-				}
-
-				Ref<MenuItem> insertSeparator(sl_uint32 index) override
-				{
-					return sl_null;
-				}
-
-				void removeMenuItem(sl_uint32 index) override
-				{
-				}
-
-				void removeMenuItem(const Ref<MenuItem>& item) override
-				{
-				}
-
-				void show(sl_ui_pos x, sl_ui_pos y) override
-				{
-					if (!(UI::isUiThread())) {
-						UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, show, x, y));
-						return;
+					Ref<DrawnMenu> ret = new DrawnMenu();
+					if (ret.isNotNull()) {
+						ret->m_view = view;
+						return ret;
 					}
-					Ref<MobileApp> app = MobileApp::getApp();
-					if (app.isNotNull()) {
-						Ref<View> parent = app->getContentView();
-						if (parent.isNotNull()) {
-							Ref<ViewGroup> back = new ViewGroup;
-							back->setCreatingInstance(sl_true);
-							back->setWidthFilling(1, UIUpdateMode::Init);
-							back->setHeightFilling(1, UIUpdateMode::Init);
-							back->setOnTouchEvent([](View* view, UIEvent* ev) {
-								ev->stopPropagation();
-								view->removeFromParent();
-							});
-							m_view->forceUpdateLayout();
-							if (x > m_view->getLayoutWidth()) {
-								x = x - m_view->getLayoutWidth();
-							}
-							if (y > m_view->getLayoutHeight()) {
-								y = y - m_view->getLayoutHeight();
-							}
-							m_view->setLocation(x, y, UIUpdateMode::Init);
-							back->addChild(m_view, UIUpdateMode::Init);
-							parent->addChild(back);
+				}
+				return sl_null;
+			}
+
+			Ref<MenuItem> addMenuItem(const MenuItemParam& param) override
+			{
+				Ref<Button> button = new Button;
+				button->setWidthWrapping(UIUpdateMode::Init);
+				button->setHeightWrapping(UIUpdateMode::Init);
+				button->setFontSize(UIResource::dpToPixel(20), UIUpdateMode::Init);
+				button->setTextColor(Color::Black, ButtonState::Default, 0, UIUpdateMode::Init);
+				button->setText(param.text, UIUpdateMode::Init);
+				button->setPadding(UIResource::dpToPixel(4), UIUpdateMode::Init);
+				if (param.icon.isNotNull()) {
+					button->setIcon(param.icon, UIUpdateMode::Init);
+				}
+				if (param.checkedIcon.isNotNull()) {
+					button->setIcon(param.icon, ButtonState::Default, 1, UIUpdateMode::Init);
+				}
+				if (param.flagChecked) {
+					button->setCurrentCategory(1, UIUpdateMode::Init);
+				}
+				if (!(param.flagEnabled)) {
+					button->setEnabled(sl_false, UIUpdateMode::Init);
+				}
+				Ref<DrawnMenuItem> item = new DrawnMenuItem;
+				item->m_button = button;
+				item->setAction(param.action);
+				DrawnMenuItem* pItem = item.get();
+				button->setOnClick([pItem, this](View*) {
+					pItem->getAction()();
+					Ref<View> back = m_view->getParent();
+					if (back.isNotNull()) {
+						back->removeFromParent();
+					}
+				});
+				ObjectLocker lock(this);
+				m_view->container->addChild(button);
+				m_items.add(item);
+				return item;
+			}
+
+			Ref<MenuItem> insertMenuItem(sl_uint32 index, const MenuItemParam& param) override
+			{
+				return sl_null;
+			}
+
+			Ref<MenuItem> addSeparator() override
+			{
+				Ref<MenuItem> item = MenuItem::createSeparator();
+				Ref<View> border = new View;
+				border->setWidthFilling(1, UIUpdateMode::Init);
+				border->setHeight(UIResource::dpToPixel(1), UIUpdateMode::Init);
+				border->setBackgroundColor(Color::Gray, UIUpdateMode::Init);
+				ObjectLocker lock(this);
+				m_view->container->addChild(border);
+				m_items.add(item);
+				return item;
+			}
+
+			Ref<MenuItem> insertSeparator(sl_uint32 index) override
+			{
+				return sl_null;
+			}
+
+			void removeMenuItem(sl_uint32 index) override
+			{
+			}
+
+			void removeMenuItem(const Ref<MenuItem>& item) override
+			{
+			}
+
+			void show(sl_ui_pos x, sl_ui_pos y) override
+			{
+				if (!(UI::isUiThread())) {
+					UI::dispatchToUiThreadUrgently(SLIB_BIND_WEAKREF(void(), this, show, x, y));
+					return;
+				}
+				Ref<MobileApp> app = MobileApp::getApp();
+				if (app.isNotNull()) {
+					Ref<View> parent = app->getContentView();
+					if (parent.isNotNull()) {
+						Ref<ViewGroup> back = new ViewGroup;
+						back->setCreatingInstance(sl_true);
+						back->setWidthFilling(1, UIUpdateMode::Init);
+						back->setHeightFilling(1, UIUpdateMode::Init);
+						back->setOnTouchEvent([](View* view, UIEvent* ev) {
+							ev->stopPropagation();
+							view->removeFromParent();
+						});
+						m_view->forceUpdateLayout();
+						if (x > m_view->getLayoutWidth()) {
+							x = x - m_view->getLayoutWidth();
 						}
+						if (y > m_view->getLayoutHeight()) {
+							y = y - m_view->getLayoutHeight();
+						}
+						m_view->setLocation(x, y, UIUpdateMode::Init);
+						back->addChild(m_view, UIUpdateMode::Init);
+						parent->addChild(back);
 					}
 				}
+			}
 
-			};
+		};
 
-		}
 	}
 
 	Ref<Menu> Menu::create(sl_bool flagPopup)
 	{
-		return Ref<Menu>::from(priv::menu::DrawnMenu::create());
+		return Ref<Menu>::from(DrawnMenu::create());
 	}
 
 }

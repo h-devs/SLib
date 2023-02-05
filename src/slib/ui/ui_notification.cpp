@@ -28,93 +28,12 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_notification
-		{
-
-			class StaticContext
-			{
-			public:
-				Mutex lock;
-
-				sl_bool flagStarted;
-
-				AtomicFunction<void(UserNotificationMessage&)> onClickMessage;
-				AtomicFunction<void(UserNotificationMessage&)> onPresentMessage;
-
-				List<UserNotificationMessage> messagesClicked;
-				List<UserNotificationMessage> messagesPresented;
-
-			public:
-				StaticContext()
-				{
-					flagStarted = sl_false;
-				}
-
-			public:
-				void dispatchClickMessage(UserNotificationMessage& message)
-				{
-					MutexLocker locker(&lock);
-					if (flagStarted) {
-						locker.unlock();
-						onClickMessage(message);
-					} else {
-						messagesClicked.add_NoLock(message);
-						message.flagRemove = sl_false;
-					}
-				}
-
-				void dispatchPresentMessage(UserNotificationMessage& message)
-				{
-					MutexLocker locker(&lock);
-					if (flagStarted) {
-						locker.unlock();
-						onPresentMessage(message);
-					} else {
-						messagesPresented.add_NoLock(message);
-						message.flagRemove = sl_false;
-					}
-				}
-
-				void dispatchQueuedMessages()
-				{
-					{
-						ListElements<UserNotificationMessage> messages(messagesPresented);
-						for (sl_size i = 0; i < messages.count; i++) {
-							messages[i].flagRemove = sl_false;
-							onPresentMessage(messages[i]);
-							if (messages[i].flagRemove) {
-								UserNotification::removeDeliveredNotification(messages[i].identifier);
-							}
-						}
-					}
-					{
-						ListElements<UserNotificationMessage> messages(messagesClicked);
-						for (sl_size i = 0; i < messages.count; i++) {
-							messages[i].flagRemove = sl_false;
-							onClickMessage(messages[i]);
-							if (messages[i].flagRemove) {
-								UserNotification::removeDeliveredNotification(messages[i].identifier);
-							}
-						}
-					}
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-		}
-	}
-
-	using namespace priv::ui_notification;
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(UserNotificationAttachment)
 
 	UserNotificationAttachment::UserNotificationAttachment()
 	{
 	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(UserNotificationMessage)
 
@@ -136,6 +55,83 @@ namespace slib
 		flagRepeat = sl_false;
 
 		flagRemove = sl_true;
+	}
+
+
+	namespace {
+
+		class StaticContext
+		{
+		public:
+			Mutex lock;
+
+			sl_bool flagStarted;
+
+			AtomicFunction<void(UserNotificationMessage&)> onClickMessage;
+			AtomicFunction<void(UserNotificationMessage&)> onPresentMessage;
+
+			List<UserNotificationMessage> messagesClicked;
+			List<UserNotificationMessage> messagesPresented;
+
+		public:
+			StaticContext()
+			{
+				flagStarted = sl_false;
+			}
+
+		public:
+			void dispatchClickMessage(UserNotificationMessage& message)
+			{
+				MutexLocker locker(&lock);
+				if (flagStarted) {
+					locker.unlock();
+					onClickMessage(message);
+				} else {
+					messagesClicked.add_NoLock(message);
+					message.flagRemove = sl_false;
+				}
+			}
+
+			void dispatchPresentMessage(UserNotificationMessage& message)
+			{
+				MutexLocker locker(&lock);
+				if (flagStarted) {
+					locker.unlock();
+					onPresentMessage(message);
+				} else {
+					messagesPresented.add_NoLock(message);
+					message.flagRemove = sl_false;
+				}
+			}
+
+			void dispatchQueuedMessages()
+			{
+				{
+					ListElements<UserNotificationMessage> messages(messagesPresented);
+					for (sl_size i = 0; i < messages.count; i++) {
+						messages[i].flagRemove = sl_false;
+						onPresentMessage(messages[i]);
+						if (messages[i].flagRemove) {
+							UserNotification::removeDeliveredNotification(messages[i].identifier);
+						}
+					}
+				}
+				{
+					ListElements<UserNotificationMessage> messages(messagesClicked);
+					for (sl_size i = 0; i < messages.count; i++) {
+						messages[i].flagRemove = sl_false;
+						onClickMessage(messages[i]);
+						if (messages[i].flagRemove) {
+							UserNotification::removeDeliveredNotification(messages[i].identifier);
+						}
+					}
+				}
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
+
 	}
 
 	SLIB_DEFINE_OBJECT(UserNotification, Object)

@@ -33,83 +33,77 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_notification_gtk
-		{
+	namespace {
 
-			static String GetIdentifier(const UserNotificationMessage& message)
+		static String GetIdentifier(const UserNotificationMessage& message)
+		{
+			if (message.identifier.isNotNull()) {
+				return message.identifier;
+			}
+			return String::fromUint32(message.id);
+		}
+
+		class UserNotificationImpl : public UserNotification
+		{
+		public:
+			GNotification* m_notification;
+			String m_id;
+
+		public:
+			UserNotificationImpl()
 			{
-				if (message.identifier.isNotNull()) {
-					return message.identifier;
-				}
-				return String::fromUint32(message.id);
+				m_notification = sl_null;
 			}
 
-			class UserNotificationImpl : public UserNotification
+			~UserNotificationImpl()
 			{
-			public:
-				GNotification* m_notification;
-				String m_id;
-
-			public:
-				UserNotificationImpl()
-				{
-					m_notification = sl_null;
+				if (m_notification) {
+					g_object_unref(m_notification);
 				}
+			}
 
-				~UserNotificationImpl()
-				{
-					if (m_notification) {
-						g_object_unref(m_notification);
-					}
-				}
-
-			public:
-				static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
-				{
-					auto funcCreate = gio::getApi_g_notification_new();
-					if (!funcCreate) {
-						return sl_null;
-					}
-					GtkApplication* app = UIPlatform::getApp();
-					if (!app) {
-						return sl_null;
-					}
-					StringCstr title(message.title);
-					GNotification* notification = funcCreate(title.getData());
-					if (notification) {
-						Ref<UserNotificationImpl> ret = new UserNotificationImpl;
-						if (ret.isNotNull()) {
-							StringCstr body(message.content);
-							gio::getApi_g_notification_set_body()(notification, body.getData());
-							ret->m_notification = notification;
-							ret->m_id = GetIdentifier(message);
-							StringCstr id(ret->m_id);
-							gio::getApi_g_application_send_notification()((GApplication*)app, id.getData(), notification);
-							return ret;
-						}
-						g_object_unref(notification);
-					}
+		public:
+			static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
+			{
+				auto funcCreate = gio::getApi_g_notification_new();
+				if (!funcCreate) {
 					return sl_null;
 				}
-
-			public:
-				void cancelPending() override
-				{
+				GtkApplication* app = UIPlatform::getApp();
+				if (!app) {
+					return sl_null;
 				}
-
-				void removeFromDeliveredList() override
-				{
-					removeDeliveredNotification(m_id);
+				StringCstr title(message.title);
+				GNotification* notification = funcCreate(title.getData());
+				if (notification) {
+					Ref<UserNotificationImpl> ret = new UserNotificationImpl;
+					if (ret.isNotNull()) {
+						StringCstr body(message.content);
+						gio::getApi_g_notification_set_body()(notification, body.getData());
+						ret->m_notification = notification;
+						ret->m_id = GetIdentifier(message);
+						StringCstr id(ret->m_id);
+						gio::getApi_g_application_send_notification()((GApplication*)app, id.getData(), notification);
+						return ret;
+					}
+					g_object_unref(notification);
 				}
+				return sl_null;
+			}
 
-			};
+		public:
+			void cancelPending() override
+			{
+			}
 
-		}
+			void removeFromDeliveredList() override
+			{
+				removeDeliveredNotification(m_id);
+			}
+
+		};
+
 	}
-
-	using namespace priv::ui_notification_gtk;
 
 	void UserNotification::startInternal()
 	{

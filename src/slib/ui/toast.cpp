@@ -31,122 +31,111 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace toast
+	namespace {
+
+		class ToastManager
 		{
+		public:
+			Mutex lock;
+			Ref<LabelView> currentToast;
+			Ref<Animation> animation;
 
-			class ToastManager
+		public:
+			void show(Toast* toast)
 			{
-			public:
-				Mutex lock;
-				Ref<LabelView> currentToast;
-				Ref<Animation> animation;
-
-			public:
-				void show(Toast* toast)
-				{
-					MutexLocker locker(&lock);
-					if (currentToast.isNotNull()) {
-						currentToast->removeFromParent();
-						currentToast.setNull();
-						animation.setNull();
-					}
-					Ref<Font> font = toast->font;
+				MutexLocker locker(&lock);
+				if (currentToast.isNotNull()) {
+					currentToast->removeFromParent();
+					currentToast.setNull();
+					animation.setNull();
+				}
+				Ref<Font> font = toast->font;
+				if (font.isNull()) {
+					font = Toast::getDefaultFont();
 					if (font.isNull()) {
-						font = Toast::getDefaultFont();
-						if (font.isNull()) {
-							return;
-						}
+						return;
 					}
-					Ref<View> parent = toast->parent;
-					if (parent.isNull()) {
-						Ref<MobileApp> app = MobileApp::getApp();
-						if (app.isNotNull()) {
-							parent = app->getContentView();
-						} else {
-							Ref<UIApp> ui = UIApp::getApp();
-							if (ui.isNotNull()) {
-								Ref<Window> window = ui->getMainWindow();
-								if (window.isNotNull()) {
-									parent = window->getContentView();
-								}
+				}
+				Ref<View> parent = toast->parent;
+				if (parent.isNull()) {
+					Ref<MobileApp> app = MobileApp::getApp();
+					if (app.isNotNull()) {
+						parent = app->getContentView();
+					} else {
+						Ref<UIApp> ui = UIApp::getApp();
+						if (ui.isNotNull()) {
+							Ref<Window> window = ui->getMainWindow();
+							if (window.isNotNull()) {
+								parent = window->getContentView();
 							}
 						}
 					}
-					if (parent.isNull()) {
-						return;
-					}
-					Ref<LabelView> refView = new LabelView;
-					LabelView* view = refView.get();
-					if (!view) {
-						return;
-					}
-					view->setCreatingInstance(sl_true);
-					view->setText(toast->text, UIUpdateMode::Init);
-					view->setMultiLine(MultiLineMode::WordWrap, UIUpdateMode::Init);
-					view->setWidthWrapping(UIUpdateMode::Init);
-					view->setHeightWrapping(UIUpdateMode::Init);
-					view->setMaximumWidth((sl_ui_len)(parent->getWidth() * 0.9f), UIUpdateMode::Init);
-					view->setFont(font, UIUpdateMode::Init);
-					view->setTextColor(Color::White, UIUpdateMode::Init);
-					view->setBackgroundColor(Color(0, 0, 0, 160), UIUpdateMode::Init);
-					view->setBoundRadius(font->getFontHeight() / 3, UIUpdateMode::Init);
-					view->setPadding((sl_ui_pos)(font->getFontHeight() / 3), UIUpdateMode::Init);
-					Alignment halign = toast->gravity & Alignment::HorizontalMask;
-					Alignment valign = toast->gravity & Alignment::VerticalMask;
-					if (halign == Alignment::Left) {
-						view->setAlignParentLeft(UIUpdateMode::Init);
-					} else if (halign == Alignment::Right) {
-						view->setAlignParentRight(UIUpdateMode::Init);
-					} else {
-						view->setCenterHorizontal(UIUpdateMode::Init);
-					}
-					if (valign == Alignment::Top) {
-						view->setAlignParentTop(UIUpdateMode::Init);
-					} else if (valign == Alignment::Bottom) {
-						view->setAlignParentBottom(UIUpdateMode::Init);
-					} else {
-						view->setCenterVertical(UIUpdateMode::Init);
-					}
-					view->setMargin(toast->margin, UIUpdateMode::Init);
-					view->setClipping(sl_true, UIUpdateMode::Init);
-					currentToast = view;
-					parent->addChild(view);
-					animation = view->startAlphaAnimation(0, 1, 0.3f, sl_null, AnimationCurve::Linear, AnimationFlags::NotSelfAlive);
-
-					sl_uint32 duration = toast->duration;
-					if (!duration) {
-						duration = Toast::getDefaultDuration();
-					}
-					UI::dispatchToUiThread(Function<void()>::with(ToWeakRef(view), [this, view]() {
-						MutexLocker locker(&lock);
-						if (currentToast.isNotNull()) {
-							animation = currentToast->startAlphaAnimation(1, 0, 0.3f, Function<void()>::with(ToWeakRef(view), [this, view]() {
-								MutexLocker locker(&lock);
-								if (currentToast.isNotNull()) {
-									currentToast->removeFromParent();
-									currentToast.setNull();
-									animation.setNull();
-								}
-							}), AnimationCurve::Linear, AnimationFlags::NotSelfAlive);
-						}
-					}), duration);
 				}
+				if (parent.isNull()) {
+					return;
+				}
+				Ref<LabelView> refView = new LabelView;
+				LabelView* view = refView.get();
+				if (!view) {
+					return;
+				}
+				view->setCreatingInstance(sl_true);
+				view->setText(toast->text, UIUpdateMode::Init);
+				view->setMultiLine(MultiLineMode::WordWrap, UIUpdateMode::Init);
+				view->setWidthWrapping(UIUpdateMode::Init);
+				view->setHeightWrapping(UIUpdateMode::Init);
+				view->setMaximumWidth((sl_ui_len)(parent->getWidth() * 0.9f), UIUpdateMode::Init);
+				view->setFont(font, UIUpdateMode::Init);
+				view->setTextColor(Color::White, UIUpdateMode::Init);
+				view->setBackgroundColor(Color(0, 0, 0, 160), UIUpdateMode::Init);
+				view->setBoundRadius(font->getFontHeight() / 3, UIUpdateMode::Init);
+				view->setPadding((sl_ui_pos)(font->getFontHeight() / 3), UIUpdateMode::Init);
+				Alignment halign = toast->gravity & Alignment::HorizontalMask;
+				Alignment valign = toast->gravity & Alignment::VerticalMask;
+				if (halign == Alignment::Left) {
+					view->setAlignParentLeft(UIUpdateMode::Init);
+				} else if (halign == Alignment::Right) {
+					view->setAlignParentRight(UIUpdateMode::Init);
+				} else {
+					view->setCenterHorizontal(UIUpdateMode::Init);
+				}
+				if (valign == Alignment::Top) {
+					view->setAlignParentTop(UIUpdateMode::Init);
+				} else if (valign == Alignment::Bottom) {
+					view->setAlignParentBottom(UIUpdateMode::Init);
+				} else {
+					view->setCenterVertical(UIUpdateMode::Init);
+				}
+				view->setMargin(toast->margin, UIUpdateMode::Init);
+				view->setClipping(sl_true, UIUpdateMode::Init);
+				currentToast = view;
+				parent->addChild(view);
+				animation = view->startAlphaAnimation(0, 1, 0.3f, sl_null, AnimationCurve::Linear, AnimationFlags::NotSelfAlive);
 
-			};
+				sl_uint32 duration = toast->duration;
+				if (!duration) {
+					duration = Toast::getDefaultDuration();
+				}
+				UI::dispatchToUiThread(Function<void()>::with(ToWeakRef(view), [this, view]() {
+					MutexLocker locker(&lock);
+					if (currentToast.isNotNull()) {
+						animation = currentToast->startAlphaAnimation(1, 0, 0.3f, Function<void()>::with(ToWeakRef(view), [this, view]() {
+							MutexLocker locker(&lock);
+							if (currentToast.isNotNull()) {
+								currentToast->removeFromParent();
+								currentToast.setNull();
+								animation.setNull();
+							}
+						}), AnimationCurve::Linear, AnimationFlags::NotSelfAlive);
+					}
+				}), duration);
+			}
 
-			SLIB_SAFE_STATIC_GETTER(ToastManager, GetToastManager)
+		};
 
-			// milliseconds
-			static sl_uint32 g_defaultDuration = 2000;
+		SLIB_SAFE_STATIC_GETTER(ToastManager, GetToastManager)
 
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Font>, g_defaultFont)
-
-		}
 	}
-
-	using namespace priv::toast;
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(Toast)
 
@@ -210,6 +199,10 @@ namespace slib
 		toast.show();
 	}
 
+	namespace {
+		static sl_uint32 g_defaultDuration = 2000; // milliseconds
+	}
+
 	sl_uint32 Toast::getDefaultDuration()
 	{
 		return g_defaultDuration;
@@ -218,6 +211,10 @@ namespace slib
 	void Toast::setDefaultDuration(sl_uint32 duration)
 	{
 		g_defaultDuration = duration;
+	}
+
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Font>, g_defaultFont)
 	}
 
 	Ref<Font> Toast::getDefaultFont()

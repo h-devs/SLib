@@ -33,49 +33,43 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_animation
+	namespace {
+
+		static void OnStop(JNIEnv* env, jobject _this, jlong ptr);
+
+		SLIB_JNI_BEGIN_CLASS(JAnimation, "slib/android/ui/UiAnimation")
+			SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/view/View;JFFIIZFFZFFFFZFFFFZFFZFF)Lslib/android/ui/UiAnimation;");
+			SLIB_JNI_METHOD(stop, "stop", "()V");
+			SLIB_JNI_NATIVE(nativeOnStop, "nativeOnStop", "(J)V", OnStop);
+		SLIB_JNI_END_CLASS
+
+		typedef CHashMap< sl_reg, Function<void()> > StopMap;
+		SLIB_SAFE_STATIC_GETTER(StopMap, GetStopMap);
+
+		void OnStop(JNIEnv* env, jobject _this, jlong id)
 		{
-
-			void OnStop(JNIEnv* env, jobject _this, jlong ptr);
-
-			SLIB_JNI_BEGIN_CLASS(JAnimation, "slib/android/ui/UiAnimation")
-				SLIB_JNI_STATIC_METHOD(start, "start", "(Landroid/view/View;JFFIIZFFZFFFFZFFFFZFFZFF)Lslib/android/ui/UiAnimation;");
-				SLIB_JNI_METHOD(stop, "stop", "()V");
-				SLIB_JNI_NATIVE(nativeOnStop, "nativeOnStop", "(J)V", OnStop);
-			SLIB_JNI_END_CLASS
-
-			typedef CHashMap< sl_reg, Function<void()> > StopMap;
-			SLIB_SAFE_STATIC_GETTER(StopMap, GetStopMap);
-
-			void OnStop(JNIEnv* env, jobject _this, jlong id)
-			{
-				StopMap* map = GetStopMap();
-				if (map) {
-					Function<void()> onStop;
-					map->remove((sl_reg)id, &onStop);
-					if (onStop.isNotNull()) {
-						onStop();
-					}
+			StopMap* map = GetStopMap();
+			if (map) {
+				Function<void()> onStop;
+				map->remove((sl_reg)id, &onStop);
+				if (onStop.isNotNull()) {
+					onStop();
 				}
 			}
-
-			class AnimatorInstance : public Referable
-			{
-			public:
-				JniGlobal<jobject> object;
-
-			public:
-				template <class T>
-				AnimatorInstance(T&& t): object(Forward<T>(t)) {}
-
-			};
-
 		}
-	}
 
-	using namespace priv::ui_animation;
+		class AnimatorInstance : public Referable
+		{
+		public:
+			JniGlobal<jobject> object;
+
+		public:
+			template <class T>
+			AnimatorInstance(T&& t): object(Forward<T>(t)) {}
+
+		};
+
+	}
 
 	sl_bool UIAnimationLoop::_applyNativeAnimation(Animation* animation)
 	{

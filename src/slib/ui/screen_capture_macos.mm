@@ -35,71 +35,65 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace screen_capture
+	namespace {
+
+		class Helper
 		{
-
-			class Helper
+		public:
+			Ref<Image> getImage(CGImageRef cgImage)
 			{
-			public:
-				Ref<Image> getImage(CGImageRef cgImage)
-				{
-					sl_uint32 width = (sl_uint32)(CGImageGetWidth(cgImage));
-					sl_uint32 height = (sl_uint32)(CGImageGetHeight(cgImage));
-					Ref<Bitmap>& bitmap = m_bitmapCache;
-					Ref<Canvas>& canvas = m_canvasCache;
-					CGContextRef& context = m_contextCache;
-					if (bitmap.isNull() || canvas.isNull() || bitmap->getWidth() < width || bitmap->getHeight() < height) {
-						bitmap = Bitmap::create(width, height);
-						if (bitmap.isNull()) {
-							return sl_null;
-						}
-						canvas = bitmap->getCanvas();
-						if (canvas.isNull()) {
-							return sl_null;
-						}
-						context = GraphicsPlatform::getCanvasHandle(canvas.get());
-						CGContextTranslateCTM(context, 0, (CGFloat)height);
-						CGContextScaleCTM(context, 1, -1);
+				sl_uint32 width = (sl_uint32)(CGImageGetWidth(cgImage));
+				sl_uint32 height = (sl_uint32)(CGImageGetHeight(cgImage));
+				Ref<Bitmap>& bitmap = m_bitmapCache;
+				Ref<Canvas>& canvas = m_canvasCache;
+				CGContextRef& context = m_contextCache;
+				if (bitmap.isNull() || canvas.isNull() || bitmap->getWidth() < width || bitmap->getHeight() < height) {
+					bitmap = Bitmap::create(width, height);
+					if (bitmap.isNull()) {
+						return sl_null;
 					}
-					if (context) {
-						CGContextDrawImage(context, CGRectMake(0, 0, (CGFloat)width, (CGFloat)height), cgImage);
-						return bitmap->toImage();
+					canvas = bitmap->getCanvas();
+					if (canvas.isNull()) {
+						return sl_null;
 					}
-					return sl_null;
+					context = GraphicsPlatform::getCanvasHandle(canvas.get());
+					CGContextTranslateCTM(context, 0, (CGFloat)height);
+					CGContextScaleCTM(context, 1, -1);
 				}
-
-			private:
-				Ref<Bitmap> m_bitmapCache;
-				Ref<Canvas> m_canvasCache;
-				CGContextRef m_contextCache;
-
-			public:
-				Mutex m_lock;
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
-
-			static Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
-			{
-				CGDirectDisplayID display = (CGDirectDisplayID)([[[screen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue]);
-				if (display) {
-					CGImageRef cgImage = CGDisplayCreateImage(display);
-					if (cgImage) {
-						Ref<Image> image = helper->getImage(cgImage);
-						CGImageRelease(cgImage);
-						return image;
-					}
+				if (context) {
+					CGContextDrawImage(context, CGRectMake(0, 0, (CGFloat)width, (CGFloat)height), cgImage);
+					return bitmap->toImage();
 				}
 				return sl_null;
 			}
 
-		}
-	}
+		private:
+			Ref<Bitmap> m_bitmapCache;
+			Ref<Canvas> m_canvasCache;
+			CGContextRef m_contextCache;
 
-	using namespace priv::screen_capture;
+		public:
+			Mutex m_lock;
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(Helper, GetHelper)
+
+		static Ref<Image> TakeScreenshot(Helper* helper, NSScreen* screen)
+		{
+			CGDirectDisplayID display = (CGDirectDisplayID)([[[screen deviceDescription] objectForKey:@"NSScreenNumber"] unsignedIntValue]);
+			if (display) {
+				CGImageRef cgImage = CGDisplayCreateImage(display);
+				if (cgImage) {
+					Ref<Image> image = helper->getImage(cgImage);
+					CGImageRelease(cgImage);
+					return image;
+				}
+			}
+			return sl_null;
+		}
+
+	}
 
 	Ref<Image> ScreenCapture::takeScreenshot()
 	{

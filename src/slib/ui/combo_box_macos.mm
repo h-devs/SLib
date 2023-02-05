@@ -28,154 +28,143 @@
 
 #include "view_macos.h"
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace combo_box
-		{
-			class ComboBoxInstance;
-		}
+namespace slib {
+	namespace {
+		class ComboBoxInstance;
 	}
 }
 
 @interface SLIBComboBoxHandle : NSComboBox
 {
-	@public slib::WeakRef<slib::priv::combo_box::ComboBoxInstance> m_viewInstance;
+	@public slib::WeakRef<slib::ComboBoxInstance> m_viewInstance;
 }
 @end
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace combo_box
+	namespace {
+
+		class ComboBoxHelper : public ComboBox
 		{
-
-			class ComboBoxHelper : public ComboBox
+		public:
+			void refreshItems(NSComboBox* v)
 			{
-			public:
-				void refreshItems(NSComboBox* v)
-				{
-					[v removeAllItems];
-					sl_uint32 n = (sl_uint32)(getItemCount());
-					for (sl_uint32 i = 0; i < n; i++) {
-						[v addItemWithObjectValue:Apple::getNSStringFromString(getItemTitle(i), @"")];
-					}
-					sl_uint32 indexSelected = m_indexSelected;
-					if (indexSelected >= 0 && indexSelected < n) {
-						[v selectItemAtIndex:indexSelected];
-					}
+				[v removeAllItems];
+				sl_uint32 n = (sl_uint32)(getItemCount());
+				for (sl_uint32 i = 0; i < n; i++) {
+					[v addItemWithObjectValue:Apple::getNSStringFromString(getItemTitle(i), @"")];
 				}
+				sl_uint32 indexSelected = m_indexSelected;
+				if (indexSelected >= 0 && indexSelected < n) {
+					[v selectItemAtIndex:indexSelected];
+				}
+			}
 
-			};
+		};
 
-			class ComboBoxInstance : public macOS_ViewInstance, public IComboBoxInstance
+		class ComboBoxInstance : public macOS_ViewInstance, public IComboBoxInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			NSComboBox* getHandle()
 			{
-				SLIB_DECLARE_OBJECT
+				return (NSComboBox*)m_handle;
+			}
 
-			public:
-				NSComboBox* getHandle()
-				{
-					return (NSComboBox*)m_handle;
-				}
+			void initialize(View* _view) override
+			{
+				ComboBoxHelper* view = (ComboBoxHelper*)_view;
+				NSComboBox* handle = getHandle();
 
-				void initialize(View* _view) override
-				{
-					ComboBoxHelper* view = (ComboBoxHelper*)_view;
-					NSComboBox* handle = getHandle();
+				view->refreshItems(handle);
+				[handle setStringValue:Apple::getNSStringFromString(view->getText())];
+			}
 
-					view->refreshItems(handle);
-					[handle setStringValue:Apple::getNSStringFromString(view->getText())];
-				}
-
-				void selectItem(ComboBox* view, sl_int32 index) override
-				{
-					NSComboBox* handle = getHandle();
-					if (handle != nil) {
-						if (index >= 0) {
-							[handle selectItemAtIndex:index];
-						}
+			void selectItem(ComboBox* view, sl_int32 index) override
+			{
+				NSComboBox* handle = getHandle();
+				if (handle != nil) {
+					if (index >= 0) {
+						[handle selectItemAtIndex:index];
 					}
 				}
+			}
 
-				void refreshItems(ComboBox* view) override
-				{
-					NSComboBox* handle = getHandle();
-					if (handle != nil) {
-						static_cast<ComboBoxHelper*>(view)->refreshItems(handle);
-					}
+			void refreshItems(ComboBox* view) override
+			{
+				NSComboBox* handle = getHandle();
+				if (handle != nil) {
+					static_cast<ComboBoxHelper*>(view)->refreshItems(handle);
 				}
+			}
 
-				void insertItem(ComboBox* view, sl_int32 index, const String& title) override
-				{
-					NSComboBox* handle = getHandle();
-					if (handle != nil) {
-						[handle insertItemWithObjectValue:Apple::getNSStringFromString(title, @"") atIndex:index];
-					}
+			void insertItem(ComboBox* view, sl_int32 index, const String& title) override
+			{
+				NSComboBox* handle = getHandle();
+				if (handle != nil) {
+					[handle insertItemWithObjectValue:Apple::getNSStringFromString(title, @"") atIndex:index];
 				}
+			}
 
-				void removeItem(ComboBox* view, sl_int32 index) override
-				{
-					NSComboBox* handle = getHandle();
-					if (handle != nil) {
-						[handle removeItemAtIndex:index];
-					}
+			void removeItem(ComboBox* view, sl_int32 index) override
+			{
+				NSComboBox* handle = getHandle();
+				if (handle != nil) {
+					[handle removeItemAtIndex:index];
 				}
+			}
 
-				void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
-				{
-					NSComboBox* handle = getHandle();
-					if (handle != nil) {
-						[handle removeItemAtIndex:index];
-						[handle insertItemWithObjectValue:Apple::getNSStringFromString(title, @"") atIndex:index];
-					}
+			void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
+			{
+				NSComboBox* handle = getHandle();
+				if (handle != nil) {
+					[handle removeItemAtIndex:index];
+					[handle insertItemWithObjectValue:Apple::getNSStringFromString(title, @"") atIndex:index];
 				}
+			}
 
-				sl_bool getText(ComboBox* view, String& _out) override
-				{
-					NSComboBox* handle = getHandle();
-					if (handle != nil) {
-						_out = Apple::getStringFromNSString([handle stringValue]);
-						return sl_true;
-					}
-					return sl_false;
+			sl_bool getText(ComboBox* view, String& _out) override
+			{
+				NSComboBox* handle = getHandle();
+				if (handle != nil) {
+					_out = Apple::getStringFromNSString([handle stringValue]);
+					return sl_true;
 				}
+				return sl_false;
+			}
 
-				void setText(ComboBox* view, const String& text) override
-				{
-					NSComboBox* handle = getHandle();
-					if (handle != nil) {
-						[handle setStringValue:Apple::getNSStringFromString(text)];
-					}
+			void setText(ComboBox* view, const String& text) override
+			{
+				NSComboBox* handle = getHandle();
+				if (handle != nil) {
+					[handle setStringValue:Apple::getNSStringFromString(text)];
 				}
+			}
 
-				sl_ui_len measureHeight(ComboBox* view) override
-				{
-					UISize size;
-					if (UIPlatform::measureNativeWidgetFittingSize(this, size)) {
-						return size.y;
-					}
-					return 0;
+			sl_ui_len measureHeight(ComboBox* view) override
+			{
+				UISize size;
+				if (UIPlatform::measureNativeWidgetFittingSize(this, size)) {
+					return size.y;
 				}
+				return 0;
+			}
 
-				void onSelectItem(NSComboBox* handle)
-				{
-					Ref<ComboBox> view = CastRef<ComboBox>(getView());
-					if (view.isNotNull()) {
-						view->dispatchSelectItem((sl_uint32)([handle indexOfSelectedItem]));
-					}
+			void onSelectItem(NSComboBox* handle)
+			{
+				Ref<ComboBox> view = CastRef<ComboBox>(getView());
+				if (view.isNotNull()) {
+					view->dispatchSelectItem((sl_uint32)([handle indexOfSelectedItem]));
 				}
+			}
 
-			};
+		};
 
-			SLIB_DEFINE_OBJECT(ComboBoxInstance, macOS_ViewInstance)
+		SLIB_DEFINE_OBJECT(ComboBoxInstance, macOS_ViewInstance)
 
-		}
 	}
-
-	using namespace priv::combo_box;
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{
@@ -190,7 +179,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::combo_box;
 
 @implementation SLIBComboBoxHandle
 

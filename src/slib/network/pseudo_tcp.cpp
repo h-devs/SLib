@@ -383,8 +383,10 @@ namespace slib
 		m_notify(notify),
 		m_shutdown(PseudoTcpShutdownType::None),
 		m_error(PseudoTcpError::None),
+		m_rlist(new CLinkedList<RSegment>),
 		m_rbuf_len(DEFAULT_RCV_BUF_SIZE),
 		m_rbuf(new LockedFifoBuffer(m_rbuf_len)),
+		m_slist(new CLinkedList<SSegment>),
 		m_sbuf_len(DEFAULT_SND_BUF_SIZE),
 		m_sbuf(new LockedFifoBuffer(m_sbuf_len))
 	{
@@ -472,14 +474,14 @@ namespace slib
 
 		// Check if it's time to retransmit a segment
 		if (m_rto_base && (TimeDiff32(m_rto_base + m_rx_rto, now) <= 0)) {
-			if (m_slist.isEmpty()) {
+			if (m_slist->isEmpty()) {
 				NOT_REACHED()
 			} else {
 
 				LOG_NORMAL("notifyClock: timeout retransmit: rto=%s, rto_base=%s, now=%s, dup_acks=%s", m_rx_rto, m_rto_base, now, m_dup_acks);
 
 				// retransmit segments
-				if (!transmit(m_slist.getFront(), now)) {
+				if (!transmit(m_slist->getFront(), now)) {
 					closedown(PseudoTcpError::ConnectionAborted);
 					return;
 				}
@@ -686,11 +688,11 @@ namespace slib
 		}
 
 		// We can concatenate data if the last segment is the same type (control v. regular data), and has not been transmitted yet
-		if (!m_slist.isEmpty() && (m_slist.getBack()->value.bCtrl == bCtrl) && (m_slist.getBack()->value.xmit == 0)) {
-			m_slist.getBack()->value.len += len;
+		if (!m_slist->isEmpty() && (m_slist->getBack()->value.bCtrl == bCtrl) && (m_slist->getBack()->value.xmit == 0)) {
+			m_slist->getBack()->value.len += len;
 		} else {
 			SSegment sseg(static_cast<sl_uint32>(m_snd_una + m_sbuf->getBuffered()), len, bCtrl);
-			m_slist.pushBack_NoLock(sseg);
+			m_slist->pushBack_NoLock(sseg);
 		}
 
 		sl_size written = 0;
@@ -915,16 +917,16 @@ namespace slib
 			m_sbuf->consumeReadData(nAcked);
 
 			for (sl_uint32 nFree = nAcked; nFree > 0;) {
-				SLIB_ASSERT(!m_slist.isEmpty());
-				if (nFree < m_slist.getFront()->value.len) {
-					m_slist.getFront()->value.len -= nFree;
+				SLIB_ASSERT(!m_slist->isEmpty());
+				if (nFree < m_slist->getFront()->value.len) {
+					m_slist->getFront()->value.len -= nFree;
 					nFree = 0;
 				} else {
-					if (m_slist.getFront()->value.len > m_largest) {
-						m_largest = m_slist.getFront()->value.len;
+					if (m_slist->getFront()->value.len > m_largest) {
+						m_largest = m_slist->getFront()->value.len;
 					}
-					nFree -= m_slist.getFront()->value.len;
-					m_slist.popFront_NoLock();
+					nFree -= m_slist->getFront()->value.len;
+					m_slist->popFront_NoLock();
 				}
 			}
 
@@ -936,7 +938,7 @@ namespace slib
 					m_dup_acks = 0;
 				} else {
 					LOG_NORMAL("process: recovery retransmit");
-					if (!transmit(m_slist.getFront(), now)) {
+					if (!transmit(m_slist->getFront(), now)) {
 						closedown(PseudoTcpError::ConnectionAborted);
 						return sl_false;
 					}
@@ -963,7 +965,7 @@ namespace slib
 				if (m_dup_acks == 3) {  // (Fast Retransmit)
 					LOG_NORMAL("process: enter recovery");
 					LOG_NORMAL("process: recovery retransmit");
-					if (!transmit(m_slist.getFront(), now)) {
+					if (!transmit(m_slist->getFront(), now)) {
 						closedown(PseudoTcpError::ConnectionAborted);
 						return sl_false;
 					}
@@ -1084,15 +1086,15 @@ namespace slib
 					RSegment rseg;
 					rseg.seq = seg.seq;
 					rseg.len = seg.len;
-					auto it = m_rlist.getFront();
+					auto it = m_rlist->getFront();
 					while (it && (it->value.seq < rseg.seq)) {
 						it = it->next;
 					}
-					m_rlist.insertBefore(it, rseg);
+					m_rlist->insertBefore(it, rseg);
 				}
 			}
 			if (bRecover) {
-				auto it = m_rlist.getFront();
+				auto it = m_rlist->getFront();
 				while (it && (it->value.seq <= m_rcv_nxt)) {
 					if (it->value.seq + it->value.len > m_rcv_nxt) {
 						sflags = PseudoTcpSendFlags::ImmediateAck;  // (Fast Recovery)
@@ -1103,7 +1105,7 @@ namespace slib
 						m_rcv_wnd -= nAdjust;
 						bNewData = sl_true;
 					}
-					it = m_rlist.removeAt(it);
+					it = m_rlist->removeAt(it);
 				}
 			}
 		}
@@ -1176,7 +1178,7 @@ namespace slib
 			subseg.xmit = seg.xmit;
 			seg.len = nTransmit;
 
-			m_slist.insertAfter(_seg, subseg);
+			m_slist->insertAfter(_seg, subseg);
 		}
 
 		if (seg.xmit == 0) {
@@ -1255,7 +1257,7 @@ namespace slib
 			}
 
 			// Find the next segment to transmit
-			auto it = m_slist.getFront();
+			auto it = m_slist->getFront();
 			while (it->value.xmit > 0) {
 				it = it->next;
 				SLIB_ASSERT(it != sl_null);
@@ -1265,7 +1267,7 @@ namespace slib
 			if (seg->len > nAvailable) {
 				SSegment subseg(seg->seq + nAvailable, seg->len - nAvailable, seg->bCtrl);
 				seg->len = nAvailable;
-				m_slist.insertAfter(it, subseg);
+				m_slist->insertAfter(it, subseg);
 			}
 
 			if (!transmit(it, now)) {

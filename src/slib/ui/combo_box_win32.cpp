@@ -33,191 +33,185 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace combo_box
+	namespace {
+
+		class ComboBoxHelper : public ComboBox
 		{
-
-			class ComboBoxHelper : public ComboBox
+		public:
+			void onChange(HWND handle)
 			{
-			public:
-				void onChange(HWND handle)
-				{
-					String text = UIPlatform::getWindowText(handle);
-					String textNew = text;
-					dispatchChange(textNew);
-					if (text != textNew) {
-						UIPlatform::setWindowText(handle, textNew);
-					}
+				String text = UIPlatform::getWindowText(handle);
+				String textNew = text;
+				dispatchChange(textNew);
+				if (text != textNew) {
+					UIPlatform::setWindowText(handle, textNew);
 				}
-
-			};
-
-			LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
-			{
-				if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) {
-					Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(GetParent(hWnd)));
-					if (instance.isNotNull()) {
-						return instance->processSubclassMessage(uMsg, wParam, lParam);
-					}
-				}
-				return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 			}
 
-			BOOL CALLBACK SubclassEditChild(HWND hWnd, LPARAM lParam)
-			{
-				WCHAR sz[16];
-				int n = GetClassNameW(hWnd, sz, 16);
-				if (n) {
-					if (String16::from(sz, (sl_size)n).equals_IgnoreCase(SLIB_UNICODE("EDIT"))) {
-						SetWindowSubclass(hWnd, EditChildSubclassProc, 0, 0);
-					}
+		};
+
+		LRESULT CALLBACK EditChildSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+		{
+			if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) {
+				Ref<Win32_ViewInstance> instance = Ref<Win32_ViewInstance>::from(UIPlatform::getViewInstance(GetParent(hWnd)));
+				if (instance.isNotNull()) {
+					return instance->processSubclassMessage(uMsg, wParam, lParam);
 				}
-				return TRUE;
 			}
+			return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+		}
 
-			class ComboBoxInstance : public Win32_ViewInstance, public IComboBoxInstance
+		BOOL CALLBACK SubclassEditChild(HWND hWnd, LPARAM lParam)
+		{
+			WCHAR sz[16];
+			int n = GetClassNameW(hWnd, sz, 16);
+			if (n) {
+				if (String16::from(sz, (sl_size)n).equals_IgnoreCase(SLIB_UNICODE("EDIT"))) {
+					SetWindowSubclass(hWnd, EditChildSubclassProc, 0, 0);
+				}
+			}
+			return TRUE;
+		}
+
+		class ComboBoxInstance : public Win32_ViewInstance, public IComboBoxInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			void initialize(View* _view) override
 			{
-				SLIB_DECLARE_OBJECT
+				ComboBox* view = (ComboBox*)_view;
 
-			public:
-				void initialize(View* _view) override
-				{
-					ComboBox* view = (ComboBox*)_view;
-
-					EnumChildWindows(getHandle(), SubclassEditChild, 0);
-					String text = view->getText();
-					if (text.isNotEmpty()) {
-						Win32_ViewInstance::setText(text);
-					}
-					refreshItems(view, sl_true);
-				}
-
-				void refreshItems(ComboBox* view, sl_bool flagInit)
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						if (!flagInit) {
-							SendMessageW(handle, CB_RESETCONTENT, 0, 0);
-						}
-						sl_uint32 n = view->getItemCount();
-						for (sl_uint32 i = 0; i < n; i++) {
-							StringCstr16 s = view->getItemTitle(i);
-							SendMessageW(handle, CB_ADDSTRING, 0, (LPARAM)(s.getData()));
-						}
-						sl_int32 indexSelected = view->getSelectedIndex();
-						if (indexSelected >= 0 && (sl_uint32)indexSelected < n) {
-							if (SendMessageW(handle, CB_GETCURSEL, 0, 0) != (LRESULT)indexSelected) {
-								SendMessageW(handle, CB_SETCURSEL, (WPARAM)indexSelected, 0);
-								UI::dispatchToUiThread([handle]() {
-									SendMessageW(handle, CB_SETEDITSEL, 0, SLIB_MAKE_DWORD2(-1, -1));
-								});
-							}
-						}
-					}
-				}
-
-				void refreshItems(ComboBox* view) override
-				{
-					refreshItems(view, sl_false);
-				}
-
-				void insertItem(ComboBox* view, sl_int32 index, const String& title) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						StringCstr16 s = title;
-						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
-					}
-				}
-
-				void removeItem(ComboBox* view, sl_int32 index)
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
-					}
-				}
-
-				void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						StringCstr16 s = title;
-						SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
-						SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
-					}
-				}
-
-				void selectItem(ComboBox* view, sl_int32 index) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						SendMessageW(handle, CB_SETCURSEL, (WPARAM)index, 0);
-					}
-				}
-
-				sl_bool getText(ComboBox* view, String& _out) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						_out = UIPlatform::getWindowText(handle);
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void setText(ComboBox* view, const String& text) override
-				{
+				EnumChildWindows(getHandle(), SubclassEditChild, 0);
+				String text = view->getText();
+				if (text.isNotEmpty()) {
 					Win32_ViewInstance::setText(text);
 				}
+				refreshItems(view, sl_true);
+			}
 
-				sl_ui_len measureHeight(ComboBox* view) override
-				{
-					HWND handle = m_handle;
-					if (handle) {
-						Ref<Font> font = m_font;
-						if (font.isNotNull()) {
-							sl_ui_len height = (sl_ui_len)(font->getFontHeight());
-							height += 4;
-							if (view->isBorder()) {
-								height += 2;
-							}
-							return height;
+			void refreshItems(ComboBox* view, sl_bool flagInit)
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					if (!flagInit) {
+						SendMessageW(handle, CB_RESETCONTENT, 0, 0);
+					}
+					sl_uint32 n = view->getItemCount();
+					for (sl_uint32 i = 0; i < n; i++) {
+						StringCstr16 s = view->getItemTitle(i);
+						SendMessageW(handle, CB_ADDSTRING, 0, (LPARAM)(s.getData()));
+					}
+					sl_int32 indexSelected = view->getSelectedIndex();
+					if (indexSelected >= 0 && (sl_uint32)indexSelected < n) {
+						if (SendMessageW(handle, CB_GETCURSEL, 0, 0) != (LRESULT)indexSelected) {
+							SendMessageW(handle, CB_SETCURSEL, (WPARAM)indexSelected, 0);
+							UI::dispatchToUiThread([handle]() {
+								SendMessageW(handle, CB_SETEDITSEL, 0, SLIB_MAKE_DWORD2(-1, -1));
+							});
 						}
 					}
-					return 0;
 				}
+			}
 
-				sl_bool processCommand(SHORT code, LRESULT& result) override
-				{
-					if (code == CBN_SELCHANGE) {
-						Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
-						if (helper.isNotNull()) {
-							sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
-							helper->dispatchSelectItem(index);
-							result = 0;
-							return sl_true;
+			void refreshItems(ComboBox* view) override
+			{
+				refreshItems(view, sl_false);
+			}
+
+			void insertItem(ComboBox* view, sl_int32 index, const String& title) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					StringCstr16 s = title;
+					SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
+				}
+			}
+
+			void removeItem(ComboBox* view, sl_int32 index)
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
+				}
+			}
+
+			void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					StringCstr16 s = title;
+					SendMessageW(handle, CB_DELETESTRING, (WPARAM)index, 0);
+					SendMessageW(handle, CB_INSERTSTRING, (WPARAM)index, (LPARAM)(s.getData()));
+				}
+			}
+
+			void selectItem(ComboBox* view, sl_int32 index) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					SendMessageW(handle, CB_SETCURSEL, (WPARAM)index, 0);
+				}
+			}
+
+			sl_bool getText(ComboBox* view, String& _out) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					_out = UIPlatform::getWindowText(handle);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void setText(ComboBox* view, const String& text) override
+			{
+				Win32_ViewInstance::setText(text);
+			}
+
+			sl_ui_len measureHeight(ComboBox* view) override
+			{
+				HWND handle = m_handle;
+				if (handle) {
+					Ref<Font> font = m_font;
+					if (font.isNotNull()) {
+						sl_ui_len height = (sl_ui_len)(font->getFontHeight());
+						height += 4;
+						if (view->isBorder()) {
+							height += 2;
 						}
-					} else if (code == CBN_EDITCHANGE) {
-						Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
-						if (helper.isNotNull()) {
-							helper->onChange(m_handle);
-							result = 0;
-							return sl_true;
-						}
+						return height;
 					}
-					return sl_false;
 				}
+				return 0;
+			}
 
-			};
+			sl_bool processCommand(SHORT code, LRESULT& result) override
+			{
+				if (code == CBN_SELCHANGE) {
+					Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
+					if (helper.isNotNull()) {
+						sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
+						helper->dispatchSelectItem(index);
+						result = 0;
+						return sl_true;
+					}
+				} else if (code == CBN_EDITCHANGE) {
+					Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
+					if (helper.isNotNull()) {
+						helper->onChange(m_handle);
+						result = 0;
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
 
-			SLIB_DEFINE_OBJECT(ComboBoxInstance, Win32_ViewInstance)
+		};
 
-		}
+		SLIB_DEFINE_OBJECT(ComboBoxInstance, Win32_ViewInstance)
+
 	}
-
-	using namespace priv::combo_box;
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{

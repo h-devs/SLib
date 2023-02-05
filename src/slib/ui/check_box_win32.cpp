@@ -33,72 +33,69 @@ namespace slib
 
 	namespace priv
 	{
-		namespace button
+
+		SLIB_DEFINE_OBJECT(CheckBoxInstance, ButtonInstance)
+
+		CheckBoxInstance::CheckBoxInstance()
 		{
-
-			SLIB_DEFINE_OBJECT(CheckBoxInstance, ButtonInstance)
-
-			CheckBoxInstance::CheckBoxInstance()
-			{
-			}
-
-			CheckBoxInstance::~CheckBoxInstance()
-			{
-			}
-
-			void CheckBoxInstance::initialize(View* _view)
-			{
-				CheckBox* view = (CheckBox*)_view;
-
-				ButtonInstance::initialize(view);
-				setChecked(view, view->isChecked());
-			}
-
-			sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
-			{
-				HWND handle = m_handle;
-				if (handle) {
-					LRESULT lr = SendMessageW(handle, BM_GETCHECK, 0, 0);
-					_out = (lr == BST_CHECKED);
-					return sl_true;
-				}
-				return sl_false;
-			}
-
-			void CheckBoxInstance::setChecked(CheckBox* view, sl_bool flag)
-			{
-				HWND handle = m_handle;
-				if (handle) {
-					if (flag) {
-						SendMessageW(handle, BM_SETCHECK, BST_CHECKED, 0);
-					} else {
-						SendMessageW(handle, BM_SETCHECK, BST_UNCHECKED, 0);
-					}
-				}
-			}
-
-			sl_bool CheckBoxInstance::measureSize(Button* view, UISize& _out)
-			{
-				if (m_font.isNotNull()) {
-					sl_ui_len cx = (sl_ui_len)(GetSystemMetrics(SM_CXMENUCHECK));
-					sl_ui_len cy = (sl_ui_len)(GetSystemMetrics(SM_CYMENUCHECK));
-					String16 text = m_text;
-					if (text.isNotEmpty()) {
-						text = SLIB_UNICODE("  ") + text;
-					}
-					UISize size = m_font->measureText(text);
-					size.x += cx;
-					size.y = SLIB_MAX(size.y, cy);
-					_out = size;
-					return sl_true;
-				}
-				return sl_false;
-			}
-
 		}
+
+		CheckBoxInstance::~CheckBoxInstance()
+		{
+		}
+
+		void CheckBoxInstance::initialize(View* _view)
+		{
+			CheckBox* view = (CheckBox*)_view;
+
+			ButtonInstance::initialize(view);
+			setChecked(view, view->isChecked());
+		}
+
+		sl_bool CheckBoxInstance::getChecked(CheckBox* view, sl_bool& _out)
+		{
+			HWND handle = m_handle;
+			if (handle) {
+				LRESULT lr = SendMessageW(handle, BM_GETCHECK, 0, 0);
+				_out = (lr == BST_CHECKED);
+				return sl_true;
+			}
+			return sl_false;
+		}
+
+		void CheckBoxInstance::setChecked(CheckBox* view, sl_bool flag)
+		{
+			HWND handle = m_handle;
+			if (handle) {
+				if (flag) {
+					SendMessageW(handle, BM_SETCHECK, BST_CHECKED, 0);
+				} else {
+					SendMessageW(handle, BM_SETCHECK, BST_UNCHECKED, 0);
+				}
+			}
+		}
+
+		sl_bool CheckBoxInstance::measureSize(Button* view, UISize& _out)
+		{
+			if (m_font.isNotNull()) {
+				sl_ui_len cx = (sl_ui_len)(GetSystemMetrics(SM_CXMENUCHECK));
+				sl_ui_len cy = (sl_ui_len)(GetSystemMetrics(SM_CYMENUCHECK));
+				String16 text = m_text;
+				if (text.isNotEmpty()) {
+					text = SLIB_UNICODE("  ") + text;
+				}
+				UISize size = m_font->measureText(text);
+				size.x += cx;
+				size.y = SLIB_MAX(size.y, cy);
+				_out = size;
+				return sl_true;
+			}
+			return sl_false;
+		}
+
 	}
 
-	using namespace priv::button;
+	using namespace priv;
 
 	Ref<ViewInstance> CheckBox::createNativeWidget(ViewInstance* parent)
 	{

@@ -82,38 +82,32 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace scroll_bar
+	namespace {
+
+		class StaticContext
 		{
+		public:
+			Ref<Drawable> defaultThumb;
+			Ref<Drawable> defaultPressedThumb;
+			Ref<Drawable> defaultHoverThumb;
 
-			class StaticContext
+			Ref<Drawable> defaultHoverTrack;
+			Ref<Drawable> defaultPressedTrack;
+
+			StaticContext()
 			{
-			public:
-				Ref<Drawable> defaultThumb;
-				Ref<Drawable> defaultPressedThumb;
-				Ref<Drawable> defaultHoverThumb;
+				defaultThumb = ColorDrawable::create(Color(0, 0, 0, 150));
+				defaultPressedThumb = ColorDrawable::create(Color(0, 0, 0, 200));
+				defaultHoverThumb = ColorDrawable::create(Color(0, 0, 0, 180));
 
-				Ref<Drawable> defaultHoverTrack;
-				Ref<Drawable> defaultPressedTrack;
+				defaultHoverTrack = ColorDrawable::create(Color(255, 255, 255, 50));
+				defaultPressedTrack = ColorDrawable::create(Color(255, 255, 255, 100));
+			}
+		};
 
-				StaticContext()
-				{
-					defaultThumb = ColorDrawable::create(Color(0, 0, 0, 150));
-					defaultPressedThumb = ColorDrawable::create(Color(0, 0, 0, 200));
-					defaultHoverThumb = ColorDrawable::create(Color(0, 0, 0, 180));
+		SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
 
-					defaultHoverTrack = ColorDrawable::create(Color(255, 255, 255, 50));
-					defaultPressedTrack = ColorDrawable::create(Color(255, 255, 255, 100));
-				}
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-		}
 	}
-
-	using namespace priv::scroll_bar;
 
 	SLIB_DEFINE_OBJECT(ScrollBar, View)
 

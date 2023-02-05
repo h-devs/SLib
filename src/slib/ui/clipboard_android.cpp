@@ -29,21 +29,15 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace clipboard
-		{
+	namespace {
 
-			SLIB_JNI_BEGIN_CLASS(JClipboard, "slib/android/ui/Clipboard")
-				SLIB_JNI_STATIC_METHOD(hasText, "hasText", "(Landroid/app/Activity;)Z");
-				SLIB_JNI_STATIC_METHOD(getText, "getText", "(Landroid/app/Activity;)Ljava/lang/String;");
-				SLIB_JNI_STATIC_METHOD(setText, "setText", "(Landroid/app/Activity;Ljava/lang/String;)V");
-			SLIB_JNI_END_CLASS
+		SLIB_JNI_BEGIN_CLASS(JClipboard, "slib/android/ui/Clipboard")
+			SLIB_JNI_STATIC_METHOD(hasText, "hasText", "(Landroid/app/Activity;)Z");
+			SLIB_JNI_STATIC_METHOD(getText, "getText", "(Landroid/app/Activity;)Ljava/lang/String;");
+			SLIB_JNI_STATIC_METHOD(setText, "setText", "(Landroid/app/Activity;Ljava/lang/String;)V");
+		SLIB_JNI_END_CLASS
 
-		}
 	}
-
-	using namespace priv::clipboard;
 
 	sl_bool Clipboard::hasText()
 	{

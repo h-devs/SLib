@@ -39,106 +39,6 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_core
-		{
-
-			class DefaultContext
-			{
-			public:
-				sl_real fontSize;
-				AtomicString fontFamily;
-
-				SpinLock lockFont;
-				Ref<Font> font;
-
-				sl_ui_len scrollBarWidth;
-
-			public:
-				DefaultContext()
-				{
-#if defined(SLIB_PLATFORM_IS_DESKTOP)
-					fontSize = 12;
-					scrollBarWidth = 12;
-#else
-					fontSize = (sl_real)(SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 40);
-					scrollBarWidth = SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 60;
-#endif
-				}
-			};
-
-			SLIB_SAFE_STATIC_GETTER(DefaultContext, getDefaultContext)
-
-			class UICallback : public Callable<void()>
-			{
-			public:
-				Function<void()> m_callback;
-
-			public:
-				UICallback(const Function<void()>& callback) noexcept: m_callback(callback) {}
-
-			public:
-				void invoke() noexcept override
-				{
-					if (UI::isUiThread()) {
-						m_callback();
-					} else {
-						UI::dispatchToUiThread(m_callback);
-					}
-				}
-
-			};
-
-			class DispatcherImpl : public Dispatcher
-			{
-			public:
-				sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
-				{
-					if (delayMillis >> 31) {
-						delayMillis = 0x7fffffff;
-					}
-					UI::dispatchToUiThread(callback, (sl_uint32)delayMillis);
-					return sl_true;
-				}
-			};
-
-			static sl_bool g_flagInitializedApp = sl_false;
-			static sl_bool g_flagRunningApp = sl_false;
-			static sl_int32 g_nLevelRunLoop = 0;
-			static sl_bool g_flagQuitApp = sl_false;
-
-			static void QuitLoop()
-			{
-				if (g_nLevelRunLoop) {
-					UIPlatform::quitLoop();
-				} else if (g_flagRunningApp) {
-					UIPlatform::quitApp();
-				}
-			}
-
-			static void QuitApp()
-			{
-				if (g_flagQuitApp) {
-					return;
-				}
-				g_flagQuitApp = sl_true;
-				QuitLoop();
-			}
-
-			static void TermHandler(int signum)
-			{
-				QuitApp();
-			}
-
-			SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<View>, g_currentDraggingView)
-			static DragOperations g_currentDraggingOperationMask;
-
-		}
-	}
-
-	using namespace priv::ui_core;
-
 	SLIB_DEFINE_OBJECT(Screen, Object)
 
 	Screen::Screen()
@@ -155,9 +55,39 @@ namespace slib
 	}
 
 
+	namespace {
+
+		class DefaultContext
+		{
+		public:
+			sl_real fontSize;
+			AtomicString fontFamily;
+
+			SpinLock lockFont;
+			Ref<Font> font;
+
+			sl_ui_len scrollBarWidth;
+
+		public:
+			DefaultContext()
+			{
+#if defined(SLIB_PLATFORM_IS_DESKTOP)
+				fontSize = 12;
+				scrollBarWidth = 12;
+#else
+				fontSize = (sl_real)(SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 40);
+				scrollBarWidth = SLIB_MIN(UI::getScreenWidth(), UI::getScreenHeight()) / 60;
+#endif
+			}
+		};
+
+		SLIB_SAFE_STATIC_GETTER(DefaultContext, GetDefaultContext)
+
+	}
+
 	Ref<Font> UI::getDefaultFont()
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (!def) {
 			return sl_null;
 		}
@@ -180,7 +110,7 @@ namespace slib
 
 	void UI::setDefaultFont(const Ref<Font>& font)
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (!def) {
 			return;
 		}
@@ -203,7 +133,7 @@ namespace slib
 
 	sl_real UI::getDefaultFontSize()
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (def) {
 			return def->fontSize;
 		}
@@ -212,7 +142,7 @@ namespace slib
 
 	void UI::setDefaultFontSize(sl_real fontSize)
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (!def) {
 			return;
 		}
@@ -240,7 +170,7 @@ namespace slib
 
 	String UI::getDefaultFontFamily()
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (def) {
 			String name = def->fontFamily;
 			if (name.isNotEmpty()) {
@@ -252,7 +182,7 @@ namespace slib
 
 	void UI::setDefaultFontFamily(const String& fontFamily)
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (!def) {
 			return;
 		}
@@ -281,7 +211,7 @@ namespace slib
 
 	sl_ui_len UI::getDefaultScrollBarWidth()
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (!def) {
 			return 0;
 		}
@@ -290,7 +220,7 @@ namespace slib
 
 	void UI::setDefaultScrollBarWidth(sl_ui_len len)
 	{
-		DefaultContext* def = getDefaultContext();
+		DefaultContext* def = GetDefaultContext();
 		if (!def) {
 			return;
 		}
@@ -713,6 +643,27 @@ namespace slib
 		}
 	}
 
+	namespace {
+		class UICallback : public Callable<void()>
+		{
+		public:
+			Function<void()> m_callback;
+
+		public:
+			UICallback(const Function<void()>& callback) noexcept: m_callback(callback) {}
+
+		public:
+			void invoke() noexcept override
+			{
+				if (UI::isUiThread()) {
+					m_callback();
+				} else {
+					UI::dispatchToUiThread(m_callback);
+				}
+			}
+		};
+	}
+
 	Function<void()> UI::getCallbackOnUiThread(const Function<void()>& callback)
 	{
 		if (callback.isNotNull()) {
@@ -721,9 +672,54 @@ namespace slib
 		return sl_null;
 	}
 
+	namespace {
+		class DispatcherImpl : public Dispatcher
+		{
+		public:
+			sl_bool dispatch(const Function<void()>& callback, sl_uint64 delayMillis) override
+			{
+				if (delayMillis >> 31) {
+					delayMillis = 0x7fffffff;
+				}
+				UI::dispatchToUiThread(callback, (sl_uint32)delayMillis);
+				return sl_true;
+			}
+		};
+	}
+
 	Ref<Dispatcher> UI::getDispatcher()
 	{
 		return new DispatcherImpl();
+	}
+
+	namespace {
+		static sl_bool g_flagInitializedApp = sl_false;
+		static sl_bool g_flagRunningApp = sl_false;
+		static sl_int32 g_nLevelRunLoop = 0;
+		static sl_bool g_flagQuitApp = sl_false;
+
+		static void QuitLoop()
+		{
+			if (g_nLevelRunLoop) {
+				UIPlatform::quitLoop();
+			} else if (g_flagRunningApp) {
+				UIPlatform::quitApp();
+			}
+		}
+
+		static void QuitApp()
+		{
+			if (g_flagQuitApp) {
+				return;
+			}
+			g_flagQuitApp = sl_true;
+			QuitLoop();
+		}
+
+		static void TermHandler(int signum)
+		{
+			QuitApp();
+		}
 	}
 
 	void UI::runLoop()

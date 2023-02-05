@@ -30,15 +30,10 @@
 
 #include "view_ios.h"
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace select_view
-		{
-			class SelectViewInstance;
-			class SelectViewHelper;
-		}
+namespace slib {
+	namespace {
+		class SelectViewInstance;
+		class SelectViewHelper;
 	}
 }
 
@@ -46,174 +41,168 @@ namespace slib
 {
 	@public UIPickerView* m_picker;
 	@public sl_uint32 m_selectionBefore;
-	@public slib::WeakRef<slib::priv::select_view::SelectViewInstance> m_viewInstance;
-	@public slib::WeakRef<slib::priv::select_view::SelectViewHelper> m_view;
+	@public slib::WeakRef<slib::SelectViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::SelectViewHelper> m_view;
 }
 @end
 
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace select_view
+	namespace {
+
+		static NSTextAlignment TranslateAlignment(Alignment _align)
 		{
-
-			static NSTextAlignment TranslateAlignment(Alignment _align)
-			{
-				Alignment align = _align & Alignment::HorizontalMask;
-				if (align == Alignment::Left) {
-					return NSTextAlignmentLeft;
-				} else if (align == Alignment::Right) {
-					return NSTextAlignmentRight;
-				} else {
-					return NSTextAlignmentCenter;
-				}
+			Alignment align = _align & Alignment::HorizontalMask;
+			if (align == Alignment::Left) {
+				return NSTextAlignmentLeft;
+			} else if (align == Alignment::Right) {
+				return NSTextAlignmentRight;
+			} else {
+				return NSTextAlignmentCenter;
 			}
-
-			static void SetBorder(SLIBSelectViewHandle* handle, sl_bool flagBorder)
-			{
-				if (flagBorder) {
-					[handle.layer setBorderColor:[UIColor grayColor].CGColor];
-					[handle.layer setBorderWidth:(UI::dpToPixel(1) / UIPlatform::getGlobalScaleFactor())];
-					[handle.layer setCornerRadius:(UI::dpToPixel(5) / UIPlatform::getGlobalScaleFactor())];
-				} else {
-					[handle.layer setBorderWidth:0];
-					[handle.layer setCornerRadius:0];
-				}
-			}
-
-			class SelectViewHelper : public SelectView
-			{
-			public:
-				NSString* getItemTitle(sl_uint32 row)
-				{
-					return Apple::getNSStringFromString(SelectView::getItemTitle(row));
-				}
-
-				void selectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
-				{
-					handle.text = getItemTitle(row);
-					[handle->m_picker selectRow:row inComponent:0 animated:NO];
-				}
-
-				void onSelectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
-				{
-					handle.text = getItemTitle(row);
-					dispatchSelectItem(row);
-				}
-
-				void onStartSelection(SLIBSelectViewHandle* handle)
-				{
-					sl_uint32 index = getSelectedIndex();
-					handle->m_selectionBefore = index;
-					UIPickerView* picker = handle->m_picker;
-					dispatch_async(dispatch_get_main_queue(), ^{
-						[picker selectRow:index inComponent:0 animated:NO];
-					});
-				}
-
-				void onCancelSelection(SLIBSelectViewHandle* handle)
-				{
-					onSelectItem(handle, handle->m_selectionBefore);
-				}
-
-			};
-
-			class SelectViewInstance : public iOS_ViewInstance, public ISelectViewInstance
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				SLIBSelectViewHandle* getHandle()
-				{
-					return (SLIBSelectViewHandle*)m_handle;
-				}
-
-				Ref<SelectViewHelper> getHelper()
-				{
-					return CastRef<SelectViewHelper>(getView());
-				}
-
-				void initialize(View* _view) override
-				{
-					SelectViewHelper* view = (SelectViewHelper*)_view;
-					SLIBSelectViewHandle* handle = getHandle();
-
-					handle->m_view = view;
-					view->selectItem(handle, view->getSelectedIndex());
-					[handle setTextAlignment:(TranslateAlignment(view->getGravity()))];
-					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
-					SetBorder(handle, view->isBorder());
-					Color backColor = view->getBackgroundColor();
-					[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
-					setHandleFont(handle, view->getFont());
-				}
-
-				void selectItem(SelectView* view, sl_uint32 index) override
-				{
-					SLIBSelectViewHandle* handle = getHandle();
-					if (handle != nil) {
-						(static_cast<SelectViewHelper*>(view))->selectItem(handle, index);
-					}
-				}
-
-				void refreshItems(SelectView* view) override
-				{
-					SLIBSelectViewHandle* handle = getHandle();
-					if (handle != nil) {
-						[handle->m_picker reloadAllComponents];
-					}
-				}
-
-				void setGravity(SelectView* view, const Alignment& gravity) override
-				{
-					SLIBSelectViewHandle* handle = getHandle();
-					if (handle != nil) {
-						[handle setTextAlignment:(TranslateAlignment(gravity))];
-					}
-				}
-
-				void setTextColor(SelectView* view, const Color& color) override
-				{
-					SLIBSelectViewHandle* handle = getHandle();
-					if (handle != nil) {
-						[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(color))];
-					}
-				}
-
-				void setBorder(View* view, sl_bool flag) override
-				{
-					SLIBSelectViewHandle* handle = getHandle();
-					if (handle != nil) {
-						SetBorder(handle, flag);
-					}
-				}
-
-				void setBackgroundColor(View* view, const Color& color) override
-				{
-					SLIBSelectViewHandle* handle = getHandle();
-					if (handle != nil) {
-						[handle setBackgroundColor:(color.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(color))];
-					}
-				}
-
-				void setFont(View* view, const Ref<Font>& font) override
-				{
-					SLIBSelectViewHandle* handle = getHandle();
-					if (handle != nil) {
-						setHandleFont(handle, font);
-					}
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(SelectViewInstance, iOS_ViewInstance)
-
 		}
-	}
 
-	using namespace priv::select_view;
+		static void SetBorder(SLIBSelectViewHandle* handle, sl_bool flagBorder)
+		{
+			if (flagBorder) {
+				[handle.layer setBorderColor:[UIColor grayColor].CGColor];
+				[handle.layer setBorderWidth:(UI::dpToPixel(1) / UIPlatform::getGlobalScaleFactor())];
+				[handle.layer setCornerRadius:(UI::dpToPixel(5) / UIPlatform::getGlobalScaleFactor())];
+			} else {
+				[handle.layer setBorderWidth:0];
+				[handle.layer setCornerRadius:0];
+			}
+		}
+
+		class SelectViewHelper : public SelectView
+		{
+		public:
+			NSString* getItemTitle(sl_uint32 row)
+			{
+				return Apple::getNSStringFromString(SelectView::getItemTitle(row));
+			}
+
+			void selectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
+			{
+				handle.text = getItemTitle(row);
+				[handle->m_picker selectRow:row inComponent:0 animated:NO];
+			}
+
+			void onSelectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
+			{
+				handle.text = getItemTitle(row);
+				dispatchSelectItem(row);
+			}
+
+			void onStartSelection(SLIBSelectViewHandle* handle)
+			{
+				sl_uint32 index = getSelectedIndex();
+				handle->m_selectionBefore = index;
+				UIPickerView* picker = handle->m_picker;
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[picker selectRow:index inComponent:0 animated:NO];
+				});
+			}
+
+			void onCancelSelection(SLIBSelectViewHandle* handle)
+			{
+				onSelectItem(handle, handle->m_selectionBefore);
+			}
+
+		};
+
+		class SelectViewInstance : public iOS_ViewInstance, public ISelectViewInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			SLIBSelectViewHandle* getHandle()
+			{
+				return (SLIBSelectViewHandle*)m_handle;
+			}
+
+			Ref<SelectViewHelper> getHelper()
+			{
+				return CastRef<SelectViewHelper>(getView());
+			}
+
+			void initialize(View* _view) override
+			{
+				SelectViewHelper* view = (SelectViewHelper*)_view;
+				SLIBSelectViewHandle* handle = getHandle();
+
+				handle->m_view = view;
+				view->selectItem(handle, view->getSelectedIndex());
+				[handle setTextAlignment:(TranslateAlignment(view->getGravity()))];
+				[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
+				SetBorder(handle, view->isBorder());
+				Color backColor = view->getBackgroundColor();
+				[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
+				setHandleFont(handle, view->getFont());
+			}
+
+			void selectItem(SelectView* view, sl_uint32 index) override
+			{
+				SLIBSelectViewHandle* handle = getHandle();
+				if (handle != nil) {
+					(static_cast<SelectViewHelper*>(view))->selectItem(handle, index);
+				}
+			}
+
+			void refreshItems(SelectView* view) override
+			{
+				SLIBSelectViewHandle* handle = getHandle();
+				if (handle != nil) {
+					[handle->m_picker reloadAllComponents];
+				}
+			}
+
+			void setGravity(SelectView* view, const Alignment& gravity) override
+			{
+				SLIBSelectViewHandle* handle = getHandle();
+				if (handle != nil) {
+					[handle setTextAlignment:(TranslateAlignment(gravity))];
+				}
+			}
+
+			void setTextColor(SelectView* view, const Color& color) override
+			{
+				SLIBSelectViewHandle* handle = getHandle();
+				if (handle != nil) {
+					[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(color))];
+				}
+			}
+
+			void setBorder(View* view, sl_bool flag) override
+			{
+				SLIBSelectViewHandle* handle = getHandle();
+				if (handle != nil) {
+					SetBorder(handle, flag);
+				}
+			}
+
+			void setBackgroundColor(View* view, const Color& color) override
+			{
+				SLIBSelectViewHandle* handle = getHandle();
+				if (handle != nil) {
+					[handle setBackgroundColor:(color.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(color))];
+				}
+			}
+
+			void setFont(View* view, const Ref<Font>& font) override
+			{
+				SLIBSelectViewHandle* handle = getHandle();
+				if (handle != nil) {
+					setHandleFont(handle, font);
+				}
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(SelectViewInstance, iOS_ViewInstance)
+
+	}
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{
@@ -228,7 +217,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::select_view;
 
 #define DROP_ICON_WIDTH 20
 #define DROP_ICON_HEIGHT 12

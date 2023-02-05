@@ -214,13 +214,13 @@ namespace slib
 		sl_uint32 m_lasttraffic;
 
 		// Incoming data
-		LinkedList<RSegment> m_rlist;
+		UniquePtr< CLinkedList<RSegment> > m_rlist;
 		sl_uint32 m_rbuf_len, m_rcv_nxt, m_rcv_wnd, m_lastrecv;
 		sl_uint8 m_rwnd_scale;  // Window scale factor.
 		UniquePtr<LockedFifoBuffer> m_rbuf;
 
 		// Outgoing data
-		LinkedList<SSegment> m_slist;
+		UniquePtr< CLinkedList<SSegment> > m_slist;
 		sl_uint32 m_sbuf_len, m_snd_nxt, m_snd_wnd, m_lastsend, m_snd_una;
 		sl_uint8 m_swnd_scale;  // Window scale factor.
 		UniquePtr<LockedFifoBuffer> m_sbuf;

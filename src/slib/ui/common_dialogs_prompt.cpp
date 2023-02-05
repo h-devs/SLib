@@ -32,38 +32,29 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace prompt_dialog
-		{
-
-			static Ref<ui::PromptDialog> CreateDialog(PromptDialog& param)
-			{
-				Ref<ui::PromptDialog> dlg = new ui::PromptDialog;
-				if (dlg.isNotNull()) {
-					dlg->setParent(param.parent);
-					dlg->setTitle(param.caption);
-					dlg->setCloseOnOK();
-					dlg->label->setText(param.message);
-					if (param.defaultValue.isNotEmpty()) {
-						dlg->input->setText(param.defaultValue);
-						dlg->input->selectAll();
-					}
-					return dlg;
-				}
-				return sl_null;
-			}
-
-		}
-	}
-
-	using namespace priv::prompt_dialog;
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PromptDialog)
 
 	PromptDialog::PromptDialog()
 	{
+	}
+
+	namespace {
+		static Ref<ui::PromptDialog> CreateDialog(PromptDialog& param)
+		{
+			Ref<ui::PromptDialog> dlg = new ui::PromptDialog;
+			if (dlg.isNotNull()) {
+				dlg->setParent(param.parent);
+				dlg->setTitle(param.caption);
+				dlg->setCloseOnOK();
+				dlg->label->setText(param.message);
+				if (param.defaultValue.isNotEmpty()) {
+					dlg->input->setText(param.defaultValue);
+					dlg->input->selectAll();
+				}
+				return dlg;
+			}
+			return sl_null;
+		}
 	}
 
 	String PromptDialog::run()

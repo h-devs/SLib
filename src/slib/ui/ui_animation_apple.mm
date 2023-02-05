@@ -54,119 +54,113 @@ typedef UIView* NativeView;
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_animation
+	namespace {
+
+		static void SetAnimation(CAAnimation* ca, const Ref<Animation>& animation, sl_bool flagGroup)
 		{
-
-			static void SetAnimation(CAAnimation* ca, const Ref<Animation>& animation, sl_bool flagGroup)
-			{
-				if (flagGroup) {
-					ca.duration = animation->getDuration();
-					ca.beginTime = animation->getStartDelay();
-				} else {
-					ca.duration = animation->getDuration();
-					ca.beginTime = 0;
-					switch (animation->getAnimationCurve()) {
-						case AnimationCurve::EaseIn:
-							ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
-							break;
-						case AnimationCurve::EaseOut:
-							ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
-							break;
-						case AnimationCurve::EaseInOut:
-							ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-							break;
-						default:
-							ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-							break;
-					}
-					if (animation->isAutoReverse()) {
-						ca.autoreverses = YES;
-					}
+			if (flagGroup) {
+				ca.duration = animation->getDuration();
+				ca.beginTime = animation->getStartDelay();
+			} else {
+				ca.duration = animation->getDuration();
+				ca.beginTime = 0;
+				switch (animation->getAnimationCurve()) {
+					case AnimationCurve::EaseIn:
+						ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+						break;
+					case AnimationCurve::EaseOut:
+						ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+						break;
+					case AnimationCurve::EaseInOut:
+						ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+						break;
+					default:
+						ca.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+						break;
 				}
-				sl_int32 nRepeat = animation->getRepeatCount();
-				if (nRepeat < 0) {
-					ca.repeatCount = HUGE_VALF;
-				} else {
-					if (nRepeat > 0) {
-						ca.repeatCount = nRepeat;
-					}
+				if (animation->isAutoReverse()) {
+					ca.autoreverses = YES;
 				}
-				ca.removedOnCompletion = NO;
-				ca.fillMode = kCAFillModeForwards;
-
 			}
-
-			static void ApplyAnimation(NativeView handle, const Ref<Animation>& animation,
-													sl_bool flagTranslate, const Vector2& translateStart, const Vector2& translateEnd,
-													sl_bool flagScale, const Vector2& scaleStart, const Vector2& scaleEnd,
-													sl_bool flagRotate, sl_real rotateStart, sl_real rotateEnd,
-													sl_bool flagAlpha, sl_real alphaStart, sl_real alphaEnd,
-													Function<void()> onStop)
-			{
-
-				CAAnimationGroup* group = [CAAnimationGroup animation];
-				NSMutableArray* arr = [NSMutableArray array];
-
-				if (flagTranslate) {
-					CABasicAnimation* ca = [CABasicAnimation animationWithKeyPath:@"transform.translation"];
-#ifdef SLIB_UI_IS_MACOS
-					ca.fromValue = [NSValue valueWithSize:CGSizeMake(translateStart.x, translateStart.y)];
-					ca.toValue = [NSValue valueWithSize:CGSizeMake(translateEnd.x, translateEnd.y)];
-#else
-					CGFloat f = UIPlatform::getGlobalScaleFactor();
-					ca.fromValue = [NSValue valueWithCGSize:CGSizeMake(translateStart.x / f, translateStart.y / f)];
-					ca.toValue = [NSValue valueWithCGSize:CGSizeMake(translateEnd.x / f, translateEnd.y / f)];
-#endif
-					SetAnimation(ca, animation, sl_false);
-					[arr addObject:ca];
+			sl_int32 nRepeat = animation->getRepeatCount();
+			if (nRepeat < 0) {
+				ca.repeatCount = HUGE_VALF;
+			} else {
+				if (nRepeat > 0) {
+					ca.repeatCount = nRepeat;
 				}
-				if (flagScale) {
-					CABasicAnimation* ca;
-					ca = [CABasicAnimation animationWithKeyPath:@"transform.scale.x"];
-					ca.fromValue = [NSNumber numberWithFloat:scaleStart.x];
-					ca.toValue = [NSNumber numberWithFloat:scaleEnd.x];
-					SetAnimation(ca, animation, sl_false);
-					[arr addObject:ca];
-					ca = [CABasicAnimation animationWithKeyPath:@"transform.scale.y"];
-					ca.fromValue = [NSNumber numberWithFloat:scaleStart.y];
-					ca.toValue = [NSNumber numberWithFloat:scaleEnd.y];
-					SetAnimation(ca, animation, sl_false);
-					[arr addObject:ca];
-				}
-				if (flagRotate) {
-					CABasicAnimation* ca = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
-					ca.fromValue = [NSNumber numberWithFloat:rotateStart];
-					ca.toValue = [NSNumber numberWithFloat:rotateEnd];
-					SetAnimation(ca, animation, sl_false);
-					[arr addObject:ca];
-				}
-				if (flagAlpha) {
-					CABasicAnimation* ca = [CABasicAnimation animationWithKeyPath:@"opacity"];
-					ca.fromValue = [NSNumber numberWithFloat:alphaStart];
-					ca.toValue = [NSNumber numberWithFloat:alphaEnd];
-					SetAnimation(ca, animation, sl_false);
-					[arr addObject:ca];
-				}
-
-				group.animations = arr;
-
-				SetAnimation(group, animation, sl_true);
-
-				SLIBUINativeAnimation* delegate = [[SLIBUINativeAnimation alloc] init];
-				delegate->layer = handle.layer;
-				delegate->onStop = onStop;
-				group.delegate = delegate;
-
-				[handle.layer addAnimation:group forKey:@"_slib_native_animation"];
-
 			}
+			ca.removedOnCompletion = NO;
+			ca.fillMode = kCAFillModeForwards;
 
 		}
-	}
 
-	using namespace priv::ui_animation;
+		static void ApplyAnimation(NativeView handle, const Ref<Animation>& animation,
+												sl_bool flagTranslate, const Vector2& translateStart, const Vector2& translateEnd,
+												sl_bool flagScale, const Vector2& scaleStart, const Vector2& scaleEnd,
+												sl_bool flagRotate, sl_real rotateStart, sl_real rotateEnd,
+												sl_bool flagAlpha, sl_real alphaStart, sl_real alphaEnd,
+												Function<void()> onStop)
+		{
+
+			CAAnimationGroup* group = [CAAnimationGroup animation];
+			NSMutableArray* arr = [NSMutableArray array];
+
+			if (flagTranslate) {
+				CABasicAnimation* ca = [CABasicAnimation animationWithKeyPath:@"transform.translation"];
+#ifdef SLIB_UI_IS_MACOS
+				ca.fromValue = [NSValue valueWithSize:CGSizeMake(translateStart.x, translateStart.y)];
+				ca.toValue = [NSValue valueWithSize:CGSizeMake(translateEnd.x, translateEnd.y)];
+#else
+				CGFloat f = UIPlatform::getGlobalScaleFactor();
+				ca.fromValue = [NSValue valueWithCGSize:CGSizeMake(translateStart.x / f, translateStart.y / f)];
+				ca.toValue = [NSValue valueWithCGSize:CGSizeMake(translateEnd.x / f, translateEnd.y / f)];
+#endif
+				SetAnimation(ca, animation, sl_false);
+				[arr addObject:ca];
+			}
+			if (flagScale) {
+				CABasicAnimation* ca;
+				ca = [CABasicAnimation animationWithKeyPath:@"transform.scale.x"];
+				ca.fromValue = [NSNumber numberWithFloat:scaleStart.x];
+				ca.toValue = [NSNumber numberWithFloat:scaleEnd.x];
+				SetAnimation(ca, animation, sl_false);
+				[arr addObject:ca];
+				ca = [CABasicAnimation animationWithKeyPath:@"transform.scale.y"];
+				ca.fromValue = [NSNumber numberWithFloat:scaleStart.y];
+				ca.toValue = [NSNumber numberWithFloat:scaleEnd.y];
+				SetAnimation(ca, animation, sl_false);
+				[arr addObject:ca];
+			}
+			if (flagRotate) {
+				CABasicAnimation* ca = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
+				ca.fromValue = [NSNumber numberWithFloat:rotateStart];
+				ca.toValue = [NSNumber numberWithFloat:rotateEnd];
+				SetAnimation(ca, animation, sl_false);
+				[arr addObject:ca];
+			}
+			if (flagAlpha) {
+				CABasicAnimation* ca = [CABasicAnimation animationWithKeyPath:@"opacity"];
+				ca.fromValue = [NSNumber numberWithFloat:alphaStart];
+				ca.toValue = [NSNumber numberWithFloat:alphaEnd];
+				SetAnimation(ca, animation, sl_false);
+				[arr addObject:ca];
+			}
+
+			group.animations = arr;
+
+			SetAnimation(group, animation, sl_true);
+
+			SLIBUINativeAnimation* delegate = [[SLIBUINativeAnimation alloc] init];
+			delegate->layer = handle.layer;
+			delegate->onStop = onStop;
+			group.delegate = delegate;
+
+			[handle.layer addAnimation:group forKey:@"_slib_native_animation"];
+
+		}
+
+	}
 
 	sl_bool UIAnimationLoop::_applyNativeAnimation(Animation* animation)
 	{

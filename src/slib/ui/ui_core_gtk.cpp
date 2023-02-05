@@ -41,168 +41,35 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_core
+	using namespace priv;
+
+	namespace {
+		class ScreenImpl : public Screen
 		{
+		public:
+			UIRect m_region;
 
-			static GtkApplication* g_app = sl_null;
-
-			static sl_bool g_flagRunningAppLoop = sl_false;
-
-
-			static String GetOpenIpcName(const StringParam& appId)
+		public:
+			ScreenImpl()
 			{
-				return String::concat(appId, ".ipc.ui.open");
-			}
-
-			class StaticContext
-			{
-			public:
-				Ref<IPC> m_ipc;
-
-			public:
-				void initIPC(const StringParam& appId)
-				{
-					if (m_ipc.isNotNull()) {
-						return;
-					}
-					IPCParam param;
-					param.name = GetOpenIpcName(appId);
-					param.onReceiveMessage = SLIB_FUNCTION_MEMBER(this, onReceiveIPC);
-					m_ipc = IPC::create(param);
-				}
-
-				void onReceiveIPC(sl_uint8* data, sl_size size, MemoryOutput* output)
-				{
-					Json json;
-					if (json.deserialize(data, size)) {
-						String command = json["command"].getString();
-						if (command == "open") {
-							String args = json["args"].getString();
-							UIApp::dispatchReopenToApp(args, sl_true);
-							Json("ok").serialize(output);
-						} else {
-							Json("unknown_command").serialize(output);
-						}
-					} else {
-						Json("failed_deserialize").serialize(output);
-					}
-				}
-
-			};
-
-			SLIB_SAFE_STATIC_GETTER(StaticContext, GetStaticContext)
-
-			class ScreenImpl : public Screen
-			{
-			public:
-				UIRect m_region;
-
-			public:
-				ScreenImpl()
-				{
-					GdkScreen* screen = gdk_screen_get_default();
-					if (screen) {
-						m_region.left = 0;
-						m_region.top = 0;
-						m_region.right = gdk_screen_get_width(screen);
-						m_region.bottom = gdk_screen_get_height(screen);
-					} else {
-						m_region.setZero();
-					}
-				}
-
-			public:
-				UIRect getRegion() override
-				{
-					return m_region;
-				}
-
-			};
-
-			static gboolean DispatchUrgentlyCallback(gpointer user_data)
-			{
-				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
-				callable->invoke();
-				return sl_false;
-			}
-
-			static void DispatchUrgentlyDestroy(gpointer user_data)
-			{
-				Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
-				callable->decreaseReference();
-			}
-
-			static void EventHandler(GdkEvent* event, gpointer data)
-			{
-				UIDispatcher::processCallbacks();
-				gtk_main_do_event(event);
-			}
-
-			static void OnPixbufDestroyNotify(guchar* pixels, gpointer data)
-			{
-				Image* image = (Image*)data;
-				if (image) {
-					image->decreaseReference();
+				GdkScreen* screen = gdk_screen_get_default();
+				if (screen) {
+					m_region.left = 0;
+					m_region.top = 0;
+					m_region.right = gdk_screen_get_width(screen);
+					m_region.bottom = gdk_screen_get_height(screen);
+				} else {
+					m_region.setZero();
 				}
 			}
 
-			static sl_bool GetActiveWindowInfo(String& cls, String& title)
+		public:
+			UIRect getRegion() override
 			{
-				auto funcCallSync = gio::getApi_g_dbus_connection_call_sync();
-				if (!funcCallSync) {
-					return sl_false;
-				}
-				GDBusConnection* connection = UIPlatform::getDefaultDBusConnection();
-				if (!connection) {
-					return sl_false;
-				}
-				sl_bool bRet = sl_false;
-				const char* script =
-					SLIB_STRINGIFY(
-						global.
-							get_window_actors().
-							map(a=>a.meta_window).
-							map(w=>({has_focus: w.has_focus(), cls: w.get_wm_class(), title: w.get_title()})).
-							find(w=>w.has_focus)
-					);
-				GVariant* result = funcCallSync(
-					connection,
-					"org.gnome.Shell", // bus_name
-					"/org/gnome/Shell", // object_path
-					"org.gnome.Shell", // interface
-					"Eval", // method
-					g_variant_new("(s)", script),
-					sl_null, // reply_type
-					G_DBUS_CALL_FLAGS_NONE,
-					-1, // timeout
-					sl_null, sl_null);
-				if (result) {
-					if (Base::equalsString(g_variant_get_type_string(result), "(bs)")) {
-						GVariant* gstrResult = g_variant_get_child_value(result, 1);
-						if (gstrResult) {
-							gsize lenResult = 0;
-							const gchar* szResult = g_variant_get_string(gstrResult, &lenResult);
-							Json json = Json::parse(szResult);
-							cls = json["cls"].getString();
-							title = json["title"].getString();
-							if (cls.isNotNull() || title.isNotNull()) {
-								bRet = sl_true;
-							}
-							g_variant_unref(gstrResult);
-						}
-					}
-					g_variant_unref(result);
-				}
-				g_object_unref(connection);
-				return bRet;
+				return m_region;
 			}
-
-		}
+		};
 	}
-
-	using namespace priv::ui_core;
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
@@ -237,6 +104,21 @@ namespace slib
 		gdk_event_put(&event);
 	}
 
+	namespace {
+		static gboolean DispatchUrgentlyCallback(gpointer user_data)
+		{
+			Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
+			callable->invoke();
+			return sl_false;
+		}
+
+		static void DispatchUrgentlyDestroy(gpointer user_data)
+		{
+			Callable<void()>* callable = reinterpret_cast<Callable<void()>*>(user_data);
+			callable->decreaseReference();
+		}
+	}
+
 	void UI::dispatchToUiThreadUrgently(const Function<void()>& callback, sl_uint32 delayMillis)
 	{
 		if (callback.isNull()) {
@@ -263,6 +145,59 @@ namespace slib
 		StringCstr url(_url);
 		GError* error = NULL;
 		gtk_show_uri(NULL, url.getData(), GDK_CURRENT_TIME, &error);
+	}
+
+	namespace {
+		static sl_bool GetActiveWindowInfo(String& cls, String& title)
+		{
+			auto funcCallSync = gio::getApi_g_dbus_connection_call_sync();
+			if (!funcCallSync) {
+				return sl_false;
+			}
+			GDBusConnection* connection = UIPlatform::getDefaultDBusConnection();
+			if (!connection) {
+				return sl_false;
+			}
+			sl_bool bRet = sl_false;
+			const char* script =
+				SLIB_STRINGIFY(
+					global.
+						get_window_actors().
+						map(a=>a.meta_window).
+						map(w=>({has_focus: w.has_focus(), cls: w.get_wm_class(), title: w.get_title()})).
+						find(w=>w.has_focus)
+				);
+			GVariant* result = funcCallSync(
+				connection,
+				"org.gnome.Shell", // bus_name
+				"/org/gnome/Shell", // object_path
+				"org.gnome.Shell", // interface
+				"Eval", // method
+				g_variant_new("(s)", script),
+				sl_null, // reply_type
+				G_DBUS_CALL_FLAGS_NONE,
+				-1, // timeout
+				sl_null, sl_null);
+			if (result) {
+				if (Base::equalsString(g_variant_get_type_string(result), "(bs)")) {
+					GVariant* gstrResult = g_variant_get_child_value(result, 1);
+					if (gstrResult) {
+						gsize lenResult = 0;
+						const gchar* szResult = g_variant_get_string(gstrResult, &lenResult);
+						Json json = Json::parse(szResult);
+						cls = json["cls"].getString();
+						title = json["title"].getString();
+						if (cls.isNotNull() || title.isNotNull()) {
+							bRet = sl_true;
+						}
+						g_variant_unref(gstrResult);
+					}
+				}
+				g_variant_unref(result);
+			}
+			g_object_unref(connection);
+			return bRet;
+		}
 	}
 
 	void UI::getActiveApplicationAndWindow(String& appName, String& windowTitle)
@@ -373,9 +308,66 @@ namespace slib
 		gtk_main_quit();
 	}
 
+	namespace {
+
+		static GtkApplication* g_app = sl_null;
+		static sl_bool g_flagRunningAppLoop = sl_false;
+
+		static void EventHandler(GdkEvent* event, gpointer data)
+		{
+			UIDispatcher::processCallbacks();
+			gtk_main_do_event(event);
+		}
+
+		static String GetOpenIpcName(const StringParam& appId)
+		{
+			return String::concat(appId, ".ipc.ui.open");
+		}
+
+		class IpcContext
+		{
+		public:
+			Ref<IPC> m_ipc;
+
+		public:
+			void init(const StringParam& appId)
+			{
+				if (m_ipc.isNotNull()) {
+					return;
+				}
+				IPCParam param;
+				param.name = GetOpenIpcName(appId);
+				param.onReceiveMessage = SLIB_FUNCTION_MEMBER(this, onReceive);
+				m_ipc = IPC::create(param);
+			}
+
+		private:
+			void onReceive(sl_uint8* data, sl_size size, MemoryOutput* output)
+			{
+				Json json;
+				if (json.deserialize(data, size)) {
+					String command = json["command"].getString();
+					if (command == "open") {
+						String args = json["args"].getString();
+						UIApp::dispatchReopenToApp(args, sl_true);
+						Json("ok").serialize(output);
+					} else {
+						Json("unknown_command").serialize(output);
+					}
+				} else {
+					Json("failed_deserialize").serialize(output);
+				}
+			}
+
+		};
+
+		SLIB_SAFE_STATIC_GETTER(IpcContext, GetIpcContext)
+
+	}
+
 	void UIPlatform::initApp()
 	{
-		UIPlatform::initializeGtk();
+`		UIPlatform::initializeGtk();
 		GtkApplication* app = getApp();
 		if (app) {
 			auto funcRegister = gio::getApi_g_application_register();
@@ -388,16 +380,15 @@ namespace slib
 
 	void UIPlatform::runApp()
 	{
-		StaticContext* context = GetStaticContext();
-		if (!context) {
-			return;
-		}
 		{
 			Ref<UIApp> app = UIApp::getApp();
 			if (app.isNotNull()) {
 				String appId = app->getApplicationId();
 				if (appId.isNotEmpty()) {
-					context->initIPC(appId);
+					IpcContext* ipc = GetIpcContext();
+					if (ipc) {
+						ipc->init(appId);
+					}
 				}
 			}
 		}

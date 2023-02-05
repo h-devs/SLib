@@ -295,208 +295,6 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	SLIB_DEFINE_ROOT_OBJECT(UIEvent)
 
-	namespace priv
-	{
-		namespace ui_event
-		{
-
-			class KeyboardEvent : public UIEvent
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				sl_uint32 m_systemKeycode;
-
-			public:
-				KeyboardEvent(UIAction action, const Time& time, sl_uint32 systemKeyboard): UIEvent(action, time), m_systemKeycode(systemKeyboard)
-				{
-				}
-
-			public:
-				Ref<UIEvent> duplicate() const override
-				{
-					KeyboardEvent* ret = new KeyboardEvent(m_action, m_time, m_systemKeycode);
-					if (ret) {
-						ret->_copyProperties(this);
-						return ret;
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(KeyboardEvent, UIEvent)
-
-
-			class MouseEvent : public UIEvent
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				TouchPoint m_pt;
-
-			public:
-				MouseEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y): UIEvent(action, time), m_pt(x, y)
-				{
-				}
-
-				MouseEvent(UIAction action, const Time& time, const TouchPoint& pt): UIEvent(action, time), m_pt(pt)
-				{
-				}
-
-			public:
-				Ref<UIEvent> duplicate() const override
-				{
-					MouseEvent* ret = new MouseEvent(m_action, m_time, m_pt);
-					if (ret) {
-						ret->_copyProperties(this);
-						return ret;
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(MouseEvent, UIEvent)
-
-
-			class MouseWheelEvent : public MouseEvent
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				sl_real m_deltaX;
-				sl_real m_deltaY;
-
-			public:
-				MouseWheelEvent(const Time& time, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY): MouseEvent(UIAction::MouseWheel, time, x, y), m_deltaX(deltaX), m_deltaY(deltaY)
-				{
-				}
-
-			public:
-				Ref<UIEvent> duplicate() const override
-				{
-					MouseWheelEvent* ret = new MouseWheelEvent(m_time, m_pt.point.x, m_pt.point.y, m_deltaX, m_deltaY);
-					if (ret) {
-						ret->_copyProperties(this);
-						return ret;
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(MouseWheelEvent, MouseEvent)
-
-
-			class TouchEvent : public MouseEvent
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				Array<TouchPoint> m_points;
-
-			public:
-				TouchEvent(UIAction action, const Time& time, const TouchPoint& pt) : MouseEvent(action, time, pt)
-				{
-				}
-
-				TouchEvent(UIAction action, const Time& time, const Array<TouchPoint>& points) : MouseEvent(action, time, 0, 0), m_points(points)
-				{
-					if (points.getCount()) {
-						m_pt = points[0];
-					}
-				}
-
-			public:
-				Ref<UIEvent> duplicate() const override
-				{
-					if (m_points.isNotNull()) {
-						TouchEvent* ret = new TouchEvent(m_action, m_time, m_points.duplicate());
-						if (ret) {
-							ret->_copyProperties(this);
-							ret->m_pt = m_pt;
-							return ret;
-						}
-					} else {
-						TouchEvent* ret = new TouchEvent(m_action, m_time, m_pt);
-						if (ret) {
-							ret->_copyProperties(this);
-							return ret;
-						}
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(TouchEvent, MouseEvent)
-
-
-			class SetCursorEvent : public MouseEvent
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				Ref<Cursor> cursor;
-				String toolTip;
-				Ref<View> toolTipView;
-
-			public:
-				SetCursorEvent(const Time& time, sl_ui_posf x, sl_ui_posf y): MouseEvent(UIAction::SetCursor, time, x, y)
-				{
-				}
-
-			public:
-				Ref<UIEvent> duplicate() const override
-				{
-					SetCursorEvent* ret = new SetCursorEvent(m_time, m_pt.point.x, m_pt.point.y);
-					if (ret) {
-						ret->_copyProperties(this);
-						return ret;
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(SetCursorEvent, MouseEvent)
-
-
-			class DragEvent : public MouseEvent
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				DragContext m_context;
-
-			public:
-				DragEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y, const DragContext& context) : MouseEvent(action, time, x, y), m_context(context)
-				{
-				}
-
-			public:
-				Ref<UIEvent> duplicate() const override
-				{
-					DragEvent* ret = new DragEvent(m_action, m_time, m_pt.point.x, m_pt.point.y, m_context);
-					if (ret) {
-						ret->_copyProperties(this);
-						return ret;
-					}
-					return sl_null;
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(DragEvent, MouseEvent)
-
-			static DragContext g_currentDragContext;
-
-		}
-	}
-
-	using namespace priv::ui_event;
-
 	UIEvent::UIEvent() : m_flags(0), m_action(UIAction::Unknown), m_time(0)
 	{
 	}
@@ -522,6 +320,34 @@ sl_bool UIEvent::is##NAME##Key() const \
 	{
 		return new UIEvent(UIAction::Unknown, time);
 	}
+	namespace {
+		class KeyboardEvent : public UIEvent
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			sl_uint32 m_systemKeycode;
+
+		public:
+			KeyboardEvent(UIAction action, const Time& time, sl_uint32 systemKeyboard): UIEvent(action, time), m_systemKeycode(systemKeyboard)
+			{
+			}
+
+		public:
+			Ref<UIEvent> duplicate() const override
+			{
+				KeyboardEvent* ret = new KeyboardEvent(m_action, m_time, m_systemKeycode);
+				if (ret) {
+					ret->_copyProperties(this);
+					return ret;
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(KeyboardEvent, UIEvent)
+	}
 
 	Ref<UIEvent> UIEvent::createKeyEvent(UIAction action, Keycode keycode, sl_uint32 systemKeycode, const Time& time)
 	{
@@ -533,14 +359,122 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return sl_null;
 	}
 
+	namespace {
+		class MouseEvent : public UIEvent
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			TouchPoint m_pt;
+
+		public:
+			MouseEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y): UIEvent(action, time), m_pt(x, y)
+			{
+			}
+
+			MouseEvent(UIAction action, const Time& time, const TouchPoint& pt): UIEvent(action, time), m_pt(pt)
+			{
+			}
+
+		public:
+			Ref<UIEvent> duplicate() const override
+			{
+				MouseEvent* ret = new MouseEvent(m_action, m_time, m_pt);
+				if (ret) {
+					ret->_copyProperties(this);
+					return ret;
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(MouseEvent, UIEvent)
+	}
+
 	Ref<UIEvent> UIEvent::createMouseEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const Time& time)
 	{
 		return new MouseEvent(action, time, x, y);
 	}
 
+	namespace {
+		class MouseWheelEvent : public MouseEvent
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			sl_real m_deltaX;
+			sl_real m_deltaY;
+
+		public:
+			MouseWheelEvent(const Time& time, sl_ui_posf x, sl_ui_posf y, sl_real deltaX, sl_real deltaY): MouseEvent(UIAction::MouseWheel, time, x, y), m_deltaX(deltaX), m_deltaY(deltaY)
+			{
+			}
+
+		public:
+			Ref<UIEvent> duplicate() const override
+			{
+				MouseWheelEvent* ret = new MouseWheelEvent(m_time, m_pt.point.x, m_pt.point.y, m_deltaX, m_deltaY);
+				if (ret) {
+					ret->_copyProperties(this);
+					return ret;
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(MouseWheelEvent, MouseEvent)
+	}
+
 	Ref<UIEvent> UIEvent::createMouseWheelEvent(sl_ui_posf mouseX, sl_ui_posf mouseY, sl_real deltaX, sl_real deltaY, const Time& time)
 	{
 		return new MouseWheelEvent(time, mouseX, mouseY, deltaX, deltaY);
+	}
+
+	namespace {
+		class TouchEvent : public MouseEvent
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			Array<TouchPoint> m_points;
+
+		public:
+			TouchEvent(UIAction action, const Time& time, const TouchPoint& pt) : MouseEvent(action, time, pt)
+			{
+			}
+
+			TouchEvent(UIAction action, const Time& time, const Array<TouchPoint>& points) : MouseEvent(action, time, 0, 0), m_points(points)
+			{
+				if (points.getCount()) {
+					m_pt = points[0];
+				}
+			}
+
+		public:
+			Ref<UIEvent> duplicate() const override
+			{
+				if (m_points.isNotNull()) {
+					TouchEvent* ret = new TouchEvent(m_action, m_time, m_points.duplicate());
+					if (ret) {
+						ret->_copyProperties(this);
+						ret->m_pt = m_pt;
+						return ret;
+					}
+				} else {
+					TouchEvent* ret = new TouchEvent(m_action, m_time, m_pt);
+					if (ret) {
+						ret->_copyProperties(this);
+						return ret;
+					}
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(TouchEvent, MouseEvent)
 	}
 
 	Ref<UIEvent> UIEvent::createTouchEvent(UIAction action, const Array<TouchPoint>& points, const Time& time)
@@ -553,9 +487,69 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return new TouchEvent(action, time, Array<TouchPoint>::create(&point, 1));
 	}
 
+	namespace {
+		class SetCursorEvent : public MouseEvent
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			Ref<Cursor> cursor;
+			String toolTip;
+			Ref<View> toolTipView;
+
+		public:
+			SetCursorEvent(const Time& time, sl_ui_posf x, sl_ui_posf y): MouseEvent(UIAction::SetCursor, time, x, y)
+			{
+			}
+
+		public:
+			Ref<UIEvent> duplicate() const override
+			{
+				SetCursorEvent* ret = new SetCursorEvent(m_time, m_pt.point.x, m_pt.point.y);
+				if (ret) {
+					ret->_copyProperties(this);
+					return ret;
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(SetCursorEvent, MouseEvent)
+	}
+
 	Ref<UIEvent> UIEvent::createSetCursorEvent(sl_ui_posf x, sl_ui_posf y, const Time& time)
 	{
 		return new SetCursorEvent(time, x, y);
+	}
+
+	namespace {
+		class DragEvent : public MouseEvent
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			DragContext m_context;
+
+		public:
+			DragEvent(UIAction action, const Time& time, sl_ui_posf x, sl_ui_posf y, const DragContext& context) : MouseEvent(action, time, x, y), m_context(context)
+			{
+			}
+
+		public:
+			Ref<UIEvent> duplicate() const override
+			{
+				DragEvent* ret = new DragEvent(m_action, m_time, m_pt.point.x, m_pt.point.y, m_context);
+				if (ret) {
+					ret->_copyProperties(this);
+					return ret;
+				}
+				return sl_null;
+			}
+
+		};
+
+		SLIB_DEFINE_OBJECT(DragEvent, MouseEvent)
 	}
 
 	Ref<UIEvent> UIEvent::createDragEvent(UIAction action, sl_ui_posf x, sl_ui_posf y, const DragContext& context, const Time& time)
@@ -1063,225 +1057,220 @@ sl_bool UIEvent::is##NAME##Key() const \
 		m_keycodeAndModifiers = other->m_keycodeAndModifiers;
 	}
 
-	namespace priv
-	{
-		namespace ui_event
+	namespace {
+
+		class KeyNameMapper
 		{
+		private:
+			HashTable<sl_uint32, String> mapLong;
+			HashTable<sl_uint32, String> mapShort;
+			HashTable<String, sl_uint32> mapName;
+			String nameInvalid;
 
-			class KeyNameMapper
-			{
-			private:
-				HashTable<sl_uint32, String> mapLong;
-				HashTable<sl_uint32, String> mapShort;
-				HashTable<String, sl_uint32> mapName;
-				String nameInvalid;
-
-			public:
+		public:
 
 #define PRIV_MAP_KEY(NAME) \
-				{ \
-					SLIB_STATIC_STRING(_s, #NAME); \
-					mapLong.put((sl_uint32)(Keycode::NAME), _s); \
-					mapShort.put((sl_uint32)(Keycode::NAME), _s); \
-					mapName.put(_s.toLower(), (sl_uint32)(Keycode::NAME)); \
-				}
+			{ \
+				SLIB_STATIC_STRING(_s, #NAME); \
+				mapLong.put((sl_uint32)(Keycode::NAME), _s); \
+				mapShort.put((sl_uint32)(Keycode::NAME), _s); \
+				mapName.put(_s.toLower(), (sl_uint32)(Keycode::NAME)); \
+			}
 #define PRIV_MAP_KEY2(NAME, SHORT_NAME) \
-				{ \
-					SLIB_STATIC_STRING(_s1, #NAME); \
-					mapLong.put((sl_uint32)(Keycode::NAME), _s1); \
-					SLIB_STATIC_STRING(_s2, SHORT_NAME); \
-					mapShort.put((sl_uint32)(Keycode::NAME), _s2); \
-					mapName.put(_s1.toLower(), (sl_uint32)(Keycode::NAME)); \
-					mapName.put(_s2.toLower(), (sl_uint32)(Keycode::NAME)); \
-				}
+			{ \
+				SLIB_STATIC_STRING(_s1, #NAME); \
+				mapLong.put((sl_uint32)(Keycode::NAME), _s1); \
+				SLIB_STATIC_STRING(_s2, SHORT_NAME); \
+				mapShort.put((sl_uint32)(Keycode::NAME), _s2); \
+				mapName.put(_s1.toLower(), (sl_uint32)(Keycode::NAME)); \
+				mapName.put(_s2.toLower(), (sl_uint32)(Keycode::NAME)); \
+			}
 
-				KeyNameMapper()
-				{
-					SLIB_STATIC_STRING(_invalid, "Invalid")
-					nameInvalid = _invalid;
-					PRIV_MAP_KEY(Unknown);
+			KeyNameMapper()
+			{
+				SLIB_STATIC_STRING(_invalid, "Invalid")
+				nameInvalid = _invalid;
+				PRIV_MAP_KEY(Unknown);
 
-					PRIV_MAP_KEY2(Backspace, "Back")
-					PRIV_MAP_KEY(Tab)
-					PRIV_MAP_KEY(Enter)
-					PRIV_MAP_KEY2(Escape, "Esc")
+				PRIV_MAP_KEY2(Backspace, "Back")
+				PRIV_MAP_KEY(Tab)
+				PRIV_MAP_KEY(Enter)
+				PRIV_MAP_KEY2(Escape, "Esc")
 
-					PRIV_MAP_KEY(Space)
-					PRIV_MAP_KEY2(Grave, "`")
-					PRIV_MAP_KEY2(Equal, "=")
-					PRIV_MAP_KEY2(Semicolon, ";")
-					PRIV_MAP_KEY2(Backslash, "\\")
-					PRIV_MAP_KEY2(LeftBaracket, "[")
-					PRIV_MAP_KEY2(RightBaracket, "]")
-					PRIV_MAP_KEY2(Quote, "'")
-					PRIV_MAP_KEY2(Comma, ",")
-					PRIV_MAP_KEY2(Minus, "-")
-					PRIV_MAP_KEY2(Period, ".")
-					PRIV_MAP_KEY2(Divide, "/")
+				PRIV_MAP_KEY(Space)
+				PRIV_MAP_KEY2(Grave, "`")
+				PRIV_MAP_KEY2(Equal, "=")
+				PRIV_MAP_KEY2(Semicolon, ";")
+				PRIV_MAP_KEY2(Backslash, "\\")
+				PRIV_MAP_KEY2(LeftBaracket, "[")
+				PRIV_MAP_KEY2(RightBaracket, "]")
+				PRIV_MAP_KEY2(Quote, "'")
+				PRIV_MAP_KEY2(Comma, ",")
+				PRIV_MAP_KEY2(Minus, "-")
+				PRIV_MAP_KEY2(Period, ".")
+				PRIV_MAP_KEY2(Divide, "/")
 
-					PRIV_MAP_KEY2(Num0, "0")
-					PRIV_MAP_KEY2(Num1, "1")
-					PRIV_MAP_KEY2(Num2, "2")
-					PRIV_MAP_KEY2(Num3, "3")
-					PRIV_MAP_KEY2(Num4, "4")
-					PRIV_MAP_KEY2(Num5, "5")
-					PRIV_MAP_KEY2(Num6, "6")
-					PRIV_MAP_KEY2(Num7, "7")
-					PRIV_MAP_KEY2(Num8, "8")
-					PRIV_MAP_KEY2(Num9, "9")
+				PRIV_MAP_KEY2(Num0, "0")
+				PRIV_MAP_KEY2(Num1, "1")
+				PRIV_MAP_KEY2(Num2, "2")
+				PRIV_MAP_KEY2(Num3, "3")
+				PRIV_MAP_KEY2(Num4, "4")
+				PRIV_MAP_KEY2(Num5, "5")
+				PRIV_MAP_KEY2(Num6, "6")
+				PRIV_MAP_KEY2(Num7, "7")
+				PRIV_MAP_KEY2(Num8, "8")
+				PRIV_MAP_KEY2(Num9, "9")
 
-					PRIV_MAP_KEY(A)
-					PRIV_MAP_KEY(B)
-					PRIV_MAP_KEY(C)
-					PRIV_MAP_KEY(D)
-					PRIV_MAP_KEY(E)
-					PRIV_MAP_KEY(F)
-					PRIV_MAP_KEY(G)
-					PRIV_MAP_KEY(H)
-					PRIV_MAP_KEY(I)
-					PRIV_MAP_KEY(J)
-					PRIV_MAP_KEY(K)
-					PRIV_MAP_KEY(L)
-					PRIV_MAP_KEY(M)
-					PRIV_MAP_KEY(N)
-					PRIV_MAP_KEY(O)
-					PRIV_MAP_KEY(P)
-					PRIV_MAP_KEY(Q)
-					PRIV_MAP_KEY(R)
-					PRIV_MAP_KEY(S)
-					PRIV_MAP_KEY(T)
-					PRIV_MAP_KEY(U)
-					PRIV_MAP_KEY(V)
-					PRIV_MAP_KEY(W)
-					PRIV_MAP_KEY(X)
-					PRIV_MAP_KEY(Y)
-					PRIV_MAP_KEY(Z)
+				PRIV_MAP_KEY(A)
+				PRIV_MAP_KEY(B)
+				PRIV_MAP_KEY(C)
+				PRIV_MAP_KEY(D)
+				PRIV_MAP_KEY(E)
+				PRIV_MAP_KEY(F)
+				PRIV_MAP_KEY(G)
+				PRIV_MAP_KEY(H)
+				PRIV_MAP_KEY(I)
+				PRIV_MAP_KEY(J)
+				PRIV_MAP_KEY(K)
+				PRIV_MAP_KEY(L)
+				PRIV_MAP_KEY(M)
+				PRIV_MAP_KEY(N)
+				PRIV_MAP_KEY(O)
+				PRIV_MAP_KEY(P)
+				PRIV_MAP_KEY(Q)
+				PRIV_MAP_KEY(R)
+				PRIV_MAP_KEY(S)
+				PRIV_MAP_KEY(T)
+				PRIV_MAP_KEY(U)
+				PRIV_MAP_KEY(V)
+				PRIV_MAP_KEY(W)
+				PRIV_MAP_KEY(X)
+				PRIV_MAP_KEY(Y)
+				PRIV_MAP_KEY(Z)
 
-					PRIV_MAP_KEY(Numpad0)
-					PRIV_MAP_KEY(Numpad1)
-					PRIV_MAP_KEY(Numpad2)
-					PRIV_MAP_KEY(Numpad3)
-					PRIV_MAP_KEY(Numpad4)
-					PRIV_MAP_KEY(Numpad5)
-					PRIV_MAP_KEY(Numpad6)
-					PRIV_MAP_KEY(Numpad7)
-					PRIV_MAP_KEY(Numpad8)
-					PRIV_MAP_KEY(Numpad9)
+				PRIV_MAP_KEY(Numpad0)
+				PRIV_MAP_KEY(Numpad1)
+				PRIV_MAP_KEY(Numpad2)
+				PRIV_MAP_KEY(Numpad3)
+				PRIV_MAP_KEY(Numpad4)
+				PRIV_MAP_KEY(Numpad5)
+				PRIV_MAP_KEY(Numpad6)
+				PRIV_MAP_KEY(Numpad7)
+				PRIV_MAP_KEY(Numpad8)
+				PRIV_MAP_KEY(Numpad9)
 
-					PRIV_MAP_KEY2(NumpadDivide, "Numpad/")
-					PRIV_MAP_KEY2(NumpadMultiply, "Numpad*")
-					PRIV_MAP_KEY2(NumpadMinus, "Numpad-")
-					PRIV_MAP_KEY2(NumpadPlus, "Numpad+")
-					PRIV_MAP_KEY2(NumpadEnter, "NumpadEnter")
-					PRIV_MAP_KEY2(NumpadDecimal, "Numpad.")
+				PRIV_MAP_KEY2(NumpadDivide, "Numpad/")
+				PRIV_MAP_KEY2(NumpadMultiply, "Numpad*")
+				PRIV_MAP_KEY2(NumpadMinus, "Numpad-")
+				PRIV_MAP_KEY2(NumpadPlus, "Numpad+")
+				PRIV_MAP_KEY2(NumpadEnter, "NumpadEnter")
+				PRIV_MAP_KEY2(NumpadDecimal, "Numpad.")
 
-					PRIV_MAP_KEY(F1)
-					PRIV_MAP_KEY(F2)
-					PRIV_MAP_KEY(F3)
-					PRIV_MAP_KEY(F4)
-					PRIV_MAP_KEY(F5)
-					PRIV_MAP_KEY(F6)
-					PRIV_MAP_KEY(F7)
-					PRIV_MAP_KEY(F8)
-					PRIV_MAP_KEY(F9)
-					PRIV_MAP_KEY(F10)
-					PRIV_MAP_KEY(F11)
-					PRIV_MAP_KEY(F12)
+				PRIV_MAP_KEY(F1)
+				PRIV_MAP_KEY(F2)
+				PRIV_MAP_KEY(F3)
+				PRIV_MAP_KEY(F4)
+				PRIV_MAP_KEY(F5)
+				PRIV_MAP_KEY(F6)
+				PRIV_MAP_KEY(F7)
+				PRIV_MAP_KEY(F8)
+				PRIV_MAP_KEY(F9)
+				PRIV_MAP_KEY(F10)
+				PRIV_MAP_KEY(F11)
+				PRIV_MAP_KEY(F12)
 
-					PRIV_MAP_KEY2(PageUp, "PgUp")
-					PRIV_MAP_KEY2(PageDown, "PgDn")
-					PRIV_MAP_KEY(Home)
-					PRIV_MAP_KEY(End)
-					PRIV_MAP_KEY(Left)
-					PRIV_MAP_KEY(Up)
-					PRIV_MAP_KEY(Right)
-					PRIV_MAP_KEY(Down)
-					PRIV_MAP_KEY2(PrintScreen, "PrtSc")
-					PRIV_MAP_KEY2(Insert, "Ins")
-					PRIV_MAP_KEY2(Delete, "Del")
-					PRIV_MAP_KEY(Sleep)
-					PRIV_MAP_KEY(Pause)
+				PRIV_MAP_KEY2(PageUp, "PgUp")
+				PRIV_MAP_KEY2(PageDown, "PgDn")
+				PRIV_MAP_KEY(Home)
+				PRIV_MAP_KEY(End)
+				PRIV_MAP_KEY(Left)
+				PRIV_MAP_KEY(Up)
+				PRIV_MAP_KEY(Right)
+				PRIV_MAP_KEY(Down)
+				PRIV_MAP_KEY2(PrintScreen, "PrtSc")
+				PRIV_MAP_KEY2(Insert, "Ins")
+				PRIV_MAP_KEY2(Delete, "Del")
+				PRIV_MAP_KEY(Sleep)
+				PRIV_MAP_KEY(Pause)
 
-					PRIV_MAP_KEY(GoHome)
-					PRIV_MAP_KEY(GoMenu)
-					PRIV_MAP_KEY(GoBack)
-					PRIV_MAP_KEY(Camera)
-					PRIV_MAP_KEY(VolumeMute)
-					PRIV_MAP_KEY(VolumeDown)
-					PRIV_MAP_KEY(VolumeUp)
-					PRIV_MAP_KEY(MediaPrev)
-					PRIV_MAP_KEY(MediaNext)
-					PRIV_MAP_KEY(MediaPause)
-					PRIV_MAP_KEY(MediaStop)
-					PRIV_MAP_KEY2(PhoneStar, "Dial*")
-					PRIV_MAP_KEY2(PhonePound, "Dial#")
+				PRIV_MAP_KEY(GoHome)
+				PRIV_MAP_KEY(GoMenu)
+				PRIV_MAP_KEY(GoBack)
+				PRIV_MAP_KEY(Camera)
+				PRIV_MAP_KEY(VolumeMute)
+				PRIV_MAP_KEY(VolumeDown)
+				PRIV_MAP_KEY(VolumeUp)
+				PRIV_MAP_KEY(MediaPrev)
+				PRIV_MAP_KEY(MediaNext)
+				PRIV_MAP_KEY(MediaPause)
+				PRIV_MAP_KEY(MediaStop)
+				PRIV_MAP_KEY2(PhoneStar, "Dial*")
+				PRIV_MAP_KEY2(PhonePound, "Dial#")
 
-					PRIV_MAP_KEY2(LeftShift, "LShift")
-					PRIV_MAP_KEY2(RightShift, "RShift")
-					PRIV_MAP_KEY2(LeftControl, "LCtrl")
-					PRIV_MAP_KEY2(RightControl, "RCtrl")
+				PRIV_MAP_KEY2(LeftShift, "LShift")
+				PRIV_MAP_KEY2(RightShift, "RShift")
+				PRIV_MAP_KEY2(LeftControl, "LCtrl")
+				PRIV_MAP_KEY2(RightControl, "RCtrl")
 #if defined(SLIB_PLATFORM_IS_APPLE)
-					PRIV_MAP_KEY2(LeftAlt, "LAlt")
-					PRIV_MAP_KEY2(RightAlt, "RAlt")
-					PRIV_MAP_KEY2(LeftWin, "LWin")
-					PRIV_MAP_KEY2(RightWin, "RWin")
-					PRIV_MAP_KEY2(LeftOption, "LAlt")
-					PRIV_MAP_KEY2(RightOption, "RAlt")
-					PRIV_MAP_KEY2(LeftCommand, "LCmd")
-					PRIV_MAP_KEY2(RightCommand, "RCmd")
+				PRIV_MAP_KEY2(LeftAlt, "LAlt")
+				PRIV_MAP_KEY2(RightAlt, "RAlt")
+				PRIV_MAP_KEY2(LeftWin, "LWin")
+				PRIV_MAP_KEY2(RightWin, "RWin")
+				PRIV_MAP_KEY2(LeftOption, "LAlt")
+				PRIV_MAP_KEY2(RightOption, "RAlt")
+				PRIV_MAP_KEY2(LeftCommand, "LCmd")
+				PRIV_MAP_KEY2(RightCommand, "RCmd")
 #else
-					PRIV_MAP_KEY2(LeftOption, "LAlt")
-					PRIV_MAP_KEY2(RightOption, "RAlt")
-					PRIV_MAP_KEY2(LeftCommand, "LCmd")
-					PRIV_MAP_KEY2(RightCommand, "RCmd")
-					PRIV_MAP_KEY2(LeftAlt, "LAlt")
-					PRIV_MAP_KEY2(RightAlt, "RAlt")
-					PRIV_MAP_KEY2(LeftWin, "LWin")
-					PRIV_MAP_KEY2(RightWin, "RWin")
+				PRIV_MAP_KEY2(LeftOption, "LAlt")
+				PRIV_MAP_KEY2(RightOption, "RAlt")
+				PRIV_MAP_KEY2(LeftCommand, "LCmd")
+				PRIV_MAP_KEY2(RightCommand, "RCmd")
+				PRIV_MAP_KEY2(LeftAlt, "LAlt")
+				PRIV_MAP_KEY2(RightAlt, "RAlt")
+				PRIV_MAP_KEY2(LeftWin, "LWin")
+				PRIV_MAP_KEY2(RightWin, "RWin")
 #endif
-					PRIV_MAP_KEY(CapsLock)
-					PRIV_MAP_KEY(ScrollLock)
-					PRIV_MAP_KEY(NumLock)
-					PRIV_MAP_KEY(ContextMenu)
+				PRIV_MAP_KEY(CapsLock)
+				PRIV_MAP_KEY(ScrollLock)
+				PRIV_MAP_KEY(NumLock)
+				PRIV_MAP_KEY(ContextMenu)
 
-					PRIV_MAP_KEY(Chinese)
-					PRIV_MAP_KEY(Korean)
-				}
+				PRIV_MAP_KEY(Chinese)
+				PRIV_MAP_KEY(Korean)
+			}
 
-				String get(Keycode code, sl_bool flagShort)
-				{
-					String ret;
-					if (flagShort) {
-						if (mapShort.get((sl_uint32)code, &ret)) {
-							return ret;
-						}
-					} else {
-						if (mapLong.get((sl_uint32)code, &ret)) {
-							return ret;
-						}
+			String get(Keycode code, sl_bool flagShort)
+			{
+				String ret;
+				if (flagShort) {
+					if (mapShort.get((sl_uint32)code, &ret)) {
+						return ret;
 					}
-					return nameInvalid;
-				}
-
-				Keycode getCode(const String& keyName)
-				{
-					sl_uint32 keycode;
-					if (mapName.get(keyName.toLower(), &keycode)) {
-						return (Keycode)keycode;
+				} else {
+					if (mapLong.get((sl_uint32)code, &ret)) {
+						return ret;
 					}
-					return Keycode::Unknown;
 				}
+				return nameInvalid;
+			}
 
-			};
+			Keycode getCode(const String& keyName)
+			{
+				sl_uint32 keycode;
+				if (mapName.get(keyName.toLower(), &keycode)) {
+					return (Keycode)keycode;
+				}
+				return Keycode::Unknown;
+			}
 
-			SLIB_SAFE_STATIC_GETTER(KeyNameMapper, GetKeyNameMapper)
+		};
 
-		}
+		SLIB_SAFE_STATIC_GETTER(KeyNameMapper, GetKeyNameMapper)
 	}
 
 	String UIEvent::getKeyName(Keycode code, sl_bool flagShort)
 	{
-		priv::ui_event::KeyNameMapper* mapper = priv::ui_event::GetKeyNameMapper();
+		KeyNameMapper* mapper = GetKeyNameMapper();
 		if (mapper) {
 			return mapper->get(code, flagShort);
 		}
@@ -1290,7 +1279,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	Keycode UIEvent::getKeycodeFromName(const String& keyName)
 	{
-		priv::ui_event::KeyNameMapper* mapper = priv::ui_event::GetKeyNameMapper();
+		KeyNameMapper* mapper = GetKeyNameMapper();
 		if (mapper) {
 			return mapper->getCode(keyName);
 		}
@@ -1503,6 +1492,10 @@ sl_bool UIEvent::is##NAME##Key() const \
 		default:
 			return Keycode::Unknown;
 		}
+	}
+
+	namespace {
+		static DragContext g_currentDragContext;
 	}
 
 	DragContext& UIEvent::getCurrentDragContext()

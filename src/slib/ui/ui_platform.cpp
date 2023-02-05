@@ -30,21 +30,10 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_platform
-		{
-
-			typedef CHashMap<const void*, WeakRef<ViewInstance> > ViewInstanceMap;
-			SLIB_SAFE_STATIC_GETTER(ViewInstanceMap, GetViewInstanceMap)
-
-			typedef CHashMap<const void*, WeakRef<WindowInstance> > WindowInstanceMap;
-			SLIB_SAFE_STATIC_GETTER(WindowInstanceMap, GetWindowInstanceMap)
-
-		}
+	namespace {
+		typedef CHashMap<const void*, WeakRef<ViewInstance> > ViewInstanceMap;
+		SLIB_SAFE_STATIC_GETTER(ViewInstanceMap, GetViewInstanceMap)
 	}
-
-	using namespace priv::ui_platform;
 
 	void UIPlatform::_registerViewInstance(const void* handle, ViewInstance* instance)
 	{
@@ -69,6 +58,11 @@ namespace slib
 		if (map) {
 			map->remove(handle);
 		}
+	}
+
+	namespace {
+		typedef CHashMap<const void*, WeakRef<WindowInstance> > WindowInstanceMap;
+		SLIB_SAFE_STATIC_GETTER(WindowInstanceMap, GetWindowInstanceMap)
 	}
 
 	void UIPlatform::_registerWindowInstance(const void* handle, WindowInstance* instance)

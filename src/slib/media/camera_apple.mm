@@ -58,17 +58,12 @@ namespace slib
 {
 #if defined(SLIB_PLATFORM_IS_IOS)
 	namespace priv {
-		namespace platform {
-			extern UIInterfaceOrientation g_screenOrientation;
-		}
+		extern UIInterfaceOrientation g_screenOrientation;
 	}
+	using namespace priv;
 #endif
 
 	namespace {
-
-#if defined(SLIB_PLATFORM_IS_IOS)
-		using namespace priv::platform;
-#endif
 
 		static void LogNSError(const String& error, NSError* err)
 		{
@@ -695,7 +690,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::camera;
 
 @implementation SLIBCameraCallback
 

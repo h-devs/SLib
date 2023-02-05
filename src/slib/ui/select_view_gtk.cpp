@@ -28,94 +28,86 @@
 
 #include "combo_box_gtk.h"
 
-using namespace slib::priv::combo_box;
-
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace select_view
+	namespace {
+
+		class SelectViewInstance : public GTK_ViewInstance, public ISelectViewInstance
 		{
+			SLIB_DECLARE_OBJECT
 
-			class SelectViewInstance : public GTK_ViewInstance, public ISelectViewInstance
+		public:
+			void initialize(View* _view) override
 			{
-				SLIB_DECLARE_OBJECT
+				SelectView* view = (SelectView*)_view;
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
 
-			public:
-				void initialize(View* _view) override
-				{
-					SelectView* view = (SelectView*)_view;
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
+				refreshItems(view, sl_true);
 
-					refreshItems(view, sl_true);
+				g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
+			}
 
-					g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
+			void refreshItems(SelectView* view, sl_bool flagInit)
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					RefreshItems(handle, view, flagInit);
 				}
+			}
 
-				void refreshItems(SelectView* view, sl_bool flagInit)
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						RefreshItems(handle, view, flagInit);
-					}
+			void refreshItems(SelectView* view) override
+			{
+				refreshItems(view, sl_false);
+			}
+
+			void insertItem(SelectView* view, sl_uint32 index, const String& title) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					InsertItem(handle, index, title);
 				}
+			}
 
-				void refreshItems(SelectView* view) override
-				{
-					refreshItems(view, sl_false);
+			void removeItem(SelectView* view, sl_uint32 index) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					RemoveItem(handle, index);
 				}
+			}
 
-				void insertItem(SelectView* view, sl_uint32 index, const String& title) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						InsertItem(handle, index, title);
-					}
+			void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					SetItemTitle(handle, index, title);
 				}
+			}
 
-				void removeItem(SelectView* view, sl_uint32 index) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						RemoveItem(handle, index);
-					}
+			void selectItem(SelectView* view, sl_uint32 index) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					SelectItem(handle, index);
 				}
+			}
 
-				void setItemTitle(SelectView* view, sl_uint32 index, const String& title) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						SetItemTitle(handle, index, title);
-					}
+			static void onChanged(GtkComboBox*, gpointer userinfo)
+			{
+				GtkComboBox* handle = (GtkComboBox*)userinfo;
+				Ref<SelectView> view = CastRef<SelectView>(UIPlatform::getView((GtkWidget*)handle));
+				if (view.isNotNull()) {
+					int index = gtk_combo_box_get_active(handle);
+					view->dispatchSelectItem(index);
 				}
+			}
 
-				void selectItem(SelectView* view, sl_uint32 index) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						SelectItem(handle, index);
-					}
-				}
+		};
 
-				static void onChanged(GtkComboBox*, gpointer userinfo)
-				{
-					GtkComboBox* handle = (GtkComboBox*)userinfo;
-					Ref<SelectView> view = CastRef<SelectView>(UIPlatform::getView((GtkWidget*)handle));
-					if (view.isNotNull()) {
-						int index = gtk_combo_box_get_active(handle);
-						view->dispatchSelectItem(index);
-					}
-				}
+		SLIB_DEFINE_OBJECT(SelectViewInstance, GTK_ViewInstance)
 
-			};
-
-			SLIB_DEFINE_OBJECT(SelectViewInstance, GTK_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::select_view;
 
 	Ref<ViewInstance> SelectView::createNativeWidget(ViewInstance* parent)
 	{

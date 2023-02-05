@@ -31,171 +31,165 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_notification_android
+	namespace {
+
+		SLIB_JNI_BEGIN_CLASS(JUserNotificationMessage, "slib/android/ui/notification/UserNotificationMessage")
+			SLIB_JNI_NEW(init, "()V");
+
+			SLIB_JNI_INT_FIELD(id)
+			SLIB_JNI_STRING_FIELD(title)
+			SLIB_JNI_STRING_FIELD(content)
+			SLIB_JNI_STRING_FIELD(data)
+
+			SLIB_JNI_STRING_FIELD(subText)
+			SLIB_JNI_STRING_FIELD(contentInfo)
+			SLIB_JNI_STRING_FIELD(ticker)
+			SLIB_JNI_STRING_FIELD(channelId)
+			SLIB_JNI_STRING_FIELD(category)
+			SLIB_JNI_STRING_FIELD(groupKey)
+			SLIB_JNI_BOOLEAN_FIELD(flagGroupSummary)
+			SLIB_JNI_STRING_FIELD(sortKey)
+
+			SLIB_JNI_STRING_FIELD(iconName)
+			SLIB_JNI_INT_FIELD(color)
+
+			SLIB_JNI_BOOLEAN_FIELD(flagOngoing)
+			SLIB_JNI_BOOLEAN_FIELD(flagOnlyAlertOnce)
+			SLIB_JNI_INT_FIELD(priority)
+
+			SLIB_JNI_LONG_FIELD(deliveryTime)
+			SLIB_JNI_DOUBLE_FIELD(deliveryInterval)
+			SLIB_JNI_BOOLEAN_FIELD(flagRepeat)
+
+			SLIB_JNI_STRING_FIELD(action)
+			SLIB_JNI_STRING_FIELD(response)
+			SLIB_JNI_LONG_FIELD(actualDeliveryTime)
+		SLIB_JNI_END_CLASS
+
+		static void OnClickMessage(JNIEnv* env, jobject _this, jobject jmsg);
+
+		SLIB_JNI_BEGIN_CLASS(JUserNotification, "slib/android/ui/notification/UserNotification")
+			SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;)V");
+			SLIB_JNI_STATIC_METHOD(add, "add", "(Landroid/app/Activity;Lslib/android/ui/notification/UserNotificationMessage;)V");
+			SLIB_JNI_STATIC_METHOD(cancel, "cancel", "(Landroid/app/Activity;I)V");
+			SLIB_JNI_STATIC_METHOD(cancelAll, "cancelAll", "(Landroid/app/Activity;)V");
+			SLIB_JNI_NATIVE(onClickMessage, "nativeOnClickMessage", "(Lslib/android/ui/notification/UserNotificationMessage;)V", OnClickMessage);
+		SLIB_JNI_END_CLASS
+
+		class UserNotificationImpl : public UserNotification
 		{
+		public:
+			sl_uint32 m_id;
 
-			SLIB_JNI_BEGIN_CLASS(JUserNotificationMessage, "slib/android/ui/notification/UserNotificationMessage")
-				SLIB_JNI_NEW(init, "()V");
-
-				SLIB_JNI_INT_FIELD(id)
-				SLIB_JNI_STRING_FIELD(title)
-				SLIB_JNI_STRING_FIELD(content)
-				SLIB_JNI_STRING_FIELD(data)
-
-				SLIB_JNI_STRING_FIELD(subText)
-				SLIB_JNI_STRING_FIELD(contentInfo)
-				SLIB_JNI_STRING_FIELD(ticker)
-				SLIB_JNI_STRING_FIELD(channelId)
-				SLIB_JNI_STRING_FIELD(category)
-				SLIB_JNI_STRING_FIELD(groupKey)
-				SLIB_JNI_BOOLEAN_FIELD(flagGroupSummary)
-				SLIB_JNI_STRING_FIELD(sortKey)
-
-				SLIB_JNI_STRING_FIELD(iconName)
-				SLIB_JNI_INT_FIELD(color)
-
-				SLIB_JNI_BOOLEAN_FIELD(flagOngoing)
-				SLIB_JNI_BOOLEAN_FIELD(flagOnlyAlertOnce)
-				SLIB_JNI_INT_FIELD(priority)
-
-				SLIB_JNI_LONG_FIELD(deliveryTime)
-				SLIB_JNI_DOUBLE_FIELD(deliveryInterval)
-				SLIB_JNI_BOOLEAN_FIELD(flagRepeat)
-
-				SLIB_JNI_STRING_FIELD(action)
-				SLIB_JNI_STRING_FIELD(response)
-				SLIB_JNI_LONG_FIELD(actualDeliveryTime)
-			SLIB_JNI_END_CLASS
-
-			void OnClickMessage(JNIEnv* env, jobject _this, jobject jmsg);
-
-			SLIB_JNI_BEGIN_CLASS(JUserNotification, "slib/android/ui/notification/UserNotification")
-				SLIB_JNI_STATIC_METHOD(initialize, "initialize", "(Landroid/app/Activity;)V");
-				SLIB_JNI_STATIC_METHOD(add, "add", "(Landroid/app/Activity;Lslib/android/ui/notification/UserNotificationMessage;)V");
-				SLIB_JNI_STATIC_METHOD(cancel, "cancel", "(Landroid/app/Activity;I)V");
-				SLIB_JNI_STATIC_METHOD(cancelAll, "cancelAll", "(Landroid/app/Activity;)V");
-				SLIB_JNI_NATIVE(onClickMessage, "nativeOnClickMessage", "(Lslib/android/ui/notification/UserNotificationMessage;)V", OnClickMessage);
-			SLIB_JNI_END_CLASS
-
-			class UserNotificationImpl : public UserNotification
+		public:
+			static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
 			{
-			public:
-				sl_uint32 m_id;
-
-			public:
-				static Ref<UserNotificationImpl> create(const UserNotificationMessage& message)
-				{
-					jobject context = Android::getCurrentContext();
-					if (!context) {
-						return sl_null;
-					}
-
-					JniLocal<jobject> jmsg = JUserNotificationMessage::init.newObject(sl_null);
-					if (jmsg.isNotNull()) {
-
-						Ref<UserNotificationImpl> ret = new UserNotificationImpl;
-						if (ret.isNotNull()) {
-
-							sl_uint32 id = message.id;
-							if (message.identifier.isNotEmpty()) {
-								message.identifier.parseUint32(10, &id);
-							}
-							JUserNotificationMessage::id.set(jmsg.get(), (jint)id);
-
-							if (message.title.isNotEmpty()) {
-								JUserNotificationMessage::title.set(jmsg.get(), message.title);
-							}
-							if (message.content.isNotEmpty()) {
-								JUserNotificationMessage::content.set(jmsg.get(), message.content);
-							}
-							if (message.data.isNotUndefined()) {
-								JUserNotificationMessage::data.set(jmsg.get(), message.data.toJsonString());
-							}
-
-							if (message.subText.isNotEmpty()) {
-								JUserNotificationMessage::subText.set(jmsg.get(), message.subText);
-							}
-							if (message.contentInfo.isNotEmpty()) {
-								JUserNotificationMessage::contentInfo.set(jmsg.get(), message.contentInfo);
-							}
-							if (message.ticker.isNotEmpty()) {
-								JUserNotificationMessage::ticker.set(jmsg.get(), message.ticker);
-							}
-							if (message.channelId.isNotEmpty()) {
-								JUserNotificationMessage::channelId.set(jmsg.get(), message.channelId);
-							}
-							if (message.category.isNotEmpty()) {
-								JUserNotificationMessage::category.set(jmsg.get(), message.category);
-							}
-							if (message.groupKey.isNotEmpty()) {
-								JUserNotificationMessage::groupKey.set(jmsg.get(), message.groupKey);
-								JUserNotificationMessage::flagGroupSummary.set(jmsg.get(), message.flagGroupSummary);
-							}
-							if (message.sortKey.isNotEmpty()) {
-								JUserNotificationMessage::sortKey.set(jmsg.get(), message.sortKey);
-							}
-
-							if (message.iconName.isNotEmpty()) {
-								JUserNotificationMessage::iconName.set(jmsg.get(), message.iconName);
-							}
-							if (message.color.isNotZero()) {
-								JUserNotificationMessage::color.set(jmsg.get(), message.color.getARGB());
-							}
-
-							JUserNotificationMessage::flagOngoing.set(jmsg.get(), message.flagOngoing);
-							JUserNotificationMessage::flagOnlyAlertOnce.set(jmsg.get(), message.flagOnlyAlertOnce);
-							JUserNotificationMessage::priority.set(jmsg.get(), (jint)(message.priority));
-
-							if (message.deliveryTime.isNotZero()) {
-								JUserNotificationMessage::deliveryTime.set(jmsg.get(), (jlong)(message.deliveryTime.getMillisecondCount()));
-							}
-							if (message.deliveryInterval > 0.5) {
-								JUserNotificationMessage::deliveryInterval.set(jmsg.get(), (jdouble)(message.deliveryInterval));
-								JUserNotificationMessage::flagRepeat.set(jmsg.get(), message.flagRepeat);
-							}
-
-							JUserNotification::add.call(sl_null, context, jmsg.get());
-
-							ret->m_id = id;
-
-							return ret;
-						}
-					}
+				jobject context = Android::getCurrentContext();
+				if (!context) {
 					return sl_null;
 				}
 
-			public:
-				void cancelPending() override
-				{
+				JniLocal<jobject> jmsg = JUserNotificationMessage::init.newObject(sl_null);
+				if (jmsg.isNotNull()) {
+
+					Ref<UserNotificationImpl> ret = new UserNotificationImpl;
+					if (ret.isNotNull()) {
+
+						sl_uint32 id = message.id;
+						if (message.identifier.isNotEmpty()) {
+							message.identifier.parseUint32(10, &id);
+						}
+						JUserNotificationMessage::id.set(jmsg.get(), (jint)id);
+
+						if (message.title.isNotEmpty()) {
+							JUserNotificationMessage::title.set(jmsg.get(), message.title);
+						}
+						if (message.content.isNotEmpty()) {
+							JUserNotificationMessage::content.set(jmsg.get(), message.content);
+						}
+						if (message.data.isNotUndefined()) {
+							JUserNotificationMessage::data.set(jmsg.get(), message.data.toJsonString());
+						}
+
+						if (message.subText.isNotEmpty()) {
+							JUserNotificationMessage::subText.set(jmsg.get(), message.subText);
+						}
+						if (message.contentInfo.isNotEmpty()) {
+							JUserNotificationMessage::contentInfo.set(jmsg.get(), message.contentInfo);
+						}
+						if (message.ticker.isNotEmpty()) {
+							JUserNotificationMessage::ticker.set(jmsg.get(), message.ticker);
+						}
+						if (message.channelId.isNotEmpty()) {
+							JUserNotificationMessage::channelId.set(jmsg.get(), message.channelId);
+						}
+						if (message.category.isNotEmpty()) {
+							JUserNotificationMessage::category.set(jmsg.get(), message.category);
+						}
+						if (message.groupKey.isNotEmpty()) {
+							JUserNotificationMessage::groupKey.set(jmsg.get(), message.groupKey);
+							JUserNotificationMessage::flagGroupSummary.set(jmsg.get(), message.flagGroupSummary);
+						}
+						if (message.sortKey.isNotEmpty()) {
+							JUserNotificationMessage::sortKey.set(jmsg.get(), message.sortKey);
+						}
+
+						if (message.iconName.isNotEmpty()) {
+							JUserNotificationMessage::iconName.set(jmsg.get(), message.iconName);
+						}
+						if (message.color.isNotZero()) {
+							JUserNotificationMessage::color.set(jmsg.get(), message.color.getARGB());
+						}
+
+						JUserNotificationMessage::flagOngoing.set(jmsg.get(), message.flagOngoing);
+						JUserNotificationMessage::flagOnlyAlertOnce.set(jmsg.get(), message.flagOnlyAlertOnce);
+						JUserNotificationMessage::priority.set(jmsg.get(), (jint)(message.priority));
+
+						if (message.deliveryTime.isNotZero()) {
+							JUserNotificationMessage::deliveryTime.set(jmsg.get(), (jlong)(message.deliveryTime.getMillisecondCount()));
+						}
+						if (message.deliveryInterval > 0.5) {
+							JUserNotificationMessage::deliveryInterval.set(jmsg.get(), (jdouble)(message.deliveryInterval));
+							JUserNotificationMessage::flagRepeat.set(jmsg.get(), message.flagRepeat);
+						}
+
+						JUserNotification::add.call(sl_null, context, jmsg.get());
+
+						ret->m_id = id;
+
+						return ret;
+					}
 				}
-
-				void removeFromDeliveredList() override
-				{
-					removeDeliveredNotification(m_id);
-				}
-
-			};
-
-			void OnClickMessage(JNIEnv* env, jobject _this, jobject jmsg)
-			{
-				UserNotificationMessage message;
-				message.id = (sl_uint32)(JUserNotificationMessage::id.get(jmsg));
-				message.identifier = String::fromUint32(message.id);
-				message.title = JUserNotificationMessage::title.get(jmsg);
-				message.content = JUserNotificationMessage::content.get(jmsg);
-				message.data = Json::parse(JUserNotificationMessage::data.get(jmsg));
-				message.action = JUserNotificationMessage::action.get(jmsg);
-				message.response = JUserNotificationMessage::response.get(jmsg);
-				message.actualDeliveryTime = Time::withMilliseconds((sl_int64)(JUserNotificationMessage::actualDeliveryTime.get(jmsg)));
-				UserNotification::dispatchClickMessage(message);
+				return sl_null;
 			}
 
-		}
-	}
+		public:
+			void cancelPending() override
+			{
+			}
 
-	using namespace priv::ui_notification_android;
+			void removeFromDeliveredList() override
+			{
+				removeDeliveredNotification(m_id);
+			}
+
+		};
+
+		void OnClickMessage(JNIEnv* env, jobject _this, jobject jmsg)
+		{
+			UserNotificationMessage message;
+			message.id = (sl_uint32)(JUserNotificationMessage::id.get(jmsg));
+			message.identifier = String::fromUint32(message.id);
+			message.title = JUserNotificationMessage::title.get(jmsg);
+			message.content = JUserNotificationMessage::content.get(jmsg);
+			message.data = Json::parse(JUserNotificationMessage::data.get(jmsg));
+			message.action = JUserNotificationMessage::action.get(jmsg);
+			message.response = JUserNotificationMessage::response.get(jmsg);
+			message.actualDeliveryTime = Time::withMilliseconds((sl_int64)(JUserNotificationMessage::actualDeliveryTime.get(jmsg)));
+			UserNotification::dispatchClickMessage(message);
+		}
+
+	}
 
 	void UserNotification::startInternal()
 	{

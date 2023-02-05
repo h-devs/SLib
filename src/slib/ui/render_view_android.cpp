@@ -33,109 +33,103 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace render_view
+	namespace {
+
+		static void JNICALL OnCreate(JNIEnv* env, jobject _this, jlong jinstance);
+		static void JNICALL OnFrame(JNIEnv* env, jobject _this, jlong jinstance, jint width, jint height);
+
+		SLIB_JNI_BEGIN_CLASS(JGLView, "slib/android/ui/view/UiGLView")
+
+			SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/android/ui/view/UiGLView;")
+
+			SLIB_JNI_STATIC_METHOD(setRenderMode, "_setRenderMode", "(Landroid/view/View;I)Z")
+			SLIB_JNI_STATIC_METHOD(requestRender, "_requestRender", "(Landroid/view/View;)V")
+
+			SLIB_JNI_NATIVE(nativeOnCreate, "nativeOnCreate", "(J)V", OnCreate)
+			SLIB_JNI_NATIVE(nativeOnFrame, "nativeOnFrame", "(JII)V", OnFrame)
+
+		SLIB_JNI_END_CLASS
+
+		class RenderViewHelper : public RenderView
 		{
+		};
 
-			void JNICALL OnCreate(JNIEnv* env, jobject _this, jlong jinstance);
-			void JNICALL OnFrame(JNIEnv* env, jobject _this, jlong jinstance, jint width, jint height);
+		class RenderViewInstance : public Android_ViewInstance, public IRenderViewInstance
+		{
+			SLIB_DECLARE_OBJECT
 
-			SLIB_JNI_BEGIN_CLASS(JGLView, "slib/android/ui/view/UiGLView")
+		public:
+			Ref<RenderEngine> m_renderEngine;
 
-				SLIB_JNI_STATIC_METHOD(create, "_create", "(Landroid/content/Context;)Lslib/android/ui/view/UiGLView;")
-
-				SLIB_JNI_STATIC_METHOD(setRenderMode, "_setRenderMode", "(Landroid/view/View;I)Z")
-				SLIB_JNI_STATIC_METHOD(requestRender, "_requestRender", "(Landroid/view/View;)V")
-
-				SLIB_JNI_NATIVE(nativeOnCreate, "nativeOnCreate", "(J)V", OnCreate)
-				SLIB_JNI_NATIVE(nativeOnFrame, "nativeOnFrame", "(JII)V", OnFrame)
-
-			SLIB_JNI_END_CLASS
-
-			class RenderViewHelper : public RenderView
+		public:
+			void initialize(View* _view) override
 			{
-			};
+				RenderView* view = (RenderView*)_view;
+				jobject jhandle = getHandle();
 
-			class RenderViewInstance : public Android_ViewInstance, public IRenderViewInstance
+				JGLView::setRenderMode.callBoolean(sl_null, jhandle, view->getRedrawMode());
+			}
+
+			void setRedrawMode(RenderView* view, RedrawMode mode) override
 			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				Ref<RenderEngine> m_renderEngine;
-
-			public:
-				void initialize(View* _view) override
-				{
-					RenderView* view = (RenderView*)_view;
-					jobject jhandle = getHandle();
-
-					JGLView::setRenderMode.callBoolean(sl_null, jhandle, view->getRedrawMode());
-				}
-
-				void setRedrawMode(RenderView* view, RedrawMode mode) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JGLView::setRenderMode.callBoolean(sl_null, handle, mode);
-					}
-				}
-
-				void requestRender(RenderView* view) override
-				{
-					jobject handle = m_handle.get();
-					if (handle) {
-						JGLView::requestRender.call(sl_null, handle);
-					}
-				}
-
-				void onCreate()
-				{
-					m_renderEngine.setNull();
-				}
-
-				void onFrame(jint width, jint height)
-				{
-					Ref<RenderViewHelper> helper = CastRef<RenderViewHelper>(getView());
-					if (helper.isNotNull()) {
-						Ref<RenderEngine> engine = m_renderEngine;
-						if (engine.isNull()) {
-							engine = GLES::createEngine();
-							m_renderEngine = engine;
-							helper->dispatchCreateEngine(engine.get());
-						}
-						if (engine.isNotNull()) {
-							if (width > 0 && height > 0) {
-								engine->setViewport(0, 0, width, height);
-								helper->dispatchFrame(engine.get());
-							}
-						}
-					}
-				}
-			};
-
-			SLIB_DEFINE_OBJECT(RenderViewInstance, Android_ViewInstance)
-
-			void JNICALL OnCreate(JNIEnv* env, jobject _this, jlong jinstance)
-			{
-				Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(Android_ViewInstance::findInstance(jinstance));
-				if (instance.isNotNull()) {
-					instance->onCreate();
+				jobject handle = m_handle.get();
+				if (handle) {
+					JGLView::setRenderMode.callBoolean(sl_null, handle, mode);
 				}
 			}
 
-			void JNICALL OnFrame(JNIEnv* env, jobject _this, jlong jinstance, jint width, jint height)
+			void requestRender(RenderView* view) override
 			{
-				Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(Android_ViewInstance::findInstance(jinstance));
-				if (instance.isNotNull()) {
-					instance->onFrame(width, height);
+				jobject handle = m_handle.get();
+				if (handle) {
+					JGLView::requestRender.call(sl_null, handle);
 				}
 			}
 
+			void onCreate()
+			{
+				m_renderEngine.setNull();
+			}
+
+			void onFrame(jint width, jint height)
+			{
+				Ref<RenderViewHelper> helper = CastRef<RenderViewHelper>(getView());
+				if (helper.isNotNull()) {
+					Ref<RenderEngine> engine = m_renderEngine;
+					if (engine.isNull()) {
+						engine = GLES::createEngine();
+						m_renderEngine = engine;
+						helper->dispatchCreateEngine(engine.get());
+					}
+					if (engine.isNotNull()) {
+						if (width > 0 && height > 0) {
+							engine->setViewport(0, 0, width, height);
+							helper->dispatchFrame(engine.get());
+						}
+					}
+				}
+			}
+		};
+
+		SLIB_DEFINE_OBJECT(RenderViewInstance, Android_ViewInstance)
+
+		void JNICALL OnCreate(JNIEnv* env, jobject _this, jlong jinstance)
+		{
+			Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(Android_ViewInstance::findInstance(jinstance));
+			if (instance.isNotNull()) {
+				instance->onCreate();
+			}
 		}
-	}
 
-	using namespace priv::render_view;
+		void JNICALL OnFrame(JNIEnv* env, jobject _this, jlong jinstance, jint width, jint height)
+		{
+			Ref<RenderViewInstance> instance = CastRef<RenderViewInstance>(Android_ViewInstance::findInstance(jinstance));
+			if (instance.isNotNull()) {
+				instance->onFrame(width, height);
+			}
+		}
+
+	}
 
 	Ref<ViewInstance> RenderView::createNativeWidget(ViewInstance* _parent)
 	{

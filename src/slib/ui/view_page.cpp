@@ -28,33 +28,18 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace view_page
-		{
-
-			static TransitionType g_defaultOpeningPopupTransitionType = TransitionType::Zoom;
-			static TransitionDirection g_defaultOpeningPopupTransitionDirection = TransitionDirection::FromBottomToTop;
-			static float g_defaultOpeningPopupTransitionDuration = 0.25f;
-			static AnimationCurve g_defaultOpeningPopupTransitionCurve = AnimationCurve::EaseOut;
-			static TransitionType g_defaultClosingPopupTransitionType = TransitionType::Fade;
-			static TransitionDirection g_defaultClosingPopupTransitionDirection = TransitionDirection::FromTopToBottom;
-			static float g_defaultClosingPopupTransitionDuration = 0.2f;
-			static AnimationCurve g_defaultClosingPopupTransitionCurve = AnimationCurve::Linear;
-
-			class PopupBackground : public ViewGroup
-			{
-				SLIB_DECLARE_OBJECT
-			};
-
-			SLIB_DEFINE_OBJECT(PopupBackground, ViewGroup)
-
-		}
+	namespace {
+		static TransitionType g_defaultOpeningPopupTransitionType = TransitionType::Zoom;
+		static TransitionDirection g_defaultOpeningPopupTransitionDirection = TransitionDirection::FromBottomToTop;
+		static float g_defaultOpeningPopupTransitionDuration = 0.25f;
+		static AnimationCurve g_defaultOpeningPopupTransitionCurve = AnimationCurve::EaseOut;
+		static TransitionType g_defaultClosingPopupTransitionType = TransitionType::Fade;
+		static TransitionDirection g_defaultClosingPopupTransitionDirection = TransitionDirection::FromTopToBottom;
+		static float g_defaultClosingPopupTransitionDuration = 0.2f;
+		static AnimationCurve g_defaultClosingPopupTransitionCurve = AnimationCurve::Linear;
 	}
 
 	SLIB_DEFINE_OBJECT(ViewPage, ViewGroup)
-
-	using namespace priv::view_page;
 
 	ViewPage::ViewPage()
 	{
@@ -205,6 +190,15 @@ namespace slib
 			}
 		});
 		return window;
+	}
+
+	namespace {
+		class PopupBackground : public ViewGroup
+		{
+			SLIB_DECLARE_OBJECT
+		};
+
+		SLIB_DEFINE_OBJECT(PopupBackground, ViewGroup)
 	}
 
 	void ViewPage::_openPopup(const Ref<View>& parent, Transition transition, sl_bool flagFillParentBackground)

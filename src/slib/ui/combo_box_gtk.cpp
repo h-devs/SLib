@@ -31,170 +31,165 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace combo_box
+	namespace {
+
+		class ComboBoxInstance : public GTK_ViewInstance, public IComboBoxInstance
 		{
+			SLIB_DECLARE_OBJECT
 
-			class ComboBoxInstance : public GTK_ViewInstance, public IComboBoxInstance
+		public:
+			static GtkEntry* getEntry(GtkComboBox* handle)
 			{
-				SLIB_DECLARE_OBJECT
+				return (GtkEntry*)gtk_bin_get_child((GtkBin*)handle);
+			}
 
-			public:
-				static GtkEntry* getEntry(GtkComboBox* handle)
-				{
-					return (GtkEntry*)gtk_bin_get_child((GtkBin*)handle);
+			static String getTextFromHanlde(GtkComboBox* handle)
+			{
+				GtkEntry* entry = getEntry(handle);
+				if (entry) {
+					return gtk_entry_get_text(entry);
+				}
+				return sl_null;
+			}
+
+			gint getEventMask() override
+			{
+				return GTK_ViewInstance::getEventMask() | GDK_KEY_PRESS_MASK | GDK_FOCUS_CHANGE_MASK;
+			}
+
+			void initialize(View* _view) override
+			{
+				ComboBox* view = (ComboBox*)_view;
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+
+				refreshItems(view, sl_true);
+				String text = view->getText();
+				if (text.isNotEmpty()) {
+					setText(view, text);
 				}
 
-				static String getTextFromHanlde(GtkComboBox* handle)
-				{
+				g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
+
+				GtkEntry* entry = getEntry(handle);
+				if (entry) {
+					g_signal_connect(entry, "focus-in-event", G_CALLBACK(eventCallback), handle);
+					g_signal_connect(entry, "key-press-event", G_CALLBACK(eventCallback), handle);
+				}
+			}
+
+			void refreshItems(ComboBox* view, sl_bool flagInit)
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					RefreshItems(handle, view, flagInit);
+				}
+			}
+
+			void refreshItems(ComboBox* view) override
+			{
+				refreshItems(view, sl_false);
+			}
+
+			void insertItem(ComboBox* view, sl_int32 index, const String& title) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					InsertItem(handle, index, title);
+				}
+			}
+
+			void removeItem(ComboBox* view, sl_int32 index) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					RemoveItem(handle, index);
+				}
+			}
+
+			void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					SetItemTitle(handle, index, title);
+				}
+			}
+
+			void selectItem(ComboBox* view, sl_int32 index) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					SelectItem(handle, index);
+				}
+			}
+
+			sl_bool getText(ComboBox* view, String& _out) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
+					_out = getTextFromHanlde(handle);
+					return sl_true;
+				}
+				return sl_false;
+			}
+
+			void setText(ComboBox* view, const String& _text) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
 					GtkEntry* entry = getEntry(handle);
-					if (entry) {
-						return gtk_entry_get_text(entry);
+					if(entry){
+						StringCstr text(_text);
+						gtk_entry_set_text(entry, text.getData());
 					}
-					return sl_null;
 				}
+			}
 
-				gint getEventMask() override
-				{
-					return GTK_ViewInstance::getEventMask() | GDK_KEY_PRESS_MASK | GDK_FOCUS_CHANGE_MASK;
-				}
-
-				void initialize(View* _view) override
-				{
-					ComboBox* view = (ComboBox*)_view;
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-
-					refreshItems(view, sl_true);
-					String text = view->getText();
-					if (text.isNotEmpty()) {
-						setText(view, text);
-					}
-
-					g_signal_connect(handle, "changed", G_CALLBACK(onChanged), handle);
-
+			void setFont(View* view, const Ref<Font>& font) override
+			{
+				GtkComboBox* handle = (GtkComboBox*)m_handle;
+				if (handle) {
 					GtkEntry* entry = getEntry(handle);
-					if (entry) {
-						g_signal_connect(entry, "focus-in-event", G_CALLBACK(eventCallback), handle);
-						g_signal_connect(entry, "key-press-event", G_CALLBACK(eventCallback), handle);
+					if(entry){
+						UIPlatform::setWidgetFont((GtkWidget*)entry, font);
 					}
 				}
+			}
 
-				void refreshItems(ComboBox* view, sl_bool flagInit)
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						RefreshItems(handle, view, flagInit);
-					}
+			sl_ui_len measureHeight(ComboBox* view) override
+			{
+				Ref<Font> font = view->getFont();
+				if (font.isNotNull()) {
+					return (sl_ui_len)(font->getFontHeight() * 1.5f + 2);
 				}
+				return 0;
+			}
 
-				void refreshItems(ComboBox* view) override
-				{
-					refreshItems(view, sl_false);
-				}
-
-				void insertItem(ComboBox* view, sl_int32 index, const String& title) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						InsertItem(handle, index, title);
-					}
-				}
-
-				void removeItem(ComboBox* view, sl_int32 index) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						RemoveItem(handle, index);
-					}
-				}
-
-				void setItemTitle(ComboBox* view, sl_int32 index, const String& title) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						SetItemTitle(handle, index, title);
-					}
-				}
-
-				void selectItem(ComboBox* view, sl_int32 index) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						SelectItem(handle, index);
-					}
-				}
-
-				sl_bool getText(ComboBox* view, String& _out) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						_out = getTextFromHanlde(handle);
-						return sl_true;
-					}
-					return sl_false;
-				}
-
-				void setText(ComboBox* view, const String& _text) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						GtkEntry* entry = getEntry(handle);
-						if(entry){
-							StringCstr text(_text);
-							gtk_entry_set_text(entry, text.getData());
+			static void onChanged(GtkComboBox*, gpointer userinfo)
+			{
+				GtkComboBox* handle = (GtkComboBox*)userinfo;
+				Ref<ComboBoxInstance> instance = CastRef<ComboBoxInstance>(UIPlatform::getViewInstance((GtkWidget*)handle));
+				if (instance.isNotNull()) {
+					Ref<ComboBox> view = CastRef<ComboBox>(instance->getView());
+					if (view.isNotNull()) {
+						int index = gtk_combo_box_get_active(handle);
+						if (index != view->getSelectedIndex()) {
+							view->dispatchSelectItem(index);
+						}
+						String text = getTextFromHanlde(handle);
+						String textNew = text;
+						view->dispatchChange(textNew);
+						if (text != textNew) {
+							instance->setText(view, textNew);
 						}
 					}
 				}
+			}
 
-				void setFont(View* view, const Ref<Font>& font) override
-				{
-					GtkComboBox* handle = (GtkComboBox*)m_handle;
-					if (handle) {
-						GtkEntry* entry = getEntry(handle);
-						if(entry){
-							UIPlatform::setWidgetFont((GtkWidget*)entry, font);
-						}
-					}
-				}
+		};
 
-				sl_ui_len measureHeight(ComboBox* view) override
-				{
-					Ref<Font> font = view->getFont();
-					if (font.isNotNull()) {
-						return (sl_ui_len)(font->getFontHeight() * 1.5f + 2);
-					}
-					return 0;
-				}
+		SLIB_DEFINE_OBJECT(ComboBoxInstance, GTK_ViewInstance)
 
-				static void onChanged(GtkComboBox*, gpointer userinfo)
-				{
-					GtkComboBox* handle = (GtkComboBox*)userinfo;
-					Ref<ComboBoxInstance> instance = CastRef<ComboBoxInstance>(UIPlatform::getViewInstance((GtkWidget*)handle));
-					if (instance.isNotNull()) {
-						Ref<ComboBox> view = CastRef<ComboBox>(instance->getView());
-						if (view.isNotNull()) {
-							int index = gtk_combo_box_get_active(handle);
-							if (index != view->getSelectedIndex()) {
-								view->dispatchSelectItem(index);
-							}
-							String text = getTextFromHanlde(handle);
-							String textNew = text;
-							view->dispatchChange(textNew);
-							if (text != textNew) {
-								instance->setText(view, textNew);
-							}
-						}
-					}
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(ComboBoxInstance, GTK_ViewInstance)
-		}
 	}
-
-	using namespace priv::combo_box;
 
 	Ref<ViewInstance> ComboBox::createNativeWidget(ViewInstance* parent)
 	{

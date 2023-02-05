@@ -38,32 +38,28 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace ui_text
+	namespace {
+
+		SLIB_INLINE static UITextRange* ToNative(const TextRange& range)
 		{
-
-			SLIB_INLINE static UITextRange* ToNative(const TextRange& range)
-			{
-				SLIBTextRange* ret = [[SLIBTextRange alloc] init];
-				if (ret != nil) {
-					ret->location = range.location;
-					ret->length = range.length;
-					return ret;
-				}
-				return nil;
+			SLIBTextRange* ret = [[SLIBTextRange alloc] init];
+			if (ret != nil) {
+				ret->location = range.location;
+				ret->length = range.length;
+				return ret;
 			}
-
-			SLIB_INLINE static TextRange FromNative(UITextRange* _range)
-			{
-				if (!_range) {
-					return TextRange();
-				}
-				SLIBTextRange* range = (SLIBTextRange*)_range;
-				return TextRange(range->location, range->length);
-			}
-
+			return nil;
 		}
+
+		SLIB_INLINE static TextRange FromNative(UITextRange* _range)
+		{
+			if (!_range) {
+				return TextRange();
+			}
+			SLIBTextRange* range = (SLIBTextRange*)_range;
+			return TextRange(range->location, range->length);
+		}
+
 	}
 
 	UIResponder* iOS_TextInput::getNativeInstance(TextInput* input)

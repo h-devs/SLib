@@ -35,72 +35,65 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace alert_dialog
+	namespace {
+
+		static void OnShowResult(JNIEnv* env, jobject _this, jlong _alert, int result);
+
+		SLIB_JNI_BEGIN_CLASS(JAlert, "slib/android/ui/Alert")
+			SLIB_JNI_INT_FIELD(type);
+			SLIB_JNI_STRING_FIELD(text);
+			SLIB_JNI_BOOLEAN_FIELD(flagHyperText);
+			SLIB_JNI_STRING_FIELD(caption);
+			SLIB_JNI_STRING_FIELD(titleOK);
+			SLIB_JNI_STRING_FIELD(titleCancel);
+			SLIB_JNI_STRING_FIELD(titleYes);
+			SLIB_JNI_STRING_FIELD(titleNo);
+			SLIB_JNI_LONG_FIELD(nativeObject);
+
+			SLIB_JNI_NEW(init, "()V");
+			SLIB_JNI_METHOD(show, "show", "(Lslib/android/SlibActivity;)Z");
+
+			SLIB_JNI_NATIVE(nativeShowAlertResult, "nativeShowResult", "(JI)V", OnShowResult);
+		SLIB_JNI_END_CLASS
+
+		class AlertDialogResult : public Referable
 		{
+		public:
+			Function<void(DialogResult)> onResult;
+		};
 
-			void OnResultShowAlertDialog(JNIEnv* env, jobject _this, jlong _alert, int result);
+		typedef CHashMap<jlong, Ref<AlertDialogResult> > AlertDialogMap;
+		SLIB_SAFE_STATIC_GETTER(AlertDialogMap, GetAlertDialogMap)
 
-			SLIB_JNI_BEGIN_CLASS(JAlert, "slib/android/ui/Alert")
-				SLIB_JNI_INT_FIELD(type);
-				SLIB_JNI_STRING_FIELD(text);
-				SLIB_JNI_BOOLEAN_FIELD(flagHyperText);
-				SLIB_JNI_STRING_FIELD(caption);
-				SLIB_JNI_STRING_FIELD(titleOK);
-				SLIB_JNI_STRING_FIELD(titleCancel);
-				SLIB_JNI_STRING_FIELD(titleYes);
-				SLIB_JNI_STRING_FIELD(titleNo);
-				SLIB_JNI_LONG_FIELD(nativeObject);
-
-				SLIB_JNI_NEW(init, "()V");
-				SLIB_JNI_METHOD(show, "show", "(Lslib/android/SlibActivity;)Z");
-
-				SLIB_JNI_NATIVE(nativeShowAlertResult, "nativeShowResult", "(JI)V", OnResultShowAlertDialog);
-			SLIB_JNI_END_CLASS
-
-			class AlertDialogResult : public Referable
-			{
-			public:
-				Function<void(DialogResult)> onResult;
-			};
-
-			typedef CHashMap<jlong, Ref<AlertDialogResult> > AlertDialogMap;
-			SLIB_SAFE_STATIC_GETTER(AlertDialogMap, GetAlertDialogMap)
-
-			void OnResultShowAlertDialog(JNIEnv* env, jobject _this, jlong _alert, int result)
-			{
-				AlertDialogMap* alertMap = GetAlertDialogMap();
-				if (!alertMap) {
-					return;
-				}
-
-				Ref<AlertDialogResult> alert;
-				alertMap->get(_alert, &alert);
-				if (alert.isNotNull()) {
-					alertMap->remove(_alert);
-					switch (result) {
-					case 0: // OK
-						alert->onResult(DialogResult::OK);
-						break;
-					case 2: // Yes
-						alert->onResult(DialogResult::Yes);
-						break;
-					case 3: // No
-						alert->onResult(DialogResult::No);
-						break;
-					default: // Cancel
-						alert->onResult(DialogResult::Cancel);
-						break;
-					}
-				}
+		void OnShowResult(JNIEnv* env, jobject _this, jlong _alert, int result)
+		{
+			AlertDialogMap* alertMap = GetAlertDialogMap();
+			if (!alertMap) {
+				return;
 			}
 
-
+			Ref<AlertDialogResult> alert;
+			alertMap->get(_alert, &alert);
+			if (alert.isNotNull()) {
+				alertMap->remove(_alert);
+				switch (result) {
+				case 0: // OK
+					alert->onResult(DialogResult::OK);
+					break;
+				case 2: // Yes
+					alert->onResult(DialogResult::Yes);
+					break;
+				case 3: // No
+					alert->onResult(DialogResult::No);
+					break;
+				default: // Cancel
+					alert->onResult(DialogResult::Cancel);
+					break;
+				}
+			}
 		}
-	}
 
-	using namespace priv::alert_dialog;
+	}
 
 	DialogResult AlertDialog::run()
 	{

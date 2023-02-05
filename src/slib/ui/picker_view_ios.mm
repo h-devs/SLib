@@ -28,21 +28,16 @@
 
 #include "view_ios.h"
 
-namespace slib
-{
-	namespace priv
-	{
-		namespace picker_view
-		{
-			class PickerViewInstance;
-		}
+namespace slib {
+	namespace {
+		class PickerViewInstance;
 	}
 }
 
 @interface SLIBPickerViewHandle : UIPickerView<UIPickerViewDelegate, UIPickerViewDataSource>
 {
 	@public sl_uint32 m_selectionBefore;
-	@public slib::WeakRef<slib::priv::picker_view::PickerViewInstance> m_viewInstance;
+	@public slib::WeakRef<slib::PickerViewInstance> m_viewInstance;
 
 	UIFont* m_font;
 }
@@ -54,92 +49,86 @@ namespace slib
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace picker_view
+	namespace {
+
+		class PickerViewHelper : public PickerView
 		{
-
-			class PickerViewHelper : public PickerView
+		public:
+			NSString* getItemTitle(sl_uint32 row)
 			{
-			public:
-				NSString* getItemTitle(sl_uint32 row)
-				{
-					return Apple::getNSStringFromString(PickerView::getItemTitle(row));
-				}
+				return Apple::getNSStringFromString(PickerView::getItemTitle(row));
+			}
 
-			};
+		};
 
-			class PickerViewInstance : public iOS_ViewInstance, public IPickerViewInstance
+		class PickerViewInstance : public iOS_ViewInstance, public IPickerViewInstance
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			SLIBPickerViewHandle* getHandle()
 			{
-				SLIB_DECLARE_OBJECT
+				return (SLIBPickerViewHandle*)m_handle;
+			}
 
-			public:
-				SLIBPickerViewHandle* getHandle()
-				{
-					return (SLIBPickerViewHandle*)m_handle;
+			Ref<PickerViewHelper> getHelper()
+			{
+				return CastRef<PickerViewHelper>(getView());
+			}
+
+			void initialize(View* _view) override
+			{
+				PickerViewHelper* view = (PickerViewHelper*)_view;
+				SLIBPickerViewHandle* handle = getHandle();
+
+				setHandleFont(handle, view->getFont());
+				_select(handle, view->getSelectedIndex());
+			}
+
+			static void _select(SLIBPickerViewHandle* handle, sl_uint32 index)
+			{
+				[handle selectRow:index inComponent:0 animated:NO];
+			}
+
+			void selectItem(PickerView* view, sl_uint32 index) override
+			{
+				SLIBPickerViewHandle* handle = getHandle();
+				if (handle != nil) {
+					_select(handle, index);
 				}
+			}
 
-				Ref<PickerViewHelper> getHelper()
-				{
-					return CastRef<PickerViewHelper>(getView());
-				}
-
-				void initialize(View* _view) override
-				{
-					PickerViewHelper* view = (PickerViewHelper*)_view;
-					SLIBPickerViewHandle* handle = getHandle();
-
-					setHandleFont(handle, view->getFont());
+			void refreshItems(PickerView* view) override
+			{
+				SLIBPickerViewHandle* handle = getHandle();
+				if (handle != nil) {
+					[handle reloadAllComponents];
 					_select(handle, view->getSelectedIndex());
 				}
+			}
 
-				static void _select(SLIBPickerViewHandle* handle, sl_uint32 index)
-				{
-					[handle selectRow:index inComponent:0 animated:NO];
+			void setFont(View* view, const Ref<Font>& font) override
+			{
+				SLIBPickerViewHandle* handle = getHandle();
+				if (handle != nil) {
+					setHandleFont(handle, font);
+					[handle reloadAllComponents];
 				}
+			}
 
-				void selectItem(PickerView* view, sl_uint32 index) override
-				{
-					SLIBPickerViewHandle* handle = getHandle();
-					if (handle != nil) {
-						_select(handle, index);
-					}
+			void onSelectItem(SLIBPickerViewHandle* handle, sl_uint32 row)
+			{
+				Ref<PickerViewHelper> helper = getHelper();
+				if (helper.isNotNull()) {
+					helper->dispatchSelectItem(row);
 				}
+			}
 
-				void refreshItems(PickerView* view) override
-				{
-					SLIBPickerViewHandle* handle = getHandle();
-					if (handle != nil) {
-						[handle reloadAllComponents];
-						_select(handle, view->getSelectedIndex());
-					}
-				}
+		};
 
-				void setFont(View* view, const Ref<Font>& font) override
-				{
-					SLIBPickerViewHandle* handle = getHandle();
-					if (handle != nil) {
-						setHandleFont(handle, font);
-						[handle reloadAllComponents];
-					}
-				}
+		SLIB_DEFINE_OBJECT(PickerViewInstance, iOS_ViewInstance)
 
-				void onSelectItem(SLIBPickerViewHandle* handle, sl_uint32 row)
-				{
-					Ref<PickerViewHelper> helper = getHelper();
-					if (helper.isNotNull()) {
-						helper->dispatchSelectItem(row);
-					}
-				}
-
-			};
-
-			SLIB_DEFINE_OBJECT(PickerViewInstance, iOS_ViewInstance)
-
-		}
 	}
-
-	using namespace priv::picker_view;
 
 	Ref<ViewInstance> PickerView::createNativeWidget(ViewInstance* parent)
 	{
@@ -154,7 +143,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::picker_view;
 
 @implementation SLIBPickerViewHandle
 

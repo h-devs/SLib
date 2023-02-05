@@ -28,61 +28,57 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace combo_box
+	namespace {
+
+		template <class VIEW>
+		static void RefreshItems(GtkComboBox* handle, VIEW* view, sl_bool flagInit)
 		{
-
-			template <class VIEW>
-			static void RefreshItems(GtkComboBox* handle, VIEW* view, sl_bool flagInit)
-			{
-				if (!flagInit) {
-					GtkListStore* model = (GtkListStore*)(gtk_combo_box_get_model(handle));
-					gtk_list_store_clear(model);
-				}
-				sl_uint32 n = view->getItemCount();
-				for (sl_uint32 i = 0; i < n; i++) {
-					StringCstr s = view->getItemTitle(i);
-					gtk_combo_box_append_text(handle, (const gchar*)(s.getData()));
-				}
-				sl_int32 indexSelected = view->getSelectedIndex();
-				if (indexSelected >= 0 && (sl_uint32)indexSelected < n) {
-					if (gtk_combo_box_get_active(handle) != indexSelected) {
-						gtk_combo_box_set_active(handle, indexSelected);
-					}
+			if (!flagInit) {
+				GtkListStore* model = (GtkListStore*)(gtk_combo_box_get_model(handle));
+				gtk_list_store_clear(model);
+			}
+			sl_uint32 n = view->getItemCount();
+			for (sl_uint32 i = 0; i < n; i++) {
+				StringCstr s = view->getItemTitle(i);
+				gtk_combo_box_append_text(handle, (const gchar*)(s.getData()));
+			}
+			sl_int32 indexSelected = view->getSelectedIndex();
+			if (indexSelected >= 0 && (sl_uint32)indexSelected < n) {
+				if (gtk_combo_box_get_active(handle) != indexSelected) {
+					gtk_combo_box_set_active(handle, indexSelected);
 				}
 			}
-
-			static void InsertItem(GtkComboBox* handle, sl_int32 index, const String& _title)
-			{
-				StringCstr title(_title);
-				gtk_combo_box_insert_text(handle, index, title.getData());
-			}
-
-			static void RemoveItem(GtkComboBox* handle, sl_int32 index)
-			{
-				gtk_combo_box_remove_text(handle, index);
-			}
-
-			static void SetItemTitle(GtkComboBox* handle, sl_int32 index, const String& _title)
-			{
-				GtkTreeModel* model = gtk_combo_box_get_model(handle);
-				GtkTreePath* path = gtk_tree_path_new_from_indices(index);
-				if(path){
-					GtkTreeIter iter;
-					gtk_tree_model_get_iter(model, &iter, path);
-					gtk_tree_path_free(path);
-					StringCstr title(_title);
-					gtk_list_store_set((GtkListStore*)model, &iter, 0, title.getData(), -1);
-				}
-			}
-
-			static void SelectItem(GtkComboBox* handle, sl_int32 index)
-			{
-				gtk_combo_box_set_active(handle, index);
-			}
-
 		}
+
+		static void InsertItem(GtkComboBox* handle, sl_int32 index, const String& _title)
+		{
+			StringCstr title(_title);
+			gtk_combo_box_insert_text(handle, index, title.getData());
+		}
+
+		static void RemoveItem(GtkComboBox* handle, sl_int32 index)
+		{
+			gtk_combo_box_remove_text(handle, index);
+		}
+
+		static void SetItemTitle(GtkComboBox* handle, sl_int32 index, const String& _title)
+		{
+			GtkTreeModel* model = gtk_combo_box_get_model(handle);
+			GtkTreePath* path = gtk_tree_path_new_from_indices(index);
+			if(path){
+				GtkTreeIter iter;
+				gtk_tree_model_get_iter(model, &iter, path);
+				gtk_tree_path_free(path);
+				StringCstr title(_title);
+				gtk_list_store_set((GtkListStore*)model, &iter, 0, title.getData(), -1);
+			}
+		}
+
+		static void SelectItem(GtkComboBox* handle, sl_int32 index)
+		{
+			gtk_combo_box_set_active(handle, index);
+		}
+
 	}
 
 }

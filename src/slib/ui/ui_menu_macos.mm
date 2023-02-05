@@ -40,268 +40,262 @@
 namespace slib
 {
 
-	namespace priv
-	{
-		namespace menu
+	namespace {
+
+		class MenuImpl;
+
+		class MenuItemImpl : public MenuItem
 		{
+			SLIB_DECLARE_OBJECT
 
-			class MenuImpl;
+		public:
+			SLIBMenuItemHandle* m_handle;
 
-			class MenuItemImpl : public MenuItem
+		public:
+			static Ref<MenuItemImpl> create(MenuImpl* parent, const MenuItemParam& param);
+
+			void setText(const String& text) override;
+
+			void setShortcutKey(const KeycodeAndModifiers& km) override;
+
+			void setSecondShortcutKey(const KeycodeAndModifiers& km) override;
+
+			void setEnabled(sl_bool flag) override;
+
+			void setChecked(sl_bool flag) override;
+
+			void setIcon(const Ref<Drawable>& icon) override;
+
+			void setCheckedIcon(const Ref<Drawable>& icon) override;
+
+			void setSubmenu(const Ref<Menu>& menu) override;
+
+			static NSImage* _createIcon(const Ref<Drawable>& iconSrc);
+
+		};
+
+		SLIB_DEFINE_OBJECT(MenuItemImpl, MenuItem)
+
+		class MenuImpl : public Menu
+		{
+			SLIB_DECLARE_OBJECT
+
+		public:
+			NSMenu* m_handle;
+
+		public:
+			static Ref<MenuImpl> create()
 			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				SLIBMenuItemHandle* m_handle;
-
-			public:
-				static Ref<MenuItemImpl> create(MenuImpl* parent, const MenuItemParam& param);
-
-				void setText(const String& text) override;
-
-				void setShortcutKey(const KeycodeAndModifiers& km) override;
-
-				void setSecondShortcutKey(const KeycodeAndModifiers& km) override;
-
-				void setEnabled(sl_bool flag) override;
-
-				void setChecked(sl_bool flag) override;
-
-				void setIcon(const Ref<Drawable>& icon) override;
-
-				void setCheckedIcon(const Ref<Drawable>& icon) override;
-
-				void setSubmenu(const Ref<Menu>& menu) override;
-
-				static NSImage* _createIcon(const Ref<Drawable>& iconSrc);
-
-			};
-
-			SLIB_DEFINE_OBJECT(MenuItemImpl, MenuItem)
-
-			class MenuImpl : public Menu
-			{
-				SLIB_DECLARE_OBJECT
-
-			public:
-				NSMenu* m_handle;
-
-			public:
-				static Ref<MenuImpl> create()
-				{
-					NSMenu* handle = [[NSMenu alloc] initWithTitle:@""];
-					if (handle != nil) {
-						handle.autoenablesItems = NO;
-						Ref<MenuImpl> ret = new MenuImpl();
-						if (ret.isNotNull()) {
-							ret->m_handle = handle;
-							return ret;
-						}
-					}
-					return sl_null;
-				}
-
-				Ref<MenuItem> addMenuItem(const MenuItemParam& param) override
-				{
-					return insertMenuItem(SLIB_UINT32_MAX, param);
-				}
-
-				Ref<MenuItem> insertMenuItem(sl_uint32 index, const MenuItemParam& param) override
-				{
-					ObjectLocker lock(this);
-					sl_uint32 n = (sl_uint32)(m_items.getCount());
-					if (index > n) {
-						index = n;
-					}
-					Ref<MenuItemImpl> item = MenuItemImpl::create(this, param);
-					if (item.isNotNull()) {
-						[m_handle insertItem:item->m_handle atIndex:index];
-						m_items.insert(index, item);
-						return item;
-					}
-					return sl_null;
-				}
-
-				Ref<MenuItem> addSeparator() override
-				{
-					return insertSeparator(SLIB_UINT32_MAX);
-				}
-
-				Ref<MenuItem> insertSeparator(sl_uint32 index) override
-				{
-					ObjectLocker lock(this);
-					sl_uint32 n = (sl_uint32)(m_items.getCount());
-					if (index > n) {
-						index = n;
-					}
-					Ref<MenuItem> item = MenuItem::createSeparator();
-					if (item.isNotNull()) {
-						[m_handle insertItem:[NSMenuItem separatorItem] atIndex:index];
-						m_items.insert(index, item);
-						return item;
-					}
-					return sl_null;
-				}
-
-				void removeMenuItem(sl_uint32 index) override
-				{
-					ObjectLocker lock(this);
-					if (index < m_items.getCount()) {
-						[m_handle removeItemAtIndex:index];
-						m_items.removeAt(index);
-					}
-				}
-
-				void removeMenuItem(const Ref<MenuItem>& item) override
-				{
-					ObjectLocker lock(this);
-					sl_reg index = m_items.indexOf(item);
-					if (index >= 0) {
-						[m_handle removeItemAtIndex:index];
-						m_items.removeAt(index);
-					}
-				}
-
-				void show(sl_ui_pos x, sl_ui_pos y) override
-				{
-					NSPoint pt;
-					pt.x = (CGFloat)x;
-					pt.y = (CGFloat)(UI::getScreenSize().y - y);
-					[m_handle popUpMenuPositioningItem:nil atLocation:pt inView:nil];
-				}
-
-				friend class MenuItemImpl;
-			};
-
-			SLIB_DEFINE_OBJECT(MenuImpl, Menu)
-
-			Ref<MenuItemImpl> MenuItemImpl::create(MenuImpl* parent, const MenuItemParam& param)
-			{
-				SLIBMenuItemHandle* handle = [[SLIBMenuItemHandle alloc] init];
+				NSMenu* handle = [[NSMenu alloc] initWithTitle:@""];
 				if (handle != nil) {
-					handle.title = Apple::getNSStringFromString(param.text.removeAll('&'));
-					NSUInteger keMask;
-					if (param.shortcutKey.getKeycode() != Keycode::Unknown) {
-						handle.keyEquivalent = UIPlatform::getKeyEquivalent(param.shortcutKey, keMask);
-						handle.keyEquivalentModifierMask = keMask;
-					}
-					handle.enabled = param.flagEnabled ? YES : NO;
-					handle.state = param.flagChecked ? NSOnState : NSOffState;
-					handle.submenu = UIPlatform::getMenuHandle(param.submenu.get());
-					if (handle.submenu != nil) {
-						handle.submenu.title = handle.title;
-					}
-					handle.offStateImage = _createIcon(param.icon);
-					handle.onStateImage = _createIcon(param.checkedIcon);
-					if (handle.onStateImage == nil) {
-						handle.onStateImage = handle->m_defaultCheckedImage;
-					}
-					Ref<MenuItemImpl> ret = new MenuItemImpl;
+					handle.autoenablesItems = NO;
+					Ref<MenuImpl> ret = new MenuImpl();
 					if (ret.isNotNull()) {
 						ret->m_handle = handle;
-						handle->m_item = ret.get();
-						ret->m_parent = parent;
-						ret->m_text = param.text;
-						ret->m_shortcutKey = param.shortcutKey;
-						ret->m_secondShortcutKey = param.secondShortcutKey;
-						ret->m_flagEnabled = param.flagEnabled;
-						ret->m_flagChecked = param.flagChecked;
-						ret->m_icon = param.icon;
-						ret->m_checkedIcon = param.checkedIcon;
-						ret->m_submenu = param.submenu;
-						ret->setAction(param.action);
 						return ret;
 					}
-
 				}
 				return sl_null;
 			}
 
-			void MenuItemImpl::setText(const String& text)
+			Ref<MenuItem> addMenuItem(const MenuItemParam& param) override
 			{
-				MenuItem::setText(text);
-				m_handle.title = Apple::getNSStringFromString(text.removeAll('&'));
-				if (m_handle.submenu != nil) {
-					m_handle.submenu.title = m_handle.title;
+				return insertMenuItem(SLIB_UINT32_MAX, param);
+			}
+
+			Ref<MenuItem> insertMenuItem(sl_uint32 index, const MenuItemParam& param) override
+			{
+				ObjectLocker lock(this);
+				sl_uint32 n = (sl_uint32)(m_items.getCount());
+				if (index > n) {
+					index = n;
+				}
+				Ref<MenuItemImpl> item = MenuItemImpl::create(this, param);
+				if (item.isNotNull()) {
+					[m_handle insertItem:item->m_handle atIndex:index];
+					m_items.insert(index, item);
+					return item;
+				}
+				return sl_null;
+			}
+
+			Ref<MenuItem> addSeparator() override
+			{
+				return insertSeparator(SLIB_UINT32_MAX);
+			}
+
+			Ref<MenuItem> insertSeparator(sl_uint32 index) override
+			{
+				ObjectLocker lock(this);
+				sl_uint32 n = (sl_uint32)(m_items.getCount());
+				if (index > n) {
+					index = n;
+				}
+				Ref<MenuItem> item = MenuItem::createSeparator();
+				if (item.isNotNull()) {
+					[m_handle insertItem:[NSMenuItem separatorItem] atIndex:index];
+					m_items.insert(index, item);
+					return item;
+				}
+				return sl_null;
+			}
+
+			void removeMenuItem(sl_uint32 index) override
+			{
+				ObjectLocker lock(this);
+				if (index < m_items.getCount()) {
+					[m_handle removeItemAtIndex:index];
+					m_items.removeAt(index);
 				}
 			}
 
-			void MenuItemImpl::setShortcutKey(const slib::KeycodeAndModifiers &km)
+			void removeMenuItem(const Ref<MenuItem>& item) override
 			{
-				MenuItem::setShortcutKey(km);
+				ObjectLocker lock(this);
+				sl_reg index = m_items.indexOf(item);
+				if (index >= 0) {
+					[m_handle removeItemAtIndex:index];
+					m_items.removeAt(index);
+				}
+			}
+
+			void show(sl_ui_pos x, sl_ui_pos y) override
+			{
+				NSPoint pt;
+				pt.x = (CGFloat)x;
+				pt.y = (CGFloat)(UI::getScreenSize().y - y);
+				[m_handle popUpMenuPositioningItem:nil atLocation:pt inView:nil];
+			}
+
+			friend class MenuItemImpl;
+		};
+
+		SLIB_DEFINE_OBJECT(MenuImpl, Menu)
+
+		Ref<MenuItemImpl> MenuItemImpl::create(MenuImpl* parent, const MenuItemParam& param)
+		{
+			SLIBMenuItemHandle* handle = [[SLIBMenuItemHandle alloc] init];
+			if (handle != nil) {
+				handle.title = Apple::getNSStringFromString(param.text.removeAll('&'));
 				NSUInteger keMask;
-				if (km.getKeycode() != Keycode::Unknown) {
-					m_handle.keyEquivalent = UIPlatform::getKeyEquivalent(km, keMask);
-					m_handle.keyEquivalentModifierMask = keMask;
-				} else {
-					m_handle.keyEquivalent = @"";
-					m_handle.keyEquivalentModifierMask = 0;
+				if (param.shortcutKey.getKeycode() != Keycode::Unknown) {
+					handle.keyEquivalent = UIPlatform::getKeyEquivalent(param.shortcutKey, keMask);
+					handle.keyEquivalentModifierMask = keMask;
 				}
-			}
-
-			void MenuItemImpl::setSecondShortcutKey(const slib::KeycodeAndModifiers &km)
-			{
-				MenuItem::setSecondShortcutKey(km);
-			}
-
-			void MenuItemImpl::setEnabled(sl_bool flag)
-			{
-				MenuItem::setEnabled(flag);
-				m_handle.enabled = flag ? YES : NO;
-			}
-
-			void MenuItemImpl::setChecked(sl_bool flag)
-			{
-				MenuItem::setChecked(flag);
-				m_handle.state = flag ? NSOnState : NSOffState;
-			}
-
-			void MenuItemImpl::setIcon(const Ref<Drawable>& icon)
-			{
-				MenuItem::setIcon(icon);
-				m_handle.offStateImage = GraphicsPlatform::getNSImage(icon);
-			}
-
-			void MenuItemImpl::setCheckedIcon(const Ref<Drawable>& icon)
-			{
-				MenuItem::setCheckedIcon(icon);
-				m_handle.onStateImage = GraphicsPlatform::getNSImage(icon);
-				if (m_handle.onStateImage == nil) {
-					m_handle.onStateImage = m_handle->m_defaultCheckedImage;
+				handle.enabled = param.flagEnabled ? YES : NO;
+				handle.state = param.flagChecked ? NSOnState : NSOffState;
+				handle.submenu = UIPlatform::getMenuHandle(param.submenu.get());
+				if (handle.submenu != nil) {
+					handle.submenu.title = handle.title;
 				}
-			}
-
-			void MenuItemImpl::setSubmenu(const Ref<Menu>& menu)
-			{
-				MenuItem::setSubmenu(menu);
-				m_handle.submenu = UIPlatform::getMenuHandle(menu.get());
-				if (m_handle.submenu != nil) {
-					m_handle.submenu.title = m_handle.title;
+				handle.offStateImage = _createIcon(param.icon);
+				handle.onStateImage = _createIcon(param.checkedIcon);
+				if (handle.onStateImage == nil) {
+					handle.onStateImage = handle->m_defaultCheckedImage;
 				}
-			}
+				Ref<MenuItemImpl> ret = new MenuItemImpl;
+				if (ret.isNotNull()) {
+					ret->m_handle = handle;
+					handle->m_item = ret.get();
+					ret->m_parent = parent;
+					ret->m_text = param.text;
+					ret->m_shortcutKey = param.shortcutKey;
+					ret->m_secondShortcutKey = param.secondShortcutKey;
+					ret->m_flagEnabled = param.flagEnabled;
+					ret->m_flagChecked = param.flagChecked;
+					ret->m_icon = param.icon;
+					ret->m_checkedIcon = param.checkedIcon;
+					ret->m_submenu = param.submenu;
+					ret->setAction(param.action);
+					return ret;
+				}
 
-			NSImage* MenuItemImpl::_createIcon(const Ref<Drawable>& iconSrc)
-			{
-				if (iconSrc.isNotNull()) {
-					NSImage* icon = GraphicsPlatform::getNSImage(iconSrc);
-					if (icon != nil) {
-						if (icon.size.width > 0 && icon.size.height > 0) {
-							double w = [[NSFont menuFontOfSize:0] pointSize];
-							NSSize size;
-							size.width = w;
-							size.height = w;
-							icon.size = size;
-							return icon;
-						}
+			}
+			return sl_null;
+		}
+
+		void MenuItemImpl::setText(const String& text)
+		{
+			MenuItem::setText(text);
+			m_handle.title = Apple::getNSStringFromString(text.removeAll('&'));
+			if (m_handle.submenu != nil) {
+				m_handle.submenu.title = m_handle.title;
+			}
+		}
+
+		void MenuItemImpl::setShortcutKey(const slib::KeycodeAndModifiers &km)
+		{
+			MenuItem::setShortcutKey(km);
+			NSUInteger keMask;
+			if (km.getKeycode() != Keycode::Unknown) {
+				m_handle.keyEquivalent = UIPlatform::getKeyEquivalent(km, keMask);
+				m_handle.keyEquivalentModifierMask = keMask;
+			} else {
+				m_handle.keyEquivalent = @"";
+				m_handle.keyEquivalentModifierMask = 0;
+			}
+		}
+
+		void MenuItemImpl::setSecondShortcutKey(const slib::KeycodeAndModifiers &km)
+		{
+			MenuItem::setSecondShortcutKey(km);
+		}
+
+		void MenuItemImpl::setEnabled(sl_bool flag)
+		{
+			MenuItem::setEnabled(flag);
+			m_handle.enabled = flag ? YES : NO;
+		}
+
+		void MenuItemImpl::setChecked(sl_bool flag)
+		{
+			MenuItem::setChecked(flag);
+			m_handle.state = flag ? NSOnState : NSOffState;
+		}
+
+		void MenuItemImpl::setIcon(const Ref<Drawable>& icon)
+		{
+			MenuItem::setIcon(icon);
+			m_handle.offStateImage = GraphicsPlatform::getNSImage(icon);
+		}
+
+		void MenuItemImpl::setCheckedIcon(const Ref<Drawable>& icon)
+		{
+			MenuItem::setCheckedIcon(icon);
+			m_handle.onStateImage = GraphicsPlatform::getNSImage(icon);
+			if (m_handle.onStateImage == nil) {
+				m_handle.onStateImage = m_handle->m_defaultCheckedImage;
+			}
+		}
+
+		void MenuItemImpl::setSubmenu(const Ref<Menu>& menu)
+		{
+			MenuItem::setSubmenu(menu);
+			m_handle.submenu = UIPlatform::getMenuHandle(menu.get());
+			if (m_handle.submenu != nil) {
+				m_handle.submenu.title = m_handle.title;
+			}
+		}
+
+		NSImage* MenuItemImpl::_createIcon(const Ref<Drawable>& iconSrc)
+		{
+			if (iconSrc.isNotNull()) {
+				NSImage* icon = GraphicsPlatform::getNSImage(iconSrc);
+				if (icon != nil) {
+					if (icon.size.width > 0 && icon.size.height > 0) {
+						double w = [[NSFont menuFontOfSize:0] pointSize];
+						NSSize size;
+						size.width = w;
+						size.height = w;
+						icon.size = size;
+						return icon;
 					}
 				}
-				return nil;
 			}
-
+			return nil;
 		}
-	}
 
-	using namespace priv::menu;
+	}
 
 	Ref<Menu> Menu::create(sl_bool flagPopup)
 	{

@@ -41,81 +41,6 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(macOS_ViewInstance, ViewInstance)
 
-	namespace priv
-	{
-		namespace view_macos
-		{
-
-			static NSDragOperation ToNSDragOperation(int op)
-			{
-				NSDragOperation ret = 0;
-				if (op & DragOperations::Copy) {
-					ret |= NSDragOperationCopy;
-				}
-				if (op & DragOperations::Link) {
-					ret |= NSDragOperationLink;
-				}
-				if (op & DragOperations::Generic) {
-					ret |= NSDragOperationGeneric;
-				}
-				if (op & DragOperations::Private) {
-					ret |= NSDragOperationPrivate;
-				}
-				if (op & DragOperations::Move) {
-					ret |= NSDragOperationMove;
-				}
-				if (op & DragOperations::Delete) {
-					ret |= NSDragOperationDelete;
-				}
-				return ret;
-			}
-
-			static int FromNSDragOperation(NSDragOperation operation)
-			{
-				int op = 0;
-				if (operation & NSDragOperationCopy) {
-					op |= DragOperations::Copy;
-				}
-				if (operation & NSDragOperationLink) {
-					op |= DragOperations::Link;
-				}
-				if (operation & NSDragOperationGeneric) {
-					op |= DragOperations::Generic;
-				}
-				if (operation & NSDragOperationPrivate) {
-					op |= DragOperations::Private;
-				}
-				if (operation & NSDragOperationMove) {
-					op |= DragOperations::Move;
-				}
-				if (operation & NSDragOperationDelete) {
-					op |= DragOperations::Delete;
-				}
-				return op;
-			}
-
-			static void SetDropTarget(NSView* handle, sl_bool flag)
-			{
-				if (flag) {
-					if (handle.registeredDraggedTypes == nil || handle.registeredDraggedTypes.count == 0) {
-						if (@available(macOS 10.13, *)) {
-							[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSPasteboardTypeFileURL]];
-						} else {
-							[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSFilenamesPboardType]];
-						}
-					}
-				} else {
-					if (handle.registeredDraggedTypes != nil && handle.registeredDraggedTypes.count) {
-						[handle unregisterDraggedTypes];
-					}
-				}
-			}
-
-		}
-	}
-
-	using namespace priv::view_macos;
-
 	macOS_ViewInstance::macOS_ViewInstance()
 	{
 		m_handle = nil;
@@ -138,6 +63,25 @@ namespace slib
 	{
 		m_handle = handle;
 		UIPlatform::registerViewInstance(handle, this);
+	}
+
+	namespace {
+		static void SetDropTarget(NSView* handle, sl_bool flag)
+		{
+			if (flag) {
+				if (handle.registeredDraggedTypes == nil || handle.registeredDraggedTypes.count == 0) {
+					if (@available(macOS 10.13, *)) {
+						[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSPasteboardTypeFileURL]];
+					} else {
+						[handle registerForDraggedTypes:@[NSPasteboardTypeString, NSFilenamesPboardType]];
+					}
+				}
+			} else {
+				if (handle.registeredDraggedTypes != nil && handle.registeredDraggedTypes.count) {
+					[handle unregisterDraggedTypes];
+				}
+			}
+		}
 	}
 
 	void macOS_ViewInstance::initWithHandle(NSView* handle, NSView* parent, View* view)
@@ -679,6 +623,56 @@ namespace slib
 		return 0;
 	}
 
+	namespace {
+		static NSDragOperation ToNSDragOperation(int op)
+		{
+			NSDragOperation ret = 0;
+			if (op & DragOperations::Copy) {
+				ret |= NSDragOperationCopy;
+			}
+			if (op & DragOperations::Link) {
+				ret |= NSDragOperationLink;
+			}
+			if (op & DragOperations::Generic) {
+				ret |= NSDragOperationGeneric;
+			}
+			if (op & DragOperations::Private) {
+				ret |= NSDragOperationPrivate;
+			}
+			if (op & DragOperations::Move) {
+				ret |= NSDragOperationMove;
+			}
+			if (op & DragOperations::Delete) {
+				ret |= NSDragOperationDelete;
+			}
+			return ret;
+		}
+
+		static int FromNSDragOperation(NSDragOperation operation)
+		{
+			int op = 0;
+			if (operation & NSDragOperationCopy) {
+				op |= DragOperations::Copy;
+			}
+			if (operation & NSDragOperationLink) {
+				op |= DragOperations::Link;
+			}
+			if (operation & NSDragOperationGeneric) {
+				op |= DragOperations::Generic;
+			}
+			if (operation & NSDragOperationPrivate) {
+				op |= DragOperations::Private;
+			}
+			if (operation & NSDragOperationMove) {
+				op |= DragOperations::Move;
+			}
+			if (operation & NSDragOperationDelete) {
+				op |= DragOperations::Delete;
+			}
+			return op;
+		}
+	}
+
 	Ref<UIEvent> macOS_ViewInstance::onEventDrop(UIAction action, id<NSDraggingInfo> info)
 	{
 		NSView* handle = m_handle;
@@ -802,7 +796,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::view_macos;
 
 @implementation SLIBViewBaseHandle
 

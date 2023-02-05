@@ -42,201 +42,163 @@
 namespace slib
 {
 
-	namespace priv
-	{
+	namespace {
 
-		namespace ui_core
+		SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
+			SLIB_JNI_INT_FIELD(left);
+			SLIB_JNI_INT_FIELD(top);
+			SLIB_JNI_INT_FIELD(right);
+			SLIB_JNI_INT_FIELD(bottom);
+		SLIB_JNI_END_CLASS
+
+		SLIB_JNI_BEGIN_CLASS(JUtil, "slib/android/ui/Util")
+			SLIB_JNI_STATIC_METHOD(getScreenOrientation, "getScreenOrientation", "(Landroid/app/Activity;)I")
+			SLIB_JNI_STATIC_METHOD(setScreenOrientations, "setScreenOrientations", "(Landroid/app/Activity;ZZZZ)V")
+			SLIB_JNI_STATIC_METHOD(showKeyboard, "showKeyboard", "(Landroid/app/Activity;)V")
+			SLIB_JNI_STATIC_METHOD(dismissKeyboard, "dismissKeyboard", "(Landroid/app/Activity;)V")
+			SLIB_JNI_STATIC_METHOD(getSafeAreaInsets, "getSafeAreaInsets", "(Landroid/app/Activity;)Landroid/graphics/Rect;")
+			SLIB_JNI_STATIC_METHOD(getStatusBarHeight, "getStatusBarHeight", "(Landroid/content/Context;)I")
+			SLIB_JNI_STATIC_METHOD(setStatusBarStyle, "setStatusBarStyle", "(Landroid/app/Activity;ZZ)V")
+			SLIB_JNI_STATIC_METHOD(setBadgeNumber, "setBadgeNumber", "(Landroid/content/Context;I)V")
+			SLIB_JNI_STATIC_METHOD(openUrl, "openUrl", "(Landroid/content/Context;Ljava/lang/String;)V")
+			SLIB_JNI_STATIC_METHOD(sendFile, "sendFile", "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V")
+		SLIB_JNI_END_CLASS
+
+		static void DispatchCallback(JNIEnv* env, jobject _this);
+		static void DispatchDelayedCallback(JNIEnv* env, jobject _this, jlong ptr);
+
+		SLIB_JNI_BEGIN_CLASS(JUiThread, "slib/android/ui/UiThread")
+			SLIB_JNI_STATIC_METHOD(isUiThread, "isUiThread", "()Z");
+			SLIB_JNI_STATIC_METHOD(dispatch, "dispatch", "()V");
+			SLIB_JNI_STATIC_METHOD(dispatchDelayed, "dispatchDelayed", "(JI)V");
+			SLIB_JNI_STATIC_METHOD(runLoop, "runLoop", "()V");
+			SLIB_JNI_STATIC_METHOD(quitLoop, "quitLoop", "()V");
+
+			SLIB_JNI_NATIVE(nativeDispatchCallback, "nativeDispatchCallback", "()V", DispatchCallback);
+			SLIB_JNI_NATIVE(nativeDispatchDelayedCallback, "nativeDispatchDelayedCallback", "(J)V", DispatchDelayedCallback);
+		SLIB_JNI_END_CLASS
+
+		static void OnCreateActivity(JNIEnv* env, jobject _this, jobject activity);
+		static void OnDestroyActivity(JNIEnv* env, jobject _this, jobject activity);
+		static void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity);
+		static void OnPauseActivity(JNIEnv* env, jobject _this, jobject activity);
+		static jboolean OnBack(JNIEnv* env, jobject _this, jobject activity);
+		static void OnConfigurationChanged(JNIEnv* env, jobject _this, jobject activity);
+		static void OnChangeWindowInsets(JNIEnv* env, jobject _this, jobject activity);
+		static void OnOpenUrl(JNIEnv* env, jobject _this, jobject activity, jstring url);
+
+		SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/android/Android")
+			SLIB_JNI_NATIVE(onCreateActivity, "nativeOnCreateActivity", "(Landroid/app/Activity;)V", OnCreateActivity);
+			SLIB_JNI_NATIVE(onDestroyActivity, "nativeOnDestroyActivity", "(Landroid/app/Activity;)V", OnDestroyActivity);
+			SLIB_JNI_NATIVE(onResumeActivity, "nativeOnResumeActivity", "(Landroid/app/Activity;)V", OnResumeActivity);
+			SLIB_JNI_NATIVE(onPauseActivity, "nativeOnPauseActivity", "(Landroid/app/Activity;)V", OnPauseActivity);
+			SLIB_JNI_NATIVE(onBack, "nativeOnBack", "(Landroid/app/Activity;)Z", OnBack);
+			SLIB_JNI_NATIVE(onConfigurationChanged, "nativeOnConfigurationChanged", "(Landroid/app/Activity;)V", OnConfigurationChanged);
+			SLIB_JNI_NATIVE(onChangeWindowInsets, "nativeOnChangeWindowInsets", "(Landroid/app/Activity;)V", OnChangeWindowInsets);
+			SLIB_JNI_NATIVE(onOpenUrl, "nativeOnOpenUrl", "(Landroid/app/Activity;Ljava/lang/String;)V", OnOpenUrl);
+		SLIB_JNI_END_CLASS
+
+		void OnCreateActivity(JNIEnv* env, jobject _this, jobject activity)
 		{
-
-			static Ref<UIApp> g_app;
-
-			SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")
-				SLIB_JNI_INT_FIELD(left);
-				SLIB_JNI_INT_FIELD(top);
-				SLIB_JNI_INT_FIELD(right);
-				SLIB_JNI_INT_FIELD(bottom);
-			SLIB_JNI_END_CLASS
-
-			SLIB_JNI_BEGIN_CLASS(JUtil, "slib/android/ui/Util")
-				SLIB_JNI_STATIC_METHOD(getScreenOrientation, "getScreenOrientation", "(Landroid/app/Activity;)I")
-				SLIB_JNI_STATIC_METHOD(setScreenOrientations, "setScreenOrientations", "(Landroid/app/Activity;ZZZZ)V")
-				SLIB_JNI_STATIC_METHOD(showKeyboard, "showKeyboard", "(Landroid/app/Activity;)V")
-				SLIB_JNI_STATIC_METHOD(dismissKeyboard, "dismissKeyboard", "(Landroid/app/Activity;)V")
-				SLIB_JNI_STATIC_METHOD(getSafeAreaInsets, "getSafeAreaInsets", "(Landroid/app/Activity;)Landroid/graphics/Rect;")
-				SLIB_JNI_STATIC_METHOD(getStatusBarHeight, "getStatusBarHeight", "(Landroid/content/Context;)I")
-				SLIB_JNI_STATIC_METHOD(setStatusBarStyle, "setStatusBarStyle", "(Landroid/app/Activity;ZZ)V")
-				SLIB_JNI_STATIC_METHOD(setBadgeNumber, "setBadgeNumber", "(Landroid/content/Context;I)V")
-				SLIB_JNI_STATIC_METHOD(openUrl, "openUrl", "(Landroid/content/Context;Ljava/lang/String;)V")
-				SLIB_JNI_STATIC_METHOD(sendFile, "sendFile", "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V")
-			SLIB_JNI_END_CLASS
-
-			void DispatchCallback(JNIEnv* env, jobject _this);
-			void DispatchDelayedCallback(JNIEnv* env, jobject _this, jlong ptr);
-
-			SLIB_JNI_BEGIN_CLASS(JUiThread, "slib/android/ui/UiThread")
-				SLIB_JNI_STATIC_METHOD(isUiThread, "isUiThread", "()Z");
-				SLIB_JNI_STATIC_METHOD(dispatch, "dispatch", "()V");
-				SLIB_JNI_STATIC_METHOD(dispatchDelayed, "dispatchDelayed", "(JI)V");
-				SLIB_JNI_STATIC_METHOD(runLoop, "runLoop", "()V");
-				SLIB_JNI_STATIC_METHOD(quitLoop, "quitLoop", "()V");
-
-				SLIB_JNI_NATIVE(nativeDispatchCallback, "nativeDispatchCallback", "()V", DispatchCallback);
-				SLIB_JNI_NATIVE(nativeDispatchDelayedCallback, "nativeDispatchDelayedCallback", "(J)V", DispatchDelayedCallback);
-			SLIB_JNI_END_CLASS
-
-			void OnCreateActivity(JNIEnv* env, jobject _this, jobject activity);
-			void OnDestroyActivity(JNIEnv* env, jobject _this, jobject activity);
-			void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity);
-			void OnPauseActivity(JNIEnv* env, jobject _this, jobject activity);
-			jboolean OnBack(JNIEnv* env, jobject _this, jobject activity);
-			void OnConfigurationChanged(JNIEnv* env, jobject _this, jobject activity);
-			void OnChangeWindowInsets(JNIEnv* env, jobject _this, jobject activity);
-			void OnOpenUrl(JNIEnv* env, jobject _this, jobject activity, jstring url);
-
-			SLIB_JNI_BEGIN_CLASS(JAndroid, "slib/android/Android")
-				SLIB_JNI_NATIVE(onCreateActivity, "nativeOnCreateActivity", "(Landroid/app/Activity;)V", OnCreateActivity);
-				SLIB_JNI_NATIVE(onDestroyActivity, "nativeOnDestroyActivity", "(Landroid/app/Activity;)V", OnDestroyActivity);
-				SLIB_JNI_NATIVE(onResumeActivity, "nativeOnResumeActivity", "(Landroid/app/Activity;)V", OnResumeActivity);
-				SLIB_JNI_NATIVE(onPauseActivity, "nativeOnPauseActivity", "(Landroid/app/Activity;)V", OnPauseActivity);
-				SLIB_JNI_NATIVE(onBack, "nativeOnBack", "(Landroid/app/Activity;)Z", OnBack);
-				SLIB_JNI_NATIVE(onConfigurationChanged, "nativeOnConfigurationChanged", "(Landroid/app/Activity;)V", OnConfigurationChanged);
-				SLIB_JNI_NATIVE(onChangeWindowInsets, "nativeOnChangeWindowInsets", "(Landroid/app/Activity;)V", OnChangeWindowInsets);
-				SLIB_JNI_NATIVE(onOpenUrl, "nativeOnOpenUrl", "(Landroid/app/Activity;Ljava/lang/String;)V", OnOpenUrl);
-			SLIB_JNI_END_CLASS
-
-			class ScreenImpl : public Screen
-			{
-			public:
-				sl_ui_len m_width;
-				sl_ui_len m_height;
-
-			public:
-				static Ref<ScreenImpl> create()
-				{
-					Ref<ScreenImpl> ret = new ScreenImpl();
-					if (ret.isNotNull()) {
-						UISize size = UI::getScreenSize();
-						ret->m_width = size.x;
-						ret->m_height = size.y;
-						return ret;
-					}
-					return sl_null;
+			Log("Activity", "onCreateActivity");
+			Android::initializeContext(activity);
+			Ref<UIApp> app = UIApp::getApp();
+			if (app.isNotNull()) {
+				static sl_bool flagStartApp = sl_false;
+				if (! flagStartApp) {
+					flagStartApp = sl_true;
+					UIApp::dispatchStartToApp();
 				}
+				MobileApp::dispatchCreateActivityToApp();
+			}
+			Locale::dispatchChangeCurrentLocale();
+		}
 
-			public:
-				UIRect getRegion() override
-				{
-					UIRect ret;
-					ret.left = 0;
-					ret.top = 0;
-					ret.right = (sl_ui_pos)m_width;
-					ret.bottom = (sl_ui_pos)m_height;
+		void OnDestroyActivity(JNIEnv* env, jobject _this, jobject activity)
+		{
+			Log("Activity", "onDestroyActivity");
+			MobileApp::dispatchDestroyActivityToApp();
+		}
+
+		void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity)
+		{
+			Log("Activity", "onResumeActivity");
+			Android::initializeContext(activity);
+			MobileApp::dispatchResumeToApp();
+		}
+
+		void OnPauseActivity(JNIEnv* env, jobject _this, jobject activity)
+		{
+			Log("Activity", "onPauseActivity");
+			MobileApp::dispatchPauseToApp();
+		}
+
+		jboolean OnBack(JNIEnv* env, jobject _this, jobject activity)
+		{
+			Log("Activity", "onBackPressed");
+			return (jboolean)(MobileApp::dispatchBackPressedToApp());
+		}
+
+		void OnConfigurationChanged(JNIEnv* env, jobject _this, jobject activity)
+		{
+			Log("Activity", "onConfigurationChanged");
+			Locale::dispatchChangeCurrentLocale();
+		}
+
+		void OnChangeWindowInsets(JNIEnv* env, jobject _this, jobject activity)
+		{
+			Log("Activity", "onChangeWindowInsets");
+			UIResource::updateDefaultScreenSize();
+		}
+
+		void OnOpenUrl(JNIEnv* env, jobject _this, jobject activity, jstring jurl)
+		{
+			String url = Jni::getString(jurl);
+			Log("Activity", "onOpenUrl: %s", url);
+			MobileApp::dispatchOpenUrlToApp(url);
+		}
+
+		void DispatchCallback(JNIEnv* env, jobject _this)
+		{
+			UIDispatcher::processCallbacks();
+		}
+
+		void DispatchDelayedCallback(JNIEnv* env, jobject _this, jlong ptr)
+		{
+			UIDispatcher::processDelayedCallback((sl_reg)ptr);
+		}
+
+		class ScreenImpl : public Screen
+		{
+		public:
+			sl_ui_len m_width;
+			sl_ui_len m_height;
+
+		public:
+			static Ref<ScreenImpl> create()
+			{
+				Ref<ScreenImpl> ret = new ScreenImpl();
+				if (ret.isNotNull()) {
+					UISize size = UI::getScreenSize();
+					ret->m_width = size.x;
+					ret->m_height = size.y;
 					return ret;
 				}
-			};
-
-			void OnCreateActivity(JNIEnv* env, jobject _this, jobject activity)
-			{
-				Log("Activity", "onCreateActivity");
-				Android::initializeContext(activity);
-				Ref<UIApp> app = UIApp::getApp();
-				if (app.isNotNull()) {
-					static sl_bool flagStartApp = sl_false;
-					if (! flagStartApp) {
-						flagStartApp = sl_true;
-						UIApp::dispatchStartToApp();
-					}
-					MobileApp::dispatchCreateActivityToApp();
-				}
-				Locale::dispatchChangeCurrentLocale();
+				return sl_null;
 			}
 
-			void OnDestroyActivity(JNIEnv* env, jobject _this, jobject activity)
+		public:
+			UIRect getRegion() override
 			{
-				Log("Activity", "onDestroyActivity");
-				MobileApp::dispatchDestroyActivityToApp();
+				UIRect ret;
+				ret.left = 0;
+				ret.top = 0;
+				ret.right = (sl_ui_pos)m_width;
+				ret.bottom = (sl_ui_pos)m_height;
+				return ret;
 			}
-
-			void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity)
-			{
-				Log("Activity", "onResumeActivity");
-				Android::initializeContext(activity);
-				MobileApp::dispatchResumeToApp();
-			}
-
-			void OnPauseActivity(JNIEnv* env, jobject _this, jobject activity)
-			{
-				Log("Activity", "onPauseActivity");
-				MobileApp::dispatchPauseToApp();
-			}
-
-			jboolean OnBack(JNIEnv* env, jobject _this, jobject activity)
-			{
-				Log("Activity", "onBackPressed");
-				return (jboolean)(MobileApp::dispatchBackPressedToApp());
-			}
-
-			void OnConfigurationChanged(JNIEnv* env, jobject _this, jobject activity)
-			{
-				Log("Activity", "onConfigurationChanged");
-				Locale::dispatchChangeCurrentLocale();
-			}
-
-			void OnChangeWindowInsets(JNIEnv* env, jobject _this, jobject activity)
-			{
-				Log("Activity", "onChangeWindowInsets");
-				UIResource::updateDefaultScreenSize();
-			}
-
-			void OnOpenUrl(JNIEnv* env, jobject _this, jobject activity, jstring jurl)
-			{
-				String url = Jni::getString(jurl);
-				Log("Activity", "onOpenUrl: %s", url);
-				MobileApp::dispatchOpenUrlToApp(url);
-			}
-
-			void DispatchCallback(JNIEnv* env, jobject _this)
-			{
-				UIDispatcher::processCallbacks();
-			}
-
-			void DispatchDelayedCallback(JNIEnv* env, jobject _this, jlong ptr)
-			{
-				UIDispatcher::processDelayedCallback((sl_reg)ptr);
-			}
-
-		}
-
-		namespace mobile_app
-		{
-
-			void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode)
-			{
-				jobject context = Android::getCurrentContext();
-				if (android::Activity::isActivity(context)) {
-					JniLocal<jobject> window = android::Activity::getWindow(context);
-					if (window.isNotNull()) {
-						sl_uint32 jmode = 0;
-						switch (mode) {
-							case UIKeyboardAdjustMode::Pan:
-								jmode = 0x20; // WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
-								break;
-							case UIKeyboardAdjustMode::Resize:
-								jmode = 0x10; // WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-								break;
-							default:
-								break;
-						}
-						android::Window::setSoftInputMode(window, jmode);
-					}
-				}
-			}
-
-		}
-
+		};
 	}
-
-	using namespace priv::ui_core;
 
 	Ref<Screen> UI::getPrimaryScreen()
 	{
@@ -314,6 +276,10 @@ namespace slib
 	void UIPlatform::quitLoop()
 	{
 		JUiThread::quitLoop.call(sl_null);
+	}
+
+	namespace {
+		static Ref<UIApp> g_app;
 	}
 
 	void UIPlatform::initApp()
@@ -409,6 +375,31 @@ namespace slib
 		}
 		UIEdgeInsets ret = {0, 0, 0, 0};
 		return ret;
+	}
+
+	namespace priv
+	{
+		void UpdateKeyboardAdjustMode(UIKeyboardAdjustMode mode)
+		{
+			jobject context = Android::getCurrentContext();
+			if (android::Activity::isActivity(context)) {
+				JniLocal<jobject> window = android::Activity::getWindow(context);
+				if (window.isNotNull()) {
+					sl_uint32 jmode = 0;
+					switch (mode) {
+						case UIKeyboardAdjustMode::Pan:
+							jmode = 0x20; // WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
+							break;
+						case UIKeyboardAdjustMode::Resize:
+							jmode = 0x10; // WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+							break;
+						default:
+							break;
+					}
+					android::Window::setSoftInputMode(window, jmode);
+				}
+			}
+		}
 	}
 
 }
