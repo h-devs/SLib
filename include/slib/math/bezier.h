@@ -216,6 +216,9 @@ namespace slib
 
 		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, sl_bool flagLargeArc, sl_bool flagSweep)
 		{
+			if (Math::isAlmostZero(rx) || Math::isAlmostZero(ry)) {
+				return 0;
+			}
 			T PI2 = Math::HalfPI<T>();
 			T _2PI = Math::DualPI<T>();
 			T EPSILON = Math::Epsilon<T>();
@@ -289,6 +292,9 @@ namespace slib
 
 		static sl_uint32 convertArcToBezier(PointT<T> pts[13], T x1, T y1, T x2, T y2, T rx, T ry, T rotation, sl_bool flagLargeArc, sl_bool flagSweep)
 		{
+			if (Math::isAlmostZero(rx) || Math::isAlmostZero(ry)) {
+				return 0;
+			}
 			T PI2 = Math::HalfPI<T>();
 			T _2PI = Math::DualPI<T>();
 
@@ -380,6 +386,9 @@ namespace slib
 			sl_int32 nPts = (sl_int32)(Math::ceil(Math::abs(sweepAngle) / PI2));
 			if (nPts > 4) {
 				nPts = 4;
+			}
+			if (nPts < 0) {
+				nPts = 0;
 			}
 			nPts *= 3;
 			T s = startAngle;
