@@ -201,7 +201,7 @@ namespace slib
 				}
 				return drawableCommon;
 			}
-			return sl_null;
+			return Ref<Drawable>::null();
 		}
 	}
 
