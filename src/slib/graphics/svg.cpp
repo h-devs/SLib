@@ -33,6 +33,8 @@
 #include "slib/io/file.h"
 #include "slib/data/xml.h"
 
+#define MAX_LINK_DEEP_LEVEL 5
+
 namespace slib
 {
 
@@ -341,24 +343,43 @@ namespace slib
 		{
 		public:
 			PaintType type;
+			
 		};
 
 		class SolidPaint : public Paint
 		{
+		public:
+			Color color;
+
 		public:
 			SolidPaint()
 			{
 				type = PaintType::Solid;
 			}
 
+			SolidPaint(const Color& _color)
+			{
+				type = PaintType::Solid;
+				color = _color;
+			}
+
 		public:
-			Color color;
+			static const Ref<SolidPaint>& black()
+			{
+				SLIB_SAFE_LOCAL_STATIC(Ref<SolidPaint>, ret, new SolidPaint(Color::Black))
+				return ret;
+			}
+
 		};
 
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<Paint>& _out)
 		{
 			Color color;
 			if (ParseColor(s, end, color)) {
+				if (color.isZero()) {
+					_out.setNull();
+					return sl_true;
+				}
 				SolidPaint* ret = new SolidPaint;
 				if (ret) {
 					ret->color = color;
@@ -478,9 +499,250 @@ namespace slib
 			return sl_true;
 		}
 
+		static void SkipPathValueSeparator(sl_char8*& start, sl_char8* end)
+		{
+			while (start < end) {
+				sl_char8 c = *start;
+				if (!SLIB_CHAR_IS_WHITE_SPACE(c) && c != ',') {
+					break;
+				}
+				start++;
+			}
+		}
+
+		static sl_bool ParsePathValue(sl_char8*& s, sl_char8* end, sl_svg_scalar& _out)
+		{
+			SkipPathValueSeparator(s, end);
+			return ParseScalar(s, end, _out);
+		}
+
+		static sl_bool ParsePathValues(sl_char8*& s, sl_char8* end, sl_svg_scalar* _out, sl_size count)
+		{
+			for (sl_size i = 0; i < count; i++) {
+				if (!(ParsePathValue(s, end, _out[i]))) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
+
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<GraphicsPath>& _out)
 		{
-			return sl_false;
+			Ref<GraphicsPath> path = GraphicsPath::create();
+			if (path.isNull()) {
+				return sl_false;
+			}
+			sl_svg_scalar lastX = 0;
+			sl_svg_scalar lastY = 0;
+			sl_svg_scalar lastControlX = 0;
+			sl_svg_scalar lastControlY = 0;
+			for (;;) {
+				if (s >= end) {
+					break;
+				}
+				sl_char8 cmd = *(s++);
+				sl_svg_scalar v[8];
+				sl_bool flagParseResult = sl_false;
+				switch (cmd) {
+					case 'M':
+						flagParseResult = ParsePathValues(s, end, v, 2);
+						if (flagParseResult) {
+							lastX = v[0];
+							lastY = v[1];
+							path->moveTo(lastX, lastY);
+							while (ParsePathValues(s, end, v, 2)) {
+								lastX = v[0];
+								lastY = v[1];
+								path->lineTo(lastX, lastY);
+							}
+							lastControlX = lastX;
+							lastControlY = lastY;
+						}
+						break;
+					case 'm':
+						flagParseResult = ParsePathValues(s, end, v, 2);
+						if (flagParseResult) {
+							lastX += v[0];
+							lastY += v[1];
+							path->moveTo(lastX, lastY);
+							while (ParsePathValues(s, end, v, 2)) {
+								lastX += v[0];
+								lastY += v[1];
+								path->lineTo(lastX, lastY);
+							}
+							lastControlX = lastX;
+							lastControlY = lastY;
+						}
+						break;
+					case 'L':
+						while (ParsePathValues(s, end, v, 2)) {
+							flagParseResult = sl_true;
+							lastX = v[0];
+							lastY = v[1];
+							path->lineTo(lastX, lastY);
+						}
+						lastControlX = lastX;
+						lastControlY = lastY;
+						break;
+					case 'l':
+						while (ParsePathValues(s, end, v, 2)) {
+							flagParseResult = sl_true;
+							lastX += v[0];
+							lastY += v[1];
+							path->lineTo(lastX, lastY);
+						}
+						lastControlX = lastX;
+						lastControlY = lastY;
+						break;
+					case 'H':
+						while (ParsePathValue(s, end, *v)) {
+							flagParseResult = sl_true;
+							lastX = *v;
+							path->lineTo(lastX, lastY);
+						}
+						lastControlX = lastX;
+						break;
+					case 'h':
+						while (ParsePathValue(s, end, *v)) {
+							flagParseResult = sl_true;
+							lastX += *v;
+							path->lineTo(lastX, lastY);
+						}
+						lastControlX = lastX;
+						break;
+					case 'V':
+						while (ParsePathValue(s, end, *v)) {
+							flagParseResult = sl_true;
+							lastY = *v;
+							path->lineTo(lastX, lastY);
+						}
+						lastControlY = lastY;
+						break;
+					case 'v':
+						while (ParsePathValue(s, end, *v)) {
+							flagParseResult = sl_true;
+							lastY += *v;
+							path->lineTo(lastX, lastY);
+						}
+						lastControlY = lastY;
+						break;
+					case 'C':
+						while (ParsePathValues(s, end, v, 6)) {
+							flagParseResult = sl_true;
+							lastControlX = v[2];
+							lastControlY = v[3];
+							lastX = v[4];
+							lastY = v[5];
+							path->cubicTo(v[0], v[1], lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 'c':
+						while (ParsePathValues(s, end, v, 6)) {
+							flagParseResult = sl_true;
+							sl_svg_scalar cx = lastX + v[0];
+							sl_svg_scalar cy = lastY + v[1];
+							lastControlX = lastX + v[2];
+							lastControlY = lastY + v[3];
+							lastX += v[4];
+							lastY += v[5];
+							path->cubicTo(cx, cy, lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 'S':
+						while (ParsePathValues(s, end, v, 4)) {
+							flagParseResult = sl_true;
+							sl_svg_scalar cx = lastX + (lastX - lastControlX);
+							sl_svg_scalar cy = lastY + (lastY - lastControlY);
+							lastControlX = v[0];
+							lastControlY = v[1];
+							lastX = v[2];
+							lastY = v[3];
+							path->cubicTo(cx, cy, lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 's':
+						while (ParsePathValues(s, end, v, 4)) {
+							flagParseResult = sl_true;
+							sl_svg_scalar cx = lastX + (lastX - lastControlX);
+							sl_svg_scalar cy = lastY + (lastY - lastControlY);
+							lastControlX = lastX + v[0];
+							lastControlY = lastY + v[1];
+							lastX += v[2];
+							lastY += v[3];
+							path->cubicTo(cx, cy, lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 'Q':
+						while (ParsePathValues(s, end, v, 4)) {
+							flagParseResult = sl_true;
+							lastControlX = v[0];
+							lastControlY = v[1];
+							lastX = v[2];
+							lastY = v[3];
+							path->conicTo(lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 'q':
+						while (ParsePathValues(s, end, v, 4)) {
+							flagParseResult = sl_true;
+							lastControlX = lastX + v[0];
+							lastControlY = lastY + v[1];
+							lastX += v[2];
+							lastY += v[3];
+							path->conicTo(lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 'T':
+						while (ParsePathValues(s, end, v, 2)) {
+							flagParseResult = sl_true;
+							lastControlX = lastX + (lastX - lastControlX);
+							lastControlY = lastY + (lastY - lastControlY);
+							lastX = v[0];
+							lastY = v[1];
+							path->conicTo(lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 't':
+						while (ParsePathValues(s, end, v, 2)) {
+							flagParseResult = sl_true;
+							lastControlX = lastX + (lastX - lastControlX);
+							lastControlY = lastY + (lastY - lastControlY);
+							lastX += v[0];
+							lastY += v[1];
+							path->conicTo(lastControlX, lastControlY, lastX, lastY);
+						}
+						break;
+					case 'A':
+						while (ParsePathValues(s, end, v, 7)) {
+							flagParseResult = sl_true;
+							sl_svg_scalar sx = lastX;
+							sl_svg_scalar sy = lastY;
+							lastX = v[5];
+							lastY = v[6];
+							path->addArc(sx, sy, lastX, lastY, v[0], v[1], v[2], !(Math::isAlmostZero(v[3])), !(Math::isAlmostZero(v[4])));
+						}
+						break;
+					case 'a':
+						while (ParsePathValues(s, end, v, 7)) {
+							flagParseResult = sl_true;
+							sl_svg_scalar sx = lastX;
+							sl_svg_scalar sy = lastY;
+							lastX += v[5];
+							lastY += v[6];
+							path->addArc(sx, sy, lastX, lastY, v[0], v[1], v[2], !(Math::isAlmostZero(v[3])), !(Math::isAlmostZero(v[4])));
+						}
+						break;
+					case 'Z':
+					case 'z':
+						path->closeSubpath();
+				}
+				if (!flagParseResult) {
+					break;
+				}
+				SkipPathValueSeparator(s, end);
+			}
+			_out = Move(path);
+			return sl_true;
 		}
 
 #define PARSE_ATTRIBUTE(NAME, ATTR) \
@@ -491,6 +753,8 @@ namespace slib
 		{
 			Scalar containerWidth;
 			Scalar containerHeight;
+			sl_uint32 useWidth = 0;
+			sl_uint32 useHeight = 0;
 		};
 
 		class Group;
@@ -560,7 +824,7 @@ namespace slib
 			DEFINE_ELEMENT_ATTRIBUTE(Scalar, strokeMiterLimit, getStrokeMiterLimit, "stroke-miterlimit", (Scalar)4)
 			DEFINE_ELEMENT_ATTRIBUTE(Scalar, strokeOpacity, getStrokeOpacity, "stroke-opacity", (Scalar)1)
 
-			DEFINE_ELEMENT_ATTRIBUTE(Ref<Paint>, fill, getFill, "fill", sl_null)
+			DEFINE_ELEMENT_ATTRIBUTE(Ref<Paint>, fill, getFill, "fill", SolidPaint::black())
 			DEFINE_ELEMENT_ATTRIBUTE(Scalar, fillOpacity, getFillOpacity, "fill-opacity", (Scalar)1)
 			DEFINE_ELEMENT_ATTRIBUTE(FillMode, fillRule, getFillRule, "fill-rule", FillMode::Winding)
 
@@ -758,7 +1022,7 @@ namespace slib
 				Scalar centerY = cy.getValue(param.containerHeight);
 				Scalar radiusX = rx.getValue(param.containerWidth);
 				Scalar radiusY = ry.getValue(param.containerWidth);
-				canvas->drawEllipse(centerX - radiusX, centerY - radiusY, centerX + radiusX, centerY + radiusY, getPen(param), getBrush());
+				canvas->drawEllipse(centerX - radiusX, centerY - radiusY, radiusX + radiusX, radiusY + radiusY, getPen(param), getBrush());
 			}
 
 		};
@@ -783,7 +1047,8 @@ namespace slib
 				Scalar centerX = cx.getValue(param.containerWidth);
 				Scalar centerY = cy.getValue(param.containerHeight);
 				Scalar radius = r.getValue(param.containerWidth);
-				canvas->drawEllipse(centerX - radius, centerY - radius, centerX + radius, centerY + radius, getPen(param), getBrush());
+				Scalar diameter = radius + radius;
+				canvas->drawEllipse(centerX - radius, centerY - radius, diameter, diameter, getPen(param), getBrush());
 			}
 
 		};
@@ -910,7 +1175,7 @@ namespace slib
 				Group::load();
 			}
 
-			void render(Canvas* canvas, RenderParam& _param)
+			void render(Canvas* canvas, RenderParam& _param) override
 			{
 				RenderParam param = _param;
 				if (viewBox.flagDefined) {
@@ -1000,6 +1265,25 @@ namespace slib
 
 		};
 
+		class Use : public Group
+		{
+		public:
+			Length x;
+			Length y;
+			Length width;
+			Length height;
+			Ref<Element> element;
+
+		public:
+			void load() override;
+
+			void render(Canvas* canvas, RenderParam& _param) override
+			{
+				
+			}
+
+		};
+
 		Loaders::Loaders()
 		{
 #define ADD_LOADER(NAME, CLASS) \
@@ -1018,12 +1302,15 @@ namespace slib
 			ADD_LOADER(line, Line)
 			ADD_LOADER(polyline, Polyline)
 			ADD_LOADER(polygon, Polygon)
+			ADD_LOADER(path, Path)
+			ADD_LOADER(use, Use)
 		}
 
 		class Document : public Viewport
 		{
 		public:
 			CascadingStyleSheet styleSheet;
+			sl_uint32 currentLinkDeepLevel = 0;
 
 		public:
 			sl_bool load(const void* mem, sl_size size)
@@ -1079,6 +1366,40 @@ namespace slib
 				return ret;
 			}
 			return xml->getAttribute(name);
+		}
+
+		void Use::load()
+		{
+			String href;
+			//PARSE_ATTRIBUTE(href, "href")
+			href = href.trim();
+			if (href.isEmpty()) {
+				//PARSE_ATTRIBUTE(href, "xlink:href")
+				href = href.trim();
+			}
+			if (href.isEmpty()) {
+				return;
+			}
+			if (!(href.startsWith('#'))) {
+				return;
+			}
+			StringView id = StringView(href).substring(1).trim();
+			if (id.isEmpty()) {
+				return;
+			}
+			Ref<XmlDocument> doc = xml->getDocument();
+			if (doc.isNull()) {
+				return;
+			}
+			Ref<XmlElement> child = doc->findChildElementById(id);
+			if (child.isNull()) {
+				return;
+			}
+			loadChild(Move(child));
+			PARSE_ATTRIBUTE(x, "x")
+			PARSE_ATTRIBUTE(y, "y")
+			PARSE_ATTRIBUTE(width, "width")
+			PARSE_ATTRIBUTE(height, "height")
 		}
 
 	}
