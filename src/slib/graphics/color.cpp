@@ -415,6 +415,17 @@ namespace slib
 		SLIB_SAFE_STATIC_GETTER(NameMap, GetNameMap)
 
 		template <class CT>
+		static void SkipWhiteSpaces(const CT* str, sl_size& pos, sl_size len)
+		{
+			for (; pos < len; pos++) {
+				CT c = str[pos];
+				if (!SLIB_CHAR_IS_WHITE_SPACE(c)) {
+					break;
+				}
+			}
+		}
+
+		template <class CT>
 		static sl_reg DoParse(Color* _out, const CT* str, sl_size pos, sl_size len) noexcept
 		{
 			if (pos >= len) {
@@ -434,27 +445,41 @@ namespace slib
 				}
 
 				sl_size n = pos - start;
-				if (n == 6 || n == 8) {
+				if (n == 3 || n == 4 || n == 6 || n == 8) {
 					if (_out) {
 						sl_uint32 r, g, b, a;
 						sl_uint32 c0 = str[start];
 						sl_uint32 c1 = str[start + 1];
 						sl_uint32 c2 = str[start + 2];
-						sl_uint32 c3 = str[start + 3];
-						sl_uint32 c4 = str[start + 4];
-						sl_uint32 c5 = str[start + 5];
-						if (n == 6) {
+						if (n == 3) {
 							a = 255;
-							r = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
-							g = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
-							b = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
+							r = SLIB_CHAR_HEX_TO_INT(c0) * 17;
+							g = SLIB_CHAR_HEX_TO_INT(c1) * 17;
+							b = SLIB_CHAR_HEX_TO_INT(c2) * 17;
 						} else {
-							sl_uint32 c6 = str[start + 6];
-							sl_uint32 c7 = str[start + 7];
-							a = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
-							r = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
-							g = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
-							b = (SLIB_CHAR_HEX_TO_INT(c6) << 4) | SLIB_CHAR_HEX_TO_INT(c7);
+							sl_uint32 c3 = str[start + 3];
+							if (n == 4) {
+								a = SLIB_CHAR_HEX_TO_INT(c0) * 17;
+								r = SLIB_CHAR_HEX_TO_INT(c1) * 17;
+								g = SLIB_CHAR_HEX_TO_INT(c2) * 17;
+								b = SLIB_CHAR_HEX_TO_INT(c3) * 17;
+							} else {
+								sl_uint32 c4 = str[start + 4];
+								sl_uint32 c5 = str[start + 5];
+								if (n == 6) {
+									a = 255;
+									r = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
+									g = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
+									b = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
+								} else {
+									sl_uint32 c6 = str[start + 6];
+									sl_uint32 c7 = str[start + 7];
+									a = (SLIB_CHAR_HEX_TO_INT(c0) << 4) | SLIB_CHAR_HEX_TO_INT(c1);
+									r = (SLIB_CHAR_HEX_TO_INT(c2) << 4) | SLIB_CHAR_HEX_TO_INT(c3);
+									g = (SLIB_CHAR_HEX_TO_INT(c4) << 4) | SLIB_CHAR_HEX_TO_INT(c5);
+									b = (SLIB_CHAR_HEX_TO_INT(c6) << 4) | SLIB_CHAR_HEX_TO_INT(c7);
+								}
+							}
 						}
 						*_out = Color(r, g, b, a);
 					}
@@ -483,88 +508,61 @@ namespace slib
 								return SLIB_PARSE_ERROR;
 							}
 						}
-
-						for (; pos < len; pos++) {
-							CT c = str[pos];
-							if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-								break;
-							}
-						}
+						SkipWhiteSpaces(str, pos, len);
 						if (pos >= len) {
 							return SLIB_PARSE_ERROR;
 						}
-
 						if (str[pos] != '(') {
 							return SLIB_PARSE_ERROR;
 						}
 						pos++;
+						if (pos >= len) {
+							return SLIB_PARSE_ERROR;
+						}
 
-						sl_reg iRet;
-						sl_uint32 comp[3];
-						sl_real a = 1;
-
-						for (sl_size i = 0; i < n; i++) {
-
-							for (; pos < len; pos++) {
-								CT c = str[pos];
-								if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-									break;
-								}
-							}
-							if (pos >= len) {
+						float comp[4];
+						for (sl_size i = 0; i < 4; i++) {
+							sl_reg iRet = StringTypeFromCharType<CT>::Type::parseFloat(comp + i, str, pos, len);
+							if (iRet == SLIB_PARSE_ERROR) {
 								return SLIB_PARSE_ERROR;
-							}
-							if (i == 3) {
-								iRet = StringTypeFromCharType<CT>::Type::parseFloat(&a, str, pos, len);
-								if (iRet == SLIB_PARSE_ERROR) {
-									return SLIB_PARSE_ERROR;
-								}
-								if (a > 1) {
-									return SLIB_PARSE_ERROR;
-								}
-								if (a < 0) {
-									return SLIB_PARSE_ERROR;
-								}
-							} else {
-								iRet = StringTypeFromCharType<CT>::Type::parseUint32(10, comp + i, str, pos, len);
-								if (iRet == SLIB_PARSE_ERROR) {
-									return SLIB_PARSE_ERROR;
-								}
-								if (comp[i] > 255) {
-									return SLIB_PARSE_ERROR;
-								}
 							}
 							pos = iRet;
-							for (; pos < len; pos++) {
-								CT c = str[pos];
-								if (!SLIB_CHAR_IS_SPACE_TAB(c)) {
-									break;
+							if (pos < len) {
+								if (str[pos] == '%') {
+									pos++;
+									if (i == 3) {
+										comp[i] *= 0.01f;
+									} else {
+										comp[i] *= 2.55f;
+									}
 								}
 							}
+							SkipWhiteSpaces(str, pos, len);
 							if (pos >= len) {
 								return SLIB_PARSE_ERROR;
 							}
-							if (i < n - 1) {
-								if (str[pos] != ',') {
+							CT c = str[pos];
+							if (c == ',') {
+								pos++;
+								SkipWhiteSpaces(str, pos, len);
+							} else if (c == ')') {
+								if (i < 2) {
 									return SLIB_PARSE_ERROR;
 								}
-							} else {
-								if (str[pos] != ')') {
-									return SLIB_PARSE_ERROR;
+								pos++;
+								if (_out) {
+									_out->r = (sl_uint8)(Math::clamp0_255((sl_int32)comp[0]));
+									_out->g = (sl_uint8)(Math::clamp0_255((sl_int32)comp[1]));
+									_out->b = (sl_uint8)(Math::clamp0_255((sl_int32)comp[2]));
+									if (i == 3) {
+										_out->a = (sl_uint8)(Math::clamp0_255((sl_int32)(comp[3] * 255.0f)));
+									} else {
+										_out->a = 255;
+									}
 								}
-							}
-							pos++;
-						}
-
-						if (_out) {
-							if (n == 4) {
-								*_out = Color(comp[0], comp[1], comp[2], (sl_uint32)(a * 255));
-							} else {
-								*_out = Color(comp[0], comp[1], comp[2]);
+								return pos;
 							}
 						}
-
-						return pos;
 
 					} else if (n < 64) {
 
