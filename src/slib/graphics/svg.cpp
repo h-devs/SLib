@@ -44,48 +44,6 @@ namespace slib
 
 		static Scalar g_fontSize = (Scalar)12;
 
-		static void SkipWhitespaces(sl_char8*& start, sl_char8* end)
-		{
-			while (start < end) {
-				sl_char8 c = *start;
-				if (!SLIB_CHAR_IS_WHITE_SPACE(c)) {
-					break;
-				}
-				start++;
-			}
-		}
-
-		static void SkipNoWhitespaces(sl_char8*& start, sl_char8* end)
-		{
-			while (start < end) {
-				sl_char8 c = *start;
-				if (SLIB_CHAR_IS_WHITE_SPACE(c)) {
-					break;
-				}
-				start++;
-			}
-		}
-
-		static sl_bool ParseScalar(sl_char8*& s, sl_char8* end, Scalar& _out)
-		{
-			sl_reg result = String::parseFloat(&_out, s, 0, end - s);
-			if (result == SLIB_PARSE_ERROR) {
-				return sl_false;
-			}
-			s += result;
-			return sl_true;
-		}
-
-		static sl_bool ParseColor(sl_char8*& s, sl_char8* end, Color& _out)
-		{
-			sl_reg result = Color::parse(&_out, s, 0, end - s);
-			if (result == SLIB_PARSE_ERROR) {
-				return sl_false;
-			}
-			s += result;
-			return sl_true;
-		}
-
 		template <class Base, sl_bool flagBaseClass = __is_class(Base)>
 		class Define
 		{
@@ -115,43 +73,77 @@ namespace slib
 
 		};
 
-		template <class T>
-		static sl_bool ParseValue(const StringView& str, T& outValue, sl_bool& outFlagDefined)
+		static void SkipWhitespaces(sl_char8*& start, sl_char8* end)
 		{
-			sl_char8* data = str.getData();
-			sl_char8* end = data + str.getLength();
-			SkipWhitespaces(data, end);
-			if (data == end) {
+			while (start < end) {
+				sl_char8 c = *start;
+				if (!SLIB_CHAR_IS_WHITE_SPACE(c)) {
+					break;
+				}
+				start++;
+			}
+		}
+
+		static void SkipNoWhitespaces(sl_char8*& start, sl_char8* end)
+		{
+			while (start < end) {
+				sl_char8 c = *start;
+				if (SLIB_CHAR_IS_WHITE_SPACE(c)) {
+					break;
+				}
+				start++;
+			}
+		}
+
+		static void SkipValueSeparator(sl_char8*& s, sl_char8* end)
+		{
+			SkipWhitespaces(s, end);
+			if (s < end) {
+				if (*s == ',') {
+					s++;
+					SkipWhitespaces(s, end);
+				}
+			}
+		}
+
+		static sl_bool SkipPattern(sl_char8*& s, sl_char8* end, const StringView& pattern)
+		{
+			if (StringView(s, end - s) == pattern) {
+				s += pattern.getLength();
 				return sl_true;
-			}
-			if (!(ParseValue(data, end, outValue))) {
+			} else {
 				return sl_false;
 			}
-			SkipWhitespaces(data, end);
-			if (data != end) {
+		}
+
+		static sl_bool ParseScalar(sl_char8*& s, sl_char8* end, Scalar& _out)
+		{
+			sl_reg result = String::parseFloat(&_out, s, 0, end - s);
+			if (result == SLIB_PARSE_ERROR) {
 				return sl_false;
 			}
-			outFlagDefined = sl_true;
+			s += result;
 			return sl_true;
 		}
 
 		template <class T>
-		SLIB_INLINE static sl_bool ParseValue(const StringView& str, Define<T>& _out)
+		static sl_size ParseValues(sl_char8*& s, sl_char8* end, T* _out, sl_size count)
 		{
-			return ParseValue(str, *_out, _out.flagDefined);
-		}
-
-		template <class T>
-		SLIB_INLINE static sl_bool ParseValue(const StringView& str, T& _out)
-		{
-			sl_bool flagDefined;
-			return ParseValue(str, _out, flagDefined);
+			for (sl_size i = 0; i < count; i++) {
+				SkipValueSeparator(s, end);
+				sl_char8* t = s;
+				if (!(ParseValue(t, end, _out[i]))) {
+					return i;
+				}
+				s = t;
+			}
+			return count;
 		}
 
 		template <class T>
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, List<T>& _out)
 		{
-			for (;;) {
+			while (s < end) {
 				T value;
 				if (!(ParseValue(s, end, value))) {
 					return sl_false;
@@ -159,24 +151,7 @@ namespace slib
 				if (!(_out.add_NoLock(Move(value)))) {
 					return sl_false;
 				}
-				if (s >= end) {
-					break;
-				}
-				sl_char8 c = *s;
-				if (c != ',' && !SLIB_CHAR_IS_WHITE_SPACE(c)) {
-					break;
-				}
-				SkipWhitespaces(s, end);
-				if (s >= end) {
-					break;
-				}
-				if (*s == ',') {
-					s++;
-					SkipWhitespaces(s, end);
-					if (s >= end) {
-						return sl_false;
-					}
-				}
+				SkipValueSeparator(s, end);
 			}
 			return sl_true;
 		}
@@ -186,7 +161,7 @@ namespace slib
 			_out = Move(str);
 		}
 
-		SLIB_INLINE static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Scalar& _out)
+		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Scalar& _out)
 		{
 			if (!(ParseScalar(s, end, _out))) {
 				return sl_false;
@@ -198,6 +173,16 @@ namespace slib
 				s++;
 				_out *= (Scalar)0.01;
 			}
+			return sl_true;
+		}
+
+		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Color& _out)
+		{
+			sl_reg result = Color::parse(&_out, s, 0, end - s);
+			if (result == SLIB_PARSE_ERROR) {
+				return sl_false;
+			}
+			s += result;
 			return sl_true;
 		}
 
@@ -380,7 +365,7 @@ namespace slib
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<Paint>& _out)
 		{
 			Color color;
-			if (ParseColor(s, end, color)) {
+			if (ParseValue(s, end, color)) {
 				if (color.isZero()) {
 					_out.setNull();
 					return sl_true;
@@ -504,58 +489,31 @@ namespace slib
 			return sl_true;
 		}
 
-		static void SkipPathValueSeparator(sl_char8*& start, sl_char8* end)
-		{
-			while (start < end) {
-				sl_char8 c = *start;
-				if (!SLIB_CHAR_IS_WHITE_SPACE(c) && c != ',') {
-					break;
-				}
-				start++;
-			}
-		}
-
-		static sl_bool ParsePathValue(sl_char8*& s, sl_char8* end, sl_svg_scalar& _out)
-		{
-			SkipPathValueSeparator(s, end);
-			return ParseScalar(s, end, _out);
-		}
-
-		static sl_bool ParsePathValues(sl_char8*& s, sl_char8* end, sl_svg_scalar* _out, sl_size count)
-		{
-			for (sl_size i = 0; i < count; i++) {
-				if (!(ParsePathValue(s, end, _out[i]))) {
-					return sl_false;
-				}
-			}
-			return sl_true;
-		}
-
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<GraphicsPath>& _out)
 		{
 			Ref<GraphicsPath> path = GraphicsPath::create();
 			if (path.isNull()) {
 				return sl_false;
 			}
-			sl_svg_scalar lastX = 0;
-			sl_svg_scalar lastY = 0;
-			sl_svg_scalar lastControlX = 0;
-			sl_svg_scalar lastControlY = 0;
+			Scalar lastX = 0;
+			Scalar lastY = 0;
+			Scalar lastControlX = 0;
+			Scalar lastControlY = 0;
 			for (;;) {
 				if (s >= end) {
 					break;
 				}
 				sl_char8 cmd = *(s++);
-				sl_svg_scalar v[8];
+				Scalar v[8];
 				sl_bool flagParseResult = sl_false;
 				switch (cmd) {
 					case 'M':
-						flagParseResult = ParsePathValues(s, end, v, 2);
+						flagParseResult = ParseValues(s, end, v, 2) == 2;
 						if (flagParseResult) {
 							lastX = v[0];
 							lastY = v[1];
 							path->moveTo(lastX, lastY);
-							while (ParsePathValues(s, end, v, 2)) {
+							while (ParseValues(s, end, v, 2) == 2) {
 								lastX = v[0];
 								lastY = v[1];
 								path->lineTo(lastX, lastY);
@@ -565,12 +523,12 @@ namespace slib
 						}
 						break;
 					case 'm':
-						flagParseResult = ParsePathValues(s, end, v, 2);
+						flagParseResult = ParseValues(s, end, v, 2) == 2;
 						if (flagParseResult) {
 							lastX += v[0];
 							lastY += v[1];
 							path->moveTo(lastX, lastY);
-							while (ParsePathValues(s, end, v, 2)) {
+							while (ParseValues(s, end, v, 2) == 2) {
 								lastX += v[0];
 								lastY += v[1];
 								path->lineTo(lastX, lastY);
@@ -580,7 +538,7 @@ namespace slib
 						}
 						break;
 					case 'L':
-						while (ParsePathValues(s, end, v, 2)) {
+						while (ParseValues(s, end, v, 2) == 2) {
 							flagParseResult = sl_true;
 							lastX = v[0];
 							lastY = v[1];
@@ -590,7 +548,7 @@ namespace slib
 						lastControlY = lastY;
 						break;
 					case 'l':
-						while (ParsePathValues(s, end, v, 2)) {
+						while (ParseValues(s, end, v, 2) == 2) {
 							flagParseResult = sl_true;
 							lastX += v[0];
 							lastY += v[1];
@@ -600,7 +558,7 @@ namespace slib
 						lastControlY = lastY;
 						break;
 					case 'H':
-						while (ParsePathValue(s, end, *v)) {
+						while (ParseValues(s, end, v, 1) == 1) {
 							flagParseResult = sl_true;
 							lastX = *v;
 							path->lineTo(lastX, lastY);
@@ -608,7 +566,7 @@ namespace slib
 						lastControlX = lastX;
 						break;
 					case 'h':
-						while (ParsePathValue(s, end, *v)) {
+						while (ParseValues(s, end, v, 1) == 1) {
 							flagParseResult = sl_true;
 							lastX += *v;
 							path->lineTo(lastX, lastY);
@@ -616,7 +574,7 @@ namespace slib
 						lastControlX = lastX;
 						break;
 					case 'V':
-						while (ParsePathValue(s, end, *v)) {
+						while (ParseValues(s, end, v, 1) == 1) {
 							flagParseResult = sl_true;
 							lastY = *v;
 							path->lineTo(lastX, lastY);
@@ -624,7 +582,7 @@ namespace slib
 						lastControlY = lastY;
 						break;
 					case 'v':
-						while (ParsePathValue(s, end, *v)) {
+						while (ParseValues(s, end, v, 1) == 1) {
 							flagParseResult = sl_true;
 							lastY += *v;
 							path->lineTo(lastX, lastY);
@@ -632,7 +590,7 @@ namespace slib
 						lastControlY = lastY;
 						break;
 					case 'C':
-						while (ParsePathValues(s, end, v, 6)) {
+						while (ParseValues(s, end, v, 6) == 6) {
 							flagParseResult = sl_true;
 							lastControlX = v[2];
 							lastControlY = v[3];
@@ -642,10 +600,10 @@ namespace slib
 						}
 						break;
 					case 'c':
-						while (ParsePathValues(s, end, v, 6)) {
+						while (ParseValues(s, end, v, 6) == 6) {
 							flagParseResult = sl_true;
-							sl_svg_scalar cx = lastX + v[0];
-							sl_svg_scalar cy = lastY + v[1];
+							Scalar cx = lastX + v[0];
+							Scalar cy = lastY + v[1];
 							lastControlX = lastX + v[2];
 							lastControlY = lastY + v[3];
 							lastX += v[4];
@@ -654,10 +612,10 @@ namespace slib
 						}
 						break;
 					case 'S':
-						while (ParsePathValues(s, end, v, 4)) {
+						while (ParseValues(s, end, v, 4) == 4) {
 							flagParseResult = sl_true;
-							sl_svg_scalar cx = lastX + (lastX - lastControlX);
-							sl_svg_scalar cy = lastY + (lastY - lastControlY);
+							Scalar cx = lastX + (lastX - lastControlX);
+							Scalar cy = lastY + (lastY - lastControlY);
 							lastControlX = v[0];
 							lastControlY = v[1];
 							lastX = v[2];
@@ -666,10 +624,10 @@ namespace slib
 						}
 						break;
 					case 's':
-						while (ParsePathValues(s, end, v, 4)) {
+						while (ParseValues(s, end, v, 4) == 4) {
 							flagParseResult = sl_true;
-							sl_svg_scalar cx = lastX + (lastX - lastControlX);
-							sl_svg_scalar cy = lastY + (lastY - lastControlY);
+							Scalar cx = lastX + (lastX - lastControlX);
+							Scalar cy = lastY + (lastY - lastControlY);
 							lastControlX = lastX + v[0];
 							lastControlY = lastY + v[1];
 							lastX += v[2];
@@ -678,7 +636,7 @@ namespace slib
 						}
 						break;
 					case 'Q':
-						while (ParsePathValues(s, end, v, 4)) {
+						while (ParseValues(s, end, v, 4) == 4) {
 							flagParseResult = sl_true;
 							lastControlX = v[0];
 							lastControlY = v[1];
@@ -688,7 +646,7 @@ namespace slib
 						}
 						break;
 					case 'q':
-						while (ParsePathValues(s, end, v, 4)) {
+						while (ParseValues(s, end, v, 4) == 4) {
 							flagParseResult = sl_true;
 							lastControlX = lastX + v[0];
 							lastControlY = lastY + v[1];
@@ -698,7 +656,7 @@ namespace slib
 						}
 						break;
 					case 'T':
-						while (ParsePathValues(s, end, v, 2)) {
+						while (ParseValues(s, end, v, 2) == 2) {
 							flagParseResult = sl_true;
 							lastControlX = lastX + (lastX - lastControlX);
 							lastControlY = lastY + (lastY - lastControlY);
@@ -708,7 +666,7 @@ namespace slib
 						}
 						break;
 					case 't':
-						while (ParsePathValues(s, end, v, 2)) {
+						while (ParseValues(s, end, v, 2) == 2) {
 							flagParseResult = sl_true;
 							lastControlX = lastX + (lastX - lastControlX);
 							lastControlY = lastY + (lastY - lastControlY);
@@ -718,20 +676,20 @@ namespace slib
 						}
 						break;
 					case 'A':
-						while (ParsePathValues(s, end, v, 7)) {
+						while (ParseValues(s, end, v, 7) == 7) {
 							flagParseResult = sl_true;
-							sl_svg_scalar sx = lastX;
-							sl_svg_scalar sy = lastY;
+							Scalar sx = lastX;
+							Scalar sy = lastY;
 							lastX = v[5];
 							lastY = v[6];
 							path->addArc(sx, sy, lastX, lastY, v[0], v[1], v[2], !(Math::isAlmostZero(v[3])), !(Math::isAlmostZero(v[4])));
 						}
 						break;
 					case 'a':
-						while (ParsePathValues(s, end, v, 7)) {
+						while (ParseValues(s, end, v, 7) == 7) {
 							flagParseResult = sl_true;
-							sl_svg_scalar sx = lastX;
-							sl_svg_scalar sy = lastY;
+							Scalar sx = lastX;
+							Scalar sy = lastY;
 							lastX += v[5];
 							lastY += v[6];
 							path->addArc(sx, sy, lastX, lastY, v[0], v[1], v[2], !(Math::isAlmostZero(v[3])), !(Math::isAlmostZero(v[4])));
@@ -740,14 +698,107 @@ namespace slib
 					case 'Z':
 					case 'z':
 						path->closeSubpath();
+						break;
 				}
 				if (!flagParseResult) {
 					break;
 				}
-				SkipPathValueSeparator(s, end);
+				SkipValueSeparator(s, end);
 			}
 			_out = Move(path);
 			return sl_true;
+		}
+
+		static sl_reg ParseFunctionCall(sl_char8*& s, sl_char8* end, Scalar* _out, sl_size count)
+		{
+			SkipWhitespaces(s, end);
+			if (s >= end) {
+				return -1;
+			}
+			if (*s != '(') {
+				return -1;
+			}
+			s++;
+			sl_size n = ParseValues(s, end, _out, count);
+			SkipWhitespaces(s, end);
+			if (s >= end) {
+				return -1;
+			}
+			if (*s != ')') {
+				return -1;
+			}
+			s++;
+			return n;
+		}
+
+		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Matrix3& _out)
+		{
+			_out = Matrix3::identity();
+			Scalar v[6];
+			for (;;) {
+				SkipWhitespaces(s, end);
+				if (SkipPattern(s, end, StringView::literal("matrix"))) {
+					if (ParseFunctionCall(s, end, v, 6) != 6) {
+						return sl_false;
+					}
+					Matrix3 t(v[0], v[2], v[4], v[1], v[3], v[5], 0, 0, (Scalar)1);
+					_out.multiply(t);
+				} else if (SkipPattern(s, end, StringView::literal("translate"))) {
+					if (ParseFunctionCall(s, end, v, 2) != 2) {
+						return sl_false;
+					}
+					Transform2::translate(_out, v[0], v[1]);
+				} else if (SkipPattern(s, end, StringView::literal("scale"))) {
+					if (ParseFunctionCall(s, end, v, 2) != 2) {
+						return sl_false;
+					}
+					Transform2::scale(_out, v[0], v[1]);
+				} else if (SkipPattern(s, end, StringView::literal("rotate"))) {
+					sl_reg n = ParseFunctionCall(s, end, v, 3);
+					if (n == 1) {
+						Transform2::rotate(_out, Math::getRadianFromDegrees(v[0]));
+					} else if (n == 3) {
+						Transform2::rotate(_out, v[1], v[2], Math::getRadianFromDegrees(v[0]));
+					} else {
+						return sl_false;
+					}
+				} else {
+					break;
+				}
+			}
+		}
+
+		template <class T>
+		static sl_bool ParseValue(const StringView& str, T& outValue, sl_bool& outFlagDefined)
+		{
+			sl_char8* data = str.getData();
+			sl_char8* end = data + str.getLength();
+			SkipWhitespaces(data, end);
+			if (data == end) {
+				return sl_true;
+			}
+			if (!(ParseValue(data, end, outValue))) {
+				return sl_false;
+			}
+			SkipWhitespaces(data, end);
+			if (data != end) {
+				return sl_false;
+			}
+			outFlagDefined = sl_true;
+			return sl_true;
+		}
+
+		template <class T>
+		SLIB_INLINE static sl_bool ParseValue(const StringView& str, Define<T>& _out)
+		{
+			return ParseValue(str, *_out, _out.flagDefined);
+		}
+
+		template <class T>
+		SLIB_INLINE static sl_bool ParseValue(const StringView& str, T& _out)
+		{
+			sl_bool flagDefined;
+			return ParseValue(str, _out, flagDefined);
 		}
 
 #define PARSE_ATTRIBUTE(NAME, ATTR) \
@@ -1114,12 +1165,19 @@ namespace slib
 					}
 				}
 				loadPen();
+				loadBrush();
 			}
 
 			void render(Canvas* canvas, RenderParam& param) override
 			{
-				if (points.isNotNull()) {
-					canvas->drawLines(points, getPen(param));
+				if (brush.isNotNull()) {
+					canvas->fillPolygon(points, brush);
+				}
+				Ref<Pen>& pen = getPen(param);
+				if (pen.isNotNull()) {
+					if (points.isNotNull()) {
+						canvas->drawLines(points, pen);
+					}
 				}
 			}
 
@@ -1455,7 +1513,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(Svg, Drawable)
 
-	Svg::Svg()
+	Svg::Svg(): m_flagQuerySize(sl_false)
 	{
 	}
 
@@ -1501,7 +1559,7 @@ namespace slib
 		return sl_null;
 	}
 
-	Size Svg::getSize(sl_svg_scalar containerWidth, sl_svg_scalar containerHeight)
+	Size Svg::getSize(Scalar containerWidth, Scalar containerHeight)
 	{
 		return ((Document*)(m_document.get()))->getDocumentSize(containerWidth, containerHeight);
 	}
@@ -1511,14 +1569,35 @@ namespace slib
 		((Document*)(m_document.get()))->render(canvas, rectDraw);
 	}
 
-	sl_svg_scalar Svg::getGlobalFontSize()
+	Scalar Svg::getGlobalFontSize()
 	{
 		return g_fontSize;
 	}
 
-	void Svg::setGlobalFontSize(sl_svg_scalar size)
+	void Svg::setGlobalFontSize(Scalar size)
 	{
 		g_fontSize = size;
+	}
+
+	void Svg::_querySize()
+	{
+		if (m_flagQuerySize) {
+			return;
+		}
+		m_size = getSize();
+		m_flagQuerySize = sl_true;
+	}
+
+	sl_real Svg::getDrawableWidth()
+	{
+		_querySize();
+		return m_size.x;
+	}
+
+	sl_real Svg::getDrawableHeight()
+	{
+		_querySize();
+		return m_size.y;
 	}
 
 	void Svg::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)

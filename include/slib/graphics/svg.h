@@ -66,10 +66,21 @@ namespace slib
 		static void setGlobalFontSize(sl_svg_scalar size);
 
 	public:
+		sl_real getDrawableWidth() override;
+
+		sl_real getDrawableHeight() override;
+
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 	protected:
 		Ref<Referable> m_document;
+
+	private:
+		void _querySize();
+
+	private:
+		Size m_size;
+		sl_bool m_flagQuerySize;
 
 	};
 
