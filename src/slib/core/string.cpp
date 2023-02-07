@@ -2981,22 +2981,25 @@ namespace slib
 
 			FLOAT v = 0;
 			sl_uint32 vi = 0;
-			sl_bool flagMulInt = sl_true;
+			sl_bool flagVi = sl_true;
 
 			for (; i < n; i++) {
 				sl_uint32 c = (sl_uint32)(str[i]);
 				if (SLIB_CHAR_IS_DIGIT(c)) {
-					if (flagMulInt) {
+					if (flagVi) {
 						vi = vi * 10 + (c - '0');
 						if (vi >= 214748364) {
 							v = (FLOAT)vi;
-							flagMulInt = sl_false;
+							flagVi = sl_false;
 						}
 					} else {
 						v = v * 10 + (c - '0');
 					}
 					bEmpty = sl_false;
 				} else {
+					if (c == '.') {
+						bEmpty = sl_false;
+					}
 					break;
 				}
 			}
@@ -3031,7 +3034,7 @@ namespace slib
 				}
 				return SLIB_PARSE_ERROR; // integral number is required
 			}
-			if (flagMulInt) {
+			if (flagVi) {
 				v = (FLOAT)vi;
 			}
 
