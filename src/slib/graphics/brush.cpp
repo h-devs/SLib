@@ -95,72 +95,139 @@ namespace slib
 
 	Ref<Brush> Brush::createLinearGradientBrush(const Point& pt1, const Point& pt2, const Color& color1, const Color& color2)
 	{
-		Color colors[2] = {color1, color2};
-		sl_real locations[] = {0, 1};
-		return createLinearGradientBrush(pt1, pt2, 2, colors, locations);
+		Ref<GradientBrushDetail> detail = new GradientBrushDetail;
+		if (detail.isNull()) {
+			return sl_null;
+		}
+		detail->point1 = pt1;
+		detail->point2 = pt2;
+		detail->colors = List<Color>::createFromElements(color1, color2);
+		if (detail->colors.isNull()) {
+			return sl_null;
+		}
+		detail->locations = List<sl_real>::createFromElements(0.0f, 1.0f);
+		if (detail->locations.isNull()) {
+			return sl_null;
+		}
+		Ref<Brush> ret = new Brush;
+		if (ret.isNull()) {
+			return sl_null;
+		}
+		ret->m_desc.style = BrushStyle::LinearGradient;
+		ret->m_desc.detail = Move(detail);
+		return ret;
+	}
+
+	namespace {
+		static sl_bool PrepareGradientDetailColors(GradientBrushDetail* detail, sl_uint32 nColors, const Color* colors, const sl_real* locations)
+		{
+			if (!(Math::isAlmostZero(locations[0]))) {
+				if (!(detail->colors.add_NoLock(colors[0]))) {
+					return sl_false;
+				}
+				if (!(detail->locations.add_NoLock(0.0f))) {
+					return sl_false;
+				}
+			}
+			if (!(detail->colors.addElements_NoLock(colors, nColors))) {
+				return sl_false;
+			}
+			if (!(detail->locations.addElements_NoLock(locations, nColors))) {
+				return sl_false;
+			}
+			if (!(Math::isAlmostZero(locations[nColors - 1] - 1.0f))) {
+				if (!(detail->colors.add_NoLock(colors[nColors - 1]))) {
+					return sl_false;
+				}
+				if (!(detail->locations.add_NoLock(1.0f))) {
+					return sl_false;
+				}
+			}
+			return sl_true;
+		}
 	}
 
 	Ref<Brush> Brush::createLinearGradientBrush(const Point& pt1, const Point& pt2, sl_uint32 nColors, const Color* colors, const sl_real* locations)
 	{
-		if (nColors >= 2) {
-			Ref<Brush> ret = new Brush;
-			if (ret.isNotNull()) {
-				ret->m_desc.style = BrushStyle::LinearGradient;
-				Ref<GradientBrushDetail> detail = new GradientBrushDetail;
-				if (detail.isNotNull()) {
-					detail->point1 = pt1;
-					detail->point2 = pt2;
-					detail->colors = List<Color>::create(colors, nColors);
-					detail->locations = List<sl_real>::create(locations, nColors);
-					if (detail->colors.isNotNull() && detail->locations.isNotNull()) {
-						ret->m_desc.detail = detail;
-						return ret;
-					}
-				}
-			}
+		if (nColors < 2) {
+			return sl_null;
 		}
-		return sl_null;
+		Ref<GradientBrushDetail> detail = new GradientBrushDetail;
+		if (detail.isNull()) {
+			return sl_null;
+		}
+		detail->point1 = pt1;
+		detail->point2 = pt2;
+		if (!(PrepareGradientDetailColors(detail.get(), nColors, colors, locations))) {
+			return sl_null;
+		}
+		Ref<Brush> ret = new Brush;
+		if (ret.isNull()) {
+			return sl_null;
+		}
+		ret->m_desc.style = BrushStyle::LinearGradient;
+		ret->m_desc.detail = Move(detail);
+		return ret;
 	}
 
 	Ref<Brush> Brush::createRadialGradientBrush(const Point& ptCenter, sl_real radius, const Color& colorCenter, const Color& colorEdge)
 	{
-		Color colors[2] = {colorCenter, colorEdge};
-		sl_real locations[] = {0, 1};
-		return createRadialGradientBrush(ptCenter, radius, 2, colors, locations);
+		Ref<GradientBrushDetail> detail = new GradientBrushDetail;
+		if (detail.isNull()) {
+			return sl_null;
+		}
+		detail->point1 = ptCenter;
+		detail->radius = radius;
+		detail->colors = List<Color>::createFromElements(colorCenter, colorEdge);
+		if (detail->colors.isNull()) {
+			return sl_null;
+		}
+		detail->locations = List<sl_real>::createFromElements(0.0f, 1.0f);
+		if (detail->locations.isNull()) {
+			return sl_null;
+		}
+		Ref<Brush> ret = new Brush;
+		if (ret.isNull()) {
+			return sl_null;
+		}
+		ret->m_desc.style = BrushStyle::RadialGradient;
+		ret->m_desc.detail = Move(detail);
+		return ret;
 	}
 
 	Ref<Brush> Brush::createRadialGradientBrush(const Point& ptCenter, sl_real radius, sl_uint32 nColors, const Color* colors, const sl_real* locations)
 	{
-		if (nColors >= 2) {
-			Ref<Brush> ret = new Brush;
-			if (ret.isNotNull()) {
-				ret->m_desc.style = BrushStyle::RadialGradient;
-				Ref<GradientBrushDetail> detail = new GradientBrushDetail;
-				if (detail.isNotNull()) {
-					detail->point1 = ptCenter;
-					detail->radius = radius;
-					detail->colors = List<Color>::create(colors, nColors);
-					detail->locations = List<sl_real>::create(locations, nColors);
-					if (detail->colors.isNotNull() && detail->locations.isNotNull()) {
-						ret->m_desc.detail = detail;
-						return ret;
-					}
-				}
-			}
+		if (nColors < 2) {
+			return sl_null;
 		}
-		return sl_null;
+		Ref<GradientBrushDetail> detail = new GradientBrushDetail;
+		if (detail.isNull()) {
+			return sl_null;
+		}
+		detail->point1 = ptCenter;
+		detail->radius = radius;
+		if (!(PrepareGradientDetailColors(detail.get(), nColors, colors, locations))) {
+			return sl_null;
+		}
+		Ref<Brush> ret = new Brush;
+		if (ret.isNull()) {
+			return sl_null;
+		}
+		ret->m_desc.style = BrushStyle::RadialGradient;
+		ret->m_desc.detail = Move(detail);
+		return ret;
 	}
 
 	Ref<Brush> Brush::createTextureBrush(const Ref<Bitmap>& bitmap)
 	{
 		if (bitmap.isNotNull()) {
-			Ref<Brush> ret = new Brush;
-			if (ret.isNotNull()) {
-				ret->m_desc.style = BrushStyle::Texture;
-				Ref<TextureBrushDetail> detail = new TextureBrushDetail;
-				if (detail.isNotNull()) {
-					detail->pattern = bitmap;
-					ret->m_desc.detail = detail;
+			Ref<TextureBrushDetail> detail = new TextureBrushDetail;
+			if (detail.isNotNull()) {
+				detail->pattern = bitmap;
+				Ref<Brush> ret = new Brush;
+				if (ret.isNotNull()) {
+					ret->m_desc.style = BrushStyle::Texture;
+					ret->m_desc.detail = Move(detail);
 					return ret;
 				}
 			}

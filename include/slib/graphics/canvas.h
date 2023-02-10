@@ -240,13 +240,13 @@ namespace slib
 
 		void drawPolygon(const List<Point>& points, const Ref<Pen>& pen);
 
-		void fillPolygon(const Point* points, sl_uint32 countPoints, const Ref<Brush>& brush);
+		void fillPolygon(const Point* points, sl_uint32 countPoints, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate);
 
-		void fillPolygon(const Point* points, sl_uint32 countPoints, const Color& color);
+		void fillPolygon(const Point* points, sl_uint32 countPoints, const Color& color, FillMode fillMode = FillMode::Alternate);
 
-		void fillPolygon(const List<Point>& points, const Ref<Brush>& brush);
+		void fillPolygon(const List<Point>& points, const Ref<Brush>& brush, FillMode fillMode = FillMode::Alternate);
 
-		void fillPolygon(const List<Point>& points, const Color& color);
+		void fillPolygon(const List<Point>& points, const Color& color, FillMode fillMode = FillMode::Alternate);
 
 
 		virtual void drawPie(const Rectangle& rect, sl_real startDegrees, sl_real sweepDegrees, const Ref<Pen>& pen, const Ref<Brush>& brush) = 0;

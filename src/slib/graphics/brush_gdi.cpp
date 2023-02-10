@@ -35,6 +35,11 @@ namespace slib
 
 	namespace {
 
+		SLIB_INLINE static Gdiplus::Color GetColor(const Color& c)
+		{
+			return Gdiplus::Color(c.a, c.r, c.g, c.b);
+		}
+
 		class BrushPlatformObject : public Referable
 		{
 		public:
@@ -47,59 +52,69 @@ namespace slib
 				GraphicsPlatform::startGdiplus();
 				m_brush = NULL;
 				if (desc.style == BrushStyle::Solid) {
-					const Color& _color = desc.color;
-					Gdiplus::Color color(_color.a, _color.r, _color.g, _color.b);
+					const Color& c = desc.color;
+					Gdiplus::Color color(c.a, c.r, c.g, c.b);
 					m_brush = new Gdiplus::SolidBrush(color);
 				} else if (desc.style == BrushStyle::LinearGradient || desc.style == BrushStyle::RadialGradient) {
 					GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
 					if (detail) {
-						ListElements<Color> _colors(detail->colors);
-						ListElements<sl_real> _locations(detail->locations);
-						if (_colors.count != _locations.count) {
+						ListElements<Color> colors(detail->colors);
+						ListElements<sl_real> locations(detail->locations);
+						if (colors.count != locations.count) {
 							return;
 						}
-						sl_size n = _colors.count;
+						sl_size n = colors.count;
 						if (!n) {
 							return;
 						}
-						SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, colors, n);
-						SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, locations, n);
-						if (!(colors && locations)) {
-							return;
-						}
 						if (desc.style == BrushStyle::LinearGradient) {
-							for (sl_size i = 0; i < n; i++) {
-								colors[i] = Gdiplus::Color(_colors[i].a, _colors[i].r, _colors[i].g, _colors[i].b);
-								locations[i] = (Gdiplus::REAL)(_locations[i]);
-							}
 							Gdiplus::PointF pt1((Gdiplus::REAL)(detail->point1.x), (Gdiplus::REAL)(detail->point1.y));
 							Gdiplus::PointF pt2((Gdiplus::REAL)(detail->point2.x), (Gdiplus::REAL)(detail->point2.y));
-							Gdiplus::LinearGradientBrush* brush = new Gdiplus::LinearGradientBrush(pt1, pt2, colors[0], colors[1]);
+							Gdiplus::LinearGradientBrush* brush = new Gdiplus::LinearGradientBrush(pt1, pt2, GetColor(colors[0]), GetColor(colors[n - 1]));
 							if (brush) {
 								brush->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
 								if (n > 2) {
-									brush->SetInterpolationColors(colors, locations, (INT)n);
+									SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, c, n)
+									if (!c) {
+										return;
+									}
+									SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, l, n)
+									if (!l) {
+										return;
+									}
+									for (sl_size i = 0; i < n; i++) {
+										c[i] = GetColor(colors[i]);
+										l[i] = (Gdiplus::REAL)(locations[i]);
+									}
+									brush->SetInterpolationColors(c, l, (INT)n);
 								}
 								m_brush = brush;
 							}
 						} else {
 							Gdiplus::GraphicsPath path;
-							path.AddEllipse((Gdiplus::REAL)(detail->point1.x - detail->radius), (Gdiplus::REAL)(detail->point1.y - detail->radius), (Gdiplus::REAL)(detail->radius * 2), (Gdiplus::REAL)(detail->radius * 2));
+							Gdiplus::REAL d = (Gdiplus::REAL)(detail->radius * 2);
+							path.AddEllipse((Gdiplus::REAL)(detail->point1.x - detail->radius), (Gdiplus::REAL)(detail->point1.y - detail->radius), d, d);
 							Gdiplus::PathGradientBrush* brush = new Gdiplus::PathGradientBrush(&path);
 							if (brush) {
 								if (n > 2) {
-									for (sl_size i = 0; i < n; i++) {
-										Color& color = _colors[n - 1 - i];
-										colors[i] = Gdiplus::Color(color.a, color.r, color.g, color.b);
-										locations[i] = (Gdiplus::REAL)(1 - _locations[n - 1 - i]);
+									SLIB_SCOPED_BUFFER(Gdiplus::Color, 128, c, n)
+									if (!c) {
+										return;
 									}
-									brush->SetInterpolationColors(colors, locations, (INT)n);
+									SLIB_SCOPED_BUFFER(Gdiplus::REAL, 128, l, n)
+									if (!l) {
+										return;
+									}
+									for (sl_size i = 0; i < n; i++) {
+										c[i] = GetColor(colors[n - 1 - i]);
+										l[i] = (Gdiplus::REAL)(1.0f - locations[n - 1 - i]);
+									}
+									brush->SetInterpolationColors(c, l, (INT)n);
 								} else {
-									Gdiplus::Color c0(_colors[0].a, _colors[0].r, _colors[0].g, _colors[0].b);
-									Gdiplus::Color c1(_colors[1].a, _colors[1].r, _colors[1].g, _colors[1].b);
-									brush->SetCenterColor(c0);
+									brush->SetCenterColor(GetColor(colors[0]));
+									Gdiplus::Color c = GetColor(colors[n - 1]);
 									INT k = 1;
-									brush->SetSurroundColors(&c1, &k);
+									brush->SetSurroundColors(&c, &k);
 								}
 								brush->SetCenterPoint(Gdiplus::PointF((Gdiplus::REAL)(detail->point1.x), (Gdiplus::REAL)(detail->point1.y)));
 								m_brush = brush;

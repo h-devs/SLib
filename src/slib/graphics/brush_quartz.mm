@@ -71,9 +71,9 @@ namespace slib
 												flagSuccess = sl_false;
 											}
 										}
-									}
-									if (flagSuccess) {
-										hGradient = CGGradientCreateWithColors(colorSpace, (CFArrayRef)array, locations);
+										if (flagSuccess) {
+											hGradient = CGGradientCreateWithColors(colorSpace, (CFArrayRef)array, locations);
+										}
 									}
 								}
 							}
