@@ -352,86 +352,6 @@ namespace slib
 			return sl_true;
 		}
 
-		enum class PaintType
-		{
-			Color = 0,
-			Url = 1
-		};
-
-		class Paint : public Referable
-		{
-		public:
-			PaintType type;
-			
-		};
-
-		class ColorPaint : public Paint
-		{
-		public:
-			Color color;
-
-		public:
-			ColorPaint()
-			{
-				type = PaintType::Color;
-			}
-
-			ColorPaint(const Color& _color)
-			{
-				type = PaintType::Color;
-				color = _color;
-			}
-
-		public:
-			static const Ref<ColorPaint>& black()
-			{
-				SLIB_SAFE_LOCAL_STATIC(Ref<ColorPaint>, ret, new ColorPaint(Color::Black))
-				return ret;
-			}
-
-		};
-
-		class UrlPaint : public Paint
-		{
-		public:
-			String url;
-
-		public:
-			UrlPaint()
-			{
-				type = PaintType::Url;
-			}
-
-		};
-
-		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<Paint>& _out)
-		{
-			Color color;
-			if (ParseValue(s, end, color)) {
-				if (color.isZero()) {
-					_out.setNull();
-					return sl_true;
-				}
-				ColorPaint* ret = new ColorPaint;
-				if (ret) {
-					ret->color = color;
-					_out = ret;
-					return sl_true;
-				}
-			} else if (SkipPattern(s, end, StringView::literal("url"))) {
-				String url;
-				if (ParseFunctionCall(s, end, &url, 1) == 1) {
-					UrlPaint* ret = new UrlPaint;
-					if (ret) {
-						ret->url = url.trim();
-						_out = ret;
-						return sl_true;
-					}
-				}
-			}
-			return sl_false;
-		}
-
 		struct PreserveAspectRatio
 		{
 			Alignment align = Alignment::MiddleCenter;
@@ -558,6 +478,7 @@ namespace slib
 				sl_char8 cmd = *(s++);
 				Scalar v[8];
 				sl_bool flagParseResult = sl_false;
+
 				switch (cmd) {
 					case 'M':
 						flagParseResult = ParseValues(s, end, v, 2) == 2;
@@ -750,6 +671,7 @@ namespace slib
 					case 'Z':
 					case 'z':
 						path->closeSubpath();
+						flagParseResult = sl_true;
 						break;
 				}
 				if (!flagParseResult) {
@@ -772,31 +694,31 @@ namespace slib
 						return sl_false;
 					}
 					Matrix3 t(v[0], v[1], 0, v[2], v[3], 0, v[4], v[5], (Scalar)1);
-					_out.multiply(t);
+					_out = t * _out;
 				} else if (SkipPattern(s, end, StringView::literal("translate"))) {
 					sl_reg n = ParseFunctionCall(s, end, v, 3);
 					if (n == 2) {
-						Transform2::translate(_out, v[0], v[1]);
+						Transform2::preTranslate(_out, v[0], v[1]);
 					} else if (n == 1) {
-						Transform2::translate(_out, v[0], 0);
+						Transform2::preTranslate(_out, v[0], 0);
 					} else {
 						return sl_false;
 					}
 				} else if (SkipPattern(s, end, StringView::literal("scale"))) {
 					sl_reg n = ParseFunctionCall(s, end, v, 3);
 					if (n == 2) {
-						Transform2::scale(_out, v[0], v[1]);
+						Transform2::preScale(_out, v[0], v[1]);
 					} else if (n == 1) {
-						Transform2::scale(_out, v[0], v[0]);
+						Transform2::preScale(_out, v[0], v[0]);
 					} else {
 						return sl_false;
 					}
 				} else if (SkipPattern(s, end, StringView::literal("rotate"))) {
 					sl_reg n = ParseFunctionCall(s, end, v, 3);
 					if (n == 1) {
-						Transform2::rotate(_out, Math::getRadianFromDegrees(v[0]));
+						Transform2::preRotate(_out, Math::getRadianFromDegrees(v[0]));
 					} else if (n == 3) {
-						Transform2::rotate(_out, v[1], v[2], Math::getRadianFromDegrees(v[0]));
+						Transform2::preRotate(_out, v[1], v[2], Math::getRadianFromDegrees(v[0]));
 					} else {
 						return sl_false;
 					}
@@ -804,12 +726,12 @@ namespace slib
 					if (ParseFunctionCall(s, end, v, 1) != 1) {
 						return sl_false;
 					}
-					Transform2::skewX(_out, Math::getRadianFromDegrees(v[0]));
+					Transform2::preSkewX(_out, Math::tan(Math::getRadianFromDegrees(v[0])));
 				} else if (SkipPattern(s, end, StringView::literal("skewY"))) {
 					if (ParseFunctionCall(s, end, v, 1) != 1) {
 						return sl_false;
 					}
-					Transform2::skewY(_out, Math::getRadianFromDegrees(v[0]));
+					Transform2::preSkewY(_out, Math::tan(Math::getRadianFromDegrees(v[0])));
 				} else {
 					break;
 				}
@@ -850,22 +772,6 @@ namespace slib
 			return ParseValue(str, _out, flagDefined);
 		}
 
-#define GET_ATTRIBUTE(TYPE, NAME, ATTR) \
-		SLIB_STATIC_STRING(name_##NAME, ATTR) \
-		TYPE NAME = getAttribute(name_##NAME).trim();
-
-#define PARSE_ATTRIBUTE(NAME, ATTR) \
-		SLIB_STATIC_STRING(name_##NAME, ATTR) \
-		ParseValue(getAttribute(name_##NAME), NAME);
-
-#define GET_XML_ATTRIBUTE(XML, TYPE, NAME, ATTR) \
-		SLIB_STATIC_STRING(name_##NAME, ATTR) \
-		TYPE NAME = getAttribute(name_##NAME).trim();
-
-#define PARSE_XML_ATTRIBUTE(XML, NAME, ATTR) \
-		SLIB_STATIC_STRING(name_##NAME, ATTR) \
-		ParseValue(XML->getAttribute(name_##NAME), NAME);
-
 		struct RenderParam
 		{
 			Scalar containerWidth;
@@ -879,17 +785,227 @@ namespace slib
 			}
 		}
 
+#define GET_ATTRIBUTE(TYPE, NAME, ATTR) \
+		SLIB_STATIC_STRING(name_##NAME, ATTR) \
+		TYPE NAME = getAttribute(name_##NAME).trim();
+
+#define PARSE_ATTRIBUTE(NAME, ATTR) \
+		SLIB_STATIC_STRING(name_##NAME, ATTR) \
+		ParseValue(getAttribute(name_##NAME), NAME);
+
+#define GET_STYLER_ATTRIBUTE(STYLER, TYPE, NAME, ATTR) \
+		SLIB_STATIC_STRING(name_##NAME, ATTR) \
+		TYPE NAME = STYLER.getAttribute(name_##NAME).trim();
+
+#define PARSE_STYLER_ATTRIBUTE(STYLER, NAME, ATTR) \
+		SLIB_STATIC_STRING(name_##NAME, ATTR) \
+		ParseValue(STYLER.getAttribute(name_##NAME), NAME);
+
 		class Group;
 		class Document;
 
-		class Element : public Referable
+		class Styler
+		{
+		public:
+			XmlElement* xml = sl_null;
+			Document* document = sl_null;
+			Define< List<CascadingStyleDeclarations> > styles;
+
+		public:
+			String getAttribute(const String& name);
+
+		};
+
+		enum class PaintType
+		{
+			Color = 0,
+			Url = 1,
+			LinearGradient = 2,
+			RadialGradient = 3
+		};
+
+		class Paint : public Referable
+		{
+		public:
+			PaintType type;
+
+		};
+
+		class ColorPaint : public Paint
+		{
+		public:
+			Color color;
+
+		public:
+			ColorPaint()
+			{
+				type = PaintType::Color;
+			}
+
+			ColorPaint(const Color& _color)
+			{
+				type = PaintType::Color;
+				color = _color;
+			}
+
+		public:
+			static const Ref<ColorPaint>& black()
+			{
+				SLIB_SAFE_LOCAL_STATIC(Ref<ColorPaint>, ret, new ColorPaint(Color::Black))
+					return ret;
+			}
+
+		};
+
+		enum class GradientUnits
+		{
+			ObjectBoundingBox = 0,
+			UserSpaceOnUse = 1,
+		};
+
+		class UrlPaint : public Paint
+		{
+		public:
+			String url;
+
+			// Gradient
+			GradientUnits gradientUnits;
+			Define<Matrix3> transform;
+			List<Color> stopColors;
+			List<Scalar> stopOffsets;
+
+			// Linear Gradient
+			Define<Length> x1, x2, y1, y2;
+
+			// Radial Gradient
+			Define<Length> cx, cy, fr, fx, fy, r;
+
+		public:
+			UrlPaint()
+			{
+				type = PaintType::Url;
+			}
+
+		public:
+			void load(Document* doc, Scalar opacity);
+
+		private:
+			void loadGradient(Styler& e, Scalar _opacity)
+			{
+				GET_STYLER_ATTRIBUTE(e, String, strGradientUnits, "gradientUnits")
+				if (strGradientUnits == StringView::literal("userSpaceOnUse")) {
+					gradientUnits = GradientUnits::UserSpaceOnUse;
+				} else {
+					gradientUnits = GradientUnits::ObjectBoundingBox;
+				}
+				PARSE_STYLER_ATTRIBUTE(e, transform, "transform")
+				if (!(transform.flagDefined)) {
+					PARSE_STYLER_ATTRIBUTE(e, transform, "gradientTransform")
+				}
+				ListElements< Ref<XmlElement> > stops(e.xml->getChildElements());
+				for (sl_size i = 0; i < stops.count; i++) {
+					Styler stop;
+					stop.xml = stops[i].get();
+					stop.document = e.document;
+					Define<Scalar> offset, opacity;
+					Define<Color> color;
+					PARSE_STYLER_ATTRIBUTE(stop, offset, "offset")
+					PARSE_STYLER_ATTRIBUTE(stop, color, "stop-color")
+					PARSE_STYLER_ATTRIBUTE(stop, opacity, "stop-opacity")
+					if (offset.flagDefined && color.flagDefined) {
+						if (opacity.flagDefined) {
+							ApplyOpacity(*color, *opacity * _opacity);
+						} else {
+							ApplyOpacity(*color, _opacity);
+						}
+						stopOffsets.add_NoLock(*offset);
+						stopColors.add_NoLock(*color);
+					}
+				}
+				if (stopOffsets.getCount() != stopColors.getCount()) {
+					stopOffsets.setNull();
+					stopColors.setNull();
+				}
+			}
+
+			void loadLinearGradient(Styler& e, Scalar opacity)
+			{
+				loadGradient(e, opacity);
+				PARSE_STYLER_ATTRIBUTE(e, x1, "x1")
+				PARSE_STYLER_ATTRIBUTE(e, x2, "x2")
+				PARSE_STYLER_ATTRIBUTE(e, y1, "y1")
+				PARSE_STYLER_ATTRIBUTE(e, y2, "y2")
+				if (!(x2.flagDefined)) {
+					x2.flagPercentage = sl_true;
+					x2.value = (Scalar)100;
+				}
+				type = PaintType::LinearGradient;
+			}
+
+			void loadRadialGradient(Styler& e, Scalar opacity)
+			{
+				loadGradient(e, opacity);
+				PARSE_STYLER_ATTRIBUTE(e, cx, "cx")
+				if (!(cx.flagDefined)) {
+					cx.flagPercentage = sl_true;
+					cx.value = (Scalar)50;
+				}
+				PARSE_STYLER_ATTRIBUTE(e, cy, "cy")
+				if (!(cy.flagDefined)) {
+					cy.flagPercentage = sl_true;
+					cy.value = (Scalar)50;
+				}
+				PARSE_STYLER_ATTRIBUTE(e, fr, "fr")
+				PARSE_STYLER_ATTRIBUTE(e, fx, "fx")
+				if (!(fx.flagDefined)) {
+					*fx = *cx;
+				}
+				PARSE_STYLER_ATTRIBUTE(e, fy, "fy")
+				if (!(fy.flagDefined)) {
+					*fy = *cy;
+				}
+				PARSE_STYLER_ATTRIBUTE(e, r, "r")
+				if (!(r.flagDefined)) {
+					r.flagPercentage = sl_true;
+					r.value = (Scalar)50;
+				}
+				type = PaintType::RadialGradient;
+			}
+
+		};
+
+		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<Paint>& _out)
+		{
+			Color color;
+			if (ParseValue(s, end, color)) {
+				if (color.isZero()) {
+					_out.setNull();
+					return sl_true;
+				}
+				ColorPaint* ret = new ColorPaint;
+				if (ret) {
+					ret->color = color;
+					_out = ret;
+					return sl_true;
+				}
+			} else if (SkipPattern(s, end, StringView::literal("url"))) {
+				String url;
+				if (ParseFunctionCall(s, end, &url, 1) == 1) {
+					UrlPaint* ret = new UrlPaint;
+					if (ret) {
+						ret->url = url.trim();
+						_out = ret;
+						return sl_true;
+					}
+				}
+			}
+			return sl_false;
+		}
+
+		class Element : public Referable, public Styler
 		{
 		public:
 			Element* parent = sl_null;
-			Document* document = sl_null;
-			Ref<XmlElement> xml;
-
-			Define< List<CascadingStyleDeclarations> > styles;
 
 			Define< Ref<Paint> > stroke;
 			Define<Length> strokeWidth;
@@ -921,8 +1037,6 @@ namespace slib
 			virtual void render(Canvas* canvas, RenderParam& param) = 0;
 
 			virtual Rectangle getBounds(RenderParam& param) = 0;
-
-			String getAttribute(const String& name);
 
 			Ref<XmlElement> getXmlByUrl(const StringView& url);
 
@@ -1034,7 +1148,13 @@ namespace slib
 			void loadBrush()
 			{
 				getFill();
-				getFillOpacity();
+				Scalar opacity = getFillOpacity() * getFinalOpacity();
+				if (fill.isNotNull()) {
+					if (fill->type == PaintType::Url) {
+						((UrlPaint*)(fill.get()))->load(document, opacity);
+					}
+				}
+				getFillRule();
 			}
 
 			Ref<Brush>& getBrush(RenderParam& param)
@@ -1045,86 +1165,83 @@ namespace slib
 						if (brush.flagDefined) {
 							return *brush;
 						}
-						*brush = createBrush(*((ColorPaint*)(paint.get())));
-					} else if (paint->type == PaintType::Url) {
-						*brush = createBrush(*((UrlPaint*)(paint.get())), param);
+						createColorBrush(*((ColorPaint*)(paint.get())));
+					} else if (paint->type == PaintType::LinearGradient) {
+						createLinearGradientBrush(*((UrlPaint*)(paint.get())), param);
+					} else if (paint->type == PaintType::RadialGradient) {
+						createRadialGradientBrush(*((UrlPaint*)(paint.get())), param);
 					}
 				}
 				brush.flagDefined = sl_true;
 				return *brush;
 			}
 
-			Ref<Brush> createBrush(ColorPaint& paint)
+			void createColorBrush(ColorPaint& paint)
 			{
 				Color color = paint.color;
 				ApplyOpacity(color, getFinalOpacity() * getFillOpacity());
-				return Brush::createSolidBrush(color);
+				*brush = Brush::createSolidBrush(color);
 			}
 
-			Ref<Brush> createBrush(UrlPaint& paint, RenderParam& param)
+			void createLinearGradientBrush(UrlPaint& paint, RenderParam& param)
 			{
-				Ref<XmlElement> e = getXmlByUrl(paint.url);
-				if (e.isNotNull()) {
-					String type = e->getName();
-					if (type == StringView::literal("linearGradient")) {
-						return createLinearGradientBrush(e.get(), param);
-					}
-				}
-				return sl_null;
-			}
-
-			Ref<Brush> createLinearGradientBrush(XmlElement* e, RenderParam& param)
-			{
-				Define<Length> x1, x2, y1, y2;
-				PARSE_XML_ATTRIBUTE(e, x1, "x1")
-				PARSE_XML_ATTRIBUTE(e, x2, "x2")
-				PARSE_XML_ATTRIBUTE(e, y1, "y1")
-				PARSE_XML_ATTRIBUTE(e, y2, "y2")
-				if (!(x2.flagDefined)) {
-					x2.flagPercentage = sl_true;
-					x2.value = (Scalar)100;
-				}
 				Point pt1, pt2;
-				GET_XML_ATTRIBUTE(e, String, gradientUnits, "gradientUnits")
-				if (gradientUnits == StringView::literal("userSpaceOnUse")) {
-					pt1.x = x1.getValue(param.containerWidth);
-					pt1.y = y1.getValue(param.containerHeight);
-					pt2.x = x2.getValue(param.containerWidth);
-					pt2.y = y2.getValue(param.containerHeight);
+				if (paint.gradientUnits == GradientUnits::UserSpaceOnUse) {
+					pt1.x = paint.x1.getValue(param.containerWidth);
+					pt1.y = paint.y1.getValue(param.containerHeight);
+					pt2.x = paint.x2.getValue(param.containerWidth);
+					pt2.y = paint.y2.getValue(param.containerHeight);
 				} else {
 					Rectangle bounds = getBounds(param);
-					pt1.x = x1.getValue((Scalar)1) * bounds.getWidth() + bounds.left;
-					pt1.y = y1.getValue((Scalar)1) * bounds.getHeight() + bounds.top;
-					pt2.x = x2.getValue((Scalar)1) * bounds.getWidth() + bounds.left;
-					pt2.y = y2.getValue((Scalar)1) * bounds.getHeight() + bounds.top;
+					pt1.x = paint.x1.getValue((Scalar)1) * bounds.getWidth() + bounds.left;
+					pt1.y = paint.y1.getValue((Scalar)1) * bounds.getHeight() + bounds.top;
+					pt2.x = paint.x2.getValue((Scalar)1) * bounds.getWidth() + bounds.left;
+					pt2.y = paint.y2.getValue((Scalar)1) * bounds.getHeight() + bounds.top;
 				}
-				Define<Matrix3> gradientTransform;
-				PARSE_XML_ATTRIBUTE(e, gradientTransform, "gradientTransform")
-				if (gradientTransform.flagDefined) {
-					pt1 = gradientTransform.transformPosition(pt1);
-					pt2 = gradientTransform.transformPosition(pt2);
+				if (paint.transform.flagDefined) {
+					pt1 = paint.transform.transformPosition(pt1);
+					pt2 = paint.transform.transformPosition(pt2);
 				}
-				CList<Color> colors;
-				CList<sl_real> locations;
-				Scalar opacity = getFinalOpacity() * getFillOpacity();
-				ListElements< Ref<XmlElement> > stops(e->getChildElements());
-				for (sl_size i = 0; i < stops.count; i++) {
-					Ref<XmlElement>& stop = stops[i];
-					Define<Scalar> offset;
-					Define<Color> stopColor;
-					PARSE_XML_ATTRIBUTE(stop, offset, "offset")
-					PARSE_XML_ATTRIBUTE(stop, stopColor, "stop-color")
-					if (offset.flagDefined && stopColor.flagDefined) {
-						ApplyOpacity(*stopColor, opacity);
-						locations.add_NoLock(*offset);
-						colors.add_NoLock(*stopColor);
+				if (brush.flagDefined && brush.isNotNull()) {
+					BrushDesc& desc = brush->getDesc();
+					if (desc.style == BrushStyle::LinearGradient) {
+						GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
+						if (pt1.isAlmostEqual(detail->point1) && pt2.isAlmostEqual(detail->point2)) {
+							return;
+						}
 					}
 				}
-				sl_uint32 nColors = (sl_uint32)(colors.getCount());
-				if (nColors == locations.getCount()) {
-					return Brush::createLinearGradientBrush(pt1, pt2, (sl_uint32)(colors.getCount()), colors.getData(), locations.getData());
+				*brush = Brush::createLinearGradientBrush(pt1, pt2, (sl_uint32)(paint.stopColors.getCount()), paint.stopColors.getData(), paint.stopOffsets.getData());
+			}
+
+			void createRadialGradientBrush(UrlPaint& paint, RenderParam& param)
+			{
+				Point center;
+				Scalar r;
+				if (paint.gradientUnits == GradientUnits::UserSpaceOnUse) {
+					center.x = paint.cx.getValue(param.containerWidth);
+					center.y = paint.cy.getValue(param.containerHeight);
+					r = paint.r.getValue(param.containerWidth);
+				} else {
+					Rectangle bounds = getBounds(param);
+					center.x = paint.cx.getValue((Scalar)1) * bounds.getWidth() + bounds.left;
+					center.y = paint.cy.getValue((Scalar)1) * bounds.getHeight() + bounds.top;
+					r = paint.r.getValue((Scalar)1) * bounds.getWidth();
 				}
-				return sl_null;
+				if (paint.transform.flagDefined) {
+					center = paint.transform.transformPosition(center);
+					r = paint.transform.transformDirection(Point(r, 0)).getLength();
+				}
+				if (brush.flagDefined && brush.isNotNull()) {
+					BrushDesc& desc = brush->getDesc();
+					if (desc.style == BrushStyle::RadialGradient) {
+						GradientBrushDetail* detail = (GradientBrushDetail*)(desc.detail.get());
+						if (center.isAlmostEqual(detail->point1) && Math::isAlmostZero(detail->radius - r)) {
+							return;
+						}
+					}
+				}
+				*brush = Brush::createRadialGradientBrush(center, r, (sl_uint32)(paint.stopColors.getCount()), paint.stopColors.getData(), paint.stopOffsets.getData());
 			}
 
 		};
@@ -1151,12 +1268,12 @@ namespace slib
 				for (sl_size i = 0; i < n; i++) {
 					Ref<XmlElement> child = xml->getChildElement(i);
 					if (child.isNotNull()) {
-						loadChild(Move(child));
+						loadChild(child.get());
 					}
 				}
 			}
 
-			Element* loadChild(Ref<XmlElement>&& xml)
+			Element* loadChild(XmlElement* xml)
 			{
 				Loaders* loaders = GetLoaders();
 				if (!loaders) {
@@ -1169,7 +1286,7 @@ namespace slib
 					if (element.isNotNull()) {
 						element->parent = this;
 						element->document = document;
-						element->xml = Move(xml);
+						element->xml = xml;
 						element->load();
 						Element* ret = element.get();
 						children.add_NoLock(Move(element));
@@ -1290,10 +1407,10 @@ namespace slib
 				PARSE_ATTRIBUTE(ry, "ry")
 				if (rx.flagDefined) {
 					if (!(ry.flagDefined)) {
-						ry = rx;
+						*ry = *rx;
 					}
 				} else {
-					rx = ry;
+					*rx = *ry;
 				}
 				loadPen();
 				loadBrush();
@@ -1416,7 +1533,7 @@ namespace slib
 			{
 				Ref<Brush>& brush = getBrush(param);
 				if (brush.isNotNull()) {
-					canvas->fillPolygon(points, brush);
+					canvas->fillPolygon(points, brush, getFillRule());
 				}
 				Ref<Pen>& pen = getPen(param);
 				if (pen.isNotNull()) {
@@ -1459,7 +1576,7 @@ namespace slib
 			void render(Canvas* canvas, RenderParam& param) override
 			{
 				if (points.isNotNull()) {
-					canvas->drawPolygon(points, getPen(param), getBrush(param));
+					canvas->drawPolygon(points, getPen(param), getBrush(param), getFillRule());
 				}
 			}
 
@@ -1525,50 +1642,57 @@ namespace slib
 				PARSE_ATTRIBUTE(x, "x")
 				PARSE_ATTRIBUTE(y, "y")
 				PARSE_ATTRIBUTE(preserveAspectRatio, "preserveAspectRatio")
+
+				if (width.flagDefined) {
+					if (!(height.flagDefined)) {
+						*height = *width;
+					}
+				} else {
+					if (height.flagDefined) {
+						*width = *height;
+					} else {
+						if (viewBox.flagDefined) {
+							width.value = viewBox.width;
+							height.value = viewBox.height;
+						}
+					}
+				}
+				if (!(viewBox.flagDefined)) {
+					if (width.flagDefined || height.flagDefined) {
+						viewBox.width = width.value;
+						viewBox.height = height.value;
+					}
+				}
 			}
 
 			void render(Canvas* canvas, RenderParam& _param) override
 			{
+				if (Math::isAlmostZero(viewBox.width) || Math::isAlmostZero(viewBox.height)) {
+					return;
+				}
 				RenderParam param = _param;
-				if (viewBox.flagDefined) {
-					if (Math::isAlmostZero(viewBox.width) || Math::isAlmostZero(viewBox.height)) {
-						return;
+				Size size = getSize(param.containerWidth, param.containerHeight);
+				Rectangle rectDst;
+				rectDst.left = x.getValue(param.containerWidth);
+				rectDst.top = y.getValue(param.containerHeight);
+				rectDst.setSize(size);
+				Rectangle rectTarget = rectDst;
+				if (preserveAspectRatio.align != Alignment::Default) {
+					Rectangle r;
+					if (GraphicsUtil::calculateAlignRectangle(r, rectDst, viewBox.width, viewBox.height, preserveAspectRatio.flagContain ? ScaleMode::Contain : ScaleMode::Cover, preserveAspectRatio.align)) {
+						rectTarget = r;
 					}
-					Size size = getSize(param.containerWidth, param.containerHeight);
-					Rectangle rectDst;
-					rectDst.left = x.getValue(param.containerWidth);
-					rectDst.top = y.getValue(param.containerHeight);
-					rectDst.setSize(size);
-					Rectangle rectTarget = rectDst;
-					if (preserveAspectRatio.align != Alignment::Default) {
-						Rectangle r;
-						if (GraphicsUtil::calculateAlignRectangle(r, rectDst, viewBox.width, viewBox.height, preserveAspectRatio.flagContain ? ScaleMode::Contain : ScaleMode::Cover, preserveAspectRatio.align)) {
-							rectTarget = r;
-						}
-					}
-					Matrix3f matrix = Transform2f::getTransformMatrixFromRectToRect(Rectangle(viewBox.x, viewBox.y, viewBox.x + viewBox.width, viewBox.y + viewBox.height), rectTarget);
-					param.containerWidth = viewBox.width;
-					param.containerHeight = viewBox.height;
-					CanvasStateScope scope(canvas);
-					canvas->clipToRectangle(rectDst);
-					canvas->concatMatrix(matrix);
+				}
+				param.containerWidth = viewBox.width;
+				param.containerHeight = viewBox.height;
+				Rectangle rectViewBox(viewBox.x, viewBox.y, viewBox.x + viewBox.width, viewBox.y + viewBox.height);
+				if (rectViewBox.isAlmostEqual(rectTarget)) {
 					Group::render(canvas, param);
 				} else {
-					Scalar _x = x.getValue(param.containerWidth);
-					Scalar _y = y.getValue(param.containerHeight);
-					if (width.flagDefined) {
-						param.containerWidth = width.getValue(param.containerWidth);
-					}
-					if (height.flagDefined) {
-						param.containerHeight = height.getValue(param.containerHeight);
-					}
-					if (Math::isAlmostZero(_x) && Math::isAlmostZero(_y)) {
-						Group::render(canvas, param);
-					} else {
-						CanvasStateScope scope(canvas);
-						canvas->translate(_x, _y);
-						Group::render(canvas, param);
-					}
+					CanvasStateScope scope(canvas);
+					canvas->clipToRectangle(rectDst);
+					canvas->concatMatrix(Transform2f::getTransformMatrixFromRectToRect(rectViewBox, rectTarget));
+					Group::render(canvas, param);
 				}
 			}
 
@@ -1577,20 +1701,18 @@ namespace slib
 				if (children.isEmpty()) {
 					return;
 				}
+				if (Math::isAlmostZero(viewBox.width) || Math::isAlmostZero(viewBox.height)) {
+					return;
+				}
 				RenderParam param;
-				if (viewBox.flagDefined) {
-					if (Math::isAlmostZero(viewBox.width) || Math::isAlmostZero(viewBox.height)) {
-						return;
-					}
-					param.containerWidth = viewBox.width;
-					param.containerHeight = viewBox.height;
-					Matrix3f matrix = Transform2f::getTransformMatrixFromRectToRect(Rectangle(viewBox.x, viewBox.y, viewBox.x + viewBox.width, viewBox.y + viewBox.height), rectDraw);
-					CanvasStateScope scope(canvas);
-					canvas->concatMatrix(matrix);
+				param.containerWidth = viewBox.width;
+				param.containerHeight = viewBox.height;
+				Rectangle rectViewBox(viewBox.x, viewBox.y, viewBox.x + viewBox.width, viewBox.y + viewBox.height);
+				if (rectViewBox.isAlmostEqual(rectDraw)) {
 					Group::render(canvas, param);
 				} else {
-					param.containerWidth = rectDraw.getWidth();
-					param.containerHeight = rectDraw.getHeight();
+					CanvasStateScope scope(canvas);
+					canvas->concatMatrix(Transform2f::getTransformMatrixFromRectToRect(rectViewBox, rectDraw));
 					Group::render(canvas, param);
 				}
 			}
@@ -1616,27 +1738,9 @@ namespace slib
 				}
 			}
 
-		protected:
 			Size getSize(Scalar containerWidth, Scalar containerHeight)
 			{
-				Scalar w, h;
-				if (width.flagDefined) {
-					w = width.getValue(containerWidth);
-					if (height.flagDefined) {
-						h = height.getValue(containerHeight);
-					} else {
-						h = w * viewBox.height / viewBox.width;
-					}
-				} else {
-					if (height.flagDefined) {
-						h = height.getValue(containerHeight);
-						w = h * viewBox.width / viewBox.height;
-					} else {
-						w = viewBox.width;
-						h = viewBox.height;
-					}
-				}
-				return Size(w, h);
+				return Size(width.getValue(containerWidth), height.getValue(containerHeight));
 			}
 
 		};
@@ -1687,6 +1791,7 @@ namespace slib
 		class Document : public Viewport
 		{
 		public:
+			Ref<XmlDocument> xmlDocument;
 			CascadingStyleSheet styleSheet;
 			sl_uint32 currentLinkDeepLevel = 0;
 			CHashMap< String, Ref<XmlElement> > xmlElementsById;
@@ -1707,12 +1812,12 @@ namespace slib
 						xmlElementsById.put_NoLock(id, xml);
 					}
 				};
-				Ref<XmlDocument> xmlDocument = Xml::parse(MemoryView(mem, size), param);
+				xmlDocument = Xml::parse(MemoryView(mem, size), param);
 				if (xmlDocument.isNull()) {
 					return sl_false;
 				}
-				xml = xmlDocument->getRoot();
-				if (xml.isNull()) {
+				xml = xmlDocument->getRoot().get();
+				if (!xml) {
 					return sl_false;
 				}
 				document = this;
@@ -1725,20 +1830,28 @@ namespace slib
 				styleSheet.addStyles(content);
 			}
 
-			Size getDocumentSize(Scalar containerWidth, Scalar containerHeight)
-			{
-				if (!(viewBox.flagDefined)) {
-					return Size(containerWidth, containerHeight);
-				}
-				if (Math::isAlmostZero(viewBox.width) || Math::isAlmostZero(viewBox.height)) {
-					return Size(containerWidth, containerHeight);
-				}
-				return getSize(containerWidth, containerHeight);
-			}
-
 		};
 
-		String Element::getAttribute(const String& name)
+		void UrlPaint::load(Document* document, Scalar opacity)
+		{
+			Ref<XmlElement> e = document->getXmlByUrl(url);
+			if (e.isNotNull()) {
+				String type = e->getName();
+				if (type == StringView::literal("linearGradient")) {
+					Styler gradient;
+					gradient.xml = e;
+					gradient.document = document;
+					loadLinearGradient(gradient, opacity);
+				} else if (type == StringView::literal("radialGradient")) {
+					Styler gradient;
+					gradient.xml = e;
+					gradient.document = document;
+					loadRadialGradient(gradient, opacity);
+				}
+			}
+		}
+
+		String Styler::getAttribute(const String& name)
 		{
 			if (!(styles.flagDefined)) {
 				SLIB_STATIC_STRING(_style, "style")
@@ -1781,16 +1894,15 @@ namespace slib
 			if (child.isNull()) {
 				return;
 			}
-			String childType = child->getName();
 
 			PARSE_ATTRIBUTE(x, "x")
 			PARSE_ATTRIBUTE(y, "y")
 
 			document->currentLinkDeepLevel++;
-			Element* element = loadChild(Move(child));
+			Element* element = loadChild(child.get());
 			document->currentLinkDeepLevel--;
 
-			if (element && childType == StringView::literal("svg")) {
+			if (element && child->getName() == StringView::literal("svg")) {
 				Define<Length> width;
 				PARSE_ATTRIBUTE(width, "width")
 				if (width.flagDefined) {
@@ -1856,7 +1968,7 @@ namespace slib
 
 	Size Svg::getSize(Scalar containerWidth, Scalar containerHeight)
 	{
-		return ((Document*)(m_document.get()))->getDocumentSize(containerWidth, containerHeight);
+		return ((Document*)(m_document.get()))->getSize(containerWidth, containerHeight);
 	}
 
 	void Svg::render(Canvas* canvas, const Rectangle& rectDraw)

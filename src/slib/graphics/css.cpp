@@ -145,13 +145,13 @@ namespace slib
 		}
 
 		template <class CHAR>
-		static sl_bool ParseUnquotedStringValue(CHAR*& input, CHAR* end, CHAR* _out, sl_size& lenOutput)
+		static sl_bool ParseUnquotedStringValue(CHAR*& input, CHAR* end, sl_bool flagUrl, CHAR* _out, sl_size& lenOutput)
 		{
 			lenOutput = 0;
 			CHAR* start = input;
 			while (input < end) {
 				CHAR ch = *input;
-				if (SLIB_CHAR_IS_ALNUM(ch) || (ch & 0x80) || ch == '-' || ch == '_' || ch == '.' || ch == '%' || ch == '@') {
+				if (SLIB_CHAR_IS_ALNUM(ch) || (ch & 0x80) || ch == '-' || ch == '_' || ch == '@' || ch == '%') {
 					input++;
 				} else if (ch == '\\') {
 					if (input >= end) {
@@ -165,7 +165,15 @@ namespace slib
 						ch = *(input++);
 					}
 				} else {
-					break;
+					if (flagUrl) {
+						if (ch == '.' || ch == '/' || ch == '#' || ch == ':') {
+							input++;
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
 				}
 				if (_out) {
 					_out[lenOutput] = ch;
@@ -176,7 +184,7 @@ namespace slib
 		}
 
 		template <class CHAR>
-		static sl_bool ParseUnquotedStringValue(String* _out, CHAR*& input, CHAR* end)
+		static sl_bool ParseUnquotedStringValue(String* _out, CHAR*& input, CHAR* end, sl_bool flagUrl)
 		{
 			if (input >= end) {
 				return sl_false;
@@ -184,26 +192,26 @@ namespace slib
 			sl_size len;
 			if (_out) {
 				CHAR* s = input;
-				if (!(ParseUnquotedStringValue(s, end, (CHAR*)sl_null, len))) {
+				if (!(ParseUnquotedStringValue(s, end, flagUrl, (CHAR*)sl_null, len))) {
 					return sl_false;
 				}
 				typename StringTypeFromCharType<CHAR>::Type ret = StringTypeFromCharType<CHAR>::Type::allocate(len);
 				if (ret.isNull()) {
 					return sl_false;
 				}
-				ParseUnquotedStringValue(input, end, ret.getData(), len);
+				ParseUnquotedStringValue(input, end, flagUrl, ret.getData(), len);
 				*_out = String::from(ret);
 				return sl_true;
 			} else {
-				return ParseUnquotedStringValue(input, end, (CHAR*)sl_null, len);
+				return ParseUnquotedStringValue(input, end, flagUrl, (CHAR*)sl_null, len);
 			}
 		}
 
 		template <class CHAR>
-		SLIB_INLINE static String ParseUnquotedStringValue(CHAR*& input, CHAR* end)
+		SLIB_INLINE static String ParseUnquotedStringValue(CHAR*& input, CHAR* end, sl_bool flagUrl)
 		{
 			String ret;
-			if (ParseUnquotedStringValue(&ret, input, end)) {
+			if (ParseUnquotedStringValue(&ret, input, end, flagUrl)) {
 				return ret;
 			}
 			return sl_null;
@@ -242,7 +250,7 @@ namespace slib
 		{
 			CHAR chOpen = *input;
 			if (chOpen != '"' && chOpen != '\'') {
-				return ParseUnquotedStringValue(_out, input, end);
+				return ParseUnquotedStringValue(_out, input, end, sl_true);
 			}
 			input++;
 			sl_size len;
@@ -826,7 +834,7 @@ namespace slib
 								}
 								String name = ParseIdentifier(current, end);
 								if (name.isNull()) {
-									name = ParseUnquotedStringValue(current, end);
+									name = ParseUnquotedStringValue(current, end, sl_false);
 									if (name.isNull()) {
 										if (current == start) {
 											return sl_null;
