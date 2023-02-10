@@ -42,7 +42,7 @@ namespace slib
 
 		SLIB_JNI_BEGIN_CLASS(JCamera, "slib/android/camera/SCamera")
 
-			SLIB_JNI_STATIC_METHOD(getCameras, "getCameras", "(Landroid/app/Activity;)[Lslib/android/camera/SCameraInfo;");
+			SLIB_JNI_STATIC_METHOD(getCameras, "getCameraList", "(Landroid/app/Activity;)[Lslib/android/camera/SCameraInfo;");
 			SLIB_JNI_STATIC_METHOD(create, "create", "(Landroid/app/Activity;Ljava/lang/String;J)Lslib/android/camera/SCamera;");
 			SLIB_JNI_STATIC_METHOD(isMobileDeviceTorchActive, "isMobileDeviceTorchActive", "(Landroid/app/Activity;)Z");
 			SLIB_JNI_STATIC_METHOD(setMobileDeviceTorchMode, "setMobileDeviceTorchMode", "(Landroid/app/Activity;IF)V");
