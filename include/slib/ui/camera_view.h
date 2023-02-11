@@ -102,16 +102,13 @@ namespace slib
 
 		CameraFlashMode m_flashMode;
 
-		Ref<View> m_controls;
+		class Controls;
+		Ref<Controls> m_controls;
 
 		sl_bool m_flagTouchFocus;
 		sl_bool m_flagDuringTouchFocusEffect;
 		Time m_timeTouchFocusBegan;
 		UIPoint m_pointTouchFocus;
-
-#ifdef PRIV_SLIB_CAMERA_VIEW_FRIENDS
-		PRIV_SLIB_CAMERA_VIEW_FRIENDS
-#endif
 
 	};
 

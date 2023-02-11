@@ -367,7 +367,7 @@ namespace slib
 
 	void UIPlatform::initApp()
 	{
-`		UIPlatform::initializeGtk();
+		UIPlatform::initializeGtk();
 		GtkApplication* app = getApp();
 		if (app) {
 			auto funcRegister = gio::getApi_g_application_register();
