@@ -56,6 +56,9 @@ namespace slib
 		~ChatView();
 
 	public:
+		class ItemView;
+
+	public:
 		void setItems(const List<ChatViewItem>& items, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void addItem(const ChatViewItem& item, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -138,10 +141,6 @@ namespace slib
 		Color m_backColorSent;
 		Color m_textColorSent;
 		Color m_textColorDate;
-
-#ifdef PRIV_SLIB_CHAT_VIEW_FRIENDS
-		PRIV_SLIB_CHAT_VIEW_FRIENDS
-#endif
 
 	};
 
