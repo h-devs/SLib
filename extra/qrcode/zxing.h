@@ -28,69 +28,70 @@
 namespace slib
 {
 
-	enum class ZXingFormat
-	{
-		AZTEC, // Aztec 2D barcode
-		CODABAR, // CODABAR 1D
-		CODE_39, // Code 39 1D
-		CODE_93, // Code 93 1D
-		CODE_128, // Code 128 1D
-		DATA_MATRIX, // Data Matrix 2D barcode
-		EAN_8, // EAN-8 1D
-		EAN_13, // EAN-13 1D
-		ITF, // ITF (Interleaved Two of Five) 1D
-		MAXICODE, // MaxiCode 2D barcode
-		PDF_417, // PDF417
-		QR_CODE, // QR Code 2D barcode
-		RSS_14, // RSS 14
-		RSS_EXPANDED, // RSS EXPANDED
-		UPC_A, // UPC-A 1D
-		UPC_E, // UPC-E 1D
-		UPC_EAN_EXTENSION // UPC/EAN extension, Not a stand-alone format
-	};
-
-	class ZXingGenerateParam
-	{
-	public:
-		ZXingFormat format;
-		String text;
-
-		sl_uint32 margin;
-		sl_uint32 width;
-		sl_uint32 height;
-
-	public:
-		ZXingGenerateParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ZXingGenerateParam)
-
-	};
-
-	class ZXingScanParam
-	{
-	public:
-		ZXingFormat format;
-		Ref<Image> image;
-
-		sl_bool flagTryHarder;
-		sl_bool flagTryRotate;
-
-		sl_bool flagSubRegion;
-		Rectanglei subRegion;
-
-	public:
-		ZXingScanParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ZXingScanParam)
-
-	};
-
 	class ZXing
 	{
 	public:
-		static Ref<Image> generate(const ZXingGenerateParam& param);
+		enum class Format
+		{
+			AZTEC, // Aztec 2D barcode
+			CODABAR, // CODABAR 1D
+			CODE_39, // Code 39 1D
+			CODE_93, // Code 93 1D
+			CODE_128, // Code 128 1D
+			DATA_MATRIX, // Data Matrix 2D barcode
+			EAN_8, // EAN-8 1D
+			EAN_13, // EAN-13 1D
+			ITF, // ITF (Interleaved Two of Five) 1D
+			MAXICODE, // MaxiCode 2D barcode
+			PDF_417, // PDF417
+			QR_CODE, // QR Code 2D barcode
+			RSS_14, // RSS 14
+			RSS_EXPANDED, // RSS EXPANDED
+			UPC_A, // UPC-A 1D
+			UPC_E, // UPC-E 1D
+			UPC_EAN_EXTENSION // UPC/EAN extension, Not a stand-alone format
+		};
 
-		static String scan(const ZXingScanParam& param);
+	public:
+		class GenerateParam
+		{
+		public:
+			Format format;
+			String text;
+
+			sl_uint32 margin;
+			sl_uint32 width;
+			sl_uint32 height;
+
+		public:
+			GenerateParam();
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(GenerateParam)
+
+		};
+
+		static Ref<Image> generate(const GenerateParam& param);
+
+		class ScanParam
+		{
+		public:
+			Format format;
+			Ref<Image> image;
+
+			sl_bool flagTryHarder;
+			sl_bool flagTryRotate;
+
+			sl_bool flagSubRegion;
+			Rectanglei subRegion;
+
+		public:
+			ScanParam();
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ScanParam)
+
+		};
+
+		static String scan(const ScanParam& param);
 
 	};
 

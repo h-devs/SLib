@@ -29,7 +29,7 @@ namespace slib
 {
 
 	// Firebase Cloud Messaging
-	class SLIB_EXPORT FCM : public PushNotificationClient
+	class FCM : public PushNotificationClient
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -46,68 +46,62 @@ namespace slib
 
 	};
 
-	class FCM_ServiceSendResult
-	{
-	public:
-		String message_id;
-		String registration_id;
-		String error;
-
-	public:
-		FCM_ServiceSendResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FCM_ServiceSendResult)
-
-		SLIB_DECLARE_JSON
-
-	};
-
 	class UrlRequest;
-
-	class FCM_ServiceSendResponse
-	{
-	public:
-		sl_bool flagSuccess;
-		UrlRequest* request;
-
-		String multicast_id;
-		sl_uint32 success;
-		sl_uint32 failure;
-		List<FCM_ServiceSendResult> results;
-
-	public:
-		FCM_ServiceSendResponse();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FCM_ServiceSendResponse)
-
-		SLIB_DECLARE_JSON
-
-	};
-
-	class FCM_SendParam
-	{
-	public:
-		String legacyServerKey;
-
-		List<String> receiverDeviceTokens;
-		String receiverDeviceToken;
-		PushNotificationMessage message;
-
-		Json customMessage;
-
-		Function<void(FCM_ServiceSendResponse&)> callback;
-
-	public:
-		FCM_SendParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FCM_SendParam)
-
-	};
 
 	class FCM_Service
 	{
 	public:
-		static void sendNotification(const FCM_SendParam& param);
+		class SendResult
+		{
+		public:
+			String message_id;
+			String registration_id;
+			String error;
+
+		public:
+			SendResult();
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SendResult)
+			SLIB_DECLARE_JSON
+		};
+
+		class SendResponse
+		{
+		public:
+			sl_bool flagSuccess;
+			UrlRequest* request;
+
+			String multicast_id;
+			sl_uint32 success;
+			sl_uint32 failure;
+			List<SendResult> results;
+
+		public:
+			SendResponse();
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SendResponse)
+			SLIB_DECLARE_JSON
+		};
+
+		class SendParam
+		{
+		public:
+			String legacyServerKey;
+
+			List<String> receiverDeviceTokens;
+			String receiverDeviceToken;
+			PushNotificationMessage message;
+
+			Json customMessage;
+
+			Function<void(SendResponse&)> callback;
+
+		public:
+			SendParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SendParam)
+		};
+
+		static void sendNotification(const SendParam& param);
 
 	};
 

@@ -147,7 +147,7 @@ namespace slib
 		return g_instance;
 	}
 
-	void Pinterest::authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token)
+	void Pinterest::authorizeRequest(UrlRequestParam& param, const OAuth2::AccessToken& token)
 	{
 		param.parameters.put("access_token", token.token);
 	}

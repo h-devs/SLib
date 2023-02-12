@@ -28,22 +28,23 @@
 namespace slib
 {
 
-	enum class XgPushPlatform
-	{
-		All = 0,
-		iOS = 1,
-		Android = 2
-	};
-
-	enum class XgPushEnvironment
-	{
-		Production = 0,
-		Development = 1
-	};
-
-	class SLIB_EXPORT XgPush : public PushNotificationClient
+	class XgPush : public PushNotificationClient
 	{
 		SLIB_DECLARE_OBJECT
+
+	public:
+		enum class Platform
+		{
+			All = 0,
+			iOS = 1,
+			Android = 2
+		};
+
+		enum class Environment
+		{
+			Production = 0,
+			Development = 1
+		};
 
 	public:
 		XgPush();
@@ -64,36 +65,39 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT XgPushSendParam
+	class XgPushService
 	{
 	public:
-		String appId;
-		String secretKey;
-		XgPushPlatform platform;
-		XgPushEnvironment environment;
+		typedef XgPush::Platform Platform;
+		typedef XgPush::Environment Environment;
 
-		List<String> receiverDeviceTokens;
-		PushNotificationMessage message;
+		class SendParam
+		{
+		public:
+			String appId;
+			String secretKey;
+			Platform platform;
+			Environment environment;
 
-		Json customMessage;
+			List<String> receiverDeviceTokens;
+			PushNotificationMessage message;
 
-		Function<void(sl_bool, String)> callback;
+			Json customMessage;
 
-	public:
-		XgPushSendParam();
+			Function<void(sl_bool, String)> callback;
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(XgPushSendParam)
+		public:
+			SendParam();
 
-	};
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SendParam)
 
-	class SLIB_EXPORT XgPushService
-	{
-	public:
-		static void sendNotification(const XgPushSendParam& param);
+		};
 
-		static String getPlatformString(XgPushPlatform platform);
+		static void sendNotification(const SendParam& param);
 
-		static String getEnvironmentString(XgPushEnvironment environment);
+		static String getPlatformString(Platform platform);
+
+		static String getEnvironmentString(Environment environment);
 
 	};
 

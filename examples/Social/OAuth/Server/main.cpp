@@ -1,4 +1,6 @@
 #include <slib.h>
+#include <slib/crypto/oauth_server.h>
+#include <slib/script/ginger.h>
 
 using namespace slib;
 
@@ -22,13 +24,13 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
 	}
 
 public:
-	sl_bool onClientCredentialsGrant(OAuthTokenPayload& payload) override
+	sl_bool onClientCredentialsGrant(TokenPayload& payload) override
 	{
 		payload.user.putItem("type", "credential");
 		return sl_true;
 	}
 
-	sl_bool onPasswordGrant(const String& username, const String& password, OAuthTokenPayload& payload) override
+	sl_bool onPasswordGrant(const String& username, const String& password, TokenPayload& payload) override
 	{
 		payload.user.putItem("type", "password");
 		payload.user.putItem("username", username);
@@ -91,7 +93,7 @@ int main(int argc, const char * argv[])
 		);
 	});
 	param.router.POST("/login", [](HttpServerContext* context) {
-		OAuthServerAuthorizationRequest request;
+		OAuthServer::AuthorizationRequest request;
 		if (oauth.validateAuthorizationRequest(context, request)) {
 			String loginId = context->getParameter("login_id");
 			String password = context->getParameter("password");
@@ -106,7 +108,7 @@ int main(int argc, const char * argv[])
 		return String::null();
 	});
 	param.router.GET("/me", [](HttpServerContext* context) {
-		OAuthTokenPayload data;
+		OAuthServer::TokenPayload data;
 		if (oauth.validateAccessToken(context, data)) {
 			Json ret;
 			ret.putItem("user", data.user);

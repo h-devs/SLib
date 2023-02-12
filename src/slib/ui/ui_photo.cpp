@@ -175,7 +175,7 @@ namespace slib
 	}
 #endif
 
-	SLIB_DEFINE_MEMBER_CLASS_DEFAULT_MEMBERS(PhotoKit, SaveImageParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PhotoKit, SaveImageParam)
 
 	PhotoKit::SaveImageParam::SaveImageParam()
 	{

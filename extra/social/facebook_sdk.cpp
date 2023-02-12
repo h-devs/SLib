@@ -33,13 +33,13 @@ namespace slib
 	{
 	}
 
-	void FacebookSDK::login(const FacebookLoginParam& param)
+	void FacebookSDK::login(const Facebook::LoginParam& param)
 	{
 		Ref<Facebook> instance = Facebook::getInstance();
 		if (instance.isNotNull()) {
 			instance->login(param);
 		} else {
-			FacebookLoginResult result;
+			Facebook::LoginResult result;
 			param.onComplete(result);
 		}
 	}
@@ -82,9 +82,9 @@ namespace slib
 
 #endif
 
-	void FacebookSDK::login(const Function<void(FacebookLoginResult& result)>& onComplete)
+	void FacebookSDK::login(const Function<void(Facebook::LoginResult& result)>& onComplete)
 	{
-		FacebookLoginParam param;
+		Facebook::LoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}

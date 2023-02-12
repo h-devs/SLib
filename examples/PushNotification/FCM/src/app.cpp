@@ -113,7 +113,7 @@ void ExampleFCMApp::onClickSend(View*)
 	if (receiver.isEmpty()) {
 		return;
 	}
-	FCM_SendParam param;
+	FCM_Service::SendParam param;
 	param.legacyServerKey = FCM_SERVICE_LEGACY_KEY;
 	param.receiverDeviceToken = receiver;
 	param.message.title = "FCM";
@@ -126,7 +126,7 @@ void ExampleFCMApp::onClickSend(View*)
 		}}
 	};
 	param.message.badge = 1;
-	param.callback = [](FCM_ServiceSendResponse& response) {
+	param.callback = [](FCM_Service::SendResponse& response) {
 		if (response.flagSuccess) {
 			UI::showAlert(String::format("Success: %s", response.success));
 		} else {

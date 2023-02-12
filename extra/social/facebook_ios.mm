@@ -37,7 +37,7 @@
 
 @interface SLIBFacebookDelegate : NSObject<FBSDKSharingDelegate>
 {
-	@public slib::Function<void(slib::FacebookShareResult&)> onComplete;
+	@public slib::Function<void(slib::Facebook::ShareResult&)> onComplete;
 }
 @end
 
@@ -87,7 +87,7 @@ namespace slib
 			}
 		};
 
-		static void GetToken(OAuthAccessToken& _out, FBSDKAccessToken* _in)
+		static void GetToken(OAuth2::AccessToken& _out, FBSDKAccessToken* _in)
 		{
 			_out.token = Apple::getStringFromNSString(_in.tokenString);
 			_out.expirationTime = Apple::getTimeFromNSDate(_in.expirationDate);
@@ -138,17 +138,17 @@ namespace slib
 	{
 		FBSDKAccessToken* token = [FBSDKAccessToken currentAccessToken];
 		if (token != nil) {
-			OAuthAccessToken oauthToken;
+			OAuth2::AccessToken oauthToken;
 			GetToken(oauthToken, token);
 			instance->setAccessToken(oauthToken);
 		}
 	}
 
-	void FacebookSDK::login(const FacebookLoginParam& param)
+	void FacebookSDK::login(const Facebook::LoginParam& param)
 	{
 		FBSDKLoginManager* manager = FacebookSDKContext::getLoginManager();
 		if (manager == nil) {
-			FacebookLoginResult result;
+			Facebook::LoginResult result;
 			param.onComplete(result);
 			return;
 		}
@@ -174,15 +174,15 @@ namespace slib
 				[array addObject:s];
 			}
 		}
-		Function<void(FacebookLoginResult&)> onComplete = param.onComplete;
+		Function<void(Facebook::LoginResult&)> onComplete = param.onComplete;
 		UIViewController* controller = UIPlatform::getCurrentViewController();
 		if (controller == nil) {
-			FacebookLoginResult result;
+			Facebook::LoginResult result;
 			param.onComplete(result);
 			return;
 		}
 		[manager logInWithPermissions:array fromViewController:controller handler:^(FBSDKLoginManagerLoginResult *result, NSError *error) {
-			FacebookLoginResult login;
+			Facebook::LoginResult login;
 			if (error != nil) {
 				NSString* message = [error localizedDescription];
 				NSLog(@"Facebook Login Error: %@", message);
@@ -206,16 +206,16 @@ namespace slib
 		}];
 	}
 
-	void FacebookSDK::share(const FacebookShareParam& param)
+	void FacebookSDK::share(const Facebook::ShareParam& param)
 	{
 		if (param.url.isEmpty()) {
-			FacebookShareResult result;
+			Facebook::ShareResult result;
 			param.onComplete(result);
 			return;
 		}
 		SLIBFacebookDelegate* delegate = FacebookSDKContext::getShareDelegate();
 		if (delegate == nil) {
-			FacebookShareResult result;
+			Facebook::ShareResult result;
 			param.onComplete(result);
 			return;
 		}
@@ -241,7 +241,7 @@ namespace slib
 
 		dialog.delegate = delegate;
 		if (delegate->onComplete.isNotNull()) {
-			FacebookShareResult result;
+			Facebook::ShareResult result;
 			delegate->onComplete(result);
 		}
 		delegate->onComplete = param.onComplete;
@@ -263,7 +263,7 @@ namespace slib
 
 - (void)sharer:(id<FBSDKSharing>)sharer didCompleteWithResults:(NSDictionary *)results
 {
-	slib::FacebookShareResult result;
+	slib::Facebook::ShareResult result;
 	result.flagSuccess = sl_true;
 	self->onComplete(result);
 	self->onComplete.setNull();
@@ -272,14 +272,14 @@ namespace slib
 - (void)sharer:(id<FBSDKSharing>)sharer didFailWithError:(NSError *)error
 {
 	NSLog(@"Facebook Sharing Error: %@", [error localizedDescription]);
-	slib::FacebookShareResult result;
+	slib::Facebook::ShareResult result;
 	self->onComplete(result);
 	self->onComplete.setNull();
 }
 
 - (void)sharerDidCancel:(id<FBSDKSharing>)sharer
 {
-	slib::FacebookShareResult result;
+	slib::Facebook::ShareResult result;
 	result.flagCancel = sl_true;
 	self->onComplete(result);
 	self->onComplete.setNull();

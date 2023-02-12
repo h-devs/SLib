@@ -32,17 +32,6 @@ namespace slib
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Etsy>, g_instance)
 	}
 
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyUserFeedbackInfo)
-	SLIB_DEFINE_JSON_MEMBERS(EtsyUserFeedbackInfo, count, score)
-
-	EtsyUserFeedbackInfo::EtsyUserFeedbackInfo()
-	{
-		count = 0;
-		score = 0;
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyUser)
 	SLIB_DEFINE_JSON_MEMBERS(EtsyUser, user_id, login_name, primary_email, creation_tsz, user_pub_key, referred_by_user_id, feedback_info, awaiting_feedback_count, use_new_inventory_endpoints)
 
@@ -66,6 +55,14 @@ namespace slib
 	{
 		return getPublicProfileURL(login_name);
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(EtsyUser, FeedbackInfo)
+	SLIB_DEFINE_JSON_MEMBERS(EtsyUser::FeedbackInfo, count, score)
+
+	EtsyUser::FeedbackInfo::FeedbackInfo(): count(0), score(0)
+	{
+	}
+
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyParam)
 

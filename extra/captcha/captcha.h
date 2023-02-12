@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT Captcha
+	class Captcha
 	{
 	public:
 		Captcha();

@@ -25,15 +25,15 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(EtsyLoginParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Etsy, LoginParam)
 
-	EtsyLoginParam::EtsyLoginParam()
+	Etsy::LoginParam::LoginParam()
 	{
 	}
 
-	void Etsy::login(const EtsyLoginParam& _param)
+	void Etsy::login(const Etsy::LoginParam& _param)
 	{
-		OAuth1_LoginParam param = _param;
+		OAuth1::LoginParam param = _param;
 		VariantMap requestTokenParams;
 		requestTokenParams.putAll_NoLock(_param.authorization.customParameters);
 		if (_param.scopes.isNotEmpty()) {
@@ -46,16 +46,16 @@ namespace slib
 		OAuth1::login(param);
 	}
 
-	void Etsy::login(const Function<void(EtsyLoginResult& result)>& onComplete)
+	void Etsy::login(const Function<void(Etsy::LoginResult& result)>& onComplete)
 	{
-		EtsyLoginParam param;
+		LoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}
 
-	void Etsy::login(const List<String>& scopes, const Function<void(EtsyLoginResult& result)>& onComplete)
+	void Etsy::login(const List<String>& scopes, const Function<void(Etsy::LoginResult& result)>& onComplete)
 	{
-		EtsyLoginParam param;
+		LoginParam param;
 		param.scopes = scopes;
 		param.onComplete = onComplete;
 		login(param);

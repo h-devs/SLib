@@ -40,7 +40,7 @@
 	CLASS& CLASS::operator=(CLASS const& other) = default; \
 	CLASS& CLASS::operator=(CLASS&& other) = default;
 
-#define SLIB_DEFINE_MEMBER_CLASS_DEFAULT_MEMBERS(PARENT, CLASS) \
+#define SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PARENT, CLASS) \
 	PARENT::CLASS::~CLASS() {} \
 	PARENT::CLASS::CLASS(PARENT::CLASS const& other) = default; \
 	PARENT::CLASS::CLASS(PARENT::CLASS&& other) = default; \

@@ -138,7 +138,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PayPalParam : public OAuthParam
+	class PayPalParam : public OAuth2_Param
 	{
 	public:
 		PayPalParam(sl_bool flagSandbox = sl_false);

@@ -22,7 +22,7 @@
 
 #include "slib/ui/grid_view.h"
 
-#include "slib/ui/text.h"
+#include "slib/graphics/text.h"
 #include "slib/graphics/canvas.h"
 
 namespace slib

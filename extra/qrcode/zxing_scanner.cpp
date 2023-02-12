@@ -220,8 +220,8 @@ namespace slib
 				}
 			}
 		}
-		ZXingScanParam param;
-		param.format = ZXingFormat::QR_CODE;
+		ZXing::ScanParam param;
+		param.format = ZXing::Format::QR_CODE;
 		param.image = image;
 		param.flagTryHarder = sl_true;
 		param.flagTryRotate = sl_true;

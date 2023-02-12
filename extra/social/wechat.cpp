@@ -199,7 +199,7 @@ namespace slib
 		return m_currentOpenId;
 	}
 
-	void WeChat::authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token)
+	void WeChat::authorizeRequest(UrlRequestParam& param, const OAuth2::AccessToken& token)
 	{
 		param.parameters.put_NoLock("access_token", token.token);
 	}
@@ -337,7 +337,7 @@ namespace slib
 		UrlRequest::send(rp);
 	}
 
-	void WeChat::onCompleteRequestAccessToken(OAuthAccessTokenResult& result)
+	void WeChat::onReceiveAccessToken(OAuth2::AccessTokenResult& result)
 	{
 		m_currentOpenId = result.response["openid"].getString();
 	}

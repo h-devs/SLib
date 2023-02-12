@@ -29,7 +29,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT WeChatUser
+	class WeChatUser
 	{
 	public:
 		String openid;
@@ -53,7 +53,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT WeChatAppResult
+	class WeChatAppResult
 	{
 	public:
 		sl_bool flagSuccess;
@@ -69,11 +69,11 @@ namespace slib
 
 	typedef OAuthApiResult WeChatResult;
 
-	typedef OAuthLoginResult WeChatLoginResult;
+	typedef OAuth2::LoginResult WeChatLoginResult;
 
-	typedef OAuthLoginParam WeChatLoginParam;
+	typedef OAuth2::LoginParam WeChatLoginParam;
 
-	class SLIB_EXPORT WeChatPaymentOrder
+	class WeChatPaymentOrder
 	{
 	public:
 		String partnerId;
@@ -90,7 +90,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT WeChatPaymentResult : public WeChatAppResult
+	class WeChatPaymentResult : public WeChatAppResult
 	{
 	public:
 		WeChatPaymentResult();
@@ -99,7 +99,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT WeChatPaymentRequest
+	class WeChatPaymentRequest
 	{
 	public:
 		WeChatPaymentOrder order;
@@ -113,7 +113,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT WeChatCreateOrderResult
+	class WeChatCreateOrderResult
 	{
 	public:
 		sl_bool flagSuccess;
@@ -137,7 +137,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT WeChatCreateOrderParam
+	class WeChatCreateOrderParam
 	{
 	public:
 		String apiKey; // required
@@ -165,7 +165,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT WeChatParam : public OAuthParam
+	class WeChatParam : public OAuth2_Param
 	{
 	public:
 		WeChatParam();
@@ -205,7 +205,7 @@ namespace slib
 	public:
 		String getOpenId();
 
-		void authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token) override;
+		void authorizeRequest(UrlRequestParam& param, const AccessToken& token) override;
 		using OAuth2::authorizeRequest;
 
 		String getRequestUrl(const String& path);
@@ -217,14 +217,14 @@ namespace slib
 		static void createOrder(const WeChatCreateOrderParam& param);
 
 	protected:
-		void onCompleteRequestAccessToken(OAuthAccessTokenResult& result) override;
+		void onReceiveAccessToken(AccessTokenResult& result) override;
 
 	protected:
 		String m_currentOpenId;
 
 	};
 
-	class SLIB_EXPORT WeChatSDK
+	class WeChatSDK
 	{
 	public:
 		static void initialize(const String& appId, const String& universalURL);

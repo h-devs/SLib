@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT ChatClientParam
+	class ChatClientParam
 	{
 	public:
 		String myId;
@@ -44,7 +44,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ChatClient : public Object
+	class ChatClient : public Object
 	{
 		SLIB_DECLARE_OBJECT
 

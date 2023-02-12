@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT ChatViewItem
+	class ChatViewItem
 	{
 	public:
 		String itemId;
@@ -46,7 +46,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ChatView : public ListView
+	class ChatView : public ListView
 	{
 		SLIB_DECLARE_OBJECT
 

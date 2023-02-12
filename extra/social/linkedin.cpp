@@ -189,25 +189,25 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInShareResult)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(LinkedIn, ShareResult)
 
-	LinkedInShareResult::LinkedInShareResult(UrlRequest* request): LinkedInResult(request)
+	LinkedIn::ShareResult::ShareResult(UrlRequest* request): LinkedInResult(request)
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInShareParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(LinkedIn, ShareParam)
 
-	LinkedInShareParam::LinkedInShareParam()
+	LinkedIn::ShareParam::ShareParam()
 	{
 	}
 
-	void LinkedIn::share(const LinkedInShareParam& param)
+	void LinkedIn::share(const LinkedIn::ShareParam& param)
 	{
 		auto linkedin = ToRef(this);
 		getUser(sl_null, [linkedin, param](LinkedInResult& result, LinkedInUser& user) {
 			if (user.id.isEmpty()) {
 				LogError("LinkedIn Share", "%s", result.response);
-				LinkedInShareResult r(sl_null);
+				ShareResult r(sl_null);
 				*((LinkedInResult*)&r) = result;
 				param.onComplete(r);
 				return;
@@ -242,7 +242,7 @@ namespace slib
 			}
 			rp.setJsonData(json);
 			rp.onComplete = [param](UrlRequest* request) {
-				LinkedInShareResult result(request);
+				ShareResult result(request);
 				String id = result.response["id"].getString();
 				if (id.isEmpty()) {
 					LogError("LinkedIn Share", "%s", result.response);

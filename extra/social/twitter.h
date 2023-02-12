@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT TwitterUser
+	class TwitterUser
 	{
 	public:
 		sl_uint64 id;
@@ -66,11 +66,11 @@ namespace slib
 
 	typedef OAuthApiResult TwitterResult;
 
-	typedef OAuth1_LoginResult TwitterLoginResult;
+	typedef OAuth1::LoginResult TwitterLoginResult;
 
-	typedef OAuth1_LoginParam TwitterLoginParam;
+	typedef OAuth1::LoginParam TwitterLoginParam;
 
-	class SLIB_EXPORT TwitterShareResult : public TwitterResult
+	class TwitterShareResult : public TwitterResult
 	{
 	public:
 		TwitterShareResult(UrlRequest* request);
@@ -79,7 +79,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT TwitterShareParam
+	class TwitterShareParam
 	{
 	public:
 		String status;
@@ -94,7 +94,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT TwitterParam : public OAuth1_Param
+	class TwitterParam : public OAuth1_Param
 	{
 	public:
 		TwitterParam();

@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT PinterestUser
+	class PinterestUser
 	{
 	public:
 		String id;
@@ -47,7 +47,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PinterestBoard
+	class PinterestBoard
 	{
 	public:
 		String id;
@@ -67,9 +67,9 @@ namespace slib
 
 	typedef OAuthApiResult PinterestResult;
 
-	typedef OAuthLoginResult PinterestLoginResult;
+	typedef OAuth2::LoginResult PinterestLoginResult;
 
-	class SLIB_EXPORT PinterestLoginParam: public OAuthLoginParam
+	class PinterestLoginParam: public OAuth2::LoginParam
 	{
 	public:
 		PinterestLoginParam();
@@ -82,7 +82,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT PinterestCreateBoardResult : public PinterestResult
+	class PinterestCreateBoardResult : public PinterestResult
 	{
 	public:
 		PinterestBoard createdBoard;
@@ -94,7 +94,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PinterestCreateBoardParam
+	class PinterestCreateBoardParam
 	{
 	public:
 		String name; // required
@@ -109,7 +109,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PinterestCreatePinResult : public PinterestResult
+	class PinterestCreatePinResult : public PinterestResult
 	{
 	public:
 		PinterestCreatePinResult(UrlRequest* request);
@@ -118,7 +118,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PinterestCreatePinParam
+	class PinterestCreatePinParam
 	{
 	public:
 		String board; // required
@@ -135,7 +135,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PinterestParam : public OAuthParam
+	class PinterestParam : public OAuth2_Param
 	{
 	public:
 		PinterestParam();
@@ -175,7 +175,7 @@ namespace slib
 	public:
 		using OAuth2::authorizeRequest;
 
-		void authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token) override;
+		void authorizeRequest(UrlRequestParam& param, const AccessToken& token) override;
 
 	public:
 		String getRequestUrl(const String& path);

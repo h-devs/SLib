@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT FacebookUser
+	class FacebookUser
 	{
 	public:
 		String id;
@@ -57,55 +57,7 @@ namespace slib
 
 	typedef OAuthApiResult FacebookResult;
 
-	typedef OAuthLoginResult FacebookLoginResult;
-
-	typedef OAuthLoginParam FacebookLoginParam;
-
-	class SLIB_EXPORT FacebookResolveUserUrlParam
-	{
-	public:
-		OAuthWebRedirectDialogOptions dialogOptions;
-		Ptr<OAuthWebRedirectDialog> dialog;
-
-		Function<void(const String& url)> onComplete;
-
-	public:
-		FacebookResolveUserUrlParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookResolveUserUrlParam)
-
-	};
-
-	class SLIB_EXPORT FacebookShareResult
-	{
-	public:
-		sl_bool flagSuccess;
-		sl_bool flagCancel;
-
-	public:
-		FacebookShareResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookShareResult)
-
-	};
-
-	class SLIB_EXPORT FacebookShareParam
-	{
-	public:
-		String url;
-		String quote;
-		String hashTag;
-
-		Function<void(FacebookShareResult&)> onComplete;
-
-	public:
-		FacebookShareParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FacebookShareParam)
-
-	};
-
-	class SLIB_EXPORT FacebookParam : public OAuthParam
+	class FacebookParam : public OAuth2_Param
 	{
 	public:
 		String version;
@@ -148,9 +100,47 @@ namespace slib
 		static Ref<Facebook> getInstance();
 
 	public:
-		static void resolveUserUrl(const FacebookResolveUserUrlParam& param);
+		class ResolveUserUrlParam
+		{
+		public:
+			OAuthWebRedirectDialogOptions dialogOptions;
+			Ptr<OAuthWebRedirectDialog> dialog;
+
+			Function<void(const String& url)> onComplete;
+
+		public:
+			ResolveUserUrlParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ResolveUserUrlParam)
+		};
+
+		static void resolveUserUrl(const ResolveUserUrlParam& param);
 
 		static void resolveUserUrl(const Function<void(const String& url)>& onComplete);
+
+		class ShareResult
+		{
+		public:
+			sl_bool flagSuccess;
+			sl_bool flagCancel;
+
+		public:
+			ShareResult();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShareResult)
+		};
+
+		class ShareParam
+		{
+		public:
+			String url;
+			String quote;
+			String hashTag;
+
+			Function<void(ShareResult&)> onComplete;
+
+		public:
+			ShareParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShareParam)
+		};
 
 	public:
 		String getRequestUrl(const String& path);
@@ -173,11 +163,11 @@ namespace slib
 		static void initialize(); // Must be called in `Application::onStart()` override
 
 	public:
-		static void login(const FacebookLoginParam& param);
+		static void login(const Facebook::LoginParam& param);
 
-		static void login(const Function<void(FacebookLoginResult& result)>& onComplete);
+		static void login(const Function<void(Facebook::LoginResult& result)>& onComplete);
 
-		static void share(const FacebookShareParam& param);
+		static void share(const Facebook::ShareParam& param);
 
 	public:
 		static void clearAccessToken();
