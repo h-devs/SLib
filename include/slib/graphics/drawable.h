@@ -173,6 +173,14 @@ namespace slib
 		// Middle/Center
 		static Ref<Drawable> clipSquare(const Ref<Drawable>& src);
 
+		static Ref<Drawable> loadFromMemory(const void* mem, sl_size size);
+
+		static Ref<Drawable> loadFromMemory(const MemoryView& mem);
+
+		static Ref<Drawable> loadFromFile(const StringParam& filePath);
+
+		static Ref<Drawable> loadFromAsset(const StringParam& path);
+
 	};
 
 	class SLIB_EXPORT PlatformDrawable
@@ -675,7 +683,7 @@ namespace slib
 
 		void setAnimationDuration(float duration);
 
-		List< Ref<Drawable> > getDrawables();
+		List< Ref<Drawable> >& getDrawables();
 
 		void addDrawable(const Ref<Drawable>& drawable);
 

@@ -2382,16 +2382,21 @@ namespace slib
 		return getFileType(mem.data, mem.size);
 	}
 
+	Ref<Image> Image::loadFromMemory(ImageFileType type, const void* mem, sl_size size)
+	{
+		switch (type) {
+			case ImageFileType::JPEG:
+				return loadJpeg(mem, size);
+			case ImageFileType::PNG:
+				return loadPng(mem, size);
+			default:
+				return loadStb(mem, size);
+		}
+	}
+
 	Ref<Image> Image::loadFromMemory(const void* mem, sl_size size)
 	{
-		ImageFileType type = getFileType(mem, size);
-		if (type == ImageFileType::JPEG) {
-			return loadJpeg(mem, size);
-		}
-		if (type == ImageFileType::PNG) {
-			return loadPng(mem, size);
-		}
-		return loadStb(mem, size);
+		return loadFromMemory(getFileType(mem, size), mem, size);
 	}
 
 	Ref<Image> Image::loadFromMemory(const MemoryView& mem)
@@ -2408,13 +2413,17 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<AnimationDrawable> Image::loadAnimationFromMemory(const void* mem, sl_size size)
+	Ref<AnimationDrawable> Image::loadAnimationFromMemory(ImageFileType type, const void* mem, sl_size size)
 	{
-		ImageFileType type = getFileType(mem, size);
 		if (type == ImageFileType::GIF) {
 			return loadStbGif(mem, size);
 		}
 		return sl_null;
+	}
+
+	Ref<AnimationDrawable> Image::loadAnimationFromMemory(const void* mem, sl_size size)
+	{
+		return loadAnimationFromMemory(getFileType(mem, size), mem, size);
 	}
 
 	Ref<AnimationDrawable> Image::loadAnimationFromMemory(const MemoryView& mem)
@@ -2466,13 +2475,6 @@ namespace slib
 
 	void Image::onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param)
 	{
-		if (m_customDrawable.isNotNull()) {
-			Ref<Drawable> drawable = m_customDrawable;
-			if (drawable.isNotNull()) {
-				drawable->onDraw(canvas, rectDst, rectSrc, param);
-				return;
-			}
-		}
 		Ref<Drawable> drawableCached = getDrawableCache(canvas);
 		if (drawableCached.isNotNull()) {
 			drawableCached->onDraw(canvas, rectDst, rectSrc, param);
@@ -2481,60 +2483,10 @@ namespace slib
 
 	void Image::onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{
-		if (m_customDrawable.isNotNull()) {
-			Ref<Drawable> drawable = m_customDrawable;
-			if (drawable.isNotNull()) {
-				drawable->onDrawAll(canvas, rectDst, param);
-				return;
-			}
-		}
 		Ref<Drawable> drawableCached = getDrawableCache(canvas);
 		if (drawableCached.isNotNull()) {
 			drawableCached->onDrawAll(canvas, rectDst, param);
 		}
-	}
-
-	Ref<Drawable> Image::getCustomDrawable()
-	{
-		return m_customDrawable;
-	}
-
-	void Image::setCustomDrawable(const Ref<Drawable>& drawable)
-	{
-		m_customDrawable = drawable;
-	}
-
-	sl_real Image::getDrawableWidth()
-	{
-		if (m_customDrawable.isNotNull()) {
-			Ref<Drawable> drawable = m_customDrawable;
-			if (drawable.isNotNull()) {
-				return drawable->getDrawableWidth();
-			}
-		}
-		return Bitmap::getDrawableWidth();
-	}
-
-	sl_real Image::getDrawableHeight()
-	{
-		if (m_customDrawable.isNotNull()) {
-			Ref<Drawable> drawable = m_customDrawable;
-			if (drawable.isNotNull()) {
-				return drawable->getDrawableHeight();
-			}
-		}
-		return Bitmap::getDrawableHeight();
-	}
-
-	sl_bool Image::getAnimationInfo(DrawableAnimationInfo* info)
-	{
-		if (m_customDrawable.isNotNull()) {
-			Ref<Drawable> drawable = m_customDrawable;
-			if (drawable.isNotNull()) {
-				return drawable->getAnimationInfo(info);
-			}
-		}
-		return sl_false;
 	}
 
 	namespace {

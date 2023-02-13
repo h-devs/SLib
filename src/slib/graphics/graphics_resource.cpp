@@ -22,6 +22,7 @@
 
 #include "slib/graphics/resource.h"
 
+#include "slib/graphics/canvas.h"
 #include "slib/graphics/util.h"
 #include "slib/core/scoped_buffer.h"
 
@@ -38,104 +39,76 @@ namespace slib
 		namespace graphics_resource
 		{
 
-			Ref<Image> ImageEntry::getImage()
+			Ref<Drawable> FileEntry::get()
 			{
-				Ref<Image>& s = *((Ref<Image>*)((void*)&image));
-				if (flag_load) {
-					return s;
-				}
-				SpinLocker locker((SpinLock*)((void*)&lock));
-				if (flag_load) {
-					return s;
-				}
-				s = Image::loadFromMemory(source_bytes, source_size);
-				if (s.isNotNull()) {
-					s->setCustomDrawable(Image::loadAnimationFromMemory(source_bytes, source_size));
-				}
-				flag_load = sl_true;
-				return s;
-			}
-
-			Ref<Image> ImageEntry::getMatchingImage(sl_uint32 reqWidth, sl_uint32 reqHeight)
-			{
-				if (reqWidth == 0 || reqHeight == 0) {
+				if (!flagValid) {
 					return sl_null;
 				}
-				Ref<Image>& s = *((Ref<Image>*)((void*)&image));
-				if (flag_load) {
-					return s;
+				Ref<Drawable>& ref = *((Ref<Drawable>*)((void*)&object));
+				if (flagLoaded) {
+					return ref;
 				}
 				SpinLocker locker((SpinLock*)((void*)&lock));
-				if (flag_load) {
-					return s;
+				if (flagLoaded) {
+					return ref;
 				}
-				if (s.isNotNull()) {
-					if (s->getWidth() >= reqWidth && s->getHeight() >= reqHeight) {
-						return s;
-					}
-				}
-				sl_uint32 zoomLevel = 1;
-				sl_uint32 widthZoom = width;
-				sl_uint32 heightZoom = height;
-				while (widthZoom >= reqWidth && heightZoom >= reqHeight) {
-					widthZoom >>= 1;
-					heightZoom >>= 1;
-					zoomLevel <<= 1;
-				}
-				Ref<Drawable> animation = Image::loadAnimationFromMemory(source_bytes, source_size);
-				if (animation.isNotNull() || zoomLevel <= 2) {
-					s = Image::loadFromMemory(source_bytes, source_size);
-					if (s.isNotNull()) {
-						s->setCustomDrawable(animation);
-					}
-					flag_load = sl_true;
-				} else {
-					Ref<Image> t = Image::loadFromMemory(source_bytes, source_size);
-					if (t.isNotNull()) {
-						zoomLevel >>= 1;
-						s = t->stretchToSmall(zoomLevel);
-					}
-				}
-				return s;
+				ref = Drawable::loadFromMemory(source_bytes, source_size);
+				flagLoaded = sl_true;
+				return ref;
 			}
 
 
-			FreeImageContext::FreeImageContext(ImageEntry* entries)
+			FileEntriesDestructor::FileEntriesDestructor(FileEntry* entries)
 			{
 				m_entries = entries;
 			}
 
-			FreeImageContext::~FreeImageContext()
+			FileEntriesDestructor::~FileEntriesDestructor()
 			{
-				ImageEntry* entry;
+				FileEntry* entry;
 				entry = m_entries;
 				while (entry->flagValid) {
-					(*((Ref<Image>*)((void*)&(entry->image)))).Ref<Image>::~Ref();
+					(*((Ref<Drawable>*)((void*)&(entry->object)))).Ref<Drawable>::~Ref();
 					entry->flagValid = sl_false;
 					entry++;
 				}
 			}
 
-			Ref<Image> GetImage(ImageEntry* entries, sl_uint32 requiredWidth, sl_uint32 requiredHeight)
+
+			FileEntryDestructor::FileEntryDestructor(FileEntry* entries)
 			{
-				ImageEntry* entry;
-				if (requiredWidth == 0 && requiredHeight == 0) {
+				m_entry = entries;
+			}
+
+			FileEntryDestructor::~FileEntryDestructor()
+			{
+				if (m_entry->flagValid) {
+					(*((Ref<Drawable>*)((void*)&(m_entry->object)))).Ref<Drawable>::~Ref();
+					m_entry->flagValid = sl_false;
+				}
+			}
+
+
+			Ref<Drawable> GetSource(FileEntry* entries, sl_uint32 requiredWidth, sl_uint32 requiredHeight)
+			{
+				FileEntry* entry;
+				if (!requiredWidth && !requiredHeight) {
 					entry = entries;
 					if (entry->flagValid) {
-						return entry->getImage();
+						return entry->get();
 					}
 					return sl_null;
 				}
 
 				sl_uint32 minSize = 0;
-				ImageEntry* minEntry = sl_null;
+				FileEntry* minEntry = sl_null;
 				entry = entries;
 				while (entry->flagValid) {
 					sl_uint32 width = entry->width;
 					sl_uint32 height = entry->height;
 					if (width >= requiredWidth && height >= requiredHeight) {
 						sl_uint32 size = width * height;
-						if (minSize == 0 || size < minSize) {
+						if (!minSize || size < minSize) {
 							minSize = size;
 							minEntry = entry;
 						}
@@ -143,17 +116,17 @@ namespace slib
 					entry++;
 				}
 				if (minEntry) {
-					return minEntry->getMatchingImage(requiredWidth, requiredHeight);
+					return minEntry->get();
 				}
 				sl_uint32 maxSize = 0;
-				ImageEntry* maxEntry = sl_null;
+				FileEntry* maxEntry = sl_null;
 				entry = entries;
 				while (entry->flagValid) {
 					sl_uint32 width = entry->width;
 					sl_uint32 height = entry->height;
 					if (width < requiredWidth || height < requiredHeight) {
 						sl_uint32 size = width * height;
-						if (maxSize == 0 || size > maxSize) {
+						if (!maxSize || size > maxSize) {
 							maxSize = size;
 							maxEntry = entry;
 						}
@@ -161,20 +134,20 @@ namespace slib
 					entry++;
 				}
 				if (maxEntry) {
-					return maxEntry->getMatchingImage(requiredWidth, requiredHeight);
+					return maxEntry->get();
 				}
 				return sl_null;
 			}
 
-			List< Ref<Image> > GetImages(ImageEntry* entries)
+			List< Ref<Drawable> > GetList(FileEntry* entries)
 			{
-				List< Ref<Image> > ret;
-				ImageEntry* entry;
+				List< Ref<Drawable> > ret;
+				FileEntry* entry;
 				entry = entries;
 				while (entry->flagValid) {
-					Ref<Image> image = entry->getImage();
-					if (image.isNotNull()) {
-						ret.add_NoLock(image);
+					Ref<Drawable> source = entry->get();
+					if (source.isNotNull()) {
+						ret.add_NoLock(Move(source));
 					}
 					entry++;
 				}
@@ -186,17 +159,15 @@ namespace slib
 
 	namespace {
 
-		class ImageResourceDrawable : public Drawable
+		class FileEntryDrawable : public Drawable
 		{
-			SLIB_DECLARE_OBJECT
-
 		private:
-			priv::graphics_resource::ImageEntry* m_entries;
+			priv::graphics_resource::FileEntry* m_entries;
 			sl_uint32 m_width;
 			sl_uint32 m_height;
 
 		public:
-			ImageResourceDrawable(priv::graphics_resource::ImageEntry* entries, sl_uint32 width, sl_uint32 height)
+			FileEntryDrawable(priv::graphics_resource::FileEntry* entries, sl_uint32 width, sl_uint32 height)
 			{
 				m_entries = entries;
 				m_width = width;
@@ -220,16 +191,16 @@ namespace slib
 				sl_int32 width = (sl_int32)(rectDstWhole.getWidth());
 				sl_int32 height = (sl_int32)(rectDstWhole.getHeight());
 				if (width > 0 && height > 0) {
-					Ref<Image> image = GetImage(m_entries, width, height);
-					if (image.isNotNull()) {
-						float fx = (float)(image->getWidth()) / (float)(m_width);
-						float fy = (float)(image->getHeight()) / (float)(m_height);
+					Ref<Drawable> source = GetSource(m_entries, width, height);
+					if (source.isNotNull()) {
+						float fx = source->getDrawableWidth() / (float)m_width;
+						float fy = source->getDrawableHeight() / (float)m_height;
 						Rectangle r;
 						r.left = rectSrc.left * fx;
 						r.top = rectSrc.top * fy;
 						r.right = rectSrc.right * fx;
 						r.bottom = rectSrc.bottom * fy;
-						canvas->draw(rectDst, image, r, param);
+						canvas->draw(rectDst, source, r, param);
 					}
 				}
 			}
@@ -239,101 +210,14 @@ namespace slib
 				sl_int32 width = (sl_int32)(rectDst.getWidth());
 				sl_int32 height = (sl_int32)(rectDst.getHeight());
 				if (width > 0 && height > 0) {
-					Ref<Image> image = GetImage(m_entries, width, height);
-					if (image.isNotNull()) {
-						canvas->draw(rectDst, image, param);
+					Ref<Drawable> source = GetSource(m_entries, width, height);
+					if (source.isNotNull()) {
+						canvas->draw(rectDst, source, param);
 					}
 				}
-			}
-
-			sl_bool getAnimationInfo(DrawableAnimationInfo* info) override
-			{
-				if (m_entries->flagValid) {
-					Ref<Image> image = m_entries->getImage();
-					if (image.isNotNull()) {
-						return image->getAnimationInfo(info);
-					}
-				}
-				return sl_false;
 			}
 
 		};
-
-		SLIB_DEFINE_OBJECT(ImageResourceDrawable, Drawable)
-
-
-		class SimpleImageResourceDrawable : public Drawable
-		{
-			SLIB_DECLARE_OBJECT
-
-		private:
-			priv::graphics_resource::ImageEntry* m_entry;
-			sl_uint32 m_width;
-			sl_uint32 m_height;
-
-		public:
-			SimpleImageResourceDrawable(priv::graphics_resource::ImageEntry* entry, sl_uint32 width, sl_uint32 height)
-			{
-				m_entry = entry;
-				m_width = width;
-				m_height = height;
-			}
-
-		public:
-			sl_real getDrawableWidth() override
-			{
-				return (sl_real)m_width;
-			}
-
-			sl_real getDrawableHeight() override
-			{
-				return (sl_real)m_height;
-			}
-
-			void onDraw(Canvas* canvas, const Rectangle& rectDst, const Rectangle& rectSrc, const DrawParam& param) override
-			{
-				Rectangle rectDstWhole = GraphicsUtil::transformRectangle(rectDst, rectSrc, Rectangle(0, 0, (float)m_width, (float)m_height));
-				sl_int32 width = (sl_int32)(rectDstWhole.getWidth());
-				sl_int32 height = (sl_int32)(rectDstWhole.getHeight());
-				if (width > 0 && height > 0) {
-					Ref<Image> image = m_entry->getMatchingImage(width, height);
-					if (image.isNotNull()) {
-						float fx = (float)(image->getWidth()) / (float)(m_width);
-						float fy = (float)(image->getHeight()) / (float)(m_height);
-						Rectangle r;
-						r.left = rectSrc.left * fx;
-						r.top = rectSrc.top * fy;
-						r.right = rectSrc.right * fx;
-						r.bottom = rectSrc.bottom * fy;
-						canvas->draw(rectDst, image, r, param);
-					}
-				}
-			}
-
-			void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override
-			{
-				sl_int32 width = (sl_int32)(rectDst.getWidth());
-				sl_int32 height = (sl_int32)(rectDst.getHeight());
-				if (width > 0 && height > 0) {
-					Ref<Image> image = m_entry->getMatchingImage(width, height);
-					if (image.isNotNull()) {
-						canvas->draw(rectDst, image, param);
-					}
-				}
-			}
-
-			sl_bool getAnimationInfo(DrawableAnimationInfo* info) override
-			{
-				Ref<Image> image = m_entry->getImage();
-				if (image.isNotNull()) {
-					return image->getAnimationInfo(info);
-				}
-				return sl_false;
-			}
-
-		};
-
-		SLIB_DEFINE_OBJECT(SimpleImageResourceDrawable, Drawable)
 
 	}
 
@@ -341,14 +225,10 @@ namespace slib
 	{
 		namespace graphics_resource
 		{
-			Ref<Drawable> GetDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height)
+			Ref<Drawable> GetDrawable(FileEntry* entries, sl_uint32 width, sl_uint32 height)
 			{
 				if (entries->flagValid) {
-					if (!(entries[1].flagValid)) {
-						return new SimpleImageResourceDrawable(entries, width, height);
-					} else {
-						return new ImageResourceDrawable(entries, width, height);
-					}
+					return new FileEntryDrawable(entries, width, height);
 				}
 				return sl_null;
 			}

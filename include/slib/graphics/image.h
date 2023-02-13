@@ -92,6 +92,8 @@ namespace slib
 
 		static Ref<Image> createCopyBitmap(const Ref<Bitmap>& bitmap, sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
+		static Ref<Image> from(const Ref<Drawable>& drawable);
+
 	public:
 		sl_uint32 getWidth() const;
 
@@ -204,6 +206,8 @@ namespace slib
 
 		static ImageFileType getFileType(const MemoryView& mem);
 
+		static Ref<Image> loadFromMemory(ImageFileType type, const void* mem, sl_size size);
+
 		static Ref<Image> loadFromMemory(const void* mem, sl_size size);
 
 		static Ref<Image> loadFromMemory(const MemoryView& mem);
@@ -211,6 +215,8 @@ namespace slib
 		static Ref<Image> loadFromFile(const StringParam& filePath);
 
 		static Ref<Image> loadFromAsset(const StringParam& path);
+
+		static Ref<AnimationDrawable> loadAnimationFromMemory(ImageFileType type, const void* mem, sl_size size);
 
 		static Ref<AnimationDrawable> loadAnimationFromMemory(const void* mem, sl_size size);
 
@@ -252,17 +258,6 @@ namespace slib
 		sl_bool saveJpeg(const StringParam& filePath, float quality = 0.5f);
 
 
-		Ref<Drawable> getCustomDrawable();
-
-		void setCustomDrawable(const Ref<Drawable>& drawable);
-
-		sl_real getDrawableWidth() override;
-
-		sl_real getDrawableHeight() override;
-
-		sl_bool getAnimationInfo(DrawableAnimationInfo* info) override;
-
-
 		void drawLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
 
 		void drawSmoothLine(sl_int32 x1, sl_int32 y1, sl_int32 x2, sl_int32 y2, const Color& color, BlendMode blend = BlendMode::Over);
@@ -294,7 +289,6 @@ namespace slib
 
 	protected:
 		ImageDesc m_desc;
-		AtomicRef<Drawable> m_customDrawable;
 
 	};
 

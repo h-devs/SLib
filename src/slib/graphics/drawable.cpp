@@ -25,7 +25,9 @@
 #include "slib/graphics/canvas.h"
 #include "slib/graphics/bitmap.h"
 #include "slib/graphics/image.h"
+#include "slib/graphics/svg.h"
 #include "slib/graphics/util.h"
+#include "slib/io/file.h"
 #include "slib/core/safe_static.h"
 
 namespace slib
@@ -1642,7 +1644,7 @@ namespace slib
 		m_duration = duration;
 	}
 
-	List< Ref<Drawable> > AnimationDrawable::getDrawables()
+	List< Ref<Drawable> >& AnimationDrawable::getDrawables()
 	{
 		return m_drawables;
 	}
@@ -1651,10 +1653,10 @@ namespace slib
 	{
 		m_drawables.add(drawable);
 		if (drawable.isNotNull()) {
-			if (m_width == 0) {
+			if (Math::isAlmostZero(m_width)) {
 				m_width = drawable->getDrawableWidth();
 			}
-			if (m_height == 0) {
+			if (Math::isAlmostZero(m_height)) {
 				m_height = drawable->getDrawableHeight();
 			}
 		}
@@ -1677,6 +1679,35 @@ namespace slib
 			index = count - 1;
 		}
 		return m_drawables.getValueAt(index);
+	}
+
+
+	Ref<Drawable> Drawable::loadFromMemory(const void* mem, sl_size size)
+	{
+		ImageFileType type = Image::getFileType(mem, size);
+		Ref<Drawable> ret = Image::loadAnimationFromMemory(type, mem, size);
+		if (ret.isNotNull()) {
+			return ret;
+		}
+		ret = Image::loadFromMemory(type, mem, size);
+		if (ret.isNotNull()) {
+			return ret;
+		}
+		return Svg::loadFromMemory(mem, size);
+	}
+
+	Ref<Drawable> Drawable::loadFromMemory(const MemoryView& mem)
+	{
+		return loadFromMemory(mem.data, mem.size);
+	}
+
+	Ref<Drawable> Drawable::loadFromFile(const StringParam& filePath)
+	{
+		Memory mem = File::readAllBytes(filePath);
+		if (mem.isNotNull()) {
+			return loadFromMemory(mem);
+		}
+		return sl_null;
 	}
 
 }

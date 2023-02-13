@@ -27,22 +27,18 @@
 namespace slib
 {
 
-	Ref<Image> SAppDrawableResourceImageItem::loadImage()
+	Ref<Drawable> SAppDrawableResourceFileItem::load()
 	{
 		ObjectLocker lock(this);
-		if (image.isNull()) {
-			Ref<Image> image = Image::loadFromFile(filePath);
-			if (image.isNotNull()) {
-				image->setCustomDrawable(Image::loadAnimationFromFile(filePath));
-			}
-			this->image = image;
+		if (drawable.isNull()) {
+			drawable = Drawable::loadFromFile(filePath);
 		}
-		return image;
+		return drawable;
 	}
 
-	SAppDrawableResourceImageAttributes::SAppDrawableResourceImageAttributes()
+	SAppDrawableResourceFileAttributes::SAppDrawableResourceFileAttributes()
 	{
-		defaultImages = List< Ref<SAppDrawableResourceImageItem> >::create();
+		defaultFiles = List< Ref<SAppDrawableResourceFileItem> >::create();
 	}
 
 	SAppDrawableResource::SAppDrawableResource()

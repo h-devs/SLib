@@ -288,7 +288,7 @@ namespace slib
 		for (auto& fileName : fileList) {
 			if (fileName.isNotNull()) {
 				if (fileName == "image") {
-					if (!(_registerImageResources("image", pathApp + "/image", Locale::Unknown))) {
+					if (!(_registerFileResources("image", pathApp + "/image", Locale::Unknown))) {
 						return sl_false;
 					}
 				} else if (fileName.startsWith("image-")) {
@@ -301,7 +301,7 @@ namespace slib
 						_logError(g_str_error_resource_drawable_locale_invalid, fileName);
 						return sl_false;
 					}
-					if (!(_registerImageResources(fileName, File::concatPath(pathApp, fileName), locale))) {
+					if (!(_registerFileResources(fileName, File::concatPath(pathApp, fileName), locale))) {
 						return sl_false;
 					}
 				}

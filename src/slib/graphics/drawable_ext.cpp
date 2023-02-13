@@ -51,6 +51,14 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<Bitmap> Bitmap::from(const Ref<Drawable>& drawable)
+	{
+		if (drawable.isNotNull()) {
+			return drawable->toImage();
+		}
+		return sl_null;
+	}
+
 	Ref<Image> Drawable::toImage()
 	{
 		if (isImage()) {
@@ -62,9 +70,23 @@ namespace slib
 				return image->rotateImage(r->getRotation(), r->getFlip());
 			}
 		}
+		if (AnimationDrawable* a = CastInstance<AnimationDrawable>(this)) {
+			Ref<Drawable> drawable = a->getDrawables().getFirstValue();
+			if (drawable.isNotNull()) {
+				return drawable->toImage();
+			}
+		}
 		Ref<Bitmap> bitmap = toBitmap();
 		if (bitmap.isNotNull()) {
 			return Image::createCopyBitmap(bitmap);
+		}
+		return sl_null;
+	}
+
+	Ref<Image> Image::from(const Ref<Drawable>& drawable)
+	{
+		if (drawable.isNotNull()) {
+			return drawable->toImage();
 		}
 		return sl_null;
 	}

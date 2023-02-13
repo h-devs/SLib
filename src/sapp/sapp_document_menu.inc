@@ -393,11 +393,11 @@ namespace slib
 			} else {
 				String strTitle, strIcon;
 				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle) &&
-					_getImageAccessString(resource->localNamespace, item->icon, item->element, strIcon)
+					_getDrawableAccessString(resource->localNamespace, item->icon, item->element, strIcon)
 				) {
 					if (item->checkedIcon.flagDefined) {
 						String strCheckedIcon;
-						if (_getImageAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
+						if (_getDrawableAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
 							sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strIcon, strCheckedIcon, item->checked.getAccessString()));
 						} else {
 							return sl_false;
@@ -455,10 +455,10 @@ namespace slib
 			} else {
 				String strTitle, strIcon, strCheckedIcon;
 				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle) &&
-					_getImageAccessString(resource->localNamespace, item->icon, item->element, strIcon)
+					_getDrawableAccessString(resource->localNamespace, item->icon, item->element, strIcon)
 				) {
 					if (item->checkedIcon.flagDefined) {
-						if (_getImageAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
+						if (_getDrawableAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
 							sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey, strIcon, strCheckedIcon, item->checked.getAccessString()));
 						} else {
 							return sl_false;
@@ -585,10 +585,10 @@ namespace slib
 				}
 			} else {
 				String title;
-				Ref<Image> icon, checkedIcon;
+				Ref<Drawable> icon, checkedIcon;
 				if (_getStringValue(resource->localNamespace, item->title, item->element, title) &&
-					_getImageValue(resource->localNamespace, item->icon, item->element, icon) &&
-					_getImageValue(resource->localNamespace, item->checkedIcon, item->element, checkedIcon)
+					_getDrawableValue(resource->localNamespace, item->icon, item->element, icon) &&
+					_getDrawableValue(resource->localNamespace, item->checkedIcon, item->element, checkedIcon)
 					) {
 					parent->addSubmenu(submenu, title, icon, checkedIcon);
 				} else {
@@ -623,10 +623,10 @@ namespace slib
 				}
 			} else {
 				String title;
-				Ref<Image> icon, checkedIcon;
+				Ref<Drawable> icon, checkedIcon;
 				if (_getStringValue(resource->localNamespace, item->title, item->element, title) &&
-					_getImageValue(resource->localNamespace, item->icon, item->element, icon) &&
-					_getImageValue(resource->localNamespace, item->checkedIcon, item->element, checkedIcon)
+					_getDrawableValue(resource->localNamespace, item->icon, item->element, icon) &&
+					_getDrawableValue(resource->localNamespace, item->checkedIcon, item->element, checkedIcon)
 					) {
 					parent->addMenuItem(title, km, icon, checkedIcon);
 				} else {
