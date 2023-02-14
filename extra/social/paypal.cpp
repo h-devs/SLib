@@ -31,84 +31,26 @@ namespace slib
 
 		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<PayPal>, g_instance)
 
-		static PayPalOrderStatus ParseOrderStatus(const String& strStatus)
+		static PayPal::OrderStatus ParseOrderStatus(const String& strStatus)
 		{
 			if (strStatus == "CREATED") {
-				return PayPalOrderStatus::CREATED;
+				return PayPal::OrderStatus::CREATED;
 			} else if (strStatus == "SAVED") {
-				return PayPalOrderStatus::SAVED;
+				return PayPal::OrderStatus::SAVED;
 			} else if (strStatus == "APPROVED") {
-				return PayPalOrderStatus::APPROVED;
+				return PayPal::OrderStatus::APPROVED;
 			} else if (strStatus == "VOIDED") {
-				return PayPalOrderStatus::VOIDED;
+				return PayPal::OrderStatus::VOIDED;
 			} else if (strStatus == "COMPLETED") {
-				return PayPalOrderStatus::COMPLETED;
+				return PayPal::OrderStatus::COMPLETED;
 			} else if (strStatus == "SAVED") {
-				return PayPalOrderStatus::SAVED;
+				return PayPal::OrderStatus::SAVED;
 			} else {
-				return PayPalOrderStatus::None;
+				return PayPal::OrderStatus::None;
 			}
 		}
 
 	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCreateOrderResult)
-
-	PayPalCreateOrderResult::PayPalCreateOrderResult(UrlRequest* request) : PayPalResult(request)
-	{
-		status = PayPalOrderStatus::None;
-		if (!request) {
-			return;
-		}
-		if (request->isError()) {
-			return;
-		}
-		orderId = response["id"].getString();
-		status = ParseOrderStatus(response["status"].getString());
-		for (auto& item : response["links"].getJsonList()) {
-			if (item["rel"].getString() == "approve") {
-				approveLink = item["href"].getString();
-				break;
-			}
-		}
-		if (orderId.isNotEmpty() && status == PayPalOrderStatus::CREATED && approveLink.isNotEmpty()) {
-			flagSuccess = sl_true;
-		}
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCreateOrderParam)
-
-	PayPalCreateOrderParam::PayPalCreateOrderParam()
-	{
-		intent = PayPalOrderIntent::CAPTURE;
-		amount = 0;
-		currencyCode = "USD";
-
-		landingPage = PayPalLandingPage::Default;
-		shippingPreference = PayPalShippingPreference::Default;
-		userAction = PayPalOrderUserAction::Default;
-		returnUrl = "https://localhost/return";
-		cancelUrl = "https://localhost/cancel";
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCheckoutResult)
-
-	PayPalCheckoutResult::PayPalCheckoutResult()
-	{
-		flagSuccess = sl_false;
-		flagCancel = sl_false;
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalCheckoutParam)
-
-	PayPalCheckoutParam::PayPalCheckoutParam()
-	{
-	}
-
 
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PayPalParam)
 
@@ -237,15 +179,54 @@ namespace slib
 	{
 		return getRequestUrl("v2/" + path);
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PayPal, CreateOrderResult)
 
-	void PayPal::createOrder(const PayPalCreateOrderParam& param)
+	PayPal::CreateOrderResult::CreateOrderResult(UrlRequest* request) : PayPalResult(request)
+	{
+		status = OrderStatus::None;
+		if (!request) {
+			return;
+		}
+		if (request->isError()) {
+			return;
+		}
+		orderId = response["id"].getString();
+		status = ParseOrderStatus(response["status"].getString());
+		for (auto& item : response["links"].getJsonList()) {
+			if (item["rel"].getString() == "approve") {
+				approveLink = item["href"].getString();
+				break;
+			}
+		}
+		if (orderId.isNotEmpty() && status == OrderStatus::CREATED && approveLink.isNotEmpty()) {
+			flagSuccess = sl_true;
+		}
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PayPal, CreateOrderParam)
+
+	PayPal::CreateOrderParam::CreateOrderParam()
+	{
+		intent = OrderIntent::CAPTURE;
+		amount = 0;
+		currencyCode = "USD";
+
+		landingPage = LandingPage::Default;
+		shippingPreference = ShippingPreference::Default;
+		userAction = UserAction::Default;
+		returnUrl = "https://localhost/return";
+		cancelUrl = "https://localhost/cancel";
+	}
+
+	void PayPal::createOrder(const PayPal::CreateOrderParam& param)
 	{
 		UrlRequestParam rp;
 		rp.method = HttpMethod::POST;
 		rp.url = getRequestUrl_v2("checkout/orders");
 		rp.requestHeaders.put_NoLock("Content-Type", "application/json");
 		const char* strIntent;
-		if (param.intent == PayPalOrderIntent::CAPTURE) {
+		if (param.intent == OrderIntent::CAPTURE) {
 			strIntent = "CAPTURE";
 		} else {
 			strIntent = "AUTHORIZE";
@@ -269,29 +250,29 @@ namespace slib
 		if (param.locale.isNotEmpty()) {
 			application_context.putItem("locale", param.locale);
 		}
-		if (param.landingPage != PayPalLandingPage::Default) {
+		if (param.landingPage != LandingPage::Default) {
 			const char* s;
-			if (param.landingPage == PayPalLandingPage::LOGIN) {
+			if (param.landingPage == LandingPage::LOGIN) {
 				s = "LOGIN";
 			} else {
 				s = "BILLING";
 			}
 			application_context.putItem("landing_page", s);
 		}
-		if (param.shippingPreference != PayPalShippingPreference::Default) {
+		if (param.shippingPreference != ShippingPreference::Default) {
 			const char* s;
-			if (param.shippingPreference == PayPalShippingPreference::GET_FROM_FILE) {
+			if (param.shippingPreference == ShippingPreference::GET_FROM_FILE) {
 				s = "GET_FROM_FILE";
-			} else if (param.shippingPreference == PayPalShippingPreference::NO_SHIPPING) {
+			} else if (param.shippingPreference == ShippingPreference::NO_SHIPPING) {
 				s = "NO_SHIPPING";
 			} else {
 				s = "SET_PROVIDED_ADDRESS";
 			}
 			application_context.putItem("shipping_preference", s);
 		}
-		if (param.userAction != PayPalOrderUserAction::Default) {
+		if (param.userAction != UserAction::Default) {
 			const char* s;
-			if (param.userAction == PayPalOrderUserAction::CONTINUE) {
+			if (param.userAction == UserAction::CONTINUE) {
 				s = "CONTINUE";
 			} else {
 				s = "PAY_NOW";
@@ -305,11 +286,28 @@ namespace slib
 
 		auto onComplete = param.onComplete;
 		rp.onComplete = [onComplete](UrlRequest* request) {
-			PayPalCreateOrderResult result(request);
+			CreateOrderResult result(request);
 			onComplete(result);
 		};
 		authorizeRequest(rp);
 		UrlRequest::send(rp);
 	}
+	
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PayPal, CheckoutResult)
+
+	PayPal::CheckoutResult::CheckoutResult()
+	{
+		flagSuccess = sl_false;
+		flagCancel = sl_false;
+	}
+
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PayPal, CheckoutParam)
+
+	PayPal::CheckoutParam::CheckoutParam()
+	{
+	}
+
 
 }

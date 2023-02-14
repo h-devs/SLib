@@ -6,7 +6,7 @@
 void MainPage::onOpen()
 {
 	btnLogin->setOnClick([](View*) {
-		WeChatSDK::login([](WeChatLoginResult& response) {
+		WeChatSDK::login([](WeChat::LoginResult& response) {
 			if (response.flagCancel) {
 				return;
 			}

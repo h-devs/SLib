@@ -46,8 +46,8 @@ namespace slib
 		public:
 			SLIBWeChatSDKDelegate* delegate;
 			Mutex lock;
-			Function<void(WeChatLoginResult&)> callbackLogin;
-			Function<void(WeChatPaymentResult&)> callbackPay;
+			Function<void(WeChat::LoginResult&)> callbackLogin;
+			Function<void(WeChat::PaymentResult&)> callbackPay;
 
 		public:
 			StaticContext()
@@ -60,36 +60,36 @@ namespace slib
 			}
 
 		public:
-			void setLoginCallback(const Function<void(WeChatLoginResult&)>& callback)
+			void setLoginCallback(const Function<void(WeChat::LoginResult&)>& callback)
 			{
 				MutexLocker locker(&lock);
 				if (callbackPay.isNotNull()) {
-					WeChatLoginResult result;
+					WeChat::LoginResult result;
 					result.flagCancel = sl_true;
 					callbackLogin(result);
 				}
 				callbackLogin = callback;
 			}
 
-			void onLoginResult(WeChatLoginResult& result)
+			void onLoginResult(WeChat::LoginResult& result)
 			{
 				MutexLocker locker(&lock);
 				callbackLogin(result);
 				callbackLogin.setNull();
 			}
 
-			void setPayCallback(const Function<void(WeChatPaymentResult&)>& callback)
+			void setPayCallback(const Function<void(WeChat::PaymentResult&)>& callback)
 			{
 				MutexLocker locker(&lock);
 				if (callbackPay.isNotNull()) {
-					WeChatPaymentResult result;
+					WeChat::PaymentResult result;
 					result.flagCancel = sl_true;
 					callbackPay(result);
 				}
 				callbackPay = callback;
 			}
 
-			void onPayResult(WeChatPaymentResult& result)
+			void onPayResult(WeChat::PaymentResult& result)
 			{
 				MutexLocker locker(&lock);
 				callbackPay(result);
@@ -108,10 +108,10 @@ namespace slib
 		[WXApi registerApp:Apple::getNSStringFromString(appId) universalLink:Apple::getNSStringFromString(universalLink)];
 	}
 
-	void WeChatSDK::login(const WeChatLoginParam& param)
+	void WeChatSDK::login(const WeChat::LoginParam& param)
 	{
 		if (!(UI::isUiThread())) {
-			void (*f)(const WeChatLoginParam&) = &WeChatSDK::login;
+			void (*f)(const WeChat::LoginParam&) = &WeChatSDK::login;
 			UI::dispatchToUiThread(Function<void()>::bind(f, param));
 			return;
 		}
@@ -123,13 +123,13 @@ namespace slib
 		req.state = [NSString stringWithFormat:@"%d", (int)(Time::now().toInt())];
 		[WXApi sendReq:req completion:^(BOOL success) {
 			if (!success) {
-				WeChatLoginResult result;
+				WeChat::LoginResult result;
 				GetStaticContext()->onLoginResult(result);
 			}
 		}];
 	}
 
-	void WeChatSDK::pay(const WeChatPaymentRequest& param)
+	void WeChatSDK::pay(const WeChat::PaymentRequest& param)
 	{
 		if (!(UI::isUiThread())) {
 			UI::dispatchToUiThread(Function<void()>::bind(&WeChatSDK::pay, param));
@@ -147,7 +147,7 @@ namespace slib
 		req.sign = Apple::getNSStringFromString(param.order.sign);
 		[WXApi sendReq:req completion:^(BOOL success) {
 			if (!success) {
-				WeChatPaymentResult result;
+				WeChat::PaymentResult result;
 				GetStaticContext()->onPayResult(result);
 			}
 		}];
@@ -163,7 +163,7 @@ using namespace slib;
 {
 	if ([resp isKindOfClass:[SendAuthResp class]]) {
 		SendAuthResp* response = (SendAuthResp*)resp;
-		WeChatLoginResult result;
+		WeChat::LoginResult result;
 		switch(response.errCode){
 			case WXSuccess:
 				result.flagSuccess = sl_true;
@@ -178,7 +178,7 @@ using namespace slib;
 		GetStaticContext()->onLoginResult(result);
 	} else if ([resp isKindOfClass:[PayResp class]]) {
 		PayResp* response = (PayResp*)resp;
-		WeChatPaymentResult result;
+		WeChat::PaymentResult result;
 		switch(response.errCode){
 			case WXSuccess:
 				result.flagSuccess = sl_true;

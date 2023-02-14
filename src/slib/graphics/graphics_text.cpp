@@ -1207,7 +1207,7 @@ namespace slib
 
 	void TextParagraph::addHyperText(const StringParam& text, const Ref<TextStyle>& style) noexcept
 	{
-		XmlParseParam param;
+		Xml::ParseParam param;
 		param.flagLogError = sl_false;
 		param.setCreatingOnlyElementsAndTexts();
 		param.flagCreateWhiteSpaces = sl_true;

@@ -1467,9 +1467,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XmlParseParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Xml, ParseParam)
 
-	XmlParseParam::XmlParseParam()
+	Xml::ParseParam::ParseParam()
 	{
 		flagCreateDocument = sl_true;
 		flagCreateCommentNodes = sl_false;
@@ -1489,7 +1489,7 @@ namespace slib
 		errorPosition = 0;
 	}
 
-	String XmlParseParam::getErrorText()
+	String Xml::ParseParam::getErrorText()
 	{
 		if (flagError) {
 			return String::concat("(", String::fromSize(errorLine), ":", String::fromSize(errorColumn), ") ", errorMessage);
@@ -1497,7 +1497,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void XmlParseParam::setCreatingAll()
+	void Xml::ParseParam::setCreatingAll()
 	{
 		flagCreateDocument = sl_true;
 		flagCreateCommentNodes = sl_true;
@@ -1506,7 +1506,7 @@ namespace slib
 		flagCreateWhiteSpaces = sl_true;
 	}
 
-	void XmlParseParam::setCreatingOnlyElements()
+	void Xml::ParseParam::setCreatingOnlyElements()
 	{
 		flagCreateDocument = sl_true;
 		flagCreateCommentNodes = sl_false;
@@ -1515,7 +1515,7 @@ namespace slib
 		flagCreateWhiteSpaces = sl_false;
 	}
 
-	void XmlParseParam::setCreatingOnlyElementsAndTexts()
+	void Xml::ParseParam::setCreatingOnlyElementsAndTexts()
 	{
 		flagCreateDocument = sl_true;
 		flagCreateCommentNodes = sl_false;
@@ -1525,9 +1525,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XmlParseControl)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Xml, ParseControl)
 
-	XmlParseControl::XmlParseControl()
+	Xml::ParseControl::ParseControl()
 	{
 		characterSize = 0;
 		flagChangeSource = sl_false;
@@ -1553,9 +1553,9 @@ namespace slib
 			sl_size posForLineColumn;
 
 			Ref<XmlDocument> document;
-			XmlParseControl control;
+			Xml::ParseControl control;
 
-			XmlParseParam param;
+			Xml::ParseParam param;
 
 			sl_bool flagError;
 			String errorMessage;
@@ -1596,7 +1596,7 @@ namespace slib
 
 			void parse();
 
-			static Ref<XmlDocument> parse(const CHAR* buf, sl_size len, XmlParseParam& param);
+			static Ref<XmlDocument> parse(const CHAR* buf, sl_size len, Xml::ParseParam& param);
 
 		};
 
@@ -2593,7 +2593,7 @@ return;
 		}
 
 		template <class CHAR>
-		Ref<XmlDocument> XmlParser<CHAR>::parse(const CHAR* buf, sl_size len, XmlParseParam& param)
+		Ref<XmlDocument> XmlParser<CHAR>::parse(const CHAR* buf, sl_size len, Xml::ParseParam& param)
 		{
 			param.flagError = sl_false;
 
@@ -2637,40 +2637,40 @@ return;
 
 	}
 
-	Ref<XmlDocument> Xml::parse(const sl_char8* str, sl_size len, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char8* str, sl_size len, Xml::ParseParam& param)
 	{
 		return XmlParser<sl_char8>::parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const sl_char16* str, sl_size len, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char16* str, sl_size len, Xml::ParseParam& param)
 	{
 		return XmlParser<sl_char16>::parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const sl_char32* str, sl_size len, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char32* str, sl_size len, Xml::ParseParam& param)
 	{
 		return XmlParser<sl_char32>::parse(str, len, param);
 	}
 
 	Ref<XmlDocument> Xml::parse(const sl_char8* sz, sl_size len)
 	{
-		XmlParseParam param;
+		ParseParam param;
 		return parse(sz, len, param);
 	}
 
 	Ref<XmlDocument> Xml::parse(const sl_char16* str, sl_size len)
 	{
-		XmlParseParam param;
+		ParseParam param;
 		return parse(str, len, param);
 	}
 
 	Ref<XmlDocument> Xml::parse(const sl_char32* str, sl_size len)
 	{
-		XmlParseParam param;
+		ParseParam param;
 		return parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const StringParam& _xml, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const StringParam& _xml, Xml::ParseParam& param)
 	{
 		if (_xml.isEmpty()) {
 			return sl_null;
@@ -2689,11 +2689,11 @@ return;
 
 	Ref<XmlDocument> Xml::parse(const StringParam& xml)
 	{
-		XmlParseParam param;
+		ParseParam param;
 		return parse(xml, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const MemoryView& utf, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parse(const MemoryView& utf, Xml::ParseParam& param)
 	{
 		if (!(utf.size)) {
 			return sl_null;
@@ -2706,11 +2706,11 @@ return;
 		if (!(utf.size)) {
 			return sl_null;
 		}
-		XmlParseParam param;
+		ParseParam param;
 		return parse(utf, param);
 	}
 
-	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath, XmlParseParam& param)
+	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath, Xml::ParseParam& param)
 	{
 		if (param.sourceFilePath.isNull()) {
 			param.sourceFilePath = filePath.toString();
@@ -2720,7 +2720,7 @@ return;
 
 	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath)
 	{
-		XmlParseParam param;
+		ParseParam param;
 		return parseTextFile(filePath, param);
 	}
 

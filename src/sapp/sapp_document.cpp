@@ -637,7 +637,7 @@ namespace slib
 			return sl_false;
 		}
 
-		XmlParseParam param;
+		Xml::ParseParam param;
 		param.flagLogError = sl_false;
 		param.setCreatingOnlyElementsAndTexts();
 		Ref<XmlDocument> xml = Xml::parseTextFile(filePath, param);
@@ -789,7 +789,7 @@ namespace slib
 	{
 		_log(g_str_log_open_resource_begin, filePath);
 
-		XmlParseParam param;
+		Xml::ParseParam param;
 		param.flagLogError = sl_false;
 		param.flagSupportCpp11String = sl_true;
 		param.setCreatingOnlyElementsAndTexts();

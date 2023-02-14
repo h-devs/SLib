@@ -8,6 +8,6 @@ public:
 	void onOpen() override;
 
 private:
-	WeChatPaymentOrder m_order;
+	WeChat::PaymentOrder m_order;
 
 };

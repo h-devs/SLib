@@ -81,7 +81,7 @@ namespace slib
 				return sl_false;
 			}
 		}
-		ServiceCreateParam param;
+		CreateServiceParam param;
 		param.type = ServiceType::FileSystem;
 		param.startType = ServiceStartType::Auto;
 		param.name = DOKANY_DRIVER_NAME;

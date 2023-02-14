@@ -30,114 +30,6 @@ namespace slib
 
 	typedef OAuthApiResult PayPalResult;
 
-	enum class PayPalOrderIntent
-	{
-		CAPTURE,
-		AUTHORIZE
-	};
-
-	enum class PayPalOrderStatus
-	{
-		None,
-		CREATED,
-		SAVED,
-		APPROVED,
-		VOIDED,
-		COMPLETED
-	};
-
-	enum class PayPalLandingPage
-	{
-		Default,
-		LOGIN,
-		BILLING
-	};
-
-	enum class PayPalShippingPreference
-	{
-		Default,
-		GET_FROM_FILE,
-		NO_SHIPPING,
-		SET_PROVIDED_ADDRESS
-	};
-
-	enum class PayPalOrderUserAction
-	{
-		Default,
-		CONTINUE,
-		PAY_NOW
-	};
-
-	class PayPalCreateOrderResult : public PayPalResult
-	{
-	public:
-		String orderId;
-		PayPalOrderStatus status;
-		String approveLink;
-
-	public:
-		PayPalCreateOrderResult(UrlRequest*);
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PayPalCreateOrderResult);
-
-	};
-
-	class PayPalCreateOrderParam
-	{
-	public:
-		PayPalOrderIntent intent;
-		double amount;
-		String currencyCode;
-		String description;
-
-		String brandName;
-		String locale;
-		PayPalLandingPage landingPage;
-		PayPalShippingPreference shippingPreference;
-		PayPalOrderUserAction userAction;
-		String returnUrl;
-		String cancelUrl;
-
-		Function<void(PayPalCreateOrderResult&)> onComplete;
-
-	public:
-		PayPalCreateOrderParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PayPalCreateOrderParam)
-
-	};
-
-
-	class PayPalCheckoutResult
-	{
-	public:
-		sl_bool flagSuccess;
-		sl_bool flagCancel;
-
-		String orderId;
-
-	public:
-		PayPalCheckoutResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PayPalCheckoutResult);
-
-	};
-
-	class PayPalCheckoutParam : public PayPalCreateOrderParam
-	{
-	public:
-		OAuthWebRedirectDialogOptions dialogOptions;
-		Ptr<OAuthWebRedirectDialog> dialog;
-
-		Function<void(PayPalCheckoutResult&)> onComplete;
-
-	public:
-		PayPalCheckoutParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PayPalCheckoutParam)
-
-	};
-
 	class PayPalParam : public OAuth2_Param
 	{
 	public:
@@ -158,6 +50,45 @@ namespace slib
 	class PayPal : public OAuth2
 	{
 		SLIB_DECLARE_OBJECT
+
+	public:
+		enum class OrderIntent
+		{
+			CAPTURE,
+			AUTHORIZE
+		};
+
+		enum class OrderStatus
+		{
+			None,
+			CREATED,
+			SAVED,
+			APPROVED,
+			VOIDED,
+			COMPLETED
+		};
+
+		enum class LandingPage
+		{
+			Default,
+			LOGIN,
+			BILLING
+		};
+
+		enum class ShippingPreference
+		{
+			Default,
+			GET_FROM_FILE,
+			NO_SHIPPING,
+			SET_PROVIDED_ADDRESS
+		};
+
+		enum class UserAction
+		{
+			Default,
+			CONTINUE,
+			PAY_NOW
+		};
 
 	protected:
 		PayPal(const PayPalParam& param);
@@ -192,10 +123,72 @@ namespace slib
 
 		String getRequestUrl_v2(const String& path);
 
-		void createOrder(const PayPalCreateOrderParam& param);
+		class CreateOrderResult : public PayPalResult
+		{
+		public:
+			String orderId;
+			OrderStatus status;
+			String approveLink;
+
+		public:
+			CreateOrderResult(UrlRequest*);
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateOrderResult)
+		};
+
+		class CreateOrderParam
+		{
+		public:
+			OrderIntent intent;
+			double amount;
+			String currencyCode;
+			String description;
+
+			String brandName;
+			String locale;
+			LandingPage landingPage;
+			ShippingPreference shippingPreference;
+			UserAction userAction;
+			String returnUrl;
+			String cancelUrl;
+
+			Function<void(CreateOrderResult&)> onComplete;
+
+		public:
+			CreateOrderParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateOrderParam)
+		};
+
+		void createOrder(const CreateOrderParam& param);
+
+
+		class CheckoutResult
+		{
+		public:
+			sl_bool flagSuccess;
+			sl_bool flagCancel;
+
+			String orderId;
+
+		public:
+			CheckoutResult();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CheckoutResult)
+		};
+
+		class CheckoutParam : public CreateOrderParam
+		{
+		public:
+			OAuthWebRedirectDialogOptions dialogOptions;
+			Ptr<OAuthWebRedirectDialog> dialog;
+
+			Function<void(CheckoutResult&)> onComplete;
+
+		public:
+			CheckoutParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CheckoutParam)
+		};
 
 		// Note that you should initialize PayPal instance with `accessToken` (which is granted on your secure server containing `clientSecret`) on mobile/desktop apps.
-		void checkout(const PayPalCheckoutParam& param);
+		void checkout(const CheckoutParam& param);
 
 	public:
 		sl_bool m_flagSandbox;

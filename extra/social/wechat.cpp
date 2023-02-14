@@ -64,45 +64,30 @@ namespace slib
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WeChatAppResult)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(WeChat, AppResult)
 
-	WeChatAppResult::WeChatAppResult()
+	WeChat::AppResult::AppResult()
 	{
 		flagSuccess = sl_false;
 		flagCancel = sl_false;
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WeChatPaymentOrder)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(WeChat, PaymentOrder)
 
-	WeChatPaymentOrder::WeChatPaymentOrder()
+	WeChat::PaymentOrder::PaymentOrder()
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WeChatPaymentResult)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(WeChat, PaymentResult)
 
-	WeChatPaymentResult::WeChatPaymentResult()
+	WeChat::PaymentResult::PaymentResult()
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WeChatPaymentRequest)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(WeChat, PaymentRequest)
 
-	WeChatPaymentRequest::WeChatPaymentRequest()
+	WeChat::PaymentRequest::PaymentRequest()
 	{
-	}
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WeChatCreateOrderResult)
-
-	WeChatCreateOrderResult::WeChatCreateOrderResult()
-	{
-		flagSuccess = sl_false;
-		request = sl_null;
-	}
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(WeChatCreateOrderParam)
-
-	WeChatCreateOrderParam::WeChatCreateOrderParam()
-	{
-		amount = 0;
 	}
 
 
@@ -236,8 +221,23 @@ namespace slib
 	{
 		getUser(String::null(), onComplete);
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(WeChat, CreateOrderResult)
 
-	void WeChat::createOrder(const WeChatCreateOrderParam& param)
+	WeChat::CreateOrderResult::CreateOrderResult()
+	{
+		flagSuccess = sl_false;
+		request = sl_null;
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(WeChat, CreateOrderParam)
+
+	WeChat::CreateOrderParam::CreateOrderParam()
+	{
+		amount = 0;
+	}
+
+	void WeChat::createOrder(const WeChat::CreateOrderParam& param)
 	{
 		Map<String, String> map;
 		map.put_NoLock("appid", param.appId);
@@ -297,7 +297,7 @@ namespace slib
 		auto onComplete = param.onComplete;
 		String apiKey = param.apiKey;
 		rp.onComplete = [onComplete, apiKey](UrlRequest* req) {
-			WeChatCreateOrderResult result;
+			CreateOrderResult result;
 			result.request = req;
 			result.responseText = req->getResponseContentAsString();
 			if (!(req->isError())) {

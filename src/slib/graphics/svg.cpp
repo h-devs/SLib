@@ -1805,9 +1805,9 @@ namespace slib
 		public:
 			sl_bool load(const void* mem, sl_size size)
 			{
-				XmlParseParam param;
+				Xml::ParseParam param;
 				param.flagLogError = sl_false;
-				param.onEndElement = [this](XmlParseControl*, XmlElement* xml) {
+				param.onEndElement = [this](Xml::ParseControl*, XmlElement* xml) {
 					String name = xml->getName();
 					if (name == StringView::literal("style")) {
 						loadStyle(xml->getText());

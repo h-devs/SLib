@@ -60,10 +60,6 @@ namespace slib
 
 	};
 
-	typedef OAuth2::LoginResult EbayLoginResult;
-
-	typedef OAuth2::LoginParam EbayLoginParam;
-
 	class EbayParam : public OAuth2_Param
 	{
 	public:

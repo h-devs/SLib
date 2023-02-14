@@ -38,35 +38,6 @@ namespace slib
 
 	class JsonItem;
 
-	class SLIB_EXPORT JsonParseParam
-	{
-	public:
-		// in
-		sl_bool flagSupportComments;
-		// in
-		sl_bool flagLogError;
-
-		// out
-		sl_bool flagError;
-		// out
-		sl_size errorPosition;
-		// out
-		sl_size errorLine;
-		// out
-		sl_size errorColumn;
-		// out
-		String errorMessage;
-
-	public:
-		JsonParseParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(JsonParseParam)
-
-	public:
-		String getErrorText();
-
-	};
-
 	// No thread-safe
 	class SLIB_EXPORT Json : public Variant
 	{
@@ -284,27 +255,47 @@ namespace slib
 		sl_bool putItem(const String& key, const Json& value);
 
 	public:
-		static Json parse(const sl_char8* str, sl_size len, JsonParseParam& param);
+		class SLIB_EXPORT ParseParam
+		{
+		public:
+			sl_bool flagSupportComments; // in
+			sl_bool flagLogError; // in
+
+			sl_bool flagError; // out
+			sl_size errorPosition; // out
+			sl_size errorLine; // out
+			sl_size errorColumn; // out
+			String errorMessage; // out
+
+		public:
+			ParseParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ParseParam)
+
+		public:
+			String getErrorText();
+		};
+
+		static Json parse(const sl_char8* str, sl_size len, ParseParam& param);
 
 		static Json parse(const sl_char8* str, sl_size len);
 
-		static Json parse(const sl_char16* str, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char16* str, sl_size len, ParseParam& param);
 
 		static Json parse(const sl_char16* str, sl_size len);
 
-		static Json parse(const sl_char32* str, sl_size len, JsonParseParam& param);
+		static Json parse(const sl_char32* str, sl_size len, ParseParam& param);
 
 		static Json parse(const sl_char32* str, sl_size len);
 
-		static Json parse(const StringParam& str, JsonParseParam& param);
+		static Json parse(const StringParam& str, ParseParam& param);
 
 		static Json parse(const StringParam& str);
 
-		static Json parse(const MemoryView& utf, JsonParseParam& param);
+		static Json parse(const MemoryView& utf, ParseParam& param);
 
 		static Json parse(const MemoryView& utf);
 
-		static Json parseTextFile(const StringParam& filePath, JsonParseParam& param);
+		static Json parseTextFile(const StringParam& filePath, ParseParam& param);
 
 		static Json parseTextFile(const StringParam& filePath);
 

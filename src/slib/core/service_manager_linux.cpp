@@ -71,7 +71,7 @@ namespace slib
 		return getState(name) != ServiceState::None;
 	}
 
-	sl_bool ServiceManager::create(const ServiceCreateParam& param)
+	sl_bool ServiceManager::create(const CreateServiceParam& param)
 	{
 		if (!(Process::isCurrentProcessAdmin())) {
 			return sl_false;
