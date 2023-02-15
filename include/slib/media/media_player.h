@@ -75,36 +75,6 @@ namespace slib
 
 	};
 
-	// save this structure after rendering and reuse for next frame
-	class MediaPlayerRenderVideoParam
-	{
-	public:
-		// in
-		Function<void(VideoFrame&)> onUpdateFrame;
-
-		// in
-		Ref<GLRenderEngine> glEngine;
-
-		// out
-		Ref<Texture> glTextureOES;
-		// out
-		Matrix3 glTextureTransformOES;
-
-		// out
-		sl_bool flagUpdated;
-
-	public:
-		// used interally by MediaPlayer
-		sl_uint64 _glEngineIdLast;
-		sl_uint32 _glTextureNameOES;
-
-	public:
-		MediaPlayerRenderVideoParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(MediaPlayerRenderVideoParam)
-
-	};
-
 	class SLIB_EXPORT MediaPlayer : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -145,7 +115,29 @@ namespace slib
 		// Seconds
 		virtual void seekTo(double seconds) = 0;
 
-		virtual void renderVideo(MediaPlayerRenderVideoParam& param) = 0;
+		// save this structure after rendering and reuse for next frame
+		class RenderVideoParam
+		{
+		public:
+			Function<void(VideoFrame&)> onUpdateFrame; // in
+			Ref<GLRenderEngine> glEngine; // in
+
+			Ref<Texture> glTextureOES; // out
+			Matrix3 glTextureTransformOES; // out
+
+			sl_bool flagUpdated; // out
+
+		public:
+			// used interally by MediaPlayer
+			sl_uint64 _glEngineIdLast;
+			sl_uint32 _glTextureNameOES;
+
+		public:
+			RenderVideoParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderVideoParam)
+		};
+
+		virtual void renderVideo(RenderVideoParam& param) = 0;
 
 	public:
 		sl_bool isAutoRepeat();

@@ -143,7 +143,7 @@ namespace slib
 	{
 	}
 
-	sl_bool OAuthServer::validateAuthorizationRequest(HttpServerContext* context, OAuthServer::AuthorizationRequest& request)
+	sl_bool OAuthServer::validateAuthorizationRequest(HttpServerContext* context, AuthorizationRequest& request)
 	{
 		String strResponseType = context->getParameter("response_type");
 		sl_bool flagResponseTypeError = sl_false;
@@ -220,7 +220,7 @@ namespace slib
 		return sl_true;
 	}
 
-	void OAuthServer::completeAuthorizationRequest(HttpServerContext* context, const OAuthServer::AuthorizationRequest& request, const Json& userEntity)
+	void OAuthServer::completeAuthorizationRequest(HttpServerContext* context, const AuthorizationRequest& request, const Json& userEntity)
 	{
 		if (request.responseType == ResponseType::Token) {
 
@@ -280,7 +280,7 @@ namespace slib
 		}
 	}
 
-	void OAuthServer::completeAuthorizationRequestWithError(HttpServerContext* context, const OAuthServer::AuthorizationRequest& request, OAuthServer::ErrorCode err, const String& errorDescription, const String& errorUri)
+	void OAuthServer::completeAuthorizationRequestWithError(HttpServerContext* context, const AuthorizationRequest& request, ErrorCode err, const String& errorDescription, const String& errorUri)
 	{
 		String redirectUri = getRedirectUri(request);
 		if (request.redirectUri.isNotEmpty()) {
@@ -507,7 +507,7 @@ namespace slib
 		context->write(Json(params).toJsonString());
 	}
 
-	sl_bool OAuthServer::validateAccessToken(HttpServerContext* context, OAuthServer::TokenPayload& payload)
+	sl_bool OAuthServer::validateAccessToken(HttpServerContext* context, TokenPayload& payload)
 	{
 		String token = getAccessToken(context);
 		if (token.isNotEmpty()) {
@@ -529,7 +529,7 @@ namespace slib
 		return sl_false;
 	}
 
-	void OAuthServer::respondError(HttpServerContext* context, OAuthServer::ErrorCode err, const StringView& errorDescription, const StringView& errorUri, const StringView& state)
+	void OAuthServer::respondError(HttpServerContext* context, ErrorCode err, const StringView& errorDescription, const StringView& errorUri, const StringView& state)
 	{
 		HttpStatus status = HttpStatus::BadRequest;
 		if (err == ErrorCode::InvalidClient || err == ErrorCode::UnauthorizedClient || err == ErrorCode::AccessDenied) {
@@ -566,22 +566,22 @@ namespace slib
 		return client;
 	}
 
-	sl_bool OAuthServer::validateClientSecret(OAuthServer::ClientEntity* client, const String& clientSecret)
+	sl_bool OAuthServer::validateClientSecret(ClientEntity* client, const String& clientSecret)
 	{
 		return client->validateSecret(clientSecret);
 	}
 
-	sl_bool OAuthServer::validateRedirectUri(OAuthServer::ClientEntity* client, String& redirectUri)
+	sl_bool OAuthServer::validateRedirectUri(ClientEntity* client, String& redirectUri)
 	{
 		return client->validateRedirectUri(redirectUri);
 	}
 
-	sl_bool OAuthServer::validateScopes(OAuthServer::ClientEntity* client, List<String>& scopes)
+	sl_bool OAuthServer::validateScopes(ClientEntity* client, List<String>& scopes)
 	{
 		return client->validateScopes(scopes);
 	}
 
-	void OAuthServer::registerAccessToken(OAuthServer::TokenPayload& payload)
+	void OAuthServer::registerAccessToken(TokenPayload& payload)
 	{
 		if (payload.accessToken.isEmpty()) {
 			return;
@@ -592,7 +592,7 @@ namespace slib
 		}
 	}
 
-	void OAuthServer::revokeAccessToken(OAuthServer::TokenPayload& payload)
+	void OAuthServer::revokeAccessToken(TokenPayload& payload)
 	{
 		if (payload.accessToken.isEmpty()) {
 			return;
@@ -603,7 +603,7 @@ namespace slib
 		}
 	}
 
-	void OAuthServer::registerRefreshToken(OAuthServer::TokenPayload& payload)
+	void OAuthServer::registerRefreshToken(TokenPayload& payload)
 	{
 		if (payload.refreshToken.isEmpty()) {
 			return;
@@ -614,7 +614,7 @@ namespace slib
 		}
 	}
 
-	void OAuthServer::revokeRefreshToken(OAuthServer::TokenPayload& payload)
+	void OAuthServer::revokeRefreshToken(TokenPayload& payload)
 	{
 		if (payload.refreshToken.isEmpty()) {
 			return;
@@ -625,7 +625,7 @@ namespace slib
 		}
 	}
 
-	void OAuthServer::registerAuthorizationCode(OAuthServer::TokenPayload& payload)
+	void OAuthServer::registerAuthorizationCode(TokenPayload& payload)
 	{
 		if (payload.authorizationCode.isEmpty()) {
 			return;
@@ -636,7 +636,7 @@ namespace slib
 		}
 	}
 
-	void OAuthServer::revokeAuthorizationCode(OAuthServer::TokenPayload& payload)
+	void OAuthServer::revokeAuthorizationCode(TokenPayload& payload)
 	{
 		if (payload.authorizationCode.isEmpty()) {
 			return;
@@ -647,17 +647,17 @@ namespace slib
 		}
 	}
 
-	sl_bool OAuthServer::onClientCredentialsGrant(OAuthServer::TokenPayload& payload)
+	sl_bool OAuthServer::onClientCredentialsGrant(TokenPayload& payload)
 	{
 		return sl_false;
 	}
 
-	sl_bool OAuthServer::onPasswordGrant(const String& username, const String& password, OAuthServer::TokenPayload& payload)
+	sl_bool OAuthServer::onPasswordGrant(const String& username, const String& password, TokenPayload& payload)
 	{
 		return sl_false;
 	}
 
-	String OAuthServer::getRedirectUri(const OAuthServer::AuthorizationRequest& request)
+	String OAuthServer::getRedirectUri(const AuthorizationRequest& request)
 	{
 		if (request.redirectUri.isNotEmpty()) {
 			return request.redirectUri;
@@ -666,14 +666,14 @@ namespace slib
 		}
 	}
 
-	void OAuthServer::setExpirySeconds(OAuthServer::TokenPayload& payload)
+	void OAuthServer::setExpirySeconds(TokenPayload& payload)
 	{
 		payload.accessTokenExpirationTime = getExpiryTime(getAccessTokenExpirySeconds());
 		payload.refreshTokenExpirationTime = getExpiryTime(getRefreshTokenExpirySeconds());
 		payload.authorizationCodeExpirationTime = getExpiryTime(getAuthorizationCodeExpirySeconds());
 	}
 
-	HashMap<String, String> OAuthServer::generateAccessTokenResponseParams(const OAuthServer::TokenPayload& payload)
+	HashMap<String, String> OAuthServer::generateAccessTokenResponseParams(const TokenPayload& payload)
 	{
 		HashMap<String, String> params;
 		params.add_NoLock("access_token", payload.accessToken);
@@ -690,7 +690,7 @@ namespace slib
 		return Move(params);
 	}
 
-	String OAuthServer::getErrorCodeText(OAuthServer::ErrorCode err)
+	String OAuthServer::getErrorCodeText(ErrorCode err)
 	{
 		switch (err) {
 			case ErrorCode::InvalidRequest:
@@ -771,7 +771,7 @@ namespace slib
 		m_masterKey = Memory::create(key, len);
 	}
 
-	void OAuthServerWithJwt::issueAccessToken(OAuthServer::TokenPayload& payload)
+	void OAuthServerWithJwt::issueAccessToken(TokenPayload& payload)
 	{
 		payload.accessToken = generateToken(TokenType::Access, payload);
 		if (isSupportedRefreshToken()) {
@@ -779,27 +779,27 @@ namespace slib
 		}
 	}
 
-	sl_bool OAuthServerWithJwt::getAccessTokenPayload(OAuthServer::TokenPayload& payload)
+	sl_bool OAuthServerWithJwt::getAccessTokenPayload(TokenPayload& payload)
 	{
 		return parseToken(payload.accessToken, payload) == TokenType::Access;
 	}
 
-	sl_bool OAuthServerWithJwt::getRefreshTokenPayload(OAuthServer::TokenPayload& payload)
+	sl_bool OAuthServerWithJwt::getRefreshTokenPayload(TokenPayload& payload)
 	{
 		return parseToken(payload.refreshToken, payload) == TokenType::Refresh;
 	}
 
-	void OAuthServerWithJwt::issueAuthorizationCode(OAuthServer::TokenPayload& payload)
+	void OAuthServerWithJwt::issueAuthorizationCode(TokenPayload& payload)
 	{
 		payload.authorizationCode = generateToken(TokenType::AuthorizationCode, payload);
 	}
 
-	sl_bool OAuthServerWithJwt::getAuthorizationCodePayload(OAuthServer::TokenPayload& payload)
+	sl_bool OAuthServerWithJwt::getAuthorizationCodePayload(TokenPayload& payload)
 	{
 		return parseToken(payload.authorizationCode, payload) == TokenType::AuthorizationCode;
 	}
 
-	String OAuthServerWithJwt::generateToken(OAuthServerWithJwt::TokenType type, OAuthServer::TokenPayload& payload)
+	String OAuthServerWithJwt::generateToken(OAuthServerWithJwt::TokenType type, TokenPayload& payload)
 	{
 		Jwt jwt;
 		jwt.setAlgorithm(getAlgorithm());
@@ -828,7 +828,7 @@ namespace slib
 		return encrypt(jwt);
 	}
 
-	OAuthServerWithJwt::TokenType OAuthServerWithJwt::parseToken(const String& token, OAuthServer::TokenPayload& payload)
+	OAuthServerWithJwt::TokenType OAuthServerWithJwt::parseToken(const String& token, TokenPayload& payload)
 	{
 		Jwt jwt;
 		if (decrypt(token, jwt)) {

@@ -32,13 +32,14 @@ namespace slib
 
 	Ref<Bitmap> Drawable::toBitmap()
 	{
-		if (isBitmap()) {
-			return (Bitmap*)this;
+		Ref<Bitmap> bitmap = getBitmap();
+		if (bitmap.isNotNull()) {
+			return bitmap;
 		}
 		sl_int32 width = (sl_int32)(getDrawableWidth());
 		sl_int32 height = (sl_int32)(getDrawableHeight());
 		if (width > 0 && height > 0) {
-			Ref<Bitmap> bitmap = Bitmap::create(width, height);
+			bitmap = Bitmap::create(width, height);
 			if (bitmap.isNotNull()) {
 				bitmap->resetPixels(Color::None);
 				Ref<Canvas> canvas = bitmap->getCanvas();
@@ -61,20 +62,9 @@ namespace slib
 
 	Ref<Image> Drawable::toImage()
 	{
-		if (isImage()) {
-			return (Image*)this;
-		}
-		if (RotateFlipDrawable* r = CastInstance<RotateFlipDrawable>(this)) {
-			Ref<Drawable> src = r->getSource();
-			if (Image* image = CastInstance<Image>(src.get())) {
-				return image->rotateImage(r->getRotation(), r->getFlip());
-			}
-		}
-		if (AnimationDrawable* a = CastInstance<AnimationDrawable>(this)) {
-			Ref<Drawable> drawable = a->getDrawables().getFirstValue();
-			if (drawable.isNotNull()) {
-				return drawable->toImage();
-			}
+		Ref<Image> ret = getImage();
+		if (ret.isNotNull()) {
+			return ret;
 		}
 		Ref<Bitmap> bitmap = toBitmap();
 		if (bitmap.isNotNull()) {

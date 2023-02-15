@@ -45,7 +45,7 @@ namespace slib
 	{
 	}
 
-	void LinkedIn::resolveUserUrl(const LinkedIn::ResolveUserUrlParam& param)
+	void LinkedIn::resolveUserUrl(const ResolveUserUrlParam& param)
 	{
 		auto onComplete = param.onComplete;
 		auto dialog = param.dialog;

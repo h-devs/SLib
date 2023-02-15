@@ -210,7 +210,7 @@ namespace slib
 				m_timeSeek = time;
 			}
 
-			void renderVideo(MediaPlayerRenderVideoParam& param) override
+			void renderVideo(RenderVideoParam& param) override
 			{
 				param.flagUpdated = sl_false;
 				if (param.onUpdateFrame.isNull()) {

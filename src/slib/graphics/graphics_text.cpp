@@ -48,9 +48,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextItemDrawParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TextItem, DrawParam)
 
-	TextItemDrawParam::TextItemDrawParam() noexcept:
+	TextItem::DrawParam::DrawParam() noexcept:
 		textColor(Color::Black),
 		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0),
 		lineThickness(1),
@@ -58,7 +58,7 @@ namespace slib
 	{
 	}
 
-	void TextItemDrawParam::fixSelectionRange() noexcept
+	void TextItem::DrawParam::fixSelectionRange() noexcept
 	{
 		if (selectionStart >= 0) {
 			if (selectionEnd < 0) {
@@ -281,14 +281,14 @@ namespace slib
 		return Size::zero();
 	}
 
-	void TextWordItem::draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param)
+	void TextWordItem::draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param)
 	{
 		Ref<Font> font = getFont();
 		if (font.isNull()) {
 			return;
 		}
 
-		DrawTextParam dp;
+		Canvas::DrawTextParam dp;
 		dp.font = font;
 		dp.color = param.textColor;
 		if (param.shadowOpacity > 0) {
@@ -353,8 +353,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(TextJoinedCharItem, TextItem)
 
-	TextJoinedCharItem::TextJoinedCharItem() noexcept
-	: TextItem(TextItemType::JoinedChar)
+	TextJoinedCharItem::TextJoinedCharItem() noexcept: TextItem(TextItemType::JoinedChar)
 	{
 	}
 
@@ -395,11 +394,11 @@ namespace slib
 		return Size::zero();
 	}
 
-	void TextJoinedCharItem::draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param)
+	void TextJoinedCharItem::draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param)
 	{
 		Ref<Font> font = getJoinedCharFont();
 		if (font.isNotNull()) {
-			DrawTextParam dp;
+			Canvas::DrawTextParam dp;
 			dp.font = font;
 			dp.color = param.textColor;
 			if (param.shadowOpacity > 0) {
@@ -418,8 +417,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(TextSpaceItem, TextItem)
 
-	TextSpaceItem::TextSpaceItem() noexcept
-	 : TextItem(TextItemType::Space)
+	TextSpaceItem::TextSpaceItem() noexcept: TextItem(TextItemType::Space)
 	{
 	}
 
@@ -455,8 +453,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(TextTabItem, TextItem)
 
-	TextTabItem::TextTabItem() noexcept
-	 : TextItem(TextItemType::Tab)
+	TextTabItem::TextTabItem() noexcept: TextItem(TextItemType::Tab)
 	{
 	}
 
@@ -492,8 +489,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(TextLineBreakItem, TextItem)
 
-	TextLineBreakItem::TextLineBreakItem() noexcept
-	 : TextItem(TextItemType::LineBreak)
+	TextLineBreakItem::TextLineBreakItem() noexcept: TextItem(TextItemType::LineBreak)
 	{
 	}
 
@@ -526,30 +522,11 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(TextAttachItem, TextItem)
 
-	TextAttachItem::TextAttachItem() noexcept
-	 : TextItem(TextItemType::Attach)
+	TextAttachItem::TextAttachItem() noexcept: TextItem(TextItemType::Attach)
 	{
 	}
 
 	TextAttachItem::~TextAttachItem() noexcept
-	{
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextParagraphLayoutParam)
-
-	TextParagraphLayoutParam::TextParagraphLayoutParam() noexcept:
-		width(1),
-		tabWidth(1), tabMargin(1),
-		multiLineMode(MultiLineMode::Single),
-		lineCount(0)
-	{
-	}
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextParagraphDrawParam)
-
-	TextParagraphDrawParam::TextParagraphDrawParam() noexcept:
-		linkColor(Color::Zero)
 	{
 	}
 
@@ -1217,6 +1194,16 @@ namespace slib
 			addHyperTextNodeGroup(Ref<XmlNodeGroup>::from(xml), style);
 		}
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TextParagraph, LayoutParam)
+
+	TextParagraph::LayoutParam::LayoutParam() noexcept:
+		width(1),
+		tabWidth(1), tabMargin(1),
+		multiLineMode(MultiLineMode::Single),
+		lineCount(0)
+	{
+	}
 
 	namespace {
 		class Layouter
@@ -1243,7 +1230,7 @@ namespace slib
 			sl_real m_maxWidth;
 
 		public:
-			Layouter(CList< Ref<TextItem> >* layoutItems, const TextParagraphLayoutParam& param) noexcept
+			Layouter(CList< Ref<TextItem> >* layoutItems, const TextParagraph::LayoutParam& param) noexcept
 			{
 				m_layoutItems = layoutItems;
 				m_layoutWidth = param.width;
@@ -1740,7 +1727,7 @@ namespace slib
 		};
 	}
 
-	void TextParagraph::layout(const TextParagraphLayoutParam& param) noexcept
+	void TextParagraph::layout(const LayoutParam& param) noexcept
 	{
 		ObjectLocker lock(this);
 
@@ -1760,10 +1747,16 @@ namespace slib
 		m_contentHeight = layouter.m_y;
 
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TextParagraph, DrawParam)
 
-	void TextParagraph::draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const TextParagraphDrawParam& _param) noexcept
+	TextParagraph::DrawParam::DrawParam() noexcept: linkColor(Color::Zero)
 	{
-		TextItemDrawParam param = _param;
+	}
+
+	void TextParagraph::draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const DrawParam& _param) noexcept
+	{
+		DrawParam param = _param;
 
 		sl_real x;
 		if (m_align == Alignment::Left) {
@@ -1957,13 +1950,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxDrawParam)
-
-	SimpleTextBoxDrawParam::SimpleTextBoxDrawParam() noexcept
-	{
-	}
-
-
 	SLIB_DEFINE_OBJECT(SimpleTextBox, Object)
 
 	SimpleTextBox::SimpleTextBox() noexcept
@@ -2078,7 +2064,7 @@ namespace slib
 				flagReLayout = sl_true;
 			}
 			if (flagReLayout) {
-				TextParagraphLayoutParam paramParagraph;
+				TextParagraph::LayoutParam paramParagraph;
 				paramParagraph.width = width;
 				paramParagraph.tabWidth = font->getFontHeight() * 2;
 				paramParagraph.tabMargin = paramParagraph.tabWidth / 4;
@@ -2100,8 +2086,14 @@ namespace slib
 			}
 		}
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SimpleTextBox, DrawParam)
 
-	void SimpleTextBox::draw(Canvas* canvas, const SimpleTextBoxDrawParam& param) const noexcept
+	SimpleTextBox::DrawParam::DrawParam() noexcept
+	{
+	}
+
+	void SimpleTextBox::draw(Canvas* canvas, const DrawParam& param) const noexcept
 	{
 		if (param.textColor.a == 0) {
 			return;

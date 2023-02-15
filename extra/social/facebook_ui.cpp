@@ -31,7 +31,7 @@ namespace slib
 	{
 	}
 
-	void Facebook::resolveUserUrl(const Facebook::ResolveUserUrlParam& param)
+	void Facebook::resolveUserUrl(const ResolveUserUrlParam& param)
 	{
 		auto onComplete = param.onComplete;
 		auto dialog = param.dialog;

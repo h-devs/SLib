@@ -30,20 +30,6 @@
 namespace slib
 {
 
-	class TabViewItem
-	{
-	public:
-		AtomicString label;
-		AtomicRef<Drawable> icon;
-		AtomicRef<View> contentView;
-
-	public:
-		TabViewItem();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TabViewItem)
-
-	};
-
 	class ITabViewInstance;
 
 	class SLIB_EXPORT TabView : public ViewGroup
@@ -215,7 +201,19 @@ namespace slib
 		void _refreshSize();
 
 	protected:
-		CList<TabViewItem> m_items;
+		class Item
+		{
+		public:
+			AtomicString label;
+			AtomicRef<Drawable> icon;
+			AtomicRef<View> contentView;
+
+		public:
+			Item();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Item)
+		};
+
+		CList<Item> m_items;
 		sl_uint32 m_indexSelected;
 		sl_int32 m_indexHover;
 

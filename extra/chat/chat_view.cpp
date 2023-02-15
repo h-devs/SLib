@@ -698,7 +698,7 @@ namespace slib
 		adapter->params.textColorSent = m_textColorSent;
 		adapter->params.textColorDate = m_textColorDate;
 		adapter->setList(items);
-		ListViewSetAdapterParam param;
+		SetAdapterParam param;
 		param.adapter = adapter;
 		param.flagScrollToLastItem = flagInit;
 		setAdapter(param);
@@ -718,7 +718,7 @@ namespace slib
 		}
 		Ref<ChatAdapter> adapter = Ref<ChatAdapter>::from(getAdapter());
 		if (adapter.isNotNull()) {
-			ListViewRefreshParam param;
+			RefreshParam param;
 			param.flagScrollToLastItem = sl_true;
 			refreshItems(param);
 		} else {

@@ -59,7 +59,7 @@ namespace slib
 
 			void copyTabs(GtkNotebook* handle)
 			{
-				ListLocker<TabViewItem> items(m_items);
+				ListLocker<Item> items(m_items);
 				applyTabCount(handle);
 				for (sl_uint32 i = 0; i < items.count; i++) {
 					GtkWidget* child = gtk_notebook_get_nth_page(handle, i);
@@ -109,7 +109,7 @@ namespace slib
 				frame.top = 0;
 				frame.right = (sl_ui_pos)(width);
 				frame.bottom = (sl_ui_pos)(height);
-				ListLocker<TabViewItem> items(m_items);
+				ListLocker<Item> items(m_items);
 				for (sl_size i = 0; i < items.count; i++) {
 					Ref<View> view = items[i].contentView;
 					if (view.isNotNull()) {

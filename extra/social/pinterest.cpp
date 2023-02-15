@@ -209,7 +209,7 @@ namespace slib
 	{
 	}
 
-	void Pinterest::createBoard(const Pinterest::CreateBoardParam& param)
+	void Pinterest::createBoard(const CreateBoardParam& param)
 	{
 		UrlRequestParam rp;
 		rp.method = HttpMethod::POST;
@@ -248,7 +248,7 @@ namespace slib
 	{
 	}
 
-	void Pinterest::createPin(const Pinterest::CreatePinParam& param)
+	void Pinterest::createPin(const CreatePinParam& param)
 	{
 		UrlRequestParam rp;
 		rp.method = HttpMethod::POST;

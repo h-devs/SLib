@@ -79,7 +79,7 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(CameraView, Capture, VideoCaptureFrame& frame)
 
-		SLIB_DECLARE_EVENT_HANDLER(CameraView, TakePicture, CameraTakePictureResult& result)
+		SLIB_DECLARE_EVENT_HANDLER(CameraView, TakePicture, Camera::TakePictureResult& result)
 
 	protected:
 		void onAttach() override;
@@ -93,7 +93,7 @@ namespace slib
 	private:
 		void _onCaptureCameraFrame(VideoCapture* capture, VideoCaptureFrame& frame);
 
-		void _onTakePicture(CameraTakePictureResult& result);
+		void _onTakePicture(Camera::TakePictureResult& result);
 
 	protected:
 		Ref<Camera> m_camera;

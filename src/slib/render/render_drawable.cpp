@@ -45,7 +45,7 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(RenderDrawable, Render, RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param)
+	SLIB_DEFINE_EVENT_HANDLER(RenderDrawable, Render, RenderCanvas* canvas, const Rectangle& rectDst, const Drawable::DrawParam& param)
 
 	void RenderDrawable::dispatchRender(RenderCanvas* canvas, const Rectangle& rectDst, const DrawParam& param)
 	{

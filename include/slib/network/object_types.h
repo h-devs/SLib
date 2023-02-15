@@ -57,9 +57,7 @@ namespace slib
 			Pcap,
 			AnyDevicePcap,
 			IPC,
-			SmbServer,
-			SmbServerShare,
-			SmbServerFileContext
+			SmbServer
 		};
 
 	}

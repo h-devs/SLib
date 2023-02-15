@@ -1979,8 +1979,15 @@ namespace slib
 
 	void Svg::render(Canvas* canvas, const Rectangle& rectDraw)
 	{
+		sl_bool flagAnitiAlias = canvas->isAntiAlias();
+		if (!flagAnitiAlias) {
+			canvas->setAntiAlias();
+		}
 		ObjectLocker locker(this);
 		((Document*)(m_document.get()))->render(canvas, rectDraw);
+		if (!flagAnitiAlias) {
+			canvas->setAntiAlias(sl_false);
+		}
 	}
 
 	Scalar Svg::getGlobalFontSize()

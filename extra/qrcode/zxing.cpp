@@ -98,7 +98,7 @@ namespace slib
 		}
 	}
 
-	Ref<Image> ZXing::generate(const ZXing::GenerateParam& param)
+	Ref<Image> ZXing::generate(const GenerateParam& param)
 	{
 		MultiFormatWriter writer(GetBarcodeFormat(param.format));
 		writer.setEncoding(CharacterSet::UTF8);
@@ -133,7 +133,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String ZXing::scan(const ZXing::ScanParam& param)
+	String ZXing::scan(const ScanParam& param)
 	{
 		Ref<Image> image = param.image;
 		if (image.isNull()) {

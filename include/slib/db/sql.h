@@ -403,76 +403,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT DatabaseCreateTableParam
-	{
-	public:
-		DatabaseIdentifier table;
-		ListParam<DatabaseColumnDefinition> columns;
-		DatabaseFlags flags;
-		ListParam<DatabaseTableConstraint> constraints;
-
-	public:
-		DatabaseCreateTableParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseCreateTableParam)
-
-	public:
-		template <class... ARGS>
-		void addColumn(ARGS&&... args)
-		{
-			columns.add(Forward<ARGS>(args)...);
-		}
-
-		template <class... ARGS>
-		void addConstraint(ARGS&&... args)
-		{
-			constraints.add(Forward<ARGS>(args)...);
-		}
-
-	};
-
-	class SLIB_EXPORT DatabaseCreateIndexParam
-	{
-	public:
-		DatabaseIdentifier index;
-		String table;
-		ListParam<DatabaseIndexColumn> columns;
-		DatabaseFlags flags;
-
-	public:
-		DatabaseCreateIndexParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseCreateIndexParam)
-
-	public:
-		template <class... ARGS>
-		void addColumn(ARGS&&... args)
-		{
-			columns.add(Forward<ARGS>(args)...);
-		}
-
-	};
-
-	class SLIB_EXPORT DatabaseSelectParam : public DatabaseQuery
-	{
-	public:
-		ListParam<DatabaseQueryWith> withs;
-		sl_bool withRecursive;
-
-	public:
-		DatabaseSelectParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DatabaseSelectParam)
-
-	public:
-		template <class... ARGS>
-		void addWith(ARGS&&... args)
-		{
-			withs.add(Forward<ARGS>(args)...);
-		}
-
-	};
-
 	class SLIB_EXPORT SqlBuilder
 	{
 	public:
@@ -522,7 +452,33 @@ namespace slib
 		void appendIdentifier(const DatabaseIdentifier& name);
 
 
-		void generateCreateTable(const DatabaseCreateTableParam& param);
+		class CreateTableParam
+		{
+		public:
+			DatabaseIdentifier table;
+			ListParam<DatabaseColumnDefinition> columns;
+			DatabaseFlags flags;
+			ListParam<DatabaseTableConstraint> constraints;
+
+		public:
+			CreateTableParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateTableParam)
+
+		public:
+			template <class... ARGS>
+			void addColumn(ARGS&&... args)
+			{
+				columns.add(Forward<ARGS>(args)...);
+			}
+
+			template <class... ARGS>
+			void addConstraint(ARGS&&... args)
+			{
+				constraints.add(Forward<ARGS>(args)...);
+			}
+		};
+
+		void generateCreateTable(const CreateTableParam& param);
 
 		// flags: Temp, IfNotExists, WithoutRowId (SQLite)
 		void generateCreateTable(const DatabaseIdentifier& table, const ListParam<DatabaseColumnDefinition>& columns, DatabaseFlags flags = 0);
@@ -531,7 +487,28 @@ namespace slib
 		void generateDropTable(const DatabaseIdentifier& table, DatabaseFlags flags = 0);
 
 
-		void generateCreateIndex(const DatabaseCreateIndexParam& param);
+		class CreateIndexParam
+		{
+		public:
+			DatabaseIdentifier index;
+			String table;
+			ListParam<DatabaseIndexColumn> columns;
+			DatabaseFlags flags;
+
+		public:
+			CreateIndexParam();
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateIndexParam)
+
+		public:
+			template <class... ARGS>
+			void addColumn(ARGS&&... args)
+			{
+				columns.add(Forward<ARGS>(args)...);
+			}
+		};
+
+		void generateCreateIndex(const CreateIndexParam& param);
 
 		// flags: Unique, IfNotExists
 		void generateCreateIndex(const DatabaseIdentifier& index, const String& table, const ListParam<DatabaseIndexColumn>& columns, DatabaseFlags flags = 0);
@@ -550,7 +527,26 @@ namespace slib
 
 		void generateDelete(const DatabaseIdentifier& table, const DatabaseExpression& where);
 
-		void generateSelect(const DatabaseSelectParam& param);
+
+		class SelectParam : public DatabaseQuery
+		{
+		public:
+			ListParam<DatabaseQueryWith> withs;
+			sl_bool withRecursive;
+
+		public:
+			SelectParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SelectParam)
+
+		public:
+			template <class... ARGS>
+			void addWith(ARGS&&... args)
+			{
+				withs.add(Forward<ARGS>(args)...);
+			}
+		};
+
+		void generateSelect(const SelectParam& param);
 
 		void generateSelect(const DatabaseIdentifier& table, const DatabaseExpression& where);
 

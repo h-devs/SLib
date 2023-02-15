@@ -6428,6 +6428,12 @@ namespace slib
 		}
 		smask = stream->getProperty(name::SMask).getStream();
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PdfPage, RenderParam)
+
+	PdfPage::RenderParam::RenderParam(): canvas(sl_null)
+	{
+	}
 
 	namespace {
 		SLIB_INLINE static sl_uint8 ApplyDecode(sl_uint8 source, sl_uint8 min, sl_uint8 max)
@@ -7485,13 +7491,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
-
-	PdfRenderParam::PdfRenderParam(): canvas(sl_null)
-	{
-	}
-
-
 	SLIB_DEFINE_OBJECT(PdfPage, PdfPageTreeItem)
 
 	PdfPage::PdfPage(Referable* context) noexcept: m_context(context)
@@ -8161,7 +8160,7 @@ namespace slib
 							} else if (glyph->bitmap.isNotNull()) {
 								mat.m11 = -(mat.m11);
 								canvas->concatMatrix(mat);
-								DrawParam dp;
+								Canvas::DrawParam dp;
 								if (glyph->flagGrayBitmap) {
 									dp.useColorMatrix = sl_true;
 									dp.colorMatrix.setOverlay(brush.color);
@@ -8228,7 +8227,7 @@ namespace slib
 			void drawImage(PdfImage* image)
 			{
 				if (image->flagImageMask) {
-					DrawParam dp;
+					Canvas::DrawParam dp;
 					dp.useColorMatrix = sl_true;
 					dp.colorMatrix.setOverlay(brush.color);
 					canvas->draw(0, 0, 1, 1, image->object->flip(FlipMode::Vertical), dp);
@@ -8525,7 +8524,7 @@ namespace slib
 
 	}
 
-	void PdfPage::render(PdfRenderParam& param)
+	void PdfPage::render(RenderParam& param)
 	{
 		ListElements<PdfOperation> ops(getContent());
 		if (!(ops.count)) {

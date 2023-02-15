@@ -30,46 +30,6 @@
 namespace slib
 {
 
-	class ListControlColumn
-	{
-	public:
-		String title;
-		sl_ui_len width;
-		Alignment align;
-		Alignment headerAlign;
-
-	public:
-		ListControlColumn();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListControlColumn)
-
-	};
-
-	class ListControlCell
-	{
-	public:
-		String text;
-
-	public:
-		ListControlCell();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListControlCell)
-
-	};
-
-	class ListControlRow
-	{
-	public:
-		String id;
-		List<ListControlCell> cells;
-
-	public:
-		ListControlRow();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListControlRow)
-
-	};
-
 	class IListControlInstance;
 
 	class SLIB_EXPORT ListControl : public View
@@ -80,6 +40,41 @@ namespace slib
 		ListControl();
 
 		~ListControl();
+
+	public:
+		class Cell
+		{
+		public:
+			String text;
+
+		public:
+			Cell();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Cell)
+		};
+
+		class Column
+		{
+		public:
+			String title;
+			sl_ui_len width;
+			Alignment align;
+			Alignment headerAlign;
+
+		public:
+			Column();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Column)
+		};
+
+		class Row
+		{
+		public:
+			String id;
+			List<Cell> cells;
+
+		public:
+			Row();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Row)
+		};
 
 	public:
 		sl_uint32 getColumnCount();
@@ -159,8 +154,8 @@ namespace slib
 		virtual Ptr<IListControlInstance> getListControlInstance();
 
 	protected:
-		CList<ListControlColumn> m_columns;
-		CList<ListControlRow> m_rows;
+		CList<Column> m_columns;
+		CList<Row> m_rows;
 		sl_int32 m_selectedRow;
 
 		sl_bool m_flagSortingOnClickHeader;

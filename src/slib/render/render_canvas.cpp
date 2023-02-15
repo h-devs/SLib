@@ -1292,7 +1292,7 @@ namespace slib
 		drawTexture(rectDst, texture, rectSrc, param, Color4f(1, 1, 1, 1));
 	}
 
-	void RenderCanvas::onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const DrawTextParam& param)
+	void RenderCanvas::onDrawText(const StringParam& _text, sl_real x, sl_real y, const Ref<Font>& font, const Canvas::DrawTextParam& param)
 	{
 		StringData16 text(_text);
 		if (text.isEmpty()) {

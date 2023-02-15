@@ -168,7 +168,7 @@ namespace slib
 		return context;
 	}
 
-	Ref<FileContext> FileSystemLogger::openFile(const StringParam& path, const FileOpenParam& param)
+	Ref<FileContext> FileSystemLogger::openFile(const StringParam& path, const File::OpenParam& param)
 	{
 		if (!(m_flags & FileSystemLogFlags::Open) || !m_regex.match(path.toString())) {
 			return m_base->openFile(path, param);

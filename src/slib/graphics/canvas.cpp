@@ -27,15 +27,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DrawTextParam)
-
-	DrawTextParam::DrawTextParam():
-		color(Color::Black), alignment(Alignment::TopLeft), flagMultiLine(sl_false),
-		x(0), y(0), width(0), height(0),
-		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0)
-	{
-	}
-
 	SLIB_DEFINE_OBJECT(Canvas, Object)
 
 	Canvas::Canvas()
@@ -163,6 +154,16 @@ namespace slib
 		Matrix3 mat;
 		Transform2::setScaling(mat, sx, sy);
 		concatMatrix(mat);
+	}
+
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Canvas, DrawTextParam)
+
+	Canvas::DrawTextParam::DrawTextParam():
+		color(Color::Black), alignment(Alignment::TopLeft), flagMultiLine(sl_false),
+		x(0), y(0), width(0), height(0),
+		shadowOpacity(0), shadowRadius(3), shadowColor(Color::Black), shadowOffset(0, 0)
+	{
 	}
 
 	void Canvas::drawText(const StringParam& text, sl_real x, sl_real y, const Ref<Font>& font, const Color& color)
@@ -533,8 +534,8 @@ namespace slib
 	}
 
 	namespace {
-		SLIB_ALIGN(8) static const char g_defaultDrawParamBuf[sizeof(DrawParam)] = {0};
-		static const DrawParam& g_defaultDrawParam = *((const DrawParam*)((void*)g_defaultDrawParamBuf));
+		SLIB_ALIGN(8) static const char g_defaultDrawParamBuf[sizeof(Drawable::DrawParam)] = {0};
+		static const Drawable::DrawParam& g_defaultDrawParam = *((const Drawable::DrawParam*)((void*)g_defaultDrawParamBuf));
 	}
 
 	void Canvas::draw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc)

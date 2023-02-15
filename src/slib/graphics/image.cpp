@@ -668,6 +668,11 @@ namespace slib
 		return sl_null;
 	}
 
+	Ref<Image> Image::getImage()
+	{
+		return this;
+	}
+
 	sl_uint32 Image::getWidth() const
 	{
 		return m_desc.width;

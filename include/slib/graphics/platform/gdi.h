@@ -50,7 +50,7 @@ namespace slib
 
 		static Ref<Canvas> createCanvas(CanvasType type, Gdiplus::Graphics* graphics, sl_uint32 width, sl_uint32 height, const Function<void()>& onFreeCanvas);
 		static Gdiplus::Graphics* getCanvasHandle(Canvas* canvas);
-		static void drawImage(Canvas* canvas, const Rectangle& rectDst, Gdiplus::Image* image, const Rectangle& rectSrc, const DrawParam& param);
+		static void drawImage(Canvas* canvas, const Rectangle& rectDst, Gdiplus::Image* image, const Rectangle& rectSrc, const Drawable::DrawParam& param);
 
 		static Ref<Drawable> createImageDrawable(Gdiplus::Image* image, sl_bool flagFreeOnRelease = sl_true, Referable* ref = sl_null);
 		static Gdiplus::Image* getImageDrawableHandle(Drawable* drawable);

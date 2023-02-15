@@ -67,7 +67,7 @@ namespace slib
 	}
 
 
-	void FCM_Service::sendNotification(const FCM_Service::SendParam& param)
+	void FCM_Service::sendNotification(const SendParam& param)
 	{
 		HttpHeaderMap headers;
 		headers.put_NoLock(HttpHeader::Authorization, String::format("key=%s", param.legacyServerKey));

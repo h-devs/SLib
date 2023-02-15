@@ -68,7 +68,7 @@ namespace slib
 			void copyTabs(ViewInstance* instance, HWND hWnd)
 			{
 				applyTabCount(hWnd);
-				ListLocker<TabViewItem> items(m_items);
+				ListLocker<Item> items(m_items);
 				for (sl_size i = 0; i < items.count; i++) {
 					TCITEMW tci;
 					Base::zeroMemory(&tci, sizeof(tci));
@@ -94,7 +94,7 @@ namespace slib
 			{
 				UIRect rc = getClientBounds(hWnd);
 				sl_size sel = m_indexSelected;
-				ListLocker<TabViewItem> items(m_items);
+				ListLocker<Item> items(m_items);
 				for (sl_size i = 0; i < items.count; i++) {
 					Ref<View> view = items[i].contentView;
 					if (view.isNotNull()) {
@@ -116,7 +116,7 @@ namespace slib
 			void applyClientBounds(HWND hWnd)
 			{
 				UIRect rc = getClientBounds(hWnd);
-				ListLocker<TabViewItem> items(m_items);
+				ListLocker<Item> items(m_items);
 				for (sl_size i = 0; i < items.count; i++) {
 					Ref<View> view = items[i].contentView;
 					if (view.isNotNull()) {

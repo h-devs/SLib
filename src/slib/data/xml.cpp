@@ -2637,17 +2637,17 @@ return;
 
 	}
 
-	Ref<XmlDocument> Xml::parse(const sl_char8* str, sl_size len, Xml::ParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char8* str, sl_size len, ParseParam& param)
 	{
 		return XmlParser<sl_char8>::parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const sl_char16* str, sl_size len, Xml::ParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char16* str, sl_size len, ParseParam& param)
 	{
 		return XmlParser<sl_char16>::parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const sl_char32* str, sl_size len, Xml::ParseParam& param)
+	Ref<XmlDocument> Xml::parse(const sl_char32* str, sl_size len, ParseParam& param)
 	{
 		return XmlParser<sl_char32>::parse(str, len, param);
 	}
@@ -2670,7 +2670,7 @@ return;
 		return parse(str, len, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const StringParam& _xml, Xml::ParseParam& param)
+	Ref<XmlDocument> Xml::parse(const StringParam& _xml, ParseParam& param)
 	{
 		if (_xml.isEmpty()) {
 			return sl_null;
@@ -2693,7 +2693,7 @@ return;
 		return parse(xml, param);
 	}
 
-	Ref<XmlDocument> Xml::parse(const MemoryView& utf, Xml::ParseParam& param)
+	Ref<XmlDocument> Xml::parse(const MemoryView& utf, ParseParam& param)
 	{
 		if (!(utf.size)) {
 			return sl_null;
@@ -2710,7 +2710,7 @@ return;
 		return parse(utf, param);
 	}
 
-	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath, Xml::ParseParam& param)
+	Ref<XmlDocument> Xml::parseTextFile(const StringParam& filePath, ParseParam& param)
 	{
 		if (param.sourceFilePath.isNull()) {
 			param.sourceFilePath = filePath.toString();

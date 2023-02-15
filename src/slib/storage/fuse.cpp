@@ -184,7 +184,7 @@ namespace slib
 				return -EEXIST;
 			}
 
-			FileOpenParam param;
+			File::OpenParam param;
 			param.mode = FileMode::Write;
 			FileSystem::setLastError(FileSystemError::GeneralError);
 			Ref<FileContext> context = provider->openFile(path, param);
@@ -298,7 +298,7 @@ namespace slib
 			FileSystemProvider* provider = host->getProvider();
 			int oflag = fi->flags;
 
-			FileOpenParam param;
+			File::OpenParam param;
 			param.mode = FileMode::ShareAll;
 
 			if ((oflag & 0x03) == O_RDONLY) {

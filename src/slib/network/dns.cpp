@@ -774,9 +774,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DnsResolveHostParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ResolveDnsHostParam)
 
-	DnsResolveHostParam::DnsResolveHostParam()
+	ResolveDnsHostParam::ResolveDnsHostParam()
 	{
 		clientAddress.setNone();
 		hostAddress.setZero();
@@ -934,7 +934,7 @@ namespace slib
 		if (hostName.indexOf('.') < 0) {
 			return;
 		}
-		DnsResolveHostParam rp;
+		ResolveDnsHostParam rp;
 		rp.clientAddress = clientAddress;
 		rp.hostName = hostName;
 		rp.forwardAddress = m_defaultForwardAddress;
@@ -1175,7 +1175,7 @@ namespace slib
 		}
 	}
 
-	void DnsServer::_onResolve(DnsResolveHostParam& param)
+	void DnsServer::_onResolve(ResolveDnsHostParam& param)
 	{
 		m_onResolve(this, param);
 	}

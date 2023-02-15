@@ -62,7 +62,7 @@ namespace slib
 			void applyColumnCount(HWND hWnd)
 			{
 				ObjectLocker lock(this);
-				ListElements<ListControlColumn> columns(m_columns);
+				ListElements<Column> columns(m_columns);
 				sl_uint32 nNew = (sl_uint32)(columns.count);
 				sl_uint32 nOrig = getColumnCountFromListView(hWnd);
 				if (nOrig == nNew) {
@@ -77,7 +77,7 @@ namespace slib
 					Base::zeroMemory(&lvc, sizeof(lvc));
 					lvc.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_FMT | LVCF_SUBITEM;
 					for (sl_uint32 i = nOrig; i < nNew; i++) {
-						ListControlColumn& column = columns[i];
+						Column& column = columns[i];
 						StringCstr16 title(column.title);
 						lvc.pszText = (LPWSTR)(title.getData());
 						int width = (int)(column.width);

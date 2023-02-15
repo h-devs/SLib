@@ -343,21 +343,21 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DatabaseCreateTableParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SqlBuilder, CreateTableParam)
 
-	DatabaseCreateTableParam::DatabaseCreateTableParam()
+	SqlBuilder::CreateTableParam::CreateTableParam()
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DatabaseCreateIndexParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SqlBuilder, CreateIndexParam)
 
-	DatabaseCreateIndexParam::DatabaseCreateIndexParam()
+	SqlBuilder::CreateIndexParam::CreateIndexParam()
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DatabaseSelectParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SqlBuilder, SelectParam)
 
-	DatabaseSelectParam::DatabaseSelectParam()
+	SqlBuilder::SelectParam::SelectParam()
 	{
 		withRecursive = sl_false;
 	}
@@ -462,7 +462,7 @@ namespace slib
 		}
 	}
 
-	void SqlBuilder::generateCreateTable(const DatabaseCreateTableParam& param)
+	void SqlBuilder::generateCreateTable(const CreateTableParam& param)
 	{
 		ListLocker<DatabaseColumnDefinition> columns(param.columns);
 		if (param.table.name.isEmpty() || !(columns.count)) {
@@ -503,7 +503,7 @@ namespace slib
 
 	void SqlBuilder::generateCreateTable(const DatabaseIdentifier& table, const ListParam<DatabaseColumnDefinition>& columns, DatabaseFlags flags)
 	{
-		DatabaseCreateTableParam param;
+		CreateTableParam param;
 		param.table = table;
 		param.columns = columns;
 		param.flags = flags;
@@ -530,7 +530,7 @@ namespace slib
 		}
 	}
 
-	void SqlBuilder::generateCreateIndex(const DatabaseCreateIndexParam& param)
+	void SqlBuilder::generateCreateIndex(const CreateIndexParam& param)
 	{
 		ListLocker<DatabaseIndexColumn> columns(param.columns);
 		if (param.index.name.isEmpty() || param.table.isEmpty() || !(columns.count)) {
@@ -563,7 +563,7 @@ namespace slib
 
 	void SqlBuilder::generateCreateIndex(const DatabaseIdentifier& index, const String& table, const ListParam<DatabaseIndexColumn>& columns, DatabaseFlags flags)
 	{
-		DatabaseCreateIndexParam param;
+		CreateIndexParam param;
 		param.index = index;
 		param.table = table;
 		param.columns = columns;
@@ -717,7 +717,7 @@ namespace slib
 		}
 	}
 
-	void SqlBuilder::generateSelect(const DatabaseSelectParam& param)
+	void SqlBuilder::generateSelect(const SelectParam& param)
 	{
 		ListElements<DatabaseQueryWith> withs(param.withs);
 		if (withs.count) {

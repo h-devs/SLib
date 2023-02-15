@@ -227,7 +227,7 @@ namespace slib
 		return m_dialect;
 	}
 
-	sl_bool Database::createTable(const DatabaseCreateTableParam& param)
+	sl_bool Database::createTable(const CreateTableParam& param)
 	{
 		SqlBuilder builder(m_dialect);
 		builder.generateCreateTable(param);
@@ -240,7 +240,7 @@ namespace slib
 
 	sl_bool Database::createTable(const DatabaseIdentifier& table, const ListParam<DatabaseColumnDefinition>& columns, DatabaseFlags flags)
 	{
-		DatabaseCreateTableParam param;
+		CreateTableParam param;
 		param.table = table;
 		param.columns = columns;
 		param.flags = flags;
@@ -258,7 +258,7 @@ namespace slib
 		return execute(sql) >= 0;
 	}
 
-	sl_bool Database::createIndex(const DatabaseCreateIndexParam& param)
+	sl_bool Database::createIndex(const CreateIndexParam& param)
 	{
 		SqlBuilder builder(m_dialect);
 		builder.generateCreateIndex(param);
@@ -271,7 +271,7 @@ namespace slib
 
 	sl_bool Database::createIndex(const DatabaseIdentifier& index, const String& table, const ListParam<DatabaseIndexColumn>& columns, DatabaseFlags flags)
 	{
-		DatabaseCreateIndexParam param;
+		CreateIndexParam param;
 		param.index = index;
 		param.table = table;
 		param.columns = columns;
@@ -323,7 +323,7 @@ namespace slib
 		return prepareStatement(sql);
 	}
 
-	Ref<DatabaseStatement> Database::prepareQuery(const DatabaseSelectParam& param)
+	Ref<DatabaseStatement> Database::prepareQuery(const SelectParam& param)
 	{
 		SqlBuilder builder(m_dialect);
 		builder.generateSelect(param);

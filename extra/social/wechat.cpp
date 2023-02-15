@@ -237,7 +237,7 @@ namespace slib
 		amount = 0;
 	}
 
-	void WeChat::createOrder(const WeChat::CreateOrderParam& param)
+	void WeChat::createOrder(const CreateOrderParam& param)
 	{
 		Map<String, String> map;
 		map.put_NoLock("appid", param.appId);

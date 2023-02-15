@@ -31,7 +31,7 @@ namespace slib
 	{
 	}
 
-	void Etsy::login(const Etsy::LoginParam& _param)
+	void Etsy::login(const LoginParam& _param)
 	{
 		OAuth1::LoginParam param = _param;
 		VariantMap requestTokenParams;
@@ -46,14 +46,14 @@ namespace slib
 		OAuth1::login(param);
 	}
 
-	void Etsy::login(const Function<void(Etsy::LoginResult& result)>& onComplete)
+	void Etsy::login(const Function<void(LoginResult& result)>& onComplete)
 	{
 		LoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}
 
-	void Etsy::login(const List<String>& scopes, const Function<void(Etsy::LoginResult& result)>& onComplete)
+	void Etsy::login(const List<String>& scopes, const Function<void(LoginResult& result)>& onComplete)
 	{
 		LoginParam param;
 		param.scopes = scopes;

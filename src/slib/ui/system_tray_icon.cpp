@@ -35,17 +35,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SystemTrayIconNotifyParam)
-
-	SystemTrayIconNotifyParam::SystemTrayIconNotifyParam()
-	{
-		iconType = SystemTrayIcon::NotifyIcon::None;
-		timeout = 5000;
-		flagSound = sl_true;
-		flagLargeIcon = sl_true;
-	}
-
-
 	SLIB_DEFINE_OBJECT(SystemTrayIcon, Object)
 
 	SystemTrayIcon::SystemTrayIcon()
@@ -117,8 +106,18 @@ namespace slib
 		m_menu = menu;
 		setMenu_NI(menu);
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SystemTrayIcon, NotifyParam)
 
-	void SystemTrayIcon::notify(const SystemTrayIconNotifyParam& param)
+	SystemTrayIcon::NotifyParam::NotifyParam()
+	{
+		iconType = SystemTrayIcon::NotifyIcon::None;
+		timeout = 5000;
+		flagSound = sl_true;
+		flagLargeIcon = sl_true;
+	}
+
+	void SystemTrayIcon::notify(const NotifyParam& param)
 	{
 		if (UI::isUiThread()) {
 			notify_NI(param);
@@ -129,7 +128,7 @@ namespace slib
 
 	void SystemTrayIcon::notify(const String& title, const String& message)
 	{
-		SystemTrayIconNotifyParam param;
+		NotifyParam param;
 		param.title = title;
 		param.message = message;
 		notify(param);
@@ -137,7 +136,7 @@ namespace slib
 
 	void SystemTrayIcon::notify(const String& title, const String& message, const Ref<Drawable>& icon)
 	{
-		SystemTrayIconNotifyParam param;
+		NotifyParam param;
 		param.title = title;
 		param.message = message;
 		param.icon = icon;
@@ -146,7 +145,7 @@ namespace slib
 
 	void SystemTrayIcon::notify(const String& title, const String& message, const String& iconName)
 	{
-		SystemTrayIconNotifyParam param;
+		NotifyParam param;
 		param.title = title;
 		param.message = message;
 		param.iconName = iconName;
@@ -155,7 +154,7 @@ namespace slib
 
 	void SystemTrayIcon::notify(const String& title, const String& message, SystemTrayIcon::NotifyIcon icon)
 	{
-		SystemTrayIconNotifyParam param;
+		NotifyParam param;
 		param.title = title;
 		param.message = message;
 		param.iconType = icon;
@@ -202,7 +201,7 @@ namespace slib
 		m_onBalloonTimeout(this);
 	}
 
-	void SystemTrayIcon::notify_NI(const SystemTrayIconNotifyParam&)
+	void SystemTrayIcon::notify_NI(const NotifyParam&)
 	{
 	}
 

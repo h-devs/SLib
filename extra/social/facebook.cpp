@@ -47,22 +47,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Facebook, ShareResult)
-
-	Facebook::ShareResult::ShareResult()
-	{
-		flagSuccess = sl_false;
-		flagCancel = sl_false;
-	}
-
-
-	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Facebook, ShareParam)
-
-	Facebook::ShareParam::ShareParam()
-	{
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookParam)
 
 	FacebookParam::FacebookParam() : FacebookParam(sl_null)
@@ -158,6 +142,20 @@ namespace slib
 			return sl_null;
 		}
 		return g_instance;
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Facebook, ShareResult)
+
+	Facebook::ShareResult::ShareResult()
+	{
+		flagSuccess = sl_false;
+		flagCancel = sl_false;
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Facebook, ShareParam)
+
+	Facebook::ShareParam::ShareParam()
+	{
 	}
 
 	String Facebook::getRequestUrl(const String& path)

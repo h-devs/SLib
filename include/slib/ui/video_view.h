@@ -144,7 +144,7 @@ namespace slib
 		RotationMode m_rotationApplied;
 		Sizei m_sizeLastFrame;
 
-		MediaPlayerRenderVideoParam m_renderVideoParam;
+		MediaPlayer::RenderVideoParam m_renderVideoParam;
 		Ref<Timer> m_timerPlayVideo;
 
 		ScaleMode m_scaleMode;

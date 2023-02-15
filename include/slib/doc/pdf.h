@@ -1048,20 +1048,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PdfRenderParam
-	{
-	public:
-		Canvas* canvas;
-		Rectangle bounds;
-		Ref<PdfResourceCache> cache;
-
-	public:
-		PdfRenderParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PdfRenderParam)
-
-	};
-
 	class SLIB_EXPORT PdfPage : public PdfPageTreeItem, public PdfResourceProvider
 	{
 		SLIB_DECLARE_OBJECT
@@ -1078,7 +1064,19 @@ namespace slib
 
 		static List<PdfOperation> parseContent(PdfResourceProvider* resources, const void* data, sl_size size);
 
-		void render(PdfRenderParam& param);
+		class RenderParam
+		{
+		public:
+			Canvas* canvas;
+			Rectangle bounds;
+			Ref<PdfResourceCache> cache;
+
+		public:
+			RenderParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderParam)
+		};
+
+		void render(RenderParam& param);
 
 		Rectangle getMediaBox();
 

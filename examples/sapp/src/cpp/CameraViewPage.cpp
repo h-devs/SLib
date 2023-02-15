@@ -24,7 +24,7 @@
 
 void CameraViewPage::onOpen()
 {
-	camera->setOnTakePicture([](CameraView*, CameraTakePictureResult& result) {
+	camera->setOnTakePicture([](CameraView*, Camera::TakePictureResult& result) {
 		auto image = result.getDrawable();
 		if (image.isNotNull()) {
 			auto page = New<example::ui::CameraViewTakePicturePage>();

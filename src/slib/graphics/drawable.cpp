@@ -33,80 +33,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DrawParam)
-
-	DrawParam::DrawParam()
-	 : useAlpha(sl_false), alpha(1), useColorMatrix(sl_false), useBlur(sl_false), blurRadius(10), time(0)
-	{
-	}
-
-	sl_bool DrawParam::isTransparent() const
-	{
-		if (isOpaque()) {
-			return sl_false;
-		}
-		return alpha < 0.005;
-	}
-
-	sl_bool DrawParam::isOpaque() const
-	{
-		if (useAlpha) {
-			if (alpha > 0.995) {
-				return sl_true;
-			} else {
-				return sl_false;
-			}
-		} else {
-			return sl_true;
-		}
-	}
-
-	sl_bool DrawParam::isBlur() const
-	{
-		if (useBlur) {
-			if (blurRadius > 0.1f) {
-				return sl_true;
-			} else {
-				return sl_false;
-			}
-		} else {
-			return sl_false;
-		}
-	}
-
-	Color DrawParam::transformColor(const Color& src) const
-	{
-		if (isOpaque()) {
-			if (useColorMatrix) {
-				return colorMatrix.transformColor(src);
-			} else {
-				return src;
-			}
-		} else {
-			if (useColorMatrix) {
-				Color4f ret = colorMatrix.transformColor(src);
-				ret.w *= alpha;
-				return ret;
-			} else {
-				Color ret;
-				ret.r = src.r;
-				ret.g = src.g;
-				ret.b = src.b;
-				ret.a = Math::clamp0_255((sl_int32)(alpha * (sl_real)(src.a)));
-				return ret;
-			}
-		}
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(DrawableAnimationInfo)
-
-	DrawableAnimationInfo::DrawableAnimationInfo()
-	 : duration(0), framesPerSecond(0)
-	{
-	}
-
-
 	SLIB_DEFINE_OBJECT(Drawable, Object)
 
 	Drawable::Drawable()
@@ -136,6 +62,70 @@ namespace slib
 	{
 		return ScaledDrawable::create(this, width, height);
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Drawable, DrawParam)
+
+	Drawable::DrawParam::DrawParam(): useAlpha(sl_false), alpha(1), useColorMatrix(sl_false), useBlur(sl_false), blurRadius(10), time(0)
+	{
+	}
+
+	sl_bool Drawable::DrawParam::isTransparent() const
+	{
+		if (isOpaque()) {
+			return sl_false;
+		}
+		return alpha < 0.005;
+	}
+
+	sl_bool Drawable::DrawParam::isOpaque() const
+	{
+		if (useAlpha) {
+			if (alpha > 0.995) {
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		} else {
+			return sl_true;
+		}
+	}
+
+	sl_bool Drawable::DrawParam::isBlur() const
+	{
+		if (useBlur) {
+			if (blurRadius > 0.1f) {
+				return sl_true;
+			} else {
+				return sl_false;
+			}
+		} else {
+			return sl_false;
+		}
+	}
+
+	Color Drawable::DrawParam::transformColor(const Color& src) const
+	{
+		if (isOpaque()) {
+			if (useColorMatrix) {
+				return colorMatrix.transformColor(src);
+			} else {
+				return src;
+			}
+		} else {
+			if (useColorMatrix) {
+				Color4f ret = colorMatrix.transformColor(src);
+				ret.w *= alpha;
+				return ret;
+			} else {
+				Color ret;
+				ret.r = src.r;
+				ret.g = src.g;
+				ret.b = src.b;
+				ret.a = Math::clamp0_255((sl_int32)(alpha * (sl_real)(src.a)));
+				return ret;
+			}
+		}
+	}
 
 	void Drawable::onDraw(Canvas* canvas, const Rectangle& _rectDst, const Rectangle& rectSrc, const DrawParam& param)
 	{
@@ -148,9 +138,25 @@ namespace slib
 		onDraw(canvas, rectDst, Rectangle(0, 0, getDrawableWidth(), getDrawableHeight()), param);
 	}
 
-	sl_bool Drawable::getAnimationInfo(DrawableAnimationInfo* info)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Drawable, AnimationInfo)
+
+	Drawable::AnimationInfo::AnimationInfo(): duration(0), framesPerSecond(0)
+	{
+	}
+
+	sl_bool Drawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return sl_false;
+	}
+
+	Ref<Bitmap> Drawable::getBitmap()
+	{
+		return sl_null;
+	}
+
+	Ref<Image> Drawable::getImage()
+	{
+		return sl_null;
 	}
 
 	sl_bool Drawable::isBitmap()
@@ -175,7 +181,7 @@ namespace slib
 
 	float Drawable::getAnimationDuration()
 	{
-		DrawableAnimationInfo info;
+		AnimationInfo info;
 		if (getAnimationInfo(&info)) {
 			return info.duration;
 		}
@@ -184,7 +190,7 @@ namespace slib
 
 	float Drawable::getAnimationFramesPerSecond()
 	{
-		DrawableAnimationInfo info;
+		AnimationInfo info;
 		if (getAnimationInfo(&info)) {
 			return info.framesPerSecond;
 		}
@@ -491,7 +497,7 @@ namespace slib
 		canvas->draw(rectDst, m_src, Rectangle(m_x, m_y, m_x + m_width, m_y + m_height), param);
 	}
 
-	sl_bool SubDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool SubDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
@@ -561,7 +567,7 @@ namespace slib
 		canvas->draw(rectDst, m_src, param);
 	}
 
-	sl_bool ScaledDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool ScaledDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
@@ -638,7 +644,7 @@ namespace slib
 		canvas->draw(rectDst, m_src, m_rectSrc, param);
 	}
 
-	sl_bool ScaledSubDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool ScaledSubDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
@@ -749,9 +755,26 @@ namespace slib
 		canvas->draw(Rectangle(-width_half, -height_half, width_half, height_half), m_src, param);
 	}
 
-	sl_bool RotateFlipDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool RotateFlipDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
+	}
+
+	namespace {
+		class DrawableHelper : public Drawable
+		{
+		public:
+			using Drawable::getImage;
+		};
+	}
+
+	Ref<Image> RotateFlipDrawable::getImage()
+	{
+		Ref<Image> image = ((DrawableHelper*)(m_src.get()))->getImage();
+		if (image.isNotNull()) {
+			return image->rotateImage(m_rotate, m_flip);
+		}
+		return sl_null;
 	}
 
 
@@ -795,7 +818,7 @@ namespace slib
 		canvas->draw(rectDst, m_src, param);
 	}
 
-	sl_bool ClipEllipseDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool ClipEllipseDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
@@ -842,7 +865,7 @@ namespace slib
 		canvas->draw(rectDst, m_src, param);
 	}
 
-	sl_bool ClipRoundRectDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool ClipRoundRectDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
@@ -942,7 +965,7 @@ namespace slib
 		}
 	}
 
-	sl_bool FilterDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool FilterDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		return m_src->getAnimationInfo(info);
 	}
@@ -1561,7 +1584,7 @@ namespace slib
 		}
 	}
 
-	sl_bool MipmapDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool MipmapDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		Source source;
 		if (m_sources.getAt(0, &source)) {
@@ -1629,7 +1652,7 @@ namespace slib
 		}
 	}
 
-	sl_bool AnimationDrawable::getAnimationInfo(DrawableAnimationInfo* info)
+	sl_bool AnimationDrawable::getAnimationInfo(Drawable::AnimationInfo* info)
 	{
 		if (info) {
 			float duration = m_duration;
@@ -1679,6 +1702,15 @@ namespace slib
 			index = count - 1;
 		}
 		return m_drawables.getValueAt(index);
+	}
+
+	Ref<Image> AnimationDrawable::getImage()
+	{
+		Ref<Drawable> drawable = m_drawables.getFirstValue();
+		if (drawable.isNotNull()) {
+			return ((DrawableHelper*)(drawable.get()))->getImage();
+		}
+		return sl_null;
 	}
 
 

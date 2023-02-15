@@ -99,7 +99,7 @@ namespace slib
 			void copyColumns(SLIBListControlHandle* tv)
 			{
 				ObjectLocker lock(this);
-				ListLocker<ListControlColumn> columns(m_columns);
+				ListLocker<Column> columns(m_columns);
 				applyColumnCount(tv);
 				for (sl_uint32 i = 0; i < columns.count; i++) {
 					NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
@@ -125,7 +125,7 @@ namespace slib
 					return;
 				}
 				tv->m_font = hFont;
-				ListLocker<ListControlColumn> columns(m_columns);
+				ListLocker<Column> columns(m_columns);
 				for (sl_uint32 i = 0; i < columns.count; i++) {
 					NSTableColumn* tc = tv->m_columns.getValueAt(i, nil);
 					if (tc != nil) {

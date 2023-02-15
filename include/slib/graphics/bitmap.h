@@ -94,6 +94,9 @@ namespace slib
 
 		sl_real getDrawableHeight() override;
 
+	protected:
+		Ref<Bitmap> getBitmap() override;
+
 	public:
 		sl_uint32 getWidth();
 

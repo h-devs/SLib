@@ -66,34 +66,6 @@ namespace slib
 
 	typedef OAuthApiResult TwitterResult;
 
-	typedef OAuth1::LoginResult TwitterLoginResult;
-
-	typedef OAuth1::LoginParam TwitterLoginParam;
-
-	class TwitterShareResult : public TwitterResult
-	{
-	public:
-		TwitterShareResult(UrlRequest* request);
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TwitterShareResult)
-
-	};
-
-	class TwitterShareParam
-	{
-	public:
-		String status;
-		List<Memory> medias;
-
-		Function<void(TwitterShareResult& result)> onComplete;
-
-	public:
-		TwitterShareParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TwitterShareParam)
-
-	};
-
 	class TwitterParam : public OAuth1_Param
 	{
 	public:
@@ -133,7 +105,27 @@ namespace slib
 		// get user by userId or screenName (if two arguments are empty, then the loginned user will be returned)
 		void getUser(const String& userId, const String& screenName, const Function<void(TwitterResult&, TwitterUser&)>& callback);
 
-		void share(const TwitterShareParam& param);
+		class ShareResult : public TwitterResult
+		{
+		public:
+			ShareResult(UrlRequest* request);
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShareResult)
+		};
+
+		class ShareParam
+		{
+		public:
+			String status;
+			List<Memory> medias;
+
+			Function<void(ShareResult& result)> onComplete;
+
+		public:
+			ShareParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShareParam)
+		};
+
+		void share(const ShareParam& param);
 
 	};
 

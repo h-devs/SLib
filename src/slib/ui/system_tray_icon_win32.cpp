@@ -223,7 +223,7 @@ namespace slib
 				return sl_false;
 			}
 
-			void notify_NI(const SystemTrayIconNotifyParam& param) override
+			void notify_NI(const NotifyParam& param) override
 			{
 				NOTIFYICONDATAW nid;
 				if (!(prepareNID(nid))) {

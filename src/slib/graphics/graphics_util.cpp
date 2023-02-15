@@ -24,7 +24,6 @@
 
 #include "slib/math/math.h"
 #include "slib/graphics/canvas.h"
-#include "slib/graphics/drawable.h"
 #include "slib/device/device.h"
 
 namespace slib
@@ -218,7 +217,7 @@ namespace slib
 		return ret;
 	}
 
-	void GraphicsUtil::drawRepeat(Canvas* canvas, const Ref<Drawable>& source, sl_real _dx, sl_real _dy, sl_uint32 nRepeatX, sl_uint32 nRepeatY, const DrawParam& param)
+	void GraphicsUtil::drawRepeat(Canvas* canvas, const Ref<Drawable>& source, sl_real _dx, sl_real _dy, sl_uint32 nRepeatX, sl_uint32 nRepeatY, const Drawable::DrawParam& param)
 	{
 		if (source.isNull()) {
 			return;

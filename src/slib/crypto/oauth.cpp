@@ -42,8 +42,7 @@ namespace slib
 	{
 	}
 
-	OAuth1::AccessToken::AccessToken(const String& _token, const String& _tokenSecret)
-	 : token(_token), secret(_tokenSecret)
+	OAuth1::AccessToken::AccessToken(const String& _token, const String& _tokenSecret): token(_token), secret(_tokenSecret)
 	{
 	}
 
@@ -115,7 +114,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(OAuth1, Object)
 
-	OAuth1::OAuth1(const OAuth1::Param& param)
+	OAuth1::OAuth1(const Param& param)
 	{
 		m_preferenceName = param.preferenceName;
 		restore();
@@ -144,7 +143,7 @@ namespace slib
 		return m_accessToken;
 	}
 
-	void OAuth1::setAccessToken(const OAuth1::AccessToken& accessToken)
+	void OAuth1::setAccessToken(const AccessToken& accessToken)
 	{
 		if (accessToken.isValid()) {
 			m_accessToken = accessToken;
@@ -324,7 +323,7 @@ namespace slib
 		}
 	}
 
-	void OAuth1::getLoginUrl(const OAuth1::AuthorizationRequestParam& param, const Function<void(const String& url, const String& requestToken, const String& requestTokenSecret)>& onComplete)
+	void OAuth1::getLoginUrl(const AuthorizationRequestParam& param, const Function<void(const String& url, const String& requestToken, const String& requestTokenSecret)>& onComplete)
 	{
 		String callbackUrl = param.callbackUrl;
 		if (callbackUrl.isEmpty()) {
@@ -365,7 +364,7 @@ namespace slib
 		getLoginUrl(param, onComplete);
 	}
 
-	void OAuth1::requestAccessToken(const String& verifier, const String& requestToken, const String& requestTokenSecret, const Function<void(OAuth1::AccessTokenResult&)>& onComplete)
+	void OAuth1::requestAccessToken(const String& verifier, const String& requestToken, const String& requestTokenSecret, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		UrlRequestParam rp;
 		rp.method = m_accessTokenMethod;
@@ -433,13 +432,13 @@ namespace slib
 
 	SLIB_DEFINE_JSON_MEMBERS(OAuth2::AccessToken, token, refreshToken, tokenType, scopes, expirationTime, refreshTime)
 
-	OAuth2::AccessToken::AccessToken()
-	 : expirationTime(0), refreshTime(0)
-	{}
+	OAuth2::AccessToken::AccessToken(): expirationTime(0), refreshTime(0)
+	{
+	}
 
-	OAuth2::AccessToken::AccessToken(const String& _token)
-	 : token(_token), expirationTime(0), refreshTime(Time::now())
-	{}
+	OAuth2::AccessToken::AccessToken(const String& _token): token(_token), expirationTime(0), refreshTime(Time::now())
+	{
+	}
 
 	sl_bool OAuth2::AccessToken::isValid() const
 	{
@@ -606,7 +605,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(OAuth2, Object)
 
-	OAuth2::OAuth2(const OAuth2::Param& param)
+	OAuth2::OAuth2(const Param& param)
 	{
 		m_preferenceName = param.preferenceName;
 		restore();
@@ -640,7 +639,7 @@ namespace slib
 		return m_accessToken;
 	}
 
-	void OAuth2::setAccessToken(const OAuth2::AccessToken& accessToken)
+	void OAuth2::setAccessToken(const AccessToken& accessToken)
 	{
 		if (accessToken.isValid()) {
 			m_accessToken = accessToken;
@@ -689,7 +688,7 @@ namespace slib
 		m_flagLogErrors = flag;
 	}
 
-	void OAuth2::authorizeRequest(UrlRequestParam& param, const OAuth2::AccessToken& token)
+	void OAuth2::authorizeRequest(UrlRequestParam& param, const AccessToken& token)
 	{
 		if (token.tokenType.isEmpty() || token.tokenType.equals_IgnoreCase("bearer")) {
 			param.requestHeaders.put_NoLock(HttpHeader::Authorization, "Bearer " + token.token);
@@ -704,7 +703,7 @@ namespace slib
 		}
 	}
 
-	String OAuth2::getLoginUrl(const OAuth2::AuthorizationRequest& param)
+	String OAuth2::getLoginUrl(const AuthorizationRequest& param)
 	{
 		Url url(m_authorizeUrl);
 		auto oldParameters = url.getQueryParameters();
@@ -764,7 +763,7 @@ namespace slib
 		return url.toString();
 	}
 
-	String OAuth2::getLoginUrl(OAuth2::ResponseType type, const List<String>& scopes, const String& state)
+	String OAuth2::getLoginUrl(ResponseType type, const List<String>& scopes, const String& state)
 	{
 		AuthorizationRequest param;
 		param.responseType = type;
@@ -781,7 +780,7 @@ namespace slib
 		return getLoginUrl(param);
 	}
 
-	void OAuth2::requestAccessToken(VariantMap& params, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessToken(VariantMap& params, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		if (m_clientId.isEmpty() || m_clientSecret.isEmpty()) {
 			AccessTokenResult result;
@@ -819,7 +818,7 @@ namespace slib
 		UrlRequest::send(rp);
 	}
 
-	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
 		params.put_NoLock("grant_type", "authorization_code");
@@ -841,22 +840,22 @@ namespace slib
 		requestAccessToken(params, onComplete);
 	}
 
-	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromCode(code, redirectUri, sl_null, sl_null, onComplete);
 	}
 
-	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromCode(const String& code, const String& redirectUri, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromCode(code, redirectUri, sl_null, sl_null, onComplete);
 	}
 
-	void OAuth2::requestAccessTokenFromCode(const String& code, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromCode(const String& code, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromCode(code, sl_null, sl_null, sl_null, onComplete);
 	}
 
-	void OAuth2::requestAccessTokenFromClientCredentials(const List<String>& scopes, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromClientCredentials(const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
 		params.put_NoLock("grant_type", "client_credentials");
@@ -869,12 +868,12 @@ namespace slib
 		requestAccessToken(params, onComplete);
 	}
 
-	void OAuth2::requestAccessTokenFromClientCredentials(const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromClientCredentials(const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromClientCredentials(sl_null, onComplete);
 	}
 
-	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const List<String>& scopes, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
 		params.put_NoLock("grant_type", "password");
@@ -889,12 +888,12 @@ namespace slib
 		requestAccessToken(params, onComplete);
 	}
 
-	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::requestAccessTokenFromUserPassword(const String& username, const String& password, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		requestAccessTokenFromUserPassword(username, password, sl_null, onComplete);
 	}
 
-	void OAuth2::refreshAccessToken(const String& refreshToken, const List<String>& scopes, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::refreshAccessToken(const String& refreshToken, const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		VariantMap params;
 		params.put_NoLock("grant_type", "refresh_token");
@@ -908,7 +907,7 @@ namespace slib
 		requestAccessToken(params, onComplete);
 	}
 
-	void OAuth2::refreshAccessToken(const String& refreshToken, const Function<void(OAuth2::AccessTokenResult&)>& onComplete)
+	void OAuth2::refreshAccessToken(const String& refreshToken, const Function<void(AccessTokenResult&)>& onComplete)
 	{
 		refreshAccessToken(refreshToken, sl_null, onComplete);
 	}
@@ -931,7 +930,7 @@ namespace slib
 		return sl_true;
 	}
 
-	String OAuth2::generateCodeChallenge(const String& verifier, OAuth2::CodeChallengeMethod method)
+	String OAuth2::generateCodeChallenge(const String& verifier, CodeChallengeMethod method)
 	{
 		if (method == CodeChallengeMethod::S256) {
 			char hash[32];
@@ -977,7 +976,7 @@ namespace slib
 		}
 	}
 
-	void OAuth2::onReceiveAccessToken(OAuth2::AccessTokenResult& result)
+	void OAuth2::onReceiveAccessToken(AccessTokenResult& result)
 	{
 	}
 

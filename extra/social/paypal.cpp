@@ -219,7 +219,7 @@ namespace slib
 		cancelUrl = "https://localhost/cancel";
 	}
 
-	void PayPal::createOrder(const PayPal::CreateOrderParam& param)
+	void PayPal::createOrder(const CreateOrderParam& param)
 	{
 		UrlRequestParam rp;
 		rp.method = HttpMethod::POST;

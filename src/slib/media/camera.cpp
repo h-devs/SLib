@@ -34,75 +34,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CameraTakePictureResult)
-
-	CameraTakePictureResult::CameraTakePictureResult()
-	{
-		flagSuccess = sl_false;
-
-		rotation = RotationMode::Rotate0;
-		flip = FlipMode::None;
-
-		frame = sl_null;
-	}
-
-	Ref<Image> CameraTakePictureResult::getImage()
-	{
-		if (frame) {
-			return Image::create(frame->image);
-		}
-		if (jpeg.isNotNull()) {
-			return Image::loadJpeg(jpeg.getData(), jpeg.getSize());
-		}
-		return sl_null;
-	}
-
-	Ref<Drawable> CameraTakePictureResult::getDrawable()
-	{
-		if (frame) {
-			return Image::create(frame->image);
-		}
-		if (jpeg.isNotNull()) {
-			return PlatformDrawable::loadFromMemory(jpeg.getData(), jpeg.getSize());
-		}
-		return sl_null;
-	}
-
-	Memory CameraTakePictureResult::getJpeg()
-	{
-		if (jpeg.isNotNull()) {
-			return jpeg;
-		}
-		if (frame) {
-			Ref<Image> image = Image::create(frame->image);
-			if (image.isNotNull()) {
-				return image->saveJpeg();
-			}
-		}
-		return sl_null;
-	}
-
-	void CameraTakePictureResult::setFrame(const VideoCaptureFrame& _frame)
-	{
-		frame = &_frame;
-		rotation = frame->rotation;
-		flip = frame->flip;
-	}
-
-	void CameraTakePictureResult::setJpeg(const Memory& _jpeg)
-	{
-		jpeg = _jpeg;
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CameraTakePictureParam)
-
-	CameraTakePictureParam::CameraTakePictureParam()
-	{
-		flashMode = CameraFlashMode::Auto;
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CameraParam)
 
 	CameraParam::CameraParam()
@@ -140,17 +71,84 @@ namespace slib
 
 	Camera::~Camera()
 	{
-		CameraTakePictureParam param;
+		TakePictureParam param;
 		while (m_queueTakePictureRequests.pop_NoLock(&param)) {
-			CameraTakePictureResult result;
+			TakePictureResult result;
 			param.onComplete(result);
 		}
 	}
 
-	void Camera::takePicture(const CameraTakePictureParam& param)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Camera, TakePictureResult)
+
+	Camera::TakePictureResult::TakePictureResult()
+	{
+		flagSuccess = sl_false;
+
+		rotation = RotationMode::Rotate0;
+		flip = FlipMode::None;
+
+		frame = sl_null;
+	}
+
+	Ref<Image> Camera::TakePictureResult::getImage()
+	{
+		if (frame) {
+			return Image::create(frame->image);
+		}
+		if (jpeg.isNotNull()) {
+			return Image::loadJpeg(jpeg.getData(), jpeg.getSize());
+		}
+		return sl_null;
+	}
+
+	Ref<Drawable> Camera::TakePictureResult::getDrawable()
+	{
+		if (frame) {
+			return Image::create(frame->image);
+		}
+		if (jpeg.isNotNull()) {
+			return PlatformDrawable::loadFromMemory(jpeg.getData(), jpeg.getSize());
+		}
+		return sl_null;
+	}
+
+	Memory Camera::TakePictureResult::getJpeg()
+	{
+		if (jpeg.isNotNull()) {
+			return jpeg;
+		}
+		if (frame) {
+			Ref<Image> image = Image::create(frame->image);
+			if (image.isNotNull()) {
+				return image->saveJpeg();
+			}
+		}
+		return sl_null;
+	}
+
+	void Camera::TakePictureResult::setFrame(const VideoCaptureFrame& _frame)
+	{
+		frame = &_frame;
+		rotation = frame->rotation;
+		flip = frame->flip;
+	}
+
+	void Camera::TakePictureResult::setJpeg(const Memory& _jpeg)
+	{
+		jpeg = _jpeg;
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Camera, TakePictureParam)
+
+	Camera::TakePictureParam::TakePictureParam()
+	{
+		flashMode = CameraFlashMode::Auto;
+	}
+
+	void Camera::takePicture(const TakePictureParam& param)
 	{
 		if (!(isRunning()) || m_queueTakePictureRequests.getCount() > 100) {
-			CameraTakePictureResult result;
+			TakePictureResult result;
 			param.onComplete(result);
 			return;
 		}
@@ -187,9 +185,9 @@ namespace slib
 	{
 		VideoCapture::onCaptureVideoFrame(frame);
 		if (m_queueTakePictureRequests.isNotEmpty()) {
-			CameraTakePictureParam param;
+			TakePictureParam param;
 			if (m_queueTakePictureRequests.pop(&param)) {
-				CameraTakePictureResult result;
+				TakePictureResult result;
 				result.flagSuccess = sl_true;
 				result.setFrame(frame);
 				param.onComplete(result);

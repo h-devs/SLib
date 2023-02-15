@@ -95,7 +95,7 @@ namespace slib
 
 		Ref<FileContext> createContext(const StringParam& path) override;
 
-		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
+		Ref<FileContext> openFile(const StringParam& path, const File::OpenParam& param) override;
 
 		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 

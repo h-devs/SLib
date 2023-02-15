@@ -30,6 +30,7 @@ set (EXTRA_SOURCE_FILES
 
  "${SLIB_PATH}/extra/qrcode/zxing.cpp"
  "${SLIB_PATH}/extra/qrcode/zxing_scanner.cpp"
+ "${SLIB_PATH}/extra/qrcode/external/zxing/zxing_unity.cpp"
 
  "${SLIB_PATH}/extra/social/alipay.cpp"
  "${SLIB_PATH}/extra/social/alipay_openssl.cpp"

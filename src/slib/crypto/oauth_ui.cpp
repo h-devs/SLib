@@ -181,7 +181,7 @@ namespace slib
 		flagIgnoreExistingAccessToken = sl_false;
 	}
 
-	void OAuth1::login(const OAuth1::LoginParam& param)
+	void OAuth1::login(const LoginParam& param)
 	{
 		String callbackUrl = param.authorization.callbackUrl;
 		if (callbackUrl.isEmpty()) {
@@ -268,7 +268,7 @@ namespace slib
 		});
 	}
 
-	void OAuth1::login(const Function<void(OAuth1::LoginResult& result)>& onComplete)
+	void OAuth1::login(const Function<void(LoginResult& result)>& onComplete)
 	{
 		LoginParam param;
 		param.onComplete = onComplete;
@@ -284,7 +284,7 @@ namespace slib
 		flagAlwaysRequireAccessToken = sl_false;
 	}
 
-	void OAuth2::login(const OAuth2::LoginParam& param)
+	void OAuth2::login(const LoginParam& param)
 	{
 		String redirectUri = param.authorization.redirectUri;
 		if (redirectUri.isEmpty()) {
@@ -415,7 +415,7 @@ namespace slib
 		login(_param);
 	}
 
-	void OAuth2::login(const Function<void(OAuth2::LoginResult& result)>& onComplete)
+	void OAuth2::login(const Function<void(LoginResult& result)>& onComplete)
 	{
 		LoginParam param;
 		param.onComplete = onComplete;

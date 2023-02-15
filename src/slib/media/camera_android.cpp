@@ -304,12 +304,12 @@ namespace slib
 				onCaptureVideoFrame(frame);
 			}
 
-			void takePicture(const CameraTakePictureParam& param) override
+			void takePicture(const TakePictureParam& param) override
 			{
 				ObjectLocker lock(this);
 				jobject jcamera = m_camera.get();
 				if (!jcamera || !isRunning()) {
-					CameraTakePictureResult result;
+					TakePictureResult result;
 					param.onComplete(result);
 					return;
 				}
@@ -318,9 +318,9 @@ namespace slib
 			}
 
 			void _onPicture(jbyteArray jdata, jint orientation, jint flip) {
-				CameraTakePictureParam param;
+				TakePictureParam param;
 				if (m_queueTakePictureRequests.pop(&param)) {
-					CameraTakePictureResult result;
+					TakePictureResult result;
 					if (jdata) {
 						sl_uint32 size = Jni::getArrayLength(jdata);
 						Memory mem = Memory::create(size);
@@ -337,9 +337,9 @@ namespace slib
 			}
 
 			void _onPicture2(jobject jdata, jint orientation, jint flip) {
-				CameraTakePictureParam param;
+				TakePictureParam param;
 				if (m_queueTakePictureRequests.pop(&param)) {
-					CameraTakePictureResult result;
+					TakePictureResult result;
 					if (jdata) {
 						JNIEnv* env = Jni::getCurrent();
 						if (env) {

@@ -94,6 +94,9 @@ namespace slib
 
 		static Ref<Image> from(const Ref<Drawable>& drawable);
 
+	protected:
+		Ref<Image> getImage() override;
+
 	public:
 		sl_uint32 getWidth() const;
 

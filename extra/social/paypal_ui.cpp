@@ -27,7 +27,7 @@
 namespace slib
 {
 
-	void PayPal::checkout(const PayPal::CheckoutParam& param)
+	void PayPal::checkout(const CheckoutParam& param)
 	{
 		auto thiz = ToRef(this);
 		if (m_accessToken.isNull()) {

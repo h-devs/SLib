@@ -159,7 +159,7 @@ namespace slib
 				}
 			}
 
-			FileOpenParam param;
+			File::OpenParam param;
 
 			if (dwAccessMode & (GENERIC_READ | FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA)) {
 				param.mode |= FileMode::Read;

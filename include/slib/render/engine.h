@@ -81,23 +81,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT RenderClearParam
-	{
-	public:
-		sl_bool flagColor;
-		Color color;
-		sl_bool flagDepth;
-		float depth;
-		sl_bool flagStencil;
-		sl_uint32 stencil;
-
-	public:
-		RenderClearParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RenderClearParam)
-
-	};
-
 	class SLIB_EXPORT RendererParam
 	{
 	public:
@@ -205,7 +188,22 @@ namespace slib
 
 		void setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
-		void clear(const RenderClearParam& param);
+		class ClearParam
+		{
+		public:
+			sl_bool flagColor;
+			Color color;
+			sl_bool flagDepth;
+			float depth;
+			sl_bool flagStencil;
+			sl_uint32 stencil;
+
+		public:
+			ClearParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ClearParam)
+		};
+
+		void clear(const ClearParam& param);
 
 		void clearColor(const Color& color);
 
@@ -356,7 +354,7 @@ namespace slib
 
 		virtual void _setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height) = 0;
 
-		virtual void _clear(const RenderClearParam& param) = 0;
+		virtual void _clear(const ClearParam& param) = 0;
 
 		virtual void _setDepthStencilState(RenderDepthStencilState* state) = 0;
 

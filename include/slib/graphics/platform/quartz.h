@@ -53,7 +53,7 @@ namespace slib
 
 		static Ref<Canvas> createCanvas(CanvasType type, CGContextRef graphics, sl_uint32 width, sl_uint32 height);
 		static CGContextRef getCanvasHandle(Canvas* canvas);
-		static void drawCGImage(Canvas* canvas, const Rectangle& rectDst, CGImageRef image, sl_bool flagFlipY, const DrawParam& param);
+		static void drawCGImage(Canvas* canvas, const Rectangle& rectDst, CGImageRef image, sl_bool flagFlipY, const Drawable::DrawParam& param);
 
 		static Ref<Drawable> createImageDrawable(CGImageRef image, sl_bool flagFlipped = sl_false);
 		static CGImageRef getImageDrawableHandle(Drawable* drawable);

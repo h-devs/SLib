@@ -52,13 +52,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FreeTypeLoadParam)
-
-	FreeTypeLoadParam::FreeTypeLoadParam(): faceIndex(0), namedInstanceIndex(0)
-	{
-	}
-
-
 	SLIB_DEFINE_OBJECT(FreeType, Object)
 
 	FreeType::FreeType(): m_face(sl_null)
@@ -161,7 +154,7 @@ namespace slib
 			return sl_null;
 		}
 
-		static sl_int32 GetFaceIndex(const FreeTypeLoadParam& param)
+		static sl_int32 GetFaceIndex(const FreeType::LoadParam& param)
 		{
 			if (param.faceIndex < 0) {
 				return param.faceIndex;
@@ -174,7 +167,13 @@ namespace slib
 
 	}
 
-	Ref<FreeType> FreeType::load(const Ptr<IBlockReader>& _reader, sl_uint64 size, const FreeTypeLoadParam& param)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(FreeType, LoadParam)
+
+	FreeType::LoadParam::LoadParam(): faceIndex(0), namedInstanceIndex(0)
+	{
+	}
+
+	Ref<FreeType> FreeType::load(const Ptr<IBlockReader>& _reader, sl_uint64 size, const LoadParam& param)
 	{
 		Ptr<IBlockReader> reader = _reader.lock();
 		if (reader.isNotNull()) {
@@ -191,12 +190,12 @@ namespace slib
 
 	Ref<FreeType> FreeType::load(const Ptr<IBlockReader>& reader, sl_uint64 size, sl_int32 index)
 	{
-		FreeTypeLoadParam param;
+		LoadParam param;
 		param.faceIndex = index;
 		return load(reader, size, param);
 	}
 
-	Ref<FreeType> FreeType::loadFromFile(const StringParam& path, const FreeTypeLoadParam& param)
+	Ref<FreeType> FreeType::loadFromFile(const StringParam& path, const LoadParam& param)
 	{
 		Ref<FileIO> file = FileIO::openForRead(path);
 		if (file.isNotNull()) {
@@ -210,12 +209,12 @@ namespace slib
 
 	Ref<FreeType> FreeType::loadFromFile(const StringParam& path, sl_int32 index)
 	{
-		FreeTypeLoadParam param;
+		LoadParam param;
 		param.faceIndex = index;
 		return loadFromFile(path, param);
 	}
 
-	Ref<FreeType> FreeType::loadFromMemory(const Memory& mem, const FreeTypeLoadParam& param)
+	Ref<FreeType> FreeType::loadFromMemory(const Memory& mem, const LoadParam& param)
 	{
 		if (mem.isNotNull()) {
 			Ref<Library> lib = Library::create();
@@ -232,7 +231,7 @@ namespace slib
 
 	Ref<FreeType> FreeType::loadFromMemory(const Memory& mem, sl_int32 index)
 	{
-		FreeTypeLoadParam param;
+		LoadParam param;
 		param.faceIndex = index;
 		return loadFromMemory(mem, param);
 	}
@@ -353,7 +352,7 @@ namespace slib
 
 			static Ref<FreeType> open(const RegistryItem& item)
 			{
-				FreeTypeLoadParam param;
+				FreeType::LoadParam param;
 				param.faceIndex = item.faceIndex;
 				return FreeType::loadFromFile(item.path, param);
 			}

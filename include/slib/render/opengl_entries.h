@@ -41,7 +41,7 @@ namespace slib
 		static void setViewport(sl_uint32 x, sl_uint32 y, sl_uint32 width, sl_uint32 height);
 
 
-		static void clear(const RenderClearParam& param);
+		static void clear(const RenderEngine::ClearParam& param);
 
 		static void clearColor(const Color& color);
 

@@ -293,9 +293,9 @@ namespace slib
 		updateCurrentFrame(frame);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(CameraView, TakePicture, CameraTakePictureResult& result)
+	SLIB_DEFINE_EVENT_HANDLER(CameraView, TakePicture, Camera::TakePictureResult& result)
 
-	void CameraView::dispatchTakePicture(CameraTakePictureResult& result)
+	void CameraView::dispatchTakePicture(Camera::TakePictureResult& result)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(TakePicture, result)
 	}
@@ -384,7 +384,7 @@ namespace slib
 		if (button.isNotNull()) {
 			button->setEnabled(sl_false);
 		}
-		CameraTakePictureParam param;
+		Camera::TakePictureParam param;
 		param.flashMode = m_flashMode;
 		param.onComplete = SLIB_FUNCTION_WEAKREF(this, _onTakePicture);
 		m_camera->takePicture(param);
@@ -395,7 +395,7 @@ namespace slib
 		dispatchCapture(frame);
 	}
 
-	void CameraView::_onTakePicture(CameraTakePictureResult& result)
+	void CameraView::_onTakePicture(Camera::TakePictureResult& result)
 	{
 		dispatchTakePicture(result);
 		Ref<Button> button = getShutterButton();

@@ -64,7 +64,7 @@ namespace slib
 		environment = Environment::Production;
 	}
 
-	void XgPushService::sendNotification(const XgPushService::SendParam& param)
+	void XgPushService::sendNotification(const SendParam& param)
 	{
 		HttpHeaderMap headers;
 		headers.put_NoLock(HttpHeader::Authorization, String::format("Basic %s", Base64::encode(String::format("%s:%s", param.appId, param.secretKey))));
@@ -142,7 +142,7 @@ namespace slib
 		});
 	}
 
-	String XgPushService::getPlatformString(XgPush::Platform platform)
+	String XgPushService::getPlatformString(Platform platform)
 	{
 		switch (platform) {
 			case Platform::All:
@@ -155,7 +155,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String XgPushService::getEnvironmentString(XgPush::Environment environment)
+	String XgPushService::getEnvironmentString(Environment environment)
 	{
 		switch (environment) {
 			case Environment::Production:

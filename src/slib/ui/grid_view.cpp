@@ -808,7 +808,7 @@ namespace slib
 		if (param.text.isEmpty()) {
 			return;
 		}
-		SimpleTextBoxDrawParam drawParam;
+		SimpleTextBox::DrawParam drawParam;
 		drawParam.frame = cellParam.region;
 		drawParam.textColor = Color::Black;
 		SimpleTextBox box;

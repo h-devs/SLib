@@ -201,7 +201,7 @@ namespace slib
 	{
 	}
 
-	void LinkedIn::share(const LinkedIn::ShareParam& param)
+	void LinkedIn::share(const ShareParam& param)
 	{
 		auto linkedin = ToRef(this);
 		getUser(sl_null, [linkedin, param](LinkedInResult& result, LinkedInUser& user) {
