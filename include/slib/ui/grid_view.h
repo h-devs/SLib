@@ -30,53 +30,69 @@
 
 namespace slib
 {
-	class SLIB_EXPORT GridViewCellDrawParam
-	{
-	public:
-		Canvas* canvas;
-		UIRect region;
-		sl_int64 row;
-		sl_int32 col;
-		Variant data;
-		Ref<View> parent;
-		sl_bool flagFixedCell;
-	};
-
-	class SLIB_EXPORT GridViewCellEvent
-	{
-	public:
-		UIEvent* event;
-		UIRect region;
-		Variant data;
-	};
-
-	class GridViewCellRegion {
-	public:
-		sl_int64 rowStart;
-		sl_int64 rowEnd;
-		sl_int32 columnStart;
-		sl_int32 columnEnd;
-	};
-
-	class SLIB_EXPORT GridViewCell : public Referable
-	{
-	public:
-		virtual void onDrawCell(GridViewCellDrawParam& param) = 0;
-
-		virtual void onMouseEvent(GridViewCellEvent& ev) {};
-
-	};
-
-	class SLIB_EXPORT GridViewStringCell : public GridViewCell
-	{
-	public:
-		void onDrawCell(GridViewCellDrawParam& param);
-		void onMouseEvent(GridViewCellEvent& ev);
-	};
 
 	class SLIB_EXPORT GridView : public View
 	{
 		SLIB_DECLARE_OBJECT
+
+	public:
+		struct CellRegion
+		{
+			sl_uint64 startRow;
+			sl_uint64 endRow;
+			sl_uint32 startColumn;
+			sl_uint32 endColumn;
+		};
+
+		class DrawCellParam
+		{
+		public:
+			Canvas* canvas;
+			UIRect region;
+			sl_uint64 row;
+			sl_uint32 col;
+			Variant data;
+			View* parent;
+			sl_bool flagFixedCell;
+
+		public:
+			DrawCellParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawCellParam)
+		};
+
+		class CellEvent
+		{
+		public:
+			UIEvent* event;
+			UIRect region;
+			Variant data;
+
+		public:
+			CellEvent();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CellEvent)
+		};
+
+		class Cell : public Referable
+		{
+		public:
+			Cell();
+			~Cell();
+
+		public:
+			virtual void onDraw(DrawCellParam& param) = 0;
+			virtual void onEvent(CellEvent& ev);
+		};
+
+		class TextCell : public Cell
+		{
+		public:
+			TextCell();
+			~TextCell();
+
+		public:
+			void onDraw(DrawCellParam& param) override;
+			void onEvent(CellEvent& ev) override;
+		};
 
 	public:
 		GridView();
@@ -84,31 +100,35 @@ namespace slib
 		~GridView();
 
 	public:
-		sl_int64 getRowCount();
-		sl_int32 getColumnCount();
+		sl_uint64 getRowCount();
 
-		void setRowCount(sl_int64 rowCount, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnCount(sl_int32 colCount, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFixedColumnCount(sl_int32 leftCount, sl_int32 rightCount, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setTopHeaderText(sl_int32 colIndex, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setRowCount(sl_uint64 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_uint32 getColumnCount();
+
+		void setColumnCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setFixedColumnCount(sl_uint32 leftCount, sl_uint32 rightCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setTopHeaderText(sl_uint32 colIndex, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setTopHeaderSize(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setBottomHeaderSize(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		sl_bool addHeaderColSpan(sl_int32 colIndex, sl_int32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+		sl_bool addHeaderColSpan(sl_uint32 colIndex, sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void resetHeaderColSpan(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getRowHeight();
-		sl_ui_len getColumnWidth(sl_int32 colStart, sl_int32 colEnd);
+		sl_ui_len getColumnWidth(sl_uint32 colStart, sl_uint32 colEnd);
 
 		void setRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnWidth(sl_int32 colIndex, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnWidth(sl_uint32 colIndex, sl_ui_len width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isMultipleSelection();
-		sl_bool isRowSelected(sl_int64 rowIndex);
+		sl_bool isRowSelected(sl_uint64 rowIndex);
 
 		void setMultipleSelection(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
-		sl_int64 getSelectedRow();
+		sl_uint64 getSelectedRow();
 
-		void setRowSelected(sl_int64 rowIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setRowSelected(sl_uint64 rowIndex, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectAll(UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -118,7 +138,7 @@ namespace slib
 
 		sl_int32 getColumnIndexAt(sl_int32 x);
 
-		GridViewCellRegion getVisibleGridViewCellRegion();
+		CellRegion getVisibleCellRegion();
 
 		Ref<Drawable> getItemBackground();
 
@@ -151,11 +171,11 @@ namespace slib
 		void setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickItem, sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickItem, sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickItem, sl_int64 rowIndex, sl_int32 colIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickItem, sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
 
 		SLIB_DECLARE_EVENT_HANDLER(GridView, ChangedSelection, UIEvent* ev)
 
@@ -169,40 +189,41 @@ namespace slib
 		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
-		UIRect getGridCellRect(sl_int64 rowIndex, sl_int32 colIndex);
-		UIRect getGridHeaderCellRect(sl_int32 colIndex, sl_bool flagTop = sl_true);
-		UIRect getGridFrozenCellRect(sl_int64 rowIndex, sl_int32 colIndex, sl_bool flagLeft = sl_true);
-		UIPoint getPositionInGridCell(const UIPoint& pt, sl_int64 rowIndex, sl_int32 colIndex);
-		void drawGridCellItem(sl_int64 rowIndex, sl_int32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagFixedCell = sl_false);
-		void drawHeaderItem(sl_int64 rowIndex, sl_int32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagTop = sl_true);
+		UIRect getGridCellRect(sl_uint64 rowIndex, sl_uint32 colIndex);
+		UIRect getGridHeaderCellRect(sl_uint32 colIndex, sl_bool flagTop = sl_true);
+		UIRect getGridFrozenCellRect(sl_uint64 rowIndex, sl_uint32 colIndex, sl_bool flagLeft = sl_true);
+		UIPoint getPositionInGridCell(const UIPoint& pt, sl_uint64 rowIndex, sl_uint32 colIndex);
+		void drawGridCellItem(sl_uint64 rowIndex, sl_uint32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagFixedCell = sl_false);
+		void drawHeaderItem(sl_uint64 rowIndex, sl_uint32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagTop = sl_true);
 		void drawGridHeader(Canvas* canvas, sl_bool	flagTop = sl_true);
 		void drawGridFrozenArea(Canvas* canvas, sl_bool flagLeft = sl_true);
-		virtual Ref<GridViewCell> getCell(sl_int64 row, sl_uint32 col);
+		virtual Ref<Cell> getCell(sl_uint64 row, sl_uint32 col);
 
-		virtual Variant getCellData(sl_int64 row, sl_uint32 col);
+		virtual Variant getCellData(sl_uint64 row, sl_uint32 col);
 
 	public:
-		SLIB_PROPERTY_FUNCTION(Ref<GridViewCell>(sl_uint64, sl_uint32), CellCallback)
+		SLIB_PROPERTY_FUNCTION(Ref<Cell>(sl_uint64, sl_uint32), CellCallback)
 		SLIB_PROPERTY_FUNCTION(Variant(sl_uint64, sl_uint32), DataCallback)
 
 	protected:
-		sl_int64 m_rowCount;
-		sl_int32 m_columnCount;
-		sl_ui_len m_rowHeight;
+		sl_uint64 m_nRows;
+		sl_uint32 m_nColumns;
+		sl_uint32 m_nLeftColumns;
+		sl_uint32 m_nRightColumns;
+
+		sl_ui_len m_heightRow;
+		sl_ui_len m_heightTopRow;
+		sl_ui_len m_heightBottomRow;
 		List<sl_ui_len> m_listColumnWidth;
 
 		List<String> m_listHeaderText;
-		Map<sl_int32, GridViewCellRegion> m_listHeaderSpan;
+		Map<sl_int32, CellRegion> m_listHeaderSpan;
 
-		sl_ui_len m_heightTopHeader;
-		sl_ui_len m_heightBottomHeader;
-		sl_int32 m_fixedLeftColumnCount;
-		sl_int32 m_fixedRightColumnCount;
 
-		sl_int64 m_indexHover;
-		sl_int64 m_focusedRow;
-		sl_int64 m_focusedColumn;
-		sl_int64 m_selectedRow;
+		sl_uint64 m_indexHover;
+		sl_uint64 m_focusedRow;
+		sl_uint64 m_focusedColumn;
+		sl_uint64 m_selectedRow;
 
 		AtomicRef<Drawable> m_backgroundItem;
 		AtomicRef<Drawable> m_backgroundSelectedItem;
@@ -210,8 +231,8 @@ namespace slib
 		AtomicRef<Drawable> m_backgroundFocusedItem;
 		AtomicRef<Drawable> m_backgroundFixedItem;
 
+		Ref<TextCell> m_textCell;
 
-		Ref<GridViewStringCell> m_gridViewStringCell;
 	};
 
 }
