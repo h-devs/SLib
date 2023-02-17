@@ -304,7 +304,7 @@ namespace slib
 				view->setCreatingInstance(sl_true);
 			}
 #endif
-			ViewLayoutAttributes* attrs = view->m_layoutAttrs.get();
+			LayoutAttributes* attrs = view->m_layoutAttrs.get();
 			if (attrs) {
 				attrs->topMode = PositionMode::Free;
 				attrs->bottomMode = PositionMode::Free;
@@ -594,7 +594,7 @@ namespace slib
 		itemView->setPressedState(sl_false, UIUpdateMode::None);
 		itemView->setHoverState(sl_false, UIUpdateMode::None);
 
-		Ref<ViewLayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
+		Ref<LayoutAttributes>& layoutAttrs = itemView->m_layoutAttrs;
 		if (layoutAttrs.isNotNull()) {
 			layoutAttrs->flagInvalidLayoutInParent = sl_true;
 			SizeMode mode = itemView->getHeightMode();

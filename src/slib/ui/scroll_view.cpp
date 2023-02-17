@@ -104,7 +104,7 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD2(func, _width, _height, mode)
 		}
 		_initializeScrollAttributes();
-		Ref<ViewScrollAttributes>& attrs = m_scrollAttrs;
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNull()) {
 			return;
 		}

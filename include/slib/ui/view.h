@@ -50,15 +50,6 @@ namespace slib
 	class ViewInstance;
 	class ViewCell;
 
-	class ViewLayoutAttributes;
-	class ViewPaddingAttributes;
-	class ViewTransformAttributes;
-	class ViewDrawAttributes;
-	class ViewScrollAttributes;
-	class ViewChildAttributes;
-	class ViewOtherAttributes;
-	class ViewEventAttributes;
-
 	class SLIB_EXPORT View : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -1578,6 +1569,16 @@ namespace slib
 	protected:
 		virtual void _onScroll_NW(sl_scroll_pos x, sl_scroll_pos y);
 
+	public:
+		class LayoutAttributes;
+		class PaddingAttributes;
+		class TransformAttributes;
+		class DrawAttributes;
+		class ScrollAttributes;
+		class ChildAttributes;
+		class OtherAttributes;
+		class EventAttributes;
+
 	private:
 		AtomicRef<ViewInstance> m_instance;
 		AtomicWeakRef<Window> m_window;
@@ -1629,28 +1630,21 @@ namespace slib
 		AtomicRef<UIEvent> m_currentEvent;
 
 	protected:
-		Ref<ViewLayoutAttributes> m_layoutAttrs;
+		Ref<LayoutAttributes> m_layoutAttrs;
 		void _initializeLayoutAttributes();
-
-		Ref<ViewPaddingAttributes> m_paddingAttrs;
+		Ref<PaddingAttributes> m_paddingAttrs;
 		void _initializePaddingAttributes();
-
-		Ref<ViewTransformAttributes> m_transformAttrs;
+		Ref<TransformAttributes> m_transformAttrs;
 		void _initializeTransformAttributes();
-
-		Ref<ViewDrawAttributes> m_drawAttrs;
+		Ref<DrawAttributes> m_drawAttrs;
 		void _initializeDrawAttributes();
-
-		Ref<ViewScrollAttributes> m_scrollAttrs;
+		Ref<ScrollAttributes> m_scrollAttrs;
 		void _initializeScrollAttributes();
-
-		Ref<ViewChildAttributes> m_childAttrs;
+		Ref<ChildAttributes> m_childAttrs;
 		void _initializeChildAttributes();
-
-		Ref<ViewOtherAttributes> m_otherAttrs;
+		Ref<OtherAttributes> m_otherAttrs;
 		void _initializeOtherAttributes();
-
-		Ref<ViewEventAttributes> m_eventAttrs;
+		Ref<EventAttributes> m_eventAttrs;
 		void _initializeEventAttributes();
 
 		friend class ViewInstance;

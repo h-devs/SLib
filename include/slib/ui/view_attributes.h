@@ -23,11 +23,10 @@
 #ifndef CHECKHEADER_SLIB_UI_VIEW_ATTRIBUTES
 #define CHECKHEADER_SLIB_UI_VIEW_ATTRIBUTES
 
-#include "constants.h"
+#include "view.h"
 #include "motion_tracker.h"
 
 #include "../math/matrix3.h"
-#include "../graphics/color.h"
 #include "../core/linked_list.h"
 #include "../core/function.h"
 #include "../core/string.h"
@@ -36,20 +35,7 @@
 namespace slib
 {
 
-	class View;
-	class GraphicsPath;
-	class Pen;
-	class Font;
-	class Drawable;
-	class Bitmap;
-	class Canvas;
-	class Timer;
-	class ScrollBar;
-	class Animation;
-	class UIEvent;
-	class GestureEvent;
-
-	class ViewLayoutAttributes : public Referable
+	class View::LayoutAttributes : public Referable
 	{
 	public:
 		sl_bool flagMarginLeftWeight : 1;
@@ -95,20 +81,17 @@ namespace slib
 		sl_real marginBottomWeight;
 
 	public:
-		ViewLayoutAttributes();
-
-		~ViewLayoutAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewLayoutAttributes)
+		LayoutAttributes();
+		~LayoutAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(LayoutAttributes)
 
 	public:
 		void applyMarginWeightsX(sl_ui_pos parentWidth);
 		void applyMarginWeightsY(sl_ui_pos parentHeight);
 		void applyMarginWeights(sl_ui_pos parentWidth, sl_ui_pos parentHeight);
-
 	};
 
-	class ViewPaddingAttributes : public Referable
+	class View::PaddingAttributes : public Referable
 	{
 	public:
 		sl_bool flagPaddingLeftWeight : 1;
@@ -126,20 +109,17 @@ namespace slib
 		sl_real paddingBottomWeight;
 
 	public:
-		ViewPaddingAttributes();
-
-		~ViewPaddingAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewPaddingAttributes)
+		PaddingAttributes();
+		~PaddingAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(PaddingAttributes)
 
 	public:
 		void applyPaddingWeightsX(sl_ui_pos width);
 		void applyPaddingWeightsY(sl_ui_pos height);
 		void applyPaddingWeights(sl_ui_pos width, sl_ui_pos height);
-
 	};
 
-	class ViewTransformAttributes : public Referable
+	class View::TransformAttributes : public Referable
 	{
 	public:
 		sl_bool flagTransformFinalInvalid : 1;
@@ -168,15 +148,13 @@ namespace slib
 		AtomicWeakRef<Animation> m_animationBackgroundColor;
 
 	public:
-		ViewTransformAttributes();
-
-		~ViewTransformAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewTransformAttributes)
+		TransformAttributes();
+		~TransformAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(TransformAttributes)
 
 	};
 
-	class ViewDrawAttributes : public Referable
+	class View::DrawAttributes : public Referable
 	{
 	public:
 		sl_bool flagUsingFont : 1;
@@ -222,15 +200,13 @@ namespace slib
 		LinkedList< Function<void()> > runAfterDrawCallbacks;
 
 	public:
-		ViewDrawAttributes();
-
-		~ViewDrawAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewDrawAttributes)
+		DrawAttributes();
+		~DrawAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(DrawAttributes)
 
 	};
 
-	class ViewScrollAttributes : public Referable
+	class View::ScrollAttributes : public Referable
 	{
 	public:
 		sl_bool flagHorz : 1;
@@ -275,15 +251,13 @@ namespace slib
 		Time timeLastInside;
 
 	public:
-		ViewScrollAttributes();
-
-		~ViewScrollAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewScrollAttributes)
+		ScrollAttributes();
+		~ScrollAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ScrollAttributes)
 
 	};
 
-	class ViewChildAttributes : public Referable
+	class View::ChildAttributes : public Referable
 	{
 	public:
 		sl_bool flagTouchMultipleChildren : 1;
@@ -303,15 +277,13 @@ namespace slib
 		AtomicFunction<sl_bool(const UIPoint& pt)> hitTestCapturingChildInstanceEvents;
 
 	public:
-		ViewChildAttributes();
-
-		~ViewChildAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewChildAttributes)
+		ChildAttributes();
+		~ChildAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ChildAttributes)
 
 	};
 
-	class ViewOtherAttributes : public Referable
+	class View::OtherAttributes : public Referable
 	{
 	public:
 		AtomicString _id;
@@ -325,15 +297,13 @@ namespace slib
 		char mnemonicKey;
 
 	public:
-		ViewOtherAttributes();
-
-		~ViewOtherAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewOtherAttributes)
+		OtherAttributes();
+		~OtherAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(OtherAttributes)
 
 	};
 
-	class ViewEventAttributes : public Referable
+	class View::EventAttributes : public Referable
 	{
 	public:
 		AtomicFunction<void(View*)> onAttach;
@@ -361,11 +331,9 @@ namespace slib
 		AtomicFunction<void(View*, UIEvent*)> onMnemonic;
 
 	public:
-		ViewEventAttributes();
-
-		~ViewEventAttributes();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(ViewEventAttributes)
+		EventAttributes();
+		~EventAttributes();
+		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(EventAttributes)
 
 	};
 

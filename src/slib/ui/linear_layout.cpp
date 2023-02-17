@@ -115,7 +115,7 @@ namespace slib
 
 		UpdateLayoutFrameParam updateLayoutParam;
 		{
-			Ref<ViewPaddingAttributes>& paddingAttrs = m_paddingAttrs;
+			Ref<PaddingAttributes>& paddingAttrs = m_paddingAttrs;
 			if (paddingAttrs.isNotNull()) {
 				updateLayoutParam.parentContentFrame.left = paddingAttrs->paddingLeft;
 				updateLayoutParam.parentContentFrame.top = paddingAttrs->paddingTop;

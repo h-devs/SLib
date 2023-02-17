@@ -841,7 +841,7 @@ namespace slib
 				return background;
 			}
 			sl_bool flagUseDefaultColorFilter = m_cell->flagUseDefaultColorFilter;
-			Ref<ViewDrawAttributes>& attrs = m_drawAttrs;
+			Ref<DrawAttributes>& attrs = m_drawAttrs;
 			if (attrs.isNotNull()) {
 				switch (m_cell->state) {
 				case ButtonState::Hover:
