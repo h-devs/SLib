@@ -64,24 +64,24 @@ namespace slib
 		return sl_null;
 	}
 
-	static void* getDllExportAddress(sl_uint8* dllBase, sl_uint8* _functionName)
+	static void* GetDllExportAddress(sl_uint8* dllBase, sl_uint8* _functionName)
 	{
 		if (dllBase != sl_null) {
-			PE_DosHeader* dosHeader = (PE_DosHeader*)dllBase;
-			sl_uint32 offsetOptional = dosHeader->newHeader + 4 + sizeof(CoffHeader);
-			CoffHeader* header = (CoffHeader*)(dllBase + dosHeader->newHeader + 4);
-			PE_DirectoryEntry* exportEntry = 0;
+			PE::DosHeader* dosHeader = (PE::DosHeader*)dllBase;
+			sl_uint32 offsetOptional = dosHeader->newHeader + 4 + sizeof(Coff::Header);
+			Coff::Header* header = (Coff::Header*)(dllBase + dosHeader->newHeader + 4);
+			PE::DirectoryEntry* exportEntry = 0;
 
 			if (header->machine == SLIB_COFF_MACHINE_I386) {
-				PE_OptionalHeader32* optional32 = (PE_OptionalHeader32*)(dllBase + offsetOptional);
+				PE::OptionalHeader32* optional32 = (PE::OptionalHeader32*)(dllBase + offsetOptional);
 				exportEntry = optional32->directoryEntry;
 			} else if (header->machine == SLIB_COFF_MACHINE_AMD64) {
-				PE_OptionalHeader64* optional64 = (PE_OptionalHeader64*)(dllBase + offsetOptional);
+				PE::OptionalHeader64* optional64 = (PE::OptionalHeader64*)(dllBase + offsetOptional);
 				exportEntry = optional64->directoryEntry;
 			}
 
 			if (exportEntry != sl_null) {
-				PE_ExportDirectory* exportDirectory = (PE_ExportDirectory*)(dllBase + exportEntry->address);
+				PE::ExportDirectory* exportDirectory = (PE::ExportDirectory*)(dllBase + exportEntry->address);
 				sl_uint32 nameRVA = exportDirectory->addressOfNames;
 				sl_uint32 functionRVA = exportDirectory->addressOfFunctions;
 				sl_uint32 nameIndexRVA = exportDirectory->addressOfNameOrdinals;
@@ -107,13 +107,13 @@ namespace slib
 	static void* GetKernel32Function(sl_uint8* functionName)
 	{
 		sl_uint8* kernel32Base = (sl_uint8*)(GetKernel32AddressFromPEB());
-		return getDllExportAddress(kernel32Base, functionName);
+		return GetDllExportAddress(kernel32Base, functionName);
 	}
 
 	static void* GetNTDLLFunction(sl_uint8* functionName)
 	{
 		sl_uint8* ntdllBase = (sl_uint8*)(GetNTDllAddressFromPEB());
-		return getDllExportAddress(ntdllBase, functionName);
+		return GetDllExportAddress(ntdllBase, functionName);
 	}
 
 	static void* PEB_GetModuleFileNameA()

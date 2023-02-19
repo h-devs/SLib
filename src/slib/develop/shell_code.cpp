@@ -31,7 +31,7 @@ namespace slib
 {
 
 	namespace {
-		static Memory GetLinkedCodeSectionContent(Coff& coff, CoffCodeSectionSet& set, const CoffCodeSection& section)
+		static Memory GetLinkedCodeSectionContent(Coff& coff, Coff::CodeSectionSet& set, const Coff::CodeSection& section)
 		{
 			Memory mem = coff.getSectionData(section);
 			if (mem.isNull()) {
@@ -39,17 +39,17 @@ namespace slib
 			}
 			sl_uint8* data = (sl_uint8*)(mem.getData());
 			for (sl_uint32 i = 0; i < section.numberOfRelocations; i++) {
-				CoffSectionRelocation relocation;
+				Coff::SectionRelocation relocation;
 				if (!(coff.getSectionRelocation(section, i, relocation))) {
 					return sl_null;
 				}
 				if (relocation.type == SLIB_PE_RELOC_I386_REL32 || relocation.type == SLIB_PE_REL_AMD64_REL32) {
-					CoffSymbol* pSymbol = coff.getSymbol(relocation.symbolTableIndex);
+					Coff::Symbol* pSymbol = coff.getSymbol(relocation.symbolTableIndex);
 					if (!pSymbol) {
 						return sl_null;
 					}
 					sl_uint32 offsetRelocation = relocation.virtualAddress;
-					CoffCodeSection* pSectionRef = set.getSectionByNumber(pSymbol->sectionNumber);
+					Coff::CodeSection* pSectionRef = set.getSectionByNumber(pSymbol->sectionNumber);
 					if (!pSectionRef) {
 						return sl_null;
 					}
@@ -67,15 +67,15 @@ namespace slib
 			return sl_null;
 		}
 
-		CoffSymbol* pSymbolEntry = coff.findSymbol(entryFuntionName);
+		Coff::Symbol* pSymbolEntry = coff.findSymbol(entryFuntionName);
 		if (!pSymbolEntry) {
 			return sl_null;
 		}
-		CoffCodeSectionSet sections(coff.getCodeSectionsReferencedFrom(entryFuntionName));
+		Coff::CodeSectionSet sections(coff.getCodeSectionsReferencedFrom(entryFuntionName));
 		if (!(sections.count)) {
 			return sl_null;
 		}
-		CoffCodeSection* pSectionEntry = sections.getSectionByNumber(pSymbolEntry->sectionNumber);
+		Coff::CodeSection* pSectionEntry = sections.getSectionByNumber(pSymbolEntry->sectionNumber);
 		if (!pSectionEntry) {
 			return sl_null;
 		}
@@ -83,7 +83,7 @@ namespace slib
 		{
 			sl_uint32 codeOffset = 0;
 			for (sl_uint32 i = 0; i < sections.count; i++) {
-				CoffCodeSection& section = sections[i];
+				Coff::CodeSection& section = sections[i];
 				section.codeOffset = codeOffset;
 				codeOffset += coff.getCodeSectionSize(section);
 			}
@@ -98,7 +98,7 @@ namespace slib
 		}
 
 		for (sl_uint32 i = 0; i < sections.count; i++) {
-			CoffCodeSection& section = sections[i];
+			Coff::CodeSection& section = sections[i];
 			Memory mem = GetLinkedCodeSectionContent(coff, sections, section);
 			if (mem.isNull()) {
 				return sl_null;
