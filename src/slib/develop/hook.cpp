@@ -40,58 +40,109 @@
 namespace slib
 {
 
-	void* Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, const void* newFunctionAddress)
+	namespace {
+		static void* ReplaceImportEntry(sl_uint8* base, sl_size* functionName, void** functionAddress, const char* procName, sl_uint16 ordinal, const void* newFunctionAddress)
+		{
+			for (;;) {
+				sl_reg offsetName = *functionName;
+				if (offsetName) {
+					sl_bool flagMatched = sl_false;
+					if (offsetName >= 0) {
+						if (procName) {
+							// first two bytes are ordinal
+							char* name = (char*)(base + offsetName + 2);
+							flagMatched = Base::equalsString(name, procName);
+						}
+					} else {
+						if (ordinal) {
+							flagMatched = ((sl_uint16)(offsetName & 0xffffU)) == ordinal;
+						}
+					}
+					if (flagMatched) {
+						if (MemoryProtection::setReadWrite(functionAddress, sizeof(void*))) {
+							void* old = *functionAddress;
+							*functionAddress = (void*)newFunctionAddress;
+							return old;
+						} else {
+							return sl_null;
+						}
+					}
+				} else {
+					break;
+				}
+				functionName++;
+				functionAddress++;
+			}
+			return sl_null;
+		}
+	}
+
+	void* Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, sl_uint16 ordinal, const void* newFunctionAddress)
 	{
 		sl_uint8* base = (sl_uint8*)moduleBaseAddress;
 		PE pe;
 		if (pe.load(base)) {
 			PE::ImportDescriptor* import = pe.findImportTable(dllName);
 			if (import) {
-				void** pNameThunk = (void**)(base + import->originalFirstThunk);
-				void** pThunk = (void**)(base + import->firstThunk);
-				for (;;) {
-					sl_uint32 offsetName = *((sl_uint32*)pNameThunk);
-					if (offsetName) {
-						// first two bytes are ordinal
-						char* name = (char*)(base + offsetName + 2);
-						if (Base::equalsString(name, procName)) {
-							if (MemoryProtection::setReadWrite(pThunk, sizeof(void*))) {
-								void* old = *pThunk;
-								*pThunk = (void*)newFunctionAddress;
-								return old;
-							} else {
-								return sl_null;
-							}
-						}
-					} else {
-						break;
-					}
-					pNameThunk++;
-					pThunk++;
+				return ReplaceImportEntry(base, (sl_size*)(base + import->functionNameTable), (void**)(base + import->functionAddressTable), procName, ordinal, newFunctionAddress);
+			} else {
+				PE::DelayImportDescriptor* delayImport = pe.findDelayImportDescriptor(dllName);
+				if (delayImport) {
+					return ReplaceImportEntry(base, (sl_size*)(base + delayImport->functionNameTable), (void**)(base + delayImport->functionAddressTable), procName, ordinal, newFunctionAddress);
 				}
 			}
 		}
 		return sl_null;
 	}
 
-	void* Hook::replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress)
+	void* Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, const void* newFunctionAddress)
+	{
+		return replaceImportEntry(moduleBaseAddress, dllName, procName, 0, newFunctionAddress);
+	}
+
+	void* Hook::replaceImportEntry(const void* moduleBaseAddress, const char* dllName, sl_uint16 ordinal, const void* newFunctionAddress)
+	{
+		return replaceImportEntry(moduleBaseAddress, dllName, sl_null, ordinal, newFunctionAddress);
+	}
+
+	void* Hook::replaceImportEntry(const char* dllName, const char* procName, sl_uint16 ordinal, const void* newFunctionAddress)
 	{
 		const void* base = Module::getBaseAddress();
 		if (base) {
-			return replaceImportEntry(base, dllName, procName, newFunctionAddress);
+			return replaceImportEntry(base, dllName, procName, ordinal, newFunctionAddress);
 		}
 		return sl_null;
 	}
 
-	void Hook::replaceAllImportEntries(const char* dllName, const char* procName, const void* newFunctionAddress)
+	void* Hook::replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress)
+	{
+		return replaceImportEntry(dllName, procName, 0, newFunctionAddress);
+	}
+
+	void* Hook::replaceImportEntry(const char* dllName, sl_uint16 ordinal, const void* newFunctionAddress)
+	{
+		return replaceImportEntry(dllName, sl_null, ordinal, newFunctionAddress);
+	}
+
+	void Hook::replaceAllImportEntries(const char* dllName, const char* procName, sl_uint16 ordinal, const void* newFunctionAddress)
 	{
 		ListElements<ModuleDescription> modules(Module::getAllModules(Process::getCurrentProcessId(), sl_false));
 		for (sl_size i = 0; i < modules.count; i++) {
 			ModuleDescription& module = modules[i];
 			if (module.baseAddress) {
-				replaceImportEntry(module.baseAddress, dllName, procName, newFunctionAddress);
+				replaceImportEntry(module.baseAddress, dllName, procName, ordinal, newFunctionAddress);
 			}
 		}
+	}
+
+	void Hook::replaceAllImportEntries(const char* dllName, const char* procName, const void* newFunctionAddress)
+	{
+		replaceAllImportEntries(dllName, procName, 0, newFunctionAddress);
+	}
+
+	void Hook::replaceAllImportEntries(const char* dllName, sl_uint16 ordinal, const void* newFunctionAddress)
+	{
+		replaceAllImportEntries(dllName, sl_null, ordinal, newFunctionAddress);
 	}
 
 	void* Hook::replaceExportEntry(const void* dllBaseAddress, const char* procName, sl_uint32 newFunctionOffset)

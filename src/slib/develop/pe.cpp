@@ -124,6 +124,18 @@ namespace slib
 		}
 	}
 
+	PE::DirectoryEntry* PE::getDelayImportDescriptors()
+	{
+		if (!(isLoaded())) {
+			return sl_null;
+		}
+		if (flag64Bit) {
+			return optional64.directoryEntry + SLIB_PE_DIRECTORY_DELAY_IMPORT_DESCRIPTOR;
+		} else {
+			return optional32.directoryEntry + SLIB_PE_DIRECTORY_DELAY_IMPORT_DESCRIPTOR;
+		}
+	}
+
 	PE::DirectoryEntry* PE::getExportTableDirectory()
 	{
 		if (!(isLoaded())) {
@@ -138,16 +150,38 @@ namespace slib
 
 	PE::ImportDescriptor* PE::findImportTable(const StringView& dllName)
 	{
-		DirectoryEntry* pImportEntry = getImportTableDirectory();
-		if (!pImportEntry) {
+		DirectoryEntry* entry = getImportTableDirectory();
+		if (!entry) {
 			return sl_null;
 		}
 		sl_uint8* base = (sl_uint8*)baseAddress;
-		sl_uint32 n = pImportEntry->size / sizeof(ImportDescriptor);
-		ImportDescriptor* import = (ImportDescriptor*)(base + pImportEntry->address);
+		sl_uint32 n = entry->size / sizeof(ImportDescriptor);
+		ImportDescriptor* import = (ImportDescriptor*)(base + entry->address);
 		for (sl_uint32 i = 0; i < n; i++) {
-			if (dllName.equals_IgnoreCase((char*)(base + import->name))) {
-				return import;
+			if (import->dllName) {
+				if (dllName.equals_IgnoreCase((char*)(base + import->dllName))) {
+					return import;
+				}
+			}
+			import++;
+		}
+		return sl_null;
+	}
+
+	PE::DelayImportDescriptor* PE::findDelayImportDescriptor(const StringView& dllName)
+	{
+		DirectoryEntry* entry = getDelayImportDescriptors();
+		if (!entry) {
+			return sl_null;
+		}
+		sl_uint8* base = (sl_uint8*)baseAddress;
+		sl_uint32 n = entry->size / sizeof(DelayImportDescriptor);
+		DelayImportDescriptor* import = (DelayImportDescriptor*)(base + entry->address);
+		for (sl_uint32 i = 0; i < n; i++) {
+			if (import->dllName) {
+				if (dllName.equals_IgnoreCase((char*)(base + import->dllName))) {
+					return import;
+				}
 			}
 			import++;
 		}

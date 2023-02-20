@@ -12,13 +12,19 @@ namespace slib
 	{
 	public:
 		// returns old function address
+		static void* replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, sl_uint16 ordinal, const void* newFunctionAddress);
 		static void* replaceImportEntry(const void* moduleBaseAddress, const char* dllName, const char* procName, const void* newFunctionAddress);
+		static void* replaceImportEntry(const void* moduleBaseAddress, const char* dllName, sl_uint16 ordinal, const void* newFunctionAddress);
 
 		// returns old function address
+		static void* replaceImportEntry(const char* dllName, const char* procName, sl_uint16 ordinal, const void* newFunctionAddress);
 		static void* replaceImportEntry(const char* dllName, const char* procName, const void* newFunctionAddress);
+		static void* replaceImportEntry(const char* dllName, sl_uint16 ordinal, const void* newFunctionAddress);
 
 		// replaces import entries of all modules
+		static void replaceAllImportEntries(const char* dllName, const char* procName, sl_uint16 ordinal, const void* newFunctionAddress);
 		static void replaceAllImportEntries(const char* dllName, const char* procName, const void* newFunctionAddress);
+		static void replaceAllImportEntries(const char* dllName, sl_uint16 ordinal, const void* newFunctionAddress);
 
 		// returns old function address
 		static void* replaceExportEntry(const void* dllBaseAddress, const char* procName, sl_uint32 newFunctionOffset);

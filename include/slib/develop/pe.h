@@ -181,11 +181,23 @@ namespace slib
 
 		struct ImportDescriptor
 		{
-			sl_uint32 originalFirstThunk; // relative virtual address to original unbound Import-Address-Table (Import Name Table)
-			sl_uint32 timeDateStamp; // 0 if not bound, -1 if bound, and real date\time stamp in PE_BoundImport (new BIND), otherwise date/time stamp of DLL bound to (Old BIND)
+			sl_uint32 functionNameTable; // relative virtual address to original unbound Import-Address-Table (Import Name Table)
+			sl_uint32 timeDateStamp; // 0 if not bound, -1 if bound, and real date\time stamp in `BoundImport` (new BIND), otherwise date/time stamp of DLL bound to (Old BIND)
 			sl_uint32 forwarderChain; // -1 if no forwarders
-			sl_uint32 name; // relative virtual address to dll name
-			sl_uint32 firstThunk; // relative virtual address to Import-Address-Table (if bound this IAT has actual addresses)
+			sl_uint32 dllName; // relative virtual address to dll name
+			sl_uint32 functionAddressTable; // relative virtual address to Import-Address-Table (if bound this IAT has actual addresses)
+		};
+
+		struct DelayImportDescriptor
+		{
+			sl_uint32 _one; // 1
+			sl_uint32 dllName; // relative virtual address to dll name
+			sl_uint32 moduleHandle; // relative virtual address to module handle
+			sl_uint32 functionAddressTable; // relative virtual address to Import Address Table
+			sl_uint32 functionNameTable; // relative virtual address to Import Name Table
+			sl_uint32 boundAddressTable; // relative virtual address to Bound Import Address Table
+			sl_uint32 unloadTable; // relative virtual address to Unload Import Table
+			sl_uint32 timeDateStamp; // 0 if not bound, -1 if bound, and real date\time stamp in `BoundImport` (new BIND), otherwise date/time stamp of DLL bound to (Old BIND)
 		};
 
 		struct ExportDirectory
@@ -224,9 +236,13 @@ namespace slib
 
 		DirectoryEntry* getImportTableDirectory();
 
+		DirectoryEntry* getDelayImportDescriptors();
+
 		DirectoryEntry* getExportTableDirectory();
 
 		ImportDescriptor* findImportTable(const StringView& dllName);
+
+		DelayImportDescriptor* findDelayImportDescriptor(const StringView& dllName);
 
 		void* findExportFunction(const StringView& functionName);
 
