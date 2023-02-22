@@ -1057,8 +1057,8 @@ namespace slib
 
 		if (m_cell.isNull()) {
 			if (isCreatingNativeWidget()) {
-				SimpleTextBox box;
-				SimpleTextBoxParam param;
+				TextBox box;
+				TextBoxParam param;
 				param.font = getFont();
 				param.text = m_text;
 				param.multiLineMode = MultiLineMode::Single;
@@ -1652,7 +1652,7 @@ namespace slib
 			rcText.right += pt.x;
 			rcText.bottom += pt.y;
 
-			SimpleTextBox::DrawParam param;
+			TextBox::DrawParam param;
 			param.frame = rcText;
 			param.textColor = textColor;
 			if (shadowOpacity > 0) {

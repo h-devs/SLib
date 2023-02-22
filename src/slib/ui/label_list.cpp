@@ -188,12 +188,12 @@ namespace slib
 	void LabelList::dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 	{
 		ListBox::dispatchDrawItem(itemIndex, canvas, rcItem);
-		SimpleTextBoxParam param;
+		TextBoxParam param;
 		param.text = getItemTitle(itemIndex);
 		if (param.text.isEmpty()) {
 			return;
 		}
-		SimpleTextBox::DrawParam drawParam;
+		TextBox::DrawParam drawParam;
 		drawParam.frame = rcItem;
 		drawParam.frame.left += getPaddingLeft();
 		drawParam.frame.right -= getPaddingRight();
@@ -208,7 +208,7 @@ namespace slib
 		} else {
 			drawParam.textColor = m_textColor;
 		}
-		SimpleTextBox box;
+		TextBox box;
 		param.font = getFont();
 		param.width = drawParam.frame.getWidth();
 		param.ellipsizeMode = m_ellipsizeMode;

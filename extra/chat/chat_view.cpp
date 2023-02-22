@@ -217,11 +217,11 @@ namespace slib
 
 		static sl_ui_len measureHeight(const Ref<Font>& font, const String& message, sl_bool flagShowDate, sl_ui_len chatWidth, sl_ui_len userIconSize)
 		{
-			SimpleTextBoxParam tp;
+			TextBoxParam tp;
 			tp.font = font;
 			tp.text = message;
 			tp.width = (sl_real)chatWidth;
-			SimpleTextBox box;
+			TextBox box;
 			box.update(tp);
 			ItemViewLayout layout(font, flagShowDate, chatWidth, userIconSize);
 			sl_ui_len bottomUserIcon = layout.y + layout.marginIcon * 2 + userIconSize + layout.marginBottom;

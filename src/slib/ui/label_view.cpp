@@ -296,7 +296,7 @@ namespace slib
 				width = 1;
 			}
 		}
-		SimpleTextBoxParam param;
+		TextBoxParam param;
 		param.font = getFont();
 		param.text = text;
 		param.flagHyperText = flagHyperText;
@@ -317,7 +317,7 @@ namespace slib
 			return;
 		}
 		_updateTextBox(bounds.getWidth());
-		SimpleTextBox::DrawParam param;
+		TextBox::DrawParam param;
 		param.frame = bounds;
 		param.textColor = textColor;
 		if (shadowOpacity > 0) {

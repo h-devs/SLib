@@ -380,7 +380,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SimpleTextBoxParam
+	class SLIB_EXPORT TextBoxParam
 	{
 	public:
 		Ref<Font> font;
@@ -395,23 +395,23 @@ namespace slib
 		sl_bool flagEnabledHyperlinksInPlainText;
 
 	public:
-		SimpleTextBoxParam() noexcept;
+		TextBoxParam() noexcept;
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextBoxParam)
 
 	};
 
-	class SLIB_EXPORT SimpleTextBox : public Object
+	class SLIB_EXPORT TextBox : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		SimpleTextBox() noexcept;
+		TextBox() noexcept;
 
-		~SimpleTextBox() noexcept;
+		~TextBox() noexcept;
 
 	public:
-		void update(const SimpleTextBoxParam& param) noexcept;
+		void update(const TextBoxParam& param) noexcept;
 
 		class DrawParam : public TextParagraph::DrawParam
 		{

@@ -1935,9 +1935,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TextBoxParam)
 
-	SimpleTextBoxParam::SimpleTextBoxParam() noexcept:
+	TextBoxParam::TextBoxParam() noexcept:
 		flagHyperText(sl_false),
 		flagMnemonic(sl_false),
 		width(0),
@@ -1950,9 +1950,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_OBJECT(SimpleTextBox, Object)
+	SLIB_DEFINE_OBJECT(TextBox, Object)
 
-	SimpleTextBox::SimpleTextBox() noexcept
+	TextBox::TextBox() noexcept
 	{
 		m_flagHyperText = sl_false;
 		m_width = 0;
@@ -1966,11 +1966,11 @@ namespace slib
 		m_style = new TextStyle;
 	}
 
-	SimpleTextBox::~SimpleTextBox() noexcept
+	TextBox::~TextBox() noexcept
 	{
 	}
 
-	void SimpleTextBox::update(const SimpleTextBoxParam& param) noexcept
+	void TextBox::update(const TextBoxParam& param) noexcept
 	{
 		ObjectLocker lock(this);
 
@@ -2087,13 +2087,13 @@ namespace slib
 		}
 	}
 	
-	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SimpleTextBox, DrawParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TextBox, DrawParam)
 
-	SimpleTextBox::DrawParam::DrawParam() noexcept
+	TextBox::DrawParam::DrawParam() noexcept
 	{
 	}
 
-	void SimpleTextBox::draw(Canvas* canvas, const DrawParam& param) const noexcept
+	void TextBox::draw(Canvas* canvas, const DrawParam& param) const noexcept
 	{
 		if (param.textColor.a == 0) {
 			return;
@@ -2121,7 +2121,7 @@ namespace slib
 		}
 	}
 
-	Ref<TextItem> SimpleTextBox::getTextItemAtPosition(sl_real x, sl_real y, const Rectangle& frame) const noexcept
+	Ref<TextItem> TextBox::getTextItemAtPosition(sl_real x, sl_real y, const Rectangle& frame) const noexcept
 	{
 		ObjectLocker lock(this);
 		if (m_paragraph.isNotNull()) {
@@ -2139,39 +2139,39 @@ namespace slib
 		return sl_null;
 	}
 
-	sl_real SimpleTextBox::getContentWidth() const noexcept
+	sl_real TextBox::getContentWidth() const noexcept
 	{
 		return m_contentWidth;
 	}
 
-	sl_real SimpleTextBox::getContentHeight() const noexcept
+	sl_real TextBox::getContentHeight() const noexcept
 	{
 		return m_contentHeight;
 	}
 
-	Ref<Font> SimpleTextBox::getFont() const noexcept
+	Ref<Font> TextBox::getFont() const noexcept
 	{
 		ObjectLocker lock(this);
 		return m_font;
 	}
 
-	String SimpleTextBox::getText() const noexcept
+	String TextBox::getText() const noexcept
 	{
 		ObjectLocker lock(this);
 		return m_text;
 	}
 
-	MultiLineMode SimpleTextBox::getMultiLineMode() const noexcept
+	MultiLineMode TextBox::getMultiLineMode() const noexcept
 	{
 		return m_multiLineMode;
 	}
 
-	EllipsizeMode SimpleTextBox::getEllipsizeMode() const noexcept
+	EllipsizeMode TextBox::getEllipsizeMode() const noexcept
 	{
 		return m_ellipsisMode;
 	}
 
-	Alignment SimpleTextBox::getAlignment() const noexcept
+	Alignment TextBox::getAlignment() const noexcept
 	{
 		return m_alignVertical | m_alignHorizontal;
 	}
