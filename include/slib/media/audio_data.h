@@ -76,6 +76,9 @@ namespace slib
 
 		void copySamplesFrom(const AudioData& other) const;
 
+		sl_int16 getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex = 0);
+
+		sl_int16 getSampleFromRange(sl_bool flagPeak, sl_uint32 sampleStart, sl_uint32 sampleEnd, sl_uint32 channelIndex = 0);
 	};
 }
 

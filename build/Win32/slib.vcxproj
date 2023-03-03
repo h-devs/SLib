@@ -298,6 +298,7 @@
     <ClCompile Include="..\..\src\slib\media\video_capture.cpp" />
     <ClCompile Include="..\..\src\slib\media\video_codec.cpp" />
     <ClCompile Include="..\..\src\slib\media\video_frame.cpp" />
+    <ClCompile Include="..\..\src\slib\media\wav.cpp" />
     <ClCompile Include="..\..\src\slib\network\arp.cpp" />
     <ClCompile Include="..\..\src\slib\network\dbip.cpp" />
     <ClCompile Include="..\..\src\slib\network\dns.cpp" />

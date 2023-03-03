@@ -414,6 +414,42 @@ namespace slib
 
 	}
 
+	sl_int16 AudioData::getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex)
+	{
+		switch (AudioFormatHelper::getBitsPerSample(format)) {
+		case 8:
+		{
+			sl_int8 *buffer8 = (sl_int8*)data;
+			return *(buffer8 + (sampleIndex * AudioFormatHelper::getChannelCount(format) + channelIndex));
+		}
+		case 16:
+		{
+			sl_int16 *buffer16 = (sl_int16*)data;
+			return *(buffer16 + (sampleIndex * AudioFormatHelper::getChannelCount(format) + channelIndex));
+		}
+		}
+		return 0;
+	}
+
+	sl_int16 AudioData::getSampleFromRange(sl_bool flagPositive, sl_uint32 sampleStart, sl_uint32 sampleEnd, sl_uint32 channelIndex)
+	{
+		sl_int16 peakValue = 0;
+		for (sl_uint32 index = sampleStart; index < sampleEnd; index++) {
+			sl_int16 val = getSample(index, channelIndex);
+			if (flagPositive) {
+				if (peakValue < val) {
+					peakValue = val;
+				}
+			}
+			else {
+				if (val < peakValue) {
+					peakValue = val;
+				}
+			}
+		}
+		return peakValue;
+	}
+
 	void AudioData::copySamplesFrom(const AudioData& other, sl_size countSamples) const
 	{
 		if (format == AudioFormat::None) {
