@@ -162,26 +162,24 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT FileOpenParam
-	{
-	public:
-		FileMode mode;
-		FileAttributes attributes;
-
-	public:
-		FileOpenParam() noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
-
-	};
-
 	class SLIB_EXPORT File
 	{
 		SLIB_DECLARE_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE)
 		SLIB_DECLARE_IO_MEMBERS(const noexcept)
 
 	public:
-		static File open(const StringParam& filePath, const FileOpenParam& param) noexcept;
+		class OpenParam
+		{
+		public:
+			FileMode mode;
+			FileAttributes attributes;
+
+		public:
+			OpenParam() noexcept;
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OpenParam)
+		};
+
+		static File open(const StringParam& filePath, const OpenParam& param) noexcept;
 
 		static File open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;
 

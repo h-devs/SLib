@@ -147,7 +147,7 @@ namespace slib
 		return g_instance;
 	}
 
-	void Pinterest::authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token)
+	void Pinterest::authorizeRequest(UrlRequestParam& param, const OAuth2::AccessToken& token)
 	{
 		param.parameters.put("access_token", token.token);
 	}
@@ -197,19 +197,19 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreateBoardResult)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Pinterest, CreateBoardResult)
 
-	PinterestCreateBoardResult::PinterestCreateBoardResult(UrlRequest* request): PinterestResult(request)
+	Pinterest::CreateBoardResult::CreateBoardResult(UrlRequest* request): PinterestResult(request)
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreateBoardParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Pinterest, CreateBoardParam)
 
-	PinterestCreateBoardParam::PinterestCreateBoardParam()
+	Pinterest::CreateBoardParam::CreateBoardParam()
 	{
 	}
 
-	void Pinterest::createBoard(const PinterestCreateBoardParam& param)
+	void Pinterest::createBoard(const CreateBoardParam& param)
 	{
 		UrlRequestParam rp;
 		rp.method = HttpMethod::POST;
@@ -221,7 +221,7 @@ namespace slib
 		}
 		rp.setFormData(body);
 		rp.onComplete = [param](UrlRequest* request) {
-			PinterestCreateBoardResult result(request);
+			CreateBoardResult result(request);
 			FromJson(result.response["data"], result.createdBoard);
 			if (result.createdBoard.id.isEmpty()) {
 				LogError("Pinterest CreateBoard", "%s", result.response);
@@ -236,19 +236,19 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreatePinResult)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Pinterest, CreatePinResult)
 
-	PinterestCreatePinResult::PinterestCreatePinResult(UrlRequest* request): PinterestResult(request)
+	Pinterest::CreatePinResult::CreatePinResult(UrlRequest* request): PinterestResult(request)
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(PinterestCreatePinParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Pinterest, CreatePinParam)
 
-	PinterestCreatePinParam::PinterestCreatePinParam()
+	Pinterest::CreatePinParam::CreatePinParam()
 	{
 	}
 
-	void Pinterest::createPin(const PinterestCreatePinParam& param)
+	void Pinterest::createPin(const CreatePinParam& param)
 	{
 		UrlRequestParam rp;
 		rp.method = HttpMethod::POST;
@@ -262,7 +262,7 @@ namespace slib
 		body.put_NoLock("image_url", param.imageUrl);
 		rp.setFormData(body);
 		rp.onComplete = [param](UrlRequest* request) {
-			PinterestCreatePinResult result(request);
+			CreatePinResult result(request);
 			String id = result.response["data"]["id"].getString();
 			if (id.isEmpty()) {
 				LogError("Pinterest CreatePin", "%s", result.response);

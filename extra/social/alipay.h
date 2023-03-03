@@ -29,7 +29,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT AlipayResult
+	class AlipayResult
 	{
 	public:
 		sl_bool flagSuccess;
@@ -43,7 +43,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT AlipayBusinessContent
+	class AlipayBusinessContent
 	{
 	public:
 		String tradeId; // required
@@ -65,7 +65,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT AlipayOrder
+	class AlipayOrder
 	{
 	public:
 		String appId;
@@ -89,7 +89,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT AlipayPaymentResult : public AlipayResult
+	class AlipayPaymentResult : public AlipayResult
 	{
 	public:
 		AlipayPaymentResult();
@@ -101,7 +101,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT AlipayPaymentRequest
+	class AlipayPaymentRequest
 	{
 	public:
 		String order;
@@ -115,7 +115,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT AlipaySDK
+	class AlipaySDK
 	{
 	public:
 		static void initialize(const String& appScheme);

@@ -37,8 +37,8 @@ void QRCodeExampleApp::onStart()
 	m_editEncoding->setChangeEventEnabled();
 	m_editEncoding->setHintText("Input any text here to encode into QR Code");
 	m_editEncoding->setOnChange([this](EditView*, String& text) {
-		ZXingGenerateParam param;
-		param.format = ZXingFormat::QR_CODE;
+		ZXing::GenerateParam param;
+		param.format = ZXing::Format::QR_CODE;
 		param.width = 512;
 		param.height = 512;
 		param.text = text;

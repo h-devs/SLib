@@ -355,7 +355,7 @@ namespace slib
 			sl_bool flagIgnoreErrors;
 			
 		public:
-			static void run(CascadingStyleSheet* sheet, CHAR* data, sl_size len, CascadingStylesParam& param)
+			static void run(CascadingStyleSheet* sheet, CHAR* data, sl_size len, CascadingStyleSheet::ParseParam& param)
 			{
 				StylesParser parser;
 				parser.sheet = (CascadingStyleSheetHelper*)sheet;
@@ -1802,13 +1802,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CascadingStylesParam)
-
-	CascadingStylesParam::CascadingStylesParam(): flagIgnoreErrors(sl_true), flagError(sl_false)
-	{
-	}
-
-
 	CascadingStyleSheet::CascadingStyleSheet(): m_lastRuleOrder(0)
 	{
 	}
@@ -1816,8 +1809,14 @@ namespace slib
 	CascadingStyleSheet::~CascadingStyleSheet()
 	{
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(CascadingStyleSheet, ParseParam)
 
-	void CascadingStyleSheet::addStyles(const StringParam& _styles, CascadingStylesParam& param)
+	CascadingStyleSheet::ParseParam::ParseParam(): flagIgnoreErrors(sl_true), flagError(sl_false)
+	{
+	}
+
+	void CascadingStyleSheet::addStyles(const StringParam& _styles, ParseParam& param)
 	{
 		if (_styles.isEmpty()) {
 			return;
@@ -1836,7 +1835,7 @@ namespace slib
 
 	sl_bool CascadingStyleSheet::addStyles(const StringParam& styles)
 	{
-		CascadingStylesParam param;
+		ParseParam param;
 		addStyles(styles, param);
 		return !(param.flagError);
 	}

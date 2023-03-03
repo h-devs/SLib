@@ -30,22 +30,22 @@ namespace slib
 	{
 	}
 
-	void WeChatSDK::login(const WeChatLoginParam& param)
+	void WeChatSDK::login(const WeChat::LoginParam& param)
 	{
-		WeChatLoginResult result;
+		WeChat::LoginResult result;
 		param.onComplete(result);
 	}
 
-	void WeChatSDK::pay(const WeChatPaymentRequest& req)
+	void WeChatSDK::pay(const WeChat::PaymentRequest& req)
 	{
-		WeChatPaymentResult result;
+		WeChat::PaymentResult result;
 		req.onComplete(result);
 	}
 #endif
 
-	void WeChatSDK::login(const Function<void(WeChatLoginResult& result)>& onComplete)
+	void WeChatSDK::login(const Function<void(WeChat::LoginResult& result)>& onComplete)
 	{
-		WeChatLoginParam param;
+		WeChat::LoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}

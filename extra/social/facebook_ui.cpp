@@ -25,13 +25,13 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FacebookResolveUserUrlParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Facebook, ResolveUserUrlParam)
 
-	FacebookResolveUserUrlParam::FacebookResolveUserUrlParam()
+	Facebook::ResolveUserUrlParam::ResolveUserUrlParam()
 	{
 	}
 
-	void Facebook::resolveUserUrl(const FacebookResolveUserUrlParam& param)
+	void Facebook::resolveUserUrl(const ResolveUserUrlParam& param)
 	{
 		auto onComplete = param.onComplete;
 		auto dialog = param.dialog;
@@ -78,7 +78,7 @@ namespace slib
 
 	void Facebook::resolveUserUrl(const Function<void(const String& url)>& onComplete)
 	{
-		FacebookResolveUserUrlParam param;
+		ResolveUserUrlParam param;
 		param.onComplete = onComplete;
 		resolveUserUrl(param);
 	}

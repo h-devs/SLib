@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT EbayUser
+	class EbayUser
 	{
 	public:
 		String userId;
@@ -46,7 +46,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT EbayResult
+	class EbayResult
 	{
 	public:
 		sl_bool flagSuccess;
@@ -60,11 +60,7 @@ namespace slib
 
 	};
 
-	typedef OAuthLoginResult EbayLoginResult;
-
-	typedef OAuthLoginParam EbayLoginParam;
-
-	class SLIB_EXPORT EbayParam : public OAuthParam
+	class EbayParam : public OAuth2_Param
 	{
 	public:
 		EbayParam(sl_bool flagSandbox = sl_false);

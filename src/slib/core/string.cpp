@@ -3004,23 +3004,26 @@ namespace slib
 				}
 			}
 			if (bEmpty) {
-				if (i + 3 <= n) {
-					sl_uint32 c = (sl_uint32)(str[i]);
-					if ((c == 'n' || c == 'N') || (str[i + 1] == 'a' || str[i + 1] == 'A') || (str[i + 2] == 'n' || str[i + 2] == 'N')) {
-						i += 3;
-						if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
+				do {
+					if (i + 3 <= n) {
+						sl_uint32 c = (sl_uint32) (str[i]);
+						if ((c == 'n' || c == 'N') && (str[i + 1] == 'a' || str[i + 1] == 'A') &&
+						    (str[i + 2] == 'n' || str[i + 2] == 'N')) {
+							i += 3;
 							if (_out) {
 								Math::getNaN(*_out);
 							}
-							return i;
-						}
-					} else if ((c == 'i' || c == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'f' || str[i + 2] == 'F')) {
-						i += 3;
-						if (i + 5 <= n && (str[i] == 'i' || str[i] == 'I') || (str[i + 1] == 'n' || str[i + 1] == 'N') || (str[i + 2] == 'i' || str[i + 2] == 'I') || (str[i + 3] == 't' || str[i + 3] == 'T') || (str[i + 4] == 'y' || str[i + 4] == 'Y')) {
-							i += 5;
-						}
-						c = (sl_uint32)(str[i]);
-						if (i >= n || (c < 128 && !SLIB_CHAR_IS_ALNUM(c))) {
+						} else if ((c == 'i' || c == 'I') &&
+						           (str[i + 1] == 'n' || str[i + 1] == 'N') &&
+						           (str[i + 2] == 'f' || str[i + 2] == 'F')) {
+							i += 3;
+							if (i + 5 <= n && (str[i] == 'i' || str[i] == 'I') &&
+							    (str[i + 1] == 'n' || str[i + 1] == 'N') &&
+							    (str[i + 2] == 'i' || str[i + 2] == 'I') &&
+							    (str[i + 3] == 't' || str[i + 3] == 'T') &&
+							    (str[i + 4] == 'y' || str[i + 4] == 'Y')) {
+								i += 5;
+							}
 							if (_out) {
 								if (bMinus) {
 									Math::getNegativeInfinite(*_out);
@@ -3028,10 +3031,18 @@ namespace slib
 									Math::getPositiveInfinite(*_out);
 								}
 							}
-							return i;
+						} else {
+							break;
 						}
+						if (i < n) {
+							c = (sl_uint32) (str[i]);
+							if (c >= 128 || SLIB_CHAR_IS_ALNUM(c)) {
+								break;
+							}
+						}
+						return i;
 					}
-				}
+				} while (0);
 				return SLIB_PARSE_ERROR; // integral number is required
 			}
 			if (flagVi) {

@@ -44,19 +44,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RenderClearParam)
-
-	RenderClearParam::RenderClearParam()
-	{
-		flagColor = sl_true;
-		color = Color::Blue;
-		flagDepth = sl_true;
-		depth = 1.0f;
-		flagStencil = sl_false;
-		stencil = 0;
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(RendererParam)
 
 	RendererParam::RendererParam()
@@ -156,14 +143,26 @@ namespace slib
 		_setViewport(x, y, width, height);
 	}
 
-	void RenderEngine::clear(const RenderClearParam& param)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(RenderEngine, ClearParam)
+
+	RenderEngine::ClearParam::ClearParam()
+	{
+		flagColor = sl_true;
+		color = Color::Blue;
+		flagDepth = sl_true;
+		depth = 1.0f;
+		flagStencil = sl_false;
+		stencil = 0;
+	}
+
+	void RenderEngine::clear(const ClearParam& param)
 	{
 		_clear(param);
 	}
 
 	void RenderEngine::clearColor(const Color& color)
 	{
-		RenderClearParam param;
+		ClearParam param;
 		param.flagColor = sl_true;
 		param.color = color;
 		param.flagDepth = sl_false;
@@ -172,7 +171,7 @@ namespace slib
 
 	void RenderEngine::clearColorDepth(const Color& color, float depth)
 	{
-		RenderClearParam param;
+		ClearParam param;
 		param.flagColor = sl_true;
 		param.color = color;
 		param.flagDepth = sl_true;
@@ -182,7 +181,7 @@ namespace slib
 
 	void RenderEngine::clearDepth(float depth)
 	{
-		RenderClearParam param;
+		ClearParam param;
 		param.flagColor = sl_false;
 		param.flagDepth = sl_true;
 		param.depth = depth;

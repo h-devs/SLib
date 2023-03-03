@@ -238,7 +238,7 @@ namespace slib
 				JMediaPlayer::setLooping.call(m_player, flagRepeat);
 			}
 
-			void renderVideo(MediaPlayerRenderVideoParam& param) override
+			void renderVideo(RenderVideoParam& param) override
 			{
 				ObjectLocker lock(this);
 				if (!m_flagInited) {

@@ -57,7 +57,7 @@ namespace slib
 			return sl_true;
 		}
 
-		Ref<FileContext> openFile(const StringParam& _path, const FileOpenParam& param) override
+		Ref<FileContext> openFile(const StringParam& _path, const File::OpenParam& param) override
 		{
 			String path = _path.toString();
 			if (!path.endsWith("/dummy.txt")) {

@@ -272,7 +272,7 @@ namespace slib
 				if (canvas.isNull()) {
 					return sl_null;
 				}
-				PdfRenderParam param;
+				PdfPage::RenderParam param;
 				param.canvas = canvas.get();
 				param.cache = this;
 				param.bounds.left = 0;
@@ -605,7 +605,7 @@ namespace slib
 						}
 					}
 				} else {
-					PdfRenderParam param;
+					PdfPage::RenderParam param;
 					param.canvas = canvas;
 					param.cache = m_context;
 					param.bounds.left = 0;

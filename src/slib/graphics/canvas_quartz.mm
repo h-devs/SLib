@@ -548,7 +548,7 @@ namespace slib
 		return [CIVector vectorWithX:(v.x) Y:(v.y) Z:(v.z) W:(v.w)];
 	}
 
-	void GraphicsPlatform::drawCGImage(Canvas* canvas, const Rectangle& _rectDst, CGImageRef image, sl_bool flagFlipY, const DrawParam& param)
+	void GraphicsPlatform::drawCGImage(Canvas* canvas, const Rectangle& _rectDst, CGImageRef image, sl_bool flagFlipY, const Drawable::DrawParam& param)
 	{
 		if (!image) {
 			return;

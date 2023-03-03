@@ -180,6 +180,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/graphics/canvas.cpp"
  "${SLIB_PATH}/src/slib/graphics/canvas_ext.cpp"
  "${SLIB_PATH}/src/slib/graphics/color.cpp"
+ "${SLIB_PATH}/src/slib/graphics/css.cpp"
  "${SLIB_PATH}/src/slib/graphics/drawable.cpp"
  "${SLIB_PATH}/src/slib/graphics/drawable_ext.cpp"
  "${SLIB_PATH}/src/slib/graphics/font.cpp"
@@ -197,6 +198,7 @@ set (SLIB_SOURCE_FILES
  "${SLIB_PATH}/src/slib/graphics/jpeg.cpp"
  "${SLIB_PATH}/src/slib/graphics/pen.cpp"
  "${SLIB_PATH}/src/slib/graphics/sfnt.cpp"
+ "${SLIB_PATH}/src/slib/graphics/svg.cpp"
 
  "${SLIB_PATH}/src/slib/render/opengl_gl.cpp"
  "${SLIB_PATH}/src/slib/render/opengl_gles.cpp"

@@ -50,67 +50,63 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SmbFileInfo)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SmbServer, FileInfo)
 
-	SmbFileInfo::SmbFileInfo() noexcept
+	SmbServer::FileInfo::FileInfo() noexcept
 	{
 	}
 
-
-	SLIB_DEFINE_ROOT_OBJECT(SmbServerFileContext)
-
-	SmbServerFileContext::SmbServerFileContext(const String16& path): m_path(path), m_flagReturnedList(sl_false)
+	
+	SmbServer::FileContext::FileContext(const String16& path): m_path(path), m_flagReturnedList(sl_false)
 	{
 	}
 
-	SmbServerFileContext::SmbServerFileContext(String16&& path) : m_path(Move(path)), m_flagReturnedList(sl_false)
+	SmbServer::FileContext::FileContext(String16&& path) : m_path(Move(path)), m_flagReturnedList(sl_false)
 	{
 	}
 
-	SmbServerFileContext::~SmbServerFileContext()
+	SmbServer::FileContext::~FileContext()
 	{
 	}
 
-	const String16& SmbServerFileContext::getPath()
+	const String16& SmbServer::FileContext::getPath()
 	{
 		return m_path;
 	}
 
-	SmbFileInfo& SmbServerFileContext::getInfo()
+	SmbServer::FileInfo& SmbServer::FileContext::getInfo()
 	{
 		return m_info;
 	}
 
-	void SmbServerFileContext::setInfo(const SmbFileInfo& info)
+	void SmbServer::FileContext::setInfo(const FileInfo& info)
 	{
 		m_info = info;
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SmbCreateFileParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SmbServer, CreateFileParam)
 
-	SmbCreateFileParam::SmbCreateFileParam()
+	SmbServer::CreateFileParam::CreateFileParam()
 	{
 	}
 
 
-	SLIB_DEFINE_OBJECT(SmbServerShare, Object)
-
-	SmbServerShare::SmbServerShare()
+	SmbServer::Share::Share()
 	{
 		m_lastFileUniqueId = 0;
 	}
 
-	SmbServerShare::~SmbServerShare()
+	SmbServer::Share::~Share()
 	{
 	}
 
-	String SmbServerShare::getComment()
+	String SmbServer::Share::getComment()
 	{
 		return m_comment;
 	}
 
-	sl_uint64 SmbServerShare::getFileUniqueId(const String16& path)
+	sl_uint64 SmbServer::Share::getFileUniqueId(const String16& path)
 	{
 		ObjectLocker lock(&m_fileUniqueIds);
 		sl_uint64 id = m_fileUniqueIds.getValue_NoLock(path);
@@ -123,51 +119,51 @@ namespace slib
 		return id;
 	}
 
-	void SmbServerShare::setComment(const String& comment)
+	void SmbServer::Share::setComment(const String& comment)
 	{
 		m_comment = comment;
 	}
 
 
-	SmbServerFileShare::SmbServerFileShare(const String& rootPath): m_rootPath(rootPath)
+	SmbServer::FileShare::FileShare(const String& rootPath): m_rootPath(rootPath)
 	{
 	}
 
-	SmbServerFileShare::SmbServerFileShare(const String& rootPath, const String& comment): m_rootPath(rootPath)
+	SmbServer::FileShare::FileShare(const String& rootPath, const String& comment): m_rootPath(rootPath)
 	{
 		setComment(comment);
 	}
 
-	SmbServerFileShare::~SmbServerFileShare()
+	SmbServer::FileShare::~FileShare()
 	{
 	}
 
-	Ref<SmbServerFileContext> SmbServerFileShare::createFile(const SmbCreateFileParam& param)
+	Ref<SmbServer::FileContext> SmbServer::FileShare::createFile(const CreateFileParam& param)
 	{
 		String absolutePath = getAbsolutePath(param.path);
 		File file = File::openForRead(absolutePath);
 		if (file.isNotNone()) {
-			return new FileContext(String16(param.path), Move(absolutePath), Move(file));
+			return new Context(String16(param.path), Move(absolutePath), Move(file));
 		} else {
 			if (File::isDirectory(absolutePath)) {
-				return new FileContext(String16(param.path), Move(absolutePath));
+				return new Context(String16(param.path), Move(absolutePath));
 			}
 		}
 		return sl_null;
 	}
 
-	sl_int32 SmbServerFileShare::readFile(SmbServerFileContext* _context, sl_uint64 offset, void* buf, sl_uint32 size)
+	sl_int32 SmbServer::FileShare::readFile(FileContext* _context, sl_uint64 offset, void* buf, sl_uint32 size)
 	{
-		FileContext* context = (FileContext*)_context;
+		Context* context = (Context*)_context;
 		if (context) {
 			return context->file.readAt32(offset, buf, size);
 		}
 		return -1;
 	}
 
-	sl_bool SmbServerFileShare::getFileInfo(SmbServerFileContext* _context, SmbFileInfo& _out)
+	sl_bool SmbServer::FileShare::getFileInfo(FileContext* _context, FileInfo& _out)
 	{
-		FileContext* context = (FileContext*)_context;
+		Context* context = (Context*)_context;
 		if (context) {
 			_out.attributes = File::getAttributes(context->absolutePath);
 			_out.size = File::getSize(context->absolutePath);
@@ -178,13 +174,13 @@ namespace slib
 		return sl_false;
 	}
 
-	HashMap<String16, SmbFileInfo> SmbServerFileShare::getFiles(SmbServerFileContext* _context)
+	HashMap<String16, SmbServer::FileInfo> SmbServer::FileShare::getFiles(FileContext* _context)
 	{
-		FileContext* context = (FileContext*)_context;
+		Context* context = (Context*)_context;
 		if (context) {
-			HashMap<String16, SmbFileInfo> ret;
+			HashMap<String16, FileInfo> ret;
 			for (auto& item : File::getFileInfos(context->absolutePath)) {
-				SmbFileInfo info;
+				FileInfo info;
 				info.size = item.value.size;
 				info.attributes = item.value.attributes;
 				info.createdAt = item.value.createdAt;
@@ -196,7 +192,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String SmbServerFileShare::getAbsolutePath(const StringView16& path) noexcept
+	String SmbServer::FileShare::getAbsolutePath(const StringView16& path) noexcept
 	{
 #ifdef SLIB_PLATFORM_IS_WINDOWS
 		return String::concat(m_rootPath, "\\", path);
@@ -213,22 +209,22 @@ namespace slib
 #endif
 	}
 
-	SmbServerFileShare::FileContext::FileContext(String16&& _path, String&& _absolutePath, File&& _file) : SmbServerFileContext(Move(_path)), absolutePath(Move(_absolutePath)), file(Move(_file))
+	SmbServer::FileShare::Context::Context(String16&& _path, String&& _absolutePath, File&& _file): FileContext(Move(_path)), absolutePath(Move(_absolutePath)), file(Move(_file))
 	{
 	}
 
-	SmbServerFileShare::FileContext::FileContext(String16&& _path, String&& _absolutePath) : SmbServerFileContext(Move(_path)), absolutePath(Move(_absolutePath))
+	SmbServer::FileShare::Context::Context(String16&& _path, String&& _absolutePath): FileContext(Move(_path)), absolutePath(Move(_absolutePath))
 	{
 	}
 
-	SmbServerFileShare::FileContext::~FileContext()
+	SmbServer::FileShare::Context::~Context()
 	{
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(SmbServerParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(SmbServer, Param)
 
-	SmbServerParam::SmbServerParam()
+	SmbServer::Param::Param()
 	{
 		port = 445;
 
@@ -241,7 +237,7 @@ namespace slib
 		flagAutoStart = sl_true;
 	}
 
-	void SmbServerParam::initNames()
+	void SmbServer::Param::initNames()
 	{
 		if (domainName.isNull()) {
 			domainName = targetName;
@@ -263,19 +259,19 @@ namespace slib
 		}
 	}
 
-	void SmbServerParam::addShare(const String& name, const Ref<SmbServerShare>& share)
+	void SmbServer::Param::addShare(const String& name, const Ref<Share>& share)
 	{
 		shares.put(String16::from(name), share);
 	}
 
-	void SmbServerParam::addFileShare(const String& name, const String& rootPath)
+	void SmbServer::Param::addFileShare(const String& name, const String& rootPath)
 	{
-		shares.put(String16::from(name), new SmbServerFileShare(rootPath));
+		shares.put(String16::from(name), new FileShare(rootPath));
 	}
 
-	void SmbServerParam::addFileShare(const String& name, const String& rootPath, const String& comment)
+	void SmbServer::Param::addFileShare(const String& name, const String& rootPath, const String& comment)
 	{
-		shares.put(String16::from(name), new SmbServerFileShare(rootPath, comment));
+		shares.put(String16::from(name), new FileShare(rootPath, comment));
 	}
 
 
@@ -300,7 +296,7 @@ namespace slib
 		release();
 	}
 
-	Ref<SmbServer> SmbServer::create(const SmbServerParam& param)
+	Ref<SmbServer> SmbServer::create(const Param& param)
 	{
 #ifdef SLIB_PLATFORM_IS_WIN32
 		sl_bool flagStopSystemService = sl_false;
@@ -404,7 +400,7 @@ namespace slib
 		return m_flagRunning;
 	}
 
-	const SmbServerParam& SmbServer::getParam()
+	const SmbServer::Param& SmbServer::getParam()
 	{
 		return m_param;
 	}
@@ -452,7 +448,7 @@ namespace slib
 			return;
 		}
 
-		SmbServerSession session;
+		Session session;
 		session.server = this;
 
 		NetBIOS_SessionMessage msg;
@@ -1066,16 +1062,16 @@ namespace slib
 				}
 			}
 		} else {
-			SmbServerShare* share = param.session->getTree(treeId);
+			Share* share = param.session->getTree(treeId);
 			if (share) {
-				SmbCreateFileParam cp;
+				CreateFileParam cp;
 				cp.path = filePath;
-				Ref<SmbServerFileContext> file = share->createFile(cp);
+				Ref<FileContext> file = share->createFile(cp);
 				if (file.isNotNull()) {
 					fileId = param.session->registerFile(file.get());
 					if (fileId) {
 						response.setAction(SmbCreateAction::Existed);
-						SmbFileInfo info;
+						FileInfo info;
 						if (share->getFileInfo(file.get(), info)) {
 							if (!(info.attributes & FileAttributes::NotExist)) {
 								file->m_info = info;
@@ -1148,11 +1144,11 @@ namespace slib
 
 		sl_uint64 fileId = GetFileId(param, request->getGuid());
 		if (fileId >= MAX_RESERVED_ID) {
-			SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+			Share* share = param.session->getTree(param.smb->getTreeId());
 			if (share) {
-				Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+				Ref<FileContext> file = param.session->getFile(fileId);
 				if (file.isNotNull()) {
-					SmbFileInfo& info = file->getInfo();
+					FileInfo& info = file->getInfo();
 					response.setAttributes(ToNetworkAttrs(info.attributes));
 					if (!(info.attributes & FileAttributes::Directory)) {
 						response.setAllocationSize(GetAllocationSize(info.size));
@@ -1203,9 +1199,9 @@ namespace slib
 					"\x02\x00\x00\x00");
 			}
 		} else {
-			SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+			Share* share = param.session->getTree(param.smb->getTreeId());
 			if (share) {
-				Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+				Ref<FileContext> file = param.session->getFile(fileId);
 				if (file.isNotNull()) {
 					sl_uint32 len = request->getReadLength();
 					if (len <= sizeof(stack)) {
@@ -1314,9 +1310,9 @@ namespace slib
 		} else if (func == 0x000900c0) { // FSCTL_CREATE_OR_GET_OBJECT_ID
 			sl_uint64 fileId = GetFileId(param, request->getGuid());
 			if (fileId >= MAX_RESERVED_ID) {
-				SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+				Share* share = param.session->getTree(param.smb->getTreeId());
 				if (share) {
-					Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+					Ref<FileContext> file = param.session->getFile(fileId);
 					if (file.isNotNull()) {
 
 						Smb2FileObjectIdBuffer buf = { 0 };
@@ -1361,7 +1357,7 @@ namespace slib
 			return sl_null;
 		}
 
-		static Memory GenerateFileIdBothDirectoryInfo(const String16& fileName, sl_uint32 index, sl_uint64 id, SmbFileInfo& info)
+		static Memory GenerateFileIdBothDirectoryInfo(const String16& fileName, sl_uint32 index, sl_uint64 id, SmbServer::FileInfo& info)
 		{
 			sl_uint32 lenFileName = (sl_uint32)(fileName.getLength());
 
@@ -1435,9 +1431,9 @@ namespace slib
 			StringView16 pattern((sl_char16*)(param.data + patternOffset), patternLength >> 1);
 			sl_uint64 fileId = GetFileId(param, request->getGuid());
 			if (fileId >= MAX_RESERVED_ID) {
-				SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+				Share* share = param.session->getTree(param.smb->getTreeId());
 				if (share) {
-					Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+					Ref<FileContext> file = param.session->getFile(fileId);
 					if (file.isNotNull()) {
 						if (file->m_flagReturnedList) {
 							return WriteErrorResponse(param, SmbStatus::NoMoreFiles);
@@ -1445,7 +1441,7 @@ namespace slib
 						StringView16 path = file->getPath();
 						MemoryBuffer bufTotal;
 						if (pattern == SLIB_UNICODE("*")) {
-							SmbFileInfo info;
+							FileInfo info;
 							Base::zeroMemory(&info, sizeof(info));
 							info.attributes = FileAttributes::Directory;
 							SLIB_STATIC_STRING16(s1, ".")
@@ -1534,11 +1530,11 @@ namespace slib
 			} else if (level == Smb2GetInfoLevel::FileAllInfo) {
 				sl_uint64 fileId = GetFileId(param, request->getGuid());
 				if (fileId >= MAX_RESERVED_ID) {
-					SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+					Share* share = param.session->getTree(param.smb->getTreeId());
 					if (share) {
-						Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+						Ref<FileContext> file = param.session->getFile(fileId);
 						if (file.isNotNull()) {
-							SmbFileInfo si;
+							FileInfo si;
 							if (share->getFileInfo(file.get(), si)) {
 								const String16& path = file->getPath();
 								sl_uint32 lenPath = (sl_uint32)(path.getLength());
@@ -1570,11 +1566,11 @@ namespace slib
 			} else if (level == Smb2GetInfoLevel::FileNetworkOpenInfo) {
 				sl_uint64 fileId = GetFileId(param, request->getGuid());
 				if (fileId >= MAX_RESERVED_ID) {
-					SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+					Share* share = param.session->getTree(param.smb->getTreeId());
 					if (share) {
-						Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+						Ref<FileContext> file = param.session->getFile(fileId);
 						if (file.isNotNull()) {
-							SmbFileInfo si;
+							FileInfo si;
 							if (share->getFileInfo(file.get(), si)) {
 								Smb2FileNetworkOpenInfo info;
 								Base::zeroMemory(&info, sizeof(info));
@@ -1597,11 +1593,11 @@ namespace slib
 			if (level == Smb2GetInfoLevel::FileFsVolumeInformation) {
 				sl_uint64 fileId = GetFileId(param, request->getGuid());
 				if (fileId >= MAX_RESERVED_ID) {
-					SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+					Share* share = param.session->getTree(param.smb->getTreeId());
 					if (share) {
-						Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+						Ref<FileContext> file = param.session->getFile(fileId);
 						if (file.isNotNull()) {
-							SmbFileInfo si;
+							FileInfo si;
 							if (share->getFileInfo(file.get(), si)) {
 								class FsVolumeInfo : public Smb2FileFsVolumeInformation
 								{
@@ -1627,11 +1623,11 @@ namespace slib
 			} else if (level == Smb2GetInfoLevel::FileFsAttributeInformation) {
 				sl_uint64 fileId = GetFileId(param, request->getGuid());
 				if (fileId >= MAX_RESERVED_ID) {
-					SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+					Share* share = param.session->getTree(param.smb->getTreeId());
 					if (share) {
-						Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+						Ref<FileContext> file = param.session->getFile(fileId);
 						if (file.isNotNull()) {
-							SmbFileInfo si;
+							FileInfo si;
 							if (share->getFileInfo(file.get(), si)) {
 								class FsAttributesInfo : public Smb2FileFsAttributeInformation
 								{
@@ -1654,11 +1650,11 @@ namespace slib
 			} else if (level == Smb2GetInfoLevel::FileFsObjectIdInformation) {
 				sl_uint64 fileId = GetFileId(param, request->getGuid());
 				if (fileId >= MAX_RESERVED_ID) {
-					SmbServerShare* share = param.session->getTree(param.smb->getTreeId());
+					Share* share = param.session->getTree(param.smb->getTreeId());
 					if (share) {
-						Ref<SmbServerFileContext> file = param.session->getFile(fileId);
+						Ref<FileContext> file = param.session->getFile(fileId);
 						if (file.isNotNull()) {
-							SmbFileInfo si;
+							FileInfo si;
 							if (share->getFileInfo(file.get(), si)) {
 								Smb2FileObjectIdBuffer buf = { 0 };
 								sl_uint64 id = share->getFileUniqueId(file->getPath());
@@ -1896,7 +1892,7 @@ namespace slib
 					refId >>= 2;
 					refId++;
 
-					ListElements< Pair< String16, Ref<SmbServerShare> > > list(m_param.shares.toList());
+					ListElements< Pair< String16, Ref<Share> > > list(m_param.shares.toList());
 					sl_uint32 nShares = (sl_uint32)(list.count);
 
 					MemoryOutput output;
@@ -1941,7 +1937,7 @@ namespace slib
 					refId >>= 2;
 					refId++;
 
-					Ref<SmbServerShare> share = m_param.shares.getValue(shareName);
+					Ref<Share> share = m_param.shares.getValue(shareName);
 					if (share.isNull()) {
 						return sl_null;
 					}
@@ -1991,21 +1987,21 @@ namespace slib
 	}
 
 
-	SmbServerSession::SmbServerSession(): server(sl_null)
+	SmbServer::Session::Session(): server(sl_null)
 	{
 	}
 
-	SmbServerSession::~SmbServerSession()
+	SmbServer::Session::~Session()
 	{
 	}
 
-	sl_uint32 SmbServerSession::connectTree(const String16& path) noexcept
+	sl_uint32 SmbServer::Session::connectTree(const String16& path) noexcept
 	{
 		sl_uint32 treeId = treeIds.getValue_NoLock(path);
 		if (treeId) {
 			return treeId;
 		}
-		Ref<SmbServerShare> share = server->m_param.shares.getValue(path);
+		Ref<Share> share = server->m_param.shares.getValue(path);
 		if (share.isNull()) {
 			return 0;
 		}
@@ -2016,12 +2012,12 @@ namespace slib
 		return treeId;
 	}
 
-	SmbServerShare* SmbServerSession::getTree(sl_uint32 treeId) noexcept
+	SmbServer::Share* SmbServer::Session::getTree(sl_uint32 treeId) noexcept
 	{
 		return trees.getValue_NoLock(treeId).get();
 	}
 
-	sl_uint64 SmbServerSession::registerFile(SmbServerFileContext* context) noexcept
+	sl_uint64 SmbServer::Session::registerFile(FileContext* context) noexcept
 	{
 		sl_uint64 fileId = Base::interlockedIncrement64(&(server->m_lastFileId));
 		fileId += MAX_RESERVED_ID;
@@ -2029,12 +2025,12 @@ namespace slib
 		return fileId;
 	}
 
-	void SmbServerSession::unregisterFile(sl_uint64 fileId) noexcept
+	void SmbServer::Session::unregisterFile(sl_uint64 fileId) noexcept
 	{
 		files.remove_NoLock(fileId);
 	}
 
-	Ref<SmbServerFileContext> SmbServerSession::getFile(sl_uint64 fileId) noexcept
+	Ref<SmbServer::FileContext> SmbServer::Session::getFile(sl_uint64 fileId) noexcept
 	{
 		return files.getValue_NoLock(fileId);
 	}

@@ -211,7 +211,7 @@ namespace slib
 				m_item.menu = UIPlatform::getMenuHandle(menu.get());
 			}
 
-			void notify_NI(const SystemTrayIconNotifyParam& param) override
+			void notify_NI(const NotifyParam& param) override
 			{
 				UserNotificationMessage msg;
 				msg.identifier = String::concat(NOTIFICATION_ID_PREFIX, m_iconName);

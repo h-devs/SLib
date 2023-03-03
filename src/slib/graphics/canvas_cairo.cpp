@@ -553,7 +553,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void GraphicsPlatform::drawImage(Canvas* _canvas, const Rectangle& rectDst, cairo_surface_t* image, const DrawParam& param)
+	void GraphicsPlatform::drawImage(Canvas* _canvas, const Rectangle& rectDst, cairo_surface_t* image, const Drawable::DrawParam& param)
 	{
 		if (!image) {
 			return;

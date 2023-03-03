@@ -31,16 +31,16 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ServiceCreateParam)
+	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(CreateServiceParam)
 
-	ServiceCreateParam::ServiceCreateParam() noexcept
+	CreateServiceParam::CreateServiceParam() noexcept
 	{
 		type = ServiceType::Generic;
 		startType = ServiceStartType::Manual;
 		errorControl = ServiceErrorControl::Normal;
 	}
 
-	String ServiceCreateParam::getCommandLine() const noexcept
+	String CreateServiceParam::getCommandLine() const noexcept
 	{
 		if (commandLine.isNotNull()) {
 			return commandLine.toString();
@@ -76,7 +76,7 @@ namespace slib
 		return start(name, sl_null, 0, timeoutMilliseconds);
 	}
 
-	sl_bool ServiceManager::createAndStart(const ServiceCreateParam& param, sl_int32 timeout)
+	sl_bool ServiceManager::createAndStart(const CreateServiceParam& param, sl_int32 timeout)
 	{
 		ServiceState state = getState(param.name);
 		if (state == ServiceState::Running) {
@@ -112,7 +112,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool ServiceManager::create(const ServiceCreateParam& param)
+	sl_bool ServiceManager::create(const CreateServiceParam& param)
 	{
 		return sl_false;
 	}

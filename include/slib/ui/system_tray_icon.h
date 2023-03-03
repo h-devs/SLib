@@ -59,8 +59,6 @@ namespace slib
 
 	};
 
-	class SystemTrayIconNotifyParam;
-
 	class SLIB_EXPORT SystemTrayIcon : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -98,7 +96,26 @@ namespace slib
 			Error = 3
 		};
 
-		void notify(const SystemTrayIconNotifyParam& param);
+		class NotifyParam
+		{
+		public:
+			String title;
+			String message;
+
+			SystemTrayIcon::NotifyIcon iconType;
+			String iconName;
+			Ref<Drawable> icon;
+
+			sl_uint32 timeout; // In milliseconds (not used on Windows Vista and later)
+			sl_bool flagSound;
+			sl_bool flagLargeIcon;
+
+		public:
+			NotifyParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(NotifyParam)
+		};
+
+		void notify(const NotifyParam& param);
 
 		void notify(const String& title, const String& message);
 
@@ -153,28 +170,7 @@ namespace slib
 
 		virtual void setMenu_NI(const Ref<Menu>& menu) = 0;
 
-		virtual void notify_NI(const SystemTrayIconNotifyParam& param);
-
-	};
-
-	class SLIB_EXPORT SystemTrayIconNotifyParam
-	{
-	public:
-		String title;
-		String message;
-
-		SystemTrayIcon::NotifyIcon iconType;
-		String iconName;
-		Ref<Drawable> icon;
-
-		sl_uint32 timeout; // In milliseconds (not used on Windows Vista and later)
-		sl_bool flagSound;
-		sl_bool flagLargeIcon;
-
-	public:
-		SystemTrayIconNotifyParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SystemTrayIconNotifyParam)
+		virtual void notify_NI(const NotifyParam& param);
 
 	};
 

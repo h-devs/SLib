@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT PinterestUser
+	class PinterestUser
 	{
 	public:
 		String id;
@@ -47,7 +47,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT PinterestBoard
+	class PinterestBoard
 	{
 	public:
 		String id;
@@ -67,75 +67,7 @@ namespace slib
 
 	typedef OAuthApiResult PinterestResult;
 
-	typedef OAuthLoginResult PinterestLoginResult;
-
-	class SLIB_EXPORT PinterestLoginParam: public OAuthLoginParam
-	{
-	public:
-		PinterestLoginParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PinterestLoginParam)
-
-	public:
-		void addScopeForWritingPublic();
-
-	};
-
-
-	class SLIB_EXPORT PinterestCreateBoardResult : public PinterestResult
-	{
-	public:
-		PinterestBoard createdBoard;
-
-	public:
-		PinterestCreateBoardResult(UrlRequest* request);
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PinterestCreateBoardResult)
-
-	};
-
-	class SLIB_EXPORT PinterestCreateBoardParam
-	{
-	public:
-		String name; // required
-		String description;
-
-		Function<void(PinterestCreateBoardResult& result)> onComplete;
-
-	public:
-		PinterestCreateBoardParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PinterestCreateBoardParam)
-
-	};
-
-	class SLIB_EXPORT PinterestCreatePinResult : public PinterestResult
-	{
-	public:
-		PinterestCreatePinResult(UrlRequest* request);
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PinterestCreatePinResult)
-
-	};
-
-	class SLIB_EXPORT PinterestCreatePinParam
-	{
-	public:
-		String board; // required
-		String note; // required
-		String link;
-		String imageUrl;
-
-		Function<void(PinterestCreatePinResult& result)> onComplete;
-
-	public:
-		PinterestCreatePinParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PinterestCreatePinParam)
-
-	};
-
-	class SLIB_EXPORT PinterestParam : public OAuthParam
+	class PinterestParam : public OAuth2_Param
 	{
 	public:
 		PinterestParam();
@@ -175,7 +107,7 @@ namespace slib
 	public:
 		using OAuth2::authorizeRequest;
 
-		void authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token) override;
+		void authorizeRequest(UrlRequestParam& param, const AccessToken& token) override;
 
 	public:
 		String getRequestUrl(const String& path);
@@ -184,9 +116,64 @@ namespace slib
 
 		void getMyBoards(const Function<void(PinterestResult&, List<PinterestBoard>& boards)>& onComplete);
 
-		void createBoard(const PinterestCreateBoardParam& param);
+		class CreateBoardResult : public PinterestResult
+		{
+		public:
+			PinterestBoard createdBoard;
 
-		void createPin(const PinterestCreatePinParam& param);
+		public:
+			CreateBoardResult(UrlRequest* request);
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateBoardResult)
+		};
+
+		class CreateBoardParam
+		{
+		public:
+			String name; // required
+			String description;
+
+			Function<void(CreateBoardResult& result)> onComplete;
+
+		public:
+			CreateBoardParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateBoardParam)
+		};
+
+		void createBoard(const CreateBoardParam& param);
+
+		class CreatePinResult : public PinterestResult
+		{
+		public:
+			CreatePinResult(UrlRequest* request);
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreatePinResult)
+		};
+
+		class CreatePinParam
+		{
+		public:
+			String board; // required
+			String note; // required
+			String link;
+			String imageUrl;
+
+			Function<void(CreatePinResult& result)> onComplete;
+
+		public:
+			CreatePinParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreatePinParam)
+		};
+
+		void createPin(const CreatePinParam& param);
+
+		class LoginParam : public OAuth2::LoginParam
+		{
+		public:
+			LoginParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoginParam)
+
+		public:
+			void addScopeForWritingPublic();
+		};
 
 	};
 

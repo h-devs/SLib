@@ -41,33 +41,33 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FCM_ServiceSendResult)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(FCM_Service, SendResult)
 
-	SLIB_DEFINE_JSON_MEMBERS(FCM_ServiceSendResult, message_id, registration_id, error)
+	SLIB_DEFINE_JSON_MEMBERS(FCM_Service::SendResult, message_id, registration_id, error)
 
-	FCM_ServiceSendResult::FCM_ServiceSendResult()
+	FCM_Service::SendResult::SendResult()
 	{
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FCM_ServiceSendResponse)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(FCM_Service, SendResponse)
 
-	SLIB_DEFINE_JSON_MEMBERS(FCM_ServiceSendResponse, multicast_id, success, failure, results)
+	SLIB_DEFINE_JSON_MEMBERS(FCM_Service::SendResponse, multicast_id, success, failure, results)
 
-	FCM_ServiceSendResponse::FCM_ServiceSendResponse()
+	FCM_Service::SendResponse::SendResponse()
 	{
 		flagSuccess = sl_false;
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FCM_SendParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(FCM_Service, SendParam)
 
-	FCM_SendParam::FCM_SendParam()
+	FCM_Service::SendParam::SendParam()
 	{
 	}
 
 
-	void FCM_Service::sendNotification(const FCM_SendParam& param)
+	void FCM_Service::sendNotification(const SendParam& param)
 	{
 		HttpHeaderMap headers;
 		headers.put_NoLock(HttpHeader::Authorization, String::format("key=%s", param.legacyServerKey));
@@ -95,13 +95,13 @@ namespace slib
 			}
 		}
 
-		Function<void(FCM_ServiceSendResponse&)> callback = param.callback;
+		Function<void(SendResponse&)> callback = param.callback;
 		SLIB_STATIC_STRING(url, "https://fcm.googleapis.com/fcm/send")
 		UrlRequest::post(url, headers, body, [callback](UrlRequest* request) {
 			if (callback.isNull()) {
 				return;
 			}
-			FCM_ServiceSendResponse response;
+			SendResponse response;
 			response.flagSuccess = sl_true;
 			response.request = request;
 			if (request->getResponseStatus() != HttpStatus::OK) {

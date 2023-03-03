@@ -60,8 +60,8 @@ namespace slib
 		class FacebookSDKContext
 		{
 		public:
-			Function<void(FacebookLoginResult&)> onLoginResult;
-			Function<void(FacebookShareResult&)> onShareResult;
+			Function<void(Facebook::LoginResult&)> onLoginResult;
+			Function<void(Facebook::ShareResult&)> onShareResult;
 
 		public:
 			static FacebookSDKContext* get()
@@ -73,7 +73,7 @@ namespace slib
 				return &s;
 			}
 
-			static void getToken(OAuthAccessToken& _out, jobject _in)
+			static void getToken(OAuth2::AccessToken& _out, jobject _in)
 			{
 				_out.token = JToken::token.get(_in);
 				_out.scopes = String(JToken::scopes.get(_in)).split(",");
@@ -87,7 +87,7 @@ namespace slib
 		{
 			auto p = FacebookSDKContext::get();
 			if (p) {
-				FacebookLoginResult result;
+				Facebook::LoginResult result;
 				if (token) {
 					FacebookSDKContext::getToken(result.accessToken, token);
 					result.flagSuccess = sl_true;
@@ -105,7 +105,7 @@ namespace slib
 		{
 			auto p = FacebookSDKContext::get();
 			if (p) {
-				FacebookShareResult result;
+				Facebook::ShareResult result;
 				if (flagSuccess) {
 					result.flagSuccess = flagSuccess;
 				} else {
@@ -131,14 +131,14 @@ namespace slib
 		if (p) {
 			JniLocal<jobject> token = JFacebook::getCurrentToken.callObject(sl_null);
 			if (token.get()) {
-				OAuthAccessToken oauthToken;
+				OAuth2::AccessToken oauthToken;
 				FacebookSDKContext::getToken(oauthToken, token.get());
 				instance->setAccessToken(oauthToken);
 			}
 		}
 	}
 
-	void FacebookSDK::login(const FacebookLoginParam& param)
+	void FacebookSDK::login(const Facebook::LoginParam& param)
 	{
 		if (!(UI::isUiThread())) {
 			UI::dispatchToUiThread([param]() {
@@ -151,7 +151,7 @@ namespace slib
 			jobject context = Android::getCurrentContext();
 			if (context) {
 				if (p->onLoginResult.isNotNull()) {
-					FacebookLoginResult result;
+					Facebook::LoginResult result;
 					p->onLoginResult(result);
 				}
 				p->onLoginResult = param.onComplete;
@@ -161,20 +161,20 @@ namespace slib
 				return;
 			}
 		}
-		FacebookLoginResult result;
+		Facebook::LoginResult result;
 		param.onComplete(result);
 	}
 
-	void FacebookSDK::share(const FacebookShareParam& param)
+	void FacebookSDK::share(const Facebook::ShareParam& param)
 	{
 		auto p = FacebookSDKContext::get();
 		if (!p) {
-			FacebookShareResult result;
+			Facebook::ShareResult result;
 			param.onComplete(result);
 			return;
 		}
 		if (param.url.isEmpty()) {
-			FacebookShareResult result;
+			Facebook::ShareResult result;
 			param.onComplete(result);
 			return;
 		}
@@ -186,12 +186,12 @@ namespace slib
 		}
 		jobject context = Android::getCurrentContext();
 		if (!context) {
-			FacebookShareResult result;
+			Facebook::ShareResult result;
 			param.onComplete(result);
 			return;
 		}
 		if (p->onShareResult.isNotNull()) {
-			FacebookShareResult result;
+			Facebook::ShareResult result;
 			p->onShareResult(result);
 		}
 		p->onShareResult = param.onComplete;

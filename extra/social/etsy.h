@@ -28,22 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT EtsyUserFeedbackInfo
-	{
-	public:
-		int count;
-		int score;
-
-	public:
-		EtsyUserFeedbackInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EtsyUserFeedbackInfo)
-
-		SLIB_DECLARE_JSON
-
-	};
-
-	class SLIB_EXPORT EtsyUser
+	class EtsyUser
 	{
 	public:
 		String user_id;
@@ -52,7 +37,20 @@ namespace slib
 		float creation_tsz;
 		String user_pub_key;
 		int referred_by_user_id;
-		EtsyUserFeedbackInfo feedback_info;
+		
+		class FeedbackInfo
+		{
+		public:
+			int count;
+			int score;
+
+		public:
+			FeedbackInfo();
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FeedbackInfo)
+			SLIB_DECLARE_JSON
+		} feedback_info;
+
 		int awaiting_feedback_count;
 		sl_bool use_new_inventory_endpoints;
 
@@ -72,21 +70,7 @@ namespace slib
 
 	typedef OAuthApiResult EtsyResult;
 
-	typedef OAuth1_LoginResult EtsyLoginResult;
-
-	class SLIB_EXPORT EtsyLoginParam : public OAuth1_LoginParam
-	{
-	public:
-		List<String> scopes;
-
-	public:
-		EtsyLoginParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(EtsyLoginParam)
-
-	};
-
-	class SLIB_EXPORT EtsyParam : public OAuth1_Param
+	class EtsyParam : public OAuth1_Param
 	{
 	public:
 		EtsyParam();
@@ -120,11 +104,21 @@ namespace slib
 		static Ref<Etsy> getInstance();
 
 	public:
-		void login(const EtsyLoginParam& param);
+		class LoginParam : public OAuth1::LoginParam
+		{
+		public:
+			List<String> scopes;
 
-		void login(const Function<void(EtsyLoginResult& result)>& onComplete);
+		public:
+			LoginParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoginParam)
+		};
 
-		void login(const List<String>& scopes, const Function<void(EtsyLoginResult& result)>& onComplete);
+		void login(const LoginParam& param);
+
+		void login(const Function<void(LoginResult& result)>& onComplete);
+
+		void login(const List<String>& scopes, const Function<void(LoginResult& result)>& onComplete);
 
 	public:
 		String getRequestUrl(const String& path);

@@ -67,7 +67,7 @@ namespace slib
 		return Size::zero();
 	}
 
-	void CanvasExt::drawText(const DrawTextParam& param)
+	void CanvasExt::drawText(const Canvas::DrawTextParam& param)
 	{
 		if (param.text.isEmpty()) {
 			return;

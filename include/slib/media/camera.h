@@ -31,19 +31,6 @@
 
 namespace slib
 {
-	class SLIB_EXPORT CameraInfo
-	{
-	public:
-		String id;
-		String name;
-		String description;
-
-	public:
-		CameraInfo();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CameraInfo)
-
-	};
 
 	enum class CameraFlashMode
 	{
@@ -66,47 +53,17 @@ namespace slib
 		Off = 2,
 	};
 
-	class SLIB_EXPORT CameraTakePictureResult
+	class SLIB_EXPORT CameraInfo
 	{
 	public:
-		sl_bool flagSuccess;
-
-		RotationMode rotation;
-		FlipMode flip;
-
-	public:
-		CameraTakePictureResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CameraTakePictureResult)
+		String id;
+		String name;
+		String description;
 
 	public:
-		Ref<Image> getImage();
+		CameraInfo();
 
-		Ref<Drawable> getDrawable();
-
-		Memory getJpeg();
-
-		void setFrame(const VideoCaptureFrame& frame);
-
-		void setJpeg(const Memory& jpeg);
-
-	protected:
-		const VideoCaptureFrame* frame;
-		Memory jpeg;
-
-	};
-
-	class SLIB_EXPORT CameraTakePictureParam
-	{
-	public:
-		CameraFlashMode flashMode;
-
-		Function<void(CameraTakePictureResult& frame)> onComplete;
-
-	public:
-		CameraTakePictureParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CameraTakePictureParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CameraInfo)
 
 	};
 
@@ -146,7 +103,47 @@ namespace slib
 		~Camera();
 
 	public:
-		virtual void takePicture(const CameraTakePictureParam& param);
+		class TakePictureResult
+		{
+		public:
+			sl_bool flagSuccess;
+
+			RotationMode rotation;
+			FlipMode flip;
+
+		public:
+			TakePictureResult();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TakePictureResult)
+
+		public:
+			Ref<Image> getImage();
+
+			Ref<Drawable> getDrawable();
+
+			Memory getJpeg();
+
+			void setFrame(const VideoCaptureFrame& frame);
+
+			void setJpeg(const Memory& jpeg);
+
+		protected:
+			const VideoCaptureFrame* frame;
+			Memory jpeg;
+		};
+
+		class TakePictureParam
+		{
+		public:
+			CameraFlashMode flashMode;
+
+			Function<void(TakePictureResult& frame)> onComplete;
+
+		public:
+			TakePictureParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TakePictureParam)
+		};
+
+		virtual void takePicture(const TakePictureParam& param);
 
 		virtual void setFocusMode(CameraFocusMode mode);
 
@@ -174,7 +171,7 @@ namespace slib
 		void onCaptureVideoFrame(VideoCaptureFrame& frame) override;
 
 	protected:
-		Queue<CameraTakePictureParam> m_queueTakePictureRequests;
+		Queue<TakePictureParam> m_queueTakePictureRequests;
 
 	};
 

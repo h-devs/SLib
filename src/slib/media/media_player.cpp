@@ -51,19 +51,6 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(MediaPlayerRenderVideoParam)
-
-	MediaPlayerRenderVideoParam::MediaPlayerRenderVideoParam()
-	{
-		flagUpdated = sl_false;
-
-		glTextureTransformOES = Matrix3::identity();
-
-		_glEngineIdLast = 0;
-		_glTextureNameOES = 0;
-	}
-
-
 	SLIB_DEFINE_OBJECT(MediaPlayer, Object)
 
 	MediaPlayer::MediaPlayer()
@@ -114,6 +101,18 @@ namespace slib
 		param.assetFileName = fileName;
 		param.applyFlags(flags);
 		return create(param);
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(MediaPlayer, RenderVideoParam)
+
+	MediaPlayer::RenderVideoParam::RenderVideoParam()
+	{
+		flagUpdated = sl_false;
+
+		glTextureTransformOES = Matrix3::identity();
+
+		_glEngineIdLast = 0;
+		_glTextureNameOES = 0;
 	}
 
 	sl_bool MediaPlayer::isAutoRepeat()

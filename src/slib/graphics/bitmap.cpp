@@ -57,6 +57,11 @@ namespace slib
 		return (sl_real)(getBitmapHeight());
 	}
 
+	Ref<Bitmap> Bitmap::getBitmap()
+	{
+		return this;
+	}
+
 	sl_uint32 Bitmap::getWidth()
 	{
 		return getBitmapWidth();

@@ -28,23 +28,6 @@
 namespace slib
 {
 
-	namespace {
-
-		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
-
-		class ShareLocalParams : public TwitterShareParam
-		{
-		public:
-			ShareLocalParams(const TwitterShareParam& param): TwitterShareParam(param) {}
-		public:
-			sl_size indexMedia;
-			List<String> mediaIds;
-			Ref<Twitter> twitter;
-		};
-
-	}
-
-
 	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterUser)
 
 	SLIB_DEFINE_JSON(TwitterUser)
@@ -96,6 +79,10 @@ namespace slib
 	Ref<Twitter> Twitter::create(const TwitterParam& param)
 	{
 		return new Twitter(param);
+	}
+
+	namespace {
+		SLIB_GLOBAL_ZERO_INITIALIZED(AtomicRef<Twitter>, g_instance)
 	}
 
 	void Twitter::initialize(const TwitterParam& param)
@@ -179,25 +166,37 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterShareResult)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Twitter, ShareResult)
 
-	TwitterShareResult::TwitterShareResult(UrlRequest* request): TwitterResult(request)
+	Twitter::ShareResult::ShareResult(UrlRequest* request): TwitterResult(request)
 	{
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TwitterShareParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Twitter, ShareParam)
 
-	TwitterShareParam::TwitterShareParam()
+	Twitter::ShareParam::ShareParam()
 	{
 	}
 
-	void Twitter::share(const TwitterShareParam& _param)
+	namespace {
+		class ShareLocalParams : public Twitter::ShareParam
+		{
+		public:
+			ShareLocalParams(const Twitter::ShareParam& param) : Twitter::ShareParam(param) {}
+		public:
+			sl_size indexMedia;
+			List<String> mediaIds;
+			Ref<Twitter> twitter;
+		};
+	}
+
+	void Twitter::share(const ShareParam& _param)
 	{
 		static Function<void(ShareLocalParams param, UrlRequest*)> callback;
 		if (callback.isNull()) {
 			callback = [](ShareLocalParams param, UrlRequest* request) {
 				if (request) {
-					TwitterShareResult result(request);
+					ShareResult result(request);
 					if (request->isError()) {
 						LogError("Twitter Sharing", "%s", result.response);
 						param.onComplete(result);
@@ -230,7 +229,7 @@ namespace slib
 					}
 					rp.setFormData(map);
 					rp.onComplete = [param](UrlRequest* request) {
-						TwitterShareResult result(request);
+						ShareResult result(request);
 						if (request->isError()) {
 							LogError("Twitter Sharing", "%s", result.response);
 							param.onComplete(result);

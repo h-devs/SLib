@@ -69,7 +69,7 @@ namespace slib
 						String strValue = Jni::getStringArrayElement(data, i + 1);
 						Json value;
 						if (strValue.isNotEmpty()) {
-							JsonParseParam p;
+							Json::ParseParam p;
 							p.flagLogError = sl_false;
 							value = Json::parse(strValue, p);
 							if (value.isNull()) {

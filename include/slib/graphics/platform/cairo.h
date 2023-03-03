@@ -54,8 +54,8 @@ namespace slib
 		static Ref<Bitmap> createBitmap(cairo_surface_t* bitmap, sl_bool flagFreeOnRelease = sl_true, Referable* ref = sl_null);
 		static cairo_surface_t* getBitmapHandle(Bitmap* bitmap);
 
-		static void drawImage(Canvas* canvas, const Rectangle& rectDst, cairo_surface_t* image, const DrawParam& param);
-		static void drawImage(Canvas* canvas, const Rectangle& rectDst, cairo_surface_t* image, const Rectangle& rectSrc, const DrawParam& param);
+		static void drawImage(Canvas* canvas, const Rectangle& rectDst, cairo_surface_t* image, const Drawable::DrawParam& param);
+		static void drawImage(Canvas* canvas, const Rectangle& rectDst, cairo_surface_t* image, const Rectangle& rectSrc, const Drawable::DrawParam& param);
 
 	};
 

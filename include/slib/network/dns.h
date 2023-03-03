@@ -494,7 +494,7 @@ namespace slib
 
 	class DnsServer;
 
-	class SLIB_EXPORT DnsResolveHostParam
+	class SLIB_EXPORT ResolveDnsHostParam
 	{
 	public:
 		// in
@@ -516,9 +516,9 @@ namespace slib
 		sl_bool flagEncryptForward;
 
 	public:
-		DnsResolveHostParam();
+		ResolveDnsHostParam();
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DnsResolveHostParam)
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ResolveDnsHostParam)
 
 	};
 
@@ -539,7 +539,7 @@ namespace slib
 
 		Ref<AsyncIoLoop> ioLoop;
 
-		Function<void(DnsServer*, DnsResolveHostParam&)> onResolve;
+		Function<void(DnsServer*, ResolveDnsHostParam&)> onResolve;
 		Function<void(DnsServer*, const String& hostName, const IPAddress& hostAddress)> onCache;
 
 	public:
@@ -589,7 +589,7 @@ namespace slib
 	protected:
 		void _onReceiveFrom(AsyncUdpSocket* socket, const SocketAddress& address, void* data, sl_uint32 sizeReceive);
 
-		void _onResolve(DnsResolveHostParam& param);
+		void _onResolve(ResolveDnsHostParam& param);
 
 		void _onCache(const String& hostName, const IPAddress& hostAddress);
 
@@ -618,7 +618,7 @@ namespace slib
 		};
 		CHashMap<sl_uint16, ForwardElement> m_mapForward;
 
-		Function<void(DnsServer*, DnsResolveHostParam&)> m_onResolve;
+		Function<void(DnsServer*, ResolveDnsHostParam&)> m_onResolve;
 		Function<void(DnsServer*, const String& hostName, const IPAddress& hostAddress)> m_onCache;
 
 	};

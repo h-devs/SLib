@@ -44,31 +44,31 @@ namespace slib
 
 		static Scalar g_fontSize = (Scalar)12;
 
-		template <class Base, sl_bool flagBaseClass = __is_class(Base)>
-		class Define
+		template <class BASE>
+		class Define : public BASE
 		{
 		public:
-			Base value;
 			sl_bool flagDefined = sl_false;
 
 		public:
-			SLIB_INLINE Base& operator*()
+			SLIB_INLINE BASE& operator*()
 			{
-				return value;
+				return *this;
 			}
 
 		};
 
-		template <class Base>
-		class Define<Base, sl_true> : public Base
+		template <class BASE>
+		class DefinePrimitive
 		{
 		public:
+			BASE value;
 			sl_bool flagDefined = sl_false;
 
 		public:
-			SLIB_INLINE Base& operator*()
+			SLIB_INLINE BASE& operator*()
 			{
-				return *this;
+				return value;
 			}
 
 		};
@@ -123,36 +123,6 @@ namespace slib
 				return sl_false;
 			}
 			s += result;
-			return sl_true;
-		}
-
-		template <class T>
-		static sl_size ParseValues(sl_char8*& s, sl_char8* end, T* _out, sl_size count)
-		{
-			for (sl_size i = 0; i < count; i++) {
-				SkipValueSeparator(s, end);
-				sl_char8* t = s;
-				if (!(ParseValue(t, end, _out[i]))) {
-					return i;
-				}
-				s = t;
-			}
-			return count;
-		}
-
-		template <class T>
-		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, List<T>& _out)
-		{
-			while (s < end) {
-				T value;
-				if (!(ParseValue(s, end, value))) {
-					return sl_false;
-				}
-				if (!(_out.add_NoLock(Move(value)))) {
-					return sl_false;
-				}
-				SkipValueSeparator(s, end);
-			}
 			return sl_true;
 		}
 
@@ -277,29 +247,6 @@ namespace slib
 				}
 			}
 			return sl_true;
-		}
-
-		template <class T>
-		static sl_reg ParseFunctionCall(sl_char8*& s, sl_char8* end, T* _out, sl_size count)
-		{
-			SkipWhitespaces(s, end);
-			if (s >= end) {
-				return -1;
-			}
-			if (*s != '(') {
-				return -1;
-			}
-			s++;
-			sl_size n = ParseValues(s, end, _out, count);
-			SkipWhitespaces(s, end);
-			if (s >= end) {
-				return -1;
-			}
-			if (*s != ')') {
-				return -1;
-			}
-			s++;
-			return n;
 		}
 
 		struct ViewBox
@@ -459,6 +406,59 @@ namespace slib
 			}
 			s = t;
 			return sl_true;
+		}
+
+		template <class T>
+		static sl_size ParseValues(sl_char8*& s, sl_char8* end, T* _out, sl_size count)
+		{
+			for (sl_size i = 0; i < count; i++) {
+				SkipValueSeparator(s, end);
+				sl_char8* t = s;
+				if (!(ParseValue(t, end, _out[i]))) {
+					return i;
+				}
+				s = t;
+			}
+			return count;
+		}
+
+		template <class T>
+		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, List<T>& _out)
+		{
+			while (s < end) {
+				T value;
+				if (!(ParseValue(s, end, value))) {
+					return sl_false;
+				}
+				if (!(_out.add_NoLock(Move(value)))) {
+					return sl_false;
+				}
+				SkipValueSeparator(s, end);
+			}
+			return sl_true;
+		}
+
+		template <class T>
+		static sl_reg ParseFunctionCall(sl_char8*& s, sl_char8* end, T* _out, sl_size count)
+		{
+			SkipWhitespaces(s, end);
+			if (s >= end) {
+				return -1;
+			}
+			if (*s != '(') {
+				return -1;
+			}
+			s++;
+			sl_size n = ParseValues(s, end, _out, count);
+			SkipWhitespaces(s, end);
+			if (s >= end) {
+				return -1;
+			}
+			if (*s != ')') {
+				return -1;
+			}
+			s++;
+			return n;
 		}
 
 		static sl_bool ParseValue(sl_char8*& s, sl_char8* end, Ref<GraphicsPath>& _out)
@@ -766,6 +766,12 @@ namespace slib
 		}
 
 		template <class T>
+		SLIB_INLINE static sl_bool ParseValue(const StringView& str, DefinePrimitive<T>& _out)
+		{
+			return ParseValue(str, *_out, _out.flagDefined);
+		}
+
+		template <class T>
 		SLIB_INLINE static sl_bool ParseValue(const StringView& str, T& _out)
 		{
 			sl_bool flagDefined;
@@ -907,7 +913,7 @@ namespace slib
 					Styler stop;
 					stop.xml = stops[i].get();
 					stop.document = e.document;
-					Define<Scalar> offset, opacity;
+					DefinePrimitive<Scalar> offset, opacity;
 					Define<Color> color;
 					PARSE_STYLER_ATTRIBUTE(stop, offset, "offset")
 					PARSE_STYLER_ATTRIBUTE(stop, color, "stop-color")
@@ -1011,21 +1017,21 @@ namespace slib
 			Define<Length> strokeWidth;
 			Define< List<Length> > strokeDashArray;
 			Define<Length> strokeDashOffset;
-			Define<LineCap> strokeLineCap;
-			Define<LineJoin> strokeLineJoin;
-			Define<Scalar> strokeMiterLimit;
-			Define<Scalar> strokeOpacity;
+			DefinePrimitive<LineCap> strokeLineCap;
+			DefinePrimitive<LineJoin> strokeLineJoin;
+			DefinePrimitive<Scalar> strokeMiterLimit;
+			DefinePrimitive<Scalar> strokeOpacity;
 
 			Define< Ref<Paint> > fill;
-			Define<Scalar> fillOpacity;
-			Define<FillMode> fillRule;
+			DefinePrimitive<Scalar> fillOpacity;
+			DefinePrimitive<FillMode> fillRule;
 
 			Define<Matrix3> transform;
-			Define<Scalar> opacity;
+			DefinePrimitive<Scalar> opacity;
 
 			Define< Ref<Pen> > pen;
 			Define< Ref<Brush> > brush;
-			Define<Scalar> finalOpacity;
+			DefinePrimitive<Scalar> finalOpacity;
 
 		public:
 			virtual void load()
@@ -1799,9 +1805,9 @@ namespace slib
 		public:
 			sl_bool load(const void* mem, sl_size size)
 			{
-				XmlParseParam param;
+				Xml::ParseParam param;
 				param.flagLogError = sl_false;
-				param.onEndElement = [this](XmlParseControl*, XmlElement* xml) {
+				param.onEndElement = [this](Xml::ParseControl*, XmlElement* xml) {
 					String name = xml->getName();
 					if (name == StringView::literal("style")) {
 						loadStyle(xml->getText());
@@ -1973,7 +1979,15 @@ namespace slib
 
 	void Svg::render(Canvas* canvas, const Rectangle& rectDraw)
 	{
+		sl_bool flagAnitiAlias = canvas->isAntiAlias();
+		if (!flagAnitiAlias) {
+			canvas->setAntiAlias();
+		}
+		ObjectLocker locker(this);
 		((Document*)(m_document.get()))->render(canvas, rectDraw);
+		if (!flagAnitiAlias) {
+			canvas->setAntiAlias(sl_false);
+		}
 	}
 
 	Scalar Svg::getGlobalFontSize()

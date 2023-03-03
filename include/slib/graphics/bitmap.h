@@ -72,6 +72,8 @@ namespace slib
 
 		static Ref<Bitmap> loadFromAsset(const StringParam& path);
 
+		static Ref<Bitmap> from(const Ref<Drawable>& drawable);
+
 	public:
 		virtual sl_uint32 getBitmapWidth() = 0;
 
@@ -91,6 +93,9 @@ namespace slib
 		sl_real getDrawableWidth() override;
 
 		sl_real getDrawableHeight() override;
+
+	protected:
+		Ref<Bitmap> getBitmap() override;
 
 	public:
 		sl_uint32 getWidth();

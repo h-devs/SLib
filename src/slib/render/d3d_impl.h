@@ -2109,7 +2109,7 @@ namespace slib
 #endif
 			}
 
-			void _clear(const RenderClearParam& param) override
+			void _clear(const ClearParam& param) override
 			{
 				ID3DDeviceContext* context = getContext();
 				if (!context) {

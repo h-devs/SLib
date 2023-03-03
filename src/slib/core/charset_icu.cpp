@@ -36,15 +36,15 @@
 #define LOAD_DLL
 
 #ifdef LOAD_DLL
-#	include <dlfcn.h>
-#	ifdef ucnv_open
-#		undef ucnv_open
-#		undef ucnv_close
-#		undef ucnv_fromUChars
-#		undef ucnv_toUChars
-#		undef ucnv_countAvailable
-#		undef ucnv_getAvailableName
-#	endif
+
+#include <dlfcn.h>
+#ifdef ucnv_open
+#	undef ucnv_open
+#	undef ucnv_close
+#	undef ucnv_fromUChars
+#	undef ucnv_toUChars
+#	undef ucnv_countAvailable
+#	undef ucnv_getAvailableName
 #endif
 
 namespace slib
@@ -53,29 +53,29 @@ namespace slib
 	namespace {
 
 
-		#define ucnv_open SLIB_ucnv_open
+		#define ucnv_open g_func_ucnv_open
 		typedef UConverter* (*TYPE_ucnv_open)(const char *converterName, UErrorCode *err);
-		TYPE_ucnv_open SLIB_ucnv_open = sl_null;
+		static TYPE_ucnv_open g_func_ucnv_open = sl_null;
 
-		#define ucnv_close SLIB_ucnv_close
+		#define ucnv_close g_func_ucnv_close
 		typedef void (*TYPE_ucnv_close)(UConverter * converter);
-		TYPE_ucnv_close SLIB_ucnv_close = sl_null;
+		static TYPE_ucnv_close g_func_ucnv_close = sl_null;
 
-		#define ucnv_fromUChars SLIB_ucnv_fromUChars
+		#define ucnv_fromUChars g_func_ucnv_fromUChars
 		typedef int32_t (*TYPE_ucnv_fromUChars)(UConverter *cnv, char *dest, int32_t destCapacity, const UChar *src, int32_t srcLength, UErrorCode *pErrorCode);
-		TYPE_ucnv_fromUChars SLIB_ucnv_fromUChars = sl_null;
+		static TYPE_ucnv_fromUChars g_func_ucnv_fromUChars = sl_null;
 
-		#define ucnv_toUChars SLIB_ucnv_toUChars
+		#define ucnv_toUChars g_func_ucnv_toUChars
 		typedef int32_t (*TYPE_ucnv_toUChars)(UConverter *cnv, UChar *dest, int32_t destCapacity, const char *src, int32_t srcLength, UErrorCode *pErrorCode);
-		TYPE_ucnv_toUChars SLIB_ucnv_toUChars = sl_null;
+		static TYPE_ucnv_toUChars g_func_ucnv_toUChars = sl_null;
 
-		#define ucnv_countAvailable SLIB_ucnv_countAvailable
+		#define ucnv_countAvailable g_func_ucnv_countAvailable
 		typedef int32_t (*TYPE_ucnv_countAvailable)();
-		TYPE_ucnv_countAvailable SLIB_ucnv_countAvailable = sl_null;
+		static TYPE_ucnv_countAvailable g_func_ucnv_countAvailable = sl_null;
 
-		#define ucnv_getAvailableName SLIB_ucnv_getAvailableName
+		#define ucnv_getAvailableName g_func_ucnv_getAvailableName
 		typedef const char* (*TYPE_ucnv_getAvailableName)(int32_t n);
-		TYPE_ucnv_getAvailableName SLIB_ucnv_getAvailableName = sl_null;
+		static TYPE_ucnv_getAvailableName g_func_ucnv_getAvailableName = sl_null;
 
 		static void* LoadSymbolWithSuffix(void* handle, const char* symbol, const String& suffix)
 		{
@@ -121,17 +121,17 @@ namespace slib
 					pathDll = LIB_PATH + ("/" + pathDll);
 					hDll = dlopen(pathDll.getData(), RTLD_LAZY);
 					if (hDll) {
-						SLIB_ucnv_open = (TYPE_ucnv_open)(LoadSymbolWithSuffix(hDll, "ucnv_open", suffix));
-						SLIB_ucnv_close = (TYPE_ucnv_close)(LoadSymbolWithSuffix(hDll, "ucnv_close", suffix));
-						SLIB_ucnv_fromUChars = (TYPE_ucnv_fromUChars)(LoadSymbolWithSuffix(hDll, "ucnv_fromUChars", suffix));
-						SLIB_ucnv_toUChars = (TYPE_ucnv_toUChars)(LoadSymbolWithSuffix(hDll, "ucnv_toUChars", suffix));
-						SLIB_ucnv_countAvailable = (TYPE_ucnv_countAvailable)(LoadSymbolWithSuffix(hDll, "ucnv_countAvailable", suffix));
-						SLIB_ucnv_getAvailableName = (TYPE_ucnv_getAvailableName)(LoadSymbolWithSuffix(hDll, "ucnv_getAvailableName", suffix));
+						g_func_ucnv_open = (TYPE_ucnv_open)(LoadSymbolWithSuffix(hDll, "ucnv_open", suffix));
+						g_func_ucnv_close = (TYPE_ucnv_close)(LoadSymbolWithSuffix(hDll, "ucnv_close", suffix));
+						g_func_ucnv_fromUChars = (TYPE_ucnv_fromUChars)(LoadSymbolWithSuffix(hDll, "ucnv_fromUChars", suffix));
+						g_func_ucnv_toUChars = (TYPE_ucnv_toUChars)(LoadSymbolWithSuffix(hDll, "ucnv_toUChars", suffix));
+						g_func_ucnv_countAvailable = (TYPE_ucnv_countAvailable)(LoadSymbolWithSuffix(hDll, "ucnv_countAvailable", suffix));
+						g_func_ucnv_getAvailableName = (TYPE_ucnv_getAvailableName)(LoadSymbolWithSuffix(hDll, "ucnv_getAvailableName", suffix));
 					}
 				}
 				flagLoaded = sl_true;
 			}
-			return SLIB_ucnv_open != sl_null;
+			return g_func_ucnv_open != sl_null;
 		}
 #endif
 

@@ -82,7 +82,7 @@ namespace slib
 		Loaded = 0x20 // [Linux]
 	};
 
-	class SLIB_EXPORT ServiceCreateParam
+	class SLIB_EXPORT CreateServiceParam
 	{
 	public:
 		StringParam name;
@@ -95,9 +95,9 @@ namespace slib
 		ListParam<StringParam> arguments;
 
 	public:
-		ServiceCreateParam() noexcept;
+		CreateServiceParam() noexcept;
 
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ServiceCreateParam);
+		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CreateServiceParam);
 
 	public:
 		String getCommandLine() const noexcept;
@@ -109,9 +109,9 @@ namespace slib
 	public:
 		static sl_bool isExisting(const StringParam& serviceName);
 
-		static sl_bool create(const ServiceCreateParam& param);
+		static sl_bool create(const CreateServiceParam& param);
 
-		static sl_bool createAndStart(const ServiceCreateParam& param, sl_int32 timeout = -1);
+		static sl_bool createAndStart(const CreateServiceParam& param, sl_int32 timeout = -1);
 
 		static sl_bool remove(const StringParam& serviceName);
 

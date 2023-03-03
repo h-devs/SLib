@@ -115,7 +115,7 @@ namespace slib
 		return new MirrorFileContext(path.toString());
 	}
 
-	Ref<FileContext> MirrorFileSystem::openFile(const StringParam& path, const FileOpenParam& param)
+	Ref<FileContext> MirrorFileSystem::openFile(const StringParam& path, const File::OpenParam& param)
 	{
 		Shared<File> file = File::open(CONCAT_PATH(path), param);
 		if (file.isNull()) {

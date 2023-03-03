@@ -22,7 +22,7 @@
 
 #include "slib/ui/grid_view.h"
 
-#include "slib/ui/text.h"
+#include "slib/graphics/text.h"
 #include "slib/graphics/canvas.h"
 
 namespace slib
@@ -808,7 +808,7 @@ namespace slib
 		if (param.text.isEmpty()) {
 			return;
 		}
-		SimpleTextBoxDrawParam drawParam;
+		SimpleTextBox::DrawParam drawParam;
 		drawParam.frame = cellParam.region;
 		drawParam.textColor = Color::Black;
 		SimpleTextBox box;

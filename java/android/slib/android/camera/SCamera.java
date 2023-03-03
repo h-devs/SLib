@@ -54,7 +54,7 @@ public abstract class SCamera {
 	public static final int TORCH_MODE_OFF = 2;
 
 
-	public static SCameraInfo[] getCameras(Activity activity) {
+	public static SCameraInfo[] getCameraList(Activity activity) {
 		try {
 			checkSupportsCamera2(activity);
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && supportsCamera2) {

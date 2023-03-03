@@ -131,7 +131,7 @@ namespace slib
 		if (flagFlipHorizontal) {
 			camera->setFlip(FlipMode::Horizontal);
 		}
-		camera->setOnTakePicture([thiz, dlg](CameraView*, CameraTakePictureResult& result) {
+		camera->setOnTakePicture([thiz, dlg](CameraView*, Camera::TakePictureResult& result) {
 			TakePhotoResultEx tr;
 			if (thiz.flagFlipHorizontal) {
 				Ref<Image> image = result.getImage();
@@ -175,14 +175,14 @@ namespace slib
 	}
 #endif
 
-	SLIB_DEFINE_MEMBER_CLASS_DEFAULT_MEMBERS(PhotoKit, SaveImageParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(PhotoKit, SaveImageParam)
 
 	PhotoKit::SaveImageParam::SaveImageParam()
 	{
 	}
 
 #if !defined(SLIB_PLATFORM_IS_IOS) && !defined(SLIB_PLATFORM_IS_ANDROID)
-	void PhotoKit::saveImage(const PhotoKit::SaveImageParam& param)
+	void PhotoKit::saveImage(const SaveImageParam& param)
 	{
 		param.onComplete(String::null());
 	}

@@ -404,12 +404,12 @@ namespace slib
 			}
 
 #if defined(SLIB_PLATFORM_IS_IOS)
-			void takePicture(const CameraTakePictureParam& param) override
+			void takePicture(const TakePictureParam& param) override
 			{
 				ObjectLocker lock(this);
 
 				if (!isRunning()) {
-					CameraTakePictureResult result;
+					TakePictureResult result;
 					param.onComplete(result);
 					return;
 				}
@@ -417,7 +417,7 @@ namespace slib
 				AVCaptureSession* session = m_session;
 				AVCapturePhotoOutput* output = m_outputPhoto;
 				if (session == nil || output == nil) {
-					CameraTakePictureResult result;
+					TakePictureResult result;
 					param.onComplete(result);
 					return;
 				}
@@ -445,9 +445,9 @@ namespace slib
 
 			void _onCapturePhoto(NSData* data)
 			{
-				CameraTakePictureParam param;
+				TakePictureParam param;
 				if (m_queueTakePictureRequests.pop(&param)) {
-					CameraTakePictureResult result;
+					TakePictureResult result;
 					if (data != nil) {
 						result.flagSuccess = sl_true;
 						result.setJpeg(Apple::getMemoryFromNSData(data));

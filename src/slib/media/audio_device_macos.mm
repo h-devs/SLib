@@ -133,23 +133,6 @@ namespace slib
 			return GetDeviceInfo(outInfo, dev, flagInput);
 		}
 
-		static sl_bool SelectDevice(AudioDeviceInfo& outInfo, sl_bool flagInput, String uid)
-		{
-			if (uid.isEmpty()) {
-				return GetDefaultDeviceInfo(outInfo, flagInput);
-			} else {
-				ListElements<AudioDeviceInfo> list(GetAllDevices(flagInput));
-				for (sl_size i = 0; i < list.count; i++) {
-					AudioDeviceInfo& element = list[i];
-					if (element.uid == uid) {
-						outInfo = element;
-						return sl_true;
-					}
-				}
-				return sl_false;
-			}
-		}
-
 		static List<AudioDeviceInfo> GetAllDevices(sl_bool flagInput)
 		{
 			List<AudioDeviceInfo> ret;
@@ -189,6 +172,23 @@ namespace slib
 				}
 			}
 			return ret;
+		}
+
+		static sl_bool SelectDevice(AudioDeviceInfo& outInfo, sl_bool flagInput, String uid)
+		{
+			if (uid.isEmpty()) {
+				return GetDefaultDeviceInfo(outInfo, flagInput);
+			} else {
+				ListElements<AudioDeviceInfo> list(GetAllDevices(flagInput));
+				for (sl_size i = 0; i < list.count; i++) {
+					AudioDeviceInfo& element = list[i];
+					if (element.uid == uid) {
+						outInfo = element;
+						return sl_true;
+					}
+				}
+				return sl_false;
+			}
 		}
 
 	}

@@ -60,27 +60,27 @@ namespace slib
 		Map< String, Ref<SAppRawResource> > sub;
 	};
 
-	class SAppDrawableResourceImageItem : public Object
+	class SAppDrawableResourceFileItem : public Object
 	{
 	public:
 		String fileName;
 		String filePath;
 		String rawName;
-		AtomicRef<Image> image;
+		AtomicRef<Drawable> drawable;
 
 	public:
-		Ref<Image> loadImage();
+		Ref<Drawable> load();
 
 	};
 
-	class SAppDrawableResourceImageAttributes : public Referable
+	class SAppDrawableResourceFileAttributes : public Referable
 	{
 	public:
-		List< Ref<SAppDrawableResourceImageItem> > defaultImages;
-		CHashMap< Locale, List< Ref<SAppDrawableResourceImageItem> > > images;
+		List< Ref<SAppDrawableResourceFileItem> > defaultFiles;
+		CHashMap< Locale, List< Ref<SAppDrawableResourceFileItem> > > files;
 
 	public:
-		SAppDrawableResourceImageAttributes();
+		SAppDrawableResourceFileAttributes();
 
 	};
 
@@ -135,12 +135,12 @@ namespace slib
 		int type;
 		enum {
 			typeUnknown = 0,
-			typeImage = 1,
+			typeFile = 1,
 			typeNinePieces = 2,
 			typeNinePatch = 3
 		};
 
-		Ref<SAppDrawableResourceImageAttributes> imageAttrs;
+		Ref<SAppDrawableResourceFileAttributes> fileAttrs;
 		Ref<SAppDrawableResourceNinePiecesAttributes> ninePiecesAttrs;
 		Ref<SAppDrawableResourceNinePatchAttributes> ninePatchAttrs;
 

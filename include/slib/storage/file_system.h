@@ -133,7 +133,7 @@ namespace slib
 
 		virtual Ref<FileContext> createContext(const StringParam& path) = 0;
 
-		virtual Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) = 0;
+		virtual Ref<FileContext> openFile(const StringParam& path, const File::OpenParam& param) = 0;
 
 		virtual sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) = 0;
 
@@ -264,7 +264,7 @@ namespace slib
 
 		Ref<FileContext> createContext(const StringParam& path) override;
 
-		Ref<FileContext> openFile(const StringParam& path, const FileOpenParam& param) override;
+		Ref<FileContext> openFile(const StringParam& path, const File::OpenParam& param) override;
 
 		sl_uint32 readFile(FileContext* context, sl_uint64 offset, void* buf, sl_uint32 size) override;
 

@@ -56,15 +56,15 @@ namespace slib
 		SLIB_STATIC_STRING(g_str_err_msg, "err_msg")
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(XgPushSendParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(XgPushService, SendParam)
 
-	XgPushSendParam::XgPushSendParam()
+	XgPushService::SendParam::SendParam()
 	{
-		platform = XgPushPlatform::All;
-		environment = XgPushEnvironment::Production;
+		platform = Platform::All;
+		environment = Environment::Production;
 	}
 
-	void XgPushService::sendNotification(const XgPushSendParam& param)
+	void XgPushService::sendNotification(const SendParam& param)
 	{
 		HttpHeaderMap headers;
 		headers.put_NoLock(HttpHeader::Authorization, String::format("Basic %s", Base64::encode(String::format("%s:%s", param.appId, param.secretKey))));
@@ -73,7 +73,7 @@ namespace slib
 		Json message;
 		message.putItem(g_str_title, param.message.title);
 		message.putItem(g_str_content, param.message.content);
-		if (param.platform == XgPushPlatform::All || param.platform == XgPushPlatform::iOS) {
+		if (param.platform == Platform::All || param.platform == Platform::iOS) {
 			Json alert;
 			alert.putItem(g_str_title, param.message.title);
 			alert.putItem(g_str_body, param.message.content);
@@ -92,7 +92,7 @@ namespace slib
 			}
 			message.putItem(g_str_ios, ios);
 		}
-		if (param.platform == XgPushPlatform::All || param.platform == XgPushPlatform::Android) {
+		if (param.platform == Platform::All || param.platform == Platform::Android) {
 			Json android;
 			android.putItem(g_str_ring, 1);
 			if (param.message.sound.isNotEmpty()) {
@@ -142,25 +142,25 @@ namespace slib
 		});
 	}
 
-	String XgPushService::getPlatformString(XgPushPlatform platform)
+	String XgPushService::getPlatformString(Platform platform)
 	{
 		switch (platform) {
-			case XgPushPlatform::All:
+			case Platform::All:
 				SLIB_RETURN_STRING("all")
-			case XgPushPlatform::Android:
+			case Platform::Android:
 				SLIB_RETURN_STRING("android")
-			case XgPushPlatform::iOS:
+			case Platform::iOS:
 				SLIB_RETURN_STRING("ios")
 		}
 		return sl_null;
 	}
 
-	String XgPushService::getEnvironmentString(XgPushEnvironment environment)
+	String XgPushService::getEnvironmentString(Environment environment)
 	{
 		switch (environment) {
-			case XgPushEnvironment::Production:
+			case Environment::Production:
 				SLIB_RETURN_STRING("product")
-			case XgPushEnvironment::Development:
+			case Environment::Development:
 				SLIB_RETURN_STRING("dev")
 		}
 		return sl_null;

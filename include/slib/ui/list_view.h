@@ -29,30 +29,6 @@
 namespace slib
 {
 
-	class SLIB_EXPORT ListViewRefreshParam
-	{
-	public:
-		sl_bool flagScrollToLastItem;
-
-	public:
-		ListViewRefreshParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListViewRefreshParam)
-
-	};
-
-	class SLIB_EXPORT ListViewSetAdapterParam : public ListViewRefreshParam
-	{
-	public:
-		Ref<ViewAdapter> adapter;
-
-	public:
-		ListViewSetAdapterParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ListViewSetAdapterParam)
-
-	};
-
 	class SLIB_EXPORT ListView : public VerticalScrollView
 	{
 		SLIB_DECLARE_OBJECT
@@ -66,15 +42,35 @@ namespace slib
 		void init() override;
 
 	public:
-		Ref<ViewAdapter> getAdapter();
+		class RefreshParam
+		{
+		public:
+			sl_bool flagScrollToLastItem;
 
-		void setAdapter(const Ref<ViewAdapter>& adapter);
+		public:
+			RefreshParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(RefreshParam)
+		};
 
-		void setAdapter(const ListViewSetAdapterParam& param);
+		void refreshItems(const RefreshParam& param);
 
 		void refreshItems();
 
-		void refreshItems(const ListViewRefreshParam& param);
+		Ref<ViewAdapter> getAdapter();
+
+		class SLIB_EXPORT SetAdapterParam : public RefreshParam
+		{
+		public:
+			Ref<ViewAdapter> adapter;
+
+		public:
+			SetAdapterParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SetAdapterParam)
+		};
+
+		void setAdapter(const SetAdapterParam& param);
+
+		void setAdapter(const Ref<ViewAdapter>& adapter);
 
 	protected:
 		void onScroll(sl_scroll_pos x, sl_scroll_pos y) override;

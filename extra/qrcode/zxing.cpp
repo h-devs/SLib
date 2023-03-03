@@ -35,70 +35,70 @@ using namespace ZXing;
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ZXingGenerateParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(ZXing, GenerateParam)
 
-	ZXingGenerateParam::ZXingGenerateParam()
+	ZXing::GenerateParam::GenerateParam()
 	{
-		format = ZXingFormat::QR_CODE;
+		format = Format::QR_CODE;
 		margin = 0;
 		width = 512;
 		height = 512;
 	}
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ZXingScanParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(ZXing, ScanParam)
 
-	ZXingScanParam::ZXingScanParam()
+	ZXing::ScanParam::ScanParam()
 	{
-		format = ZXingFormat::QR_CODE;
+		format = Format::QR_CODE;
 		flagTryHarder = sl_true;
 		flagTryRotate = sl_false;
 		flagSubRegion = sl_false;
 	}
 
 	namespace {
-		static BarcodeFormat GetBarcodeFormat(ZXingFormat format)
+		static BarcodeFormat GetBarcodeFormat(ZXing::Format format)
 		{
 			switch (format) {
-				case ZXingFormat::AZTEC:
+				case ZXing::Format::AZTEC:
 					return BarcodeFormat::AZTEC;
-				case ZXingFormat::CODABAR:
+				case ZXing::Format::CODABAR:
 					return BarcodeFormat::CODABAR;
-				case ZXingFormat::CODE_39:
+				case ZXing::Format::CODE_39:
 					return BarcodeFormat::CODE_39;
-				case ZXingFormat::CODE_93:
+				case ZXing::Format::CODE_93:
 					return BarcodeFormat::CODE_93;
-				case ZXingFormat::CODE_128:
+				case ZXing::Format::CODE_128:
 					return BarcodeFormat::CODE_128;
-				case ZXingFormat::DATA_MATRIX:
+				case ZXing::Format::DATA_MATRIX:
 					return BarcodeFormat::DATA_MATRIX;
-				case ZXingFormat::EAN_8:
+				case ZXing::Format::EAN_8:
 					return BarcodeFormat::EAN_8;
-				case ZXingFormat::EAN_13:
+				case ZXing::Format::EAN_13:
 					return BarcodeFormat::EAN_13;
-				case ZXingFormat::ITF:
+				case ZXing::Format::ITF:
 					return BarcodeFormat::ITF;
-				case ZXingFormat::MAXICODE:
+				case ZXing::Format::MAXICODE:
 					return BarcodeFormat::MAXICODE;
-				case ZXingFormat::PDF_417:
+				case ZXing::Format::PDF_417:
 					return BarcodeFormat::PDF_417;
-				case ZXingFormat::QR_CODE:
+				case ZXing::Format::QR_CODE:
 					return BarcodeFormat::QR_CODE;
-				case ZXingFormat::RSS_14:
+				case ZXing::Format::RSS_14:
 					return BarcodeFormat::RSS_14;
-				case ZXingFormat::RSS_EXPANDED:
+				case ZXing::Format::RSS_EXPANDED:
 					return BarcodeFormat::RSS_EXPANDED;
-				case ZXingFormat::UPC_A:
+				case ZXing::Format::UPC_A:
 					return BarcodeFormat::UPC_A;
-				case ZXingFormat::UPC_E:
+				case ZXing::Format::UPC_E:
 					return BarcodeFormat::UPC_E;
-				case ZXingFormat::UPC_EAN_EXTENSION:
+				case ZXing::Format::UPC_EAN_EXTENSION:
 					return BarcodeFormat::UPC_EAN_EXTENSION;
 			}
 			return BarcodeFormat::QR_CODE;
 		}
 	}
 
-	Ref<Image> ZXing::generate(const ZXingGenerateParam& param)
+	Ref<Image> ZXing::generate(const GenerateParam& param)
 	{
 		MultiFormatWriter writer(GetBarcodeFormat(param.format));
 		writer.setEncoding(CharacterSet::UTF8);
@@ -133,7 +133,7 @@ namespace slib
 		return sl_null;
 	}
 
-	String ZXing::scan(const ZXingScanParam& param)
+	String ZXing::scan(const ScanParam& param)
 	{
 		Ref<Image> image = param.image;
 		if (image.isNull()) {

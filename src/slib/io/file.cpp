@@ -45,17 +45,16 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(FileOpenParam)
+	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE, _close)
+	SLIB_DEFINE_IO_MEMBERS(File, const noexcept)
+		
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(File, OpenParam)
 
-	FileOpenParam::FileOpenParam() noexcept
+	File::OpenParam::OpenParam() noexcept
 	{
 	}
 
-
-	SLIB_DEFINE_HANDLE_CONTAINER_MEMBERS(File, sl_file, m_file, SLIB_FILE_INVALID_HANDLE, _close)
-	SLIB_DEFINE_IO_MEMBERS(File, const noexcept)
-
-	File File::open(const StringParam& filePath, const FileOpenParam& param) noexcept
+	File File::open(const StringParam& filePath, const OpenParam& param) noexcept
 	{
 		return open(filePath, param.mode, param.attributes);
 	}
@@ -947,7 +946,7 @@ namespace slib
 #define DEFINE_FILEIO_OPEN_FUNC(FUNC, ...) \
 		return create(File::FUNC(__VA_ARGS__));
 
-	Ref<FileIO> FileIO::open(const StringParam& filePath, const FileOpenParam& param) noexcept
+	Ref<FileIO> FileIO::open(const StringParam& filePath, const File::OpenParam& param) noexcept
 	{
 		DEFINE_FILEIO_OPEN_FUNC(open, filePath, param)
 	}

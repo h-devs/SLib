@@ -24,125 +24,97 @@
 #define CHECKHEADER_SLIB_CRYPTO_OAUTH_SERVER
 
 #include "oauth.h"
-
 #include "jwt.h"
+
 #include "../network/http_server.h"
 #include "../core/property.h"
 
 namespace slib
 {
 
-	class SLIB_EXPORT OAuthClientEntity : public Object
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		OAuthClientEntity();
-
-		~OAuthClientEntity();
-
-	public:
-		String clientId;
-
-	public:
-		virtual sl_bool validateSecret(const String& clientSecret);
-
-		virtual sl_bool validateRedirectUri(String& redirectUri);
-
-		virtual sl_bool validateScopes(List<String>& scopes);
-
-	};
-
-	class SLIB_EXPORT OAuthTokenPayload
-	{
-	public:
-		OAuthGrantType grantType;
-		Ref<OAuthClientEntity> client;
-		String clientId;
-
-		Json user;
-
-		List<String> scopes;
-
-		String accessToken;
-		Time accessTokenExpirationTime;
-
-		String refreshToken;
-		Time refreshTokenExpirationTime;
-
-		// payload for authorization code
-		String redirectUri;
-		String codeChallenge;
-		OAuthCodeChallengeMethod codeChallengeMethod;
-
-		String authorizationCode;
-		Time authorizationCodeExpirationTime;
-
-	public:
-		OAuthTokenPayload();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthTokenPayload)
-
-	};
-
-	class SLIB_EXPORT OAuthTokenRepository : public Object
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		OAuthTokenRepository();
-
-		~OAuthTokenRepository();
-
-	public:
-		virtual void registerToken(const String& token, const Json& data) = 0;
-
-		virtual void revokeToken(const String& token) = 0;
-
-		virtual sl_bool isValid(const String& token) = 0;
-
-		virtual Json getTokenData(const String& token) = 0;
-
-	};
-
-	class SLIB_EXPORT OAuthTokenMemoryRepository : public OAuthTokenRepository
-	{
-		SLIB_DECLARE_OBJECT
-
-	public:
-		OAuthTokenMemoryRepository();
-
-		~OAuthTokenMemoryRepository();
-
-	public:
-		void registerToken(const String& token, const Json& data) override;
-
-		void revokeToken(const String& token) override;
-
-		sl_bool isValid(const String& token) override;
-
-		Json getTokenData(const String& token) override;
-
-	protected:
-		HashMap<String, Json> m_repo;
-
-	};
-
-	class SLIB_EXPORT OAuthServerAuthorizationRequest : public OAuthAuthorizationRequestParam
-	{
-	public:
-		Ref<OAuthClientEntity> client;
-
-	public:
-		OAuthServerAuthorizationRequest();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthServerAuthorizationRequest)
-
-	};
-
 	class SLIB_EXPORT OAuthServer : public Object
 	{
 		SLIB_DECLARE_OBJECT
+
+	public:
+		typedef OAuth2::GrantType GrantType;
+		typedef OAuth2::CodeChallengeMethod CodeChallengeMethod;
+		typedef OAuth2::ResponseType ResponseType;
+		typedef OAuth2::ErrorCode ErrorCode;
+
+		class ClientEntity : public Object
+		{
+		public:
+			ClientEntity();
+			~ClientEntity();
+
+		public:
+			String clientId;
+
+		public:
+			virtual sl_bool validateSecret(const String& clientSecret);
+			virtual sl_bool validateRedirectUri(String& redirectUri);
+			virtual sl_bool validateScopes(List<String>& scopes);
+		};
+
+		class TokenPayload
+		{
+		public:
+			GrantType grantType;
+			Ref<ClientEntity> client;
+			String clientId;
+
+			Json user;
+
+			List<String> scopes;
+
+			String accessToken;
+			Time accessTokenExpirationTime;
+
+			String refreshToken;
+			Time refreshTokenExpirationTime;
+
+			// payload for authorization code
+			String redirectUri;
+			String codeChallenge;
+			CodeChallengeMethod codeChallengeMethod;
+
+			String authorizationCode;
+			Time authorizationCodeExpirationTime;
+
+		public:
+			TokenPayload();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TokenPayload)
+		};
+
+		class TokenRepository : public Object
+		{
+		public:
+			TokenRepository();
+			~TokenRepository();
+
+		public:
+			virtual void registerToken(const String& token, const Json& data) = 0;
+			virtual void revokeToken(const String& token) = 0;
+			virtual sl_bool isValid(const String& token) = 0;
+			virtual Json getTokenData(const String& token) = 0;
+		};
+
+		class MemoryTokenRepository : public TokenRepository
+		{
+		public:
+			MemoryTokenRepository();
+			~MemoryTokenRepository();
+
+		public:
+			void registerToken(const String& token, const Json& data) override;
+			void revokeToken(const String& token) override;
+			sl_bool isValid(const String& token) override;
+			Json getTokenData(const String& token) override;
+
+		protected:
+			HashMap<String, Json> m_tokens;
+		};
 
 	public:
 		OAuthServer();
@@ -150,64 +122,74 @@ namespace slib
 		~OAuthServer();
 
 	public:
-		sl_bool validateAuthorizationRequest(HttpServerContext* context, OAuthServerAuthorizationRequest& _out);
+		class SLIB_EXPORT AuthorizationRequest : public OAuth2::AuthorizationRequest
+		{
+		public:
+			Ref<ClientEntity> client;
 
-		void completeAuthorizationRequest(HttpServerContext* context, const OAuthServerAuthorizationRequest& request, const Json& userEntity);
+		public:
+			AuthorizationRequest();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AuthorizationRequest)
+		};
 
-		void completeAuthorizationRequestWithError(HttpServerContext* context, const OAuthServerAuthorizationRequest& request, OAuthErrorCode err, const String& errorDescription = String::null(), const String& errorUri = String::null());
+		sl_bool validateAuthorizationRequest(HttpServerContext* context, AuthorizationRequest& _out);
+
+		void completeAuthorizationRequest(HttpServerContext* context, const AuthorizationRequest& request, const Json& userEntity);
+
+		void completeAuthorizationRequestWithError(HttpServerContext* context, const AuthorizationRequest& request, ErrorCode err, const String& errorDescription = String::null(), const String& errorUri = String::null());
 
 		void respondToAccessTokenRequest(HttpServerContext* context);
 
-		sl_bool validateAccessToken(HttpServerContext* context, OAuthTokenPayload& payload);
+		sl_bool validateAccessToken(HttpServerContext* context, TokenPayload& payload);
 
-		static void respondError(HttpServerContext* context, OAuthErrorCode err, const String& errorDescription = String::null(), const String& errorUri = String::null(), const String& state = String::null());
-
-	public:
-		virtual Ref<OAuthClientEntity> getClientEntity(const String& clientId);
-
-		virtual sl_bool validateClientSecret(OAuthClientEntity* client, const String& clientSecret);
-
-		virtual sl_bool validateRedirectUri(OAuthClientEntity* client, String& redirectUri);
-
-		virtual sl_bool validateScopes(OAuthClientEntity* client, List<String>& scopes);
-
-
-		virtual void issueAccessToken(OAuthTokenPayload& payload) = 0;
-
-		virtual sl_bool getAccessTokenPayload(OAuthTokenPayload& payload) = 0;
-
-		virtual sl_bool getRefreshTokenPayload(OAuthTokenPayload& payload) = 0;
-
-		virtual void issueAuthorizationCode(OAuthTokenPayload& payload) = 0;
-
-		virtual sl_bool getAuthorizationCodePayload(OAuthTokenPayload& payload) = 0;
-
-
-		virtual void registerAccessToken(OAuthTokenPayload& payload);
-
-		virtual void revokeAccessToken(OAuthTokenPayload& payload);
-
-		virtual void registerRefreshToken(OAuthTokenPayload& payload);
-
-		virtual void revokeRefreshToken(OAuthTokenPayload& payload);
-
-		virtual void registerAuthorizationCode(OAuthTokenPayload& payload);
-
-		virtual void revokeAuthorizationCode(OAuthTokenPayload& payload);
-
-
-		virtual sl_bool onClientCredentialsGrant(OAuthTokenPayload& payload);
-
-		virtual sl_bool onPasswordGrant(const String& username, const String& password, OAuthTokenPayload& payload);
+		static void respondError(HttpServerContext* context, ErrorCode err, const StringView& errorDescription = sl_null, const StringView& errorUri = sl_null, const StringView& state = sl_null);
 
 	public:
-		String getRedirectUri(const OAuthServerAuthorizationRequest& request);
+		virtual Ref<ClientEntity> getClientEntity(const String& clientId);
 
-		void setExpirySeconds(OAuthTokenPayload& payload);
+		virtual sl_bool validateClientSecret(ClientEntity* client, const String& clientSecret);
 
-		static HashMap<String, String> generateAccessTokenResponseParams(const OAuthTokenPayload& payload);
+		virtual sl_bool validateRedirectUri(ClientEntity* client, String& redirectUri);
 
-		static String getErrorCodeText(OAuthErrorCode err);
+		virtual sl_bool validateScopes(ClientEntity* client, List<String>& scopes);
+
+
+		virtual void issueAccessToken(TokenPayload& payload) = 0;
+
+		virtual sl_bool getAccessTokenPayload(TokenPayload& payload) = 0;
+
+		virtual sl_bool getRefreshTokenPayload(TokenPayload& payload) = 0;
+
+		virtual void issueAuthorizationCode(TokenPayload& payload) = 0;
+
+		virtual sl_bool getAuthorizationCodePayload(TokenPayload& payload) = 0;
+
+
+		virtual void registerAccessToken(TokenPayload& payload);
+
+		virtual void revokeAccessToken(TokenPayload& payload);
+
+		virtual void registerRefreshToken(TokenPayload& payload);
+
+		virtual void revokeRefreshToken(TokenPayload& payload);
+
+		virtual void registerAuthorizationCode(TokenPayload& payload);
+
+		virtual void revokeAuthorizationCode(TokenPayload& payload);
+
+
+		virtual sl_bool onClientCredentialsGrant(TokenPayload& payload);
+
+		virtual sl_bool onPasswordGrant(const String& username, const String& password, TokenPayload& payload);
+
+	public:
+		String getRedirectUri(const AuthorizationRequest& request);
+
+		void setExpirySeconds(TokenPayload& payload);
+
+		static HashMap<String, String> generateAccessTokenResponseParams(const TokenPayload& payload);
+
+		static String getErrorCodeText(ErrorCode err);
 
 		static String getParameter(HttpServerContext* context, const String& name);
 
@@ -228,9 +210,9 @@ namespace slib
 		SLIB_PROPERTY(sl_uint32, RefreshTokenExpirySeconds)
 		SLIB_PROPERTY(sl_uint32, AuthorizationCodeExpirySeconds)
 
-		SLIB_PROPERTY(AtomicRef<OAuthTokenRepository>, AccessTokenRepository)
-		SLIB_PROPERTY(AtomicRef<OAuthTokenRepository>, AuthorizationCodeRepository)
-		SLIB_PROPERTY(AtomicRef<OAuthTokenRepository>, RefreshTokenRepository)
+		SLIB_PROPERTY(AtomicRef<TokenRepository>, AccessTokenRepository)
+		SLIB_PROPERTY(AtomicRef<TokenRepository>, AuthorizationCodeRepository)
+		SLIB_PROPERTY(AtomicRef<TokenRepository>, RefreshTokenRepository)
 
 	};
 
@@ -250,24 +232,24 @@ namespace slib
 
 		void setMasterKey(const void* key, sl_size len);
 
-		void issueAccessToken(OAuthTokenPayload& payload) override;
+		void issueAccessToken(TokenPayload& payload) override;
 
-		sl_bool getAccessTokenPayload(OAuthTokenPayload& payload) override;
+		sl_bool getAccessTokenPayload(TokenPayload& payload) override;
 
-		sl_bool getRefreshTokenPayload(OAuthTokenPayload& payload) override;
+		sl_bool getRefreshTokenPayload(TokenPayload& payload) override;
 
-		void issueAuthorizationCode(OAuthTokenPayload& payload) override;
+		void issueAuthorizationCode(TokenPayload& payload) override;
 
-		sl_bool getAuthorizationCodePayload(OAuthTokenPayload& payload) override;
+		sl_bool getAuthorizationCodePayload(TokenPayload& payload) override;
 
 	protected:
 		enum class TokenType {
 			None, Access, Refresh, AuthorizationCode
 		};
 
-		String generateToken(TokenType type, OAuthTokenPayload& payload);
+		String generateToken(TokenType type, TokenPayload& payload);
 
-		TokenType parseToken(const String& token, OAuthTokenPayload& payload);
+		TokenType parseToken(const String& token, TokenPayload& payload);
 
 		virtual String encrypt(const Jwt& jwt);
 

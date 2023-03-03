@@ -78,7 +78,7 @@ namespace slib
 
 			void copyTabs(NSTabView* tv)
 			{
-				ListLocker<TabViewItem> items(m_items);
+				ListLocker<Item> items(m_items);
 				applyTabCount(tv);
 				for (sl_uint32 i = 0; i < items.count; i++) {
 					NSTabViewItem* t = [tv tabViewItemAtIndex:i];
@@ -125,7 +125,7 @@ namespace slib
 				frame.top = (sl_ui_pos)(rc.origin.y);
 				frame.right = frame.left + w;
 				frame.bottom = frame.top + h;
-				ListLocker<TabViewItem> items(m_items);
+				ListLocker<Item> items(m_items);
 				for (sl_size i = 0; i < items.count; i++) {
 					Ref<View> view = items[i].contentView;
 					if (view.isNotNull()) {

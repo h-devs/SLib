@@ -23,6 +23,8 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_CANVAS
 #define CHECKHEADER_SLIB_GRAPHICS_CANVAS
 
+#include "pen.h"
+#include "brush.h"
 #include "font.h"
 #include "path.h"
 #include "drawable.h"
@@ -39,32 +41,6 @@ namespace slib
 		Bitmap = 1,
 		Image = 2,
 		Render = 3
-	};
-
-	class DrawTextParam
-	{
-	public:
-		StringParam text;
-		Ref<Font> font;
-		Color color;
-		Alignment alignment;
-		sl_bool flagMultiLine;
-
-		sl_real x;
-		sl_real y;
-		sl_real width;
-		sl_real height;
-
-		sl_real shadowOpacity;
-		sl_real shadowRadius;
-		Color shadowColor;
-		Point shadowOffset;
-
-	public:
-		DrawTextParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawTextParam)
-
 	};
 
 	class Image;
@@ -140,6 +116,30 @@ namespace slib
 
 
 		virtual Size measureText(const Ref<Font>& font, const StringParam& text, sl_bool flagMultiLine = sl_false) = 0;
+
+		class DrawTextParam
+		{
+		public:
+			StringParam text;
+			Ref<Font> font;
+			Color color;
+			Alignment alignment;
+			sl_bool flagMultiLine;
+
+			sl_real x;
+			sl_real y;
+			sl_real width;
+			sl_real height;
+
+			sl_real shadowOpacity;
+			sl_real shadowRadius;
+			Color shadowColor;
+			Point shadowOffset;
+
+		public:
+			DrawTextParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawTextParam)
+		};
 
 		virtual void drawText(const DrawTextParam& param) = 0;
 
@@ -287,6 +287,8 @@ namespace slib
 
 		void drawShadowCircle(sl_real centerX, sl_real centerY, sl_real circleRadius, const Color& color, sl_real shadowRadius);
 
+		
+		typedef Drawable::DrawParam DrawParam;
 
 		virtual void draw(const Rectangle& rectDst, const Ref<Drawable>& src, const Rectangle& rectSrc, const DrawParam& param) = 0;
 

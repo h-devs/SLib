@@ -255,22 +255,6 @@ namespace slib
 
 	};
 
-	class CascadingStylesParam
-	{
-	public:
-		// Input
-		sl_bool flagIgnoreErrors;
-
-		// Output
-		sl_bool flagError;
-
-	public:
-		CascadingStylesParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CascadingStylesParam)
-
-	};
-
 	class SLIB_EXPORT CascadingStyleSheet
 	{
 	public:
@@ -279,7 +263,19 @@ namespace slib
 		~CascadingStyleSheet();
 
 	public:
-		void addStyles(const StringParam& styles, CascadingStylesParam& param);
+
+		class ParseParam
+		{
+		public:
+			sl_bool flagIgnoreErrors; // Input
+			sl_bool flagError; // Output
+
+		public:
+			ParseParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ParseParam)
+		};
+
+		void addStyles(const StringParam& styles, ParseParam& param);
 
 		sl_bool addStyles(const StringParam& styles);
 

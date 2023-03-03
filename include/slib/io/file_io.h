@@ -42,7 +42,7 @@ namespace slib
 	public:
 		static Ref<FileIO> create(File&& handle) noexcept;
 
-		static Ref<FileIO> open(const StringParam& filePath, const FileOpenParam& param) noexcept;
+		static Ref<FileIO> open(const StringParam& filePath, const File::OpenParam& param) noexcept;
 
 		static Ref<FileIO> open(const StringParam& filePath, const FileMode& mode, const FileAttributes& attrs) noexcept;
 

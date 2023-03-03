@@ -184,12 +184,9 @@ namespace slib
 		sl_bool _getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, Ref<Drawable>& result);
 		sl_bool _checkDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element);
 		sl_bool _checkDrawableName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppDrawableResource>* outResource = sl_null);
-		sl_bool _getImageAccessString(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, String& result);
-		sl_bool _getImageValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, Ref<Image>& result);
-		sl_bool _checkImageValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element);
-		sl_bool _registerImageResources(const String& resourcePath, const String& fileDirPath, const Locale& locale);
-		sl_bool _generateDrawablesCpp_Image(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap);
-		Ref<Drawable> _getDrawableValue_Image(SAppDrawableResource* res);
+		sl_bool _registerFileResources(const String& resourcePath, const String& fileDirPath, const Locale& locale);
+		sl_bool _generateDrawablesCpp_File(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap);
+		Ref<Drawable> _getDrawableValue_File(SAppDrawableResource* res);
 		sl_bool _parseNinePiecesDrawableResource(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _generateDrawablesCpp_NinePieces(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap);
 		Ref<Drawable> _getDrawableValue_NinePieces(SAppDrawableResource* res);

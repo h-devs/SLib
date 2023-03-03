@@ -97,4 +97,17 @@ namespace slib
 #endif
 	}
 
+	Ref<Drawable> Drawable::loadFromAsset(const StringParam& path)
+	{
+		Memory mem = Assets::readAllBytes(path);
+		if (mem.isNotNull()) {
+			return loadFromMemory(mem);
+		}
+#if defined(SLIB_PLATFORM_IS_APPLE)
+		return Bitmap::loadFromAsset(path);
+#else
+		return sl_null;
+#endif
+	}
+
 }

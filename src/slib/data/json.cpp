@@ -31,28 +31,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(JsonParseParam)
-
-	JsonParseParam::JsonParseParam()
-	{
-		flagLogError = sl_false;
-		flagSupportComments = sl_true;
-
-		flagError = sl_false;
-		errorLine = 0;
-		errorColumn = 0;
-		errorPosition = 0;
-	}
-
-	String JsonParseParam::getErrorText()
-	{
-		if (flagError) {
-			return "(" + String::fromSize(errorLine) + ":" + String::fromSize(errorColumn) + ") " + errorMessage;
-		}
-		return sl_null;
-	}
-
-
 	Json::Json()
 	{
 	}
@@ -352,6 +330,27 @@ namespace slib
 	{
 		return Variant::toString();
 	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(Json, ParseParam)
+
+	Json::ParseParam::ParseParam()
+	{
+		flagLogError = sl_false;
+		flagSupportComments = sl_true;
+
+		flagError = sl_false;
+		errorLine = 0;
+		errorColumn = 0;
+		errorPosition = 0;
+	}
+
+	String Json::ParseParam::getErrorText()
+	{
+		if (flagError) {
+			return "(" + String::fromSize(errorLine) + ":" + String::fromSize(errorColumn) + ") " + errorMessage;
+		}
+		return sl_null;
+	}
 
 	namespace {
 
@@ -431,7 +430,7 @@ namespace slib
 
 			Json parse();
 
-			static Json parse(const CHAR* buf, sl_size len, JsonParseParam& param);
+			static Json parse(const CHAR* buf, sl_size len, Json::ParseParam& param);
 
 		};
 
@@ -758,7 +757,7 @@ namespace slib
 		}
 
 		template <class CHAR>
-		Json Parser<CHAR>::parse(const CHAR* buf, sl_size len, JsonParseParam& param)
+		Json Parser<CHAR>::parse(const CHAR* buf, sl_size len, Json::ParseParam& param)
 		{
 			if (!len) {
 				return Json();
@@ -801,7 +800,7 @@ namespace slib
 
 	}
 
-	Json Json::parse(const sl_char8* str, sl_size len, JsonParseParam& param)
+	Json Json::parse(const sl_char8* str, sl_size len, ParseParam& param)
 	{
 		return Parser<sl_char8>::parse(str, len, param);
 	}
@@ -811,11 +810,11 @@ namespace slib
 		if (!len) {
 			return Json();
 		}
-		JsonParseParam param;
+		ParseParam param;
 		return parse(str, len, param);
 	}
 
-	Json Json::parse(const sl_char16* str, sl_size len, JsonParseParam& param)
+	Json Json::parse(const sl_char16* str, sl_size len, ParseParam& param)
 	{
 		return Parser<sl_char16>::parse(str, len, param);
 	}
@@ -825,11 +824,11 @@ namespace slib
 		if (!len) {
 			return Json();
 		}
-		JsonParseParam param;
+		ParseParam param;
 		return parse(str, len, param);
 	}
 
-	Json Json::parse(const sl_char32* str, sl_size len, JsonParseParam& param)
+	Json Json::parse(const sl_char32* str, sl_size len, ParseParam& param)
 	{
 		return Parser<sl_char32>::parse(str, len, param);
 	}
@@ -839,11 +838,11 @@ namespace slib
 		if (!len) {
 			return Json();
 		}
-		JsonParseParam param;
+		ParseParam param;
 		return parse(str, len, param);
 	}
 
-	Json Json::parse(const StringParam& _str, JsonParseParam& param)
+	Json Json::parse(const StringParam& _str, ParseParam& param)
 	{
 		if (_str.isEmpty()) {
 			return Json();
@@ -865,11 +864,11 @@ namespace slib
 		if (str.isEmpty()) {
 			return Json();
 		}
-		JsonParseParam param;
+		ParseParam param;
 		return parse(str, param);
 	}
 
-	Json Json::parse(const MemoryView& utf, JsonParseParam& param)
+	Json Json::parse(const MemoryView& utf, ParseParam& param)
 	{
 		if (!(utf.size)) {
 			return Json();
@@ -882,18 +881,18 @@ namespace slib
 		if (!(utf.size)) {
 			return Json();
 		}
-		JsonParseParam param;
+		ParseParam param;
 		return parse(utf, param);
 	}
 
-	Json Json::parseTextFile(const StringParam& filePath, JsonParseParam& param)
+	Json Json::parseTextFile(const StringParam& filePath, ParseParam& param)
 	{
 		return parse(File::readAllText(filePath), param);
 	}
 
 	Json Json::parseTextFile(const StringParam& filePath)
 	{
-		JsonParseParam param;
+		ParseParam param;
 		return parseTextFile(filePath, param);
 	}
 

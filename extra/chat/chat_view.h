@@ -30,7 +30,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT ChatViewItem
+	class ChatViewItem
 	{
 	public:
 		String itemId;
@@ -46,7 +46,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ChatView : public ListView
+	class ChatView : public ListView
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -54,6 +54,9 @@ namespace slib
 		ChatView();
 
 		~ChatView();
+
+	public:
+		class ItemView;
 
 	public:
 		void setItems(const List<ChatViewItem>& items, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -138,10 +141,6 @@ namespace slib
 		Color m_backColorSent;
 		Color m_textColorSent;
 		Color m_textColorDate;
-
-#ifdef PRIV_SLIB_CHAT_VIEW_FRIENDS
-		PRIV_SLIB_CHAT_VIEW_FRIENDS
-#endif
 
 	};
 

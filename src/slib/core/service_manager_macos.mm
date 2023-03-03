@@ -49,7 +49,7 @@ namespace slib
 		return output.contains("state = ");
 	}
 
-	sl_bool ServiceManager::create(const ServiceCreateParam& param)
+	sl_bool ServiceManager::create(const CreateServiceParam& param)
 	{
 		// Not supported
 		return sl_false;

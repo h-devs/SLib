@@ -449,7 +449,7 @@ namespace slib
 		return NULL;
 	}
 
-	void GraphicsPlatform::drawImage(Canvas* canvas, const Rectangle& rectDst, Gdiplus::Image* image, const Rectangle& rectSrc, const DrawParam& param)
+	void GraphicsPlatform::drawImage(Canvas* canvas, const Rectangle& rectDst, Gdiplus::Image* image, const Rectangle& rectSrc, const Drawable::DrawParam& param)
 	{
 		Gdiplus::Graphics* graphics = GraphicsPlatform::getCanvasHandle(canvas);
 		if (!graphics) {

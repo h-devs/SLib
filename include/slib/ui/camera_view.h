@@ -79,7 +79,7 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(CameraView, Capture, VideoCaptureFrame& frame)
 
-		SLIB_DECLARE_EVENT_HANDLER(CameraView, TakePicture, CameraTakePictureResult& result)
+		SLIB_DECLARE_EVENT_HANDLER(CameraView, TakePicture, Camera::TakePictureResult& result)
 
 	protected:
 		void onAttach() override;
@@ -93,7 +93,7 @@ namespace slib
 	private:
 		void _onCaptureCameraFrame(VideoCapture* capture, VideoCaptureFrame& frame);
 
-		void _onTakePicture(CameraTakePictureResult& result);
+		void _onTakePicture(Camera::TakePictureResult& result);
 
 	protected:
 		Ref<Camera> m_camera;
@@ -102,16 +102,13 @@ namespace slib
 
 		CameraFlashMode m_flashMode;
 
-		Ref<View> m_controls;
+		class Controls;
+		Ref<Controls> m_controls;
 
 		sl_bool m_flagTouchFocus;
 		sl_bool m_flagDuringTouchFocusEffect;
 		Time m_timeTouchFocusBegan;
 		UIPoint m_pointTouchFocus;
-
-#ifdef PRIV_SLIB_CAMERA_VIEW_FRIENDS
-		PRIV_SLIB_CAMERA_VIEW_FRIENDS
-#endif
 
 	};
 

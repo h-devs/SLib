@@ -101,7 +101,7 @@ namespace slib
 				}
 			}
 
-			void notify_NI(const SystemTrayIconNotifyParam& param) override
+			void notify_NI(const NotifyParam& param) override
 			{
 				UserNotificationMessage msg;
 				msg.identifier = m_identifier;
@@ -188,7 +188,7 @@ namespace slib
 			{
 			}
 
-			void notify_NI(const SystemTrayIconNotifyParam& param) override
+			void notify_NI(const NotifyParam& param) override
 			{
 				UserNotificationMessage msg;
 				msg.title = param.title;

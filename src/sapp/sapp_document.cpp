@@ -288,7 +288,7 @@ namespace slib
 		for (auto& fileName : fileList) {
 			if (fileName.isNotNull()) {
 				if (fileName == "image") {
-					if (!(_registerImageResources("image", pathApp + "/image", Locale::Unknown))) {
+					if (!(_registerFileResources("image", pathApp + "/image", Locale::Unknown))) {
 						return sl_false;
 					}
 				} else if (fileName.startsWith("image-")) {
@@ -301,7 +301,7 @@ namespace slib
 						_logError(g_str_error_resource_drawable_locale_invalid, fileName);
 						return sl_false;
 					}
-					if (!(_registerImageResources(fileName, File::concatPath(pathApp, fileName), locale))) {
+					if (!(_registerFileResources(fileName, File::concatPath(pathApp, fileName), locale))) {
 						return sl_false;
 					}
 				}
@@ -637,7 +637,7 @@ namespace slib
 			return sl_false;
 		}
 
-		XmlParseParam param;
+		Xml::ParseParam param;
 		param.flagLogError = sl_false;
 		param.setCreatingOnlyElementsAndTexts();
 		Ref<XmlDocument> xml = Xml::parseTextFile(filePath, param);
@@ -789,7 +789,7 @@ namespace slib
 	{
 		_log(g_str_log_open_resource_begin, filePath);
 
-		XmlParseParam param;
+		Xml::ParseParam param;
 		param.flagLogError = sl_false;
 		param.flagSupportCpp11String = sl_true;
 		param.setCreatingOnlyElementsAndTexts();

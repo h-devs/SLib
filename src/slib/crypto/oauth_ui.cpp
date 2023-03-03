@@ -174,14 +174,14 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuth1_LoginParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(OAuth1, LoginParam)
 
-	OAuth1_LoginParam::OAuth1_LoginParam()
+	OAuth1::LoginParam::LoginParam()
 	{
 		flagIgnoreExistingAccessToken = sl_false;
 	}
 
-	void OAuth1::login(const OAuth1_LoginParam& param)
+	void OAuth1::login(const LoginParam& param)
 	{
 		String callbackUrl = param.authorization.callbackUrl;
 		if (callbackUrl.isEmpty()) {
@@ -205,7 +205,7 @@ namespace slib
 
 			dialogParam.onRedirect = [thiz, weakDialog, callbackUrl, onComplete](const String& url) {
 				if (url.isEmpty()) {
-					OAuth1_LoginResult result;
+					LoginResult result;
 					result.flagCancel = sl_true;
 					onComplete(result);
 					return;
@@ -216,7 +216,7 @@ namespace slib
 					if (dialog.isNotNull()) {
 						dialog->close();
 					}
-					OAuth1_LoginResult result;
+					LoginResult result;
 					result.parseRedirectUrl(url);
 					onComplete(result);
 				}
@@ -227,10 +227,10 @@ namespace slib
 		}
 
 		if (!(param.flagIgnoreExistingAccessToken)) {
-			Shared<OAuth1_AccessToken> accessToken = m_accessToken;
+			Shared<AccessToken> accessToken = m_accessToken;
 			if (accessToken.isNotNull()) {
 				if (accessToken->isValid()) {
-					OAuth1_LoginResult result;
+					LoginResult result;
 					result.flagSuccess = sl_true;
 					result.flagCache = sl_true;
 					result.accessToken = *accessToken;
@@ -240,27 +240,27 @@ namespace slib
 			}
 		}
 
-		OAuth1_AuthorizationRequestParam authParam = param.authorization;
+		AuthorizationRequestParam authParam = param.authorization;
 		authParam.callbackUrl = callbackUrl;
 		auto thiz = ToRef(this);
 		getLoginUrl(authParam, [thiz, param, callbackUrl](const String& url, const String& requestToken, const String& requestTokenSecret) {
 			auto onComplete = param.onComplete;
 			if (url.isEmpty() || requestToken.isEmpty() || requestTokenSecret.isEmpty()) {
-				OAuth1_LoginResult result;
+				LoginResult result;
 				onComplete(result);
 				return;
 			}
-			OAuth1_LoginParam _param = param;
+			LoginParam _param = param;
 			_param.url = url;
 			_param.authorization.callbackUrl = callbackUrl;
-			_param.onComplete = [thiz, onComplete, requestToken, requestTokenSecret](OAuth1_LoginResult& result) {
+			_param.onComplete = [thiz, onComplete, requestToken, requestTokenSecret](LoginResult& result) {
 				if (!(result.flagSuccess) || result.requestToken != requestToken || result.verifier.isEmpty()) {
 					onComplete(result);
 					return;
 				}
-				thiz->requestAccessToken(result.verifier, requestToken, requestTokenSecret, [onComplete](OAuth1_AccessTokenResult& _result) {
-					OAuth1_LoginResult result;
-					*((OAuth1_AccessTokenResult*)&result) = _result;
+				thiz->requestAccessToken(result.verifier, requestToken, requestTokenSecret, [onComplete](AccessTokenResult& _result) {
+					LoginResult result;
+					*((AccessTokenResult*)&result) = _result;
 					onComplete(result);
 				});
 			};
@@ -268,23 +268,23 @@ namespace slib
 		});
 	}
 
-	void OAuth1::login(const Function<void(OAuth1_LoginResult& result)>& onComplete)
+	void OAuth1::login(const Function<void(LoginResult& result)>& onComplete)
 	{
-		OAuth1_LoginParam param;
+		LoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(OAuthLoginParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(OAuth2, LoginParam)
 
-	OAuthLoginParam::OAuthLoginParam()
+	OAuth2::LoginParam::LoginParam()
 	{
 		flagIgnoreExistingAccessToken = sl_false;
 		flagAlwaysRequireAccessToken = sl_false;
 	}
 
-	void OAuth2::login(const OAuthLoginParam& param)
+	void OAuth2::login(const LoginParam& param)
 	{
 		String redirectUri = param.authorization.redirectUri;
 		if (redirectUri.isEmpty()) {
@@ -322,7 +322,7 @@ namespace slib
 			dialogParam.onRedirect = [thiz, weakDialog, loginRedirectUri, scopes, state, onComplete](const String& url) {
 
 				if (url.isEmpty()) {
-					OAuthLoginResult result;
+					LoginResult result;
 					result.flagCancel = sl_true;
 					onComplete(result);
 					return;
@@ -339,7 +339,7 @@ namespace slib
 				}
 				if (flagRedirected) {
 					Log(TAG, "Redirected to URI: %s", url);
-					OAuthLoginResult result;
+					LoginResult result;
 					result.parseRedirectUrl(url);
 					if (state.isEmpty() || result.state == state) {
 						auto dialog = weakDialog.lock();
@@ -363,10 +363,10 @@ namespace slib
 		}
 
 		if (!(param.flagIgnoreExistingAccessToken)) {
-			Shared<OAuthAccessToken> accessToken = m_accessToken;
+			Shared<AccessToken> accessToken = m_accessToken;
 			if (accessToken.isNotNull()) {
 				if (accessToken->isValid(scopes)) {
-					OAuthLoginResult result;
+					LoginResult result;
 					result.flagSuccess = sl_true;
 					result.flagCache = sl_true;
 					result.accessToken = *accessToken;
@@ -376,9 +376,9 @@ namespace slib
 			}
 		}
 
-		OAuthLoginParam _param = param;
-		if (!m_flagSupportImplicitGrantType && _param.authorization.responseType == OAuthResponseType::Token) {
-			_param.authorization.responseType = OAuthResponseType::Code;
+		LoginParam _param = param;
+		if (!m_flagSupportImplicitGrantType && _param.authorization.responseType == ResponseType::Token) {
+			_param.authorization.responseType = ResponseType::Code;
 			_param.flagAlwaysRequireAccessToken = sl_true;
 		}
 		_param.authorization.redirectUri = redirectUri;
@@ -389,18 +389,18 @@ namespace slib
 		_param.authorization.state = state;
 		_param.url = getLoginUrl(_param.authorization);
 
-		if (_param.authorization.responseType == OAuthResponseType::Code) {
+		if (_param.authorization.responseType == ResponseType::Code) {
 			if (_param.flagAlwaysRequireAccessToken) {
 				auto onComplete = _param.onComplete;
 				auto thiz = ToRef(this);
-				_param.onComplete = [thiz, redirectUri, scopes, onComplete](OAuthLoginResult& result) {
+				_param.onComplete = [thiz, redirectUri, scopes, onComplete](LoginResult& result) {
 					if (!(result.flagSuccess) || result.code.isEmpty()) {
 						onComplete(result);
 						return;
 					}
-					thiz->requestAccessTokenFromCode(result.code, redirectUri, [thiz, scopes, onComplete](OAuthAccessTokenResult& _result) {
-						OAuthLoginResult result;
-						*((OAuthAccessTokenResult*)&result) = _result;
+					thiz->requestAccessTokenFromCode(result.code, redirectUri, [thiz, scopes, onComplete](AccessTokenResult& _result) {
+						LoginResult result;
+						*((AccessTokenResult*)&result) = _result;
 						if (result.flagSuccess) {
 							if (result.accessToken.scopes.isNull()) {
 								result.accessToken.scopes = scopes;
@@ -415,9 +415,9 @@ namespace slib
 		login(_param);
 	}
 
-	void OAuth2::login(const Function<void(OAuthLoginResult& result)>& onComplete)
+	void OAuth2::login(const Function<void(LoginResult& result)>& onComplete)
 	{
-		OAuthLoginParam param;
+		LoginParam param;
 		param.onComplete = onComplete;
 		login(param);
 	}

@@ -33,30 +33,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlColumn)
-
-	ListControlColumn::ListControlColumn()
-	{
-		width = 40;
-		align = Alignment::MiddleCenter;
-		headerAlign = Alignment::MiddleCenter;
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlCell)
-
-	ListControlCell::ListControlCell()
-	{
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListControlRow)
-
-	ListControlRow::ListControlRow()
-	{
-	}
-
-
 	SLIB_DEFINE_OBJECT(ListControl, View)
 
 	ListControl::ListControl()
@@ -76,6 +52,21 @@ namespace slib
 
 	ListControl::~ListControl()
 	{
+	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(ListControl, Cell)
+
+	ListControl::Cell::Cell()
+	{
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(ListControl, Column)
+
+	ListControl::Column::Column()
+	{
+		width = 40;
+		align = Alignment::MiddleCenter;
+		headerAlign = Alignment::MiddleCenter;
 	}
 
 	sl_uint32 ListControl::getColumnCount()
@@ -100,6 +91,12 @@ namespace slib
 		} else {
 			invalidate(mode);
 		}
+	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(ListControl, Row)
+
+	ListControl::Row::Row()
+	{
 	}
 
 	sl_uint32 ListControl::getRowCount()
@@ -136,9 +133,9 @@ namespace slib
 	String ListControl::getItemText(sl_uint32 iRow, sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
-		ListControlRow* row = m_rows.getPointerAt(iRow);
+		Row* row = m_rows.getPointerAt(iRow);
 		if (row) {
-			ListControlCell* cell = row->cells.getPointerAt(iCol);
+			Cell* cell = row->cells.getPointerAt(iCol);
 			if (cell) {
 				return cell->text;
 			}
@@ -150,8 +147,8 @@ namespace slib
 	{
 		{
 			ObjectLocker lock(this);
-			ListControlCell* cell = sl_null;
-			ListControlRow* row = m_rows.getPointerAt(iRow);
+			Cell* cell = sl_null;
+			Row* row = m_rows.getPointerAt(iRow);
 			if (row) {
 				cell = row->cells.getPointerAt(iCol);
 				if (!cell) {
@@ -172,7 +169,7 @@ namespace slib
 	String ListControl::getRowId(sl_uint32 iRow)
 	{
 		ObjectLocker lock(this);
-		ListControlRow* row = m_rows.getPointerAt(iRow);
+		Row* row = m_rows.getPointerAt(iRow);
 		if (row) {
 			return row->id;
 		}
@@ -182,7 +179,7 @@ namespace slib
 	void ListControl::setRowId(sl_uint32 iRow, const String& id)
 	{
 		ObjectLocker lock(this);
-		ListControlRow* row = m_rows.getPointerAt(iRow);
+		Row* row = m_rows.getPointerAt(iRow);
 		if (row) {
 			row->id = id;
 		}
@@ -191,7 +188,7 @@ namespace slib
 	sl_int32 ListControl::findRowById(const String& id)
 	{
 		ObjectLocker lock(this);
-		ListElements<ListControlRow> rows(m_rows);
+		ListElements<Row> rows(m_rows);
 		for (sl_size i = 0; i < rows.count; i++) {
 			if (rows[i].id == id) {
 				return (sl_int32)i;
@@ -203,7 +200,7 @@ namespace slib
 	String ListControl::getHeaderText(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
-		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		Column* col = m_columns.getPointerAt(iCol);
 		if (col) {
 			return col->title;
 		}
@@ -214,7 +211,7 @@ namespace slib
 	{
 		{
 			ObjectLocker lock(this);
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			Column* col = m_columns.getPointerAt(iCol);
 			if (col) {
 				col->title = text;
 			} else {
@@ -237,7 +234,7 @@ namespace slib
 	sl_ui_len ListControl::getColumnWidth(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
-		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		Column* col = m_columns.getPointerAt(iCol);
 		if (col) {
 			return col->width;
 		}
@@ -248,7 +245,7 @@ namespace slib
 	{
 		{
 			ObjectLocker lock(this);
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			Column* col = m_columns.getPointerAt(iCol);
 			if (col) {
 				col->width = width;
 			} else {
@@ -271,7 +268,7 @@ namespace slib
 	Alignment ListControl::getHeaderAlignment(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
-		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		Column* col = m_columns.getPointerAt(iCol);
 		if (col) {
 			return col->headerAlign;
 		}
@@ -282,7 +279,7 @@ namespace slib
 	{
 		{
 			ObjectLocker lock(this);
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			Column* col = m_columns.getPointerAt(iCol);
 			if (col) {
 				col->headerAlign = align;
 			} else {
@@ -305,7 +302,7 @@ namespace slib
 	Alignment ListControl::getColumnAlignment(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
-		ListControlColumn* col = m_columns.getPointerAt(iCol);
+		Column* col = m_columns.getPointerAt(iCol);
 		if (col) {
 			return col->align;
 		}
@@ -316,7 +313,7 @@ namespace slib
 	{
 		{
 			ObjectLocker lock(this);
-			ListControlColumn* col = m_columns.getPointerAt(iCol);
+			Column* col = m_columns.getPointerAt(iCol);
 			if (col) {
 				col->align = align;
 			} else {
@@ -397,15 +394,15 @@ namespace slib
 
 			Compare(sl_uint32 col): m_col(col) {}
 
-			sl_compare_result operator()(const ListControlRow& row1, const ListControlRow& row2) const noexcept
+			sl_compare_result operator()(const Row& row1, const Row& row2) const noexcept
 			{
 				String value1;
-				ListControlCell* cell1 = row1.cells.getPointerAt(m_col);
+				Cell* cell1 = row1.cells.getPointerAt(m_col);
 				if (cell1) {
 					value1 = cell1->text;
 				}
 				String value2;
-				ListControlCell* cell2 = row2.cells.getPointerAt(m_col);
+				Cell* cell2 = row2.cells.getPointerAt(m_col);
 				if (cell2) {
 					value2 = cell2->text;
 				}

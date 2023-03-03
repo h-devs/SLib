@@ -122,14 +122,14 @@ void ExampleXgPushApp::onClickSend(View*)
 	if (receiverParams.getCount() != 2) {
 		return;
 	}
-	XgPushSendParam param;
-	param.environment = XgPushEnvironment::Development;
+	XgPushService::SendParam param;
+	param.environment = XgPush::Environment::Development;
 	if (receiverParams[0] == "ios") {
-		param.platform = XgPushPlatform::iOS;
+		param.platform = XgPush::Platform::iOS;
 		param.appId = "0af0451c4284c";
 		param.secretKey = "80ae6b02b8c82d96a8587f4f80336d95";
 	} else {
-		param.platform = XgPushPlatform::Android;
+		param.platform = XgPush::Platform::Android;
 		param.appId = "cf1099e32eca7";
 		param.secretKey = "8d91a9bb62a683f9de2c87a89b293c23";
 	}

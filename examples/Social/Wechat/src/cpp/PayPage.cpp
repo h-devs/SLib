@@ -16,7 +16,7 @@ void PayPage::onOpen()
 	});
 	btnOrder->setOnClick([this, thiz](View*) {
 		// Note: This section should be implemented on server-side. Here, added for testing purpose
-		WeChatCreateOrderParam param;
+		WeChat::CreateOrderParam param;
 		param.orderId = "Test" + String::fromUint64(Time::now().getMillisecondCount());
 		param.amount = (sl_uint64)(txtAmount->getText().parseDouble() * 100);
 		param.body = "Test Payment";
@@ -24,7 +24,7 @@ void PayPage::onOpen()
 		param.appId = WECHAT_APP_ID;
 		param.businessId = WECHAT_PAY_BUSINESS_NUMBER;
 		param.notifyUrl = "http://wxpay.wxutil.com/pub_v2/pay/notify.v2.php";
-		param.onComplete = [this, thiz](WeChatCreateOrderResult& result) {
+		param.onComplete = [this, thiz](WeChat::CreateOrderResult& result) {
 			auto ref = ToRef(thiz);
 			if (ref.isNull()) {
 				return;
@@ -43,9 +43,9 @@ void PayPage::onOpen()
 			UI::showAlert("Please make order");
 			return;
 		}
-		WeChatPaymentRequest req;
+		WeChat::PaymentRequest req;
 		req.order = m_order;
-		req.onComplete = [](WeChatPaymentResult& result) {
+		req.onComplete = [](WeChat::PaymentResult& result) {
 			if (result.flagCancel) {
 				return;
 			}

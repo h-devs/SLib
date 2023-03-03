@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT LinkedInUser
+	class LinkedInUser
 	{
 	public:
 		String id;
@@ -51,62 +51,7 @@ namespace slib
 
 	typedef OAuthApiResult LinkedInResult;
 
-	typedef OAuthLoginResult LinkedInLoginResult;
-
-	class SLIB_EXPORT LinkedInLoginParam: public OAuthLoginParam
-	{
-	public:
-		LinkedInLoginParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LinkedInLoginParam)
-
-	public:
-		void addScopeForSharing();
-
-	};
-
-	class SLIB_EXPORT LinkedInResolveUserUrlParam
-	{
-	public:
-		OAuthWebRedirectDialogOptions dialogOptions;
-		Ptr<OAuthWebRedirectDialog> dialog;
-
-		Function<void(const String& url)> onComplete;
-
-	public:
-		LinkedInResolveUserUrlParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LinkedInResolveUserUrlParam)
-
-	};
-
-	class SLIB_EXPORT LinkedInShareResult : public LinkedInResult
-	{
-	public:
-		LinkedInShareResult(UrlRequest* request);
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LinkedInShareResult)
-
-	};
-
-	class SLIB_EXPORT LinkedInShareParam
-	{
-	public:
-		String text;
-		String contentTitle;
-		String contentDescription;
-		List<String> contentEntities;
-
-		Function<void(LinkedInShareResult& result)> onComplete;
-
-	public:
-		LinkedInShareParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LinkedInShareParam)
-
-	};
-
-	class SLIB_EXPORT LinkedInParam : public OAuthParam
+	class LinkedInParam : public OAuth2_Param
 	{
 	public:
 		LinkedInParam();
@@ -140,11 +85,33 @@ namespace slib
 		static Ref<LinkedIn> getInstance();
 
 	public:
-		static void resolveUserUrl(const LinkedInResolveUserUrlParam& param);
+		class ResolveUserUrlParam
+		{
+		public:
+			OAuthWebRedirectDialogOptions dialogOptions;
+			Ptr<OAuthWebRedirectDialog> dialog;
+
+			Function<void(const String& url)> onComplete;
+
+		public:
+			ResolveUserUrlParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ResolveUserUrlParam)
+		};
+
+		static void resolveUserUrl(const ResolveUserUrlParam& param);
 
 		static void resolveUserUrl(const Function<void(const String& url)>& onComplete);
 
-	public:
+		class LoginParam : public OAuth2::LoginParam
+		{
+		public:
+			LoginParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoginParam)
+
+		public:
+			void addScopeForSharing();
+		};
+
 		static String getRequestUrl(const String& path);
 
 		void getUser(const String& userId, const String& fields, const Function<void(LinkedInResult&, LinkedInUser&)>& onComplete);
@@ -153,7 +120,29 @@ namespace slib
 
 		void getUser(const String& userId, const Function<void(LinkedInResult&, LinkedInUser&)>& onComplete);
 
-		void share(const LinkedInShareParam& param);
+		class ShareResult : public LinkedInResult
+		{
+		public:
+			ShareResult(UrlRequest* request);
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShareResult)
+		};
+
+		class ShareParam
+		{
+		public:
+			String text;
+			String contentTitle;
+			String contentDescription;
+			List<String> contentEntities;
+
+			Function<void(ShareResult& result)> onComplete;
+
+		public:
+			ShareParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ShareParam)
+		};
+
+		void share(const ShareParam& param);
 
 	};
 

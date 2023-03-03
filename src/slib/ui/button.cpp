@@ -1652,7 +1652,7 @@ namespace slib
 			rcText.right += pt.x;
 			rcText.bottom += pt.y;
 
-			SimpleTextBoxDrawParam param;
+			SimpleTextBox::DrawParam param;
 			param.frame = rcText;
 			param.textColor = textColor;
 			if (shadowOpacity > 0) {

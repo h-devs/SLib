@@ -25,27 +25,27 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInLoginParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(LinkedIn, LoginParam)
 
-	LinkedInLoginParam::LinkedInLoginParam()
+	LinkedIn::LoginParam::LoginParam()
 	{
 		authorization.scopes.add_NoLock("r_liteprofile");
 		authorization.scopes.add_NoLock("r_emailaddress");
 	}
 
-	void LinkedInLoginParam::addScopeForSharing()
+	void LinkedIn::LoginParam::addScopeForSharing()
 	{
 		authorization.scopes.addIfNotExist_NoLock("w_member_social");
 	}
 
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(LinkedInResolveUserUrlParam)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(LinkedIn, ResolveUserUrlParam)
 
-	LinkedInResolveUserUrlParam::LinkedInResolveUserUrlParam()
+	LinkedIn::ResolveUserUrlParam::ResolveUserUrlParam()
 	{
 	}
 
-	void LinkedIn::resolveUserUrl(const LinkedInResolveUserUrlParam& param)
+	void LinkedIn::resolveUserUrl(const ResolveUserUrlParam& param)
 	{
 		auto onComplete = param.onComplete;
 		auto dialog = param.dialog;
@@ -92,7 +92,7 @@ namespace slib
 
 	void LinkedIn::resolveUserUrl(const Function<void(const String& url)>& onComplete)
 	{
-		LinkedInResolveUserUrlParam param;
+		ResolveUserUrlParam param;
 		param.onComplete = onComplete;
 		resolveUserUrl(param);
 	}

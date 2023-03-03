@@ -153,7 +153,7 @@ using namespace slib;
 namespace slib
 {
 
-	void PhotoKit::saveImage(const PhotoKit::SaveImageParam& param)
+	void PhotoKit::saveImage(const SaveImageParam& param)
 	{
 		Function<void(const String&)> onComplete = param.onComplete;
 		UIImage* image = nil;

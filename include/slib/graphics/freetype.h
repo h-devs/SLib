@@ -67,22 +67,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT FreeTypeLoadParam
-	{
-	public:
-		// Negative value for loading only faces count and style flags
-		sl_int32 faceIndex;
-
-		// Negative value for loading only named instance count
-		sl_int32 namedInstanceIndex;
-
-	public:
-		FreeTypeLoadParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FreeTypeLoadParam)
-
-	};
-
 	class SLIB_EXPORT FreeType : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -93,15 +77,26 @@ namespace slib
 		~FreeType();
 
 	public:
-		static Ref<FreeType> load(const Ptr<IBlockReader>& reader, sl_uint64 size, const FreeTypeLoadParam& param);
+		class SLIB_EXPORT LoadParam
+		{
+		public:
+			sl_int32 faceIndex; // Negative value for loading only faces count and style flags
+			sl_int32 namedInstanceIndex; // Negative value for loading only named instance count
+
+		public:
+			LoadParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoadParam)
+		};
+
+		static Ref<FreeType> load(const Ptr<IBlockReader>& reader, sl_uint64 size, const LoadParam& param);
 
 		static Ref<FreeType> load(const Ptr<IBlockReader>& reader, sl_uint64 size, sl_int32 indexFace = 0);
 
-		static Ref<FreeType> loadFromFile(const StringParam& path, const FreeTypeLoadParam& param);
+		static Ref<FreeType> loadFromFile(const StringParam& path, const LoadParam& param);
 
 		static Ref<FreeType> loadFromFile(const StringParam& path, sl_int32 indexFace = 0);
 
-		static Ref<FreeType> loadFromMemory(const Memory& content, const FreeTypeLoadParam& param);
+		static Ref<FreeType> loadFromMemory(const Memory& content, const LoadParam& param);
 
 		static Ref<FreeType> loadFromMemory(const Memory& content, sl_int32 indexFace = 0);
 

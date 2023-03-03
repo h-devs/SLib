@@ -93,9 +93,9 @@ namespace slib
 			void copyColumns(GtkTreeView* handle)
 			{
 				applyColumnCount(handle);
-				ListLocker<ListControlColumn> columns(m_columns);
+				ListLocker<Column> columns(m_columns);
 				for (sl_size i = 0; i < columns.count; i++) {
-					ListControlColumn& column = columns[i];
+					Column& column = columns[i];
 					int width = (int)(column.width);
 					if (width < 0) {
 						width = 0;

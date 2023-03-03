@@ -32,20 +32,6 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListViewRefreshParam)
-
-	ListViewRefreshParam::ListViewRefreshParam()
-	{
-		flagScrollToLastItem = sl_false;
-	}
-
-
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(ListViewSetAdapterParam)
-
-	ListViewSetAdapterParam::ListViewSetAdapterParam()
-	{
-	}
-
 	class ListView::ContentView : public ViewGroup
 	{
 	private:
@@ -142,36 +128,14 @@ namespace slib
 		setContentView(m_contentView, UIUpdateMode::Init);
 	}
 
-	Ref<ViewAdapter> ListView::getAdapter()
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(ListView, RefreshParam)
+
+	ListView::RefreshParam::RefreshParam()
 	{
-		return m_adapter;
+		flagScrollToLastItem = sl_false;
 	}
 
-	void ListView::setAdapter(const Ref<ViewAdapter>& adapter)
-	{
-		ListViewSetAdapterParam param;
-		param.adapter = adapter;
-		setAdapter(param);
-	}
-
-	void ListView::setAdapter(const ListViewSetAdapterParam& param)
-	{
-		m_adapter = param.adapter;
-		m_flagResetAdapter = sl_true;
-		if (param.flagScrollToLastItem) {
-			m_flagScrollToLastItem = sl_true;
-		}
-		m_flagSmoothScrollToLastItem = sl_false;
-		runOnDrawingThread(SLIB_FUNCTION_WEAKREF(this, _checkUpdateContent));
-	}
-
-	void ListView::refreshItems()
-	{
-		ListViewRefreshParam param;
-		refreshItems(param);
-	}
-
-	void ListView::refreshItems(const ListViewRefreshParam& param)
+	void ListView::refreshItems(const RefreshParam& param)
 	{
 		m_flagRefreshItems = sl_true;
 		if (param.flagScrollToLastItem) {
@@ -182,6 +146,41 @@ namespace slib
 		if (param.flagScrollToLastItem) {
 			smoothScrollToEndY();
 		}
+	}
+
+	void ListView::refreshItems()
+	{
+		RefreshParam param;
+		refreshItems(param);
+	}
+
+	Ref<ViewAdapter> ListView::getAdapter()
+	{
+		return m_adapter;
+	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(ListView, SetAdapterParam)
+
+	ListView::SetAdapterParam::SetAdapterParam()
+	{
+	}
+
+	void ListView::setAdapter(const SetAdapterParam& param)
+	{
+		m_adapter = param.adapter;
+		m_flagResetAdapter = sl_true;
+		if (param.flagScrollToLastItem) {
+			m_flagScrollToLastItem = sl_true;
+		}
+		m_flagSmoothScrollToLastItem = sl_false;
+		runOnDrawingThread(SLIB_FUNCTION_WEAKREF(this, _checkUpdateContent));
+	}
+
+	void ListView::setAdapter(const Ref<ViewAdapter>& adapter)
+	{
+		SetAdapterParam param;
+		param.adapter = adapter;
+		setAdapter(param);
 	}
 
 	void ListView::onScroll(sl_scroll_pos _x, sl_scroll_pos _y)

@@ -74,8 +74,6 @@ namespace slib
 			TextAttachItem,
 			TextParagraph,
 			SimpleTextBox,
-			ImageResourceDrawable,
-			SimpleImageResourceDrawable,
 			Svg
 		};
 

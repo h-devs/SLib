@@ -185,7 +185,7 @@ namespace slib
 	}
 
 
-	void PhotoKit::saveImage(const PhotoKit::SaveImageParam& param)
+	void PhotoKit::saveImage(const SaveImageParam& param)
 	{
 		Application::grantPermissions(AppPermissions::WriteExternalStorage, [param]() {
 			if (Application::checkPermissions(AppPermissions::WriteExternalStorage)) {

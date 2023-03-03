@@ -203,7 +203,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool ServiceManager::create(const ServiceCreateParam& param)
+	sl_bool ServiceManager::create(const CreateServiceParam& param)
 	{
 		WSManager manager(SC_MANAGER_CREATE_SERVICE);
 		if (manager) {

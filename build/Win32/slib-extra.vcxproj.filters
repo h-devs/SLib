@@ -69,6 +69,9 @@
     <ClInclude Include="..\..\extra\social\wechat.h">
       <Filter>src\social</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\extra\social\twitter.h">
+      <Filter>src\social</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\extra\qrcode\zxing.cpp">
@@ -154,6 +157,9 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\qrcode\external\zxing\zxing_unity.cpp">
       <Filter>src\qrcode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\social\twitter.cpp">
+      <Filter>src\social</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

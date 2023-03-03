@@ -95,7 +95,7 @@ namespace slib
 					setAspectRatio(ratio, mode);
 				}
 			}
-			DrawableAnimationInfo animation;
+			Drawable::AnimationInfo animation;
 			if (source->getAnimationInfo(&animation)) {
 				float fps = animation.framesPerSecond;
 				if (fps < 1) {
@@ -168,7 +168,7 @@ namespace slib
 	{
 		if (m_timerAnimation.isNotNull()) {
 			double time = (Time::now() - m_timeStartAnimation).getSecondCountf();
-			DrawParam param;
+			Canvas::DrawParam param;
 			param.time = (float)time;
 			canvas->draw(getBoundsInnerPadding(), m_source, m_scaleMode, m_gravity, param);
 		} else {

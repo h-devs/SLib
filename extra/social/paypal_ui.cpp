@@ -27,13 +27,13 @@
 namespace slib
 {
 
-	void PayPal::checkout(const PayPalCheckoutParam& param)
+	void PayPal::checkout(const CheckoutParam& param)
 	{
 		auto thiz = ToRef(this);
 		if (m_accessToken.isNull()) {
-			requestAccessTokenFromClientCredentials([thiz, this, param](OAuthAccessTokenResult& result) {
+			requestAccessTokenFromClientCredentials([thiz, this, param](AccessTokenResult& result) {
 				if (!(result.flagSuccess)) {
-					PayPalCheckoutResult r;
+					CheckoutResult r;
 					param.onComplete(r);
 					return;
 				}
@@ -42,10 +42,10 @@ namespace slib
 			});
 			return;
 		}
-		PayPalCreateOrderParam orderParam = param;
-		orderParam.onComplete = [thiz, this, param](PayPalCreateOrderResult& result) {
+		CreateOrderParam orderParam = param;
+		orderParam.onComplete = [thiz, this, param](CreateOrderResult& result) {
 			if (!(result.flagSuccess)) {
-				PayPalCheckoutResult r;
+				CheckoutResult r;
 				param.onComplete(r);
 				return;
 			}
@@ -60,7 +60,7 @@ namespace slib
 			auto weakDialog = dialog.toWeak();
 			String orderId = result.orderId;
 			dialogParam.onRedirect = [thiz, this, weakDialog, param, orderId](const String& url) {
-				PayPalCheckoutResult result;
+				CheckoutResult result;
 				result.orderId = orderId;
 				if (url.isEmpty()) {
 					result.flagCancel = sl_true;

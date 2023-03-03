@@ -227,7 +227,7 @@ namespace slib
 			return sl_null;
 		}
 
-		FileOpenParam param;
+		File::OpenParam param;
 		param.mode = FileMode::Read | FileMode::ShareRead;
 
 		Ref<FileContext> context = openFile(path, param);
@@ -265,7 +265,7 @@ namespace slib
 
 	sl_uint32 FileSystemProvider::writeFile(const StringParam& path, const void* buf, sl_uint32 size) noexcept
 	{
-		FileOpenParam param;
+		File::OpenParam param;
 		param.mode = FileMode::Write;
 
 		Ref<FileContext> context = openFile(path, param);
@@ -409,7 +409,7 @@ namespace slib
 		return getWrapperContext(m_base->createContext(toBasePath(path)), path);
 	}
 
-	Ref<FileContext> FileSystemWrapper::openFile(const StringParam& path, const FileOpenParam& param)
+	Ref<FileContext> FileSystemWrapper::openFile(const StringParam& path, const File::OpenParam& param)
 	{
 		Ref<FileContext> baseContext = m_base->openFile(toBasePath(path), param);
 		if (baseContext.isNotNull()) {

@@ -42,6 +42,8 @@
 namespace slib
 {
 
+	using namespace priv;
+
 	namespace {
 
 		SLIB_JNI_BEGIN_CLASS(JRect, "android/graphics/Rect")

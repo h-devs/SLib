@@ -97,123 +97,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT OAuth1_AccessToken
-	{
-	public:
-		String token;
-		String secret;
-
-	public:
-		OAuth1_AccessToken();
-
-		OAuth1_AccessToken(const String& token, const String& tokenSecret);
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuth1_AccessToken)
-
-		SLIB_DECLARE_JSON
-
-	public:
-		sl_bool isValid() const;
-
-		void setResponse(const HashMap<String, String>& params);
-
-	};
-
-	class SLIB_EXPORT OAuth1_AuthorizationRequestParam
-	{
-	public:
-		String callbackUrl; // If empty, uses instance's callbackUrl attribute
-		VariantMap customParameters;
-
-	public:
-		OAuth1_AuthorizationRequestParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuth1_AuthorizationRequestParam)
-
-	};
-
-	class SLIB_EXPORT OAuth1_AccessTokenResult
-	{
-	public:
-		sl_bool flagSuccess;
-
-		OAuth1_AccessToken accessToken;
-
-		HashMap<String, String> response;
-
-	public:
-		OAuth1_AccessTokenResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuth1_AccessTokenResult)
-
-	public:
-		void setResponse(const HashMap<String, String>& params);
-
-	};
-
-	class SLIB_EXPORT OAuth1_LoginResult : public OAuth1_AccessTokenResult
-	{
-	public:
-		sl_bool flagCancel;
-		sl_bool flagCache; // True if the `access token` is from cache
-
-		String verifier;
-		String requestToken;
-
-	public:
-		OAuth1_LoginResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuth1_LoginResult)
-
-	public:
-		void parseRedirectUrl(const String& url);
-
-	};
-
-	class SLIB_EXPORT OAuth1_LoginParam
-	{
-	public:
-		String url; // Should be defined in unconfidental clients (such as mobile/desktop app). See class description for detail.
-
-		OAuth1_AuthorizationRequestParam authorization;
-
-		OAuthWebRedirectDialogOptions dialogOptions;
-		Ptr<OAuthWebRedirectDialog> dialog;
-
-		sl_bool flagIgnoreExistingAccessToken; // Ignored if `url` is not empty
-
-		Function<void(OAuth1_LoginResult&)> onComplete;
-
-	public:
-		OAuth1_LoginParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuth1_LoginParam)
-
-	};
-
-	class SLIB_EXPORT OAuth1_Param
-	{
-	public:
-		String consumerKey;
-		String consumerSecret;
-
-		OAuth1_AccessToken accessToken;
-
-		HttpMethod requestTokenMethod;
-		String requestTokenUrl;
-		String authenticateUrl;
-		HttpMethod accessTokenMethod;
-		String accessTokenUrl;
-		String callbackUrl;
-
-		String preferenceName;
-
-	public:
-		OAuth1_Param();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuth1_Param)
-
-	};
 
 	/*
 	 	`OAuth1` authentication is not recommended to be used in unconfidental clients
@@ -235,14 +118,56 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		OAuth1(const OAuth1_Param& param);
+		class AccessToken
+		{
+		public:
+			String token;
+			String secret;
+
+		public:
+			AccessToken();
+			AccessToken(const String& token, const String& tokenSecret);
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AccessToken)
+			SLIB_DECLARE_JSON
+
+		public:
+			sl_bool isValid() const;
+
+			void setResponse(const HashMap<String, String>& params);
+		};
+
+		class Param
+		{
+		public:
+			String consumerKey;
+			String consumerSecret;
+
+			AccessToken accessToken;
+
+			HttpMethod requestTokenMethod;
+			String requestTokenUrl;
+			String authenticateUrl;
+			HttpMethod accessTokenMethod;
+			String accessTokenUrl;
+			String callbackUrl;
+
+			String preferenceName;
+
+		public:
+			Param();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Param)
+		};
+
+	public:
+		OAuth1(const Param& param);
 
 		~OAuth1();
 
 	public:
-		Shared<OAuth1_AccessToken> getAccessToken();
+		Shared<AccessToken> getAccessToken();
 
-		void setAccessToken(const OAuth1_AccessToken& accessToken);
+		void setAccessToken(const AccessToken& accessToken);
 
 		void setAccessToken(const String& token, const String& tokenSecret);
 
@@ -265,15 +190,77 @@ namespace slib
 
 		void authorizeRequest(UrlRequestParam& param);
 
-		virtual void getLoginUrl(const OAuth1_AuthorizationRequestParam& param, const Function<void(const String& url, const String& requestToken, const String& requestTokenSecret)>& onComplete);
-
 		void getLoginUrl(const Function<void(const String& url, const String& requestToken, const String& requestTokenSecret)>& onComplete);
 
-		void requestAccessToken(const String& verifier, const String& requestToken, const String& requestTokenSecret, const Function<void(OAuth1_AccessTokenResult&)>& onComplete);
+		class AccessTokenResult
+		{
+		public:
+			sl_bool flagSuccess;
+			AccessToken accessToken;
+			HashMap<String, String> response;
 
-		void login(const OAuth1_LoginParam& param);
+		public:
+			AccessTokenResult();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AccessTokenResult)
 
-		void login(const Function<void(OAuth1_LoginResult& result)>& onComplete);
+		public:
+			void setResponse(const HashMap<String, String>& params);
+		};
+
+		void requestAccessToken(const String& verifier, const String& requestToken, const String& requestTokenSecret, const Function<void(AccessTokenResult&)>& onComplete);
+
+		class AuthorizationRequestParam
+		{
+		public:
+			String callbackUrl; // If empty, uses instance's callbackUrl attribute
+			VariantMap customParameters;
+
+		public:
+			AuthorizationRequestParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AuthorizationRequestParam)
+		};
+
+		virtual void getLoginUrl(const AuthorizationRequestParam& param, const Function<void(const String& url, const String& requestToken, const String& requestTokenSecret)>& onComplete);
+
+		class LoginResult : public AccessTokenResult
+		{
+		public:
+			sl_bool flagCancel;
+			sl_bool flagCache; // True if the `access token` is from cache
+
+			String verifier;
+			String requestToken;
+
+		public:
+			LoginResult();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoginResult)
+
+		public:
+			void parseRedirectUrl(const String& url);
+		};
+
+		class LoginParam
+		{
+		public:
+			String url; // Should be defined in unconfidental clients (such as mobile/desktop app). See class description for detail.
+
+			AuthorizationRequestParam authorization;
+
+			OAuthWebRedirectDialogOptions dialogOptions;
+			Ptr<OAuthWebRedirectDialog> dialog;
+
+			sl_bool flagIgnoreExistingAccessToken; // Ignored if `url` is not empty
+
+			Function<void(LoginResult&)> onComplete;
+
+		public:
+			LoginParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoginParam)
+		};
+
+		void login(const LoginParam& param);
+
+		void login(const Function<void(LoginResult& result)>& onComplete);
 
 	protected:
 		void logUrlRequestError(UrlRequest* request);
@@ -286,7 +273,7 @@ namespace slib
 		String m_consumerKey;
 		String m_consumerSecret;
 
-		AtomicShared<OAuth1_AccessToken> m_accessToken;
+		AtomicShared<AccessToken> m_accessToken;
 
 		HttpMethod m_requestTokenMethod;
 		String m_requestTokenUrl;
@@ -301,220 +288,135 @@ namespace slib
 
 	};
 
+	typedef OAuth1::Param OAuth1_Param;
 
-	enum class OAuthGrantType
-	{
-		None = 0,
-		Implicit = 1,
-		AuthorizationCode = 2,
-		ClientCredentials = 3,
-		Password = 4,
-		RefreshToken = 5
-	};
-
-	enum class OAuthResponseType
-	{
-		Token = 0,
-		Code = 1
-	};
-
-	enum class OAuthCodeChallengeMethod
-	{
-		Plain = 0,
-		S256 = 1 // SHA256
-	};
-
-	enum class OAuthErrorCode
-	{
-		None = 0,
-
-		InvalidRequest = 0x0001, // The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed.
-		UnauthorizedClient = 0x0002, // The client is not authorized to request an authorization code using this method.
-		AccessDenied = 0x0003, // The resource owner or authorization server denied the request.
-		UnsupportedResponseType = 0x0004, // The authorization server does not support obtaining an authorization code using this method.
-		InvalidScope = 0x0005, // The requested scope is invalid, unknown, or malformed.
-		ServerError = 0x0006, // The authorization server encountered an unexpected condition that prevented it from fulfilling the request. (This error code is needed because a 500 Internal Server Error HTTP status code cannot be returned to the client via an HTTP redirect.)
-		TemporarilyUnavailable = 0x0007, // The authorization server is currently unable to handle the request due to a temporary overloading or maintenance of the server. (This error code is needed because a 503 Service Unavailable HTTP status code cannot be returned to the client via an HTTP redirect.)
-
-		InvalidClient = 0x0011, // Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method).
-		InvalidGrant = 0x0012, // The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.
-		UnsupportedGrantType = 0x0013 // The authorization grant type is not supported by the authorization server.
-	};
-
-	class SLIB_EXPORT OAuthAccessToken
-	{
-	public:
-		String token;
-		String refreshToken;
-		String tokenType;
-		List<String> scopes;
-		Time expirationTime;
-		Time refreshTime;
-
-	public:
-		OAuthAccessToken();
-
-		OAuthAccessToken(const String& token);
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthAccessToken)
-
-		SLIB_DECLARE_JSON
-
-	public:
-		sl_bool isValid() const;
-
-		sl_bool isValid(const List<String>& requiredScopes) const;
-
-		void setResponse(const Json& json);
-
-	};
-
-	class SLIB_EXPORT OAuthAuthorizationRequestParam
-	{
-	public:
-		String clientId;
-		OAuthResponseType responseType;
-		List<String> scopes;
-		String state;
-		String redirectUri; // If empty, uses instance's `redirectUri` attribute
-
-		String codeVerifier;
-		String codeChallenge;
-		OAuthCodeChallengeMethod codeChallengeMethod;
-
-		VariantMap customParameters;
-
-	public:
-		OAuthAuthorizationRequestParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthAuthorizationRequestParam)
-
-	};
-
-	class SLIB_EXPORT OAuthResult
-	{
-	public:
-		sl_bool flagSuccess;
-
-		String error;
-		String errorDescription;
-		String errorUri;
-		OAuthErrorCode errorCode;
-
-		Json response;
-
-	public:
-		OAuthResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthResult)
-
-	public:
-		void setResponse(const Json& json);
-
-		void setResult(UrlRequest* req);
-
-	};
-
-	class SLIB_EXPORT OAuthAccessTokenResult : public OAuthResult
-	{
-	public:
-		OAuthAccessToken accessToken;
-
-	public:
-		OAuthAccessTokenResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthAccessTokenResult)
-
-	public:
-		void setResult(UrlRequest* req);
-
-	};
-
-	class SLIB_EXPORT OAuthLoginResult : public OAuthAccessTokenResult
-	{
-	public:
-		sl_bool flagCancel;
-		sl_bool flagCache; // Used in `Token` Grant Type. True if the `access token` is from cache
-
-		String code; // Used in `Code` Grant Type
-		String state;
-
-	public:
-		OAuthLoginResult();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthLoginResult)
-
-	public:
-		void parseRedirectUrl(const String& url);
-
-	};
-
-	class SLIB_EXPORT OAuthLoginParam
-	{
-	public:
-		String url; // Used in process of `Code` grant type
-
-		OAuthAuthorizationRequestParam authorization;
-
-		OAuthWebRedirectDialogOptions dialogOptions;
-		Ptr<OAuthWebRedirectDialog> dialog;
-
-		sl_bool flagIgnoreExistingAccessToken; // Ignored if `url` is not empty
-		sl_bool flagAlwaysRequireAccessToken; // Should not be set on unconfidental clients (Mobile/Desktop apps)
-		String loginRedirectUri; // If empty, uses `authorization`'s `redirectUri`
-
-		Function<void(OAuthLoginResult&)> onComplete;
-
-	public:
-		OAuthLoginParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthLoginParam)
-
-	};
-
-	class SLIB_EXPORT OAuthParam
-	{
-	public:
-		String clientId;
-		String clientSecret;
-
-		OAuthAccessToken accessToken;
-
-		String authorizeUrl;
-		HttpMethod accessTokenMethod;
-		sl_bool flagUseBasicAuthorizationForAccessToken;
-		String accessTokenUrl;
-		String redirectUri;
-		String loginRedirectUri;
-		List<String> defaultScopes;
-		sl_bool flagSupportImplicitGrantType;
-		String clientIdFieldName;
-		String clientSecretFieldName;
-
-		String preferenceName;
-
-		sl_bool flagLoggingErrors;
-
-	public:
-		OAuthParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(OAuthParam)
-
-	};
 
 	class SLIB_EXPORT OAuth2 : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
-		OAuth2(const OAuthParam& param);
+		enum class GrantType
+		{
+			None = 0,
+			Implicit = 1,
+			AuthorizationCode = 2,
+			ClientCredentials = 3,
+			Password = 4,
+			RefreshToken = 5
+		};
+
+		enum class ResponseType
+		{
+			Token = 0,
+			Code = 1
+		};
+
+		enum class CodeChallengeMethod
+		{
+			Plain = 0,
+			S256 = 1 // SHA256
+		};
+
+		enum class ErrorCode
+		{
+			None = 0,
+
+			InvalidRequest = 0x0001, // The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed.
+			UnauthorizedClient = 0x0002, // The client is not authorized to request an authorization code using this method.
+			AccessDenied = 0x0003, // The resource owner or authorization server denied the request.
+			UnsupportedResponseType = 0x0004, // The authorization server does not support obtaining an authorization code using this method.
+			InvalidScope = 0x0005, // The requested scope is invalid, unknown, or malformed.
+			ServerError = 0x0006, // The authorization server encountered an unexpected condition that prevented it from fulfilling the request. (This error code is needed because a 500 Internal Server Error HTTP status code cannot be returned to the client via an HTTP redirect.)
+			TemporarilyUnavailable = 0x0007, // The authorization server is currently unable to handle the request due to a temporary overloading or maintenance of the server. (This error code is needed because a 503 Service Unavailable HTTP status code cannot be returned to the client via an HTTP redirect.)
+
+			InvalidClient = 0x0011, // Client authentication failed (e.g., unknown client, no client authentication included, or unsupported authentication method).
+			InvalidGrant = 0x0012, // The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.
+			UnsupportedGrantType = 0x0013 // The authorization grant type is not supported by the authorization server.
+		};
+
+		class AccessToken
+		{
+		public:
+			String token;
+			String refreshToken;
+			String tokenType;
+			List<String> scopes;
+			Time expirationTime;
+			Time refreshTime;
+
+		public:
+			AccessToken();
+			AccessToken(const String& token);
+
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AccessToken)
+			SLIB_DECLARE_JSON
+
+		public:
+			sl_bool isValid() const;
+			sl_bool isValid(const List<String>& requiredScopes) const;
+
+			void setResponse(const Json& json);
+		};
+
+		class Result
+		{
+		public:
+			sl_bool flagSuccess;
+
+			String error;
+			String errorDescription;
+			String errorUri;
+			ErrorCode errorCode;
+
+			Json response;
+
+		public:
+			Result();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Result)
+
+		public:
+			void setResponse(const Json& json);
+			void setResult(UrlRequest* req);
+		};
+
+		class Param
+		{
+		public:
+			String clientId;
+			String clientSecret;
+
+			AccessToken accessToken;
+
+			String authorizeUrl;
+			HttpMethod accessTokenMethod;
+			sl_bool flagUseBasicAuthorizationForAccessToken;
+			String accessTokenUrl;
+			String redirectUri;
+			String loginRedirectUri;
+			List<String> defaultScopes;
+			sl_bool flagSupportImplicitGrantType;
+			String clientIdFieldName;
+			String clientSecretFieldName;
+
+			String preferenceName;
+
+			sl_bool flagLoggingErrors;
+
+		public:
+			Param();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Param)
+		};
+
+	public:
+		OAuth2(const Param& param);
 
 		~OAuth2();
 
 	public:
-		Shared<OAuthAccessToken> getAccessToken();
+		Shared<AccessToken> getAccessToken();
 
-		void setAccessToken(const OAuthAccessToken& accessToken);
+		void setAccessToken(const AccessToken& accessToken);
 
 		void setAccessToken(const String& accessToken);
 
@@ -529,56 +431,127 @@ namespace slib
 		void setLoggingErrors(sl_bool flag);
 
 
-		virtual void authorizeRequest(UrlRequestParam& param, const OAuthAccessToken& token);
+		virtual void authorizeRequest(UrlRequestParam& param, const AccessToken& token);
 
 		void authorizeRequest(UrlRequestParam& param);
 
-		virtual String getLoginUrl(const OAuthAuthorizationRequestParam& param);
+		class AuthorizationRequest
+		{
+		public:
+			String clientId;
+			ResponseType responseType;
+			List<String> scopes;
+			String state;
+			String redirectUri; // If empty, uses instance's `redirectUri` attribute
 
-		String getLoginUrl(OAuthResponseType type, const List<String>& scopes = List<String>::null(), const String& state = String::null());
+			String codeVerifier;
+			String codeChallenge;
+			CodeChallengeMethod codeChallengeMethod;
+
+			VariantMap customParameters;
+
+		public:
+			AuthorizationRequest();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AuthorizationRequest)
+		};
+
+		virtual String getLoginUrl(const AuthorizationRequest& param);
+
+		String getLoginUrl(ResponseType type, const List<String>& scopes = List<String>::null(), const String& state = String::null());
 
 		String getLoginUrl(const List<String>& scopes = List<String>::null(), const String& state = String::null());
 
-		void requestAccessToken(VariantMap& params, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		class AccessTokenResult : public Result
+		{
+		public:
+			AccessToken accessToken;
+
+		public:
+			AccessTokenResult();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(AccessTokenResult)
+
+		public:
+			void setResult(UrlRequest* req);
+		};
+
+		void requestAccessToken(VariantMap& params, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=authorization_code
-		void requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=authorization_code
-		void requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromCode(const String& code, const String& redirectUri, const String& codeVerifier, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=authorization_code
-		void requestAccessTokenFromCode(const String& code, const String& redirectUri, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromCode(const String& code, const String& redirectUri, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=authorization_code
-		void requestAccessTokenFromCode(const String& code, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromCode(const String& code, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=client_credentials
-		void requestAccessTokenFromClientCredentials(const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromClientCredentials(const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=client_credentials
-		void requestAccessTokenFromClientCredentials(const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromClientCredentials(const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=password
-		void requestAccessTokenFromUserPassword(const String& username, const String& password, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromUserPassword(const String& username, const String& password, const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=client_credentials
-		void requestAccessTokenFromUserPassword(const String& username, const String& password, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void requestAccessTokenFromUserPassword(const String& username, const String& password, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=refresh_token
-		void refreshAccessToken(const String& refreshToken, const List<String>& scopes, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void refreshAccessToken(const String& refreshToken, const List<String>& scopes, const Function<void(AccessTokenResult&)>& onComplete);
 
 		// grant_type=refresh_token
-		void refreshAccessToken(const String& refreshToken, const Function<void(OAuthAccessTokenResult&)>& onComplete);
+		void refreshAccessToken(const String& refreshToken, const Function<void(AccessTokenResult&)>& onComplete);
 
-		void login(const OAuthLoginParam& param);
+		class LoginResult : public AccessTokenResult
+		{
+		public:
+			sl_bool flagCancel;
+			sl_bool flagCache; // Used in `Token` Grant Type. True if the `access token` is from cache
 
-		void login(const Function<void(OAuthLoginResult& result)>& onComplete);
+			String code; // Used in `Code` Grant Type
+			String state;
+
+		public:
+			LoginResult();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoginResult)
+
+		public:
+			void parseRedirectUrl(const String& url);
+		};
+
+		class LoginParam
+		{
+		public:
+			String url; // Used in process of `Code` grant type
+
+			AuthorizationRequest authorization;
+
+			OAuthWebRedirectDialogOptions dialogOptions;
+			Ptr<OAuthWebRedirectDialog> dialog;
+
+			sl_bool flagIgnoreExistingAccessToken; // Ignored if `url` is not empty
+			sl_bool flagAlwaysRequireAccessToken; // Should not be set on unconfidental clients (Mobile/Desktop apps)
+			String loginRedirectUri; // If empty, uses `authorization`'s `redirectUri`
+
+			Function<void(LoginResult&)> onComplete;
+
+		public:
+			LoginParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LoginParam)
+		};
+
+		void login(const LoginParam& param);
+
+		void login(const Function<void(LoginResult& result)>& onComplete);
 
 
 		static sl_bool checkCodeVerifier(const String& str);
 
-		static String generateCodeChallenge(const String& verifier, OAuthCodeChallengeMethod method);
+		static String generateCodeChallenge(const String& verifier, CodeChallengeMethod method);
 
 	protected:
 		void logUrlRequestError(UrlRequest* request);
@@ -587,14 +560,14 @@ namespace slib
 
 		void restore();
 
-		virtual void onCompleteRequestAccessToken(OAuthAccessTokenResult& result);
+		virtual void onReceiveAccessToken(AccessTokenResult& result);
 
 	public:
 		String m_clientId;
 		String m_clientSecret;
 		String m_preferenceName;
 
-		AtomicShared<OAuthAccessToken> m_accessToken;
+		AtomicShared<AccessToken> m_accessToken;
 
 		String m_authorizeUrl;
 		String m_accessTokenUrl;
@@ -610,6 +583,8 @@ namespace slib
 		sl_bool m_flagLogErrors;
 
 	};
+
+	typedef OAuth2::Param OAuth2_Param;
 
 	class SLIB_EXPORT OAuthApiResult
 	{

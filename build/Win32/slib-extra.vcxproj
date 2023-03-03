@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\extra\social\linkedin.h" />
     <ClInclude Include="..\..\extra\social\paypal.h" />
     <ClInclude Include="..\..\extra\social\pinterest.h" />
+    <ClInclude Include="..\..\extra\social\twitter.h" />
     <ClInclude Include="..\..\extra\social\wechat.h" />
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +64,7 @@
     <ClCompile Include="..\..\extra\social\paypal_ui.cpp" />
     <ClCompile Include="..\..\extra\social\pinterest.cpp" />
     <ClCompile Include="..\..\extra\social\pinterest_ui.cpp" />
+    <ClCompile Include="..\..\extra\social\twitter.cpp" />
     <ClCompile Include="..\..\extra\social\wechat.cpp" />
     <ClCompile Include="..\..\extra\social\wechat_sdk.cpp" />
   </ItemGroup>

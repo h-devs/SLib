@@ -106,39 +106,38 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT TextItemDrawParam
-	{
-	public:
-		Color textColor;
-		Color backgroundColor;
-
-		sl_real shadowOpacity;
-		sl_real shadowRadius;
-		Color shadowColor;
-		Point shadowOffset;
-
-		sl_real lineThickness;
-
-		sl_bool flagDrawSelection;
-		sl_reg selectionStart;
-		sl_reg selectionEnd;
-		Color selectedTextColor;
-		Color selectedBackgroundColor;
-
-	public:
-		TextItemDrawParam() noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextItemDrawParam)
-
-	public:
-		void fixSelectionRange() noexcept;
-
-	};
-
-
 	class SLIB_EXPORT TextItem : public Object
 	{
 		SLIB_DECLARE_OBJECT
+
+	public:
+		class DrawParam
+		{
+		public:
+			Color textColor;
+			Color backgroundColor;
+
+			sl_real shadowOpacity;
+			sl_real shadowRadius;
+			Color shadowColor;
+			Point shadowOffset;
+
+			sl_real lineThickness;
+
+			sl_bool flagDrawSelection;
+			sl_reg selectionStart;
+			sl_reg selectionEnd;
+			Color selectedTextColor;
+			Color selectedBackgroundColor;
+
+		public:
+			DrawParam() noexcept;
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawParam)
+
+		public:
+			void fixSelectionRange() noexcept;
+
+		};
 
 	protected:
 		TextItem(TextItemType type) noexcept;
@@ -195,7 +194,7 @@ namespace slib
 
 		Size getSize() noexcept;
 
-		void draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param);
+		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param);
 
 	private:
 		String16 m_text;
@@ -222,7 +221,7 @@ namespace slib
 	public:
 		Size getSize() noexcept;
 
-		void draw(Canvas* canvas, sl_real x, sl_real y, const TextItemDrawParam& param);
+		void draw(Canvas* canvas, sl_real x, sl_real y, const DrawParam& param);
 
 	private:
 		String16 m_text;
@@ -301,36 +300,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT TextParagraphLayoutParam
-	{
-	public:
-		sl_real width;
-		sl_real tabWidth;
-		sl_real tabMargin;
-		Alignment align;
-		MultiLineMode multiLineMode;
-		EllipsizeMode ellipsisMode;
-		sl_uint32 lineCount;
-
-	public:
-		TextParagraphLayoutParam() noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextParagraphLayoutParam)
-
-	};
-
-	class SLIB_EXPORT TextParagraphDrawParam : public TextItemDrawParam
-	{
-	public:
-		Color linkColor;
-
-	public:
-		TextParagraphDrawParam() noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(TextParagraphDrawParam)
-
-	};
-
 	class XmlNodeGroup;
 	class XmlElement;
 
@@ -352,9 +321,35 @@ namespace slib
 
 		void addHyperText(const StringParam& text, const Ref<TextStyle>& style) noexcept;
 
-		void layout(const TextParagraphLayoutParam& param) noexcept;
+		class LayoutParam
+		{
+		public:
+			sl_real width;
+			sl_real tabWidth;
+			sl_real tabMargin;
+			Alignment align;
+			MultiLineMode multiLineMode;
+			EllipsizeMode ellipsisMode;
+			sl_uint32 lineCount;
 
-		void draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const TextParagraphDrawParam& param) noexcept;
+		public:
+			LayoutParam() noexcept;
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(LayoutParam)
+		};
+
+		void layout(const LayoutParam& param) noexcept;
+
+		class DrawParam : public TextItem::DrawParam
+		{
+		public:
+			Color linkColor;
+
+		public:
+			DrawParam() noexcept;
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawParam)
+		};
+
+		void draw(Canvas* canvas, sl_real left, sl_real right, sl_real y, const DrawParam& param) noexcept;
 
 		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, sl_real left, sl_real right) noexcept;
 
@@ -406,18 +401,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT SimpleTextBoxDrawParam : public TextParagraphDrawParam
-	{
-	public:
-		Rectangle frame;
-
-	public:
-		SimpleTextBoxDrawParam() noexcept;
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(SimpleTextBoxDrawParam)
-
-	};
-
 	class SLIB_EXPORT SimpleTextBox : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -430,7 +413,17 @@ namespace slib
 	public:
 		void update(const SimpleTextBoxParam& param) noexcept;
 
-		void draw(Canvas* canvas, const SimpleTextBoxDrawParam& param) const noexcept;
+		class DrawParam : public TextParagraph::DrawParam
+		{
+		public:
+			Rectangle frame;
+
+		public:
+			DrawParam() noexcept;
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(DrawParam)
+		};
+
+		void draw(Canvas* canvas, const DrawParam& param) const noexcept;
 
 		Ref<TextItem> getTextItemAtPosition(sl_real x, sl_real y, const Rectangle& frame) const noexcept;
 

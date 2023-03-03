@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT ZXingScanner : public CameraView
+	class ZXingScanner : public CameraView
 	{
 	public:
 		ZXingScanner();

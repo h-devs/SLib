@@ -42,7 +42,7 @@ namespace slib
 		Sticker = 6
 	};
 
-	class SLIB_EXPORT ChatMessageBody
+	class ChatMessageBody
 	{
 	public:
 		Time time;
@@ -68,7 +68,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ChatMessage : public ChatMessageBody
+	class ChatMessage : public ChatMessageBody
 	{
 	public:
 		String senderId;
@@ -81,7 +81,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ChatContact
+	class ChatContact
 	{
 	public:
 		String userId;
@@ -99,7 +99,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ChatRoom
+	class ChatRoom
 	{
 	public:
 		String roomId;
@@ -204,7 +204,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT ChatClientService : public Object
+	class ChatClientService : public Object
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -246,7 +246,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT ChatClientDatabase : public Object
+	class ChatClientDatabase : public Object
 	{
 		SLIB_DECLARE_OBJECT
 

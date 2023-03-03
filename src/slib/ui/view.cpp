@@ -8387,7 +8387,7 @@ namespace slib
 		Ref<Bitmap> layer = drawAttrs->bitmapLayer;
 		if (layer.isNotNull()) {
 			Color& color = drawAttrs->shadowColor;
-			DrawParam param;
+			Canvas::DrawParam param;
 			param.useBlur = sl_true;
 			param.blurRadius = drawAttrs->shadowRadius;
 			param.useColorMatrix = sl_true;

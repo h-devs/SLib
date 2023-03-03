@@ -23,8 +23,7 @@
 #include "slib/ui/image_view.h"
 
 #include "slib/network/url_request.h"
-
-#include "slib/graphics/image.h"
+#include "slib/graphics/drawable.h"
 
 namespace slib
 {
@@ -50,7 +49,7 @@ namespace slib
 				return;
 			}
 			Memory mem = request->getResponseContent();
-			setSource(Image::loadFromMemory(mem));
+			setSource(Drawable::loadFromMemory(mem));
 		});
 		m_request = UrlRequest::send(param);
 	}

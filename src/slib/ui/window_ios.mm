@@ -492,7 +492,6 @@ namespace slib
 }
 
 using namespace slib;
-using namespace slib::priv::window;
 
 @implementation SLIBWindowRootViewController
 

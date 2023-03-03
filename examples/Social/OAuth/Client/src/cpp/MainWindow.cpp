@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+
 #include <slib/crypto/oauth.h>
 
 void MainWindow::onCreate()
@@ -37,7 +38,7 @@ void MainWindow::onCreate()
 	btnAuth->setOnClick([this](View*) {
 		String grantType = radioGrantType->getSelectedValue();
 
-		OAuthParam param;
+		OAuth2_Param param;
 		param.authorizeUrl = txtAuthUrl->getText();
 		param.accessTokenUrl = txtAccessTokenUrl->getText();
 		param.clientId = txtClientId->getText();
@@ -49,15 +50,15 @@ void MainWindow::onCreate()
 		Ref<OAuth2> oauth = new OAuth2(param);
 
 		if (grantType == "implicit" || grantType == "code") {
-			OAuthLoginParam loginParam;
-			loginParam.authorization.responseType = grantType == "code" ? OAuthResponseType::Code : OAuthResponseType::Token;
+			OAuth2::LoginParam loginParam;
+			loginParam.authorization.responseType = grantType == "code" ? OAuth2::ResponseType::Code : OAuth2::ResponseType::Token;
 			loginParam.authorization.codeVerifier = txtVerifier->getText();
 			loginParam.authorization.scopes = scopes;
 			loginParam.dialogOptions.width = 800;
 			loginParam.dialogOptions.height = 600;
 			loginParam.dialogOptions.title = "Authentication";
 			auto ref = ToRef(this);
-			loginParam.onComplete = [ref, this, grantType](OAuthLoginResult& result) {
+			loginParam.onComplete = [ref, this, grantType](OAuth2::LoginResult& result) {
 				if (grantType == "code") {
 					txtAuthCode->setText(result.code);
 					txtAccessToken->setText(String::null());
@@ -71,7 +72,7 @@ void MainWindow::onCreate()
 			oauth->login(loginParam);
 		} else if (grantType == "client") {
 			auto ref = ToRef(this);
-			oauth->requestAccessTokenFromClientCredentials(scopes, [ref, this](OAuthAccessTokenResult& result) {
+			oauth->requestAccessTokenFromClientCredentials(scopes, [ref, this](OAuth2::AccessTokenResult& result) {
 				txtAccessToken->setText(result.accessToken.token);
 				txtRefreshToken->setText(result.accessToken.refreshToken);
 				txtResponse->setText(result.response.toJsonString());
@@ -88,7 +89,7 @@ void MainWindow::onCreate()
 				return;
 			}
 			auto ref = ToRef(this);
-			oauth->requestAccessTokenFromUserPassword(username, password, scopes, [ref, this](OAuthAccessTokenResult& result) {
+			oauth->requestAccessTokenFromUserPassword(username, password, scopes, [ref, this](OAuth2::AccessTokenResult& result) {
 				txtAccessToken->setText(result.accessToken.token);
 				txtRefreshToken->setText(result.accessToken.refreshToken);
 				txtResponse->setText(result.response.toJsonString());
@@ -97,7 +98,7 @@ void MainWindow::onCreate()
 	});
 
 	btnGetToken->setOnClick([this](View*) {
-		OAuthParam param;
+		OAuth2_Param param;
 		param.accessTokenUrl = txtAccessTokenUrl->getText();
 		param.clientId = txtClientId->getText();
 		param.clientSecret = txtClientSecret->getText();
@@ -111,7 +112,7 @@ void MainWindow::onCreate()
 		List<String> scopes = txtScopes->getText().split(",");
 		Ref<OAuth2> oauth = new OAuth2(param);
 		auto ref = ToRef(this);
-		oauth->requestAccessTokenFromCode(code, redirectUri, codeVerifier, scopes, [ref, this](OAuthAccessTokenResult& result) {
+		oauth->requestAccessTokenFromCode(code, redirectUri, codeVerifier, scopes, [ref, this](OAuth2::AccessTokenResult& result) {
 			txtAccessToken->setText(result.accessToken.token);
 			txtRefreshToken->setText(result.accessToken.refreshToken);
 			txtResponse->setText(result.response.toJsonString());
@@ -119,7 +120,7 @@ void MainWindow::onCreate()
 	});
 
 	btnRefresh->setOnClick([this](View*) {
-		OAuthParam param;
+		OAuth2_Param param;
 		param.accessTokenUrl = txtAccessTokenUrl->getText();
 		param.clientId = txtClientId->getText();
 		param.clientSecret = txtClientSecret->getText();
@@ -131,14 +132,14 @@ void MainWindow::onCreate()
 		List<String> scopes = txtScopes->getText().split(",");
 		Ref<OAuth2> oauth = new OAuth2(param);
 		auto ref = ToRef(this);
-		oauth->refreshAccessToken(refreshToken, scopes, [ref, this](OAuthAccessTokenResult& result) {
+		oauth->refreshAccessToken(refreshToken, scopes, [ref, this](OAuth2::AccessTokenResult& result) {
 			txtAccessToken->setText(result.accessToken.token);
 			txtResponse->setText(result.response.toJsonString());
 		});
 	});
 
 	btnSendRequest->setOnClick([this](View*) {
-		OAuthParam param;
+		OAuth2_Param param;
 		param.accessToken = txtAccessToken->getText();
 		Ref<OAuth2> oauth = new OAuth2(param);
 

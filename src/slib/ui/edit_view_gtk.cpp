@@ -242,31 +242,6 @@ namespace slib
 
 		SLIB_DEFINE_OBJECT(EditViewInstance, GTK_ViewInstance)
 
-	}
-
-	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* _parent)
-	{
-		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
-		if (getMultiLine() == MultiLineMode::Single) {
-			GtkWidget* handle = gtk_entry_new();
-			return GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
-		} else {
-			GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
-			return GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
-		}
-	}
-
-	Ptr<IEditViewInstance> EditView::getEditViewInstance()
-	{
-		Ref<ViewInstance> instance = getViewInstance();
-		if (IsInstanceOf<TextAreaInstance>(instance)) {
-			return CastRef<TextAreaInstance>(Move(instance));
-		} else {
-			return CastRef<EditViewInstance>(Move(instance));
-		}
-	}
-
-	namespace {
 
 		class TextAreaInstance: public GTK_ViewInstance, public IEditViewInstance
 		{
@@ -528,6 +503,28 @@ namespace slib
 
 		SLIB_DEFINE_OBJECT(TextAreaInstance, GTK_ViewInstance)
 
+	}
+
+	Ref<ViewInstance> EditView::createNativeWidget(ViewInstance* _parent)
+	{
+		GTK_ViewInstance* parent = static_cast<GTK_ViewInstance*>(_parent);
+		if (getMultiLine() == MultiLineMode::Single) {
+			GtkWidget* handle = gtk_entry_new();
+			return GTK_ViewInstance::create<EditViewInstance>(this, parent, handle);
+		} else {
+			GtkScrolledWindow* handle = (GtkScrolledWindow*)(gtk_scrolled_window_new(sl_null, sl_null));
+			return GTK_ViewInstance::create<TextAreaInstance>(this, parent, (GtkWidget*)handle);
+		}
+	}
+
+	Ptr<IEditViewInstance> EditView::getEditViewInstance()
+	{
+		Ref<ViewInstance> instance = getViewInstance();
+		if (IsInstanceOf<TextAreaInstance>(instance)) {
+			return CastRef<TextAreaInstance>(Move(instance));
+		} else {
+			return CastRef<EditViewInstance>(Move(instance));
+		}
 	}
 
 	Ref<ViewInstance> TextArea::createNativeWidget(ViewInstance* _parent)

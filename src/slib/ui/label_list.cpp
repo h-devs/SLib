@@ -193,7 +193,7 @@ namespace slib
 		if (param.text.isEmpty()) {
 			return;
 		}
-		SimpleTextBoxDrawParam drawParam;
+		SimpleTextBox::DrawParam drawParam;
 		drawParam.frame = rcItem;
 		drawParam.frame.left += getPaddingLeft();
 		drawParam.frame.right -= getPaddingRight();

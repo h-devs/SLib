@@ -159,13 +159,18 @@ namespace slib
 		virtual sl_uint64 getLastInsertRowId() = 0;
 
 
-		sl_bool createTable(const DatabaseCreateTableParam& param);
+		typedef SqlBuilder::CreateTableParam CreateTableParam;
+
+		sl_bool createTable(const CreateTableParam& param);
 
 		sl_bool createTable(const DatabaseIdentifier& table, const ListParam<DatabaseColumnDefinition>& columns, DatabaseFlags flags = 0);
 
 		sl_bool dropTable(const DatabaseIdentifier& table, DatabaseFlags flags = 0);
 
-		sl_bool createIndex(const DatabaseCreateIndexParam& param);
+
+		typedef SqlBuilder::CreateIndexParam CreateIndexParam;
+
+		sl_bool createIndex(const CreateIndexParam& param);
 
 		sl_bool createIndex(const DatabaseIdentifier& index, const String& table, const ListParam<DatabaseIndexColumn>& columns, DatabaseFlags flags = 0);
 
@@ -226,7 +231,10 @@ namespace slib
 			return -1;
 		}
 
-		Ref<DatabaseStatement> prepareQuery(const DatabaseSelectParam& query);
+
+		typedef SqlBuilder::SelectParam SelectParam;
+
+		Ref<DatabaseStatement> prepareQuery(const SelectParam& query);
 
 		Ref<DatabaseStatement> prepareQuery(const DatabaseIdentifier& table, const DatabaseExpression& where);
 

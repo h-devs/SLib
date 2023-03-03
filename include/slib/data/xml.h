@@ -523,99 +523,6 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT XmlParseControl
-	{
-	public:
-		// read & write
-		StringStorage source;
-
-		sl_uint32 characterSize;
-
-		// write only
-		sl_bool flagChangeSource;
-
-		// read & write
-		sl_size parsingPosition;
-
-		// write only
-		sl_bool flagStopParsing;
-
-		// read only
-		XmlNode* currentNode;
-
-	public:
-		XmlParseControl();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(XmlParseControl)
-
-	};
-
-	class SLIB_EXPORT XmlParseParam
-	{
-	public:
-		// in
-		sl_bool flagCreateDocument;
-		// in
-		sl_bool flagCreateCommentNodes;
-		// in
-		sl_bool flagCreateProcessingInstructionNodes;
-		// in
-		sl_bool flagCreateTextNodes;
-		// in
-		sl_bool flagCreateWhiteSpaces;
-
-		// in
-		sl_bool flagProcessNamespaces;
-		// in
-		sl_bool flagCheckWellFormed;
-		// in
-		sl_bool flagSupportCpp11String;
-
-		// in, callbacks
-		Function<void(XmlParseControl*, XmlDocument*)> onStartDocument;
-		Function<void(XmlParseControl*, XmlDocument*)> onEndDocument;
-		Function<void(XmlParseControl*, XmlElement*)> onStartElement;
-		Function<void(XmlParseControl*, XmlElement*)> onEndElement;
-		Function<void(XmlParseControl*, const String& text)> onText;
-		Function<void(XmlParseControl*, const String& text)> onCDATA;
-		Function<void(XmlParseControl*, XmlDocumentTypeDefinition*)> onDTD;
-		Function<void(XmlParseControl*, const String& target, const String& content)> onProcessingInstruction;
-		Function<void(XmlParseControl*, const String& content)> onComment;
-		Function<void(XmlParseControl*, const String& prefix, const String& uri)> onStartPrefixMapping;
-		Function<void(XmlParseControl*, const String& prefix)> onEndPrefixMapping;
-
-		// in
-		sl_bool flagLogError;
-		// in
-		String sourceFilePath;
-
-		// out
-		sl_bool flagError;
-		// out
-		sl_size errorPosition;
-		// out
-		sl_size errorLine;
-		// out
-		sl_size errorColumn;
-		// out
-		String errorMessage;
-
-	public:
-		XmlParseParam();
-
-		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(XmlParseParam)
-
-	public:
-		String getErrorText();
-
-		void setCreatingAll();
-
-		void setCreatingOnlyElements();
-
-		void setCreatingOnlyElementsAndTexts();
-
-	};
-
 	/**
 	 * @class Xml
 	 * @brief provides utilities for parsing and build XML.
@@ -623,6 +530,67 @@ namespace slib
 	class SLIB_EXPORT Xml
 	{
 	public:
+		class SLIB_EXPORT ParseControl
+		{
+		public:
+			StringStorage source; // read & write
+			sl_uint32 characterSize; // read only
+			sl_bool flagChangeSource; // write only
+			sl_size parsingPosition; // read & write
+			sl_bool flagStopParsing; // write only
+			XmlNode* currentNode; // read only
+
+		public:
+			ParseControl();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ParseControl)
+		};
+
+		class SLIB_EXPORT ParseParam
+		{
+		public:
+			sl_bool flagCreateDocument; // in
+			sl_bool flagCreateCommentNodes; // in
+			sl_bool flagCreateProcessingInstructionNodes; // in
+			sl_bool flagCreateTextNodes; // in
+			sl_bool flagCreateWhiteSpaces; // in
+			sl_bool flagProcessNamespaces; // in
+			sl_bool flagCheckWellFormed; // in
+			sl_bool flagSupportCpp11String; // in
+
+			// in, callbacks
+			Function<void(ParseControl*, XmlDocument*)> onStartDocument;
+			Function<void(ParseControl*, XmlDocument*)> onEndDocument;
+			Function<void(ParseControl*, XmlElement*)> onStartElement;
+			Function<void(ParseControl*, XmlElement*)> onEndElement;
+			Function<void(ParseControl*, const String& text)> onText;
+			Function<void(ParseControl*, const String& text)> onCDATA;
+			Function<void(ParseControl*, XmlDocumentTypeDefinition*)> onDTD;
+			Function<void(ParseControl*, const String& target, const String& content)> onProcessingInstruction;
+			Function<void(ParseControl*, const String& content)> onComment;
+			Function<void(ParseControl*, const String& prefix, const String& uri)> onStartPrefixMapping;
+			Function<void(ParseControl*, const String& prefix)> onEndPrefixMapping;
+
+			sl_bool flagLogError; // in
+			String sourceFilePath; // in
+
+			sl_bool flagError; // out
+			sl_size errorPosition; // out
+			sl_size errorLine; // out
+			sl_size errorColumn; // out
+			String errorMessage; // out
+
+		public:
+			ParseParam();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(ParseParam)
+
+		public:
+			String getErrorText();
+
+			void setCreatingAll();
+			void setCreatingOnlyElements();
+			void setCreatingOnlyElementsAndTexts();
+		};
+
 		/**
 		 * parses XML text contained in `xml`
 		 *
@@ -633,15 +601,15 @@ namespace slib
 		 * @return XmlDocument object on success
 		 * @return nullptr on failure
 		 */
-		static Ref<XmlDocument> parse(const sl_char8* xml, sl_size length, XmlParseParam& param);
-		static Ref<XmlDocument> parse(const sl_char16* xml, sl_size length, XmlParseParam& param);
-		static Ref<XmlDocument> parse(const sl_char32* xml, sl_size length, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const sl_char8* xml, sl_size length, ParseParam& param);
+		static Ref<XmlDocument> parse(const sl_char16* xml, sl_size length, ParseParam& param);
+		static Ref<XmlDocument> parse(const sl_char32* xml, sl_size length, ParseParam& param);
 		static Ref<XmlDocument> parse(const sl_char8* xml, sl_size length);
 		static Ref<XmlDocument> parse(const sl_char16* xml, sl_size length);
 		static Ref<XmlDocument> parse(const sl_char32* xml, sl_size length);
-		static Ref<XmlDocument> parse(const StringParam& xml, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const StringParam& xml, ParseParam& param);
 		static Ref<XmlDocument> parse(const StringParam& xml);
-		static Ref<XmlDocument> parse(const MemoryView& utf, XmlParseParam& param);
+		static Ref<XmlDocument> parse(const MemoryView& utf, ParseParam& param);
 		static Ref<XmlDocument> parse(const MemoryView& utf);
 
 		/**
@@ -654,7 +622,7 @@ namespace slib
 		 * @return XmlDocument object on success
 		 * @return nullptr on failure
 		 */
-		static Ref<XmlDocument> parseTextFile(const StringParam& filePath, XmlParseParam& param);
+		static Ref<XmlDocument> parseTextFile(const StringParam& filePath, ParseParam& param);
 		static Ref<XmlDocument> parseTextFile(const StringParam& filePath);
 
 		/**

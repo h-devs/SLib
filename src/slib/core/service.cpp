@@ -255,7 +255,7 @@ namespace slib
 					}
 				}
 				Log(TAG, "INSTALLING SERVICE: %s", name);
-				ServiceCreateParam param;
+				CreateServiceParam param;
 				param.name = name;
 				param.path = getApplicationPath();
 				if (ServiceManager::create(param)) {

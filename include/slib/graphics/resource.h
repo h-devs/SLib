@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 #define CHECKHEADER_SLIB_GRAPHICS_RESOURCE
 
-#include "image.h"
+#include "drawable.h"
 #include "color.h"
 
 #include "../core/locale.h"
@@ -51,7 +51,7 @@ namespace slib
 		namespace graphics_resource
 		{
 
-			class ImageEntry
+			class FileEntry
 			{
 			public:
 				sl_bool flagValid;
@@ -63,33 +63,41 @@ namespace slib
 				sl_uint32 source_size;
 
 				sl_int32 lock;
-				void* image;
-				sl_bool flag_load;
+				void* object;
+				sl_bool flagLoaded;
 
 			public:
-				Ref<Image> getImage();
-
-				Ref<Image> getMatchingImage(sl_uint32 width, sl_uint32 height);
+				Ref<Drawable> get();
 
 			};
 
-			class FreeImageContext
+			class FileEntriesDestructor
 			{
 			public:
-				FreeImageContext(ImageEntry* entries);
+				FileEntriesDestructor(FileEntry* entries);
 
-				~FreeImageContext();
+				~FileEntriesDestructor();
 
 			private:
-				ImageEntry* m_entries;
+				FileEntry* m_entries;
 
 			};
 
-			Ref<Image> GetImage(ImageEntry* entries, sl_uint32 requiredWidth, sl_uint32 requiredHeight);
+			class FileEntryDestructor
+			{
+			public:
+				FileEntryDestructor(FileEntry* entry);
 
-			List< Ref<Image> > GetImages(ImageEntry* entries);
+				~FileEntryDestructor();
 
-			Ref<Drawable> GetDrawable(ImageEntry* entries, sl_uint32 width, sl_uint32 height);
+			private:
+				FileEntry* m_entry;
+
+			};
+
+			Ref<Drawable> GetSource(FileEntry* entries, sl_uint32 requiredWidth, sl_uint32 requiredHeight);
+
+			List< Ref<Drawable> > GetList(FileEntry* entries);
 
 		}
 	}
@@ -115,28 +123,28 @@ namespace slib
 
 #define SLIB_DECLARE_IMAGE_RESOURCE(NAME) \
 	namespace NAME { \
-		slib::Ref<slib::Image> getImage(const slib::Locale& locale, sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
-		slib::Ref<slib::Image> getImage(sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
-		slib::List< slib::Ref<slib::Image> > getImages(const slib::Locale& locale); \
-		slib::List< slib::Ref<slib::Image> > getImages(); \
+		slib::Ref<slib::Drawable> getSource(const slib::Locale& locale, sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
+		slib::Ref<slib::Drawable> getSource(sl_uint32 requiredWidth = 0, sl_uint32 requiredHeight = 0); \
+		slib::List< slib::Ref<slib::Drawable> > getList(const slib::Locale& locale); \
+		slib::List< slib::Ref<slib::Drawable> > getList(); \
 		slib::Ref<slib::Drawable> get(const slib::Locale& locale); \
 		slib::Ref<slib::Drawable> get(); \
 	}
 
 #define SLIB_DEFINE_IMAGE_RESOURCE_BEGIN(NAME, WIDTH, HEIGHT) \
 	namespace NAME { \
-		slib::priv::graphics_resource::ImageEntry* _getEntries(const slib::Locale& locale); \
-		slib::Ref<slib::Image> getImage(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
-			return slib::priv::graphics_resource::GetImage(_getEntries(locale), requiredWidth, requiredHeight); \
+		slib::priv::graphics_resource::FileEntry* _getEntries(const slib::Locale& locale); \
+		slib::Ref<slib::Drawable> getSource(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
+			return slib::priv::graphics_resource::GetSource(_getEntries(locale), requiredWidth, requiredHeight); \
 		} \
-		slib::Ref<slib::Image> getImage(sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
-			return slib::priv::graphics_resource::GetImage(_getEntries(slib::Resources::getCurrentLocale()), requiredWidth, requiredHeight); \
+		slib::Ref<slib::Drawable> getSource(sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
+			return slib::priv::graphics_resource::GetSource(_getEntries(slib::Resources::getCurrentLocale()), requiredWidth, requiredHeight); \
 		} \
-		slib::List< slib::Ref<slib::Image> > getImages(const slib::Locale& locale) { \
-			return slib::priv::graphics_resource::GetImages(_getEntries(locale)); \
+		slib::List< slib::Ref<slib::Drawable> > getList(const slib::Locale& locale) { \
+			return slib::priv::graphics_resource::GetList(_getEntries(locale)); \
 		} \
-		slib::List< slib::Ref<slib::Image> > getImages() { \
-			return slib::priv::graphics_resource::GetImages(_getEntries(slib::Resources::getCurrentLocale())); \
+		slib::List< slib::Ref<slib::Drawable> > getList() { \
+			return slib::priv::graphics_resource::getList(_getEntries(slib::Resources::getCurrentLocale())); \
 		} \
 		slib::Ref<slib::Drawable> get(const slib::Locale& locale) { \
 			return slib::priv::graphics_resource::GetDrawable(_getEntries(locale), WIDTH, HEIGHT); \
@@ -144,18 +152,18 @@ namespace slib
 		slib::Ref<slib::Drawable> get() { \
 			return slib::priv::graphics_resource::GetDrawable(_getEntries(slib::Resources::getCurrentLocale()), WIDTH, HEIGHT); \
 		} \
-		slib::priv::graphics_resource::ImageEntry* _getEntries(const slib::Locale& locale) { \
+		slib::priv::graphics_resource::FileEntry* _getEntries(const slib::Locale& locale) { \
 			slib::Locale localeSource; \
 			SLIB_UNUSED(localeSource)
 
 #define SLIB_DEFINE_IMAGE_RESOURCE_DEFAULT_LIST_BEGIN \
 			{ \
-				static slib::priv::graphics_resource::ImageEntry entries[] = { \
+				static slib::priv::graphics_resource::FileEntry entries[] = { \
 
 #define SLIB_DEFINE_IMAGE_RESOURCE_LIST_BEGIN(LOCALE) \
 			localeSource = slib::Locale(#LOCALE); \
 			if (locale == localeSource || slib::Locale(locale.getLanguage()) == localeSource || slib::Locale(locale.getLanguage(), locale.getCountry()) == localeSource || slib::Locale(locale.getLanguage(), locale.getScript(), slib::Country::Unknown) == localeSource) { \
-				static slib::priv::graphics_resource::ImageEntry entries[] = {
+				static slib::priv::graphics_resource::FileEntry entries[] = {
 
 #define SLIB_DEFINE_IMAGE_RESOURCE_ITEM(WIDTH, HEIGHT, SIZE, BYTES) \
 					{sl_true, WIDTH, HEIGHT, BYTES, (sl_uint32)(SIZE), 0, 0, sl_false},
@@ -163,7 +171,7 @@ namespace slib
 #define SLIB_DEFINE_IMAGE_RESOURCE_LIST_END \
 					{sl_false, 0, 0, 0, 0, 0, 0, sl_false} \
 				}; \
-				static slib::priv::graphics_resource::FreeImageContext free_entries(entries); \
+				static slib::priv::graphics_resource::FileEntriesDestructor free_entries(entries); \
 				return entries; \
 			}
 
@@ -173,29 +181,25 @@ namespace slib
 
 #define SLIB_DEFINE_IMAGE_RESOURCE_SIMPLE(NAME, WIDTH, HEIGHT, SIZE, BYTES) \
 	namespace NAME { \
-		static slib::priv::graphics_resource::ImageEntry entries[2] = { {sl_true, WIDTH, HEIGHT, BYTES, (sl_uint32)(SIZE), 0, 0, sl_false}, {sl_false, 0, 0, 0, 0, 0, 0, sl_false} }; \
-		static slib::priv::graphics_resource::FreeImageContext free_entries(entries); \
-		slib::Ref<slib::Image> getImage(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
-			return slib::priv::graphics_resource::GetImage(entries, requiredWidth, requiredHeight); \
+		static slib::priv::graphics_resource::FileEntry entry = {sl_true, WIDTH, HEIGHT, BYTES, (sl_uint32)(SIZE), 0, 0, sl_false}; \
+		static slib::priv::graphics_resource::FileEntryDestructor free_entry(&entry); \
+		slib::Ref<slib::Drawable> getSource(const slib::Locale& locale, sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
+			return entry.get(); \
 		} \
-		slib::Ref<slib::Image> getImage(sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
-			return slib::priv::graphics_resource::GetImage(entries, requiredWidth, requiredHeight); \
+		slib::Ref<slib::Drawable> getSource(sl_uint32 requiredWidth, sl_uint32 requiredHeight) { \
+			return entry.get(); \
 		} \
-		slib::List< slib::Ref<slib::Image> > getImages(const slib::Locale& locale) { \
-			return slib::priv::graphics_resource::GetImages(entries); \
+		slib::List< slib::Ref<slib::Drawable> > getList(const slib::Locale& locale) { \
+			return slib::List< slib::Ref<slib::Drawable> >::createFromElement(entry.get()); \
 		} \
-		slib::List< slib::Ref<slib::Image> > getImages() { \
-			return slib::priv::graphics_resource::GetImages(entries); \
+		slib::List< slib::Ref<slib::Drawable> > getList() { \
+			return slib::List< slib::Ref<slib::Drawable> >::createFromElement(entry.get()); \
 		} \
 		slib::Ref<slib::Drawable> get(const slib::Locale& locale) { \
-			return slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT); \
+			return entry.get(); \
 		} \
 		slib::Ref<slib::Drawable> get() { \
-			SLIB_SAFE_LOCAL_STATIC(slib::Ref<slib::Drawable>, value, slib::priv::graphics_resource::GetDrawable(entries, WIDTH, HEIGHT)); \
-			if (SLIB_SAFE_STATIC_CHECK_FREED(value)) { \
-				return sl_null; \
-			} \
-			return value; \
+			return entry.get(); \
 		} \
 	}
 

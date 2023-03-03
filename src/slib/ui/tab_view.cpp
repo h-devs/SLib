@@ -38,9 +38,9 @@
 namespace slib
 {
 
-	SLIB_DEFINE_CLASS_DEFAULT_MEMBERS(TabViewItem)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(TabView, Item)
 
-	TabViewItem::TabViewItem()
+	TabView::Item::Item()
 	{
 	}
 
@@ -98,7 +98,7 @@ namespace slib
 			SLIB_VIEW_RUN_ON_UI_THREAD(setTabCount, nNew, mode)
 		}
 		ObjectLocker lock(this);
-		ListLocker<TabViewItem> items(m_items);
+		ListLocker<Item> items(m_items);
 		if (nNew < 1) {
 			nNew = 1;
 		}
@@ -111,7 +111,7 @@ namespace slib
 		}
 		if (nOrig > nNew) {
 			for (sl_uint32 i = nOrig; i > nNew; i--) {
-				TabViewItem& item = items[i-1];
+				Item& item = items[i-1];
 				removeChild(item.contentView, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
 			}
 		}
@@ -127,7 +127,7 @@ namespace slib
 	{
 		MutexLocker lock(m_items.getLocker());
 		if (index < m_items.getCount()) {
-			TabViewItem* item = m_items.getPointerAt(index);
+			Item* item = m_items.getPointerAt(index);
 			return item->label;
 		}
 		return sl_null;
@@ -141,7 +141,7 @@ namespace slib
 		}
 		ObjectLocker lock(this);
 		if (index < m_items.getCount()) {
-			TabViewItem* item = m_items.getPointerAt(index);
+			Item* item = m_items.getPointerAt(index);
 			item->label = text;
 			if (instance.isNotNull()) {
 				instance->setTabLabel(this, index, text);
@@ -155,7 +155,7 @@ namespace slib
 	{
 		MutexLocker lock(m_items.getLocker());
 		if (index < m_items.getCount()) {
-			TabViewItem* item = m_items.getPointerAt(index);
+			Item* item = m_items.getPointerAt(index);
 			return item->icon;
 		}
 		return sl_null;
@@ -165,7 +165,7 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		if (index < m_items.getCount()) {
-			TabViewItem* item = m_items.getPointerAt(index);
+			Item* item = m_items.getPointerAt(index);
 			item->icon = icon;
 			if (!(isNativeWidget())) {
 				_invalidateTabBar(mode);
@@ -177,7 +177,7 @@ namespace slib
 	{
 		MutexLocker lock(m_items.getLocker());
 		if (index < m_items.getCount()) {
-			TabViewItem* item = m_items.getPointerAt(index);
+			Item* item = m_items.getPointerAt(index);
 			return item->contentView;
 		}
 		return sl_null;
@@ -191,7 +191,7 @@ namespace slib
 		}
 		MutexLocker lock(m_items.getLocker());
 		if (index < m_items.getCount()) {
-			TabViewItem* item = m_items.getPointerAt(index);
+			Item* item = m_items.getPointerAt(index);
 			if (item->contentView != view) {
 				removeChild(item->contentView, SLIB_UI_UPDATE_MODE_IS_INIT(mode) ? UIUpdateMode::Init : UIUpdateMode::None);
 				if (view.isNotNull()) {
@@ -237,7 +237,7 @@ namespace slib
 				return;
 			}
 		}
-		ListLocker<TabViewItem> items(m_items);
+		ListLocker<Item> items(m_items);
 		if (index >= items.count) {
 			return;
 		}
@@ -668,7 +668,7 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		UIRect bound = getTabContentRegion();
-		ListLocker<TabViewItem> items(m_items);
+		ListLocker<Item> items(m_items);
 		for (sl_size i = 0; i < items.count; i++) {
 			Ref<View> view = items[i].contentView;
 			if (view.isNotNull()) {
@@ -691,7 +691,7 @@ namespace slib
 	{
 		UIPoint pt = ev->getPoint();
 		ObjectLocker lock(this);
-		ListLocker<TabViewItem> items(m_items);
+		ListLocker<Item> items(m_items);
 		sl_uint32 n = (sl_uint32)(items.count);
 		for (sl_uint32 i = 0; i < n; i++) {
 			if (getTabRegion(i).containsPoint(pt)) {
@@ -709,7 +709,7 @@ namespace slib
 		} else if (ev->getAction() == UIAction::MouseMove || ev->getAction() == UIAction::LeftButtonDrag || ev->getAction() == UIAction::TouchBegin || ev->getAction() == UIAction::TouchMove) {
 			UIPoint pt = ev->getPoint();
 			ObjectLocker lock(this);
-			ListLocker<TabViewItem> items(m_items);
+			ListLocker<Item> items(m_items);
 			sl_int32 n = (sl_int32)(items.count);
 			for (sl_int32 i = 0; i < n; i++) {
 				if (getTabRegion(i).containsPoint(pt)) {
@@ -731,7 +731,7 @@ namespace slib
 	{
 		UIPoint pt = ev->getPoint();
 		ObjectLocker lock(this);
-		ListLocker<TabViewItem> items(m_items);
+		ListLocker<Item> items(m_items);
 		sl_int32 n = (sl_int32)(items.count);
 		for (sl_int32 i = 0; i < n; i++) {
 			if (getTabRegion(i).containsPoint(pt)) {
@@ -746,7 +746,7 @@ namespace slib
 		canvas->draw(getTabBarRegion(), m_barBackground);
 		canvas->draw(getWholeContentRegion(), m_contentBackground);
 		ObjectLocker lock(this);
-		ListLocker<TabViewItem> items(m_items);
+		ListLocker<Item> items(m_items);
 		sl_uint32 n = (sl_uint32)(items.count);
 		for (sl_uint32 i = 0; i < n; i++) {
 			onDrawTab(canvas, getTabRegion(i), i, items[i].icon, items[i].label);

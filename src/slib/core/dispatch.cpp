@@ -101,7 +101,7 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_MEMBER_CLASS_DEFAULT_MEMBERS(DispatchLoop, TimerTask)
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(DispatchLoop, TimerTask)
 
 	DispatchLoop::TimerTask::TimerTask()
 	{

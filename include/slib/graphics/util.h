@@ -23,7 +23,7 @@
 #ifndef CHECKHEADER_SLIB_GRAPHICS_UTIL
 #define CHECKHEADER_SLIB_GRAPHICS_UTIL
 
-#include "constants.h"
+#include "drawable.h"
 
 #include "../math/rectangle.h"
 
@@ -32,7 +32,6 @@ namespace slib
 
 	class Canvas;
 	class Drawable;
-	class DrawParam;
 
 	class SLIB_EXPORT GraphicsUtil
 	{
@@ -53,7 +52,7 @@ namespace slib
 		static Rectangle transformRectangle(const Rectangle& rectTo, const Rectangle& rectFrom, const Rectangle& rectInput);
 
 
-		static void drawRepeat(Canvas* canvas, const Ref<Drawable>& source, sl_real _dx, sl_real _dy, sl_uint32 nRepeatX, sl_uint32 nRepeatY, const DrawParam& param);
+		static void drawRepeat(Canvas* canvas, const Ref<Drawable>& source, sl_real _dx, sl_real _dy, sl_uint32 nRepeatX, sl_uint32 nRepeatY, const Drawable::DrawParam& param);
 
 
 		static sl_real pixelToInch(sl_real px);

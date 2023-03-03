@@ -52,7 +52,7 @@ namespace slib
 		GL_ENTRY(glViewport)(x, y, width, height);
 	}
 
-	void GL_BASE::clear(const RenderClearParam& param)
+	void GL_BASE::clear(const RenderEngine::ClearParam& param)
 	{
 		GLbitfield mask = 0;
 		if (param.flagColor) {
@@ -78,7 +78,7 @@ namespace slib
 
 	void GL_BASE::clearColor(const Color& color)
 	{
-		RenderClearParam param;
+		RenderEngine::ClearParam param;
 		param.flagColor = sl_true;
 		param.color = color;
 		param.flagDepth = sl_false;
@@ -87,7 +87,7 @@ namespace slib
 
 	void GL_BASE::clearColorDepth(const Color& color, float depth)
 	{
-		RenderClearParam param;
+		RenderEngine::ClearParam param;
 		param.flagColor = sl_true;
 		param.color = color;
 		param.flagDepth = sl_true;
@@ -97,7 +97,7 @@ namespace slib
 
 	void GL_BASE::clearDepth(float depth)
 	{
-		RenderClearParam param;
+		RenderEngine::ClearParam param;
 		param.flagColor = sl_false;
 		param.flagDepth = sl_true;
 		param.depth = depth;
@@ -1858,7 +1858,7 @@ namespace slib
 				GL_BASE::setViewport(x, y, width, height);
 			}
 
-			void _clear(const RenderClearParam& param) override
+			void _clear(const ClearParam& param) override
 			{
 				GL_BASE::clear(param);
 			}

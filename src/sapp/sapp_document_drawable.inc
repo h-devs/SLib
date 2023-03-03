@@ -44,13 +44,13 @@ namespace slib
 
 		sbMap.add("\t\tSLIB_DEFINE_DRAWABLE_RESOURCE_MAP_BEGIN\r\n");
 
-		// iterate image resources
+		// iterate file resources
 		{
 			for (auto& pair : m_drawables) {
 				if (pair.value.isNotNull()) {
 					Ref<SAppDrawableResource>& res = pair.value;
-					if (res->type == SAppDrawableResource::typeImage) {
-						_generateDrawablesCpp_Image(res.get(), sbHeader, sbCpp, sbMap);
+					if (res->type == SAppDrawableResource::typeFile) {
+						_generateDrawablesCpp_File(res.get(), sbHeader, sbCpp, sbMap);
 					}
 				}
 			}
@@ -181,8 +181,8 @@ namespace slib
 		}
 
 		Ref<Drawable> drawable;
-		if (res->type == SAppDrawableResource::typeImage) {
-			drawable = _getDrawableValue_Image(res.get());
+		if (res->type == SAppDrawableResource::typeFile) {
+			drawable = _getDrawableValue_File(res.get());
 		} else if (res->type == SAppDrawableResource::typeNinePieces) {
 			drawable = _getDrawableValue_NinePieces(res.get());
 		} else if (res->type == SAppDrawableResource::typeNinePatch) {
@@ -236,96 +236,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_getImageAccessString(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, String& result)
-	{
-		if (!(value.flagDefined)) {
-			result = "slib::Ref<slib::Image>::null()";
-			return sl_true;
-		}
-		if (value.flagNull) {
-			result = "slib::Ref<slib::Image>::null()";
-			return sl_true;
-		}
-		if (value.flagColor || !(value.flagWhole) || value.func != SAppDrawableValue::FUNC_NONE) {
-			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
-			return sl_false;
-		}
-
-		String name;
-		Ref<SAppDrawableResource> res;
-		if (!(_checkDrawableName(localNamespace, value.resourceName, element, &name, &res))) {
-			return sl_false;
-		}
-		if (res->type != SAppDrawableResource::typeImage) {
-			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
-			return sl_false;
-		}
-
-		result = String::format("drawable::%s::getImage()", name);
-		return sl_true;
-	}
-
-	sl_bool SAppDocument::_getImageValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, Ref<Image>& result)
-	{
-		if (!(value.flagDefined)) {
-			result = Ref<Image>::null();
-			return sl_true;
-		}
-		if (value.flagNull) {
-			result = Ref<Image>::null();
-			return sl_true;
-		}
-		if (value.flagColor || !(value.flagWhole) || value.func != SAppDrawableValue::FUNC_NONE) {
-			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
-			return sl_false;
-		}
-
-		Ref<SAppDrawableResource> res;
-		if (!(_checkDrawableName(localNamespace, value.resourceName, element, sl_null, &res))) {
-			return sl_false;
-		}
-		if (res->type != SAppDrawableResource::typeImage) {
-			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
-			return sl_false;
-		}
-
-		Ref<Drawable> drawable = _getDrawableValue_Image(res.get());
-		if (IsInstanceOf<Image>(drawable)) {
-			result = Ref<Image>::from(drawable);
-			return sl_true;
-		} else if (MipmapDrawable* mipmap = CastInstance<MipmapDrawable>(drawable.get())) {
-			result = Ref<Image>::from(mipmap->getSource(0));
-			return sl_true;
-		} else {
-			return sl_false;
-		}
-	}
-
-	sl_bool SAppDocument::_checkImageValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element)
-	{
-		if (!(value.flagDefined)) {
-			return sl_true;
-		}
-		if (value.flagNull) {
-			return sl_true;
-		}
-		if (value.flagColor || !(value.flagWhole) || value.func != SAppDrawableValue::FUNC_NONE) {
-			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
-			return sl_false;
-		}
-
-		Ref<SAppDrawableResource> res;
-		if (!(_checkDrawableName(localNamespace, value.resourceName, element, sl_null, &res))) {
-			return sl_false;
-		}
-		if (res->type != SAppDrawableResource::typeImage) {
-			_logError(element, String::format(g_str_error_drawable_not_image, value.resourceName));
-			return sl_false;
-		}
-		return sl_true;
-	}
-
-	sl_bool SAppDocument::_registerImageResources(const String& resourcePath, const String& fileDirPath, const Locale& locale)
+	sl_bool SAppDocument::_registerFileResources(const String& resourcePath, const String& fileDirPath, const Locale& locale)
 	{
 		_log(g_str_log_open_drawables_begin, fileDirPath);
 		List<String> _list = File::getFiles(fileDirPath);
@@ -335,7 +246,7 @@ namespace slib
 			const String& fileName = list[i];
 			if (!(fileName.startsWith('.'))) {
 				String ext = File::getFileExtension(fileName);
-				if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "gif") {
+				if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "gif" || ext == "svg") {
 					String name = File::getFileNameOnly(fileName);
 					sl_reg indexSharp = name.indexOf('#');
 					sl_bool flagMain = sl_true;
@@ -360,9 +271,9 @@ namespace slib
 							return sl_false;
 						}
 						res->name = name;
-						res->type = SAppDrawableResource::typeImage;
-						res->imageAttrs = new SAppDrawableResourceImageAttributes;
-						if (res->imageAttrs.isNull()) {
+						res->type = SAppDrawableResource::typeFile;
+						res->fileAttrs = new SAppDrawableResourceFileAttributes;
+						if (res->fileAttrs.isNull()) {
 							_logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
@@ -371,36 +282,36 @@ namespace slib
 							return sl_false;
 						}
 					}
-					if (res->type != SAppDrawableResource::typeImage) {
+					if (res->type != SAppDrawableResource::typeFile) {
 						_logError(g_str_error_resource_drawable_type_duplicated, File::concatPath(resourcePath, fileName));
 						return sl_false;
 					}
 
-					SAppDrawableResourceImageAttributes* imageAttr = res->imageAttrs.get();
+					SAppDrawableResourceFileAttributes* fileAttr = res->fileAttrs.get();
 
-					List< Ref<SAppDrawableResourceImageItem> > list;
+					List< Ref<SAppDrawableResourceFileItem> > list;
 					if (locale == Locale::Unknown) {
-						list = imageAttr->defaultImages;
+						list = fileAttr->defaultFiles;
 						if (list.isNull()) {
 							_logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					} else {
-						imageAttr->images.get(locale, &list);
+						fileAttr->files.get(locale, &list);
 						if (list.isNull()) {
-							list = List< Ref<SAppDrawableResourceImageItem> >::create();
+							list = List< Ref<SAppDrawableResourceFileItem> >::create();
 							if (list.isNull()) {
 								_logError(g_str_error_out_of_memory);
 								return sl_false;
 							}
-							if (!(imageAttr->images.put(locale, list))) {
+							if (!(fileAttr->files.put(locale, list))) {
 								_logError(g_str_error_out_of_memory);
 								return sl_false;
 							}
 						}
 					}
 
-					Ref<SAppDrawableResourceImageItem> item = new SAppDrawableResourceImageItem;
+					Ref<SAppDrawableResourceFileItem> item = new SAppDrawableResourceFileItem;
 					if (item.isNull()) {
 						_logError(g_str_error_out_of_memory);
 						return sl_false;
@@ -427,24 +338,24 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_generateDrawablesCpp_Image(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap)
+	sl_bool SAppDocument::_generateDrawablesCpp_File(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap)
 	{
-		SAppDrawableResourceImageAttributes* imageAttr = res->imageAttrs.get();
+		SAppDrawableResourceFileAttributes* fileAttr = res->fileAttrs.get();
 
-		Ref<SAppDrawableResourceImageItem> item;
+		Ref<SAppDrawableResourceFileItem> item;
 
 		sl_bool flagSuccess = sl_false;
 
 		sl_uint32 defaultWidth = 0;
 		sl_uint32 defaultHeight = 0;
 
-		if (imageAttr->defaultImages.getAt(0, &item)) {
+		if (fileAttr->defaultFiles.getAt(0, &item)) {
 
-			Ref<Image> image = item->loadImage();
+			Ref<Drawable> source = item->load();
 
-			if (image.isNotNull()) {
-				defaultWidth = image->getWidth();
-				defaultHeight = image->getHeight();
+			if (source.isNotNull()) {
+				defaultWidth = (sl_uint32)(source->getDrawableWidth());
+				defaultHeight = (sl_uint32)(source->getDrawableHeight());
 				flagSuccess = sl_true;
 			}
 
@@ -458,7 +369,7 @@ namespace slib
 
 		sbHeader.add(String::format("\t\tSLIB_DECLARE_IMAGE_RESOURCE(%s)%n", res->name));
 
-		if (imageAttr->images.isEmpty() && imageAttr->defaultImages.getCount() == 1 && item.isNotNull()) {
+		if (fileAttr->files.isEmpty() && fileAttr->defaultFiles.getCount() == 1 && item.isNotNull()) {
 
 			sbCpp.add(String::format("\t\tSLIB_DEFINE_IMAGE_RESOURCE_SIMPLE(%s, %d, %d, raw::%s::size, raw::%s::bytes)%n%n", res->name, defaultWidth, defaultHeight, item->rawName));
 
@@ -466,9 +377,9 @@ namespace slib
 
 			sbCpp.add(String::format("\t\tSLIB_DEFINE_IMAGE_RESOURCE_BEGIN(%s, %d, %d)%n", res->name, defaultWidth, defaultHeight));
 
-			CList< Pair<Locale, List< Ref<SAppDrawableResourceImageItem> > > > listPairs;
+			CList< Pair<Locale, List< Ref<SAppDrawableResourceFileItem> > > > listPairs;
 			{
-				for (auto& pairItems : imageAttr->images) {
+				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() != Country::Unknown && pairItems.key.getScript() != LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							_logError(g_str_error_out_of_memory);
@@ -478,7 +389,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& pairItems : imageAttr->images) {
+				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() != Country::Unknown && pairItems.key.getScript() == LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							_logError(g_str_error_out_of_memory);
@@ -488,7 +399,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& pairItems : imageAttr->images) {
+				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() == Country::Unknown && pairItems.key.getScript() != LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							_logError(g_str_error_out_of_memory);
@@ -498,7 +409,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& pairItems : imageAttr->images) {
+				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() == Country::Unknown && pairItems.key.getScript() == LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
 							_logError(g_str_error_out_of_memory);
@@ -509,21 +420,21 @@ namespace slib
 			}
 			// default
 			{
-				Pair<Locale, List< Ref<SAppDrawableResourceImageItem> > > pairItems;
+				Pair<Locale, List< Ref<SAppDrawableResourceFileItem> > > pairItems;
 				pairItems.first = Locale::Unknown;
-				pairItems.second = imageAttr->defaultImages;
+				pairItems.second = fileAttr->defaultFiles;
 				if (!(listPairs.add_NoLock(pairItems))) {
 					_logError(g_str_error_out_of_memory);
 					return sl_false;
 				}
 			}
 
-			ListElements< Pair<Locale, List< Ref<SAppDrawableResourceImageItem> > > > pairs(listPairs);
+			ListElements< Pair<Locale, List< Ref<SAppDrawableResourceFileItem> > > > pairs(listPairs);
 			for (sl_size iPair = 0; iPair < pairs.count; iPair++) {
 
 				String strLocale = pairs[iPair].first.toString();
 
-				ListLocker< Ref<SAppDrawableResourceImageItem> > items(pairs[iPair].second);
+				ListLocker< Ref<SAppDrawableResourceFileItem> > items(pairs[iPair].second);
 
 				if (pairs[iPair].first == Locale::Unknown) {
 					static sl_char8 str[] = "\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_DEFAULT_LIST_BEGIN\r\n";
@@ -536,12 +447,12 @@ namespace slib
 
 					item = items[i];
 
-					Ref<Image> image = item->loadImage();
-					if (image.isNull()) {
+					Ref<Drawable> source = item->load();
+					if (source.isNull()) {
 						_logError(g_str_error_resource_drawable_load_image_failed, item->filePath);
 						return sl_false;
 					}
-					sbCpp.add(String::format("\t\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_ITEM(%d, %d, raw::%s::size, raw::%s::bytes)%n", image->getWidth(), image->getHeight(), item->rawName));
+					sbCpp.add(String::format("\t\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_ITEM(%d, %d, raw::%s::size, raw::%s::bytes)%n", source->getDrawableWidth(), source->getDrawableHeight(), item->rawName));
 				}
 
 				static sl_char8 strEnd[] = "\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_LIST_END\r\n";
@@ -560,16 +471,16 @@ namespace slib
 		return sl_true;
 	}
 
-	Ref<Drawable> SAppDocument::_getDrawableValue_Image(SAppDrawableResource* res)
+	Ref<Drawable> SAppDocument::_getDrawableValue_File(SAppDrawableResource* res)
 	{
-		SAppDrawableResourceImageAttributes* imageAttr = res->imageAttrs.get();
+		SAppDrawableResourceFileAttributes* fileAttr = res->fileAttrs.get();
 
 
-		List< Ref<SAppDrawableResourceImageItem> > listItems;
+		List< Ref<SAppDrawableResourceFileItem> > listItems;
 		do {
 			Locale locale = getCurrentSimulatorLocale();
 			{
-				for (auto& item : imageAttr->images) {
+				for (auto& item : fileAttr->files) {
 					if (item.key == locale) {
 						listItems = item.value;
 						break;
@@ -580,7 +491,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& item : imageAttr->images) {
+				for (auto& item : fileAttr->files) {
 					if (item.key == Locale(locale.getLanguage(), locale.getCountry())) {
 						listItems = item.value;
 						break;
@@ -591,7 +502,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& item : imageAttr->images) {
+				for (auto& item : fileAttr->files) {
 					if (item.key == Locale(locale.getLanguage(), locale.getScript(), Country::Unknown)) {
 						listItems = item.value;
 						break;
@@ -602,7 +513,7 @@ namespace slib
 				}
 			}
 			{
-				for (auto& item : imageAttr->images) {
+				for (auto& item : fileAttr->files) {
 					if (item.key == Locale(locale.getLanguage())) {
 						listItems = item.value;
 						break;
@@ -615,17 +526,17 @@ namespace slib
 		} while (0);
 
 		if (listItems.isNull()) {
-			listItems = imageAttr->defaultImages;
+			listItems = fileAttr->defaultFiles;
 		}
 
-		Ref<SAppDrawableResourceImageItem> item;
+		Ref<SAppDrawableResourceFileItem> item;
 		sl_size n = listItems.getCount();
 		if (n == 1) {
 			if (listItems.getAt(0, &item)) {
 				if (item.isNotNull()) {
-					Ref<Image> image = item->loadImage();
-					if (image.isNotNull()) {
-						return image;
+					Ref<Drawable> source = item->load();
+					if (source.isNotNull()) {
+						return source;
 					} else {
 						_logError(g_str_error_load_image_failed, res->name);
 						return Ref<Drawable>::null();
@@ -637,15 +548,15 @@ namespace slib
 			if (mipmap.isNotNull()) {
 				sl_real defaultWidth = 1;
 				sl_real defaultHeight = 1;
-				ListLocker< Ref<SAppDrawableResourceImageItem> > items(listItems);
+				ListLocker< Ref<SAppDrawableResourceFileItem> > items(listItems);
 				for (sl_size i = 0; i < items.count; i++) {
 					item = items[i];
 					if (item.isNotNull()) {
-						Ref<Image> image = item->loadImage();
-						if (image.isNotNull()) {
-							sl_real width = (sl_real)(image->getWidth());
-							sl_real height = (sl_real)(image->getHeight());
-							mipmap->addSource(image, width, height);
+						Ref<Drawable> source = item->load();
+						if (source.isNotNull()) {
+							sl_real width = source->getDrawableWidth();
+							sl_real height = source->getDrawableHeight();
+							mipmap->addSource(source, width, height);
 							if (width > SLIB_EPSILON && height > SLIB_EPSILON && i == 0) {
 								defaultWidth = width;
 								defaultHeight = height;

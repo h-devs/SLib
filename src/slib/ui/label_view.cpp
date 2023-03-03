@@ -317,7 +317,7 @@ namespace slib
 			return;
 		}
 		_updateTextBox(bounds.getWidth());
-		SimpleTextBoxDrawParam param;
+		SimpleTextBox::DrawParam param;
 		param.frame = bounds;
 		param.textColor = textColor;
 		if (shadowOpacity > 0) {
