@@ -3682,8 +3682,11 @@ namespace slib
 
 			https://docs.oracle.com/javase/7/docs/api/java/util/Formatter.html
 
-			%[argument_index$][flags][width][.precision]conversion
+			%[argument_index$][property_list][flags][width][.precision]conversion
 
+			property:
+				[element_index]
+				{item_name}
 		*/
 
 		template <class VIEW>
@@ -3769,6 +3772,45 @@ namespace slib
 								indexArg = nParams - 1;
 							}
 							indexArgLast = indexArg;
+
+							Variant arg = params[indexArg];
+							while (pos < len) {
+								ch = format[pos];
+								if (ch == '[') {
+									pos++;
+									sl_uint64 elementIndex = 0;
+									sl_reg iRet = STRING::parseUint64(10, &elementIndex, format, pos, len);
+									if (iRet != SLIB_PARSE_ERROR) {
+										pos = iRet;
+										if (pos >= len) {
+											break;
+										}
+										if (format[pos] != ']') {
+											break;
+										}
+										arg = arg.getElement(elementIndex);
+										pos++;
+									} else {
+										arg.setUndefined();
+										break;
+									}
+								} else if (ch == '{') {
+									pos++;
+									sl_size posName = pos;
+									while (pos < len) {
+										if (format[pos] == '}') {
+											break;
+										}
+										pos++;
+									}
+									if (pos < len) {
+										arg = arg.getItem(String::from(format + posName, pos - posName));
+										pos++;
+									}
+								} else {
+									break;
+								}
+							}
 							if (pos >= len) {
 								break;
 							}
@@ -3834,8 +3876,6 @@ namespace slib
 							// Conversion
 							ch = format[pos];
 							pos++;
-
-							const Variant& arg = params[indexArg];
 
 							sl_size lenContent = 0;
 							sl_bool flagError = sl_false;
