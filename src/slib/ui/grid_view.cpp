@@ -23,7 +23,11 @@
 #include "slib/ui/grid_view.h"
 
 #include "slib/graphics/canvas.h"
-#include "slib/graphics/text.h"
+#include "slib/core/safe_static.h"
+
+#define DEFAULT_COLUMN_WIDTH 80
+#define DEFAULT_TEXT_COLOR Color::Black
+#define MAX_RECORDS_PER_SCREEN 1000
 
 namespace slib
 {
@@ -34,13 +38,28 @@ namespace slib
 	{
 	}
 
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellEventParam)
 
-	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellEvent)
-
-	GridView::CellEvent::CellEvent()
+	GridView::CellEventParam::CellEventParam(): record(0), row(0), column(0)
 	{
 	}
 
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellAttribute)
+
+	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), colspan(1), rowspan(1), width(0), height(0)
+	{
+		textColor[(sl_uint32)(CellState::Normal)] = Color::Black;
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellParam)
+
+	GridView::CellParam::CellParam(): view(sl_null), record(0), row(0), column(0)
+	{
+	}
+
+	GridView::CellParam::CellParam(const CellAttribute& attr): CellAttribute(attr), view(sl_null), record(0), row(0), column(0)
+	{
+	}
 
 	GridView::Cell::Cell()
 	{
@@ -50,8 +69,165 @@ namespace slib
 	{
 	}
 
-	void GridView::Cell::onEvent(CellEvent& ev)
+	void GridView::Cell::onInit()
 	{
+	}
+
+	void GridView::Cell::onDraw(Canvas* canvas, DrawParam& param)
+	{
+	}
+
+	void GridView::Cell::onEvent(UIEvent* ev)
+	{
+	}
+
+	GridView::TextCell::TextCell()
+	{
+	}
+
+	GridView::TextCell::~TextCell()
+	{
+	}
+
+	const GridView::CellCreator& GridView::TextCell::creator()
+	{
+		SLIB_SAFE_LOCAL_STATIC(CellCreator, ret, [](CellParam&) {
+			return new TextCell;
+		})
+		return ret;
+	}
+
+	void GridView::TextCell::onInit()
+	{
+		TextBoxParam tp;
+		onPrepareTextBox(tp);
+		m_textBox.update(tp);
+	}
+
+	void GridView::TextCell::onDraw(Canvas* canvas, DrawParam& param)
+	{
+		m_textBox.draw(canvas, param);
+	}
+
+	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
+	{
+		if (text.isNotNull()) {
+			param.text = text;
+		} else if (format.isNotNull()) {
+			param.text = String::format(format, recordData);
+		}
+		param.font = font;
+		param.align = align;
+		param.multiLineMode = multiLineMode;
+		param.ellipsizeMode = ellipsizeMode;
+		param.lineCount = lineCount;
+	}
+
+	GridView::HyperTextCell::HyperTextCell()
+	{
+	}
+
+	GridView::HyperTextCell::~HyperTextCell()
+	{
+	}
+
+	const GridView::CellCreator& GridView::HyperTextCell::creator()
+	{
+		SLIB_SAFE_LOCAL_STATIC(CellCreator, ret, [](CellParam&) {
+			return new HyperTextCell;
+		})
+		return ret;
+	}
+
+	void GridView::HyperTextCell::onPrepareTextBox(TextBoxParam& param)
+	{
+		TextCell::onPrepareTextBox(param);
+		param.flagHyperText = sl_true;
+	}
+
+	GridView::NumeroCell::NumeroCell(sl_int64 start): m_start(start)
+	{
+	}
+
+	GridView::NumeroCell::~NumeroCell()
+	{
+	}
+	
+	const GridView::CellCreator& GridView::NumeroCell::creator()
+	{
+		SLIB_SAFE_LOCAL_STATIC(CellCreator, ret, [](CellParam&) {
+			return new NumeroCell;
+		})
+		return ret;
+	}
+
+	GridView::CellCreator GridView::NumeroCell::creator(sl_int64 start)
+	{
+		return [start](CellParam&) {
+			return new NumeroCell(start);
+		};
+	}
+
+	void GridView::NumeroCell::onPrepareTextBox(TextBoxParam& param)
+	{
+		TextCell::onPrepareTextBox(param);
+		if (record >= 0) {
+			param.text = String::fromInt64(m_start + record);
+		}
+	}
+
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellProp)
+
+	GridView::CellProp::CellProp(): flagCoveredX(sl_false), flagCoveredY(sl_false)
+	{
+	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, FixedCellProp)
+
+	GridView::FixedCellProp::FixedCellProp(): flagMadeCell(sl_false)
+	{
+	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Column)
+
+	GridView::Column::Column(): width(-1)
+	{
+	}
+	
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Row)
+
+	GridView::Row::Row(): height(-1)
+	{
+	}
+
+	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, Location)
+
+	GridView::Location::Location(): record(-1), row(-1), column(-1)
+	{
+	}
+
+	sl_bool GridView::Location::match(Cell* cell)
+	{
+		if (record < 0 && row < 0 && column < 0) {
+			return sl_false;
+		}
+		if (record >= 0) {
+			if (record != cell->record) {
+				return sl_false;
+			}
+		}
+		if (row >= 0) {
+			if (row != cell->row) {
+				return sl_false;
+			}
+		}
+		if (column >= 0) {
+			if (column != cell->column) {
+				return sl_false;
+			}
+		}
+		return sl_true;
 	}
 
 
@@ -66,696 +242,1167 @@ namespace slib
 		setFocusable();
 		setUsingFont();
 
-		m_nRows = 0;
-		m_nColumns = 0;
-		m_heightRow = 100;
-		m_indexHover = -1;
-
-		m_heightBottomRow = 0;
-		m_heightTopRow = 0;
+		m_nRecords = 0;
 		m_nLeftColumns = 0;
 		m_nRightColumns = 0;
 
-		m_textCell = New<TextCell>();
-		setCellCallback([this](sl_int64 row, sl_int32 column) {
-			return m_textCell;
-		});
+		m_flagInvalidateRecordRows = sl_true;
+		m_flagInvalidateHeaderRows = sl_true;
+		m_flagInvalidateFooterRows = sl_true;
 	}
 
 	GridView::~GridView()
 	{
 	}
 
-	sl_uint64 GridView::getRowCount()
-	{
-		return m_nRows;
-	}
-
-	void GridView::setRowCount(sl_uint64 nRows, UIUpdateMode mode)
-	{
-		if (m_nRows == nRows) {
-			return;
-		}
-		m_nRows = nRows;
-		setContentHeight((sl_scroll_pos)(m_nRows * m_heightRow + m_heightTopRow + m_heightBottomRow), mode);
-	}
-
 	sl_uint32 GridView::getColumnCount()
 	{
-		return m_nColumns;
+		return (sl_uint32)(m_columns.getCount());
 	}
 
-	void GridView::setColumnCount(sl_uint32 nColumns, UIUpdateMode mode)
+	sl_bool GridView::setColumnCount(sl_uint32 count, UIUpdateMode mode)
 	{
-		if (m_nColumns == nColumns) {
-			return;
+		ObjectLocker lock(this);
+		if (m_columns.getCount() == count) {
+			return sl_true;
 		}
-		m_nColumns = nColumns;
-		m_listColumnWidth.removeAll();
-		m_listHeaderText.removeAll();
-		m_listHeaderSpan.removeAll();
-		for (sl_uint32 index = 0; index < nColumns; index++) {
-			m_listColumnWidth.add(77);
-			m_listHeaderText.add_NoLock("Header" + String::fromInt(index));
+		if (!(m_columns.setCount_NoLock(count))) {
+			return sl_false;
 		}
-
-		sl_ui_len width = getColumnWidth(0, nColumns);
-		setContentWidth(width, mode);
-	}
-
-	void GridView::setFixedColumnCount(sl_uint32 leftCount, sl_uint32 rightCount, UIUpdateMode mode)
-	{
-		if (leftCount && leftCount < m_nColumns - 1) {
-			m_nLeftColumns = leftCount;
-			invalidate(mode);
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return sl_true;
 		}
-		if (rightCount && rightCount < m_nColumns - m_nLeftColumns) {
-			m_nRightColumns = rightCount;
-			invalidate(mode);
-		}
-	}
-
-	void GridView::setTopHeaderText(sl_uint32 colIndex, const String& text, UIUpdateMode mode)
-	{
-		if (colIndex >= m_nColumns) {
-			return;
-		}
-		m_listHeaderText.setAt_NoLock(colIndex, text);
-		invalidate(mode);
-	}
-	
-	sl_bool GridView::addHeaderColSpan(sl_uint32 startIndex, sl_uint32 count, UIUpdateMode mode)
-	{
-		if (startIndex < m_nLeftColumns && count > m_nLeftColumns - startIndex) {
-			count = m_nLeftColumns - startIndex;
-		}
-		if (startIndex > m_nRightColumns && count > m_nColumns - m_nRightColumns - 1) {
-			count = m_nColumns - m_nRightColumns - 1;
-		}
-		if (startIndex > m_nLeftColumns && startIndex < m_nColumns - m_nRightColumns) {
-			if (count > m_nColumns - m_nRightColumns - startIndex) {
-				count = m_nColumns - m_nRightColumns - startIndex;
-			}
-		}
-		if (count > 1) {
-			if (count > m_nColumns - startIndex) {
-				count = m_nColumns - startIndex;
-			}
-			for (sl_uint32 index = startIndex; index < startIndex + count; index++) {
-				if (m_listHeaderSpan.get_NoLock(index)) {
-					return sl_false;
-				}
-			}
-			CellRegion spanRegion;
-			spanRegion.startColumn = startIndex;
-			spanRegion.endColumn = startIndex + count;
-			for (sl_uint32 index = startIndex; index < startIndex + count; index++) {
-				m_listHeaderSpan.add_NoLock(index, spanRegion);
-			}
-		}
-		invalidate(mode);
+		_invalidateRecordCells();
+		refreshContentWidth(mode);
 		return sl_true;
 	}
 
-	void GridView::resetHeaderColSpan(UIUpdateMode mode)
+	sl_uint32 GridView::getLeftColumnCount()
 	{
-		m_listHeaderSpan.removeAll();
+		return m_nLeftColumns;
+	}
+
+	void GridView::setLeftColumnCount(sl_uint32 count, UIUpdateMode mode)
+	{
+		m_nLeftColumns = count;
 		invalidate(mode);
 	}
 
-	void GridView::setTopHeaderSize(sl_ui_len height, UIUpdateMode mode)
+	sl_uint32 GridView::getRightColumnCount()
 	{
-		m_heightTopRow = height;
+		return m_nRightColumns;
+	}
+
+	void GridView::setRightColumnCount(sl_uint32 count, UIUpdateMode mode)
+	{
+		m_nRightColumns = count;
 		invalidate(mode);
 	}
 
-	void GridView::setBottomHeaderSize(sl_ui_len height, UIUpdateMode mode)
+	sl_uint64 GridView::getRecordCount()
 	{
-		m_heightBottomRow = height;
-		invalidate(mode);
+		return m_nRecords;
 	}
 
-
-	sl_ui_len GridView::getRowHeight()
+	void GridView::setRecordCount(sl_uint64 count, UIUpdateMode mode)
 	{
-		return m_heightRow;
-	}
-	
-	sl_ui_len GridView::getColumnWidth(sl_uint32 colStart, sl_uint32 colEnd) {
-		sl_ui_len ret = 0;
-		if (colEnd > m_nColumns) {
-			return ret;
-		}
-
-		for (sl_uint32 i = colStart; i < colEnd; i++) {
-			ret += m_listColumnWidth.getValueAt_NoLock(i);
-		}
-		return ret;
-	}
-
-	void GridView::setColumnWidth(sl_uint32 colIndex, sl_ui_len width, UIUpdateMode mode)
-	{
-		if (colIndex >= m_nColumns) {
+		if (m_nRecords == count) {
 			return;
 		}
-		m_listColumnWidth.setAt_NoLock(colIndex, width);
-		invalidate(mode);
+		m_nRecords = count;
+		refreshContentHeight(mode);
 	}
 
-	void GridView::setRowHeight(sl_ui_len height, UIUpdateMode mode)
+	sl_uint32 GridView::getRecordRowCount()
 	{
-		if (height < 1) {
-			return;
-		}
-		if (m_heightRow == height) {
-			return;
-		}
-		m_heightRow = height;
-		setContentHeight((sl_scroll_pos)(height * m_heightRow) + m_heightTopRow + m_heightBottomRow, mode);
+		return (sl_uint32)(m_listRecordRow.getCount());
 	}
 
-	sl_bool GridView::isRowSelected(sl_uint64 rowIndex)
+	sl_uint32 GridView::getHeaderRowCount()
 	{
-		if (rowIndex >= m_nRows) {
+		return (sl_uint32)(m_listHeaderRow.getCount());
+	}
+
+	sl_uint32 GridView::getFooterRowCount()
+	{
+		return (sl_uint32)(m_listFooterRow.getCount());
+	}
+
+#define DEFINE_SET_ROW_COUNT(TYPE, ADDTIONAL) \
+	sl_bool GridView::set##TYPE##RowCount(sl_uint32 count, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		if (m_list##TYPE##Row.getCount() == count) { \
+			return sl_true; \
+		} \
+		ListElements<Column> columns(m_columns); \
+		for (sl_size i = 0; i < columns.count; i++) { \
+			Column& col = columns[i]; \
+			if (!(col.list##TYPE##Cell.setCount_NoLock(count))) { \
+				return sl_false; \
+			} \
+		} \
+		if (!(m_list##TYPE##Row.setCount_NoLock(count))) { \
+			return sl_false; \
+		} \
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+			return sl_true; \
+		} \
+		ADDTIONAL \
+		refreshContentHeight(mode); \
+		return sl_true; \
+	}
+
+	DEFINE_SET_ROW_COUNT(Record, _invalidateRecordCells();)
+	DEFINE_SET_ROW_COUNT(Header,)
+	DEFINE_SET_ROW_COUNT(Footer, )
+
+	namespace {
+		SLIB_INLINE static sl_ui_len FixColumnWidth(sl_ui_len width)
+		{
+			if (width >= 0) {
+				return width;
+			} else {
+				return DEFAULT_COLUMN_WIDTH;
+			}
+		}
+	}
+
+	sl_ui_len GridView::getColumnWidth(sl_uint32 index)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(index);
+		if (col) {
+			return FixColumnWidth(col->width);
+		}
+		return 0;
+	}
+
+	sl_bool GridView::setColumnWidth(sl_uint32 index, sl_ui_len width, UIUpdateMode mode)
+	{
+		ObjectLocker lock(this);
+		Column* col = m_columns.getPointerAt(index);
+		if (col) {
+			col->width = width;
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+				return sl_true;
+			}
+			_invalidateHeaderCells(*col, index);
+			_invalidateFooterCells(*col, index);
+			_invalidateRecordCells(*col, index);
+			refreshContentWidth(mode);
+			return sl_true;
+		} else {
 			return sl_false;
 		}
-		return m_selectedRow == rowIndex;
 	}
 
-	sl_uint64 GridView::getSelectedRow()
-	{
-		sl_uint64 index = m_selectedRow;
-		if (index < m_nRows) {
-			return index;
-		}
-		return -1;
-	}
-
-
-	void GridView::setRowSelected(sl_uint64 rowIndex, UIUpdateMode mode)
-	{
-		if (rowIndex < 0) {
-			unselectAll(mode);
-			return;
-		}
-		if (rowIndex >= m_nRows) {
-			return;
-		}
-		
-		if (m_selectedRow != rowIndex) {
-			m_selectedRow = rowIndex;
-			invalidate(mode);
-		}
-	}
-
-	void GridView::unselectAll(UIUpdateMode mode)
-	{
-		if (m_selectedRow < 0) {
-			return;
-		}
-		m_selectedRow = -1;
-		invalidate(mode);
-	}
-
-	sl_int64 GridView::getHoverIndex()
-	{
-		sl_uint64 index = m_indexHover;
-		if (index < m_nRows) {
-			return index;
-		}
-		return -1;
-	}
-
-	sl_int64 GridView::getRowIndexAt(sl_int32 y)
-	{
-		if (y < m_heightTopRow) {
-			return -1;
-		}
-		if (y > getHeight() - m_heightBottomRow) {
-			return -1;
-		}
-		sl_int64 pos = y + (sl_int64)(getScrollY()) - m_heightTopRow;
-		if (pos < 0) {
-			return -1;
-		}
-		sl_int64 index = pos / m_heightRow;
-		if (index < (sl_int64)m_nRows) {
-			return index;
-		}
-		return -1;
-	}
-
-	sl_int32 GridView::getColumnIndexAt(sl_int32 x)
-	{
-		sl_ui_len leftFrozenWidth = getColumnWidth(0, m_nLeftColumns);
-		sl_ui_len rightFrozenWidth = getColumnWidth(m_nColumns - m_nRightColumns, m_nColumns);
-		sl_ui_len width = getWidth();
-
-		sl_uint32 start = m_nLeftColumns;
-		sl_uint32 end = m_nColumns - m_nRightColumns;
-		sl_int64 pos = (x + (sl_int64)(getScrollX())) - leftFrozenWidth;
-		sl_ui_len startPosition = 0;
-		if (x > 0 && x < leftFrozenWidth) {
-			start = 0;
-			end = m_nLeftColumns;
-			pos = x;
-		}
-
-		if (x > width - rightFrozenWidth && x < width) {
-			startPosition = width - rightFrozenWidth;
-			start = m_nColumns - m_nRightColumns;
-			end = m_nColumns;
-			pos = x;
-		}
-
-		sl_uint32 index = 0;
-		for (sl_uint32 i = start; i < end; i++) {
-			sl_ui_len columnWidth = m_listColumnWidth.getValueAt_NoLock(i);
-			if (startPosition < pos && pos <= startPosition + columnWidth) {
-				index = i;
-				break;
-			}
-			startPosition += columnWidth;
-		}
-		if (index < m_nColumns) {
-			return index;
-		}
-		return -1;
-	}
-
-
-	Ref<Drawable> GridView::getItemBackground()
-	{
-		return m_backgroundItem;
-	}
-
-	void GridView::setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundItem = drawable;
-		invalidate(mode);
-	}
-
-	void GridView::setFixedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundFixedItem = drawable;
-		invalidate(mode);
-	}
-
-
-	void GridView::setItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> GridView::getFixedItemBackground()
-	{
-		return m_backgroundFixedItem;
-	}
-
-	void GridView::setFixedItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setFixedItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> GridView::getSelectedItemBackground()
-	{
-		return m_backgroundSelectedItem;
-	}
-
-	void GridView::setSelectedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundSelectedItem = drawable;
-		invalidate(mode);
-	}
-
-	void GridView::setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setSelectedItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> GridView::getHoverItemBackground()
-	{
-		return m_backgroundHoverItem;
-	}
-
-	void GridView::setHoverItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundHoverItem = drawable;
-		invalidate(mode);
-	}
-
-	void GridView::setHoverItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setHoverItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> GridView::getFocusedItemBackground()
-	{
-		return m_backgroundFocusedItem;
-	}
-
-	void GridView::setFocusedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundFocusedItem = drawable;
-		invalidate(mode);
-	}
-
-	void GridView::setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setFocusedItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-	
-	void GridView::drawHeaderItem(sl_uint64 rowIndex, sl_uint32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagTop)
-	{
-		Ref<Drawable> background = m_backgroundFixedItem;
-		
-		if (background.isNotNull()) {
-			canvas->draw(rcItem, background);
-		}
-		canvas->drawRectangle(rcItem, Pen::createSolidPen(1, Color::Black));
-		String str = flagTop ? m_listHeaderText.getValueAt_NoLock(colIndex) : m_listHeaderText.getValueAt_NoLock(colIndex);
-
-		DrawCellParam param;
-		param.canvas = canvas;
-		param.data = str;
-		param.row = rowIndex;
-		param.col = colIndex;
-		param.region = rcItem;
-		param.parent = this;
-		param.flagFixedCell = sl_true;
-
-		Ref<Cell> cell = this->getCellCallback()(rowIndex, colIndex);
-		if (cell.isNotNull()) {
-			cell->onDraw(param);
-		}
-	}
-	void GridView::drawGridCellItem(sl_uint64 rowIndex, sl_uint32 colIndex, Canvas* canvas, UIRect& rcItem, sl_bool flagFixedCell)
-	{
-		Ref<Drawable> background = m_backgroundItem;
-		if (flagFixedCell) {
-			background = m_backgroundFixedItem;
-		}
-		if (m_backgroundFocusedItem.isNotNull() && m_focusedColumn == colIndex && m_focusedRow == rowIndex) {
-			background = m_backgroundFocusedItem;
-		}
-		if (m_backgroundSelectedItem.isNotNull() && isRowSelected(rowIndex)) {
-			background = m_backgroundSelectedItem;
-		} else if (m_backgroundHoverItem.isNotNull() && rowIndex == getHoverIndex()) {
-			background = m_backgroundHoverItem;
-		} else if (m_backgroundFocusedItem.isNotNull() && isFocused() && rowIndex == m_selectedRow) {
-			background = m_backgroundFocusedItem;
-		}
-		if (background.isNotNull()) {
-			canvas->draw(rcItem, background);
-		}
-		canvas->drawRectangle(rcItem, Pen::createSolidPen(1, Color::Black));
-
-		Variant str = this->getDataCallback()(rowIndex, colIndex);
-		DrawCellParam param;
-		param.canvas = canvas;
-		param.data = str;
-		param.row = rowIndex;
-		param.col = colIndex;
-		param.region = rcItem;
-		param.parent = this;
-		param.flagFixedCell = flagFixedCell;
-
-		Ref<Cell> cell = this->getCellCallback()(rowIndex, colIndex);
-		if (cell.isNotNull()) {
-			cell->onDraw(param);
-		}
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(GridView, ClickItem, sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
-
-	void GridView::dispatchClickItem(sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickItem, rowIndex, colIndex, pos, ev)
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-		if (colIndex < m_nLeftColumns || colIndex > m_nColumns - m_nRightColumns - 1) {
-			m_selectedRow = rowIndex;
-			setRowSelected(rowIndex);
-			dispatchChangedSelection(ev);
-		}
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(GridView, RightButtonClickItem, sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
-
-	void GridView::dispatchRightButtonClickItem(sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(RightButtonClickItem, rowIndex, colIndex, pos, ev)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(GridView, DoubleClickItem, sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
-
-	void GridView::dispatchDoubleClickItem(sl_uint64 rowIndex, sl_uint32 colIndex, UIPoint& pos, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(DoubleClickItem, rowIndex, colIndex, pos, ev)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(GridView, ChangedSelection, UIEvent* ev)
-
-	void GridView::dispatchChangedSelection(UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangedSelection, ev)
-	}
-	
-	Ref<GridView::Cell> GridView::getCell(sl_uint64 row, sl_uint32 col)
-	{
-		return sl_null;
-	}
-
-	Variant GridView::getCellData(sl_uint64 row, sl_uint32 col)
-	{
-		return sl_null;
-	}
-
-	void GridView::drawGridHeader(Canvas* canvas, sl_bool flagTop)
-	{
-		sl_int32 posY = (sl_int32)(getScrollY());
-		sl_int32 posX = (sl_int32)(getScrollX());
-
-		CellRegion region = getVisibleCellRegion();
-		if (m_listHeaderSpan.get_NoLock(region.startColumn)) {
-			CellRegion headerSpanRegion = m_listHeaderSpan.getValue_NoLock(region.startColumn);
-			region.startColumn = headerSpanRegion.startColumn;
-		}
-
-		for (sl_uint32 j = region.startColumn; j <= region.endColumn; j++) {
-			CellRegion headerSpanRegion = m_listHeaderSpan.getValue_NoLock(j);
-			sl_bool flagExist = m_listHeaderSpan.get_NoLock(j);
-			if (!flagExist || headerSpanRegion.startColumn == j) {
-				drawHeaderItem(0, j, canvas, getGridHeaderCellRect(j, flagTop), flagTop);
-			}
-		}
-
-		for (sl_uint32 j = 0; j < m_nLeftColumns; j++) {
-			CellRegion headerSpanRegion = m_listHeaderSpan.getValue_NoLock(j);
-			sl_bool flagExist = m_listHeaderSpan.get_NoLock(j);
-			if (!flagExist || headerSpanRegion.startColumn == j) {
-				drawHeaderItem(0, j, canvas, getGridHeaderCellRect(j, flagTop), flagTop);
-			}
-		}
-
-		for (sl_uint32 j = m_nColumns - m_nRightColumns; j < m_nColumns; j++) {
-			CellRegion region = m_listHeaderSpan.getValue_NoLock(j);
-			sl_bool flagExist = m_listHeaderSpan.get_NoLock(j);
-			if (!flagExist || region.startColumn == j) {
-				drawHeaderItem(0, j, canvas, getGridHeaderCellRect(j, flagTop), flagTop);
-			}
-		}
-	}
-
-	void GridView::drawGridFrozenArea(Canvas* canvas, sl_bool flagLeft)
-	{
-		sl_int32 posY = (sl_int32)(getScrollY());
-		sl_int32 posX = (sl_int32)(getScrollX());
-
-		CellRegion region = getVisibleCellRegion();
-		sl_uint32 colStart = 0;
-		sl_uint32 colEnd = 0;
-		if (flagLeft && m_nLeftColumns > 0) {
-			colStart = 0;
-			colEnd = m_nLeftColumns;
-		}
-		else if (!flagLeft && m_nRightColumns > 0) {
-			colStart = m_nColumns - m_nRightColumns;
-			colEnd = m_nColumns;
-		}
-		for (sl_uint64 i = region.startRow; i <= region.endRow; i++) {
-			for (sl_uint32 j = colStart; j < colEnd; j++) {
-				drawGridCellItem(i, j, canvas, getGridFrozenCellRect(i, j, flagLeft), sl_true);
-			}
-		}
-	}
-
-	GridView::CellRegion GridView::getVisibleCellRegion()
-	{
-		CellRegion ret;
-		sl_int32 posY = (sl_int32)(getScrollY());
-		sl_int32 posX = (sl_int32)(getScrollX());
-		ret.startRow = posY / m_heightRow;
-		ret.endRow = (posY + getHeight()) / m_heightRow;
-		if (ret.endRow >= m_nRows) {
-			ret.endRow = m_nRows - 1;
-		}
-
-		sl_int64 widthLength = 0;
-		ret.startColumn = m_nLeftColumns;
-		ret.endColumn = m_nColumns - m_nRightColumns;
-		for (sl_uint32 i = m_nLeftColumns; i < m_nColumns - m_nRightColumns; i++) {
-			widthLength += m_listColumnWidth.getValueAt_NoLock(i);
-			if (widthLength <= posX) {
-				ret.startColumn = i;
-			}
-			else if (widthLength >= posX + getWidth()) {
-				ret.endColumn = i;
-				break;
-			}
-		}
-		if (ret.endColumn >= m_nColumns - m_nRightColumns) {
-			ret.endColumn = m_nColumns - m_nRightColumns - 1;
-		}
-		return ret;
-	}
-	
-	UIRect GridView::getGridCellRect(sl_uint64 rowIndex, sl_uint32 colIndex)
-	{
-		UIRect ret;
-		sl_int32 posY = (sl_int32)(getScrollY());
-		sl_int32 posX = (sl_int32)(getScrollX());
-		ret.top = m_heightTopRow + (sl_ui_pos)(rowIndex * m_heightRow - posY);
-		ret.bottom = ret.top + m_heightRow;
-		ret.left = getColumnWidth(0, colIndex) - posX;
-		ret.right = ret.left + getColumnWidth(colIndex, colIndex + 1);
-
-		if (rowIndex == -1) {
-			if (m_listHeaderSpan.get_NoLock(colIndex)) {
-				CellRegion region = m_listHeaderSpan.getValue_NoLock(colIndex);
-				ret.right = ret.left + getColumnWidth(region.startColumn, region.endColumn);
-			}
-		}
-		return ret;
-	}
-
-	UIRect GridView::getGridHeaderCellRect(sl_uint32 colIndex, sl_bool flagTop)
-	{
-		UIRect ret; 
-		ret = getGridCellRect(-1, colIndex);
-		if (colIndex < m_nLeftColumns) {
-			ret.left = getColumnWidth(0, colIndex);
-			ret.right = getColumnWidth(0, colIndex + 1);
-			if (m_listHeaderSpan.get_NoLock(colIndex)) {
-				CellRegion region = m_listHeaderSpan.getValue_NoLock(colIndex);
-				ret.right = getColumnWidth(0, region.endColumn);
-			}
-		}
-		if (colIndex > m_nColumns - m_nRightColumns - 1) {
-			ret.left = getWidth() - getColumnWidth(colIndex, m_nColumns);
-			ret.right = getWidth() - getColumnWidth(colIndex + 1, m_nColumns);
-			if (m_listHeaderSpan.get_NoLock(colIndex)) {
-				CellRegion region = m_listHeaderSpan.getValue_NoLock(colIndex);
-				ret.right = getWidth() - getColumnWidth(region.endColumn, m_nColumns);
-			}
-		}
-		if (flagTop && m_heightTopRow > 0) {
-			ret.top = 0;
-			ret.bottom = m_heightTopRow;
-		}
-		else if (!flagTop && m_heightBottomRow > 0) {
-			ret.top = getHeight() - m_heightBottomRow ;
-			ret.bottom = getHeight() - 1;
-		}
-		return ret;
-	}
-	
-	UIRect GridView::getGridFrozenCellRect(sl_uint64 rowIndex, sl_uint32 colIndex, sl_bool flagLeft)
-	{
-		UIRect ret;
-		ret = getGridCellRect(rowIndex, colIndex);
-		if (flagLeft) {
-			ret.left = getColumnWidth(0, colIndex);
-			ret.right = getColumnWidth(0, colIndex + 1);
-		}
-		else if (!flagLeft) {
-			ret.left = getWidth() - getColumnWidth(colIndex, m_nColumns);
-			ret.right = getWidth() - getColumnWidth(colIndex + 1, m_nColumns);
-		}
-		return ret;
-	}
-
-	void GridView::onDraw(Canvas* canvas)
-	{
-		if (m_nRows <= 0 || m_nColumns == 0) {
-			return;
-		}
-
-		sl_int32 widthLeftHeader = getColumnWidth(0, m_nLeftColumns);
-		sl_int32 widthRightHeader = getColumnWidth(m_nColumns - m_nRightColumns, m_nColumns);
-
+	namespace {
+		SLIB_INLINE static sl_ui_len GetDefaultRowHeight(const Ref<Font>& font)
 		{
-			CanvasStateScope scope(canvas);
-			Rectanglei rt(widthLeftHeader, m_heightTopRow, getWidth() - widthRightHeader + 1, getHeight() - m_heightBottomRow + 1);
-			canvas->clipToRectangle(rt);
-			CellRegion region = getVisibleCellRegion();
-			for (sl_uint64 i = region.startRow; i <= region.endRow; i++) {
-				for (sl_uint32 j = region.startColumn; j <= region.endColumn; j++) {
-					drawGridCellItem(i, j, canvas, getGridCellRect(i, j));
+			return (sl_ui_len)(font->getSize() * 1.5f);
+		}
+	}
+
+#define DEFINE_GET_SET_ROW_HEIGHT(TYPE) \
+	sl_ui_len GridView::get##TYPE##Height() \
+	{ \
+		sl_ui_len height = 0; \
+		ObjectLocker lock(this); \
+		ListElements<Row> rows(m_list##TYPE##Row); \
+		sl_uint32 nDefault = 0; \
+		for (sl_size i = 0; i < rows.count; i++) { \
+			Row& row = rows[i]; \
+			if (row.height >= 0) { \
+				height += row.height; \
+			} else { \
+				nDefault++; \
+			} \
+		} \
+		height += GetDefaultRowHeight(getFont()) * nDefault; \
+		return height; \
+	} \
+	sl_ui_len GridView::get##TYPE##RowHeight(sl_uint32 index) \
+	{ \
+		ObjectLocker lock(this); \
+		Row* row = m_list##TYPE##Row.getPointerAt(index); \
+		if (row) { \
+			return _get##TYPE##RowHeight(*row); \
+		} else { \
+			return 0; \
+		} \
+	} \
+	sl_ui_len GridView::_get##TYPE##RowHeight(Row& row) \
+	{ \
+		if (row.height >= 0) { \
+			return row.height; \
+		} else { \
+			return GetDefaultRowHeight(getFont()); \
+		} \
+	} \
+	void GridView::set##TYPE##RowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		Row* row = m_list##TYPE##Row.getPointerAt(index); \
+		if (row) { \
+			row->height = height; \
+		} \
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+			return; \
+		} \
+		_invalidate##TYPE##Cells(); \
+		refreshContentHeight(mode); \
+	} \
+	void GridView::set##TYPE##RowHeight(sl_ui_len height, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		ListElements<Row> rows(m_list##TYPE##Row); \
+		for (sl_size i = 0; i < rows.count; i++) { \
+			rows[i].height = height; \
+		} \
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+			return; \
+		} \
+		_invalidate##TYPE##Cells(); \
+		refreshContentHeight(mode); \
+	}
+
+	DEFINE_GET_SET_ROW_HEIGHT(Record)
+	DEFINE_GET_SET_ROW_HEIGHT(Header)
+	DEFINE_GET_SET_ROW_HEIGHT(Footer)
+
+	void GridView::refreshContentWidth(UIUpdateMode mode)
+	{
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
+		ListElements<Column> columns(m_columns);
+		sl_ui_len total = 0;
+		for (sl_size i = 0; i < columns.count; i++) {
+			total += FixColumnWidth(columns[i].width);
+		}
+		setContentWidth(total, mode);
+	}
+
+	void GridView::refreshContentHeight(UIUpdateMode mode)
+	{
+		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) {
+			return;
+		}
+		sl_int64 total = getRecordHeight() * (sl_int64)m_nRecords + getHeaderHeight() + getFooterHeight();
+		setContentHeight((sl_scroll_pos)total, mode);
+	}
+
+	GridView::DataFunction GridView::getDataFunction()
+	{
+		return m_recordData;
+	}
+
+	void GridView::setDataFunction(const DataFunction& func, UIUpdateMode mode)
+	{
+		m_recordData = func;
+		ObjectLocker locker(this);
+		_invalidateRecordCells();
+		invalidate(mode);
+	}
+
+	GridView::CellProp* GridView::_getCellProp(RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol)
+	{
+		Column* col = m_columns.getPointerAt(iCol);
+		if (col) {
+			if (iRecord == HEADER) {
+				return col->listHeaderCell.getPointerAt(iRow);
+			} else if (iRecord == FOOTER) {
+				return col->listFooterCell.getPointerAt(iRow);
+			} else {
+				return col->listRecordCell.getPointerAt(iRow);
+			}
+		}
+		return sl_null;
+	}
+
+#define DEFINE_GET_CELL_PROP(TYPE) \
+	GridView::TYPE##CellProp* GridView::_get##TYPE##CellProp(sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		Column* column = m_columns.getPointerAt(iCol); \
+		if (column) { \
+			return column->list##TYPE##Cell.getPointerAt(iRow); \
+		} \
+		return sl_null; \
+	} \
+
+	DEFINE_GET_CELL_PROP(Record)
+	DEFINE_GET_CELL_PROP(Header)
+	DEFINE_GET_CELL_PROP(Footer)
+
+#define DEFINE_GET_SET_CELL_ATTR_SUB(TYPE, FUNC, RET, ARG, NAME, DEF) \
+	RET GridView::get##TYPE##FUNC(sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		ObjectLocker lock(this); \
+		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		if (prop) { \
+			return prop->NAME; \
+		} \
+		return DEF; \
+	} \
+	void GridView::set##TYPE##FUNC(sl_int32 iRow, sl_int32 iCol, ARG NAME, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		if (iCol >= 0) { \
+			if (iRow >= 0) { \
+				TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+				if (prop) { \
+					prop->NAME = NAME; \
+					if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+						return; \
+					} \
+					_invalidate##TYPE##Cell(*prop, iRow, iCol); \
+					invalidate(mode); \
+				} \
+			} else { \
+				Column* col = m_columns.getPointerAt(iCol); \
+				if (col) { \
+					ListElements<TYPE##CellProp> props(col->list##TYPE##Cell); \
+					for (sl_size i = 0; i < props.count; i++) { \
+						props[i].NAME = NAME; \
+					} \
+					if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+						return; \
+					} \
+					_invalidate##TYPE##Cells(*col, iCol); \
+					invalidate(mode); \
+				} \
+			} \
+		} else { \
+			ListElements<Column> columns(m_columns); \
+			for (sl_size k = 0; k < columns.count; k++) { \
+				Column& col = columns[k]; \
+				if (iRow >= 0) { \
+					TYPE##CellProp* prop = col.list##TYPE##Cell.getPointerAt(iRow); \
+					if (prop) { \
+						prop->NAME = NAME; \
+					} \
+				} else { \
+					ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+					for (sl_size i = 0; i < props.count; i++) { \
+						props[i].NAME = NAME; \
+					} \
+				} \
+			} \
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+				return; \
+			} \
+			_invalidate##TYPE##Cells(); \
+			invalidate(mode); \
+		} \
+	}
+
+#define DEFINE_GET_SET_CELL_ATTR(FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_GET_SET_CELL_ATTR_SUB(Record, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_GET_SET_CELL_ATTR_SUB(Header, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_GET_SET_CELL_ATTR_SUB(Footer, FUNC, RET, ARG, NAME, DEF)
+
+	DEFINE_GET_SET_CELL_ATTR(Creator, GridView::CellCreator, const CellCreator&, creator, sl_null)
+	DEFINE_GET_SET_CELL_ATTR(Text, String, const String&, text, sl_null)
+	DEFINE_GET_SET_CELL_ATTR_SUB(Record, Format, String, const String&, text, sl_null)
+	DEFINE_GET_SET_CELL_ATTR(Font, Ref<Font>, const Ref<Font>&, font, sl_null)
+	DEFINE_GET_SET_CELL_ATTR(MultiLine, MultiLineMode, MultiLineMode, multiLineMode, MultiLineMode::Single)
+	DEFINE_GET_SET_CELL_ATTR(Ellipsize, EllipsizeMode, EllipsizeMode, ellipsizeMode, EllipsizeMode::None)
+	DEFINE_GET_SET_CELL_ATTR(LineCount, sl_uint32, sl_uint32, lineCount, 0)
+	DEFINE_GET_SET_CELL_ATTR(Alignment, Alignment, const Alignment&, align, 0)
+
+#define DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(TYPE, FUNC, RET, ARG, NAME, DEF) \
+	RET GridView::get##TYPE##FUNC(sl_uint32 iRow, sl_uint32 iCol, CellState state) \
+	{ \
+		ObjectLocker lock(this); \
+		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		if (prop) { \
+			return prop->NAME[(sl_uint32)state]; \
+		} \
+		return DEF; \
+	} \
+	void GridView::set##TYPE##FUNC(sl_int32 iRow, sl_int32 iCol, ARG NAME, CellState state, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		if (iCol >= 0) { \
+			if (iRow >= 0) { \
+				TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+				if (prop) { \
+					prop->NAME[(sl_uint32)state] = NAME; \
+					invalidate(mode); \
+				} \
+			} else { \
+				Column* col = m_columns.getPointerAt(iCol); \
+				if (col) { \
+					ListElements<TYPE##CellProp> props(col->list##TYPE##Cell); \
+					for (sl_size i = 0; i < props.count; i++) { \
+						props[i].NAME[(sl_uint32)state] = NAME; \
+					} \
+					invalidate(mode); \
+				} \
+			} \
+		} else { \
+			ListElements<Column> columns(m_columns); \
+			for (sl_size k = 0; k < columns.count; k++) { \
+				Column& col = columns[k]; \
+				if (iRow >= 0) { \
+					TYPE##CellProp* prop = col.list##TYPE##Cell.getPointerAt(iRow); \
+					if (prop) { \
+						prop->NAME[(sl_uint32)state] = NAME; \
+					} \
+				} else { \
+					ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+					for (sl_size i = 0; i < props.count; i++) { \
+						props[i].NAME[(sl_uint32)state] = NAME; \
+					} \
+				} \
+			} \
+			invalidate(mode); \
+		} \
+	}
+
+#define DEFINE_GET_SET_CELL_DRAWING_ATTR(FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Record, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Header, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Footer, FUNC, RET, ARG, NAME, DEF)
+
+	DEFINE_GET_SET_CELL_DRAWING_ATTR(Background, Ref<Drawable>, const Ref<Drawable>&, background, sl_null)
+
+#define DEFINE_GET_SET_BACKGROUND(TYPE) \
+	Ref<Drawable> GridView::get##TYPE##Background() \
+	{ \
+		return m_background##TYPE; \
+	} \
+	void GridView::set##TYPE##Background(const Ref<Drawable>& drawable, UIUpdateMode mode) \
+	{ \
+		m_background##TYPE = drawable; \
+		invalidate(mode); \
+	}
+
+	DEFINE_GET_SET_BACKGROUND(Record)
+	DEFINE_GET_SET_BACKGROUND(Header)
+	DEFINE_GET_SET_BACKGROUND(Footer)
+
+	DEFINE_GET_SET_CELL_DRAWING_ATTR(TextColor, Color, const Color&, textColor, Color::zero())
+
+#define DEFINE_GET_SET_SPAN(TYPE) \
+	sl_uint32 GridView::get##TYPE##Rowspan(sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		ObjectLocker lock(this); \
+		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		if (prop) { \
+			return prop->rowspan; \
+		} \
+		return 0; \
+	} \
+	sl_uint32 GridView::get##TYPE##Colspan(sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		ObjectLocker lock(this); \
+		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		if (prop) { \
+			return prop->colspan; \
+		} \
+		return 0; \
+	} \
+	void GridView::set##TYPE##Rowspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 span, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		if (prop) { \
+			prop->rowspan = span; \
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+				return; \
+			} \
+			_invalidate##TYPE##Cells(); \
+			invalidate(mode); \
+		} \
+	} \
+	void GridView::set##TYPE##Colspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 span, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		if (prop) { \
+			prop->colspan = span; \
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+				return; \
+			} \
+			_invalidate##TYPE##Cells(); \
+			invalidate(mode); \
+		} \
+	} \
+	void GridView::set##TYPE##Span(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		if (prop) { \
+			prop->rowspan = rowspan; \
+			prop->colspan = colspan; \
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+				return; \
+			} \
+			_invalidate##TYPE##Cells(); \
+			invalidate(mode); \
+		} \
+	}
+
+	DEFINE_GET_SET_SPAN(Record)
+	DEFINE_GET_SET_SPAN(Header)
+	DEFINE_GET_SET_SPAN(Footer)
+
+	sl_int64 GridView::getSelectedRecord()
+	{
+		return m_locationSelected.record;
+	}
+
+	sl_int32 GridView::getSelectedRow()
+	{
+		return m_locationSelected.row;
+	}
+
+	sl_int32 GridView::getSelectedColumn()
+	{
+		return m_locationSelected.column;
+	}
+
+	void GridView::selectCell(sl_uint64 record, sl_uint32 row, sl_uint32 column, UIUpdateMode mode)
+	{
+		m_locationSelected.record = record;
+		m_locationSelected.row = row;
+		m_locationSelected.column = column;
+		invalidate(mode);
+	}
+
+	void GridView::selectRecord(sl_uint64 record, UIUpdateMode mode)
+	{
+		selectCell(record, -1, -1, mode);
+	}
+
+	void GridView::selectRow(sl_uint64 record, sl_uint32 row, UIUpdateMode mode)
+	{
+		selectCell(record, row, -1, mode);
+	}
+
+	void GridView::selectColumn(sl_uint32 column, UIUpdateMode mode)
+	{
+		selectCell(-1, -1, column, mode);
+	}
+
+	void GridView::selectNone(UIUpdateMode mode)
+	{
+		m_locationSelected.record = -1;
+		m_locationSelected.row = -1;
+		m_locationSelected.column = -1;
+		invalidate(mode);
+	}
+
+	GridView::RecordIndex GridView::getRecordAt(sl_ui_pos y, sl_int32* outRow)
+	{
+		return _getRowAt(outRow, y, sl_true, sl_false, sl_false);
+	}
+
+	sl_int32 GridView::getRecordRowAt(sl_ui_pos y)
+	{
+		sl_int32 row;
+		_getRowAt(&row, y, sl_true, sl_false, sl_false);
+		return row;
+	}
+
+	sl_int32 GridView::getHeaderRowAt(sl_ui_pos y)
+	{
+		sl_int32 row;
+		_getRowAt(&row, y, sl_false, sl_true, sl_false);
+		return row;
+	}
+
+	sl_int32 GridView::getFooterRowAt(sl_ui_pos y)
+	{
+		sl_int32 row;
+		_getRowAt(&row, y, sl_false, sl_false, sl_true);
+		return row;
+	}
+	
+#define DEFINE_GET_RECORD_ROW_AT(TYPE) \
+	sl_uint32 GridView::_get##TYPE##RowAt(sl_ui_pos y) \
+	{ \
+		if (y < 0) { \
+			return 0; \
+		} \
+		ObjectLocker lock(this); \
+		ListElements<Row> rows(m_list##TYPE##Row); \
+		if (rows.count) { \
+			sl_ui_pos t = 0; \
+			for (sl_size i = 0; i < rows.count - 1; i++) { \
+				sl_ui_len h = _get##TYPE##RowHeight(rows[i]); \
+				if (y < t + h) { \
+					return (sl_uint32)i; \
+				} \
+				t += h; \
+			} \
+			return (sl_uint32)(rows.count - 1); \
+		} else { \
+			return 0; \
+		} \
+	}
+
+	DEFINE_GET_RECORD_ROW_AT(Record)
+	DEFINE_GET_RECORD_ROW_AT(Header)
+	DEFINE_GET_RECORD_ROW_AT(Footer)
+
+	GridView::RecordIndex GridView::_getRowAt(sl_int32* outRow, sl_ui_pos y, sl_bool flagRecord, sl_bool flagHeader, sl_bool flagFooter)
+	{
+		sl_ui_len heightView = getHeight();
+		if (y >= 0 && y < heightView) {
+			sl_ui_len heightHeader = getHeaderHeight();
+			if (y <= heightHeader) {
+				// Header area
+				if (outRow) {
+					if (flagHeader) {
+						*outRow = _getHeaderRowAt(y);
+					} else {
+						*outRow = -1;
+					}
+				}
+				return HEADER;
+			}
+			sl_ui_len yFooter = heightView - getFooterHeight();
+			if (y > yFooter) {
+				// Footer area
+				if (outRow) {
+					if (flagFooter) {
+						*outRow = _getFooterRowAt(y - yFooter);
+					} else {
+						*outRow = -1;
+					}
+				}
+				return FOOTER;
+			}
+			// Record area
+			if (!flagRecord) {
+				if (outRow) {
+					*outRow = -1;
+				}
+				return 0;
+			}
+			sl_ui_len heightRecord = getRecordHeight();
+			if (heightRecord > 0) {
+				sl_int64 pos = (sl_int64)(getScrollY()) + y - heightHeader;
+				sl_int64 record = pos / (sl_int32)heightRecord;
+				if (record >= 0 && (sl_uint64)record < m_nRecords) {
+					if (outRow) {
+						pos -= record * (sl_int32)heightRecord;
+						*outRow = _getRecordRowAt((sl_ui_pos)pos);
+					}
+					return record;
 				}
 			}
 		}
-
-		{
-			CanvasStateScope scope(canvas);
-			Rectanglei rt(0, m_heightTopRow, getWidth(), getHeight() - m_heightBottomRow + 1);
-			canvas->clipToRectangle(rt);
-			drawGridFrozenArea(canvas, sl_true);
-			drawGridFrozenArea(canvas, sl_false);
+		if (outRow) {
+			*outRow = -1;
 		}
+		return OUTSIDE;
+	}
+
+	namespace {
+		SLIB_INLINE static void FixLeftRightColumnCount(sl_uint32 count, sl_uint32& nLeft, sl_uint32& nRight)
 		{
-			CanvasStateScope scope(canvas);
-			Rectanglei rt(0, 0, getWidth(), getHeight());
-			canvas->clipToRectangle(rt);
-			if (m_heightTopRow) {
-				drawGridHeader(canvas, sl_true);
+			if (nLeft > count) {
+				nLeft = count;
 			}
-			if (m_heightBottomRow) {
-				drawGridHeader(canvas, sl_false);
+			sl_uint32 n = count - nLeft;
+			if (nRight > n) {
+				nRight = n;
 			}
 		}
 	}
 
-	UIPoint GridView::getPositionInGridCell(const UIPoint& position, sl_uint64 rowIndex, sl_uint32 colIndex)
+	sl_int32 GridView::getColumnAt(sl_ui_pos x)
 	{
-		UIPoint pt = position;
-		if (rowIndex >= 0 && colIndex >= 0) {
-			sl_int64 posY = (sl_int64)(getScrollY()) + pt.y - m_heightTopRow;
-			pt.y = (sl_ui_pos)(posY - rowIndex * m_heightRow);
-			if (colIndex > m_nLeftColumns - 1 && colIndex < m_nColumns - m_nRightColumns) {
-				sl_int64 posX = (sl_int64)(getScrollX()) + pt.x - getColumnWidth(0, m_nLeftColumns);
-				pt.x = (sl_ui_pos)(posX - getColumnWidth(m_nLeftColumns, colIndex));
+		if (x < 0) {
+			return -1;
+		}
+		sl_ui_len widthView = getWidth();
+		if (x >= widthView) {
+			return -1;
+		}
+		ObjectLocker lock(this);
+		ListElements<Column> columns(m_columns);
+		sl_uint32 nColumns = (sl_uint32)(columns.count);
+		sl_uint32 nLeft = m_nLeftColumns;
+		sl_uint32 nRight = m_nRightColumns;
+		FixLeftRightColumnCount(nColumns, nLeft, nRight);
+		sl_ui_len pos = 0;
+		sl_uint32 i;
+		for (i = 0; i < nLeft; i++) {
+			sl_ui_len w = FixColumnWidth(columns[i].width);
+			if (x < pos + w) {
+				return i;
 			}
-			else if (colIndex < m_nLeftColumns) {
-				pt.x = pt.x - getColumnWidth(0, colIndex);
+			pos += w;
+		}
+		sl_ui_len widthLeft = pos;
+		pos = widthView;
+		for (i = 0; i < nRight; i++) {
+			sl_uint32 k = nColumns - 1 - i;
+			sl_ui_len w = FixColumnWidth(columns[k].width);
+			if (pos - w <= x) {
+				return k;
 			}
-			else if (colIndex >= m_nColumns - m_nRightColumns) {
-				sl_ui_len start = getWidth() - getColumnWidth(m_nColumns - m_nRightColumns, m_nColumns);
-				pt.x = pt.x - start - getColumnWidth(m_nColumns - m_nRightColumns, colIndex);
+			pos -= w;
+		}
+		nColumns -= nRight;
+		x += (sl_ui_len)(getScrollX()) - widthLeft;
+		pos = 0;
+		for (i = nLeft; i < nColumns; i++) {
+			sl_ui_len w = FixColumnWidth(columns[i].width);
+			if (x < pos + w) {
+				return i;
+			}
+			pos += w;
+		}
+		return -1;
+	}
+
+	sl_bool GridView::getCellAt(sl_ui_pos x, sl_ui_pos y, RecordIndex* outRecord, sl_uint32* outRow, sl_uint32* outColumn)
+	{
+		if (outRow || outColumn) {
+			sl_int32 iRow;
+			RecordIndex iRecord = _getRowAt(&iRow, y, sl_true, sl_true, sl_true);
+			if (iRecord != OUTSIDE && iRow >= 0) {
+				sl_int32 iCol = getColumnAt(x);
+				if (iCol >= 0) {
+					ObjectLocker lock(this);
+					CellProp* prop = _getCellProp(iRecord, iRow, iCol);
+					if (prop) {
+						if (outRecord) {
+							*outRecord = iRecord;
+						}
+						if (outRow) {
+							while (prop->flagCoveredY && iRow > 0) {
+								iRow--;
+								prop = _getCellProp(iRecord, iRow, iCol);
+								if (!prop) {
+									return sl_false;
+								}
+							}
+							*outRow = iRow;
+						}
+						if (outColumn) {
+							while (prop->flagCoveredX && iCol > 0) {
+								iCol--;
+								prop = _getCellProp(iRecord, iRow, iCol);
+								if (!prop) {
+									return sl_false;
+								}
+							}
+							*outColumn = iCol;
+						}
+						return sl_true;
+					}
+				}
+			}
+		} else {
+			RecordIndex iRecord = _getRowAt(sl_null, y, sl_true, sl_true, sl_true);
+			if (iRecord != OUTSIDE) {
+				if (outRecord) {
+					*outRecord = iRecord;
+				}
+				return sl_true;
 			}
 		}
-		return pt;
+		return sl_false;
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(GridView, ClickRecord, UIEvent*, GridView::CellEventParam&)
+
+	void GridView::dispatchClickRecord(UIEvent* ev, CellEventParam& param)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(ClickRecord, ev, param)
+		if (ev->isPreventedDefault()) {
+			return;
+		}
+		if (m_locationSelected.record != param.record || m_locationSelected.row != param.row || m_locationSelected.column != param.column) {
+			m_locationSelected.record = param.record;
+			m_locationSelected.row = param.row;
+			m_locationSelected.column = param.column;
+			dispatchSelectRecord(ev, param);
+		}
+	}
+
+#define DEFINE_ON_CLICK(TYPE) \
+	SLIB_DEFINE_EVENT_HANDLER(GridView, Click##TYPE, UIEvent*, GridView::CellEventParam&) \
+	void GridView::dispatchClick##TYPE(UIEvent* ev, CellEventParam& param) \
+	{ \
+		SLIB_INVOKE_EVENT_HANDLER(Click##TYPE, ev, param) \
+	}
+
+	DEFINE_ON_CLICK(Header)
+	DEFINE_ON_CLICK(Footer)
+
+#define DEFINE_ON_RIGHT_BUTTON_CLICK(TYPE) \
+	SLIB_DEFINE_EVENT_HANDLER(GridView, RightButtonClick##TYPE, UIEvent*, GridView::CellEventParam&) \
+	void GridView::dispatchRightButtonClick##TYPE(UIEvent* ev, CellEventParam& param) \
+	{ \
+		SLIB_INVOKE_EVENT_HANDLER(RightButtonClick##TYPE, ev, param) \
+	}
+
+	DEFINE_ON_RIGHT_BUTTON_CLICK(Record)
+	DEFINE_ON_RIGHT_BUTTON_CLICK(Header)
+	DEFINE_ON_RIGHT_BUTTON_CLICK(Footer)
+
+#define DEFINE_ON_DOUBLE_CLICK(TYPE) \
+	SLIB_DEFINE_EVENT_HANDLER(GridView, DoubleClick##TYPE, UIEvent*, GridView::CellEventParam&) \
+	void GridView::dispatchDoubleClick##TYPE(UIEvent* ev, CellEventParam& param) \
+	{ \
+		SLIB_INVOKE_EVENT_HANDLER(DoubleClick##TYPE, ev, param) \
+	}
+
+	DEFINE_ON_DOUBLE_CLICK(Record)
+	DEFINE_ON_DOUBLE_CLICK(Header)
+	DEFINE_ON_DOUBLE_CLICK(Footer)
+
+	SLIB_DEFINE_EVENT_HANDLER(GridView, SelectRecord, UIEvent*, GridView::CellEventParam&)
+
+	void GridView::dispatchSelectRecord(UIEvent* ev, CellEventParam& param)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(SelectRecord, ev, param)
+	}
+	
+	void GridView::onDraw(Canvas* canvas)
+	{
+		ObjectLocker lock(this);
+		ListElements<Column> columns(m_columns);
+		sl_uint32 nColumns = (sl_uint32)(columns.count);
+		sl_uint32 nLeft = m_nLeftColumns;
+		sl_uint32 nRight = m_nRightColumns;
+		FixLeftRightColumnCount(nColumns, nLeft, nRight);
+		sl_uint32 iStartMidColumn = nLeft;
+		sl_ui_pos xStartMidColumn = -(sl_ui_len)(getScrollX());
+		{
+			sl_uint32 iRight = nColumns - nRight;
+			for (sl_uint32 i = nLeft; i < iRight; i++) {
+				sl_ui_len w = FixColumnWidth(columns[i].width);
+				if (0 < xStartMidColumn + w) {
+					iStartMidColumn = i;
+					break;
+				}
+				xStartMidColumn += w;
+			}
+		}
+		
+		sl_ui_len heightHeader = getHeaderHeight();
+		_drawHeader(canvas, 0, heightHeader, columns.data, nColumns, nLeft, nRight, iStartMidColumn, xStartMidColumn);
+		sl_ui_len heightView = getHeight();
+		sl_ui_len yFooter = heightView - getFooterHeight();
+		_drawFooter(canvas, yFooter, heightView, columns.data, nColumns, nLeft, nRight, iStartMidColumn, xStartMidColumn);
+		_drawRecords(canvas, heightHeader, yFooter, columns.data, nColumns, nLeft, nRight, iStartMidColumn, xStartMidColumn);
+	}
+
+	void GridView::_drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn)
+	{
+		ListElements<Row> rows(m_listRecordRow);
+		sl_size nCells = rows.count * nColumns;
+		if (!nCells) {
+			return;
+		}
+		sl_ui_len widthView = getWidth();
+		Ref<Drawable> background = m_backgroundRecord;
+		if (background.isNotNull()) {
+			canvas->draw(UIRect(0, top, widthView, bottom), background);
+		}
+		_prepareRecordCells(columns, nColumns);
+		sl_ui_len heightRecord = getRecordHeight();
+		if (heightRecord <= 0) {
+			return;
+		}
+		sl_int64 sy = (sl_int64)(getScrollY());
+		sl_uint64 iRecord = Math::max(sy / heightRecord, (sl_int64)0);
+		sl_ui_pos yRecord = (sl_ui_pos)((sl_int64)iRecord * heightRecord - sy) + top;
+		sl_uint32 nRecords = Math::clamp((sl_int32)((bottom - yRecord + heightRecord - 1) / heightRecord), (sl_int32)0, (sl_int32)MAX_RECORDS_PER_SCREEN);
+		Function<Variant(sl_uint64 record)> recordDataFunc(m_recordData);
+		HashMap< sl_uint64, List< Ref<Cell> > > cache = Move(m_mapRecordCache);
+		HashMap< sl_uint64, List< Ref<Cell> > > map;
+		for (sl_uint32 i = 0; i < nRecords; i++) {
+			List< Ref<Cell> > cells = cache.getValue_NoLock(iRecord);
+			if (cells.getCount() != nCells) {
+				cells = List< Ref<Cell> >::create(nCells);
+				if (cells.isNull()) {
+					return;
+				}
+			}
+			Variant recordData = recordDataFunc(iRecord);
+			sl_ui_pos xLeft = 0;
+			{
+				for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) {
+					Column& col = columns[iCol];
+					_drawRecordColumn(canvas, xLeft, top, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
+					xLeft += col.width;
+				}
+			}
+			sl_uint32 iRight = nColumns - nRight;
+			sl_ui_pos xRight = widthView;
+			if (nRight) {
+				sl_uint32 iCol = nColumns - 1;
+				for (;;) {
+					Column& col = columns[iCol];
+					xRight -= col.width;
+					_drawRecordColumn(canvas, xRight, top, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
+					if (iCol > iRight) {
+						iCol--;
+					} else {
+						break;
+					}
+				}
+			}
+			{
+				sl_ui_len xCell = xLeft + xStartMidColumn;
+				for (sl_uint32 iCol = iStartMidColumn; iCol < iRight && xCell < xRight; iCol++) {
+					Column& col = columns[iCol];
+					_drawRecordColumn(canvas, xCell, top, col, iCol, rows.data, (sl_uint32)(rows.count), iRecord, recordData, cells);
+					xCell += col.width;
+				}
+			}
+			map.put_NoLock(iRecord, Move(cells));
+			top += heightRecord;
+			iRecord++;
+		}
+		m_mapRecordCache = Move(map);
+	}
+
+#define DEFINE_DRAW_FIXED(TYPE) \
+	void GridView::_draw##TYPE(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn) \
+	{ \
+		sl_ui_len widthView = getWidth(); \
+		Ref<Drawable> background = m_background##TYPE; \
+		if (background.isNotNull()) { \
+			canvas->draw(UIRect(0, top, widthView, bottom), background); \
+		} \
+		_prepare##TYPE##Cells(columns, nColumns); \
+		ListElements<Row> rows(m_list##TYPE##Row); \
+		sl_ui_pos xLeft = 0; \
+		{ \
+			for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) { \
+				Column& col = columns[iCol]; \
+				_draw##TYPE##Column(canvas, xLeft, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				xLeft += col.width; \
+			} \
+		} \
+		sl_uint32 iRight = nColumns - nRight; \
+		sl_ui_pos xRight = widthView; \
+		if (nRight) { \
+			sl_uint32 iCol = nColumns - 1; \
+			for (;;) { \
+				Column& col = columns[iCol]; \
+				xRight -= col.width; \
+				_draw##TYPE##Column(canvas, xRight, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				if (iCol > iRight) { \
+					iCol--; \
+				} else { \
+					break; \
+				} \
+			} \
+		} \
+		{ \
+			sl_ui_pos xCell = xLeft + xStartMidColumn; \
+			for (sl_uint32 iCol = iStartMidColumn; iCol < iRight && xCell < xRight; iCol++) { \
+				Column& col = columns[iCol]; \
+				_draw##TYPE##Column(canvas, xCell, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				xCell += col.width; \
+			} \
+		} \
+	}
+
+	DEFINE_DRAW_FIXED(Header)
+	DEFINE_DRAW_FIXED(Footer)
+
+	void GridView::_drawRecordColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& col, sl_uint32 iCol, Row* rows, sl_uint32 nRows, sl_uint64 iRecord, const Variant& recordData, List< Ref<Cell> >& cells)
+	{
+		ListElements<RecordCellProp> props(col.listRecordCell);
+		if (props.count > nRows) {
+			props.count = nRows;
+		}
+		sl_uint32 iCell = iCol * nRows;
+		for (sl_uint32 iRow = 0; iRow < props.count; iRow++) {
+			RecordCellProp& prop = props[iRow];
+			Ref<Cell>* pCell = cells.getPointerAt(iCell);
+			Cell* cell = pCell->get();
+			if (!cell) {
+				Ref<Cell> newCell = _createRecordCell(prop, iRecord, iRow, iCol, recordData);
+				if (newCell.isNotNull()) {
+					cell = newCell.get();
+					*pCell = Move(newCell);
+				}
+			}
+			if (cell) {
+				_drawCell(canvas, x, y, cell);
+			}
+			y += rows[iRow].height;
+			iCell++;
+		}
+	}
+
+#define DEFINE_DRAW_FIXED_COLUMN(TYPE, TYPE_CONSTANT) \
+	void GridView::_draw##TYPE##Column(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& col, sl_uint32 iCol, Row* rows, sl_uint32 nRows) \
+	{ \
+		ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+		if (props.count > nRows) { \
+			props.count = nRows; \
+		} \
+		for (sl_uint32 iRow = 0; iRow < props.count; iRow++) { \
+			TYPE##CellProp& prop = props[iRow]; \
+			Cell* cell = _getFixedCell(prop, TYPE_CONSTANT, iRow, iCol); \
+			if (cell) { \
+				_drawCell(canvas, x, y, cell); \
+			} \
+			y += rows[iRow].height; \
+		} \
+	}
+
+	DEFINE_DRAW_FIXED_COLUMN(Header, HEADER)
+	DEFINE_DRAW_FIXED_COLUMN(Footer, FOOTER)
+
+	void GridView::_drawCell(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Cell* cell)
+	{
+		Rectangle frame((sl_real)x, (sl_real)y, (sl_real)(x + cell->width), (sl_real)(y + cell->height));
+		CanvasStateScope scope(canvas);
+		canvas->clipToRectangle(frame);
+		Drawable* background = sl_null;
+		Color color;
+		if (m_locationSelected.match(cell)) {
+			background = cell->background[(sl_uint32)(CellState::Selected)].get();
+			color = cell->textColor[(sl_uint32)(CellState::Selected)];
+		} else if (m_locationHover.match(cell)) {
+			background = cell->background[(sl_uint32)(CellState::Hover)].get();
+			color = cell->textColor[(sl_uint32)(CellState::Hover)];
+		}
+		if (!background) {
+			background = cell->background[(sl_uint32)(CellState::Normal)].get();
+		}
+		if (background) {
+			canvas->draw(frame, background);
+		}
+		if (color.isZero()) {
+			color = cell->textColor[(sl_uint32)(CellState::Normal)];
+		}
+		DrawCellParam param;
+		param.frame = frame;
+		param.textColor = color;
+		cell->onDraw(canvas, param);
+	}
+
+#define DEFINE_PREPARE_CELLS(TYPE) \
+	void GridView::_prepare##TYPE##Cells(Column* columns, sl_uint32 nColumns) \
+	{ \
+		if (!m_flagInvalidate##TYPE##Rows) { \
+			return; \
+		} \
+		m_flagInvalidate##TYPE##Rows = sl_false; \
+		ListElements<Row> rows(m_list##TYPE##Row); \
+		for (sl_uint32 iCol = 0; iCol < nColumns; iCol++) { \
+			Column& col = columns[iCol]; \
+			ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+			sl_uint32 nRows = (sl_uint32)(props.count); \
+			if (nRows > rows.count) { \
+				nRows = (sl_uint32)(rows.count); \
+			} \
+			for (sl_uint32 iRow = 0; iRow < nRows; iRow++) { \
+				TYPE##CellProp& prop = props[iRow]; \
+				prop.width = col.width; \
+				prop.height = rows[iRow].height; \
+				if (prop.flagCoveredX || prop.flagCoveredY) { \
+					continue; \
+				} \
+				sl_uint32 iRowEnd = iRow + prop.rowspan; \
+				if (iRowEnd > nRows) { \
+					iRowEnd = nRows; \
+				} \
+				sl_uint32 iColEnd = iCol + prop.colspan; \
+				if (iColEnd > nColumns) { \
+					iColEnd = nColumns; \
+				} \
+				sl_uint32 i; \
+				for (i = iRow + 1; i < iRowEnd; i++) { \
+					props[i].flagCoveredY = sl_true; \
+					prop.height += rows[i].height; \
+				} \
+				for (i = iCol + 1; i < iColEnd; i++) { \
+					Column& spanCol = columns[i]; \
+					prop.width += spanCol.width; \
+					ListElements<TYPE##CellProp> spanProps(spanCol.list##TYPE##Cell); \
+					if (iRowEnd <= spanProps.count) { \
+						spanProps[iRow].flagCoveredX = sl_true; \
+						for (sl_uint32 j = iRow + 1; j < iRowEnd; j++) { \
+							TYPE##CellProp& cell = spanProps[j]; \
+							cell.flagCoveredX = sl_true; \
+							cell.flagCoveredY = sl_true; \
+						} \
+					} \
+				} \
+			} \
+		} \
+	}
+
+	DEFINE_PREPARE_CELLS(Record)
+	DEFINE_PREPARE_CELLS(Header)
+	DEFINE_PREPARE_CELLS(Footer)
+
+
+	Ref<GridView::Cell> GridView::_createRecordCell(RecordCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol, const Variant& recordData)
+	{
+		if (prop.creator.isNull()) {
+			return sl_null;
+		}
+		if (prop.flagCoveredX || prop.flagCoveredY) {
+			return sl_null;
+		}
+		CellParam param(prop);
+		param.view = this;
+		param.record = iRecord;
+		param.row = iRow;
+		param.column = iCol;
+		param.recordData = recordData;
+		Ref<Cell> cell = prop.creator(param);
+		if (cell.isNotNull()) {
+			(CellParam&)(*cell) = Move(param);
+			cell->onInit();
+		}
+		return cell;
+	}
+
+	GridView::Cell* GridView::_getFixedCell(FixedCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol)
+	{
+		if (prop.creator.isNull()) {
+			return sl_null;
+		}
+		if (prop.flagCoveredX || prop.flagCoveredY) {
+			return sl_null;
+		}
+		if (prop.flagMadeCell) {
+			return prop.cell.get();
+		}
+		prop.flagMadeCell = sl_true;
+		CellParam param(prop);
+		param.view = this;
+		param.record = iRecord;
+		param.row = iRow;
+		param.column = iCol;
+		prop.cell = prop.creator(param);
+		if (prop.cell.isNotNull()) {
+			(CellParam&)(*(prop.cell)) = Move(param);
+			prop.cell->onInit();
+		}
+		return prop.cell.get();
 	}
 
 	void GridView::onClickEvent(UIEvent* ev)
 	{
-		if (ev->isMouseEvent()) {
-			sl_int64 rowIndex = getRowIndexAt((sl_int32)ev->getPoint().y);
-			sl_int32 colIndex = getColumnIndexAt((sl_int32)ev->getPoint().x);
-			if (rowIndex >= 0 && colIndex >= 0) {
-				UIPoint pt = getPositionInGridCell(ev->getPoint(), rowIndex, colIndex);
-				dispatchClickItem(rowIndex, colIndex, pt, ev);
+		CellEventParam param;
+		if (_prepareMouseEventParam(ev, param)) {
+			if (param.record == HEADER) {
+				dispatchClickHeader(ev, param);
+			} else if (param.record == FOOTER) {
+				dispatchClickFooter(ev, param);
+			} else if (param.record >= 0) {
+				dispatchClickRecord(ev, param);
 			}
 		}
 	}
@@ -763,89 +1410,177 @@ namespace slib
 	void GridView::onMouseEvent(UIEvent* ev)
 	{
 		UIAction action = ev->getAction();
-		if (action == UIAction::RightButtonDown || action == UIAction::LeftButtonDoubleClick || action == UIAction::MouseMove || action == UIAction::MouseEnter) {
-			sl_int64 rowIndex = getRowIndexAt((sl_int32)ev->getPoint().y);
-			sl_int32 colIndex = getColumnIndexAt((sl_int32)ev->getPoint().x);
-			if (rowIndex >= 0 && colIndex >= 0) {
-				if ((sl_uint32)colIndex < m_nLeftColumns || (sl_uint32)colIndex > m_nColumns - m_nRightColumns - 1) {
-					UIPoint pt = getPositionInGridCell(ev->getPoint(), rowIndex, colIndex);
-					if (action == UIAction::RightButtonDown) {
-						dispatchRightButtonClickItem(rowIndex, colIndex, pt, ev);
+		switch (action) {
+			case UIAction::LeftButtonDown:
+				{
+					CellEventParam param;
+					if (_prepareMouseEventParam(ev, param)) {
+						if (param.record == HEADER) {
+							dispatchRightButtonClickHeader(ev, param);
+						} else if (param.record == FOOTER) {
+							dispatchRightButtonClickHeader(ev, param);
+						} else if (param.record >= 0) {
+							dispatchRightButtonClickRecord(ev, param);
+						}
 					}
-					else if (action == UIAction::LeftButtonDoubleClick) {
-						dispatchDoubleClickItem(rowIndex, colIndex, pt, ev);
+				}
+				break;
+			case UIAction::LeftButtonDoubleClick:
+				{
+					CellEventParam param;
+					if (_prepareMouseEventParam(ev, param)) {
+						if (param.record == HEADER) {
+							dispatchDoubleClickHeader(ev, param);
+						} else if (param.record == FOOTER) {
+							dispatchDoubleClickHeader(ev, param);
+						} else if (param.record >= 0) {
+							dispatchDoubleClickRecord(ev, param);
+						}
 					}
-					if (m_indexHover != rowIndex) {
-						m_indexHover = rowIndex;
+				}
+				break;
+			case UIAction::MouseMove:
+				{
+					sl_int64 record = -1;
+					sl_uint32 row = 0;
+					sl_uint32 col = 0;
+					if (getCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()), &record, &row, &col)) {
+						if (record < 0) {
+							record = -1;
+							row = 0;
+							col = 0;
+						}
+					}
+					if (m_locationHover.record != record || m_locationHover.row != row || m_locationHover.column != col) {
+						m_locationHover.record = record;
+						m_locationHover.row = row;
+						m_locationHover.column = col;
 						invalidate();
 					}
 				}
-				else {
-					m_focusedRow = rowIndex;
-					m_focusedColumn = colIndex;
-					if (m_indexHover != -1) {
-						m_indexHover = -1;
-					}
+				break;
+			case UIAction::MouseLeave:
+				{
+					m_locationHover.record = -1;
+					m_locationHover.row = -1;
+					m_locationHover.column = -1;
 					invalidate();
 				}
-				
-			} else {
-				if (m_indexHover != -1 || m_focusedRow != -1 || m_focusedColumn != -1) {
-					m_focusedRow = -1;
-					m_focusedColumn = -1;
-					m_indexHover = -1;
-					invalidate();
+				break;
+			default:
+				break;
+		}
+	}
+
+	sl_bool GridView::_prepareMouseEventParam(UIEvent* ev, CellEventParam& param)
+	{
+		if (ev->isMouseEvent()) {
+			if (getCellAt((sl_ui_pos)(ev->getX()), (sl_ui_pos)(ev->getY()), &(param.record), &(param.row), &(param.column))) {
+				if (param.record >= 0) {
+					param.recordData = m_recordData(param.record);
 				}
-			}
-		} else if (action == UIAction::MouseLeave) {
-			if (m_indexHover != -1) {
-				m_indexHover = -1;
-				invalidate();
+				return sl_true;
 			}
 		}
+		return sl_false;
 	}
 
 	void GridView::onKeyEvent(UIEvent* ev)
 	{
-		sl_int64 nTotal = m_nRows;
-		if (nTotal <= 0) {
+	}
+
+	void GridView::onUpdateFont(const Ref<Font>& font)
+	{
+		ObjectLocker lock(this);
+		_invalidateRecordCells();
+		_invalidateFixedCells();
+		refreshContentHeight(UIUpdateMode::None);
+	}
+
+	void GridView::_invalidateRecordCells()
+	{
+		m_flagInvalidateRecordRows = sl_true;
+		m_mapRecordCache.setNull();
+		ListElements<Column> columns(m_columns);
+		for (sl_size iCol = 0; iCol < columns.count; iCol++) {
+			Column& col = columns[iCol];
+			ListElements<RecordCellProp> props(col.listRecordCell);
+			for (sl_size iRow = 0; iRow < props.count; iRow++) {
+				RecordCellProp& prop = props[iRow];
+				prop.flagCoveredX = sl_false;
+				prop.flagCoveredY = sl_false;
+			}
+		}
+	}
+
+	void GridView::_invalidateRecordCells(Column& col, sl_uint32 iCol)
+	{
+		sl_uint32 nRows = (sl_uint32)(m_listRecordRow.getCount());
+		if (!nRows) {
 			return;
 		}
-
-		if (ev->getAction() == UIAction::KeyDown) {
+		auto node = m_mapRecordCache.getFirstNode();
+		while (node) {
+			for (sl_uint32 iRow = 0; iRow < nRows; iRow++) {
+				node->value.setAt_NoLock(iCol * nRows + iRow, sl_null);
+			}
+			node = node->getNext();
 		}
 	}
 
-
-	GridView::TextCell::TextCell()
+	void GridView::_invalidateRecordCell(RecordCellProp& prop, sl_uint32 iRow, sl_uint32 iCol)
 	{
-	}
-
-	GridView::TextCell::~TextCell()
-	{
-	}
-
-	void GridView::TextCell::onDraw(DrawCellParam& cellParam)
-	{
-		SimpleTextBoxParam param;
-		param.text = cellParam.data.toString();
-		if (param.text.isEmpty()) {
+		sl_uint32 nRows = (sl_uint32)(m_listRecordRow.getCount());
+		if (!nRows) {
 			return;
 		}
-		SimpleTextBox::DrawParam drawParam;
-		drawParam.frame = cellParam.region;
-		drawParam.textColor = Color::Black;
-		SimpleTextBox box;
-		param.font = cellParam.parent->getFont();
-		param.width = drawParam.frame.getWidth();
-		param.ellipsizeMode = EllipsizeMode::None;
-		param.align = Alignment::Center;
-		box.update(param);
-		box.draw(cellParam.canvas, drawParam);
+		auto node = m_mapRecordCache.getFirstNode();
+		while (node) {
+			node->value.setAt_NoLock(iCol * nRows + iRow, sl_null);
+			node = node->getNext();
+		}
 	}
 
-	void GridView::TextCell::onEvent(CellEvent& ev)
+	void GridView::_invalidateFixedCells()
 	{
+		ListElements<Column> columns(m_columns);
+		for (sl_size iCol = 0; iCol < columns.count; iCol++) {
+			Column& col = columns[iCol];
+			_invalidateHeaderCells(col, (sl_uint32)iCol);
+			_invalidateFooterCells(col, (sl_uint32)iCol);
+		}
 	}
+
+#define DEFINE_INVALIDATE_FIXED_CELLS(TYPE) \
+	void GridView::_invalidate##TYPE##Cell(TYPE##CellProp& prop, sl_uint32 iRow, sl_uint32 iCol) \
+	{ \
+		prop.cell.setNull(); \
+		prop.flagMadeCell = sl_false; \
+	} \
+	void GridView::_invalidate##TYPE##Cells(Column& col, sl_uint32 iCol, sl_bool flagAllColumns) \
+	{ \
+		ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+		for (sl_size iRow = 0; iRow < props.count; iRow++) { \
+			TYPE##CellProp& prop = props[iRow]; \
+			prop.cell.setNull(); \
+			prop.flagMadeCell = sl_false; \
+			if (flagAllColumns) { \
+				prop.flagCoveredX = sl_false; \
+				prop.flagCoveredY = sl_false; \
+			} \
+		} \
+	} \
+	void GridView::_invalidate##TYPE##Cells() \
+	{ \
+		m_flagInvalidate##TYPE##Rows = sl_true; \
+		ListElements<Column> columns(m_columns); \
+		for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
+			Column& col = columns[iCol]; \
+			_invalidate##TYPE##Cells(col, (sl_uint32)iCol, sl_true); \
+		} \
+	}
+
+	DEFINE_INVALIDATE_FIXED_CELLS(Header)
+	DEFINE_INVALIDATE_FIXED_CELLS(Footer)
 
 }

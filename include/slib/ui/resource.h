@@ -353,6 +353,7 @@ namespace slib
 	class ListBox;
 	class LabelList;
 	class TileLayout;
+	class GridView;
 	class PdfView;
 
 	class XControl;
