@@ -245,9 +245,9 @@ namespace slib
 			sl_bool flagOnLayout;
 		};
 		sl_bool _processLayoutResourceControl(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_View(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Window(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Page(LayoutControlProcessParams* params);
-		sl_bool _processLayoutResourceControl_View(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_ViewGroup(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Import(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Button(LayoutControlProcessParams* params);
@@ -290,6 +290,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_TileLayout(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Pdf(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_GroupBox(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_Grid(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_XControl(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_XButton(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_XEdit(LayoutControlProcessParams* params);

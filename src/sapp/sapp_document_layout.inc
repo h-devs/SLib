@@ -992,20 +992,21 @@ namespace slib
 									return sl_false;
 								}
 								if (resourceItem->itemType == SAppLayoutItemType::Linear) {
-									if (!(resourceItem->attrsLinear->orientation.flagDefined) || resourceItem->attrsLinear->orientation.value == LayoutOrientation::Vertical) {
-										childItem->attrsView->topMode = PositionMode::Free;
-										childItem->attrsView->bottomMode = PositionMode::Free;
+									SAppLayoutLinearAttributes* attrs = (SAppLayoutLinearAttributes*)(resourceItem->attrs.get());
+									if (!(attrs->orientation.flagDefined) || attrs->orientation.value == LayoutOrientation::Vertical) {
+										childItem->attrs->topMode = PositionMode::Free;
+										childItem->attrs->bottomMode = PositionMode::Free;
 									} else {
-										childItem->attrsView->leftMode = PositionMode::Free;
-										childItem->attrsView->rightMode = PositionMode::Free;
+										childItem->attrs->leftMode = PositionMode::Free;
+										childItem->attrs->rightMode = PositionMode::Free;
 									}
 								} else if (resourceItem->itemType == SAppLayoutItemType::Refresh) {
-									childItem->attrsView->width.flagDefined = sl_true;
-									childItem->attrsView->width.amount = 1;
-									childItem->attrsView->width.unit = SAppDimensionValue::FILL;
-									childItem->attrsView->height.flagDefined = sl_true;
-									childItem->attrsView->height.amount = 1;
-									childItem->attrsView->height.unit = SAppDimensionValue::FILL;
+									childItem->attrs->width.flagDefined = sl_true;
+									childItem->attrs->width.amount = 1;
+									childItem->attrs->width.unit = SAppDimensionValue::FILL;
+									childItem->attrs->height.flagDefined = sl_true;
+									childItem->attrs->height.amount = 1;
+									childItem->attrs->height.unit = SAppDimensionValue::FILL;
 								}
 								if (!(resourceItem->children.add(childItem))) {
 									_logError(resourceItem->element, g_str_error_out_of_memory);
@@ -1079,12 +1080,12 @@ namespace slib
 				_logError(element, g_str_error_out_of_memory); \
 				return sl_false; \
 			} \
-			resourceItem->attrs##NAME = attr; \
+			resourceItem->attrs = attr; \
 			if (resourceItem->className.isEmpty()) { \
 				resourceItem->className = "slib::" #VIEWTYPE; \
 			} \
 		} else { \
-			attr = resourceItem->attrs##NAME; \
+			attr = Ref<SAppLayout##NAME##Attributes>::from(resourceItem->attrs); \
 			if (op == OP_SIMULATE) { \
 				if (!flagOnLayout && params->view.isNull()) { \
 					params->view = new VIEWTYPE; \
@@ -1489,6 +1490,7 @@ namespace slib
 
 #define LAYOUT_CONTROL_PROCESS_SUPER(BASE) \
 	{ \
+		static_cast<SAppLayout##BASE##Attributes*>(attr.get()); \
 		String tempAddStatement = params->addStatement; \
 		params->addStatement = sl_null; \
 		if (!(_processLayoutResourceControl_##BASE(params))) { \
@@ -1504,15 +1506,15 @@ namespace slib
 
 #define LAYOUT_CONTROL_SET_NATIVE_WIDGET \
 	if (op == OP_GENERATE_CPP) { \
-		if (resourceItem->attrsView->isNotRequiredNative(sl_false) || attr->isNotRequiredNative()) { \
-			if (!(resourceItem->attrsView->nativeWidget.flagDefined)) { \
+		if (resourceItem->attrs->isNotRequiredNative(sl_false) || attr->isNotRequiredNative()) { \
+			if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
 				params->sbDefineInit->add(String::format("%s%s->setCreatingNativeWidget(sl_false);%n", strTab, name)); \
 			} \
 		} \
 	} else if (op == OP_SIMULATE) { \
 		if (!flagOnLayout) { \
-			if (resourceItem->attrsView->isNotRequiredNative(sl_false) || attr->isNotRequiredNative()) { \
-				if (!(resourceItem->attrsView->nativeWidget.flagDefined)) { \
+			if (resourceItem->attrs->isNotRequiredNative(sl_false) || attr->isNotRequiredNative()) { \
+				if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
 					view->setCreatingNativeWidget(sl_false); \
 				} \
 			} \
@@ -1521,181 +1523,20 @@ namespace slib
 
 #define LAYOUT_CONTROL_SET_NATIVE_WIDGET_CHECK_BACKGROUND_COLOR \
 	if (op == OP_GENERATE_CPP) { \
-		if (resourceItem->attrsView->isNotRequiredNative(sl_true) || attr->isNotRequiredNative()) { \
-			if (!(resourceItem->attrsView->nativeWidget.flagDefined)) { \
+		if (resourceItem->attrs->isNotRequiredNative(sl_true) || attr->isNotRequiredNative()) { \
+			if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
 				params->sbDefineInit->add(String::format("%s%s->setCreatingNativeWidget(sl_false);%n", strTab, name)); \
 			} \
 		} \
 	} else if (op == OP_SIMULATE) { \
 		if (!flagOnLayout) { \
-			if (resourceItem->attrsView->isNotRequiredNative(sl_true) || attr->isNotRequiredNative()) { \
-				if (!(resourceItem->attrsView->nativeWidget.flagDefined)) { \
+			if (resourceItem->attrs->isNotRequiredNative(sl_true) || attr->isNotRequiredNative()) { \
+				if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
 					view->setCreatingNativeWidget(sl_false); \
 				} \
 			} \
 		} \
 	}
-
-	BEGIN_PROCESS_LAYOUT_CONTROL(Window, View)
-	{
-		Window* view = params->window;
-
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minWidth, setMinimumWidth, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxWidth, setMaximumWidth, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minHeight, setMinimumHeight, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxHeight, setMaximumHeight, checkForWindow)
-		LAYOUT_CONTROL_GENERIC_ATTR(aspectRatio, setAspectRatio)
-		LAYOUT_CONTROL_GENERIC_ATTR(minAspectRatio, setMinimumAspectRatio)
-		LAYOUT_CONTROL_GENERIC_ATTR(maxAspectRatio, setMaximumAspectRatio)
-
-		LAYOUT_CONTROL_GENERIC_ATTR(minimized, setMinimized)
-		LAYOUT_CONTROL_GENERIC_ATTR(maximized, setMaximized)
-		LAYOUT_CONTROL_GENERIC_ATTR(visible, setVisible)
-		LAYOUT_CONTROL_GENERIC_ATTR(alwaysOnTop, setAlwaysOnTop)
-		LAYOUT_CONTROL_GENERIC_ATTR(closeButton, setCloseButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(minimizeButton, setMinimizeButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(maximizeButton, setMaximizeButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(fullScreenButton, setFullScreenButtonEnabled)
-		LAYOUT_CONTROL_GENERIC_ATTR(resizable, setResizable)
-		LAYOUT_CONTROL_GENERIC_ATTR(layered, setLayered)
-		LAYOUT_CONTROL_GENERIC_ATTR(alpha, setAlpha)
-		LAYOUT_CONTROL_GENERIC_ATTR(transparent, setTransparent)
-		LAYOUT_CONTROL_COLOR_ATTR(backgroundColor, setBackgroundColor)
-
-		LAYOUT_CONTROL_GENERIC_ATTR(modal, setModal)
-		LAYOUT_CONTROL_GENERIC_ATTR(dialog, setDialog)
-		LAYOUT_CONTROL_GENERIC_ATTR(borderless, setBorderless)
-		LAYOUT_CONTROL_GENERIC_ATTR(titleBar, setTitleBarVisible)
-		LAYOUT_CONTROL_GENERIC_ATTR(fullScreen, setFullScreen)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(centerScreen, setCenterScreen)
-		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginLeft, setMarginLeft, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginTop, setMarginTop, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginRight, setMarginRight, checkForWindow)
-		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginBottom, setMarginBottom, checkForWindow)
-		if (op == OP_PARSE) {
-			SAppDimensionValue margin;
-			LAYOUT_CONTROL_PARSE_DIMENSION_ATTR(, margin)
-			if (!(margin.checkForWindow())) {
-				LOG_ERROR_LAYOUT_CONTROL_ATTR(margin)
-				return sl_false;
-			}
-			if (margin.flagDefined) {
-				if (!(attr->marginLeft.flagDefined)) {
-					attr->marginLeft = margin;
-				}
-				if (!(attr->marginTop.flagDefined)) {
-					attr->marginTop = margin;
-				}
-				if (!(attr->marginRight.flagDefined)) {
-					attr->marginRight = margin;
-				}
-				if (!(attr->marginBottom.flagDefined)) {
-					attr->marginBottom = margin;
-				}
-			}
-		}
-
-		LAYOUT_CONTROL_MENU_ATTR(menu, setMenu)
-		LAYOUT_CONTROL_STRING_ATTR(title, setTitle)
-		if (op == OP_PARSE) {
-			LAYOUT_CONTROL_INT_DIMENSION_ATTR(left, setLeft, checkForWindow)
-			LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
-			LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
-			LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
-		} else if (op == OP_GENERATE_CPP) {
-			LAYOUT_CONTROL_INT_DIMENSION_ATTR(left, setLeft, checkForWindow)
-			LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
-			if (attr->width.flagDefined) {
-				if (attr->width.unit == SAppDimensionValue::WRAP) {
-					params->sbDefineInit->add(String::format("%s%s->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
-				} else if (attr->width.unit == SAppDimensionValue::FILL) {
-					params->sbDefineInit->add(String::format("%s%s->setWidthFilling(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
-				} else {
-					LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
-				}
-			}
-			if (attr->height.flagDefined) {
-				if (attr->height.unit == SAppDimensionValue::WRAP) {
-					params->sbDefineInit->add(String::format("%s%s->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
-				} else if (attr->height.unit == SAppDimensionValue::FILL) {
-					params->sbDefineInit->add(String::format("%s%s->setHeightFilling(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
-				} else {
-					LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
-				}
-			}
-		} else if (op == OP_SIMULATE) {
-			if (!flagOnLayout) {
-				flagOnLayout = sl_true;
-				LAYOUT_CONTROL_INT_DIMENSION_ATTR(left, setLeft, checkForWindow)
-				LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
-				if (attr->width.flagDefined) {
-					if (attr->width.unit == SAppDimensionValue::WRAP) {
-						view->setWidthWrapping(sl_true, UIUpdateMode::Init);
-					} else if (attr->width.unit == SAppDimensionValue::FILL) {
-						view->setWidthFilling(sl_true, UIUpdateMode::Init);
-					} else {
-						LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
-					}
-				}
-				if (attr->height.flagDefined) {
-					if (attr->height.unit == SAppDimensionValue::WRAP) {
-						view->setHeightWrapping(sl_true, UIUpdateMode::Init);
-					} else if (attr->height.unit == SAppDimensionValue::FILL) {
-						view->setHeightFilling(sl_true, UIUpdateMode::Init);
-					} else {
-						LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
-					}
-				}
-				flagOnLayout = sl_false;
-			}
-		}
-
-		params->name = "m_contentView";
-		if (!(_processLayoutResourceControl_View(params))) {
-			params->resourceItem->attrsView->resetLayout();
-			return sl_false;
-		}
-
-		if (op == OP_PARSE) {
-			if (!(attr->backgroundColor.flagDefined)) {
-				if (resourceItem->attrsView.isNotNull()) {
-					if (resourceItem->attrsView->background.flagDefined && resourceItem->attrsView->background.flagColor) {
-						attr->backgroundColor.flagDefined = sl_true;
-						attr->backgroundColor.color = resourceItem->attrsView->background.color;
-						attr->backgroundColor.resourceName = resourceItem->attrsView->background.resourceName;
-						resourceItem->attrsView->background.flagDefined = sl_false;
-					}
-				}
-			}
-		}
-
-	}
-	END_PROCESS_LAYOUT_CONTROL
-
-	#define SAppLayoutPageAttributes SAppLayoutViewAttributes
-	#define attrsPage attrsView
-	BEGIN_PROCESS_LAYOUT_CONTROL(Page, ViewPage)
-	{
-		if (!(_processLayoutResourceControl_View(params))) {
-			return sl_false;
-		}
-
-		if (op == OP_PARSE) {
-			if (!(resourceItem->attrsView->width.flagDefined)) {
-				resourceItem->attrsView->width.flagDefined = sl_true;
-				resourceItem->attrsView->width.amount = 1;
-				resourceItem->attrsView->width.unit = SAppDimensionValue::FILL;
-			}
-			if (!(resourceItem->attrsView->height.flagDefined)) {
-				resourceItem->attrsView->height.flagDefined = sl_true;
-				resourceItem->attrsView->height.amount = 1;
-				resourceItem->attrsView->height.unit = SAppDimensionValue::FILL;
-			}
-		}
-
-	}
-	END_PROCESS_LAYOUT_CONTROL
 
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(View, View)
@@ -2294,7 +2135,7 @@ namespace slib
 		if (op == OP_PARSE) {
 			attr->finalFont = attr->font;
 			if (!flagRoot) {
-				attr->finalFont.inheritFrom(params->parentResourceItem->attrsView->finalFont);
+				attr->finalFont.inheritFrom(params->parentResourceItem->attrs->finalFont);
 			}
 			if (attr->font.isDefined()) {
 				attr->font = attr->finalFont;
@@ -2433,9 +2274,165 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
+	BEGIN_PROCESS_LAYOUT_CONTROL(Window, View)
+	{
+		Window* view = params->window;
 
-#define SAppLayoutViewGroupAttributes SAppLayoutViewAttributes
-#define attrsViewGroup attrsView
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minWidth, setMinimumWidth, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxWidth, setMaximumWidth, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(minHeight, setMinimumHeight, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR(maxHeight, setMaximumHeight, checkForWindow)
+		LAYOUT_CONTROL_GENERIC_ATTR(aspectRatio, setAspectRatio)
+		LAYOUT_CONTROL_GENERIC_ATTR(minAspectRatio, setMinimumAspectRatio)
+		LAYOUT_CONTROL_GENERIC_ATTR(maxAspectRatio, setMaximumAspectRatio)
+
+		LAYOUT_CONTROL_GENERIC_ATTR(minimized, setMinimized)
+		LAYOUT_CONTROL_GENERIC_ATTR(maximized, setMaximized)
+		LAYOUT_CONTROL_GENERIC_ATTR(visible, setVisible)
+		LAYOUT_CONTROL_GENERIC_ATTR(alwaysOnTop, setAlwaysOnTop)
+		LAYOUT_CONTROL_GENERIC_ATTR(closeButton, setCloseButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(minimizeButton, setMinimizeButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(maximizeButton, setMaximizeButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(fullScreenButton, setFullScreenButtonEnabled)
+		LAYOUT_CONTROL_GENERIC_ATTR(resizable, setResizable)
+		LAYOUT_CONTROL_GENERIC_ATTR(layered, setLayered)
+		LAYOUT_CONTROL_GENERIC_ATTR(alpha, setAlpha)
+		LAYOUT_CONTROL_GENERIC_ATTR(transparent, setTransparent)
+		LAYOUT_CONTROL_COLOR_ATTR(backgroundColor, setBackgroundColor)
+
+		LAYOUT_CONTROL_GENERIC_ATTR(modal, setModal)
+		LAYOUT_CONTROL_GENERIC_ATTR(dialog, setDialog)
+		LAYOUT_CONTROL_GENERIC_ATTR(borderless, setBorderless)
+		LAYOUT_CONTROL_GENERIC_ATTR(titleBar, setTitleBarVisible)
+		LAYOUT_CONTROL_GENERIC_ATTR(fullScreen, setFullScreen)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(centerScreen, setCenterScreen)
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(gravity, setGravity)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginLeft, setMarginLeft, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginTop, setMarginTop, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginRight, setMarginRight, checkForWindow)
+		LAYOUT_CONTROL_INT_DIMENSION_ATTR_NOREDRAW(marginBottom, setMarginBottom, checkForWindow)
+		if (op == OP_PARSE) {
+			SAppDimensionValue margin;
+			LAYOUT_CONTROL_PARSE_DIMENSION_ATTR(, margin)
+			if (!(margin.checkForWindow())) {
+				LOG_ERROR_LAYOUT_CONTROL_ATTR(margin)
+				return sl_false;
+			}
+			if (margin.flagDefined) {
+				if (!(attr->marginLeft.flagDefined)) {
+					attr->marginLeft = margin;
+				}
+				if (!(attr->marginTop.flagDefined)) {
+					attr->marginTop = margin;
+				}
+				if (!(attr->marginRight.flagDefined)) {
+					attr->marginRight = margin;
+				}
+				if (!(attr->marginBottom.flagDefined)) {
+					attr->marginBottom = margin;
+				}
+			}
+		}
+
+		LAYOUT_CONTROL_MENU_ATTR(menu, setMenu)
+		LAYOUT_CONTROL_STRING_ATTR(title, setTitle)
+		if (op == OP_PARSE) {
+			LAYOUT_CONTROL_INT_DIMENSION_ATTR(left, setLeft, checkForWindow)
+			LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
+			LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
+			LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
+		} else if (op == OP_GENERATE_CPP) {
+			LAYOUT_CONTROL_INT_DIMENSION_ATTR(left, setLeft, checkForWindow)
+			LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
+			if (attr->width.flagDefined) {
+				if (attr->width.unit == SAppDimensionValue::WRAP) {
+					params->sbDefineInit->add(String::format("%s%s->setWidthWrapping(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
+				} else if (attr->width.unit == SAppDimensionValue::FILL) {
+					params->sbDefineInit->add(String::format("%s%s->setWidthFilling(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
+				} else {
+					LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
+				}
+			}
+			if (attr->height.flagDefined) {
+				if (attr->height.unit == SAppDimensionValue::WRAP) {
+					params->sbDefineInit->add(String::format("%s%s->setHeightWrapping(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
+				} else if (attr->height.unit == SAppDimensionValue::FILL) {
+					params->sbDefineInit->add(String::format("%s%s->setHeightFilling(sl_true, slib::UIUpdateMode::Init);%n", strTab, name));
+				} else {
+					LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
+				}
+			}
+		} else if (op == OP_SIMULATE) {
+			if (!flagOnLayout) {
+				flagOnLayout = sl_true;
+				LAYOUT_CONTROL_INT_DIMENSION_ATTR(left, setLeft, checkForWindow)
+				LAYOUT_CONTROL_INT_DIMENSION_ATTR(top, setTop, checkForWindow)
+				if (attr->width.flagDefined) {
+					if (attr->width.unit == SAppDimensionValue::WRAP) {
+						view->setWidthWrapping(sl_true, UIUpdateMode::Init);
+					} else if (attr->width.unit == SAppDimensionValue::FILL) {
+						view->setWidthFilling(sl_true, UIUpdateMode::Init);
+					} else {
+						LAYOUT_CONTROL_INT_DIMENSION_ATTR(width, setClientWidth, checkForWindowSize)
+					}
+				}
+				if (attr->height.flagDefined) {
+					if (attr->height.unit == SAppDimensionValue::WRAP) {
+						view->setHeightWrapping(sl_true, UIUpdateMode::Init);
+					} else if (attr->height.unit == SAppDimensionValue::FILL) {
+						view->setHeightFilling(sl_true, UIUpdateMode::Init);
+					} else {
+						LAYOUT_CONTROL_INT_DIMENSION_ATTR(height, setClientHeight, checkForWindowSize)
+					}
+				}
+				flagOnLayout = sl_false;
+			}
+		}
+
+		params->name = "m_contentView";
+		if (!(_processLayoutResourceControl_View(params))) {
+			params->resourceItem->attrs->resetLayout();
+			return sl_false;
+		}
+
+		if (op == OP_PARSE) {
+			if (!(attr->backgroundColor.flagDefined)) {
+				if (resourceItem->attrs.isNotNull()) {
+					if (resourceItem->attrs->background.flagDefined && resourceItem->attrs->background.flagColor) {
+						attr->backgroundColor.flagDefined = sl_true;
+						attr->backgroundColor.color = resourceItem->attrs->background.color;
+						attr->backgroundColor.resourceName = resourceItem->attrs->background.resourceName;
+						resourceItem->attrs->background.flagDefined = sl_false;
+					}
+				}
+			}
+		}
+
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(Page, ViewPage)
+	{
+		if (!(_processLayoutResourceControl_View(params))) {
+			return sl_false;
+		}
+
+		if (op == OP_PARSE) {
+			if (!(resourceItem->attrs->width.flagDefined)) {
+				resourceItem->attrs->width.flagDefined = sl_true;
+				resourceItem->attrs->width.amount = 1;
+				resourceItem->attrs->width.unit = SAppDimensionValue::FILL;
+			}
+			if (!(resourceItem->attrs->height.flagDefined)) {
+				resourceItem->attrs->height.flagDefined = sl_true;
+				resourceItem->attrs->height.amount = 1;
+				resourceItem->attrs->height.unit = SAppDimensionValue::FILL;
+			}
+		}
+
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
 	BEGIN_PROCESS_LAYOUT_CONTROL(ViewGroup, ViewGroup)
 	{
 		if (!(_processLayoutResourceControl_View(params))) {
@@ -2443,7 +2440,6 @@ namespace slib
 		}
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Import, SAppLayoutImportView)
 	{
@@ -2507,7 +2503,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Button, Button)
 	{
@@ -2804,7 +2799,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Label, LabelView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -2837,7 +2831,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Line, LineView)
 	{
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setOrientation)
@@ -2865,7 +2858,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Check, CheckBox)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(Button)
@@ -2876,7 +2868,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Radio, RadioButton)
 	{
@@ -2927,7 +2918,7 @@ namespace slib
 		LAYOUT_CONTROL_FONT_ATTR(hintFont, setHintFont) \
 		if (op == OP_PARSE) { \
 			if (attr->hintFont.isDefined()) { \
-				attr->hintFont.inheritFrom(resourceItem->attrsView->finalFont); \
+				attr->hintFont.inheritFrom(resourceItem->attrs->finalFont); \
 			} \
 		} \
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(readOnly, setReadOnly) \
@@ -2952,9 +2943,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
-#define SAppLayoutPasswordAttributes SAppLayoutEditAttributes
-#define attrsPassword attrsEdit
 	BEGIN_PROCESS_LAYOUT_CONTROL(Password, PasswordView)
 	{
 		if (!(_processLayoutResourceControl_Edit(params))) {
@@ -2963,9 +2951,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
-#define SAppLayoutTextAreaAttributes SAppLayoutEditAttributes
-#define attrsTextArea attrsEdit
 	BEGIN_PROCESS_LAYOUT_CONTROL(TextArea, TextArea)
 	{
 		if (!(_processLayoutResourceControl_Edit(params))) {
@@ -2973,7 +2958,6 @@ namespace slib
 		}
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Image, ImageView)
 	{
@@ -2986,43 +2970,43 @@ namespace slib
 
 
 		if (op == OP_PARSE) {
-			if (!(resourceItem->attrsView->width.flagDefined) && !(resourceItem->attrsView->height.flagDefined)) {
-				if (resourceItem->attrsView->aspectRatio.flagDefined) {
-					resourceItem->attrsView->width.flagDefined = sl_true;
-					resourceItem->attrsView->width.amount = 1;
-					resourceItem->attrsView->width.unit = SAppDimensionValue::WRAP;
+			if (!(resourceItem->attrs->width.flagDefined) && !(resourceItem->attrs->height.flagDefined)) {
+				if (resourceItem->attrs->aspectRatio.flagDefined) {
+					resourceItem->attrs->width.flagDefined = sl_true;
+					resourceItem->attrs->width.amount = 1;
+					resourceItem->attrs->width.unit = SAppDimensionValue::WRAP;
 				} else {
-					resourceItem->attrsView->width.flagDefined = sl_true;
-					resourceItem->attrsView->width.amount = 1;
-					resourceItem->attrsView->width.unit = SAppDimensionValue::WRAP;
-					resourceItem->attrsView->height.flagDefined = sl_true;
-					resourceItem->attrsView->height.amount = 1;
-					resourceItem->attrsView->height.unit = SAppDimensionValue::WRAP;
+					resourceItem->attrs->width.flagDefined = sl_true;
+					resourceItem->attrs->width.amount = 1;
+					resourceItem->attrs->width.unit = SAppDimensionValue::WRAP;
+					resourceItem->attrs->height.flagDefined = sl_true;
+					resourceItem->attrs->height.amount = 1;
+					resourceItem->attrs->height.unit = SAppDimensionValue::WRAP;
 				}
 			}
 		}
-		if (!(resourceItem->attrsView->aspectRatio.flagDefined)) {
+		if (!(resourceItem->attrs->aspectRatio.flagDefined)) {
 			if (op == OP_GENERATE_CPP) {
-				if (resourceItem->attrsView->width.flagDefined) {
-					if (!(resourceItem->attrsView->height.flagDefined)) {
+				if (resourceItem->attrs->width.flagDefined) {
+					if (!(resourceItem->attrs->height.flagDefined)) {
 						params->sbDefineInit->add(String::format("%s%s->setAutoAspectRatio(sl_true);%n", strTab, name));
 						params->sbDefineInit->add(String::format("%s%s->setAspectRatioMode(slib::AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);%n", strTab, name));
 					}
 				} else {
-					if (resourceItem->attrsView->height.flagDefined) {
+					if (resourceItem->attrs->height.flagDefined) {
 						params->sbDefineInit->add(String::format("%s%s->setAutoAspectRatio(sl_true);%n", strTab, name));
 						params->sbDefineInit->add(String::format("%s%s->setAspectRatioMode(slib::AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init);%n", strTab, name));
 					}
 				}
 			} else if (op == OP_SIMULATE) {
 				if (!flagOnLayout) {
-					if (resourceItem->attrsView->width.flagDefined) {
-						if (!(resourceItem->attrsView->height.flagDefined)) {
+					if (resourceItem->attrs->width.flagDefined) {
+						if (!(resourceItem->attrs->height.flagDefined)) {
 							view->setAutoAspectRatio(sl_true);
 							view->setAspectRatioMode(AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);
 						}
 					} else {
-						if (resourceItem->attrsView->height.flagDefined) {
+						if (resourceItem->attrs->height.flagDefined) {
 							view->setAutoAspectRatio(sl_true);
 							view->setAspectRatioMode(AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init);
 						}
@@ -3037,7 +3021,6 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Select, SelectView)
 	{
@@ -3132,7 +3115,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(SelectSwitch, SelectSwitch)
 	{
@@ -3248,7 +3230,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(ComboBox, ComboBox)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -3342,7 +3323,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Scroll, ScrollView)
 	{
 
@@ -3363,13 +3343,13 @@ namespace slib
 					if (contentItem.isNull()) {
 						return sl_false;
 					}
-					if (!(resourceItem->attrsView->scrolling.flagDefined) || resourceItem->attrsView->scrolling.vertical) {
-						contentItem->attrsView->topMode = PositionMode::Free;
-						contentItem->attrsView->bottomMode = PositionMode::Free;
+					if (!(resourceItem->attrs->scrolling.flagDefined) || resourceItem->attrs->scrolling.vertical) {
+						contentItem->attrs->topMode = PositionMode::Free;
+						contentItem->attrs->bottomMode = PositionMode::Free;
 					}
-					if (!(resourceItem->attrsView->scrolling.flagDefined) || resourceItem->attrsView->scrolling.horizontal) {
-						contentItem->attrsView->leftMode = PositionMode::Free;
-						contentItem->attrsView->rightMode = PositionMode::Free;
+					if (!(resourceItem->attrs->scrolling.flagDefined) || resourceItem->attrs->scrolling.horizontal) {
+						contentItem->attrs->leftMode = PositionMode::Free;
+						contentItem->attrs->rightMode = PositionMode::Free;
 					}
 					attr->content = contentItem;
 				}
@@ -3397,7 +3377,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Linear, LinearLayout)
 	{
 		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(orientation, setOrientation)
@@ -3419,7 +3398,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	class _SAppDocument_SimuationListViewAdapter : public ViewAdapter
 	{
@@ -4051,7 +4029,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(ListControl, ListControl)
 	{
 
@@ -4142,7 +4119,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Render, RenderView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -4153,7 +4129,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Tab, TabView)
 	{
@@ -4242,7 +4217,7 @@ namespace slib
 							if (subItemView.isNull()) {
 								return sl_false;
 							}
-							subItemView->attrsView->resetLayout();
+							subItemView->attrs->resetLayout();
 							subItem.view = subItemView;
 						}
 					}
@@ -4367,7 +4342,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Tree, TreeView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -4390,7 +4364,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Split, SplitLayout)
 	{
@@ -4456,10 +4429,10 @@ namespace slib
 							if (subItemView.isNull()) {
 								return sl_false;
 							}
-							subItemView->attrsView->width.flagDefined = sl_false;
-							subItemView->attrsView->height.flagDefined = sl_false;
-							subItemView->attrsView->leftMode = PositionMode::Free;
-							subItemView->attrsView->topMode = PositionMode::Free;
+							subItemView->attrs->width.flagDefined = sl_false;
+							subItemView->attrs->height.flagDefined = sl_false;
+							subItemView->attrs->leftMode = PositionMode::Free;
+							subItemView->attrs->topMode = PositionMode::Free;
 							subItem.view = subItemView;
 						}
 					}
@@ -4626,7 +4599,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Web, WebView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -4685,7 +4657,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(Progress, ProgressBar)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
@@ -4707,7 +4678,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Slider, Slider)
 	{
@@ -4740,7 +4710,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Switch, SwitchView)
 	{
@@ -4795,7 +4764,6 @@ namespace slib
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
-
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Picker, PickerView)
 	{
@@ -4930,7 +4898,7 @@ namespace slib
 							if (subItemView.isNull()) {
 								return sl_false;
 							}
-							subItemView->attrsView->resetLayout();
+							subItemView->attrs->resetLayout();
 							subItem.view = subItemView;
 						}
 					}
@@ -5065,7 +5033,7 @@ namespace slib
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Drawer, Drawer)
 	{
-		LAYOUT_CONTROL_PROCESS_SUPER(ViewGroup)
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR(drawerSize, setDrawerSize, checkScalarSize)
 		LAYOUT_CONTROL_INT_DIMENSION_ATTR(dragEdgeSize, setDragEdgeSize, checkScalarSize)
@@ -5078,7 +5046,7 @@ namespace slib
 	BEGIN_PROCESS_LAYOUT_CONTROL(Refresh, RefreshView)
 	{
 
-		LAYOUT_CONTROL_PROCESS_SUPER(ViewGroup)
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -5250,9 +5218,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-#define SAppLayoutXButtonAttributes SAppLayoutButtonAttributes
-#define attrsXButton attrsButton
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(XButton, XButton)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(Button)
@@ -5261,8 +5226,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-#define SAppLayoutXEditAttributes SAppLayoutEditAttributes
-#define attrsXEdit attrsEdit
 	BEGIN_PROCESS_LAYOUT_CONTROL(XEdit, XEditView)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(XControl)
@@ -5273,8 +5236,6 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-#define SAppLayoutXPasswordAttributes SAppLayoutXEditAttributes
-#define attrsXPassword attrsXEdit
 	BEGIN_PROCESS_LAYOUT_CONTROL(XPassword, XPasswordView)
 	{
 		if (!(_processLayoutResourceControl_XEdit(params))) {
