@@ -397,7 +397,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template <class... ARGS>
 		Link<T>* insertBefore(Link<T>* itemWhere, ARGS&&... args) noexcept
 		{
@@ -412,7 +412,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template <class... ARGS>
 		Link<T>* insertAfter(Link<T>* itemWhere, ARGS&&... args) noexcept
 		{
@@ -1080,7 +1080,7 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template <class... ARGS>
 		Link<T>* insertBefore(Link<T>* itemWhere, ARGS&&... args) const noexcept
 		{
@@ -1091,7 +1091,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		template <class... ARGS>
 		Link<T>* insertAfter(Link<T>* itemWhere, ARGS&&... args) const noexcept
 		{
@@ -1102,7 +1102,7 @@ namespace slib
 			return sl_null;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		Link<T>* removeAt(Link<T>* item) const noexcept
 		{
 			CLinkedList<T>* obj = ref.ptr;

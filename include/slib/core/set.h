@@ -386,7 +386,7 @@ namespace slib
 			return ((MAP_TYPE*)((void*)this))->addAll(other);
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		void removeAt(NODE* node) const noexcept
 		{
 			CSET* obj = ref.ptr;
@@ -395,7 +395,7 @@ namespace slib
 			}
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeAt(NODE* node, sl_size count) const noexcept
 		{
 			CSET* obj = ref.ptr;
@@ -405,7 +405,7 @@ namespace slib
 			return 0;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		sl_size removeRange(NODE* first, NODE* last) const noexcept
 		{
 			CSET* obj = ref.ptr;

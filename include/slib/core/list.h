@@ -350,7 +350,7 @@ namespace slib
 		}
 
 	public:
-		/* unsynchronized function */
+		// unsynchronized function
 		T* getPointerAt(sl_size index) const noexcept
 		{
 			if (index < m_count) {
@@ -359,7 +359,7 @@ namespace slib
 			return sl_null;
 		}
 
-		sl_bool getAt_NoLock(sl_size index, T* _out = sl_null) const noexcept
+		sl_bool getAt_NoLock(sl_size index, T* _out) const noexcept
 		{
 			if (index < m_count) {
 				if (_out) {
@@ -370,7 +370,7 @@ namespace slib
 			return sl_false;
 		}
 
-		sl_bool getAt(sl_size index, T* _out = sl_null) const noexcept
+		sl_bool getAt(sl_size index, T* _out) const noexcept
 		{
 			ObjectLocker lock(this);
 			if (index < m_count) {
@@ -563,13 +563,13 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		T const& operator[](sl_size_t index) const noexcept
 		{
 			return m_data[index];
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		T& operator[](sl_size_t index) noexcept
 		{
 			return m_data[index];
@@ -1523,7 +1523,7 @@ namespace slib
 		}
 
 	public:
-		/* unsynchronized function */
+		// unsynchronized function
 		T* getPointerAt(sl_size index) const noexcept
 		{
 			CList<T>* obj = ref.ptr;
@@ -1721,7 +1721,7 @@ namespace slib
 			return sl_false;
 		}
 
-		/* unsynchronized function */
+		// unsynchronized function
 		T& operator[](sl_size_t index) const noexcept
 		{
 			return (ref->getData())[index];
