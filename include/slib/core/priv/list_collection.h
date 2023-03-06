@@ -47,7 +47,7 @@ namespace slib
 
 		Variant getElement(sl_uint64 index) override
 		{
-			return m_list->getAt_NoLock((sl_size)index);
+			return m_list->getValueAt_NoLock((sl_size)index);
 		}
 
 		sl_bool setElement(sl_uint64 index, const Variant& item) override
