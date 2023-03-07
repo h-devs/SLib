@@ -32,6 +32,8 @@
 namespace slib
 {
 
+	extern const String& g_str_error_resource_layout_attribute_invalid;
+
 	namespace {
 
 		static sl_reg ParseFloat(float* _out, const sl_char8* str, sl_size start, sl_size end)
@@ -1722,6 +1724,88 @@ namespace slib
 		if (!(underline.flagDefined)) {
 			underline = parent.underline;
 		}
+	}
+
+	namespace {
+		static String GetAttribute(SAppLayoutResourceItem* item, const String& name)
+		{
+			return item->getXmlAttribute(name);
+		}
+
+		static const Ref<XmlElement>& GetXml(SAppLayoutResourceItem* item)
+		{
+			return item->element;
+		}
+
+		static String GetAttribute(const Ref<XmlElement>& item, const String& name)
+		{
+			return item->getAttribute(name);
+		}
+
+		static const Ref<XmlElement>& GetXml(const Ref<XmlElement>& xml)
+		{
+			return xml;
+		}
+
+		class DocumentHelper : public SAppDocument
+		{
+		public:
+			using SAppDocument::_logError;
+		};
+
+		template <class TYPE>
+		static sl_bool ParseFontValue(SAppFontValue& font, const TYPE& item, const StringView& name, SAppDocument* _doc, sl_bool flagRoot)
+		{
+			DocumentHelper* doc = (DocumentHelper*)_doc;
+			const Ref<XmlElement>& xml = GetXml(item);
+			String strFamily = GetAttribute(item, name + "Family");
+			if (!(font.family.parse(strFamily))) {
+				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Family", strFamily);
+				return sl_false;
+			}
+			String strSize = GetAttribute(item, name + "Size");
+			if (!(font.size.parse(strSize, doc))) {
+				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
+				return sl_false;
+			}
+			if (flagRoot) {
+				if (!(font.size.checkForRootViewPosition())) {
+					doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
+					return sl_false;
+				}
+			} else {
+				if (!(font.size.checkPosition())) {
+					doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
+					return sl_false;
+				}
+			}
+			String strBold = GetAttribute(item, name + "Bold");
+			if (!(font.bold.parse(strBold))) {
+				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Bold", strSize);
+				return sl_false;
+			}
+			String strItalic = GetAttribute(item, name + "Italic");
+			if (!(font.italic.parse(strItalic))) {
+				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Italic", strItalic);
+				return sl_false;
+			}
+			String strUnderline = GetAttribute(item, name + "Underline");
+			if (!(font.underline.parse(strUnderline))) {
+				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Underline", strUnderline);
+				return sl_false;
+			}
+			return sl_true;
+		}
+	}
+
+	sl_bool SAppFontValue::parse(SAppLayoutResourceItem* item, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
+	{
+		return ParseFontValue(*this, item, name, doc, flagRoot);
+	}
+
+	sl_bool SAppFontValue::parse(const Ref<XmlElement>& xml, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
+	{
+		return ParseFontValue(*this, xml, name, doc, flagRoot);
 	}
 
 	/************************************************

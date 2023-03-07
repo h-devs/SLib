@@ -65,7 +65,7 @@ namespace slib
 
 		String strInherit = element->getAttribute("inherit").trim();
 		if (strInherit.isNotEmpty()) {
-			ListLocker<String> arr(strInherit.split(","));
+			ListElements<String> arr(strInherit.split(","));
 			for (sl_size i = 0; i < arr.count; i++) {
 				String s = arr[i].trim();
 				Ref<SAppLayoutStyle> inheritStyle;
@@ -204,7 +204,7 @@ namespace slib
 
 		String strStyles = element->getAttribute("styles").trim();
 		if (strStyles.isNotEmpty()) {
-			ListLocker<String> arr(strStyles.split(","));
+			ListElements<String> arr(strStyles.split(","));
 			for (sl_size i = 0; i < arr.count; i++) {
 				String s = arr[i].trim();
 				Ref<SAppLayoutStyle> style;
@@ -219,7 +219,7 @@ namespace slib
 		}
 		strStyles = element->getAttribute("style").trim();
 		if (strStyles.isNotEmpty()) {
-			ListLocker<String> arr(strStyles.split(","));
+			ListElements<String> arr(strStyles.split(","));
 			for (sl_size i = 0; i < arr.count; i++) {
 				String s = arr[i].trim();
 				Ref<SAppLayoutStyle> style;
@@ -389,7 +389,7 @@ namespace slib
 		sbHeader.add("#pragma once\r\n\r\n");
 
 		{
-			ListLocker<String> includes(m_conf.generate_cpp_layout_include_headers);
+			ListElements<String> includes(m_conf.generate_cpp_layout_include_headers);
 			for (sl_size i = 0; i < includes.count; i++) {
 				if (includes[i].isNotEmpty()) {
 					sbHeaderBase.add(String::format("#include \"%s\"%n", includes[i]));
@@ -407,7 +407,7 @@ namespace slib
 								 , m_conf.generate_cpp_namespace));
 
 		{
-			ListLocker<String> includes(m_conf.generate_cpp_layout_include_headers_in_cpp);
+			ListElements<String> includes(m_conf.generate_cpp_layout_include_headers_in_cpp);
 			for (sl_size i = 0; i < includes.count; i++) {
 				if (includes[i].isNotEmpty()) {
 					sbCpp.add(String::format("#include \"%s\"%n", includes[i]));
@@ -822,7 +822,7 @@ namespace slib
 			return sl_null;
 		}
 		{
-			ListLocker< Ref<SAppLayoutStyle> > _styles(item->styles);
+			ListElements< Ref<SAppLayoutStyle> > _styles(item->styles);
 			for (sl_size i = 0; i < _styles.count; i++) {
 				Ref<SAppLayoutStyle> style = _styles[i];
 				if (style.isNotNull()) {
@@ -838,7 +838,7 @@ namespace slib
 	sl_bool SAppDocument::_addLayoutStyleChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName)
 	{
 		{
-			ListLocker< Ref<SAppLayoutStyle> > _styles(style->inherit);
+			ListElements< Ref<SAppLayoutStyle> > _styles(style->inherit);
 			for (sl_size i = 0; i < _styles.count; i++) {
 				Ref<SAppLayoutStyle> other = _styles[i];
 				if (other.isNotNull()) {
@@ -854,7 +854,7 @@ namespace slib
 	sl_bool SAppDocument::_addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const String& localNamespace, const String& tagName)
 	{
 		{
-			ListLocker< Ref<XmlElement> > children(parent->getChildElements());
+			ListElements< Ref<XmlElement> > children(parent->getChildElements());
 			for (sl_size i = 0; i < children.count; i++) {
 				Ref<XmlElement>& child = children[i];
 				if (child.isNotNull()) {
@@ -962,6 +962,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(TileLayout)
 			PROCESS_CONTROL_SWITCH(Pdf)
 			PROCESS_CONTROL_SWITCH(GroupBox)
+			PROCESS_CONTROL_SWITCH(Grid)
 			PROCESS_CONTROL_SWITCH(XControl)
 			PROCESS_CONTROL_SWITCH(XButton)
 			PROCESS_CONTROL_SWITCH(XEdit)
@@ -979,7 +980,7 @@ namespace slib
 						if (params->resourceItem->flagNoChildren) {
 							break;
 						}
-						ListLocker< Ref<XmlElement> > children(_getLayoutItemChildElements(resourceItem, params->resource->name, sl_null));
+						ListElements< Ref<XmlElement> > children(_getLayoutItemChildElements(resourceItem, params->resource->name, sl_null));
 						for (sl_size i = 0; i < children.count; i++) {
 							const Ref<XmlElement>& child = children[i];
 							if (child.isNotNull()) {
@@ -1025,7 +1026,7 @@ namespace slib
 						params->sbDefineInit->addStatic(strEnd, sizeof(strEnd)-1);
 						name = "m_contentView";
 					}
-					ListLocker< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
+					ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
 					for (sl_size i = 0; i < children.count; i++) {
 						Ref<SAppLayoutResourceItem>& child = children[i];
 						if (child.isNotNull()) {
@@ -1040,7 +1041,7 @@ namespace slib
 						m_layoutSimulationParams.viewportWidth = params->view->getWidth();
 						m_layoutSimulationParams.viewportHeight = params->view->getHeight();
 					}
-					ListLocker< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
+					ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
 					for (sl_size i = 0; i < children.count; i++) {
 						Ref<SAppLayoutResourceItem>& child = children[i];
 						if (child.isNotNull()) {
@@ -1123,6 +1124,11 @@ namespace slib
 	String str_##NAME = XML->getAttribute(#NAME); \
 	if (!(ATTR NAME.parse(str_##NAME, this))) { \
 		LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(XML, NAME) \
+		return sl_false; \
+	}
+
+#define LAYOUT_CONTROL_PARSE_XML_FONT_ATTR(XML, ATTR, NAME) \
+	if (!(ATTR NAME.parse(XML, #NAME, this, !(params->parentResourceItem)))) { \
 		return sl_false; \
 	}
 
@@ -1399,40 +1405,7 @@ namespace slib
 
 #define LAYOUT_CONTROL_FONT_ATTR(NAME, SETFUNC) \
 	if (op == OP_PARSE) { \
-		String str_family = resourceItem->getXmlAttribute(#NAME "Family"); \
-		if (!(attr->NAME.family.parse(str_family))) { \
-			LOG_ERROR_LAYOUT_CONTROL_ATTR(family) \
-			return sl_false; \
-		} \
-		String str_size = resourceItem->getXmlAttribute(#NAME "Size"); \
-		if (!(attr->NAME.size.parse(str_size, this))) { \
-			LOG_ERROR_LAYOUT_CONTROL_ATTR(size) \
-			return sl_false; \
-		} \
-		if (params->parentResourceItem == sl_null) { \
-			if (!(attr->NAME.size.checkForRootViewPosition())) { \
-				LOG_ERROR_LAYOUT_CONTROL_ATTR(size) \
-				return sl_false; \
-			} \
-		} else { \
-			if (!(attr->NAME.size.checkPosition())) { \
-				LOG_ERROR_LAYOUT_CONTROL_ATTR(size) \
-				return sl_false; \
-			} \
-		} \
-		String str_bold = resourceItem->getXmlAttribute(#NAME "Bold"); \
-		if (!(attr->NAME.bold.parse(str_bold))) { \
-			LOG_ERROR_LAYOUT_CONTROL_ATTR(bold) \
-			return sl_false; \
-		} \
-		String str_italic = resourceItem->getXmlAttribute(#NAME "Italic"); \
-		if (!(attr->NAME.italic.parse(str_italic))) { \
-			LOG_ERROR_LAYOUT_CONTROL_ATTR(italic) \
-			return sl_false; \
-		} \
-		String str_underline = resourceItem->getXmlAttribute(#NAME "Underline"); \
-		if (!(attr->NAME.underline.parse(str_underline))) { \
-			LOG_ERROR_LAYOUT_CONTROL_ATTR(underline) \
+		if (!(attr->NAME.parse(resourceItem, #NAME, this, !(params->parentResourceItem)))) { \
 			return sl_false; \
 		} \
 	} else if (op == OP_GENERATE_CPP) { \
@@ -3057,7 +3030,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+			ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 			if (selectItems.count > 0) {
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
@@ -3083,7 +3056,7 @@ namespace slib
 			}
 		} else if (op == OP_SIMULATE) {
 			if (!flagOnLayout) {
-				ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+				ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 				if (selectItems.count > 0) {
 					sl_uint32 indexSelected = 0;
 					sl_bool flagSelected = sl_false;
@@ -3171,7 +3144,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+			ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 			if (selectItems.count > 0) {
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
@@ -3197,7 +3170,7 @@ namespace slib
 			}
 		} else if (op == OP_SIMULATE) {
 			if (!flagOnLayout) {
-				ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+				ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 				if (selectItems.count > 0) {
 					sl_uint32 indexSelected = 0;
 					sl_bool flagSelected = sl_false;
@@ -3264,7 +3237,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+			ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 			if (selectItems.count > 0) {
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
@@ -3290,7 +3263,7 @@ namespace slib
 			}
 		} else if (op == OP_SIMULATE) {
 			if (!flagOnLayout) {
-				ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+				ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 				if (selectItems.count > 0) {
 					sl_uint32 indexSelected = 0;
 					sl_bool flagSelected = sl_false;
@@ -3511,7 +3484,7 @@ namespace slib
 
 		if (op == OP_PARSE) {
 			{
-				ListLocker< Ref<XmlElement> > columnXmls(_getLayoutItemChildElements(resourceItem, resource->name, "column"));
+				ListElements< Ref<XmlElement> > columnXmls(_getLayoutItemChildElements(resourceItem, resource->name, "column"));
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					Ref<XmlElement>& columnXml = columnXmls[i];
 					if (columnXml.isNotNull()) {
@@ -3573,7 +3546,7 @@ namespace slib
 			}
 			{
 				CHashMap< Pair<sl_uint32, sl_uint32>, sl_bool > cellAllocs;
-				ListLocker< Ref<XmlElement> > rowXmls(_getLayoutItemChildElements(resourceItem, resource->name, "row"));
+				ListElements< Ref<XmlElement> > rowXmls(_getLayoutItemChildElements(resourceItem, resource->name, "row"));
 				sl_uint32 nRows = (sl_uint32)(rowXmls.count);
 				for (sl_uint32 i = 0; i < nRows; i++) {
 					Ref<XmlElement>& rowXml = rowXmls[i];
@@ -3628,7 +3601,7 @@ namespace slib
 						LAYOUT_CONTROL_PARSE_XML_ATTR(rowXml, row., align)
 
 						sl_uint32 iCell = 0;
-						ListLocker< Ref<XmlElement> > childXmls(rowXml->getChildElements());
+						ListElements< Ref<XmlElement> > childXmls(rowXml->getChildElements());
 						for (sl_size k = 0; k < childXmls.count; k++) {
 							Ref<XmlElement>& xmlView = childXmls[k];
 							if (xmlView.isNotNull()) {
@@ -4035,7 +4008,7 @@ namespace slib
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
 		if (op == OP_PARSE) {
-			ListLocker< Ref<XmlElement> > columnXmls(_getLayoutItemChildElements(resourceItem, resource->name, "column"));
+			ListElements< Ref<XmlElement> > columnXmls(_getLayoutItemChildElements(resourceItem, resource->name, "column"));
 			for (sl_size i = 0; i < columnXmls.count; i++) {
 				Ref<XmlElement>& columnXml = columnXmls[i];
 				if (columnXml.isNotNull()) {
@@ -4056,7 +4029,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutListControlColumn> columns(attr->columns);
+			ListElements<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				params->sbDefineInit->add(String::format("%s%s->setColumnCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, columns.count));
 				for (sl_size i = 0; i < columns.count; i++) {
@@ -4084,7 +4057,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_SIMULATE) {
-			ListLocker<SAppLayoutListControlColumn> columns(attr->columns);
+			ListElements<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				sl_uint32 n = (sl_uint32)(columns.count);
 				view->setColumnCount(n, UIUpdateMode::Init);
@@ -4196,7 +4169,7 @@ namespace slib
 		}
 
 		if (op == OP_PARSE) {
-			ListLocker< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
+			ListElements< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
 			for (sl_size i = 0; i < itemXmls.count; i++) {
 				Ref<XmlElement>& itemXml = itemXmls[i];
 				if (itemXml.isNotNull()) {
@@ -4231,7 +4204,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutTabItem> subItems(attr->items);
+			ListElements<SAppLayoutTabItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
@@ -4265,7 +4238,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_SIMULATE) {
-			ListLocker<SAppLayoutTabItem> subItems(attr->items);
+			ListElements<SAppLayoutTabItem> subItems(attr->items);
 			if (subItems.count > 0) {
 
 				sl_uint32 indexSelected = 0;
@@ -4327,7 +4300,7 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 
 		if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutTabItem> subItems(attr->items);
+			ListElements<SAppLayoutTabItem> subItems(attr->items);
 			for (sl_size i = 0; i < subItems.count; i++) {
 				SAppLayoutTabItem& subItem = subItems[i];
 				if (subItem.view.isNotNull()) {
@@ -4391,7 +4364,7 @@ namespace slib
 		sl_bool flagRelayoutOnLayout = sl_false;
 
 		if (op == OP_PARSE) {
-			ListLocker< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
+			ListElements< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
 			for (sl_size i = 0; i < itemXmls.count; i++) {
 				Ref<XmlElement>& itemXml = itemXmls[i];
 				if (itemXml.isNotNull()) {
@@ -4446,7 +4419,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutSplitItem> subItems(attr->items);
+			ListElements<SAppLayoutSplitItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				if (subItems.count > 2) {
 					params->sbDefineInit->add(String::format("%s%s->setItemCount(%d, slib::UIUpdateMode::Init);%n", strTab, name, subItems.count));
@@ -4513,7 +4486,7 @@ namespace slib
 			}
 		} else if (op == OP_SIMULATE) {
 
-			ListLocker<SAppLayoutSplitItem> subItems(attr->items);
+			ListElements<SAppLayoutSplitItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				if (!flagOnLayout) {
 					if (subItems.count > 2) {
@@ -4578,7 +4551,7 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 
 		if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutSplitItem> subItems(attr->items);
+			ListElements<SAppLayoutSplitItem> subItems(attr->items);
 			for (sl_size i = 0; i < subItems.count; i++) {
 				SAppLayoutSplitItem& subItem = subItems[i];
 				if (subItem.view.isNotNull()) {
@@ -4801,7 +4774,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+			ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 			if (selectItems.count > 0) {
 				sl_size indexSelected = 0;
 				sl_bool flagSelected = sl_false;
@@ -4827,7 +4800,7 @@ namespace slib
 			}
 		} else if (op == OP_SIMULATE) {
 			if (!flagOnLayout) {
-				ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+				ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 				if (selectItems.count > 0) {
 					sl_uint32 indexSelected = 0;
 					sl_bool flagSelected = sl_false;
@@ -4879,7 +4852,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERIC_ATTR(loop, setLoop)
 
 		if (op == OP_PARSE) {
-			ListLocker< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
+			ListElements< Ref<XmlElement> > itemXmls(_getLayoutItemChildElements(resourceItem, resource->name, "item"));
 			for (sl_size i = 0; i < itemXmls.count; i++) {
 				Ref<XmlElement>& itemXml = itemXmls[i];
 				if (itemXml.isNotNull()) {
@@ -4914,7 +4887,7 @@ namespace slib
 		} else if (op == OP_GENERATE_CPP) {
 			/* see below */
 		} else if (op == OP_SIMULATE) {
-			ListLocker<SAppLayoutPagerItem> subItems(attr->items);
+			ListElements<SAppLayoutPagerItem> subItems(attr->items);
 			if (subItems.count > 0) {
 
 				sl_uint32 indexSelected = 0;
@@ -4953,7 +4926,7 @@ namespace slib
 		LAYOUT_CONTROL_ADD_STATEMENT
 
 		if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutPagerItem> subItems(attr->items);
+			ListElements<SAppLayoutPagerItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				sl_size indexSelected = 0;
 				for (sl_size i = 0; i < subItems.count; i++) {
@@ -5121,7 +5094,7 @@ namespace slib
 				}
 			}
 		} else if (op == OP_GENERATE_CPP) {
-			ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+			ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 			if (selectItems.count > 0) {
 				for (sl_size i = 0; i < selectItems.count; i++) {
 					SAppLayoutSelectItem& selectItem = selectItems[i];
@@ -5141,7 +5114,7 @@ namespace slib
 			}
 		} else if (op == OP_SIMULATE) {
 			if (!flagOnLayout) {
-				ListLocker<SAppLayoutSelectItem> selectItems(attr->items);
+				ListElements<SAppLayoutSelectItem> selectItems(attr->items);
 				if (selectItems.count > 0) {
 					sl_uint32 n = (sl_uint32)(selectItems.count);
 					for (sl_uint32 i = 0; i < n; i++) {
@@ -5199,6 +5172,78 @@ namespace slib
 
 		LAYOUT_CONTROL_STRING_ATTR_NOREDRAW(label, setLabel)
 		LAYOUT_CONTROL_COLOR_ATTR_NOREDRAW(labelColor, setLabelColor)
+
+		LAYOUT_CONTROL_ADD_STATEMENT
+
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(Grid, GridView)
+	{
+
+		LAYOUT_CONTROL_PROCESS_SUPER(View)
+
+		if (op == OP_PARSE) {
+
+#define PARSE_GRID_CELL_ATTRIBUTES(ATTR, XML) \
+			{ \
+				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., align) \
+				LAYOUT_CONTROL_PARSE_XML_FONT_ATTR(XML, ATTR., font) \
+				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., multiLine) \
+				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., ellipsize) \
+				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., lineCount) \
+				LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(XML, ATTR., background) \
+				LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(XML, ATTR., backgroundHover) \
+				LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(XML, ATTR., backgroundSelected) \
+				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., textColor) \
+				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., textColorHover) \
+				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., textColorSelected) \
+			}
+			{
+				ListElements< Ref<XmlElement> > columnXmls(_getLayoutItemChildElements(resourceItem, resource->name, "column"));
+				sl_bool flagLeft = sl_true;
+				for (sl_size i = 0; i < columnXmls.count; i++) {
+					Ref<XmlElement>& columnXml = columnXmls[i];
+					SAppLayoutGridColumn column;
+					LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., width)
+					if (!(column.width.checkSize())) {
+						LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, width)
+						return sl_false;
+					}
+					PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
+					Ref<XmlElement> body = columnXml->getFirstChildElement("body");
+					if (body.isNotNull()) {
+						PARSE_GRID_CELL_ATTRIBUTES(column.bodyAttrs, body)
+					}
+					Ref<XmlElement> header = columnXml->getFirstChildElement("header");
+					if (header.isNotNull()) {
+						PARSE_GRID_CELL_ATTRIBUTES(column.headerAttrs, header)
+					}
+					Ref<XmlElement> footer = columnXml->getFirstChildElement("footer");
+					if (footer.isNotNull()) {
+						PARSE_GRID_CELL_ATTRIBUTES(column.footerAttrs, footer)
+					}
+					SAppBooleanValue fixed;
+					LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, ,fixed)
+					if (!(fixed.flagDefined && fixed.value)) {
+						flagLeft = sl_false;
+						attr->nRightColumns = (sl_uint32)(columnXmls.count - 1 - i);
+					}
+					if (flagLeft) {
+						attr->nLeftColumns = (sl_uint32)(i + 1);
+					}
+					if (!(attr->columns.add_NoLock(column))) {
+						_logError(columnXml, g_str_error_out_of_memory);
+						return sl_false;
+					}
+				}
+			}
+			
+		} else if (op == OP_GENERATE_CPP) {
+			
+		} else if (op == OP_SIMULATE) {
+			
+		}
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 

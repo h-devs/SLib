@@ -38,6 +38,8 @@ namespace slib
 {
 
 	class SAppDocument;
+	class SAppLayoutResourceItem;
+	class XmlElement;
 
 	class SAppStringValue
 	{
@@ -429,6 +431,9 @@ namespace slib
 		sl_bool isDefined();
 
 		void inheritFrom(const SAppFontValue& parent);
+
+		sl_bool parse(SAppLayoutResourceItem* item, const StringView& name, SAppDocument* doc, sl_bool flagRoot);
+		sl_bool parse(const Ref<XmlElement>& xml, const StringView& name, SAppDocument* doc, sl_bool flagRoot);
 
 	};
 

@@ -87,9 +87,9 @@ namespace slib
 		{
 		public:
 			GridView* view;
-			RecordIndex record;
 			sl_uint32 row;
 			sl_uint32 column;
+			RecordIndex record;
 			Variant recordData;
 
 		public:
@@ -183,11 +183,11 @@ namespace slib
 		sl_uint64 getRecordCount();
 		void setRecordCount(sl_uint64 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_uint32 getRecordRowCount();
+		sl_uint32 getRowCount();
 		sl_uint32 getHeaderRowCount();
 		sl_uint32 getFooterRowCount();
 
-		sl_bool setRecordRowCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
+		sl_bool setRowCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 		sl_bool setHeaderRowCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 		sl_bool setFooterRowCount(sl_uint32 count, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -197,16 +197,18 @@ namespace slib
 		sl_ui_len getRecordHeight();
 		sl_ui_len getHeaderHeight();
 		sl_ui_len getFooterHeight();
+		sl_uint64 getBodyHeight();
 
-		sl_ui_len getRecordRowHeight(sl_uint32 index);
+		sl_ui_len getRowHeight(sl_uint32 index);
 		sl_ui_len getHeaderRowHeight(sl_uint32 index);
 		sl_ui_len getFooterRowHeight(sl_uint32 index);
 
-		void setRecordRowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setRowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderRowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterRowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setRecordRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterRowHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -216,106 +218,106 @@ namespace slib
 		DataFunction getDataFunction();
 		void setDataFunction(const DataFunction& func, UIUpdateMode mode);
 
-		CellCreator getRecordCreator(sl_uint32 row, sl_uint32 column);
+		CellCreator getCellCreator(sl_uint32 row, sl_uint32 column);
 		CellCreator getHeaderCreator(sl_uint32 row, sl_uint32 column);
 		CellCreator getFooterCreator(sl_uint32 row, sl_uint32 column);
 
-		void setRecordCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		String getRecordText(sl_uint32 row, sl_uint32 column);
+		String getCellText(sl_uint32 row, sl_uint32 column);
 		String getHeaderText(sl_uint32 row, sl_uint32 column);
 		String getFooterText(sl_uint32 row, sl_uint32 column);
 
-		void setRecordText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		String getRecordFormat(sl_uint32 row, sl_uint32 column);
-		void setRecordFormat(sl_int32 row, sl_int32 column, const String& format, UIUpdateMode mode = UIUpdateMode::Redraw);
+		String getCellFormat(sl_uint32 row, sl_uint32 column);
+		void setCellFormat(sl_int32 row, sl_int32 column, const String& format, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Font> getRecordFont(sl_uint32 row, sl_uint32 column);
+		Ref<Font> getCellFont(sl_uint32 row, sl_uint32 column);
 		Ref<Font> getHeaderFont(sl_uint32 row, sl_uint32 column);
 		Ref<Font> getFooterFont(sl_uint32 row, sl_uint32 column);
 
-		void setRecordFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		MultiLineMode getRecordMultiLine(sl_uint32 row, sl_uint32 column);
+		MultiLineMode getCellMultiLine(sl_uint32 row, sl_uint32 column);
 		MultiLineMode getHeaderMultiLine(sl_uint32 row, sl_uint32 column);
 		MultiLineMode getFooterMultiLine(sl_uint32 row, sl_uint32 column);
 
-		void setRecordMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setCellMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setHeaderMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
-		EllipsizeMode getRecordEllipsize(sl_uint32 row, sl_uint32 column);
+		EllipsizeMode getCellEllipsize(sl_uint32 row, sl_uint32 column);
 		EllipsizeMode getHeaderEllipsize(sl_uint32 row, sl_uint32 column);
 		EllipsizeMode getFooterEllipsize(sl_uint32 row, sl_uint32 column);
 
-		void setRecordEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setCellEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setHeaderEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
-		sl_uint32 getRecordLineCount(sl_uint32 row, sl_uint32 column);
+		sl_uint32 getCellLineCount(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderLineCount(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getFooterLineCount(sl_uint32 row, sl_uint32 column);
 
-		void setRecordLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Alignment getRecordAlignment(sl_uint32 row, sl_uint32 column);
+		Alignment getCellAlignment(sl_uint32 row, sl_uint32 column);
 		Alignment getHeaderAlignment(sl_uint32 row, sl_uint32 column);
 		Alignment getFooterAlignment(sl_uint32 row, sl_uint32 column);
 
-		void setRecordAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getRecordBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
+		Ref<Drawable> getCellBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
 		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
 		Ref<Drawable> getFooterBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
 
-		void setRecordBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getRecordBackground();
+		Ref<Drawable> getBodyBackground();
 		Ref<Drawable> getHeaderBackground();
 		Ref<Drawable> getFooterBackground();
 
-		void setRecordBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getRecordTextColor(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
+		Color getCellTextColor(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
 		Color getHeaderTextColor(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
 		Color getFooterTextColor(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
 
-		void setRecordTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_uint32 getRecordRowspan(sl_uint32 row, sl_uint32 column);
+		sl_uint32 getRowspan(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderRowspan(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getFooterRowspan(sl_uint32 row, sl_uint32 column);
 
-		sl_uint32 getRecordColspan(sl_uint32 row, sl_uint32 column);
+		sl_uint32 getColspan(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderColspan(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getFooterColspan(sl_uint32 row, sl_uint32 column);
 
-		void setRecordRowspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setRowspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderRowspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterRowspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setRecordColspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderColspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterColspan(sl_uint32 row, sl_uint32 column, sl_uint32 span, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setRecordSpan(sl_uint32 row, sl_uint32 column, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setCellSpan(sl_uint32 row, sl_uint32 column, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderSpan(sl_uint32 row, sl_uint32 column, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterSpan(sl_uint32 row, sl_uint32 column, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -323,29 +325,29 @@ namespace slib
 		sl_int32 getSelectedRow();
 		sl_int32 getSelectedColumn();
 
-		void selectCell(sl_uint64 record, sl_uint32 row, sl_uint32 column, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void selectCell(sl_uint32 row, sl_uint32 column, sl_uint64 record = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void selectRecord(sl_uint64 record, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void selectRow(sl_uint64 record, sl_uint32 row, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void selectRow(sl_uint32 row, sl_uint64 record = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void selectColumn(sl_uint32 column, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void selectNone(UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		RecordIndex getRecordAt(sl_ui_pos y, sl_int32* outRow = sl_null);
 
-		sl_int32 getRecordRowAt(sl_ui_pos y);
+		sl_int32 getRowAt(sl_ui_pos y);
 		sl_int32 getHeaderRowAt(sl_ui_pos y);
 		sl_int32 getFooterRowAt(sl_ui_pos y);
 
 		sl_int32 getColumnAt(sl_ui_pos x);
 
-		sl_bool getCellAt(sl_ui_pos x, sl_ui_pos y, RecordIndex* outRecord, sl_uint32* outRow = sl_null, sl_uint32* outColumn = sl_null);
+		sl_bool getCellAt(sl_ui_pos x, sl_ui_pos y, sl_uint32* outRow = sl_null, sl_uint32* outColumn = sl_null, RecordIndex * outRecord = sl_null);
 
 	public:
 		class CellEventParam
 		{
 		public:
-			RecordIndex record;
 			sl_uint32 row;
 			sl_uint32 column;
+			RecordIndex record;
 			Variant recordData;
 
 		public:
@@ -353,19 +355,19 @@ namespace slib
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CellEventParam)
 		};
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickRecord, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickCell, UIEvent*, CellEventParam&)
 		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickHeader, UIEvent*, CellEventParam&)
 		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickFooter, UIEvent*, CellEventParam&)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickRecord, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickCell, UIEvent*, CellEventParam&)
 		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickHeader, UIEvent*, CellEventParam&)
 		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickFooter, UIEvent*, CellEventParam&)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickRecord, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickCell, UIEvent*, CellEventParam&)
 		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickHeader, UIEvent*, CellEventParam&)
 		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickFooter, UIEvent*, CellEventParam&)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, SelectRecord, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, SelectCell, UIEvent*, CellEventParam&)
 
 	protected:
 		void onDraw(Canvas* canvas) override;
@@ -398,7 +400,7 @@ namespace slib
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FixedCellProp)
 		};
 
-		typedef CellProp RecordCellProp;
+		typedef CellProp BodyCellProp;
 		typedef FixedCellProp HeaderCellProp;
 		typedef FixedCellProp FooterCellProp;
 
@@ -406,7 +408,7 @@ namespace slib
 		{
 		public:
 			sl_ui_len width;
-			List<RecordCellProp> listRecordCell;
+			List<BodyCellProp> listBodyCell;
 			List<HeaderCellProp> listHeaderCell;
 			List<FooterCellProp> listFooterCell;
 
@@ -440,16 +442,16 @@ namespace slib
 			sl_bool match(Cell* cell);
 		};
 
-		sl_ui_len _getRecordRowHeight(Row& row);
+		sl_ui_len _getBodyRowHeight(Row& row);
 		sl_ui_len _getHeaderRowHeight(Row& row);
 		sl_ui_len _getFooterRowHeight(Row& row);
 
 		CellProp* _getCellProp(RecordIndex record, sl_uint32 row, sl_uint32 column);
-		RecordCellProp* _getRecordCellProp(sl_uint32 row, sl_uint32 col);
+		BodyCellProp* _getBodyCellProp(sl_uint32 row, sl_uint32 col);
 		HeaderCellProp* _getHeaderCellProp(sl_uint32 row, sl_uint32 col);
 		FooterCellProp* _getFooterCellProp(sl_uint32 row, sl_uint32 col);
 
-		sl_uint32 _getRecordRowAt(sl_ui_pos y);
+		sl_uint32 _getBodyRowAt(sl_ui_pos y);
 		sl_uint32 _getHeaderRowAt(sl_ui_pos y);
 		sl_uint32 _getFooterRowAt(sl_ui_pos y);
 
@@ -459,25 +461,25 @@ namespace slib
 		void _drawHeader(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
 		void _drawFooter(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
 
-		void _drawRecordColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& column, sl_uint32 iColumn, Row* rows, sl_uint32 nRows, sl_uint64 iRecord, const Variant& recordData, List< Ref<Cell> >& cells);
+		void _drawBodyColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& column, sl_uint32 iColumn, Row* rows, sl_uint32 nRows, sl_uint64 iRecord, const Variant& recordData, List< Ref<Cell> >& cells);
 		void _drawHeaderColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& column, sl_uint32 iColumn, Row* rows, sl_uint32 nRows);
 		void _drawFooterColumn(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& column, sl_uint32 iColumn, Row* rows, sl_uint32 nRows);
 
 		void _drawCell(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Cell* cell);
 
-		void _prepareRecordCells(Column* columns, sl_uint32 nColumns);
+		void _prepareBodyCells(Column* columns, sl_uint32 nColumns);
 		void _prepareHeaderCells(Column* columns, sl_uint32 nColumns);
 		void _prepareFooterCells(Column* columns, sl_uint32 nColumns);
 
-		Ref<Cell> _createRecordCell(RecordCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol, const Variant& recordData);
+		Ref<Cell> _createBodyCell(BodyCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol, const Variant& recordData);
 
 		Cell* _getFixedCell(FixedCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol);
 
 		sl_bool _prepareMouseEventParam(UIEvent* ev, CellEventParam& param);
 
-		void _invalidateRecordCells();
-		void _invalidateRecordCells(Column& column, sl_uint32 iCol);
-		void _invalidateRecordCell(RecordCellProp& prop, sl_uint32 row, sl_uint32 column);
+		void _invalidateBodyCells();
+		void _invalidateBodyCells(Column& column, sl_uint32 iCol);
+		void _invalidateBodyCell(BodyCellProp& prop, sl_uint32 row, sl_uint32 column);
 
 		void _invalidateFixedCells();
 
@@ -496,13 +498,13 @@ namespace slib
 		sl_uint32 m_nLeftColumns;
 		sl_uint32 m_nRightColumns;
 
-		CList<Row> m_listRecordRow;
+		CList<Row> m_listBodyRow;
 		CList<Row> m_listHeaderRow;
 		CList<Row> m_listFooterRow;
-		sl_bool m_flagInvalidateRecordRows;
+		sl_bool m_flagInvalidateBodyRows;
 		sl_bool m_flagInvalidateHeaderRows;
 		sl_bool m_flagInvalidateFooterRows;
-		AtomicRef<Drawable> m_backgroundRecord;
+		AtomicRef<Drawable> m_backgroundBody;
 		AtomicRef<Drawable> m_backgroundHeader;
 		AtomicRef<Drawable> m_backgroundFooter;
 

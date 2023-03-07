@@ -498,6 +498,10 @@ namespace slib
 				prefix = "groupBox";
 				pN = &nAutoIncreaseNameGroupBox;
 				break;
+			case SAppLayoutItemType::Grid:
+				prefix = "grid";
+				pN = &nAutoIncreaseNameGrid;
+				break;
 			default:
 				return String::null();
 		}
@@ -605,6 +609,8 @@ namespace slib
 			type = SAppLayoutItemType::Pdf;
 		} else if (strType == "groupbox" || strType == "group-box") {
 			type = SAppLayoutItemType::GroupBox;
+		} else if (strType == "grid") {
+			type = SAppLayoutItemType::Grid;
 		}
 		return type;
 	}
