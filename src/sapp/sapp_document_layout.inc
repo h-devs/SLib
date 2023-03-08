@@ -71,7 +71,10 @@ namespace slib
 				Ref<SAppLayoutStyle> inheritStyle;
 				getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &inheritStyle);
 				if (inheritStyle.isNotNull()) {
-					style->inherit.add(inheritStyle);
+					if (!(style->inherit.add_NoLock(Move(inheritStyle)))) {
+						_logError(element, g_str_error_out_of_memory);
+						return sl_false;
+					}
 				} else {
 					_logError(element, g_str_error_layout_style_not_found, s);
 					return sl_false;
@@ -202,7 +205,7 @@ namespace slib
 			return sl_false;
 		}
 
-		String strStyles = element->getAttribute("styles").trim();
+		String strStyles = element->getAttribute("style").trim();
 		if (strStyles.isNotEmpty()) {
 			ListElements<String> arr(strStyles.split(","));
 			for (sl_size i = 0; i < arr.count; i++) {
@@ -210,22 +213,10 @@ namespace slib
 				Ref<SAppLayoutStyle> style;
 				getItemFromMap(m_layoutStyles, layout->name, s, sl_null, &style);
 				if (style.isNotNull()) {
-					item->styles.add(style);
-				} else {
-					_logError(element, g_str_error_layout_style_not_found, s);
-					return sl_false;
-				}
-			}
-		}
-		strStyles = element->getAttribute("style").trim();
-		if (strStyles.isNotEmpty()) {
-			ListElements<String> arr(strStyles.split(","));
-			for (sl_size i = 0; i < arr.count; i++) {
-				String s = arr[i].trim();
-				Ref<SAppLayoutStyle> style;
-				getItemFromMap(m_layoutStyles, layout->name, s, sl_null, &style);
-				if (style.isNotNull()) {
-					item->styles.add(style);
+					if (!(item->styles.add_NoLock(Move(style)))) {
+						_logError(element, g_str_error_out_of_memory);
+						return sl_false;
+					}
 				} else {
 					_logError(element, g_str_error_layout_style_not_found, s);
 					return sl_false;
@@ -876,7 +867,10 @@ namespace slib
 							return sl_false;
 						}
 					} else if (tagName.isEmpty() || name == tagName) {
-						list.add(child);
+						if (!(list.add_NoLock(Move(child)))) {
+							_logError(child, g_str_error_out_of_memory);
+							return sl_false;
+						}
 					}
 				}
 			}
@@ -985,7 +979,7 @@ namespace slib
 							const Ref<XmlElement>& child = children[i];
 							if (child.isNotNull()) {
 								String tagName = child->getName();
-								if (tagName == "item" || tagName == "column" || tagName == "row") {
+								if (tagName == "item" || tagName == "column" || tagName == "row" || tagName == "header" || tagName == "footer" || tagName == "body") {
 									continue;
 								}
 								Ref<SAppLayoutResourceItem> childItem = _parseLayoutResourceItemChild(params->resource, resourceItem, child, params->source);
@@ -1009,7 +1003,7 @@ namespace slib
 									childItem->attrs->height.amount = 1;
 									childItem->attrs->height.unit = SAppDimensionValue::FILL;
 								}
-								if (!(resourceItem->children.add(childItem))) {
+								if (!(resourceItem->children.add_NoLock(Move(childItem)))) {
 									_logError(resourceItem->element, g_str_error_out_of_memory);
 									return sl_false;
 								}
@@ -3023,7 +3017,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					subItem.element = itemXml;
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -3137,7 +3131,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					subItem.element = itemXml;
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -3230,7 +3224,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					subItem.element = itemXml;
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -3537,7 +3531,7 @@ namespace slib
 						LAYOUT_CONTROL_PARSE_XML_DRAWABLE_ATTR(columnXml, column., background)
 						LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, column., align)
 
-						if (!(attr->columns.add_NoLock(column))) {
+						if (!(attr->columns.add_NoLock(Move(column)))) {
 							_logError(columnXml, g_str_error_out_of_memory);
 							return sl_false;
 						}
@@ -3625,19 +3619,25 @@ namespace slib
 									iCell++;
 								}
 								if (iCell + cell.colspan.value > attr->columns.getCount()) {
-									attr->columns.setCount_NoLock(iCell+cell.colspan.value);
+									if (!(attr->columns.setCount_NoLock(iCell+cell.colspan.value))) {
+										_logError(xmlView, g_str_error_out_of_memory);
+										return sl_false;
+									}
 								}
 								for (sl_uint32 t1 = 0; t1 < cell.rowspan.value; t1++) {
 									for (sl_uint32 t2 = 0; t2 < cell.colspan.value; t2++) {
 										cellAllocs.put_NoLock(Pair<sl_uint32, sl_uint32>(i + t1, iCell + t2), sl_true);
 									}
 								}
-								row.cells.setCount_NoLock(iCell+1);
-								row.cells.setAt_NoLock(iCell, cell);
+								if (!(row.cells.setCount_NoLock(iCell+1))) {
+									_logError(xmlView, g_str_error_out_of_memory);
+									return sl_false;
+								}
+								row.cells.setAt_NoLock(iCell, Move(cell));
 							}
 						}
 
-						if (!(attr->rows.add_NoLock(row))) {
+						if (!(attr->rows.add_NoLock(Move(row)))) {
 							_logError(rowXml, g_str_error_out_of_memory);
 							return sl_false;
 						}
@@ -4022,7 +4022,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, column., align)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, column., headerAlign)
 
-					if (!(attr->columns.add(column))) {
+					if (!(attr->columns.add_NoLock(Move(column)))) {
 						_logError(columnXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -4197,7 +4197,7 @@ namespace slib
 
 					subItem.element = itemXml;
 
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -4412,7 +4412,7 @@ namespace slib
 
 					subItem.element = itemXml;
 
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -4767,7 +4767,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					subItem.element = itemXml;
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -4878,7 +4878,7 @@ namespace slib
 
 					subItem.element = itemXml;
 
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -5087,7 +5087,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., value)
 					LAYOUT_CONTROL_PARSE_XML_ATTR(itemXml, subItem., selected)
 					subItem.element = itemXml;
-					if (!(attr->items.add(subItem))) {
+					if (!(attr->items.add_NoLock(Move(subItem)))) {
 						_logError(itemXml, g_str_error_out_of_memory);
 						return sl_false;
 					}
@@ -5185,7 +5185,7 @@ namespace slib
 
 		if (op == OP_PARSE) {
 
-#define PARSE_GRID_CELL_ATTRIBUTES(ATTR, XML) \
+#define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(ATTR, XML) \
 			{ \
 				LAYOUT_CONTROL_PARSE_XML_ATTR(XML, ATTR., align) \
 				LAYOUT_CONTROL_PARSE_XML_FONT_ATTR(XML, ATTR., font) \
@@ -5204,46 +5204,135 @@ namespace slib
 				sl_bool flagLeft = sl_true;
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					Ref<XmlElement>& columnXml = columnXmls[i];
-					SAppLayoutGridColumn column;
-					LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., width)
-					if (!(column.width.checkSize())) {
-						LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, width)
-						return sl_false;
-					}
-					PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
-					Ref<XmlElement> body = columnXml->getFirstChildElement("body");
-					if (body.isNotNull()) {
-						PARSE_GRID_CELL_ATTRIBUTES(column.bodyAttrs, body)
-					}
-					Ref<XmlElement> header = columnXml->getFirstChildElement("header");
-					if (header.isNotNull()) {
-						PARSE_GRID_CELL_ATTRIBUTES(column.headerAttrs, header)
-					}
-					Ref<XmlElement> footer = columnXml->getFirstChildElement("footer");
-					if (footer.isNotNull()) {
-						PARSE_GRID_CELL_ATTRIBUTES(column.footerAttrs, footer)
-					}
-					SAppBooleanValue fixed;
-					LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, ,fixed)
-					if (!(fixed.flagDefined && fixed.value)) {
-						flagLeft = sl_false;
-						attr->nRightColumns = (sl_uint32)(columnXmls.count - 1 - i);
-					}
-					if (flagLeft) {
-						attr->nLeftColumns = (sl_uint32)(i + 1);
-					}
-					if (!(attr->columns.add_NoLock(column))) {
-						_logError(columnXml, g_str_error_out_of_memory);
-						return sl_false;
+					if (columnXml.isNotNull()) {
+						SAppLayoutGridColumn column;
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(columnXml, column., width)
+						if (!(column.width.checkSize())) {
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(columnXml, width)
+							return sl_false;
+						}
+						LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
+						Ref<XmlElement> header = columnXml->getFirstChildElement("header");
+						if (header.isNotNull()) {
+							LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column.headerAttrs, header)
+						}
+						Ref<XmlElement> body = columnXml->getFirstChildElement("body");
+						if (body.isNotNull()) {
+							LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column.bodyAttrs, body)
+						}
+						Ref<XmlElement> footer = columnXml->getFirstChildElement("footer");
+						if (footer.isNotNull()) {
+							LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column.footerAttrs, footer)
+						}
+						SAppBooleanValue fixed;
+						LAYOUT_CONTROL_PARSE_XML_ATTR(columnXml, ,fixed)
+						if (!(fixed.flagDefined && fixed.value)) {
+							flagLeft = sl_false;
+							attr->nRightColumns = (sl_uint32)(columnXmls.count - 1 - i);
+						}
+						if (flagLeft) {
+							attr->nLeftColumns = (sl_uint32)(i + 1);
+						}
+						if (!(attr->columns.add_NoLock(Move(column)))) {
+							_logError(columnXml, g_str_error_out_of_memory);
+							return sl_false;
+						}
 					}
 				}
 			}
-			
+
+#define LAYOUT_CONTROL_PARSE_GRID_ROWS(SECTION) \
+			if (rowXmls.count) { \
+				CHashMap< Pair<sl_uint32, sl_uint32>, sl_bool > cellAllocs; \
+				for (sl_size iRow = 0; iRow < rowXmls.count; iRow++) { \
+					Ref<XmlElement>& rowXml = rowXmls[iRow]; \
+					if (rowXml.isNotNull()) { \
+						SAppLayoutGridRow row; \
+						LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(row, rowXml) \
+						LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(rowXml, row., height) \
+						if (!(row.height.checkSize())) { \
+							LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(rowXml, height) \
+							return sl_false; \
+						} \
+						sl_uint32 iCell = 0; \
+						ListElements< Ref<XmlElement> > cellXmls(rowXml->getChildElements()); \
+						for (sl_size k = 0; k < cellXmls.count; k++) { \
+							Ref<XmlElement>& cellXml = cellXmls[k]; \
+							if (cellXml.isNotNull()) { \
+								SAppLayoutGridCell cell; \
+								LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(cell, cellXml) \
+								LAYOUT_CONTROL_PARSE_XML_ATTR(cellXml, cell., rowspan) \
+								LAYOUT_CONTROL_PARSE_XML_ATTR(cellXml, cell., colspan) \
+								if (!(cell.rowspan.flagDefined) || cell.rowspan.value < 1) { \
+									cell.rowspan.value = 1; \
+								} \
+								if (!(cell.colspan.flagDefined) || cell.colspan.value < 1) { \
+									cell.colspan.value = 1; \
+								} \
+								while (cellAllocs.find_NoLock(Pair<sl_uint32, sl_uint32>((sl_uint32)iRow, (sl_uint32)iCell))) { \
+									iCell++; \
+								} \
+								if (iCell + cell.colspan.value > attr->columns.getCount()) { \
+									if (!(attr->columns.setCount_NoLock(iCell+cell.colspan.value))) { \
+										_logError(cellXml, g_str_error_out_of_memory); \
+										return sl_false; \
+									} \
+								} \
+								for (sl_uint32 t1 = 0; t1 < cell.rowspan.value; t1++) { \
+									for (sl_uint32 t2 = 0; t2 < cell.colspan.value; t2++) { \
+										cellAllocs.put_NoLock(Pair<sl_uint32, sl_uint32>((sl_uint32)iRow + t1, (sl_uint32)iCell + t2), sl_true); \
+									} \
+								} \
+								if (!(row.cells.setCount_NoLock(iCell+1))) { \
+									_logError(cellXml, g_str_error_out_of_memory); \
+									return sl_false; \
+								} \
+								row.cells.setAt_NoLock(iCell, cell); \
+							} \
+						} \
+						if (!(SECTION.rows.add_NoLock(Move(row)))) { \
+							_logError(rowXml, g_str_error_out_of_memory); \
+							return sl_false; \
+						} \
+					} \
+				} \
+			}
+
+#define LAYOUT_CONTROL_PARSE_GRID_SECTION(SECTION, XML) \
+			{ \
+				LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(SECTION, XML) \
+				LAYOUT_CONTROL_PARSE_XML_DIMENSION_ATTR(XML, SECTION., rowHeight) \
+				if (!(SECTION.rowHeight.checkSize())) { \
+					LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(XML, rowHeight) \
+					return sl_false; \
+				} \
+				ListElements< Ref<XmlElement> > rowXmls(XML->getChildElements("row")); \
+				LAYOUT_CONTROL_PARSE_GRID_ROWS(SECTION) \
+			}
+
+			Ref<XmlElement> header = _getLayoutItemChildElements(resourceItem, resource->name, "header").getFirstValue_NoLock();
+			if (header.isNotNull()) {
+				LAYOUT_CONTROL_PARSE_GRID_SECTION(attr->header, header)
+			}
+			Ref<XmlElement> body = _getLayoutItemChildElements(resourceItem, resource->name, "body").getFirstValue_NoLock();
+			if (body.isNotNull()) {
+				LAYOUT_CONTROL_PARSE_GRID_SECTION(attr->body, body)
+			} else {
+				ListElements< Ref<XmlElement> > rowXmls(_getLayoutItemChildElements(resourceItem, resource->name, "row"));
+				LAYOUT_CONTROL_PARSE_GRID_ROWS(attr->body)
+			}
+			Ref<XmlElement> footer = _getLayoutItemChildElements(resourceItem, resource->name, "footer").getFirstValue_NoLock();
+			if (footer.isNotNull()) {
+				LAYOUT_CONTROL_PARSE_GRID_SECTION(attr->footer, footer)
+			}
+
 		} else if (op == OP_GENERATE_CPP) {
 			
 		} else if (op == OP_SIMULATE) {
 			
 		}
+
+		LAYOUT_CONTROL_GENERIC_ATTR_NOREDRAW(recordCount, setRecordCount)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 

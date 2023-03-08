@@ -55,7 +55,6 @@ namespace slib
 		{
 		public:
 			String text;
-			String format;
 			Ref<Font> font;
 			MultiLineMode multiLineMode;
 			EllipsizeMode ellipsizeMode;
@@ -225,6 +224,7 @@ namespace slib
 		void setCellCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterCreator(sl_int32 row, sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnCreator(sl_int32 column, const CellCreator& creator, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		String getCellText(sl_uint32 row, sl_uint32 column);
 		String getHeaderText(sl_uint32 row, sl_uint32 column);
@@ -233,9 +233,7 @@ namespace slib
 		void setCellText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterText(sl_int32 row, sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		String getCellFormat(sl_uint32 row, sl_uint32 column);
-		void setCellFormat(sl_int32 row, sl_int32 column, const String& format, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnText(sl_int32 column, const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Font> getCellFont(sl_uint32 row, sl_uint32 column);
 		Ref<Font> getHeaderFont(sl_uint32 row, sl_uint32 column);
@@ -244,6 +242,7 @@ namespace slib
 		void setCellFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterFont(sl_int32 row, sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnFont(sl_int32 column, const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		MultiLineMode getCellMultiLine(sl_uint32 row, sl_uint32 column);
 		MultiLineMode getHeaderMultiLine(sl_uint32 row, sl_uint32 column);
@@ -252,6 +251,7 @@ namespace slib
 		void setCellMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setHeaderMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterMultiLine(sl_int32 row, sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setColumnMultiLine(sl_int32 column, MultiLineMode multiLineMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		EllipsizeMode getCellEllipsize(sl_uint32 row, sl_uint32 column);
 		EllipsizeMode getHeaderEllipsize(sl_uint32 row, sl_uint32 column);
@@ -260,6 +260,7 @@ namespace slib
 		void setCellEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setHeaderEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 		void setFooterEllipsize(sl_int32 row, sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+		void setColumnEllipsize(sl_int32 column, EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		sl_uint32 getCellLineCount(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderLineCount(sl_uint32 row, sl_uint32 column);
@@ -268,6 +269,7 @@ namespace slib
 		void setCellLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterLineCount(sl_int32 row, sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnLineCount(sl_int32 column, sl_uint32 lineCount, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Alignment getCellAlignment(sl_uint32 row, sl_uint32 column);
 		Alignment getHeaderAlignment(sl_uint32 row, sl_uint32 column);
@@ -276,6 +278,7 @@ namespace slib
 		void setCellAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnAlignment(sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getCellBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
 		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
@@ -284,6 +287,7 @@ namespace slib
 		void setCellBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getBodyBackground();
 		Ref<Drawable> getHeaderBackground();
@@ -300,6 +304,7 @@ namespace slib
 		void setCellTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setHeaderTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnTextColor(sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_uint32 getRowspan(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderRowspan(sl_uint32 row, sl_uint32 column);

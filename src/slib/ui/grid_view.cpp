@@ -112,9 +112,11 @@ namespace slib
 	void GridView::TextCell::onPrepareTextBox(TextBoxParam& param)
 	{
 		if (text.isNotNull()) {
-			param.text = text;
-		} else if (format.isNotNull()) {
-			param.text = String::format(format, recordData);
+			if (record >= 0 && recordData.isNotUndefined()) {
+				param.text = String::format(text, recordData);
+			} else {
+				param.text = text;
+			}
 		}
 		param.font = font;
 		param.align = align;
@@ -328,21 +330,21 @@ namespace slib
 		return (sl_uint32)(m_listFooterRow.getCount());
 	}
 
-#define DEFINE_SET_ROW_COUNT(PREFIX, TYPE, ADDTIONAL) \
+#define DEFINE_SET_ROW_COUNT(PREFIX, SECTION, ADDTIONAL) \
 	sl_bool GridView::set##PREFIX##RowCount(sl_uint32 count, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		if (m_list##TYPE##Row.getCount() == count) { \
+		if (m_list##SECTION##Row.getCount() == count) { \
 			return sl_true; \
 		} \
 		ListElements<Column> columns(m_columns); \
 		for (sl_size i = 0; i < columns.count; i++) { \
 			Column& col = columns[i]; \
-			if (!(col.list##TYPE##Cell.setCount_NoLock(count))) { \
+			if (!(col.list##SECTION##Cell.setCount_NoLock(count))) { \
 				return sl_false; \
 			} \
 		} \
-		if (!(m_list##TYPE##Row.setCount_NoLock(count))) { \
+		if (!(m_list##SECTION##Row.setCount_NoLock(count))) { \
 			return sl_false; \
 		} \
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
@@ -404,12 +406,12 @@ namespace slib
 		}
 	}
 
-#define DEFINE_GET_SECTION_HEIGHT(PREFIX, TYPE) \
+#define DEFINE_GET_SECTION_HEIGHT(PREFIX, SECTION) \
 	sl_ui_len GridView::get##PREFIX##Height() \
 	{ \
 		sl_ui_len height = 0; \
 		ObjectLocker lock(this); \
-		ListElements<Row> rows(m_list##TYPE##Row); \
+		ListElements<Row> rows(m_list##SECTION##Row); \
 		sl_uint32 nDefault = 0; \
 		for (sl_size i = 0; i < rows.count; i++) { \
 			Row& row = rows[i]; \
@@ -432,18 +434,18 @@ namespace slib
 		return (sl_uint64)(getRecordHeight()) * m_nRecords;
 	}
 
-#define DEFINE_GET_SET_ROW_HEIGHT(PREFIX, TYPE) \
+#define DEFINE_GET_SET_ROW_HEIGHT(PREFIX, SECTION) \
 	sl_ui_len GridView::get##PREFIX##RowHeight(sl_uint32 index) \
 	{ \
 		ObjectLocker lock(this); \
-		Row* row = m_list##TYPE##Row.getPointerAt(index); \
+		Row* row = m_list##SECTION##Row.getPointerAt(index); \
 		if (row) { \
-			return _get##TYPE##RowHeight(*row); \
+			return _get##SECTION##RowHeight(*row); \
 		} else { \
 			return 0; \
 		} \
 	} \
-	sl_ui_len GridView::_get##TYPE##RowHeight(Row& row) \
+	sl_ui_len GridView::_get##SECTION##RowHeight(Row& row) \
 	{ \
 		if (row.height >= 0) { \
 			return row.height; \
@@ -454,14 +456,14 @@ namespace slib
 	void GridView::set##PREFIX##RowHeight(sl_uint32 index, sl_ui_len height, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		Row* row = m_list##TYPE##Row.getPointerAt(index); \
+		Row* row = m_list##SECTION##Row.getPointerAt(index); \
 		if (row) { \
 			row->height = height; \
 		} \
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 			return; \
 		} \
-		_invalidate##TYPE##Cells(); \
+		_invalidate##SECTION##Cells(); \
 		refreshContentHeight(mode); \
 	}
 
@@ -469,18 +471,18 @@ namespace slib
 	DEFINE_GET_SET_ROW_HEIGHT(Header, Header)
 	DEFINE_GET_SET_ROW_HEIGHT(Footer, Footer)
 
-#define DEFINE_SET_ALL_ROW_HEIGHT(TYPE) \
-	void GridView::set##TYPE##RowHeight(sl_ui_len height, UIUpdateMode mode) \
+#define DEFINE_SET_ALL_ROW_HEIGHT(SECTION) \
+	void GridView::set##SECTION##RowHeight(sl_ui_len height, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		ListElements<Row> rows(m_list##TYPE##Row); \
+		ListElements<Row> rows(m_list##SECTION##Row); \
 		for (sl_size i = 0; i < rows.count; i++) { \
 			rows[i].height = height; \
 		} \
 		if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 			return; \
 		} \
-		_invalidate##TYPE##Cells(); \
+		_invalidate##SECTION##Cells(); \
 		refreshContentHeight(mode); \
 	}
 
@@ -568,25 +570,25 @@ namespace slib
 		return sl_null;
 	}
 
-#define DEFINE_GET_CELL_PROP(TYPE) \
-	GridView::TYPE##CellProp* GridView::_get##TYPE##CellProp(sl_uint32 iRow, sl_uint32 iCol) \
+#define DEFINE_GET_CELL_PROP(SECTION) \
+	GridView::SECTION##CellProp* GridView::_get##SECTION##CellProp(sl_uint32 iRow, sl_uint32 iCol) \
 	{ \
 		Column* column = m_columns.getPointerAt(iCol); \
 		if (column) { \
-			return column->list##TYPE##Cell.getPointerAt(iRow); \
+			return column->list##SECTION##Cell.getPointerAt(iRow); \
 		} \
 		return sl_null; \
 	}
 
 	DEFINE_GET_CELL_PROP(Body)
-	DEFINE_GET_CELL_PROP(Header)
-	DEFINE_GET_CELL_PROP(Footer)
+		DEFINE_GET_CELL_PROP(Header)
+		DEFINE_GET_CELL_PROP(Footer)
 
-#define DEFINE_GET_SET_CELL_ATTR_SUB(PREFIX, TYPE, FUNC, RET, ARG, NAME, DEF) \
+#define DEFINE_GET_SET_CELL_ATTR_SUB(PREFIX, SECTION, FUNC, RET, ARG, NAME, DEF) \
 	RET GridView::get##PREFIX##FUNC(sl_uint32 iRow, sl_uint32 iCol) \
 	{ \
 		ObjectLocker lock(this); \
-		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
 			return prop->NAME; \
 		} \
@@ -597,26 +599,26 @@ namespace slib
 		ObjectLocker lock(this); \
 		if (iCol >= 0) { \
 			if (iRow >= 0) { \
-				TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+				SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 				if (prop) { \
 					prop->NAME = NAME; \
 					if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 						return; \
 					} \
-					_invalidate##TYPE##Cell(*prop, iRow, iCol); \
+					_invalidate##SECTION##Cell(*prop, iRow, iCol); \
 					invalidate(mode); \
 				} \
 			} else { \
 				Column* col = m_columns.getPointerAt(iCol); \
 				if (col) { \
-					ListElements<TYPE##CellProp> props(col->list##TYPE##Cell); \
+					ListElements<SECTION##CellProp> props(col->list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
 						props[i].NAME = NAME; \
 					} \
 					if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 						return; \
 					} \
-					_invalidate##TYPE##Cells(*col, iCol); \
+					_invalidate##SECTION##Cells(*col, iCol); \
 					invalidate(mode); \
 				} \
 			} \
@@ -625,12 +627,12 @@ namespace slib
 			for (sl_size k = 0; k < columns.count; k++) { \
 				Column& col = columns[k]; \
 				if (iRow >= 0) { \
-					TYPE##CellProp* prop = col.list##TYPE##Cell.getPointerAt(iRow); \
+					SECTION##CellProp* prop = col.list##SECTION##Cell.getPointerAt(iRow); \
 					if (prop) { \
 						prop->NAME = NAME; \
 					} \
 				} else { \
-					ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+					ListElements<SECTION##CellProp> props(col.list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
 						props[i].NAME = NAME; \
 					} \
@@ -639,7 +641,59 @@ namespace slib
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 				return; \
 			} \
-			_invalidate##TYPE##Cells(); \
+			_invalidate##SECTION##Cells(); \
+			invalidate(mode); \
+		} \
+	}
+
+#define DEFINE_SET_COLUMN_ATTR_SUB(ATTR, NAME) \
+	{ \
+		ListElements<BodyCellProp> props(col.listBodyCell); \
+		for (sl_size i = 0; i < props.count; i++) { \
+			props[i].ATTR = NAME; \
+		} \
+	} \
+	{ \
+		ListElements<HeaderCellProp> props(col.listHeaderCell); \
+		for (sl_size i = 0; i < props.count; i++) { \
+			props[i].ATTR = NAME; \
+		} \
+	} \
+	{ \
+		ListElements<FooterCellProp> props(col.listFooterCell); \
+		for (sl_size i = 0; i < props.count; i++) { \
+			props[i].ATTR = NAME; \
+		} \
+	}
+
+#define DEFINE_SET_COLUMN_ATTR(FUNC, ARG, NAME) \
+	void GridView::setColumn##FUNC(sl_int32 iCol, ARG NAME, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		if (iCol >= 0) { \
+			Column* pCol = m_columns.getPointerAt(iCol); \
+			if (pCol) { \
+				Column& col = *pCol; \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME, NAME) \
+				if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+					return; \
+				} \
+				_invalidateBodyCells(col, iCol); \
+				_invalidateHeaderCells(col, iCol); \
+				_invalidateFooterCells(col, iCol); \
+				invalidate(mode); \
+			} \
+		} else { \
+			ListElements<Column> columns(m_columns); \
+			for (sl_size k = 0; k < columns.count; k++) { \
+				Column& col = columns[k]; \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME, NAME) \
+			} \
+			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
+				return; \
+			} \
+			_invalidateBodyCells(); \
+			_invalidateFixedCells(); \
 			invalidate(mode); \
 		} \
 	}
@@ -647,22 +701,22 @@ namespace slib
 #define DEFINE_GET_SET_CELL_ATTR(FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_GET_SET_CELL_ATTR_SUB(Cell, Body, FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_GET_SET_CELL_ATTR_SUB(Header, Header, FUNC, RET, ARG, NAME, DEF) \
-	DEFINE_GET_SET_CELL_ATTR_SUB(Footer, Footer, FUNC, RET, ARG, NAME, DEF)
+	DEFINE_GET_SET_CELL_ATTR_SUB(Footer, Footer, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_SET_COLUMN_ATTR(FUNC, ARG, NAME)
 
 	DEFINE_GET_SET_CELL_ATTR(Creator, GridView::CellCreator, const CellCreator&, creator, sl_null)
 	DEFINE_GET_SET_CELL_ATTR(Text, String, const String&, text, sl_null)
-	DEFINE_GET_SET_CELL_ATTR_SUB(Cell, Body, Format, String, const String&, text, sl_null)
 	DEFINE_GET_SET_CELL_ATTR(Font, Ref<Font>, const Ref<Font>&, font, sl_null)
 	DEFINE_GET_SET_CELL_ATTR(MultiLine, MultiLineMode, MultiLineMode, multiLineMode, MultiLineMode::Single)
 	DEFINE_GET_SET_CELL_ATTR(Ellipsize, EllipsizeMode, EllipsizeMode, ellipsizeMode, EllipsizeMode::None)
 	DEFINE_GET_SET_CELL_ATTR(LineCount, sl_uint32, sl_uint32, lineCount, 0)
 	DEFINE_GET_SET_CELL_ATTR(Alignment, Alignment, const Alignment&, align, 0)
 
-#define DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(PREFIX, TYPE, FUNC, RET, ARG, NAME, DEF) \
+#define DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(PREFIX, SECTION, FUNC, RET, ARG, NAME, DEF) \
 	RET GridView::get##PREFIX##FUNC(sl_uint32 iRow, sl_uint32 iCol, CellState state) \
 	{ \
 		ObjectLocker lock(this); \
-		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
 			return prop->NAME[(sl_uint32)state]; \
 		} \
@@ -673,7 +727,7 @@ namespace slib
 		ObjectLocker lock(this); \
 		if (iCol >= 0) { \
 			if (iRow >= 0) { \
-				TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+				SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 				if (prop) { \
 					prop->NAME[(sl_uint32)state] = NAME; \
 					invalidate(mode); \
@@ -681,7 +735,7 @@ namespace slib
 			} else { \
 				Column* col = m_columns.getPointerAt(iCol); \
 				if (col) { \
-					ListElements<TYPE##CellProp> props(col->list##TYPE##Cell); \
+					ListElements<SECTION##CellProp> props(col->list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
 						props[i].NAME[(sl_uint32)state] = NAME; \
 					} \
@@ -693,12 +747,12 @@ namespace slib
 			for (sl_size k = 0; k < columns.count; k++) { \
 				Column& col = columns[k]; \
 				if (iRow >= 0) { \
-					TYPE##CellProp* prop = col.list##TYPE##Cell.getPointerAt(iRow); \
+					SECTION##CellProp* prop = col.list##SECTION##Cell.getPointerAt(iRow); \
 					if (prop) { \
 						prop->NAME[(sl_uint32)state] = NAME; \
 					} \
 				} else { \
-					ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+					ListElements<SECTION##CellProp> props(col.list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
 						props[i].NAME[(sl_uint32)state] = NAME; \
 					} \
@@ -708,21 +762,43 @@ namespace slib
 		} \
 	}
 
+#define DEFINE_SET_COLUMN_DRAWING_ATTR(FUNC, ARG, NAME) \
+	void GridView::setColumn##FUNC(sl_int32 iCol, ARG NAME, CellState state, UIUpdateMode mode) \
+	{ \
+		ObjectLocker lock(this); \
+		if (iCol >= 0) { \
+			Column* pCol = m_columns.getPointerAt(iCol); \
+			if (pCol) { \
+				Column& col = *pCol; \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME[(sl_uint32)state], NAME) \
+				invalidate(mode); \
+			} \
+		} else { \
+			ListElements<Column> columns(m_columns); \
+			for (sl_size k = 0; k < columns.count; k++) { \
+				Column& col = columns[k]; \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME[(sl_uint32)state], NAME) \
+			} \
+			invalidate(mode); \
+		} \
+	}
+
 #define DEFINE_GET_SET_CELL_DRAWING_ATTR(FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Cell, Body, FUNC, RET, ARG, NAME, DEF) \
 	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Header, Header, FUNC, RET, ARG, NAME, DEF) \
-	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Footer, Footer, FUNC, RET, ARG, NAME, DEF)
+	DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(Footer, Footer, FUNC, RET, ARG, NAME, DEF) \
+	DEFINE_SET_COLUMN_DRAWING_ATTR(FUNC, ARG, NAME)
 
 	DEFINE_GET_SET_CELL_DRAWING_ATTR(Background, Ref<Drawable>, const Ref<Drawable>&, background, sl_null)
 
-#define DEFINE_GET_SET_BACKGROUND(TYPE) \
-	Ref<Drawable> GridView::get##TYPE##Background() \
+#define DEFINE_GET_SET_BACKGROUND(SECTION) \
+	Ref<Drawable> GridView::get##SECTION##Background() \
 	{ \
-		return m_background##TYPE; \
+		return m_background##SECTION; \
 	} \
-	void GridView::set##TYPE##Background(const Ref<Drawable>& drawable, UIUpdateMode mode) \
+	void GridView::set##SECTION##Background(const Ref<Drawable>& drawable, UIUpdateMode mode) \
 	{ \
-		m_background##TYPE = drawable; \
+		m_background##SECTION = drawable; \
 		invalidate(mode); \
 	}
 
@@ -732,11 +808,11 @@ namespace slib
 
 	DEFINE_GET_SET_CELL_DRAWING_ATTR(TextColor, Color, const Color&, textColor, Color::zero())
 
-#define DEFINE_GET_SET_SPAN(PREFIX, TYPE) \
+#define DEFINE_GET_SET_SPAN(PREFIX, SECTION) \
 	sl_uint32 GridView::get##PREFIX##Rowspan(sl_uint32 iRow, sl_uint32 iCol) \
 	{ \
 		ObjectLocker lock(this); \
-		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
 			return prop->rowspan; \
 		} \
@@ -745,7 +821,7 @@ namespace slib
 	sl_uint32 GridView::get##PREFIX##Colspan(sl_uint32 iRow, sl_uint32 iCol) \
 	{ \
 		ObjectLocker lock(this); \
-		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
 			return prop->colspan; \
 		} \
@@ -754,26 +830,26 @@ namespace slib
 	void GridView::set##PREFIX##Rowspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 span, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
 			prop->rowspan = span; \
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 				return; \
 			} \
-			_invalidate##TYPE##Cells(); \
+			_invalidate##SECTION##Cells(); \
 			invalidate(mode); \
 		} \
 	} \
 	void GridView::set##PREFIX##Colspan(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 span, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
 			prop->colspan = span; \
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 				return; \
 			} \
-			_invalidate##TYPE##Cells(); \
+			_invalidate##SECTION##Cells(); \
 			invalidate(mode); \
 		} \
 	}
@@ -782,18 +858,18 @@ namespace slib
 	DEFINE_GET_SET_SPAN(Header, Header)
 	DEFINE_GET_SET_SPAN(Footer, Footer)
 
-#define DEFINE_SET_ALL_SPAN(PREFIX, TYPE) \
+#define DEFINE_SET_ALL_SPAN(PREFIX, SECTION) \
 	void GridView::set##PREFIX##Span(sl_uint32 iRow, sl_uint32 iCol, sl_uint32 rowspan, sl_uint32 colspan, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
-		TYPE##CellProp* prop = _get##TYPE##CellProp(iRow, iCol); \
+		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
 			prop->rowspan = rowspan; \
 			prop->colspan = colspan; \
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 				return; \
 			} \
-			_invalidate##TYPE##Cells(); \
+			_invalidate##SECTION##Cells(); \
 			invalidate(mode); \
 		} \
 	}
@@ -874,18 +950,18 @@ namespace slib
 		return row;
 	}
 	
-#define DEFINE_GET_ROW_AT(TYPE) \
-	sl_uint32 GridView::_get##TYPE##RowAt(sl_ui_pos y) \
+#define DEFINE_GET_ROW_AT(SECTION) \
+	sl_uint32 GridView::_get##SECTION##RowAt(sl_ui_pos y) \
 	{ \
 		if (y < 0) { \
 			return 0; \
 		} \
 		ObjectLocker lock(this); \
-		ListElements<Row> rows(m_list##TYPE##Row); \
+		ListElements<Row> rows(m_list##SECTION##Row); \
 		if (rows.count) { \
 			sl_ui_pos t = 0; \
 			for (sl_size i = 0; i < rows.count - 1; i++) { \
-				sl_ui_len h = _get##TYPE##RowHeight(rows[i]); \
+				sl_ui_len h = _get##SECTION##RowHeight(rows[i]); \
 				if (y < t + h) { \
 					return (sl_uint32)i; \
 				} \
@@ -1081,32 +1157,32 @@ namespace slib
 		}
 	}
 
-#define DEFINE_ON_CLICK(TYPE) \
-	SLIB_DEFINE_EVENT_HANDLER(GridView, Click##TYPE, UIEvent*, GridView::CellEventParam&) \
-	void GridView::dispatchClick##TYPE(UIEvent* ev, CellEventParam& param) \
+#define DEFINE_ON_CLICK(SECTION) \
+	SLIB_DEFINE_EVENT_HANDLER(GridView, Click##SECTION, UIEvent*, GridView::CellEventParam&) \
+	void GridView::dispatchClick##SECTION(UIEvent* ev, CellEventParam& param) \
 	{ \
-		SLIB_INVOKE_EVENT_HANDLER(Click##TYPE, ev, param) \
+		SLIB_INVOKE_EVENT_HANDLER(Click##SECTION, ev, param) \
 	}
 
 	DEFINE_ON_CLICK(Header)
 	DEFINE_ON_CLICK(Footer)
 
-#define DEFINE_ON_RIGHT_BUTTON_CLICK(TYPE) \
-	SLIB_DEFINE_EVENT_HANDLER(GridView, RightButtonClick##TYPE, UIEvent*, GridView::CellEventParam&) \
-	void GridView::dispatchRightButtonClick##TYPE(UIEvent* ev, CellEventParam& param) \
+#define DEFINE_ON_RIGHT_BUTTON_CLICK(SECTION) \
+	SLIB_DEFINE_EVENT_HANDLER(GridView, RightButtonClick##SECTION, UIEvent*, GridView::CellEventParam&) \
+	void GridView::dispatchRightButtonClick##SECTION(UIEvent* ev, CellEventParam& param) \
 	{ \
-		SLIB_INVOKE_EVENT_HANDLER(RightButtonClick##TYPE, ev, param) \
+		SLIB_INVOKE_EVENT_HANDLER(RightButtonClick##SECTION, ev, param) \
 	}
 
 	DEFINE_ON_RIGHT_BUTTON_CLICK(Cell)
 	DEFINE_ON_RIGHT_BUTTON_CLICK(Header)
 	DEFINE_ON_RIGHT_BUTTON_CLICK(Footer)
 
-#define DEFINE_ON_DOUBLE_CLICK(TYPE) \
-	SLIB_DEFINE_EVENT_HANDLER(GridView, DoubleClick##TYPE, UIEvent*, GridView::CellEventParam&) \
-	void GridView::dispatchDoubleClick##TYPE(UIEvent* ev, CellEventParam& param) \
+#define DEFINE_ON_DOUBLE_CLICK(SECTION) \
+	SLIB_DEFINE_EVENT_HANDLER(GridView, DoubleClick##SECTION, UIEvent*, GridView::CellEventParam&) \
+	void GridView::dispatchDoubleClick##SECTION(UIEvent* ev, CellEventParam& param) \
 	{ \
-		SLIB_INVOKE_EVENT_HANDLER(DoubleClick##TYPE, ev, param) \
+		SLIB_INVOKE_EVENT_HANDLER(DoubleClick##SECTION, ev, param) \
 	}
 
 	DEFINE_ON_DOUBLE_CLICK(Cell)
@@ -1182,7 +1258,13 @@ namespace slib
 					return;
 				}
 			}
-			Variant recordData = recordDataFunc(iRecord);
+			Variant recordData;
+			if (recordDataFunc.isNotNull()) {
+				recordData = recordDataFunc(iRecord);
+				if (recordData.isUndefined()) {
+					recordData.setNull();
+				}
+			}
 			sl_ui_pos xLeft = 0;
 			{
 				for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) {
@@ -1221,21 +1303,21 @@ namespace slib
 		m_mapRecordCache = Move(map);
 	}
 
-#define DEFINE_DRAW_FIXED(TYPE) \
-	void GridView::_draw##TYPE(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn) \
+#define DEFINE_DRAW_FIXED(SECTION) \
+	void GridView::_draw##SECTION(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn) \
 	{ \
 		sl_ui_len widthView = getWidth(); \
-		Ref<Drawable> background = m_background##TYPE; \
+		Ref<Drawable> background = m_background##SECTION; \
 		if (background.isNotNull()) { \
 			canvas->draw(UIRect(0, top, widthView, bottom), background); \
 		} \
-		_prepare##TYPE##Cells(columns, nColumns); \
-		ListElements<Row> rows(m_list##TYPE##Row); \
+		_prepare##SECTION##Cells(columns, nColumns); \
+		ListElements<Row> rows(m_list##SECTION##Row); \
 		sl_ui_pos xLeft = 0; \
 		{ \
 			for (sl_uint32 iCol = 0; iCol < nLeft; iCol++) { \
 				Column& col = columns[iCol]; \
-				_draw##TYPE##Column(canvas, xLeft, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				_draw##SECTION##Column(canvas, xLeft, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
 				xLeft += col.width; \
 			} \
 		} \
@@ -1246,7 +1328,7 @@ namespace slib
 			for (;;) { \
 				Column& col = columns[iCol]; \
 				xRight -= col.width; \
-				_draw##TYPE##Column(canvas, xRight, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				_draw##SECTION##Column(canvas, xRight, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
 				if (iCol > iRight) { \
 					iCol--; \
 				} else { \
@@ -1258,7 +1340,7 @@ namespace slib
 			sl_ui_pos xCell = xLeft + xStartMidColumn; \
 			for (sl_uint32 iCol = iStartMidColumn; iCol < iRight && xCell < xRight; iCol++) { \
 				Column& col = columns[iCol]; \
-				_draw##TYPE##Column(canvas, xCell, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
+				_draw##SECTION##Column(canvas, xCell, top, col, iCol, rows.data, (sl_uint32)(rows.count)); \
 				xCell += col.width; \
 			} \
 		} \
@@ -1293,16 +1375,16 @@ namespace slib
 		}
 	}
 
-#define DEFINE_DRAW_FIXED_COLUMN(TYPE, TYPE_CONSTANT) \
-	void GridView::_draw##TYPE##Column(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& col, sl_uint32 iCol, Row* rows, sl_uint32 nRows) \
+#define DEFINE_DRAW_FIXED_COLUMN(SECTION, SECTION_CONSTANT) \
+	void GridView::_draw##SECTION##Column(Canvas* canvas, sl_ui_pos x, sl_ui_pos y, Column& col, sl_uint32 iCol, Row* rows, sl_uint32 nRows) \
 	{ \
-		ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+		ListElements<SECTION##CellProp> props(col.list##SECTION##Cell); \
 		if (props.count > nRows) { \
 			props.count = nRows; \
 		} \
 		for (sl_uint32 iRow = 0; iRow < props.count; iRow++) { \
-			TYPE##CellProp& prop = props[iRow]; \
-			Cell* cell = _getFixedCell(prop, TYPE_CONSTANT, iRow, iCol); \
+			SECTION##CellProp& prop = props[iRow]; \
+			Cell* cell = _getFixedCell(prop, SECTION_CONSTANT, iRow, iCol); \
 			if (cell) { \
 				_drawCell(canvas, x, y, cell); \
 			} \
@@ -1342,23 +1424,23 @@ namespace slib
 		cell->onDraw(canvas, param);
 	}
 
-#define DEFINE_PREPARE_CELLS(TYPE) \
-	void GridView::_prepare##TYPE##Cells(Column* columns, sl_uint32 nColumns) \
+#define DEFINE_PREPARE_CELLS(SECTION) \
+	void GridView::_prepare##SECTION##Cells(Column* columns, sl_uint32 nColumns) \
 	{ \
-		if (!m_flagInvalidate##TYPE##Rows) { \
+		if (!m_flagInvalidate##SECTION##Rows) { \
 			return; \
 		} \
-		m_flagInvalidate##TYPE##Rows = sl_false; \
-		ListElements<Row> rows(m_list##TYPE##Row); \
+		m_flagInvalidate##SECTION##Rows = sl_false; \
+		ListElements<Row> rows(m_list##SECTION##Row); \
 		for (sl_uint32 iCol = 0; iCol < nColumns; iCol++) { \
 			Column& col = columns[iCol]; \
-			ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+			ListElements<SECTION##CellProp> props(col.list##SECTION##Cell); \
 			sl_uint32 nRows = (sl_uint32)(props.count); \
 			if (nRows > rows.count) { \
 				nRows = (sl_uint32)(rows.count); \
 			} \
 			for (sl_uint32 iRow = 0; iRow < nRows; iRow++) { \
-				TYPE##CellProp& prop = props[iRow]; \
+				SECTION##CellProp& prop = props[iRow]; \
 				prop.width = col.width; \
 				prop.height = rows[iRow].height; \
 				if (prop.flagCoveredX || prop.flagCoveredY) { \
@@ -1380,11 +1462,11 @@ namespace slib
 				for (i = iCol + 1; i < iColEnd; i++) { \
 					Column& spanCol = columns[i]; \
 					prop.width += spanCol.width; \
-					ListElements<TYPE##CellProp> spanProps(spanCol.list##TYPE##Cell); \
+					ListElements<SECTION##CellProp> spanProps(spanCol.list##SECTION##Cell); \
 					if (iRowEnd <= spanProps.count) { \
 						spanProps[iRow].flagCoveredX = sl_true; \
 						for (sl_uint32 j = iRow + 1; j < iRowEnd; j++) { \
-							TYPE##CellProp& cell = spanProps[j]; \
+							SECTION##CellProp& cell = spanProps[j]; \
 							cell.flagCoveredX = sl_true; \
 							cell.flagCoveredY = sl_true; \
 						} \
@@ -1604,17 +1686,17 @@ namespace slib
 		}
 	}
 
-#define DEFINE_INVALIDATE_FIXED_CELLS(TYPE) \
-	void GridView::_invalidate##TYPE##Cell(TYPE##CellProp& prop, sl_uint32 iRow, sl_uint32 iCol) \
+#define DEFINE_INVALIDATE_FIXED_CELLS(SECTION) \
+	void GridView::_invalidate##SECTION##Cell(SECTION##CellProp& prop, sl_uint32 iRow, sl_uint32 iCol) \
 	{ \
 		prop.cell.setNull(); \
 		prop.flagMadeCell = sl_false; \
 	} \
-	void GridView::_invalidate##TYPE##Cells(Column& col, sl_uint32 iCol, sl_bool flagAllColumns) \
+	void GridView::_invalidate##SECTION##Cells(Column& col, sl_uint32 iCol, sl_bool flagAllColumns) \
 	{ \
-		ListElements<TYPE##CellProp> props(col.list##TYPE##Cell); \
+		ListElements<SECTION##CellProp> props(col.list##SECTION##Cell); \
 		for (sl_size iRow = 0; iRow < props.count; iRow++) { \
-			TYPE##CellProp& prop = props[iRow]; \
+			SECTION##CellProp& prop = props[iRow]; \
 			prop.cell.setNull(); \
 			prop.flagMadeCell = sl_false; \
 			if (flagAllColumns) { \
@@ -1623,13 +1705,13 @@ namespace slib
 			} \
 		} \
 	} \
-	void GridView::_invalidate##TYPE##Cells() \
+	void GridView::_invalidate##SECTION##Cells() \
 	{ \
-		m_flagInvalidate##TYPE##Rows = sl_true; \
+		m_flagInvalidate##SECTION##Rows = sl_true; \
 		ListElements<Column> columns(m_columns); \
 		for (sl_size iCol = 0; iCol < columns.count; iCol++) { \
 			Column& col = columns[iCol]; \
-			_invalidate##TYPE##Cells(col, (sl_uint32)iCol, sl_true); \
+			_invalidate##SECTION##Cells(col, (sl_uint32)iCol, sl_true); \
 		} \
 	}
 
