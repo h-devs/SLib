@@ -559,6 +559,7 @@ namespace slib
 						changeValue(m_valueDown);
 					}
 				}
+				ev->useDrag();
 				break;
 			}
 			case UIAction::LeftButtonDrag:

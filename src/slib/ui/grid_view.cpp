@@ -47,6 +47,7 @@ namespace slib
 		m_fixedLeftColumnCount = 0;
 		m_fixedRightColumnCount = 0;
 
+		m_txtColor = Color::Black;
 		m_gridViewStringCell = New<GridViewStringCell>();
 		this->setCellCallback([this](sl_int64 row, sl_int32 column) {
 			return m_gridViewStringCell;
@@ -67,6 +68,10 @@ namespace slib
 		return m_columnCount;
 	}
 
+	void GridView::setTextColor(const Color& txtColor)
+	{
+		m_txtColor = txtColor;
+	}
 	void GridView::setRowCount(sl_int64 rowCount, UIUpdateMode mode)
 	{
 		if (rowCount < 0) {
@@ -428,6 +433,7 @@ namespace slib
 		param.region = rcItem;
 		param.parent = this;
 		param.flagFixedCell = sl_true;
+		param.textColor = m_txtColor;
 
 		Ref<GridViewCell> cell = this->getCellCallback()(rowIndex, colIndex);
 		if (cell.isNotNull()) {
@@ -463,6 +469,7 @@ namespace slib
 		param.col = colIndex;
 		param.region = rcItem;
 		param.parent = this;
+		param.textColor = m_txtColor;
 		param.flagFixedCell = flagFixedCell;
 
 		Ref<GridViewCell> cell = this->getCellCallback()(rowIndex, colIndex);
@@ -810,7 +817,7 @@ namespace slib
 		}
 		SimpleTextBox::DrawParam drawParam;
 		drawParam.frame = cellParam.region;
-		drawParam.textColor = Color::Black;
+		drawParam.textColor = cellParam.textColor;
 		SimpleTextBox box;
 		param.font = cellParam.parent->getFont();
 		param.width = drawParam.frame.getWidth();

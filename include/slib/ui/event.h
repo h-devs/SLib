@@ -364,6 +364,12 @@ namespace slib
 
 		void setInternal(sl_bool flag);
 
+		void useDrag();
+
+		sl_bool isUsingDrag();
+
+		void setUsingDrag(sl_bool flag);
+
 		virtual Ref<UIEvent> duplicate() const;
 
 		static sl_uint32 getSystemKeycode(Keycode key);

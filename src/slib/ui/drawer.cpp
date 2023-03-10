@@ -264,6 +264,7 @@ namespace slib
 					m_motionTracker.clearMovements();
 					m_flagMouseDown = sl_true;
 					m_posMouseDown = pos;
+					ev->useDrag();
 				}
 			}
 		} else if (action == UIAction::LeftButtonDrag || action == UIAction::TouchMove) {

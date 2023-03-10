@@ -178,7 +178,7 @@ namespace slib
 
 		sl_bool onEventKey(UIAction action, WPARAM wParam, LPARAM lParam);
 
-		sl_bool onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam);
+		sl_bool onEventMouse(UIAction action, WPARAM wParam, LPARAM lParam, sl_bool* pFlagUseDrag = sl_null);
 
 		sl_bool onEventMouseWheel(sl_bool flagVertical, WPARAM wParam, LPARAM lParam);
 

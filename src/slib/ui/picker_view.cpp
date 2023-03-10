@@ -256,7 +256,8 @@ namespace slib
 		if (action == UIAction::LeftButtonDown || action == UIAction::TouchBegin) {
 			_stopFlow();
 			m_motionTracker.clearMovements();
-			m_motionTracker.addMovement(ev->getPoint());
+			m_motionTracker.addMovement(ev->getPoint());\
+			ev->useDrag();
 			invalidate();
 		} else if (action == UIAction::LeftButtonDrag || action == UIAction::TouchMove) {
 			_stopFlow();

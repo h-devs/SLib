@@ -37,6 +37,7 @@ namespace slib
 		~WavFile();
 
 	public:
+		static sl_bool saveWavFile(const StringParam& path, AudioData& data, sl_int32 sampleRate);
 		static sl_bool loadWavFile(const StringParam& path, AudioData& out);
 	};
 

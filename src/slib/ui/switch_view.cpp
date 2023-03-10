@@ -549,6 +549,8 @@ namespace slib
 
 					ObjectLocker lock(this);
 					m_timer.setNull();
+					
+					ev->useDrag();
 				}
 				break;
 			case UIAction::LeftButtonDrag:

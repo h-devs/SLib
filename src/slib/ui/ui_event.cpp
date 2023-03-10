@@ -1041,6 +1041,26 @@ sl_bool UIEvent::is##NAME##Key() const \
 		}
 	}
 
+	void UIEvent::useDrag()
+	{
+		SLIB_SET_FLAG(m_flags, UIEventFlags::UseDrag);
+	}
+
+	sl_bool UIEvent::isUsingDrag()
+	{
+		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::UseDrag);
+	}
+
+	void UIEvent::setUsingDrag(sl_bool flag)
+	{
+		if (flag) {
+			SLIB_SET_FLAG(m_flags, UIEventFlags::UseDrag);
+		}
+		else {
+			SLIB_RESET_FLAG(m_flags, UIEventFlags::UseDrag);
+		}
+	}
+
 	Ref<UIEvent> UIEvent::duplicate() const
 	{
 		Ref<UIEvent> ret = new UIEvent(m_action, m_time);

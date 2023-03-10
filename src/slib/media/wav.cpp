@@ -36,6 +36,72 @@ namespace slib
 	{
 	}
 
+	sl_bool WavFile::saveWavFile(const StringParam& path, AudioData& data, sl_int32 sampleRate)
+	{
+		Writer<File> file = File::openForWrite(path);
+		if (file.isOpened()) {
+			// Header == "RIFF"
+			if (!file.writeUint32(0x46464952)) {
+				return sl_false;
+			}
+			
+			// chunk size
+			if (!file.writeUint32(data.getTotalSize())) {
+				return sl_false;
+			}
+			// Header == "WAVE"
+			if (!file.writeUint32(0x45564157)) {
+				return sl_false;
+			}
+			// Header == "fmt "
+			if (!file.writeUint32(0x20746d66)) {
+				return sl_false;
+			}
+
+			if (!file.writeUint32(16)) {
+				return sl_false;
+			}
+			//flag
+			if (!file.writeUint16(1)) {
+				return sl_false;
+			}
+			//channel
+			if (!file.writeUint16(AudioFormatHelper::getChannelCount(data.format))) {
+				return sl_false;
+			}
+			
+			if (!file.writeUint32(sampleRate)) {
+				return sl_false;
+			}
+			if (!file.writeUint32(sampleRate * AudioFormatHelper::getBytesPerSample(data.format))) {
+				return sl_false;
+			}
+
+			//block align?
+			if (!file.writeUint16(2)) {
+				return sl_false;
+			}
+
+			if (!file.writeUint16(AudioFormatHelper::getBitsPerSample(data.format))) {
+				return sl_false;
+			}
+			// data
+			if (!file.writeUint32(0x61746164)) {
+				return sl_false;
+			}
+			// size
+			if (!file.writeUint32(data.getTotalSize())) {
+				return sl_false;
+			}
+			if (!file.write(data.data, data.getTotalSize())) {
+				return sl_false;
+			}
+			return sl_true;
+		}
+
+		return sl_false;
+	}
+
 	sl_bool WavFile::loadWavFile(const StringParam& path, AudioData& out)
 	{
 		Reader<File> file = File::openForRead(path);
@@ -95,7 +161,7 @@ namespace slib
 
 			sl_uint32 size = file.readUint32();
 			
-			out.format = (AudioFormat)SLIB_DEFINE_AUDIO_FORMAT(bitsPerSample == 8 ? AudioSampleType::Uint8 : AudioSampleType::Uint16, bitsPerSample, 1, 0);
+			out.format = (AudioFormat)SLIB_DEFINE_AUDIO_FORMAT(bitsPerSample == 8 ? AudioSampleType::Int8 : AudioSampleType::Int16, bitsPerSample, 1, 0);
 			Memory mem = Memory::create(size);
 			file.read(mem.getData(), size);
 			out.data = mem.getData();

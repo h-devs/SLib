@@ -216,6 +216,7 @@ namespace slib
 			case UIAction::TouchBegin:
 				m_tracker.clearMovements();
 				m_tracker.addMovement(ev->getPoint());
+				ev->useDrag();
 				break;
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
