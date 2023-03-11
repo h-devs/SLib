@@ -8967,7 +8967,9 @@ namespace slib
 
 		sl_bool flagUseDrag = ev->isUsingDrag();
 		ev->resetFlags();
-		ev->setUsingDrag(flagUseDrag);
+		if (flagUseDrag) {
+			ev->useDrag();
+		}
 
 		DuringEventScope scope(this, ev);
 
