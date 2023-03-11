@@ -624,7 +624,7 @@ namespace slib
 
 		};
 
-		class EditDialog : public Referable
+		class EditDialog : public CRef
 		{
 		private:
 			WeakRef<EditViewHelper> m_view;

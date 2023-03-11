@@ -56,7 +56,7 @@ namespace slib
 		sl_bool addTask(const Function<void()>& callback) override;
 
 
-		sl_bool addReadData(void* data, sl_size size, Referable* userObject);
+		sl_bool addReadData(void* data, sl_size size, CRef* userObject);
 
 		sl_bool addReadData(const Memory& data);
 
@@ -75,9 +75,9 @@ namespace slib
 		sl_bool isWritingEnded();
 
 	protected:
-		virtual sl_bool filterRead(MemoryData& output, void* data, sl_size size, Referable* userObject);
+		virtual sl_bool filterRead(MemoryData& output, void* data, sl_size size, CRef* userObject);
 
-		virtual sl_bool filterWrite(MemoryData& output, void* data, sl_size size, Referable* userObject);
+		virtual sl_bool filterWrite(MemoryData& output, void* data, sl_size size, CRef* userObject);
 
 	protected:
 		void setReadingError();

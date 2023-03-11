@@ -49,7 +49,7 @@ namespace slib
 			SLIB_JNI_OBJECT_FIELD(pattern, "Lslib/android/ui/UiBitmap;")
 		SLIB_JNI_END_CLASS
 
-		class BrushPlatformObject : public Referable
+		class BrushPlatformObject : public CRef
 		{
 		public:
 			JniGlobal<jobject> m_brush;

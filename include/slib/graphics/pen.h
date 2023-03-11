@@ -48,7 +48,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT Pen : public Referable
+	class SLIB_EXPORT Pen : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -84,7 +84,7 @@ namespace slib
 	protected:
 		PenDesc m_desc;
 
-		Ref<Referable> m_platformObject;
+		Ref<CRef> m_platformObject;
 		SpinLock m_lock;
 
 	};

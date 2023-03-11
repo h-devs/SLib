@@ -49,7 +49,7 @@ namespace slib
 
 	namespace {
 
-		class Connection : public Referable
+		class Connection : public CRef
 		{
 		public:
 			HINTERNET hConnect;
@@ -68,7 +68,7 @@ namespace slib
 
 		class UrlRequestImpl;
 
-		class Session: public Referable
+		class Session: public CRef
 		{
 		public:
 			HINTERNET hInternet;

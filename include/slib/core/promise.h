@@ -51,7 +51,7 @@ namespace slib
 	namespace priv
 	{
 		template <class T>
-		struct PromiseAllContext : public Referable
+		struct PromiseAllContext : public CRef
 		{
 			SpinLock lock;
 			List<T> results;
@@ -59,7 +59,7 @@ namespace slib
 		};
 	}
 
-	class SLIB_EXPORT CPromiseBase : public Referable
+	class SLIB_EXPORT CPromiseBase : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 	public:

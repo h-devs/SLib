@@ -29,7 +29,7 @@ namespace slib
 
 	namespace {
 
-		class Room : public Referable
+		class Room : public CRef
 		{
 		public:
 			Ref<DatabaseStatement> smtInsertMessage;

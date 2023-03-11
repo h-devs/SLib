@@ -74,7 +74,7 @@ namespace slib
 		return createStatic(desc.width, desc.height, desc.colors, desc.stride, desc.ref.get());
 	}
 
-	Ref<Image> Image::createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride, Referable* ref)
+	Ref<Image> Image::createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride, CRef* ref)
 	{
 		if (!width || !height || !pixels) {
 			return sl_null;

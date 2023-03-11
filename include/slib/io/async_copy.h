@@ -128,7 +128,7 @@ namespace slib
 		sl_bool m_flagRunning;
 		sl_bool m_flagEnqueue;
 
-		class Buffer : public Referable
+		class Buffer : public CRef
 		{
 		public:
 			Memory mem;

@@ -578,7 +578,7 @@ namespace slib
 	}
 
 	namespace {
-		class SendResponseAndCloseListener : public Referable
+		class SendResponseAndCloseListener : public CRef
 		{
 		public:
 			WeakRef<HttpServerConnection> m_connection;
@@ -1425,7 +1425,7 @@ namespace slib
 						context->write(Json(response).toJsonString());
 						break;
 					} else {
-						Ref<Referable> ref = response.getRef();
+						Ref<CRef> ref = response.getRef();
 						if (IsInstanceOf<XmlDocument>(ref)) {
 							context->setResponseContentTypeIfEmpty(ContentType::TextXml);
 							context->write(((XmlDocument*)(ref.get()))->toString());

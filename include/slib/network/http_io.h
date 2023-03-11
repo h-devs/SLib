@@ -130,7 +130,7 @@ namespace slib
 
 		sl_bool setDecompressing();
 
-		sl_bool decompressData(MemoryData& output, void* data, sl_size size, Referable* refData);
+		sl_bool decompressData(MemoryData& output, void* data, sl_size size, CRef* refData);
 
 	protected:
 		sl_bool m_flagDecompressing;

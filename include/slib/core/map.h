@@ -84,7 +84,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT CMapBase : public Referable, public Lockable
+	class SLIB_EXPORT CMapBase : public CRef, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 

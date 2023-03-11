@@ -121,7 +121,7 @@ namespace slib
 			const StringContainer16* _m_string16;
 			const sl_char8* _m_sz8;
 			const sl_char16* _m_sz16;
-			Referable* _m_ref;
+			CRef* _m_ref;
 			CWeakRef* _m_wref;
 			Collection* _m_collection;
 			CMemory* _m_mem;
@@ -241,13 +241,13 @@ namespace slib
 		template <class T>
 		Variant(const Ref<T>& ref) noexcept
 		{
-			_constructorRef(&ref, VariantType::Referable);
+			_constructorRef(&ref, VariantType::Ref);
 		}
 
 		template <class T>
 		Variant(Ref<T>&& ref) noexcept
 		{
-			_constructorMoveRef(&ref, VariantType::Referable);
+			_constructorMoveRef(&ref, VariantType::Ref);
 		}
 
 		template <class T>
@@ -666,7 +666,7 @@ namespace slib
 
 		sl_bool isRef() const noexcept;
 
-		Ref<Referable> getRef() const noexcept;
+		Ref<CRef> getRef() const noexcept;
 
 		template <class T>
 		Ref<T> getRef(const Ref<T>& def) const noexcept
@@ -677,14 +677,14 @@ namespace slib
 		template <class T>
 		void setRef(T&& t) noexcept
 		{
-			_setRef(Forward<T>(t), VariantType::Referable);
+			_setRef(Forward<T>(t), VariantType::Ref);
 		}
 
 		template <class T>
 		static Variant fromRef(T&& t) noexcept
 		{
 			Variant ret;
-			ret._initRef(Forward<T>(t), VariantType::Referable);
+			ret._initRef(Forward<T>(t), VariantType::Ref);
 			return ret;
 		}
 

@@ -1260,7 +1260,7 @@ namespace slib
 				sl_uint32 fragmentShader;
 			};
 			CList<GLProgramHandle> m_listDirtyProgramHandles;
-			CList< Ref<Referable> > m_listDirtyObjects;
+			CList< Ref<CRef> > m_listDirtyObjects;
 
 			class GLRenderProgramInstance;
 			Ref<RenderProgram> m_currentProgram;

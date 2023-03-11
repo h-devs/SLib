@@ -830,7 +830,7 @@ namespace slib
 			RadialGradient = 3
 		};
 
-		class Paint : public Referable
+		class Paint : public CRef
 		{
 		public:
 			PaintType type;
@@ -1008,7 +1008,7 @@ namespace slib
 			return sl_false;
 		}
 
-		class Element : public Referable, public Styler
+		class Element : public CRef, public Styler
 		{
 		public:
 			Element* parent = sl_null;

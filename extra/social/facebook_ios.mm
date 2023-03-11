@@ -46,7 +46,7 @@ namespace slib
 
 	namespace {
 
-		class FacebookSDKContext : public Referable
+		class FacebookSDKContext : public CRef
 		{
 		public:
 			FBSDKLoginManager* loginManager;

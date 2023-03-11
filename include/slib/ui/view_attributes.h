@@ -35,7 +35,7 @@
 namespace slib
 {
 
-	class View::LayoutAttributes : public Referable
+	class View::LayoutAttributes : public CRef
 	{
 	public:
 		sl_bool flagMarginLeftWeight : 1;
@@ -91,7 +91,7 @@ namespace slib
 		void applyMarginWeights(sl_ui_pos parentWidth, sl_ui_pos parentHeight);
 	};
 
-	class View::PaddingAttributes : public Referable
+	class View::PaddingAttributes : public CRef
 	{
 	public:
 		sl_bool flagPaddingLeftWeight : 1;
@@ -119,7 +119,7 @@ namespace slib
 		void applyPaddingWeights(sl_ui_pos width, sl_ui_pos height);
 	};
 
-	class View::TransformAttributes : public Referable
+	class View::TransformAttributes : public CRef
 	{
 	public:
 		sl_bool flagTransformFinalInvalid : 1;
@@ -154,7 +154,7 @@ namespace slib
 
 	};
 
-	class View::DrawAttributes : public Referable
+	class View::DrawAttributes : public CRef
 	{
 	public:
 		sl_bool flagUsingFont : 1;
@@ -206,7 +206,7 @@ namespace slib
 
 	};
 
-	class View::ScrollAttributes : public Referable
+	class View::ScrollAttributes : public CRef
 	{
 	public:
 		sl_bool flagHorz : 1;
@@ -257,7 +257,7 @@ namespace slib
 
 	};
 
-	class View::ChildAttributes : public Referable
+	class View::ChildAttributes : public CRef
 	{
 	public:
 		sl_bool flagTouchMultipleChildren : 1;
@@ -283,7 +283,7 @@ namespace slib
 
 	};
 
-	class View::OtherAttributes : public Referable
+	class View::OtherAttributes : public CRef
 	{
 	public:
 		AtomicString _id;
@@ -303,7 +303,7 @@ namespace slib
 
 	};
 
-	class View::EventAttributes : public Referable
+	class View::EventAttributes : public CRef
 	{
 	public:
 		AtomicFunction<void(View*)> onAttach;

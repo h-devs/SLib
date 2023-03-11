@@ -205,7 +205,7 @@ namespace slib
 
 	};
 
-	class Win32_LayeredViewContext : public Referable
+	class Win32_LayeredViewContext : public CRef
 	{
 	public:
 		sl_bool flagInvalidated;
@@ -232,7 +232,7 @@ namespace slib
 
 	};
 
-	class Win32_ToolTipViewContext : public Referable
+	class Win32_ToolTipViewContext : public CRef
 	{
 	public:
 		HWND hWndToolTip;

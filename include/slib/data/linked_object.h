@@ -43,7 +43,7 @@ namespace slib
 	};
 
 	template <class T>
-	class SLIB_EXPORT LinkedObjectList : public Referable, public Lockable
+	class SLIB_EXPORT LinkedObjectList : public CRef, public Lockable
 	{
 	protected:
 		Ref<T> m_front;

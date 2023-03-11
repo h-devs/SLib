@@ -47,7 +47,7 @@ namespace slib
 
 	class UIEvent;
 
-	class CMotionTracker : public Referable
+	class CMotionTracker : public CRef
 	{
 	public:
 		CMotionTracker();

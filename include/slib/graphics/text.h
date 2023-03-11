@@ -80,7 +80,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT TextStyle : public Referable
+	class SLIB_EXPORT TextStyle : public CRef
 	{
 	public:
 		Ref<Font> font;

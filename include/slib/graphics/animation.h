@@ -265,7 +265,7 @@ namespace slib
 		sl_uint32 m_lastRepeatedCount;
 		sl_bool m_flagStartedNative;
 
-		AtomicRef<Referable> m_nativeInstance;
+		AtomicRef<CRef> m_nativeInstance;
 
 		friend class AnimationLoop;
 	};
@@ -300,9 +300,9 @@ namespace slib
 	protected:
 		void _stopAnimationFromNative(Animation* animation);
 
-		Ref<Referable> _getNativeInstance(Animation* animation);
+		Ref<CRef> _getNativeInstance(Animation* animation);
 
-		void _setNativeInstance(Animation* animation, Referable* instance);
+		void _setNativeInstance(Animation* animation, CRef* instance);
 
 	protected:
 		virtual void _wake() = 0;

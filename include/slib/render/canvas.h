@@ -56,7 +56,7 @@ namespace slib
 
 	};
 
-	class RenderCanvasState : public Referable
+	class RenderCanvasState : public CRef
 	{
 	public:
 		RenderEngineType engineType;

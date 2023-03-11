@@ -54,7 +54,7 @@ namespace slib
 		CList<float> pageRatios;
 		float defaultPageRatio = 1.0f;
 
-		class BitmapCache : public Referable
+		class BitmapCache : public CRef
 		{
 		public:
 			PdfViewContext * context;

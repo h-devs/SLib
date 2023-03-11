@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class CTimeZone: public Referable
+	class CTimeZone: public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

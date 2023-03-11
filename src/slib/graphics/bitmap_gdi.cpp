@@ -41,7 +41,7 @@ namespace slib
 		public:
 			Gdiplus::Bitmap* m_bitmap;
 			sl_bool m_flagFreeOnRelease;
-			Ref<Referable> m_ref;
+			Ref<CRef> m_ref;
 
 		public:
 			BitmapImpl()
@@ -56,7 +56,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<BitmapImpl> create(Gdiplus::Bitmap* handle, sl_bool flagFreeOnRelease, Referable* ref)
+			static Ref<BitmapImpl> create(Gdiplus::Bitmap* handle, sl_bool flagFreeOnRelease, CRef* ref)
 			{
 				if (handle) {
 					if (handle->GetWidth() > 0 && handle->GetHeight() > 0) {
@@ -336,7 +336,7 @@ namespace slib
 		return BitmapImpl::loadFromMemory(mem, size);
 	}
 
-	Ref<Bitmap> GraphicsPlatform::createBitmap(Gdiplus::Bitmap* bitmap, sl_bool flagFreeOnRelease, Referable* ref)
+	Ref<Bitmap> GraphicsPlatform::createBitmap(Gdiplus::Bitmap* bitmap, sl_bool flagFreeOnRelease, CRef* ref)
 	{
 		if (!bitmap) {
 			return sl_null;

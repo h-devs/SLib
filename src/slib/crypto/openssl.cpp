@@ -35,7 +35,7 @@ namespace slib
 
 #if defined(SLIB_PLATFORM_IS_WIN32)
 
-		class ThreadHandler : public Referable
+		class ThreadHandler : public CRef
 		{
 		public:
 			ThreadHandler()
@@ -59,7 +59,7 @@ namespace slib
 			Thread* thread = Thread::getCurrent();
 			if (thread) {
 				SLIB_STATIC_STRING(name, "_SLIB_OPENSSL")
-				Ref<Referable> ref = thread->getAttachedObject(name);
+				Ref<CRef> ref = thread->getAttachedObject(name);
 				if (ref.isNull()) {
 					ref = new ThreadHandler;
 					if (ref.isNotNull()) {
@@ -74,7 +74,7 @@ namespace slib
 		}
 #endif
 
-		class KeyStore : public Referable
+		class KeyStore : public CRef
 		{
 		public:
 			::X509* certificate;

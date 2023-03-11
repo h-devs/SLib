@@ -163,13 +163,12 @@ typedef void* sl_object_type;
 
 namespace slib
 {
+
 	namespace priv
 	{
 		namespace ref
 		{
-
 			extern void* const g_null;
-
 		}
 	}
 
@@ -194,16 +193,16 @@ namespace slib
 	class StringBuffer;
 	class MemoryBuffer;
 
-	class SLIB_EXPORT Referable
+	class SLIB_EXPORT CRef
 	{
 	public:
-		Referable() noexcept;
+		CRef() noexcept;
 
-		Referable(const Referable& other) noexcept;
+		CRef(const CRef& other) noexcept;
 
-		Referable(Referable&& other) noexcept;
+		CRef(CRef&& other) noexcept;
 
-		virtual ~Referable();
+		virtual ~CRef();
 
 	public:
 		sl_reg increaseReference() noexcept;
@@ -246,9 +245,9 @@ namespace slib
 		void _free() noexcept;
 
 	public:
-		Referable& operator=(const Referable& other) noexcept;
+		CRef& operator=(const CRef& other) noexcept;
 
-		Referable& operator=(Referable&& other) noexcept;
+		CRef& operator=(CRef&& other) noexcept;
 
 	private:
 		volatile sl_reg m_nRefCount;
@@ -351,7 +350,7 @@ namespace slib
 
 		~Ref()
 		{
-			SLIB_TRY_CONVERT_TYPE(T*, Referable*)
+			SLIB_TRY_CONVERT_TYPE(T*, CRef*)
 			if (ptr) {
 				ptr->decreaseReference();
 				ptr = sl_null;
@@ -382,11 +381,6 @@ namespace slib
 		SLIB_CONSTEXPR T* get() const&
 		{
 			return ptr;
-		}
-
-		const Ref<Referable>& getReference() const noexcept
-		{
-			return *(reinterpret_cast<Ref<Referable> const*>(this));
 		}
 
 		template <class... TYPES>
@@ -691,7 +685,7 @@ namespace slib
 
 		~Atomic()
 		{
-			SLIB_TRY_CONVERT_TYPE(T*, Referable*)
+			SLIB_TRY_CONVERT_TYPE(T*, CRef*)
 			T* o = _ptr;
 			if (o) {
 				o->decreaseReference();
@@ -930,7 +924,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT CWeakRef : public Referable
+	class SLIB_EXPORT CWeakRef : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -940,14 +934,14 @@ namespace slib
 		~CWeakRef();
 
 	public:
-		Referable* m_object;
+		CRef* m_object;
 		SpinLock m_lock;
 
 	public:
-		static CWeakRef* create(Referable* object) noexcept;
+		static CWeakRef* create(CRef* object) noexcept;
 
 	public:
-		Ref<Referable> lock() noexcept;
+		Ref<CRef> lock() noexcept;
 
 		void release() noexcept;
 
@@ -1011,7 +1005,7 @@ namespace slib
 
 		~WeakRef()
 		{
-			SLIB_TRY_CONVERT_TYPE(T*, Referable*)
+			SLIB_TRY_CONVERT_TYPE(T*, CRef*)
 		}
 
 	public:
@@ -1059,21 +1053,6 @@ namespace slib
 				return Ref<T>::from(_weak->lock());
 			}
 			return sl_null;
-		}
-
-		static WeakRef fromReferable(Referable* referable) noexcept
-		{
-			if (referable) {
-				WeakRef ret;
-				if (referable->_isWeakRef()) {
-					ret._weak = static_cast<CWeakRef*>(referable);
-				} else {
-					ret._weak = referable->_getWeakObject();
-				}
-				return ret;
-			} else {
-				return sl_null;
-			}
 		}
 
 	public:
@@ -1252,7 +1231,7 @@ namespace slib
 
 		~Atomic()
 		{
-			SLIB_TRY_CONVERT_TYPE(T*, Referable*)
+			SLIB_TRY_CONVERT_TYPE(T*, CRef*)
 		}
 
 	public:
@@ -1480,7 +1459,7 @@ namespace slib
 	template <class T, class OTHER>
 	SLIB_INLINE static sl_bool IsInstanceOf(const OTHER* object) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(OTHER*, Referable*)
+		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
 		if (object) {
 			return object->isInstanceOf(T::ObjectType());
 		}
@@ -1490,7 +1469,7 @@ namespace slib
 	template <class T, class OTHER>
 	SLIB_INLINE static sl_bool IsInstanceOf(const Ref<OTHER>& object) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(OTHER*, Referable*)
+		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
 		if (object.isNotNull()) {
 			return object->isInstanceOf(T::ObjectType());
 		}
@@ -1500,7 +1479,7 @@ namespace slib
 	template <class T, class OTHER>
 	SLIB_INLINE static T* CastInstance(OTHER* object) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(OTHER*, Referable*)
+		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
 		if (object) {
 			if (object->isInstanceOf(T::ObjectType())) {
 				return static_cast<T*>(object);
@@ -1512,7 +1491,7 @@ namespace slib
 	template <class T, class OTHER>
 	SLIB_INLINE static const Ref<T>& CastRef(const Ref<OTHER>& object) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(OTHER*, Referable*)
+		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
 		if (object.isNotNull()) {
 			if (object->isInstanceOf(T::ObjectType())) {
 				return *(reinterpret_cast<Ref<T> const*>(&object));
@@ -1524,7 +1503,7 @@ namespace slib
 	template <class T, class OTHER>
 	SLIB_INLINE static const Ref<T>& CastRef(const Ref<OTHER>& object, const Ref<T>& def) noexcept
 	{
-		SLIB_TRY_CONVERT_TYPE(OTHER*, Referable*)
+		SLIB_TRY_CONVERT_TYPE(OTHER*, CRef*)
 		if (object.isNotNull()) {
 			if (object->isInstanceOf(T::ObjectType())) {
 				return *(reinterpret_cast<Ref<T> const*>(&object));
@@ -1613,7 +1592,7 @@ namespace slib
 
 
 	template <class T>
-	class CRefT : public Referable, public T
+	class CRefT : public CRef, public T
 	{
 	public:
 		template <class... ARGS>

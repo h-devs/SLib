@@ -35,7 +35,7 @@ namespace slib
 	namespace {
 		static void ReleaseDrawableDataProvider(void *info, const void *data, size_t size)
 		{
-			Referable* ref = (Referable*)info;
+			CRef* ref = (CRef*)info;
 			ref->decreaseReference();
 		}
 	}
@@ -52,7 +52,7 @@ namespace slib
 		}
 		sl_reg stride = desc.stride;
 		Ref<Drawable> ret;
-		Ref<Referable> refData = desc.ref;
+		Ref<CRef> refData = desc.ref;
 		if (refData.isNotNull()) {
 			refData->increaseReference();
 		}

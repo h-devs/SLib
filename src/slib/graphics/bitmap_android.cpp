@@ -61,7 +61,7 @@ namespace slib
 			sl_uint32 m_height;
 
 			sl_bool m_flagFreeOnRelease;
-			Ref<Referable> m_ref;
+			Ref<CRef> m_ref;
 
 		public:
 			BitmapImpl()
@@ -77,7 +77,7 @@ namespace slib
 			}
 
 		public:
-			static Ref<BitmapImpl> create(jobject jbitmap, sl_bool flagFreeOnRelease, Referable* ref)
+			static Ref<BitmapImpl> create(jobject jbitmap, sl_bool flagFreeOnRelease, CRef* ref)
 			{
 				Ref<BitmapImpl> ret;
 				if (jbitmap) {
@@ -375,7 +375,7 @@ namespace slib
 		return BitmapImpl::load(mem, size);
 	}
 
-	Ref<Bitmap> GraphicsPlatform::createBitmap(jobject bitmap, sl_bool flagFreeOnRelease, Referable* ref)
+	Ref<Bitmap> GraphicsPlatform::createBitmap(jobject bitmap, sl_bool flagFreeOnRelease, CRef* ref)
 	{
 		return BitmapImpl::create(bitmap, flagFreeOnRelease, ref);
 	}

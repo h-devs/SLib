@@ -137,7 +137,7 @@ namespace slib
 
 #define SLIB_EFL_MULTI_TOUCH_COUNT_MAX 10
 
-		class TouchEventInfo : public Referable
+		class TouchEventInfo : public CRef
 		{
 		public:
 			TouchEventInfo();

@@ -125,7 +125,7 @@ namespace slib
 			}
 			_addPoint(x, y, GraphicsPathPoint::MoveTo);
 		} while (0);
-		Referable* po = m_platformObject.get();
+		CRef* po = m_platformObject.get();
 		if (po) {
 			_moveTo_PO(po, x, y);
 		}
@@ -142,7 +142,7 @@ namespace slib
 			return;
 		}
 		_addPoint(x, y, GraphicsPathPoint::LineTo);
-		Referable* po = m_platformObject.get();
+		CRef* po = m_platformObject.get();
 		if (po) {
 			_lineTo_PO(po, x, y);
 		}
@@ -170,7 +170,7 @@ namespace slib
 		_addPoint(xc1, yc1, GraphicsPathPoint::CubicTo);
 		_addPoint(xc2, yc2, GraphicsPathPoint::CubicTo);
 		_addPoint(xe, ye, GraphicsPathPoint::CubicTo);
-		Referable* po = m_platformObject.get();
+		CRef* po = m_platformObject.get();
 		if (po) {
 			_cubicTo_PO(po, xc1, yc1, xc2, yc2, xe, ye);
 		}
@@ -189,7 +189,7 @@ namespace slib
 		_addPoint(xc1, yc1, GraphicsPathPoint::CubicTo);
 		_addPoint(xc2, yc2, GraphicsPathPoint::CubicTo);
 		_addPoint(xe, ye, GraphicsPathPoint::CubicTo);
-		Referable* po = m_platformObject.get();
+		CRef* po = m_platformObject.get();
 		if (po) {
 			_cubicTo_PO(po, xc1, yc1, xc2, yc2, xe, ye);
 		}
@@ -211,7 +211,7 @@ namespace slib
 			return;
 		}
 		pt.flagClose = sl_true;
-		Referable* po = m_platformObject.get();
+		CRef* po = m_platformObject.get();
 		if (po) {
 			_closeSubpath_PO(po);
 		}
@@ -329,7 +329,7 @@ namespace slib
 	void GraphicsPath::setFillMode(FillMode mode)
 	{
 		m_fillMode = mode;
-		Referable* po = m_platformObject.get();
+		CRef* po = m_platformObject.get();
 		if (po) {
 			_setFillMode_PO(po, mode);
 		}
@@ -714,11 +714,11 @@ namespace slib
 		if (m_platformObject.isNotNull()) {
 			return;
 		}
-		Ref<Referable> refPo = _createPlatformObject();
+		Ref<CRef> refPo = _createPlatformObject();
 		if (refPo.isNull()) {
 			return;
 		}
-		Referable* po = refPo.get();
+		CRef* po = refPo.get();
 		sl_size n = m_points.getCount();
 		GraphicsPathPoint* pts = m_points.getData();
 		for (sl_size i = 0; i < n; i++) {
@@ -756,28 +756,28 @@ namespace slib
 
 #if !(defined(SLIB_GRAPHICS_IS_GDI)) && !(defined(SLIB_GRAPHICS_IS_QUARTZ)) && !(defined(SLIB_GRAPHICS_IS_ANDROID))
 
-	Ref<Referable> GraphicsPath::_createPlatformObject()
+	Ref<CRef> GraphicsPath::_createPlatformObject()
 	{
 		return sl_null;
 	}
 
-	void GraphicsPath::_moveTo_PO(Referable* po, sl_real x, sl_real y)
+	void GraphicsPath::_moveTo_PO(CRef* po, sl_real x, sl_real y)
 	{
 	}
 
-	void GraphicsPath::_lineTo_PO(Referable* po, sl_real x, sl_real y)
+	void GraphicsPath::_lineTo_PO(CRef* po, sl_real x, sl_real y)
 	{
 	}
 
-	void GraphicsPath::_cubicTo_PO(Referable* po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
+	void GraphicsPath::_cubicTo_PO(CRef* po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
 	{
 	}
 
-	void GraphicsPath::_closeSubpath_PO(Referable* po)
+	void GraphicsPath::_closeSubpath_PO(CRef* po)
 	{
 	}
 
-	void GraphicsPath::_setFillMode_PO(Referable* po, FillMode mode)
+	void GraphicsPath::_setFillMode_PO(CRef* po, FillMode mode)
 	{
 	}
 

@@ -216,7 +216,7 @@ namespace slib
 		template <class STRING_CONTAINER>
 		using StdContainer = ObjectContainer<STRING_CONTAINER, typename STRING_CONTAINER::StringType::StdString>;
 		template <class STRING_CONTAINER>
-		using RefContainer = ObjectContainer< STRING_CONTAINER, Ref<Referable> >;
+		using RefContainer = ObjectContainer< STRING_CONTAINER, Ref<CRef> >;
 		template <class STRING_CONTAINER>
 		using SubContainer = ObjectContainer<STRING_CONTAINER, typename STRING_CONTAINER::StringType>;
 
@@ -306,7 +306,7 @@ namespace slib
 		}
 
 		template <class CONTAINER>
-		static CONTAINER* AllocRef(Referable* obj, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
+		static CONTAINER* AllocRef(CRef* obj, typename CONTAINER::StringType::Char const* sz, sl_size len) noexcept
 		{
 			if (!len) {
 				return ConstContainers<CONTAINER>::getEmpty();
@@ -4437,7 +4437,7 @@ namespace slib
 		return sl_null; \
 	} \
 	\
-	STRING STRING::fromRef(Referable* ref, typename STRING::Char const* str, sl_size len) noexcept \
+	STRING STRING::fromRef(CRef* ref, typename STRING::Char const* str, sl_size len) noexcept \
 	{ \
 		if (str) { \
 			return AllocRef<Container>(ref, str, len); \

@@ -44,7 +44,7 @@ namespace slib
 
 		LinkPosition(Link<T>* _link) noexcept : link(_link) {}
 
-		LinkPosition(Link<T>* _link, Referable* _ref) noexcept : link(_link), ref(_ref) {}
+		LinkPosition(Link<T>* _link, CRef* _ref) noexcept : link(_link), ref(_ref) {}
 
 		LinkPosition(const LinkPosition& other) = default;
 
@@ -83,11 +83,11 @@ namespace slib
 
 	public:
 		Link<T>* link;
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	};
 
-	class SLIB_EXPORT CLinkedListBase : public Referable, public Lockable
+	class SLIB_EXPORT CLinkedListBase : public CRef, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 

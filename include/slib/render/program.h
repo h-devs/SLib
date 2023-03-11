@@ -107,7 +107,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT RenderInputLayout : public Referable
+	class SLIB_EXPORT RenderInputLayout : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -119,7 +119,7 @@ namespace slib
 	};
 
 
-	class SLIB_EXPORT RenderProgramState : public Referable
+	class SLIB_EXPORT RenderProgramState : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

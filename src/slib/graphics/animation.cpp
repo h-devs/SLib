@@ -902,12 +902,12 @@ namespace slib
 		animation->_stopFromNative();
 	}
 
-	Ref<Referable> AnimationLoop::_getNativeInstance(Animation* animation)
+	Ref<CRef> AnimationLoop::_getNativeInstance(Animation* animation)
 	{
 		return animation->m_nativeInstance;
 	}
 
-	void AnimationLoop::_setNativeInstance(Animation* animation, Referable* instance)
+	void AnimationLoop::_setNativeInstance(Animation* animation, CRef* instance)
 	{
 		animation->m_nativeInstance = instance;
 	}

@@ -168,7 +168,7 @@ namespace slib
 
 	void AlertDialog::_showOnUiThread()
 	{
-		Ref<AlertDialog> alert = _getReferable();
+		Ref<AlertDialog> alert = _getRefObj();
 		if (alert.isNotNull()) {
 			if (UI::isUiThread()) {
 				alert::ShowOnUiThread(alert);
@@ -180,7 +180,7 @@ namespace slib
 
 	void AlertDialog::_showByRun()
 	{
-		Ref<AlertDialog> alert = _getReferable();
+		Ref<AlertDialog> alert = _getRefObj();
 		if (alert.isNotNull()) {
 			UI::dispatchToUiThread(Function<void()>::bind(&(alert::ShowOnUiThreadByRun), alert));
 		}
@@ -308,7 +308,7 @@ namespace slib
 
 	}
 
-	AlertDialog* AlertDialog::_getReferable()
+	AlertDialog* AlertDialog::_getRefObj()
 	{
 		if (getReferenceCount() > 0) {
 			return this;
@@ -519,7 +519,7 @@ namespace slib
 
 	void FileDialog::_showOnUiThread()
 	{
-		Ref<FileDialog> dialog = _getReferable();
+		Ref<FileDialog> dialog = _getRefObj();
 		if (dialog.isNotNull()) {
 			if (UI::isUiThread()) {
 				file::ShowOnUiThread(dialog);
@@ -531,7 +531,7 @@ namespace slib
 
 	void FileDialog::_showByRun()
 	{
-		Ref<FileDialog> dialog = _getReferable();
+		Ref<FileDialog> dialog = _getRefObj();
 		if (dialog.isNotNull()) {
 			UI::dispatchToUiThread(Function<void()>::bind(&(file::ShowOnUiThreadByRun), dialog));
 		}
@@ -543,7 +543,7 @@ namespace slib
 		onComplete(*this);
 	}
 
-	FileDialog* FileDialog::_getReferable()
+	FileDialog* FileDialog::_getRefObj()
 	{
 		if (getReferenceCount() > 0) {
 			return this;

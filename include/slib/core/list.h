@@ -53,7 +53,7 @@ namespace slib
 		}
 	}
 
-	class SLIB_EXPORT CListBase : public Referable, public Lockable
+	class SLIB_EXPORT CListBase : public CRef, public Lockable
 	{
 		SLIB_DECLARE_OBJECT
 

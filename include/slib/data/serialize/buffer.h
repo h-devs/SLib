@@ -39,7 +39,7 @@ namespace slib
 		sl_uint8* current;
 		sl_uint8* begin;
 		sl_uint8* end;
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	public:
 		SerializeBuffer(const void* buf, sl_size size) noexcept;

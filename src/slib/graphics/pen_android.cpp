@@ -43,7 +43,7 @@ namespace slib
 			SLIB_JNI_FLOAT_FIELD(miterLimit);
 		SLIB_JNI_END_CLASS
 
-		class PenPlatformObject : public Referable
+		class PenPlatformObject : public CRef
 		{
 		public:
 			JniGlobal<jobject> m_pen;

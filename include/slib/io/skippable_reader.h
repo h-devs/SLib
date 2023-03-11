@@ -73,7 +73,7 @@ namespace slib
 		sl_uint64 getPosition();
 
 	private:
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 		IReader* m_reader;
 		ISeekable* m_seekable;
 

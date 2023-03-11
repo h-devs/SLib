@@ -41,7 +41,7 @@ namespace slib
 		sl_reg stride;
 		Color* colors;
 
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 
 	public:
 		ImageDesc();
@@ -64,7 +64,7 @@ namespace slib
 
 		static Ref<Image> createStatic(const ImageDesc& desc);
 
-		static Ref<Image> createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride = 0, Referable* ref = sl_null);
+		static Ref<Image> createStatic(sl_uint32 width, sl_uint32 height, const Color* pixels, sl_reg stride = 0, CRef* ref = sl_null);
 
 		static Ref<Image> create(sl_uint32 width, sl_uint32 height, const Color* pixels = sl_null, sl_reg strideSource = 0);
 

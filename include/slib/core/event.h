@@ -28,7 +28,7 @@
 namespace slib
 {
 
-	class SLIB_EXPORT Event : public Referable
+	class SLIB_EXPORT Event : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

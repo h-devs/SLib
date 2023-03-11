@@ -112,7 +112,7 @@ namespace slib
 	};
 
 #define SLIB_DECLARE_MENU_BEGIN(NAME) \
-	class NAME : public slib::Referable { \
+	class NAME : public slib::CRef { \
 	public: \
 		static const NAME* get(); \
 		NAME(); \

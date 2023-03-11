@@ -89,7 +89,7 @@ namespace slib
 					requestBody = varBody.toJsonString().toMemory();
 					return;
 				}
-				Ref<Referable> ref = varBody.getRef();
+				Ref<CRef> ref = varBody.getRef();
 				if (XmlDocument* xml = CastInstance<XmlDocument>(ref.get())) {
 					requestBody = xml->toString().toMemory();
 					return;

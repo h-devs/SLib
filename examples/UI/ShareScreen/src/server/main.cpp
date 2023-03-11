@@ -4,7 +4,7 @@
 
 using namespace slib;
 
-class UserInfo : public Referable
+class UserInfo : public CRef
 {
 public:
 	Memory screen;

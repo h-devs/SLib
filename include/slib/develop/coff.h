@@ -218,7 +218,7 @@ namespace slib
 	protected:
 		IReader* m_reader;
 		ISeekable* m_seekable;
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 
 		List<Symbol> m_symbols;
 

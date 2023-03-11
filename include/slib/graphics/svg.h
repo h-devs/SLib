@@ -73,7 +73,7 @@ namespace slib
 		void onDrawAll(Canvas* canvas, const Rectangle& rectDst, const DrawParam& param) override;
 
 	protected:
-		Ref<Referable> m_document;
+		Ref<CRef> m_document;
 
 	private:
 		void _querySize();

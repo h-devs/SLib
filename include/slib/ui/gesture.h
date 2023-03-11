@@ -31,7 +31,7 @@
 namespace slib
 {
 
-	class GestureEvent : public Referable
+	class GestureEvent : public CRef
 	{
 	public:
 		GestureType type;

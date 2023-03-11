@@ -653,7 +653,7 @@ namespace slib
 
 		};
 
-		class ContentAnalyzer : public Referable
+		class ContentAnalyzer : public CRef
 		{
 		public:
 			void analyze(PacketAnalyzerHelper* parent, IPv4Packet* packet, TcpSegment* tcp, sl_uint8* data, sl_uint32 sizeData, void* userData)

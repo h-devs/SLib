@@ -87,7 +87,7 @@ namespace slib
 
 		SLIB_SAFE_STATIC_GETTER(FontStaticContext, GetFontStaticContext)
 
-		class FontPlatformObject : public Referable
+		class FontPlatformObject : public CRef
 		{
 		public:
 			Gdiplus::Font* m_fontGdiplus;

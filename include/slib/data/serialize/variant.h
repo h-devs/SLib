@@ -38,10 +38,10 @@
 namespace slib
 {
 
-	sl_bool SerializeJsonBinary(MemoryBuffer* output, Referable* ref);
+	sl_bool SerializeJsonBinary(MemoryBuffer* output, CRef* ref);
 
 	template <class OUTPUT>
-	static sl_bool SerializeJsonBinary(OUTPUT* output, Referable* ref)
+	static sl_bool SerializeJsonBinary(OUTPUT* output, CRef* ref)
 	{
 		MemoryBuffer buf;
 		if (ref->toJsonBinary(buf)) {
@@ -124,7 +124,7 @@ namespace slib
 				return Serialize(output, *((VariantMap*)((void*)&_value)));
 			default:
 				if (isRef()) {
-					Ref<Referable> ref = getRef();
+					Ref<CRef> ref = getRef();
 					if (ref.isNotNull()) {
 						return SerializeJsonBinary(output, ref.get());
 					}

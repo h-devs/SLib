@@ -251,7 +251,7 @@ namespace slib
 
 		};
 
-		class Connection : public Referable
+		class Connection : public CRef
 		{
 		public:
 			P2PConnectionType m_type;
@@ -265,7 +265,7 @@ namespace slib
 
 		class DirectConnection;
 
-		class Node : public Referable
+		class Node : public CRef
 		{
 		public:
 			P2PPublicKey m_key;
@@ -388,7 +388,7 @@ namespace slib
 			Memory m_memContent;
 		};
 
-		class TcpStream : public Referable
+		class TcpStream : public CRef
 		{
 		public:
 			Ref<AsyncTcpSocket> m_socket;
@@ -1755,7 +1755,7 @@ namespace slib
 	{
 	}
 
-	P2PMessage::P2PMessage(const void* _data, sl_uint32 _size, Referable* _ref) : data(_data), size(_size), ref(_ref), connectionType(P2PConnectionType::Unknown), flagNotJson(sl_false)
+	P2PMessage::P2PMessage(const void* _data, sl_uint32 _size, CRef* _ref) : data(_data), size(_size), ref(_ref), connectionType(P2PConnectionType::Unknown), flagNotJson(sl_false)
 	{
 	}
 
@@ -1770,7 +1770,7 @@ namespace slib
 		flagNotJson = sl_false;
 	}
 
-	void P2PMessage::setContent(const void* _data, sl_uint32 _size, Referable* _ref)
+	void P2PMessage::setContent(const void* _data, sl_uint32 _size, CRef* _ref)
 	{
 		clear();
 		data = _data;
@@ -1891,7 +1891,7 @@ namespace slib
 	{
 	}
 
-	P2PRequest::P2PRequest(const void* data, sl_uint32 size, Referable* ref): P2PMessage(data, size, ref)
+	P2PRequest::P2PRequest(const void* data, sl_uint32 size, CRef* ref): P2PMessage(data, size, ref)
 	{
 	}
 
@@ -1902,7 +1902,7 @@ namespace slib
 	{
 	}
 
-	P2PResponse::P2PResponse(const void* data, sl_uint32 size, Referable* ref): P2PMessage(data, size, ref)
+	P2PResponse::P2PResponse(const void* data, sl_uint32 size, CRef* ref): P2PMessage(data, size, ref)
 	{
 	}
 

@@ -165,7 +165,7 @@ namespace slib
 		sl_bool m_flagCaptureUnknownFrames;
 		sl_bool m_flagBlockingTcpConnections;
 
-		Ref<Referable> m_contentAnalyzer;
+		Ref<CRef> m_contentAnalyzer;
 		Mutex m_lockContentAnalyzer;
 
 		HashTable<sl_uint64, TcpConnectionInfo> m_tableTcpConnectionInfo;

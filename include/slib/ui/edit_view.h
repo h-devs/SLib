@@ -190,7 +190,7 @@ namespace slib
 		sl_reg m_indexSelectionStart; // In character unit
 		sl_reg m_indexSelectionEnd; // In character unit
 
-		Ref<Referable> m_dialog;
+		Ref<CRef> m_dialog;
 
 		AtomicRef<Timer> m_timerDrawCaret;
 		sl_uint32 m_nCountDrawCaret;

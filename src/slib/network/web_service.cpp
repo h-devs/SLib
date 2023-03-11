@@ -59,7 +59,7 @@ namespace slib
 					if (ret.isMemory()) {
 						context->write(ret.getMemory());
 					} else {
-						Ref<Referable> ref = ret.getRef();
+						Ref<CRef> ref = ret.getRef();
 						if (XmlDocument* xml = CastInstance<XmlDocument>(ref.get())) {
 							context->write(xml->toString());
 						} else {

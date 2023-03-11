@@ -33,7 +33,7 @@ namespace slib
 
 	namespace {
 
-		class PlatformObject : public Referable
+		class PlatformObject : public CRef
 		{
 		public:
 			CGMutablePathRef path;
@@ -78,36 +78,36 @@ namespace slib
 
 	}
 
-	Ref<Referable> GraphicsPath::_createPlatformObject()
+	Ref<CRef> GraphicsPath::_createPlatformObject()
 	{
-		return Ref<Referable>::from(PlatformObject::create());
+		return Ref<CRef>::from(PlatformObject::create());
 	}
 
-	void GraphicsPath::_moveTo_PO(Referable* _po, sl_real x, sl_real y)
+	void GraphicsPath::_moveTo_PO(CRef* _po, sl_real x, sl_real y)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		CGPathMoveToPoint(po->path, sl_null, x, y);
 	}
 
-	void GraphicsPath::_lineTo_PO(Referable* _po, sl_real x, sl_real y)
+	void GraphicsPath::_lineTo_PO(CRef* _po, sl_real x, sl_real y)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		CGPathAddLineToPoint(po->path, sl_null, x, y);
 	}
 
-	void GraphicsPath::_cubicTo_PO(Referable* _po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
+	void GraphicsPath::_cubicTo_PO(CRef* _po, sl_real xc1, sl_real yc1, sl_real xc2, sl_real yc2, sl_real xe, sl_real ye)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		CGPathAddCurveToPoint(po->path, sl_null, xc1, yc1, xc2, yc2, xe, ye);
 	}
 
-	void GraphicsPath::_closeSubpath_PO(Referable* _po)
+	void GraphicsPath::_closeSubpath_PO(CRef* _po)
 	{
 		PlatformObject* po = (PlatformObject*)_po;
 		CGPathCloseSubpath(po->path);
 	}
 
-	void GraphicsPath::_setFillMode_PO(Referable* po, FillMode mode)
+	void GraphicsPath::_setFillMode_PO(CRef* po, FillMode mode)
 	{
 	}
 

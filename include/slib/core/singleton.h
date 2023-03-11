@@ -33,7 +33,7 @@ public: \
 #define SLIB_DEFINE_SINGLETON(TYPE, ...) \
 	slib::Ref<TYPE> TYPE::getInstance() \
 	{ \
-		SLIB_TRY_CONVERT_TYPE(TYPE*, Referable*) \
+		SLIB_TRY_CONVERT_TYPE(TYPE*, CRef*) \
 		SLIB_SAFE_LOCAL_STATIC(slib::Ref<TYPE>, instance, new TYPE(__VA_ARGS__)); \
 		if (SLIB_SAFE_STATIC_CHECK_FREED(instance)) { \
 			return sl_null; \
@@ -44,7 +44,7 @@ public: \
 #define SLIB_INIT_SINGLETON(TYPE, ...) \
 	slib::Ref<TYPE> TYPE::getInstance() \
 	{ \
-		SLIB_TRY_CONVERT_TYPE(TYPE*, Referable*) \
+		SLIB_TRY_CONVERT_TYPE(TYPE*, CRef*) \
 		SLIB_SAFE_LOCAL_STATIC(slib::Ref<TYPE>, instance, Init<TYPE>(__VA_ARGS__)); \
 		if (SLIB_SAFE_STATIC_CHECK_FREED(instance)) { \
 			return sl_null; \

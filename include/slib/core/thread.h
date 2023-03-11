@@ -116,9 +116,9 @@ namespace slib
 		static sl_uint64 getCurrentThreadUniqueId();
 
 		// attached objects are removed when the thread is exited
-		Ref<Referable> getAttachedObject(const String& name);
+		Ref<CRef> getAttachedObject(const String& name);
 
-		void attachObject(const String& name, Referable* object);
+		void attachObject(const String& name, CRef* object);
 
 		void removeAttachedObject(const String& name);
 
@@ -134,7 +134,7 @@ namespace slib
 		Ref<Event> m_eventExit;
 		AtomicRef<Event> m_eventWaiting;
 
-		HashMap< String, Ref<Referable> > m_attachedObjects;
+		HashMap< String, Ref<CRef> > m_attachedObjects;
 
 	private:
 		static Thread* _nativeGetCurrentThread();

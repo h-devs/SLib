@@ -53,7 +53,7 @@ namespace slib
 			}
 		};
 
-		class ThreadManager : public Referable
+		class ThreadManager : public CRef
 		{
 		public:
 			SLIB_INLINE ThreadManager()
@@ -1300,7 +1300,7 @@ namespace slib
 		Thread* thread = Thread::getCurrent();
 		if (thread) {
 			SLIB_STATIC_STRING(name, "_SLIB_MYSQL")
-			Ref<Referable> ref = thread->getAttachedObject(name);
+			Ref<CRef> ref = thread->getAttachedObject(name);
 			if (ref.isNull()) {
 				mysql_thread_init();
 				ref = new ThreadManager;

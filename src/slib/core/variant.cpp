@@ -70,9 +70,9 @@ namespace slib
 			*((sl_uint32*)dst + 2) = 0;
 		}
 
-		SLIB_INLINE static sl_bool IsReferable(sl_uint8 type)
+		SLIB_INLINE static sl_bool IsRef(sl_uint8 type)
 		{
-			return type >= VariantType::Referable;
+			return type >= VariantType::Ref;
 		}
 
 		SLIB_INLINE static sl_bool IsStringType(sl_uint8 type)
@@ -114,8 +114,8 @@ namespace slib
 					dst._value2 = src._value2;
 					break;
 				default:
-					if (IsReferable(type)) {
-						new PTR_VAR(Ref<Referable>, dst._value) Ref<Referable>(REF_VAR(Ref<Referable>, src._value));
+					if (IsRef(type)) {
+						new PTR_VAR(Ref<CRef>, dst._value) Ref<CRef>(REF_VAR(Ref<CRef>, src._value));
 					} else {
 						dst._value = src._value;
 					}
@@ -137,8 +137,8 @@ namespace slib
 					REF_VAR(String32, value).String32::~String32();
 					break;
 				default:
-					if (IsReferable(type)) {
-						REF_VAR(Ref<Referable>, value).Ref<Referable>::~Ref();
+					if (IsRef(type)) {
+						REF_VAR(Ref<CRef>, value).Ref<CRef>::~Ref();
 					}
 					break;
 			}
@@ -165,10 +165,10 @@ namespace slib
 
 	void Variant::_constructorRef(const void* ptr, sl_uint8 type) noexcept
 	{
-		const Ref<Referable>& ref = *reinterpret_cast<Ref<Referable> const*>(ptr);
+		const Ref<CRef>& ref = *reinterpret_cast<Ref<CRef> const*>(ptr);
 		if (ref.isNotNull()) {
 			Init(*this, type);
-			new (reinterpret_cast<Ref<Referable>*>(&_value)) Ref<Referable>(ref);
+			new (reinterpret_cast<Ref<CRef>*>(&_value)) Ref<CRef>(ref);
 		} else {
 			Init(*this, VariantType::Null);
 			_value = 1;
@@ -177,10 +177,10 @@ namespace slib
 
 	void Variant::_constructorMoveRef(void* ptr, sl_uint8 type) noexcept
 	{
-		Ref<Referable>& ref = *reinterpret_cast<Ref<Referable>*>(ptr);
+		Ref<CRef>& ref = *reinterpret_cast<Ref<CRef>*>(ptr);
 		if (ref.isNotNull()) {
 			Init(*this, type);
-			new (reinterpret_cast<Ref<Referable>*>(&_value)) Ref<Referable>(Move(ref));
+			new (reinterpret_cast<Ref<CRef>*>(&_value)) Ref<CRef>(Move(ref));
 		} else {
 			Init(*this, VariantType::Null);
 			_value = 1;
@@ -644,8 +644,8 @@ namespace slib
 	}
 
 #define VARIANT_OPERATOR_CALL_REF(OP_NAME) \
-	if (IsReferable(_type)) { \
-		Ref<Referable> ref = getRef(); \
+	if (IsRef(_type)) { \
+		Ref<CRef> ref = getRef(); \
 		if (ref.isNotNull()) { \
 			Variant result; \
 			if (ref->runOperator(ObjectOperator::OP_NAME, result, other, sl_true)) { \
@@ -653,8 +653,8 @@ namespace slib
 			} \
 		} \
 	} \
-	if (IsReferable(other._type)) { \
-		Ref<Referable> ref = other.getRef(); \
+	if (IsRef(other._type)) { \
+		Ref<CRef> ref = other.getRef(); \
 		if (ref.isNotNull()) { \
 			Variant result; \
 			if (ref->runOperator(ObjectOperator::OP_NAME, result, *this, sl_false)) { \
@@ -998,8 +998,8 @@ namespace slib
 			default:
 				break;
 		}
-		if (IsReferable(_type)) {
-			Ref<Referable> ref = getRef();
+		if (IsRef(_type)) {
+			Ref<CRef> ref = getRef();
 			if (ref.isNotNull()) {
 				Variant result;
 				if (ref->runOperator(ObjectOperator::UnaryMinus, result, Variant(), sl_false)) {
@@ -1035,8 +1035,8 @@ namespace slib
 			default:
 				break;
 		}
-		if (IsReferable(_type)) {
-			Ref<Referable> ref = getRef();
+		if (IsRef(_type)) {
+			Ref<CRef> ref = getRef();
 			if (ref.isNotNull()) {
 				Variant result;
 				if (ref->runOperator(ObjectOperator::LogicalNot, result, Variant(), sl_false)) {
@@ -1073,8 +1073,8 @@ namespace slib
 			default:
 				break;
 		}
-		if (IsReferable(_type)) {
-			Ref<Referable> ref = getRef();
+		if (IsRef(_type)) {
+			Ref<CRef> ref = getRef();
 			if (ref.isNotNull()) {
 				Variant result;
 				if (ref->runOperator(ObjectOperator::BitwiseNot, result, Variant(), sl_false)) {
@@ -1263,8 +1263,8 @@ namespace slib
 			default:
 				break;
 		}
-		if (IsReferable(_type)) {
-			Ref<Referable> ref = getRef();
+		if (IsRef(_type)) {
+			Ref<CRef> ref = getRef();
 			if (ref.isNotNull()) {
 				Variant result;
 				if (ref->runOperator(ObjectOperator::ShiftRight, result, other, sl_false)) {
@@ -1293,8 +1293,8 @@ namespace slib
 			default:
 				break;
 		}
-		if (IsReferable(_type)) {
-			Ref<Referable> ref = getRef();
+		if (IsRef(_type)) {
+			Ref<CRef> ref = getRef();
 			if (ref.isNotNull()) {
 				Variant result;
 				if (ref->runOperator(ObjectOperator::ShiftLeft, result, other, sl_false)) {
@@ -2511,12 +2511,12 @@ namespace slib
 
 	sl_bool Variant::isPointer() const noexcept
 	{
-		return _type == VariantType::Pointer || IsStringViewType(_type) || IsReferable(_type);
+		return _type == VariantType::Pointer || IsStringViewType(_type) || IsRef(_type);
 	}
 
 	void* Variant::getPointer(const void* def) const noexcept
 	{
-		if (_type == VariantType::Pointer || IsStringViewType(_type) || IsReferable(_type)) {
+		if (_type == VariantType::Pointer || IsStringViewType(_type) || IsRef(_type)) {
 			return REF_VAR(void* const, _value);
 		}
 		return (void*)def;
@@ -2542,12 +2542,12 @@ namespace slib
 				return sl_true;
 			}
 			if (v._type == VariantType::Weak) {
-				Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
+				Ref<CRef> ref(REF_VAR(WeakRef<CRef> const, v._value));
 				if (ref.isNotNull()) {
 					return IsInstanceOf<T>(ref);
 				}
-			} else if (IsReferable(v._type)) {
-				return IsInstanceOf<T>(REF_VAR(Ref<Referable> const, v._value));
+			} else if (IsRef(v._type)) {
+				return IsInstanceOf<T>(REF_VAR(Ref<CRef> const, v._value));
 			}
 			return sl_false;
 		}
@@ -2559,12 +2559,12 @@ namespace slib
 				return REF_VAR(OT, v._value);
 			}
 			if (v._type == VariantType::Weak) {
-				Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, v._value));
+				Ref<CRef> ref(REF_VAR(WeakRef<CRef> const, v._value));
 				if (IsInstanceOf<T>(ref)) {
 					return REF_VAR(OT, ref);
 				}
-			} else if (IsReferable(v._type)) {
-				if (IsInstanceOf<T>(REF_VAR(Referable*, v._value))) {
+			} else if (IsRef(v._type)) {
+				if (IsInstanceOf<T>(REF_VAR(CRef*, v._value))) {
 					return REF_VAR(OT, v._value);
 				}
 			}
@@ -2667,15 +2667,15 @@ namespace slib
 
 	sl_bool Variant::isRef() const noexcept
 	{
-		return IsReferable(_type);
+		return IsRef(_type);
 	}
 
-	Ref<Referable> Variant::getRef() const noexcept
+	Ref<CRef> Variant::getRef() const noexcept
 	{
 		if (_type == VariantType::Weak) {
-			return REF_VAR(WeakRef<Referable> const, _value);
-		} else if (IsReferable(_type)) {
-			return REF_VAR(Ref<Referable> const, _value);
+			return REF_VAR(WeakRef<CRef> const, _value);
+		} else if (IsRef(_type)) {
+			return REF_VAR(Ref<CRef> const, _value);
 		}
 		return sl_null;
 	}
@@ -2683,12 +2683,12 @@ namespace slib
 	sl_object_type Variant::getObjectType() const noexcept
 	{
 		if (_type == VariantType::Weak) {
-			Ref<Referable> ref(REF_VAR(WeakRef<Referable> const, _value));
+			Ref<CRef> ref(REF_VAR(WeakRef<CRef> const, _value));
 			if (ref.isNotNull()) {
 				return ref->getObjectType();
 			}
-		} else if (IsReferable(_type)) {
-			return REF_VAR(Ref<Referable> const, _value)->getObjectType();
+		} else if (IsRef(_type)) {
+			return REF_VAR(Ref<CRef> const, _value)->getObjectType();
 		}
 		return 0;
 	}
@@ -3199,8 +3199,8 @@ namespace slib
 					}
 				}
 			}
-		} else if (IsReferable(_type)) {
-			Ref<Referable> ref = getRef();
+		} else if (IsRef(_type)) {
+			Ref<CRef> ref = getRef();
 			if (IsInstanceOf<Object>(ref)) {
 				Ref<Object>& dst = Ref<Object>::from(ref);
 				if (other._type == VariantType::Map) {
@@ -3269,7 +3269,7 @@ namespace slib
 				return getString();
 			case VariantType::Weak:
 				{
-					Ref<Referable> ref(getRef());
+					Ref<CRef> ref(getRef());
 					if (ref.isNotNull()) {
 						return ref->toString();
 					} else {
@@ -3280,8 +3280,8 @@ namespace slib
 			case VariantType::Map:
 				return toJsonString();
 			default:
-				if (IsReferable(_type)) {
-					return REF_VAR(Referable*, _value)->toString();
+				if (IsRef(_type)) {
+					return REF_VAR(CRef*, _value)->toString();
 				}
 				return "<error-type>";
 		}
@@ -3348,7 +3348,7 @@ namespace slib
 				}
 			case VariantType::Weak:
 				{
-					Ref<Referable> ref(getRef());
+					Ref<CRef> ref(getRef());
 					if (ref.isNotNull()) {
 						return ref->toJsonString(buf);
 					} else {
@@ -3356,8 +3356,8 @@ namespace slib
 					}
 				}
 			default:
-				if (IsReferable(_type)) {
-					return REF_VAR(Referable*, _value)->toJsonString(buf);
+				if (IsRef(_type)) {
+					return REF_VAR(CRef*, _value)->toJsonString(buf);
 				} else {
 					return buf.add(toJsonString());
 				}
@@ -3391,7 +3391,7 @@ namespace slib
 			case VariantType::ObjectId:
 				return REF_VAR(ObjectId, _value).toJson().toJsonString();
 			default:
-				if (IsReferable(_type)) {
+				if (IsRef(_type)) {
 					StringBuffer buf;
 					if (toJsonString(buf)) {
 						return buf.merge();
@@ -3402,7 +3402,7 @@ namespace slib
 		SLIB_RETURN_STRING("null")
 	}
 
-	sl_bool SerializeJsonBinary(MemoryBuffer* output, Referable* ref)
+	sl_bool SerializeJsonBinary(MemoryBuffer* output, CRef* ref)
 	{
 		return ref->toJsonBinary(*output);
 	}
@@ -3535,7 +3535,7 @@ namespace slib
 			l += CVLI::serialize(buf + l, n);
 			Base::copyMemory(buf + l, str.getData(), n);
 			return l + n;
-		} else if (IsReferable(var._type)) {
+		} else if (IsRef(var._type)) {
 			MemoryBuffer mb;
 			if (sizePrefix) {
 				if (!(mb.addStatic(prefix, sizePrefix))) {
@@ -3639,9 +3639,9 @@ namespace slib
 				case VariantType::BigInt:
 					return REF_VAR(BigInt const, _value).compare(REF_VAR(BigInt const, other._value));
 				default:
-					if (IsReferable(_type)) {
+					if (IsRef(_type)) {
 						{
-							Ref<Referable> ref = getRef();
+							Ref<CRef> ref = getRef();
 							if (ref.isNotNull()) {
 								Variant result;
 								if (ref->runOperator(ObjectOperator::Compare, result, other, sl_true)) {
@@ -3650,7 +3650,7 @@ namespace slib
 							}
 						}
 						{
-							Ref<Referable> ref = other.getRef();
+							Ref<CRef> ref = other.getRef();
 							if (ref.isNotNull()) {
 								Variant result;
 								if (ref->runOperator(ObjectOperator::Compare, result, *this, sl_false)) {
@@ -3709,8 +3709,8 @@ namespace slib
 					}
 					break;
 				default:
-					if (IsReferable(_type)) {
-						Ref<Referable> ref = getRef();
+					if (IsRef(_type)) {
+						Ref<CRef> ref = getRef();
 						if (ref.isNotNull()) {
 							Variant result;
 							if (ref->runOperator(ObjectOperator::Compare, result, other, sl_true)) {
@@ -3718,15 +3718,15 @@ namespace slib
 							}
 						}
 					}
-					if (IsReferable(other._type)) {
-						Ref<Referable> ref = other.getRef();
+					if (IsRef(other._type)) {
+						Ref<CRef> ref = other.getRef();
 						if (ref.isNotNull()) {
 							Variant result;
 							if (ref->runOperator(ObjectOperator::Compare, result, *this, sl_false)) {
 								return -(result.getInt32());
 							}
 						}
-						if (IsReferable(_type)) {
+						if (IsRef(_type)) {
 							return ComparePrimitiveValues(REF_VAR(sl_size const, _value), REF_VAR(sl_size const, other._value));
 						}
 					}
@@ -3784,12 +3784,12 @@ namespace slib
 				case VariantType::BigInt:
 					return REF_VAR(BigInt const, _value).equals(REF_VAR(BigInt const, other._value));
 				default:
-					if (IsReferable(_type)) {
+					if (IsRef(_type)) {
 						if (REF_VAR(void const* const, _value) == REF_VAR(void const* const, other._value)) {
 							return sl_true;
 						}
 						{
-							Ref<Referable> ref = getRef();
+							Ref<CRef> ref = getRef();
 							if (ref.isNotNull()) {
 								Variant result;
 								if (ref->runOperator(ObjectOperator::Equals, result, other, sl_true)) {
@@ -3798,7 +3798,7 @@ namespace slib
 							}
 						}
 						{
-							Ref<Referable> ref = other.getRef();
+							Ref<CRef> ref = other.getRef();
 							if (ref.isNotNull()) {
 								Variant result;
 								if (ref->runOperator(ObjectOperator::Equals, result, *this, sl_false)) {
@@ -3857,13 +3857,13 @@ namespace slib
 					}
 					break;
 				default:
-					if (IsReferable(_type)) {
-						if (IsReferable(other._type)) {
+					if (IsRef(_type)) {
+						if (IsRef(other._type)) {
 							if (REF_VAR(void const* const, _value) == REF_VAR(void const* const, other._value)) {
 								return sl_true;
 							}
 						}
-						Ref<Referable> ref = getRef();
+						Ref<CRef> ref = getRef();
 						if (ref.isNotNull()) {
 							Variant result;
 							if (ref->runOperator(ObjectOperator::Equals, result, other, sl_true)) {
@@ -3871,8 +3871,8 @@ namespace slib
 							}
 						}
 					}
-					if (IsReferable(other._type)) {
-						Ref<Referable> ref = other.getRef();
+					if (IsRef(other._type)) {
+						Ref<CRef> ref = other.getRef();
 						if (ref.isNotNull()) {
 							Variant result;
 							if (ref->runOperator(ObjectOperator::Equals, result, *this, sl_false)) {

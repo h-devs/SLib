@@ -62,7 +62,7 @@ namespace slib
 	class Locale;
 	class FontAtlas;
 
-	class SLIB_EXPORT Font : public Referable
+	class SLIB_EXPORT Font : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -131,7 +131,7 @@ namespace slib
 
 		Ref<FontAtlas> getSharedAtlas();
 
-		Ref<Referable> getPlatformObject();
+		Ref<CRef> getPlatformObject();
 
 	private:
 		sl_bool _getFontMetrics_PO(FontMetrics& _out);
@@ -145,7 +145,7 @@ namespace slib
 
 		AtomicRef<FontAtlas> m_fontAtlas;
 
-		Ref<Referable> m_platformObject;
+		Ref<CRef> m_platformObject;
 		SpinLock m_lock;
 
 	};

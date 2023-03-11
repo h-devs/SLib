@@ -717,7 +717,7 @@ namespace slib
 	}
 
 
-	class CallableBase : public Referable
+	class CallableBase : public CRef
 	{
 	public:
 		SLIB_DECLARE_OBJECT

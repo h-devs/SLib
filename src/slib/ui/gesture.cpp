@@ -49,7 +49,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(GestureDetector, Object)
 
-	class GestureRecognizer : public Referable
+	class GestureRecognizer : public CRef
 	{
 	public:
 		GestureDetector* m_detector;

@@ -85,7 +85,7 @@ namespace slib
 			if (mem.size) {
 				sl_char8* buf = (sl_char8*)(mem.data);
 				if (*buf) {
-					Referable* ref = mem.ref.get();
+					CRef* ref = mem.ref.get();
 					if (ref) {
 						return String::fromRef(ref, buf, mem.size);
 					} else {
@@ -287,7 +287,7 @@ namespace slib
 		char buf[VALUE_BUFFER_SIZE];
 		MemoryData mem(buf, sizeof(buf));
 		if (getKey(&mem)) {
-			Referable* ref = mem.ref.get();
+			CRef* ref = mem.ref.get();
 			if (ref) {
 				return String::fromRef(ref, (sl_char8*)(mem.data), mem.size);
 			} else {

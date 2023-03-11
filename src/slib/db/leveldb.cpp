@@ -40,7 +40,7 @@ namespace slib
 
 	namespace {
 
-		class StdStringContainer : public Referable
+		class StdStringContainer : public CRef
 		{
 		public:
 			std::string string;
@@ -73,7 +73,7 @@ namespace slib
 			return sl_false;
 		}
 
-		class DefaultEnvironmentManager : public Referable
+		class DefaultEnvironmentManager : public CRef
 		{
 		public:
 			DefaultEnvironmentManager()

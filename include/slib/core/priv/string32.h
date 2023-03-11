@@ -168,7 +168,7 @@ namespace slib
 		 * Creates a string pointing the `str` as the content, without copying the data.
 		 * `ref` should be used to keep the alive of the string content.
 		 */
-		static String32 fromRef(Referable* ref, const sl_char32* str, sl_size len) noexcept;
+		static String32 fromRef(CRef* ref, const sl_char32* str, sl_size len) noexcept;
 
 		/**
 		 * Creates a string pointing the `mem` as the UTF-32 content, without copying the data.

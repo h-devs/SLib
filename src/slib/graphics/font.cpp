@@ -390,7 +390,7 @@ namespace slib
 		return Size(width, height);
 	}
 
-	Ref<Referable> Font::getPlatformObject()
+	Ref<CRef> Font::getPlatformObject()
 	{
 		return m_platformObject;
 	}

@@ -97,7 +97,7 @@ namespace slib
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CellParam)
 		};
 
-		class Cell : public Referable, public CellParam
+		class Cell : public CRef, public CellParam
 		{
 		public:
 			typedef DrawCellParam DrawParam;

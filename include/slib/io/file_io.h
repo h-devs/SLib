@@ -29,7 +29,7 @@
 namespace slib
 {
 
-	class FileIO : public Referable, public IO<File>
+	class FileIO : public CRef, public IO<File>
 	{
 	public:
 		SLIB_DECLARE_OBJECT

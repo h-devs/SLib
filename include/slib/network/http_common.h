@@ -310,14 +310,14 @@ namespace slib
 	};
 
 	// not thread-safe
-	class SLIB_EXPORT HttpUploadFile : public Referable
+	class SLIB_EXPORT HttpUploadFile : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
 	public:
 		HttpUploadFile();
 
-		HttpUploadFile(const String& fileName, const HttpHeaderMap& headers, void* data, sl_size size, const Ref<Referable>& ref);
+		HttpUploadFile(const String& fileName, const HttpHeaderMap& headers, void* data, sl_size size, const Ref<CRef>& ref);
 
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(HttpUploadFile)
 
@@ -353,7 +353,7 @@ namespace slib
 		HttpHeaderMap m_headers;
 		void* m_data;
 		sl_size m_size;
-		Ref<Referable> m_ref;
+		Ref<CRef> m_ref;
 
 	};
 

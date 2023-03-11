@@ -63,7 +63,7 @@ namespace slib
 		FT_Done_Face(m_face);
 	}
 
-	Ref<FreeType> FreeType::_create(Referable* lib, FT_FaceRec_* face, Referable* source)
+	Ref<FreeType> FreeType::_create(CRef* lib, FT_FaceRec_* face, CRef* source)
 	{
 		Ref<FreeType> ret = new FreeType;
 		if (ret.isNotNull()) {
@@ -78,7 +78,7 @@ namespace slib
 
 	namespace {
 
-		class Library : public Referable
+		class Library : public CRef
 		{
 		public:
 			FT_Library handle;

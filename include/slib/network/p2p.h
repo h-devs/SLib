@@ -71,7 +71,7 @@ namespace slib
 		SocketAddress remoteAddress; // For receiver (Broadcast)
 
 	private:
-		Ref<Referable> ref;
+		Ref<CRef> ref;
 		Memory mem;
 		String str;
 		Json json;
@@ -80,7 +80,7 @@ namespace slib
 	public:
 		P2PMessage();
 
-		P2PMessage(const void* data, sl_uint32 size, Referable* ref = sl_null);
+		P2PMessage(const void* data, sl_uint32 size, CRef* ref = sl_null);
 
 		template <class T>
 		P2PMessage(T&& value): data(sl_null), size(0), connectionType(P2PConnectionType::Unknown)
@@ -103,7 +103,7 @@ namespace slib
 
 		void clear();
 
-		void setContent(const void* data, sl_uint32 size, Referable* ref = sl_null);
+		void setContent(const void* data, sl_uint32 size, CRef* ref = sl_null);
 
 		void setContent(const Variant& var);
 
@@ -133,7 +133,7 @@ namespace slib
 	public:
 		P2PRequest();
 
-		P2PRequest(const void* data, sl_uint32 size, Referable* ref = sl_null);
+		P2PRequest(const void* data, sl_uint32 size, CRef* ref = sl_null);
 
 		template <class T>
 		P2PRequest(T&& value): P2PMessage(Forward<T>(value)) {}
@@ -147,7 +147,7 @@ namespace slib
 	public:
 		P2PResponse();
 
-		P2PResponse(const void* data, sl_uint32 size, Referable* ref = sl_null);
+		P2PResponse(const void* data, sl_uint32 size, CRef* ref = sl_null);
 
 		template <class T>
 		P2PResponse(T&& value): P2PMessage(Forward<T>(value)) {}

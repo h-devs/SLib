@@ -38,7 +38,7 @@ namespace slib
 
 		CBigInt, BigInt is not thread-safe on modification operations
 */
-	class SLIB_EXPORT CBigInt : public Referable
+	class SLIB_EXPORT CBigInt : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

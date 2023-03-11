@@ -54,7 +54,7 @@ namespace slib
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(FileInfo)
 		};
 
-		class FileContext : public Referable
+		class FileContext : public CRef
 		{
 		public:
 			FileContext(const String16& path);

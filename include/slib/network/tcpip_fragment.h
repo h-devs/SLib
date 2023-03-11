@@ -44,7 +44,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT IPv4FragmentedPacket : public Referable
+	class SLIB_EXPORT IPv4FragmentedPacket : public CRef
 	{
 	public:
 		Memory header;

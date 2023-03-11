@@ -65,7 +65,7 @@ namespace slib
 
 	};
 
-	class PseudoTcpMessage::Connection : public Referable, public IPseudoTcpNotify
+	class PseudoTcpMessage::Connection : public CRef, public IPseudoTcpNotify
 	{
 	public:
 		PseudoTcp tcp;

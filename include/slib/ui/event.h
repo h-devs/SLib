@@ -145,7 +145,7 @@ namespace slib
 
 
 
-	class SLIB_EXPORT UIEvent : public Referable
+	class SLIB_EXPORT UIEvent : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 

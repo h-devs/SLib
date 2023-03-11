@@ -58,7 +58,7 @@ namespace slib
 			}
 		}
 
-		class AnimatorInstance : public Referable
+		class AnimatorInstance : public CRef
 		{
 		public:
 			JniGlobal<jobject> object;
@@ -200,7 +200,7 @@ namespace slib
 
 	void UIAnimationLoop::_stopNativeAnimation(Animation* animation)
 	{
-		Ref<Referable> _animator = _getNativeInstance(animation);
+		Ref<CRef> _animator = _getNativeInstance(animation);
 		Ref<AnimatorInstance> animator = CastInstance< AnimatorInstance >(_animator.get());
 		if (animator.isNotNull()) {
 			JAnimation::stop.call(animator->object);

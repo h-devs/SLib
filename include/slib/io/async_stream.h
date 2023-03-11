@@ -48,7 +48,7 @@ namespace slib
 		void* data;
 		sl_size size;
 		sl_size requestSize;
-		Referable* userObject;
+		CRef* userObject;
 		Callable<void(AsyncStreamResult&)>* callback;
 		AsyncStreamResultCode resultCode;
 
@@ -70,7 +70,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT AsyncStreamRequest : public Referable
+	class SLIB_EXPORT AsyncStreamRequest : public CRef
 	{
 		SLIB_DECLARE_OBJECT
 
@@ -78,20 +78,20 @@ namespace slib
 		sl_bool flagRead;
 		void* data;
 		sl_size size;
-		Ref<Referable> userObject;
+		Ref<CRef> userObject;
 		Function<void(AsyncStreamResult&)> callback;
 
 		sl_size sizeWritten;
 
 	public:
-		AsyncStreamRequest(sl_bool flagRead, const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
+		AsyncStreamRequest(sl_bool flagRead, const void* data, sl_size size, CRef* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
 		~AsyncStreamRequest();
 
 	public:
-		static Ref<AsyncStreamRequest> createRead(void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
+		static Ref<AsyncStreamRequest> createRead(void* data, sl_size size, CRef* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
-		static Ref<AsyncStreamRequest> createWrite(const void* data, sl_size size, Referable* userObject, const Function<void(AsyncStreamResult&)>& callback);
+		static Ref<AsyncStreamRequest> createWrite(const void* data, sl_size size, CRef* userObject, const Function<void(AsyncStreamResult&)>& callback);
 
 	public:
 		void runCallback(AsyncStream* stream, sl_size resultSize, AsyncStreamResultCode resultCode);
@@ -162,11 +162,11 @@ namespace slib
 
 		virtual sl_bool requestIo(const Ref<AsyncStreamRequest>& request) = 0;
 
-		sl_bool read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
+		sl_bool read(void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
 		sl_bool read(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 
-		sl_bool write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, Referable* userObject = sl_null);
+		sl_bool write(const void* data, sl_size size, const Function<void(AsyncStreamResult&)>& callback, CRef* userObject = sl_null);
 
 		sl_bool write(const Memory& mem, const Function<void(AsyncStreamResult&)>& callback);
 

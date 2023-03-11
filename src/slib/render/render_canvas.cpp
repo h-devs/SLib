@@ -582,7 +582,7 @@ namespace slib
 
 		};
 
-		class EngineContext : public Referable
+		class EngineContext : public CRef
 		{
 		public:
 			CHashMap< String, Ref<RenderCanvasProgram> > programs;

@@ -342,12 +342,12 @@ namespace slib
 		return n;
 	}
 
-	Ref<Referable> Thread::getAttachedObject(const String& name)
+	Ref<CRef> Thread::getAttachedObject(const String& name)
 	{
-		return m_attachedObjects.getValue(name, Ref<Referable>::null());
+		return m_attachedObjects.getValue(name, Ref<CRef>::null());
 	}
 
-	void Thread::attachObject(const String& name, Referable* object)
+	void Thread::attachObject(const String& name, CRef* object)
 	{
 		m_attachedObjects.put(name, object);
 	}

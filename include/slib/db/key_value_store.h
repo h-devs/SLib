@@ -99,7 +99,7 @@ namespace slib
 
 	};
 
-	class SLIB_EXPORT KeyValueSnapshot : public Referable, public KeyValueReader
+	class SLIB_EXPORT KeyValueSnapshot : public CRef, public KeyValueReader
 	{
 		SLIB_DECLARE_OBJECT
 

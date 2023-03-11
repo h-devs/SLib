@@ -39,7 +39,7 @@ namespace slib
 
 	namespace {
 
-		class StdStringContainer : public Referable
+		class StdStringContainer : public CRef
 		{
 		public:
 			std::string string;

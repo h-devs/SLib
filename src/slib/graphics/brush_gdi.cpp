@@ -40,7 +40,7 @@ namespace slib
 			return Gdiplus::Color(c.a, c.r, c.g, c.b);
 		}
 
-		class BrushPlatformObject : public Referable
+		class BrushPlatformObject : public CRef
 		{
 		public:
 			Gdiplus::Brush* m_brush;

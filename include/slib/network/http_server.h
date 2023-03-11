@@ -154,8 +154,8 @@ namespace slib
 	public:
 		SLIB_PROPERTY(SocketAddress, LocalAddress)
 		SLIB_PROPERTY(SocketAddress, RemoteAddress)
-		SLIB_PROPERTY(AtomicRef<Referable>, ProxyObject)
-		SLIB_PROPERTY(AtomicRef<Referable>, UserObject)
+		SLIB_PROPERTY(AtomicRef<CRef>, ProxyObject)
+		SLIB_PROPERTY(AtomicRef<CRef>, UserObject)
 
 	protected:
 		WeakRef<HttpServer> m_server;

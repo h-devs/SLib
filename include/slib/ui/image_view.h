@@ -95,7 +95,7 @@ namespace slib
 
 		AtomicRef<Timer> m_timerAnimation;
 		Time m_timeStartAnimation;
-		AtomicRef<Referable> m_request;
+		AtomicRef<CRef> m_request;
 
 	};
 
