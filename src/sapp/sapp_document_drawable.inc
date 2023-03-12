@@ -99,7 +99,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getDrawableAccessString(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, String& result)
+	sl_bool SAppDocument::_getDrawableAccessString(const String& localNamespace, const SAppDrawableValue& value, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::Ref<slib::Drawable>::null()";
@@ -112,7 +112,7 @@ namespace slib
 		if (value.flagColor) {
 			if (value.resourceName.isNotNull()) {
 				String name;
-				if (_checkColorName(localNamespace, value.resourceName, element, &name)) {
+				if (_checkColorName(localNamespace, value.resourceName, value.referingElement, &name)) {
 					result = String::format("slib::Drawable::createColorDrawable(color::%s::get())", name);
 					return sl_true;
 				} else {
@@ -126,7 +126,7 @@ namespace slib
 		}
 
 		String name;
-		if (!(_checkDrawableName(localNamespace, value.resourceName, element, &name))) {
+		if (!(_checkDrawableName(localNamespace, value.resourceName, value.referingElement, &name))) {
 			return sl_false;
 		}
 
@@ -150,7 +150,7 @@ namespace slib
 
 	}
 
-	sl_bool SAppDocument::_getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, Ref<Drawable>& result)
+	sl_bool SAppDocument::_getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, Ref<Drawable>& result)
 	{
 		if (!(value.flagDefined)) {
 			result.setNull();
@@ -163,7 +163,7 @@ namespace slib
 		if (value.flagColor) {
 			if (value.resourceName.isNotNull()) {
 				Ref<SAppColorResource> res;
-				if (_checkColorName(localNamespace, value.resourceName, element, sl_null, &res)) {
+				if (_checkColorName(localNamespace, value.resourceName, value.referingElement, sl_null, &res)) {
 					result = Drawable::createColorDrawable(res->value);
 					return sl_true;
 				} else {
@@ -176,7 +176,7 @@ namespace slib
 		}
 
 		Ref<SAppDrawableResource> res;
-		if (!(_checkDrawableName(localNamespace, value.resourceName, element, sl_null, &res))) {
+		if (!(_checkDrawableName(localNamespace, value.resourceName, value.referingElement, sl_null, &res))) {
 			return sl_false;
 		}
 
@@ -193,11 +193,11 @@ namespace slib
 				drawable = Drawable::createSubDrawable(drawable, value.x, value.y, value.width, value.height);
 			}
 			if (value.func == SAppDrawableValue::FUNC_NINEPATCH) {
-				drawable = NinePatchDrawable::create(_getDimensionIntValue(value.patchLeftWidthDst), _getDimensionIntValue(value.patchRightWidthDst), _getDimensionIntValue(value.patchTopHeightDst), _getDimensionIntValue(value.patchBottomHeightDst), drawable, value.patchLeftWidth, value.patchRightWidth, value.patchTopHeight, value.patchBottomHeight);
+				drawable = NinePatchDrawable::create(_getDimensionValue(value.patchLeftWidthDst), _getDimensionValue(value.patchRightWidthDst), _getDimensionValue(value.patchTopHeightDst), _getDimensionValue(value.patchBottomHeightDst), drawable, value.patchLeftWidth, value.patchRightWidth, value.patchTopHeight, value.patchBottomHeight);
 			} else if (value.func == SAppDrawableValue::FUNC_THREEPATCH_HORIZONTAL) {
-				drawable = HorizontalThreePatchDrawable::create(_getDimensionIntValue(value.patchLeftWidthDst), _getDimensionIntValue(value.patchRightWidthDst), drawable, value.patchLeftWidth, value.patchRightWidth);
+				drawable = HorizontalThreePatchDrawable::create(_getDimensionValue(value.patchLeftWidthDst), _getDimensionValue(value.patchRightWidthDst), drawable, value.patchLeftWidth, value.patchRightWidth);
 			} else if (value.func == SAppDrawableValue::FUNC_THREEPATCH_VERTICAL) {
-				drawable = VerticalThreePatchDrawable::create(_getDimensionIntValue(value.patchTopHeightDst), _getDimensionIntValue(value.patchBottomHeightDst), drawable, value.patchTopHeight, value.patchBottomHeight);
+				drawable = VerticalThreePatchDrawable::create(_getDimensionValue(value.patchTopHeightDst), _getDimensionValue(value.patchBottomHeightDst), drawable, value.patchTopHeight, value.patchBottomHeight);
 			}
 		}
 		if (drawable.isNotNull()) {
@@ -208,7 +208,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_checkDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element)
+	sl_bool SAppDocument::_checkDrawableValue(const String& localNamespace, const SAppDrawableValue& value)
 	{
 		if (!(value.flagDefined)) {
 			return sl_true;
@@ -218,12 +218,12 @@ namespace slib
 		}
 		if (value.flagColor) {
 			if (value.resourceName.isNotNull()) {
-				return _checkColorName(localNamespace, value.resourceName, element);
+				return _checkColorName(localNamespace, value.resourceName, value.referingElement);
 			} else {
 				return sl_true;
 			}
 		}
-		return _checkDrawableName(localNamespace, value.resourceName, element);
+		return _checkDrawableName(localNamespace, value.resourceName, value.referingElement);
 	}
 
 	sl_bool SAppDocument::_checkDrawableName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppDrawableResource>* outResource)
@@ -578,9 +578,16 @@ namespace slib
 #define LOG_ERROR_NINEPIECES_ATTR(NAME) \
 	_logError(element, g_str_error_resource_ninepieces_attribute_invalid, #NAME, str_##NAME);
 
-#define PARSE_AND_CHECK_NINEPIECES_ATTR(ATTR, NAME) \
+#define PARSE_AND_CHECK_NINEPIECES_DIMENSION_ATTR(ATTR, NAME) \
 	String str_##NAME = element->getAttribute(#NAME); \
 	if (!(ATTR NAME.parse(str_##NAME, this))) { \
+		LOG_ERROR_NINEPIECES_ATTR(NAME) \
+		return sl_false; \
+	}
+	
+#define PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(ATTR, NAME) \
+	String str_##NAME = element->getAttribute(#NAME); \
+	if (!(ATTR NAME.parse(str_##NAME, this, element))) { \
 		LOG_ERROR_NINEPIECES_ATTR(NAME) \
 		return sl_false; \
 	}
@@ -622,40 +629,38 @@ namespace slib
 		}
 
 		SAppDrawableResourceNinePiecesAttributes* attr = res->ninePiecesAttrs.get();
-
-		attr->element = element;
 		attr->localNamespace = localNamespace;
 
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, leftWidth)
+		PARSE_AND_CHECK_NINEPIECES_DIMENSION_ATTR(attr->, leftWidth)
 		if (!(attr->leftWidth.checkGlobal())) {
 			LOG_ERROR_NINEPIECES_ATTR(leftWidth)
 			return sl_false;
 		}
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, rightWidth)
+		PARSE_AND_CHECK_NINEPIECES_DIMENSION_ATTR(attr->, rightWidth)
 		if (!(attr->rightWidth.checkGlobal())) {
 			LOG_ERROR_NINEPIECES_ATTR(rightWidth)
 			return sl_false;
 		}
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, topHeight)
+		PARSE_AND_CHECK_NINEPIECES_DIMENSION_ATTR(attr->, topHeight)
 		if (!(attr->topHeight.checkGlobal())) {
 			LOG_ERROR_NINEPIECES_ATTR(topHeight)
 			return sl_false;
 		}
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, bottomHeight)
+		PARSE_AND_CHECK_NINEPIECES_DIMENSION_ATTR(attr->, bottomHeight)
 		if (!(attr->bottomHeight.checkGlobal())) {
 			LOG_ERROR_NINEPIECES_ATTR(bottomHeight)
 			return sl_false;
 		}
 
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, topLeft)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, top)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, topRight)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, left)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, center)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, right)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, bottomLeft)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, bottom)
-		PARSE_AND_CHECK_NINEPIECES_ATTR(attr->, bottomRight)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, topLeft)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, top)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, topRight)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, left)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, center)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, right)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, bottomLeft)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, bottom)
+		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, bottomRight)
 
 		if (!(m_drawables.put(name, res))) {
 			_logError(g_str_error_out_of_memory);
@@ -672,39 +677,39 @@ namespace slib
 		sbHeader.add(String::format("\t\tSLIB_DECLARE_NINEPIECES_RESOURCE(%s)%n", res->name));
 
 		String strTopLeft;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->topLeft, attr->element, strTopLeft))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->topLeft, strTopLeft))) {
 			return sl_false;
 		}
 		String strTop;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->top, attr->element, strTop))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->top, strTop))) {
 			return sl_false;
 		}
 		String strTopRight;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->topRight, attr->element, strTopRight))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->topRight, strTopRight))) {
 			return sl_false;
 		}
 		String strLeft;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->left, attr->element, strLeft))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->left, strLeft))) {
 			return sl_false;
 		}
 		String strCenter;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->center, attr->element, strCenter))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->center, strCenter))) {
 			return sl_false;
 		}
 		String strRight;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->right, attr->element, strRight))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->right, strRight))) {
 			return sl_false;
 		}
 		String strBottomLeft;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->bottomLeft, attr->element, strBottomLeft))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->bottomLeft, strBottomLeft))) {
 			return sl_false;
 		}
 		String strBottom;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->bottom, attr->element, strBottom))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->bottom, strBottom))) {
 			return sl_false;
 		}
 		String strBottomRight;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->bottomRight, attr->element, strBottomRight))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->bottomRight, strBottomRight))) {
 			return sl_false;
 		}
 
@@ -721,43 +726,43 @@ namespace slib
 
 		do {
 			Ref<Drawable> topLeft;
-			if (!(_getDrawableValue(attr->localNamespace, attr->topLeft, attr->element, topLeft))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->topLeft, topLeft))) {
 				break;
 			}
 			Ref<Drawable> top;
-			if (!(_getDrawableValue(attr->localNamespace, attr->top, attr->element, top))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->top, top))) {
 				break;
 			}
 			Ref<Drawable> topRight;
-			if (!(_getDrawableValue(attr->localNamespace, attr->topRight, attr->element, topRight))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->topRight, topRight))) {
 				break;
 			}
 			Ref<Drawable> left;
-			if (!(_getDrawableValue(attr->localNamespace, attr->left, attr->element, left))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->left, left))) {
 				break;
 			}
 			Ref<Drawable> center;
-			if (!(_getDrawableValue(attr->localNamespace, attr->center, attr->element, center))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->center, center))) {
 				break;
 			}
 			Ref<Drawable> right;
-			if (!(_getDrawableValue(attr->localNamespace, attr->right, attr->element, right))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->right, right))) {
 				break;
 			}
 			Ref<Drawable> bottomLeft;
-			if (!(_getDrawableValue(attr->localNamespace, attr->bottomLeft, attr->element, bottomLeft))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->bottomLeft, bottomLeft))) {
 				break;
 			}
 			Ref<Drawable> bottom;
-			if (!(_getDrawableValue(attr->localNamespace, attr->bottom, attr->element, bottom))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->bottom, bottom))) {
 				break;
 			}
 			Ref<Drawable> bottomRight;
-			if (!(_getDrawableValue(attr->localNamespace, attr->bottomRight, attr->element, bottomRight))) {
+			if (!(_getDrawableValue(attr->localNamespace, attr->bottomRight, bottomRight))) {
 				break;
 			}
 
-			return NinePiecesDrawable::create(_getDimensionIntValue(attr->leftWidth), _getDimensionIntValue(attr->rightWidth), _getDimensionIntValue(attr->topHeight), _getDimensionIntValue(attr->bottomHeight), topLeft, top, topRight, left, center, right, bottomLeft, bottom, bottomRight);
+			return NinePiecesDrawable::create(_getDimensionValue(attr->leftWidth), _getDimensionValue(attr->rightWidth), _getDimensionValue(attr->topHeight), _getDimensionValue(attr->bottomHeight), topLeft, top, topRight, left, center, right, bottomLeft, bottom, bottomRight);
 
 		} while (0);
 
@@ -775,7 +780,7 @@ namespace slib
 	}
 #define PARSE_AND_CHECK_NINEPATCH_DRAWABLE_ATTR(ATTR, NAME) \
 	String str_##NAME = element->getAttribute(#NAME); \
-	if (!(ATTR NAME.parse(str_##NAME, this))) { \
+	if (!(ATTR NAME.parse(str_##NAME, this, element))) { \
 		LOG_ERROR_NINEPATCH_ATTR(NAME) \
 		return sl_false; \
 	}
@@ -824,8 +829,6 @@ namespace slib
 		}
 
 		SAppDrawableResourceNinePatchAttributes* attr = res->ninePatchAttrs.get();
-
-		attr->element = element;
 		attr->localNamespace = localNamespace;
 
 		PARSE_AND_CHECK_NINEPATCH_DIMENSION_ATTR(attr->, dstLeftWidth)
@@ -906,7 +909,7 @@ namespace slib
 		sbHeader.add(String::format("\t\tSLIB_DECLARE_NINEPATCH_RESOURCE(%s)%n", res->name));
 
 		String strSrc;
-		if (!(_getDrawableAccessString(attr->localNamespace, attr->src, attr->element, strSrc))) {
+		if (!(_getDrawableAccessString(attr->localNamespace, attr->src, strSrc))) {
 			return sl_false;
 		}
 
@@ -922,10 +925,10 @@ namespace slib
 		SAppDrawableResourceNinePatchAttributes* attr = res->ninePatchAttrs.get();
 
 		Ref<Drawable> src;
-		if (!(_getDrawableValue(attr->localNamespace, attr->src, attr->element, src))) {
+		if (!(_getDrawableValue(attr->localNamespace, attr->src, src))) {
 			return Ref<Drawable>::null();
 		}
-		return NinePatchDrawable::create(_getDimensionIntValue(attr->dstLeftWidth), _getDimensionIntValue(attr->dstRightWidth), _getDimensionIntValue(attr->dstTopHeight), _getDimensionIntValue(attr->dstBottomHeight), src, attr->leftWidth, attr->rightWidth, attr->topHeight, attr->bottomHeight);
+		return NinePatchDrawable::create(_getDimensionValue(attr->dstLeftWidth), _getDimensionValue(attr->dstRightWidth), _getDimensionValue(attr->dstTopHeight), _getDimensionValue(attr->dstBottomHeight), src, attr->leftWidth, attr->rightWidth, attr->topHeight, attr->bottomHeight);
 	}
 
 }

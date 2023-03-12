@@ -48,16 +48,7 @@ namespace slib
 
 	}
 
-	/************************************************
-					String
-	************************************************/
-
-	SAppStringValue::SAppStringValue()
-	: flagDefined(sl_false), flagReferResource(sl_false)
-	{
-	}
-
-	sl_bool SAppStringValue::parse(const String& _str)
+	sl_bool SAppStringValue::parse(const String& _str, const Ref<XmlElement>& element)
 	{
 		String str = _str;
 		if (str.isNull()) {
@@ -87,6 +78,7 @@ namespace slib
 				}
 				flagReferResource = sl_true;
 				valueOrName = str;
+				referingElement = element;
 			}
 		} else {
 			flagReferResource = sl_false;
@@ -96,14 +88,6 @@ namespace slib
 		return sl_true;
 	}
 
-	/************************************************
-					Dimension
-	************************************************/
-
-	SAppDimensionValue::SAppDimensionValue()
-	: flagDefined(sl_false), unit(PX), amount(0)
-	{
-	}
 
 	String SAppDimensionValue::getAccessString() const
 	{
@@ -345,7 +329,7 @@ namespace slib
 		return "0";
 	}
 
-	sl_bool SAppDimensionValue::parse(const String& _str, SAppDocument* doc)
+	sl_bool SAppDimensionBaseValue::parse(const String& _str, SAppDocument* doc)
 	{
 		do {
 			String str = _str.trim();
@@ -478,7 +462,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDimensionValue::checkGlobal()
+	sl_bool SAppDimensionBaseValue::checkGlobal()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -486,7 +470,7 @@ namespace slib
 		return isGlobalUnit(unit);
 	}
 
-	sl_bool SAppDimensionValue::checkSP()
+	sl_bool SAppDimensionBaseValue::checkSP()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -494,7 +478,7 @@ namespace slib
 		return amount > 0 && !isRelativeUnit(unit);
 	}
 
-	sl_bool SAppDimensionValue::checkPosition()
+	sl_bool SAppDimensionBaseValue::checkPosition()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -502,7 +486,7 @@ namespace slib
 		return !isRelativeUnit(unit);
 	}
 
-	sl_bool SAppDimensionValue::checkSize()
+	sl_bool SAppDimensionBaseValue::checkSize()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -513,7 +497,7 @@ namespace slib
 		return amount >= 0;
 	}
 
-	sl_bool SAppDimensionValue::checkScalarSize()
+	sl_bool SAppDimensionBaseValue::checkScalarSize()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -521,7 +505,7 @@ namespace slib
 		return amount >= 0 && !isRelativeUnit(unit);
 	}
 
-	sl_bool SAppDimensionValue::checkScalarSizeOrWeight()
+	sl_bool SAppDimensionBaseValue::checkScalarSizeOrWeight()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -529,7 +513,7 @@ namespace slib
 		return amount >= 0 && (unit == WEIGHT || !isRelativeUnit(unit));
 	}
 
-	sl_bool SAppDimensionValue::checkMargin()
+	sl_bool SAppDimensionBaseValue::checkMargin()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -540,12 +524,12 @@ namespace slib
 		return checkPosition();
 	}
 
-	sl_bool SAppDimensionValue::checkForWindow()
+	sl_bool SAppDimensionBaseValue::checkForWindow()
 	{
 		return checkGlobal();
 	}
 
-	sl_bool SAppDimensionValue::checkForWindowSize()
+	sl_bool SAppDimensionBaseValue::checkForWindowSize()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -556,12 +540,12 @@ namespace slib
 		return amount >= 0 && isGlobalUnit(unit);
 	}
 
-	sl_bool SAppDimensionValue::checkForRootViewPosition()
+	sl_bool SAppDimensionBaseValue::checkForRootViewPosition()
 	{
 		return checkGlobal();
 	}
 
-	sl_bool SAppDimensionValue::checkForRootViewSize()
+	sl_bool SAppDimensionBaseValue::checkForRootViewSize()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -575,7 +559,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool SAppDimensionValue::checkForRootViewScalarSize()
+	sl_bool SAppDimensionBaseValue::checkForRootViewScalarSize()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -586,7 +570,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool SAppDimensionValue::checkForRootViewMargin()
+	sl_bool SAppDimensionBaseValue::checkForRootViewMargin()
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -597,7 +581,7 @@ namespace slib
 		return isGlobalUnit(unit);
 	}
 
-	sl_bool SAppDimensionValue::isNeededOnLayoutFunction()
+	sl_bool SAppDimensionBaseValue::isNeededOnLayoutFunction()
 	{
 		if (!flagDefined) {
 			return sl_false;
@@ -605,31 +589,23 @@ namespace slib
 		return isViewportUnit(unit);
 	}
 
-	sl_bool SAppDimensionValue::isRelativeUnit(int unit)
+	sl_bool SAppDimensionBaseValue::isRelativeUnit(int unit)
 	{
 		return unit == FILL || unit == WRAP || unit == WEIGHT;
 	}
 
-	sl_bool SAppDimensionValue::isGlobalUnit(int unit)
+	sl_bool SAppDimensionBaseValue::isGlobalUnit(int unit)
 	{
 		return unit == PX || unit == SW || unit == SH || unit == SMIN || unit == SMAX || unit == INCH || unit == M || unit == CM || unit == MM || unit == PT || unit == DP || unit == SBAR || unit == SAFE_L || unit == SAFE_T || unit == SAFE_R || unit == SAFE_B || unit == SAFE_W || unit == SAFE_H;
 	}
 
-	sl_bool SAppDimensionValue::isViewportUnit(int unit)
+	sl_bool SAppDimensionBaseValue::isViewportUnit(int unit)
 	{
 		return unit == VW || unit == VH || unit == VMIN || unit == VMAX || unit == SP;
 	}
 
-	/************************************************
-						Boolean
-	************************************************/
 
-	SAppBooleanValue::SAppBooleanValue()
-	: flagDefined(sl_false), value(sl_false)
-	{
-	}
-
-	String SAppBooleanValue::getAccessString()
+	String SAppBooleanValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "sl_false";
@@ -662,16 +638,7 @@ namespace slib
 	}
 
 
-	/************************************************
-					Float
-	************************************************/
-
-	SAppFloatValue::SAppFloatValue()
-	: flagDefined(sl_false), value(0)
-	{
-	}
-
-	String SAppFloatValue::getAccessString()
+	String SAppFloatValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "0";
@@ -696,16 +663,7 @@ namespace slib
 	}
 
 
-	/************************************************
-					Integer
-	************************************************/
-
-	SAppInt32Value::SAppInt32Value()
-	: flagDefined(sl_false), value(0)
-	{
-	}
-
-	String SAppInt32Value::getAccessString()
+	String SAppInt32Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "0";
@@ -729,12 +687,7 @@ namespace slib
 		return sl_false;
 	}
 
-	SAppUint32Value::SAppUint32Value()
-	: flagDefined(sl_false), value(0)
-	{
-	}
-
-	String SAppUint32Value::getAccessString()
+	String SAppUint32Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "0";
@@ -758,12 +711,7 @@ namespace slib
 		return sl_false;
 	}
 
-	SAppInt64Value::SAppInt64Value()
-	: flagDefined(sl_false), value(0)
-	{
-	}
-
-	String SAppInt64Value::getAccessString()
+	String SAppInt64Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "0";
@@ -787,12 +735,7 @@ namespace slib
 		return sl_false;
 	}
 
-	SAppUint64Value::SAppUint64Value()
-	: flagDefined(sl_false), value(0)
-	{
-	}
-
-	String SAppUint64Value::getAccessString()
+	String SAppUint64Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "0";
@@ -817,16 +760,7 @@ namespace slib
 	}
 
 
-	/************************************************
-					Char
-	************************************************/
-
-	SAppChar8Value::SAppChar8Value()
-	: flagDefined(sl_false), value(0)
-	{
-	}
-
-	String SAppChar8Value::getAccessString()
+	String SAppChar8Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "0";
@@ -849,16 +783,8 @@ namespace slib
 		return sl_false;
 	}
 
-	/************************************************
-					Vector2
-	************************************************/
 
-	SAppVector2Value::SAppVector2Value()
-	: flagDefined(0)
-	{
-	}
-
-	String SAppVector2Value::getAccessString()
+	String SAppVector2Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::Vector2::zero()";
@@ -920,17 +846,7 @@ namespace slib
 		return sl_false;
 	}
 
-
-	/************************************************
-					Vector3
-	************************************************/
-
-	SAppVector3Value::SAppVector3Value()
-	: flagDefined(sl_false)
-	{
-	}
-
-	String SAppVector3Value::getAccessString()
+	String SAppVector3Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::Vector3::zero()";
@@ -993,17 +909,7 @@ namespace slib
 		return sl_false;
 	}
 
-
-	/************************************************
-					Vector4
-	************************************************/
-
-	SAppVector4Value::SAppVector4Value()
-	: flagDefined(sl_false)
-	{
-	}
-
-	String SAppVector4Value::getAccessString()
+	String SAppVector4Value::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::Vector4::zero()";
@@ -1068,16 +974,7 @@ namespace slib
 	}
 
 
-	/************************************************
-					Visibility
-	************************************************/
-
-	SAppVisibilityValue::SAppVisibilityValue()
-	: flagDefined(sl_false), value(Visibility::Visible)
-	{
-	}
-
-	String SAppVisibilityValue::getAccessString()
+	String SAppVisibilityValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::Visibility::Visible";
@@ -1116,16 +1013,7 @@ namespace slib
 	}
 
 
-	/************************************************
-				PenStyle
-	************************************************/
-
-	SAppPenStyleValue::SAppPenStyleValue()
-	: flagDefined(sl_false), value(PenStyle::Solid)
-	{
-	}
-
-	String SAppPenStyleValue::getAccessString()
+	String SAppPenStyleValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::PenStyle::Solid";
@@ -1176,15 +1064,6 @@ namespace slib
 	}
 
 
-	/************************************************
-					ScrollBars
-	************************************************/
-
-	SAppScrollBarsValue::SAppScrollBarsValue()
-	: flagDefined(sl_false), horizontalScrollBar(sl_false), verticalScrollBar(sl_false)
-	{
-	}
-
 	sl_bool SAppScrollBarsValue::parse(const String& _str)
 	{
 		String str = _str.trim();
@@ -1220,16 +1099,7 @@ namespace slib
 	}
 
 
-	/************************************************
-					Name
-	************************************************/
-
-	SAppNameValue::SAppNameValue()
-	: flagDefined(sl_false)
-	{
-	}
-
-	String SAppNameValue::getAccessString()
+	String SAppNameValue::getAccessString() const
 	{
 		return value;
 	}
@@ -1251,16 +1121,8 @@ namespace slib
 		return sl_true;
 	}
 
-	/************************************************
-						Color
-	************************************************/
 
-	SAppColorValue::SAppColorValue()
-	: flagDefined(sl_false)
-	{
-	}
-
-	sl_bool SAppColorValue::parse(const String& _str)
+	sl_bool SAppColorValue::parse(const String& _str, const Ref<XmlElement>& element)
 	{
 		String str = _str.trim();
 		if (str.isEmpty()) {
@@ -1279,6 +1141,7 @@ namespace slib
 				return sl_false;
 			}
 			resourceName = str;
+			referingElement = element;
 			flagDefined = sl_true;
 			return sl_true;
 		} else {
@@ -1293,16 +1156,8 @@ namespace slib
 
 	}
 
-	/************************************************
-	 				Time
-	************************************************/
 
-	SAppTimeValue::SAppTimeValue()
-	: flagDefined(sl_false), value(Time::zero())
-	{
-	}
-
-	String SAppTimeValue::getAccessString()
+	String SAppTimeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::Time::zero()";
@@ -1320,16 +1175,8 @@ namespace slib
 		return value.parse(str);
 	}
 
-	/************************************************
-					Drawable
-	************************************************/
 
-	SAppDrawableValue::SAppDrawableValue()
-	: flagNull(sl_false), flagColor(sl_false), flagWhole(sl_false), func(FUNC_NONE)
-	{
-	}
-
-	sl_bool SAppDrawableValue::parse(const String& _str, SAppDocument* doc)
+	sl_bool SAppDrawableValue::parse(const String& _str, SAppDocument* doc, const Ref<XmlElement>& element)
 	{
 		String str = _str;
 		if (str.isEmpty()) {
@@ -1342,7 +1189,7 @@ namespace slib
 			return sl_true;
 		}
 
-		if (SAppColorValue::parse(str)) {
+		if (SAppColorValue::parse(str, element)) {
 			if (flagDefined) {
 				flagNull = sl_false;
 				flagColor = sl_true;
@@ -1372,6 +1219,7 @@ namespace slib
 		}
 
 		resourceName = String(data, pos);
+		referingElement = element;
 		flagNull = sl_false;
 		flagWhole = sl_true;
 		func = FUNC_NONE;
@@ -1656,7 +1504,7 @@ namespace slib
 
 	}
 
-	sl_bool SAppDrawableValue::parseWhole(const String& _str)
+	sl_bool SAppDrawableValue::parseWhole(const String& _str, const Ref<XmlElement>& element)
 	{
 		String str = _str;
 		if (str.isEmpty()) {
@@ -1669,7 +1517,7 @@ namespace slib
 			return sl_true;
 		}
 
-		if (SAppColorValue::parse(str)) {
+		if (SAppColorValue::parse(str, element)) {
 			if (flagDefined) {
 				flagNull = sl_false;
 				flagColor = sl_true;
@@ -1688,136 +1536,100 @@ namespace slib
 		func = FUNC_NONE;
 		flagWhole = sl_true;
 		resourceName = str;
+		referingElement = element;
 		flagNull = sl_false;
 		flagDefined = sl_true;
 		return sl_true;
 	}
 
 
-	/************************************************
-	 				Font
-	************************************************/
-
-	SAppFontValue::SAppFontValue()
-	{
-	}
-
-	sl_bool SAppFontValue::isDefined()
-	{
-		return family.flagDefined || size.flagDefined || bold.flagDefined || italic.flagDefined || underline.flagDefined;
-	}
-
 	void SAppFontValue::inheritFrom(const SAppFontValue& parent)
 	{
-		if (!(family.flagDefined)) {
+		if (!(family.flagDefined) && parent.family.flagDefined) {
 			family = parent.family;
 		}
-		if (!(size.flagDefined)) {
+		if (!(size.flagDefined) && parent.size.flagDefined) {
 			size = parent.size;
 		}
-		if (!(bold.flagDefined)) {
+		if (!(bold.flagDefined) && parent.bold.flagDefined) {
 			bold = parent.bold;
 		}
-		if (!(italic.flagDefined)) {
+		if (!(italic.flagDefined) && parent.italic.flagDefined) {
 			italic = parent.italic;
 		}
-		if (!(underline.flagDefined)) {
+		if (!(underline.flagDefined) && parent.underline.flagDefined) {
 			underline = parent.underline;
 		}
 	}
 
 	namespace {
-		static String GetAttribute(SAppLayoutResourceItem* item, const String& name)
-		{
-			return item->getXmlAttribute(name);
-		}
-
-		static const Ref<XmlElement>& GetXml(SAppLayoutResourceItem* item)
-		{
-			return item->element;
-		}
-
-		static String GetAttribute(const Ref<XmlElement>& item, const String& name)
-		{
-			return item->getAttribute(name);
-		}
-
-		static const Ref<XmlElement>& GetXml(const Ref<XmlElement>& xml)
-		{
-			return xml;
-		}
-
 		class DocumentHelper : public SAppDocument
 		{
 		public:
 			using SAppDocument::_logError;
 		};
+	}
 
-		template <class TYPE>
-		static sl_bool ParseFontValue(SAppFontValue& font, const TYPE& item, const StringView& name, SAppDocument* _doc, sl_bool flagRoot)
-		{
-			DocumentHelper* doc = (DocumentHelper*)_doc;
-			const Ref<XmlElement>& xml = GetXml(item);
-			String strFamily = GetAttribute(item, name + "Family");
-			if (!(font.family.parse(strFamily))) {
-				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Family", strFamily);
-				return sl_false;
-			}
-			String strSize = GetAttribute(item, name + "Size");
-			if (!(font.size.parse(strSize, doc))) {
-				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
-				return sl_false;
-			}
+	sl_bool SAppFontValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* _doc, sl_bool flagRoot)
+	{
+		DocumentHelper* doc = (DocumentHelper*)_doc;
+		const Ref<XmlElement>& xml = item->element;
+		String strFamily = item->getXmlAttribute(name + "Family");
+		if (!(family.parse(strFamily, xml))) {
+			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Family", strFamily);
+			return sl_false;
+		}
+		if (family.flagDefined) {
+			flagDefined = sl_true;
+		}
+		String strSize = item->getXmlAttribute(name + "Size");
+		if (!(size.parse(strSize, doc))) {
+			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
+			return sl_false;
+		}
+		if (size.flagDefined) {
+			flagDefined = sl_true;
 			if (flagRoot) {
-				if (!(font.size.checkForRootViewPosition())) {
+				if (!(size.checkForRootViewPosition())) {
 					doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
 					return sl_false;
 				}
 			} else {
-				if (!(font.size.checkPosition())) {
+				if (!(size.checkPosition())) {
 					doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
 					return sl_false;
 				}
 			}
-			String strBold = GetAttribute(item, name + "Bold");
-			if (!(font.bold.parse(strBold))) {
-				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Bold", strSize);
-				return sl_false;
-			}
-			String strItalic = GetAttribute(item, name + "Italic");
-			if (!(font.italic.parse(strItalic))) {
-				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Italic", strItalic);
-				return sl_false;
-			}
-			String strUnderline = GetAttribute(item, name + "Underline");
-			if (!(font.underline.parse(strUnderline))) {
-				doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Underline", strUnderline);
-				return sl_false;
-			}
-			return sl_true;
 		}
+		String strBold = item->getXmlAttribute(name + "Bold");
+		if (!(bold.parse(strBold))) {
+			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Bold", strSize);
+			return sl_false;
+		}
+		if (bold.flagDefined) {
+			flagDefined = sl_true;
+		}
+		String strItalic = item->getXmlAttribute(name + "Italic");
+		if (!(italic.parse(strItalic))) {
+			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Italic", strItalic);
+			return sl_false;
+		}
+		if (italic.flagDefined) {
+			flagDefined = sl_true;
+		}
+		String strUnderline = item->getXmlAttribute(name + "Underline");
+		if (!(underline.parse(strUnderline))) {
+			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Underline", strUnderline);
+			return sl_false;
+		}
+		if (underline.flagDefined) {
+			flagDefined = sl_true;
+		}
+		return sl_true;
 	}
 
-	sl_bool SAppFontValue::parse(SAppLayoutResourceItem* item, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
-	{
-		return ParseFontValue(*this, item, name, doc, flagRoot);
-	}
 
-	sl_bool SAppFontValue::parse(const Ref<XmlElement>& xml, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
-	{
-		return ParseFontValue(*this, xml, name, doc, flagRoot);
-	}
-
-	/************************************************
-					Menu
-	************************************************/
-
-	SAppMenuValue::SAppMenuValue()
-	: flagDefined(sl_false), flagNull(sl_false)
-	{
-	}
-
-	sl_bool SAppMenuValue::parse(const String& _str)
+	sl_bool SAppMenuValue::parse(const String& _str, const Ref<XmlElement>& element)
 	{
 		String str = _str;
 		if (str.isEmpty()) {
@@ -1840,20 +1652,12 @@ namespace slib
 		}
 
 		resourceName = str;
+		referingElement = element;
 		flagNull = sl_false;
 		flagDefined = sl_true;
 		return sl_true;
 	}
 
-
-	/************************************************
-					AlignLayout
-	************************************************/
-
-	SAppAlignLayoutValue::SAppAlignLayoutValue()
-	: flagDefined(sl_false), flagAlignParent(sl_false)
-	{
-	}
 
 	sl_bool SAppAlignLayoutValue::parse(const String& _str)
 	{
@@ -1881,15 +1685,6 @@ namespace slib
 		return sl_true;
 	}
 
-
-	/************************************************
-					Scrolling
-	************************************************/
-
-	SAppScrollingValue::SAppScrollingValue()
-	: flagDefined(sl_false), horizontal(sl_false), vertical(sl_false)
-	{
-	}
 
 	sl_bool SAppScrollingValue::parse(const String& _str)
 	{
@@ -1921,16 +1716,7 @@ namespace slib
 	}
 
 
-	/************************************************
-				LayoutOrientation
-	************************************************/
-
-	SAppLayoutOrientationValue::SAppLayoutOrientationValue()
-	: flagDefined(sl_false), value(LayoutOrientation::Vertical)
-	{
-	}
-
-	String SAppLayoutOrientationValue::getAccessString()
+	String SAppLayoutOrientationValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::LayoutOrientation::Vertical";
@@ -1963,15 +1749,7 @@ namespace slib
 	}
 
 
-	/************************************************
-						Alignment
-	************************************************/
-
-	SAppAlignmentValue::SAppAlignmentValue(): flagDefined(sl_false), value(Alignment::Default)
-	{
-	}
-
-	String SAppAlignmentValue::getAccessString()
+	String SAppAlignmentValue::getAccessString() const
 	{
 		if (flagDefined) {
 			switch (value) {
@@ -2047,16 +1825,7 @@ namespace slib
 	}
 
 
-	/************************************************
-				ScaleMode
-	************************************************/
-
-	SAppScaleModeValue::SAppScaleModeValue()
-	: flagDefined(sl_false), value(ScaleMode::None)
-	{
-	}
-
-	String SAppScaleModeValue::getAccessString()
+	String SAppScaleModeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::ScaleMode::None";
@@ -2103,16 +1872,7 @@ namespace slib
 	}
 
 
-	/************************************************
-				BoundShape
-	************************************************/
-
-	SAppBoundShapeValue::SAppBoundShapeValue()
-	: flagDefined(sl_false), value(BoundShape::None)
-	{
-	}
-
-	String SAppBoundShapeValue::getAccessString()
+	String SAppBoundShapeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::BoundShape::None";
@@ -2159,16 +1919,7 @@ namespace slib
 	}
 
 
-	/************************************************
-					RedrawMode
-	************************************************/
-
-	SAppRedrawModeValue::SAppRedrawModeValue()
-	: flagDefined(sl_false), value(RedrawMode::Continuously)
-	{
-	}
-
-	String SAppRedrawModeValue::getAccessString()
+	String SAppRedrawModeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::RedrawMode::Continuously";
@@ -2203,16 +1954,7 @@ namespace slib
 	}
 
 
-	/************************************************
-					MultiLineMode
-	************************************************/
-
-	SAppMultiLineModeValue::SAppMultiLineModeValue()
-	: flagDefined(sl_false), value(MultiLineMode::Single)
-	{
-	}
-
-	String SAppMultiLineModeValue::getAccessString()
+	String SAppMultiLineModeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::MultiLineMode::Single";
@@ -2258,16 +2000,8 @@ namespace slib
 		return sl_false;
 	}
 
-	/************************************************
-					UIReturnKeyType
-	************************************************/
 
-	SAppUIReturnKeyTypeValue::SAppUIReturnKeyTypeValue()
-	: flagDefined(sl_false), value(UIReturnKeyType::Default)
-	{
-	}
-
-	String SAppUIReturnKeyTypeValue::getAccessString()
+	String SAppUIReturnKeyTypeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::UIReturnKeyType::Default";
@@ -2366,16 +2100,7 @@ namespace slib
 	}
 
 
-	/************************************************
-				UIKeyboardType
-	************************************************/
-
-	SAppUIKeyboardTypeValue::SAppUIKeyboardTypeValue()
-	: flagDefined(sl_false), value(UIKeyboardType::Default)
-	{
-	}
-
-	String SAppUIKeyboardTypeValue::getAccessString()
+	String SAppUIKeyboardTypeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::UIKeyboardType::Default";
@@ -2478,16 +2203,7 @@ namespace slib
 	}
 
 
-	/************************************************
-			UIAutoCapitalizationType
-	************************************************/
-
-	SAppUIAutoCapitalizationTypeValue::SAppUIAutoCapitalizationTypeValue()
-	: flagDefined(sl_false), value(UIAutoCapitalizationType::None)
-	{
-	}
-
-	String SAppUIAutoCapitalizationTypeValue::getAccessString()
+	String SAppUIAutoCapitalizationTypeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::UIAutoCapitalizationType::None";
@@ -2535,16 +2251,8 @@ namespace slib
 		return sl_false;
 	}
 
-	/************************************************
-	 				RotationMode
-	************************************************/
 
-	SAppRotationModeValue::SAppRotationModeValue()
-	: flagDefined(sl_false), value(RotationMode::Rotate0)
-	{
-	}
-
-	String SAppRotationModeValue::getAccessString()
+	String SAppRotationModeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::RotationMode::Rotate0";
@@ -2592,16 +2300,8 @@ namespace slib
 		return sl_false;
 	}
 
-	/************************************************
-	 				FlipMode
-	************************************************/
 
-	SAppFlipModeValue::SAppFlipModeValue()
-	: flagDefined(sl_false), value(FlipMode::None)
-	{
-	}
-
-	String SAppFlipModeValue::getAccessString()
+	String SAppFlipModeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::FlipMode::None";
@@ -2650,16 +2350,7 @@ namespace slib
 	}
 
 
-	/************************************************
-	 				EllipsizeMode
-	************************************************/
-
-	SAppEllipsizeModeValue::SAppEllipsizeModeValue()
-	: flagDefined(sl_false), value(EllipsizeMode::None)
-	{
-	}
-
-	String SAppEllipsizeModeValue::getAccessString()
+	String SAppEllipsizeModeValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "slib::EllipsizeMode::None";
@@ -2708,33 +2399,23 @@ namespace slib
 	}
 
 
-	/************************************************
-	 				Cursor
-	************************************************/
-
-	SAppCursorValue::SAppCursorValue()
-	: flagDefined(sl_false)
-	{
-		type = Type::Arrow;
-	}
-
-	String SAppCursorValue::getAccessString()
+	String SAppCursorValue::getAccessString() const
 	{
 		if (!flagDefined) {
 			return "sl_null";
 		}
 		switch (type) {
-			case Type::Arrow:
+			case ARROW:
 				return "slib::Cursor::getArrow()";
-			case Type::IBeam:
+			case IBEAM:
 				return "slib::Cursor::getIBeam()";
-			case Type::Cross:
+			case CROSS:
 				return "slib::Cursor::getCross()";
-			case Type::Hand:
+			case HAND:
 				return "slib::Cursor::getHand()";
-			case Type::ResizeLeftRight:
+			case RESIZE_LEFT_RIGHT:
 				return "slib::Cursor::getResizeLeftRight()";
-			case Type::ResizeUpDown:
+			case RESIZE_UP_DOWN:
 				return "slib::Cursor::getResizeUpDown()";
 			default:
 				break;
@@ -2752,32 +2433,32 @@ namespace slib
 		str = str.toLower();
 		if (str == "arrow") {
 			value = Cursor::getArrow();
-			type = Type::Arrow;
+			type = ARROW;
 			flagDefined = sl_true;
 			return sl_true;
 		} else if (str == "ibeam") {
 			value = Cursor::getIBeam();
-			type = Type::IBeam;
+			type = IBEAM;
 			flagDefined = sl_true;
 			return sl_true;
 		} else if (str == "cross") {
 			value = Cursor::getCross();
-			type = Type::Cross;
+			type = CROSS;
 			flagDefined = sl_true;
 			return sl_true;
 		} else if (str == "hand" || str == "pointer") {
 			value = Cursor::getHand();
-			type = Type::Hand;
+			type = HAND;
 			flagDefined = sl_true;
 			return sl_true;
 		} else if (str == "resize-x" || str == "resizex" || str == "resizeleftright") {
 			value = Cursor::getResizeLeftRight();
-			type = Type::ResizeLeftRight;
+			type = RESIZE_LEFT_RIGHT;
 			flagDefined = sl_true;
 			return sl_true;
 		} else if (str == "resize-y" || str == "resizey" || str == "resizeupdown") {
 			value = Cursor::getResizeUpDown();
-			type = Type::ResizeUpDown;
+			type = RESIZE_UP_DOWN;
 			flagDefined = sl_true;
 			return sl_true;
 		}

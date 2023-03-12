@@ -35,7 +35,7 @@
 namespace slib
 {
 
-	class SAppStringResource : public Referable
+	class SAppStringResource : public CRef
 	{
 	public:
 		String name;
@@ -43,14 +43,14 @@ namespace slib
 		CHashMap<Locale, String> values;
 	};
 
-	class SAppColorResource : public Referable
+	class SAppColorResource : public CRef
 	{
 	public:
 		String name;
 		Color value;
 	};
 
-	class SAppRawResource : public Referable
+	class SAppRawResource : public CRef
 	{
 	public:
 		String name;
@@ -72,7 +72,7 @@ namespace slib
 		Ref<Drawable> load();
 	};
 
-	class SAppDrawableResourceFileAttributes : public Referable
+	class SAppDrawableResourceFileAttributes : public CRef
 	{
 	public:
 		List< Ref<SAppDrawableResourceFileItem> > defaultFiles;
@@ -82,11 +82,9 @@ namespace slib
 		SAppDrawableResourceFileAttributes();
 	};
 
-	class SAppDrawableResourceNinePiecesAttributes : public Referable
+	class SAppDrawableResourceNinePiecesAttributes : public CRef
 	{
 	public:
-		Ref<XmlElement> element;
-
 		String localNamespace;
 
 		SAppDimensionValue leftWidth;
@@ -105,11 +103,9 @@ namespace slib
 		SAppDrawableValue bottomRight;
 	};
 
-	class SAppDrawableResourceNinePatchAttributes : public Referable
+	class SAppDrawableResourceNinePatchAttributes : public CRef
 	{
 	public:
-		Ref<XmlElement> element;
-
 		String localNamespace;
 
 		SAppDimensionValue dstLeftWidth;
@@ -124,7 +120,7 @@ namespace slib
 		sl_real bottomHeight;
 	};
 
-	class SAppDrawableResource : public Referable
+	class SAppDrawableResource : public CRef
 	{
 	public:
 		String name;
@@ -145,7 +141,7 @@ namespace slib
 	};
 
 
-	class SAppMenuResourceItem : public Referable
+	class SAppMenuResourceItem : public CRef
 	{
 	public:
 		Ref<XmlElement> element;
@@ -175,7 +171,7 @@ namespace slib
 		CList< Ref<SAppMenuResourceItem> > children;
 	};
 
-	class SAppMenuResource : public Referable
+	class SAppMenuResource : public CRef
 	{
 	public:
 		String name;
@@ -189,7 +185,7 @@ namespace slib
 
 	class SAppLayoutResourceItem;
 
-	class SAppLayoutViewAttributes : public Referable
+	class SAppLayoutViewAttributes : public CRef
 	{
 	public:
 		SAppStringValue id;
@@ -251,7 +247,6 @@ namespace slib
 		SAppDimensionFloatValue contentRadius;
 
 		SAppFontValue font;
-		SAppFontValue finalFont;
 
 		SAppBooleanValue opaque;
 		SAppFloatValue alpha;
@@ -501,8 +496,6 @@ namespace slib
 		SAppStringValue title;
 		SAppStringValue value;
 		SAppBooleanValue selected;
-
-		Ref<XmlElement> element;
 	};
 
 	class SAppLayoutSelectAttributes : public SAppLayoutViewAttributes
@@ -640,8 +633,6 @@ namespace slib
 		SAppDrawableValue icon;
 		SAppBooleanValue selected;
 		Ref<SAppLayoutResourceItem> view;
-
-		Ref<XmlElement> element;
 	};
 
 	class SAppLayoutTabAttributes : public SAppLayoutViewAttributes
@@ -688,7 +679,6 @@ namespace slib
 		SAppDimensionValue height;
 
 		Ref<SAppLayoutResourceItem> customView;
-		Ref<XmlElement> element;
 	};
 
 	class SAppLayoutTreeAttributes : public SAppLayoutViewAttributes
@@ -720,8 +710,6 @@ namespace slib
 		SAppDimensionValue dividerWidth;
 		SAppDrawableValue dividerBackground;
 		SAppColorValue dividerColor;
-
-		Ref<XmlElement> element;
 	};
 
 	class SAppLayoutSplitAttributes : public SAppLayoutViewAttributes
@@ -831,8 +819,6 @@ namespace slib
 	{
 		SAppBooleanValue selected;
 		Ref<SAppLayoutResourceItem> view;
-
-		Ref<XmlElement> element;
 	};
 
 	class SAppLayoutPagerAttributes : public SAppLayoutViewAttributes
@@ -931,7 +917,7 @@ namespace slib
 		SAppColorValue labelColor;
 	};
 
-	class SAppLayoutGridCellCreator : public Referable
+	class SAppLayoutGridCellCreator : public CRef
 	{
 	public:
 		enum class Type {
@@ -1019,7 +1005,7 @@ namespace slib
 
 	typedef SAppLayoutXEditAttributes SAppLayoutXPasswordAttributes;
 
-	class SAppLayoutStyle : public Referable
+	class SAppLayoutStyle : public CRef
 	{
 	public:
 		Ref<XmlElement> element;
@@ -1030,7 +1016,7 @@ namespace slib
 		String getXmlAttribute(const String& name);
 	};
 
-	class SAppLayoutInclude : public Referable
+	class SAppLayoutInclude : public CRef
 	{
 	public:
 		Ref<XmlElement> element;
@@ -1101,11 +1087,34 @@ namespace slib
 		XButton = 0x02a3
 	};
 
-	class SAppLayoutResourceItem : public Referable
+	class SAppLayoutXmlItem
 	{
 	public:
 		Ref<XmlElement> element;
+		List< Ref<SAppLayoutStyle> > styles;
 
+	public:
+		SAppLayoutXmlItem();
+		SAppLayoutXmlItem(const Ref<XmlElement>& _element);
+
+	public:
+		String getTagName()
+		{
+			return element->getName();
+		}
+
+		String getXmlText()
+		{
+			return element->getText();
+		}
+
+		String getXmlAttribute(const String& name);
+
+	};
+
+	class SAppLayoutResourceItem : public CRef, public SAppLayoutXmlItem
+	{
+	public:
 		SAppLayoutItemType itemType;
 		String itemTypeName;
 		String name;
@@ -1117,15 +1126,11 @@ namespace slib
 		String className;
 
 		Ref<SAppLayoutViewAttributes> attrs;
-
-		CList< Ref<SAppLayoutStyle> > styles;
 		CList< Ref<SAppLayoutResourceItem> > children;
 
 	public:
 		SAppLayoutResourceItem();
 
-	public:
-		String getXmlAttribute(const String& name);
 	};
 
 	class SAppLayoutResource : public SAppLayoutResourceItem
@@ -1220,7 +1225,7 @@ namespace slib
 	class SAppLayoutSimulator
 	{
 	public:
-		Ref<Referable> getReferable();
+		Ref<CRef> getRef();
 
 		Ref<View> getViewByName(const String& name);
 
@@ -1237,7 +1242,7 @@ namespace slib
 		Ref<View> getSimulationContentView();
 
 	protected:
-		AtomicWeakRef<Referable> m_refer;
+		AtomicWeakRef<CRef> m_refer;
 		AtomicWeakRef<SAppDocument> m_document;
 		AtomicRef<SAppLayoutResource> m_layoutResource;
 		AtomicWeakRef<SAppLayoutSimulationWindow> m_simulationWindow;

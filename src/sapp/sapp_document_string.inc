@@ -234,7 +234,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getStringAccessString(const String& localNamespace, const SAppStringValue& value, const Ref<XmlElement>& element, String& result)
+	sl_bool SAppDocument::_getStringAccessString(const String& localNamespace, const SAppStringValue& value, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::String::null()";
@@ -242,7 +242,7 @@ namespace slib
 		}
 		if (value.flagReferResource) {
 			String name;
-			if (_checkStringName(localNamespace, value.valueOrName, element, &name)) {
+			if (_checkStringName(localNamespace, value.valueOrName, value.referingElement, &name)) {
 				result = String::format("string::%s::get()", name);
 				return sl_true;
 			} else {
@@ -258,7 +258,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_getStringValue(const String& localNamespace, const SAppStringValue& value, const Ref<XmlElement>& element, String& result)
+	sl_bool SAppDocument::_getStringValue(const String& localNamespace, const SAppStringValue& value, String& result)
 	{
 		Locale locale = getCurrentSimulatorLocale();
 		if (!(value.flagDefined)) {
@@ -267,7 +267,7 @@ namespace slib
 		}
 		if (value.flagReferResource) {
 			Ref<SAppStringResource> resource;
-			if (_checkStringName(localNamespace, value.valueOrName, element, sl_null, &resource)) {
+			if (_checkStringName(localNamespace, value.valueOrName, value.referingElement, sl_null, &resource)) {
 				{
 					for (auto& item : resource->values) {
 						if (item.key == locale) {
@@ -311,13 +311,13 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_checkStringValue(const String& localNamespace, const SAppStringValue& value, const Ref<XmlElement>& element)
+	sl_bool SAppDocument::_checkStringValue(const String& localNamespace, const SAppStringValue& value)
 	{
 		if (!(value.flagDefined)) {
 			return sl_true;
 		}
 		if (value.flagReferResource) {
-			return _checkStringName(localNamespace, value.valueOrName, element);
+			return _checkStringName(localNamespace, value.valueOrName, value.referingElement);
 		} else {
 			return sl_true;
 		}

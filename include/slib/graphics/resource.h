@@ -144,13 +144,13 @@ namespace slib
 			return slib::priv::graphics_resource::GetList(_getEntries(locale)); \
 		} \
 		slib::List< slib::Ref<slib::Drawable> > getList() { \
-			return slib::priv::graphics_resource::getList(_getEntries(slib::Resources::getCurrentLocale())); \
+			return slib::priv::graphics_resource::GetList(_getEntries(slib::Resources::getCurrentLocale())); \
 		} \
 		slib::Ref<slib::Drawable> get(const slib::Locale& locale) { \
-			return slib::priv::graphics_resource::GetDrawable(_getEntries(locale), WIDTH, HEIGHT); \
+			return slib::priv::graphics_resource::GetSource(_getEntries(locale), WIDTH, HEIGHT); \
 		} \
 		slib::Ref<slib::Drawable> get() { \
-			return slib::priv::graphics_resource::GetDrawable(_getEntries(slib::Resources::getCurrentLocale()), WIDTH, HEIGHT); \
+			return slib::priv::graphics_resource::GetSource(_getEntries(slib::Resources::getCurrentLocale()), WIDTH, HEIGHT); \
 		} \
 		slib::priv::graphics_resource::FileEntry* _getEntries(const slib::Locale& locale) { \
 			slib::Locale localeSource; \

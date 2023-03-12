@@ -130,7 +130,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDocument::_getColorAccessString(const String& localNamespace, const SAppColorValue& value, const Ref<XmlElement>& element, String& result)
+	sl_bool SAppDocument::_getColorAccessString(const String& localNamespace, const SAppColorValue& value, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::Color::zero()";
@@ -141,7 +141,7 @@ namespace slib
 			return sl_true;
 		} else {
 			String name;
-			if (_checkColorName(localNamespace, value.resourceName, element, &name)) {
+			if (_checkColorName(localNamespace, value.resourceName, value.referingElement, &name)) {
 				result = String::format("color::%s::get()", name);
 				return sl_true;
 			} else {
@@ -150,7 +150,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_getColorValue(const String& localNamespace, const SAppColorValue& value, const Ref<XmlElement>& element, Color& result)
+	sl_bool SAppDocument::_getColorValue(const String& localNamespace, const SAppColorValue& value, Color& result)
 	{
 		if (!(value.flagDefined)) {
 			result = Color::zero();
@@ -161,7 +161,7 @@ namespace slib
 			return sl_true;
 		} else {
 			Ref<SAppColorResource> resource;
-			if (_checkColorName(localNamespace, value.resourceName, element, sl_null, &resource)) {
+			if (_checkColorName(localNamespace, value.resourceName, value.referingElement, sl_null, &resource)) {
 				result = resource->value;
 				return sl_true;
 			} else {
@@ -170,7 +170,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_checkColorValue(const String& localNamespace, const SAppColorValue& value, const Ref<XmlElement>& element)
+	sl_bool SAppDocument::_checkColorValue(const String& localNamespace, const SAppColorValue& value)
 	{
 		if (!(value.flagDefined)) {
 			return sl_true;
@@ -178,7 +178,7 @@ namespace slib
 		if (value.resourceName.isNull()) {
 			return sl_true;
 		} else {
-			return _checkColorName(localNamespace, value.resourceName, element);
+			return _checkColorName(localNamespace, value.resourceName, value.referingElement);
 		}
 	}
 

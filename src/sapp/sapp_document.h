@@ -165,24 +165,24 @@ namespace slib
 		sl_bool _parseStringResources(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source);
 		sl_bool _parseStringResource(const String& localNamespace, const Ref<XmlElement>& element, const Locale& localeDefault, const String16& source);
 		sl_bool _generateStringsCpp(const String& targetPath);
-		sl_bool _getStringAccessString(const String& localNamespace, const SAppStringValue& value, const Ref<XmlElement>& element, String& result);
-		sl_bool _getStringValue(const String& localNamespace, const SAppStringValue& value, const Ref<XmlElement>& element, String& result);
-		sl_bool _checkStringValue(const String& localNamespace, const SAppStringValue& value, const Ref<XmlElement>& element);
+		sl_bool _getStringAccessString(const String& localNamespace, const SAppStringValue& value, String& result);
+		sl_bool _getStringValue(const String& localNamespace, const SAppStringValue& value, String& result);
+		sl_bool _checkStringValue(const String& localNamespace, const SAppStringValue& value);
 		sl_bool _checkStringName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppStringResource>* outResource = sl_null);
 
 		// Color Resources
 		sl_bool _parseColorResource(const String& localNamespace, const Ref<XmlElement>& element);
 		sl_bool _generateColorsCpp(const String& targetPath);
-		sl_bool _getColorAccessString(const String& localNamespace, const SAppColorValue& value, const Ref<XmlElement>& element, String& result);
-		sl_bool _getColorValue(const String& localNamespace, const SAppColorValue& value, const Ref<XmlElement>& element, Color& result);
-		sl_bool _checkColorValue(const String& localNamespace, const SAppColorValue& value, const Ref<XmlElement>& element);
+		sl_bool _getColorAccessString(const String& localNamespace, const SAppColorValue& value, String& result);
+		sl_bool _getColorValue(const String& localNamespace, const SAppColorValue& value, Color& result);
+		sl_bool _checkColorValue(const String& localNamespace, const SAppColorValue& value);
 		sl_bool _checkColorName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppColorResource>* outResource = sl_null);
 
 		// Drawable Resources
 		sl_bool _generateDrawablesCpp(const String& targetPath);
-		sl_bool _getDrawableAccessString(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, String& result);
-		sl_bool _getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element, Ref<Drawable>& result);
-		sl_bool _checkDrawableValue(const String& localNamespace, const SAppDrawableValue& value, const Ref<XmlElement>& element);
+		sl_bool _getDrawableAccessString(const String& localNamespace, const SAppDrawableValue& value, String& result);
+		sl_bool _getDrawableValue(const String& localNamespace, const SAppDrawableValue& value, Ref<Drawable>& result);
+		sl_bool _checkDrawableValue(const String& localNamespace, const SAppDrawableValue& value);
 		sl_bool _checkDrawableName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppDrawableResource>* outResource = sl_null);
 		sl_bool _registerFileResources(const String& resourcePath, const String& fileDirPath, const Locale& locale);
 		sl_bool _generateDrawablesCpp_File(SAppDrawableResource* res, StringBuffer& sbHeader, StringBuffer& sbCpp, StringBuffer& sbMap);
@@ -199,10 +199,10 @@ namespace slib
 		Ref<SAppMenuResourceItem> _parseMenuResourceItem(const String& localNamespace, const Ref<XmlElement>& element, SAppMenuResource* menu, int platforms);
 		sl_bool _generateMenusCpp(const String& targetPath);
 		sl_bool _generateMenusCpp_Item(SAppMenuResource* resource, const String& parentName, int parentPlatforms, SAppMenuResourceItem* item, StringBuffer& sbHeader, StringBuffer& sbCpp, int tabLevel);
-		sl_bool _getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element, String& result);
-		sl_bool _getMenuValue(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element, Ref<Menu>& result);
+		sl_bool _getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, String& result);
+		sl_bool _getMenuValue(const String& localNamespace, const SAppMenuValue& value, Ref<Menu>& result);
 		sl_bool _getMenuValue_Item(SAppMenuResource* resource, const Ref<Menu>& parent, SAppMenuResourceItem* item);
-		sl_bool _checkMenuValue(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element);
+		sl_bool _checkMenuValue(const String& localNamespace, const SAppMenuValue& value);
 		sl_bool _checkMenuName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName = sl_null, Ref<SAppMenuResource>* outResource = sl_null);
 
 		// Layout Resources
@@ -220,10 +220,13 @@ namespace slib
 		void _registerLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
 		void _removeLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
 		Ref<View> _simulateLayoutCreateOrLayoutView(SAppLayoutSimulator* simulator, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, View* parentView, sl_bool flagOnLayout);
-		sl_ui_pos _getDimensionIntValue(const SAppDimensionValue& value);
-		sl_real _getDimensionFloatValue(const SAppDimensionFloatValue& value);
-		List< Ref<XmlElement> > _getLayoutItemChildElements(SAppLayoutResourceItem* item, const String& localNamespace, const String& tagName);
-		sl_bool _addLayoutStyleChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName);
+		sl_ui_pos _getDimensionValue(const SAppDimensionValue& value);
+		sl_real _getDimensionValue(const SAppDimensionFloatValue& value);
+		sl_bool _getFontAccessString(const String& localNamespace, const SAppFontValue& value, String& result);
+		sl_bool _getFontValue(const String& localNamespace, const SAppFontValue& value, Ref<Font>& result);
+		sl_bool _parseStyleAttribute(const String& localNamespace, SAppLayoutXmlItem* item);
+		List< Ref<XmlElement> > _getXmlChildElements(const String& localNamespace, SAppLayoutXmlItem* item, const String& tagName);
+		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName);
 		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const String& localNamespace, const String& tagName);
 
 		struct LayoutControlProcessParams
@@ -320,7 +323,7 @@ namespace slib
 
 		friend class SAppLayoutSimulationWindow;
 		friend class SAppLayoutImportView;
-		friend class SAppDimensionValue;
+		friend class SAppDimensionBaseValue;
 
 		template <class MAP, class ITEM>
 		static sl_bool getItemFromMap(const MAP& map, const String& localNamespace, const String& name, String* outName, ITEM* _out);

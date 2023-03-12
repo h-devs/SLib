@@ -286,15 +286,15 @@ namespace slib
 		return String::null();
 	}
 
-	SAppLayoutResourceItem::SAppLayoutResourceItem()
+	SAppLayoutXmlItem::SAppLayoutXmlItem()
 	{
-		arrayIndex = -1;
-		itemType = SAppLayoutItemType::Unknown;
-		flagGeneratedName = sl_false;
-		flagNoChildren = sl_false;
 	}
 
-	String SAppLayoutResourceItem::getXmlAttribute(const String& name)
+	SAppLayoutXmlItem::SAppLayoutXmlItem(const Ref<XmlElement>& _element): element(_element)
+	{
+	}
+
+	String SAppLayoutXmlItem::getXmlAttribute(const String& name)
 	{
 		String value = element->getAttribute(name);
 		if (value.isNotNull()) {
@@ -310,7 +310,15 @@ namespace slib
 				}
 			}
 		}
-		return String::null();
+		return sl_null;
+	}
+
+	SAppLayoutResourceItem::SAppLayoutResourceItem()
+	{
+		arrayIndex = -1;
+		itemType = SAppLayoutItemType::Unknown;
+		flagGeneratedName = sl_false;
+		flagNoChildren = sl_false;
 	}
 
 	SAppLayoutResource::SAppLayoutResource()
@@ -626,7 +634,7 @@ namespace slib
 	}
 
 
-	Ref<Referable> SAppLayoutSimulator::getReferable()
+	Ref<CRef> SAppLayoutSimulator::getRef()
 	{
 		return m_refer;
 	}

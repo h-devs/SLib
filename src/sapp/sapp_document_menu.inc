@@ -190,7 +190,7 @@ namespace slib
 				item->title.flagReferResource = sl_true;
 				item->title.valueOrName = String::format("menu_%s_%s", menu->name, name);
 			} else {
-				if (!(item->title.parse(title))) {
+				if (!(item->title.parse(title, element))) {
 					_logError(element, g_str_error_resource_menu_title_refer_invalid, title);
 					return Ref<SAppMenuResourceItem>::null();
 				}
@@ -205,12 +205,12 @@ namespace slib
 
 			String strIcon;
 			strIcon = element->getAttribute("icon");
-			if (!(item->icon.parseWhole(strIcon))) {
+			if (!(item->icon.parseWhole(strIcon, element))) {
 				_logError(element, g_str_error_resource_menu_icon_invalid, strIcon);
 				return Ref<SAppMenuResourceItem>::null();
 			}
 			strIcon = element->getAttribute("checkedIcon");
-			if (!(item->checkedIcon.parseWhole(strIcon))) {
+			if (!(item->checkedIcon.parseWhole(strIcon, element))) {
 				_logError(element, g_str_error_resource_menu_icon_invalid, strIcon);
 				return Ref<SAppMenuResourceItem>::null();
 			}
@@ -381,7 +381,7 @@ namespace slib
 			sbCpp.add(tab);
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String strTitle;
-				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle)) {
+				if (_getStringAccessString(resource->localNamespace, item->title, strTitle)) {
 					if (item->checked.flagDefined) {
 						sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s, %s)%n", parentName, item->name, strTitle, item->checked.getAccessString()));
 					} else {
@@ -392,12 +392,12 @@ namespace slib
 				}
 			} else {
 				String strTitle, strIcon;
-				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle) &&
-					_getDrawableAccessString(resource->localNamespace, item->icon, item->element, strIcon)
+				if (_getStringAccessString(resource->localNamespace, item->title, strTitle) &&
+					_getDrawableAccessString(resource->localNamespace, item->icon, strIcon)
 				) {
 					if (item->checkedIcon.flagDefined) {
 						String strCheckedIcon;
-						if (_getDrawableAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
+						if (_getDrawableAccessString(resource->localNamespace, item->checkedIcon, strCheckedIcon)) {
 							sbCpp.add(String::format("SLIB_DEFINE_SUBMENU(%s, %s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strIcon, strCheckedIcon, item->checked.getAccessString()));
 						} else {
 							return sl_false;
@@ -443,7 +443,7 @@ namespace slib
 			}
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String strTitle;
-				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle)) {
+				if (_getStringAccessString(resource->localNamespace, item->title, strTitle)) {
 					if (item->checked.flagDefined) {
 						sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey, item->checked.getAccessString()));
 					} else {
@@ -454,11 +454,11 @@ namespace slib
 				}
 			} else {
 				String strTitle, strIcon, strCheckedIcon;
-				if (_getStringAccessString(resource->localNamespace, item->title, item->element, strTitle) &&
-					_getDrawableAccessString(resource->localNamespace, item->icon, item->element, strIcon)
+				if (_getStringAccessString(resource->localNamespace, item->title, strTitle) &&
+					_getDrawableAccessString(resource->localNamespace, item->icon, strIcon)
 				) {
 					if (item->checkedIcon.flagDefined) {
-						if (_getDrawableAccessString(resource->localNamespace, item->checkedIcon, item->element, strCheckedIcon)) {
+						if (_getDrawableAccessString(resource->localNamespace, item->checkedIcon, strCheckedIcon)) {
 							sbCpp.add(String::format("SLIB_DEFINE_MENU_ITEM(%s, %s, %s, %s, %s, %s, %s)%n", parentName, item->name, strTitle, strShortcutKey, strIcon, strCheckedIcon, item->checked.getAccessString()));
 						} else {
 							return sl_false;
@@ -480,7 +480,7 @@ namespace slib
 
 	}
 
-	sl_bool SAppDocument::_getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element, String& result)
+	sl_bool SAppDocument::_getMenuAccessString(const String& localNamespace, const SAppMenuValue& value, String& result)
 	{
 		if (!(value.flagDefined)) {
 			result = "slib::Ref<slib::Menu>::null()";
@@ -491,7 +491,7 @@ namespace slib
 			return sl_true;
 		}
 		String name;
-		if (_checkMenuName(localNamespace, value.resourceName, element, &name)) {
+		if (_checkMenuName(localNamespace, value.resourceName, value.referingElement, &name)) {
 			result = String::format("menu::%s::get()->root", name);
 			return sl_true;
 		} else {
@@ -499,7 +499,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_getMenuValue(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element, Ref<Menu>& result)
+	sl_bool SAppDocument::_getMenuValue(const String& localNamespace, const SAppMenuValue& value, Ref<Menu>& result)
 	{
 		if (!(value.flagDefined) || value.flagNull) {
 			result = Ref<Menu>::null();
@@ -510,7 +510,7 @@ namespace slib
 			return sl_true;
 		}
 		Ref<SAppMenuResource> res;
-		if (_checkMenuName(localNamespace, value.resourceName, element, sl_null, &res)) {
+		if (_checkMenuName(localNamespace, value.resourceName, value.referingElement, sl_null, &res)) {
 			Ref<Menu> menu = Menu::create(res->flagPopup);
 			if (menu.isNull()) {
 				_logError(g_str_error_out_of_memory);
@@ -533,7 +533,7 @@ namespace slib
 		}
 	}
 
-	sl_bool SAppDocument::_checkMenuValue(const String& localNamespace, const SAppMenuValue& value, const Ref<XmlElement>& element)
+	sl_bool SAppDocument::_checkMenuValue(const String& localNamespace, const SAppMenuValue& value)
 	{
 		if (!(value.flagDefined)) {
 			return sl_true;
@@ -541,7 +541,7 @@ namespace slib
 		if (value.flagNull) {
 			return sl_true;
 		}
-		return _checkMenuName(localNamespace, value.resourceName, element);
+		return _checkMenuName(localNamespace, value.resourceName, value.referingElement);
 	}
 
 	sl_bool SAppDocument::_checkMenuName(const String& localNamespace, const String& name, const Ref<XmlElement>& element, String* outName, Ref<SAppMenuResource>* outResource)
@@ -578,7 +578,7 @@ namespace slib
 			}
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String title;
-				if (_getStringValue(resource->localNamespace, item->title, item->element, title)) {
+				if (_getStringValue(resource->localNamespace, item->title, title)) {
 					parent->addSubmenu(submenu, title);
 				} else {
 					return sl_false;
@@ -586,9 +586,9 @@ namespace slib
 			} else {
 				String title;
 				Ref<Drawable> icon, checkedIcon;
-				if (_getStringValue(resource->localNamespace, item->title, item->element, title) &&
-					_getDrawableValue(resource->localNamespace, item->icon, item->element, icon) &&
-					_getDrawableValue(resource->localNamespace, item->checkedIcon, item->element, checkedIcon)
+				if (_getStringValue(resource->localNamespace, item->title, title) &&
+					_getDrawableValue(resource->localNamespace, item->icon, icon) &&
+					_getDrawableValue(resource->localNamespace, item->checkedIcon, checkedIcon)
 					) {
 					parent->addSubmenu(submenu, title, icon, checkedIcon);
 				} else {
@@ -616,7 +616,7 @@ namespace slib
 
 			if (!(item->icon.flagDefined) && !(item->checkedIcon.flagDefined)) {
 				String title;
-				if (_getStringValue(resource->localNamespace, item->title, item->element, title)) {
+				if (_getStringValue(resource->localNamespace, item->title, title)) {
 					parent->addMenuItem(title, km);
 				} else {
 					return sl_false;
@@ -624,9 +624,9 @@ namespace slib
 			} else {
 				String title;
 				Ref<Drawable> icon, checkedIcon;
-				if (_getStringValue(resource->localNamespace, item->title, item->element, title) &&
-					_getDrawableValue(resource->localNamespace, item->icon, item->element, icon) &&
-					_getDrawableValue(resource->localNamespace, item->checkedIcon, item->element, checkedIcon)
+				if (_getStringValue(resource->localNamespace, item->title, title) &&
+					_getDrawableValue(resource->localNamespace, item->icon, icon) &&
+					_getDrawableValue(resource->localNamespace, item->checkedIcon, checkedIcon)
 					) {
 					parent->addMenuItem(title, km, icon, checkedIcon);
 				} else {
