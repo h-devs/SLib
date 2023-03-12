@@ -287,6 +287,23 @@ namespace slib
 		}
 	}
 
+	void TableLayout::setColumnWidthWrapping(sl_uint32 iCol, sl_bool flag, UIUpdateMode mode)
+	{
+		if (flag) {
+			setColumnWidthWrapping(iCol, mode);
+		} else {
+			ObjectLocker lock(this);
+			Column* col = m_columns.getPointerAt(iCol);
+			if (col) {
+				if (col->widthMode == SizeMode::Wrapping) {
+					col->widthMode = SizeMode::Fixed;
+					col->widthFixed = col->widthLayout;
+					invalidateLayout(mode);
+				}
+			}
+		}
+	}
+
 	sl_bool TableLayout::isColumnWidthWeight(sl_uint32 iCol)
 	{
 		ObjectLocker lock(this);
@@ -663,6 +680,23 @@ namespace slib
 		if (row) {
 			row->heightMode = SizeMode::Wrapping;
 			invalidateLayout(mode);
+		}
+	}
+
+	void TableLayout::setRowHeightWrapping(sl_uint32 iRow, sl_bool flag, UIUpdateMode mode)
+	{
+		if (flag) {
+			setRowHeightWrapping(iRow, mode);
+		} else {
+			ObjectLocker lock(this);
+			Row* row = m_rows.getPointerAt(iRow);
+			if (row) {
+				if (row->heightMode == SizeMode::Wrapping) {
+					row->heightMode = SizeMode::Fixed;
+					row->heightFixed = row->heightLayout;
+					invalidateLayout(mode);
+				}
+			}
 		}
 	}
 

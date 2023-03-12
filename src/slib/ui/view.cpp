@@ -3638,6 +3638,17 @@ namespace slib
 		}
 	}
 
+	void View::setWidthWrapping(sl_bool flag, UIUpdateMode mode)
+	{
+		if (flag) {
+			setWidthWrapping(mode);
+		} else {
+			if (isWidthWrapping()) {
+				setWidthFixed(mode);
+			}
+		}
+	}
+
 	sl_bool View::isHeightWrapping()
 	{
 		Ref<LayoutAttributes>& attrs = m_layoutAttrs;
@@ -3655,6 +3666,17 @@ namespace slib
 			attrs->heightMode = SizeMode::Wrapping;
 			onChangeSizeMode(mode);
 			invalidateSelfAndParentLayout(mode);
+		}
+	}
+
+	void View::setHeightWrapping(sl_bool flag, UIUpdateMode mode)
+	{
+		if (flag) {
+			setHeightWrapping(mode);
+		} else {
+			if (isHeightWrapping()) {
+				setHeightFixed(mode);
+			}
 		}
 	}
 

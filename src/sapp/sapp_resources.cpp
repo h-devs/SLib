@@ -68,13 +68,7 @@ namespace slib
 		if (hoverBackground.flagDefined) {
 			return sl_true;
 		}
-		if (borderWidth.flagDefined) {
-			return sl_true;
-		}
-		if (borderColor.flagDefined) {
-			return sl_true;
-		}
-		if (borderStyle.flagDefined) {
+		if (border.flagDefined) {
 			return sl_true;
 		}
 		return sl_false;
@@ -160,21 +154,21 @@ namespace slib
 			return sl_true;
 		}
 		for (sl_uint32 i = 0; i < SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX; i++) {
-			SAppLayoutButtonCategory& category = categories[i];
 			for (sl_uint32 k = 0; k < (sl_uint32)(ButtonState::Count); k++) {
-				if (category.textColor[k].flagDefined) {
+				SAppLayoutButtonState& state = states[i][k];
+				if (state.textColor.flagDefined) {
 					return sl_true;
 				}
-				if (category.icon[k].flagDefined) {
+				if (state.icon.flagDefined) {
 					return sl_true;
 				}
-				if (category.background[k].flagDefined) {
+				if (state.background.flagDefined) {
 					return sl_true;
 				}
-				if (category.borderWidth[k].flagDefined || category.borderColor[k].flagDefined || category.borderStyle[k].flagDefined) {
+				if (state.border.flagDefined) {
 					return sl_true;
 				}
-				if (category.colorOverlay[k].flagDefined) {
+				if (state.colorOverlay.flagDefined) {
 					return sl_true;
 				}
 			}

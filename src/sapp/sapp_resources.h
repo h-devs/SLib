@@ -233,10 +233,8 @@ namespace slib
 		SAppDrawableValue hoverBackground;
 		SAppScaleModeValue backgroundScale;
 		SAppAlignmentValue backgroundAlign;
-		SAppBooleanValue border;
-		SAppDimensionFloatValue borderWidth;
-		SAppColorValue borderColor;
-		SAppPenStyleValue borderStyle;
+		SAppBooleanValue nativeBorder;
+		SAppBorderValue border;
 		SAppBoundShapeValue boundShape;
 		SAppDimensionFloatValue boundRadiusX;
 		SAppDimensionFloatValue boundRadiusY;
@@ -359,16 +357,14 @@ namespace slib
 		String layout;
 	};
 
-	class SAppLayoutButtonCategory
+	class SAppLayoutButtonState
 	{
 	public:
-		SAppColorValue textColor[(int)(ButtonState::Count)];
-		SAppDrawableValue background[(int)(ButtonState::Count)];
-		SAppDrawableValue icon[(int)(ButtonState::Count)];
-		SAppDimensionFloatValue borderWidth[(int)(ButtonState::Count)];
-		SAppColorValue borderColor[(int)(ButtonState::Count)];
-		SAppPenStyleValue borderStyle[(int)(ButtonState::Count)];
-		SAppColorValue colorOverlay[(int)(ButtonState::Count)];
+		SAppColorValue textColor;
+		SAppDrawableValue background;
+		SAppDrawableValue icon;
+		SAppBorderValue border;
+		SAppColorValue colorOverlay;
 	};
 
 	#define SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX 4
@@ -406,7 +402,7 @@ namespace slib
 		SAppBooleanValue defaultColorFilter;
 		SAppColorValue colorOverlay;
 
-		SAppLayoutButtonCategory categories[SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX];
+		SAppLayoutButtonState states[SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX][(int)(ButtonState::Count)];
 
 	public:
 		sl_bool isNotRequiredNative();

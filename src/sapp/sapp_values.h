@@ -74,36 +74,23 @@ namespace slib
 	public:
 		sl_bool parse(const String& str, SAppDocument* doc);
 
-		sl_bool checkAll()
-		{
-			return sl_true;
-		}
+		sl_bool checkGlobal(sl_bool flagRoot = sl_false);
 
-		sl_bool checkGlobal();
+		sl_bool checkSP(sl_bool flagRoot = sl_false);
 
-		sl_bool checkSP();
+		sl_bool checkPosition(sl_bool flagRoot = sl_false);
 
-		sl_bool checkPosition();
+		sl_bool checkSize(sl_bool flagRoot = sl_false);
 
-		sl_bool checkSize();
+		sl_bool checkScalarSize(sl_bool flagRoot = sl_false);
 
-		sl_bool checkScalarSize();
+		sl_bool checkScalarSizeOrWeight(sl_bool flagRoot = sl_false);
 
-		sl_bool checkScalarSizeOrWeight();
+		sl_bool checkMargin(sl_bool flagRoot = sl_false);
 
-		sl_bool checkMargin();
+		sl_bool checkForWindow(sl_bool flagRoot = sl_false);
 
-		sl_bool checkForWindow();
-
-		sl_bool checkForWindowSize();
-
-		sl_bool checkForRootViewPosition();
-
-		sl_bool checkForRootViewSize();
-
-		sl_bool checkForRootViewScalarSize();
-
-		sl_bool checkForRootViewMargin();
+		sl_bool checkForWindowSize(sl_bool flagRoot = sl_false);
 
 		sl_bool isNeededOnLayoutFunction();
 
@@ -383,6 +370,19 @@ namespace slib
 	public:
 		void inheritFrom(const SAppFontValue& parent);
 
+		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, SAppDocument* doc, sl_bool flagRoot);
+
+	};
+
+	class SAppBorderValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		SAppPenStyleValue style;
+		SAppDimensionFloatValue width;
+		SAppColorValue color;
+
+	public:
 		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, SAppDocument* doc, sl_bool flagRoot);
 
 	};

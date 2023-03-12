@@ -61,6 +61,8 @@ namespace slib
 
 		void setColumnWidthWrapping(sl_uint32 column, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		void setColumnWidthWrapping(sl_uint32 column, sl_bool flagWrapping, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 		sl_bool isColumnWidthWeight(sl_uint32 column);
 
 		void setColumnWidthWeight(sl_uint32 column, sl_real weight, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
@@ -126,6 +128,8 @@ namespace slib
 		sl_bool isRowHeightWrapping(sl_uint32 row);
 
 		void setRowHeightWrapping(sl_uint32 row, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setRowHeightWrapping(sl_uint32 row, sl_bool flagWrapping, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isRowHeightWeight(sl_uint32 row);
 

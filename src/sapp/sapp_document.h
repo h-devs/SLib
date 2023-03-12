@@ -224,6 +224,8 @@ namespace slib
 		sl_real _getDimensionValue(const SAppDimensionFloatValue& value);
 		sl_bool _getFontAccessString(const String& localNamespace, const SAppFontValue& value, String& result);
 		sl_bool _getFontValue(const String& localNamespace, const SAppFontValue& value, Ref<Font>& result);
+		sl_bool _getBorderAccessString(const String& localNamespace, const SAppBorderValue& value, String& result);
+		sl_bool _getBorderValue(const String& localNamespace, const SAppBorderValue& value, PenDesc& result);
 		sl_bool _parseStyleAttribute(const String& localNamespace, SAppLayoutXmlItem* item);
 		List< Ref<XmlElement> > _getXmlChildElements(const String& localNamespace, SAppLayoutXmlItem* item, const String& tagName);
 		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName);

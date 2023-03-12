@@ -462,7 +462,7 @@ namespace slib
 		return sl_true;
 	}
 
-	sl_bool SAppDimensionBaseValue::checkGlobal()
+	sl_bool SAppDimensionBaseValue::checkGlobal(sl_bool flagRoot)
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -470,7 +470,7 @@ namespace slib
 		return isGlobalUnit(unit);
 	}
 
-	sl_bool SAppDimensionBaseValue::checkSP()
+	sl_bool SAppDimensionBaseValue::checkSP(sl_bool flagRoot)
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -478,15 +478,18 @@ namespace slib
 		return amount > 0 && !isRelativeUnit(unit);
 	}
 
-	sl_bool SAppDimensionBaseValue::checkPosition()
+	sl_bool SAppDimensionBaseValue::checkPosition(sl_bool flagRoot)
 	{
+		if (flagRoot) {
+			return checkGlobal();
+		}
 		if (!flagDefined) {
 			return sl_true;
 		}
 		return !isRelativeUnit(unit);
 	}
 
-	sl_bool SAppDimensionBaseValue::checkSize()
+	sl_bool SAppDimensionBaseValue::checkSize(sl_bool flagRoot)
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -494,26 +497,50 @@ namespace slib
 		if (unit == WRAP) {
 			return sl_true;
 		}
-		return amount >= 0;
+		if (amount < 0) {
+			return sl_false;
+		}
+		if (flagRoot) {
+			return unit == WEIGHT || unit == FILL || isGlobalUnit(unit);
+		}
+		return sl_true;
 	}
 
-	sl_bool SAppDimensionBaseValue::checkScalarSize()
+	sl_bool SAppDimensionBaseValue::checkScalarSize(sl_bool flagRoot)
 	{
 		if (!flagDefined) {
 			return sl_true;
 		}
-		return amount >= 0 && !isRelativeUnit(unit);
+		if (amount < 0) {
+			return sl_false;
+		}
+		if (flagRoot) {
+			return isGlobalUnit(unit);
+		} else {
+			return !isRelativeUnit(unit);
+		}
 	}
 
-	sl_bool SAppDimensionBaseValue::checkScalarSizeOrWeight()
+	sl_bool SAppDimensionBaseValue::checkScalarSizeOrWeight(sl_bool flagRoot)
 	{
 		if (!flagDefined) {
 			return sl_true;
+		}
+		if (amount < 0) {
+			return sl_false;
+		}
+		if (unit == WEIGHT) {
+			return sl_true;
+		}
+		if (flagRoot) {
+			return isGlobalUnit(unit);
+		} else {
+			return !isRelativeUnit(unit);
 		}
 		return amount >= 0 && (unit == WEIGHT || !isRelativeUnit(unit));
 	}
 
-	sl_bool SAppDimensionBaseValue::checkMargin()
+	sl_bool SAppDimensionBaseValue::checkMargin(sl_bool flagRoot)
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -521,15 +548,19 @@ namespace slib
 		if (unit == WEIGHT) {
 			return sl_true;
 		}
-		return checkPosition();
+		if (flagRoot) {
+			return isGlobalUnit(unit);
+		} else {
+			return checkPosition();
+		}
 	}
 
-	sl_bool SAppDimensionBaseValue::checkForWindow()
+	sl_bool SAppDimensionBaseValue::checkForWindow(sl_bool flagRoot)
 	{
 		return checkGlobal();
 	}
 
-	sl_bool SAppDimensionBaseValue::checkForWindowSize()
+	sl_bool SAppDimensionBaseValue::checkForWindowSize(sl_bool flagRoot)
 	{
 		if (!flagDefined) {
 			return sl_true;
@@ -538,47 +569,6 @@ namespace slib
 			return sl_true;
 		}
 		return amount >= 0 && isGlobalUnit(unit);
-	}
-
-	sl_bool SAppDimensionBaseValue::checkForRootViewPosition()
-	{
-		return checkGlobal();
-	}
-
-	sl_bool SAppDimensionBaseValue::checkForRootViewSize()
-	{
-		if (!flagDefined) {
-			return sl_true;
-		}
-		if (unit == WRAP) {
-			return sl_true;
-		}
-		if (unit == WEIGHT || unit == FILL || isGlobalUnit(unit)) {
-			return amount >= 0;
-		}
-		return sl_false;
-	}
-
-	sl_bool SAppDimensionBaseValue::checkForRootViewScalarSize()
-	{
-		if (!flagDefined) {
-			return sl_true;
-		}
-		if (isGlobalUnit(unit)) {
-			return amount >= 0;
-		}
-		return sl_false;
-	}
-
-	sl_bool SAppDimensionBaseValue::checkForRootViewMargin()
-	{
-		if (!flagDefined) {
-			return sl_true;
-		}
-		if (unit == WEIGHT) {
-			return sl_true;
-		}
-		return isGlobalUnit(unit);
 	}
 
 	sl_bool SAppDimensionBaseValue::isNeededOnLayoutFunction()
@@ -1570,61 +1560,50 @@ namespace slib
 		};
 	}
 
+#define PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, ...) \
+		String attr = name + SUFFIX; \
+		String str = item->getXmlAttribute(attr); \
+		if (!(SUBITEM.parse(str, __VA_ARGS__))) { \
+			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
+			return sl_false; \
+		} \
+		if (SUBITEM.flagDefined) { \
+			flagDefined = sl_true; \
+		}
+
+#define DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, ...) \
+	{ \
+		PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, __VA_ARGS__) \
+	}
+#define DEFINE_PARSE_SUBITEM_DIMENSION(SUBITEM, SUFFIX, CHECK) \
+	{ \
+		PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, doc) \
+		if (!(SUBITEM.CHECK(flagRoot))) { \
+			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
+			return sl_false; \
+		} \
+	}
+
 	sl_bool SAppFontValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* _doc, sl_bool flagRoot)
 	{
 		DocumentHelper* doc = (DocumentHelper*)_doc;
 		const Ref<XmlElement>& xml = item->element;
-		String strFamily = item->getXmlAttribute(name + "Family");
-		if (!(family.parse(strFamily, xml))) {
-			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Family", strFamily);
-			return sl_false;
-		}
-		if (family.flagDefined) {
-			flagDefined = sl_true;
-		}
-		String strSize = item->getXmlAttribute(name + "Size");
-		if (!(size.parse(strSize, doc))) {
-			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
-			return sl_false;
-		}
-		if (size.flagDefined) {
-			flagDefined = sl_true;
-			if (flagRoot) {
-				if (!(size.checkForRootViewPosition())) {
-					doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
-					return sl_false;
-				}
-			} else {
-				if (!(size.checkPosition())) {
-					doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Size", strSize);
-					return sl_false;
-				}
-			}
-		}
-		String strBold = item->getXmlAttribute(name + "Bold");
-		if (!(bold.parse(strBold))) {
-			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Bold", strSize);
-			return sl_false;
-		}
-		if (bold.flagDefined) {
-			flagDefined = sl_true;
-		}
-		String strItalic = item->getXmlAttribute(name + "Italic");
-		if (!(italic.parse(strItalic))) {
-			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Italic", strItalic);
-			return sl_false;
-		}
-		if (italic.flagDefined) {
-			flagDefined = sl_true;
-		}
-		String strUnderline = item->getXmlAttribute(name + "Underline");
-		if (!(underline.parse(strUnderline))) {
-			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, name + "Underline", strUnderline);
-			return sl_false;
-		}
-		if (underline.flagDefined) {
-			flagDefined = sl_true;
-		}
+		DEFINE_PARSE_SUBITEM(family, "Family", xml)
+		DEFINE_PARSE_SUBITEM_DIMENSION(size, "Size", checkScalarSize)
+		DEFINE_PARSE_SUBITEM(bold, "Bold")
+		DEFINE_PARSE_SUBITEM(italic, "Italic")
+		DEFINE_PARSE_SUBITEM(underline, "Underline")
+		return sl_true;
+	}
+
+
+	sl_bool SAppBorderValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* _doc, sl_bool flagRoot)
+	{
+		DocumentHelper* doc = (DocumentHelper*)_doc;
+		const Ref<XmlElement>& xml = item->element;
+		DEFINE_PARSE_SUBITEM(style, "Style")
+		DEFINE_PARSE_SUBITEM_DIMENSION(width, "Width", checkScalarSize)
+		DEFINE_PARSE_SUBITEM(color, "Color", xml)
 		return sl_true;
 	}
 

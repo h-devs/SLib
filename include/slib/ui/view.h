@@ -433,9 +433,13 @@ namespace slib
 
 		void setWidthWrapping(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
+		void setWidthWrapping(sl_bool flagWrapping, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
 		sl_bool isHeightWrapping();
 
 		void setHeightWrapping(UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setHeightWrapping(sl_bool flagWrapping, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		sl_bool isWidthWeight();
 
