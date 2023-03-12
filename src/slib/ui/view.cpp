@@ -5334,51 +5334,32 @@ namespace slib
 		}
 	}
 
-	Color View::getBorderColor()
-	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->borderColor;
-		}
-		return Color::Black;
-	}
-
-	void View::setBorderColor(const Color& color, UIUpdateMode mode)
+	void View::setBorder(const PenDesc& _desc, UIUpdateMode mode)
 	{
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->borderColor = color;
-			_refreshBorderPen(mode);
-		}
-	}
-
-	sl_bool View::isBorder()
-	{
-		return getBorder().isNotNull();
-	}
-
-	void View::setBorder(sl_bool flagBorder, UIUpdateMode mode)
-	{
-		Ref<ViewInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			void (View::*func)(sl_bool, UIUpdateMode) = &View::setBorder;
-			SLIB_VIEW_RUN_ON_UI_THREAD2(func, flagBorder, mode)
-		}
-		if (flagBorder) {
-			if (isBorder()) {
-				return;
+			PenDesc desc(_desc);
+			if (desc.style == PenStyle::Default) {
+				desc.style = attrs->borderStyle;
+			} else {
+				attrs->borderStyle = desc.style;
 			}
-			setBorder(Pen::getDefault(), UIUpdateMode::None);
-		} else {
-			if (isBorder()) {
-				setBorder(Ref<Pen>::null(), UIUpdateMode::None);
+			if (desc.width < 0) {
+				desc.width = attrs->borderWidth;
+			} else {
+				attrs->borderWidth = desc.width;
 			}
-		}
-		if (instance.isNotNull()) {
-			instance->setBorder(this, flagBorder);
-		} else {
-			invalidate(mode);
+			if (desc.color.isZero()) {
+				desc.color = attrs->borderColor;
+			} else {
+				attrs->borderColor = desc.color;
+			}
+			if (desc.width > 0) {
+				setBorder(Pen::create(desc), mode);
+			} else {
+				setBorder(Ref<Pen>::null());
+			}
 		}
 	}
 
@@ -5420,16 +5401,67 @@ namespace slib
 		}
 	}
 
+	Color View::getBorderColor()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->borderColor;
+		}
+		return Color::Black;
+	}
+
+	void View::setBorderColor(const Color& color, UIUpdateMode mode)
+	{
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			attrs->borderColor = color;
+			_refreshBorderPen(mode);
+		}
+	}
+
 	void View::_refreshBorderPen(UIUpdateMode mode)
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
 			sl_real width = attrs->borderWidth;
-			Ref<Pen> pen;
 			if (width > 0) {
-				pen = Pen::create(attrs->borderStyle, attrs->borderWidth, attrs->borderColor);
+				setBorder(Pen::create(attrs->borderStyle, width, attrs->borderColor), mode);
+			} else {
+				setBorder(Ref<Pen>::null(), mode);
 			}
-			setBorder(pen, mode);
+		}
+	}
+
+	sl_bool View::isBorder()
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->penBorder.isNotNull();
+		}
+		return sl_false;
+	}
+
+	void View::setBorder(sl_bool flagBorder, UIUpdateMode mode)
+	{
+		Ref<ViewInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			void (View::*func)(sl_bool, UIUpdateMode) = &View::setBorder;
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, flagBorder, mode)
+		}
+		if (flagBorder) {
+			if (!(isBorder())) {
+				setBorder(Pen::getDefault(), UIUpdateMode::None);
+			}
+		} else {
+			if (isBorder()) {
+				setBorder(Ref<Pen>::null(), UIUpdateMode::None);
+			}
+		}
+		if (instance.isNotNull()) {
+			instance->setBorder(this, flagBorder);
+		} else {
+			invalidate(mode);
 		}
 	}
 

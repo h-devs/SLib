@@ -214,6 +214,8 @@ namespace slib
 
 		void setBorder(const Ref<Pen>& pen, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setBorder(const PenDesc& desc, ButtonState state, sl_uint32 category = 0, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 
 		ColorMatrix* getColorFilter(ButtonState state, sl_uint32 category = 0);
 

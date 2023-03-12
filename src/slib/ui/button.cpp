@@ -757,6 +757,41 @@ namespace slib
 		}
 	}
 
+	void Button::setBorder(const PenDesc& _desc, ButtonState state, sl_uint32 category, UIUpdateMode mode)
+	{
+		_initCell();
+		if (m_cell.isNotNull()) {
+			if (category < m_cell->categories.getCount()) {
+				if ((int)state < (int)(ButtonState::Count)) {
+					AtomicRef<Pen>& dst = m_cell->categories[category].properties[(int)state].border;
+					PenDesc oldDesc;
+					PenDesc desc = _desc;
+					if (desc.style == PenStyle::Default || desc.width < 0 || desc.color.isZero()) {
+						Ref<Pen> old = dst;
+						if (old.isNotNull()) {
+							old->getDesc(oldDesc);
+						}
+						if (desc.style == PenStyle::Default) {
+							desc.style = oldDesc.style;
+						}
+						if (desc.width < 0) {
+							desc.width = oldDesc.width;
+						}
+						if (desc.color.isZero()) {
+							desc.color = oldDesc.color;
+						}
+					}
+					if (desc.width > 0) {
+						dst = Pen::create(desc);
+					} else {
+						dst.setNull();
+					}
+					invalidate(mode);
+				}
+			}
+		}
+	}
+
 	ColorMatrix* Button::getColorFilter(ButtonState state, sl_uint32 category)
 	{
 		if (m_cell.isNotNull()) {

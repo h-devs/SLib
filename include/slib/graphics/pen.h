@@ -44,6 +44,8 @@ namespace slib
 	public:
 		PenDesc();
 
+		PenDesc(PenStyle style, sl_real width, const Color& color);
+
 		SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(PenDesc)
 
 	};

@@ -36,6 +36,7 @@ namespace slib
 	class Dispatcher;
 	class Font;
 	class Pen;
+	class PenDesc;
 	class GraphicsPath;
 	class Drawable;
 	class Bitmap;
@@ -781,6 +782,8 @@ namespace slib
 		Ref<Pen> getBorder();
 
 		void setBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		PenStyle getBorderStyle();
 
