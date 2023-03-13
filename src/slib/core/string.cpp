@@ -3685,529 +3685,583 @@ namespace slib
 			%[argument_index$][property_list][flags][width][.precision]conversion
 
 			property:
-				[element_index]
-				{item_name}
+				[name]: `name` is element index or item name
+			`%%` -> `%`
+			`%...%` = `%...s`
 		*/
+
+		template <typename CHAR, typename STRING>
+		class StringFormator
+		{
+		public:
+			CHAR* format;
+			sl_size len;
+			sl_bool flagSz;
+			const Variant* params;
+			sl_size nParams;
+			Locale locale;
+
+			typename StringBufferTypeFromCharType<CHAR>::Type sb;
+			sl_size pos = 0;
+			sl_size indexArgAuto = 0;
+			sl_size indexArgLast = 0;
+
+			sl_bool flagFatalError = sl_false;
+
+		public:
+			template <class ARG>
+			sl_bool append(ARG&& text)
+			{
+				if (sb.add(Forward<ARG>(text))) {
+					return sl_true;
+				} else {
+					flagFatalError = sl_true;
+					return sl_false;
+				}
+			}
+			
+			sl_bool appendStatic(const CHAR* s, sl_size len)
+			{
+				if (!len) {
+					return sl_true;
+				}
+				if (sb.addStatic(s, len)) {
+					return sl_true;
+				} else {
+					flagFatalError = sl_true;
+					return sl_false;
+				}
+			}
+
+			SLIB_INLINE sl_bool getChar(CHAR& ch)
+			{
+				if (flagSz) {
+					ch = format[pos];
+					if (!ch) {
+						return sl_false;
+					}
+				} else {
+					if (pos >= len) {
+						return sl_false;
+					}
+					ch = format[pos];
+				}
+				return sl_true;
+			}
+
+			sl_bool processPercentChar()
+			{
+				pos++;
+				static const CHAR t = '%';
+				return appendStatic(&t, 1);
+			}
+
+			sl_bool processLineBreak()
+			{
+				pos++;
+				static const CHAR t[2] = { '\r', '\n' };
+				return appendStatic(t, 2);
+			}
+
+			sl_bool parseArgumentIndex(CHAR ch, sl_size& indexArg)
+			{
+				if (ch == '<') {
+					indexArg = indexArgLast;
+					pos++;
+					if (pos >= len) {
+						return sl_false;
+					}
+				} else {
+					sl_uint32 iv;
+					sl_reg iRet = STRING::parseUint32(10, &iv, format, pos, len);
+					if (iRet == SLIB_PARSE_ERROR) {
+						indexArg = indexArgAuto;
+						indexArgAuto++;
+					} else {
+						if ((sl_size)iRet >= len) {
+							return sl_false;
+						}
+						if (format[iRet] == '$') {
+							pos = (sl_size)iRet;
+							if (iv > 0) {
+								iv--;
+							} else {
+								return sl_false;
+							}
+							indexArg = iv;
+							pos++;
+							if (pos >= len) {
+								return sl_false;
+							}
+						} else {
+							indexArg = indexArgAuto;
+							indexArgAuto++;
+						}
+					}
+				}
+				if (indexArg >= nParams) {
+					indexArg = nParams - 1;
+				}
+				indexArgLast = indexArg;
+				return sl_true;
+			}
+
+			void resolveProperties(Variant& arg)
+			{
+				while (pos < len) {
+					CHAR ch = format[pos];
+					if (ch != '[') {
+						break;
+					}
+					pos++;
+					sl_size posName = pos;
+					for (;;) {
+						if (!(getChar(ch))) {
+							return;
+						}
+						if (ch == ']') {
+							arg = arg.getItem(String::from(format + posName, pos - posName));
+							pos++;
+							break;
+						}
+						pos++;
+					}
+				}
+			}
+
+			struct ConversionFlags
+			{
+				sl_bool flagAlignLeft = sl_false; // '-'
+				sl_bool flagSignPositive = sl_false; // '+'
+				sl_bool flagLeadingSpacePositive = sl_false; // ' '
+				sl_bool flagZeroPadded = sl_false; // '0'
+				sl_bool flagGroupingDigits = sl_false; // ','
+				sl_bool flagEncloseNegative = sl_false; // '('
+
+				sl_uint32 minWidth = 0;
+				sl_uint32 precision = 0;
+				sl_bool flagUsePrecision = sl_false;
+			};
+
+			sl_bool parseFlags(ConversionFlags& flags)
+			{
+				do {
+					CHAR ch = format[pos];
+					if (ch == '-') {
+						flags.flagAlignLeft = sl_true;
+					} else if (ch == '+') {
+						flags.flagSignPositive = sl_true;
+					} else if (ch == ' ') {
+						flags.flagLeadingSpacePositive = sl_true;
+					} else if (ch == '0') {
+						flags.flagZeroPadded = sl_true;
+					} else if (ch == ',') {
+						flags.flagGroupingDigits = sl_true;
+					} else if (ch == '(') {
+						flags.flagEncloseNegative = sl_true;
+					} else {
+						return sl_true;
+					}
+					pos++;
+				} while (pos < len);
+				return sl_false;
+			}
+
+			sl_bool parseMinWidth(ConversionFlags& flags)
+			{
+				sl_reg iRet = STRING::parseUint32(10, &(flags.minWidth), format, pos, len);
+				if (iRet != SLIB_PARSE_ERROR) {
+					pos = iRet;
+					if (pos >= len) {
+						return sl_false;
+					}
+				}
+				return sl_true;
+			}
+
+			sl_bool parsePrecision(ConversionFlags& flags)
+			{
+				if (format[pos] == '.') {
+					pos++;
+					if (pos >= len) {
+						return sl_false;
+					}
+					flags.flagUsePrecision = sl_true;
+					sl_reg iRet = STRING::parseUint32(10, &(flags.precision), format, pos, len);
+					if (iRet != SLIB_PARSE_ERROR) {
+						pos = iRet;
+						if (pos >= len) {
+							return sl_false;
+						}
+					}
+				}
+				return sl_true;
+			}
+
+			sl_bool append(const STRING& content, const ConversionFlags& flags)
+			{
+				sl_size lenContent = content.getLength();
+				if (lenContent < flags.minWidth) {
+					if (flags.flagAlignLeft) {
+						if (!(append(content))) {
+							return sl_false;
+						}
+						return append(STRING(' ', flags.minWidth - lenContent));
+					} else {
+						if (!(append(STRING(' ', flags.minWidth - lenContent)))) {
+							return sl_false;
+						}
+						return append(content);
+					}
+				} else {
+					return append(content);
+				}
+			}
+
+			sl_bool processTime(const Time& time, const ConversionFlags& flags)
+			{
+				CHAR ch = format[pos];
+				const TimeZone* zone;
+				if (ch == 'u' || ch == 'U') {
+					pos++;
+					zone = &(TimeZone::UTC());
+					if (!(getChar(ch))) {
+						return sl_false;
+					}
+				} else {
+					zone = &(TimeZone::Local);
+				}
+				sl_uint32 minWidth = 0;
+				if (flags.flagZeroPadded) {
+					minWidth = flags.minWidth;
+				}
+				STRING content;
+				switch (ch) {
+					case 'y':
+						if (flags.flagZeroPadded) {
+							if (minWidth < 4) {
+								minWidth = 4;
+							}
+						}
+						content = STRING::fromInt32(time.getYear(*zone), 10, minWidth);
+						break;
+					case 'Y':
+						content = STRING::fromInt32(time.getYear(*zone) % 100, 10, 2);
+						break;
+					case 'm':
+						if (flags.flagZeroPadded) {
+							if (minWidth < 2) {
+								minWidth = 2;
+							}
+						}
+						content = STRING::fromInt32(time.getMonth(*zone), 10, minWidth);
+						break;
+					case 'd':
+						if (flags.flagZeroPadded) {
+							if (minWidth < 2) {
+								minWidth = 2;
+							}
+						}
+						content = STRING::fromInt32(time.getDay(*zone), 10, minWidth);
+						break;
+					case 'w':
+						content = STRING::from(time.getWeekdayShort(*zone, locale));
+						break;
+					case 'W':
+						content = STRING::from(time.getWeekdayLong(*zone, locale));
+						break;
+					case 'H':
+						if (flags.flagZeroPadded) {
+							if (minWidth < 2) {
+								minWidth = 2;
+							}
+						}
+						content = STRING::fromInt32(time.getHour(*zone), 10, minWidth);
+						break;
+					case 'h': // Hour-12
+						if (flags.flagZeroPadded) {
+							if (minWidth < 2) {
+								minWidth = 2;
+							}
+						}
+						content = STRING::fromInt32(time.getHour12(*zone), 10, minWidth);
+						break;
+					case 'a':
+						content = STRING::from(time.getAM_PM(*zone, locale));
+						break;
+					case 'M':
+						if (flags.flagZeroPadded) {
+							if (minWidth < 2) {
+								minWidth = 2;
+							}
+						}
+						content = STRING::fromInt32(time.getMinute(*zone), 10, minWidth);
+						break;
+					case 'S':
+						if (flags.flagZeroPadded) {
+							if (minWidth < 2) {
+								minWidth = 2;
+							}
+						}
+						content = STRING::fromInt32(time.getSecond(*zone), 10, minWidth);
+						break;
+					case 'l':
+						content = STRING::fromInt32(time.getMillisecond(), 10, minWidth);
+						break;
+					case 'D':
+						content = STRING::from(time.getDateString(*zone));
+						break;
+					case 'T':
+						content = STRING::from(time.getTimeString(*zone));
+						break;
+					case 'O':
+						content = STRING::from(time.getMonthLong(*zone));
+						break;
+					case 'o':
+						content = STRING::from(time.getMonthShort(*zone));
+						break;
+					case 's':
+						content = STRING::from(time.toString(*zone));
+						break;
+					default:
+						return sl_false;
+				}
+				pos++;
+				return append(content, flags);
+			}
+
+			sl_bool processString(const Variant& arg, const ConversionFlags& flags)
+			{
+				CHAR* content = sl_null;
+				sl_size lenContent = 0;
+				STRING strTemp;
+				StringRawData sd;
+				if (arg.getStringData(sd)) {
+					if (sd.charSize == sizeof(CHAR)) {
+						content = (CHAR*)(sd.data);
+						if (content) {
+							if (sd.length < 0) {
+								lenContent = StringTraits<CHAR>::getLength(content);
+							} else {
+								lenContent = sd.length;
+							}
+						}
+					}
+				}
+				if (!content) {
+					strTemp = STRING::from(arg);
+					content = strTemp.getData(lenContent);
+				}
+				if (lenContent < flags.minWidth) {
+					if (flags.flagAlignLeft) {
+						if (strTemp.isNotNull()) {
+							if (!(append(Move(strTemp)))) {
+								return sl_false;
+							}
+						} else if (lenContent) {
+							if (!(appendStatic(content, lenContent))) {
+								return sl_false;
+							}
+						}
+						return append(STRING(' ', flags.minWidth - lenContent));
+					} else {
+						if (!(append(STRING(' ', flags.minWidth - lenContent)))) {
+							return sl_false;
+						}
+						if (strTemp.isNotNull()) {
+							return append(Move(strTemp));
+						} else if (lenContent) {
+							return appendStatic(content, lenContent);
+						} else {
+							return sl_true;
+						}
+					}
+				} else {
+					if (strTemp.isNotNull()) {
+						return append(Move(strTemp));
+					} else if (lenContent) {
+						return appendStatic(content, lenContent);
+					} else {
+						return sl_true;
+					}
+				}
+			}
+
+			sl_bool processInt(CHAR ch, const Variant& arg, const ConversionFlags& flags)
+			{
+				CHAR chGroup = 0;
+				if (flags.flagGroupingDigits) {
+					chGroup = ',';
+				}
+				sl_uint32 radix = 10;
+				sl_bool flagUpperCase = sl_false;
+				if (ch == 'x') {
+					radix = 16;
+				} else if (ch == 'X') {
+					radix = 16;
+					flagUpperCase = sl_true;
+				} else if (ch == 'o') {
+					radix = 8;
+				}
+				sl_uint32 minWidth = 0;
+				if (flags.flagZeroPadded) {
+					minWidth = flags.minWidth;
+				}
+				STRING content;
+				if (arg.isUint32()) {
+					content = FromUint<sl_uint32, CHAR>(arg.getUint32(), radix, minWidth, flagUpperCase, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive);
+				} else if (arg.isInt32()) {
+					content = FromInt<sl_int32, CHAR>(arg.getInt32(), radix, minWidth, flagUpperCase, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+				} else if (arg.isUint64()) {
+					content = FromUint<sl_uint64, CHAR>(arg.getUint64(), radix, minWidth, flagUpperCase, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive);
+				} else if (arg.isInt64()) {
+					content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, minWidth, flagUpperCase, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+				} else if (arg.isBigInt()) {
+					content = STRING::from(arg.getBigInt().toString(radix, flagUpperCase));
+				} else if (arg.isMemory() && radix == 16) {
+					content = STRING::makeHexString(arg.getMemory(), !flagUpperCase);
+				} else {
+					content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, minWidth, flagUpperCase, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+				}
+				return append(content, flags);
+			}
+
+			sl_bool processFloat(CHAR ch, const Variant& arg, const ConversionFlags& flags)
+			{
+				CHAR chGroup = 0;
+				if (flags.flagGroupingDigits) {
+					chGroup = ',';
+				}
+				sl_int32 precision = -1;
+				if (flags.flagUsePrecision) {
+					precision = flags.precision;
+				}
+				STRING content;
+				if (arg.isFloat()) {
+					content = FromFloat<float, CHAR>(arg.getFloat(), precision, flags.flagZeroPadded, 1, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+				} else {
+					content = FromFloat<double, CHAR>(arg.getDouble(), precision, flags.flagZeroPadded, 1, ch, chGroup, flags.flagSignPositive, flags.flagLeadingSpacePositive, flags.flagEncloseNegative);
+				}
+				return append(content, flags);
+			}
+
+			sl_bool processChar(const Variant& arg, const ConversionFlags& flags)
+			{
+				sl_char32 unicode = (sl_char32)(arg.getUint32());
+				return append(STRING::create(&unicode, 1), flags);
+			}
+
+			sl_bool processConversion(CHAR ch)
+			{
+				if (ch == '%') {
+					return processPercentChar();
+				}
+				if (ch == 'n') {
+					return processLineBreak();
+				}
+				sl_size indexArg;
+				if (!(parseArgumentIndex(ch, indexArg))) {
+					return sl_false;
+				}
+				Variant arg = params[indexArg];
+				resolveProperties(arg);
+				if (pos >= len) {
+					return sl_false;
+				}
+				ConversionFlags flags;
+				if (!(parseFlags(flags))) {
+					return sl_false;
+				}
+				if (!(parseMinWidth(flags))) {
+					return sl_false;
+				}
+				if (!(parsePrecision(flags))) {
+					return sl_false;
+				}
+				if (arg.isTime()) {
+					return processTime(arg.getTime(), flags);
+				}
+				ch = format[pos];
+				switch (ch) {
+					case 's':
+					case '%':
+						pos++;
+						return processString(arg, flags);
+					case 'd':
+					case 'x':
+					case 'X':
+					case 'o':
+						pos++;
+						return processInt(ch, arg, flags);
+					case 'f':
+					case 'e':
+					case 'E':
+					case 'g':
+					case 'G':
+						pos++;
+						return processFloat(ch, arg, flags);
+					case 'c':
+						pos++;
+						return processChar(arg, flags);
+					default:
+						return sl_false;
+				}
+			}
+
+			STRING run() noexcept
+			{
+				sl_size posText = 0;
+				for (;;) {
+					CHAR ch;
+					if (!(getChar(ch))) {
+						break;
+					}
+					if (ch == '%') {
+						if (!(appendStatic(format + posText, pos - posText))) {
+							return sl_null;
+						}
+						posText = pos;
+						pos++;
+						if (!(getChar(ch))) {
+							break;
+						}
+						if (processConversion(ch)) {
+							posText = pos;
+						} else {
+							if (flagFatalError) {
+								return sl_null;
+							}
+							pos = posText + 1;
+						}
+					} else {
+						pos++;
+					}
+				}
+				if (!(appendStatic(format + posText, pos - posText))) {
+					return sl_null;
+				}
+				return sb.merge();
+			}
+		};
 
 		template <class VIEW>
 		static typename VIEW::StringType Format(const Locale& locale, const VIEW& view, const Variant* params, sl_size nParams) noexcept
 		{
-			typedef typename VIEW::Char CHAR;
-			typedef typename VIEW::StringType STRING;
 			if (view.isNull()) {
 				return sl_null;
 			}
-			CHAR* format = view.getUnsafeData();
-			sl_size len = view.getUnsafeLength();
 			if (!nParams) {
-				if (len & SLIB_SIZE_TEST_SIGN_BIT) {
-					return STRING(format);
-				} else {
-					return STRING(format, len);
-				}
+				return view;
 			}
-			typename StringBufferTypeFromCharType<CHAR>::Type sb;
-			sl_size pos = 0;
-			sl_size posText = 0;
-			sl_size indexArgLast = 0;
-			sl_size indexArgAuto = 0;
-			while (pos <= len) {
-				CHAR ch;
-				if (pos < len) {
-					ch = format[pos];
-				} else {
-					ch = 0;
-				}
-				if (ch == '%' || !ch) {
-					sb.addStatic(format + posText, pos - posText);
-					posText = pos;
-					pos++;
-					if (pos >= len) {
-						break;
-					}
-					if (ch == '%') {
-						do {
-							ch = format[pos];
-							if (ch == '%') {
-								CHAR t = '%';
-								sb.addStatic(&t, 1);
-								pos++;
-								posText = pos;
-								break;
-							} else if (ch == 'n') {
-								CHAR t[2] = { '\r', '\n' };
-								sb.addStatic(t, 2);
-								pos++;
-								posText = pos;
-								break;
-							}
-							// Argument Index
-							sl_size indexArg;
-							if (ch == '<') {
-								indexArg = indexArgLast;
-								pos++;
-							} else {
-								sl_uint32 iv;
-								sl_reg iRet = STRING::parseUint32(10, &iv, format, pos, len);
-								if (iRet == SLIB_PARSE_ERROR) {
-									indexArg = indexArgAuto;
-									indexArgAuto++;
-								} else {
-									if ((sl_uint32)iRet >= len) {
-										break;
-									}
-									if (format[iRet] == '$') {
-										if (iv > 0) {
-											iv--;
-										}
-										indexArg = iv;
-										pos = iRet + 1;
-									} else {
-										indexArg = indexArgAuto;
-										indexArgAuto++;
-									}
-								}
-							}
-							if (indexArg >= nParams) {
-								indexArg = nParams - 1;
-							}
-							indexArgLast = indexArg;
-
-							Variant arg = params[indexArg];
-							while (pos < len) {
-								ch = format[pos];
-								if (ch == '[') {
-									pos++;
-									sl_uint64 elementIndex = 0;
-									sl_reg iRet = STRING::parseUint64(10, &elementIndex, format, pos, len);
-									if (iRet != SLIB_PARSE_ERROR) {
-										pos = iRet;
-										if (pos >= len) {
-											break;
-										}
-										if (format[pos] != ']') {
-											break;
-										}
-										arg = arg.getElement(elementIndex);
-										pos++;
-									} else {
-										arg.setUndefined();
-										break;
-									}
-								} else if (ch == '{') {
-									pos++;
-									sl_size posName = pos;
-									while (pos < len) {
-										if (format[pos] == '}') {
-											break;
-										}
-										pos++;
-									}
-									if (pos < len) {
-										arg = arg.getItem(String::from(format + posName, pos - posName));
-										pos++;
-									}
-								} else {
-									break;
-								}
-							}
-							if (pos >= len) {
-								break;
-							}
-
-							// Flags
-							sl_bool flagAlignLeft = sl_false; // '-'
-							sl_bool flagSignPositive = sl_false; // '+'
-							sl_bool flagLeadingSpacePositive = sl_false; // ' '
-							sl_bool flagZeroPadded = sl_false; // '0'
-							sl_bool flagGroupingDigits = sl_false; // ','
-							sl_bool flagEncloseNegative = sl_false; // '('
-							do {
-								ch = format[pos];
-								if (ch == '-') {
-									flagAlignLeft = sl_true;
-								} else if (ch == '+') {
-									flagSignPositive = sl_true;
-								} else if (ch == ' ') {
-									flagLeadingSpacePositive = sl_true;
-								} else if (ch == '0') {
-									flagZeroPadded = sl_true;
-								} else if (ch == ',') {
-									flagGroupingDigits = sl_true;
-								} else if (ch == '(') {
-									flagEncloseNegative = sl_true;
-								} else {
-									break;
-								}
-								pos++;
-							} while (pos < len);
-							if (pos >= len) {
-								break;
-							}
-
-							// Min-Width
-							sl_uint32 minWidth = 0;
-							sl_reg iRet = STRING::parseUint32(10, &minWidth, format, pos, len);
-							if (iRet != SLIB_PARSE_ERROR) {
-								pos = iRet;
-								if (pos >= len) {
-									break;
-								}
-							}
-
-							// Precision
-							sl_uint32 precision = 0;
-							sl_bool flagUsePrecision = sl_false;
-							if (format[pos] == '.') {
-								pos++;
-								if (pos >= len) {
-									break;
-								}
-								flagUsePrecision = sl_true;
-								iRet = STRING::parseUint32(10, &precision, format, pos, len);
-								if (iRet != SLIB_PARSE_ERROR) {
-									pos = iRet;
-									if (pos >= len) {
-										break;
-									}
-								}
-							}
-
-							// Conversion
-							ch = format[pos];
-							pos++;
-
-							sl_size lenContent = 0;
-							sl_bool flagError = sl_false;
-
-							if (arg.isTime()) {
-								const TimeZone* zone;
-								if (ch == 'u' || ch == 'U') {
-									zone = &(TimeZone::UTC());
-									if (pos < len) {
-										ch = format[pos];
-										pos++;
-									} else {
-										ch = 's';
-									}
-								} else {
-									zone = &(TimeZone::Local);
-								}
-								STRING content;
-								Time time = arg.getTime();
-								switch (ch) {
-									case 'y':
-										if (flagZeroPadded) {
-											if (flagZeroPadded) {
-												if (minWidth < 4) {
-													minWidth = 4;
-												}
-											}
-											content = STRING::fromInt32(time.getYear(*zone), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getYear(*zone));
-										}
-										break;
-									case 'Y':
-										content = STRING::fromInt32(time.getYear(*zone) % 100, 10, 2);
-										break;
-									case 'm':
-										if (flagZeroPadded) {
-											if (flagZeroPadded) {
-												if (minWidth < 2) {
-													minWidth = 2;
-												}
-											}
-											content = STRING::fromInt32(time.getMonth(*zone), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getMonth(*zone));
-										}
-										break;
-									case 'd':
-										if (flagZeroPadded) {
-											if (flagZeroPadded) {
-												if (minWidth < 2) {
-													minWidth = 2;
-												}
-											}
-											content = STRING::fromInt32(time.getDay(*zone), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getDay(*zone));
-										}
-										break;
-									case 'w':
-										content = STRING::from(time.getWeekdayShort(*zone, locale));
-										break;
-									case 'W':
-										content = STRING::from(time.getWeekdayLong(*zone, locale));
-										break;
-									case 'H':
-										if (flagZeroPadded) {
-											if (flagZeroPadded) {
-												if (minWidth < 2) {
-													minWidth = 2;
-												}
-											}
-											content = STRING::fromInt32(time.getHour(*zone), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getHour(*zone));
-										}
-										break;
-									case 'h': // Hour-12
-										if (flagZeroPadded) {
-											if (flagZeroPadded) {
-												if (minWidth < 2) {
-													minWidth = 2;
-												}
-											}
-											content = STRING::fromInt32(time.getHour12(*zone), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getHour12(*zone));
-										}
-										break;
-									case 'a':
-										content = STRING::from(time.getAM_PM(*zone, locale));
-										break;
-									case 'M':
-										if (flagZeroPadded) {
-											if (flagZeroPadded) {
-												if (minWidth < 2) {
-													minWidth = 2;
-												}
-											}
-											content = STRING::fromInt32(time.getMinute(*zone), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getMinute(*zone));
-										}
-										break;
-									case 'S':
-										if (flagZeroPadded) {
-											if (flagZeroPadded) {
-												if (minWidth < 2) {
-													minWidth = 2;
-												}
-											}
-											content = STRING::fromInt32(time.getSecond(*zone), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getSecond(*zone));
-										}
-										break;
-									case 'l':
-										if (flagZeroPadded) {
-											content = STRING::fromInt32(time.getMillisecond(), 10, minWidth);
-										} else {
-											content = STRING::fromInt32(time.getMillisecond());
-										}
-										break;
-									case 'D':
-										content = STRING::from(time.getDateString(*zone));
-										break;
-									case 'T':
-										content = STRING::from(time.getTimeString(*zone));
-										break;
-									case 'O':
-										content = STRING::from(time.getMonthLong(*zone));
-										break;
-									case 'o':
-										content = STRING::from(time.getMonthShort(*zone));
-										break;
-									case 's':
-										content = STRING::from(time.toString(*zone));
-										break;
-									default:
-										flagError = sl_true;
-										break;
-								}
-								if (flagError) {
-									break;
-								}
-								lenContent = content.getLength();
-								if (lenContent < minWidth) {
-									if (flagAlignLeft) {
-										sb.add(content);
-										sb.add(STRING(' ', minWidth - lenContent));
-									} else {
-										sb.add(STRING(' ', minWidth - lenContent));
-										sb.add(content);
-									}
-								} else {
-									sb.add(content);
-								}
-							} else {
-								switch (ch) {
-									case 's':
-										{
-											CHAR* content = sl_null;
-											sl_size lenContent = 0;
-											STRING strTemp;
-											StringRawData sd;
-											if (arg.getStringData(sd)) {
-												if (sd.charSize == sizeof(CHAR)) {
-													content = (CHAR*)(sd.data);
-													if (content) {
-														if (sd.length < 0) {
-															lenContent = StringTraits<CHAR>::getLength(content);
-														} else {
-															lenContent = sd.length;
-														}
-													}
-												}
-											}
-											if (!content) {
-												strTemp = STRING::from(arg);
-												content = strTemp.getData(lenContent);
-											}
-											if (lenContent < minWidth) {
-												if (flagAlignLeft) {
-													if (strTemp.isNotNull()) {
-														sb.add(Move(strTemp));
-													} else if (lenContent) {
-														sb.addStatic(content, lenContent);
-													}
-													sb.add(STRING(' ', minWidth - lenContent));
-												} else {
-													sb.add(STRING(' ', minWidth - lenContent));
-													if (strTemp.isNotNull()) {
-														sb.add(Move(strTemp));
-													} else if (lenContent) {
-														sb.addStatic(content, lenContent);
-													}
-												}
-											} else {
-												if (strTemp.isNotNull()) {
-													sb.add(Move(strTemp));
-												} else if (lenContent) {
-													sb.addStatic(content, lenContent);
-												}
-											}
-											break;
-										}
-									case 'd':
-									case 'x':
-									case 'X':
-									case 'o':
-										{
-											CHAR chGroup = 0;
-											if (flagGroupingDigits) {
-												chGroup = ',';
-											}
-											sl_uint32 radix = 10;
-											sl_bool flagUpperCase = sl_false;
-											if (ch == 'x') {
-												radix = 16;
-											} else if (ch == 'X') {
-												radix = 16;
-												flagUpperCase = sl_true;
-											} else if (ch == 'o') {
-												radix = 8;
-											}
-											sl_uint32 _minWidth = 0;
-											if (flagZeroPadded) {
-												_minWidth = minWidth;
-											}
-											STRING content;
-											if (arg.isUint32()) {
-												content = FromUint<sl_uint32, CHAR>(arg.getUint32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
-											} else if (arg.isInt32()) {
-												content = FromInt<sl_int32, CHAR>(arg.getInt32(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-											} else if (arg.isUint64()) {
-												content = FromUint<sl_uint64, CHAR>(arg.getUint64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive);
-											} else if (arg.isInt64()) {
-												content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-											} else if (arg.isBigInt()) {
-												content = STRING::from(arg.getBigInt().toString(radix, flagUpperCase));
-											} else if (arg.isMemory() && radix == 16) {
-												content = STRING::makeHexString(arg.getMemory(), !flagUpperCase);
-											} else {
-												content = FromInt<sl_int64, CHAR>(arg.getInt64(), radix, _minWidth, flagUpperCase, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-											}
-											lenContent = content.getLength();
-											if (lenContent < minWidth) {
-												if (flagAlignLeft) {
-													sb.add(content);
-													sb.add(STRING(' ', minWidth - lenContent));
-												} else {
-													sb.add(STRING(' ', minWidth - lenContent));
-													sb.add(content);
-												}
-											} else {
-												sb.add(content);
-											}
-											break;
-										}
-									case 'f':
-									case 'e':
-									case 'E':
-									case 'g':
-									case 'G':
-										{
-											CHAR chGroup = 0;
-											if (flagGroupingDigits) {
-												chGroup = ',';
-											}
-											sl_int32 _precision = -1;
-											if (flagUsePrecision) {
-												_precision = precision;
-											}
-											STRING content;
-											if (arg.isFloat()) {
-												content = FromFloat<float, CHAR>(arg.getFloat(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-											} else {
-												content = FromFloat<double, CHAR>(arg.getDouble(), _precision, flagZeroPadded, 1, ch, chGroup, flagSignPositive, flagLeadingSpacePositive, flagEncloseNegative);
-											}
-											lenContent = content.getLength();
-											if (lenContent < minWidth) {
-												if (flagAlignLeft) {
-													sb.add(content);
-													sb.add(STRING(' ', minWidth - lenContent));
-												} else {
-													sb.add(STRING(' ', minWidth - lenContent));
-													sb.add(content);
-												}
-											} else {
-												sb.add(content);
-											}
-											break;
-										}
-									case 'c':
-										{
-											sl_char32 unicode = (sl_char32)(arg.getUint32());
-											STRING str = STRING::create(&unicode, 1);
-											lenContent = str.getLength();
-											if (lenContent < minWidth) {
-												if (flagAlignLeft) {
-													sb.add(str);
-													sb.add(STRING(' ', minWidth - lenContent));
-												} else {
-													sb.add(STRING(' ', minWidth - lenContent));
-													sb.add(str);
-												}
-											} else {
-												sb.add(str);
-											}
-											break;
-										}
-									default:
-										flagError = sl_true;
-										break;
-								}
-								if (flagError) {
-									break;
-								}
-							}
-							posText = pos;
-						} while (0);
-					} else {
-						break;
-					}
-				} else {
-					pos++;
-				}
-				if (!ch) {
-					break;
-				}
-			}
-			return sb.merge();
+			StringFormator<typename VIEW::Char, typename VIEW::StringType> formator;
+			formator.format = view.getUnsafeData();
+			sl_reg len = view.getUnsafeLength();
+			formator.len = len;
+			formator.flagSz = len < 0;
+			formator.params = params;
+			formator.nParams = nParams;
+			formator.locale = locale;
+			return formator.run();
 		}
 
 	}

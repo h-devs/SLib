@@ -2969,6 +2969,11 @@ namespace slib
 			Ref<Object> object(GET_OBJECT(*this));
 			if (object.isNotNull()) {
 				return object->getProperty(key);
+			} else {
+				sl_uint64 index;
+				if (StringView(key).trim().parseUint64(&index)) {
+					return getElement(index);
+				}
 			}
 		}
 		return Variant();
@@ -2986,6 +2991,11 @@ namespace slib
 				Ref<Object> object(GET_OBJECT(*this));
 				if (object.isNotNull()) {
 					return object->setProperty(key, value);
+				} else {
+					sl_uint64 index;
+					if (StringView(key).trim().parseUint64(&index)) {
+						return setElement(index, value);
+					}
 				}
 			}
 		}
@@ -3004,6 +3014,11 @@ namespace slib
 				Ref<Object> object(GET_OBJECT(*this));
 				if (object.isNotNull()) {
 					return object->setProperty(key, value);
+				} else {
+					sl_uint64 index;
+					if (StringView(key).trim().parseUint64(&index)) {
+						return setElement(index, value);
+					}
 				}
 			}
 		} else {
@@ -3026,6 +3041,11 @@ namespace slib
 			Ref<Object> object(GET_OBJECT(*this));
 			if (object.isNotNull()) {
 				return object->clearProperty(key);
+			} else {
+				sl_uint64 index;
+				if (StringView(key).trim().parseUint64(&index)) {
+					return setElement(index, Variant());
+				}
 			}
 		}
 		return sl_false;
