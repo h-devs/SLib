@@ -261,6 +261,45 @@ namespace slib
 		return sl_false;
 	}
 
+	Ref<SAppLayoutGridCellCreator> SAppLayoutGridCellCreator::create(SAppLayoutXmlItem* xml, SAppDocument* doc)
+	{
+#define DEFINE_CREATE_GRID_CELL_CREATOR(NAME, TAG) \
+		if (tagName == TAG) { \
+			Ref<SAppLayoutGridCellCreator_##NAME> ret = new SAppLayoutGridCellCreator_##NAME; \
+			if (ret.isNull()) { \
+				doc->logError(xml->element, g_str_error_out_of_memory); \
+				return sl_null; \
+			} \
+			if (ret->parse(xml, doc)) { \
+				return ret; \
+			} else { \
+				return sl_null; \
+			} \
+		}
+
+		String tagName = xml->getTagName();
+		DEFINE_CREATE_GRID_CELL_CREATOR(Label, "label") else
+		DEFINE_CREATE_GRID_CELL_CREATOR(Text, "text") else
+		DEFINE_CREATE_GRID_CELL_CREATOR(HyperText, "hyper") else
+		DEFINE_CREATE_GRID_CELL_CREATOR(Numero, "no")
+		else {
+			doc->logError(xml->element, g_str_error_resource_layout_gridview_unknown_cell_creator, tagName);
+			return sl_null;
+		}
+	}
+
+	sl_bool SAppLayoutGridCellCreator_Label::parse(SAppLayoutXmlItem* xml, SAppDocument* doc)
+	{
+		String strText = xml->getXmlText();
+		if (strText.isNotEmpty()) {
+			if (!(text.parse(strText, xml->element))) {
+				doc->logError(xml->element, g_str_error_resource_layout_value_invalid, strText);
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
 	String SAppLayoutStyle::getXmlAttribute(const String& name)
 	{
 		String value = element->getAttribute(name);

@@ -31,7 +31,7 @@ namespace slib
 
 		Ref<SAppMenuResource> menu = new SAppMenuResource;
 		if (menu.isNull()) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -39,18 +39,18 @@ namespace slib
 
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
-			_logError(element, g_str_error_resource_menu_name_is_empty);
+			logError(element, g_str_error_resource_menu_name_is_empty);
 			return sl_false;
 		}
 		if (!(SAppUtil::checkName(name.getData(), name.getLength()))) {
-			_logError(element, g_str_error_resource_menu_name_invalid, name);
+			logError(element, g_str_error_resource_menu_name_invalid, name);
 			return sl_false;
 		}
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
 		if (m_menus.find(name)) {
-			_logError(element, g_str_error_resource_menu_name_redefined, name);
+			logError(element, g_str_error_resource_menu_name_redefined, name);
 			return sl_false;
 		}
 
@@ -66,14 +66,14 @@ namespace slib
 					return sl_false;
 				}
 				if (!(menu->children.add(menuItem))) {
-					_logError(element, g_str_error_out_of_memory);
+					logError(element, g_str_error_out_of_memory);
 					return sl_false;
 				}
 			}
 		}
 
 		if (!(m_menus.put(name, menu))) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -88,7 +88,7 @@ namespace slib
 
 		Ref<SAppMenuResourceItem> item = new SAppMenuResourceItem;
 		if (item.isNull()) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return Ref<SAppMenuResourceItem>::null();
 		}
 
@@ -99,23 +99,23 @@ namespace slib
 		} else if (element->getName() == "separator") {
 			item->type = SAppMenuResourceItem::typeSeparator;
 		} else {
-			_logError(element, g_str_error_resource_menu_children_tag_invalid, element->getName());
+			logError(element, g_str_error_resource_menu_children_tag_invalid, element->getName());
 			return Ref<SAppMenuResourceItem>::null();
 		}
 
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
 			if (item->type != SAppMenuResourceItem::typeSeparator) {
-				_logError(element, g_str_error_resource_menu_name_is_empty);
+				logError(element, g_str_error_resource_menu_name_is_empty);
 				return Ref<SAppMenuResourceItem>::null();
 			}
 		} else {
 			if (name == "root") {
-				_logError(element, g_str_error_resource_menu_name_is_root);
+				logError(element, g_str_error_resource_menu_name_is_root);
 				return Ref<SAppMenuResourceItem>::null();
 			}
 			if (!(SAppUtil::checkName(name.getData(), name.getLength()))) {
-				_logError(element, g_str_error_resource_menu_name_invalid, name);
+				logError(element, g_str_error_resource_menu_name_invalid, name);
 				return Ref<SAppMenuResourceItem>::null();
 			}
 		}
@@ -146,38 +146,38 @@ namespace slib
 			item->platformFlags &= parentPlatforms;
 		}
 		if (item->platformFlags == 0) {
-			_logError(element, g_str_error_resource_menu_platform_invalid, strPlatform);
+			logError(element, g_str_error_resource_menu_platform_invalid, strPlatform);
 			return Ref<SAppMenuResourceItem>::null();
 		}
 
 		if (name.isNotEmpty()) {
 			if (item->platformFlags & SAppMenuResourceItem::mac) {
 				if (menu->itemsMac.find(name)) {
-					_logError(element, g_str_error_resource_menu_item_name_redefined, name);
+					logError(element, g_str_error_resource_menu_item_name_redefined, name);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 				if (!(menu->itemsMac.put(name, item))) {
-					_logError(element, g_str_error_out_of_memory);
+					logError(element, g_str_error_out_of_memory);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 			}
 			if (item->platformFlags & SAppMenuResourceItem::windows) {
 				if (menu->itemsWindows.find(name)) {
-					_logError(element, g_str_error_resource_menu_item_name_redefined, name);
+					logError(element, g_str_error_resource_menu_item_name_redefined, name);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 				if (!(menu->itemsWindows.put(name, item))) {
-					_logError(element, g_str_error_out_of_memory);
+					logError(element, g_str_error_out_of_memory);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 			}
 			if (item->platformFlags & SAppMenuResourceItem::linux) {
 				if (menu->itemsLinux.find(name)) {
-					_logError(element, g_str_error_resource_menu_item_name_redefined, name);
+					logError(element, g_str_error_resource_menu_item_name_redefined, name);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 				if (!(menu->itemsLinux.put(name, item))) {
-					_logError(element, g_str_error_out_of_memory);
+					logError(element, g_str_error_out_of_memory);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 			}
@@ -191,7 +191,7 @@ namespace slib
 				item->title.valueOrName = String::format("menu_%s_%s", menu->name, name);
 			} else {
 				if (!(item->title.parse(title, element))) {
-					_logError(element, g_str_error_resource_menu_title_refer_invalid, title);
+					logError(element, g_str_error_resource_menu_title_refer_invalid, title);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 			}
@@ -199,19 +199,19 @@ namespace slib
 			String strChecked;
 			strChecked = element->getAttribute("checked");
 			if (!(item->checked.parse(strChecked))) {
-				_logError(element, g_str_error_resource_menu_checked_invalid, strChecked);
+				logError(element, g_str_error_resource_menu_checked_invalid, strChecked);
 				return Ref<SAppMenuResourceItem>::null();
 			}
 
 			String strIcon;
 			strIcon = element->getAttribute("icon");
 			if (!(item->icon.parseWhole(strIcon, element))) {
-				_logError(element, g_str_error_resource_menu_icon_invalid, strIcon);
+				logError(element, g_str_error_resource_menu_icon_invalid, strIcon);
 				return Ref<SAppMenuResourceItem>::null();
 			}
 			strIcon = element->getAttribute("checkedIcon");
 			if (!(item->checkedIcon.parseWhole(strIcon, element))) {
-				_logError(element, g_str_error_resource_menu_icon_invalid, strIcon);
+				logError(element, g_str_error_resource_menu_icon_invalid, strIcon);
 				return Ref<SAppMenuResourceItem>::null();
 			}
 		}
@@ -222,7 +222,7 @@ namespace slib
 				item->shortcutKey = 0;
 			} else {
 				if (!(item->shortcutKey.parse(strShortcutKey))) {
-					_logError(element, g_str_error_resource_menu_shortcutKey_invalid, strShortcutKey);
+					logError(element, g_str_error_resource_menu_shortcutKey_invalid, strShortcutKey);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 			}
@@ -233,7 +233,7 @@ namespace slib
 				item->macShortcutKey = 0;
 			} else {
 				if (!(item->macShortcutKey.parse(strShortcutKey))) {
-					_logError(element, g_str_error_resource_menu_macShortcutKey_invalid, strShortcutKey);
+					logError(element, g_str_error_resource_menu_macShortcutKey_invalid, strShortcutKey);
 					return Ref<SAppMenuResourceItem>::null();
 				}
 			}
@@ -249,7 +249,7 @@ namespace slib
 						return Ref<SAppMenuResourceItem>::null();
 					}
 					if (!(item->children.add(menuItem))) {
-						_logError(element, g_str_error_out_of_memory);
+						logError(element, g_str_error_out_of_memory);
 						return Ref<SAppMenuResourceItem>::null();
 					}
 				}
@@ -261,7 +261,7 @@ namespace slib
 
 	sl_bool SAppDocument::_generateMenusCpp(const String& targetPath)
 	{
-		_log(g_str_log_generate_cpp_menus_begin);
+		log(g_str_log_generate_cpp_menus_begin);
 
 		StringBuffer sbHeader, sbCpp;
 		sbHeader.add(String::format(
@@ -315,7 +315,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed, pathHeader);
+				logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -324,7 +324,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed, pathCpp);
+				logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}
@@ -513,7 +513,7 @@ namespace slib
 		if (_checkMenuName(localNamespace, value.resourceName, value.referingElement, sl_null, &res)) {
 			Ref<Menu> menu = Menu::create(res->flagPopup);
 			if (menu.isNull()) {
-				_logError(g_str_error_out_of_memory);
+				logError(g_str_error_out_of_memory);
 				return sl_false;
 			}
 			ListLocker< Ref<SAppMenuResourceItem> > items(res->children);
@@ -521,7 +521,7 @@ namespace slib
 				Ref<SAppMenuResourceItem>& item = items[i];
 				if (item.isNotNull()) {
 					if (!(_getMenuValue_Item(res.get(), menu, item.get()))) {
-						_logError(g_str_error_load_menu_failed, value.resourceName);
+						logError(g_str_error_load_menu_failed, value.resourceName);
 						return sl_false;
 					}
 				}
@@ -549,7 +549,7 @@ namespace slib
 		if (getItemFromMap(m_menus, localNamespace, name, outName, outResource)) {
 			return sl_true;
 		} else {
-			_logError(element, g_str_error_menu_not_found, name);
+			logError(element, g_str_error_menu_not_found, name);
 			return sl_false;
 		}
 	}

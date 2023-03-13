@@ -916,11 +916,61 @@ namespace slib
 	class SAppLayoutGridCellCreator : public CRef
 	{
 	public:
-		enum class Type {
-			Text,
-			HyperText,
-			Numero
+		enum {
+			LABEL,
+			TEXT,
+			HYPER_TEXT,
+			NUMERO
 		};
+		int type;
+
+	public:
+		static Ref<SAppLayoutGridCellCreator> create(SAppLayoutXmlItem* xml, SAppDocument* doc);
+
+	public:
+		virtual sl_bool parse(SAppLayoutXmlItem* xml, SAppDocument* doc) = 0;
+	};
+
+	class SAppLayoutGridCellCreator_Label : public SAppLayoutGridCellCreator
+	{
+	public:
+		SAppStringValue text;
+
+	public:
+		SAppLayoutGridCellCreator_Label()
+		{
+			type = LABEL;
+		}
+
+	public:
+		sl_bool parse(SAppLayoutXmlItem* xml, SAppDocument* doc) override;
+	};
+
+	class SAppLayoutGridCellCreator_Text : public SAppLayoutGridCellCreator_Label
+	{
+	public:
+		SAppLayoutGridCellCreator_Text()
+		{
+			type = TEXT;
+		}
+	};
+
+	class SAppLayoutGridCellCreator_HyperText : public SAppLayoutGridCellCreator_Text
+	{
+	public:
+		SAppLayoutGridCellCreator_HyperText()
+		{
+			type = HYPER_TEXT;
+		}
+	};
+
+	class SAppLayoutGridCellCreator_Numero : public SAppLayoutGridCellCreator_Label
+	{
+	public:
+		SAppLayoutGridCellCreator_Numero()
+		{
+			type = NUMERO;
+		}
 	};
 
 	class SAppLayoutGridCellAttributes
@@ -978,7 +1028,9 @@ namespace slib
 		CList<SAppLayoutGridColumn> columns;
 		sl_uint32 nLeftColumns = 0;
 		sl_uint32 nRightColumns = 0;
+
 		SAppUint64Value recordCount;
+		SAppDimensionValue rowHeight;
 
 		SAppLayoutGridSection body;
 		SAppLayoutGridSection header;

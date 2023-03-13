@@ -59,7 +59,7 @@ namespace slib
 	public:
 		sl_bool flagDefined = sl_false;
 		enum {
-			FILL, WRAP, WEIGHT,
+			FILL, WRAP, WEIGHT, // Special Units
 			PX,
 			SW, SH, SMIN, SMAX,
 			VW, VH, VMIN, VMAX,
@@ -94,7 +94,9 @@ namespace slib
 
 		sl_bool isNeededOnLayoutFunction();
 
-		static sl_bool isRelativeUnit(int unit);
+		static sl_bool isSpecialUnit(int unit);
+
+		static sl_bool isAbsoluteUnit(int unit);
 
 		static sl_bool isGlobalUnit(int unit);
 
@@ -354,6 +356,8 @@ namespace slib
 		sl_bool parse(const String& str, SAppDocument* doc, const Ref<XmlElement>& element);
 
 		sl_bool parseWhole(const String& str, const Ref<XmlElement>& element);
+
+		sl_bool isAbsoluteUnit();
 
 	};
 

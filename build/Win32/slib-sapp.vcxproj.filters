@@ -4,10 +4,60 @@
     <Filter Include="src">
       <UniqueIdentifier>{7d518465-fafd-4d1e-a023-ac7cfd170a10}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\sapp">
+      <UniqueIdentifier>{21e12cd8-7de7-4f64-bba4-0513403d3089}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\tool\src\sapp\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\sapp\sapp_document.cpp">
+      <Filter>src\sapp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\sapp\sapp_values.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_resources.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_util.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document_color.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document_drawable.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document_layout.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document_menu.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document_raw.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_document_string.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_resources.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_util.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_values.cpp.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

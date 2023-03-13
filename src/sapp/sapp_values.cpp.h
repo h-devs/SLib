@@ -32,8 +32,6 @@
 namespace slib
 {
 
-	extern const String& g_str_error_resource_layout_attribute_invalid;
-
 	namespace {
 
 		static sl_reg ParseFloat(float* _out, const sl_char8* str, sl_size start, sl_size end)
@@ -475,7 +473,7 @@ namespace slib
 		if (!flagDefined) {
 			return sl_true;
 		}
-		return amount > 0 && !isRelativeUnit(unit);
+		return amount > 0 && !(isSpecialUnit(unit));
 	}
 
 	sl_bool SAppDimensionBaseValue::checkPosition(sl_bool flagRoot)
@@ -486,7 +484,7 @@ namespace slib
 		if (!flagDefined) {
 			return sl_true;
 		}
-		return !isRelativeUnit(unit);
+		return !(isSpecialUnit(unit));
 	}
 
 	sl_bool SAppDimensionBaseValue::checkSize(sl_bool flagRoot)
@@ -517,7 +515,7 @@ namespace slib
 		if (flagRoot) {
 			return isGlobalUnit(unit);
 		} else {
-			return !isRelativeUnit(unit);
+			return !(isSpecialUnit(unit));
 		}
 	}
 
@@ -535,9 +533,9 @@ namespace slib
 		if (flagRoot) {
 			return isGlobalUnit(unit);
 		} else {
-			return !isRelativeUnit(unit);
+			return !(isSpecialUnit(unit));
 		}
-		return amount >= 0 && (unit == WEIGHT || !isRelativeUnit(unit));
+		return amount >= 0 && (unit == WEIGHT || !(isSpecialUnit(unit)));
 	}
 
 	sl_bool SAppDimensionBaseValue::checkMargin(sl_bool flagRoot)
@@ -579,9 +577,14 @@ namespace slib
 		return isViewportUnit(unit);
 	}
 
-	sl_bool SAppDimensionBaseValue::isRelativeUnit(int unit)
+	sl_bool SAppDimensionBaseValue::isSpecialUnit(int unit)
 	{
 		return unit == FILL || unit == WRAP || unit == WEIGHT;
+	}
+
+	sl_bool SAppDimensionBaseValue::isAbsoluteUnit(int unit)
+	{
+		return unit == PX || unit == INCH || unit == M || unit == CM || unit == MM || unit == PT || unit == DP;
 	}
 
 	sl_bool SAppDimensionBaseValue::isGlobalUnit(int unit)
@@ -1532,6 +1535,25 @@ namespace slib
 		return sl_true;
 	}
 
+	sl_bool SAppDrawableValue::isAbsoluteUnit()
+	{
+		if (func != FUNC_NONE) {
+			if (patchLeftWidthDst.flagDefined && !(SAppDimensionValue::isAbsoluteUnit(patchLeftWidthDst.unit))) {
+				return sl_false;
+			}
+			if (patchRightWidthDst.flagDefined && !(SAppDimensionValue::isAbsoluteUnit(patchRightWidthDst.unit))) {
+				return sl_false;
+			}
+			if (patchTopHeightDst.flagDefined && !(SAppDimensionValue::isAbsoluteUnit(patchTopHeightDst.unit))) {
+				return sl_false;
+			}
+			if (patchBottomHeightDst.flagDefined && !(SAppDimensionValue::isAbsoluteUnit(patchBottomHeightDst.unit))) {
+				return sl_false;
+			}
+		}
+		return sl_true;
+	}
+
 
 	void SAppFontValue::inheritFrom(const SAppFontValue& parent)
 	{
@@ -1552,19 +1574,11 @@ namespace slib
 		}
 	}
 
-	namespace {
-		class DocumentHelper : public SAppDocument
-		{
-		public:
-			using SAppDocument::_logError;
-		};
-	}
-
 #define PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, ...) \
 		String attr = name + SUFFIX; \
 		String str = item->getXmlAttribute(attr); \
 		if (!(SUBITEM.parse(str, __VA_ARGS__))) { \
-			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
+			doc->logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
 			return sl_false; \
 		} \
 		if (SUBITEM.flagDefined) { \
@@ -1579,14 +1593,13 @@ namespace slib
 	{ \
 		PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, doc) \
 		if (!(SUBITEM.CHECK(flagRoot))) { \
-			doc->_logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
+			doc->logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
 			return sl_false; \
 		} \
 	}
 
-	sl_bool SAppFontValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* _doc, sl_bool flagRoot)
+	sl_bool SAppFontValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
 	{
-		DocumentHelper* doc = (DocumentHelper*)_doc;
 		const Ref<XmlElement>& xml = item->element;
 		DEFINE_PARSE_SUBITEM(family, "Family", xml)
 		DEFINE_PARSE_SUBITEM_DIMENSION(size, "Size", checkScalarSize)
@@ -1597,9 +1610,8 @@ namespace slib
 	}
 
 
-	sl_bool SAppBorderValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* _doc, sl_bool flagRoot)
+	sl_bool SAppBorderValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
 	{
-		DocumentHelper* doc = (DocumentHelper*)_doc;
 		const Ref<XmlElement>& xml = item->element;
 		DEFINE_PARSE_SUBITEM(style, "Style")
 		DEFINE_PARSE_SUBITEM_DIMENSION(width, "Width", checkScalarSize)

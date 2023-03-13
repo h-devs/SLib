@@ -25,7 +25,7 @@ namespace slib
 
 	sl_bool SAppDocument::_registerRawResources(const String& fileDirPath)
 	{
-		_log(g_str_log_open_raws_begin, fileDirPath);
+		log(g_str_log_open_raws_begin, fileDirPath);
 		return _registerRawResources(sl_null, sl_null, fileDirPath);
 	}
 
@@ -57,18 +57,18 @@ namespace slib
 		String resourceName = Resources::makeResourceName(_resourceName);
 		if (parent) {
 			if (parent->sub.find(resourceName)) {
-				_logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
+				logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
 				return sl_false;
 			}
 		} else {
 			if (m_raws.find(resourceName)) {
-				_logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
+				logError(g_str_error_resource_raw_name_duplicated, resourceName, filePath);
 				return sl_false;
 			}
 		}
 		Ref<SAppRawResource> res = new SAppRawResource;
 		if (res.isNull()) {
-			_logError(g_str_error_out_of_memory);
+			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
 		res->name = resourceName;
@@ -82,12 +82,12 @@ namespace slib
 		}
 		if (parent) {
 			if (!(parent->sub.put(resourceName, res))) {
-				_logError(g_str_error_out_of_memory);
+				logError(g_str_error_out_of_memory);
 				return sl_false;
 			}
 		} else {
 			if (!(m_raws.put(resourceName, res))) {
-				_logError(g_str_error_out_of_memory);
+				logError(g_str_error_out_of_memory);
 				return sl_false;
 			}
 		}
@@ -97,12 +97,12 @@ namespace slib
 
 	sl_bool SAppDocument::_generateRawCpp(const String& targetPath, const String& namespace1, const String& namespace2)
 	{
-		_log(g_str_log_generate_cpp_raws_begin);
+		log(g_str_log_generate_cpp_raws_begin);
 
 		if (!(File::isDirectory(targetPath + "/raw"))) {
 			File::createDirectory(targetPath + "/raw");
 			if (!(File::isDirectory(targetPath + "/raw"))) {
-				_log(g_str_error_directory_create_failed, targetPath + "/raw");
+				log(g_str_error_directory_create_failed, targetPath + "/raw");
 				return sl_false;
 			}
 		}
@@ -177,7 +177,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed, pathHeader);
+				logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -186,7 +186,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed, pathCpp);
+				logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}
@@ -212,7 +212,7 @@ namespace slib
 			sbHeader.add(String::format("%sSLIB_DECLARE_RAW_RESOURCE(%s)%n", tab, res->name));
 			sl_size size = (sl_size)(File::getSize(res->filePath));
 			if (size > RAW_MAX_SIZE) {
-				_logError(g_str_error_resource_raw_size_big, res->filePath);
+				logError(g_str_error_resource_raw_size_big, res->filePath);
 				return sl_false;
 			}
 			sbCpp.add(String::format("%sSLIB_DEFINE_RAW_RESOURCE(%s, %d)%n", tab, res->name, size));
@@ -276,7 +276,7 @@ namespace slib
 			fileDst.write(strDataEnd, sizeof(strDataEnd) - 1);
 			return sl_true;
 		}
-		_logError(g_str_error_file_write_failed, targetPath);
+		logError(g_str_error_file_write_failed, targetPath);
 		return sl_false;
 	}
 

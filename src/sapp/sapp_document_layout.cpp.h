@@ -38,7 +38,7 @@ namespace slib
 
 		Ref<SAppLayoutStyle> style = new SAppLayoutStyle;
 		if (style.isNull()) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -46,20 +46,20 @@ namespace slib
 
 		String name = element->getAttribute("name").trim();
 		if (name.isEmpty()) {
-			_logError(element, g_str_error_resource_layout_name_is_empty);
+			logError(element, g_str_error_resource_layout_name_is_empty);
 			return sl_false;
 		}
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
 		if (m_layoutStyles.find(name)) {
-			_logError(element, g_str_error_resource_layout_name_redefined, name);
+			logError(element, g_str_error_resource_layout_name_redefined, name);
 			return sl_false;
 		}
 		style->name = name;
 
 		if (!(m_layoutStyles.put(name, style))) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -72,11 +72,11 @@ namespace slib
 				getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &inheritStyle);
 				if (inheritStyle.isNotNull()) {
 					if (!(style->inherit.add_NoLock(Move(inheritStyle)))) {
-						_logError(element, g_str_error_out_of_memory);
+						logError(element, g_str_error_out_of_memory);
 						return sl_false;
 					}
 				} else {
-					_logError(element, g_str_error_layout_style_not_found, s);
+					logError(element, g_str_error_layout_style_not_found, s);
 					return sl_false;
 				}
 			}
@@ -93,7 +93,7 @@ namespace slib
 
 		Ref<SAppLayoutInclude> include = new SAppLayoutInclude;
 		if (include.isNull()) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -101,20 +101,20 @@ namespace slib
 
 		String name = element->getAttribute("name").trim();
 		if (name.isEmpty()) {
-			_logError(element, g_str_error_resource_layout_name_is_empty);
+			logError(element, g_str_error_resource_layout_name_is_empty);
 			return sl_false;
 		}
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
 		if (m_layoutIncludes.find(name)) {
-			_logError(element, g_str_error_resource_layout_name_redefined, name);
+			logError(element, g_str_error_resource_layout_name_redefined, name);
 			return sl_false;
 		}
 		include->name = name;
 
 		if (!(m_layoutIncludes.put(name, include))) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -129,14 +129,14 @@ namespace slib
 
 		String name = element->getAttribute("name").trim();
 		if (name.isEmpty()) {
-			_logError(element, g_str_error_resource_layout_name_is_empty);
+			logError(element, g_str_error_resource_layout_name_is_empty);
 			return sl_false;
 		}
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
 		if (m_layoutUnits.find(name)) {
-			_logError(element, g_str_error_resource_layout_name_redefined, name);
+			logError(element, g_str_error_resource_layout_name_redefined, name);
 			return sl_false;
 		}
 
@@ -144,12 +144,12 @@ namespace slib
 
 		SAppDimensionValue value;
 		if (!(value.parse(strValue, this))) {
-			_logError(element, g_str_error_resource_layout_value_invalid, strValue);
+			logError(element, g_str_error_resource_layout_value_invalid, strValue);
 			return sl_false;
 		}
 
 		if (!(m_layoutUnits.put(name, value))) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -164,7 +164,7 @@ namespace slib
 
 		Ref<SAppLayoutResource> layout = new SAppLayoutResource;
 		if (layout.isNull()) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -172,7 +172,7 @@ namespace slib
 		layout->element = element;
 
 		if (m_layouts.find(localNamespace)) {
-			_logError(element, g_str_error_resource_layout_name_redefined, localNamespace);
+			logError(element, g_str_error_resource_layout_name_redefined, localNamespace);
 			return sl_false;
 		}
 		layout->name = localNamespace;
@@ -182,7 +182,7 @@ namespace slib
 		}
 
 		if (!(m_layouts.put(localNamespace, layout))) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -219,7 +219,7 @@ namespace slib
 			} else if (strType == "page") {
 				type = SAppLayoutType::Page;
 			} else {
-				_logError(element, g_str_error_resource_layout_type_invalid, strType);
+				logError(element, g_str_error_resource_layout_type_invalid, strType);
 				return sl_false;
 			}
 			layout->layoutType = type;
@@ -234,7 +234,7 @@ namespace slib
 			}
 			SAppLayoutItemType type = SAppLayoutResource::getTypeFromName(strType);
 			if (type == SAppLayoutItemType::Unknown) {
-				_logError(element, g_str_error_resource_layout_type_invalid, strType);
+				logError(element, g_str_error_resource_layout_type_invalid, strType);
 				return sl_false;
 			}
 
@@ -249,15 +249,15 @@ namespace slib
 			sl_int32 arrayIndex = -1;
 			if (name.isNotEmpty()) {
 				if (!(SAppUtil::checkNameOrArrayMember(name, &arrayName, &arrayIndex))) {
-					_logError(element, g_str_error_resource_layout_name_invalid, name);
+					logError(element, g_str_error_resource_layout_name_invalid, name);
 					return sl_false;
 				}
 				if (layout->itemsByName.find(name)) {
-					_logError(element, g_str_error_resource_layout_name_redefined, name);
+					logError(element, g_str_error_resource_layout_name_redefined, name);
 					return sl_false;
 				}
 				if (layout->radioGroups.find(name)) {
-					_logError(element, g_str_error_resource_layout_name_redefined, name);
+					logError(element, g_str_error_resource_layout_name_redefined, name);
 					return sl_false;
 				}
 			} else {
@@ -287,7 +287,7 @@ namespace slib
 
 		if (customClassName.isNotEmpty()) {
 			if (!(layout->customClasses.put(customClassName, sl_true))) {
-				_logError(element, g_str_error_out_of_memory);
+				logError(element, g_str_error_out_of_memory);
 				return sl_false;
 			}
 		}
@@ -295,17 +295,17 @@ namespace slib
 		if (!parent) {
 			String strSP = layout->getXmlAttribute("sp");
 			if (!(layout->sp.parse(strSP, this))) {
-				_logError(element, g_str_error_resource_layout_attribute_invalid, "sp", strSP);
+				logError(element, g_str_error_resource_layout_attribute_invalid, "sp", strSP);
 			}
 			if (!(layout->sp.checkSP())) {
-				_logError(element, g_str_error_resource_layout_attribute_invalid, "sp", strSP);
+				logError(element, g_str_error_resource_layout_attribute_invalid, "sp", strSP);
 				return sl_false;
 			}
 		}
 
 		if (parent) {
 			if (!(layout->itemsByName.put(item->name, item))) {
-				_logError(element, g_str_error_out_of_memory);
+				logError(element, g_str_error_out_of_memory);
 				return sl_false;
 			}
 		}
@@ -314,7 +314,7 @@ namespace slib
 			SAppLayoutResource::ItemArrayDesc desc;
 			if (layout->itemArrays.get(item->arrayName, &desc)) {
 				if (desc.className != item->className) {
-					_logError(element, g_str_error_resource_layout_name_array_item_class_different, item->name);
+					logError(element, g_str_error_resource_layout_name_array_item_class_different, item->name);
 				}
 				if (desc.itemCount < n) {
 					desc.itemCount = n;
@@ -334,7 +334,7 @@ namespace slib
 	{
 		Ref<SAppLayoutResourceItem> childItem = new SAppLayoutResourceItem;
 		if (childItem.isNull()) {
-			_logError(element, g_str_error_out_of_memory);
+			logError(element, g_str_error_out_of_memory);
 			return sl_null;
 		}
 
@@ -349,12 +349,12 @@ namespace slib
 
 	sl_bool SAppDocument::_generateLayoutsCpp(const String& targetPath)
 	{
-		_log(g_str_log_generate_cpp_layouts_begin);
+		log(g_str_log_generate_cpp_layouts_begin);
 
 		if (!(File::isDirectory(targetPath + "/ui"))) {
 			File::createDirectory(targetPath + "/ui");
 			if (!(File::isDirectory(targetPath + "/ui"))) {
-				_log(g_str_error_directory_create_failed, targetPath + "/ui");
+				log(g_str_error_directory_create_failed, targetPath + "/ui");
 				return sl_false;
 			}
 		}
@@ -417,7 +417,7 @@ namespace slib
 		String contentHeaderBase = sbHeaderBase.merge();
 		if (File::readAllTextUTF8(pathHeaderBase) != contentHeaderBase) {
 			if (!(File::writeAllTextUTF8(pathHeaderBase, contentHeaderBase))) {
-				_logError(g_str_error_file_write_failed, pathHeaderBase);
+				logError(g_str_error_file_write_failed, pathHeaderBase);
 				return sl_false;
 			}
 		}
@@ -426,7 +426,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed, pathHeader);
+				logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -435,7 +435,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed, pathCpp);
+				logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}
@@ -539,7 +539,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed, pathHeader);
+				logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -548,7 +548,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed, pathCpp);
+				logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}
@@ -892,11 +892,11 @@ namespace slib
 				getItemFromMap(m_layoutStyles, localNamespace, s, sl_null, &style);
 				if (style.isNotNull()) {
 					if (!(item->styles.add_NoLock(Move(style)))) {
-						_logError(item->element, g_str_error_out_of_memory);
+						logError(item->element, g_str_error_out_of_memory);
 						return sl_false;
 					}
 				} else {
-					_logError(item->element, g_str_error_layout_style_not_found, s);
+					logError(item->element, g_str_error_layout_style_not_found, s);
 					return sl_false;
 				}
 			}
@@ -951,7 +951,7 @@ namespace slib
 					if (name == "include") {
 						String src = child->getAttribute("src");
 						if (src.isEmpty()) {
-							_logError(child, g_str_error_resource_layout_attribute_invalid, "src", name);
+							logError(child, g_str_error_resource_layout_attribute_invalid, "src", name);
 							return sl_false;
 						}
 						Ref<SAppLayoutInclude> include;
@@ -961,12 +961,12 @@ namespace slib
 								return sl_false;
 							}
 						} else {
-							_logError(child, g_str_error_layout_include_not_found, name);
+							logError(child, g_str_error_layout_include_not_found, name);
 							return sl_false;
 						}
 					} else if (tagName.isEmpty() || name == tagName) {
 						if (!(list.add_NoLock(Move(child)))) {
-							_logError(child, g_str_error_out_of_memory);
+							logError(child, g_str_error_out_of_memory);
 							return sl_false;
 						}
 					}
@@ -1101,7 +1101,7 @@ namespace slib
 								childItem->attrs->height.unit = SAppDimensionValue::FILL;
 							}
 							if (!(resourceItem->children.add_NoLock(Move(childItem)))) {
-								_logError(resourceItem->element, g_str_error_out_of_memory);
+								logError(resourceItem->element, g_str_error_out_of_memory);
 								return sl_false;
 							}
 						}
@@ -1169,7 +1169,7 @@ namespace slib
 			if (attr.isNull()) { \
 				attr = new SAppLayout##NAME##Attributes; \
 				if (attr.isNull()) { \
-					_logError(element, g_str_error_out_of_memory); \
+					logError(element, g_str_error_out_of_memory); \
 					return sl_false; \
 				} \
 			} \
@@ -1206,23 +1206,61 @@ namespace slib
 	ListElements< Ref<XmlElement> > NAME(LAYOUT_CONTROL_GET_ITEM_CHILDREN(TAG));
 
 #define LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(XML, NAME) \
-	_logError((XML).element, g_str_error_resource_layout_attribute_invalid, NAME, (XML).getXmlAttribute(NAME));
+	logError((XML).element, g_str_error_resource_layout_attribute_invalid, NAME, (XML).getXmlAttribute(NAME));
 #define LOG_ERROR_LAYOUT_CONTROL_ATTR(NAME) LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(*resourceItem, NAME)
 
 #define TEXT_Init "Init"
+#define TEXT_None "None"
 #define TEXT_UpdateLayout "UpdateLayout"
-#define CATEGORY_GENERATOR1_BASIC(MODE)
-#define CATEGORY_RESOLVER1_BASIC(MODE)
-#define CATEGORY_GENERATOR1_UI(MODE) "slib::UIUpdateMode::" TEXT_##MODE
-#define CATEGORY_RESOLVER1_UI(MODE) UIUpdateMode::MODE
-#define CATEGORY_GENERATOR2_BASIC(MODE)
-#define CATEGORY_RESOLVER2_BASIC(MODE)
-#define CATEGORY_GENERATOR2_UI(MODE) ", slib::UIUpdateMode::" TEXT_##MODE
-#define CATEGORY_RESOLVER2_UI(MODE) , UIUpdateMode::MODE
-#define GEN_UPDATE_MODE1(CATEGORY, MODE) CATEGORY_GENERATOR1_##CATEGORY(MODE)
-#define GEN_UPDATE_MODE2(CATEGORY, MODE) CATEGORY_GENERATOR2_##CATEGORY(MODE)
-#define USE_UPDATE_MODE1(CATEGORY, MODE) CATEGORY_RESOLVER1_##CATEGORY(MODE)
-#define USE_UPDATE_MODE2(CATEGORY, MODE) CATEGORY_RESOLVER2_##CATEGORY(MODE)
+
+#define GEN_UPDATE_MODE1(MODE) "slib::UIUpdateMode::" TEXT_##MODE
+#define GEN_UPDATE_MODE2(MODE) ", " GEN_UPDATE_MODE1(MODE)
+#define USE_UPDATE_MODE1(MODE) UIUpdateMode::MODE
+#define USE_UPDATE_MODE2(MODE) , USE_UPDATE_MODE1(MODE)
+
+#define CATEGORY_GEN_UPDATE1_UI_BASIC(MODE)
+#define CATEGORY_USE_UPDATE1_UI_BASIC(MODE)
+#define CATEGORY_GEN_UPDATE1_UI_CONTROL(MODE) GEN_UPDATE_MODE1(MODE)
+#define CATEGORY_USE_UPDATE1_UI_CONTROL(MODE) USE_UPDATE_MODE1(MODE)
+#define CATEGORY_GEN_UPDATE1_UI_ITEM(MODE) GEN_UPDATE_MODE1(MODE)
+#define CATEGORY_USE_UPDATE1_UI_ITEM(MODE) USE_UPDATE_MODE1(MODE)
+#define CATEGORY_GEN_UPDATE2_UI_BASIC(MODE)
+#define CATEGORY_USE_UPDATE2_UI_BASIC(MODE)
+#define CATEGORY_GEN_UPDATE2_UI_CONTROL(MODE) GEN_UPDATE_MODE2(MODE)
+#define CATEGORY_USE_UPDATE2_UI_CONTROL(MODE) USE_UPDATE_MODE2(MODE)
+#define CATEGORY_GEN_UPDATE2_UI_ITEM(MODE) GEN_UPDATE_MODE2(MODE)
+#define CATEGORY_USE_UPDATE2_UI_ITEM(MODE) USE_UPDATE_MODE2(MODE)
+
+#define CATEGORY_GEN_UPDATE1_CONTROL_BASIC(MODE)
+#define CATEGORY_USE_UPDATE1_CONTROL_BASIC(MODE)
+#define CATEGORY_GEN_UPDATE1_CONTROL_CONTROL(MODE) GEN_UPDATE_MODE1(MODE)
+#define CATEGORY_USE_UPDATE1_CONTROL_CONTROL(MODE) USE_UPDATE_MODE1(MODE)
+#define CATEGORY_GEN_UPDATE1_CONTROL_ITEM(MODE)
+#define CATEGORY_USE_UPDATE1_CONTROL_ITEM(MODE)
+#define CATEGORY_GEN_UPDATE2_CONTROL_BASIC(MODE)
+#define CATEGORY_USE_UPDATE2_CONTROL_BASIC(MODE)
+#define CATEGORY_GEN_UPDATE2_CONTROL_CONTROL(MODE) GEN_UPDATE_MODE2(MODE)
+#define CATEGORY_USE_UPDATE2_CONTROL_CONTROL(MODE) USE_UPDATE_MODE2(MODE)
+#define CATEGORY_GEN_UPDATE2_CONTROL_ITEM(MODE)
+#define CATEGORY_USE_UPDATE2_CONTROL_ITEM(MODE)
+
+#define CATEGORY_GEN_UPDATE1_ITEM_BASIC(MODE)
+#define CATEGORY_USE_UPDATE1_ITEM_BASIC(MODE)
+#define CATEGORY_GEN_UPDATE1_ITEM_CONTROL(MODE)
+#define CATEGORY_USE_UPDATE1_ITEM_CONTROL(MODE)
+#define CATEGORY_GEN_UPDATE1_ITEM_ITEM(MODE) GEN_UPDATE_MODE1(MODE)
+#define CATEGORY_USE_UPDATE1_ITEM_ITEM(MODE) USE_UPDATE_MODE1(MODE)
+#define CATEGORY_GEN_UPDATE2_ITEM_BASIC(MODE)
+#define CATEGORY_USE_UPDATE2_ITEM_BASIC(MODE)
+#define CATEGORY_GEN_UPDATE2_ITEM_CONTROL(MODE)
+#define CATEGORY_USE_UPDATE2_ITEM_CONTROL(MODE)
+#define CATEGORY_GEN_UPDATE2_ITEM_ITEM(MODE) GEN_UPDATE_MODE2(MODE)
+#define CATEGORY_USE_UPDATE2_ITEM_ITEM(MODE) USE_UPDATE_MODE2(MODE)
+
+#define GEN_UPDATE1(CATEGORY, REQUEST, MODE) CATEGORY_GEN_UPDATE1_##REQUEST##_##CATEGORY(MODE)
+#define GEN_UPDATE2(CATEGORY, REQUEST, MODE) CATEGORY_GEN_UPDATE2_##REQUEST##_##CATEGORY(MODE)
+#define USE_UPDATE1(CATEGORY, REQUEST, MODE) CATEGORY_USE_UPDATE1_##REQUEST##_##CATEGORY(MODE)
+#define USE_UPDATE2(CATEGORY, REQUEST, MODE) CATEGORY_USE_UPDATE2_##REQUEST##_##CATEGORY(MODE)
 
 #define PRIV_LAYOUT_CONTROL_PARSE(XML, NAME, VAR, ...) \
 	String _strValue = (XML).getXmlAttribute(NAME); \
@@ -1238,24 +1276,36 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(Layout, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
 
 #define LAYOUT_CONTROL_PARSE_GENERIC(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME, VAR)
-#define LAYOUT_CONTROL_GENERATE_GENERIC(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_GENERIC(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), VAR.getAccessString()) \
+		String value = VAR.getAccessString(); \
+		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_GENERIC(VAR, SETFUNC, CATEGORY, ...) \
-	if (!flagOnLayout && VAR.flagDefined) { \
+	if (VAR.flagDefined && !flagOnLayout) { \
 		auto& value = VAR.value; \
-		view->SETFUNC(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 
 #define LAYOUT_CONTROL_PARSE_BOOLEAN(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME, VAR)
-#define LAYOUT_CONTROL_GENERATE_BOOLEAN(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_BOOLEAN(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined && VAR.value) { \
-		LAYOUT_CONTROL_GENERATE(SETFUNC, GEN_UPDATE_MODE1(CATEGORY, Init)) \
+		LAYOUT_CONTROL_GENERATE(SETFUNC, GEN_UPDATE1(CATEGORY, UI, Init)) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_BOOLEAN(VAR, SETFUNC, CATEGORY, ...) \
-	if (!flagOnLayout && VAR.flagDefined && VAR.value) { \
-		view->SETFUNC(USE_UPDATE_MODE1(CATEGORY, Init)); \
+	if (VAR.flagDefined && VAR.value && !flagOnLayout) { \
+		view->SETFUNC(USE_UPDATE1(CATEGORY, UI, Init)); \
+	}
+
+	namespace {
+		SLIB_INLINE static sl_bool Xor(sl_bool l, sl_bool r)
+		{
+			if (l) {
+				return !r;
+			} else {
+				return r;
+			}
+		}
 	}
 
 #define LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, VAR, CHECKFUNC) \
@@ -1266,204 +1316,237 @@ namespace slib
 			return sl_false; \
 		} \
 	}
-#define LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
-	if (VAR.flagDefined && !(SAppDimensionValue::isRelativeUnit(VAR.unit))) { \
-		if (VAR.isNeededOnLayoutFunction()) { \
-			LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT, VAR.getAccessString()) \
+#define PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
+	String value = VAR.getAccessString(); \
+	if (VAR.isNeededOnLayoutFunction()) { \
+		LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, ITEM, None), ##__VA_ARGS__) \
+	} else { \
+		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
+	}
+#define LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
+	if (VAR.flagDefined && !(SAppDimensionValue::isSpecialUnit(VAR.unit))) { \
+		PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
+	}
+#define PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ...) \
+	if (Xor(SAppDimensionValue::isAbsoluteUnit(VAR.unit), flagOnLayout)) { \
+		auto value = _getDimensionValue(VAR); \
+		if (flagOnLayout) { \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
 		} else { \
-			LAYOUT_CONTROL_GENERATE_GENERIC(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ...) \
-	if (flagOnLayout && VAR.flagDefined) { \
-		if (!(SAppDimensionValue::isRelativeUnit(VAR.unit))) { \
-			auto value = _getDimensionValue(VAR); \
-			view->SETFUNC(__VA_ARGS__); \
-		} \
+	if (VAR.flagDefined && !(SAppDimensionValue::isSpecialUnit(VAR.unit))) { \
+		PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
 	}
 
 #define LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR) LAYOUT_CONTROL_PARSE(XML, NAME, VAR, (XML).element)
 
 #define LAYOUT_CONTROL_PARSE_STRING(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR)
-#define LAYOUT_CONTROL_GENERATE_STRING(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_STRING(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String _accessString; \
-		if (!(_getStringAccessString(resource->name, VAR, _accessString))) { \
+		String value; \
+		if (!(_getStringAccessString(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), _accessString) \
+		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_STRING(VAR, SETFUNC, CATEGORY, ...) \
-	if (!flagOnLayout && VAR.flagDefined) { \
+	if (VAR.flagDefined && !flagOnLayout) { \
 		String value; \
 		if (!(_getStringValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		view->SETFUNC(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 
 #define LAYOUT_CONTROL_PARSE_DRAWABLE(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME, VAR, this, (XML).element)
-#define LAYOUT_CONTROL_GENERATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String _accessString; \
-		if (!(_getDrawableAccessString(resource->name, VAR, _accessString))) { \
+		String value; \
+		if (!(_getDrawableAccessString(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), _accessString) \
+		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ...) \
-	if (flagOnLayout && VAR.flagDefined) { \
+	if (VAR.flagDefined && Xor(VAR.isAbsoluteUnit(), flagOnLayout)) { \
 		Ref<Drawable> value; \
 		if (!(_getDrawableValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		view->SETFUNC(__VA_ARGS__); \
+		if (flagOnLayout) { \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
+		} else { \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+		} \
 	}
 
 #define LAYOUT_CONTROL_PARSE_COLOR(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR)
-#define LAYOUT_CONTROL_GENERATE_COLOR(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_COLOR(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String _accessString; \
-		if (!(_getColorAccessString(resource->name, VAR, _accessString))) { \
+		String value; \
+		if (!(_getColorAccessString(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), _accessString) \
+		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_COLOR(VAR, SETFUNC, CATEGORY, ...) \
-	if (!flagOnLayout && VAR.flagDefined) { \
+	if (VAR.flagDefined && !flagOnLayout) { \
 		Color value; \
 		if (!(_getColorValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		view->SETFUNC(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 
 #define LAYOUT_CONTROL_PARSE_FONT(XML, NAME, VAR, ...) \
 	if (!(VAR.parse(&(XML), NAME, this, !(params->parentResourceItem)))) { \
 		return sl_false; \
 	}
-#define LAYOUT_CONTROL_GENERATE_FONT(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_FONT(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String _accessString; \
-		if (!(_getFontAccessString(resource->name, VAR, _accessString))) { \
+		String value; \
+		if (!(_getFontAccessString(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (VAR.size.isNeededOnLayoutFunction()) { \
-			LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, UpdateLayout), _accessString) \
+			LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, CONTROL, UpdateLayout) GEN_UPDATE2(CATEGORY, ITEM, None), ##__VA_ARGS__) \
 		} else { \
-			LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), _accessString) \
+			LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_FONT(VAR, SETFUNC, CATEGORY, ...) \
-	if (flagOnLayout && VAR.flagDefined) { \
+	if (VAR.flagDefined && Xor(SAppDimensionValue::isAbsoluteUnit(VAR.size.unit), flagOnLayout)) { \
 		Ref<Font> value; \
 		if (!(_getFontValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		view->SETFUNC(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, UpdateLayout)); \
+		if (flagOnLayout) { \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, CONTROL, UpdateLayout) USE_UPDATE2(CATEGORY, ITEM, None)); \
+		} else { \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+		} \
 	}
 
 #define LAYOUT_CONTROL_PARSE_BORDER(XML, NAME, VAR, ...) \
 	if (!(VAR.parse(&(XML), NAME, this, !(params->parentResourceItem)))) { \
 		return sl_false; \
 	}
-#define LAYOUT_CONTROL_GENERATE_BORDER(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_BORDER(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String _accessString; \
-		if (!(_getBorderAccessString(resource->name, VAR, _accessString))) { \
+		String value; \
+		if (!(_getBorderAccessString(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
 		if (VAR.width.isNeededOnLayoutFunction()) { \
-			LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT, _accessString) \
+			LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, ITEM, None), ##__VA_ARGS__) \
 		} else { \
-			LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), _accessString) \
+			LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_BORDER(VAR, SETFUNC, CATEGORY, ...) \
-	if (flagOnLayout && VAR.flagDefined) { \
+	if (VAR.flagDefined && Xor(SAppDimensionValue::isAbsoluteUnit(VAR.width.unit), flagOnLayout)) { \
 		PenDesc value; \
 		if (!(_getBorderValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		view->SETFUNC(__VA_ARGS__); \
+		if (flagOnLayout) { \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
+		} else { \
+			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+		} \
 	}
 
 #define LAYOUT_CONTROL_PARSE_MENU(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR)
-#define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
-		String _accessString; \
-		if (!(_getMenuAccessString(resource->name, VAR, _accessString))) { \
+		String value; \
+		if (!(_getMenuAccessString(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), _accessString) \
+		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_MENU(VAR, SETFUNC, CATEGORY, ...) \
-	if (!flagOnLayout && VAR.flagDefined) { \
+	if (VAR.flagDefined && !flagOnLayout) { \
 		Ref<Menu> value; \
 		if (!(_getMenuValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		view->SETFUNC(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 	
 #define LAYOUT_CONTROL_PARSE_SIZE(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, VAR, checkSize)
-#define LAYOUT_CONTROL_GENERATE_SIZE(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_SIZE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.unit == SAppDimensionValue::FILL) { \
-		LAYOUT_CONTROL_GENERATE(SETFUNC##Filling, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), String::format("%ff", VAR.amount)) \
+		String value = String::format("%ff", VAR.amount); \
+		LAYOUT_CONTROL_GENERATE(SETFUNC##Filling, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	} else if (VAR.unit == SAppDimensionValue::WRAP) { \
-		LAYOUT_CONTROL_GENERATE(SETFUNC##Wrapping, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), "sl_true") \
+		StringView value = StringView::literal("sl_true"); \
+		LAYOUT_CONTROL_GENERATE(SETFUNC##Wrapping, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	} else if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-		LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), String::format("%ff", VAR.amount)) \
+		String value = String::format("%ff", VAR.amount); \
+		LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	} else { \
-		LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+		PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_SIZE(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.unit == SAppDimensionValue::FILL) { \
 		if (!flagOnLayout) { \
 			auto value = VAR.amount; \
-			view->SETFUNC##Filling(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+			view->SETFUNC##Filling(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 		} \
 	} else if (VAR.unit == SAppDimensionValue::WRAP) { \
 		if (!flagOnLayout) { \
 			sl_bool value = sl_true; \
-			view->SETFUNC##Wrapping(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+			view->SETFUNC##Wrapping(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 		} \
 	} else if (VAR.unit == SAppDimensionValue::WEIGHT) { \
 		if (!flagOnLayout) { \
 			auto value = VAR.amount; \
-			view->SETFUNC##Weight(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+			view->SETFUNC##Weight(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 		} \
 	} else { \
-		LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
+		PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
 	}
 
 #define LAYOUT_CONTROL_PARSE_MARGIN(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, VAR, checkMargin)
-#define LAYOUT_CONTROL_GENERATE_MARGIN(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
-	if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-		LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE_MODE2(CATEGORY, Init), String::format("%ff", VAR.amount)) \
-	} else { \
-		LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT) \
+#define LAYOUT_CONTROL_GENERATE_MARGIN(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
+	if (VAR.flagDefined) { \
+		if (VAR.unit == SAppDimensionValue::WEIGHT) { \
+			String value = String::format("%ff", VAR.amount); \
+			LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
+		} else { \
+ 			if (!(SAppDimensionValue::isSpecialUnit(VAR.unit))) { \
+				PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
+			} \
+		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_MARGIN(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-		if (!flagOnLayout) { \
-			auto& value = VAR.amount; \
-			view->SETFUNC##Weight(__VA_ARGS__ USE_UPDATE_MODE2(CATEGORY, Init)); \
+	if (VAR.flagDefined) { \
+		if (VAR.unit == SAppDimensionValue::WEIGHT) { \
+			if (!flagOnLayout) { \
+				auto& value = VAR.amount; \
+				view->SETFUNC##Weight(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+			} \
+		} else { \
+ 			if (!(SAppDimensionValue::isSpecialUnit(VAR.unit))) { \
+				PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
+			} \
 		} \
-	} else { \
-		LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
 	}
 
 #define LAYOUT_CONTROL_PARSE_XML(TYPE, XML, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_##TYPE(XML, #NAME, ATTR NAME, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_PARSE_ATTR(TYPE, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_XML(TYPE, *resourceItem, ATTR, NAME, ##__VA_ARGS__)
 
-#define PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC, CATEGORY) LAYOUT_CONTROL_GENERATE_##TYPE(VAR, SETFUNC, CATEGORY, "%s")
+#define PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC, CATEGORY) LAYOUT_CONTROL_GENERATE_##TYPE(VAR, SETFUNC, CATEGORY, "%s", value)
 #define LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC) PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC, BASIC)
-#define LAYOUT_CONTROL_GENERATE_UI_ATTR(TYPE, VAR, SETFUNC) PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC, UI)
+#define LAYOUT_CONTROL_GENERATE_UI_ATTR(TYPE, VAR, SETFUNC) PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC, CONTROL)
 
 #define PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, VAR, SETFUNC, CATEGORY) LAYOUT_CONTROL_SIMULATE_##TYPE(VAR, SETFUNC, CATEGORY, value)
 #define LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, VAR, SETFUNC) PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, VAR, SETFUNC, BASIC)
-#define LAYOUT_CONTROL_SIMULATE_UI_ATTR(TYPE, VAR, SETFUNC) PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, VAR, SETFUNC, UI)
+#define LAYOUT_CONTROL_SIMULATE_UI_ATTR(TYPE, VAR, SETFUNC) PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, VAR, SETFUNC, CONTROL)
 
 #define PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, CATEGORY, ...) \
 	if (op == OP_PARSE) { \
@@ -1474,7 +1557,7 @@ namespace slib
 		PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, attr->NAME, SETFUNC, CATEGORY) \
 	}
 #define LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, BASIC, ##__VA_ARGS__)
-#define LAYOUT_CONTROL_UI_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, UI, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_UI_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, CONTROL, ##__VA_ARGS__)
 
 #define LAYOUT_CONTROL_PROCESS_SUPER(BASE) \
 	{ \
@@ -2253,22 +2336,22 @@ namespace slib
 			Ref<SAppLayoutResource> layoutImport;
 			m_layouts.get(attr->layout, &layoutImport);
 			if (layoutImport.isNull()) {
-				_logError(element, g_str_error_layout_not_found, attr->layout);
+				logError(element, g_str_error_layout_not_found, attr->layout);
 				return sl_false;
 			}
 			if (layoutImport->layoutType != SAppLayoutType::View && layoutImport->layoutType != SAppLayoutType::Page) {
-				_logError(element, g_str_error_layout_is_not_view, attr->layout);
+				logError(element, g_str_error_layout_is_not_view, attr->layout);
 				return sl_false;
 			}
 		} else if (op == OP_SIMULATE) {
 			Ref<SAppLayoutResource> layoutImport;
 			m_layouts.get(attr->layout, &layoutImport);
 			if (layoutImport.isNull()) {
-				_logError(element, g_str_error_layout_not_found, attr->layout);
+				logError(element, g_str_error_layout_not_found, attr->layout);
 				return sl_false;
 			}
 			if (layoutImport->layoutType != SAppLayoutType::View && layoutImport->layoutType != SAppLayoutType::Page) {
-				_logError(element, g_str_error_layout_is_not_view, attr->layout);
+				logError(element, g_str_error_layout_is_not_view, attr->layout);
 				return sl_false;
 			}
 			if (!flagOnLayout) {
@@ -2402,15 +2485,14 @@ namespace slib
 					LAYOUT_CONTROL_BUTTON_STATE_PARSE(BORDER, border)
 					LAYOUT_CONTROL_BUTTON_STATE_PARSE(COLOR, colorOverlay)
 				} else if (op == OP_GENERATE_CPP) {
-					String argFormat = String::format("%%s, slib::ButtonState::%s, %d", strStates[k], i);
-#define LAYOUT_CONTROL_BUTTON_STATE_GENERATE(TYPE, NAME, SETFUNC) LAYOUT_CONTROL_GENERATE_##TYPE(state.NAME, SETFUNC, UI, +argFormat+)
+#define LAYOUT_CONTROL_BUTTON_STATE_GENERATE(TYPE, NAME, SETFUNC) LAYOUT_CONTROL_GENERATE_##TYPE(state.NAME, SETFUNC, ITEM, "%s, slib::ButtonState::%s, %d", value, strStates[k], i)
 					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(COLOR, textColor, setTextColor)
 					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(DRAWABLE, icon, setIcon)
 					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(DRAWABLE, background, setBackground)
 					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(BORDER, border, setBorder)
 					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(COLOR, colorOverlay, setColorOverlay)
 				} else if (op == OP_SIMULATE) {
-#define LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(TYPE, NAME, SETFUNC) LAYOUT_CONTROL_SIMULATE_##TYPE(state.NAME, SETFUNC, UI, value, (ButtonState)k, i)
+#define LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(TYPE, NAME, SETFUNC) LAYOUT_CONTROL_SIMULATE_##TYPE(state.NAME, SETFUNC, ITEM, value, (ButtonState)k, i)
 					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(COLOR, textColor, setTextColor)
 					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(DRAWABLE, icon, setIcon)
 					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(DRAWABLE, background, setBackground)
@@ -2509,11 +2591,11 @@ namespace slib
 			attr->group = resourceItem->getXmlAttribute("group");
 			if (attr->group.isNotEmpty()) {
 				if (!(SAppUtil::checkName(attr->group.getData(), attr->group.getLength()))) {
-					_logError(element, g_str_error_resource_layout_name_invalid, attr->group);
+					logError(element, g_str_error_resource_layout_name_invalid, attr->group);
 					return sl_false;
 				}
 				if (params->resource->itemsByName.find(attr->group)) {
-					_logError(element, g_str_error_resource_layout_name_redefined, attr->group);
+					logError(element, g_str_error_resource_layout_name_redefined, attr->group);
 					return sl_false;
 				}
 				params->resource->radioGroups.put(attr->group, sl_true);
@@ -2662,7 +2744,7 @@ namespace slib
 					String text = itemXml.getXmlText(); \
 					if (text.isNotEmpty()) { \
 						if (!(subItem.title.parse(text, itemXml.element))) { \
-							_logError(itemXml.element, g_str_error_resource_layout_value_invalid, text); \
+							logError(itemXml.element, g_str_error_resource_layout_value_invalid, text); \
 							return sl_false; \
 						} \
 					} \
@@ -2670,7 +2752,7 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(STRING, itemXml, subItem., value) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, itemXml, subItem., selected) \
 				if (!(attr->items.add_NoLock(Move(subItem)))) { \
-					_logError(itemXml.element, g_str_error_out_of_memory); \
+					logError(itemXml.element, g_str_error_out_of_memory); \
 					return sl_false; \
 				} \
 			} \
@@ -2799,7 +2881,7 @@ namespace slib
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(childXmls, sl_null)
 			if (childXmls.count > 0) {
 				if (childXmls.count != 1) {
-					_logError(element, g_str_error_resource_layout_scrollview_must_contain_one_child);
+					logError(element, g_str_error_resource_layout_scrollview_must_contain_one_child);
 					return sl_false;
 				}
 				Ref<SAppLayoutResourceItem> contentItem = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
@@ -2908,11 +2990,11 @@ namespace slib
 				Ref<SAppLayoutResource> layoutItem;
 				m_layouts.get(attr->itemLayout, &layoutItem);
 				if (layoutItem.isNull()) {
-					_logError(element, g_str_error_layout_not_found, attr->itemLayout);
+					logError(element, g_str_error_layout_not_found, attr->itemLayout);
 					return sl_false;
 				}
 				if (layoutItem->layoutType != SAppLayoutType::View) {
-					_logError(element, g_str_error_layout_is_not_view, attr->itemLayout);
+					logError(element, g_str_error_layout_is_not_view, attr->itemLayout);
 					return sl_false;
 				}
 
@@ -2945,11 +3027,11 @@ namespace slib
 				Ref<SAppLayoutResource> layoutItem;
 				m_layouts.get(attr->itemLayout, &layoutItem);
 				if (layoutItem.isNull()) {
-					_logError(element, g_str_error_layout_not_found, attr->itemLayout);
+					logError(element, g_str_error_layout_not_found, attr->itemLayout);
 					return sl_false;
 				}
 				if (layoutItem->layoutType != SAppLayoutType::View) {
-					_logError(element, g_str_error_layout_is_not_view, attr->itemLayout);
+					logError(element, g_str_error_layout_is_not_view, attr->itemLayout);
 					return sl_false;
 				}
 
@@ -2991,7 +3073,7 @@ namespace slib
 					LAYOUT_CONTROL_PARSE_XML(DRAWABLE, columnXml, column., background)
 					LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., align)
 					if (!(attr->columns.add_NoLock(Move(column)))) {
-						_logError(columnXml.element, g_str_error_out_of_memory);
+						logError(columnXml.element, g_str_error_out_of_memory);
 						return sl_false;
 					}
 				}
@@ -3039,7 +3121,7 @@ namespace slib
 						}
 						if (iCell + cell.colspan.value > attr->columns.getCount()) {
 							if (!(attr->columns.setCount_NoLock(iCell+cell.colspan.value))) {
-								_logError(xmlView.element, g_str_error_out_of_memory);
+								logError(xmlView.element, g_str_error_out_of_memory);
 								return sl_false;
 							}
 						}
@@ -3049,14 +3131,14 @@ namespace slib
 							}
 						}
 						if (!(row.cells.setCount_NoLock(iCell+1))) {
-							_logError(xmlView.element, g_str_error_out_of_memory);
+							logError(xmlView.element, g_str_error_out_of_memory);
 							return sl_false;
 						}
 						row.cells.setAt_NoLock(iCell, Move(cell));
 					}
 
 					if (!(attr->rows.add_NoLock(Move(row)))) {
-						_logError(rowXml.element, g_str_error_out_of_memory);
+						logError(rowXml.element, g_str_error_out_of_memory);
 						return sl_false;
 					}
 				}
@@ -3071,34 +3153,32 @@ namespace slib
 			LAYOUT_CONTROL_GENERATE(setRowCount, "%d, slib::UIUpdateMode::Init", nRows)
 			for (iCol = 0; iCol < nCols; iCol++) {
 				SAppLayoutTableColumn& col = cols[iCol];
-				String argFormat = String::format("%d, %%s", iCol);
-				LAYOUT_CONTROL_GENERATE_SIZE(col.width, setColumnWidth, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.minWidth, setColumnMinimumWidth, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.maxWidth, setColumnMaximumWidth, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.margin, setColumnMargin, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.marginLeft, setColumnMarginLeft, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.marginRight, setColumnMarginRight, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.padding, setColumnPadding, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.paddingLeft, setColumnPaddingLeft, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(col.paddingRight, setColumnPaddingRight, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DRAWABLE(col.background, setColumnBackground, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_GENERIC(col.align, setColumnAlignment, UI, +argFormat+)
+				LAYOUT_CONTROL_GENERATE_SIZE(col.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.minWidth, setColumnMinimumWidth, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.maxWidth, setColumnMaximumWidth, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.margin, setColumnMargin, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.marginLeft, setColumnMarginLeft, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.marginRight, setColumnMarginRight, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.padding, setColumnPadding, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.paddingLeft, setColumnPaddingLeft, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(col.paddingRight, setColumnPaddingRight, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_DRAWABLE(col.background, setColumnBackground, ITEM, "%d, %s", iCol, value)
+				LAYOUT_CONTROL_GENERATE_GENERIC(col.align, setColumnAlignment, ITEM, "%d, %s", iCol, value)
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
-				String argFormat = String::format("%d, %%s", iRow);
-				LAYOUT_CONTROL_GENERATE_SIZE(row.height, setRowHeight, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.minHeight, setRowMinimumHeight, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.maxHeight, setRowMaximumHeight, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.margin, setRowMargin, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.marginTop, setRowMarginTop, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.marginBottom, setRowMarginBottom, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.padding, setRowPadding, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.paddingTop, setRowPaddingTop, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_DRAWABLE(row.background, setRowBackground, UI, +argFormat+)
-				LAYOUT_CONTROL_GENERATE_GENERIC(row.align, setRowAlignment, UI, +argFormat+)
+				LAYOUT_CONTROL_GENERATE_SIZE(row.height, setRowHeight, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.minHeight, setRowMinimumHeight, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.maxHeight, setRowMaximumHeight, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.margin, setRowMargin, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.marginTop, setRowMarginTop, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.marginBottom, setRowMarginBottom, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.padding, setRowPadding, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.paddingTop, setRowPaddingTop, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_DRAWABLE(row.background, setRowBackground, ITEM, "%d, %s", iRow, value)
+				LAYOUT_CONTROL_GENERATE_GENERIC(row.align, setRowAlignment, ITEM, "%d, %s", iRow, value)
 			}
 		} else if (op == OP_SIMULATE) {
 			ListElements<SAppLayoutTableColumn> cols(attr->columns);
@@ -3112,32 +3192,32 @@ namespace slib
 			}
 			for (iCol = 0; iCol < nCols; iCol++) {
 				SAppLayoutTableColumn& col = cols[iCol];
-				LAYOUT_CONTROL_SIMULATE_SIZE(col.width, setColumnWidth, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.minWidth, setColumnMinimumWidth, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.maxWidth, setColumnMaximumWidth, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.margin, setColumnMargin, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.marginLeft, setColumnMarginLeft, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.marginRight, setColumnMarginRight, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.padding, setColumnPadding, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.paddingLeft, setColumnPaddingLeft, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.paddingRight, setColumnPaddingRight, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(col.background, setColumnBackground, UI, iCol, value)
-				LAYOUT_CONTROL_SIMULATE_GENERIC(col.align, setColumnAlignment, UI, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_SIZE(col.width, setColumnWidth, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.minWidth, setColumnMinimumWidth, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.maxWidth, setColumnMaximumWidth, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.margin, setColumnMargin, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.marginLeft, setColumnMarginLeft, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.marginRight, setColumnMarginRight, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.padding, setColumnPadding, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.paddingLeft, setColumnPaddingLeft, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(col.paddingRight, setColumnPaddingRight, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_DRAWABLE(col.background, setColumnBackground, ITEM, iCol, value)
+				LAYOUT_CONTROL_SIMULATE_GENERIC(col.align, setColumnAlignment, ITEM, iCol, value)
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
-				LAYOUT_CONTROL_SIMULATE_SIZE(row.height, setRowHeight, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.minHeight, setRowMinimumHeight, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.maxHeight, setRowMaximumHeight, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.margin, setRowMargin, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.marginTop, setRowMarginTop, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.marginBottom, setRowMarginBottom, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.padding, setRowPadding, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.paddingTop, setRowPaddingTop, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(row.background, setRowBackground, UI, iRow, value)
-				LAYOUT_CONTROL_SIMULATE_GENERIC(row.align, setRowAlignment, UI, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_SIZE(row.height, setRowHeight, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.minHeight, setRowMinimumHeight, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.maxHeight, setRowMaximumHeight, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.margin, setRowMargin, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.marginTop, setRowMarginTop, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.marginBottom, setRowMarginBottom, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.padding, setRowPadding, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.paddingTop, setRowPaddingTop, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DIMENSION(row.paddingBottom, setRowPaddingBottom, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_DRAWABLE(row.background, setRowBackground, ITEM, iRow, value)
+				LAYOUT_CONTROL_SIMULATE_GENERIC(row.align, setRowAlignment, ITEM, iRow, value)
 			}
 			for (iRow = 0; iRow < nRows; iRow++) {
 				SAppLayoutTableRow& row = rows[iRow];
@@ -3206,7 +3286,7 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., align)
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, columnXml, column., headerAlign)
 				if (!(attr->columns.add_NoLock(Move(column)))) {
-					_logError(columnXml.element, g_str_error_out_of_memory);
+					logError(columnXml.element, g_str_error_out_of_memory);
 					return sl_false;
 				}
 			}
@@ -3216,11 +3296,10 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE(setColumnCount, "%d, slib::UIUpdateMode::Init", columns.count)
 				for (sl_size i = 0; i < columns.count; i++) {
 					SAppLayoutListControlColumn& column = columns[i];
-					String argFormat = String::format("%d, %%s", i);
-					LAYOUT_CONTROL_GENERATE_STRING(column.title, setHeaderText, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_GENERIC(column.align, setColumnAlignment, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_GENERIC(column.headerAlign, setHeaderAlignment, UI, +argFormat+)
+					LAYOUT_CONTROL_GENERATE_STRING(column.title, setHeaderText, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.align, setColumnAlignment, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(column.headerAlign, setHeaderAlignment, ITEM, "%d, %s", i, value)
 				}
 			}
 		} else if (op == OP_SIMULATE) {
@@ -3230,10 +3309,10 @@ namespace slib
 				view->setColumnCount(n, UIUpdateMode::Init);
 				for (sl_uint32 i = 0; i < n; i++) {
 					SAppLayoutListControlColumn& column = columns[i];
-					LAYOUT_CONTROL_SIMULATE_STRING(column.title, setHeaderText, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_GENERIC(column.align, setColumnAlignment, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_GENERIC(column.headerAlign, setHeaderAlignment, UI, i, value)
+					LAYOUT_CONTROL_SIMULATE_STRING(column.title, setHeaderText, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.align, setColumnAlignment, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(column.headerAlign, setHeaderAlignment, ITEM, i, value)
 				}
 			}
 		}
@@ -3322,7 +3401,7 @@ namespace slib
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
 					if (childXmls.count != 1) {
-						_logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
+						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
 						return sl_false;
 					}
 					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
@@ -3333,7 +3412,7 @@ namespace slib
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
-					_logError(itemXml.element, g_str_error_out_of_memory);
+					logError(itemXml.element, g_str_error_out_of_memory);
 					return sl_false;
 				}
 			}
@@ -3345,9 +3424,8 @@ namespace slib
 				sl_bool flagSelected = sl_false;
 				for (sl_size i = 0; i < subItems.count; i++) {
 					SAppLayoutTabItem& subItem = subItems[i];
-					String argFormat = String::format("%d, %%s", i);
-					LAYOUT_CONTROL_GENERATE_STRING(subItem.label, setTabLabel, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_DRAWABLE(subItem.icon, setTabIcon, UI, +argFormat+)
+					LAYOUT_CONTROL_GENERATE_STRING(subItem.label, setTabLabel, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_DRAWABLE(subItem.icon, setTabIcon, ITEM, "%d, %s", i, value)
 					if (subItem.selected.flagDefined && subItem.selected.value) {
 						flagSelected = sl_true;
 						indexSelected = i;
@@ -3368,8 +3446,8 @@ namespace slib
 				sl_bool flagSelected = sl_false;
 				for (sl_uint32 i = 0; i < nSubItems; i++) {
 					SAppLayoutTabItem& subItem = subItems[i];
-					LAYOUT_CONTROL_SIMULATE_STRING(subItem.label, setTabLabel, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_DRAWABLE(subItem.icon, setTabIcon, UI, i, value)
+					LAYOUT_CONTROL_SIMULATE_STRING(subItem.label, setTabLabel, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_DRAWABLE(subItem.icon, setTabIcon, ITEM, i, value)
 					if (subItem.selected.flagDefined && subItem.selected.value) {
 						flagSelected = sl_true;
 						indexSelected = i;
@@ -3479,7 +3557,7 @@ namespace slib
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
 					if (childXmls.count != 1) {
-						_logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
+						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
 						return sl_false;
 					}
 					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
@@ -3493,7 +3571,7 @@ namespace slib
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
-					_logError(itemXml.element, g_str_error_out_of_memory);
+					logError(itemXml.element, g_str_error_out_of_memory);
 					return sl_false;
 				}
 			}
@@ -3505,15 +3583,14 @@ namespace slib
 				}
 				for (sl_size i = 0; i < subItems.count; i++) {
 					SAppLayoutSplitItem& subItem = subItems[i];
-					String argFormat = String::format("%d, %%s", i);
-					LAYOUT_CONTROL_GENERATE_GENERIC(subItem.weight, setItemWeight, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_GENERIC(subItem.minWeight, setItemMinimumWeight, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_GENERIC(subItem.maxWeight, setItemMaximumWeight, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_DIMENSION(subItem.minSize, setItemMinimumSize, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_DIMENSION(subItem.maxSize, setItemMaximumSize, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_DIMENSION(subItem.dividerWidth, setItemDividerWidth, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_DRAWABLE(subItem.dividerBackground, setItemDividerBackground, UI, +argFormat+)
-					LAYOUT_CONTROL_GENERATE_COLOR(subItem.dividerColor, setItemDividerColor, UI, +argFormat+)
+					LAYOUT_CONTROL_GENERATE_GENERIC(subItem.weight, setItemWeight, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(subItem.minWeight, setItemMinimumWeight, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_GENERIC(subItem.maxWeight, setItemMaximumWeight, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_DIMENSION(subItem.minSize, setItemMinimumSize, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_DIMENSION(subItem.maxSize, setItemMaximumSize, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_DIMENSION(subItem.dividerWidth, setItemDividerWidth, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_DRAWABLE(subItem.dividerBackground, setItemDividerBackground, ITEM, "%d, %s", i, value)
+					LAYOUT_CONTROL_GENERATE_COLOR(subItem.dividerColor, setItemDividerColor, ITEM, "%d, %s", i, value)
 				}
 			}
 		} else if (op == OP_SIMULATE) {
@@ -3526,14 +3603,14 @@ namespace slib
 				}
 				for (sl_size i = 0; i < subItems.count; i++) {
 					SAppLayoutSplitItem& subItem = subItems[i];
-					LAYOUT_CONTROL_SIMULATE_GENERIC(subItem.weight, setItemWeight, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_GENERIC(subItem.minWeight, setItemMinimumWeight, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_GENERIC(subItem.maxWeight, setItemMaximumWeight, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_DIMENSION(subItem.minSize, setItemMinimumSize, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_DIMENSION(subItem.maxSize, setItemMaximumSize, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_DIMENSION(subItem.dividerWidth, setItemDividerWidth, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_DRAWABLE(subItem.dividerBackground, setItemDividerBackground, UI, i, value)
-					LAYOUT_CONTROL_SIMULATE_COLOR(subItem.dividerColor, setItemDividerColor, UI, i, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(subItem.weight, setItemWeight, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(subItem.minWeight, setItemMinimumWeight, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_GENERIC(subItem.maxWeight, setItemMaximumWeight, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(subItem.minSize, setItemMinimumSize, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(subItem.maxSize, setItemMaximumSize, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(subItem.dividerWidth, setItemDividerWidth, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_DRAWABLE(subItem.dividerBackground, setItemDividerBackground, ITEM, i, value)
+					LAYOUT_CONTROL_SIMULATE_COLOR(subItem.dividerColor, setItemDividerColor, ITEM, i, value)
 					if (subItem.view.isNotNull()) {
 						Ref<View> contentView = _simulateLayoutCreateOrLayoutView(params->simulator, subItem.view.get(), resourceItem, view, flagOnLayout);
 						if (contentView.isNotNull()) {
@@ -3773,7 +3850,7 @@ namespace slib
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(childXmls, itemXml, sl_null)
 				if (childXmls.count > 0) {
 					if (childXmls.count != 1) {
-						_logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
+						logError(itemXml.element, g_str_error_resource_layout_item_must_contain_one_child);
 						return sl_false;
 					}
 					Ref<SAppLayoutResourceItem> subItemView = _parseLayoutResourceItemChild(params->resource, resourceItem, childXmls[0], params->source);
@@ -3784,7 +3861,7 @@ namespace slib
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
-					_logError(itemXml.element, g_str_error_out_of_memory);
+					logError(itemXml.element, g_str_error_out_of_memory);
 					return sl_false;
 				}
 			}
@@ -3931,7 +4008,7 @@ namespace slib
 			sl_size nChildren = element->getChildElementCount();
 			if (nChildren > 0) {
 				if (nChildren != 1) {
-					_logError(element, g_str_error_resource_layout_refreshview_must_contain_one_child);
+					logError(element, g_str_error_resource_layout_refreshview_must_contain_one_child);
 					return sl_false;
 				}
 			}
@@ -4021,6 +4098,8 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
+
 		if (op == OP_PARSE) {
 
 #define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(ATTR, XML) \
@@ -4043,7 +4122,7 @@ namespace slib
 				for (sl_size i = 0; i < columnXmls.count; i++) {
 					LAYOUT_CONTROL_DEFINE_XML(columnXml, columnXmls[i])
 					SAppLayoutGridColumn column;
-					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkSize)
+					LAYOUT_CONTROL_PARSE_XML(DIMENSION, columnXml, column., width, checkScalarSize)
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(column, columnXml)
 					SAppLayoutXmlItem header(LAYOUT_CONTROL_GET_XML_CHILDREN(columnXml, "header").getFirstValue_NoLock());
 					if (header.element.isNotNull()) {
@@ -4067,7 +4146,7 @@ namespace slib
 						attr->nLeftColumns = (sl_uint32)(i + 1);
 					}
 					if (!(attr->columns.add_NoLock(Move(column)))) {
-						_logError(columnXml.element, g_str_error_out_of_memory);
+						logError(columnXml.element, g_str_error_out_of_memory);
 						return sl_false;
 					}
 				}
@@ -4081,7 +4160,7 @@ namespace slib
 					SAppLayoutGridRow row; \
 					LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(row, rowXml) \
 					row.font.inheritFrom(attr->SECTION.font); \
-					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkSize) \
+					LAYOUT_CONTROL_PARSE_XML(DIMENSION, rowXml, row., height, checkScalarSize) \
 					sl_uint32 iCell = 0; \
 					LAYOUT_CONTROL_DEFINE_XML_CHILDREN(cellXmls, rowXml, sl_null) \
 					for (sl_size k = 0; k < cellXmls.count; k++) { \
@@ -4110,7 +4189,7 @@ namespace slib
 						} \
 						if (iCell + cell.colspan.value > attr->columns.getCount()) { \
 							if (!(attr->columns.setCount_NoLock(iCell+cell.colspan.value))) { \
-								_logError(cellXml.element, g_str_error_out_of_memory); \
+								logError(cellXml.element, g_str_error_out_of_memory); \
 								return sl_false; \
 							} \
 						} \
@@ -4120,14 +4199,14 @@ namespace slib
 							} \
 						} \
 						if (!(row.cells.setCount_NoLock(iCell+1))) { \
-							_logError(cellXml.element, g_str_error_out_of_memory); \
+							logError(cellXml.element, g_str_error_out_of_memory); \
 							return sl_false; \
 						} \
 						row.cells.setAt_NoLock(iCell, Move(cell)); \
 					} \
 					row.font.inheritFrom(attr->font); \
 					if (!(attr->SECTION.rows.add_NoLock(Move(row)))) { \
-						_logError(rowXml.element, g_str_error_out_of_memory); \
+						logError(rowXml.element, g_str_error_out_of_memory); \
 						return sl_false; \
 					} \
 				} \
@@ -4136,7 +4215,7 @@ namespace slib
 #define LAYOUT_CONTROL_PARSE_GRID_SECTION(SECTION, XML) \
 			{ \
 				LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(attr->SECTION, XML) \
-				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, attr->SECTION., rowHeight, checkSize) \
+				LAYOUT_CONTROL_PARSE_XML(DIMENSION, XML, attr->SECTION., rowHeight, checkScalarSize) \
 				LAYOUT_CONTROL_DEFINE_XML_CHILDREN(rowXmls, XML, "row") \
 				LAYOUT_CONTROL_PARSE_GRID_ROWS(SECTION) \
 				attr->SECTION.font.inheritFrom(attr->font); \
@@ -4170,7 +4249,69 @@ namespace slib
 			}
 
 		} else if (op == OP_GENERATE_CPP) {
+		
+			ListElements<SAppLayoutGridColumn> columns(attr->columns);
+			
+			LAYOUT_CONTROL_GENERATE(setColumnCount, "%d, slib::UIUpdateMode::Init", columns.count)
+			LAYOUT_CONTROL_GENERATE(setLeftColumnCount, "%d, slib::UIUpdateMode::Init", attr->nLeftColumns)
+			LAYOUT_CONTROL_GENERATE(setRightColumnCount, "%d, slib::UIUpdateMode::Init", attr->nRightColumns)
+			LAYOUT_CONTROL_GENERATE(setBodyRowCount, "%d, slib::UIUpdateMode::Init", attr->body.rows.getCount())
+			LAYOUT_CONTROL_GENERATE(setHeaderRowCount, "%d, slib::UIUpdateMode::Init", attr->header.rows.getCount())
+			LAYOUT_CONTROL_GENERATE(setFooterRowCount, "%d, slib::UIUpdateMode::Init", attr->footer.rows.getCount())
 
+#define LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ARG_FORMAT, ...) \
+			{ \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DRAWABLE(ATTR.background, set##PREFIX##Background, ITEM, ARG_FORMAT, ", slib::GridView::CellState::Normal", ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DRAWABLE(ATTR.backgroundHover, set##PREFIX##Background, ITEM, ARG_FORMAT "slib::GridView::CellState::Hover", ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_DRAWABLE(ATTR.backgroundSelected, set##PREFIX##Background, ITEM, ARG_FORMAT "slib::GridView::CellState::Selected", ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_COLOR(ATTR.textColor, set##PREFIX##TextColor, ITEM, ARG_FORMAT "slib::GridView::CellState::Normal", ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_COLOR(ATTR.textColorHover, set##PREFIX##TextColor, ITEM, ARG_FORMAT "slib::GridView::CellState::Hover", ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_COLOR(ATTR.textColorSelected, set##PREFIX##TextColor, ITEM, ARG_FORMAT "slib::GridView::CellState::Selected", ##__VA_ARGS__) \
+			}
+
+			{
+				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
+					SAppLayoutGridColumn& column = columns[iCol];
+					LAYOUT_CONTROL_GENERATE_DIMENSION(column.width, setColumnWidth, ITEM, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Column, column, "%d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Body, column.bodyAttrs, "-1, %d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Header, column.headerAttrs, "-1, %d, %s", iCol, value)
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(Footer, column.footerAttrs, "-1, %d, %s", iCol, value)
+				}
+			}
+			
+#define LAYOUT_CONTROL_GENERATE_GRID_SECTION(SECTION, PREFIX) \
+			{ \
+				auto& section = attr->SECTION; \
+				LAYOUT_CONTROL_GENERATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
+				LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, section, "-1, -1, %s", value) \
+				ListElements<SAppLayoutGridRow> rows(section.rows); \
+				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
+					SAppLayoutGridRow& row = rows[iRow]; \
+					LAYOUT_CONTROL_GENERATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, "%d, %s", iRow, value) \
+					LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, section, "%d, -1, %s", iRow, value) \
+					ListElements<SAppLayoutGridCell> cells(row.cells); \
+					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
+						SAppLayoutGridCell& cell = cells[iCell]; \
+						LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, "%d, %d, %s", iRow, iCell, value) \
+						if (cell.colspan.flagDefined && cell.rowspan.flagDefined) { \
+							LAYOUT_CONTROL_GENERATE(set##PREFIX##Span, "%d, %d, %d, %d, slib::UIUpdateMode::Init", iRow, iCell, cell.rowspan.value, cell.colspan.value) \
+						} else { \
+							LAYOUT_CONTROL_GENERATE_GENERIC(cell.rowspan, set##PREFIX##Rowspan, ITEM, "%d, %d, %s", iRow, iCell, value) \
+							LAYOUT_CONTROL_GENERATE_GENERIC(cell.colspan, set##PREFIX##Colspan, ITEM, "%d, %d, %s", iRow, iCell, value) \
+						} \
+					} \
+				} \
+			}
+
+			LAYOUT_CONTROL_GENERATE_GRID_SECTION(body, Body)
+			LAYOUT_CONTROL_GENERATE_GRID_SECTION(header, Header)
+			LAYOUT_CONTROL_GENERATE_GRID_SECTION(footer, Footer)
 
 		} else if (op == OP_SIMULATE) {
 
@@ -4179,39 +4320,64 @@ namespace slib
 				view->setColumnCount((sl_uint32)(columns.count), UIUpdateMode::Init);
 				view->setLeftColumnCount(attr->nLeftColumns, UIUpdateMode::Init);
 				view->setRightColumnCount(attr->nRightColumns, UIUpdateMode::Init);
-				view->setRowCount((sl_uint32)(attr->body.rows.getCount()), UIUpdateMode::Init);
+				view->setBodyRowCount((sl_uint32)(attr->body.rows.getCount()), UIUpdateMode::Init);
 				view->setHeaderRowCount((sl_uint32)(attr->header.rows.getCount()), UIUpdateMode::Init);
 				view->setFooterRowCount((sl_uint32)(attr->footer.rows.getCount()), UIUpdateMode::Init);
 			}
 
 #define LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ...) \
 			{ \
-				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.align, set##PREFIX##Alignment, UI, __VA_ARGS__, value) \
-				LAYOUT_CONTROL_SIMULATE_FONT(ATTR.font, set##PREFIX##Font, UI, __VA_ARGS__, value) \
-				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, UI, __VA_ARGS__, value) \
-				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, UI, __VA_ARGS__, value) \
-				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, UI, __VA_ARGS__, value) \
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.background, set##PREFIX##Background, UI, __VA_ARGS__, value, GridView::CellState::Normal) \
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.backgroundHover, set##PREFIX##Background, UI, __VA_ARGS__, value, GridView::CellState::Hover) \
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.backgroundSelected, set##PREFIX##Background, UI, __VA_ARGS__, value, GridView::CellState::Selected) \
-				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColor, set##PREFIX##TextColor, UI, __VA_ARGS__, value, GridView::CellState::Normal) \
-				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColorHover, set##PREFIX##TextColor, UI, __VA_ARGS__, value, GridView::CellState::Hover) \
-				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColorSelected, set##PREFIX##TextColor, UI, __VA_ARGS__, value, GridView::CellState::Selected) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.background, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value, GridView::CellState::Normal) \
+				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.backgroundHover, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value, GridView::CellState::Hover) \
+				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.backgroundSelected, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value, GridView::CellState::Selected) \
+				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColor, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value, GridView::CellState::Normal) \
+				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColorHover, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value, GridView::CellState::Hover) \
+				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColorSelected, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value, GridView::CellState::Selected) \
 			}
 
 			{
 				for (sl_size iCol = 0; iCol < columns.count; iCol++) {
 					SAppLayoutGridColumn& column = columns[iCol];
-					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, UI, (sl_uint32)iCol, value)
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(column.width, setColumnWidth, ITEM, (sl_uint32)iCol, value)
 					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Column, column, (sl_uint32)iCol)
+					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Body, column.bodyAttrs, -1, (sl_uint32)iCol)
+					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Header, column.headerAttrs, -1, (sl_uint32)iCol)
+					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(Footer, column.footerAttrs, -1, (sl_uint32)iCol)
 				}
 			}
 
-#define LAYOUT_CONTROL_SIMULATE_GRID_SECTION(SECTION) \
+#define LAYOUT_CONTROL_SIMULATE_GRID_SECTION(SECTION, PREFIX) \
 			{ \
-				\
+				auto& section = attr->SECTION; \
+				LAYOUT_CONTROL_SIMULATE_UI_ATTR(DIMENSION, section.rowHeight, set##PREFIX##RowHeight) \
+				LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, section, -1, -1) \
+				ListElements<SAppLayoutGridRow> rows(section.rows); \
+				for (sl_size iRow = 0; iRow < rows.count; iRow++) { \
+					SAppLayoutGridRow& row = rows[iRow]; \
+					LAYOUT_CONTROL_SIMULATE_DIMENSION(row.height, set##PREFIX##RowHeight, ITEM, (sl_uint32)iRow, value) \
+					LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, section, (sl_uint32)iRow, -1) \
+					ListElements<SAppLayoutGridCell> cells(row.cells); \
+					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
+						SAppLayoutGridCell& cell = cells[iCell]; \
+						LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, (sl_uint32)iRow, (sl_uint32)iCell) \
+						if (cell.colspan.flagDefined && cell.rowspan.flagDefined && !flagOnLayout) { \
+							view->set##PREFIX##Span((sl_uint32)iRow, (sl_uint32)iCell, cell.rowspan.value, cell.colspan.value, UIUpdateMode::Init); \
+						} else { \
+							LAYOUT_CONTROL_SIMULATE_GENERIC(cell.rowspan, set##PREFIX##Rowspan, ITEM, (sl_uint32)iRow, (sl_uint32)iCell, value) \
+							LAYOUT_CONTROL_SIMULATE_GENERIC(cell.colspan, set##PREFIX##Colspan, ITEM, (sl_uint32)iRow, (sl_uint32)iCell, value) \
+						} \
+					} \
+				} \
 			}
 
+			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(body, Body)
+			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(header, Header)
+			LAYOUT_CONTROL_SIMULATE_GRID_SECTION(footer, Footer)
 		}
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, recordCount, setRecordCount)

@@ -110,6 +110,32 @@ namespace slib
 
 		static String getNameInLocalNamespace(const String& localNamespace, const String& name);
 
+	public:
+		void log(const StringView& text);
+
+		template <class... ARGS>
+		void log(const StringView& fmt, ARGS&&... args)
+		{
+			log(String::format(fmt, Forward<ARGS>(args)...));
+		}
+		void logError(const StringView& text);
+
+		template <class... ARGS>
+		void logError(const StringView& fmt, ARGS&&... args)
+		{
+			logError(String::format(fmt, Forward<ARGS>(args)...));
+		}
+
+		void logErrorSource(const StringView& filePath, sl_size line, sl_size col, const StringView& text);
+
+		void logError(const Ref<XmlElement>& element, const StringView& text);
+
+		template <class... ARGS>
+		void logError(const Ref<XmlElement>& element, const StringView& fmt, ARGS&&... args)
+		{
+			logError(element, String::format(fmt, Forward<ARGS>(args)...));
+		}
+
 	protected:
 		sl_bool _openResourcesExceptUi();
 		sl_bool _openResourcesExceptUi(const String& pathApp);
@@ -120,32 +146,6 @@ namespace slib
 		sl_bool _openUiResources(const String& pathLayouts);
 		sl_bool _openUiResource(const String& path);
 		sl_bool _openUiResourceByName(const String& name);
-
-		// Log
-		void _log(const StringView& text);
-
-		template <class... ARGS>
-		void _log(const StringView& fmt, ARGS&&... args)
-		{
-			_log(String::format(fmt, Forward<ARGS>(args)...));
-		}
-		void _logError(const StringView& text);
-
-		template <class... ARGS>
-		void _logError(const StringView& fmt, ARGS&&... args)
-		{
-			_logError(String::format(fmt, Forward<ARGS>(args)...));
-		}
-
-		void _logErrorSource(const StringView& filePath, sl_size line, sl_size col, const StringView& text);
-
-		void _logError(const Ref<XmlElement>& element, const StringView& text);
-
-		template <class... ARGS>
-		void _logError(const Ref<XmlElement>& element, const StringView& fmt, ARGS&&... args)
-		{
-			_logError(element, String::format(fmt, Forward<ARGS>(args)...));
-		}
 
 		// Resources Entry
 		sl_bool _parseConfiguration(const String& filePath, SAppConfiguration& conf);
@@ -323,13 +323,12 @@ namespace slib
 
 		String m_currentLocalNamespace;
 
-		friend class SAppLayoutSimulationWindow;
-		friend class SAppLayoutImportView;
-		friend class SAppDimensionBaseValue;
-
 		template <class MAP, class ITEM>
 		static sl_bool getItemFromMap(const MAP& map, const String& localNamespace, const String& name, String* outName, ITEM* _out);
 
+		friend class SAppLayoutSimulationWindow;
+		friend class SAppLayoutImportView;
+		friend class SAppDimensionBaseValue;
 	};
 
 

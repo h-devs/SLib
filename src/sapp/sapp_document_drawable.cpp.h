@@ -25,7 +25,7 @@ namespace slib
 
 	sl_bool SAppDocument::_generateDrawablesCpp(const String& targetPath)
 	{
-		_log(g_str_log_generate_cpp_drawables_begin);
+		log(g_str_log_generate_cpp_drawables_begin);
 
 		StringBuffer sbHeader, sbCpp, sbMap;
 
@@ -82,7 +82,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed, pathHeader);
+				logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -91,7 +91,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed, pathCpp);
+				logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}
@@ -231,14 +231,14 @@ namespace slib
 		if (getItemFromMap(m_drawables, localNamespace, name, outName, outResource)) {
 			return sl_true;
 		} else {
-			_logError(element, String::format(g_str_error_drawable_not_found, name));
+			logError(element, String::format(g_str_error_drawable_not_found, name));
 			return sl_false;
 		}
 	}
 
 	sl_bool SAppDocument::_registerFileResources(const String& resourcePath, const String& fileDirPath, const Locale& locale)
 	{
-		_log(g_str_log_open_drawables_begin, fileDirPath);
+		log(g_str_log_open_drawables_begin, fileDirPath);
 		List<String> _list = File::getFiles(fileDirPath);
 		_list.sort();
 		ListElements<String> list(_list);
@@ -255,35 +255,35 @@ namespace slib
 						name = name.substring(0, indexSharp);
 					}
 					if (name.isEmpty()) {
-						_logError(g_str_error_resource_drawable_filename_invalid, File::concatPath(resourcePath, fileName));
+						logError(g_str_error_resource_drawable_filename_invalid, File::concatPath(resourcePath, fileName));
 						return sl_false;
 					}
 					name = Resources::makeResourceName(name);
 					Ref<SAppDrawableResource> res = m_drawables.getValue(name, Ref<SAppDrawableResource>::null());
 					if (res.isNull()) {
 						if (locale != Locale::Unknown) {
-							_logError(g_str_error_resource_drawable_not_defined_default, name);
+							logError(g_str_error_resource_drawable_not_defined_default, name);
 							return sl_false;
 						}
 						res = new SAppDrawableResource;
 						if (res.isNull()) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 						res->name = name;
 						res->type = SAppDrawableResource::typeFile;
 						res->fileAttrs = new SAppDrawableResourceFileAttributes;
 						if (res->fileAttrs.isNull()) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 						if (!(m_drawables.put(name, res))) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					}
 					if (res->type != SAppDrawableResource::typeFile) {
-						_logError(g_str_error_resource_drawable_type_duplicated, File::concatPath(resourcePath, fileName));
+						logError(g_str_error_resource_drawable_type_duplicated, File::concatPath(resourcePath, fileName));
 						return sl_false;
 					}
 
@@ -293,7 +293,7 @@ namespace slib
 					if (locale == Locale::Unknown) {
 						list = fileAttr->defaultFiles;
 						if (list.isNull()) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					} else {
@@ -301,11 +301,11 @@ namespace slib
 						if (list.isNull()) {
 							list = List< Ref<SAppDrawableResourceFileItem> >::create();
 							if (list.isNull()) {
-								_logError(g_str_error_out_of_memory);
+								logError(g_str_error_out_of_memory);
 								return sl_false;
 							}
 							if (!(fileAttr->files.put(locale, list))) {
-								_logError(g_str_error_out_of_memory);
+								logError(g_str_error_out_of_memory);
 								return sl_false;
 							}
 						}
@@ -313,7 +313,7 @@ namespace slib
 
 					Ref<SAppDrawableResourceFileItem> item = new SAppDrawableResourceFileItem;
 					if (item.isNull()) {
-						_logError(g_str_error_out_of_memory);
+						logError(g_str_error_out_of_memory);
 						return sl_false;
 					}
 					item->fileName = fileName;
@@ -323,12 +323,12 @@ namespace slib
 					}
 					if (flagMain) {
 						if (!(list.insert(0, item))) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					} else {
 						if (!(list.add(item))) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					}
@@ -362,7 +362,7 @@ namespace slib
 		}
 
 		if (!flagSuccess) {
-			_logError(g_str_error_load_image_failed, res->name);
+			logError(g_str_error_load_image_failed, res->name);
 			return sl_false;
 		}
 
@@ -382,7 +382,7 @@ namespace slib
 				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() != Country::Unknown && pairItems.key.getScript() != LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					}
@@ -392,7 +392,7 @@ namespace slib
 				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() != Country::Unknown && pairItems.key.getScript() == LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					}
@@ -402,7 +402,7 @@ namespace slib
 				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() == Country::Unknown && pairItems.key.getScript() != LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					}
@@ -412,7 +412,7 @@ namespace slib
 				for (auto& pairItems : fileAttr->files) {
 					if (pairItems.key.getCountry() == Country::Unknown && pairItems.key.getScript() == LanguageScript::Unknown) {
 						if (!(listPairs.add_NoLock(pairItems.key, pairItems.value))) {
-							_logError(g_str_error_out_of_memory);
+							logError(g_str_error_out_of_memory);
 							return sl_false;
 						}
 					}
@@ -424,7 +424,7 @@ namespace slib
 				pairItems.first = Locale::Unknown;
 				pairItems.second = fileAttr->defaultFiles;
 				if (!(listPairs.add_NoLock(pairItems))) {
-					_logError(g_str_error_out_of_memory);
+					logError(g_str_error_out_of_memory);
 					return sl_false;
 				}
 			}
@@ -449,7 +449,7 @@ namespace slib
 
 					Ref<Drawable> source = item->load();
 					if (source.isNull()) {
-						_logError(g_str_error_resource_drawable_load_image_failed, item->filePath);
+						logError(g_str_error_resource_drawable_load_image_failed, item->filePath);
 						return sl_false;
 					}
 					sbCpp.add(String::format("\t\t\t\tSLIB_DEFINE_IMAGE_RESOURCE_ITEM(%d, %d, raw::%s::size, raw::%s::bytes)%n", source->getDrawableWidth(), source->getDrawableHeight(), item->rawName));
@@ -538,7 +538,7 @@ namespace slib
 					if (source.isNotNull()) {
 						return source;
 					} else {
-						_logError(g_str_error_load_image_failed, res->name);
+						logError(g_str_error_load_image_failed, res->name);
 						return Ref<Drawable>::null();
 					}
 				}
@@ -562,7 +562,7 @@ namespace slib
 								defaultHeight = height;
 							}
 						} else {
-							_logError(g_str_error_resource_drawable_load_image_failed, item->filePath);
+							logError(g_str_error_resource_drawable_load_image_failed, item->filePath);
 							return Ref<Drawable>::null();
 						}
 					}
@@ -576,7 +576,7 @@ namespace slib
 	}
 
 #define LOG_ERROR_NINEPIECES_ATTR(NAME) \
-	_logError(element, g_str_error_resource_ninepieces_attribute_invalid, #NAME, str_##NAME);
+	logError(element, g_str_error_resource_ninepieces_attribute_invalid, #NAME, str_##NAME);
 
 #define PARSE_AND_CHECK_NINEPIECES_DIMENSION_ATTR(ATTR, NAME) \
 	String str_##NAME = element->getAttribute(#NAME); \
@@ -600,31 +600,31 @@ namespace slib
 
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
-			_logError(element, g_str_error_resource_ninepieces_name_is_empty);
+			logError(element, g_str_error_resource_ninepieces_name_is_empty);
 			return sl_false;
 		}
 		if (!(SAppUtil::checkName(name.getData(), name.getLength()))) {
-			_logError(element, g_str_error_resource_ninepieces_name_invalid, name);
+			logError(element, g_str_error_resource_ninepieces_name_invalid, name);
 			return sl_false;
 		}
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
 		if (m_drawables.find(name)) {
-			_logError(element, g_str_error_resource_ninepieces_name_redefined, name);
+			logError(element, g_str_error_resource_ninepieces_name_redefined, name);
 			return sl_false;
 		}
 
 		Ref<SAppDrawableResource> res = new SAppDrawableResource;
 		if (res.isNull()) {
-			_logError(g_str_error_out_of_memory);
+			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
 		res->name = name;
 		res->type = SAppDrawableResource::typeNinePieces;
 		res->ninePiecesAttrs = new SAppDrawableResourceNinePiecesAttributes;
 		if (res->ninePiecesAttrs.isNull()) {
-			_logError(g_str_error_out_of_memory);
+			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -663,7 +663,7 @@ namespace slib
 		PARSE_AND_CHECK_NINEPIECES_DRAWABLE_ATTR(attr->, bottomRight)
 
 		if (!(m_drawables.put(name, res))) {
-			_logError(g_str_error_out_of_memory);
+			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -770,7 +770,7 @@ namespace slib
 	}
 
 #define LOG_ERROR_NINEPATCH_ATTR(NAME) \
-	_logError(element, g_str_error_resource_ninepatch_attribute_invalid, #NAME, str_##NAME);
+	logError(element, g_str_error_resource_ninepatch_attribute_invalid, #NAME, str_##NAME);
 
 #define PARSE_AND_CHECK_NINEPATCH_DIMENSION_ATTR(ATTR, NAME) \
 	String str_##NAME = element->getAttribute(#NAME); \
@@ -800,31 +800,31 @@ namespace slib
 
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
-			_logError(element, g_str_error_resource_ninepatch_name_is_empty);
+			logError(element, g_str_error_resource_ninepatch_name_is_empty);
 			return sl_false;
 		}
 		if (!(SAppUtil::checkName(name.getData(), name.getLength()))) {
-			_logError(element, g_str_error_resource_ninepatch_name_invalid, name);
+			logError(element, g_str_error_resource_ninepatch_name_invalid, name);
 			return sl_false;
 		}
 
 		name = getNameInLocalNamespace(localNamespace, name);
 
 		if (m_drawables.find(name)) {
-			_logError(element, g_str_error_resource_ninepatch_name_redefined, name);
+			logError(element, g_str_error_resource_ninepatch_name_redefined, name);
 			return sl_false;
 		}
 
 		Ref<SAppDrawableResource> res = new SAppDrawableResource;
 		if (res.isNull()) {
-			_logError(g_str_error_out_of_memory);
+			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
 		res->name = name;
 		res->type = SAppDrawableResource::typeNinePatch;
 		res->ninePatchAttrs = new SAppDrawableResourceNinePatchAttributes;
 		if (res->ninePatchAttrs.isNull()) {
-			_logError(g_str_error_out_of_memory);
+			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
 
@@ -895,7 +895,7 @@ namespace slib
 		}
 
 		if (!(m_drawables.put(name, res))) {
-			_logError(g_str_error_out_of_memory);
+			logError(g_str_error_out_of_memory);
 			return sl_false;
 		}
 

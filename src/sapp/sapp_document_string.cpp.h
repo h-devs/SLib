@@ -34,7 +34,7 @@ namespace slib
 		if (strLocale.isNotEmpty()) {
 			locale = Locale(strLocale);
 			if (locale.isInvalid()) {
-				_logError(element, g_str_error_resource_string_locale_invalid, strLocale);
+				logError(element, g_str_error_resource_string_locale_invalid, strLocale);
 				return sl_false;
 			}
 		}
@@ -51,7 +51,7 @@ namespace slib
 						return sl_false;
 					}
 				} else {
-					_logError(child, g_str_error_invalid_tag, child->getName());
+					logError(child, g_str_error_invalid_tag, child->getName());
 					return sl_false;
 				}
 			}
@@ -70,7 +70,7 @@ namespace slib
 		if (strLocale.isNotEmpty()) {
 			locale = Locale(strLocale);
 			if (locale.isInvalid()) {
-				_logError(element, g_str_error_resource_string_locale_invalid, strLocale);
+				logError(element, g_str_error_resource_string_locale_invalid, strLocale);
 				return sl_false;
 			}
 		}
@@ -80,11 +80,11 @@ namespace slib
 
 		String name = element->getAttribute("name");
 		if (name.isEmpty()) {
-			_logError(element, g_str_error_resource_string_name_is_empty);
+			logError(element, g_str_error_resource_string_name_is_empty);
 			return sl_false;
 		}
 		if (!(SAppUtil::checkName(name.getData(), name.getLength()))) {
-			_logError(element, g_str_error_resource_string_name_invalid, name);
+			logError(element, g_str_error_resource_string_name_invalid, name);
 			return sl_false;
 		}
 
@@ -100,12 +100,12 @@ namespace slib
 		if (res.isNull()) {
 			res = new SAppStringResource;
 			if (res.isNull()) {
-				_logError(element, g_str_error_out_of_memory);
+				logError(element, g_str_error_out_of_memory);
 				return sl_false;
 			}
 			res->name = name;
 			if (!(m_strings.put(name, res))) {
-				_logError(element, g_str_error_out_of_memory);
+				logError(element, g_str_error_out_of_memory);
 				return sl_false;
 			}
 		}
@@ -113,7 +113,7 @@ namespace slib
 		if (locale == Locale::Unknown) {
 			if (!flagOverride) {
 				if (res->defaultValue.isNotNull()) {
-					_logError(element, g_str_error_resource_string_redefine_default);
+					logError(element, g_str_error_resource_string_redefine_default);
 					return sl_false;
 				}
 			}
@@ -121,12 +121,12 @@ namespace slib
 		} else {
 			if (!flagOverride) {
 				if (res->values.find(locale)) {
-					_logError(element, g_str_error_resource_string_redefine_locale, locale.toString());
+					logError(element, g_str_error_resource_string_redefine_locale, locale.toString());
 					return sl_false;
 				}
 			}
 			if (!(res->values.put(locale, value))) {
-				_logError(element, g_str_error_out_of_memory);
+				logError(element, g_str_error_out_of_memory);
 				return sl_false;
 			}
 		}
@@ -136,7 +136,7 @@ namespace slib
 
 	sl_bool SAppDocument::_generateStringsCpp(const String& targetPath)
 	{
-		_log(g_str_log_generate_cpp_strings_begin);
+		log(g_str_log_generate_cpp_strings_begin);
 
 		StringBuffer sbHeader, sbCpp, sbMap;
 
@@ -217,7 +217,7 @@ namespace slib
 		String contentHeader = sbHeader.merge();
 		if (File::readAllTextUTF8(pathHeader) != contentHeader) {
 			if (!(File::writeAllTextUTF8(pathHeader, contentHeader))) {
-				_logError(g_str_error_file_write_failed, pathHeader);
+				logError(g_str_error_file_write_failed, pathHeader);
 				return sl_false;
 			}
 		}
@@ -226,7 +226,7 @@ namespace slib
 		String contentCpp = sbCpp.merge();
 		if (File::readAllTextUTF8(pathCpp) != contentCpp) {
 			if (!(File::writeAllTextUTF8(pathCpp, contentCpp))) {
-				_logError(g_str_error_file_write_failed, pathCpp);
+				logError(g_str_error_file_write_failed, pathCpp);
 				return sl_false;
 			}
 		}
@@ -328,7 +328,7 @@ namespace slib
 		if (getItemFromMap(m_strings, localNamespace, name, outName, outResource)) {
 			return sl_true;
 		} else {
-			_logError(element, g_str_error_string_not_found, name);
+			logError(element, g_str_error_string_not_found, name);
 			return sl_false;
 		}
 	}
