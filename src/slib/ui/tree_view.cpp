@@ -644,6 +644,11 @@ namespace slib
 		}
 	}
 
+	Ref<TreeViewItem> TreeView::getSelectedItem()
+	{
+		return m_itemSelected;
+	}
+
 	Ref<Drawable> TreeView::getItemIcon()
 	{
 		return m_itemIcon;
