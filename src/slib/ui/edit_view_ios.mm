@@ -176,7 +176,7 @@ namespace slib
 				[handle setText:(Apple::getNSStringFromString(view->getText()))];
 				[handle setTextAlignment:TranslateAlignment(view->getGravity())];
 				[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
-				[handle setBorderStyle:(view->isBorder() ? UITextBorderStyleRoundedRect : UITextBorderStyleNone)];
+				[handle setBorderStyle:(view->hasBorder() ? UITextBorderStyleRoundedRect : UITextBorderStyleNone)];
 				[handle setBackgroundColor:(GraphicsPlatform::getUIColorFromColor(view->getBackgroundColor()))];
 				[handle setEnabled:(view->isReadOnly() ? NO : YES)];
 				[handle setSecureTextEntry:(view->isPassword() ? YES : NO)];
@@ -418,7 +418,7 @@ namespace slib
 				[handle setText:(Apple::getNSStringFromString(view->getText()))];
 				[handle setTextAlignment:TranslateAlignment(view->getGravity())];
 				[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
-				if (view->isBorder()) {
+				if (view->hasBorder()) {
 					[handle.layer setBorderColor:([[UIColor grayColor] CGColor])];
 					[handle.layer setBorderWidth:1];
 				} else {

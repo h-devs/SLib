@@ -22,6 +22,7 @@
 
 #include "slib/ui/view.h"
 #include "slib/ui/view_attributes.h"
+#include "slib/ui/priv/view_state_map.h"
 
 #include "slib/ui/core.h"
 #include "slib/ui/window.h"
@@ -42,6 +43,8 @@
 #include "slib/core/scoped_buffer.h"
 
 #include "ui_animation.h"
+
+#define DEFAULT_BORDER_PARAMS PenStyle::Solid, 0.0f, Color::Black
 
 namespace slib
 {
@@ -77,6 +80,7 @@ namespace slib
 		m_flagCurrentCreatingInstance(sl_false),
 		m_flagInvalidLayout(sl_true),
 		m_flagNeedApplyLayout(sl_false),
+		m_flagRedrawingOnChangeState(sl_false),
 		m_flagFocused(sl_false),
 		m_flagPressed(sl_false),
 		m_flagHover(sl_false),
@@ -298,10 +302,6 @@ namespace slib
 		contentShape(BoundShape::None),
 		contentRadius(5, 5),
 
-		borderColor(Color::Black),
-		borderStyle(PenStyle::Solid),
-		borderWidth(0),
-
 		alpha(1),
 
 		shadowOpacity(0),
@@ -343,8 +343,6 @@ namespace slib
 
 		flagValidHorz(sl_false),
 		flagValidVert(sl_false),
-		flagInitHorzScrollBar(sl_false),
-		flagInitVertScrollBar(sl_false),
 		flagDownContent(sl_false),
 
 		x(0),
@@ -1357,7 +1355,7 @@ namespace slib
 				sl_bool flagDrawOutside = sl_false;
 				Ref<DrawAttributes>& attrs = m_drawAttrs;
 				if (attrs.isNotNull()) {
-					if (attrs->shadowOpacity > 0.0001f || attrs->penBorder.isNotNull()) {
+					if (attrs->shadowOpacity > 0.0001f || attrs->borders.defaultValue.isNotNull() || attrs->borders.values.isNotNull()) {
 						flagDrawOutside = sl_true;
 					}
 				}
@@ -1776,8 +1774,9 @@ namespace slib
 			if (drawAttrs.isNotNull()) {
 				UIRect bounds(getBounds());
 				UIRect rect(bounds);
-				if (drawAttrs->penBorder.isNotNull()) {
-					sl_ui_pos w = (sl_ui_pos)(Math::ceil(drawAttrs->borderWidth));
+				Ref<Pen> pen = getCurrentBorder();
+				if (pen.isNotNull()) {
+					sl_ui_pos w = (sl_ui_pos)(Math::ceil(pen->getWidth()));
 					rect.left -= w;
 					rect.top -= w;
 					rect.right += w;
@@ -2029,6 +2028,52 @@ namespace slib
 		return hitTest(point.x, point.y);
 	}
 
+	ViewState View::getState()
+	{
+		if (!m_flagEnabled) {
+			return ViewState::Disabled;
+		}
+		if (m_flagFocused) {
+			if (m_flagPressed) {
+				return ViewState::FocusedPressed;
+			} else if (m_flagHover) {
+				return ViewState::FocusedHover;
+			} else {
+				return ViewState::FocusedNormal;
+			}
+		} else {
+			if (m_flagPressed) {
+				return ViewState::Pressed;
+			} else if (m_flagHover) {
+				return ViewState::Hover;
+			} else {
+				return ViewState::Normal;
+			}
+		}
+	}
+
+	sl_bool View::isRedrawingOnChangeState()
+	{
+		return m_flagRedrawingOnChangeState;
+	}
+
+	void View::setRedrawingOnChangeState(sl_bool flag)
+	{
+		m_flagRedrawingOnChangeState = flag;
+	}
+
+	sl_bool View::_canRedrawOnChangeState()
+	{
+		if (m_flagRedrawingOnChangeState) {
+			return sl_true;
+		}
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->backgrounds.values.isNotNull() || attrs->borders.values.isNotNull();
+		}
+		return sl_false;
+	}
+
 	sl_bool View::isFocusable()
 	{
 		return m_flagFocusable;
@@ -2199,11 +2244,8 @@ namespace slib
 		if (m_flagPressed != flagState) {
 			m_flagPressed = flagState;
 			if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-				Ref<DrawAttributes>& attrs = m_drawAttrs;
-				if (attrs.isNotNull()) {
-					if (attrs->backgroundPressed.isNotNull() && attrs->background != attrs->backgroundPressed) {
-						invalidate();
-					}
+				if (_canRedrawOnChangeState()) {
+					invalidate(mode);
 				}
 			}
 		}
@@ -2248,11 +2290,8 @@ namespace slib
 		if (m_flagHover != flagState) {
 			m_flagHover = flagState;
 			if (SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
-				Ref<DrawAttributes>& attrs = m_drawAttrs;
-				if (attrs.isNotNull()) {
-					if (attrs->backgroundHover.isNotNull() && attrs->background != attrs->backgroundHover) {
-						invalidate();
-					}
+				if (_canRedrawOnChangeState()) {
+					invalidate(mode);
 				}
 			}
 		}
@@ -5189,25 +5228,44 @@ namespace slib
 		}
 	}
 
-	Ref<Drawable> View::getBackground()
+	Ref<Drawable> View::getBackground(ViewState state)
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->background;
+			return attrs->backgrounds.get(state);
 		}
 		return sl_null;
+	}
+
+	void View::setBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		if (state == ViewState::Default) {
+			setBackground(drawable, mode);
+			return;
+		}
+		_initializeDrawAttributes();
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (drawable.isNotNull()) {
+				attrs->backgrounds.setNonDefault(state, drawable);
+			} else {
+				attrs->backgrounds.remove(state);
+			}
+			invalidate(mode);
+		}
 	}
 
 	void View::setBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setBackground, drawable, mode)
+			void (View::*func)(const Ref<Drawable>& drawable, UIUpdateMode mode) = &View::setBackground;
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, drawable, mode)
 		}
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->background = drawable;
+			attrs->backgrounds.defaultValue = drawable;
 			if (instance.isNotNull()) {
 				Color color;
 				if (ColorDrawable::check(drawable, &color)) {
@@ -5219,7 +5277,7 @@ namespace slib
 		}
 	}
 
-	Color View::getBackgroundColor()
+	Color View::getBackgroundColor(ViewState state)
 	{
 		Color color;
 		if (ColorDrawable::check(getBackground(), &color)) {
@@ -5228,75 +5286,14 @@ namespace slib
 		return Color::zero();
 	}
 
+	void View::setBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setBackground(ColorDrawable::createColorDrawable(color), state, mode);
+	}
+
 	void View::setBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
 		setBackground(ColorDrawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> View::getPressedBackground()
-	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->backgroundPressed;
-		}
-		return sl_null;
-	}
-
-	void View::setPressedBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		_initializeDrawAttributes();
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			attrs->backgroundPressed = drawable;
-			invalidate(mode);
-		}
-	}
-
-	Color View::getPressedBackgroundColor()
-	{
-		Color color;
-		if (ColorDrawable::check(getPressedBackground(), &color)) {
-			return color;
-		}
-		return Color::zero();
-	}
-
-	void View::setPressedBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setPressedBackground(ColorDrawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> View::getHoverBackground()
-	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->backgroundHover;
-		}
-		return sl_null;
-	}
-
-	void View::setHoverBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		_initializeDrawAttributes();
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			attrs->backgroundHover = drawable;
-			invalidate(mode);
-		}
-	}
-
-	Color View::getHoverBackgroundColor()
-	{
-		Color color;
-		if (ColorDrawable::check(getPressedBackground(), &color)) {
-			return color;
-		}
-		return Color::zero();
-	}
-
-	void View::setHoverBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setHoverBackground(ColorDrawable::createColorDrawable(color), mode);
 	}
 
 	ScaleMode View::getBackgroundScaleMode()
@@ -5337,154 +5334,179 @@ namespace slib
 		}
 	}
 
-	Ref<Pen> View::getBorder()
+	Ref<Pen> View::getBorder(ViewState state)
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			return attrs->penBorder;
+			return attrs->borders.get(state);
 		}
 		return sl_null;
 	}
 
-	void View::setBorder(const Ref<Pen>& pen, UIUpdateMode mode)
+	void View::setBorder(const Ref<Pen>& pen, ViewState state, UIUpdateMode mode)
 	{
+		if (state == ViewState::Default) {
+			setBorder(pen, mode);
+			return;
+		}
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			attrs->penBorder = pen;
+			if (pen.isNotNull()) {
+				attrs->borders.setNonDefault(state, pen);
+			} else {
+				attrs->borders.remove(state);
+			}
 			invalidate(mode);
 		}
 	}
 
-	void View::setBorder(const PenDesc& _desc, UIUpdateMode mode)
+	void View::setBorder(const Ref<Pen>& pen, UIUpdateMode mode)
 	{
-		_initializeDrawAttributes();
+		Ref<ViewInstance> instance = m_instance;
+		if (instance.isNotNull()) {
+			void (View::*func)(const Ref<Pen>&, UIUpdateMode) = &View::setBorder;
+			SLIB_VIEW_RUN_ON_UI_THREAD2(func, pen, mode)
+		}
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			PenDesc desc(_desc);
-			if (desc.style == PenStyle::Default) {
-				desc.style = attrs->borderStyle;
+			attrs->borders.defaultValue = pen;
+			if (instance.isNotNull()) {
+				sl_bool flagValid = sl_false;
+				if (pen.isNotNull()) {
+					flagValid = pen->getWidth() > SLIB_EPSILON;
+				}
+				instance->setBorder(this, flagValid);
 			} else {
-				attrs->borderStyle = desc.style;
-			}
-			if (desc.width < 0) {
-				desc.width = attrs->borderWidth;
-			} else {
-				attrs->borderWidth = desc.width;
-			}
-			if (desc.color.isZero()) {
-				desc.color = attrs->borderColor;
-			} else {
-				attrs->borderColor = desc.color;
-			}
-			if (desc.width > 0) {
-				setBorder(Pen::create(desc), mode);
-			} else {
-				setBorder(Ref<Pen>::null());
+				invalidate(mode);
 			}
 		}
 	}
 
-	PenStyle View::getBorderStyle()
+	void View::setBorder(const PenDesc& desc, ViewState state, UIUpdateMode mode)
 	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->borderStyle;
+		SLIB_SAFE_LOCAL_STATIC(Ref<Pen>, defaultBorder, Pen::create(DEFAULT_BORDER_PARAMS))
+		Ref<Pen> border = getBorder(state);
+		if (border.isNotNull()) {
+			setBorder(Pen::create(desc, border), state, mode);
+		} else {
+			setBorder(Pen::create(desc, defaultBorder), state, mode);
 		}
-		return PenStyle::Solid;
+	}
+
+	void View::setBorder(const PenDesc& desc, UIUpdateMode mode)
+	{
+		setBorder(desc, ViewState::Default, mode);
+	}
+
+	PenStyle View::getBorderStyle(ViewState state)
+	{
+		Ref<Pen> border = getBorder(state);
+		if (border.isNotNull()) {
+			return border->getStyle();
+		} else {
+			return PenStyle::Solid;
+		}
+	}
+
+	void View::setBorderStyle(PenStyle style, ViewState state, UIUpdateMode mode)
+	{
+		if (style == PenStyle::Default) {
+			return;
+		}
+		PenDesc desc(DEFAULT_BORDER_PARAMS);
+		Ref<Pen> border = getBorder(state);
+		if (border.isNotNull()) {
+			border->getDesc(desc);
+		}
+		if (desc.style != style) {
+			desc.style = style;
+			setBorder(Pen::create(desc), state, mode);
+		}
 	}
 
 	void View::setBorderStyle(PenStyle style, UIUpdateMode mode)
 	{
-		_initializeDrawAttributes();
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			attrs->borderStyle = style;
-			_refreshBorderPen(mode);
+		setBorderStyle(style, ViewState::Default, mode);
+	}
+
+	sl_real View::getBorderWidth(ViewState state)
+	{
+		Ref<Pen> border = getBorder(state);
+		if (border.isNotNull()) {
+			return border->getWidth();
+		} else {
+			return 0.0f;
 		}
 	}
 
-	sl_real View::getBorderWidth()
+	void View::setBorderWidth(sl_real width, ViewState state, UIUpdateMode mode)
 	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->borderWidth;
+		if (width < 0.0f) {
+			return;
 		}
-		return 0;
+		PenDesc desc(DEFAULT_BORDER_PARAMS);
+		Ref<Pen> border = getBorder(state);
+		if (border.isNotNull()) {
+			border->getDesc(desc);
+		}
+		if (desc.width != width) {
+			desc.width = width;
+			setBorder(Pen::create(desc), state, mode);
+		}
 	}
 
 	void View::setBorderWidth(sl_real width, UIUpdateMode mode)
 	{
-		_initializeDrawAttributes();
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			attrs->borderWidth = width;
-			_refreshBorderPen(mode);
+		setBorderWidth(width, ViewState::Default, mode);
+	}
+
+	Color View::getBorderColor(ViewState state)
+	{
+		Ref<Pen> border = getBorder(state);
+		if (border.isNotNull()) {
+			return border->getColor();
+		} else {
+			return Color::Black;
 		}
 	}
 
-	Color View::getBorderColor()
+	void View::setBorderColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->borderColor;
+		if (color.isZero()) {
+			return;
 		}
-		return Color::Black;
+		PenDesc desc(DEFAULT_BORDER_PARAMS);
+		Ref<Pen> border = getBorder(state);
+		if (border.isNotNull()) {
+			border->getDesc(desc);
+		}
+		if (desc.color != color) {
+			desc.color = color;
+			setBorder(Pen::create(desc), state, mode);
+		}
 	}
 
 	void View::setBorderColor(const Color& color, UIUpdateMode mode)
 	{
-		_initializeDrawAttributes();
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			attrs->borderColor = color;
-			_refreshBorderPen(mode);
-		}
-	}
-
-	void View::_refreshBorderPen(UIUpdateMode mode)
-	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			sl_real width = attrs->borderWidth;
-			if (width > 0) {
-				setBorder(Pen::create(attrs->borderStyle, width, attrs->borderColor), mode);
-			} else {
-				setBorder(Ref<Pen>::null(), mode);
-			}
-		}
-	}
-
-	sl_bool View::isBorder()
-	{
-		Ref<DrawAttributes>& attrs = m_drawAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->penBorder.isNotNull();
-		}
-		return sl_false;
+		setBorderColor(color, ViewState::Default, mode);
 	}
 
 	void View::setBorder(sl_bool flagBorder, UIUpdateMode mode)
 	{
-		Ref<ViewInstance> instance = m_instance;
-		if (instance.isNotNull()) {
-			void (View::*func)(sl_bool, UIUpdateMode) = &View::setBorder;
-			SLIB_VIEW_RUN_ON_UI_THREAD2(func, flagBorder, mode)
-		}
-		if (flagBorder) {
-			if (!(isBorder())) {
-				setBorder(Pen::getDefault(), UIUpdateMode::None);
-			}
-		} else {
-			if (isBorder()) {
-				setBorder(Ref<Pen>::null(), UIUpdateMode::None);
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			if (attrs->borders.defaultValue.isNotNull()) {
+				setBorder(Ref<Pen>::null(), mode);
+				return;
 			}
 		}
-		if (instance.isNotNull()) {
-			instance->setBorder(this, flagBorder);
-		} else {
-			invalidate(mode);
-		}
+		setBorder(Pen::create(DEFAULT_BORDER_PARAMS), mode);
+	}
+
+	sl_bool View::hasBorder()
+	{
+		return getBorderWidth() > SLIB_EPSILON;
 	}
 
 	BoundShape View::getBoundShape()
@@ -6737,15 +6759,6 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<ScrollBar> View::getVerticalScrollBar()
-	{
-		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
-		if (attrs.isNotNull()) {
-			return attrs->vert;
-		}
-		return sl_null;
-	}
-
 	void View::setHorizontalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
@@ -6757,6 +6770,55 @@ namespace slib
 		}
 	}
 
+	void View::setHorizontalScrollBarThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		_initializeScrollAttributes();
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			Ref<ScrollBar> bar = attrs->horz;
+			if (bar.isNotNull()) {
+				bar->setThumb(drawable, state, UIUpdateMode::None);
+				invalidate(mode);
+			} else {
+				bar = new ScrollBar;
+				if (bar.isNotNull()) {
+					bar->setThumb(drawable, state, UIUpdateMode::None);
+					attrs->horz = bar;
+					refreshScroll(mode);
+				}
+			}
+		}
+	}
+
+	void View::setHorizontalScrollBarTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		_initializeScrollAttributes();
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			Ref<ScrollBar> bar = attrs->horz;
+			if (bar.isNotNull()) {
+				bar->setTrack(drawable, state, UIUpdateMode::None);
+				invalidate(mode);
+			} else {
+				bar = new ScrollBar;
+				if (bar.isNotNull()) {
+					bar->setTrack(drawable, state, UIUpdateMode::None);
+					attrs->horz = bar;
+					refreshScroll(mode);
+				}
+			}
+		}
+	}
+
+	Ref<ScrollBar> View::getVerticalScrollBar()
+	{
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->vert;
+		}
+		return sl_null;
+	}
+
 	void View::setVerticalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
@@ -6765,6 +6827,46 @@ namespace slib
 			removeChild(attrs->vert, UIUpdateMode::None);
 			attrs->vert = bar;
 			refreshScroll(mode);
+		}
+	}
+
+	void View::setVerticalScrollBarThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		_initializeScrollAttributes();
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			Ref<ScrollBar> bar = attrs->vert;
+			if (bar.isNotNull()) {
+				bar->setThumb(drawable, state, UIUpdateMode::None);
+				invalidate(mode);
+			} else {
+				bar = new ScrollBar;
+				if (bar.isNotNull()) {
+					bar->setThumb(drawable, state, UIUpdateMode::None);
+					attrs->vert = bar;
+					refreshScroll(mode);
+				}
+			}
+		}
+	}
+
+	void View::setVerticalScrollBarTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		_initializeScrollAttributes();
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		if (attrs.isNotNull()) {
+			Ref<ScrollBar> bar = attrs->vert;
+			if (bar.isNotNull()) {
+				bar->setTrack(drawable, state, UIUpdateMode::None);
+				invalidate(mode);
+			} else {
+				bar = new ScrollBar;
+				if (bar.isNotNull()) {
+					bar->setTrack(drawable, state, UIUpdateMode::None);
+					attrs->vert = bar;
+					refreshScroll(mode);
+				}
+			}
 		}
 	}
 
@@ -7407,19 +7509,13 @@ namespace slib
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
 			if (attrs->flagHorz && attrs->flagHorzScrollBarVisible) {
-				if (!(attrs->flagInitHorzScrollBar)) {
-					attrs->flagInitHorzScrollBar = sl_true;
-					if (attrs->horz.isNull()) {
-						setHorizontalScrollBar(new ScrollBar, mode);
-					}
+				if (attrs->horz.isNull()) {
+					setHorizontalScrollBar(new ScrollBar, mode);
 				}
 			}
 			if (attrs->flagVert && attrs->flagVertScrollBarVisible) {
-				if (!(attrs->flagInitVertScrollBar)) {
-					attrs->flagInitVertScrollBar = sl_true;
-					if (attrs->vert.isNull()) {
-						setVerticalScrollBar(new ScrollBar, mode);
-					}
+				if (attrs->vert.isNull()) {
+					setVerticalScrollBar(new ScrollBar, mode);
 				}
 			}
 		}
@@ -8092,22 +8188,32 @@ namespace slib
 		return sl_null;
 	}
 
-	Ref<Drawable> View::getCurrentBackground()
+	Ref<Drawable> View::getFinalBackground(ViewState state, sl_bool* outFlagReturnDefault)
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			Ref<Drawable> background;
-			if (isPressedState()) {
-				background = attrs->backgroundPressed;
-			} else if (isHoverState()) {
-				background = attrs->backgroundHover;
-			}
-			if (background.isNull()) {
-				background = attrs->background;
-			}
-			return background;
+			return attrs->backgrounds.evaluate(state, outFlagReturnDefault);
 		}
 		return sl_null;
+	}
+
+	Ref<Drawable> View::getCurrentBackground()
+	{
+		return getFinalBackground(getState());
+	}
+
+	Ref<Pen> View::getFinalBorder(ViewState state, sl_bool* outFlagReturnDefault)
+	{
+		Ref<DrawAttributes>& attrs = m_drawAttrs;
+		if (attrs.isNotNull()) {
+			return attrs->borders.evaluate(state, outFlagReturnDefault);
+		}
+		return sl_null;
+	}
+
+	Ref<Pen> View::getCurrentBorder()
+	{
+		return getFinalBorder(getState());
 	}
 
 	void View::drawBackground(Canvas* canvas, const Ref<Drawable>& background)
@@ -8727,7 +8833,7 @@ namespace slib
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
-			drawBorder(canvas, attrs->penBorder);
+			drawBorder(canvas, getCurrentBorder());
 		}
 	}
 
@@ -11123,20 +11229,23 @@ namespace slib
 
 	ViewCell::ViewCell()
 	{
-		m_flagDefinedFrame = sl_false;
-		m_flagDefinedEnabled = sl_false;
-		m_flagDefinedFocused = sl_false;
-		m_flagDefinedPressed = sl_false;
-		m_flagDefinedHover = sl_false;
+		m_flagServingAsView = sl_false;
 
 		m_flagEnabled = sl_true;
 		m_flagFocused = sl_false;
 		m_flagPressed = sl_false;
 		m_flagHover = sl_false;
+
+		m_frame.setZero();
 	}
 
 	ViewCell::~ViewCell()
 	{
+	}
+
+	sl_bool ViewCell::isServingAsView()
+	{
+		return m_flagServingAsView;
 	}
 
 	Ref<View> ViewCell::getView()
@@ -11144,84 +11253,107 @@ namespace slib
 		return m_view;
 	}
 
-	void ViewCell::setView(const Ref<View>& view)
+	void ViewCell::setView(const Ref<View>& view, sl_bool flagServingAsView)
 	{
 		m_view = view;
+		flagServingAsView = flagServingAsView;
 	}
 
 	UIRect ViewCell::getFrame()
 	{
-		if (m_flagDefinedFrame) {
-			return m_frame;
-		} else {
-			Ref<View> view = m_view;
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				return view->getBoundsInnerPadding();
 			}
-			return UIRect::zero();
 		}
+		return m_frame;
 	}
 
 	void ViewCell::setFrame(const UIRect& frame)
 	{
-		m_flagDefinedFrame = sl_true;
 		m_frame = frame;
 	}
 
 	sl_ui_len ViewCell::getWidth()
 	{
-		if (m_flagDefinedFrame) {
-			return m_frame.getWidth();
-		} else {
-			Ref<View> view = m_view;
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				sl_ui_len width = view->getWidth() - view->getPaddingLeft() - view->getPaddingRight();
 				if (width > 0) {
 					return width;
 				}
 			}
-			return 0;
 		}
+		return m_frame.getWidth();
 	}
 
 	sl_ui_len ViewCell::getHeight()
 	{
-		if (m_flagDefinedFrame) {
-			return m_frame.getHeight();
-		} else {
-			Ref<View> view = m_view;
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				sl_ui_len height = view->getHeight() - view->getPaddingTop() - view->getPaddingBottom();
 				if (height > 0) {
 					return height;
 				}
 			}
-			return 0;
+		}
+		return m_frame.getHeight();
+	}
+
+	ViewState ViewCell::getState()
+	{
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
+			if (view.isNotNull()) {
+				return view->getState();
+			}
+		}
+		if (!m_flagEnabled) {
+			return ViewState::Disabled;
+		}
+		if (m_flagFocused) {
+			if (m_flagPressed) {
+				return ViewState::FocusedPressed;
+			} else if (m_flagHover) {
+				return ViewState::FocusedHover;
+			} else {
+				return ViewState::FocusedNormal;
+			}
+		} else {
+			if (m_flagPressed) {
+				return ViewState::Pressed;
+			} else if (m_flagHover) {
+				return ViewState::Hover;
+			} else {
+				return ViewState::Normal;
+			}
 		}
 	}
 
 	sl_bool ViewCell::isEnabled()
 	{
-		if (m_flagDefinedEnabled) {
-			return m_flagEnabled;
-		} else {
-			Ref<View> view = m_view;
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				return view->isEnabled();
 			}
-			return sl_true;
 		}
+		return m_flagEnabled;
 	}
 
 	void ViewCell::setEnabled(sl_bool flag, UIUpdateMode mode)
 	{
-		if (m_flagDefinedEnabled) {
-			if (m_flagEnabled != flag) {
-				m_flagEnabled = flag;
-				invalidate(mode);
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
+			if (view.isNotNull()) {
+				view->setEnabled(flag, mode);
+				return;
 			}
-		} else {
-			m_flagDefinedEnabled = sl_true;
+		}
+		if (m_flagEnabled != flag) {
 			m_flagEnabled = flag;
 			invalidate(mode);
 		}
@@ -11229,26 +11361,25 @@ namespace slib
 
 	sl_bool ViewCell::isFocused()
 	{
-		if (m_flagDefinedFocused) {
-			return m_flagFocused;
-		} else {
-			Ref<View> view = m_view;
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				return view->isFocused();
 			}
-			return sl_false;
 		}
+		return m_flagFocused;
 	}
 
 	void ViewCell::setFocused(sl_bool flag, UIUpdateMode mode)
 	{
-		if (m_flagDefinedFocused) {
-			if (m_flagFocused != flag) {
-				m_flagFocused = flag;
-				invalidate(mode);
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
+			if (view.isNotNull()) {
+				view->setFocus(flag, mode);
+				return;
 			}
-		} else {
-			m_flagDefinedFocused = sl_true;
+		}
+		if (m_flagFocused != flag) {
 			m_flagFocused = flag;
 			invalidate(mode);
 		}
@@ -11256,26 +11387,25 @@ namespace slib
 
 	sl_bool ViewCell::isPressedState()
 	{
-		if (m_flagDefinedEnabled) {
-			return m_flagPressed;
-		} else {
-			Ref<View> view = m_view;
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				return view->isPressedState();
 			}
-			return sl_false;
 		}
+		return m_flagPressed;
 	}
 
 	void ViewCell::setPressedState(sl_bool flag, UIUpdateMode mode)
 	{
-		if (m_flagDefinedPressed) {
-			if (m_flagPressed != flag) {
-				m_flagPressed = flag;
-				invalidate(mode);
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
+			if (view.isNotNull()) {
+				view->setPressedState(flag, mode);
+				return;
 			}
-		} else {
-			m_flagDefinedPressed = sl_true;
+		}
+		if (m_flagPressed != flag) {
 			m_flagPressed = flag;
 			invalidate(mode);
 		}
@@ -11283,26 +11413,25 @@ namespace slib
 
 	sl_bool ViewCell::isHoverState()
 	{
-		if (m_flagDefinedEnabled) {
-			return m_flagHover;
-		} else {
-			Ref<View> view = m_view;
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				return view->isHoverState();
 			}
-			return sl_false;
 		}
+		return m_flagHover;
 	}
 
 	void ViewCell::setHoverState(sl_bool flag, UIUpdateMode mode)
 	{
-		if (m_flagDefinedHover) {
-			if (m_flagHover != flag) {
-				m_flagHover = flag;
-				invalidate(mode);
+		if (m_flagServingAsView) {
+			Ref<View> view(m_view);
+			if (view.isNotNull()) {
+				view->setHoverState(flag, mode);
+				return;
 			}
-		} else {
-			m_flagDefinedHover = sl_true;
+		}
+		if (m_flagHover != flag) {
 			m_flagHover = flag;
 			invalidate(mode);
 		}
@@ -11313,12 +11442,12 @@ namespace slib
 		if (m_font.isNotNull()) {
 			return m_font;
 		} else {
-			Ref<View> view = m_view;
+			Ref<View> view(m_view);
 			if (view.isNotNull()) {
 				return view->getFont();
 			}
+			return UI::getDefaultFont();
 		}
-		return UI::getDefaultFont();
 	}
 
 	void ViewCell::setFont(const Ref<Font>& font)
@@ -11331,7 +11460,7 @@ namespace slib
 		if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
 			return;
 		}
-		Ref<View> view = m_view;
+		Ref<View> view(m_view);
 		if (view.isNotNull()) {
 			view->invalidate();
 		}
@@ -11342,7 +11471,7 @@ namespace slib
 		if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
 			return;
 		}
-		Ref<View> view = m_view;
+		Ref<View> view(m_view);
 		if (view.isNotNull()) {
 			view->invalidate(frame);
 		}
@@ -11350,7 +11479,7 @@ namespace slib
 
 	void ViewCell::setCursor(const Ref<Cursor>& cursor)
 	{
-		Ref<View> view = m_view;
+		Ref<View> view(m_view);
 		if (view.isNotNull()) {
 			view->setCursor(cursor);
 		}
@@ -11358,7 +11487,7 @@ namespace slib
 
 	Ref<Dispatcher> ViewCell::getDispatcher()
 	{
-		Ref<View> view = m_view;
+		Ref<View> view(m_view);
 		if (view.isNotNull()) {
 			return view->getDispatcher();
 		}
@@ -11367,7 +11496,7 @@ namespace slib
 
 	Ref<Timer> ViewCell::createTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms)
 	{
-		Ref<View> view = m_view;
+		Ref<View> view(m_view);
 		if (view.isNotNull()) {
 			return view->createTimer(task, interval_ms);
 		}
@@ -11376,20 +11505,26 @@ namespace slib
 
 	Ref<Timer> ViewCell::startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms)
 	{
-		Ref<View> view = m_view;
+		Ref<View> view(m_view);
 		if (view.isNotNull()) {
 			return view->startTimer(task, interval_ms);
 		}
 		return Timer::startWithDispatcher(UI::getDispatcher(), task, interval_ms);
 	}
 
-	void ViewCell::invalidatePressedState(UIEvent* ev)
+	void ViewCell::updateState(UIEvent* ev)
 	{
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
-				setPressedState(sl_true);
+				setPressedState();
+				break;
+			case UIAction::MouseEnter:
+				setHoverState();
+				break;
+			case UIAction::MouseLeave:
+				setHoverState(sl_false);
 				break;
 			case UIAction::LeftButtonUp:
 			case UIAction::TouchEnd:
@@ -11415,12 +11550,12 @@ namespace slib
 
 	void ViewCell::onMouseEvent(UIEvent* ev)
 	{
-		invalidatePressedState(ev);
+		updateState(ev);
 	}
 
 	void ViewCell::onTouchEvent(UIEvent* ev)
 	{
-		invalidatePressedState(ev);
+		updateState(ev);
 	}
 
 	void ViewCell::onMouseWheelEvent(UIEvent* ev)

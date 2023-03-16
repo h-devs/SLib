@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_LIST_BOX
 
 #include "view.h"
+#include "view_state_map.h"
 
 namespace slib
 {
@@ -78,31 +79,19 @@ namespace slib
 
 		sl_int64 getHoverIndex();
 
+		ViewState getItemState(sl_uint64 index);
+
 		sl_int64 getItemIndexAt(const UIPoint& pt);
 
-		Ref<Drawable> getItemBackground();
+		Ref<Drawable> getItemBackground(ViewState state = ViewState::Default);
+
+		void setItemBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getSelectedItemBackground();
-
-		void setSelectedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getHoverItemBackground();
-
-		void setHoverItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setHoverItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getFocusedItemBackground();
-
-		void setFocusedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
@@ -135,10 +124,7 @@ namespace slib
 		sl_int64 m_indexLastSelected;
 		CHashMap<sl_uint64, sl_bool> m_mapSelection;
 
-		AtomicRef<Drawable> m_backgroundItem;
-		AtomicRef<Drawable> m_backgroundSelectedItem;
-		AtomicRef<Drawable> m_backgroundHoverItem;
-		AtomicRef<Drawable> m_backgroundFocusedItem;
+		ViewStateMap< Ref<Drawable> > m_itemBackgrounds;
 
 	};
 

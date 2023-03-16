@@ -284,7 +284,7 @@ namespace slib
 		{
 			JniLocal<jstring> jtext = Jni::getJniString(m_text);
 			JEditView::setText.callBoolean(sl_null, handle, jtext.get());
-			JEditView::setBorder.callBoolean(sl_null, handle, isBorder());
+			JEditView::setBorder.callBoolean(sl_null, handle, hasBorder());
 			JEditView::setAlignment.callBoolean(sl_null, handle, m_gravity.value);
 			JEditView::setTextColor.callBoolean(sl_null, handle, m_textColor.getARGB());
 			JniLocal<jstring> jhintText = Jni::getJniString(m_hintText);

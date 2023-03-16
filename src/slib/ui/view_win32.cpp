@@ -233,7 +233,7 @@ namespace slib
 			if (view->isVisibleInInstance()) {
 				style |= WS_VISIBLE;
 			}
-			if (view->isBorder()) {
+			if (view->hasBorder()) {
 				if (view->isClientEdge()) {
 					styleEx |= WS_EX_CLIENTEDGE;
 				} else {

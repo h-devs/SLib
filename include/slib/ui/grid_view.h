@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_GRID_VIEW
 
 #include "view.h"
+#include "view_state_map.h"
 
 #include "../graphics/text.h"
 #include "../core/variant.h"
@@ -36,14 +37,6 @@ namespace slib
 		SLIB_DECLARE_OBJECT
 
 	public:
-		enum class CellState
-		{
-			Normal = 0,
-			Hover = 1,
-			Selected = 2,
-			Count = 3
-		};
-
 		class DrawCellParam : public TextBox::DrawParam
 		{
 		public:
@@ -63,8 +56,8 @@ namespace slib
 			sl_uint32 colspan;
 			sl_uint32 rowspan;
 
-			Ref<Drawable> background[(sl_uint32)(CellState::Count)];
-			Color textColor[(sl_uint32)(CellState::Count)];
+			ViewStateMap< Ref<Drawable> > backgrounds;
+			ViewStateMap<Color> textColors;
 
 			sl_ui_len width;
 			sl_ui_len height;
@@ -293,14 +286,14 @@ namespace slib
 		void setFooterAlignment(sl_int32 row, sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setColumnAlignment(sl_int32 column, const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getBodyBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
-		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
-		Ref<Drawable> getFooterBackground(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
+		Ref<Drawable> getBodyBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
+		Ref<Drawable> getHeaderBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
+		Ref<Drawable> getFooterBackground(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 
-		void setBodyBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterBackground(sl_int32 row, sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnBackground(sl_int32 column, const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getBodyBackground();
 		Ref<Drawable> getHeaderBackground();
@@ -310,14 +303,14 @@ namespace slib
 		void setHeaderBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 		void setFooterBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getBodyTextColor(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
-		Color getHeaderTextColor(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
-		Color getFooterTextColor(sl_uint32 row, sl_uint32 column, CellState state = CellState::Normal);
+		Color getBodyTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
+		Color getHeaderTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
+		Color getFooterTextColor(sl_uint32 row, sl_uint32 column, ViewState state = ViewState::Default);
 
-		void setBodyTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setHeaderTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setFooterTextColor(sl_int32 row, sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
-		void setColumnTextColor(sl_int32 column, const Color& color, CellState state = CellState::Normal, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBodyTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHeaderTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFooterTextColor(sl_int32 row, sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColumnTextColor(sl_int32 column, const Color& color, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_uint32 getBodyRowspan(sl_uint32 row, sl_uint32 column);
 		sl_uint32 getHeaderRowspan(sl_uint32 row, sl_uint32 column);
@@ -358,6 +351,8 @@ namespace slib
 		sl_int32 getColumnAt(sl_ui_pos x);
 
 		sl_bool getCellAt(sl_ui_pos x, sl_ui_pos y, sl_uint32* outRow = sl_null, sl_uint32* outColumn = sl_null, RecordIndex * outRecord = sl_null);
+
+		ViewState getCellState(Cell* cell);
 
 	public:
 		class CellEventParam

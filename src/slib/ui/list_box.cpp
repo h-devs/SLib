@@ -22,6 +22,7 @@
 
 #include "slib/ui/list_box.h"
 
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/graphics/canvas.h"
 
 namespace slib
@@ -427,6 +428,27 @@ namespace slib
 		return -1;
 	}
 
+	ViewState ListBox::getItemState(sl_uint64 index)
+	{
+		ViewState state;
+		if (index == getHoverIndex()) {
+			if (isPressedState()) {
+				state = ViewState::Pressed;
+			} else {
+				state = ViewState::Hover;
+			}
+		} else {
+			state = ViewState::Normal;
+		}
+		if (isSelectedIndex(index)) {
+			return (ViewState)((int)state + (int)(ViewState::Selected));
+		} else if (isFocused() && index == m_indexFocused) {
+			return (ViewState)((int)state + (int)(ViewState::Focused));
+		} else {
+			return state;
+		}
+	}
+
 	sl_int64 ListBox::getItemIndexAt(const UIPoint& pt)
 	{
 		sl_int64 index = (pt.y + (sl_int64)(getScrollY())) / m_heightItem;
@@ -436,15 +458,26 @@ namespace slib
 		return -1;
 	}
 
-	Ref<Drawable> ListBox::getItemBackground()
+	Ref<Drawable> ListBox::getItemBackground(ViewState state)
 	{
-		return m_backgroundItem;
+		return m_itemBackgrounds.get(state);
+	}
+
+	void ListBox::setItemBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_itemBackgrounds.set(state, drawable);
+		invalidate(mode);
 	}
 
 	void ListBox::setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_backgroundItem = drawable;
+		m_itemBackgrounds.defaultValue = drawable;
 		invalidate(mode);
+	}
+
+	void ListBox::setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setItemBackground(Drawable::createColorDrawable(color), state, mode);
 	}
 
 	void ListBox::setItemBackgroundColor(const Color& color, UIUpdateMode mode)
@@ -452,66 +485,11 @@ namespace slib
 		setItemBackground(Drawable::createColorDrawable(color), mode);
 	}
 
-	Ref<Drawable> ListBox::getSelectedItemBackground()
-	{
-		return m_backgroundSelectedItem;
-	}
-
-	void ListBox::setSelectedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundSelectedItem = drawable;
-		invalidate(mode);
-	}
-
-	void ListBox::setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setSelectedItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> ListBox::getHoverItemBackground()
-	{
-		return m_backgroundHoverItem;
-	}
-
-	void ListBox::setHoverItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundHoverItem = drawable;
-		invalidate(mode);
-	}
-
-	void ListBox::setHoverItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setHoverItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> ListBox::getFocusedItemBackground()
-	{
-		return m_backgroundFocusedItem;
-	}
-
-	void ListBox::setFocusedItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_backgroundFocusedItem = drawable;
-		invalidate(mode);
-	}
-
-	void ListBox::setFocusedItemBackgroundColor(const Color& color, UIUpdateMode mode)
-	{
-		setFocusedItemBackground(Drawable::createColorDrawable(color), mode);
-	}
-
 	SLIB_DEFINE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 
 	void ListBox::dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 	{
-		Ref<Drawable> background = m_backgroundItem;
-		if (m_backgroundSelectedItem.isNotNull() && isSelectedIndex(itemIndex)) {
-			background = m_backgroundSelectedItem;
-		} else if (m_backgroundHoverItem.isNotNull() && itemIndex == getHoverIndex()) {
-			background = m_backgroundHoverItem;
-		} else if (m_backgroundFocusedItem.isNotNull() && isFocused() && itemIndex == m_indexFocused) {
-			background = m_backgroundFocusedItem;
-		}
+		Ref<Drawable> background = m_itemBackgrounds.evaluate(getItemState(itemIndex));
 		if (background.isNotNull()) {
 			canvas->draw(rcItem, background);
 		}

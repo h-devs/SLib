@@ -124,7 +124,7 @@ namespace slib
 				setText(view, view->getText());
 				setGravity(view, view->getGravity());
 				setReadOnly(view, view->isReadOnly());
-				setBorder(view, view->isBorder());
+				setBorder(view, view->hasBorder());
 				setTextColor(view, view->getTextColor());
 				setBackgroundColor(view, view->getBackgroundColor());
 				[handle setSelectable:YES];
@@ -335,7 +335,7 @@ namespace slib
 
 				updateFont(tv, view->getFont(), sl_false);
 
-				[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
+				[handle setBorderType:(view->hasBorder() ? NSBezelBorder : NSNoBorder)];
 				[tv setString:Apple::getNSStringFromString(view->getText(), @"")];
 				[tv setAlignment:TranslateAlignment(view->getGravity())];
 				[tv setTextColor:(GraphicsPlatform::getNSColorFromColor(view->getTextColor()))];

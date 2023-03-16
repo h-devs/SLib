@@ -51,7 +51,7 @@ namespace slib
 
 		setAntiAlias(sl_true, UIUpdateMode::Init);
 
-		m_cell->setView(this);
+		m_cell->setView(this, sl_true);
 		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, dispatchClickLink);
 	}
 

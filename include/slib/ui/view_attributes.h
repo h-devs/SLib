@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_VIEW_ATTRIBUTES
 
 #include "view.h"
+#include "view_state_map.h"
 #include "motion_tracker.h"
 
 #include "../math/matrix3.h"
@@ -166,16 +167,11 @@ namespace slib
 		sl_bool flagInvalidatedLayer : 1;
 		sl_bool flagInvalidatedWholeLayer : 1;
 
-		AtomicRef<Drawable> background;
-		AtomicRef<Drawable> backgroundPressed;
-		AtomicRef<Drawable> backgroundHover;
+		ViewStateMap< Ref<Drawable> > backgrounds;
 		ScaleMode backgroundScaleMode;
 		Alignment backgroundAlignment;
 
-		AtomicRef<Pen> penBorder;
-		PenStyle borderStyle;
-		sl_real borderWidth;
-		Color borderColor;
+		ViewStateMap< Ref<Pen> > borders;
 
 		BoundShape boundShape;
 		Size boundRadius;
@@ -224,8 +220,6 @@ namespace slib
 
 		sl_bool flagValidHorz : 1;
 		sl_bool flagValidVert : 1;
-		sl_bool flagInitHorzScrollBar : 1;
-		sl_bool flagInitVertScrollBar : 1;
 		sl_bool flagDownContent : 1;
 
 		AtomicRef<ScrollBar> horz;

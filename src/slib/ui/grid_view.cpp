@@ -22,6 +22,7 @@
 
 #include "slib/ui/grid_view.h"
 
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/graphics/canvas.h"
 #include "slib/core/safe_static.h"
 
@@ -48,7 +49,7 @@ namespace slib
 
 	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), colspan(1), rowspan(1), width(0), height(0)
 	{
-		textColor[(sl_uint32)(CellState::Normal)] = Color::Black;
+		textColors.defaultValue = Color::Black;
 	}
 
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellParam)
@@ -667,23 +668,23 @@ namespace slib
 		} \
 	}
 
-#define DEFINE_SET_COLUMN_ATTR_SUB(ATTR, NAME) \
+#define DEFINE_SET_COLUMN_ATTR_SUB(...) \
 	{ \
 		ListElements<BodyCellProp> props(col.listBodyCell); \
 		for (sl_size i = 0; i < props.count; i++) { \
-			props[i].ATTR = NAME; \
+			props[i].__VA_ARGS__; \
 		} \
 	} \
 	{ \
 		ListElements<HeaderCellProp> props(col.listHeaderCell); \
 		for (sl_size i = 0; i < props.count; i++) { \
-			props[i].ATTR = NAME; \
+			props[i].__VA_ARGS__; \
 		} \
 	} \
 	{ \
 		ListElements<FooterCellProp> props(col.listFooterCell); \
 		for (sl_size i = 0; i < props.count; i++) { \
-			props[i].ATTR = NAME; \
+			props[i].__VA_ARGS__; \
 		} \
 	}
 
@@ -695,7 +696,7 @@ namespace slib
 			Column* pCol = m_columns.getPointerAt(iCol); \
 			if (pCol) { \
 				Column& col = *pCol; \
-				DEFINE_SET_COLUMN_ATTR_SUB(NAME, NAME) \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME = NAME) \
 				if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 					return; \
 				} \
@@ -708,7 +709,7 @@ namespace slib
 			ListElements<Column> columns(m_columns); \
 			for (sl_size k = 0; k < columns.count; k++) { \
 				Column& col = columns[k]; \
-				DEFINE_SET_COLUMN_ATTR_SUB(NAME, NAME) \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME = NAME) \
 			} \
 			if (SLIB_UI_UPDATE_MODE_IS_INIT(mode)) { \
 				return; \
@@ -734,23 +735,23 @@ namespace slib
 	DEFINE_GET_SET_CELL_ATTR(Alignment, Alignment, const Alignment&, align, 0)
 
 #define DEFINE_GET_SET_CELL_DRAWING_ATTR_SUB(SECTION, FUNC, RET, ARG, NAME, DEF) \
-	RET GridView::get##SECTION##FUNC(sl_uint32 iRow, sl_uint32 iCol, CellState state) \
+	RET GridView::get##SECTION##FUNC(sl_uint32 iRow, sl_uint32 iCol, ViewState state) \
 	{ \
 		ObjectLocker lock(this); \
 		SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 		if (prop) { \
-			return prop->NAME[(sl_uint32)state]; \
+			return prop->NAME##s.get(state); \
 		} \
 		return DEF; \
 	} \
-	void GridView::set##SECTION##FUNC(sl_int32 iRow, sl_int32 iCol, ARG NAME, CellState state, UIUpdateMode mode) \
+	void GridView::set##SECTION##FUNC(sl_int32 iRow, sl_int32 iCol, ARG NAME, ViewState state, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
 		if (iCol >= 0) { \
 			if (iRow >= 0) { \
 				SECTION##CellProp* prop = _get##SECTION##CellProp(iRow, iCol); \
 				if (prop) { \
-					prop->NAME[(sl_uint32)state] = NAME; \
+					prop->NAME##s.set(state, NAME); \
 					invalidate(mode); \
 				} \
 			} else { \
@@ -758,7 +759,7 @@ namespace slib
 				if (col) { \
 					ListElements<SECTION##CellProp> props(col->list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
-						props[i].NAME[(sl_uint32)state] = NAME; \
+						props[i].NAME##s.set(state, NAME); \
 					} \
 					invalidate(mode); \
 				} \
@@ -770,12 +771,12 @@ namespace slib
 				if (iRow >= 0) { \
 					SECTION##CellProp* prop = col.list##SECTION##Cell.getPointerAt(iRow); \
 					if (prop) { \
-						prop->NAME[(sl_uint32)state] = NAME; \
+						prop->NAME##s.set(state, NAME); \
 					} \
 				} else { \
 					ListElements<SECTION##CellProp> props(col.list##SECTION##Cell); \
 					for (sl_size i = 0; i < props.count; i++) { \
-						props[i].NAME[(sl_uint32)state] = NAME; \
+						props[i].NAME##s.set(state, NAME); \
 					} \
 				} \
 			} \
@@ -784,21 +785,21 @@ namespace slib
 	}
 
 #define DEFINE_SET_COLUMN_DRAWING_ATTR(FUNC, ARG, NAME) \
-	void GridView::setColumn##FUNC(sl_int32 iCol, ARG NAME, CellState state, UIUpdateMode mode) \
+	void GridView::setColumn##FUNC(sl_int32 iCol, ARG NAME, ViewState state, UIUpdateMode mode) \
 	{ \
 		ObjectLocker lock(this); \
 		if (iCol >= 0) { \
 			Column* pCol = m_columns.getPointerAt(iCol); \
 			if (pCol) { \
 				Column& col = *pCol; \
-				DEFINE_SET_COLUMN_ATTR_SUB(NAME[(sl_uint32)state], NAME) \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME##s.set(state, NAME)) \
 				invalidate(mode); \
 			} \
 		} else { \
 			ListElements<Column> columns(m_columns); \
 			for (sl_size k = 0; k < columns.count; k++) { \
 				Column& col = columns[k]; \
-				DEFINE_SET_COLUMN_ATTR_SUB(NAME[(sl_uint32)state], NAME) \
+				DEFINE_SET_COLUMN_ATTR_SUB(NAME##s.set(state, NAME)) \
 			} \
 			invalidate(mode); \
 		} \
@@ -1162,6 +1163,25 @@ namespace slib
 		return sl_false;
 	}
 
+	ViewState GridView::getCellState(Cell* cell)
+	{
+		ViewState state;
+		if (m_locationHover.match(cell)) {
+			if (isPressedState()) {
+				state = ViewState::Pressed;
+			} else {
+				state = ViewState::Hover;
+			}
+		} else {
+			state = ViewState::Normal;
+		}
+		if (m_locationSelected.match(cell)) {
+			return (ViewState)((int)state + (int)(ViewState::Selected));
+		} else {
+			return state;
+		}
+	}
+
 	SLIB_DEFINE_EVENT_HANDLER(GridView, ClickBody, UIEvent*, GridView::CellEventParam&)
 
 	void GridView::dispatchClickBody(UIEvent* ev, CellEventParam& param)
@@ -1421,27 +1441,14 @@ namespace slib
 		Rectangle frame((sl_real)x, (sl_real)y, (sl_real)(x + cell->width), (sl_real)(y + cell->height));
 		CanvasStateScope scope(canvas);
 		canvas->clipToRectangle(frame);
-		Drawable* background = sl_null;
-		Color color;
-		if (m_locationSelected.match(cell)) {
-			background = cell->background[(sl_uint32)(CellState::Selected)].get();
-			color = cell->textColor[(sl_uint32)(CellState::Selected)];
-		} else if (m_locationHover.match(cell)) {
-			background = cell->background[(sl_uint32)(CellState::Hover)].get();
-			color = cell->textColor[(sl_uint32)(CellState::Hover)];
-		}
-		if (!background) {
-			background = cell->background[(sl_uint32)(CellState::Normal)].get();
-		}
-		if (background) {
+		ViewState state = getCellState(cell);
+		Ref<Drawable> background = cell->backgrounds.evaluate(state);
+		if (background.isNotNull()) {
 			canvas->draw(frame, background);
-		}
-		if (color.isZero()) {
-			color = cell->textColor[(sl_uint32)(CellState::Normal)];
 		}
 		DrawCellParam param;
 		param.frame = frame;
-		param.textColor = color;
+		param.textColor = cell->textColors.evaluate(state);
 		cell->onDraw(canvas, param);
 	}
 

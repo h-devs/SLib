@@ -25,6 +25,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\sapp\sapp.h" />
     <ClInclude Include="..\..\src\sapp\sapp_document.h" />
+    <ClInclude Include="..\..\src\sapp\sapp_error.inc.h" />
     <ClInclude Include="..\..\src\sapp\sapp_resources.cpp.h" />
     <ClInclude Include="..\..\src\sapp\sapp_resources.h" />
     <ClInclude Include="..\..\src\sapp\sapp_util.cpp.h" />

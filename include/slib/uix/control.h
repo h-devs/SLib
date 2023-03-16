@@ -40,17 +40,8 @@ namespace slib
 	public:
 		void initXControl(View* view);
 
-	public:
-		Color getFocusedBorderColor();
-
-		void setFocusedBorderColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-	protected:
-		void drawXControlBorder(Canvas* canvas);
-
 	protected:
 		View* m_view;
-		Ref<Pen> m_focusedBorder;
 
 	};
 
@@ -65,9 +56,6 @@ namespace slib
 
 	protected:
 		void init() override;
-
-	protected:
-		void onDrawBorder(Canvas* canvas) override;
 
 	};
 

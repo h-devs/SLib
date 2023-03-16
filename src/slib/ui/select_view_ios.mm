@@ -136,7 +136,7 @@ namespace slib
 				view->selectItem(handle, view->getSelectedIndex());
 				[handle setTextAlignment:(TranslateAlignment(view->getGravity()))];
 				[handle setTextColor:(GraphicsPlatform::getUIColorFromColor(view->getTextColor()))];
-				SetBorder(handle, view->isBorder());
+				SetBorder(handle, view->hasBorder());
 				Color backColor = view->getBackgroundColor();
 				[handle setBackgroundColor:(backColor.isZero() ? nil : GraphicsPlatform::getUIColorFromColor(backColor))];
 				setHandleFont(handle, view->getFont());

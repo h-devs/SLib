@@ -69,7 +69,7 @@ namespace slib
 				if (view->isReadOnly()) {
 					setReadOnly(view, sl_true);
 				}
-				if (!(view->isBorder())) {
+				if (!(view->hasBorder())) {
 					setBorder(view, sl_false);
 				}
 				Color backColor = view->getBackgroundColor();

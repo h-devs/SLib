@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_TREE_VIEW
 
 #include "scroll_view.h"
+#include "view_state_map.h"
 
 #include "../core/string.h"
 #include "../core/function.h"
@@ -111,17 +112,11 @@ namespace slib
 
 		void setCustomView(const Ref<View>& view, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getTextColor();
+		Color getTextColor(ViewState state = ViewState::Default);
+
+		void setTextColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverTextColor();
-
-		void setHoverTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getSelectedTextColor();
-
-		void setSelectedTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getHeight();
 
@@ -153,9 +148,7 @@ namespace slib
 		AtomicRef<Drawable> m_iconClosed;
 		AtomicString m_text;
 		AtomicRef<View> m_customView;
-		Color m_textColor;
-		Color m_hoverTextColor;
-		Color m_selectedTextColor;
+		ViewStateMap<Color> m_textColors;
 		sl_ui_len m_height;
 
 		UIRect m_frame;
@@ -227,21 +220,21 @@ namespace slib
 
 		void setExpandedIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getSelectedItemBackgroundColor();
+		Ref<Drawable> getItemBackground(ViewState state = ViewState::Default);
 
-		void setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setItemBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getItemTextColor();
+		void setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Color getItemTextColor(ViewState state);
+
+		void setItemTextColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setItemTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverItemTextColor();
-
-		void setHoverItemTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getSelectedItemTextColor();
-
-		void setSelectedItemTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_ui_len getItemHeight();
 
@@ -284,6 +277,8 @@ namespace slib
 
 		void _makeLayoutItem(TreeViewItem* item, sl_ui_pos& top, sl_ui_pos left, sl_ui_pos right, sl_bool flagRoot);
 
+		ViewState _getItemState(TreeViewItem* item);
+
 		void _drawItem(Canvas* canvas, TreeViewItem* item, sl_bool flagRoot);
 
 		void _processMouseEvent(UIEvent* ev);
@@ -306,10 +301,8 @@ namespace slib
 		AtomicRef<Drawable> m_iconCollapsed;
 		AtomicRef<Drawable> m_iconExpanded;
 
-		Color m_selectedItemBackgroundColor;
-		Color m_itemTextColor;
-		Color m_hoverItemTextColor;
-		Color m_selectedItemTextColor;
+		ViewStateMap< Ref<Drawable> > m_itemBackgrounds;
+		ViewStateMap<Color> m_itemTextColors;
 
 		sl_ui_len m_itemHeight;
 		sl_ui_pos m_itemPadding;

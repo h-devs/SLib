@@ -184,21 +184,11 @@ public: \
 		void setEllipsize(EllipsizeMode ellipsizeMode, UIUpdateMode updateMode = UIUpdateMode::UpdateLayout);
 
 
-		Color getTextColor();
+		Color getTextColor(ViewState state = ViewState::Default);
+
+		void setTextColor(const Color& color, ViewState state, UIUpdateMode updateMode = UIUpdateMode::Redraw);
 
 		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-
-		Color getSelectedTextColor();
-
-		void setSelectedTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverTextColor();
-
-		void setHoverTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getFocusedTextColor();
-
-		void setFocusedTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void invalidateLabelAppearance(UIUpdateMode mode);
 
@@ -224,10 +214,7 @@ public: \
 		Alignment m_gravity;
 		EllipsizeMode m_ellipsizeMode;
 
-		Color m_textColor;
-		Color m_textColorSelected;
-		Color m_textColorHover;
-		Color m_textColorFocused;
+		ViewStateMap<Color> m_textColors;
 
 	};
 

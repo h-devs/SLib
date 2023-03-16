@@ -135,8 +135,10 @@ namespace slib
 		class Categories
 		{
 		public:
-			ButtonCategory categories[2];
-			Array<ButtonCategory> arrCategories;
+			Ref<Drawable> iconDefault[2];
+			Ref<Drawable> iconDisabled[2];
+			Ref<Drawable> iconHover[2];
+			Ref<Drawable> iconPressed[2];
 
 		public:
 			Categories()
@@ -154,33 +156,37 @@ namespace slib
 				Color colorCheckDisabled = Color(90, 90, 90);
 				Color colorCheckHover = Color(0, 80, 200);
 				Color colorCheckDown = colorCheckHover;
-				categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Color::zero());
-				categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Color::zero());
-				categories[0].properties[(int)ButtonState::Focused].icon =
-					categories[0].properties[(int)ButtonState::FocusedHover].icon =
-					categories[0].properties[(int)ButtonState::Hover].icon =
-						new Icon(penHover, colorBackHover, Color::zero());
-				categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Color::zero());
+				iconDefault[0] = new Icon(penNormal, colorBackNormal, Color::zero());
+				iconDisabled[0] = new Icon(penDisabled, colorBackDisabled, Color::zero());
+				iconHover[0] = new Icon(penHover, colorBackHover, Color::zero());
+				iconPressed[0] = new Icon(penDown, colorBackDown, Color::zero());
 
-				categories[1] = categories[0];
-				categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, colorCheckNormal);
-				categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
-				categories[1].properties[(int)ButtonState::Focused].icon =
-					categories[1].properties[(int)ButtonState::FocusedHover].icon =
-					categories[1].properties[(int)ButtonState::Hover].icon =
-						new Icon(penHover, colorBackHover, colorCheckHover);
-				categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, colorCheckDown);
-
-				arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
+				iconDefault[1] = new Icon(penNormal, colorBackNormal, colorCheckNormal);
+				iconDisabled[1] = new Icon(penDisabled, colorBackDisabled, colorCheckDisabled);
+				iconHover[1] = new Icon(penHover, colorBackHover, colorCheckHover);
+				iconPressed[1] = new Icon(penDown, colorBackDown, colorCheckDown);
 			}
 
-			static Array<ButtonCategory> getInitialCategories()
+			static Array<ButtonCategory> createDefault()
 			{
 				SLIB_SAFE_LOCAL_STATIC(Categories, s)
 				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 					return sl_null;
 				}
-				return s.arrCategories;
+				Array<ButtonCategory> ret = Array<ButtonCategory>::create(2);
+				if (ret.isNotNull()) {
+					ButtonCategory* c = ret.getData();
+					for (sl_size i = 0; i < 2; i++) {
+						c[i].icons.defaultValue = s.iconDefault[i];
+						c[i].icons.set(ViewState::Disabled, s.iconDisabled[i]);
+						c[i].icons.set(ViewState::Hover, s.iconHover[i]);
+						c[i].icons.set(ViewState::Focused, s.iconHover[i]);
+						c[i].icons.set(ViewState::Pressed, s.iconPressed[i]);
+						c[i].icons.set(ViewState::FocusedPressed, s.iconPressed[i]);
+					}
+					return ret;
+				}
+				return sl_null;
 			}
 
 		};
@@ -189,7 +195,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(RadioButtonCell, ViewCell)
 
-	RadioButtonCell::RadioButtonCell() : RadioButtonCell(Categories::getInitialCategories().duplicate())
+	RadioButtonCell::RadioButtonCell() : RadioButtonCell(Categories::createDefault())
 	{
 	}
 

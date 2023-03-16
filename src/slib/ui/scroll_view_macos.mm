@@ -69,7 +69,7 @@ namespace slib
 
 				[handle setHasHorizontalScroller:(view->isHorizontalScrollBarVisible() ? YES : NO)];
 				[handle setHasVerticalScroller:(view->isVerticalScrollBarVisible() ? YES : NO)];
-				[handle setBorderType:(view->isBorder() ? NSBezelBorder : NSNoBorder)];
+				[handle setBorderType:(view->hasBorder() ? NSBezelBorder : NSNoBorder)];
 				_setBackgroundColor(handle, view->getBackgroundColor());
 				applyContent(view, handle, view->getContentView());
 				_scrollTo(handle, view->getScrollX(), view->getScrollY(), sl_false);

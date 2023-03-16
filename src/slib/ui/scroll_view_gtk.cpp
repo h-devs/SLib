@@ -56,7 +56,7 @@ namespace slib
 				GtkScrolledWindow* handle = getHandle();
 
 				setScrollBarsVisible(view, view->isHorizontalScrollBarVisible(), view->isVerticalScrollBarVisible());
-				setBorder(view, view->isBorder());
+				setBorder(view, view->hasBorder());
 				setBackgroundColor(view, view->getBackgroundColor());
 				setContentView(view, view->getContentView());
 				scrollTo(view, view->getScrollX(), view->getScrollY(), sl_false);

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_TAB_VIEW
 
 #include "view.h"
+#include "view_state_map.h"
 
 #include "../core/string.h"
 
@@ -80,43 +81,29 @@ namespace slib
 
 		void setBarBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setBarBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBarBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Ref<Drawable> getContentBackground();
 
 		void setContentBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setContentBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setContentBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getTabBackground();
+		Ref<Drawable> getTabBackground(ViewState state = ViewState::Default);
+
+		void setTabBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setTabBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTabBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getSelectedTabBackground();
+		void setTabBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setSelectedTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		Color getLabelColor(ViewState state = ViewState::Default);
 
-		void setSelectedTabBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getHoverTabBackground();
-
-		void setHoverTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setHoverTabBackground(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getLabelColor();
+		void setLabelColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getSelectedLabelColor();
-
-		void setSelectedLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverLabelColor();
-
-		void setHoverLabelColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		Alignment getTabAlignment();
 
@@ -200,6 +187,8 @@ namespace slib
 
 		void _refreshSize();
 
+		ViewState _getTabState(sl_uint32 index);
+
 	protected:
 		class Item
 		{
@@ -223,12 +212,9 @@ namespace slib
 
 		AtomicRef<Drawable> m_barBackground;
 		AtomicRef<Drawable> m_contentBackground;
-		AtomicRef<Drawable> m_tabBackground;
-		AtomicRef<Drawable> m_selectedTabBackground;
-		AtomicRef<Drawable> m_hoverTabBackground;
-		Color m_labelColor;
-		Color m_selectedLabelColor;
-		Color m_hoverLabelColor;
+		ViewStateMap< Ref<Drawable> > m_tabBackgrounds;
+		ViewStateMap<Color> m_labelColors;
+
 		Alignment m_tabAlignment;
 		sl_ui_pos m_tabPaddingLeft;
 		sl_ui_pos m_tabPaddingTop;

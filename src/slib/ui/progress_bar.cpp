@@ -205,12 +205,12 @@ namespace slib
 		invalidate(mode);
 	}
 
-	Ref<Drawable> ProgressBar::getTrackDrawable()
+	Ref<Drawable> ProgressBar::getTrack()
 	{
 		return m_track;
 	}
 
-	void ProgressBar::setTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ProgressBar::setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_track = drawable;
 		invalidate(mode);
@@ -218,15 +218,15 @@ namespace slib
 
 	void ProgressBar::setTrackColor(const Color& color, UIUpdateMode mode)
 	{
-		setTrackDrawable(ColorDrawable::create(color), mode);
+		setTrack(ColorDrawable::create(color), mode);
 	}
 
-	Ref<Drawable> ProgressBar::getProgressDrawable()
+	Ref<Drawable> ProgressBar::getProgress()
 	{
 		return m_progress;
 	}
 
-	void ProgressBar::setProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ProgressBar::setProgress(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_progress = drawable;
 		invalidate(mode);
@@ -234,15 +234,15 @@ namespace slib
 
 	void ProgressBar::setProgressColor(const Color &color, UIUpdateMode mode)
 	{
-		setProgressDrawable(ColorDrawable::create(color), mode);
+		setProgress(ColorDrawable::create(color), mode);
 	}
 
-	Ref<Drawable> ProgressBar::getSecondaryProgressDrawable()
+	Ref<Drawable> ProgressBar::getSecondaryProgress()
 	{
 		return m_progress2;
 	}
 
-	void ProgressBar::setSecondaryProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void ProgressBar::setSecondaryProgress(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_progress2 = drawable;
 		invalidate(mode);
@@ -250,7 +250,7 @@ namespace slib
 
 	void ProgressBar::setSecondaryProgressColor(const Color &color, UIUpdateMode mode)
 	{
-		setSecondaryProgressDrawable(ColorDrawable::create(color), mode);
+		setSecondaryProgress(ColorDrawable::create(color), mode);
 	}
 
 	void ProgressBar::onDraw(Canvas* canvas)

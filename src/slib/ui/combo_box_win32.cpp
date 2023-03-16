@@ -177,7 +177,7 @@ namespace slib
 					if (font.isNotNull()) {
 						sl_ui_len height = (sl_ui_len)(font->getFontHeight());
 						height += 4;
-						if (view->isBorder()) {
+						if (view->hasBorder()) {
 							height += 2;
 						}
 						return height;

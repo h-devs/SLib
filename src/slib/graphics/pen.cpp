@@ -80,6 +80,27 @@ namespace slib
 		return ret;
 	}
 
+	Ref<Pen> Pen::create(const PenDesc& desc, const Ref<Pen>& orignal)
+	{
+		Ref<Pen> ret = new Pen;
+		if (ret.isNotNull()) {
+			PenDesc& descNew = ret->m_desc;
+			if (orignal.isNotNull()) {
+				orignal->getDesc(descNew);
+			}
+			if (desc.style != PenStyle::Default) {
+				descNew.style = desc.style;
+			}
+			if (desc.width >= 0.0f) {
+				descNew.width = desc.width;
+			}
+			if (desc.color.isNotZero()) {
+				descNew.color = desc.color;
+			}
+		}
+		return ret;
+	}
+
 	Ref<Pen> Pen::create(PenStyle style, sl_real width, const Color& color)
 	{
 		return create(PenDesc(style, width, color));

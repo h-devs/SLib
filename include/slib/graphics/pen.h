@@ -64,6 +64,8 @@ namespace slib
 
 		static Ref<Pen> create(const PenDesc& desc);
 
+		static Ref<Pen> create(const PenDesc& desc, const Ref<Pen>& original);
+
 		static Ref<Pen> create(PenStyle style, sl_real width, const Color& color);
 
 		static Ref<Pen> createSolidPen(sl_real width, const Color& color);

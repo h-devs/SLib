@@ -59,5 +59,8 @@
     <ClInclude Include="..\..\src\sapp\sapp_values.cpp.h">
       <Filter>src\sapp</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\sapp\sapp_error.inc.h">
+      <Filter>src\sapp</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

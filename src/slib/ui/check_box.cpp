@@ -169,8 +169,10 @@ namespace slib
 		class Categories
 		{
 		public:
-			ButtonCategory categories[2];
-			Array<ButtonCategory> arrCategories;
+			Ref<Icon> iconDefault[2];
+			Ref<Icon> iconDisabled[2];
+			Ref<Icon> iconHover[2];
+			Ref<Icon> iconPressed[2];
 
 		public:
 			Categories()
@@ -188,34 +190,38 @@ namespace slib
 				Ref<Pen> penCheckHover = Pen::createSolidPen(w * 2, Color(0, 80, 200));
 				Ref<Pen> penCheckDown = penCheckHover;
 				Ref<Pen> penCheckDisabled = Pen::createSolidPen(w * 2, Color(90, 90, 90));
-				categories[0].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, Ref<Pen>::null());
-				categories[0].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, Ref<Pen>::null());
-				categories[0].properties[(int)ButtonState::Focused].icon =
-					categories[0].properties[(int)ButtonState::FocusedHover].icon =
-					categories[0].properties[(int)ButtonState::Hover].icon =
-					new Icon(penHover, colorBackHover, Ref<Pen>::null());
-				categories[0].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, Ref<Pen>::null());
+				iconDefault[0] = new Icon(penNormal, colorBackNormal, Ref<Pen>::null());
+				iconDisabled[0] = new Icon(penDisabled, colorBackDisabled, Ref<Pen>::null());
+				iconHover[0] = new Icon(penHover, colorBackHover, Ref<Pen>::null());
+				iconPressed[0] = new Icon(penDown, colorBackDown, Ref<Pen>::null());
 
-				categories[1] = categories[0];
-				categories[1].properties[(int)ButtonState::Normal].icon = new Icon(penNormal, colorBackNormal, penCheckNormal);
-				categories[1].properties[(int)ButtonState::Disabled].icon = new Icon(penDisabled, colorBackDisabled, penCheckDisabled);
-				categories[1].properties[(int)ButtonState::Focused].icon =
-					categories[1].properties[(int)ButtonState::FocusedHover].icon =
-					categories[1].properties[(int)ButtonState::Hover].icon =
-					new Icon(penHover, colorBackHover, penCheckHover);
-				categories[1].properties[(int)ButtonState::Pressed].icon = new Icon(penDown, colorBackDown, penCheckDown);
-
-				arrCategories = Array<ButtonCategory>::createStatic(categories, 2);
+				iconDefault[1] = new Icon(penNormal, colorBackNormal, penCheckNormal);
+				iconDisabled[1] = new Icon(penDisabled, colorBackDisabled, penCheckDisabled);
+				iconHover[1] = new Icon(penHover, colorBackHover, penCheckHover);
+				iconPressed[1] = new Icon(penDown, colorBackDown, penCheckDown);
 			}
 
 		public:
-			static Array<ButtonCategory> getInitialCategories()
+			static Array<ButtonCategory> createDefault()
 			{
 				SLIB_SAFE_LOCAL_STATIC(Categories, s)
 				if (SLIB_SAFE_STATIC_CHECK_FREED(s)) {
 					return sl_null;
 				}
-				return s.arrCategories;
+				Array<ButtonCategory> ret = Array<ButtonCategory>::create(2);
+				if (ret.isNotNull()) {
+					ButtonCategory* c = ret.getData();
+					for (sl_size i = 0; i < 2; i++) {
+						c[i].icons.defaultValue = s.iconDefault[i];
+						c[i].icons.set(ViewState::Disabled, s.iconDisabled[i]);
+						c[i].icons.set(ViewState::Hover, s.iconHover[i]);
+						c[i].icons.set(ViewState::Focused, s.iconHover[i]);
+						c[i].icons.set(ViewState::Pressed, s.iconPressed[i]);
+						c[i].icons.set(ViewState::FocusedPressed, s.iconPressed[i]);
+					}
+					return ret;
+				}
+				return sl_null;
 			}
 		};
 
@@ -223,7 +229,7 @@ namespace slib
 
 	SLIB_DEFINE_OBJECT(CheckBoxCell, ButtonCell)
 
-	CheckBoxCell::CheckBoxCell(): CheckBoxCell(Categories::getInitialCategories().duplicate())
+	CheckBoxCell::CheckBoxCell(): CheckBoxCell(Categories::createDefault())
 	{
 	}
 

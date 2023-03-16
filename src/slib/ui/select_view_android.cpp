@@ -86,7 +86,7 @@ namespace slib
 
 				JSelectView::setAlignment.callBoolean(sl_null, jhandle, view->getGravity().value);
 				JSelectView::setTextColor.callBoolean(sl_null, jhandle, view->getTextColor().getARGB());
-				JSelectView::setBorder.callBoolean(sl_null, jhandle, view->isBorder());
+				JSelectView::setBorder.callBoolean(sl_null, jhandle, view->hasBorder());
 				JSelectView::setBackgroundColor.callBoolean(sl_null, jhandle, view->getBackgroundColor().getARGB());
 				setFont(view, view->getFont());
 				refreshItems(view);

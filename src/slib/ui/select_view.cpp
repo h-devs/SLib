@@ -109,7 +109,7 @@ namespace slib
 		if (m_cell.isNull()) {
 			Ref<SelectSwitchCell> cell = new SelectSwitchCell;
 			if (cell.isNotNull()) {
-				cell->setView(this);
+				cell->setView(this, sl_true);
 				cell->initLabelList(this);
 				cell->gravity = m_gravity;
 				cell->textColor = m_textColor;
@@ -237,7 +237,7 @@ namespace slib
 	{
 		View::init();
 
-		m_cell->setView(this);
+		m_cell->setView(this, sl_true);
 		m_cell->initLabelList(this);
 		m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
 	}

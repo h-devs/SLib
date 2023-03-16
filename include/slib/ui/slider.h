@@ -24,6 +24,7 @@
 #define CHECKHEADER_SLIB_UI_SLIDER
 
 #include "progress_bar.h"
+#include "view_state_map.h"
 
 namespace slib
 {
@@ -38,23 +39,15 @@ namespace slib
 		~Slider();
 
 	public:
-		Ref<Drawable> getThumbDrawable();
+		Ref<Drawable> getThumb(ViewState state = ViewState::Default);
 
-		void setThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setThumbColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getPressedThumbDrawable();
-
-		void setPressedThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setPressedThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getHoverThumbDrawable();
-
-		void setHoverThumbDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setHoverThumbColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		const UISize& getThumbSize();
@@ -105,14 +98,15 @@ namespace slib
 
 		void getRegions(UIRect& outTrack, UIRect& outProgress, UIRect& outSecondaryProgress, UIRect& outThumb, UIRect& outSecondaryThumb);
 
-		void setHoverThumb(int index);
-
 		void changeValue(float value, sl_bool flagChange2);
 
 	protected:
-		AtomicRef<Drawable> m_thumb;
-		AtomicRef<Drawable> m_pressedThumb;
-		AtomicRef<Drawable> m_hoverThumb;
+		ViewState _getThumbState(int index);
+
+		void _setHoverThumb(int index, UIAction action);
+
+	protected:
+		ViewStateMap< Ref<Drawable> > m_thumbs;
 
 		UISize m_thumbSize;
 

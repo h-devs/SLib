@@ -83,21 +83,21 @@ namespace slib
 		void setReversed(sl_bool flagReversed, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
-		Ref<Drawable> getTrackDrawable();
+		Ref<Drawable> getTrack();
 
-		void setTrackDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTrackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getProgressDrawable();
+		Ref<Drawable> getProgress();
 
-		void setProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setProgress(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setProgressColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Drawable> getSecondaryProgressDrawable();
+		Ref<Drawable> getSecondaryProgress();
 
-		void setSecondaryProgressDrawable(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSecondaryProgress(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setSecondaryProgressColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 

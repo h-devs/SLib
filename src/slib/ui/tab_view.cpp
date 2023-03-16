@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2019 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #include "slib/ui/tab_view.h"
 
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/ui/core.h"
 #include "slib/ui/cursor.h"
 #include "slib/graphics/canvas.h"
@@ -61,12 +62,14 @@ namespace slib
 		m_indexHover = -1;
 
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
-		setBarBackground(Color(230, 230, 230), UIUpdateMode::Init);
-		setSelectedTabBackground(Color(150, 150, 150), UIUpdateMode::Init);
-		setHoverTabBackground(Color(210, 210, 210), UIUpdateMode::Init);
-		m_labelColor = Color(50, 50, 50);
-		m_selectedLabelColor = Color::Black;
-		m_hoverLabelColor = Color(0, 20, 250);
+		
+		m_barBackground = Drawable::createColorDrawable(Color(230, 230, 230));
+		m_tabBackgrounds.set(ViewState::Selected, Drawable::createColorDrawable(Color(150, 150, 150)));
+		m_tabBackgrounds.set(ViewState::Hover, Drawable::createColorDrawable(Color(210, 210, 210)));
+
+		m_labelColors.defaultValue = Color(50, 50, 50);
+		m_labelColors.set(ViewState::Selected, Color::Black);
+		m_labelColors.set(ViewState::Hover, Color(0, 20, 250));
 
 		m_orientation = LayoutOrientation::Horizontal;
 		m_tabWidth = 0;
@@ -359,7 +362,7 @@ namespace slib
 		_invalidateTabBar(mode);
 	}
 
-	void TabView::setBarBackground(const Color& color, UIUpdateMode mode)
+	void TabView::setBarBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
 		setBarBackground(Drawable::createColorDrawable(color), mode);
 	}
@@ -375,89 +378,52 @@ namespace slib
 		invalidate(mode);
 	}
 
-	void TabView::setContentBackground(const Color& color, UIUpdateMode mode)
+	void TabView::setContentBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
 		setContentBackground(Drawable::createColorDrawable(color), mode);
 	}
 
-	Ref<Drawable> TabView::getTabBackground()
+	Ref<Drawable> TabView::getTabBackground(ViewState state)
 	{
-		return m_tabBackground;
+		return m_tabBackgrounds.get(state);
+	}
+
+	void TabView::setTabBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	{
+		m_tabBackgrounds.set(state, drawable);
+		_invalidateTabBar(mode);
 	}
 
 	void TabView::setTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		m_tabBackground = drawable;
+		m_tabBackgrounds.defaultValue = drawable;
 		_invalidateTabBar(mode);
 	}
 
-	void TabView::setTabBackground(const Color& color, UIUpdateMode mode)
+	void TabView::setTabBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setTabBackground(Drawable::createColorDrawable(color), state, mode);
+	}
+
+	void TabView::setTabBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
 		setTabBackground(Drawable::createColorDrawable(color), mode);
 	}
 
-	Ref<Drawable> TabView::getSelectedTabBackground()
+	Color TabView::getLabelColor(ViewState state)
 	{
-		return m_selectedTabBackground;
+		return m_labelColors.get(state);
 	}
 
-	void TabView::setSelectedTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
+	void TabView::setLabelColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		m_selectedTabBackground = drawable;
+		m_labelColors.set(state, color);
 		_invalidateTabBar(mode);
-	}
-
-	void TabView::setSelectedTabBackground(const Color& color, UIUpdateMode mode)
-	{
-		setSelectedTabBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Ref<Drawable> TabView::getHoverTabBackground()
-	{
-		return m_hoverTabBackground;
-	}
-
-	void TabView::setHoverTabBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
-	{
-		m_hoverTabBackground = drawable;
-		_invalidateTabBar(mode);
-	}
-
-	void TabView::setHoverTabBackground(const Color& color, UIUpdateMode mode)
-	{
-		setHoverTabBackground(Drawable::createColorDrawable(color), mode);
-	}
-
-	Color TabView::getLabelColor()
-	{
-		return m_labelColor;
 	}
 
 	void TabView::setLabelColor(const Color& color, UIUpdateMode mode)
 	{
-		m_labelColor = color;
-		_invalidateTabBar(mode);
-	}
-
-	Color TabView::getSelectedLabelColor()
-	{
-		return m_selectedLabelColor;
-	}
-
-	void TabView::setSelectedLabelColor(const Color& color, UIUpdateMode mode)
-	{
-		m_selectedLabelColor = color;
-		_invalidateTabBar(mode);
-	}
-
-	Color TabView::getHoverLabelColor()
-	{
-		return m_hoverLabelColor;
-	}
-
-	void TabView::setHoverLabelColor(const Color& color, UIUpdateMode mode)
-	{
-		m_hoverLabelColor = color;
+		m_labelColors.defaultValue = color;
 		_invalidateTabBar(mode);
 	}
 
@@ -753,30 +719,32 @@ namespace slib
 		}
 	}
 
+	ViewState TabView::_getTabState(sl_uint32 index)
+	{
+		ViewState state;
+		if (m_indexHover == (sl_int32)index) {
+			if (isPressedState()) {
+				state = ViewState::Pressed;
+			} else {
+				state = ViewState::Hover;
+			}
+		} else {
+			state = ViewState::Normal;
+		}
+		if (m_indexSelected == index) {
+			return (ViewState)((int)state + (int)(ViewState::Selected));
+		} else {
+			return state;
+		}
+	}
+
 	void TabView::onDrawTab(Canvas* canvas, const UIRect& rect, sl_uint32 index, const Ref<Drawable>& icon, const String& label)
 	{
 		UIRect rc = getTabRegion(index);
 
-		Color labelColor;
-		Ref<Drawable> background;
-
-		if (m_indexSelected == index) {
-			background = m_selectedTabBackground;
-			labelColor = m_selectedLabelColor;
-		} else if (m_indexHover == (sl_int32)index) {
-			background = m_hoverTabBackground;
-			labelColor = m_hoverLabelColor;
-		} else {
-			background = m_tabBackground;
-			labelColor = m_labelColor;
-		}
-
-		if (background.isNull()) {
-			background = m_tabBackground;
-		}
-		if (labelColor.isZero()) {
-			labelColor = m_labelColor;
-		}
+		ViewState state = _getTabState(index);
+		Color labelColor = m_labelColors.evaluate(state);
+		Ref<Drawable> background = m_tabBackgrounds.evaluate(state);
 
 		if (background.isNotNull()) {
 			canvas->draw(rc, background);

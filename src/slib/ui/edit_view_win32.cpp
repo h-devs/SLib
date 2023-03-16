@@ -268,7 +268,7 @@ namespace slib
 					if (font.isNotNull()) {
 						sl_ui_len height = nLines * (sl_ui_len)(font->getFontHeight());
 						height += 4;
-						if (view->isBorder()) {
+						if (view->hasBorder()) {
 							height += 2;
 						}
 						return height;
@@ -578,7 +578,7 @@ namespace slib
 					SendMessageW(handle, EM_REQUESTRESIZE, 0, 0);
 					sl_ui_len height = m_heightRequested;
 					if (height > 0) {
-						if (view->isBorder()) {
+						if (view->hasBorder()) {
 							height += 8;
 						} else {
 							height += 2;

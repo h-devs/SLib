@@ -304,6 +304,13 @@ namespace slib
 		sl_bool hitTest(const UIPoint& point);
 
 
+		ViewState getState();
+
+		sl_bool isRedrawingOnChangeState();
+
+		void setRedrawingOnChangeState(sl_bool flag = sl_true);
+
+
 		sl_bool isFocusable();
 
 		void setFocusable(sl_bool flagFocusable = sl_true);
@@ -751,29 +758,17 @@ namespace slib
 		UIRectf convertCoordinateToParent(const UIRectf& rectView);
 
 
-		Ref<Drawable> getBackground();
+		Ref<Drawable> getBackground(ViewState state = ViewState::Default);
+
+		void setBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getBackgroundColor();
+		Color getBackgroundColor(ViewState state = ViewState::Default);
+
+		void setBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getPressedBackground();
-
-		void setPressedBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getPressedBackgroundColor();
-
-		void setPressedBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Ref<Drawable> getHoverBackground();
-
-		void setHoverBackground(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		Color getHoverBackgroundColor();
-
-		void setHoverBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		ScaleMode getBackgroundScaleMode();
 
@@ -783,27 +778,37 @@ namespace slib
 
 		void setBackgroundAlignment(const Alignment& align, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Ref<Pen> getBorder();
+		Ref<Pen> getBorder(ViewState state = ViewState::Default);
+
+		void setBorder(const Ref<Pen>& pen, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorder(const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setBorder(const PenDesc& desc, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		void setBorder(const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		PenStyle getBorderStyle();
+		PenStyle getBorderStyle(ViewState state = ViewState::Default);
+
+		void setBorderStyle(PenStyle style, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorderStyle(PenStyle style, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_real getBorderWidth();
+		sl_real getBorderWidth(ViewState state = ViewState::Default);
+
+		void setBorderWidth(sl_real width, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorderWidth(sl_real width, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		Color getBorderColor();
+		Color getBorderColor(ViewState state = ViewState::Default);
+
+		void setBorderColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setBorderColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool isBorder();
-
 		void setBorder(sl_bool flagBorder, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		sl_bool hasBorder();
 
 		BoundShape getBoundShape();
 
@@ -1095,11 +1100,19 @@ namespace slib
 
 		Ref<ScrollBar> getHorizontalScrollBar();
 
-		Ref<ScrollBar> getVerticalScrollBar();
-
 		void setHorizontalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		void setHorizontalScrollBarThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setHorizontalScrollBarTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Ref<ScrollBar> getVerticalScrollBar();
+
 		void setVerticalScrollBar(const Ref<ScrollBar>& bar, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setVerticalScrollBarThumb(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setVerticalScrollBarTrack(const Ref<Drawable>& drawable, ViewState state = ViewState::Default, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isHorizontalScrollBarVisible();
 
@@ -1320,7 +1333,13 @@ namespace slib
 		Ref<GestureDetector> getGestureDetector();
 
 
-		Ref<Drawable> getCurrentBackground();
+		Ref<Drawable> getFinalBackground(ViewState state, sl_bool* outFlagReturnDefault = sl_null);
+
+		virtual Ref<Drawable> getCurrentBackground();
+
+		Ref<Pen> getFinalBorder(ViewState state, sl_bool* outFlagReturnDefault = sl_null);
+
+		virtual Ref<Pen> getCurrentBorder();
 
 		void drawBackground(Canvas* canvas, const Ref<Drawable>& background);
 
@@ -1495,6 +1514,8 @@ namespace slib
 
 		void _updateInstanceFrames();
 
+		sl_bool _canRedrawOnChangeState();
+
 		void _setFocus(sl_bool flagFocused, sl_bool flagApplyInstance, UIUpdateMode mode);
 
 		void _setFocusedFlag(sl_bool flagFocused, sl_bool flagApplyInstance);
@@ -1530,8 +1551,6 @@ namespace slib
 		void _applyCalcTransform(UIUpdateMode mode);
 
 		void _applyFinalTransform(UIUpdateMode mode);
-
-		void _refreshBorderPen(UIUpdateMode mode);
 
 		void _setFontInvalidateChildren(const Ref<Font>& font);
 
@@ -1619,6 +1638,7 @@ namespace slib
 		sl_bool m_flagCurrentCreatingInstance : 1;
 		sl_bool m_flagInvalidLayout : 1;
 		sl_bool m_flagNeedApplyLayout : 1;
+		sl_bool m_flagRedrawingOnChangeState : 1;
 		sl_bool m_flagFocused : 1;
 		sl_bool m_flagPressed : 1;
 		sl_bool m_flagHover : 1;
@@ -1799,9 +1819,11 @@ namespace slib
 		~ViewCell();
 
 	public:
+		sl_bool isServingAsView();
+
 		Ref<View> getView();
 
-		void setView(const Ref<View>& view);
+		void setView(const Ref<View>& view, sl_bool flagServingAsView);
 
 
 		UIRect getFrame();
@@ -1813,21 +1835,23 @@ namespace slib
 		sl_ui_len getHeight();
 
 
+		ViewState getState();
+
 		sl_bool isEnabled();
 
-		void setEnabled(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setEnabled(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isFocused();
 
-		void setFocused(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setFocused(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isPressedState();
 
-		void setPressedState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setPressedState(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		sl_bool isHoverState();
 
-		void setHoverState(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setHoverState(sl_bool flag = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
 		Ref<Font> getFont();
@@ -1850,7 +1874,7 @@ namespace slib
 		Ref<Timer> startTimer(const Function<void(Timer*)>& task, sl_uint32 interval_ms);
 
 	protected:
-		void invalidatePressedState(UIEvent* ev);
+		void updateState(UIEvent* ev);
 
 	public:
 		virtual void onDraw(Canvas* canvas);
@@ -1870,13 +1894,8 @@ namespace slib
 		virtual void onMeasure(UISize& size, sl_bool flagHorizontalWrapping, sl_bool flagVerticalWrapping);
 
 	protected:
-		WeakRef<View> m_view;
-
-		sl_bool m_flagDefinedFrame : 1;
-		sl_bool m_flagDefinedEnabled : 1;
-		sl_bool m_flagDefinedFocused : 1;
-		sl_bool m_flagDefinedPressed : 1;
-		sl_bool m_flagDefinedHover : 1;
+		AtomicWeakRef<View> m_view;
+		sl_bool m_flagServingAsView : 1;
 
 		sl_bool m_flagEnabled : 1;
 		sl_bool m_flagFocused : 1;
@@ -1885,7 +1904,7 @@ namespace slib
 
 		UIRect m_frame;
 
-		Ref<Font> m_font;
+		AtomicRef<Font> m_font;
 
 	};
 

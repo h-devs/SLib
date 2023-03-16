@@ -250,18 +250,29 @@ namespace slib
 
 	})
 
-	enum class ButtonState
+	enum class ViewState
 	{
 		Default = 0,
 		Normal = 1,
 		Hover = 2,
-		Focused = 3,
-		FocusedHover = 4,
-		Pressed = 5,
-		Disabled = 6,
-
-		Count = 7
+		Pressed = 3,
+		Disabled = 4,
+		Focused = 5,
+		FocusedNormal = 6,
+		FocusedHover = 7,
+		FocusedPressed = 8,
+		Selected = 10,
+		SelectedNormal = 11,
+		SelectedHover = 12,
+		SelectedPressed = 13,
 	};
+
+#define SLIB_VIEW_STATE_IS_DEFAULT(mode) (((int)(mode)) % 5 == ((int)(ViewState::Default)))
+#define SLIB_VIEW_STATE_IS_NORMAL(mode) (((int)(mode)) % 5 == ((int)(ViewState::Normal)))
+#define SLIB_VIEW_STATE_IS_HOVER(mode) (((int)(mode)) % 5 == ((int)(ViewState::Hover)))
+#define SLIB_VIEW_STATE_IS_PRESSED(mode) (((int)(mode)) % 5 == ((int)(ViewState::Pressed)))
+#define SLIB_VIEW_STATE_IS_FOCUSED(mode) (mode >= ViewState::Focused && mode <= ViewState::FocusedPressed)
+#define SLIB_VIEW_STATE_IS_SELECTED(mode) (mode >= ViewState::Selected && mode <= ViewState::SelectedPressed)
 
 	enum class UIUpdateMode
 	{

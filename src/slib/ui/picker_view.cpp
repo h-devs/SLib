@@ -129,7 +129,7 @@ namespace slib
 		if (m_cell.isNull()) {
 			Ref<PickerViewCell> cell = new PickerViewCell;
 			if (cell.isNotNull()) {
-				cell->setView(this);
+				cell->setView(this, sl_true);
 				cell->initLabelList(this);
 				cell->textColor = m_textColor;
 				cell->lineCount = m_lineCount;

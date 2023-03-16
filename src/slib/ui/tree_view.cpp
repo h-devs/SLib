@@ -22,6 +22,7 @@
 
 #include "slib/ui/tree_view.h"
 
+#include "slib/ui/priv/view_state_map.h"
 #include "slib/graphics/canvas.h"
 
 namespace slib
@@ -65,9 +66,6 @@ namespace slib
 	{
 		m_level = 0;
 		m_flagOpened = sl_false;
-		m_textColor = Color::zero();
-		m_hoverTextColor = Color::zero();
-		m_selectedTextColor = Color::zero();
 		m_height = 0;
 
 		m_frame.setZero();
@@ -345,36 +343,20 @@ namespace slib
 		_relayoutTree(mode);
 	}
 
-	Color TreeViewItem::getTextColor()
+	Color TreeViewItem::getTextColor(ViewState state)
 	{
-		return m_textColor;
+		return m_textColors.get(state);
+	}
+
+	void TreeViewItem::setTextColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		m_textColors.set(state, color);
+		_redrawTree(mode);
 	}
 
 	void TreeViewItem::setTextColor(const Color& color, UIUpdateMode mode)
 	{
-		m_textColor = color;
-		_redrawTree(mode);
-	}
-
-	Color TreeViewItem::getHoverTextColor()
-	{
-		return m_hoverTextColor;
-	}
-
-	void TreeViewItem::setHoverTextColor(const Color& color, UIUpdateMode mode)
-	{
-		m_hoverTextColor = color;
-		_redrawTree(mode);
-	}
-
-	Color TreeViewItem::getSelectedTextColor()
-	{
-		return m_selectedTextColor;
-	}
-
-	void TreeViewItem::setSelectedTextColor(const Color& color, UIUpdateMode mode)
-	{
-		m_selectedTextColor = color;
+		m_textColors.defaultValue = color;
 		_redrawTree(mode);
 	}
 
@@ -498,10 +480,10 @@ namespace slib
 
 		m_flagInvalidTreeLayout = sl_true;
 
-		m_selectedItemBackgroundColor = Color(0, 0, 0, 50);
-		m_itemTextColor = Color::Black;
-		m_hoverItemTextColor = Color(0, 0, 200);
-		m_selectedItemTextColor = Color(0, 0, 200);
+		m_itemBackgrounds.set(ViewState::Selected, Drawable::createColorDrawable(Color(0, 0, 0, 50)));
+		m_itemTextColors.defaultValue = Color::Black;
+		m_itemTextColors.set(ViewState::Hover, Color(0, 0, 200));
+		m_itemTextColors.set(ViewState::Selected, Color(0, 0, 200));
 
 		m_itemHeight = 0;
 
@@ -699,47 +681,47 @@ namespace slib
 		_relayoutContent(mode);
 	}
 
-	Color TreeView::getSelectedItemBackgroundColor()
+	Ref<Drawable> TreeView::getItemBackground(ViewState state)
 	{
-		return m_selectedItemBackgroundColor;
+		return m_itemBackgrounds.get(state);
 	}
 
-	void TreeView::setSelectedItemBackgroundColor(const Color& color, UIUpdateMode mode)
+	void TreeView::setItemBackground(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
-		m_selectedItemBackgroundColor = color;
+		m_itemBackgrounds.set(state, drawable);
 		_redrawContent(mode);
 	}
 
-	Color TreeView::getItemTextColor()
+	void TreeView::setItemBackground(const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
-		return m_itemTextColor;
+		m_itemBackgrounds.defaultValue = drawable;
+		_redrawContent(mode);
+	}
+
+	void TreeView::setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		setItemBackground(Drawable::createColorDrawable(color), state, mode);
+	}
+
+	void TreeView::setItemBackgroundColor(const Color& color, UIUpdateMode mode)
+	{
+		setItemBackground(Drawable::createColorDrawable(color), mode);
+	}
+
+	Color TreeView::getItemTextColor(ViewState state)
+	{
+		return m_itemTextColors.get(state);
+	}
+
+	void TreeView::setItemTextColor(const Color& color, ViewState state, UIUpdateMode mode)
+	{
+		m_itemTextColors.set(state, color);
+		_redrawContent(mode);
 	}
 
 	void TreeView::setItemTextColor(const Color& color, UIUpdateMode mode)
 	{
-		m_itemTextColor = color;
-		_redrawContent(mode);
-	}
-
-	Color TreeView::getHoverItemTextColor()
-	{
-		return m_hoverItemTextColor;
-	}
-
-	void TreeView::setHoverItemTextColor(const Color& color, UIUpdateMode mode)
-	{
-		m_hoverItemTextColor = color;
-		_redrawContent(mode);
-	}
-
-	Color TreeView::getSelectedItemTextColor()
-	{
-		return m_selectedItemTextColor;
-	}
-
-	void TreeView::setSelectedItemTextColor(const Color& color, UIUpdateMode mode)
-	{
-		m_selectedItemTextColor = color;
+		m_itemTextColors.defaultValue = color;
 		_redrawContent(mode);
 	}
 
@@ -979,6 +961,25 @@ namespace slib
 		item->m_bottomChildren = top;
 	}
 
+	ViewState TreeView::_getItemState(TreeViewItem* item)
+	{
+		ViewState state;
+		if (item == m_itemHover) {
+			if (isPressedState()) {
+				state = ViewState::Pressed;
+			} else {
+				state = ViewState::Hover;
+			}
+		} else {
+			state = ViewState::Normal;
+		}
+		if (item == m_itemSelected) {
+			return (ViewState)((int)(state)+(int)(ViewState::Selected));
+		} else {
+			return state;
+		}
+	}
+
 	void TreeView::_drawItem(Canvas* canvas, TreeViewItem* item, sl_bool flagRoot)
 	{
 		if (!flagRoot) {
@@ -986,11 +987,10 @@ namespace slib
 			sl_ui_pos right = item->m_frame.right;
 			sl_ui_pos top = item->m_frame.top;
 			sl_ui_pos bottom = item->m_frame.bottom;
-			if (item == m_itemSelected) {
-				Color backColor = m_selectedItemBackgroundColor;
-				if (backColor.a != 0) {
-					canvas->fillRectangle(UIRect(0, top, getWidth(), bottom), Brush::createSolidBrush(backColor));
-				}
+			ViewState state = _getItemState(item);
+			Ref<Drawable> background = m_itemBackgrounds.evaluate(state);
+			if (background.isNotNull()) {
+				canvas->draw(UIRect(0, top, getWidth(), bottom), background);
 			}
 			if (item->m_children.getCount() > 0) {
 				if (item->m_flagOpened) {
@@ -1014,28 +1014,9 @@ namespace slib
 			}
 			String text = item->m_text;
 			if (text.isNotEmpty()) {
-				Color colorText;
-				if (item == m_itemHover) {
-					colorText = item->m_hoverTextColor;
-					if (colorText.isZero()) {
-						colorText = item->m_textColor;
-						if (colorText.isZero()) {
-							colorText = m_hoverItemTextColor;
-						}
-					}
-				} else if (item == m_itemSelected) {
-					colorText = item->m_selectedTextColor;
-					if (colorText.isZero()) {
-						colorText = item->m_textColor;
-						if (colorText.isZero()) {
-							colorText = m_hoverItemTextColor;
-						}
-					}
-				} else {
-					colorText = item->m_textColor;
-					if (colorText.isZero()) {
-						colorText = m_itemTextColor;
-					}
+				Color colorText = item->m_textColors.evaluate(state);
+				if (colorText.isZero()) {
+					colorText = m_itemTextColors.evaluate(state);
 				}
 				canvas->drawText(text, UIRect(left, top, right, bottom), getFont(), colorText, Alignment::MiddleLeft);
 			}
