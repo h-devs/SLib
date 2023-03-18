@@ -184,7 +184,7 @@ namespace slib
 	};
 
 	class SAppLayoutResourceItem;
-
+	
 	class SAppLayoutViewAttributes : public CRef
 	{
 	public:
@@ -228,13 +228,11 @@ namespace slib
 		SAppBooleanValue clipping;
 		SAppBooleanValue drawing;
 
-		SAppDrawableValue background;
-		SAppDrawableValue pressedBackground;
-		SAppDrawableValue hoverBackground;
+		SAppStateMap<SAppDrawableValue> background;
 		SAppScaleModeValue backgroundScale;
 		SAppAlignmentValue backgroundAlign;
 		SAppBooleanValue nativeBorder;
-		SAppBorderValue border;
+		SAppStateMap<SAppBorderValue> border;
 		SAppBoundShapeValue boundShape;
 		SAppDimensionFloatValue boundRadiusX;
 		SAppDimensionFloatValue boundRadiusY;
@@ -259,6 +257,10 @@ namespace slib
 
 		SAppScrollingValue scrolling;
 		SAppScrollBarsValue scrollBars;
+		SAppStateMap<SAppDrawableValue> hscrollThumb;
+		SAppStateMap<SAppDrawableValue> hscrollTrack;
+		SAppStateMap<SAppDrawableValue> vscrollThumb;
+		SAppStateMap<SAppDrawableValue> vscrollTrack;
 		SAppBooleanValue paging;
 		SAppDimensionValue pageWidth;
 		SAppDimensionValue pageHeight;
@@ -296,9 +298,12 @@ namespace slib
 	public:
 		SAppLayoutViewAttributes();
 
+	public:
+		void resetLayout();
+
+	protected:
 		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 
-		void resetLayout();
 	};
 
 	class SAppLayoutWindowAttributes : public SAppLayoutViewAttributes
@@ -357,24 +362,21 @@ namespace slib
 		String layout;
 	};
 
-	class SAppLayoutButtonState
+	class SAppLayoutButtonCategory
 	{
 	public:
-		SAppColorValue textColor;
-		SAppDrawableValue background;
-		SAppDrawableValue icon;
-		SAppBorderValue border;
-		SAppColorValue colorOverlay;
+		SAppStateMap<SAppColorValue> textColor;
+		SAppStateMap<SAppDrawableValue> background;
+		SAppStateMap<SAppDrawableValue> icon;
+		SAppStateMap<SAppBorderValue> border;
+		SAppStateMap<SAppColorValue> colorOverlay;
 	};
-
-	#define SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX 4
 
 	class SAppLayoutButtonAttributes : public SAppLayoutViewAttributes
 	{
 	public:
 		SAppStringValue text;
 		SAppStringValue hyperText;
-		SAppColorValue textColor;
 		SAppAlignmentValue gravity;
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
@@ -382,8 +384,6 @@ namespace slib
 		SAppBooleanValue mnemonic;
 
 		SAppBooleanValue defaultButton;
-		SAppBooleanValue usingFocusedState;
-		SAppDrawableValue icon;
 		SAppDimensionValue iconWidth;
 		SAppDimensionValue iconHeight;
 		SAppAlignmentValue iconAlign;
@@ -400,12 +400,14 @@ namespace slib
 		SAppDimensionValue textMarginRight;
 		SAppDimensionValue textMarginBottom;
 		SAppBooleanValue defaultColorFilter;
-		SAppColorValue colorOverlay;
 
-		SAppLayoutButtonState states[SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX][(int)(ButtonState::Count)];
+		SAppStateMap<SAppColorValue> textColor;
+		SAppStateMap<SAppDrawableValue> icon;
+		SAppStateMap<SAppColorValue> colorOverlay;
+		SAppLayoutButtonCategory categories[4];
 
 	public:
-		sl_bool isNotRequiredNative();
+		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
 
 	class SAppLayoutLabelAttributes : public SAppLayoutViewAttributes
@@ -503,7 +505,7 @@ namespace slib
 		CList<SAppLayoutSelectItem> items;
 
 	public:
-		sl_bool isNotRequiredNative();
+		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
 
 	class SAppLayoutSelectSwitchAttributes : public SAppLayoutViewAttributes
@@ -527,7 +529,7 @@ namespace slib
 		CList<SAppLayoutSelectItem> items;
 
 	public:
-		sl_bool isNotRequiredNative();
+		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
 
 	class SAppLayoutScrollAttributes : public SAppLayoutViewAttributes
@@ -639,12 +641,8 @@ namespace slib
 		SAppDimensionFloatValue tabHeight;
 		SAppDrawableValue barBackground;
 		SAppDrawableValue contentBackground;
-		SAppDrawableValue tabBackground;
-		SAppDrawableValue selectedTabBackground;
-		SAppDrawableValue hoverTabBackground;
-		SAppColorValue labelColor;
-		SAppColorValue selectedLabelColor;
-		SAppColorValue hoverLabelColor;
+		SAppStateMap<SAppDrawableValue> tabBackground;
+		SAppStateMap<SAppColorValue> labelColor;
 		SAppAlignmentValue tabAlign;
 		SAppDimensionValue tabPaddingLeft;
 		SAppDimensionValue tabPaddingTop;
@@ -657,7 +655,7 @@ namespace slib
 		CList<SAppLayoutTabItem> items;
 
 	public:
-		sl_bool isNotRequiredNative();
+		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
 
 
@@ -669,9 +667,7 @@ namespace slib
 		SAppDrawableValue icon;
 		SAppDrawableValue opendIcon;
 		SAppDrawableValue closedIcon;
-		SAppColorValue textColor;
-		SAppColorValue hoverTextColor;
-		SAppColorValue selectedTextColor;
+		SAppStateMap<SAppColorValue> textColor;
 		SAppDimensionValue height;
 
 		Ref<SAppLayoutResourceItem> customView;
@@ -685,10 +681,8 @@ namespace slib
 		SAppDrawableValue closedIcon;
 		SAppDrawableValue collapsedIcon;
 		SAppDrawableValue expandedIcon;
-		SAppColorValue selectedBackgroundColor;
-		SAppColorValue textColor;
-		SAppColorValue hoverTextColor;
-		SAppColorValue selectedTextColor;
+		SAppStateMap<SAppDrawableValue> itemBackground;
+		SAppStateMap<SAppColorValue> textColor;
 		SAppDimensionValue itemHeight;
 		SAppDimensionValue itemPadding;
 		SAppDimensionValue itemIndent;
@@ -747,9 +741,7 @@ namespace slib
 	class SAppLayoutSliderAttributes : public SAppLayoutProgressAttributes
 	{
 	public:
-		SAppDrawableValue thumb;
-		SAppDrawableValue pressedThumb;
-		SAppDrawableValue hoverThumb;
+		SAppStateMap<SAppDrawableValue> thumb;
 		SAppDimensionValue thumbWidth;
 		SAppDimensionValue thumbHeight;
 	};
@@ -757,36 +749,17 @@ namespace slib
 	class SAppLayoutSwitchAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		SAppBooleanValue value;
+		SAppSwitchValue value;
 		SAppBooleanValue textInButton;
 
-		SAppStringValue text;
-		SAppStringValue textOn;
-		SAppStringValue textOff;
-		SAppStringValue leftText;
-		SAppStringValue rightText;
+		SAppStringValue texts[2];
 		SAppColorValue textColor;
-		SAppColorValue textColorOn;
-		SAppColorValue textColorOff;
+		SAppColorValue textColors[2];
 
-		SAppDrawableValue thumbOff;
-		SAppDrawableValue thumbOn;
-		SAppDrawableValue thumb;
-		SAppDrawableValue trackOff;
-		SAppDrawableValue trackOn;
-		SAppDrawableValue track;
-		SAppDrawableValue pressedThumbOff;
-		SAppDrawableValue pressedThumbOn;
-		SAppDrawableValue pressedThumb;
-		SAppDrawableValue pressedTrackOn;
-		SAppDrawableValue pressedTrack;
-		SAppDrawableValue pressedTrackOff;
-		SAppDrawableValue hoverThumbOff;
-		SAppDrawableValue hoverThumbOn;
-		SAppDrawableValue hoverThumb;
-		SAppDrawableValue hoverTrackOff;
-		SAppDrawableValue hoverTrackOn;
-		SAppDrawableValue hoverTrack;
+		SAppStateMap<SAppDrawableValue> thumb;
+		SAppStateMap<SAppDrawableValue> thumbs[2];
+		SAppStateMap<SAppDrawableValue> track;
+		SAppStateMap<SAppDrawableValue> tracks[2];
 	};
 
 	class SAppLayoutPickerAttributes : public SAppLayoutViewAttributes
@@ -799,7 +772,7 @@ namespace slib
 		CList<SAppLayoutSelectItem> items;
 
 	public:
-		sl_bool isNotRequiredNative();
+		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
 
 	class SAppLayoutDatePickerAttributes : public SAppLayoutViewAttributes
@@ -808,7 +781,7 @@ namespace slib
 		SAppTimeValue date;
 
 	public:
-		sl_bool isNotRequiredNative();
+		sl_bool isNotRequiredNative(sl_bool flagCheckBackgroundColor);
 	};
 
 	struct SAppLayoutPagerItem
@@ -870,23 +843,16 @@ namespace slib
 		SAppUint64Value itemCount;
 		SAppDimensionValue itemHeight;
 		SAppBooleanValue multipleSelection;
-		SAppDrawableValue itemBackground;
-		SAppDrawableValue selectedItemBackground;
-		SAppDrawableValue hoverItemBackground;
-		SAppDrawableValue focusedItemBackground;
+		SAppStateMap<SAppDrawableValue> itemBackground;
 	};
 
 	class SAppLayoutLabelListAttributes : public SAppLayoutListBoxAttributes
 	{
 	public:
 		SAppFloatValue lineHeightWeight;
-		SAppColorValue textColor;
+		SAppStateMap<SAppColorValue> textColor;
 		SAppAlignmentValue gravity;
 		SAppEllipsizeModeValue ellipsize;
-
-		SAppColorValue selectedTextColor;
-		SAppColorValue hoverTextColor;
-		SAppColorValue focusedTextColor;
 
 		CList<SAppLayoutSelectItem> items;
 	};
@@ -913,88 +879,29 @@ namespace slib
 		SAppColorValue labelColor;
 	};
 
-	class SAppLayoutGridCellCreator : public CRef
-	{
-	public:
-		enum {
-			LABEL,
-			TEXT,
-			HYPER_TEXT,
-			NUMERO
-		};
-		int type;
-
-	public:
-		static Ref<SAppLayoutGridCellCreator> create(SAppLayoutXmlItem* xml, SAppDocument* doc);
-
-	public:
-		virtual sl_bool parse(SAppLayoutXmlItem* xml, SAppDocument* doc) = 0;
-	};
-
-	class SAppLayoutGridCellCreator_Label : public SAppLayoutGridCellCreator
-	{
-	public:
-		SAppStringValue text;
-
-	public:
-		SAppLayoutGridCellCreator_Label()
-		{
-			type = LABEL;
-		}
-
-	public:
-		sl_bool parse(SAppLayoutXmlItem* xml, SAppDocument* doc) override;
-	};
-
-	class SAppLayoutGridCellCreator_Text : public SAppLayoutGridCellCreator_Label
-	{
-	public:
-		SAppLayoutGridCellCreator_Text()
-		{
-			type = TEXT;
-		}
-	};
-
-	class SAppLayoutGridCellCreator_HyperText : public SAppLayoutGridCellCreator_Text
-	{
-	public:
-		SAppLayoutGridCellCreator_HyperText()
-		{
-			type = HYPER_TEXT;
-		}
-	};
-
-	class SAppLayoutGridCellCreator_Numero : public SAppLayoutGridCellCreator_Label
-	{
-	public:
-		SAppLayoutGridCellCreator_Numero()
-		{
-			type = NUMERO;
-		}
-	};
-
 	class SAppLayoutGridCellAttributes
 	{
 	public:
-		Ref<SAppLayoutGridCellCreator> creator;
 		SAppStringValue text;
-		SAppStringValue format;
 		SAppAlignmentValue align;
 		SAppFontValue font;
 		SAppMultiLineModeValue multiLine;
 		SAppEllipsizeModeValue ellipsize;
 		SAppUint32Value lineCount;
-		SAppDrawableValue background;
-		SAppDrawableValue backgroundHover;
-		SAppDrawableValue backgroundSelected;
-		SAppColorValue textColor;
-		SAppColorValue textColorHover;
-		SAppColorValue textColorSelected;
+		SAppStateMap<SAppDrawableValue> background;
+		SAppStateMap<SAppColorValue> textColor;
 	};
 
 	class SAppLayoutGridCell : public SAppLayoutGridCellAttributes
 	{
 	public:
+		enum class Creator {
+			Label,
+			Text,
+			HyperText,
+			Numero
+		};
+		Creator creator = Creator::Label;
 		SAppUint32Value rowspan;
 		SAppUint32Value colspan;
 	};
@@ -1040,7 +947,6 @@ namespace slib
 	class SAppLayoutXControlAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		SAppColorValue focusedBorderColor;
 	};
 
 	typedef SAppLayoutButtonAttributes SAppLayoutXButtonAttributes;

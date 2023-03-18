@@ -71,17 +71,17 @@ namespace slib
 
 		Ref<Drawable> getThumb(SwitchValue value, ViewState state = ViewState::Default);
 
-		void setThumb(const Ref<Drawable>& drawable, SwitchValue value, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setThumb(SwitchValue value, const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setThumb(const Ref<Drawable>& drawable, SwitchValue value, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setThumb(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setThumb(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setThumbColor(const Color& color, SwitchValue value, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setThumbColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setThumbColor(const Color& color, SwitchValue value, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setThumbColor(SwitchValue value, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setThumbColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -90,17 +90,17 @@ namespace slib
 
 		Ref<Drawable> getTrack(SwitchValue value, ViewState state = ViewState::Default);
 
-		void setTrack(const Ref<Drawable>& drawable, SwitchValue value, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTrack(SwitchValue value, const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setTrack(const Ref<Drawable>& drawable, SwitchValue value, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTrack(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTrack(const Ref<Drawable>& drawable, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setTrackColor(const Color& color, SwitchValue value, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTrackColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setTrackColor(const Color& color, SwitchValue value, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setTrackColor(SwitchValue value, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setTrackColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 

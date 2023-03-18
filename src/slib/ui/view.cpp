@@ -6770,7 +6770,7 @@ namespace slib
 		}
 	}
 
-	void View::setHorizontalScrollBarThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	void View::setHorizontalScrollThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
@@ -6790,7 +6790,7 @@ namespace slib
 		}
 	}
 
-	void View::setHorizontalScrollBarTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	void View::setHorizontalScrollTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
@@ -6830,7 +6830,7 @@ namespace slib
 		}
 	}
 
-	void View::setVerticalScrollBarThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	void View::setVerticalScrollThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
@@ -6850,7 +6850,7 @@ namespace slib
 		}
 	}
 
-	void View::setVerticalScrollBarTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
+	void View::setVerticalScrollTrack(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
 		_initializeScrollAttributes();
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;

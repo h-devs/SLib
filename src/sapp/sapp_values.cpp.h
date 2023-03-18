@@ -1575,7 +1575,7 @@ namespace slib
 	}
 
 #define PRIV_DEFINE_PARSE_SUBITEM(SUBITEM, SUFFIX, ...) \
-		String attr = name + SUFFIX; \
+		String attr = String::concat(name, SUFFIX, suffix); \
 		String str = item->getXmlAttribute(attr); \
 		if (!(SUBITEM.parse(str, __VA_ARGS__))) { \
 			doc->logError(xml, g_str_error_resource_layout_attribute_invalid, attr, str); \
@@ -1598,7 +1598,7 @@ namespace slib
 		} \
 	}
 
-	sl_bool SAppFontValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
+	sl_bool SAppFontValue::parse(SAppLayoutXmlItem* item, const StringView& name, const StringView& suffix, SAppDocument* doc, sl_bool flagRoot)
 	{
 		const Ref<XmlElement>& xml = item->element;
 		DEFINE_PARSE_SUBITEM(family, "Family", xml)
@@ -1610,7 +1610,76 @@ namespace slib
 	}
 
 
-	sl_bool SAppBorderValue::parse(SAppLayoutXmlItem* item, const StringView& name, SAppDocument* doc, sl_bool flagRoot)
+	void SAppBorderValue::inheritFrom(const SAppBorderValue& parent)
+	{
+		if (!(style.flagDefined) && parent.style.flagDefined) {
+			style = parent.style;
+		}
+		if (!(width.flagDefined) && parent.width.flagDefined) {
+			width = parent.width;
+		}
+		if (!(color.flagDefined) && parent.color.flagDefined) {
+			color = parent.color;
+		}
+	}
+
+	namespace {
+		static void InheritBorderStateMap(SAppStateMap<SAppBorderValue>& map, const SAppBorderValue& src, ViewState stateDst)
+		{
+			SAppBorderValue* value = map.values.getItemPointer(stateDst);
+			if (value) {
+				value->inheritFrom(src);
+			}
+		}
+
+		static void InheritBorderStateMap(SAppStateMap<SAppBorderValue>& map, ViewState src, ViewState dst)
+		{
+			SAppBorderValue* value = map.values.getItemPointer(src);
+			if (value) {
+				InheritBorderStateMap(map, *value, dst);
+			}
+		}
+	}
+
+	void SAppBorderValue::normalizeStateMap(SAppStateMap<SAppBorderValue>& map)
+	{
+		InheritBorderStateMap(map, ViewState::SelectedHover, ViewState::SelectedPressed);
+		{
+			SAppBorderValue* v = map.values.getItemPointer(ViewState::Selected);
+			if (v) {
+				InheritBorderStateMap(map, *v, ViewState::SelectedNormal);
+				InheritBorderStateMap(map, *v, ViewState::SelectedHover);
+				InheritBorderStateMap(map, *v, ViewState::SelectedPressed);
+			}
+		}
+		InheritBorderStateMap(map, ViewState::FocusedHover, ViewState::FocusedPressed);
+		{
+			SAppBorderValue* v = map.values.getItemPointer(ViewState::Focused);
+			if (v) {
+				InheritBorderStateMap(map, *v, ViewState::FocusedNormal);
+				InheritBorderStateMap(map, *v, ViewState::FocusedHover);
+				InheritBorderStateMap(map, *v, ViewState::FocusedPressed);
+			}
+		}
+		InheritBorderStateMap(map, ViewState::Hover, ViewState::Pressed);
+		InheritBorderStateMap(map, ViewState::Hover, ViewState::FocusedHover);
+		InheritBorderStateMap(map, ViewState::Hover, ViewState::SelectedHover);
+		InheritBorderStateMap(map, ViewState::Pressed, ViewState::FocusedPressed);
+		InheritBorderStateMap(map, ViewState::Pressed, ViewState::SelectedPressed);
+		InheritBorderStateMap(map, ViewState::Normal, ViewState::FocusedNormal);
+		InheritBorderStateMap(map, ViewState::Normal, ViewState::SelectedNormal);
+
+		{
+			SAppBorderValue* v = map.values.getItemPointer(ViewState::Default);
+			if (v) {
+				for (auto& item : map.values) {
+					item.value.inheritFrom(*v);
+				}
+			}
+		}
+	}
+
+	sl_bool SAppBorderValue::parse(SAppLayoutXmlItem* item, const StringView& name, const StringView& suffix, SAppDocument* doc, sl_bool flagRoot)
 	{
 		const Ref<XmlElement>& xml = item->element;
 		DEFINE_PARSE_SUBITEM(style, "Style")
@@ -2450,6 +2519,39 @@ namespace slib
 		} else if (str == "resize-y" || str == "resizey" || str == "resizeupdown") {
 			value = Cursor::getResizeUpDown();
 			type = RESIZE_UP_DOWN;
+			flagDefined = sl_true;
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+
+	String SAppSwitchValue::getAccessString() const
+	{
+		if (!flagDefined) {
+			return "slib::SwitchValue::Off";
+		}
+		if (value == SwitchValue::On) {
+			return "slib::SwitchValue::On";
+		} else {
+			return "slib::SwitchValue::Off";
+		}
+	}
+
+	sl_bool SAppSwitchValue::parse(const String& _str)
+	{
+		String str = _str.trim();
+		if (str.isEmpty()) {
+			flagDefined = sl_false;
+			return sl_true;
+		}
+		str = str.toLower();
+		if (str == "on") {
+			value = SwitchValue::On;
+			flagDefined = sl_true;
+			return sl_true;
+		} else if (str == "off") {
+			value = SwitchValue::Off;
 			flagDefined = sl_true;
 			return sl_true;
 		}

@@ -200,7 +200,7 @@ namespace slib
 		}
 	}
 
-	
+
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellProp)
 
 	GridView::CellProp::CellProp(): flagCoveredX(sl_false), flagCoveredY(sl_false)

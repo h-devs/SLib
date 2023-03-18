@@ -1275,7 +1275,7 @@ namespace slib
 #define LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(Init, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(Layout, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
 
-#define LAYOUT_CONTROL_PARSE_GENERIC(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME, VAR)
+#define LAYOUT_CONTROL_PARSE_GENERIC(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_GENERIC(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value = VAR.getAccessString(); \
@@ -1287,7 +1287,7 @@ namespace slib
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 
-#define LAYOUT_CONTROL_PARSE_BOOLEAN(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME, VAR)
+#define LAYOUT_CONTROL_PARSE_BOOLEAN(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_BOOLEAN(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined && VAR.value) { \
 		LAYOUT_CONTROL_GENERATE(SETFUNC, GEN_UPDATE1(CATEGORY, UI, Init)) \
@@ -1308,11 +1308,11 @@ namespace slib
 		}
 	}
 
-#define LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, VAR, CHECKFUNC) \
+#define LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, CHECKFUNC) \
 	{ \
-		PRIV_LAYOUT_CONTROL_PARSE(XML, NAME, VAR, this) \
+		PRIV_LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR, this) \
 		if (!(VAR.CHECKFUNC(!(params->parentResourceItem)))) { \
-			LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(XML, NAME) \
+			LOG_ERROR_LAYOUT_CONTROL_XML_ATTR(XML, NAME SUFFIX) \
 			return sl_false; \
 		} \
 	}
@@ -1341,9 +1341,9 @@ namespace slib
 		PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
 	}
 
-#define LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR) LAYOUT_CONTROL_PARSE(XML, NAME, VAR, (XML).element)
+#define LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, SUFFIX, VAR) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR, (XML).element)
 
-#define LAYOUT_CONTROL_PARSE_STRING(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR)
+#define LAYOUT_CONTROL_PARSE_STRING(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_STRING(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
@@ -1361,7 +1361,7 @@ namespace slib
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 
-#define LAYOUT_CONTROL_PARSE_DRAWABLE(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME, VAR, this, (XML).element)
+#define LAYOUT_CONTROL_PARSE_DRAWABLE(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR, this, (XML).element)
 #define LAYOUT_CONTROL_GENERATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
@@ -1383,7 +1383,7 @@ namespace slib
 		} \
 	}
 
-#define LAYOUT_CONTROL_PARSE_COLOR(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR)
+#define LAYOUT_CONTROL_PARSE_COLOR(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_COLOR(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
@@ -1401,8 +1401,8 @@ namespace slib
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 
-#define LAYOUT_CONTROL_PARSE_FONT(XML, NAME, VAR, ...) \
-	if (!(VAR.parse(&(XML), NAME, this, !(params->parentResourceItem)))) { \
+#define LAYOUT_CONTROL_PARSE_FONT(XML, NAME, SUFFIX, VAR, ...) \
+	if (!(VAR.parse(&(XML), NAME, "" SUFFIX, this, !(params->parentResourceItem)))) { \
 		return sl_false; \
 	}
 #define LAYOUT_CONTROL_GENERATE_FONT(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
@@ -1430,8 +1430,8 @@ namespace slib
 		} \
 	}
 
-#define LAYOUT_CONTROL_PARSE_BORDER(XML, NAME, VAR, ...) \
-	if (!(VAR.parse(&(XML), NAME, this, !(params->parentResourceItem)))) { \
+#define LAYOUT_CONTROL_PARSE_BORDER(XML, NAME, SUFFIX, VAR, ...) \
+	if (!(VAR.parse(&(XML), NAME, "" SUFFIX, this, !(params->parentResourceItem)))) { \
 		return sl_false; \
 	}
 #define LAYOUT_CONTROL_GENERATE_BORDER(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
@@ -1459,7 +1459,7 @@ namespace slib
 		} \
 	}
 
-#define LAYOUT_CONTROL_PARSE_MENU(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, VAR)
+#define LAYOUT_CONTROL_PARSE_MENU(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_REFERING(XML, NAME, SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_MENU(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		String value; \
@@ -1477,7 +1477,7 @@ namespace slib
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
 	
-#define LAYOUT_CONTROL_PARSE_SIZE(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, VAR, checkSize)
+#define LAYOUT_CONTROL_PARSE_SIZE(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, checkSize)
 #define LAYOUT_CONTROL_GENERATE_SIZE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.unit == SAppDimensionValue::FILL) { \
 		String value = String::format("%ff", VAR.amount); \
@@ -1511,7 +1511,7 @@ namespace slib
 		PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
 	}
 
-#define LAYOUT_CONTROL_PARSE_MARGIN(XML, NAME, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, VAR, checkMargin)
+#define LAYOUT_CONTROL_PARSE_MARGIN(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, checkMargin)
 #define LAYOUT_CONTROL_GENERATE_MARGIN(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
 	if (VAR.flagDefined) { \
 		if (VAR.unit == SAppDimensionValue::WEIGHT) { \
@@ -1537,7 +1537,7 @@ namespace slib
 		} \
 	}
 
-#define LAYOUT_CONTROL_PARSE_XML(TYPE, XML, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_##TYPE(XML, #NAME, ATTR NAME, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_PARSE_XML(TYPE, XML, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_##TYPE(XML, #NAME, , ATTR NAME, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_PARSE_ATTR(TYPE, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_XML(TYPE, *resourceItem, ATTR, NAME, ##__VA_ARGS__)
 
 #define PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, VAR, SETFUNC, CATEGORY) LAYOUT_CONTROL_GENERATE_##TYPE(VAR, SETFUNC, CATEGORY, "%s", value)
@@ -1559,6 +1559,41 @@ namespace slib
 #define LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, BASIC, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_UI_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, CONTROL, ##__VA_ARGS__)
 
+#define LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, XML, NAME, SUFFIX, VAR, ...) \
+	{ \
+		for (sl_size i = 0; i < CountOfArray(g_stateDefines); i++) { \
+			typename RemoveConstReference<typename decltype(VAR)>::Type::VALUE value; \
+			LAYOUT_CONTROL_PARSE_##TYPE(XML, NAME, + StringView(g_stateDefines[i].suffix) SUFFIX, value, ##__VA_ARGS__) \
+			if (value.flagDefined) { \
+				VAR.values.put_NoLock(g_stateDefines[i].state, value); \
+			} \
+		} \
+	}
+#define LAYOUT_CONTROL_PARSE_STATE_MAP_XML(TYPE, XML, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, XML, #NAME, , ATTR NAME, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(TYPE, ATTR, NAME, ...) LAYOUT_CONTROL_PARSE_STATE_MAP_XML(TYPE, *resourceItem, ATTR, NAME, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
+	{ \
+		for (auto& item : VAR.values) { \
+			const char* state = GetViewStateAcessString(item.key); \
+			LAYOUT_CONTROL_GENERATE_##TYPE(item.value, SETFUNC, CATEGORY, ARG_FORMAT ", %s", ##__VA_ARGS__, state) \
+		} \
+	}
+#define LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, VAR, SETFUNC, CATEGORY, ...) \
+	{ \
+		for (auto& item : VAR.values) { \
+			LAYOUT_CONTROL_SIMULATE_##TYPE(item.value, SETFUNC, CATEGORY, ##__VA_ARGS__, item.key) \
+		} \
+	}
+
+#define LAYOUT_CONTROL_STATE_MAP(TYPE, NAME, SETFUNC, ...) \
+	if (op == OP_PARSE) { \
+		LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(TYPE, attr->, NAME, ##__VA_ARGS__) \
+	} else if (op == OP_GENERATE_CPP) { \
+		LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME, SETFUNC, CONTROL, "%s", value) \
+	} else if (op == OP_SIMULATE) { \
+		LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME, SETFUNC, CONTROL, value) \
+	}
+
 #define LAYOUT_CONTROL_PROCESS_SUPER(BASE) \
 	{ \
 		static_cast<SAppLayout##BASE##Attributes*>(attr.get()); \
@@ -1577,15 +1612,15 @@ namespace slib
 
 #define LAYOUT_CONTROL_SET_NATIVE_WIDGET \
 	if (op == OP_GENERATE_CPP) { \
-		if (resourceItem->attrs->isNotRequiredNative(sl_false) || attr->isNotRequiredNative()) { \
-			if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
+		if (attr->isNotRequiredNative(sl_false)) { \
+			if (!(attr->nativeWidget.flagDefined)) { \
 				LAYOUT_CONTROL_GENERATE(setCreatingNativeWidget, "sl_false") \
 			} \
 		} \
 	} else if (op == OP_SIMULATE) { \
 		if (!flagOnLayout) { \
-			if (resourceItem->attrs->isNotRequiredNative(sl_false) || attr->isNotRequiredNative()) { \
-				if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
+			if (attr->isNotRequiredNative(sl_false)) { \
+				if (!(attr->nativeWidget.flagDefined)) { \
 					view->setCreatingNativeWidget(sl_false); \
 				} \
 			} \
@@ -1594,21 +1629,75 @@ namespace slib
 
 #define LAYOUT_CONTROL_SET_NATIVE_WIDGET_CHECK_BACKGROUND_COLOR \
 	if (op == OP_GENERATE_CPP) { \
-		if (resourceItem->attrs->isNotRequiredNative(sl_true) || attr->isNotRequiredNative()) { \
-			if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
+		if (attr->isNotRequiredNative(sl_true)) { \
+			if (!(attr->nativeWidget.flagDefined)) { \
 				LAYOUT_CONTROL_GENERATE(setCreatingNativeWidget, "sl_false") \
 			} \
 		} \
 	} else if (op == OP_SIMULATE) { \
 		if (!flagOnLayout) { \
-			if (resourceItem->attrs->isNotRequiredNative(sl_true) || attr->isNotRequiredNative()) { \
-				if (!(resourceItem->attrs->nativeWidget.flagDefined)) { \
+			if (attr->isNotRequiredNative(sl_true)) { \
+				if (!(attr->nativeWidget.flagDefined)) { \
 					view->setCreatingNativeWidget(sl_false); \
 				} \
 			} \
 		} \
 	}
 
+	namespace {
+		struct SAppStateDefine
+		{
+			ViewState state;
+			const char* suffix;
+		};
+		SAppStateDefine g_stateDefines[] = {
+			{ViewState::Default, sl_null},
+			{ ViewState::Normal, "Normal" },
+			{ ViewState::Hover, "Hover" },
+			{ ViewState::Pressed, "Pressed" },
+			{ ViewState::Disabled, "Disabled" },
+			{ ViewState::Focused, "Focused" },
+			{ ViewState::FocusedNormal, "FocusedNormal" },
+			{ ViewState::FocusedHover, "FocusedHover" },
+			{ ViewState::FocusedPressed, "FocusedPressed" },
+			{ ViewState::Selected, "Selected" },
+			{ ViewState::SelectedNormal, "SelectedNormal" },
+			{ ViewState::SelectedHover, "SelectedHover" },
+			{ ViewState::SelectedPressed, "SelectedPressed" }
+		};
+
+		static const char* GetViewStateAcessString(ViewState state)
+		{
+			switch (state) {
+				case ViewState::Normal:
+					return "slib::ViewState::Normal";
+				case ViewState::Hover:
+					return "slib::ViewState::Hover";
+				case ViewState::Pressed:
+					return "slib::ViewState::Pressed";
+				case ViewState::Disabled:
+					return "slib::ViewState::Disabled";
+				case ViewState::Focused:
+					return "slib::ViewState::Focused";
+				case ViewState::FocusedNormal:
+					return "slib::ViewState::FocusedNormal";
+				case ViewState::FocusedHover:
+					return "slib::ViewState::FocusedHover";
+				case ViewState::FocusedPressed:
+					return "slib::ViewState::FocusedPressed";
+				case ViewState::Selected:
+					return "slib::ViewState::Selected";
+				case ViewState::SelectedNormal:
+					return "slib::ViewState::SelectedNormal";
+				case ViewState::SelectedHover:
+					return "slib::ViewState::SelectedHover";
+				case ViewState::SelectedPressed:
+					return "slib::ViewState::SelectedPressed";
+				default:
+					return "slib::ViewState::Default";
+			}
+		}
+	}
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(View, View)
 	{
@@ -1996,10 +2085,8 @@ namespace slib
 				}
 			}
 		}
-
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, background, setBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedBackground, setPressedBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverBackground, setHoverBackground)
+			
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, background, setBackground)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundScale, setBackgroundScaleMode)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, backgroundAlign, setBackgroundAlignment)
 
@@ -2012,7 +2099,10 @@ namespace slib
 			} else if (op == OP_SIMULATE) {
 				LAYOUT_CONTROL_SIMULATE_UI_ATTR(GENERIC, border, setBorder)
 			}
-			LAYOUT_CONTROL_UI_ATTR(BORDER, border, setBorder)
+			LAYOUT_CONTROL_STATE_MAP(BORDER, border, setBorder)
+			if (op == OP_PARSE) {
+				SAppBorderValue::normalizeStateMap(attr->border);
+			}
 		}
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, drawing, setDrawing)
@@ -2086,6 +2176,20 @@ namespace slib
 			if (!flagOnLayout && attr->scrollBars.flagDefined) {
 				view->setScrollBarsVisible(attr->scrollBars.horizontalScrollBar, attr->scrollBars.verticalScrollBar, UIUpdateMode::Init);
 			}
+		}
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, hscrollThumb, setHorizontalScrollThumb)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, hscrollTrack, setHorizontalScrollThumb)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, vscrollThumb, setVerticalScrollThumb)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, vscrollTrack, setVerticalScrollThumb)
+		if (op == OP_PARSE) {
+			SAppStateMap<SAppDrawableValue> scrollThumb;
+			LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(DRAWABLE, , scrollThumb)
+			attr->hscrollThumb.mergeDefault(scrollThumb);
+			attr->vscrollThumb.mergeDefault(scrollThumb);
+			SAppStateMap<SAppDrawableValue> scrollTrack;
+			LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(DRAWABLE, , scrollTrack)
+			attr->hscrollTrack.mergeDefault(scrollTrack);
+			attr->vscrollTrack.mergeDefault(scrollTrack);
 		}
 		LAYOUT_CONTROL_ATTR(GENERIC, scrollingByMouse, setContentScrollingByMouse)
 		LAYOUT_CONTROL_ATTR(GENERIC, scrollingByTouch, setContentScrollingByTouch)
@@ -2270,18 +2374,19 @@ namespace slib
 
 		params->name = "m_contentView";
 		if (!(_processLayoutResourceControl_View(params))) {
-			params->resourceItem->attrs->resetLayout();
+			attr->resetLayout();
 			return sl_false;
 		}
 
 		if (op == OP_PARSE) {
 			if (!(attr->backgroundColor.flagDefined)) {
-				if (resourceItem->attrs.isNotNull()) {
-					if (resourceItem->attrs->background.flagDefined && resourceItem->attrs->background.flagColor) {
+				SAppDrawableValue background;
+				if (attr->background.values.get_NoLock(ViewState::Default, &background)) {
+					if (background.flagDefined && background.flagColor) {
 						attr->backgroundColor.flagDefined = sl_true;
-						attr->backgroundColor.color = resourceItem->attrs->background.color;
-						attr->backgroundColor.resourceName = resourceItem->attrs->background.resourceName;
-						resourceItem->attrs->background.flagDefined = sl_false;
+						attr->backgroundColor.color = background.color;
+						attr->backgroundColor.resourceName = background.resourceName;
+						attr->background.values.remove_NoLock(ViewState::Default);
 					}
 				}
 			}
@@ -2297,15 +2402,15 @@ namespace slib
 		}
 
 		if (op == OP_PARSE) {
-			if (!(resourceItem->attrs->width.flagDefined)) {
-				resourceItem->attrs->width.flagDefined = sl_true;
-				resourceItem->attrs->width.amount = 1;
-				resourceItem->attrs->width.unit = SAppDimensionValue::FILL;
+			if (!(attr->width.flagDefined)) {
+				attr->width.flagDefined = sl_true;
+				attr->width.amount = 1;
+				attr->width.unit = SAppDimensionValue::FILL;
 			}
-			if (!(resourceItem->attrs->height.flagDefined)) {
-				resourceItem->attrs->height.flagDefined = sl_true;
-				resourceItem->attrs->height.amount = 1;
-				resourceItem->attrs->height.unit = SAppDimensionValue::FILL;
+			if (!(attr->height.flagDefined)) {
+				attr->height.flagDefined = sl_true;
+				attr->height.amount = 1;
+				attr->height.unit = SAppDimensionValue::FILL;
 			}
 		}
 
@@ -2389,7 +2494,6 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
 		LAYOUT_CONTROL_UI_ATTR(STRING, hyperText, setHyperText)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multiLine, setMultiLine)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
@@ -2397,8 +2501,6 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, mnemonic, setMnemonic)
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, defaultButton, setDefaultButton)
-		LAYOUT_CONTROL_ATTR(GENERIC, usingFocusedState, setUsingFocusedState)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, icon, setIcon)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
 		if (op == OP_PARSE) {
@@ -2465,44 +2567,30 @@ namespace slib
 			}
 		}
 
-		LAYOUT_CONTROL_UI_ATTR(COLOR, colorOverlay, setColorOverlay)
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, defaultColorFilter, setUsingDefaultColorFilter)
 
-		const char* strStates[] = {"Default", "Normal", "Hover", "Focused", "FocusedHover", "Pressed", "Disabled"};
-		for (sl_uint32 i = 0; i < SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX; i++) {
-			for (sl_uint32 k = 0; k < (sl_uint32)(CountOfArray(strStates)); k++) {
-				SAppLayoutButtonState& state = attr->states[i][k];
-				if (op == OP_PARSE) {
-					String suffix;
-					if (i > 0) {
-						suffix = String::format("%s%d", strStates[k], i);
-					} else {
-						suffix = strStates[k];
-					}
-#define LAYOUT_CONTROL_BUTTON_STATE_PARSE(TYPE, NAME) LAYOUT_CONTROL_PARSE_##TYPE(*resourceItem, #NAME + suffix, state.NAME)
-					LAYOUT_CONTROL_BUTTON_STATE_PARSE(COLOR, textColor)
-					LAYOUT_CONTROL_BUTTON_STATE_PARSE(DRAWABLE, icon)
-					LAYOUT_CONTROL_BUTTON_STATE_PARSE(DRAWABLE, background)
-					LAYOUT_CONTROL_BUTTON_STATE_PARSE(BORDER, border)
-					LAYOUT_CONTROL_BUTTON_STATE_PARSE(COLOR, colorOverlay)
-				} else if (op == OP_GENERATE_CPP) {
-#define LAYOUT_CONTROL_BUTTON_STATE_GENERATE(TYPE, NAME, SETFUNC) LAYOUT_CONTROL_GENERATE_##TYPE(state.NAME, SETFUNC, ITEM, "%s, slib::ButtonState::%s, %d", value, strStates[k], i)
-					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(COLOR, textColor, setTextColor)
-					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(DRAWABLE, icon, setIcon)
-					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(DRAWABLE, background, setBackground)
-					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(BORDER, border, setBorder)
-					LAYOUT_CONTROL_BUTTON_STATE_GENERATE(COLOR, colorOverlay, setColorOverlay)
-				} else if (op == OP_SIMULATE) {
-#define LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(TYPE, NAME, SETFUNC) LAYOUT_CONTROL_SIMULATE_##TYPE(state.NAME, SETFUNC, ITEM, value, (ButtonState)k, i)
-					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(COLOR, textColor, setTextColor)
-					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(DRAWABLE, icon, setIcon)
-					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(DRAWABLE, background, setBackground)
-					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(BORDER, border, setBorder)
-					LAYOUT_CONTROL_BUTTON_STATE_SIMULATE(COLOR, colorOverlay, setColorOverlay)
-				}
-			}
+		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, icon, setIcon)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, colorOverlay, setColorOverlay)
+
+#define LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(TYPE, NAME, SETFUNC, ...) \
+		if (op == OP_PARSE) { \
+			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME, +suffix, category.NAME, ##__VA_ARGS__) \
+		} else if (op == OP_GENERATE_CPP) { \
+			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, category.NAME, SETFUNC, CONTROL, "%d, %s", i, value) \
+		} else if (op == OP_SIMULATE) { \
+			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, category.NAME, SETFUNC, CONTROL, (sl_uint32)i, value) \
 		}
 
-		LAYOUT_CONTROL_UI_ATTR(GENERIC, defaultColorFilter, setUsingDefaultColorFilter)
+		for (sl_size i = 0; i < CountOfArray(attr->categories); i++) {
+			SAppLayoutButtonCategory& category = attr->categories[i];
+			String suffix = String::fromSize(i);
+			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(COLOR, textColor, setTextColor)
+			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(DRAWABLE, icon, setIcon)
+			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(DRAWABLE, background, setBackground)
+			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(BORDER, border, setBorder)
+			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(COLOR, colorOverlay, setColorOverlay)
+		}
 
 		LAYOUT_CONTROL_SET_NATIVE_WIDGET_CHECK_BACKGROUND_COLOR
 
@@ -2681,43 +2769,43 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, maxAspectRatio, setMaximumAutoAspectRatio)
 
 		if (op == OP_PARSE) {
-			if (!(resourceItem->attrs->width.flagDefined) && !(resourceItem->attrs->height.flagDefined)) {
-				if (resourceItem->attrs->aspectRatio.flagDefined) {
-					resourceItem->attrs->width.flagDefined = sl_true;
-					resourceItem->attrs->width.amount = 1;
-					resourceItem->attrs->width.unit = SAppDimensionValue::WRAP;
+			if (!(attr->width.flagDefined) && !(attr->height.flagDefined)) {
+				if (attr->aspectRatio.flagDefined) {
+					attr->width.flagDefined = sl_true;
+					attr->width.amount = 1;
+					attr->width.unit = SAppDimensionValue::WRAP;
 				} else {
-					resourceItem->attrs->width.flagDefined = sl_true;
-					resourceItem->attrs->width.amount = 1;
-					resourceItem->attrs->width.unit = SAppDimensionValue::WRAP;
-					resourceItem->attrs->height.flagDefined = sl_true;
-					resourceItem->attrs->height.amount = 1;
-					resourceItem->attrs->height.unit = SAppDimensionValue::WRAP;
+					attr->width.flagDefined = sl_true;
+					attr->width.amount = 1;
+					attr->width.unit = SAppDimensionValue::WRAP;
+					attr->height.flagDefined = sl_true;
+					attr->height.amount = 1;
+					attr->height.unit = SAppDimensionValue::WRAP;
 				}
 			}
 		}
-		if (!(resourceItem->attrs->aspectRatio.flagDefined)) {
+		if (!(attr->aspectRatio.flagDefined)) {
 			if (op == OP_GENERATE_CPP) {
-				if (resourceItem->attrs->width.flagDefined) {
-					if (!(resourceItem->attrs->height.flagDefined)) {
+				if (attr->width.flagDefined) {
+					if (!(attr->height.flagDefined)) {
 						LAYOUT_CONTROL_GENERATE(setAutoAspectRatio, "sl_true")
 						LAYOUT_CONTROL_GENERATE(setAspectRatioMode, "slib::AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init")
 					}
 				} else {
-					if (resourceItem->attrs->height.flagDefined) {
+					if (attr->height.flagDefined) {
 						LAYOUT_CONTROL_GENERATE(setAutoAspectRatio, "sl_true")
 						LAYOUT_CONTROL_GENERATE(setAspectRatioMode, "slib::AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init")
 					}
 				}
 			} else if (op == OP_SIMULATE) {
 				if (!flagOnLayout) {
-					if (resourceItem->attrs->width.flagDefined) {
-						if (!(resourceItem->attrs->height.flagDefined)) {
+					if (attr->width.flagDefined) {
+						if (!(attr->height.flagDefined)) {
 							view->setAutoAspectRatio(sl_true);
 							view->setAspectRatioMode(AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);
 						}
 					} else {
-						if (resourceItem->attrs->height.flagDefined) {
+						if (attr->height.flagDefined) {
 							view->setAutoAspectRatio(sl_true);
 							view->setAspectRatioMode(AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init);
 						}
@@ -2888,11 +2976,11 @@ namespace slib
 				if (contentItem.isNull()) {
 					return sl_false;
 				}
-				if (!(resourceItem->attrs->scrolling.flagDefined) || resourceItem->attrs->scrolling.vertical) {
+				if (!(attr->scrolling.flagDefined) || attr->scrolling.vertical) {
 					contentItem->attrs->topMode = PositionMode::Free;
 					contentItem->attrs->bottomMode = PositionMode::Free;
 				}
-				if (!(resourceItem->attrs->scrolling.flagDefined) || resourceItem->attrs->scrolling.horizontal) {
+				if (!(attr->scrolling.flagDefined) || attr->scrolling.horizontal) {
 					contentItem->attrs->leftMode = PositionMode::Free;
 					contentItem->attrs->rightMode = PositionMode::Free;
 				}
@@ -3342,12 +3430,8 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, tabHeight, setTabHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, barBackground, setBarBackground)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, contentBackground, setContentBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, tabBackground, setTabBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, selectedTabBackground, setSelectedTabBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverTabBackground, setHoverTabBackground)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, labelColor, setLabelColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, selectedLabelColor, setSelectedLabelColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, hoverLabelColor, setHoverLabelColor)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, tabBackground, setTabBackground)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, labelColor, setLabelColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, tabAlign, setTabAlignment)
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, tabPaddingLeft, setTabPaddingLeft, checkPosition)
@@ -3502,10 +3586,8 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, closedIcon, setClosedItemIcon)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, collapsedIcon, setCollapsedIcon)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, expandedIcon, setExpandedIcon)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, selectedBackgroundColor, setSelectedItemBackgroundColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setItemTextColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, hoverTextColor, setHoverItemTextColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, selectedTextColor, setSelectedItemTextColor)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, itemBackground, setItemBackground)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setItemTextColor)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemHeight, setItemHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPadding, setItemPadding, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemIndent, setItemIndent, checkPosition)
@@ -3716,9 +3798,9 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, discrete, setDiscrete)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, step, setStep)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, reversed, setReversed)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, track, setTrackDrawable)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, progress, setProgressDrawable)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, progress2, setSecondaryProgressDrawable)
+		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, track, setTrack)
+		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, progress, setProgress)
+		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, progress2, setSecondaryProgress)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -3729,10 +3811,7 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(Progress)
 
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, thumb, setThumbDrawable)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedThumb, setPressedThumbDrawable)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverThumb, setHoverThumbDrawable);
-
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, thumb, setThumb)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, thumbWidth, setThumbWidth, checkScalarSize);
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, thumbHeight, setThumbHeight, checkScalarSize);
 		if (op == OP_PARSE) {
@@ -3757,50 +3836,40 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		if (op == OP_PARSE) {
-			String value = resourceItem->getXmlAttribute("value").trim().toLower();
-			if (value == "left" || value == "off") {
-				attr->value.flagDefined = sl_true;
-				attr->value.value = sl_false;
-			} else if (value == "right" || value == "on") {
-				attr->value.flagDefined = sl_true;
-				attr->value.value = sl_true;
-			} else {
-				LAYOUT_CONTROL_UI_ATTR(GENERIC, value, setValue)
-			}
-		} else {
-			LAYOUT_CONTROL_UI_ATTR(GENERIC, value, setValue)
-		}
-
+		LAYOUT_CONTROL_UI_ATTR(GENERIC, value, setValue)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, textInButton, setTextInButton)
 
-		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
-		LAYOUT_CONTROL_UI_ATTR(STRING, textOff, setTextOff)
-		LAYOUT_CONTROL_UI_ATTR(STRING, textOn, setTextOn)
-		LAYOUT_CONTROL_UI_ATTR(STRING, leftText, setLeftText)
-		LAYOUT_CONTROL_UI_ATTR(STRING, rightText, setRightText)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColorOff, setTextColorOff)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColorOn, setTextColorOn)
+#define LAYOUT_CONTROL_SWITCH_ATTR(TYPE, NAME, SETFUNC, ...) \
+		if (op == OP_PARSE) { \
+			LAYOUT_CONTROL_PARSE_##TYPE(*(resourceItem), #NAME "Off", , attr->NAME##s[0], ##__VA_ARGS__) \
+			LAYOUT_CONTROL_PARSE_##TYPE(*(resourceItem), #NAME "On", , attr->NAME##s[1], ##__VA_ARGS__) \
+		} else if (op == OP_GENERATE_CPP) { \
+			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, "slib::SwitchValue::Off, %s", value) \
+			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, "slib::SwitchValue::On, %s", value) \
+		} else if (op == OP_SIMULATE) { \
+			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, SwitchValue::Off, value) \
+			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, SwitchValue::On, value) \
+		}
 
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, thumb, setThumb)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, thumbOff, setThumbOff)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, thumbOn, setThumbOn)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, track, setTrack)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, trackOff, setTrackOff)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, trackOn, setTrackOn)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedThumb, setPressedThumb)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedThumbOff, setPressedThumbOff)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedThumbOn, setPressedThumbOn)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedTrack, setPressedTrackOn)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedTrackOff, setPressedTrack)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, pressedTrackOn, setPressedTrackOff)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverThumb, setHoverThumb)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverThumbOff, setHoverThumbOff)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverThumbOn, setHoverThumbOn)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverTrack, setHoverTrack)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverTrackOff, setHoverTrackOff)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverTrackOn, setHoverTrackOn)
+#define LAYOUT_CONTROL_SWITCH_STATE_MAP(TYPE, NAME, SETFUNC, ...) \
+		if (op == OP_PARSE) { \
+			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME "Off", , attr->NAME##s[0], ##__VA_ARGS__) \
+			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME "On", , attr->NAME##s[1], ##__VA_ARGS__) \
+		} else if (op == OP_GENERATE_CPP) { \
+			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, "slib::SwitchValue::Off, %s", value) \
+			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, "slib::SwitchValue::On, %s", value) \
+		} else if (op == OP_SIMULATE) { \
+			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, SwitchValue::Off, value) \
+			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, SwitchValue::On, value) \
+		}
+
+		LAYOUT_CONTROL_SWITCH_ATTR(STRING, text, setText)
+		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_SWITCH_ATTR(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, thumb, setThumb)
+		LAYOUT_CONTROL_SWITCH_STATE_MAP(DRAWABLE, thumb, setThumb)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, track, setTrack)
+		LAYOUT_CONTROL_SWITCH_STATE_MAP(DRAWABLE, track, setTrack)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -4025,10 +4094,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, itemCount, setItemCount)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemHeight, setItemHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, multipleSelection, setMultipleSelection)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, itemBackground, setItemBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, selectedItemBackground, setSelectedItemBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, hoverItemBackground, setHoverItemBackground)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, focusedItemBackground, setHoverItemBackground)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, itemBackground, setItemBackground)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
@@ -4041,13 +4107,9 @@ namespace slib
 		LAYOUT_CONTROL_PROCESS_SUPER(ListBox)
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, lineHeightWeight, setLineHeightWeight)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, ellipsize, setEllipsize)
-
-		LAYOUT_CONTROL_UI_ATTR(COLOR, selectedTextColor, setSelectedTextColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, hoverTextColor, setHoverTextColor)
-		LAYOUT_CONTROL_UI_ATTR(COLOR, focusedTextColor, setFocusedTextColor)
 
 		LAYOUT_CONTROL_PROCESS_SELECT_ITEMS
 
@@ -4093,6 +4155,23 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
+	namespace {
+		static sl_bool GetGridCellCreator(SAppLayoutGridCell::Creator& creator, const String& tagName)
+		{
+#define DEFINE_CHECK_GRID_CELL_CREATOR(NAME, TAG) \
+			if (tagName == TAG) { \
+				creator = SAppLayoutGridCell::Creator::NAME; \
+				return sl_true; \
+			}
+
+			DEFINE_CHECK_GRID_CELL_CREATOR(Label, "label")
+			DEFINE_CHECK_GRID_CELL_CREATOR(Text, "text")
+			DEFINE_CHECK_GRID_CELL_CREATOR(HyperText, "hyper")
+			DEFINE_CHECK_GRID_CELL_CREATOR(Numero, "no")
+			return sl_false;
+		}
+	}
+
 	BEGIN_PROCESS_LAYOUT_CONTROL(Grid, GridView)
 	{
 
@@ -4109,12 +4188,8 @@ namespace slib
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., multiLine) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., ellipsize) \
 				LAYOUT_CONTROL_PARSE_XML(GENERIC, XML, ATTR., lineCount) \
-				LAYOUT_CONTROL_PARSE_XML(DRAWABLE, XML, ATTR., background) \
-				LAYOUT_CONTROL_PARSE_XML(DRAWABLE, XML, ATTR., backgroundHover) \
-				LAYOUT_CONTROL_PARSE_XML(DRAWABLE, XML, ATTR., backgroundSelected) \
-				LAYOUT_CONTROL_PARSE_XML(COLOR, XML, ATTR., textColor) \
-				LAYOUT_CONTROL_PARSE_XML(COLOR, XML, ATTR., textColorHover) \
-				LAYOUT_CONTROL_PARSE_XML(COLOR, XML, ATTR., textColorSelected) \
+				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(DRAWABLE, XML, ATTR., background) \
+				LAYOUT_CONTROL_PARSE_STATE_MAP_XML(COLOR, XML, ATTR., textColor) \
 			}
 			{
 				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(columnXmls, "column")
@@ -4150,7 +4225,7 @@ namespace slib
 						return sl_false;
 					}
 				}
-			}
+		}
 
 #define LAYOUT_CONTROL_PARSE_GRID_ROWS(SECTION) \
 			if (rowXmls.count) { \
@@ -4166,6 +4241,17 @@ namespace slib
 					for (sl_size k = 0; k < cellXmls.count; k++) { \
 						LAYOUT_CONTROL_DEFINE_XML(cellXml, cellXmls[k]) \
 						SAppLayoutGridCell cell; \
+						if (!(GetGridCellCreator(cell.creator, cellXml.getTagName()))) { \
+							logError(cellXml.element, g_str_error_resource_layout_gridview_unknown_cell_creator, cellXml.getTagName()); \
+							return sl_false; \
+						} \
+						String text = cellXml.getXmlText(); \
+						if (text.isNotEmpty()) { \
+							if (!(cell.text.parse(text, cellXml.element))) { \
+								logError(cellXml.element, g_str_error_resource_layout_value_invalid, text); \
+								return sl_false; \
+							} \
+						} \
 						LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(cell, cellXml) \
 						cell.font.inheritFrom(row.font); \
 						SAppLayoutGridColumn* col = attr->columns.getPointerAt(k); \
@@ -4261,17 +4347,14 @@ namespace slib
 
 #define LAYOUT_CONTROL_GENERATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ARG_FORMAT, ...) \
 			{ \
+				LAYOUT_CONTROL_GENERATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 				LAYOUT_CONTROL_GENERATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
-				LAYOUT_CONTROL_GENERATE_DRAWABLE(ATTR.background, set##PREFIX##Background, ITEM, ARG_FORMAT, ", slib::GridView::CellState::Normal", ##__VA_ARGS__) \
-				LAYOUT_CONTROL_GENERATE_DRAWABLE(ATTR.backgroundHover, set##PREFIX##Background, ITEM, ARG_FORMAT "slib::GridView::CellState::Hover", ##__VA_ARGS__) \
-				LAYOUT_CONTROL_GENERATE_DRAWABLE(ATTR.backgroundSelected, set##PREFIX##Background, ITEM, ARG_FORMAT "slib::GridView::CellState::Selected", ##__VA_ARGS__) \
-				LAYOUT_CONTROL_GENERATE_COLOR(ATTR.textColor, set##PREFIX##TextColor, ITEM, ARG_FORMAT "slib::GridView::CellState::Normal", ##__VA_ARGS__) \
-				LAYOUT_CONTROL_GENERATE_COLOR(ATTR.textColorHover, set##PREFIX##TextColor, ITEM, ARG_FORMAT "slib::GridView::CellState::Hover", ##__VA_ARGS__) \
-				LAYOUT_CONTROL_GENERATE_COLOR(ATTR.textColorSelected, set##PREFIX##TextColor, ITEM, ARG_FORMAT "slib::GridView::CellState::Selected", ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_STATE_MAP(DRAWABLE, ATTR.background, set##PREFIX##Background, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
+				LAYOUT_CONTROL_GENERATE_STATE_MAP(COLOR, ATTR.textColor, set##PREFIX##TextColor, ITEM, ARG_FORMAT, ##__VA_ARGS__) \
 			}
 
 			{
@@ -4327,17 +4410,14 @@ namespace slib
 
 #define LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, ATTR, ...) \
 			{ \
+				LAYOUT_CONTROL_SIMULATE_STRING(ATTR.text, set##PREFIX##Text, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.align, set##PREFIX##Alignment, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_FONT(ATTR.font, set##PREFIX##Font, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.multiLine, set##PREFIX##MultiLine, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.ellipsize, set##PREFIX##Ellipsize, ITEM, ##__VA_ARGS__, value) \
 				LAYOUT_CONTROL_SIMULATE_GENERIC(ATTR.lineCount, set##PREFIX##LineCount, ITEM, ##__VA_ARGS__, value) \
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.background, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value, GridView::CellState::Normal) \
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.backgroundHover, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value, GridView::CellState::Hover) \
-				LAYOUT_CONTROL_SIMULATE_DRAWABLE(ATTR.backgroundSelected, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value, GridView::CellState::Selected) \
-				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColor, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value, GridView::CellState::Normal) \
-				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColorHover, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value, GridView::CellState::Hover) \
-				LAYOUT_CONTROL_SIMULATE_COLOR(ATTR.textColorSelected, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value, GridView::CellState::Selected) \
+				LAYOUT_CONTROL_SIMULATE_STATE_MAP(DRAWABLE, ATTR.background, set##PREFIX##Background, ITEM, ##__VA_ARGS__, value) \
+				LAYOUT_CONTROL_SIMULATE_STATE_MAP(COLOR, ATTR.textColor, set##PREFIX##TextColor, ITEM, ##__VA_ARGS__, value) \
 			}
 
 			{
@@ -4387,14 +4467,9 @@ namespace slib
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
-#define PROCESS_XCONTROL_ATTRS \
-		LAYOUT_CONTROL_UI_ATTR(COLOR, focusedBorderColor, setFocusedBorderColor)
-
 	BEGIN_PROCESS_LAYOUT_CONTROL(XControl, XControl)
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
-
-		PROCESS_XCONTROL_ATTRS
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 	}

@@ -114,13 +114,13 @@ namespace slib
 		return m_thumbs[(int)value].get(state);
 	}
 
-	void SwitchView::setThumb(const Ref<Drawable>& drawable, SwitchValue value, ViewState state, UIUpdateMode mode)
+	void SwitchView::setThumb(SwitchValue value, const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
 		m_thumbs[(int)value].set(state, drawable);
 		invalidate(mode);
 	}
 
-	void SwitchView::setThumb(const Ref<Drawable>& drawable, SwitchValue value, UIUpdateMode mode)
+	void SwitchView::setThumb(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_thumbs[(int)value].defaultValue = drawable;
 		invalidate(mode);
@@ -140,14 +140,14 @@ namespace slib
 		invalidate(mode);
 	}
 
-	void SwitchView::setThumbColor(const Color& color, SwitchValue value, ViewState state, UIUpdateMode mode)
+	void SwitchView::setThumbColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setThumb(Drawable::createColorDrawable(color), value, state, mode);
+		setThumb(value, Drawable::createColorDrawable(color), state, mode);
 	}
 
-	void SwitchView::setThumbColor(const Color& color, SwitchValue value, UIUpdateMode mode)
+	void SwitchView::setThumbColor(SwitchValue value, const Color& color, UIUpdateMode mode)
 	{
-		setThumb(Drawable::createColorDrawable(color), value, mode);
+		setThumb(value, Drawable::createColorDrawable(color), mode);
 	}
 
 	void SwitchView::setThumbColor(const Color& color, ViewState state, UIUpdateMode mode)
@@ -165,13 +165,13 @@ namespace slib
 		return m_tracks[(int)value].get(state);
 	}
 
-	void SwitchView::setTrack(const Ref<Drawable>& drawable, SwitchValue value, ViewState state, UIUpdateMode mode)
+	void SwitchView::setTrack(SwitchValue value, const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode)
 	{
 		m_tracks[(int)value].set(state, drawable);
 		invalidate(mode);
 	}
 
-	void SwitchView::setTrack(const Ref<Drawable>& drawable, SwitchValue value, UIUpdateMode mode)
+	void SwitchView::setTrack(SwitchValue value, const Ref<Drawable>& drawable, UIUpdateMode mode)
 	{
 		m_tracks[(int)value].defaultValue = drawable;
 		invalidate(mode);
@@ -191,14 +191,14 @@ namespace slib
 		invalidate(mode);
 	}
 
-	void SwitchView::setTrackColor(const Color& color, SwitchValue value, ViewState state, UIUpdateMode mode)
+	void SwitchView::setTrackColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setTrack(Drawable::createColorDrawable(color), value, state, mode);
+		setTrack(value, Drawable::createColorDrawable(color), state, mode);
 	}
 
-	void SwitchView::setTrackColor(const Color& color, SwitchValue value, UIUpdateMode mode)
+	void SwitchView::setTrackColor(SwitchValue value, const Color& color, UIUpdateMode mode)
 	{
-		setTrack(Drawable::createColorDrawable(color), value, mode);
+		setTrack(value, Drawable::createColorDrawable(color), mode);
 	}
 
 	void SwitchView::setTrackColor(const Color& color, ViewState state, UIUpdateMode mode)

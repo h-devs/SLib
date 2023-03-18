@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -173,51 +173,6 @@ namespace slib
 		if (m_cell.isNotNull()) {
 			m_cell->flagMnemonic = flag;
 		}
-	}
-
-	Color Button::getTextColor(ViewState state, sl_uint32 category)
-	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				Color color = m_cell->categories[category].textColors.get(state);
-				if (color.isNotZero()) {
-					return color;
-				}
-			}
-		}
-		if (state == ViewState::Default) {
-			return BUTTON_TEXT_DEFAULT_COLOR;
-		} else {
-			return Color::zero();
-		}
-	}
-
-	void Button::setTextColor(const Color& color, ViewState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if (color.isNotZero()) {
-					m_cell->categories[category].textColors.set(state, color);
-				} else {
-					m_cell->categories[category].textColors.remove(state);
-				}
-				invalidate(mode);
-			}
-		}
-	}
-
-	void Button::setTextColor(const Color& color, ViewState state, UIUpdateMode mode)
-	{
-		sl_uint32 nCategories = getCategoryCount();
-		for (sl_uint32 i = 0; i < nCategories; i++) {
-			setTextColor(color, state, 0, mode);
-		}
-	}
-
-	void Button::setTextColor(const Color& color, UIUpdateMode mode)
-	{
-		setTextColor(color, ViewState::Default, mode);
 	}
 
 	Alignment Button::getGravity()
@@ -639,167 +594,114 @@ namespace slib
 		}
 	}
 
-	Ref<Drawable> Button::getIcon(ViewState state, sl_uint32 category)
-	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				return m_cell->categories[category].icons.get(state);
-			}
-		}
-		return sl_null;
+#define DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+	TYPE Button::get##FUNC(sl_uint32 category, ViewState state) \
+	{ \
+		if (m_cell.isNotNull()) { \
+			if (category < m_cell->categories.getCount()) { \
+				TYPE value = m_cell->categories[category].NAME.get(state); \
+				if (value.CHECK_NOT_NULL()) { \
+					return value; \
+				} \
+			} \
+		} \
+		return NULL_VALUE; \
+	} \
+	void Button::set##FUNC(sl_uint32 category, SET_TYPE value, ViewState state, UIUpdateMode mode) \
+	{ \
+		_initCell(); \
+		if (m_cell.isNotNull()) { \
+			if (category < m_cell->categories.getCount()) { \
+				if (value SET_CHECK_NOT_NULL) { \
+					m_cell->categories[category].NAME.set(state, SET_VALUE); \
+				} else { \
+					m_cell->categories[category].NAME.remove(state); \
+				} \
+				invalidate(mode); \
+			} \
+		} \
+	} \
+	void Button::set##FUNC(sl_uint32 category, SET_TYPE value, UIUpdateMode mode) \
+	{ \
+		set##FUNC(category, value, ViewState::Default, mode); \
 	}
 
-	void Button::setIcon(const Ref<Drawable>& icon, ViewState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if (icon.isNotNull()) {
-					m_cell->categories[category].icons.set(state, icon);
-				} else {
-					m_cell->categories[category].icons.remove(state);
-				}
-				invalidateLayoutOfWrappingControl(mode);
-			}
-		}
+#define DEFINE_STATE_MAP_FUNCS(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+	DEFINE_STATE_MAP_FUNCS_SUB(FUNC, NAME, TYPE, CHECK_NOT_NULL, NULL_VALUE, SET_TYPE, SET_CHECK_NOT_NULL, SET_VALUE) \
+	TYPE Button::get##FUNC(ViewState state) \
+	{ \
+		return get##FUNC(0, state); \
+	} \
+	void Button::set##FUNC(SET_TYPE value, ViewState state, UIUpdateMode mode) \
+	{ \
+		sl_uint32 nCategories = getCategoryCount(); \
+		for (sl_uint32 i = 0; i < nCategories; i++) { \
+			set##FUNC(i, value, state, mode); \
+		} \
+	} \
+	void Button::set##FUNC(SET_TYPE value, UIUpdateMode mode) \
+	{ \
+		set##FUNC(value, ViewState::Default, mode); \
 	}
 
-	void Button::setIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode)
-	{
-		sl_uint32 nCategories = getCategoryCount();
-		for (sl_uint32 i = 0; i < nCategories; i++) {
-			setIcon(icon, state, i, mode);
-		}
-	}
+	DEFINE_STATE_MAP_FUNCS(TextColor, textColors, Color, isNotZero, Color::zero(), const Color&, .isNotZero(), value)
+	DEFINE_STATE_MAP_FUNCS(Icon, icons, Ref<Drawable>, isNotNull, sl_null, const Ref<Drawable>&, .isNotNull(), value)
+	DEFINE_STATE_MAP_FUNCS_SUB(Background, backgrounds, Ref<Drawable>, isNotNull, sl_null, const Ref<Drawable>&, .isNotNull(), value)
 
-	void Button::setIcon(const Ref<Drawable>& icon, UIUpdateMode mode)
-	{
-		setIcon(icon, ViewState::Default, mode);
-	}
-
-	Ref<Drawable> Button::getBackground(ViewState state, sl_uint32 category)
-	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				return m_cell->categories[category].backgrounds.get(state);
-			}
-		}
-		return sl_null;
-	}
-
-	Color Button::getBackgroundColor(ViewState state, sl_uint32 category)
+	Color Button::getBackgroundColor(sl_uint32 category, ViewState state)
 	{
 		Color color;
-		if (ColorDrawable::check(getBackground(state, category), &color)) {
+		if (ColorDrawable::check(getBackground(category, state), &color)) {
 			return color;
 		}
 		return Color::zero();
 	}
 
-	void Button::setBackground(const Ref<Drawable>& background, ViewState state, sl_uint32 category, UIUpdateMode mode)
+	void Button::setBackgroundColor(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if (background.isNotNull()) {
-					m_cell->categories[category].backgrounds.set(state, background);
-				} else {
-					m_cell->categories[category].backgrounds.remove(state);
-				}
-				invalidate(mode);
-			}
-		}
+		setBackground(category, Drawable::createColorDrawable(color), state, mode);
 	}
 
-	void Button::setBackgroundColor(const Color& color, ViewState state, sl_uint32 category, UIUpdateMode mode)
+	void Button::setBackgroundColor(sl_uint32 category, const Color& color, UIUpdateMode mode)
 	{
-		setBackground(Drawable::createColorDrawable(color), state, category, mode);
+		setBackground(category, Drawable::createColorDrawable(color), mode);
 	}
 
-	Ref<Pen> Button::getBorder(ViewState state, sl_uint32 category)
+	DEFINE_STATE_MAP_FUNCS_SUB(Border, borders, Ref<Pen>, isNotNull, sl_null, const Ref<Pen>&, .isNotNull(), value)
+
+	void Button::setBorder(sl_uint32 category, const PenDesc& desc, ViewState state, UIUpdateMode mode)
 	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				return m_cell->categories[category].borders.get(state);
-			}
-		}
-		return sl_null;
+		setBorder(category, Pen::create(desc, getBorder(category, state)), state, mode);
 	}
 
-	void Button::setBorder(const Ref<Pen>& pen, ViewState state, sl_uint32 category, UIUpdateMode mode)
+	void Button::setBorder(sl_uint32 category, const PenDesc& desc, UIUpdateMode mode)
 	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if (pen.isNotNull()) {
-					m_cell->categories[category].borders.set(state, pen);
-				} else {
-					m_cell->categories[category].borders.remove(state);
-				}
-				invalidate(mode);
-			}
-		}
+		setBorder(category, desc, ViewState::Default, mode);
 	}
 
-	void Button::setBorder(const PenDesc& desc, ViewState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		setBorder(Pen::create(desc, getBorder(state, category)), state, category, mode);
-	}
+	DEFINE_STATE_MAP_FUNCS(ColorFilter, filters, Shared<ColorMatrix>, isNotNull, sl_null, ColorMatrix*, , Shared<ColorMatrix>::create(*value))
 
-	Shared<ColorMatrix> Button::getColorFilter(ViewState state, sl_uint32 category)
-	{
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				return m_cell->categories[category].filters.get(state);
-			}
-		}
-		return sl_null;
-	}
-
-	void Button::setColorFilter(ColorMatrix* filter, ViewState state, sl_uint32 category, UIUpdateMode mode)
-	{
-		_initCell();
-		if (m_cell.isNotNull()) {
-			if (category < m_cell->categories.getCount()) {
-				if (filter) {
-					m_cell->categories[category].filters.set(state, Shared<ColorMatrix>::create(*filter));
-				} else {
-					m_cell->categories[category].filters.remove(state);
-				}
-				invalidate(mode);
-			}
-		}
-	}
-
-	void Button::setColorFilter(ColorMatrix* filter, ViewState state, UIUpdateMode mode)
-	{
-		sl_uint32 nCategories = getCategoryCount();
-		for (sl_uint32 i = 0; i < nCategories; i++) {
-			setColorFilter(filter, state, i, mode);
-		}
-	}
-
-	void Button::setColorFilter(ColorMatrix* filter, UIUpdateMode mode)
-	{
-		setColorFilter(filter, ViewState::Default, mode);
-	}
-
-	void Button::setColorOverlay(const Color& color, ViewState state, sl_uint32 category, UIUpdateMode mode)
+	void Button::setColorOverlay(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode)
 	{
 		if (color.isZero()) {
-			setColorFilter(sl_null, state, category, mode);
+			setColorFilter(category, sl_null, state, mode);
 		} else {
 			ColorMatrix cm;
 			cm.setOverlay(color);
-			setColorFilter(&cm, state, category, mode);
+			setColorFilter(category, &cm, state, mode);
 		}
+	}
+
+	void Button::setColorOverlay(sl_uint32 category, const Color& color, UIUpdateMode mode)
+	{
+		setColorOverlay(category, color, ViewState::Default, mode);
 	}
 
 	void Button::setColorOverlay(const Color& color, ViewState state, UIUpdateMode mode)
 	{
 		sl_uint32 nCategories = getCategoryCount();
 		for (sl_uint32 i = 0; i < nCategories; i++) {
-			setColorOverlay(color, state, i, mode);
+			setColorOverlay(i, color, state, mode);
 		}
 	}
 
@@ -1108,7 +1010,6 @@ namespace slib
 	{
 		categories = _categories;
 
-		textColor = BUTTON_TEXT_DEFAULT_COLOR;
 		gravity = Alignment::Default;
 
 		category = 0;
@@ -1546,7 +1447,7 @@ namespace slib
 
 			TextBox::DrawParam param;
 			param.frame = rcText;
-			param.textColor = textColor;
+			param.textColor = color;
 			if (shadowOpacity > 0) {
 				param.shadowOpacity = shadowOpacity;
 				param.shadowRadius = (sl_real)shadowRadius;

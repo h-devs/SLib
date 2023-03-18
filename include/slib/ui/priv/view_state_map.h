@@ -100,7 +100,9 @@ namespace slib
 		}
 		ViewState _state = (ViewState)((int)state - (int)def);
 		if (_state == ViewState::Pressed) {
-			return _evaluate(ret, map, (ViewState)((int)def + (int)(ViewState::Hover)), flagReturnDefault);
+			if (map.get((ViewState)((int)def + (int)(ViewState::Hover)), &ret)) {
+				return sl_true;
+			}
 		}
 		if (map.get(def, &ret)) {
 			flagReturnDefault = sl_true;
@@ -117,7 +119,9 @@ namespace slib
 			return sl_true;
 		}
 		if (state == ViewState::Pressed) {
-			return map.get(ViewState::Hover, &ret);
+			if (map.get(ViewState::Hover, &ret)) {
+				return sl_true;
+			}
 		}
 		if (state < ViewState::Focused) {
 			return sl_false;

@@ -51,29 +51,6 @@ namespace slib
 	{
 	}
 
-	sl_bool SAppLayoutViewAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
-	{
-		if (background.flagDefined) {
-			if (flagCheckBackgroundColor) {
-				return sl_true;
-			} else {
-				if (!(background.flagColor)) {
-					return sl_true;
-				}
-			}
-		}
-		if (pressedBackground.flagDefined) {
-			return sl_true;
-		}
-		if (hoverBackground.flagDefined) {
-			return sl_true;
-		}
-		if (border.flagDefined) {
-			return sl_true;
-		}
-		return sl_false;
-	}
-
 	void SAppLayoutViewAttributes::resetLayout()
 	{
 		width.flagDefined = sl_false;
@@ -100,9 +77,30 @@ namespace slib
 		marginBottom.flagDefined = sl_false;
 	}
 
-	sl_bool SAppLayoutButtonAttributes::isNotRequiredNative()
+	sl_bool SAppLayoutViewAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
-		if (icon.flagDefined) {
+		for (auto& item : background.values) {
+			if (item.key == ViewState::Default) {
+				if (flagCheckBackgroundColor) {
+					return sl_true;
+				} else {
+					if (!(item.value.flagColor)) {
+						return sl_true;
+					}
+				}
+			} else {
+				return sl_true;
+			}
+		}
+		if (border.values.isNotNull()) {
+			return sl_true;
+		}
+		return sl_false;
+	}
+
+	sl_bool SAppLayoutButtonAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
+	{
+		if (SAppLayoutViewAttributes::isNotRequiredNative(flagCheckBackgroundColor)) {
 			return sl_true;
 		}
 		if (iconWidth.flagDefined) {
@@ -150,39 +148,41 @@ namespace slib
 		if (defaultColorFilter.flagDefined) {
 			return sl_true;
 		}
-		if (colorOverlay.flagDefined) {
+		if (textColor.values.isNotNull()) {
 			return sl_true;
 		}
-		for (sl_uint32 i = 0; i < SLIB_SAPP_LAYOUT_BUTTON_CATEGORY_MAX; i++) {
-			for (sl_uint32 k = 0; k < (sl_uint32)(ButtonState::Count); k++) {
-				SAppLayoutButtonState& state = states[i][k];
-				if (state.textColor.flagDefined) {
-					return sl_true;
-				}
-				if (state.icon.flagDefined) {
-					return sl_true;
-				}
-				if (state.background.flagDefined) {
-					return sl_true;
-				}
-				if (state.border.flagDefined) {
-					return sl_true;
-				}
-				if (state.colorOverlay.flagDefined) {
-					return sl_true;
-				}
+		if (icon.values.isNotNull()) {
+			return sl_true;
+		}
+		if (colorOverlay.values.isNotNull()) {
+			return sl_true;
+		}
+		for (sl_size i = 0; i < CountOfArray(categories); i++) {
+			SAppLayoutButtonCategory& category = categories[i];
+			if (category.textColor.values.isNotNull()) {
+				return sl_true;
+			}
+			if (category.icon.values.isNotNull()) {
+				return sl_true;
+			}
+			if (category.background.values.isNotNull()) {
+				return sl_true;
+			}
+			if (category.border.values.isNotNull()) {
+				return sl_true;
+			}
+			if (category.colorOverlay.values.isNotNull()) {
+				return sl_true;
 			}
 		}
 		return sl_false;
 	}
 
-	sl_bool SAppLayoutSelectAttributes::isNotRequiredNative()
+	sl_bool SAppLayoutTabAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
-		return sl_false;
-	}
-
-	sl_bool SAppLayoutTabAttributes::isNotRequiredNative()
-	{
+		if (SAppLayoutViewAttributes::isNotRequiredNative(flagCheckBackgroundColor)) {
+			return sl_true;
+		}
 		if (orientation.flagDefined) {
 			return sl_true;
 		}
@@ -198,22 +198,10 @@ namespace slib
 		if (contentBackground.flagDefined) {
 			return sl_true;
 		}
-		if (tabBackground.flagDefined) {
+		if (tabBackground.values.isNotNull()) {
 			return sl_true;
 		}
-		if (selectedTabBackground.flagDefined) {
-			return sl_true;
-		}
-		if (hoverTabBackground.flagDefined) {
-			return sl_true;
-		}
-		if (labelColor.flagDefined) {
-			return sl_true;
-		}
-		if (selectedLabelColor.flagDefined) {
-			return sl_true;
-		}
-		if (hoverLabelColor.flagDefined) {
+		if (labelColor.values.isNotNull()) {
 			return sl_true;
 		}
 		if (tabAlign.flagDefined) {
@@ -243,61 +231,30 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool SAppLayoutComboBoxAttributes::isNotRequiredNative()
+	sl_bool SAppLayoutSelectAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
-		return sl_false;
+		return SAppLayoutViewAttributes::isNotRequiredNative(flagCheckBackgroundColor);
 	}
 
-	sl_bool SAppLayoutPickerAttributes::isNotRequiredNative()
+	sl_bool SAppLayoutComboBoxAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
+		return SAppLayoutViewAttributes::isNotRequiredNative(flagCheckBackgroundColor);
+	}
+
+	sl_bool SAppLayoutPickerAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
+	{
+		if (SAppLayoutViewAttributes::isNotRequiredNative(flagCheckBackgroundColor)) {
+			return sl_true;
+		}
 		if (textColor.flagDefined) {
 			return sl_true;
 		}
 		return sl_false;
 	}
 
-	sl_bool SAppLayoutDatePickerAttributes::isNotRequiredNative()
+	sl_bool SAppLayoutDatePickerAttributes::isNotRequiredNative(sl_bool flagCheckBackgroundColor)
 	{
-		return sl_false;
-	}
-
-	Ref<SAppLayoutGridCellCreator> SAppLayoutGridCellCreator::create(SAppLayoutXmlItem* xml, SAppDocument* doc)
-	{
-#define DEFINE_CREATE_GRID_CELL_CREATOR(NAME, TAG) \
-		if (tagName == TAG) { \
-			Ref<SAppLayoutGridCellCreator_##NAME> ret = new SAppLayoutGridCellCreator_##NAME; \
-			if (ret.isNull()) { \
-				doc->logError(xml->element, g_str_error_out_of_memory); \
-				return sl_null; \
-			} \
-			if (ret->parse(xml, doc)) { \
-				return ret; \
-			} else { \
-				return sl_null; \
-			} \
-		}
-
-		String tagName = xml->getTagName();
-		DEFINE_CREATE_GRID_CELL_CREATOR(Label, "label") else
-		DEFINE_CREATE_GRID_CELL_CREATOR(Text, "text") else
-		DEFINE_CREATE_GRID_CELL_CREATOR(HyperText, "hyper") else
-		DEFINE_CREATE_GRID_CELL_CREATOR(Numero, "no")
-		else {
-			doc->logError(xml->element, g_str_error_resource_layout_gridview_unknown_cell_creator, tagName);
-			return sl_null;
-		}
-	}
-
-	sl_bool SAppLayoutGridCellCreator_Label::parse(SAppLayoutXmlItem* xml, SAppDocument* doc)
-	{
-		String strText = xml->getXmlText();
-		if (strText.isNotEmpty()) {
-			if (!(text.parse(strText, xml->element))) {
-				doc->logError(xml->element, g_str_error_resource_layout_value_invalid, strText);
-				return sl_false;
-			}
-		}
-		return sl_true;
+		return SAppLayoutViewAttributes::isNotRequiredNative(flagCheckBackgroundColor);
 	}
 
 	String SAppLayoutStyle::getXmlAttribute(const String& name)

@@ -38,6 +38,24 @@
 namespace slib
 {
 
+	template <class T>
+	class SAppStateMap
+	{
+	public:
+		typedef T VALUE;
+		HashMap<ViewState, T> values;
+
+	public:
+		void mergeDefault(SAppStateMap& base)
+		{
+			for (auto& item : base.values) {
+				if (!(values.find_NoLock(item.key))) {
+					values.put_NoLock(item.key, item.value);
+				}
+			}
+		}
+	};
+
 	class SAppDocument;
 	class SAppLayoutXmlItem;
 
@@ -374,7 +392,7 @@ namespace slib
 	public:
 		void inheritFrom(const SAppFontValue& parent);
 
-		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, SAppDocument* doc, sl_bool flagRoot);
+		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, const StringView& suffix, SAppDocument* doc, sl_bool flagRoot);
 
 	};
 
@@ -387,7 +405,11 @@ namespace slib
 		SAppColorValue color;
 
 	public:
-		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, SAppDocument* doc, sl_bool flagRoot);
+		void inheritFrom(const SAppBorderValue& parent);
+
+		static void normalizeStateMap(SAppStateMap<SAppBorderValue>& map);
+
+		sl_bool parse(SAppLayoutXmlItem* xml, const StringView& name, const StringView& suffix, SAppDocument* doc, sl_bool flagRoot);
 
 	};
 
@@ -602,6 +624,19 @@ namespace slib
 			RESIZE_UP_DOWN
 		};
 		int type = ARROW;
+
+	public:
+		String getAccessString() const;
+
+		sl_bool parse(const String& str);
+
+	};
+
+	class SAppSwitchValue
+	{
+	public:
+		sl_bool flagDefined = sl_false;
+		SwitchValue value = SwitchValue::Off;
 
 	public:
 		String getAccessString() const;

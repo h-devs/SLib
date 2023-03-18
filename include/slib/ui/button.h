@@ -71,15 +71,6 @@ namespace slib
 		void setMnemonic(sl_bool flag = sl_true);
 
 
-		Color getTextColor(ViewState state = ViewState::Default, sl_uint32 category = 0);
-
-		void setTextColor(const Color& color, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setTextColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
-
-
 		Alignment getGravity();
 
 		void setGravity(const Alignment& align, UIUpdateMode updateMode = UIUpdateMode::Redraw);
@@ -183,9 +174,26 @@ namespace slib
 		void setTextMarginBottom(sl_ui_pos margin, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 
-		Ref<Drawable> getIcon(ViewState state = ViewState::Default, sl_uint32 category = 0);
+		Color getTextColor(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setIcon(const Ref<Drawable>& icon, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setTextColor(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setTextColor(sl_uint32 category, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Color getTextColor(ViewState state = ViewState::Default);
+
+		void setTextColor(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setTextColor(const Color& color, UIUpdateMode updateMode = UIUpdateMode::Redraw);
+
+
+		Ref<Drawable> getIcon(sl_uint32 category, ViewState state = ViewState::Default);
+
+		void setIcon(sl_uint32 category, const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		void setIcon(sl_uint32 category, const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+
+		Ref<Drawable> getIcon(ViewState state = ViewState::Default);
 
 		void setIcon(const Ref<Drawable>& icon, ViewState state, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
@@ -193,42 +201,53 @@ namespace slib
 
 
 		using View::getBackground;
-
-		using View::getBackgroundColor;
-
 		using View::setBackground;
 
+		Ref<Drawable> getBackground(sl_uint32 category, ViewState state = ViewState::Default);
+
+		void setBackground(sl_uint32 category, const Ref<Drawable>& background, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBackground(sl_uint32 category, const Ref<Drawable>& background, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		using View::getBackgroundColor;
 		using View::setBackgroundColor;
 
-		Ref<Drawable> getBackground(ViewState state, sl_uint32 category);
+		Color getBackgroundColor(sl_uint32 category, ViewState state = ViewState::Default);
 
-		Color getBackgroundColor(ViewState state, sl_uint32 category);
+		void setBackgroundColor(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setBackground(const Ref<Drawable>& background, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::Redraw);
-
-		void setBackgroundColor(const Color& color, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::Redraw);
-
+		void setBackgroundColor(sl_uint32 category, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		using View::getBorder;
-
 		using View::setBorder;
 
-		Ref<Pen> getBorder(ViewState state, sl_uint32 category);
+		Ref<Pen> getBorder(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setBorder(const Ref<Pen>& pen, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBorder(sl_uint32 category, const Ref<Pen>& pen, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setBorder(const PenDesc& desc, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setBorder(sl_uint32 category, const Ref<Pen>& pen, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBorder(sl_uint32 category, const PenDesc& desc, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setBorder(sl_uint32 category, const PenDesc& desc, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 
-		Shared<ColorMatrix> getColorFilter(ViewState state = ViewState::Default, sl_uint32 category = 0);
+		Shared<ColorMatrix> getColorFilter(sl_uint32 category, ViewState state = ViewState::Default);
 
-		void setColorFilter(ColorMatrix* filter, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setColorFilter(sl_uint32 category, ColorMatrix* filter, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setColorFilter(sl_uint32 category, ColorMatrix* filter, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		Shared<ColorMatrix> getColorFilter(ViewState state = ViewState::Default);
 
 		void setColorFilter(ColorMatrix* filter, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setColorFilter(ColorMatrix* filter, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setColorOverlay(const Color& color, ViewState state, sl_uint32 category, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setColorOverlay(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void setColorOverlay(sl_uint32 category, const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setColorOverlay(const Color& color, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
 
