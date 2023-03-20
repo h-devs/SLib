@@ -84,9 +84,14 @@ namespace slib
 			sl_uint32 codeOffset = 0;
 			for (sl_uint32 i = 0; i < sections.count; i++) {
 				Coff::CodeSection& section = sections[i];
+				if (pSectionEntry->sectionIndex == section.sectionIndex) {
+					continue;
+				}
 				section.codeOffset = codeOffset;
 				codeOffset += coff.getCodeSectionSize(section);
 			}
+			// move the SectionEntry to the end 
+			pSectionEntry->codeOffset = codeOffset;
 		}
 
 		MemoryOutput writer;
@@ -112,7 +117,10 @@ namespace slib
 			}
 		}
 
-		return writer.getData();
+		Memory out = writer.getData();
+		sl_size out_size = out.getSize();
+		out.write(5, 4, &out_size);
+		return out;
 	}
 
 	Memory ShellCode::generateFromFile(const StringParam& filePath, const StringParam& entryFuntionName)

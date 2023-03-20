@@ -9125,7 +9125,11 @@ namespace slib
 			}
 		}
 
+		sl_bool flagUseDrag = ev->isUsingDrag();
 		ev->resetFlags();
+		if (flagUseDrag) {
+			ev->useDrag();
+		}
 
 		DuringEventScope scope(this, ev);
 

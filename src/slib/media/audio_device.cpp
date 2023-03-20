@@ -514,8 +514,12 @@ namespace slib
 			m_param.event->set();
 		}
 		m_param.onPlayAudio(this, count / m_param.channelCount);
-		if (!(m_buffer.pop(s, count << 1))) {
-			for (sl_uint32 i = 0; i < count; i++) {
+		sl_uint32 nRead = ((sl_uint32)(m_buffer.pop(s, count << 1))) >> 1;
+		if (nRead != count) {
+			if (nRead) {
+				m_lastSample = s[nRead - 1];
+			}
+			for (sl_uint32 i = nRead; i < count; i++) {
 				s[i] = m_lastSample;
 			}
 		}

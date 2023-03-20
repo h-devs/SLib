@@ -556,6 +556,7 @@ namespace slib
 				} else {
 					m_indexDividerDown = -1;
 				}
+				ev->useDrag();
 			}
 			if (action == UIAction::LeftButtonDrag || action == UIAction::LeftButtonUp) {
 				sl_int32 index = m_indexDividerDown;

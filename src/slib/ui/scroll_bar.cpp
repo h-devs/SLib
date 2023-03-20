@@ -510,6 +510,7 @@ namespace slib
 					}
 				}
 				invalidate();
+				ev->useDrag();
 				break;
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:

@@ -274,6 +274,7 @@ namespace slib
 				} else {
 					m_indexPressedThumb = 0;
 				}
+				ev->useDrag();
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
 				if (m_indexPressedThumb >= 0) {

@@ -115,6 +115,7 @@ namespace slib
 					sl_int32 n = (HandlePtr<File>(handle))->read32(buf, size);
 					if (n <= 0) {
 						close();
+						n = SLIB_IO_ENDED;
 					}
 					return n;
 				}

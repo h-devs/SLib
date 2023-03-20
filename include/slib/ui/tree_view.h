@@ -200,6 +200,8 @@ namespace slib
 
 		void removeAllItems(UIUpdateMode mode = UIUpdateMode::Redraw);
 
+		Ref<TreeViewItem> getSelectedItem();
+
 		Ref<Drawable> getItemIcon();
 
 		void setItemIcon(const Ref<Drawable>& icon, UIUpdateMode mode = UIUpdateMode::Redraw);

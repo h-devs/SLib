@@ -293,6 +293,7 @@ namespace slib
 			m_posMouseDown = pos;
 			m_offsetPagesMouseDown = m_offsetPages;
 			m_timer.setNull();
+			ev->useDrag();
 		} else if (action == UIAction::LeftButtonDrag || action == UIAction::TouchMove) {
 			if (m_flagMouseDown) {
 				if (isLockScroll()) {

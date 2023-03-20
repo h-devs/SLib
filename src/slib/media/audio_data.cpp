@@ -464,4 +464,66 @@ namespace slib
 		copySamplesFrom(other, count);
 	}
 
+	sl_int16 AudioData::getSample(sl_uint32 sampleIndex, sl_uint32 channelIndex)
+	{
+		AudioSampleType type = AudioFormatHelper::getSampleType(format);
+		sl_uint32 nChannels = AudioFormatHelper::getChannelCount(format);
+		sl_uint32 index = sampleIndex * nChannels + channelIndex;
+		switch (type) {
+			case AudioSampleType::Int8:
+				return ((sl_int8*)data)[index];
+			case AudioSampleType::Uint8:
+				return ((sl_uint8*)data)[index];
+			case AudioSampleType::Int16:
+			case AudioSampleType::Uint16:
+				return ((sl_uint16*)data)[index];
+			case AudioSampleType::Int16LE:
+			case AudioSampleType::Uint16LE:
+				return Endian::swap16BE(((sl_uint16*)data)[index]);
+			case AudioSampleType::Int16BE:
+			case AudioSampleType::Uint16BE:
+				return Endian::swap16LE(((sl_uint16*)data)[index]);
+			case AudioSampleType::Float:
+				{
+					float f = ((float*)data)[index];
+					sl_int16 o;
+					AudioUtil::convertSample(f, o);
+					return o;
+				}
+			case AudioSampleType::FloatLE:
+				{
+					float f = Endian::swapFloatBE(((float*)data)[index]);
+					sl_int16 o;
+					AudioUtil::convertSample(f, o);
+					return o;
+				}
+			case AudioSampleType::FloatBE:
+				{
+					float f = Endian::swapFloatLE(((float*)data)[index]);
+					sl_int16 o;
+					AudioUtil::convertSample(f, o);
+					return o;
+				}
+		}
+		return 0;
+	}
+
+	sl_int16 AudioData::getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex = 0)
+	{
+		sl_int16 peakValue = 0;
+		for (sl_uint32 index = startSampleIndex; index < endSampleIndex; index++) {
+			sl_int16 val = getSample(index, channelIndex);
+			if (flagPositive) {
+				if (peakValue < val) {
+					peakValue = val;
+				}
+			} else {
+				if (val < peakValue) {
+					peakValue = val;
+				}
+			}
+		}
+		return peakValue;
+	}
+
 }
