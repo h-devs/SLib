@@ -480,7 +480,7 @@ namespace slib
 
 		m_flagInvalidTreeLayout = sl_true;
 
-		m_itemBackgrounds.set(ViewState::Selected, Drawable::createColorDrawable(Color(0, 0, 0, 50)));
+		m_itemBackgrounds.set(ViewState::Selected, Drawable::fromColor(Color(0, 0, 0, 50)));
 		m_itemTextColors.defaultValue = Color::Black;
 		m_itemTextColors.set(ViewState::Hover, Color(0, 0, 200));
 		m_itemTextColors.set(ViewState::Selected, Color(0, 0, 200));
@@ -700,12 +700,12 @@ namespace slib
 
 	void TreeView::setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setItemBackground(Drawable::createColorDrawable(color), state, mode);
+		setItemBackground(Drawable::fromColor(color), state, mode);
 	}
 
 	void TreeView::setItemBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setItemBackground(Drawable::createColorDrawable(color), mode);
+		setItemBackground(Drawable::fromColor(color), mode);
 	}
 
 	Color TreeView::getItemTextColor(ViewState state)

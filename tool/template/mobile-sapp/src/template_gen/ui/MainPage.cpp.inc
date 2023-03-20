@@ -10,7 +10,7 @@ namespace sapp
 			this->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			this->setAlignParentLeft(slib::UIUpdateMode::Init);
 			this->setAlignParentTop(slib::UIUpdateMode::Init);
-			this->setBackground(slib::Drawable::createColorDrawable(slib::Color(255, 255, 255, 255)), slib::UIUpdateMode::Init);
+			this->setBackground(slib::Drawable::fromColor(slib::Color(255, 255, 255, 255)), slib::UIUpdateMode::Init);
 
 			_label1 = new slib::LabelView;
 			_label1->setWidthWrapping(slib::UIUpdateMode::Init);

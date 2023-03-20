@@ -142,22 +142,22 @@ namespace slib
 
 	void SwitchView::setThumbColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setThumb(value, Drawable::createColorDrawable(color), state, mode);
+		setThumb(value, Drawable::fromColor(color), state, mode);
 	}
 
 	void SwitchView::setThumbColor(SwitchValue value, const Color& color, UIUpdateMode mode)
 	{
-		setThumb(value, Drawable::createColorDrawable(color), mode);
+		setThumb(value, Drawable::fromColor(color), mode);
 	}
 
 	void SwitchView::setThumbColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setThumb(Drawable::createColorDrawable(color), state, mode);
+		setThumb(Drawable::fromColor(color), state, mode);
 	}
 
 	void SwitchView::setThumbColor(const Color& color, UIUpdateMode mode)
 	{
-		setThumb(Drawable::createColorDrawable(color), mode);
+		setThumb(Drawable::fromColor(color), mode);
 	}
 
 	Ref<Drawable> SwitchView::getTrack(SwitchValue value, ViewState state)
@@ -193,22 +193,22 @@ namespace slib
 
 	void SwitchView::setTrackColor(SwitchValue value, const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setTrack(value, Drawable::createColorDrawable(color), state, mode);
+		setTrack(value, Drawable::fromColor(color), state, mode);
 	}
 
 	void SwitchView::setTrackColor(SwitchValue value, const Color& color, UIUpdateMode mode)
 	{
-		setTrack(value, Drawable::createColorDrawable(color), mode);
+		setTrack(value, Drawable::fromColor(color), mode);
 	}
 
 	void SwitchView::setTrackColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setTrack(Drawable::createColorDrawable(color), state, mode);
+		setTrack(Drawable::fromColor(color), state, mode);
 	}
 
 	void SwitchView::setTrackColor(const Color& color, UIUpdateMode mode)
 	{
-		setTrack(Drawable::createColorDrawable(color), mode);
+		setTrack(Drawable::fromColor(color), mode);
 	}
 
 

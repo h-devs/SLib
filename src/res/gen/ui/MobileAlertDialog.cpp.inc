@@ -59,7 +59,7 @@ namespace slib
 			_view1->setHeight(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(1.0f)), slib::UIUpdateMode::Init);
 			_view1->setAlignParentLeft(slib::UIUpdateMode::Init);
 			_view1->setMarginTop(slib::UIResource::toUiPos(slib::UIResource::dpToPixel(1.0f)), slib::UIUpdateMode::Init);
-			_view1->setBackground(slib::Drawable::createColorDrawable(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view1->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
 			_linear1->addChild(_view1, slib::UIUpdateMode::Init);
 
 			_linear2 = new slib::LinearLayout;
@@ -86,7 +86,7 @@ namespace slib
 			_view2->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view2->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view2->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view2->setBackground(slib::Drawable::createColorDrawable(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view2->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
 			btnOK->addChild(_view2, slib::UIUpdateMode::Init);
 
 			btnYes = new slib::Button;
@@ -106,7 +106,7 @@ namespace slib
 			_view3->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view3->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view3->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view3->setBackground(slib::Drawable::createColorDrawable(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view3->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
 			btnYes->addChild(_view3, slib::UIUpdateMode::Init);
 
 			btnNo = new slib::Button;
@@ -126,7 +126,7 @@ namespace slib
 			_view4->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view4->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view4->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view4->setBackground(slib::Drawable::createColorDrawable(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view4->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
 			btnNo->addChild(_view4, slib::UIUpdateMode::Init);
 
 			btnCancel = new slib::Button;
@@ -146,7 +146,7 @@ namespace slib
 			_view5->setHeightFilling(1.0f, slib::UIUpdateMode::Init);
 			_view5->setAlignParentRight(slib::UIUpdateMode::Init);
 			_view5->setAlignParentBottom(slib::UIUpdateMode::Init);
-			_view5->setBackground(slib::Drawable::createColorDrawable(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
+			_view5->setBackground(slib::Drawable::fromColor(slib::Color(176, 176, 176, 255)), slib::UIUpdateMode::Init);
 			btnCancel->addChild(_view5, slib::UIUpdateMode::Init);
 
 		}

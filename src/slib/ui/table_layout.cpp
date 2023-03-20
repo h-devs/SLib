@@ -512,7 +512,7 @@ namespace slib
 		ObjectLocker lock(this);
 		Column* col = m_columns.getPointerAt(iCol);
 		if (col) {
-			col->background = Drawable::createColorDrawable(color);
+			col->background = Drawable::fromColor(color);
 			invalidateLayout(mode);
 		}
 	}
@@ -908,7 +908,7 @@ namespace slib
 		ObjectLocker lock(this);
 		Row* row = m_rows.getPointerAt(iRow);
 		if (row) {
-			row->background = Drawable::createColorDrawable(color);
+			row->background = Drawable::fromColor(color);
 			invalidateLayout(mode);
 		}
 	}

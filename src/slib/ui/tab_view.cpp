@@ -63,9 +63,9 @@ namespace slib
 
 		setBackgroundColor(Color::White, UIUpdateMode::Init);
 		
-		m_barBackground = Drawable::createColorDrawable(Color(230, 230, 230));
-		m_tabBackgrounds.set(ViewState::Selected, Drawable::createColorDrawable(Color(150, 150, 150)));
-		m_tabBackgrounds.set(ViewState::Hover, Drawable::createColorDrawable(Color(210, 210, 210)));
+		m_barBackground = Drawable::fromColor(Color(230, 230, 230));
+		m_tabBackgrounds.set(ViewState::Selected, Drawable::fromColor(Color(150, 150, 150)));
+		m_tabBackgrounds.set(ViewState::Hover, Drawable::fromColor(Color(210, 210, 210)));
 
 		m_labelColors.defaultValue = Color(50, 50, 50);
 		m_labelColors.set(ViewState::Selected, Color::Black);
@@ -364,7 +364,7 @@ namespace slib
 
 	void TabView::setBarBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setBarBackground(Drawable::createColorDrawable(color), mode);
+		setBarBackground(Drawable::fromColor(color), mode);
 	}
 
 	Ref<Drawable> TabView::getContentBackground()
@@ -380,7 +380,7 @@ namespace slib
 
 	void TabView::setContentBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setContentBackground(Drawable::createColorDrawable(color), mode);
+		setContentBackground(Drawable::fromColor(color), mode);
 	}
 
 	Ref<Drawable> TabView::getTabBackground(ViewState state)
@@ -402,12 +402,12 @@ namespace slib
 
 	void TabView::setTabBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setTabBackground(Drawable::createColorDrawable(color), state, mode);
+		setTabBackground(Drawable::fromColor(color), state, mode);
 	}
 
 	void TabView::setTabBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setTabBackground(Drawable::createColorDrawable(color), mode);
+		setTabBackground(Drawable::fromColor(color), mode);
 	}
 
 	Color TabView::getLabelColor(ViewState state)

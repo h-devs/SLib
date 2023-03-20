@@ -477,12 +477,12 @@ namespace slib
 
 	void ListBox::setItemBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setItemBackground(Drawable::createColorDrawable(color), state, mode);
+		setItemBackground(Drawable::fromColor(color), state, mode);
 	}
 
 	void ListBox::setItemBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setItemBackground(Drawable::createColorDrawable(color), mode);
+		setItemBackground(Drawable::fromColor(color), mode);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)

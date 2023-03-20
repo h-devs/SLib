@@ -5288,12 +5288,12 @@ namespace slib
 
 	void View::setBackgroundColor(const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setBackground(ColorDrawable::createColorDrawable(color), state, mode);
+		setBackground(ColorDrawable::fromColor(color), state, mode);
 	}
 
 	void View::setBackgroundColor(const Color& color, UIUpdateMode mode)
 	{
-		setBackground(ColorDrawable::createColorDrawable(color), mode);
+		setBackground(ColorDrawable::fromColor(color), mode);
 	}
 
 	ScaleMode View::getBackgroundScaleMode()

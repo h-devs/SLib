@@ -659,12 +659,12 @@ namespace slib
 
 	void Button::setBackgroundColor(sl_uint32 category, const Color& color, ViewState state, UIUpdateMode mode)
 	{
-		setBackground(category, Drawable::createColorDrawable(color), state, mode);
+		setBackground(category, Drawable::fromColor(color), state, mode);
 	}
 
 	void Button::setBackgroundColor(sl_uint32 category, const Color& color, UIUpdateMode mode)
 	{
-		setBackground(category, Drawable::createColorDrawable(color), mode);
+		setBackground(category, Drawable::fromColor(color), mode);
 	}
 
 	DEFINE_STATE_MAP_FUNCS_SUB(Border, borders, Ref<Pen>, isNotNull, sl_null, const Ref<Pen>&, .isNotNull(), value)

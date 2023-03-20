@@ -237,7 +237,7 @@ namespace slib
 		return clipSquare(this, Alignment::MiddleCenter);
 	}
 
-	Ref<Drawable> Drawable::createColorDrawable(const Color& color)
+	Ref<Drawable> Drawable::fromColor(const Color& color)
 	{
 		return ColorDrawable::create(color);
 	}
