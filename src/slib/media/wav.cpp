@@ -28,15 +28,8 @@
 
 namespace slib
 {
-	WavFile::WavFile()
-	{
-	}
 
-	WavFile::~WavFile()
-	{
-	}
-
-	sl_bool WavFile::saveWavFile(const StringParam& path, AudioData& data, sl_int32 sampleRate)
+	sl_bool WavFile::save(const StringParam& path, AudioData& data, sl_uint32 nSamplesPerSecond)
 	{
 		Writer<File> file = File::openForWrite(path);
 		if (file.isOpened()) {
@@ -44,9 +37,8 @@ namespace slib
 			if (!file.writeUint32(0x46464952)) {
 				return sl_false;
 			}
-			
 			// chunk size
-			if (!file.writeUint32(data.getTotalSize())) {
+			if (!file.writeUint32((sl_uint32)(data.getTotalSize()))) {
 				return sl_false;
 			}
 			// Header == "WAVE"
@@ -57,7 +49,6 @@ namespace slib
 			if (!file.writeUint32(0x20746d66)) {
 				return sl_false;
 			}
-
 			if (!file.writeUint32(16)) {
 				return sl_false;
 			}
@@ -69,15 +60,15 @@ namespace slib
 			if (!file.writeUint16(AudioFormatHelper::getChannelCount(data.format))) {
 				return sl_false;
 			}
-			
-			if (!file.writeUint32(sampleRate)) {
+
+			if (!file.writeUint32(nSamplesPerSecond)) {
 				return sl_false;
 			}
-			if (!file.writeUint32(sampleRate * AudioFormatHelper::getBytesPerSample(data.format))) {
+			if (!file.writeUint32(nSamplesPerSecond * AudioFormatHelper::getBytesPerSample(data.format))) {
 				return sl_false;
 			}
 
-			//block align?
+			//block align
 			if (!file.writeUint16(2)) {
 				return sl_false;
 			}
@@ -90,7 +81,7 @@ namespace slib
 				return sl_false;
 			}
 			// size
-			if (!file.writeUint32(data.getTotalSize())) {
+			if (!file.writeUint32((sl_uint32)(data.getTotalSize()))) {
 				return sl_false;
 			}
 			if (!file.write(data.data, data.getTotalSize())) {
@@ -98,11 +89,10 @@ namespace slib
 			}
 			return sl_true;
 		}
-
 		return sl_false;
 	}
 
-	sl_bool WavFile::loadWavFile(const StringParam& path, AudioData& out)
+	sl_bool WavFile::load(const StringParam& path, AudioData& out)
 	{
 		Reader<File> file = File::openForRead(path);
 		if (file.isOpened()) {
@@ -169,7 +159,7 @@ namespace slib
 			out.ref = mem.ref;
 			return sl_true;
 		}
-
 		return sl_false;
 	}
+
 }

@@ -508,7 +508,7 @@ namespace slib
 		return 0;
 	}
 
-	sl_int16 AudioData::getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex = 0)
+	sl_int16 AudioData::getPeakSample(sl_uint32 startSampleIndex, sl_uint32 endSampleIndex, sl_bool flagPositive, sl_uint32 channelIndex)
 	{
 		sl_int16 peakValue = 0;
 		for (sl_uint32 index = startSampleIndex; index < endSampleIndex; index++) {

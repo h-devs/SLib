@@ -33,12 +33,10 @@ namespace slib
 	class SLIB_EXPORT WavFile
 	{
 	public:
-		WavFile();
-		~WavFile();
+		static sl_bool save(const StringParam& path, AudioData& data, sl_uint32 nSamplesPerSecond);
 
-	public:
-		static sl_bool saveWavFile(const StringParam& path, AudioData& data, sl_int32 sampleRate);
-		static sl_bool loadWavFile(const StringParam& path, AudioData& out);
+		static sl_bool load(const StringParam& path, AudioData& out);
+
 	};
 
 }
