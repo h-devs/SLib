@@ -1624,56 +1624,65 @@ namespace slib
 	}
 
 	namespace {
-		static void InheritBorderStateMap(SAppStateMap<SAppBorderValue>& map, const SAppBorderValue& src, ViewState stateDst)
+		static void InheritBorderStateMap(SAppStateMap<SAppBorderValue>& map, const SAppBorderValue* base1, const SAppBorderValue* base2, ViewState stateDst)
 		{
 			SAppBorderValue* value = map.values.getItemPointer(stateDst);
 			if (value) {
-				value->inheritFrom(src);
-			}
-		}
-
-		static void InheritBorderStateMap(SAppStateMap<SAppBorderValue>& map, ViewState src, ViewState dst)
-		{
-			SAppBorderValue* value = map.values.getItemPointer(src);
-			if (value) {
-				InheritBorderStateMap(map, *value, dst);
+				if (base1) {
+					value->inheritFrom(*base1);
+				}
+				if (base2) {
+					value->inheritFrom(*base2);
+				}
+			} else {
+				if (base1 && base2) {
+					if ((!(base1->style.flagDefined) && base2->style.flagDefined) || (!(base1->width.flagDefined) && base2->width.flagDefined) || (!(base1->color.flagDefined) && base2->color.flagDefined)) {
+						SAppBorderValue v = *base1;
+						v.inheritFrom(*base2);
+						map.values.put_NoLock(stateDst, v);
+					}
+				}
 			}
 		}
 	}
 
 	void SAppBorderValue::normalizeStateMap(SAppStateMap<SAppBorderValue>& map)
 	{
-		InheritBorderStateMap(map, ViewState::SelectedHover, ViewState::SelectedPressed);
-		{
-			SAppBorderValue* v = map.values.getItemPointer(ViewState::Selected);
-			if (v) {
-				InheritBorderStateMap(map, *v, ViewState::SelectedNormal);
-				InheritBorderStateMap(map, *v, ViewState::SelectedHover);
-				InheritBorderStateMap(map, *v, ViewState::SelectedPressed);
-			}
+		if (map.values.isNull()) {
+			return;
 		}
-		InheritBorderStateMap(map, ViewState::FocusedHover, ViewState::FocusedPressed);
-		{
-			SAppBorderValue* v = map.values.getItemPointer(ViewState::Focused);
-			if (v) {
-				InheritBorderStateMap(map, *v, ViewState::FocusedNormal);
-				InheritBorderStateMap(map, *v, ViewState::FocusedHover);
-				InheritBorderStateMap(map, *v, ViewState::FocusedPressed);
-			}
+		SAppBorderValue* vNormal = map.values.getItemPointer(ViewState::Normal);
+		SAppBorderValue* vHover = map.values.getItemPointer(ViewState::Hover);
+		SAppBorderValue* vPressed = map.values.getItemPointer(ViewState::Pressed);
+		if (vPressed && vHover) {
+			vPressed->inheritFrom(*vHover);
 		}
-		InheritBorderStateMap(map, ViewState::Hover, ViewState::Pressed);
-		InheritBorderStateMap(map, ViewState::Hover, ViewState::FocusedHover);
-		InheritBorderStateMap(map, ViewState::Hover, ViewState::SelectedHover);
-		InheritBorderStateMap(map, ViewState::Pressed, ViewState::FocusedPressed);
-		InheritBorderStateMap(map, ViewState::Pressed, ViewState::SelectedPressed);
-		InheritBorderStateMap(map, ViewState::Normal, ViewState::FocusedNormal);
-		InheritBorderStateMap(map, ViewState::Normal, ViewState::SelectedNormal);
+
+		SAppBorderValue* vSelectedHover = map.values.getItemPointer(ViewState::SelectedHover);
+		if (vSelectedHover) {
+			InheritBorderStateMap(map, vSelectedHover, vPressed, ViewState::SelectedPressed);
+		}
+		SAppBorderValue* vSelected = map.values.getItemPointer(ViewState::Selected);
+		InheritBorderStateMap(map, vSelected, vNormal, ViewState::SelectedNormal);
+		InheritBorderStateMap(map, vSelected, vHover, ViewState::SelectedHover);
+		InheritBorderStateMap(map, vSelected, vPressed, ViewState::SelectedPressed);
+
+		SAppBorderValue* vFocusedHover = map.values.getItemPointer(ViewState::FocusedHover);
+		if (vFocusedHover) {
+			InheritBorderStateMap(map, vFocusedHover, vPressed, ViewState::FocusedPressed);
+		}
+		SAppBorderValue* vFocused = map.values.getItemPointer(ViewState::Focused);
+		InheritBorderStateMap(map, vFocused, vNormal, ViewState::FocusedNormal);
+		InheritBorderStateMap(map, vFocused, vHover, ViewState::FocusedHover);
+		InheritBorderStateMap(map, vFocused, vPressed, ViewState::FocusedPressed);
 
 		{
 			SAppBorderValue* v = map.values.getItemPointer(ViewState::Default);
 			if (v) {
 				for (auto& item : map.values) {
-					item.value.inheritFrom(*v);
+					if (item.key != ViewState::Default) {
+						item.value.inheritFrom(*v);
+					}
 				}
 			}
 		}

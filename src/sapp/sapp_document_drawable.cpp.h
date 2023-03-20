@@ -113,14 +113,14 @@ namespace slib
 			if (value.resourceName.isNotNull()) {
 				String name;
 				if (_checkColorName(localNamespace, value.resourceName, value.referingElement, &name)) {
-					result = String::format("slib::Drawable::createColorDrawable(color::%s::get())", name);
+					result = String::format("slib::Drawable::fromColor(color::%s::get())", name);
 					return sl_true;
 				} else {
 					return sl_false;
 				}
 			} else {
 				Color color = value.color;
-				result = String::format("slib::Drawable::createColorDrawable(slib::Color(%d, %d, %d, %d))", color.r, color.g, color.b, color.a);
+				result = String::format("slib::Drawable::fromColor(slib::Color(%d, %d, %d, %d))", color.r, color.g, color.b, color.a);
 				return sl_true;
 			}
 		}
@@ -164,13 +164,13 @@ namespace slib
 			if (value.resourceName.isNotNull()) {
 				Ref<SAppColorResource> res;
 				if (_checkColorName(localNamespace, value.resourceName, value.referingElement, sl_null, &res)) {
-					result = Drawable::createColorDrawable(res->value);
+					result = Drawable::fromColor(res->value);
 					return sl_true;
 				} else {
 					return sl_false;
 				}
 			} else {
-				result = Drawable::createColorDrawable(value.color);
+				result = Drawable::fromColor(value.color);
 				return sl_true;
 			}
 		}

@@ -2162,6 +2162,9 @@ namespace slib
 			}
 		}
 
+		LAYOUT_CONTROL_ATTR(DIMENSION, contentWidth, setContentWidth, checkScalarSize)
+		LAYOUT_CONTROL_ATTR(DIMENSION, contentHeight, setContentHeight, checkScalarSize)
+
 		LAYOUT_CONTROL_ATTR(GENERIC, paging, setPaging)
 		LAYOUT_CONTROL_ATTR(DIMENSION, pageWidth, setPageWidth, checkScalarSize)
 		LAYOUT_CONTROL_ATTR(DIMENSION, pageHeight, setPageHeight, checkScalarSize)
@@ -2178,9 +2181,9 @@ namespace slib
 			}
 		}
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, hscrollThumb, setHorizontalScrollThumb)
-		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, hscrollTrack, setHorizontalScrollThumb)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, hscrollTrack, setHorizontalScrollTrack)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, vscrollThumb, setVerticalScrollThumb)
-		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, vscrollTrack, setVerticalScrollThumb)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, vscrollTrack, setVerticalScrollTrack)
 		if (op == OP_PARSE) {
 			SAppStateMap<SAppDrawableValue> scrollThumb;
 			LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(DRAWABLE, , scrollThumb)
@@ -2349,7 +2352,6 @@ namespace slib
 			}
 		} else if (op == OP_SIMULATE) {
 			if (!flagOnLayout) {
-				flagOnLayout = sl_true;
 				if (attr->width.flagDefined) {
 					if (attr->width.unit == SAppDimensionValue::WRAP) {
 						view->setWidthWrapping(sl_true, UIUpdateMode::Init);
@@ -2368,7 +2370,6 @@ namespace slib
 						LAYOUT_CONTROL_SIMULATE_ATTR(DIMENSION, attr->height, setClientHeight)
 					}
 				}
-				flagOnLayout = sl_false;
 			}
 		}
 
@@ -2589,6 +2590,9 @@ namespace slib
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(DRAWABLE, icon, setIcon)
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(DRAWABLE, background, setBackground)
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(BORDER, border, setBorder)
+			if (op == OP_PARSE) {
+				SAppBorderValue::normalizeStateMap(category.border);
+			}
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(COLOR, colorOverlay, setColorOverlay)
 		}
 

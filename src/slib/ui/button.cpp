@@ -763,6 +763,7 @@ namespace slib
 
 	void Button::dispatchDraw(Canvas* canvas)
 	{
+		_initCell();
 		ButtonCell* cell = m_cell.get();
 		if (cell) {
 			if (isLayer()) {
@@ -1111,13 +1112,6 @@ namespace slib
 			_out = *cm;
 			return sl_true;
 		}
-		if (category) {
-			cm = categories[0].filters.evaluate(state);
-			if (cm.isNotNull()) {
-				_out = *cm;
-				return sl_true;
-			}
-		}
 		if (!flagUseDefaultFilter) {
 			return sl_false;
 		}
@@ -1129,11 +1123,14 @@ namespace slib
 				_out = g_colorMatrix_pressed;
 				break;
 			case ViewState::FocusedNormal:
-				return &g_colorMatrix_focused;
+				_out = g_colorMatrix_focused;
+				break;
 			case ViewState::FocusedHover:
-				return &g_colorMatrix_focused_hover;
+				_out = g_colorMatrix_focused_hover;
+				break;
 			case ViewState::FocusedPressed:
-				return &g_colorMatrix_pressed;
+				_out = g_colorMatrix_pressed;
+				break;
 			case ViewState::Disabled:
 				_out = g_colorMatrix_disabled;
 				break;
@@ -1407,7 +1404,7 @@ namespace slib
 
 		Color color;
 		if (flagText) {
-			getFinalTextColor(state);
+			color = getFinalTextColor(state);
 		}
 		Ref<Drawable> icon = getFinalIcon(state);
 		if (!flagText && icon.isNull()) {

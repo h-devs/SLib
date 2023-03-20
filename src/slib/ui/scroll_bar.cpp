@@ -417,7 +417,7 @@ namespace slib
 		}
 		UIRect thumbRegion;
 		if (getThumbRegion(thumbRegion)) {
-			if (!m_flagHoverThumb && state != ViewState::Disabled) {
+			if (!m_flagHoverThumb && state == ViewState::Hover) {
 				state = ViewState::Normal;
 			}
 			Ref<Drawable> thumb = m_thumbs.evaluate(state);
@@ -467,49 +467,54 @@ namespace slib
 			pos = (sl_ui_pos)(ev->getX());
 		}
 
-		switch (action) {
-			case UIAction::MouseEnter:
-			case UIAction::MouseMove:
-				{
-					UIRect region;
-					if (getThumbRegion(region)) {
-						if (region.containsPoint(ev->getPoint())) {
-							_setHoverThumb(sl_true, action);
-						}
+		if (action == UIAction::MouseLeave) {
+			_setHoverThumb(sl_false, UIUpdateMode::None);
+			invalidate();
+			return;
+		} else {
+			sl_bool flagHoverThumb = sl_false;
+			UIRect region;
+			if (getThumbRegion(region)) {
+				if (region.containsPoint(ev->getPoint())) {
+					if (action == UIAction::MouseMove) {
+						flagHoverThumb = sl_true;
 					}
-					_setHoverThumb(sl_false, action);
-					return;
 				}
-			case UIAction::MouseLeave:
-				_setHoverThumb(sl_false, action);
+			}
+			if (action == UIAction::MouseMove) {
+				_setHoverThumb(flagHoverThumb, UIUpdateMode::Redraw);
 				return;
+			} else {
+				_setHoverThumb(flagHoverThumb, UIUpdateMode::None);
+			}
+		}
+		switch (action) {
 			case UIAction::LeftButtonDown:
 			case UIAction::TouchBegin:
-				{
-					m_posDown = pos;
-					if (pos < pos_begin) {
-						m_valueDown = getValueFromThumbPosition(pos);
-						if (page > 0) {
-							changeValue(value - page);
-						} else {
-							changeValue(m_valueDown);
-						}
-					} else if (pos <= pos_end) {
-						m_valueDown = value;
+				m_posDown = pos;
+				if (pos < pos_begin) {
+					m_valueDown = getValueFromThumbPosition(pos);
+					if (page > 0) {
+						_changeValue(value - page, UIUpdateMode::None);
 					} else {
-						m_valueDown = getValueFromThumbPosition(pos);
-						if (page > 0) {
-							changeValue(value + page);
-						} else {
-							changeValue(m_valueDown);
-						}
+						_changeValue(m_valueDown, UIUpdateMode::None);
 					}
-					break;
+				} else if (pos <= pos_end) {
+					m_valueDown = value;
+				} else {
+					m_valueDown = getValueFromThumbPosition(pos);
+					if (page > 0) {
+						_changeValue(value + page, UIUpdateMode::None);
+					} else {
+						_changeValue(m_valueDown, UIUpdateMode::None);
+					}
 				}
+				invalidate();
+				break;
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
 				if (isPressedState()) {
-					changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos);
+					_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, UIUpdateMode::Redraw);
 				}
 				break;
 			case UIAction::LeftButtonUp:
@@ -517,10 +522,9 @@ namespace slib
 			case UIAction::TouchCancel:
 				if (isPressedState()) {
 					if (m_posDown != pos) {
-						changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos);
-					} else {
-						invalidate();
+						_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, UIUpdateMode::None);
 					}
+					invalidate();
 				}
 				break;
 			default:
@@ -552,9 +556,9 @@ namespace slib
 			delta = ev->getDeltaX();
 		}
 		if (delta > SLIB_EPSILON) {
-			changeValue(value - line);
+			_changeValue(value - line, UIUpdateMode::Redraw);
 		} else if (delta < -SLIB_EPSILON) {
-			changeValue(value + line);
+			_changeValue(value + line, UIUpdateMode::Redraw);
 		}
 
 		ev->stopPropagation();
@@ -568,7 +572,7 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(Change, value)
 	}
 
-	void ScrollBar::changeValue(sl_scroll_pos value)
+	void ScrollBar::_changeValue(sl_scroll_pos value, UIUpdateMode mode)
 	{
 		sl_scroll_pos _max = m_value_max - m_page;
 		if (value > _max) {
@@ -583,18 +587,15 @@ namespace slib
 		}
 		m_value = value;
 		dispatchChange(value);
-		invalidate();
+		invalidate(mode);
 	}
 
-	void ScrollBar::_setHoverThumb(sl_bool flag, UIAction action)
+	void ScrollBar::_setHoverThumb(sl_bool flag, UIUpdateMode mode)
 	{
-		if (action == UIAction::MouseMove) {
-			if (m_flagHoverThumb == flag) {
-				return;
-			}
+		if (m_flagHoverThumb != flag) {
+			m_flagHoverThumb = flag;
+			invalidate(mode);
 		}
-		m_flagHoverThumb = flag;
-		invalidate();
 	}
 
 }

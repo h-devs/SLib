@@ -261,6 +261,8 @@ namespace slib
 		SAppStateMap<SAppDrawableValue> hscrollTrack;
 		SAppStateMap<SAppDrawableValue> vscrollThumb;
 		SAppStateMap<SAppDrawableValue> vscrollTrack;
+		SAppDimensionValue contentWidth;
+		SAppDimensionValue contentHeight;
 		SAppBooleanValue paging;
 		SAppDimensionValue pageWidth;
 		SAppDimensionValue pageHeight;

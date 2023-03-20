@@ -11256,7 +11256,7 @@ namespace slib
 	void ViewCell::setView(const Ref<View>& view, sl_bool flagServingAsView)
 	{
 		m_view = view;
-		flagServingAsView = flagServingAsView;
+		m_flagServingAsView = flagServingAsView;
 	}
 
 	UIRect ViewCell::getFrame()

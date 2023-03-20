@@ -125,9 +125,9 @@ namespace slib
 		void onMouseWheelEvent(UIEvent* ev) override;
 
 	protected:
-		void changeValue(sl_scroll_pos value);
+		void _changeValue(sl_scroll_pos value, UIUpdateMode mode);
 
-		void _setHoverThumb(sl_bool flag, UIAction action);
+		void _setHoverThumb(sl_bool flag, UIUpdateMode mode);
 
 	protected:
 		LayoutOrientation m_orientation;
