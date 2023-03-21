@@ -1394,8 +1394,14 @@ namespace slib
 				}
 			case WM_LBUTTONDBLCLK:
 				{
-					onEventMouse(UIAction::LeftButtonDown, wParam, lParam);
-					if (onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam)) {
+					sl_bool flagUseDrag = sl_false;
+					onEventMouse(UIAction::LeftButtonDown, wParam, lParam, &flagUseDrag);
+					sl_bool flagPreventDefault = onEventMouse(UIAction::LeftButtonDoubleClick, wParam, lParam);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::LeftButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
@@ -1423,8 +1429,14 @@ namespace slib
 				}
 			case WM_RBUTTONDBLCLK:
 				{
-					onEventMouse(UIAction::RightButtonDown, wParam, lParam);
-					if (onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam)) {
+					sl_bool flagUseDrag = sl_false;
+					onEventMouse(UIAction::RightButtonDown, wParam, lParam, &flagUseDrag);
+					sl_bool flagPreventDefault = onEventMouse(UIAction::RightButtonDoubleClick, wParam, lParam);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::RightButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
@@ -1452,8 +1464,14 @@ namespace slib
 				}
 			case WM_MBUTTONDBLCLK:
 				{
-					onEventMouse(UIAction::MiddleButtonDown, wParam, lParam);
-					if (onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam)) {
+					sl_bool flagUseDrag = sl_false;
+					onEventMouse(UIAction::MiddleButtonDown, wParam, lParam, &flagUseDrag);
+					sl_bool flagPreventDefault = onEventMouse(UIAction::MiddleButtonDoubleClick, wParam, lParam);
+					if (flagUseDrag) {
+						m_actionMouseCapture = UIAction::MiddleButtonDown;
+						SetCapture(hWnd);
+					}
+					if (flagPreventDefault) {
 						return 0;
 					}
 					break;
