@@ -360,7 +360,6 @@
 		D738404B28F1A7A8005F5ED8 /* group_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D738404A28F1A7A8005F5ED8 /* group_box.cpp */; };
 		D765664A28F1B501002ED52F /* storage_volume_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D765664928F1B501002ED52F /* storage_volume_macos.cpp */; };
 		D79AF2072693598300FCDE3D /* asset_apple.mm in Sources */ = {isa = PBXBuildFile; fileRef = D79AF2062693598300FCDE3D /* asset_apple.mm */; };
-		D7B1C86D26453B1A00E60145 /* dbip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C86C26453B1A00E60145 /* dbip.cpp */; };
 		D7B1C87926453EC200E60145 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF11B21AEE6BE004E58CB /* Cocoa.framework */; };
 		D7B1C8C22645432A00E60145 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 264AF16E21B3FFE8004E58CB /* CoreImage.framework */; };
 		D7B1C8F5264547B200E60145 /* pseudo_tcp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7B1C8F3264547B200E60145 /* pseudo_tcp.cpp */; };
@@ -825,7 +824,6 @@
 		D738404A28F1A7A8005F5ED8 /* group_box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = group_box.cpp; sourceTree = "<group>"; };
 		D765664928F1B501002ED52F /* storage_volume_macos.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = storage_volume_macos.cpp; sourceTree = "<group>"; };
 		D79AF2062693598300FCDE3D /* asset_apple.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = asset_apple.mm; sourceTree = "<group>"; };
-		D7B1C86C26453B1A00E60145 /* dbip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dbip.cpp; sourceTree = "<group>"; };
 		D7B1C87E26453EC200E60145 /* GenerateAppIcons */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GenerateAppIcons; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7B1C8F3264547B200E60145 /* pseudo_tcp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp.cpp; sourceTree = "<group>"; };
 		D7B1C8F4264547B200E60145 /* pseudo_tcp_message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pseudo_tcp_message.cpp; sourceTree = "<group>"; };
@@ -1123,7 +1121,6 @@
 			isa = PBXGroup;
 			children = (
 				26694BF81C9B2CBC0047E67C /* arp.cpp */,
-				D7B1C86C26453B1A00E60145 /* dbip.cpp */,
 				266DD4BE1C11940A00D47AB0 /* dns.cpp */,
 				266DD4BF1C11940A00D47AB0 /* ethernet.cpp */,
 				266DD4C11C11940A00D47AB0 /* http_common.cpp */,
@@ -2053,7 +2050,6 @@
 				1887E14D202CCD1100A81967 /* asn1.cpp in Sources */,
 				26D9D92D1E9645CE005F7BD3 /* system_apple.mm in Sources */,
 				26D9D9F01E96468D005F7BD3 /* window_macos.mm in Sources */,
-				D7B1C86D26453B1A00E60145 /* dbip.cpp in Sources */,
 				26D9D9B11E964683005F7BD3 /* render_resource.cpp in Sources */,
 				26D9D9BD1E96468D005F7BD3 /* edit_view.cpp in Sources */,
 				D7C3BAF426AEEE4500FD529D /* p2p.cpp in Sources */,

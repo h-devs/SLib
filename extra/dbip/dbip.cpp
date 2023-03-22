@@ -20,13 +20,12 @@
 *   THE SOFTWARE.
 */
 
-#include "slib/network/dbip.h"
+#include "dbip.h"
 
-#include "slib/io/file.h"
-#include "slib/core/memory.h"
-#include "slib/core/compare.h"
-#include "slib/core/search.h"
-#include "slib/core/string.h"
+#include <slib/io/file.h>
+#include <slib/core/memory.h>
+#include <slib/core/search.h>
+#include <slib/core/string.h>
 
 namespace slib
 {

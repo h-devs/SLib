@@ -1052,9 +1052,6 @@
     <ClCompile Include="..\..\src\slib\network\pseudo_tcp_message.cpp">
       <Filter>src\network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\slib\network\dbip.cpp">
-      <Filter>src\network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\slib\network\ipc.cpp">
       <Filter>src\network</Filter>
     </ClCompile>

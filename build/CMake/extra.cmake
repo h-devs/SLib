@@ -21,6 +21,8 @@ set (EXTRA_SOURCE_FILES
  "${SLIB_PATH}/extra/chat/chat_sqlite.cpp"
  "${SLIB_PATH}/extra/chat/chat_view.cpp"
 
+ "${SLIB_PATH}/extra/dbip/dbip.cpp"
+
  "${SLIB_PATH}/extra/keygen/keygen.cpp"
 
  "${SLIB_PATH}/extra/push_notification/fcm.cpp"

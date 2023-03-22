@@ -20,8 +20,8 @@
 *   THE SOFTWARE.
 */
 
-#ifndef CHECKHEADER_SLIB_NETWORK_DBIP
-#define CHECKHEADER_SLIB_NETWORK_DBIP
+#ifndef CHECKHEADER_SLIB_EXTRA_DBIP
+#define CHECKHEADER_SLIB_EXTRA_DBIP
 
 /*************************************************
 	DB-IP
@@ -34,9 +34,8 @@ For example,
 
 *************************************************/
 
-#include "ip_address.h"
-
-#include "../core/list.h"
+#include <slib/network/ip_address.h>
+#include <slib/core/list.h>
 
 namespace slib
 {

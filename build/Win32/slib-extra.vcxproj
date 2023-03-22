@@ -23,6 +23,7 @@
     <ClInclude Include="..\..\extra\chat\chat.h" />
     <ClInclude Include="..\..\extra\chat\chat_client.h" />
     <ClInclude Include="..\..\extra\chat\chat_view.h" />
+    <ClInclude Include="..\..\extra\dbip\dbip.h" />
     <ClInclude Include="..\..\extra\keygen\keygen.h" />
     <ClInclude Include="..\..\extra\qrcode\zxing.h" />
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h" />
@@ -44,6 +45,7 @@
     <ClCompile Include="..\..\extra\chat\chat_resource.cpp" />
     <ClCompile Include="..\..\extra\chat\chat_sqlite.cpp" />
     <ClCompile Include="..\..\extra\chat\chat_view.cpp" />
+    <ClCompile Include="..\..\extra\dbip\dbip.cpp" />
     <ClCompile Include="..\..\extra\keygen\keygen.cpp" />
     <ClCompile Include="..\..\extra\qrcode\external\zxing\zxing_unity.cpp" />
     <ClCompile Include="..\..\extra\qrcode\zxing.cpp" />

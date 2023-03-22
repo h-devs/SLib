@@ -19,6 +19,9 @@
     <Filter Include="src\keygen">
       <UniqueIdentifier>{c9c8c9d7-4b41-4078-860f-f6fe2e358efc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\dbip">
+      <UniqueIdentifier>{6e5e8620-6dc2-434b-a81e-f6ad68f08a4d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h">
@@ -71,6 +74,9 @@
     </ClInclude>
     <ClInclude Include="..\..\extra\social\twitter.h">
       <Filter>src\social</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\extra\dbip\dbip.h">
+      <Filter>src\dbip</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -160,6 +166,9 @@
     </ClCompile>
     <ClCompile Include="..\..\extra\social\twitter.cpp">
       <Filter>src\social</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\extra\dbip\dbip.cpp">
+      <Filter>src\dbip</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
