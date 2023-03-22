@@ -215,7 +215,7 @@ namespace slib
 						UINT code = nmhdr->code;
 						if (code == TCN_SELCHANGE) {
 							sl_uint32 index = (sl_uint32)(SendMessageW(handle, TCM_GETCURSEL, 0, 0));
-							helper->dispatchSelectTab(index);
+							helper->notifySelectTab(this, index);
 							helper->applyTabContents(this, handle);
 							return sl_true;
 						}

@@ -199,7 +199,7 @@ namespace slib
 			{
 				Ref<TabViewHelper> helper = CastRef<TabViewHelper>(UIPlatform::getView((GtkWidget*)notebook));
 				if (helper.isNotNull()) {
-					helper->dispatchSelectTab((sl_uint32)(page_num));
+					helper->notifySelectTab(this, (sl_uint32)(page_num));
 				}
 			}
 

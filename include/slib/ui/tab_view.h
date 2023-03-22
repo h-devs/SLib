@@ -158,12 +158,16 @@ namespace slib
 		virtual UIRect getTabContentRegion();
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index)
+		SLIB_DECLARE_EVENT_HANDLER_WITHOUT_DISPATCH(TabView, SelectTab, sl_uint32& index, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER_WITHOUT_DISPATCH(TabView, SelectedTab, UIEvent* ev /* nullable */)
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 
 		virtual Ptr<ITabViewInstance> getTabViewInstance();
+
+	public:
+		void notifySelectTab(ITabViewInstance* instance, sl_uint32 index);
 
 	protected:
 		void onClickEvent(UIEvent* ev) override;
@@ -179,13 +183,15 @@ namespace slib
 		virtual void onDrawTab(Canvas* canvas, const UIRect& rect, sl_uint32 index, const Ref<Drawable>& icon, const String& label);
 
 	private:
-		void _selectTab(sl_bool flagEvent, sl_uint32 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void _selectTab(ITabViewInstance* instance, sl_uint32 index, UIEvent* ev, UIUpdateMode mode);
 
 		void _invalidateTabBar(UIUpdateMode mode);
 
+		void _refreshSize();
+
 		void _relayout(UIUpdateMode mode);
 
-		void _refreshSize();
+		sl_int32 _getTabIndexAt(const UIPoint& pt);
 
 		ViewState _getTabState(sl_uint32 index);
 
@@ -193,9 +199,9 @@ namespace slib
 		class Item
 		{
 		public:
-			AtomicString label;
-			AtomicRef<Drawable> icon;
-			AtomicRef<View> contentView;
+			String label;
+			Ref<Drawable> icon;
+			Ref<View> contentView;
 
 		public:
 			Item();

@@ -224,7 +224,7 @@ namespace slib
 			{
 				Ref<TabViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchSelectTab((sl_uint32)([tv indexOfTabViewItem:[tv selectedTabViewItem]]));
+					helper->notifySelectTab(this, (sl_uint32)([tv indexOfTabViewItem:[tv selectedTabViewItem]]));
 				}
 			}
 
