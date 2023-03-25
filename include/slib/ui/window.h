@@ -447,10 +447,10 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(Window, Create)
 		SLIB_DECLARE_EVENT_HANDLER(Window, CreateFailed)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Close, UIEvent* ev)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Destroy)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Destroy, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Activate)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Deactivate)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Move)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Move, sl_ui_pos x, sl_ui_pos y)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Resizing, UISize& clientSize)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Resize, sl_ui_len clientWidth, sl_ui_len clientHeight)
 		SLIB_DECLARE_EVENT_HANDLER(Window, Minimize)
@@ -466,8 +466,6 @@ namespace slib
 		void dispatchOK();
 
 		void dispatchCancel();
-
-		void dispatchResize();
 
 	protected:
 		Ref<WindowInstance> createWindowInstance();
@@ -662,13 +660,11 @@ namespace slib
 
 		void onDeactivate();
 
-		void onMove();
+		void onMove(sl_ui_pos x, sl_ui_pos y);
 
 		void onResizing(UISize& clientSize, sl_bool flagResizingWidth);
 
 		void onResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
-
-		void onResize();
 
 		void onMinimize();
 

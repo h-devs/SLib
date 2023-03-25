@@ -243,7 +243,7 @@ namespace slib
 		} else {
 			oldIndex = m_indexSelected;
 		}
-		SLIB_INVOKE_EVENT_HANDLER(SelectTab, index, ev)
+		dispatchSelectingTab(index, ev);
 		if (index >= m_items.getCount()) {
 			return;
 		}
@@ -275,7 +275,7 @@ namespace slib
 			}
 			invalidate(mode);
 		}
-		SLIB_INVOKE_EVENT_HANDLER(SelectedTab, ev)
+		dispatchSelectTab(index, ev);
 	}
 
 	UISize TabView::getContentViewSize()
@@ -667,8 +667,19 @@ namespace slib
 		return -1;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, sl_uint32& index, UIEvent* ev)
-	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectedTab, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectingTab, sl_uint32& index, UIEvent* ev)
+
+	void TabView::dispatchSelectingTab(sl_uint32& index, UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(SelectingTab, index, ev)
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index, UIEvent* ev)
+
+	void TabView::dispatchSelectTab(sl_uint32 index, UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(SelectTab, index, ev)
+	}
 
 	void TabView::notifySelectTab(ITabViewInstance* instance, sl_uint32 index)
 	{

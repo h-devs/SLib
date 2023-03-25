@@ -120,19 +120,7 @@ namespace slib
 
 	void ScrollBar::setValue(sl_scroll_pos value, UIUpdateMode mode)
 	{
-		sl_scroll_pos _max = m_value_max - m_page;
-		if (value > _max) {
-			value = _max;
-		}
-		if (value < m_value_min) {
-			value = m_value_min;
-		}
-		if (Math::isAlmostZero(value - m_value)) {
-			m_value = value;
-			return;
-		}
-		m_value = value;
-		invalidate(mode);
+		_changeValue(value, sl_null, mode);
 	}
 
 	void ScrollBar::setValueOfOutRange(sl_scroll_pos value, UIUpdateMode mode)
@@ -495,18 +483,18 @@ namespace slib
 				if (pos < pos_begin) {
 					m_valueDown = getValueFromThumbPosition(pos);
 					if (page > 0) {
-						_changeValue(value - page, UIUpdateMode::None);
+						_changeValue(value - page, ev, UIUpdateMode::None);
 					} else {
-						_changeValue(m_valueDown, UIUpdateMode::None);
+						_changeValue(m_valueDown, ev, UIUpdateMode::None);
 					}
 				} else if (pos <= pos_end) {
 					m_valueDown = value;
 				} else {
 					m_valueDown = getValueFromThumbPosition(pos);
 					if (page > 0) {
-						_changeValue(value + page, UIUpdateMode::None);
+						_changeValue(value + page, ev, UIUpdateMode::None);
 					} else {
-						_changeValue(m_valueDown, UIUpdateMode::None);
+						_changeValue(m_valueDown, ev, UIUpdateMode::None);
 					}
 				}
 				invalidate();
@@ -515,7 +503,7 @@ namespace slib
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
 				if (isPressedState()) {
-					_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, UIUpdateMode::Redraw);
+					_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, ev, UIUpdateMode::Redraw);
 				}
 				break;
 			case UIAction::LeftButtonUp:
@@ -523,7 +511,7 @@ namespace slib
 			case UIAction::TouchCancel:
 				if (isPressedState()) {
 					if (m_posDown != pos) {
-						_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, UIUpdateMode::None);
+						_changeValue(m_valueDown + (sl_scroll_pos)(pos - m_posDown) * ratioValuePos, ev, UIUpdateMode::None);
 					}
 					invalidate();
 				}
@@ -557,23 +545,30 @@ namespace slib
 			delta = ev->getDeltaX();
 		}
 		if (delta > SLIB_EPSILON) {
-			_changeValue(value - line, UIUpdateMode::Redraw);
+			_changeValue(value - line, ev, UIUpdateMode::Redraw);
 		} else if (delta < -SLIB_EPSILON) {
-			_changeValue(value + line, UIUpdateMode::Redraw);
+			_changeValue(value + line, ev, UIUpdateMode::Redraw);
 		}
 
 		ev->stopPropagation();
 	}
 
 
-	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value)
+	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Changing, sl_scroll_pos& value, UIEvent*)
 
-	void ScrollBar::dispatchChange(sl_scroll_pos value)
+	void ScrollBar::dispatchChanging(sl_scroll_pos& value, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value)
+		SLIB_INVOKE_EVENT_HANDLER(Changing, value, ev)
 	}
 
-	void ScrollBar::_changeValue(sl_scroll_pos value, UIUpdateMode mode)
+	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value, UIEvent*)
+
+	void ScrollBar::dispatchChange(sl_scroll_pos value, UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
+	}
+
+	sl_scroll_pos ScrollBar::_normalizeValue(sl_scroll_pos value)
 	{
 		sl_scroll_pos _max = m_value_max - m_page;
 		if (value > _max) {
@@ -582,13 +577,25 @@ namespace slib
 		if (value < m_value_min) {
 			value = m_value_min;
 		}
+		return value;
+	}
+
+	void ScrollBar::_changeValue(sl_scroll_pos value, UIEvent* ev, UIUpdateMode mode)
+	{
+		value = _normalizeValue(value);
+		if (Math::isAlmostZero(value - m_value)) {
+			m_value = value;
+			return;
+		}
+		dispatchChanging(value, ev);
+		value = _normalizeValue(value);
 		if (Math::isAlmostZero(value - m_value)) {
 			m_value = value;
 			return;
 		}
 		m_value = value;
-		dispatchChange(value);
 		invalidate(mode);
+		dispatchChange(value, ev);
 	}
 
 	void ScrollBar::_setHoverThumb(sl_bool flag, UIUpdateMode mode)

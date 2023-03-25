@@ -1336,10 +1336,6 @@ public:		slib::Function<void(CLASS* sender, ##__VA_ARGS__)> getOn##NAME() const;
 protected:	virtual void on##NAME(__VA_ARGS__); \
 			SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(CLASS, NAME, ##__VA_ARGS__);
 
-#define SLIB_DECLARE_EVENT_HANDLER_WITHOUT_DISPATCH(CLASS, NAME, ...) \
-protected:	slib::AtomicFunction<void(CLASS* sender, ##__VA_ARGS__)> m_eventHandler_on##NAME; \
-			SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_DISPATCH(CLASS, NAME, ##__VA_ARGS__)
-
 #define SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ...) \
 			SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_DISPATCH(CLASS, NAME, ##__VA_ARGS__) \
 public:		virtual void dispatch##NAME(__VA_ARGS__);

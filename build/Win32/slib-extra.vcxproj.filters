@@ -7,9 +7,6 @@
     <Filter Include="src\qrcode">
       <UniqueIdentifier>{84871635-dc4a-4d00-a58e-ef2496f0ee6e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\capcha">
-      <UniqueIdentifier>{a55186fe-e100-4ec3-b43a-362445cdad08}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\chat">
       <UniqueIdentifier>{ccb34cee-d24a-4afa-be61-45cdc55eb292}</UniqueIdentifier>
     </Filter>
@@ -22,6 +19,9 @@
     <Filter Include="src\dbip">
       <UniqueIdentifier>{6e5e8620-6dc2-434b-a81e-f6ad68f08a4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\captcha">
+      <UniqueIdentifier>{a55186fe-e100-4ec3-b43a-362445cdad08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\extra\qrcode\zxing_scanner.h">
@@ -31,7 +31,7 @@
       <Filter>src\qrcode</Filter>
     </ClInclude>
     <ClInclude Include="..\..\extra\captcha\captcha.h">
-      <Filter>src\capcha</Filter>
+      <Filter>src\captcha</Filter>
     </ClInclude>
     <ClInclude Include="..\..\extra\chat\chat_client.h">
       <Filter>src\chat</Filter>
@@ -87,7 +87,7 @@
       <Filter>src\qrcode</Filter>
     </ClCompile>
     <ClCompile Include="..\..\extra\captcha\captcha.cpp">
-      <Filter>src\capcha</Filter>
+      <Filter>src\captcha</Filter>
     </ClCompile>
     <ClCompile Include="..\..\extra\chat\chat_sqlite.cpp">
       <Filter>src\chat</Filter>

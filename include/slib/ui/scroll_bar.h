@@ -115,7 +115,8 @@ namespace slib
 		sl_bool isValid();
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value)
+		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Changing, sl_scroll_pos& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value, UIEvent* ev /* nullable */)
 
 	protected:
 		void onDraw(Canvas* canvas) override;
@@ -125,7 +126,9 @@ namespace slib
 		void onMouseWheelEvent(UIEvent* ev) override;
 
 	protected:
-		void _changeValue(sl_scroll_pos value, UIUpdateMode mode);
+		sl_scroll_pos _normalizeValue(sl_scroll_pos value);
+
+		void _changeValue(sl_scroll_pos value, UIEvent* ev, UIUpdateMode mode);
 
 		void _setHoverThumb(sl_bool flag, UIUpdateMode mode);
 

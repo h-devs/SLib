@@ -7349,7 +7349,7 @@ namespace slib
 		}
 	}
 
-	void View::_onScrollBarChangeValue(ScrollBar* scrollBar, sl_scroll_pos value)
+	void View::_onScrollBarChangeValue(ScrollBar* scrollBar, sl_scroll_pos value, UIEvent* ev)
 	{
 		sl_scroll_pos sx = 0;
 		sl_scroll_pos sy = 0;

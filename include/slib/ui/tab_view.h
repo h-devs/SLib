@@ -158,8 +158,8 @@ namespace slib
 		virtual UIRect getTabContentRegion();
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER_WITHOUT_DISPATCH(TabView, SelectTab, sl_uint32& index, UIEvent* ev /* nullable */)
-		SLIB_DECLARE_EVENT_HANDLER_WITHOUT_DISPATCH(TabView, SelectedTab, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(TabView, SelectingTab, sl_uint32& index, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index, UIEvent* ev /* nullable */)
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;

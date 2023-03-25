@@ -148,7 +148,7 @@ void LanTvClientApp::onStart()
 	Ref<Window> window = new Window;
 	window->setTitle("LanTvClient");
 	window->setFrame(100, 100, 400, 300);
-	window->setOnDestroy([threadAudio, threadVideo](Window*) {
+	window->setOnDestroy([threadAudio, threadVideo](Window*, UIEvent*) {
 		threadAudio->finishAndWait();
 		threadVideo->finishAndWait();
 		UIApp::quit();

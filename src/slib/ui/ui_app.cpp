@@ -86,7 +86,7 @@ namespace slib
 			m_mainWindow = window;
 #ifdef SLIB_PLATFORM_IS_DESKTOP
 			if (window.isNotNull()) {
-				window->addOnDestroy([](Window*) {
+				window->addOnDestroy([](Window*, UIEvent*) {
 					UI::quitApp();
 				});
 #ifdef SLIB_UI_IS_MACOS

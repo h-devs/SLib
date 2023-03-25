@@ -122,11 +122,7 @@ namespace slib
 		Ref<Window> window = this;
 		instance->close();
 		detach();
-		dispatchDestroy();
-		if (m_flagStateDoModal) {
-			m_flagStateDoModal = sl_false;
-			UI::quitLoop();
-		}
+		dispatchDestroy(sl_null);
 	}
 
 	sl_bool Window::isClosed()
@@ -1262,7 +1258,7 @@ namespace slib
 
 	void Window::setQuitOnDestroy()
 	{
-		setOnDestroy([](Window*) {
+		setOnDestroy([](Window*, UIEvent*) {
 			UI::quitApp();
 		});
 	}
@@ -1546,20 +1542,17 @@ namespace slib
 			return;
 		}
 		detach();
-		dispatchDestroy();
+		dispatchDestroy(ev);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(Window, Destroy)
+	SLIB_DEFINE_EVENT_HANDLER(Window, Destroy, UIEvent* ev)
 
-	void Window::dispatchDestroy()
+	void Window::dispatchDestroy(UIEvent* ev)
 	{
-		if (m_flagDispatchedDestroy) {
-			return;
+		if (!m_flagDispatchedDestroy) {
+			m_flagDispatchedDestroy = sl_true;
+			SLIB_INVOKE_EVENT_HANDLER(Destroy, ev)
 		}
-		m_flagDispatchedDestroy = sl_true;
-
-		SLIB_INVOKE_EVENT_HANDLER(Destroy)
-
 		if (m_flagStateDoModal) {
 			m_flagStateDoModal = sl_false;
 			UI::quitLoop();
@@ -1580,11 +1573,11 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(Deactivate)
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(Window, Move)
+	SLIB_DEFINE_EVENT_HANDLER(Window, Move, sl_ui_pos x, sl_ui_pos y)
 
-	void Window::dispatchMove()
+	void Window::dispatchMove(sl_ui_pos x, sl_ui_pos y)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Move)
+		SLIB_INVOKE_EVENT_HANDLER(Move, x, y)
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(Window, Resizing, UISize& clientSize)
@@ -1623,12 +1616,6 @@ namespace slib
 		}
 
 		SLIB_INVOKE_EVENT_HANDLER(Resize, clientWidth, clientHeight)
-	}
-
-	void Window::dispatchResize()
-	{
-		UISize size = getClientSize();
-		dispatchResize(size.x, size.y);
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(Window, Minimize)
@@ -2057,11 +2044,11 @@ namespace slib
 		}
 	}
 
-	void WindowInstance::onMove()
+	void WindowInstance::onMove(sl_ui_pos x, sl_ui_pos y)
 	{
 		Ref<Window> window = getWindow();
 		if (window.isNotNull()) {
-			window->dispatchMove();
+			window->dispatchMove(x, y);
 		}
 	}
 
@@ -2079,14 +2066,6 @@ namespace slib
 		Ref<Window> window = getWindow();
 		if (window.isNotNull()) {
 			window->dispatchResize(clientWidth, clientHeight);
-		}
-	}
-
-	void WindowInstance::onResize()
-	{
-		Ref<Window> window = getWindow();
-		if (window.isNotNull()) {
-			window->dispatchResize();
 		}
 	}
 
