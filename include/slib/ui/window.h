@@ -241,29 +241,29 @@ namespace slib
 
 		UISize getClientSizeFromWindowSize(const UISize& sizeWindow);
 
-		UIPointf convertCoordinateFromScreenToWindow(const UIPointf& ptScreen);
+		UIPointF convertCoordinateFromScreenToWindow(const UIPointF& ptScreen);
 
-		UIRectf convertCoordinateFromScreenToWindow(const UIRectf& rect);
+		UIRectF convertCoordinateFromScreenToWindow(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromWindowToScreen(const UIPointf& ptWindow);
+		UIPointF convertCoordinateFromWindowToScreen(const UIPointF& ptWindow);
 
-		UIRectf convertCoordinateFromWindowToScreen(const UIRectf& rect);
+		UIRectF convertCoordinateFromWindowToScreen(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromScreenToClient(const UIPointf& ptScreen);
+		UIPointF convertCoordinateFromScreenToClient(const UIPointF& ptScreen);
 
-		UIRectf convertCoordinateFromScreenToClient(const UIRectf& rect);
+		UIRectF convertCoordinateFromScreenToClient(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromClientToScreen(const UIPointf& ptClient);
+		UIPointF convertCoordinateFromClientToScreen(const UIPointF& ptClient);
 
-		UIRectf convertCoordinateFromClientToScreen(const UIRectf& rect);
+		UIRectF convertCoordinateFromClientToScreen(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromWindowToClient(const UIPointf& ptWindow);
+		UIPointF convertCoordinateFromWindowToClient(const UIPointF& ptWindow);
 
-		UIRectf convertCoordinateFromWindowToClient(const UIRectf& rect);
+		UIRectF convertCoordinateFromWindowToClient(const UIRectF& rect);
 
-		UIPointf convertCoordinateFromClientToWindow(const UIPointf& ptClient);
+		UIPointF convertCoordinateFromClientToWindow(const UIPointF& ptClient);
 
-		UIRectf convertCoordinateFromClientToWindow(const UIRectf& rect);
+		UIRectF convertCoordinateFromClientToWindow(const UIRectF& rect);
 
 
 		// For client size

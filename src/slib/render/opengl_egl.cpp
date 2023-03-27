@@ -88,11 +88,11 @@ namespace slib
 				return Win32::isWindowVisible((HWND)window);
 			}
 
-			static Sizei getWindowSize(EGLNativeWindowType window)
+			static SizeI getWindowSize(EGLNativeWindowType window)
 			{
 				RECT rc;
 				::GetClientRect((HWND)window, &rc);
-				return Sizei((sl_int32)(rc.right), (sl_int32)(rc.bottom));
+				return SizeI((sl_int32)(rc.right), (sl_int32)(rc.bottom));
 			}
 #	endif
 
@@ -299,7 +299,7 @@ namespace slib
 				}
 				m_flagRequestRender = sl_false;
 				if (flagUpdate) {
-					Sizei size = getWindowSize(m_hWindow);
+					SizeI size = getWindowSize(m_hWindow);
 					if (size.x != 0 && size.y != 0) {
 						engine->setViewport(0, 0, size.x, size.y);
 						dispatchFrame(engine);

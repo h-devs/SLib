@@ -162,15 +162,15 @@ namespace slib
 		void drawImage(sl_int32 dx, sl_int32 dy,
 			const Ref<Image>& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
-		void drawImage(const Rectanglei& rectDst,
-			const Ref<Image>& src, const Rectanglei& rectSrc,
+		void drawImage(const RectangleI& rectDst,
+			const Ref<Image>& src, const RectangleI& rectSrc,
 			BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
-		void drawImage(const Rectanglei& rectDst,
+		void drawImage(const RectangleI& rectDst,
 			const Ref<Image>& src, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
 		void drawImage(sl_int32 dx, sl_int32 dy, sl_int32 dw, sl_int32 dh,
-			const Ref<Image>& src, const Color4f& srcMul, const Color4f& srcAdd,
+			const Ref<Image>& src, const Color4F& srcMul, const Color4F& srcAdd,
 			sl_int32 sx, sl_int32 sy, sl_int32 sw, sl_int32 sh,
 			BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
@@ -277,11 +277,11 @@ namespace slib
 
 		void drawImage(const Ref<Image>& src, const Matrix3& transform, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
-		void drawImage(const Ref<Image>& src, const Color4f& srcMul, const Color4f& srcAdd, const Matrix3& transform, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
+		void drawImage(const Ref<Image>& src, const Color4F& srcMul, const Color4F& srcAdd, const Matrix3& transform, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
 		void drawImage(const Ref<Image>& src, const ColorMatrix& cm, const Matrix3& transform, BlendMode blend = BlendMode::Over, StretchMode stretch = StretchMode::Default);
 
-		sl_bool getDrawnBounds(Rectanglei* _out = sl_null) const;
+		sl_bool getDrawnBounds(RectangleI* _out = sl_null) const;
 
 	protected:
 		Ref<Drawable> getDrawableCache(Canvas* canvas);

@@ -86,11 +86,11 @@ namespace slib
 		return eccentricitySquared;
 	}
 
-	Vector3lf Globe::getSurfaceNormal(double latitude, double longitude) const
+	Double3 Globe::getSurfaceNormal(double latitude, double longitude) const
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
-		Vector3lf R;
+		Double3 R;
 		R.y = (1 - eccentricitySquared) * Math::sin(_latitude) / radiusPolar / radiusPolar;
 		double xz = Math::cos(_latitude) / radiusEquatorial / radiusEquatorial;
 		R.x = xz * Math::sin(_longitude);
@@ -99,23 +99,23 @@ namespace slib
 		return R;
 	}
 
-	Vector3lf Globe::getSurfaceNormal(const LatLon& latlon) const
+	Double3 Globe::getSurfaceNormal(const LatLon& latlon) const
 	{
 		return getSurfaceNormal(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf Globe::getSurfaceNormal(const GeoLocation& location) const
+	Double3 Globe::getSurfaceNormal(const GeoLocation& location) const
 	{
 		return getSurfaceNormal(location.latitude, location.longitude);
 	}
 
-	Vector3lf Globe::getNorthPointingTangent(double latitude, double longitude) const
+	Double3 Globe::getNorthPointingTangent(double latitude, double longitude) const
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
 
 		_latitude = -_latitude;
-		Vector3lf R;
+		Double3 R;
 		R.y = Math::cos(_latitude);
 		double xz = Math::sin(_latitude);
 		R.x = xz * Math::sin(_longitude);
@@ -124,21 +124,21 @@ namespace slib
 		return R;
 	}
 
-	Vector3lf Globe::getNorthPointingTangent(const LatLon& latlon) const
+	Double3 Globe::getNorthPointingTangent(const LatLon& latlon) const
 	{
 		return getNorthPointingTangent(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf Globe::getNorthPointingTangent(const GeoLocation& location) const
+	Double3 Globe::getNorthPointingTangent(const GeoLocation& location) const
 	{
 		return getNorthPointingTangent(location.latitude, location.longitude);
 	}
 
-	Vector3lf Globe::getSurfaceNormalAtCartesianPosition(double x, double y, double z) const
+	Double3 Globe::getSurfaceNormalAtCartesianPosition(double x, double y, double z) const
 	{
 		double a2 = radiusEquatorial * radiusEquatorial;
 		double b2 = radiusPolar * radiusPolar;
-		Vector3lf R;
+		Double3 R;
 		R.x = x / a2;
 		R.y = y / b2;
 		R.z = z / a2;
@@ -146,12 +146,12 @@ namespace slib
 		return R;
 	}
 
-	Vector3lf Globe::getSurfaceNormalAtCartesianPosition(const Vector3lf& position) const
+	Double3 Globe::getSurfaceNormalAtCartesianPosition(const Double3& position) const
 	{
 		return getSurfaceNormalAtCartesianPosition(position.x, position.y, position.z);
 	}
 
-	Vector3lf Globe::getCartesianPosition(double latitude, double longitude, double altitude) const
+	Double3 Globe::getCartesianPosition(double latitude, double longitude, double altitude) const
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
@@ -159,7 +159,7 @@ namespace slib
 		double sinLat = Math::sin(_latitude);
 		// get radius of vertical in prime meridian
 		double rv = radiusEquatorial / Math::sqrt(1 - eccentricitySquared * sinLat * sinLat);
-		Vector3lf B;
+		Double3 B;
 		B.y = sinLat * (rv * (1 - eccentricitySquared) + altitude);
 		double rxz = Math::cos(_latitude) * (rv + altitude);
 		B.x = rxz * Math::sin(_longitude);
@@ -167,12 +167,12 @@ namespace slib
 		return B;
 	}
 
-	Vector3lf Globe::getCartesianPosition(const LatLon& latlon) const
+	Double3 Globe::getCartesianPosition(const LatLon& latlon) const
 	{
 		return getCartesianPosition(latlon.latitude, latlon.longitude, 0);
 	}
 
-	Vector3lf Globe::getCartesianPosition(const GeoLocation& location) const
+	Double3 Globe::getCartesianPosition(const GeoLocation& location) const
 	{
 		return getCartesianPosition(location.latitude, location.longitude, location.altitude);
 	}
@@ -270,7 +270,7 @@ namespace slib
 		return GeoLocation(Math::getDegreesFromRadian(phi), Math::getDegreesFromRadian(lambda), h);
 	}
 
-	GeoLocation Globe::getGeoLocation(const Vector3lf& position) const
+	GeoLocation Globe::getGeoLocation(const Double3& position) const
 	{
 		return getGeoLocation(position.x, position.y, position.z);
 	}
@@ -296,11 +296,11 @@ namespace slib
 		radius = _radius;
 	}
 
-	Vector3lf SphericalGlobe::getSurfaceNormal(double latitude, double longitude) const
+	Double3 SphericalGlobe::getSurfaceNormal(double latitude, double longitude) const
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
-		Vector3lf R;
+		Double3 R;
 		R.y = Math::sin(_latitude);
 		double xz = Math::cos(_latitude);
 		R.x = xz * Math::sin(_longitude);
@@ -309,23 +309,23 @@ namespace slib
 		return R;
 	}
 
-	Vector3lf SphericalGlobe::getSurfaceNormal(const LatLon& latlon) const
+	Double3 SphericalGlobe::getSurfaceNormal(const LatLon& latlon) const
 	{
 		return getSurfaceNormal(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf SphericalGlobe::getSurfaceNormal(const GeoLocation& location) const
+	Double3 SphericalGlobe::getSurfaceNormal(const GeoLocation& location) const
 	{
 		return getSurfaceNormal(location.latitude, location.longitude);
 	}
 
-	Vector3lf SphericalGlobe::getNorthPointingTangent(double latitude, double longitude) const
+	Double3 SphericalGlobe::getNorthPointingTangent(double latitude, double longitude) const
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
 
 		_latitude = -_latitude;
-		Vector3lf R;
+		Double3 R;
 		R.y = Math::cos(_latitude);
 		double xz = Math::sin(_latitude);
 		R.x = xz * Math::sin(_longitude);
@@ -334,22 +334,22 @@ namespace slib
 		return R;
 	}
 
-	Vector3lf SphericalGlobe::getNorthPointingTangent(const LatLon& latlon) const
+	Double3 SphericalGlobe::getNorthPointingTangent(const LatLon& latlon) const
 	{
 		return getNorthPointingTangent(latlon.latitude, latlon.longitude);
 	}
 
-	Vector3lf SphericalGlobe::getNorthPointingTangent(const GeoLocation& location) const
+	Double3 SphericalGlobe::getNorthPointingTangent(const GeoLocation& location) const
 	{
 		return getNorthPointingTangent(location.latitude, location.longitude);
 	}
 
-	Vector3lf SphericalGlobe::getCartesianPosition(double latitude, double longitude, double altitude) const
+	Double3 SphericalGlobe::getCartesianPosition(double latitude, double longitude, double altitude) const
 	{
 		double _latitude = Math::getRadianFromDegrees(latitude);
 		double _longitude = Math::getRadianFromDegrees(longitude);
 
-		Vector3lf B;
+		Double3 B;
 		double R = radius + altitude;
 		B.y = Math::sin(_latitude) * R;
 		double rxz = Math::cos(_latitude) * R;
@@ -358,12 +358,12 @@ namespace slib
 		return B;
 	}
 
-	Vector3lf SphericalGlobe::getCartesianPosition(const LatLon& latlon) const
+	Double3 SphericalGlobe::getCartesianPosition(const LatLon& latlon) const
 	{
 		return getCartesianPosition(latlon.latitude, latlon.longitude, 0);
 	}
 
-	Vector3lf SphericalGlobe::getCartesianPosition(const GeoLocation& location) const
+	Double3 SphericalGlobe::getCartesianPosition(const GeoLocation& location) const
 	{
 		return getCartesianPosition(location.latitude, location.longitude, location.altitude);
 	}
@@ -388,7 +388,7 @@ namespace slib
 		return R;
 	}
 
-	GeoLocation SphericalGlobe::getGeoLocation(const Vector3lf& position) const
+	GeoLocation SphericalGlobe::getGeoLocation(const Double3& position) const
 	{
 		return getGeoLocation(position.x, position.y, position.z);
 	}

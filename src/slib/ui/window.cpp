@@ -866,80 +866,80 @@ namespace slib
 		return UISize(size.x - insets.left - insets.right, size.y - insets.top - insets.bottom);
 	}
 
-	UIPointf Window::convertCoordinateFromScreenToWindow(const UIPointf& pt)
+	UIPointF Window::convertCoordinateFromScreenToWindow(const UIPointF& pt)
 	{
-		UIPointf origin = getLocation();
-		return UIPointf(pt.x - origin.x, pt.y - origin.y);
+		UIPointF origin = getLocation();
+		return UIPointF(pt.x - origin.x, pt.y - origin.y);
 	}
 
-	UIRectf Window::convertCoordinateFromScreenToWindow(const UIRectf& rect)
+	UIRectF Window::convertCoordinateFromScreenToWindow(const UIRectF& rect)
 	{
-		UIPointf origin = getLocation();
-		return UIRectf(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
+		UIPointF origin = getLocation();
+		return UIRectF(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
 	}
 
-	UIPointf Window::convertCoordinateFromWindowToScreen(const UIPointf& pt)
+	UIPointF Window::convertCoordinateFromWindowToScreen(const UIPointF& pt)
 	{
-		UIPointf origin = getLocation();
-		return UIPointf(pt.x + origin.x, pt.y + origin.y);
+		UIPointF origin = getLocation();
+		return UIPointF(pt.x + origin.x, pt.y + origin.y);
 	}
 
-	UIRectf Window::convertCoordinateFromWindowToScreen(const UIRectf& rect)
+	UIRectF Window::convertCoordinateFromWindowToScreen(const UIRectF& rect)
 	{
-		UIPointf origin = getLocation();
-		return UIRectf(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
+		UIPointF origin = getLocation();
+		return UIRectF(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
 	}
 
-	UIPointf Window::convertCoordinateFromScreenToClient(const UIPointf& pt)
+	UIPointF Window::convertCoordinateFromScreenToClient(const UIPointF& pt)
 	{
-		UIPointf origin = getClientFrame().getLocation();
-		return UIPointf(pt.x - origin.x, pt.y - origin.y);
+		UIPointF origin = getClientFrame().getLocation();
+		return UIPointF(pt.x - origin.x, pt.y - origin.y);
 	}
 
-	UIRectf Window::convertCoordinateFromScreenToClient(const UIRectf& rect)
+	UIRectF Window::convertCoordinateFromScreenToClient(const UIRectF& rect)
 	{
-		UIPointf origin = getClientFrame().getLocation();
-		return UIRectf(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
+		UIPointF origin = getClientFrame().getLocation();
+		return UIRectF(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
 	}
 
-	UIPointf Window::convertCoordinateFromClientToScreen(const UIPointf& pt)
+	UIPointF Window::convertCoordinateFromClientToScreen(const UIPointF& pt)
 	{
-		UIPointf origin = getClientFrame().getLocation();
-		return UIPointf(pt.x + origin.x, pt.y + origin.y);
+		UIPointF origin = getClientFrame().getLocation();
+		return UIPointF(pt.x + origin.x, pt.y + origin.y);
 	}
 
-	UIRectf Window::convertCoordinateFromClientToScreen(const UIRectf& rect)
+	UIRectF Window::convertCoordinateFromClientToScreen(const UIRectF& rect)
 	{
-		UIPointf origin = getClientFrame().getLocation();
-		return UIRectf(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
+		UIPointF origin = getClientFrame().getLocation();
+		return UIRectF(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
 	}
 
-	UIPointf Window::convertCoordinateFromWindowToClient(const UIPointf& pt)
+	UIPointF Window::convertCoordinateFromWindowToClient(const UIPointF& pt)
 	{
 		UIEdgeInsets insets = getClientInsets();
-		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
-		return UIPointf(pt.x - origin.x, pt.y - origin.y);
+		UIPointF origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIPointF(pt.x - origin.x, pt.y - origin.y);
 	}
 
-	UIRectf Window::convertCoordinateFromWindowToClient(const UIRectf& rect)
+	UIRectF Window::convertCoordinateFromWindowToClient(const UIRectF& rect)
 	{
 		UIEdgeInsets insets = getClientInsets();
-		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
-		return UIRectf(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
+		UIPointF origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIRectF(rect.left - origin.x, rect.top - origin.y, rect.right - origin.x, rect.bottom - origin.y);
 	}
 
-	UIPointf Window::convertCoordinateFromClientToWindow(const UIPointf& pt)
+	UIPointF Window::convertCoordinateFromClientToWindow(const UIPointF& pt)
 	{
 		UIEdgeInsets insets = getClientInsets();
-		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
-		return UIPointf(pt.x + origin.x, pt.y + origin.y);
+		UIPointF origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIPointF(pt.x + origin.x, pt.y + origin.y);
 	}
 
-	UIRectf Window::convertCoordinateFromClientToWindow(const UIRectf& rect)
+	UIRectF Window::convertCoordinateFromClientToWindow(const UIRectF& rect)
 	{
 		UIEdgeInsets insets = getClientInsets();
-		UIPointf origin((sl_real)(insets.left), (sl_real)(insets.top));
-		return UIRectf(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
+		UIPointF origin((sl_real)(insets.left), (sl_real)(insets.top));
+		return UIRectF(rect.left + origin.x, rect.top + origin.y, rect.right + origin.x, rect.bottom + origin.y);
 	}
 
 	UISize Window::getMinimumSize()

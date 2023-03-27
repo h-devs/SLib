@@ -594,9 +594,9 @@ namespace slib
 	SLIB_DEFINE_CLASS_PARSE_MEMBERS(Color, DoParse)
 
 
-	Color4f ColorMatrix::transformColor(const Color4f& src) const noexcept
+	Color4F ColorMatrix::transformColor(const Color4F& src) const noexcept
 	{
-		Color4f ret;
+		Color4F ret;
 		ret.x = src.dot(red);
 		ret.y = src.dot(green);
 		ret.z = src.dot(blue);
@@ -605,33 +605,33 @@ namespace slib
 		return ret;
 	}
 
-	Color4f ColorMatrix::transformColor(const Color& src) const noexcept
+	Color4F ColorMatrix::transformColor(const Color& src) const noexcept
 	{
-		return transformColor((Color4f)src);
+		return transformColor((Color4F)src);
 	}
 
-	Color4f ColorMatrix::transformColor(const Color3f& src) const noexcept
+	Color4F ColorMatrix::transformColor(const Color3F& src) const noexcept
 	{
-		return transformColor(Color4f(src.x, src.y, src.z, 1));
+		return transformColor(Color4F(src.x, src.y, src.z, 1));
 	}
 
-	void ColorMatrix::setOverlay(const Color4f& c) noexcept
+	void ColorMatrix::setOverlay(const Color4F& c) noexcept
 	{
-		red = Color4f::zero();
-		green = Color4f::zero();
-		blue = Color4f::zero();
-		alpha = Color4f(0, 0, 0, c.w);
-		bias = Color4f(c.x, c.y, c.z, 0);
+		red = Color4F::zero();
+		green = Color4F::zero();
+		blue = Color4F::zero();
+		alpha = Color4F(0, 0, 0, c.w);
+		bias = Color4F(c.x, c.y, c.z, 0);
 	}
 
 	void ColorMatrix::setOverlay(const Color& c) noexcept
 	{
-		setOverlay((Color4f)c);
+		setOverlay((Color4F)c);
 	}
 
-	void ColorMatrix::setOverlay(const Color3f& c) noexcept
+	void ColorMatrix::setOverlay(const Color3F& c) noexcept
 	{
-		setOverlay(Color4f(c.x, c.y, c.z, 1));
+		setOverlay(Color4F(c.x, c.y, c.z, 1));
 	}
 
 

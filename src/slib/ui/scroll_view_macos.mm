@@ -87,7 +87,7 @@ namespace slib
 				}
 			}
 
-			sl_bool getScrollPosition(View* view, ScrollPoint& _out) override
+			sl_bool getScrollPosition(View* view, ScrollPosition& _out) override
 			{
 				NSScrollView* handle = getHandle();
 				if (handle != nil) {
@@ -102,7 +102,7 @@ namespace slib
 				return sl_false;
 			}
 
-			sl_bool getScrollRange(View* view, ScrollPoint& _out) override
+			sl_bool getScrollRange(View* view, ScrollPosition& _out) override
 			{
 				NSScrollView* handle = getHandle();
 				if (handle != nil) {

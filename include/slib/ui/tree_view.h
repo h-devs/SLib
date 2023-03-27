@@ -317,7 +317,7 @@ namespace slib
 		AtomicRef<TreeViewItem> m_itemSelected;
 
 		sl_bool m_flagBeginTapping;
-		UIPointf m_pointBeginTapping;
+		UIPointF m_pointBeginTapping;
 
 		friend class TreeViewItem;
 

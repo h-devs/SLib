@@ -116,13 +116,13 @@ void SpectrogramApp::onDraw(Canvas* canvas, sl_ui_len width, sl_ui_len height)
 	ObjectLocker lock(this);
 	sl_uint32 x = m_xBitmap;
 	canvas->draw(
-		Rectanglei(0, 0, width * (BITMAP_WIDTH - x) / BITMAP_WIDTH, height),
+		UIRect(0, 0, width * (BITMAP_WIDTH - x) / BITMAP_WIDTH, height),
 		m_bitmapAudio,
-		Rectanglei(x, 0, BITMAP_WIDTH, BITMAP_HEIGHT)
+		UIRect(x, 0, BITMAP_WIDTH, BITMAP_HEIGHT)
 		);
 	canvas->draw(
-		Rectanglei(width * (BITMAP_WIDTH - x) / BITMAP_WIDTH, 0, width, height),
+		UIRect(width * (BITMAP_WIDTH - x) / BITMAP_WIDTH, 0, width, height),
 		m_bitmapAudio,
-		Rectanglei(0, 0, x, BITMAP_HEIGHT)
+		UIRect(0, 0, x, BITMAP_HEIGHT)
 	);
 }

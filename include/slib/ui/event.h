@@ -39,7 +39,7 @@ namespace slib
 	class SLIB_EXPORT TouchPoint
 	{
 	public:
-		UIPointf point;
+		UIPointF point;
 		sl_real pressure;
 		TouchPhase phase;
 		sl_uint64 pointerId;
@@ -47,13 +47,13 @@ namespace slib
 	public:
 		TouchPoint();
 
-		TouchPoint(const UIPointf& point);
+		TouchPoint(const UIPointF& point);
 
-		TouchPoint(const UIPointf& point, sl_real pressure);
+		TouchPoint(const UIPointF& point, sl_real pressure);
 
-		TouchPoint(const UIPointf& point, sl_real pressure, TouchPhase phase);
+		TouchPoint(const UIPointF& point, sl_real pressure, TouchPhase phase);
 
-		TouchPoint(const UIPointf& point, sl_real pressure, TouchPhase phase, sl_uint64 pointerId);
+		TouchPoint(const UIPointF& point, sl_real pressure, TouchPhase phase, sl_uint64 pointerId);
 
 		TouchPoint(sl_ui_posf x, sl_ui_posf y);
 
@@ -216,9 +216,9 @@ namespace slib
 		void setSystemKeycode(sl_uint32 keycode);
 
 		// mouse, touch
-		const UIPointf& getPoint() const;
+		const UIPointF& getPoint() const;
 
-		void setPoint(const UIPointf& pt);
+		void setPoint(const UIPointF& pt);
 
 		void setPoint(sl_ui_posf x, sl_ui_posf y);
 
@@ -248,9 +248,9 @@ namespace slib
 
 		void setTouchPoint(const TouchPoint& pt);
 
-		void setTouchPoint(const UIPointf& pt);
+		void setTouchPoint(const UIPointF& pt);
 
-		void setTouchPoint(const UIPointf& pt, sl_real pressure);
+		void setTouchPoint(const UIPointF& pt, sl_real pressure);
 
 		void setTouchPoint(sl_ui_posf x, sl_ui_posf y);
 
@@ -268,9 +268,9 @@ namespace slib
 
 		void setTouchPoints(const Array<TouchPoint>& points);
 
-		void transformPoints(const Matrix3f& mat);
+		void transformPoints(const Matrix3T<float>& mat);
 
-		void transformPoints(const Matrix3lf& mat);
+		void transformPoints(const Matrix3T<double>& mat);
 
 		// set cursor
 		const Ref<Cursor>& getCursor() const;

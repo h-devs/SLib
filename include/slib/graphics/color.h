@@ -31,8 +31,8 @@
 namespace slib
 {
 
-	typedef Vector3f Color3f;
-	typedef Vector4f Color4f;
+	typedef Float3 Color3F;
+	typedef Float4 Color4F;
 
 	class SLIB_EXPORT Color
 	{
@@ -210,13 +210,13 @@ namespace slib
 		 b((sl_uint8)(argb & 0xFF)),
 		 a((sl_uint8)((argb >> 24) & 0xFF)) {}
 
-		SLIB_CONSTEXPR Color(const Color3f& v):
+		SLIB_CONSTEXPR Color(const Color3F& v):
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
 		 a(255) {}
 
-		SLIB_CONSTEXPR Color(const Color4f& v):
+		SLIB_CONSTEXPR Color(const Color4F& v):
 		 r((sl_uint8)(Math::clamp0_255((sl_int32)(v.x * 255)))),
 		 g((sl_uint8)(Math::clamp0_255((sl_int32)(v.y * 255)))),
 		 b((sl_uint8)(Math::clamp0_255((sl_int32)(v.z * 255)))),
@@ -391,14 +391,14 @@ namespace slib
 			return *this;
 		}
 
-		SLIB_CONSTEXPR operator Color3f() const
+		SLIB_CONSTEXPR operator Color3F() const
 		{
-			return Color3f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255);
+			return Color3F((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255);
 		}
 
-		SLIB_CONSTEXPR operator Color4f() const
+		SLIB_CONSTEXPR operator Color4F() const
 		{
-			return Color4f((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255, (sl_real)(a) / 255);
+			return Color4F((sl_real)(r) / 255, (sl_real)(g) / 255, (sl_real)(b) / 255, (sl_real)(a) / 255);
 		}
 
 	private:
@@ -409,11 +409,11 @@ namespace slib
 	class SLIB_EXPORT ColorMatrix
 	{
 	public:
-		Color4f red;
-		Color4f green;
-		Color4f blue;
-		Color4f alpha;
-		Color4f bias;
+		Color4F red;
+		Color4F green;
+		Color4F blue;
+		Color4F alpha;
+		Color4F bias;
 
 	public:
 		/*
@@ -423,13 +423,13 @@ namespace slib
 		 d.a = dot(s, alpha)
 		 d = d + bias
 		 */
-		Color4f transformColor(const Color4f& s) const noexcept;
-		Color4f transformColor(const Color& s) const noexcept;
-		Color4f transformColor(const Color3f& s) const noexcept;
+		Color4F transformColor(const Color4F& s) const noexcept;
+		Color4F transformColor(const Color& s) const noexcept;
+		Color4F transformColor(const Color3F& s) const noexcept;
 
-		void setOverlay(const Color4f& c) noexcept;
+		void setOverlay(const Color4F& c) noexcept;
 		void setOverlay(const Color& c) noexcept;
-		void setOverlay(const Color3f& c) noexcept;
+		void setOverlay(const Color3F& c) noexcept;
 
 	};
 

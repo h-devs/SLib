@@ -190,7 +190,7 @@ namespace slib
 
 		float shadowOpacity;
 		sl_ui_posf shadowRadius;
-		UIPointf shadowOffset;
+		UIPointF shadowOffset;
 		Color shadowColor;
 
 		LinkedList< Function<void()> > runAfterDrawCallbacks;

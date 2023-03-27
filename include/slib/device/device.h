@@ -91,7 +91,7 @@ namespace slib
 
 		static double getScreenPPI();
 
-		static Sizei getScreenSize();
+		static SizeI getScreenSize();
 
 		static sl_uint32 getScreenWidth();
 

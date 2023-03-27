@@ -201,7 +201,7 @@ namespace slib
 				cairo_set_miter_limit(graphics, _miterLimit);
 				cairo_set_dash(graphics, _dash, _dashLen, 0);
 
-				Color4f _color = pen->getColor();
+				Color4F _color = pen->getColor();
 				cairo_set_source_rgba(graphics, _color.x, _color.y, _color.z, _color.w * getAlpha());
 			}
 
@@ -215,7 +215,7 @@ namespace slib
 				BrushStyle style = desc.style;
 
 				if (style == BrushStyle::Solid) {
-					Color4f _color = desc.color;
+					Color4F _color = desc.color;
 					cairo_set_source_rgba(graphics, _color.x, _color.y, _color.z, _color.w * alpha);
 					if (flagPreservePath) {
 						cairo_fill_preserve(graphics);
@@ -472,7 +472,7 @@ namespace slib
 								cairo_set_fill_rule(m_graphics, CAIRO_FILL_RULE_WINDING);
 								{
 									cairo_save(m_graphics);
-									Color4f color = param.shadowColor;
+									Color4F color = param.shadowColor;
 									cairo_set_source_rgba(m_graphics, color.x, color.y, color.z, color.w * shadowOpacity * getAlpha());
 									cairo_translate(m_graphics, (double)(param.shadowOffset.x), (double)(param.shadowOffset.y));
 									cairo_fill_preserve(m_graphics);
@@ -482,11 +482,11 @@ namespace slib
 									cairo_stroke_preserve(m_graphics);
 									cairo_restore(m_graphics);
 								}
-								Color4f color = param.color;
+								Color4F color = param.color;
 								cairo_set_source_rgba(m_graphics, color.x, color.y, color.z, color.w * getAlpha());
 								cairo_fill(m_graphics);
 							} else {
-								Color4f color = param.color;
+								Color4F color = param.color;
 								cairo_set_source_rgba(m_graphics, color.x, color.y, color.z, color.w * getAlpha());
 								pango_cairo_show_layout(m_graphics, layout);
 							}

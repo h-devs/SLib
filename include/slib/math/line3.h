@@ -111,8 +111,6 @@ namespace slib
 	};
 
 	typedef Line3T<sl_real> Line3;
-	typedef Line3T<float> Line3f;
-	typedef Line3T<double> Line3lf;
 
 }
 

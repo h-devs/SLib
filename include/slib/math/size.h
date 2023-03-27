@@ -32,10 +32,7 @@ namespace slib
 	using SizeT = Vector2T<T, FT>;
 
 	typedef SizeT<sl_real> Size;
-	typedef SizeT<sl_int32, float> Sizei;
-	typedef SizeT<sl_int64, double> Sizeli;
-	typedef SizeT<float> Sizef;
-	typedef SizeT<double> Sizelf;
+	typedef SizeT<sl_int32, float> SizeI;
 
 }
 

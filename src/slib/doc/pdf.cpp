@@ -5708,7 +5708,7 @@ namespace slib
 		float l = values[0].getFloat();
 		float a = values[1].getFloat();
 		float b = values[2].getFloat();
-		Color3f c;
+		Color3F c;
 		CIE::convertLabToRGB(l, a, b, c.x, c.y, c.z);
 		_out = c;
 		return sl_true;

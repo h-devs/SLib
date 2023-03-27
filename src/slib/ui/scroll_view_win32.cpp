@@ -76,8 +76,8 @@ namespace slib
 			{
 				HWND handle = m_handle;
 				if (handle) {
-					Sizei sizeContent = view->getContentSize();
-					Sizei sizeParent = view->getSize();
+					SizeI sizeContent = view->getContentSize();
+					SizeI sizeParent = view->getSize();
 					if (view->isHorizontalScrolling()) {
 						UIPlatform::setWindowHorizontalScrollParam(handle, 0, sizeContent.x - 1, sizeParent.x);
 					}

@@ -292,8 +292,6 @@ namespace slib
 	};
 
 	typedef PlaneT<sl_real> Plane;
-	typedef PlaneT<float> Planef;
-	typedef PlaneT<double> Planelf;
 
 }
 

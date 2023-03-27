@@ -113,7 +113,7 @@ namespace slib
 			}
 		} else {
 			if (useColorMatrix) {
-				Color4f ret = colorMatrix.transformColor(src);
+				Color4F ret = colorMatrix.transformColor(src);
 				ret.w *= alpha;
 				return ret;
 			} else {

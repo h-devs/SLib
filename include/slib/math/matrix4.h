@@ -525,8 +525,6 @@ namespace slib
 	using Matrix4T = MatrixT<4, 4, T>;
 
 	typedef Matrix4T<sl_real> Matrix4;
-	typedef Matrix4T<float> Matrix4f;
-	typedef Matrix4T<double> Matrix4lf;
 
 }
 

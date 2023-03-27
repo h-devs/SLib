@@ -114,7 +114,7 @@ namespace slib
 			if (shadowOpacity > SLIB_EPSILON) {
 				layer.shadowOpacity = shadowOpacity;
 				layer.shadowRadius = (CGFloat)(view->getShadowRadius());
-				UIPointf offset = view->getShadowOffset();
+				UIPointF offset = view->getShadowOffset();
 				layer.shadowOffset = CGSizeMake((CGFloat)(offset.x), (CGFloat)(offset.y));
 				CGColorRef color = GraphicsPlatform::getCGColorFromColor(view->getShadowColor());
 				if (color) {
@@ -269,7 +269,7 @@ namespace slib
 		}
 	}
 
-	UIPointf macOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
+	UIPointF macOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -286,7 +286,7 @@ namespace slib
 				pw.x = rect.origin.x;
 				pw.y = rect.origin.y;
 				NSPoint pt = [handle convertPoint:pw fromView:nil];
-				UIPointf ret;
+				UIPointF ret;
 				ret.x = (sl_ui_posf)(pt.x);
 				ret.y = (sl_ui_posf)(pt.y);
 				return ret;
@@ -295,7 +295,7 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointf macOS_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
+	UIPointF macOS_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		NSView* handle = m_handle;
 		if (handle != nil) {
@@ -312,7 +312,7 @@ namespace slib
 				rect.size.width = 0;
 				rect.size.height = 0;
 				rect = [window convertRectToScreen:rect];
-				UIPointf ret;
+				UIPointF ret;
 				ret.x = (sl_ui_posf)(rect.origin.x);
 				ret.y = (sl_ui_posf)([screen frame].size.height - 1 - rect.origin.y);
 				return ret;

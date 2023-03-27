@@ -337,11 +337,11 @@ namespace slib
 					blur = (float)(param.blurRadius);
 				}
 				if (param.useColorMatrix) {
-					const Color4f& cr = param.colorMatrix.red;
-					const Color4f& cg = param.colorMatrix.green;
-					const Color4f& cb = param.colorMatrix.blue;
-					const Color4f& ca = param.colorMatrix.alpha;
-					const Color4f& cc = param.colorMatrix.bias;
+					const Color4F& cr = param.colorMatrix.red;
+					const Color4F& cg = param.colorMatrix.green;
+					const Color4F& cb = param.colorMatrix.blue;
+					const Color4F& ca = param.colorMatrix.alpha;
+					const Color4F& cc = param.colorMatrix.bias;
 					JBitmap::drawWithColorMatrix.call(m_bitmap, jcanvas,
 						rectDst.left, rectDst.top, rectDst.right, rectDst.bottom,
 						(sl_int32)(rectSrc.left), (sl_int32)(rectSrc.top), (sl_int32)(rectSrc.right), (sl_int32)(rectSrc.bottom),

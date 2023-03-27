@@ -581,7 +581,7 @@ namespace slib
 					if (colorSpaceDst) {
 						CGColorSpaceRef colorSpaceSrc = CGColorSpaceCreateDeviceRGB();
 						if (colorSpaceSrc) {
-							Vector4f const& v = param.colorMatrix.bias;
+							Float4 const& v = param.colorMatrix.bias;
 							CGFloat f[4] = {v.x, v.y, v.z, v.w};
 							CGColorRef colorSrc = CGColorCreate(colorSpaceSrc, f);
 							if (colorSrc) {

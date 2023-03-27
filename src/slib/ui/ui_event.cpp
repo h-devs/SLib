@@ -40,19 +40,19 @@ namespace slib
 	{
 	}
 
-	TouchPoint::TouchPoint(const UIPointf& _point) : point(_point), pressure(0), phase(TouchPhase::Move), pointerId(0)
+	TouchPoint::TouchPoint(const UIPointF& _point) : point(_point), pressure(0), phase(TouchPhase::Move), pointerId(0)
 	{
 	}
 
-	TouchPoint::TouchPoint(const UIPointf& _point, sl_real _pressure) : point(_point), pressure(_pressure), phase(TouchPhase::Move), pointerId(0)
+	TouchPoint::TouchPoint(const UIPointF& _point, sl_real _pressure) : point(_point), pressure(_pressure), phase(TouchPhase::Move), pointerId(0)
 	{
 	}
 
-	TouchPoint::TouchPoint(const UIPointf& _point, sl_real _pressure, TouchPhase _phase) : point(_point), pressure(_pressure), phase(_phase), pointerId(0)
+	TouchPoint::TouchPoint(const UIPointF& _point, sl_real _pressure, TouchPhase _phase) : point(_point), pressure(_pressure), phase(_phase), pointerId(0)
 	{
 	}
 
-	TouchPoint::TouchPoint(const UIPointf& _point, sl_real _pressure, TouchPhase _phase, sl_uint64 _pointerId) : point(_point), pressure(_pressure), phase(_phase), pointerId(_pointerId)
+	TouchPoint::TouchPoint(const UIPointF& _point, sl_real _pressure, TouchPhase _phase, sl_uint64 _pointerId) : point(_point), pressure(_pressure), phase(_phase), pointerId(_pointerId)
 	{
 	}
 
@@ -642,15 +642,15 @@ sl_bool UIEvent::is##NAME##Key() const \
 		}
 	}
 
-	const UIPointf& UIEvent::getPoint() const
+	const UIPointF& UIEvent::getPoint() const
 	{
 		if (IsInstanceOf<MouseEvent>(this)) {
 			return ((MouseEvent*)this)->m_pt.point;
 		}
-		return UIPointf::zero();
+		return UIPointF::zero();
 	}
 
-	void UIEvent::setPoint(const UIPointf& pt)
+	void UIEvent::setPoint(const UIPointF& pt)
 	{
 		if (IsInstanceOf<MouseEvent>(this)) {
 			((MouseEvent*)this)->m_pt.point = pt;
@@ -751,7 +751,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		}
 	}
 
-	void UIEvent::setTouchPoint(const UIPointf& pt)
+	void UIEvent::setTouchPoint(const UIPointF& pt)
 	{
 		if (IsInstanceOf<MouseEvent>(this)) {
 			((MouseEvent*)this)->m_pt.point = pt;
@@ -759,7 +759,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		}
 	}
 
-	void UIEvent::setTouchPoint(const UIPointf& pt, sl_real pressure)
+	void UIEvent::setTouchPoint(const UIPointF& pt, sl_real pressure)
 	{
 		if (IsInstanceOf<MouseEvent>(this)) {
 			((MouseEvent*)this)->m_pt.point = pt;
@@ -835,7 +835,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		}
 	}
 
-	void UIEvent::transformPoints(const Matrix3f& mat)
+	void UIEvent::transformPoints(const Matrix3T<float>& mat)
 	{
 		if (IsInstanceOf<MouseEvent>(this)) {
 			((MouseEvent*)this)->m_pt.point = mat.transformPosition(((MouseEvent*)this)->m_pt.point);
@@ -850,7 +850,7 @@ sl_bool UIEvent::is##NAME##Key() const \
 		}
 	}
 
-	void UIEvent::transformPoints(const Matrix3lf& mat)
+	void UIEvent::transformPoints(const Matrix3T<double>& mat)
 	{
 		if (IsInstanceOf<MouseEvent>(this)) {
 			((MouseEvent*)this)->m_pt.point = mat.transformPosition(((MouseEvent*)this)->m_pt.point);

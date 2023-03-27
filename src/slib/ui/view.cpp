@@ -1004,7 +1004,7 @@ namespace slib
 		for (sl_size i = children.count - 1, ii = 0; ii < children.count; i--, ii++) {
 			Ref<View>& child = children[i];
 			if (child->isVisible() && child->isHitTestable()) {
-				UIPoint pt = child->convertCoordinateFromParent(UIPointf((sl_ui_posf)x, (sl_ui_posf)y));
+				UIPoint pt = child->convertCoordinateFromParent(UIPointF((sl_ui_posf)x, (sl_ui_posf)y));
 				if (child->hitTest(pt)) {
 					return child;
 				}
@@ -1024,7 +1024,7 @@ namespace slib
 		for (sl_size i = children.count - 1, ii = 0; ii < children.count; i--, ii++) {
 			Ref<View>& child = children[i];
 			if (child->isVisible() && child->isHitTestable()) {
-				UIPoint pt = child->convertCoordinateFromParent(UIPointf((sl_ui_posf)x, (sl_ui_posf)y));
+				UIPoint pt = child->convertCoordinateFromParent(UIPointF((sl_ui_posf)x, (sl_ui_posf)y));
 				if (child->hitTest(pt)) {
 					return child->getTopmostViewAt(pt.x, pt.y);
 				}
@@ -5023,13 +5023,13 @@ namespace slib
 		}
 	}
 
-	UIPointf View::convertCoordinateFromScreen(const UIPointf& ptScreen)
+	UIPointF View::convertCoordinateFromScreen(const UIPointF& ptScreen)
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
 			return instance->convertCoordinateFromScreenToView(this, ptScreen);
 		}
-		UIPointf pt;
+		UIPointF pt;
 		Ref<View> parent = getParent();
 		if (parent.isNotNull()) {
 			pt = parent->convertCoordinateFromScreen(ptScreen);
@@ -5039,13 +5039,13 @@ namespace slib
 		return convertCoordinateFromParent(pt);
 	}
 
-	UIPointf View::convertCoordinateToScreen(const UIPointf& ptView)
+	UIPointF View::convertCoordinateToScreen(const UIPointF& ptView)
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
 			return instance->convertCoordinateFromViewToScreen(this, ptView);
 		}
-		UIPointf pt = convertCoordinateToParent(ptView);
+		UIPointF pt = convertCoordinateToParent(ptView);
 		Ref<View> parent = getParent();
 		if (parent.isNotNull()) {
 			return parent->convertCoordinateToScreen(pt);
@@ -5054,7 +5054,7 @@ namespace slib
 		}
 	}
 
-	UIPointf View::convertCoordinateFromParent(const UIPointf& ptParent)
+	UIPointF View::convertCoordinateFromParent(const UIPointF& ptParent)
 	{
 		if (m_instance.isNotNull() && m_parent.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
@@ -5062,7 +5062,7 @@ namespace slib
 			if (instance.isNotNull() && parent.isNotNull() && parent->m_instance.isNotNull()) {
 				Ref<ViewInstance> instanceParent = parent->m_instance;
 				if (instanceParent.isNotNull()) {
-					UIPointf pt = instanceParent->convertCoordinateFromViewToScreen(parent.get(), ptParent);
+					UIPointF pt = instanceParent->convertCoordinateFromViewToScreen(parent.get(), ptParent);
 					return instance->convertCoordinateFromScreenToView(this, pt);
 				}
 			}
@@ -5071,7 +5071,7 @@ namespace slib
 		sl_ui_posf offx = (sl_ui_posf)(m_frame.left);
 		sl_ui_posf offy = (sl_ui_posf)(m_frame.top);
 
-		UIPointf pt = ptParent;
+		UIPointF pt = ptParent;
 		pt.x -= offx;
 		pt.y -= offy;
 
@@ -5087,7 +5087,7 @@ namespace slib
 		return pt;
 	}
 
-	UIRectf View::convertCoordinateFromParent(const UIRectf& rcParent)
+	UIRectF View::convertCoordinateFromParent(const UIRectF& rcParent)
 	{
 		if (m_instance.isNotNull() && m_parent.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
@@ -5096,19 +5096,19 @@ namespace slib
 				Ref<ViewInstance> instanceParent = parent->m_instance;
 				if (instanceParent.isNotNull()) {
 					if (getFinalTransform(sl_null)) {
-						UIPointf pts[4];
+						UIPointF pts[4];
 						rcParent.getCornerPoints(pts);
 						for (int i = 0; i < 4; i++) {
-							UIPointf pt = instanceParent->convertCoordinateFromViewToScreen(parent.get(), pts[i]);
+							UIPointF pt = instanceParent->convertCoordinateFromViewToScreen(parent.get(), pts[i]);
 							pts[i] = instance->convertCoordinateFromScreenToView(this, pt);
 						}
-						UIRectf rc;
+						UIRectF rc;
 						rc.setFromPoints(pts, 4);
 						return rc;
 					} else {
-						UIPointf pt = instanceParent->convertCoordinateFromViewToScreen(parent.get(), rcParent.getLocation());
+						UIPointF pt = instanceParent->convertCoordinateFromViewToScreen(parent.get(), rcParent.getLocation());
 						pt = instance->convertCoordinateFromScreenToView(this, pt);
-						UIRectf rc;
+						UIRectF rc;
 						rc.left = pt.x;
 						rc.top = pt.y;
 						rc.right = pt.x + rcParent.getWidth();
@@ -5124,7 +5124,7 @@ namespace slib
 
 		Matrix3 mat;
 		if (getFinalInverseTransform(&mat)) {
-			UIPointf pts[4];
+			UIPointF pts[4];
 			rcParent.getCornerPoints(pts);
 			for (int i = 0; i < 4; i++) {
 				sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
@@ -5133,15 +5133,15 @@ namespace slib
 				pts[i].x += (sl_ui_posf)(ax);
 				pts[i].y += (sl_ui_posf)(ay);
 			}
-			UIRectf rc;
+			UIRectF rc;
 			rc.setFromPoints(pts, 4);
 			return rc;
 		} else {
-			return UIRectf(rcParent.left - offx, rcParent.top - offy, rcParent.right - offx, rcParent.bottom - offy);
+			return UIRectF(rcParent.left - offx, rcParent.top - offy, rcParent.right - offx, rcParent.bottom - offy);
 		}
 	}
 
-	UIPointf View::convertCoordinateToParent(const UIPointf& ptView)
+	UIPointF View::convertCoordinateToParent(const UIPointF& ptView)
 	{
 		if (m_instance.isNotNull() && m_parent.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
@@ -5149,7 +5149,7 @@ namespace slib
 			if (instance.isNotNull() && parent.isNotNull() && parent->m_instance.isNotNull()) {
 				Ref<ViewInstance> instanceParent = parent->m_instance;
 				if (instanceParent.isNotNull()) {
-					UIPointf pt = instance->convertCoordinateFromViewToScreen(this, ptView);
+					UIPointF pt = instance->convertCoordinateFromViewToScreen(this, ptView);
 					return instanceParent->convertCoordinateFromScreenToView(parent.get(), pt);
 				}
 			}
@@ -5158,7 +5158,7 @@ namespace slib
 		sl_ui_posf offx = (sl_ui_posf)(m_frame.left);
 		sl_ui_posf offy = (sl_ui_posf)(m_frame.top);
 
-		UIPointf pt = ptView;
+		UIPointF pt = ptView;
 		Matrix3 mat;
 		if (getFinalTransform(&mat)) {
 			sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
@@ -5174,7 +5174,7 @@ namespace slib
 		return pt;
 	}
 
-	UIRectf View::convertCoordinateToParent(const UIRectf& rcView)
+	UIRectF View::convertCoordinateToParent(const UIRectF& rcView)
 	{
 		if (m_instance.isNotNull() && m_parent.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
@@ -5183,19 +5183,19 @@ namespace slib
 				Ref<ViewInstance> instanceParent = parent->m_instance;
 				if (instanceParent.isNotNull()) {
 					if (getFinalTransform(sl_null)) {
-						UIPointf pts[4];
+						UIPointF pts[4];
 						rcView.getCornerPoints(pts);
 						for (int i = 0; i < 4; i++) {
-							UIPointf pt = instance->convertCoordinateFromViewToScreen(this, pts[i]);
+							UIPointF pt = instance->convertCoordinateFromViewToScreen(this, pts[i]);
 							pts[i] = instanceParent->convertCoordinateFromScreenToView(parent.get(), pt);
 						}
-						UIRectf rc;
+						UIRectF rc;
 						rc.setFromPoints(pts, 4);
 						return rc;
 					} else {
-						UIPointf pt = instance->convertCoordinateFromViewToScreen(this, rcView.getLocation());
+						UIPointF pt = instance->convertCoordinateFromViewToScreen(this, rcView.getLocation());
 						pt = instanceParent->convertCoordinateFromScreenToView(parent.get(), pt);
-						UIRectf rc;
+						UIRectF rc;
 						rc.left = pt.x;
 						rc.top = pt.y;
 						rc.right = pt.x + rcView.getWidth();
@@ -5211,7 +5211,7 @@ namespace slib
 
 		Matrix3 mat;
 		if (getFinalTransform(&mat)) {
-			UIPointf pts[4];
+			UIPointF pts[4];
 			rcView.getCornerPoints(pts);
 			for (int i = 0; i < 4; i++) {
 				sl_real ax = (sl_real)(m_frame.getWidth()) / 2;
@@ -5220,11 +5220,11 @@ namespace slib
 				pts[i].x += (sl_ui_posf)(ax) + offx;
 				pts[i].y += (sl_ui_posf)(ay) + offy;
 			}
-			UIRectf rc;
+			UIRectF rc;
 			rc.setFromPoints(pts, 4);
 			return rc;
 		} else {
-			return UIRectf(rcView.left + offx, rcView.top + offy, rcView.right + offx, rcView.bottom + offy);
+			return UIRectF(rcView.left + offx, rcView.top + offy, rcView.right + offx, rcView.bottom + offy);
 		}
 	}
 
@@ -6047,23 +6047,23 @@ namespace slib
 		}
 	}
 
-	const UIPointf& View::getShadowOffset()
+	const UIPointF& View::getShadowOffset()
 	{
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
 			return attrs->shadowOffset;
 		}
-		return UIPointf::zero();
+		return UIPointF::zero();
 	}
 
-	void View::setShadowOffset(const UIPointf& offset, UIUpdateMode mode)
+	void View::setShadowOffset(const UIPointF& offset, UIUpdateMode mode)
 	{
 		_initializeDrawAttributes();
 		Ref<DrawAttributes>& attrs = m_drawAttrs;
 		if (attrs.isNotNull()) {
 			Ref<ViewInstance> instance = m_instance;
 			if (instance.isNotNull()) {
-				void (View::*func)(const UIPointf&, UIUpdateMode) = &View::setShadowOffset;
+				void (View::*func)(const UIPointF&, UIUpdateMode) = &View::setShadowOffset;
 				SLIB_VIEW_RUN_ON_UI_THREAD2(func, offset, mode)
 				attrs->shadowOffset = offset;
 				instance->setShadowOffset(this, offset.x, offset.y);
@@ -6076,19 +6076,19 @@ namespace slib
 
 	void View::setShadowOffset(sl_ui_posf x, sl_ui_posf y, UIUpdateMode mode)
 	{
-		setShadowOffset(UIPointf(x, y), mode);
+		setShadowOffset(UIPointF(x, y), mode);
 	}
 
 	void View::setShadowOffsetX(sl_ui_posf x, UIUpdateMode mode)
 	{
-		UIPointf offset = getShadowOffset();
+		UIPointF offset = getShadowOffset();
 		offset.x = x;
 		setShadowOffset(offset);
 	}
 
 	void View::setShadowOffsetY(sl_ui_posf y, UIUpdateMode mode)
 	{
-		UIPointf offset = getShadowOffset();
+		UIPointF offset = getShadowOffset();
 		offset.y = y;
 		setShadowOffset(offset);
 	}
@@ -6609,7 +6609,7 @@ namespace slib
 		return sl_null;
 	}
 
-	void View::setBackgroundColorAnimation(const Ref<Animation>& animation, const AnimationFrames<Color4f>& frames)
+	void View::setBackgroundColorAnimation(const Ref<Animation>& animation, const AnimationFrames<Color4F>& frames)
 	{
 		if (animation.isNotNull()) {
 			_initializeTransformAttributes();
@@ -6621,17 +6621,17 @@ namespace slib
 		}
 	}
 
-	void View::setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4f& startValue, const Color4f& endValue)
+	void View::setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4F& startValue, const Color4F& endValue)
 	{
-		setBackgroundColorAnimation(animation, AnimationFrames<Color4f>(startValue, endValue));
+		setBackgroundColorAnimation(animation, AnimationFrames<Color4F>(startValue, endValue));
 	}
 
-	void View::setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4f& toValue)
+	void View::setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4F& toValue)
 	{
-		setBackgroundColorAnimation(animation, AnimationFrames<Color4f>(getBackgroundColor(), toValue));
+		setBackgroundColorAnimation(animation, AnimationFrames<Color4F>(getBackgroundColor(), toValue));
 	}
 
-	Ref<Animation> View::createBackgroundColorAnimation(const AnimationFrames<Color4f>& frames, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
+	Ref<Animation> View::createBackgroundColorAnimation(const AnimationFrames<Color4F>& frames, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
 		Ref<Animation> animation = createAnimation(new ViewBackgroundColorAnimationTarget(this, frames), duration, onStop, curve, flags);
 		if (animation.isNotNull()) {
@@ -6644,29 +6644,29 @@ namespace slib
 		return animation;
 	}
 
-	Ref<Animation> View::startBackgroundColorAnimation(const AnimationFrames<Color4f>& frames, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
+	Ref<Animation> View::startBackgroundColorAnimation(const AnimationFrames<Color4F>& frames, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
 		return createBackgroundColorAnimation(frames, duration, onStop, curve, flags | AnimationFlags::AutoStart);
 	}
 
-	Ref<Animation> View::createBackgroundColorAnimation(const Color4f& startValue, const Color4f& endValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
+	Ref<Animation> View::createBackgroundColorAnimation(const Color4F& startValue, const Color4F& endValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
-		return createBackgroundColorAnimation(AnimationFrames<Color4f>(startValue, endValue), duration, onStop, curve, flags);
+		return createBackgroundColorAnimation(AnimationFrames<Color4F>(startValue, endValue), duration, onStop, curve, flags);
 	}
 
-	Ref<Animation> View::startBackgroundColorAnimation(const Color4f& startValue, const Color4f& endValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
+	Ref<Animation> View::startBackgroundColorAnimation(const Color4F& startValue, const Color4F& endValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
-		return createBackgroundColorAnimation(AnimationFrames<Color4f>(startValue, endValue), duration, onStop, curve, flags | AnimationFlags::AutoStart);
+		return createBackgroundColorAnimation(AnimationFrames<Color4F>(startValue, endValue), duration, onStop, curve, flags | AnimationFlags::AutoStart);
 	}
 
-	Ref<Animation> View::createBackgroundColorAnimationTo(const Color4f& toValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
+	Ref<Animation> View::createBackgroundColorAnimationTo(const Color4F& toValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
-		return createBackgroundColorAnimation(AnimationFrames<Color4f>(getBackgroundColor(), toValue), duration, onStop, curve, flags | AnimationFlags::NotUpdateWhenStart);
+		return createBackgroundColorAnimation(AnimationFrames<Color4F>(getBackgroundColor(), toValue), duration, onStop, curve, flags | AnimationFlags::NotUpdateWhenStart);
 	}
 
-	Ref<Animation> View::startBackgroundColorAnimationTo(const Color4f& toValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
+	Ref<Animation> View::startBackgroundColorAnimationTo(const Color4F& toValue, float duration, const Function<void()>& onStop, AnimationCurve curve, const AnimationFlags& flags)
 	{
-		return createBackgroundColorAnimation(AnimationFrames<Color4f>(getBackgroundColor(), toValue), duration, onStop, curve, flags | AnimationFlags::NotUpdateWhenStart | AnimationFlags::AutoStart);
+		return createBackgroundColorAnimation(AnimationFrames<Color4F>(getBackgroundColor(), toValue), duration, onStop, curve, flags | AnimationFlags::NotUpdateWhenStart | AnimationFlags::AutoStart);
 	}
 
 	void View::_attachNativeAnimations()
@@ -6979,20 +6979,20 @@ namespace slib
 		}
 	}
 
-	ScrollPoint View::getScrollPosition()
+	ScrollPosition View::getScrollPosition()
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			ScrollPoint pt;
+			ScrollPosition pt;
 			if (instance->getScrollPosition(this, pt)) {
 				return pt;
 			}
 		}
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			return ScrollPoint(attrs->x, attrs->y);
+			return ScrollPosition(attrs->x, attrs->y);
 		}
-		return ScrollPoint::zero();
+		return ScrollPosition::zero();
 	}
 
 	sl_scroll_pos View::getScrollX()
@@ -7061,7 +7061,7 @@ namespace slib
 		}
 	}
 
-	void View::scrollTo(const ScrollPoint& position, UIUpdateMode mode)
+	void View::scrollTo(const ScrollPosition& position, UIUpdateMode mode)
 	{
 		scrollTo(position.x, position.y, mode);
 	}
@@ -7091,13 +7091,13 @@ namespace slib
 			if (instance.isNotNull()) {
 				instance->scrollTo(this, x, y, sl_true);
 			} else {
-				_startContentScrollingFlow(sl_true, Pointlf(x, y));
+				_startContentScrollingFlow(sl_true, ScrollPosition(x, y));
 				invalidate(mode);
 			}
 		}
 	}
 
-	void View::smoothScrollTo(const ScrollPoint& position, UIUpdateMode mode)
+	void View::smoothScrollTo(const ScrollPosition& position, UIUpdateMode mode)
 	{
 		smoothScrollTo(position.x, position.y, mode);
 	}
@@ -7166,13 +7166,13 @@ namespace slib
 		return 0;
 	}
 
-	ScrollPoint View::getContentSize()
+	ScrollPosition View::getContentSize()
 	{
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			return ScrollPoint(attrs->contentWidth, attrs->contentHeight);
+			return ScrollPosition(attrs->contentWidth, attrs->contentHeight);
 		}
-		return ScrollPoint::zero();
+		return ScrollPosition::zero();
 	}
 
 	void View::setContentSize(sl_scroll_pos width, sl_scroll_pos height, UIUpdateMode mode)
@@ -7194,7 +7194,7 @@ namespace slib
 		}
 	}
 
-	void View::setContentSize(const ScrollPoint& size, UIUpdateMode mode)
+	void View::setContentSize(const ScrollPosition& size, UIUpdateMode mode)
 	{
 		setContentSize(size.x, size.y, mode);
 	}
@@ -7217,18 +7217,18 @@ namespace slib
 		}
 	}
 
-	ScrollPoint View::getScrollRange()
+	ScrollPosition View::getScrollRange()
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			ScrollPoint pt;
+			ScrollPosition pt;
 			if (instance->getScrollRange(this, pt)) {
 				return pt;
 			}
 		}
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			ScrollPoint ret(attrs->contentWidth - (sl_scroll_pos)(getWidth()), attrs->contentHeight - (sl_scroll_pos)(getHeight()));
+			ScrollPosition ret(attrs->contentWidth - (sl_scroll_pos)(getWidth()), attrs->contentHeight - (sl_scroll_pos)(getHeight()));
 			if (ret.x < 0) {
 				ret.x = 0;
 			}
@@ -7237,7 +7237,7 @@ namespace slib
 			}
 			return ret;
 		}
-		return ScrollPoint::zero();
+		return ScrollPosition::zero();
 	}
 
 	sl_ui_len View::getScrollBarWidth()
@@ -7629,7 +7629,7 @@ namespace slib
 					}
 				}
 				if (flagTarget) {
-					_startContentScrollingFlow(sl_true, Pointlf(x, y));
+					_startContentScrollingFlow(sl_true, ScrollPosition(x, y));
 				} else {
 					_stopContentScrollingFlow();
 				}
@@ -8145,7 +8145,7 @@ namespace slib
 		for (sl_size i = children.count - 1, ii = 0; ii < children.count; i--, ii++) {
 			Ref<View>& child = children[i];
 			if (!(child->isInstance()) && child->isVisible() && child->isHitTestable()) {
-				UIPoint pt = child->convertCoordinateFromParent(UIPointf((sl_ui_posf)x, (sl_ui_posf)y));
+				UIPoint pt = child->convertCoordinateFromParent(UIPointF((sl_ui_posf)x, (sl_ui_posf)y));
 				if (child->hitTest(pt.x, pt.y)) {
 					return child->isCapturingChildInstanceEvents(pt.x, pt.y);
 				}
@@ -8551,11 +8551,11 @@ namespace slib
 			param.useBlur = sl_true;
 			param.blurRadius = drawAttrs->shadowRadius;
 			param.useColorMatrix = sl_true;
-			param.colorMatrix.red = Color4f::zero();
-			param.colorMatrix.green = Color4f::zero();
-			param.colorMatrix.blue = Color4f::zero();
-			param.colorMatrix.alpha = Color4f(0, 0, 0, color.getAlphaF() * opacity);
-			param.colorMatrix.bias = Color4f(color.getRedF(), color.getGreenF(), color.getBlueF(), 0);
+			param.colorMatrix.red = Color4F::zero();
+			param.colorMatrix.green = Color4F::zero();
+			param.colorMatrix.blue = Color4F::zero();
+			param.colorMatrix.alpha = Color4F(0, 0, 0, color.getAlphaF() * opacity);
+			param.colorMatrix.bias = Color4F(color.getRedF(), color.getGreenF(), color.getBlueF(), 0);
 			Rectangle rcSrc = getBounds();
 			Rectangle rcDst = rcSrc;
 			rcDst.translate(drawAttrs->shadowOffset);
@@ -9169,7 +9169,7 @@ namespace slib
 		}
 
 		UIAction action = ev->getAction();
-		UIPointf ptMouse = ev->getPoint();
+		UIPointF ptMouse = ev->getPoint();
 
 		Ref<View> oldChild;
 		switch (action) {
@@ -9179,7 +9179,7 @@ namespace slib
 				for (sl_size i = 0; i < count; i++) {
 					View* child = children[count - 1 - i].get();
 					if (POINT_EVENT_CHECK_CHILD(child)) {
-						UIPointf pt = child->convertCoordinateFromParent(ptMouse);
+						UIPointF pt = child->convertCoordinateFromParent(ptMouse);
 						if (child->hitTest(pt)) {
 							ev->setPoint(pt);
 							dispatchMouseEventToChild(ev, child, sl_false);
@@ -9213,7 +9213,7 @@ namespace slib
 				for (sl_size i = 0; i < count; i++) {
 					View* child = children[count - 1 - i].get();
 					if (POINT_EVENT_CHECK_CHILD(child)) {
-						UIPointf pt = child->convertCoordinateFromParent(ptMouse);
+						UIPointF pt = child->convertCoordinateFromParent(ptMouse);
 						if (child->hitTest(pt)) {
 							ev->setPoint(pt);
 							dispatchMouseEventToChild(ev, child, sl_false);
@@ -9243,7 +9243,7 @@ namespace slib
 				for (sl_size i = 0; i < count; i++) {
 					View* child = children[count - 1 - i].get();
 					if (POINT_EVENT_CHECK_CHILD(child)) {
-						UIPointf pt = child->convertCoordinateFromParent(ptMouse);
+						UIPointF pt = child->convertCoordinateFromParent(ptMouse);
 						if (child->hitTest(pt)) {
 							if (oldChild == child) {
 								ev->setAction(UIAction::MouseMove);
@@ -9285,7 +9285,7 @@ namespace slib
 		if (child) {
 			ev->resetFlags();
 			if (flagTransformPoints) {
-				UIPointf ptMouse = ev->getPoint();
+				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
 				child->dispatchMouseEvent(ev);
 				ev->setPoint(ptMouse);
@@ -9402,7 +9402,7 @@ namespace slib
 		}
 
 		UIAction action = ev->getAction();
-		UIPointf ptMouse = ev->getPoint();
+		UIPointF ptMouse = ev->getPoint();
 
 		Ref<View> oldChild;
 		switch (action) {
@@ -9410,7 +9410,7 @@ namespace slib
 				for (sl_size i = 0; i < count; i++) {
 					View* child = children[count - 1 - i].get();
 					if (POINT_EVENT_CHECK_CHILD(child)) {
-						UIPointf pt = child->convertCoordinateFromParent(ptMouse);
+						UIPointF pt = child->convertCoordinateFromParent(ptMouse);
 						if (child->hitTest(pt)) {
 							dispatchTouchEventToChild(ev, child);
 							if (!(ev->isPassedToNext())) {
@@ -9503,7 +9503,7 @@ namespace slib
 
 						sl_size k = 0;
 						for (; k < nCheck; k++) {
-							UIPointf pt = child->convertCoordinateFromParent(ptsCheck[k].point);
+							UIPointF pt = child->convertCoordinateFromParent(ptsCheck[k].point);
 							if (child->hitTest(pt)) {
 								ptsInside[nInside] = ptsCheck[k];
 								ptsInside[nInside].point = pt;
@@ -9550,7 +9550,7 @@ namespace slib
 
 					if (POINT_EVENT_CHECK_CHILD(child)) {
 
-						UIPointf pt = child->convertCoordinateFromParent(ptOriginal.point);
+						UIPointF pt = child->convertCoordinateFromParent(ptOriginal.point);
 						if (child->hitTest(pt)) {
 							dispatchTouchEventToChild(ev, child, sl_false);
 							if (!(ev->isPassedToNext())) {
@@ -9712,11 +9712,11 @@ namespace slib
 		if (action != UIAction::MouseWheel) {
 			return sl_true;
 		}
-		UIPointf ptMouse = ev->getPoint();
+		UIPointF ptMouse = ev->getPoint();
 		for (sl_size i = 0; i < count; i++) {
 			View* child = children[count - 1 - i].get();
 			if (POINT_EVENT_CHECK_CHILD(child)) {
-				UIPointf pt = child->convertCoordinateFromParent(ptMouse);
+				UIPointF pt = child->convertCoordinateFromParent(ptMouse);
 				if (child->hitTest(pt)) {
 					ev->setPoint(pt);
 					dispatchMouseWheelEventToChild(ev, child, sl_false);
@@ -9735,7 +9735,7 @@ namespace slib
 		if (child) {
 			ev->resetFlags();
 			if (flagTransformPoints) {
-				UIPointf ptMouse = ev->getPoint();
+				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
 				child->dispatchMouseWheelEvent(ev);
 				ev->setPoint(ptMouse);
@@ -9888,11 +9888,11 @@ namespace slib
 		if (action != UIAction::SetCursor) {
 			return sl_true;
 		}
-		UIPointf ptMouse = ev->getPoint();
+		UIPointF ptMouse = ev->getPoint();
 		for (sl_size i = 0; i < count; i++) {
 			View* child = children[count - 1 - i].get();
 			if (POINT_EVENT_CHECK_CHILD(child)) {
-				UIPointf pt = child->convertCoordinateFromParent(ptMouse);
+				UIPointF pt = child->convertCoordinateFromParent(ptMouse);
 				if (child->hitTest(pt)) {
 					ev->setPoint(pt);
 					dispatchSetCursorToChild(ev, child, sl_false);
@@ -9911,7 +9911,7 @@ namespace slib
 		if (child) {
 			ev->resetFlags();
 			if (flagTransformPoints) {
-				UIPointf ptMouse = ev->getPoint();
+				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
 				child->dispatchSetCursor(ev);
 				ev->setPoint(ptMouse);
@@ -10011,7 +10011,7 @@ namespace slib
 		}
 
 		UIAction action = ev->getAction();
-		UIPointf ptMouse = ev->getPoint();
+		UIPointF ptMouse = ev->getPoint();
 
 		Ref<View> oldChild;
 		switch (action) {
@@ -10021,7 +10021,7 @@ namespace slib
 				for (sl_size i = 0; i < count; i++) {
 					View* child = children[count - 1 - i].get();
 					if (POINT_EVENT_CHECK_CHILD(child)) {
-						UIPointf pt = child->convertCoordinateFromParent(ptMouse);
+						UIPointF pt = child->convertCoordinateFromParent(ptMouse);
 						if (child->hitTest(pt)) {
 							if (oldChild == child) {
 								ev->setAction(UIAction::DragOver);
@@ -10064,7 +10064,7 @@ namespace slib
 		if (child) {
 			ev->resetFlags();
 			if (flagTransformPoints) {
-				UIPointf ptMouse = ev->getPoint();
+				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
 				child->dispatchDragDropEvent(ev);
 				ev->setPoint(ptMouse);
@@ -10706,7 +10706,7 @@ namespace slib
 
 #define SMOOTH_SCROLL_FRAME_MS 15
 
-	void View::_startContentScrollingFlow(sl_bool flagSmoothTarget, const Pointlf& speedOrTarget)
+	void View::_startContentScrollingFlow(sl_bool flagSmoothTarget, const ScrollPosition& speedOrTarget)
 	{
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
 		if (scrollAttrs.isNull()) {
@@ -10944,12 +10944,12 @@ namespace slib
 	{
 	}
 
-	sl_bool ViewInstance::getScrollPosition(View* view, ScrollPoint& _out)
+	sl_bool ViewInstance::getScrollPosition(View* view, ScrollPosition& _out)
 	{
 		return sl_false;
 	}
 
-	sl_bool ViewInstance::getScrollRange(View* view, ScrollPoint& _out)
+	sl_bool ViewInstance::getScrollRange(View* view, ScrollPosition& _out)
 	{
 		return sl_false;
 	}

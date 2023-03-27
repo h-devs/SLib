@@ -470,7 +470,7 @@ namespace slib
 	{
 	}
 
-	UIPointf Win32_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
+	UIPointF Win32_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -478,12 +478,12 @@ namespace slib
 			pt.x = (LONG)(ptScreen.x);
 			pt.y = (LONG)(ptScreen.y);
 			ScreenToClient(hWnd, &pt);
-			return UIPointf((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
+			return UIPointF((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
 		}
 		return ptScreen;
 	}
 
-	UIPointf Win32_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
+	UIPointF Win32_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		HWND hWnd = m_handle;
 		if (hWnd) {
@@ -491,7 +491,7 @@ namespace slib
 			pt.x = (LONG)(ptView.x);
 			pt.y = (LONG)(ptView.y);
 			ClientToScreen(hWnd, &pt);
-			return UIPointf((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
+			return UIPointF((sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y));
 		}
 		return ptView;
 	}
@@ -566,7 +566,7 @@ namespace slib
 		}
 	}
 
-	sl_bool Win32_ViewInstance::getScrollPosition(View* view, ScrollPoint& _out)
+	sl_bool Win32_ViewInstance::getScrollPosition(View* view, ScrollPosition& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {
@@ -583,7 +583,7 @@ namespace slib
 		return sl_false;
 	}
 
-	sl_bool Win32_ViewInstance::getScrollRange(View* view, ScrollPoint& _out)
+	sl_bool Win32_ViewInstance::getScrollRange(View* view, ScrollPosition& _out)
 	{
 		HWND handle = m_handle;
 		if (handle) {

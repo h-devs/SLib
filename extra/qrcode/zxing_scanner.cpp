@@ -152,7 +152,7 @@ namespace slib
 		mat.m01 = 0; mat.m11 = scanner_height; mat.m21 = height_half - box_half + scanner_y;
 		mat.m02 = 0; mat.m12 = 0; mat.m22 = 1;
 		mat *= Matrix3(2/width, 0, 0, 0, -2/height, 0, -1, 1, 1);
-		engine->drawRectangle2D(m_programScanBar, mat, Color4f(0, 1, 0, 0.5f));
+		engine->drawRectangle2D(m_programScanBar, mat, Color4F(0, 1, 0, 0.5f));
 
 		Color colorFillDark(0, 0, 0, 150);
 		canvas->fillRectangle(0, 0, width, height_half - box_half, colorFillDark);

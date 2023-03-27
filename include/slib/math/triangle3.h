@@ -398,8 +398,6 @@ namespace slib
 	};
 
 	typedef Triangle3T<sl_real> Triangle3;
-	typedef Triangle3T<float> Triangle3f;
-	typedef Triangle3T<double> Triangle3lf;
 
 }
 

@@ -116,8 +116,6 @@ namespace slib
 	};
 
 	typedef LineSegmentT<sl_real> LineSegment;
-	typedef LineSegmentT<float> LineSegmentf;
-	typedef LineSegmentT<double> LineSegmentlf;
 
 }
 

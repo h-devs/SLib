@@ -264,9 +264,9 @@ namespace slib
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
 						NSInteger clicks = [ev clickCount];
 						if (clicks == 1) {
-							helper->dispatchClickRow((sl_uint32)(indexRow), UIPointf(x, y));
+							helper->dispatchClickRow((sl_uint32)(indexRow), UIPointF(x, y));
 						} else if (clicks == 2) {
-							helper->dispatchDoubleClickRow((sl_uint32)(indexRow), UIPointf(x, y));
+							helper->dispatchDoubleClickRow((sl_uint32)(indexRow), UIPointF(x, y));
 						}
 					}
 				}
@@ -282,7 +282,7 @@ namespace slib
 					if (indexRow >= 0) {
 						sl_ui_posf x = (sl_ui_posf)(ptView.x);
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
-						helper->dispatchRightButtonClickRow((sl_uint32)(indexRow), UIPointf(x, y));
+						helper->dispatchRightButtonClickRow((sl_uint32)(indexRow), UIPointF(x, y));
 					}
 				}
 			}

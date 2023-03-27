@@ -44,9 +44,9 @@ namespace slib
 		return sl_null;
 	}
 
-	Sizei Device::getScreenSize()
+	SizeI Device::getScreenSize()
 	{
-		Sizei size;
+		SizeI size;
 		int value;
 		int ret = system_info_get_platform_int("http://tizen.org/feature/screen.height", &value);
 		if (ret != SYSTEM_INFO_ERROR_NONE) {

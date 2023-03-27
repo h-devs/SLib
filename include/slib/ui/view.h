@@ -740,22 +740,22 @@ namespace slib
 		void setAnchorOffset(const Vector2& pt, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateFromScreen(const UIPointf& ptScreen);
+		UIPointF convertCoordinateFromScreen(const UIPointF& ptScreen);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateToScreen(const UIPointf& ptView);
+		UIPointF convertCoordinateToScreen(const UIPointF& ptView);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateFromParent(const UIPointf& ptParent);
+		UIPointF convertCoordinateFromParent(const UIPointF& ptParent);
 
 		// Call in UI Thread
-		UIRectf convertCoordinateFromParent(const UIRectf& rectParent);
+		UIRectF convertCoordinateFromParent(const UIRectF& rectParent);
 
 		// Call in UI Thread
-		UIPointf convertCoordinateToParent(const UIPointf& ptView);
+		UIPointF convertCoordinateToParent(const UIPointF& ptView);
 
 		// Call in UI Thread
-		UIRectf convertCoordinateToParent(const UIRectf& rectView);
+		UIRectF convertCoordinateToParent(const UIRectF& rectView);
 
 
 		Ref<Drawable> getBackground(ViewState state = ViewState::Default);
@@ -901,9 +901,9 @@ namespace slib
 
 		void setShadowRadius(sl_ui_posf radius, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		const UIPointf& getShadowOffset();
+		const UIPointF& getShadowOffset();
 
-		void setShadowOffset(const UIPointf& offset, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setShadowOffset(const UIPointF& offset, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void setShadowOffset(sl_ui_posf x, sl_ui_posf y, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -1065,23 +1065,23 @@ namespace slib
 
 		Ref<Animation> getBackgroundColorAnimation();
 
-		void setBackgroundColorAnimation(const Ref<Animation>& animation, const AnimationFrames<Color4f>& frames);
+		void setBackgroundColorAnimation(const Ref<Animation>& animation, const AnimationFrames<Color4F>& frames);
 
-		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4f& startValue, const Color4f& endValue);
+		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4F& startValue, const Color4F& endValue);
 
-		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4f& toValue);
+		void setBackgroundColorAnimation(const Ref<Animation>& animation, const Color4F& toValue);
 
-		Ref<Animation> createBackgroundColorAnimation(const AnimationFrames<Color4f>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> createBackgroundColorAnimation(const AnimationFrames<Color4F>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> startBackgroundColorAnimation(const AnimationFrames<Color4f>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> startBackgroundColorAnimation(const AnimationFrames<Color4F>& frames, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> createBackgroundColorAnimation(const Color4f& startValue, const Color4f& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> createBackgroundColorAnimation(const Color4F& startValue, const Color4F& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> startBackgroundColorAnimation(const Color4f& startValue, const Color4f& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> startBackgroundColorAnimation(const Color4F& startValue, const Color4F& endValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> createBackgroundColorAnimationTo(const Color4f& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> createBackgroundColorAnimationTo(const Color4F& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
-		Ref<Animation> startBackgroundColorAnimationTo(const Color4f& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
+		Ref<Animation> startBackgroundColorAnimationTo(const Color4F& toValue, float duration, const Function<void()>& onStop = sl_null, AnimationCurve curve = AnimationCurve::Default, const AnimationFlags& flags = AnimationFlags::Default);
 
 
 		sl_bool isHorizontalScrolling();
@@ -1132,7 +1132,7 @@ namespace slib
 
 		void setCanvasScrolling(sl_bool flag = sl_true);
 
-		Pointlf getScrollPosition();
+		ScrollPosition getScrollPosition();
 
 		sl_scroll_pos getScrollX();
 
@@ -1140,7 +1140,7 @@ namespace slib
 
 		void scrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void scrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void scrollTo(const ScrollPosition& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void scrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -1148,7 +1148,7 @@ namespace slib
 
 		void smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void smoothScrollTo(const ScrollPoint& position, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void smoothScrollTo(const ScrollPosition& position, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void smoothScrollToX(sl_scroll_pos x, UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -1170,17 +1170,17 @@ namespace slib
 
 		sl_scroll_pos getContentHeight();
 
-		ScrollPoint getContentSize();
+		ScrollPosition getContentSize();
 
 		virtual void setContentSize(sl_scroll_pos width, sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		void setContentSize(const ScrollPoint& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
+		void setContentSize(const ScrollPosition& size, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void setContentWidth(sl_scroll_pos width, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
 		void setContentHeight(sl_scroll_pos height, UIUpdateMode mode = UIUpdateMode::UpdateLayout);
 
-		ScrollPoint getScrollRange();
+		ScrollPosition getScrollRange();
 
 		sl_ui_len getScrollBarWidth();
 
@@ -1582,7 +1582,7 @@ namespace slib
 
 		void _processContentScrollingEvents(UIEvent* ev);
 
-		void _startContentScrollingFlow(sl_bool flagSmoothTarget, const Pointlf& speedOrTarget);
+		void _startContentScrollingFlow(sl_bool flagSmoothTarget, const ScrollPosition& speedOrTarget);
 
 		void _stopContentScrollingFlow();
 
@@ -1733,9 +1733,9 @@ namespace slib
 
 		virtual void setDrawing(View* view, sl_bool flag) = 0;
 
-		virtual UIPointf convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen) = 0;
+		virtual UIPointF convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen) = 0;
 
-		virtual UIPointf convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView) = 0;
+		virtual UIPointF convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView) = 0;
 
 		virtual void addChildInstance(View* view, const Ref<ViewInstance>& instance) = 0;
 
@@ -1767,9 +1767,9 @@ namespace slib
 
 		virtual void setScrollBarsVisible(View* view, sl_bool flagHorizontal, sl_bool flagVertical);
 
-		virtual sl_bool getScrollPosition(View* view, ScrollPoint& _out);
+		virtual sl_bool getScrollPosition(View* view, ScrollPosition& _out);
 
-		virtual sl_bool getScrollRange(View* view, ScrollPoint& _out);
+		virtual sl_bool getScrollRange(View* view, ScrollPosition& _out);
 
 		virtual void scrollTo(View* view, sl_scroll_pos x, sl_scroll_pos y, sl_bool flagAnimate);
 

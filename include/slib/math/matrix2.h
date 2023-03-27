@@ -336,8 +336,6 @@ namespace slib
 	using Matrix2T = MatrixT<2, 2, T>;
 
 	typedef Matrix2T<sl_real> Matrix2;
-	typedef Matrix2T<float> Matrix2f;
-	typedef Matrix2T<double> Matrix2lf;
 
 }
 

@@ -277,7 +277,7 @@ namespace slib
 		requestRender();
 	}
 
-	Sizei VideoView::getLastFrameSize()
+	SizeI VideoView::getLastFrameSize()
 	{
 		return m_sizeLastFrame;
 	}
@@ -399,7 +399,7 @@ namespace slib
 				scope->setTransform(mat);
 				scope->setTexture(texture);
 				scope->setTextureTransform(textureMatrix);
-				scope->setColor(Color4f(1, 1, 1, canvas->getAlpha()));
+				scope->setColor(Color4F(1, 1, 1, canvas->getAlpha()));
 				engine->drawPrimitive(4, vb, PrimitiveType::TriangleStrip);
 			}
 		}

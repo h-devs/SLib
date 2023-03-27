@@ -51,7 +51,7 @@ namespace slib
 	{
 	public:
 		Ref<Bitmap> bitmap;
-		Rectanglei region;
+		RectangleI region;
 		sl_real fontWidth;
 		sl_real fontHeight;
 

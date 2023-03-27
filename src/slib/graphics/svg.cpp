@@ -1697,7 +1697,7 @@ namespace slib
 				} else {
 					CanvasStateScope scope(canvas);
 					canvas->clipToRectangle(rectDst);
-					canvas->concatMatrix(Transform2f::getTransformMatrixFromRectToRect(rectViewBox, rectTarget));
+					canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(rectViewBox, rectTarget));
 					Group::render(canvas, param);
 				}
 			}
@@ -1718,7 +1718,7 @@ namespace slib
 					Group::render(canvas, param);
 				} else {
 					CanvasStateScope scope(canvas);
-					canvas->concatMatrix(Transform2f::getTransformMatrixFromRectToRect(rectViewBox, rectDraw));
+					canvas->concatMatrix(Transform2::getTransformMatrixFromRectToRect(rectViewBox, rectDraw));
 					Group::render(canvas, param);
 				}
 			}

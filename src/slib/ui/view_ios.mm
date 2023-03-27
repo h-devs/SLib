@@ -94,7 +94,7 @@ namespace slib
 			if (shadowOpacity > SLIB_EPSILON) {
 				layer.shadowOpacity = shadowOpacity;
 				layer.shadowRadius = (CGFloat)(view->getShadowRadius());
-				UIPointf offset = view->getShadowOffset();
+				UIPointF offset = view->getShadowOffset();
 				layer.shadowOffset = CGSizeMake((CGFloat)(offset.x), (CGFloat)(offset.y));
 				CGColorRef color = GraphicsPlatform::getCGColorFromColor(view->getShadowColor());
 				if (color) {
@@ -244,7 +244,7 @@ namespace slib
 		m_flagDrawing = flag;
 	}
 
-	UIPointf iOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointf& ptScreen)
+	UIPointF iOS_ViewInstance::convertCoordinateFromScreenToView(View* view, const UIPointF& ptScreen)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -258,7 +258,7 @@ namespace slib
 				pt.x -= scroll.contentOffset.x;
 				pt.y -= scroll.contentOffset.y;
 			}
-			UIPointf ret;
+			UIPointF ret;
 			ret.x = (sl_ui_posf)(pt.x * f);
 			ret.y = (sl_ui_posf)(pt.y * f);
 			return ret;
@@ -266,7 +266,7 @@ namespace slib
 		return ptScreen;
 	}
 
-	UIPointf iOS_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointf& ptView)
+	UIPointF iOS_ViewInstance::convertCoordinateFromViewToScreen(View* view, const UIPointF& ptView)
 	{
 		UIView* handle = m_handle;
 		if (handle != nil) {
@@ -280,7 +280,7 @@ namespace slib
 				pt.y += scroll.contentOffset.y;
 			}
 			pt = [handle convertPoint:pt toCoordinateSpace:handle.window.screen.coordinateSpace];
-			UIPointf ret;
+			UIPointF ret;
 			ret.x = (sl_ui_posf)(pt.x * f);
 			ret.y = (sl_ui_posf)(pt.y * f);
 			return ret;

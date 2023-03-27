@@ -43,17 +43,17 @@ namespace slib
 		return 96;
 	}
 
-	Sizei Device::getScreenSize()
+	SizeI Device::getScreenSize()
 	{
 		gtk_init_check(NULL, NULL);
 		GdkScreen* screen = gdk_screen_get_default();
 		if (screen) {
-			Sizei ret;
+			SizeI ret;
 			ret.x = (int)(gdk_screen_get_width(screen));
 			ret.y = (int)(gdk_screen_get_height(screen));
 			return ret;
 		}
-		return Sizei::zero();
+		return SizeI::zero();
 	}
 
 	// Requires root privilege

@@ -124,11 +124,11 @@ namespace slib
 				if (param.useBlur) {
 					blur = (float)(param.blurRadius);
 				}
-				const Color4f& cr = param.colorMatrix.red;
-				const Color4f& cg = param.colorMatrix.green;
-				const Color4f& cb = param.colorMatrix.blue;
-				const Color4f& ca = param.colorMatrix.alpha;
-				const Color4f& cc = param.colorMatrix.bias;
+				const Color4F& cr = param.colorMatrix.red;
+				const Color4F& cg = param.colorMatrix.green;
+				const Color4F& cb = param.colorMatrix.blue;
+				const Color4F& ca = param.colorMatrix.alpha;
+				const Color4F& cc = param.colorMatrix.bias;
 
 				sl_uint32 width = (sl_uint32)(rectSrc.getWidth());
 				sl_uint32 height = (sl_uint32)(rectSrc.getHeight());

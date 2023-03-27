@@ -275,10 +275,8 @@ namespace slib
 	using Vector3T = VectorT<3, T, FT>;
 
 	typedef Vector3T<sl_real> Vector3;
-	typedef Vector3T<float> Vector3f;
-	typedef Vector3T<double> Vector3lf;
-	typedef Vector3T<sl_int32, float> Vector3i;
-	typedef Vector3T<sl_int64, double> Vector3li;
+	typedef Vector3T<float> Float3;
+	typedef Vector3T<double> Double3;
 
 }
 

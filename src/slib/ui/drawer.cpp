@@ -309,18 +309,18 @@ namespace slib
 			t = 0;
 		}
 		if (m_gravity == Alignment::Left) {
-			return Vector2f(t, 0);
+			return Float2(t, 0);
 		} else if (m_gravity == Alignment::Right) {
 			Ref<View> parent = getParent();
 			if (parent.isNotNull()) {
-				return Vector2f(parent->getWidth() - t - size, 0);
+				return Float2(parent->getWidth() - t - size, 0);
 			}
 		} else if (m_gravity == Alignment::Top) {
-			return Vector2f(0, t);
+			return Float2(0, t);
 		} else if (m_gravity == Alignment::Bottom) {
 			Ref<View> parent = getParent();
 			if (parent.isNotNull()) {
-				return Vector2f(0, parent->getHeight() - t - size);
+				return Float2(0, parent->getHeight() - t - size);
 			}
 		}
 		return Vector2::zero();

@@ -157,7 +157,7 @@ namespace slib
 		static Ref<Image> GenerateCharImage(sl_char16 ch, const Ref<Font>& font)
 		{
 			StringParam str(&ch, 1);
-			Sizei size = font->measureText(str);
+			SizeI size = font->measureText(str);
 			if (size.x < 1 || size.y < 1) {
 				return sl_null;
 			}
@@ -176,7 +176,7 @@ namespace slib
 			}
 			Ref<Image> image = bitmap->toImage();
 			if (image.isNotNull()) {
-				Rectanglei bounds;
+				RectangleI bounds;
 				if (image->getDrawnBounds(&bounds)) {
 					return image->sub(bounds.left, bounds.top, bounds.getWidth(), bounds.getHeight());
 				}
@@ -284,7 +284,7 @@ namespace slib
 					Color color(GetRandom8(200,255), GetRandom8(200,255), GetRandom8(200,255), 0);
 					sl_int32 sw = element->getWidth();
 					sl_int32 sh = element->getHeight();
-					image->drawImage(GetRandom(-sw, width), GetRandom(-sh, height), (sl_int32)(sw * f), (sl_int32)(sh * f), element, Color4f(1, 1, 1, 1), color, 0, 0, sw, sh, BlendMode::Over, StretchMode::Linear);
+					image->drawImage(GetRandom(-sw, width), GetRandom(-sh, height), (sl_int32)(sw * f), (sl_int32)(sh * f), element, Color4F(1, 1, 1, 1), color, 0, 0, sw, sh, BlendMode::Over, StretchMode::Linear);
 				}
 			}
 		}
@@ -329,7 +329,7 @@ namespace slib
 						Transform2::setTranslation(mat, -iw/2, -ih/2);
 						Transform2::rotate(mat, (sl_real)(GetRandom(-30, 30) * SLIB_PI / 180));
 						Transform2::translate(mat, iw/2 + x, ih/2 + y);
-						image->drawImage(imageChar, Color4f(1, 1, 1, 1), color, mat);
+						image->drawImage(imageChar, Color4F(1, 1, 1, 1), color, mat);
 					}
 				}
 			}

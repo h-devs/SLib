@@ -250,56 +250,56 @@ namespace slib
 		// Position(0, 0, 1, 1)
 		void drawRectangle2D();
 
-		void drawRectangle2D(const Ref<RenderProgram2D_Position>& program, const Matrix3& transform, const Color4f& color);
+		void drawRectangle2D(const Ref<RenderProgram2D_Position>& program, const Matrix3& transform, const Color4F& color);
 
-		void drawRectangle2D(const Matrix3& transform, const Color4f& color);
+		void drawRectangle2D(const Matrix3& transform, const Color4F& color);
 
-		void drawRectangle2D(const Ref<RenderProgram2D_Position>& program, const Rectangle& rectDst, const Color4f& color);
+		void drawRectangle2D(const Ref<RenderProgram2D_Position>& program, const Rectangle& rectDst, const Color4F& color);
 
-		void drawRectangle2D(const Rectangle& rectDst, const Color4f& color);
+		void drawRectangle2D(const Rectangle& rectDst, const Color4F& color);
 
 		// Position(0, 0, 1, 1) TexCoord(0, 0, 1, 1)
 		void drawTexture2D();
 
-		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4f& color);
+		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
-		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4f& color);
+		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
 		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
 		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
-		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Color4f& color);
+		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, const Color4F& color);
 
-		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Color4f& color);
+		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, const Color4F& color);
 
 		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha = 1);
 
 		void drawTexture2D(const Matrix3& transform, const Ref<Texture>& texture, sl_real alpha = 1);
 
-		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4f& color);
+		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
-		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4f& color);
+		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, const Color4F& color);
 
 		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
 		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Rectangle& rectSrc, sl_real alpha = 1);
 
-		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Color4f& color);
+		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, const Color4F& color);
 
-		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Color4f& color);
+		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, const Color4F& color);
 
 		void drawTexture2D(const Ref<RenderProgram2D_PositionTexture>& program, const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha = 1);
 
 		void drawTexture2D(const Rectangle& rectDst, const Ref<Texture>& texture, sl_real alpha = 1);
 
-		void drawLines(const Ref<RenderProgram2D_Position>& program, LineSegment* lines, sl_uint32 n, const Color4f& color);
+		void drawLines(const Ref<RenderProgram2D_Position>& program, LineSegment* lines, sl_uint32 n, const Color4F& color);
 
-		void drawLines(LineSegment* lines, sl_uint32 n, const Color4f& color);
+		void drawLines(LineSegment* lines, sl_uint32 n, const Color4F& color);
 
-		void drawLines(const Ref<RenderProgram3D_Position>& program, Line3* lines, sl_uint32 n, const Color4f& color);
+		void drawLines(const Ref<RenderProgram3D_Position>& program, Line3* lines, sl_uint32 n, const Color4F& color);
 
-		void drawLines(Line3* lines, sl_uint32 n, const Color4f& color);
+		void drawLines(Line3* lines, sl_uint32 n, const Color4F& color);
 
 		void drawDebugText();
 

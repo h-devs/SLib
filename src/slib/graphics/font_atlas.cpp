@@ -359,7 +359,7 @@ namespace slib
 
 		String s = String::create(&ch, 1);
 
-		Sizei sizeDraw = m_fontDraw->measureText(s);
+		SizeI sizeDraw = m_fontDraw->measureText(s);
 
 		sl_uint32 widthChar = sizeDraw.x;
 		sl_uint32 heightChar = sizeDraw.y;
