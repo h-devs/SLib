@@ -1384,13 +1384,13 @@ namespace slib
 		template <>
 		SLIB_INLINE void GetNumberFromTime<float>(const Time& t, float& _out) noexcept
 		{
-			_out = (float)(t.toUnixTimef());
+			_out = (float)(t.toUnixTimeF());
 		}
 
 		template <>
 		SLIB_INLINE void GetNumberFromTime<double>(const Time& t, double& _out) noexcept
 		{
-			_out = t.toUnixTimef();
+			_out = t.toUnixTimeF();
 		}
 
 		SLIB_INLINE void GetNumberFromBigInt(const BigInt& n, sl_int32& _out) noexcept
@@ -2402,12 +2402,12 @@ namespace slib
 				return sl_true;
 			case VariantType::Float:
 				if (_out) {
-					*_out = Time::fromUnixTimef(REF_VAR(float const, _value));
+					*_out = Time::fromUnixTimeF(REF_VAR(float const, _value));
 				}
 				return sl_true;
 			case VariantType::Double:
 				if (_out) {
-					*_out = Time::fromUnixTimef(REF_VAR(double const, _value));
+					*_out = Time::fromUnixTimeF(REF_VAR(double const, _value));
 				}
 				return sl_true;
 			case VariantType::Time:

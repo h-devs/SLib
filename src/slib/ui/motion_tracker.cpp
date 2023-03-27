@@ -282,7 +282,7 @@ namespace slib
 			x[i] = m_history[index].x;
 			y[i] = m_history[index].y;
 			w[i] = 1; // coefficient weight (currently no-weight is applied)
-			time[i] = (sl_real)((lastTime - m_history[index].time).getSecondCountf());
+			time[i] = (sl_real)((lastTime - m_history[index].time).getSecondCountF());
 			if (time[i] > MAX_TRACK_HORIZON) {
 				nHistory = i;
 				break;

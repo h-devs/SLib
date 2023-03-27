@@ -729,7 +729,7 @@ namespace slib
 
 		String text;
 		text = "FPS:";
-		double duration = (now - m_timeLastDebugText).getMillisecondCountf();
+		double duration = (now - m_timeLastDebugText).getMillisecondCountF();
 		if (duration > 1) {
 			text += String::fromDouble(1000.0 / duration, 1, sl_true);
 		} else {

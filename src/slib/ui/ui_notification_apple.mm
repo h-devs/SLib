@@ -342,7 +342,7 @@ namespace slib
 							comps.second = interval;
 							notification.deliveryRepeatInterval = comps;
 						} else {
-							notification.deliveryDate = Apple::getNSDateFromTime(Time::now() + Time::withSecondsf(message.deliveryInterval));
+							notification.deliveryDate = Apple::getNSDateFromTime(Time::now() + Time::withSecondsF(message.deliveryInterval));
 						}
 					}
 

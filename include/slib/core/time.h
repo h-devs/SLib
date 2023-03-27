@@ -154,39 +154,39 @@ namespace slib
 
 		static Time withMicroseconds(sl_int64 s) noexcept;
 
-		static Time withMicrosecondsf(double s) noexcept;
+		static Time withMicrosecondsF(double s) noexcept;
 
 		static Time withMilliseconds(sl_int64 s) noexcept;
 
-		static Time withMillisecondsf(double s) noexcept;
+		static Time withMillisecondsF(double s) noexcept;
 
 		static Time withSeconds(sl_int64 s) noexcept;
 
-		static Time withSecondsf(double s) noexcept;
+		static Time withSecondsF(double s) noexcept;
 
 		static Time withMinutes(sl_int64 minutes) noexcept;
 
-		static Time withMinutesf(double minutes) noexcept;
+		static Time withMinutesF(double minutes) noexcept;
 
 		static Time withHours(sl_int64 hours) noexcept;
 
-		static Time withHoursf(double hours) noexcept;
+		static Time withHoursF(double hours) noexcept;
 
 		static Time withDays(sl_int64 days) noexcept;
 
-		static Time withDaysf(double days) noexcept;
+		static Time withDaysF(double days) noexcept;
 
 		static Time withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds) noexcept;
 
-		static Time withTimef(double hours, double minutes, double seconds) noexcept;
+		static Time withTimeF(double hours, double minutes, double seconds) noexcept;
 
 		static Time withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds, sl_int64 milliseconds) noexcept;
 
-		static Time withTimef(double hours, double minutes, double seconds, double milliseconds) noexcept;
+		static Time withTimeF(double hours, double minutes, double seconds, double milliseconds) noexcept;
 
 		static Time withTime(sl_int64 hours, sl_int64 minutes, sl_int64 seconds, sl_int64 milliseconds, sl_int64 microseconds) noexcept;
 
-		static Time withTimef(double hours, double minutes, double seconds, double milliseconds, double microseconds) noexcept;
+		static Time withTimeF(double hours, double minutes, double seconds, double milliseconds, double microseconds) noexcept;
 
 		SLIB_CONSTEXPR static Time zero()
 		{
@@ -228,13 +228,13 @@ namespace slib
 		static Time fromUnixTime(sl_int64 time) noexcept;
 
 		// Convert to time_t mode (1970 Based)
-		double toUnixTimef() const noexcept;
+		double toUnixTimeF() const noexcept;
 
 		// Convert from time_t mode (1970 Based)
-		Time& setUnixTimef(double time) noexcept;
+		Time& setUnixTimeF(double time) noexcept;
 
 		// Convert from time_t mode (1970 Based)
-		static Time fromUnixTimef(double time) noexcept;
+		static Time fromUnixTimeF(double time) noexcept;
 
 		// Convert to FILETIME mode (1601 Based)
 		sl_int64 toWindowsFileTime() const noexcept;
@@ -362,11 +362,11 @@ namespace slib
 
 		Time& addDays(sl_int64 days) noexcept;
 
-		double getDayf(const TimeZone& zone = Time::LocalZone) const noexcept;
+		double getDayF(const TimeZone& zone = Time::LocalZone) const noexcept;
 
-		Time& setDayf(double day, const TimeZone& zone = Time::LocalZone) noexcept;
+		Time& setDayF(double day, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		Time& addDaysf(double days) noexcept;
+		Time& addDaysF(double days) noexcept;
 
 		sl_int32 getHour(const TimeZone& zone = Time::LocalZone) const noexcept;
 
@@ -374,11 +374,11 @@ namespace slib
 
 		Time& addHours(sl_int64 hours) noexcept;
 
-		double getHourf(const TimeZone& zone = Time::LocalZone) const noexcept;
+		double getHourF(const TimeZone& zone = Time::LocalZone) const noexcept;
 
-		Time& setHourf(double hour, const TimeZone& zone = Time::LocalZone) noexcept;
+		Time& setHourF(double hour, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		Time& addHoursf(double hours) noexcept;
+		Time& addHoursF(double hours) noexcept;
 
 		sl_int32 getHour12(const TimeZone& zone = Time::LocalZone) const noexcept;
 
@@ -400,11 +400,11 @@ namespace slib
 
 		Time& addMinutes(sl_int64 minutes) noexcept;
 
-		double getMinutef(const TimeZone& zone = Time::LocalZone) const noexcept;
+		double getMinuteF(const TimeZone& zone = Time::LocalZone) const noexcept;
 
-		Time& setMinutef(double minute, const TimeZone& zone = Time::LocalZone) noexcept;
+		Time& setMinuteF(double minute, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		Time& addMinutesf(double minutes) noexcept;
+		Time& addMinutesF(double minutes) noexcept;
 
 		sl_int32 getSecond(const TimeZone& zone = Time::LocalZone) const noexcept;
 
@@ -412,11 +412,11 @@ namespace slib
 
 		Time& addSeconds(sl_int64 seconds) noexcept;
 
-		double getSecondf(const TimeZone& zone = Time::LocalZone) const noexcept;
+		double getSecondF(const TimeZone& zone = Time::LocalZone) const noexcept;
 
-		Time& setSecondf(double second, const TimeZone& zone = Time::LocalZone) noexcept;
+		Time& setSecondF(double second, const TimeZone& zone = Time::LocalZone) noexcept;
 
-		Time& addSecondsf(double seconds) noexcept;
+		Time& addSecondsF(double seconds) noexcept;
 
 		sl_int32 getMillisecond() const noexcept;
 
@@ -424,11 +424,11 @@ namespace slib
 
 		Time& addMilliseconds(sl_int64 millis) noexcept;
 
-		double getMillisecondf() const noexcept;
+		double getMillisecondF() const noexcept;
 
-		Time& setMillisecondf(double millis) noexcept;
+		Time& setMillisecondF(double millis) noexcept;
 
-		Time& addMillisecondsf(double millis) noexcept;
+		Time& addMillisecondsF(double millis) noexcept;
 
 		sl_int32 getMicrosecond() const noexcept;
 
@@ -436,11 +436,11 @@ namespace slib
 
 		Time& addMicroseconds(sl_int64 micros) noexcept;
 
-		double getMicrosecondf() const noexcept;
+		double getMicrosecondF() const noexcept;
 
-		Time& setMicrosecondf(double micros) noexcept;
+		Time& setMicrosecondF(double micros) noexcept;
 
-		Time& addMicrosecondsf(double micros) noexcept;
+		Time& addMicrosecondsF(double micros) noexcept;
 
 		sl_int32 getDayOfWeek(const TimeZone& zone = Time::LocalZone) const noexcept;
 
@@ -454,49 +454,49 @@ namespace slib
 
 		Time& setDayCount(sl_int64 days) noexcept;
 
-		double getDayCountf() const noexcept;
+		double getDayCountF() const noexcept;
 
-		Time& setDayCountf(double days) noexcept;
+		Time& setDayCountF(double days) noexcept;
 
 		sl_int64 getHourCount() const noexcept;
 
 		Time& setHourCount(sl_int64 hours) noexcept;
 
-		double getHourCountf() const noexcept;
+		double getHourCountF() const noexcept;
 
-		Time& setHourCountf(double hours) noexcept;
+		Time& setHourCountF(double hours) noexcept;
 
 		sl_int64 getMinuteCount() const noexcept;
 
 		Time& setMinuteCount(sl_int64 minutes) noexcept;
 
-		double getMinuteCountf() const noexcept;
+		double getMinuteCountF() const noexcept;
 
-		Time& setMinuteCountf(double minutes) noexcept;
+		Time& setMinuteCountF(double minutes) noexcept;
 
 		sl_int64 getSecondCount() const noexcept;
 
 		Time& setSecondCount(sl_int64 seconds) noexcept;
 
-		double getSecondCountf() const noexcept;
+		double getSecondCountF() const noexcept;
 
-		Time& setSecondCountf(double seconds) noexcept;
+		Time& setSecondCountF(double seconds) noexcept;
 
 		sl_int64 getMillisecondCount() const noexcept;
 
 		Time& setMillisecondCount(sl_int64 milis) noexcept;
 
-		double getMillisecondCountf() const noexcept;
+		double getMillisecondCountF() const noexcept;
 
-		Time& setMillisecondCountf(double milis) noexcept;
+		Time& setMillisecondCountF(double milis) noexcept;
 
 		sl_int64 getMicrosecondCount() const noexcept;
 
 		Time& setMicrosecondCount(sl_int64 micros) noexcept;
 
-		double getMicrosecondCountf() const noexcept;
+		double getMicrosecondCountF() const noexcept;
 
-		Time& setMicrosecondCountf(double micros) noexcept;
+		Time& setMicrosecondCountF(double micros) noexcept;
 
 		// In Seconds
 		sl_int64 getLocalTimeOffset() const noexcept;

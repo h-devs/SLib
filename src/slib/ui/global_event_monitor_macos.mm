@@ -53,7 +53,7 @@ namespace slib
 			sl_ui_posf x = (sl_ui_posf)(pt.x);
 			sl_ui_posf y = (sl_ui_posf)(pt.y);
 			Time t;
-			t.setSecondCountf(event.timestamp);
+			t.setSecondCountF(event.timestamp);
 			Ref<UIEvent> ev = UIEvent::createMouseEvent(action, x, y, t);
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get(), event);
@@ -76,7 +76,7 @@ namespace slib
 			sl_ui_posf x = (sl_ui_posf)(pt.x);
 			sl_ui_posf y = (sl_ui_posf)(pt.y);
 			Time t;
-			t.setSecondCountf([event timestamp]);
+			t.setSecondCountF([event timestamp]);
 			Ref<UIEvent> ev = UIEvent::createMouseWheelEvent(x, y, deltaX, deltaY, t);
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get(), event);
@@ -89,7 +89,7 @@ namespace slib
 			sl_uint32 vkey = [event keyCode];
 			Keycode key = UIEvent::getKeycodeFromSystemKeycode(vkey);
 			Time t;
-			t.setSecondCountf([event timestamp]);
+			t.setSecondCountF([event timestamp]);
 			Ref<UIEvent> ev = UIEvent::createKeyEvent(action, key, vkey, t);
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get(), event);

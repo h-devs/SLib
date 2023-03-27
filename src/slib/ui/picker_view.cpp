@@ -371,7 +371,7 @@ namespace slib
 	void PickerViewCell::_animationCallback(Timer* timer)
 	{
 		Time time = Time::now();
-		sl_real ellapsed = (sl_real)((time - m_timeFlowFrameBefore).getSecondCountf());
+		sl_real ellapsed = (sl_real)((time - m_timeFlowFrameBefore).getSecondCountF());
 		m_timeFlowFrameBefore = time;
 
 		float T = UIResource::getScreenMinimum() /
