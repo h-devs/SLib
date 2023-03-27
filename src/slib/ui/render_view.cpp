@@ -501,7 +501,7 @@ namespace slib
 		if (m_flagDispatchEventsToRenderingThread) {
 			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
 			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchSwipe, ev->duplicate()));
+				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchSwipe, *ev));
 				requestRender();
 				return;
 			}
@@ -550,9 +550,10 @@ namespace slib
 		ViewGroup::dispatchSetCursor(ev.get());
 	}
 
-	void RenderView::_dispatchSwipe(const Ref<GestureEvent>& ev)
+	void RenderView::_dispatchSwipe(const GestureEvent& _ev)
 	{
-		ViewGroup::dispatchSwipe(ev.get());
+		GestureEvent ev(_ev);
+		ViewGroup::dispatchSwipe(&ev);
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL

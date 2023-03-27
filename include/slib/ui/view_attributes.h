@@ -235,14 +235,21 @@ namespace slib
 		Point mousePointDown;
 		Point mousePointBefore;
 		sl_uint64 touchPointerIdBefore;
-		MotionTracker motionTracker;
-		Ref<Timer> timerFlow;
-		Time timeFlowFrameBefore;
-		Point speedFlow;
-		sl_bool flagSmoothTarget;
-		sl_scroll_pos xSmoothTarget;
-		sl_scroll_pos ySmoothTarget;
 		Time timeLastInside;
+
+		struct SmoothFlow
+		{
+			MotionTracker motionTracker;
+			Ref<Timer> timer;
+			Time timeFrameBefore;
+			ScrollEvent::Source source;
+			sl_bool flagTarget;
+			sl_scroll_pos speedX;
+			sl_scroll_pos speedY;
+			sl_scroll_pos targetX;
+			sl_scroll_pos targetY;
+		};
+		Shared<SmoothFlow> smooth;
 
 	public:
 		ScrollAttributes();
@@ -318,7 +325,7 @@ namespace slib
 		AtomicFunction<void(View*, sl_ui_pos, sl_ui_pos)> onMove;
 		AtomicFunction<void(View*, sl_ui_len, sl_ui_len)> onResize;
 		AtomicFunction<void(View*, Visibility, Visibility)> onChangeVisibility;
-		AtomicFunction<void(View*, sl_scroll_pos, sl_scroll_pos)> onScroll;
+		AtomicFunction<void(View*, ScrollEvent*)> onScroll;
 		AtomicFunction<void(View*, GestureEvent*)> onSwipe;
 		AtomicFunction<void(View*, UIEvent*)> onOK;
 		AtomicFunction<void(View*, UIEvent*)> onCancel;

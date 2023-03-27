@@ -28,25 +28,6 @@
 namespace slib
 {
 
-	GestureEvent::GestureEvent(): type(GestureType::SwipeLeft)
-	{
-	}
-
-	GestureEvent::~GestureEvent()
-	{
-	}
-
-	Ref<GestureEvent> GestureEvent::duplicate()
-	{
-		Ref<GestureEvent> ev = new GestureEvent;
-		if (ev.isNotNull()) {
-			ev->type = type;
-			return ev;
-		}
-		return sl_null;
-	}
-
-
 	SLIB_DEFINE_OBJECT(GestureDetector, Object)
 
 	class GestureRecognizer : public CRef
@@ -114,11 +95,9 @@ namespace slib
 								vx = -vx;
 							}
 							if (vx > 1) {
-								Ref<GestureEvent> ev = new GestureEvent;
-								if (ev.isNotNull()) {
-									ev->type = type;
-									view->dispatchSwipe(ev.get());
-								}
+								GestureEvent ev;
+								ev.type = type;
+								view->dispatchSwipe(&ev);
 							}
 						}
 					} else {
@@ -128,11 +107,9 @@ namespace slib
 								vy = -vy;
 							}
 							if (vy > 1) {
-								Ref<GestureEvent> ev = new GestureEvent;
-								if (ev.isNotNull()) {
-									ev->type = type;
-									view->dispatchSwipe(ev.get());
-								}
+								GestureEvent ev;
+								ev.type = type;
+								view->dispatchSwipe(&ev);
 							}
 						}
 					}

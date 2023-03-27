@@ -51,6 +51,21 @@ namespace slib
 	class ViewInstance;
 	class ViewCell;
 
+	class ScrollEvent
+	{
+	public:
+		sl_scroll_pos x;
+		sl_scroll_pos y;
+
+		enum class Source
+		{
+			Internal = 0,
+			ScrollBar = 1,
+			Event = 2
+		};
+		Source source;
+	};
+
 	class SLIB_EXPORT View : public Object
 	{
 		SLIB_DECLARE_OBJECT
@@ -1466,7 +1481,7 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ChangeVisibility, Visibility oldVisibility, Visibility newVisibility)
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Scroll, sl_scroll_pos x, sl_scroll_pos y)
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Scroll, ScrollEvent* ev)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Swipe, GestureEvent* ev)
 
@@ -1570,7 +1585,19 @@ namespace slib
 
 		void _onScrollBarChangeValue(ScrollBar* scrollBar, sl_scroll_pos value, UIEvent* ev);
 
-		sl_bool _scrollTo(sl_scroll_pos x, sl_scroll_pos y, sl_bool flagPreprocess, sl_bool flagFinish, sl_bool flagAnimate);
+		void _scrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollEvent::Source source, UIUpdateMode mode);
+
+		void _smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollEvent::Source source, UIUpdateMode mode);
+
+		enum class ScrollAction
+		{
+			Init = 0,
+			Animate = 1,
+			Finish = 2,
+			Native = 3
+		};
+
+		sl_bool _doScrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollAction action, ScrollEvent::Source source);
 
 
 		Ref<View> _findViewByMnemonicKey(char ch);
@@ -1582,7 +1609,7 @@ namespace slib
 
 		void _processContentScrollingEvents(UIEvent* ev);
 
-		void _startContentScrollingFlow(sl_bool flagSmoothTarget, const ScrollPosition& speedOrTarget);
+		void _startContentScrollingFlow(sl_bool flagTarget, const ScrollPosition& speedOrTarget, ScrollEvent::Source source);
 
 		void _stopContentScrollingFlow();
 
@@ -1667,6 +1694,7 @@ namespace slib
 		void _initializeDrawAttributes();
 		Ref<ScrollAttributes> m_scrollAttrs;
 		void _initializeScrollAttributes();
+		void _initializeSmoothScrollAttributes();
 		Ref<ChildAttributes> m_childAttrs;
 		void _initializeChildAttributes();
 		Ref<OtherAttributes> m_otherAttrs;

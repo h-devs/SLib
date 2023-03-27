@@ -31,21 +31,10 @@
 namespace slib
 {
 
-	class GestureEvent : public CRef
+	class GestureEvent
 	{
 	public:
 		GestureType type;
-
-	public:
-		GestureEvent();
-
-		~GestureEvent();
-
-		SLIB_DELETE_CLASS_DEFAULT_MEMBERS(GestureEvent)
-
-	public:
-		Ref<GestureEvent> duplicate();
-
 	};
 
 	class View;

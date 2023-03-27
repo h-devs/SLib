@@ -132,13 +132,13 @@ namespace slib
 		}
 	}
 
-	void ScrollView::dispatchScroll(sl_scroll_pos x, sl_scroll_pos y)
+	void ScrollView::dispatchScroll(ScrollEvent* ev)
 	{
-		ViewGroup::dispatchScroll(x, y);
+		ViewGroup::dispatchScroll(ev);
 		Ref<View> view = m_viewContent;
 		if (view.isNotNull()) {
 			if (!(isNativeWidget())) {
-				view->setLocation((sl_ui_pos)-x, (sl_ui_pos)-y);
+				view->setLocation((sl_ui_pos)(-ev->x), (sl_ui_pos)(-ev->y));
 			}
 		}
 	}

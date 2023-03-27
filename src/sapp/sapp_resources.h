@@ -271,6 +271,7 @@ namespace slib
 		SAppBooleanValue scrollingByMouseWheel;
 		SAppBooleanValue scrollingByKeyboard;
 		SAppBooleanValue autoHideScrollBar;
+		SAppBooleanValue smoothScrolling;
 
 		SAppBooleanValue focusable;
 		SAppBooleanValue focus;

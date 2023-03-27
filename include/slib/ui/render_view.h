@@ -144,7 +144,7 @@ namespace slib
 
 		void _dispatchSetCursor(const Ref<UIEvent>& ev);
 
-		void _dispatchSwipe(const Ref<GestureEvent>& ev);
+		void _dispatchSwipe(const GestureEvent& ev);
 
 	protected:
 		RenderEngineType m_preferredEngineType;

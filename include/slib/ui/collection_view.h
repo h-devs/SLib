@@ -66,7 +66,7 @@ namespace slib
 		void setCuttingOverflowItems(sl_bool flag);
 
 	protected:
-		void onScroll(sl_scroll_pos x, sl_scroll_pos y) override;
+		void onScroll(ScrollEvent*) override;
 
 		void onResize(sl_ui_len x, sl_ui_len y) override;
 

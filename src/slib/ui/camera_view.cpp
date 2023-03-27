@@ -312,7 +312,7 @@ namespace slib
 		VideoView::onDraw(canvas);
 		if (m_flagDuringTouchFocusEffect) {
 			do {
-				sl_real f = (sl_real)((Time::now() - m_timeTouchFocusBegan).getSecondCountf());
+				sl_real f = (sl_real)((Time::now() - m_timeTouchFocusBegan).getSecondCountF());
 				if (f > 1.2f) {
 					m_flagDuringTouchFocusEffect = sl_false;
 					break;

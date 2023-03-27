@@ -351,8 +351,7 @@ namespace slib
 		contentHeight(0),
 		barWidth(UI::getDefaultScrollBarWidth()),
 		pageWidth(0),
-		pageHeight(0),
-		timeLastInside(0)
+		pageHeight(0)
 	{}
 
 	View::ScrollAttributes::~ScrollAttributes()
@@ -370,6 +369,19 @@ namespace slib
 			return;
 		}
 		attrs = new ScrollAttributes;
+	}
+
+	void View::_initializeSmoothScrollAttributes()
+	{
+		Shared<ScrollAttributes::SmoothFlow>& smooth = m_scrollAttrs->smooth;
+		if (smooth.isNotNull()) {
+			return;
+		}
+		ObjectLocker lock(this);
+		if (smooth.isNotNull()) {
+			return;
+		}
+		smooth = Shared<ScrollAttributes::SmoothFlow>::create();
 	}
 
 	View::ChildAttributes::ChildAttributes():
@@ -7053,11 +7065,7 @@ namespace slib
 			if (instance.isNotNull()) {
 				instance->scrollTo(this, x, y, sl_false);
 			}
-			x = ClampScrollPos(x, attrs->contentWidth - GetPageWidth(this, attrs));
-			y = ClampScrollPos(y, attrs->contentHeight - GetPageHeight(this, attrs));
-			if (_scrollTo(x, y, sl_true, sl_true, sl_false)) {
-				invalidate(mode);
-			}
+			_scrollTo(x, y, ScrollEvent::Source::Internal, mode);
 		}
 	}
 
@@ -7080,20 +7088,13 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = getNativeWidget();
 		if (instance.isNotNull()) {
-			void (View::*func)(sl_scroll_pos, sl_scroll_pos, UIUpdateMode) = &View::smoothScrollTo;
-			SLIB_VIEW_RUN_ON_UI_THREAD2(func, x, y, mode)
+			scrollTo(x, y, mode);
+			return;
 		}
 		_initializeScrollAttributes();
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 		if (attrs.isNotNull()) {
-			x = ClampScrollPos(x, attrs->contentWidth - GetPageWidth(this, attrs));
-			y = ClampScrollPos(y, attrs->contentHeight - GetPageHeight(this, attrs));
-			if (instance.isNotNull()) {
-				instance->scrollTo(this, x, y, sl_true);
-			} else {
-				_startContentScrollingFlow(sl_true, ScrollPosition(x, y));
-				invalidate(mode);
-			}
+			_smoothScrollTo(x, y, ScrollEvent::Source::Internal, mode);
 		}
 	}
 
@@ -7361,7 +7362,7 @@ namespace slib
 		if (vert.isNotNull()) {
 			sy = vert->getValue();
 		}
-		scrollTo(sx, sy);
+		_scrollTo(sx, sy, ScrollEvent::Source::ScrollBar, UIUpdateMode::Redraw);
 	}
 
 	void View::refreshScroll(UIUpdateMode mode)
@@ -7401,7 +7402,7 @@ namespace slib
 			sl_scroll_pos x = ClampScrollPos(attrs->x, attrs->contentWidth - pageWidth);
 			sl_scroll_pos y = ClampScrollPos(attrs->y, attrs->contentHeight - pageHeight);
 			if (!(Math::isAlmostZero(x - attrs->x) && Math::isAlmostZero(y - attrs->y))) {
-				if (_scrollTo(x, y, sl_true, sl_true, sl_false)) {
+				if (_doScrollTo(x, y, ScrollAction::Init, ScrollEvent::Source::Internal)) {
 					invalidate(mode);
 				}
 			}
@@ -7521,22 +7522,38 @@ namespace slib
 		}
 	}
 
-#define BOUNCE_WEIGHT 0
-
-	sl_bool View::_scrollTo(sl_scroll_pos x, sl_scroll_pos y, sl_bool flagPreprocess, sl_bool flagFinish, sl_bool flagAnimate)
+	void View::_scrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollEvent::Source source, UIUpdateMode mode)
 	{
 		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
-		if (attrs.isNull()) {
-			return sl_false;
+		x = ClampScrollPos(x, attrs->contentWidth - GetPageWidth(this, attrs));
+		y = ClampScrollPos(y, attrs->contentHeight - GetPageHeight(this, attrs));
+		if (_doScrollTo(x, y, ScrollAction::Init, source)) {
+			invalidate(mode);
 		}
+	}
+
+	void View::_smoothScrollTo(sl_scroll_pos x, sl_scroll_pos y, ScrollEvent::Source source, UIUpdateMode mode)
+	{
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
+		x = ClampScrollPos(x, attrs->contentWidth - GetPageWidth(this, attrs));
+		y = ClampScrollPos(y, attrs->contentHeight - GetPageHeight(this, attrs));
+		_startContentScrollingFlow(sl_true, ScrollPosition(x, y), source);
+		invalidate(mode);
+	}
+
+#define BOUNCE_WEIGHT 0
+
+	sl_bool View::_doScrollTo(sl_scroll_pos x, sl_scroll_pos y, View::ScrollAction action, ScrollEvent::Source source)
+	{
+		Ref<ScrollAttributes>& attrs = m_scrollAttrs;
 
 		sl_scroll_pos pageWidth = GetPageWidth(this, attrs);
 		sl_scroll_pos pageHeight = GetPageHeight(this, attrs);
 
-		sl_bool flagFinishX = flagFinish;
-		sl_bool flagFinishY = flagFinish;
+		sl_bool flagFinishX = action != ScrollAction::Animate;
+		sl_bool flagFinishY = action != ScrollAction::Animate;
 
-		if (flagPreprocess) {
+		if (action != ScrollAction::Native) {
 			sl_scroll_pos comp;
 			if (attrs->flagHorz) {
 				sl_scroll_pos w = pageWidth;
@@ -7579,15 +7596,22 @@ namespace slib
 		}
 
 		sl_bool flagUpdated = sl_false;
+
 		if (Math::isAlmostZero(attrs->x - x) && Math::isAlmostZero(attrs->y - y)) {
+
 			attrs->x = x;
 			attrs->y = y;
+
 		} else {
 
 			attrs->x = x;
 			attrs->y = y;
 
-			dispatchScroll(x, y);
+			ScrollEvent ev;
+			ev.x = x;
+			ev.y = y;
+			ev.source = source;
+			dispatchScroll(&ev);
 
 			Ref<ScrollBar> bar = attrs->horz;
 			if (bar.isNotNull()) {
@@ -7601,7 +7625,7 @@ namespace slib
 			flagUpdated = sl_true;
 		}
 
-		if (flagAnimate) {
+		if (action == ScrollAction::Animate || action == ScrollAction::Finish) {
 			if (flagFinishX && flagFinishY) {
 				sl_bool flagTarget = sl_false;
 				if (attrs->flagHorz) {
@@ -7629,7 +7653,7 @@ namespace slib
 					}
 				}
 				if (flagTarget) {
-					_startContentScrollingFlow(sl_true, ScrollPosition(x, y));
+					_startContentScrollingFlow(sl_true, ScrollPosition(x, y), source);
 				} else {
 					_stopContentScrollingFlow();
 				}
@@ -10114,11 +10138,11 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(Scroll, sl_scroll_pos x, sl_scroll_pos)
+	DEFINE_VIEW_EVENT_HANDLER(Scroll, ScrollEvent*)
 
-	void View::dispatchScroll(sl_scroll_pos x, sl_scroll_pos y)
+	void View::dispatchScroll(ScrollEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Scroll, x, y)
+		SLIB_INVOKE_EVENT_HANDLER(Scroll, ev)
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(Swipe, GestureEvent* ev)
@@ -10445,10 +10469,15 @@ namespace slib
 					scrollAttrs->mousePointBefore = ev->getPoint();
 					scrollAttrs->touchPointerIdBefore = ev->getTouchPoint().pointerId;
 					if (scrollAttrs->flagSmoothContentScrolling) {
-						scrollAttrs->motionTracker.clearMovements();
-						scrollAttrs->motionTracker.addMovement(ev->getPoint());
+						_initializeSmoothScrollAttributes();
+						Shared<ScrollAttributes::SmoothFlow>& smooth = scrollAttrs->smooth;
+						if (smooth.isNotNull()) {
+							smooth->motionTracker.clearMovements();
+							smooth->motionTracker.addMovement(ev->getPoint());
+						}
 					}
 				}
+				ev->useDrag();
 				ev->stopPropagation();
 				break;
 			case UIAction::LeftButtonDrag:
@@ -10466,11 +10495,14 @@ namespace slib
 							sy -= offset.y * pageHeight / height;
 						}
 						if (scrollAttrs->flagSmoothContentScrolling) {
-							_scrollTo(sx, sy, sl_true, sl_true, sl_false);
-							scrollAttrs->motionTracker.addMovement(ev->getPoint());
-							invalidate();
+							Shared<ScrollAttributes::SmoothFlow>& smooth = scrollAttrs->smooth;
+							if (smooth.isNotNull()) {
+								_doScrollTo(sx, sy, ScrollAction::Init, ScrollEvent::Source::Event);
+								smooth->motionTracker.addMovement(ev->getPoint());
+								invalidate();
+							}
 						} else {
-							scrollTo(sx, sy);
+							_scrollTo(sx, sy, ScrollEvent::Source::Event, UIUpdateMode::Redraw);
 						}
 #if defined(SLIB_PLATFORM_IS_MOBILE)
 						sl_real T = (sl_real)(UIResource::getScreenMinimum() / 200);
@@ -10505,8 +10537,11 @@ namespace slib
 						sl_scroll_pos y = scrollAttrs->y;
 						Point speed = Point::zero();
 						if (scrollAttrs->flagSmoothContentScrolling) {
-							scrollAttrs->motionTracker.addMovement(ev->getPoint());
-							scrollAttrs->motionTracker.getVelocity(&speed);
+							Shared<ScrollAttributes::SmoothFlow>& smooth = scrollAttrs->smooth;
+							if (smooth.isNotNull()) {
+								smooth->motionTracker.addMovement(ev->getPoint());
+								smooth->motionTracker.getVelocity(&speed);
+							}
 						}
 						if (flagHorz) {
 							ScrollPagingElement(x, speed.x * pageWidth / width, pageWidth);
@@ -10514,25 +10549,29 @@ namespace slib
 						if (flagVert) {
 							ScrollPagingElement(y, speed.y * pageHeight / height, pageHeight);
 						}
-						smoothScrollTo(x, y);
+						_smoothScrollTo(x, y, ScrollEvent::Source::Event, UIUpdateMode::Redraw);
 					} else {
 						if (scrollAttrs->flagSmoothContentScrolling) {
-							scrollAttrs->motionTracker.addMovement(ev->getPoint());
-							Point speed;
-							if (scrollAttrs->motionTracker.getVelocity(&speed)) {
-								if (flagHorz) {
-									speed.x = (sl_real)(speed.x * pageWidth / width);
+							Shared<ScrollAttributes::SmoothFlow>& smooth = scrollAttrs->smooth;
+							if (smooth.isNotNull()) {
+								smooth->motionTracker.addMovement(ev->getPoint());
+								Point speed;
+								if (smooth->motionTracker.getVelocity(&speed)) {
+									if (flagHorz) {
+										speed.x = (sl_real)(speed.x * pageWidth / width);
+									} else {
+										speed.x = 0;
+									}
+									if (flagVert) {
+										speed.y = (sl_real)(speed.y * pageHeight / height);
+									} else {
+										speed.y = 0;
+									}
 								} else {
 									speed.x = 0;
-								}
-								if (flagVert) {
-									speed.y = (sl_real)(speed.y * pageHeight / height);
-								} else {
 									speed.y = 0;
 								}
-								_startContentScrollingFlow(sl_false, speed);
-							} else {
-								_startContentScrollingFlow(sl_false, Point::zero());
+								_startContentScrollingFlow(sl_false, speed, ScrollEvent::Source::Event);
 							}
 						}
 					}
@@ -10573,7 +10612,7 @@ namespace slib
 					}
 
 					if (flagChange) {
-						scrollTo(sx, sy);
+						_scrollTo(sx, sy, ScrollEvent::Source::Event, UIUpdateMode::Redraw);
 						ev->stopPropagation();
 					}
 				}
@@ -10694,7 +10733,7 @@ namespace slib
 						break;
 					}
 					if (flagChange) {
-						scrollTo(sx, sy);
+						_scrollTo(sx, sy, ScrollEvent::Source::Event, UIUpdateMode::Redraw);
 						ev->stopPropagation();
 					}
 				}
@@ -10706,52 +10745,57 @@ namespace slib
 
 #define SMOOTH_SCROLL_FRAME_MS 15
 
-	void View::_startContentScrollingFlow(sl_bool flagSmoothTarget, const ScrollPosition& speedOrTarget)
+	void View::_startContentScrollingFlow(sl_bool flagTarget, const ScrollPosition& speedOrTarget, ScrollEvent::Source source)
 	{
-		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
-		if (scrollAttrs.isNull()) {
-			return;
-		}
 		if (!(isDrawingThread())) {
-			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _startContentScrollingFlow, flagSmoothTarget, speedOrTarget));
+			dispatchToDrawingThread(SLIB_BIND_WEAKREF(void(), this, _startContentScrollingFlow, flagTarget, speedOrTarget, source));
 			return;
 		}
-		scrollAttrs->flagSmoothTarget = flagSmoothTarget;
-		if (flagSmoothTarget) {
-			scrollAttrs->xSmoothTarget = speedOrTarget.x;
-			scrollAttrs->ySmoothTarget = speedOrTarget.y;
-		} else {
-			scrollAttrs->speedFlow = speedOrTarget;
+		_initializeSmoothScrollAttributes();
+		Shared<ScrollAttributes::SmoothFlow>& smooth = m_scrollAttrs->smooth;
+		if (smooth.isNull()) {
+			return;
 		}
-		scrollAttrs->timeFlowFrameBefore = Time::now();
-		if (scrollAttrs->timerFlow.isNull()) {
-			scrollAttrs->timerFlow = startTimer(SLIB_FUNCTION_WEAKREF(this, _processContentScrollingFlow), SMOOTH_SCROLL_FRAME_MS);
+		smooth->flagTarget = flagTarget;
+		smooth->source = source;
+		if (flagTarget) {
+			smooth->targetX = speedOrTarget.x;
+			smooth->targetY = speedOrTarget.y;
+		} else {
+			smooth->speedX = speedOrTarget.x;
+			smooth->speedY = speedOrTarget.y;
+		}
+		smooth->timeFrameBefore = Time::now();
+		if (smooth->timer.isNull()) {
+			smooth->timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _processContentScrollingFlow), SMOOTH_SCROLL_FRAME_MS);
 		}
 	}
 
 	void View::_stopContentScrollingFlow()
 	{
-		if (!(isDrawingThread())) {
-			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, _stopContentScrollingFlow));
-			return;
-		}
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
 		if (scrollAttrs.isNull()) {
 			return;
 		}
-		scrollAttrs->timerFlow.setNull();
+		Shared<ScrollAttributes::SmoothFlow>& smooth = scrollAttrs->smooth;
+		if (smooth.isNull()) {
+			return;
+		}
+		if (!(isDrawingThread())) {
+			dispatchToDrawingThread(SLIB_FUNCTION_WEAKREF(this, _stopContentScrollingFlow));
+			return;
+		}
+		smooth->timer.setNull();
 	}
 
 	void View::_processContentScrollingFlow(Timer* timer)
 	{
 		Ref<ScrollAttributes>& scrollAttrs = m_scrollAttrs;
-		if (scrollAttrs.isNull()) {
-			return;
-		}
+		Shared<ScrollAttributes::SmoothFlow>& smooth = scrollAttrs->smooth;
 
 		Time time = Time::now();
-		sl_real dt = (sl_real)((time - scrollAttrs->timeFlowFrameBefore).getSecondCountf());
-		scrollAttrs->timeFlowFrameBefore = time;
+		sl_real dt = (sl_real)((time - smooth->timeFrameBefore).getSecondCountF());
+		smooth->timeFrameBefore = time;
 
 #ifdef SLIB_PLATFORM_IS_MOBILE
 		sl_real T = (sl_real)(UIResource::getScreenMinimum() / 2);
@@ -10759,16 +10803,16 @@ namespace slib
 		sl_real T = (sl_real)(UIResource::getScreenMinimum() / 4);
 #endif
 
-		if (scrollAttrs->flagSmoothTarget) {
+		if (smooth->flagTarget) {
 
 			sl_bool flagX = sl_false, flagY = sl_false;
 
 			sl_scroll_pos x = scrollAttrs->x;
 			sl_scroll_pos y = scrollAttrs->y;
-			SmoothScrollElement(x, scrollAttrs->xSmoothTarget, dt, T, flagX);
-			SmoothScrollElement(y, scrollAttrs->ySmoothTarget, dt, T, flagY);
+			SmoothScrollElement(x, smooth->targetX, dt, T, flagX);
+			SmoothScrollElement(y, smooth->targetY, dt, T, flagY);
 
-			_scrollTo(x, y, sl_true, sl_false, sl_true);
+			_doScrollTo(x, y, ScrollAction::Animate, smooth->source);
 
 			if (!flagX && !flagY) {
 				_stopContentScrollingFlow();
@@ -10779,27 +10823,24 @@ namespace slib
 			sl_scroll_pos x = scrollAttrs->x;
 			sl_scroll_pos y = scrollAttrs->y;
 
-			sl_bool flagFinish = sl_false;
-			Point speedFlow = scrollAttrs->speedFlow;
 			Point speedScreen(0, 0);
 			if (scrollAttrs->flagValidHorz) {
 				sl_ui_len width = getWidth();
-				speedScreen.x = (sl_real)(speedFlow.x * width / GetPageWidth(scrollAttrs, width));
+				speedScreen.x = (sl_real)(smooth->speedX * width / GetPageWidth(scrollAttrs, width));
 			}
 			if (scrollAttrs->flagValidVert) {
 				sl_ui_len height = getHeight();
-				speedScreen.y = (sl_real)(speedFlow.y * height / GetPageHeight(scrollAttrs, height));
+				speedScreen.y = (sl_real)(smooth->speedY * height / GetPageHeight(scrollAttrs, height));
 			}
 			if (speedScreen.getLength() <= T / 5) {
-				flagFinish = sl_true;
+				_doScrollTo(x, y, ScrollAction::Finish, smooth->source);
 			} else {
-				x -= speedFlow.x * dt;
-				y -= speedFlow.y * dt;
-				scrollAttrs->speedFlow *= 0.95f;
+				x -= smooth->speedX * dt;
+				y -= smooth->speedY * dt;
+				smooth->speedX *= 0.95;
+				smooth->speedY *= 0.95;
+				_doScrollTo(x, y, ScrollAction::Animate, smooth->source);
 			}
-
-			_scrollTo(x, y, sl_true, flagFinish, sl_true);
-
 		}
 
 		invalidate();
@@ -10848,7 +10889,7 @@ namespace slib
 
 	void View::_onScroll_NW(sl_scroll_pos x, sl_scroll_pos y)
 	{
-		_scrollTo(x, y, sl_false, sl_true, sl_false);
+		_doScrollTo(x, y, ScrollAction::Native, ScrollEvent::Source::Event);
 	}
 
 
@@ -11219,11 +11260,9 @@ namespace slib
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
 			if (view->isEnabled()) {
-				Ref<GestureEvent> ev = new GestureEvent;
-				if (ev.isNotNull()) {
-					ev->type = type;
-					view->dispatchSwipe(ev.get());
-				}
+				GestureEvent ev;
+				ev.type = type;
+				view->dispatchSwipe(&ev);
 			}
 		}
 	}

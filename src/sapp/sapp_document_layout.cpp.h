@@ -2199,6 +2199,7 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, scrollingByMouseWheel, setContentScrollingByMouseWheel)
 		LAYOUT_CONTROL_ATTR(GENERIC, scrollingByKeyboard, setContentScrollingByKeyboard)
 		LAYOUT_CONTROL_ATTR(GENERIC, autoHideScrollBar, setAutoHideScrollBar)
+		LAYOUT_CONTROL_ATTR(GENERIC, smoothScrolling, setSmoothContentScrolling)
 
 		LAYOUT_CONTROL_ATTR(GENERIC, focusable, setFocusable)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, focus, setFocus)

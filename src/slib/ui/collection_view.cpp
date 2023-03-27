@@ -278,9 +278,9 @@ namespace slib
 		m_flagCuttingOverflowItems = flag;
 	}
 
-	void CollectionView::onScroll(sl_scroll_pos x, sl_scroll_pos y)
+	void CollectionView::onScroll(ScrollEvent* ev)
 	{
-		if (Math::isAlmostZero(y - (sl_scroll_pos)m_lastScrollY)) {
+		if (Math::isAlmostZero(ev->y - (sl_scroll_pos)m_lastScrollY)) {
 			return;
 		}
 		_requestLayout();

@@ -242,22 +242,22 @@ namespace slib
 
 			static Variant getDayCount(Variant& param)
 			{
-				return param.getTime().getDayCountf();
+				return param.getTime().getDayCountF();
 			}
 
 			static Variant getHourCount(Variant& param)
 			{
-				return param.getTime().getHourCountf();
+				return param.getTime().getHourCountF();
 			}
 
 			static Variant getMinuteCount(Variant& param)
 			{
-				return param.getTime().getMinuteCountf();
+				return param.getTime().getMinuteCountF();
 			}
 
 			static Variant getSecondCount(Variant& param)
 			{
-				return param.getTime().getSecondCountf();
+				return param.getTime().getSecondCountF();
 			}
 
 			static Variant getYear(Variant& param)

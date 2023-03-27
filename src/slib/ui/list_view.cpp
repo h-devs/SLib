@@ -183,9 +183,9 @@ namespace slib
 		setAdapter(param);
 	}
 
-	void ListView::onScroll(sl_scroll_pos _x, sl_scroll_pos _y)
+	void ListView::onScroll(ScrollEvent* ev)
 	{
-		sl_ui_pos y = (sl_ui_pos)(_y);
+		sl_ui_pos y = (sl_ui_pos)(ev->y);
 		if (Math::isAlmostZero(y - m_lastScrollY)) {
 			return;
 		}
