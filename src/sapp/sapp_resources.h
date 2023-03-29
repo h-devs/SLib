@@ -35,6 +35,14 @@
 namespace slib
 {
 
+	enum SAppLayoutOperation
+	{
+		Parse = 0,
+		Generate = 1,
+		SimulateInit = 2,
+		SimulateLayout = 3
+	};
+
 	class SAppStringResource : public CRef
 	{
 	public:
@@ -662,30 +670,37 @@ namespace slib
 	};
 
 
-	struct SAppLayoutTreeItem
+	struct SAppLayoutTreeItemAttributes : public CRef
 	{
-		String name;
 		SAppStringValue id;
 		SAppStringValue text;
-		SAppDrawableValue icon;
-		SAppDrawableValue opendIcon;
-		SAppDrawableValue closedIcon;
+		SAppFontValue font;
+		SAppStateMap<SAppDrawableValue> background;
+		SAppStateMap<SAppDrawableValue> icon;
+		SAppStateMap<SAppDrawableValue> openedIcon;
+		SAppStateMap<SAppDrawableValue> closedIcon;
 		SAppStateMap<SAppColorValue> textColor;
+		SAppDimensionValue iconSize;
+		SAppDimensionValue iconWidth;
+		SAppDimensionValue iconHeight;
 		SAppDimensionValue height;
-
-		Ref<SAppLayoutResourceItem> customView;
+		SAppBooleanValue opened;
+		SAppBooleanValue selected;
 	};
 
 	class SAppLayoutTreeAttributes : public SAppLayoutViewAttributes
 	{
 	public:
-		SAppDrawableValue itemIcon;
-		SAppDrawableValue opendIcon;
-		SAppDrawableValue closedIcon;
+		SAppStateMap<SAppDrawableValue> itemIcon;
+		SAppStateMap<SAppDrawableValue> openedIcon;
+		SAppStateMap<SAppDrawableValue> closedIcon;
 		SAppDrawableValue collapsedIcon;
 		SAppDrawableValue expandedIcon;
 		SAppStateMap<SAppDrawableValue> itemBackground;
 		SAppStateMap<SAppColorValue> textColor;
+		SAppDimensionValue itemIconSize;
+		SAppDimensionValue itemIconWidth;
+		SAppDimensionValue itemIconHeight;
 		SAppDimensionValue itemHeight;
 		SAppDimensionValue itemPadding;
 		SAppDimensionValue itemIndent;
@@ -1013,12 +1028,12 @@ namespace slib
 		Render = 0x0235,
 		Tab = 0x0236,
 		Tree = 0x0237,
-		Web = 0x0238,
-		Split = 0x0239,
-		Table = 0x023A,
-		ListBox = 0x023B,
-		LabelList = 0x023C,
-		TileLayout = 0x023D,
+		Web = 0x0239,
+		Split = 0x023A,
+		Table = 0x023B,
+		ListBox = 0x023C,
+		LabelList = 0x023D,
+		TileLayout = 0x023E,
 		GroupBox = 0x023F,
 
 		Progress = 0x0260,
@@ -1041,7 +1056,11 @@ namespace slib
 		XControl = 0x02a0,
 		XEdit = 0x02a1,
 		XPassword = 0x02a2,
-		XButton = 0x02a3
+		XButton = 0x02a3,
+
+		NoView = 0xF000,
+		TreeItem = 0xF001
+
 	};
 
 	class SAppLayoutXmlItem
@@ -1078,11 +1097,13 @@ namespace slib
 		sl_bool flagGeneratedName;
 		String arrayName;
 		sl_int32 arrayIndex;
-		sl_bool flagNoChildren;
+		sl_bool flagSkipParseChildren;
+		sl_bool flagSkipGenerateChildren;
+		sl_bool flagSkipSimulateChildren;
 
 		String className;
 
-		Ref<SAppLayoutViewAttributes> attrs;
+		Ref<CRef> attrs;
 		CList< Ref<SAppLayoutResourceItem> > children;
 
 	public:
@@ -1133,6 +1154,7 @@ namespace slib
 		sl_uint32 nAutoIncreaseNameRender = 0;
 		sl_uint32 nAutoIncreaseNameTab = 0;
 		sl_uint32 nAutoIncreaseNameTree = 0;
+		sl_uint32 nAutoIncreaseNameTreeItem = 0;
 		sl_uint32 nAutoIncreaseNameWeb = 0;
 		sl_uint32 nAutoIncreaseNameSplit = 0;
 		sl_uint32 nAutoIncreaseNameProgress = 0;
@@ -1184,9 +1206,9 @@ namespace slib
 	public:
 		Ref<CRef> getRef();
 
-		Ref<View> getViewByName(const String& name);
+		Ref<CRef> getViewItemByName(const String& name);
 
-		void registerViewByName(const String& name, const Ref<View>& view);
+		void registerViewItemByName(const String& name, const Ref<CRef>& item);
 
 		Ref<RadioGroup> getRadioGroup(const String& name);
 
@@ -1204,7 +1226,7 @@ namespace slib
 		AtomicRef<SAppLayoutResource> m_layoutResource;
 		AtomicWeakRef<SAppLayoutSimulationWindow> m_simulationWindow;
 		AtomicWeakRef<View> m_simulationContentView;
-		CHashMap< String, Ref<View> > m_views;
+		CHashMap< String, Ref<CRef> > m_viewItems;
 		CHashMap< String, Ref<RadioGroup> > m_radioGroups;
 	};
 

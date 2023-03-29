@@ -23,13 +23,6 @@
 namespace slib
 {
 
-	enum LAYOUT_OP
-	{
-		OP_PARSE,
-		OP_GENERATE_CPP,
-		OP_SIMULATE
-	};
-
 	sl_bool SAppDocument::_parseLayoutStyle(const String& localNamespace, const Ref<XmlElement>& element)
 	{
 		if (element.isNull()) {
@@ -233,6 +226,13 @@ namespace slib
 				strType = element->getName();
 			}
 			SAppLayoutItemType type = SAppLayoutResource::getTypeFromName(strType);
+			if (type == SAppLayoutItemType::Unknown && parent) {
+				if (parent->itemType == SAppLayoutItemType::Tree || parent->itemType == SAppLayoutItemType::TreeItem) {
+					if (strType == "item") {
+						type = SAppLayoutItemType::TreeItem;
+					}
+				}
+			}
 			if (type == SAppLayoutItemType::Unknown) {
 				logError(element, g_str_error_resource_layout_type_invalid, strType);
 				return sl_false;
@@ -270,7 +270,7 @@ namespace slib
 		}
 
 		LayoutControlProcessParams pp;
-		pp.op = OP_PARSE;
+		pp.op = SAppLayoutOperation::Parse;
 		pp.source = source;
 		pp.resource = layout;
 		pp.resourceItem = item;
@@ -507,10 +507,19 @@ namespace slib
 			}
 		}
 
-		if (!(_generateLayoutsCpp_Item(layout, layout, sl_null, sbHeader, sbCpp, sbLayout, sl_null))) {
+		StringBuffer sbDelayed;
+		LayoutControlGenerateParams params;
+		params.sbDeclare = &sbHeader;
+		params.sbDefineInit = &sbCpp;
+		params.sbDefineInitDelayed = &sbDelayed;
+		params.sbDefineLayout = &sbLayout;
+		if (!(_generateLayoutsCpp_Item(layout, layout, sl_null, &params, sl_null))) {
 			return sl_false;
 		}
 
+		if (sbDelayed.getLength()) {
+			sbCpp.link(sbDelayed);
+		}
 		sbCpp.add(String::format("\t\t}%n%n\t\tvoid %s::layoutViews(sl_ui_len CONTENT_WIDTH, sl_ui_len CONTENT_HEIGHT)%n\t\t{%n", name));
 		sbCpp.link(sbLayout);
 		static sl_char8 strEndCpp[] = "\t\t}\r\n\r\n";
@@ -557,29 +566,27 @@ namespace slib
 
 	}
 
-	sl_bool SAppDocument::_generateLayoutsCpp_Item(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, StringBuffer& sbDeclare, StringBuffer& sbDefineInit, StringBuffer& sbDefineLayout, const String& addStatement)
+	sl_bool SAppDocument::_generateLayoutsCpp_Item(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, LayoutControlGenerateParams* params, const String& addStatement)
 	{
 		String name;
 		if (parent) {
 			name = item->name;
 			if (item->arrayIndex < 0) {
-				sbDeclare.add(String::format("\t\t\tslib::Ref<%s> %s;%n", item->className, name));
+				params->sbDeclare->add(String::format("\t\t\tslib::Ref<%s> %s;%n", item->className, name));
 			}
-			sbDefineInit.add(String::format("\t\t\t%2$s = new %1$s;%n", item->className, name));
+			params->sbDefineInit->add(String::format("\t\t\t%2$s = new %1$s;%n", item->className, name));
 		} else {
 			name = "this";
 		}
 
 		LayoutControlProcessParams pp;
-		pp.op = OP_GENERATE_CPP;
+		pp.op = SAppLayoutOperation::Generate;
 		pp.resource = layout;
 		pp.resourceItem = item;
 		pp.parentResourceItem = parent;
-		pp.addStatement = addStatement;
 		pp.name = name;
-		pp.sbDeclare = &sbDeclare;
-		pp.sbDefineInit = &sbDefineInit;
-		pp.sbDefineLayout = &sbDefineLayout;
+		pp.addStatement = addStatement;
+		(LayoutControlGenerateParams&)pp = *params;
 
 		if (!(_processLayoutResourceControl(&pp))) {
 			return sl_false;
@@ -630,7 +637,7 @@ namespace slib
 		m_layoutSimulationWindows.remove(window);
 	}
 
-	Ref<View> SAppDocument::_simulateLayoutCreateOrLayoutView(SAppLayoutSimulator* simulator, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, View* parentView, sl_bool flagOnLayout)
+	Ref<CRef> SAppDocument::_simulateLayoutCreateOrLayoutItem(SAppLayoutSimulator* simulator, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, CRef* parentItem, SAppLayoutOperation op)
 	{
 		Ref<SAppLayoutSimulationWindow> window = simulator->getSimulationWindow();
 		if (window.isNull()) {
@@ -641,17 +648,18 @@ namespace slib
 			return sl_null;
 		}
 
-		Ref<View> view;
+		Ref<CRef> viewItem;
 		if (parent) {
-			if (flagOnLayout) {
-				view = simulator->getViewByName(item->name);
-				if (view.isNull()) {
+			if (op == SAppLayoutOperation::SimulateLayout) {
+				viewItem = simulator->getViewItemByName(item->name);
+				if (viewItem.isNull()) {
 					return sl_null;
 				}
 			}
 		} else {
-			view = simulator->getSimulationContentView();
-			if (view.isNull()) {
+			viewItem = simulator->getSimulationContentView();
+			View* view = (View*)(viewItem.get());
+			if (viewItem.isNull()) {
 				return sl_null;
 			}
 			if (layout->layoutType == SAppLayoutType::Page) {
@@ -676,31 +684,30 @@ namespace slib
 		}
 
 		LayoutControlProcessParams pp;
-		pp.op = OP_SIMULATE;
+		pp.op = op;
 		pp.resource = layout.get();
 		pp.resourceItem = item;
 		pp.parentResourceItem = parent;
 		pp.simulator = simulator;
 		pp.window = window.get();
-		pp.view = view;
-		pp.parentView = parentView;
+		pp.viewItem = viewItem;
+		pp.parentItem = parentItem;
 		pp.name = item->name;
-		pp.flagOnLayout = flagOnLayout;
 		if (!(_processLayoutResourceControl(&pp))) {
 			return sl_null;
 		}
 
 		if (parent) {
-			if (!flagOnLayout) {
-				view = pp.view;
-				if (view.isNull()) {
+			if (op == SAppLayoutOperation::SimulateInit) {
+				viewItem = pp.viewItem;
+				if (viewItem.isNull()) {
 					return sl_null;
 				}
-				simulator->registerViewByName(item->name, view);
+				simulator->registerViewItemByName(item->name, viewItem);
 			}
 		}
 
-		return view;
+		return viewItem;
 
 	}
 
@@ -976,6 +983,18 @@ namespace slib
 		return sl_true;
 	}
 
+	namespace {
+		static sl_bool IsNoView(SAppLayoutItemType type)
+		{
+			return type >= SAppLayoutItemType::NoView;
+		}
+
+		static sl_bool IsSimulateOp(int op)
+		{
+			return op >= SAppLayoutOperation::SimulateInit && op <= SAppLayoutOperation::SimulateLayout;
+		}
+	}
+
 #define PROCESS_CONTROL_SWITCH(NAME) \
 	case SAppLayoutItemType::NAME: \
 		if (!(_processLayoutResourceControl_##NAME(params))) { \
@@ -987,9 +1006,9 @@ namespace slib
 	{
 		m_currentLocalNamespace = params->resource->name;
 		SAppLayoutResourceItem* resourceItem = params->resourceItem;
-		int op = params->op;
-		switch (resourceItem->itemType)
-		{
+		SAppLayoutOperation op = params->op;
+		SAppLayoutItemType resourceType = resourceItem->itemType;
+		switch (resourceType) {
 			case SAppLayoutItemType::ViewGroup:
 				{
 					if (params->parentResourceItem) {
@@ -1036,6 +1055,7 @@ namespace slib
 			PROCESS_CONTROL_SWITCH(Render)
 			PROCESS_CONTROL_SWITCH(Tab)
 			PROCESS_CONTROL_SWITCH(Tree)
+			PROCESS_CONTROL_SWITCH(TreeItem)
 			PROCESS_CONTROL_SWITCH(Split)
 			PROCESS_CONTROL_SWITCH(Web)
 			PROCESS_CONTROL_SWITCH(Progress)
@@ -1063,94 +1083,134 @@ namespace slib
 				return sl_false;
 		}
 
-		switch (resourceItem->itemType) {
-			case SAppLayoutItemType::Scroll:
-				break;
-			default:
-				if (op == OP_PARSE) {
-					do {
-						if (params->resourceItem->flagNoChildren) {
-							break;
+		if (op == SAppLayoutOperation::Parse) {
+			if (resourceItem->flagSkipParseChildren) {
+				return sl_true;
+			}
+			ListElements< Ref<XmlElement> > children(_getXmlChildElements(params->resource->name, resourceItem, sl_null));
+			for (sl_size i = 0; i < children.count; i++) {
+				const Ref<XmlElement>& child = children[i];
+				String tagName = child->getName();
+				sl_bool flagIgnoreChild = sl_false;
+				switch (resourceType) {
+					case SAppLayoutItemType::Table:
+						flagIgnoreChild = tagName == "column" || tagName == "row";
+						break;
+					case SAppLayoutItemType::ListControl:
+						flagIgnoreChild = tagName == "column";
+						break;
+					case SAppLayoutItemType::Grid:
+						flagIgnoreChild = tagName == "column" || tagName == "row" || tagName == "header" || tagName == "footer" || tagName == "body";
+						break;
+					case SAppLayoutItemType::Select:
+					case SAppLayoutItemType::SelectSwitch:
+					case SAppLayoutItemType::ComboBox:
+					case SAppLayoutItemType::Picker:
+					case SAppLayoutItemType::LabelList:
+					case SAppLayoutItemType::List:
+					case SAppLayoutItemType::Collection:
+					case SAppLayoutItemType::Tab:
+					case SAppLayoutItemType::Split:
+					case SAppLayoutItemType::Pager:
+						flagIgnoreChild = tagName == "item";
+						break;
+					case SAppLayoutItemType::TreeItem:
+						if (tagName != "item") {
+							logError(child, g_str_error_resource_layout_type_invalid, tagName);
+							return sl_false;
 						}
-						ListElements< Ref<XmlElement> > children(_getXmlChildElements(params->resource->name, resourceItem, sl_null));
-						for (sl_size i = 0; i < children.count; i++) {
-							const Ref<XmlElement>& child = children[i];
-							String tagName = child->getName();
-							if (tagName == "item" || tagName == "column" || tagName == "row" || tagName == "header" || tagName == "footer" || tagName == "body") {
-								continue;
-							}
-							Ref<SAppLayoutResourceItem> childItem = _parseLayoutResourceItemChild(params->resource, resourceItem, child, params->source);
-							if (childItem.isNull()) {
-								return sl_false;
-							}
-							if (resourceItem->itemType == SAppLayoutItemType::Linear) {
-								SAppLayoutLinearAttributes* attrs = (SAppLayoutLinearAttributes*)(resourceItem->attrs.get());
-								if (!(attrs->orientation.flagDefined) || attrs->orientation.value == LayoutOrientation::Vertical) {
-									childItem->attrs->topMode = PositionMode::Free;
-									childItem->attrs->bottomMode = PositionMode::Free;
-								} else {
-									childItem->attrs->leftMode = PositionMode::Free;
-									childItem->attrs->rightMode = PositionMode::Free;
-								}
-							} else if (resourceItem->itemType == SAppLayoutItemType::Refresh) {
-								childItem->attrs->width.flagDefined = sl_true;
-								childItem->attrs->width.amount = 1;
-								childItem->attrs->width.unit = SAppDimensionValue::FILL;
-								childItem->attrs->height.flagDefined = sl_true;
-								childItem->attrs->height.amount = 1;
-								childItem->attrs->height.unit = SAppDimensionValue::FILL;
-							}
-							if (!(resourceItem->children.add_NoLock(Move(childItem)))) {
-								logError(resourceItem->element, g_str_error_out_of_memory);
-								return sl_false;
-							}
-						}
-					} while (0);
-					return sl_true;
-				} else if (op == OP_GENERATE_CPP) {
-					String name;
-					if (params->parentResourceItem) {
-						name = params->name;
-					} else {
-						static sl_char8 strEnd[] = "\r\n";
-						params->sbDefineInit->addStatic(strEnd, sizeof(strEnd)-1);
-						name = "m_contentView";
-					}
-					ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
-					for (sl_size i = 0; i < children.count; i++) {
-						Ref<SAppLayoutResourceItem>& child = children[i];
-						if (child.isNotNull()) {
-							String addStatement = String::format("\t\t\t%s->addChild(%s, slib::UIUpdateMode::Init);%n%n", name, child->name);
-							if (!(_generateLayoutsCpp_Item(params->resource, child.get(), resourceItem, *(params->sbDeclare), *(params->sbDefineInit), *(params->sbDefineLayout), addStatement) )) {
-								return sl_false;
-							}
-						}
-					}
-				} else if (op == OP_SIMULATE) {
-					if (!(params->parentResourceItem) && params->resource->layoutType != SAppLayoutType::Window) {
-						m_layoutSimulationParams.viewportWidth = params->view->getWidth();
-						m_layoutSimulationParams.viewportHeight = params->view->getHeight();
-					}
-					ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
-					for (sl_size i = 0; i < children.count; i++) {
-						Ref<SAppLayoutResourceItem>& child = children[i];
-						if (child.isNotNull()) {
-							Ref<View> childView = _simulateLayoutCreateOrLayoutView(params->simulator, child.get(), resourceItem, params->view.get(), params->flagOnLayout);
-							if (childView.isNotNull()) {
-								if (!(params->flagOnLayout)) {
-									params->view->addChild(childView, UIUpdateMode::Init);
-								}
-							} else {
-								return sl_false;
-							}
-						}
-					}
+						break;
+					default:
+						break;
 				}
-				break;
+				if (flagIgnoreChild) {
+					continue;
+				}
+				Ref<SAppLayoutResourceItem> childItem = _parseLayoutResourceItemChild(params->resource, resourceItem, child, params->source);
+				if (childItem.isNull()) {
+					return sl_false;
+				}
+				if (resourceType == SAppLayoutItemType::Linear) {
+					if (IsNoView(childItem->itemType)) {
+						return sl_false;
+					}
+					SAppLayoutLinearAttributes* attrs = (SAppLayoutLinearAttributes*)(resourceItem->attrs.get());
+					SAppLayoutViewAttributes* childAttrs = (SAppLayoutViewAttributes*)(childItem->attrs.get());
+					if (!(attrs->orientation.flagDefined) || attrs->orientation.value == LayoutOrientation::Vertical) {
+						childAttrs->topMode = PositionMode::Free;
+						childAttrs->bottomMode = PositionMode::Free;
+					} else {
+						childAttrs->leftMode = PositionMode::Free;
+						childAttrs->rightMode = PositionMode::Free;
+					}
+				} else if (resourceType == SAppLayoutItemType::Refresh) {
+					if (IsNoView(childItem->itemType)) {
+						return sl_false;
+					}
+					SAppLayoutViewAttributes* childAttrs = (SAppLayoutViewAttributes*)(childItem->attrs.get());
+					childAttrs->width.flagDefined = sl_true;
+					childAttrs->width.amount = 1;
+					childAttrs->width.unit = SAppDimensionValue::FILL;
+					childAttrs->height.flagDefined = sl_true;
+					childAttrs->height.amount = 1;
+					childAttrs->height.unit = SAppDimensionValue::FILL;
+				}
+				if (!(resourceItem->children.add_NoLock(Move(childItem)))) {
+					logError(resourceItem->element, g_str_error_out_of_memory);
+					return sl_false;
+				}
+			}
+		} else if (op == SAppLayoutOperation::Generate) {
+			if (resourceItem->flagSkipGenerateChildren) {
+				return sl_true;
+			}
+			String name;
+			if (params->parentResourceItem) {
+				name = params->name;
+			} else {
+				static sl_char8 strEnd[] = "\r\n";
+				params->sbDefineInit->addStatic(strEnd, sizeof(strEnd)-1);
+				name = "m_contentView";
+			}
+			ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
+			for (sl_size i = 0; i < children.count; i++) {
+				Ref<SAppLayoutResourceItem>& child = children[i];
+				String addStatement = String::format("\t\t\t%s->addChild(%s, slib::UIUpdateMode::Init);%n%n", name, child->name);
+				if (!(_generateLayoutsCpp_Item(params->resource, child.get(), resourceItem, params, addStatement) )) {
+					return sl_false;
+				}
+			}
+		} else if (IsSimulateOp(op)) {
+			if (resourceItem->flagSkipSimulateChildren) {
+				return sl_true;
+			}
+			if (!(params->parentResourceItem) && params->resource->layoutType != SAppLayoutType::Window) {
+				View* view = CastInstance<View>(params->viewItem.get());
+				if (view) {
+					m_layoutSimulationParams.viewportWidth = view->getWidth();
+					m_layoutSimulationParams.viewportHeight = view->getHeight();
+				}
+			}
+			ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
+			for (sl_size i = 0; i < children.count; i++) {
+				Ref<SAppLayoutResourceItem>& child = children[i];
+				Ref<CRef> childViewItem = _simulateLayoutCreateOrLayoutItem(params->simulator, child.get(), resourceItem, params->viewItem.get(), op);
+				if (childViewItem.isNotNull()) {
+					if (op == SAppLayoutOperation::SimulateInit) {
+						View* view = CastInstance<View>(params->viewItem.get());
+						if (view) {
+							View* childView = CastInstance<View>(childViewItem.get());
+							if (childView) {
+								view->addChild(ToRef(&childView), UIUpdateMode::Init);
+							}
+						}
+					}
+				} else {
+					return sl_false;
+				}
+			}
 		}
-
 		return sl_true;
-
 	}
 
 #define BEGIN_PROCESS_LAYOUT_CONTROL(NAME, VIEWTYPE) \
@@ -1161,11 +1221,10 @@ namespace slib
 		SLIB_UNUSED(resource) \
 		SAppLayoutResourceItem* resourceItem = params->resourceItem; \
 		const Ref<XmlElement>& element = resourceItem->element; \
-		int op = params->op; \
+		SAppLayoutOperation op = params->op; \
 		const String& name = params->name; \
-		sl_bool flagOnLayout = params->flagOnLayout; \
 		Ref<SAppLayout##NAME##Attributes>& attr = Ref<SAppLayout##NAME##Attributes>::from(resourceItem->attrs); \
-		if (op == OP_PARSE) { \
+		if (op == SAppLayoutOperation::Parse) { \
 			if (attr.isNull()) { \
 				attr = new SAppLayout##NAME##Attributes; \
 				if (attr.isNull()) { \
@@ -1176,16 +1235,13 @@ namespace slib
 			if (resourceItem->className.isEmpty()) { \
 				resourceItem->className = "slib::" #VIEWTYPE; \
 			} \
-		} else { \
-			if (op == OP_SIMULATE) { \
-				if (!flagOnLayout && params->view.isNull()) { \
-					params->view = new VIEWTYPE; \
-				} \
+		} else if (op == SAppLayoutOperation::SimulateInit) { \
+			if (params->viewItem.isNull()) { \
+				params->viewItem = new VIEWTYPE; \
 			} \
 		} \
-		VIEWTYPE* view = (VIEWTYPE*)(params->view.get()); \
+		VIEWTYPE* view = (VIEWTYPE*)(params->viewItem.get()); \
 		SLIB_UNUSED(view)
-
 
 #define END_PROCESS_LAYOUT_CONTROL \
 		return sl_true; \
@@ -1274,6 +1330,7 @@ namespace slib
 	params->sbDefine##BUF_TYPE->add(String::format("%s%s->" #SETFUNC "(" ARG_FORMAT ");%n", strTab, name, ##__VA_ARGS__));
 #define LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(Init, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
 #define LAYOUT_CONTROL_GENERATE_LAYOUT(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(Layout, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
+#define LAYOUT_CONTROL_GENERATE_DELAYED(SETFUNC, ARG_FORMAT, ...) PRIV_LAYOUT_CONTROL_GENERATE(InitDelayed, SETFUNC, ARG_FORMAT, ##__VA_ARGS__)
 
 #define LAYOUT_CONTROL_PARSE_GENERIC(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE(XML, NAME SUFFIX, VAR)
 #define LAYOUT_CONTROL_GENERATE_GENERIC(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
@@ -1282,7 +1339,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_GENERIC(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && !flagOnLayout) { \
+	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		auto& value = VAR.value; \
 		view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 	}
@@ -1293,7 +1350,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERATE(SETFUNC, GEN_UPDATE1(CATEGORY, UI, Init)) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_BOOLEAN(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && VAR.value && !flagOnLayout) { \
+	if (VAR.flagDefined && VAR.value && op == SAppLayoutOperation::SimulateInit) { \
 		view->SETFUNC(USE_UPDATE1(CATEGORY, UI, Init)); \
 	}
 
@@ -1306,6 +1363,17 @@ namespace slib
 				return r;
 			}
 		}
+
+		SLIB_INLINE static sl_bool IsAbsolute(SAppDimensionBaseValue& v)
+		{
+			return SAppDimensionValue::isAbsoluteUnit(v.unit);
+		}
+
+		SLIB_INLINE static sl_bool IsAbsolute(SAppDrawableValue& v)
+		{
+			return v.isAbsoluteUnit();
+		}
+
 	}
 
 #define LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, CHECKFUNC) \
@@ -1327,10 +1395,11 @@ namespace slib
 	if (VAR.flagDefined && !(SAppDimensionValue::isSpecialUnit(VAR.unit))) { \
 		PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
 	}
+#define LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR) Xor(IsAbsolute(VAR), op == SAppLayoutOperation::SimulateLayout)
 #define PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ...) \
-	if (Xor(SAppDimensionValue::isAbsoluteUnit(VAR.unit), flagOnLayout)) { \
+	if (LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR)) { \
 		auto value = _getDimensionValue(VAR); \
-		if (flagOnLayout) { \
+		if (op == SAppLayoutOperation::SimulateLayout) { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
 		} else { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1353,7 +1422,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_STRING(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && !flagOnLayout) { \
+	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		String value; \
 		if (!(_getStringValue(resource->name, VAR, value))) { \
 			return sl_false; \
@@ -1371,12 +1440,12 @@ namespace slib
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_DRAWABLE(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && Xor(VAR.isAbsoluteUnit(), flagOnLayout)) { \
+	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR)) { \
 		Ref<Drawable> value; \
 		if (!(_getDrawableValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		if (flagOnLayout) { \
+		if (op == SAppLayoutOperation::SimulateLayout) { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
 		} else { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1393,7 +1462,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_COLOR(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && !flagOnLayout) { \
+	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		Color value; \
 		if (!(_getColorValue(resource->name, VAR, value))) { \
 			return sl_false; \
@@ -1418,12 +1487,12 @@ namespace slib
 		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_FONT(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && Xor(SAppDimensionValue::isAbsoluteUnit(VAR.size.unit), flagOnLayout)) { \
+	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR.size)) { \
 		Ref<Font> value; \
 		if (!(_getFontValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		if (flagOnLayout) { \
+		if (op == SAppLayoutOperation::SimulateLayout) { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, CONTROL, UpdateLayout) USE_UPDATE2(CATEGORY, ITEM, None)); \
 		} else { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1447,12 +1516,12 @@ namespace slib
 		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_BORDER(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && Xor(SAppDimensionValue::isAbsoluteUnit(VAR.width.unit), flagOnLayout)) { \
+	if (VAR.flagDefined && LAYOUT_CONTROL_CAN_SIMULATE_DIMENSION(VAR.width)) { \
 		PenDesc value; \
 		if (!(_getBorderValue(resource->name, VAR, value))) { \
 			return sl_false; \
 		} \
-		if (flagOnLayout) { \
+		if (op == SAppLayoutOperation::SimulateLayout) { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, ITEM, None)); \
 		} else { \
 			view->SETFUNC(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
@@ -1469,7 +1538,7 @@ namespace slib
 		LAYOUT_CONTROL_GENERATE(SETFUNC, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
 	}
 #define LAYOUT_CONTROL_SIMULATE_MENU(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.flagDefined && !flagOnLayout) { \
+	if (VAR.flagDefined && op == SAppLayoutOperation::SimulateInit) { \
 		Ref<Menu> value; \
 		if (!(_getMenuValue(resource->name, VAR, value))) { \
 			return sl_false; \
@@ -1479,36 +1548,40 @@ namespace slib
 	
 #define LAYOUT_CONTROL_PARSE_SIZE(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, checkSize)
 #define LAYOUT_CONTROL_GENERATE_SIZE(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ...) \
-	if (VAR.unit == SAppDimensionValue::FILL) { \
-		String value = String::format("%ff", VAR.amount); \
-		LAYOUT_CONTROL_GENERATE(SETFUNC##Filling, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
-	} else if (VAR.unit == SAppDimensionValue::WRAP) { \
-		StringView value = StringView::literal("sl_true"); \
-		LAYOUT_CONTROL_GENERATE(SETFUNC##Wrapping, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
-	} else if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-		String value = String::format("%ff", VAR.amount); \
-		LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
-	} else { \
-		PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
+	if (VAR.flagDefined) { \
+		if (VAR.unit == SAppDimensionValue::FILL) { \
+			String value = String::format("%ff", VAR.amount); \
+			LAYOUT_CONTROL_GENERATE(SETFUNC##Filling, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
+		} else if (VAR.unit == SAppDimensionValue::WRAP) { \
+			StringView value = StringView::literal("sl_true"); \
+			LAYOUT_CONTROL_GENERATE(SETFUNC##Wrapping, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
+		} else if (VAR.unit == SAppDimensionValue::WEIGHT) { \
+			String value = String::format("%ff", VAR.amount); \
+			LAYOUT_CONTROL_GENERATE(SETFUNC##Weight, ARG_FORMAT GEN_UPDATE2(CATEGORY, UI, Init), ##__VA_ARGS__) \
+		} else { \
+			PRIV_LAYOUT_CONTROL_GENERATE_DIMENSION(VAR, SETFUNC, CATEGORY, ARG_FORMAT, ##__VA_ARGS__) \
+		} \
 	}
 #define LAYOUT_CONTROL_SIMULATE_SIZE(VAR, SETFUNC, CATEGORY, ...) \
-	if (VAR.unit == SAppDimensionValue::FILL) { \
-		if (!flagOnLayout) { \
-			auto value = VAR.amount; \
-			view->SETFUNC##Filling(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+	if (VAR.flagDefined) { \
+		if (VAR.unit == SAppDimensionValue::FILL) { \
+			if (op == SAppLayoutOperation::SimulateInit) { \
+				auto value = VAR.amount; \
+				view->SETFUNC##Filling(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+			} \
+		} else if (VAR.unit == SAppDimensionValue::WRAP) { \
+			if (op == SAppLayoutOperation::SimulateInit) { \
+				sl_bool value = sl_true; \
+				view->SETFUNC##Wrapping(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+			} \
+		} else if (VAR.unit == SAppDimensionValue::WEIGHT) { \
+			if (op == SAppLayoutOperation::SimulateInit) { \
+				auto value = VAR.amount; \
+				view->SETFUNC##Weight(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
+			} \
+		} else { \
+			PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
 		} \
-	} else if (VAR.unit == SAppDimensionValue::WRAP) { \
-		if (!flagOnLayout) { \
-			sl_bool value = sl_true; \
-			view->SETFUNC##Wrapping(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
-		} \
-	} else if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-		if (!flagOnLayout) { \
-			auto value = VAR.amount; \
-			view->SETFUNC##Weight(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
-		} \
-	} else { \
-		PRIV_LAYOUT_CONTROL_SIMULATE_DIMENSION(VAR, SETFUNC, CATEGORY, ##__VA_ARGS__) \
 	}
 
 #define LAYOUT_CONTROL_PARSE_MARGIN(XML, NAME, SUFFIX, VAR, ...) LAYOUT_CONTROL_PARSE_DIMENSION(XML, NAME, SUFFIX, VAR, checkMargin)
@@ -1526,7 +1599,7 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_MARGIN(VAR, SETFUNC, CATEGORY, ...) \
 	if (VAR.flagDefined) { \
 		if (VAR.unit == SAppDimensionValue::WEIGHT) { \
-			if (!flagOnLayout) { \
+			if (op == SAppLayoutOperation::SimulateInit) { \
 				auto& value = VAR.amount; \
 				view->SETFUNC##Weight(__VA_ARGS__ USE_UPDATE2(CATEGORY, UI, Init)); \
 			} \
@@ -1549,11 +1622,11 @@ namespace slib
 #define LAYOUT_CONTROL_SIMULATE_UI_ATTR(TYPE, VAR, SETFUNC) PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, VAR, SETFUNC, CONTROL)
 
 #define PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, CATEGORY, ...) \
-	if (op == OP_PARSE) { \
+	if (op == SAppLayoutOperation::Parse) { \
 		LAYOUT_CONTROL_PARSE_ATTR(TYPE, attr->, NAME, ##__VA_ARGS__) \
-	} else if (op == OP_GENERATE_CPP) { \
+	} else if (op == SAppLayoutOperation::Generate) { \
 		PRIV_LAYOUT_CONTROL_GENERATE_ATTR(TYPE, attr->NAME, SETFUNC, CATEGORY) \
-	} else if (op == OP_SIMULATE) { \
+	} else if (IsSimulateOp(op)) { \
 		PRIV_LAYOUT_CONTROL_SIMULATE_ATTR(TYPE, attr->NAME, SETFUNC, CATEGORY) \
 	}
 #define LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, ...) PRIV_LAYOUT_CONTROL_ATTR(TYPE, NAME, SETFUNC, BASIC, ##__VA_ARGS__)
@@ -1586,11 +1659,11 @@ namespace slib
 	}
 
 #define LAYOUT_CONTROL_STATE_MAP(TYPE, NAME, SETFUNC, ...) \
-	if (op == OP_PARSE) { \
+	if (op == SAppLayoutOperation::Parse) { \
 		LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(TYPE, attr->, NAME, ##__VA_ARGS__) \
-	} else if (op == OP_GENERATE_CPP) { \
+	} else if (op == SAppLayoutOperation::Generate) { \
 		LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME, SETFUNC, CONTROL, "%s", value) \
-	} else if (op == OP_SIMULATE) { \
+	} else if (IsSimulateOp(op)) { \
 		LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME, SETFUNC, CONTROL, value) \
 	}
 
@@ -1606,41 +1679,50 @@ namespace slib
 	}
 
 #define LAYOUT_CONTROL_ADD_STATEMENT \
-	if (op == OP_GENERATE_CPP) { \
+	if (op == SAppLayoutOperation::Generate) { \
 		params->sbDefineInit->add(params->addStatement); \
 	}
 
 #define LAYOUT_CONTROL_SET_NATIVE_WIDGET \
-	if (op == OP_GENERATE_CPP) { \
+	if (op == SAppLayoutOperation::Generate) { \
 		if (attr->isNotRequiredNative(sl_false)) { \
 			if (!(attr->nativeWidget.flagDefined)) { \
 				LAYOUT_CONTROL_GENERATE(setCreatingNativeWidget, "sl_false") \
 			} \
 		} \
-	} else if (op == OP_SIMULATE) { \
-		if (!flagOnLayout) { \
-			if (attr->isNotRequiredNative(sl_false)) { \
-				if (!(attr->nativeWidget.flagDefined)) { \
-					view->setCreatingNativeWidget(sl_false); \
-				} \
+	} else if (op == SAppLayoutOperation::SimulateInit) { \
+		if (attr->isNotRequiredNative(sl_false)) { \
+			if (!(attr->nativeWidget.flagDefined)) { \
+				view->setCreatingNativeWidget(sl_false); \
 			} \
 		} \
 	}
 
 #define LAYOUT_CONTROL_SET_NATIVE_WIDGET_CHECK_BACKGROUND_COLOR \
-	if (op == OP_GENERATE_CPP) { \
+	if (op == SAppLayoutOperation::Generate) { \
 		if (attr->isNotRequiredNative(sl_true)) { \
 			if (!(attr->nativeWidget.flagDefined)) { \
 				LAYOUT_CONTROL_GENERATE(setCreatingNativeWidget, "sl_false") \
 			} \
 		} \
-	} else if (op == OP_SIMULATE) { \
-		if (!flagOnLayout) { \
-			if (attr->isNotRequiredNative(sl_true)) { \
-				if (!(attr->nativeWidget.flagDefined)) { \
-					view->setCreatingNativeWidget(sl_false); \
-				} \
+	} else if (op == SAppLayoutOperation::SimulateInit) { \
+		if (attr->isNotRequiredNative(sl_true)) { \
+			if (!(attr->nativeWidget.flagDefined)) { \
+				view->setCreatingNativeWidget(sl_false); \
 			} \
+		} \
+	}
+
+#define LAYOUT_CONTROL_CHECK_VIEW_NAME(NAME) \
+	if (NAME.isNotEmpty()) { \
+		Ref<SAppLayoutResourceItem> item = resource->itemsByName.getValue(NAME); \
+		if (item.isNull()) { \
+			logError(element, g_str_error_layout_include_not_found, NAME); \
+			return sl_false; \
+		} \
+		if (IsNoView(item->itemType)) { \
+			logError(element, g_str_error_layout_include_not_found, NAME); \
+			return sl_false; \
 		} \
 	}
 
@@ -1711,164 +1793,56 @@ namespace slib
 			LAYOUT_CONTROL_UI_ATTR(DIMENSION, left, setLeft, checkPosition)
 			LAYOUT_CONTROL_UI_ATTR(DIMENSION, top, setTop, checkPosition)
 
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 
 				attr->leftMode = PositionMode::Free;
 				attr->topMode = PositionMode::Free;
 				attr->rightMode = PositionMode::Free;
 				attr->bottomMode = PositionMode::Free;
 
-				SAppAlignLayoutValue alignLeft;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , alignLeft)
-				if (alignLeft.flagDefined) {
-					if (alignLeft.flagAlignParent) {
-						attr->leftMode = PositionMode::ParentEdge;
-					} else {
-						if (!flagRoot && params->resource->itemsByName.find(alignLeft.referingView)) {
-							attr->leftMode = PositionMode::OtherStart;
-							attr->leftReferingView = alignLeft.referingView;
-						} else {
-							LOG_ERROR_LAYOUT_CONTROL_ATTR("alignLeft")
-							return sl_false;
-						}
-					}
+#define LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(NAME, PREFIX, PARENT_POS, OTHER_POS) \
+				SAppAlignLayoutValue NAME; \
+				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , NAME) \
+				if (NAME.flagDefined) { \
+					if (NAME.flagAlignParent) { \
+						attr->PREFIX##Mode = PositionMode::PARENT_POS; \
+					} else { \
+						if (flagRoot) { \
+							LOG_ERROR_LAYOUT_CONTROL_ATTR(#NAME) \
+							return sl_false; \
+						} \
+						attr->PREFIX##Mode = PositionMode::OTHER_POS; \
+						attr->PREFIX##ReferingView = NAME.referingView; \
+					} \
 				}
-				SAppNameValue toRightOf;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , toRightOf)
-				if (toRightOf.flagDefined) {
-					if (!flagRoot && params->resource->itemsByName.find(toRightOf.value)) {
-						attr->leftMode = PositionMode::OtherEnd;
-						attr->leftReferingView = toRightOf.value;
-					} else {
-						LOG_ERROR_LAYOUT_CONTROL_ATTR("toRightOf")
-						return sl_false;
-					}
+
+#define LAYOUT_CONTROL_VIEW_PARSE_NAME(NAME, PREFIX, POS) \
+				SAppNameValue NAME; \
+				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , NAME) \
+				if (NAME.flagDefined) { \
+					if (flagRoot) { \
+						LOG_ERROR_LAYOUT_CONTROL_ATTR(#NAME) \
+						return sl_false; \
+					} \
+					attr->PREFIX##Mode = PositionMode::POS; \
+					attr->PREFIX##ReferingView = NAME.value; \
 				}
-				SAppAlignLayoutValue alignTop;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , alignTop)
-				if (alignTop.flagDefined) {
-					if (alignTop.flagAlignParent) {
-						attr->topMode = PositionMode::ParentEdge;
-					} else {
-						if (!flagRoot && params->resource->itemsByName.find(alignTop.referingView)) {
-							attr->topMode = PositionMode::OtherStart;
-							attr->topReferingView = alignTop.referingView;
-						} else {
-							LOG_ERROR_LAYOUT_CONTROL_ATTR("alignTop")
-							return sl_false;
-						}
-					}
-				}
-				SAppNameValue below;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , below)
-				if (below.flagDefined) {
-					if (!flagRoot && params->resource->itemsByName.find(below.value)) {
-						attr->topMode = PositionMode::OtherEnd;
-						attr->topReferingView = below.value;
-					} else {
-						LOG_ERROR_LAYOUT_CONTROL_ATTR("below")
-						return sl_false;
-					}
-				}
-				SAppAlignLayoutValue alignRight;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , alignRight)
-				if (alignRight.flagDefined) {
-					if (alignRight.flagAlignParent) {
-						attr->rightMode = PositionMode::ParentEdge;
-					} else {
-						if (!flagRoot && params->resource->itemsByName.find(alignRight.referingView)) {
-							attr->rightMode = PositionMode::OtherEnd;
-							attr->rightReferingView = alignRight.referingView;
-						} else {
-							LOG_ERROR_LAYOUT_CONTROL_ATTR("alignRight")
-							return sl_false;
-						}
-					}
-				}
-				SAppNameValue toLeftOf;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , toLeftOf)
-				if (toLeftOf.flagDefined) {
-					if (!flagRoot && params->resource->itemsByName.find(toLeftOf.value)) {
-						attr->rightMode = PositionMode::OtherStart;
-						attr->rightReferingView = toLeftOf.value;
-					} else {
-						LOG_ERROR_LAYOUT_CONTROL_ATTR("toLeftOf")
-						return sl_false;
-					}
-				}
-				SAppAlignLayoutValue alignBottom;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , alignBottom)
-				if (alignBottom.flagDefined) {
-					if (alignBottom.flagAlignParent) {
-						attr->bottomMode = PositionMode::ParentEdge;
-					} else {
-						if (!flagRoot && params->resource->itemsByName.find(alignBottom.referingView)) {
-							attr->bottomMode = PositionMode::OtherEnd;
-							attr->bottomReferingView = alignBottom.referingView;
-						} else {
-							LOG_ERROR_LAYOUT_CONTROL_ATTR("alignBottom")
-							return sl_false;
-						}
-					}
-				}
-				SAppNameValue above;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , above)
-				if (above.flagDefined) {
-					if (!flagRoot && params->resource->itemsByName.find(above.value)) {
-						attr->bottomMode = PositionMode::OtherStart;
-						attr->bottomReferingView = above.value;
-					} else {
-						LOG_ERROR_LAYOUT_CONTROL_ATTR("above")
-						return sl_false;
-					}
-				}
-				SAppAlignLayoutValue centerHorizontal;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , centerHorizontal)
-				if (centerHorizontal.flagDefined) {
-					if (centerHorizontal.flagAlignParent) {
-						attr->leftMode = PositionMode::CenterInParent;
-					} else {
-						if (!flagRoot && params->resource->itemsByName.find(centerHorizontal.referingView)) {
-							attr->leftMode = PositionMode::CenterInOther;
-							attr->leftReferingView = centerHorizontal.referingView;
-						} else {
-							LOG_ERROR_LAYOUT_CONTROL_ATTR("centerHorizontal")
-							return sl_false;
-						}
-					}
-				}
-				SAppAlignLayoutValue centerVertical;
-				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , centerVertical)
-				if (centerVertical.flagDefined) {
-					if (centerVertical.flagAlignParent) {
-						attr->topMode = PositionMode::CenterInParent;
-					} else {
-						if (!flagRoot && params->resource->itemsByName.find(centerVertical.referingView)) {
-							attr->topMode = PositionMode::CenterInOther;
-							attr->topReferingView = centerVertical.referingView;
-						} else {
-							LOG_ERROR_LAYOUT_CONTROL_ATTR("centerVertical")
-							return sl_false;
-						}
-					}
-				}
-				SAppAlignLayoutValue alignCenter;
+
+				LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(alignLeft, left, ParentEdge, OtherStart)
+				LAYOUT_CONTROL_VIEW_PARSE_NAME(toRightOf, left, OtherEnd)
+				LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(alignTop, top, ParentEdge, OtherStart)
+				LAYOUT_CONTROL_VIEW_PARSE_NAME(below, top, OtherEnd)
+				LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(alignRight, right, ParentEdge, OtherEnd)
+				LAYOUT_CONTROL_VIEW_PARSE_NAME(toLeftOf, right, OtherStart)
+				LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(alignBottom, bottom, ParentEdge, OtherEnd)
+				LAYOUT_CONTROL_VIEW_PARSE_NAME(above, bottom, OtherStart)
+				LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(centerHorizontal, left, CenterInParent, CenterInOther)
+				LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(centerVertical, top, CenterInParent, CenterInOther)
+				LAYOUT_CONTROL_VIEW_PARSE_ALIGN_LAYOUT(alignCenter, left, CenterInParent, CenterInOther)
 				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , alignCenter)
 				if (alignCenter.flagDefined) {
-					if (alignCenter.flagAlignParent) {
-						attr->leftMode = PositionMode::CenterInParent;
-						attr->topMode = PositionMode::CenterInParent;
-					} else {
-						if (!flagRoot && params->resource->itemsByName.find(alignCenter.referingView)) {
-							attr->leftMode = PositionMode::CenterInOther;
-							attr->topMode = PositionMode::CenterInOther;
-							attr->leftReferingView = alignCenter.referingView;
-							attr->topReferingView = alignCenter.referingView;
-						} else {
-							LOG_ERROR_LAYOUT_CONTROL_ATTR("alignCenter")
-							return sl_false;
-						}
-					}
+					attr->topMode = attr->leftMode;
+					attr->topReferingView = attr->leftReferingView;
 				}
 
 				if (params->parentResourceItem && resourceItem->itemType != SAppLayoutItemType::Import && params->parentResourceItem->itemType != SAppLayoutItemType::Table) {
@@ -1884,87 +1858,118 @@ namespace slib
 					}
 				}
 
-			} else if (op == OP_GENERATE_CPP) {
+			} else {
+				LAYOUT_CONTROL_CHECK_VIEW_NAME(attr->leftReferingView)
+				LAYOUT_CONTROL_CHECK_VIEW_NAME(attr->topReferingView)
+				LAYOUT_CONTROL_CHECK_VIEW_NAME(attr->rightReferingView)
+				LAYOUT_CONTROL_CHECK_VIEW_NAME(attr->bottomReferingView)
+			}
+			
+			if (op == SAppLayoutOperation::Generate) {
 				if (attr->leftMode == PositionMode::CenterInParent) {
 					LAYOUT_CONTROL_GENERATE(setCenterHorizontal, "slib::UIUpdateMode::Init")
 				} else if (attr->leftMode == PositionMode::CenterInOther) {
-					LAYOUT_CONTROL_GENERATE(setAlignCenterHorizontal, "%s, slib::UIUpdateMode::Init", attr->leftReferingView)
+					LAYOUT_CONTROL_GENERATE_DELAYED(setAlignCenterHorizontal, "%s, slib::UIUpdateMode::Init", attr->leftReferingView)
 				} else {
 					if (attr->leftMode == PositionMode::ParentEdge) {
 						LAYOUT_CONTROL_GENERATE(setAlignParentLeft, "slib::UIUpdateMode::Init")
 					} else if (attr->leftMode == PositionMode::OtherStart) {
-						LAYOUT_CONTROL_GENERATE(setAlignLeft, "%s, slib::UIUpdateMode::Init", attr->leftReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setAlignLeft, "%s, slib::UIUpdateMode::Init", attr->leftReferingView)
 					} else if (attr->leftMode == PositionMode::OtherEnd) {
-						LAYOUT_CONTROL_GENERATE(setRightOf, "%s, slib::UIUpdateMode::Init", attr->leftReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setRightOf, "%s, slib::UIUpdateMode::Init", attr->leftReferingView)
 					}
 					if (attr->rightMode == PositionMode::ParentEdge) {
 						LAYOUT_CONTROL_GENERATE(setAlignParentRight, "slib::UIUpdateMode::Init")
 					} else if (attr->rightMode == PositionMode::OtherStart) {
-						LAYOUT_CONTROL_GENERATE(setLeftOf, "%s, slib::UIUpdateMode::Init", attr->rightReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setLeftOf, "%s, slib::UIUpdateMode::Init", attr->rightReferingView)
 					} else if (attr->rightMode == PositionMode::OtherEnd) {
-						LAYOUT_CONTROL_GENERATE(setAlignRight, "%s, slib::UIUpdateMode::Init", attr->rightReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setAlignRight, "%s, slib::UIUpdateMode::Init", attr->rightReferingView)
 					}
 				}
 				if (attr->topMode == PositionMode::CenterInParent) {
 					LAYOUT_CONTROL_GENERATE(setCenterVertical, "slib::UIUpdateMode::Init")
 				} else if (attr->topMode == PositionMode::CenterInOther) {
-					LAYOUT_CONTROL_GENERATE(setAlignCenterVertical, "%s, slib::UIUpdateMode::Init", attr->topReferingView)
+					LAYOUT_CONTROL_GENERATE_DELAYED(setAlignCenterVertical, "%s, slib::UIUpdateMode::Init", attr->topReferingView)
 				} else {
 					if (attr->topMode == PositionMode::ParentEdge) {
 						LAYOUT_CONTROL_GENERATE(setAlignParentTop, "slib::UIUpdateMode::Init")
 					} else if (attr->topMode == PositionMode::OtherStart) {
-						LAYOUT_CONTROL_GENERATE(setAlignTop, "%s, slib::UIUpdateMode::Init", attr->topReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setAlignTop, "%s, slib::UIUpdateMode::Init", attr->topReferingView)
 					} else if (attr->topMode == PositionMode::OtherEnd) {
-						LAYOUT_CONTROL_GENERATE(setBelow, "%s, slib::UIUpdateMode::Init", attr->topReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setBelow, "%s, slib::UIUpdateMode::Init", attr->topReferingView)
 					}
 					if (attr->bottomMode == PositionMode::ParentEdge) {
 						LAYOUT_CONTROL_GENERATE(setAlignParentBottom, "slib::UIUpdateMode::Init")
 					} else if (attr->bottomMode == PositionMode::OtherStart) {
-						LAYOUT_CONTROL_GENERATE(setAbove, "%s, slib::UIUpdateMode::Init", attr->bottomReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setAbove, "%s, slib::UIUpdateMode::Init", attr->bottomReferingView)
 					} else if (attr->bottomMode == PositionMode::OtherEnd) {
-						LAYOUT_CONTROL_GENERATE(setAlignBottom, "%s, slib::UIUpdateMode::Init", attr->bottomReferingView)
+						LAYOUT_CONTROL_GENERATE_DELAYED(setAlignBottom, "%s, slib::UIUpdateMode::Init", attr->bottomReferingView)
 					}
 				}
-			} else if (op == OP_SIMULATE) {
-				if (!flagOnLayout) {
-					if (attr->leftMode == PositionMode::CenterInParent) {
+			} else if (IsSimulateOp(op)) {
+				if (attr->leftMode == PositionMode::CenterInParent) {
+					if (op == SAppLayoutOperation::SimulateInit) {
 						view->setCenterHorizontal(UIUpdateMode::Init);
-					} else if (attr->leftMode == PositionMode::CenterInOther) {
-						view->setAlignCenterHorizontal(params->simulator->getViewByName(attr->leftReferingView), UIUpdateMode::Init);
-					} else {
-						if (attr->leftMode == PositionMode::ParentEdge) {
+					}
+				} else if (attr->leftMode == PositionMode::CenterInOther) {
+					if (op == SAppLayoutOperation::SimulateLayout) {
+						view->setAlignCenterHorizontal(CastRef<View>(params->simulator->getViewItemByName(attr->leftReferingView)), UIUpdateMode::Init);
+					}
+				} else {
+					if (attr->leftMode == PositionMode::ParentEdge) {
+						if (op == SAppLayoutOperation::SimulateInit) {
 							view->setAlignParentLeft(UIUpdateMode::Init);
-						} else if (attr->leftMode == PositionMode::OtherStart) {
-							view->setAlignLeft(params->simulator->getViewByName(attr->leftReferingView), UIUpdateMode::Init);
-						} else if (attr->leftMode == PositionMode::OtherEnd) {
-							view->setRightOf(params->simulator->getViewByName(attr->leftReferingView), UIUpdateMode::Init);
 						}
-						if (attr->rightMode == PositionMode::ParentEdge) {
-							view->setAlignParentRight(UIUpdateMode::Init);
-						} else if (attr->rightMode == PositionMode::OtherStart) {
-							view->setLeftOf(params->simulator->getViewByName(attr->rightReferingView), UIUpdateMode::Init);
-						} else if (attr->rightMode == PositionMode::OtherEnd) {
-							view->setAlignRight(params->simulator->getViewByName(attr->rightReferingView), UIUpdateMode::Init);
+					} else if (attr->leftMode == PositionMode::OtherStart) {
+						if (op == SAppLayoutOperation::SimulateLayout) {
+							view->setAlignLeft(CastRef<View>(params->simulator->getViewItemByName(attr->leftReferingView)), UIUpdateMode::Init);
+						}
+					} else if (attr->leftMode == PositionMode::OtherEnd) {
+						if (op == SAppLayoutOperation::SimulateLayout) {
+							view->setRightOf(CastRef<View>(params->simulator->getViewItemByName(attr->leftReferingView)), UIUpdateMode::Init);
 						}
 					}
-					if (attr->topMode == PositionMode::CenterInParent) {
-						view->setCenterVertical(UIUpdateMode::Init);
-					} else if (attr->topMode == PositionMode::CenterInOther) {
-						view->setAlignCenterVertical(params->simulator->getViewByName(attr->topReferingView), UIUpdateMode::Init);
-					} else {
-						if (attr->topMode == PositionMode::ParentEdge) {
-							view->setAlignParentTop(UIUpdateMode::Init);
-						} else if (attr->topMode == PositionMode::OtherStart) {
-							view->setAlignTop(params->simulator->getViewByName(attr->topReferingView), UIUpdateMode::Init);
-						} else if (attr->topMode == PositionMode::OtherEnd) {
-							view->setBelow(params->simulator->getViewByName(attr->topReferingView), UIUpdateMode::Init);
+					if (attr->rightMode == PositionMode::ParentEdge) {
+						if (op == SAppLayoutOperation::SimulateInit) {
+							view->setAlignParentRight(UIUpdateMode::Init);
 						}
-						if (attr->bottomMode == PositionMode::ParentEdge) {
+					} else if (attr->rightMode == PositionMode::OtherStart) {
+						if (op == SAppLayoutOperation::SimulateLayout) {
+							view->setLeftOf(CastRef<View>(params->simulator->getViewItemByName(attr->rightReferingView)), UIUpdateMode::Init);
+						}
+					} else if (attr->rightMode == PositionMode::OtherEnd) {
+						if (op == SAppLayoutOperation::SimulateLayout) {
+							view->setAlignRight(CastRef<View>(params->simulator->getViewItemByName(attr->rightReferingView)), UIUpdateMode::Init);
+						}
+					}
+				}
+				if (attr->topMode == PositionMode::CenterInParent) {
+					if (op == SAppLayoutOperation::SimulateInit) {
+						view->setCenterVertical(UIUpdateMode::Init);
+					}
+				} else if (attr->topMode == PositionMode::CenterInOther) {
+					view->setAlignCenterVertical(CastRef<View>(params->simulator->getViewItemByName(attr->topReferingView)), UIUpdateMode::Init);
+				} else {
+					if (attr->topMode == PositionMode::ParentEdge) {
+						if (op == SAppLayoutOperation::SimulateInit) {
+							view->setAlignParentTop(UIUpdateMode::Init);
+						}
+					} else if (attr->topMode == PositionMode::OtherStart) {
+						view->setAlignTop(CastRef<View>(params->simulator->getViewItemByName(attr->topReferingView)), UIUpdateMode::Init);
+					} else if (attr->topMode == PositionMode::OtherEnd) {
+						view->setBelow(CastRef<View>(params->simulator->getViewItemByName(attr->topReferingView)), UIUpdateMode::Init);
+					}
+					if (attr->bottomMode == PositionMode::ParentEdge) {
+						if (op == SAppLayoutOperation::SimulateInit) {
 							view->setAlignParentBottom(UIUpdateMode::Init);
-						} else if (attr->bottomMode == PositionMode::OtherStart) {
-							view->setAbove(params->simulator->getViewByName(attr->bottomReferingView), UIUpdateMode::Init);
-						} else if (attr->bottomMode == PositionMode::OtherEnd) {
-							view->setAlignBottom(params->simulator->getViewByName(attr->bottomReferingView), UIUpdateMode::Init);
+						}
+					} else if (attr->bottomMode == PositionMode::OtherStart) {
+						if (op == SAppLayoutOperation::SimulateLayout) {
+							view->setAbove(CastRef<View>(params->simulator->getViewItemByName(attr->bottomReferingView)), UIUpdateMode::Init);
+						}
+					} else if (attr->bottomMode == PositionMode::OtherEnd) {
+						if (op == SAppLayoutOperation::SimulateLayout) {
+							view->setAlignBottom(CastRef<View>(params->simulator->getViewItemByName(attr->bottomReferingView)), UIUpdateMode::Init);
 						}
 					}
 				}
@@ -1977,7 +1982,7 @@ namespace slib
 
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, aspectRatio, setAspectRatio)
 
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				if (!flagRoot || resource->layoutType == SAppLayoutType::View) {
 					if (!(attr->width.flagDefined) && attr->leftMode != PositionMode::Free && attr->rightMode != PositionMode::Free) {
 						attr->width.flagDefined = sl_true;
@@ -2011,7 +2016,7 @@ namespace slib
 					}
 				}
 			}
-			if (op == OP_GENERATE_CPP) {
+			if (op == SAppLayoutOperation::Generate) {
 				if (attr->aspectRatio.flagDefined) {
 					if (attr->width.flagDefined) {
 						if (!(attr->height.flagDefined)) {
@@ -2023,17 +2028,15 @@ namespace slib
 						}
 					}
 				}
-			} else if (op == OP_SIMULATE) {
+			} else if (op == SAppLayoutOperation::SimulateInit) {
 				if (attr->aspectRatio.flagDefined) {
-					if (!flagOnLayout) {
-						if (attr->width.flagDefined) {
-							if (!(attr->height.flagDefined)) {
-								view->setAspectRatioMode(AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);
-							}
-						} else {
-							if (attr->height.flagDefined) {
-								view->setAspectRatioMode(AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init);
-							}
+					if (attr->width.flagDefined) {
+						if (!(attr->height.flagDefined)) {
+							view->setAspectRatioMode(AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);
+						}
+					} else {
+						if (attr->height.flagDefined) {
+							view->setAspectRatioMode(AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init);
 						}
 					}
 				}
@@ -2043,7 +2046,7 @@ namespace slib
 			LAYOUT_CONTROL_UI_ATTR(MARGIN, marginTop, setMarginTop)
 			LAYOUT_CONTROL_UI_ATTR(MARGIN, marginRight, setMarginRight)
 			LAYOUT_CONTROL_UI_ATTR(MARGIN, marginBottom, setMarginBottom)
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				SAppDimensionValue margin;
 				LAYOUT_CONTROL_PARSE_ATTR(MARGIN, , margin)
 				if (margin.flagDefined) {
@@ -2067,7 +2070,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(MARGIN, paddingTop, setPaddingTop)
 		LAYOUT_CONTROL_UI_ATTR(MARGIN, paddingRight, setPaddingRight)
 		LAYOUT_CONTROL_UI_ATTR(MARGIN, paddingBottom, setPaddingBottom)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue padding;
 			LAYOUT_CONTROL_PARSE_ATTR(MARGIN, , padding)
 			if (padding.flagDefined) {
@@ -2092,15 +2095,15 @@ namespace slib
 
 		if (flagView) {
 			SAppBooleanValue& border = attr->nativeBorder;
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				LAYOUT_CONTROL_PARSE_ATTR(GENERIC, , border)
-			} else if (op == OP_GENERATE_CPP) {
+			} else if (op == SAppLayoutOperation::Generate) {
 				LAYOUT_CONTROL_GENERATE_UI_ATTR(GENERIC, border, setBorder)
-			} else if (op == OP_SIMULATE) {
+			} else if (IsSimulateOp(op)) {
 				LAYOUT_CONTROL_SIMULATE_UI_ATTR(GENERIC, border, setBorder)
 			}
 			LAYOUT_CONTROL_STATE_MAP(BORDER, border, setBorder)
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				SAppBorderValue::normalizeStateMap(attr->border);
 			}
 		}
@@ -2117,9 +2120,11 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, contentShape, setContentShape)
 
 		LAYOUT_CONTROL_UI_ATTR(FONT, font, setFont)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			if (params->parentResourceItem) {
-				attr->font.inheritFrom(params->parentResourceItem->attrs->font);
+				if (!(IsNoView(params->parentResourceItem->itemType))) {
+					attr->font.inheritFrom(((SAppLayoutViewAttributes*)(params->parentResourceItem->attrs.get()))->font);
+				}
 			}
 		}
 
@@ -2137,7 +2142,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, shadowOffsetY, setShadowOffsetY, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(COLOR, shadowColor, setShadowColor)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->, scrolling)
 			if (!(attr->scrolling.flagDefined)) {
 				if (resourceItem->itemTypeName == "hscroll") {
@@ -2150,13 +2155,13 @@ namespace slib
 					attr->scrolling.vertical = sl_true;
 				}
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->scrolling.flagDefined) {
 				LAYOUT_CONTROL_GENERATE(setHorizontalScrolling, "%s, slib::UIUpdateMode::Init", attr->scrolling.horizontal?"sl_true":"sl_false")
 				LAYOUT_CONTROL_GENERATE(setVerticalScrolling, "%s, slib::UIUpdateMode::Init", attr->scrolling.vertical?"sl_true":"sl_false")
 			}
-		} else if (op == OP_SIMULATE) {
-			if (!flagOnLayout && attr->scrolling.flagDefined) {
+		} else if (op == SAppLayoutOperation::SimulateInit) {
+			if (attr->scrolling.flagDefined) {
 				view->setHorizontalScrolling(attr->scrolling.horizontal?sl_true:sl_false, UIUpdateMode::Init);
 				view->setVerticalScrolling(attr->scrolling.vertical?sl_true:sl_false, UIUpdateMode::Init);
 			}
@@ -2169,14 +2174,14 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(DIMENSION, pageWidth, setPageWidth, checkScalarSize)
 		LAYOUT_CONTROL_ATTR(DIMENSION, pageHeight, setPageHeight, checkScalarSize)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_PARSE_ATTR(GENERIC, attr->, scrollBars)
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->scrollBars.flagDefined) {
 				LAYOUT_CONTROL_GENERATE(setScrollBarsVisible, "%s, %s, slib::UIUpdateMode::Init", attr->scrollBars.horizontalScrollBar ? "sl_true" : "sl_false", attr->scrollBars.verticalScrollBar ? "sl_true" : "sl_false")
 			}
-		} else if (op == OP_SIMULATE) {
-			if (!flagOnLayout && attr->scrollBars.flagDefined) {
+		} else if (op == SAppLayoutOperation::SimulateInit) {
+			if (attr->scrollBars.flagDefined) {
 				view->setScrollBarsVisible(attr->scrollBars.horizontalScrollBar, attr->scrollBars.verticalScrollBar, UIUpdateMode::Init);
 			}
 		}
@@ -2184,7 +2189,7 @@ namespace slib
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, hscrollTrack, setHorizontalScrollTrack)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, vscrollThumb, setVerticalScrollThumb)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, vscrollTrack, setVerticalScrollTrack)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppStateMap<SAppDrawableValue> scrollThumb;
 			LAYOUT_CONTROL_PARSE_STATE_MAP_ATTR(DRAWABLE, , scrollThumb)
 			attr->hscrollThumb.mergeDefault(scrollThumb);
@@ -2210,23 +2215,29 @@ namespace slib
 			LAYOUT_CONTROL_ATTR(GENERIC, cursor, setCursor)
 			LAYOUT_CONTROL_ATTR(STRING, toolTip, setToolTip)
 		}
+
+#define LAYOUT_CONTROL_VIEW_TAB_STOP(NAME, SETTER) \
+		if (op == SAppLayoutOperation::Parse) { \
+			attr->NAME = resourceItem->getXmlAttribute(#NAME); \
+		} else if (op == SAppLayoutOperation::Generate) { \
+			if (attr->NAME.isNotEmpty()) { \
+				LAYOUT_CONTROL_CHECK_VIEW_NAME(attr->NAME) \
+				LAYOUT_CONTROL_GENERATE_DELAYED(SETTER, "%s", attr->NAME) \
+			} \
+		} else if (op == SAppLayoutOperation::SimulateLayout) { \
+			if (attr->NAME.isNotEmpty()) { \
+				Ref<View> refer = CastRef<View>(params->simulator->getViewItemByName(attr->NAME)); \
+				if (refer.isNull()) { \
+					logError(element, g_str_error_resource_layout_failed_load_reference_view, attr->NAME); \
+					return sl_false; \
+				} \
+				view->SETTER(refer); \
+			} \
+		}
+
 		if (!flagRoot) {
-			if (op == OP_PARSE) {
-				attr->nextTabStop = resourceItem->getXmlAttribute("nextTabStop");
-				attr->previousTabStop = resourceItem->getXmlAttribute("previousTabStop");
-			} else if (op == OP_GENERATE_CPP) {
-				if (params->resource->itemsByName.find(attr->nextTabStop)) {
-					LAYOUT_CONTROL_GENERATE(setNextTabStop, "%s", attr->nextTabStop)
-				}
-				if (params->resource->itemsByName.find(attr->previousTabStop)) {
-					LAYOUT_CONTROL_GENERATE(setPreviousTabStop, "%s", attr->previousTabStop)
-				}
-			} else if (op == OP_SIMULATE) {
-				if (!flagOnLayout) {
-					view->setNextTabStop(params->simulator->getViewByName(attr->nextTabStop));
-					view->setPreviousTabStop(params->simulator->getViewByName(attr->previousTabStop));
-				}
-			}
+			LAYOUT_CONTROL_VIEW_TAB_STOP(nextTabStop, setNextTabStop)
+			LAYOUT_CONTROL_VIEW_TAB_STOP(previousTabStop, setPreviousTabStop)
 		}
 
 		if (flagView) {
@@ -2234,12 +2245,10 @@ namespace slib
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, visible, setVisible)
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, enabled, setEnabled)
 			LAYOUT_CONTROL_UI_ATTR(GENERIC, clipping, setClipping)
-			if (op == OP_SIMULATE) {
+			if (op == SAppLayoutOperation::SimulateLayout) {
 				if (attr->clipping.flagDefined) {
 					if (attr->boundShape.flagDefined || attr->boundRadius.flagDefined || attr->boundRadiusX.flagDefined || attr->boundRadiusY.flagDefined) {
-						if (flagOnLayout) {
-							view->setClipping(attr->clipping.value, UIUpdateMode::None);
-						}
+						view->setClipping(attr->clipping.value, UIUpdateMode::None);
 					}
 				}
 			}
@@ -2306,7 +2315,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, marginTop, setMarginTop, checkForWindow)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, marginRight, setMarginRight, checkForWindow)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, marginBottom, setMarginBottom, checkForWindow)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue margin;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , margin, checkForWindow)
 			if (margin.flagDefined) {
@@ -2329,10 +2338,10 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(STRING, title, setTitle)
 		LAYOUT_CONTROL_ATTR(DIMENSION, left, setLeft, checkForWindow)
 		LAYOUT_CONTROL_ATTR(DIMENSION, top, setTop, checkForWindow)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, attr->, width, checkForWindowSize)
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, attr->, height, checkForWindowSize)
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->width.flagDefined) {
 				if (attr->width.unit == SAppDimensionValue::WRAP) {
 					LAYOUT_CONTROL_GENERATE(setWidthWrapping, "sl_true, slib::UIUpdateMode::Init")
@@ -2351,25 +2360,23 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE_ATTR(DIMENSION, attr->height, setClientHeight)
 				}
 			}
-		} else if (op == OP_SIMULATE) {
-			if (!flagOnLayout) {
-				if (attr->width.flagDefined) {
-					if (attr->width.unit == SAppDimensionValue::WRAP) {
-						view->setWidthWrapping(sl_true, UIUpdateMode::Init);
-					} else if (attr->width.unit == SAppDimensionValue::FILL) {
-						view->setWidthFilling(sl_true, UIUpdateMode::Init);
-					} else {
-						LAYOUT_CONTROL_SIMULATE_ATTR(DIMENSION, attr->width, setClientWidth)
-					}
+		} else if (op == SAppLayoutOperation::SimulateInit) {
+			if (attr->width.flagDefined) {
+				if (attr->width.unit == SAppDimensionValue::WRAP) {
+					view->setWidthWrapping(sl_true, UIUpdateMode::Init);
+				} else if (attr->width.unit == SAppDimensionValue::FILL) {
+					view->setWidthFilling(sl_true, UIUpdateMode::Init);
+				} else {
+					LAYOUT_CONTROL_SIMULATE_ATTR(DIMENSION, attr->width, setClientWidth)
 				}
-				if (attr->height.flagDefined) {
-					if (attr->height.unit == SAppDimensionValue::WRAP) {
-						view->setHeightWrapping(sl_true, UIUpdateMode::Init);
-					} else if (attr->height.unit == SAppDimensionValue::FILL) {
-						view->setHeightFilling(sl_true, UIUpdateMode::Init);
-					} else {
-						LAYOUT_CONTROL_SIMULATE_ATTR(DIMENSION, attr->height, setClientHeight)
-					}
+			}
+			if (attr->height.flagDefined) {
+				if (attr->height.unit == SAppDimensionValue::WRAP) {
+					view->setHeightWrapping(sl_true, UIUpdateMode::Init);
+				} else if (attr->height.unit == SAppDimensionValue::FILL) {
+					view->setHeightFilling(sl_true, UIUpdateMode::Init);
+				} else {
+					LAYOUT_CONTROL_SIMULATE_ATTR(DIMENSION, attr->height, setClientHeight)
 				}
 			}
 		}
@@ -2380,7 +2387,7 @@ namespace slib
 			return sl_false;
 		}
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			if (!(attr->backgroundColor.flagDefined)) {
 				SAppDrawableValue background;
 				if (attr->background.values.get_NoLock(ViewState::Default, &background)) {
@@ -2403,7 +2410,7 @@ namespace slib
 			return sl_false;
 		}
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			if (!(attr->width.flagDefined)) {
 				attr->width.flagDefined = sl_true;
 				attr->width.amount = 1;
@@ -2429,7 +2436,7 @@ namespace slib
 
 	BEGIN_PROCESS_LAYOUT_CONTROL(Import, SAppLayoutImportView)
 	{
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			attr->layout = resourceItem->getXmlAttribute("layout");
 			if (attr->layout.isEmpty()) {
 				LOG_ERROR_LAYOUT_CONTROL_ATTR("layout")
@@ -2439,7 +2446,7 @@ namespace slib
 		} else {
 			_openLayoutResource(resource, attr->layout);
 		}
-		if (op == OP_GENERATE_CPP) {
+		if (op == SAppLayoutOperation::Generate) {
 			Ref<SAppLayoutResource> layoutImport;
 			m_layouts.get(attr->layout, &layoutImport);
 			if (layoutImport.isNull()) {
@@ -2450,7 +2457,7 @@ namespace slib
 				logError(element, g_str_error_layout_is_not_view, attr->layout);
 				return sl_false;
 			}
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			Ref<SAppLayoutResource> layoutImport;
 			m_layouts.get(attr->layout, &layoutImport);
 			if (layoutImport.isNull()) {
@@ -2461,14 +2468,14 @@ namespace slib
 				logError(element, g_str_error_layout_is_not_view, attr->layout);
 				return sl_false;
 			}
-			if (!flagOnLayout) {
+			if (op == SAppLayoutOperation::SimulateInit) {
 				Ref<SAppLayoutImportView> _view = new SAppLayoutImportView;
 				if (_view.isNotNull()) {
 					_view->initialize(params->simulator, layoutImport.get());
 				} else {
 					return sl_false;
 				}
-				params->view = _view;
+				params->viewItem = _view;
 				view = _view.get();
 			} else {
 				if (!view) {
@@ -2481,10 +2488,8 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
-		if (op == OP_SIMULATE) {
-			if (flagOnLayout) {
-				view->layoutViews(view->getWidth(), view->getHeight());
-			}
+		if (op == SAppLayoutOperation::SimulateLayout) {
+			view->layoutViews(view->getWidth(), view->getHeight());
 		}
 
 	}
@@ -2505,7 +2510,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, defaultButton, setDefaultButton)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue iconSize;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , iconSize, checkScalarSize)
 			if (iconSize.flagDefined) {
@@ -2527,7 +2532,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginTop, setIconMarginTop, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginRight, setIconMarginRight, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconMarginBottom, setIconMarginBottom, checkPosition)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue iconMargin;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , iconMargin, checkPosition)
 			if (iconMargin.flagDefined) {
@@ -2550,7 +2555,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, textMarginTop, setTextMarginTop, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, textMarginRight, setTextMarginRight, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, textMarginBottom, setTextMarginBottom, checkPosition)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue textMargin;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , textMargin, checkPosition)
 			if (textMargin.flagDefined) {
@@ -2576,11 +2581,11 @@ namespace slib
 		LAYOUT_CONTROL_STATE_MAP(COLOR, colorOverlay, setColorOverlay)
 
 #define LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(TYPE, NAME, SETFUNC, ...) \
-		if (op == OP_PARSE) { \
+		if (op == SAppLayoutOperation::Parse) { \
 			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME, +suffix, category.NAME, ##__VA_ARGS__) \
-		} else if (op == OP_GENERATE_CPP) { \
+		} else if (op == SAppLayoutOperation::Generate) { \
 			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, category.NAME, SETFUNC, CONTROL, "%d, %s", i, value) \
-		} else if (op == OP_SIMULATE) { \
+		} else if (IsSimulateOp(op)) { \
 			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, category.NAME, SETFUNC, CONTROL, (sl_uint32)i, value) \
 		}
 
@@ -2591,7 +2596,7 @@ namespace slib
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(DRAWABLE, icon, setIcon)
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(DRAWABLE, background, setBackground)
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(BORDER, border, setBorder)
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				SAppBorderValue::normalizeStateMap(category.border);
 			}
 			LAYOUT_CONTRL_BUTTON_CATEGORY_ATTR(COLOR, colorOverlay, setColorOverlay)
@@ -2619,9 +2624,9 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(COLOR, linkColor, setLinkColor)
 		LAYOUT_CONTROL_ATTR(GENERIC, mnemonic, setMnemonic)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			if (!(attr->text.flagDefined) && !(attr->hyperText.flagDefined)) {
-				resourceItem->flagNoChildren = sl_true;
+				resourceItem->flagSkipParseChildren = sl_true;
 				String value = String::create(params->source.substring(element->getStartContentPositionInSource(), element->getEndContentPositionInSource()));
 				if (value.isNotEmpty()) {
 					attr->hyperText.flagDefined = sl_true;
@@ -2640,7 +2645,7 @@ namespace slib
 	{
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				if (resourceItem->itemTypeName == "hline") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Horizontal;
@@ -2680,7 +2685,7 @@ namespace slib
 
 		LAYOUT_CONTROL_ATTR(STRING, value, setValue)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			attr->group = resourceItem->getXmlAttribute("group");
 			if (attr->group.isNotEmpty()) {
 				if (!(SAppUtil::checkName(attr->group.getData(), attr->group.getLength()))) {
@@ -2693,17 +2698,15 @@ namespace slib
 				}
 				params->resource->radioGroups.put(attr->group, sl_true);
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->group.isNotEmpty()) {
 				params->sbDefineInit->add(String::format("%s%s->add(%s);%n", strTab, attr->group, name));
 			}
-		} else if (op == OP_SIMULATE) {
-			if (!flagOnLayout) {
-				if (attr->group.isNotEmpty()) {
-					Ref<RadioGroup> group = params->simulator->getRadioGroup(attr->group);
-					if (group.isNotNull()) {
-						group->add(view);
-					}
+		} else if (op == SAppLayoutOperation::SimulateInit) {
+			if (attr->group.isNotEmpty()) {
+				Ref<RadioGroup> group = params->simulator->getRadioGroup(attr->group);
+				if (group.isNotNull()) {
+					group->add(view);
 				}
 			}
 		}
@@ -2721,7 +2724,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, hintGravity, setHintGravity) \
 		LAYOUT_CONTROL_UI_ATTR(COLOR, hintTextColor, setHintTextColor) \
 		LAYOUT_CONTROL_UI_ATTR(FONT, hintFont, setHintFont) \
-		if (op == OP_PARSE) { \
+		if (op == SAppLayoutOperation::Parse) { \
 			if (attr->hintFont.flagDefined) { \
 				attr->hintFont.inheritFrom(attr->font); \
 			} \
@@ -2773,7 +2776,7 @@ namespace slib
 		LAYOUT_CONTROL_ATTR(GENERIC, minAspectRatio, setMinimumAutoAspectRatio)
 		LAYOUT_CONTROL_ATTR(GENERIC, maxAspectRatio, setMaximumAutoAspectRatio)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			if (!(attr->width.flagDefined) && !(attr->height.flagDefined)) {
 				if (attr->aspectRatio.flagDefined) {
 					attr->width.flagDefined = sl_true;
@@ -2790,7 +2793,7 @@ namespace slib
 			}
 		}
 		if (!(attr->aspectRatio.flagDefined)) {
-			if (op == OP_GENERATE_CPP) {
+			if (op == SAppLayoutOperation::Generate) {
 				if (attr->width.flagDefined) {
 					if (!(attr->height.flagDefined)) {
 						LAYOUT_CONTROL_GENERATE(setAutoAspectRatio, "sl_true")
@@ -2802,18 +2805,16 @@ namespace slib
 						LAYOUT_CONTROL_GENERATE(setAspectRatioMode, "slib::AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init")
 					}
 				}
-			} else if (op == OP_SIMULATE) {
-				if (!flagOnLayout) {
-					if (attr->width.flagDefined) {
-						if (!(attr->height.flagDefined)) {
-							view->setAutoAspectRatio(sl_true);
-							view->setAspectRatioMode(AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);
-						}
-					} else {
-						if (attr->height.flagDefined) {
-							view->setAutoAspectRatio(sl_true);
-							view->setAspectRatioMode(AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init);
-						}
+			} else if (op == SAppLayoutOperation::SimulateInit) {
+				if (attr->width.flagDefined) {
+					if (!(attr->height.flagDefined)) {
+						view->setAutoAspectRatio(sl_true);
+						view->setAspectRatioMode(AspectRatioMode::AdjustHeight, slib::UIUpdateMode::Init);
+					}
+				} else {
+					if (attr->height.flagDefined) {
+						view->setAutoAspectRatio(sl_true);
+						view->setAspectRatioMode(AspectRatioMode::AdjustWidth, slib::UIUpdateMode::Init);
 					}
 				}
 			}
@@ -2827,7 +2828,7 @@ namespace slib
 	END_PROCESS_LAYOUT_CONTROL
 
 #define LAYOUT_CONTROL_PROCESS_SELECT_ITEMS \
-		if (op == OP_PARSE) { \
+		if (op == SAppLayoutOperation::Parse) { \
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(itemXmls, "item") \
 			for (sl_size i = 0; i < itemXmls.count; i++) { \
 				LAYOUT_CONTROL_DEFINE_XML(itemXml, itemXmls[i]) \
@@ -2849,7 +2850,7 @@ namespace slib
 					return sl_false; \
 				} \
 			} \
-		} else if (op == OP_GENERATE_CPP) { \
+		} else if (op == SAppLayoutOperation::Generate) { \
 			ListElements<SAppLayoutSelectItem> selectItems(attr->items); \
 			if (selectItems.count > 0) { \
 				sl_size i; \
@@ -2872,29 +2873,27 @@ namespace slib
 					} \
 				} \
 			} \
-		} else if (op == OP_SIMULATE) { \
-			if (!flagOnLayout) { \
-				ListElements<SAppLayoutSelectItem> selectItems(attr->items); \
-				if (selectItems.count > 0) { \
-					sl_uint32 n = (sl_uint32)(selectItems.count); \
-					sl_uint32 i; \
-					for (i = 0; i < n; i++) { \
-						SAppLayoutSelectItem& selectItem = selectItems[i]; \
-						String selectedItemTitle; \
-						if (!(_getStringValue(resource->name, selectItem.title, selectedItemTitle))) { \
-							return sl_false; \
-						} \
-						String selectedItemValue; \
-						if (!(_getStringValue(resource->name, selectItem.value, selectedItemValue))) { \
-							return sl_false; \
-						} \
-						view->addItem(selectedItemValue, selectedItemTitle, UIUpdateMode::Init); \
+		} else if (op == SAppLayoutOperation::SimulateInit) { \
+			ListElements<SAppLayoutSelectItem> selectItems(attr->items); \
+			if (selectItems.count > 0) { \
+				sl_uint32 n = (sl_uint32)(selectItems.count); \
+				sl_uint32 i; \
+				for (i = 0; i < n; i++) { \
+					SAppLayoutSelectItem& selectItem = selectItems[i]; \
+					String selectedItemTitle; \
+					if (!(_getStringValue(resource->name, selectItem.title, selectedItemTitle))) { \
+						return sl_false; \
 					} \
-					for (i = 0; i < n; i++) { \
-						SAppLayoutSelectItem& selectItem = selectItems[i]; \
-						if (selectItem.selected.flagDefined && selectItem.selected.value) { \
-							view->selectItem(i, UIUpdateMode::Init); \
-						} \
+					String selectedItemValue; \
+					if (!(_getStringValue(resource->name, selectItem.value, selectedItemValue))) { \
+						return sl_false; \
+					} \
+					view->addItem(selectedItemValue, selectedItemTitle, UIUpdateMode::Init); \
+				} \
+				for (i = 0; i < n; i++) { \
+					SAppLayoutSelectItem& selectItem = selectItems[i]; \
+					if (selectItem.selected.flagDefined && selectItem.selected.value) { \
+						view->selectItem(i, UIUpdateMode::Init); \
 					} \
 				} \
 			} \
@@ -2928,7 +2927,7 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue iconSize;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , iconSize, checkScalarSize)
 			if (iconSize.flagDefined) {
@@ -2970,7 +2969,7 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(childXmls, sl_null)
 			if (childXmls.count > 0) {
 				if (childXmls.count != 1) {
@@ -2981,28 +2980,32 @@ namespace slib
 				if (contentItem.isNull()) {
 					return sl_false;
 				}
+				if (IsNoView(contentItem->itemType)) {
+					return sl_false;
+				}
+				SAppLayoutViewAttributes* contentAttrs = (SAppLayoutViewAttributes*)(contentItem->attrs.get());
 				if (!(attr->scrolling.flagDefined) || attr->scrolling.vertical) {
-					contentItem->attrs->topMode = PositionMode::Free;
-					contentItem->attrs->bottomMode = PositionMode::Free;
+					contentAttrs->topMode = PositionMode::Free;
+					contentAttrs->bottomMode = PositionMode::Free;
 				}
 				if (!(attr->scrolling.flagDefined) || attr->scrolling.horizontal) {
-					contentItem->attrs->leftMode = PositionMode::Free;
-					contentItem->attrs->rightMode = PositionMode::Free;
+					contentAttrs->leftMode = PositionMode::Free;
+					contentAttrs->rightMode = PositionMode::Free;
 				}
 				attr->content = contentItem;
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			if (attr->content.isNotNull()) {
 				String addChildStatement = String::format("%s%s->setContentView(%s, slib::UIUpdateMode::Init);%n%n", strTab, name, attr->content->name);
-				if (!(_generateLayoutsCpp_Item(params->resource, attr->content.get(), resourceItem, *(params->sbDeclare), *(params->sbDefineInit), *(params->sbDefineLayout), addChildStatement))) {
+				if (!(_generateLayoutsCpp_Item(params->resource, attr->content.get(), resourceItem, params, addChildStatement))) {
 					return sl_false;
 				}
 			}
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			if (attr->content.isNotNull()) {
-				Ref<View> contentView = _simulateLayoutCreateOrLayoutView(params->simulator, attr->content.get(), resourceItem, view, flagOnLayout);
+				Ref<View> contentView = CastRef<View>(_simulateLayoutCreateOrLayoutItem(params->simulator, attr->content.get(), resourceItem, view, op));
 				if (contentView.isNotNull()) {
-					if (!flagOnLayout) {
+					if (op == SAppLayoutOperation::SimulateInit) {
 						view->setContentView(contentView, UIUpdateMode::Init);
 					}
 				} else {
@@ -3011,6 +3014,10 @@ namespace slib
 			}
 		}
 
+		resourceItem->flagSkipParseChildren = sl_true;
+		resourceItem->flagSkipGenerateChildren = sl_true;
+		resourceItem->flagSkipSimulateChildren = sl_true;
+
 	}
 	END_PROCESS_LAYOUT_CONTROL
 
@@ -3018,7 +3025,7 @@ namespace slib
 	{
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				if (resourceItem->itemTypeName == "hlinear") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Horizontal;
@@ -3073,13 +3080,11 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			attr->itemLayout = resourceItem->getXmlAttribute("item");
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			_openLayoutResource(resource, attr->itemLayout);
-
 			if (attr->itemLayout.isNotEmpty() && !(view->getProperty("setAdapter").getBoolean())) {
-
 				Ref<SAppLayoutResource> layoutItem;
 				m_layouts.get(attr->itemLayout, &layoutItem);
 				if (layoutItem.isNull()) {
@@ -3090,12 +3095,10 @@ namespace slib
 					logError(element, g_str_error_layout_is_not_view, attr->itemLayout);
 					return sl_false;
 				}
-
 				Ref<SimuationListViewAdapter> adapter = new SimuationListViewAdapter;
 				adapter->refer = params->simulator->getRef();
 				adapter->simulator = params->simulator;
 				adapter->layout = layoutItem;
-
 				view->setAdapter(adapter);
 				view->setProperty("setAdapter", sl_true);
 			}
@@ -3110,13 +3113,11 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			attr->itemLayout = resourceItem->getXmlAttribute("item");
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			_openLayoutResource(resource, attr->itemLayout);
-
 			if (attr->itemLayout.isNotEmpty() && !(view->getProperty("setAdapter").getBoolean())) {
-
 				Ref<SAppLayoutResource> layoutItem;
 				m_layouts.get(attr->itemLayout, &layoutItem);
 				if (layoutItem.isNull()) {
@@ -3127,12 +3128,10 @@ namespace slib
 					logError(element, g_str_error_layout_is_not_view, attr->itemLayout);
 					return sl_false;
 				}
-
 				Ref<SimuationListViewAdapter> adapter = new SimuationListViewAdapter;
 				adapter->refer = params->simulator->getRef();
 				adapter->simulator = params->simulator;
 				adapter->layout = layoutItem;
-
 				view->setAdapter(adapter);
 				view->setProperty("setAdapter", sl_true);
 			}
@@ -3148,7 +3147,7 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			{
 				LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(columnXmls, "column")
 				for (sl_size i = 0; i < columnXmls.count; i++) {
@@ -3236,7 +3235,7 @@ namespace slib
 					}
 				}
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutTableColumn> cols(attr->columns);
 			ListElements<SAppLayoutTableRow> rows(attr->rows);
 			sl_uint32 iRow, iCol;
@@ -3273,13 +3272,13 @@ namespace slib
 				LAYOUT_CONTROL_GENERATE_DRAWABLE(row.background, setRowBackground, ITEM, "%d, %s", iRow, value)
 				LAYOUT_CONTROL_GENERATE_GENERIC(row.align, setRowAlignment, ITEM, "%d, %s", iRow, value)
 			}
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			ListElements<SAppLayoutTableColumn> cols(attr->columns);
 			ListElements<SAppLayoutTableRow> rows(attr->rows);
 			sl_uint32 iRow, iCol;
 			sl_uint32 nCols = (sl_uint32)(cols.count);
 			sl_uint32 nRows = (sl_uint32)(rows.count);
-			if (!flagOnLayout) {
+			if (op == SAppLayoutOperation::SimulateInit) {
 				view->setColumnCount(nCols, UIUpdateMode::Init);
 				view->setRowCount(nRows, UIUpdateMode::Init);
 			}
@@ -3319,9 +3318,9 @@ namespace slib
 				for (iCol = 0; iCol < nCells; iCol++) {
 					SAppLayoutTableCell& cell = cells[iCol];
 					if (cell.view.isNotNull()) {
-						Ref<View> contentView = _simulateLayoutCreateOrLayoutView(params->simulator, cell.view.get(), resourceItem, view, flagOnLayout);
+						Ref<View> contentView = CastRef<View>(_simulateLayoutCreateOrLayoutItem(params->simulator, cell.view.get(), resourceItem, view, op));
 						if (contentView.isNotNull()) {
-							if (!flagOnLayout) {
+							if (op == SAppLayoutOperation::SimulateInit) {
 								view->setCell(iRow, iCol, contentView, cell.rowspan.value, cell.colspan.value, UIUpdateMode::Init);
 							}
 						} else {
@@ -3334,7 +3333,7 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
-		if (op == OP_GENERATE_CPP) {
+		if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutTableColumn> cols(attr->columns);
 			ListElements<SAppLayoutTableRow> rows(attr->rows);
 			sl_uint32 iRow, iCol;
@@ -3353,7 +3352,7 @@ namespace slib
 						} else {
 							addChildStatement = String::format("%s%s->setCell(%d, %d, %s, %d, %d, slib::UIUpdateMode::Init);%n%n", strTab, name, iRow, iCol, cell.view->name, cell.rowspan.value, cell.colspan.value);
 						}
-						if (!(_generateLayoutsCpp_Item(params->resource, cell.view.get(), resourceItem, *(params->sbDeclare), *(params->sbDefineInit), *(params->sbDefineLayout), addChildStatement))) {
+						if (!(_generateLayoutsCpp_Item(params->resource, cell.view.get(), resourceItem, params, addChildStatement))) {
 							return sl_false;
 						}
 					}
@@ -3369,7 +3368,7 @@ namespace slib
 
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(columnXmls, "column")
 			for (sl_size i = 0; i < columnXmls.count; i++) {
 				LAYOUT_CONTROL_DEFINE_XML(columnXml, columnXmls[i])
@@ -3383,7 +3382,7 @@ namespace slib
 					return sl_false;
 				}
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				LAYOUT_CONTROL_GENERATE(setColumnCount, "%d, slib::UIUpdateMode::Init", columns.count)
@@ -3395,7 +3394,7 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE_GENERIC(column.headerAlign, setHeaderAlignment, ITEM, "%d, %s", i, value)
 				}
 			}
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			ListElements<SAppLayoutListControlColumn> columns(attr->columns);
 			if (columns.count > 0) {
 				sl_uint32 n = (sl_uint32)(columns.count);
@@ -3443,7 +3442,7 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, tabPaddingTop, setTabPaddingTop, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, tabPaddingRight, setTabPaddingRight, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, tabPaddingBottom, setTabPaddingBottom, checkPosition)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue tabPadding;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , tabPadding, checkPosition)
 			if (tabPadding.flagDefined) {
@@ -3466,7 +3465,7 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setIconWidth, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue iconSize;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , iconSize, checkScalarSize)
 			if (iconSize.flagDefined) {
@@ -3479,7 +3478,7 @@ namespace slib
 			}
 		}
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(itemXmls, "item")
 			for (sl_size i = 0; i < itemXmls.count; i++) {
 				LAYOUT_CONTROL_DEFINE_XML(itemXml, itemXmls[i])
@@ -3497,7 +3496,10 @@ namespace slib
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
-					subItemView->attrs->resetLayout();
+					if (IsNoView(subItemView->itemType)) {
+						return sl_false;
+					}
+					((SAppLayoutViewAttributes*)(subItemView->attrs.get()))->resetLayout();
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
@@ -3505,7 +3507,7 @@ namespace slib
 					return sl_false;
 				}
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutTabItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				LAYOUT_CONTROL_GENERATE(setTabCount, "%d, slib::UIUpdateMode::Init", subItems.count)
@@ -3524,11 +3526,11 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE(selectTab, "%d, slib::UIUpdateMode::Init", indexSelected)
 				}
 			}
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			ListElements<SAppLayoutTabItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				sl_uint32 nSubItems = (sl_uint32)(subItems.count);
-				if (!flagOnLayout) {
+				if (op == SAppLayoutOperation::SimulateInit) {
 					view->setTabCount(nSubItems, UIUpdateMode::Init);
 				}
 				sl_uint32 indexSelected = 0;
@@ -3542,9 +3544,9 @@ namespace slib
 						indexSelected = i;
 					}
 					if (subItem.view.isNotNull()) {
-						Ref<View> contentView = _simulateLayoutCreateOrLayoutView(params->simulator, subItem.view.get(), resourceItem, view, flagOnLayout);
+						Ref<View> contentView = CastRef<View>(_simulateLayoutCreateOrLayoutItem(params->simulator, subItem.view.get(), resourceItem, view, op));
 						if (contentView.isNotNull()) {
-							if (!flagOnLayout) {
+							if (op == SAppLayoutOperation::SimulateInit) {
 								view->setTabContentView(i, contentView, UIUpdateMode::Init);
 							}
 						} else {
@@ -3554,7 +3556,7 @@ namespace slib
 				}
 
 				if (flagSelected) {
-					if (!flagOnLayout) {
+					if (op == SAppLayoutOperation::SimulateInit) {
 						view->selectTab(indexSelected, UIUpdateMode::Init);
 					}
 				}
@@ -3566,13 +3568,13 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
-		if (op == OP_GENERATE_CPP) {
+		if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutTabItem> subItems(attr->items);
 			for (sl_size i = 0; i < subItems.count; i++) {
 				SAppLayoutTabItem& subItem = subItems[i];
 				if (subItem.view.isNotNull()) {
 					String addChildStatement = String::format("%s%s->setTabContentView(%d, %s, slib::UIUpdateMode::Init);%n%n", strTab, name, i, subItem.view->name);
-					if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, *(params->sbDeclare), *(params->sbDefineInit), *(params->sbDefineLayout), addChildStatement))) {
+					if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
 						return sl_false;
 					}
 				}
@@ -3586,19 +3588,136 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, itemIcon, setItemIcon)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, opendIcon, setOpenedItemIcon)
-		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, closedIcon, setClosedItemIcon)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, itemIcon, setItemIcon)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, openedIcon, setOpenedItemIcon)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, closedIcon, setClosedItemIcon)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, collapsedIcon, setCollapsedIcon)
 		LAYOUT_CONTROL_UI_ATTR(DRAWABLE, expandedIcon, setExpandedIcon)
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, itemBackground, setItemBackground)
 		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setItemTextColor)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemIconSize, setItemIconSize, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemIconWidth, setItemIconWidth, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemIconHeight, setItemIconHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemHeight, setItemHeight, checkScalarSize)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemPadding, setItemPadding, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, itemIndent, setItemIndent, checkPosition)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, textIndent, setTextIndent, checkPosition)
 
 		LAYOUT_CONTROL_ADD_STATEMENT
+
+		ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
+		for (sl_size i = 0; i < children.count; i++) {
+			Ref<SAppLayoutResourceItem>& child = children[i];
+			if (op == SAppLayoutOperation::Generate) {
+				String addStatement = String::format("\t\t\t%s->%s(%s, slib::UIUpdateMode::Init);%n%n", params->name, child->itemType == SAppLayoutItemType::TreeItem ? "addItem" : "addChild", child->name);
+				if (!(_generateLayoutsCpp_Item(resource, child.get(), resourceItem, params, addStatement))) {
+					return sl_false;
+				}
+			} else  if (IsSimulateOp(op)) {
+				Ref<CRef> childViewItem = _simulateLayoutCreateOrLayoutItem(params->simulator, child.get(), resourceItem, view, op);
+				if (childViewItem.isNull()) {
+					return sl_false;
+				}
+				if (op == SAppLayoutOperation::SimulateInit) {
+					if (child->itemType == SAppLayoutItemType::TreeItem) {
+						TreeViewItem* treeItem = CastInstance<TreeViewItem>(childViewItem.get());
+						if (!treeItem) {
+							return sl_false;
+						}
+						view->addItem(treeItem, UIUpdateMode::Init);
+					} else {
+						View* childView = CastInstance<View>(childViewItem.get());
+						if (!childView) {
+							return sl_false;
+						}
+						view->addChild(ToRef(&childView), UIUpdateMode::Init);
+					}
+				}
+			}
+		}
+
+		resourceItem->flagSkipGenerateChildren = sl_true;
+		resourceItem->flagSkipSimulateChildren = sl_true;
+
+	}
+	END_PROCESS_LAYOUT_CONTROL
+
+	BEGIN_PROCESS_LAYOUT_CONTROL(TreeItem, TreeViewItem)
+	{
+		LAYOUT_CONTROL_ATTR(STRING, id, setId)
+		LAYOUT_CONTROL_UI_ATTR(STRING, text, setText)
+		LAYOUT_CONTROL_UI_ATTR(FONT, font, setFont)
+		if (op == SAppLayoutOperation::Parse) {
+			if (params->parentResourceItem) {
+				SAppLayoutItemType parentType = params->parentResourceItem->itemType;
+				CRef* parentAttr = params->parentResourceItem->attrs.get();
+				if (parentType == SAppLayoutItemType::TreeItem) {
+					attr->font.inheritFrom(((SAppLayoutTreeItemAttributes*)parentAttr)->font);
+				} else if (parentType == SAppLayoutItemType::Tree) {
+					attr->font.inheritFrom(((SAppLayoutTreeAttributes*)parentAttr)->font);
+				}
+			}
+		}
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, background, setBackground)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, icon, setIcon)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, openedIcon, setOpenedIcon)
+		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, closedIcon, setClosedIcon)
+		LAYOUT_CONTROL_STATE_MAP(COLOR, textColor, setTextColor)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconSize, setIconSize, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconWidth, setIconWidth, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, iconHeight, setIconHeight, checkScalarSize)
+		LAYOUT_CONTROL_UI_ATTR(DIMENSION, height, setHeight, checkScalarSize)
+		if (op == SAppLayoutOperation::Parse) {
+			LAYOUT_CONTROL_PARSE_ATTR(BOOLEAN, attr->, opened)
+			LAYOUT_CONTROL_PARSE_ATTR(BOOLEAN, attr->, selected)
+		} else if (op == SAppLayoutOperation::Generate) {
+			if (attr->opened.value) {
+				LAYOUT_CONTROL_GENERATE_DELAYED(open, "slib::UIUpdateMode::Init")
+			}
+			if (attr->selected.value) {
+				LAYOUT_CONTROL_GENERATE_DELAYED(select, "slib::UIUpdateMode::Init")
+			}
+		} else if (op == SAppLayoutOperation::SimulateLayout) {
+			if (attr->opened.value || attr->selected.value) {
+				if (!(view->getProperty("init").getBoolean())) {
+					view->setProperty("init", sl_true);
+					if (attr->opened.value) {
+						view->open();
+					}
+					if (attr->selected.value) {
+						view->select();
+					}
+				}
+			}
+		}
+
+		LAYOUT_CONTROL_ADD_STATEMENT
+
+		ListElements< Ref<SAppLayoutResourceItem> > children(resourceItem->children);
+		for (sl_size i = 0; i < children.count; i++) {
+			Ref<SAppLayoutResourceItem>& child = children[i];
+			if (op == SAppLayoutOperation::Generate) {
+				String addStatement = String::format("\t\t\t%s->addChild(%s, slib::UIUpdateMode::Init);%n%n", params->name, child->name);
+				if (!(_generateLayoutsCpp_Item(resource, child.get(), resourceItem, params, addStatement))) {
+					return sl_false;
+				}
+			} else  if (IsSimulateOp(op)) {
+				Ref<CRef> childViewItem = _simulateLayoutCreateOrLayoutItem(params->simulator, child.get(), resourceItem, view, op);
+				if (childViewItem.isNull()) {
+					return sl_false;
+				}
+				if (op == SAppLayoutOperation::SimulateInit) {
+					TreeViewItem* treeItem = CastInstance<TreeViewItem>(childViewItem.get());
+					if (!treeItem) {
+						return sl_false;
+					}
+					view->addChild(treeItem, UIUpdateMode::Init);
+				}
+			}
+		}
+
+		resourceItem->flagSkipGenerateChildren = sl_true;
+		resourceItem->flagSkipSimulateChildren = sl_true;
 
 	}
 	END_PROCESS_LAYOUT_CONTROL
@@ -3609,7 +3728,7 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, orientation, setOrientation)
 		if (!(attr->orientation.flagDefined)) {
-			if (op == OP_PARSE) {
+			if (op == SAppLayoutOperation::Parse) {
 				if (resourceItem->itemTypeName == "hsplit") {
 					attr->orientation.flagDefined = sl_true;
 					attr->orientation.value = LayoutOrientation::Horizontal;
@@ -3628,7 +3747,7 @@ namespace slib
 		sl_bool flagRelayoutOnInit = sl_false;
 		sl_bool flagRelayoutOnLayout = sl_false;
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(itemXmls, "item")
 			for (sl_size i = 0; i < itemXmls.count; i++) {
 				LAYOUT_CONTROL_DEFINE_XML(itemXml, itemXmls[i])
@@ -3651,10 +3770,14 @@ namespace slib
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
-					subItemView->attrs->width.flagDefined = sl_false;
-					subItemView->attrs->height.flagDefined = sl_false;
-					subItemView->attrs->leftMode = PositionMode::Free;
-					subItemView->attrs->topMode = PositionMode::Free;
+					if (IsNoView(subItemView->itemType)) {
+						return sl_false;
+					}
+					SAppLayoutViewAttributes* subAttrs = (SAppLayoutViewAttributes*)(subItemView->attrs.get());
+					subAttrs->width.flagDefined = sl_false;
+					subAttrs->height.flagDefined = sl_false;
+					subAttrs->leftMode = PositionMode::Free;
+					subAttrs->topMode = PositionMode::Free;
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
@@ -3662,7 +3785,7 @@ namespace slib
 					return sl_false;
 				}
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutSplitItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				if (subItems.count > 2) {
@@ -3680,10 +3803,10 @@ namespace slib
 					LAYOUT_CONTROL_GENERATE_COLOR(subItem.dividerColor, setItemDividerColor, ITEM, "%d, %s", i, value)
 				}
 			}
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			ListElements<SAppLayoutSplitItem> subItems(attr->items);
 			if (subItems.count > 0) {
-				if (!flagOnLayout) {
+				if (op == SAppLayoutOperation::SimulateInit) {
 					if (subItems.count > 2) {
 						view->setItemCount(subItems.count, UIUpdateMode::Init);
 					}
@@ -3699,9 +3822,9 @@ namespace slib
 					LAYOUT_CONTROL_SIMULATE_DRAWABLE(subItem.dividerBackground, setItemDividerBackground, ITEM, i, value)
 					LAYOUT_CONTROL_SIMULATE_COLOR(subItem.dividerColor, setItemDividerColor, ITEM, i, value)
 					if (subItem.view.isNotNull()) {
-						Ref<View> contentView = _simulateLayoutCreateOrLayoutView(params->simulator, subItem.view.get(), resourceItem, view, flagOnLayout);
+						Ref<View> contentView = CastRef<View>(_simulateLayoutCreateOrLayoutItem(params->simulator, subItem.view.get(), resourceItem, view, op));
 						if (contentView.isNotNull()) {
-							if (!flagOnLayout) {
+							if (op == SAppLayoutOperation::SimulateInit) {
 								view->setItemView(i, contentView);
 							}
 						} else {
@@ -3715,13 +3838,13 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
-		if (op == OP_GENERATE_CPP) {
+		if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutSplitItem> subItems(attr->items);
 			for (sl_size i = 0; i < subItems.count; i++) {
 				SAppLayoutSplitItem& subItem = subItems[i];
 				if (subItem.view.isNotNull()) {
 					String addChildStatement = String::format("%s%s->setItemView(%d, %s, slib::UIUpdateMode::Init);%n%n", strTab, name, i, subItem.view->name);
-					if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, *(params->sbDeclare), *(params->sbDefineInit), *(params->sbDefineLayout), addChildStatement))) {
+					if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
 						return sl_false;
 					}
 				}
@@ -3736,11 +3859,11 @@ namespace slib
 	{
 		LAYOUT_CONTROL_PROCESS_SUPER(View)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_PARSE_ATTR(STRING, attr->, url)
 			LAYOUT_CONTROL_PARSE_ATTR(STRING, attr->, html)
 		} else {
-			if (op == OP_GENERATE_CPP) {
+			if (op == SAppLayoutOperation::Generate) {
 				String strUrl;
 				if (!(_getStringAccessString(resource->name, attr->url, strUrl))) {
 					return sl_false;
@@ -3760,26 +3883,24 @@ namespace slib
 						LAYOUT_CONTROL_GENERATE(loadURL, "%s", strUrl)
 					}
 				}
-			} else if (op == OP_SIMULATE) {
-				if (!flagOnLayout) {
-					String _url;
-					if (!(_getStringValue(resource->name, attr->url, _url))) {
-						return sl_false;
-					}
-					String _html;
-					if (!(_getStringValue(resource->name, attr->html, _html))) {
-						return sl_false;
-					}
-					if (attr->html.flagDefined) {
-						if (attr->url.flagDefined) {
-							view->loadHTML(_html, _url);
-						} else {
-							view->loadHTML(_html, sl_null);
-						}
+			} else if (op == SAppLayoutOperation::SimulateInit) {
+				String _url;
+				if (!(_getStringValue(resource->name, attr->url, _url))) {
+					return sl_false;
+				}
+				String _html;
+				if (!(_getStringValue(resource->name, attr->html, _html))) {
+					return sl_false;
+				}
+				if (attr->html.flagDefined) {
+					if (attr->url.flagDefined) {
+						view->loadHTML(_html, _url);
 					} else {
-						if (attr->url.flagDefined) {
-							view->loadURL(_url);
-						}
+						view->loadHTML(_html, sl_null);
+					}
+				} else {
+					if (attr->url.flagDefined) {
+						view->loadURL(_url);
 					}
 				}
 			}
@@ -3819,7 +3940,7 @@ namespace slib
 		LAYOUT_CONTROL_STATE_MAP(DRAWABLE, thumb, setThumb)
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, thumbWidth, setThumbWidth, checkScalarSize);
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, thumbHeight, setThumbHeight, checkScalarSize);
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			SAppDimensionValue thumbSize;
 			LAYOUT_CONTROL_PARSE_ATTR(DIMENSION, , thumbSize, checkScalarSize)
 			if (thumbSize.flagDefined) {
@@ -3845,25 +3966,25 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, textInButton, setTextInButton)
 
 #define LAYOUT_CONTROL_SWITCH_ATTR(TYPE, NAME, SETFUNC, ...) \
-		if (op == OP_PARSE) { \
+		if (op == SAppLayoutOperation::Parse) { \
 			LAYOUT_CONTROL_PARSE_##TYPE(*(resourceItem), #NAME "Off", , attr->NAME##s[0], ##__VA_ARGS__) \
 			LAYOUT_CONTROL_PARSE_##TYPE(*(resourceItem), #NAME "On", , attr->NAME##s[1], ##__VA_ARGS__) \
-		} else if (op == OP_GENERATE_CPP) { \
+		} else if (op == SAppLayoutOperation::Generate) { \
 			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, "slib::SwitchValue::Off, %s", value) \
 			LAYOUT_CONTROL_GENERATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, "slib::SwitchValue::On, %s", value) \
-		} else if (op == OP_SIMULATE) { \
+		} else if (IsSimulateOp(op)) { \
 			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[0], SETFUNC, CONTROL, SwitchValue::Off, value) \
 			LAYOUT_CONTROL_SIMULATE_##TYPE(attr->NAME##s[1], SETFUNC, CONTROL, SwitchValue::On, value) \
 		}
 
 #define LAYOUT_CONTROL_SWITCH_STATE_MAP(TYPE, NAME, SETFUNC, ...) \
-		if (op == OP_PARSE) { \
+		if (op == SAppLayoutOperation::Parse) { \
 			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME "Off", , attr->NAME##s[0], ##__VA_ARGS__) \
 			LAYOUT_CONTROL_PARSE_STATE_MAP(TYPE, *(resourceItem), #NAME "On", , attr->NAME##s[1], ##__VA_ARGS__) \
-		} else if (op == OP_GENERATE_CPP) { \
+		} else if (op == SAppLayoutOperation::Generate) { \
 			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, "slib::SwitchValue::Off, %s", value) \
 			LAYOUT_CONTROL_GENERATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, "slib::SwitchValue::On, %s", value) \
-		} else if (op == OP_SIMULATE) { \
+		} else if (IsSimulateOp(op)) { \
 			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[0], SETFUNC, CONTROL, SwitchValue::Off, value) \
 			LAYOUT_CONTROL_SIMULATE_STATE_MAP(TYPE, attr->NAME##s[1], SETFUNC, CONTROL, SwitchValue::On, value) \
 		}
@@ -3915,7 +4036,7 @@ namespace slib
 
 		LAYOUT_CONTROL_ATTR(GENERIC, loop, setLoop)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			LAYOUT_CONTROL_DEFINE_ITEM_CHILDREN(itemXmls, "item")
 			for (sl_size i = 0; i < itemXmls.count; i++) {
 				LAYOUT_CONTROL_DEFINE_XML(itemXml, itemXmls[i])
@@ -3931,7 +4052,10 @@ namespace slib
 					if (subItemView.isNull()) {
 						return sl_false;
 					}
-					subItemView->attrs->resetLayout();
+					if (IsNoView(subItemView->itemType)) {
+						return sl_false;
+					}
+					((SAppLayoutViewAttributes*)(subItemView->attrs.get()))->resetLayout();
 					subItem.view = subItemView;
 				}
 				if (!(attr->items.add_NoLock(Move(subItem)))) {
@@ -3939,48 +4063,38 @@ namespace slib
 					return sl_false;
 				}
 			}
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 			/* see below */
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 			ListElements<SAppLayoutPagerItem> subItems(attr->items);
 			if (subItems.count > 0) {
-
 				sl_uint32 indexSelected = 0;
-
 				sl_uint32 nSubItems = (sl_uint32)(subItems.count);
-
 				for (sl_uint32 i = 0; i < nSubItems; i++) {
-
 					SAppLayoutPagerItem& subItem = subItems[i];
-
 					if (subItem.selected.flagDefined && subItem.selected.value) {
 						indexSelected = i;
 					}
-
 					if (subItem.view.isNotNull()) {
-						Ref<View> contentView = _simulateLayoutCreateOrLayoutView(params->simulator, subItem.view.get(), resourceItem, view, flagOnLayout);
+						Ref<View> contentView = CastRef<View>(_simulateLayoutCreateOrLayoutItem(params->simulator, subItem.view.get(), resourceItem, view, op));
 						if (contentView.isNotNull()) {
-							if (!flagOnLayout) {
+							if (op == SAppLayoutOperation::SimulateInit) {
 								view->addPage(contentView, UIUpdateMode::Init);
 							}
 						} else {
 							return sl_false;
 						}
 					}
-
 				}
-
-				if (!flagOnLayout) {
+				if (op == SAppLayoutOperation::SimulateInit) {
 					view->selectPage(indexSelected);
 				}
-
 			}
-
 		}
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
-		if (op == OP_GENERATE_CPP) {
+		if (op == SAppLayoutOperation::Generate) {
 			ListElements<SAppLayoutPagerItem> subItems(attr->items);
 			if (subItems.count > 0) {
 				sl_size indexSelected = 0;
@@ -3988,7 +4102,7 @@ namespace slib
 					SAppLayoutPagerItem& subItem = subItems[i];
 					if (subItem.view.isNotNull()) {
 						String addChildStatement = String::format("%s%s->addPage(%s, slib::UIUpdateMode::Init);%n%n", strTab, name, subItem.view->name);
-						if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, *(params->sbDeclare), *(params->sbDefineInit), *(params->sbDefineLayout), addChildStatement))) {
+						if (!(_generateLayoutsCpp_Item(params->resource, subItem.view.get(), resourceItem, params, addChildStatement))) {
 							return sl_false;
 						}
 					}
@@ -4025,20 +4139,18 @@ namespace slib
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, gravity, setGravity)
 		LAYOUT_CONTROL_UI_ATTR(GENERIC, controls, setControlsVisible)
 
-		if (op == OP_PARSE || op == OP_GENERATE_CPP) {
+		if (op == SAppLayoutOperation::Parse || op == SAppLayoutOperation::Generate) {
 			LAYOUT_CONTROL_ATTR(STRING, src, setSource)
-		} else {
-			if (!flagOnLayout) {
-				if (attr->src.flagDefined) {
-					String value;
-					if (!(_getStringValue(resource->name, attr->src, value))) {
-						return sl_false;
-					}
-					if (value.startsWith("asset://")) {
-						value = String::concat(m_pathApp, "/asset/", value.substring(8));
-					}
-					view->setSource(value);
+		} else if (op == SAppLayoutOperation::SimulateInit) {
+			if (attr->src.flagDefined) {
+				String value;
+				if (!(_getStringValue(resource->name, attr->src, value))) {
+					return sl_false;
 				}
+				if (value.startsWith("asset://")) {
+					value = String::concat(m_pathApp, "/asset/", value.substring(8));
+				}
+				view->setSource(value);
 			}
 		}
 
@@ -4078,7 +4190,7 @@ namespace slib
 
 		LAYOUT_CONTROL_ADD_STATEMENT
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 			sl_size nChildren = element->getChildElementCount();
 			if (nChildren > 0) {
 				if (nChildren != 1) {
@@ -4184,7 +4296,7 @@ namespace slib
 
 		LAYOUT_CONTROL_UI_ATTR(DIMENSION, rowHeight, setRowHeight, checkScalarSize)
 
-		if (op == OP_PARSE) {
+		if (op == SAppLayoutOperation::Parse) {
 
 #define LAYOUT_CONTROL_PARSE_GRID_CELL_ATTRIBUTES(ATTR, XML) \
 			{ \
@@ -4339,7 +4451,7 @@ namespace slib
 				}
 			}
 
-		} else if (op == OP_GENERATE_CPP) {
+		} else if (op == SAppLayoutOperation::Generate) {
 		
 			ListElements<SAppLayoutGridColumn> columns(attr->columns);
 			
@@ -4401,10 +4513,10 @@ namespace slib
 			LAYOUT_CONTROL_GENERATE_GRID_SECTION(header, Header)
 			LAYOUT_CONTROL_GENERATE_GRID_SECTION(footer, Footer)
 
-		} else if (op == OP_SIMULATE) {
+		} else if (IsSimulateOp(op)) {
 
 			ListElements<SAppLayoutGridColumn> columns(attr->columns);
-			if (!flagOnLayout) {
+			if (op == SAppLayoutOperation::SimulateInit) {
 				view->setColumnCount((sl_uint32)(columns.count), UIUpdateMode::Init);
 				view->setLeftColumnCount(attr->nLeftColumns, UIUpdateMode::Init);
 				view->setRightColumnCount(attr->nRightColumns, UIUpdateMode::Init);
@@ -4450,8 +4562,10 @@ namespace slib
 					for (sl_size iCell = 0; iCell < cells.count; iCell++) { \
 						SAppLayoutGridCell& cell = cells[iCell]; \
 						LAYOUT_CONTROL_SIMULATE_GRID_CELL_ATTRIBUTES(PREFIX, cell, (sl_uint32)iRow, (sl_uint32)iCell) \
-						if (cell.colspan.flagDefined && cell.rowspan.flagDefined && !flagOnLayout) { \
-							view->set##PREFIX##Span((sl_uint32)iRow, (sl_uint32)iCell, cell.rowspan.value, cell.colspan.value, UIUpdateMode::Init); \
+						if (cell.colspan.flagDefined && cell.rowspan.flagDefined) { \
+							if (op == SAppLayoutOperation::SimulateInit) { \
+								view->set##PREFIX##Span((sl_uint32)iRow, (sl_uint32)iCell, cell.rowspan.value, cell.colspan.value, UIUpdateMode::Init); \
+							} \
 						} else { \
 							LAYOUT_CONTROL_SIMULATE_GENERIC(cell.rowspan, set##PREFIX##Rowspan, ITEM, (sl_uint32)iRow, (sl_uint32)iCell, value) \
 							LAYOUT_CONTROL_SIMULATE_GENERIC(cell.colspan, set##PREFIX##Colspan, ITEM, (sl_uint32)iRow, (sl_uint32)iCell, value) \

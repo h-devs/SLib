@@ -215,11 +215,18 @@ namespace slib
 		Ref<SAppLayoutResourceItem> _parseLayoutResourceItemChild(SAppLayoutResource* layout, SAppLayoutResourceItem* parentItem, const Ref<XmlElement>& element, const String16& source);
 		sl_bool _generateLayoutsCpp(const String& targetPath);
 		sl_bool _generateLayoutsCpp_Layout(const String& targetPath, SAppLayoutResource* layout);
-		sl_bool _generateLayoutsCpp_Item(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, StringBuffer& sbDeclare, StringBuffer& sbDefineInit, StringBuffer& sbDefineLayout, const String& addStatement);
+		struct LayoutControlGenerateParams
+		{
+			StringBuffer* sbDeclare;
+			StringBuffer* sbDefineInit;
+			StringBuffer* sbDefineInitDelayed;
+			StringBuffer* sbDefineLayout;
+		};
+		sl_bool _generateLayoutsCpp_Item(SAppLayoutResource* layout, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, LayoutControlGenerateParams* params, const String& addStatement);
 		sl_bool _simulateLayoutInWindow(SAppLayoutResource* layout, SAppSimulateLayoutParam& param);
 		void _registerLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
 		void _removeLayoutSimulationWindow(const Ref<SAppLayoutSimulationWindow>& window);
-		Ref<View> _simulateLayoutCreateOrLayoutView(SAppLayoutSimulator* simulator, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, View* parentView, sl_bool flagOnLayout);
+		Ref<CRef> _simulateLayoutCreateOrLayoutItem(SAppLayoutSimulator* simulator, SAppLayoutResourceItem* item, SAppLayoutResourceItem* parent, CRef* parentItem, SAppLayoutOperation op);
 		sl_ui_pos _getDimensionValue(const SAppDimensionValue& value);
 		sl_real _getDimensionValue(const SAppDimensionFloatValue& value);
 		sl_bool _getFontAccessString(const String& localNamespace, const SAppFontValue& value, String& result);
@@ -231,23 +238,19 @@ namespace slib
 		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, SAppLayoutStyle* style, const String& localNamespace, const String& tagName);
 		sl_bool _addXmlChildElements(List< Ref<XmlElement> >& list, const Ref<XmlElement>& parent, const String& localNamespace, const String& tagName);
 
-		struct LayoutControlProcessParams
+		struct LayoutControlProcessParams : LayoutControlGenerateParams
 		{
-			int op;
+			SAppLayoutOperation op;
 			String16 source;
 			SAppLayoutResource* resource;
 			SAppLayoutResourceItem* resourceItem;
 			SAppLayoutResourceItem* parentResourceItem;
 			String name;
 			String addStatement;
-			StringBuffer* sbDeclare;
-			StringBuffer* sbDefineInit;
-			StringBuffer* sbDefineLayout;
 			SAppLayoutSimulator* simulator;
 			SAppLayoutSimulationWindow* window;
-			Ref<View> view;
-			View* parentView;
-			sl_bool flagOnLayout;
+			Ref<CRef> viewItem;
+			CRef* parentItem;
 		};
 		sl_bool _processLayoutResourceControl(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_View(LayoutControlProcessParams* params);
@@ -276,6 +279,7 @@ namespace slib
 		sl_bool _processLayoutResourceControl_Render(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Tab(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Tree(LayoutControlProcessParams* params);
+		sl_bool _processLayoutResourceControl_TreeItem(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Split(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Web(LayoutControlProcessParams* params);
 		sl_bool _processLayoutResourceControl_Progress(LayoutControlProcessParams* params);

@@ -308,7 +308,9 @@ namespace slib
 		arrayIndex = -1;
 		itemType = SAppLayoutItemType::Unknown;
 		flagGeneratedName = sl_false;
-		flagNoChildren = sl_false;
+		flagSkipParseChildren = sl_false;
+		flagSkipGenerateChildren = sl_false;
+		flagSkipSimulateChildren = sl_false;
 	}
 
 	SAppLayoutResource::SAppLayoutResource()
@@ -423,6 +425,10 @@ namespace slib
 			case SAppLayoutItemType::Tree:
 				prefix = "tree";
 				pN = &nAutoIncreaseNameTree;
+				break;
+			case SAppLayoutItemType::TreeItem:
+				prefix = "treeItem";
+				pN = &nAutoIncreaseNameTreeItem;
 				break;
 			case SAppLayoutItemType::Web:
 				prefix = "web";
@@ -629,14 +635,14 @@ namespace slib
 		return m_refer;
 	}
 
-	Ref<View> SAppLayoutSimulator::getViewByName(const String& name)
+	Ref<CRef> SAppLayoutSimulator::getViewItemByName(const String& name)
 	{
-		return m_views.getValue(name, Ref<View>::null());
+		return m_viewItems.getValue(name, Ref<View>::null());
 	}
 
-	void SAppLayoutSimulator::registerViewByName(const String& name, const Ref<View>& view)
+	void SAppLayoutSimulator::registerViewItemByName(const String& name, const Ref<CRef>& item)
 	{
-		m_views.put(name, view);
+		m_viewItems.put(name, item);
 	}
 
 	Ref<RadioGroup> SAppLayoutSimulator::getRadioGroup(const String& name)
@@ -698,7 +704,7 @@ namespace slib
 			viewContent = new ViewGroup;
 			m_simulationContentView = viewContent;
 		}
-		viewContent = doc->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_false);
+		viewContent = CastRef<View>(doc->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateInit));
 		setInitialized();
 		if (viewContent.isNotNull()) {
 			if (layout->layoutType != SAppLayoutType::Window) {
@@ -708,7 +714,7 @@ namespace slib
 				setBackgroundColor(Color::Black);
 				addView(viewContent);
 			}
-			doc->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_true);
+			doc->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
 			create();
 			doc->_registerLayoutSimulationWindow(this);
 			return sl_true;
@@ -727,7 +733,7 @@ namespace slib
 		Ref<SAppDocument> doc = m_document;
 		Ref<SAppLayoutResource> layout = m_layoutResource;
 		if (doc.isNotNull() && layout.isNotNull()) {
-			doc->_simulateLayoutCreateOrLayoutView(this, layout.get(), sl_null, sl_null, sl_true);
+			doc->_simulateLayoutCreateOrLayoutItem(this, layout.get(), sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
 		}
 	}
 
@@ -766,10 +772,10 @@ namespace slib
 			}
 		}
 		m_simulationContentView = this;
-		Ref<View> viewContent = document->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_false);
+		Ref<View> viewContent = CastRef<View>(document->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateInit));
 		setInitialized();
 		if (viewContent.isNotNull()) {
-			document->_simulateLayoutCreateOrLayoutView(this, layout, sl_null, sl_null, sl_true);
+			document->_simulateLayoutCreateOrLayoutItem(this, layout, sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
 		}
 	}
 
@@ -778,7 +784,7 @@ namespace slib
 		Ref<SAppDocument> doc = m_document;
 		Ref<SAppLayoutResource> layout = m_layoutResource;
 		if (doc.isNotNull() && layout.isNotNull()) {
-			doc->_simulateLayoutCreateOrLayoutView(this, layout.get(), sl_null, sl_null, sl_true);
+			doc->_simulateLayoutCreateOrLayoutItem(this, layout.get(), sl_null, sl_null, SAppLayoutOperation::SimulateLayout);
 		}
 	}
 
