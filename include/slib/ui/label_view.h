@@ -93,13 +93,14 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
 
 		void onSetCursor(UIEvent* ev) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 	protected:

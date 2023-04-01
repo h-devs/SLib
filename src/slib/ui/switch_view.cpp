@@ -53,20 +53,7 @@ namespace slib
 
 	void SwitchView::setValue(SwitchValue value, UIUpdateMode mode)
 	{
-		{
-			ObjectLocker lock(this);
-			m_value = value;
-			sl_real f = value == SwitchValue::On ? 1.0f : 0.0f;
-			if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode) && !(Math::isAlmostZero(f - m_posThumb))) {
-				if (m_timer.isNull()) {
-					m_timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _onTimerAnimation), 10);
-				}
-				return;
-			}
-			m_timer.setNull();
-			m_posThumb = f;
-		}
-		invalidate(mode);
+		_changeValue(value, sl_null, mode);
 	}
 
 	sl_bool SwitchView::isTextInButton()
@@ -211,12 +198,12 @@ namespace slib
 		setTrack(Drawable::fromColor(color), mode);
 	}
 
+	
+	SLIB_DEFINE_EVENT_HANDLER(SwitchView, Change, SwitchValue value, UIEvent* ev)
 
-	SLIB_DEFINE_EVENT_HANDLER(SwitchView, Change, SwitchValue newValue)
-
-	void SwitchView::dispatchChange(SwitchValue newValue)
+	void SwitchView::dispatchChange(SwitchValue value, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, newValue)
+		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
 	}
 
 	namespace {
@@ -484,23 +471,23 @@ namespace slib
 			case UIAction::TouchEnd:
 				if (isPressedState()) {
 					if (m_flagTapping && (ev->getTime() - m_timeMouseDown).getMillisecondCount() < 250) {
-						_changeValue(m_value == SwitchValue::On ? SwitchValue::Off : SwitchValue::On);
+						_changeValue(m_value == SwitchValue::On ? SwitchValue::Off : SwitchValue::On, ev);
 					} else {
 						sl_real v = 0;
 						m_tracker.getVelocity(&v, sl_null);
 						sl_real t = dimUnit * 10;
 						if (v > t) {
-							_changeValue(SwitchValue::On);
+							_changeValue(SwitchValue::On, ev);
 						} else if (v < -t) {
-							_changeValue(SwitchValue::Off);
+							_changeValue(SwitchValue::Off, ev);
 						} else {
 							if (m_flagTapping) {
-								_changeValue(m_value == SwitchValue::On ? SwitchValue::Off : SwitchValue::On);
+								_changeValue(m_value == SwitchValue::On ? SwitchValue::Off : SwitchValue::On, ev);
 							} else {
 								if (m_posThumb > 0.5f) {
-									_changeValue(SwitchValue::On);
+									_changeValue(SwitchValue::On, ev);
 								} else {
-									_changeValue(SwitchValue::Off);
+									_changeValue(SwitchValue::Off, ev);
 								}
 							}
 						}
@@ -584,35 +571,46 @@ namespace slib
 		}
 	}
 
-	void SwitchView::_changeValue(SwitchValue value)
+	void SwitchView::_changeValue(SwitchValue value, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		if (value != m_value) {
-			setValue(value);
-			dispatchChange(value);
-		} else {
-			setValue(value);
+			return;
 		}
+		m_value = value;
+		sl_real posThumb = value == SwitchValue::On ? 1.0f : 0.0f;
+		if (!(Math::isAlmostZero(posThumb - m_posThumb))) {
+			if (SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
+				if (m_timer.isNull()) {
+					m_timer = startTimer(SLIB_FUNCTION_WEAKREF(this, _onTimerAnimation), 10);
+				}
+			} else {
+				m_posThumb = posThumb;
+				m_timer.setNull();
+				invalidate(mode);
+			}
+		}
+		locker.unlock();
+		dispatchChange(value, ev);
 	}
 
 	void SwitchView::_onTimerAnimation(Timer* timer)
 	{
-		do {
+		sl_real target = m_value == SwitchValue::On ? 1.0f : 0.0f;
+		sl_real pos = m_posThumb;
+		sl_real d = 0.1f;
+		sl_real a = Math::abs(target - pos);
+		if (a < d || a > 2) {
+			m_posThumb = target;
 			ObjectLocker lock(this);
-			sl_real target = m_value == SwitchValue::On ? 1.0f : 0.0f;
-			sl_real pos = m_posThumb;
-			sl_real d = 0.1f;
-			sl_real a = Math::abs(target - pos);
-			if (a < d || a > 2) {
-				m_posThumb = target;
-				m_timer.setNull();
-				break;
-			}
+			m_timer.setNull();
+		} else {
 			if (target > m_posThumb) {
 				m_posThumb += d;
 			} else {
 				m_posThumb -= d;
 			}
-		} while (0);
+		}
 		invalidate();
 	}
 

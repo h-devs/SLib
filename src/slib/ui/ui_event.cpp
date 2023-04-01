@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -697,12 +697,15 @@ sl_bool UIEvent::is##NAME##Key() const \
 
 	sl_real UIEvent::getDelta() const
 	{
-		return getDeltaY();
-	}
-
-	void UIEvent::setDelta(sl_real delta)
-	{
-		setDeltaY(delta);
+		if (IsInstanceOf<MouseWheelEvent>(this)) {
+			MouseWheelEvent* ev = (MouseWheelEvent*)this;
+			if (Math::abs(ev->m_deltaY) > Math::abs(ev->m_deltaX)) {
+				return ev->m_deltaY;
+			} else {
+				return ev->m_deltaX;
+			}
+		}
+		return 0;
 	}
 
 	sl_real UIEvent::getDeltaX() const
@@ -1024,20 +1027,6 @@ sl_bool UIEvent::is##NAME##Key() const \
 			SLIB_SET_FLAG(m_flags, UIEventFlags::PassToNext);
 		} else {
 			SLIB_RESET_FLAG(m_flags, UIEventFlags::PassToNext);
-		}
-	}
-
-	sl_bool UIEvent::isInternal()
-	{
-		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::Internal);
-	}
-
-	void UIEvent::setInternal(sl_bool flag)
-	{
-		if (flag) {
-			SLIB_SET_FLAG(m_flags, UIEventFlags::Internal);
-		} else {
-			SLIB_RESET_FLAG(m_flags, UIEventFlags::Internal);
 		}
 	}
 

@@ -572,7 +572,7 @@ namespace slib
 		}
 	}
 
-	void VideoView::_onSeek(Slider* slider, float value)
+	void VideoView::_onSeek(Slider* slider, float value, UIEvent* ev)
 	{
 		Ref<MediaPlayer> player = m_mediaPlayer;
 		if (player.isNotNull()) {

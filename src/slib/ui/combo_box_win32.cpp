@@ -41,12 +41,13 @@ namespace slib
 			void onChange(HWND handle)
 			{
 				String text = UIPlatform::getWindowText(handle);
-				String textNew = text;
-				dispatchChange(textNew);
-				if (text != textNew) {
-					UIPlatform::setWindowText(handle, textNew);
+				String modified = _onChange_NW(text);
+				if (text != modified) {
+					UIPlatform::setWindowText(handle, modified);
 				}
 			}
+
+			using ComboBox::_onSelectItem_NW;
 
 		};
 
@@ -192,7 +193,7 @@ namespace slib
 					Ref<ComboBoxHelper> helper = CastRef<ComboBoxHelper>(getView());
 					if (helper.isNotNull()) {
 						sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
-						helper->dispatchSelectItem(index);
+						helper->_onSelectItem_NW(index);
 						result = 0;
 						return sl_true;
 					}

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -78,36 +78,37 @@ namespace slib
 
 	void ComboBox::setText(const String& text, UIUpdateMode mode)
 	{
-		Ptr<IComboBoxInstance> instance = getComboBoxInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setText, text, mode)
-		}
-		m_text = text;
-		if (m_cell.isNotNull()) {
-			m_cell->text = text;
-		}
-		if (instance.isNotNull()) {
-			instance->setText(this, text);
-		} else {
-			invalidate(mode);
-		}
+		_changeText(text, sl_null, mode);
 	}
 
-	void ComboBox::notifySelectItem(sl_int32 index, UIUpdateMode mode)
+	void ComboBox::notifySelectItem(sl_int32 index, UIEvent* ev, UIUpdateMode mode)
 	{
+		String oldText = m_text;
 		String text = getItemTitle(index);
-		m_text = text;
-		if (m_cell.isNotNull()) {
-			m_cell->selectedIndex = m_indexSelected;
-			m_cell->text = text;
+		if (oldText != text) {
+			m_text = text;
+			dispatchChange(text, ev);
 		}
+		ObjectLocker locker(this);
+		sl_int32 oldIndex = index;
+		if (oldIndex == index) {
+			return;
+		}
+		m_indexSelected = index;
 		Ptr<IComboBoxInstance> instance = getComboBoxInstance();
 		if (instance.isNotNull()) {
-			instance->selectItem((ComboBox*)this, index);
-			getInstanceText();
+			if (!ev) {
+				instance->selectItem((ComboBox*)this, index);
+			}
 		} else {
+			if (m_cell.isNotNull()) {
+				m_cell->selectedIndex = m_indexSelected;
+				m_cell->text = text;
+			}
 			invalidate(mode);
 		}
+		locker.unlock();
+		dispatchSelectItem(index, oldIndex, ev);
 	}
 
 	void ComboBox::onUpdateLayout()
@@ -159,40 +160,25 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index)
+	SLIB_DEFINE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index, sl_int32 former, UIEvent* ev)
 
-	void ComboBox::dispatchSelectItem(sl_int32 index)
+	void ComboBox::dispatchSelectItem(sl_int32 index, sl_int32 former, UIEvent* ev)
 	{
-		ObjectLocker lock(this);
-		if (index < 0) {
-			index = -1;
-		}
-		if (m_indexSelected == index) {
-			return;
-		}
-		m_indexSelected = index;
-		lock.unlock();
-
-		if (index >= 0) {
-			m_text = getItemTitle(index);
-		}
-
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
+		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ComboBox, Change, String& value)
+	SLIB_DEFINE_EVENT_HANDLER(ComboBox, Changing, String& value, UIEvent* ev)
 
-	void ComboBox::dispatchChange(String& value)
+	void ComboBox::dispatchChanging(String& value, UIEvent* ev)
 	{
-		if (value == m_text) {
-			return;
-		}
-		SLIB_INVOKE_EVENT_HANDLER(Change, value)
-		if (value == m_text) {
-			return;
-		}
-		m_text = value;
-		dispatchSelectItem(-1);
+		SLIB_INVOKE_EVENT_HANDLER(Changing, value, ev)
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(ComboBox, Change, const String& value, UIEvent* ev)
+
+	void ComboBox::dispatchChange(const String& value, UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ComboBox, ReturnKey)
@@ -210,6 +196,48 @@ namespace slib
 			}
 		}
 		View::dispatchKeyEvent(ev);
+	}
+
+	String ComboBox::_changeText(const String& _text, UIEvent* ev, UIUpdateMode mode)
+	{
+		String text = _text;
+		dispatchChanging(text, ev);
+		String oldText = m_text;
+		if (oldText == text) {
+			return text;
+		}
+		m_text = text;
+		Ptr<IComboBoxInstance> instance = getComboBoxInstance();
+		if (instance.isNotNull()) {
+			if (!ev) {
+				instance->setText((ComboBox*)this, text);
+			}
+		} else {
+			if (m_cell.isNotNull()) {
+				m_cell->text = text;
+			}
+			invalidate(mode);
+		}
+		dispatchChange(text, ev);
+		return text;
+	}
+
+	String ComboBox::_onChange_NW(const String& text)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			return _changeText(text, ev.get(), UIUpdateMode::None);
+		} else {
+			return text;
+		}
+	}
+
+	void ComboBox::_onSelectItem_NW(sl_int32 index)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			notifySelectItem(index, ev.get(), UIUpdateMode::None);
+		}
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL

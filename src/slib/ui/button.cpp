@@ -816,10 +816,7 @@ namespace slib
 	void Button::onMnemonic(UIEvent* ev)
 	{
 		setFocus();
-		sl_bool flag = ev->isInternal();
-		ev->setInternal(sl_true);
 		dispatchClickEvent(ev);
-		ev->setInternal(flag);
 		ev->stopPropagation();
 		ev->preventDefault();
 	}

@@ -33,6 +33,12 @@ namespace slib
 
 	namespace {
 
+		class SelectViewHelper : public SelectView
+		{
+		public:
+			using SelectView::_onSelectItem_NW;
+		};
+
 		class SelectViewInstance : public Win32_ViewInstance, public ISelectViewInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -101,10 +107,10 @@ namespace slib
 			sl_bool processCommand(SHORT code, LRESULT& result) override
 			{
 				if (code == CBN_SELCHANGE) {
-					Ref<SelectView> helper = CastRef<SelectView>(getView());
+					Ref<SelectViewHelper> helper = CastRef<SelectViewHelper>(getView());
 					if (helper.isNotNull()) {
 						sl_uint32 index = (sl_uint32)(SendMessageW(m_handle, CB_GETCURSEL, 0, 0));
-						helper->dispatchSelectItem(index);
+						helper->_onSelectItem_NW(index);
 						result = 0;
 						return sl_true;
 					}

@@ -137,8 +137,8 @@ namespace slib
 
 		jboolean OnBack(JNIEnv* env, jobject _this, jobject activity)
 		{
-			Log("Activity", "onBackPressed");
-			return (jboolean)(MobileApp::dispatchBackPressedToApp());
+			Log("Activity", "onPressBack");
+			return (jboolean)(MobileApp::dispatchPressBackToApp());
 		}
 
 		void OnConfigurationChanged(JNIEnv* env, jobject _this, jobject activity)

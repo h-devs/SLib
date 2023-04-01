@@ -1187,7 +1187,7 @@ namespace slib
 	void GridView::dispatchClickBody(UIEvent* ev, CellEventParam& param)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ClickBody, ev, param)
-		if (ev->isPreventedDefault()) {
+		if (ev->is    PreventedDefault()) {
 			return;
 		}
 		if (m_locationSelected.record != param.record || m_locationSelected.row != param.row || m_locationSelected.column != param.column) {

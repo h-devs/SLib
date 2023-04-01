@@ -151,7 +151,7 @@ public: \
 
 #define SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
 	SLIB_DECLARE_LABEL_LIST_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
-	virtual void notifySelectItem(INDEX_TYPE index, UIUpdateMode mode); \
+	virtual void notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode); \
 	friend class SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>;
 
 #define SLIB_DECLARE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
@@ -198,6 +198,7 @@ public: \
 	protected:
 		void onUpdateFont(const Ref<Font>& font) override;
 
+	public:
 		void onDraw(Canvas* canvas) override;
 
 	public:

@@ -108,8 +108,8 @@ namespace slib
 			m_popupState = PopupState::None;
 			Ref<Window> window = getWindow();
 			lock.unlock();
-			dispatchPause();
-			dispatchClose();
+			invokePause();
+			invokeClose();
 			if (window.isNotNull()) {
 				window->close();
 			}
@@ -183,10 +183,9 @@ namespace slib
 		pager->setHeightFilling(1, UIUpdateMode::Init);
 		pager->push(this);
 		window->addView(pager, UIUpdateMode::Init);
-		window->setOnCancel([pager](Window* window, UIEvent* ev) {
+		window->setOnCancel([pager](Window* window) {
 			if (pager->getPageCount() > 1) {
 				pager->pop();
-				ev->preventDefault();
 			}
 		});
 		return window;
@@ -228,7 +227,7 @@ namespace slib
 				}
 				Ref<ViewPage> _page = page;
 				if (_page.isNotNull()) {
-					_page->dispatchClickBackground(ev);
+					_page->invokeClickBackground(ev);
 				}
 			});
 			back->setOnTouchEvent([](View* view, UIEvent* ev) {
@@ -256,9 +255,9 @@ namespace slib
 
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 
-		dispatchOpen();
+		invokeOpen();
 
-		dispatchResume();
+		invokeResume();
 
 		if (animation.isNotNull()) {
 			animation->dispatchStartFrame();
@@ -304,9 +303,9 @@ namespace slib
 
 		Base::interlockedIncrement(&m_countActiveTransitionAnimations);
 
-		dispatchPause();
+		invokePause();
 
-		dispatchClose();
+		invokeClose();
 
 		if (animation.isNotNull()) {
 			animation->start();
@@ -322,7 +321,7 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 
-		dispatchEndPageAnimation(sl_null, action);
+		invokeEndPageAnimation(sl_null, action);
 
 		if (action == UIPageAction::Pop) {
 
@@ -432,9 +431,9 @@ namespace slib
 
 			lock.unlock();
 
-			dispatchOpen();
+			invokeOpen();
 
-			dispatchResume();
+			invokeResume();
 
 			return window;
 
@@ -447,14 +446,14 @@ namespace slib
 	{
 		ObjectLocker lock(this);
 		if (m_popupState == PopupState::ShowWindow) {
-			dispatchBack(ev);
+			invokeBack(ev);
 			if (ev->isPreventedDefault()) {
 				return;
 			}
 			m_popupState = PopupState::None;
 			lock.unlock();
-			dispatchPause();
-			dispatchClose();
+			invokePause();
+			invokeClose();
 		}
 	}
 
@@ -476,7 +475,7 @@ namespace slib
 	void ViewPage::setCloseOnClickBackground()
 	{
 		setOnClickBackground([](ViewPage* page, UIEvent* ev) {
-			page->dispatchBack(ev);
+			page->invokeBack(ev);
 			if (ev->isPreventedDefault()) {
 				return;
 			}
@@ -557,111 +556,75 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Open)
+	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Open, ())
 
-	void ViewPage::dispatchOpen()
+	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Close, ())
+
+	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Resume, ())
+
+	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Pause, ())
+
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ViewPage, PageAction, (ViewPageNavigationController* controller, UIPageAction action), controller, action)
+
+	void ViewPage::onPageAction(ViewPageNavigationController* controller, UIPageAction action)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Open)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Close)
-
-	void ViewPage::dispatchClose()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Close)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Resume)
-
-	void ViewPage::dispatchResume()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Resume)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Pause)
-
-	void ViewPage::dispatchPause()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Pause)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, PageAction, ViewPageNavigationController* controller, UIPageAction action)
-
-	void ViewPage::dispatchPageAction(ViewPageNavigationController* controller, UIPageAction action)
-	{
-		m_navigationController = controller;
-
-		SLIB_INVOKE_EVENT_HANDLER(PageAction, controller, action)
-
 		switch (action) {
 			case UIPageAction::Push:
-				dispatchOpen();
+				invokeOpen();
 				break;
 			case UIPageAction::Pop:
-				dispatchClose();
+				invokeClose();
 				break;
 			case UIPageAction::Resume:
-				dispatchResume();
+				invokeResume();
 				break;
 			case UIPageAction::Pause:
-				dispatchPause();
+				invokePause();
 				break;
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, EndPageAnimation, ViewPageNavigationController* controller, UIPageAction action)
-
-	void ViewPage::dispatchEndPageAnimation(ViewPageNavigationController* controller, UIPageAction action)
+	void ViewPage::handlePageAction(ViewPageNavigationController* controller, UIPageAction action)
 	{
 		m_navigationController = controller;
+		invokePageAction(controller, action);
+	}
 
+	SLIB_DEFINE_EVENT_HANDLER(ViewPage, EndPageAnimation, (ViewPageNavigationController* controller, UIPageAction action), controller, action)
+
+	void ViewPage::handleEndPageAnimation(ViewPageNavigationController* controller, UIPageAction action)
+	{
+		m_navigationController = controller;
 		if (action == UIPageAction::Resume || action == UIPageAction::Push) {
 			Ref<View> focus = getFocalDescendant();
 			if (focus.isNotNull()) {
 				focus->setFocus();
 			}
 		}
-
-		SLIB_INVOKE_EVENT_HANDLER(EndPageAnimation, controller, action)
+		invokeEndPageAnimation(controller, action);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, BackPressed, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ViewPage, PressBack, (UIEvent* ev), ev)
 
-	void ViewPage::dispatchBackPressed(UIEvent* ev)
+	void ViewPage::onPressBack(UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(BackPressed, ev)
-
-		dispatchBack(ev);
+		invokeBack(ev);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Back, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ViewPage, Back, (UIEvent* ev), ev)
 
-	void ViewPage::dispatchBack(UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(ViewPage, ClickBackground, (UIEvent* ev), ev)
+
+	void ViewPage::onCancel()
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Back, ev)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(ViewPage, ClickBackground, UIEvent* ev)
-
-	void ViewPage::dispatchClickBackground(UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickBackground, ev)
-	}
-
-	void ViewPage::dispatchOK(UIEvent* ev)
-	{
-		ViewGroup::dispatchOK(ev);
-	}
-
-	void ViewPage::dispatchCancel(UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Cancel, ev)
-
-		dispatchBack(ev);
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNull()) {
+			return;
+		}
+		invokeBack(ev.get());
 		if (ev->isPreventedDefault()) {
 			return;
 		}
-
 		Ref<ViewPageNavigationController> controller = getNavigationController();
 		if (controller.isNotNull()) {
 			if (controller->getPageCount() > 1) {
@@ -670,8 +633,7 @@ namespace slib
 				return;
 			}
 		}
-
-		ViewGroup::dispatchCancel(ev);
+		ViewGroup::onCancel();
 	}
 
 }

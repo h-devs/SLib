@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -51,9 +51,11 @@ namespace slib
 		void setText(const String& text, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index)
+		SLIB_DECLARE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index, sl_int32 former, UIEvent* ev /* nullable */)
 
-		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Change, String& value)
+		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Changing, String& value, UIEvent* ev /* nullable */)
+
+		SLIB_DECLARE_EVENT_HANDLER(ComboBox, Change, const String& value, UIEvent* ev /* nullable */)
 
 		SLIB_DECLARE_EVENT_HANDLER(ComboBox, ReturnKey)
 
@@ -70,6 +72,14 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(ComboBox, sl_int32)
+
+	private:
+		String _changeText(const String& text, UIEvent* ev, UIUpdateMode mode);
+
+	protected:
+		String _onChange_NW(const String& text);
+
+		void _onSelectItem_NW(sl_int32 index);
 
 	protected:
 		AtomicString m_text;

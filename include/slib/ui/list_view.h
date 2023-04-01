@@ -72,7 +72,7 @@ namespace slib
 
 		void setAdapter(const Ref<ViewAdapter>& adapter);
 
-	protected:
+	public:
 		void onScroll(ScrollEvent*) override;
 
 		void onResize(sl_ui_len x, sl_ui_len y) override;

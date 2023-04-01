@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -83,8 +83,7 @@ namespace slib
 	{
 		Ref<RadioGroup> group = m_group;
 		if (group.isNotNull()) {
-			group->select(this);
-			group->dispatchSelect(this);
+			group->_select(this, ev, UIUpdateMode::Redraw);
 		} else {
 			CheckBox::setChecked(sl_true);
 		}
@@ -255,16 +254,16 @@ namespace slib
 		}
 	}
 
-	void RadioGroup::select(const Ref<RadioButton>& button)
+	void RadioGroup::select(const Ref<RadioButton>& button, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		if (button != m_buttonSelected) {
 			if (m_buttonSelected.isNotNull()) {
-				m_buttonSelected->CheckBox::setChecked(sl_false);
+				m_buttonSelected->CheckBox::setChecked(sl_false, mode);
 			}
 			m_buttonSelected = button;
 			if (button.isNotNull()) {
-				button->CheckBox::setChecked(sl_true);
+				button->CheckBox::setChecked(sl_true, mode);
 			}
 		}
 	}

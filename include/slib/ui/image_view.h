@@ -78,9 +78,10 @@ namespace slib
 
 		void loadUrl(const UrlRequestParam& param);
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 		virtual void onAnimationFrame(Timer* timer);

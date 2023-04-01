@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,70 @@
 #include "ui_animation.h"
 
 #define DEFAULT_BORDER_PARAMS PenStyle::Solid, 0.0f, Color::Black
+
+#define DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, ...) \
+	slib::Function<void(View* sender, ##__VA_ARGS__)> View::getOn##NAME() const { \
+		const Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) return attrs->on##NAME.function; else return sl_null; \
+	} \
+	slib::Function<void(View* sender, ##__VA_ARGS__)> View::setOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+		_initializeEventAttributes(); \
+		Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) { \
+			attrs->on##NAME.function = handler; \
+			attrs->on##NAME.flagDefault = sl_false; \
+		} \
+		return handler; \
+	} \
+	slib::Function<void(View* sender, ##__VA_ARGS__)> View::addOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+		_initializeEventAttributes(); \
+		Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) attrs->on##NAME.function.add(handler); \
+		return handler; \
+	} \
+	void View::removeOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+		_initializeEventAttributes(); \
+		Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) attrs->on##NAME.function.remove(handler); \
+	}
+
+#define DEFINE_VIEW_EVENT_HANDLER(NAME, ...) \
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, ##__VA_ARGS__) \
+	void View::on##NAME(__VA_ARGS__) {}
+
+#define DEFINE_SIMPLE_EVENT_HANDLER(NAME, ...) \
+	slib::Function<void(View* sender, ##__VA_ARGS__)> View::getOn##NAME() const { \
+		const Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) return attrs->on##NAME; else return sl_null; \
+	} \
+	slib::Function<void(View* sender, ##__VA_ARGS__)> View::setOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+		_initializeEventAttributes(); \
+		Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) { \
+			attrs->on##NAME = handler; \
+		} \
+		return handler; \
+	} \
+	slib::Function<void(View* sender, ##__VA_ARGS__)> View::addOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+		_initializeEventAttributes(); \
+		Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) attrs->on##NAME.add(handler); \
+		return handler; \
+	} \
+	void View::removeOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+		_initializeEventAttributes(); \
+		Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) attrs->on##NAME.remove(handler); \
+	}
+
+#define SLIB_INVOKE_VIEW_EVENT_HANDLER(NAME, ...) \
+	const Ref<EventAttributes>& attrs = m_eventAttrs; \
+	if (attrs.isNotNull()) { \
+		if (attrs->on##NAME.flagDefault) { \
+			on##NAME(__VA_ARGS__); \
+		} \
+		attrs->on##NAME.function(this, ##__VA_ARGS__); \
+	} \
 
 namespace slib
 {
@@ -682,7 +746,11 @@ namespace slib
 	{
 		Ref<ViewInstance> instance = m_instance;
 		if (instance.isNotNull()) {
-			dispatchDetach();
+			invokeDetach();
+			Ref<View> parent = m_parent;
+			if (parent.isNotNull()) {
+				parent->onDetachChild(this);
+			}
 			instance->setView(sl_null);
 			m_instance.setNull();
 		}
@@ -743,7 +811,12 @@ namespace slib
 					}
 				}
 			}
-			dispatchAttach();
+			invokeAttach();
+			_attachNativeAnimations();
+			Ref<View> parent = m_parent;
+			if (parent.isNotNull()) {
+				parent->onAttachChild(this);
+			}
 		}
 		Ref<View> viewCreatingChildInstances = getNearestViewCreatingChildInstances();
 		if (viewCreatingChildInstances.isNotNull()) {
@@ -1534,14 +1607,14 @@ namespace slib
 		_updateInstanceFrames();
 
 		if (!(flagNotMoveX && flagNotMoveY)) {
-			dispatchMove(frame.left, frame.top);
+			invokeMove(frame.left, frame.top);
 		}
 		if (!(flagNotResizeWidth && flagNotResizeHeight)) {
 			Ref<PaddingAttributes>& paddingAttrs = m_paddingAttrs;
 			if (paddingAttrs.isNotNull()) {
 				paddingAttrs->applyPaddingWeights(newWidth, newHeight);
 			}
-			dispatchResize(newWidth, newHeight);
+			handleResize(newWidth, newHeight);
 			invalidateLayer();
 		}
 		updateAndInvalidateBoundsInParent(mode);
@@ -1869,7 +1942,11 @@ namespace slib
 
 		_setInstanceVisible(visibility == Visibility::Visible);
 
-		dispatchChangeVisibility(oldVisibility, visibility);
+		invokeChangeVisibility(visibility, oldVisibility);
+		Ref<View> parent = getParent();
+		if (parent.isNotNull()) {
+			parent->onChangeVisibilityOfChild(this, visibility, oldVisibility);
+		}
 
 		switch (visibility) {
 			case Visibility::Visible:
@@ -2150,7 +2227,7 @@ namespace slib
 				if (view.isNotNull()) {
 					if (m_flagFocused != flagFocused) {
 						m_flagFocused = flagFocused;
-						dispatchChangeFocus(flagFocused);
+						invokeChangeFocus(flagFocused);
 					}
 					instance->setFocus(view.get(), flagFocused);
 					return;
@@ -2159,7 +2236,7 @@ namespace slib
 		}
 		if (m_flagFocused != flagFocused) {
 			m_flagFocused = flagFocused;
-			dispatchChangeFocus(flagFocused);
+			invokeChangeFocus(flagFocused);
 		}
 	}
 
@@ -7611,7 +7688,7 @@ namespace slib
 			ev.x = x;
 			ev.y = y;
 			ev.source = source;
-			dispatchScroll(&ev);
+			invokeScroll(&ev);
 
 			Ref<ScrollBar> bar = attrs->horz;
 			if (bar.isNotNull()) {
@@ -7714,14 +7791,14 @@ namespace slib
 	void View::setOkOnClick()
 	{
 		setOnClick([](View* view) {
-			view->dispatchOK();
+			view->invokeOK();
 		});
 	}
 
 	void View::setCancelOnClick()
 	{
 		setOnClick([](View* view) {
-			view->dispatchCancel();
+			view->invokeCancel();
 		});
 	}
 
@@ -8178,16 +8255,6 @@ namespace slib
 		return sl_false;
 	}
 
-	Ref<UIEvent> View::getCurrentEvent()
-	{
-		return m_currentEvent;
-	}
-
-	void View::setCurrentEvent(UIEvent* ev)
-	{
-		m_currentEvent = ev;
-	}
-
 	Ref<GestureDetector> View::createGestureDetector()
 	{
 		_initializeOtherAttributes();
@@ -8437,10 +8504,10 @@ namespace slib
 				}
 			}
 			clipContentBounds(canvas);
-			SLIB_INVOKE_EVENT_HANDLER(Draw, canvas)
+			invokeDraw(canvas);
 		} else {
 			onDrawBackground(canvas);
-			SLIB_INVOKE_EVENT_HANDLER(Draw, canvas)
+			invokeDraw(canvas);
 		}
 
 		{
@@ -8536,7 +8603,7 @@ namespace slib
 			Ref<Bitmap> bitmap = drawLayer();
 			if (bitmap.isNotNull()) {
 				if (flagShadow) {
-					dispatchDrawShadow(canvas);
+					invokeDrawShadow(canvas);
 				}
 				Rectangle rcInvalidated = canvas->getInvalidatedRect();
 				if (rcInvalidated.intersectRectangle(getBounds(), &rcInvalidated)) {
@@ -8546,7 +8613,7 @@ namespace slib
 			return;
 		}
 		if (flagShadow) {
-			dispatchDrawShadow(canvas);
+			invokeDrawShadow(canvas);
 		}
 		BoundShape boundShape = getBoundShape();
 		if (m_flagClipping && boundShape != BoundShape::None) {
@@ -8865,7 +8932,7 @@ namespace slib
 	{
 	}
 
-	void View::onChangeVisibilityOfChild(View* child, Visibility oldVisibility, Visibility newVisibility)
+	void View::onChangeVisibilityOfChild(View* child, Visibility visibility, Visibility former)
 	{
 	}
 
@@ -8873,59 +8940,23 @@ namespace slib
 	{
 	}
 
-#define DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, ...) \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::getOn##NAME() const { \
-		const Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) return attrs->on##NAME; else return sl_null; \
-	} \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::setOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
-		_initializeEventAttributes(); \
-		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME = handler; \
-		return handler; \
-	} \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::addOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
-		_initializeEventAttributes(); \
-		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.add(handler); \
-		return handler; \
-	} \
-	void View::removeOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
-		_initializeEventAttributes(); \
-		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.remove(handler); \
-	}
-
-#define DEFINE_VIEW_EVENT_HANDLER(NAME, ...) \
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, ##__VA_ARGS__) \
-	void View::on##NAME(__VA_ARGS__) {}
-
 	DEFINE_VIEW_EVENT_HANDLER(Attach)
 
-	void View::dispatchAttach()
+	void View::invokeAttach()
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Attach)
-		_attachNativeAnimations();
-		Ref<View> parent = m_parent;
-		if (parent.isNotNull()) {
-			parent->onAttachChild(this);
-		}
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Attach)
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(Detach)
 
-	void View::dispatchDetach()
+	void View::invokeDetach()
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Detach)
-		Ref<View> parent = m_parent;
-		if (parent.isNotNull()) {
-			parent->onDetachChild(this);
-		}
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Detach)
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(Draw, Canvas* canvas)
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(PreDraw, Canvas* canvas)
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(PostDraw, Canvas* canvas)
+	DEFINE_SIMPLE_EVENT_HANDLER(PreDraw, Canvas* canvas)
+	DEFINE_SIMPLE_EVENT_HANDLER(PostDraw, Canvas* canvas)
 	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(DrawShadow, Canvas* canvas)
 
 	void View::dispatchDraw(Canvas* canvas)
@@ -9014,10 +9045,9 @@ namespace slib
 
 	}
 
-	void View::dispatchDrawShadow(Canvas* canvas)
+	void View::invokeDrawShadow(Canvas* canvas)
 	{
-		onDrawShadow(canvas);
-		getOnDrawShadow()(this, canvas);
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(DrawShadow, canvas)
 	}
 
 	void View::onDrawShadow(Canvas* canvas)
@@ -9043,29 +9073,26 @@ namespace slib
 			return UIAction::Unknown;
 		}
 
-		class DuringEventScope
-		{
-		public:
-			View* view;
-
-		public:
-			DuringEventScope(View* view, UIEvent* ev)
-			{
-				this->view = view;
-				view->setCurrentEvent(ev);
-			}
-
-			~DuringEventScope()
-			{
-				view->setCurrentEvent(sl_null);
-			}
-
-		};
 	}
 
 #define POINT_EVENT_CHECK_CHILD(c) (c && !(c->isInstance()) && c->isVisible() && c->isHitTestable())
 
-	DEFINE_VIEW_EVENT_HANDLER(MouseEvent, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(MouseEvent, UIEvent* ev)
+
+	void View::invokeMouseEvent(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(MouseEvent, ev)
+	}
+
+	void View::onMouseEvent(UIEvent* ev)
+	{
+		if (!(isNativeWidget())) {
+			_processEventForStateAndClick(ev);
+			if (isContentScrollingByMouse()) {
+				_processContentScrollingEvents(ev);
+			}
+		}
+	}
 
 	void View::dispatchMouseEvent(UIEvent* ev)
 	{
@@ -9082,8 +9109,7 @@ namespace slib
 				gesture->processEvent(ev);
 			}
 			if (!(ev->isStoppedPropagation())) {
-				DuringEventScope scope(this, ev);
-				SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
+				invokeMouseEvent(ev);
 			}
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
@@ -9155,19 +9181,7 @@ namespace slib
 			ev->useDrag();
 		}
 
-		DuringEventScope scope(this, ev);
-
-		SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
-
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-
-		_processEventForStateAndClick(ev);
-
-		if (isContentScrollingByMouse()) {
-			_processContentScrollingEvents(ev);
-		}
+		invokeMouseEvent(ev);
 
 		if (m_flagCaptureEvents) {
 			ev->addFlag(UIEventFlags::Captured);
@@ -9319,7 +9333,17 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(TouchEvent, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(TouchEvent, UIEvent* ev)
+
+	void View::invokeTouchEvent(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(TouchEvent, ev)
+	}
+
+	void View::onTouchEvent(UIEvent* ev)
+	{
+		invokeMouseEvent(ev);
+	}
 
 	void View::dispatchTouchEvent(UIEvent* ev)
 	{
@@ -9336,9 +9360,7 @@ namespace slib
 				gesture->processEvent(ev);
 			}
 			if (!(ev->isStoppedPropagation())) {
-				DuringEventScope scope(this, ev);
-				SLIB_INVOKE_EVENT_HANDLER(TouchEvent, ev)
-				SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
+				invokeTouchEvent(ev);
 			}
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
@@ -9397,20 +9419,7 @@ namespace slib
 			}
 		}
 
-		DuringEventScope scope(this, ev);
-
-		SLIB_INVOKE_EVENT_HANDLER(TouchEvent, ev)
-		SLIB_INVOKE_EVENT_HANDLER(MouseEvent, ev)
-
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-
-		_processEventForStateAndClick(ev);
-
-		if (isContentScrollingByTouch()) {
-			_processContentScrollingEvents(ev);
-		}
+		invokeTouchEvent(ev);
 
 		if (m_flagCaptureEvents) {
 			ev->addFlag(UIEventFlags::Captured);
@@ -9674,7 +9683,21 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(MouseWheelEvent, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(MouseWheelEvent, UIEvent* ev)
+
+	void View::invokeMouseWheelEvent(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(MouseWheelEvent, ev)
+	}
+
+	void View::onMouseWheelEvent(UIEvent* ev)
+	{
+		if (!(isNativeWidget())) {
+			if (isContentScrollingByMouseWheel()) {
+				_processContentScrollingEvents(ev);
+			}
+		}
+	}
 
 	void View::dispatchMouseWheelEvent(UIEvent* ev)
 	{
@@ -9686,8 +9709,7 @@ namespace slib
 		}
 
 		if (isNativeWidget() && !(getChildCount())) {
-			DuringEventScope scope(this, ev);
-			SLIB_INVOKE_EVENT_HANDLER(MouseWheelEvent, ev)
+			invokeMouseWheelEvent(ev);
 			return;
 		}
 
@@ -9716,18 +9738,7 @@ namespace slib
 
 		ev->resetFlags();
 
-		DuringEventScope scope(this, ev);
-
-		SLIB_INVOKE_EVENT_HANDLER(MouseWheelEvent, ev)
-
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-
-		if (isContentScrollingByMouseWheel()) {
-			_processContentScrollingEvents(ev);
-		}
-
+		invokeMouseWheelEvent(ev);
 	}
 
 	sl_bool View::dispatchMouseWheelEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count)
@@ -9769,7 +9780,22 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(KeyEvent, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(KeyEvent, UIEvent* ev)
+
+	void View::invokeKeyEvent(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(KeyEvent, ev)
+	}
+
+	void View::onKeyEvent(UIEvent* ev)
+	{
+		if (!(isNativeWidget())) {
+			if (isContentScrollingByKeyboard()) {
+				_processContentScrollingEvents(ev);
+			}
+		}
+		_processKeyEvents(ev);
+	}
 
 	void View::dispatchKeyEvent(UIEvent* ev)
 	{
@@ -9788,12 +9814,7 @@ namespace slib
 		}
 
 		if (isNativeWidget() && !(getChildCount())) {
-			DuringEventScope scope(this, ev);
-			SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
-			if (ev->isPreventedDefault()) {
-				return;
-			}
-			_processKeyEvents(ev);
+			invokeKeyEvent(ev);
 			return;
 		}
 
@@ -9811,46 +9832,41 @@ namespace slib
 
 		ev->resetFlags();
 
-		DuringEventScope scope(this, ev);
+		invokeKeyEvent(ev);
 
-		SLIB_INVOKE_EVENT_HANDLER(KeyEvent, ev)
-
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-
-		if (isContentScrollingByKeyboard()) {
-			_processContentScrollingEvents(ev);
-		}
-
-		_processKeyEvents(ev);
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Click)
+	DEFINE_SIMPLE_EVENT_HANDLER(Click)
 
-	void View::dispatchClick()
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(ClickEvent, UIEvent* ev)
+
+	void View::onClickEvent(UIEvent* ev)
+	{
+		getOnClick()(this);
+		if (m_flagEnabled && m_flagPlaySoundOnClick) {
+			UISound::play(UISoundAlias::Click);
+		}
+	}
+
+	void View::invokeClickEvent(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(ClickEvent, ev)
+	}
+
+	void View::invokeClickEvent()
 	{
 		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
 		if (ev.isNotNull()) {
-			dispatchClickEvent(ev.get());
+			invokeClickEvent(ev.get());
 		}
-	}
-
-	DEFINE_VIEW_EVENT_HANDLER(ClickEvent, UIEvent* ev)
-
-	void View::dispatchClickEvent(UIEvent* ev)
-	{
-		if (! m_flagEnabled) {
-			return;
-		}
-		if (m_flagPlaySoundOnClick) {
-			UISound::play(UISoundAlias::Click);
-		}
-		SLIB_INVOKE_EVENT_HANDLER(ClickEvent, ev)
-		getOnClick()(this);
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(SetCursor, UIEvent* ev)
+
+	void View::invokeSetCursor(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(SetCursor, ev)
+	}
 
 	void View::dispatchSetCursor(UIEvent* ev)
 	{
@@ -9871,8 +9887,7 @@ namespace slib
 		}
 
 		if (isNativeWidget() && !(getChildCount())) {
-			DuringEventScope scope(this, ev);
-			SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
+			invokeSetCursor(ev);
 			return;
 		}
 
@@ -9902,7 +9917,7 @@ namespace slib
 
 		ev->resetFlags();
 
-		SLIB_INVOKE_EVENT_HANDLER(SetCursor, ev)
+		invokeSetCursor(ev);
 
 	}
 
@@ -9945,7 +9960,28 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(DragDropEvent, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(DragDropEvent, UIEvent* ev)
+
+	void View::invokeDragDropEvent(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(DragDropEvent, ev)
+	}
+
+	void View::onDragDropEvent(UIEvent* ev)
+	{
+		if (!(isNativeWidget())) {
+			if (m_flagDropTarget && m_flagDropFiles) {
+				UIAction action = ev->getAction();
+				if (action == UIAction::DragOver || action == UIAction::DragEnter) {
+					if (ev->getDragItem().getFiles().isNotNull()) {
+						if (ev->getDragOperationMask() & DragOperations::Copy) {
+							ev->setDragOperation(DragOperations::Copy);
+						}
+					}
+				}
+			}
+		}
+	}
 
 	void View::dispatchDragDropEvent(UIEvent* ev)
 	{
@@ -9958,14 +9994,12 @@ namespace slib
 
 		UIAction action = ev->getAction();
 		if (action == UIAction::Drag || action == UIAction::DragStart || action == UIAction::DragEnd) {
-			DuringEventScope scope(this, ev);
-			SLIB_INVOKE_EVENT_HANDLER(DragDropEvent, ev)
+			invokeDragDropEvent(ev);
 			return;
 		}
 
 		if (isNativeWidget() && !(getChildCount())) {
-			DuringEventScope scope(this, ev);
-			SLIB_INVOKE_EVENT_HANDLER(DragDropEvent, ev)
+			invokeDragDropEvent(ev);
 			return;
 		}
 
@@ -10010,20 +10044,7 @@ namespace slib
 
 		ev->resetFlags();
 
-		SLIB_INVOKE_EVENT_HANDLER(DragDropEvent, ev)
-
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-		if (m_flagDropTarget && m_flagDropFiles) {
-			if (action == UIAction::DragOver || action == UIAction::DragEnter) {
-				if (ev->getDragItem().getFiles().isNotNull()) {
-					if (ev->getDragOperationMask() & DragOperations::Copy) {
-						ev->setDragOperation(DragOperations::Copy);
-					}
-				}
-			}
-		}
+		invokeDragDropEvent(ev);
 
 	}
 
@@ -10100,121 +10121,108 @@ namespace slib
 
 	DEFINE_VIEW_EVENT_HANDLER(ChangeFocus, sl_bool flagFocused)
 
-	void View::dispatchChangeFocus(sl_bool flagFocused)
+	void View::invokeChangeFocus(sl_bool flagFocused)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangeFocus, flagFocused)
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(ChangeFocus, flagFocused)
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(Move, sl_ui_pos x, sl_ui_pos y)
 
-	void View::dispatchMove(sl_ui_pos x, sl_ui_pos y)
+	void View::invokeMove(sl_ui_pos x, sl_ui_pos y)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Move, x, y)
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Move, x, y)
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(Resize, sl_ui_len width, sl_ui_len height)
 
-	void View::dispatchResize(sl_ui_len width, sl_ui_len height)
+	void View::invokeResize(sl_ui_len width, sl_ui_len height)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Resize, width, height)
+	}
+
+	void View::handleResize(sl_ui_len width, sl_ui_len height)
 	{
 		refreshScroll(UIUpdateMode::None);
-
-		SLIB_INVOKE_EVENT_HANDLER(Resize, width, height)
-
-		Ref<View> parent = getParent();
+		invokeResize(width, height);
+		Ref<View> parent = m_parent;
 		if (parent.isNotNull()) {
 			parent->onResizeChild(this, width, height);
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(ChangeVisibility, Visibility oldVisibility, Visibility newVisibility)
+	DEFINE_VIEW_EVENT_HANDLER(ChangeVisibility, Visibility visibility, Visibility former)
 
-	void View::dispatchChangeVisibility(Visibility oldVisibility, Visibility newVisibility)
+	void View::invokeChangeVisibility(Visibility visibility, Visibility former)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangeVisibility, oldVisibility, newVisibility)
-
-		Ref<View> parent = getParent();
-		if (parent.isNotNull()) {
-			parent->onChangeVisibilityOfChild(this, oldVisibility, newVisibility);
-		}
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(ChangeVisibility, visibility, former)
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(Scroll, ScrollEvent*)
 
-	void View::dispatchScroll(ScrollEvent* ev)
+	void View::invokeScroll(ScrollEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Scroll, ev)
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Scroll, ev)
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER(Swipe, GestureEvent* ev)
 
-	void View::dispatchSwipe(GestureEvent* ev)
+	void View::invokeSwipe(GestureEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Swipe, ev)
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Swipe, ev)
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(OK, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(OK)
 
-	void View::dispatchOK(UIEvent* ev)
+	void View::invokeOK()
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(OK)
+	}
+
+	void View::onOK()
 	{
 		if (!m_flagEnabled) {
 			return;
 		}
-
-		SLIB_INVOKE_EVENT_HANDLER(OK, ev)
-
-		if (ev->isStoppedPropagation()) {
-			return;
-		}
-
 		Ref<View> parent = m_parent;
 		if (parent.isNotNull()) {
-			parent->dispatchOK(ev);
+			parent->invokeOK();
 		} else {
 			Ref<Window> window = m_window;
 			if (window.isNotNull()) {
-				window->dispatchOK();
+				window->invokeOK();
 			}
 		}
 	}
 
-	void View::dispatchOK()
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Cancel)
+
+	void View::invokeCancel()
 	{
-		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-		if (ev.isNotNull()) {
-			dispatchOK(ev.get());
-		}
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Cancel)
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(Cancel, UIEvent* ev)
-
-	void View::dispatchCancel(UIEvent* ev)
+	void View::onCancel()
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Cancel, ev)
-
-		if (ev->isStoppedPropagation()) {
+		if (!m_flagEnabled) {
 			return;
 		}
-
 		Ref<View> parent = m_parent;
 		if (parent.isNotNull()) {
-			parent->dispatchCancel(ev);
+			parent->invokeCancel();
 		} else {
 			Ref<Window> window = m_window;
 			if (window.isNotNull()) {
-				window->dispatchCancel();
+				window->invokeCancel();
 			}
-		}
-	}
-
-	void View::dispatchCancel()
-	{
-		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-		if (ev.isNotNull()) {
-			dispatchCancel(ev.get());
 		}
 	}
 
 	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Mnemonic, UIEvent* ev)
+
+	void View::invokeMnemonic(UIEvent* ev)
+	{
+		SLIB_INVOKE_VIEW_EVENT_HANDLER(Mnemonic, ev)
+	}
 
 	void View::onMnemonic(UIEvent* ev)
 	{
@@ -10230,11 +10238,6 @@ namespace slib
 				ev->preventDefault();
 			}
 		}
-	}
-
-	void View::dispatchMnemonic(UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Mnemonic, ev)
 	}
 
 	void View::_processKeyEvents(UIEvent* ev)
@@ -10253,7 +10256,7 @@ namespace slib
 					}
 					Ref<View> view = findViewByMnemonicKey(mneonicKey);
 					if (view.isNotNull()) {
-						view->dispatchMnemonic(ev);
+						view->invokeMnemonic(ev);
 					}
 				}
 			} else {
@@ -10281,14 +10284,14 @@ namespace slib
 				case Keycode::Enter:
 				case Keycode::NumpadEnter:
 					if (m_flagOkCancelEnabled) {
-						dispatchOK();
+						invokeOK();
 						ev->stopPropagation();
 						ev->preventDefault();
 					}
 					break;
 				case Keycode::Escape:
 					if (m_flagOkCancelEnabled) {
-						dispatchCancel();
+						invokeCancel();
 						ev->stopPropagation();
 						ev->preventDefault();
 					}
@@ -10315,7 +10318,7 @@ namespace slib
 					setPressedState(sl_false);
 					m_flagClicking = sl_false;
 					if (getBounds().containsPoint(ev->getPoint())) {
-						dispatchClickEvent(ev);
+						invokeClickEvent(ev);
 					}
 				} else {
 					setPressedState(sl_false);
@@ -11023,7 +11026,7 @@ namespace slib
 	{
 		Ref<View> view = getView();
 		if (view.isNotNull()) {
-			view->dispatchClick();
+			view->invokeClickEvent();
 		}
 	}
 
@@ -11262,7 +11265,7 @@ namespace slib
 			if (view->isEnabled()) {
 				GestureEvent ev;
 				ev.type = type;
-				view->dispatchSwipe(&ev);
+				view->invokeSwipe(&ev);
 			}
 		}
 	}

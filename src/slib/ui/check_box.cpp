@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -67,16 +67,7 @@ namespace slib
 
 	void CheckBox::setChecked(sl_bool flag, UIUpdateMode mode)
 	{
-		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
-		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setChecked, flag, mode)
-				m_flagChecked = flag;
-			setCurrentCategory(flag ? 1 : 0, UIUpdateMode::None);
-			instance->setChecked(this, flag);
-		} else {
-			m_flagChecked = flag;
-			setCurrentCategory(flag ? 1 : 0, mode);
-		}
+		_changeValue(flag, sl_null, mode);
 	}
 
 	Ref<ButtonCell> CheckBox::createButtonCell()
@@ -88,27 +79,47 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(CheckBox, Change, sl_bool newValue)
+	SLIB_DEFINE_EVENT_HANDLER(CheckBox, Change, sl_bool value, UIEvent* ev)
 
-	void CheckBox::dispatchChange(sl_bool newValue)
+	void CheckBox::dispatchChange(sl_bool value, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, newValue)
+		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
 	}
 
-	void CheckBox::dispatchClickEvent(UIEvent* ev)
+	void CheckBox::onClickEvent(UIEvent* ev)
 	{
-		if (!(ev->isInternal()) && isNativeWidget()) {
-			sl_bool valueOld = m_flagChecked;
-			sl_bool valueNew = isCheckedInstance();
-			if (valueOld != valueNew) {
-				dispatchChange(valueNew);
-			}
+		if (ev->isPreventedDefault()) {
+			return;
+		}
+		if (isNativeWidget()) {
+			_changeValue(isCheckedInstance(), ev, UIUpdateMode::None);
 		} else {
-			sl_bool valueNew = !m_flagChecked;
-			setChecked(valueNew);
+			_changeValue(!m_flagChecked, ev, UIUpdateMode::Redraw);
+		}
+	}
+
+	void CheckBox::onMnemonic(UIEvent* ev)
+	{
+
+	}
+
+	void CheckBox::_changeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode)
+	{
+		sl_bool valueOld = m_flagChecked;
+		sl_bool valueNew = isCheckedInstance();
+		if (valueOld != valueNew) {
 			dispatchChange(valueNew);
 		}
-		Button::dispatchClickEvent(ev);
+		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setChecked, flag, mode)
+				m_flagChecked = flag;
+			setCurrentCategory(flag ? 1 : 0, UIUpdateMode::None);
+			instance->setChecked(this, flag);
+		} else {
+			m_flagChecked = flag;
+			setCurrentCategory(flag ? 1 : 0, mode);
+		}
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL

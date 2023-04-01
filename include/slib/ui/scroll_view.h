@@ -56,9 +56,9 @@ namespace slib
 	public:
 		void dispatchScroll(ScrollEvent*) override;
 
-	protected:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
+	protected:
 		void onResizeChild(View* child, sl_ui_len width, sl_ui_len height) override;
 
 	protected:

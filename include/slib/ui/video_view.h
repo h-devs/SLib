@@ -99,7 +99,7 @@ namespace slib
 		// texture coordinate: [0, 0] - left top, [1, 1] - right bottom
 		sl_bool convertCoordinateToTexture(Point& pt);
 
-	protected:
+	public:
 		void dispatchFrame(RenderEngine* engine) override;
 
 		void onDraw(Canvas* canvas) override;
@@ -119,7 +119,7 @@ namespace slib
 
 		void _onTimerPlayVideo(Timer* timer);
 
-		void _onSeek(Slider* slider, float value);
+		void _onSeek(Slider* slider, float value, UIEvent* ev);
 
 	protected:
 		AtomicRef<MediaPlayer> m_mediaPlayer;

@@ -261,14 +261,14 @@ namespace slib
 		if (controller.isNotNull()) {
 			Ref<View> page = controller->getCurrentPage();
 			if (ViewPage* _page = CastInstance<ViewPage>(page.get())) {
-				_page->dispatchPause();
+				_page->invokePause();
 			}
 		}
 		ListLocker< Ref<ViewPage> > popups(m_popupPages);
 		for (sl_size i = 0; i < popups.count; i++) {
 			Ref<ViewPage> page = popups[i];
 			if (page.isNotNull()) {
-				page->dispatchPause();
+				page->invokePause();
 			}
 		}
 	}
@@ -304,14 +304,14 @@ namespace slib
 		if (controller.isNotNull()) {
 			Ref<View> page = controller->getCurrentPage();
 			if (ViewPage* _page = CastInstance<ViewPage>(page.get())) {
-				_page->dispatchResume();
+				_page->invokeResume();
 			}
 		}
 		ListLocker< Ref<ViewPage> > popups(m_popupPages);
 		for (sl_size i = 0; i < popups.count; i++) {
 			Ref<ViewPage> page = popups[i];
 			if (page.isNotNull()) {
-				page->dispatchResume();
+				page->invokeResume();
 			}
 		}
 	}
@@ -337,11 +337,11 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, BackPressed, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(MobileApp, PressBack, UIEvent* ev)
 
-	void MobileApp::dispatchBackPressed(UIEvent* ev)
+	void MobileApp::dispatchPressBack(UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(BackPressed, ev)
+		SLIB_INVOKE_EVENT_HANDLER(PressBack, ev)
 
 		if (ev->isPreventedDefault()) {
 			return;
@@ -351,7 +351,7 @@ namespace slib
 			if (popups.count > 0) {
 				Ref<ViewPage> page = popups[popups.count-1];
 				if (page.isNotNull()) {
-					page->dispatchBackPressed(ev);
+					page->dispatchPressBack(ev);
 					if (!(ev->isPreventedDefault())) {
 						page->close();
 						ev->preventDefault();
@@ -364,7 +364,7 @@ namespace slib
 		if (controller.isNotNull()) {
 			Ref<View> _page = controller->getCurrentPage();
 			if (ViewPage* page = CastInstance<ViewPage>(_page.get())) {
-				page->dispatchBackPressed(ev);
+				page->dispatchPressBack(ev);
 				if (!(ev->isPreventedDefault())) {
 					if (controller->getPageCount() > 1) {
 						page->close();
@@ -375,13 +375,13 @@ namespace slib
 		}
 	}
 
-	sl_bool MobileApp::dispatchBackPressedToApp()
+	sl_bool MobileApp::dispatchPressBackToApp()
 	{
 		Ref<MobileApp> app = getApp();
 		if (app.isNotNull()) {
 			Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
 			if (ev.isNotNull()) {
-				app->dispatchBackPressed(ev.get());
+				app->dispatchPressBack(ev.get());
 				if (ev->isPreventedDefault()) {
 					return sl_false;
 				}

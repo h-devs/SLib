@@ -107,14 +107,15 @@ namespace slib
 		void setTrackColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(SwitchView, Change, SwitchValue newValue)
+		SLIB_DECLARE_EVENT_HANDLER(SwitchView, Change, SwitchValue value, UIEvent* ev /* nullable */)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
-		void onUpdateLayout() override;
-
 		void onMouseEvent(UIEvent* ev) override;
+
+	protected:
+		void onUpdateLayout() override;
 
 	protected:
 		virtual sl_bool calculateSwitchRegion(UIRect& _out);
@@ -124,7 +125,7 @@ namespace slib
 		virtual void drawThumb(Canvas* canvas, const Ref<Drawable>& thumb, const Rectangle& rectDst);
 
 	private:
-		void _changeValue(SwitchValue value);
+		void _changeValue(SwitchValue value, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Animate);
 
 		void _onTimerAnimation(Timer* timer);
 

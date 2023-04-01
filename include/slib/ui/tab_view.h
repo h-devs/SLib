@@ -158,8 +158,7 @@ namespace slib
 		virtual UIRect getTabContentRegion();
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(TabView, SelectingTab, sl_uint32& index, UIEvent* ev /* nullable */)
-		SLIB_DECLARE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index, sl_uint32 former, UIEvent* ev /* nullable */)
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -169,7 +168,7 @@ namespace slib
 	public:
 		void notifySelectTab(ITabViewInstance* instance, sl_uint32 index);
 
-	protected:
+	public:
 		void onClickEvent(UIEvent* ev) override;
 
 		void onMouseEvent(UIEvent* ev) override;
@@ -180,6 +179,7 @@ namespace slib
 
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
+	protected:
 		virtual void onDrawTab(Canvas* canvas, const UIRect& rect, sl_uint32 index, const Ref<Drawable>& icon, const String& label);
 
 	private:

@@ -41,7 +41,7 @@ void MainPage::initPage()
 void MainPage::onOpen()
 {
 
-	switchSetDefault->setOnChange([](SwitchView*, sl_bool value) {
+	switchSetDefault->setOnChange([](SwitchView*, sl_bool value, UIEvent*) {
 		if (value) {
 			Application::setDefaultCallingApp([]() {
 				Println("Set Default Calling App Result: %d", Application::isDefaultCallingApp());
@@ -50,7 +50,7 @@ void MainPage::onOpen()
 			Application::openDefaultAppsSetting();
 		}
 	});
-	switchSystemOverlay->setOnChange([](SwitchView*, sl_bool value) {
+	switchSystemOverlay->setOnChange([](SwitchView*, sl_bool value, UIEvent*) {
 		Application::openSystemOverlaySetting();
 	});
 
@@ -170,7 +170,7 @@ void MainPage::stopRecording()
 				if (player->getSampleCountInQueue()) {
 					m_nSamplesPlayed += nSamples;
 				} else {
-					btnStop->dispatchClick();
+					btnStop->invokeClickEvent();
 				}
 			};
 			m_player = AudioPlayer::create(param);

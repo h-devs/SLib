@@ -90,12 +90,13 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(ViewPageNavigationController, PageAction, View* page, UIPageAction action)
 		SLIB_DECLARE_EVENT_HANDLER(ViewPageNavigationController, EndPageAnimation, View* page, UIPageAction action)
 
-	protected:
+	public:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
-		void onChangePadding(UIUpdateMode mode) override;
-
 		void onSwipe(GestureEvent* ev) override;
+
+	protected:
+		void onChangePadding(UIUpdateMode mode) override;
 
 	protected:
 		CList< Ref<View> > m_pages;

@@ -273,7 +273,6 @@ namespace slib
 	public:
 		void dispatchDraw(Canvas* canvas) override;
 
-	protected:
 		void onDraw(Canvas* canvas) override;
 
 		void onKeyEvent(UIEvent* ev) override;
@@ -282,6 +281,7 @@ namespace slib
 
 		void onChangeFocus(sl_bool flagFocused) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 	protected:

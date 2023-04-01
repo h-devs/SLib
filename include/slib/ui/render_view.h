@@ -104,9 +104,10 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER(RenderView, Frame, RenderEngine* engine)
 
-	protected:
+	public:
 		void onAttach() override;
 
+	protected:
 		void onDrawBackground(Canvas* canvas) override;
 
 	protected:

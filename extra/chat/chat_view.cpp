@@ -299,8 +299,9 @@ namespace slib
 
 		sl_bool m_flagTrySelect = sl_false;
 
-		void onTouchMessage(View*, UIEvent* ev)
+		void onTouchMessage(View* view, UIEvent* ev)
 		{
+			view->onTouchEvent(ev);
 			UIAction action = ev->getAction();
 			if (action == UIAction::TouchBegin) {
 				if (flagMe) {

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -101,15 +101,14 @@ namespace slib
 
 		void setSecondaryProgressColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 	protected:
 		float refineValue(float value);
-
-		int tryChangeValue(float& value, float& value2, sl_bool flagChange2);
 
 		float refineStep();
 

@@ -130,20 +130,20 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Pause)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Resume)
-		SLIB_DECLARE_EVENT_HANDLER(MobileApp, BackPressed, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(MobileApp, PressBack, UIEvent* ev)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, CreateActivity)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, DestroyActivity)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Resize, sl_ui_len width, sl_ui_len height)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, ChangeCurrentLocale)
 
 	public:
-		void dispatchStart() override;
+		void onStart() override;
 
 		static void dispatchPauseToApp();
 
 		static void dispatchResumeToApp();
 
-		static sl_bool dispatchBackPressedToApp();
+		static sl_bool dispatchPressBackToApp();
 
 		static void dispatchCreateActivityToApp();
 
@@ -172,7 +172,7 @@ namespace slib
 
 		~MobileMainWindow();
 
-	protected:
+	public:
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	};

@@ -65,6 +65,8 @@ namespace slib
 				}
 			}
 
+			using SelectView::_onSelectItem_NW;
+
 		};
 
 		class SelectViewInstance : public macOS_ViewInstance, public ISelectViewInstance
@@ -140,9 +142,9 @@ namespace slib
 
 			void onSelectItem(NSPopUpButton* handle)
 			{
-				Ref<SelectView> view = CastRef<SelectView>(getView());
+				Ref<SelectViewHelper> view = CastRef<SelectViewHelper>(getView());
 				if (view.isNotNull()) {
-					view->dispatchSelectItem((sl_uint32)([handle indexOfSelectedItem]));
+					view->_onSelectItem_NW((sl_uint32)([handle indexOfSelectedItem]));
 				}
 			}
 		};

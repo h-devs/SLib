@@ -52,7 +52,7 @@ namespace slib
 		setAntiAlias(sl_true, UIUpdateMode::Init);
 
 		m_cell->setView(this, sl_true);
-		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, dispatchClickLink);
+		m_cell->onClickLink = SLIB_FUNCTION_WEAKREF(this, invokeClickLink);
 	}
 
 	String LabelView::getText()
@@ -178,15 +178,16 @@ namespace slib
 		return m_cell->measureSize();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(LabelView, ClickLink, const String& href, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(LabelView, ClickLink, const String& href, UIEvent* ev)
 
-	void LabelView::dispatchClickLink(const String& href, UIEvent *ev)
+	void LabelView::onClickLink(const String& href, UIEvent *ev)
+	{
+		UI::openUrl(href);
+	}
+
+	void LabelView::invokeClickLink(const String& href, UIEvent *ev)
 	{
 		SLIB_INVOKE_EVENT_HANDLER(ClickLink, href, ev)
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-		UI::openUrl(href);
 	}
 
 	void LabelView::onDraw(Canvas* canvas)

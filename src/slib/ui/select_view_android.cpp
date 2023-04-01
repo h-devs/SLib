@@ -72,6 +72,8 @@ namespace slib
 				}
 			}
 
+			using SelectView::_onSelectItem_NW;
+
 		};
 
 		class SelectViewInstance : public Android_ViewInstance, public ISelectViewInstance
@@ -159,7 +161,7 @@ namespace slib
 		{
 			Ref<SelectViewHelper> helper = CastRef<SelectViewHelper>(Android_ViewInstance::findView(instance));
 			if (helper.isNotNull()) {
-				helper->dispatchSelectItem(n);
+				helper->_onSelectItem_NW(n);
 			}
 		}
 

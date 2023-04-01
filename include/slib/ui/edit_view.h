@@ -151,6 +151,7 @@ namespace slib
 	protected:
 		void onUpdateLayout() override;
 
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;
@@ -162,8 +163,8 @@ namespace slib
 
 		virtual Ptr<IEditViewInstance> getEditViewInstance();
 
-	public:
-		void dispatchKeyEvent(UIEvent* ev) override;
+	protected:
+		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
 		sl_bool m_flagInvalidateText : 1;

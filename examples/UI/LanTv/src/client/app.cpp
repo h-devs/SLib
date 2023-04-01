@@ -12,6 +12,7 @@ void LanTvClientApp::onStart()
 	viewVideo->setWidthFilling();
 	viewVideo->setHeightFilling();
 	viewVideo->setOnMouseEvent([](View* view, UIEvent* ev) {
+		view->onMouseEvent(ev);
 		static UIRect lastFrame = {};
 		if (ev->getAction() == UIAction::LeftButtonDoubleClick) {
 			auto window = view->getWindow();

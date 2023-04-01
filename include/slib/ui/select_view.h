@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -51,13 +51,16 @@ namespace slib
 		void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)
+		SLIB_DECLARE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev /* nullable */)
 
-	protected:
+		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
+
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 	protected:
@@ -68,8 +71,10 @@ namespace slib
 	private:
 		void _initCell();
 
-	public:
-		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectView, sl_uint32)
+		void _onSelectItem(sl_uint32 index, UIEvent* ev);
+
+	protected:
+		void _onSelectItem_NW(sl_uint32 index);
 
 	protected:
 		Ref<SelectSwitchCell> m_cell;
@@ -141,17 +146,21 @@ namespace slib
 		virtual void setTextColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(SelectSwitch, SelectItem, sl_uint32 index)
+		SLIB_DECLARE_EVENT_HANDLER(SelectSwitch, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev /* nullable */)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;
 
+	protected:
 		void onUpdateLayout() override;
 
 	public:
 		SLIB_DECLARE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(SelectSwitch, sl_uint32)
+
+	private:
+		void _onSelectItem(sl_uint32 index, UIEvent* ev);
 
 	protected:
 		Ref<SelectSwitchCell> m_cell;
@@ -170,7 +179,7 @@ namespace slib
 		AtomicRef<Drawable> leftIcon;
 		AtomicRef<Drawable> rightIcon;
 
-		Function<void(sl_uint32 index)> onSelectItem;
+		Function<void(sl_uint32 index, UIEvent* ev)> onSelectItem;
 
 	public:
 		SelectSwitchCell();

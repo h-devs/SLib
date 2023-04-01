@@ -69,7 +69,7 @@ namespace slib
 
 		sl_bool deletePage(sl_uint32 pageNo, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onResize(sl_ui_len width, sl_ui_len height) override;

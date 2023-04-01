@@ -104,7 +104,7 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER(ListBox, ChangedSelection, UIEvent* ev)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onClickEvent(UIEvent* ev) override;

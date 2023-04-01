@@ -61,6 +61,9 @@ namespace slib
 				}
 			}
 
+			using ComboBox::_onChange_NW;
+			using ComboBox::_onSelectItem_NW;
+
 		};
 
 		class ComboBoxInstance : public macOS_ViewInstance, public IComboBoxInstance
@@ -154,9 +157,9 @@ namespace slib
 
 			void onSelectItem(NSComboBox* handle)
 			{
-				Ref<ComboBox> view = CastRef<ComboBox>(getView());
+				Ref<ComboBoxHelper> view = CastRef<ComboBoxHelper>(getView());
 				if (view.isNotNull()) {
-					view->dispatchSelectItem((sl_uint32)([handle indexOfSelectedItem]));
+					view->_onSelectItem_NW((sl_uint32)([handle indexOfSelectedItem]));
 				}
 			}
 

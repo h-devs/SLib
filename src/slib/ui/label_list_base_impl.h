@@ -417,8 +417,7 @@ namespace slib
 			if (index >= m_countItems) {
 				return;
 			}
-			m_indexSelected = index;
-			((VIEW_CLASS*)this)->notifySelectItem(index, mode);
+			((VIEW_CLASS*)this)->notifySelectItem(index, sl_null, mode);
 		}
 	}
 
@@ -533,28 +532,46 @@ namespace slib
 #define SLIB_DEFINE_SINGLE_SELECTION_VIEW_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
 	SLIB_DEFINE_LABEL_LIST_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE) \
 	template class SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>; \
-	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIUpdateMode mode) \
+	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode) \
 	{ \
+		ObjectLocker locker(this); \
+		INDEX_TYPE oldIndex = index; \
+		if (oldIndex == index) { \
+			return; \
+		} \
+		m_indexSelected = index; \
 		if (m_cell.isNotNull()) { \
-			m_cell->selectedIndex = m_indexSelected; \
+			m_cell->selectedIndex = index; \
 		} \
 		invalidate(mode); \
+		locker.unlock(); \
+		dispatchSelectItem(index, oldIndex, ev); \
 	}
 
 #define SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
 	SLIB_DEFINE_LABEL_LIST_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
 	template class SingleSelectionViewBase<VIEW_CLASS, INDEX_TYPE>; \
-	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIUpdateMode mode) \
+	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode) \
 	{ \
-		if (m_cell.isNotNull()) { \
-			m_cell->selectedIndex = m_indexSelected; \
+		ObjectLocker locker(this); \
+		INDEX_TYPE oldIndex = index; \
+		if (oldIndex == index) { \
+			return; \
 		} \
+		m_indexSelected = index; \
 		Ptr<INSTANCE_CLASS> instance = INSTANCE_GETTER(); \
 		if (instance.isNotNull()) { \
-			instance->selectItem((VIEW_CLASS*)this, index); \
+			if (!ev) { \
+				instance->selectItem((VIEW_CLASS*)this, index); \
+			} \
 		} else { \
+			if (m_cell.isNotNull()) { \
+				m_cell->selectedIndex = index; \
+			} \
 			invalidate(mode); \
 		} \
+		locker.unlock(); \
+		dispatchSelectItem(index, oldIndex, ev); \
 	}
 
 #endif

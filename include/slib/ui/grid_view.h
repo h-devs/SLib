@@ -382,11 +382,13 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER(GridView, SelectCell, UIEvent*, CellEventParam&)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 		void onClickEvent(UIEvent* ev) override;
 		void onMouseEvent(UIEvent* ev) override;
 		void onKeyEvent(UIEvent* ev) override;
+
+	protected:
 		void onUpdateFont(const Ref<Font>& font) override;
 
 	private:

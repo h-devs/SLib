@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -144,7 +144,6 @@ namespace slib
 	KeycodeAndModifiers operator|(int modifiers, Keycode keycode);
 
 
-
 	class SLIB_EXPORT UIEvent : public CRef
 	{
 		SLIB_DECLARE_OBJECT
@@ -232,8 +231,6 @@ namespace slib
 
 		// mouse wheel
 		sl_real getDelta() const;
-
-		void setDelta(sl_real delta);
 
 		sl_real getDeltaX() const;
 
@@ -359,10 +356,6 @@ namespace slib
 		sl_bool isPassedToNext();
 
 		void setPassedToNext(sl_bool flag);
-
-		sl_bool isInternal();
-
-		void setInternal(sl_bool flag);
 
 		void useDrag();
 

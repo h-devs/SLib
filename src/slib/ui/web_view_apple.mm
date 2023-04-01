@@ -193,7 +193,7 @@ namespace slib
 			{
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchStartLoad(Apple::getStringFromNSString(url.absoluteString));
+					helper->invokeStartLoad(Apple::getStringFromNSString(url.absoluteString));
 				}
 			}
 
@@ -202,7 +202,7 @@ namespace slib
 				Ref<WebViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
 					String url = Apple::getStringFromNSString(handle.URL.absoluteString);
-					helper->dispatchFinishLoad(url, sl_false);
+					helper->handleFinishLoad(url, sl_false);
 				}
 			}
 
@@ -214,7 +214,7 @@ namespace slib
 					if (url.isNull()) {
 						url = Apple::getStringFromNSString(handle.URL.absoluteString);
 					}
-					helper->dispatchFinishLoad(url, sl_true);
+					helper->handleFinishLoad(url, sl_true);
 				}
 			}
 
@@ -231,7 +231,7 @@ namespace slib
 				if (msg.isNotEmpty()) {
 					Ref<WebViewHelper> helper = getHelper();
 					if (helper.isNotNull()) {
-						helper->dispatchMessageFromJavaScript(msg, param);
+						helper->handleMessageFromJavaScript(msg, param);
 					}
 				}
 			}

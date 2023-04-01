@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,10 @@ namespace slib
 		~Slider();
 
 	public:
+		void setValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+
+		void setSecondaryValue(float value, UIUpdateMode mode = UIUpdateMode::Redraw) override;
+
 		Ref<Drawable> getThumb(ViewState state = ViewState::Default);
 
 		void setThumb(const Ref<Drawable>& drawable, ViewState state, UIUpdateMode mode = UIUpdateMode::Redraw);
@@ -67,10 +71,12 @@ namespace slib
 		void setThumbHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(Slider, Change, float value)
-		SLIB_DECLARE_EVENT_HANDLER(Slider, ChangeSecondary, float value)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, Changing, float& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, Change, float value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, ChangingSecondary, float& value, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(Slider, ChangeSecondary, float value, UIEvent* ev /* nullable */)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;
@@ -98,9 +104,11 @@ namespace slib
 
 		void getRegions(UIRect& outTrack, UIRect& outProgress, UIRect& outSecondaryProgress, UIRect& outThumb, UIRect& outSecondaryThumb);
 
-		void changeValue(float value, sl_bool flagChange2);
+	private:
+		void _changeValue(float value, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-	protected:
+		void _changeValue2(float value, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
 		ViewState _getThumbState(int index);
 
 		void _setHoverThumb(int index, UIAction action);

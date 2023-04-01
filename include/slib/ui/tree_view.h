@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -151,7 +151,8 @@ namespace slib
 		void setHeight(sl_ui_len height, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_PROPERTY_FUNCTION(void(TreeViewItem*, UIEvent*), OnSelect)
+		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, TreeViewItem* former, UIEvent* /* nullable */), OnSelect)
+		SLIB_PROPERTY_FUNCTION(void(TreeViewItem* item, UIEvent*), OnClick)
 
 	private:
 		void _addChild(TreeViewItem* item, UIUpdateMode mode);
@@ -306,13 +307,15 @@ namespace slib
 		void setFont(const Ref<Font>& font, UIUpdateMode mode = UIUpdateMode::UpdateLayout) override;
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, TreeViewItem* former, UIEvent* ev /* nullable */)
+		SLIB_DECLARE_EVENT_HANDLER(TreeView, ClickItem, TreeViewItem* item, UIEvent* ev)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onResize(sl_ui_len width, sl_ui_len height) override;
 
+	protected:
 		void onChangePadding(UIUpdateMode mode) override;
 
 	private:
@@ -341,6 +344,8 @@ namespace slib
 		void _processMouseEventItem(UIEvent* ev, sl_bool flagClick, TreeViewItem* item, sl_bool flagRoot);
 
 		void _selectItem(const Ref<TreeViewItem>& item, UIEvent* ev, UIUpdateMode mode);
+
+		void _clickItem(const Ref<TreeViewItem>& item, UIEvent* ev);
 
 	private:
 		class ContentView;

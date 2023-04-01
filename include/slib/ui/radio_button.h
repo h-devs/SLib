@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -92,19 +92,21 @@ namespace slib
 
 		void remove(const Ref<RadioButton>& button);
 
-		void select(const Ref<RadioButton>& button);
+		void select(const Ref<RadioButton>& button, UIUpdateMode mode);
 
 		Ref<RadioButton> getSelected();
 
-		void selectValue(const String& value);
+		void selectValue(const String& value, UIUpdateMode mode);
 
 		String getSelectedValue();
 
 	private:
 		void _setChecked(RadioButton* button, sl_bool flag, UIUpdateMode mode);
 
+		void _select(RadioButton* button, UIEvent* ev, UIUpdateMode mode);
+
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(RadioGroup, Select, RadioButton*)
+		SLIB_DECLARE_EVENT_HANDLER(RadioGroup, Select, RadioButton* button, RadioButton* former, UIEvent* ev /* nullable */)
 
 	protected:
 		CList< Ref<RadioButton> > m_buttons;

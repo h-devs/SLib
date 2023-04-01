@@ -55,9 +55,9 @@ namespace slib
 		ListElements< Ref<View> > pages(m_pages);
 		for (sl_size i = 0; i < pages.count; i++) {
 			if (i == 0) {
-				dispatchPageAction(pages[pages.count - 1 - i].get(), UIPageAction::Pause);
+				invokePageAction(pages[pages.count - 1 - i].get(), UIPageAction::Pause);
 			}
-			dispatchPageAction(pages[pages.count - 1 - i].get(), UIPageAction::Pop);
+			invokePageAction(pages[pages.count - 1 - i].get(), UIPageAction::Pop);
 		}
 	}
 
@@ -91,7 +91,7 @@ namespace slib
 				break;
 		}
 		setEnabled(sl_true);
-		dispatchEndPageAnimation(view.get(), action);
+		invokeEndPageAnimation(view.get(), action);
 		Base::interlockedDecrement(&m_countActiveTransitionAnimations);
 	}
 
@@ -142,9 +142,9 @@ namespace slib
 			viewIn->setFrame(getBoundsInnerPadding(), UIUpdateMode::None);
 			_resetAnimationStatus(viewIn);
 			addChild(viewIn);
-			dispatchPageAction(viewIn.get(), UIPageAction::Push);
-			dispatchPageAction(viewIn.get(), UIPageAction::Resume);
-			dispatchEndPageAnimation(viewIn.get(), UIPageAction::Push);
+			invokePageAction(viewIn.get(), UIPageAction::Push);
+			invokePageAction(viewIn.get(), UIPageAction::Resume);
+			invokeEndPageAnimation(viewIn.get(), UIPageAction::Push);
 			viewIn->setVisibility(Visibility::Visible, UIUpdateMode::None);
 			viewIn->bringToFront();
 			return;
@@ -181,7 +181,7 @@ namespace slib
 
 		addChild(viewIn);
 
-		dispatchPageAction(viewBack.get(), UIPageAction::Pause);
+		invokePageAction(viewBack.get(), UIPageAction::Pause);
 
 		if (countRemoveTop > 0) {
 			sl_size n = m_pages.getCount();
@@ -189,14 +189,14 @@ namespace slib
 				countRemoveTop = n;
 			}
 			for (sl_size i = 0; i < countRemoveTop; i++) {
-				dispatchPageAction(pages[n - 1 - i].get(), UIPageAction::Pop);
+				invokePageAction(pages[n - 1 - i].get(), UIPageAction::Pop);
 			}
 			m_pages.setCount_NoLock(n - countRemoveTop);
 		}
 
 		m_pages.add_NoLock(viewIn);
-		dispatchPageAction(viewIn.get(), UIPageAction::Push);
-		dispatchPageAction(viewIn.get(), UIPageAction::Resume);
+		invokePageAction(viewIn.get(), UIPageAction::Push);
+		invokePageAction(viewIn.get(), UIPageAction::Resume);
 
 		if (animationPause.isNotNull()) {
 			animationPause->dispatchStartFrame();
@@ -335,9 +335,9 @@ namespace slib
 
 		addChild(viewBack, UIUpdateMode::None);
 
-		dispatchPageAction(viewOut.get(), UIPageAction::Pause);
-		dispatchPageAction(viewOut.get(), UIPageAction::Pop);
-		dispatchPageAction(viewBack.get(), UIPageAction::Resume);
+		invokePageAction(viewOut.get(), UIPageAction::Pause);
+		invokePageAction(viewOut.get(), UIPageAction::Pop);
+		invokePageAction(viewBack.get(), UIPageAction::Resume);
 
 		if (animationPop.isNotNull()) {
 			animationPop->start();
@@ -485,27 +485,23 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPageNavigationController, PageAction, View* page, UIPageAction action)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ViewPageNavigationController, PageAction, (View* page, UIPageAction action), page, action)
 
-	void ViewPageNavigationController::dispatchPageAction(View* page, UIPageAction action)
+	void ViewPageNavigationController::onPageAction(View* _page, UIPageAction action)
 	{
+		ViewPage* page = CastInstance<ViewPage>(_page);
 		if (page) {
-			SLIB_INVOKE_EVENT_HANDLER(PageAction, page, action)
-			if (ViewPage* _page = CastInstance<ViewPage>(page)) {
-				_page->dispatchPageAction(this, action);
-			}
+			page->invokePageAction(this, action);
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ViewPageNavigationController, EndPageAnimation, View* page, UIPageAction action)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ViewPageNavigationController, EndPageAnimation, (View* page, UIPageAction action), page, action)
 
-	void ViewPageNavigationController::dispatchEndPageAnimation(View* page, UIPageAction action)
+	void ViewPageNavigationController::onEndPageAnimation(View* _page, UIPageAction action)
 	{
+		ViewPage* page = CastInstance<ViewPage>(_page);
 		if (page) {
-			SLIB_INVOKE_EVENT_HANDLER(EndPageAnimation, page, action)
-			if (ViewPage* _page = CastInstance<ViewPage>(page)) {
-				_page->dispatchEndPageAnimation(this, action);
-			}
+			page->invokeEndPageAnimation(this, action);
 		}
 	}
 

@@ -194,6 +194,7 @@ namespace slib
 	protected:
 		void onUpdateLayout() override;
 
+	public:
 		void onDraw(Canvas* canvas) override;
 
 	private:

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -307,29 +307,29 @@ namespace slib
 	class View::EventAttributes : public CRef
 	{
 	public:
-		AtomicFunction<void(View*)> onAttach;
-		AtomicFunction<void(View*)> onDetach;
-		AtomicFunction<void(View*, Canvas*)> onDraw;
+		EventHandler<void(View*)> onAttach;
+		EventHandler<void(View*)> onDetach;
+		EventHandler<void(View*, Canvas*)> onDraw;
 		AtomicFunction<void(View*, Canvas*)> onPreDraw;
 		AtomicFunction<void(View*, Canvas*)> onPostDraw;
-		AtomicFunction<void(View*, Canvas*)> onDrawShadow;
-		AtomicFunction<void(View*, UIEvent*)> onMouseEvent;
-		AtomicFunction<void(View*, UIEvent*)> onTouchEvent;
-		AtomicFunction<void(View*, UIEvent*)> onKeyEvent;
-		AtomicFunction<void(View*, UIEvent*)> onMouseWheelEvent;
+		EventHandler<void(View*, Canvas*)> onDrawShadow;
+		EventHandler<void(View*, UIEvent*)> onMouseEvent;
+		EventHandler<void(View*, UIEvent*)> onTouchEvent;
+		EventHandler<void(View*, UIEvent*)> onKeyEvent;
+		EventHandler<void(View*, UIEvent*)> onMouseWheelEvent;
 		AtomicFunction<void(View*)> onClick;
-		AtomicFunction<void(View*, UIEvent*)> onClickEvent;
-		AtomicFunction<void(View*, UIEvent*)> onSetCursor;
-		AtomicFunction<void(View*, UIEvent*)> onDragDropEvent;
-		AtomicFunction<void(View*, sl_bool flagFocused)> onChangeFocus;
-		AtomicFunction<void(View*, sl_ui_pos, sl_ui_pos)> onMove;
-		AtomicFunction<void(View*, sl_ui_len, sl_ui_len)> onResize;
-		AtomicFunction<void(View*, Visibility, Visibility)> onChangeVisibility;
-		AtomicFunction<void(View*, ScrollEvent*)> onScroll;
-		AtomicFunction<void(View*, GestureEvent*)> onSwipe;
-		AtomicFunction<void(View*, UIEvent*)> onOK;
-		AtomicFunction<void(View*, UIEvent*)> onCancel;
-		AtomicFunction<void(View*, UIEvent*)> onMnemonic;
+		EventHandler<void(View*, UIEvent*)> onClickEvent;
+		EventHandler<void(View*, UIEvent*)> onSetCursor;
+		EventHandler<void(View*, UIEvent*)> onDragDropEvent;
+		EventHandler<void(View*, sl_bool)> onChangeFocus;
+		EventHandler<void(View*, sl_ui_pos, sl_ui_pos)> onMove;
+		EventHandler<void(View*, sl_ui_len, sl_ui_len)> onResize;
+		EventHandler<void(View*, Visibility, Visibility)> onChangeVisibility;
+		EventHandler<void(View*, ScrollEvent*)> onScroll;
+		EventHandler<void(View*, GestureEvent*)> onSwipe;
+		EventHandler<void(View*)> onOK;
+		EventHandler<void(View*)> onCancel;
+		EventHandler<void(View*, UIEvent*)> onMnemonic;
 
 	public:
 		EventAttributes();

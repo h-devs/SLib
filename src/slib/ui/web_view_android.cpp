@@ -43,7 +43,7 @@ namespace slib
 				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
 				if (helper.isNotNull()) {
 					String url = Jni::getString(jurl);
-					helper->dispatchStartLoad(url);
+					helper->invokeStartLoad(url);
 				}
 			}
 
@@ -52,7 +52,7 @@ namespace slib
 				Ref<WebViewHelper> helper = CastRef<WebViewHelper>(Android_ViewInstance::findView(instance));
 				if (helper.isNotNull()) {
 					String url = Jni::getString(jurl);
-					helper->dispatchFinishLoad(url, sl_false);
+					helper->handleFinishLoad(url, sl_false);
 				}
 			}
 
@@ -62,7 +62,7 @@ namespace slib
 				if (helper.isNotNull()) {
 					helper->m_errorMessage = Jni::getString(jerror);
 					String url = Jni::getString(jurl);
-					helper->dispatchFinishLoad(url, sl_true);
+					helper->handleFinishLoad(url, sl_true);
 				}
 			}
 
@@ -73,7 +73,7 @@ namespace slib
 					String msg = Jni::getString(jmsg);
 					if (msg.isNotEmpty()) {
 						String param = Jni::getString(jparam);
-						helper->dispatchMessageFromJavaScript(msg, param);
+						helper->handleMessageFromJavaScript(msg, param);
 					}
 				}
 			}

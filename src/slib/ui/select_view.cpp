@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -113,7 +113,7 @@ namespace slib
 				cell->initLabelList(this);
 				cell->gravity = m_gravity;
 				cell->textColor = m_textColor;
-				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
+				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, _onSelectItem);
 				m_cell = cell;
 			}
 		}
@@ -173,18 +173,24 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index)
+	SLIB_DEFINE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev)
 
-	void SelectView::dispatchSelectItem(sl_uint32 index)
+	void SelectView::dispatchSelectItem(sl_uint32 index, sl_uint32 former, UIEvent* ev)
 	{
-		ObjectLocker lock(this);
-		if (m_indexSelected == index) {
-			return;
-		}
-		m_indexSelected = index;
-		lock.unlock();
+		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
+	}
 
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
+	void SelectView::_onSelectItem(sl_uint32 index, UIEvent* ev)
+	{
+		notifySelectItem(index, ev, UIUpdateMode::Redraw);
+	}
+
+	void SelectView::_onSelectItem_NW(sl_uint32 index)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			notifySelectItem(index, ev.get(), UIUpdateMode::None);
+		}
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL
@@ -239,7 +245,7 @@ namespace slib
 
 		m_cell->setView(this, sl_true);
 		m_cell->initLabelList(this);
-		m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
+		m_cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, _onSelectItem);
 	}
 
 	const UISize& SelectSwitch::getIconSize()
@@ -342,18 +348,16 @@ namespace slib
 		updateLayoutByViewCell(m_cell.get());
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(SelectSwitch, SelectItem, sl_uint32 index)
+	SLIB_DEFINE_EVENT_HANDLER(SelectSwitch, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev)
 
-	void SelectSwitch::dispatchSelectItem(sl_uint32 index)
+	void SelectSwitch::dispatchSelectItem(sl_uint32 index, sl_uint32 former, UIEvent* ev)
 	{
-		ObjectLocker lock(this);
-		if (m_indexSelected == index) {
-			return;
-		}
-		m_indexSelected = index;
-		lock.unlock();
+		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
+	}
 
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
+	void SelectSwitch::_onSelectItem(sl_uint32 index, UIEvent* ev)
+	{
+		notifySelectItem(index, ev, UIUpdateMode::Redraw);
 	}
 
 	namespace {
@@ -488,7 +492,7 @@ namespace slib
 					if (index > 0) {
 						index--;
 						selectedIndex = index;
-						onSelectItem(index);
+						onSelectItem(index, ev);
 						invalidate();
 					}
 				}
@@ -498,7 +502,7 @@ namespace slib
 					if (index + 1 < itemCount) {
 						index++;
 						selectedIndex = index;
-						onSelectItem(index);
+						onSelectItem(index, ev);
 						invalidate();
 					}
 				}

@@ -92,7 +92,7 @@ namespace slib
 			void onSelectItem(SLIBSelectViewHandle* handle, sl_uint32 row)
 			{
 				handle.text = getItemTitle(row);
-				dispatchSelectItem(row);
+				_onSelectItem_NW(row);
 			}
 
 			void onStartSelection(SLIBSelectViewHandle* handle)

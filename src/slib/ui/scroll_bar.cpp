@@ -538,12 +538,7 @@ namespace slib
 				line = range / 20;
 			}
 		}
-		sl_real delta;
-		if (flagVertical) {
-			delta = ev->getDeltaY();
-		} else {
-			delta = ev->getDeltaX();
-		}
+		sl_real delta = ev->getDelta();
 		if (delta > SLIB_EPSILON) {
 			_changeValue(value - line, ev, UIUpdateMode::Redraw);
 		} else if (delta < -SLIB_EPSILON) {

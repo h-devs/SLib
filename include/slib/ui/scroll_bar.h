@@ -118,7 +118,7 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Changing, sl_scroll_pos& value, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value, UIEvent* ev /* nullable */)
 
-	protected:
+	public:
 		void onDraw(Canvas* canvas) override;
 
 		void onMouseEvent(UIEvent* ev) override;

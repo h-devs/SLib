@@ -67,6 +67,7 @@ namespace slib
 	protected:
 		void onChangeParent(View* oldParent, View* newParent) override;
 
+	public:
 		void dispatchMouseEvent(UIEvent* ev) override;
 
 		void dispatchTouchEvent(UIEvent* ev) override;

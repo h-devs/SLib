@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2022 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -1338,11 +1338,6 @@ namespace slib
 		sl_bool isCapturingChildInstanceEvents(sl_ui_pos x, sl_ui_pos y);
 
 
-		Ref<UIEvent> getCurrentEvent();
-
-		void setCurrentEvent(UIEvent* ev);
-
-
 		Ref<GestureDetector> createGestureDetector();
 
 		Ref<GestureDetector> getGestureDetector();
@@ -1433,7 +1428,7 @@ namespace slib
 
 		virtual void onResizeChild(View* child, sl_ui_len width, sl_ui_len height);
 
-		virtual void onChangeVisibilityOfChild(View* child, Visibility oldVisibility, Visibility newVisibility);
+		virtual void onChangeVisibilityOfChild(View* child, Visibility visibility, Visibility former);
 
 		virtual void onResizeContent(sl_scroll_pos width, sl_scroll_pos height);
 
@@ -1442,34 +1437,41 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Detach)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Draw, Canvas* canvas)
+		virtual void dispatchDraw(Canvas* canvas);
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(View, PreDraw, Canvas* canvas)
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(View, PostDraw, Canvas* canvas)
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, DrawShadow, Canvas* canvas)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, MouseEvent, UIEvent* ev)
+		virtual void dispatchMouseEvent(UIEvent* ev);
 		sl_bool dispatchMouseEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchMouseEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, TouchEvent, UIEvent* ev)
+		virtual void dispatchTouchEvent(UIEvent* ev);
 		sl_bool dispatchTouchEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchTouchEventToMultipleChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchTouchEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, MouseWheelEvent, UIEvent* ev)
+		virtual void dispatchMouseWheelEvent(UIEvent* ev);
 		sl_bool dispatchMouseWheelEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchMouseWheelEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, KeyEvent, UIEvent* ev)
+		virtual void dispatchKeyEvent(UIEvent* ev);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS_WITHOUT_ON(View, Click)
-		void dispatchClick();
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ClickEvent, UIEvent* ev)
+		void invokeClickEvent();
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, SetCursor, UIEvent* ev)
+		virtual void dispatchSetCursor(UIEvent* ev);
 		sl_bool dispatchSetCursorToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchSetCursorToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, DragDropEvent, UIEvent* ev)
+		virtual void dispatchDragDropEvent(UIEvent* ev);
 		sl_bool dispatchDragDropEventToChildren(UIEvent* ev, const Ref<View>* children, sl_size count);
 		void dispatchDragDropEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints = sl_true);
 
@@ -1478,18 +1480,17 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Move, sl_ui_pos x, sl_ui_pos y)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Resize, sl_ui_len width, sl_ui_len height)
+		void handleResize(sl_ui_len width, sl_ui_len height);
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ChangeVisibility, Visibility oldVisibility, Visibility newVisibility)
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, ChangeVisibility, Visibility visibility, Visibility former)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Scroll, ScrollEvent* ev)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Swipe, GestureEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, OK, UIEvent* ev)
-		void dispatchOK();
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, OK)
 
-		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Cancel, UIEvent* ev)
-		void dispatchCancel();
+		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Cancel)
 
 		SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(View, Mnemonic, UIEvent* ev)
 
@@ -1681,7 +1682,6 @@ namespace slib
 		volatile sl_int32 m_idUpdateInvalidateLayout;
 
 		UIAction m_actionMouseDown;
-		AtomicRef<UIEvent> m_currentEvent;
 
 	protected:
 		Ref<LayoutAttributes> m_layoutAttrs;

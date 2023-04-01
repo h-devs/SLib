@@ -459,13 +459,14 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(Window, Demaximize)
 		SLIB_DECLARE_EVENT_HANDLER(Window, EnterFullScreen)
 		SLIB_DECLARE_EVENT_HANDLER(Window, ExitFullScreen)
-		SLIB_DECLARE_EVENT_HANDLER(Window, OK, UIEvent* ev)
-		SLIB_DECLARE_EVENT_HANDLER(Window, Cancel, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(Window, OK)
+		SLIB_DECLARE_EVENT_HANDLER(Window, Cancel)
 
-	public:
-		void dispatchOK();
-
-		void dispatchCancel();
+	private:
+		void _doClose(UIEvent* ev);
+		void _doDestroy(UIEvent* ev);
+		void _doResizing(UISize& clientSize);
+		void _doResize(sl_ui_len clientWidth, sl_ui_len clientHeight);
 
 	protected:
 		Ref<WindowInstance> createWindowInstance();

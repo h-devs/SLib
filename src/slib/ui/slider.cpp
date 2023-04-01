@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -100,6 +100,16 @@ namespace slib
 	{
 	}
 
+	void Slider::setValue(float value, UIUpdateMode mode)
+	{
+		_changeValue(value, sl_null, mode);
+	}
+
+	void Slider::setSecondaryValue(float value, UIUpdateMode mode)
+	{
+		_changeValue2(value, sl_null, mode);
+	}
+
 	Ref<Drawable> Slider::getThumb(ViewState state)
 	{
 		return m_thumbs.get(state);
@@ -167,19 +177,33 @@ namespace slib
 	{
 		setThumbSize(UISize(m_thumbSize.x, height), mode);
 	}
+	
+	SLIB_DEFINE_EVENT_HANDLER(Slider, Changing, float& value, UIEvent* ev)
 
-	SLIB_DEFINE_EVENT_HANDLER(Slider, Change, float value)
-
-	void Slider::dispatchChange(float value)
+	void Slider::dispatchChanging(float& value, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value)
+		SLIB_INVOKE_EVENT_HANDLER(Changing, value, ev)
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangeSecondary, float value)
+	SLIB_DEFINE_EVENT_HANDLER(Slider, Change, float value, UIEvent* ev)
 
-	void Slider::dispatchChangeSecondary(float value)
+	void Slider::dispatchChange(float value, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangeSecondary, value)
+		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
+	}
+	
+	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangingSecondary, float& value, UIEvent* ev)
+
+	void Slider::dispatchChangingSecondary(float& value, UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(ChangingSecondary, value, ev)
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangeSecondary, float value, UIEvent* ev)
+
+	void Slider::dispatchChangeSecondary(float value, UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(ChangeSecondary, value, ev)
 	}
 
 	void Slider::onDraw(Canvas* canvas)
@@ -279,10 +303,10 @@ namespace slib
 			case UIAction::TouchMove:
 				if (m_indexPressedThumb >= 0) {
 					float value = getValueFromPosition(pos);
-					if (m_indexPressedThumb == 0) {
-						changeValue(value, sl_false);
+					if (m_indexPressedThumb) {
+						_changeValue2(value, ev);
 					} else {
-						changeValue(value, sl_true);
+						_changeValue(value, ev);
 					}
 				}
 				break;
@@ -303,16 +327,19 @@ namespace slib
 	void Slider::onMouseWheelEvent(UIEvent* ev)
 	{
 		float step = refineStep();
-		sl_real delta;
-		if (isVertical()) {
-			delta = ev->getDeltaY();
-		} else {
-			delta = ev->getDeltaX();
-		}
+		sl_real delta = ev->getDelta();
 		if (delta > SLIB_EPSILON) {
-			changeValue(m_value - step, sl_false);
+			if (ev->isShiftKey()) {
+				_changeValue2(m_value2 - step, ev);
+			} else {
+				_changeValue(m_value - step, ev);
+			}
 		} else if (delta < -SLIB_EPSILON) {
-			changeValue(m_value + step, sl_false);
+			if (ev->isShiftKey()) {
+				_changeValue2(m_value2 + step, ev);
+			} else {
+				_changeValue(m_value + step, ev);
+			}
 		}
 
 		ev->stopPropagation();
@@ -325,11 +352,19 @@ namespace slib
 			switch (ev->getKeycode()) {
 				case Keycode::Left:
 				case Keycode::Up:
-					changeValue(m_value - step, sl_false);
+					if (ev->isShiftKey()) {
+						_changeValue2(m_value2 - step, ev);
+					} else {
+						_changeValue(m_value - step, ev);
+					}
 					break;
 				case Keycode::Right:
 				case Keycode::Down:
-					changeValue(m_value + step, sl_false);
+					if (ev->isShiftKey()) {
+						_changeValue2(m_value2 + step, ev);
+					} else {
+						_changeValue(m_value + step, ev);
+					}
 					break;
 				default:
 					return;
@@ -568,28 +603,53 @@ namespace slib
 		}
 	}
 
-	void Slider::changeValue(float v, sl_bool flagChange2)
+	void Slider::_changeValue(float value, UIEvent* ev, UIUpdateMode mode)
 	{
-		float value, value2;
-		if (flagChange2) {
-			value = m_value;
-			value2 = v;
-		} else {
-			value = v;
-			value2 = m_value2;
-		}
-		int n = tryChangeValue(value, value2, flagChange2);
-		m_value = value;
-		if (n & 1) {
-			dispatchChange(value);
-		}
-		if (isDualValues()) {
-			m_value2 = value2;
-			if (n & 2) {
-				dispatchChangeSecondary(value2);
+		value = refineValue(value);
+		if (ev && m_flagDualValues) {
+			if (value > m_value2) {
+				value = m_value2;
 			}
 		}
-		invalidate();
+		dispatchChanging(value, ev);
+		value = refineValue(value);
+		if (m_flagDualValues) {
+			if (value > m_value2) {
+				m_value2 = value;
+			}
+		}
+		if (Math::isAlmostZero(value - m_value)) {
+			m_value = value;
+		} else {
+			m_value = value;
+			dispatchChange(value, ev);
+			invalidate(mode);
+		}
+	}
+
+	void Slider::_changeValue2(float value, UIEvent* ev, UIUpdateMode mode)
+	{
+		if (!m_flagDualValues) {
+			return;
+		}
+		value = refineValue(value);
+		if (ev) {
+			if (value < m_value) {
+				value = m_value;
+			}
+		}
+		dispatchChangingSecondary(value, ev);
+		value = refineValue(value);
+		if (value < m_value) {
+			m_value = value;
+		}
+		if (Math::isAlmostZero(value - m_value2)) {
+			m_value2 = value;
+		} else {
+			m_value2 = value;
+			dispatchChangeSecondary(value, ev);
+			invalidate(mode);
+		}
 	}
 
 	ViewState Slider::_getThumbState(int index)

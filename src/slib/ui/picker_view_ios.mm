@@ -59,6 +59,8 @@ namespace slib
 				return Apple::getNSStringFromString(PickerView::getItemTitle(row));
 			}
 
+			using PickerView::_onSelectItem_NW;
+
 		};
 
 		class PickerViewInstance : public iOS_ViewInstance, public IPickerViewInstance
@@ -120,7 +122,7 @@ namespace slib
 			{
 				Ref<PickerViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchSelectItem(row);
+					helper->_onSelectItem_NW(row);
 				}
 			}
 

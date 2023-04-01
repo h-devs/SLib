@@ -81,7 +81,7 @@ namespace slib
 
 		SLIB_DECLARE_EVENT_HANDLER(CameraView, TakePicture, Camera::TakePictureResult& result)
 
-	protected:
+	public:
 		void onAttach() override;
 
 		void onDraw(Canvas* canvas) override;

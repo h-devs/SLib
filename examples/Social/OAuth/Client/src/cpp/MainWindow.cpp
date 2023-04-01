@@ -5,7 +5,7 @@
 void MainWindow::onCreate()
 {
 
-	radioGrantType->setOnSelect([this](RadioGroup*, RadioButton* button) {
+	radioGrantType->setOnSelect([this](RadioGroup*, RadioButton* button, RadioButton*, UIEvent*) {
 		String value = button->getValue();
 		if (value == "password") {
 			txtUsername->setEnabled(sl_true);

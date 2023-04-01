@@ -97,7 +97,7 @@ namespace slib
 							if (vx > 1) {
 								GestureEvent ev;
 								ev.type = type;
-								view->dispatchSwipe(&ev);
+								view->invokeSwipe(&ev);
 							}
 						}
 					} else {
@@ -109,7 +109,7 @@ namespace slib
 							if (vy > 1) {
 								GestureEvent ev;
 								ev.type = type;
-								view->dispatchSwipe(&ev);
+								view->invokeSwipe(&ev);
 							}
 						}
 					}

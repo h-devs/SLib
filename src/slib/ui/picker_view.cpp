@@ -110,18 +110,11 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index)
+	SLIB_DEFINE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev)
 
-	void PickerView::dispatchSelectItem(sl_uint32 index)
+	void PickerView::dispatchSelectItem(sl_uint32 index, sl_uint32 former, UIEvent* ev)
 	{
-		ObjectLocker lock(this);
-		if (m_indexSelected == index) {
-			return;
-		}
-		m_indexSelected = index;
-		lock.unlock();
-
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index)
+		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
 	}
 
 	void PickerView::_initCell()
@@ -134,9 +127,22 @@ namespace slib
 				cell->textColor = m_textColor;
 				cell->lineCount = m_lineCount;
 				cell->flagCircular = m_flagCircular;
-				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, dispatchSelectItem);
+				cell->onSelectItem = SLIB_FUNCTION_WEAKREF(this, _onSelectItem);
 				m_cell = cell;
 			}
+		}
+	}
+
+	void PickerView::_onSelectItem(sl_uint32 index, UIEvent* ev)
+	{
+		notifySelectItem(index, ev, UIUpdateMode::Redraw);
+	}
+
+	void PickerView::_onSelectItem_NW(sl_uint32 index)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			notifySelectItem(index, ev.get(), UIUpdateMode::None);
 		}
 	}
 
@@ -264,7 +270,7 @@ namespace slib
 			Point ptLast;
 			if (m_motionTracker.getLastPosition(&ptLast)) {
 				sl_real offset = ev->getY() - ptLast.y;
-				_flow((sl_ui_pos)offset);
+				_flow((sl_ui_pos)offset, ev);
 				invalidate();
 			}
 			m_motionTracker.addMovement(ev->getPoint());
@@ -278,7 +284,7 @@ namespace slib
 		}
 	}
 
-	void PickerViewCell::_selectItemInner(sl_int32 index)
+	void PickerViewCell::_selectItemInner(sl_int32 index, UIEvent* ev)
 	{
 		if (flagCircular) {
 			index = _getCircularIndex(index);
@@ -295,7 +301,7 @@ namespace slib
 		}
 		if (selectedIndex != (sl_uint32)index) {
 			selectedIndex = index;
-			onSelectItem(index);
+			onSelectItem(index, ev);
 		}
 	}
 
@@ -321,7 +327,7 @@ namespace slib
 		return 10;
 	}
 
-	void PickerViewCell::_flow(sl_ui_pos offset)
+	void PickerViewCell::_flow(sl_ui_pos offset, UIEvent* ev)
 	{
 		sl_int32 k = (sl_int32)(m_yOffset + offset);
 		sl_int32 lineHeight = (sl_int32)(_getLineHeight());
@@ -335,7 +341,7 @@ namespace slib
 			if (m > lineHeight / 2) {
 				n += 1;
 			}
-			_selectItemInner(index - n);
+			_selectItemInner(index - n, ev);
 		} else {
 			k = -k;
 			sl_int32 n = k / lineHeight;
@@ -343,7 +349,7 @@ namespace slib
 			if (m > lineHeight / 2) {
 				n += 1;
 			}
-			_selectItemInner(index + n);
+			_selectItemInner(index + n, ev);
 		}
 		m_yOffset = (sl_ui_pos)(m_yOffset + offset - (index - (sl_int32)selectedIndex) * lineHeight);
 		if (m_yOffset > lineHeight) {
@@ -394,7 +400,10 @@ namespace slib
 					invalidate();
 					return;
 				} else {
-					_flow(f);
+					Ref<UIEvent> ev = UIEvent::createUnknown(time);
+					if (ev.isNotNull()) {
+						_flow(f, ev.get());
+					}
 				}
 			} else {
 				_stopFlow();
@@ -403,7 +412,10 @@ namespace slib
 				return;
 			}
 		} else {
-			_flow((sl_ui_pos)(m_speedFlow * ellapsed));
+			Ref<UIEvent> ev = UIEvent::createUnknown(time);
+			if (ev.isNotNull()) {
+				_flow((sl_ui_pos)(m_speedFlow * ellapsed), ev.get());
+			}
 		}
 
 		invalidate();

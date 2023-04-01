@@ -33,6 +33,12 @@ namespace slib
 
 	namespace {
 
+		class SelectViewHelper : public SelectView
+		{
+		public:
+			using SelectView::_onSelectItem_NW;
+		};
+
 		class SelectViewInstance : public GTK_ViewInstance, public ISelectViewInstance
 		{
 			SLIB_DECLARE_OBJECT
@@ -96,10 +102,10 @@ namespace slib
 			static void onChanged(GtkComboBox*, gpointer userinfo)
 			{
 				GtkComboBox* handle = (GtkComboBox*)userinfo;
-				Ref<SelectView> view = CastRef<SelectView>(UIPlatform::getView((GtkWidget*)handle));
+				Ref<SelectViewHelper> view = CastRef<SelectViewHelper>(UIPlatform::getView((GtkWidget*)handle));
 				if (view.isNotNull()) {
 					int index = gtk_combo_box_get_active(handle);
-					view->dispatchSelectItem(index);
+					view->_onSelectItem_NW(index);
 				}
 			}
 

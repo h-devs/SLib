@@ -234,30 +234,20 @@ namespace slib
 
 	void TabView::_selectTab(ITabViewInstance* instance, sl_uint32 index, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		if (index >= m_items.getCount()) {
 			return;
 		}
-		sl_uint32 oldIndex;
-		if (ev) {
-			oldIndex = index;
-		} else {
-			oldIndex = m_indexSelected;
-		}
-		dispatchSelectingTab(index, ev);
-		if (index >= m_items.getCount()) {
+		sl_uint32 oldIndex = m_indexSelected;
+		if (oldIndex == index) {
 			return;
 		}
-		sl_bool flagUnchanged = m_indexSelected == index;
 		m_indexSelected = index;
 		if (instance) {
-			if (oldIndex != index) {
+			if (!ev) {
 				instance->selectTab(this, index);
 			}
-		}
-		if (flagUnchanged) {
-			return;
-		}
-		if (!instance) {
+		} else {
 			ObjectLocker lock(this);
 			ListElements<Item> items(m_items);
 			if (index >= items.count) {
@@ -275,7 +265,8 @@ namespace slib
 			}
 			invalidate(mode);
 		}
-		dispatchSelectTab(index, ev);
+		locker.unlock();
+		dispatchSelectTab(index, oldIndex, ev);
 	}
 
 	UISize TabView::getContentViewSize()
@@ -667,18 +658,11 @@ namespace slib
 		return -1;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectingTab, sl_uint32& index, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index, sl_uint32 former, UIEvent* ev)
 
-	void TabView::dispatchSelectingTab(sl_uint32& index, UIEvent* ev)
+	void TabView::dispatchSelectTab(sl_uint32 index, sl_uint32 former, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectingTab, index, ev)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index, UIEvent* ev)
-
-	void TabView::dispatchSelectTab(sl_uint32 index, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectTab, index, ev)
+		SLIB_INVOKE_EVENT_HANDLER(SelectTab, index, former, ev)
 	}
 
 	void TabView::notifySelectTab(ITabViewInstance* instance, sl_uint32 index)

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -971,13 +971,22 @@ namespace slib
 		_relayoutContent(mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, TreeViewItem* former, UIEvent* ev)
 
-	void TreeView::dispatchSelectItem(TreeViewItem* item, UIEvent* ev)
+	void TreeView::dispatchSelectItem(TreeViewItem* item, TreeViewItem* former, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, item, ev)
+		SLIB_INVOKE_EVENT_HANDLER(SelectItem, item, former, ev)
 
-		(item->getOnSelect())(item, ev);
+		(item->getOnSelect())(item, former, ev);
+	}
+	
+	SLIB_DEFINE_EVENT_HANDLER(TreeView, ClickItem, TreeViewItem* item, UIEvent* ev)
+
+	void TreeView::dispatchClickItem(TreeViewItem* item, UIEvent* ev)
+	{
+		SLIB_INVOKE_EVENT_HANDLER(ClickItem, item, ev)
+
+		(item->getOnClick())(item, ev);
 	}
 
 	void TreeView::_createRootItem()
@@ -1291,7 +1300,7 @@ namespace slib
 					} else {
 						item->open();
 					}
-					_selectItem(item, ev, UIUpdateMode::None);
+					_clickItem(item, ev);
 					_redrawContent(UIUpdateMode::Redraw);
 				} else {
 					if (action == UIAction::MouseMove) {
@@ -1320,11 +1329,24 @@ namespace slib
 
 	void TreeView::_selectItem(const Ref<TreeViewItem>& item, UIEvent* ev, UIUpdateMode mode)
 	{
-		if (m_itemSelected != item) {
-			m_itemSelected = item;
-			dispatchSelectItem(item, ev);
+		ObjectLocker locker(this);
+		Ref<TreeViewItem> old = m_itemSelected;
+		if (old == item) {
+			return;
 		}
+		m_itemSelected = item;
 		invalidate(mode);
+		locker.unlock();
+		dispatchSelectItem(item.get(), old.get(), ev);
+	}
+
+	void TreeView::_clickItem(const Ref<TreeViewItem>& item, UIEvent* ev)
+	{
+		dispatchClickItem(item.get(), ev);
+		if (ev->isPreventedDefault()) {
+			return;
+		}
+		_selectItem(item, ev, UIUpdateMode::None);
 	}
 
 }
