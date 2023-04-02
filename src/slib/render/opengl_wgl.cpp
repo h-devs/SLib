@@ -185,7 +185,7 @@ namespace slib
 					GetClientRect(m_hWindow, &rect);
 					if (rect.right != 0 && rect.bottom != 0) {
 						engine->setViewport(0, 0, rect.right, rect.bottom);
-						dispatchFrame(engine);
+						handleFrame(engine);
 						if (m_hDC) {
 							SwapBuffers(m_hDC);
 						}

@@ -46,12 +46,12 @@
 
 #define DEFAULT_BORDER_PARAMS PenStyle::Solid, 0.0f, Color::Black
 
-#define DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, ...) \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::getOn##NAME() const { \
+#define DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, DEFINE_ARGS, ...) \
+	View::On##NAME View::getOn##NAME() const { \
 		const Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) return attrs->on##NAME.function; else return sl_null; \
 	} \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::setOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+	View::On##NAME View::setOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) { \
@@ -60,28 +60,38 @@
 		} \
 		return handler; \
 	} \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::addOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+	View::On##NAME View::addOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) attrs->on##NAME.function.add(handler); \
 		return handler; \
 	} \
-	void View::removeOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+	void View::removeOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) attrs->on##NAME.function.remove(handler); \
+	} \
+	void View::invoke##NAME DEFINE_ARGS \
+	{ \
+		const Ref<EventAttributes>& attrs = m_eventAttrs; \
+		if (attrs.isNotNull()) { \
+			if (attrs->on##NAME.flagDefault) { \
+				on##NAME(__VA_ARGS__); \
+			} \
+			attrs->on##NAME.function(this, ##__VA_ARGS__); \
+		} \
 	}
 
-#define DEFINE_VIEW_EVENT_HANDLER(NAME, ...) \
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, ##__VA_ARGS__) \
-	void View::on##NAME(__VA_ARGS__) {}
+#define DEFINE_VIEW_EVENT_HANDLER(NAME, DEFINE_ARGS, ...) \
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, DEFINE_ARGS, ##__VA_ARGS__) \
+	void View::on##NAME DEFINE_ARGS {}
 
-#define DEFINE_SIMPLE_EVENT_HANDLER(NAME, ...) \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::getOn##NAME() const { \
+#define DEFINE_SIMPLE_EVENT_HANDLER(NAME) \
+	View::On##NAME View::getOn##NAME() const { \
 		const Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) return attrs->on##NAME; else return sl_null; \
 	} \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::setOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+	View::On##NAME View::setOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) { \
@@ -89,26 +99,17 @@
 		} \
 		return handler; \
 	} \
-	slib::Function<void(View* sender, ##__VA_ARGS__)> View::addOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+	View::On##NAME View::addOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) attrs->on##NAME.add(handler); \
 		return handler; \
 	} \
-	void View::removeOn##NAME(const slib::Function<void(View* sender, ##__VA_ARGS__)>& handler) { \
+	void View::removeOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) attrs->on##NAME.remove(handler); \
 	}
-
-#define SLIB_INVOKE_VIEW_EVENT_HANDLER(NAME, ...) \
-	const Ref<EventAttributes>& attrs = m_eventAttrs; \
-	if (attrs.isNotNull()) { \
-		if (attrs->on##NAME.flagDefault) { \
-			on##NAME(__VA_ARGS__); \
-		} \
-		attrs->on##NAME.function(this, ##__VA_ARGS__); \
-	} \
 
 namespace slib
 {
@@ -813,7 +814,6 @@ namespace slib
 			}
 			invokeAttach();
 			_attachNativeAnimations();
-			Ref<View> parent = m_parent;
 			if (parent.isNotNull()) {
 				parent->onAttachChild(this);
 			}
@@ -8940,24 +8940,14 @@ namespace slib
 	{
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(Attach)
+	DEFINE_VIEW_EVENT_HANDLER(Attach, ())
 
-	void View::invokeAttach()
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Attach)
-	}
+	DEFINE_VIEW_EVENT_HANDLER(Detach, ())
 
-	DEFINE_VIEW_EVENT_HANDLER(Detach)
-
-	void View::invokeDetach()
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Detach)
-	}
-
-	DEFINE_VIEW_EVENT_HANDLER(Draw, Canvas* canvas)
-	DEFINE_SIMPLE_EVENT_HANDLER(PreDraw, Canvas* canvas)
-	DEFINE_SIMPLE_EVENT_HANDLER(PostDraw, Canvas* canvas)
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(DrawShadow, Canvas* canvas)
+	DEFINE_VIEW_EVENT_HANDLER(Draw, (Canvas* canvas), canvas)
+	DEFINE_SIMPLE_EVENT_HANDLER(PreDraw)
+	DEFINE_SIMPLE_EVENT_HANDLER(PostDraw)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(DrawShadow, (Canvas* canvas), canvas)
 
 	void View::dispatchDraw(Canvas* canvas)
 	{
@@ -9045,11 +9035,6 @@ namespace slib
 
 	}
 
-	void View::invokeDrawShadow(Canvas* canvas)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(DrawShadow, canvas)
-	}
-
 	void View::onDrawShadow(Canvas* canvas)
 	{
 		if (drawLayerShadow(canvas)) {
@@ -9072,17 +9057,11 @@ namespace slib
 			}
 			return UIAction::Unknown;
 		}
-
 	}
 
 #define POINT_EVENT_CHECK_CHILD(c) (c && !(c->isInstance()) && c->isVisible() && c->isHitTestable())
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(MouseEvent, UIEvent* ev)
-
-	void View::invokeMouseEvent(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(MouseEvent, ev)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(MouseEvent, (UIEvent* ev), ev)
 
 	void View::onMouseEvent(UIEvent* ev)
 	{
@@ -9333,12 +9312,7 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(TouchEvent, UIEvent* ev)
-
-	void View::invokeTouchEvent(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(TouchEvent, ev)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(TouchEvent, (UIEvent* ev), ev)
 
 	void View::onTouchEvent(UIEvent* ev)
 	{
@@ -9683,12 +9657,7 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(MouseWheelEvent, UIEvent* ev)
-
-	void View::invokeMouseWheelEvent(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(MouseWheelEvent, ev)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(MouseWheelEvent, (UIEvent* ev), ev)
 
 	void View::onMouseWheelEvent(UIEvent* ev)
 	{
@@ -9780,12 +9749,7 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(KeyEvent, UIEvent* ev)
-
-	void View::invokeKeyEvent(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(KeyEvent, ev)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(KeyEvent, (UIEvent* ev), ev)
 
 	void View::onKeyEvent(UIEvent* ev)
 	{
@@ -9838,7 +9802,7 @@ namespace slib
 
 	DEFINE_SIMPLE_EVENT_HANDLER(Click)
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(ClickEvent, UIEvent* ev)
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(ClickEvent, (UIEvent* ev), ev)
 
 	void View::onClickEvent(UIEvent* ev)
 	{
@@ -9846,11 +9810,6 @@ namespace slib
 		if (m_flagEnabled && m_flagPlaySoundOnClick) {
 			UISound::play(UISoundAlias::Click);
 		}
-	}
-
-	void View::invokeClickEvent(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(ClickEvent, ev)
 	}
 
 	void View::invokeClickEvent()
@@ -9861,12 +9820,7 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(SetCursor, UIEvent* ev)
-
-	void View::invokeSetCursor(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(SetCursor, ev)
-	}
+	DEFINE_VIEW_EVENT_HANDLER(SetCursor, (UIEvent* ev), ev)
 
 	void View::dispatchSetCursor(UIEvent* ev)
 	{
@@ -9960,12 +9914,7 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(DragDropEvent, UIEvent* ev)
-
-	void View::invokeDragDropEvent(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(DragDropEvent, ev)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(DragDropEvent, (UIEvent* ev), ev)
 
 	void View::onDragDropEvent(UIEvent* ev)
 	{
@@ -10119,26 +10068,11 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(ChangeFocus, sl_bool flagFocused)
+	DEFINE_VIEW_EVENT_HANDLER(ChangeFocus, (sl_bool flagFocused), flagFocused)
 
-	void View::invokeChangeFocus(sl_bool flagFocused)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(ChangeFocus, flagFocused)
-	}
+	DEFINE_VIEW_EVENT_HANDLER(Move, (sl_ui_pos x, sl_ui_pos y), x, y)
 
-	DEFINE_VIEW_EVENT_HANDLER(Move, sl_ui_pos x, sl_ui_pos y)
-
-	void View::invokeMove(sl_ui_pos x, sl_ui_pos y)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Move, x, y)
-	}
-
-	DEFINE_VIEW_EVENT_HANDLER(Resize, sl_ui_len width, sl_ui_len height)
-
-	void View::invokeResize(sl_ui_len width, sl_ui_len height)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Resize, width, height)
-	}
+	DEFINE_VIEW_EVENT_HANDLER(Resize, (sl_ui_len width, sl_ui_len height), width, height)
 
 	void View::handleResize(sl_ui_len width, sl_ui_len height)
 	{
@@ -10150,33 +10084,13 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER(ChangeVisibility, Visibility visibility, Visibility former)
+	DEFINE_VIEW_EVENT_HANDLER(ChangeVisibility, (Visibility visibility, Visibility former), visibility, former)
 
-	void View::invokeChangeVisibility(Visibility visibility, Visibility former)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(ChangeVisibility, visibility, former)
-	}
+	DEFINE_VIEW_EVENT_HANDLER(Scroll, (ScrollEvent* ev), ev)
 
-	DEFINE_VIEW_EVENT_HANDLER(Scroll, ScrollEvent*)
+	DEFINE_VIEW_EVENT_HANDLER(Swipe, (GestureEvent* ev), ev)
 
-	void View::invokeScroll(ScrollEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Scroll, ev)
-	}
-
-	DEFINE_VIEW_EVENT_HANDLER(Swipe, GestureEvent* ev)
-
-	void View::invokeSwipe(GestureEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Swipe, ev)
-	}
-
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(OK)
-
-	void View::invokeOK()
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(OK)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(OK, ())
 
 	void View::onOK()
 	{
@@ -10194,12 +10108,7 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Cancel)
-
-	void View::invokeCancel()
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Cancel)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Cancel, ())
 
 	void View::onCancel()
 	{
@@ -10217,12 +10126,7 @@ namespace slib
 		}
 	}
 
-	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Mnemonic, UIEvent* ev)
-
-	void View::invokeMnemonic(UIEvent* ev)
-	{
-		SLIB_INVOKE_VIEW_EVENT_HANDLER(Mnemonic, ev)
-	}
+	DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(Mnemonic, (UIEvent* ev), ev)
 
 	void View::onMnemonic(UIEvent* ev)
 	{

@@ -247,7 +247,7 @@ namespace slib
 		UISize getContentSize();
 
 	public:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	protected:
 		sl_ui_len m_contentWidth;
@@ -279,7 +279,7 @@ namespace slib
 		UISize getContentSize();
 
 	public:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	};
 
@@ -309,7 +309,7 @@ namespace slib
 		UISize getContentSize();
 
 	public:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 	};
 

@@ -100,7 +100,7 @@ namespace slib
 		sl_bool convertCoordinateToTexture(Point& pt);
 
 	public:
-		void dispatchFrame(RenderEngine* engine) override;
+		void handleFrame(RenderEngine* engine) override;
 
 		void onDraw(Canvas* canvas) override;
 

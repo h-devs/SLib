@@ -112,7 +112,7 @@ namespace slib
 				m_renderEngine = GLES::createEngine();
 				Ref<RenderViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchCreateEngine(m_renderEngine.get());
+					helper->invokeCreateEngine(m_renderEngine.get());
 				}
 			}
 
@@ -130,7 +130,7 @@ namespace slib
 			{
 				Ref<RenderViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->dispatchFrame(m_renderEngine.get());
+					helper->handleFrame(m_renderEngine.get());
 					glFlush();
 				}
 			}

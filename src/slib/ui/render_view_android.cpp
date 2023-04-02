@@ -99,12 +99,12 @@ namespace slib
 					if (engine.isNull()) {
 						engine = GLES::createEngine();
 						m_renderEngine = engine;
-						helper->dispatchCreateEngine(engine.get());
+						helper->invokeCreateEngine(engine.get());
 					}
 					if (engine.isNotNull()) {
 						if (width > 0 && height > 0) {
 							engine->setViewport(0, 0, width, height);
-							helper->dispatchFrame(engine.get());
+							helper->handleFrame(engine.get());
 						}
 					}
 				}

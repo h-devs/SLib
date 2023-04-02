@@ -324,7 +324,7 @@ namespace slib
 					GetClientRect(m_hWnd, &rect);
 					if (rect.right != 0 && rect.bottom != 0) {
 						engine->setViewport(0, 0, rect.right, rect.bottom);
-						dispatchFrame(engine);
+						handleFrame(engine);
 #if D3D_VERSION_MAJOR >= 10
 						IDXGISwapChain* swap = m_pSwapChain;
 						if (swap) {

@@ -611,7 +611,7 @@ namespace slib
 		invokeBack(ev);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ViewPage, Back, (UIEvent* ev), ev)
+	SLIB_DEFINE_EVENT_HANDLER(ViewPage, Back, (UIEvent* ev), ev)
 
 	SLIB_DEFINE_EVENT_HANDLER(ViewPage, ClickBackground, (UIEvent* ev), ev)
 
@@ -629,7 +629,6 @@ namespace slib
 		if (controller.isNotNull()) {
 			if (controller->getPageCount() > 1) {
 				close();
-				ev->preventDefault();
 				return;
 			}
 		}

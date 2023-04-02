@@ -85,7 +85,7 @@ namespace slib
 		m_onFrame = param.onFrame;
 	}
 
-	void Renderer::dispatchFrame(RenderEngine* engine)
+	void Renderer::handleFrame(RenderEngine* engine)
 	{
 		m_onFrame(engine);
 	}

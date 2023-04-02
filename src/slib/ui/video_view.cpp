@@ -316,11 +316,11 @@ namespace slib
 		return sl_true;
 	}
 
-	void VideoView::dispatchFrame(RenderEngine* engine)
+	void VideoView::handleFrame(RenderEngine* engine)
 	{
 		if (engine->isShaderAvailable()) {
 			m_flagAllowYUV = sl_true;
-			RenderView::dispatchFrame(engine);
+			RenderView::handleFrame(engine);
 		} else {
 			m_flagAllowYUV = sl_false;
 			disableRendering();

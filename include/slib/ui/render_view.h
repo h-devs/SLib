@@ -103,6 +103,7 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(RenderView, CreateEngine, RenderEngine* engine)
 
 		SLIB_DECLARE_EVENT_HANDLER(RenderView, Frame, RenderEngine* engine)
+		virtual void handleFrame(RenderEngine* engine);
 
 	public:
 		void onAttach() override;
@@ -126,10 +127,6 @@ namespace slib
 
 		void dispatchKeyEvent(UIEvent* ev) override;
 
-		void dispatchSetCursor(UIEvent* ev) override;
-
-		void dispatchSwipe(GestureEvent* ev) override;
-
 	private:
 		void _processPostedCallbacks();
 
@@ -142,10 +139,6 @@ namespace slib
 		void _dispatchMouseWheelEvent(const Ref<UIEvent>& ev);
 
 		void _dispatchKeyEvent(const Ref<UIEvent>& ev);
-
-		void _dispatchSetCursor(const Ref<UIEvent>& ev);
-
-		void _dispatchSwipe(const GestureEvent& ev);
 
 	protected:
 		RenderEngineType m_preferredEngineType;

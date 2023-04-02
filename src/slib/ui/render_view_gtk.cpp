@@ -107,9 +107,9 @@ namespace slib
 				Ref<RenderViewHelper> helper = CastRef<RenderViewHelper>(getView());
 				if (helper.isNotNull()) {
 					if (m_pLastEngine != engine) {
-						helper->dispatchCreateEngine(engine);
+						helper->invokeCreateEngine(engine);
 					}
-					helper->dispatchFrame(engine);
+					helper->handleFrame(engine);
 					m_pLastEngine = engine;
 				}
 			}

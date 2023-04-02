@@ -361,21 +361,16 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(RenderView, CreateEngine, RenderEngine* engine)
+	SLIB_DEFINE_EVENT_HANDLER(RenderView, CreateEngine, (RenderEngine* engine), engine)
 
-	void RenderView::dispatchCreateEngine(RenderEngine* engine)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(CreateEngine, engine)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(RenderView, Frame, RenderEngine* engine)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(RenderView, Frame, (RenderEngine* engine), engine)
 
 	void RenderView::onFrame(RenderEngine* engine)
 	{
 		renderViewContent(engine);
 	}
 
-	void RenderView::dispatchFrame(RenderEngine* engine)
+	void RenderView::handleFrame(RenderEngine* engine)
 	{
 		MutexLocker lock(&m_lockRender);
 
@@ -408,7 +403,7 @@ namespace slib
 			} while (0);
 		}
 
-		SLIB_INVOKE_EVENT_HANDLER(Frame, engine)
+		invokeFrame(engine);
 
 		if (m_flagDebugTextVisible) {
 #if defined(SLIB_DEBUG)
@@ -483,32 +478,6 @@ namespace slib
 		ViewGroup::dispatchKeyEvent(ev);
 	}
 
-	void RenderView::dispatchSetCursor(UIEvent* ev)
-	{
-		if (m_flagDispatchEventsToRenderingThread) {
-			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
-			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchSetCursor, ev->duplicate()));
-				requestRender();
-				return;
-			}
-		}
-		ViewGroup::dispatchSetCursor(ev);
-	}
-
-	void RenderView::dispatchSwipe(GestureEvent* ev)
-	{
-		if (m_flagDispatchEventsToRenderingThread) {
-			Ptr<IRenderViewInstance> instance = getRenderViewInstance();
-			if (instance.isNotNull() && instance->isRenderEnabled(this)) {
-				m_queuePostedCallbacks.push(SLIB_BIND_WEAKREF(void(), this, _dispatchSwipe, *ev));
-				requestRender();
-				return;
-			}
-		}
-		ViewGroup::dispatchSwipe(ev);
-	}
-
 	void RenderView::_processPostedCallbacks()
 	{
 		MutexLocker lock(&m_lockRender);
@@ -543,17 +512,6 @@ namespace slib
 	void RenderView::_dispatchKeyEvent(const Ref<UIEvent>& ev)
 	{
 		ViewGroup::dispatchKeyEvent(ev.get());
-	}
-
-	void RenderView::_dispatchSetCursor(const Ref<UIEvent>& ev)
-	{
-		ViewGroup::dispatchSetCursor(ev.get());
-	}
-
-	void RenderView::_dispatchSwipe(const GestureEvent& _ev)
-	{
-		GestureEvent ev(_ev);
-		ViewGroup::dispatchSwipe(&ev);
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL

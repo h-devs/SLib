@@ -126,7 +126,7 @@ namespace slib
 	protected:
 		void initWithParam(const RendererParam& param);
 
-		void dispatchFrame(RenderEngine* engine);
+		void handleFrame(RenderEngine* engine);
 
 	protected:
 		sl_bool m_flagRenderingContinuously;
