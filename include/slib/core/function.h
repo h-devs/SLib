@@ -1309,21 +1309,6 @@ namespace slib
 		return sl_null;
 	}
 
-	template<class T>
-	class EventHandler
-	{
-	public:
-		AtomicFunction<T> function;
-		sl_bool flagDefault;
-
-	public:
-		EventHandler()
-		{
-			flagDefault = sl_true;
-		}
-
-	};
-
 }
 
 #define SLIB_BIND_MEMBER(TYPE, OBJECT, CALLBACK, ...) slib::Function<TYPE>::bindMember(OBJECT, &PRIV_SLIB_FUNCTION_GET_CLASS(OBJECT)::CALLBACK, ##__VA_ARGS__)
@@ -1360,19 +1345,20 @@ namespace slib
 #define SLIB_DECLARE_EVENT_HANDLER(CLASS, NAME, ...) \
 	SLIB_DECLARE_EVENT_HANDLER_FUNCTIONS(CLASS, NAME, ##__VA_ARGS__) \
 	protected: \
-		slib::EventHandler<void(CLASS*, ##__VA_ARGS__)> m_eventHandler_on##NAME; \
+		slib::Atomic<On##NAME> m_eventHandler_on##NAME; \
 
 #define SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(CLASS, NAME, DEFINE_ARGS, ...) \
-	CLASS::On##NAME CLASS::getOn##NAME() const { return m_eventHandler_on##NAME.function; } \
-	CLASS::On##NAME CLASS::setOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME.function = handler; m_eventHandler_on##NAME.flagDefault = sl_false; return handler; } \
-	CLASS::On##NAME CLASS::addOn##NAME(const On##NAME& handler) { return m_eventHandler_on##NAME.function.add(handler); } \
-	void CLASS::removeOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME.function.remove(handler); } \
+	CLASS::On##NAME CLASS::getOn##NAME() const { return m_eventHandler_on##NAME; } \
+	CLASS::On##NAME CLASS::setOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME = handler; return handler; } \
+	CLASS::On##NAME CLASS::addOn##NAME(const On##NAME& handler) { return m_eventHandler_on##NAME.add(handler); } \
+	void CLASS::removeOn##NAME(const On##NAME& handler) { m_eventHandler_on##NAME.remove(handler); } \
 	void CLASS::invoke##NAME DEFINE_ARGS \
 	{ \
-		if (m_eventHandler_on##NAME.flagDefault) { \
+		if (m_eventHandler_on##NAME.isNotNull()) { \
+			m_eventHandler_on##NAME(this, ##__VA_ARGS__); \
+		} else { \
 			on##NAME(__VA_ARGS__); \
 		} \
-		m_eventHandler_on##NAME.function(this, ##__VA_ARGS__); \
 	}
 
 #define SLIB_DEFINE_EVENT_HANDLER(CLASS, NAME, DEFINE_ARGS, ...) \

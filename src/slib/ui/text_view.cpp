@@ -54,13 +54,12 @@ namespace slib
 
 	void TextView::onMouseEvent(UIEvent* ev)
 	{
-
-		ev->stopPropagation();
-
+		View::onMouseEvent(ev);
 	}
 
 	void TextView::onKeyEvent(UIEvent* ev)
 	{
+		View::onKeyEvent(ev);
 		if (m_flagEditable) {
 			ev->stopPropagation();
 		}

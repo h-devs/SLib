@@ -1242,7 +1242,7 @@ namespace slib
 		sl_bool open(SAppDocument* doc, SAppLayoutResource* layout);
 
 	protected:
-		void dispatchResize(sl_ui_len width, sl_ui_len height) override;
+		void onResize(sl_ui_len width, sl_ui_len height) override;
 
 		void layoutViews(sl_ui_len width, sl_ui_len height) override;
 

@@ -108,7 +108,7 @@ namespace slib
 			invalidate(mode);
 		}
 		locker.unlock();
-		dispatchSelectItem(index, oldIndex, ev);
+		invokeSelectItem(index, oldIndex, ev);
 	}
 
 	void ComboBox::onUpdateLayout()
@@ -160,12 +160,7 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ComboBox, SelectItem, sl_int32 index, sl_int32 former, UIEvent* ev)
-
-	void ComboBox::dispatchSelectItem(sl_int32 index, sl_int32 former, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ComboBox, SelectItem, (sl_int32 index, sl_int32 former, UIEvent* ev), index, former, ev)
 
 	SLIB_DEFINE_EVENT_HANDLER(ComboBox, Changing, String& value, UIEvent* ev)
 

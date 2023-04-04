@@ -437,9 +437,9 @@ namespace slib
 
 	void ScrollBar::onMouseEvent(UIEvent* ev)
 	{
-		ev->preventDefault();
+		View::onMouseEvent(ev);
+
 		CHECK_STATUS()
-		ev->setPreventedDefault(sl_false);
 
 		sl_ui_pos pos_begin, pos_end;
 		if (!(getThumbPositionRange(pos_begin, pos_end))) {
@@ -498,7 +498,6 @@ namespace slib
 					}
 				}
 				invalidate();
-				ev->useDrag();
 				break;
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
@@ -526,9 +525,9 @@ namespace slib
 
 	void ScrollBar::onMouseWheelEvent(UIEvent* ev)
 	{
-		ev->preventDefault();
+		View::onMouseWheelEvent(ev);
+
 		CHECK_STATUS()
-		ev->setPreventedDefault(sl_false);
 
 		sl_scroll_pos line = m_line;
 		if (line < SLIB_EPSILON) {
@@ -549,19 +548,9 @@ namespace slib
 	}
 
 
-	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Changing, sl_scroll_pos& value, UIEvent*)
+	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Changing, (sl_scroll_pos& value, UIEvent* ev), value, ev)
 
-	void ScrollBar::dispatchChanging(sl_scroll_pos& value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Changing, value, ev)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Change, sl_scroll_pos value, UIEvent*)
-
-	void ScrollBar::dispatchChange(sl_scroll_pos value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ScrollBar, Change, (sl_scroll_pos value, UIEvent* ev), value, ev)
 
 	sl_scroll_pos ScrollBar::_normalizeValue(sl_scroll_pos value)
 	{
@@ -582,7 +571,7 @@ namespace slib
 			m_value = value;
 			return;
 		}
-		dispatchChanging(value, ev);
+		invokeChanging(value, ev);
 		value = _normalizeValue(value);
 		if (Math::isAlmostZero(value - m_value)) {
 			m_value = value;
@@ -590,7 +579,7 @@ namespace slib
 		}
 		m_value = value;
 		invalidate(mode);
-		dispatchChange(value, ev);
+		invokeChange(value, ev);
 	}
 
 	void ScrollBar::_setHoverThumb(sl_bool flag, UIUpdateMode mode)

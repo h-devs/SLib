@@ -269,6 +269,7 @@ namespace slib
 
 	void WebView::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		View::onResize(width, height);
 		Ptr<IWebViewInstance> instance = getWebViewInstance();
 		if (instance.isNotNull()) {
 			instance->refreshSize(this);

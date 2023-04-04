@@ -129,6 +129,7 @@ namespace slib
 
 	void SelectView::onMouseEvent(UIEvent* ev)
 	{
+		View::onMouseEvent(ev);
 		if (m_cell.isNotNull()) {
 			m_cell->onMouseEvent(ev);
 		}
@@ -173,12 +174,7 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(SelectView, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev)
-
-	void SelectView::dispatchSelectItem(sl_uint32 index, sl_uint32 former, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(SelectView, SelectItem, (sl_uint32 index, sl_uint32 former, UIEvent* ev), index, former, ev)
 
 	void SelectView::_onSelectItem(sl_uint32 index, UIEvent* ev)
 	{
@@ -340,6 +336,7 @@ namespace slib
 
 	void SelectSwitch::onMouseEvent(UIEvent* ev)
 	{
+		View::onMouseEvent(ev);
 		m_cell->onMouseEvent(ev);
 	}
 
@@ -348,12 +345,7 @@ namespace slib
 		updateLayoutByViewCell(m_cell.get());
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(SelectSwitch, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev)
-
-	void SelectSwitch::dispatchSelectItem(sl_uint32 index, sl_uint32 former, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(SelectSwitch, SelectItem, (sl_uint32 index, sl_uint32 former, UIEvent* ev), index, former, ev)
 
 	void SelectSwitch::_onSelectItem(sl_uint32 index, UIEvent* ev)
 	{

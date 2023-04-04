@@ -507,6 +507,7 @@ namespace slib
 
 	void ViewPageNavigationController::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		UIRect rect(getPaddingLeft(), getPaddingTop(), width - getPaddingRight(), height - getPaddingBottom());
 		ObjectLocker lock(this);
 		ListElements< Ref<View> > pages(m_pages);
@@ -528,6 +529,7 @@ namespace slib
 
 	void ViewPageNavigationController::onSwipe(GestureEvent* ev)
 	{
+		ViewGroup::onSwipe(ev);
 		if (m_flagSwipeNavigation) {
 			GestureType type = ev->type;
 			if (type == GestureType::SwipeRight) {

@@ -206,28 +206,28 @@ namespace slib
 		{
 			Log("App", "Create");
 			elm_config_accel_preference_set("opengl");
-			UIApp::dispatchStartToApp();
-			MobileApp::dispatchCreateActivityToApp();
+			MobileApp::Current::invokeStart();
+			MobileApp::Current::invokeCreateActivity();
 			return true;
 		}
 
 		static void ResumeCallback(void* data)
 		{
 			Log("App", "Resume");
-			MobileApp::dispatchResumeToApp();
+			MobileApp::Current::invokeResume();
 		}
 
 		static void PauseCallback(void* data)
 		{
 			Log("App", "Pause");
-			MobileApp::dispatchPauseToApp();
+			MobileApp::Current::invokePause();
 		}
 
 		static void TerminateCallback(void* data)
 		{
 			Log("App", "Terminate");
-			MobileApp::dispatchDestroyActivityToApp();
-			UIApp::dispatchExitToApp();
+			MobileApp::Current::invokeDestroyActivity();
+			MobileApp::Current::invokeExit();
 		}
 	}
 

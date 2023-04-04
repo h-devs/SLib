@@ -496,14 +496,10 @@ namespace slib
 		SLIB_INVOKE_EVENT_HANDLER(DrawItem, itemIndex, canvas, rcItem)
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ListBox, ClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListBox, ClickItem, (sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev), itemIndex, pos, ev)
 
-	void ListBox::dispatchClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	void ListBox::onClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickItem, itemIndex, pos, ev)
-		if (ev->isPreventedDefault()) {
-			return;
-		}
 		m_indexFocused = itemIndex;
 		if (ev->isShiftKey()) {
 			if (m_indexLastSelected >= 0) {
@@ -577,6 +573,8 @@ namespace slib
 
 	void ListBox::onClickEvent(UIEvent* ev)
 	{
+		View::onClickEvent(ev);
+
 		if (ev->isMouseEvent()) {
 			sl_int64 index = getItemIndexAt(ev->getPoint());
 			if (index >= 0) {
@@ -590,6 +588,8 @@ namespace slib
 
 	void ListBox::onMouseEvent(UIEvent* ev)
 	{
+		View::onMouseEvent(ev);
+
 		UIAction action = ev->getAction();
 		if (action == UIAction::RightButtonDown || action == UIAction::LeftButtonDoubleClick || action == UIAction::MouseMove || action == UIAction::MouseEnter) {
 			sl_int64 index = getItemIndexAt(ev->getPoint());
@@ -622,6 +622,8 @@ namespace slib
 
 	void ListBox::onKeyEvent(UIEvent* ev)
 	{
+		View::onKeyEvent(ev);
+
 		sl_int64 nTotal = m_countItems;
 		if (nTotal <= 0) {
 			return;

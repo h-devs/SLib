@@ -1558,6 +1558,8 @@ namespace slib
 
 	void GridView::onClickEvent(UIEvent* ev)
 	{
+		View::onClickEvent(ev);
+
 		CellEventParam param;
 		if (_prepareMouseEventParam(ev, param)) {
 			if (param.record == HEADER) {
@@ -1572,6 +1574,8 @@ namespace slib
 
 	void GridView::onMouseEvent(UIEvent* ev)
 	{
+		View::onMouseEvent(ev);
+
 		UIAction action = ev->getAction();
 		switch (action) {
 			case UIAction::LeftButtonDown:
@@ -1650,6 +1654,7 @@ namespace slib
 
 	void GridView::onKeyEvent(UIEvent* ev)
 	{
+		View::onKeyEvent(ev);
 	}
 
 	void GridView::onUpdateFont(const Ref<Font>& font)

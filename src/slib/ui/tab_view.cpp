@@ -676,6 +676,8 @@ namespace slib
 
 	void TabView::onClickEvent(UIEvent* ev)
 	{
+		ViewGroup::onClickEvent(ev);
+
 		if (isNativeWidget()) {
 			return;
 		}
@@ -687,9 +689,12 @@ namespace slib
 
 	void TabView::onMouseEvent(UIEvent* ev)
 	{
+		ViewGroup::onMouseEvent(ev);
+
 		if (isNativeWidget()) {
 			return;
 		}
+
 		UIAction action = ev->getAction();
 		if (action == UIAction::MouseLeave) {
 			m_indexHover = -1;
@@ -716,7 +721,9 @@ namespace slib
 		sl_int32 index = _getTabIndexAt(ev->getPoint());
 		if (index >= 0) {
 			ev->setCursor(Cursor::getHand());
+			return;
 		}
+		ViewGroup::onSetCursor(ev);
 	}
 
 	void TabView::onDraw(Canvas* canvas)
@@ -830,6 +837,7 @@ namespace slib
 
 	void TabView::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		_refreshSize();
 	}
 

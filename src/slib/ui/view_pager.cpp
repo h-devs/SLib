@@ -250,6 +250,7 @@ namespace slib
 
 	void ViewPager::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		_resizePages();
 	}
 
@@ -260,6 +261,8 @@ namespace slib
 
 	void ViewPager::onMouseEvent(UIEvent* ev)
 	{
+		ViewGroup::onMouseEvent(ev);
+
 		sl_uint64 countPages = getPageCount();
 		if (countPages <= 0) {
 			return;
@@ -289,7 +292,6 @@ namespace slib
 			m_posMouseDown = pos;
 			m_offsetPagesMouseDown = m_offsetPages;
 			m_timer.setNull();
-			ev->useDrag();
 		} else if (action == UIAction::LeftButtonDrag || action == UIAction::TouchMove) {
 			if (m_flagMouseDown) {
 				if (isLockScroll()) {

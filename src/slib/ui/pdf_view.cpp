@@ -633,6 +633,7 @@ namespace slib
 
 	void PdfView::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		View::onResize(width, height);
 		if (width && height) {
 			setPageHeight((sl_scroll_pos)height / (sl_scroll_pos)width);
 		} else {

@@ -109,9 +109,9 @@ namespace slib
 				static sl_bool flagStartApp = sl_false;
 				if (! flagStartApp) {
 					flagStartApp = sl_true;
-					UIApp::dispatchStartToApp();
+					MobileApp::Current::invokeStart();
 				}
-				MobileApp::dispatchCreateActivityToApp();
+				MobileApp::Current::invokeCreateActivity();
 			}
 			Locale::dispatchChangeCurrentLocale();
 		}
@@ -119,26 +119,26 @@ namespace slib
 		void OnDestroyActivity(JNIEnv* env, jobject _this, jobject activity)
 		{
 			Log("Activity", "onDestroyActivity");
-			MobileApp::dispatchDestroyActivityToApp();
+			MobileApp::Current::invokeDestroyActivity();
 		}
 
 		void OnResumeActivity(JNIEnv* env, jobject _this, jobject activity)
 		{
 			Log("Activity", "onResumeActivity");
 			Android::initializeContext(activity);
-			MobileApp::dispatchResumeToApp();
+			MobileApp::Current::invokeResume();
 		}
 
 		void OnPauseActivity(JNIEnv* env, jobject _this, jobject activity)
 		{
 			Log("Activity", "onPauseActivity");
-			MobileApp::dispatchPauseToApp();
+			MobileApp::Current::invokePause();
 		}
 
 		jboolean OnBack(JNIEnv* env, jobject _this, jobject activity)
 		{
 			Log("Activity", "onPressBack");
-			return (jboolean)(MobileApp::dispatchPressBackToApp());
+			return (jboolean)(MobileApp::Current::invokePressBack());
 		}
 
 		void OnConfigurationChanged(JNIEnv* env, jobject _this, jobject activity)
@@ -157,7 +157,7 @@ namespace slib
 		{
 			String url = Jni::getString(jurl);
 			Log("Activity", "onOpenUrl: %s", url);
-			MobileApp::dispatchOpenUrlToApp(url);
+			MobileApp::Current::invokeOpenUrl(url);
 		}
 
 		void DispatchCallback(JNIEnv* env, jobject _this)

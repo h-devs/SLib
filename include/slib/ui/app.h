@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -88,6 +88,8 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, Start)
+		virtual void handleStart();
+
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, Exit)
 
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, OpenUrl, const String& url, sl_bool& outFlagOpened)
@@ -100,17 +102,20 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(UIApp, Reopen, const String& commandLine, sl_bool flagHasVisibleWindows, sl_bool& outFlagPerformNormalTasks)
 
 	public:
-		static void dispatchStartToApp();
-		static void dispatchExitToApp();
+		struct Current
+		{
+			static void invokeStart();
+			static void invokeExit();
 
-		static sl_bool dispatchOpenUrlToApp(const String& url);
-		static sl_bool dispatchOpenUrlsToApp(const List<String>& urls);
-		static sl_bool dispatchOpenFileToApp(const String& filePath);
-		static sl_bool dispatchOpenFilesToApp(const List<String>& files);
-		static sl_bool dispatchOpenTempFileToApp(const String& filePath);
-		static sl_bool dispatchOpenUntitledFileToApp();
+			static sl_bool invokeOpenUrl(const String& url);
+			static sl_bool invokeOpenUrls(const List<String>& urls);
+			static sl_bool invokeOpenFile(const String& filePath);
+			static sl_bool invokeOpenFiles(const List<String>& files);
+			static sl_bool invokeOpenTempFile(const String& filePath);
+			static sl_bool invokeOpenUntitledFile();
 
-		static sl_bool dispatchReopenToApp(const String& commandLine, sl_bool flagHasVisibleWindows);
+			static sl_bool invokeReopen(const String& commandLine, sl_bool flagHasVisibleWindows);
+		};
 
 	private:
 		AtomicRef<Window> m_mainWindow;

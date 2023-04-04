@@ -722,9 +722,9 @@ namespace slib
 		return sl_false;
 	}
 
-	void SAppLayoutSimulationWindow::dispatchResize(sl_ui_len width, sl_ui_len height)
+	void SAppLayoutSimulationWindow::onResize(sl_ui_len width, sl_ui_len height)
 	{
-		WindowLayout::dispatchResize(width, height);
+		WindowLayout::onResize(width, height);
 		layoutViews(width, height);
 	}
 

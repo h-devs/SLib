@@ -341,7 +341,7 @@ namespace slib
 
 		void _processMouseEvent(UIEvent* ev);
 
-		void _processMouseEventItem(UIEvent* ev, sl_bool flagClick, TreeViewItem* item, sl_bool flagRoot);
+		void _processMouseEventItem(UIEvent* ev, sl_bool flagClick, const Ref<TreeViewItem>& item, sl_bool flagRoot);
 
 		void _selectItem(const Ref<TreeViewItem>& item, UIEvent* ev, UIUpdateMode mode);
 

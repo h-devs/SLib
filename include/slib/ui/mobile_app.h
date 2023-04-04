@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -131,26 +131,33 @@ namespace slib
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Pause)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Resume)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, PressBack, UIEvent* ev)
+
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, CreateActivity)
+		void handleCreateActivity();
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, DestroyActivity)
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, Resize, sl_ui_len width, sl_ui_len height)
+		void handleResize(sl_ui_len width, sl_ui_len height);
 		SLIB_DECLARE_EVENT_HANDLER(MobileApp, ChangeCurrentLocale)
+		void handleChangeCurrentLocale();
 
 	public:
-		void onStart() override;
+		void handleStart() override;
 
-		static void dispatchPauseToApp();
+		struct Current : public UIApp::Current
+		{
+			static void invokePause();
 
-		static void dispatchResumeToApp();
+			static void invokeResume();
 
-		static sl_bool dispatchPressBackToApp();
+			static sl_bool invokePressBack();
 
-		static void dispatchCreateActivityToApp();
+			static void invokeCreateActivity();
 
-		static void dispatchDestroyActivityToApp();
+			static void invokeDestroyActivity();
 
-		static void dispatchResizeToApp(sl_ui_len width, sl_ui_len height);
-
+			static void invokeResize(sl_ui_len width, sl_ui_len height);
+		};
+		
 	protected:
 		static sl_bool m_flagPaused;
 

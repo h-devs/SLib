@@ -178,33 +178,13 @@ namespace slib
 		setThumbSize(UISize(m_thumbSize.x, height), mode);
 	}
 	
-	SLIB_DEFINE_EVENT_HANDLER(Slider, Changing, float& value, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(Slider, Changing, (float& value, UIEvent* ev), value, ev)
 
-	void Slider::dispatchChanging(float& value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Changing, value, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(Slider, Change, (float value, UIEvent* ev), value, ev)
 
-	SLIB_DEFINE_EVENT_HANDLER(Slider, Change, float value, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangingSecondary, (float& value, UIEvent* ev), value, ev)
 
-	void Slider::dispatchChange(float value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
-	}
-	
-	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangingSecondary, float& value, UIEvent* ev)
-
-	void Slider::dispatchChangingSecondary(float& value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangingSecondary, value, ev)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangeSecondary, float value, UIEvent* ev)
-
-	void Slider::dispatchChangeSecondary(float value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangeSecondary, value, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(Slider, ChangeSecondary, (float value, UIEvent* ev), value, ev)
 
 	void Slider::onDraw(Canvas* canvas)
 	{
@@ -247,6 +227,8 @@ namespace slib
 
 	void Slider::onMouseEvent(UIEvent* ev)
 	{
+		ProgressBar::onMouseEvent(ev);
+
 		UIAction action = ev->getAction();
 		sl_ui_pos pos;
 		if (isVertical()) {
@@ -298,7 +280,6 @@ namespace slib
 				} else {
 					m_indexPressedThumb = 0;
 				}
-				ev->useDrag();
 			case UIAction::LeftButtonDrag:
 			case UIAction::TouchMove:
 				if (m_indexPressedThumb >= 0) {
@@ -326,6 +307,8 @@ namespace slib
 
 	void Slider::onMouseWheelEvent(UIEvent* ev)
 	{
+		ProgressBar::onMouseWheelEvent(ev);
+
 		float step = refineStep();
 		sl_real delta = ev->getDelta();
 		if (delta > SLIB_EPSILON) {
@@ -347,6 +330,8 @@ namespace slib
 
 	void Slider::onKeyEvent(UIEvent* ev)
 	{
+		ProgressBar::onKeyEvent(ev);
+
 		float step = refineStep();
 		if (ev->getAction() == UIAction::KeyDown) {
 			switch (ev->getKeycode()) {
@@ -611,7 +596,7 @@ namespace slib
 				value = m_value2;
 			}
 		}
-		dispatchChanging(value, ev);
+		invokeChanging(value, ev);
 		value = refineValue(value);
 		if (m_flagDualValues) {
 			if (value > m_value2) {
@@ -622,7 +607,7 @@ namespace slib
 			m_value = value;
 		} else {
 			m_value = value;
-			dispatchChange(value, ev);
+			invokeChange(value, ev);
 			invalidate(mode);
 		}
 	}
@@ -638,7 +623,7 @@ namespace slib
 				value = m_value;
 			}
 		}
-		dispatchChangingSecondary(value, ev);
+		invokeChangingSecondary(value, ev);
 		value = refineValue(value);
 		if (value < m_value) {
 			m_value = value;
@@ -647,7 +632,7 @@ namespace slib
 			m_value2 = value;
 		} else {
 			m_value2 = value;
-			dispatchChangeSecondary(value, ev);
+			invokeChangeSecondary(value, ev);
 			invalidate(mode);
 		}
 	}

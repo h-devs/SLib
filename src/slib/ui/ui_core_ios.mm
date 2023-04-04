@@ -279,7 +279,7 @@ namespace slib
 					return YES;
 				}
 			}
-			return MobileApp::dispatchOpenUrlToApp(Apple::getStringFromNSString(url.absoluteString));
+			return MobileApp::Current::invokeOpenUrl(Apple::getStringFromNSString(url.absoluteString));
 		}
 
 	}
@@ -370,11 +370,11 @@ using namespace slib::priv;
 
 	ResetOrientation();
 
-	UIApp::dispatchStartToApp();
+	MobileApp::Current::invokeStart();
 
 	g_callbackDidFinishLaunching(launchOptions);
 
-	MobileApp::dispatchCreateActivityToApp();
+	MobileApp::Current::invokeCreateActivity();
 
 	return YES;
 }
@@ -385,7 +385,7 @@ using namespace slib::priv;
 
 	Log("App", "Resign Active");
 
-	MobileApp::dispatchPauseToApp();
+	MobileApp::Current::invokePause();
 
 }
 
@@ -412,7 +412,7 @@ using namespace slib::priv;
 
 	ResetOrientation();
 
-	MobileApp::dispatchResumeToApp();
+	MobileApp::Current::invokeResume();
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
@@ -420,9 +420,9 @@ using namespace slib::priv;
 
 	Log("App", "Terminate");
 
-	MobileApp::dispatchDestroyActivityToApp();
+	MobileApp::Current::invokeDestroyActivity();
 
-	UIApp::dispatchExitToApp();
+	MobileApp::Current::invokeExit();
 }
 
 - (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(nullable UIWindow *)window

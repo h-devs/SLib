@@ -280,6 +280,7 @@ namespace slib
 
 	void CollectionView::onScroll(ScrollEvent* ev)
 	{
+		VerticalScrollView::onScroll(ev);
 		if (Math::isAlmostZero(ev->y - (sl_scroll_pos)m_lastScrollY)) {
 			return;
 		}
@@ -288,6 +289,7 @@ namespace slib
 
 	void CollectionView::onResize(sl_ui_len x, sl_ui_len y)
 	{
+		VerticalScrollView::onResize(x, y);
 		_requestLayout();
 	}
 

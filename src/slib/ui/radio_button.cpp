@@ -60,16 +60,6 @@ namespace slib
 		m_value = value;
 	}
 
-	void RadioButton::setChecked(sl_bool flag, UIUpdateMode mode)
-	{
-		Ref<RadioGroup> group = m_group;
-		if (group.isNotNull()) {
-			group->_setChecked(this, flag, mode);
-			return;
-		}
-		CheckBox::setChecked(flag, mode);
-	}
-
 	Ref<ButtonCell> RadioButton::createButtonCell()
 	{
 		if (m_categories.isNotNull()) {
@@ -79,17 +69,22 @@ namespace slib
 		}
 	}
 
-	void RadioButton::dispatchClickEvent(UIEvent* ev)
+	void RadioButton::onClickEvent(UIEvent* ev)
 	{
-		Ref<RadioGroup> group = m_group;
-		if (group.isNotNull()) {
-			group->_select(this, ev, UIUpdateMode::Redraw);
-		} else {
-			CheckBox::setChecked(sl_true);
-		}
-		Button::dispatchClickEvent(ev);
+		Button::onClickEvent(ev);
+		handleChangeValue(sl_true, ev, UIUpdateMode::Redraw);
 	}
 
+	void RadioButton::onChange(sl_bool value, UIEvent* ev)
+	{
+		CheckBox::onChange(value, ev);
+		if (value) {
+			Ref<RadioGroup> group = m_group;
+			if (group.isNotNull()) {
+				group->_select(this, ev, UIUpdateMode::Redraw);
+			}
+		}
+	}
 
 	namespace {
 
@@ -234,7 +229,7 @@ namespace slib
 		if (button->isChecked()) {
 			if (button != m_buttonSelected) {
 				if (m_buttonSelected.isNotNull()) {
-					m_buttonSelected->CheckBox::setChecked(sl_false);
+					m_buttonSelected->setChecked(sl_false);
 				}
 				m_buttonSelected = button;
 			}
@@ -254,27 +249,20 @@ namespace slib
 		}
 	}
 
-	void RadioGroup::select(const Ref<RadioButton>& button, UIUpdateMode mode)
-	{
-		ObjectLocker lock(this);
-		if (button != m_buttonSelected) {
-			if (m_buttonSelected.isNotNull()) {
-				m_buttonSelected->CheckBox::setChecked(sl_false, mode);
-			}
-			m_buttonSelected = button;
-			if (button.isNotNull()) {
-				button->CheckBox::setChecked(sl_true, mode);
-			}
-		}
-	}
-
 	Ref<RadioButton> RadioGroup::getSelected()
 	{
 		ObjectLocker lock(this);
 		return m_buttonSelected;
 	}
 
-	void RadioGroup::selectValue(const String& value)
+	void RadioGroup::select(const Ref<RadioButton>& button, UIUpdateMode mode)
+	{
+		if (button.isNotNull()) {
+			button->setChecked(sl_true, mode);
+		}
+	}
+
+	void RadioGroup::selectValue(const String& value, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
 		ListElements< Ref<RadioButton> > buttons(m_buttons);
@@ -286,7 +274,7 @@ namespace slib
 				break;
 			}
 		}
-		select(selected);
+		select(selected, mode);
 	}
 
 	String RadioGroup::getSelectedValue()
@@ -298,32 +286,21 @@ namespace slib
 		return sl_null;
 	}
 
-	void RadioGroup::_setChecked(RadioButton* button, sl_bool flag, UIUpdateMode mode)
+	void RadioGroup::_select(RadioButton* button, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker lock(this);
-		if (flag) {
-			if (button != m_buttonSelected) {
-				if (m_buttonSelected.isNotNull()) {
-					m_buttonSelected->CheckBox::setChecked(sl_false);
-				}
-				m_buttonSelected = button;
-				button->CheckBox::setChecked(sl_true, mode);
-			}
-		} else {
-			if (button == m_buttonSelected) {
-				m_buttonSelected.setNull();
-			}
-			button->CheckBox::setChecked(sl_false, mode);
+		Ref<RadioButton> oldButton = m_buttonSelected;
+		if (button == oldButton) {
+			return;
 		}
+		m_buttonSelected = button;
+		if (oldButton.isNotNull()) {
+			oldButton->setChecked(sl_false, mode);
+		}
+		invokeSelect(button, oldButton.get(), ev);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(RadioGroup, Select, RadioButton*)
-
-	void RadioGroup::dispatchSelect(RadioButton* button)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Select, button)
-	}
-
+	SLIB_DEFINE_EVENT_HANDLER(RadioGroup, Select, (RadioButton* button, RadioButton* former, UIEvent* ev), button, former, ev)
 
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RadioButton::createNativeWidget(ViewInstance* parent)

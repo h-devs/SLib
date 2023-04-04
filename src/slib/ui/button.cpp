@@ -811,6 +811,10 @@ namespace slib
 		if (m_cell.isNotNull()) {
 			m_cell->onKeyEvent(ev);
 		}
+		if (ev->isPreventedDefault()) {
+			return;
+		}
+		View::onKeyEvent(ev);
 	}
 
 	void Button::onMnemonic(UIEvent* ev)
@@ -818,7 +822,6 @@ namespace slib
 		setFocus();
 		dispatchClickEvent(ev);
 		ev->stopPropagation();
-		ev->preventDefault();
 	}
 
 	void Button::onChangeFocus(sl_bool flagFocused)

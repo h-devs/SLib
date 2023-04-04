@@ -39,7 +39,7 @@ namespace slib
 		m_posThumb(0)
 	{
 		setCursor(Cursor::getHand());
-		setRedrawingOnChangeState(sl_true);
+		setRedrawingOnChangeState();
 	}
 
 	SwitchView::~SwitchView()
@@ -199,12 +199,7 @@ namespace slib
 	}
 
 	
-	SLIB_DEFINE_EVENT_HANDLER(SwitchView, Change, SwitchValue value, UIEvent* ev)
-
-	void SwitchView::dispatchChange(SwitchValue value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(SwitchView, Change, (SwitchValue value, UIEvent* ev),  value, ev)
 
 	namespace {
 		class DrawContext
@@ -409,6 +404,8 @@ namespace slib
 
 	void SwitchView::onMouseEvent(UIEvent* ev)
 	{
+		View::onMouseEvent(ev);
+
 		sl_real dimUnit = Math::ceil(UI::dpToPixel(1));
 		if (dimUnit < 1) {
 			dimUnit = 1;
@@ -429,12 +426,8 @@ namespace slib
 					m_posMouseDown = m_posThumb;
 					m_flagTapping = sl_true;
 					m_tracker.clearMovements();
-					View::setPressedState(sl_true);
-
 					ObjectLocker lock(this);
 					m_timer.setNull();
-					
-					ev->useDrag();
 				}
 				break;
 			case UIAction::LeftButtonDrag:
@@ -591,7 +584,7 @@ namespace slib
 			}
 		}
 		locker.unlock();
-		dispatchChange(value, ev);
+		invokeChange(value, ev);
 	}
 
 	void SwitchView::_onTimerAnimation(Timer* timer)

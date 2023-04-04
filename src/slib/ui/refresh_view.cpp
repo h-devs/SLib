@@ -58,12 +58,7 @@ namespace slib
 		_setRefreshing_NW(flag);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(RefreshView, Refresh)
-
-	void RefreshView::dispatchRefresh()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Refresh)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(RefreshView, Refresh, ())
 
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> RefreshView::createNativeWidget(ViewInstance* parent)
@@ -87,7 +82,7 @@ namespace slib
 	void RefreshView::_onRefresh_NW()
 	{
 		m_flagRefreshing = sl_true;
-		dispatchRefresh();
+		invokeRefresh();
 	}
 
 }

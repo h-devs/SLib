@@ -349,6 +349,8 @@ namespace slib
 
 	void CameraView::onClickEvent(UIEvent* ev)
 	{
+		VideoView::onClickEvent(ev);
+
 		if (m_flagTouchFocus) {
 			Point pt = ev->getPoint();
 			Ref<View> child = getTopmostViewAt(pt);

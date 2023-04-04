@@ -67,7 +67,11 @@ namespace slib
 
 	void CheckBox::setChecked(sl_bool flag, UIUpdateMode mode)
 	{
-		_changeValue(flag, sl_null, mode);
+		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
+		if (instance.isNotNull()) {
+			SLIB_VIEW_RUN_ON_UI_THREAD(setChecked, flag, mode)
+		}
+		handleChangeValue(flag, sl_null, mode);
 	}
 
 	Ref<ButtonCell> CheckBox::createButtonCell()
@@ -79,47 +83,34 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(CheckBox, Change, sl_bool value, UIEvent* ev)
-
-	void CheckBox::dispatchChange(sl_bool value, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(Change, value, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(CheckBox, Change, (sl_bool value, UIEvent* ev), value, ev)
 
 	void CheckBox::onClickEvent(UIEvent* ev)
 	{
-		if (ev->isPreventedDefault()) {
+		Button::onClickEvent(ev);
+		if (isNativeWidget()) {
+			handleChangeValue(isCheckedInstance(), ev, UIUpdateMode::None);
+		} else {
+			handleChangeValue(!m_flagChecked, ev, UIUpdateMode::Redraw);
+		}
+	}
+
+	void CheckBox::handleChangeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode)
+	{
+		if (m_flagChecked == value) {
 			return;
 		}
-		if (isNativeWidget()) {
-			_changeValue(isCheckedInstance(), ev, UIUpdateMode::None);
-		} else {
-			_changeValue(!m_flagChecked, ev, UIUpdateMode::Redraw);
-		}
-	}
-
-	void CheckBox::onMnemonic(UIEvent* ev)
-	{
-
-	}
-
-	void CheckBox::_changeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode)
-	{
-		sl_bool valueOld = m_flagChecked;
-		sl_bool valueNew = isCheckedInstance();
-		if (valueOld != valueNew) {
-			dispatchChange(valueNew);
-		}
+		m_flagChecked = value;
 		Ptr<ICheckBoxInstance> instance = getCheckBoxInstance();
 		if (instance.isNotNull()) {
-			SLIB_VIEW_RUN_ON_UI_THREAD(setChecked, flag, mode)
-				m_flagChecked = flag;
-			setCurrentCategory(flag ? 1 : 0, UIUpdateMode::None);
-			instance->setChecked(this, flag);
+			if (!ev) {
+				setCurrentCategory(value ? 1 : 0, UIUpdateMode::None);
+				instance->setChecked(this, value);
+			}
 		} else {
-			m_flagChecked = flag;
-			setCurrentCategory(flag ? 1 : 0, mode);
+			setCurrentCategory(value ? 1 : 0, mode);
 		}
+		invokeChange(value, ev);
 	}
 
 #if !HAS_NATIVE_WIDGET_IMPL

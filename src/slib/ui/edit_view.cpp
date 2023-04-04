@@ -803,6 +803,8 @@ namespace slib
 
 	void EditView::onClickEvent(UIEvent* ev)
 	{
+		View::onClickEvent(ev);
+
 		if (m_flagReadOnly) {
 			return;
 		}

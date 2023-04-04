@@ -420,12 +420,24 @@ namespace slib
 		refreshItems(mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, (sl_uint32 row, sl_uint32 former, UIEvent* ev /* nullable */), row, former, ev)
 
-	void ListControl::dispatchSelectRow(sl_uint32 row)
+	void ListControl::_selectRow(IListControlInstance* instance, sl_uint32 row, UIEvent* ev, UIUpdateMode mode)
 	{
-		m_selectedRow = row;
-		SLIB_INVOKE_EVENT_HANDLER(SelectRow, row)
+		sl_uint32 oldRow = m_selectedRow;
+		if (oldRow == row) {
+			return;
+		}
+		oldRow = row;
+		invokeSelectRow(row, oldRow, ev);
+	}
+
+	void ListControl::_onSelectRow_NW(IListControlInstance* instance, sl_uint32 row)
+	{
+		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
+		if (ev.isNotNull()) {
+			_selectRow(instance, row, ev.get(), UIUpdateMode::None);
+		}
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)

@@ -958,17 +958,17 @@ sl_bool UIEvent::is##NAME##Key() const \
 		return m_flags;
 	}
 
-	void UIEvent::resetFlags()
+	void UIEvent::setFlags(const UIEventFlags& flags)
 	{
-		m_flags = 0;
+		m_flags = flags;
 	}
 
-	void UIEvent::addFlag(UIEventFlags flags)
+	void UIEvent::addFlag(const UIEventFlags& flags)
 	{
 		SLIB_SET_FLAG(m_flags, flags);
 	}
 
-	void UIEvent::removeFlag(UIEventFlags flags)
+	void UIEvent::removeFlag(const UIEventFlags& flags)
 	{
 		SLIB_RESET_FLAG(m_flags, flags);
 	}
@@ -1027,26 +1027,6 @@ sl_bool UIEvent::is##NAME##Key() const \
 			SLIB_SET_FLAG(m_flags, UIEventFlags::PassToNext);
 		} else {
 			SLIB_RESET_FLAG(m_flags, UIEventFlags::PassToNext);
-		}
-	}
-
-	void UIEvent::useDrag()
-	{
-		SLIB_SET_FLAG(m_flags, UIEventFlags::UseDrag);
-	}
-
-	sl_bool UIEvent::isUsingDrag()
-	{
-		return SLIB_CHECK_FLAG(m_flags, UIEventFlags::UseDrag);
-	}
-
-	void UIEvent::setUsingDrag(sl_bool flag)
-	{
-		if (flag) {
-			SLIB_SET_FLAG(m_flags, UIEventFlags::UseDrag);
-		}
-		else {
-			SLIB_RESET_FLAG(m_flags, UIEventFlags::UseDrag);
 		}
 	}
 

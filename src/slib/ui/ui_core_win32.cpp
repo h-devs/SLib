@@ -415,9 +415,9 @@ namespace slib
 		}
 
 		UIDispatcher::processCallbacks();
-		UIApp::dispatchStartToApp();
+		UIApp::Current::invokeStart();
 		RunUiLoop(NULL);
-		UIApp::dispatchExitToApp();
+		UIApp::Current::invokeExit();
 	}
 
 	void UIPlatform::quitApp()
@@ -827,7 +827,7 @@ namespace slib
 				case WM_COPYDATA:
 					{
 						COPYDATASTRUCT* data = (COPYDATASTRUCT*)lParam;
-						UIApp::dispatchReopenToApp(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
+						UIApp::Current::invokeReopen(String::fromUtf16((sl_char16*)(data->lpData), data->cbData / 2), sl_true);
 					}
 					return 0;
 			}

@@ -105,17 +105,13 @@ namespace slib
 
 	void PickerView::onMouseEvent(UIEvent* ev)
 	{
+		View::onMouseEvent(ev);
 		if (m_cell.isNotNull()) {
 			m_cell->onMouseEvent(ev);
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(PickerView, SelectItem, sl_uint32 index, sl_uint32 former, UIEvent* ev)
-
-	void PickerView::dispatchSelectItem(sl_uint32 index, sl_uint32 former, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, index, former, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(PickerView, SelectItem, (sl_uint32 index, sl_uint32 former, UIEvent* ev), index, former, ev)
 
 	void PickerView::_initCell()
 	{
@@ -263,7 +259,6 @@ namespace slib
 			_stopFlow();
 			m_motionTracker.clearMovements();
 			m_motionTracker.addMovement(ev->getPoint());
-			ev->useDrag();
 			invalidate();
 		} else if (action == UIAction::LeftButtonDrag || action == UIAction::TouchMove) {
 			_stopFlow();

@@ -209,6 +209,7 @@ namespace slib
 
 	void LabelView::onClickEvent(UIEvent* ev)
 	{
+		View::onClickEvent(ev);
 		m_cell->onClickEvent(ev);
 	}
 

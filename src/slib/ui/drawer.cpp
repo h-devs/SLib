@@ -227,11 +227,9 @@ namespace slib
 		}
 	}
 
-	void Drawer::onCancel(UIEvent* ev)
+	void Drawer::onCancel()
 	{
 		close();
-		ev->preventDefault();
-		ev->stopPropagation();
 	}
 
 	void Drawer::_onParentMouseEvent(View* parent, UIEvent* ev)
@@ -264,7 +262,6 @@ namespace slib
 					m_motionTracker.clearMovements();
 					m_flagMouseDown = sl_true;
 					m_posMouseDown = pos;
-					ev->useDrag();
 				}
 			}
 		} else if (action == UIAction::LeftButtonDrag || action == UIAction::TouchMove) {

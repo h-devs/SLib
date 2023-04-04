@@ -333,11 +333,11 @@ namespace slib
 		// flags
 		UIEventFlags getFlags() const;
 
-		void resetFlags();
+		void setFlags(const UIEventFlags& flags);
 
-		void addFlag(UIEventFlags flags);
+		void addFlag(const UIEventFlags& flags);
 
-		void removeFlag(UIEventFlags flags);
+		void removeFlag(const UIEventFlags& flags);
 
 		void preventDefault();
 
@@ -356,12 +356,6 @@ namespace slib
 		sl_bool isPassedToNext();
 
 		void setPassedToNext(sl_bool flag);
-
-		void useDrag();
-
-		sl_bool isUsingDrag();
-
-		void setUsingDrag(sl_bool flag);
 
 		virtual Ref<UIEvent> duplicate() const;
 

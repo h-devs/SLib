@@ -59,10 +59,8 @@ namespace slib
 	public:
 		void onClickEvent(UIEvent* ev) override;
 
-		void onMnemonic(UIEvent* ev) override;
-
-	private:
-		void _changeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode);
+	protected:
+		void handleChangeValue(sl_bool value, UIEvent* ev, UIUpdateMode mode);
 
 	protected:
 		sl_bool m_flagChecked;

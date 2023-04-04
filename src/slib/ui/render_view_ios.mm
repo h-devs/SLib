@@ -183,12 +183,12 @@ using namespace slib;
 		if (m_engine.isNull()) {
 			m_engine = GLES::createEngine();
 			if (m_engine.isNotNull()) {
-				view->dispatchCreateEngine(m_engine.get());
+				view->invokeCreateEngine(m_engine.get());
 			}
 		}
 		if (m_engine.isNotNull()) {
 			m_engine->setViewport(0, 0, m_viewportWidth, m_viewportHeight);
-			view->dispatchFrame(m_engine.get());
+			view->handleFrame(m_engine.get());
 		}
 	}
 

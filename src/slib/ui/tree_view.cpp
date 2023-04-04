@@ -971,22 +971,13 @@ namespace slib
 		_relayoutContent(mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TreeView, SelectItem, TreeViewItem* item, TreeViewItem* former, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TreeView, SelectItem, (TreeViewItem* item, TreeViewItem* former, UIEvent* ev), item, former, ev)
 
-	void TreeView::dispatchSelectItem(TreeViewItem* item, TreeViewItem* former, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(TreeView, ClickItem, (TreeViewItem* item, UIEvent* ev), item, ev)
+
+	void TreeView::onClickItem(TreeViewItem* item, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectItem, item, former, ev)
-
-		(item->getOnSelect())(item, former, ev);
-	}
-	
-	SLIB_DEFINE_EVENT_HANDLER(TreeView, ClickItem, TreeViewItem* item, UIEvent* ev)
-
-	void TreeView::dispatchClickItem(TreeViewItem* item, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickItem, item, ev)
-
-		(item->getOnClick())(item, ev);
+		_selectItem(ToRef(&item), ev, UIUpdateMode::None);
 	}
 
 	void TreeView::_createRootItem()
@@ -1288,7 +1279,7 @@ namespace slib
 		}
 	}
 
-	void TreeView::_processMouseEventItem(UIEvent* ev, sl_bool flagClick, TreeViewItem* item, sl_bool flagRoot)
+	void TreeView::_processMouseEventItem(UIEvent* ev, sl_bool flagClick, const Ref<TreeViewItem>& item, sl_bool flagRoot)
 	{
 		sl_ui_pos y = (sl_ui_pos)(ev->getY());
 		UIAction action = ev->getAction();
@@ -1337,16 +1328,14 @@ namespace slib
 		m_itemSelected = item;
 		invalidate(mode);
 		locker.unlock();
-		dispatchSelectItem(item.get(), old.get(), ev);
+		invokeSelectItem(item.get(), old.get(), ev);
+		(item->getOnSelect())(item.get(), old.get(), ev);
 	}
 
 	void TreeView::_clickItem(const Ref<TreeViewItem>& item, UIEvent* ev)
 	{
-		dispatchClickItem(item.get(), ev);
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-		_selectItem(item, ev, UIUpdateMode::None);
+		invokeClickItem(item.get(), ev);
+		(item->getOnClick())(item.get(), ev);
 	}
 
 }

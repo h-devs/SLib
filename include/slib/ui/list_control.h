@@ -142,7 +142,7 @@ namespace slib
 		void sort(sl_uint32 col, sl_bool flagAsc = sl_true, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row, sl_uint32 former, UIEvent* ev /* nullable */)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
@@ -152,6 +152,11 @@ namespace slib
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 
 		virtual Ptr<IListControlInstance> getListControlInstance();
+
+	protected:
+		void _selectRow(IListControlInstance* instance, sl_uint32 row, UIEvent* ev, UIUpdateMode mode);
+
+		void _onSelectRow_NW(IListControlInstance* instance, sl_uint32 row);
 
 	protected:
 		CList<Column> m_columns;

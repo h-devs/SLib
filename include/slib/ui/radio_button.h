@@ -46,12 +46,12 @@ namespace slib
 
 		void setValue(const String& value);
 
-		void setChecked(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw) override;
-
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
 
-		void dispatchClickEvent(UIEvent* ev) override;
+		void onClickEvent(UIEvent* ev) override;
+
+		void onChange(sl_bool value, UIEvent* ev /* nullable */) override;
 
 		Ref<ButtonCell> createButtonCell() override;
 
@@ -92,17 +92,15 @@ namespace slib
 
 		void remove(const Ref<RadioButton>& button);
 
-		void select(const Ref<RadioButton>& button, UIUpdateMode mode);
-
 		Ref<RadioButton> getSelected();
 
-		void selectValue(const String& value, UIUpdateMode mode);
+		void select(const Ref<RadioButton>& button, UIUpdateMode mode);
+
+		void selectValue(const String& value, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		String getSelectedValue();
 
 	private:
-		void _setChecked(RadioButton* button, sl_bool flag, UIUpdateMode mode);
-
 		void _select(RadioButton* button, UIEvent* ev, UIUpdateMode mode);
 
 	public:

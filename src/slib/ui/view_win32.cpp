@@ -1253,9 +1253,12 @@ namespace slib
 			if (ev.isNotNull()) {
 				UIPlatform::applyEventModifiers(ev.get());
 				ev->addFlag(UIEventFlags::DispatchToParent);
+				if (action == UIAction::LeftButtonDown) {
+					ev->addFlag(UIEventFlags::UseDrag);
+				}
 				onMouseEvent(ev.get());
 				if (pFlagUseDrag) {
-					*pFlagUseDrag = ev->isUsingDrag();
+					*pFlagUseDrag = ev->getFlags() && UIEventFlags::UseDrag;
 				}
 				if (ev->isPreventedDefault()) {
 					return sl_true;

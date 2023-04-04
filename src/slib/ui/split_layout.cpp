@@ -480,6 +480,7 @@ namespace slib
 
 	void SplitLayout::onResize(sl_ui_len width, sl_ui_len height)
 	{
+		ViewGroup::onResize(width, height);
 		ObjectLocker lock(this);
 		_resetWeights(UIUpdateMode::UpdateLayout);
 	}
@@ -556,7 +557,6 @@ namespace slib
 				} else {
 					m_indexDividerDown = -1;
 				}
-				ev->useDrag();
 			}
 			if (action == UIAction::LeftButtonDrag || action == UIAction::LeftButtonUp) {
 				sl_int32 index = m_indexDividerDown;

@@ -424,10 +424,6 @@ namespace slib
 		static double random() noexcept;
 
 		static sl_uint32 randomInt() noexcept;
-
-		static double randomByTime() noexcept;
-
-		static sl_uint32 randomIntByTime() noexcept;
 		
 		static void srand(sl_uint32 seed) noexcept;
 

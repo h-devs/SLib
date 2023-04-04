@@ -65,6 +65,7 @@ void ExampleXgPushApp::onStart()
 
 void ExampleXgPushApp::onResume()
 {
+	MobileApp::onResume();
 	setBadgeNumber(0);
 }
 

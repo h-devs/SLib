@@ -49,37 +49,37 @@
 #define DEFINE_VIEW_EVENT_HANDLER_WITHOUT_ON(NAME, DEFINE_ARGS, ...) \
 	View::On##NAME View::getOn##NAME() const { \
 		const Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) return attrs->on##NAME.function; else return sl_null; \
+		if (attrs.isNotNull()) return attrs->on##NAME; else return sl_null; \
 	} \
 	View::On##NAME View::setOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) { \
-			attrs->on##NAME.function = handler; \
-			attrs->on##NAME.flagDefault = sl_false; \
+			attrs->on##NAME = handler; \
 		} \
 		return handler; \
 	} \
 	View::On##NAME View::addOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.function.add(handler); \
+		if (attrs.isNotNull()) attrs->on##NAME.add(handler); \
 		return handler; \
 	} \
 	void View::removeOn##NAME(const On##NAME& handler) { \
 		_initializeEventAttributes(); \
 		Ref<EventAttributes>& attrs = m_eventAttrs; \
-		if (attrs.isNotNull()) attrs->on##NAME.function.remove(handler); \
+		if (attrs.isNotNull()) attrs->on##NAME.remove(handler); \
 	} \
 	void View::invoke##NAME DEFINE_ARGS \
 	{ \
 		const Ref<EventAttributes>& attrs = m_eventAttrs; \
 		if (attrs.isNotNull()) { \
-			if (attrs->on##NAME.flagDefault) { \
-				on##NAME(__VA_ARGS__); \
+			if (attrs->on##NAME.isNotNull()) { \
+				attrs->on##NAME(this, ##__VA_ARGS__); \
+				return; \
 			} \
-			attrs->on##NAME.function(this, ##__VA_ARGS__); \
 		} \
+		on##NAME(__VA_ARGS__); \
 	}
 
 #define DEFINE_VIEW_EVENT_HANDLER(NAME, DEFINE_ARGS, ...) \
@@ -9087,9 +9087,7 @@ namespace slib
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
 			}
-			if (!(ev->isStoppedPropagation())) {
-				invokeMouseEvent(ev);
-			}
+			invokeMouseEvent(ev);
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
 			}
@@ -9136,6 +9134,8 @@ namespace slib
 			}
 		}
 
+		ev->setPreventedDefault(sl_false);
+
 		Ref<GestureDetector> gesture = getGestureDetector();
 		if (gesture.isNotNull()) {
 			gesture->processEvent(ev);
@@ -9152,12 +9152,6 @@ namespace slib
 			if (action == UIAction::LeftButtonDown || action == UIAction::RightButtonDown || action == UIAction::MiddleButtonDown) {
 				setFocus();
 			}
-		}
-
-		sl_bool flagUseDrag = ev->isUsingDrag();
-		ev->resetFlags();
-		if (flagUseDrag) {
-			ev->useDrag();
 		}
 
 		invokeMouseEvent(ev);
@@ -9187,6 +9181,7 @@ namespace slib
 
 		UIAction action = ev->getAction();
 		UIPointF ptMouse = ev->getPoint();
+		UIEventFlags flags = ev->getFlags();
 
 		Ref<View> oldChild;
 		switch (action) {
@@ -9212,6 +9207,7 @@ namespace slib
 								m_actionMouseDown = action;
 								return sl_true;
 							}
+							ev->setFlags(flags);
 						}
 					}
 				}
@@ -9238,6 +9234,7 @@ namespace slib
 							if (!(ev->isPassedToNext())) {
 								return sl_true;
 							}
+							ev->setFlags(flags);
 						}
 					}
 				}
@@ -9280,6 +9277,7 @@ namespace slib
 								}
 								return sl_true;
 							}
+							ev->setFlags(flags);
 						}
 					}
 				}
@@ -9300,7 +9298,6 @@ namespace slib
 	void View::dispatchMouseEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints)
 	{
 		if (child) {
-			ev->resetFlags();
 			if (flagTransformPoints) {
 				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
@@ -9333,9 +9330,7 @@ namespace slib
 			if (gesture.isNotNull()) {
 				gesture->processEvent(ev);
 			}
-			if (!(ev->isStoppedPropagation())) {
-				invokeTouchEvent(ev);
-			}
+			invokeTouchEvent(ev);
 			if (m_flagCaptureEvents) {
 				ev->addFlag(UIEventFlags::Captured);
 			}
@@ -9367,6 +9362,8 @@ namespace slib
 			}
 		}
 
+		ev->setPreventedDefault(sl_false);
+
 		Ref<GestureDetector> gesture = getGestureDetector();
 		if (gesture.isNotNull()) {
 			gesture->processEvent(ev);
@@ -9385,12 +9382,8 @@ namespace slib
 			}
 		}
 
-		{
-			int flags = ev->getFlags() & UIEventFlags::KeepKeyboard;
-			ev->resetFlags();
-			if (flags || m_flagKeepKeyboard) {
-				ev->addFlag(UIEventFlags::KeepKeyboard);
-			}
+		if (m_flagKeepKeyboard) {
+			ev->addFlag(UIEventFlags::KeepKeyboard);
 		}
 
 		invokeTouchEvent(ev);
@@ -9410,6 +9403,7 @@ namespace slib
 
 		UIAction action = ev->getAction();
 		UIPointF ptMouse = ev->getPoint();
+		UIEventFlags flags = ev->getFlags();
 
 		Ref<View> oldChild;
 		switch (action) {
@@ -9431,6 +9425,7 @@ namespace slib
 								m_actionMouseDown = action;
 								return sl_true;
 							}
+							ev->setFlags(flags);
 						}
 					}
 				}
@@ -9468,6 +9463,7 @@ namespace slib
 		}
 
 		UIAction action = ev->getAction();
+		UIEventFlags flags = ev->getFlags();
 
 		Array<TouchPoint> ptsOriginal = ev->getTouchPoints();
 		TouchPoint ptOriginal = ev->getTouchPoint();
@@ -9538,7 +9534,9 @@ namespace slib
 							ev->setTouchPoint(ptsInside[0]);
 							dispatchTouchEventToChild(ev, child, sl_false);
 							ev->setAction(action);
-							if (!(ev->isPassedToNext())) {
+							if (ev->isPassedToNext()) {
+								ev->setPassedToNext(sl_false);
+							} else {
 								selectedChildren.add_NoLock(child);
 								nCheck = nOutside;
 								for (k = 0; k < nCheck; k++) {
@@ -9564,6 +9562,7 @@ namespace slib
 								selectedChildren.add_NoLock(child);
 								break;
 							}
+							ev->setFlags(flags);
 						}
 
 					}
@@ -9571,7 +9570,6 @@ namespace slib
 				}
 
 			}
-
 
 		}
 
@@ -9614,8 +9612,6 @@ namespace slib
 	void View::dispatchTouchEventToChild(UIEvent* ev, View* child, sl_bool flagTranformPoints)
 	{
 		if (child) {
-
-			ev->resetFlags();
 
 			if (flagTranformPoints) {
 
@@ -9701,11 +9697,11 @@ namespace slib
 			}
 		}
 
+		ev->setPreventedDefault(sl_false);
+
 		if (ev->isStoppedPropagation()) {
 			return;
 		}
-
-		ev->resetFlags();
 
 		invokeMouseWheelEvent(ev);
 	}
@@ -9717,6 +9713,7 @@ namespace slib
 			return sl_true;
 		}
 		UIPointF ptMouse = ev->getPoint();
+		UIEventFlags flags = ev->getFlags();
 		for (sl_size i = 0; i < count; i++) {
 			View* child = children[count - 1 - i].get();
 			if (POINT_EVENT_CHECK_CHILD(child)) {
@@ -9728,6 +9725,7 @@ namespace slib
 					if (!(ev->isPassedToNext())) {
 						return sl_true;
 					}
+					ev->setFlags(flags);
 				}
 			}
 		}
@@ -9737,7 +9735,6 @@ namespace slib
 	void View::dispatchMouseWheelEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints)
 	{
 		if (child) {
-			ev->resetFlags();
 			if (flagTransformPoints) {
 				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
@@ -9787,14 +9784,13 @@ namespace slib
 		if (!(ev->getFlags() & UIEventFlags::NotDispatchToChildren)) {
 			if (childFocal.isNotNull()) {
 				childFocal->dispatchKeyEvent(ev);
+				ev->setPreventedDefault(sl_false);
 			}
 		}
 
 		if (ev->isStoppedPropagation()) {
 			return;
 		}
-
-		ev->resetFlags();
 
 		invokeKeyEvent(ev);
 
@@ -9862,17 +9858,13 @@ namespace slib
 			}
 		}
 
+		ev->setPreventedDefault(sl_false);
+
 		if (ev->isStoppedPropagation()) {
 			return;
 		}
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-
-		ev->resetFlags();
 
 		invokeSetCursor(ev);
-
 	}
 
 	sl_bool View::dispatchSetCursorToChildren(UIEvent* ev, const Ref<View>* children, sl_size count)
@@ -9882,6 +9874,7 @@ namespace slib
 			return sl_true;
 		}
 		UIPointF ptMouse = ev->getPoint();
+		UIEventFlags flags = ev->getFlags();
 		for (sl_size i = 0; i < count; i++) {
 			View* child = children[count - 1 - i].get();
 			if (POINT_EVENT_CHECK_CHILD(child)) {
@@ -9893,6 +9886,7 @@ namespace slib
 					if (!(ev->isPassedToNext())) {
 						return sl_true;
 					}
+					ev->setFlags(flags);
 				}
 			}
 		}
@@ -9902,7 +9896,6 @@ namespace slib
 	void View::dispatchSetCursorToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints)
 	{
 		if (child) {
-			ev->resetFlags();
 			if (flagTransformPoints) {
 				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
@@ -9984,14 +9977,11 @@ namespace slib
 			}
 		}
 
+		ev->setPreventedDefault(sl_false);
+
 		if (ev->isStoppedPropagation()) {
 			return;
 		}
-		if (ev->isPreventedDefault()) {
-			return;
-		}
-
-		ev->resetFlags();
 
 		invokeDragDropEvent(ev);
 
@@ -10006,6 +9996,7 @@ namespace slib
 
 		UIAction action = ev->getAction();
 		UIPointF ptMouse = ev->getPoint();
+		UIEventFlags flags = ev->getFlags();
 
 		Ref<View> oldChild;
 		switch (action) {
@@ -10035,6 +10026,7 @@ namespace slib
 								}
 								return sl_true;
 							}
+							ev->setFlags(flags);
 						}
 					}
 				}
@@ -10056,7 +10048,6 @@ namespace slib
 	void View::dispatchDragDropEventToChild(UIEvent* ev, View* child, sl_bool flagTransformPoints)
 	{
 		if (child) {
-			ev->resetFlags();
 			if (flagTransformPoints) {
 				UIPointF ptMouse = ev->getPoint();
 				ev->setPoint(child->convertCoordinateFromParent(ptMouse));
@@ -10133,13 +10124,11 @@ namespace slib
 		if (isFocusable()) {
 			setFocus();
 			ev->stopPropagation();
-			ev->preventDefault();
 		} else {
 			Ref<View> v = getNextTabStop();
 			if (v.isNotNull() && v != this) {
 				v->setFocus();
 				ev->stopPropagation();
-				ev->preventDefault();
 			}
 		}
 	}
@@ -10218,15 +10207,15 @@ namespace slib
 				break;
 			case UIAction::LeftButtonUp:
 			case UIAction::TouchEnd:
-				if (m_flagClicking && m_flagPressed) {
+				{
+					sl_bool flagEvent = m_flagClicking && m_flagPressed;
 					setPressedState(sl_false);
 					m_flagClicking = sl_false;
-					if (getBounds().containsPoint(ev->getPoint())) {
-						invokeClickEvent(ev);
+					if (flagEvent) {
+						if (getBounds().containsPoint(ev->getPoint())) {
+							invokeClickEvent(ev);
+						}
 					}
-				} else {
-					setPressedState(sl_false);
-					m_flagClicking = sl_false;
 				}
 				break;
 			case UIAction::TouchCancel:
@@ -10384,7 +10373,6 @@ namespace slib
 						}
 					}
 				}
-				ev->useDrag();
 				ev->stopPropagation();
 				break;
 			case UIAction::LeftButtonDrag:

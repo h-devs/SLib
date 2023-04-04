@@ -542,18 +542,6 @@ namespace slib
 		return ::rand();
 	}
 
-	double Math::randomByTime() noexcept
-	{
-		return (randomIntByTime() % 10000) / 10000.0;
-	}
-
-	sl_uint32 Math::randomIntByTime() noexcept
-	{
-		sl_uint32 dw = System::getTickCount();
-		::srand(dw);
-		return ::rand();
-	}
-
 	void Math::srand(sl_uint32 seed) noexcept
 	{
 		::srand(seed);

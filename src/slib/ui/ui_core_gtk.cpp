@@ -349,7 +349,7 @@ namespace slib
 					String command = json["command"].getString();
 					if (command == "open") {
 						String args = json["args"].getString();
-						UIApp::dispatchReopenToApp(args, sl_true);
+						UIApp::Current::invokeReopen(args, sl_true);
 						Json("ok").serialize(output);
 					} else {
 						Json("unknown_command").serialize(output);
@@ -393,7 +393,7 @@ namespace slib
 			}
 		}
 
-		UIApp::dispatchStartToApp();
+		UIApp::Current::invokeStart();
 		GtkApplication* app = getApp();
 		if (!(UI::isQuitingApp())) {
 			g_flagRunningAppLoop = sl_true;
@@ -401,7 +401,7 @@ namespace slib
 			gtk_main();
 			g_flagRunningAppLoop = sl_false;
 		}
-		UIApp::dispatchExitToApp();
+		UIApp::Current::invokeExit();
 		if (app) {
 			g_object_unref(app);
 		}

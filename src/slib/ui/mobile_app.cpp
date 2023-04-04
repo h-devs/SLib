@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ namespace slib
 	{
 		UIApp::init();
 
-		m_callbackOnChangeLocale = SLIB_FUNCTION_MEMBER(this, dispatchChangeCurrentLocale);
+		m_callbackOnChangeLocale = SLIB_FUNCTION_MEMBER(this, handleChangeCurrentLocale);
 		Locale::addOnChangeCurrentLocale(m_callbackOnChangeLocale);
 	}
 
@@ -240,9 +240,9 @@ namespace slib
 		}
 	}
 
-	void MobileApp::dispatchStart()
+	void MobileApp::handleStart()
 	{
-		UIApp::dispatchStart();
+		UIApp::handleStart();
 #ifdef SLIB_PLATFORM_IS_DESKTOP
 		Ref<MobileMainWindow> window = getMainWindow();
 		if (window.isNotNull()) {
@@ -251,12 +251,10 @@ namespace slib
 #endif
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, Pause)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, Pause, ())
 
-	void MobileApp::dispatchPause()
+	void MobileApp::onPause()
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Pause)
-
 		Ref<ViewPageNavigationController> controller = m_navigationController;
 		if (controller.isNotNull()) {
 			Ref<View> page = controller->getCurrentPage();
@@ -273,12 +271,12 @@ namespace slib
 		}
 	}
 
-	void MobileApp::dispatchPauseToApp()
+	void MobileApp::Current::invokePause()
 	{
 		m_flagPaused = sl_true;
 		Ref<MobileApp> app = getApp();
 		if (app.isNotNull()) {
-			app->dispatchPause();
+			app->invokePause();
 		}
 		{
 			Ref<UIAnimationLoop> al = UIAnimationLoop::getInstance();
@@ -294,12 +292,10 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, Resume)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, Resume, ())
 
-	void MobileApp::dispatchResume()
+	void MobileApp::onResume()
 	{
-		SLIB_INVOKE_EVENT_HANDLER(Resume)
-
 		Ref<ViewPageNavigationController> controller = m_navigationController;
 		if (controller.isNotNull()) {
 			Ref<View> page = controller->getCurrentPage();
@@ -316,12 +312,12 @@ namespace slib
 		}
 	}
 
-	void MobileApp::dispatchResumeToApp()
+	void MobileApp::Current::invokeResume()
 	{
 		m_flagPaused = sl_false;
 		Ref<MobileApp> app = getApp();
 		if (app.isNotNull()) {
-			app->dispatchResume();
+			app->invokeResume();
 		}
 		{
 			Ref<UIAnimationLoop> al = UIAnimationLoop::getInstance();
@@ -337,21 +333,16 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, PressBack, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, PressBack, (UIEvent* ev), ev)
 
-	void MobileApp::dispatchPressBack(UIEvent* ev)
+	void MobileApp::onPressBack(UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(PressBack, ev)
-
-		if (ev->isPreventedDefault()) {
-			return;
-		}
 		{
 			ListLocker< Ref<ViewPage> > popups(m_popupPages);
 			if (popups.count > 0) {
 				Ref<ViewPage> page = popups[popups.count-1];
 				if (page.isNotNull()) {
-					page->dispatchPressBack(ev);
+					page->invokePressBack(ev);
 					if (!(ev->isPreventedDefault())) {
 						page->close();
 						ev->preventDefault();
@@ -364,7 +355,7 @@ namespace slib
 		if (controller.isNotNull()) {
 			Ref<View> _page = controller->getCurrentPage();
 			if (ViewPage* page = CastInstance<ViewPage>(_page.get())) {
-				page->dispatchPressBack(ev);
+				page->invokePressBack(ev);
 				if (!(ev->isPreventedDefault())) {
 					if (controller->getPageCount() > 1) {
 						page->close();
@@ -375,13 +366,13 @@ namespace slib
 		}
 	}
 
-	sl_bool MobileApp::dispatchPressBackToApp()
+	sl_bool MobileApp::Current::invokePressBack()
 	{
 		Ref<MobileApp> app = getApp();
 		if (app.isNotNull()) {
 			Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
 			if (ev.isNotNull()) {
-				app->dispatchPressBack(ev.get());
+				app->invokePressBack(ev.get());
 				if (ev->isPreventedDefault()) {
 					return sl_false;
 				}
@@ -390,46 +381,42 @@ namespace slib
 		return sl_true;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, CreateActivity)
+	SLIB_DEFINE_EVENT_HANDLER(MobileApp, CreateActivity, ())
 
-	void MobileApp::dispatchCreateActivity()
+	void MobileApp::handleCreateActivity()
 	{
+		invokeCreateActivity();
 		Ref<MobileMainWindow> window = getMainWindow();
 		if (window.isNotNull()) {
 			window->forceCreate();
 		}
-
-		SLIB_INVOKE_EVENT_HANDLER(CreateActivity)
 	}
 
-	void MobileApp::dispatchCreateActivityToApp()
+	void MobileApp::Current::invokeCreateActivity()
 	{
 		Ref<MobileApp> app = getApp();
 		if (app.isNotNull()) {
-			app->dispatchCreateActivity();
+			app->handleCreateActivity();
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, DestroyActivity)
+	SLIB_DEFINE_EVENT_HANDLER(MobileApp, DestroyActivity, ())
 
-	void MobileApp::dispatchDestroyActivity()
-	{
-		SLIB_INVOKE_EVENT_HANDLER(DestroyActivity)
-	}
-
-	void MobileApp::dispatchDestroyActivityToApp()
+	void MobileApp::Current::invokeDestroyActivity()
 	{
 		Ref<MobileApp> app = getApp();
 		if (app.isNotNull()) {
-			app->dispatchDestroyActivity();
+			app->invokeDestroyActivity();
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, Resize, sl_ui_len width, sl_ui_len height)
+	SLIB_DEFINE_EVENT_HANDLER(MobileApp, Resize, (sl_ui_len width, sl_ui_len height), width, height)
 
-	void MobileApp::dispatchResize(sl_ui_len width, sl_ui_len height)
+	void MobileApp::handleResize(sl_ui_len width, sl_ui_len height)
 	{
 		UIResource::updateDefaultScreenSize();
+
+		invokeResize(width, height);
 
 		if (m_navigationController->getPageCount() == 0) {
 			Ref<View> page = getLoadingPage();
@@ -438,29 +425,24 @@ namespace slib
 				openHomePage(page, TransitionType::None);
 			}
 		}
-
-		SLIB_INVOKE_EVENT_HANDLER(Resize, width, height);
 	}
 
-	void MobileApp::dispatchResizeToApp(sl_ui_len width, sl_ui_len height)
+	void MobileApp::Current::invokeResize(sl_ui_len width, sl_ui_len height)
 	{
 		Ref<MobileApp> app = getApp();
 		if (app.isNotNull()) {
-			app->dispatchResize(width, height);
+			app->handleResize(width, height);
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(MobileApp, ChangeCurrentLocale)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(MobileApp, ChangeCurrentLocale, ())
 
-	void MobileApp::dispatchChangeCurrentLocale()
+	void MobileApp::handleChangeCurrentLocale()
 	{
 		if (m_navigationController->getPageCount() > 0) {
 			openStartupPage();
 		}
-
-		SLIB_INVOKE_EVENT_HANDLER(ChangeCurrentLocale)
 	}
-
 
 	SLIB_DEFINE_OBJECT(MobileMainWindow, Window)
 
@@ -474,7 +456,8 @@ namespace slib
 
 	void MobileMainWindow::onResize(sl_ui_len width, sl_ui_len height)
 	{
-		MobileApp::dispatchResizeToApp(width, height);
+		Window::onResize(width, height);
+		MobileApp::Current::invokeResize(width, height);
 	}
 
 

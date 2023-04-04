@@ -185,6 +185,7 @@ namespace slib
 
 	void ListView::onScroll(ScrollEvent* ev)
 	{
+		VerticalScrollView::onScroll(ev);
 		sl_ui_pos y = (sl_ui_pos)(ev->y);
 		if (Math::isAlmostZero(y - m_lastScrollY)) {
 			return;

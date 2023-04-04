@@ -121,6 +121,8 @@ namespace slib
 
 			void setupModel(GtkTreeView* view);
 
+			using ListControl::_onSelectRow_NW;
+
 		};
 
 		static ListControlHelper* GetModelView(GtkTreeModel* model)
@@ -410,7 +412,7 @@ namespace slib
 				}
 				GtkTreeIter iter;
 				gtk_tree_selection_get_selected(selection, sl_null, &iter);
-				helper->dispatchSelectRow(iter.stamp);
+				helper->_onSelectRow_NW(this, iter.stamp);
 			}
 
 			static gboolean _callback_button_press_event(GtkWidget*, GdkEvent* _event, gpointer user_data)
@@ -486,7 +488,7 @@ namespace slib
 				sl_int32 iSel = -1;
 				instance->getSelectedRow(helper, iSel);
 				if(iRow != iSel){
-					helper->dispatchSelectRow(iRow);
+					helper->_onSelectRow_NW(this, iRow);
 				}
 
 				UIPoint pt = helper->convertCoordinateFromScreen(UI::getCursorPos());

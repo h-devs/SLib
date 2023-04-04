@@ -545,7 +545,7 @@ namespace slib
 		} \
 		invalidate(mode); \
 		locker.unlock(); \
-		dispatchSelectItem(index, oldIndex, ev); \
+		invokeSelectItem(index, oldIndex, ev); \
 	}
 
 #define SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
@@ -571,7 +571,7 @@ namespace slib
 			invalidate(mode); \
 		} \
 		locker.unlock(); \
-		dispatchSelectItem(index, oldIndex, ev); \
+		invokeSelectItem(index, oldIndex, ev); \
 	}
 
 #endif
