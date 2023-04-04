@@ -98,6 +98,8 @@ namespace slib
 				SendMessageW(hWnd, LVM_SETITEMCOUNT, (WPARAM)nNew, LVSICF_NOINVALIDATEALL | LVSICF_NOSCROLL);
 			}
 
+			using ListControl::_onSelectRow_NW;
+
 		};
 
 		class ListControlInstance : public Win32_ViewInstance, public IListControlInstance
@@ -207,7 +209,7 @@ namespace slib
 						NMLISTVIEW* v = (NMLISTVIEW*)nmhdr;
 						if (v->hdr.hwndFrom == getHandle()) {
 							if (!(v->uOldState & LVIS_SELECTED) && (v->uNewState & LVIS_SELECTED)) {
-								helper->dispatchSelectRow(v->iItem);
+								helper->_onSelectRow_NW(this, v->iItem);
 							}
 						}
 						return sl_true;
@@ -221,17 +223,17 @@ namespace slib
 						sl_int32 n = (sl_int32)(::SendMessageW(getHandle(), LVM_HITTEST, 0, (LPARAM)(&lvhi)));
 						if (n >= 0) {
 							if (code == NM_CLICK) {
-								helper->dispatchClickRow(n, pt);
+								helper->invokeClickRow(n, pt);
 							} else if (code == NM_RCLICK) {
-								helper->dispatchRightButtonClickRow(n, pt);
+								helper->invokeRightButtonClickRow(n, pt);
 							} else if (code == NM_DBLCLK) {
-								helper->dispatchDoubleClickRow(n, pt);
+								helper->invokeDoubleClickRow(n, pt);
 							}
 						}
 						return sl_true;
 					} else if (code == LVN_COLUMNCLICK) {
 						NMLISTVIEW* v = (NMLISTVIEW*)nmhdr;
-						helper->dispatchClickHeader((sl_uint32)(v->iSubItem));
+						helper->invokeClickHeader((sl_uint32)(v->iSubItem));
 					}
 				}
 				return sl_false;

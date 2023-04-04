@@ -440,38 +440,23 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
 
-	void ListControl::dispatchClickRow(sl_uint32 row, const UIPoint& pt)
-	{
-		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::Unknown, (sl_ui_posf)(pt.x), (sl_ui_posf)(pt.y), Time::zero());
-		if (ev.isNotNull()) {
-			dispatchClickEvent(ev.get());
-		}
-		SLIB_INVOKE_EVENT_HANDLER(ClickRow, row, pt)
-	}
+	void _onClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
 
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, RightButtonClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
 
-	void ListControl::dispatchRightButtonClickRow(sl_uint32 row, const UIPoint& pt)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(RightButtonClickRow, row, pt)
-	}
+	void _onRightButtonClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
 
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, DoubleClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
 
-	void ListControl::dispatchDoubleClickRow(sl_uint32 row, const UIPoint& pt)
-	{
-		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDoubleClick, (sl_real)(pt.x), (sl_real)(pt.y), Time::zero());
-		if (ev.isNotNull()) {
-			dispatchMouseEvent(ev.get());
-		}
-		SLIB_INVOKE_EVENT_HANDLER(DoubleClickRow, row, pt)
-	}
+	void _onDoubleClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
 
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickHeader, sl_uint32 col)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListControl, ClickHeader, (sl_uint32 col, UIEvent* ev), col, ev)
 
-	void ListControl::dispatchClickHeader(sl_uint32 col)
+	void _onClickHeader_NW(IListControlInstance* instance, sl_uint32 column, const UIPoint& pt);
+
+	void ListControl::onClickHeader(sl_uint32 col, UIEvent* ev)
 	{
 		if (m_flagSortingOnClickHeader) {
 			if (m_sortedColumn == col) {
@@ -482,7 +467,6 @@ namespace slib
 			}
 			sort(col, m_flagSortedAsc);
 		}
-		SLIB_INVOKE_EVENT_HANDLER(ClickHeader, col)
 	}
 
 

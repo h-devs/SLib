@@ -160,9 +160,10 @@ namespace slib
 		invalidate(mode);
 	}
 
-	void LabelList::dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+	void LabelList::onDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 	{
-		ListBox::dispatchDrawItem(itemIndex, canvas, rcItem);
+		ListBox::onDrawItem(itemIndex, canvas, rcItem);
+
 		TextBoxParam param;
 		param.text = getItemTitle(itemIndex);
 		if (param.text.isEmpty()) {

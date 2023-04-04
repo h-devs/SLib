@@ -143,10 +143,10 @@ namespace slib
 
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ListControl, SelectRow, sl_uint32 row, sl_uint32 former, UIEvent* ev /* nullable */)
-		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, const UIPoint& pt)
-		SLIB_DECLARE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, const UIPoint& pt)
-		SLIB_DECLARE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, const UIPoint& pt)
-		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickHeader, sl_uint32 column)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickRow, sl_uint32 row, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, RightButtonClickRow, sl_uint32 row, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, DoubleClickRow, sl_uint32 row, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListControl, ClickHeader, sl_uint32 column, UIEvent* ev)
 
 	protected:
 		Ref<ViewInstance> createNativeWidget(ViewInstance* parent) override;
@@ -157,6 +157,14 @@ namespace slib
 		void _selectRow(IListControlInstance* instance, sl_uint32 row, UIEvent* ev, UIUpdateMode mode);
 
 		void _onSelectRow_NW(IListControlInstance* instance, sl_uint32 row);
+
+		void _onClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
+
+		void _onRightButtonClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
+
+		void _onDoubleClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
+
+		void _onClickHeader_NW(IListControlInstance* instance, sl_uint32 column, const UIPoint& pt);
 
 	protected:
 		CList<Column> m_columns;

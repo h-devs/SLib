@@ -136,6 +136,8 @@ namespace slib
 				[tv->table setRowHeight:([hFont pointSize] - [hFont descender])];
 			}
 
+			using ListControl::_onSelectRow_NW;
+
 		};
 
 		class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
@@ -251,22 +253,17 @@ namespace slib
 			{
 				Ref<ListControlHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					NSInteger indexRowBefore = [tv selectedRow];
 					NSPoint ptWindow = [ev locationInWindow];
 					NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
 					NSInteger indexRow = [tv rowAtPoint:ptView];
 					if (indexRow >= 0) {
-						if (indexRow == indexRowBefore) {
-							// don't call event callback when it is new selection because it is already called by default
-							helper->dispatchSelectRow((sl_uint32)(indexRow));
-						}
 						sl_ui_posf x = (sl_ui_posf)(ptView.x);
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
 						NSInteger clicks = [ev clickCount];
 						if (clicks == 1) {
-							helper->dispatchClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+							helper->invokeClickRow((sl_uint32)(indexRow), UIPointF(x, y));
 						} else if (clicks == 2) {
-							helper->dispatchDoubleClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+							helper->invokeDoubleClickRow((sl_uint32)(indexRow), UIPointF(x, y));
 						}
 					}
 				}
@@ -282,7 +279,7 @@ namespace slib
 					if (indexRow >= 0) {
 						sl_ui_posf x = (sl_ui_posf)(ptView.x);
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
-						helper->dispatchRightButtonClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+						helper->invokeRightButtonClickRow((sl_uint32)(indexRow), UIPointF(x, y));
 					}
 				}
 			}
@@ -356,11 +353,14 @@ using namespace slib;
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification
 {
-	Ref<ListControlHelper> helper = [self getHelper];
-	if (helper.isNotNull()) {
-		sl_int32 n = (sl_int32)([table selectedRow]);
-		if (n >= 0) {
-			helper->dispatchSelectRow(n);
+	Ref<ListControlInstance> instance = self->m_viewInstance;
+	if (instance.isNotNull()) {
+		Ref<ListControlHelper> helper = instance->getHelper();
+		if (helper.isNotNull()) {
+			sl_int32 n = (sl_int32)([table selectedRow]);
+			if (n >= 0) {
+				helper->_onSelectRow_NW(instance.get(), n);
+			}
 		}
 	}
 }

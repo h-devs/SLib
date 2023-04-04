@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -485,15 +485,14 @@ namespace slib
 		setItemBackground(Drawable::fromColor(color), mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListBox, DrawItem, (sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem), itemIndex, canvas, rcItem)
 
-	void ListBox::dispatchDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+	void ListBox::onDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 	{
 		Ref<Drawable> background = m_itemBackgrounds.evaluate(getItemState(itemIndex));
 		if (background.isNotNull()) {
 			canvas->draw(rcItem, background);
 		}
-		SLIB_INVOKE_EVENT_HANDLER(DrawItem, itemIndex, canvas, rcItem)
 	}
 
 	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListBox, ClickItem, (sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev), itemIndex, pos, ev)

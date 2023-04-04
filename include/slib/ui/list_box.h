@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -96,11 +96,11 @@ namespace slib
 	public:
 		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, ClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, ClickItem, sl_uint64 itemIndex, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, RightButtonClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, RightButtonClickItem, sl_uint64 itemIndex, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 itemIndex, UIEvent* ev)
 
 		SLIB_DECLARE_EVENT_HANDLER(ListBox, ChangedSelection, UIEvent* ev)
 

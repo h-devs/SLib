@@ -495,13 +495,13 @@ namespace slib
 
 				if (event->button == 1) {
 					if (event->type == GDK_BUTTON_PRESS) {
-						helper->dispatchClickRow(iRow, pt);
+						helper->invokeClickRow(iRow, pt);
 					} else if (event->type == GDK_2BUTTON_PRESS) {
-						helper->dispatchDoubleClickRow(iRow, pt);
+						helper->invokeDoubleClickRow(iRow, pt);
 					}
 				} else if (event->button == 3) {
 					if (event->type == GDK_BUTTON_PRESS) {
-						helper->dispatchRightButtonClickRow(iRow, pt);
+						helper->invokeRightButtonClickRow(iRow, pt);
 					}
 				}
 
