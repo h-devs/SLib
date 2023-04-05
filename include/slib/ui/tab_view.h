@@ -166,9 +166,6 @@ namespace slib
 		virtual Ptr<ITabViewInstance> getTabViewInstance();
 
 	public:
-		void notifySelectTab(ITabViewInstance* instance, sl_uint32 index);
-
-	public:
 		void onClickEvent(UIEvent* ev) override;
 
 		void onMouseEvent(UIEvent* ev) override;
@@ -194,6 +191,9 @@ namespace slib
 		sl_int32 _getTabIndexAt(const UIPoint& pt);
 
 		ViewState _getTabState(sl_uint32 index);
+
+	protected:
+		void _onSelectTab_NW(ITabViewInstance* instance, sl_uint32 index);
 
 	protected:
 		class Item

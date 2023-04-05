@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2020 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ namespace slib
 
 		void setMultipleSelection(sl_bool flag, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		sl_bool isSelectedIndex(sl_int64 index);
+		sl_bool isSelectedIndex(sl_uint64 index);
 
 		sl_int64 getSelectedIndex();
 
@@ -94,15 +94,23 @@ namespace slib
 		void setItemBackgroundColor(const Color& color, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, DrawItem, sl_uint64 index, Canvas* canvas, const UIRect& rcItem)
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, ClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, ClickItem, sl_uint64 index, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, RightButtonClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, RightButtonClickItem, sl_uint64 index, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 index, UIEvent* ev)
 
-		SLIB_DECLARE_EVENT_HANDLER(ListBox, ChangedSelection, UIEvent* ev)
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, ChangeSelection, UIEvent* ev /* nullable */)
+
+		// Only called on single-selection mode
+		SLIB_DECLARE_EVENT_HANDLER(ListBox, SelectItem, sl_int64 index, sl_int64 former, UIEvent* ev /* nullable */)
+
+	public:
+		void _changeSelection(UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker);
+
+		void _select(sl_int64 index, UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker);
 
 	public:
 		void onDraw(Canvas* canvas) override;
@@ -114,7 +122,7 @@ namespace slib
 		void onKeyEvent(UIEvent* ev) override;
 
 	protected:
-		sl_int64 m_countItems;
+		sl_uint64 m_nItems;
 		sl_ui_len m_heightItem;
 		sl_int64 m_indexHover;
 

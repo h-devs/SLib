@@ -200,8 +200,7 @@ namespace slib
 				CHAR ch = input[len - 1];
 				if (SLIB_CHAR_IS_WHITE_SPACE(ch)) {
 					len--;
-				}
-				else {
+				} else {
 					break;
 				}
 			}
@@ -257,8 +256,7 @@ namespace slib
 			if (sizeOutput) {
 				if (size == sizeOutput) {
 					return mem;
-				}
-				else {
+				} else {
 					return mem.sub(0, sizeOutput);
 				}
 			}
@@ -286,12 +284,10 @@ namespace slib
 		if (_str.is8BitsStringType()) {
 			StringData str(_str);
 			return Decode(str.getData(), str.getLength(), (sl_char8)padding);
-		}
-		else if (_str.is16BitsStringType()) {
+		} else if (_str.is16BitsStringType()) {
 			StringData16 str(_str);
 			return Decode(str.getData(), str.getLength(), (sl_char16)padding);
-		}
-		else {
+		} else {
 			StringData32 str(_str);
 			return Decode(str.getData(), str.getLength(), (sl_char32)padding);
 		}

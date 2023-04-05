@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -136,6 +136,10 @@ namespace slib
 				[tv->table setRowHeight:([hFont pointSize] - [hFont descender])];
 			}
 
+			using ListControl::_onSelectRow_NW;
+			using ListControl::_onClickRow_NW;
+			using ListControl::_onRightButtonClickRow_NW;
+			using ListControl::_onDoubleClickRow_NW;
 		};
 
 		class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
@@ -256,17 +260,13 @@ namespace slib
 					NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
 					NSInteger indexRow = [tv rowAtPoint:ptView];
 					if (indexRow >= 0) {
-						if (indexRow == indexRowBefore) {
-							// don't call event callback when it is new selection because it is already called by default
-							helper->dispatchSelectRow((sl_uint32)(indexRow));
-						}
 						sl_ui_posf x = (sl_ui_posf)(ptView.x);
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
 						NSInteger clicks = [ev clickCount];
 						if (clicks == 1) {
-							helper->dispatchClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+							helper->_onClickRow_NW((sl_uint32)(indexRow), UIPointF(x, y));
 						} else if (clicks == 2) {
-							helper->dispatchDoubleClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+							helper->_onDoubleClickRow_NW((sl_uint32)(indexRow), UIPointF(x, y));
 						}
 					}
 				}
@@ -282,7 +282,7 @@ namespace slib
 					if (indexRow >= 0) {
 						sl_ui_posf x = (sl_ui_posf)(ptView.x);
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
-						helper->dispatchRightButtonClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+						helper->_onRightButtonClickRow_NW((sl_uint32)(indexRow), UIPointF(x, y));
 					}
 				}
 			}
@@ -356,11 +356,14 @@ using namespace slib;
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification
 {
-	Ref<ListControlHelper> helper = [self getHelper];
-	if (helper.isNotNull()) {
-		sl_int32 n = (sl_int32)([table selectedRow]);
-		if (n >= 0) {
-			helper->dispatchSelectRow(n);
+	Ref<ListControlInstance> instance = self->m_viewInstance;
+	if (instance.isNotNull()) {
+		Ref<ListControlHelper> helper = instance->getHelper();
+		if (helper.isNotNull()) {
+			sl_int32 n = (sl_int32)([table selectedRow]);
+			if (n >= 0) {
+				helper->_onSelectRow_NW(instance.get(), n);
+			}
 		}
 	}
 }

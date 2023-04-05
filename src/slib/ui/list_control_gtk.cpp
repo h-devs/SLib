@@ -122,7 +122,9 @@ namespace slib
 			void setupModel(GtkTreeView* view);
 
 			using ListControl::_onSelectRow_NW;
-
+			using ListControl::_onClickRow_NW;
+			using ListControl::_onRightButtonClickRow_NW;
+			using ListControl::_onDoubleClickRow_NW;
 		};
 
 		static ListControlHelper* GetModelView(GtkTreeModel* model)
@@ -495,13 +497,13 @@ namespace slib
 
 				if (event->button == 1) {
 					if (event->type == GDK_BUTTON_PRESS) {
-						helper->dispatchClickRow(iRow, pt);
+						helper->_onClickRow_NW(iRow, pt);
 					} else if (event->type == GDK_2BUTTON_PRESS) {
-						helper->dispatchDoubleClickRow(iRow, pt);
+						helper->_onDoubleClickRow_NW(iRow, pt);
 					}
 				} else if (event->button == 3) {
 					if (event->type == GDK_BUTTON_PRESS) {
-						helper->dispatchRightButtonClickRow(iRow, pt);
+						helper->_onRightButtonClickRow_NW(iRow, pt);
 					}
 				}
 

@@ -79,12 +79,10 @@ namespace slib
 			outInfo.createdAt = outInfo.modifiedAt = outInfo.accessedAt = m_fsInfo.creationTime;
 			if (path.endsWith("/") || path.endsWith("/dummy")) {
 				outInfo.attributes = FileAttributes::Directory;
-			}
-			else if (path.endsWith("/dummy.txt")) {
+			} else if (path.endsWith("/dummy.txt")) {
 				outInfo.attributes = FileAttributes::Normal;
 				outInfo.size = outInfo.allocSize = 5;
-			}
-			else {
+			} else {
 				FileSystem::setLastError(FileSystemError::NotFound);
 				return sl_false;
 			}
