@@ -63,17 +63,17 @@ namespace slib
 
 		void selectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void unselectItem(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void unselectItem(sl_uint64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void toggleItemSelection(sl_int64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void toggleItemSelection(sl_uint64 index, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void selectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectItems(const ListParam<sl_uint64>& indices, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void setSelectedRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void setSelectedRange(sl_uint64 from, sl_uint64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
 
-		void selectRange(sl_int64 from, sl_int64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
+		void selectRange(sl_uint64 from, sl_uint64 to, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void unselectAll(UIUpdateMode mode = UIUpdateMode::Redraw);
 
@@ -110,7 +110,15 @@ namespace slib
 	public:
 		void _changeSelection(UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker);
 
-		void _select(sl_int64 index, UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker);
+		void _selectItem(sl_int64 index, UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker);
+
+		void _selectItem(sl_int64 index, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void _toggleItem(sl_uint64 index, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void _setSelectedRange(sl_uint64 from, sl_uint64 to, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
+
+		void _selectRange(sl_uint64 from, sl_uint64 to, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 	public:
 		void onDraw(Canvas* canvas) override;

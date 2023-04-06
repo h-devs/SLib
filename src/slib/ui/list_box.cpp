@@ -148,7 +148,7 @@ namespace slib
 			m_mapSelection.put_NoLock(index, sl_true);
 			_changeSelection(sl_null, mode, &locker);
 		} else {
-			_select(index, sl_null, mode, &locker);
+			_selectItem(index, sl_null, mode, &locker);
 		}
 	}
 
@@ -191,11 +191,147 @@ namespace slib
 		} else {
 			sl_uint64 index = indices[indices.count - 1];
 			indices.unlock();
-			_select(index, sl_null, mode, &locker);
+			_selectItem(index, sl_null, mode, &locker);
 		}
 	}
 
 	void ListBox::selectItem(sl_int64 index, UIUpdateMode mode)
+	{
+		_selectItem(index, sl_null, mode);
+	}
+
+	void ListBox::unselectItem(sl_uint64 index, UIUpdateMode mode)
+	{
+		ObjectLocker locker(this);
+		if (m_flagMultipleSelection) {
+			if (m_mapSelection.remove_NoLock(index)) {
+				_changeSelection(sl_null, mode, &locker);
+			}
+		} else {
+			if (m_indexSelected < 0) {
+				return;
+			}
+			if (m_indexSelected == index) {
+				_selectItem(-1, sl_null, mode, &locker);
+			}
+		}
+	}
+
+	void ListBox::toggleItemSelection(sl_uint64 index, UIUpdateMode mode)
+	{
+		_toggleItem(index, sl_null, mode);
+	}
+
+	void ListBox::selectItems(const ListParam<sl_uint64>& _indices, UIUpdateMode mode)
+	{
+		ListLocker<sl_uint64> indices(_indices);
+		if (!(indices.count)) {
+			return;
+		}
+		ObjectLocker locker(this);
+		sl_uint64 nTotal = m_nItems;
+		if (!nTotal) {
+			return;
+		}
+		if (m_flagMultipleSelection) {
+			sl_bool flagChanged = sl_false;
+			for (sl_size i = 0; i < indices.count; i++) {
+				if (indices[i] < nTotal) {
+					sl_bool flagInsert = sl_false;
+					m_mapSelection.put_NoLock(indices[i], sl_true, &flagInsert);
+					if (flagInsert) {
+						flagChanged = sl_true;
+					}
+				}
+			}
+			if (flagChanged) {
+				_changeSelection(sl_null, mode, &locker);
+			}
+		} else {
+			_selectItem(indices[indices.count - 1], sl_null, mode, &locker);
+		}
+	}
+
+	void ListBox::unselectItems(const ListParam<sl_uint64>& _indices, UIUpdateMode mode)
+	{
+		ListLocker<sl_uint64> indices(_indices);
+		if (!(indices.count)) {
+			return;
+		}
+		ObjectLocker locker(this);
+		if (m_flagMultipleSelection) {
+			sl_bool flagChanged = sl_false;
+			for (sl_size i = 0; i < indices.count; i++) {
+				if (m_mapSelection.remove_NoLock(indices[i])) {
+					flagChanged = sl_true;
+				}
+			}
+			if (flagChanged) {
+				_changeSelection(sl_null, mode, &locker);
+			}
+		} else {
+			if (m_indexSelected < 0) {
+				return;
+			}
+			for (sl_size i = 0; i < indices.count; i++) {
+				if (indices[i] == m_indexSelected) {
+					_selectItem(-1, sl_null, mode, &locker);
+					return;
+				}
+			}
+		}
+	}
+
+	void ListBox::setSelectedRange(sl_uint64 from, sl_uint64 to, UIUpdateMode mode)
+	{
+		_setSelectedRange(from, to, sl_null, mode);
+	}
+
+	void ListBox::selectRange(sl_uint64 from, sl_uint64 to, UIUpdateMode mode)
+	{
+		_selectRange(from, to, sl_null, mode);
+	}
+
+	void ListBox::unselectAll(UIUpdateMode mode)
+	{
+		ObjectLocker locker(this);
+		if (m_flagMultipleSelection) {
+			if (m_mapSelection.isEmpty()) {
+				return;
+			}
+			m_mapSelection.removeAll_NoLock();
+			_changeSelection(sl_null, mode, &locker);
+		} else {
+			if (m_indexSelected < 0) {
+				return;
+			}
+			_selectItem(-1, sl_null, mode, &locker);
+		}
+	}
+
+	void ListBox::_changeSelection(UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker)
+	{
+		locker->unlock();
+		invalidate(mode);
+		invokeChangeSelection(ev);
+	}
+
+	void ListBox::_selectItem(sl_int64 index, UIEvent* ev, UIUpdateMode mode, ObjectLocker* locker)
+	{
+		if (index < 0) {
+			index = -1;
+		}
+		sl_int64 oldIndex = m_indexSelected;
+		if (oldIndex == index) {
+			return;
+		}
+		m_indexSelected = index;
+		locker->unlock();
+		invokeSelectItem(index, oldIndex, ev);
+		invokeChangeSelection(ev);
+	}
+
+	void ListBox::_selectItem(sl_int64 index, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
@@ -208,165 +344,75 @@ namespace slib
 				_changeSelection(sl_null, mode, &locker);
 			}
 		} else {
-			_select(index, sl_null, mode, &locker);
+			_selectItem(index, sl_null, mode, &locker);
 		}
 	}
 
-	void ListBox::unselectItem(sl_int64 index, UIUpdateMode mode)
+	void ListBox::_toggleItem(sl_uint64 index, UIEvent* ev, UIUpdateMode mode)
 	{
-		if (index < 0) {
-			return;
-		}
 		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
-			if (m_mapSelection.remove_NoLock(index)) {
-				_changeSelection(sl_null, mode, &locker);
-			}
-		} else {
-			if (m_indexSelected == index) {
-				_select(-1, sl_null, mode, &locker);
-			}
-		}
-	}
-
-	void ListBox::toggleItemSelection(sl_int64 index, UIUpdateMode mode)
-	{
-		if (index < 0) {
-			return;
-		}
-		ObjectLocker locker(this);
-		if (m_flagMultipleSelection) {
-			if (index >= (sl_int64)m_nItems) {
+			if (index >= m_nItems) {
 				return;
 			}
 			if (m_mapSelection.remove_NoLock(index)) {
-				_changeSelection(sl_null, mode, &locker);
+				_changeSelection(ev, mode, &locker);
 			} else {
 				sl_bool flagInsert = sl_false;
 				m_mapSelection.put_NoLock(index, sl_true, &flagInsert);
 				if (flagInsert) {
-					_changeSelection(sl_null, mode, &locker);
+					_changeSelection(ev, mode, &locker);
 				}
 			}
 		} else {
 			if (m_indexSelected == index) {
-				_select(-1, sl_null, mode, &locker);
+				_selectItem(-1, ev, mode, &locker);
 			} else {
-				_select(index, sl_null, mode, &locker);
+				_selectItem(index, ev, mode, &locker);
 			}
 		}
 	}
 
-	void ListBox::selectItems(const ListParam<sl_uint64>& _indices, UIUpdateMode mode)
+	void ListBox::_setSelectedRange(sl_uint64 from, sl_uint64 to, UIEvent* ev, UIUpdateMode mode)
 	{
-		ListLocker<sl_uint64> indices(_indices);
-		if (!(indices.count)) {
-			return;
-		}
-		sl_uint64 nTotal = m_countItems;
-		if (!nTotal) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
-			sl_bool flagChanged = sl_false;
-			for (sl_size i = 0; i < indices.count; i++) {
-				if (indices[i] < nTotal) {
-					sl_bool flagInsert = sl_false;
-					m_mapSelection.put_NoLock(indices[i], sl_true, &flagInsert);
-					if (flagInsert) {
-						flagChanged = sl_true;
-					}
-				}
-			}
-			if (flagChanged) {
-				invalidate(mode);
-			}
-		} else {
-			sl_int64 index = indices[indices.count - 1];
-			if ((sl_uint64)index < nTotal) {
-				if (m_indexSelected != index) {
-					m_indexSelected = index;
-					invalidate(mode);
-				}
-			}
-		}
-	}
-
-	void ListBox::unselectItems(const ListParam<sl_uint64>& _indices, UIUpdateMode mode)
-	{
-		ListLocker<sl_uint64> indices(_indices);
-		if (!(indices.count)) {
-			return;
-		}
-		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
-			sl_bool flagChanged = sl_false;
-			for (sl_size i = 0; i < indices.count; i++) {
-				if (m_mapSelection.remove_NoLock(indices[i])) {
-					flagChanged = sl_true;
-				}
-			}
-			if (flagChanged) {
-				invalidate(mode);
-			}
-		} else {
-			for (sl_size i = 0; i < indices.count; i++) {
-				if (indices[i] == m_indexSelected) {
-					m_indexSelected = -1;
-					invalidate(mode);
-					return;
-				}
-			}
-		}
-	}
-
-	void ListBox::setSelectedRange(sl_int64 from, sl_int64 to, UIUpdateMode mode)
-	{
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
 			if (from > to) {
 				Swap(from, to);
 			}
-			if (from < 0) {
-				return;
-			}
-			sl_int64 nTotal = m_countItems;
+			sl_uint64 nTotal = m_nItems;
 			if (!nTotal) {
 				return;
 			}
 			if (to >= nTotal) {
 				to = nTotal - 1;
 			}
-			ObjectLocker locker(&m_mapSelection);
 			m_mapSelection.removeAll_NoLock();
-			for (sl_int64 i = from; i <= to; i++) {
+			for (sl_uint64 i = from; i <= to; i++) {
 				m_mapSelection.put_NoLock(i, sl_true);
 			}
-			invalidate(mode);
+			_changeSelection(ev, mode, &locker);
 		} else {
-			setSelectedIndex(to, mode);
+			_selectItem(to, ev, mode, &locker);
 		}
 	}
 
-	void ListBox::selectRange(sl_int64 from, sl_int64 to, UIUpdateMode mode)
+	void ListBox::_selectRange(sl_uint64 from, sl_uint64 to, UIEvent* ev, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
 			if (from > to) {
 				Swap(from, to);
 			}
-			if (from < 0) {
-				return;
-			}
-			sl_int64 nTotal = m_countItems;
+			sl_uint64 nTotal = m_nItems;
 			if (!nTotal) {
 				return;
 			}
 			if (to >= nTotal) {
 				to = nTotal - 1;
 			}
-			ObjectLocker locker(&m_mapSelection);
 			sl_bool flagChanged = sl_false;
-			for (sl_int64 i = from; i <= to; i++) {
+			for (sl_uint64 i = from; i <= to; i++) {
 				sl_bool flagInsert = sl_false;
 				m_mapSelection.put_NoLock(i, sl_true, &flagInsert);
 				if (flagInsert) {
@@ -374,39 +420,16 @@ namespace slib
 				}
 			}
 			if (flagChanged) {
-				invalidate(mode);
+				_changeSelection(ev, mode, &locker);
 			}
 		} else {
-			setSelectedIndex(to, mode);
+			_selectItem(to, ev, mode, &locker);
 		}
-	}
-
-	void ListBox::unselectAll(UIUpdateMode mode)
-	{
-		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
-			if (m_mapSelection.isEmpty()) {
-				return;
-			}
-			m_mapSelection.removeAll_NoLock();
-		} else {
-			if (m_indexSelected < 0) {
-				return;
-			}
-			m_indexSelected = -1;
-		}
-		invalidate(mode);
 	}
 
 	sl_int64 ListBox::getHoverIndex()
 	{
-		sl_int64 index = m_indexHover;
-		if (index >= 0) {
-			if (index < m_countItems) {
-				return index;
-			}
-		}
-		return -1;
+		return m_indexHover;
 	}
 
 	ViewState ListBox::getItemState(sl_uint64 index)
@@ -433,7 +456,7 @@ namespace slib
 	sl_int64 ListBox::getItemIndexAt(const UIPoint& pt)
 	{
 		sl_int64 index = (pt.y + (sl_int64)(getScrollY())) / m_heightItem;
-		if (index < m_countItems) {
+		if (index >= 0 && index < (sl_int64)m_nItems) {
 			return index;
 		}
 		return -1;
@@ -466,76 +489,58 @@ namespace slib
 		setItemBackground(Drawable::fromColor(color), mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListBox, DrawItem, (sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem), itemIndex, canvas, rcItem)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListBox, DrawItem, (sl_uint64 index, Canvas* canvas, const UIRect& rcItem), index, canvas, rcItem)
 
-	void ListBox::onDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+	void ListBox::onDrawItem(sl_uint64 index, Canvas* canvas, const UIRect& rcItem)
 	{
-		Ref<Drawable> background = m_itemBackgrounds.evaluate(getItemState(itemIndex));
+		Ref<Drawable> background = m_itemBackgrounds.evaluate(getItemState(index));
 		if (background.isNotNull()) {
 			canvas->draw(rcItem, background);
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListBox, ClickItem, (sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev), itemIndex, pos, ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListBox, ClickItem, (sl_uint64 index, UIEvent* ev), index, ev)
 
-	void ListBox::onClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	void ListBox::onClickItem(sl_uint64 index, UIEvent* ev)
 	{
-		m_indexFocused = itemIndex;
+		m_indexFocused = index;
 		if (ev->isShiftKey()) {
 			if (m_indexLastSelected >= 0) {
 				if (ev->isControlKey() || ev->isCommandKey()) {
-					selectRange(m_indexLastSelected, itemIndex);
+					selectRange(m_indexLastSelected, index);
 				} else {
-					setSelectedRange(m_indexLastSelected, itemIndex);
+					setSelectedRange(m_indexLastSelected, index);
 				}
 			} else {
-				setSelectedIndex(itemIndex);
+				_selectItem(index, ev);
 			}
-			dispatchChangedSelection(ev);
 		} else {
 			if (ev->isControlKey() || ev->isCommandKey()) {
-				toggleItemSelection(itemIndex);
+				_toggleItem(index, ev);
 			} else {
-				setSelectedIndex(itemIndex);
+				_selectItem(index, ev);
 			}
-			dispatchChangedSelection(ev);
-			m_indexLastSelected = itemIndex;
+			m_indexLastSelected = index;
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ListBox, RightButtonClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(ListBox, RightButtonClickItem, (sl_uint64 index, UIEvent* ev), index, ev)
 
-	void ListBox::dispatchRightButtonClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(RightButtonClickItem, itemIndex, pos, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ListBox, DoubleClickItem, (sl_uint64 index, UIEvent* ev), index, ev)
 
-	SLIB_DEFINE_EVENT_HANDLER(ListBox, DoubleClickItem, sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
-
-	void ListBox::dispatchDoubleClickItem(sl_uint64 itemIndex, UIPoint& pos, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(DoubleClickItem, itemIndex, pos, ev)
-	}
-
-	SLIB_DEFINE_EVENT_HANDLER(ListBox, ChangedSelection, UIEvent* ev)
-
-	void ListBox::dispatchChangedSelection(UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ChangedSelection, ev)
-	}
+	SLIB_DEFINE_EVENT_HANDLER(ListBox, ChangeSelection, (UIEvent* ev), ev)
 
 	void ListBox::onDraw(Canvas* canvas)
 	{
-		sl_int64 countItems = m_countItems;
-		if (countItems <= 0) {
-			return;
-		}
+		ObjectLocker locker(this);
+
+		sl_uint64 nItems = m_nItems;
 		sl_int64 pos = (sl_int64)(getScrollY());
 		sl_int32 heightItem = m_heightItem;
 		sl_int64 iStart = pos / heightItem;
 		sl_int64 iEnd = (pos + getHeight()) / heightItem;
-		if (iEnd >= countItems) {
-			iEnd = countItems - 1;
+		if (iEnd >= (sl_int64)nItems) {
+			iEnd = nItems - 1;
 		}
 
 		sl_reg n = (sl_reg)(iEnd - iStart);
@@ -545,7 +550,10 @@ namespace slib
 		rcItem.left = 0;
 		rcItem.right = getWidth();
 		for (sl_reg i = 0; i <= n; i++) {
-			dispatchDrawItem(iStart + i, canvas, rcItem);
+			sl_int64 index = iStart + i;
+			if (index >= 0) {
+				invokeDrawItem(index, canvas, rcItem);
+			}
 			rcItem.top = rcItem.bottom;
 			rcItem.bottom += heightItem;
 		}
@@ -561,7 +569,7 @@ namespace slib
 				UIPoint pt = ev->getPoint();
 				sl_int64 pos = (sl_int64)(getScrollY()) + pt.y;
 				pt.y = (sl_ui_pos)(pos - index * m_heightItem);
-				dispatchClickItem(index, pt, ev);
+				invokeClickItem(index, ev);
 			}
 		}
 	}
@@ -578,9 +586,9 @@ namespace slib
 				sl_int64 pos = (sl_int64)(getScrollY()) + pt.y;
 				pt.y = (sl_ui_pos)(pos - index * m_heightItem);
 				if (action == UIAction::RightButtonDown) {
-					dispatchRightButtonClickItem(index, pt, ev);
+					invokeRightButtonClickItem(index, ev);
 				} else if (action == UIAction::LeftButtonDoubleClick) {
-					dispatchDoubleClickItem(index, pt, ev);
+					invokeDoubleClickItem(index, ev);
 				}
 				if (m_indexHover != index) {
 					m_indexHover = index;
@@ -604,7 +612,7 @@ namespace slib
 	{
 		View::onKeyEvent(ev);
 
-		sl_int64 nTotal = m_countItems;
+		sl_uint64 nTotal = m_nItems;
 		if (nTotal <= 0) {
 			return;
 		}
@@ -617,8 +625,7 @@ namespace slib
 
 				sl_int64 index = m_indexFocused;
 				if (index >= 0) {
-					UIPoint pt(0, 0);
-					dispatchClickItem(index, pt, ev);
+					invokeClickItem(index, ev);
 				}
 
 			} else if (key == Keycode::Up || key == Keycode::Down || key == Keycode::Home || key == Keycode::End) {
@@ -635,7 +642,7 @@ namespace slib
 					}
 				} else if (key == Keycode::Down) {
 					if (index >= 0) {
-						if (index < nTotal - 1) {
+						if (index < (sl_int64)nTotal - 1) {
 							index++;
 						} else {
 							return;
@@ -667,14 +674,12 @@ namespace slib
 				}
 
 				if (ev->isShiftKey()) {
-					UIPoint pt(0, 0);
-					dispatchClickItem(index, pt, ev);
+					invokeClickItem(index, ev);
 				} else {
 					if (ev->isControlKey() || ev->isCommandKey()) {
 						invalidate();
 					} else {
-						UIPoint pt(0, 0);
-						dispatchClickItem(index, pt, ev);
+						invokeClickItem(index, ev);
 					}
 				}
 

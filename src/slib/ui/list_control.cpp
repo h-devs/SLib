@@ -471,7 +471,7 @@ namespace slib
 			invokeDoubleClickRow(row, ev.get());
 		}
 	}
-	
+
 	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListControl, ClickHeader, (sl_uint32 col, UIEvent* ev), col, ev)
 
 	void ListControl::onClickHeader(sl_uint32 column, UIEvent* ev)
