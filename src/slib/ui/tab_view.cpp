@@ -238,8 +238,8 @@ namespace slib
 		if (index >= m_items.getCount()) {
 			return;
 		}
-		sl_uint32 oldIndex = m_indexSelected;
-		if (oldIndex == index) {
+		sl_uint32 former = m_indexSelected;
+		if (former == index) {
 			return;
 		}
 		m_indexSelected = index;
@@ -266,7 +266,7 @@ namespace slib
 			invalidate(mode);
 		}
 		locker.unlock();
-		invokeSelectTab(index, oldIndex, ev);
+		invokeSelectTab(index, former, ev);
 	}
 
 	UISize TabView::getContentViewSize()

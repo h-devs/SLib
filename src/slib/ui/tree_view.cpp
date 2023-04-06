@@ -1321,15 +1321,15 @@ namespace slib
 	void TreeView::_selectItem(const Ref<TreeViewItem>& item, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker locker(this);
-		Ref<TreeViewItem> old = m_itemSelected;
+		Ref<TreeViewItem> former = m_itemSelected;
 		if (old == item) {
 			return;
 		}
 		m_itemSelected = item;
 		invalidate(mode);
 		locker.unlock();
-		invokeSelectItem(item.get(), old.get(), ev);
-		(item->getOnSelect())(item.get(), old.get(), ev);
+		invokeSelectItem(item.get(), former.get(), ev);
+		(item->getOnSelect())(item.get(), former.get(), ev);
 	}
 
 	void TreeView::_clickItem(const Ref<TreeViewItem>& item, UIEvent* ev)

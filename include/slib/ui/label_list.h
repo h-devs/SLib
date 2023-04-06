@@ -193,7 +193,7 @@ public: \
 		void invalidateLabelAppearance(UIUpdateMode mode);
 
 	public:
-		void onDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem) override;
+		void onDrawItem(sl_uint64 itemIndex, Canvas* canvas, const UIRect& rcItem) override;
 
 	protected:
 		void onUpdateFont(const Ref<Font>& font) override;

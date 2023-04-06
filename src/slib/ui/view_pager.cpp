@@ -115,21 +115,21 @@ namespace slib
 			}
 		}
 
-		sl_uint64 oldIndex = m_indexCurrent;
+		sl_uint64 former = m_indexCurrent;
 
 		do {
 			if (!SLIB_UI_UPDATE_MODE_IS_REDRAW(mode)) {
 				break;
 			}
 			if (m_cache.isEmpty()) {
-				if (oldIndex != index) {
+				if (former != index) {
 					m_indexCurrent = index;
 				}
 				_reloadPages();
 				break;
 			}
 			if (!SLIB_UI_UPDATE_MODE_IS_ANIMATE(mode)) {
-				if (oldIndex == index) {
+				if (former == index) {
 					if (m_offsetPages != 0) {
 						_relocatePages();
 					}
@@ -139,39 +139,39 @@ namespace slib
 				}
 				break;
 			}
-			if (index != oldIndex) {
+			if (index != former) {
 				if (m_flagLoop) {
 					sl_uint64 m = 0;
 					sl_ui_len k = 0;
 					if (m_offsetPages < 0) {
-						if (index > oldIndex) {
-							m = index - oldIndex;
+						if (index > former) {
+							m = index - former;
 						} else {
-							m = index + n - oldIndex;
+							m = index + n - former;
 						}
 						k = getWidth();
 					} else if (m_offsetPages > 0) {
-						if (index < oldIndex) {
-							m = oldIndex - index;
+						if (index < former) {
+							m = former - index;
 						} else {
-							m = oldIndex + n - index;
+							m = former + n - index;
 						}
 						k = - getWidth();
 					} else {
-						if (index > oldIndex) {
-							if (!oldIndex && index + 1 == n) {
+						if (index > former) {
+							if (!former && index + 1 == n) {
 								m = 1;
 								k = - getWidth();
 							} else {
-								m = index - oldIndex;
+								m = index - former;
 								k = getWidth();
 							}
 						} else {
-							if (oldIndex + 1 == n && index == 0) {
+							if (former + 1 == n && index == 0) {
 								m = 1;
 								k = getWidth();
 							} else {
-								m = oldIndex - index;
+								m = former - index;
 								k = - getWidth();
 							}
 						}
@@ -183,15 +183,15 @@ namespace slib
 					}
 					m_offsetPages += k;
 				} else {
-					if (index > oldIndex) {
-						if (index > oldIndex + 1) {
+					if (index > former) {
+						if (index > former + 1) {
 							m_indexCurrent = index;
 							_reloadPages();
 							break;
 						}
 						m_offsetPages += getWidth();
 					} else {
-						if (oldIndex > index + 1) {
+						if (former > index + 1) {
 							m_indexCurrent = index;
 							_reloadPages();
 							break;
@@ -207,10 +207,10 @@ namespace slib
 			}
 		} while (0);
 
-		if (oldIndex != index) {
+		if (former != index) {
 			m_indexCurrent = index;
 			lock.unlock();
-			invokeSelectPage(index, oldIndex, ev);
+			invokeSelectPage(index, former, ev);
 		}
 	}
 

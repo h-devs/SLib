@@ -178,16 +178,11 @@ namespace slib
 		return m_cell->measureSize();
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(LabelView, ClickLink, const String& href, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(LabelView, ClickLink, (const String& href, UIEvent* ev), href, ev)
 
 	void LabelView::onClickLink(const String& href, UIEvent *ev)
 	{
 		UI::openUrl(href);
-	}
-
-	void LabelView::invokeClickLink(const String& href, UIEvent *ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickLink, href, ev)
 	}
 
 	void LabelView::onDraw(Canvas* canvas)

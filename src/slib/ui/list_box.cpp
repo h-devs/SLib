@@ -321,13 +321,13 @@ namespace slib
 		if (index < 0) {
 			index = -1;
 		}
-		sl_int64 oldIndex = m_indexSelected;
-		if (oldIndex == index) {
+		sl_int64 former = m_indexSelected;
+		if (former == index) {
 			return;
 		}
 		m_indexSelected = index;
 		locker->unlock();
-		invokeSelectItem(index, oldIndex, ev);
+		invokeSelectItem(index, former, ev);
 		invokeChangeSelection(ev);
 	}
 

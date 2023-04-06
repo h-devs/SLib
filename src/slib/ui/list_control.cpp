@@ -425,13 +425,13 @@ namespace slib
 	void ListControl::_selectRow(IListControlInstance* instance, sl_uint32 row, UIEvent* ev, UIUpdateMode mode)
 	{
 		ObjectLocker locker(this);
-		sl_int32 oldRow = m_selectedRow;
-		if (oldRow == row) {
+		sl_int32 former = m_selectedRow;
+		if (former == row) {
 			return;
 		}
-		oldRow = row;
+		m_selectedRow = row;
 		locker.unlock();
-		invokeSelectRow(row, oldRow, ev);
+		invokeSelectRow(row, former, ev);
 	}
 
 	void ListControl::_onSelectRow_NW(IListControlInstance* instance, sl_uint32 row)

@@ -355,32 +355,37 @@ namespace slib
 		ViewState getCellState(Cell* cell);
 
 	public:
-		class CellEventParam
+		class Location
 		{
 		public:
-			sl_uint32 row;
-			sl_uint32 column;
-			RecordIndex record;
-			Variant recordData;
+			sl_int64 record;
+			sl_int32 row;
+			sl_int32 column;
 
 		public:
-			CellEventParam();
-			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(CellEventParam)
+			Location();
+			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Location)
+
+		public:
+			sl_bool operator==(const Location& other) const;
+
+		public:
+			sl_bool match(Cell* cell);
 		};
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickBody, UIEvent*, CellEventParam&)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickHeader, UIEvent*, CellEventParam&)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickFooter, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickBody, const Location&, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickHeader, const Location&, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, ClickFooter, const Location&, UIEvent*)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickBody, UIEvent*, CellEventParam&)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickHeader, UIEvent*, CellEventParam&)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickFooter, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickBody, const Location&, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickHeader, const Location&, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, RightButtonClickFooter, const Location&, UIEvent*)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickBody, UIEvent*, CellEventParam&)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickHeader, UIEvent*, CellEventParam&)
-		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickFooter, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickBody, const Location&, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickHeader, const Location&, UIEvent*)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, DoubleClickFooter, const Location&, UIEvent*)
 
-		SLIB_DECLARE_EVENT_HANDLER(GridView, SelectCell, UIEvent*, CellEventParam&)
+		SLIB_DECLARE_EVENT_HANDLER(GridView, Select, const Location& location, const Location& former, UIEvent*)
 
 	public:
 		void onDraw(Canvas* canvas) override;
@@ -442,21 +447,6 @@ namespace slib
 			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Row)
 		};
 
-		class Location
-		{
-		public:
-			sl_int64 record;
-			sl_int32 row;
-			sl_int32 column;
-
-		public:
-			Location();
-			SLIB_DECLARE_CLASS_DEFAULT_MEMBERS(Location)
-
-		public:
-			sl_bool match(Cell* cell);
-		};
-
 		sl_ui_len _getBodyRowHeight(Row& row);
 		sl_ui_len _getHeaderRowHeight(Row& row);
 		sl_ui_len _getFooterRowHeight(Row& row);
@@ -471,6 +461,8 @@ namespace slib
 		sl_uint32 _getFooterRowAt(sl_ui_pos y);
 
 		RecordIndex _getRowAt(sl_int32* outRow, sl_ui_pos y, sl_bool flagRecord, sl_bool flagHeader, sl_bool flagFooter);
+
+		void _select(const Location& location, UIEvent* ev, UIUpdateMode mode = UIUpdateMode::Redraw);
 
 		void _drawRecords(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
 		void _drawHeader(Canvas* canvas, sl_ui_len top, sl_ui_len bottom, Column* columns, sl_uint32 nColumns, sl_uint32 nLeft, sl_uint32 nRight, sl_uint32 iStartMidColumn, sl_ui_pos xStartMidColumn);
@@ -490,7 +482,7 @@ namespace slib
 
 		Cell* _getFixedCell(FixedCellProp& prop, RecordIndex iRecord, sl_uint32 iRow, sl_uint32 iCol);
 
-		sl_bool _prepareMouseEventParam(UIEvent* ev, CellEventParam& param);
+		sl_bool _prepareMouseEventParam(UIEvent* ev, Location& location);
 
 		void _invalidateBodyCells();
 		void _invalidateBodyCells(Column& column, sl_uint32 iCol);

@@ -141,16 +141,16 @@ namespace slib
 
 	void LabelList::notifyInsertItem(sl_int64 index, const String& title, UIUpdateMode mode)
 	{
-		m_countItems++;
+		m_nItems++;
 		invalidate(mode);
 	}
 
 	void LabelList::notifyRemoveItem(sl_int64 index, UIUpdateMode mode)
 	{
-		sl_uint64 n = m_countItems;
+		sl_uint64 n = m_nItems;
 		if (n > 0) {
 			n--;
-			m_countItems = n;
+			m_nItems = n;
 			invalidate(mode);
 		}
 	}
@@ -160,7 +160,7 @@ namespace slib
 		invalidate(mode);
 	}
 
-	void LabelList::onDrawItem(sl_uint64 itemIndex, Canvas* canvas, UIRect& rcItem)
+	void LabelList::onDrawItem(sl_uint64 itemIndex, Canvas* canvas, const UIRect& rcItem)
 	{
 		ListBox::onDrawItem(itemIndex, canvas, rcItem);
 

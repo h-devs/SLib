@@ -535,8 +535,8 @@ namespace slib
 	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode) \
 	{ \
 		ObjectLocker locker(this); \
-		INDEX_TYPE oldIndex = index; \
-		if (oldIndex == index) { \
+		INDEX_TYPE former = index; \
+		if (former == index) { \
 			return; \
 		} \
 		m_indexSelected = index; \
@@ -545,7 +545,7 @@ namespace slib
 		} \
 		invalidate(mode); \
 		locker.unlock(); \
-		invokeSelectItem(index, oldIndex, ev); \
+		invokeSelectItem(index, former, ev); \
 	}
 
 #define SLIB_DEFINE_SINGLE_SELECTION_VIEW_INSTANCE_NOTIFY_FUNCTIONS(VIEW_CLASS, INDEX_TYPE, INSTANCE_CLASS, INSTANCE_GETTER) \
@@ -554,8 +554,8 @@ namespace slib
 	void VIEW_CLASS::notifySelectItem(INDEX_TYPE index, UIEvent* ev, UIUpdateMode mode) \
 	{ \
 		ObjectLocker locker(this); \
-		INDEX_TYPE oldIndex = index; \
-		if (oldIndex == index) { \
+		INDEX_TYPE former = index; \
+		if (former == index) { \
 			return; \
 		} \
 		m_indexSelected = index; \
@@ -571,7 +571,7 @@ namespace slib
 			invalidate(mode); \
 		} \
 		locker.unlock(); \
-		invokeSelectItem(index, oldIndex, ev); \
+		invokeSelectItem(index, former, ev); \
 	}
 
 #endif

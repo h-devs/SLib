@@ -90,8 +90,8 @@ namespace slib
 			dispatchChange(text, ev);
 		}
 		ObjectLocker locker(this);
-		sl_int32 oldIndex = index;
-		if (oldIndex == index) {
+		sl_int32 former = index;
+		if (former == index) {
 			return;
 		}
 		m_indexSelected = index;
@@ -108,7 +108,7 @@ namespace slib
 			invalidate(mode);
 		}
 		locker.unlock();
-		invokeSelectItem(index, oldIndex, ev);
+		invokeSelectItem(index, former, ev);
 	}
 
 	void ComboBox::onUpdateLayout()

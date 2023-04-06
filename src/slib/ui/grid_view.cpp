@@ -39,12 +39,6 @@ namespace slib
 	{
 	}
 
-	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellEventParam)
-
-	GridView::CellEventParam::CellEventParam(): row(0), column(0), record(0)
-	{
-	}
-
 	SLIB_DEFINE_NESTED_CLASS_DEFAULT_MEMBERS(GridView, CellAttribute)
 
 	GridView::CellAttribute::CellAttribute(): multiLineMode(MultiLineMode::Single), ellipsizeMode(EllipsizeMode::None), lineCount(0), align(Alignment::MiddleCenter), colspan(1), rowspan(1), width(0), height(0)
@@ -229,6 +223,11 @@ namespace slib
 
 	GridView::Location::Location(): record(-1), row(-1), column(-1)
 	{
+	}
+
+	sl_bool GridView::Location::operator==(const Location& other) const
+	{
+		return row == other.row && column == other.column && record == other.record;
 	}
 
 	sl_bool GridView::Location::match(Cell* cell)
@@ -917,10 +916,11 @@ namespace slib
 
 	void GridView::selectCell(sl_uint32 row, sl_uint32 column, sl_uint64 record, UIUpdateMode mode)
 	{
-		m_locationSelected.record = record;
-		m_locationSelected.row = row;
-		m_locationSelected.column = column;
-		invalidate(mode);
+		Location location;
+		location.record = record;
+		location.row = row;
+		location.column = column;
+		_select(location, sl_null, mode);
 	}
 
 	void GridView::selectRecord(sl_uint64 record, UIUpdateMode mode)
@@ -940,10 +940,25 @@ namespace slib
 
 	void GridView::selectNone(UIUpdateMode mode)
 	{
-		m_locationSelected.row = -1;
-		m_locationSelected.column = -1;
-		m_locationSelected.record = -1;
+		selectCell(-1, -1, -1, mode);
+	}
+
+	void GridView::_select(const Location& location, UIEvent* ev, UIUpdateMode mode)
+	{
+		Location former = m_locationSelected;
+		if (former == location) {
+			return;
+		}
+		m_locationSelected = location;
 		invalidate(mode);
+
+		if (m_locationSelected.record != param.record || m_locationSelected.row != param.row || m_locationSelected.column != param.column) {
+			m_locationSelected.record = param.record;
+			m_locationSelected.row = param.row;
+			m_locationSelected.column = param.column;
+			invokeSelectCell(ev, param);
+		}
+
 	}
 
 	GridView::RecordIndex GridView::getRecordAt(sl_ui_pos y, sl_int32* outRow)
@@ -1182,28 +1197,15 @@ namespace slib
 		}
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(GridView, ClickBody, UIEvent*, GridView::CellEventParam&)
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(GridView, ClickBody, (const GridView::Location& location, UIEvent* ev), location, ev)
 
-	void GridView::dispatchClickBody(UIEvent* ev, CellEventParam& param)
+	void GridView::onClickBody(const Location& location, UIEvent* ev)
 	{
-		SLIB_INVOKE_EVENT_HANDLER(ClickBody, ev, param)
-		if (ev->is    PreventedDefault()) {
-			return;
-		}
-		if (m_locationSelected.record != param.record || m_locationSelected.row != param.row || m_locationSelected.column != param.column) {
-			m_locationSelected.record = param.record;
-			m_locationSelected.row = param.row;
-			m_locationSelected.column = param.column;
-			dispatchSelectCell(ev, param);
-		}
+		_select(location, ev);
 	}
 
 #define DEFINE_ON_CLICK(SECTION) \
-	SLIB_DEFINE_EVENT_HANDLER(GridView, Click##SECTION, UIEvent*, GridView::CellEventParam&) \
-	void GridView::dispatchClick##SECTION(UIEvent* ev, CellEventParam& param) \
-	{ \
-		SLIB_INVOKE_EVENT_HANDLER(Click##SECTION, ev, param) \
-	}
+	SLIB_DEFINE_EVENT_HANDLER(GridView, Click##SECTION, (UIEvent* ev, GridView::CellEventParam& param), ev, param) \
 
 	DEFINE_ON_CLICK(Header)
 	DEFINE_ON_CLICK(Footer)
