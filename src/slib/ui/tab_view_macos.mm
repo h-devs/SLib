@@ -134,6 +134,7 @@ namespace slib
 				}
 			}
 
+			using TabView::_onSelectTab_NW;
 		};
 
 		class TabViewInstance : public macOS_ViewInstance, public ITabViewInstance
@@ -224,7 +225,7 @@ namespace slib
 			{
 				Ref<TabViewHelper> helper = getHelper();
 				if (helper.isNotNull()) {
-					helper->notifySelectTab(this, (sl_uint32)([tv indexOfTabViewItem:[tv selectedTabViewItem]]));
+					helper->_onSelectTab_NW(this, (sl_uint32)([tv indexOfTabViewItem:[tv selectedTabViewItem]]));
 				}
 			}
 

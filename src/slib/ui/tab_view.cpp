@@ -266,7 +266,7 @@ namespace slib
 			invalidate(mode);
 		}
 		locker.unlock();
-		dispatchSelectTab(index, oldIndex, ev);
+		invokeSelectTab(index, oldIndex, ev);
 	}
 
 	UISize TabView::getContentViewSize()
@@ -658,20 +658,14 @@ namespace slib
 		return -1;
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, sl_uint32 index, sl_uint32 former, UIEvent* ev)
+	SLIB_DEFINE_EVENT_HANDLER(TabView, SelectTab, (sl_uint32 index, sl_uint32 former, UIEvent* ev), index, former, ev)
 
-	void TabView::dispatchSelectTab(sl_uint32 index, sl_uint32 former, UIEvent* ev)
-	{
-		SLIB_INVOKE_EVENT_HANDLER(SelectTab, index, former, ev)
-	}
-
-	void TabView::notifySelectTab(ITabViewInstance* instance, sl_uint32 index)
+	void TabView::_onSelectTab_NW(ITabViewInstance* instance, sl_uint32 index)
 	{
 		Ref<UIEvent> ev = UIEvent::createUnknown(Time::now());
-		if (ev.isNull()) {
-			return;
+		if (ev.isNotNull()) {
+			_selectTab(instance, index, ev.get(), UIUpdateMode::Redraw);
 		}
-		_selectTab(instance, index, ev.get(), UIUpdateMode::Redraw);
 	}
 
 	void TabView::onClickEvent(UIEvent* ev)

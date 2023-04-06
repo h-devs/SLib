@@ -36,7 +36,7 @@ namespace slib
 		setVerticalScrolling(sl_true, UIUpdateMode::Init);
 		setFocusable(sl_true);
 
-		m_countItems = 0;
+		m_nItems = 0;
 		m_heightItem = 100;
 		m_indexHover = -1;
 
@@ -52,7 +52,7 @@ namespace slib
 
 	sl_uint64 ListBox::getItemCount()
 	{
-		return m_countItems;
+		return m_nItems;
 	}
 
 	void ListBox::setItemCount(sl_uint64 _count, UIUpdateMode mode)
@@ -61,10 +61,11 @@ namespace slib
 		if (count < 0) {
 			count = 0;
 		}
-		if (m_countItems == count) {
+		ObjectLocker locker(this);
+		if (m_nItems == count) {
 			return;
 		}
-		m_countItems = count;
+		m_nItems = count;
 		setContentHeight((sl_scroll_pos)(count * m_heightItem), mode);
 	}
 
@@ -78,11 +79,12 @@ namespace slib
 		if (height < 1) {
 			return;
 		}
+		ObjectLocker locker(this);
 		if (m_heightItem == height) {
 			return;
 		}
 		m_heightItem = height;
-		setContentHeight((sl_scroll_pos)(height * m_countItems), mode);
+		setContentHeight((sl_scroll_pos)(height * m_nItems), mode);
 	}
 
 	sl_bool ListBox::isMultipleSelection()
@@ -92,49 +94,40 @@ namespace slib
 
 	void ListBox::setMultipleSelection(sl_bool flag, UIUpdateMode mode)
 	{
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection != flag) {
 			m_flagMultipleSelection = flag;
-			if (flag) {
-				m_indexSelected = -1;
-			} else {
-				m_mapSelection.removeAll();
-			}
+			m_indexSelected = -1;
+			m_mapSelection.removeAll_NoLock();
 			invalidate(mode);
 		}
 	}
 
-	sl_bool ListBox::isSelectedIndex(sl_int64 index)
+	sl_bool ListBox::isSelectedIndex(sl_uint64 index)
 	{
-		if (index < 0) {
-			return sl_false;
-		}
-		if (index >= m_countItems) {
+		ObjectLocker locker(this);
+		if (index >= m_nItems) {
 			return sl_false;
 		}
 		if (m_flagMultipleSelection) {
-			return m_mapSelection.find(index);
+			return m_mapSelection.find_NoLock(index) != sl_null;
 		} else {
-			return m_indexSelected == index;
+			return m_indexSelected == (sl_int64)index;
 		}
 	}
 
 	sl_int64 ListBox::getSelectedIndex()
 	{
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapSelection);
 			auto node = m_mapSelection.getLastNode();
 			if (node) {
 				return node->key;
 			}
+			return -1;
 		} else {
-			sl_int64 index = m_indexSelected;
-			if (index >= 0) {
-				if (index < m_countItems) {
-					return index;
-				}
-			}
+			return m_indexSelected;
 		}
-		return -1;
 	}
 
 	void ListBox::setSelectedIndex(sl_int64 index, UIUpdateMode mode)
@@ -143,32 +136,31 @@ namespace slib
 			unselectAll(mode);
 			return;
 		}
-		if (index >= m_countItems) {
-			return;
-		}
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapSelection);
+			if (index >= (sl_int64)m_nItems) {
+				return;
+			}
+			if (m_mapSelection.getCount() == 1 && m_mapSelection.getFirstNode()->key == index) {
+				return;
+			}
 			m_mapSelection.removeAll_NoLock();
 			m_mapSelection.put_NoLock(index, sl_true);
-			invalidate(mode);
+			_changeSelection(sl_null, mode, &locker);
 		} else {
-			if (m_indexSelected != index) {
-				m_indexSelected = index;
-				invalidate(mode);
-			}
+			_select(index, sl_null, mode, &locker);
 		}
 	}
 
 	List<sl_uint64> ListBox::getSelectedIndices()
 	{
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
-			return m_mapSelection.getAllKeys();
+			return m_mapSelection.getAllKeys_NoLock();
 		} else {
 			sl_int64 index = m_indexSelected;
-			if (index >= 0) {
-				if (index < m_countItems) {
-					return List<sl_uint64>::createFromElement(index);
-				}
+			if (index >= 0 && index < (sl_int64)m_nItems) {
+				return List<sl_uint64>::createFromElement(index);
 			}
 			return sl_null;
 		}
@@ -178,52 +170,45 @@ namespace slib
 	{
 		ListLocker<sl_uint64> indices(_indices);
 		if (!(indices.count)) {
+			indices.unlock();
 			unselectAll(mode);
 			return;
 		}
-		sl_uint64 nTotal = m_countItems;
-		if (!nTotal) {
-			return;
-		}
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
-			ObjectLocker locker(&m_mapSelection);
+			sl_uint64 nTotal = m_nItems;
+			if (!nTotal) {
+				return;
+			}
 			m_mapSelection.removeAll_NoLock();
 			for (sl_size i = 0; i < indices.count; i++) {
 				if (indices[i] < nTotal) {
 					m_mapSelection.put_NoLock(indices[i], sl_true);
 				}
 			}
-			invalidate(mode);
+			indices.unlock();
+			_changeSelection(sl_null, mode, &locker);
 		} else {
-			sl_int64 index = indices[indices.count - 1];
-			if ((sl_uint64)index < nTotal) {
-				if (m_indexSelected != index) {
-					m_indexSelected = index;
-					invalidate(mode);
-				}
-			}
+			sl_uint64 index = indices[indices.count - 1];
+			indices.unlock();
+			_select(index, sl_null, mode, &locker);
 		}
 	}
 
 	void ListBox::selectItem(sl_int64 index, UIUpdateMode mode)
 	{
-		if (index < 0) {
-			return;
-		}
-		if (index >= m_countItems) {
-			return;
-		}
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
+			if (index < 0 || index >= (sl_int64)m_nItems) {
+				return;
+			}
 			sl_bool flagInsert = sl_false;
 			m_mapSelection.put_NoLock(index, sl_true, &flagInsert);
 			if (flagInsert) {
-				invalidate(mode);
+				_changeSelection(sl_null, mode, &locker);
 			}
 		} else {
-			if (m_indexSelected != index) {
-				m_indexSelected = index;
-				invalidate(mode);
-			}
+			_select(index, sl_null, mode, &locker);
 		}
 	}
 
@@ -232,14 +217,14 @@ namespace slib
 		if (index < 0) {
 			return;
 		}
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
-			if (m_mapSelection.remove(index)) {
-				invalidate(mode);
+			if (m_mapSelection.remove_NoLock(index)) {
+				_changeSelection(sl_null, mode, &locker);
 			}
 		} else {
 			if (m_indexSelected == index) {
-				m_indexSelected = -1;
-				invalidate(mode);
+				_select(-1, sl_null, mode, &locker);
 			}
 		}
 	}
@@ -249,29 +234,25 @@ namespace slib
 		if (index < 0) {
 			return;
 		}
-		if (index >= m_countItems) {
-			return;
-		}
+		ObjectLocker locker(this);
 		if (m_flagMultipleSelection) {
-			ObjectLocker lock(&m_mapSelection);
-			auto node = m_mapSelection.find_NoLock(index);
-			if (node) {
-				m_mapSelection.removeAt(node);
-				invalidate(mode);
+			if (index >= (sl_int64)m_nItems) {
+				return;
+			}
+			if (m_mapSelection.remove_NoLock(index)) {
+				_changeSelection(sl_null, mode, &locker);
 			} else {
 				sl_bool flagInsert = sl_false;
 				m_mapSelection.put_NoLock(index, sl_true, &flagInsert);
 				if (flagInsert) {
-					invalidate(mode);
+					_changeSelection(sl_null, mode, &locker);
 				}
 			}
 		} else {
-			if (m_indexSelected != index) {
-				m_indexSelected = index;
-				invalidate(mode);
+			if (m_indexSelected == index) {
+				_select(-1, sl_null, mode, &locker);
 			} else {
-				m_indexSelected = -1;
-				invalidate(mode);
+				_select(index, sl_null, mode, &locker);
 			}
 		}
 	}

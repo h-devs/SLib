@@ -213,8 +213,7 @@ namespace slib
 			sl_uint32 n;
 			if (block == blockEnd) {
 				n = (sl_uint32)(offsetEnd & 63);
-			}
-			else {
+			} else {
 				n = 64;
 			}
 			if (flagFirstBlock) {
@@ -224,8 +223,7 @@ namespace slib
 				for (sl_uint32 i = 0; i < n; i++) {
 					dst[i] = src[i] ^ h[s + i];
 				}
-			}
-			else {
+			} else {
 				for (sl_uint32 i = 0; i < n; i++) {
 					dst[i] = src[i] ^ h[i];
 				}

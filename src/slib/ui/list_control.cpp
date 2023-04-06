@@ -420,15 +420,17 @@ namespace slib
 		refreshItems(mode);
 	}
 
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, (sl_uint32 row, sl_uint32 former, UIEvent* ev /* nullable */), row, former, ev)
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, SelectRow, (sl_uint32 row, sl_int32 former, UIEvent* ev /* nullable */), row, former, ev)
 
 	void ListControl::_selectRow(IListControlInstance* instance, sl_uint32 row, UIEvent* ev, UIUpdateMode mode)
 	{
-		sl_uint32 oldRow = m_selectedRow;
+		ObjectLocker locker(this);
+		sl_int32 oldRow = m_selectedRow;
 		if (oldRow == row) {
 			return;
 		}
 		oldRow = row;
+		locker.unlock();
 		invokeSelectRow(row, oldRow, ev);
 	}
 
@@ -442,33 +444,56 @@ namespace slib
 
 	SLIB_DEFINE_EVENT_HANDLER(ListControl, ClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
 
-	void _onClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
-
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, RightButtonClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
-
-	void _onRightButtonClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
-
-	SLIB_DEFINE_EVENT_HANDLER(ListControl, DoubleClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
-
-	void _onDoubleClickRow_NW(IListControlInstance* instance, sl_uint32 row, const UIPoint& pt);
-
-	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListControl, ClickHeader, (sl_uint32 col, UIEvent* ev), col, ev)
-
-	void _onClickHeader_NW(IListControlInstance* instance, sl_uint32 column, const UIPoint& pt);
-
-	void ListControl::onClickHeader(sl_uint32 col, UIEvent* ev)
+	void ListControl::_onClickRow_NW(sl_uint32 row, const UIPoint& pt)
 	{
-		if (m_flagSortingOnClickHeader) {
-			if (m_sortedColumn == col) {
-				m_flagSortedAsc = !m_flagSortedAsc;
-			} else {
-				m_sortedColumn = col;
-				m_flagSortedAsc = sl_true;
-			}
-			sort(col, m_flagSortedAsc);
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDown, pt.x, pt.y, Time::now());
+		if (ev.isNotNull()) {
+			invokeClickRow(row, ev.get());
 		}
 	}
 
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, RightButtonClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
+
+	void ListControl::_onRightButtonClickRow_NW(sl_uint32 row, const UIPoint& pt)
+	{
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::RightButtonDown, pt.x, pt.y, Time::now());
+		if (ev.isNotNull()) {
+			invokeRightButtonClickRow(row, ev.get());
+		}
+	}
+
+	SLIB_DEFINE_EVENT_HANDLER(ListControl, DoubleClickRow, (sl_uint32 row, UIEvent* ev), row, ev)
+
+	void ListControl::_onDoubleClickRow_NW(sl_uint32 row, const UIPoint& pt)
+	{
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDoubleClick, pt.x, pt.y, Time::now());
+		if (ev.isNotNull()) {
+			invokeDoubleClickRow(row, ev.get());
+		}
+	}
+	
+	SLIB_DEFINE_EVENT_HANDLER_WITHOUT_ON(ListControl, ClickHeader, (sl_uint32 col, UIEvent* ev), col, ev)
+
+	void ListControl::onClickHeader(sl_uint32 column, UIEvent* ev)
+	{
+		if (m_flagSortingOnClickHeader) {
+			if (m_sortedColumn == column) {
+				m_flagSortedAsc = !m_flagSortedAsc;
+			} else {
+				m_sortedColumn = column;
+				m_flagSortedAsc = sl_true;
+			}
+			sort(column, m_flagSortedAsc);
+		}
+	}
+
+	void ListControl::_onClickHeader_NW(sl_uint32 column, const UIPoint& pt)
+	{
+		Ref<UIEvent> ev = UIEvent::createMouseEvent(UIAction::LeftButtonDown, pt.x, pt.y, Time::now());
+		if (ev.isNotNull()) {
+			invokeClickHeader(column, ev.get());
+		}
+	}
 
 #if !HAS_NATIVE_WIDGET_IMPL
 	Ref<ViewInstance> ListControl::createNativeWidget(ViewInstance* parent)

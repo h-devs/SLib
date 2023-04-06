@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2008-2018 SLIBIO <https://github.com/SLIBIO>
+ *   Copyright (c) 2008-2023 SLIBIO <https://github.com/SLIBIO>
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -137,7 +137,9 @@ namespace slib
 			}
 
 			using ListControl::_onSelectRow_NW;
-
+			using ListControl::_onClickRow_NW;
+			using ListControl::_onRightButtonClickRow_NW;
+			using ListControl::_onDoubleClickRow_NW;
 		};
 
 		class ListControlInstance : public macOS_ViewInstance, public IListControlInstance
@@ -253,6 +255,7 @@ namespace slib
 			{
 				Ref<ListControlHelper> helper = getHelper();
 				if (helper.isNotNull()) {
+					NSInteger indexRowBefore = [tv selectedRow];
 					NSPoint ptWindow = [ev locationInWindow];
 					NSPoint ptView = [tv convertPoint:ptWindow fromView:nil];
 					NSInteger indexRow = [tv rowAtPoint:ptView];
@@ -261,9 +264,9 @@ namespace slib
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
 						NSInteger clicks = [ev clickCount];
 						if (clicks == 1) {
-							helper->invokeClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+							helper->_onClickRow_NW((sl_uint32)(indexRow), UIPointF(x, y));
 						} else if (clicks == 2) {
-							helper->invokeDoubleClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+							helper->_onDoubleClickRow_NW((sl_uint32)(indexRow), UIPointF(x, y));
 						}
 					}
 				}
@@ -279,7 +282,7 @@ namespace slib
 					if (indexRow >= 0) {
 						sl_ui_posf x = (sl_ui_posf)(ptView.x);
 						sl_ui_posf y = (sl_ui_posf)(ptView.y);
-						helper->invokeRightButtonClickRow((sl_uint32)(indexRow), UIPointF(x, y));
+						helper->_onRightButtonClickRow_NW((sl_uint32)(indexRow), UIPointF(x, y));
 					}
 				}
 			}
